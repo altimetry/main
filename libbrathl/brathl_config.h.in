@@ -1,0 +1,58 @@
+#ifndef _brathl_config_h_
+#define _brathl_config_h_
+
+#cmakedefine BRAT_VERSION             "${BRAT_VERSION}"
+
+// -------------------------------
+// Result check for various functions...
+// -------------------------------
+
+#cmakedefine HAVE_SNPRINTF              ${HAVE_SNPRINTF}
+#cmakedefine HAVE_USCORE_SNPRINTF       ${HAVE_USCORE_SNPRINTF}
+#cmakedefine HAVE_VSNPRINTF             ${HAVE_VSNPRINTF}
+#cmakedefine HAVE_USCORE_VSNPRINTF      ${HAVE_USCORE_VSNPRINTF}
+#cmakedefine HAVE_STRCASECMP            ${HAVE_STRCASECMP}
+#cmakedefine HAVE_USCORE_STRICMP        ${HAVE_USCORE_STRICMP}
+#cmakedefine HAVE_ISINF                 ${HAVE_ISINF}
+#cmakedefine HAVE_FPCLASS               ${HAVE_FPCLASS}
+#cmakedefine HAVE_ISNAN                 ${HAVE_ISNAN}
+#cmakedefine HAVE_USCORE_ISNAN          ${HAVE_USCORE_ISNAN}
+#cmakedefine HAVE_FULLPATH              ${HAVE_FULLPATH}
+#cmakedefine HAVE_REALPATH              ${HAVE_REALPATH}
+#cmakedefine HAVE_DIRNAME               ${HAVE_DIRNAME}
+#cmakedefine HAVE_BASENAME              ${HAVE_BASENAME}
+#cmakedefine HAVE_SPLITPATH             ${HAVE_SPLITPATH}
+#cmakedefine HAVE_STAT                  ${HAVE_STAT}
+
+
+// ---------------------------------
+// Result check for optional include files
+// ---------------------------------
+#cmakedefine HAVE_UNISTD_H              ${HAVE_UNISTD_H}
+#cmakedefine HAVE_INTTYPES_H            ${HAVE_INTTYPES_H}
+#cmakedefine HAVE_STDINT_H              ${HAVE_STDINT_H}
+#cmakedefine HAVE_SYS_TYPES_H           ${HAVE_SYS_TYPES_H}
+#cmakedefine HAVE_SYS_STAT_H            ${HAVE_SYS_STAT_H}
+#cmakedefine HAVE_INTTYPES_H            ${HAVE_INTTYPES_H}
+#cmakedefine HAVE_LIBGEN_H              ${HAVE_LIBGEN_H}
+
+
+
+#cmakedefine PATH_SEPARATOR             "${PATH_SEPARATOR}"
+#ifdef PATH_SEPARATOR
+#define PATH_SEPARATOR_CHAR             '${PATH_SEPARATOR}'
+#endif
+#cmakedefine PATH_LIST_SEPARATOR        "${PATH_LIST_SEPARATOR}"
+#ifdef PATH_LIST_SEPARATOR
+#define PATH_LIST_SEPARATOR_CHAR        '${PATH_LIST_SEPARATOR}'
+#endif
+#cmakedefine BRATHL_ENVVAR              "${BRATHL_ENVVAR}"
+#cmakedefine BRATHL_DEFDATADIR          "${BRATHL_DEFDATADIR}"
+#cmakedefine BRATHL_UNITFILE            "${BRATHL_UNITFILE}"
+
+
+#cmakedefine WORDS_BIGENDIAN
+
+
+
+#endif // !defined(_brathl_config_h_)

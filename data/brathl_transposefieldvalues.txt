@@ -1,0 +1,6 @@
+#  Transpose field values 
+#
+#     field 1 : productClass_productType
+#     field 2 : Name of the field which values have to be transposed (only 2 dim. field - n x m --> m x n) 
+#jason_ja1_sdr_2p samples_ku
+#jason_ja1_sdr_2p samples_c

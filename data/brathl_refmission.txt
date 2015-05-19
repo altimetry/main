@@ -1,0 +1,12 @@
+#  Satellite cycle/date conversion parameter file
+#
+#     field 1 : Name of the mission
+#     field 2 : cycle reference
+#     field 3 : pass reference
+#     field 4 : date reference in decimal julian day
+Jason-1 99 230 19987.9081795
+Topex/Poseidon 442 230 19987.9127535
+ERS2 66 598 18831.768334
+ERS1-A 15 1 15636.938955
+ERS1-B 42 108 16538.6732895
+ENVISAT 30 579 19986.106016

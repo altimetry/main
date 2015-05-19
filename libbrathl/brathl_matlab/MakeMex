@@ -1,0 +1,27 @@
+CC = c++
+MEX = mex
+
+PREFIX = /home/earith/dev/BRAT
+##exec_prefix = ${prefix}
+LIBDIR = ${PREFIX}/lib
+INCLUDE_FLAGS = -I${PREFIX}/include
+SOURCES_MATLAB = \
+	brathl_matlab.cpp \
+	mxCreateDoubleScalar.cpp \
+	mxCreateNumericMatrix.cpp	
+  
+###CPPFLAGS = -g -v -DHAVE_MXCREATEDOUBLESCALAR -DHAVE_MXCREATENUMERICMATRIX
+CPPFLAGS = -g -v  -DHAVE_MXCREATENUMERICMATRIX
+#LDFLAGS = -L/data/SUPPORT/PRODUITS/lib/LXI -L/data/SUPPORT/PRODUITS/lib/LXI -L/data/SUPPORT/PRODUITS/lib/LXI
+LDFLAGS= -L$(LIBDIR)
+
+LIBS = -lm -lstdc++ -lbrathl
+
+MEXFLAGS = -outdir $(LIBDIR) 
+
+all:
+	$(MEX) $(MEXFLAGS) $(CPPFLAGS) $(INCLUDE_FLAGS) -L$(LIBDIR) $(LIBS) $(SOURCES_MATLAB) 
+
+
+clean:
+	-rm -f brathl_matlab.o mxCreateDoubleScalar.o mxCreateNumericMatrix.o brathl_matlab.mexglx

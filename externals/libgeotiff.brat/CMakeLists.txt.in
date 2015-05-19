@@ -1,0 +1,104 @@
+# Top CMakeLists.txt file for building the libgeotiff library
+# using cmake instead of gnu configure.
+#
+# This file is tailored to BRAT purposes, and is not really
+# suitable for stand-alone libgeotiff compilation (although it
+# could serve as a good starting point.
+
+project(GEOTIFF)
+cmake_minimum_required(VERSION 2.6.1)
+
+set(GEOTIFF_SOURCES
+  libxtiff/xtiff.c
+  cpl_csv.c
+  cpl_csv_incode.c
+  cpl_serv.c
+  geo_extra.c
+  geo_free.c
+  geo_get.c
+  geo_names.c
+  geo_new.c
+  geo_normalize.c
+  geo_print.c
+  geo_set.c
+  geo_simpletags.c
+  geo_tiffp.c
+  geotiff_proj4.c
+  geo_trans.c
+  geo_write.c
+)
+
+set(GEOTIFF_INCLUDES
+  libxtiff/xtiffio.h
+  geotiff.h
+  geotiffio.h
+  geovalues.h
+  geonames.h
+  geokeys.h
+  geo_tiffp.h
+  geo_keyp.h
+  geo_normalize.h
+  cpl_serv.h
+  geo_simpletags.h
+  epsg_datum.inc
+  epsg_gcs.inc
+  epsg_pm.inc
+  epsg_units.inc
+  geo_ctrans.inc
+  epsg_ellipse.inc
+  epsg_pcs.inc
+  epsg_proj.inc
+  epsg_vertcs.inc
+  geokeys.inc
+)
+
+# Required packages
+#
+
+set(LIBGEOTIFF_INCLUDE_DIRS
+  ${CMAKE_CURRENT_BINARY_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/libxtiff/
+  ${TIFF_INCLUDE_DIR}
+  CACHE INTERNAL "Include directories for LIBGEOTIFF")
+
+set(LIBGEOTIFF_LIBRARIES
+  geotiff
+  ${TIFF_LIBRARIES}
+  ${JPEG_LIBRARIES}
+  CACHE INTERNAL "Libraries for LIBGEOTIFF")
+
+include_directories(
+  ${LIBGEOTIFF_INCLUDE_DIRS}
+)
+
+include(CheckFunctionExists)
+include(CheckSymbolExists)
+include(CheckIncludeFile)
+include(CheckTypeSize)
+
+macro(FIND_INCLUDE FILE VARIABLE)
+  check_include_file(${FILE} ${VARIABLE})
+  if(${VARIABLE})
+    set(INCLUDES ${INCLUDES} ${FILE})
+  endif(${VARIABLE})
+endmacro(FIND_INCLUDE)
+
+FIND_INCLUDE(stdlib.h		HAVE_STDLIB_H)
+FIND_INCLUDE(string.h		HAVE_STRING_H)
+FIND_INCLUDE(strings.h		HAVE_STRINGS_H)
+
+set(CMAKE_EXTRA_INCLUDE_FILES ${INCLUDES})
+
+include_directories(
+  ${LIBGEOTIFF_INCLUDE_DIRS}
+)
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/geo_config.h.cmake.in
+  ${CMAKE_CURRENT_BINARY_DIR}/geo_config.h)
+
+
+add_library(geotiff STATIC ${GEOTIFF_SOURCES})
+
+

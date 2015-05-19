@@ -1,0 +1,776 @@
+
+BRATHL-IDL API
+
+The BRAT-IDL API consists of just a handful of IDL 'named structures' and functions. 
+
+                                          ==================
+                                          'named structures':
+                                          ==================
+
+BRATHL_DATEYMDHMSM
+BRATHL_DATEDSM
+BRATHL_DATESECOND
+BRATHL_DATEJULIAN
+
+
+
+BRATHL_DATEYMDHMSM named structure
+------------------------------------
+
+This structure represents a YYYY-MM-DD HH:MN:SS:MS date structure :
+YEAR
+MONTH
+DAY
+HOUR
+MINUTE
+SECOND  
+MUSECOND
+
+Example :
+
+MyDate={BRATHL_DATEYMDHMSM}
+
+MyDate.YEAR=2003
+MyDate.MONTH=12
+MyDate.DAY=5
+MyDate.HOUR=18
+MyDate.MINUTE=0
+MyDate.SECOND=21
+MyDate.MUSECOND=1069
+
+
+
+BRATHL_DATEDSM named structure
+------------------------------------
+
+This structure represents a day/seconds/microseconds date structure:
+REFDATE                     reference date
+DAYS                        numbers of days
+SECONDS                     numbers of seconds
+MUSECONDS                   numbers of microseconds
+
+
+REFDATE is the reference date i.e :
+  0: 1950-01-01 00:00:00.0
+  1: 1958-01-01 00:00:00.0
+  2: 1985-01-01 00:00:00.0
+  3: 1990-01-01 00:00:00.0
+  4: 2000-01-01 00:00:00.0
+  5: user reference 1
+  6: user reference 2
+
+values of 5 and 6 allow the user to set two specifics reference date of his choice 
+(see BRATHL_SETREFUSER1 and BRATHL_SETREFUSER2 functions)
+
+: 
+Example :
+
+MyDate={BRATHL_DATEDSM}
+
+MyDate.REFDATE=3
+MyDate.DAYS=423
+MyDate.SECONDS=5
+MyDate.MUSECONDS=0
+
+BRATHL_DATESECONDS named structure
+------------------------------------
+
+This structure represents a decimal seconds date structure:
+REFDATE                     reference date - see :BRATHL_DATEDSM
+NBSECONDS                   decimal numbers of seconds (seconds.microseconds)
+: 
+Example :
+
+MyDate={BRATHL_DATESECONDS}
+
+MyDate.REFDATE=0
+MyDate.NBSECONDS=56236.0253
+
+
+BRATHL_DATEJULIAN named structure
+------------------------------------
+
+This structure represents a decimal julian date structure:
+REFDATE                     reference date - see :BRATHL_DATEDSM
+JULIAN                      decimal julian day
+: 
+Example :
+
+MyDate={BRATHL_DATEJULIAN}
+
+MyDate.REFDATE=0
+MyDate.JULIAN=123.569
+
+
+
+                                          ==================
+                                              Functions
+                                          ==================
+
+==================
+Date conversion/computation functions
+==================
+BRATHL_DAYOFYEAR
+
+BRATHL_DIFFDSM
+BRATHL_DIFFJULIAN
+BRATHL_DIFFYMDHMSM
+
+BRATHL_DSM2JULIAN
+BRATHL_DSM2SECONDS
+BRATHL_DSM2YMDHMSM
+
+BRATHL_JULIAN2DSM
+BRATHL_JULIAN2SECONDS
+BRATHL_JULIAN2YMDHMSM
+
+BRATHL_SECONDS2DSM
+BRATHL_SECONDS2JULIAN
+BRATHL_SECONDS2YMDHMSM
+
+BRATHL_NOWYMDHMSM
+
+BRATHL_YMDHMSM2DSM
+BRATHL_YMDHMSM2JULIAN
+BRATHL_YMDHMSM2SECONDS
+
+BRATHL_SETREFUSER1
+BRATHL_SETREFUSER2
+
+==================
+Cycle/date conversion functions
+==================
+
+To convert cycle <-> date, these functions use an asci parameter file (ascii file) with records :
+
+     field 1 : Name of the mission
+     field 2 : Cycle reference
+     field 3 : Pass reference
+     field 4 : Reference date  in decimal julian day
+
+Each field has to be separated by, at least, a non-numeric character
+
+The file can contained several records for a same mission. 
+Only the field with the greatest date is taken into account 
+
+You can add records. 
+You can add comments, commented lines start  by '#' character.
+
+If the file doesn't exist, default values are :
+
+Name            Cycle     Pass    Reference date
+------          ------    -----   ---------------
+Jason-1         99        230     19987.9081795
+Topex/Poseidon  442       230     19987.9127535
+ERS2            66        598     18831.768334
+ERS1-A          15        1       15636.938955
+ERS1-B          42        108     16538.6732895
+ENVISAT         30        579     19986.106016
+
+
+BRATHL_CYCLE2YMDHMSM
+BRATHL_YMDHMSM2CYCLE
+
+==================
+Data reading function
+==================
+BRATHL_READDATA
+
+
+
+BRATHL_DAYOFYEAR
+------------------------------------
+
+Retrieves the day of year of a date
+
+BRATHL_DAYOFYEAR(BRATHL_DATEYMDHMSM dateYMDHMSM, ULONG 	dayOfYear)
+
+[in] dateYMDHMSM : date
+[out] dayOfYear : day of year of the date parameter
+
+returns 0 or error code (see Date error codes in brathl general documentation)
+
+Example :
+
+MyDate={BRATHL_DATEYMDHMSM}
+
+MyDate.YEAR=2003
+MyDate.MONTH=12
+MyDate.DAY=5
+MyDate.HOUR=18
+MyDate.MINUTE=0
+MyDate.SECOND=21
+MyDate.MUSECOND=1069
+
+dayOfYear=0L
+r =  BRATHL_DAYOFYEAR(MyDate, dayOfYear)
+print, r, dayOfYear
+
+
+BRATHL_DIFFDSM
+------------------------------------
+Computes the difference between two dates (date1 - date2)
+the result is expressed in a decimal number of seconds
+
+
+BRATHL_DIFFDSM(BRATHL_DATEDSM date1, BRATHL_DATEDSM date2, DOUBLE diff)
+
+[in] date1
+[in] date2
+[out] diff : difference in seconds (date1 - date2)
+
+return 0 or error code (see Date error codes in brathl general documentation)
+
+
+Example:
+
+d1={BRATHL_DATEDSM}
+d1.REFDATE=3
+d1.DAYS=423
+d1.SECONDS=5
+d1.MUSECONDS=0
+
+d2={BRATHL_DATEDSM}
+d2.REFDATE=2
+d2.DAYS=36
+d2.SECONDS=54
+d2.MUSECONDS=2536
+
+diff = 0.0D
+r =  BRATHL_DIFFYMDHMSM(d1, d2, diff)
+print, r, diff
+
+
+
+BRATHL_DIFFJULIAN
+------------------------------------
+Computes the difference between two dates (date1 - date2)
+the result is expressed in a decimal number of seconds
+
+
+BRATHL_DIFFJULIAN(BRATHL_DIFFJULIAN date1, BRATHL_DIFFJULIAN date2, DOUBLE diff)
+
+[in] date1
+[in] date2
+[out] diff : difference in seconds (date1 - date2)
+
+return 0 or error code (see Date error codes in brathl general documentation)
+
+
+Example: see BRATHL_DIFFDSM
+
+
+BRATHL_DIFFYMDHMSM
+------------------------------------
+Computes the difference between two dates (date1 - date2)
+the result is expressed in a decimal number of seconds
+
+
+BRATHL_DIFFYMDHMSM(BRATHL_DIFFYMDHMSM date1, BRATHL_DIFFYMDHMSM date2, DOUBLE diff)
+
+[in] date1
+[in] date2
+[out] diff : difference in seconds (date1 - date2)
+
+return 0 or error code (see Date error codes in brathl general documentation)
+
+Example: see BRATHL_DIFFDSM
+
+
+BRATHL_DSM2JULIAN
+------------------------------------
+Converts a days-seconds-microseconds date into a decimal julian date, according to refDate parameter
+
+
+BRATHL_DSM2JULIAN(BRATHL_DATEDSM dateDSM, INT refDate, BRATHL_DATEJULIAN dateJulian);
+
+[in] dateDSM : date to convert
+[in] refDate : date reference conversion
+[out] dateJulian : result of the conversion
+
+return 0 or error code (see Date error codes in brathl general documentation)
+
+Example :
+
+dIn={BRATHL_DATEDSM}
+
+dIn.REFDATE=3
+dIn.DAYS=423
+dIn.SECONDS=5
+dIn.MUSECONDS=0
+
+dOut={BRATHL_DATEJULIAN}
+
+refDateDestination = 0
+
+r =  BRATHL_DSM2JULIAN(dIn, refDateDestination, dOut)
+print, r, dOut.REFDATE, dOut.JULIAN
+
+
+BRATHL_DSM2SECONDS
+------------------------------------
+Converts a days-seconds-microseconds date into secnods, according to refDate parameter
+
+
+BRATHL_DSM2SECONDS(BRATHL_DATEDSM dateDSM, INT refDate, BRATHL_DATESECOND dateSeconds);
+
+[in] dateDSM : date to convert
+[in] refDate : date reference conversion
+[out] dateSeconds : result of the conversion
+
+return 0 or error code (see Date error codes in brathl general documentation)
+
+Example: see BRATHL_DSM2JULIAN
+
+
+BRATHL_DSM2YMDHMSM
+------------------------------------
+Converts a days-seconds-microseconds date into a year, month, day, hour, minute, second, microsecond date
+
+
+BRATHL_DSM2YMDHMSM(BRATHL_DATEDSM dateDSM, BRATHL_DATEYMDHMSM dateYMDHMSM);
+
+[in] dateDSM : date to convert
+[in] refDate : date reference conversion
+[out] dateYMDHMSM : result of the conversion
+
+return 0 or error code (see Date error codes in brathl general documentation)
+
+Example: 
+
+dIn={BRATHL_DATEDSM}
+
+dIn.REFDATE=3
+dIn.DAYS=423
+dIn.SECONDS=5
+dIn.MUSECONDS=0
+
+dOut={BRATHL_DATEYMDHMSM}
+
+refDateDestination = 0
+
+r =  BRATHL_DSM2YMDHMSM(dIn, dOut)
+print, r, dOut.YEAR, dOut.JULIAN, dOut.MONTH, dOut.DAY, dOut.HOUR, dOut.MINUTE, dOut.SECOND, dOut.MUSECOND
+
+
+BRATHL_JULIAN2DSM
+------------------------------------
+Converts a decimal julian date into a days-seconds-microseconds date, according to refDate parameter
+
+BRATHL_JULIAN2DSM(BRATHL_DATEJULIAN dateJulian, INT refDate, BRATHL_DATEDSM dateDSM);
+
+[in] dateJulian : date to convert
+[in] refDate : date reference conversion
+[out] dateDSM : result of conversion
+return 0 or error code (see Date error codes in brathl general documentation)
+
+
+BRATHL_DSM2YMDHMSM(BRATHL_DATEDSM dateDSM, BRATHL_DATEYMDHMSM dateYMDHMSM);
+
+[in] dateDSM : date to convert
+[in] refDate : date reference conversion
+[out] dateYMDHMSM : result of the conversion
+
+return 0 or error code (see Date error codes in brathl general documentation)
+
+Example: see BRATHL_DSM2JULIAN
+
+
+BRATHL_JULIAN2SECONDS
+------------------------------------
+Converts a decimal julian date into seconds, according to refDate parameter
+
+BRATHL_JULIAN2SECONDS(BRATHL_DATEJULIAN dateJulian, INT refDate, BRATHL_DATESECOND dateSeconds)
+
+[in] dateJulian : date to convert
+[in] refDate : date reference conversion
+[out] dateSeconds : result of conversion
+
+return 0 or error code (see Date error codes in brathl general documentation)
+
+
+Example: see BRATHL_DSM2JULIAN
+
+
+BRATHL_JULIAN2YMDHMSM
+------------------------------------
+Converts a decimal julian date into a year, month, day, hour, minute, second, microsecond date
+
+BRATHL_JULIAN2YMDHMSM(BRATHL_DATEJULIAN dateJulian, BRATHL_DATEYMDHMSM dateYMDHMSM);
+
+[in] dateJulian : date to convert
+[in] refDate : date reference conversion
+[out] dateYMDHMSM : result of conversion
+
+return 0 or error code (see Date error codes in brathl general documentation)
+
+
+Example: see BRATHL_DSM2YMDHMSM
+
+
+BRATHL_SECONDS2DSM
+------------------------------------
+Converts seconds into a days-seconds-microseconds date, according to refDate parameter
+
+BRATHL_SECONDS2DSM(BRATHL_DATESECOND dateSeconds, INT refDate, BRATHL_DATEDSM dateDSM);
+
+[in] dateSeconds : date to convert
+[in] refDate : date reference conversion
+[out] dateDSM : result of the conversion
+
+return 0 or error code (see Date error codes in brathl general documentation)
+
+
+Example: see BRATHL_DSM2JULIAN
+
+
+BRATHL_SECONDS2JULIAN
+------------------------------------
+Converts seconds into a decimal julian date, according to refDate parameter
+
+BRATHL_SECONDS2JULIAN(BRATHL_DATESECOND dateSeconds, INT refDate, BRATHL_DATEJULIAN dateJulian)
+
+[in] dateSeconds : date to convert
+[in] refDate : date reference conversion
+[out] dateJulian : result of the conversion
+
+return 0 or error code (see Date error codes in brathl general documentation)
+
+Example: see BRATHL_DSM2JULIAN
+
+
+BRATHL_SECONDS2YMDHMSM
+------------------------------------
+Converts seconds into a a decimal julian date, according to refDate parameter
+
+BRATHL_SECONDS2YMDHMSM(BRATHL_DATESECOND dateSeconds, INT refDate, BRATHL_DATEJULIAN dateJulian)
+
+[in] dateSeconds : date to convert
+[in] refDate : date reference conversion
+[out] dateJulian : result of the conversion
+
+return 0 or error code (see Date error codes in brathl general documentation)
+
+
+Example: see BRATHL_DSM2JULIAN
+
+
+
+
+BRATHL_NOWYMDHMSM
+------------------------------------
+
+Gets the current date/time,
+
+LIBRATHL_API int32_t brathl_NowYMDHMSM(brathl_DateYMDHMSM *dateYMDHMSM);
+
+[out] dateYMDHMSM : current date/time
+
+BRATHL_NOWYMDHMSM(BRATHL_DATEYMDHMSM dateYMDHMSM)
+
+Example: see BRATHL_DSM2JULIAN
+
+dOut={BRATHL_DATEYMDHMSM}
+r =  BRATHL_NOWYMDHMSM(dOut)
+print, r, dOut.YEAR, dOut.JULIAN, dOut.MONTH, dOut.DAY, dOut.HOUR, dOut.MINUTE, dOut.SECOND, dOut.MUSECOND
+
+
+
+BRATHL_YMDHMSM2DSM
+------------------------------------
+
+Converts a year, month, day, hour, minute, second, microsecond date into a days-seconds-microseconds date,
+according to refDate parameter
+
+BRATHL_YMDHMSM2DSM(BRATHL_DATEYMDHMSM dateYMDHMSM, INT refDate, BRATHL_DATEDSM dateDSM)
+
+
+[in] dateYMDHMSM : date to convert
+[in] refDate : date reference conversion
+[out] dateDSM : result of the conversion
+
+return 0 or error code (see Date error codes in brathl general documentation)
+
+
+Example: see BRATHL_DSM2JULIAN
+
+
+BRATHL_YMDHMSM2JULIAN
+------------------------------------
+
+Converts a year, month, day, hour, minute, second, microsecond date into a decimal julian date,
+according to refDate parameter
+
+BRATHL_YMDHMSM2JULIAN(BRATHL_DATEYMDHMSM dateYMDHMSM, INT refDate, BRATHL_DATEJULIAN dateJulian)
+
+
+[in] dateYMDHMSM : date to convert
+[in] refDate : date reference conversion
+[out] dateJulian : result of the conversion
+
+return 0 or error code (see Date error codes in brathl general documentation)
+
+
+Example: see BRATHL_DSM2JULIAN
+
+
+BRATHL_YMDHMSM2SECONDS
+------------------------------------
+
+Converts a year, month, day, hour, minute, second, microsecond date into a seconds,
+according to refDate parameter
+
+BRATHL_YMDHMSM2SECONDS(BRATHL_DATEYMDHMSM dateYMDHMSM, INT refDate, BRATHL_DATESECOND dateSeconds)
+
+
+[in] dateYMDHMSM : date to convert
+[in] refDate : date reference conversion
+[out] dateSeconds : result of the conversion
+
+return 0 or error code (see Date error codes in brathl general documentation)
+
+
+Example: see BRATHL_DSM2JULIAN
+
+
+
+BRATHL_SETREFUSER1
+BRATHL_SETREFUSER2
+------------------------------------
+
+Set user-defined reference dates
+
+
+BRATHL_SETREFUSER1(STRING dateRef)
+
+
+[in] dateRef : date to set - format: YYYY-MM-DD HH:MN:SS.MS
+
+return 0 or error code (see Date error codes in brathl general documentation)
+
+
+Example:
+
+dateRefUser1 = '2001 01 12 14:57:23:1456'
+dateRefUser2 = '2005 11 14'
+
+brathl_setrefuser1(dateRefUser1)
+brathl_setrefuser2(dateRefUser2)
+
+MyDate={BRATHL_DATEDSM}
+
+. Set user-defined ref. date  2001 01 12 14:57:23:1456
+MyDate.REFDATE=5 
+MyDate.DAYS=423
+MyDate.SECONDS=5
+MyDate.MUSECONDS=0
+
+
+AnotherDate={BRATHL_DATEDSM}
+
+. Set user-defined ref. date  2005 11 14
+AnotherDate.REFDATE=6 
+AnotherDate.DAYS=423
+AnotherDate.SECONDS=5
+AnotherDate.MUSECONDS=0
+
+; ref. date for MyDate  is now 2005 11 14
+MyDate.REFDATE=6 
+
+
+brathl_setrefuser2('2005 05 18 13:08:00')
+; ref. date for MyDate and AnotherDate is now 2005 05 18 13:08:00
+
+
+
+BRATHL_CYCLE2YMDHMSM
+------------------------------------
+Converts a cyle/pass into a date
+
+BRATHL_CYCLE2YMDHMSM(INT mission, ULONG cycle, ULONG pass, BRATHL_DATEYMDHMSM dateYMDHMSM)
+
+
+[in] mission : mission type :
+                0 : Topex/Poseidon 
+                1 : Jason-1
+                2 : ERS2
+                3 : Envisat
+                4 : ERS1-A
+                5 : ERS1-B
+		            6 : GFO
+
+[in] cycle : number of cycle to convert
+[in] pass : number of pass in the cycle  to cinvert
+[out] dateYMDHMSM : date corresponding to the cycle/pass
+
+return 0 or error code (see Cycle/date conversion error codes in brathl general documentation)
+
+
+Example:
+
+cycle=120L
+pass=153L
+mission=3
+
+dOut={BRATHL_DATEYMDHMSM}
+
+r =  BRATHL_CYCLE2YMDHMSM(mission, cycle, pass, dOut)
+print, "result ", r
+
+print, "mission ", mission , " cycle ", cycle, " pass ", pass
+print, "Y", dOut.year, " M ", dOut.month, " D ", dOut.day, " H ", dOut.hour, " MN ", dOut.minute, " S ", dOut.second, " MS ", dOut.muSecond
+
+
+
+BRATHL_YMDHMSM2CYCLE
+------------------------------------
+Converts a date into a cycle/pass
+
+BRATHL_YMDHMSM2CYCLE(INT mission, BRATHL_DATEYMDHMSM dateYMDHMSM, ULONG cycle, ULONG pass)
+
+[in] mission : mission type :
+                0 : Topex/Poseidon 
+                1 : Jason-1
+                2 : ERS2
+                3 : Envisat
+                4 : ERS1-A
+                5 : ERS1-B
+		            6 : GFO
+[in] dateYMDHMSM : date to convert
+[out] cycle : number of cycle
+[out] pass : number of pass in the cycle
+
+
+return 0 or error code (see Cycle/date conversion error codes in brathl general documentation)
+
+
+Example:
+
+cycle=0L
+pass=0L
+mission=1
+
+dIn={BRATHL_DATEYMDHMSM}
+dIn.YEAR=2003
+dIn.MONTH=12
+dIn.DAY=5
+dIn.HOUR=18
+dIn.MINUTE=0
+dIn.SECOND=21
+dIn.MUSECOND=1069
+
+r =  BRATHL_YMDHMSM2CYCLE(mission, dIn, cycle, pass)
+print, "result ", r
+
+print, "Y", dOut.year, " M ", dOut.month, " D ", dOut.day, " H ", dOut.hour, " MN ", dOut.minute, " S ", dOut.second, " MS ", dOut.muSecond
+print, "mission ", mission , " cycle ", cycle, " pass ", pass
+
+
+
+
+BRATHL_READDATA
+------------------------------------
+
+Read data from a set of files
+
+Each measure for a data is a scalar value (a single number)
+
+[in] fileNames : file name string (one file) or file names array
+[in] recordName : Name of the fields record (for netCdf files recordName is 'data')
+[in] selection : Expression involving data fields which has to be true to select returned data.
+                 (if empty string no selection is done (all data is	selected)
+[in] dataExpressions : Expression string (one expression) or expressions array applied to data fields to build the wanted value.
+[in] units : Wanted unit for each expression (string (one unit) or units array).
+             (if empty string, no unit conversion is applied to the data of the corresponding
+		        expression. When a unit conversion has to be applied, the result
+		        of the expression is considered to be the base unit (SI). For
+		        example if the wanted unit is gram/l, the unit of the expression
+		        is supposed to be kilogram/m3 (internaly all data are converted
+		        to base unit of the actual fields unit which is coherent with
+		        the above assumption).
+[in/out] results : Data read. Must be an array (dim = number of dataExpressions) to
+                	values to read.
+[in] ignoreOutOfRange : Skip excess data.
+		                    0=false, other = true
+                        Must be false if statistics is true.
+[in] statistics : returns statistics on data instead of data themselves
+		              0=false, other = true
+		              If statistics is true, ignoreOutOfRange must be false.
+                  The returned values (5 values) for each
+		              expression are:
+		              - Count of valid data taken into account.
+			              Invalid data are those which are equal to the
+			              default/missing value
+		              - Mean of the valid data.
+		              - Standard deviation of the valid data
+		              - Minimum value of the valid data
+		              - Maximum value of the valid data
+		.
+[in] defaultValue : value to use for default/missing values
+                		This is the value you want to indicate that a value
+		                is missing or invalid.
+
+return 0 or error code.
+
+
+Example:
+
+; Set data input file
+files=SINDGEN(3)
+files[0]="/data/samples/JA1_GDR_2PaP124_001.CNES"
+files[1]="/data/samples/JA1_GDR_2PaP124_002.CNES"
+files[2]="/data/samples/JA1_GDR_2PaP124_003.CNES"
+
+; Set record name 
+record="data"
+
+; Set data selection - (set selection = "" to retrieve all data row)
+selection="latitude > 20 && latitude < 30"
+
+
+; Set expressions (here 2 expressions) 
+expr=SINDGEN(2)
+; A compute expression
+expr[0]="latitude + longitude"
+; A single expression
+expr[1]="swh_ku"
+
+; Set units for each expression
+units=SINDGEN(2)
+; Convert unit to radians for expression 1 (latitude + longitude)
+units[0]="radians"
+; No unit conversion for expression 2 (swh_ku) - result will be in SI unit.
+units[1]=""
+
+; Create results array (dimension is number of expression)
+dataResults=DINDGEN(2)
+
+ignoreOutOfrange=0
+
+; No statistics
+statistics=0
+
+; Default value is 0
+defaultValue=0
+
+; Call ReadData function
+
+r =  BRATHL_READDATA(files, record, selection, expr, units, dataResults, ignoreOutOfrange, statistics, defaultValue)
+print, "return code ", r
+
+print, size(dataResults)
+
+print, "NDIMS", size(dataResults, /N_DIMENSIONS)
+print, "DIMS" , size(dataResults, /DIMENSIONS)
+print, "NELTS", size(dataResults, /N_ELEMENTS)
+print, "TYPE", size(dataResults, /TYPE)
+
+dim = size(dataResults, /DIMENSIONS)
+
+; Print data value on the screen
+for i = 0, 1 do begin
+  for j = 0,dim[1] - 1 do begin
+    print, "Data", i ,j,  data[i,j]
+  endfor 
+endfor
+

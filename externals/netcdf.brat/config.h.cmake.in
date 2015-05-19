@@ -1,0 +1,234 @@
+/* config.h.in.  Generated from configure.ac by autoheader.  */
+
+/* Define to one of `_getb67', `GETB67', `getb67' for Cray-2 and Cray-YMP
+   systems. This function is required for `alloca.c' support on those systems.
+   */
+#cmakedefine CRAY_STACKSEG_END ${CRAY_STACKSEG_END}
+
+/* Define to 1 if using `alloca.c'. */
+#cmakedefine C_ALLOCA ${C_ALLOCA}
+
+/* set this only when building a DLL under MinGW */
+#cmakedefine DLL_NETCDF ${DLL_NETCDF}
+
+/* Define to 1 if you have `alloca', as a function or macro. */
+#cmakedefine HAVE_ALLOCA ${HAVE_ALLOCA}
+
+/* Define to 1 if you have <alloca.h> and it should be used (not on Ultrix).
+   */
+#cmakedefine HAVE_ALLOCA_H ${HAVE_ALLOCA_H}
+
+/* Needed for windows. Automatically added from netcdf distribution */
+#cmakedefine HAVE_MALLOC_H ${HAVE_MALLOC_H}
+#ifdef HAVE_MALLOC_H
+#include <malloc.h>
+#endif
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#cmakedefine HAVE_DLFCN_H ${HAVE_DLFCN_H}
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#cmakedefine HAVE_INTTYPES_H ${HAVE_INTTYPES_H}
+
+/* Define to 1 if you have the <memory.h> header file. */
+#cmakedefine HAVE_MEMORY_H ${HAVE_MEMORY_H}
+
+/* Define to 1 if the system has the type `ptrdiff_t'. */
+#cmakedefine HAVE_PTRDIFF_T ${HAVE_PTRDIFF_T}
+#if !defined(HAVE_PTRDIFF_T)
+#define ptrdiff_t @PTRDIFF_T@
+#endif
+
+/* Define to 1 if the system has the type `ssize_t'. */
+#cmakedefine HAVE_SSIZE_T ${HAVE_SSIZE_T}
+#if !defined(HAVE_SSIZE_T)
+#define ssize_t @SSIZE_T@
+#endif
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#cmakedefine HAVE_STDINT_H ${HAVE_STDINT_H}
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#cmakedefine HAVE_STDLIB_H ${HAVE_STDLIB_H}
+
+/* Define to 1 if you have the `strerror' function. */
+#cmakedefine HAVE_STRERROR ${HAVE_STRERROR}
+
+/* Define to 1 if you have the <strings.h> header file. */
+#cmakedefine HAVE_STRINGS_H ${HAVE_STRINGS_H}
+
+/* Define to 1 if you have the <string.h> header file. */
+#cmakedefine HAVE_STRING_H ${HAVE_STRING_H}
+
+/* Define to 1 if you have the `strlcat' function. */
+#cmakedefine HAVE_STRLCAT ${HAVE_STRLCAT}
+
+/* Define to 1 if `st_blksize' is member of `struct stat'. */
+#cmakedefine HAVE_STRUCT_STAT_ST_BLKSIZE ${HAVE_STRUCT_STAT_ST_BLKSIZE}
+
+/* Define to 1 if your `struct stat' has `st_blksize'. Deprecated, use
+   `HAVE_STRUCT_STAT_ST_BLKSIZE' instead. */
+#cmakedefine HAVE_ST_BLKSIZE ${HAVE_ST_BLKSIZE}
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#cmakedefine HAVE_SYS_STAT_H ${HAVE_SYS_STAT_H}
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#cmakedefine HAVE_SYS_TYPES_H ${HAVE_SYS_TYPES_H}
+
+/* Define to 1 if the system has the type `uchar'. */
+#cmakedefine HAVE_UCHAR ${HAVE_UCHAR}
+#if !defined(HAVE_UCHAR)
+#define HAVE_UCHAR
+#define uchar @UCHAR@
+#endif
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#cmakedefine HAVE_UNISTD_H ${HAVE_UNISTD_H}
+
+/* Define to the sub-directory in which libtool stores uninstalled libraries.
+   */
+#cmakedefine LT_OBJDIR ${LT_OBJDIR}
+
+/* type definition */
+#cmakedefine NCBYTE_T ${NCBYTE_T}
+
+/* type definition */
+#cmakedefine NCSHORT_T ${NCSHORT_T}
+
+/* default */
+#cmakedefine NF_DOUBLEPRECISION_IS_C_DOUBLE ${NF_DOUBLEPRECISION_IS_C_DOUBLE}
+
+/* default */
+#cmakedefine NF_INT1_IS_C_SIGNED_CHAR ${NF_INT1_IS_C_SIGNED_CHAR}
+
+/* type thing */
+#cmakedefine NF_INT1_T ${NF_INT1_T}
+
+/* default */
+#cmakedefine NF_INT2_IS_C_SHORT ${NF_INT2_IS_C_SHORT}
+
+/* type thing */
+#cmakedefine NF_INT2_T ${NF_INT2_T}
+
+/* default */
+#cmakedefine NF_INT_IS_C_INT ${NF_INT_IS_C_INT}
+
+/* default */
+#cmakedefine NF_REAL_IS_C_FLOAT ${NF_REAL_IS_C_FLOAT}
+
+/* no IEEE float on this platform */
+#cmakedefine NO_IEEE_FLOAT ${NO_IEEE_FLOAT}
+
+/* Define to 1 if your C compiler doesn't accept -c and -o together. */
+#cmakedefine NO_MINUS_C_MINUS_O ${NO_MINUS_C_MINUS_O}
+
+/* do not build the netCDF version 2 API */
+#cmakedefine NO_NETCDF_2 ${NO_NETCDF_2}
+
+/* no stdlib.h */
+#cmakedefine NO_STDLIB_H ${NO_STDLIB_H}
+
+/* no sys_types.h */
+#cmakedefine NO_SYS_TYPES_H ${NO_SYS_TYPES_H}
+
+/* Name of package */
+#cmakedefine PACKAGE ${PACKAGE}
+
+/* Define to the address where bug reports for this package should be sent. */
+#define PACKAGE_BUGREPORT "support@unidata.ucar.edu" 
+
+/* Define to the full name of this package. */
+#define PACKAGE_NAME "netCDF" 
+
+/* Define to the full name and version of this package. */
+#define PACKAGE_STRING "netCDF 3.6.2" 
+
+/* Define to the one symbol short name of this package. */
+#define PACKAGE_TARNAME "netcdf" 
+
+/* Define to the version of this package. */
+#define PACKAGE_VERSION "3.6.2" 
+
+/* The size of `double', as computed by sizeof. */
+#cmakedefine SIZEOF_DOUBLE ${SIZEOF_DOUBLE}
+
+/* The size of `float', as computed by sizeof. */
+#cmakedefine SIZEOF_FLOAT ${SIZEOF_FLOAT}
+
+/* The size of `int', as computed by sizeof. */
+#cmakedefine SIZEOF_INT ${SIZEOF_INT}
+
+/* The size of `long', as computed by sizeof. */
+#cmakedefine SIZEOF_LONG ${SIZEOF_LONG}
+
+/* The size of `off_t', as computed by sizeof. */
+#cmakedefine SIZEOF_OFF_T ${SIZEOF_OFF_T}
+
+/* The size of `short', as computed by sizeof. */
+#cmakedefine SIZEOF_SHORT ${SIZEOF_SHORT}
+
+/* The size of `size_t', as computed by sizeof. */
+#cmakedefine SIZEOF_SIZE_T ${SIZEOF_SIZE_T}
+
+/* If using the C implementation of alloca, define if you know the
+   direction of stack growth for your system; otherwise it will be
+   automatically deduced at runtime.
+	STACK_DIRECTION > 0 => grows toward higher addresses
+	STACK_DIRECTION < 0 => grows toward lower addresses
+	STACK_DIRECTION = 0 => direction of growth unknown */
+#cmakedefine STACK_DIRECTION ${STACK_DIRECTION}
+
+/* Define to 1 if you have the ANSI C header files. */
+#cmakedefine STDC_HEADERS ${STDC_HEADERS}
+
+/* Place to put very large netCDF test files. */
+#cmakedefine TEMP_LARGE ${TEMP_LARGE}
+
+/* set this to use extreme numbers in tests */
+#cmakedefine USE_EXTREME_NUMBERS ${USE_EXTREME_NUMBERS}
+
+/* Version number of package */
+#cmakedefine VERSION ${VERSION}
+
+/* Define to 1 if your processor stores words with the most significant byte
+   first (like Motorola and SPARC, unlike Intel and VAX). */
+#cmakedefine WORDS_BIGENDIAN ${WORDS_BIGENDIAN}
+
+/* Number of bits in a file offset, on hosts where this is settable. */
+#cmakedefine _FILE_OFFSET_BITS ${_FILE_OFFSET_BITS}
+
+/* Needed by HPUX with c89 compiler. */
+#cmakedefine _HPUX_SOURCE ${_HPUX_SOURCE}
+
+/* Define for large files, on AIX-style hosts. */
+#cmakedefine _LARGE_FILES ${_LARGE_FILES}
+
+/* Define to 1 if type `char' is unsigned and you are not using gcc.  */
+#ifndef __CHAR_UNSIGNED__
+# undef __CHAR_UNSIGNED__
+#endif
+
+/* Define to empty if `const' does not conform to ANSI C. */
+#cmakedefine const ${const}
+
+/* Turned on by netCDF configure. */
+#cmakedefine f2cFortran ${f2cFortran}
+
+/* Turned on by netCDF configure. */
+#cmakedefine gFortran ${gFortran}
+
+/* Define to `long int' if <sys/types.h> does not define. */
+#cmakedefine HAVE_OFF_T ${HAVE_OFF_T}
+#if !defined(HAVE_OFF_T)
+#define off_t @OFF_T@
+#endif
+
+/* Turned on by netCDF configure. */
+#cmakedefine pgiFortran ${pgiFortran}
+
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#cmakedefine HAVE_SIZE_T ${HAVE_SIZE_T}
+#if !defined(HAVE_SIZE_T)
+#define size_t @SIZE_T@
+#endif

@@ -1,0 +1,10 @@
+#  Mission names aliases
+#
+#     field 1 : Name of the mission
+#     field 2 : Alias name of the mission
+Jason-2 OSTM/Jason-2
+Jason-2 jason2
+Jason-2 j2
+Jason-2 mission_name
+Jason-2 (mission_name)
+Jason-2 {mission_name}

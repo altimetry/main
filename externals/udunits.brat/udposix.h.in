@@ -1,0 +1,183 @@
+/*
+ * $Id: udposix.h.in,v 1.2 1997/05/02 22:37:36 steve Exp $
+ *
+ * Configuration header file.
+ */
+
+#ifndef UD_config_h
+#define UD_config_h
+
+#ifndef UT_DEFAULT_PATH
+#cmakedefine UT_DEFAULT_PATH "@UT_DEFAULT_PATH@"
+#endif
+
+
+
+/*
+ * General environmental macros:
+ */
+/* AIX */
+#cmakedefine	_ALL_SOURCE	
+
+#cmakedefine	_HPUX_SOURCE
+
+
+/*
+ * The following directives specify aspects of the C compiler.  Other
+ * aspects of the compilation environment (e.g. the existance and
+ * contents of header files) are specified in the respective header files
+ * of this directory.
+ */
+
+
+/*
+ * Variadic functions.  Define the following if your compiler doesn't
+ * support <stdarg.h>.
+ */
+#cmakedefine UD_NO_STDARG
+
+
+/*
+ * Compiler keywords.  Define whatever your compiler doesn't support.
+ */
+#cmakedefine UD_NO_CONST
+#cmakedefine UD_NO_SIGNED
+#cmakedefine UD_NO_VOLATILE
+
+
+/*
+ * Function prototyping.  Define the following if your compiler 
+ * doesn't support function prototyping.
+ */
+#cmakedefine	UD_NO_PROTOTYPES
+
+
+/*
+ * String generation.  Define the following if your compiler
+ * doesn't support Standard C stringization.
+ */
+#cmakedefine	UD_NO_HASH
+
+
+/*
+ * Token pasting.  Define the following if your compiler doesn't support
+ * Standard C token pasting.
+ */
+#cmakedefine	UD_NO_HASHHASH
+
+
+/*
+ * Void pointer type.  Define the following if your compiler doesn't
+ * support the void pointer type.
+ */
+#cmakedefine	UD_NO_VOIDSTAR
+
+
+/*
+ * Size of various pointers:
+ */
+#cmakedefine SIZEOF_CHARP
+
+
+/*****************************************************************************
+ * The following directives elaborate the above definitions or stand
+ * alone.  You shouldn't need to change them.
+ *****************************************************************************/
+
+
+/*
+ * Compiler keywords:
+ */
+#ifdef	UD_NO_CONST
+#define	const
+#else
+#cmakedefine	const
+#endif
+
+#ifdef	UD_NO_SIGNED
+#define signed
+#else
+#cmakedefine	signed
+#endif
+
+#ifdef	UD_NO_VOLATILE
+#define	volatile
+#else
+#cmakedefine	volatile
+#endif
+
+
+/*
+ * Function prototyping:
+ */
+#ifdef UD_NO_PROTOTYPES
+#define UD_PROTO(args)		()
+#else
+#define UD_PROTO(args)		args
+#endif
+/*
+ * Additional macro support for function prototyping:
+ */
+#define UD_EXTERN_FUNC(type_name,args)	extern type_name UD_PROTO(args)
+
+
+/*
+ * String-generation macro:
+ */
+#ifdef	UD_NO_HASH
+#define MAKESTRING_UD(x)	"x"
+#else
+#define MAKESTRING_UD(x)	#x
+#endif
+/*
+ * Macro used in programs:
+ */
+#define UD_MAKESTRING(x)	MAKESTRING_UD(x)
+/*
+ * Macro for backwards compatibility:
+ */
+#define MAKESTRING(x)		UD_MAKESTRING(x)
+
+
+/*
+ * Token-pasting macro:
+ */
+#ifdef	UD_NO_HASHHASH
+#define	GLUE_UD(a,b)	a/**/b
+#else
+#define GLUE_UD(a,b)	a##b
+#endif
+/*
+ * Macro used in programs:
+ */
+#define UD_GLUE(a,b)	GLUE_UD(a,b)
+/*
+ * Macro for backwards compatibility:
+ */
+#define GLUE(a,b)	UD_GLUE(a,b)
+
+
+/*
+ * Pointer-to-void type:
+ */
+#ifndef UD_FORTRAN_SOURCE
+#   ifdef	UD_NO_VOIDP
+	typedef char	*voidp;
+#   else
+	typedef void	*voidp;
+#   endif
+#endif
+
+
+/*
+ * Statement macro:
+ */
+#ifdef lint
+      extern int	UD_ZERO;
+#else
+#     define UD_ZERO	0
+#endif
+#define UD_STMT(stuff) do {stuff} while (UD_ZERO)
+
+
+#endif /* UD_config_h */

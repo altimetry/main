@@ -1,0 +1,524 @@
+<?xml version="1.0" encoding="utf-8"?>
+<aliasesDefinition>
+
+  <!-- =================================================================== -->
+  <product class="ENVISAT_RA2MWR" description="ENVISAT RA2 and MWR products">
+
+    <defaultRecord name="ra2_mds"/>
+
+    <aliases>
+      <alias name="lat">lat</alias>
+      <alias name="lon">lon</alias>
+      <alias name="time">dsr_time</alias>
+      <alias name="lat_hr" ref="lat"/>
+      <alias name="lon_hr" ref="lon"/>
+      <alias name="time_hr" ref="time"/>
+	  <alias name="surface_type_ocean">altim_landocean_flag</alias> 
+	  <alias name="altitude">alt_cog_ellip</alias> 
+	  <alias name="alt" ref="altitude"/> 
+	  <alias name="dry_tropo_corr">mod_dry_tropo_corr</alias> 
+	  <alias name="wet_tropo_corr">mwr_wet_tropo_corr</alias> 
+	  <alias name="iono_corr"><![CDATA[iif(((mph.cycle == 47) && (sph.pass_number > 935)) || ((mph.cycle == 48) && (sph.pass_number < 848)) || ((mph.cycle == 65) && (sph.pass_number > 288)) || (mph.cycle > 65), ion_corr_mod_ku, ra2_ion_corr_ku)]]></alias> 
+	  <alias name="sigma0">ku_ocean_bscat_coeff</alias> 
+	  <alias name="sigma0_ku" ref="sigma0"/>
+	  <alias name="sigma0_band2">s_ocean_bscat_coeff</alias> 
+	  <alias name="tides_ocean_corr">tot_geocen_ocn_tide_ht_sol1</alias> 
+	  <alias name="tides_all_corr">(tot_geocen_ocn_tide_ht_sol1 + solid_earth_tide_ht + geocen_pole_tide_ht)</alias> 
+	  <alias name="wind_speed">ra2_wind_sp</alias>
+	  <alias name="sig_wave_height">ku_sig_wv_ht</alias> 
+	  <alias name="sig_wave_height_band2">s_sig_wv_ht</alias> 
+	  <alias name="sig_wave_height_ku" ref="sig_wave_height"/>
+	  <alias name="swh" ref="sig_wave_height"/>
+	  <alias name="swh_ku" ref="sig_wave_height"/>
+	  <alias name="swh_band2" ref="sig_wave_height_band2"/>
+	  <alias name="inv_baro_corr">inv_barom_corr</alias> 
+	  <alias name="ib" ref="inv_baro_corr"/>
+	  <alias name="sea_state_bias_corr">sea_bias_ku</alias>
+	  <alias name="sea_state_bias_corr_ku" ref="sea_state_bias_corr"/>
+	  <alias name="ssb" ref="sea_state_bias_corr"/>
+	  <alias name="ssb_ku" ref="sea_state_bias_corr"/>
+	  <alias name="sea_state_bias_corr_band2">sea_bias_s</alias> 
+	  <alias name="ssb_band2" ref="sea_state_bias_corr_band2"/>
+	  <alias name="range">ku_band_ocean_range</alias> 
+	  <alias name="range_ku" ref="range"/>
+	  <alias name="range_band2">s_band_ocean_range</alias> 
+	  <alias name="mean_sea_surface">m_sea_surf_ht</alias> 
+	  <alias name="mss" ref="mean_sea_surface"/>
+    </aliases>
+
+    <aliases productType="RA2_GDR_2P">
+	  <alias name="dynamic_atmos_corr">(dib_hf + inv_barom_corr)</alias> 
+    </aliases>
+
+    <aliases productType="RA2_MWS_2P" record="avg_waveforms_mds" ref="RA2_GDR_2P">
+      <alias name="time">dsr_time</alias>
+      <alias name="time_hr" ref="time"/>
+      <alias name="waveforms">data_blk_info.ave_ku_wvforms_if</alias>
+    </aliases>
+
+  </product>
+
+  <!-- =================================================================== -->
+  <product class="JASON" description="Jason-1 radar altimetry products">
+
+    <defaultRecord name="data"/>
+
+    <aliases>
+      <alias name="lat">latitude</alias>
+      <alias name="lon">longitude</alias>
+      <alias name="time">(time_day + time_sec + time_microsec)</alias>
+      <alias name="lat_hr" ref="lat"/>
+      <alias name="lon_hr" ref="lon"/>
+      <alias name="time_hr" ref="time"/>
+	  <alias name="surface_type_ocean">surface_type</alias> 
+	  <alias name="altitude">altitude</alias> 
+	  <alias name="alt" ref="altitude"/> 
+	  <alias name="sigma0">sig0_ku</alias> 
+	  <alias name="sigma0_ku" ref="sigma0"/>
+	  <alias name="sigma0_band2">sig0_c</alias> 
+	  <alias name="wind_speed">wind_speed_alt</alias>
+	  <alias name="sig_wave_height">swh_ku</alias> 
+	  <alias name="sig_wave_height_ku" ref="sig_wave_height"/>
+	  <alias name="swh" ref="sig_wave_height"/>
+	  <alias name="swh_ku" ref="sig_wave_height"/>
+	  <alias name="range">range_ku</alias> 
+	  <alias name="range_ku" ref="range"/>
+	  <alias name="range_band2">range_c</alias> 
+    </aliases>
+
+    <aliases productType="JA1_GDR_2P">
+	  <alias name="dry_tropo_corr">model_dry_tropo_corr</alias> 
+	  <alias name="dynamic_atmos_corr">(hf_fluctuations_corr + inv_bar_corr)</alias> 
+	  <alias name="inv_baro_corr">inv_bar_corr</alias> 
+	  <alias name="ib" ref="inv_baro_corr"/>
+	  <alias name="iono_corr">iono_corr_alt_ku</alias> 
+	  <alias name="mean_sea_surface">mss</alias> 
+	  <alias name="mss" ref="mean_sea_surface"/>
+	  <alias name="sea_state_bias_corr">sea_state_bias_ku</alias>
+	  <alias name="sea_state_bias_corr_ku" ref="sea_state_bias_corr"/>
+	  <alias name="sea_state_bias_corr_band2">sea_state_bias_c</alias> 
+	  <alias name="sig_wave_height_band2">swh_c</alias> 
+	  <alias name="ssb" ref="sea_state_bias_corr"/>
+	  <alias name="ssb_ku" ref="sea_state_bias_corr"/>
+	  <alias name="ssb_band2" ref="sea_state_bias_corr_band2"/>
+	  <alias name="swh_band2" ref="sig_wave_height_band2"/>
+	  <alias name="tides_ocean_corr">ocean_tide_sol1</alias> 
+	  <alias name="tides_all_corr">(ocean_tide_sol1+ solid_earth_tide + pole_tide)</alias> 
+	  <alias name="wet_tropo_corr">rad_wet_tropo_corr</alias> 
+    </aliases>
+
+
+    <aliases productType="JA1_SDR_2P" ref="JA1_GDR_2P">
+      <alias name="waveforms">samples_ku</alias>
+    </aliases>
+
+  </product>
+
+  <!-- =================================================================== -->
+  <product class="ERS_RA" description="ERS-1 and ERS-2 radar altimetry products">
+
+    <defaultRecord name="data"/>
+
+    <aliases productType="ALT.OPR">
+      <alias name="lat">Lat</alias>
+      <alias name="lon">Lon</alias>
+      <alias name="time">(Tim_1 + Tim_2)</alias>
+	  <alias name="altitude">H_Sat</alias> 
+	  <alias name="alt" ref="altitude"/> 
+	  <alias name="dry_tropo_corr">Dry_Cor</alias> 
+	  <alias name="wet_tropo_corr">Wet_Cor</alias> 
+	  <alias name="iono_corr">Iono_Cor</alias> 
+	  <alias name="sigma0">Sigma0</alias> 
+	  <alias name="sigma0_ku" ref="sigma0"/>
+	  <alias name="tides_ocean_corr">H_Eot</alias> 
+	  <alias name="tides_all_corr">(H_Eot + H_Lt + H_Set)</alias> 
+	  <alias name="wind_speed">Wind_Sp</alias>
+	  <alias name="sig_wave_height">SWH</alias> 
+	  <alias name="sig_wave_height_ku" ref="sig_wave_height"/>
+	  <alias name="swh" ref="sig_wave_height"/>
+	  <alias name="swh_ku" ref="sig_wave_height"/>
+	  <alias name="sea_state_bias_corr">SSB_Cor</alias>
+	  <alias name="sea_state_bias_corr_ku" ref="sea_state_bias_corr"/>
+	  <alias name="ssb" ref="sea_state_bias_corr"/>
+	  <alias name="ssb_ku" ref="sea_state_bias_corr"/>
+	  <alias name="range">H_Alt</alias> 
+	  <alias name="range_ku" ref="range"/>
+	  <alias name="mean_sea_surface">H_MSS_OSU</alias> 
+	  <alias name="mss" ref="mean_sea_surface"/>
+    </aliases>
+
+    <aliases productType="ALT.WAP">
+      <alias name="lat">waveform_data.Waveform_latitude</alias>
+      <alias name="lon">waveform_data.Waveform_longitude</alias>
+      <alias name="time">(Source_Packet_UTC.days + Source_Packet_UTC.milliseconds +
+        Source_Packet_UTC.microseconds)</alias>
+      <alias name="waveforms">science_block.Waveform_Samples</alias>
+    </aliases>
+
+  </product>
+
+  <!-- =================================================================== -->
+  <product class="GFO" description="GEOSAT Follow-On radar altimetry products">
+
+    <defaultRecord name="data"/>
+
+    <aliases>
+      <alias name="lat">Latitude</alias>
+      <alias name="lon">Longitude</alias>
+      <alias name="time">(Time_Past_Epoch + Time_Past_Epoch_Continued)</alias>
+      <alias name="lat_hr" ref="lat"/>
+      <alias name="lon_hr" ref="lon"/>
+      <alias name="time_hr" ref="time"/>
+	  <alias name="surface_type_ocean">NOAA_FLAGS.Land_Ocean</alias> 
+	  <alias name="altitude">Altitude</alias> 
+	  <alias name="alt" ref="altitude"/> 
+	  <alias name="dry_tropo_corr">Dry_Troposphere</alias> 
+	  <alias name="wet_tropo_corr">iif((is_default(Wet_Troposphere)) == 0, Wet_Troposphere, Wet_Troposphere_Model)</alias> 
+	  <alias name="iono_corr">Ionosphere</alias> 
+	  <alias name="sigma0">Sigma0</alias> 
+	  <alias name="sigma0_ku" ref="sigma0"/>
+	  <alias name="tides_ocean_corr">Ocean_Water_Tide</alias> 
+	  <alias name="tides_all_corr">(Ocean_Water_Tide + Ocean_Load_Tide + Pole_Tide + Solid_Earth_Tide)</alias> 
+	  <alias name="wind_speed">Wind_Speed</alias>
+	  <alias name="sig_wave_height">SWH</alias> 
+	  <alias name="sig_wave_height_ku" ref="sig_wave_height"/>
+	  <alias name="swh" ref="sig_wave_height"/>
+	  <alias name="swh_ku" ref="sig_wave_height"/>
+	  <alias name="inv_baro_corr">Inverse_Barometer</alias> 
+	  <alias name="ib" ref="inv_baro_corr"/>
+	  <alias name="sea_state_bias_corr">Sea_State_Bias</alias>
+	  <alias name="sea_state_bias_corr_ku" ref="sea_state_bias_corr"/>
+	  <alias name="ssb" ref="sea_state_bias_corr"/>
+	  <alias name="ssb_ku" ref="sea_state_bias_corr"/>
+	  <alias name="range">(Altitude - SSHU)</alias> 
+	  <alias name="range_ku" ref="range"/>
+	  <alias name="mean_sea_surface">Mean_Sea_Surface_I</alias> 
+	  <alias name="mss" ref="mean_sea_surface"/>
+    </aliases>
+
+  </product>
+
+  <!-- =================================================================== -->
+  <product class="PODAAC"
+    description="PODAAC radar altimetry products for JASON-1 and Topex/Poseidon">
+
+    <defaultRecord name="data"/>
+
+    <aliases>
+      <alias name="lat">latitude</alias>
+      <alias name="lon">longitude</alias>
+      <alias name="time">(days + millisecs)</alias>
+      <alias name="lat_hr" ref="lat"/>
+      <alias name="lon_hr" ref="lon"/>
+      <alias name="time_hr" ref="time"/>
+    </aliases>
+
+  </product>
+
+  <!-- =================================================================== -->
+  <product class="Topex_Poseidon" description="Topex/Poseidon radar altimetry products">
+
+    <defaultRecord name="data"/>
+
+    <aliases productType="MGDR_pass_file">
+      <alias name="lat">Lat_Tra</alias>
+      <alias name="lon">Lon_Tra</alias>
+      <alias name="time">(Tim_Moy_1 + Tim_Moy_2 + Tim_Moy_3)</alias>
+      <alias name="lat_hr" ref="lat"/>
+      <alias name="lon_hr" ref="lon"/>
+      <alias name="time_hr" ref="time"/>
+	  <alias name="surface_type_ocean">Geo_Bad_1.water_land_distribution</alias> 
+	  <alias name="altitude">Sat_Alt</alias> 
+	  <alias name="alt" ref="altitude"/> 
+	  <alias name="dry_tropo_corr">Dry_Corr</alias> 
+	  <alias name="wet_tropo_corr">Wet_H_Rad</alias> 
+	  <alias name="iono_corr">iif(ALTON==0, Iono_Dor, Iono_Cor)</alias> 
+	  <alias name="sigma0">Sigma0_K</alias> 
+	  <alias name="sigma0_ku" ref="sigma0"/>
+	  <alias name="sigma0_band2">Sigma0_C</alias> 
+	  <alias name="tides_ocean_corr">H_Eot_FES</alias> 
+	  <alias name="tides_all_corr">(H_Eot_FES + H_Set + H_Pol)</alias> 
+	  <alias name="Wind_Sp">Wind_Sp</alias>
+	  <alias name="sig_wave_height">SWH_K</alias> 
+	  <alias name="sig_wave_height_band2">SWH_C</alias> 
+	  <alias name="sig_wave_height_ku" ref="sig_wave_height"/>
+	  <alias name="swh" ref="sig_wave_height"/>
+	  <alias name="swh_ku" ref="sig_wave_height"/>
+	  <alias name="swh_band2" ref="sig_wave_height_band2"/>
+	  <alias name="inv_baro_corr">Inv_Bar</alias> 
+	  <alias name="ib" ref="inv_baro_corr"/>
+	  <alias name="sea_state_bias_corr">SSB_Corr_K1</alias>
+	  <alias name="sea_state_bias_corr_ku" ref="sea_state_bias_corr"/>
+	  <alias name="ssb" ref="sea_state_bias_corr"/>
+	  <alias name="ssb_ku" ref="sea_state_bias_corr"/>
+	  <alias name="range">H_Alt</alias> 
+	  <alias name="range_ku" ref="range"/>
+	  <alias name="mean_sea_surface">H_MSS</alias> 
+	  <alias name="mss" ref="mean_sea_surface"/>
+    </aliases>
+
+    <aliases productType="MGDR_crossover_point_file">
+      <alias name="lat">Lat_Cro</alias>
+      <alias name="lon">Lon_Cro</alias>
+      <alias name="time">(Tim_Moy_Asc_1 + Tim_Moy_Asc_2 + Tim_Moy_Asc_3)</alias>
+      <alias name="lat_hr" ref="lat"/>
+      <alias name="lon_hr" ref="lon"/>
+      <alias name="time_hr" ref="time"/>
+    </aliases>
+
+    <aliases productType="SDR_pass_file">
+      <alias name="lat">Sci.Latitude_AltSDR</alias>
+      <alias name="lon">Sci.Longitude_AltSDR</alias>
+      <alias name="time">(Sci.Time_Past_Epoch_AltSci.day + Sci.Time_Past_Epoch_AltSci.millisec +
+        Sci.Time_Past_Epoch_AltSci.microsec)</alias>
+      <alias name="lat_hr" ref="lat"/>
+      <alias name="lon_hr" ref="lon"/>
+      <alias name="time_hr" ref="time"/>
+    </aliases>
+
+  </product>
+
+
+  <!-- =================================================================== -->
+  <product class="CRYOSAT" description="CRYOSAT products">
+
+    <defaultRecord name="siral_l1b_mds">
+      <productType>SIR_FDM_1B</productType>
+      <productType>SIR_SAR_1B</productType>
+      <productType>SIR_SIN_1B</productType>
+      <productType>SIR_LRM_1B</productType>
+    </defaultRecord>
+
+    <defaultRecord name="siral_cal1_mds">
+      <productType>SIR1LRC11B</productType>
+      <productType>SIR2LRC11B</productType>
+      <productType>SIR1SAC11B</productType>
+      <productType>SIR2SAC11B</productType>
+    </defaultRecord>
+
+    <defaultRecord name="siral_cal2_mds">
+      <productType>SIR1SAC21B</productType>
+      <productType>SIR2SAC21B</productType>
+      <productType>SIR1SIC21B</productType>
+      <productType>SIR2SIC21B</productType>
+    </defaultRecord>
+
+    <defaultRecord name="siral_comp_cal1_mds">
+      <productType>SIR_SIC11B</productType>
+    </defaultRecord>
+
+    <defaultRecord name="siral_mon_mds">
+      <productType>SIR1LRM_0M</productType>
+      <productType>SIR2LRM_0M</productType>
+      <productType>SIR1SAR_0M</productType>
+      <productType>SIR2SAR_0M</productType>
+      <productType>SIR_SIN_0M</productType>
+      <productType>SIR_SIC40M</productType>
+    </defaultRecord>
+
+    <defaultRecord name="siral_fbr_mds">
+      <productType>SIR1SAR_FR</productType>
+      <productType>SIR2SAR_FR</productType>
+      <productType>SIR_SIN_FR</productType>
+    </defaultRecord>
+
+    <defaultRecord name="siral_l2_mds">
+      <productType>SIR_LRM_2_</productType>
+      <productType>SIR_SIN_2_</productType>
+      <productType>SIR_SAR_2A</productType>
+      <productType>SIR_SAR_2B</productType>
+      <productType>SIR_SID_2_</productType>
+      <productType>SIR_GDR_2A</productType>
+      <productType>SIR_GDR_2B</productType>
+    </defaultRecord>
+
+    <defaultRecord name="siral_l2_fdm_mds">
+      <productType>SIR_FDM_2_</productType>
+    </defaultRecord>
+
+    <defaultRecord name="siral_l2_interm_mds">
+      <productType>SIR_LRMI2_</productType>
+      <productType>SIR_SINI2_</productType>
+      <productType>SIR_SARI2A</productType>
+      <productType>SIR_SARI2B</productType>
+      <productType>SIR_SIDI2_</productType>
+      <productType>SIR_FDMI2_</productType>
+    </defaultRecord>
+
+    <aliases>
+      <alias name="lat">lat</alias>
+      <alias name="lon">lon</alias>
+      <alias name="time">mdsr_time</alias>
+      <alias name="altitude">alt_cog_ref_ellip</alias> 
+      <alias name="alt" ref="altitude"/> 
+      <alias name="dry_tropo_corr">dry_tropo_corr</alias> 
+      <alias name="wet_tropo_corr">wet_tropo_corr</alias> 
+      <alias name="inv_baro_corr">inv_barom_corr</alias> 
+      <alias name="ib" ref="inv_baro_corr"/>
+      <alias name="dynamic_atmos_corr">(dyn_atm_corr + inv_barom_corr)</alias> 
+    </aliases>
+
+    <aliases productType="SIR_LRM_2_">
+      <alias name="mean_sea_surface">mss_geoid_ht</alias> 
+      <alias name="mss" ref="mean_sea_surface"/>
+      <alias name="sea_state_bias_corr">sea_state_bias_corr</alias>
+      <alias name="sea_state_bias_corr_ku" ref="sea_state_bias_corr"/>
+      <alias name="ssb" ref="sea_state_bias_corr"/>
+      <alias name="ssb_ku" ref="sea_state_bias_corr"/>
+      <alias name="sig_wave_height">swh</alias> 
+      <alias name="sig_wave_height_ku" ref="sig_wave_height"/>
+      <alias name="swh" ref="sig_wave_height"/>
+      <alias name="swh_ku" ref="sig_wave_height"/>
+      <alias name="sigma0">meas_data.bkscat_sigma_0</alias> 
+      <alias name="sigma0_ku" ref="sigma0"/>
+      <alias name="surface_type_ocean">surf_type_flags</alias> 
+      <alias name="tides_ocean_corr">(ocean_tide + lp_eq_ocean_tide)</alias> 
+      <alias name="tides_all_corr">(ocean_tide + lp_eq_ocean_tide + ocean_load_tide + sol_earth_tide + geocen_pol_tide)</alias> 
+      <alias name="wind_speed">wind_spd</alias>
+      <alias name="iono_corr">ion_corr</alias> 
+    </aliases>
+
+    <aliases productType="SIR_FDM_2_" ref="SIR_LRM_2_">
+      <alias name="mean_sea_surface">mss</alias> 
+    </aliases>
+    
+    <aliases productType="SIR_GDR_2A" ref="SIR_LRM_2_"/>
+
+    <aliases productType="SIR_GDR_2B" ref="SIR_LRM_2_"/>
+
+    <aliases productType="SIR_SAR_2A" ref="SIR_LRM_2_"/>
+    
+    <aliases productType="SIR_SAR_2B" ref="SIR_LRM_2_"/>
+
+    <aliases productType="SIR_SID_2_" ref="SIR_LRM_2_"/>
+
+    <aliases productType="SIR_SIN_2_" ref="SIR_LRM_2_"/>
+    
+    <aliases productType="SIR_LRM_1B">
+      <alias name="lat_hr">time_orb_data.lat</alias>
+      <alias name="lon_hr">time_orb_data.lon</alias>
+      <alias name="time_hr">time_orb_data.mdsr_time</alias>
+      <alias name="waveforms">wavef_data.avg_pow_echo_wavef</alias>
+    </aliases>
+
+    <aliases productType="SIR_FDM_1B" ref="SIR_LRM_1B" />
+
+    <aliases productType="SIR_SIN_1B" ref="SIR_LRM_1B" />
+
+    <aliases productType="SIR_SAR_1B" ref="SIR_LRM_1B" />
+
+    </product>
+
+  <!-- =================================================================== -->
+  <product class="NETCDF_CF" description="Netcdf products">
+
+    <aliases productType="JASON-2/SSHA" description="Jason-2 Reduced Dataset Aliases">
+      <alias name="lat">lat</alias>
+      <alias name="lon">lon</alias>
+      <alias name="time">time</alias>
+    </aliases>
+
+    <aliases productType="JASON-2/GDR" description="Jason-2 Standard Dataset Aliases">
+      <alias name="lat">lat</alias>
+      <alias name="lon">lon</alias>
+      <alias name="time">time</alias>
+      <alias name="lat_hr">lat_20hz</alias>
+      <alias name="lon_hr">lon_20hz</alias>
+      <alias name="time_hr">time_20hz</alias>
+	  <alias name="surface_type_ocean">surface_type</alias> 
+	  <alias name="altitude">alt</alias> 
+	  <alias name="alt" ref="altitude"/> 
+	  <alias name="dry_tropo_corr">model_dry_tropo_corr</alias> 
+	  <alias name="wet_tropo_corr">rad_wet_tropo_corr</alias> 
+	  <alias name="iono_corr">iono_corr_alt_ku</alias> 
+	  <alias name="sigma0">sig0_ku</alias> 
+	  <alias name="sigma0_ku" ref="sigma0"/>
+	  <alias name="sigma0_band2">sig0_c</alias> 
+	  <alias name="tides_ocean_corr">ocean_tide_sol1</alias> 
+	  <alias name="tides_all_corr">(ocean_tide_sol1 + solid_earth_tide + pole_tide)</alias> 
+	  <alias name="wind_speed">wind_speed_alt</alias>
+	  <alias name="sig_wave_height">swh_ku</alias> 
+	  <alias name="sig_wave_height_band2">swh_c</alias> 
+	  <alias name="sig_wave_height_ku" ref="sig_wave_height"/>
+	  <alias name="swh" ref="sig_wave_height"/>
+	  <alias name="swh_ku" ref="sig_wave_height"/>
+	  <alias name="swh_band2" ref="sig_wave_height_band2"/>
+	  <alias name="inv_baro_corr">inv_bar_corr</alias> 
+	  <alias name="ib" ref="inv_baro_corr"/>
+	  <alias name="dynamic_atmos_corr">(hf_fluctuations_corr + inv_bar_corr)</alias> 
+	  <alias name="sea_state_bias_corr">sea_state_bias_ku</alias>
+	  <alias name="sea_state_bias_corr_ku" ref="sea_state_bias_corr"/>
+	  <alias name="ssb" ref="sea_state_bias_corr"/>
+	  <alias name="ssb_ku" ref="sea_state_bias_corr"/>
+	  <alias name="sea_state_bias_corr_band2">sea_state_bias_c</alias> 
+	  <alias name="ssb_band2" ref="sea_state_bias_corr_band2"/>
+	  <alias name="range">range_ku</alias> 
+	  <alias name="range_ku" ref="range"/>
+	  <alias name="range_band2">range_c</alias> 
+	  <alias name="mean_sea_surface">mss</alias> 
+	  <alias name="mss" ref="mean_sea_surface"/>
+    </aliases>
+
+    <aliases productType="JASON-2/SGDR" description="Jason-2 Expertise Dataset Aliases">
+      <alias name="lat">lat</alias>
+      <alias name="lon">lon</alias>
+      <alias name="time">time</alias>
+      <alias name="lat_hr">lat_20hz</alias>
+      <alias name="lon_hr">lon_20hz</alias>
+      <alias name="time_hr">time_20hz</alias>
+      <alias name="waveforms">waveforms_20hz_c</alias>
+    </aliases>
+
+    <aliases productType="ALONG_TRACK_PRODUCT"
+      description="Aviso Along Track  Netcdf Dataset Aliases">
+      <alias name="lat">Latitude</alias>
+      <alias name="lon">Longitude</alias>
+      <alias name="time">Date</alias>
+    </aliases>
+
+    <aliases productType="GRID_DOTS" description="Aviso Grid Dots Netcdf Dataset Aliases">
+      <alias name="lat">Latitude</alias>
+      <alias name="lon">Longitude</alias>
+      <alias name="time">Grid_0001_date</alias>
+    </aliases>
+
+    <aliases productType="GRID_DOTS_MERCATOR"
+      description="Aviso Grid Dots Mercator Netcdf Datase Aliasest">
+      <alias name="lat">Latitude</alias>
+      <alias name="lon">Longitude</alias>
+      <alias name="time">Grid_0001_date</alias>
+    </aliases>
+
+    <aliases productType="GRID_BOXES" description="Aviso Grid Boxes Netcdf Dataset Aliases">
+      <alias name="lat">Latitude</alias>
+      <alias name="lon">Longitude</alias>
+      <alias name="time">Grid_0001_date</alias>
+    </aliases>
+
+    <aliases productType="GRID_BOXES_MERCATOR"
+      description="Aviso Grid Boxes Mercator Netcdf Dataset Aliases">
+      <alias name="lat">Latitude</alias>
+      <alias name="lon">Longitude</alias>
+      <alias name="time">Grid_0001_date</alias>
+    </aliases>
+
+    <aliases productType="Generic NetCdf" description="Generic Netcdf Dataset Aliases">
+      <alias name="lat">latitude</alias>
+      <alias name="lon">longitude</alias>
+      <alias name="time">time</alias>
+    </aliases>
+
+    <aliases productType="Y=F(X)" ref="Generic Netcdf" description="Brat Y=F(X)  Dataset Aliases"/>
+
+    <aliases productType="Z=F(X,Y)" ref="Generic Netcdf" description="Brat Z=F(X,Y)  Dataset Aliases"/>
+
+  </product>
+
+</aliasesDefinition>
+
+
+
+
+
+
+

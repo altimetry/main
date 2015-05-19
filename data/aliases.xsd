@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  
+  <!-- ================================= -->
+  <!--   aliasesDefinition element (root)  -->
+  <!-- ================================= -->
+  
+  <xs:element name="aliasesDefinition">
+    <xs:annotation>
+      <xs:documentation>
+        Root element of the Brat aliases definitions
+      </xs:documentation>
+    </xs:annotation>                  
+    
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="product"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  
+  <!-- ================================= -->
+  <!--   product element  -->
+  <!-- ================================= -->
+  <xs:element name="product">
+    <xs:annotation>
+      <xs:documentation>
+        Coda/Brat product - See Brat products format definitions in the doc/codadef/index.html file located in the Brat directory.
+        Products are classified in 'class' (product class) and 'type' (product type)
+      </xs:documentation>
+    </xs:annotation>                          
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="defaultRecord"/>
+        <xs:element maxOccurs="unbounded" ref="aliases"/>
+      </xs:sequence>
+      <xs:attribute name="class" use="required" type="xs:ID">
+        <xs:annotation>
+          <xs:documentation>
+            Coda/Brat class of the product
+          </xs:documentation>
+        </xs:annotation>                          
+      </xs:attribute>
+      
+      <xs:attribute name="description" use="required">
+        <xs:annotation>
+          <xs:documentation>
+            Short description of the product
+          </xs:documentation>
+        </xs:annotation>                          
+      </xs:attribute>
+      
+    </xs:complexType>
+  </xs:element>
+  
+  <!-- ================================= -->
+  <!--   defaultRecord element  -->
+  <!-- ================================= -->
+  <xs:element name="defaultRecord">
+    <xs:annotation>
+      <xs:documentation>
+        The record to apply on the data fields of the aliases.
+        ‘record’ means the high level compound data type that consists of a list of fields. 
+        E.g., for Envisat products, the high level records are: mph, sph dsd, ra2_mds, mwr_mds, avg_waveforms_mds, ... 
+        Brat products format definitions are available from doc/codadef/index.html file located in the Brat directory.
+        If the 
+      </xs:documentation>
+    </xs:annotation>                          
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="productType"/>
+      </xs:sequence>
+      <xs:attribute name="name" use="required" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>
+            Name of the default record
+          </xs:documentation>
+        </xs:annotation>                          
+      </xs:attribute>
+      
+    </xs:complexType>
+  </xs:element>
+  
+  <!-- ================================= -->
+  <!--   producType element  -->
+  <!-- ================================= -->
+  <xs:element name="productType" type="xs:string">
+    <xs:annotation>
+      <xs:documentation>
+        Coda/Brat type of the product
+      </xs:documentation>
+    </xs:annotation>                      
+  </xs:element>
+  
+  <!-- ================================= -->
+  <!--   aliases element  -->
+  <!-- ================================= -->
+  <xs:element name="aliases">
+    <xs:annotation>
+      <xs:documentation>
+        Defines an aliases items
+        If no “productType” attribute is filled on the “aliases” element, 
+        all the “alias” elements define inside apply to all the types of the product 
+        and the record is the one define in the “defaultRecord element”. 
+        
+        If  “productType” attribute and a “record” attribute are filled on the “aliases” element, 
+        the “alias” elements define inside apply to all the specified product type and record.                
+      </xs:documentation>
+    </xs:annotation>                  
+    
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="alias"/>
+      </xs:sequence>
+      <xs:attribute name="description"  type="xs:string">
+        <xs:annotation>
+          <xs:documentation>
+            Short description of the aliases
+          </xs:documentation>
+        </xs:annotation>                        
+      </xs:attribute>
+      
+      <xs:attribute name="productType" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>
+            The type of product on which the aliases apply.
+            Missing attribut means "all product types" 
+          </xs:documentation>
+        </xs:annotation>                          
+        
+      </xs:attribute>
+      
+      
+      <xs:attribute name="record" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>
+            Record name to apply (if appropriate) 
+          </xs:documentation>
+        </xs:annotation>                          
+      </xs:attribute>
+      
+        <xs:attribute name="ref" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>
+            Set a reference to another 'aliases' element 
+            within the product definition
+          </xs:documentation>
+        </xs:annotation>                          
+      </xs:attribute>
+      
+    </xs:complexType>    
+    <xs:unique name="uniqueAlias">
+      <xs:annotation>
+        <xs:documentation>
+          An alias must be unique inside aliases items 
+        </xs:documentation>        
+      </xs:annotation>
+      <xs:selector xpath="alias"/>
+      <xs:field xpath="@name"/>
+    </xs:unique>
+    
+  </xs:element>
+  
+  <!-- ================================= -->
+  <!--   alias element  -->
+  <!-- ================================= -->  
+  <xs:element name="alias">
+    <xs:annotation>
+      <xs:documentation><![CDATA[
+      Defines an alias item (name, value,...)
+      An alias may include a data field or an expression of data fields: e.g.
+        <alias name="lon">longitude</alias>
+        <alias name="time">(time_day + time_sec + time_microsec)</alias>
+        The expression must be enclosed in parentheses to avoid possible interpretation errors.  
+      ]]></xs:documentation>
+    </xs:annotation>                                
+    <xs:complexType mixed="true">
+      <xs:attribute name="name" use="required" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>
+            Name of the alias 
+          </xs:documentation>
+        </xs:annotation>                                
+      </xs:attribute>      
+      <xs:attribute name="description" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>
+            Description of the alias 
+          </xs:documentation>
+        </xs:annotation>                                
+      </xs:attribute>      
+      <xs:attribute name="ref" type="xs:string">
+        <xs:annotation>
+          <xs:documentation>
+            Allow declaration of a synonym of an alias. 
+            If alias is a synonym, the element value must be empty.
+            The “ref” attribute can only refer to one alias; it can’t refer to an expression.
+          </xs:documentation>
+        </xs:annotation>                         
+      </xs:attribute>
+      
+    </xs:complexType>
+  </xs:element>
+  
+</xs:schema>

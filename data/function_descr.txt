@@ -1,0 +1,94 @@
+[!]
+Comment=
+[!\=]
+Comment=
+[\&]
+Comment=
+[\&\&]
+Comment=
+[\<]
+Comment=
+[\<\=]
+Comment=
+[\=\=]
+Comment=
+[\>]
+Comment=
+[\>\=]
+Comment=
+[DV]
+Comment=
+[PI]
+Comment=
+[PI2]
+Comment=
+[PI4]
+Comment=
+[abs]
+Comment=param1: Number involved\n
+[ceil]
+Comment=param1: Number involved\n
+[cos]
+Comment=param1: Number involved\n
+[cosd]
+Comment=param1: Number involved\n
+[deg2rad]
+Comment=param1: Number involved\n
+[deg_normalize]
+Comment=param1: Base longitude\nparam2: Longitude to normalize\n
+[exp]
+Comment=param1: Number involved\n
+[floor]
+Comment=param1: Number involved\n
+[frac]
+Comment=param1: Number involved\n
+[iif]
+Comment=param1: Condition\nparam2: return value if condition is true\nparam3: return value if condition is false\n
+[iif3]
+Comment=param1: Condition\nparam2: return value if condition is true\nparam3: return value if condition is false\nparam4: return value if param1 is default value\n
+[int]
+Comment=param1: Number involved\n
+[is_bounded]
+Comment=param1: Lower bound\nparam2: Number involved\nparam3: Upper bound\n
+[is_bounded_strict]
+Comment=param1: Lower bound\nparam2: Number involved\nparam3: Upper bound\n
+[is_default]
+Comment=param1: Number involved\nreturns 0.0 if X is not a default value, 1.0 otherwise\n
+[log]
+Comment=param1: Number involved\n
+[log10]
+Comment=param1: Number involved\n
+[max]
+Comment=param1: Number involved\nparam2: Number involved\n
+[min]
+Comment=param1: Number involved\nparam2: Number involved\n
+[mod]
+Comment=param1: Number involved\nparam2: Divider\n
+[rnd]
+Comment=param1: Number involved\nparam2: decimal precision\n
+[rad2deg]
+Comment=param1: Number involved\n
+[round]
+Comment=param1: Number involved\n
+[sign]
+Comment=param1: Number involved\n
+[sin]
+Comment=param1: Number involved\n
+[sind]
+Comment=param1: Number involved\n
+[sqr]
+Comment=param1: Number involved\n
+[sqrt]
+Comment=param1: Number involved\n
+[tan]
+Comment=param1: Number involved\n
+[tand]
+Comment=param1: Number involved\n
+[to_date]
+Comment=param1: date string \nreturns the number of seconds since 1950-01-01 00:00:00.000\n
+[\|]
+Comment=
+[\|\|]
+Comment=
+[\~]
+Comment=

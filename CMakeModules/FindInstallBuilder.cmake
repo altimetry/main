@@ -1,0 +1,65 @@
+# 
+# this module looks for InstallBuilder
+#
+# INSTALL_BUILDER_EXECUTABLE - the full path to the InstallBuilder executable
+# INSTALL_BUILDER_FOUND      - If false, don't attempt to use Install Builder.
+MACRO(DBG_MSG _MSG)
+  MESSAGE(STATUS
+    "${CMAKE_CURRENT_LIST_FILE}(${CMAKE_CURRENT_LIST_LINE}): ${_MSG}")
+ENDMACRO(DBG_MSG)
+MACRO(DBG_MSG_V _MSG)
+  MESSAGE(STATUS
+    "${CMAKE_CURRENT_LIST_FILE}(${CMAKE_CURRENT_LIST_LINE}): ${_MSG}")
+ENDMACRO(DBG_MSG_V)
+
+
+IF (WIN32)
+  SET(EXTRA_DIRLOCATION_TMP 
+		"C:/Program Files/Bitrock*"
+		"C:/Program Files/Bitrock/*"
+		"C:/Bitrock*"
+		"C:/Bitrock/*"
+		"D:/Program Files/Bitrock*"
+		"D:/Program Files/Bitrock/*"
+		"D:/Bitrock*"
+		"D:/Bitrock/*"
+		"E:/Program Files/Bitrock*"
+		"E:/Program Files/Bitrock/*"
+		"E:/Bitrock*"
+		"E:/Bitrock/*"
+)
+
+  FILE(GLOB EXTRA_DIRLOCATION_TMP ${EXTRA_DIRLOCATION_TMP})
+  FOREACH (IBDIR_TMP ${EXTRA_DIRLOCATION_TMP})
+    SET(EXTRA_DIRS ${EXTRA_DIRS} "${IBDIR_TMP}/bin")
+  ENDFOREACH(IBDIR_TMP)
+
+ENDIF (WIN32)
+
+
+IF (APPLE)
+  FILE(GLOB EXTRA_DIRLOCATION_TMP "/Applications/Bitrock*")
+  FOREACH (IBDIR_TMP ${EXTRA_DIRLOCATION_TMP})
+    SET(EXTRA_DIRS ${EXTRA_DIRS} "${IBDIR_TMP}/bin/Builder.app/Contents/MacOS")
+  ENDFOREACH(IBDIR_TMP)
+  SET(IB_EXECNAME installbuilder.sh)
+ELSE (APPLE)
+  SET(IB_EXECNAME builder)
+ENDIF (APPLE)
+
+FIND_PROGRAM(INSTALL_BUILDER_EXECUTABLE
+  NAMES ${IB_EXECNAME}
+  PATHS 
+  ${INSTALL_BUILDER_DIR} ENV INSTALL_BUILDER_DIR
+  ${EXTRA_DIRS}
+  )
+
+MARK_AS_ADVANCED(
+  INSTALL_BUILDER_EXECUTABLE
+  )
+
+IF (INSTALL_BUILDER_EXECUTABLE)
+  SET(INSTALL_BUILDER_FOUND "YES")
+ELSE (INSTALL_BUILDER_EXECUTABLE)
+  SET(INSTALL_BUILDER_FOUND "NO")
+ENDIF (INSTALL_BUILDER_EXECUTABLE)

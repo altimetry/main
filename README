@@ -1,0 +1,205 @@
+===========================================
+BRAT - Basic Radar Altimetry Toolbox README
+===========================================
+
+
+
+Overview
+========
+
+The Basic Radar Altimetry Toolbox (BRAT) is a collection of tools
+and tutorial documents designed to facilitate the processing of
+radar altimetry data. BRAT is able to handle most distributed
+radar altimetry data formats, providing support for ingesting,
+processing, editing (to a certain extent), generating statistics,
+visualising and exporting the results.
+
+A full user manual for BRAT is available in the file
+brat_user_manual_3.1.0.pdf in the 'doc' directory of the BRAT
+distribution or installation. The user manual contains all the
+necessary information about installing and running BRAT.
+
+This README file contains the version history for BRAT, a list of
+known issues, and any other last-minute added or updated
+information that can not (yet) be found in the user manual. In
+the case of conflicting information, this README file is
+authoritative.
+
+
+
+Version History
+===============
+3.1.0 - March 2012
+------------------
+  - Add an "aliases" capability, that enables users to use the same names for
+    the most frequent data fields.
+  - Add an index (brat_index_data) for data with a "time" dimension
+    (i.e. not available for some data, like grids).
+  - Add filters algorithms (four different filters have been implemented),
+    working along-track or on grids.
+  - The call to the geostrophic velocity algorithms is modified to use the
+    aliases for longitude and latitude, to make things simpler for users.
+  - Updated CODA to version 2.3.1.
+  - Internal (CODA) product type names for ERS product types have been aligned
+    with ESA naming convention (OPR_pass_file -> ALT.OPR, WAP -> ALT.WAP)
+  - Updated CryoSat product format (codadef) to be in line with upcoming
+    L1 PFS v4.9 and L2 PFS v2.8. Main changes impacting BRAT are:
+    - The field for the main dataset in the FDM product is now called
+      'siral_l2_fdm_mds' instead of 'siral_l2_fdo_mds'
+    - usr_corr field now has a scale factor of 1e-15 instead of 1e-7
+  - Fixed locating of User Manual document when selected from GUI.
+
+3.0.1 - May 2011
+----------------
+  - Bugs fixed :
+    * The Loess filters computation were not applied if input files were netCDF
+      files.
+    * Fixed problem where incorrect lines were drawn for worldmap plots on
+      Windows due to rounding issues near the projection boundaries.
+    * Fixed issue where a 'marque' (box with dotted lines) could appear in a
+      worldmap plot.
+    * Included MSVC 2010 DLLs to BRAT IDL and MATLAB directories on Windows to
+      prevent usage problems of these interfaces.
+
+3.0 - February 2011
+-------------------
+  - Added algorithms computation module (geostrophic velocity algorithms).
+  - Added batch processing : BratScheduler enables to delay the execution of an
+    operation.
+  - Added support for Topex-Poseidon and ERS RA waveform products.
+  - It is now possible to drag & drop files into the Dataset panel.
+  - Several improvements to BratDisplay:
+    * the center/zoom functionality for worldplots has been greatly improved.
+    * the number of latitude/longitude grid lines will now increase/decrease
+      depending on the zoom level.
+    * latitude/longitude grid lines now come with a text label showing the
+      associated latitude/longitude value of the parallel/meridian.
+    * the 'animation bar' is now shown by default if the plot can be animated.
+    * Added support for new projections: Orthographic, Near-Sided Perspective,
+      and Stereographic.
+    * The save directory for image export will now be remembered for consecutive
+      calls to export.
+    * Added support to visualize vector plots.
+  - Improve 'ascii export' : 'ascii export' is able to export either the result
+    of the operation (default) or only dumps the expression data. In the
+    previous version of Brat, 'ascii export' only dumped the expression data.
+  - Updated CODA to version 1.5.
+  - BRAT now requires VTK 5.6.
+  - Bugs fixed :
+    * Statistics computation are not converted to wanted unit (set by the user).
+    * Display Expression Properties for a field were not updated properly in the
+      Views tab of BratGui on Mac OS X.
+    * The BRAT installer did now work on KDE SUSE 11 systems.
+
+2.1.1 - June 2010
+-----------------
+  - Bugs fixed :
+    * Regression issue in 2.1.0 that broke support of high resolution and
+      waveform data for ENVISAT RA-2 and ERS RA products.
+    * Possible loss of field names in expressions that contain aliases
+    * Wrong SSH formula for Topex product (SSH_TOPEX) (since BRAT 2.0.0):
+      'Topex dual-frequency ionospheric (Iono_Cor) correction' should be used
+      instead of 'Ionospheric correction from DORIS (Iono_Dor).
+    * When executing an operation within Brat GUI, expression was sometimes
+      reset if it contained a syntax error.
+    * For Topex products, the date in Brat output was wrong if the Brat
+      operation contained "high resolution" fields (data).
+
+2.1.0 - March 2010
+------------------
+  - Updated RA2 product format specifications (codadef) to bring them in line 
+    with the new Vol14 4/C product format specifications document.
+  - Improvements to the CRYOSAT product format definitions (codadef) file to
+    bring it in line with the latest official specification documents.
+  - Updated CODA to version 1.3.3.
+  - Bugs fixed :
+    * The Matlab API 'brathl_ReadData' could crash depending on how parameters
+      were passed to the API.
+    * BratDisplay could crash due to an invalid pointer.
+    * Incorrect fieldname for Export if 'Only dump expressions' was selected.
+    * Fixed column header for 'date as period' values in ascii export.
+
+2.0.3 - November 2009
+---------------------
+  - Bugs fixed :
+    * An uninstall of BRAT would delete the entire installation
+      directory (/usr/local by default on Linux when installed as
+      root), including non-BRAT files and directories.
+    * BratExportAscii : issue with the FIELD_FORMAT parameter
+      which is not taken into account from the export parameters' file 
+	  (Notice that FIELD_FORMAT parameter is never set by using BratGui 
+	  and have to be set manually in the parameters' file).
+    * Get rid of 'RPM' error messages after a root install on
+      Linux.
+
+2.0.2 - November 2009
+--------------------
+  - Bugs fixed : 
+    * On Windows, BRAT could be looking on the wrong drive for its data files 
+    * Fixed a few potential memory leak and memory corruption problems
+    * Uninstaller on Windows will now properly remove all files
+
+2.0.1 - June 2009
+-----------------
+  - Bugs fixed : 
+    * Compilation errors under Linux X64
+    * BratDisplay sometimes crashes on close.
+    * BratGui sometimes crashes when refreshing the display panel
+    * Some minor issues.
+  
+  - Improve 'ascii export' report (from Netcdf products).
+
+2.0.0 - April 2009
+------------------
+  - This update is a major upgrade of the software, including a Mac OS X
+    version, River&Lake data reading capability, full waveform processing and
+    plotting, new plotting capabilities, export in GeoTiff, including a Google
+    Earth export feature, easier export in ASCII, a rethinking of the Graphical
+    User Interface and of the software packaging, to make it easier to use.
+
+1.1.1 - June 2008
+----------------------
+  - Bug fixed : In Brat Gui, Loess filter is never applied. Bug
+    appears in version 1.1.0.
+
+1.1.0 - December 2007
+----------------------
+  - Bug fixed : sometimes the toolbox (GUI) crashes when you
+    delete an operation.
+  - Add Jason-2 data processing.
+  - Add 'General' NetCdf data processing.
+  - Built under linux with GCC 4.2.2 (new warnings)
+
+1.0.2 - March 2007
+------------------
+  - Bug fixed : In X/Y plot display, sometimes the toolbox
+    crashes when moving the graph after having modified the font
+    size.
+  - Disable 'barn' unit.
+  
+1.0.1 - December 2006
+---------------------
+  - Add high-resolution fields processing.
+  - Installation process and package creation enhanced.
+
+1.0.0
+-----
+  - First released version.
+
+
+
+Known Issues
+============
+
+There are currently no known issues.
+
+
+Further information
+===================
+
+For software upgrades, documentation updates and the on-line
+tutorial, including use cases go to:
+
+http://earth.esa.int/brat/ or http://www.altimetry.info/
+
+BRAT has been developed under contract with ESA and CNES.

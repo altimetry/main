@@ -1,0 +1,110 @@
+# Top CMakeLists.txt file for building the udunits library using
+# cmake instead of gnu configure.
+#
+# This file is tailored to BRAT purposes, and is not really
+# suitable for stand-alone udunits compilation (although it could
+# serve as a good starting point.
+
+project(UDUNITS C)
+cmake_minimum_required(VERSION 2.6.1)
+
+set(UDUNITS_INCLUDE_DIRS
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/lib
+  CACHE INTERNAL "Include directories for the udunits library")
+
+include_directories(
+  ${UDUNITS_INCLUDE_DIRS}
+  ${CMAKE_CURRENT_SOURCE_DIR}/port/misc
+  )
+
+include(CheckFunctionExists)
+include(CheckIncludeFile)
+
+check_include_file("stdarg.h" HAVE_STDARG_H)
+check_include_file("stddef.h" HAVE_STDDEF_H)
+check_include_file("stdlib.h" HAVE_STDLIB_H)
+check_include_file("string.h" HAVE_STRING_H)
+check_include_file("limits.h" HAVE_LIMITS_H)
+check_include_file("time.h"   HAVE_TIME_H)
+check_include_file("search.h" HAVE_SEARCH_H)
+check_function_exists(tsearch HAVE_TSEARCH)
+
+
+if(WIN32)
+  add_definitions(-D_POSIX_)
+endif(WIN32)
+
+set(SOURCES
+  src/lib/utlib.c
+  src/lib/utparse.c
+  src/lib/utscan.c
+  )
+
+
+include_directories(
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/lib
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/port/misc
+  )
+
+if(WIN32)
+  set(UT_DEFAULT_PATH "${CMAKE_INSTALL_PREFIX}/data/brathl_units.dat")
+else(WIN32)
+  set(UT_DEFAULT_PATH "${CMAKE_INSTALL_PREFIX}/data/brathl_units.dat")
+endif(WIN32)
+
+
+if(NOT HAVE_STDARG_H)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/port/misc/stdarg.h.in
+	${CMAKE_CURRENT_SOURCE_DIR}/src/port/misc/stdarg.h)
+endif(NOT HAVE_STDARG_H)
+
+if(NOT HAVE_STDDEF_H)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/port/misc/stddef.h.in
+	${CMAKE_CURRENT_SOURCE_DIR}/src/port/misc/stddef.h)
+endif(NOT HAVE_STDDEF_H)
+
+if(NOT HAVE_STDLIB_H)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/port/misc/stdlib.h.in
+	${CMAKE_CURRENT_SOURCE_DIR}/src/port/misc/stdlib.h)
+endif(NOT HAVE_STDLIB_H)
+
+if(NOT HAVE_STRING_H)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/port/misc/string.h.in
+	${CMAKE_CURRENT_SOURCE_DIR}/src/port/misc/string.h)
+endif(NOT HAVE_STRING_H)
+
+if(NOT HAVE_TIME_H)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/port/misc/time.h.in
+	${CMAKE_CURRENT_SOURCE_DIR}/src/port/misc/time.h)
+endif(NOT HAVE_TIME_H)
+
+if(NOT HAVE_LIMITS_H)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/port/misc/limits.h.in
+	${CMAKE_CURRENT_SOURCE_DIR}/src/port/misc/limits.h)
+endif(NOT HAVE_LIMITS_H)
+
+
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/port/misc/udposix.h.in
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/port/misc/udposix.h)
+
+if(NOT HAVE_TSEARCH)
+  set(UD_NO_SEARCH_H_ENTRY 1)
+  set(UD_NO_SEARCH_H_ACTION 1)
+  set(UD_NO_SEARCH_H_VISIT 1)
+  set(UD_NO_TSEARCH_DECL 1)
+  set(UD_NO_TFIND_DECL 1)
+  set(UD_NO_TDELETE_DECL 1)
+  set(UD_NO_TWALK_DECL 1)
+  configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/port/misc/search.h.in
+	${CMAKE_CURRENT_SOURCE_DIR}/src/port/misc/search.h)
+  set(SEARCH_FILES ${CMAKE_CURRENT_SOURCE_DIR}/src/port/misc/tsearch.c
+	${CMAKE_CURRENT_SOURCE_DIR}/src/port/misc/tfind.c
+	${CMAKE_CURRENT_SOURCE_DIR}/src/port/misc/twalk.c
+	${CMAKE_CURRENT_SOURCE_DIR}/src/port/misc/tdelete.c)
+endif(NOT HAVE_TSEARCH)
+
+add_library(udunits STATIC ${SOURCES} ${SEARCH_FILES})
+set_target_properties(udunits PROPERTIES VERSION PRODUCT.VERSION SOVERSION PRODUCT.SOVERSION)
+install(TARGETS udunits DESTINATION lib)
+install(FILES src/lib/udunits.h DESTINATION include)
+
