@@ -91,6 +91,22 @@ void CObjectTreeNode::Delete(const string& key)
 //----------------------------------------
 void CObjectTreeNode::DeleteAllChildren()
 {
+	vectorTreeNode::iterator pchild;
+	while ( m_children.size() )
+	{
+		pchild = m_children.begin();
+		( *pchild )->DeleteAllChildren();
+		mapTreeNode::iterator itrmap = m_LinkedTree->m_nodemap.find( ( *pchild )->m_key );
+		m_LinkedTree->m_nodemap.erase( itrmap );
+		delete *pchild;
+		m_children.erase( pchild );
+		//after removing the node, iterater is advanced
+	}
+	//m_children.clear();
+}
+/*
+void CObjectTreeNode::DeleteAllChildren()
+{
 
   vectorTreeNode::iterator pchild;
   mapTreeNode::iterator itrmap;
@@ -104,7 +120,7 @@ void CObjectTreeNode::DeleteAllChildren()
     //after removing the node, iterater is advanced
   }
 }
-
+*/
 //----------------------------------------
 void CObjectTreeNode::AddChild (CObjectTreeNode* child)
 {

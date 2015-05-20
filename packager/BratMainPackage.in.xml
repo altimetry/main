@@ -1,6 +1,6 @@
 <project>
   <shortName>brat</shortName>
-  <fullName>Basic Radar Altimetry Toolbox</fullName>
+  <fullName>BRAT</fullName>
   <version>@BRAT_VERSION@</version>
   <installerFilename>${product_shortname}-${product_version}-${platform_name}-installer.${platform_exec_suffix}</installerFilename>
   <readmeFile>@PROJECT_SOURCE_DIR@/README</readmeFile>
@@ -137,7 +137,7 @@
             </distributionFile>
           </distributionFileList>
         </folder>
-        <folder>
+        <!--<folder>
           <description>IDL interface files</description>
           <platforms>windows</platforms>
           <destination>${installdir}/idl</destination>
@@ -162,7 +162,7 @@
               <origin>C:/WINDOWS/system32/msvcr100.dll</origin>
             </distributionFile>
           </distributionFileList>
-        </folder>
+        </folder>-->
         <folder>
           <description>Shared data files</description>
           <destination>${installdir}</destination>

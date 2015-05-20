@@ -85,9 +85,17 @@
 #endif
 
 #ifndef PATH_MAX
+#if defined(WIN32) || defined(_WIN32)
+#   define PATH_MAX	_MAX_PATH
+#else
 #   define PATH_MAX	_POSIX_PATH_MAX
 #endif
-
+#endif
+/*
+#ifndef PATH_MAX
+#   define PATH_MAX	_POSIX_PATH_MAX
+#endif
+*/
 #undef	DUPSTR
 #define	DUPSTR(s)	strcpy((char*)malloc(strlen(s)+1), s)
 #undef	ABS

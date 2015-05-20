@@ -26,8 +26,10 @@
 #include "brathl.h" 
 
 /* workaround to prevent double definition of char16_t */
+#if !defined(_MSC_VER) || (_MSC_VER < 1800)
 #ifdef _CHAR16T
 #define CHAR16_T
+#endif
 #endif
 #include "mex.h"
 

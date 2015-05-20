@@ -761,7 +761,7 @@ if(BRATHL_BUILD_MATLAB)
     if(WIN32)
       set(MEX "${MATLAB_DIR}/bin/mex.bat")
       set(MEXEXT "mexw32")
-      set(MEXFLAGS ${MEXFLAGS} COMPFLAGS="-c -Zp8 -GR -W3 -EHs -DMATLAB_MEX_FILE -nologo" -DWIN32_LEAN_AND_MEAN -DWIN32 -DHAVE_CONFIG_H -v)
+      set(MEXFLAGS ${MEXFLAGS} COMPFLAGS="-c -MD -Zp8 -GR -W3 -EHs -DMATLAB_MEX_FILE -nologo" -DWIN32_LEAN_AND_MEAN -DWIN32 -DHAVE_CONFIG_H -v)
     else(WIN32)
       set(MEX "${MATLAB_DIR}/bin/mex")
       set(MEXEXT_PROG "mexext")
@@ -1598,7 +1598,8 @@ if(APPLE)
   add_custom_target(bdist
     COMMENT "Creating the Mac OS X disk image"
     COMMAND rm -f ${BDIST_DMGFILE}
-    COMMAND hdiutil create -fs HFS+ -srcfolder ${BDIST_PKGDIR} -volname "BRAT ${BRAT_VERSION}" ${BDIST_DMGFILE}
+    # COMMAND hdiutil create -fs HFS+ -srcfolder ${BDIST_PKGDIR} -volname "BRAT ${BRAT_VERSION}" ${BDIST_DMGFILE}
+    COMMAND hdiutil create -srcfolder ${BDIST_PKGDIR} -volname "BRAT ${BRAT_VERSION}" ${BDIST_DMGFILE}
     )
 
   add_dependencies(bdist bdist_stage_macos)

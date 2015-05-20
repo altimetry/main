@@ -537,7 +537,7 @@ void CBratGuiApp::ViewUserManual()
   if ( ft == NULL )
   {
     //wxMessageBox(wxString::Format("There is no program associated with '%s' file. "
-    //                              "Brat can’t open the User Manual from '%s'. "
+    //                              "Brat can't open the User Manual from '%s'. "
     //                              "Check your system configuration and/or try to open the User Manuel manually (outside Brat)",
     //                              ext.c_str(),
     //                              m_userManual.c_str()),
