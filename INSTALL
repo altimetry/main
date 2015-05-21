@@ -19,7 +19,7 @@ brat-3.1.0-windows-installer.exe and follow the instructions.
 
 + For Linux: double-click in your desktop manager (or execute
 from the command-line) the installer file
-brat-3.1.0-linux-installer.bin and follow the instructions. (If
+brat-3.1.0-linux-installer.run and follow the instructions. (If
 necessary use 'chmod +x <installer-filename>' to ensure the
 installer is executable.)
 

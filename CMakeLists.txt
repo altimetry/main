@@ -1620,7 +1620,7 @@ if(INSTALL_BUILDER_FOUND)
     set(PACKAGE_FILE ${BRAT_BINARY_DIR}/brat-${BRAT_VERSION}-windows-installer.exe)
   else(WIN32)
     set(INSTALLER_PLATFORM linux)
-    set(PACKAGE_FILE ${BRAT_BINARY_DIR}/brat-${BRAT_VERSION}-linux-installer.bin)
+    set(PACKAGE_FILE ${BRAT_BINARY_DIR}/brat-${BRAT_VERSION}-linux-installer.run)
   endif (WIN32)
 
   configure_file(

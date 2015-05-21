@@ -34,7 +34,7 @@ my $CodaDocDir	    = File::Spec->catdir(File::Spec->catdir($SrcDir, "externals",
 my $SourcesDestDir	= File::Spec->catdir($DestDir, "sources");
 
 my %DistribFiles = (
-		"brat-$Version-linux-installer.bin"	=> [ $BinDir,	$DestDir	],
+                "brat-$Version-linux-installer.run"	=> [ $BinDir,	$DestDir	],
 		"brat-$Version-windows-installer.exe"	=> [ $BinDir,	$DestDir	],
 		"brat-$Version-macosx-i386.dmg"	=> [ $BinDir,	$DestDir	],
 		"brat-$Version-macosx-ppc.dmg"	=> [ $BinDir,	$DestDir	],
@@ -53,7 +53,7 @@ my %DistribFiles = (
 # Files which must be checked with MD5 or SHA1
 #
 my @CheckSumFiles	 = (
-		"brat-$Version-linux-installer.bin",
+                "brat-$Version-linux-installer.run",
 		"brat-$Version-windows-installer.exe",
 		"brat-$Version-macosx-i386.dmg",
 		"brat-$Version-macosx-ppc.dmg",
