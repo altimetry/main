@@ -6,7 +6,7 @@
 use File::Basename;
 use File::Path;
 use File::Spec;
-use File::Copy;
+use File::Copy "cp";
 
 my $SourceDir		= shift @ARGV;
 my $BuiltSourceDir	= shift @ARGV;
@@ -129,7 +129,7 @@ foreach (@FilesToSave)
   my $FinalDir	= File::Spec->catdir($CreatedPath, $Dir);
   my $FinalFile	= File::Spec->catfile($FinalDir, $Name);
   mkpath $FinalDir, 0, 0755;
-  copy $_, $FinalFile
+  cp $_, $FinalFile
 	or die "Error copying $_ to $FinalFile: $!\n";
 }
 
