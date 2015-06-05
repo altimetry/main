@@ -127,7 +127,7 @@ set(CODA_BUILD_IDL ${BRATHL_BUILD_IDL} CACHE BOOL "build CODA IDL Interface" FOR
 set(CODA_BUILD_MATLAB ${BRATHL_BUILD_MATLAB} CACHE BOOL "build CODA MATLAB Interface" FORCE)
 set(CODA_DEFINITION_IDL \"../data\" CACHE STRING "location of CODA definition files for IDL interface" FORCE)
 set(CODA_DEFINITION_MATLAB \"../data\" CACHE STRING "location of CODA definition files for MATLAB interface" FORCE)
-UNPACK_EXTERNAL_PACKAGE(coda 2.3.1)
+UNPACK_EXTERNAL_PACKAGE(coda 2.13)
 add_subdirectory(${PACKAGE_TARGET})
 
 
