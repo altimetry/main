@@ -130,10 +130,10 @@
           <name>matlab_interface</name>
           <distributionFileList>
             <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/brathl_matlab.mexw32</origin>
+              <origin>@CMAKE_BINARY_DIR@/brathl_matlab.@MEXEXT@</origin>
             </distributionFile>
             <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/externals/coda/coda_matlab.mexw32</origin>
+              <origin>@CMAKE_BINARY_DIR@/externals/coda/coda_matlab.@MEXEXT@</origin>
             </distributionFile>
           </distributionFileList>
         </folder>
