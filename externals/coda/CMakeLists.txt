@@ -499,7 +499,7 @@ if(NOT CODA_BUILD_SUBPACKAGE_MODE)
       # a batchfile without the extension will fail in that case.
       if(WIN32)
         set(MEX "${MATLAB_DIR}/bin/mex.bat")
-        set(MEXEXT "mexw32")
+      #  set(MEXEXT "mexw32")
         set(MEXFLAGS ${MEXFLAGS} -DWIN32_LEAN_AND_MEAN -DWIN32 -DHAVE_CONFIG_H -v)
       else(WIN32)
         set(MEX "${MATLAB_DIR}/bin/mex")

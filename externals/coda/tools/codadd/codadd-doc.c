@@ -175,7 +175,7 @@ static void generate_escaped_html_string(const char *str, int length)
                 ff_printf("&nbsp;");
                 break;
             default:
-                if (!isprint(*str))
+                if (*str < -1 || *str > 255 || !isprint(*str))
                 {
                     ff_printf("\\%03o", (int)(unsigned char)*str);
                 }
