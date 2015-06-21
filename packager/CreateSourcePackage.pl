@@ -25,7 +25,7 @@ my @SourceDirs = qw(
 		externals/netcdf.brat
 		externals/proj.brat
 		externals/udunits.brat
-		externals/coda.brat
+		externals/coda
 		packager
 		process
 		scheduler

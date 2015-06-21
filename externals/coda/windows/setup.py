@@ -1,0 +1,17 @@
+# setup.py for installing CODA Python interface on Windows.
+
+import os
+from distutils.core import setup
+from distutils.sysconfig import get_python_lib
+
+setup (name             = "CODA",
+       version          = "2.13",
+       description      = "CODA Common Data Access framework",
+       long_description = "",
+       maintainer       = "S[&]T",
+       maintainer_email = "coda@stcorp.nl",
+       license          = "GPL",
+       url              = "http://www.stcorp.nl/coda/",
+       packages         = ['coda'],
+       data_files       = [(os.path.join(get_python_lib(), 'coda'), [os.path.join('coda', '_codac.pyd')])]
+       )

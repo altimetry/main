@@ -1,0 +1,677 @@
+2.13 2015-04-29
+~~~~~~~~~~~~~~~
+
+* Fixed Python wrapping of functions coda.time_string_to_parts,
+  coda.time_string_to_double, and coda.time_string_to_double_utc.
+  (they now accept both format and string parameters again)
+
+* Added Python 3 compatibility.
+  In Python 3 coda_expression_eval_string() returns 'bytes' and
+  coda_cursor_read_string() returns 'unicode'.
+
+* Added --open_as option to codadump debug mode.
+
+* Doxygen documentation is now made with doxygen 2.8.9.1.
+
+2.12.1 2015-02-24
+~~~~~~~~~~~~~~~~~
+
+* Added option to 'codadump debug' to disable the use of fast-size
+  expressions.
+
+* offset and size arguments to Python coda.cursor_read_bytes() function
+  are now optional.
+
+* Fixed issue where strings returned via the Python interface were sometimes
+  shortened if the string contained '\0' or other non-printable characters.
+
+* Fixed issues where detection of xml files could fail.
+  Problems could occur when an element was fully empty (not even containing
+  whitespace) or when the element string content or closing tag crossed an
+  8Kb boundary in the file.
+
+* Added entry for 2015-06-30 in leap second table.
+ 
+2.12 2015-01-15
+~~~~~~~~~~~~~~~
+
+* Fixed memory corruption in 'time to string' functions in Python interface.
+
+* Added -D option to all command line tools to allow explicit setting
+  of CODA definition path.
+
+* Added feature to reference record fields by index in CODA expressions
+  using the '/{0}' style syntax.
+
+* Improved performance of reading vsf_integer data.
+
+2.11.1 2014-11-14
+~~~~~~~~~~~~~~~~~
+
+* Detection of HDF5 files now also supports HDF5 files where the
+  superblock is not located at the start of the file but at offset
+  512, 1024, or 2048. Files that have the superblock starting at
+  higher offsets are still not supported.
+
+* Error messages for offset/size/availability expressions now show at
+  which cursor position the error occured.
+
+* Updates to windows build systems.
+  - Fixed building against latest version of HDF5 (hdf5-1.8.13).
+  - CODA binaries are now built against Python 2.7.8 and numpy 1.8.2.
+  - Microsoft Visual C++ runtime libraries are no longer included with the 
+    Windows binary installer. You now have to install these yourself:
+       http://www.microsoft.com/en-us/download/details.aspx?id=29
+       http://www.microsoft.com/en-pk/download/details.aspx?id=15336
+
+2.11 2014-08-27
+~~~~~~~~~~~~~~~
+
+* Refactored XML backend and memory backend
+  All XML data is now first fully read in memory (using expat) and then
+  accessed from there. Since CODA no longer tries to directly read from
+  the files anymore this means that:
+  - all data will now be correctly returned as UTF-8
+    (even if the XML file had a different encoding)
+  - XML entities are now properly parsed
+  - error messages that quote xml element content will no longer display
+    parts of the xml closing tag in case the xml content was shorter than
+    expected.
+  Other backends that used in-memory storage (e.g. SP3, RINEX, GRIB, CDF)
+  also have been refactored to use the new memory backend.
+
+* SP3, RINEX, CDF and GRIB backends now present numbers more accurately
+  (i.e. matching the underlying float or double precission).
+
+* Reworked all CODA time functions. The following functions have
+  been introduced:
+    coda_time_double_to_parts(), coda_time_double_to_parts_utc(),
+    coda_time_parts_to_double(), coda_time_parts_to_double_utc(),
+    coda_time_parts_to_string(), coda_time_string_to_parts(),
+    coda_time_double_to_string(), coda_time_double_to_string_utc(),
+    coda_time_string_to_double(), coda_time_string_to_double_utc().
+  The following functions are now deprecated and will be removed in a
+  future CODA release:
+    coda_datetime_to_double(), coda_double_to_datetime(),
+    coda_time_to_string(), coda_string_to_time(),
+    coda_utcdatetime_to_double(), coda_double_to_utcdatetime(),
+    coda_time_to_utcstring(), coda_utcstring_to_time() 
+  Refer to the bottom section of the libcoda/coda-time.c source code
+  to see how to map from the old functions to the new functions.
+
+* The CODA expressions time format now supports '*' as a special character to
+  indicate that values should have leading spaces instead of leading zeros.
+
+* Improved debug output of codadump 
+
+* Added --no-mmap option to codacheck
+
+* Improved Fortran interface documentation. Default configuration and examples
+  now use 64-bit interface instead of 32-bit interface.
+
+* Changed default Python version for Windows build to Python 2.7.
+
+2.10.1 2014-03-21
+~~~~~~~~~~~~~~~~~
+
+* Fixed use of CODA_BUILD_SUBPACKAGE_MODE in CMake build.
+
+* Fixed small html documentation generation issue in codadd for conversions.
+
+2.10 2014-02-01
+~~~~~~~~~~~~~~~
+
+* Added support for 'offset' and 'invalid' attributes for a Conversion element
+  in codadef files.
+
+* Added int(bool) to CODA expressions.
+
+* Added size check for content of xml elements to codacheck.
+
+* Fixed issue where coda_cursor_has_attributes() and coda_type_has_attributes()
+  would always return false for HDF5. This could result on attributes not being
+  shown in several interfaces (e.g. codadump)
+
+* Fixed bug in codadump debug argument parsing.
+
+2.9.1 2013-06-27
+~~~~~~~~~~~~~~~~
+
+* When parsing an ascii datetime value fails, codacheck will now continue
+  checking the remainder of the product.
+
+2.9 2013-05-22
+~~~~~~~~~~~~~~
+
+* Added 'SwapDimensions' option to IDL and MATLAB interfaces (default enabled).
+  With this option you can disable the automatic transpose operation that CODA
+  performs on multi-dimensional array data.
+
+2.8.1 2013-03-07
+~~~~~~~~~~~~~~~~
+
+* Fixed issue where ascii time value format definitions with an ascii mapping
+  that maps the empty string to NaN, had this mapping applied for any value
+  (regression introduced in 2.8).
+
+* Fixed issue where trying to use coda_cursor_read_bytes/bits on a 'no data'
+  special type element could cause a segmentation fault.
+
+* Time parsing of a string now allows the fractional part of a second to be
+  longer than 6 digits (although remaining digits will be ignored and the
+  time value will always be truncated at microsecond resolution).
+
+* The 'complex' special type is no longer restricted to binary data (but
+  can now also be used for e.g. ascii data formats).
+
+2.8 2012-12-12
+~~~~~~~~~~~~~~
+
+* Added coda_strfl() to the C interface to support platform independent
+  printing of nan/inf floating point values.
+
+* Added time() and strtime() to CODA expressions.
+
+* Product data of type 'time' now uses CODA expressions to calculate the
+  actual date/time value.
+
+* coda expression 'str()' can now also turn integer values into strings.
+
+* Power operator in CODA expressions (i.e. 'x ^ y') where both operands are
+  integers will now return a float instead of an integer.
+  Also fixed issue in case second operand was a negative number.
+
+* Floating point CODA expression result values are now printed in exponential
+  format for large numbers (instead of always using fixed point format) and
+  use a standardised way of printing 'nan' and 'inf'.
+
+* codacmp now has an option to compare array elements by aligning them using
+  a 'key expression' (--key option).
+
+* Added --path option to codadump debug mode.
+
+* Renamed 'pv' field in GRIB1 products to 'coordinateValues'.
+  Added 'coordinateValues' field for GRIB2 products (for vertical coordinates).
+
+2.7.2 2012-09-24
+~~~~~~~~~~~~~~~~
+
+* Fixed broken compilation from source on big-endian systems.
+
+2.7.1 2012-09-18
+~~~~~~~~~~~~~~~~
+
+* Fixed issue where codadef definitions (for product type detection) for
+  HDF4, HDF5, CDF, netCDF, and GRIB formats were not properly associated
+  to an open product.
+
+* Fixed issue where the global option bypass_special_types was not handled
+  properly by non-ascii/binary backends (e.g. SP3, RINEX, CDF).
+
+* Fixed issue with CDF backend where variables for which the 'varies' property
+  for all dimensions (including the record dimension) was False resulted in an
+  error. These variables are now treated properly as scalar variables.
+
+2.7 2012-08-31
+~~~~~~~~~~~~~~
+
+* Added support for reading of CDF data (using direct access to the CDF files,
+  so the CDF library is not needed). Note that not all features and versions
+  of CDF are supported. See the CODA documentation for details.
+
+* Fixed issue in codadump debug mode where arrays of time values only showed
+  the time value for the first array element (and only the base type value for
+  the rest).
+
+* Fixed issue where QIAP correction actions were not properly applied when
+  calling coda_cursor_read_*_array() functions.
+
+* Several improvements to build system of CODA Python interface:
+  - fixed building of CODA Python interface with CMake.
+  - all CODA Python interface files are now installed in the platform specific
+    python library directory. On 64-bit Linux systems this means that the full
+    CODA python package ends up in <prefix>/lib64/site-packages/coda.
+  - improved autoconf and CMake based detection of default numpy include
+    directory.
+
+* The binary backend now also supports data of type text (= char or string).
+  Previously such data always had to use the 'ascii' format.
+
+2.6 2012-07-07
+~~~~~~~~~~~~~~
+
+* Fixed issue in codacmp where strings of unequal length were not indicated
+  as a change.
+
+* Added support for detection of xml files (as defined in the codadef files)
+  based on xml attribute value and optionally additionally on filename.
+  Detection order for xml has been changed, it is now performed 'depth first'.
+
+* Added -d option to codacheck: produces an error if no codadef entry for a
+  product was found.
+
+* Enabled building of the CODA Python interface using the CMake build.
+
+* Fixed cases where command line tools could send error messages to stdout
+  instead of to stderr.
+
+2.5 2012-05-14
+~~~~~~~~~~~~~~
+
+* Improved support for GRIB2 data:
+  - fixed reading of Data Representation Section information
+  - added fields for Product Definition Section
+
+* codacheck now checks for expected end of line sequences in ASCII files again.
+
+* Fixed issue where truncated blank characters in RINEX Observation records
+  were not properly supported.
+
+2.4.1 2012-04-18
+~~~~~~~~~~~~~~~~
+
+* Fixed handling of nan and inf time values in the IDL interface when
+  the TimeUnitDays option was enabled.
+
+* Filenames of product definition html documentation files from 'codadd doc'
+  are now based on product definition name instead of product type + version.
+
+* Fixed problem with compilation of Fortran interface.
+
+2.4 2012-02-23
+~~~~~~~~~~~~~~
+
+* Added coda_cursor_goto(), coda_type_has_attributes(), and
+  coda_cursor_has_attributes().
+
+* Added basic support for RINEX Clock (2.0 and 3.0) format.
+
+* Added 'with' function to CODA expression language and introduced
+  additional index variables ('j' and 'k') for the 'for' and 'with'
+  functions.
+
+* Improved document to better explain setting of CODA definition path.
+
+* Added missing utc datetime functions to Fortran interface.
+
+* Fixed issue in printing of attributes for 'codadd list'.
+
+* Fixed memory issues with MATLAB interface on 64-bit systems.
+
+2.3.1 2012-01-21
+~~~~~~~~~~~~~~~~
+
+* Added leap second for 2012-07-01 to default leap second table.
+
+* CODA IDL function CODA_SIZE now returns '0' when you reference a scalar.
+
+* Fixed installation paths on Unix in CMake build.
+
+* Fixed issue where XML attribute names when accessing plain XML files
+ (without codadef) could erroneously get a numeric postix.
+
+2.3 2011-12-13
+~~~~~~~~~~~~~~
+
+* Improved SP3 support
+  - Extended support to SP3-a and SP3-b.
+  - CODA format enumeration value is now called 'sp3' instead of 'sp3c'.
+  - Fixed issue where SP3 products < 2000 and >= 2010 were not supported.
+
+* Added support for QIAP (Quality Information and Action Protocol).
+  See libcoda/qiap/README file in source package for details.
+
+* Added coda_expression_get_type_name().
+
+* Fixed the format of parameter paths in the output of codacheck and
+  codacmp.
+
+* Added missing CODA expression interface for Fortran.
+
+* Added --parent-types and --attributes option to 'codadd list'.
+
+* Configuring the build system for the Java interface on Mac OS X should now
+  work correctly.
+
+* Fixed issue where CODA would no longer create separate record fields for
+  netCDF elements and HDF4 root elements (vdata, vgroup, etc.) if elements
+  shared the same name (in which case CODA should append unique _## numeric
+  postpixes to the fieldnames).
+
+* Fixed potential wrong reading of epoch value from RINEX Navigation record.
+
+* Fixed memory leaks in netCDF, GRIB, and RINEX backends.
+
+* Fixed issue where CODA did not properly support HDF4 dataset names that are
+  longer than 63 characters.
+
+* Upgraded the Windows Visual Studio 6.0 project files to Visual Studio 2008
+  (9.0) project files.
+
+* The binary installer of CODA for Windows now requires IDL 6.3 or higher.
+
+2.2 2011-09-02
+~~~~~~~~~~~~~~
+
+* Added coda_open_as().
+
+* Fixed issue where CODA was producing error messages when trying to read
+  Variable Scale Factor integers.
+
+* Fixed endian conversion problem in GRIB backend for Grid Definition Section
+  data.
+
+* Fixed issue where MATLAB coda_size() function did not work on the root of
+  a product if the root was an array.
+
+* Fixed issue where expressions on ascii content in xml products were not able
+  to use the attribute content of the encapsulating xml element.
+
+* Fixed matching of product format detection expressions based on file names on
+  Windows when the path to the file used '\' characters instead of '/'.
+
+* libcoda is now linked statically into the CODA IDL DLM again on Unix systems
+  (regression from CODA 1.1). This eliminates the need for users to set a
+  runtime shared library path.
+
+* Fixed wrong fieldname in CODA documentation of SP3-c mapping.
+
+* Removed the text format restriction on 'product type' names (they no longer
+  have to consist of only a-z, A-Z, 0-9 and '_' characters).
+
+2.1 2011-07-21
+~~~~~~~~~~~~~~
+
+* CODA now has a logo.
+
+* Added coda_type_get_attributes().
+
+* Added support for SP3-c format.
+
+* Added XML Schema export option to codadd.
+
+* Fixed documentation for 'exists()' expression. This function can also be used
+  on non-existing paths (instead of only being able to test for availability of
+  optional record fields).
+
+2.0.1 2011-05-17
+~~~~~~~~~~~~~~~~
+
+* Fixed issue that prevented correctly opening GRIB files.
+
+2.0 2011-04-20
+~~~~~~~~~~~~~~
+
+* Major redesign of the backend architecture of CODA with the aim to:
+  - Easier add format-specific backends for which the data will be kept fully
+    in memory, such as for the RINEX and SP3c formats.
+  - Prepare for future support for specification of data formats through
+    .codadef files for self describing formats such as HDF5 and netCDF for
+    format verification purposes.
+
+* Added RINEX backend, currently only supporting Observation and Navigation
+  data for RINEX version 3.0.
+
+* Added skeleton for upcoming SP3-c backend. Although SP3-c files can currently
+  be opened, the product is mapped as an empty record. A full implementation of
+  the SP3-c backend will arrive in the next CODA version.
+
+* Removed coda_type_has_ascii_content() function.
+  It is now only possible to determine the 'ascii content' property
+  dynamically using coda_cursor_has_ascii_content().
+
+* Added coda_eval() function to IDL and MATLAB interfaces to allow evaluation
+  of CODA expressions.
+
+* coda_type_get_record_field_real_name() now gives the actual name for:
+  - XML element and attribute names
+  - HDF4 GRImage, SDS, Vdata, and Vgroup names
+  - netCDF variable and attribute names
+
+* Added coda_type_get_record_field_index_from_real_name()
+
+* Added productformat() to CODA expressions.
+
+* Improved performance of reading bitmasked GRIB data and fixed memory leak
+  in GRIB backend.
+
+1.5 2010-12-20
+~~~~~~~~~~~~~~
+
+* Added coda_get_product_definition_file().
+
+* Added support for Bit Maps for GRIB1 and GRIB2.
+
+* Fixed possible memory corruption when coda_init() was called again after
+  coda_done().
+
+* Fixed memory leaks in GRIB backend for coda_done().
+
+* Fixes in CMake build.
+
+1.4.1 2010-12-01
+~~~~~~~~~~~~~~~~
+
+* CODA can now be build using MSYS/MinGW on Windows.
+
+* Fixed issue with GRIB backend on systems that require strict word alignment.
+
+* Added support for GRIB files with spacing between the GRIB messages. 
+
+1.4.0 2010-11-08
+~~~~~~~~~~~~~~~~
+
+* Added support for reading of GRIB1 and GRIB2 formatted data. Support is
+  currently limited to data stored with simple packing and using a lat/lon or
+  Gaussian grid.
+
+* Added public C API for creating and evaluating CODA expressions.
+  A wrapper interface is available for Fortran, Python, and Java.
+
+* Added regex functions to CODA expression language. The functions use PCRE,
+  which is now included with CODA, to evaluate the regular expressions.
+
+* Added support for raw strings (i.e. strings where the escape sequences are
+  not evaluated by CODA) in the expression language. A raw string starts with
+  'r' (similar to Python): r"no \\escaping\\" -> "no \\escaping\\"
+
+* Added codaeval command line tool to verify and evaluate CODA expressions.
+
+* Added new time functions to the C interface (with Fortran, Python, and Java
+  wrappers) that can deal with leap seconds (they convert between TAI and UTC):
+  coda_utcdatetime_to_double(), coda_double_to_utcdatetime(),
+  coda_time_to_utcstring(), coda_utcstring_to_time()
+
+* C interface types coda_ProductFile, coda_Type, and coda_Cursor are now called
+  coda_product, coda_type, and coda_cursor. Defines are still available for the
+  old type names to allow backward compatibility.
+
+* Added coda_type_get_record_field_real_name().
+
+* Added coda_set_definition_path_conditional().
+
+* codadump no longer shows execution time information for HDF4 export.
+  The list view of codadump also does not quote the type names anymore.
+
+* Fixed error handling of Python coda.string_to_time() function.
+
+* Added variant of unboundindex() expression function that can take an explicit
+  termination condition as third argument.
+
+* Windows build of CODA is now performed using Visual Studio 2008 (9.0).
+  The MATLAB build on Windows now requires MATLAB R2007b or later.
+
+1.3.6 2010-06-11
+~~~~~~~~~~~~~~~~
+
+* Fixes in CMake build files for big-endian systems.
+
+1.3.5 2010-05-10
+~~~~~~~~~~~~~~~~
+
+* Added support for reading of 24, 40, 48, and 56 bit little endian integers.
+
+1.3.4 2010-04-02
+~~~~~~~~~~~~~~~~
+
+* Fixes in CMake build files.
+
+1.3.3 2010-03-19
+~~~~~~~~~~~~~~~~
+
+* Fixed small issue in html documentation generation (wrong byte end-position 
+  for a detection expression).
+
+* Fixed bug in parsing of string constants in expression language (string
+  constants can now end with an escaped backslash '\\').
+
+1.3.2 2010-01-08
+~~~~~~~~~~~~~~~~
+
+* NetCDF backend now attaches attributes to the array type instead of the 
+  array element type for netCDF variables.
+
+* Fixed memory leaks in HDF5 backend.
+
+* Special SDSVar and CoordVar SDSs are now properly hidden when accessing HDF4
+  products.
+
+* Error handling was improved for a few special cases.
+
+1.3.1 2009-09-25
+~~~~~~~~~~~~~~~~
+
+* Added Java interface.
+
+* CODA expression 'length' now also works on 'node' expressions.
+
+* Fixed behavior of coda_cursor_read_bits() when the bit_length argument is 0.
+
+* Added support for reading of arrays of basic types for XML products where
+  the array is not an ASCII (space separated) array, but each ASCII value is
+  stored in a separate XML element.
+
+1.3.0 2009-07-17
+~~~~~~~~~~~~~~~~
+
+* Added built-in netCDF backend for accessing netCDF3 32-bit and 64-bit data
+  formats (reading of netCDF data is no longer performed via the HDF4 library).
+
+* scale_factor/add_offset conversion for HDF4 SDS data is now also applied
+  if the scale_factor and/or add_offset attributes are provided as FLOAT32
+  (and not only if they are provided as FLOAT64).
+
+* Fixed coda.string_to_time() return value mapping in Python interface.
+
+* Fixed issue with parsing of microsecond information from ascii EPS time
+  string values.
+
+* Fixed fetching of array of raw byte data in IDL interface.
+
+1.2.3 2009-06-10
+~~~~~~~~~~~~~~~~
+
+* coda_get_product_format() now properly returns coda_format_ascii for ascii
+  files.
+
+* Removed -t (totals) option of codacheck.
+
+* Added coda_str64() and coda_str64u() to the C interface to support printing
+  of 64 bit values on 32-bit platforms where printf does not support %lld.
+
+* Fixed issue that could prevent CODA from working correctly on systems that are
+  picky about having variables aligned on 32 or 64 memory boundaries.
+
+1.2.2 2009-05-08
+~~~~~~~~~~~~~~~~
+
+* CODA expression 'if' now also works with boolean typed 2nd and 3rd argument.
+
+* CODA expression to read 'raw' data now properly reads the number of required
+  bits (and not any padding bits that could be in the sequence of the rounded
+  up number of bytes).
+  The same issue was also fixed in codacheck and codadump.
+
+* codacheck now checks the file size of a product in number of bits instead of
+  rounded up number of bytes (i.e. undefined spare bits at the end of a product
+  is now considered an error).
+
+* Binary signed integers in CODA definitions are no longer limited to a
+  multiple of 8 bits.
+
+* It is now possible to define 'fixed values' in format definitions for data
+  that is not a rounded number of bytes.
+
+* Solved several compiler warnings regarding 64-bit support.
+
+* codacmp now escapes 'unprintable characters' when printing differences in
+  'raw' data.
+
+* Fixed name of coda.get_product_format() in Python interface.
+
+1.2.1 2009-03-01
+~~~~~~~~~~~~~~~~
+
+* Fixed '|' and '&' usage in CODA expressions.
+
+1.2.0 2009-02-20
+~~~~~~~~~~~~~~~~
+
+* The Python interface of CODA now uses numpy instead of numarray.
+
+* The codadd command line tool now has a 'list' mode to inspect available
+  format definitions.
+
+* Fixed support for HDF5 datasets containing variable length strings.
+
+* Added support for coda_format_netcdf and coda_format_cdf as official formats.
+  CODA will however (still) use the HDF4 backend to read data from these files.
+  Note that coda_format_netcdf only referes to pre-4.0 NetCDF formatted files.
+  NetCDF 4.0 files are in HDF5 format and will thus have coda_format_hdf5.
+
+* Fixed issue with reading of rank-0 SDS data from HDF4 and NetCDF files.
+
+* Fixed issue where all fieldnames in HDF4 files got called 'unnamed' and where
+  reading of VData data failed.
+
+* Changed maximum cursor depth (CODA_CURSOR_MAXDEPTH) from 16 to 32.
+
+* Added ceil(), floor(), round(), isnan(), isinf(), ismininf(), isplusinf(),
+  ltrim(), rtrim(), trim(), and unboundindex() functions and bitwise
+  AND '&' and OR '|' operators to CODA expressions.
+
+* CODA expressions now accept floating point constants in FORTRAN format
+  (using a 'D' for specifying the exponent: e.g. .133000D+03)
+
+* Various improvements to reading of .codadef files.
+
+1.1.1 2008-10-21
+~~~~~~~~~~~~~~~~
+
+* The required zlib files are now included in the CODA package and all zlib
+  functions are 'name mangled'. This solves an issue with running the CODA
+  IDL interface on Linux.
+
+1.1.0 2008-10-10
+~~~~~~~~~~~~~~~~
+
+* Fixed the following CODA expression operations
+  - multiplication of floating point values
+  - reading of floating point values
+
+* CODA expressions now allow combining integer and floating point arguments
+  in a floating point expression (e.g. compare integer against float, or add
+  float to integer) without the need to explicitly cast the integer to a float.
+
+* Added abs() function to CODA expressions.
+
+* Upgraded to expat 2.0.1.
+
+* Files with an ASCII definition are now properly marked as files with an ASCII
+  format.
+
+1.0.0 2008-09-24
+~~~~~~~~~~~~~~~~
+
+* First official release.
+

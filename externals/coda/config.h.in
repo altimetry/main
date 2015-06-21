@@ -1,0 +1,361 @@
+/* config.h.in.  Generated from configure.ac by autoheader.  */
+
+
+#ifndef CODA_CONFIG_H
+#define CODA_CONFIG_H
+
+
+/* Define if building universal (internal helper macro) */
+#undef AC_APPLE_UNIVERSAL_BUILD
+
+/* Define to enable name mangling of symbols for the built-in expat library.
+   */
+#undef CODA_EXPAT_NAME_MANGLE
+
+/* Define to 1 if the QIAP functionality should be included */
+#undef CODA_USE_QIAP
+
+/* This is the current version of coda */
+#undef CODA_VERSION
+
+/* Define to 1 if HDF4 Vdata/Vgroup attributes can be used (only enable if
+   CODA is linked against HDF4 library version 4.2r2 or higher). */
+#undef ENABLE_HDF4_VDATA_ATTRIBUTES
+
+/* Define to 1 if you have the `bcopy' function. */
+#undef HAVE_BCOPY
+
+/* Define to 1 if you have the <dirent.h> header file. */
+#undef HAVE_DIRENT_H
+
+/* Define to 1 if you have the <dlfcn.h> header file. */
+#undef HAVE_DLFCN_H
+
+/* Define to 1 if you have the <export.h> header file. */
+#undef HAVE_EXPORT_H
+
+/* Define to 1 if you have the `floor' function. */
+#undef HAVE_FLOOR
+
+/* Define to 1 if you have the `getpagesize' function. */
+#undef HAVE_GETPAGESIZE
+
+/* Define to 1 if HDF4 is available. */
+#undef HAVE_HDF4
+
+/* Define to 1 if HDF5 is available. */
+#undef HAVE_HDF5
+
+/* Define to 1 if you have the <hdf5.h> header file. */
+#undef HAVE_HDF5_H
+
+/* Define to 1 if you have the <hdf.h> header file. */
+#undef HAVE_HDF_H
+
+/* Define to 1 if your IDL version supports the IDL_SYSFUN_DEF2 type. */
+#undef HAVE_IDL_SYSFUN_DEF2
+
+/* Define to 1 if your IDL version supports the IDL_SYSRTN_UNION type. */
+#undef HAVE_IDL_SYSRTN_UNION
+
+/* Define to 1 if you have the <inttypes.h> header file. */
+#undef HAVE_INTTYPES_H
+
+/* Define to 1 if you have the `m' library (-lm). */
+#undef HAVE_LIBM
+
+/* Define to 1 if you have the `ws2_32' library (-lws2_32). */
+#undef HAVE_LIBWS2_32
+
+/* Define to 1 if your system has a GNU libc compatible `malloc' function, and
+   to 0 otherwise. */
+#undef HAVE_MALLOC
+
+/* Define to 1 if you have the `memmove' function. */
+#undef HAVE_MEMMOVE
+
+/* Define to 1 if you have the <memory.h> header file. */
+#undef HAVE_MEMORY_H
+
+/* Define to 1 if you have the <mex.h> header file. */
+#undef HAVE_MEX_H
+
+/* Define to 1 if you have the <mfhdf.h> header file. */
+#undef HAVE_MFHDF_H
+
+/* Define to 1 if you have a working `mmap' system call. */
+#undef HAVE_MMAP
+
+/* Define to 1 if matlab has the mxCreateDoubleScalar function. */
+#undef HAVE_MXCREATEDOUBLESCALAR
+
+/* Define to 1 if matlab has the mxCreateNumericMatrix function. */
+#undef HAVE_MXCREATENUMERICMATRIX
+
+/* Define to 1 if you have the <netcdf.h> header file. */
+#undef HAVE_NETCDF_H
+
+/* Define to 1 if you have the <netdb.h> header file. */
+#undef HAVE_NETDB_H
+
+/* Define to 1 if you have the `pread' function. */
+#undef HAVE_PREAD
+
+/* Define to 1 if your system has a GNU libc compatible `realloc' function,
+   and to 0 otherwise. */
+#undef HAVE_REALLOC
+
+/* Define to 1 if you have the `stat' function. */
+#undef HAVE_STAT
+
+/* Define to 1 if you have the <stdint.h> header file. */
+#undef HAVE_STDINT_H
+
+/* Define to 1 if you have the <stdlib.h> header file. */
+#undef HAVE_STDLIB_H
+
+/* Define to 1 if you have the `strcasecmp' function. */
+#undef HAVE_STRCASECMP
+
+/* Define to 1 if you have the `strdup' function. */
+#undef HAVE_STRDUP
+
+/* Define to 1 if you have the <strings.h> header file. */
+#undef HAVE_STRINGS_H
+
+/* Define to 1 if you have the <string.h> header file. */
+#undef HAVE_STRING_H
+
+/* Define to 1 if you have the `strncasecmp' function. */
+#undef HAVE_STRNCASECMP
+
+/* Define to 1 if you have the <sys/mman.h> header file. */
+#undef HAVE_SYS_MMAN_H
+
+/* Define to 1 if you have the <sys/param.h> header file. */
+#undef HAVE_SYS_PARAM_H
+
+/* Define to 1 if you have the <sys/socket.h> header file. */
+#undef HAVE_SYS_SOCKET_H
+
+/* Define to 1 if you have the <sys/stat.h> header file. */
+#undef HAVE_SYS_STAT_H
+
+/* Define to 1 if you have the <sys/types.h> header file. */
+#undef HAVE_SYS_TYPES_H
+
+/* Define to 1 if you have the <unistd.h> header file. */
+#undef HAVE_UNISTD_H
+
+/* Define to 1 if you have the `vsnprintf' function. */
+#undef HAVE_VSNPRINTF
+
+/* Define to the sub-directory where libtool stores uninstalled libraries. */
+#undef LT_OBJDIR
+
+/* Name of package */
+#undef PACKAGE
+
+/* Define to the address where bug reports for this package should be sent. */
+#undef PACKAGE_BUGREPORT
+
+/* Define to the full name of this package. */
+#undef PACKAGE_NAME
+
+/* Define to the full name and version of this package. */
+#undef PACKAGE_STRING
+
+/* Define to the one symbol short name of this package. */
+#undef PACKAGE_TARNAME
+
+/* Define to the home page for this package. */
+#undef PACKAGE_URL
+
+/* Define to the version of this package. */
+#undef PACKAGE_VERSION
+
+/* Define to the compiler attribute to test for printf format compliance */
+#undef PRINTF_ATTR
+
+/* The version of the QIAP component */
+#undef QIAP_VERSION
+
+/* Define to 1 if you have the ANSI C header files. */
+#undef STDC_HEADERS
+
+/* Define to 1 if your <sys/time.h> declares `struct tm'. */
+#undef TM_IN_SYS_TIME
+
+/* Version number of package */
+#undef VERSION
+
+/* Define WORDS_BIGENDIAN to 1 if your processor stores words with the most
+   significant byte first (like Motorola and SPARC, unlike Intel). */
+#if defined AC_APPLE_UNIVERSAL_BUILD
+# if defined __BIG_ENDIAN__
+#  define WORDS_BIGENDIAN 1
+# endif
+#else
+# ifndef WORDS_BIGENDIAN
+#  undef WORDS_BIGENDIAN
+# endif
+#endif
+
+/* Define to 1 if your Fortran compiler adds an additional underscore to an
+   identifier in the object file if the identifier contains an underscore. */
+#undef WRAPFORTRAN_USE_ADDITIONAL_UNDERSCORE
+
+/* Define to 1 if your Fortran compiler generates object files containing
+   uppercase identifiers. */
+#undef WRAPFORTRAN_USE_UPPERCASE_IDENTIFIERS
+
+/* Define to specify how much context to retain around the current parse
+   point. */
+#undef XML_CONTEXT_BYTES
+
+/* Define to make parameter entity parsing functionality available. */
+#undef XML_DTD
+
+/* Define to set the size of the XML_Size and XML_Index integer types to be at
+   least 64 bits in size. */
+#undef XML_LARGE_SIZE
+
+/* Define to make XML Namespaces functionality available. */
+#undef XML_NS
+
+/* Define to 1 if `lex' declares `yytext' as a `char *' by default, not a
+   `char[]'. */
+#undef YYTEXT_POINTER
+
+/* Enable large inode numbers on Mac OS X 10.5.  */
+#ifndef _DARWIN_USE_64_BIT_INODE
+# define _DARWIN_USE_64_BIT_INODE 1
+#endif
+
+/* Number of bits in a file offset, on hosts where this is settable. */
+#undef _FILE_OFFSET_BITS
+
+/* Define for large files, on AIX-style hosts. */
+#undef _LARGE_FILES
+
+/* Define for Solaris 2.5.1 so the uint32_t typedef from <sys/synch.h>,
+   <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
+   #define below would cause a syntax error. */
+#undef _UINT32_T
+
+/* Define for Solaris 2.5.1 so the uint64_t typedef from <sys/synch.h>,
+   <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
+   #define below would cause a syntax error. */
+#undef _UINT64_T
+
+/* Define for Solaris 2.5.1 so the uint8_t typedef from <sys/synch.h>,
+   <pthread.h>, or <semaphore.h> is not used. If the typedef were allowed, the
+   #define below would cause a syntax error. */
+#undef _UINT8_T
+
+/* Define to the type of a signed integer type of width exactly 16 bits if
+   such a type exists and the standard includes do not define it. */
+#undef int16_t
+
+/* Define to the type of a signed integer type of width exactly 32 bits if
+   such a type exists and the standard includes do not define it. */
+#undef int32_t
+
+/* Define to the type of a signed integer type of width exactly 64 bits if
+   such a type exists and the standard includes do not define it. */
+#undef int64_t
+
+/* Define to the type of a signed integer type of width exactly 8 bits if such
+   a type exists and the standard includes do not define it. */
+#undef int8_t
+
+/* Define to rpl_malloc if the replacement function should be used. */
+#undef malloc
+
+/* Define to replacement_mxCreateDoubleScalar if HAVE_MXCREATEDOUBLESCALAR is
+   not set. */
+#undef mxCreateDoubleScalar
+
+/* Define to replacement_mxCreateNumericMatrix if HAVE_MXCREATENUMERICMATRIX
+   is not set. */
+#undef mxCreateNumericMatrix
+
+/* Define to rpl_realloc if the replacement function should be used. */
+#undef realloc
+
+/* Define to `unsigned int' if <sys/types.h> does not define. */
+#undef size_t
+
+/* Define to the type of an unsigned integer type of width exactly 16 bits if
+   such a type exists and the standard includes do not define it. */
+#undef uint16_t
+
+/* Define to the type of an unsigned integer type of width exactly 32 bits if
+   such a type exists and the standard includes do not define it. */
+#undef uint32_t
+
+/* Define to the type of an unsigned integer type of width exactly 64 bits if
+   such a type exists and the standard includes do not define it. */
+#undef uint64_t
+
+/* Define to the type of an unsigned integer type of width exactly 8 bits if
+   such a type exists and the standard includes do not define it. */
+#undef uint8_t
+
+
+#ifdef HAVE_PREAD
+/* some platforms (e.g. Linux) require this definition in order to enable support for pread */
+/* Use 600 instead of 500 to prevent Mac OS X to complain about missing strdup definitions */
+#define _XOPEN_SOURCE 600
+#endif
+
+#ifdef HAVE_INTTYPES_H
+#include <inttypes.h>
+#else
+# ifdef HAVE_STDINT_H
+#  include <stdint.h>
+# else
+#  ifdef HAVE_SYS_TYPES_H
+#   include <sys/types.h>
+#  endif
+# endif
+#endif
+
+#ifndef HAVE_STRDUP
+char *strdup(const char *);
+#endif
+
+#ifndef HAVE_STRCASECMP
+int strcasecmp(const char *, const char *);
+#endif
+
+#if !defined(HAVE_STRNCASECMP) || !defined(HAVE_VSNPRINTF)
+/* include string.h for size_t definition */
+#include <string.h>
+#endif
+
+#ifndef HAVE_STRNCASECMP
+int strncasecmp(const char *, const char *, size_t);
+#endif
+
+#if defined(HAVE_STRCASECMP) || defined(HAVE_STRNCASECMP)
+#ifdef HAVE_STRINGS_H
+/* include strings.h for definition of strcasecmp and strncasecmp */
+#include <strings.h>
+#endif
+#endif
+
+#ifndef HAVE_VSNPRINTF
+/* include stdarg.h for va_list definition */
+#include <stdarg.h>
+int vsnprintf(const char *, size_t, const char *, va_list ap);
+#endif
+
+/* Make sure we use the 1.6 compatibility API for HDF 1.8 */
+#define H5_USE_16_API
+
+/* Make sure we build the PCRE library statically on Windows */
+#define PCRE_STATIC
+
+#endif /* !defined(CODA_CONFIG_H) */
+
