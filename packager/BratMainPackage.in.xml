@@ -2,7 +2,7 @@
   <shortName>brat</shortName>
   <fullName>BRAT</fullName>
   <version>@BRAT_VERSION@</version>
-  <installerFilename>${product_shortname}-${product_version}-${platform_name}-installer.${platform_exec_suffix}</installerFilename>
+  <installerFilename>@INSTALLER_FILENAME@</installerFilename>
   <readmeFile>@PROJECT_SOURCE_DIR@/README</readmeFile>
   <licenseFile>@PROJECT_SOURCE_DIR@/LICENSE</licenseFile>
   <wrapLicenseFileText>1</wrapLicenseFileText>
@@ -98,8 +98,8 @@
         <folder>
           <description>Program Files</description>
           <destination>${installdir}</destination>
-          <name>binaries</name>
           <platforms>all</platforms>
+          <name>binaries</name>
           <distributionFileList>
             <distributionDirectory>
               <origin>@CMAKE_BINARY_DIR@/bin/</origin>
@@ -107,9 +107,54 @@
             <distributionDirectory>
               <origin>@CMAKE_BINARY_DIR@/externals/coda/bin</origin>
             </distributionDirectory>
+          </distributionFileList>
+        </folder>
+        <folder>
+          <description>Program Files</description>
+          <destination>${installdir}</destination>
+          <platforms>linux</platforms>
+          <name>linux_binaries</name>
+          <distributionFileList>
             <distributionDirectory>
-              <origin>@CMAKE_BINARY_DIR@/externals/netcdf/bin</origin>
+              <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/ncdump/bin</origin>
             </distributionDirectory>
+            <distributionDirectory>
+              <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/ncgen/bin</origin>
+            </distributionDirectory>
+            <distributionDirectory>
+              <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/ncgen3/bin</origin>
+            </distributionDirectory>
+          </distributionFileList>
+        </folder>
+        <folder>
+          <description>Program Files</description>
+          <destination>${installdir}</destination>
+          <platforms>windows</platforms>
+          <name>windows_curl_binary</name>
+          <distributionFileList>
+            <distributionDirectory>
+              <origin>@CMAKE_BINARY_DIR@/externals/curl/lib/bin</origin>
+            </distributionDirectory>
+          </distributionFileList>
+        </folder>
+        <folder>
+          <description>Program Files</description>
+          <destination>${installdir}/bin</destination>
+          <platforms>windows</platforms>
+          <name>windows_binaries</name>
+          <distributionFileList>
+            <distributionFile>
+              <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/ncdump/nccopy.exe</origin>
+            </distributionFile>
+            <distributionFile>
+              <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/ncdump/ncdump.exe</origin>
+            </distributionFile>
+            <distributionFile>
+              <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/ncgen/ncgen.exe</origin>
+            </distributionFile>
+            <distributionFile>
+              <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/ncgen3/ncgen3.exe</origin>
+            </distributionFile>
           </distributionFileList>
         </folder>
         <folder>
@@ -267,7 +312,7 @@
               <origin>@CMAKE_BINARY_DIR@/externals/coda/lib/Release/libcoda.lib</origin>
             </distributionFile>
             <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/externals/netcdf/lib/Release/netcdf.lib</origin>
+              <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/liblib/lib/Release/netcdf.lib</origin>
             </distributionFile>
             <distributionFile>
               <origin>@CMAKE_BINARY_DIR@/externals/udunits/lib/Release/udunits.lib</origin>
@@ -288,7 +333,7 @@
               <origin>@CMAKE_BINARY_DIR@/externals/coda/lib/libcoda.a</origin>
             </distributionFile>
             <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/externals/netcdf/lib/libnetcdf.a</origin>
+              <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/liblib/lib/libnetcdf.a</origin>
             </distributionFile>
             <distributionFile>
               <origin>@CMAKE_BINARY_DIR@/externals/udunits/lib/libudunits.a</origin>

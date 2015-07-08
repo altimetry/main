@@ -1,6 +1,8 @@
 # The main BRAT CMake configuration file.
 #
-cmake_minimum_required(VERSION 2.6.1 FATAL_ERROR)
+# SZip requires cmake 3.1.0
+#
+cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 MACRO(DBG_MSG _MSG)
   #MESSAGE(STATUS
   #  "${CMAKE_CURRENT_LIST_FILE}(${CMAKE_CURRENT_LIST_LINE}): ${_MSG}")
@@ -49,6 +51,8 @@ if(WIN32)
   if(MSVC60)
     set(MSPROJECT_TEMPLATE_DIRECTORY ${BRAT_SOURCE_DIR}/CMakeMsvc6Templates)
 
+	MESSAGE(STATUS "Processing MSVC60 redistributable DLLs...")
+	
     # Microsoft's redistributable DLLs
     # 
     install(FILES "C:/WINDOWS/system32/msvcp60.dll" DESTINATION bin/)
@@ -77,6 +81,8 @@ if(WIN32)
 
   if(MSVC90)
 
+	MESSAGE(STATUS "Processing MSVC90 redistributable DLLs...")
+	
     # Microsoft's redistributable DLLs 
     # 
 
@@ -112,6 +118,8 @@ if(WIN32)
 
   if(MSVC10)
 
+	MESSAGE(STATUS "Processing MSVC10 redistributable DLLs...")
+	
     # To disable deprecation C unsafe functions
     # Microsoft added some "safe" versions of many functions such as strcpy(), makepath(), etc.
     # They called them _strcpy_s() and _makepath_s() respectfully.
@@ -181,6 +189,56 @@ if(WIN32)
   
   endif(MSVC10)
 
+
+  if(MSVC12)
+
+	MESSAGE(STATUS "Processing MSVC12 redistributable DLLs...")
+
+    # Microsoft's redistributable DLLs 
+    # Get them from the Windows/System folder
+	
+	IF ("${BRAT_TARGET_PROCESSOR}" STREQUAL "x64")
+	  SET(VCREDIST_DIR $ENV{VCINSTALLDIR}/redist/x64/Microsoft.VC120.CRT)
+	ELSE ("${BRAT_TARGET_PROCESSOR}" STREQUAL "x64")
+	  SET(VCREDIST_DIR $ENV{VCINSTALLDIR}/redist/x86/Microsoft.VC120.CRT)
+	ENDIF ("${BRAT_TARGET_PROCESSOR}" STREQUAL "x64")	
+	
+	file(TO_CMAKE_PATH ${VCREDIST_DIR} VCREDIST_DIR)
+
+	
+	INSTALL(DIRECTORY "${VCREDIST_DIR}" DESTINATION bin/)
+
+	INSTALL(DIRECTORY "${VCREDIST_DIR}" DESTINATION matlab/)
+
+    # Get things in the right location for InstallBuilder.
+
+    configure_file("${VCREDIST_DIR}/msvcp120.dll"
+                   ${BRAT_BINARY_DIR}/bin/msvcp120.dll
+                   COPYONLY)
+    configure_file("${VCREDIST_DIR}/msvcr120.dll"
+                   ${BRAT_BINARY_DIR}/bin/msvcr120.dll
+                   COPYONLY)
+    configure_file("${VCREDIST_DIR}/vccorlib120.dll"
+                   ${BRAT_BINARY_DIR}/bin/vccorlib120.dll
+                   COPYONLY)
+
+    configure_file("${VCREDIST_DIR}/msvcp120.dll"
+                   ${BRAT_BINARY_DIR}/matlab/msvcp120.dll
+                   COPYONLY)
+    configure_file("${VCREDIST_DIR}/msvcr120.dll"
+                   ${BRAT_BINARY_DIR}/matlab/msvcr120.dll
+                   COPYONLY)
+    configure_file("${VCREDIST_DIR}/vccorlib120.dll"
+                   ${BRAT_BINARY_DIR}/matlab/vccorlib120.dll
+                   COPYONLY)
+  
+  endif(MSVC12)
+
+  if (MSVC)
+	set(CMAKE_C_FLAGS "/WX- ${CMAKE_C_FLAGS}")
+	set(CMAKE_CXX_FLAGS "/WX- ${CMAKE_CXX_FLAGS}")
+  endif (MSVC)
+
 endif(WIN32)
 
 
@@ -197,9 +255,9 @@ option(BRATHL_BUILD_IDL "Build IDL interface" OFF)
 option(BRATHL_BUILD_MATLAB "Build MATLAB interface" OFF)
 option(BRAT_BUILD_GUI "Build graphic user interface programs" OFF)
 if(WIN32)
-  if(MSVC10)
+  if(MSVC)
     option(CMAKE_MSVC_BROWSE_INFO "Set the Browse Information flag" OFF)
-  endif(MSVC10)
+  endif(MSVC)
 endif(WIN32)
 
 
@@ -312,8 +370,10 @@ endif(WIN32)
 #
 add_subdirectory(vtkzlib)
 
+set(ZLIB_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/vtkzlib" CACHE INTERNAL "")			# used by netcdf4
+
 set(ZLIB_INCLUDE_DIRS
-  "${CMAKE_CURRENT_SOURCE_DIR}/vtkzlib"
+  "${ZLIB_INCLUDE_DIR}"
   "${CMAKE_CURRENT_BINARY_DIR}/vtkzlib"
   )
 include_directories(${ZLIB_INCLUDE_DIRS})
@@ -321,15 +381,12 @@ if(WIN32)
   set(VTK_EXTLIB vtkzlib)
   set(VTK_EXTLIB_PATH ${CMAKE_CURRENT_BINARY_DIR}/${VTK_EXTLIB}/lib)
 
-  if(MSVC60)
-      set(ZLIB_LIBRARIES "${VTK_EXTLIB_PATH}/${CMAKE_BUILD_TYPE}/${VTK_EXTLIB}${CMAKE_DEBUG_POSTFIX}.lib")
-  else(MSVC60)
-    if(MSVC10)
-        set(ZLIB_LIBRARIES "${VTK_EXTLIB_PATH}/${CMAKE_BUILD_TYPE}/${CMAKE_BUILD_TYPE}/${VTK_EXTLIB}${CMAKE_DEBUG_POSTFIX}.lib")
-    else(MSVC10)
-        set(ZLIB_LIBRARIES "${VTK_EXTLIB_PATH}/${VTK_EXTLIB}${CMAKE_DEBUG_POSTFIX}.lib")
-    endif(MSVC10)
-  endif(MSVC60)
+  if(MSVC)
+    set(ZLIB_LIBRARIES "${VTK_EXTLIB_PATH}/${CMAKE_BUILD_TYPE}/${VTK_EXTLIB}${CMAKE_DEBUG_POSTFIX}.lib")
+  else(MSVC)
+    set(ZLIB_LIBRARIES "${VTK_EXTLIB_PATH}/${VTK_EXTLIB}${CMAKE_DEBUG_POSTFIX}.lib")
+  endif(MSVC)
+
 else(WIN32)
   set(ZLIB_LIBRARIES "${CMAKE_CURRENT_BINARY_DIR}/vtkzlib/lib/libvtkzlib.a")
 endif(WIN32)
@@ -346,16 +403,12 @@ if(WIN32)
   set(VTK_EXTLIB vtkjpeg)
   set(VTK_EXTLIB_PATH ${CMAKE_CURRENT_BINARY_DIR}/${VTK_EXTLIB}/lib)
 
+  if(MSVC)
+    set(JPEG_LIBRARIES "${VTK_EXTLIB_PATH}/${CMAKE_BUILD_TYPE}/${VTK_EXTLIB}${CMAKE_DEBUG_POSTFIX}.lib")
+  else(MSVC)
+    set(JPEG_LIBRARIES "${VTK_EXTLIB_PATH}/${VTK_EXTLIB}${CMAKE_DEBUG_POSTFIX}.lib")
+  endif(MSVC)
 
-  if(MSVC60)
-      set(JPEG_LIBRARIES "${VTK_EXTLIB_PATH}/${CMAKE_BUILD_TYPE}/${VTK_EXTLIB}${CMAKE_DEBUG_POSTFIX}.lib")
-  else(MSVC60)
-    if(MSVC10)
-        set(JPEG_LIBRARIES "${VTK_EXTLIB_PATH}/${CMAKE_BUILD_TYPE}/${CMAKE_BUILD_TYPE}/${VTK_EXTLIB}${CMAKE_DEBUG_POSTFIX}.lib")
-    else(MSVC10)
-        set(JPEG_LIBRARIES "${VTK_EXTLIB_PATH}/${VTK_EXTLIB}${CMAKE_DEBUG_POSTFIX}.lib")
-    endif(MSVC10)
-  endif(MSVC60)
 else(WIN32)
 #  set(JPEG_LIBRARIES "${CMAKE_CURRENT_BINARY_DIR}/vtkjpeg/lib/libvtkjpeg.a")
 endif(WIN32)
@@ -372,44 +425,92 @@ include_directories(${TIFF_INCLUDE_DIRS})
 if(WIN32)
   set(VTK_EXTLIB vtktiff)
   set(VTK_EXTLIB_PATH ${CMAKE_CURRENT_BINARY_DIR}/${VTK_EXTLIB}/lib)
-  if(MSVC60)
-      set(TIFF_LIBRARIES "${VTK_EXTLIB_PATH}/${CMAKE_BUILD_TYPE}/${VTK_EXTLIB}${CMAKE_DEBUG_POSTFIX}.lib")
-  else(MSVC60)
-    if(MSVC10)
-        set(TIFF_LIBRARIES "${VTK_EXTLIB_PATH}/${CMAKE_BUILD_TYPE}/${CMAKE_BUILD_TYPE}/${VTK_EXTLIB}${CMAKE_DEBUG_POSTFIX}.lib")
-    else(MSVC10)
-        set(TIFF_LIBRARIES "${VTK_EXTLIB_PATH}/${VTK_EXTLIB}${CMAKE_DEBUG_POSTFIX}.lib")
-    endif(MSVC10)
-  endif(MSVC60)
+
+  if(MSVC)
+    set(TIFF_LIBRARIES "${VTK_EXTLIB_PATH}/${CMAKE_BUILD_TYPE}/${VTK_EXTLIB}${CMAKE_DEBUG_POSTFIX}.lib")
+  else(MSVC)
+    set(TIFF_LIBRARIES "${VTK_EXTLIB_PATH}/${VTK_EXTLIB}${CMAKE_DEBUG_POSTFIX}.lib")
+  endif(MSVC)
+
 else(WIN32)
   set(TIFF_LIBRARIES "${CMAKE_CURRENT_BINARY_DIR}/vtktiff/lib/libvtktiff.a")
 endif(WIN32)
 
+
+
 add_subdirectory(externals)
 
+IF (WIN32)
+    add_dependencies(libcurl vtkzlib)
+ENDIF (WIN32)
+
+# add_dependencies(curl vtkzlib)
+add_dependencies(hdf5 vtkzlib szip)
+IF (WIN32)
+    add_dependencies(netcdf hdf5 hdf5_hl libcurl)
+ELSE (WIN32)
+    add_dependencies(netcdf hdf5 hdf5_hl)
+ENDIF (WIN32)
+
 add_dependencies(geotiff vtktiff)
+include_directories(${CURL_INCLUDES})
 include_directories(${LIBGEOTIFF_INCLUDE_DIRS})
 include_directories(${NETCDF_INCLUDE_DIRS})
 include_directories(${UDUNITS_INCLUDE_DIRS})
 include_directories(${PROJ_INCLUDE_DIRS})
 include_directories(${CODA_INCLUDE_DIRS})
 
+if (WIN32)
+    set(MAKE_COMMAND nmake)
+else (WIN32)
+    set(MAKE_COMMAND make)
+endif (WIN32)
+
+add_custom_target(externals-build
+  COMMENT "Build only external packages from ${CMAKE_CURRENT_SOURCE_DIR}/externals"
+  COMMAND ${MAKE_COMMAND}
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/externals
+)
+add_custom_target(externals-install
+  COMMENT "Build only external packages from ${CMAKE_CURRENT_SOURCE_DIR}/externals"
+  COMMAND  ${MAKE_COMMAND} install
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/externals
+)
+
+
+
 # The data/ subdirectory
 
 set(BRATHL_DEFDATADIR  "${CMAKE_INSTALL_PREFIX}/${INSTALL_DIR}/data" CACHE INTERNAL "Default data directory")
 set(BRATHL_UNITFILE "brathl_units.dat" CACHE INTERNAL "Units file")
 
+
 set(CODADEF_FILES
-  data/Altimeter_Ocean_Pathfinder-20100826.codadef
-  data/CRYOSAT-20120130.codadef
-  data/ENVISAT_RA2MWR-20110125.codadef
-  data/ERS_RA-20110820.codadef
-  data/GFO-20110125.codadef
-  data/JASON-20110125.codadef
-  data/PODAAC-20110125.codadef
-  data/RADS-20080701.codadef
-  data/River_Lake-20110125.codadef
-  data/Topex_Poseidon-20110125.codadef
+	data/Altimeter_Ocean_Pathfinder-20100826.codadef
+	#data/CRYOSAT-20120130.codadef
+	data/CRYOSAT-20150601.codadef
+	data/ENVISAT_AATSR-20110923.codadef
+	data/ENVISAT_ASAR-20150331.codadef
+	data/ENVISAT_AUX-20121219.codadef
+	data/ENVISAT_DORIS-20100826.codadef
+	data/ENVISAT_GOMOS-20121004.codadef
+	data/ENVISAT_MERIS-20100826.codadef
+	data/ENVISAT_MIPAS-20140120.codadef
+	#data/ENVISAT_RA2MWR-20110125.codadef
+	data/ENVISAT_RA2MWR-20120623.codadef
+	data/ENVISAT_SCIAMACHY-20140916.codadef
+	data/EPS-20150324.codadef
+	data/ERS_ATSR-20110923.codadef
+	data/ERS_GOME-20110920.codadef
+	data/ERS_MWR-20110820.codadef
+	data/ERS_RA-20110820.codadef
+	data/GFO-20110125.codadef
+	data/JASON-20110125.codadef
+	data/PODAAC-20110125.codadef
+	data/RADS-20080701.codadef
+	data/River_Lake-20110125.codadef
+	data/SWARM-20150126.codadef
+	data/Topex_Poseidon-20110125.codadef
   )
 
 set(LIBBRATHL_DATA_FILES
@@ -698,7 +799,7 @@ add_library(brathl
   ${LIBBRATHL_SOURCES_H}
   ${LIBBRATHL_C_SOURCES}
   ${LIBBRATHL_FORTRAN_SOURCES})
-target_link_libraries(brathl netcdf udunits coda_static) # For dll/so library
+target_link_libraries(brathl netcdf udunits coda_static szip) # For dll/so library
 
 install(TARGETS brathl DESTINATION lib/)
 install(FILES ${LIBBRATHL_SOURCES_H} DESTINATION include)
@@ -784,9 +885,21 @@ if(BRATHL_BUILD_MATLAB)
     # get names starting with a slash.
     set(INT_LIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
     set(CODA_INT_LIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/externals/coda/${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
-    set(NETCDF_INT_LIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/externals/netcdf/${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
+    set(NETCDF_INT_LIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/externals/netcdf-c/liblib/${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
     set(UDUNITS_INT_LIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/externals/udunits/${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
+    set(HDF5_INT_LIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/externals/hdf5/src/${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
+    set(HDF5_HL_INT_LIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/externals/hdf5/hl/src/${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
+    set(CURL_INT_LIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/externals/curl/lib/${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
+    set(SZIP_INT_LIB_DIR ${CMAKE_CURRENT_BINARY_DIR}/externals/SZip/src/${CMAKE_ARCHIVE_OUTPUT_DIRECTORY})
 
+    set(HDF5_LIBRARIES 
+		${HDF5_INT_LIB_DIR}/libhdf5.lib 
+		${HDF5_HL_INT_LIB_DIR}/libhdf5_hl.lib 
+		${CURL_INT_LIB_DIR}/libcurl_imp.lib
+		${SZIP_INT_LIB_DIR}/libszip.lib
+		${ZLIB_LIBRARIES}
+		)
+	
     if(WIN32)
       set(MEX_CMD ${MEX} ${MEXFLAGS} ${LIBBRATHL_MATLAB_SOURCE_FILES} ${INT_LIB_DIR}/brathl.lib ${CODA_INT_LIB_DIR}/libcoda.lib ${NETCDF_INT_LIB_DIR}/netcdf.lib ${UDUNITS_INT_LIB_DIR}/udunits.lib ${HDF4_LIBRARIES} ${HDF5_LIBRARIES}  -output ${MEX_OUTPUT})
     else(WIN32)
@@ -1544,7 +1657,7 @@ if(APPLE)
 
     COMMAND mkdir -p ${BDIST_ROOT}/bin
     COMMAND cp ${BRAT_BINARY_DIR}/externals/coda/bin/coda* ${BDIST_ROOT}/bin
-    COMMAND cp ${BRAT_BINARY_DIR}/externals/netcdf/bin/nc* ${BDIST_ROOT}/bin
+    COMMAND cp ${BRAT_BINARY_DIR}/externals/netcdf-c/bin/nc* ${BDIST_ROOT}/bin
     COMMAND cp ${BRAT_BINARY_DIR}/bin/BratCreateYFX ${BDIST_ROOT}/bin
     COMMAND cp ${BRAT_BINARY_DIR}/bin/BratCreateZFXY ${BDIST_ROOT}/bin
     COMMAND cp ${BRAT_BINARY_DIR}/bin/BratExportAscii ${BDIST_ROOT}/bin
@@ -1561,7 +1674,7 @@ if(APPLE)
     COMMAND mkdir -p ${BDIST_ROOT}/lib
     COMMAND cp ${BRAT_BINARY_DIR}/lib/libbrathl.a ${BDIST_ROOT}/lib
     COMMAND cp ${BRAT_BINARY_DIR}/externals/coda/lib/libcoda.a ${BDIST_ROOT}/lib
-    COMMAND cp ${BRAT_BINARY_DIR}/externals/netcdf/lib/libnetcdf.a ${BDIST_ROOT}/lib
+    COMMAND cp ${BRAT_BINARY_DIR}/externals/netcdf-c/lib/libnetcdf.a ${BDIST_ROOT}/lib
     COMMAND cp ${BRAT_BINARY_DIR}/externals/udunits/lib/libudunits.a ${BDIST_ROOT}/lib
 
     COMMAND mkdir -p ${BDIST_ROOT}/include
@@ -1570,7 +1683,7 @@ if(APPLE)
     COMMAND cp libbrathl/brathl.h libbrathl/brathl_error.h ${BDIST_ROOT}/include
     COMMAND cp ${LIBBRATHL_C_SOURCES_H} ${BDIST_ROOT}/include
     COMMAND cp ${BRAT_BINARY_DIR}/externals/coda/coda.h ${BDIST_ROOT}/include
-    COMMAND cp ${BRAT_SOURCE_DIR}/externals/netcdf/libsrc/netcdf.h ${BDIST_ROOT}/include
+    COMMAND cp ${BRAT_SOURCE_DIR}/externals/netcdf-c/include/netcdf.h ${BDIST_ROOT}/include
     COMMAND cp ${BRAT_SOURCE_DIR}/externals/udunits/src/lib/udunits.h ${BDIST_ROOT}/include
 
     COMMAND mkdir -p ${BDIST_ROOT}/data
@@ -1619,11 +1732,13 @@ if(INSTALL_BUILDER_FOUND)
 
   if(WIN32)
     set(INSTALLER_PLATFORM windows)
-    set(PACKAGE_FILE ${BRAT_BINARY_DIR}/brat-${BRAT_VERSION}-windows-installer.exe)
+    set(INSTALLER_FILENAME brat-${BRAT_VERSION}-${BRAT_TARGET_PROCESSOR}-installer.exe)
   else(WIN32)
     set(INSTALLER_PLATFORM linux)
-    set(PACKAGE_FILE ${BRAT_BINARY_DIR}/brat-${BRAT_VERSION}-linux-installer.run)
+    set(INSTALLER_FILENAME brat-${BRAT_VERSION}-${BRAT_TARGET_PROCESSOR}-installer.run)
   endif (WIN32)
+
+  set(PACKAGE_FILE ${BRAT_BINARY_DIR}/${INSTALLER_FILENAME})
 
   configure_file(
     ${BRAT_SOURCE_DIR}/packager/BratMainPackage.in.xml
@@ -1668,7 +1783,7 @@ if(INSTALL_BUILDER_FOUND)
     ${BRAT_BINARY_DIR}/include/coda.h COPYONLY)
 
   configure_file(
-    ${BRAT_SOURCE_DIR}/externals/netcdf/libsrc/netcdf.h
+    ${BRAT_SOURCE_DIR}/externals/netcdf-c/include/netcdf.h
     ${BRAT_BINARY_DIR}/include/netcdf.h COPYONLY)
 
   configure_file(
@@ -1688,7 +1803,8 @@ if(INSTALL_BUILDER_FOUND)
   file(GLOB CODA_MFILES
     ${BRAT_SOURCE_DIR}/externals/coda/matlab/*.m)
   foreach(SOURCE ${CODA_MFILES})
-    string(REGEX REPLACE "^${BRAT_SOURCE_DIR}/externals/coda/matlab" "" TARGET ${SOURCE})
+    # string(REGEX REPLACE "^${BRAT_SOURCE_DIR}/externals/coda/matlab" "" TARGET ${SOURCE})
+    get_filename_component(TARGET ${SOURCE} NAME)
     configure_file(
       ${SOURCE}
       ${BRAT_BINARY_DIR}/matlab/${TARGET}
@@ -1707,8 +1823,8 @@ if(INSTALL_BUILDER_FOUND)
   add_dependencies(bdist doc)
 
   # Deprecated legacy target
-  add_custom_target(package)
-  add_dependencies(package bdist)
+  add_custom_target(bundle)
+  add_dependencies(bundle bdist)
 
 
 else(INSTALL_BUILDER_FOUND)

@@ -22,10 +22,13 @@ my @SourceDirs = qw(
 		libbrathl
         externals/
         externals/libgeotiff.brat
-		externals/netcdf.brat
+                externals/netcdf-c.brat
 		externals/proj.brat
-		externals/udunits.brat
-		externals/coda
+                externals/SZip.brat
+                externals/udunits.brat
+                externals/hdf5.brat
+                externals/curl.brat
+                externals/coda.brat
 		packager
 		process
 		scheduler
