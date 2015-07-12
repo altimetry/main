@@ -1018,7 +1018,17 @@ if(BRAT_BUILD_GUI)
   # ---------------------------------
   find_package(VTK5 REQUIRED)
   if(VTK_USE_FILE)
+    set(SAVE_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
+    set(SAVE_CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
     include(${VTK_USE_FILE})
+    if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND "${BRAT_TARGET_PROCESSOR}" MATCHES "i386" )
+      #
+      # Not nice but necessary: get rid of undesired, deprecated, flags that cause errors 
+      # in recent clang versions, which do not allow uknown arguments, like -mlong-branch
+      #
+      set(CMAKE_CXX_FLAGS ${SAVE_CMAKE_CXX_FLAGS})
+      set(CMAKE_C_FLAGS ${SAVE_CMAKE_C_FLAGS})
+    endif()
   endif(VTK_USE_FILE)
   set(VTK_DIR ${VTK_DIR} CACHE STRING "VTK installation directory containing VTKConfig.cmake" FORCE)
 
@@ -1040,7 +1050,8 @@ if(BRAT_BUILD_GUI)
   # ---------------------------------
   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeModules/")
 
-  find_package(wxWidgets COMPONENTS base core net xml adv gl xrc)
+  # find_package(wxWidgets COMPONENTS base core net xml adv gl xrc)
+  find_package(wxWidgets COMPONENTS core base)
   if(NOT wxWidgets_FOUND)
     if(WIN32)
       message(FATAL_ERROR "WxWidgets not found. Try setting the wxWidgets_ROOT_DIR environment or CMake variable to the root of a wxWidgets build tree or installation.")

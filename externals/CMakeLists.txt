@@ -182,9 +182,21 @@ IF (WIN32)
     #
     set(CURL_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/curl/lib/lib/${CURL_LIB_PATH_END}" CACHE INTERNAL "")	# used by netcfd4
     set(CURL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/curl/include" CACHE INTERNAL "")
-    #include_directories(${CURL_INCLUDE_DIR})
 
     add_subdirectory(${PACKAGE_TARGET})
+
+ELSE (WIN32)    # this is a hack to be able to work 32 bit on 64 bit systems; TODO transform in command line option
+
+    IF ("${BRAT_TARGET_PROCESSOR}" STREQUAL "i386" AND "${CMAKE_SYSTEM_NAME}" STREQUAL "Linux" AND "${CMAKE_SYSTEM_PROCESSOR}" STREQUAL "x86_64")
+        set(CURL_INCLUDE_DIR "/usr/inlude/i386-linux-gnu" CACHE INTERNAL "")
+        include_directories(${CURL_INCLUDE_DIR})
+        # message(STATUS "${CMAKE_C_FLAGS}")
+        # message(STATUS "${CMAKE_CXX_FLAGS}")
+        set(CMAKE_C_FLAGS "-I${CURL_INCLUDE_DIR} ${CMAKE_C_FLAGS}" CACHE INTERNAL "")
+        set(CMAKE_CXX_FLAGS "-I${CURL_INCLUDE_DIR} ${CMAKE_CXX_FLAGS}" CACHE INTERNAL "")
+        # message(STATUS "${CMAKE_C_FLAGS}")
+        # message(FATAL_ERROR "${CMAKE_CXX_FLAGS}")
+    ENDIF ()
 
 ENDIF (WIN32)
 
@@ -275,14 +287,15 @@ IF (NOT WIN32)
 
     IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
         set(NC_EXTRA_DEPS "-lcurl -lssl -lsasl2 -lgss -lldap -lz" CACHE INTERNAL "")
+        set(HAVE_LIBM curl;m;z;ssl;dl CACHE STRING "" FORCE)
     ELSE ()
         set(NC_EXTRA_DEPS "-lssl -lidn -lssh2 -lsasl2 -lcrypt -lgss -lrtmp -lldap -lz" CACHE INTERNAL "")
+        set(HAVE_LIBM curl;m;idn;z;ssl;crypt;dl CACHE STRING "" FORCE)
     ENDIF ()
 
 	# Ugly trick to solve netcdf bug of adding the boolean HAVE_LIBM to the library lists, making the linker
 	# look for a library 1.so, which of course fails
 	#
-    set(HAVE_LIBM curl;m;idn;z;ssl;crypt;dl CACHE STRING "" FORCE)
 
 ENDIF (NOT WIN32)
 

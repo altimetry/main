@@ -239,11 +239,12 @@ the sizes can be different.*/
 #cmakedefine const
 
 /* Define to `__inline__' or `__inline' if that's what the C compiler
-   calls it, or to nothing if 'inline' is not supported under any name.  */
-#ifndef __cplusplus
-#define inline
-//#cmakedefine inline
-#endif
+   calls it, or to nothing if 'inline' is not supported under any name.
+ifndef __cplusplus
+define inline      ENABLED IN BRAT 3.3.0 TO ALLOW COMPILATION WITH CLANG
+cmakedefine inline
+endif
+*/
 
 /* Define to `long' if <sys/types.h> does not define. */
 #cmakedefine off_t
