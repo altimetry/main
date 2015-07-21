@@ -2282,7 +2282,7 @@ public:
 
   // Access methods to get the (i,j) element:
   virtual DoublePtr operator() (uint32_t i, uint32_t j) = 0;        
-  virtual const DoublePtr operator() (uint32_t i, uint32_t j) const = 0; 
+  virtual DoublePtr operator() (uint32_t i, uint32_t j) const = 0;
 
   
   DoublePtr At(uint32_t i, uint32_t j) { return (*this)(i, j); };        
@@ -2364,7 +2364,7 @@ public:
 
   // Access methods to get the (i,j) element:
   virtual DoublePtr operator() (uint32_t i, uint32_t j) ;        
-  virtual const DoublePtr operator() (uint32_t i, uint32_t j) const; 
+  virtual DoublePtr operator() (uint32_t i, uint32_t j) const;
 
   virtual doubleptrarray& operator[](const uint32_t& i);
   virtual const doubleptrarray& operator[](const uint32_t& i) const;
@@ -2435,7 +2435,7 @@ public:
 
   // Access methods to get the (i,j) element:
   virtual DoublePtr operator() (uint32_t i, uint32_t j) ;        
-  virtual const DoublePtr operator() (uint32_t i, uint32_t j) const; 
+  virtual DoublePtr operator() (uint32_t i, uint32_t j) const;
   
   virtual doublearray& operator[](const uint32_t& i);
   virtual const doublearray& operator[](const uint32_t& i) const;

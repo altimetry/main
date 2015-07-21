@@ -268,7 +268,7 @@ void CExportDlg::OnBrowse( wxCommandEvent &event )
   m_currentName.Assign(GetExportoutputfile()->GetValue());
   m_currentName.Normalize();
 
-  int32_t style = wxSAVE | wxOVERWRITE_PROMPT | wxCHANGE_DIR;
+  int32_t style = wxFD_SAVE | wxFD_OVERWRITE_PROMPT | wxFD_CHANGE_DIR;
 
   wxFileDialog fileDlg(this, "Choose a file...", m_currentName.GetPath(), m_currentName.GetFullName(), "*.*", style);
 

@@ -1020,7 +1020,9 @@ if(BRAT_BUILD_GUI)
   if(VTK_USE_FILE)
     set(SAVE_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
     set(SAVE_CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
-    include(${VTK_USE_FILE})
+    # set(SKIP_VTK_BUILD_SETTINGS_FILE ON)
+    # set(VTK_NO_LIBRARY_DEPENDS ON)
+    include(${VTK_USE_FILE})                            #..../lib/vtk-5.6/UseVTK.cmake
     if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND "${BRAT_TARGET_PROCESSOR}" MATCHES "i386" )
       #
       # Not nice but necessary: get rid of undesired, deprecated, flags that cause errors 
@@ -1031,7 +1033,7 @@ if(BRAT_BUILD_GUI)
     endif()
   endif(VTK_USE_FILE)
   set(VTK_DIR ${VTK_DIR} CACHE STRING "VTK installation directory containing VTKConfig.cmake" FORCE)
-
+  # set(VTK_NO_LIBRARY_DEPENDS ON)
 
   # ---------------------------------
   # Check for GTK..
@@ -1051,7 +1053,7 @@ if(BRAT_BUILD_GUI)
   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeModules/")
 
   # find_package(wxWidgets COMPONENTS base core net xml adv gl xrc)
-  find_package(wxWidgets COMPONENTS core base)
+  find_package(wxWidgets COMPONENTS base core net xml adv gl xrc)
   if(NOT wxWidgets_FOUND)
     if(WIN32)
       message(FATAL_ERROR "WxWidgets not found. Try setting the wxWidgets_ROOT_DIR environment or CMake variable to the root of a wxWidgets build tree or installation.")
@@ -1061,6 +1063,9 @@ if(BRAT_BUILD_GUI)
     endif(UNIX)
   endif(NOT wxWidgets_FOUND)
   include(${wxWidgets_USE_FILE})
+
+  # Use BRATS's embedded vtktiff, avoiding duplicate symbol errors
+  list(REMOVE_ITEM wxWidgets_LIBRARIES -lwxtiff-3.0)
 
 
   # -----------------------------------------------------
@@ -1144,7 +1149,6 @@ if(BRAT_BUILD_GUI)
     display/vtkZFXYPlotActor.cpp
     display/vtkZFXYPlotFilter.cpp
     display/vtkZFXYPlotFilterCollection.cpp
-    display/wxVTKRenderWindowInteractor.cxx
     display/Config.cpp
     display/vtkVelocityGlyphFilter.cpp
     display/vtkBratArrowSource.cpp
@@ -1200,7 +1204,15 @@ if(BRAT_BUILD_GUI)
     set_source_files_properties(gui/BratGui.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
     set(DISPLAY_SOURCES_RC ${DISPLAY_BUNDLE_DATA_FILES} gui/BratGui.icns)
     # Add MakeApplicationActive.mm for Mac OS X build
-    set(DISPLAY_SOURCES ${DISPLAY_SOURCES} display/MakeApplicationActive.mm)
+    set(DISPLAY_SOURCES ${DISPLAY_SOURCES} display/MakeApplicationActive.mm display/wxVTKRenderWindowInteractor.mm)
+    # set_source_files_properties(display/wxVTKRenderWindowInteractor.cxx PROPERTIES COMPILE_FLAGS "-x objective-c++")
+    # if (APPLE)
+    #  set(DISPLAY_SOURCES ${DISPLAY_SOURCES} display/wxVTKRenderWindowInteractor.mm)
+    # else(APPLE)
+    #  set(DISPLAY_SOURCES ${DISPLAY_SOURCES} display/wxVTKRenderWindowInteractor.cxx)
+    # endif(APPLE)
+  else(APPLE)
+    set(DISPLAY_SOURCES ${DISPLAY_SOURCES} display/wxVTKRenderWindowInteractor.cxx)
   endif(APPLE)
 
   include_directories(
@@ -1213,8 +1225,6 @@ if(BRAT_BUILD_GUI)
     )
 
   target_link_libraries(BratDisplay brathl proj brathlProcessUtilities brathlGuiUtilities ${BRAT_VTK_LIBRARIES} ${wxWidgets_LIBRARIES} vtktiff vtkjpeg )
-
-  add_dependencies(BratDisplay vtktiff vtkjpeg)
 
   if(APPLE)
     # On Mac OS X we install a script that invokes the BratDisplay binary that is located in BratGui.app
@@ -1651,10 +1661,7 @@ add_dependencies(dvd sdist)
 
 
 if(APPLE)
-  execute_process(
-    COMMAND "arch"
-    OUTPUT_VARIABLE APPLE_CPU
-    )
+  set(APPLE_CPU ${BRAT_TARGET_PROCESSOR})
   string(STRIP ${APPLE_CPU} APPLE_CPU)
   set(BDIST_PKGDIR "${BRAT_BINARY_DIR}/brat-${BRAT_VERSION}-macosx-${APPLE_CPU}")
   set(BDIST_ROOT "${BDIST_PKGDIR}/brat")
@@ -1668,7 +1675,9 @@ if(APPLE)
 
     COMMAND mkdir -p ${BDIST_ROOT}/bin
     COMMAND cp ${BRAT_BINARY_DIR}/externals/coda/bin/coda* ${BDIST_ROOT}/bin
-    COMMAND cp ${BRAT_BINARY_DIR}/externals/netcdf-c/bin/nc* ${BDIST_ROOT}/bin
+    COMMAND cp ${BRAT_BINARY_DIR}/externals/netcdf-c/ncdump/bin/nc* ${BDIST_ROOT}/bin
+    COMMAND cp ${BRAT_BINARY_DIR}/externals/netcdf-c/ncgen/bin/nc* ${BDIST_ROOT}/bin
+    COMMAND cp ${BRAT_BINARY_DIR}/externals/netcdf-c/ncgen3/bin/nc* ${BDIST_ROOT}/bin
     COMMAND cp ${BRAT_BINARY_DIR}/bin/BratCreateYFX ${BDIST_ROOT}/bin
     COMMAND cp ${BRAT_BINARY_DIR}/bin/BratCreateZFXY ${BDIST_ROOT}/bin
     COMMAND cp ${BRAT_BINARY_DIR}/bin/BratExportAscii ${BDIST_ROOT}/bin
@@ -1685,7 +1694,7 @@ if(APPLE)
     COMMAND mkdir -p ${BDIST_ROOT}/lib
     COMMAND cp ${BRAT_BINARY_DIR}/lib/libbrathl.a ${BDIST_ROOT}/lib
     COMMAND cp ${BRAT_BINARY_DIR}/externals/coda/lib/libcoda.a ${BDIST_ROOT}/lib
-    COMMAND cp ${BRAT_BINARY_DIR}/externals/netcdf-c/lib/libnetcdf.a ${BDIST_ROOT}/lib
+    COMMAND cp ${BRAT_BINARY_DIR}/externals/netcdf-c/liblib/lib/libnetcdf.a ${BDIST_ROOT}/lib
     COMMAND cp ${BRAT_BINARY_DIR}/externals/udunits/lib/libudunits.a ${BDIST_ROOT}/lib
 
     COMMAND mkdir -p ${BDIST_ROOT}/include
@@ -1724,8 +1733,8 @@ if(APPLE)
   add_custom_target(bdist
     COMMENT "Creating the Mac OS X disk image"
     COMMAND rm -f ${BDIST_DMGFILE}
-    # COMMAND hdiutil create -fs HFS+ -srcfolder ${BDIST_PKGDIR} -volname "BRAT ${BRAT_VERSION}" ${BDIST_DMGFILE}
-    COMMAND hdiutil create -srcfolder ${BDIST_PKGDIR} -volname "BRAT ${BRAT_VERSION}" ${BDIST_DMGFILE}
+    # -megabytes: to avoid error -5341; use a size that is comfortably bigger than expected (about 110 Mb)
+    COMMAND hdiutil create -megabytes 500 -srcfolder ${BDIST_PKGDIR} -volname "BRAT ${BRAT_VERSION}" ${BDIST_DMGFILE}
     )
 
   add_dependencies(bdist bdist_stage_macos)

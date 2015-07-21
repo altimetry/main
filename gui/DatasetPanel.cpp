@@ -864,7 +864,7 @@ void CDatasetPanel::OnAddFiles( wxCommandEvent &event )
                                         wxFileSelectorDefaultWildcardStr
                                         );
 
-  wxFileDialog dlg(this, "Select files ...", currentDir.GetPath(), wxEmptyString, wildcards, wxMULTIPLE|wxCHANGE_DIR|wxFILE_MUST_EXIST);
+  wxFileDialog dlg(this, "Select files ...", currentDir.GetPath(), wxEmptyString, wildcards, wxFD_MULTIPLE|wxFD_CHANGE_DIR|wxFD_FILE_MUST_EXIST);
   if (dlg.ShowModal() != wxID_OK)
   {
     return;

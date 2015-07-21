@@ -31,6 +31,8 @@
 
 #include <locale.h>
 
+#include <wx/evtloop.h>
+
 #include "brathl_c/argtable2.h"
 
 #include "Trace.h"
@@ -299,6 +301,13 @@ bool CBratDisplayApp::OnInit()
 
     //Prepare();
 
+#if !defined(WIN32) && !defined(_WIN32)
+
+    //Progess dialogs displayed while plotting need this
+    wxEventLoop *tmpEventLoop = new wxEventLoop();
+    wxEventLoopBase::SetActive( tmpEventLoop );
+#endif
+
     if (m_isZFLatLon)
     {
       WorldPlot();
@@ -318,6 +327,12 @@ bool CBratDisplayApp::OnInit()
       throw (e);
     }
 
+
+#if !defined(WIN32) && !defined(_WIN32)
+
+    wxEventLoopBase::SetActive( NULL );
+    delete tmpEventLoop;
+#endif
 
     m_internalData.RemoveAll();
 
@@ -3642,7 +3657,13 @@ bool CBratDisplayApp::GetCommandLineOptions(int argc, wxChar* argv[])
   }
 
   /* Parse the command line as defined by argtable[] */
-  nerrors = arg_parse(argc,argv,argtable);
+  std::vector<wxString> v;
+  for ( int i = 0; i < argc; ++i )
+	  v.push_back( argv[ i ] );
+  std::vector<const char*> charv;
+  for ( int i = 0; i < argc; ++i )
+	  charv.push_back( v[ i ].c_str() );
+  nerrors = arg_parse(argc,const_cast<char**>(&charv[0]),argtable);
 
   /* special case: '--help' takes precedence over error reporting */
   if ( (help->count > 0) || (argc == 1) )

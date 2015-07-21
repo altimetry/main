@@ -23,7 +23,8 @@
 #endif
 
 // For compilers that support precompilation
-#include "wx/wxprec.h"
+#include <wx/wxprec.h>
+
 
 #ifdef __BORLANDC__
     #pragma hdrstop
@@ -37,8 +38,8 @@
 //  #include <crtdbg.h>
 //#endif
 
-#include "wx/mimetype.h"
-#include "wx/ffile.h"
+#include <wx/mimetype.h>
+#include <wx/ffile.h>
 
 #include "Trace.h"
 #include "List.h"
@@ -774,7 +775,7 @@ void CBratSchedulerApp::ViewUserManual()
                                           );
 
       wxFileDialog execDialog(NULL, wxString::Format("Choose a '%s' viewer executable", ext.c_str()),
-                              currentDir.GetPath(), wxEmptyString, wildcards, wxCHANGE_DIR|wxFILE_MUST_EXIST);
+                              currentDir.GetPath(), wxEmptyString, wildcards, wxFD_CHANGE_DIR|wxFD_FILE_MUST_EXIST);
 
       if (execDialog.ShowModal() == wxID_OK) 
       {

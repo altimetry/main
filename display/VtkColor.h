@@ -29,6 +29,7 @@
     #include "wx/wx.h"
 #endif
 
+#include <wx/colourdata.h>
 
 #include "brathl.h"
 #include "BratObject.h"

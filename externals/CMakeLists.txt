@@ -285,17 +285,16 @@ IF (NOT WIN32)
     set(USE_LIBDL OFF CACHE BOOL "")
     set(ENABLE_DYNAMIC_LOADING OFF CACHE BOOL "" FORCE) # THIS IS CRITICAL
 
+    # Ugly trick to solve netcdf bug of adding the boolean HAVE_LIBM to the library lists, making the linker
+    # look for a library 1.so, which of course fails
+    #
     IF(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-        set(NC_EXTRA_DEPS "-lcurl -lssl -lsasl2 -lgss -lldap -lz" CACHE INTERNAL "")
+        set(NC_EXTRA_DEPS "-lcurl -lssl -lsasl2 -lldap -lz" CACHE INTERNAL "")
         set(HAVE_LIBM curl;m;z;ssl;dl CACHE STRING "" FORCE)
     ELSE ()
-        set(NC_EXTRA_DEPS "-lssl -lidn -lssh2 -lsasl2 -lcrypt -lgss -lrtmp -lldap -lz" CACHE INTERNAL "")
+        set(NC_EXTRA_DEPS "-lssl -lidn -lssh2 -lsasl2 -lcrypt -lrtmp -lldap -lz" CACHE INTERNAL "")
         set(HAVE_LIBM curl;m;idn;z;ssl;crypt;dl CACHE STRING "" FORCE)
     ENDIF ()
-
-	# Ugly trick to solve netcdf bug of adding the boolean HAVE_LIBM to the library lists, making the linker
-	# look for a library 1.so, which of course fails
-	#
 
 ENDIF (NOT WIN32)
 

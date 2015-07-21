@@ -122,11 +122,11 @@ public:
   bool IsNumberOfMapsEquals(int32_t* numberOfMaps = NULL);
 
 
-  wxVTKRenderWindowInteractor* GetVtkWidget() {return m_vtkWidget;};
+  wxVTKRenderWindowInteractor* GetVtkWidget() {return m_vtkWidget;}
 
-  CWPlotPropertyPanel* GetPlotPropertyTab() {return m_plotPropertyTab;};
+  CWPlotPropertyPanel* GetPlotPropertyTab() {return m_plotPropertyTab;}
 
-  CBratLookupTable* GetLUT() {return GetCurrentLayer()->GetLUT();};
+  CBratLookupTable* GetLUT() {return GetCurrentLayer()->GetLUT();}
 
   vtkLookupTable* GetLookupTable()
   {
@@ -138,12 +138,12 @@ public:
   };
 
 
-  CWorldPlotRenderer* GetWorldPlotRenderer() {return m_plotRenderer;};
+  CWorldPlotRenderer* GetWorldPlotRenderer() {return m_plotRenderer;}
 
   void Update2D();
 
-  bool Is3D() {return m_is3D;};
-  bool Is2D() {return !m_is3D;};
+  bool Is3D() {return m_is3D;}
+  bool Is2D() {return !m_is3D;}
 
 
   void ShowAnimationToolbar(bool showIt);
@@ -173,7 +173,7 @@ public:
 
   void UpdateViewStateCtrl();
 
-  CAnimationToolbar* GetAnimationToolbar() {return m_animationToolbar;};
+  CAnimationToolbar* GetAnimationToolbar() {return m_animationToolbar;}
 
   void SetViewParams();
 
@@ -359,10 +359,10 @@ public:
   CWorldPlotRenderer(wxWindow *parent, string mode = "low");
   virtual ~CWorldPlotRenderer();
 
-  vtkRenderer* GetVtkRenderer() {return m_vtkRend;};
+  vtkRenderer* GetVtkRenderer() {return m_vtkRend;}
 
-  vtkTransformCollection* GetVtkTransformCollection(){return m_transformations;};
-  CGeoGrid* GetGeoGrid() { return m_geoGrid; };
+  vtkTransformCollection* GetVtkTransformCollection(){return m_transformations;}
+  CGeoGrid* GetGeoGrid() { return m_geoGrid; }
   CGeoMap* GetGeoMap();
 
   void UpdateColorBarRender(bool show);
@@ -370,7 +370,7 @@ public:
 
   void Update2D();
 
-  CObList* GetActors() { return &m_actors; };
+  CObList* GetActors() { return &m_actors; }
 
   bool GetCoords2D(double lon[2], double lat[2], int& x1, int& y1, int& x2, int& y2);
 
@@ -394,16 +394,16 @@ public:
   void SetGlyphs(bool val);
   void OnKeyframeChanged(CKeyframeEvent& event);
 
-  int32_t GetProjection() {return m_projection;};
+  int32_t GetProjection() {return m_projection;}
 
   void SaveState();
   void RestoreState();
   void RestoreState(int32_t index);
   void ClearStates();
-  bool HasState() {return CountState() > 0;};
-  uint32_t CountState() {return m_states.size();};
+  bool HasState() {return CountState() > 0;}
+  uint32_t CountState() {return m_states.size();}
 
-  void SetVtkWidget(wxVTKRenderWindowInteractor* vtkWidget) {m_vtkWidget = vtkWidget;};
+  void SetVtkWidget(wxVTKRenderWindowInteractor* vtkWidget) {m_vtkWidget = vtkWidget;}
 
   void AddActorsToRenderer();
   void AddActorsBackgroundToRenderer();

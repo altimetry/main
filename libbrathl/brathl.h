@@ -36,6 +36,9 @@ extern "C" {
 #ifdef WIN32
 
 #include <windows.h>
+#ifdef __WXMSW__
+#   include "wx/msw/winundef.h"
+#endif
 #include <direct.h>    
 
 /* include sys/stat.h because we are going to override stat */

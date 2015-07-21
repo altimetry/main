@@ -86,28 +86,28 @@ public:
   void InitDateZero();
 
   /// Gets the year of the date
-  const uint32_t GetYear();
+  uint32_t GetYear();
 
   /// Gets the month of the date
-  const uint32_t GetMonth();
+  uint32_t GetMonth();
 
   /// Gets the day of the date
-  const uint32_t GetDay();
+  uint32_t GetDay();
 
   /// Gets the hour of the date
-  const uint32_t GetHour();
+  uint32_t GetHour();
 
   /// Gets the minutes of the date
-  const uint32_t GetMinute();
+  uint32_t GetMinute();
 
   /// Gets the seconds of the date
-  const uint32_t GetSecond();
+  uint32_t GetSecond();
 
   /// Gets the microseconds of the date 
-  const uint32_t GetMuSecond();
+  uint32_t GetMuSecond();
   
   /// returns the date in a number of seconds since internal reference date, ie 1950)
-  double Value() {return GetNbSeconds();};
+  double Value() {return GetNbSeconds();}
   
   /// returns the date in a decimal julian day (since internal reference date, ie 1950)
   double ValueJulian();

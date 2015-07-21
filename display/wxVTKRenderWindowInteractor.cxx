@@ -33,10 +33,11 @@
 #include "vtkDebugLeaks.h"
 
 #ifdef __WXMAC__
-#ifdef __WXCOCOA__
-#include "vtkCocoaRenderWindow.h"
+#ifdef __WXOSX_COCOA__
+#   define __WXCOCOA__ __WXOSX_COCOA__
+#   include "vtkCocoaRenderWindow.h"
 #else
-#include "vtkCarbonRenderWindow.h"
+#   include "vtkCarbonRenderWindow.h"
 #endif
 #endif
 
@@ -62,30 +63,35 @@ wxWindow* wxGetTopLevelParent(wxWindow *win)
 #endif //__WXCOCOA__
 
 #ifdef __WXGTK__
+#    include <gtk/gtk.h>
 #    include <gdk/gdkx.h> // GDK_WINDOW_XWINDOW is found here in wxWidgets 2.8.0
 #    include "gdk/gdkprivate.h"
-#if wxCHECK_VERSION(2, 8, 0)
-#ifdef __WXGTK20__
-#if  wxCHECK_VERSION(2, 9, 0)
-#include <wx/gtk/private/win_gtk.h>
-#else
-#include <wx/gtk/win_gtk.h>
-#endif
-#else
-#include <wx/gtk1/win_gtk.h>
-#endif
-#else
-#include <wx/gtk/win_gtk.h>
-#endif
-#if  wxCHECK_VERSION(2, 9, 0)
-#define GetXWindow(wxwin) (wxwin)->m_wxwindow ? \
-        GDK_WINDOW_XWINDOW(((GtkWidget*)WX_PIZZA((wxwin)->m_wxwindow))->window) : \
-        GDK_WINDOW_XWINDOW((wxwin)->m_widget->window)
-#else
-#define GetXWindow(wxwin) (wxwin)->m_wxwindow ? \
-                          GDK_WINDOW_XWINDOW(GTK_PIZZA((wxwin)->m_wxwindow)->bin_window) : \
-                          GDK_WINDOW_XWINDOW((wxwin)->m_widget->window)
-#endif
+//#if wxCHECK_VERSION(2, 8, 0)
+//#ifdef __WXGTK20__
+//#if  wxCHECK_VERSION(2, 9, 0)
+//#include <wx/gtk/private/win_gtk.h>
+//#else
+//#include <wx/gtk/win_gtk.h>
+//#endif
+//#else
+//#include <wx/gtk1/win_gtk.h>
+//#endif
+//#else
+//#include <wx/gtk/win_gtk.h>
+//#endif
+//#if  wxCHECK_VERSION(2, 9, 0)
+
+//#define GetXWindow(wxwin) (wxwin)->m_wxwindow ? \
+//        GDK_WINDOW_XWINDOW(((GtkWidget*)WX_PIZZA((wxwin)->m_wxwindow))->window) : \
+//        GDK_WINDOW_XWINDOW((wxwin)->m_widget->window)
+
+#define GetXWindow(wxwin) GDK_WINDOW_XWINDOW((wxwin)->m_widget->window)
+
+//#else
+//#define GetXWindow(wxwin) (wxwin)->m_wxwindow ? \
+//                          GDK_WINDOW_XWINDOW(GTK_PIZZA((wxwin)->m_wxwindow)->bin_window) : \
+//                          GDK_WINDOW_XWINDOW((wxwin)->m_widget->window)
+//#endif
 #endif
 
 #ifdef __WXX11__
@@ -376,7 +382,8 @@ long wxVTKRenderWindowInteractor::GetHandleHack()
      wxGetTopLevelParent( this ) );
    if (toplevel != NULL )
    {
-     handle_tmp = (long)toplevel->GetNSWindow();
+     //handle_tmp = (long)toplevel->GetNSWindow();
+     //handle_tmp = (long)toplevel->GetHandle();
    }
    // The NSView will be deducted from
    // [(NSWindow*)Handle contentView]

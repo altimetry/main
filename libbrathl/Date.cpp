@@ -1633,7 +1633,7 @@ int32_t CDate::DSM2Second(const uint32_t days, const uint32_t seconds, const uin
 
 //----------------------------------------
 
-const uint32_t CDate::GetYear()
+uint32_t CDate::GetYear()
 {
   int32_t result = BRATHL_SUCCESS;
 
@@ -1651,7 +1651,7 @@ const uint32_t CDate::GetYear()
 
 //----------------------------------------
 
-const uint32_t CDate::GetMonth()
+uint32_t CDate::GetMonth()
 {
   int32_t result = BRATHL_SUCCESS;
 
@@ -1669,7 +1669,7 @@ const uint32_t CDate::GetMonth()
 
 //----------------------------------------
 
-const uint32_t CDate::GetDay()
+uint32_t CDate::GetDay()
 {
   int32_t result = BRATHL_SUCCESS;
 
@@ -1687,7 +1687,7 @@ const uint32_t CDate::GetDay()
 
 //----------------------------------------
 
-const uint32_t CDate::GetHour()
+uint32_t CDate::GetHour()
 {
   int32_t result = BRATHL_SUCCESS;
 
@@ -1704,7 +1704,7 @@ const uint32_t CDate::GetHour()
 }
 //----------------------------------------
 
-const uint32_t CDate::GetMinute()
+uint32_t CDate::GetMinute()
 {
   int32_t result = BRATHL_SUCCESS;
 
@@ -1722,7 +1722,7 @@ const uint32_t CDate::GetMinute()
 
 //----------------------------------------
 
-const uint32_t CDate::GetSecond()
+uint32_t CDate::GetSecond()
 {
   int32_t result = BRATHL_SUCCESS;
 
@@ -1739,7 +1739,7 @@ const uint32_t CDate::GetSecond()
 }
 //----------------------------------------
 
-const uint32_t CDate::GetMuSecond()
+uint32_t CDate::GetMuSecond()
 {
   int32_t result = BRATHL_SUCCESS;
 

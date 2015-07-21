@@ -18,6 +18,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+
 #include "BratLookupTable.h"
 #include "Trace.h"
 #include "Tools.h"
@@ -27,7 +28,7 @@ using namespace brathl;
 #include "ColorPalette.h"
 
 #include "BratDisplay.h"
-#include "BratLookupTable.h"
+
 
 const wxString ENTRY_NUMCOLORS = "ColorTable/NumberOfColors";
 const wxString ENTRY_CURRENTFCT = "ColorTable/CurrentFunction";

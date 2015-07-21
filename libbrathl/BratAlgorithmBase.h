@@ -229,8 +229,8 @@ public:
   virtual string GetOutputUnit() = 0;
   
   //virtual string GetParamFormats();
-  virtual string GetParamName(uint32_t indexParam) {return "";};
-  virtual double GetParamDefaultValue(uint32_t indexParam) {return CTools::m_defaultValueDOUBLE;};
+  virtual string GetParamName(uint32_t /*indexParam*/) {return "";};
+  virtual double GetParamDefaultValue(uint32_t /*indexParam*/) {return CTools::m_defaultValueDOUBLE;};
   
   void GetParamDefValue(uint32_t indexParam, double& value);
   void GetParamDefValue(uint32_t indexParam, float& value);

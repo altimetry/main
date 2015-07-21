@@ -3912,7 +3912,7 @@ void CNetCDFFiles::Open()
     case Replace:
     //----------
       // use netcdf-3 interface to permit specifying tuning parameters
-      CheckNetcdfError(nc_create(m_fileName.c_str(), mode /*| NC_64BIT_OFFSET*/, &m_file),
+      CheckNetcdfError(nc_create(m_fileName.c_str(), mode | NC_NETCDF4 /*| NC_64BIT_OFFSET*/, &m_file),
 		       CTools::Format("Error creating%s file",
 				      (m_fileMode == New ? "" : "/overwriting")));
       m_changingStructure = true;

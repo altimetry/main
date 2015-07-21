@@ -1154,7 +1154,7 @@ void CGuiFrame::OnNewWorkspace( wxCommandEvent &event )
 //----------------------------------------
 void CGuiFrame::OnAbout( wxCommandEvent &event )
 {
-    wxMessageDialog dialog( this, wxT("Welcome to BRAT " BRAT_VERSION "\n(C)opyright CLS/CNES/ESA"),
+    wxMessageDialog dialog( this, wxT("Welcome to BRAT ") wxT(BRAT_VERSION) wxT("\n(C)opyright CNES/ESA"),
         wxT("About BRAT"), wxOK|wxICON_INFORMATION );
     dialog.ShowModal();
 }

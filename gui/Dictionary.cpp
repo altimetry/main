@@ -51,7 +51,7 @@ using namespace brathl;
 // WDR: class implementations
 
 
-static int wxCALLBACK DictListCompareFunction(long item1, long item2, wxIntPtr sortData)
+static int wxCALLBACK DictListCompareFunction(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
 
   CDictionaryList* dictList = (CDictionaryList*)(sortData);
@@ -104,7 +104,7 @@ static int wxCALLBACK DictListCompareFunction(long item1, long item2, wxIntPtr s
 //----------------------------------------
 
 
-static int wxCALLBACK DictDisplayListCompareFunction(long item1, long item2, wxIntPtr sortData)
+static int wxCALLBACK DictDisplayListCompareFunction(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
 
   CDictionaryDisplayList* dictList = (CDictionaryDisplayList*)(sortData);

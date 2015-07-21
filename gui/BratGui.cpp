@@ -563,7 +563,7 @@ void CBratGuiApp::ViewUserManual()
                                           );
 
       wxFileDialog execDialog(NULL, wxString::Format("Choose a '%s' viewer executable", ext.c_str()),
-                              currentDir.GetPath(), wxEmptyString, wildcards, wxCHANGE_DIR|wxFILE_MUST_EXIST);
+                              currentDir.GetPath(), wxEmptyString, wildcards, wxFD_CHANGE_DIR|wxFD_FILE_MUST_EXIST);
 
       if (execDialog.ShowModal() == wxID_OK) 
       {

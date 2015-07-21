@@ -2510,7 +2510,7 @@ void CDisplayPanel::OnBrowsePalette( wxCommandEvent &event )
                                         wxFileSelectorDefaultWildcardStr
                                         );
 
-  wxFileDialog dlg(this, "Select a color palette file ...", currentDir.GetPath(), wxEmptyString, wildcards, wxCHANGE_DIR|wxFILE_MUST_EXIST);
+  wxFileDialog dlg(this, "Select a color palette file ...", currentDir.GetPath(), wxEmptyString, wildcards, wxFD_CHANGE_DIR|wxFD_FILE_MUST_EXIST);
   if (dlg.ShowModal() != wxID_OK)
   {
     return;

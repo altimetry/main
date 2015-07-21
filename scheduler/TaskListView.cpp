@@ -48,7 +48,7 @@
 
 // WDR: class implementations
 
-static int wxCALLBACK TaskListCompareFunction(long item1, long item2, wxIntPtr sortData)
+static int wxCALLBACK TaskListCompareFunction(wxIntPtr item1, wxIntPtr item2, wxIntPtr sortData)
 {
 
   CTaskListView* taskList = (CTaskListView*)(sortData);

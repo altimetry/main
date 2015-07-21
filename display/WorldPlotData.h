@@ -230,10 +230,10 @@ public:
 
   virtual void SetProjection(int32_t proj);
 
-  virtual void Update2D() {};
+  virtual void Update2D() {}
 
-  bool Is3D() {return m_is3D;};
-  bool Is2D() {return !m_is3D;};
+  bool Is3D() {return m_is3D;}
+  bool Is2D() {return !m_is3D;}
 
   virtual void Set3D();
   virtual void Set2D();
@@ -243,32 +243,32 @@ public:
 
   void SetInput(vtkPolyData* output);
 
-  vtkTransform* GetTransform() {return m_transform;};
-  vtkTransformPolyDataFilter* GetVtkTransform() {return m_vtkTransform;};
+  vtkTransform* GetTransform() {return m_transform;}
+  vtkTransformPolyDataFilter* GetVtkTransform() {return m_vtkTransform;}
 
-  virtual void OnKeyframeChanged(uint32_t i) { };
-  virtual void Close() {};
-  virtual void Update() {};
+  virtual void OnKeyframeChanged(uint32_t /*i*/) { }
+  virtual void Close() {}
+  virtual void Update() {}
 
-  virtual string GetDataTitle() {return "";};
-  virtual string GetDataTitle(uint32_t index) {return "";};
+  virtual string GetDataTitle() {return "";}
+  virtual string GetDataTitle(uint32_t index) {return "";}
 
-  virtual string GetDataName() {return "";};
+  virtual string GetDataName() {return "";}
 
 
-  vtkActor* GetVtkActor() {return m_vtkActor;};
-  vtkActor2D* GetVtkActor2D() {return m_vtkActor2D;};
+  vtkActor* GetVtkActor() {return m_vtkActor;}
+  vtkActor2D* GetVtkActor2D() {return m_vtkActor2D;}
 
-  vtkActor* GetVtkContourActor() {return m_vtkContourActor;};
-  vtkActor2D* GetVtkContourActor2D() {return m_vtkContourActor2D;};
+  vtkActor* GetVtkContourActor() {return m_vtkContourActor;}
+  vtkActor2D* GetVtkContourActor2D() {return m_vtkContourActor2D;}
 
-  vtkActor2D* GetVtkContourLabelActor() {return m_vtkContourLabelActor;};
+  vtkActor2D* GetVtkContourLabelActor() {return m_vtkContourLabelActor;}
 
-  CLUTRenderer* GetColorBarRenderer() {return m_colorBarRenderer;};
+  CLUTRenderer* GetColorBarRenderer() {return m_colorBarRenderer;}
 
-  virtual vtkProj2DFilter* GetVtkFilter() { return m_vtkFilter; };
+  virtual vtkProj2DFilter* GetVtkFilter() { return m_vtkFilter; }
 
-  CBratLookupTable* GetLUT() {return m_LUT;};
+  CBratLookupTable* GetLUT() {return m_LUT;}
 
   void SetLUT(CBratLookupTable* lut);
 
@@ -281,36 +281,36 @@ public:
       return m_LUT->GetLookupTable();
     };
 
-  vtkPolyDataMapper* GetVtkMapper() {return m_vtkMapper;};
-  vtkPolyDataMapper2D* GetVtkMapper2D() {return m_vtkMapper2D;};
+  vtkPolyDataMapper* GetVtkMapper() {return m_vtkMapper;}
+  vtkPolyDataMapper2D* GetVtkMapper2D() {return m_vtkMapper2D;}
 
-  vtkPolyDataMapper* GetVtkContourMapper() {return m_vtkContourMapper;};
-  vtkPolyDataMapper2D* GetVtkContourMapper2D() {return m_vtkContourMapper2D;};
+  vtkPolyDataMapper* GetVtkContourMapper() {return m_vtkContourMapper;}
+  vtkPolyDataMapper2D* GetVtkContourMapper2D() {return m_vtkContourMapper2D;}
 
-  vtkProgrammableFilter* GetVtkVisibleSpherePointsFilter() {return m_vtkVisibleSpherePointsFilter;};
-  vtkPoints* GetVtkVisibleSpherePoints() {return m_vtkVisibleSpherePoints;};
-  vtkDoubleArray* GetVtkVisibleSpherePointsData() {return m_vtkVisibleSpherePointsData;};
+  vtkProgrammableFilter* GetVtkVisibleSpherePointsFilter() {return m_vtkVisibleSpherePointsFilter;}
+  vtkPoints* GetVtkVisibleSpherePoints() {return m_vtkVisibleSpherePoints;}
+  vtkDoubleArray* GetVtkVisibleSpherePointsData() {return m_vtkVisibleSpherePointsData;}
 
-  vtkRenderer* GetVtkRenderer() {return m_vtkRend;};
+  vtkRenderer* GetVtkRenderer() {return m_vtkRend;}
 
   bool HasActor();
   bool HasActor2D();
 
  //bool IsNumberOfMapsEquals();
 
-  bool GetContour() {return m_plotProperty.m_withContour;};
-  void SetContour(bool value) {m_plotProperty.m_withContour = value;};
+  bool GetContour() {return m_plotProperty.m_withContour;}
+  void SetContour(bool value) {m_plotProperty.m_withContour = value;}
 
-  bool GetSolidColor() {return m_plotProperty.m_solidColor;};
-  void SetSolidColor(bool value) {m_plotProperty.m_solidColor = value;};
+  bool GetSolidColor() {return m_plotProperty.m_solidColor;}
+  void SetSolidColor(bool value) {m_plotProperty.m_solidColor = value;}
 
-  void SetRenderer(vtkRenderer* vtkRend) {m_vtkRend = vtkRend;};
+  void SetRenderer(vtkRenderer* vtkRend) {m_vtkRend = vtkRend;}
 
-  virtual void CreateContourLabels() {};
-  virtual void UpdateContourLabels() {};
+  virtual void CreateContourLabels() {}
+  virtual void UpdateContourLabels() {}
 
-  virtual void CreateContourLabels2D() {};
-  virtual void UpdateContourLabels2D() {};
+  virtual void CreateContourLabels2D() {}
+  virtual void UpdateContourLabels2D() {}
 
 
   //CWorldPlotProperty* GetWordlPlotProperty() {return &m_plotProperty;};
@@ -416,7 +416,7 @@ public:
 
   virtual void SetProjection(int32_t proj);
 
-  vtkGeoGridSource* GetVtkGeoGridSource() {return m_source;};
+  vtkGeoGridSource* GetVtkGeoGridSource() {return m_source;}
 
   bool FindDataCoords2D(vtkRenderer* ren, double xValue, double yValue, int& xCoord, int& yCoord);
   bool FindDataCoords2D(vtkRenderer* ren, double value[2], int& xCoord, int& yCoord);
@@ -497,28 +497,28 @@ public:
 
   virtual void Update2D();
 
-  void GetComputedRange(double& min, double& max) {min = m_minhv; max = m_maxhv;};
-  double GetComputedRangeMin() {return m_minhv;};
-  vtkObArray* GetGeoMapFilterList() {return &m_geoMapFilterList;};
+  void GetComputedRange(double& min, double& max) {min = m_minhv; max = m_maxhv;}
+  double GetComputedRangeMin() {return m_minhv;}
+  vtkObArray* GetGeoMapFilterList() {return &m_geoMapFilterList;}
 
-  double GetComputedRangeMax() {return m_maxhv;};
+  double GetComputedRangeMax() {return m_maxhv;}
 
-  string GetDataDateString() {return GetDataDateString(m_currentMap);};
+  string GetDataDateString() {return GetDataDateString(m_currentMap);}
   string GetDataDateString(uint32_t index);
 
-  const CDate* GetDataDate() {return GetDataDate(m_currentMap);};
-  const CDate* GetDataDate(uint32_t index) {return dynamic_cast<CDate*>(m_dataDates[index]);};
+  const CDate* GetDataDate() {return GetDataDate(m_currentMap);}
+  const CDate* GetDataDate(uint32_t index) {return dynamic_cast<CDate*>(m_dataDates[index]);}
 
-  virtual string GetDataTitle() {return GetDataTitle(m_currentMap);};
-  virtual string GetDataTitle(uint32_t index) {return m_dataTitles[index];};
+  virtual string GetDataTitle() {return GetDataTitle(m_currentMap);}
+  virtual string GetDataTitle(uint32_t index) {return m_dataTitles[index];}
 
-  virtual string GetDataName() {return (const char *)(m_plotProperty.m_name);};
+  virtual string GetDataName() {return (const char *)(m_plotProperty.m_name);}
 
-  string GetDataUnitString() {return GetDataUnitString(m_currentMap);};
+  string GetDataUnitString() {return GetDataUnitString(m_currentMap);}
   string GetDataUnitString(uint32_t index);
 
-  const CUnit* GetDataUnit() {return GetDataUnit(m_currentMap);};
-  const CUnit* GetDataUnit(uint32_t index) {return dynamic_cast<CUnit*>(m_dataUnits[index]);};
+  const CUnit* GetDataUnit() {return GetDataUnit(m_currentMap);}
+  const CUnit* GetDataUnit(uint32_t index) {return dynamic_cast<CUnit*>(m_dataUnits[index]);}
 
   virtual void SetProjection(int32_t proj);
 
@@ -547,11 +547,11 @@ public:
 
   void SetContourLabels2DPosition();
 
-  bool GetContourLabelNeedUpdateOnWindow() {return m_contourLabelNeedUpdateOnWindow;};
-  void SetContourLabelNeedUpdateOnWindow(bool value ) {m_contourLabelNeedUpdateOnWindow = value;};
+  bool GetContourLabelNeedUpdateOnWindow() {return m_contourLabelNeedUpdateOnWindow;}
+  void SetContourLabelNeedUpdateOnWindow(bool value ) {m_contourLabelNeedUpdateOnWindow = value;}
 
-  bool GetContourLabelNeedUpdatePositionOnContour() {return m_contourLabelNeedUpdatePositionOnContour;};
-  void SetContourLabelNeedUpdatePositionOnContour(bool value) {m_contourLabelNeedUpdatePositionOnContour = value;};
+  bool GetContourLabelNeedUpdatePositionOnContour() {return m_contourLabelNeedUpdatePositionOnContour;}
+  void SetContourLabelNeedUpdatePositionOnContour(bool value) {m_contourLabelNeedUpdatePositionOnContour = value;}
 
 protected:
   void GetMapLatLon(CInternalFilesZFXY* zfxy,

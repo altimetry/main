@@ -2572,7 +2572,7 @@ void CGeoVelocityMap::Create(wxWindow* parent, CObArray* northData, CObArray* ea
     m_dataUnits.Insert(unitNorth);
     //m_dataUnits.Insert(unitEast);
 
-    m_dataTitles.Insert(m_plotProperty.m_name.c_str() );
+    m_dataTitles.Insert(m_plotProperty.m_name.ToStdString());
 
 
     // read data

@@ -1353,6 +1353,11 @@ void COperationTreeCtrl::OnGetToolTip( wxTreeEvent &event )
     
 }
 
+
+#if defined(_MSC_VER)
+#pragma warning( disable : 4996 )
+#endif
+
 //----------------------------------------
 void COperationTreeCtrl::ShowMenu(wxTreeItemId id, const wxPoint& pt)
 {
@@ -1505,4 +1510,7 @@ void COperationTreeCtrl::ShowMenu(wxTreeItemId id, const wxPoint& pt)
     */
 }
 
+#if defined(_MSC_VER)
+#pragma warning( default : 4996 )
+#endif
 

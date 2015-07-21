@@ -512,7 +512,7 @@ int32_t CBratTaskProcess::ExecuteAsyncSubordinateTasks()
   if ((m_subordinateTaskIndex < 0) || (m_subordinateTaskIndex  >= countSubTask))
   {
     wxString msg = wxString::Format("Unable to execute sub-task index %d - Max. index is %d", m_subordinateTaskIndex, countSubTask);
-    throw CException(msg.c_str(), BRATHL_ERROR);
+    throw CException(msg.ToStdString(), BRATHL_ERROR);
   }
 
   CBratTask* subTask = m_bratTask->GetSubordinateTasks()->at(m_subordinateTaskIndex);

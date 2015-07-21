@@ -272,57 +272,57 @@ public:
   /** Destructor */
   virtual ~CBratTask();
 
- virtual CBratTask* Clone() { return new CBratTask(*this); };
+ virtual CBratTask* Clone() { return new CBratTask(*this); }
 
   void SetUid(const wxString& value);
-  void SetUid(const wxLongLong& value) {m_uid = value;};
-  void SetUid(wxLongLong_t value) {m_uid = value;};
+  void SetUid(const wxLongLong& value) {m_uid = value;}
+  void SetUid(wxLongLong_t value) {m_uid = value;}
   
-  const wxLongLong& GetUid() {return m_uid;};
+  const wxLongLong& GetUid() {return m_uid;}
   
-  wxLongLong_t GetUidValue() {return m_uid.GetValue();};
+  wxLongLong_t GetUidValue() {return m_uid.GetValue();}
   
-  wxString GetUidValueAsString() {return m_uid.ToString();};
+  wxString GetUidValueAsString() {return m_uid.ToString();}
   
   //void SetId(const wxString& value) {m_id = value;};
   //const wxString& GetId() {return m_id;};
   
-  void SetName(const wxString& value) {m_name = value;};
-  wxString GetName() {return m_name;};
+  void SetName(const wxString& value) {m_name = value;}
+  wxString GetName() {return m_name;}
   
-  void SetAt(const wxDateTime& value) {m_at = value;};
-  const wxDateTime& GetAt() {return m_at;};
+  void SetAt(const wxDateTime& value) {m_at = value;}
+  const wxDateTime& GetAt() {return m_at;}
 
-  wxString GetAtAsString(const wxString& format = CBratTask::FormatISODateTime) {return m_at.Format(format);};
+  wxString GetAtAsString(const wxString& format = CBratTask::FormatISODateTime) {return m_at.Format(format);}
   
-  void SetCmd(const wxString& value) {m_cmd = value;};
-  const wxString& GetCmd() {return m_cmd;};
+  void SetCmd(const wxString& value) {m_cmd = value;}
+  const wxString& GetCmd() {return m_cmd;}
   
-  void SetStatus(const wxString& value) {m_status = CBratTask::StringToTaskStatus(value);};
-  void SetStatus(CBratTask::bratTaskStatus value) {m_status = value;};
-  const CBratTask::bratTaskStatus GetStatus() {return m_status;};
-  wxString GetStatusAsString() {return CBratTask::TaskStatusToString(m_status);};
+  void SetStatus(const wxString& value) {m_status = CBratTask::StringToTaskStatus(value);}
+  void SetStatus(CBratTask::bratTaskStatus value) {m_status = value;}
+  CBratTask::bratTaskStatus GetStatus() {return m_status;}
+  wxString GetStatusAsString() {return CBratTask::TaskStatusToString(m_status);}
 
 
-  void SetLogFile(const wxString& value) {m_logFile.Assign(value);};
-  void SetLogFile(const wxFileName& value) {m_logFile = value;};
+  void SetLogFile(const wxString& value) {m_logFile.Assign(value);}
+  void SetLogFile(const wxFileName& value) {m_logFile = value;}
   
-  wxFileName* GetLogFile() {return &m_logFile;};
-  wxString GetLogFileAsString() {return m_logFile.GetFullPath();};
+  wxFileName* GetLogFile() {return &m_logFile;}
+  wxString GetLogFileAsString() {return m_logFile.GetFullPath();}
 
 
-  CVectorBratTask* GetSubordinateTasks() {return &m_subordinateTasks; };
-  bool HasSubordinateTasks() {return (m_subordinateTasks.size() > 0); };
+  CVectorBratTask* GetSubordinateTasks() {return &m_subordinateTasks; }
+  bool HasSubordinateTasks() {return (m_subordinateTasks.size() > 0); }
 
-  CBratTaskFunction* GetBratTaskFunction() { return &m_function; };
-  void SetBratTaskFunction(const CBratTaskFunction& value) { m_function = value; };
+  CBratTaskFunction* GetBratTaskFunction() { return &m_function; }
+  void SetBratTaskFunction(const CBratTaskFunction& value) { m_function = value; }
   void SetBratTaskFunction(CBratTaskFunction* value) 
           { if (value != NULL)
             { m_function = *value; }
           };
   
-  bool HasCmd() { return !(m_cmd.IsEmpty()); };
-  bool HasFunction() { return !(m_function.GetName().IsEmpty()); };
+  bool HasCmd() { return !(m_cmd.IsEmpty()); }
+  bool HasFunction() { return !(m_function.GetName().IsEmpty()); }
   
   void ExecuteFunction();
 

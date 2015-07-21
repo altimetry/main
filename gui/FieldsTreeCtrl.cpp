@@ -178,7 +178,7 @@ void CFieldsTreeItemData::SetSplittedFieldDescr(CField* field)
 
   wxStringTokenizer tkz;
 
-  tkz.SetString(wxT(field->GetDescription().c_str()), wxT("\t\r\n"));
+  tkz.SetString(field->GetDescription(), wxT("\t\r\n"));
 
   while ( tkz.HasMoreTokens() )
   {
@@ -195,7 +195,7 @@ void CFieldsTreeItemData::SetSplittedFieldDescr(CField* field)
     m_splittedFieldDescr = "No Description for this field.";
   }
 
-  tkz.SetString(wxT(m_splittedFieldDescr), wxT("."), wxTOKEN_RET_DELIMS);
+  tkz.SetString(m_splittedFieldDescr, wxT("."), wxTOKEN_RET_DELIMS);
 
   m_splittedFieldDescr.Empty();
 

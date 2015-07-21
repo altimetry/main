@@ -56,7 +56,7 @@ using namespace brathl;
 
 #include "OperationPanel.h"
 
-// When debugging changes all calls to “new” to be calls to “DEBUG_NEW” allowing for memory leaks to
+// When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
 // Needs to be included after all #include commands
 #include "Win32MemLeaksAccurate.h"
@@ -3728,6 +3728,12 @@ void COperationPanel::ExportOperation()
 }
 
 //----------------------------------------
+
+#if defined(_MSC_VER)
+#pragma warning( disable : 4996 )
+#endif
+
+
 void COperationPanel::DelayExportOperationAsGeoTiff(CExportDlg& exportDlg)
 {
  if (m_operation == NULL)
@@ -3890,8 +3896,8 @@ void COperationPanel::DelayExportOperationAsNetCdf(CExportDlg& exportDlg)
 
   CVectorBratAlgorithmParam params;
   
-  params.Insert(m_operation->GetOutput()->GetFullPath().c_str());
-  params.Insert(exportDlg.m_currentName.GetFullPath().c_str());
+  params.Insert(m_operation->GetOutput()->GetFullPath().ToStdString());
+  params.Insert(exportDlg.m_currentName.GetFullPath().ToStdString());
 
   wxXmlNode* taskNode = CSchedulerTaskConfig::GetInstance()->AddTaskAsPending(mainTaskNode,
                                                                               CBratTaskFunction::m_TASK_FUNC_COPYFILE,
@@ -3909,7 +3915,6 @@ void COperationPanel::DelayExportOperationAsNetCdf(CExportDlg& exportDlg)
   EnableCtrl();
 
 }
-
 //----------------------------------------
 void COperationPanel::DelayExportOperationAsAscii(CDelayDlg& delayDlg)
 {
@@ -3997,6 +4002,12 @@ void COperationPanel::DelayExportOperationAsAsciiDump(CDelayDlg& delayDlg, wxXml
   EnableCtrl();
 
 }
+
+
+#if defined(_MSC_VER)
+#pragma warning( default : 4996 )
+#endif
+
 //----------------------------------------
 void COperationPanel::ExportOperationAsAscii()
 {
@@ -4124,6 +4135,16 @@ void COperationPanel::ExportGeoTiff(wxFileName inputFile, wxFileName outputFile,
     file.Write("=");
     file.Write(CTools::GetDataDir().c_str());
     file.Write("/BratLogo.png");
+    file.Write("\n");
+    file.Write(kwFILETYPE.c_str());
+    file.Write("=");
+    file.Write(m_product->GetProductClass().c_str());
+    file.Write( " / ");
+	file.Write(m_product->GetProductType().c_str());
+    file.Write("\n");
+    file.Write(kwPRODUCT_LIST.c_str());
+    file.Write("=");
+    file.Write(m_operation->GetDataset()->GetProductList()->ToString(", ", true));
     file.Write("\n");
   }
   file.Write("\n#----- OUTPUT -----\n\n");

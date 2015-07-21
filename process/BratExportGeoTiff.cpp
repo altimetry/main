@@ -63,6 +63,16 @@ struct CoordBoundaries
   double lonEast;
 };
 
+struct KmlTrackPoint
+{
+	double lat;
+	double lon;
+	double alt;
+	double data;
+	unsigned char rgba[4];
+	double timestamp;
+};
+
 //--------------------------------------------------
 // Colour Table construction
 //--------------------------------------------------
@@ -138,7 +148,8 @@ inline bool isNaN(double x)
 static bool GetParameters(const std::string &paramFile,
 			  std::string &inputFileName, std::string &outputFileName, std::string &kmlFileName,
 			  std::string &colourTableName, std::string &screeLogoUrl,
-			  FlagAndValue<double> &minValue, FlagAndValue<double> &maxValue);
+			  FlagAndValue<double> &minValue, FlagAndValue<double> &maxValue,
+			  std::string &filetypeName, std::string &productList);
 static bool ExportNetCdfAsGeoTiff(const std::string &inputFileName, const std::string &outputFileName,
 				  const std::string &colourTableName,
 				  const FlagAndValue<double> &minValue,
@@ -151,15 +162,36 @@ static int ExtractGridCoordinateVariableIds(int ncId, int nVariables, int nDimen
 					    int &latVarId, int &latBndVarId, int &latDimId, size_t &nLat,
 					    int &lonVarId, int &lonBndVarId, int &lonDimId, size_t &nLon);
 static int ExtractCrsVariable(int ncId, int *crsVarId); // helper
+static int ExtractTimestampVariable(int ncId, int *timestampVarId);
 static void ExtractMinAndMax(int ncId, int dataVarId, int nRow, int nCol, double &minValue, double &maxValue);
 static bool WriteGeoTiff(const std::string &filename, int ncId, int dataVarId, bool swap_axis,
 					 int nLat, int nLon, double minValue, double maxValue,
 					 const ColourTable *colourTable, bool areaGrid,
 					 double latNorth, double lonWest, double dLat, double dLon,
-					 bool repeatFirstColumn);
-static bool ExportKml(const std::string &kmlFileName, const std::string &tiffFileName, const std::string &screeLogoUrl,
-		      struct CoordBoundaries *coordBoundaries);
+					 bool repeatFirstColumn, std::vector<double>& latAxis,
+					 std::vector<double>& lonAxis, int timestampVarId);
+static bool ExportKml(const std::string &kmlFileName,
+		const std::string &tiffFileName, const std::string &screeLogoUrl,
+		struct CoordBoundaries *coordBoundaries,
+		const std::string &filetypeName, const std::string &productList);
 
+static std::vector<KmlTrackPoint> kmlTrackVector;
+
+static char dataUnits[128];
+
+static char dataName[128];
+
+static bool isAltData;
+
+static vector<double> barLabelValues;
+
+static unsigned int numberOfBarLabelValues = 9;
+
+static std::string colourBarFilename;
+
+static bool includeTimestamp;
+
+static char timestampUnits[128];
 
 int main (int argc, char *argv[])
 {
@@ -180,9 +212,12 @@ int main (int argc, char *argv[])
 
   try
   {
-    std::string inputFileName, outputFileName, kmlFileName, colourTableName, screenLogoUrl;
+    std::string inputFileName, outputFileName, kmlFileName, colourTableName,
+    		screenLogoUrl, filetypeName, productList;
 
-    if (!GetParameters(commandFile, inputFileName, outputFileName, kmlFileName, colourTableName, screenLogoUrl, minValue, maxValue)) {
+    if (!GetParameters(commandFile, inputFileName, outputFileName, kmlFileName,
+    		colourTableName, screenLogoUrl, minValue, maxValue,
+    		filetypeName, productList)) {
       cerr << "Parameter File does not contain the required fields." << endl;
       return 2;
     }
@@ -198,12 +233,15 @@ int main (int argc, char *argv[])
       // tiff and KML export
       struct CoordBoundaries cBounds;
 
+      kmlTrackVector.clear();
+
       if (!ExportNetCdfAsGeoTiff(inputFileName, outputFileName, colourTableName, minValue, maxValue, true, &cBounds)) {
         cerr << "Failed to export GeoTIFF file." << endl;
         return 2;
       }
      
-      if (!ExportKml(kmlFileName, outputFileName, screenLogoUrl, &cBounds)) {
+      if (!ExportKml(kmlFileName, outputFileName, screenLogoUrl, &cBounds,
+    		  filetypeName, productList)) {
         cerr << "Failed to export KML file." << endl;
         return 2;
       }
@@ -236,7 +274,8 @@ int main (int argc, char *argv[])
 bool GetParameters(const std::string &paramFile,
 		   std::string &inputFileName, std::string &outputFileName, std::string &kmlFileName,
 		   std::string &colourTableName, std::string &screenLogoUrl,
-		   FlagAndValue<double> &minValue, FlagAndValue<double> &maxValue)
+		   FlagAndValue<double> &minValue, FlagAndValue<double> &maxValue,
+		   std::string &filetypeName, std::string &productList)
 {
   bool status = true;
   CFileParams params(paramFile);
@@ -286,6 +325,16 @@ bool GetParameters(const std::string &paramFile,
     maxValue.setValue(tmpValue);
   }
 
+  if ((par = params.m_mapParam.Exists(kwFILETYPE)) != NULL)
+    par->GetValue(filetypeName);
+  else
+    filetypeName = "No Filetype";
+
+  if ((par = params.m_mapParam.Exists(kwPRODUCT_LIST)) != NULL)
+    par->GetValue(productList);
+  else
+	  productList = "";
+
   return status;
 }
 
@@ -313,6 +362,7 @@ bool ExportNetCdfAsGeoTiff(const std::string &inputFileName, const std::string &
   int latBndVarId = -1;
   int lonBndVarId = -1;
   int crsVarId = -1;
+  int timestampVarId = -1;
   int dataVarId = -1;
   int dimArray[cMaxDimReasonable];
   size_t nLat, nLon;
@@ -327,6 +377,9 @@ bool ExportNetCdfAsGeoTiff(const std::string &inputFileName, const std::string &
   double lonWest = -180.0;
   double dLat = 1.0;
   double dLon = 1.0;
+
+  std::vector<double> latAxis;
+  std::vector<double> lonAxis;
 
   int ncId = 0;
   int status = nc_open(inputFileName.c_str(), NC_NOWRITE, &ncId);
@@ -367,6 +420,10 @@ bool ExportNetCdfAsGeoTiff(const std::string &inputFileName, const std::string &
   if (status == NC_NOERR)
     status = ExtractCrsVariable(ncId, &crsVarId);
 
+  // expect a Timestamp variable, but not essential
+  if (status == NC_NOERR)
+    status = ExtractTimestampVariable(ncId, &timestampVarId);
+
   // the first other variable SHOULD be the grid function data ... but check
   if (status == NC_NOERR) {
     // find the first NON lat/lon/crs variable that has 2 dimensions that are
@@ -375,8 +432,9 @@ bool ExportNetCdfAsGeoTiff(const std::string &inputFileName, const std::string &
     varId = 0;
     while (status == NC_NOERR && varId < nVariables && dataVarId == -1) {
       
-      if (varId != latVarId && varId != lonVarId && varId != crsVarId &&
-          varId != latBndVarId && varId != lonBndVarId) {
+      if (varId != latVarId && varId != lonVarId
+    		  && varId != crsVarId && varId != timestampVarId
+    		  && varId != latBndVarId && varId != lonBndVarId) {
 
         status = nc_inq_var(ncId, varId, name, &xType, &nDims, dimArray, &nAtts);
         if ((status == NC_NOERR) && (nDims == 2)) {
@@ -404,30 +462,30 @@ bool ExportNetCdfAsGeoTiff(const std::string &inputFileName, const std::string &
   if (status == NC_NOERR) {
 
     std::vector<double>::iterator it;
-    
-    std::vector<double> tmpLatAxis(nLat);
-    std::vector<double> tmpLonAxis(nLon);
+
+    latAxis.resize(nLat);
+    lonAxis.resize(nLon);
 
     // ignore the bounds even if this is an area grid, since it is required that
     // the grid is uniform.
     // get grid axis data directly from the lat and lon variables - ther are in degrees.
     if (status == NC_NOERR)
-      status = nc_get_var_double(ncId, latVarId, &tmpLatAxis.front());
+      status = nc_get_var_double(ncId, latVarId, &latAxis.front());
     if (status == NC_NOERR)
-      status = nc_get_var_double(ncId, lonVarId, &tmpLonAxis.front());
+      status = nc_get_var_double(ncId, lonVarId, &lonAxis.front());
 
     // check that both axes are 'uniform'.
     double tmpValue, tolerance;
     bool toleranceError = false;
 
-    dLat = (tmpLatAxis.back() - tmpLatAxis.front()) / (double)(nLat - 1);
-    dLon = (tmpLonAxis.back() - tmpLonAxis.front()) / (double)(nLon - 1);
+    dLat = (latAxis.back() - latAxis.front()) / (double)(nLat - 1);
+    dLon = (lonAxis.back() - lonAxis.front()) / (double)(nLon - 1);
     
     // allow a tolerance of 1% of the delta.
     tolerance = 0.01 * dLat;
-    tmpValue = tmpLatAxis.front();
-    it = tmpLatAxis.begin();
-    while (it != tmpLatAxis.end()) {
+    tmpValue = latAxis.front();
+    it = latAxis.begin();
+    while (it != latAxis.end()) {
       if (fabs(*it - tmpValue) > tolerance) {
         toleranceError = true;
         cerr << "ERROR: latitude grid is not equaly spaced" << endl;
@@ -437,9 +495,9 @@ bool ExportNetCdfAsGeoTiff(const std::string &inputFileName, const std::string &
       ++it;
     }
     tolerance = 0.01 * dLon;
-    tmpValue = tmpLonAxis.front();
-    it = tmpLonAxis.begin();
-    while (it != tmpLonAxis.end()) {
+    tmpValue = lonAxis.front();
+    it = lonAxis.begin();
+    while (it != lonAxis.end()) {
       if (fabs(*it - tmpValue) > tolerance) {
           toleranceError = true;
           cerr << "ERROR: longitude grid is not equaly spaced" << endl;
@@ -454,20 +512,20 @@ bool ExportNetCdfAsGeoTiff(const std::string &inputFileName, const std::string &
     }
     else {
       // populated and checked the latitude/longitude data - only need a point and scale
-      latNorth = tmpLatAxis.back();
-      lonWest = tmpLonAxis.front();
+      latNorth = latAxis.back();
+      lonWest = lonAxis.front();
       // is the grid global??
-      globalLongitude = (fabs(tmpLonAxis.back() - tmpLonAxis.front() + dLon - 360.0) < tolerance);
+      globalLongitude = (fabs(lonAxis.back() - lonAxis.front() + dLon - 360.0) < tolerance);
 
       // set the coordBoundaries if required. These are the geographic boundaries of the image.
       if (coordBoundaries != NULL) {
         coordBoundaries->latNorth = latNorth;
-        coordBoundaries->latSouth = tmpLatAxis.front();
+        coordBoundaries->latSouth = latAxis.front();
         coordBoundaries->lonWest = lonWest;
         if (globalLongitude && closeInLongitudeIfGlobal)
           coordBoundaries->lonEast = lonWest + 360.0; // precisely 360
         else
-          coordBoundaries->lonEast = tmpLonAxis.back();
+          coordBoundaries->lonEast = lonAxis.back();
       }
     }
   }
@@ -507,10 +565,12 @@ bool ExportNetCdfAsGeoTiff(const std::string &inputFileName, const std::string &
       
     if (status == NC_NOERR) {
       ColourTable colourTable(colourTableName);
+
       if (! WriteGeoTiff(outputFileName, ncId, dataVarId, swap_axis, nLat, nLon,
 				       rangeMin, rangeMax, &colourTable,
 				       areaGrid, latNorth, lonWest, dLat, dLon,
-				       (globalLongitude && closeInLongitudeIfGlobal))) {
+				       (globalLongitude && closeInLongitudeIfGlobal),
+				       latAxis, lonAxis, timestampVarId)) {
         status = 1;
       }
     }
@@ -716,7 +776,6 @@ int ExtractGridCoordinateVariableIds(int ncId, int nVariables, int nDimensions,
   return status;
 }
 
-
 int ExtractCrsVariable(int ncId, int *crsVarId)
 {
   int status = nc_inq_varid(ncId, "crs", crsVarId);
@@ -743,6 +802,37 @@ int ExtractCrsVariable(int ncId, int *crsVarId)
   return NC_NOERR;
 }
 
+int ExtractTimestampVariable(int ncId, int *timestampVarId)
+{
+  size_t length;
+
+  int status = nc_inq_varid(ncId, "zztimestamp", timestampVarId);
+
+  if (status == NC_NOERR) {
+
+	includeTimestamp = true;
+
+	memset(timestampUnits, 0, sizeof(timestampUnits));
+
+	if (nc_inq_attlen(ncId, *timestampVarId, "units", &length) == NC_NOERR
+		  && length < sizeof(timestampUnits)
+		  && nc_get_att_text(ncId, *timestampVarId, "units", timestampUnits)
+		  	  	  == NC_NOERR) {
+
+		timestampUnits[length] = '\0';
+	}
+
+    return status;
+  }
+
+  // non-existence is not an error.
+  *timestampVarId = -1;
+
+  includeTimestamp = false;
+
+  return NC_NOERR;
+}
+
 bool WriteGeoTiff(const std::string &filename,
 				  int ncId, int dataVarId, bool swap_axis,
 				  int nLat, int nLon, 
@@ -751,10 +841,15 @@ bool WriteGeoTiff(const std::string &filename,
                   bool areaGrid,
 				  double latNorth, double lonWest,
 				  double dLat, double dLon,
-				  bool repeatFirstColumn)
+				  bool repeatFirstColumn,
+				  std::vector<double>& latAxis,
+				  std::vector<double>& lonAxis,
+				  int timestampVarId)
 {
   const int samplePerPixel = 4;
   size_t startArray[2], countArray[2];
+
+  size_t length;
 
   // open the tiff file 
   TIFF *tiff = XTIFFOpen(filename.c_str(), "w");
@@ -828,8 +923,10 @@ bool WriteGeoTiff(const std::string &filename,
   }
 
   std::vector<double> dataBuffer(nLon);
+  std::vector<double> timestampBuffer(nLon);
   unsigned char *pCursor;
   uint32 row = 0;
+  uint32 column = 0;
   uint32 height = nLat;
   double fillValue;
   double scale = 1.0 / (maxValue - minValue);
@@ -851,6 +948,36 @@ bool WriteGeoTiff(const std::string &filename,
     countArray[1] = nLon;
   }
 
+  /*
+   * Stores the units and name of the data variable
+   */
+  memset(dataUnits, 0, sizeof(dataUnits));
+
+  if (nc_inq_attlen(ncId, dataVarId, "units", &length) == NC_NOERR
+		  && length < sizeof(dataUnits)
+		  && nc_get_att_text(ncId, dataVarId, "units", dataUnits) == NC_NOERR) {
+
+    dataUnits[length] = '\0';
+  }
+
+  if ((strcmp(dataUnits, "mm") == 0)
+		  || (strcmp(dataUnits, "cm") == 0)
+		  || (strcmp(dataUnits, "m") == 0)
+		  || (strcmp(dataUnits, "meters") == 0)
+		  || (strcmp(dataUnits, "meter") == 0)
+		  || (strcmp(dataUnits, "km") == 0)) {
+
+	  isAltData = true;
+
+  } else {
+
+	  isAltData = false;
+  }
+
+  memset(dataName, 0, sizeof(dataName));
+
+  nc_inq_varname(ncId, dataVarId, dataName);
+
   // north to south construction of the image raster
   for (row = 0; row < height; row++) {
     
@@ -869,8 +996,21 @@ bool WriteGeoTiff(const std::string &filename,
       std::vector<double>::const_iterator it = dataBuffer.begin();
       std::vector<double>::const_iterator endIt = dataBuffer.end();
       pCursor = pixelBuffer;
-    
+
+      // reads the timestamp variable if it exists in the NC file
+      if (includeTimestamp) {
+
+    	  if (nc_get_vara_double(ncId, timestampVarId, startArray, countArray,
+    			  &(timestampBuffer.front())) != NC_NOERR) {
+
+    		  // set timestamp to -1 if any error reading this row
+
+    		  std::fill(timestampBuffer.begin(), timestampBuffer.end(), -1);
+    	  }
+      }
+
       // populate the scan-line from the row data
+      column = 0;
       while (it != endIt) {
       
         if (*it == fillValue || isNaN(*it)) {
@@ -879,10 +1019,32 @@ bool WriteGeoTiff(const std::string &filename,
           pCursor[2] = 0;
           pCursor[3] = 0;
         }
-        else colourTable->getRGBA((*it - minValue) * scale, pCursor);
+        else {
+
+        	colourTable->getRGBA((*it - minValue) * scale, pCursor);
+
+			/*
+			 * Adds the point information to the kmlTrackVector
+			 */
+			KmlTrackPoint kmlTrackPoint;
+
+			kmlTrackPoint.lat = latAxis.at(nLat - 1 - row);
+			kmlTrackPoint.lon = lonAxis.at(column);
+			kmlTrackPoint.alt = 0;
+			kmlTrackPoint.data = *it;
+			std::copy(pCursor, pCursor + 4, kmlTrackPoint.rgba);
+
+			if (includeTimestamp) {
+
+				kmlTrackPoint.timestamp = timestampBuffer.at(column);
+			}
+
+			kmlTrackVector.push_back(kmlTrackPoint);
+        }
 
         pCursor += 4;
         ++it;
+        column++;
       }
       if (repeatFirstColumn) {
         pCursor[0] = pixelBuffer[0];
@@ -902,7 +1064,102 @@ bool WriteGeoTiff(const std::string &filename,
   if (pixelBuffer)
     _TIFFfree(pixelBuffer);
 
-  return (row == height);
+  if (row != height) {
+
+	  return false;
+  }
+
+  /*
+   * Writes the colour bar in another tiff file
+   */
+  
+  colourBarFilename =
+		  filename.substr(0, filename.find_last_of(".")) + "_colourbar.tif";
+
+  // open the tiff file
+  TIFF *tiffBar = XTIFFOpen(colourBarFilename.c_str(), "w");
+
+  if (tiffBar == NULL) {
+    cerr << "ERROR: could not open TIFF file for colour bar output" << endl;
+    return false;
+  }
+
+  const unsigned int colourBarWidth = 50;
+  unsigned int colourBarHeight = 500;
+
+  // TIFF tags for the raster image
+  TIFFSetField(tiffBar, TIFFTAG_IMAGEWIDTH, colourBarWidth);        // set the width of the image
+  TIFFSetField(tiffBar, TIFFTAG_IMAGELENGTH, colourBarHeight);      // set the height of the image + extra for colour bar
+  TIFFSetField(tiffBar, TIFFTAG_SAMPLESPERPIXEL, samplePerPixel);   // set number of channels per pixel
+  TIFFSetField(tiffBar, TIFFTAG_BITSPERSAMPLE, 8);                  // set the size of the channels
+  TIFFSetField(tiffBar, TIFFTAG_ORIENTATION, ORIENTATION_TOPLEFT);  // set the origin of the image.
+  TIFFSetField(tiffBar, TIFFTAG_PLANARCONFIG, PLANARCONFIG_CONTIG);
+  TIFFSetField(tiffBar, TIFFTAG_PHOTOMETRIC, PHOTOMETRIC_RGB);
+  TIFFSetField(tiffBar, TIFFTAG_ROWSPERSTRIP, 1);                   // place each row in a separate strip
+  TIFFSetField(tiffBar, TIFFTAG_COMPRESSION, COMPRESSION_LZW);      // enable compression (on a per strip basis)
+
+  unsigned char *colourBarpixelBuffer =
+		  (unsigned char *)_TIFFmalloc(TIFFScanlineSize(tiffBar));
+
+  if (colourBarpixelBuffer == NULL) {
+
+    TIFFClose(tiffBar);
+    return false;
+  }
+
+  double step = (maxValue - minValue) / (colourBarHeight - 1);
+
+  double colour_map_in_array[colourBarWidth];
+
+  for (row = 0; row < colourBarHeight; row++) {
+
+	  pCursor = colourBarpixelBuffer;
+
+	  for (column = 0; column < colourBarWidth; ++column) {
+
+		  if ((row == 0) || (row == colourBarHeight - 1)
+				  || (column == 0) || (column == colourBarWidth - 1)) {
+
+	          pCursor[0] = 255;
+	          pCursor[1] = 255;
+	          pCursor[2] = 255;
+	          pCursor[3] = 255;
+
+		  } else {
+
+			  colour_map_in_array[column] =
+					  ((minValue + row * step) - minValue) * scale;
+
+			  colourTable->getRGBA(colour_map_in_array[column], pCursor);
+		  }
+
+		  pCursor += 4;
+	  }
+
+	  if (TIFFWriteScanline(tiffBar, colourBarpixelBuffer, row, 0) < 0) {
+
+		  break;
+	  }
+  }
+
+  // colour bar label values
+  barLabelValues.resize(numberOfBarLabelValues);
+
+  double barLabelValuesScale =
+		  (maxValue - minValue) / (numberOfBarLabelValues - 1);
+
+  for (unsigned int valueIndex = 0; valueIndex < numberOfBarLabelValues;
+		  ++valueIndex) {
+
+	  barLabelValues[valueIndex] = minValue + valueIndex * barLabelValuesScale;
+  }
+
+  TIFFClose(tiffBar);
+
+  if (colourBarpixelBuffer)
+    _TIFFfree(colourBarpixelBuffer);
+
+  return (row == colourBarHeight);
 }
 
 void ExtractMinAndMax(int ncId, int dataVarId, int nRow, int nCol, double &minValue, double &maxValue)
@@ -942,8 +1199,10 @@ void ExtractMinAndMax(int ncId, int dataVarId, int nRow, int nCol, double &minVa
   }
 }
 
-bool ExportKml(const std::string &kmlFileName, const std::string &tiffFileName, const std::string &screenLogoUrl,
-	       struct CoordBoundaries *coordBoundaries)
+bool ExportKml(const std::string &kmlFileName, const std::string &tiffFileName,
+		const std::string &screenLogoUrl,
+		struct CoordBoundaries *coordBoundaries,
+		const std::string &filetypeName, const std::string &productList)
 {
 
   std::ofstream stream(kmlFileName.c_str());
@@ -955,38 +1214,247 @@ bool ExportKml(const std::string &kmlFileName, const std::string &tiffFileName, 
 
   stream << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" << std::endl;
   stream << "<kml xmlns=\"http://www.opengis.net/kml/2.2\">" << std::endl;
-  stream << "<Folder>" << std::endl;
-  stream << "  <name>BRAT Ground Overlays</name>" << std::endl;
+  stream << "	<Document>" << std::endl;
 
-  stream << "  <GroundOverlay>" << std::endl;
-  stream << "    <name>" << tiffFileName << "</name>" << std::endl;
-  //  stream << "    <description></description>" << std::endl;
-  stream << "    <Icon>" << std::endl;
-  stream << "      <href>" << tiffFileName << "</href>" << std::endl;
-  stream << "    </Icon>" << std::endl;
-  stream << "    <LatLonBox>" << std::endl;
-  stream << "      <north>" << std::setw(18) << coordBoundaries->latNorth << "</north>" << std::endl;
-  stream << "      <south>" << std::setw(18) << coordBoundaries->latSouth << "</south>" << std::endl;
-  stream << "      <east>" << std::setw(18) << coordBoundaries->lonEast << "</east>" << std::endl;
-  stream << "      <west>" << std::setw(18) << coordBoundaries->lonWest << "</west>" << std::endl;
-  stream << "      <rotation>0.0</rotation>" << std::endl;
-  stream << "    </LatLonBox>" << std::endl;
-  stream << "  </GroundOverlay>" << std::endl;
+  stream << " 		<name>" << filetypeName << "</name>" << std::endl;
+  stream << " 		<description>" << productList << "</description>" << std::endl;
+  stream << "		<open>0</open>" << std::endl;
+  stream << " 		<visibility>1</visibility>" << std::endl;
+
+  /*
+   * Ground Overlays folder: Geotiff image
+   */
+  stream << "		<Folder id=\"Geotiff\">" << std::endl;
+  stream << "			<name>Geotiff</name>" << std::endl;
+  stream << "			<GroundOverlay>" << std::endl;
+  stream << "				<name>"<< dataName << "</name>" << std::endl;
+  stream << "				<Icon>" << std::endl;
+  stream << "					<href>" << tiffFileName << "</href>" << std::endl;
+  stream << "				</Icon>" << std::endl;
+  stream << "				<LatLonBox>" << std::endl;
+  stream << "					<north>" << std::setw(18) << coordBoundaries->latNorth << "</north>" << std::endl;
+  stream << "					<south>" << std::setw(18) << coordBoundaries->latSouth << "</south>" << std::endl;
+  stream << "					<east>" << std::setw(18) << coordBoundaries->lonEast << "</east>" << std::endl;
+  stream << "					<west>" << std::setw(18) << coordBoundaries->lonWest << "</west>" << std::endl;
+  stream << "					<rotation>0.0</rotation>" << std::endl;
+  stream << "				</LatLonBox>" << std::endl;
+  stream << "			</GroundOverlay>" << std::endl;
+  stream << "		</Folder>" << std::endl;
+
+  /*
+   * Screen Overlays folder: logo and colour bar (image and texts)
+   */
+  stream << "		<Folder id=\"Legend\">" << std::endl;
+  stream << "			<name>Legend</name>" << std::endl;
 
   if (!screenLogoUrl.empty()) {
-    stream << "  <ScreenOverlay>" << std::endl;
-    stream << "    <name>Logo</name>" << std::endl;
-    stream << "    <Icon>" << std::endl;
-    stream << "      <href>" << screenLogoUrl << "</href>" << std::endl;
-    stream << "    </Icon>" << std::endl;
-    stream << "    <overlayXY x=\"0.0\" y=\"1.0\" xunits=\"fraction\" yunits=\"fraction\"/>" << std::endl;
-    stream << "    <screenXY x=\"0.01\" y=\"0.99\" xunits=\"fraction\" yunits=\"fraction\"/>" << std::endl;
-    stream << "    <rotation>0</rotation>" << std::endl;
-    stream << "    <size x=\"0\" y=\"0\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
-    stream << "  </ScreenOverlay>" << std::endl;
+    stream << "			<ScreenOverlay>" << std::endl;
+    stream << "				<name>Logo</name>" << std::endl;
+    stream << "				<Icon>" << std::endl;
+    stream << "					<href>" << screenLogoUrl << "</href>" << std::endl;
+    stream << "				</Icon>" << std::endl;
+    stream << "				<overlayXY x=\"0\" y=\"54\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
+    stream << "				<screenXY x=\"0.01\" y=\"0.99\" xunits=\"fraction\" yunits=\"fraction\"/>" << std::endl;
+    stream << "				<rotation>0</rotation>" << std::endl;
+    stream << "				<size x=\"0\" y=\"0\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
+    stream << "			</ScreenOverlay>" << std::endl;
   }
 
-  stream << "</Folder>" << std::endl;
+  stream << "			<Folder id=\"Colour_Bar\">" << std::endl;
+  stream << "				<name>Colour Bar</name>" << std::endl;
+
+  stream << "				<ScreenOverlay>" << std::endl;
+  stream << "					<name>Label</name>" << std::endl;
+  stream << "					<Icon>" << std::endl;
+  stream << "						<href><![CDATA[http://chart.apis.google.com/chart?chst=d_text_outline&chld=FFFFFF|16|h|000000|b|"
+		  << dataName << " [" << dataUnits << "]]]></href>" << std::endl;
+  stream << "					</Icon>" << std::endl;
+  stream << "					<overlayXY x=\"0\" y=\"90\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
+  stream << "					<screenXY x=\"0.01\" y=\"0.99\" xunits=\"fraction\" yunits=\"fraction\"/>" << std::endl;
+  stream << "					<rotation>0</rotation>" << std::endl;
+  stream << "					<size x=\"0\" y=\"0\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
+  stream << "				</ScreenOverlay>" << std::endl;
+
+  stream << "				<ScreenOverlay>" << std::endl;
+  stream << "					<name>Colour Bar</name>" << std::endl;
+  stream << "					<Icon>" << std::endl;
+  stream << "						<href>" << colourBarFilename << "</href>" << std::endl;
+  stream << "					</Icon>" << std::endl;
+  stream << "					<overlayXY x=\"0\" y=\"600\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
+  stream << "					<screenXY x=\"0.01\" y=\"0.99\" xunits=\"fraction\" yunits=\"fraction\"/>" << std::endl;
+  stream << "					<rotation>0</rotation>" << std::endl;
+  stream << "					<size x=\"0\" y=\"0\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
+  stream << "				</ScreenOverlay>" << std::endl;
+
+  for (unsigned int valueIndex = 0; valueIndex < numberOfBarLabelValues;
+		  ++valueIndex) {
+
+	  double yValue = 115.0 + (double)valueIndex * 60.625;
+
+	  stream << "				<ScreenOverlay>" << std::endl;
+	  stream << "					<name>Tick Value #" << valueIndex
+			  << "</name>" << std::endl;
+	  stream << "					<Icon>" << std::endl;
+	  stream << "						<href><![CDATA[http://chart.apis.google.com/chart?chst=d_text_outline&chld=FFFFFF|16|h|000000|b|"
+			  << barLabelValues[valueIndex] << "]]></href>" << std::endl;
+	  stream << "					</Icon>" << std::endl;
+	  stream << "					<overlayXY x=\"-60\" y=\"" << yValue << "\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
+	  stream << "					<screenXY x=\"0.01\" y=\"0.99\" xunits=\"fraction\" yunits=\"fraction\"/>" << std::endl;
+	  stream << "					<rotation>0</rotation>" << std::endl;
+	  stream << "					<size x=\"0\" y=\"0\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
+	  stream << "				</ScreenOverlay>" << std::endl;
+  }
+
+  stream << "			</Folder>" << std::endl;
+  stream << "		</Folder>" << std::endl;
+
+  /*
+   * Placemarks folder: Track map points
+   */
+  stream << "		<Folder id=\"Track\">" << std::endl;
+  stream << "			<name>Along Track Data </name>" << std::endl;
+
+  for (unsigned int pointIndex = 0; pointIndex < kmlTrackVector.size();
+		  ++pointIndex) {
+
+	  double altCoordinate;
+	  std::stringstream altDescription;
+	  std::string altitudeMode;
+	  std::stringstream timestampDescription;
+
+	  if (isAltData) {
+
+		  if (strcmp(dataUnits, "mm") == 0) {
+
+			  altCoordinate = kmlTrackVector.at(pointIndex).data / 1000.0;
+
+	  	  } else if (strcmp(dataUnits, "cm") == 0) {
+
+		  		altCoordinate = kmlTrackVector.at(pointIndex).data / 100.0;
+
+	  	  } else if (strcmp(dataUnits, "km") == 0) {
+
+		  		altCoordinate = kmlTrackVector.at(pointIndex).data * 1000.0;
+
+	  	  } else {
+
+	  		altCoordinate = kmlTrackVector.at(pointIndex).data;
+	  	  }
+
+		  altDescription << dataName << " = "
+				  << kmlTrackVector.at(pointIndex).data << " " << dataUnits;
+
+		  altitudeMode = "relativeToGround";
+
+	  } else {
+
+		  altCoordinate = kmlTrackVector.at(pointIndex).alt;
+
+		  altDescription << "Alt = "
+				  << kmlTrackVector.at(pointIndex).alt << " m, "
+				  << dataName << " = " << kmlTrackVector.at(pointIndex).data
+				  << " " << dataUnits;
+
+		  altitudeMode = "clampedToGround";
+	  }
+
+	  if (includeTimestamp) {
+
+		  timestampDescription << ", Timestamp = "
+				  << kmlTrackVector.at(pointIndex).timestamp << " "
+				  << timestampUnits;
+
+	  } else {
+
+		  timestampDescription << "";
+	  }
+
+	  std::stringstream ssColour;
+	  ssColour << std::setw(2) << std::hex << std::setfill('0')
+			  << (int)kmlTrackVector.at(pointIndex).rgba[2]
+			  << std::setw(2) << std::hex << std::setfill('0')
+	          << (int)kmlTrackVector.at(pointIndex).rgba[1]
+			  << std::setw(2) << std::hex << std::setfill('0')
+	          << (int)kmlTrackVector.at(pointIndex).rgba[0];
+
+	  stream << "			<Placemark>" << std::endl;
+	  stream << "				<Point>" << std::endl;
+	  stream << "   				<altitudeMode>" << altitudeMode << "</altitudeMode>" << std::endl;
+	  stream << "					<coordinates>"
+			  << kmlTrackVector.at(pointIndex).lon << ","
+			  << kmlTrackVector.at(pointIndex).lat << ","
+			  << altCoordinate
+			  << "</coordinates>" << std::endl;
+	  stream << "				</Point>" << std::endl;
+	  stream << "				<Style>" << std::endl;
+	  stream << "					<IconStyle>" << std::endl;
+	  stream << "						<color>FF" << ssColour.str() << "</color>" << std::endl;
+	  stream << "					</IconStyle>" << std::endl;
+	  stream << "					<LabelStyle>" << std::endl;
+	  stream << "						<color>FF" << ssColour.str() << "</color>" << std::endl;
+	  stream << "					</LabelStyle>" << std::endl;
+	  stream << "				</Style>" << std::endl;
+	  stream << "				<description>"
+			  << "Lon = " << kmlTrackVector.at(pointIndex).lon << " deg, "
+			  << "Lat = " << kmlTrackVector.at(pointIndex).lat << " deg, "
+			  << altDescription.str()
+			  << timestampDescription.str()
+			  << "</description>" << std::endl;
+	  stream << "				<name>Track point #" << pointIndex << "</name>" << std::endl;
+	  stream << "				<styleUrl>#gv_waypoint</styleUrl>" << std::endl;
+	  stream << "			</Placemark>" << std::endl;
+  }
+
+  stream << "		</Folder>" << std::endl;
+
+  /*
+   * Points style
+   */
+  stream << "		<Style id=\"gv_waypoint_normal\">" << std::endl;
+  stream << "			<BalloonStyle>" << std::endl;
+  stream << "				<text><![CDATA[<p align=\"left\" style=\"white-space:nowrap;\"><font size=\"+1\"><b>$[name]</b></font></p> <p align=\"left\">$[description]</p>]]></text>" << std::endl;
+  stream << "			</BalloonStyle>" << std::endl;
+  stream << "			<IconStyle>" << std::endl;
+  stream << "        		<Icon>" << std::endl;
+  stream << "					<href>http://maps.google.ca/mapfiles/kml/pal4/icon57.png</href>" << std::endl;
+  stream << "				</Icon>" << std::endl;
+  stream << "				<color>FFFFFFFF</color>" << std::endl;
+  stream << "				<hotSpot x=\"0.5\" xunits=\"fraction\" y=\"0.5\" yunits=\"fraction\" />" << std::endl;
+  stream << "			</IconStyle>" << std::endl;
+  stream << "			<LabelStyle>" << std::endl;
+  stream << "        		<color>FFFFFFFF</color>" << std::endl;
+  stream << "        		<scale>0</scale>" << std::endl;
+  stream << "     		</LabelStyle>" << std::endl;
+  stream << " 		</Style>" << std::endl;
+  stream << "		<Style id=\"gv_waypoint_highlight\">" << std::endl;
+  stream << "     		<BalloonStyle>" << std::endl;
+  stream << "        		<text><![CDATA[<p align=\"left\" style=\"white-space:nowrap;\"><font size=\"+1\"><b>$[name]</b></font></p> <p align=\"left\">$[description]</p>]]></text>" << std::endl;
+  stream << "    		</BalloonStyle>" << std::endl;
+  stream << "    		<IconStyle>" << std::endl;
+  stream << "        		<Icon>" << std::endl;
+  stream << "           		<href>http://maps.google.ca/mapfiles/kml/pal4/icon57.png</href>" << std::endl;
+  stream << "         		</Icon>" << std::endl;
+  stream << "       		<color>FFFFFFFF</color>" << std::endl;
+  stream << "       		<hotSpot x=\"0.5\" xunits=\"fraction\" y=\"0.5\" yunits=\"fraction\" />" << std::endl;
+  stream << "        		<scale>1.2</scale>" << std::endl;
+  stream << "    		</IconStyle>" << std::endl;
+  stream << "    		<LabelStyle>" << std::endl;
+  stream << "    			<color>FFFFFFFF</color>" << std::endl;
+  stream << "     			<scale>1</scale>" << std::endl;
+  stream << "   		</LabelStyle>" << std::endl;
+  stream << "		</Style>" << std::endl;
+  stream << " 		<StyleMap id=\"gv_waypoint\">" << std::endl;
+  stream << "   		<Pair>" << std::endl;
+  stream << "      			<key>normal</key>" << std::endl;
+  stream << "      			<styleUrl>#gv_waypoint_normal</styleUrl>" << std::endl;
+  stream << "  			</Pair>" << std::endl;
+  stream << "   		<Pair>" << std::endl;
+  stream << "       		<key>highlight</key>" << std::endl;
+  stream << "       		<styleUrl>#gv_waypoint_highlight</styleUrl>" << std::endl;
+  stream << "   		</Pair>" << std::endl;
+  stream << "		</StyleMap>" << std::endl;
+
+  stream << "	</Document>" << std::endl;
   stream << "</kml>" << std::endl;
 
   return true;

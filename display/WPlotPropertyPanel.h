@@ -20,7 +20,7 @@
 #ifndef __WPlotPropertyPanel_H__
 #define __WPlotPropertyPanel_H__
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
+#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA) && !defined(__clang__)
     #pragma interface "WPlotPropertyPanel.h"
 #endif
 
@@ -277,7 +277,7 @@ public:
   virtual wxEvent *Clone() const
     {
       return new CProjectionChangedEvent(*this);
-    };
+    }
 
   wxWindowID m_id;
   int32_t m_projection;
@@ -542,7 +542,7 @@ public:
     double GetRangeMin();
     double GetRangeMax();
 
-    wxChoice* GetLayerChoice() {return &m_layerChoice;};
+    wxChoice* GetLayerChoice() {return &m_layerChoice;}
 
     CGeoMap* GetCurrentLayer();
 

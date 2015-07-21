@@ -213,7 +213,7 @@ void CAlgorithmDlg::OnAlgorithmList( wxCommandEvent &event )
 
   wxString name = GetAlgoList()->GetString(static_cast<uint32_t>(sel));
 
-  m_algo = CBratAlgorithmBaseRegistry::Find(name.c_str());
+  m_algo = CBratAlgorithmBaseRegistry::Find(name.ToStdString());
 
   FillInputParametersGrid(m_algo);
   

@@ -524,7 +524,7 @@ string CStringList::ToString(const string& delim /*= "," */, bool useBracket /*=
   
   if (str.empty() == false)
   {
-    str.erase(str.size() - 1, delim.size()); 
+    str.erase(str.end() - delim.size(), str.end());
   }
 
   return str;
@@ -5558,7 +5558,7 @@ DoublePtr CMatrixDoublePtr::operator() (unsigned row, unsigned col)
 }
 
 //----------------------------------------
-const DoublePtr CMatrixDoublePtr::operator() (unsigned row, unsigned col) const
+DoublePtr CMatrixDoublePtr::operator() (unsigned row, unsigned col) const
 {
   if (row >= GetNumberOfRows() || col >= GetNumberOfCols())
   {
@@ -5792,7 +5792,7 @@ DoublePtr CMatrixDouble::operator() (unsigned row, unsigned col)
 }
 
 //----------------------------------------
-const DoublePtr CMatrixDouble::operator() (unsigned row, unsigned col) const
+DoublePtr CMatrixDouble::operator() (unsigned row, unsigned col) const
 {
   if (row >= GetNumberOfRows() || col >= GetNumberOfCols())
   {

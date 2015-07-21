@@ -127,18 +127,18 @@ void CBratTaskFunction::Execute()
   catch(CException& e)
   {
     wxString msg = wxString::Format("Unable to execute function '%s' - Native error: %s.", m_name.c_str(), e.GetMessage().c_str());
-    throw CException(msg.c_str(), BRATHL_ERROR);
+    throw CException(msg.ToStdString(), BRATHL_ERROR);
   }
   catch(exception& e)
   {
     wxString msg = wxString::Format("Unable to execute function '%s' - Native error: %s.", m_name.c_str(), e.what());
-    throw CException(msg.c_str(), BRATHL_ERROR);
+    throw CException(msg.ToStdString(), BRATHL_ERROR);
 
   }
   catch(...)
   {
     wxString msg = wxString::Format("Unable to execute function '%s' - Native error is unknow (perhaps runtime error)", m_name.c_str());
-    throw CException(msg.c_str(), BRATHL_ERROR);
+    throw CException(msg.ToStdString(), BRATHL_ERROR);
 
   }
 }
@@ -151,7 +151,7 @@ void CBratTaskFunction::CopyFile(CVectorBratAlgorithmParam& arg)
     wxString msg = wxString::Format("CBratTaskFunction::CopyFile - Unable to execute  Brat task - Expected number of parameters is 2, but found %d",
                                     static_cast<int32_t>(arg.size()));
   
-    throw CException(msg.c_str(), BRATHL_ERROR);
+    throw CException(msg.ToStdString(), BRATHL_ERROR);
   }
 
   wxString p1 = arg.at(0).GetValueAsString().c_str();
@@ -165,7 +165,7 @@ void CBratTaskFunction::CopyFile(CVectorBratAlgorithmParam& arg)
                         p1.c_str(),
                         p2.c_str());
 
-      throw CException(msg.c_str(), BRATHL_ERROR);
+      throw CException(msg.ToStdString(), BRATHL_ERROR);
     }
 
 }
@@ -463,7 +463,7 @@ CBratTask::bratTaskStatus CBratTask::StringToTaskStatus(const wxString& status)
   else 
   {
     wxString msg = wxString::Format("CBratTask::StringToTaskStatus: unknown status label '%s'.", status.c_str());
-    throw CException(msg.c_str(), BRATHL_INCONSISTENCY_ERROR);
+    throw CException(msg.ToStdString(), BRATHL_INCONSISTENCY_ERROR);
   }
 
 

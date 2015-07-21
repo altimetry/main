@@ -385,11 +385,11 @@ public:
   void SetNewValue(double* dataValue, uint32_t nbValues, bool	makeCopy = true);
   //void SetNewValue(ExpressionCallableFunctionAlgoN& function, const char* functionName, const char* parametersFormat, ...);
 
-  const ExpressionValueType	GetType() const { return m_Type; };
+  ExpressionValueType	GetType() const { return m_Type; }
   
-  uint32_t GetNbDimensions() const	{ return m_Dimensions.size(); };
+  uint32_t GetNbDimensions() const	{ return m_Dimensions.size(); }
   
-  const ExpressionValueDimensions	&GetDimensions() const { return m_Dimensions; };
+  const ExpressionValueDimensions	&GetDimensions() const { return m_Dimensions; }
   
   uint32_t GetNbValues() const;
 
@@ -404,8 +404,8 @@ public:
 
   int32_t IsTrue();
 
-  string GetName() { return m_name; };
-  void SetName(const string& value) { m_name = value; };
+  string GetName() { return m_name; }
+  void SetName(const string& value) { m_name = value; }
 
   void DeleteValue();
 
@@ -534,7 +534,7 @@ public:
   /// Dtor
   virtual ~CExpressionValues();
   
-  CObArray* GetExpressionDataValues() {return m_expressionDataValues;};
+  CObArray* GetExpressionDataValues() {return m_expressionDataValues;}
 
   double GetExpressionValueAsDouble(uint32_t index = 0);
   double GetExpressionValueAsDouble(uint32_t x, uint32_t y);
@@ -601,18 +601,18 @@ public:
 
   CExpressionValue GetResult();
   
-  const CStringArray* GetFieldNames() const { return &m_fieldNames; };
-  const CObArray* GetConstants() const { return &m_constants; };
-  const CVectorBratAlgorithm* GetAlgorithms() const { return &m_algoArray; };
-  const CUIntArray* GetCode() const	{ return &m_code; };
+  const CStringArray* GetFieldNames() const { return &m_fieldNames; }
+  const CObArray* GetConstants() const { return &m_constants; }
+  const CVectorBratAlgorithm* GetAlgorithms() const { return &m_algoArray; }
+  const CUIntArray* GetCode() const	{ return &m_code; }
 
-  bool HasFieldNames() const	{ return m_fieldNames.size() > 0; };
-  bool HasConstants() const	{ return m_constants.size() > 0; };
-  bool HasAlgorithms() const	{ return m_algoArray.size() > 0; };
+  bool HasFieldNames() const	{ return m_fieldNames.size() > 0; }
+  bool HasConstants() const	{ return m_constants.size() > 0; }
+  bool HasAlgorithms() const	{ return m_algoArray.size() > 0; }
   
-  uint32_t GetNbFieldNames() const	{ return m_fieldNames.size(); };
-  uint32_t GetNbConstants() const	{ return m_constants.size(); };
-  uint32_t GetNbAlgorithms() const	{ return m_algoArray.size(); };
+  uint32_t GetNbFieldNames() const	{ return m_fieldNames.size(); }
+  uint32_t GetNbConstants() const	{ return m_constants.size(); }
+  uint32_t GetNbAlgorithms() const	{ return m_algoArray.size(); }
   
   
   void SetValue(string FieldName, CExpressionValue* value);
