@@ -49,7 +49,9 @@ using namespace brathl;
 // CTimeChangeEvent
 //----------------------------------------------------------------------------
 IMPLEMENT_DYNAMIC_CLASS(CTimeChangeEvent, wxNotifyEvent)
+#if defined(WIN32) || defined(_WIN32)
 DEFINE_EVENT_TYPE(wxEVT_TIME_CHANGED)
+#endif
 //----------------------------------------
 CTimeChangeEvent::CTimeChangeEvent()
 	: wxNotifyEvent()
