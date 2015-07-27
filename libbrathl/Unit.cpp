@@ -144,6 +144,16 @@ void CUnit::Set(const string& text)
       m_Text	= "count";
     }
     else
+
+	if ( text == "seconds in the day" )
+		m_Text = "seconds_in_the_day";
+	else
+	if (text == "FFT power unit")
+		m_Text = "FFT_power_unit";
+	else
+	if (text == "/")
+		m_Text = "meter";
+    else
     {
       m_Text	= text;
     }

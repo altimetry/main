@@ -61,7 +61,7 @@
 #include "ProductTopex.h"
 #include "ProductTopexSDR.h"
 
-// When debugging changes all calls to “new” to be calls to “DEBUG_NEW” allowing for memory leaks to
+// When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
 // Needs to be included after all #include commands
 #include "Win32MemLeaksAccurate.h"
@@ -169,15 +169,15 @@ void CProductList::Set(const CProductList& lst)
 
 
 //----------------------------------------
-bool CProductList::IsHdf4OrNetcdfCodaFormat(coda_format format)
+bool CProductList::IsHdfOrNetcdfCodaFormat(coda_format format)
 {
-  return ((format == coda_format_hdf4) || (format == coda_format_netcdf));
+  return ((format == coda_format_hdf4) || (format == coda_format_hdf5) || (format == coda_format_netcdf));
 }
 
 //----------------------------------------
-bool CProductList::IsHdf4OrNetcdfCodaFormat()
+bool CProductList::IsHdfOrNetcdfCodaFormat()
 {
-  return IsHdf4OrNetcdfCodaFormat(m_productFormat);
+  return IsHdfOrNetcdfCodaFormat(m_productFormat);
 }
 
 //----------------------------------------
@@ -265,15 +265,27 @@ bool CProductList::CheckFiles(bool onlyFirstFile /* = false */)
       throw (e);
     }
 
-        // Quick solution: mimic the old brat_recognize_file's
-        // behaviour in the face of NetCDF files:
-    if (productFormatRead == coda_format_hdf4)
+    // Quick solution: mimic the old brat_recognize_file's
+    // behaviour in the face of NetCDF files:
+    switch( productFormatRead )
     {
-        productClassRead = "HDF4";
-    }
-    if (productFormatRead == coda_format_netcdf)
-    {
-        productClassRead = "NETCDF";
+        case coda_format_hdf4:
+        {
+            productClassRead = "HDF4";
+            break;
+        }
+        case coda_format_hdf5:
+        {
+            productClassRead = "HDF5";
+            break;
+        }
+        case coda_format_netcdf:
+        {
+            productClassRead = "NETCDF";
+            break;
+        }
+    default:
+        break;
     }
 
         // It is now still possible for coda_recognize to return
@@ -297,7 +309,7 @@ bool CProductList::CheckFiles(bool onlyFirstFile /* = false */)
     if (it != this->begin())
     {
       bFileOk &= ((m_productClass.compare(productClassRead) != 0) ? false : true);
-      if (! CProductList::IsHdf4OrNetcdfCodaFormat(productFormatRead))
+      if (! CProductList::IsHdfOrNetcdfCodaFormat(productFormatRead))
       {
         bFileOk &= ((m_productType.compare(productTypeRead) != 0) ? false : true);
       }
@@ -335,7 +347,7 @@ bool CProductList::CheckFiles(bool onlyFirstFile /* = false */)
   }
 
   // if product is recognized as hdf4 by Brat, we consider it as a NetCdf product.
-  if (IsHdf4OrNetcdfCodaFormat())
+  if (IsHdfOrNetcdfCodaFormat())
   {
     return CheckFilesNetCdf();
   }

@@ -36,7 +36,14 @@ namespace brathl
   class CNetCDFAttrInt;
   class CNetCDFAttrShort;
   class CNetCDFAttrString;
+
   class CNetCDFAttrUByte;
+  class CNetCDFAttrUShort;
+  class CNetCDFAttrUInt;
+  class CNetCDFAttrInt64;
+  class CNetCDFAttrUInt64;
+  class CNetCDFAttrStringArray;
+
 
   enum NetCDFVarKind {
 	  Unknown,
@@ -158,7 +165,13 @@ public:
   static CNetCDFAttrInt* GetNetCDFAttrInt(CBratObject* ob, bool withExcept = false);
   static CNetCDFAttrShort* GetNetCDFAttrShort(CBratObject* ob, bool withExcept = false);
   static CNetCDFAttrString* GetNetCDFAttrString(CBratObject* ob, bool withExcept = false);
+
   static CNetCDFAttrUByte* GetNetCDFAttrUByte(CBratObject* ob, bool withExcept = false);
+  static CNetCDFAttrUShort* GetNetCDFAttrUShort(CBratObject* ob, bool withExcept = false);
+  static CNetCDFAttrUInt* GetNetCDFAttrUInt(CBratObject* ob, bool withExcept = false);
+  static CNetCDFAttrInt64* GetNetCDFAttrInt64(CBratObject* ob, bool withExcept = false);
+  static CNetCDFAttrUInt64* GetNetCDFAttrUInt64(CBratObject* ob, bool withExcept = false);
+  static CNetCDFAttrStringArray* GetNetCDFAttrStringArray(CBratObject* ob, bool withExcept = false);
 
   ///Dump fonction
   virtual void Dump(ostream& fOut = cerr);
@@ -406,6 +419,50 @@ protected:
 };
 
 //-------------------------------------------------------------
+//------------------- CNetCDFAttrShort class --------------------
+//-------------------------------------------------------------
+class CNetCDFAttrUShort : public CNetCDFAttr
+{
+public:
+
+  CNetCDFAttrUShort();
+  CNetCDFAttrUShort(const string& name);
+  CNetCDFAttrUShort(const string& name, uint16_t value, bool globalAttr = false);
+  CNetCDFAttrUShort(CNetCDFAttrUShort& a);
+
+  virtual ~CNetCDFAttrUShort();
+
+  CUInt16Array* GetValue() { return &m_value;};
+  void SetValue(const CUInt16Array& value);
+  void SetValue(uint16_t* values, size_t length);
+  void SetValue(uint16_t value);
+
+  virtual void SetLength(size_t value) { CNetCDFAttr::SetLength(value); m_value.resize(m_length); };
+
+  virtual CBratObject* Clone();
+  CNetCDFAttrUShort* CloneThis() { return CNetCDFAttr::GetNetCDFAttrUShort(Clone(), true); };
+  
+  void Set(CNetCDFAttrUShort& a);
+  
+  const CNetCDFAttrUShort& operator =(CNetCDFAttrUShort& a);
+
+  virtual void WriteAttribute(int32_t fileId, int32_t varId = NC_GLOBAL);
+  virtual void ReadAttribute(int32_t fileId, int32_t varId);
+  
+  ///Dump fonction
+  virtual void Dump(ostream& fOut = cerr);
+
+protected:
+  
+  void Init();
+
+protected:
+
+  CUInt16Array m_value;
+
+};
+
+//-------------------------------------------------------------
 //------------------- CNetCDFAttrInt class --------------------
 //-------------------------------------------------------------
 class CNetCDFAttrInt : public CNetCDFAttr
@@ -446,6 +503,138 @@ protected:
 protected:
 
   CIntArray m_value;
+
+};
+
+//-------------------------------------------------------------
+//------------------- CNetCDFAttrUInt class --------------------
+//-------------------------------------------------------------
+class CNetCDFAttrUInt : public CNetCDFAttr
+{
+public:
+
+  CNetCDFAttrUInt();
+  CNetCDFAttrUInt(const string& name);
+  CNetCDFAttrUInt(const string& name, uint32_t value, bool globalAttr = false);
+  CNetCDFAttrUInt(CNetCDFAttrUInt& a);
+
+  virtual ~CNetCDFAttrUInt();
+
+  CUIntArray* GetValue() { return &m_value;};
+  void SetValue(const CUIntArray& value);
+  void SetValue(uint32_t* values, size_t length);
+  void SetValue(uint32_t value);
+
+  virtual void SetLength(size_t value) { CNetCDFAttr::SetLength(value); m_value.resize(m_length); };
+
+  virtual CBratObject* Clone();
+  CNetCDFAttrUInt* CloneThis() { return CNetCDFAttr::GetNetCDFAttrUInt(Clone(), true); };
+  
+  void Set(CNetCDFAttrUInt& a);
+  
+  const CNetCDFAttrUInt& operator =(CNetCDFAttrUInt& a);
+
+  virtual void WriteAttribute(int32_t fileId, int32_t varId = NC_GLOBAL);
+  virtual void ReadAttribute(int32_t fileId, int32_t varId);
+  
+  ///Dump fonction
+  virtual void Dump(ostream& fOut = cerr);
+
+protected:
+  
+  void Init();
+
+protected:
+
+  CUIntArray m_value;
+
+};
+
+//-------------------------------------------------------------
+//------------------- CNetCDFAttrInt64 class --------------------
+//-------------------------------------------------------------
+class CNetCDFAttrInt64 : public CNetCDFAttr
+{
+public:
+
+  CNetCDFAttrInt64();
+  CNetCDFAttrInt64(const string& name);
+  CNetCDFAttrInt64(const string& name, int64_t value, bool globalAttr = false);
+  CNetCDFAttrInt64(CNetCDFAttrInt64& a);
+
+  virtual ~CNetCDFAttrInt64();
+
+  CInt64Array* GetValue() { return &m_value;};
+  void SetValue(const CInt64Array& value);
+  void SetValue(int64_t* values, size_t length);
+  void SetValue(int64_t value);
+
+  virtual void SetLength(size_t value) { CNetCDFAttr::SetLength(value); m_value.resize(m_length); };
+
+  virtual CBratObject* Clone();
+  CNetCDFAttrInt64* CloneThis() { return CNetCDFAttr::GetNetCDFAttrInt64(Clone(), true); };
+  
+  void Set(CNetCDFAttrInt64& a);
+  
+  const CNetCDFAttrInt64& operator =(CNetCDFAttrInt64& a);
+
+  virtual void WriteAttribute(int32_t fileId, int32_t varId = NC_GLOBAL);
+  virtual void ReadAttribute(int32_t fileId, int32_t varId);
+  
+  ///Dump fonction
+  virtual void Dump(ostream& fOut = cerr);
+
+protected:
+  
+  void Init();
+
+protected:
+
+  CInt64Array m_value;
+
+};
+
+//-------------------------------------------------------------
+//------------------- CNetCDFAttrUInt64 class --------------------
+//-------------------------------------------------------------
+class CNetCDFAttrUInt64 : public CNetCDFAttr
+{
+public:
+
+  CNetCDFAttrUInt64();
+  CNetCDFAttrUInt64(const string& name);
+  CNetCDFAttrUInt64(const string& name, uint64_t value, bool globalAttr = false);
+  CNetCDFAttrUInt64(CNetCDFAttrUInt64& a);
+
+  virtual ~CNetCDFAttrUInt64();
+
+  CUInt64Array* GetValue() { return &m_value;};
+  void SetValue(const CUInt64Array& value);
+  void SetValue(uint64_t* values, size_t length);
+  void SetValue(uint64_t value);
+
+  virtual void SetLength(size_t value) { CNetCDFAttr::SetLength(value); m_value.resize(m_length); };
+
+  virtual CBratObject* Clone();
+  CNetCDFAttrUInt64* CloneThis() { return CNetCDFAttr::GetNetCDFAttrUInt64(Clone(), true); };
+  
+  void Set(CNetCDFAttrUInt64& a);
+  
+  const CNetCDFAttrUInt64& operator =(CNetCDFAttrUInt64& a);
+
+  virtual void WriteAttribute(int32_t fileId, int32_t varId = NC_GLOBAL);
+  virtual void ReadAttribute(int32_t fileId, int32_t varId);
+  
+  ///Dump fonction
+  virtual void Dump(ostream& fOut = cerr);
+
+protected:
+  
+  void Init();
+
+protected:
+
+  CUInt64Array m_value;
 
 };
 
@@ -629,7 +818,9 @@ public:
   void SetFillValue(int8_t value);
   void SetFillValue(uint8_t value);
   void SetFillValue(int16_t value);
+  void SetFillValue(uint16_t value);
   void SetFillValue(int32_t value);
+  void SetFillValue(uint32_t value);
   void SetFillValue(float value);
   void SetFillValue(double value);
    

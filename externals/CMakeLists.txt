@@ -296,6 +296,8 @@ IF (NOT WIN32)
         set(HAVE_LIBM curl;m;idn;z;ssl;crypt;dl CACHE STRING "" FORCE)
     ENDIF ()
 
+    set(SZIP_LIBRARY ${SZIP_LIBRARIES} CACHE INTERNAL "")	    # apparently needed only when cod was set to use hdf5
+
 ENDIF (NOT WIN32)
 
 add_subdirectory(${PACKAGE_TARGET})
@@ -390,6 +392,72 @@ add_subdirectory(${PACKAGE_TARGET})
 # 'inherit' the corresponding BRAT options.
 #
 UNPACK_EXTERNAL_PACKAGE(coda 2.13)
+set(HDF5_INCLUDE "${HDF5_INCLUDE_DIR}" CACHE INTERNAL "")
+set(HDF5_INCLUDE_DIRS "${HDF5_INCLUDE_DIR}" CACHE INTERNAL "")
+set(HDF5_LIBRARIES "${HDF5_LIB}" CACHE INTERNAL "")
+#set(HDF5_LIB "${HDF5_LIB}" CACHE INTERNAL "")
+set(HDF5_HL_LIBRARIES "${HDF5_HL_LIB}" CACHE INTERNAL "")
+
+# ${HDF5_LIBRARIES}
+set(LIBM_LIBRARY "${HAVE_LIBM}" CACHE INTERNAL "" FORCE)
+
+
+#set(HDF5_LIB "${CMAKE_CURRENT_BINARY_DIR}/hdf5/src/lib/${HDF5_LIB_PATH_END}" CACHE INTERNAL "")
+#set(HDF5_HL_LIB "${CMAKE_CURRENT_BINARY_DIR}/hdf5/hl/src/lib/${HDF5_HL_LIB_PATH_END}" CACHE INTERNAL "")
+
+set(ZLIB_INCLUDE "${ZLIB_INCLUDE_DIR}/zlib.h" CACHE INTERNAL "")
+set(ZLIB_LIBRARY ${ZLIB_LIBRARIES} CACHE INTERNAL "")     # used by netcdf4
+
+
+#find_library(ZLIB_LIBRARY
+#  NAMES ${ZLIB_NAMES}
+#  PATHS ${ZLIB_LIB} ENV ZLIB_LIB)
+#if (ZLIB_LIBRARY)
+#  check_library_exists(${ZLIB_LIBRARY} deflate "" HAVE_ZLIB)
+#  if (HAVE_ZLIB)
+#    set(ZLIB_LIBRARIES ${ZLIB_LIBRARY})
+#  endif(HAVE_ZLIB)
+#endif (ZLIB_LIBRARY)
+
+
+set(CODA_WITH_HDF5 ON CACHE INTERNAL "")
+set(HDF5_FOUND ON CACHE INTERNAL "")
+set(HAVE_HDF5 1 CACHE INTERNAL "")
+set(HAVE_HDF5_H 1 CACHE INTERNAL "")
+
+
+message(STATUS "HDF5_INCLUDE==" ${HDF5_INCLUDE} )
+message(STATUS "HDF5_INCLUDE_DIR==" ${HDF5_INCLUDE_DIR} )
+message(STATUS "HDF5_INCLUDE_DIRS==" ${HDF5_INCLUDE_DIRS} )
+message(STATUS "HDF5_LIBRARIES==" ${HDF5_LIBRARIES} )
+message(STATUS "HDF5_HL_LIBRARIES==" ${HDF5_HL_LIBRARIES} )
+message(STATUS "HDF5_HL_LIBRARIES==" ${HDF5_HL_LIBRARIES} )
+message(STATUS "HDF5_LIB==" ${HDF5_LIB} )
+message(STATUS "ZLIB_INCLUDE==" ${ZLIB_INCLUDE} )
+message(STATUS "ZLIB_LIBRARY==" ${ZLIB_LIBRARY} )
+message(STATUS "LIBM_LIBRARY==" ${LIBM_LIBRARY} )
+message(STATUS "HAVE_LIBM==" ${HAVE_LIBM} )
+
+
+#HDF5_INCLUDE_DIRS - Location of the hdf5 includes
+#HDF5_INCLUDE_DIR - Location of the hdf5 includes (deprecated)
+#   HDF5_DEFINITIONS - Required compiler definitions for HDF5
+#   HDF5_C_LIBRARIES - Required libraries for the HDF5 C bindings.
+#   HDF5_CXX_LIBRARIES - Required libraries for the HDF5 C++ bindings
+#   HDF5_Fortran_LIBRARIES - Required libraries for the HDF5 Fortran bindings
+#HDF5_HL_LIBRARIES - Required libraries for the HDF5 high level API
+#   HDF5_Fortran_HL_LIBRARIES - Required libraries for the high level Fortran
+#                               bindings.
+#HDF5_LIBRARIES - Required libraries for all requested bindings
+#   HDF5_FOUND - true if HDF5 was found on the system
+#HDF5_LIBRARY_DIRS - the full set of library directories
+#   HDF5_IS_PARALLEL - Whether or not HDF5 was found with parallel IO support
+#   HDF5_C_COMPILER_EXECUTABLE - the path to the HDF5 C wrapper compiler
+#   HDF5_CXX_COMPILER_EXECUTABLE - the path to the HDF5 C++ wrapper compiler
+#   HDF5_Fortran_COMPILER_EXECUTABLE - the path to the HDF5 Fortran wrapper compiler
+#   HDF5_DIFF_EXECUTABLE - the path to the HDF5 dataset comparison tool
+
+
 set(CODA_BUILD_IDL ${BRATHL_BUILD_IDL} CACHE BOOL "build CODA IDL Interface" FORCE)
 set(CODA_BUILD_MATLAB ${BRATHL_BUILD_MATLAB} CACHE BOOL "build CODA MATLAB Interface" FORCE)
 set(CODA_DEFINITION_IDL \"../data\" CACHE STRING "location of CODA definition files for IDL interface" FORCE)

@@ -99,8 +99,8 @@ public:
   bool CheckFiles(bool onlyFirstFile = false);
   bool CheckFilesNetCdf();
   
-  bool IsHdf4OrNetcdfCodaFormat();
-  static bool IsHdf4OrNetcdfCodaFormat(coda_format format);
+  bool IsHdfOrNetcdfCodaFormat();
+  static bool IsHdfOrNetcdfCodaFormat(coda_format format);
   
   bool IsYFX();
   bool IsZFXY();

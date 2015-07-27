@@ -729,3 +729,6 @@ Bell		P bell
 
 deg             S angular_degree
 
+FFT_power_unit        S    count
+seconds_in_the_day    S    second
+/                     S    meter 

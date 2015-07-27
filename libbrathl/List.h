@@ -55,6 +55,12 @@ typedef vector<int32_t> int32array;
 /*! Creates a type name for uint32_t array */ 
 typedef vector<uint32_t> uint32array; 
 
+/*! Creates a type name for int64_t array */ 
+typedef vector<int64_t> int64array; 
+  
+/*! Creates a type name for uint64_t array */ 
+typedef vector<uint64_t> uint64array; 
+
 /*! Creates a type name for int16_t array */ 
 typedef vector<int16_t> int16array; 
   
@@ -491,6 +497,76 @@ public:
 };
 
 //-------------------------------------------------------------
+//------------------- CInt64Array class --------------------
+//-------------------------------------------------------------
+
+
+/** \addtogroup tools Tools
+  @{ */
+
+/** 
+  An array (vector) of ints management class.
+
+
+ \version 1.0
+*/
+
+
+class CInt64Array : public int64array
+{
+
+public:
+    
+  /// Empty CInt64Array ctor
+  CInt64Array();
+    
+  /** Creates new CInt64Array object from another CInt64Array
+    \param v [in] : vector to be copied */
+  CInt64Array(const CInt64Array& v);
+
+  /// Destructor
+  virtual ~CInt64Array();
+
+  virtual void Insert(const CInt64Array& vect, bool bEnd = true);
+  virtual void Insert(const CStringArray& vect);
+
+  virtual void Insert(int64_t* vect, size_t length);
+
+  virtual void Insert(const int64_t value);
+  virtual CInt64Array::iterator InsertAt(CInt64Array::iterator where, const int64_t value);
+  virtual CInt64Array::iterator InsertAt(size_t index, const int64_t value);
+
+  virtual CInt64Array::iterator ReplaceAt(CInt64Array::iterator where, const int64_t value);
+  virtual CInt64Array::iterator ReplaceAt(size_t index, const int64_t value);
+  
+  virtual bool Erase(CInt64Array::iterator it);
+
+  virtual bool Intersect(const CInt64Array& array, CInt64Array& intersect) const;
+
+  virtual void IncrementValue(uint64_t incr = 1);
+
+  virtual string ToString(const string& delim = ",", bool useBracket = true) const;
+
+  virtual int64_t* ToArray();
+
+  virtual void RemoveAll() { this->clear(); };
+
+  /** Equality operator overload
+      Array are equal if they have same size and the same element values (at the same position)*/
+  virtual bool operator ==(const CInt64Array& vect);
+
+  /** Copy a new CInt64Array to the object */
+  virtual const CInt64Array& operator= (const CInt64Array& vect);
+
+  ///Dump fonction
+  virtual void Dump(ostream& fOut = cerr) const;
+
+  
+
+
+};
+
+//-------------------------------------------------------------
 //------------------- CUIntArray class --------------------
 //-------------------------------------------------------------
 
@@ -567,6 +643,77 @@ public:
 
 
 };
+//-------------------------------------------------------------
+//------------------- CUInt64Array class --------------------
+//-------------------------------------------------------------
+
+
+/** \addtogroup tools Tools
+  @{ */
+
+/** 
+  An array (vector) of ints management class.
+
+
+ \version 1.0
+*/
+
+
+class CUInt64Array : public uint64array
+{
+
+public:
+    
+  /// Empty CUIntArray ctor
+  CUInt64Array();
+    
+  /** Creates new CUInt64Array object from another CStringList
+    \param list [in] : list to be copied */
+  CUInt64Array(const CUInt64Array& vect);
+
+  /// Destructor
+  virtual ~CUInt64Array();
+
+  virtual void Insert(CUInt64Array* vect, bool bEnd = true);
+  virtual void Insert(const CUInt64Array& vect, bool bEnd = true);
+  virtual void Insert(const vector<uint64_t>& vect, bool bEnd = true);
+  virtual void Insert(uint64_t* vect, size_t length);
+
+  virtual void Insert(const uint64_t value);
+
+  virtual CUInt64Array::iterator InsertAt(CUInt64Array::iterator where, const uint64_t value);
+  virtual CUInt64Array::iterator InsertAt(size_t index, const uint64_t value);
+  
+  virtual CUInt64Array::iterator ReplaceAt(CUInt64Array::iterator where, const uint64_t value);
+  virtual CUInt64Array::iterator ReplaceAt(size_t index, const uint64_t value);
+
+  virtual bool Erase(CUInt64Array::iterator it);
+
+  virtual bool Intersect(const CUInt64Array& array, CUInt64Array& intersect) const; 
+
+  virtual string ToString(const string& delim = ",", bool useBracket = true) const;
+  
+  virtual uint64_t* ToArray();
+
+  virtual void RemoveAll() { this->clear(); };
+
+  uint64_t GetProductValues() const;
+
+  /** Equality operator overload
+      Array are equal if they have same size and the same element values (at the same position)*/
+  virtual bool operator ==(const CUInt64Array& vect);
+
+  /** Inequality operator overload
+      Array are unequal if they are not equal*/
+  virtual bool operator !=(const CUInt64Array& vect) {return !(*this == vect);};
+
+  /** Copy a new CUIntArray to the object */
+  virtual const CUInt64Array& operator= (const CUInt64Array& vect);
+
+  ///Dump fonction
+  virtual void Dump(ostream& fOut = cerr) const;
+};
+
 //-------------------------------------------------------------
 //------------------- CInt16Array class --------------------
 //-------------------------------------------------------------
@@ -1089,7 +1236,7 @@ public:
 
   uint32_t GetMatrixDim(uint32_t row);
 
-  uint32_t GetMatrixNumberOfDims() { return m_matrixDims.size(); };
+  size_t GetMatrixNumberOfDims() { return m_matrixDims.size(); };
 
   DoublePtr NewMatrix(double initialValue = CTools::m_defaultValueDOUBLE);
 
@@ -1153,7 +1300,7 @@ public:
 
   uint32_t GetMatrixDim(uint32_t row);
 
-  uint32_t GetMatrixNumberOfDims() { return m_matrixDims.size(); };
+  size_t GetMatrixNumberOfDims() { return m_matrixDims.size(); };
 
   DoublePtr NewMatrix(double initialValue = CTools::m_defaultValueDOUBLE);
   void InitMatrix(double initialValue = CTools::m_defaultValueDOUBLE);
@@ -2164,7 +2311,7 @@ public:
 
   uint32_t GetMatrixColDim(uint32_t row);
 
-  uint32_t GetMatrixNumberOfRows() const { return m_matrixDims.size(); };
+  size_t GetMatrixNumberOfRows() const { return m_matrixDims.size(); };
 
   DoublePtr* NewMatrix(double initialValue = CTools::m_defaultValueDOUBLE);
 
@@ -2291,9 +2438,9 @@ public:
   virtual void ScaleUpData(double scaleFactor, double addOffset, double defaultValue = CTools::m_defaultValueDOUBLE) = 0;
 
   // #rows in this matrix
-  virtual uint32_t GetNumberOfRows() const = 0;
+  virtual size_t GetNumberOfRows() const = 0;
   // #columns in this matrix
-  virtual uint32_t GetNumberOfCols() const = 0;
+  virtual size_t GetNumberOfCols() const = 0;
   
   virtual void Set(uint32_t& row, uint32_t& col, DoublePtr x) = 0;
 
@@ -2377,9 +2524,9 @@ public:
   virtual void ScaleUpData(double scaleFactor, double addOffset, double defaultValue = CTools::m_defaultValueDOUBLE);
 
   // #rows in this matrix
-  virtual uint32_t GetNumberOfRows() const { return m_data.size(); };  
+  virtual size_t GetNumberOfRows() const { return m_data.size(); };  
   // #columns in this matrix
-  virtual uint32_t GetNumberOfCols() const { return m_data[0].size(); };  
+  virtual size_t GetNumberOfCols() const { return m_data[0].size(); };  
   
   void Set(uint32_t& row, uint32_t& col, DoublePtr x);
   void Set(const CMatrixDoublePtr& m);
@@ -2399,7 +2546,7 @@ public:
 
   uint32_t GetMatrixDimData(uint32_t row) { return m_data.GetMatrixDim(row); };
 
-  uint32_t GetMatrixNumberOfDimsData() { return m_data.GetMatrixNumberOfDims(); };
+  size_t GetMatrixNumberOfDimsData() { return m_data.GetMatrixNumberOfDims(); };
   uint32_t GetMatrixNumberOfValuesData() { return GetMatrixDimsData()->GetProductValues(); };
 
   virtual uint32_t GetNumberOfValues() { return ( GetNumberOfRows() * GetNumberOfCols() * GetMatrixNumberOfValuesData() ); };
@@ -2448,9 +2595,9 @@ public:
   virtual void ScaleUpData(double scaleFactor, double addOffset, double defaultValue = CTools::m_defaultValueDOUBLE);
 
   // #rows in this matrix
-  virtual uint32_t GetNumberOfRows() const { return m_data.size(); };  
+  virtual size_t GetNumberOfRows() const { return m_data.size(); };  
   // #columns in this matrix
-  virtual uint32_t GetNumberOfCols() const { return m_data[0].size(); };  
+  virtual size_t GetNumberOfCols() const { return m_data[0].size(); };  
   
   void Set(uint32_t& row, uint32_t& col, DoublePtr x);
   void Set(const CMatrixDouble& m);

@@ -2161,6 +2161,277 @@ void CIntArray::Dump(ostream& fOut /* = cerr */) const
 
 
 //-------------------------------------------------------------
+//------------------- CInt64Array class --------------------
+//-------------------------------------------------------------
+
+CInt64Array::CInt64Array()
+{
+  
+}
+
+//----------------------------------------
+
+CInt64Array::CInt64Array(const CInt64Array& vect)
+      	  : int64array(vect)
+{
+  
+}
+
+//----------------------------------------
+
+CInt64Array::~CInt64Array()
+{
+
+}
+//----------------------------------------
+bool CInt64Array::operator ==(const CInt64Array& vect)
+{
+  size_t count = this->size();
+
+  if (count != vect.size())
+  {
+    return false;
+  }
+
+  if (count == 0)
+  {
+    return true;
+  }
+
+  bool isEqual = true;
+
+  for (size_t i = 0 ; i < count ; i++)
+  {
+    if (this->at(i) != vect.at(i))
+    {
+      isEqual = false;
+      break;
+    }
+  }
+
+  return isEqual;    
+}
+//----------------------------------------
+const CInt64Array& CInt64Array::operator =(const CInt64Array& vect)
+{
+  
+  this->clear();
+
+  Insert(vect);
+    
+  return *this;
+
+    
+}
+//----------------------------------------
+void CInt64Array::Insert(const CInt64Array& vect, bool bEnd /*= true*/)
+{
+  
+  if (vect.empty())
+  {
+    return;
+  }
+
+  if (bEnd)
+  {  
+    int64array::insert(this->end(), vect.begin(), vect.end());
+  }
+  else
+  {  
+    int64array::insert(this->begin(), vect.begin(), vect.end());
+  }
+    
+  
+}
+//----------------------------------------
+void CInt64Array::Insert(const CStringArray& vect)
+{
+  
+  CStringArray::const_iterator it;
+
+  for ( it = vect.begin( ); it != vect.end( ); it++ )
+  {
+    int64_t value = CTools::StrToInt64(*it);
+    if (!(CTools::IsDefaultValue(value)))
+    {
+      this->Insert(value);
+    }
+  }
+    
+  
+}
+
+//----------------------------------------
+void CInt64Array::Insert(int64_t* vect, size_t length)
+{
+  for (size_t i = 0 ; i < length ; i++)
+  {
+    Insert(vect[i]);
+  }
+}
+
+//----------------------------------------
+
+void CInt64Array::Insert(const int64_t value)
+{
+  
+int64array::push_back(value);    
+  
+}
+
+//----------------------------------------
+CInt64Array::iterator CInt64Array::InsertAt(CInt64Array::iterator where, const int64_t value)
+{ 
+  return int64array::insert(where, value);     
+}
+//----------------------------------------
+CInt64Array::iterator CInt64Array::InsertAt(size_t index, const int64_t value)
+{ 
+  if (index < 0)
+  {
+    return this->end();
+  }
+
+  if (index >= this->size())
+  {
+    this->resize(index + 1);
+    (*this)[index] = value;
+    return this->begin() + index;
+  }
+
+  return int64array::insert(this->begin() + index, value);     
+}
+
+
+//----------------------------------------
+bool CInt64Array::Erase(CInt64Array::iterator where)
+{ 
+  int64array::erase(where);   
+  return true;
+}
+//----------------------------------------
+CInt64Array::iterator CInt64Array::ReplaceAt(size_t index, const int64_t value)
+{
+  (*this)[index] = value;
+  return this->begin() + index;
+}
+//----------------------------------------
+CInt64Array::iterator CInt64Array::ReplaceAt(CInt64Array::iterator where, const int64_t value)
+{
+  Erase(where);
+  return InsertAt(where, value);     
+}
+
+//----------------------------------------
+bool CInt64Array::Intersect(const CInt64Array& array, CInt64Array& intersect) const
+{
+  intersect.clear();
+
+  CInt64Array::const_iterator itA;
+  CInt64Array::const_iterator itB;
+
+  for ( itA = this->begin( ); itA != this->end( ); itA++ )
+  {
+    for ( itB = array.begin( ); itB != array.end( ); itB++ )
+    {
+      if ( (*itA) == (*itB) )
+      {
+        intersect.Insert((*itB));
+      }
+    }
+  }
+
+  return (!(intersect.empty()));
+}
+
+//----------------------------------------
+void CInt64Array::IncrementValue(uint64_t incr /* = 1 */)
+{
+  CInt64Array::iterator it;
+ 
+  for (it = this->begin() ; it != this->end() ; it++)
+  {
+    (*it) = (*it) + incr;     
+  }
+
+  
+}
+
+//----------------------------------------
+string CInt64Array::ToString(const string& delim /*= "," */, bool useBracket /*= true */) const
+{
+  ostringstream myStream;
+
+  if (useBracket)
+  {
+    myStream << "[";
+  }
+
+
+  CInt64Array::const_iterator it;
+  for ( it = this->begin(); it != this->end(); it++ )
+  {
+    myStream << *it;  
+    if ((it+1) != this->end())
+    {
+      myStream << delim;  
+    }
+  }
+  if (useBracket)
+  {
+    myStream << "]";
+  }
+
+
+  return myStream.str();
+
+}
+//----------------------------------------
+int64_t* CInt64Array::ToArray()
+{
+
+  int64_t* newArray = new int64_t[this->size()];
+
+  for (size_t i = 0 ; i < this->size() ; i++ )
+  {
+    newArray[i] = this->at(i);
+  }
+
+
+  return newArray;
+
+}
+
+//----------------------------------------
+void CInt64Array::Dump(ostream& fOut /* = cerr */) const
+{
+
+  if (CTrace::IsTrace() == false)
+   {
+      return;
+   }
+
+   CInt64Array::const_iterator it;
+   int i = 0;
+
+   fOut << "==> Dump a CInt64Array Object at "<< this << " with " <<  size() << " elements" << endl;
+
+   for ( it = this->begin( ); it != this->end( ); it++ )
+   {
+     fOut << "CInt64Array[" << i << "]= " << *it << endl;  
+     i++;
+   }
+    
+   fOut << "==> END Dump a CInt64Array Object at "<< this << " with " <<  size() << " elements" << endl;
+
+ 
+   fOut << endl;
+   
+
+}
+
+
+//-------------------------------------------------------------
 //------------------- CUIntArray class --------------------
 //-------------------------------------------------------------
 
@@ -2518,6 +2789,272 @@ void CUIntArray::Dump(ostream& fOut /* = cerr */) const
    
 
 }
+
+//-------------------------------------------------------------
+//------------------- CUInt64Array class --------------------
+//-------------------------------------------------------------
+
+CUInt64Array::CUInt64Array()
+{
+  
+}
+
+//----------------------------------------
+
+CUInt64Array::CUInt64Array(const CUInt64Array& vect)
+      	  : uint64array(vect)
+{
+  
+}
+
+//----------------------------------------
+
+CUInt64Array::~CUInt64Array()
+{
+
+}
+//----------------------------------------
+bool CUInt64Array::operator ==(const CUInt64Array& vect)
+{
+  size_t count = this->size();
+
+  if (count != vect.size())
+  {
+    return false;
+  }
+
+  if (count == 0)
+  {
+    return true;
+  }
+
+  bool isEqual = true;
+
+  for (size_t i = 0 ; i < count ; i++)
+  {
+    if (this->at(i) != vect.at(i))
+    {
+      isEqual = false;
+      break;
+    }
+  }
+
+  return isEqual;    
+}
+//----------------------------------------
+const CUInt64Array& CUInt64Array::operator =(const CUInt64Array& vect)
+{
+  
+  this->clear();
+
+  Insert(vect);
+    
+  return *this;
+
+    
+}
+//----------------------------------------
+void CUInt64Array::Insert(const CUInt64Array& vect, bool bEnd /*= true*/)
+{
+  
+  if (vect.empty())
+  {
+    return;
+  }
+
+  if (bEnd)
+  {  
+    uint64array::insert(this->end(), vect.begin(), vect.end());
+  }
+  else
+  {  
+    uint64array::insert(this->begin(), vect.begin(), vect.end());
+  }
+    
+  
+}
+//----------------------------------------
+
+void CUInt64Array::Insert(CUInt64Array* vect, bool bEnd /*= true*/)
+{
+  Insert(*vect); 
+}
+
+//----------------------------------------
+void CUInt64Array::Insert(const vector<uint64_t>& vect, bool bEnd /*= true*/)
+{
+  
+  if (vect.empty())
+  {
+    return;
+  }
+
+  if (bEnd)
+  {  
+    uint64array::insert(this->end(), vect.begin(), vect.end());
+  }
+  else
+  {  
+    uint64array::insert(this->begin(), vect.begin(), vect.end());
+  }
+    
+  
+}
+//----------------------------------------
+void CUInt64Array::Insert(uint64_t* vect, size_t length)
+{
+  for (size_t i = 0 ; i < length ; i++)
+  {
+    Insert(vect[i]);
+  }
+}
+
+//----------------------------------------
+void CUInt64Array::Insert(const uint64_t value)
+{
+  
+uint64array::push_back(value);    
+  
+}
+
+//----------------------------------------
+CUInt64Array::iterator CUInt64Array::InsertAt(CUInt64Array::iterator where, const uint64_t value)
+{ 
+  return uint64array::insert(where, value);     
+}
+//----------------------------------------
+CUInt64Array::iterator CUInt64Array::InsertAt(size_t index, const uint64_t value)
+{ 
+  if (index < 0)
+  {
+    return this->end();
+  }
+
+  if (index >= this->size())
+  {
+    this->resize(index + 1);
+    (*this)[index] = value;
+    return this->begin() + index;
+  }
+
+  return uint64array::insert(this->begin() + index, value);     
+}
+
+
+//----------------------------------------
+bool CUInt64Array::Erase(CUInt64Array::iterator where)
+{ 
+  uint64array::erase(where);   
+  return true;
+}
+//----------------------------------------
+CUInt64Array::iterator CUInt64Array::ReplaceAt(size_t index, const uint64_t value)
+{
+  (*this)[index] = value;
+  return this->begin() + index;
+}
+//----------------------------------------
+CUInt64Array::iterator CUInt64Array::ReplaceAt(CUInt64Array::iterator where, const uint64_t value)
+{
+  Erase(where);
+  return InsertAt(where, value);     
+}
+
+//----------------------------------------
+bool CUInt64Array::Intersect(const CUInt64Array& array, CUInt64Array& intersect) const
+{
+  intersect.clear();
+
+  CUInt64Array::const_iterator itA;
+  CUInt64Array::const_iterator itB;
+
+  for ( itA = this->begin( ); itA != this->end( ); itA++ )
+  {
+    for ( itB = array.begin( ); itB != array.end( ); itB++ )
+    {
+      if ( (*itA) == (*itB) )
+      {
+        intersect.Insert((*itB));
+      }
+    }
+  }
+
+  return (!(intersect.empty()));
+}
+
+//----------------------------------------
+string CUInt64Array::ToString(const string& delim /*= "," */, bool useBracket /*= true */) const
+{
+  ostringstream myStream;
+
+  if (useBracket)
+  {
+    myStream << "[";
+  }
+
+
+  CUInt64Array::const_iterator it;
+  for ( it = this->begin(); it != this->end(); it++ )
+  {
+    myStream << *it;  
+    if ((it+1) != this->end())
+    {
+      myStream << delim;  
+    }
+  }
+  if (useBracket)
+  {
+    myStream << "]";
+  }
+
+
+  return myStream.str();
+
+}
+//----------------------------------------
+uint64_t* CUInt64Array::ToArray()
+{
+
+  uint64_t* newArray = new uint64_t[this->size()];
+
+  for (size_t i = 0 ; i < this->size() ; i++ )
+  {
+    newArray[i] = this->at(i);
+  }
+
+
+  return newArray;
+
+}
+
+//----------------------------------------
+void CUInt64Array::Dump(ostream& fOut /* = cerr */) const
+{
+
+  if (CTrace::IsTrace() == false)
+   {
+      return;
+   }
+
+   CUInt64Array::const_iterator it;
+   int i = 0;
+
+   fOut << "==> Dump a CUInt64Array Object at "<< this << " with " <<  size() << " elements" << endl;
+
+   for ( it = this->begin( ); it != this->end( ); it++ )
+   {
+     fOut << "CUInt64Array[" << i << "]= " << *it << endl;  
+     i++;
+   }
+    
+   fOut << "==> END Dump a CUInt64Array Object at "<< this << " with " <<  size() << " elements" << endl;
+
+ 
+   fOut << endl;
+   
+
+}
+
 
 //-------------------------------------------------------------
 //------------------- CInt16Array class --------------------
