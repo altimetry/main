@@ -18,6 +18,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	 02110-1301, USA.
 */
 
+#include <algorithm>
 #include <cfloat>
 #include <cmath>
 #include <cctype>
@@ -38,6 +39,10 @@ using namespace brathl;
 
 namespace brathl
 {
+
+#if defined(min)
+#undef min
+#endif
 
 #define MIN(X,Y) ((X) <= (Y) ? (X) : (Y))
 //TYPE_FUN(i2u, T_INT, int, i)
@@ -80,6 +85,8 @@ const uint64_t CTools::m_defaultValueUINT64 = 0xFFFFFFFFFFFFFFFFU;
 #else
 const uint64_t CTools::m_defaultValueUINT64 = 0xFFFFFFFFFFFFFFFFULL;
 #endif
+
+const char *CTools::m_defaultValueString = "";
 
 // default values for double
 const double CTools::m_defaultValueDOUBLE = 18446744073709551616.0;
@@ -2162,9 +2169,9 @@ string CTools::ReplaceString(const string& inText, const vector<string>& findWor
 
   string outText = inText;
 
-  uint32_t nbWords = MIN(findWords.size(), replaceWords.size());
+  size_t nbWords = std::min(findWords.size(), replaceWords.size());
 
-  for (uint32_t i = 0 ; i < nbWords ; i++)
+  for (size_t  i = 0 ; i < nbWords ; i++)
   {
     outText = CTools::Replace(outText, findWords.at(i), replaceWords.at(i));
   }
@@ -2183,9 +2190,9 @@ string CTools::ReplaceWord(const string& inText, const vector<string>& findWords
   string outText = inText;
 
 
-  uint32_t nbWords = MIN(findWords.size(), replaceWords.size());
+  size_t nbWords = std::min(findWords.size(), replaceWords.size());
 
-  for (uint32_t i = 0 ; i < nbWords ; i++)
+  for (size_t i = 0 ; i < nbWords ; i++)
   {
     string pattern;
     pattern.append("\\b");
@@ -3033,6 +3040,40 @@ string CTools::FloatToStr(float f, int32_t precision /* = 10 */)
 int32_t CTools::StrToInt(const string &s)
 {
   int32_t i;
+
+  istringstream myStream(s);
+  
+  if (myStream>>i)
+  {
+    return i;
+  }
+  else
+  {
+    CTools::SetDefaultValue(i);
+    return i;
+  }
+}
+//----------------------------------------
+int64_t CTools::StrToInt64(const string &s)
+{
+  int64_t i;
+
+  istringstream myStream(s);
+  
+  if (myStream>>i)
+  {
+    return i;
+  }
+  else
+  {
+    CTools::SetDefaultValue(i);
+    return i;
+  }
+}
+//----------------------------------------
+uint64_t CTools::StrToUInt64(const string &s)
+{
+  uint64_t i;
 
   istringstream myStream(s);
   

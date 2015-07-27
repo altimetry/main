@@ -33,7 +33,7 @@
 
 #include "NetCDFFiles.h"
 
-// When debugging changes all calls to “new” to be calls to “DEBUG_NEW” allowing for memory leaks to
+// When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
 // Needs to be included after all #include commands
 #include "Win32MemLeaksAccurate.h"
@@ -52,6 +52,13 @@ static const double NcFillShort = NC_FILL_SHORT;
 static const double NcFillInt = NC_FILL_INT;
 static const double NcFillFloat = NC_FILL_FLOAT;
 static const double NcFillDouble = NC_FILL_DOUBLE;
+//new
+static const double NcFillUByte = NC_FILL_UBYTE;
+static const double NcFillUShort = NC_FILL_USHORT;
+static const double NcFillUInt = NC_FILL_UINT;
+static const double NcFillInt64 = NC_FILL_INT64;
+static const double NcFillUInt64 = NC_FILL_UINT64;
+static const double NcFillString = (double)(ptrdiff_t)NC_FILL_STRING;
 }
 
 const string NC_NAT_NAME = "Not A Type";
@@ -61,6 +68,13 @@ const string NC_SHORT_NAME = "signed 2 byte integer";
 const string NC_INT_NAME = "signed 4 byte integer";
 const string NC_FLOAT_NAME = "single precision floating point number";
 const string NC_DOUBLE_NAME = "double precision floating point number";
+//new
+const string NC_UBYTE_NAME = "unsigned 1 byte integer";
+const string NC_USHORT_NAME = "unsigned 2 byte integer";
+const string NC_UINT_NAME = "unsigned 4 byte integer";
+const string NC_INT64_NAME = "signed 8 byte integer";
+const string NC_UINT64_NAME = "unsigned 8 byte integer";
+const string NC_STRING_NAME = "array of strings";
 
 
 
@@ -230,6 +244,24 @@ CNetCDFAttrInt* CNetCDFAttr::GetNetCDFAttrInt(CBratObject* ob, bool withExcept /
 
 }
 //----------------------------------------
+CNetCDFAttrUInt* CNetCDFAttr::GetNetCDFAttrUInt(CBratObject* ob, bool withExcept /*= false*/)
+{
+  CNetCDFAttrUInt* netCDFAttr = dynamic_cast<CNetCDFAttrUInt*>(ob);
+  if (withExcept)
+  {
+    if (netCDFAttr == NULL)
+    {
+      CException e("CNetCDFAttrUInt::GetNetCDFAttrUInt - dynamic_cast<CNetCDFAttrUInt*>(ob) returns NULL"
+                   "object seems not to be an instance of CNetCDFAttrUInt",
+                   BRATHL_LOGIC_ERROR);
+      throw (e);
+    }
+  }
+
+  return netCDFAttr;
+
+}
+//----------------------------------------
 CNetCDFAttrShort* CNetCDFAttr::GetNetCDFAttrShort(CBratObject* ob, bool withExcept /*= false*/)
 {
   CNetCDFAttrShort* netCDFAttr = dynamic_cast<CNetCDFAttrShort*>(ob);
@@ -239,6 +271,24 @@ CNetCDFAttrShort* CNetCDFAttr::GetNetCDFAttrShort(CBratObject* ob, bool withExce
     {
       CException e("CNetCDFAttrShort::GetNetCDFAttrShort - dynamic_cast<CNetCDFAttrShort*>(ob) returns NULL"
                    "object seems not to be an instance of CNetCDFAttrShort",
+                   BRATHL_LOGIC_ERROR);
+      throw (e);
+    }
+  }
+
+  return netCDFAttr;
+
+}
+//----------------------------------------
+CNetCDFAttrUShort* CNetCDFAttr::GetNetCDFAttrUShort(CBratObject* ob, bool withExcept /*= false*/)
+{
+  CNetCDFAttrUShort* netCDFAttr = dynamic_cast<CNetCDFAttrUShort*>(ob);
+  if (withExcept)
+  {
+    if (netCDFAttr == NULL)
+    {
+      CException e("CNetCDFAttrUShort::GetNetCDFAttrUShort - dynamic_cast<CNetCDFAttrUShort*>(ob) returns NULL"
+                   "object seems not to be an instance of CNetCDFAttrUShort",
                    BRATHL_LOGIC_ERROR);
       throw (e);
     }
@@ -374,11 +424,32 @@ CNetCDFAttr* CNetCDFAttr::NewFillValueAttr(nc_type type)
     case NC_DOUBLE:
       attr = new CNetCDFAttrDouble(FILL_VALUE_ATTR, CTools::m_defaultValueDOUBLE);
       break;
+
+	  //new
+
+    case NC_UBYTE:	
+      attr = new CNetCDFAttrUByte(FILL_VALUE_ATTR, CTools::m_defaultValueUINT8);
+      break;
+    case NC_USHORT:
+      attr = new CNetCDFAttrUShort(FILL_VALUE_ATTR, CTools::m_defaultValueUINT16);
+      break;
+    case NC_UINT:
+      attr = new CNetCDFAttrUInt(FILL_VALUE_ATTR, CTools::m_defaultValueUINT32);
+      break;
+    case NC_INT64:
+      attr = new CNetCDFAttrInt64(FILL_VALUE_ATTR, CTools::m_defaultValueINT64);
+      break;
+    case NC_UINT64:
+      attr = new CNetCDFAttrUInt64(FILL_VALUE_ATTR, CTools::m_defaultValueUINT64);
+      break;
+    case NC_STRING:
+      attr = new CNetCDFAttrString(FILL_VALUE_ATTR, "");
+      break;
+
     default:
       break;
   }
   return attr;
-
 }
 //----------------------------------------
 CNetCDFAttr* CNetCDFAttr::NewAttr(nc_type type, const string& name, size_t length /* = 1 */) 
@@ -405,6 +476,28 @@ CNetCDFAttr* CNetCDFAttr::NewAttr(nc_type type, const string& name, size_t lengt
     case NC_DOUBLE:
       attr = new CNetCDFAttrDouble(name);
       break;
+
+	  //new
+
+    case NC_UBYTE:	
+      attr = new CNetCDFAttrUByte(name);
+      break;
+    case NC_USHORT:
+      attr = new CNetCDFAttrUShort(name);
+      break;
+    case NC_UINT:
+      attr = new CNetCDFAttrUInt(name);
+      break;
+    case NC_INT64:
+      attr = new CNetCDFAttrInt64(name);
+      break;
+    case NC_UINT64:
+      attr = new CNetCDFAttrUInt64(name);
+      break;
+    case NC_STRING:
+      attr = new CNetCDFAttrString(name);
+      break;
+
     default:
       attr = new CNetCDFAttrString(name);
       break;
@@ -1251,6 +1344,137 @@ void CNetCDFAttrShort::Dump(ostream& fOut /* = cerr */)
 }
 
 //-------------------------------------------------------------
+//------------------- CNetCDFAttrUShort class --------------------
+//-------------------------------------------------------------
+CNetCDFAttrUShort::CNetCDFAttrUShort()
+{
+  Init();
+}
+//----------------------------------------
+CNetCDFAttrUShort::CNetCDFAttrUShort(const string& name)
+  : CNetCDFAttr(name)
+{
+  Init();
+}
+//----------------------------------------
+CNetCDFAttrUShort::CNetCDFAttrUShort(const string& name, uint16_t value, bool globalAttr /* = false */)
+  : CNetCDFAttr(name, globalAttr)
+{
+  Init();
+  SetValue(value);
+}
+//----------------------------------------
+CNetCDFAttrUShort::CNetCDFAttrUShort(CNetCDFAttrUShort& a)
+{
+  Init();
+  Set(a);
+}
+//----------------------------------------
+CNetCDFAttrUShort::~CNetCDFAttrUShort()
+{
+}
+
+//----------------------------------------
+void CNetCDFAttrUShort::Init()
+{
+  m_type = NC_USHORT;
+}
+
+//-------------------------------------------------------------
+void CNetCDFAttrUShort::Set(CNetCDFAttrUShort& a) 
+{
+  CNetCDFAttr::Set(a);
+  m_value = a.m_value;
+  
+}
+//----------------------------------------
+const CNetCDFAttrUShort& CNetCDFAttrUShort::operator =(CNetCDFAttrUShort& a)
+{
+  Set(a);    
+  return *this;    
+}
+//----------------------------------------
+CBratObject* CNetCDFAttrUShort::Clone()
+{
+  return new CNetCDFAttrUShort(*this);
+}
+//----------------------------------------
+void CNetCDFAttrUShort::WriteAttribute(int32_t fileId, int32_t varId)
+{
+
+  uint16_t* values = m_value.ToArray();
+
+  CNetCDFFiles::HandleNetcdfError( nc_put_att_ushort(fileId,
+				                                           varId,
+				                                           m_name.c_str(),
+                                                   m_type,
+				                                           m_value.size(),
+				                                           values),
+                                  CTools::Format("Error deleting attribute '%s' of var #%d",
+				                                          m_name.c_str(),
+				                                          varId));
+
+
+  delete []values;
+
+}
+//----------------------------------------
+void CNetCDFAttrUShort::ReadAttribute(int32_t fileId, int32_t varId)
+{
+  if (m_length <= 0)
+  {
+    return;
+  }
+
+  uint16_t* values = new uint16_t[m_length];
+
+  CNetCDFFiles::HandleNetcdfError( nc_get_att_ushort(fileId, varId, m_name.c_str(), values),
+                                   CTools::Format("Error readind attribute '%s' of var #%d",
+				                                          m_name.c_str(),
+				                                          varId) ); 
+  SetValue(values, m_length);
+  
+  delete []values;
+  values = NULL;
+}
+//----------------------------------------
+void CNetCDFAttrUShort::SetValue(const CUInt16Array& value)
+{
+  m_value.RemoveAll();
+  m_value = value;
+}
+//----------------------------------------
+void CNetCDFAttrUShort::SetValue(uint16_t* values, size_t length)
+{
+  m_value.RemoveAll();
+  m_value.Insert(values, length);
+}
+//----------------------------------------
+void CNetCDFAttrUShort::SetValue(uint16_t value)
+{
+  m_value.RemoveAll();
+  m_value.Insert(value);
+}
+
+//----------------------------------------
+void CNetCDFAttrUShort::Dump(ostream& fOut /* = cerr */)
+{
+  if (CTrace::IsTrace() == false)
+  {
+    return;
+  }
+  fOut << "==> Dump a CNetCDFAttrUShort Object at "<< this << endl;
+  CNetCDFAttr::Dump(fOut);
+  fOut << "m_value at "<< &m_value << endl;
+  m_value.Dump(fOut);
+  
+  fOut << "==> END Dump a CNetCDFAttrUShort Object at "<< this << endl;
+
+  fOut << endl;
+
+}
+
+//-------------------------------------------------------------
 //------------------- CNetCDFAttrInt class --------------------
 //-------------------------------------------------------------
 CNetCDFAttrInt::CNetCDFAttrInt()
@@ -1380,6 +1604,405 @@ void CNetCDFAttrInt::Dump(ostream& fOut /* = cerr */)
   fOut << endl;
 
 }
+//-------------------------------------------------------------
+//------------------- CNetCDFAttrInt64 class --------------------
+//-------------------------------------------------------------
+CNetCDFAttrInt64::CNetCDFAttrInt64()
+{
+  Init();
+}
+//----------------------------------------
+CNetCDFAttrInt64::CNetCDFAttrInt64(const string& name)
+  : CNetCDFAttr(name)
+{
+  Init();
+}
+//----------------------------------------
+CNetCDFAttrInt64::CNetCDFAttrInt64(const string& name, int64_t value, bool globalAttr /* = false */)
+  : CNetCDFAttr(name, globalAttr)
+{
+  Init();
+  SetValue(value);
+}
+//----------------------------------------
+CNetCDFAttrInt64::CNetCDFAttrInt64(CNetCDFAttrInt64& a)
+{
+  Init();
+  Set(a);
+}
+//----------------------------------------
+CNetCDFAttrInt64::~CNetCDFAttrInt64()
+{
+}
+
+//----------------------------------------
+void CNetCDFAttrInt64::Init()
+{
+  m_type = NC_INT64;
+}
+//-------------------------------------------------------------
+void CNetCDFAttrInt64::Set(CNetCDFAttrInt64& a) 
+{
+  CNetCDFAttr::Set(a);
+  m_value = a.m_value;
+  
+}
+//----------------------------------------
+const CNetCDFAttrInt64& CNetCDFAttrInt64::operator =(CNetCDFAttrInt64& a)
+{
+  Set(a);    
+  return *this;    
+}
+//----------------------------------------
+CBratObject* CNetCDFAttrInt64::Clone()
+{
+  return new CNetCDFAttrInt64(*this);
+}
+
+//----------------------------------------
+void CNetCDFAttrInt64::WriteAttribute(int32_t fileId, int32_t varId)
+{
+
+  int64_t* values = m_value.ToArray();
+
+  CNetCDFFiles::HandleNetcdfError( nc_put_att_longlong(fileId,
+				                                           varId,
+				                                           m_name.c_str(),
+                                                   m_type,
+				                                           m_value.size(),
+                                                           (long long*)values),             //cast or linux; max and windows ok
+                                  CTools::Format("Error deleting attribute '%s' of var #%d",
+				                                          m_name.c_str(),
+				                                          varId));
+
+
+  delete []values;
+
+}
+//----------------------------------------
+void CNetCDFAttrInt64::ReadAttribute(int32_t fileId, int32_t varId)
+{
+  if (m_length <= 0)
+  {
+    return;
+  }
+
+  int64_t* values = new int64_t[m_length];;
+
+  CNetCDFFiles::HandleNetcdfError( nc_get_att_longlong(fileId,
+                                                       varId,
+                                                       m_name.c_str(),
+                                                       (long long*)values),             //cast or linux; max and windows ok
+                                   CTools::Format("Error readind attribute '%s' of var #%d",
+				                                          m_name.c_str(),
+				                                          varId) ); 
+  SetValue(values, m_length);
+  
+  delete []values;
+  values = NULL;
+}
+//----------------------------------------
+void CNetCDFAttrInt64::SetValue(const CInt64Array& value)
+{
+  m_value.RemoveAll();
+  m_value = value;
+}
+//----------------------------------------
+void CNetCDFAttrInt64::SetValue(int64_t* values, size_t length)
+{
+  m_value.RemoveAll();
+  m_value.Insert(values, length);
+}
+//----------------------------------------
+void CNetCDFAttrInt64::SetValue(int64_t value)
+{
+  m_value.RemoveAll();
+  m_value.Insert(value);
+}
+
+//----------------------------------------
+void CNetCDFAttrInt64::Dump(ostream& fOut /* = cerr */)
+{
+  if (CTrace::IsTrace() == false)
+  {
+    return;
+  }
+  fOut << "==> Dump a CNetCDFAttrInt64 Object at "<< this << endl;
+  CNetCDFAttr::Dump(fOut);
+  fOut << "m_value at "<< &m_value << endl;
+  m_value.Dump(fOut);
+  
+  fOut << "==> END Dump a CNetCDFAttrInt64 Object at "<< this << endl;
+
+  fOut << endl;
+
+}
+
+//-------------------------------------------------------------
+//------------------- CNetCDFAttrUInt class --------------------
+//-------------------------------------------------------------
+CNetCDFAttrUInt::CNetCDFAttrUInt()
+{
+  Init();
+}
+//----------------------------------------
+CNetCDFAttrUInt::CNetCDFAttrUInt(const string& name)
+  : CNetCDFAttr(name)
+{
+  Init();
+}
+//----------------------------------------
+CNetCDFAttrUInt::CNetCDFAttrUInt(const string& name, uint32_t value, bool globalAttr /* = false */)
+  : CNetCDFAttr(name, globalAttr)
+{
+  Init();
+  SetValue(value);
+}
+//----------------------------------------
+CNetCDFAttrUInt::CNetCDFAttrUInt(CNetCDFAttrUInt& a)
+{
+  Init();
+  Set(a);
+}
+//----------------------------------------
+CNetCDFAttrUInt::~CNetCDFAttrUInt()
+{
+}
+
+//----------------------------------------
+void CNetCDFAttrUInt::Init()
+{
+  m_type = NC_UINT;
+}
+//-------------------------------------------------------------
+void CNetCDFAttrUInt::Set(CNetCDFAttrUInt& a) 
+{
+  CNetCDFAttr::Set(a);
+  m_value = a.m_value;
+  
+}
+//----------------------------------------
+const CNetCDFAttrUInt& CNetCDFAttrUInt::operator =(CNetCDFAttrUInt& a)
+{
+  Set(a);    
+  return *this;    
+}
+//----------------------------------------
+CBratObject* CNetCDFAttrUInt::Clone()
+{
+  return new CNetCDFAttrUInt(*this);
+}
+
+//----------------------------------------
+void CNetCDFAttrUInt::WriteAttribute(int32_t fileId, int32_t varId)
+{
+
+  uint32_t* values = m_value.ToArray();
+
+  CNetCDFFiles::HandleNetcdfError( nc_put_att_uint(fileId,
+				                                           varId,
+				                                           m_name.c_str(),
+                                                   m_type,
+				                                           m_value.size(),
+				                                           values),
+                                  CTools::Format("Error deleting attribute '%s' of var #%d",
+				                                          m_name.c_str(),
+				                                          varId));
+
+
+  delete []values;
+
+}
+//----------------------------------------
+void CNetCDFAttrUInt::ReadAttribute(int32_t fileId, int32_t varId)
+{
+  if (m_length <= 0)
+  {
+    return;
+  }
+
+  uint32_t* values = new uint32_t[m_length];
+
+  CNetCDFFiles::HandleNetcdfError( nc_get_att_uint(fileId, varId, m_name.c_str(), values),
+                                   CTools::Format("Error readind attribute '%s' of var #%d",
+				                                          m_name.c_str(),
+				                                          varId) ); 
+  SetValue(values, m_length);
+  
+  delete []values;
+  values = NULL;
+}
+//----------------------------------------
+void CNetCDFAttrUInt::SetValue(const CUIntArray& value)
+{
+  m_value.RemoveAll();
+  m_value = value;
+}
+//----------------------------------------
+void CNetCDFAttrUInt::SetValue(uint32_t* values, size_t length)
+{
+  m_value.RemoveAll();
+  m_value.Insert(values, length);
+}
+//----------------------------------------
+void CNetCDFAttrUInt::SetValue(uint32_t value)
+{
+  m_value.RemoveAll();
+  m_value.Insert(value);
+}
+
+//----------------------------------------
+void CNetCDFAttrUInt::Dump(ostream& fOut /* = cerr */)
+{
+  if (CTrace::IsTrace() == false)
+  {
+    return;
+  }
+  fOut << "==> Dump a CNetCDFAttrUInt Object at "<< this << endl;
+  CNetCDFAttr::Dump(fOut);
+  fOut << "m_value at "<< &m_value << endl;
+  m_value.Dump(fOut);
+  
+  fOut << "==> END Dump a CNetCDFAttrUInt Object at "<< this << endl;
+
+  fOut << endl;
+
+}
+
+//-------------------------------------------------------------
+//------------------- CNetCDFAttrUInt64 class --------------------
+//-------------------------------------------------------------
+CNetCDFAttrUInt64::CNetCDFAttrUInt64()
+{
+  Init();
+}
+//----------------------------------------
+CNetCDFAttrUInt64::CNetCDFAttrUInt64(const string& name)
+  : CNetCDFAttr(name)
+{
+  Init();
+}
+//----------------------------------------
+CNetCDFAttrUInt64::CNetCDFAttrUInt64(const string& name, uint64_t value, bool globalAttr /* = false */)
+  : CNetCDFAttr(name, globalAttr)
+{
+  Init();
+  SetValue(value);
+}
+//----------------------------------------
+CNetCDFAttrUInt64::CNetCDFAttrUInt64(CNetCDFAttrUInt64& a)
+{
+  Init();
+  Set(a);
+}
+//----------------------------------------
+CNetCDFAttrUInt64::~CNetCDFAttrUInt64()
+{
+}
+
+//----------------------------------------
+void CNetCDFAttrUInt64::Init()
+{
+  m_type = NC_UINT64;
+}
+//-------------------------------------------------------------
+void CNetCDFAttrUInt64::Set(CNetCDFAttrUInt64& a) 
+{
+  CNetCDFAttr::Set(a);
+  m_value = a.m_value;
+  
+}
+//----------------------------------------
+const CNetCDFAttrUInt64& CNetCDFAttrUInt64::operator =(CNetCDFAttrUInt64& a)
+{
+  Set(a);    
+  return *this;    
+}
+//----------------------------------------
+CBratObject* CNetCDFAttrUInt64::Clone()
+{
+  return new CNetCDFAttrUInt64(*this);
+}
+
+//----------------------------------------
+void CNetCDFAttrUInt64::WriteAttribute(int32_t fileId, int32_t varId)
+{
+
+  uint64_t* values = m_value.ToArray();
+
+  CNetCDFFiles::HandleNetcdfError( nc_put_att_ulonglong(fileId,
+				                                           varId,
+				                                           m_name.c_str(),
+                                                   m_type,
+				                                           m_value.size(),
+                                                        (unsigned long long*)values),             //cast or linux; max and windows ok
+                                  CTools::Format("Error deleting attribute '%s' of var #%d",
+				                                          m_name.c_str(),
+				                                          varId));
+
+
+  delete []values;
+
+}
+//----------------------------------------
+void CNetCDFAttrUInt64::ReadAttribute(int32_t fileId, int32_t varId)
+{
+  if (m_length <= 0)
+  {
+    return;
+  }
+
+  uint64_t* values = new uint64_t[m_length];
+
+  CNetCDFFiles::HandleNetcdfError( nc_get_att_ulonglong(fileId,
+                                                        varId,
+                                                        m_name.c_str(),
+                                                        (unsigned long long*)values),             //cast or linux; max and windows ok
+                                   CTools::Format("Error readind attribute '%s' of var #%d",
+				                                          m_name.c_str(),
+				                                          varId) ); 
+  SetValue(values, m_length);
+  
+  delete []values;
+  values = NULL;
+}
+//----------------------------------------
+void CNetCDFAttrUInt64::SetValue(const CUInt64Array& value)
+{
+  m_value.RemoveAll();
+  m_value = value;
+}
+//----------------------------------------
+void CNetCDFAttrUInt64::SetValue(uint64_t* values, size_t length)
+{
+  m_value.RemoveAll();
+  m_value.Insert(values, length);
+}
+//----------------------------------------
+void CNetCDFAttrUInt64::SetValue(uint64_t value)
+{
+  m_value.RemoveAll();
+  m_value.Insert(value);
+}
+
+//----------------------------------------
+void CNetCDFAttrUInt64::Dump(ostream& fOut /* = cerr */)
+{
+  if (CTrace::IsTrace() == false)
+  {
+    return;
+  }
+  fOut << "==> Dump a CNetCDFAttrUInt64 Object at "<< this << endl;
+  CNetCDFAttr::Dump(fOut);
+  fOut << "m_value at "<< &m_value << endl;
+  m_value.Dump(fOut);
+  
+  fOut << "==> END Dump a CNetCDFAttrUInt64 Object at "<< this << endl;
+
+  fOut << endl;
+
+}
+
 //-------------------------------------------------------------
 //------------------- CNetCDFAttrFloat class --------------------
 //-------------------------------------------------------------
@@ -2912,10 +3535,22 @@ void CNetCDFVarDef::SetFillValue(int16_t value)
   AddAttribute(new CNetCDFAttrShort(FILL_VALUE_ATTR, value));
 }
 //----------------------------------------
+void CNetCDFVarDef::SetFillValue(uint16_t value)
+{ 
+  m_fillValue = static_cast<double>(value); 
+  AddAttribute(new CNetCDFAttrUShort(FILL_VALUE_ATTR, value));
+}
+//----------------------------------------
 void CNetCDFVarDef::SetFillValue(int32_t value)
 { 
   m_fillValue = static_cast<double>(value); 
   AddAttribute(new CNetCDFAttrInt(FILL_VALUE_ATTR, value));
+}
+//----------------------------------------
+void CNetCDFVarDef::SetFillValue(uint32_t value)
+{ 
+  m_fillValue = static_cast<double>(value); 
+  AddAttribute(new CNetCDFAttrUInt(FILL_VALUE_ATTR, value));
 }
 //----------------------------------------
 void CNetCDFVarDef::SetFillValue(float value)
@@ -4073,6 +4708,9 @@ bool CNetCDFFiles::LoadVariables()
       netCDFDim->AddCoordinateVariable(netCDFVarDef->GetName());
     }
 
+    bool con = true;
+    do {
+  try {
     LoadAttributes(netCDFVarDef);
 
     CNetCDFAttrString* netCDFAttrString = CNetCDFAttr::GetNetCDFAttrString(netCDFVarDef->GetAttribute(UNITS_ATTR));
@@ -4093,6 +4731,13 @@ bool CNetCDFFiles::LoadVariables()
       netCDFVarDef->SetAddOffset(netCDFAttrDouble->GetValue()->at(0));
     }
 
+    }
+    catch( ... )
+    {
+        std::cout << i << " <======== " << std::endl;
+        con = false;
+    }
+  } while(!con);
   }
 
 
@@ -5384,12 +6029,10 @@ double CNetCDFFiles::GetNetcdfVarDefValue(int	varId)
 }
 
 //----------------------------------------
-double CNetCDFFiles::GetNetcdfVarDefValue
-		(int	  varId, 
-                 nc_type  varType)
+double CNetCDFFiles::GetNetcdfVarDefValue(int varId, nc_type varType)
 {
-  double	result;
-  double        defValue;
+  double result;
+  double defValue;
     
   switch (varType)
   {
@@ -5399,6 +6042,15 @@ double CNetCDFFiles::GetNetcdfVarDefValue
     case NC_INT:	defValue	= NcFillInt;	break;
     case NC_FLOAT:	defValue	= NcFillFloat;	break;
     case NC_DOUBLE:	defValue	= NcFillDouble;	break;
+      //new
+    case NC_UBYTE:	defValue	= NcFillUByte;	break;
+    case NC_USHORT:	defValue	= NcFillUShort;	break;
+    case NC_UINT:	defValue	= NcFillUInt;	break;
+    case NC_INT64:	defValue	= NcFillInt64;	break;
+    case NC_UINT64:	defValue	= NcFillUInt64;	break;
+    case NC_STRING:
+      defValue	= NcFillString;
+      break;
     default:
 	throw CFileException(CTools::Format("Var type #%d unknown for variable #%d",
 					    varType,
@@ -5414,8 +6066,7 @@ double CNetCDFFiles::GetNetcdfVarDefValue
   return result;
 }
 //----------------------------------------
-double CNetCDFFiles::GetDefValue
-		(nc_type	VarType)
+double CNetCDFFiles::GetDefValue(nc_type VarType)
 {
   switch (VarType)
   {
@@ -5425,6 +6076,14 @@ double CNetCDFFiles::GetDefValue
     case NC_INT:	return static_cast<double>(CTools::m_defaultValueINT32);
     case NC_FLOAT:	return static_cast<double>(CTools::m_defaultValueFLOAT);
     case NC_DOUBLE:	return CTools::m_defaultValueDOUBLE;
+      //new
+    case NC_UBYTE:	return static_cast<double>(CTools::m_defaultValueINT8);
+    case NC_USHORT:	return static_cast<double>(CTools::m_defaultValueUINT16);
+    case NC_UINT:	return static_cast<double>(CTools::m_defaultValueUINT32);
+    case NC_INT64:	return static_cast<double>(CTools::m_defaultValueINT64);
+    case NC_UINT64:	return static_cast<double>(CTools::m_defaultValueUINT64);
+    case NC_STRING:
+      return static_cast<double>((ptrdiff_t)CTools::m_defaultValueString);
     default:
 	throw CFileException(CTools::Format("Data type #%d unknown", VarType),
 			     m_fileName,
@@ -5466,6 +6125,14 @@ string CNetCDFFiles::GetTypeAsString(int varType)
     case NC_INT:	result	= NC_INT_NAME;	  break;
     case NC_FLOAT:	result	= NC_FLOAT_NAME;  break;
     case NC_DOUBLE:	result	= NC_DOUBLE_NAME; break;
+		//new
+	case NC_UBYTE:  result	= NC_UBYTE_NAME; break;
+	case NC_USHORT: result	= NC_USHORT_NAME; break;
+	case NC_UINT:	result	= NC_UINT_NAME; break;
+	case NC_INT64:  result	= NC_INT64_NAME; break;
+	case NC_UINT64: result	= NC_UINT64_NAME; break;
+	case NC_STRING: result	= NC_STRING_NAME; break;
+
     default:
 	throw CException(CTools::Format("var type #%d unknown",
 					    varType),

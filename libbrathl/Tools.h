@@ -954,6 +954,18 @@ public:
    */
   static int32_t StrToInt(const string &s);
 
+  /** Convert an string to int64
+   \param[in] value : string to be converted
+   \return coanverted value or CTool::m_defaultValueINT if no possible conversion.
+   */
+  static int64_t StrToInt64(const string &s);
+
+  /** Convert an string to uint64
+   \param[in] value : string to be converted
+   \return coanverted value or CTool::m_defaultValueINT if no possible conversion.
+   */
+  static uint64_t StrToUInt64(const string &s);
+
   /** Convert an int to string
    \param[in] value : int to be converted
    \return coanverted value or empty string if no possible conversion.
@@ -1031,7 +1043,7 @@ public:
   // Latitude is measured in degrees north of the equator; 
   // southern locations have negative latitude. 
   // Similarly, longitude is measured in degrees east of the Prime Meridian.
-  // A location 10° west of the Prime Meridian, for example, could be expressed as either 350° east or as -10° east.
+  // A location 10' west of the Prime Meridian, for example, could be expressed as either 350' east or as -10' east.
   // WARNING: The function above assumes the earth is perfectly spherical.
   // (from http://www.johndcook.com/python_longitude_latitude.html)
 
@@ -1106,6 +1118,9 @@ public:
 
   /// default values for float
   static const float m_defaultValueFLOAT;
+
+  /// default values for string
+  static const char *m_defaultValueString;
 
   // maximum difference used to declare that two real values are equal
   static const double m_CompareEpsilon;
