@@ -32,13 +32,14 @@
   <slideShowLoop>1</slideShowLoop>
   <slideShowTiming>5</slideShowTiming>
   <startMenuGroupName>${product_fullname}</startMenuGroupName>
+  <windows64bitMode>1</windows64bitMode>
   <style>standard</style>
   <summary>The Basic Radar Altimetry Toolbox is a set of programs and libraries used to read, manipulate, compute and view many radar altimetry data products from many different satellites: Ers, Jason, Envisat, Cryosat, etc...
   A full API is provided for C++, as well as a more basic programming interface for the C, Fortran, IDL and Matlab languages</summary>
   <uninstallerDirectory>${installdir}</uninstallerDirectory>
   <uninstallerName>uninstall-${product_shortname}-${product_version}-${platform_name}</uninstallerName>
   <validatorProgram></validatorProgram>
-  <vendor>CLS/S&amp;T/CNES/ESA</vendor>
+  <vendor>ESA</vendor>
   <componentList>
     <component>
       <name>default</name>
@@ -135,6 +136,17 @@
             <distributionDirectory>
               <origin>@CMAKE_BINARY_DIR@/externals/curl/lib/bin</origin>
             </distributionDirectory>
+          </distributionFileList>
+        </folder>
+        <folder>
+          <description>Program Files</description>
+          <destination>${installdir}/examples/python</destination>
+          <platforms>windows</platforms>
+          <name>windows_curl_binary_for_python</name>
+          <distributionFileList>
+            <distributionFile>
+              <origin>@CMAKE_BINARY_DIR@/externals/curl/lib/bin/libcurl.dll</origin>
+            </distributionFile>
           </distributionFileList>
         </folder>
         <folder>
@@ -309,6 +321,12 @@
               <origin>@CMAKE_BINARY_DIR@/lib/Release/brathl.lib</origin>
             </distributionFile>
             <distributionFile>
+              <origin>@CMAKE_SOURCE_DIR@/libbrathl/brathl_python/brathl.py</origin>
+            </distributionFile>
+            <distributionFile>
+              <origin>@CMAKE_BINARY_DIR@/lib/Release/brathl_module.dll</origin>
+            </distributionFile>
+            <distributionFile>
               <origin>@CMAKE_BINARY_DIR@/externals/coda/lib/Release/libcoda.lib</origin>
             </distributionFile>
             <distributionFile>
@@ -328,6 +346,12 @@
           <distributionFileList>
             <distributionFile>
               <origin>@CMAKE_BINARY_DIR@/lib/libbrathl.a</origin>
+            </distributionFile>
+            <distributionFile>
+              <origin>@CMAKE_SOURCE_DIR@/libbrathl/brathl_python/brathl.py</origin>
+            </distributionFile>
+            <distributionFile>
+              <origin>@CMAKE_BINARY_DIR@/lib/brathl_module</origin>
             </distributionFile>
             <distributionFile>
               <origin>@CMAKE_BINARY_DIR@/externals/coda/lib/libcoda.a</origin>
@@ -356,6 +380,19 @@
           <distributionFileList>
             <distributionFile>
               <origin>@CMAKE_SOURCE_DIR@/libbrathl/brathl_c/BratSampleCProgram.c</origin>
+            </distributionFile>
+          </distributionFileList>
+        </folder>
+        <folder>
+          <description>Python examples</description>
+          <destination>${installdir}/examples/python</destination>
+          <name>python_examples</name>
+          <distributionFileList>
+            <distributionFile>
+              <origin>@CMAKE_SOURCE_DIR@/libbrathl/brathl_python/example.py</origin>
+            </distributionFile>
+            <distributionFile>
+              <origin>@CMAKE_SOURCE_DIR@/libbrathl/brathl_python/example.nc</origin>
             </distributionFile>
           </distributionFileList>
         </folder>

@@ -1,6 +1,6 @@
 # The main BRAT CMake configuration file.
 #
-# SZip requires cmake 3.1.0
+# HDF5, SZip, ..., require cmake 3.1.0
 #
 cmake_minimum_required(VERSION 3.1.0 FATAL_ERROR)
 MACRO(DBG_MSG _MSG)
@@ -15,7 +15,7 @@ ENDMACRO(DBG_MSG_V)
 project(BRAT)
 
 set(BRAT_MAJOR_VERSION "3")
-set(BRAT_MINOR_VERSION "2")
+set(BRAT_MINOR_VERSION "3")
 set(BRAT_REVISION_VERSION "0")
 set(BRAT_VERSION "${BRAT_MAJOR_VERSION}.${BRAT_MINOR_VERSION}.${BRAT_REVISION_VERSION}")
 
@@ -658,6 +658,23 @@ add_executable(${SAMPLE} libbrathl/brathl_c/${SAMPLE}.c)
 target_link_libraries(${SAMPLE} brathl)
 install(FILES libbrathl/brathl_c/${SAMPLE}.c DESTINATION examples/c)
 
+# brathl_python; 
+#	- requires brathl_module, specifically created for Python API support;
+#	- in windows, to allow immediate example use without meddling with the 
+#		user's system, curl dll is installed also near the example files
+#
+install(FILES libbrathl/brathl_python/brathl.py DESTINATION lib)
+install(FILES libbrathl/brathl_python/example.py DESTINATION examples/python)
+install(FILES libbrathl/brathl_python/example.nc DESTINATION examples/python)
+IF (WIN32)
+	IF(CMAKE_BUILD_TYPE MATCHES "Debug")
+		install(FILES ${CMAKE_BINARY_DIR}/externals/curl/lib/bin/libcurld.dll DESTINATION examples/python)
+	ELSE()
+		install(FILES ${CMAKE_BINARY_DIR}/externals/curl/lib/bin/libcurl.dll DESTINATION examples/python)
+	ENDIF()
+ENDIF (WIN32)
+
+
 # brathl_fortran
 #
 if(BRATHL_BUILD_FORTRAN)
@@ -793,14 +810,61 @@ set(CREATED)
 include_directories(${BRAT_SOURCE_DIR}/libbrathl)
 include_directories(${BRAT_BINARY_DIR}/libbrathl)
 
-add_library(brathl
+set(ALL_BRATHL_SOURCES
   ${LIBBRATHL_CXX_SOURCES}
   ${LIBBRATHL_SOURCES_H}
   ${LIBBRATHL_C_SOURCES}
   ${LIBBRATHL_FORTRAN_SOURCES})
-target_link_libraries(brathl netcdf udunits coda_static szip) # For dll/so library
+
+add_library(brathl STATIC ${ALL_BRATHL_SOURCES})
+
+if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
+    target_link_libraries(brathl netcdf coda_static hdf5 ssh2 udunits)
+else()
+    target_link_libraries(brathl netcdf coda_static hdf5 udunits)
+endif()
+
+# required by brathl_python
+#
+add_library(brathl_module MODULE ${ALL_BRATHL_SOURCES})
+if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
+    target_link_libraries(brathl_module netcdf coda_static hdf5 ssh2 udunits)
+else()
+    target_link_libraries(brathl_module netcdf coda_static hdf5 udunits)
+endif()
+
+# add_library(brathl_module MODULE)
+# target_link_libraries(brathl_module brathl netcdf coda_static hdf5 ssh2 udunits)
+# target_link_libraries(brathl_module brathl)
+# set_target_properties(brathl_module PROPERTIES LINK_FLAGS "-Wl,--whole-archive -lbrathl -Wl,--no-whole-archive")
+#set_target_properties(brathl PROPERTIES LINK_FLAGS "-Wl,--export-dynamic")
+#set_target_properties(brathl_module PROPERTIES LINK_FLAGS "-Wl,--export-dynamic")
+
+#set_target_properties(brathl_module PROPERTIES OUTPUT_NAME brathl_module)
+#set_target_properties(brathl_module PROPERTIES DEFINE_SYMBOL LIBRATHLDLL)
+#set_target_properties(brathl_module PROPERTIES DEFINE_SYMBOL LIBRATHLDLL_EXPORTS)
+#set_target_properties(brathl_module PROPERTIES PREFIX "")
+
+set_target_properties(brathl_module PROPERTIES 
+	OUTPUT_NAME brathl_module
+	DEFINE_SYMBOL LIBRATHLDLL_EXPORTS
+	DEBUG_POSTFIX ""
+	PREFIX "")
+
+IF(WIN32)
+	set_target_properties(brathl_module PROPERTIES COMPILE_FLAGS "/D LIBRATHLDLL")
+ELSE(WIN32)
+    IF(APPLE)
+	    set_target_properties(brathl_module PROPERTIES COMPILE_FLAGS "-fvisibility=default")
+	    set_target_properties(brathl_module PROPERTIES LINK_FLAGS "-fvisibility=default")
+    ENDIF(APPLE)
+	set_target_properties(brathl_module PROPERTIES SUFFIX "")
+ENDIF(WIN32)
+
+
 
 install(TARGETS brathl DESTINATION lib/)
+install(TARGETS brathl_module DESTINATION lib/)
 install(FILES ${LIBBRATHL_SOURCES_H} DESTINATION include)
 
 
@@ -1692,9 +1756,11 @@ if(APPLE)
 
     COMMAND mkdir -p ${BDIST_ROOT}/lib
     COMMAND cp ${BRAT_BINARY_DIR}/lib/libbrathl.a ${BDIST_ROOT}/lib
+    COMMAND cp ${BRAT_BINARY_DIR}/lib/brathl_module ${BDIST_ROOT}/lib
     COMMAND cp ${BRAT_BINARY_DIR}/externals/coda/lib/libcoda.a ${BDIST_ROOT}/lib
     COMMAND cp ${BRAT_BINARY_DIR}/externals/netcdf-c/liblib/lib/libnetcdf.a ${BDIST_ROOT}/lib
     COMMAND cp ${BRAT_BINARY_DIR}/externals/udunits/lib/libudunits.a ${BDIST_ROOT}/lib
+    COMMAND cp ${BRAT_SOURCE_DIR}/libbrathl/brathl_python/brathl.py ${BDIST_ROOT}/lib
 
     COMMAND mkdir -p ${BDIST_ROOT}/include
     COMMAND cp ${LIBBRATHL_CXX_SOURCES_H} ${BDIST_ROOT}/include
@@ -1718,6 +1784,9 @@ if(APPLE)
     COMMAND mkdir -p ${BDIST_ROOT}/examples
     COMMAND mkdir -p ${BDIST_ROOT}/examples/c
     COMMAND cp ${BRAT_SOURCE_DIR}/libbrathl/brathl_c/BratSampleCProgram.c ${BDIST_ROOT}/examples/c
+    COMMAND mkdir -p ${BDIST_ROOT}/examples/python
+    COMMAND cp ${BRAT_SOURCE_DIR}/libbrathl/brathl_python/example.py ${BDIST_ROOT}/examples/python
+    COMMAND cp ${BRAT_SOURCE_DIR}/libbrathl/brathl_python/example.nc ${BDIST_ROOT}/examples/python
     COMMAND mkdir -p ${BDIST_ROOT}/examples/idl
     COMMAND cp ${BRAT_SOURCE_DIR}/libbrathl/brathl_idl/examples.pro ${BDIST_ROOT}/examples/idl
     COMMAND mkdir -p ${BDIST_ROOT}/examples/matlab

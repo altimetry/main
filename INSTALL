@@ -1,3 +1,4 @@
+
 ============================================
 BRAT - Basic Radar Altimetry Toolbox INSTALL
 ============================================
@@ -9,27 +10,41 @@ INSTALLING FROM THE BINARY DISTRIBUTION
 
 Full information on installing BRAT from a binary distribution
 can be found in the BRAT User Manual available in the file
-brat_user_manual_3.1.0.pdf in the 'doc' directory of the BRAT
+brat_user_manual.pdf in the 'doc' directory of the BRAT
 distribution or installation.
 
 The short version is as follows:
 
-+ For Windows XP: double-click the installer file
-brat-3.1.0-windows-installer.exe and follow the instructions.
++ For Windows: double-click the installer file appropriate
+for your platform (brat-3.3.0-Win32-installer.exe for 32-bit
+operating systems, brat-3.3.0-x64-installer.exe for 64-bit
+operating systems), and follow the instructions.
+
 
 + For Linux: double-click in your desktop manager (or execute
-from the command-line) the installer file
-brat-3.1.0-linux-installer.run and follow the instructions. (If
-necessary use 'chmod +x <installer-filename>' to ensure the
-installer is executable.)
+from the command-line) the installer file appropriate for your
+platform (brat-3.3.0-i386-installer.run for 32-bit operating
+systems, brat-3.3.0-x86_64-installer.run for 64 bit operating
+systems), and follow the instructions. (If necessary, use
+'chmod +x <installer-filename>'
+to ensure the installer is executable.)
 
-+ For Mac OS X: double-click the image file appropriate for your
-platform (brat-3.1.0-macosx-ppc.dmg for PowerPC Macintoshes,
-brat-3.1.0-macosx-i386.dmg for Intel Macintoshes), and drag the
-'BratGui' application to the 'Applications' folder on your
+
++ For Mac OS X: double-click the image file appropriate for the
+type of application you want to install: brat-3.3.0-macosx-i386.dmg
+for 32 bit BRAT applications, or brat-3.3.0-macosx-x86_64.dmg for 64
+bit BRAT applications (Intel only). Then, drag the 'BratGui' and
+'BratScheduler' applications to the 'Applications' folder on your
 machine. You can optionally drag the 'brat' folder to a location
-of your choice if you want to have the non-gui components of BRAT
+of your choice if you want to have the non-GUI components of BRAT
 installed as well.
+
+Note that installing and running BRAT 32 bit software in 64 bit 
+operating systems is not fully supported, even if in most cases 
+it is expected to work without problems. However, the installation 
+software will issue no warnings or, for instance, try to suggest 
+different installation directories.
+
 
 The remainder of this INSTALL file concerns itself with compiling
 and installing BRAT from source code, and assumes that you have
@@ -46,9 +61,9 @@ Generally, installation from source will be necessary if:
 + You are on Linux or Mac OS X and you want to use the IDL or
   MATLAB interfaces to BRAT.
 
-+ You are on a Linux system that is older than the one used to
-  create the BRAT Linux binary distribution (in which case BRAT
-  will fail to run if installed as a binary).
++ You are on a Linux system that is very different from the
+  one used to create the BRAT Linux binary distribution (in
+  which case BRAT will fail to run if installed as a binary).
 
 + You are on a Windows system, and your version of MATLAB or IDL
   is not supported by the pre-compiled interfaces in the Windows
@@ -75,30 +90,26 @@ BRAT PREREQUISITE SOFTWARE
 ==========================
 
 The prerequisite software for running BRAT (as mentioned in the
-User Manual) is of course also prerequisite software for
-compiling it:
-
-  + X11 Windowing System (BRAT has been tested on Xorg Xserver
-  v1.1.1 and higher)
-
-  + GTK 2 libraries (BRAT has been tested on
-  libgtk2 v2.8.20 or higher)
-
-  + C run-time libraries (BRAT has been tested on libc6 v2.3.6 or
-  higher)
-
-The following additional software must be installed before any
+User Manual) is of course also prerequisite software for compiling 
+it. Depending on the software you have installed on your machine, 
+it may be necessary to install additional packages, provided by 
+your operating system but that it does not install by default.
+CMake, which orchestrates the BRAT builds, can help in pointing 
+the missing software. Besides these operating system dependencies, 
+the following additional software must be installed before any 
 component of BRAT can be compiled:
 
   + C++ Compiler
   Most Unix platforms come with their own C++ compiler (or one can
   be downloaded using the native package manager) so this should
-  not be a problem. For Linux and Mac OS, BRAT was developed with
-  GNU g++ (version 4.0.x or higher), for Windows with Visual Studio
-  C++ 2010. On Mac OS X you should make sure you have installed the 
-  Developer Tools.
+  not be a problem. For Linux, BRAT was developed with GNU g++ 
+  (version 4.7.x or higher), for Windows with Visual Studio
+  C++ 2013, for Mac OS X with GNU g++ 4.2 (BRAT 3.2.0, 32 bit) and 
+  clang 6.x (BRAT 3.3.0, 32 bit and 64 bit) . In Mac OS X you should 
+  make sure you have installed the Developer Tools. Also, note that
+  32 bit builds use SDK 10.6.
 
-  + CMake v2.6.4
+  + CMake v3.1.0
   Link: http://www.cmake.org/
 
   CMake is a multi-platform makefile generator.
@@ -120,39 +131,40 @@ Applications.
 With IDL installed you will be able to build the CODA and BRATHL
 IDL interfaces.
 
-  + Matlab V7.5/R15 (or higher)
+  + Matlab V8.1/R2013a (or higher)
   Link: http://www.mathworks.com/
 
 With MATLAB installed you will be able to build the CODA and
 BRATHL MATLAB interfaces.
 
-  + wxWidgets v2.8.9
+  + wxWidgets v3.0.2
   Link: http://www.wxwidgets.org/, http://www.wxpython.org/
 
   WxWidgets is a multi-platform GUI building tool. On Linux and
   MacOS the instructions below will refer to the wxPython
   distribution (which contains wxWidgets), for Windows we refer
   to the wxMSW distribution.
-  Note that in case of problems building BRAT using wxWidgets 2.8.9
-  on Linux, it is recommended to use wxWidgets 2.8.11 instead.
 
   + VTK v5.6.0
 
   Multi-platform graphic tool.
   Link: http://www.vtk.org/files/release/5.6/
 
-  VTK is a (3D) computer graphics and visualisation toolkit. Note
-  that BRAT absolutely requires VTK v5.6.
+  VTK is a (3D) computer graphics and visualization toolkit. Note
+  that BRAT absolutely requires VTK v5.6. Because VTK v5.6 is 
+  originally a 32 bit release, 64 bit compilations of BRAT with VTK
+  require a customization of the VTK source package, which is 
+  detailed below.
 
 VTK and wxWidgets are only necessary if you want to build the GUI
-Applications (BratDisplay and BratGui). They are large, complex
-packages, so if you do not need to compile the GUI applications,
-you can save a lot of time and effort. Many Linux package
-managers offer pre-installed versions of VTK and wxWidgets, but
-these versions are often not compiled with the exact options BRAT
+Applications (BratDisplay, BratGui and BratScheduler). They are 
+large, complex packages, so if you do not need to compile the GUI 
+applications, you can save a lot of time and effort. Many Linux 
+package managers offer pre-installed versions of VTK and wxWidgets,
+but these versions are often not compiled with the exact options BRAT
 requires. Separate compilation is recommended.
 
-  + BitRock InstallBuilder v7.0.1
+  + BitRock InstallBuilder v15.1.0
 
   Link: http://www.bitrock.com
   InstallBuilder is a commercial product; a license is needed.
@@ -173,46 +185,92 @@ BRATHL.
 PLATFORM-SPECIFIC INSTRUCTIONS FOR SOURCE BUILDING
 ==================================================
 
+
+As mentioned above, VTK and wxWidgets may themselves have 
+dependencies on other (development versions of) software packages 
+that may or may not already be present on your system. This 
+INSTALL file only covers BRAT-specific compilation details, and 
+assumes all sub-dependencies are covered. Please consult the 
+installation instructions for VTK and wxWidgets found in their 
+source directories for more detailed information on their 
+prerequisites.
+
+On the other hand, the port to 64 bit, and the ability to use recent
+compiler versions, require minor changes in source or configuration 
+files of the original VTK (VTK 5.6.0 is an old version, not prepared 
+for cross-platform compilation in 64 bit). The required changes, which
+are often different for different operating systems, enable both
+32 bit and 64 bit compilations; they are described in detail in 
+this document, in the sections "Building the prerequisites" for the 
+respective operating system. However, note that these changes can be
+cumulative, that is, they can be made in the same VTK source tree 
+and this same tree can be used to compile in all systems, 32 bit 
+and 64 bit. So, the sub-directory vtk-patch, under the BRAT sources 
+root, was created so that its contents can be copied over the 
+contents of the original VTK sources root, resulting in a package 
+that can be compiled in all supported systems and architectures. 
+This way, the tedious and error-prone task of making the detail
+changes one by one can be avoided.
+
+
 Building the prerequisites (Linux)
 ----------------------------------
 
-Note: VTK and wxWidgets may themselves have dependencies on
-other (development versions of) software packages that may or may
-not already be present on your system. This INSTALL file only
-covers BRAT-specific compilation details, and assumes all
-subdependencies are covered. Please consult the installation
-instructions for VTK and wxWidgets found in their source
-directories for more detailed information on their prerequisites.
-
 + VTK
 
-Unpack the VTK sources. Create a build directory, cd into it and
-call CMake with the following flags:
+Unpack the VTK sources. Either copy the vtk-patch directory content
+over the extracted sources, as explained above, or do the following 
+changes:
 
-    $ cmake -DCMAKE_INSTALL_PREFIX:PATH=<vtk-install-path> \
-        -DBUILD_TESTING:BOOL=OFF \
-        -DCMAKE_BUILD_TYPE:STRING=Release \
-        -DBUILD_SHARED_LIBS:BOOL=OFF \
-        -DVTK_WRAP_PYTHON:BOOL=OFF \
-        -DVTK_WRAP_TCL:BOOL=OFF \
-        -DVTK_USE_TK:BOOL=OFF \
-        <vtk-source-path>
+  - in the files <vtk-source-path>/Charts/vtkPlotBar.cxx and 
+    <vtk-source-path>/Charts/vtkPlotLine.cxx, place the definition 
+    of the template function CopyToPointsSwitch after the 
+    definitions of the two overloads of CopyToPoints, which in the 
+    original sources are just below CopyToPointsSwitch. 
 
-Note that whatever CMAKE_BUILD_TYPE you specify (Release, Debug,
-etc.), you must later use exactly the same one when compiling
-BRAT. Also, there are additional steps and flags for the windows
-build (see below).
+  - at the top of the file 
+    <vtk-source-path>/Utilities/vtkmetaio/metaUtils.cxx
+    add the line
+
+	  #include <stddef.h>
+
+Then, create a build directory, cd into it and call CMake with the 
+following flags:
+
+  $ cmake \
+	-DCMAKE_INSTALL_PREFIX:PATH=<vtk-install-path> \	
+	-DBUILD_TESTING:BOOL=OFF \
+	-DCMAKE_CXX_FLAGS:STRING="$arch_flags" \
+	-DCMAKE_C_FLAGS:STRING="$arch_flags" \
+	-DCMAKE_EXE_LINKER_FLAGS:STRING="$arch_flags" \
+	-DCMAKE_BUILD_TYPE:STRING=$CONFIGURATION \
+	-DBUILD_SHARED_LIBS:BOOL=OFF \
+	-DVTK_WRAP_PYTHON:BOOL=OFF \
+	-DVTK_WRAP_TCL:BOOL=OFF \
+	-DVTK_USE_TK:BOOL=OFF \
+	-DVTK_USE_ANSI_STDLIB:BOOL=ON \
+	<vtk-source-path>
+
+Replace "$arch_flags" by -m32 if you are building for a 32 bit 
+architecture and by -m64 for 64 bit architectures. Replace 
+$CONFIGURATION by Debug or Release; other build types (build
+configurations) can work as well but they were not tested and 
+are not supported. Note that whatever CMAKE_BUILD_TYPE you 
+specify (Release, Debug, etc.), you must later use exactly the 
+same one when compiling BRAT.
+
+Note also that cross-compilation in Linux can be hard to achieve
+in at least some Linux distributions with poor multi-architecture 
+support. So, the selected BRAT build architecture (32 or 64 bit) 
+should match the architecture of the operating system where the 
+build occurs.
 
 Call "make", "make install", and then specify <vtk-install-path>
 as the value for VTK_DIR when building BRAT (see below).
 
-Note: it is important that VTK is compiled with the
-VTK_USE_ANSI_STDLIB flag set to "ON". Because this should be the
-case by the default, it is not listed in the invocation given
-above, but it is something to watch out for when debugging or
-using an existing installation. You can find a log of the
-settings with which a particular installation of VTK was compiled
-in the file <vtk-install-path>/lib/vtk-5.6/VTKConfig.cmake.
+You can find a log of the settings with which a particular 
+installation of VTK was compiled in the file 
+<vtk-install-path>/lib/vtk-5.6/VTKConfig.cmake.
 
 Note: VTK 5.6 may not compile out of the box with GNU g++ 4.3
 or higher (earlier versions are no problem). If this is the case,
@@ -226,26 +284,34 @@ to each of the following source files:
     <vtk-source-path>/Utilities/DICOMParser/DICOMParser.cxx
     <vtk-source-path>/Utilities/DICOMParser/DICOMAppHelper.cxx
 
+
 + wxWidgets
 
-Unpack the wxWidgets sources (the following assumes you are using
-the wxPython distribution -- follow the wxWidgets instructions
-for other versions). Create a build directory, cd into it, and
-call the configure script (wxWidgets is not a CMake application,
+Unpack wxWidgets-3.0.2.tar.bz2, create a build directory, cd into 
+it and call the configure script (wxWidgets is not a CMake application,
 but uses the GNU autotools) with the following flags:
 
-    $ <wxwidgets-source-path>/configure \
-        --prefix=<wxwidgets-install-path> \
-        --enable-monolithic \
-        --disable-shared \
-        --disable-unicode \
-        --with-opengl \
-        --enable-geometry \
-        --enable-display \
-        --with-expat=builtin \
-        --with-libpng=builtin \
-        --with-libjpeg=builtin \
-        --with-libtiff=builtin
+  $ ../configure \
+	--prefix=<wxwidgets-install-path> \
+	--enable-debug \
+	--enable-monolithic \
+	--disable-shared \
+	--disable-unicode \
+	--enable-geometry \
+	--enable-display \
+	--with-expat=builtin \
+	--with-libpng=builtin \
+	--with-libjpeg=builtin \
+	--with-libtiff=builtin \
+	--with-opengl \
+	CFLAGS="$arch_flags" \
+	CXXFLAGS="$arch_flags" \ 
+	CPPFLAGS="$arch_flags" \
+	LDFLAGS="$arch_flags"
+
+Replace "$arch_flags" by -m32 if you are building for a 32 bit 
+architecture and by -m64 for 64 bit architectures. Remove the
+flag --enable-debug if you are building a release version.
 
 Call "make", "make install", and then specify
 <wxwidgets-install-path>/bin/wx-config as the value for
@@ -256,18 +322,15 @@ Building the source package (Linux)
 -----------------------------------
 
 The following steps will guide you through the process of
-building the BRAT libraries and executables (including CODA and
-the IDL and MATLAB interfaces) on a Linux-based platform:
+building the BRAT libraries and executables (including CODA, HDF5, 
+NetCDF and the C, IDL, MATLAB and Python interfaces) on a Linux-based platform:
 
-  + Go to the directory that contains the downloaded
-    brat-x.y.z.tar.gz file and unpack this package:
+  + Download brat-x.y.z.tar.gz, where x.y.z is the appropriate 
+	  version number, and unpack it to a directory of
+	  your choice:
 
     $ gzip -d brat-x.y.z.tar.gz
     $ tar xf brat-x.y.z.tar
-
-    Make sure you replace x.y.z with the appropriate version number.
-
-    You should now have a brat-x.y.z directory.
 
   + Create your so-called build directory. This should be a new
     empty directory, preferably located outside of the brat-x.y.z
@@ -278,16 +341,38 @@ the IDL and MATLAB interfaces) on a Linux-based platform:
 
   + Next you will have to configure and run CMake. This will
     check what system you are on and set up the build
-    environment. There are several options and environment
-    settings you can pass to cmake in the form of
-    -D<option>=<value> flags:
+    environment. Invoke cmake as in this example, replacing the 
+	appropriate values as explained in the rest of this section:
+	
+	$ cmake \
+	 -DBRAT_TARGET_PROCESSOR=$ARCHITECTURE \
+	 -DCMAKE_INSTALL_PREFIX:PATH=<BRAT installation directory> \
+	 -DCMAKE_BUILD_TYPE:STRING=$CONFIGURATION \
+	 -DBRAT_BUILD_GUI=ON \
+	 -DBUILD_TESTING:BOOL=OFF \
+	 -DCMAKE_CXX_FLAGS:STRING="$arch_flags" \
+	 -DCMAKE_C_FLAGS:STRING="$arch_flags" \
+	 -DCMAKE_EXE_LINKER_FLAGS:STRING="$arch_flags" \
+	 -DwxWidgets_CONFIG_EXECUTABLE=<wxWidgets-install-directory>/bin/wx-config \
+	 -DVTK_DIR=<vtk-install-directory>/lib/vtk-5.6 \
+	 -DINSTALL_BUILDER_DIR=<InstallBuilder executable directory> \
+	 -DHDF5_BUILD_FORTRAN:BOOL=OFF \
+	 -DHDF5_BUILD_EXAMPLES:BOOL=OFF \
+	 -DENABLE_TESTS:BOOL=OFF \
+	 -DENABLE_DAP:BOOL=ON \
+	 <path to brat-x.y.z unpacked source directory>
+	
+     Note that CMake should always be invoked from within your
+     build directory, with as a final argument the location of
+     the source directory.
 
-    -DCMAKE_BUILD_TYPE=<string value>
-
-    This will instruct CMake to build the sources with e.g.
-    debugging information included (if value = Debug) or not
-    (value = Release). If uncertain, use Debug. Consult the CMake
-    documentation for more info.
+	 There are several options and environment settings 
+	 you pass to cmake in the form of -D<option>=<value> 
+	 flags.
+	 
+	 In the option -DBRAT_TARGET_PROCESSOR=$ARCHITECTURE
+	 replace $ARCHITECTURE by i386 for 32 bit builds and 
+	 by x86_64 for 64 bit builds.
 
     -DCMAKE_INSTALL_PREFIX=<BRAT installation directory>
 
@@ -304,33 +389,78 @@ the IDL and MATLAB interfaces) on a Linux-based platform:
     can use --prefix=$HOME/brat to install BRAT in the
     subdirectory 'brat' of your home directory.
 
+    -DCMAKE_BUILD_TYPE=$CONFIGURATION 
+	
+	Replace $CONFIGURATION by Debug or Release. This will instruct 
+	CMake to build the sources with e.g. debugging information 
+	included (if value = Debug) or not (value = Release). If 
+	uncertain, use Debug. Consult the CMake documentation for 
+	more info.
+
     -DBRAT_BUILD_GUI=ON
 
-     By default BRAT is built without the BratGui and BratDisplay
-     applications. Use this option to enable building of these
-     application. This option requires properly configured and
+	 Use this option to enable building BratGui, BratDisplay and 
+	 BratScheduler. This option requires properly configured and
      installed VTK and wxWidgets sources, and is typically
      useless without also passing accompanying VTK_DIR and
      wxWidgets_CONFIG_EXECUTABLES variables to CMake (see below).
 
-    -DwxWidgets_CONFIG_EXECUTABLE=<wx-config location>
+	 -DBUILD_TESTING:BOOL=OFF
+
+	 Don't run tests for any of the enclosed modules, such as 
+	 3rd party libraries built in integration with BRAT, like
+     NetCDF or CODA.
+
+	 -DCMAKE_CXX_FLAGS:STRING="$arch_flags"
+	 -DCMAKE_C_FLAGS:STRING="$arch_flags"
+	 -DCMAKE_EXE_LINKER_FLAGS:STRING="$arch_flags"
+
+	 Replace "$arch_flags" bt -m32 for 32 bit builds and by -m64
+     for 64 bit builds.
+
+    -DwxWidgets_CONFIG_EXECUTABLE=<wx-config location>/bin/wx-config 
 
      Specify the full pathname to the wx-config utility in your
      wxWidgets installation (typically this is located in the bin/
      subdirectory of your wxWidgets root install).
 
-    -DVTK_DIR=<VTK root directory>
+    -DVTK_DIR=<VTK root directory>/lib/vtk-5.6 
 
      The <VTK root directory> is the root directory of your VTK
      installation.
 
-    -DBRATHL_BUILD_FORTRAN=ON
+    -DINSTALL_BUILDER_DIR=<InstallBuilder executable directory>
+
+     Only required if you intend to build a binary installer.
+     This will tell CMake where the InstallBuilder executable us
+     located.
+
+	 -DHDF5_BUILD_FORTRAN:BOOL=OFF
+	 -DHDF5_BUILD_EXAMPLES:BOOL=OFF
+	 -DENABLE_TESTS:BOOL=OFF
+	 -DENABLE_DAP:BOOL=ON
+
+	 This set of options is relted with HDF5 (the first two) and
+     NetCDF (the remaining two). If you enable DAP, the curl 
+     library must be installed in your system, except in Windows, 
+     where it is not provided by the operating system and so BRAT 
+     itself provides it. The values shown in the example were the 
+     only ones tested so far.
+
+
+    The following additional options were inherited from 
+    BRAT 3.1.0 and, with the exception of MATLAB support for 64 
+    bit, at the time of the 3.3.0 release they are supported only 
+    to the extent where they are compatible without changes with 
+    BRAT 3.3.0.
+    
+    -DBRATHL_BUILD_FORTRAN=OFF
 
      Build the Fortran example program. An installed Fortran
      compiler is required (and should automatically be detected
      by CMake).
 
-    -DBRATHL_BUILD_IDL=ON
+    -DBRATHL_BUILD_IDL=OFF
 
      By default BRAT is built without the IDL interface. Use this
      option to enable building of the interface to IDL.
@@ -355,7 +485,9 @@ the IDL and MATLAB interfaces) on a Linux-based platform:
 
      If you want to build the MATLAB interface you should also
      use this option to tell CMake where you have installed
-     MATLAB. The <MATLAB root directory> is the root directory of
+     MATLAB for the architecture you are targetting in your 
+     build (32 bit oyr 64 bit).
+     The <MATLAB root directory> is the root directory of
      your MATLAB installation. It should contain for instance the
      'bin' directory with the matlab and mex executables (or
      symbolic links to them) and an 'extern/include' subdirectory
@@ -368,32 +500,6 @@ the IDL and MATLAB interfaces) on a Linux-based platform:
      the MATLAB documentation for details on how to do this --
      basically: run "mex -setup").
 
-    -DINSTALL_BUILDER_DIR=<InstallBuilder executable directory>
-
-     Only required if you intend to build a binary installer.
-     This will tell CMake where the InstallBuilder executable us
-     located.
-
-     You should now call CMake with the options that are
-     appropriate for you. For instance, if you want to install
-     BRAT in the default location (/usr/local/brat) and if you want to
-     build the IDL interface (but not the MATLAB interface) with
-     IDL installed in /usr/local/rsi/idl then your invocation of
-     CMake could be:
-
-      $ cmake \
-          -DCMAKE_BUILD_TYPE=Release \
-          -DBRAT_BUILD_GUI=ON \
-          -DBRATHL_BUILD_IDL=ON \
-          -DIDL_DIR=/usr/local/rsi/idl \
-          -DwxWidgets_CONFIG_EXECUTABLE=/usr/local/wxWidgets/bin/wx-config \
-          -DVTK_DIR=/usr/local/VTK \
-          <path to brat-x.y.z unpacked source directory>
-
-     Note that CMake should always be invoked from within your
-     build directory, with as a final argument the location of
-     the source directory.
-
   + If CMake completes successfully, you are now able to build
     the library by executing the `make' command:
 
@@ -403,6 +509,8 @@ the IDL and MATLAB interfaces) on a Linux-based platform:
     the package (this installation step is not optional! You will
     have to install BRAT before you can use it).
 
+
+ 
 
 Installing the source package (Linux)
 -------------------------------------
@@ -441,81 +549,216 @@ contains the lines:
 application).
 
 
+
 Building the prerequisites (Windows)
 ------------------------------------
 
 + VTK
 
-As per the instructions for Linux (see above): because VTK uses
-the cross-platform CMake, it can be built and installed the same
-way.
+Unpack the VTK sources. Either copy the vtk-patch directory content
+over the extracted sources, as explained above, or do the following 
+changes:
 
-However, unlike on Linux, on Windows the following flags
-have to be added:
+1. In \Common\vtkOStreamWrapper.cxx, delete or comment out the line 
 
-    -DVTK_USE_ANSI_STDLIB:BOOL=ON
-    -D_HAS_ITERATOR_DEBUGGING:BOOL=OFF 
-    -D_SECURE_SCL:BOOL=OFF
+	VTKOSTREAM_OPERATOR(ostream&);
 
-to the CMake invocation.  And also be sure to copy the CMakeListsVtkIO.txt
-to the IO subdirectory in VTK, to replace the original CMakeLists.txt:
+2. In \Common\vtkSystemIncludes.h add the lines
 
-    copy CMakeListsVtkIO.txt <path to VTK source>\IO\CMakeLists.txt
+	#include <algorithm>
+	#include <functional>
+
+3. At the top of the file \IO\CMakeLists.txt, add the lines
+
+	IF(WIN32)
+		remove_definitions(/D _HAS_ITERATOR_DEBUGGING=0)
+		remove_definitions(/D _SECURE_SCL=0)
+	ENDIF(WIN32)
+
+4. At the end of the file \IO\vtkEnSightGoldBinaryReader.cxx 
+	(starting near the line 3807), replace all occurrences of
+	
+	if (this->IFile->read( ... ) == 0)
+
+	by 
+
+	if (!this->IFile->read( ... ))
+
+5. In the file \Rendering\vtkGenericVertexAttributeMapping.cxx,
+	make changes in the body of the member function AddMapping (of 
+	the class vtkGenericVertexAttributeMapping) such that
+	
+	a) the declaration
+
+		vtksys_ios::ostringstream attributeName;
+
+	becomes 
+
+		std::ostringstream attributeName;
+
+	b) the line 
+
+		vtkWarningMacro("Replacing existsing mapping for attribute " 
+			<< attributeName);
+
+	becomes
+
+		vtkWarningMacro("Replacing existsing mapping for attribute "
+			<< attributeName.str().c_str());
+
+
+6. In the file \Rendering\vtkMapArrayValues.cxx, replace the use 
+	of the vtkstd namespace constructs by the respective standard C++ 
+	ones. This implies 
+
+	a) replacing the inclusion of the two headers 
+
+		#include <vtkstd/map>
+		#include <vtkstd/utility>
+
+	by the standard ones
+
+		#include <map>
+		#include <utility>
+
+	b) replacing all identifiers qualified as vtkstd::... (for 
+		instance, vtkstd::map) by the standard C++ identifiers (for 
+		instance, std::map).
+
+	c) delete the line 37
+
+		vtkCxxRevisionMacro(vtkMapArrayValues, "$Revision: 1.2 $");
+
+7. In the file \Utilities\vtktiff\tif_config.h.in, enclose 
+	the section defining "inline" (between the lines 241 and 246)
+	in pre-processor guards that restrict it to Windows, so that it 
+	becomes like:
+
+	#if defined(_WIN32) || defined (WIN32)
+	/* Define to `__inline__' or `__inline' if that's what the C compiler
+		calls it, or to nothing if 'inline' is not supported under any name.  */
+	#ifndef __cplusplus
+	#define inline
+	//#cmakedefine inline
+	#endif
+	#endif
+
+
+Then, create a build directory, open a Visual Studio console
+("x86 Native Tools Command Prompt" or "x64 Native Tools 
+Command Prompt" for 32 or 64 bit respectively), cd into the 
+build directory and call CMake like this:
+
+	> cmake -G "NMake Makefiles" \
+	-DCMAKE_CXX_FLAGS="/EHsc /DWIN32=1" \
+	-DCMAKE_INSTALL_PREFIX:PATH=<vtk-install-path> \
+	-DBUILD_TESTING:BOOL=OFF \
+	-DCMAKE_BUILD_TYPE:STRING=%CONFIGURATION% \
+	-DBUILD_SHARED_LIBS:BOOL=OFF \
+	-DVTK_WRAP_PYTHON:BOOL=OFF \
+	-DVTK_WRAP_TCL:BOOL=OFF \
+	-DVTK_USE_TK:BOOL=OFF \
+	-DVTK_USE_ANSI_STDLIB:BOOL=ON \
+	-D_HAS_ITERATOR_DEBUGGING:BOOL=OFF \
+	-D_SECURE_SCL:BOOL=OFF \
+	<vtk-source-path>
+
+Replace %CONFIGURATION% as in Linux, with the same provisos. 
+When CMake finishes generating the makefiles, call 
+
+\> nmake 
+
+and
+
+\> nmake install
 
 
 + WxWidgets
 
-On Windows, use the wxMSW distribution. Follow the instructions
-in the the INSTALL file for that packages, and compile and
-install. Options are specified in a different way for wxMSW then
-for wxWidgets on Linux. So when using 'nmake' for instance, the
-relevant compilation step would be to descend into
-wxMSW-x.y.z\build\msw and run:
+Unpack wxWidgets-3.0.2.7z, open a VS console as explained for VTK and
+cd to the sub-directory \build\msw of the wxWidgets sources root. Then
+enter
 
-    > nmake -f makefile.vc BUILD=release USE_OPENGL=1
+	nmake -f makefile.vc BUILD=%WX_BUILD_NAME% UNICODE=1 USE_OPENGL=1
 
-Make sure to check the wxMSW instructions to verify no other
-compilation parameters have to be supplies (in particular,
-UNICODE should be 0, which in MSW 2.8.9 is the default on
-Windows).
+Replace %WX_BUILD_NAME% by debug or release, according to the type 
+of build you intend (with or without debug information, respectively).
+If you are building a 64 bit version, add TARGET_CPU=amd64 to the
+command line arguments.
+
 
 
 Building the source package (Windows)
 -------------------------------------
 
 As CMake is a cross-platform tool, building BRAT on Windows is
-fairly similar to building it on Linux. Follow the guidelines in
-the previous section to configure the build process.
+similar to building it on Linux. Except in the cases explicitly 
+detailed in this section, which are Windows specific, you can 
+refer to the Linux section about building BRAT for an explanation 
+of the meaning of the remaining options.
 
-The differences are:
+Create a build directory and cd into it from a Visual Studio 2013 
+console, like you have done when building VTK for Windows. 
+Then invoke CMake as in the following example, making the 
+appropriate replacements as explained in the rest of the section:
 
-+ Use a 'cmd' command-line window to execute the various
-  commands.
+cmake -G "NMake Makefiles" \
+	-DBRAT_TARGET_PROCESSOR=%ARCHITECTURE% \
+	-DCMAKE_INSTALL_PREFIX:PATH=<BRAT installation directory> \
+    -DCMAKE_BUILD_TYPE:STRING=%BUILD_TYPE% \
+    -DBRAT_BUILD_GUI=ON \
+	-DBUILD_TESTING:BOOL=OFF \
+    -DwxWidgets_ROOT_DIR=<wxWidgets source directoy> \
+    -DVTK_DIR=<VTK root directory>/lib/vtk-5.6 \
+    -DINSTALL_BUILDER_DIR=<InstallBuilder executable directory> \
+    %MATLAB_OPTIONS% \
+    %HDF5_OPTIONS% \
+    %NETCDF_OPTIONS% \
+	<path to brat-x.y.z unpacked source directory>
 
-+ On Windows, the default install location is C:/Program
-  Files/brat-x.y.z/. Again, you can use the CMAKE_INSTALL_PREFIX
-  to overrule this.
+
+	Replace %ARCHITECTURE% in the example by Win32 (for 32 bit 
+    builds) or by x64 (for 64 bit builds). When building for the 64
+	bit architecture add also -DTARGET_CPU=amd64 to the list of 
+    options shown in the example.
+
+	-DCMAKE_INSTALL_PREFIX=<BRAT installation directory>
+    -DCMAKE_BUILD_TYPE=$CONFIGURATION 
+    -DBRAT_BUILD_GUI=ON
+	-DBUILD_TESTING:BOOL=OFF
+
+	For the meaning of these options refer to the section 
+    about building BRAT for Linux.
+
+    -DwxWidgets_ROOT_DIR=<wxWidgets source directoy>
+
+	In this case there is an important difference in comparison 
+    with Linux build: instead of passing the location of the 
+    wx-config utility to CMake in the wxWidgets_CONFIG_EXECUTABLE 
+    variable, you should use the wxWidgets_ROOT_DIR variable 
+    taking as value the directory where are the sources you used 
+    to build wxWidgets, as suggested in the example.
+
+    -DVTK_DIR=<VTK root directory>/lib/vtk-5.6
+    -DINSTALL_BUILDER_DIR=<InstallBuilder executable directory>
+
+	For the meaning of these options refer to section 
+    about building BRAT for Linux.
+
+    Replace %MATLAB_OPTIONS% in the example by the variables
+    described in the Linux section about building the MATLAB 
+    interface. Additionally, use the -DMEXEXT:STRING=mexw64 
+    option when building a 64 bit interface or 
+    -DMEXEXT:STRING=mexw32 when building a 32 bit interface.
+
+	Replace %HDF5_OPTIONS% and %NETCDF_OPTIONS% in the example 
+    by the variables and values described in the Linux section 
+    related with the HDF5 and NetCDF options, respectively.
 
 + Instead of 'make', the Visual Studio C++ build utility 'nmake'
   is necessary. So the build and installation commands become
-  'nmake' and 'nmake install' respectively. This requires nmake
-  to be in your executable path. Consult the Visual Studio
-  documentation for info on how to do this.
+  'nmake' and 'nmake install' respectively.
 
-+ In addition, you should also pass the flag:
-
-    -G "NMake Makefiles"
-
-  to your CMake invocation, in order to tell CMake to generate
-  'nmake'-compatible Makefiles.
-
-+ Instead of passing the location of the wx-config utility to
-  CMake in the wxWidgets_CONFIG_EXECUTABLE variable, use:
-
-    -DwxWidgets_ROOT_DIR=<wxwidgets root directory>
-
-   where <wxwidgets root directory> is the root directory of your
-   wxMSW installation.
 
 
 Installing the source package (Windows)
@@ -545,67 +788,148 @@ Installing the source package (Windows)
 Building the prerequisites (Mac OS)
 -----------------------------------
 
-Building on the Mac OS and Linux is similar, but Mac OS requires
-some platform-specific options in certain places.
-
 + VTK
 
-As for Linux, but invoke CMake as follows:
+Unpack the VTK sources. Either copy the vtk-patch directory content
+over the extracted sources, as explained above, or do the following 
+changes:
 
-    $ cmake -DCMAKE_INSTALL_PREFIX:PATH=<vtk-install-path> \
-        -DBUILD_TESTING:BOOL=OFF \
-        -DCMAKE_BUILD_TYPE:STRING=Release \
-        -DBUILD_SHARED_LIBS:BOOL=OFF \
-        -DVTK_WRAP_PYTHON:BOOL=OFF \
-        -DVTK_WRAP_TCL:BOOL=OFF \
-        -DVTK_USE_TK:BOOL=OFF \
-        -DVTK_USE_CARBON:BOOL=ON \
-        -DVTK_USE_COCOA:BOOL=OFF \
-        -DCMAKE_OSX_SYSROOT=/Developer/SDKs/MacOSX10.4u.sdk \
-        -DCMAKE_CXX_FLAGS:STRING='-mmacosx-version-min=10.4' \
-        -DCMAKE_C_FLAGS:STRING='-mmacosx-version-min=10.4' \
-        <vtk-source-path>
+  - in the files <vtk-source-path>/Charts/vtkPlotBar.cxx and 
+    <vtk-source-path>/Charts/vtkPlotLine.cxx, place the definition 
+    of the template function CopyToPointsSwitch after the 
+    definitions of the two overloads of CopyToPoints, which in the 
+    original sources are just below CopyToPointsSwitch. 
+
+  - delete or comment out the section in 
+    <vtk-source-path>/CMakeLists.txt that inserts the 
+    -fobjc-gc flag in the build settings:
+
+	#  IF(OSX_SDK_VERSION)
+	#    IF(${OSX_SDK_VERSION} VERSION_GREATER "10.4")
+	#      SET(VTK_OBJCXX_FLAGS_DEFAULT "-fobjc-gc")
+	#    ENDIF(${OSX_SDK_VERSION} VERSION_GREATER "10.4")
+	#  ENDIF(OSX_SDK_VERSION)
+
+	
+Then, create a build directory, cd into it and call CMake with the 
+following flags (building on the Mac OS and Linux is similar, but 
+Mac OS requires some platform-specific options):
+
+  $ cmake \
+	-DCMAKE_INSTALL_PREFIX:PATH=<vtk-install-path> \		
+	-DBUILD_TESTING:BOOL=OFF \
+	-DCMAKE_CXX_FLAGS:STRING="$arch_flags" \
+	-DCMAKE_C_FLAGS:STRING="$arch_flags" \
+	-DCMAKE_EXE_LINKER_FLAGS:STRING="$arch_flags" \
+	-DCMAKE_BUILD_TYPE:STRING=$CONFIGURATION \
+	-DBUILD_SHARED_LIBS:BOOL=OFF \
+	-DVTK_WRAP_PYTHON:BOOL=OFF \
+	-DVTK_WRAP_TCL:BOOL=OFF \
+	-DVTK_USE_TK:BOOL=OFF \
+	-DVTK_USE_ANSI_STDLIB:BOOL=ON \
+	-DVTK_USE_CARBON:BOOL=OFF \
+	-DVTK_USE_COCOA:BOOL=ON \
+	-DCMAKE_OSX_SYSROOT=/SDKs/MacOSX10.6.sdk \
+	<vtk-source-path>
+
+Replace "$arch_flags" by 
+
+"-arch i386 -mmacosx-version-min=10.6 -fvisibility=hidden"
+
+if you are building for a 32 bit architecture and by 
+
+"-arch x86_64 -mmacosx-version-min=10.6 -fvisibility=hidden"
+
+if you are building for a 64 bit architecture. Replace 
+$CONFIGURATION as in Linux, with the same provisos. You will
+also need to replace /SDKs/MacOSX10.6.sdk by the location of 
+your Mac OS X SDK 10.6, if installed elsewhere.
 
 
 + WxWidgets
 
-The process is similar to that for Linux, but with the following
-additions:
+Unpack wxWidgets-3.0.2.tar.bz2 and, in the file 
 
-If you are building on a PowerPC architecture, you will have to
-apply a patch to wxWidgets. After unzipping the wxWidgets source
-package edit the file src/mac/corefoundation/utilsexc_cf.cpp and
-change line 34 to '#define USE_POLLING 1' (i.e. in both cases we
-need to have USE_POLLING set to 1).
+	<wxWidgets-source-path>\src\osx\webview_webkit.mm 
 
-For both Intel and PowerPC the configure script for wxWidgets
-should be invoked as follows:
+replace 
 
-    $ <wxwidgets-source-path>/configure \
-        --prefix=<wxwidgets-install-path> \
-        --enable-monolithic \
-        --disable-shared \
-        --disable-unicode \
-        --with-opengl \
-        --enable-geometry \
-        --enable-display \
-        --with-expat=builtin \
-        --with-libpng=builtin \
-        --with-libjpeg=builtin \
-        --with-libtiff=builtin \
-        --with-mac \
-        --with-macosx-sdk=/Developer/SDKs/MacOSX10.4u.sdk \
-        --with-macosx-version-min=10.4
+	#include <WebKit/WebKit.h>
+
+by
+
+	#if __MAC_OS_X_VERSION_MAX_ALLOWED >= 101000
+	#include <WebKit/WebKitLegacy.h>            
+	#else                                       
+	#include <WebKit/WebKit.h>
+	#endif                                      
+
+(For an explanation of this correction, see 
+http://trac.wxwidgets.org/ticket/16329)
+
+Then, create a build directory, cd into it and call the 
+configure script with the following flags:
+
+  $ ../configure \
+	--prefix=<wxwidgets-install-path> \
+	--enable-debug \
+	--enable-monolithic \
+	--disable-shared \
+	--disable-unicode \
+	--enable-geometry \
+	--enable-display \
+	--with-expat=builtin \
+	--with-libpng=builtin \
+	--with-libjpeg=builtin \
+	--with-libtiff=builtin \
+	--with-opengl \
+	CFLAGS="$arch_flags" \
+	CXXFLAGS="$arch_flags" \ 
+	CPPFLAGS="$arch_flags" \
+	LDFLAGS="$arch_flags" \
+	OBJCFLAGS="$arch_flags" \
+	OBJCXXFLAGS="$arch_flags"
+
+If you are building for a 32 bit architecture:
+  - replace "$arch_flags" by 
+		"-arch i386 -mmacosx-version-min=10.5 -fvisibility=hidden"
+  - add the following flags:
+		" --with-macosx-sdk=/SDKs/MacOSX10.6.sdk --with-macosx-version-min=10.5 --with-osx_cocoa"
+
+if you are building for a 64 bit architecture:
+  - replace "$arch_flags" by 
+		"-arch x86_64 -fvisibility=hidden"
+  - add the following flags:
+		"--host=x86_64-apple-darwin --build=x86_64-apple-darwin"
+
+Remove the flag --enable-debug if you are building a release 
+version. You will also need to replace /SDKs/MacOSX10.6.sdk by 
+the location of your Mac OS X SDK 10.6, if installed elsewhere.
+
 
 
 Building the source package (Mac OS)
 ------------------------------------
 
-As for Linux, but to your CMake invocation add the following flags:
+As for Linux, with the following differences:
 
-    -DCMAKE_OSX_SYSROOT:STRING=/Developer/SDKs/MacOSX10.4u.sdk \
-    -DCMAKE_CXX_FLAGS:STRING='-mmacosx-version-min=10.4' \
-    -DCMAKE_C_FLAGS:STRING='-mmacosx-version-min=10.4' \
+- for 32 bit builds:
+
+	1. replace "arch_flags" in the Linux example by 
+     
+     "-arch i386 -mmacosx-version-min=10.5 -fvisibility=hidden"
+
+	2. Add the option -DCMAKE_OSX_SYSROOT=/SDKs/MacOSX10.6.sdk,
+		replacing /SDKs/MacOSX10.6.sdk by the location of your
+		Mac OS X 10.6 SDK if installed in a different location.
+
+
+- for 64 bit builds:
+
+	1. simply replace "arch_flags" in the Linux example by:
+
+	"-arch x86_64 -mmacosx-version-min=10.5 -fvisibility=hidden"
+
 
 
 Installing the source package (Mac OS)
@@ -617,18 +941,9 @@ file) for Mac OS, run the command:
     $ make bdist
 
 which will generate the appropriate image file for the platform
-(PowerPC or Intel) the compilation is being run on.
+(32 bit or 64 bit) the compilation was configured to target.
 
 
-64-bit support
---------------
-
-The BRAT applications have been successfully compiled and run on
-64-bit Linux platforms, but 64-bit architectures are not
-officially supported in this release and have not been
-extensively tested. In particular, the compilation of the MATLAB
-and IDL interfaces on 64-bit machines has not been attempted. We
-welcome feedback from users concerning their experiences.
 
 
 Documentation
@@ -642,7 +957,7 @@ regenerated by running the command:
 
 This requires additional software to be installed: the Doxygen
 documentation generation system (http://www.doxygen.org/), the
-GraphViz graph visualisation system (http://www.graphviz.org/),
+GraphViz graph visualization system (http://www.graphviz.org/),
 and the LaTeX typesetting system (the TeXLive distribution from
 http://www.tug.org/texlive/ works well).
 
@@ -653,14 +968,14 @@ installed without special configurations.
 Examples
 --------
 
-There are examples for the C and Fortran Library and the IDL and
+There are examples for the C, Fortran, Python, IDL and
 MATLAB interfaces included with both the source and binary
 packages of BRAT. For the source package they can be found both
 in the unpacked source package in libbrathl/brathl_c,
-libbrathl/fortran, libbrathl/brathl_idl, and
-libbrathl/brat_matlab. Under the BRAT installation directory they
-are in the top-level subdirectory examples/ (brat/examples on Mac
-OS X).
+libbrathl/fortran, libbrathl/brathl_python, libbrathl/brathl_idl, 
+and libbrathl/brat_matlab. Under the BRAT installation directory 
+they are in the top-level subdirectory examples/ (brat/examples 
+on Mac OS X).
 
 
 Feedback
@@ -687,18 +1002,23 @@ knowledge is also to look at how e.g. the Brat Console
 Applications themselves are written (and compiled).
 
 
+For BRAT the delivered libraries have been build with Visual C++
+13.0 on Windows, g++ 4.7.x on Linux and clang 6.x on Mac OS X.
+If necessary, suplement the instructions given below taking 
+as reference the appropriate flags and options used to build BRAT.
+
+
 On Linux
 --------
 
 Compile your C++ source files with the "-I<BRAT installation
 directory>/include" option where '<BRAT installation directory>'
 is the CMAKE_INSTALL_PREFIX base directory where you installed
-BRAT. Make sure to include an appropriate STL flag (such as
--DSTL_USING_ALL -- see the file include/Stl.h for more details).
+BRAT.
 
 Link your programs with the option "-L<BRAT installation
 directory>/lib". Add a "-l<library>" for each needed BRAT library
-(brathl, netcdf, udunits, or coda).
+(for instance, brathl, netcdf, hdf5, udunits, or coda).
 
 
 On Windows
@@ -708,9 +1028,6 @@ Compiling and linking under windows is a bit more complicated
 because compilers and windows don't allow mixing objects and
 libraries built different way.
 
-For BRAT the delivered libraries have been build with Visual C++
-10.0 (for C and C++) on Windows, and g++ 4.x on Linux and Mac OS.
-
 Again, a good source of information is the BRAT source build
 itself, and tracing the compiler and linking options generated by
 nmake to build the BRAT components.
@@ -719,7 +1036,11 @@ If you want to compile within the Visual Studio IDE you have to
 set the appropriate options (look at VS user manual).
 Specifically, you must invoke CMake with:
 
-   -G "Visual Studio 10"
+  -G "Visual Studio 12 2013" (32 bit builds)
+
+  or 
+  
+  -G "Visual Studio 12 2013 Win64" (64 bit builds)
 
 which will generate a BRAT.sln project file you can open in the
 IDE.
@@ -729,4 +1050,6 @@ On Mac OS X
 -----------
 
 As for Linux, but may require the specification of some
-Mac-specific compiler and linker options.
+Mac-specific compiler and linker options. Again, take as 
+reference the flags used when building BRAT itself for 
+Mac OS X.

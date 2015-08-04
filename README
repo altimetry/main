@@ -1,34 +1,70 @@
-===========================================
+== == == == == == == == == == == == == == == == == == == == == =
 BRAT - Basic Radar Altimetry Toolbox README
-===========================================
+== == == == == == == == == == == == == == == == == == == == == =
 
 
 
 Overview
-========
+== == == ==
 
-The Basic Radar Altimetry Toolbox (BRAT) is a collection of tools
+The Basic Radar Altimetry Toolbox( BRAT ) is a collection of tools
 and tutorial documents designed to facilitate the processing of
-radar altimetry data. BRAT is able to handle most distributed
+radar altimetry data.BRAT is able to handle most distributed
 radar altimetry data formats, providing support for ingesting,
-processing, editing (to a certain extent), generating statistics,
+processing, editing( to a certain extent ), generating statistics,
 visualising and exporting the results.
 
 A full user manual for BRAT is available in the file
-brat_user_manual_3.1.0.pdf in the 'doc' directory of the BRAT
-distribution or installation. The user manual contains all the
+brat_user_manual.pdf in the 'doc' directory of the BRAT
+distribution or installation.The user manual contains all the
 necessary information about installing and running BRAT.
 
 This README file contains the version history for BRAT, a list of
-known issues, and any other last-minute added or updated
-information that can not (yet) be found in the user manual. In
+known issues, and any other last - minute added or updated
+information that can not( yet ) be found in the user manual.In
 the case of conflicting information, this README file is
 authoritative.
 
 
 
 Version History
-===============
+== == == == == == == =
+3.3.0 - August 2015
+--------------------
+  - Update to NetCDF version 4.3.3.1.
+  - Inclusion of new libraries, in integration with NetCDF 4 and CODA 2.13,
+    and deployed as well along with BRAT, including their respective tools:
+    - HDF5 version 1.8.15,
+    - curl version 7.43 ( only in Windows ),
+    - SZip version 2.1.
+  - Extensions of BRATHL code to process NetCDF 4 and HDF 5, including new
+    NetCDF data types.
+  - Creation of a brathl dynamic module (brathl_module) that encapsulates 
+    all BRATHL functionality enabling (autonomous) load by, and interface with, 
+	Python.
+  - New Python API to the BRATHL library, with usage examples.
+  - Port to 64 bit of BRAT and all its dependencies, including
+    - VTK 5.6.0 adjustments to enable 64 bit,
+    - port to 64 bit of the BRATHL library,
+    - port to 64 bit of the BRAT command line tools,
+    - port to 64 bit of the BRAT GUI applications.
+  - Updated wxWidgets to version 3.0.2.
+  - Replaced Carbon by Cocoa framework in MAC OS X related code and build settings.
+  - Updated BRAT GUI applications and libraries, with VTK support, as required 
+    by new wxWidgets version.
+
+3.2.0 - June 2015
+------------------
+Transitional release, preparing version 3.3.0 and focused on
+  - update of build settings and source code to support current versions of
+    operating systems, compilers and build systems in all supported platforms 
+    (Windows, Linux, Mac OS X);
+  - update of build settings and source code to prepare the port to 64 bit
+    architectures;
+  - update to CODA version 2.13;
+  - update to BitRock InstallBuilder version 15.1.0;
+  - minor bug corrections.
+
 3.1.0 - March 2012
 ------------------
   - Add an "aliases" capability, that enables users to use the same names for
@@ -202,4 +238,4 @@ tutorial, including use cases go to:
 
 http://earth.esa.int/brat/ or http://www.altimetry.info/
 
-BRAT has been developed under contract with ESA and CNES.
+BRAT has been developed under contract with ESA.
