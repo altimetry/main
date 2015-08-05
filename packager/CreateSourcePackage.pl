@@ -32,6 +32,7 @@ my @SourceDirs = qw(
 		packager
 		process
 		scheduler
+                vtk-patch
         vtkzlib
         vtkjpeg
         vtktiff
@@ -65,9 +66,12 @@ my @GarbageFiles	= (
 		'.*\.backup',
 		'.#.*',
         '.*~',
+        'hdf5',
+        'curl',
+        'SZip',
         'proj',
         'libgeotiff',
-		'netcdf',
+                'netcdf-c',
 		'udunits',
 		'coda',
 		'[^-A-Z.0-9_]');

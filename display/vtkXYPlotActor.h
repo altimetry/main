@@ -6,7 +6,7 @@
   Date:      -
   Version:   S&T
 
-    *** THIS FILE WAS MODIFIED BY Collecte Localisation Satellites (CLS) ***
+    *** THIS FILE WAS MODIFIED  ***
     *** THIS FILE WAS MODIFIED BY SCIENCE & TECHNOLOGY BV ***
 
   Copyright (c) 1993-2002 Ken Martin, Will Schroeder, Bill Lorensen

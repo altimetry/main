@@ -3,7 +3,7 @@ This file is part of the argtable2 library.
 Copyright (C) 1998-2001,2003-2008 Stewart Heitmann
 sheitmann@users.sourceforge.net
 
-  *** THIS FILE WAS MODIFIED BY Collecte Localisation Satellites (CLS) ***
+  *** THIS FILE WAS MODIFIED  ***
 
 The argtable2 library is free software; you can redistribute it and/or
 modify it under the terms of the GNU Library General Public License as

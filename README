@@ -7,11 +7,11 @@ BRAT - Basic Radar Altimetry Toolbox README
 Overview
 == == == ==
 
-The Basic Radar Altimetry Toolbox( BRAT ) is a collection of tools
+The Basic Radar Altimetry Toolbox (BRAT) is a collection of tools
 and tutorial documents designed to facilitate the processing of
-radar altimetry data.BRAT is able to handle most distributed
+radar altimetry data. BRAT is able to handle most distributed
 radar altimetry data formats, providing support for ingesting,
-processing, editing( to a certain extent ), generating statistics,
+processing, editing (to a certain extent), generating statistics,
 visualising and exporting the results.
 
 A full user manual for BRAT is available in the file
@@ -33,16 +33,16 @@ Version History
 --------------------
   - Update to NetCDF version 4.3.3.1.
   - Inclusion of new libraries, in integration with NetCDF 4 and CODA 2.13,
-    and deployed as well along with BRAT, including their respective tools:
+    deployed along with BRAT with their respective tools:
     - HDF5 version 1.8.15,
     - curl version 7.43 ( only in Windows ),
     - SZip version 2.1.
   - Extensions of BRATHL code to process NetCDF 4 and HDF 5, including new
     NetCDF data types.
-  - Creation of a brathl dynamic module (brathl_module) that encapsulates 
-    all BRATHL functionality enabling (autonomous) load by, and interface with, 
-	Python.
-  - New Python API to the BRATHL library, with usage examples.
+  - Creation of a brathl dynamic module (brathl_module) encapsulating 
+    all BRATHL functionality to enable (autonomous) load and interface 
+	with Python.
+  - New Python API to the BRATHL library, with examples.
   - Port to 64 bit of BRAT and all its dependencies, including
     - VTK 5.6.0 adjustments to enable 64 bit,
     - port to 64 bit of the BRATHL library,

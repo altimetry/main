@@ -1,6 +1,6 @@
 /////////////////////////////////////////////////////////////////////////////
 /*
-* Copyright (C) 2005 Collecte Localisation Satellites (CLS), France (31)
+* 
 *
 * This file is part of BRAT 
 *

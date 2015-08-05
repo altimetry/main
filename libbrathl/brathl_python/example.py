@@ -61,7 +61,7 @@ def main():
 
     # EXAMPLE: brathl_DayOfYear
     print ('\nRunning function: brathl_DayOfYear...')
-    d = brathl_DateYMDHMSM (2009, 12, 1, 12, 25, 5, 0)
+    d = brathl_DateYMDHMSM (2009, 2, 1, 12, 25, 5, 0)
 
     dayOfYear = brathl_DayOfYear (d)
     print ("The day of Year is: ", dayOfYear)   # should be: 32

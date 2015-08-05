@@ -1,5 +1,5 @@
 /*
-* Copyright (C) 2005-2010 Collecte Localisation Satellites (CLS), France (31)
+* 
 *
 * This file is part of BRAT
 *
@@ -151,7 +151,7 @@ void CSchedulerFrame::OnUserManual( wxCommandEvent &event )
 //----------------------------------------
 void CSchedulerFrame::OnAbout( wxCommandEvent &event )
 {
-  wxMessageDialog dialog( this, wxT("Welcome to BRAT ") wxT(BRAT_VERSION) wxT("\n(C)opyright CLS/CNES/ESA"),
+  wxMessageDialog dialog( this, wxT("Welcome to BRAT ") wxT(BRAT_VERSION) wxT("\n(C)opyright ESA"),
       wxT("About BRAT"), wxOK|wxICON_INFORMATION );
   dialog.ShowModal();    
 }
