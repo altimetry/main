@@ -1,4 +1,4 @@
-#!/usr/bin/python -tt
+﻿#!/usr/bin/python -tt
 #==============================================================================
 #                              <brathl.py>
 #==============================================================================
@@ -32,7 +32,7 @@ _OS = platform.system()
 if _OS == 'Linux':
     brathl_lib = os.path.dirname(os.path.realpath(__file__)) + "/brathl_module"
 elif _OS == 'Windows':
-    brathl_lib = os.path.dirname(os.path.realpath(__file__)) + "/brathl_module"
+    brathl_lib = "brathl_module"
 elif _OS == "Darwin":  # Mac OS X
     brathl_lib = os.path.dirname(os.path.realpath(__file__)) + "/brathl_module"
 else:

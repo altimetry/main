@@ -1408,7 +1408,12 @@ bool CFormula::LoadConfig(wxFileConfig* config, const wxString& pathSuff)
     config->Read(ENTRY_MINVALUE, &m_minValue, CTools::m_defaultValueDOUBLE);
     config->Read(ENTRY_MAXVALUE, &m_maxValue, CTools::m_defaultValueDOUBLE);
   }
-  config->Read(ENTRY_INTERVAL, &m_interval, CTools::m_defaultValueINT32);
+  
+  // 3.3.1 note: wxWidgets asserts if value >= INT_MAX, but CTools::m_defaultValueINT32 is INT_MAX, so,
+  // if value is not read and the default is used, we have a failed assertion. This was not changed, to
+  // avoid unknown implications.
+
+  config->Read(ENTRY_INTERVAL, &m_interval, CTools::m_defaultValueINT32);		
   m_step = config->Read(ENTRY_STEP, DEFAULT_STEP_GENERAL_ASSTRING);
   if (m_step.IsEmpty())
   {

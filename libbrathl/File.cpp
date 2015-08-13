@@ -319,190 +319,190 @@ int32_t CFile::ReadLineData(char *lineRead, uint32_t size )
 
 
 //----------------------------------------
-int32_t CFile::ReadLine(char *lineRead, uint32_t size )
+int32_t CFile::ReadLine( char *lineRead, uint32_t size )
 {
-  //char line[CFile::m_maxBufferToRead];
-  char * line = NULL;
-  char * buff = new char[CFile::m_maxBufferToRead];
-  char *current = NULL;
-  uint32_t bytesRead = 0;
-  char * last = NULL;
-  uint32_t lenToCopy = 0;
+	//char line[CFile::m_maxBufferToRead];
+	char * line = NULL;
+	char * buff = new char[ CFile::m_maxBufferToRead ];
+	char *current = NULL;
+	uint32_t bytesRead = 0;
+	char * last = NULL;
+	uint32_t lenToCopy = 0;
 
-  // if start of file (first read) then delete and reallocate m_buffer member
+	// if start of file (first read) then delete and reallocate m_buffer member
 
-  do
-  {
-
-    if (m_buffer != NULL)
-    {
-      memset(buff, '\0', CFile::m_maxBufferToRead);
-      strcpy(buff, m_buffer);
-      delete []m_buffer;
-      m_buffer = NULL;
-
-      bytesRead = strlen(buff);
-
-      //printf("bytesRead from m_buffer %d buff %s\n", bytesRead, buff);
-    }
-    else
-    {
-      memset(buff, '\0', CFile::m_maxBufferToRead);
-      bytesRead = ReadToBuffer(buff, CFile::m_maxBufferToRead - 1);
-      //printf("bytesRead %d buff %s\n", bytesRead, buff);
-
-    }
-
-    if (bytesRead == 0)
-    {
-      //---------------------------------
-      break;  // exit do - End of file
-      //---------------------------------
-    }
-
-    last = (buff + strlen(buff) - 1);
-
-    current = strpbrk((buff), "\r\n");
-
-    if (current == NULL)
-    {
-    // Get buffer and read next
-      char * linePrev = line;
-      if (linePrev != NULL)
-      {
-      	line = new char[strlen(linePrev) + strlen(buff) + 1];
-	strcpy(line, linePrev);
-	strcat(line, buff);
-
-	delete []linePrev;
-	linePrev = NULL;
-      }
-      else
-      {
-      	line = new char[strlen(buff)+1];
-      	strcpy(line, buff);
-      }
-
-    }
-    else  //(current != NULL)
-    {
-      if (*current == '\r')
-      {
-	*current = '\0';
-	// if current is the last character :
-	// - read next character
-	// - if next is not '\n', skip it
-	if (current == last)
-  	{
-	  char c1[1];
-          int32_t nRead = ReadToBuffer(c1, 1);
-
-      	  //printf(" 2nd - bytesRead \n");
-
-	  if (nRead > 0)
-	  {
-	    if (*c1 != '\n')
-	    {
-	      SetPosition(-(nRead)); // rewind the nRead bytes read
-	    }
-	  }
-	}
-	else if (*(current + 1) == '\n') // (current != last), if the next character of current is '\n', skip it
+	do
 	{
-	  current++;
-	  *current = '\0';
-	}
-      }
-      else //(*current != '\r') ==> (*current == '\n')
-      {
-      	*current = '\0';
-      }
 
-      //Get buffer  from start to character before current.
-      lenToCopy = uint32_t(current - buff + 1);
+		if ( m_buffer != NULL )
+		{
+			memset( buff, '\0', CFile::m_maxBufferToRead );
+			strcpy( buff, m_buffer );
+			delete[]m_buffer;
+			m_buffer = NULL;
 
-      char * linePrev = line;
+			bytesRead = strlen( buff );
 
-      if (linePrev != NULL)
-      {
-      	line = new char[strlen(linePrev) + lenToCopy];
-	strcpy(line, linePrev);
-	strcat(line, buff);
+			//printf("bytesRead from m_buffer %d buff %s\n", bytesRead, buff);
+		}
+		else
+		{
+			memset( buff, '\0', CFile::m_maxBufferToRead );
+			bytesRead = ReadToBuffer( buff, CFile::m_maxBufferToRead - 1 );
+			//printf("bytesRead %d buff %s\n", bytesRead, buff);
 
-	delete []linePrev;
-	linePrev = NULL;
-      }
-      else
-      {
-      	line = new char[lenToCopy];
-      	strcpy(line, buff);
-      }
+		}
 
-      if (current != NULL)
-      {
-	if (current != last)
+		if ( bytesRead == 0 )
+		{
+			//---------------------------------
+			break;  // exit do - End of file
+			//---------------------------------
+		}
+
+		last = ( buff + strlen( buff ) - 1 );
+
+		current = strpbrk( ( buff ), "\r\n" );
+
+		if ( current == NULL )
+		{
+			// Get buffer and read next
+			char * linePrev = line;
+			if ( linePrev != NULL )
+			{
+				line = new char[ strlen( linePrev ) + strlen( buff ) + 1 ];
+				strcpy( line, linePrev );
+				strcat( line, buff );
+
+				delete[]linePrev;
+				linePrev = NULL;
+			}
+			else
+			{
+				line = new char[ strlen( buff ) + 1 ];
+				strcpy( line, buff );
+			}
+
+		}
+		else  //(current != NULL)
+		{
+			if ( *current == '\r' )
+			{
+				*current = '\0';
+				// if current is the last character :
+				// - read next character
+				// - if next is not '\n', skip it
+				if ( current == last )
+				{
+					char c1[ 1 ];
+					int32_t nRead = ReadToBuffer( c1, 1 );
+
+					//printf(" 2nd - bytesRead \n");
+
+					if ( nRead > 0 )
+					{
+						if ( *c1 != '\n' )
+						{
+							SetPosition( -( nRead ) ); // rewind the nRead bytes read
+						}
+					}
+				}
+				else if ( *( current + 1 ) == '\n' ) // (current != last), if the next character of current is '\n', skip it
+				{
+					current++;
+					*current = '\0';
+				}
+			}
+			else //(*current != '\r') ==> (*current == '\n')
+			{
+				*current = '\0';
+			}
+
+			//Get buffer  from start to character before current.
+			lenToCopy = uint32_t( current - buff + 1 );
+
+			char * linePrev = line;
+
+			if ( linePrev != NULL )
+			{
+				line = new char[ strlen( linePrev ) + lenToCopy ];
+				strcpy( line, linePrev );
+				strcat( line, buff );
+
+				delete[]linePrev;
+				linePrev = NULL;
+			}
+			else
+			{
+				line = new char[ lenToCopy ];
+				strcpy( line, buff );
+			}
+
+			if ( current != NULL )
+			{
+				if ( current != last )
+				{
+					current++;
+				}
+				else
+				{
+					current = NULL;
+				}
+
+			}
+
+			if ( current != NULL )
+			{
+				if ( m_buffer == NULL )
+				{
+					m_buffer = new char[ CFile::m_maxBufferToRead ];
+				}
+				lenToCopy = ( strlen( current ) > m_maxBufferToRead ? m_maxBufferToRead - 1 : strlen( current ) );
+				memset( m_buffer, '\0', CFile::m_maxBufferToRead );
+				strncpy( m_buffer, current, lenToCopy );
+
+			}
+
+
+			//---------------------------------
+			break; //a complete line is read
+			//---------------------------------
+
+		} //else (current != NULL)
+
+	} while ( bytesRead > 0 );
+
+
+	memset( lineRead, '\0', size );
+
+	if ( line == NULL )
 	{
-	  current++;
+		delete[]buff;
+		buff = NULL;
+		return -1;
 	}
-	else
+
+	//printf("Line read Start:%s:End\n", line);
+
+	lenToCopy = strlen( line );
+
+
+	if ( size <= lenToCopy )
 	{
-	  current = NULL;
+		cout << "CFile::ReadLine - line size " << lenToCopy << " - buffer size too small - line truncated";
 	}
 
-      }
+	size = strlen( line ) + 1;
+	strncpy( lineRead, line, lenToCopy );
 
-      if (current != NULL)
-      {
-	if (m_buffer == NULL)
-	{
-	  m_buffer = new char[CFile::m_maxBufferToRead];
-	}
-	lenToCopy = (strlen(current) > m_maxBufferToRead ? m_maxBufferToRead - 1 : strlen(current));
-	memset(m_buffer, '\0', CFile::m_maxBufferToRead);
-	strncpy(m_buffer, current, lenToCopy);
+	delete[]buff;
+	buff = NULL;
+	delete[]line;
+	line = NULL;
+	//  int32_t result = (int32_t(bytesRead) == 0 ?  -1 : int32_t(size));
+	//return result;
 
-      }
-
-
-    //---------------------------------
-    break; //a complete line is read
-    //---------------------------------
-
-    } //else (current != NULL)
-
-  } while (bytesRead > 0);
-
-
-  memset(lineRead, '\0', size);
-
-  if (line == NULL)
-  {
-    delete []buff;
-    buff = NULL;
-    return -1;
-  }
-
-  //printf("Line read Start:%s:End\n", line);
-
-  lenToCopy = strlen(line);
-
-
-  if (size <= lenToCopy)
-  {
-    cout << "CFile::ReadLine - line size " << lenToCopy << " - buffer size too small - line truncated";
-  }
-
-  size = strlen(line) + 1;
-  strncpy(lineRead, line, lenToCopy);
-
-  delete []buff;
-  buff = NULL;
-  delete []line;
-  line = NULL;
-  //  int32_t result = (int32_t(bytesRead) == 0 ?  -1 : int32_t(size));
-  //return result;
-
-  return size;
+	return size;
 
 }
 

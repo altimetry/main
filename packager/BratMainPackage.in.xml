@@ -1,200 +1,188 @@
 <project>
-  <shortName>brat</shortName>
-  <fullName>BRAT</fullName>
-  <version>@BRAT_VERSION@</version>
-  <installerFilename>@INSTALLER_FILENAME@</installerFilename>
-  <readmeFile>@PROJECT_SOURCE_DIR@/README</readmeFile>
-  <licenseFile>@PROJECT_SOURCE_DIR@/LICENSE</licenseFile>
-  <wrapLicenseFileText>1</wrapLicenseFileText>
-  <leftImage>@BRAT_SOURCE_DIR@/packager/InstallBanner.png</leftImage>
-  <logoImage>@BRAT_SOURCE_DIR@/packager/InstallLogo.png</logoImage>
-  <splashImage>@BRAT_SOURCE_DIR@/packager/InstallSplashScreen.png</splashImage>
-  <defaultLanguage>en</defaultLanguage>
-  <allowLanguageSelection>1</allowLanguageSelection>
-  <postInstallationScript></postInstallationScript>
-  <postInstallationScriptArguments></postInstallationScriptArguments>
-  <showPostInstallationScriptResult>0</showPostInstallationScriptResult>
-  <preUninstallationScript></preUninstallationScript>
-  <preUninstallationScriptArguments></preUninstallationScriptArguments>
-  <allowComponentSelection>1</allowComponentSelection>
-  <allowedLanguages></allowedLanguages>
-  <cdromDirectory>${product_shortname}-${product_version}-cdromimage</cdromDirectory>
-  <cdromPlatforms>linux windows</cdromPlatforms>
-  <defaultInstallationMode></defaultInstallationMode>
-  <defaultUnixDirectoryPermissions>755</defaultUnixDirectoryPermissions>
-  <defaultUnixFilePermissions>644</defaultUnixFilePermissions>
-  <description>Tools to manipulate, compute and view radar altimetry data</description>
-  <outputDirectory>@BRAT_BINARY_DIR@</outputDirectory>
-  <projectSchemaVersion>1.2</projectSchemaVersion>
-  <registerWithPackageDatabase>0</registerWithPackageDatabase>
-  <saveRelativePaths>1</saveRelativePaths>
-  <enableRollback>0</enableRollback>
-  <slideShowLoop>1</slideShowLoop>
-  <slideShowTiming>5</slideShowTiming>
-  <startMenuGroupName>${product_fullname}</startMenuGroupName>
-  <windows64bitMode>1</windows64bitMode>
-  <style>standard</style>
-  <summary>The Basic Radar Altimetry Toolbox is a set of programs and libraries used to read, manipulate, compute and view many radar altimetry data products from many different satellites: Ers, Jason, Envisat, Cryosat, etc...
-  A full API is provided for C++, as well as a more basic programming interface for the C, Fortran, IDL and Matlab languages</summary>
-  <uninstallerDirectory>${installdir}</uninstallerDirectory>
-  <uninstallerName>uninstall-${product_shortname}-${product_version}-${platform_name}</uninstallerName>
-  <validatorProgram></validatorProgram>
-  <vendor>ESA</vendor>
-  <componentList>
-    <component>
-      <name>default</name>
-      <description>Core files</description>
-      <canBeEdited>1</canBeEdited>
-      <detailedDescription>The main BRAT package.
+    <!-- Can't change: InstallBuilder license sensitive -->
+    <shortName>brat</shortName>
+
+    <!-- Used as Control Panel uninstall Title and Start Menu group in Windows -->
+    <fullName>BRAT-@BRAT_VERSION@-@BRAT_TARGET_PROCESSOR@</fullName>
+    <version>@BRAT_VERSION@</version>
+    <installerFilename>@INSTALLER_FILENAME@</installerFilename>
+    <readmeFile>@PROJECT_SOURCE_DIR@/README</readmeFile>
+    <licenseFile>@PROJECT_SOURCE_DIR@/LICENSE</licenseFile>
+    <leftImage>@BRAT_SOURCE_DIR@/packager/InstallBanner.png</leftImage>
+    <logoImage>@BRAT_SOURCE_DIR@/packager/InstallLogo.png</logoImage>
+    <splashImage>@BRAT_SOURCE_DIR@/packager/InstallSplashScreen.png</splashImage>
+    <allowLanguageSelection>1</allowLanguageSelection>
+    <componentList>
+        <component>
+            <name>default</name>
+            <description>Core files</description>
+            <canBeEdited>1</canBeEdited>
+            <detailedDescription>The main BRAT package.
       This set contains the programs and the needed data.</detailedDescription>
-      <selected>1</selected>
-      <show>1</show>
-      <desktopShortcutList>
-        <shortcut>
-          <comment>${product_fullname} ${product_version} graphic user interface</comment>
-          <exec>${installdir}/bin/BratGui</exec>
-          <icon>${installdir}/data/BratIcon.png</icon>
-          <name>${product_shortname} user interface</name>
-          <path></path>
-          <platforms>all</platforms>
-          <windowsExec>${installdir}/bin/BratGui.exe</windowsExec>
-          <windowsExecArgs></windowsExecArgs>
-          <windowsIcon>${installdir}/data/BratIcon.ico</windowsIcon>
-          <windowsPath></windowsPath>
-        </shortcut>
-        <shortcut>
-          <comment>${product_fullname} ${product_version} graphic scheduler interface</comment>
-          <exec>${installdir}/bin/BratScheduler</exec>
-          <icon>${installdir}/data/BratIcon.png</icon>
-          <name>${product_shortname} scheduler interface</name>
-          <path></path>
-          <platforms>all</platforms>
-          <windowsExec>${installdir}/bin/BratScheduler.exe</windowsExec>
-          <windowsExecArgs></windowsExecArgs>
-          <windowsIcon>${installdir}/data/BratIcon.ico</windowsIcon>
-          <windowsPath></windowsPath>
-        </shortcut>		
-      </desktopShortcutList>
-      <folderList>
-        <folder>
-          <description>Program Files</description>
-          <destination>${installdir}</destination>
-          <name>programfiles</name>
-          <platforms>all</platforms>
-          <shortcutList>
-            <shortcut>
-              <comment>Uninstall</comment>
-              <exec>${installdir}/${uninstallerName}</exec>
-              <icon>${installdir}/data/BratIcon.png</icon>
-              <name>Uninstall ${product_fullname}</name>
-              <path>${installdir}</path>
-              <platforms>all</platforms>
-              <windowsExec>${installdir}/${uninstallerName}.exe</windowsExec>
-              <windowsExecArgs></windowsExecArgs>
-              <windowsIcon>${installdir}/data/BratIcon.ico</windowsIcon>
-              <windowsPath>${installdir}</windowsPath>
-            </shortcut>
-          </shortcutList>
-        </folder>
-        <folder>
-          <description>Program Files</description>
-          <destination>${installdir}</destination>
-          <platforms>all</platforms>
-          <name>binaries</name>
-          <distributionFileList>
-            <distributionDirectory>
-              <origin>@CMAKE_BINARY_DIR@/bin/</origin>
-            </distributionDirectory>
-            <distributionDirectory>
-              <origin>@CMAKE_BINARY_DIR@/externals/coda/bin</origin>
-            </distributionDirectory>
-          </distributionFileList>
-        </folder>
-        <folder>
-          <description>Program Files</description>
-          <destination>${installdir}</destination>
-          <platforms>linux</platforms>
-          <name>linux_binaries</name>
-          <distributionFileList>
-            <distributionDirectory>
-              <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/ncdump/bin</origin>
-            </distributionDirectory>
-            <distributionDirectory>
-              <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/ncgen/bin</origin>
-            </distributionDirectory>
-            <distributionDirectory>
-              <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/ncgen3/bin</origin>
-            </distributionDirectory>
-          </distributionFileList>
-        </folder>
-        <folder>
-          <description>Program Files</description>
-          <destination>${installdir}</destination>
-          <platforms>windows</platforms>
-          <name>windows_curl_binary</name>
-          <distributionFileList>
-            <distributionDirectory>
-              <origin>@CMAKE_BINARY_DIR@/externals/curl/lib/bin</origin>
-            </distributionDirectory>
-          </distributionFileList>
-        </folder>
-        <folder>
-          <description>Program Files</description>
-          <destination>${installdir}/examples/python</destination>
-          <platforms>windows</platforms>
-          <name>windows_curl_binary_for_python</name>
-          <distributionFileList>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/externals/curl/lib/bin/libcurl.dll</origin>
-            </distributionFile>
-          </distributionFileList>
-        </folder>
-        <folder>
-          <description>Program Files</description>
-          <destination>${installdir}/bin</destination>
-          <platforms>windows</platforms>
-          <name>windows_binaries</name>
-          <distributionFileList>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/ncdump/nccopy.exe</origin>
-            </distributionFile>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/ncdump/ncdump.exe</origin>
-            </distributionFile>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/ncgen/ncgen.exe</origin>
-            </distributionFile>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/ncgen3/ncgen3.exe</origin>
-            </distributionFile>
-          </distributionFileList>
-        </folder>
-        <folder>
-          <description>MATLAB interface m files</description>
-          <platforms>windows</platforms>
-          <destination>${installdir}</destination>
-          <name>matlab_interface_m</name>
-          <distributionFileList>
-            <distributionDirectory>
-              <origin>@CMAKE_BINARY_DIR@/matlab/</origin>
-            </distributionDirectory>
-          </distributionFileList>
-        </folder>
-        <folder>
-          <description>MATLAB interface files</description>
-          <platforms>windows</platforms>
-          <destination>${installdir}/matlab</destination>
-          <name>matlab_interface</name>
-          <distributionFileList>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/brathl_matlab.@MEXEXT@</origin>
-            </distributionFile>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/externals/coda/coda_matlab.@MEXEXT@</origin>
-            </distributionFile>
-          </distributionFileList>
-        </folder>
-        <!--<folder>
+            <selected>1</selected>
+            <show>1</show>
+            <desktopShortcutList>
+                <shortcut>
+                    <comment>${product_fullname} ${product_version} @BRAT_TARGET_PROCESSOR@ graphic user interface</comment>
+                    <exec>${installdir}/bin/BratGui</exec>
+                    <icon>${installdir}/data/BratIcon.png</icon>
+                    <name>${product_shortname}${product_version} @BRAT_TARGET_PROCESSOR@</name>
+                    <path></path>
+                    <platforms>all</platforms>
+                    <runAsAdmin>0</runAsAdmin>
+                    <runInTerminal>0</runInTerminal>
+                    <windowsExec>${installdir}/bin/BratGui.exe</windowsExec>
+                    <windowsExecArgs></windowsExecArgs>
+                    <windowsIcon>${installdir}/data/BratIcon.ico</windowsIcon>
+                    <windowsPath></windowsPath>
+                </shortcut>
+                <shortcut>
+                    <comment>${product_fullname} ${product_version} @BRAT_TARGET_PROCESSOR@ graphic scheduler interface</comment>
+                    <exec>${installdir}/bin/BratScheduler</exec>
+                    <icon>${installdir}/data/BratIcon.png</icon>
+                    <name>${product_shortname} ${product_version} @BRAT_TARGET_PROCESSOR@</name>
+                    <path></path>
+                    <platforms>all</platforms>
+                    <runAsAdmin>0</runAsAdmin>
+                    <runInTerminal>0</runInTerminal>
+                    <windowsExec>${installdir}/bin/BratScheduler.exe</windowsExec>
+                    <windowsExecArgs></windowsExecArgs>
+                    <windowsIcon>${installdir}/data/BratIcon.ico</windowsIcon>
+                    <windowsPath></windowsPath>
+                </shortcut>
+            </desktopShortcutList>
+            <folderList>
+                <folder>
+                    <description>Program Files</description>
+                    <destination>${installdir}</destination>
+                    <name>programfiles</name>
+                    <platforms>all</platforms>
+                    <shortcutList>
+                        <shortcut>
+                            <comment>Uninstall</comment>
+                            <exec>${installdir}/${uninstallerName}</exec>
+                            <icon>${installdir}/data/BratIcon.png</icon>
+                            <name>Uninstall ${product_fullname}</name>
+                            <path>${installdir}</path>
+                            <platforms>all</platforms>
+                            <runAsAdmin>0</runAsAdmin>
+                            <runInTerminal>0</runInTerminal>
+                            <windowsExec>${installdir}/${uninstallerName}.exe</windowsExec>
+                            <windowsExecArgs></windowsExecArgs>
+                            <windowsIcon>${installdir}/data/BratIcon.ico</windowsIcon>
+                            <windowsPath>${installdir}</windowsPath>
+                        </shortcut>
+                    </shortcutList>
+                </folder>
+                <folder>
+                    <description>Program Files</description>
+                    <destination>${installdir}</destination>
+                    <name>binaries</name>
+                    <platforms>all</platforms>
+                    <distributionFileList>
+                        <distributionDirectory>
+                            <origin>@CMAKE_BINARY_DIR@/bin</origin>
+                        </distributionDirectory>
+                        <distributionDirectory>
+                            <origin>@CMAKE_BINARY_DIR@/externals/coda/bin</origin>
+                        </distributionDirectory>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>Program Files</description>
+                    <destination>${installdir}</destination>
+                    <name>linux_binaries</name>
+                    <platforms>linux</platforms>
+                    <distributionFileList>
+                        <distributionDirectory>
+                            <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/ncdump/bin</origin>
+                        </distributionDirectory>
+                        <distributionDirectory>
+                            <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/ncgen/bin</origin>
+                        </distributionDirectory>
+                        <distributionDirectory>
+                            <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/ncgen3/bin</origin>
+                        </distributionDirectory>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>Program Files</description>
+                    <destination>${installdir}/bin</destination>
+                    <name>linux_python_binaries</name>
+                    <platforms>linux</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>@CMAKE_SOURCE_DIR@/libbrathl/brathl_python/brathl.py</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>@CMAKE_BINARY_DIR@/lib/brathl_module</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>Program Files</description>
+                    <destination>${installdir}</destination>
+                    <name>windows_curl_binary</name>
+                    <platforms>windows</platforms>
+                    <distributionFileList>
+                        <distributionDirectory>
+                            <origin>@CMAKE_BINARY_DIR@/externals/curl/lib/bin</origin>
+                        </distributionDirectory>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>Program Files</description>
+                    <destination>${installdir}/bin</destination>
+                    <name>windows_binaries</name>
+                    <platforms>windows</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>@CMAKE_SOURCE_DIR@/libbrathl/brathl_python/brathl.py</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>@CMAKE_BINARY_DIR@/lib/Release/brathl_module.dll</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/ncdump/nccopy.exe</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/ncdump/ncdump.exe</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/ncgen/ncgen.exe</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/ncgen3/ncgen3.exe</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>MATLAB interface m files</description>
+                    <destination>${installdir}</destination>
+                    <name>matlab_interface_m</name>
+                    <platforms>windows</platforms>
+                    <distributionFileList>
+                        <distributionDirectory>
+                            <origin>@CMAKE_BINARY_DIR@/matlab</origin>
+                        </distributionDirectory>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>MATLAB interface files</description>
+                    <destination>${installdir}/matlab</destination>
+                    <name>matlab_interface</name>
+                    <platforms>windows</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>@CMAKE_BINARY_DIR@/brathl_matlab.@MEXEXT@</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>@CMAKE_BINARY_DIR@/externals/coda/coda_matlab.@MEXEXT@</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                </folder>
+
+                <!--<folder>
           <description>IDL interface files</description>
           <platforms>windows</platforms>
           <destination>${installdir}/idl</destination>
@@ -220,277 +208,299 @@
             </distributionFile>
           </distributionFileList>
         </folder>-->
-        <folder>
-          <description>Shared data files</description>
-          <destination>${installdir}</destination>
-          <name>data</name>
-          <platforms>all</platforms>
-          <distributionFileList>
-            <distributionDirectory>
-              <origin>@CMAKE_SOURCE_DIR@/data</origin>
-            </distributionDirectory>
-          </distributionFileList>
-        </folder>
-      </folderList>
-      <postInstallationActionList/>
-      <startMenuShortcutList>
-        <startMenuShortcut>
-          <comment>Uninstall ${product_fullname}</comment>
-          <name>Uninstall ${product_fullname}</name>
-          <windowsExec>${installdir}/uninstall-${product_shortname}-${product_version}-${platform_name}.exe</windowsExec>
-          <windowsExecArgs></windowsExecArgs>
-          <windowsIcon>${installdir}/data/BratIcon.ico</windowsIcon>
-          <windowsPath>${installdir}/</windowsPath>
-        </startMenuShortcut>
-        <startMenuShortcut>
-          <comment>${product_fullname} ${product_version} graphic user interface</comment>
-          <name>${product_shortname} user interface</name>
-          <windowsExec>${installdir}/bin/BratGui.exe</windowsExec>
-          <windowsExecArgs></windowsExecArgs>
-          <windowsIcon>${installdir}/data/BratIcon.ico</windowsIcon>
-          <windowsPath></windowsPath>
-        </startMenuShortcut>
-        <startMenuShortcut>
-          <comment>${product_fullname} ${product_version} graphic scheduler interface</comment>
-          <name>${product_shortname} scheduler interface</name>
-          <windowsExec>${installdir}/bin/BratScheduler.exe</windowsExec>
-          <windowsExecArgs></windowsExecArgs>
-          <windowsIcon>${installdir}/data/BratIcon.ico</windowsIcon>
-          <windowsPath></windowsPath>
-        </startMenuShortcut>
-      </startMenuShortcutList>
-    </component>
-    <component>
-      <name>documents</name>
-      <description>Documentation files</description>
-      <canBeEdited>1</canBeEdited>
-      <detailedDescription>The documentation files</detailedDescription>
-      <selected>1</selected>
-      <show>1</show>
-      <desktopShortcutList/>
-      <folderList>
-        <folder>
-          <description>Document files</description>
-          <destination>${installdir}/doc</destination>
-          <platforms>all</platforms>
-          <name>documentfiles</name>
-          <distributionFileList>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/doc/brat_reference_manual_${product_version}.pdf</origin>
-            </distributionFile>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/doc/brat_user_manual_${product_version}.pdf</origin>
-            </distributionFile>
-            <distributionDirectory>
-              <origin>@CMAKE_BINARY_DIR@/doc/coda</origin>
-            </distributionDirectory>
-            <distributionDirectory>
-              <origin>@CMAKE_BINARY_DIR@/doc/codadef</origin>
-            </distributionDirectory>
-          </distributionFileList>
-        </folder>
-        <folder>
-          <destination>${installdir}/doc/codadef</destination>
-          <name>codadef</name>
-          <distributionFileList>
-            <distributionFile>
-              <origin>@CMAKE_SOURCE_DIR@/externals/coda/doc/html/css/codadef.css</origin>
-            </distributionFile>
-          </distributionFileList>
-        </folder>
-      </folderList>
-      <startMenuShortcutList/>
-    </component>
-    <component>
-      <name>development</name>
-      <description>Development files</description>
-      <canBeEdited>1</canBeEdited>
-      <detailedDescription>The files needed to create your own programs using the coda/brathl libraries</detailedDescription>
-      <selected>0</selected>
-      <show>1</show>
-      <desktopShortcutList/>
-      <folderList>
+                <folder>
+                    <description>Shared data files</description>
+                    <destination>${installdir}</destination>
+                    <name>data</name>
+                    <platforms>all</platforms>
+                    <distributionFileList>
+                        <distributionDirectory>
+                            <origin>@CMAKE_SOURCE_DIR@/data</origin>
+                        </distributionDirectory>
+                    </distributionFileList>
+                </folder>
+            </folderList>
+            <startMenuShortcutList>
+                <startMenuShortcut>
+                    <comment>Uninstall ${product_fullname}</comment>
+                    <name>Uninstall ${product_fullname}</name>
+                    <runAsAdmin>0</runAsAdmin>
+                    <runInTerminal>0</runInTerminal>
+                    <windowsExec>${installdir}/uninstall-${product_shortname}-${product_version}-${platform_name}.exe</windowsExec>
+                    <windowsExecArgs></windowsExecArgs>
+                    <windowsIcon>${installdir}/data/BratIcon.ico</windowsIcon>
+                    <windowsPath>${installdir}/</windowsPath>
+                </startMenuShortcut>
+                <startMenuShortcut>
+                    <comment>${product_fullname} ${product_version} graphic user interface</comment>
+                    <name>${product_shortname} user interface</name>
+                    <runAsAdmin>0</runAsAdmin>
+                    <runInTerminal>0</runInTerminal>
+                    <windowsExec>${installdir}/bin/BratGui.exe</windowsExec>
+                    <windowsExecArgs></windowsExecArgs>
+                    <windowsIcon>${installdir}/data/BratIcon.ico</windowsIcon>
+                    <windowsPath></windowsPath>
+                </startMenuShortcut>
+                <startMenuShortcut>
+                    <comment>${product_fullname} ${product_version} graphic scheduler interface</comment>
+                    <name>${product_shortname} scheduler interface</name>
+                    <runAsAdmin>0</runAsAdmin>
+                    <runInTerminal>0</runInTerminal>
+                    <windowsExec>${installdir}/bin/BratScheduler.exe</windowsExec>
+                    <windowsExecArgs></windowsExecArgs>
+                    <windowsIcon>${installdir}/data/BratIcon.ico</windowsIcon>
+                    <windowsPath></windowsPath>
+                </startMenuShortcut>
+            </startMenuShortcutList>
+        </component>
+        <component>
+            <name>documents</name>
+            <description>Documentation files</description>
+            <canBeEdited>1</canBeEdited>
+            <detailedDescription>The documentation files</detailedDescription>
+            <selected>1</selected>
+            <show>1</show>
+            <folderList>
+                <folder>
+                    <description>Document files</description>
+                    <destination>${installdir}/doc</destination>
+                    <name>documentfiles</name>
+                    <platforms>all</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>@CMAKE_BINARY_DIR@/doc/brat_reference_manual_${product_version}.pdf</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>@CMAKE_BINARY_DIR@/doc/brat_user_manual_${product_version}.pdf</origin>
+                        </distributionFile>
+                        <distributionDirectory>
+                            <origin>@CMAKE_BINARY_DIR@/doc/coda</origin>
+                        </distributionDirectory>
+                        <distributionDirectory>
+                            <origin>@CMAKE_BINARY_DIR@/doc/codadef</origin>
+                        </distributionDirectory>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <destination>${installdir}/doc/codadef</destination>
+                    <name>codadef</name>
+                    <platforms>all</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>@CMAKE_SOURCE_DIR@/externals/coda/doc/html/css/codadef.css</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                </folder>
+            </folderList>
+        </component>
+        <component>
+            <name>development</name>
+            <description>Development files</description>
+            <canBeEdited>1</canBeEdited>
+            <detailedDescription>The files needed to create your own programs using the coda/brathl libraries</detailedDescription>
+            <selected>0</selected>
+            <show>1</show>
+            <folderList>
+                <folder>
+                    <description>Libraries</description>
+                    <destination>${installdir}/lib</destination>
+                    <name>libraries_windows</name>
+                    <platforms>windows</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>@CMAKE_BINARY_DIR@/lib/Release/brathl.lib</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>@CMAKE_BINARY_DIR@/externals/coda/lib/Release/libcoda.lib</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/liblib/lib/Release/netcdf.lib</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>@CMAKE_BINARY_DIR@/externals/udunits/lib/Release/udunits.lib</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>Libraries</description>
+                    <destination>${installdir}/lib</destination>
+                    <name>libraries_linux</name>
+                    <platforms>linux</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>@CMAKE_BINARY_DIR@/lib/libbrathl.a</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>@CMAKE_BINARY_DIR@/externals/coda/lib/libcoda.a</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/liblib/lib/libnetcdf.a</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>@CMAKE_BINARY_DIR@/externals/udunits/lib/libudunits.a</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>Examples</description>
+                    <destination>${installdir}/examples</destination>
+                    <name>examples</name>
+                    <platforms>all</platforms>
+                </folder>
+                <folder>
+                    <description>C examples</description>
+                    <destination>${installdir}/examples/c</destination>
+                    <name>c_examples</name>
+                    <platforms>all</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>@CMAKE_SOURCE_DIR@/libbrathl/brathl_c/BratSampleCProgram.c</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>Python examples</description>
+                    <destination>${installdir}/examples/python</destination>
+                    <name>python_examples</name>
+                    <platforms>all</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>@CMAKE_SOURCE_DIR@/libbrathl/brathl_python/example.py</origin>
+                        </distributionFile>
+                        <distributionFile>
+                            <origin>@CMAKE_SOURCE_DIR@/libbrathl/brathl_python/example.nc</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>IDL examples</description>
+                    <destination>${installdir}/examples/idl</destination>
+                    <name>idl_examples</name>
+                    <platforms>all</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>@CMAKE_SOURCE_DIR@/libbrathl/brathl_idl/examples.pro</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>MATLAB examples</description>
+                    <destination>${installdir}/examples/matlab</destination>
+                    <name>matlab_examples</name>
+                    <platforms>all</platforms>
+                    <distributionFileList>
+                        <distributionFile>
+                            <origin>@CMAKE_SOURCE_DIR@/libbrathl/brathl_matlab/examples.m</origin>
+                        </distributionFile>
+                    </distributionFileList>
+                </folder>
+                <folder>
+                    <description>Header files</description>
+                    <destination>${installdir}</destination>
+                    <name>header_files</name>
+                    <platforms>all</platforms>
+                    <distributionFileList>
+                        <distributionDirectory>
+                            <origin>@CMAKE_BINARY_DIR@/include</origin>
+                        </distributionDirectory>
+                    </distributionFileList>
+                </folder>
+            </folderList>
+        </component>
+    </componentList>
+    <preInstallationActionList>
+        <setInstallerVariable>
+            <name>installdir</name>
+            <value>${platform_install_prefix}/${product_shortname}-${product_version}</value>
+            <ruleList>
+                <compareText>
+                    <logic>equals</logic>
+                    <text>${platform_name}</text>
+                    <value>windows</value>
+                </compareText>
+            </ruleList>
+        </setInstallerVariable>
+        <setInstallerVariable>
+            <name>installdir</name>
+            <value>/usr/local</value>
+            <ruleList>
+                <compareText>
+                    <logic>does_not_equal</logic>
+                    <text>${platform_name}</text>
+                    <value>windows</value>
+                </compareText>
+                <compareText>
+                    <logic>equals</logic>
+                    <text>${installer_root_install}</text>
+                    <value>1</value>
+                </compareText>
+            </ruleList>
+        </setInstallerVariable>
+        <setInstallerVariable>
+            <name>installdir</name>
+            <value>${platform_install_prefix}/${product_shortname}-${product_version}-@BRAT_TARGET_PROCESSOR@</value>
+            <ruleList>
+                <compareText>
+                    <logic>does_not_equal</logic>
+                    <text>${platform_name}</text>
+                    <value>windows</value>
+                </compareText>
+                <compareText>
+                    <logic>equals</logic>
+                    <text>${installer_root_install}</text>
+                    <value>0</value>
+                </compareText>
+            </ruleList>
+        </setInstallerVariable>
+    </preInstallationActionList>
+    <allowComponentSelection>1</allowComponentSelection>
+    <cdromDirectory>${product_shortname}-${product_version}-cdromimage</cdromDirectory>
+    <cdromPlatforms>linux windows</cdromPlatforms>
+    <description>Tools to manipulate, compute and view radar altimetry data</description>
+    <enableRollback>0</enableRollback>
+    <enableTimestamp>1</enableTimestamp>
+    <outputDirectory>@BRAT_BINARY_DIR@</outputDirectory>
+    <saveRelativePaths>1</saveRelativePaths>
+    <singleInstanceCheck>1</singleInstanceCheck>
 
-        <folder>
-          <description>Libraries</description>
-          <destination>${installdir}/lib</destination>
-          <name>libraries_windows</name>
-          <platforms>windows</platforms>
-          <distributionFileList>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/lib/Release/brathl.lib</origin>
-            </distributionFile>
-            <distributionFile>
-              <origin>@CMAKE_SOURCE_DIR@/libbrathl/brathl_python/brathl.py</origin>
-            </distributionFile>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/lib/Release/brathl_module.dll</origin>
-            </distributionFile>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/externals/coda/lib/Release/libcoda.lib</origin>
-            </distributionFile>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/liblib/lib/Release/netcdf.lib</origin>
-            </distributionFile>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/externals/udunits/lib/Release/udunits.lib</origin>
-            </distributionFile>
-          </distributionFileList>
-        </folder>
+    <!-- Start Menu group in Windows: defaults to the fullName property; append processor architecture -->
+    <startMenuGroupName>@START_MENU_GROUP_NAME@</startMenuGroupName>
+    <summary>The Basic Radar Altimetry Toolbox is a set of programs and libraries used to read, manipulate, compute and view many radar altimetry data products from many different satellites: Ers, Jason, Envisat, Cryosat, etc...
+  A full API is provided for C++, as well as a more basic programming interface for the C, Fortran, IDL and Matlab languages</summary>
+    <uninstallerName>uninstall-${product_shortname}-${product_version}-@BRAT_TARGET_PROCESSOR@</uninstallerName>
+    <vendor>ESA</vendor>
+    <windows64bitMode>@WINDOWS_64_BIT_MODE@</windows64bitMode>
+    <parameterList>
+        <directoryParameter>
+            <name>installdir</name>
+            <description>Installer.Parameter.installdir.description</description>
+            <explanation>Installer.Parameter.installdir.explanation</explanation>
+            <value>${platform_install_prefix}/${product_shortname}-${product_version}</value>
+            <default>${platform_install_prefix}/${product_shortname}-${product_version}</default>
+            <allowEmptyValue>0</allowEmptyValue>
+            <ask>yes</ask>
+            <cliOptionName>prefix</cliOptionName>
+            <mustBeWritable>yes</mustBeWritable>
+            <mustExist>0</mustExist>
+            <width>30</width>
 
-        <folder>
-          <description>Libraries</description>
-          <destination>${installdir}/lib</destination>
-          <name>libraries_linux</name>
-          <platforms>linux</platforms>
-          <distributionFileList>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/lib/libbrathl.a</origin>
-            </distributionFile>
-            <distributionFile>
-              <origin>@CMAKE_SOURCE_DIR@/libbrathl/brathl_python/brathl.py</origin>
-            </distributionFile>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/lib/brathl_module</origin>
-            </distributionFile>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/externals/coda/lib/libcoda.a</origin>
-            </distributionFile>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/externals/netcdf-c/liblib/lib/libnetcdf.a</origin>
-            </distributionFile>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/externals/udunits/lib/libudunits.a</origin>
-            </distributionFile>
-          </distributionFileList>
-        </folder>
-
-        <folder>
-          <description>Examples</description>
-          <destination>${installdir}/examples</destination>
-          <name>examples</name>
-          <platforms>all</platforms>
-          <distributionFileList />
-        </folder>
-
-        <folder>
-          <description>C examples</description>
-          <destination>${installdir}/examples/c</destination>
-          <name>c_examples</name>
-          <distributionFileList>
-            <distributionFile>
-              <origin>@CMAKE_SOURCE_DIR@/libbrathl/brathl_c/BratSampleCProgram.c</origin>
-            </distributionFile>
-          </distributionFileList>
-        </folder>
-        <folder>
-          <description>Python examples</description>
-          <destination>${installdir}/examples/python</destination>
-          <name>python_examples</name>
-          <distributionFileList>
-            <distributionFile>
-              <origin>@CMAKE_SOURCE_DIR@/libbrathl/brathl_python/example.py</origin>
-            </distributionFile>
-            <distributionFile>
-              <origin>@CMAKE_SOURCE_DIR@/libbrathl/brathl_python/example.nc</origin>
-            </distributionFile>
-          </distributionFileList>
-        </folder>
-        <folder>
-          <description>IDL examples</description>
-          <destination>${installdir}/examples/idl</destination>
-          <name>idl_examples</name>
-          <distributionFileList>
-            <distributionFile>
-              <origin>@CMAKE_SOURCE_DIR@/libbrathl/brathl_idl/examples.pro</origin>
-            </distributionFile>
-          </distributionFileList>
-        </folder>
-        <folder>
-          <description>MATLAB examples</description>
-          <destination>${installdir}/examples/matlab</destination>
-          <name>matlab_examples</name>
-          <distributionFileList>
-            <distributionFile>
-              <origin>@CMAKE_SOURCE_DIR@/libbrathl/brathl_matlab/examples.m</origin>
-            </distributionFile>
-          </distributionFileList>
-        </folder>
-        <folder>
-          <description>Header files</description>
-          <destination>${installdir}</destination>
-          <name>header_files</name>
-          <distributionFileList>
-            <distributionDirectory>
-              <origin>@CMAKE_BINARY_DIR@/include</origin>
-            </distributionDirectory>
-          </distributionFileList>
-        </folder>
-      </folderList>
-      <postInstallationActionList/>
-      <startMenuShortcutList/>
-    </component>
-  </componentList>
-  <customLanguageFileList/>
-  <fileList/>
-  <finalPageActionList/>
-  <parameterList>
-    <directoryParameter>
-      <name>installdir</name>
-      <title></title>
-      <description>Installer.Parameter.installdir.description</description>
-      <explanation>Installer.Parameter.installdir.explanation</explanation>
-      <value>${platform_install_prefix}/${product_shortname}-${product_version}</value>
-      <default>${platform_install_prefix}/${product_shortname}-${product_version}</default>
-      <allowEmptyValue>0</allowEmptyValue>
-      <ask>yes</ask>
-      <cliOptionName>prefix</cliOptionName>
-      <leftImage></leftImage>
-      <mustBeWritable>yes</mustBeWritable>
-      <mustExist>0</mustExist>
-      <width>30</width>
-    </directoryParameter>
-  </parameterList>
-  <platformOptionsList>
-    <platformOptions>
-      <platform>windows</platform>
-    </platformOptions>
-  </platformOptionsList>
-  <postInstallationActionList/>
-  <postUninstallationActionList/>
-  <preBuildActionList/>
-  <preInstallationActionList>
-    <setInstallerVariable>
-      <name>installdir</name>
-      <value>${platform_install_prefix}/${product_shortname}-${product_version}</value>
-      <ruleList>
-        <compareText>
-          <logic>equals</logic>
-          <nocase>0</nocase>
-          <text>${platform_name}</text>
-          <value>windows</value>
-        </compareText>
-      </ruleList>
-    </setInstallerVariable>
-    <setInstallerVariable>
-      <name>installdir</name>
-      <value>/usr/local</value>
-      <ruleList>
-        <compareText>
-          <logic>does_not_equal</logic>
-          <nocase>0</nocase>
-          <text>${platform_name}</text>
-          <value>windows</value>
-        </compareText>
-        <compareText>
-          <logic>equals</logic>
-          <nocase>0</nocase>
-          <text>${installer_root_install}</text>
-          <value>1</value>
-        </compareText>
-      </ruleList>
-    </setInstallerVariable>
-  </preInstallationActionList>
-  <preUninstallationActionList/>
-  <slideShowImageList/>
+            <!-- If we found an existing installation in the selected
+         directory we set installationType=upgrade -->
+          <!-- <postShowPageActionList>
+                <setInstallerVariable>
+                    <name>project.installationType</name>
+                    <value>upgrade</value>
+                    <ruleList>
+                        <fileTest condition="exists" path="${installdir}"/>
+                    </ruleList>
+                </setInstallerVariable>
+            </postShowPageActionList> -->
+        </directoryParameter>
+    </parameterList>
+    <platformOptionsList>
+        <platformOptions>
+            <platform>windows</platform>
+        </platformOptions>
+    </platformOptionsList>
 </project>
+

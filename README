@@ -28,7 +28,28 @@ authoritative.
 
 
 Version History
-== == == == == == == =
+== == == == == == ==
+3.3.1 - August 2015
+--------------------
+	- Enabled by default side-by-side installation of different BRAT 
+	  versions and processor architectures on the same machine, without
+	  overwriting each other.
+	- Updated available formulas (new formulas.ini file). 
+	- GUI applications display version and architecture, allowing easy
+	  runtime identification of different instances on the same system.
+	- Python API examples can run immediately after installation, 
+	  without further configuration actions like defining BRAT_DATA_DIR.
+	- Correction of BRATHL 3.1.0 bug, caused by buffer overruns when
+	  reading a large list of files.
+	- Correction of bugs caused by wxWidgets upgrade: 
+		- the Log tab in the application BratGui loosed its	graphical 
+		  layout and stability when resized;
+		- the context menus of the tree widgets did not execute the 
+		  expected actions and did not present all menu items.
+	- Enabled C++11 support in g++ (Linux).
+	- Windows XP support enabled by default in 32 bit binaries.
+
+== == == == == == ==
 3.3.0 - August 2015
 --------------------
   - Update to NetCDF version 4.3.3.1.

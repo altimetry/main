@@ -132,8 +132,10 @@ public:
     \param lineRead [out] : line read
     \param size [in] : max number of bytes of the line
     \return the number of bytes in the lineRead parameter. -1 if end of file reached*/
+private:
   int32_t ReadLine(char *lineRead, uint32_t size);
 
+public:
   /** Same as #ReadLine, but reads only line of data and skip comments
     and places contents into buffer pointed by lineRead.
     Comments start with character '#' anywhere in the line.

@@ -16,7 +16,7 @@ project(BRAT)
 
 set(BRAT_MAJOR_VERSION "3")
 set(BRAT_MINOR_VERSION "3")
-set(BRAT_REVISION_VERSION "0")
+set(BRAT_REVISION_VERSION "1")
 set(BRAT_VERSION "${BRAT_MAJOR_VERSION}.${BRAT_MINOR_VERSION}.${BRAT_REVISION_VERSION}")
 
 message(STATUS "System type: ${CMAKE_SYSTEM_NAME}")
@@ -40,6 +40,7 @@ if(NOT WIN32)
 endif(NOT WIN32)
 
 if(WIN32)
+
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE})
   set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE})
   if(CMAKE_BUILD_TYPE MATCHES "Debug")
@@ -48,195 +49,218 @@ if(WIN32)
     set(CMAKE_DEBUG_POSTFIX "")
   endif(CMAKE_BUILD_TYPE MATCHES "Debug")
 
-  if(MSVC60)
-    set(MSPROJECT_TEMPLATE_DIRECTORY ${BRAT_SOURCE_DIR}/CMakeMsvc6Templates)
-
-	MESSAGE(STATUS "Processing MSVC60 redistributable DLLs...")
-	
-    # Microsoft's redistributable DLLs
-    # 
-    install(FILES "C:/WINDOWS/system32/msvcp60.dll" DESTINATION bin/)
-    install(FILES "C:/WINDOWS/system32/msvcrt.dll" DESTINATION bin/)
-
-    # Note: abusing configure_file again, just to get things in
-    # the right location for InstallBuilder. This is now getting
-    # out of hand however, and I will fix this properly (using
-    # the installed files instead) with top priority.
-    # 
-    configure_file("C:/WINDOWS/system32/msvcp60.dll"
-                   ${BRAT_BINARY_DIR}/bin/msvcp60.dll
-                   COPYONLY)
-    configure_file("C:/WINDOWS/system32/msvcrt.DLL"
-                   ${BRAT_BINARY_DIR}/bin/msvcrt.DLL
-                   COPYONLY)
-
-    configure_file("C:/WINDOWS/system32/msvcp60.dll"
-                   ${BRAT_BINARY_DIR}/matlab/msvcp60.dll
-                   COPYONLY)
-    configure_file("C:/WINDOWS/system32/msvcrt.DLL"
-                   ${BRAT_BINARY_DIR}/matlab/msvcrt.DLL
-                   COPYONLY)
-
-  endif(MSVC60)
-
-  if(MSVC90)
-
-	MESSAGE(STATUS "Processing MSVC90 redistributable DLLs...")
-	
-    # Microsoft's redistributable DLLs 
-    # 
-
-    get_filename_component(VC_DIR ${CMAKE_CXX_COMPILER} PATH)
-
-    # If VC_DIR is empty try to find VC_DIR with ${CMAKE_MAKE_PROGRAM}
-    if(NOT VC_DIR)
-      get_filename_component(VCEXPRESS_DIR ${CMAKE_MAKE_PROGRAM} PATH)
-      SET(VC_DIR "${VCEXPRESS_DIR}/../../VC/bin" )
-    endif(NOT VC_DIR)
-
-    install(DIRECTORY ${VC_DIR}/../redist/x86/Microsoft.VC90.CRT DESTINATION bin/)
-
-    # Note: abusing configure_file again, just to get things in
-    # the right location for InstallBuilder. This is now getting
-    # out of hand however, and I will fix this properly with high
-    # priority.
-    # 
-
-    set(VC_DIR ${VC_DIR}/../redist/x86/Microsoft.VC90.CRT)
-    configure_file(${VC_DIR}/msvcp90.dll
-                   ${BRAT_BINARY_DIR}/bin/Microsoft.VC90.CRT/msvcp90.dll
-                   COPYONLY)
-    configure_file(${VC_DIR}/msvcr90.dll
-                   ${BRAT_BINARY_DIR}/bin/Microsoft.VC90.CRT/msvcr90.dll
-                   COPYONLY)
-    configure_file(${VC_DIR}/msvcm90.dll
-                   ${BRAT_BINARY_DIR}/bin/Microsoft.VC90.CRT/msvcm90.dll
-                   COPYONLY)
-
-
-  endif(MSVC90)
-
-  if(MSVC10)
-
-	MESSAGE(STATUS "Processing MSVC10 redistributable DLLs...")
-	
-    # To disable deprecation C unsafe functions
-    # Microsoft added some "safe" versions of many functions such as strcpy(), makepath(), etc.
-    # They called them _strcpy_s() and _makepath_s() respectfully.
-    # When compiling the old code, many warnings were displayed about using the "unsafe" version
-    # and that the "safe" version should be used instead.
-    # Again, there is some defines that could be set to suppress this warning.
-
-    add_definitions (/D _CRT_SECURE_NO_WARNINGS)
-    add_definitions (/D _CRT_SECURE_NO_DEPRECATE)
-    add_definitions (/D _CRT_NONSTDC_NO_DEPRECATE)
-
-    # Disable Checked Iterators in VC9 STL
-
-    add_definitions(/D _SECURE_SCL=0)
-    add_definitions(/D _HAS_ITERATOR_DEBUGGING=0)
-
-    # Disable Runtime-Checks
-
-    #add_definitions (/I /K)
-
-    if(CMAKE_CXX_FLAGS_DEBUG MATCHES "/RTC1")
-      string(REPLACE "/RTC1" ""
-      CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
-      message(STATUS "info: removed '/RTC1' in CMAKE_CXX_FLAGS_DEBUG")
-    endif()
-
-    if(CMAKE_C_FLAGS_DEBUG MATCHES "/RTC1")
-      string(REPLACE "/RTC1" ""
-      CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
-      message(STATUS "info: removed '/RTC1' in CMAKE_CXX_FLAGS_DEBUG")
-    endif()
-
-
-    # Force "/FR"  options if CMAKE_MSVC_BROWSE_INFO is ON. CMake doesn't do it.
-    if(CMAKE_MSVC_BROWSE_INFO)
-      add_definitions(/FR)
-    endif(CMAKE_MSVC_BROWSE_INFO)
-
-
-    # Microsoft's redistributable DLLs 
-    # Get them from the Windows/System folder
-
-    install(FILES "C:/WINDOWS/system32/msvcp100.dll" DESTINATION bin/)
-    install(FILES "C:/WINDOWS/system32/msvcr100.dll" DESTINATION bin/)
-
-    install(FILES "C:/WINDOWS/system32/msvcp100.dll" DESTINATION matlab/)
-    install(FILES "C:/WINDOWS/system32/msvcr100.dll" DESTINATION matlab/)
-
-    # Note: abusing configure_file again, just to get things in
-    # the right location for InstallBuilder. This is now getting
-    # out of hand however, and I will fix this properly (using
-    # the installed files instead) with top priority.
-    # 
-    configure_file("C:/WINDOWS/system32/msvcp100.dll"
-                   ${BRAT_BINARY_DIR}/bin/msvcp100.dll
-                   COPYONLY)
-    configure_file("C:/WINDOWS/system32/msvcr100.dll"
-                   ${BRAT_BINARY_DIR}/bin/msvcr100.dll
-                   COPYONLY)
-
-    configure_file("C:/WINDOWS/system32/msvcp100.dll"
-                   ${BRAT_BINARY_DIR}/matlab/msvcp100.dll
-                   COPYONLY)
-    configure_file("C:/WINDOWS/system32/msvcr100.dll"
-                   ${BRAT_BINARY_DIR}/matlab/msvcr100.dll
-                   COPYONLY)
-  
-  endif(MSVC10)
-
-
-  if(MSVC12)
-
-	MESSAGE(STATUS "Processing MSVC12 redistributable DLLs...")
-
-    # Microsoft's redistributable DLLs 
-    # Get them from the Windows/System folder
-	
-	IF ("${BRAT_TARGET_PROCESSOR}" STREQUAL "x64")
-	  SET(VCREDIST_DIR $ENV{VCINSTALLDIR}/redist/x64/Microsoft.VC120.CRT)
-	ELSE ("${BRAT_TARGET_PROCESSOR}" STREQUAL "x64")
-	  SET(VCREDIST_DIR $ENV{VCINSTALLDIR}/redist/x86/Microsoft.VC120.CRT)
-	ENDIF ("${BRAT_TARGET_PROCESSOR}" STREQUAL "x64")	
-	
-	file(TO_CMAKE_PATH ${VCREDIST_DIR} VCREDIST_DIR)
-
-	
-	INSTALL(DIRECTORY "${VCREDIST_DIR}" DESTINATION bin/)
-
-	INSTALL(DIRECTORY "${VCREDIST_DIR}" DESTINATION matlab/)
-
-    # Get things in the right location for InstallBuilder.
-
-    configure_file("${VCREDIST_DIR}/msvcp120.dll"
-                   ${BRAT_BINARY_DIR}/bin/msvcp120.dll
-                   COPYONLY)
-    configure_file("${VCREDIST_DIR}/msvcr120.dll"
-                   ${BRAT_BINARY_DIR}/bin/msvcr120.dll
-                   COPYONLY)
-    configure_file("${VCREDIST_DIR}/vccorlib120.dll"
-                   ${BRAT_BINARY_DIR}/bin/vccorlib120.dll
-                   COPYONLY)
-
-    configure_file("${VCREDIST_DIR}/msvcp120.dll"
-                   ${BRAT_BINARY_DIR}/matlab/msvcp120.dll
-                   COPYONLY)
-    configure_file("${VCREDIST_DIR}/msvcr120.dll"
-                   ${BRAT_BINARY_DIR}/matlab/msvcr120.dll
-                   COPYONLY)
-    configure_file("${VCREDIST_DIR}/vccorlib120.dll"
-                   ${BRAT_BINARY_DIR}/matlab/vccorlib120.dll
-                   COPYONLY)
-  
-  endif(MSVC12)
-
   if (MSVC)
+
+	  if(MSVC60)
+		set(MSPROJECT_TEMPLATE_DIRECTORY ${BRAT_SOURCE_DIR}/CMakeMsvc6Templates)
+
+		MESSAGE(STATUS "Processing MSVC60 redistributable DLLs...")
+	
+		# Microsoft's redistributable DLLs
+		# 
+		install(FILES "C:/WINDOWS/system32/msvcp60.dll" DESTINATION bin/)
+		install(FILES "C:/WINDOWS/system32/msvcrt.dll" DESTINATION bin/)
+
+		# Note: abusing configure_file again, just to get things in
+		# the right location for InstallBuilder. This is now getting
+		# out of hand however, and I will fix this properly (using
+		# the installed files instead) with top priority.
+		# 
+		configure_file("C:/WINDOWS/system32/msvcp60.dll"
+					   ${BRAT_BINARY_DIR}/bin/msvcp60.dll
+					   COPYONLY)
+		configure_file("C:/WINDOWS/system32/msvcrt.DLL"
+					   ${BRAT_BINARY_DIR}/bin/msvcrt.DLL
+					   COPYONLY)
+
+		configure_file("C:/WINDOWS/system32/msvcp60.dll"
+					   ${BRAT_BINARY_DIR}/matlab/msvcp60.dll
+					   COPYONLY)
+		configure_file("C:/WINDOWS/system32/msvcrt.DLL"
+					   ${BRAT_BINARY_DIR}/matlab/msvcrt.DLL
+					   COPYONLY)
+
+	  endif(MSVC60)
+
+	  if(MSVC90)
+
+		MESSAGE(STATUS "Processing MSVC90 redistributable DLLs...")
+	
+		# Microsoft's redistributable DLLs 
+		# 
+
+		get_filename_component(VC_DIR ${CMAKE_CXX_COMPILER} PATH)
+
+		# If VC_DIR is empty try to find VC_DIR with ${CMAKE_MAKE_PROGRAM}
+		if(NOT VC_DIR)
+		  get_filename_component(VCEXPRESS_DIR ${CMAKE_MAKE_PROGRAM} PATH)
+		  SET(VC_DIR "${VCEXPRESS_DIR}/../../VC/bin" )
+		endif(NOT VC_DIR)
+
+		install(DIRECTORY ${VC_DIR}/../redist/x86/Microsoft.VC90.CRT DESTINATION bin/)
+
+		# Note: abusing configure_file again, just to get things in
+		# the right location for InstallBuilder. This is now getting
+		# out of hand however, and I will fix this properly with high
+		# priority.
+		# 
+
+		set(VC_DIR ${VC_DIR}/../redist/x86/Microsoft.VC90.CRT)
+		configure_file(${VC_DIR}/msvcp90.dll
+					   ${BRAT_BINARY_DIR}/bin/Microsoft.VC90.CRT/msvcp90.dll
+					   COPYONLY)
+		configure_file(${VC_DIR}/msvcr90.dll
+					   ${BRAT_BINARY_DIR}/bin/Microsoft.VC90.CRT/msvcr90.dll
+					   COPYONLY)
+		configure_file(${VC_DIR}/msvcm90.dll
+					   ${BRAT_BINARY_DIR}/bin/Microsoft.VC90.CRT/msvcm90.dll
+					   COPYONLY)
+
+
+	  endif(MSVC90)
+
+	  if(MSVC10)
+
+		MESSAGE(STATUS "Processing MSVC10 redistributable DLLs...")
+	
+		# To disable deprecation C unsafe functions
+		# Microsoft added some "safe" versions of many functions such as strcpy(), makepath(), etc.
+		# They called them _strcpy_s() and _makepath_s() respectfully.
+		# When compiling the old code, many warnings were displayed about using the "unsafe" version
+		# and that the "safe" version should be used instead.
+		# Again, there is some defines that could be set to suppress this warning.
+
+		add_definitions (/D _CRT_SECURE_NO_WARNINGS)
+		add_definitions (/D _CRT_SECURE_NO_DEPRECATE)
+		add_definitions (/D _CRT_NONSTDC_NO_DEPRECATE)
+
+		# Disable Checked Iterators in VC9 STL
+
+		add_definitions(/D _SECURE_SCL=0)
+		add_definitions(/D _HAS_ITERATOR_DEBUGGING=0)
+
+		# Disable Runtime-Checks
+
+		#add_definitions (/I /K)
+
+		if(CMAKE_CXX_FLAGS_DEBUG MATCHES "/RTC1")
+		  string(REPLACE "/RTC1" ""
+		  CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG}")
+		  message(STATUS "info: removed '/RTC1' in CMAKE_CXX_FLAGS_DEBUG")
+		endif()
+
+		if(CMAKE_C_FLAGS_DEBUG MATCHES "/RTC1")
+		  string(REPLACE "/RTC1" ""
+		  CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG}")
+		  message(STATUS "info: removed '/RTC1' in CMAKE_CXX_FLAGS_DEBUG")
+		endif()
+
+
+		# Force "/FR"  options if CMAKE_MSVC_BROWSE_INFO is ON. CMake doesn't do it.
+		if(CMAKE_MSVC_BROWSE_INFO)
+		  add_definitions(/FR)
+		endif(CMAKE_MSVC_BROWSE_INFO)
+
+
+		# Microsoft's redistributable DLLs 
+		# Get them from the Windows/System folder
+
+		install(FILES "C:/WINDOWS/system32/msvcp100.dll" DESTINATION bin/)
+		install(FILES "C:/WINDOWS/system32/msvcr100.dll" DESTINATION bin/)
+
+		install(FILES "C:/WINDOWS/system32/msvcp100.dll" DESTINATION matlab/)
+		install(FILES "C:/WINDOWS/system32/msvcr100.dll" DESTINATION matlab/)
+
+		# Note: abusing configure_file again, just to get things in
+		# the right location for InstallBuilder. This is now getting
+		# out of hand however, and I will fix this properly (using
+		# the installed files instead) with top priority.
+		# 
+		configure_file("C:/WINDOWS/system32/msvcp100.dll"
+					   ${BRAT_BINARY_DIR}/bin/msvcp100.dll
+					   COPYONLY)
+		configure_file("C:/WINDOWS/system32/msvcr100.dll"
+					   ${BRAT_BINARY_DIR}/bin/msvcr100.dll
+					   COPYONLY)
+
+		configure_file("C:/WINDOWS/system32/msvcp100.dll"
+					   ${BRAT_BINARY_DIR}/matlab/msvcp100.dll
+					   COPYONLY)
+		configure_file("C:/WINDOWS/system32/msvcr100.dll"
+					   ${BRAT_BINARY_DIR}/matlab/msvcr100.dll
+					   COPYONLY)
+  
+	  endif(MSVC10)
+
+
+	  IF(MSVC11 OR MSVC12)
+
+		IF(MSVC11)
+			SET(VC_VER 11)
+		ELSE()
+			SET(VC_VER 12)
+		ENDIF()
+	
+		MESSAGE(STATUS "Processing MSVC${VC_VER} redistributable DLLs...")
+
+		# Microsoft's redistributable DLLs 
+		# Get them from the VC installation folder
+	
+		IF(CMAKE_BUILD_TYPE MATCHES "Debug")
+
+			IF ("${BRAT_TARGET_PROCESSOR}" STREQUAL "x64")
+				SET(VCREDIST_DIR $ENV{VCINSTALLDIR}/redist/Debug_NonRedist/x64/Microsoft.VC${VC_VER}0.DebugCRT)
+			ELSE ()
+				SET(VCREDIST_DIR $ENV{VCINSTALLDIR}/redist/Debug_NonRedist/x86/Microsoft.VC${VC_VER}0.DebugCRT)
+			ENDIF ()	
+		
+		ELSE(CMAKE_BUILD_TYPE MATCHES "Debug")
+	
+			IF ("${BRAT_TARGET_PROCESSOR}" STREQUAL "x64")
+				SET(VCREDIST_DIR $ENV{VCINSTALLDIR}/redist/x64/Microsoft.VC${VC_VER}0.CRT)
+			ELSE ()
+				SET(VCREDIST_DIR $ENV{VCINSTALLDIR}/redist/x86/Microsoft.VC${VC_VER}0.CRT)
+			ENDIF ()	
+		
+		ENDIF(CMAKE_BUILD_TYPE MATCHES "Debug")
+	
+		file(TO_CMAKE_PATH ${VCREDIST_DIR} VCREDIST_DIR)
+
+		INSTALL(FILES	"${VCREDIST_DIR}/msvcp${VC_VER}0${CMAKE_DEBUG_POSTFIX}.dll" 
+						"${VCREDIST_DIR}/msvcr${VC_VER}0${CMAKE_DEBUG_POSTFIX}.dll" 
+						"${VCREDIST_DIR}/vccorlib${VC_VER}0${CMAKE_DEBUG_POSTFIX}.dll" DESTINATION bin/)
+
+		INSTALL(FILES	"${VCREDIST_DIR}/msvcp${VC_VER}0${CMAKE_DEBUG_POSTFIX}.dll"
+						"${VCREDIST_DIR}/msvcr${VC_VER}0${CMAKE_DEBUG_POSTFIX}.dll"
+						"${VCREDIST_DIR}/vccorlib${VC_VER}0${CMAKE_DEBUG_POSTFIX}.dll" DESTINATION matlab/)
+	
+		# Get things in the right location for InstallBuilder (in the build directory)
+
+		configure_file("${VCREDIST_DIR}/msvcp${VC_VER}0${CMAKE_DEBUG_POSTFIX}.dll"
+						${BRAT_BINARY_DIR}/bin/msvcp${VC_VER}0${CMAKE_DEBUG_POSTFIX}.dll
+						COPYONLY)
+		configure_file("${VCREDIST_DIR}/msvcr${VC_VER}0${CMAKE_DEBUG_POSTFIX}.dll"
+						${BRAT_BINARY_DIR}/bin/msvcr${VC_VER}0${CMAKE_DEBUG_POSTFIX}.dll
+						COPYONLY)
+		configure_file("${VCREDIST_DIR}/vccorlib${VC_VER}0${CMAKE_DEBUG_POSTFIX}.dll"
+						${BRAT_BINARY_DIR}/bin/vccorlib${VC_VER}0${CMAKE_DEBUG_POSTFIX}.dll
+						COPYONLY)
+
+		configure_file("${VCREDIST_DIR}/msvcp${VC_VER}0${CMAKE_DEBUG_POSTFIX}.dll"
+						${BRAT_BINARY_DIR}/matlab/msvcp${VC_VER}0${CMAKE_DEBUG_POSTFIX}.dll
+						COPYONLY)
+		configure_file("${VCREDIST_DIR}/msvcr${VC_VER}0${CMAKE_DEBUG_POSTFIX}.dll"
+						${BRAT_BINARY_DIR}/matlab/msvcr${VC_VER}0${CMAKE_DEBUG_POSTFIX}.dll
+						COPYONLY)
+		configure_file("${VCREDIST_DIR}/vccorlib${VC_VER}0${CMAKE_DEBUG_POSTFIX}.dll"
+						${BRAT_BINARY_DIR}/matlab/vccorlib${VC_VER}0${CMAKE_DEBUG_POSTFIX}.dll
+						COPYONLY)
+  
+	  ENDIF(MSVC11 OR MSVC12)
+
 	set(CMAKE_C_FLAGS "/WX- ${CMAKE_C_FLAGS}")
 	set(CMAKE_CXX_FLAGS "/WX- ${CMAKE_CXX_FLAGS}")
+	
   endif (MSVC)
 
 endif(WIN32)
@@ -269,9 +293,18 @@ endif(CMAKE_BUILD_TYPE MATCHES "^$")
 #
 if(CMAKE_COMPILER_IS_GNUCXX)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC" )
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC" )
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++0x" )
   set(BRAT_GNU_OPTIONS "-Wall")
 endif(CMAKE_COMPILER_IS_GNUCXX)
+
+IF (WIN32)
+	IF ("${BRAT_TARGET_PROCESSOR}" STREQUAL "Win32")
+		set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _USING_V110_SDK71_" )
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D _USING_V110_SDK71_" )
+		SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS,5.01")
+	ENDIF ()
+ENDIF ()
+
 
 
 if(MSVC)
@@ -663,16 +696,9 @@ install(FILES libbrathl/brathl_c/${SAMPLE}.c DESTINATION examples/c)
 #	- in windows, to allow immediate example use without meddling with the 
 #		user's system, curl dll is installed also near the example files
 #
-install(FILES libbrathl/brathl_python/brathl.py DESTINATION lib)
+install(FILES libbrathl/brathl_python/brathl.py DESTINATION bin)
 install(FILES libbrathl/brathl_python/example.py DESTINATION examples/python)
 install(FILES libbrathl/brathl_python/example.nc DESTINATION examples/python)
-IF (WIN32)
-	IF(CMAKE_BUILD_TYPE MATCHES "Debug")
-		install(FILES ${CMAKE_BINARY_DIR}/externals/curl/lib/bin/libcurld.dll DESTINATION examples/python)
-	ELSE()
-		install(FILES ${CMAKE_BINARY_DIR}/externals/curl/lib/bin/libcurl.dll DESTINATION examples/python)
-	ENDIF()
-ENDIF (WIN32)
 
 
 # brathl_fortran
@@ -833,18 +859,6 @@ else()
     target_link_libraries(brathl_module netcdf coda_static hdf5 udunits)
 endif()
 
-# add_library(brathl_module MODULE)
-# target_link_libraries(brathl_module brathl netcdf coda_static hdf5 ssh2 udunits)
-# target_link_libraries(brathl_module brathl)
-# set_target_properties(brathl_module PROPERTIES LINK_FLAGS "-Wl,--whole-archive -lbrathl -Wl,--no-whole-archive")
-#set_target_properties(brathl PROPERTIES LINK_FLAGS "-Wl,--export-dynamic")
-#set_target_properties(brathl_module PROPERTIES LINK_FLAGS "-Wl,--export-dynamic")
-
-#set_target_properties(brathl_module PROPERTIES OUTPUT_NAME brathl_module)
-#set_target_properties(brathl_module PROPERTIES DEFINE_SYMBOL LIBRATHLDLL)
-#set_target_properties(brathl_module PROPERTIES DEFINE_SYMBOL LIBRATHLDLL_EXPORTS)
-#set_target_properties(brathl_module PROPERTIES PREFIX "")
-
 set_target_properties(brathl_module PROPERTIES 
 	OUTPUT_NAME brathl_module
 	DEFINE_SYMBOL LIBRATHLDLL_EXPORTS
@@ -864,7 +878,7 @@ ENDIF(WIN32)
 
 
 install(TARGETS brathl DESTINATION lib/)
-install(TARGETS brathl_module DESTINATION lib/)
+install(TARGETS brathl_module DESTINATION bin/)				# see also apple section to install brathl_module in mac
 install(FILES ${LIBBRATHL_SOURCES_H} DESTINATION include)
 
 
@@ -1303,7 +1317,7 @@ if(BRAT_BUILD_GUI)
       MACOSX_BUNDLE_ICON_FILE BratGui
       MACOSX_BUNDLE_BUNDLE_NAME BratDisplay)
     add_custom_command(TARGET BratDisplay
-      POST_BUILD COMMAND cp -f ${BRAT_SOURCE_DIR}/display/BratDisplayMacExternal.sh BratDisplay
+      POST_BUILD COMMAND cp -f ${BRAT_SOURCE_DIR}/display/BratDisplay BratDisplay
       WORKING_DIRECTORY ${BRAT_BINARY_DIR}/bin)
   endif(APPLE)
 
@@ -1368,14 +1382,14 @@ if(BRAT_BUILD_GUI)
 
   if(APPLE)
     # On Mac OS X we install a script that invokes the BratScheduler application
-    install(PROGRAMS scheduler/BratSchedulerMac.sh RENAME BratScheduler DESTINATION bin/)
+    install(PROGRAMS scheduler/BratScheduler RENAME BratScheduler DESTINATION bin/)
 
     add_dependencies(BratScheduler BratCreateYFX BratCreateZFXY BratExportAscii BratExportGeoTiff BratStats)
     set_target_properties(BratScheduler PROPERTIES
       MACOSX_BUNDLE_ICON_FILE BratGui
       MACOSX_BUNDLE_BUNDLE_NAME BratScheduler)
     add_custom_command(TARGET BratScheduler
-      POST_BUILD COMMAND cp -f ${BRAT_SOURCE_DIR}/scheduler/BratSchedulerMac.sh BratScheduler
+      POST_BUILD COMMAND cp -f ${BRAT_SOURCE_DIR}/scheduler/BratScheduler BratScheduler
       COMMAND cp -f ../../BratCreateYFX MacOS/BratCreateYFX
       COMMAND cp -f ../../BratCreateZFXY MacOS/BratCreateZFXY
       COMMAND cp -f ../../BratExportAscii MacOS/BratExportAscii
@@ -1474,10 +1488,10 @@ if(BRAT_BUILD_GUI)
       COMMAND cp -f ../../BratExportAscii MacOS/BratExportAscii
       COMMAND cp -f ../../BratExportGeoTiff MacOS/BratExportGeoTiff
       COMMAND cp -f ../../BratStats MacOS/BratStats
-      COMMAND cp -f ${BRAT_SOURCE_DIR}/display/BratDisplayMacExternal.sh MacOS/BratDisplay
+      COMMAND cp -f ${BRAT_SOURCE_DIR}/display/BratDisplay MacOS/BratDisplay
       COMMAND rm -rf MacOS/BratDisplay.app
       COMMAND cp -RL ../../BratDisplay.app MacOS/BratDisplay.app
-      COMMAND cp -f ${BRAT_SOURCE_DIR}/scheduler/BratSchedulerMac.sh MacOS/BratScheduler
+      COMMAND cp -f ${BRAT_SOURCE_DIR}/scheduler/BratScheduler MacOS/BratScheduler
       COMMAND cp -f ${BRAT_SOURCE_DIR}/doc/brat_user_manual.pdf data/brat_user_manual_${BRAT_VERSION}.pdf
       WORKING_DIRECTORY ${BRAT_BINARY_DIR}/bin/BratGui.app/Contents)
   endif(APPLE)
@@ -1741,6 +1755,7 @@ if(APPLE)
     COMMAND cp ${BRAT_BINARY_DIR}/externals/netcdf-c/ncdump/bin/nc* ${BDIST_ROOT}/bin
     COMMAND cp ${BRAT_BINARY_DIR}/externals/netcdf-c/ncgen/bin/nc* ${BDIST_ROOT}/bin
     COMMAND cp ${BRAT_BINARY_DIR}/externals/netcdf-c/ncgen3/bin/nc* ${BDIST_ROOT}/bin
+    COMMAND cp ${BRAT_BINARY_DIR}/lib/brathl_module ${BDIST_ROOT}/bin
     COMMAND cp ${BRAT_BINARY_DIR}/bin/BratCreateYFX ${BDIST_ROOT}/bin
     COMMAND cp ${BRAT_BINARY_DIR}/bin/BratCreateZFXY ${BDIST_ROOT}/bin
     COMMAND cp ${BRAT_BINARY_DIR}/bin/BratExportAscii ${BDIST_ROOT}/bin
@@ -1751,16 +1766,15 @@ if(APPLE)
     COMMAND cp ${BRAT_BINARY_DIR}/bin/BratStats ${BDIST_ROOT}/bin
     COMMAND cp ${BRAT_SOURCE_DIR}/display/BratDisplayMac.sh ${BDIST_ROOT}/bin/BratDisplay
     COMMAND chmod 755 ${BDIST_ROOT}/bin/BratDisplay
-    COMMAND cp ${BRAT_SOURCE_DIR}/scheduler/BratSchedulerMac.sh ${BDIST_ROOT}/bin/BratScheduler
+    COMMAND cp ${BRAT_SOURCE_DIR}/scheduler/BratScheduler ${BDIST_ROOT}/bin/BratScheduler
     COMMAND chmod 755 ${BDIST_ROOT}/bin/BratScheduler
 
     COMMAND mkdir -p ${BDIST_ROOT}/lib
     COMMAND cp ${BRAT_BINARY_DIR}/lib/libbrathl.a ${BDIST_ROOT}/lib
-    COMMAND cp ${BRAT_BINARY_DIR}/lib/brathl_module ${BDIST_ROOT}/lib
     COMMAND cp ${BRAT_BINARY_DIR}/externals/coda/lib/libcoda.a ${BDIST_ROOT}/lib
     COMMAND cp ${BRAT_BINARY_DIR}/externals/netcdf-c/liblib/lib/libnetcdf.a ${BDIST_ROOT}/lib
     COMMAND cp ${BRAT_BINARY_DIR}/externals/udunits/lib/libudunits.a ${BDIST_ROOT}/lib
-    COMMAND cp ${BRAT_SOURCE_DIR}/libbrathl/brathl_python/brathl.py ${BDIST_ROOT}/lib
+    COMMAND cp ${BRAT_SOURCE_DIR}/libbrathl/brathl_python/brathl.py ${BDIST_ROOT}/bin
 
     COMMAND mkdir -p ${BDIST_ROOT}/include
     COMMAND cp ${LIBBRATHL_CXX_SOURCES_H} ${BDIST_ROOT}/include
@@ -1801,8 +1815,8 @@ if(APPLE)
   add_custom_target(bdist
     COMMENT "Creating the Mac OS X disk image"
     COMMAND rm -f ${BDIST_DMGFILE}
-    # -megabytes: to avoid error -5341; use a size that is comfortably bigger than expected (about 110 Mb)
-    COMMAND hdiutil create -megabytes 500 -srcfolder ${BDIST_PKGDIR} -volname "BRAT ${BRAT_VERSION}" ${BDIST_DMGFILE}
+    # -megabytes: to avoid error -5341; use a size that is comfortably bigger than expected (about 120 Mb)
+    COMMAND hdiutil create -megabytes 500 -srcfolder ${BDIST_PKGDIR} -volname "BRAT-${BRAT_VERSION}-${APPLE_CPU}" ${BDIST_DMGFILE}
     )
 
   add_dependencies(bdist bdist_stage_macos)
@@ -1818,9 +1832,15 @@ if(INSTALL_BUILDER_FOUND)
 
   # InstallBuilder configuration
 
+  set(WINDOWS_64_BIT_MODE 0)
+  set(START_MENU_GROUP_NAME BRAT-${BRAT_VERSION}-${BRAT_TARGET_PROCESSOR})
+
   if(WIN32)
     set(INSTALLER_PLATFORM windows)
     set(INSTALLER_FILENAME brat-${BRAT_VERSION}-${BRAT_TARGET_PROCESSOR}-installer.exe)
+ 	if ("${BRAT_TARGET_PROCESSOR}" STREQUAL "x64")
+	  set(WINDOWS_64_BIT_MODE 1)
+	endif()
   else(WIN32)
     set(INSTALLER_PLATFORM linux)
     set(INSTALLER_FILENAME brat-${BRAT_VERSION}-${BRAT_TARGET_PROCESSOR}-installer.run)

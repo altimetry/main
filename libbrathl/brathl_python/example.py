@@ -1,11 +1,31 @@
-#!/usr/bin/python -tt
+﻿#!/usr/bin/python -tt
 # <example.py>
 # This module contains examples to test the Brathl Python API.
 # @version v0.1
 
-import sys
-# Add the lib folder path to the sys.path list
-sys.path.append('../../lib/')
+# Sample data file example.nc was taken from
+# S3A_MW_1_MWR____20040131T232802_20040201T011125_20130601T140000_6203_023_900______MAR_D_NR_TST.SEN3/measurement.nc
+#
+
+import sys, os
+
+currentDirectory = os.path.dirname(os.path.realpath(__file__))
+
+# Add the bin folder path to the sys.path list, for python to find brathl.py API
+currentWorkingDirectory = currentDirectory+ '/../../bin/'
+
+if os.path.isdir(currentWorkingDirectory):
+
+    sys.path.append(currentWorkingDirectory)
+
+    # Set the working directory to bin, for the OS to find the runtime binary dependencies
+    os.chdir(currentWorkingDirectory)
+    #
+    # Set BRAT_DATA_DIR environment variable, relative to the bin directory, 
+    # for brathl_module to find auxiliary data
+    #
+    os.environ["BRAT_DATA_DIR"] = "../data"
+
 
 from brathl import *
 
@@ -17,7 +37,7 @@ def main():
     # EXAMPLE: brathl_ReadData
     print ('\nRunning function: brathl_ReadData...')
 
-    fileNames = ['example.nc']
+    fileNames = [currentDirectory + '/example.nc']
     recordName = 'data'
     selection  = ''               # 'lon_mwr_l1b > 10 && lon_mwr_l1b < 40'
     expressions = ['lon_mwr_l1b'] # ['lat_mwr_l1b', 'lon_mwr_l1b']
@@ -36,8 +56,13 @@ def main():
                                   defaultValue)
 
     print ("--------------- Printing data values ---------------")
+    #for i in range(len(dataResults)):
+    #    print (expressions[i], "(", len(dataResults[i]), " values) =", dataResults[i])
     for i in range(len(dataResults)):
-        print (expressions[i], "(", len(dataResults[i]), " values) =", dataResults[i])
+        print (expressions[i], "(", len(dataResults[i]), " values) =")
+        for j in range(len(dataResults[i])):
+            print (j, "=", dataResults[i][j])
+
     print ("----------------------------------------------------")
 
 

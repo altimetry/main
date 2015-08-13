@@ -39,7 +39,7 @@ const string kwUNIT_ATTR_VALUE = "UNIT_ATTR_VALUE";
 const string kwVERBOSE				= "VERBOSE";
 const string kwLOGFILE				= "LOGFILE";
 
-// When debugging changes all calls to “new” to be calls to “DEBUG_NEW” allowing for memory leaks to
+// When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
 // Needs to be included after all #include commands
 #include "Win32MemLeaksAccurate.h"
@@ -82,32 +82,42 @@ void CFileParams::Init()
 
 void CFileParams::Load()
 {
-  CTrace::Tracer("Entered CFileParams::Load(name, mode)\n");
+	CTrace::Tracer( "Entered CFileParams::Load(name, mode)\n" );
 
-  const int MAX_LINE_LEN = 8192;
-  char line[MAX_LINE_LEN];
+	char *line = nullptr;
 
-  if (! IsOpen())
-  {
-    Open();
-  }
+	try {
+		if ( !IsOpen() )
+		{
+			Open();
+		}
 
-  m_mapParam.RemoveAll();
+		m_mapParam.RemoveAll();
 
-  while (ReadLineData(line, MAX_LINE_LEN) > 0)
-  {
-    CTrace::Tracer("ReadLineData Start:%s:End", line);
-    Decode(line);
-  }
+		const size_t size = GetLength() + 1;
+		line = new char[ size ];
 
-  LoadAliases();
-    
-  LoadFieldSpecificUnits();
+		while ( ReadLineData( line, size ) > 0 )
+		{
+			CTrace::Tracer( "ReadLineData Start:%s:End", line );
+			Decode( line );
+		}
+
+		LoadAliases();
+
+		LoadFieldSpecificUnits();
 
 
-  Close();
+		Close();
 
-  m_isLoaded = true;
+		m_isLoaded = true;
+	}
+	catch ( ... )
+	{
+		std::cout << "Undefined exception caught in CFileParams::Load." << std::endl;
+	}
+
+	delete[] line;
 }
 
 

@@ -2451,7 +2451,7 @@ wxMenuBar *PopupMenuFunc()
 {
     wxMenuBar *item0 = new wxMenuBar;
     
-    wxMenu* item1 = new wxMenu;
+    wxMenu* item1 = new wxMenu( _("Menu for fields tree") );
     item1->Append( ID_ASXMENU, _("Set as &X"), _("Set field as X") );
     item1->Append( ID_ASYMENU, _("Set as &Y"), _("Set field as Y") );
     item1->Append( ID_ASDATAMENU, _("Set as &Data"), _("Add field as data") );
@@ -2467,7 +2467,7 @@ wxMenuBar *PopupMenuFunc()
     item1->Append( ID_FIELD_ATTR_CHANGE_UNIT, _("Change &unit"), _("Allow to change the unit of this field (only for netcdf variable attributes)") );
     item0->Append( item1, _("Menu for fields tree") );
     
-    wxMenu* item4 = new wxMenu;
+    wxMenu* item4 = new wxMenu( _("Menu for operation tree") );
     item4->Append( ID_INSERTEXPRMENU, _("Insert &empty expression"), _("Insert a new empty expression into X, Y, or data node") );
     item4->Append( ID_INSERTFIELDMENU, _("Insert '%s' f&ield"), _("Insert the selected field into the expression") );
     item4->Append( ID_INSERTFCTMENU, _("Insert &function..."), _("Choose a function from a dialog box and insert it into the expression") );
@@ -2486,7 +2486,7 @@ wxMenuBar *PopupMenuFunc()
     item4->Append( item6 );
     item0->Append( item4, _("Menu for operation tree") );
     
-    wxMenu* item7 = new wxMenu;
+    wxMenu* item7 = new wxMenu( _("Menu for display tree") );
     item7->Append( ID_DISPADDTOSEL, _("Add to &selected"), wxT("") );
     item7->AppendSeparator();
     item7->Append( ID_DISPEXPANDMENU, _("&Expand all children"), _("Expand all children of the tree view") );

@@ -591,14 +591,14 @@ void CWorldPlotPanel::SetProjection(int32_t proj)
   // if the projection has been panned in such a way that
   // there is no point of it in the center of the screen,
   // we have no other resort but to center it again.
-  if ( viewLat == HUGE_VAL || isnan(viewLat) || isinf(viewLat) )
+  if ( viewLat == HUGE_VAL || std::isnan(viewLat) || std::isinf(viewLat) )
       {
             viewLat = this->projCenterLatitude;
             zoom = 1.0;
       }
 
 
-      if ( viewLon == HUGE_VAL || isnan(viewLon) || isinf(viewLon) )
+      if ( viewLon == HUGE_VAL || std::isnan(viewLon) || std::isinf(viewLon) )
       {
            viewLon = this->projCenterLongitude;
            zoom = 1.0;
@@ -1624,14 +1624,14 @@ void CVtkUpdate2DCallback::Execute(vtkObject *caller, unsigned long, void*)
             // if the projection has been panned in such a way that
             // there is no point of it in the center of the screen,
             // we have no other resort but to center it again.
-            if ( midLat == HUGE_VAL || isnan(midLat) || isinf(midLat) )
+            if ( midLat == HUGE_VAL || std::isnan(midLat) || std::isinf(midLat) )
             {
                 midLat = wplotRenderer->GetCenterLatitude();
                 zoom = 1.0;
             }
 
 
-            if ( midLong == HUGE_VAL || isnan(midLong) || isinf(midLong) )
+            if ( midLong == HUGE_VAL || std::isnan(midLong) || std::isinf(midLong) )
             {
                 midLong = wplotRenderer->GetCenterLongitude();
                 zoom = 1.0;

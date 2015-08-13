@@ -62,12 +62,12 @@ CLogPanel::CLogPanel( wxWindow *parent, wxWindowID id,
 {
   m_timerIdleWakeUp.SetOwner(this);
 
-  wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+  //wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
   LogInfoPanel(this, false, true);
 
-  item0->Add( this, 0, wxGROW|wxALL, 5 );
-  parent->SetSizer( item0 );
+  //item0->Add( this, 1, wxGROW|wxALL, 5 );
+  //parent->SetSizer( item0 );
 
   CProcess::EvtProcessTermCommand(*this,
                                  (CProcessTermEventFunction)&CLogPanel::OnProcessTerm, NULL, this);

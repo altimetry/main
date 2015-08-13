@@ -149,9 +149,16 @@ void CSchedulerFrame::OnUserManual( wxCommandEvent &event )
 }
 
 //----------------------------------------
+
+#if defined(_WIN64) || defined(__LP64__) || defined(__x86_64__) 
+	#define PROCESSOR_ARCH wxT("64 bit") 
+#else
+	#define PROCESSOR_ARCH wxT("32 bit") 
+#endif
+
 void CSchedulerFrame::OnAbout( wxCommandEvent &event )
 {
-  wxMessageDialog dialog( this, wxT("Welcome to BRAT ") wxT(BRAT_VERSION) wxT("\n(C)opyright ESA"),
+  wxMessageDialog dialog( this, wxT("Welcome to BRAT ") wxT(BRAT_VERSION) wxT(" - ") PROCESSOR_ARCH wxT("\n(C)opyright ESA"),
       wxT("About BRAT"), wxOK|wxICON_INFORMATION );
   dialog.ShowModal();    
 }

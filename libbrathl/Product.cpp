@@ -6160,367 +6160,368 @@ void CProduct::SetListFieldOrigin(const CStringList& listFieldOrigin)
 }
 
 //----------------------------------------
-int32_t CProduct::ReadData
-		(int32_t	nbFiles,
-		 char		**fileNames,
-		 const char	*recordName,
-		 const char	*selection,
-		 int32_t	nbData,
-		 char		**dataExpressions,
-		 char		**units,
-		 double		**results,
-		 int32_t	sizes[],
-		 int32_t	*actualSize,
-		 int		ignoreOutOfRange,
-		 int		statistics,
-		 double		defaultValue,
-     CStringMap* fieldSpecificUnit /*  = NULL */
-		 )
+int32_t CProduct::ReadData( 
+	int32_t	nbFiles,
+	char		**fileNames,
+	const char	*recordName,
+	const char	*selection,
+	int32_t	nbData,
+	char		**dataExpressions,
+	char		**units,
+	double		**results,
+	int32_t	sizes[],
+	int32_t	*actualSize,
+	int		ignoreOutOfRange,
+	int		statistics,
+	double		defaultValue,
+	CStringMap* fieldSpecificUnit /*  = NULL */
+	)
 {
 
-  CBratAlgorithmBase::RegisterAlgorithms();
+	CBratAlgorithmBase::RegisterAlgorithms();
 
-  // Load aliases dictionnary
-  string errorMsg;
-  CAliasesDictionary::LoadAliasesDictionary(&errorMsg, false);
-  if (!(errorMsg.empty())) 
-  {
-    std::cerr << "WARNING: " << errorMsg << std::endl;
-  }
-
-
-  CProduct	*product	= NULL;
-
-  int32_t	index;
-
-  int32_t brathl_errno = BRATHL_SUCCESS;
-
-  string	strRecordName(recordName);
-
-  try
-  {
-    CExpression			select(CTools::IsEmpty(selection) ? "1" : selection);
-    vector<CExpression>		expressions;
-    CUIntArray		Positions;
-    CStringList			listFieldsToRead;
-    vector<CUnit>		wantedUnits;
-
-    CStringArray		FileList;
-
-    if (ignoreOutOfRange && statistics)
-    {
-      throw CException("brathl_ReadData: Cannot ignore out of range when doing statistics",
-		       BRATHL_INCONSISTENCY_ERROR);
-    }
-
-    // Build file list
-    for (index=0; index < nbFiles; index++)
-    {
-      if (! CTools::IsEmpty(fileNames[index]))
-      {
-	      FileList.Insert(fileNames[index]);
-      }
-    }
-
-    product	= CProduct::Construct(FileList);
-
-    // Check expressions
-    for (index=0; index<nbData; index++)
-    {
-      CExpression	expr;
-      CUnit	unit;
-
-      if (CTools::IsEmpty(dataExpressions[index]))
-      {
-        expr.SetExpression("DV");
-      }
-      else
-      {
-        string str = CTools::ExpandVariables(dataExpressions[index], product->GetAliasesAsString(), NULL, true, '%', NULL, true, NULL);
-
-        expr.SetExpression(str);
-      	listFieldsToRead.InsertUnique(expr.GetFieldNames());
-      }
-
-      expressions.push_back(expr);
-
-      if ((units == NULL) || CTools::IsEmpty(units[index]))
-      {
-        unit	= "count";
-      }
-      else
-      {
-      	unit	= units[index];
-        unit.SetConversionFrom(unit.BaseUnit());
-      }
-
-      wantedUnits.push_back(unit);
-
-      if (results == NULL)
-      {
-	      if (sizes != NULL)
-	      {
-	        throw CException("brathl_ReadData: if 'results' is NULL, 'sizes' must also be NULL",
-			         BRATHL_INCONSISTENCY_ERROR);
-	      }
-      }
-      else
-      {
-	      if (sizes == NULL)
-	      {
-	        throw CException("brathl_ReadData: if 'results' is not NULL, 'sizes' must also not be NULL",
-			         BRATHL_INCONSISTENCY_ERROR);
-	      }
-	      if (sizes[index] != 0)
-	      {
-	        if (sizes[index] < 0)
-	        {
-	          if (results[index] != NULL)
-	            throw CException("brathl_ReadData: if 'sizes' is negative, corresponding 'results' must be NULL",
-			             BRATHL_INCONSISTENCY_ERROR);
-	          results[index]	= static_cast<double *>(malloc(4096 * sizeof(*(results[index]))));
-	          if (results[index] == NULL)
-	            throw CMemoryException("brathl_ReadData: not enough memory for initial vectors");
-	          sizes[index]	= -4096;
-	        }
-	        else if ((results[index] == NULL) && (sizes[index] > 0))
-	        {
-	          throw CException("brathl_ReadData: if 'sizes' is positive, corresponding 'results' must not be NULL",
-			           BRATHL_INCONSISTENCY_ERROR);
-	        }
-	        else if ((sizes[index] < NUMBER_OF_STATISTICS) && statistics)
-	        {
-	          throw CException(CTools::Format("brathl_ReadData: when statistics are asked, size of result must be at least %d, not %d",
-					          NUMBER_OF_STATISTICS,
-					          sizes[index]),
-			           BRATHL_INCONSISTENCY_ERROR);
-	        }
-	        // Initialises statistics
-	        if (statistics)
- 	        {
-	          for (int StatIndex=0; StatIndex < NUMBER_OF_STATISTICS; StatIndex++)
-            {
-	            results[index][StatIndex]	= CTools::m_defaultValueDOUBLE;
-            }
-	          results[index][COUNT_INDEX]	= 0.0;
-	        }
-	      }
-      }
-    }
-
-    listFieldsToRead.InsertUnique(select.GetFieldNames());
-
-    *actualSize	= 0;
-
-    uint32_t nbFiles = FileList.size();
-    uint32_t cptFile = 0;
-
-    product->SetExpandArray(true);
-
-    for (CStringArray::iterator itFile = FileList.begin() ; itFile != FileList.end() ; itFile++)
-    {
-      cptFile++;
-
-      CTrace::Tracer(1,"File %d/%d - Reading record data from %s ... and registering data ...",
-                   cptFile, nbFiles, (*itFile).c_str());
+	// Load aliases dictionnary
+	string errorMsg;
+	CAliasesDictionary::LoadAliasesDictionary( &errorMsg, false );
+	if ( !( errorMsg.empty() ) )
+	{
+		std::cerr << "WARNING: " << errorMsg << std::endl;
+	}
 
 
-      product->SetForceReadDataOneByOne(true);
+	CProduct	*product	= NULL;
 
-      if (fieldSpecificUnit != NULL)
-      {
-        product->SetFieldSpecificUnits(*fieldSpecificUnit);
-      }
+	int32_t	index;
 
-      product->Open(*itFile, strRecordName, listFieldsToRead);
+	int32_t brathl_errno = BRATHL_SUCCESS;
+
+	string	strRecordName( recordName );
+
+	try
+	{
+		CExpression			select( CTools::IsEmpty( selection ) ? "1" : selection );
+		vector<CExpression>		expressions;
+		CUIntArray		Positions;
+		CStringList			listFieldsToRead;
+		vector<CUnit>		wantedUnits;
+
+		CStringArray		FileList;
+
+		if ( ignoreOutOfRange && statistics )
+		{
+			throw CException( "brathl_ReadData: Cannot ignore out of range when doing statistics",
+				BRATHL_INCONSISTENCY_ERROR );
+		}
+
+		// Build file list
+		for ( index=0; index < nbFiles; index++ )
+		{
+			if ( ! CTools::IsEmpty( fileNames[ index ] ) )
+			{
+				FileList.Insert( fileNames[ index ] );
+			}
+		}
+
+		product	= CProduct::Construct( FileList );
+
+		// Check expressions
+		for ( index=0; index < nbData; index++ )
+		{
+			CExpression	expr;
+			CUnit	unit;
+
+			if ( CTools::IsEmpty( dataExpressions[ index ] ) )
+			{
+				expr.SetExpression( "DV" );
+			}
+			else
+			{
+				string str = CTools::ExpandVariables( dataExpressions[ index ], product->GetAliasesAsString(), NULL, true, '%', NULL, true, NULL );
+
+				expr.SetExpression( str );
+				listFieldsToRead.InsertUnique( expr.GetFieldNames() );
+			}
+
+			expressions.push_back( expr );
+
+			if ( ( units == NULL ) || CTools::IsEmpty( units[ index ] ) )
+			{
+				unit	= "count";
+			}
+			else
+			{
+				unit	= units[ index ];
+				unit.SetConversionFrom( unit.BaseUnit() );
+			}
+
+			wantedUnits.push_back( unit );
+
+			if ( results == NULL )
+			{
+				if ( sizes != NULL )
+				{
+					throw CException( "brathl_ReadData: if 'results' is NULL, 'sizes' must also be NULL",
+						BRATHL_INCONSISTENCY_ERROR );
+				}
+			}
+			else
+			{
+				if ( sizes == NULL )
+				{
+					throw CException( "brathl_ReadData: if 'results' is not NULL, 'sizes' must also not be NULL",
+						BRATHL_INCONSISTENCY_ERROR );
+				}
+				if ( sizes[ index ] != 0 )
+				{
+					if ( sizes[ index ] < 0 )
+					{
+						if ( results[ index ] != NULL )
+							throw CException( "brathl_ReadData: if 'sizes' is negative, corresponding 'results' must be NULL",
+							BRATHL_INCONSISTENCY_ERROR );
+						results[ index ]	= static_cast<double *>( malloc( 4096 * sizeof( *( results[ index ] ) ) ) );
+						if ( results[ index ] == NULL )
+							throw CMemoryException( "brathl_ReadData: not enough memory for initial vectors" );
+						sizes[ index ]	= -4096;
+					}
+					else if ( ( results[ index ] == NULL ) && ( sizes[ index ] > 0 ) )
+					{
+						throw CException( "brathl_ReadData: if 'sizes' is positive, corresponding 'results' must not be NULL",
+							BRATHL_INCONSISTENCY_ERROR );
+					}
+					else if ( ( sizes[ index ] < NUMBER_OF_STATISTICS ) && statistics )
+					{
+						throw CException( CTools::Format( "brathl_ReadData: when statistics are asked, size of result must be at least %d, not %d",
+							NUMBER_OF_STATISTICS,
+							sizes[ index ] ),
+							BRATHL_INCONSISTENCY_ERROR );
+					}
+					// Initialises statistics
+					if ( statistics )
+					{
+						for ( int StatIndex=0; StatIndex < NUMBER_OF_STATISTICS; StatIndex++ )
+						{
+							results[ index ][ StatIndex ]	= CTools::m_defaultValueDOUBLE;
+						}
+						results[ index ][ COUNT_INDEX ]	= 0.0;
+					}
+				}
+			}
+		}
+
+		listFieldsToRead.InsertUnique( select.GetFieldNames() );
+
+		*actualSize	= 0;
+
+		uint32_t nbFiles = FileList.size();
+		uint32_t cptFile = 0;
+
+		product->SetExpandArray( true );
+
+		for ( CStringArray::iterator itFile = FileList.begin(); itFile != FileList.end(); itFile++ )
+		{
+			cptFile++;
+
+			CTrace::Tracer( 1, "File %d/%d - Reading record data from %s ... and registering data ...",
+				cptFile, nbFiles, ( *itFile ).c_str() );
 
 
-      uint32_t nRecords = product->GetNumberOfRecords();
+			product->SetForceReadDataOneByOne( true );
+
+			if ( fieldSpecificUnit != NULL )
+			{
+				product->SetFieldSpecificUnits( *fieldSpecificUnit );
+			}
+
+			product->Open( *itFile, strRecordName, listFieldsToRead );
 
 
-      for (uint32_t iRecord = 0 ; iRecord < nRecords ; iRecord++)
-      {
-	      CDataSet* dataSet = NULL;
-        product->ReadBratRecord(iRecord);
-	      dataSet = product->GetDataSet();
+			uint32_t nRecords = product->GetNumberOfRecords();
 
-	      CProduct::ReadDataForOneMeasure(dataSet, strRecordName, select, expressions, wantedUnits, results, sizes, actualSize, ignoreOutOfRange, statistics, product);
-      }
 
-      product->Close();
-    }
+			for ( uint32_t iRecord = 0; iRecord < nRecords; iRecord++ )
+			{
+				CDataSet* dataSet = NULL;
+				product->ReadBratRecord( iRecord );
+				dataSet = product->GetDataSet();
 
-    if (statistics)
-    {
-      *actualSize	= CProduct::NUMBER_OF_STATISTICS;
-    }
-    if (sizes != NULL)
-    {
-      // Set expandable vectors to fixed (final) size
-      for (index=0; index<nbData; index++)
-      {
-	      double *vector	= results[index];
-	      sizes[index]	= abs(sizes[index]);
-	      // Finalize statistics
-	      if (statistics && (sizes[index] != 0) && (vector[CProduct::COUNT_INDEX] != 0.0))
-	      {// Compute final STDDEV
- 	        CTools::FinalizeIncrementalStats(vector[CProduct::COUNT_INDEX],
-					         vector[CProduct::MEAN_INDEX],
-					         vector[CProduct::STDDEV_INDEX],
-					         vector[CProduct::MIN_INDEX],
-					         vector[CProduct::MAX_INDEX]);
-	      }
-	      else
-	      {
-	        for (int32_t IndexVal=0; IndexVal<*actualSize; IndexVal++)
-	        {
-	          if (CTools::IsDefaultValue(vector[IndexVal]))
-            {
-	            vector[IndexVal]	= defaultValue;
-            }
-	        }
-	      }
-      }
-    }
-  }
-  catch (CException &e)
-  {
-    brathl_errno = e.error();
-    cerr << "ERROR brathl_ReadData:" << e.what() << endl;
-  }
-  catch (...)
-  {
-    brathl_errno = BRATHL_ERROR;
-  }
+				CProduct::ReadDataForOneMeasure( dataSet, strRecordName, select, expressions, wantedUnits, results, sizes, actualSize, ignoreOutOfRange, statistics, product );
+			}
 
-  // Free resources
-  try
-  {
-    delete product;
-  }
-  catch (CException &e)
-  {
-    brathl_errno = e.error();
-    cerr << "ERROR brathl_ReadData:" << e.what() << endl;
-  }
-  catch (...)
-  {
-    brathl_errno = BRATHL_ERROR;
-  }
+			product->Close();
+		}
 
-  return brathl_errno;
+		if ( statistics )
+		{
+			*actualSize	= CProduct::NUMBER_OF_STATISTICS;
+		}
+		if ( sizes != NULL )
+		{
+			// Set expandable vectors to fixed (final) size
+			for ( index=0; index < nbData; index++ )
+			{
+				double *vector	= results[ index ];
+				sizes[ index ]	= abs( sizes[ index ] );
+				// Finalize statistics
+				if ( statistics && ( sizes[ index ] != 0 ) && ( vector[ CProduct::COUNT_INDEX ] != 0.0 ) )
+				{// Compute final STDDEV
+					CTools::FinalizeIncrementalStats( vector[ CProduct::COUNT_INDEX ],
+						vector[ CProduct::MEAN_INDEX ],
+						vector[ CProduct::STDDEV_INDEX ],
+						vector[ CProduct::MIN_INDEX ],
+						vector[ CProduct::MAX_INDEX ] );
+				}
+				else
+				{
+					for ( int32_t IndexVal=0; IndexVal < *actualSize; IndexVal++ )
+					{
+						if ( CTools::IsDefaultValue( vector[ IndexVal ] ) )
+						{
+							vector[ IndexVal ]	= defaultValue;
+						}
+					}
+				}
+			}
+		}
+	}
+	catch ( CException &e )
+	{
+		brathl_errno = e.error();
+		cerr << "ERROR brathl_ReadData:" << e.what() << endl;
+	}
+	catch ( ... )
+	{
+		brathl_errno = BRATHL_ERROR;
+	}
+
+	// Free resources
+	try
+	{
+		delete product;
+	}
+	catch ( CException &e )
+	{
+		brathl_errno = e.error();
+		cerr << "ERROR brathl_ReadData:" << e.what() << endl;
+	}
+	catch ( ... )
+	{
+		brathl_errno = BRATHL_ERROR;
+	}
+
+	return brathl_errno;
 }
 //----------------------------------------
 
-void CProduct::ReadDataForOneMeasure
-		(CDataSet			*dataSet,
-		 const string			&recordName,
-		 CExpression			&select,
-		 vector<CExpression>		&expressions,
-		 const vector<CUnit>		&wantedUnits,
-		 double				**results,
-		 int32_t			*sizes,
-		 int32_t			*actualSize,
-		 int				ignoreOutOfRange,
-		 int				statistics,
-     CProduct* product /* = NULL */)
+void CProduct::ReadDataForOneMeasure(
+	CDataSet			*dataSet,
+	const string			&recordName,
+	CExpression			&select,
+	vector<CExpression>		&expressions,
+	const vector<CUnit>		&wantedUnits,
+	double				**results,
+	int32_t			*sizes,
+	int32_t			*actualSize,
+	int				ignoreOutOfRange,
+	int				statistics,
+	CProduct* product /* = NULL */ )
 {
-  CExpressionValue	exprValue;
+	CExpressionValue	exprValue;
 
 
-  for (CObArray::iterator itDataSet = dataSet->begin(); itDataSet != dataSet->end() ; itDataSet++)
-  {
-    CRecord	*record		= dynamic_cast<CRecord*>(*itDataSet);
-    CRecordSet	*recordSet	= record->GetRecordSet();
+	for ( CObArray::iterator itDataSet = dataSet->begin(); itDataSet != dataSet->end(); itDataSet++ )
+	{
+		CRecord	*record		= dynamic_cast<CRecord*>( *itDataSet );
+		CRecordSet	*recordSet	= record->GetRecordSet();
 
-    recordSet->ExecuteExpression(select, recordName, exprValue, product);
-    if (exprValue.IsTrue() != 1)
-    {
-      continue;	// Not selected
-    }
+		recordSet->ExecuteExpression( select, recordName, exprValue, product );
+		if ( exprValue.IsTrue() != 1 )
+		{
+			continue;	// Not selected
+		}
 
-    if (results != NULL)
-    {
-      for (uint32_t indexExpr = 0 ; indexExpr < expressions.size() ; indexExpr++)
-      {
-	      recordSet->ExecuteExpression(expressions[indexExpr], recordName, exprValue, product);
+		if ( results != NULL )
+		{
+			for ( uint32_t indexExpr = 0; indexExpr < expressions.size(); indexExpr++ )
+			{
+				recordSet->ExecuteExpression( expressions[ indexExpr ], recordName, exprValue, product );
 
-	      int32_t nbValues	= exprValue.GetNbValues();
+				int32_t nbValues	= exprValue.GetNbValues();
 
-	      double value;
+				double value;
 
-	      if (nbValues == 0)
-        {
-	        value	= CTools::m_defaultValueDOUBLE;
-        }
-	      else if (nbValues == 1)
-        {
-	        value	= exprValue.GetValues()[0];
-        }
-	      else
-        {
-	        throw CException("Field value must be scalar not a vector or a matrix",
-		                 BRATHL_LIMIT_ERROR);
-        }
+				if ( nbValues == 0 )
+				{
+					value	= CTools::m_defaultValueDOUBLE;
+				}
+				else if ( nbValues == 1 )
+				{
+					value	= exprValue.GetValues()[ 0 ];
+				}
+				else
+				{
+					throw CException( "Field value must be scalar not a vector or a matrix",
+						BRATHL_LIMIT_ERROR );
+				}
 
-        CUnit unit = wantedUnits[indexExpr];
-        double convertedValue = unit.Convert(value);
+				CUnit unit = wantedUnits[ indexExpr ];
+				double convertedValue = unit.Convert( value );
 
-	      if ((sizes[indexExpr] >= 0) && (*actualSize >= sizes[indexExpr]))
-	      {
-	        if (! ((sizes[indexExpr] == 0) || ignoreOutOfRange))
-          {
-            if (!statistics)
-            {
-	            throw CException(CTools::Format("Too much data to store for given space at least %d values needed",
-					            *actualSize),
-			             BRATHL_RANGE_ERROR);
-            }
-            else
-            {
-	            double *vector	= results[indexExpr];
- 	            CTools::DoIncrementalStats(convertedValue,
-				               vector[COUNT_INDEX],
-				               vector[MEAN_INDEX],
-				               vector[STDDEV_INDEX],
-				               vector[MIN_INDEX],
-				               vector[MAX_INDEX]);
-            }
-          }
-	      }
-	      else
-	      {
-	        if ((sizes[indexExpr] < 0) && (-sizes[indexExpr] <= *actualSize))
-	        {// Size of expandable vector reached, resize it by doubling its size
-	          sizes[indexExpr]	*= 2;
-	          void 	*NewPtr	= realloc(results[indexExpr],
-					        -sizes[indexExpr]*sizeof(*(results[indexExpr])));
-	          if (NewPtr == NULL)
-	            throw CMemoryException(CTools::Format("ReadDataForOneMeasure: Not enough memory to allocate vector of size %d",
-						          -sizes[indexExpr]));
+				if ( ( sizes[ indexExpr ] >= 0 ) && ( *actualSize >= sizes[ indexExpr ] ) )
+				{
+					if ( ! ( ( sizes[ indexExpr ] == 0 ) || ignoreOutOfRange ) )
+					{
+						if ( !statistics )
+						{
+							throw CException( CTools::Format( "Too much data to store for given space at least %d values needed",
+								*actualSize ),
+								BRATHL_RANGE_ERROR );
+						}
+						else
+						{
+							double *vector	= results[ indexExpr ];
+							CTools::DoIncrementalStats( convertedValue,
+								vector[ COUNT_INDEX ],
+								vector[ MEAN_INDEX ],
+								vector[ STDDEV_INDEX ],
+								vector[ MIN_INDEX ],
+								vector[ MAX_INDEX ] );
+						}
+					}
+				}
+				else
+				{
+					if ( ( sizes[ indexExpr ] < 0 ) && ( -sizes[ indexExpr ] <= *actualSize ) )
+					{// Size of expandable vector reached, resize it by doubling its size
+						sizes[ indexExpr ]	*= 2;
+						void 	*NewPtr	= realloc( results[ indexExpr ],
+							-sizes[ indexExpr ] * sizeof( *( results[ indexExpr ] ) ) );
+						if ( NewPtr == NULL )
+							throw CMemoryException( CTools::Format( "ReadDataForOneMeasure: Not enough memory to allocate vector of size %d",
+							-sizes[ indexExpr ] ) );
 
-	          results[indexExpr]	= static_cast<double *>(NewPtr);
-	        }
-	        if (statistics)
-	        {
-	          double *vector	= results[indexExpr];
- 	          CTools::DoIncrementalStats(convertedValue,
-				             vector[COUNT_INDEX],
-				             vector[MEAN_INDEX],
-				             vector[STDDEV_INDEX],
-				             vector[MIN_INDEX],
-				             vector[MAX_INDEX]);
+						results[ indexExpr ]	= static_cast<double *>( NewPtr );
+						memset( &results[ indexExpr ][ abs( sizes[ indexExpr ] ) / 2 ], 0, ( abs( sizes[ indexExpr ] ) / 2 ) * ( sizeof( *( results[ indexExpr ] ) ) ) );
+					}
+					if ( statistics )
+					{
+						double *vector	= results[ indexExpr ];
+						CTools::DoIncrementalStats( convertedValue,
+							vector[ COUNT_INDEX ],
+							vector[ MEAN_INDEX ],
+							vector[ STDDEV_INDEX ],
+							vector[ MIN_INDEX ],
+							vector[ MAX_INDEX ] );
 
-	        }
-	        else
-	        {
-	          results[indexExpr][*actualSize]	= convertedValue;
-	        }
-	      }
-      }
-    }
-    (*actualSize)++;
-  }
+					}
+					else
+					{
+						results[ indexExpr ][ *actualSize ]	= convertedValue;
+					}
+				}
+			}
+		}
+		( *actualSize )++;
+	}
 }
 //----------------------------------------
 CProduct* CProduct::Clone()

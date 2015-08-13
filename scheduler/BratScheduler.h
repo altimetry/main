@@ -49,7 +49,17 @@ using namespace brathl;
 #include "SchedulerTimer.h"
 #include "SchedulerFrame.h"
 
-const wxString BRATSCHEDULER_TITLE = "Brat Task Scheduler";
+#if defined(_WIN64) || defined(__LP64__) || defined(__x86_64__) 
+	const wxString BRATSCHEDULER_TITLE_BASE = "Brat Task Scheduler (64 bit)";
+#else
+	const wxString BRATSCHEDULER_TITLE_BASE = "Brat Task Scheduler (32 bit)";
+#endif
+#if defined(DEBUG) || defined(_DEBUG)
+	const wxString BRATSCHEDULER_TITLE = BRATSCHEDULER_TITLE_BASE + " [Debug]";
+#else
+	const wxString BRATSCHEDULER_TITLE = BRATSCHEDULER_TITLE_BASE;
+#endif
+
 const wxString BRAT_USER_MANUAL = wxString::Format("brat_user_manual_%s.pdf", BRAT_VERSION);
 const wxString BRAT_DOC_SUBDIR = "doc";
 

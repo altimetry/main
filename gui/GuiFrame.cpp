@@ -187,12 +187,33 @@ void CGuiFrame::CreateMainMenuBar()
 //----------------------------------------
 void CGuiFrame::CreatePopupMenuBar()
 {
-  m_menuBarPopup = PopupMenuFunc();
-  m_menuFieldsTreeCtrl = m_menuBarPopup->GetMenu(0);
-  
-  m_menuOperationTreeCtrl = m_menuBarPopup->GetMenu(1);
-  
-  m_menuDisplayTreeCtrl = m_menuBarPopup->GetMenu(2);
+	//contexMenusCreated note:
+	//
+	//	Quick hack caused by upgrade to wxWidgets 3.0.2, which does not allow windows to invoke 
+	//	context menus if attached to menu bars, as seems to be the old technique of wxDesigner,
+	//	or of the original BRAT authors. Note that wxDesigner is no longer available.
+	//	If the menus remain attached to the menu bar, events are not processed.
+
+	static bool contexMenusCreated = false;
+
+	if ( contexMenusCreated )
+	{
+		assert( false );
+		return;
+	}
+
+	contexMenusCreated = true;
+
+	m_menuBarPopup = PopupMenuFunc();
+	m_menuFieldsTreeCtrl = m_menuBarPopup->GetMenu( 0 );
+
+	m_menuOperationTreeCtrl = m_menuBarPopup->GetMenu( 1 );
+
+	m_menuDisplayTreeCtrl = m_menuBarPopup->GetMenu( 2 );
+
+	m_menuBarPopup->Remove( 2 );
+	m_menuBarPopup->Remove( 1 );
+	m_menuBarPopup->Remove( 0 );
 }
 
 //----------------------------------------
@@ -1152,9 +1173,16 @@ void CGuiFrame::OnNewWorkspace( wxCommandEvent &event )
 }
 
 //----------------------------------------
+
+#if defined(_WIN64) || defined(__LP64__) || defined(__x86_64__) 
+	#define PROCESSOR_ARCH wxT("64 bit") 
+#else
+	#define PROCESSOR_ARCH wxT("32 bit") 
+#endif
+
 void CGuiFrame::OnAbout( wxCommandEvent &event )
 {
-    wxMessageDialog dialog( this, wxT("Welcome to BRAT ") wxT(BRAT_VERSION) wxT("\n(C)opyright CNES/ESA"),
+    wxMessageDialog dialog( this, wxT("Welcome to BRAT ") wxT(BRAT_VERSION)  wxT(" - ") PROCESSOR_ARCH wxT("\n(C)opyright CNES/ESA"),
         wxT("About BRAT"), wxOK|wxICON_INFORMATION );
     dialog.ShowModal();
 }

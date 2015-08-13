@@ -50,7 +50,17 @@ using namespace brathl;
 #include "TreeWorkspace.h"
 #include "GuiFrame.h"
 
-const wxString BRATGUI_TITLE = "Brat Interface";
+#if defined(_WIN64) || defined(__LP64__) || defined(__x86_64__) 
+	const wxString BRATGUI_TITLE_BASE = "Brat Interface (64 bit)";
+#else
+	const wxString BRATGUI_TITLE_BASE = "Brat Interface (32 bit)";
+#endif
+#if defined(DEBUG) || defined(_DEBUG)
+	const wxString BRATGUI_TITLE = BRATGUI_TITLE_BASE + " [Debug]";
+#else
+	const wxString BRATGUI_TITLE = BRATGUI_TITLE_BASE;
+#endif
+
 const wxString BRAT_USER_MANUAL = wxString::Format("brat_user_manual_%s.pdf", BRAT_VERSION);
 #ifdef __WXMAC__
 const wxString BRAT_DOC_SUBDIR = "data";

@@ -1466,7 +1466,7 @@ int32_t CTools::IsInf
 {
 
 #if HAVE_ISINF
-  return isinf(X);
+  return std::isinf(X);
 #else
   return (_fpclass(X) == _FPCLASS_NINF || _fpclass(X) == _FPCLASS_PINF);
 #endif
@@ -1478,7 +1478,7 @@ int32_t CTools::IsNan
 {
 
 #if HAVE_ISNAN
-  return isnan(X);
+  return std::isnan(X);
 #else
   #if HAVE_USCORE_ISNAN
     return _isnan(X);
