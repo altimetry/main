@@ -740,7 +740,7 @@ void CUnit::CheckUdunits
   if ((Code == 0) && CUnit::m_ErrInit.empty())
     return;
 
-  switch (Code)
+  switch ((int32_t)Code)
   {
     case 0:
 	break;

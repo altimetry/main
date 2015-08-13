@@ -2340,7 +2340,7 @@ void CTools::FindAliases(const string& inText, vector<string>& aliasesFound,
       withExcept = true;
     }
 
-    string str = CTools::ExpandVariables(strAlias, varValues, fieldAliases, false, begining.at(0), false, withExcept, errorMsg);
+    string str = CTools::ExpandVariables(strAlias, varValues, fieldAliases, false, begining.at(0), 0, withExcept, errorMsg);
     
     // If errorMsg not NULL and not empyt: there is an error: exit loop;
     if (errorMsg != NULL) 

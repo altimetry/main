@@ -239,7 +239,7 @@ void vtkGeoGridSource::Execute()
         cellId = -cell;
         color->InsertTuple1(cell, cellId);
 
-        GeoGridLineInfo cInfo = { longitude, cell, GRIDLINE_LONG };
+        GeoGridLineInfo cInfo = { longitude, (double)cell, GRIDLINE_LONG };
         gridLinesInfo[cellId] = cInfo;
 
         std::list<double> latitudes;
@@ -293,7 +293,7 @@ void vtkGeoGridSource::Execute()
         cellId = -cell;
         color->InsertTuple1(cell, cellId);
 
-        GeoGridLineInfo cInfo = { latitude, cell, GRIDLINE_LAT };
+        GeoGridLineInfo cInfo = { latitude, (double)cell, GRIDLINE_LAT };
         gridLinesInfo[cellId] = cInfo;
 
         std::list<double> longitudes;
