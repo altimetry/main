@@ -33,8 +33,6 @@
 #include <stdio.h>
 #ifdef WIN32
 #define snprintf _snprintf
-#define isnan _isnan
-#define isinf(x) (!_finite(x))
 #endif
 
 #include "Trace.h"
