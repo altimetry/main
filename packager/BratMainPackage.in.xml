@@ -26,7 +26,7 @@
                     <comment>${product_fullname} ${product_version} @BRAT_TARGET_PROCESSOR@ graphic user interface</comment>
                     <exec>${installdir}/bin/BratGui</exec>
                     <icon>${installdir}/data/BratIcon.png</icon>
-                    <name>${product_shortname}${product_version} @BRAT_TARGET_PROCESSOR@</name>
+                    <name>${product_shortname} GUI ${product_version} @BRAT_TARGET_PROCESSOR@</name>
                     <path></path>
                     <platforms>all</platforms>
                     <runAsAdmin>0</runAsAdmin>
@@ -40,7 +40,7 @@
                     <comment>${product_fullname} ${product_version} @BRAT_TARGET_PROCESSOR@ graphic scheduler interface</comment>
                     <exec>${installdir}/bin/BratScheduler</exec>
                     <icon>${installdir}/data/BratIcon.png</icon>
-                    <name>${product_shortname} ${product_version} @BRAT_TARGET_PROCESSOR@</name>
+                    <name>${product_shortname} Scheduler ${product_version} @BRAT_TARGET_PROCESSOR@</name>
                     <path></path>
                     <platforms>all</platforms>
                     <runAsAdmin>0</runAsAdmin>

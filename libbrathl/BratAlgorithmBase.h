@@ -525,9 +525,9 @@ public:
   CBratAlgoExample1() {};
   virtual ~CBratAlgoExample1() {};
 
-  virtual string GetName() { return "example1"; };
-  virtual string GetDescription() { return "example 1 of algorithm - return (parameter 2 + parameter 4)"; };
-  virtual uint32_t GetNumInputParam() { return 4; };
+  virtual string GetName() { return "example1"; }
+  virtual string GetDescription() { return "example 1 of algorithm - return (parameter 2 + parameter 4)"; }
+  virtual uint32_t GetNumInputParam() { return 4; }
   virtual string GetInputParamDesc(uint32_t indexParam)  {
         string value = "";
         switch (indexParam) 
