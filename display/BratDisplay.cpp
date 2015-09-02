@@ -3642,7 +3642,7 @@ bool CBratDisplayApp::GetCommandLineOptions(int argc, wxChar* argv[])
 
   void* argtable[] = {infiles, xAxis, yAxis, vars, help, keywords, end};
 
-  const char* progname = wxGetApp().GetAppName();
+  std::string progname = wxGetApp().GetAppName().ToStdString();
 
   int nerrors;
   int i;
@@ -3668,7 +3668,7 @@ bool CBratDisplayApp::GetCommandLineOptions(int argc, wxChar* argv[])
   /* special case: '--help' takes precedence over error reporting */
   if ( (help->count > 0) || (argc == 1) )
   {
-    printf("Usage: %s", progname);
+    printf("Usage: %s", progname.c_str());
     arg_print_syntax(stdout,argtable,"\n");
     printf("BratDisplay - An application to display BRAT netCDF data\n");
     arg_print_glossary(stdout,argtable,"  %-25s %s\n");
@@ -3691,8 +3691,8 @@ bool CBratDisplayApp::GetCommandLineOptions(int argc, wxChar* argv[])
   if (nerrors > 0)
   {
     /* Display the error details contained in the arg_end struct.*/
-    arg_print_errors(stdout,end,progname);
-    printf("Try '%s --help' for more information.\n",progname);
+    arg_print_errors(stdout,end,progname.c_str());
+    printf("Try '%s --help' for more information.\n",progname.c_str());
 
     /* deallocate each non-null entry in argtable[] */
     arg_freetable(argtable,sizeof(argtable)/sizeof(argtable[0]));
