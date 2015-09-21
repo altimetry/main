@@ -1077,6 +1077,22 @@ DEFINE_PROCESS(BratCheckAliases)
 set(ADDITIONAL_LIBS geotiff vtktiff vtkjpeg vtkzlib)
 DEFINE_PROCESS(BratExportGeoTiff)
 
+add_custom_target(command-line-tools DEPENDS 
+  BratExportAscii
+  BratCreateYFX 
+  BratCreateZFXY
+  BratShowInternalFile
+  BratStats
+  BratListFieldNames
+  BratCheckAliases)
+
+# install(TARGETS command_line_tools DESTINATION bin/)
+add_custom_target(command-line-tools-install
+  COMMENT "Build only command line tools"
+  COMMAND  ${MAKE_COMMAND} install command-line-tools
+)
+
+
 
 if(CMAKE_COMPILER_IS_GNUCXX)
   # Only for C++

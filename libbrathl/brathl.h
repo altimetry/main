@@ -33,6 +33,13 @@ extern "C" {
 #include "brathl_config.h"
 
 
+    
+#if GCC_VERSION < 40600				//4.6.0
+#define nullptr NULL
+#endif
+    
+
+
 #ifdef WIN32
 
 #include <windows.h>
@@ -47,7 +54,6 @@ extern "C" {
 #ifndef S_ISDIR
 #define S_ISDIR(X) (((X) & _S_IFDIR) == _S_IFDIR)
 #endif
-    
     
 typedef signed char		int8_t;
 typedef short int		int16_t;
