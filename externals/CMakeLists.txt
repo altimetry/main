@@ -284,8 +284,7 @@ if (NOT WIN32)
         set(NC_EXTRA_DEPS "-lcurl -lssl -lsasl2 -lldap -lz" CACHE INTERNAL "")
         set(HAVE_LIBM curl;m;z;ssl;dl CACHE STRING "" FORCE)
     else ()
-#        set(NC_EXTRA_DEPS "-lssl -lidn -lssh2 -lsasl2 -lcrypt -lrtmp -lldap -lz" CACHE INTERNAL "")
-        set(NC_EXTRA_DEPS "-lssl -lidn -lssh2 -lsasl2 -lcrypt -lldap -lz" CACHE INTERNAL "")
+        set(NC_EXTRA_DEPS "-lssl -lidn -lssh2 -lsasl2 -lcrypt -lldap -lz" CACHE INTERNAL "")        # -lrtmp
         set(HAVE_LIBM curl;m;idn;z;ssl;crypt;dl CACHE STRING "" FORCE)
     endif ()
 
