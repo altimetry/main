@@ -514,7 +514,7 @@ def brathl_ReadData(fileNames,
                                 c_defaultValue )          # Default/missing value
 
     #-- Converting C array into a Python list with the 'dataRead' values --#
-    dataResults = [[dataRead[j][i] for i in range(sizes[j])] 
+    dataResults = [[dataRead[j][i] for i in range(actualSize.value)] 
                                    for j in range (len(expressions))]
 
     #brathl_Error(errno) # Not required: it already prints the error messages
