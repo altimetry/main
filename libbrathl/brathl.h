@@ -33,6 +33,13 @@ extern "C" {
 #include "brathl_config.h"
 
 
+    
+#if defined(GCC_VERSION) && (GCC_VERSION < 40600)				//4.6.0
+#define nullptr NULL
+#endif
+    
+
+
 #ifdef WIN32
 
 #include <windows.h>
