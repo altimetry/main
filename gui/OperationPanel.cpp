@@ -2820,6 +2820,7 @@ void COperationPanel::OnDataExprNew(CNewDataExprEvent& event)
 //----------------------------------------
 void COperationPanel::OnDataExprDeleted(CDeleteDataExprEvent& event)
 {
+  SetCurrentFormula();
   SetDataSetAndRecordLabel();
   EnableCtrl();
 }
@@ -2944,7 +2945,8 @@ void COperationPanel::DeleteExpression()
 
   GetOperationtreectrl()->DeleteCurrentFormula();
 
-  SetCurrentFormula();
+  //SetCurrentFormula();	[FEMM: commented out assuming GetOperationtreectrl()->DeleteCurrentFormula() 
+  //always posts the event that OnDataExprDeleted processes, calling SetCurrentFormula()]
 
   EnableCtrl();
 }
@@ -4011,39 +4013,41 @@ void COperationPanel::DelayExportOperationAsAsciiDump(CDelayDlg& delayDlg, wxXml
 //----------------------------------------
 void COperationPanel::ExportOperationAsAscii()
 {
-  if (m_operation == NULL)
-  {
-    return;
-  }
+	if (!m_operation)
+		return;
 
-  wxGetApp().GotoLogPage();
+	wxGetApp().GotoLogPage();
 
-  // Exports operation with data computation, otherwise only dumps expressions
-  if ( ! m_operation->IsExportAsciiNoDataComputation())
-  {
+	// Exports operation with data computation, otherwise only dumps expressions
+	if ( ! m_operation->IsExportAsciiNoDataComputation() )
+	{
+		// [FEMM] The output file is not updated as it should when the values in the formula tree change; 
+		//so, inspecting IsExecuteAgain and output file existence is not enough to know when execution 
+		//is necessary. Hence, here, we are forced to always execute, because apparently there is no other
+		//mechanism that we could inspect to know if the output (netcdf) file is updated.
+		//
+		bool bExecute = true; // m_operation->IsExecuteAgain() || ( ! wxFileExists(m_operation->GetOutputName()) );
 
-    bool bExecute = m_operation->IsExecuteAgain() || ( ! wxFileExists(m_operation->GetOutputName()) );
+		if ( bExecute )
+		{
+			Execute( true );
 
-    if (bExecute)
-    {
-      Execute(true);
+			if ( wxFileExists( m_operation->GetOutput()->GetFullPath() ) == false )
+			{
+				wxMessageBox( wxString::Format( "File'%s' doesn't exist - Please, look at the messages in the log panel"
+					" and check if the operation has been correctly processed",
+					m_operation->GetOutput()->GetFullPath().c_str() ),
+					"Warning",
+					wxOK | wxCENTRE | wxICON_EXCLAMATION );
+				EnableCtrl();
+				return;
+			}
+		}
+	}
 
-      if (wxFileExists(m_operation->GetOutput()->GetFullPath()) == false)
-      {
-        wxMessageBox(wxString::Format("File'%s' doesn't exist - Please, look at the messages in the log panel"
-                                      " and check if the operation have been correcly processed" ,
-                                      m_operation->GetOutput()->GetFullPath().c_str()),
-                                     "Warning",
-                                      wxOK | wxCENTRE | wxICON_EXCLAMATION);
-        EnableCtrl();
-        return;
-      }
-    }
-  }
+	ExportOperationAsAsciiDump();
 
-  ExportOperationAsAsciiDump();
-
-  EnableCtrl();
+	EnableCtrl();
 
 }
 
