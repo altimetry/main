@@ -37,11 +37,11 @@ def main():
     # EXAMPLE: brathl_ReadData
     print ('\nRunning function: brathl_ReadData...')
 
-    fileNames = [currentDirectory + '/example.nc']
-    recordName = 'data'
-    selection  = ''               # 'lon_mwr_l1b > 10 && lon_mwr_l1b < 40'
-    expressions = ['lon_mwr_l1b'] # ['lat_mwr_l1b', 'lon_mwr_l1b']
-    units       = ['degrees']     # ['radians', 'radians']
+    fileNames   = [currentDirectory + '/example.nc']
+    recordName  = 'data'
+    selection   = ''               # 'lon_mwr_l1b > 10 && lon_mwr_l1b < 40'
+    expressions = ['time_mwr_l1b'] # ['lat_mwr_l1b', 'lon_mwr_l1b']
+    units       = ['seconds']      # ['radians', 'radians']
     ignoreOutOfRange = False
     statistics       = False
     defaultValue = 0
@@ -55,15 +55,24 @@ def main():
                                   statistics,
                                   defaultValue)
 
-    print ("--------------- Printing data values ---------------")
-    #for i in range(len(dataResults)):
-    #    print (expressions[i], "(", len(dataResults[i]), " values) =", dataResults[i])
-    for i in range(len(dataResults)):
-        print (expressions[i], "(", len(dataResults[i]), " values) =")
-        for j in range(len(dataResults[i])):
-            print (j, "=", dataResults[i][j])
 
+    print ("--------------------- Read data --------------------")
+    for i in range(len(dataResults)):
+        print (expressions[i], "(", len(dataResults[i]), " values)")
     print ("----------------------------------------------------")
+
+    ## Printing values to output.txt file #########################
+    file = open (currentDirectory + '/output.txt', 'w')
+    for i in range(len(dataResults)):
+        file.write (expressions[i] + "(" + str(len(dataResults[i])) + " values):\n")
+        for j in range(len(dataResults[i])):
+            file.write ( str(j) )
+            file.write (" = ")
+            file.write ( str(dataResults[i][j]) )
+            file.write ("\n")
+    file.close()
+    print ("Please check the values read in output.txt.")
+    ###############################################################
 
 
     '''
