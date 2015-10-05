@@ -38,7 +38,8 @@
 
 
 #ifdef UD_NO_TSEARCH_DECL
-    UD_EXTERN_FUNC(void* tsearch, (const void *key, void **rootp, int (*compar)UD_PROTO((const void*, const void*))));
+    /* UD_EXTERN_FUNC(void* tsearch, (const void *key, void **rootp, int (*compar)UD_PROTO((const void*, const void*)))); */
+    const void* tsearch( const void *key, void **rootp, int( *compar )( const void*, const void* ) );
 #endif
 
 #ifdef UD_NO_TFIND_DECL

@@ -7,7 +7,8 @@
     <version>@BRAT_VERSION@</version>
     <installerFilename>@INSTALLER_FILENAME@</installerFilename>
     <readmeFile>@PROJECT_SOURCE_DIR@/README</readmeFile>
-    <licenseFile>@PROJECT_SOURCE_DIR@/LICENSE</licenseFile>
+    <licenseFile>@PROJECT_SOURCE_DIR@/COPYING</licenseFile>
+    <htmlLicenseFile>@PROJECT_SOURCE_DIR@/COPYING.LESSER</htmlLicenseFile>
     <leftImage>@BRAT_SOURCE_DIR@/packager/InstallBanner.png</leftImage>
     <logoImage>@BRAT_SOURCE_DIR@/packager/InstallLogo.png</logoImage>
     <splashImage>@BRAT_SOURCE_DIR@/packager/InstallSplashScreen.png</splashImage>
@@ -468,7 +469,7 @@
     <summary>The Basic Radar Altimetry Toolbox is a set of programs and libraries used to read, manipulate, compute and view many radar altimetry data products from many different satellites: Ers, Jason, Envisat, Cryosat, etc...
   A full API is provided for C++, as well as a more basic programming interface for the C, Fortran, IDL and Matlab languages</summary>
     <uninstallerName>uninstall-${product_shortname}-${product_version}-@BRAT_TARGET_PROCESSOR@</uninstallerName>
-    <vendor>ESA</vendor>
+    <vendor>CNES/ESA</vendor>
     <windows64bitMode>@WINDOWS_64_BIT_MODE@</windows64bitMode>
     <parameterList>
         <directoryParameter>

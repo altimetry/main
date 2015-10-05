@@ -1421,10 +1421,7 @@ mystrcmp(s1, s2)
  *	=0	first and second arguments are equal
  *	>0	first argument greater than second
  */
-    static int
-CompareNodes(node1, node2)
-    const void	*node1;
-    const void	*node2;
+int CompareNodes(const void	*node1, const void	*node2)
 {
     /*
      * The following 2 lines might cause lint(1) to emit warnings about
@@ -1455,10 +1452,7 @@ CompareNodes(node1, node2)
  *	=0	first and second arguments are equal
  *	>0	first argument greater than second
  */
-    static int
-FindNodes(node1, node2)
-    const void	*node1;
-    const void	*node2;
+int FindNodes(const void *node1, const void	*node2)
 {
     /*
      * The following 2 lines might cause lint(1) to emit warnings about

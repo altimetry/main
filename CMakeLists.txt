@@ -12,11 +12,12 @@ MACRO(DBG_MSG_V _MSG)
   #   "${CMAKE_CURRENT_LIST_FILE}(${CMAKE_CURRENT_LIST_LINE}): ${_MSG}")
 ENDMACRO(DBG_MSG_V)
 
+
 project(BRAT)
 
 set(BRAT_MAJOR_VERSION "3")
 set(BRAT_MINOR_VERSION "3")
-set(BRAT_REVISION_VERSION "1")
+set(BRAT_REVISION_VERSION "0")
 set(BRAT_VERSION "${BRAT_MAJOR_VERSION}.${BRAT_MINOR_VERSION}.${BRAT_REVISION_VERSION}")
 
 message(STATUS "System type: ${CMAKE_SYSTEM_NAME}")
@@ -303,11 +304,11 @@ if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
 endif()
 
 IF (WIN32)
-    IF ("${BRAT_TARGET_PROCESSOR}" STREQUAL "Win32")
+#    IF ("${BRAT_TARGET_PROCESSOR}" STREQUAL "Win32")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _USING_V110_SDK71_" )
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D _USING_V110_SDK71_" )
         SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS,5.01")
-    ENDIF ()
+#    ENDIF ()
 ENDIF ()
 
 
@@ -1073,6 +1074,38 @@ DEFINE_PROCESS(BratStats)
 DEFINE_PROCESS(BratListFieldNames)
 DEFINE_PROCESS(BratCheckAliases)
 
+
+set(PY_VER_SUFFIX 3.2)
+
+#IF(BUILD_RunPythonAlgorithm)
+#
+#	IF (WIN32)
+#		IF ("${BRAT_TARGET_PROCESSOR}" MATCHES "Win32")
+#			SET(PY_SUBDIR x86/default)
+#		ELSE()
+#			SET(PY_SUBDIR default)
+#		ENDIF()
+#		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /I$ENV{S3ALTB_ROOT}/compilers/Python/${PY_SUBDIR}/include")
+#		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /L$ENV{S3ALTB_ROOT}/compilers/Python/default/libs")
+#	ELSEIF(APPLE)
+#		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/Library/Frameworks/Python.framework/Versions/${PY_VER_SUFFIX}/include/python${PY_VER_SUFFIX}m")
+#		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/Library/Frameworks/Python.framework/Versions/${PY_VER_SUFFIX}/lib/python${PY_VER_SUFFIX}/config-${PY_VER_SUFFIX}m")
+#		 SET(PY_LIB python${PY_VER_SUFFIX})
+#	ELSE(APPLE)
+#		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/include/python${PY_VER_SUFFIX}")
+#		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/lib/python${PY_VER_SUFFIX}/config-${PY_VER_SUFFIX}mu")
+#		SET(PY_LIB python${PY_VER_SUFFIX}mu)
+#	ENDIF(WIN32)
+#	
+#	set(ADDITIONAL_LIBS ${PY_LIB})
+#	DEFINE_PROCESS(RunPythonAlgorithm)
+#
+#	add_custom_target(run_py_algo DEPENDS RunPythonAlgorithm)
+#	
+#ENDIF()
+
+
+
 #set(ADDITIONAL_LIBS ${LIBGEOTIFF_LIBRARIES} ${JPEG_LIBRARIES} ${ZLIB_LIBRARIES})
 set(ADDITIONAL_LIBS geotiff vtktiff vtkjpeg vtkzlib)
 DEFINE_PROCESS(BratExportGeoTiff)
@@ -1828,7 +1861,8 @@ if(APPLE)
     COMMAND cp ${BRAT_SOURCE_DIR}/libbrathl/brathl_matlab/examples.m ${BDIST_ROOT}/examples/matlab
 
     COMMAND cp ${BRAT_SOURCE_DIR}/README ${BDIST_PKGDIR}
-    COMMAND cp ${BRAT_SOURCE_DIR}/LICENSE ${BDIST_PKGDIR}
+    COMMAND cp ${BRAT_SOURCE_DIR}/COPYING ${BDIST_PKGDIR}
+    COMMAND cp ${BRAT_SOURCE_DIR}/COPYING.LESSER ${BDIST_PKGDIR}
     WORKING_DIRECTORY ${BRAT_SOURCE_DIR}
     )
 

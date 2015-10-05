@@ -756,6 +756,10 @@ cmake -G "NMake Makefiles" \
     by the variables and values described in the Linux section 
     that are related with the HDF5 and NetCDF options, respectively.
 
+	If want curl to be built without OpenSSL support, add the option
+	-DCMAKE_USE_OPENSSL:BOOL=OFF
+
+
 + Instead of 'make', the Visual C++ build utility 'nmake' is
   necessary. So the build and installation commands become
   'nmake' and 'nmake install' respectively.

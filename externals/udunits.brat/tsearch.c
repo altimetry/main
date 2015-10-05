@@ -13,33 +13,43 @@
 #include "search.h"
 #include "search-node.h"
 
-void *tsearch(key, rp, compar)
-/* find or insert datum into search tree */
-const void 	*key;		/* key to be located */
-void	**rp;			/* address of tree root */
-int	(*compar)();		/* ordering function */
+#if defined(WIN32) || defined (_WIN32)
+#if defined (_INC_STDLIB)
+#undef _INC_STDLIB
+#endif
+#include <stdlib.h>
+#endif
+
+//void *tsearch(key, rp, compar)
+///* find or insert datum into search tree */
+//const void 	*key;		/* key to be located */
+//void	**rp;			/* address of tree root */
+//int	(*compar)();		/* ordering function */
+//void *tsearch( const void *key, void	**rp, int( *compar )( ) )
+const void* tsearch( const void *key, void **rp, int( *compar )( const void*, const void* ) )
 {
-    register node *q;
-    register node	**rootp = (node**)rp;	/* address of tree root */
+	struct node_t *pnode;
+	struct node_t **rootp = ( struct node_t** )rp;	/* address of tree root */
 
-    if (rootp == (struct node_t **)0)
-	return 0;
-    while (*rootp != (struct node_t *)0)	/* Knuth's T1: */
-    {
-	int r;
+	if ( rootp == ( struct node_t ** )0 )
+		return 0;
+	while ( *rootp != ( struct node_t * )0 )	/* Knuth's T1: */
+	{
+		int r;
 
-	if ((r = (*compar)(key, (*rootp)->key)) == 0)	/* T2: */
-	    return &(*rootp)->key;		/* we found it! */
-	rootp = (r < 0) ?
-	    &(*rootp)->left :			/* T3: follow left branch */
-	    &(*rootp)->right;			/* T4: follow right branch */
-    }
-    q = (node *) malloc(sizeof(node));		/* T5: key not found */
-    if (q != (struct node_t *)0)		/* make new node */
-    {
-	*rootp = q;				/* link new node to old */
-	q->key = key;				/* initialize new node */
-	q->left = q->right = (struct node_t *)0;
-    }
-    return &q->key;
+		if ( ( r = ( *compar )( key, ( *rootp )->key ) ) == 0 )	/* T2: */
+			return &( *rootp )->key;		/* we found it! */
+		rootp = ( r < 0 ) ?
+			&( *rootp )->left :			/* T3: follow left branch */
+			&( *rootp )->right;			/* T4: follow right branch */
+	}
+	//pnode = ( struct node_t * ) malloc( sizeof( struct node_t ) );		/* T5: key not found */
+	pnode = malloc( sizeof( struct node_t ) );		/* T5: key not found */
+	if ( pnode != ( struct node_t * )0 )		/* make new struct node_t */
+	{
+		*rootp = pnode;				/* link new struct node_t to old */
+		pnode->key = key;				/* initialize new struct node_t */
+		pnode->left = pnode->right = ( struct node_t * )0;
+	}
+	return &pnode->key;
 }

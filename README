@@ -29,82 +29,81 @@ authoritative.
 
 Version History
 == == == == == == ==
-3.3.1 - August 2015
+3.3.0 - September 2015
 --------------------
-	- Enabled by default side-by-side installation of different BRAT 
-	  versions and processor architectures on the same machine, without
-	  overwriting each other.
-	- Updated available formulas (new formulas.ini file). 
-	- GUI applications display version and architecture, allowing easy
-	  runtime identification of different instances on the same system.
-	- Python API examples can run immediately after installation, 
-	  without further configuration actions like defining BRAT_DATA_DIR.
-	- Correction of BRATHL 3.1.0 bug, caused by buffer overruns when
-	  reading a large list of files.
-	- Correction of bugs caused by wxWidgets upgrade: 
-		- the Log tab in the application BratGui loosed its	graphical 
-		  layout and stability when resized;
-		- the context menus of the tree widgets did not execute the 
-		  expected actions and did not present all menu items.
-	- Enabled C++11 support in g++ (Linux).
-	- Windows XP support enabled by default in 32 bit binaries.
-
-== == == == == == ==
-3.3.0 - August 2015
---------------------
-  - Update to NetCDF version 4.3.3.1.
-  - Inclusion of new libraries, in integration with NetCDF 4 and CODA 2.13,
+    - Correction of unhandled exception caused by not updading NetCDF
+    file to reflect GUI changes.
+    - Ensured build and run compatibility with CentOS 6 64 bits.
+    - Enabled by default side-by-side installation of different BRAT
+      versions and processor architectures on the same machine, without
+      overwriting each other.
+    - Updated available formulas (new formulas.ini file).
+    - GUI applications display version and architecture, allowing easy
+      runtime identification of different instances on the same system.
+    - Python API examples can run immediately after installation,
+      without further configuration actions like defining BRAT_DATA_DIR.
+    - Correction of BRATHL 3.1.0 bug, caused by buffer overruns when
+      reading a large list of files.
+    - Correction of bugs caused by wxWidgets upgrade:
+            - the Log tab in the application BratGui loosed its	graphical
+              layout and stability when resized;
+            - the context menus of the tree widgets did not execute the
+              expected actions and did not present all menu items.
+    - Enabled C++11 support in g++ (Linux).
+    - Windows XP support enabled by default in 32 bit binaries.
+    - Update to NetCDF version 4.3.3.1.
+    - Inclusion of new libraries, in integration with NetCDF 4 and CODA 2.13,
     deployed along with BRAT with their respective tools:
     - HDF5 version 1.8.15,
     - curl version 7.43 ( only in Windows ),
     - SZip version 2.1.
-  - Extensions of BRATHL code to process NetCDF 4 and HDF 5, including new
+    - Extensions of BRATHL code to process NetCDF 4 and HDF 5, including new
     NetCDF data types.
-  - Creation of a brathl dynamic module (brathl_module) encapsulating 
-    all BRATHL functionality to enable (autonomous) load and interface 
-	with Python.
-  - New Python API to the BRATHL library, with examples.
-  - Port to 64 bit of BRAT and all its dependencies, including
+    - Creation of a brathl dynamic module (brathl_module) encapsulating
+    all BRATHL functionality to enable (autonomous) load and interface
+        with Python.
+    - New Python API to the BRATHL library, with examples.
+    - Port to 64 bit of BRAT and all its dependencies, including
     - VTK 5.6.0 adjustments to enable 64 bit,
     - port to 64 bit of the BRATHL library,
     - port to 64 bit of the BRAT command line tools,
     - port to 64 bit of the BRAT GUI applications.
-  - Updated wxWidgets to version 3.0.2.
-  - Replaced Carbon by Cocoa framework in MAC OS X related code and build settings.
-  - Updated BRAT GUI applications and libraries, with VTK support, as required 
+    - Updated wxWidgets to version 3.0.2.
+    - Replaced Carbon by Cocoa framework in MAC OS X related code and build settings.
+    - Updated BRAT GUI applications and libraries, with VTK support, as required
     by new wxWidgets version.
 
 3.2.0 - June 2015
 ------------------
 Transitional release, preparing version 3.3.0 and focused on
-  - update of build settings and source code to support current versions of
-    operating systems, compilers and build systems in all supported platforms 
+    - update of build settings and source code to support current versions of
+    operating systems, compilers and build systems in all supported platforms
     (Windows, Linux, Mac OS X);
-  - update of build settings and source code to prepare the port to 64 bit
+    - update of build settings and source code to prepare the port to 64 bit
     architectures;
-  - update to CODA version 2.13;
-  - update to BitRock InstallBuilder version 15.1.0;
-  - minor bug corrections.
+    - update to CODA version 2.13;
+    - update to BitRock InstallBuilder version 15.1.0;
+    - minor bug corrections.
 
 3.1.0 - March 2012
 ------------------
-  - Add an "aliases" capability, that enables users to use the same names for
+    - Add an "aliases" capability, that enables users to use the same names for
     the most frequent data fields.
-  - Add an index (brat_index_data) for data with a "time" dimension
+    - Add an index (brat_index_data) for data with a "time" dimension
     (i.e. not available for some data, like grids).
-  - Add filters algorithms (four different filters have been implemented),
+    - Add filters algorithms (four different filters have been implemented),
     working along-track or on grids.
-  - The call to the geostrophic velocity algorithms is modified to use the
+    - The call to the geostrophic velocity algorithms is modified to use the
     aliases for longitude and latitude, to make things simpler for users.
-  - Updated CODA to version 2.3.1.
-  - Internal (CODA) product type names for ERS product types have been aligned
+    - Updated CODA to version 2.3.1.
+    - Internal (CODA) product type names for ERS product types have been aligned
     with ESA naming convention (OPR_pass_file -> ALT.OPR, WAP -> ALT.WAP)
-  - Updated CryoSat product format (codadef) to be in line with upcoming
+    - Updated CryoSat product format (codadef) to be in line with upcoming
     L1 PFS v4.9 and L2 PFS v2.8. Main changes impacting BRAT are:
-    - The field for the main dataset in the FDM product is now called
-      'siral_l2_fdm_mds' instead of 'siral_l2_fdo_mds'
-    - usr_corr field now has a scale factor of 1e-15 instead of 1e-7
-  - Fixed locating of User Manual document when selected from GUI.
+        - The field for the main dataset in the FDM product is now called
+          'siral_l2_fdm_mds' instead of 'siral_l2_fdo_mds'
+        - usr_corr field now has a scale factor of 1e-15 instead of 1e-7
+        - Fixed locating of User Manual document when selected from GUI.
 
 3.0.1 - May 2011
 ----------------
