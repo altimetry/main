@@ -55,7 +55,6 @@ extern "C" {
 #define S_ISDIR(X) (((X) & _S_IFDIR) == _S_IFDIR)
 #endif
     
-    
 typedef signed char		int8_t;
 typedef short int		int16_t;
 typedef int			int32_t;
