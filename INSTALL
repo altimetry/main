@@ -23,11 +23,13 @@ operating systems), and follow the instructions.
 
 + For Linux: double-click in your desktop manager (or execute
 from the command-line) the installer file appropriate for your
-platform (brat-3.3.1-i386-installer.run for 32-bit operating
-systems, brat-3.3.1-x86_64-installer.run for 64 bit operating
-systems), and follow the instructions. (If necessary, use
-'chmod +x <installer-filename>'
-to ensure the installer is executable.)
+platform. For 32 bit operating system execute the file 
+brat-3.3.1-i386-installer.run. For 64-bit operating system execute
+the script brat-3.3.1-x86_64-installer.sh (it checks if your system
+is prepared for running the installer and automatically runs the file
+brat-3.3.1-x86_64-installer.run). In both cases, follow the instructions.
+(If necessary, use 'chmod +x <installer-filename>' to ensure the 
+installer is executable.)
 
 
 + For Mac OS X: double-click the image file appropriate for the
