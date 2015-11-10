@@ -23,7 +23,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h"
+#include <string>
 
 #include "Tools.h" 
 #include "BratAlgoFilterGaussian.h" 
@@ -56,9 +56,9 @@ public:
   /** Destructor */
   virtual ~CBratAlgoFilterGaussian1D() {};
 
-  virtual string GetName() { return "BratAlgoFilterGaussianAtp"; };
+  virtual std::string GetName() { return "BratAlgoFilterGaussianAtp"; };
   
-  virtual string GetDescription() { return "Gaussian filter for one-dimensional data (e.g. along-track data) as input data source. "
+  virtual std::string GetDescription() { return "Gaussian filter for one-dimensional data (e.g. along-track data) as input data source. "
                                            "Gaussian filter is windowed filter of linear class, by its nature is weighted mean. "
                                            "Gaussian filter is a type of data-smoothing filter that uses a Gaussian function (normal distribution) for calculating the transformation to apply to each data. "
                                            "The output value unit depends on the variable (data) filtered" ; };
@@ -71,7 +71,7 @@ public:
   virtual uint32_t GetDataWindowSize() { return m_dataWindowLength; };
 
   /** Dump function */
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
  
 protected:
 

@@ -18,7 +18,7 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include "Stl.h"
+#include <string>
 #include "List.h"
 #include "Exception.h"
 #include "FileParams.h"
@@ -35,7 +35,7 @@ int main (int argc, char *argv[])
 {
   if (argc != 2)
   {
-    cerr << "usage: " << argv[0] << " filename" << endl;
+    std::cerr << "usage: " << argv[0] << " filename" << std::endl;
     return 2;
   }
 
@@ -48,94 +48,94 @@ int main (int argc, char *argv[])
   {
 //    auto_ptr<CTrace>pTrace(CTrace::GetInstance());
 
-    vector<string>		Names;
-    vector<string>		DimNames;
+    std::vector<std::string>		Names;
+    std::vector<std::string>		DimNames;
     ExpressionValueDimensions	DimVal;
-    vector<string>::iterator	is;
+    std::vector<std::string>::iterator	is;
     size_t			Index;
     CExpressionValue		VarValue;
 
-    cout << "File name:" << endl << "\t" << argv[1] << endl;
+    std::cout << "File name:" << std::endl << "\t" << argv[1] << std::endl;
 
     CInternalFiles &F	= *BuildExistingInternalFileKind(argv[1]);
 
     F.Open(ReadOnly);
 
-    cout << "Type:" << endl << "\t" << F.GetType() << endl;
-    cout << "Title:" << endl << "\t" << F.GetTitle("") << endl;
+    std::cout << "Type:" << std::endl << "\t" << F.GetType() << std::endl;
+    std::cout << "Title:" << std::endl << "\t" << F.GetTitle("") << std::endl;
 
     F.GetVariables(Names);
-    cout << "Variables:" << endl;
+    std::cout << "Variables:" << std::endl;
     for (is=Names.begin(); is != Names.end(); is++)
     {
-      string Title = F.GetTitle(*is);
-      cout << "\t" << *is;
+      std::string Title = F.GetTitle(*is);
+      std::cout << "\t" << *is;
       if (Title != "")
-        cout << " (" << Title << ")";
-      cout << ". Unit=" << F.GetUnit(*is).GetText() << endl;
+        std::cout << " (" << Title << ")";
+      std::cout << ". Unit=" << F.GetUnit(*is).GetText() << std::endl;
     }
 
-    cout << endl << "Dimensions:" << endl;
+    std::cout << std::endl << "Dimensions:" << std::endl;
     F.GetAxisVars(Names);
     for (is=Names.begin(); is != Names.end(); is++)
     {
       F.GetVarDims(*is, DimNames);
       F.GetVarDims(*is, DimVal);
-      cout << "\t" << *is << "(";
+      std::cout << "\t" << *is << "(";
       for (Index=0; Index < DimNames.size(); Index++)
       {
-	if (Index != 0) cout << ", ";
-	cout << DimNames[Index] << ":" << DimVal[Index];
+	if (Index != 0) std::cout << ", ";
+	std::cout << DimNames[Index] << ":" << DimVal[Index];
       }
-      cout << "): Type=" << CNetCDFFiles::VarKindToString(F.GetVarKind(*is)) << endl;
+      std::cout << "): Type=" << CNetCDFFiles::VarKindToString(F.GetVarKind(*is)) << std::endl;
     }
 
     for (is=Names.begin(); is != Names.end(); is++)
     {
       F.ReadVar(*is, VarValue, CUnit::m_UNIT_SI);
       F.GetVarDims(*is, DimVal);
-      cout << endl << endl << "\t" << *is << "=" << VarValue.AsString() << endl;
+      std::cout << std::endl << std::endl << "\t" << *is << "=" << VarValue.AsString() << std::endl;
     }
 
-    cout << endl << "Data variables:" << endl;
+    std::cout << std::endl << "Data variables:" << std::endl;
     F.GetDataVars(Names);
     for (is=Names.begin(); is != Names.end(); is++)
     {
       F.GetVarDims(*is, DimNames);
       F.GetVarDims(*is, DimVal);
-      cout << "\t" << *is << "(";
+      std::cout << "\t" << *is << "(";
       for (Index=0; Index < DimNames.size(); Index++)
       {
-	if (Index != 0) cout << ", ";
-	cout << DimNames[Index] << ":" << DimVal[Index];
+	if (Index != 0) std::cout << ", ";
+	std::cout << DimNames[Index] << ":" << DimVal[Index];
       }
-      cout << "): Type=" << CNetCDFFiles::VarKindToString(F.GetVarKind(*is)) << endl;
+      std::cout << "): Type=" << CNetCDFFiles::VarKindToString(F.GetVarKind(*is)) << std::endl;
     }
 
     for (is=Names.begin(); is != Names.end(); is++)
     {
       F.ReadVar(*is, VarValue, CUnit::m_UNIT_SI);
       F.GetVarDims(*is, DimVal);
-      cout << endl << endl << "\t" << *is << "=" << VarValue.AsString() << endl;
+      std::cout << std::endl << std::endl << "\t" << *is << "=" << VarValue.AsString() << std::endl;
     }
 
-    cout << endl << endl << endl << "You can use ncdump command as well" << endl;
+    std::cout << std::endl << std::endl << std::endl << "You can use ncdump command as well" << std::endl;
     delete &F;
     return 0;
   }
   catch (CException &e)
   {
-    cerr << "BRAT ERROR: " << e.what() << endl;
+    std::cerr << "BRAT ERROR: " << e.what() << std::endl;
     return 1;
   }
-  catch (exception &e)
+  catch (std::exception &e)
   {
-    cerr << "BRAT RUNTIME ERROR: " << e.what() << endl;
+    std::cerr << "BRAT RUNTIME ERROR: " << e.what() << std::endl;
     return 254;
   }
   catch (...)
   {
-    cerr << "BRAT FATAL ERROR: Unexpected error" << endl;
+    std::cerr << "BRAT FATAL ERROR: Unexpected error" << std::endl;
     return 255;
   }
 }

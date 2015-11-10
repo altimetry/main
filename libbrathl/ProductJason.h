@@ -48,7 +48,7 @@ public:
   
   /** Creates new CProductJason object
     \param fileName [in] : file name to be connected */
-  CProductJason(const string& fileName);
+  CProductJason(const std::string& fileName);
   
   /** Creates new CProductJason object
     \param fileNameList [in] : list of file to be connected */
@@ -60,7 +60,7 @@ public:
   virtual void InitCriteriaInfo();
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 
 protected:
@@ -93,9 +93,9 @@ public:
 
 protected:
 	  
-  string m_timeStampDayFieldName;
-  string m_timeStampSecondFieldName;
-  string m_timeStampMicrosecondFieldName;
+  std::string m_timeStampDayFieldName;
+  std::string m_timeStampSecondFieldName;
+  std::string m_timeStampMicrosecondFieldName;
 
 
 private:

@@ -168,7 +168,7 @@ public:
     {
         assert( m_global_dict );
 
-        // Returns 0 on success or -1 if an exception was raised.
+        // Returns 0 on success or -1 if an std::exception was raised.
         //
         return !PyRun_SimpleString( expression.c_str() );
     }
@@ -408,7 +408,7 @@ const PythonEngine& PyAlgo::sm_pe = PythonEngine::Instance();
 //////////////////////////////////////////////////////////////
 
 /**
- * \brief       Function to convert a string to a number (of a selected data type).
+ * \brief       Function to convert a std::string to a number (of a selected data type).
  * \param[in]   s     String to be converted.
  * \return      v     Converted number
  */
@@ -422,7 +422,7 @@ inline T s2n( const std::string s )
 
 
 /**
- * \brief       Function to create a vector with the algorithm parameters.
+ * \brief       Function to create a std::vector with the algorithm parameters.
  * \param[in]      algo        Algorithm object (type: PyAlgo).
  * \param[in,out]  args        Vector with algorithm parameters (type: CVectorBratAlgorithmParam).
  * \param[in]      argc        Number of command line arguments (type: int).
@@ -440,7 +440,7 @@ bool createAlgorithmParamVector( PyAlgo &algo, CVectorBratAlgorithmParam &args, 
         throw e_wrong_number_input_param;
     }
 
-    // Filling the vector with the algorithm parameters
+    // Filling the std::vector with the algorithm parameters
     for (uint32_t i = first_arg_index; i < argcount; ++i )
     {
         CBratAlgorithmParam value;

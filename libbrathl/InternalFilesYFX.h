@@ -20,8 +20,9 @@
 #ifndef _InternalFilesYFX_h_
 #define _InternalFilesYFX_h_
 
+#include <string>
+
 #include "Expression.h"
-#include "Stl.h"
 
 #include "InternalFiles.h"
 
@@ -45,29 +46,29 @@ namespace brathl
 class CInternalFilesYFX : public CInternalFiles
 {
 public:
-  CInternalFilesYFX(string 		Name = "", brathl_FileMode	Mode = ReadOnly);
+  CInternalFilesYFX(std::string 		Name = "", brathl_FileMode	Mode = ReadOnly);
   virtual ~CInternalFilesYFX();
 
-  static string TypeOf() { return YFX_NETCDF_TYPE; };
+  static std::string TypeOf() { return YFX_NETCDF_TYPE; };
 
-  virtual string GetType
+  virtual std::string GetType
 		();
 
   virtual void CreateDim
 		(NetCDFVarKind		Kind,
-		 const string		&XName,
+		 const std::string		&XName,
 		 const CExpressionValue	&Values,
-		 const string		&Units,
-		 const string		&LongName,
-                 const string           &Comment = "",
+		 const std::string		&Units,
+		 const std::string		&LongName,
+                 const std::string           &Comment = "",
       	         double	                ValidMin = CTools::m_defaultValueDOUBLE,
 		 double	                ValidMax = CTools::m_defaultValueDOUBLE);
 
   virtual void CreateData
-		(const string		&Name,
-		 const string		&Units,
-		 const string		&LongName,
-                 const string           &Comment = "",
+		(const std::string		&Name,
+		 const std::string		&Units,
+		 const std::string		&LongName,
+                 const std::string           &Comment = "",
       	         double	                ValidMin = CTools::m_defaultValueDOUBLE,
 		 double	                ValidMax = CTools::m_defaultValueDOUBLE,
 		 nc_type		Type	= NC_DOUBLE);

@@ -31,12 +31,13 @@
 
 #include "wx/colordlg.h"
 
-#include "vtkProj2DFilter.h" 
+#include "PlotData/vtkProj2DFilter.h" 
 
 #include "Tools.h" 
 using namespace brathl;
 
 #include "MapColor.h" 
+#include "wxInterface.h" 
 
 //-------------------------------------------------------------
 //------------------- CPointGlyph class --------------------
@@ -87,7 +88,7 @@ CMapPointGlyph& CMapPointGlyph::GetInstance()
  return instance;
 }
 //----------------------------------------
-bool CMapPointGlyph::ValidName(const string& name)
+bool CMapPointGlyph::ValidName(const std::string& name)
 {   
   return ValidName(wxString(name.c_str()));
 }
@@ -145,7 +146,7 @@ wxString CMapPointGlyph::GlyphToKey(PointGlyph id)
 
 }
 //----------------------------------------
-PointGlyph CMapPointGlyph::NameToGlyph(const string& name)
+PointGlyph CMapPointGlyph::NameToGlyph(const std::string& name)
 {
   return NameToGlyph(wxString(name.c_str()));
 
@@ -174,7 +175,7 @@ PointGlyph CMapPointGlyph::NameToGlyph(const wxString& name)
 
 }
 //----------------------------------------
-PointGlyph CMapPointGlyph::KeyToGlyph(const string& key)
+PointGlyph CMapPointGlyph::KeyToGlyph(const std::string& key)
 {
   return KeyToGlyph(wxString(key.c_str()));
 
@@ -194,7 +195,7 @@ PointGlyph CMapPointGlyph::KeyToGlyph(const wxString& key)
 }
 
 //----------------------------------------
-wxString CMapPointGlyph::KeyToName(const string& key)
+wxString CMapPointGlyph::KeyToName(const std::string& key)
 {
   return KeyToName(wxString(key.c_str()));
 
@@ -264,13 +265,13 @@ void CMapPointGlyph::GlyphToMap(CUIntMap& uintMap)
 //----------------------------------------
 PointGlyph CMapPointGlyph::GetPointGlyph(CFileParams& params,
 		                                     int32_t index /*= 0*/,
-		                                     const string& keyword /*= "DISPLAY_PointGlyph"*/,
+		                                     const std::string& keyword /*= "DISPLAY_PointGlyph"*/,
 		                                     PointGlyph defaultValue  /*= displayFULL*/)
 {
   CUIntMap glyphs;
   GlyphToMap(glyphs);
 
-  string	valueName;
+  std::string	valueName;
   uint32_t	valueGlyph;
   CParameter* p = params.m_mapParam.Exists(keyword);
   if (p == NULL)
@@ -331,7 +332,7 @@ CMapStipplePattern& CMapStipplePattern::GetInstance()
  return instance;
 }
 //----------------------------------------
-bool CMapStipplePattern::ValidName(const string& name)
+bool CMapStipplePattern::ValidName(const std::string& name)
 {   
   return ValidName(wxString(name.c_str()));
 }
@@ -389,7 +390,7 @@ wxString CMapStipplePattern::StippleToName(StipplePattern id)
 
 }
 //----------------------------------------
-StipplePattern CMapStipplePattern::NameToStipple(const string& name)
+StipplePattern CMapStipplePattern::NameToStipple(const std::string& name)
 {
   return NameToStipple(wxString(name.c_str()));
 
@@ -418,7 +419,7 @@ StipplePattern CMapStipplePattern::NameToStipple(const wxString& name)
 
 }
 //----------------------------------------
-StipplePattern CMapStipplePattern::KeyToStipple(const string& key)
+StipplePattern CMapStipplePattern::KeyToStipple(const std::string& key)
 {
   return KeyToStipple(wxString(key.c_str()));
 
@@ -438,7 +439,7 @@ StipplePattern CMapStipplePattern::KeyToStipple(const wxString& key)
 }
 
 //----------------------------------------
-wxString CMapStipplePattern::KeyToName(const string& key)
+wxString CMapStipplePattern::KeyToName(const std::string& key)
 {
   return KeyToName(wxString(key.c_str()));
 
@@ -508,13 +509,13 @@ void CMapStipplePattern::StippleToMap(CUIntMap& uintMap)
 //----------------------------------------
 StipplePattern CMapStipplePattern::GetStipplePattern(CFileParams& params,
 		                                     int32_t index /*= 0*/,
-		                                     const string& keyword /*= "DISPLAY_STIPPLEPATTERN"*/,
+		                                     const std::string& keyword /*= "DISPLAY_STIPPLEPATTERN"*/,
 		                                     StipplePattern defaultValue  /*= displayFULL*/)
 {
   CUIntMap stipples;
   StippleToMap(stipples);
 
-  string	valueName;
+  std::string	valueName;
   uint32_t	valueStipple;
   CParameter* p = params.m_mapParam.Exists(keyword);
   if (p == NULL)
@@ -658,7 +659,7 @@ CVtkColor CMapColor::PrimaryColors(uint32_t i)
   return NameToVtkColor(m_primaryColors[i]);
 }
 //----------------------------------------
-bool CMapColor::ValidName(const string& name)
+bool CMapColor::ValidName(const std::string& name)
 {   
   return ValidName(wxString(name.c_str()));
 }
@@ -683,7 +684,7 @@ wxString CMapColor::ColorToName(const wxColour& id)
 //----------------------------------------
 wxString CMapColor::ColorToName(const CVtkColor& id)
 {
-  return ColorToName(id.GetWXColor());
+  return ColorToName(color_cast(id));
 }
 
 //----------------------------------------
@@ -693,7 +694,7 @@ CVtkColor CMapColor::NameToVtkColor(const char* name)
 
 }
 //----------------------------------------
-CVtkColor CMapColor::NameToVtkColor(const string& name)
+CVtkColor CMapColor::NameToVtkColor(const std::string& name)
 {
   return NameToVtkColor(wxString(name.c_str()));
 
@@ -716,7 +717,7 @@ wxColour CMapColor::NameToColour(const char* name)
 
 }
 //----------------------------------------
-wxColour CMapColor::NameToColour(const string& name)
+wxColour CMapColor::NameToColour(const std::string& name)
 {
   return  NameToColour(wxString(name.c_str()));
 
@@ -732,7 +733,7 @@ wxColour CMapColor::NameToColour(const wxString& name)
 //----------------------------------------
 wxColourData CMapColor::ChooseColor(const CVtkColor& color, wxWindow* parent)
 {
-  return ChooseColor(color.GetWXColor(), parent);
+  return ChooseColor(color_cast(color), parent);
 }
 //----------------------------------------
 wxColourData CMapColor::ChooseColor(const wxColour& color, wxWindow* parent)

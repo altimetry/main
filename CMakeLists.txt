@@ -336,11 +336,6 @@ include(TestBigEndian)
 
 
 # ---------------------------------
-# defines for STL include. see explanation in Stl.h
-# ---------------------------------
-add_definitions(-DSTL_USING_ALL)
-
-# ---------------------------------
 # Check for various functions..
 # ---------------------------------
 
@@ -524,22 +519,10 @@ set(BRATHL_UNITFILE "brathl_units.dat" CACHE INTERNAL "Units file")
 
 
 set(CODADEF_FILES
-	data/Altimeter_Ocean_Pathfinder-20100826.codadef
 	#data/CRYOSAT-20120130.codadef
 	data/CRYOSAT-20150601.codadef
-	data/ENVISAT_AATSR-20110923.codadef
-	data/ENVISAT_ASAR-20150331.codadef
-	data/ENVISAT_AUX-20121219.codadef
-	data/ENVISAT_DORIS-20100826.codadef
-	data/ENVISAT_GOMOS-20121004.codadef
-	data/ENVISAT_MERIS-20100826.codadef
-	data/ENVISAT_MIPAS-20140120.codadef
 	#data/ENVISAT_RA2MWR-20110125.codadef
 	data/ENVISAT_RA2MWR-20120623.codadef
-	data/ENVISAT_SCIAMACHY-20140916.codadef
-	data/EPS-20150324.codadef
-	data/ERS_ATSR-20110923.codadef
-	data/ERS_GOME-20110920.codadef
 	data/ERS_MWR-20110820.codadef
 	data/ERS_RA-20110820.codadef
 	data/GFO-20110125.codadef
@@ -547,7 +530,6 @@ set(CODADEF_FILES
 	data/PODAAC-20110125.codadef
 	data/RADS-20080701.codadef
 	data/River_Lake-20110125.codadef
-	data/SWARM-20150126.codadef
 	data/Topex_Poseidon-20110125.codadef
   )
 
@@ -807,7 +789,6 @@ string(REGEX REPLACE "\\.cpp" .h LIBBRATHL_CXX_SOURCES_H
 
 set(LIBBRATHL_CXX_SOURCES_H
   ${LIBBRATHL_CXX_SOURCES_H}
-  libbrathl/Stl.h
   libbrathl/brathl.h
   libbrathl/brathl_error.h
   )
@@ -1213,7 +1194,7 @@ if(BRAT_BUILD_GUI)
     display/LabeledTextCtrl.cpp
     display/MapColor.cpp
     display/MapImageType.cpp
-    display/MapProjection.cpp
+    display/PlotData/MapProjection.cpp
     display/MapTypeDisp.cpp
     display/Process.cpp
     display/SchedulerTaskConfig.cpp
@@ -1221,7 +1202,7 @@ if(BRAT_BUILD_GUI)
     display/TimeCtrl.cpp
     display/TreeCtrl.cpp
     display/Validators.cpp
-    display/VtkColor.cpp
+    display/PlotData/vtkBratColor.cpp
     display/vtkTools.cpp
     display/wxList.cpp
     display/wxBratTools.cpp
@@ -1237,18 +1218,18 @@ if(BRAT_BUILD_GUI)
     display/AxisPropertyPanel.cpp
     display/BratDisplay.cpp
     display/BratDisplay_wdr.cpp
-    display/BratLookupTable.cpp
+    display/PlotData/BratLookupTable.cpp
     display/ContourPropFrame.cpp
     display/DatasetPanel.cpp
     display/LUTFrame.cpp
     display/LUTPanel.cpp
-    display/PlotBase.cpp
-    display/Plot.cpp
-    display/PlotField.cpp
+    display/PlotData/PlotBase.cpp
+    display/PlotData/Plot.cpp
+    display/PlotData/PlotField.cpp
     display/TypedSaveFileDialog.cpp
-    display/WPlot.cpp
+    display/PlotData/WPlot.cpp
     display/WPlotPropertyPanel.cpp
-    display/WorldPlotData.cpp
+    display/PlotData/WorldPlotData.cpp
     display/WorldPlotFrame.cpp
     display/WorldPlotPanel.cpp
     display/XYPlotData.cpp
@@ -1256,34 +1237,38 @@ if(BRAT_BUILD_GUI)
     display/XYPlotPanel.cpp
     display/XYPlotPropertyPanel.cpp
     display/ZFXYContourPropFrame.cpp
-    display/ZFXYPlot.cpp
+    display/PlotData/ZFXYPlot.cpp
     display/ZFXYPlotData.cpp
     display/ZFXYPlotFrame.cpp
     display/ZFXYPlotPanel.cpp
     display/ZFXYPlotPropertyPanel.cpp
     display/vtkCameraState.cpp
     display/vtkDataArrayPlotData.cpp
-    display/vtkGSHHSReader.cpp
-    display/vtkGeoGridSource.cpp
-    display/vtkGeoMapFilter.cpp
+    display/PlotData/vtkGSHHSReader.cpp
+    display/PlotData/vtkGeoGridSource.cpp
+    display/PlotData/vtkGeoMapFilter.cpp
     display/vtkInteractorStyleWPlot.cpp
     display/vtkInteractorStyle3DWPlot.cpp
     display/vtkInteractorStyleXYPlot.cpp
     display/vtkInteractorStyleZFXYPlot.cpp
-    display/vtkList.cpp
+    display/PlotData/vtkList.cpp
     display/vtkNewAxisActor2D.cpp
     display/vtkPlotData.cpp
     display/vtkPlotDataCollection.cpp
     display/vtkPointLocatorBrat.cpp
-    display/vtkProj2DFilter.cpp
+    display/PlotData/vtkProj2DFilter.cpp
     display/vtkXYPlotActor.cpp
     display/vtkZFXYPlotActor.cpp
     display/vtkZFXYPlotFilter.cpp
     display/vtkZFXYPlotFilterCollection.cpp
     display/Config.cpp
-    display/vtkVelocityGlyphFilter.cpp
-    display/vtkBratArrowSource.cpp
+    display/PlotData/vtkVelocityGlyphFilter.cpp
+    display/PlotData/vtkBratArrowSource.cpp
+    display/PlotData/WorldPlotProperty.cpp
+    display/PlotData/GeoMap.cpp
+    display/wxInterface.cpp
     )
+
 
   # -----------------------------------------------------
   # Just to setup 'Header Files' file tab in Visual Studio
@@ -1832,7 +1817,6 @@ if(APPLE)
 
     COMMAND mkdir -p ${BDIST_ROOT}/include
     COMMAND cp ${LIBBRATHL_CXX_SOURCES_H} ${BDIST_ROOT}/include
-    COMMAND cp libbrathl/Stl.h ${BDIST_ROOT}/include
     COMMAND cp libbrathl/brathl.h libbrathl/brathl_error.h ${BDIST_ROOT}/include
     COMMAND cp ${LIBBRATHL_C_SOURCES_H} ${BDIST_ROOT}/include
     COMMAND cp ${BRAT_BINARY_DIR}/externals/coda/coda.h ${BDIST_ROOT}/include

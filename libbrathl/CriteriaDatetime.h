@@ -23,7 +23,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h"
+#include <string>
 
 #include "BratObject.h"
 #include "List.h"
@@ -90,7 +90,7 @@ public:
      * @param from start date
      * @param to end date
     */
-  CCriteriaDatetime(const string& from, const string& to);
+  CCriteriaDatetime(const std::string& from, const std::string& to);
 
    /**
      * Constructor.
@@ -101,7 +101,7 @@ public:
   CCriteriaDatetime(double from, double to);
 
   /**
-     * Constructor from a array that contains start date as string, end date as string
+     * Constructor from a array that contains start date as std::string, end date as std::string
      * 
      * @param array start and end dates
      */
@@ -116,8 +116,8 @@ public:
   CDate* GetFrom() { return  &(m_datePeriod.GetFrom()); };
   CDate* GetTo() { return  &(m_datePeriod.GetTo()); };
 
-  string GetFromAsText() { return m_datePeriod.GetFromAsText(); };
-  string GetToAsText() { return m_datePeriod.GetToAsText(); };
+  std::string GetFromAsText() { return m_datePeriod.GetFromAsText(); };
+  std::string GetToAsText() { return m_datePeriod.GetToAsText(); };
 
   /**
      * Sets date period from another one
@@ -137,7 +137,7 @@ public:
      * 
      * @param to end date
     */
-  void SetTo(const string& strDate);
+  void SetTo(const std::string& strDate);
   
    /**
      * Sets start date
@@ -150,7 +150,7 @@ public:
      * 
      * @param to start date
     */
-  void SetFrom(const string& strDate);
+  void SetFrom(const std::string& strDate);
 
    /**
      * Sets date period from start and end date
@@ -165,9 +165,9 @@ public:
      * @param from start date
      * @param to end date
     */
-  void Set(const string& from, const string& to);
+  void Set(const std::string& from, const std::string& to);
 
-  void SetFromText(const string& values, const string& delimiter = CDatePeriod::m_delimiter);
+  void SetFromText(const std::string& values, const std::string& delimiter = CDatePeriod::m_delimiter);
     
     /*
      * Sets date period from start and end date
@@ -178,7 +178,7 @@ public:
   void Set(double from, double to);
 
   /**
-     * Sets a date period from a array that contains start date as string, end date as string
+     * Sets a date period from a array that contains start date as std::string, end date as std::string
      * 
      * @param array start and end dates
     */
@@ -220,7 +220,7 @@ public:
      */
   bool IsDefaultValue();
 
-  string GetAsText(const string& delimiter = CDatePeriod::m_delimiter);
+  std::string GetAsText(const std::string& delimiter = CDatePeriod::m_delimiter);
 
 
   static CCriteriaDatetime* GetCriteria(CBratObject* ob, bool withExcept = true);
@@ -228,7 +228,7 @@ public:
   const CCriteriaDatetime& operator=(CCriteriaDatetime& c);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
 

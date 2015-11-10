@@ -40,11 +40,11 @@ public:
     
   virtual ~CBratProcessStats();
 
-  virtual bool Initialize(string& msg);
+  virtual bool Initialize(std::string& msg);
 
   bool CheckCommandLineOptions(int argc, char	**argv);
 
-  virtual int32_t Execute(string& msg);
+  virtual int32_t Execute(std::string& msg);
 
 public:
   static const KeywordHelp StatsKeywordList[];
@@ -54,7 +54,7 @@ protected:
   void Init();
   void ResizeArrayDependOnFields(uint32_t size);
 
-  virtual void GetParameters(const string &commandFileName);
+  virtual void GetParameters(const std::string &commandFileName);
   virtual void GetParameters();
 
 protected:

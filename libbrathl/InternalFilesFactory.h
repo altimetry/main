@@ -20,10 +20,11 @@
 #ifndef _InternalFilesFactory_h_
 #define _InternalFilesFactory_h_
 
-#include <netcdf.h>
+#include <string>
+
+#include "netcdf.h"
 #include "Expression.h"
 #include "InternalFiles.h"
-#include "Stl.h"
 
 namespace brathl
 {
@@ -42,7 +43,7 @@ namespace brathl
 */
 
 
-CInternalFiles* BuildExistingInternalFileKind(const string& name, const CStringArray* fieldNames = NULL);
+CInternalFiles* BuildExistingInternalFileKind(const std::string& name, const CStringArray* fieldNames = NULL);
 
 /** @} */
 

@@ -20,8 +20,8 @@
 #ifndef _ProcessCommonTools_h_
 #define _ProcessCommonTools_h_
 
-#include <netcdf.h>
-#include "Stl.h"
+#include "netcdf.h"
+#include <string>
 #include "FileParams.h"
 #include "InternalFiles.h"
 
@@ -49,7 +49,7 @@ namespace processes
 ** definitions are in ParametersDictionary.h
 */
 void PrintParameterHelp
-		(ostream		&where,
+		(std::ostream		&where,
 		 const KeywordHelp	*KeywordList);
 
 /*
@@ -61,32 +61,32 @@ void PrintParameterHelp
 bool CheckCommandLineOptions
 		(int			argc,
 		 char			**argv,
-		 const string		&HelpString,
+		 const std::string		&HelpString,
 		 const KeywordHelp	*KeywordList,
-		 string			&CommandFileName);
+		 std::string			&CommandFileName);
 
 
 int32_t GetFileList
 		(CFileParams		&Params,
-		 const string		&Keyword,
+		 const std::string		&Keyword,
 		 CStringArray		&Names,
-		 const string		&TraceDescription,
+		 const std::string		&TraceDescription,
 		 int32_t		MinOccurences	= 1,
 		 int32_t		MaxOccurences	= -1,
 		 bool			PrintTrace	= true);
 
 int32_t GetVarDef
 		(CFileParams		&Params,
-		 const string		&Prefix,
+		 const std::string		&Prefix,
 		 CExpression    	&Field,
-		 string			*Name,
+		 std::string			*Name,
 		 NetCDFVarKind		*Kind,
 		 CUnit			*Unit,
-		 string			*Title,
-		 string			*Comment,
-		 string			*DataFormat,
+		 std::string			*Title,
+		 std::string			*Comment,
+		 std::string			*DataFormat,
 		 uint32_t               *Group,
-		 const string		&TraceDescription,
+		 const std::string		&TraceDescription,
 		 int32_t		Index		= 0,
 		 int32_t		MinOccurences	= 1,
 		 int32_t		MaxOccurences	= 1,
@@ -94,20 +94,20 @@ int32_t GetVarDef
 
 int32_t GetVarDef
 		(CFileParams		&Params,
-		 const string		&Prefix,
+		 const std::string		&Prefix,
 		 CExpression    	&Field,
-		 string			*Name,
+		 std::string			*Name,
 		 NetCDFVarKind		*Kind,
 		 CUnit			*Unit,
-		 string			*Title,
-		 string			*Comment,
-		 string			*DataFormat,
+		 std::string			*Title,
+		 std::string			*Comment,
+		 std::string			*DataFormat,
 		 uint32_t               *Group,
 		 double			&Min,
 		 double			&Max,
 		 uint32_t		&Count,
 		 double			&Step,
-		 const string		&TraceDescription,
+		 const std::string		&TraceDescription,
 		 int32_t		Index		= 0,
 		 int32_t		MinOccurences	= 1,
 		 int32_t		MaxOccurences	= 1,
@@ -115,7 +115,7 @@ int32_t GetVarDef
 
 void GetFilterDefinitions
 		(CFileParams		&Params,
-		 const string		&Prefix,
+		 const std::string		&Prefix,
 		 bool			*Smooth,
 		 bool			*Extrapolate,
 		 int32_t		Index		= 0,
@@ -134,19 +134,19 @@ CBratProcess::MergeDataMode GetDataMode
 		(CFileParams	&Params,
 		 int32_t	MinOccurences	= 0,
 		 int32_t	MaxOccurences	= 1,
-		 const string	&Keyword	= "DATA_MODE",
+		 const std::string	&Keyword	= "DATA_MODE",
 		 int32_t	Index		= 0,
 		 CBratProcess::MergeDataMode	Default		= CBratProcess::pctMEAN);
 
 CBratProcess::MergeDataMode GetDataMode
 		(CFileParams	&Params,
-		 const string	&Prefix,
+		 const std::string	&Prefix,
 		 int32_t	MinOccurences	= 0,
 		 int32_t	MaxOccurences	= 1,
 		 int32_t	Index		= 0,
 		 CBratProcess::MergeDataMode	Default		= CBratProcess::pctMEAN);
 
-string DataModeStr
+std::string DataModeStr
 		(CBratProcess::MergeDataMode	Mode);
 
 
@@ -154,11 +154,11 @@ CBratProcess::OutsideMode GetOutsideMode
 		(CFileParams	&Params,
 		 int32_t	MinOccurences	= 0,
 		 int32_t	MaxOccurences	= 1,
-		 const string	&Keyword	= "OUTSIDE_MODE",
+		 const std::string	&Keyword	= "OUTSIDE_MODE",
 		 int32_t	Index		= 0,
 		 CBratProcess::OutsideMode	Default		= CBratProcess::pctSTRICT);
 
-string OutsideModeStr
+std::string OutsideModeStr
 		(CBratProcess::OutsideMode	Mode);
 
 // true if outside
@@ -173,11 +173,11 @@ CBratProcess::PositionMode GetPositionMode
 		(CFileParams	&Params,
 		 int32_t	MinOccurences	= 0,
 		 int32_t	MaxOccurences	= 1,
-		 const string	&Keyword	= "POSITION_MODE",
+		 const std::string	&Keyword	= "POSITION_MODE",
 		 int32_t	Index		= 0,
 		 CBratProcess::PositionMode	Default		= CBratProcess::pctNEAREST);
 
-string PositionModeStr
+std::string PositionModeStr
 		(CBratProcess::PositionMode	Mode);
 
 bool CheckPositionValue

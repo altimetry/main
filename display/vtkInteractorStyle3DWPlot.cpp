@@ -519,21 +519,21 @@ void vtkInteractorStyle3DWPlot::SetView()
 };
 
 //----------------------------------------------------------------------------
-void vtkInteractorStyle3DWPlot::PrintSelf(ostream& os, vtkIndent indent)
+void vtkInteractorStyle3DWPlot::PrintSelf(std::ostream& os, vtkIndent indent)
 {
   vtkInteractorStyle::PrintSelf(os,indent);
   vtkInteractorStyle::PrintSelf(os,indent);
 
-  os << indent << "Latitude: "  << this->Latitude  << endl
-     << indent << "Longitude: " << this->Longitude << endl
-     << indent << "Roll: "      << this->Roll      << endl
-     << indent << "Zoom: "      << this->Zoom      << endl;
+  os << indent << "Latitude: "  << this->Latitude  << std::endl
+     << indent << "Longitude: " << this->Longitude << std::endl
+     << indent << "Roll: "      << this->Roll      << std::endl
+     << indent << "Zoom: "      << this->Zoom      << std::endl;
 
-  os << indent << "DefaultLatitude: "  << this->DefaultLatitude  << endl
-     << indent << "DefaultLongitude: " << this->DefaultLongitude << endl
-     << indent << "DefaultRoll: "      << this->DefaultRoll      << endl
-     << indent << "DefaultZoom: "      << this->DefaultZoom      << endl;
+  os << indent << "DefaultLatitude: "  << this->DefaultLatitude  << std::endl
+     << indent << "DefaultLongitude: " << this->DefaultLongitude << std::endl
+     << indent << "DefaultRoll: "      << this->DefaultRoll      << std::endl
+     << indent << "DefaultZoom: "      << this->DefaultZoom      << std::endl;
 
-  os << indent << "MotionSpeed: " << this->MotionSpeed << endl
-     << indent << "FactorRoll: "  << this->FactorRoll  << endl;
+  os << indent << "MotionSpeed: " << this->MotionSpeed << std::endl
+     << indent << "FactorRoll: "  << this->FactorRoll  << std::endl;
 }

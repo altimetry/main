@@ -128,19 +128,16 @@ CWorldPlotFrame::CWorldPlotFrame()
 }
 
 //----------------------------------------
-CWorldPlotFrame::CWorldPlotFrame(wxWindow *parent, wxWindowID id, const wxString &title, CWorldPlotProperty* plotProperty,
-                                 const wxPoint &position, const wxSize& size, long style )
-    //: wxFrame(parent, id, title, position, size, style), --> called in Create
+CWorldPlotFrame::CWorldPlotFrame( wxWindow *parent, wxWindowID id, const wxString &title, CWorldPlotProperty* plotProperty,
+	const wxPoint &position, const wxSize& size, long style )
+	//: wxFrame(parent, id, title, position, size, style), --> called in Create
 {
-  Init();
-
-  bool bOk = Create(parent, id, title, plotProperty, position, size, style);
-  if (bOk == false)
-  {
-    CException e("ERROR in CWorldPlotFrame ctor - Unenable to create wxWidgets (Create method returns false)", BRATHL_SYSTEM_ERROR);
-    throw(e);
-  }
-
+	Init();
+	if ( !Create( parent, id, title, plotProperty, position, size, style ) )
+	{
+		CException e( "ERROR in CWorldPlotFrame ctor - Unable to create wxWidgets (Create method returns false)", BRATHL_SYSTEM_ERROR );
+		throw( e );
+	}
 }
 
 //----------------------------------------
@@ -172,83 +169,77 @@ bool CWorldPlotFrame::Destroy()
 //----------------------------------------
 void CWorldPlotFrame::Init()
 {
-
-  m_plotPanel = NULL;
-  m_multiFrame = false;
-  m_hasClut = false;
-  m_menuBar = NULL;
-  m_lutFrame = NULL;
-  m_contourPropFrame = NULL;
-  //m_menuView = NULL;
-
+	m_plotPanel = NULL;
+	m_multiFrame = false;
+	m_hasClut = false;
+	m_menuBar = NULL;
+	m_lutFrame = NULL;
+	m_contourPropFrame = NULL;
+	//m_menuView = NULL;
 }
 
 //----------------------------------------
-bool CWorldPlotFrame::Create(wxWindow *parent, wxWindowID id, const wxString &title, CWorldPlotProperty* plotProperty,
-                                 const wxPoint &position, const wxSize& size, long style )
+bool CWorldPlotFrame::Create( wxWindow *parent, wxWindowID id, const wxString &title, CWorldPlotProperty* plotProperty,
+	const wxPoint &position, const wxSize& size, long style )
 
 {
-  //Enable(false);
-  bool bOk = true;
+	//Enable(false);
 
-  if (plotProperty != NULL)
-  {
-    m_plotProperty = *plotProperty;
-  }
+	if ( plotProperty != NULL )
+	{
+		m_plotProperty = *plotProperty;
+	}
 
-  wxFrame::Create(parent, id, title, position, size, style);
+	wxFrame::Create( parent, id, title, position, size, style );
 
-  try
-  {
-    if (!wxGetApp().GetIconFile().IsEmpty())
-    {
-      SetIcon(wxIcon(wxGetApp().GetIconFile(), ::wxGetApp().GetIconType()));
-    }
-    else
-    {
-      ::wxMessageBox(wxString::Format("WARNING: Unable to find Brat icon file %s",
-                                      ::wxGetApp().GetIconFileName().c_str())
-                     , "BRAT WARNING");
-    }
-  }
-  catch(...)
-  {
-    // Do nothing
-  }
+	try
+	{
+		if ( !wxGetApp().GetIconFile().IsEmpty() )
+		{
+			SetIcon( wxIcon( wxGetApp().GetIconFile(), ::wxGetApp().GetIconType() ) );
+		}
+		else
+		{
+			::wxMessageBox( wxString::Format( "WARNING: Unable to find Brat icon file %s",
+				::wxGetApp().GetIconFileName().c_str() )
+				, "BRAT WARNING" );
+		}
+	}
+	catch ( ... )
+	{
+		// Do nothing
+	}
 
-  //self.prefs = Preferences.Preferences()
-
+	//self.prefs = Preferences.Preferences()
 
 
-  CreateMenuBar();
+	CreateMenuBar();
 
-  bOk = CreateControls();
-  if (bOk == false)
-  {
-    return false;
-  }
+	m_plotPanel = new CWorldPlotPanel(this, -1, &m_plotProperty);
+	//if ( !CreateControls() )
+	//	return false;
 
-  CreateLayout();
-  InstallEventListeners();
+	CreateLayout();
+	InstallEventListeners();
 
-  ShowPropertyPanel(m_plotProperty.m_showPropertyPanel);
-  ShowAnimationToolbar(m_plotProperty.m_showAnimationToolbar);
-  ShowColorBar(m_plotProperty.m_showColorBar);
+	ShowPropertyPanel( m_plotProperty.m_showPropertyPanel );
+	ShowAnimationToolbar( m_plotProperty.m_showAnimationToolbar );
+	ShowColorBar( m_plotProperty.m_showColorBar );
 
-  SetCenterLongitude(m_plotProperty.m_centerLongitude);
-  SetCenterLatitude(m_plotProperty.m_centerLatitude);
+	SetCenterLongitude( m_plotProperty.m_centerLongitude );
+	SetCenterLatitude( m_plotProperty.m_centerLatitude );
 
-  // Already in ShowPropertyPanel below
-  //CUpdateMinSizeEvent evMinSize(GetId());
-  //wxPostEvent(this, evMinSize);
+	// Already in ShowPropertyPanel below
+	//CUpdateMinSizeEvent evMinSize(GetId());
+	//wxPostEvent(this, evMinSize);
 
-  CCenterPointChangedEvent evt(GetId(),
-                               m_plotProperty.m_centerLatitude,
-                               m_plotProperty.m_centerLongitude);
-  wxPostEvent(m_plotPanel->GetPlotPropertyTab(),
-              evt);
+	CCenterPointChangedEvent evt( GetId(),
+		m_plotProperty.m_centerLatitude,
+		m_plotProperty.m_centerLongitude );
+	wxPostEvent( m_plotPanel->GetPlotPropertyTab(),
+		evt );
 
-  return true;
+	return true;
 }
 //----------------------------------------
 void CWorldPlotFrame::CreateMenuBar()
@@ -265,11 +256,11 @@ void CWorldPlotFrame::CreateMenuBar()
 
 }
 //----------------------------------------
-bool CWorldPlotFrame::CreateControls()
-{
-  m_plotPanel = new CWorldPlotPanel(this, -1, &m_plotProperty);
-  return true;
-}
+//bool CWorldPlotFrame::CreateControls()
+//{
+//  m_plotPanel = new CWorldPlotPanel(this, -1, &m_plotProperty);
+//  return true;
+//}
 
 //----------------------------------------
 void CWorldPlotFrame::CreateLayout()

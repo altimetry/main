@@ -113,17 +113,17 @@ void CBratAlgoFilter::SetNextValues()
 }
 
 //----------------------------------------
-void CBratAlgoFilter::Dump(ostream& fOut /*= cerr*/)
+void CBratAlgoFilter::Dump(std::ostream& fOut /*= std::cerr*/)
 {
    if (CTrace::IsTrace() == false)
    { 
       return;
    }
 
-  fOut << "==> Dump a CBratAlgoFilter Object at "<< this << endl;
+  fOut << "==> Dump a CBratAlgoFilter Object at "<< this << std::endl;
   CBratAlgorithmBase::Dump(fOut);
 
-  fOut << "==> END Dump a CBratAlgoFilter Object at "<< this << endl;
+  fOut << "==> END Dump a CBratAlgoFilter Object at "<< this << std::endl;
 
 }
 

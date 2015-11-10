@@ -27,9 +27,9 @@
 #include "brathl.h" 
 //#define BRAT_INTERNAL
 
-#include <netcdf.h>
+#include "netcdf.h"
 
-#include "Stl.h" 
+#include <string> 
 
 #include "TraceLog.h" 
 #include "Tools.h" 
@@ -61,7 +61,7 @@ CFieldInfo::CFieldInfo()
 
 
 //----------------------------------------
-CFieldInfo::CFieldInfo(const string& name) 
+CFieldInfo::CFieldInfo(const std::string& name) 
 {
 
   Init();
@@ -120,23 +120,23 @@ void CFieldInfo::Set(CFieldInfo& f)
 
 
 //----------------------------------------
-void CFieldInfo::Dump(ostream& fOut /* = cerr */)
+void CFieldInfo::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
-  fOut << "==> Dump a CFieldInfo Object at "<< this << endl;
+  fOut << "==> Dump a CFieldInfo Object at "<< this << std::endl;
 
-  fOut << "m_name "<< m_name << endl;
-  fOut << "m_attributeVarName "<< m_attributeVarName << endl;
-  fOut << "m_isNetCdfVarAttribute "<< m_isNetCdfVarAttribute << endl;
-  fOut << "m_isNetCdfGlobalAttribute "<< m_isNetCdfGlobalAttribute << endl;
-  fOut << "m_isNetCdfVarValue " << m_isNetCdfVarValue << endl;
+  fOut << "m_name "<< m_name << std::endl;
+  fOut << "m_attributeVarName "<< m_attributeVarName << std::endl;
+  fOut << "m_isNetCdfVarAttribute "<< m_isNetCdfVarAttribute << std::endl;
+  fOut << "m_isNetCdfGlobalAttribute "<< m_isNetCdfGlobalAttribute << std::endl;
+  fOut << "m_isNetCdfVarValue " << m_isNetCdfVarValue << std::endl;
 
-  fOut << "==> END Dump a CFieldInfo Object at "<< this << endl;
+  fOut << "==> END Dump a CFieldInfo Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -144,7 +144,7 @@ void CFieldInfo::Dump(ostream& fOut /* = cerr */)
 //------------------- CRecordDataMap class --------------------
 //-------------------------------------------------------------
 
-CObMap* CRecordDataMap::GetFields(const string& key, bool create /*= true*/)
+CObMap* CRecordDataMap::GetFields(const std::string& key, bool create /*= true*/)
 {
     CObMap* fieldsInfo = NULL;
     CRecordData* recordData = CRecordData::GetRecordData(this->Exists(key), false);
@@ -162,19 +162,19 @@ CObMap* CRecordDataMap::GetFields(const string& key, bool create /*= true*/)
     return fieldsInfo;
 }
 //----------------------------------------
-void CRecordDataMap::Dump(ostream& fOut /* = cerr */)
+void CRecordDataMap::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
 
-  fOut << "==> Dump a CRecordDataMap Object at "<< this << endl;
+  fOut << "==> Dump a CRecordDataMap Object at "<< this << std::endl;
 
   this->Dump(fOut);
-  fOut << "==> END Dump a CRecordDataMap Object at "<< this << endl;
+  fOut << "==> END Dump a CRecordDataMap Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 //-------------------------------------------------------------
@@ -199,21 +199,21 @@ CRecordData* CRecordData::GetRecordData(CBratObject* ob, bool withExcept /*= tru
 }
 
 //----------------------------------------
-void CRecordData::Dump(ostream& fOut /* = cerr */)
+void CRecordData::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
 
-  fOut << "==> Dump a CRecordData Object at "<< this << endl;
+  fOut << "==> Dump a CRecordData Object at "<< this << std::endl;
 
-  fOut << "m_name" << m_name << endl;
-  fOut << "m_fields at " << &m_fields << endl;
+  fOut << "m_name" << m_name << std::endl;
+  fOut << "m_fields at " << &m_fields << std::endl;
   m_fields.Dump(fOut);
-  fOut << "==> END Dump a CRecordData Object at "<< this << endl;
+  fOut << "==> END Dump a CRecordData Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -294,7 +294,7 @@ CCriteriaInfo* CCriteriaInfo::GetCriteriaInfo(CBratObject* ob, bool withExcept /
 
 }
 //----------------------------------------
-//CStringList* CCriteriaInfo::GetRecordDataFields(const string& key, CRecordDataMap& listRecord, bool create /*= true*/)
+//CStringList* CCriteriaInfo::GetRecordDataFields(const std::string& key, CRecordDataMap& listRecord, bool create /*= true*/)
 /*
 {
   CStringList* fieldNames = NULL;
@@ -315,20 +315,20 @@ CCriteriaInfo* CCriteriaInfo::GetCriteriaInfo(CBratObject* ob, bool withExcept /
 }
 */
 //----------------------------------------
-void CCriteriaInfo::Dump(ostream& fOut /* = cerr */)
+void CCriteriaInfo::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
-  fOut << "==> Dump a CCriteriaInfo Object at "<< this << endl;
+  fOut << "==> Dump a CCriteriaInfo Object at "<< this << std::endl;
 
-  fOut << "m_key "<< m_key << endl;
-  fOut << "m_dataRecord "<< m_dataRecord << endl;
+  fOut << "m_key "<< m_key << std::endl;
+  fOut << "m_dataRecord "<< m_dataRecord << std::endl;
 
-  fOut << "==> END Dump a CCriteriaInfo Object at "<< this << endl;
+  fOut << "==> END Dump a CCriteriaInfo Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -397,7 +397,7 @@ CCriteriaDatetimeInfo* CCriteriaDatetimeInfo::GetCriteriaInfo(CBratObject* ob, b
 
 }
 //----------------------------------------
-void CCriteriaDatetimeInfo::Dump(ostream& fOut /* = cerr */)
+void CCriteriaDatetimeInfo::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -406,16 +406,16 @@ void CCriteriaDatetimeInfo::Dump(ostream& fOut /* = cerr */)
 
   CCriteriaInfo::Dump(fOut);
 
-  fOut << "==> Dump a CCriteriaDatetimeInfo Object at "<< this << endl;
+  fOut << "==> Dump a CCriteriaDatetimeInfo Object at "<< this << std::endl;
 
-  fOut << "m_startDateField at " << &m_startDateField << endl;
+  fOut << "m_startDateField at " << &m_startDateField << std::endl;
   m_startDateField.Dump(fOut);
-  fOut << "m_endDateField at " << &m_endDateField << endl;
+  fOut << "m_endDateField at " << &m_endDateField << std::endl;
   m_endDateField.Dump(fOut);
 
-  fOut << "==> END Dump a CCriteriaDatetimeInfo Object at "<< this << endl;
+  fOut << "==> END Dump a CCriteriaDatetimeInfo Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -491,7 +491,7 @@ CCriteriaLatLonInfo* CCriteriaLatLonInfo::GetCriteriaInfo(CBratObject* ob, bool 
 }
 
 //----------------------------------------
-void CCriteriaLatLonInfo::Dump(ostream& fOut /* = cerr */)
+void CCriteriaLatLonInfo::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -501,20 +501,20 @@ void CCriteriaLatLonInfo::Dump(ostream& fOut /* = cerr */)
 
   CCriteriaInfo::Dump(fOut);
 
-  fOut << "==> Dump a CCriteriaLatLonInfo Object at "<< this << endl;
+  fOut << "==> Dump a CCriteriaLatLonInfo Object at "<< this << std::endl;
 
-  fOut << "m_startLatField at " << &m_startLatField << endl;
+  fOut << "m_startLatField at " << &m_startLatField << std::endl;
   m_startLatField.Dump(fOut);
-  fOut << "m_endLatField at " << &m_endLatField << endl;
+  fOut << "m_endLatField at " << &m_endLatField << std::endl;
   m_endLatField.Dump(fOut);
-  fOut << "m_startLonField at " << &m_startLonField << endl;
+  fOut << "m_startLonField at " << &m_startLonField << std::endl;
   m_startLonField.Dump(fOut);
-  fOut << "m_endLonField at " << &m_endLonField << endl;
+  fOut << "m_endLonField at " << &m_endLonField << std::endl;
   m_endLonField.Dump(fOut);
 
-  fOut << "==> END Dump a CCriteriaLatLonInfo Object at "<< this << endl;
+  fOut << "==> END Dump a CCriteriaLatLonInfo Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -582,7 +582,7 @@ CCriteriaPassInfo* CCriteriaPassInfo::GetCriteriaInfo(CBratObject* ob, bool with
 }
 
 //----------------------------------------
-void CCriteriaPassInfo::Dump(ostream& fOut /* = cerr */)
+void CCriteriaPassInfo::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -591,15 +591,15 @@ void CCriteriaPassInfo::Dump(ostream& fOut /* = cerr */)
 
   CCriteriaInfo::Dump(fOut);
 
-  fOut << "==> Dump a CCriteriaPassInfo Object at "<< this << endl;
+  fOut << "==> Dump a CCriteriaPassInfo Object at "<< this << std::endl;
 
-  fOut << "m_startPassField at " << &m_startPassField << endl;
+  fOut << "m_startPassField at " << &m_startPassField << std::endl;
   m_startPassField.Dump(fOut);
-  fOut << "m_endPassField at " << &m_endPassField << endl;
+  fOut << "m_endPassField at " << &m_endPassField << std::endl;
   m_endPassField.Dump(fOut);
-  fOut << "==> END Dump a CCriteriaPassInfo Object at "<< this << endl;
+  fOut << "==> END Dump a CCriteriaPassInfo Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -633,7 +633,7 @@ CCriteriaPassIntInfo* CCriteriaPassIntInfo::GetCriteriaInfo(CBratObject* ob, boo
 
 }
 //----------------------------------------
-void CCriteriaPassIntInfo::Dump(ostream& fOut /* = cerr */)
+void CCriteriaPassIntInfo::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -642,10 +642,10 @@ void CCriteriaPassIntInfo::Dump(ostream& fOut /* = cerr */)
 
   CCriteriaPassInfo::Dump(fOut);
 
-  fOut << "==> Dump a CCriteriaPassIntInfo Object at "<< this << endl;
-  fOut << "==> END Dump a CCriteriaPassIntInfo Object at "<< this << endl;
+  fOut << "==> Dump a CCriteriaPassIntInfo Object at "<< this << std::endl;
+  fOut << "==> END Dump a CCriteriaPassIntInfo Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 //-------------------------------------------------------------
@@ -677,7 +677,7 @@ CCriteriaPassStringInfo* CCriteriaPassStringInfo::GetCriteriaInfo(CBratObject* o
 
 }
 //----------------------------------------
-void CCriteriaPassStringInfo::Dump(ostream& fOut /* = cerr */)
+void CCriteriaPassStringInfo::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -686,10 +686,10 @@ void CCriteriaPassStringInfo::Dump(ostream& fOut /* = cerr */)
 
   CCriteriaPassInfo::Dump(fOut);
 
-  fOut << "==> Dump a CCriteriaPassStringInfo Object at "<< this << endl;
-  fOut << "==> END Dump a CCriteriaPassStringInfo Object at "<< this << endl;
+  fOut << "==> Dump a CCriteriaPassStringInfo Object at "<< this << std::endl;
+  fOut << "==> END Dump a CCriteriaPassStringInfo Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -755,7 +755,7 @@ CCriteriaCycleInfo* CCriteriaCycleInfo::GetCriteriaInfo(CBratObject* ob, bool wi
 }
 
 //----------------------------------------
-void CCriteriaCycleInfo::Dump(ostream& fOut /* = cerr */)
+void CCriteriaCycleInfo::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -764,15 +764,15 @@ void CCriteriaCycleInfo::Dump(ostream& fOut /* = cerr */)
 
   CCriteriaInfo::Dump(fOut);
 
-  fOut << "==> Dump a CCriteriaCycleInfo Object at "<< this << endl;
+  fOut << "==> Dump a CCriteriaCycleInfo Object at "<< this << std::endl;
 
-  fOut << "m_startCycleField at " << &m_startCycleField << endl;
+  fOut << "m_startCycleField at " << &m_startCycleField << std::endl;
   
   m_startCycleField.Dump(fOut);
 
-  fOut << "==> END Dump a CCriteriaCycleInfo Object at "<< this << endl;
+  fOut << "==> END Dump a CCriteriaCycleInfo Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

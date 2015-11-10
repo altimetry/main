@@ -55,6 +55,8 @@ using namespace processes;
 //#include "BitSet32.h"
 #include "MapColor.h"
 #include "MapTypeDisp.h"
+#include "PlotData/ColorPalleteNames.h"
+#include "PlotData/GeoMap.h"
 
 #include "BratDisplay.h"
 
@@ -65,9 +67,9 @@ void MakeApplicationActive(void);
 #endif
 
 #ifdef WIN32
-const string BRATHL_ICON_FILENAME = "BratIcon.ico";
+const std::string BRATHL_ICON_FILENAME = "BratIcon.ico";
 #else
-const string BRATHL_ICON_FILENAME = "BratIcon.bmp";
+const std::string BRATHL_ICON_FILENAME = "BratIcon.bmp";
 #endif
 
 
@@ -240,8 +242,6 @@ bool CBratDisplayApp::OnInit()
   // or something else)
   setlocale(LC_NUMERIC, "C");
 
-  m_execName.Assign(wxGetApp().argv[0]);
-
   /*
 
   wxFileName traceFileName;
@@ -267,7 +267,7 @@ bool CBratDisplayApp::OnInit()
 
   }
 
-  string errorMsg;
+  std::string errorMsg;
   if (!CTools::LoadAndCheckUdUnitsSystem(errorMsg))
   {
       std::cerr << errorMsg << std::endl;
@@ -334,7 +334,7 @@ bool CBratDisplayApp::OnInit()
     delete tmpEventLoop;
 #endif
 
-    m_internalData.RemoveAll();
+//femm    m_internalData.RemoveAll();
 
 
     /*
@@ -397,7 +397,7 @@ bool CBratDisplayApp::OnInit()
     ::wxMessageBox(e.what(), "BRAT ERROR");
     return FALSE;
   }
-  catch (exception &e)
+  catch (std::exception &e)
   {
     ::wxMessageBox(e.what(), "BRAT RUNTIME ERROR");
     return FALSE;
@@ -534,7 +534,7 @@ void CBratDisplayApp::GetXYPlotPropertyParams(int32_t nFields)
   int32_t i = 0;
   bool boolValue = false;
   double doubleValue = 0.0;
-  string stringValue;
+  std::string stringValue;
   int32_t uintValue = 0;
 
   CXYPlotProperty xyPlotProperty;
@@ -793,7 +793,7 @@ CZFXYPlotProperty* CBratDisplayApp::GetZFXYPlotProperty(int32_t index)
 {
   if ( (index < 0) || (static_cast<uint32_t>(index) >= m_zfxyPlotProperties.size()) )
   {
-    string msg = CTools::Format("ERROR in  CBratDisplayApp::GetZFXYPlotProperty : index %d out-of-range "
+    std::string msg = CTools::Format("ERROR in  CBratDisplayApp::GetZFXYPlotProperty : index %d out-of-range "
                                 "Valid range is [0, %ld]",
                                 index,
                                 (long)m_zfxyPlotProperties.size());
@@ -815,7 +815,7 @@ CWorldPlotProperty* CBratDisplayApp::GetWorldPlotProperty(int32_t index)
 {
   if ( (index < 0) || (static_cast<uint32_t>(index) >= m_wPlotProperties.size()) )
   {
-    string msg = CTools::Format("ERROR in  CBratDisplayApp::CWorldPlotProperty : index %d out-of-range "
+    std::string msg = CTools::Format("ERROR in  CBratDisplayApp::CWorldPlotProperty : index %d out-of-range "
                                 "Valid range is [0, %ld]",
                                 index,
                                 (long)m_wPlotProperties.size());
@@ -838,7 +838,7 @@ CXYPlotProperty* CBratDisplayApp::GetXYPlotProperty(int32_t index)
 {
   if ( (index < 0) || (static_cast<uint32_t>(index) >= m_xyPlotProperties.size()) )
   {
-    string msg = CTools::Format("ERROR in  CBratDisplayApp::GetXYPlotProperty : index %d out-of-range "
+    std::string msg = CTools::Format("ERROR in  CBratDisplayApp::GetXYPlotProperty : index %d out-of-range "
                                 "Valid range is [0, %ld]",
                                 index,
                                 (long)m_xyPlotProperties.size());
@@ -862,7 +862,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
   int32_t i = 0;
   bool boolValue;
   double doubleValue;
-  string stringValue;
+  std::string stringValue;
   int32_t intValue;
 
   CWorldPlotProperty wPlotProperty;
@@ -1040,7 +1040,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
   {
     CWorldPlotProperty* props = GetWorldPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_COLORCURVE]->GetValue(stringValue, i);
-    string stringValueOk = wPlotProperty.m_LUT->CurveToLabeledCurve(stringValue);
+    std::string stringValueOk = wPlotProperty.m_LUT->CurveToLabeledCurve(stringValue);
     if (stringValueOk.empty())
     {
       throw  CParameterException(CTools::Format("Unknown color curve name value '%s' for  parameter '%s'",
@@ -1058,7 +1058,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
   {
     CWorldPlotProperty* props = GetWorldPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_COLORTABLE]->GetValue(stringValue, i, PALETTE_AEROSOL);
-    string stringValueOk = wPlotProperty.m_LUT->MethodToLabeledMethod(stringValue);
+    std::string stringValueOk = wPlotProperty.m_LUT->MethodToLabeledMethod(stringValue);
 
     if (stringValueOk.empty())
     {
@@ -1078,7 +1078,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
         // load the color table file definition
         try
         {
-          props->m_LUT->LoadFromFile(fileName.GetFullPath());
+          props->m_LUT->LoadFromFile(fileName.GetFullPath().ToStdString());
         }
         catch(CException& e)
         {
@@ -1163,7 +1163,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
 
 
   //-------------------------------------------------------------
-  // Are the plots vector components? Just one east and one north
+  // Are the plots std::vector components? Just one east and one north
   //-------------------------------------------------------------
   for (i = 0 ; i < eastComponent ; i++)
   {
@@ -1203,7 +1203,7 @@ void CBratDisplayApp::GetZFXYPlotPropertyParams(int32_t nFields)
   int32_t i = 0;
   bool boolValue;
   double doubleValue;
-  string stringValue;
+  std::string stringValue;
   int32_t intValue;
   uint32_t uintValue;
 
@@ -1367,7 +1367,7 @@ void CBratDisplayApp::GetZFXYPlotPropertyParams(int32_t nFields)
   {
     CZFXYPlotProperty* props = GetZFXYPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_COLORCURVE]->GetValue(stringValue, i);
-    string stringValueOk = zfxyPlotProperty.m_LUT->CurveToLabeledCurve(stringValue);
+    std::string stringValueOk = zfxyPlotProperty.m_LUT->CurveToLabeledCurve(stringValue);
     if (stringValueOk.empty())
     {
       throw  CParameterException(CTools::Format("Unknown color curve name value '%s' for  parameter '%s'",
@@ -1385,7 +1385,7 @@ void CBratDisplayApp::GetZFXYPlotPropertyParams(int32_t nFields)
   {
     CZFXYPlotProperty* props = GetZFXYPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_COLORTABLE]->GetValue(stringValue, i, PALETTE_AEROSOL);
-    string stringValueOk = zfxyPlotProperty.m_LUT->MethodToLabeledMethod(stringValue);
+    std::string stringValueOk = zfxyPlotProperty.m_LUT->MethodToLabeledMethod(stringValue);
 
     if (stringValueOk.empty())
     {
@@ -1405,7 +1405,7 @@ void CBratDisplayApp::GetZFXYPlotPropertyParams(int32_t nFields)
         // load the color table file definition
         try
         {
-          props->m_LUT->LoadFromFile(fileName.GetFullPath());
+          props->m_LUT->LoadFromFile(fileName.GetFullPath().ToStdString());
         }
         catch(CException& e)
         {
@@ -1508,7 +1508,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(CWorldPlotProperty& wPlotProperty)
 {
   bool boolValue;
   double doubleValue;
-  string stringValue;
+  std::string stringValue;
   int32_t intValue;
 
   int32_t showProp = m_params.CheckCount(kwDISPLAY_PROPERTIES, 0, 1);
@@ -1598,7 +1598,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(CWorldPlotProperty& wPlotProperty)
   if (colorCurve != 0)
   {
     m_params.m_mapParam[kwDISPLAY_COLORCURVE]->GetValue(stringValue);
-    string stringValueOk = wPlotProperty.m_LUT->CurveToLabeledCurve(stringValue);
+    std::string stringValueOk = wPlotProperty.m_LUT->CurveToLabeledCurve(stringValue);
     if (stringValueOk.empty())
     {
       throw  CParameterException(CTools::Format("Unknown color curve name value '%s' for  parameter '%s'",
@@ -1613,7 +1613,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(CWorldPlotProperty& wPlotProperty)
   {
     m_params.m_mapParam[kwDISPLAY_COLORTABLE]->GetValue(stringValue);
     //??? FromFile
-    string stringValueOk = wPlotProperty.m_LUT->MethodToLabeledMethod(stringValue);
+    std::string stringValueOk = wPlotProperty.m_LUT->MethodToLabeledMethod(stringValue);
 
     if (stringValueOk.empty())
     {
@@ -1768,7 +1768,7 @@ bool CBratDisplayApp::GetParametersNetcdf()
 
   if (externalFile == NULL)
   {
-    string msg = CTools::Format("ERROR - The input file '%s' is not a NetCdf file",
+    std::string msg = CTools::Format("ERROR - The input file '%s' is not a NetCdf file",
                                  externalFile->GetName().c_str());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
     throw (e);
@@ -1817,7 +1817,7 @@ bool CBratDisplayApp::GetParametersNetcdfZFXY(CExternalFilesNetCDF* externalFile
 
   if (netCDFFile == NULL)
   {
-    string msg = CTools::Format("ERROR - The input file '%s' is not a NetCdf file (internal file is NULL)",
+    std::string msg = CTools::Format("ERROR - The input file '%s' is not a NetCdf file (internal file is NULL)",
                                  externalFile->GetName().c_str());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
     throw (e);
@@ -1838,8 +1838,8 @@ bool CBratDisplayApp::GetParametersNetcdfZFXY(CExternalFilesNetCDF* externalFile
   bool bFoundLatDim = false;
   bool bFoundLonDim = false;
 
-  string coordAxisX;
-  string coordAxisY;
+  std::string coordAxisX;
+  std::string coordAxisY;
 
   if (nFields == 0)
   {
@@ -1881,7 +1881,7 @@ bool CBratDisplayApp::GetParametersNetcdfZFXY(CExternalFilesNetCDF* externalFile
 
     if (m_paramVars.size() <= 0)
     {
-      string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfZFXY - No field with at least one dimension to display has been found in file '%s'",
+      std::string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfZFXY - No field with at least one dimension to display has been found in file '%s'",
                                    externalFile->GetName().c_str());
       CException e(msg, BRATHL_INCONSISTENCY_ERROR);
       CTrace::Tracer("%s", e.what());
@@ -1894,7 +1894,7 @@ bool CBratDisplayApp::GetParametersNetcdfZFXY(CExternalFilesNetCDF* externalFile
 
   if (fieldX->GetDimIds().size() != 1)
   {
-    string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfZFXY : Array of field '%s' is not 1 dimensional.",
+    std::string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfZFXY : Array of field '%s' is not 1 dimensional.",
                                fieldX->GetName().c_str());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
     throw (e);
@@ -1902,7 +1902,7 @@ bool CBratDisplayApp::GetParametersNetcdfZFXY(CExternalFilesNetCDF* externalFile
 
   if (fieldY->GetDimIds().size() != 1)
   {
-    string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfZFXY : Array of field '%s' is not 1 dimensional.",
+    std::string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfZFXY : Array of field '%s' is not 1 dimensional.",
                                fieldY->GetName().c_str());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
     throw (e);
@@ -1919,7 +1919,7 @@ bool CBratDisplayApp::GetParametersNetcdfZFXY(CExternalFilesNetCDF* externalFile
 
     if (dimValues.size() != 2 )
     {
-      string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfZFXY : Array of field '%s' is not 2 dimensional.",
+      std::string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfZFXY : Array of field '%s' is not 2 dimensional.",
                                  (*itParamVar).c_str());
       CException e(msg, BRATHL_INCONSISTENCY_ERROR);
       throw (e);
@@ -1940,7 +1940,7 @@ bool CBratDisplayApp::GetParametersNetcdfZFXY(CExternalFilesNetCDF* externalFile
 
     if (netCDFVarDef->GetNbDims() != 2 )
     {
-      string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfZFXY : Array of field '%s' is not 2 dimensional.",
+      std::string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfZFXY : Array of field '%s' is not 2 dimensional.",
                                  (*itParamVar).c_str());
       CException e(msg, BRATHL_INCONSISTENCY_ERROR);
       throw (e);
@@ -1955,7 +1955,7 @@ bool CBratDisplayApp::GetParametersNetcdfZFXY(CExternalFilesNetCDF* externalFile
 
     if ( ! firstNetCDFVardef->HaveEqualDims(netCDFVarDef))
     {
-      string msg = CTools::Format("ERROR : All the fields to plot have not the same dimensions.");
+      std::string msg = CTools::Format("ERROR : All the fields to plot have not the same dimensions.");
       CException e(msg, BRATHL_INCONSISTENCY_ERROR);
       throw (e);
     }
@@ -2030,7 +2030,7 @@ bool CBratDisplayApp::GetParametersNetcdfZFLatLon(CExternalFilesNetCDF* external
 
   if (fieldLat == NULL)
   {
-    string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfZFLatLon - No Latitude field has been found in file '%s'",
+    std::string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfZFLatLon - No Latitude field has been found in file '%s'",
                                  externalFile->GetName().c_str());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
     CTrace::Tracer("%s", e.what());
@@ -2039,7 +2039,7 @@ bool CBratDisplayApp::GetParametersNetcdfZFLatLon(CExternalFilesNetCDF* external
 
   if (fieldLon == NULL)
   {
-    string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfZFLatLon - No Longitude field has been found in file '%s'",
+    std::string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfZFLatLon - No Longitude field has been found in file '%s'",
                                  externalFile->GetName().c_str());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
     CTrace::Tracer("%s", e.what());
@@ -2104,7 +2104,7 @@ bool CBratDisplayApp::GetParametersNetcdfZFLatLon(CExternalFilesNetCDF* external
 
     if (m_paramVars.size() <= 0)
     {
-      string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfZFLatLon - No field with at least one dimension to display has been found in file '%s'",
+      std::string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfZFLatLon - No field with at least one dimension to display has been found in file '%s'",
                                    externalFile->GetName().c_str());
       CException e(msg, BRATHL_INCONSISTENCY_ERROR);
       CTrace::Tracer("%s", e.what());
@@ -2117,7 +2117,7 @@ bool CBratDisplayApp::GetParametersNetcdfZFLatLon(CExternalFilesNetCDF* external
 
   if (fieldLat->GetDimIds().size() != 1)
   {
-    string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfZFLatLon : Array of field '%s' is not 1 dimensional",
+    std::string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfZFLatLon : Array of field '%s' is not 1 dimensional",
                                fieldLat->GetName().c_str());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
     throw (e);
@@ -2125,7 +2125,7 @@ bool CBratDisplayApp::GetParametersNetcdfZFLatLon(CExternalFilesNetCDF* external
 
   if (fieldLon->GetDimIds().size() != 1)
   {
-    string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfZFLatLon : Array of field '%s' is not 1 dimensional",
+    std::string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfZFLatLon : Array of field '%s' is not 1 dimensional",
                                fieldLon->GetName().c_str());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
     throw (e);
@@ -2141,7 +2141,7 @@ bool CBratDisplayApp::GetParametersNetcdfZFLatLon(CExternalFilesNetCDF* external
 
     if (dimValues.size() != 2 )
     {
-      string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfZFXY : Array of field '%s' is not 2 dimensional",
+      std::string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfZFXY : Array of field '%s' is not 2 dimensional",
                                  (*itParamVar).c_str());
       CException e(msg, BRATHL_INCONSISTENCY_ERROR);
       throw (e);
@@ -2235,7 +2235,7 @@ bool CBratDisplayApp::GetParametersNetcdfYFX(CExternalFilesNetCDF* externalFile)
 
     if (m_paramVars.size() <= 0)
     {
-      string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfYFX - No field with one dimension to display has been found in file '%s'",
+      std::string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfYFX - No field with one dimension to display has been found in file '%s'",
                                    externalFile->GetName().c_str());
       CException e(msg, BRATHL_INCONSISTENCY_ERROR);
       CTrace::Tracer("%s", e.what());
@@ -2261,7 +2261,7 @@ bool CBratDisplayApp::GetParametersNetcdfYFX(CExternalFilesNetCDF* externalFile)
   externalFile->GetDimensions(m_paramXAxis, xDimValues);
   if (xDimValues.size() <= 0)
   {
-    string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfYFX : Array of field '%s' is 0 dimensional - It have to be at least 1 or 2 dimensional",
+    std::string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfYFX : Array of field '%s' is 0 dimensional - It have to be at least 1 or 2 dimensional",
                                m_paramXAxis.c_str());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
     throw (e);
@@ -2270,7 +2270,7 @@ bool CBratDisplayApp::GetParametersNetcdfYFX(CExternalFilesNetCDF* externalFile)
 
   if (xDimValues.size() > 2)
   {
-    string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfYFX : Array of field '%s' is more than 2 dimensional - It have to be 1 or 2 dimensional",
+    std::string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfYFX : Array of field '%s' is more than 2 dimensional - It have to be 1 or 2 dimensional",
                                m_paramXAxis.c_str());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
     throw (e);
@@ -2286,7 +2286,7 @@ bool CBratDisplayApp::GetParametersNetcdfYFX(CExternalFilesNetCDF* externalFile)
 
     if (dimValues.size() <= 0)
     {
-      string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfYFX : Array of field '%s' is 0 dimensional - It have to be at least 1 or 2 dimensional",
+      std::string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfYFX : Array of field '%s' is 0 dimensional - It have to be at least 1 or 2 dimensional",
                                  (*itParamVar).c_str());
       CException e(msg, BRATHL_INCONSISTENCY_ERROR);
       throw (e);
@@ -2295,7 +2295,7 @@ bool CBratDisplayApp::GetParametersNetcdfYFX(CExternalFilesNetCDF* externalFile)
 
     if (dimValues.size() > 2 )
     {
-      string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfYFX : Array of field '%s' is more than 2 dimensional - It have to be 1 or 2 dimensional",
+      std::string msg = CTools::Format("CBratDisplayApp::GetParametersNetcdfYFX : Array of field '%s' is more than 2 dimensional - It have to be 1 or 2 dimensional",
                                  (*itParamVar).c_str());
       CException e(msg, BRATHL_INCONSISTENCY_ERROR);
       throw (e);
@@ -2485,14 +2485,14 @@ void CBratDisplayApp::GetParameters()
 
     if (expr.GetFieldNames()->size() != 1)
     {
-      string msg = CTools::Format("CBratDisplayApp::GetParameters - Expression '%s' has incorrect number of fields '%ld' (correct is 1)",
+      std::string msg = CTools::Format("CBratDisplayApp::GetParameters - Expression '%s' has incorrect number of fields '%ld' (correct is 1)",
                                    expr.AsString().c_str(), (long)expr.GetFieldNames()->size());
       CException e(msg, BRATHL_INCONSISTENCY_ERROR);
       CTrace::Tracer("%s", e.what());
       throw (e);
     }
 
-    wxString fieldName = expr.GetFieldNames()->at(0).c_str();
+    std::string fieldName = expr.GetFieldNames()->at(0).c_str();
 
     // ------------------------------
     // -------------- YFX plot
@@ -2509,7 +2509,7 @@ void CBratDisplayApp::GetParameters()
       CPlotField* field = new CPlotField(fieldName.c_str());
       plot->m_fields.Insert(field);
 
-      string xAxisName;
+      std::string xAxisName;
       uint32_t nXAxisName = m_params.CheckCount(kwDISPLAY_XAXIS, 0, nbGroup);
 
       if (nXAxisName > 0)
@@ -2522,7 +2522,7 @@ void CBratDisplayApp::GetParameters()
       {
         plot->SetForcedVarXname(xAxisName.c_str());
 
-        string xAxisLabel;
+        std::string xAxisLabel;
         uint32_t nXAxisLabel = m_params.CheckCount(kwDISPLAY_XLABEL, 0, nbGroup);
 
         if (nXAxisLabel > 0)
@@ -2634,7 +2634,7 @@ void CBratDisplayApp::GetParameters()
       }
 
 
-      string xAxisName;
+      std::string xAxisName;
       uint32_t nXAxisName = m_params.CheckCount(kwDISPLAY_XAXIS, 0, nbGroup);
 
       if (nXAxisName > 0)
@@ -2647,7 +2647,7 @@ void CBratDisplayApp::GetParameters()
         zfxyplot->SetForcedVarXname(xAxisName.c_str());
       }
 
-      string yAxisName;
+      std::string yAxisName;
       uint32_t nYAxisName = m_params.CheckCount(kwDISPLAY_YAXIS, 0, nbGroup);
 
       if (nYAxisName > 0)
@@ -2674,12 +2674,12 @@ void CBratDisplayApp::GetParameters()
 
 //----------------------------------------
 /*
-int32_t CBratDisplayApp::FindFieldPosInGlobalList(const string& fieldName)
+int32_t CBratDisplayApp::FindFieldPosInGlobalList(const std::string& fieldName)
 {
 
   for (uint32_t i = 0 ; i < m_fields.size() ; i++)
   {
-    string fieldNameTmp = m_fields[i].GetFieldNames()->at(0);
+    std::string fieldNameTmp = m_fields[i].GetFieldNames()->at(0);
     if (fieldName.compare(fieldNameTmp) == 0)
     {
       return i;
@@ -2694,11 +2694,11 @@ void CBratDisplayApp::CheckFiles()
 {
 
   CStringArray::iterator it;
-  string inputFileTypeRead;
+  std::string inputFileTypeRead;
 
   if (m_inputFiles.empty())
   {
-    CException e("CBratDisplayApp::CheckFiles - input data file list is empty()", BRATHL_COUNT_ERROR);
+    CException e("CBratDisplayApp::CheckFiles - input data file std::list is empty()", BRATHL_COUNT_ERROR);
     CTrace::Tracer("%s", e.what());
     throw (e);
   }
@@ -2723,7 +2723,7 @@ void CBratDisplayApp::CheckFiles()
     {
       if ( m_inputFileType.compare(inputFileTypeRead) != 0)
       {
-        string msg = CTools::Format("CBratDisplayApp::CheckFiles - Files are not in the same way - Expected type '%s' and found '%s' for file '%s'",
+        std::string msg = CTools::Format("CBratDisplayApp::CheckFiles - Files are not in the same way - Expected type '%s' and found '%s' for file '%s'",
                                      m_inputFileType.c_str(), inputFileTypeRead.c_str(), (*it).c_str());
         CException e(msg, BRATHL_INCONSISTENCY_ERROR);
         CTrace::Tracer("%s", e.what());
@@ -2782,7 +2782,7 @@ CInternalFiles* CBratDisplayApp::Prepare(int32_t indexFile, const wxString& fiel
     CheckFieldsData(yfx, fieldName);
   }
 
-  m_internalData.Insert(f);
+//femm  m_internalData.Insert(f);
 
   return f;
 }
@@ -2824,7 +2824,7 @@ CInternalFiles* CBratDisplayApp::Prepare(const wxString& fileName, const wxStrin
     CheckFieldsData(yfx, fieldName);
   }
   */
-  m_internalData.Insert(f);
+//femm  m_internalData.Insert(f);
 
   return f;
 }
@@ -2884,17 +2884,17 @@ void CBratDisplayApp::CheckFieldsData(CInternalFilesYFX* yfx, int32_t indexField
 
   if (expr.GetFieldNames().size() != 1)
   {
-    string msg = CTools::Format("CBratDisplayApp::CheckFieldsData - Expression '%s' has incorrect number of fields '%d' (correct is 1)",
+    std::string msg = CTools::Format("CBratDisplayApp::CheckFieldsData - Expression '%s' has incorrect number of fields '%d' (correct is 1)",
                                  expr.AsString().c_str(), expr.GetFieldNames().size());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
     CTrace::Tracer("%s", e.what());
     throw (e);
   }
 
-  string fieldName = expr.GetFieldNames().at(0);
+  std::string fieldName = expr.GetFieldNames().at(0);
   if (names.Exists(fieldName) == false)
   {
-    string msg = CTools::Format("CBratDisplayApp::CheckFieldsData - Field '%s' in command file doesn't exist in intput file '%s'",
+    std::string msg = CTools::Format("CBratDisplayApp::CheckFieldsData - Field '%s' in command file doesn't exist in intput file '%s'",
                                 fieldName.c_str(), yfx->GetName().c_str());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
     CTrace::Tracer("%s", e.what());
@@ -2934,7 +2934,7 @@ void CBratDisplayApp::CheckFieldsData(CInternalFilesYFX* yfx, const wxString& fi
 
   if (names.Exists((const char *)(fieldName)) == false)
   {
-    string msg = CTools::Format("CBratDisplayApp::CheckFieldsData - Field '%s' in command file doesn't exist in intput file '%s'",
+    std::string msg = CTools::Format("CBratDisplayApp::CheckFieldsData - Field '%s' in command file doesn't exist in intput file '%s'",
                                 (const char *)(fieldName), yfx->GetName().c_str());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
     CTrace::Tracer("%s", e.what());
@@ -2956,7 +2956,7 @@ void CBratDisplayApp::CheckFieldsData(CInternalFilesZFXY* zfxy, const wxString& 
 
   if (names.Exists((const char *)(fieldName)) == false)
   {
-    string msg = CTools::Format("CBratDisplayApp::CheckFieldsData - Field '%s' in command file doesn't exist in intput file '%s'",
+    std::string msg = CTools::Format("CBratDisplayApp::CheckFieldsData - Field '%s' in command file doesn't exist in intput file '%s'",
                                 (const char *)(fieldName), zfxy->GetName().c_str());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
     CTrace::Tracer("%s", e.what());
@@ -2974,7 +2974,7 @@ void CBratDisplayApp::CheckFieldsData(CInternalFilesZFXY* zfxy, int32_t indexFie
   }
   if (zfxy->IsGeographic() == false)
   {
-    string msg = CTools::Format("CBratDisplayApp::CheckFieldsData - Non-geographical data type '%s' are not yet implemented",
+    std::string msg = CTools::Format("CBratDisplayApp::CheckFieldsData - Non-geographical data type '%s' are not yet implemented",
                                   zfxy->TypeOf().c_str());
     CException e(msg, BRATHL_UNIMPLEMENT_ERROR);
     CTrace::Tracer("%s", e.what());
@@ -2997,17 +2997,17 @@ void CBratDisplayApp::CheckFieldsData(CInternalFilesZFXY* zfxy, int32_t indexFie
 
   if (expr.GetFieldNames().size() != 1)
   {
-    string msg = CTools::Format("CBratDisplayApp::CheckFieldsData - Expression '%s' has incorrect number of fields '%d' (correct is 1)",
+    std::string msg = CTools::Format("CBratDisplayApp::CheckFieldsData - Expression '%s' has incorrect number of fields '%d' (correct is 1)",
                                  expr.AsString().c_str(), expr.GetFieldNames().size());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
     CTrace::Tracer("%s", e.what());
     throw (e);
   }
 
-  string fieldName = expr.GetFieldNames().at(0);
+  std::string fieldName = expr.GetFieldNames().at(0);
   if (names.Exists(fieldName) == false)
   {
-    string msg = CTools::Format("CBratDisplayApp::CheckFieldsData - Field '%s' in command file doesn't exist in intput file '%s'",
+    std::string msg = CTools::Format("CBratDisplayApp::CheckFieldsData - Field '%s' in command file doesn't exist in intput file '%s'",
                                 fieldName.c_str(), zfxy->GetName().c_str());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
     CTrace::Tracer("%s", e.what());
@@ -3028,7 +3028,7 @@ void CBratDisplayApp::CheckFieldsData(CInternalFilesZFXY* zfxy)
   }
   if (zfxy->IsGeographic() == false)
   {
-    string msg = CTools::Format("CBratDisplayApp::CheckFieldsData - Non-geographical data type '%s' are not yet implemented",
+    std::string msg = CTools::Format("CBratDisplayApp::CheckFieldsData - Non-geographical data type '%s' are not yet implemented",
                                   zfxy->TypeOf().c_str());
     CException e(msg, BRATHL_UNIMPLEMENT_ERROR);
     CTrace::Tracer("%s", e.what());
@@ -3036,7 +3036,7 @@ void CBratDisplayApp::CheckFieldsData(CInternalFilesZFXY* zfxy)
   }
 
  // CStringArray::iterator itName;
-  vector<CExpression>::iterator itField;
+  std::vector<CExpression>::iterator itField;
 
 
   CBitSet32* fieldBitSet = new CBitSet32;
@@ -3050,19 +3050,19 @@ void CBratDisplayApp::CheckFieldsData(CInternalFilesZFXY* zfxy)
   {
     if ((*itField).GetFieldNames().size() != 1)
     {
-      string msg = CTools::Format("CBratDisplayApp::CheckFieldsData - Expression '%s' has incorrect number of fields '%d' (correct is 1)",
+      std::string msg = CTools::Format("CBratDisplayApp::CheckFieldsData - Expression '%s' has incorrect number of fields '%d' (correct is 1)",
                                    (*itField).AsString().c_str(), (*itField).GetFieldNames().size());
       CException e(msg, BRATHL_INCONSISTENCY_ERROR);
       CTrace::Tracer("%s", e.what());
       throw (e);
     }
-    string fieldName = (*itField).GetFieldNames().at(0);
+    std::string fieldName = (*itField).GetFieldNames().at(0);
     if (names.Exists(fieldName) == false)
     {
       // in ZFXY plot all field must exist in all input files
       if (zfxy != NULL)
       {
-        string msg = CTools::Format("CBratDisplayApp::CheckFieldsData - Field '%s' in command file doesn't exist in intput file '%s'",
+        std::string msg = CTools::Format("CBratDisplayApp::CheckFieldsData - Field '%s' in command file doesn't exist in intput file '%s'",
                                     fieldName.c_str(), f->GetName().c_str());
         CException e(msg, BRATHL_INCONSISTENCY_ERROR);
         CTrace::Tracer("%s", e.what());
@@ -3077,7 +3077,7 @@ void CBratDisplayApp::CheckFieldsData(CInternalFilesZFXY* zfxy)
 }
 */
 //----------------------------------------
-string CBratDisplayApp::GetFirstFileName()
+std::string CBratDisplayApp::GetFirstFileName()
 {
   LoadParameters();
 
@@ -3090,7 +3090,7 @@ CInternalFiles* CBratDisplayApp::GetFirstFile()
 {
   LoadParameters();
 
-  string name = m_params.GetFirstFile(kwFILE);
+  std::string name = m_params.GetFirstFile(kwFILE);
 
   CInternalFiles* f = NULL;
 
@@ -3120,7 +3120,7 @@ CInternalFiles* CBratDisplayApp::GetFirstFile()
 //----------------------------------------
 bool CBratDisplayApp::IsWPlot()
 {
-  string name = GetFirstFileName();
+  std::string name = GetFirstFileName();
 
   return CInternalFiles::IsZFLatLonFile(name);
 }
@@ -3134,7 +3134,7 @@ bool CBratDisplayApp::IsZXYPlot()
 
   m_params.GetFieldNames(kwFIELD, fieldNames);
 
-  string name = GetFirstFileName();
+  std::string name = GetFirstFileName();
 
   return CInternalFiles::IsZFXYFile(name, &fieldNames);
 
@@ -3144,105 +3144,85 @@ bool CBratDisplayApp::IsZXYPlot()
 bool CBratDisplayApp::IsXYPlot()
 {
 
-  string name = GetFirstFileName();
+  std::string name = GetFirstFileName();
 
   return CInternalFiles::IsYFXFile(name);
 
 }
 //----------------------------------------
-void CBratDisplayApp::CreateWPlot(CWPlot* wplot, wxSize& size, wxPoint& pos)
+void CBratDisplayApp::CreateWPlot( CWPlot* wplot, wxSize& size, wxPoint& pos )
 {
-  wplot->GetInfo();
+	wplot->GetInfo();
 
-  CWorldPlotProperty* wPlotProperty = GetWorldPlotProperty(0);
+	CWorldPlotProperty* wPlotProperty = GetWorldPlotProperty( 0 );
 
-  wxString titleTmp = wplot->m_title;
+	wxString titleTmp = wplot->m_title;
+	titleTmp = CTools::SlashesDecode( (const char *)( titleTmp ) ).c_str();
+	titleTmp.Replace( "\n", "-" );
+	titleTmp.Replace( "\t", " " );
+	wxString title = wxString::Format( "BRAT World Plot - %s #%d", titleTmp.c_str(), wplot->m_groupNumber );
 
-  titleTmp = CTools::SlashesDecode((const char *)(titleTmp)).c_str();
+	CWorldPlotFrame* frame = new CWorldPlotFrame( NULL, -1, title, wPlotProperty, pos, size );
 
-  titleTmp.Replace("\n", "-");
-  titleTmp.Replace("\t", " ");
+	// for geostrphic velocity
+	CPlotField * northField =NULL;
+	CPlotField * eastField =NULL;
+	for ( CObArray::iterator itField = wplot->m_fields.begin(); itField != wplot->m_fields.end(); itField++ )
+	{
+		CPlotField* field = CPlotField::GetPlotField( *itField );
+		if ( field->m_internalFiles.empty() )
+			continue;
 
-  wxString title = wxString::Format("BRAT World Plot - %s #%d",
-                                   titleTmp.c_str(),
-                                   wplot->m_groupNumber);
+		if ( field->m_worldProps->m_northComponent && northField == NULL ) {
+			northField = field;
+			continue;
+		}
+		else
+		if ( field->m_worldProps->m_eastComponent && eastField == NULL ) {
+			eastField = field;
+			continue;
+		}
 
-  CWorldPlotFrame* frame = new CWorldPlotFrame( NULL, -1, title, wPlotProperty, pos, size);
+		// otherwise just add it as regular data
+		CGeoMap *geoMap = new CGeoMap( field );
+		//femm m_geoMaps.Insert( geoMap );
+		frame->AddData( geoMap );
+	}
 
+	// we have a Vector Plot!
+	if ( northField != NULL && eastField != NULL ) {
 
-  CObArray::iterator itField;
-
-  // for geostrphic velocity
-  CPlotField * northField =NULL;
-  CPlotField * eastField =NULL;
-
-
-  for (itField = wplot->m_fields.begin(); itField !=  wplot->m_fields.end(); itField++)
-  {
-    CPlotField* field = CPlotField::GetPlotField(*itField);
-
-    if (field->m_internalFiles.empty())
-    {
-      continue;
-    }
-
-    if ( field->m_worldProps->m_northComponent && northField == NULL) {
-        northField = field;
-        continue;
-
-    } else
-
-    if ( field->m_worldProps->m_eastComponent && eastField == NULL ) {
-            eastField = field;
-            continue;
-    }
-
-
-       // otherwise just add it as regular data
-    CGeoMap *geoMap = new CGeoMap(frame, field);
-
-    m_geoMaps.Insert(geoMap);
-
-    frame->AddData(geoMap);
-  }
-
-  // we have a Vector Plot!
-  if ( northField != NULL && eastField != NULL ) {
-
-      CGeoVelocityMap *gvelocityMap = new CGeoVelocityMap(frame, northField, eastField);
-        gvelocityMap->SetIsGlyph(true);
-      m_geoMaps.Insert(gvelocityMap);
-      frame->AddData(gvelocityMap);
+		CGeoVelocityMap *gvelocityMap = new CGeoVelocityMap( northField, eastField );
+		gvelocityMap->SetIsGlyph( true );
+		//femm m_geoMaps.Insert( gvelocityMap );
+		frame->AddData( gvelocityMap );
+	}
+	else if ( northField != eastField ) {
+		CException e( "CBratDisplayApp::CreateWPlot - incomplete std::vector plot components", BRATHL_INCONSISTENCY_ERROR );
+		CTrace::Tracer( "%s", e.what() );
+		throw ( e );
+	}
 
 
-  } else if ( northField != eastField ) {
-     CException e("CBratDisplayApp::CreateWPlot - incomplete vector plot components", BRATHL_INCONSISTENCY_ERROR);
-     CTrace::Tracer("%s", e.what());
-     throw (e);
-  }
+	frame->UpdateView();
+	frame->Raise();
+	frame->Show( TRUE );
 
+	// ---- Fix for bug on Linux to resize correctly VTK widget.
+	wxSize sizefFrame = frame->GetSize();
+	sizefFrame += wxSize( 1, 1 );
+	frame->SetSize( sizefFrame );
+	// ----
 
+	pos = frame->GetPosition();
 
-  frame->UpdateView();
-  frame->Raise();
-  frame->Show( TRUE );
+	//frame->GetPlotPlanel()->GetVtkWidget()->GetRenderWindow()->Render();
+	//frame->GetPlotPlanel()->GetVtkWidget()->Render();
 
-  // ---- Fix for bug on Linux to resize correctly VTK widget.
-  wxSize sizefFrame = frame->GetSize();
-  sizefFrame += wxSize(1,1);
-  frame->SetSize(sizefFrame);
-  // ----
-
-  pos = frame->GetPosition();
-
-  //frame->GetPlotPlanel()->GetVtkWidget()->GetRenderWindow()->Render();
-  //frame->GetPlotPlanel()->GetVtkWidget()->Render();
-
-   // Fix for Windows refusing to draw initial screen:
+	// Fix for Windows refusing to draw initial screen:
 #ifdef WIN32
-    ///frame->GetPlotPlanel()->Layout();
+	///frame->GetPlotPlanel()->Layout();
 #endif
-
 }
 //----------------------------------------
 void CBratDisplayApp::CreateZFXYPlot(CZFXYPlot* zfxyplot, wxSize& size, wxPoint& pos)
@@ -3394,7 +3374,7 @@ void CBratDisplayApp::CreateXYPlot(CPlot* plot, wxSize& size, wxPoint& pos)
   //CInternalFilesYFX* yfx = plot->GetInternalFilesYFX(m_internalData.at(0));
   plot->GetInfo();
 
-  string strTempTitle = CTools::StringReplace((const char *)(plot->m_title), "\\n", "-");
+  std::string strTempTitle = CTools::StringReplace(plot->m_title, "\\n", "-");
   strTempTitle = CTools::StringReplace(strTempTitle, "\\t", " ");
 
   wxString title = CTools::Format("BRAT Y=F(X) Plot - %s #%d",
@@ -3434,7 +3414,7 @@ void CBratDisplayApp::CreateXYPlot(CPlot* plot, wxSize& size, wxPoint& pos)
   //CInternalFilesYFX* yfx = plot->GetInternalFilesYFX(m_internalData.at(0));
   plot->GetInfo(&m_internalData);
 
-  string strTempTitle = CTools::StringReplace(plot->m_title.c_str(), "\\n", "-");
+  std::string strTempTitle = CTools::StringReplace(plot->m_title.c_str(), "\\n", "-");
   strTempTitle = CTools::StringReplace(strTempTitle, "\\t", " ");
 
   wxString title = CTools::Format("BRAT XY Plot - %s #%d",
@@ -3486,7 +3466,7 @@ int32_t CBratDisplayApp::HowManyFieldsXYInBitSetBefore(int32_t index)
 {
   if (index < 0)
   {
-    string msg = CTools::Format("CBratDisplayApp::HowManyFieldsZXYInBitSetBefore - invalid index (<0):%d",
+    std::string msg = CTools::Format("CBratDisplayApp::HowManyFieldsZXYInBitSetBefore - invalid index (<0):%d",
                                 index);
     CException e(msg,
                  BRATHL_LOGIC_ERROR);
@@ -3519,7 +3499,7 @@ int32_t CBratDisplayApp::HowManyFieldsZXYInBitSetBefore(int32_t index)
 {
   if (index < 0)
   {
-    string msg = CTools::Format("CBratDisplayApp::HowManyFieldsZXYInBitSetBefore - invalid index (<0):%d",
+    std::string msg = CTools::Format("CBratDisplayApp::HowManyFieldsZXYInBitSetBefore - invalid index (<0):%d",
                                 index);
     CException e(msg,
                  BRATHL_LOGIC_ERROR);
@@ -3555,7 +3535,7 @@ CBitSet32* CBratDisplayApp::GetBitSetFields(CInternalFilesZFXY* f)
   CBitSet32* bitSet = dynamic_cast<CBitSet32*>(m_fieldBitSets.Exists(f->GetName()));
   if (bitSet == NULL)
   {
-    string msg = CTools::Format("CBratDisplayApp::GetBitSetFields - bitSet object found - dynamic_cast<CBitSet32*>(m_fieldBitSets.Exists(f->GetName()) returns NULL"
+    std::string msg = CTools::Format("CBratDisplayApp::GetBitSetFields - bitSet object found - dynamic_cast<CBitSet32*>(m_fieldBitSets.Exists(f->GetName()) returns NULL"
                                 "- file '%s'",
                                 f->GetName().c_str());
     CException e(msg,
@@ -3574,7 +3554,7 @@ CBitSet32* CBratDisplayApp::GetBitSetFields(CInternalFilesYFX* f)
   CBitSet32* bitSet = dynamic_cast<CBitSet32*>(m_fieldBitSets.Exists(f->GetName()));
   if (bitSet == NULL)
   {
-    string msg = CTools::Format("CBratDisplayApp::GetBitSetFields - bitSet object found - dynamic_cast<CBitSet32*>(m_fieldBitSets.Exists(f->GetName()) returns NULL"
+    std::string msg = CTools::Format("CBratDisplayApp::GetBitSetFields - bitSet object found - dynamic_cast<CBitSet32*>(m_fieldBitSets.Exists(f->GetName()) returns NULL"
                                 "- file '%s'",
                                 f->GetName().c_str());
     CException e(msg,
@@ -3593,7 +3573,7 @@ CBitSet32* CBratDisplayApp::GetBitSetFields(CObMap::iterator it)
   CBitSet32* bitSet = dynamic_cast<CBitSet32*>(it->second);
   if (bitSet == NULL)
   {
-    string msg = CTools::Format("CBratDisplayApp::GetBitSetFields - bitSet object found - dynamic_cast<CBitSet32*>(it->second) returns NULL"
+    std::string msg = CTools::Format("CBratDisplayApp::GetBitSetFields - bitSet object found - dynamic_cast<CBitSet32*>(it->second) returns NULL"
                                 "- key '%s'",
                                 it->first.c_str());
     CException e(msg,
@@ -3635,9 +3615,9 @@ bool CBratDisplayApp::GetCommandLineOptions(int argc, wxChar* argv[])
   struct arg_file *infiles = arg_file1(NULL, NULL, NULL, "parameter file or netcdf file");
   struct arg_str  *xAxis    = arg_str0("xX", NULL, NULL, "specifies the x axis (only with netcdf file)");
   struct arg_str  *yAxis   = arg_str0("yY", NULL, NULL, "specifies the y axis (only with netcdf file)");
-  struct arg_str  *vars    = arg_str0("vV", NULL, "var,var2,varN...", "specifies the list of variables to display. (only with netcdf file)");
+  struct arg_str  *vars    = arg_str0("vV", NULL, "var,var2,varN...", "specifies the std::list of variables to display. (only with netcdf file)");
   struct arg_lit  *help    = arg_lit0("h","help","print this help and exit");
-  struct arg_lit  *keywords    = arg_lit0("k","keywords", "print list of allowed parameters in the parameter file");
+  struct arg_lit  *keywords    = arg_lit0("k","keywords", "print std::list of allowed parameters in the parameter file");
   struct arg_end  *end     = arg_end(20);
 
   void* argtable[] = {infiles, xAxis, yAxis, vars, help, keywords, end};

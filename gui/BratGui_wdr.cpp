@@ -1982,7 +1982,7 @@ wxSizer *SelectionCriteriaDlg( wxWindow *parent, bool call_fit, bool set_sizer )
 
     item4->Add( item23, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );
 
-    wxStaticBox *item28 = new wxStaticBox( parent, -1, _("Pass criteria (as string)") );
+    wxStaticBox *item28 = new wxStaticBox( parent, -1, _("Pass criteria (as std::string)") );
     wxStaticBoxSizer *item27 = new wxStaticBoxSizer( item28, wxHORIZONTAL );
     glbCritPassListSizer = item27;
 

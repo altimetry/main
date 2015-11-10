@@ -78,7 +78,7 @@ public:
   //static CMapImageType&  GetInstance();
 
   bool ValidName(const char* name);
-  bool ValidName(const string& name);
+  bool ValidName(const std::string& name);
   
   void NamesToArrayString(wxArrayString& array);
   void NamesToMapString(CStringMap& strMap);

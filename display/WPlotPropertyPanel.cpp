@@ -38,6 +38,7 @@ using namespace brathl;
 #include "Validators.h"
 #include "WPlotPropertyPanel.h"
 #include "ContourPropFrame.h"
+#include "PlotData/GeoMap.h"
 
 
 long ID_WPLOTPROP_PROJECTION;
@@ -238,7 +239,7 @@ bool CWPlotPropertyPanel::CreateControls()
   }
 
   wxArrayString array;
-  CMapProjection::GetInstance()->NamesToArrayString(array);
+  NamesToArrayString(*CMapProjection::GetInstance(), array);
   bOk = m_projectionChoice.Create(this, ID_WPLOTPROP_PROJECTION,
                             wxDefaultPosition,
                             wxDefaultSize,
@@ -1294,11 +1295,11 @@ void CWPlotPropertyPanel::OnProjectionChanged(CProjectionChangedEvent& event)
   // Next fout lines are workaround for weird, weird, GTK
   // problem in which the default choice selection remains
   // grayed out when another one is set through this method.
-  // Only manually rebuilding the entire damn choicebox list
+  // Only manually rebuilding the entire damn choicebox std::list
   // seems to work...
   m_projectionChoice.Clear();
   wxArrayString array;
-  CMapProjection::GetInstance()->NamesToArrayString(array);
+  NamesToArrayString(*CMapProjection::GetInstance(), array);
   m_projectionChoice.Append(array);
   //---------------------------------
 

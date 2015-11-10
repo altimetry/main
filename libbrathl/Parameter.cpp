@@ -26,7 +26,7 @@
 
 #include "Exception.h"
 #include "Expression.h"
-#include "Stl.h"
+#include <string>
 #include "Tools.h"
 #include "TraceLog.h"
 #include "brathl.h"
@@ -65,7 +65,7 @@ CParameter::CParameter(const char *keyword, const char *value)
 
 //----------------------------------------
 
-CParameter::CParameter(const string& keyword, const string& value)
+CParameter::CParameter(const std::string& keyword, const std::string& value)
 {
   m_keyword = keyword;
 
@@ -85,11 +85,11 @@ CParameter::~CParameter()
 
 void CParameter::AddValue(const char *value)
 {
-  string valueExpanded = CTools::ExpandShellVar(value);
+  std::string valueExpanded = CTools::ExpandShellVar(value);
   m_values.push_back(valueExpanded);
 }
 //----------------------------------------
-void CParameter::AddValue(const string& value)
+void CParameter::AddValue(const std::string& value)
 {
   AddValue(value.c_str());
 }
@@ -98,7 +98,7 @@ void CParameter::AddValue(const string& value)
 
 bool CParameter::RemoveValue(uint32_t i)
 {
-  //vector<string>::iterator iter;
+  //std::vector<std::string>::iterator iter;
 
   if (i >= m_values.size())
   {
@@ -261,7 +261,7 @@ void CParameter::GetValue(bool& value, int32_t pos /* = 0*/, bool DefValue /*= f
 {
   CommonCtrl(pos);
 
-  string What	= CTools::StringToUpper(m_values[pos]);
+  std::string What	= CTools::StringToUpper(m_values[pos]);
   if ((What == "YES")	||
       (What == "Y")	||
       (What == "TRUE")	||
@@ -318,7 +318,7 @@ void CParameter::GetValue(CDate& value, int32_t pos /* = 0*/)
   }
 }
 //----------------------------------------
-void CParameter::GetValue(CDate& value, const string& strUnit, int32_t pos /* = 0*/)
+void CParameter::GetValue(CDate& value, const std::string& strUnit, int32_t pos /* = 0*/)
 {
   CUnit unit;
   try
@@ -380,7 +380,7 @@ void CParameter::GetValue(CDate& value, CUnit& unit, int32_t pos /* = 0*/)
 }
 
 //----------------------------------------
-void CParameter::GetValue(string& value, int32_t pos /* = 0*/, const string &DefValue /*=""*/)
+void CParameter::GetValue(std::string& value, int32_t pos /* = 0*/, const std::string &DefValue /*=""*/)
 {
   CommonCtrl(pos);
 
@@ -444,7 +444,7 @@ void CParameter::GetValue(CExpression& value, int32_t pos /* = 0*/)
 
 
 //----------------------------------------
-void CParameter::GetValue(CUnit& value, int32_t pos /* = 0*/, const string &DefValue /*="count"*/)
+void CParameter::GetValue(CUnit& value, int32_t pos /* = 0*/, const std::string &DefValue /*="count"*/)
 {
   CommonCtrl(pos);
 
@@ -469,7 +469,7 @@ void CParameter::GetValue(CUnit& value, int32_t pos /* = 0*/, const string &DefV
 //----------------------------------------
 void CParameter::GetValue
 		(uint32_t		&value,
-		 string			&ValueName,
+		 std::string			&ValueName,
 		 const KWValueListEntry	*KeywordList,
 		 int32_t		pos		/*= 0*/,
 		 uint32_t		DefValue	/*= CTools::m_defaultValueUINT32*/)
@@ -505,11 +505,11 @@ void CParameter::GetValue
 		 int32_t		pos		/*= 0*/,
 		 const bitSet32 	&DefValue	/*= 0*/)
 {
-  string		Line;
-  const string  	Separators	= " \t\n,:;";
-  const string  	ValidChars	= "ABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789";
-  string::size_type	Begin;
-  string::size_type	End;
+  std::string		Line;
+  const std::string  	Separators	= " \t\n,:;";
+  const std::string  	ValidChars	= "ABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789";
+  std::string::size_type	Begin;
+  std::string::size_type	End;
   bool			NoKeyword	= true;
   GetValue(Line, pos, "");
 
@@ -520,10 +520,10 @@ void CParameter::GetValue
   {
     End		= Begin;
     Begin	= Line.find_first_not_of(Separators, Begin);
-    if (Begin == string::npos)
+    if (Begin == std::string::npos)
       break; // Only separators are left
 
-    if (ValidChars.find(Line[Begin]) == string::npos)
+    if (ValidChars.find(Line[Begin]) == std::string::npos)
     {
       throw CParameterException(CTools::Format("Invalid value for keyword %s: invalid char '%c' in keyword list '%s'",
 					       m_keyword.c_str(),
@@ -532,10 +532,10 @@ void CParameter::GetValue
 				BRATHL_SYNTAX_ERROR);
     }
     End	= Line.find_first_not_of(ValidChars, Begin);
-    if (End == string::npos)
+    if (End == std::string::npos)
       End	= Line.size();
     // Extract one keyword
-    string Keyword	= Line.substr(Begin, End-Begin);
+    std::string Keyword	= Line.substr(Begin, End-Begin);
     Begin		= End;
     NoKeyword		= false;
     // Find keyword
@@ -561,7 +561,7 @@ void CParameter::GetValue
 //----------------------------------------
 void CParameter::GetValue
 		(uint32_t		&value,
-		 string			&ValueName,
+		 std::string			&ValueName,
 		 CUIntMap&	        KeywordList,
 		 int32_t		pos		/*= 0*/,
 		 uint32_t		DefValue	/*= CTools::m_defaultValueUINT32*/)
@@ -607,9 +607,9 @@ void CParameter::GetAllValues
 //----------------------------------------
 void CParameter::GetAllValues
 		(CExpression	&value,
-		 const string	&Combine /* = "&&" */)
+		 const std::string	&Combine /* = "&&" */)
 {
-  string Tmp;
+  std::string Tmp;
 
   CommonCtrl(0);
 
@@ -635,30 +635,30 @@ void CParameter::GetAllValues
 
 
 //----------------------------------------
-void CParameter::Dump(ostream& fOut /* = cerr */)
+void CParameter::Dump(std::ostream& fOut /* = std::cerr */)
 {
   int i = 0;
-  vector<string>::iterator iteratorString;
+  std::vector<std::string>::iterator iteratorString;
 
   if (CTrace::IsTrace() == false)
   {
     return;
   }
 
-  fOut << "==> Dump a CParameter Object at "<< this << endl;
+  fOut << "==> Dump a CParameter Object at "<< this << std::endl;
 
-  fOut << "m_keyword = " << m_keyword << endl;
-  fOut << "m_values = " << endl;
+  fOut << "m_keyword = " << m_keyword << std::endl;
+  fOut << "m_values = " << std::endl;
 
   for (iteratorString = m_values.begin() ; iteratorString != m_values.end() ; iteratorString++)
   {
-    fOut << "  Value " << i <<  "=" << *iteratorString << endl;
+    fOut << "  Value " << i <<  "=" << *iteratorString << std::endl;
     i++;
   }
 
-  fOut << "==> END Dump a CParameter Object at "<< this << endl;
+  fOut << "==> END Dump a CParameter Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

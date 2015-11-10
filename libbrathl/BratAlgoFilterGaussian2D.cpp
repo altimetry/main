@@ -417,16 +417,16 @@ void CBratAlgoFilterGaussian2D::CheckVarExpression(uint32_t index)
 }
 
 //----------------------------------------
-void CBratAlgoFilterGaussian2D::Dump(ostream& fOut /*= cerr*/)
+void CBratAlgoFilterGaussian2D::Dump(std::ostream& fOut /*= std::cerr*/)
 {
    if (CTrace::IsTrace() == false)
    { 
       return;
    }
 
-  fOut << "==> Dump a CBratAlgoFilterGaussian2D Object at "<< this << endl;
+  fOut << "==> Dump a CBratAlgoFilterGaussian2D Object at "<< this << std::endl;
   CBratAlgoFilterGaussian::Dump(fOut);
-  fOut << "==> END Dump a CBratAlgoFilterGaussian2D Object at "<< this << endl;
+  fOut << "==> END Dump a CBratAlgoFilterGaussian2D Object at "<< this << std::endl;
 
 }
 

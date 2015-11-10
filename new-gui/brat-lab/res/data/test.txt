@@ -1,0 +1,29 @@
+    // MDI sub-windows logic
+    //
+    SubWindows_separatorAction = menu_Window->addSeparator();
+    windowActionGroup = new QActionGroup(this);
+    connect( mdiArea, SIGNAL(subWindowActivated(QMdiSubWindow*)), this, SLOT(UpdateMDIEditorsActions()) );
+
+    // toolbars
+    //
+    QActionGroup *grp = new QActionGroup( this );
+    connect( grp, SIGNAL(triggered(QAction*)), this, SLOT( textAlign(QAction*)) );
+
+    action_Left->setActionGroup( grp );
+    action_Center->setActionGroup( grp );
+    action_Right->setActionGroup( grp );
+    action_Justify->setActionGroup( grp );
+
+    QAction *actions[QFontToolBar::e_action_Size];
+    actions[ QFontToolBar::e_actionTextBold       ] = action_Bold;
+    actions[ QFontToolBar::e_actionTextUnderline  ] = action_Underline;
+    actions[ QFontToolBar::e_actionTextItalic     ] = action_Italic;
+    actions[ QFontToolBar::e_actionTextColor      ] = action_Color;
+    actions[ QFontToolBar::e_actionAlignLeft      ] = action_Left;
+    actions[ QFontToolBar::e_actionAlignCenter    ] = action_Center;
+    actions[ QFontToolBar::e_actionAlignRight     ] = action_Right;
+    actions[ QFontToolBar::e_actionAlignJustify   ] = action_Justify;
+    Font_toolBar->SetActions( actions, this );
+
+    menu_View->addAction( mainToolBar->toggleViewAction() );
+    menu_View->addAction( Font_toolBar->toggleViewAction() );

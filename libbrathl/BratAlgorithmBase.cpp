@@ -19,6 +19,7 @@
 */
 
 #include <algorithm>
+#include <sstream>
 
 #include "brathl.h" 
 
@@ -166,7 +167,7 @@ void CBratAlgorithmParam::SetValue(double value, CBratAlgorithmParam::bratAlgoPa
   }
 }
 //----------------------------------------
-void CBratAlgorithmParam::SetValue(const string& value, CBratAlgorithmParam::bratAlgoParamTypeVal type)
+void CBratAlgorithmParam::SetValue(const std::string& value, CBratAlgorithmParam::bratAlgoParamTypeVal type)
 {
   switch (type)
   {
@@ -191,7 +192,7 @@ void CBratAlgorithmParam::SetValue(const string& value, CBratAlgorithmParam::bra
     }
   default :
     {
-      throw CException(CTools::Format("CBratAlgorithmParam#SetValue : Setting value from string to Brat algorithm type %d is not valid", static_cast<int32_t>(type)),  BRATHL_LOGIC_ERROR);
+      throw CException(CTools::Format("CBratAlgorithmParam#SetValue : Setting value from std::string to Brat algorithm type %d is not valid", static_cast<int32_t>(type)),  BRATHL_LOGIC_ERROR);
       break;
     }
   }
@@ -222,7 +223,7 @@ void CBratAlgorithmParam::SetValue(int64_t value)
   m_valLong = value;
 }
 //----------------------------------------
-void CBratAlgorithmParam::SetValue(const string& value) 
+void CBratAlgorithmParam::SetValue(const std::string& value) 
 {
   m_typeVal = CBratAlgorithmParam::T_STRING;
   m_valString = value;
@@ -242,7 +243,7 @@ void CBratAlgorithmParam::SetValue(const CDoubleArray& value)
 }
 
 //----------------------------------------
-void CBratAlgorithmParam::SetValueAsDoubleArray(const string& value, const string& delim /*= "," */) 
+void CBratAlgorithmParam::SetValueAsDoubleArray(const std::string& value, const std::string& delim /*= "," */) 
 {
   m_typeVal = CBratAlgorithmParam::T_VECTOR_DOUBLE;
   m_vectValDouble.RemoveAll(); 
@@ -267,9 +268,9 @@ void CBratAlgorithmParam::SetValue(double* value, int32_t nbValues)
   }
 }
 //----------------------------------------
-string CBratAlgorithmParam::TypeValAsString(CBratAlgorithmParam::bratAlgoParamTypeVal type)
+std::string CBratAlgorithmParam::TypeValAsString(CBratAlgorithmParam::bratAlgoParamTypeVal type)
 {
-  string value = "";
+  std::string value = "";
   switch (type) 
   {
     case T_UNDEF: value = "undefined"; break;
@@ -278,7 +279,7 @@ string CBratAlgorithmParam::TypeValAsString(CBratAlgorithmParam::bratAlgoParamTy
     case T_FLOAT: value = "float"; break;
     case T_DOUBLE: value = "double"; break;
     case T_CHAR: value = "char"; break;
-    case T_STRING: value = "string"; break;
+    case T_STRING: value = "std::string"; break;
     case T_VECTOR_DOUBLE: value = "array of double"; break;
     default: value = CTools::Format("CBratAlgorithmParam#TypeValAsString: unknown type %d.",
                static_cast<uint32_t>(type)); break;
@@ -288,9 +289,9 @@ string CBratAlgorithmParam::TypeValAsString(CBratAlgorithmParam::bratAlgoParamTy
   return value; 
 }
 //----------------------------------------
-string CBratAlgorithmParam::GetValue()
+std::string CBratAlgorithmParam::GetValue()
 {
-  string value = "";
+  std::string value = "";
 
   switch (m_typeVal)
   {
@@ -331,7 +332,7 @@ string CBratAlgorithmParam::GetValue()
     }
   default :
     {
-      throw CException(CTools::Format("CBratAlgorithmParam#GetValue : GetValue value as string from Brat algorithm type %d is not valid", static_cast<int32_t>(m_typeVal)),  BRATHL_LOGIC_ERROR);
+      throw CException(CTools::Format("CBratAlgorithmParam#GetValue : GetValue value as std::string from Brat algorithm type %d is not valid", static_cast<int32_t>(m_typeVal)),  BRATHL_LOGIC_ERROR);
       break;
     }
   }
@@ -340,7 +341,7 @@ string CBratAlgorithmParam::GetValue()
 }
 
 //----------------------------------------
-void CBratAlgorithmParam::Dump(ostream& fOut /* = cerr */)
+void CBratAlgorithmParam::Dump(std::ostream& fOut /* = std::cerr */)
 {
 
  if (CTrace::IsTrace() == false)
@@ -348,19 +349,19 @@ void CBratAlgorithmParam::Dump(ostream& fOut /* = cerr */)
     return;
   }
 
-  fOut << "==> Dump a CBratAlgorithmParam Object at "<< this << endl;
-  fOut << "m_typeVal: " << m_typeVal << endl;
-  fOut << "m_valDouble: " << m_valDouble << endl;
-  fOut << "m_valInt: " << m_valInt<< endl;
-  fOut << "m_valFloat: " << m_valFloat << endl;
-  fOut << "m_valString: " << m_valString << endl;
-  fOut << "m_valChar: " << m_valChar << endl;
-  fOut << "m_vectValDouble: " << endl;
+  fOut << "==> Dump a CBratAlgorithmParam Object at "<< this << std::endl;
+  fOut << "m_typeVal: " << m_typeVal << std::endl;
+  fOut << "m_valDouble: " << m_valDouble << std::endl;
+  fOut << "m_valInt: " << m_valInt<< std::endl;
+  fOut << "m_valFloat: " << m_valFloat << std::endl;
+  fOut << "m_valString: " << m_valString << std::endl;
+  fOut << "m_valChar: " << m_valChar << std::endl;
+  fOut << "m_vectValDouble: " << std::endl;
   m_vectValDouble.Dump(fOut);
-  fOut << "==> END Dump a CBratAlgorithmParam Object at "<< this << " elements" << endl;
+  fOut << "==> END Dump a CBratAlgorithmParam Object at "<< this << " elements" << std::endl;
 
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 //-------------------------------------------------------------
@@ -403,7 +404,7 @@ void CVectorBratAlgorithmParam::Insert(double value, CBratAlgorithmParam::bratAl
   this->Insert(p);
 }
 //----------------------------------------
-void CVectorBratAlgorithmParam::Insert(const string& value, CBratAlgorithmParam::bratAlgoParamTypeVal type)
+void CVectorBratAlgorithmParam::Insert(const std::string& value, CBratAlgorithmParam::bratAlgoParamTypeVal type)
 {
   CBratAlgorithmParam p;
   p.SetValue(value, type);
@@ -432,7 +433,7 @@ void CVectorBratAlgorithmParam::Insert(int32_t value)
   this->Insert(p);
 }
 //----------------------------------------
-void CVectorBratAlgorithmParam::Insert(const string& value) 
+void CVectorBratAlgorithmParam::Insert(const std::string& value) 
 {
   CBratAlgorithmParam p;
   p.SetValue(value);
@@ -461,9 +462,9 @@ void CVectorBratAlgorithmParam::Insert(double* value, int32_t nbValues)
   this->Insert(p);
 }
 //----------------------------------------
-string CVectorBratAlgorithmParam::ToString(const string& delim /*= "," */, bool useBracket /*= true */)
+std::string CVectorBratAlgorithmParam::ToString(const std::string& delim /*= "," */, bool useBracket /*= true */)
 {
-  ostringstream myStream;
+  std::ostringstream myStream;
 
   if (useBracket)
   {
@@ -493,7 +494,7 @@ string CVectorBratAlgorithmParam::ToString(const string& delim /*= "," */, bool 
 
 }
 //----------------------------------------
-void CVectorBratAlgorithmParam::Dump(ostream& fOut /* = cerr */)
+void CVectorBratAlgorithmParam::Dump(std::ostream& fOut /* = std::cerr */)
 {
 
  if (CTrace::IsTrace() == false)
@@ -504,19 +505,19 @@ void CVectorBratAlgorithmParam::Dump(ostream& fOut /* = cerr */)
   CVectorBratAlgorithmParam::iterator it;
   int i = 0;
 
-  fOut << "==> Dump a CVectorBratAlgorithmParam Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> Dump a CVectorBratAlgorithmParam Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
   for ( it = this->begin( ); it != this->end( ); it++ )
   {
-    fOut << "CVectorBratAlgorithmParam[" << i << "]= " << endl;  
+    fOut << "CVectorBratAlgorithmParam[" << i << "]= " << std::endl;  
     (*it).Dump(fOut);
     i++;
   }
 
-  fOut << "==> END Dump a CVectorBratAlgorithmParam Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> END Dump a CVectorBratAlgorithmParam Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -757,7 +758,7 @@ void CBratAlgorithmBase::Set(const CBratAlgorithmBase &o)
 }
 
 //----------------------------------------
-void CBratAlgorithmBase::SetAlgoExpression(const string& value)
+void CBratAlgorithmBase::SetAlgoExpression(const std::string& value)
 {
   m_algoExpression = value;
 }
@@ -780,9 +781,9 @@ void CBratAlgorithmBase::SetAlgoParamExpressions(const CStringArray& values)
 }
 
 ////----------------------------------------
-//string CBratAlgorithmBase::GetParamFormats()
+//std::string CBratAlgorithmBase::GetParamFormats()
 //{
-//  string paramFormats;
+//  std::string paramFormats;
 //  
 //  uint32_t nParameters = GetNumInputParam();
 //
@@ -828,7 +829,7 @@ void CBratAlgorithmBase::CheckInputTypeParams(uint32_t index, CBratAlgorithmPara
   CBratAlgorithmParam::bratAlgoParamTypeVal type = algoParam.GetTypeVal();
   if (type != expectedType)
   {
-    string msg = CTools::Format("'%s' algorithm can't be applied because of the following reason:"
+    std::string msg = CTools::Format("'%s' algorithm can't be applied because of the following reason:"
                                 "\n parameter %ld (%s): expected type is %ld (%s) but input type is %ld (%s))",
                                 this->GetName().c_str(),
                                 (long)index, 
@@ -1303,7 +1304,7 @@ void CBratAlgorithmBase::PrepareDataValues2DOneField(CExpressionValue& exprValue
 
 
   // Read data
-  string fieldName = fieldNames->at(0);
+  std::string fieldName = fieldNames->at(0);
   CFieldNetCdf* field = CExternalFiles::GetFieldNetCdf(m_fieldVars.Exists(fieldName));
  
   field->SetAtBeginning(false);
@@ -1353,7 +1354,7 @@ void CBratAlgorithmBase::PrepareDataValues2DComplexExpressionWithAlgo(CExpressio
     CRecordSet* recordSet = NULL;
 
     CDataSet* dataSet = m_product->GetDataSet();
-    string recordName = m_product->GetDataSetNameToRead();
+    std::string recordName = m_product->GetDataSetNameToRead();
 
       //dataSet->Dump(*CTrace::GetDumpContext());
 
@@ -1419,7 +1420,7 @@ void CBratAlgorithmBase::PrepareDataValues2DComplexExpression(CExpressionValue& 
 
     field->SetAtBeginning(false);
     
-    string fieldName = field->GetName();
+    std::string fieldName = field->GetName();
     //CTrace::Tracer(fieldName);
 
     CExpressionValue* values = new CExpressionValue();
@@ -1591,9 +1592,9 @@ void CBratAlgorithmBase::GetParamDefValue(uint32_t indexParam, int64_t& value)
 
 
 //----------------------------------------
-string CBratAlgorithmBase::GetParamDefValueAsString(uint32_t indexParam)
+std::string CBratAlgorithmBase::GetParamDefValueAsString(uint32_t indexParam)
 {
-  string value;
+  std::string value;
   double defaultValue = this->GetParamDefaultValue(indexParam);
   if (!CTools::IsDefaultValue(defaultValue))
   {
@@ -1604,10 +1605,10 @@ string CBratAlgorithmBase::GetParamDefValueAsString(uint32_t indexParam)
 }
 
 //----------------------------------------
-string CBratAlgorithmBase::GetParamDefValueAsLabel(uint32_t indexParam)
+std::string CBratAlgorithmBase::GetParamDefValueAsLabel(uint32_t indexParam)
 {
-  string label;
-  string value = this->GetParamDefValueAsString(indexParam);
+  std::string label;
+  std::string value = this->GetParamDefValueAsString(indexParam);
   if (value.empty())
   {
     return label;
@@ -1621,10 +1622,10 @@ string CBratAlgorithmBase::GetParamDefValueAsLabel(uint32_t indexParam)
 }
 
 //----------------------------------------
-string CBratAlgorithmBase::GetInputParamDescWithDefValueLabel(uint32_t indexParam)
+std::string CBratAlgorithmBase::GetInputParamDescWithDefValueLabel(uint32_t indexParam)
 {
-  string desc = this->GetInputParamDesc(indexParam);
-  string label = this->GetParamDefValueAsLabel(indexParam);
+  std::string desc = this->GetInputParamDesc(indexParam);
+  std::string label = this->GetParamDefValueAsLabel(indexParam);
   if (label.empty())
   {
     return desc;
@@ -1688,7 +1689,7 @@ string CBratAlgorithmBase::GetInputParamDescWithDefValueLabel(uint32_t indexPara
 //    //std::auto_ptr<CBratAlgorithmBase> ptr(algo);
 //    //std::cout << "running object name: " << ptr->GetName() <<  std::endl;
 //    //std::cout << "running object name: " << _ptr->GetName() <<  std::endl;
-//    string nameToSearch = function;
+//    std::string nameToSearch = function;
 //
 //    if ( nameToSearch.compare(algo->GetName()) == 0)
 //    {
@@ -1772,7 +1773,7 @@ CBratAlgorithmBase* CBratAlgorithmBase::GetNew(const char* algorithName)
   {
     base_creator func = *it;
     algorithm = func();
-    string nameToSearch = algorithName;
+    std::string nameToSearch = algorithName;
 
     if (nameToSearch.compare(algorithm->GetName()) == 0)
     {
@@ -1787,10 +1788,10 @@ CBratAlgorithmBase* CBratAlgorithmBase::GetNew(const char* algorithName)
 }
 
 //----------------------------------------
-string CBratAlgorithmBase::GetSyntax()
+std::string CBratAlgorithmBase::GetSyntax()
 {
-  string syntax;
-  const string paramSeparator = ", ";
+  std::string syntax;
+  const std::string paramSeparator = ", ";
 
   syntax.append(FonctionsAlgoN[0].Name);
   syntax.append("(");
@@ -1808,7 +1809,7 @@ string CBratAlgorithmBase::GetSyntax()
 
   for (uint32_t i = 0 ; i < nbParams ; i++)
   {
-    string value = this->GetParamName(i);
+    std::string value = this->GetParamName(i);
     double defaultValue = this->GetParamDefaultValue(i);
     if (!CTools::IsDefaultValue(defaultValue))
     {
@@ -1919,7 +1920,7 @@ void CBratAlgorithmBase::CheckVarExpression2D(uint32_t index)
   if (maxDimsSize != 2)
   {    
     CObMap::const_iterator itMap;
-    string str;
+    std::string str;
     for (itMap = m_fieldVarsCaller.begin() ; itMap != m_fieldVarsCaller.end() ; itMap++)
     {
       CFieldNetCdf* field = CExternalFiles::GetFieldNetCdf(itMap->second); 
@@ -1927,7 +1928,7 @@ void CBratAlgorithmBase::CheckVarExpression2D(uint32_t index)
                                  field->GetName().c_str(), 
                                  field->GetDimAsString().c_str()));
     }
-    string msg = CTools::Format("'%s' algorithm can't be applied because there is no input parameter which is a two-dimensional field "
+    std::string msg = CTools::Format("'%s' algorithm can't be applied because there is no input parameter which is a two-dimensional field "
                                 "or there is at least one parameter whose dimension is greater than 2.\n%s",
                       this->GetName().c_str(), str.c_str());
     
@@ -1936,8 +1937,8 @@ void CBratAlgorithmBase::CheckVarExpression2D(uint32_t index)
   }
 
   // Check the 2-dim fields have the same dimension names
-  string xDimName;
-  string yDimName;
+  std::string xDimName;
+  std::string yDimName;
 
   CFieldNetCdf* fieldCompare = NULL;
 
@@ -1957,14 +1958,14 @@ void CBratAlgorithmBase::CheckVarExpression2D(uint32_t index)
     bool sameDims = (field->GetDimNames() == fieldCompare->GetDimNames());
     if (!sameDims)
     {
-      string str;
+      std::string str;
       str.append(CTools::Format("field '%s' has dimensions names: '%s'\n", 
                                    field->GetName().c_str(), 
                                    field->GetDimNames().ToString().c_str()));
       str.append(CTools::Format("field '%s' has dimensions names: '%s'\n", 
                                    fieldCompare->GetName().c_str(), 
                                    fieldCompare->GetDimNames().ToString().c_str()));
-      string msg = CTools::Format("'%s' algorithm can't be applied because at least two 2-dimensions fields have not the same dimensions names.\n%s",
+      std::string msg = CTools::Format("'%s' algorithm can't be applied because at least two 2-dimensions fields have not the same dimensions names.\n%s",
                         this->GetName().c_str(), str.c_str());
     
       throw CAlgorithmException(msg,
@@ -1988,14 +1989,14 @@ void CBratAlgorithmBase::CheckVarExpression2D(uint32_t index)
     //}
     //else
     //{
-    //  string str;
+    //  std::string str;
     //  str.append(CTools::Format("field '%s' has dimension name: '%s'\n", 
     //                               field->GetName().c_str(), 
     //                               field->GetDimNames().ToString().c_str()));
     //  str.append(CTools::Format("expected dimension is one of the following: '%s', '%s'\n", 
     //                               xDimName.c_str(),
     //                               yDimName.c_str()));
-    //  string msg = CTools::Format("'%s' algorithm can't be applied because at least a 1-dimension field has no common dimension with th 2-dimension fields.\n%s",
+    //  std::string msg = CTools::Format("'%s' algorithm can't be applied because at least a 1-dimension field has no common dimension with th 2-dimension fields.\n%s",
     //                    this->GetName().c_str(), str.c_str());
     //
     //  throw CAlgorithmException(msg,
@@ -2014,7 +2015,7 @@ void CBratAlgorithmBase::AddXOrYFieldDependency(CFieldNetCdf* field, CFieldNetCd
     return;
   }
 
-  string fieldName = field2DAsRef->GetName();
+  std::string fieldName = field2DAsRef->GetName();
 
   const CStringArray& dims = field2DAsRef->GetDimNames();
     
@@ -2023,7 +2024,7 @@ void CBratAlgorithmBase::AddXOrYFieldDependency(CFieldNetCdf* field, CFieldNetCd
 
   if (dimsSize != 2)
   {    
-    string msg = CTools::Format("'%s' algorithm can't be applied because in the CBratAlgorithmBase::AddXOrYFieldDependency the input 2D field (as ref.) have to be a 2-dimensions field "
+    std::string msg = CTools::Format("'%s' algorithm can't be applied because in the CBratAlgorithmBase::AddXOrYFieldDependency the input 2D field (as ref.) have to be a 2-dimensions field "
                                 "and field '%s' has %d dimensions: '%s'\n",
                                 this->GetName().c_str(),
                                 fieldName.c_str(), 
@@ -2034,21 +2035,21 @@ void CBratAlgorithmBase::AddXOrYFieldDependency(CFieldNetCdf* field, CFieldNetCd
                               this->GetName(), BRATHL_LOGIC_ERROR);
   }
 
-  string xDimName = field2DAsRef->GetDimNames().at(0);
-  string yDimName = field2DAsRef->GetDimNames().at(1);
+  std::string xDimName = field2DAsRef->GetDimNames().at(0);
+  std::string yDimName = field2DAsRef->GetDimNames().at(1);
 
   this->AddXOrYFieldDependency(field, xDimName, yDimName);
 
 }
 //----------------------------------------
-void CBratAlgorithmBase::AddXOrYFieldDependency(CFieldNetCdf* field, const string& xDimName, const string& yDimName)
+void CBratAlgorithmBase::AddXOrYFieldDependency(CFieldNetCdf* field, const std::string& xDimName, const std::string& yDimName)
 {
   if (field == NULL)
   {
     return;
   }
   
-  string fieldName = field->GetName();
+  std::string fieldName = field->GetName();
 
   const CStringArray& dims = field->GetDimNames();
     
@@ -2056,7 +2057,7 @@ void CBratAlgorithmBase::AddXOrYFieldDependency(CFieldNetCdf* field, const strin
 
   if (dimsSize != 1)
   {    
-    string msg = CTools::Format("'%s' algorithm can't be applied because in the CBratAlgorithmBase::AddXOrYFieldDependency the input field have to be a 1-dimension field "
+    std::string msg = CTools::Format("'%s' algorithm can't be applied because in the CBratAlgorithmBase::AddXOrYFieldDependency the input field have to be a 1-dimension field "
                                 "and field '%s' has %d dimensions: '%s'\n",
                                 this->GetName().c_str(),
                                 fieldName.c_str(), 
@@ -2078,14 +2079,14 @@ void CBratAlgorithmBase::AddXOrYFieldDependency(CFieldNetCdf* field, const strin
   }
   else
   {
-    string str;
+    std::string str;
     str.append(CTools::Format("field '%s' has dimension name: '%s'\n", 
                                   fieldName.c_str(), 
                                   field->GetDimNames().ToString().c_str()));
     str.append(CTools::Format("expected dimension is one of the following: '%s', '%s'\n", 
                                   xDimName.c_str(),
                                   yDimName.c_str()));
-    string msg = CTools::Format("'%s' algorithm can't be applied because at least a 1-dimension field has no common dimension with th 2-dimension fields.\n%s",
+    std::string msg = CTools::Format("'%s' algorithm can't be applied because at least a 1-dimension field has no common dimension with th 2-dimension fields.\n%s",
                       this->GetName().c_str(), str.c_str());
     
     throw CAlgorithmException(msg,
@@ -2096,70 +2097,70 @@ void CBratAlgorithmBase::AddXOrYFieldDependency(CFieldNetCdf* field, const strin
 
 }
 //----------------------------------------
-void CBratAlgorithmBase::Dump(ostream& fOut /*= cerr*/)
+void CBratAlgorithmBase::Dump(std::ostream& fOut /*= std::cerr*/)
 {
   if (! CTrace::IsTrace())
   {
     return;
   }
 
-  fOut << "==> Dump a CBratAlgorithmBase Object at "<< this << endl;
-  fOut << "GetName() returns: " << this->GetName() << endl;
-  fOut << "GetDescription() returns: " << this->GetDescription() << endl;
+  fOut << "==> Dump a CBratAlgorithmBase Object at "<< this << std::endl;
+  fOut << "GetName() returns: " << this->GetName() << std::endl;
+  fOut << "GetDescription() returns: " << this->GetDescription() << std::endl;
   uint32_t nInputParams = this->GetNumInputParam();
-  fOut << "GetNumInputParam() returns: " << nInputParams << endl;
+  fOut << "GetNumInputParam() returns: " << nInputParams << std::endl;
   uint32_t i;
   for (i = 0 ; i < nInputParams ; i++)
   {
-    fOut << "GetInputParamDesc(" << i <<") returns: " << this->GetInputParamDesc(i) << endl;
+    fOut << "GetInputParamDesc(" << i <<") returns: " << this->GetInputParamDesc(i) << std::endl;
 
   }
   for (i = 0 ; i < nInputParams ; i++)
   {
-    fOut << "GetInputParamFormat(" << i <<") returns: " << this->GetInputParamFormat(i) << endl;
+    fOut << "GetInputParamFormat(" << i <<") returns: " << this->GetInputParamFormat(i) << std::endl;
 
   }
   for (i = 0 ; i < nInputParams ; i++)
   {
-    fOut << "GetInputParamUnit(" << i <<") returns: " << this->GetInputParamUnit(i) << endl;
+    fOut << "GetInputParamUnit(" << i <<") returns: " << this->GetInputParamUnit(i) << std::endl;
 
   }
-  fOut << "GetOutputUnit() returns: " << this->GetOutputUnit() << endl;
-  fOut << "m_algoExpression: " << this->m_algoExpression << endl;
-  fOut << "m_expressionValuesArray: " << endl;
+  fOut << "GetOutputUnit() returns: " << this->GetOutputUnit() << std::endl;
+  fOut << "m_algoExpression: " << this->m_algoExpression << std::endl;
+  fOut << "m_expressionValuesArray: " << std::endl;
   if (m_expressionValuesArray != NULL)
   {
     m_expressionValuesArray->Dump(fOut);
   }
   else
   {
-    fOut << "NULL" << endl;
+    fOut << "NULL" << std::endl;
   }
 
-  fOut << "m_currentFileName: " << m_currentFileName << endl;
-  fOut << "m_indexRecordToRead: " << m_indexRecordToRead << endl;
-  fOut << "m_nProductRecords: " << m_nProductRecords << endl;
-  fOut << "m_callerProductRecordPrev: " << m_callerProductRecordPrev << endl;
+  fOut << "m_currentFileName: " << m_currentFileName << std::endl;
+  fOut << "m_indexRecordToRead: " << m_indexRecordToRead << std::endl;
+  fOut << "m_nProductRecords: " << m_nProductRecords << std::endl;
+  fOut << "m_callerProductRecordPrev: " << m_callerProductRecordPrev << std::endl;
 
-  fOut << "m_fieldVarsCaller: " << endl;
+  fOut << "m_fieldVarsCaller: " << std::endl;
   m_fieldVarsCaller.Dump(fOut);
-  fOut << "m_fieldVars: " << endl;
+  fOut << "m_fieldVars: " << std::endl;
   m_fieldVars.Dump(fOut);
-  //fOut << "m_fieldVarsCache: " << endl;
+  //fOut << "m_fieldVarsCache: " << std::endl;
   //m_fieldVarsCache.Dump(fOut);
 
-  fOut << "m_fieldDependOnXYDim: " << endl;
+  fOut << "m_fieldDependOnXYDim: " << std::endl;
   m_fieldDependOnXYDim.Dump(fOut);
-  fOut << "m_fieldDependOnXDim: " << endl;
+  fOut << "m_fieldDependOnXDim: " << std::endl;
   m_fieldDependOnXDim.Dump(fOut);
-  fOut << "m_fieldDependOnYDim: " << endl;
+  fOut << "m_fieldDependOnYDim: " << std::endl;
   m_fieldDependOnYDim.Dump(fOut);
   
-  fOut << "m_expectedTypes: " << endl;
+  fOut << "m_expectedTypes: " << std::endl;
   m_expectedTypes.Dump(fOut);
 
 
-  fOut << "==> END Dump a CBratAlgorithmBase Object at "<< this << endl;
+  fOut << "==> END Dump a CBratAlgorithmBase Object at "<< this << std::endl;
 
 }
 
@@ -2180,11 +2181,11 @@ CMapBratAlgorithm::~CMapBratAlgorithm()
 }
 
 //----------------------------------------
-CBratAlgorithmBase* CMapBratAlgorithm::Insert(const string& key, CBratAlgorithmBase* ob, bool withExcept /* = true */)
+CBratAlgorithmBase* CMapBratAlgorithm::Insert(const std::string& key, CBratAlgorithmBase* ob, bool withExcept /* = true */)
 {
   
 
-  pair <CMapBratAlgorithm::iterator,bool> pairInsert;
+  std::pair <CMapBratAlgorithm::iterator,bool> pairInsert;
 
 
   //If 'key' already exists --> pairInsert.second == false and
@@ -2206,7 +2207,7 @@ CBratAlgorithmBase* CMapBratAlgorithm::Insert(const string& key, CBratAlgorithmB
 
 }
 //----------------------------------------
-CBratAlgorithmBase* CMapBratAlgorithm::Find(const string& algoName) const
+CBratAlgorithmBase* CMapBratAlgorithm::Find(const std::string& algoName) const
 {
   CMapBratAlgorithm::const_iterator it = mapbratalgorithmbase::find(algoName);
   if (it == end())
@@ -2221,7 +2222,7 @@ CBratAlgorithmBase* CMapBratAlgorithm::Find(const string& algoName) const
 }
 
 //----------------------------------------
-string CMapBratAlgorithm::GetSyntaxAlgo(const string& name)
+std::string CMapBratAlgorithm::GetSyntaxAlgo(const std::string& name)
 {
   CBratAlgorithmBase* algo = Find(name);
   if (algo == NULL)
@@ -2253,7 +2254,7 @@ void CMapBratAlgorithm::RemoveAll()
 
 }
 //----------------------------------------
-void CMapBratAlgorithm::Dump(ostream& fOut /* = cerr */)
+void CMapBratAlgorithm::Dump(std::ostream& fOut /* = std::cerr */)
 {
 
    if (CTrace::IsTrace() == false)
@@ -2261,19 +2262,19 @@ void CMapBratAlgorithm::Dump(ostream& fOut /* = cerr */)
       return;
    }
 
-   fOut << "==> Dump a CMapBratAlgorithm Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CMapBratAlgorithm Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
    CMapBratAlgorithm::iterator it;
 
    for (it = this->begin() ; it != this->end() ; it++)
    {
       CBratAlgorithmBase *ob = it->second;
-      fOut << "CMapBratAlgorithm Key is = " << (*it).first << endl;
-      fOut << "CMapBratAlgorithm Value is = " << endl;
+      fOut << "CMapBratAlgorithm Key is = " << (*it).first << std::endl;
+      fOut << "CMapBratAlgorithm Value is = " << std::endl;
       ob->Dump(fOut);
    }
 
-   fOut << "==> END Dump a CMapBratAlgorithm Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CMapBratAlgorithm Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
 }
 //-------------------------------------------------------------
@@ -2338,7 +2339,7 @@ void CVectorBratAlgorithm::RemoveAll()
 
 }
 //----------------------------------------
-void CVectorBratAlgorithm::Dump(ostream& fOut /* = cerr */)
+void CVectorBratAlgorithm::Dump(std::ostream& fOut /* = std::cerr */)
 {
 
  if (CTrace::IsTrace() == false)
@@ -2349,11 +2350,11 @@ void CVectorBratAlgorithm::Dump(ostream& fOut /* = cerr */)
   CVectorBratAlgorithm::const_iterator it;
   int i = 0;
 
-  fOut << "==> Dump a CVectorBratAlgorithm Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> Dump a CVectorBratAlgorithm Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
   for ( it = this->begin( ); it != this->end( ); it++ )
   {
-    fOut << "CVectorBratAlgorithm[" << i << "]= " << endl;  
+    fOut << "CVectorBratAlgorithm[" << i << "]= " << std::endl;  
     if ((*it) != NULL)
     {
      (*it)->Dump(fOut);
@@ -2361,10 +2362,10 @@ void CVectorBratAlgorithm::Dump(ostream& fOut /* = cerr */)
     i++;
   }
 
-  fOut << "==> END Dump a CVectorBratAlgorithm Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> END Dump a CVectorBratAlgorithm Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -2395,7 +2396,7 @@ void CBratAlgorithmBaseRegistry::Add(base_creator creator)
   
     CBratAlgorithmBase* algorithm = creator();
 
-    string algorithmName = algorithm->GetName();
+    std::string algorithmName = algorithm->GetName();
 
     m_mapBratAlgo.Insert(algorithmName, algorithm);
 
@@ -2414,13 +2415,13 @@ CBratAlgorithmBaseRegistry::iterator CBratAlgorithmBaseRegistry::End()
 }
 //----------------------------------------
 
-CBratAlgorithmBase* CBratAlgorithmBaseRegistry::Find(const string& algoName)
+CBratAlgorithmBase* CBratAlgorithmBaseRegistry::Find(const std::string& algoName)
 {
   return CBratAlgorithmBaseRegistry::GetInstance().m_mapBratAlgo.Find(algoName);
 }
 
 //----------------------------------------
-CBratAlgorithmBase* CBratAlgorithmBaseRegistry::GetAlgorithm(const string& algoName, bool withExcept /*= true*/)
+CBratAlgorithmBase* CBratAlgorithmBaseRegistry::GetAlgorithm(const std::string& algoName, bool withExcept /*= true*/)
 {
   CBratAlgorithmBase* algo =  CBratAlgorithmBaseRegistry::Find(algoName);
   if (withExcept)
@@ -2520,23 +2521,23 @@ double CBratAlgoExample1::Run(CVectorBratAlgorithmParam& args)
 }
 //----------------------------------------
 
-void CBratAlgoExample1::Dump(ostream& fOut /* = cerr */) 
+void CBratAlgoExample1::Dump(std::ostream& fOut /* = std::cerr */) 
 {
   if (CTrace::IsTrace() == false)
   { 
     return;
   }
 
-  fOut << "==> Dump a CBratAlgoExample1 Object at "<< this << endl;
+  fOut << "==> Dump a CBratAlgoExample1 Object at "<< this << std::endl;
 
   CBratAlgorithmBase::Dump(fOut);
   
-  fOut << "m_1: " << m_1 << endl;
-  fOut << "m_2: " << m_2 << endl;
-  fOut << "m_3: " << m_3 << endl;
-  fOut << "m_4: " << m_4 << endl;
+  fOut << "m_1: " << m_1 << std::endl;
+  fOut << "m_2: " << m_2 << std::endl;
+  fOut << "m_3: " << m_3 << std::endl;
+  fOut << "m_4: " << m_4 << std::endl;
 
-  fOut << "==> END Dump a CBratAlgoExample1 Object at "<< this << endl;
+  fOut << "==> END Dump a CBratAlgoExample1 Object at "<< this << std::endl;
 
 }
 

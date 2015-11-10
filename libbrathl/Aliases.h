@@ -46,21 +46,21 @@ public:
 
   virtual ~CDefaultRecord ();
 
-  void SetName(const string& value) {m_name = value;};
-  string GetName() {return m_name;};
+  void SetName(const std::string& value) {m_name = value;};
+  std::string GetName() {return m_name;};
 
-  void AddProductType(const string& value) {m_productType.Insert(value);};
+  void AddProductType(const std::string& value) {m_productType.Insert(value);};
   const CStringArray* GetProductType() {return &m_productType;};
 
   bool IsValidForAllProductType() {return (m_productType.size() <= 0);};
   
   void GetRecordByProductType(CObMap& recordByProductType);
 
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 
 protected:
-  string m_name;
+  std::string m_name;
   CStringArray m_productType;
 
 
@@ -82,27 +82,27 @@ public:
 
   virtual ~CAlias ();
 
-  void SetName(const string& value) {m_name = value;};
-  string GetName() const {return m_name;};
+  void SetName(const std::string& value) {m_name = value;};
+  std::string GetName() const {return m_name;};
 
-  void SetRef(const string& value) {m_ref = value;};
-  string GetRef() const {return m_ref;};
+  void SetRef(const std::string& value) {m_ref = value;};
+  std::string GetRef() const {return m_ref;};
 
-  void SetValue(const string& value) {m_value = value;};
-  string GetValue() const {return m_value;};
+  void SetValue(const std::string& value) {m_value = value;};
+  std::string GetValue() const {return m_value;};
 
-  void SetDescription(const string& value) {m_description = value;};
-  string GetDescription() const {return m_description;};
+  void SetDescription(const std::string& value) {m_description = value;};
+  std::string GetDescription() const {return m_description;};
 
   bool IsSynonym() {return !(m_ref.empty());};
   
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
-  string m_name;
-  string m_description;
-  string m_ref;
-  string m_value;
+  std::string m_name;
+  std::string m_description;
+  std::string m_ref;
+  std::string m_value;
 
 protected:
     void Init();
@@ -122,22 +122,22 @@ public:
 
   virtual ~CAliases ();
 
-  void SetDescription(const string& value) {m_description = value;};
-  string GetDescription() const {return m_description;};
+  void SetDescription(const std::string& value) {m_description = value;};
+  std::string GetDescription() const {return m_description;};
 
-  void SetProductType(const string& value) {m_productType = value;};
-  string GetProductType() const {return m_productType;};
+  void SetProductType(const std::string& value) {m_productType = value;};
+  std::string GetProductType() const {return m_productType;};
   
-  void SetRecord(const string& value) {m_record = value;};
-  string GetRecord() const {return m_record;};
+  void SetRecord(const std::string& value) {m_record = value;};
+  std::string GetRecord() const {return m_record;};
   
-  void SetRef(const string& value) {m_ref = value;};
-  string GetRef() const {return m_ref;};
+  void SetRef(const std::string& value) {m_ref = value;};
+  std::string GetRef() const {return m_ref;};
   bool HasRef() const {return !(m_ref.empty());};
 
   void AddAlias(CAlias* value);
-  CAlias* GetAlias(const string& key);
-  string GetAliasValue(const string& key);
+  CAlias* GetAlias(const std::string& key);
+  std::string GetAliasValue(const std::string& key);
 
   const CObMap* GetAliases() {return &m_aliases;};
 
@@ -148,17 +148,17 @@ public:
 
   void ResolveSynonyms();
 
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 public:
-  static const string m_ALL;
+  static const std::string m_ALL;
 
 
 protected:
-  string m_description;
-  string m_productType;
-  string m_record;
-  string m_ref;
+  std::string m_description;
+  std::string m_productType;
+  std::string m_record;
+  std::string m_ref;
 
   CObMap m_aliases;
 
@@ -182,28 +182,28 @@ public:
 
   virtual ~CProductAlias ();
  
-  void SetRecord(const string& value) {m_record = value;};
-  string GetRecord() {return m_record;};
+  void SetRecord(const std::string& value) {m_record = value;};
+  std::string GetRecord() {return m_record;};
  
-  void SetName(const string& value) {m_name = value;};
-  string GetName() {return m_name;};
+  void SetName(const std::string& value) {m_name = value;};
+  std::string GetName() {return m_name;};
 
-  void SetValue(const string& value) {m_value = value;};
-  string GetValue() {return m_value;};
+  void SetValue(const std::string& value) {m_value = value;};
+  std::string GetValue() {return m_value;};
 
-  void SetDescription(const string& value) {m_description = value;};
-  string GetDescription() const {return m_description;};
+  void SetDescription(const std::string& value) {m_description = value;};
+  std::string GetDescription() const {return m_description;};
 
   void Set(const CAlias& alias);
 
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 
 protected:
-  string m_name;
-  string m_description;
-  string m_record;
-  string m_value;
+  std::string m_name;
+  std::string m_description;
+  std::string m_record;
+  std::string m_value;
 
 protected:
     void Init();
@@ -219,36 +219,36 @@ class CProductAliases : public CObMap
 
 public:
    // constructors and destructors
-  CProductAliases(const string& defaultRecord);
+  CProductAliases(const std::string& defaultRecord);
 
   virtual ~CProductAliases ();
  
-  void SetRecord(const string& value) {m_record = value;};
-  string GetRecord() {return m_record;};
+  void SetRecord(const std::string& value) {m_record = value;};
+  std::string GetRecord() {return m_record;};
 
   void AddAlias(CAliases* value);
-  void AddAlias(CObMap* value, const string& record);
-  void AddAlias(CAlias* value, const string& record);
-  CProductAlias* GetAlias(const string& key);
-  string GetAliasValue(const string& key);
+  void AddAlias(CObMap* value, const std::string& record);
+  void AddAlias(CAlias* value, const std::string& record);
+  CProductAlias* GetAlias(const std::string& key);
+  std::string GetAliasValue(const std::string& key);
 
   //const CObMap* GetAliases() {return &m_aliases;};
 
-  bool AddRecordNameToField(CStringMap& mapAliasesString, CProduct* product, string& errorMsg);
-  bool AddRecordNameToField(const string& in, const string& dataSetName, string& out, CProduct* product, string& errorMsg);
-  bool AddRecordNameToField(const string& in, const string& dataSetName, const CStringArray& fieldsIn, bool complexExpression, string& out, CProduct* product, string& errorMsg);
+  bool AddRecordNameToField(CStringMap& mapAliasesString, CProduct* product, std::string& errorMsg);
+  bool AddRecordNameToField(const std::string& in, const std::string& dataSetName, std::string& out, CProduct* product, std::string& errorMsg);
+  bool AddRecordNameToField(const std::string& in, const std::string& dataSetName, const CStringArray& fieldsIn, bool complexExpression, std::string& out, CProduct* product, std::string& errorMsg);
 
   void ToStringMap(CStringMap& map);
 
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 public:
-  static const string m_ALL;
+  static const std::string m_ALL;
 
 
 protected:
 
-  string m_record;
+  std::string m_record;
   //CObMap m_aliases;
 
 protected:

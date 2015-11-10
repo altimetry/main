@@ -44,7 +44,7 @@
 using namespace processes;
 using namespace brathl;
 
-#include "MapProjection.h"
+#include "PlotData/MapProjection.h"
 
 #include "BratGui.h"
 #include "Workspace.h"
@@ -341,10 +341,10 @@ void CDisplayData::GetAvailableDisplayTypes(CUIntArray& displayTypes)
 
 }
 //----------------------------------------
-wxString CDisplayData::GetXAxisText(const string& name)
+wxString CDisplayData::GetXAxisText(const std::string& name)
 {
 
-  string str = name;
+  std::string str = name;
 
   for (uint32_t index = 0 ; index < m_dimFields.size() ; index++)
   {
@@ -791,7 +791,7 @@ void CMapDisplayData::SplitFields()
 }
 
 //----------------------------------------
-bool CMapDisplayData::ValidName(const string& name)
+bool CMapDisplayData::ValidName(const std::string& name)
 {
   return ValidName(name.c_str());
 }
@@ -846,7 +846,7 @@ CDisplayData* CMapDisplayData::GetDisplayData(CMapDisplayData::const_iterator& i
   return dynamic_cast<CDisplayData*>(it->second);
 }
 //----------------------------------------
-CDisplayData* CMapDisplayData::GetDisplayData(const string& name)
+CDisplayData* CMapDisplayData::GetDisplayData(const std::string& name)
 {
   return dynamic_cast<CDisplayData*>(Exists(name.c_str()));
 }
@@ -934,7 +934,7 @@ bool CMapDisplayData::LoadConfig(wxFileConfig* config, const wxString& pathSuff)
     displayData->LoadConfig(config, path);
 
     // To maintain compatibility with Brat v1.x (display name doesn't contain 'display type' in v1.x)
-    string displayDataKey = (const char *)displayData->GetDataKey().c_str();
+    std::string displayDataKey = (const char *)displayData->GetDataKey().c_str();
 
     if (it->first != displayDataKey)
     {
@@ -1055,7 +1055,7 @@ void CMapDisplayData::GetDistinctFiles(wxArrayString& array)
 
   for (it = mapTmp.begin() ; it != mapTmp.end() ; it++)
   {
-    string value = it->second;
+    std::string value = it->second;
     if (value.empty() == false)
     {
       array.Add(value.c_str());
@@ -1104,7 +1104,7 @@ void CMapDisplayData::GetDistinctFields(wxArrayString& array)
 
   for (it = mapTmp.begin() ; it != mapTmp.end() ; it++)
   {
-    string value = it->second;
+    std::string value = it->second;
     if (value.empty() == false)
     {
       array.Add(value.c_str());
@@ -1249,7 +1249,7 @@ bool CMapDisplayData::CheckFields(wxString& errorMsg, CDisplay* display)
       continue;
     }
 
-    string msg;
+    std::string msg;
 
     //if ( ! firstNetCDFVardef->HaveEqualDims(netCDFVardef, firstFile->GetFile(), file->GetFile()) )
     if ( ! firstNetCDFVardef->HaveEqualDimNames(netCDFVardef, &msg))
@@ -1302,7 +1302,7 @@ bool CMapDisplayData::CheckFields(wxString& errorMsg, CDisplay* display)
 //------------------- CDisplay class --------------------
 //-------------------------------------------------------------
 
-const string CDisplay::m_zoomDelimiter = " ";
+const std::string CDisplay::m_zoomDelimiter = " ";
 //----------------------------------------
 
 CDisplay::CDisplay(wxString name)
@@ -1400,7 +1400,7 @@ CDisplayData* CDisplay::GetDisplayData(CMapDisplayData::iterator it)
 }
 
 //----------------------------------------
-wxString CDisplay::FmtCmdParam(const string& name)
+wxString CDisplay::FmtCmdParam(const std::string& name)
 {
  return wxString::Format("%s=", name.c_str());
 }
@@ -2067,7 +2067,7 @@ void CDisplay::SetGroups(bool groupFields)
 
 }
 //----------------------------------------
-void CDisplay::Dump(ostream& fOut /* = cerr */)
+void CDisplay::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -2075,11 +2075,11 @@ void CDisplay::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CDisplay Object at "<< this << endl;
+  fOut << "==> Dump a CDisplay Object at "<< this << std::endl;
 
-  fOut << "==> END Dump a CDisplay Object at "<< this << endl;
+  fOut << "==> END Dump a CDisplay Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

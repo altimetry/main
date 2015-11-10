@@ -129,7 +129,7 @@ void CBratTaskFunction::Execute()
     wxString msg = wxString::Format("Unable to execute function '%s' - Native error: %s.", m_name.c_str(), e.GetMessage().c_str());
     throw CException(msg.ToStdString(), BRATHL_ERROR);
   }
-  catch(exception& e)
+  catch(std::exception& e)
   {
     wxString msg = wxString::Format("Unable to execute function '%s' - Native error: %s.", m_name.c_str(), e.what());
     throw CException(msg.ToStdString(), BRATHL_ERROR);
@@ -171,19 +171,19 @@ void CBratTaskFunction::CopyFile(CVectorBratAlgorithmParam& arg)
 }
 
 //----------------------------------------
-void CBratTaskFunction::Dump(ostream& fOut /*= cerr*/)
+void CBratTaskFunction::Dump(std::ostream& fOut /*= std::cerr*/)
 {
   if (! CTrace::IsTrace())
   {
     return;
   }
 
-  fOut << "==> Dump a CBratTaskFunction Object at "<< this << endl;
-  fOut << "m_name: " << m_name << endl;
-  fOut << "m_call: " << m_call << endl;
-  fOut << "m_params: " << endl;
+  fOut << "==> Dump a CBratTaskFunction Object at "<< this << std::endl;
+  fOut << "m_name: " << m_name << std::endl;
+  fOut << "m_call: " << m_call << std::endl;
+  fOut << "m_params: " << std::endl;
   m_params.Dump(fOut);
-  fOut << "==> END Dump a CBratTaskFunction Object at "<< this << endl;
+  fOut << "==> END Dump a CBratTaskFunction Object at "<< this << std::endl;
 
 }//----------------------------------------
 
@@ -222,7 +222,7 @@ CBratTaskFunction* CMapBratTaskFunction::Insert(const wxString& key, CBratTaskFu
 {
   
 
-  pair <CMapBratTaskFunction::iterator,bool> pairInsert;
+  std::pair <CMapBratTaskFunction::iterator,bool> pairInsert;
 
 
   //If 'key' already exists --> pairInsert.second == false and
@@ -309,7 +309,7 @@ void CMapBratTaskFunction::RemoveAll()
 }
 
 //----------------------------------------
-void CMapBratTaskFunction::Dump(ostream& fOut /* = cerr */)
+void CMapBratTaskFunction::Dump(std::ostream& fOut /* = std::cerr */)
 {
 
    if (CTrace::IsTrace() == false)
@@ -317,19 +317,19 @@ void CMapBratTaskFunction::Dump(ostream& fOut /* = cerr */)
       return;
    }
 
-   fOut << "==> Dump a CMapBratTaskFunction Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CMapBratTaskFunction Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
    CMapBratTaskFunction::iterator it;
 
    for (it = this->begin() ; it != this->end() ; it++)
    {
       CBratTaskFunction *ob = it->second;
-      fOut << "CMapBratTaskFunction Key is = " << (*it).first << endl;
-      fOut << "CMapBratTaskFunction Value is = " << endl;
+      fOut << "CMapBratTaskFunction Key is = " << (*it).first << std::endl;
+      fOut << "CMapBratTaskFunction Value is = " << std::endl;
       ob->Dump(fOut);
    }
 
-   fOut << "==> END Dump a CMapBratTaskFunction Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CMapBratTaskFunction Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
 }
 
@@ -470,25 +470,25 @@ CBratTask::bratTaskStatus CBratTask::StringToTaskStatus(const wxString& status)
   return value; 
 }
 //----------------------------------------
-void CBratTask::Dump(ostream& fOut /*= cerr*/)
+void CBratTask::Dump(std::ostream& fOut /*= std::cerr*/)
 {
   if (! CTrace::IsTrace())
   {
     return;
   }
  
-  fOut << "==> Dump a CBratTask Object at "<< this << endl;
+  fOut << "==> Dump a CBratTask Object at "<< this << std::endl;
   
-  fOut << "m_uid: " << this->GetUidValue() << endl;
-  fOut << "m_at: " << m_at.GetValue().GetValue() << "(" << GetAtAsString() << ")" << endl;
-  fOut << "m_status: " << m_status << endl;
-  fOut << "m_cmd: " << m_cmd << endl;
-  fOut << "m_function: " << endl;
+  fOut << "m_uid: " << this->GetUidValue() << std::endl;
+  fOut << "m_at: " << m_at.GetValue().GetValue() << "(" << GetAtAsString() << ")" << std::endl;
+  fOut << "m_status: " << m_status << std::endl;
+  fOut << "m_cmd: " << m_cmd << std::endl;
+  fOut << "m_function: " << std::endl;
   m_function.Dump(fOut);
-  fOut << "m_subordinateTasks: " << endl;
+  fOut << "m_subordinateTasks: " << std::endl;
   m_subordinateTasks.Dump(fOut);
 
-  fOut << "==> END Dump a CBratTask Object at "<< this << endl;
+  fOut << "==> END Dump a CBratTask Object at "<< this << std::endl;
 
 }
 //-------------------------------------------------------------
@@ -538,7 +538,7 @@ CBratTask* CMapBratTask::Insert(wxLongLong_t key, CBratTask* ob, bool withExcept
 {
   
 
-  pair <CMapBratTask::iterator,bool> pairInsert;
+  std::pair <CMapBratTask::iterator,bool> pairInsert;
 
 
   //If 'key' already exists --> pairInsert.second == false and
@@ -629,7 +629,7 @@ void CMapBratTask::RemoveAll()
 
 }
 //----------------------------------------
-void CMapBratTask::Dump(ostream& fOut /* = cerr */)
+void CMapBratTask::Dump(std::ostream& fOut /* = std::cerr */)
 {
 
    if (CTrace::IsTrace() == false)
@@ -637,19 +637,19 @@ void CMapBratTask::Dump(ostream& fOut /* = cerr */)
       return;
    }
 
-   fOut << "==> Dump a CMapBratTask Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CMapBratTask Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
    CMapBratTask::iterator it;
 
    for (it = this->begin() ; it != this->end() ; it++)
    {
       CBratTask *ob = it->second;
-      fOut << "CMapBratTask Key is = " << (*it).first << endl;
-      fOut << "CMapBratTask Value is = " << endl;
+      fOut << "CMapBratTask Key is = " << (*it).first << std::endl;
+      fOut << "CMapBratTask Value is = " << std::endl;
       ob->Dump(fOut);
    }
 
-   fOut << "==> END Dump a CMapBratTask Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CMapBratTask Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
 }
 
@@ -689,9 +689,9 @@ void CVectorBratTask::Insert(CBratTask* ob, bool bEnd /* = true */)
 
 }
 //----------------------------------------
-void CVectorBratTask::Insert(const CVectorBratTask* vector, bool bRemoveAll /* = true */, bool bEnd /* = true */)
+void CVectorBratTask::Insert(const CVectorBratTask* vec, bool bRemoveAll /* = true */, bool bEnd /* = true */)
 {
-  if (vector == NULL)
+  if (vec == NULL)
   {
     return;
   }
@@ -704,7 +704,7 @@ void CVectorBratTask::Insert(const CVectorBratTask* vector, bool bRemoveAll /* =
 
   CVectorBratTask::const_iterator it;
 
-  for (it = vector->begin() ; it != vector->end() ; it++)
+  for (it = vec->begin() ; it != vec->end() ; it++)
   {
     CBratTask* ob = (*it)->Clone();
     Insert(ob, bEnd);
@@ -741,7 +741,7 @@ void CVectorBratTask::RemoveAll()
 
 }
 //----------------------------------------
-void CVectorBratTask::Dump(ostream& fOut /* = cerr */)
+void CVectorBratTask::Dump(std::ostream& fOut /* = std::cerr */)
 {
 
  if (CTrace::IsTrace() == false)
@@ -752,11 +752,11 @@ void CVectorBratTask::Dump(ostream& fOut /* = cerr */)
   CVectorBratTask::const_iterator it;
   int i = 0;
 
-  fOut << "==> Dump a CVectorBratTask Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> Dump a CVectorBratTask Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
   for ( it = this->begin( ); it != this->end( ); it++ )
   {
-    fOut << "CVectorBratTask[" << i << "]= " << endl;  
+    fOut << "CVectorBratTask[" << i << "]= " << std::endl;  
     if ((*it) != NULL)
     {
      (*it)->Dump(fOut);
@@ -764,10 +764,10 @@ void CVectorBratTask::Dump(ostream& fOut /* = cerr */)
     i++;
   }
 
-  fOut << "==> END Dump a CVectorBratTask Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> END Dump a CVectorBratTask Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

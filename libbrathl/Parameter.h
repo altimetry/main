@@ -22,7 +22,7 @@
 
 #include "Date.h"
 #include "Expression.h"
-#include "Stl.h"
+#include <string>
 #include "brathl.h"
 #include "brathl_error.h"
 #include "List.h"
@@ -69,7 +69,7 @@ public:
     \param keyword [in] : parameter name
     \param value [in] : parameter value */
   CParameter(const char *keyword, const char *value);
-  CParameter(const string& keyword, const string& value);
+  CParameter(const std::string& keyword, const std::string& value);
   //@}
 
   /// Destructor
@@ -79,7 +79,7 @@ public:
   /** Adds a value to the CParameter object.
     \param value [in] : parameter value */
   void AddValue(const char *value);
-  void AddValue(const string& value);
+  void AddValue(const std::string& value);
   //@}
 
 
@@ -111,16 +111,16 @@ public:
   
   void GetValue(CDate& value, int32_t pos = 0);
   void GetValue(CDate& value, CUnit& unit, int32_t pos = 0);
-  void GetValue(CDate& value, const string& strUnit, int32_t pos = 0);
+  void GetValue(CDate& value, const std::string& strUnit, int32_t pos = 0);
   void GetValue(CDate& value, CUnit* unit, int32_t pos = 0);
 
-  void GetValue(string& value, int32_t pos  = 0, const string &DefValue = "");
+  void GetValue(std::string& value, int32_t pos  = 0, const std::string &DefValue = "");
   void GetValue(CExpression &value, int32_t pos = 0);
-  void GetValue(CUnit &value, int32_t pos = 0, const string &DefValue = "count");
+  void GetValue(CUnit &value, int32_t pos = 0, const std::string &DefValue = "count");
   // One keyword from the list. Last element of list must have NULL as name
   void GetValue
 		(uint32_t		&value,
-		 string			&ValueName,
+		 std::string			&ValueName,
 		 const KWValueListEntry	*KeywordList,
 		 int32_t		pos		= 0,
 		 uint32_t		DefValue	= CTools::m_defaultValueUINT32);
@@ -133,19 +133,19 @@ public:
 
   void GetValue
 		(uint32_t		&value,
-		 string			&ValueName,
+		 std::string			&ValueName,
 		 CUIntMap&	KeywordList,
 		 int32_t		pos		/*= 0*/,
 		 uint32_t		DefValue	/*= CTools::m_defaultValueUINT32*/);
 
-  void GetAllValues(CExpression &value, const string &Combine = "&&");
+  void GetAllValues(CExpression &value, const std::string &Combine = "&&");
   void GetAllValues(CStringList& listValues);
   void GetAllValues(CStringArray& listValues);
 
   //@}
   /** gets a CParameter object value at a given position
     If the list of values is empty or index pos is out of range a CParameterException is raised.
-    WARNING : if size of string value is smaller than the size of the parameter value,
+    WARNING : if size of std::string value is smaller than the size of the parameter value,
     data will be truncated
     \param value [out] : parameter value
     \param bufferSize [in] : size of value
@@ -154,7 +154,7 @@ public:
   void GetValue(char* value, int32_t bufferSize, int32_t pos  = 0, const char *DefValue = "");
 
    ///Dump fonction
-   virtual void Dump(ostream& fOut = cerr);
+   virtual void Dump(std::ostream& fOut = std::cerr);
 
 
 private:
@@ -169,8 +169,8 @@ public:
 
 private:
 
-  string m_keyword;
-  //vector<string>m_values;
+  std::string m_keyword;
+  //vector<std::string>m_values;
   CStringArray m_values;
 
 

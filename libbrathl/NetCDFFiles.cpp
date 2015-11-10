@@ -19,7 +19,7 @@
 */
 
 #include <algorithm>
-#include "Stl.h"
+#include <string>
 
 #include "brathl.h"
 
@@ -61,59 +61,59 @@ static const double NcFillUInt64 = NC_FILL_UINT64;
 static const double NcFillString = (double)(ptrdiff_t)NC_FILL_STRING;
 }
 
-const string NC_NAT_NAME = "Not A Type";
-const string NC_BYTE_NAME = "signed 1 byte integer";
-const string NC_CHAR_NAME = "ASCII character";
-const string NC_SHORT_NAME = "signed 2 byte integer";
-const string NC_INT_NAME = "signed 4 byte integer";
-const string NC_FLOAT_NAME = "single precision floating point number";
-const string NC_DOUBLE_NAME = "double precision floating point number";
+const std::string NC_NAT_NAME = "Not A Type";
+const std::string NC_BYTE_NAME = "signed 1 byte integer";
+const std::string NC_CHAR_NAME = "ASCII character";
+const std::string NC_SHORT_NAME = "signed 2 byte integer";
+const std::string NC_INT_NAME = "signed 4 byte integer";
+const std::string NC_FLOAT_NAME = "single precision floating point number";
+const std::string NC_DOUBLE_NAME = "double precision floating point number";
 //new
-const string NC_UBYTE_NAME = "unsigned 1 byte integer";
-const string NC_USHORT_NAME = "unsigned 2 byte integer";
-const string NC_UINT_NAME = "unsigned 4 byte integer";
-const string NC_INT64_NAME = "signed 8 byte integer";
-const string NC_UINT64_NAME = "unsigned 8 byte integer";
-const string NC_STRING_NAME = "array of strings";
+const std::string NC_UBYTE_NAME = "unsigned 1 byte integer";
+const std::string NC_USHORT_NAME = "unsigned 2 byte integer";
+const std::string NC_UINT_NAME = "unsigned 4 byte integer";
+const std::string NC_INT64_NAME = "signed 8 byte integer";
+const std::string NC_UINT64_NAME = "unsigned 8 byte integer";
+const std::string NC_STRING_NAME = "array of strings";
 
 
 
 const int32_t CNetCDFFiles::m_TIME_NAMES_SIZE = 6;
-const string CNetCDFFiles::m_TIME_NAMES[] = {"time", "TIME", "Time",
+const std::string CNetCDFFiles::m_TIME_NAMES[] = {"time", "TIME", "Time",
                                                "date", "Date", "DATE",
                                               };
 const int32_t CNetCDFFiles::m_LAT_NAMES_SIZE = 12;
-const string CNetCDFFiles::m_LAT_NAMES[] = {"latitude", "Latitude", "LATITUDE",
+const std::string CNetCDFFiles::m_LAT_NAMES[] = {"latitude", "Latitude", "LATITUDE",
                                               "lat", "Lat", "LAT",
                                               "latitudes", "Latitudes", "LATITUDES",
                                               "nbLatitudes", "NbLatitudes", "NBLATITUDES",
                                              };
 const int32_t CNetCDFFiles::m_LON_NAMES_SIZE = 12;
-const string CNetCDFFiles::m_LON_NAMES[] = {"longitude", "Longitude", "LONGITUDE",
+const std::string CNetCDFFiles::m_LON_NAMES[] = {"longitude", "Longitude", "LONGITUDE",
                                               "lon", "Lon", "LON",
                                               "longitudes", "Longitudes", "LONGITUDES",
                                               "nbLongitudes", "NbLongitudes", "NBLONGITUDES",
                                               };
 
 const int32_t CNetCDFFiles::m_CYCLE_NAMES_SIZE = 10;
-const string CNetCDFFiles::m_CYCLE_NAMES[] = {"cycle", "Cycle", "CYCLE",
+const std::string CNetCDFFiles::m_CYCLE_NAMES[] = {"cycle", "Cycle", "CYCLE",
                                                 "cycles", "Cycles", "CYCLEs",
                                                 "cycle_number", "Cycle_number", "Cycle_Number", "CYCLE_NUMBER",
                                                };
 const int32_t CNetCDFFiles::m_PASS_NAMES_SIZE = 13;
-const string CNetCDFFiles::m_PASS_NAMES[] = {"pass", "Pass", "PASS",
+const std::string CNetCDFFiles::m_PASS_NAMES[] = {"pass", "Pass", "PASS",
                                                "tracks", "Tracks", "TRACKS",
                                                "track", "Track", "TRACK",
                                                 "pass_number", "Pass_number", "Pass_Number", "PASS_NUMBER",
                                               };
 
 const int32_t CNetCDFFiles::m_LAT_UNITS_SIZE = 4;
-const string CNetCDFFiles::m_LAT_UNITS[] = {"degrees_north", "degree_north",
+const std::string CNetCDFFiles::m_LAT_UNITS[] = {"degrees_north", "degree_north",
                                             "degrees_south", "degree_south",
                                              };
 
 const int32_t CNetCDFFiles::m_LON_UNITS_SIZE = 4;
-const string CNetCDFFiles::m_LON_UNITS[] = {"degrees_east", "degree_east",
+const std::string CNetCDFFiles::m_LON_UNITS[] = {"degrees_east", "degree_east",
                                             "degrees_west", "degree_west",
                                              };
 
@@ -134,7 +134,7 @@ CNetCDFAttr::CNetCDFAttr(CNetCDFAttr& a)
 }
 
 //----------------------------------------
-CNetCDFAttr::CNetCDFAttr(const string& name, bool globalAttr)
+CNetCDFAttr::CNetCDFAttr(const std::string& name, bool globalAttr)
 {
   Init();
   SetName(name);
@@ -452,7 +452,7 @@ CNetCDFAttr* CNetCDFAttr::NewFillValueAttr(nc_type type)
   return attr;
 }
 //----------------------------------------
-CNetCDFAttr* CNetCDFAttr::NewAttr(nc_type type, const string& name, size_t length /* = 1 */) 
+CNetCDFAttr* CNetCDFAttr::NewAttr(nc_type type, const std::string& name, size_t length /* = 1 */) 
 {
   CNetCDFAttr* attr = NULL;
   
@@ -522,22 +522,22 @@ void CNetCDFAttr::DeleteAttribute(int32_t fileId, int32_t varId)
 
 }
 //----------------------------------------
-void CNetCDFAttr::Dump(ostream& fOut /* = cerr */)
+void CNetCDFAttr::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
-  fOut << "==> Dump a CNetCDFAttr Object at "<< this << endl;
+  fOut << "==> Dump a CNetCDFAttr Object at "<< this << std::endl;
   
-  fOut << "m_globalAttr "<< m_globalAttr << endl;
-  fOut << "m_length "<< m_length << endl;
-  fOut << "m_name "<< m_name << endl;
-  fOut << "m_type "<< m_type << endl;
+  fOut << "m_globalAttr "<< m_globalAttr << std::endl;
+  fOut << "m_length "<< m_length << std::endl;
+  fOut << "m_name "<< m_name << std::endl;
+  fOut << "m_type "<< m_type << std::endl;
   
-  fOut << "==> END Dump a CNetCDFAttr Object at "<< this << endl;
+  fOut << "==> END Dump a CNetCDFAttr Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -545,27 +545,27 @@ void CNetCDFAttr::Dump(ostream& fOut /* = cerr */)
 //------------------- CNetCDFAttrString class --------------------
 //-------------------------------------------------------------
 
-const string CNetCDFAttrString::m_DATE_UNIT = "seconds since 1950-01-01 00:00:00.000000 UTC";
+const std::string CNetCDFAttrString::m_DATE_UNIT = "seconds since 1950-01-01 00:00:00.000000 UTC";
 
 CNetCDFAttrString::CNetCDFAttrString()
 {
   Init();
 }
 //----------------------------------------
-CNetCDFAttrString::CNetCDFAttrString(const string& name)
+CNetCDFAttrString::CNetCDFAttrString(const std::string& name)
   : CNetCDFAttr(name)
 {
   Init();
 }
 //----------------------------------------
-CNetCDFAttrString::CNetCDFAttrString(const string& name, const string& value, bool globalAttr /* = false */)
+CNetCDFAttrString::CNetCDFAttrString(const std::string& name, const std::string& value, bool globalAttr /* = false */)
   : CNetCDFAttr(name, globalAttr)
 {
   Init();
   SetValue(value);
 }
 //----------------------------------------
-CNetCDFAttrString::CNetCDFAttrString(const string& name, CUnit& unit, bool globalAttr /* = false */)
+CNetCDFAttrString::CNetCDFAttrString(const std::string& name, CUnit& unit, bool globalAttr /* = false */)
   : CNetCDFAttr(name, globalAttr)
 {
   Init();
@@ -666,7 +666,7 @@ void CNetCDFAttrString::ReadAttribute(int32_t fileId, int32_t varId)
   attStr = NULL;
 }
 //----------------------------------------
-void CNetCDFAttrString::SetValue(const string& value) 
+void CNetCDFAttrString::SetValue(const std::string& value) 
 {
   m_value = value;
   
@@ -681,7 +681,7 @@ void CNetCDFAttrString::SetValue(const string& value)
 //----------------------------------------
 void CNetCDFAttrString::SetValue(const char* value)
 {
-  string str;
+  std::string str;
   str.assign(value);
 
   SetValue(str);
@@ -689,27 +689,27 @@ void CNetCDFAttrString::SetValue(const char* value)
 //----------------------------------------
 void CNetCDFAttrString::SetValue(const char* value, size_t length)
 {
-  string str;
+  std::string str;
   str.assign(value, length);
 
   SetValue(str);
 }
 
 //----------------------------------------
-void CNetCDFAttrString::Dump(ostream& fOut /* = cerr */)
+void CNetCDFAttrString::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
-  fOut << "==> Dump a CNetCDFAttrString Object at "<< this << endl;
+  fOut << "==> Dump a CNetCDFAttrString Object at "<< this << std::endl;
   CNetCDFAttr::Dump(fOut);
-  fOut << "m_value "<< m_value << endl;
+  fOut << "m_value "<< m_value << std::endl;
   m_date.Dump(fOut);
   
-  fOut << "==> END Dump a CNetCDFAttrString Object at "<< this << endl;
+  fOut << "==> END Dump a CNetCDFAttrString Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -722,13 +722,13 @@ CNetCDFAttrChar::CNetCDFAttrChar()
   Init();
 }
 //----------------------------------------
-CNetCDFAttrChar::CNetCDFAttrChar(const string& name)
+CNetCDFAttrChar::CNetCDFAttrChar(const std::string& name)
   : CNetCDFAttr(name)
 {
   Init();
 }
 //----------------------------------------
-CNetCDFAttrChar::CNetCDFAttrChar(const string& name, const signed char& value, bool globalAttr)
+CNetCDFAttrChar::CNetCDFAttrChar(const std::string& name, const signed char& value, bool globalAttr)
   : CNetCDFAttr(name, globalAttr)
 {
   Init();
@@ -824,13 +824,13 @@ CNetCDFAttrUByte::CNetCDFAttrUByte()
   Init();
 }
 //----------------------------------------
-CNetCDFAttrUByte::CNetCDFAttrUByte(const string& name)
+CNetCDFAttrUByte::CNetCDFAttrUByte(const std::string& name)
   : CNetCDFAttr(name)
 {
   Init();
 }
 //----------------------------------------
-CNetCDFAttrUByte::CNetCDFAttrUByte(const string& name, uint8_t value, bool globalAttr /* = false */)
+CNetCDFAttrUByte::CNetCDFAttrUByte(const std::string& name, uint8_t value, bool globalAttr /* = false */)
   : CNetCDFAttr(name, globalAttr)
 {
   Init();
@@ -929,20 +929,20 @@ void CNetCDFAttrUByte::SetValue(uint8_t value)
 }
 
 //----------------------------------------
-void CNetCDFAttrUByte::Dump(ostream& fOut /* = cerr */)
+void CNetCDFAttrUByte::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
-  fOut << "==> Dump a CNetCDFAttrUByte Object at "<< this << endl;
+  fOut << "==> Dump a CNetCDFAttrUByte Object at "<< this << std::endl;
   CNetCDFAttr::Dump(fOut);
-  fOut << "m_value at "<< &m_value << endl;
+  fOut << "m_value at "<< &m_value << std::endl;
   m_value.Dump(fOut);
   
-  fOut << "==> END Dump a CNetCDFAttrUByte Object at "<< this << endl;
+  fOut << "==> END Dump a CNetCDFAttrUByte Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -956,13 +956,13 @@ CNetCDFAttrDouble::CNetCDFAttrDouble()
   Init();
 }
 //----------------------------------------
-CNetCDFAttrDouble::CNetCDFAttrDouble(const string& name)
+CNetCDFAttrDouble::CNetCDFAttrDouble(const std::string& name)
   : CNetCDFAttr(name)
 {
   Init();
 }
 //----------------------------------------
-CNetCDFAttrDouble::CNetCDFAttrDouble(const string& name, double value, bool globalAttr /* = false */)
+CNetCDFAttrDouble::CNetCDFAttrDouble(const std::string& name, double value, bool globalAttr /* = false */)
   : CNetCDFAttr(name, globalAttr)
 {
   Init();
@@ -1062,20 +1062,20 @@ void CNetCDFAttrDouble::SetValue(double value)
 }
 
 //----------------------------------------
-void CNetCDFAttrDouble::Dump(ostream& fOut /* = cerr */)
+void CNetCDFAttrDouble::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
-  fOut << "==> Dump a CNetCDFAttrDouble Object at "<< this << endl;
+  fOut << "==> Dump a CNetCDFAttrDouble Object at "<< this << std::endl;
   CNetCDFAttr::Dump(fOut);
-  fOut << "m_value at "<< &m_value << endl;
+  fOut << "m_value at "<< &m_value << std::endl;
   m_value.Dump(fOut);
   
-  fOut << "==> END Dump a CNetCDFAttrDouble Object at "<< this << endl;
+  fOut << "==> END Dump a CNetCDFAttrDouble Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -1088,13 +1088,13 @@ CNetCDFAttrByte::CNetCDFAttrByte()
   Init();
 }
 //----------------------------------------
-CNetCDFAttrByte::CNetCDFAttrByte(const string& name)
+CNetCDFAttrByte::CNetCDFAttrByte(const std::string& name)
   : CNetCDFAttr(name)
 {
   Init();
 }
 //----------------------------------------
-CNetCDFAttrByte::CNetCDFAttrByte(const string& name, int8_t value, bool globalAttr /* = false */)
+CNetCDFAttrByte::CNetCDFAttrByte(const std::string& name, int8_t value, bool globalAttr /* = false */)
   : CNetCDFAttr(name, globalAttr)
 {
   Init();
@@ -1193,20 +1193,20 @@ void CNetCDFAttrByte::SetValue(int8_t value)
   m_value.Insert(value);
 }
 //----------------------------------------
-void CNetCDFAttrByte::Dump(ostream& fOut /* = cerr */)
+void CNetCDFAttrByte::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
-  fOut << "==> Dump a CNetCDFAttrByte Object at "<< this << endl;
+  fOut << "==> Dump a CNetCDFAttrByte Object at "<< this << std::endl;
   CNetCDFAttr::Dump(fOut);
-  fOut << "m_value at "<< &m_value << endl;
+  fOut << "m_value at "<< &m_value << std::endl;
   m_value.Dump(fOut);
   
-  fOut << "==> END Dump a CNetCDFAttrByte Object at "<< this << endl;
+  fOut << "==> END Dump a CNetCDFAttrByte Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -1220,13 +1220,13 @@ CNetCDFAttrShort::CNetCDFAttrShort()
   Init();
 }
 //----------------------------------------
-CNetCDFAttrShort::CNetCDFAttrShort(const string& name)
+CNetCDFAttrShort::CNetCDFAttrShort(const std::string& name)
   : CNetCDFAttr(name)
 {
   Init();
 }
 //----------------------------------------
-CNetCDFAttrShort::CNetCDFAttrShort(const string& name, int16_t value, bool globalAttr /* = false */)
+CNetCDFAttrShort::CNetCDFAttrShort(const std::string& name, int16_t value, bool globalAttr /* = false */)
   : CNetCDFAttr(name, globalAttr)
 {
   Init();
@@ -1326,20 +1326,20 @@ void CNetCDFAttrShort::SetValue(int16_t value)
 }
 
 //----------------------------------------
-void CNetCDFAttrShort::Dump(ostream& fOut /* = cerr */)
+void CNetCDFAttrShort::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
-  fOut << "==> Dump a CNetCDFAttrShort Object at "<< this << endl;
+  fOut << "==> Dump a CNetCDFAttrShort Object at "<< this << std::endl;
   CNetCDFAttr::Dump(fOut);
-  fOut << "m_value at "<< &m_value << endl;
+  fOut << "m_value at "<< &m_value << std::endl;
   m_value.Dump(fOut);
   
-  fOut << "==> END Dump a CNetCDFAttrShort Object at "<< this << endl;
+  fOut << "==> END Dump a CNetCDFAttrShort Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -1351,13 +1351,13 @@ CNetCDFAttrUShort::CNetCDFAttrUShort()
   Init();
 }
 //----------------------------------------
-CNetCDFAttrUShort::CNetCDFAttrUShort(const string& name)
+CNetCDFAttrUShort::CNetCDFAttrUShort(const std::string& name)
   : CNetCDFAttr(name)
 {
   Init();
 }
 //----------------------------------------
-CNetCDFAttrUShort::CNetCDFAttrUShort(const string& name, uint16_t value, bool globalAttr /* = false */)
+CNetCDFAttrUShort::CNetCDFAttrUShort(const std::string& name, uint16_t value, bool globalAttr /* = false */)
   : CNetCDFAttr(name, globalAttr)
 {
   Init();
@@ -1457,20 +1457,20 @@ void CNetCDFAttrUShort::SetValue(uint16_t value)
 }
 
 //----------------------------------------
-void CNetCDFAttrUShort::Dump(ostream& fOut /* = cerr */)
+void CNetCDFAttrUShort::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
-  fOut << "==> Dump a CNetCDFAttrUShort Object at "<< this << endl;
+  fOut << "==> Dump a CNetCDFAttrUShort Object at "<< this << std::endl;
   CNetCDFAttr::Dump(fOut);
-  fOut << "m_value at "<< &m_value << endl;
+  fOut << "m_value at "<< &m_value << std::endl;
   m_value.Dump(fOut);
   
-  fOut << "==> END Dump a CNetCDFAttrUShort Object at "<< this << endl;
+  fOut << "==> END Dump a CNetCDFAttrUShort Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -1482,13 +1482,13 @@ CNetCDFAttrInt::CNetCDFAttrInt()
   Init();
 }
 //----------------------------------------
-CNetCDFAttrInt::CNetCDFAttrInt(const string& name)
+CNetCDFAttrInt::CNetCDFAttrInt(const std::string& name)
   : CNetCDFAttr(name)
 {
   Init();
 }
 //----------------------------------------
-CNetCDFAttrInt::CNetCDFAttrInt(const string& name, int32_t value, bool globalAttr /* = false */)
+CNetCDFAttrInt::CNetCDFAttrInt(const std::string& name, int32_t value, bool globalAttr /* = false */)
   : CNetCDFAttr(name, globalAttr)
 {
   Init();
@@ -1588,20 +1588,20 @@ void CNetCDFAttrInt::SetValue(int32_t value)
 }
 
 //----------------------------------------
-void CNetCDFAttrInt::Dump(ostream& fOut /* = cerr */)
+void CNetCDFAttrInt::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
-  fOut << "==> Dump a CNetCDFAttrInt Object at "<< this << endl;
+  fOut << "==> Dump a CNetCDFAttrInt Object at "<< this << std::endl;
   CNetCDFAttr::Dump(fOut);
-  fOut << "m_value at "<< &m_value << endl;
+  fOut << "m_value at "<< &m_value << std::endl;
   m_value.Dump(fOut);
   
-  fOut << "==> END Dump a CNetCDFAttrInt Object at "<< this << endl;
+  fOut << "==> END Dump a CNetCDFAttrInt Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 //-------------------------------------------------------------
@@ -1612,13 +1612,13 @@ CNetCDFAttrInt64::CNetCDFAttrInt64()
   Init();
 }
 //----------------------------------------
-CNetCDFAttrInt64::CNetCDFAttrInt64(const string& name)
+CNetCDFAttrInt64::CNetCDFAttrInt64(const std::string& name)
   : CNetCDFAttr(name)
 {
   Init();
 }
 //----------------------------------------
-CNetCDFAttrInt64::CNetCDFAttrInt64(const string& name, int64_t value, bool globalAttr /* = false */)
+CNetCDFAttrInt64::CNetCDFAttrInt64(const std::string& name, int64_t value, bool globalAttr /* = false */)
   : CNetCDFAttr(name, globalAttr)
 {
   Init();
@@ -1721,20 +1721,20 @@ void CNetCDFAttrInt64::SetValue(int64_t value)
 }
 
 //----------------------------------------
-void CNetCDFAttrInt64::Dump(ostream& fOut /* = cerr */)
+void CNetCDFAttrInt64::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
-  fOut << "==> Dump a CNetCDFAttrInt64 Object at "<< this << endl;
+  fOut << "==> Dump a CNetCDFAttrInt64 Object at "<< this << std::endl;
   CNetCDFAttr::Dump(fOut);
-  fOut << "m_value at "<< &m_value << endl;
+  fOut << "m_value at "<< &m_value << std::endl;
   m_value.Dump(fOut);
   
-  fOut << "==> END Dump a CNetCDFAttrInt64 Object at "<< this << endl;
+  fOut << "==> END Dump a CNetCDFAttrInt64 Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -1746,13 +1746,13 @@ CNetCDFAttrUInt::CNetCDFAttrUInt()
   Init();
 }
 //----------------------------------------
-CNetCDFAttrUInt::CNetCDFAttrUInt(const string& name)
+CNetCDFAttrUInt::CNetCDFAttrUInt(const std::string& name)
   : CNetCDFAttr(name)
 {
   Init();
 }
 //----------------------------------------
-CNetCDFAttrUInt::CNetCDFAttrUInt(const string& name, uint32_t value, bool globalAttr /* = false */)
+CNetCDFAttrUInt::CNetCDFAttrUInt(const std::string& name, uint32_t value, bool globalAttr /* = false */)
   : CNetCDFAttr(name, globalAttr)
 {
   Init();
@@ -1852,20 +1852,20 @@ void CNetCDFAttrUInt::SetValue(uint32_t value)
 }
 
 //----------------------------------------
-void CNetCDFAttrUInt::Dump(ostream& fOut /* = cerr */)
+void CNetCDFAttrUInt::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
-  fOut << "==> Dump a CNetCDFAttrUInt Object at "<< this << endl;
+  fOut << "==> Dump a CNetCDFAttrUInt Object at "<< this << std::endl;
   CNetCDFAttr::Dump(fOut);
-  fOut << "m_value at "<< &m_value << endl;
+  fOut << "m_value at "<< &m_value << std::endl;
   m_value.Dump(fOut);
   
-  fOut << "==> END Dump a CNetCDFAttrUInt Object at "<< this << endl;
+  fOut << "==> END Dump a CNetCDFAttrUInt Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -1877,13 +1877,13 @@ CNetCDFAttrUInt64::CNetCDFAttrUInt64()
   Init();
 }
 //----------------------------------------
-CNetCDFAttrUInt64::CNetCDFAttrUInt64(const string& name)
+CNetCDFAttrUInt64::CNetCDFAttrUInt64(const std::string& name)
   : CNetCDFAttr(name)
 {
   Init();
 }
 //----------------------------------------
-CNetCDFAttrUInt64::CNetCDFAttrUInt64(const string& name, uint64_t value, bool globalAttr /* = false */)
+CNetCDFAttrUInt64::CNetCDFAttrUInt64(const std::string& name, uint64_t value, bool globalAttr /* = false */)
   : CNetCDFAttr(name, globalAttr)
 {
   Init();
@@ -1986,20 +1986,20 @@ void CNetCDFAttrUInt64::SetValue(uint64_t value)
 }
 
 //----------------------------------------
-void CNetCDFAttrUInt64::Dump(ostream& fOut /* = cerr */)
+void CNetCDFAttrUInt64::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
-  fOut << "==> Dump a CNetCDFAttrUInt64 Object at "<< this << endl;
+  fOut << "==> Dump a CNetCDFAttrUInt64 Object at "<< this << std::endl;
   CNetCDFAttr::Dump(fOut);
-  fOut << "m_value at "<< &m_value << endl;
+  fOut << "m_value at "<< &m_value << std::endl;
   m_value.Dump(fOut);
   
-  fOut << "==> END Dump a CNetCDFAttrUInt64 Object at "<< this << endl;
+  fOut << "==> END Dump a CNetCDFAttrUInt64 Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -2011,13 +2011,13 @@ CNetCDFAttrFloat::CNetCDFAttrFloat()
   Init();
 }
 //----------------------------------------
-CNetCDFAttrFloat::CNetCDFAttrFloat(const string& name)
+CNetCDFAttrFloat::CNetCDFAttrFloat(const std::string& name)
   : CNetCDFAttr(name)
 {
   Init();
 }
 //----------------------------------------
-CNetCDFAttrFloat::CNetCDFAttrFloat(const string& name, float value, bool globalAttr /* = false */)
+CNetCDFAttrFloat::CNetCDFAttrFloat(const std::string& name, float value, bool globalAttr /* = false */)
   : CNetCDFAttr(name, globalAttr)
 {
   Init();
@@ -2117,20 +2117,20 @@ void CNetCDFAttrFloat::SetValue(float value)
 
 
 //----------------------------------------
-void CNetCDFAttrFloat::Dump(ostream& fOut /* = cerr */)
+void CNetCDFAttrFloat::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
-  fOut << "==> Dump a CNetCDFAttrFloat Object at "<< this << endl;
+  fOut << "==> Dump a CNetCDFAttrFloat Object at "<< this << std::endl;
   CNetCDFAttr::Dump(fOut);
-  fOut << "m_value at "<< &m_value << endl;
+  fOut << "m_value at "<< &m_value << std::endl;
   m_value.Dump(fOut);
   
-  fOut << "==> END Dump a CNetCDFAttrFloat Object at "<< this << endl;
+  fOut << "==> END Dump a CNetCDFAttrFloat Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -2142,7 +2142,7 @@ CNetCDFDimension::CNetCDFDimension()
   Init();
 }
 //----------------------------------------
-CNetCDFDimension::CNetCDFDimension(const string& name, int32_t length, bool isUnlimited /* = false */)
+CNetCDFDimension::CNetCDFDimension(const std::string& name, int32_t length, bool isUnlimited /* = false */)
 {
   Init();
   SetName(name);
@@ -2150,7 +2150,7 @@ CNetCDFDimension::CNetCDFDimension(const string& name, int32_t length, bool isUn
   SetIsUnlimited(isUnlimited);
 }
 //----------------------------------------
-CNetCDFDimension::CNetCDFDimension(const string& name, CNetCDFDimension& from)
+CNetCDFDimension::CNetCDFDimension(const std::string& name, CNetCDFDimension& from)
 {
   Init();
   Set(from);
@@ -2216,7 +2216,7 @@ void CNetCDFDimension::AddCoordinateVariable(CNetCDFVarDef& v)
 
 }
 //----------------------------------------
-void CNetCDFDimension::AddCoordinateVariable(const string& name)
+void CNetCDFDimension::AddCoordinateVariable(const std::string& name)
 {
 
   if (!IsCoordinateVariable(name))
@@ -2227,7 +2227,7 @@ void CNetCDFDimension::AddCoordinateVariable(const string& name)
 }
 
 //----------------------------------------
-bool CNetCDFDimension::IsCoordinateVariable(const string& name)
+bool CNetCDFDimension::IsCoordinateVariable(const std::string& name)
 {
 
   bool bOk = false;
@@ -2258,23 +2258,23 @@ bool CNetCDFDimension::IsCoordinateVariable(CNetCDFVarDef* cv)
 
 }
 //----------------------------------------
-void CNetCDFDimension::Dump(ostream& fOut /* = cerr */)
+void CNetCDFDimension::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
-  fOut << "==> Dump a CNetCDFDimension Object at "<< this << endl;
-  fOut << "m_coordVars at "<< &m_coordVars << endl;
+  fOut << "==> Dump a CNetCDFDimension Object at "<< this << std::endl;
+  fOut << "m_coordVars at "<< &m_coordVars << std::endl;
   m_coordVars.Dump(fOut);
-  fOut << "m_dimId "<< m_dimId << endl;
-  fOut << "m_isUnlimited "<< m_isUnlimited << endl;
-  fOut << "m_length "<< m_length << endl;
-  fOut << "m_name "<< m_name << endl;
+  fOut << "m_dimId "<< m_dimId << std::endl;
+  fOut << "m_isUnlimited "<< m_isUnlimited << std::endl;
+  fOut << "m_length "<< m_length << std::endl;
+  fOut << "m_name "<< m_name << std::endl;
 
-  fOut << "==> END Dump a CNetCDFDimension Object at "<< this << endl;
+  fOut << "==> END Dump a CNetCDFDimension Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -2288,14 +2288,14 @@ CNetCDFVarDef::CNetCDFVarDef(nc_type type /* = NC_DOUBLE */)
   SetType(type);
 }
 //----------------------------------------
-CNetCDFVarDef::CNetCDFVarDef(const string& name, nc_type type /* = NC_DOUBLE */)
+CNetCDFVarDef::CNetCDFVarDef(const std::string& name, nc_type type /* = NC_DOUBLE */)
 {
   Init();
   SetName(name);
   SetType(type);
 }
 //----------------------------------------
-CNetCDFVarDef::CNetCDFVarDef(const string& name, const CUnit& unit, nc_type type /* = NC_DOUBLE */)
+CNetCDFVarDef::CNetCDFVarDef(const std::string& name, const CUnit& unit, nc_type type /* = NC_DOUBLE */)
 {
   Init();
   SetName(name);
@@ -2303,7 +2303,7 @@ CNetCDFVarDef::CNetCDFVarDef(const string& name, const CUnit& unit, nc_type type
   SetType(type);
 }
 //----------------------------------------
-CNetCDFVarDef::CNetCDFVarDef(const string& name, const string& unit, nc_type type /* = NC_DOUBLE */)
+CNetCDFVarDef::CNetCDFVarDef(const std::string& name, const std::string& unit, nc_type type /* = NC_DOUBLE */)
 {
   Init();
   SetName(name);
@@ -2312,7 +2312,7 @@ CNetCDFVarDef::CNetCDFVarDef(const string& name, const string& unit, nc_type typ
 }
 //----------------------------------------
 
-//CNetCDFVarDef::CNetCDFVarDef(const string& name, const CNetCDFDimension& dim, nc_type type /* = NC_DOUBLE */)
+//CNetCDFVarDef::CNetCDFVarDef(const std::string& name, const CNetCDFDimension& dim, nc_type type /* = NC_DOUBLE */)
 /*{
   Init();
   SetName(name);
@@ -2442,9 +2442,9 @@ CBratObject* CNetCDFVarDef::Clone()
 }
 
 //----------------------------------------
-string CNetCDFVarDef::GetLongName()
+std::string CNetCDFVarDef::GetLongName()
 {
-  string longName;
+  std::string longName;
   CNetCDFAttrString* netCDFAttr = CNetCDFAttr::GetNetCDFAttrString(GetAttribute(LONG_NAME_ATTR));
   if (netCDFAttr != NULL)
   {
@@ -2525,7 +2525,7 @@ void CNetCDFVarDef::AddAttribute(CNetCDFAttr* attr)
 }
 
 //----------------------------------------
-CNetCDFAttr* CNetCDFVarDef::GetAttribute(const string& name)
+CNetCDFAttr* CNetCDFVarDef::GetAttribute(const std::string& name)
 {
   return CNetCDFAttr::GetNetCDFAttr(m_mapAttributes.Exists(name));
 }
@@ -2717,7 +2717,7 @@ CNetCDFDimension* CNetCDFVarDef::InsertNetCDFDim(CNetCDFDimension& dim, uint32_t
 
 }
 //----------------------------------------
-CNetCDFDimension* CNetCDFVarDef::GetNetCDFDim(const string& name)
+CNetCDFDimension* CNetCDFVarDef::GetNetCDFDim(const std::string& name)
 {
   CNetCDFDimension* dimFound = NULL;
 
@@ -2752,7 +2752,7 @@ CNetCDFDimension* CNetCDFVarDef::GetNetCDFDim(uint32_t index)
 }
 
 //----------------------------------------
-uint32_t CNetCDFVarDef::GetNetCDFDimRange(const string& name)
+uint32_t CNetCDFVarDef::GetNetCDFDimRange(const std::string& name)
 {
   CNetCDFDimension* dim = NULL;
   uint32_t range;
@@ -2817,7 +2817,7 @@ void CNetCDFVarDef::GetNetCdfDimIds(CIntArray& dimId) const
 }
 
 //----------------------------------------
-bool CNetCDFVarDef::HasCommonDims(const string& dimName)
+bool CNetCDFVarDef::HasCommonDims(const std::string& dimName)
 {
   CStringArray intersect;
   
@@ -2838,7 +2838,7 @@ bool CNetCDFVarDef::HasCommonDims(const CStringArray& dimNames)
 }
 
 //----------------------------------------
-void CNetCDFVarDef::GetCommomDims(const string& dimName, CStringArray& intersect)
+void CNetCDFVarDef::GetCommomDims(const std::string& dimName, CStringArray& intersect)
 {
   CStringArray dimNames;
   dimNames.Insert(dimName);
@@ -2856,7 +2856,7 @@ void CNetCDFVarDef::GetCommomDims(const CStringArray& dimNames, CStringArray& in
 }
 
 //----------------------------------------
-void CNetCDFVarDef::GetComplementDims(const string& dimName, CStringArray& complement)
+void CNetCDFVarDef::GetComplementDims(const std::string& dimName, CStringArray& complement)
 {
   CStringArray dimNames;
   dimNames.Insert(dimName);
@@ -2873,7 +2873,7 @@ void CNetCDFVarDef::GetComplementDims(const CStringArray& dimNames, CStringArray
   dimNames.Complement(varDimNames, complement);
 }
 //----------------------------------------
-bool CNetCDFVarDef::HaveEqualDimSizes(CNetCDFVarDef* netCDFVarDef, string* msg /*= NULL*/)
+bool CNetCDFVarDef::HaveEqualDimSizes(CNetCDFVarDef* netCDFVarDef, std::string* msg /*= NULL*/)
 {
   bool bOk = true;
   CObArray* netCDFDims = netCDFVarDef->GetNetCDFDims();
@@ -2898,7 +2898,7 @@ bool CNetCDFVarDef::HaveEqualDimSizes(CNetCDFVarDef* netCDFVarDef, string* msg /
 }
 
 //----------------------------------------
-bool CNetCDFVarDef::HaveEqualDims(CNetCDFVarDef* netCDFVarDef, CNetCDFFiles* netCDFFiles1 /*= NULL*/, CNetCDFFiles* netCDFFiles2 /*= NULL*/, string* msg /*= NULL*/)
+bool CNetCDFVarDef::HaveEqualDims(CNetCDFVarDef* netCDFVarDef, CNetCDFFiles* netCDFFiles1 /*= NULL*/, CNetCDFFiles* netCDFFiles2 /*= NULL*/, std::string* msg /*= NULL*/)
 {
   if (netCDFVarDef == NULL)
   {
@@ -3012,7 +3012,7 @@ bool CNetCDFVarDef::HaveEqualDims(CNetCDFVarDef* netCDFVarDef, CNetCDFFiles* net
 
 }
 //----------------------------------------
-bool CNetCDFVarDef::HaveEqualDimNames(CNetCDFVarDef* netCDFVarDef, string* msg /*= NULL*/)
+bool CNetCDFVarDef::HaveEqualDimNames(CNetCDFVarDef* netCDFVarDef, std::string* msg /*= NULL*/)
 {
   if (netCDFVarDef == NULL)
   {
@@ -3086,7 +3086,7 @@ bool CNetCDFVarDef::HaveEqualDimNames(CNetCDFVarDef* netCDFVarDef, string* msg /
 }
 
 //----------------------------------------
-bool CNetCDFVarDef::HaveCompatibleDimUnits(CNetCDFVarDef* netCDFVarDef, CNetCDFFiles* netCDFFiles1, CNetCDFFiles* netCDFFiles2, string* msg /*= NULL*/)
+bool CNetCDFVarDef::HaveCompatibleDimUnits(CNetCDFVarDef* netCDFVarDef, CNetCDFFiles* netCDFFiles1, CNetCDFFiles* netCDFFiles2, std::string* msg /*= NULL*/)
 {
 
   if ( (netCDFFiles1 == NULL) && (netCDFFiles2 == NULL) )
@@ -3216,7 +3216,7 @@ void CNetCDFVarDef::WriteData(int32_t fileId, CMatrixDoublePtr* matrix)
   
   //matrix->GetMatrixDataDimIndexes()->Dump(*CTrace::GetInstance()->GetDumpContext());
   
-  //cout << matrix->GetXName() << matrix->GetYName() << endl;
+  //std::cout << matrix->GetXName() << matrix->GetYName() << std::endl;
 
   long nbData = GetNbData();
   long nbDataToWrite = matrix->GetNumberOfValues();
@@ -3571,40 +3571,40 @@ void CNetCDFVarDef::SetUnit(const CUnit& value)
   AddAttribute(new CNetCDFAttrString(UNITS_ATTR, m_unit));
 }
 //----------------------------------------
-void CNetCDFVarDef::SetUnit(const string& value)
+void CNetCDFVarDef::SetUnit(const std::string& value)
 { 
   m_unit = value; 
   AddAttribute(new CNetCDFAttrString(UNITS_ATTR, m_unit));
 }
 
 //----------------------------------------
-void CNetCDFVarDef::Dump(ostream& fOut /* = cerr */)
+void CNetCDFVarDef::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
-  fOut << "==> Dump a CNetCDFVarDef Object at "<< this << endl;
-  fOut << "m_addOffset "<< m_addOffset << endl;
-  fOut << "m_dims at "<< &m_dims << endl;
+  fOut << "==> Dump a CNetCDFVarDef Object at "<< this << std::endl;
+  fOut << "m_addOffset "<< m_addOffset << std::endl;
+  fOut << "m_dims at "<< &m_dims << std::endl;
   m_dims.Dump(fOut);
-  fOut << "m_fillValue "<< m_fillValue << endl;
-  fOut << "m_mapAttributes at "<< &m_mapAttributes << endl;
+  fOut << "m_fillValue "<< m_fillValue << std::endl;
+  fOut << "m_mapAttributes at "<< &m_mapAttributes << std::endl;
   m_mapAttributes.Dump(fOut);
-  fOut << "m_name "<< m_name << endl;
-  fOut << "m_netCDFdims at "<< &m_netCDFdims << endl;
+  fOut << "m_name "<< m_name << std::endl;
+  fOut << "m_netCDFdims at "<< &m_netCDFdims << std::endl;
   m_netCDFdims.Dump(fOut);
-  fOut << "m_scaleFactor "<< m_scaleFactor << endl;
-  fOut << "m_type "<< m_type << endl;
-  fOut << "m_unit at "<< &m_unit << endl;
+  fOut << "m_scaleFactor "<< m_scaleFactor << std::endl;
+  fOut << "m_type "<< m_type << std::endl;
+  fOut << "m_unit at "<< &m_unit << std::endl;
   m_unit.Dump(fOut);
-  fOut << "m_validMin "<< m_validMin << endl;
-  fOut << "m_validMax "<< m_validMax << endl;
-  fOut << "m_varId "<< m_varId << endl;
+  fOut << "m_validMin "<< m_validMin << std::endl;
+  fOut << "m_validMax "<< m_validMax << std::endl;
+  fOut << "m_varId "<< m_varId << std::endl;
 
-  fOut << "==> END Dump a CNetCDFVarDef Object at "<< this << endl;
+  fOut << "==> END Dump a CNetCDFVarDef Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -3619,28 +3619,28 @@ CNetCDFCoordinateAxis::CNetCDFCoordinateAxis(NetCDFVarKind dimKind /* = Unknown 
   SetDimKind(dimKind);
 }
 //----------------------------------------
-CNetCDFCoordinateAxis::CNetCDFCoordinateAxis(const string& name, NetCDFVarKind dimKind /* = Unknown */, nc_type type /* = NC_DOUBLE */)
+CNetCDFCoordinateAxis::CNetCDFCoordinateAxis(const std::string& name, NetCDFVarKind dimKind /* = Unknown */, nc_type type /* = NC_DOUBLE */)
         : CNetCDFVarDef(name, type)
 {
   Init();
   SetDimKind(dimKind);
 }
 //----------------------------------------
-CNetCDFCoordinateAxis::CNetCDFCoordinateAxis(const string& name, const CUnit& unit, NetCDFVarKind dimKind /* = Unknown */, nc_type type /* = NC_DOUBLE */)
+CNetCDFCoordinateAxis::CNetCDFCoordinateAxis(const std::string& name, const CUnit& unit, NetCDFVarKind dimKind /* = Unknown */, nc_type type /* = NC_DOUBLE */)
         : CNetCDFVarDef(name, unit, type)
 {
   Init();
   SetDimKind(dimKind);
 }
 //----------------------------------------
-CNetCDFCoordinateAxis::CNetCDFCoordinateAxis(const string& name, const string& unit, NetCDFVarKind dimKind /* = Unknown */, nc_type type /* = NC_DOUBLE */)
+CNetCDFCoordinateAxis::CNetCDFCoordinateAxis(const std::string& name, const std::string& unit, NetCDFVarKind dimKind /* = Unknown */, nc_type type /* = NC_DOUBLE */)
         : CNetCDFVarDef(name, unit, type)
 {
   Init();
   SetDimKind(dimKind);
 }
 //----------------------------------------
-//CNetCDFCoordinateAxis::CNetCDFCoordinateAxis(const string& name, CNetCDFDimension* dim, NetCDFVarKind dimKind /* = Unknown */, nc_type type /* = NC_DOUBLE */)
+//CNetCDFCoordinateAxis::CNetCDFCoordinateAxis(const std::string& name, CNetCDFDimension* dim, NetCDFVarKind dimKind /* = Unknown */, nc_type type /* = NC_DOUBLE */)
 /*        : CNetCDFVarDef(name, dim, type)
 {
   Init();
@@ -3787,7 +3787,7 @@ void CNetCDFCoordinateAxis::WriteMinMaxGobalAttr(int32_t fileId)
 void CNetCDFCoordinateAxis::WriteMinMaxGobalAttr(int32_t fileId, bool wantMin)
 {
   CNetCDFAttr *attr = NULL;
-  string name = m_name;
+  std::string name = m_name;
   double value;
 
   if (wantMin)
@@ -3833,7 +3833,7 @@ void CNetCDFCoordinateAxis::WriteMinMaxGobalAttr(int32_t fileId, bool wantMin)
 
 //----------------------------------------
 /*
-void CNetCDFCoordinateAxis::GetDimType(NetCDFVarKind dimKind, string& dimType, string& axis)
+void CNetCDFCoordinateAxis::GetDimType(NetCDFVarKind dimKind, std::string& dimType, std::string& axis)
 {
   CNetCDFCoordinateAxis var(dimKind);
 
@@ -3863,21 +3863,21 @@ CNetCDFCoordinateAxis* CNetCDFCoordinateAxis::GetNetCDFCoordAxis(CBratObject* ob
 
 
 //----------------------------------------
-void CNetCDFCoordinateAxis::Dump(ostream& fOut /* = cerr */)
+void CNetCDFCoordinateAxis::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
-  fOut << "==> Dump a CNetCDFCoordinateAxis Object at "<< this << endl;
+  fOut << "==> Dump a CNetCDFCoordinateAxis Object at "<< this << std::endl;
   CNetCDFVarDef::Dump(fOut);
-  fOut << "m_axis "<< m_axis << endl;
-  fOut << "m_dimKind "<< m_dimKind << endl;
-  fOut << "m_dimType "<< m_dimType << endl;
+  fOut << "m_axis "<< m_axis << std::endl;
+  fOut << "m_dimKind "<< m_dimKind << std::endl;
+  fOut << "m_dimType "<< m_dimType << std::endl;
 
-  fOut << "==> END Dump a CNetCDFCoordinateAxis Object at "<< this << endl;
+  fOut << "==> END Dump a CNetCDFCoordinateAxis Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 //-------------------------------------------------------------
@@ -3891,7 +3891,7 @@ CNetCDFFiles::CNetCDFFiles ()
 }
 
 //----------------------------------------
-CNetCDFFiles::CNetCDFFiles (const string& name, brathl_FileMode	mode /*= ReadOnly*/)
+CNetCDFFiles::CNetCDFFiles (const std::string& name, brathl_FileMode	mode /*= ReadOnly*/)
 {
   Init();
 
@@ -3919,12 +3919,12 @@ void CNetCDFFiles::Init()
 }
 
 //----------------------------------------
-CNetCDFDimension* CNetCDFFiles::GetNetCDFDim(const string& name)
+CNetCDFDimension* CNetCDFFiles::GetNetCDFDim(const std::string& name)
 {
   return dynamic_cast<CNetCDFDimension*>(m_mapNetCDFDims.Exists(name));
 }
 //----------------------------------------
-void CNetCDFFiles::GetNetCDFDims(const string& varName, CObArray* dims)
+void CNetCDFFiles::GetNetCDFDims(const std::string& varName, CObArray* dims)
 {
   
   if (dims == NULL)
@@ -3952,7 +3952,7 @@ void CNetCDFFiles::GetNetCDFDims(const string& varName, CObArray* dims)
 }
 
 //----------------------------------------
-void CNetCDFFiles::GetNetCDFCoordAxes(const string& varName, CObArray* coordAxes)
+void CNetCDFFiles::GetNetCDFCoordAxes(const std::string& varName, CObArray* coordAxes)
 {
   if (coordAxes == NULL)
   {
@@ -3969,7 +3969,7 @@ void CNetCDFFiles::GetNetCDFCoordAxes(const string& varName, CObArray* coordAxes
 
 }
 //----------------------------------------
-void CNetCDFFiles::GetNetCDFCoordAxes(const string& varName, CObMap* coordAxes)
+void CNetCDFFiles::GetNetCDFCoordAxes(const std::string& varName, CObMap* coordAxes)
 {
   
   if (coordAxes == NULL)
@@ -4017,7 +4017,7 @@ void CNetCDFFiles::GetNetCDFCoordAxes(const string& varName, CObMap* coordAxes)
 }
 
 //----------------------------------------
-void CNetCDFFiles::GetNetCDFCoordAxes(const string& varName, CStringArray* coordAxes, 
+void CNetCDFFiles::GetNetCDFCoordAxes(const std::string& varName, CStringArray* coordAxes, 
                                       bool bRemoveAll /* = true */, bool bUnique /* = false */)
 {
   if (coordAxes == NULL)
@@ -4280,12 +4280,12 @@ void CNetCDFFiles::ReplaceNetCDFDim(CNetCDFDimension& dim)
 
 
 //----------------------------------------
-string CNetCDFFiles::IdentifyExistingFile
-		(const string		&name,
+std::string CNetCDFFiles::IdentifyExistingFile
+		(const std::string		&name,
 		 bool			checkConvention	/*= false*/,
 		 bool			noError		/*= false*/)
 {
-  string		fileTypeStr	= "---unknown file type---";
+  std::string		fileTypeStr	= "---unknown file type---";
 
   if (name == "")
   {
@@ -4313,12 +4313,12 @@ string CNetCDFFiles::IdentifyExistingFile
 
 }
 //----------------------------------------
-string CNetCDFFiles::IdentifyExistingFile
+std::string CNetCDFFiles::IdentifyExistingFile
 		(bool			checkConvention	/*= false*/, 
                  bool			noError		/*= false*/)
 {
-  string		fileTypeStr	= "---unknown file type---";
-  string		attrNotFound	= "---Attribute  not found---";
+  std::string		fileTypeStr	= "---unknown file type---";
+  std::string		attrNotFound	= "---Attribute  not found---";
   
   int status =  NC_NOERR;
 
@@ -4327,7 +4327,7 @@ string CNetCDFFiles::IdentifyExistingFile
     // ------------------------------------------------------------------
     // Along Track Product or Aviso Grid Netcdf or Brat Output NetCdf
     // ------------------------------------------------------------------
-    string attValue;
+    std::string attValue;
 
     // search file_type global attribute value and return it if found
     int foundFileTypeAttr = GetAtt(NC_GLOBAL, FILE_TYPE_ATTR, attValue, false, attrNotFound);
@@ -4355,10 +4355,10 @@ string CNetCDFFiles::IdentifyExistingFile
     // Jason-2 Netcdf
     // ---------------------------------------------------------
     // search product_type and data_set global attribute values (Netcdf Jason-2) 
-    string missionNameAttrValue;
-    string productTypeAttrValue;
-    string dataSetAttrValue;
-    string titleAttrValue;
+    std::string missionNameAttrValue;
+    std::string productTypeAttrValue;
+    std::string dataSetAttrValue;
+    std::string titleAttrValue;
 
     int foundMissionNameAttr = GetAtt(NC_GLOBAL, MISSION_NAME_ATTR, missionNameAttrValue, false, attrNotFound);
     //int foundProductTypeAttr = GetAtt(NC_GLOBAL, PRODUCT_TYPE_ATTR, productTypeAttrValue, false, attrNotFound);
@@ -4491,7 +4491,7 @@ string CNetCDFFiles::IdentifyExistingFile
 
 //----------------------------------------
 
-void CNetCDFFiles::SetName(const string&	name)
+void CNetCDFFiles::SetName(const std::string&	name)
 {
   m_fileName	= name;
 }
@@ -4692,7 +4692,7 @@ bool CNetCDFFiles::LoadVariables()
   
     for (int32_t idim = 0 ; idim < nDims ; idim++)
     {
-      string dimName = GetDimName(dimIds[idim]);
+      std::string dimName = GetDimName(dimIds[idim]);
       
       CNetCDFDimension* netCDFDim = dynamic_cast<CNetCDFDimension*>(m_mapNetCDFDims.Exists(dimName));
       
@@ -4801,7 +4801,7 @@ void CNetCDFFiles::LoadAttributes(CNetCDFVarDef* netCDFVarDef /*= NULL*/)
 //----------------------------------------
 
 void CNetCDFFiles::WriteFileTitle
-		(const string	&Title)
+		(const std::string	&Title)
 {
   MustBeOpened();
   PutAtt(NC_GLOBAL, FILE_TITLE_ATTR, Title);
@@ -4822,7 +4822,7 @@ void CNetCDFFiles::MustBeOpened
 //----------------------------------------
 
 bool CNetCDFFiles::IsAxisVar
-		(const string	&Name)
+		(const std::string	&Name)
 {
   int varId	= GetVarId(Name);
   int Tmp;
@@ -4889,7 +4889,7 @@ int32_t CNetCDFFiles::GetNbVariables
 //----------------------------------------
 
 void CNetCDFFiles::GetDimensions
-		(vector<string>			&Names)
+		(std::vector<std::string>			&Names)
 {
   int NbDims;
   char Name[NC_MAX_NAME+1];
@@ -4908,7 +4908,7 @@ void CNetCDFFiles::GetDimensions
 //----------------------------------------
 
 bool CNetCDFFiles::DimExists
-		(const string& name)
+		(const std::string& name)
 {
   int32_t dimId;
 
@@ -4921,7 +4921,7 @@ bool CNetCDFFiles::DimExists
 //----------------------------------------
 
 uint32_t CNetCDFFiles::GetDimension
-		(const string		&name)
+		(const std::string		&name)
 {
   MustBeOpened();
   int dimId = GetDimId(name);
@@ -4940,7 +4940,7 @@ uint32_t CNetCDFFiles::GetDimension
 }
 //----------------------------------------
 void CNetCDFFiles::GetVariables
-		(vector<string>		&VarNames)
+		(std::vector<std::string>		&VarNames)
 {
   int NbVars;
   char Name[NC_MAX_NAME+1];
@@ -4958,7 +4958,7 @@ void CNetCDFFiles::GetVariables
 //----------------------------------------
 
 void CNetCDFFiles::GetAxisVars
-		(vector<string>		&VarNames)
+		(std::vector<std::string>		&VarNames)
 {
   int NbVars;
   int Index;
@@ -4975,7 +4975,7 @@ void CNetCDFFiles::GetAxisVars
 //----------------------------------------
 
 void CNetCDFFiles::GetAxisVars
-		(vector<int>		&VarIds)
+		(std::vector<int>		&VarIds)
 {
   int NbVars;
   int Index;
@@ -4992,7 +4992,7 @@ void CNetCDFFiles::GetAxisVars
 //----------------------------------------
 
 void CNetCDFFiles::GetDataVars
-		(vector<string> &VarNames)
+		(std::vector<std::string> &VarNames)
 {
   int NbVars;
   int Index;
@@ -5009,7 +5009,7 @@ void CNetCDFFiles::GetDataVars
 //----------------------------------------
 
 void CNetCDFFiles::GetDataVars
-		(vector<int> &VarIds)
+		(std::vector<int> &VarIds)
 {
   int NbVars;
   int Index;
@@ -5026,7 +5026,7 @@ void CNetCDFFiles::GetDataVars
 //----------------------------------------
 
 bool CNetCDFFiles::VarExists
-		(const string		&Name)
+		(const std::string		&Name)
 {
   int varId;
   int Check;
@@ -5188,7 +5188,7 @@ void CNetCDFFiles::WriteDimension(CNetCDFDimension* netCDFDim)
     length = NC_UNLIMITED;
   }
 
-  string name = netCDFDim->GetName();
+  std::string name = netCDFDim->GetName();
   
   int32_t dimId = GetDimId(name, false);
 
@@ -5214,22 +5214,22 @@ void CNetCDFFiles::WriteDimension(CNetCDFDimension* netCDFDim)
 //----------------------------------------
 int CNetCDFFiles::SetDimension
                     (NetCDFVarKind dimKind,
-		                 const string	&dimName,
+		                 const std::string	&dimName,
 		                 int32_t value,
 		                 const CExpressionValue	&dimValue,
-		                 const string	&units,
-		                 const string	&longName,
-                     const string &comment /* = ""*/,
+		                 const std::string	&units,
+		                 const std::string	&longName,
+                     const std::string &comment /* = ""*/,
                      double	validMin /* = CTools::m_defaultValueDOUBLE */,
 		                 double	validMax /* = CTools::m_defaultValueDOUBLE */)
 {
-  string	actualName	= dimName;
+  std::string	actualName	= dimName;
   int		varId;
   
   CNetCDFCoordinateAxis var(dimKind);
 
-  string	dimType = var.GetDimType();
-  string	axis = var.GetAxis();
+  std::string	dimType = var.GetDimType();
+  std::string	axis = var.GetAxis();
 
 
   MustBeOpened();
@@ -5272,7 +5272,7 @@ int CNetCDFFiles::SetDimension
 				                              (long)wantedLength));
       
       CUnit unit = CUnit::ToUnit(units);
-      string strUnit = unit.AsString(false, true);
+      std::string strUnit = unit.AsString(false, true);
 
       varId	= AddVar(actualName, NC_DOUBLE, strUnit, longName, comment, dimId, -1, -1, -1, validMin, validMax);
 
@@ -5339,7 +5339,7 @@ int CNetCDFFiles::SetDimension
 //----------------------------------------
 
 void CNetCDFFiles::WriteVar
-		(const string		&Name,
+		(const std::string		&Name,
 		 const CExpressionValue	&value)
 {
   int		varId		= GetVarId(Name);
@@ -5406,7 +5406,7 @@ void CNetCDFFiles::WriteVar
 
 //----------------------------------------
 
-void CNetCDFFiles::ReadVar(const string& name, CDoubleArray& array, const string& wantedUnit)
+void CNetCDFFiles::ReadVar(const std::string& name, CDoubleArray& array, const std::string& wantedUnit)
 {
 
   CExpressionValue varValue;
@@ -5419,7 +5419,7 @@ void CNetCDFFiles::ReadVar(const string& name, CDoubleArray& array, const string
 
 //----------------------------------------
 
-void CNetCDFFiles::ReadVar(const string& name, CExpressionValue	&exprValue, const string& WantedUnit)
+void CNetCDFFiles::ReadVar(const std::string& name, CExpressionValue	&exprValue, const std::string& WantedUnit)
 {
   ExpressionValueDimensions	Dimensions;
 
@@ -5444,8 +5444,8 @@ void CNetCDFFiles::ReadVar(const string& name, CExpressionValue	&exprValue, cons
 }
 
 //----------------------------------------
-void CNetCDFFiles::ReadVar(const string& name, uint32_t	nbDimensions, uint32_t *start, uint32_t	*count, double *value,
-                      		 const string& wantedUnit)
+void CNetCDFFiles::ReadVar(const std::string& name, uint32_t	nbDimensions, uint32_t *start, uint32_t	*count, double *value,
+                      		 const std::string& wantedUnit)
 {
   int				varId;
   uint32_t			nbValues;
@@ -5510,7 +5510,7 @@ void CNetCDFFiles::ReadVar(const string& name, uint32_t	nbDimensions, uint32_t *
 }
 
 //----------------------------------------
-void CNetCDFFiles::ReadVar(CFieldNetCdf* field, double& value, const string& wantedUnit)
+void CNetCDFFiles::ReadVar(CFieldNetCdf* field, double& value, const std::string& wantedUnit)
 {
   if (field == NULL)
   {
@@ -5587,12 +5587,12 @@ void CNetCDFFiles::ReadVar(CFieldNetCdf* field, double& value, const string& wan
 }
 
 //----------------------------------------
-void CNetCDFFiles::ReadVar(CFieldNetCdf* field, const string& wantedUnit)
+void CNetCDFFiles::ReadVar(CFieldNetCdf* field, const std::string& wantedUnit)
 {
   ReadVar(field, field->GetValues(), wantedUnit);
 }
 //----------------------------------------
-void CNetCDFFiles::ReadVar(CFieldNetCdf* field, CDoubleArray& values, const string& wantedUnit)
+void CNetCDFFiles::ReadVar(CFieldNetCdf* field, CDoubleArray& values, const std::string& wantedUnit)
 {
   values.RemoveAll();
   CExpressionValue exprValue;
@@ -5603,7 +5603,7 @@ void CNetCDFFiles::ReadVar(CFieldNetCdf* field, CDoubleArray& values, const stri
 
 }
 //----------------------------------------
-void CNetCDFFiles::ReadVar(CFieldNetCdf* field, CExpressionValue& exprValue, const string& wantedUnit)
+void CNetCDFFiles::ReadVar(CFieldNetCdf* field, CExpressionValue& exprValue, const std::string& wantedUnit)
 {
   if (field == NULL)
   {
@@ -5692,7 +5692,7 @@ void CNetCDFFiles::ReadVar(CFieldNetCdf* field, CExpressionValue& exprValue, con
 }
 
 //----------------------------------------
-void CNetCDFFiles::ReadEntireVar(CNetCDFVarDef* netCDFVarDef, CDoubleArray& array, const string& wantedUnit)
+void CNetCDFFiles::ReadEntireVar(CNetCDFVarDef* netCDFVarDef, CDoubleArray& array, const std::string& wantedUnit)
 {
 
   if (netCDFVarDef == NULL)
@@ -5763,7 +5763,7 @@ void CNetCDFFiles::ReadEntireVar(CNetCDFVarDef* netCDFVarDef, CDoubleArray& arra
 
 }
 //----------------------------------------
-void CNetCDFFiles::ReadEntireVar(CNetCDFDimension* netCDFDimension, CDoubleArray& array, const string& wantedUnit)
+void CNetCDFFiles::ReadEntireVar(CNetCDFDimension* netCDFDimension, CDoubleArray& array, const std::string& wantedUnit)
 {
 
   if (netCDFDimension == NULL)
@@ -5780,7 +5780,7 @@ void CNetCDFFiles::ReadEntireVar(CNetCDFDimension* netCDFDimension, CDoubleArray
 
 
 bool CNetCDFFiles::IsVarNameValid
-		(const string	&Name)
+		(const std::string	&Name)
 {
   if (Name.size() == 0)
     return false;
@@ -5821,7 +5821,7 @@ void CNetCDFFiles::SetDataMode
 
 //----------------------------------------
 
-int CNetCDFFiles::GetVarId(const string	&name, bool	global /*= false*/, bool withExcept /* = true */)
+int CNetCDFFiles::GetVarId(const std::string	&name, bool	global /*= false*/, bool withExcept /* = true */)
 {
   int varId;
   MustBeOpened();
@@ -5851,7 +5851,7 @@ int CNetCDFFiles::GetVarId(const string	&name, bool	global /*= false*/, bool wit
 
 
 //----------------------------------------
-int CNetCDFFiles::GetDimId(const string& name, bool withExcept /* = true */)
+int CNetCDFFiles::GetDimId(const std::string& name, bool withExcept /* = true */)
 {
   int dimId = -1;
 
@@ -5871,7 +5871,7 @@ int CNetCDFFiles::GetDimId(const string& name, bool withExcept /* = true */)
 
 //----------------------------------------
 
-string CNetCDFFiles::GetDimName
+std::string CNetCDFFiles::GetDimName
 		(int		dimId)
 {
   char dimName[NC_MAX_NAME+1];
@@ -5881,7 +5881,7 @@ string CNetCDFFiles::GetDimName
 }
 //----------------------------------------
 
-string CNetCDFFiles::GetVarName
+std::string CNetCDFFiles::GetVarName
 		(int		varId)
 {
   char VarName[NC_MAX_NAME+1];
@@ -5893,14 +5893,14 @@ string CNetCDFFiles::GetVarName
 //----------------------------------------
 
 int CNetCDFFiles::GetVarNbDims
-		(const string			&Name)
+		(const std::string			&Name)
 {
   return GetVarNbDims(GetVarId(Name));
 }
 //----------------------------------------
 
 void CNetCDFFiles::GetVarDims
-		(const string			&Name,
+		(const std::string			&Name,
 		 ExpressionValueDimensions	&Dimensions)
 {
   GetVarDims(GetVarId(Name), Dimensions);
@@ -5908,8 +5908,8 @@ void CNetCDFFiles::GetVarDims
 //----------------------------------------
 
 void CNetCDFFiles::GetVarDims
-		(const string			&Name,
-		 vector<string>			&Dimensions)
+		(const std::string			&Name,
+		 std::vector<std::string>			&Dimensions)
 {
   GetVarDims(GetVarId(Name), Dimensions);
 }
@@ -5954,7 +5954,7 @@ void CNetCDFFiles::GetVarDims
 
 void CNetCDFFiles::GetVarDims
 		(int				varId,
-		 vector<string>			&Dimensions)
+		 std::vector<std::string>			&Dimensions)
 {
   int		DimIds[NC_MAX_VAR_DIMS];
   char		dimName[NC_MAX_NAME+1];
@@ -5979,7 +5979,7 @@ void CNetCDFFiles::GetVarDims
 //----------------------------------------
 
 void CNetCDFFiles::GetVarDimIds
-		(const string	&name,
+		(const std::string	&name,
 		 CIntArray& dimIds)
 {
   GetVarDimIds(GetVarId(name), dimIds);
@@ -6092,7 +6092,7 @@ double CNetCDFFiles::GetDefValue(nc_type VarType)
   return 0.0; // Never reached but avoids compiler complaint.
 }
 //----------------------------------------
-nc_type CNetCDFFiles::GetVarType(const string &name)
+nc_type CNetCDFFiles::GetVarType(const std::string &name)
 {
   return GetVarType(GetVarId(name));
 }
@@ -6108,14 +6108,14 @@ nc_type CNetCDFFiles::GetVarType(int varId)
 }
 
 //----------------------------------------
-string CNetCDFFiles::GetVarTypeName(const string &name)
+std::string CNetCDFFiles::GetVarTypeName(const std::string &name)
 {
   return GetVarTypeName(GetVarId(name));
 }
 //----------------------------------------
-string CNetCDFFiles::GetTypeAsString(int varType)
+std::string CNetCDFFiles::GetTypeAsString(int varType)
 {
-  string	result;
+  std::string	result;
   switch (varType)
   {
     case NC_NAT:	result	= NC_NAT_NAME;	  break;
@@ -6141,7 +6141,7 @@ string CNetCDFFiles::GetTypeAsString(int varType)
   return result;
 }
 //----------------------------------------
-string CNetCDFFiles::GetVarTypeName(int varId)
+std::string CNetCDFFiles::GetVarTypeName(int varId)
 {
   nc_type varType = NC_NAT;
   
@@ -6166,17 +6166,17 @@ string CNetCDFFiles::GetVarTypeName(int varId)
 }
 
 //----------------------------------------
-nc_type CNetCDFFiles::GetAttributeType(const string& attName)
+nc_type CNetCDFFiles::GetAttributeType(const std::string& attName)
 {
   return GetAttributeType(NC_GLOBAL, attName);
 }
 //----------------------------------------
-nc_type CNetCDFFiles::GetAttributeType(const string& varName, const string& attName)
+nc_type CNetCDFFiles::GetAttributeType(const std::string& varName, const std::string& attName)
 {
   return GetAttributeType(GetVarId(varName), attName);
 }
 //----------------------------------------
-CNetCDFAttr* CNetCDFFiles::GetNetCDFGlobalAttribute(const string& name, bool withExcept /*= false*/)
+CNetCDFAttr* CNetCDFFiles::GetNetCDFGlobalAttribute(const std::string& name, bool withExcept /*= false*/)
 {
   return CNetCDFAttr::GetNetCDFAttr(m_mapNetCDFGlobalAttrs.Exists(name), withExcept);
 }
@@ -6210,7 +6210,7 @@ CNetCDFAttr* CNetCDFFiles::AddNetCDFGlobalAttributes(CNetCDFAttr* attr)
 }
 
 //----------------------------------------
-nc_type CNetCDFFiles::GetAttributeType(int varId, const string& attName)
+nc_type CNetCDFFiles::GetAttributeType(int varId, const std::string& attName)
 {
   nc_type attType = NC_NAT;
   CheckNetcdfError(nc_inq_atttype(m_file,
@@ -6220,7 +6220,7 @@ nc_type CNetCDFFiles::GetAttributeType(int varId, const string& attName)
   return attType;
 }
 //----------------------------------------
-CNetCDFVarDef* CNetCDFFiles::GetNetCDFVarDef(const string& name, bool withExcept /*= false*/)
+CNetCDFVarDef* CNetCDFFiles::GetNetCDFVarDef(const std::string& name, bool withExcept /*= false*/)
 {
   return CNetCDFVarDef::GetNetCDFVarDef(m_mapNetCDFVarDefs.Exists(name), withExcept);
 }
@@ -6311,14 +6311,14 @@ void CNetCDFFiles::SetNetCDFDims(const CStringArray* dimNames, const CUIntArray*
   }
 }
 //----------------------------------------
-bool CNetCDFFiles::HaveEqualDimNames(const string& v1, const CStringArray& v2, string* msg /*= NULL*/)
+bool CNetCDFFiles::HaveEqualDimNames(const std::string& v1, const CStringArray& v2, std::string* msg /*= NULL*/)
 { 
   CStringArray v1Array;
   v1Array.Insert(v1);
   return HaveEqualDimNames(v1Array, v2);
 }
 //----------------------------------------
-bool CNetCDFFiles::HaveEqualDimNames(const CStringArray& v1, const CStringArray& v2, string* msg /*= NULL*/)
+bool CNetCDFFiles::HaveEqualDimNames(const CStringArray& v1, const CStringArray& v2, std::string* msg /*= NULL*/)
 { 
   uint32_t iv1 = 0;
   uint32_t iv2 = 0;
@@ -6346,7 +6346,7 @@ bool CNetCDFFiles::HaveEqualDimNames(const CStringArray& v1, const CStringArray&
   return bOk;
 }
 //----------------------------------------
-bool CNetCDFFiles::HaveEqualDimNames(const string& v1, const string& v2, string* msg /*= NULL*/)
+bool CNetCDFFiles::HaveEqualDimNames(const std::string& v1, const std::string& v2, std::string* msg /*= NULL*/)
 { 
   CNetCDFVarDef* v1Def = this->GetNetCDFVarDef(v1);
   CNetCDFVarDef* v2Def = this->GetNetCDFVarDef(v2);
@@ -6358,7 +6358,7 @@ bool CNetCDFFiles::HaveEqualDimNames(const string& v1, const string& v2, string*
   return HaveEqualDimNames(v1Def, v2Def, msg);
 }
 //----------------------------------------
-bool CNetCDFFiles::HaveEqualDimNames(CNetCDFVarDef* v1, CNetCDFVarDef* v2, string* msg /*= NULL*/)
+bool CNetCDFFiles::HaveEqualDimNames(CNetCDFVarDef* v1, CNetCDFVarDef* v2, std::string* msg /*= NULL*/)
 {
   return v1->HaveEqualDimNames(v2, msg);
 }
@@ -6406,7 +6406,7 @@ uint32_t CNetCDFFiles::GetMaxFieldNumberOfDims(const CStringArray* fieldNames /*
   return max;
 }
 //----------------------------------------
-void CNetCDFFiles::AddCoordinateVariable(const CStringArray* dimNames, const string& varName)
+void CNetCDFFiles::AddCoordinateVariable(const CStringArray* dimNames, const std::string& varName)
 {
   if (dimNames == NULL)
   {
@@ -6416,7 +6416,7 @@ void CNetCDFFiles::AddCoordinateVariable(const CStringArray* dimNames, const str
   AddCoordinateVariable(*dimNames, varName);
 }
 //----------------------------------------
-void CNetCDFFiles::AddCoordinateVariable(const CStringArray& dimNames, const string& varName)
+void CNetCDFFiles::AddCoordinateVariable(const CStringArray& dimNames, const std::string& varName)
 {
 
   CStringArray::const_iterator it;
@@ -6436,11 +6436,11 @@ void CNetCDFFiles::AddCoordinateVariable(const CStringArray& dimNames, const str
 
 //----------------------------------------
 int CNetCDFFiles::AddVar
-		(const string	&VarName,
+		(const std::string	&VarName,
 		       nc_type	VarType,
-		 const string	&units,
-		 const string	&longName,
-		 const string	&comment /* = "" */,
+		 const std::string	&units,
+		 const std::string	&longName,
+		 const std::string	&comment /* = "" */,
 		       int	Dim1Id	/*= -1*/,
 		       int	Dim2Id	/*= -1*/,
 		       int	Dim3Id	/*= -1*/,
@@ -6490,8 +6490,8 @@ int CNetCDFFiles::AddVar
 //----------------------------------------
 
 void CNetCDFFiles::DelAtt
-		(const string	&VarName,
-		 const string	&AttName)
+		(const std::string	&VarName,
+		 const std::string	&AttName)
 {
   DelAtt(GetVarId(VarName, true), AttName);
 }
@@ -6499,7 +6499,7 @@ void CNetCDFFiles::DelAtt
 
 void CNetCDFFiles::DelAtt
 		(int		varId,
-		 const string	&AttName)
+		 const std::string	&AttName)
 {
   MustBeOpened();
   SetDefineMode();
@@ -6513,9 +6513,9 @@ void CNetCDFFiles::DelAtt
 //----------------------------------------
 
 void CNetCDFFiles::PutAtt
-		(const string	&VarName,
-		 const string	&AttName,
-		 const string	&AttValue)
+		(const std::string	&VarName,
+		 const std::string	&AttName,
+		 const std::string	&AttValue)
 {
   PutAtt(GetVarId(VarName, true), AttName, AttValue);
 }
@@ -6523,8 +6523,8 @@ void CNetCDFFiles::PutAtt
 
 void CNetCDFFiles::PutAtt
 		(int		varId,
-		 const string	&AttName,
-		 const string	&AttValue)
+		 const std::string	&AttName,
+		 const std::string	&AttValue)
 {
   MustBeOpened();
   SetDefineMode();
@@ -6540,8 +6540,8 @@ void CNetCDFFiles::PutAtt
 //----------------------------------------
 
 void CNetCDFFiles::PutAtt
-		(const string	&VarName,
-		 const string	&AttName,
+		(const std::string	&VarName,
+		 const std::string	&AttName,
 		       double	AttValue,
 		       nc_type	AttType		/*= NC_DOUBLE*/)
 {
@@ -6551,7 +6551,7 @@ void CNetCDFFiles::PutAtt
 
 void CNetCDFFiles::PutAtt
 		(int		varId,
-		 const string	&AttName,
+		 const std::string	&AttName,
 		       double	AttValue,
 		       nc_type	AttType		/*= NC_DOUBLE*/)
 {
@@ -6567,11 +6567,11 @@ void CNetCDFFiles::PutAtt
 //----------------------------------------
 
 int CNetCDFFiles::GetAtt
-		(const string	&VarName,
-		 const string	&AttName,
-		       string	&AttValue,
+		(const std::string	&VarName,
+		 const std::string	&AttName,
+		       std::string	&AttValue,
 		       bool	MustExist	/*= true*/,
-		 const string	Default		/*= ""*/)
+		 const std::string	Default		/*= ""*/)
 {
   return GetAtt(GetVarId(VarName, true), AttName, AttValue, MustExist, Default);
 }
@@ -6579,10 +6579,10 @@ int CNetCDFFiles::GetAtt
 
 int CNetCDFFiles::GetAtt
 		(int		varId,
-		 const string	&AttName,
-		       string	&AttValue,
+		 const std::string	&AttName,
+		       std::string	&AttValue,
 		       bool	MustExist	/*= true*/,
-		 const string	Default		/*= ""*/)
+		 const std::string	Default		/*= ""*/)
 {
   MustBeOpened();
 
@@ -6605,7 +6605,7 @@ int CNetCDFFiles::GetAtt
   }
   if (Type != NC_CHAR)
   {
-    throw CFileException(CTools::Format("Attribute '%s' of var #%d is not a string: type = %d",
+    throw CFileException(CTools::Format("Attribute '%s' of var #%d is not a std::string: type = %d",
 					AttName.c_str(),
 					varId,
 					Type),
@@ -6616,7 +6616,7 @@ int CNetCDFFiles::GetAtt
   char* AttStr = new char[Length+1];
   CheckNetcdfError(nc_get_att_text(m_file, varId, AttName.c_str(), AttStr));
   // Ensure that \0 is at the end and remove all trailing blanks
-  // (string attributes can be fortran strings)
+  // (std::string attributes can be fortran strings)
   AttStr[Length]	= '\0';
   while ((Length > 0) && (AttStr[Length-1] == ' '))
     AttStr[--Length] = '\0';
@@ -6629,8 +6629,8 @@ int CNetCDFFiles::GetAtt
 //----------------------------------------
 
 int CNetCDFFiles::GetAtt
-		(const string	&VarName,
-		 const string	&AttName,
+		(const std::string	&VarName,
+		 const std::string	&AttName,
 		       double	&AttValue,
 		       bool	MustExist	/*= true*/,
 		       double   Default		/*= CTools::m_defaultValueDOUBLE*/)
@@ -6641,7 +6641,7 @@ int CNetCDFFiles::GetAtt
 
 int CNetCDFFiles::GetAtt
 		(int		varId,
-		 const string	&AttName,
+		 const std::string	&AttName,
 		       double	&AttValue,
 		       bool	MustExist	/*= true*/,
 		       double   Default		/*= CTools::m_defaultValueDOUBLE*/)
@@ -6669,7 +6669,7 @@ int CNetCDFFiles::GetAtt
   }
   if (Type == NC_CHAR)
   {
-    throw CFileException(CTools::Format("Attribute '%s' of var #%d is a string, not a number",
+    throw CFileException(CTools::Format("Attribute '%s' of var #%d is a std::string, not a number",
 					AttName.c_str(),
 					varId),
 			 m_fileName,
@@ -6689,13 +6689,13 @@ int CNetCDFFiles::GetAtt
 }
 
 //----------------------------------------
-int CNetCDFFiles::GetAttributeInfo(const string	&varName, const string&  attName, nc_type&	type, size_t&	length, bool mustExist /*= true*/)
+int CNetCDFFiles::GetAttributeInfo(const std::string	&varName, const std::string&  attName, nc_type&	type, size_t&	length, bool mustExist /*= true*/)
 {
   return GetAttributeInfo(GetVarId(varName, true), attName, type, length, mustExist);
 }
 
 //----------------------------------------
-int CNetCDFFiles::GetAttributeInfo(int varId, const string&  attName, nc_type& type, size_t&	length, bool mustExist /*= true*/)
+int CNetCDFFiles::GetAttributeInfo(int varId, const std::string&  attName, nc_type& type, size_t&	length, bool mustExist /*= true*/)
 {
   int status = nc_inq_att(m_file, varId, attName.c_str(), &type, &length);
   if (status != NC_NOERR)
@@ -6712,7 +6712,7 @@ int CNetCDFFiles::GetAttributeInfo(int varId, const string&  attName, nc_type& t
 //----------------------------------------
 
 int CNetCDFFiles::GetGlobalAttributeAsDouble
-		(const string	&attName,
+		(const std::string	&attName,
 		       double	&attValue,
 		       bool	mustExist	/*= true*/,
 		       double   defaultValue	/*= CTools::m_defaultValueDOUBLE*/)
@@ -6723,8 +6723,8 @@ int CNetCDFFiles::GetGlobalAttributeAsDouble
 //----------------------------------------
 
 int CNetCDFFiles::GetAttributeAsDouble
-		(const string	&varName,
-		 const string	&attName,
+		(const std::string	&varName,
+		 const std::string	&attName,
 		       double	&attValue,
 		       bool	mustExist	/*= true*/,
 		       double   defaultValue	/*= CTools::m_defaultValueDOUBLE*/)
@@ -6735,7 +6735,7 @@ int CNetCDFFiles::GetAttributeAsDouble
 
 int CNetCDFFiles::GetAttributeAsDouble
 		(int		varId,
-		 const string	&attName,
+		 const std::string	&attName,
 		       double	&attValue,
 		       bool	mustExist	/*= true*/,
 		       double   defaultValue	/*= CTools::m_defaultValueDOUBLE*/)
@@ -6783,21 +6783,21 @@ int CNetCDFFiles::GetAttributeAsDouble
 //----------------------------------------
 
 int CNetCDFFiles::GetGlobalAttributeAsString
-		(const string	&attName,
-		       string	&attValue,
+		(const std::string	&attName,
+		       std::string	&attValue,
 		       bool	mustExist	/*= true*/,
-		       string   defaultValue	/*= ""*/)
+		       std::string   defaultValue	/*= ""*/)
 {
   return GetAttributeAsString(NC_GLOBAL, attName, attValue, mustExist, defaultValue);
 }
 
 //----------------------------------------
 int CNetCDFFiles::GetAttributeAsString
-		(const string	&varName,
-		 const string&	attName,
-		       string&	attValue,
+		(const std::string	&varName,
+		 const std::string&	attName,
+		       std::string&	attValue,
 		       bool	mustExist	/*= true*/,
-		 const string&	defaultValue		/*= ""*/)
+		 const std::string&	defaultValue		/*= ""*/)
 {
   return GetAttributeAsString(GetVarId(varName, true), attName, attValue, mustExist, defaultValue);
 }
@@ -6805,17 +6805,17 @@ int CNetCDFFiles::GetAttributeAsString
 //----------------------------------------
 int CNetCDFFiles::GetAttributeAsString
 		(int		varId,
-		 const string&	attName,
-		       string&	attValue,
+		 const std::string&	attName,
+		       std::string&	attValue,
 		       bool	mustExist	/*= true*/,
-		 const string&	defaultValue		/*= ""*/)
+		 const std::string&	defaultValue		/*= ""*/)
 {
   MustBeOpened();
 
   nc_type	type;
   size_t	length;
   size_t i = 0;
-  string tmp;
+  std::string tmp;
 
   int status = GetAttributeInfo(varId, attName, type, length, mustExist);
 
@@ -6933,7 +6933,7 @@ int CNetCDFFiles::GetAttributeAsString
 //----------------------------------------
 
 void CNetCDFFiles::GetAttributes
-		(const string&  varName,
+		(const std::string&  varName,
 		 CStringMap&	mapAttributes)
 {
   GetAttributes(GetVarId(varName, true), mapAttributes);
@@ -6941,7 +6941,7 @@ void CNetCDFFiles::GetAttributes
 
 //----------------------------------------
 void CNetCDFFiles::GetAttributes
-		(const string&  varName,
+		(const std::string&  varName,
 		 CDoubleMap&	mapAttributes)
 {
   GetAttributes(GetVarId(varName, true), mapAttributes);
@@ -6969,7 +6969,7 @@ void CNetCDFFiles::GetAttributes
     attName[NC_MAX_NAME] = '\0';
     CTools::Trim(attName);
     
-    string attValue;
+    std::string attValue;
     status = GetAttributeAsString(varId, attName, attValue, true, "value not found");
     if (status == NC_NOERR)
     {
@@ -7018,7 +7018,7 @@ void CNetCDFFiles::GetAttributes
 
 //----------------------------------------
 CUnit CNetCDFFiles::GetUnit
-		(const string			&Name)
+		(const std::string			&Name)
 {
   return GetUnit(GetVarId(Name));
 }
@@ -7028,18 +7028,18 @@ CUnit CNetCDFFiles::GetUnit
 CUnit CNetCDFFiles::GetUnit
 		(int				varId)
 {
-  string	UnitStr;
+  std::string	UnitStr;
   GetAtt(varId, UNITS_ATTR, UnitStr, false, "count");
   return CUnit(UnitStr);
 }
 
 //----------------------------------------
 
-string CNetCDFFiles::GetTitle
-		(const string			&Name)
+std::string CNetCDFFiles::GetTitle
+		(const std::string			&Name)
 {
   int Id;
-  string	Result;
+  std::string	Result;
   Id	= GetVarId(Name, true);
   if (Id == NC_GLOBAL)
     GetAtt(Id, FILE_TITLE_ATTR, Result, false);
@@ -7052,7 +7052,7 @@ string CNetCDFFiles::GetTitle
 
 void CNetCDFFiles::CheckNetcdfError
 		(int		Error,
-		 const string	&Message)
+		 const std::string	&Message)
 {
   if (Error != NC_NOERR)
   {
@@ -7068,7 +7068,7 @@ void CNetCDFFiles::CheckNetcdfError
 
 void CNetCDFFiles::HandleNetcdfError
 		(int32_t status,
-		 const string& message)
+		 const std::string& message)
 {
   if (status != NC_NOERR)
   {
@@ -7082,9 +7082,9 @@ void CNetCDFFiles::HandleNetcdfError
 //----------------------------------------
 
 NetCDFVarKind CNetCDFFiles::StringToVarKind
-		(const string	&Name)
+		(const std::string	&Name)
 {
-  string UpcaseName	= CTools::StringToUpper(Name);
+  std::string UpcaseName	= CTools::StringToUpper(Name);
   if (UpcaseName == "X")		return X;
   if (UpcaseName == "Y")		return Y;
   if (UpcaseName == "Z")		return Z;
@@ -7100,7 +7100,7 @@ NetCDFVarKind CNetCDFFiles::StringToVarKind
 
 //----------------------------------------
 
-string CNetCDFFiles::VarKindToString
+std::string CNetCDFFiles::VarKindToString
 		(NetCDFVarKind	VarKind)
 {
   switch (VarKind)
@@ -7123,7 +7123,7 @@ string CNetCDFFiles::VarKindToString
 //----------------------------------------
 
 NetCDFVarKind CNetCDFFiles::GetVarKind
-		(const string		&Name)
+		(const std::string		&Name)
 {
   if (VarExists(Name))
   {
@@ -7134,7 +7134,7 @@ NetCDFVarKind CNetCDFFiles::GetVarKind
 //----------------------------------------
 NetCDFVarKind CNetCDFFiles::GetVarKind(int varId)
 {
-  string	attVal;
+  std::string	attVal;
 
   if (! IsAxisVar(varId))
   {
@@ -7159,14 +7159,14 @@ NetCDFVarKind CNetCDFFiles::GetVarKind(int varId)
     return axisType;
   }
   
-  string name = GetVarName(varId); 
+  std::string name = GetVarName(varId); 
   axisType	= GetVarKindFromStringValue(name);
 
   return axisType;
 
 }
 //----------------------------------------
-NetCDFVarKind CNetCDFFiles::GetVarKindFromStringValue(const string& value)
+NetCDFVarKind CNetCDFFiles::GetVarKindFromStringValue(const std::string& value)
 {
   NetCDFVarKind	axisType = Unknown;
 
@@ -7202,7 +7202,7 @@ NetCDFVarKind CNetCDFFiles::GetVarKindFromStringValue(const string& value)
   return axisType;
 }
 //----------------------------------------
-bool CNetCDFFiles::IsCandidateForLatitude(const string& name)
+bool CNetCDFFiles::IsCandidateForLatitude(const std::string& name)
 {
   bool candidate = false;
 
@@ -7220,7 +7220,7 @@ bool CNetCDFFiles::IsCandidateForLatitude(const string& name)
 
 }
 //----------------------------------------
-bool CNetCDFFiles::IsCandidateForLongitude(const string& name)
+bool CNetCDFFiles::IsCandidateForLongitude(const std::string& name)
 {
   bool candidate = false;
 
@@ -7237,7 +7237,7 @@ bool CNetCDFFiles::IsCandidateForLongitude(const string& name)
   return candidate;
 }
 //----------------------------------------
-bool CNetCDFFiles::IsCandidateForTime(const string& name)
+bool CNetCDFFiles::IsCandidateForTime(const std::string& name)
 {
   bool candidate = false;
 
@@ -7290,7 +7290,7 @@ CNetCDFCoordinateAxis* CNetCDFFiles::WhichCoordAxis(NetCDFVarKind varKind, CObMa
   return coordAxis;
 }
 //----------------------------------------
-CNetCDFCoordinateAxis* CNetCDFFiles::WhichCoordAxis(NetCDFVarKind varKind, const string& varName)
+CNetCDFCoordinateAxis* CNetCDFFiles::WhichCoordAxis(NetCDFVarKind varKind, const std::string& varName)
 {
   CObMap coordAxes;
   
@@ -7326,13 +7326,13 @@ void CNetCDFFiles::ApplyUnitAndFactorsToDataRead
 		(double		*Data,
 		 uint32_t	NbData,
 		 int		varId,
-		 const string	&WantedUnit)
+		 const std::string	&WantedUnit)
 {
   
   double ScaleFactor = GetNetcdfVarScaleFactor(varId);
   double AddOffset = GetNetcdfVarAddOffset(varId);
 
-  string UnitStr;
+  std::string UnitStr;
   GetAtt(varId, UNITS_ATTR, UnitStr, false, "");
 
   CUnit	Unit	= UnitStr;
@@ -7373,14 +7373,14 @@ bool CNetCDFFiles::IsGeographic()
 void CNetCDFFiles::ApplyUnitAndFactorsToDataRead
 		(CDoubleArray& array,
 		 int		varId,
-		 const string& wantedUnit)
+		 const std::string& wantedUnit)
 {
   CUnit	unit;
   double scaleFactor = GetNetcdfVarScaleFactor(varId);
   double addOffset = GetNetcdfVarAddOffset(varId);
   if (wantedUnit != "")
   {
-    string unitStr;
+    std::string unitStr;
     GetAtt(varId, UNITS_ATTR, unitStr, false, "");
 
     if (unitStr != "")
@@ -7411,31 +7411,31 @@ void CNetCDFFiles::ApplyUnitAndFactorsToDataRead
   */
 
 //----------------------------------------
-void CNetCDFFiles::Dump(ostream& fOut /* = cerr */)
+void CNetCDFFiles::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
-  fOut << "==> Dump a CNetCDFFiles Object at "<< this << endl;
-  fOut << "m_file "<< m_file << endl;
-  fOut << "m_fileName "<< m_fileName << endl;
-  fOut << "m_fileMode "<< m_fileMode << endl;
+  fOut << "==> Dump a CNetCDFFiles Object at "<< this << std::endl;
+  fOut << "m_file "<< m_file << std::endl;
+  fOut << "m_fileName "<< m_fileName << std::endl;
+  fOut << "m_fileMode "<< m_fileMode << std::endl;
   
-  fOut << "m_mapNetCDFDims at "<< &m_mapNetCDFDims << endl;
+  fOut << "m_mapNetCDFDims at "<< &m_mapNetCDFDims << std::endl;
   m_mapNetCDFDims.Dump(fOut);
 
-  fOut << "m_mapNetCDFVarDefs at "<< &m_mapNetCDFVarDefs << endl;
+  fOut << "m_mapNetCDFVarDefs at "<< &m_mapNetCDFVarDefs << std::endl;
   m_mapNetCDFVarDefs.Dump(fOut);
   
-  fOut << "m_nDims "<< m_nDims << endl;
-  fOut << "m_nGlobalAttrs "<< m_nGlobalAttrs << endl;
-  fOut << "m_nVars "<< m_nVars << endl;
-  fOut << "m_unlimitedDimId "<< m_unlimitedDimId << endl;
+  fOut << "m_nDims "<< m_nDims << std::endl;
+  fOut << "m_nGlobalAttrs "<< m_nGlobalAttrs << std::endl;
+  fOut << "m_nVars "<< m_nVars << std::endl;
+  fOut << "m_unlimitedDimId "<< m_unlimitedDimId << std::endl;
 
-  fOut << "==> END Dump a CNetCDFFiles Object at "<< this << endl;
+  fOut << "==> END Dump a CNetCDFFiles Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

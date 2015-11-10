@@ -223,10 +223,10 @@ double CDate::ValueJulian()
 }
 
 //----------------------------------------
-string CDate::AsString(const string& format /*= ""*/, bool withMuSecond /* = false */)
+std::string CDate::AsString(const std::string& format /*= ""*/, bool withMuSecond /* = false */)
 {
   size_t	strSize	= format.length()*10;
-  string	result = "";
+  std::string	result = "";
 
   if (strSize == 0)
   {
@@ -417,7 +417,7 @@ double CDate::CvDate(const char *strDate)
 
   if (result !=  BRATHL_SUCCESS)
   {
-    string msg = CTools::Format("ERROR - CDate::CvDate - Invalid date '%s' ",
+    std::string msg = CTools::Format("ERROR - CDate::CvDate - Invalid date '%s' ",
                                  strDate);
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
     CTrace::Tracer("%s", e.what());
@@ -1792,7 +1792,7 @@ int32_t CDate::DecodeDateDSM(const char *strDateDSM)
 {
   int32_t result = BRATHL_SUCCESS;
 
-  string stringDate = strDateDSM;
+  std::string stringDate = strDateDSM;
 
   if (stringDate.empty())
   {
@@ -1813,7 +1813,7 @@ int32_t CDate::DecodeDateDSM(const char *strDateDSM)
   int32_t	tabResult[3];	// result
   int32_t	value = 0;		// temporary value
   bool		isNumber = false;	// to test if a number is read
-  int32_t	nbValues = 0;	// nb value in the string
+  int32_t	nbValues = 0;	// nb value in the std::string
   double        floatDate = 0.0;
   char		*endPtr = NULL;
 
@@ -1897,7 +1897,7 @@ int32_t CDate::DecodeDateDSM(const char *strDateDSM)
 
   //---------------
   if ((strchr(strDate, '.') != NULL) || (nbValues == 1))
-  {// string has '.' so it's a decimal julian day
+  {// std::string has '.' so it's a decimal julian day
     errno	= 0;
     floatDate	= strtod(strDate, &endPtr);
 
@@ -2005,21 +2005,21 @@ int32_t CDate::DecodeDateDSM(const char *strDateDSM)
 
 //----------------------------------------
 
-void CDate::Dump(ostream& fOut /* = cerr */)
+void CDate::Dump(std::ostream& fOut /* = std::cerr */)
 {
    if (CTrace::IsTrace() == false)
    {
      return;
    }
 
-   fOut << "==> Dump a CDate Object at "<< this << endl;
+   fOut << "==> Dump a CDate Object at "<< this << std::endl;
 
-   fOut << "m_minutes = " << m_minutes << endl;
-   fOut << "m_muSeconds = " << m_muSeconds << endl;
+   fOut << "m_minutes = " << m_minutes << std::endl;
+   fOut << "m_muSeconds = " << m_muSeconds << std::endl;
 
-   fOut << "==> END Dump a CDate Object at "<< this << endl;
+   fOut << "==> END Dump a CDate Object at "<< this << std::endl;
 
-   fOut << endl;
+   fOut << std::endl;
 
 }
 

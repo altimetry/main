@@ -197,7 +197,7 @@ double CBratAlgoFilterLanczos1D::ComputeLanczos()
 #if _DEBUG_BRAT_ALGO    
   CTrace::Tracer(3, "===> WINDOW IS :");
 
-  string str;
+  std::string str;
   for (uint32_t i = 0 ; i < m_dataWindowLength ; i++)
   {
     double value = m_rawDataWindow[i];
@@ -252,16 +252,16 @@ void CBratAlgoFilterLanczos1D::CheckVarExpression(uint32_t index)
 }
 
 //----------------------------------------
-void CBratAlgoFilterLanczos1D::Dump(ostream& fOut /*= cerr*/)
+void CBratAlgoFilterLanczos1D::Dump(std::ostream& fOut /*= std::cerr*/)
 {
    if (CTrace::IsTrace() == false)
    { 
       return;
    }
 
-  fOut << "==> Dump a CBratAlgoFilterLanczos1D Object at "<< this << endl;
+  fOut << "==> Dump a CBratAlgoFilterLanczos1D Object at "<< this << std::endl;
   CBratAlgoFilterLanczos::Dump(fOut);
-  fOut << "==> END Dump a CBratAlgoFilterLanczos1D Object at "<< this << endl;
+  fOut << "==> END Dump a CBratAlgoFilterLanczos1D Object at "<< this << std::endl;
 
 }
 

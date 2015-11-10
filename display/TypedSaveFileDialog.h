@@ -68,7 +68,7 @@ public:
 
 public:
   wxFileName m_fileName;
-  //string m_ext;
+  //std::string m_ext;
 
 private:
 

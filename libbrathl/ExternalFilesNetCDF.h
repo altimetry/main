@@ -20,9 +20,9 @@
 #ifndef _ExternalFilesNetCDF_h_
 #define _ExternalFilesNetCDF_h_
 
-#include <netcdf.h>
+#include "netcdf.h"
 #include "BratObject.h"
-#include "Stl.h"
+#include <string>
 #include "Expression.h"
 #include "ExternalFiles.h"
 #include "List.h"
@@ -53,14 +53,14 @@ class CExternalFilesNetCDF : public CExternalFiles
 {
 public:
   CExternalFilesNetCDF
-		(const string	&Name = "");
+		(const std::string	&Name = "");
 
   virtual ~CExternalFilesNetCDF();
 
-  static string TypeOf() { return "unknown"; };
+  static std::string TypeOf() { return "unknown"; };
 
-  virtual string GetName() const;
-  virtual void SetName(const string	&Name);
+  virtual std::string GetName() const;
+  virtual void SetName(const std::string	&Name);
 
   virtual void SetMode(brathl_FileMode mode);
 
@@ -69,101 +69,101 @@ public:
 
   virtual bool IsOpened()	const;
 
-  virtual bool IsAxisVar (const string& name);
+  virtual bool IsAxisVar (const std::string& name);
 
   virtual int32_t NumberOfRecords ();
 
   virtual void GetFieldNames (CStringArray& names);
 
   // If WantedUnit is "", the returned value is in base (SI) unit.
-  virtual void GetValue(const string& name, CExpressionValue &value, const string	&wantedUnit);
+  virtual void GetValue(const std::string& name, CExpressionValue &value, const std::string	&wantedUnit);
   
   // If WantedUnit is "", the returned value is in base (SI) unit.
-  virtual void GetValue(const string &name, double	&value, const string &wantedUnit);
+  virtual void GetValue(const std::string &name, double	&value, const std::string &wantedUnit);
 
-  virtual void GetAllValues(const string& name, CExpressionValue& value, const string& wantedUnit);
+  virtual void GetAllValues(const std::string& name, CExpressionValue& value, const std::string& wantedUnit);
 
-  virtual void GetAllValues(const string& name, CDoubleArray& vect, const string& wantedUnit);
+  virtual void GetAllValues(const std::string& name, CDoubleArray& vect, const std::string& wantedUnit);
 
-  virtual void GetAllValues(CFieldNetCdf* field, CExpressionValue& value, const string& wantedUnit);
+  virtual void GetAllValues(CFieldNetCdf* field, CExpressionValue& value, const std::string& wantedUnit);
 
-  virtual void GetAllValues(CFieldNetCdf* field, const string& wantedUnit);
+  virtual void GetAllValues(CFieldNetCdf* field, const std::string& wantedUnit);
 
-  virtual void GetValues(const string& name, CExpressionValue &value, const string	&wantedUnit);
+  virtual void GetValues(const std::string& name, CExpressionValue &value, const std::string	&wantedUnit);
 
-  virtual void GetValues(CFieldNetCdf* field,  CExpressionValue &value, const string	&wantedUnit);
+  virtual void GetValues(CFieldNetCdf* field,  CExpressionValue &value, const std::string	&wantedUnit);
 
 
-  void ExecuteExpression(CExpression &expr, CExpressionValue& exprValue, const string& wantedUnit, CProduct* product = NULL);
+  void ExecuteExpression(CExpression &expr, CExpressionValue& exprValue, const std::string& wantedUnit, CProduct* product = NULL);
 
 
   virtual CObMap* GetFields() { return &m_varList; };
 //  virtual CObMap* GetFieldsToRead() { return &m_varListToRead; };
 
-  virtual bool VarExists(const string& name);
+  virtual bool VarExists(const std::string& name);
 
   virtual void AddAttributesAsField(CFieldNetCdf* field = NULL);
 
   virtual void GetVariables (CStringArray& varNames);
 
-  virtual void GetDimensions (const string& varName, CUIntArray& dimensions);
-  virtual void GetDimensions(const string& varName, CStringArray& dimensions);
+  virtual void GetDimensions (const std::string& varName, CUIntArray& dimensions);
+  virtual void GetDimensions(const std::string& varName, CStringArray& dimensions);
 
 
 
 //  virtual CExternalFileFieldDescription* GetFieldDescription
-//		(const string& name);
+//		(const std::string& name);
 
-  CFieldNetCdf* GetFieldNetCdf(const string &name, bool withExcept = true);
+  CFieldNetCdf* GetFieldNetCdf(const std::string &name, bool withExcept = true);
   
-  int32_t GetNetCdfId(const string &name, bool withExcept = true);
+  int32_t GetNetCdfId(const std::string &name, bool withExcept = true);
 
-  nc_type GetVarType(const string &name);
+  nc_type GetVarType(const std::string &name);
 
-  virtual string GetVarTypeName(const string &name);
+  virtual std::string GetVarTypeName(const std::string &name);
 
   CIntMap& GetDimIds() { return m_dimIds; };
   CUIntMap& GetDimValues() { return m_dimValues; };
 
-  CFieldNetCdf* GetVarByAttribute(const string& attrName, const string& attrValueToSearch);
+  CFieldNetCdf* GetVarByAttribute(const std::string& attrName, const std::string& attrValueToSearch);
 
-  // Get global attributes and set them into a string map.
+  // Get global attributes and set them into a std::string map.
   void GetGlobalAttributes(CStringMap& mapAttributes);
   // Get global attributes and set them into a double map.
   void GetGlobalAttributes(CDoubleMap& mapAttributes);
-  // Get global attributes et set them into a string.
-  void GetGlobalAttributes(string& attributes);
+  // Get global attributes et set them into a std::string.
+  void GetGlobalAttributes(std::string& attributes);
 
   int GetGlobalAttribute
-		(const string	&attName,
+		(const std::string	&attName,
 		       double	&attValue,
 		       bool	mustExist	= true,
 		       double   defaultValue	= CTools::m_defaultValueDOUBLE);
 
   int GetGlobalAttribute
-		(const string	&attName,
-		       string	&attValue,
+		(const std::string	&attName,
+		       std::string	&attValue,
 		       bool	mustExist	= true,
-		       string   defaultValue	= "");
+		       std::string   defaultValue	= "");
   
   int GetAttribute
-		(const string	&varName,
-		 const string	&attName,
+		(const std::string	&varName,
+		 const std::string	&attName,
 		       double	&attValue,
 		       bool	mustExist	= true,
 		       double   defaultValue	= CTools::m_defaultValueDOUBLE);
   int GetAttribute
-		(const string	&varName,
-		 const string	&attName,
-		       string	&attValue,
+		(const std::string	&varName,
+		 const std::string	&attName,
+		       std::string	&attValue,
 		       bool	mustExist	= true,
-		       string   defaultValue	= "");
+		       std::string   defaultValue	= "");
 
-  nc_type GetAttributeType(const string& attName);
-  nc_type GetAttributeType(const string& varName, const string& attName);
+  nc_type GetAttributeType(const std::string& attName);
+  nc_type GetAttributeType(const std::string& varName, const std::string& attName);
 
 
-  void GetOrderedDimNames(const string& value, CStringArray& commonDimensionNames);
+  void GetOrderedDimNames(const std::string& value, CStringArray& commonDimensionNames);
   void GetOrderedDimNames(const CExpression& value, CStringArray& commonDimensionNames);
   void GetOrderedDimNames(const CStringArray* fieldNames, CStringArray& commonDimensionNames);
 
@@ -184,14 +184,14 @@ public:
   virtual void SetOffset(double value, bool force = false);
   virtual void AddOffset(double value, bool force = false);
 
-  //virtual void ReadEntireVar(CNetCDFVarDef* netCDFVarDef, CDoubleArray& array, const string& wantedUnit);
-  //virtual void ReadEntireVar(CNetCDFDimension* netCDFDimension, CDoubleArray& array, const string& wantedUnit);
+  //virtual void ReadEntireVar(CNetCDFVarDef* netCDFVarDef, CDoubleArray& array, const std::string& wantedUnit);
+  //virtual void ReadEntireVar(CNetCDFDimension* netCDFDimension, CDoubleArray& array, const std::string& wantedUnit);
 
 protected:
   CNetCDFFiles	m_file;
   uint32_t	m_nbMeasures;
 
-  //map<string, CRegisteredVar>	m_varList;
+  //map<std::string, CRegisteredVar>	m_varList;
   CObMap m_varList;
   //CObMap m_varListToRead;
 
@@ -228,9 +228,9 @@ protected:
   // Add a variable in the variable list
   virtual void AddVar
 		      (int32_t	NetcdfId,
-		       const string	&Name,
-		       const string	&Description,
-		       const string	&Unit,
+		       const std::string	&Name,
+		       const std::string	&Description,
+		       const std::string	&Unit,
            int32_t type = NC_NAT,
            const CUIntArray* dimValues = NULL,
            const CStringArray* dimNames = NULL,
@@ -239,18 +239,18 @@ protected:
 
   virtual void AddVar
 		      (int32_t	netcdfId,
-		       const string	&name,
-		       const string	&description,
-		       const string	&unit,
+		       const std::string	&name,
+		       const std::string	&description,
+		       const std::string	&unit,
            int32_t type,
            uint32_t dimValue,
-           const string dimName, 
+           const std::string dimName, 
            int32_t dimId,
            const CStringMap* mapAttributes = NULL);
 
 
   // Add a variable in the variable list got from description in file
-  virtual void AddVar(const string	&Name);
+  virtual void AddVar(const std::string	&Name);
 
   virtual void AddBratIndexData();
 
@@ -266,11 +266,11 @@ class CExternalFilesNetCDFCF : public CExternalFilesNetCDF
 {
 public:
   CExternalFilesNetCDFCF
-		(const string	&name = "");
+		(const std::string	&name = "");
 
   virtual ~CExternalFilesNetCDFCF();
 
-  static string TypeOf() { return "unknown"; };
+  static std::string TypeOf() { return "unknown"; };
 
   virtual void Rewind ();
 
@@ -294,12 +294,12 @@ class CExternalFilesNetCDFCFGeneric : public CExternalFilesNetCDFCF
 {
 public:
   CExternalFilesNetCDFCFGeneric
-		(const string	&name = "");
+		(const std::string	&name = "");
 
   virtual ~CExternalFilesNetCDFCFGeneric();
 
-  static string TypeOf() { return GENERIC_NETCDF_TYPE; };
-  virtual string GetType() { return TypeOf(); };
+  static std::string TypeOf() { return GENERIC_NETCDF_TYPE; };
+  virtual std::string GetType() { return TypeOf(); };
 
 
 protected:
@@ -313,12 +313,12 @@ class CExternalFilesYFX : public CExternalFilesNetCDFCF
 {
 public:
   CExternalFilesYFX
-		(const string	&name = "");
+		(const std::string	&name = "");
 
   virtual ~CExternalFilesYFX();
 
-  static string TypeOf() { return YFX_NETCDF_TYPE; };
-  virtual string GetType() { return TypeOf(); };
+  static std::string TypeOf() { return YFX_NETCDF_TYPE; };
+  virtual std::string GetType() { return TypeOf(); };
 
 
 protected:
@@ -331,12 +331,12 @@ class CExternalFilesZFXY : public CExternalFilesNetCDFCF
 {
 public:
   CExternalFilesZFXY
-		(const string	&name = "");
+		(const std::string	&name = "");
 
   virtual ~CExternalFilesZFXY();
 
-  static string TypeOf() { return ZFXY_NETCDF_TYPE; };
-  virtual string GetType() { return TypeOf(); };
+  static std::string TypeOf() { return ZFXY_NETCDF_TYPE; };
+  virtual std::string GetType() { return TypeOf(); };
 
 
 protected:

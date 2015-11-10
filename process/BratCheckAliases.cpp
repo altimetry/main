@@ -19,7 +19,7 @@
 */
 #include <cstdio>
 #include <cstdlib>
-#include "Stl.h"
+#include <string>
 #include "Product.h"
 //#include "List.h"
 //#include "Exception.h"
@@ -51,13 +51,13 @@ int main (int argc, char *argv[])
 
   if (argc != 2)
   {
-    cerr << "usage: " << argv[0] << " filename" << endl;
+    std::cerr << "usage: " << argv[0] << " filename" << std::endl;
     return 2;
   }
 
   int32_t result = BRATHL_SUCCESS;
 
-  string msg;
+  std::string msg;
 
   bool bOk = true;
 
@@ -68,37 +68,37 @@ int main (int argc, char *argv[])
 
   if (!CTools::LoadAndCheckUdUnitsSystem(msg))
   {
-    cerr << msg << endl;
+    std::cerr << msg << std::endl;
     return BRATHL_ERROR;
   }
   try
   {
 
-    string fileName = argv[1];
+    std::string fileName = argv[1];
     CStringArray errors;
     CProduct::CheckAliases(fileName, errors);
     CStringArray::const_iterator it;
 
     for (it = errors.begin() ; it != errors.end() ; it++)
     {
-      cout << *it << endl;
+      std::cout << *it << std::endl;
     }
 
     return result;
   }
   catch (CException &e)
   {
-    cerr << "BRAT ERROR: " << e.what() << endl;
+    std::cerr << "BRAT ERROR: " << e.what() << std::endl;
     return BRATHL_ERROR;
   }
-  catch (exception &e)
+  catch (std::exception &e)
   {
-    cerr << "BRAT RUNTIME ERROR: " << e.what() << endl;
+    std::cerr << "BRAT RUNTIME ERROR: " << e.what() << std::endl;
     return 254;
   }
   catch (...)
   {
-    cerr << "BRAT FATAL ERROR: Unexpected error" << endl;
+    std::cerr << "BRAT FATAL ERROR: Unexpected error" << std::endl;
     return 255;
   }
 }

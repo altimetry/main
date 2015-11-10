@@ -29,7 +29,7 @@
 #include "brathl_error.h"
 #include "brathl.h"
 
-#include "Stl.h"
+#include <string>
 
 #include "TraceLog.h"
 #include "Tools.h"
@@ -57,7 +57,7 @@ CFile::CFile()
 
 //----------------------------------------
 
-CFile::CFile(const string& name, uint32_t mode /* = modeRead|typeBinary */)
+CFile::CFile(const std::string& name, uint32_t mode /* = modeRead|typeBinary */)
 {
   m_hFile = NULL;
   m_fileName = name;
@@ -147,7 +147,7 @@ bool CFile::Open()
 
   if(m_hFile == NULL)
   {
-    string msg = CTools::Format("Error while opening file - errno:#%d:%s", errno, strerror(errno));
+    std::string msg = CTools::Format("Error while opening file - errno:#%d:%s", errno, strerror(errno));
     CFileException e(msg, m_fileName, BRATHL_IO_ERROR);
     CTrace::Tracer("%s", e.what());
     Dump(*CTrace::GetDumpContext());
@@ -165,7 +165,7 @@ bool CFile::Open()
 }
 
 //----------------------------------------
-bool CFile::Open(const string& name, uint32_t mode /* = modeRead|typeBinary */)
+bool CFile::Open(const std::string& name, uint32_t mode /* = modeRead|typeBinary */)
 {
 
   Destroy();
@@ -186,7 +186,7 @@ bool CFile::IsOpen()
 }
 //----------------------------------------
 
-const string&  CFile::GetFileName()
+const std::string&  CFile::GetFileName()
 {
   return m_fileName;
 }
@@ -489,7 +489,7 @@ int32_t CFile::ReadLine( char *lineRead, uint32_t size )
 
 	if ( size <= lenToCopy )
 	{
-		cout << "CFile::ReadLine - line size " << lenToCopy << " - buffer size too small - line truncated";
+		std::cout << "CFile::ReadLine - line size " << lenToCopy << " - buffer size too small - line truncated";
 	}
 
 	size = strlen( line ) + 1;
@@ -531,7 +531,7 @@ int32_t CFile::ReadToBuffer(char *destinationBuffer, uint32_t numBytesToRead /* 
 
   if ( ferror(m_hFile) )
   {
-    string msg = CTools::Format("Error while reading file - errno:#%d:%s", errno, strerror(errno));
+    std::string msg = CTools::Format("Error while reading file - errno:#%d:%s", errno, strerror(errno));
     CFileException e(msg, m_fileName, BRATHL_IO_ERROR);
     CTrace::Tracer("%s", e.what());
     Dump(*CTrace::GetDumpContext());
@@ -558,7 +558,7 @@ bool CFile::WriteChar(const int character)
 
   if ( fputc(character, m_hFile) == -1)
   {
-    string msg = CTools::Format("Error while writing file - errno:#%d:%s", errno, strerror(errno));
+    std::string msg = CTools::Format("Error while writing file - errno:#%d:%s", errno, strerror(errno));
     CFileException e(msg, m_fileName, BRATHL_IO_ERROR);
     CTrace::Tracer("%s", e.what());
     Dump(*CTrace::GetDumpContext());
@@ -579,7 +579,7 @@ bool CFile::Write(const int character)
   return WriteChar(character);
 }
 //----------------------------------------
-bool CFile::Write(const string& str)
+bool CFile::Write(const std::string& str)
 {
   return WriteString(str.c_str());
 }
@@ -603,7 +603,7 @@ bool CFile::WriteString(const char *str)
 
   if (fputs(str, m_hFile) == -1 )
   {
-    string msg = CTools::Format("Error while writing file - errno:#%d:%s", errno, strerror(errno));
+    std::string msg = CTools::Format("Error while writing file - errno:#%d:%s", errno, strerror(errno));
     CFileException e(msg, m_fileName, BRATHL_IO_ERROR);
     CTrace::Tracer("%s", e.what());
     Dump(*CTrace::GetDumpContext());
@@ -634,7 +634,7 @@ uint32_t CFile::WriteFromBuffer(const char *sourceBuffer, uint32_t sourceBufferL
 
   if ( ferror(m_hFile) )
   {
-    string msg = CTools::Format("Error while writing file - errno:#%d:%s", errno, strerror(errno));
+    std::string msg = CTools::Format("Error while writing file - errno:#%d:%s", errno, strerror(errno));
     CFileException e(msg, m_fileName, BRATHL_IO_ERROR);
     CTrace::Tracer("%s", e.what());
     Dump(*CTrace::GetDumpContext());
@@ -652,7 +652,7 @@ uint32_t CFile::WriteFromBuffer(const char *sourceBuffer, uint32_t sourceBufferL
 
 //----------------------------------------
 
-bool CFile::Duplicate(const string& newFileName)
+bool CFile::Duplicate(const std::string& newFileName)
 {
   if (IsOpen() == false)
   {
@@ -704,7 +704,7 @@ bool CFile::Duplicate(const string& newFileName)
 }
 //----------------------------------------
 
-bool CFile::Rename(const string& newFileName)
+bool CFile::Rename(const std::string& newFileName)
 {
   if (IsOpen() == false)
   {
@@ -731,7 +731,7 @@ bool CFile::Rename(const string& newFileName)
 }
 //----------------------------------------
 
- bool CFile::Rename(const string& oldName, const string& newName)
+ bool CFile::Rename(const std::string& oldName, const std::string& newName)
  {
    return (::rename(oldName.c_str(), newName.c_str()) == 0);
  }
@@ -762,7 +762,7 @@ bool CFile::Delete()
 }
 
 
-bool CFile::Delete(const string& fileName)
+bool CFile::Delete(const std::string& fileName)
 {
   return (::remove(fileName.c_str()) == 0);
 }
@@ -823,7 +823,7 @@ bool CFile::GetStatus(struct stat& fileStatus)
 }
 
 //----------------------------------------
-bool CFile::GetStatus(const string& fileName, struct stat& fileStatus)
+bool CFile::GetStatus(const std::string& fileName, struct stat& fileStatus)
 {
   CFile file;
   bool bOk = file.Open(fileName, modeRead);
@@ -838,7 +838,7 @@ bool CFile::GetStatus(const string& fileName, struct stat& fileStatus)
 }
 
 //----------------------------------------
-void CFile::Dump(ostream& fOut /* = cerr */)
+void CFile::Dump(std::ostream& fOut /* = std::cerr */)
 {
 
   if (CTrace::IsTrace() == false)
@@ -846,18 +846,18 @@ void CFile::Dump(ostream& fOut /* = cerr */)
       return;
    }
 
-   fOut << "==> Dump a CFile Object at "<< this << endl;
+   fOut << "==> Dump a CFile Object at "<< this << std::endl;
 
-   fOut << "m_hFile = " << m_hFile << endl;
-   fOut << "m_fileName = " << m_fileName  << endl;
-   fOut << "m_length = " << m_length << endl;
-   fOut << "m_mode = " << m_mode << endl;
-   fOut << "m_maxBufferToRead = " << m_maxBufferToRead << endl;
-   fOut << "m_buffer = " << ((m_buffer != NULL) ? m_buffer : "NULL") << endl;
+   fOut << "m_hFile = " << m_hFile << std::endl;
+   fOut << "m_fileName = " << m_fileName  << std::endl;
+   fOut << "m_length = " << m_length << std::endl;
+   fOut << "m_mode = " << m_mode << std::endl;
+   fOut << "m_maxBufferToRead = " << m_maxBufferToRead << std::endl;
+   fOut << "m_buffer = " << ((m_buffer != NULL) ? m_buffer : "NULL") << std::endl;
 
-   fOut << "==> END Dump a CFile Object at "<< this << endl;
+   fOut << "==> END Dump a CFile Object at "<< this << std::endl;
 
-   fOut << endl;
+   fOut << std::endl;
 
 
 }

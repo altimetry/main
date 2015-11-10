@@ -821,7 +821,7 @@ wxString CAxisXPropertyPanel::GetTitle()
 //----------------------------------------
 void CAxisXPropertyPanel::SetTitle(const wxString& value)
 {
-  string str = CTools::SlashesDecode((const char *)(value));
+  std::string str = CTools::SlashesDecode((const char *)(value));
   m_plotter->SetXTitle(str.c_str());
 }
 //----------------------------------------
@@ -996,7 +996,7 @@ wxString CAxisYPropertyPanel::GetTitle()
 //----------------------------------------
 void CAxisYPropertyPanel::SetTitle(const wxString& value)
 {
-  string str = CTools::SlashesDecode((const char *)(value));
+  std::string str = CTools::SlashesDecode((const char *)(value));
   m_plotter->SetYTitle(str.c_str());
 }
 //----------------------------------------

@@ -23,7 +23,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h"
+#include <string>
 
 #include "BratObject.h"
 #include "List.h"
@@ -76,10 +76,10 @@ public:
      * @param from start pass
      * @param to end pass
     */
-  CCriteriaCycle(const string& from, const string& to);
+  CCriteriaCycle(const std::string& from, const std::string& to);
 
   /**
-     * Constructor from a array that contains start pass as string, end pass as string
+     * Constructor from a array that contains start pass as std::string, end pass as std::string
      * 
      * @param array start and end dates
      */
@@ -110,7 +110,7 @@ public:
      * 
      * @param to end pass
     */
-  void SetTo(const string& to);
+  void SetTo(const std::string& to);
   
    /**
      * Sets start pass
@@ -123,7 +123,7 @@ public:
      * 
      * @param to start pass
     */
-  void SetFrom(const string& from);
+  void SetFrom(const std::string& from);
 
    /**
      * Sets date period from start and end pass
@@ -138,12 +138,12 @@ public:
      * @param from start pass
      * @param to end pass
     */
-  void Set(const string& from, const string& to);
+  void Set(const std::string& from, const std::string& to);
 
-  void SetFromText(const string& values, const string& delimiter = CCriteriaCycle::m_delimiter);
+  void SetFromText(const std::string& values, const std::string& delimiter = CCriteriaCycle::m_delimiter);
 
   /**
-     * Sets a date period from a array that contains start pass as string, end pass as string
+     * Sets a date period from a array that contains start pass as std::string, end pass as std::string
      * 
      * @param array start and end dates
     */
@@ -151,28 +151,28 @@ public:
   
   /**
    * Create the intersection of this date period with the given one
-   * @param array that contains start pass as string, end pass as string
+   * @param array that contains start pass as std::string, end pass as std::string
    * @param intersect intersection period
    * @return true, or false if there is no intersection
    */
   bool Intersect(CStringArray& array, CStringArray& intersect);
   /**
    * Create the intersection of this date period with the given one
-   * @param array that contains start pass as string, end pass as string
+   * @param array that contains start pass as std::string, end pass as std::string
    * @param intersect intersection period
    * @return true, or false if there is no intersection
    */
   bool Intersect(CStringArray& array, CIntArray& intersect);
   /**
    * Create the intersection of this date period with the given one
-   * @param array that contains start pass as string, end pass as string
+   * @param array that contains start pass as std::string, end pass as std::string
    * @param intersect intersection period
    * @return true, or false if there is no intersection
    */
   bool Intersect(CIntArray& array, CStringArray& intersect);
   /**
    * Create the intersection of this date period with the given one
-   * @param array that contains start pass as string, end pass as string
+   * @param array that contains start pass as std::string, end pass as std::string
    * @param intersect intersection period
    * @return true, or false if there is no intersection
    */
@@ -181,11 +181,11 @@ public:
   bool Intersect(int32_t from, int32_t to, CStringArray& intersect);
   bool Intersect(int32_t from, int32_t to, CIntArray& intersect);
   
-  bool Intersect(const string& from, const string& to, CIntArray& intersect);
+  bool Intersect(const std::string& from, const std::string& to, CIntArray& intersect);
 
   bool Intersect(double otherFrom, double otherTo, CIntArray& intersect);
 
-  bool Intersect(const string& from, const string& to, CStringArray& intersect);
+  bool Intersect(const std::string& from, const std::string& to, CStringArray& intersect);
 
   /** Sets internal value to the default value (uninitialized)*/
   void SetDefaultValue();
@@ -196,13 +196,13 @@ public:
      */
   bool IsDefaultValue();
 
-  string GetAsText(const string& delimiter = CCriteriaCycle::m_delimiter);
+  std::string GetAsText(const std::string& delimiter = CCriteriaCycle::m_delimiter);
 
   static CCriteriaCycle* GetCriteria(CBratObject* ob, bool withExcept = true);
 
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
 
@@ -211,7 +211,7 @@ protected:
   void Adjust();
 
 public:
-  static const string m_delimiter;  
+  static const std::string m_delimiter;  
     
 
 protected:

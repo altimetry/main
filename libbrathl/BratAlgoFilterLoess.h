@@ -23,7 +23,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h"
+#include <string>
 
 #include "Tools.h" 
 #include "Product.h" 
@@ -56,7 +56,7 @@ public:
   CBratAlgoFilterLoess& operator=(const CBratAlgoFilterLoess &copy);
 
   /** Dump function */
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
  
 protected:
 

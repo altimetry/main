@@ -72,7 +72,7 @@ CFormula::CFormula(const wxString& name, bool predefined, const wxString& descri
 
 }
 //----------------------------------------
-CFormula::CFormula(const string& name, bool predefined, const string& description, const string& comment)
+CFormula::CFormula(const std::string& name, bool predefined, const std::string& description, const std::string& comment)
 {
   Init();
 
@@ -415,7 +415,7 @@ double CFormula::GetStepAsDouble()
 
     result = CTools::m_defaultValueDOUBLE;
   }
-  catch (exception& e)
+  catch (std::exception& e)
   {
     wxMessageBox(wxString::Format("Formula '%s':\nSyntax for step ('%s') is not valid\nReason:\n%s",
                                   m_name.c_str(),
@@ -486,7 +486,7 @@ double CFormula::GetStepAsDouble(const wxString& step)
 
     result = CTools::m_defaultValueDOUBLE;
   }
-  catch (exception& e)
+  catch (std::exception& e)
   {
     wxMessageBox(wxString::Format("Syntax for step ('%s') is not valid\nReason:\n%s",
                                   step.c_str(),
@@ -604,7 +604,7 @@ bool CFormula::CheckExpressionUnits(const wxString& exprStr, const wxString& rec
     return bOk;
   }
 
-  string msgErrorUnits;
+  std::string msgErrorUnits;
   if (! unitExpr.IsCompatible(field->GetUnit(), &msgErrorUnits) )
   {
     if (!msgErrorUnits.empty())
@@ -691,7 +691,7 @@ bool CFormula::CheckFieldNames(const CExpression& expr, const wxString& record, 
   product->ReplaceNamesCaseSensitive(expr, fieldNamesNotFound, exprOut);
 
   //Add record name to field names
-  string errorString;
+  std::string errorString;
   bool recordNameAdded = product->AddRecordNameToField(expr, (const char *)record.c_str(), exprOut, errorString);
 
   if (!recordNameAdded)
@@ -719,7 +719,7 @@ bool CFormula::CheckFieldNames(const CExpression& expr, const wxString& record, 
     bOk = CFormula::CheckFieldNames(exprOut, record, product, fieldNamesNotFound);
   }
 
-  string errorString;
+  std::string errorString;
 
   bool recordNameAdded = product->AddRecordNameToField(expr, record.c_str(), exprOut, errorString);
 
@@ -764,7 +764,7 @@ bool CFormula::CheckExpression(const wxString& value, const wxString& record, wx
 
 
   bool bOk = true;
-  string str = (const char *)value.c_str();
+  std::string str = (const char *)value.c_str();
   uint32_t numberVarsExpanded = 0;
 
   // Group fields aliases and formulas aliases in a single map.
@@ -805,7 +805,7 @@ bool CFormula::CheckExpression(const wxString& value, const wxString& record, wx
       }
 
     // Expand fields aliases and formulas aliases
-    string errorString;
+    std::string errorString;
     str = CTools::ExpandVariables((const char *)value.c_str(), aliases, fieldAliases, true, '%', &numberVarsExpanded, false, &errorString);
     if (!errorString.empty())
     {
@@ -835,12 +835,12 @@ bool CFormula::CheckExpression(const wxString& value, const wxString& record, wx
       else
       {
         //Try to correct lower/upper case error in field names.
-        string out;
+        std::string out;
         product->ReplaceNamesCaseSensitive((const char *)value.c_str(), out);
 
         //Add record name to field names
-        string out2 = out;
-        string errorString;
+        std::string out2 = out;
+        std::string errorString;
         product->AddRecordNameToField(out2, (const char *)record.c_str(), out, errorString);
 
 
@@ -866,7 +866,7 @@ bool CFormula::SetExpression(const char* value, CExpression& expr, wxString& err
 
 }
 //----------------------------------------
-bool CFormula::SetExpression(const string& value, CExpression& expr, wxString& errorMsg)
+bool CFormula::SetExpression(const std::string& value, CExpression& expr, wxString& errorMsg)
 {
   wxString str(value.c_str());
   return SetExpression(str, expr, errorMsg);
@@ -1142,7 +1142,7 @@ bool CFormula::IsUnitCompatible(int32_t dataType, const CUnit& unit)
   bool bOk = true;
 
   //To avoid compilation error on Linux : 2 steps
-  string defaultUnit = (const char *)GetDefaultUnit(dataType).c_str();
+  std::string defaultUnit = (const char *)GetDefaultUnit(dataType).c_str();
   CUnit unitDataType = defaultUnit;
 
   if (CFormula::IsDefaultUnitData(unitDataType))
@@ -2005,7 +2005,7 @@ wxString CFormula::GetAsDateString(double seconds, const wxString& format /*= ""
 
 
 //----------------------------------------
-void CFormula::Dump(ostream& fOut /* = cerr */)
+void CFormula::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -2013,12 +2013,12 @@ void CFormula::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CFormula Object at "<< this << endl;
+  fOut << "==> Dump a CFormula Object at "<< this << std::endl;
   fOut << "m_name " << m_name;
   fOut << "m_description " << m_description;
-  fOut << "==> END Dump a CFormula Object at "<< this << endl;
+  fOut << "==> END Dump a CFormula Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -2100,7 +2100,7 @@ void CMapFormula::DeleteConfig()
 
 }
 //----------------------------------------
-bool CMapFormula::ValidName(const string& name)
+bool CMapFormula::ValidName(const std::string& name)
 {
   return ValidName(name.c_str());
 }
@@ -2259,7 +2259,7 @@ void CMapFormula::InsertPredefined()
 //----------------------------------------
 void CMapFormula::InsertUserDefined(CFormula* formula)
 {
-  string name = (const char *)formula->GetName().c_str();
+  std::string name = (const char *)formula->GetName().c_str();
 
   CFormula* value = dynamic_cast<CFormula*>(Exists(name));
   if (value != NULL)
@@ -2286,7 +2286,7 @@ void CMapFormula::InsertUserDefined(CFormula* formula)
 //----------------------------------------
 void CMapFormula::InsertUserDefined(CFormula& formula)
 {
-  string name = (const char *)formula.GetName().c_str();
+  std::string name = (const char *)formula.GetName().c_str();
 
   CFormula* value = dynamic_cast<CFormula*>(Exists(name));
   if (value != NULL)
@@ -2537,7 +2537,7 @@ void CMapFormula::Amend(const CStringArray& keys, CProduct* product, const wxStr
       continue;
     }
 
-    string out;
+    std::string out;
     wxString errorMsg;
     wxString str = value->GetDescription(true);
 
@@ -2584,7 +2584,7 @@ CMapTypeFilter& CMapTypeFilter::GetInstance()
 }
 
 //----------------------------------------
-bool CMapTypeFilter::ValidName(const string& name)
+bool CMapTypeFilter::ValidName(const std::string& name)
 {
   return ValidName(name.c_str());
 }
@@ -2683,7 +2683,7 @@ CMapTypeData& CMapTypeData::GetInstance()
 }
 
 //----------------------------------------
-bool CMapTypeData::ValidName(const string& name)
+bool CMapTypeData::ValidName(const std::string& name)
 {
   return ValidName(name.c_str());
 }
@@ -2784,7 +2784,7 @@ CMapTypeOp& CMapTypeOp::GetInstance()
 }
 
 //----------------------------------------
-bool CMapTypeOp::ValidName(const string& name)
+bool CMapTypeOp::ValidName(const std::string& name)
 {
   return ValidName(name.c_str());
 }
@@ -2877,7 +2877,7 @@ CMapTypeDisp& CMapTypeDisp::GetInstance()
 }
 
 //----------------------------------------
-bool CMapTypeDisp::ValidName(const string& name)
+bool CMapTypeDisp::ValidName(const std::string& name)
 {
   return ValidName(name.c_str());
 }
@@ -2987,7 +2987,7 @@ CMapTypeField& CMapTypeField::GetInstance()
 }
 
 //----------------------------------------
-bool CMapTypeField::ValidName(const string& name)
+bool CMapTypeField::ValidName(const std::string& name)
 {
   return ValidName(name.c_str());
 }
@@ -3082,7 +3082,7 @@ CMapDataMode& CMapDataMode::GetInstance()
 }
 
 //----------------------------------------
-bool CMapDataMode::ValidName(const string& name)
+bool CMapDataMode::ValidName(const std::string& name)
 {
   return ValidName(name.c_str());
 }

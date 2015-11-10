@@ -20,20 +20,24 @@
 #if !defined(_wxList_h_)
 #define _wxList_h_
 
+#include <list>
+#include <map>
+
 #include "wx/object.h"
 
 #include "brathl.h"
-#include "Stl.h"
+#include <string>
+#include <vector>
 
 
-/*! Creates a type name for wxObject list */ 
-typedef list<wxObject*> listwxobject; 
+/*! Creates a type name for wxObject std::list */ 
+typedef std::list<wxObject*> listwxobject; 
 
 /*! Creates a type name for wxObject array */ 
-typedef vector<wxObject*> arraywxobject; 
+typedef std::vector<wxObject*> arraywxobject; 
  
-/*! Creates a type name for map wxObject base class */ 
-typedef map<string, wxObject*> mapwxobject; 
+/*! Creates a type name for std::map wxObject base class */ 
+typedef std::map<std::string, wxObject*> mapwxobject; 
 
 
 
@@ -43,7 +47,7 @@ typedef map<string, wxObject*> mapwxobject;
 //-------------------------------------------------------------
 
 /** 
-  A list of wxObject management class.
+  A std::list of wxObject management class.
 
 
  \version 1.0
@@ -59,17 +63,17 @@ public:
   wxObList(bool bDelete = true);
     
   /** Creates new wxObList object from another CStringList
-    \param list [in] : list to be copied */
-  //wxObList(const wxObList& list);
+    \param std::list [in] : std::list to be copied */
+  //wxObList(const wxObList& std::list);
 
   /// Destructor
   virtual ~wxObList();
 
-  //virtual void Insert(const wxObList& list, bool bEnd = true);
+  //virtual void Insert(const wxObList& std::list, bool bEnd = true);
 
   virtual void Insert(wxObject* ob, bool bEnd = true);
 
-  /** Remove all elements and clear the list*/
+  /** Remove all elements and clear the std::list*/
   virtual void RemoveAll();
 
   /** Delete an element referenced by iteratorMnemo
@@ -85,7 +89,7 @@ public:
   void SetDelete(bool value) {m_bDelete = value;};
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
   
 protected:
@@ -101,7 +105,7 @@ protected:
 //-------------------------------------------------------------
 
 /** 
-  An array (vector) of wxObject management class.
+  An array (std::vector) of wxObject management class.
 
 
  \version 1.0
@@ -117,8 +121,8 @@ public:
   wxObArray(bool bDelete = true);
     
   /** Creates new wxObArray object from another wxObArray
-    \param list [in] : list to be copied */
-  //wxObArray(const wxObArray& list);
+    \param std::list [in] : std::list to be copied */
+  //wxObArray(const wxObArray& std::list);
 
   /// Destructor
   virtual ~wxObArray();
@@ -127,7 +131,7 @@ public:
 
   virtual void Insert(wxObject* ob);
 
-   /** Remove all elements and clear the list*/
+   /** Remove all elements and clear the std::list*/
    virtual void RemoveAll();
 
   virtual wxObArray::iterator InsertAt(wxObArray::iterator where, wxObject* ob);
@@ -152,7 +156,7 @@ public:
   void SetDelete(bool value) {m_bDelete = value;};
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
 
@@ -192,22 +196,22 @@ public:
 
    
    /** Inserts a wxObject object
-   * \param key : wxObject name (map key)
+   * \param key : wxObject name (std::map key)
    * \param value : wxObject value 
-   * \param withExcept : true for exception handling, flse otherwise
+   * \param withExcept : true for std::exception handling, flse otherwise
    * \return wxObject object or NULL if error */
-   wxObject* Insert(const string& key, wxObject* ob, bool withExcept = true);
+   wxObject* Insert(const std::string& key, wxObject* ob, bool withExcept = true);
 
    /** Inserts a wxObMap 
    * \param obMap : wxObMap to insert
-   * \param withExcept : true for exception handling, flse otherwise
+   * \param withExcept : true for std::exception handling, flse otherwise
     */
    //void Insert(const wxObMap& obMap, bool withExcept = true);
 
    
    /** Tests if an element identify by 'key' already exists
    * \return a wxObject pointer if exists, otherwise NULL */
-   wxObject* Exists(const string& key);
+   wxObject* Exists(const std::string& key);
 
    /** Delete an element referenced by it
    * \return true if no error, otherwise false */
@@ -215,21 +219,21 @@ public:
    
    /** Delete an element by its key
    * \return true if no error, otherwise false */
-   bool Erase(const string& key);
+   bool Erase(const std::string& key);
 
-   /** Remove all elements and clear the map*/
+   /** Remove all elements and clear the std::map*/
    void RemoveAll();
 
    /** operator[] redefinition. Searches a wxObject object identifiy by 'key'.
      \param key : wxObject keyword 
      \return a pointer to the wxObject object if found, NULL  if not found */
-   wxObject* operator[](const string& key);
+   wxObject* operator[](const std::string& key);
 
    bool GetDelete() {return m_bDelete;};
    void SetDelete(bool value) {m_bDelete = value;};
 
    /// Dump fonction
-   virtual void Dump(ostream& fOut = cerr);
+   virtual void Dump(std::ostream& fOut = std::cerr);
 
 
 protected:

@@ -478,7 +478,7 @@ void COperationTreeCtrl::OnEndLabelEdit( wxTreeEvent &event )
     return;
   }
 
-  // Warning : if label has not been changed, Getlabel() returns empty string !!!!!
+  // Warning : if label has not been changed, Getlabel() returns empty std::string !!!!!
   
   wxTreeItemId id = event.GetItem();
   wxString label = event.GetLabel();

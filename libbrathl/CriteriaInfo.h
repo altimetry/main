@@ -23,7 +23,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h"
+#include <string>
 
 #include "BratObject.h"
 #include "List.h"
@@ -43,7 +43,7 @@ public:
   
   CFieldInfo();    
   
-  CFieldInfo(const string& name);    
+  CFieldInfo(const std::string& name);    
   
   CFieldInfo(CFieldInfo& f);    
 
@@ -58,11 +58,11 @@ public:
   void SetIsNetCdfVarValue(bool value) { m_isNetCdfVarValue = value; };
   bool IsNetCdfVarValue() { return m_isNetCdfVarValue; };
 
-  void SetAttributeVarName(const string& value) { m_attributeVarName = value; };
-  string GetAttributeVarName() { return m_attributeVarName; };
+  void SetAttributeVarName(const std::string& value) { m_attributeVarName = value; };
+  std::string GetAttributeVarName() { return m_attributeVarName; };
 
-  void SetName(const string& value) {m_name = value; };
-  const string& GetName() {return m_name;};
+  void SetName(const std::string& value) {m_name = value; };
+  const std::string& GetName() {return m_name;};
 
   //void SetDataType(int32_t value) {m_dataType = value; };
   //int32_t GetDataType() {return m_dataType;};
@@ -73,15 +73,15 @@ public:
   const CFieldInfo& operator= (CFieldInfo& lst);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 
 protected:
   
-  string m_name;
+  std::string m_name;
   
   bool m_isNetCdfVarAttribute;
-  string m_attributeVarName;
+  std::string m_attributeVarName;
   bool m_isNetCdfGlobalAttribute;
   bool m_isNetCdfVarValue;
 
@@ -111,10 +111,10 @@ public:
   virtual ~CRecordDataMap() {};
 
     //----------------------------------------
-  CObMap* GetFields(const string& key, bool create = true);
+  CObMap* GetFields(const std::string& key, bool create = true);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 };
 
@@ -124,21 +124,21 @@ public:
 class CRecordData : public CBratObject
 {
 public:
-  CRecordData(const string& name) { SetName(name); };
+  CRecordData(const std::string& name) { SetName(name); };
   virtual ~CRecordData() {};
 
   CObMap* GetFields() { return &m_fields; };
   
-  void SetName(const string& value) {m_name = value; };
-  string GetName() {return m_name;};
+  void SetName(const std::string& value) {m_name = value; };
+  std::string GetName() {return m_name;};
 
   static CRecordData* GetRecordData(CBratObject* ob, bool withExcept = true);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
- string m_name;
+ std::string m_name;
  CObMap m_fields;
 };
 
@@ -180,8 +180,8 @@ public:
   virtual void GetFieldNames(CStringList& fieldNames);
   virtual void GetFieldNames(CStringArray& fieldNames);
 
-  void SetDataRecord(const string& value) { m_dataRecord = value; };
-  string GetDataRecord() { return m_dataRecord; };
+  void SetDataRecord(const std::string& value) { m_dataRecord = value; };
+  std::string GetDataRecord() { return m_dataRecord; };
 
   /*
   void SetIsNetCdfVarAttribute(bool value) { m_fieldInfo.SetIsNetCdfVarAttribute(value); };
@@ -195,10 +195,10 @@ public:
 */
   static CCriteriaInfo* GetCriteriaInfo(CBratObject* ob, bool withExcept = true);
 
-  //static CStringList* GetRecordDataFields(const string& key, CObMap& listRecord, bool create = true);
+  //static CStringList* GetRecordDataFields(const std::string& key, CObMap& listRecord, bool create = true);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 public:
 
@@ -213,7 +213,7 @@ public:
 
 protected:
   int32_t m_key;
-  string m_dataRecord;
+  std::string m_dataRecord;
   
 private:
   
@@ -249,16 +249,16 @@ public:
 
   virtual void GetFieldsInfo(CObMap* fieldsInfo);
 
-  void SetStartDateField(const string& value) { m_startDateField.SetName(value); };
+  void SetStartDateField(const std::string& value) { m_startDateField.SetName(value); };
   void SetStartDateField(CFieldInfo& value) { m_startDateField.Set(value); };
   
-  const string& GetStartDateFieldName() { return m_startDateField.GetName(); };
+  const std::string& GetStartDateFieldName() { return m_startDateField.GetName(); };
   CFieldInfo* GetStartDateField() { return &m_startDateField; };
   
-  void SetEndDateField(const string& value) { m_endDateField.SetName(value); };
+  void SetEndDateField(const std::string& value) { m_endDateField.SetName(value); };
   void SetEndDateField(CFieldInfo& value) { m_endDateField.Set(value); };
   
-  const string& GetEndDateFieldName() { return  m_endDateField.GetName(); };
+  const std::string& GetEndDateFieldName() { return  m_endDateField.GetName(); };
   CFieldInfo* GetEndDateField() { return &m_endDateField; };
 
   void SetRefDate(brathl_refDate value) { m_refDate = value; };
@@ -267,7 +267,7 @@ public:
   static CCriteriaDatetimeInfo* GetCriteriaInfo(CBratObject* ob, bool withExcept = true);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 public:
 
@@ -322,32 +322,32 @@ public:
   virtual void GetFieldsInfo(CObMap* fieldsInfo);
 
   
-  void SetStartLatField(const string& value) { m_startLatField.SetName(value); };
+  void SetStartLatField(const std::string& value) { m_startLatField.SetName(value); };
   void SetStartLatField(CFieldInfo& value) { m_startLatField.Set(value); };
   
-  const string& GetStartLatFieldName() { return m_startLatField.GetName(); };
+  const std::string& GetStartLatFieldName() { return m_startLatField.GetName(); };
   CFieldInfo* GetStartLatField() { return &m_startLatField; };
   
-  void SetEndLatField(const string& value) { m_endLatField.SetName(value); };
+  void SetEndLatField(const std::string& value) { m_endLatField.SetName(value); };
   void SetEndLatField(CFieldInfo& value) { m_endLatField.Set(value); };
   
-  const string& GetEndLatFieldName() { return m_endLatField.GetName(); };
+  const std::string& GetEndLatFieldName() { return m_endLatField.GetName(); };
   CFieldInfo* GetEndLatField() { return &m_endLatField; };
 
-  void SetStartLonField(const string& value) { m_startLonField.SetName(value); };
+  void SetStartLonField(const std::string& value) { m_startLonField.SetName(value); };
   void SetStartLonField(CFieldInfo& value) { m_startLonField.Set(value); };
-  const string& GetStartLonFieldName() { return m_startLonField.GetName(); };
+  const std::string& GetStartLonFieldName() { return m_startLonField.GetName(); };
   CFieldInfo* GetStartLonField() { return &m_startLonField; };
 
-  void SetEndLonField(const string& value) { m_endLonField.SetName(value);};
+  void SetEndLonField(const std::string& value) { m_endLonField.SetName(value);};
   void SetEndLonField(CFieldInfo& value) { m_endLonField.Set(value);};
-  const string& GetEndLonFieldName() { return m_endLonField.GetName(); };
+  const std::string& GetEndLonFieldName() { return m_endLonField.GetName(); };
   CFieldInfo* GetEndLonField() { return &m_endLonField; };
 
   static CCriteriaLatLonInfo* GetCriteriaInfo(CBratObject* ob, bool withExcept = true);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 public:
 
@@ -402,23 +402,23 @@ public:
 
   virtual void GetFieldsInfo(CObMap* fieldsInfo);
 
-  void SetStartPassField(const string& value) { m_startPassField.SetName(value); };
+  void SetStartPassField(const std::string& value) { m_startPassField.SetName(value); };
   void SetStartPassField(CFieldInfo& value) { m_startPassField.Set(value); };
 
-  const string& GetStartPassFieldName() { return m_startPassField.GetName(); };
+  const std::string& GetStartPassFieldName() { return m_startPassField.GetName(); };
   CFieldInfo* GetStartPassField() { return &m_startPassField; };
   
-  void SetEndPassField(const string& value) { m_endPassField.SetName(value); };
+  void SetEndPassField(const std::string& value) { m_endPassField.SetName(value); };
   void SetEndPassField(CFieldInfo& value) { m_endPassField.Set(value); };
 
-  const string& GetEndPassFieldName() { return m_endPassField.GetName(); };
+  const std::string& GetEndPassFieldName() { return m_endPassField.GetName(); };
   CFieldInfo* GetEndPassField() { return &m_endPassField; };
   
   static CCriteriaPassInfo* GetCriteriaInfo(CBratObject* ob, bool withExcept = true);
 
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 public:
 
@@ -464,7 +464,7 @@ public:
 
   static CCriteriaPassStringInfo* GetCriteriaInfo(CBratObject* ob, bool withExcept = true);
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 public:
 
@@ -508,7 +508,7 @@ public:
   static CCriteriaPassIntInfo* GetCriteriaInfo(CBratObject* ob, bool withExcept = true);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 public:
 
@@ -556,22 +556,22 @@ public:
 
   virtual void GetFieldsInfo(CObMap* fieldsInfo);
 
-  void SetStartCycleField(const string& value) { m_startCycleField.SetName(value); };
+  void SetStartCycleField(const std::string& value) { m_startCycleField.SetName(value); };
   void SetStartCycleField(CFieldInfo& value) { m_startCycleField.Set(value); };
   
-  const string GetStartCycleFieldName() { return m_startCycleField.GetName(); };
+  const std::string GetStartCycleFieldName() { return m_startCycleField.GetName(); };
   CFieldInfo* GetStartCycleField() { return &m_startCycleField; };
   
-  void SetEndCycleField(const string& value) { m_endCycleField.SetName(value); };
+  void SetEndCycleField(const std::string& value) { m_endCycleField.SetName(value); };
   void SetEndCycleField(CFieldInfo& value) { m_endCycleField.Set(value); };
   
-  const string& GetEndCycleFieldName() { return m_endCycleField.GetName(); };
+  const std::string& GetEndCycleFieldName() { return m_endCycleField.GetName(); };
   CFieldInfo* GetEndCycleField() { return &m_endCycleField; };
   
   static CCriteriaCycleInfo* GetCriteriaInfo(CBratObject* ob, bool withExcept = true);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 public:
 

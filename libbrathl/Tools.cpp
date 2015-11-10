@@ -26,6 +26,10 @@
 #include <cstdlib>
 #include <cerrno>
 #include <sys/stat.h>
+#include <fstream>
+#include <sstream>
+#include <cassert>
+
 
 #include "brathl.h"
 #include "coda.h"
@@ -99,9 +103,9 @@ const double CTools::m_CompareEpsilon = 1.0E-70;
 
 const double CTools::m_deltaLatitudeMercator = 1.0E-7;
 
-string CTools::m_DataDir = "";
+std::string CTools::m_DataDir = "";
 
-//const string CTools::m_warningHeader = ">>>>>>>>>>>>>>>>>>>> WARNING >>>>>>>>>>>>>>>>>>>>>>>>>";
+//const std::string CTools::m_warningHeader = ">>>>>>>>>>>>>>>>>>>> WARNING >>>>>>>>>>>>>>>>>>>>>>>>>";
 /*
 ** precision limit for computation of normalized longitude
 */
@@ -407,11 +411,11 @@ bool CTools::AreValidMercatorLatitude
 
 //----------------------------------------
 int32_t CTools::FindNoCase
-		(const string& src,
-		 const string& findWhat, uint32_t pos /* = 0 */)
+		(const std::string& src,
+		 const std::string& findWhat, uint32_t pos /* = 0 */)
 {
-  string szSrc = CTools::StringToLower(src);
-  string szFindWhat = CTools::StringToLower(findWhat);
+  std::string szSrc = CTools::StringToLower(src);
+  std::string szFindWhat = CTools::StringToLower(findWhat);
  ;
   return szSrc.find(szFindWhat, pos );
 
@@ -421,18 +425,18 @@ int32_t CTools::FindNoCase
 		(const char* src,
 		 const char* findWhat, uint32_t pos /* = 0 */)
 {
-  string szSrc = src;
-  string szFindWhat = findWhat;
+  std::string szSrc = src;
+  std::string szFindWhat = findWhat;
 
   return FindNoCase(szSrc, szFindWhat, pos);
 }
 //----------------------------------------
 int32_t CTools::RFindNoCase
-		(const string& src,
-		 const string& findWhat, uint32_t pos /* = 0 */)
+		(const std::string& src,
+		 const std::string& findWhat, uint32_t pos /* = 0 */)
 {
-  string szSrc = CTools::StringToLower(src);
-  string szFindWhat = CTools::StringToLower(findWhat);
+  std::string szSrc = CTools::StringToLower(src);
+  std::string szFindWhat = CTools::StringToLower(findWhat);
  ;
   return szSrc.rfind(szFindWhat, pos );
 
@@ -442,15 +446,15 @@ int32_t CTools::RFindNoCase
 		(const char* src,
 		 const char* findWhat, uint32_t pos /* = 0 */)
 {
-  string szSrc = src;
-  string szFindWhat = findWhat;
+  std::string szSrc = src;
+  std::string szFindWhat = findWhat;
 
   return RFindNoCase(szSrc, szFindWhat, pos);
 }
 //----------------------------------------
 bool CTools::CompareNoCase
-		(const string& str1,
-		 const string& str2)
+		(const std::string& str1,
+		 const std::string& str2)
 {
   return CTools::CompareNoCase(str1.c_str(), str2.c_str());
 
@@ -460,8 +464,8 @@ bool CTools::CompareNoCase
 		(const char* str1,
 		 const char* str2)
 {
-  string sz1 = CTools::StringToLower(str1);
-  string sz2 = CTools::StringToLower(str2);
+  std::string sz1 = CTools::StringToLower(str1);
+  std::string sz2 = CTools::StringToLower(str2);
 
   return (CTools::StrCaseCmp(sz1.c_str(), sz2.c_str()) == 0);
 }
@@ -522,7 +526,7 @@ char * CTools::Trim(char *str)
     return str;
   }
 
-  string strTrimmed = CTools::StringTrim(str);
+  std::string strTrimmed = CTools::StringTrim(str);
 
   memset(str, '\0', len);
 
@@ -538,9 +542,9 @@ char * CTools::Trim(char *str)
 }
 
 //----------------------------------------
-string CTools::StringReplace(const string& str, char c, char replaceBy )
+std::string CTools::StringReplace(const std::string& str, char c, char replaceBy )
 {
-  string strRet = str;
+  std::string strRet = str;
   for (uint32_t i = 0 ; i < str.length() ; i++)
   {
     if (strRet[i] == c)
@@ -552,17 +556,17 @@ string CTools::StringReplace(const string& str, char c, char replaceBy )
 
 }
 //----------------------------------------
-bool CTools::StringCompare(const string& s1, const string& s2)
+bool CTools::StringCompare(const std::string& s1, const std::string& s2)
 {
   return (s1.compare(s2) < 0); 
 }
 
 //----------------------------------------
-string CTools::StringReplace(const string& str, const string& c, const string& replaceBy, bool compareNoCase /* = false */ )
+std::string CTools::StringReplace(const std::string& str, const std::string& c, const std::string& replaceBy, bool compareNoCase /* = false */ )
 {
 
-  string strRet = str;
-  string subStr;
+  std::string strRet = str;
+  std::string subStr;
   int32_t pos = -1;
 
   if (compareNoCase)
@@ -595,7 +599,7 @@ string CTools::StringReplace(const string& str, const string& c, const string& r
 
 
 //----------------------------------------
-string CTools::StringRemoveAllSpaces(const string& str)
+std::string CTools::StringRemoveAllSpaces(const std::string& str)
 {
   char* strTmp = new char[str.length() + 1];
   memset(strTmp, '\0', str.length() + 1);
@@ -604,7 +608,7 @@ string CTools::StringRemoveAllSpaces(const string& str)
 
   CTools::RemoveAllSpaces(strTmp);
 
-  string strRet = strTmp;
+  std::string strRet = strTmp;
   delete []strTmp;
 
   return strRet;
@@ -612,15 +616,15 @@ string CTools::StringRemoveAllSpaces(const string& str)
 }
 
 //----------------------------------------
-string CTools::StringTrim(const string& str)
+std::string CTools::StringTrim(const std::string& str)
 {
-  string strRet;
+  std::string strRet;
 // Trim Both leading and trailing spaces  
-  string::size_type startpos = str.find_first_not_of(" \t"); // Find the first character position after excluding leading blank spaces  
-  string::size_type endpos = str.find_last_not_of(" \t"); // Find the first character position from reverse 
+  std::string::size_type startpos = str.find_first_not_of(" \t"); // Find the first character position after excluding leading blank spaces  
+  std::string::size_type endpos = str.find_last_not_of(" \t"); // Find the first character position from reverse 
   
-  // if all spaces or empty return an empty string  
-  if(( string::npos == startpos ) || ( string::npos == endpos))  
+  // if all spaces or empty return an empty std::string  
+  if(( std::string::npos == startpos ) || ( std::string::npos == endpos))  
   {  
     strRet = "";  
   }  
@@ -670,13 +674,13 @@ int32_t CTools::StrCaseCmp
   if (CTools::IsEmpty(str1))
   {
     if (!CTools::IsEmpty(str2))
-      result	= -1;	/* First string lower lan non empty string */
+      result	= -1;	/* First std::string lower lan non empty std::string */
   }
   else
   {
     if (CTools::IsEmpty(str2))
     {
-        result	= 1;	/* First String greater than empty string */
+        result	= 1;	/* First String greater than empty std::string */
     }
     else
     {
@@ -733,7 +737,7 @@ char * CTools::ToLower(char *str)
 
 //----------------------------------------
 
-string CTools::StringToLower(const string& str)
+std::string CTools::StringToLower(const std::string& str)
 {
   char* strTmp = new char[str.length() + 1];
   memset(strTmp, '\0', str.length() + 1);
@@ -742,7 +746,7 @@ string CTools::StringToLower(const string& str)
 
   CTools::ToLower(strTmp);
 
-  string strRet = strTmp;
+  std::string strRet = strTmp;
   delete []strTmp;
 
   return strRet;
@@ -751,7 +755,7 @@ string CTools::StringToLower(const string& str)
 
 //----------------------------------------
 
-string CTools::StringToUpper(const string& str)
+std::string CTools::StringToUpper(const std::string& str)
 {
   char* strTmp = new char[str.length() + 1];
   memset(strTmp, '\0', str.length() + 1);
@@ -760,7 +764,7 @@ string CTools::StringToUpper(const string& str)
 
   CTools::ToUpper(strTmp);
 
-  string strRet = strTmp;
+  std::string strRet = strTmp;
   delete []strTmp;
 
   return strRet;
@@ -807,9 +811,9 @@ int32_t CTools::snprintf(char* str, size_t size, const char *format, ...)
 
 //----------------------------------------
 
-string CTools::Format(size_t size, const char *format, ...)
+std::string CTools::Format(size_t size, const char *format, ...)
 {
-  string result;
+  std::string result;
   va_list args;
 
   va_start( args, format );
@@ -821,9 +825,9 @@ string CTools::Format(size_t size, const char *format, ...)
 
 //----------------------------------------
 
-string CTools::Format(const char *format, ...)
+std::string CTools::Format(const char *format, ...)
 {
-  string result;
+  std::string result;
   va_list args;
 
   va_start( args, format );
@@ -835,10 +839,10 @@ string CTools::Format(const char *format, ...)
 
 //----------------------------------------
 
-string CTools::Format(size_t size, const char *format, va_list args)
+std::string CTools::Format(size_t size, const char *format, va_list args)
 {
   char		*str = new char[size];
-  string	result;
+  std::string	result;
 
   try
   {
@@ -1491,9 +1495,9 @@ int32_t CTools::IsNan
 
 
 //----------------------------------------
-string CTools::TrailingZeroesTrim(const string &Text, bool dotTrim /*= true*/)
+std::string CTools::TrailingZeroesTrim(const std::string &Text, bool dotTrim /*= true*/)
 {
-  string      	result;
+  std::string      	result;
   uint32_t	cp, ep;
   bool		dot;
 
@@ -1533,7 +1537,7 @@ string CTools::TrailingZeroesTrim(const string &Text, bool dotTrim /*= true*/)
 
     if (cp != ep)
     {
-	    /* Copy (pack) the end of the string */
+	    /* Copy (pack) the end of the std::string */
 	    result.erase(cp, ep - cp );
     }
   }
@@ -1551,7 +1555,7 @@ string CTools::TrailingZeroesTrim(const string &Text, bool dotTrim /*= true*/)
 //----------------------------------------
 
 bool CTools::FileExists
-		(const string	&Name)
+		(const std::string	&Name)
 {
 
   std::ifstream file;
@@ -1572,7 +1576,7 @@ bool CTools::FileExists
 
 //----------------------------------------
 bool CTools::DirectoryExists
-		(const string	&Name)
+		(const std::string	&Name)
 {
     struct stat statBuf;
     const char *dir = Name.c_str();
@@ -1589,17 +1593,17 @@ void CTools::SetDataDirForExecutable
     return;
   }
 
-  string filepath = MakeCorrectPath(argv0);
+  std::string filepath = MakeCorrectPath(argv0);
   if (filepath.empty())
   {
     return;
   }
 
-  string dirname = DirName(filepath);
+  std::string dirname = DirName(filepath);
   if (dirname.empty() || (dirname == "." && argv0[0] != '.'))
   {
-    string filename = filepath;
-    string path;
+    std::string filename = filepath;
+    std::string path;
     char *pathEnvVar;
     
     filepath = "";
@@ -1609,7 +1613,7 @@ void CTools::SetDataDirForExecutable
     {
        filename += ".exe";
     }
-    path = string(".") + PATH_LIST_SEPARATOR_CHAR;
+    path = std::string(".") + PATH_LIST_SEPARATOR_CHAR;
 #endif
     if ((pathEnvVar = getenv("PATH")) != NULL)
     {
@@ -1626,7 +1630,7 @@ void CTools::SetDataDirForExecutable
     }
   }
   
-  string datadir = MakeCorrectPath(AbsolutePath(DirName(filepath) + (PATH_SEPARATOR ".." PATH_SEPARATOR "data")));
+  std::string datadir = MakeCorrectPath(AbsolutePath(DirName(filepath) + (PATH_SEPARATOR ".." PATH_SEPARATOR "data")));
   if (!datadir.empty())
   {
     SetDataDir(datadir);
@@ -1635,14 +1639,14 @@ void CTools::SetDataDirForExecutable
 
 //----------------------------------------
 void CTools::SetDataDir
-        (const string &DataDir)
+        (const std::string &DataDir)
 {
   m_DataDir = DataDir;
 }
 
 
 //----------------------------------------
-string CTools::GetDataDir
+std::string CTools::GetDataDir
 		()
 {
   // Warning : under Windows, memory leaks when using getenv : see Microsoft Article ID : 815315 
@@ -1665,10 +1669,10 @@ string CTools::GetDataDir
 
 
 //----------------------------------------
-string CTools::FindDataFile
-		(const string	&FileName)
+std::string CTools::FindDataFile
+		(const std::string	&FileName)
 {
-  string result	= GetDataDir() + PATH_SEPARATOR + FileName;
+  std::string result	= GetDataDir() + PATH_SEPARATOR + FileName;
 
   if (! FileExists(result))
   {
@@ -1677,7 +1681,7 @@ string CTools::FindDataFile
   return result;
 }
 //----------------------------------------
-bool CTools::LoadAndCheckUdUnitsSystem(string& errorMsg)
+bool CTools::LoadAndCheckUdUnitsSystem(std::string& errorMsg)
 {
   try
   {
@@ -1688,7 +1692,7 @@ bool CTools::LoadAndCheckUdUnitsSystem(string& errorMsg)
     errorMsg = CTools::Format("BRAT ERROR while loading udunits system:\n%s", e.what());
     return false;
   }
-  catch (exception &e)
+  catch (std::exception &e)
   {
     errorMsg = CTools::Format("BRAT RUNTIME ERROR while loading udunits system:\n%s", e.what());
     return false;
@@ -1703,16 +1707,16 @@ bool CTools::LoadAndCheckUdUnitsSystem(string& errorMsg)
 }
 
 //----------------------------------------
-string CTools::FindFileInPath
-		(const string &filename, const string &path)
+std::string CTools::FindFileInPath
+		(const std::string &filename, const std::string &path)
 {
   size_t last, first = 0;
-  string filepath;
+  std::string filepath;
 
   while (first < path.size())
   {
     last = path.find(PATH_LIST_SEPARATOR_CHAR, first);
-    if (last == string::npos)
+    if (last == std::string::npos)
     {
       last = path.size();
     }
@@ -1734,11 +1738,11 @@ string CTools::FindFileInPath
 }
 
 //----------------------------------------
-string CTools::SlashesEncode (const string& str, const string& exclude, const string& literals, bool hexadecimal)
+std::string CTools::SlashesEncode (const std::string& str, const std::string& exclude, const std::string& literals, bool hexadecimal)
 {
   uint32_t i;
-  string ret;
-  string replace;
+  std::string ret;
+  std::string replace;
 
   if (str.empty())
   {
@@ -1825,11 +1829,11 @@ string CTools::SlashesEncode (const string& str, const string& exclude, const st
 }
 
 //----------------------------------------
-string CTools::SlashesDecode (const string& str, const string& exclude, bool decodeliterals)
+std::string CTools::SlashesDecode (const std::string& str, const std::string& exclude, bool decodeliterals)
 {
   uint32_t i, tmpic, matchlen;
-  string ret;
-  string replace;
+  std::string ret;
+  std::string replace;
 
   if (str.empty())
   {
@@ -1887,7 +1891,7 @@ string CTools::SlashesDecode (const string& str, const string& exclude, bool dec
 	      break;
 
       case '\\':
-	      // the one exclude exception
+	      // the one exclude std::exception
 	      if (strchr (exclude.c_str(), '\\'))
               {
 	        i++;
@@ -1985,11 +1989,11 @@ string CTools::SlashesDecode (const string& str, const string& exclude, bool dec
 }
 
 //----------------------------------------
-string CTools::RemoveCharSurroundingNumber (const string& str, const char c1, const char c2)
+std::string CTools::RemoveCharSurroundingNumber (const std::string& str, const char c1, const char c2)
 {
   uint32_t i;
-  string ret;
-  string subStr;
+  std::string ret;
+  std::string subStr;
 
   if (str.empty())
   {
@@ -2109,7 +2113,7 @@ string CTools::RemoveCharSurroundingNumber (const string& str, const char c1, co
 
 }
 //----------------------------------------
-string CTools::Replace(const string& inText, const string& regexpPattern, const string replaceString)
+std::string CTools::Replace(const std::string& inText, const std::string& regexpPattern, const std::string replaceString)
 {
   CRegexpT <char> regex(regexpPattern.c_str());
 
@@ -2117,7 +2121,7 @@ string CTools::Replace(const string& inText, const string& regexpPattern, const 
   // It was allocate with malloc (or realloc), so use 'free' function is free memory 
   char* result = regex.Replace( inText.c_str(), replaceString.c_str() );
 
-  string value = result;
+  std::string value = result;
   free(result);
 
   return value;
@@ -2125,7 +2129,7 @@ string CTools::Replace(const string& inText, const string& regexpPattern, const 
 }
 /*
 //----------------------------------------
-void CTools::ReplaceWord(const string& in_text, const string& find_word, const string& replace_word, string& out_text)
+void CTools::ReplaceWord(const std::string& in_text, const std::string& find_word, const std::string& replace_word, std::string& out_text)
 {
   if (in_text.empty())
   {
@@ -2134,13 +2138,13 @@ void CTools::ReplaceWord(const string& in_text, const string& find_word, const s
 
   uint32_t start_loc = 0;
   uint32_t char_num = 0;
-  ostringstream outString;
+  std::ostringstream outString;
 
   while (char_num < in_text.length())
   {
     start_loc = in_text.find(find_word,char_num);
 
-    if (start_loc != string::npos )
+    if (start_loc != std::string::npos )
     {
       outString << in_text.substr(char_num,start_loc);
       outString << replace_word;
@@ -2159,7 +2163,7 @@ void CTools::ReplaceWord(const string& in_text, const string& find_word, const s
 }
 */
 //----------------------------------------
-string CTools::ReplaceString(const string& inText, const vector<string>& findWords, const vector<string>& replaceWords)
+std::string CTools::ReplaceString(const std::string& inText, const std::vector<std::string>& findWords, const std::vector<std::string>& replaceWords)
 {
 
   if (inText.empty())
@@ -2167,7 +2171,7 @@ string CTools::ReplaceString(const string& inText, const vector<string>& findWor
     return inText;
   }
 
-  string outText = inText;
+  std::string outText = inText;
 
   size_t nbWords = std::min(findWords.size(), replaceWords.size());
 
@@ -2179,7 +2183,7 @@ string CTools::ReplaceString(const string& inText, const vector<string>& findWor
   return outText;
 }
 //----------------------------------------
-string CTools::ReplaceWord(const string& inText, const vector<string>& findWords, const vector<string>& replaceWords)
+std::string CTools::ReplaceWord(const std::string& inText, const std::vector<std::string>& findWords, const std::vector<std::string>& replaceWords)
 {
 
   if (inText.empty())
@@ -2187,14 +2191,14 @@ string CTools::ReplaceWord(const string& inText, const vector<string>& findWords
     return inText;
   }
 
-  string outText = inText;
+  std::string outText = inText;
 
 
   size_t nbWords = std::min(findWords.size(), replaceWords.size());
 
   for (size_t i = 0 ; i < nbWords ; i++)
   {
-    string pattern;
+    std::string pattern;
     pattern.append("\\b");
     pattern.append(findWords.at(i));
     pattern.append("\\b");
@@ -2205,7 +2209,7 @@ string CTools::ReplaceWord(const string& inText, const vector<string>& findWords
   return outText;
 }
 //----------------------------------------
-string CTools::ReplaceWord(const string& inText, const string& findWords, const string& replaceWords)
+std::string CTools::ReplaceWord(const std::string& inText, const std::string& findWords, const std::string& replaceWords)
 {
 
   if (inText.empty())
@@ -2213,9 +2217,9 @@ string CTools::ReplaceWord(const string& inText, const string& findWords, const 
     return inText;
   }
 
-  string outText = inText;
+  std::string outText = inText;
 
-  string pattern;
+  std::string pattern;
   pattern.append("\\b");
   pattern.append(findWords);
   pattern.append("\\b");
@@ -2225,7 +2229,7 @@ string CTools::ReplaceWord(const string& inText, const string& findWords, const 
 }
 
 //----------------------------------------
-void CTools::Find(const string& inText, const string& regexpPattern, vector<string>& stringFound)
+void CTools::Find(const std::string& inText, const std::string& regexpPattern, std::vector<std::string>& stringFound)
 {
   if (inText.empty())
   {
@@ -2241,7 +2245,7 @@ void CTools::Find(const string& inText, const string& regexpPattern, vector<stri
   while( result.IsMatched() != 0) 
   {
     int32_t group = result.MaxGroupNumber();
-    string str;
+    std::string str;
     if (group < 0)
     {
       str = inText.substr(result.GetStart(), result.GetEnd() - result.GetStart());
@@ -2261,7 +2265,7 @@ void CTools::Find(const string& inText, const string& regexpPattern, vector<stri
 
 }
 //----------------------------------------
-void CTools::FindWord(const string& inText, vector<string>& wordsFound)
+void CTools::FindWord(const std::string& inText, std::vector<std::string>& wordsFound)
 {
 
   if (inText.empty())
@@ -2269,21 +2273,21 @@ void CTools::FindWord(const string& inText, vector<string>& wordsFound)
     return;
   }
 
-  string pattern = "\\b\\w+\\b";
+  std::string pattern = "\\b\\w+\\b";
 
   CTools::Find(inText, pattern, wordsFound);
 }
 //----------------------------------------
-void CTools::FindAliases(const string& inText, vector<string>& aliasesFound, 
+void CTools::FindAliases(const std::string& inText, std::vector<std::string>& aliasesFound, 
                          bool onlyName /*= false*/,                                 
-                         const string& begining	/*= "%"*/,
+                         const std::string& begining	/*= "%"*/,
                          bool recurse /*= false*/, 
-                         const map<string, string>* varValues /*= NULL*/,
-                         const map<string, string>* fieldAliases /*= NULL*/,
-                         bool withExcept /*= false*/, string* errorMsg /*= NULL*/)
+                         const std::map<std::string, std::string>* varValues /*= NULL*/,
+                         const std::map<std::string, std::string>* fieldAliases /*= NULL*/,
+                         bool withExcept /*= false*/, std::string* errorMsg /*= NULL*/)
 {
 
-  string pattern;
+  std::string pattern;
   pattern.append("\\");
   pattern.append(begining);
   pattern.append("\\{[\\+,\\-]?");
@@ -2298,7 +2302,7 @@ void CTools::FindAliases(const string& inText, vector<string>& aliasesFound,
   }
   pattern.append("\\}");
   
-  vector<string> aliasesTmp;
+  std::vector<std::string> aliasesTmp;
 
   CTools::Find(inText, pattern, aliasesTmp);
 
@@ -2317,11 +2321,11 @@ void CTools::FindAliases(const string& inText, vector<string>& aliasesFound,
     return;
   }
 
-  vector<string>::const_iterator it;
+  std::vector<std::string>::const_iterator it;
 
   for (it = aliasesTmp.begin() ; it != aliasesTmp.end() ; it++)
   {
-    string strAlias;
+    std::string strAlias;
     if (onlyName)
     {
       strAlias.append(begining);
@@ -2334,13 +2338,13 @@ void CTools::FindAliases(const string& inText, vector<string>& aliasesFound,
     {
       strAlias.append(it->c_str());
     }
-    // If errorMsg is NULL, force withExcept to true (force to raise an exception) to avoid an infinite loop.
+    // If errorMsg is NULL, force withExcept to true (force to raise an std::exception) to avoid an infinite loop.
     if (errorMsg == NULL)
     {
       withExcept = true;
     }
 
-    string str = CTools::ExpandVariables(strAlias, varValues, fieldAliases, false, begining.at(0), 0, withExcept, errorMsg);
+    std::string str = CTools::ExpandVariables(strAlias, varValues, fieldAliases, false, begining.at(0), 0, withExcept, errorMsg);
     
     // If errorMsg not NULL and not empyt: there is an error: exit loop;
     if (errorMsg != NULL) 
@@ -2357,29 +2361,29 @@ void CTools::FindAliases(const string& inText, vector<string>& aliasesFound,
 }
 
 //----------------------------------------
-string CTools::ExpandShellVar(const string& value)
+std::string CTools::ExpandShellVar(const std::string& value)
 {
   return CTools::ExpandVariables(value, NULL, false, '$');
 }
 
 //----------------------------------------
-string CTools::ExpandVariables(const string& valueIn, const map<string, string>	*varValues,
+std::string CTools::ExpandVariables(const std::string& valueIn, const std::map<std::string, std::string>	*varValues,
                                bool recurse /*= false*/, char beginning	/*= '%'*/, uint32_t* numberVarsExpanded /*= NULL*/,
-                               bool withExcept /*= false*/, string* errorMsg /*= NULL*/)
+                               bool withExcept /*= false*/, std::string* errorMsg /*= NULL*/)
 {
   return CTools::ExpandVariables(valueIn, varValues, NULL, recurse,  beginning	, numberVarsExpanded);
 }
 //----------------------------------------
-string CTools::ExpandVariables(const string& valueIn, const map<string, string>	*varValues, const map<string, string>	*fieldAliases,
+std::string CTools::ExpandVariables(const std::string& valueIn, const std::map<std::string, std::string>	*varValues, const std::map<std::string, std::string>	*fieldAliases,
                                bool recurse /*= false*/, char beginning	/*= '%'*/, uint32_t* numberVarsExpanded /*= NULL*/,
-                               bool withExcept /*= false*/, string* errorMsg /*= NULL*/)
+                               bool withExcept /*= false*/, std::string* errorMsg /*= NULL*/)
 {
-  string toExpand;
-  string result	= valueIn;
-  string toFind	= " {";
-  string::size_type	begin;
-  string::size_type	end;
-  string::size_type	sizeToFind = toFind.size();
+  std::string toExpand;
+  std::string result	= valueIn;
+  std::string toFind	= " {";
+  std::string::size_type	begin;
+  std::string::size_type	end;
+  std::string::size_type	sizeToFind = toFind.size();
   
   bool oneExpanded;
   uint32_t numberExpanded = 0;
@@ -2390,7 +2394,7 @@ string CTools::ExpandVariables(const string& valueIn, const map<string, string>	
   
   uint32_t count	= 0;
 
-  const string validChars	= "+-ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_0123456789";
+  const std::string validChars	= "+-ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_0123456789";
 
   toFind[0]	= beginning;
 
@@ -2410,7 +2414,7 @@ string CTools::ExpandVariables(const string& valueIn, const map<string, string>	
     begin	= 0;
     end		= toExpand.find(toFind);
 
-    while (end != string::npos)
+    while (end != std::string::npos)
     {
       // test if \%{ is encountered
       if ((end != 0) && (toExpand[end-1] == '\\'))
@@ -2431,9 +2435,9 @@ string CTools::ExpandVariables(const string& valueIn, const map<string, string>	
       // Find the end of the name
       end	= toExpand.find_first_not_of(validChars, end + sizeToFind);
 
-      if (end == string::npos)
+      if (end == std::string::npos)
       {
-	      continue; // until the end of the string: missing '}'
+	      continue; // until the end of the std::string: missing '}'
       }
 
       // Test if first char not belonging to a valid name is not a '}'
@@ -2449,8 +2453,8 @@ string CTools::ExpandVariables(const string& valueIn, const map<string, string>	
       }
 
       // Name is found, expand it
-      string name	= toExpand.substr(begin + sizeToFind, end - sizeToFind - begin);
-      string value	= "";
+      std::string name	= toExpand.substr(begin + sizeToFind, end - sizeToFind - begin);
+      std::string value	= "";
       char resultCase	= name[0];
 
       // Check if upper or lower case is asked
@@ -2470,7 +2474,7 @@ string CTools::ExpandVariables(const string& valueIn, const map<string, string>	
       } 
       else if (varValues != NULL)
       {// Name got from variables values passed
-	      map<string,string>::const_iterator itValue	= varValues->find(name);
+	      std::map<std::string,std::string>::const_iterator itValue	= varValues->find(name);
 	      if (itValue != varValues->end())
         {
 	        value	= itValue->second;
@@ -2490,7 +2494,7 @@ string CTools::ExpandVariables(const string& valueIn, const map<string, string>	
             CTools::StringToAlias(name, value, nonPrintable);
             hasNonPrintable = true;
 
-            string msg = CTools::Format("Alias or variable '%s' is not defined in expression '%s'", name.c_str(), valueIn.c_str());
+            std::string msg = CTools::Format("Alias or variable '%s' is not defined in expression '%s'", name.c_str(), valueIn.c_str());
             if (errorMsg != NULL)
             {
               errorMsg->append(msg);
@@ -2510,7 +2514,7 @@ string CTools::ExpandVariables(const string& valueIn, const map<string, string>	
             CTools::StringToAlias(name, value, nonPrintable);
             hasNonPrintable = true;
 
-            string msg = CTools::Format("Alias or variable '%s' is not defined in expression '%s'", name.c_str(), valueIn.c_str());
+            std::string msg = CTools::Format("Alias or variable '%s' is not defined in expression '%s'", name.c_str(), valueIn.c_str());
             if (errorMsg != NULL)
             {
               errorMsg->append(msg);
@@ -2544,7 +2548,7 @@ string CTools::ExpandVariables(const string& valueIn, const map<string, string>	
       begin		= end + 1;
       end		= toExpand.find(toFind, begin);
 
-    } //end while (end != string::npos)
+    } //end while (end != std::string::npos)
 
     // Register remaining chars.
     result.append(toExpand, begin, toExpand.size() - begin);
@@ -2564,7 +2568,7 @@ string CTools::ExpandVariables(const string& valueIn, const map<string, string>	
 }
 
 //----------------------------------------
-void CTools::StringToAlias(const string& in, string& out, const char beginning	/*= '%'*/)
+void CTools::StringToAlias(const std::string& in, std::string& out, const char beginning	/*= '%'*/)
 {
   out.append(1, beginning);
   out.append(1, '{');
@@ -2572,10 +2576,10 @@ void CTools::StringToAlias(const string& in, string& out, const char beginning	/
   out.append(1, '}');
 }
 //----------------------------------------
-string CTools::MakeCorrectPath(const string& path)
+std::string CTools::MakeCorrectPath(const std::string& path)
 {
-    string p(path);
-    string r;
+    std::string p(path);
+    std::string r;
     int i, j, cnt;
 
     char pathSep = PATH_SEPARATOR_CHAR;
@@ -2589,7 +2593,7 @@ string CTools::MakeCorrectPath(const string& path)
         p.at(i) = pathSep; 
       }
     
-    string tmp = ".";
+    std::string tmp = ".";
     tmp += PATH_SEPARATOR;
 
     if (p.compare(0, 2, tmp) == 0) 
@@ -2638,12 +2642,12 @@ string CTools::MakeCorrectPath(const string& path)
 
 
 //----------------------------------------
-string CTools::AbsolutePath( const string& partialPath )
+std::string CTools::AbsolutePath( const std::string& partialPath )
 {
 
   char buff[BRATHL_PATH_MAX+1];
   memset(buff, '\0', BRATHL_PATH_MAX+1);
-  string absolutePath;
+  std::string absolutePath;
 
 #if HAVE_FULLPATH
    if( _fullpath( buff, partialPath.c_str(), BRATHL_PATH_MAX ) != NULL )
@@ -2665,7 +2669,7 @@ string CTools::AbsolutePath( const string& partialPath )
 }
 
 //----------------------------------------
-string CTools::FileExtension(const string& fileName)
+std::string CTools::FileExtension(const std::string& fileName)
 {
   char dirDelim = PATH_SEPARATOR_CHAR;
 
@@ -2692,7 +2696,7 @@ string CTools::FileExtension(const string& fileName)
 }
 
 //----------------------------------------
-string CTools::DirName(const string& fileName)
+std::string CTools::DirName(const std::string& fileName)
 {
 #if HAVE_DIRNAME
   char buff[BRATHL_PATH_MAX+1];
@@ -2704,19 +2708,19 @@ string CTools::DirName(const string& fileName)
    return dirname(buff);
 #else
   #if HAVE_SPLITPATH
-   string drive;
-   string dirName;
+   std::string drive;
+   std::string dirName;
 
    CTools::SplitPath(fileName, &drive, &dirName);
    return drive + dirName;
   #else
-    #error "ERROR Compiling - There is no function to get a dir name from a string."
+    #error "ERROR Compiling - There is no function to get a dir name from a std::string."
   #endif
 #endif
 }
 
 //----------------------------------------
-string CTools::BaseName(const string& fileName)
+std::string CTools::BaseName(const std::string& fileName)
 {
 #if HAVE_BASENAME
   char buff[BRATHL_PATH_MAX+1];
@@ -2728,19 +2732,19 @@ string CTools::BaseName(const string& fileName)
    return basename(buff);
 #else
   #if HAVE_SPLITPATH
-   string fname;
+   std::string fname;
 
    CTools::SplitPath(fileName, NULL, NULL, &fname);
    return fname;
   #else
-    #error "ERROR Compiling - There is no function to get a base file name from a string."
+    #error "ERROR Compiling - There is no function to get a base file name from a std::string."
   #endif
 #endif
 }
 
 //----------------------------------------
 #if HAVE_SPLITPATH
-void CTools::SplitPath(const string& path, string* drive, string* dir, string* fname, string* ext)
+void CTools::SplitPath(const std::string& path, std::string* drive, std::string* dir, std::string* fname, std::string* ext)
 {
   char driveTmp[BRATHL_PATH_MAX+1];;
   char dirTmp[BRATHL_PATH_MAX+1];;
@@ -2840,10 +2844,10 @@ void CTools::SwapValue
 }
 
 //----------------------------------------
-double CTools::UnconvertLat(const string& value) 
+double CTools::UnconvertLat(const std::string& value) 
 {
   double origVal = m_defaultValueDOUBLE;
-  string valueTrim = CTools::StringTrim(value.c_str());
+  std::string valueTrim = CTools::StringTrim(value.c_str());
 
   // regex object
   CRegexpT <char> regexp("[\\d*\\.*\\s*]*[nNsS]");
@@ -2875,7 +2879,7 @@ double CTools::UnconvertLat(const string& value)
 
   }
 
-  string str = valueTrim.substr(result2.GetStart(), result2.GetEnd() - result2.GetStart());
+  std::string str = valueTrim.substr(result2.GetStart(), result2.GetEnd() - result2.GetStart());
 
   origVal = CTools::StrToDouble(str);
 
@@ -2895,11 +2899,11 @@ double CTools::UnconvertLat(const string& value)
 }
 
 //----------------------------------------
-double CTools::UnconvertLon(const string& value, bool normalize /*= true*/) 
+double CTools::UnconvertLon(const std::string& value, bool normalize /*= true*/) 
 {
 
   double origVal = m_defaultValueDOUBLE;
-  string valueTrim = CTools::StringTrim(value.c_str());
+  std::string valueTrim = CTools::StringTrim(value.c_str());
 
   // regex object
   CRegexpT <char> regexp("[\\d*\\.*\\s*]*[eEwW]");
@@ -2931,7 +2935,7 @@ double CTools::UnconvertLon(const string& value, bool normalize /*= true*/)
 
   }
 
-  string str = valueTrim.substr(result2.GetStart(), result2.GetEnd() - result2.GetStart());
+  std::string str = valueTrim.substr(result2.GetStart(), result2.GetEnd() - result2.GetStart());
 
   origVal = CTools::StrToDouble(str);
 
@@ -2952,13 +2956,13 @@ double CTools::UnconvertLon(const string& value, bool normalize /*= true*/)
 }
 
 //----------------------------------------
-double CTools::StrToDouble(const string& value) 
+double CTools::StrToDouble(const std::string& value) 
 {
 
   errno	= 0;
   char *endPtr = NULL;
 
-  string valueTrim = CTools::StringTrim(value);
+  std::string valueTrim = CTools::StringTrim(value);
 
   double doubleValue	= strtod(valueTrim.c_str(), &endPtr);
 
@@ -2974,16 +2978,16 @@ double CTools::StrToDouble(const string& value)
 
 }
 //----------------------------------------
-string CTools::DoubleToStr(double d, int32_t precision /* = 10 */)
+std::string CTools::DoubleToStr(double d, int32_t precision /* = 10 */)
 {
   
-  const string s;
-  ostringstream myStream;
+  const std::string s;
+  std::ostringstream myStream;
 
   //floating point values are converted to fixed 
   //notation with the number of digits after the decimal point equal 
-  // to the value of ios::x_precision set by precision(value)
-  myStream.setf(ios::fixed);
+  // to the value of std::ios::x_precision set by precision(value)
+  myStream.setf(std::ios::fixed);
   myStream.precision(precision);
 
   if (myStream<<d)
@@ -2996,12 +3000,12 @@ string CTools::DoubleToStr(double d, int32_t precision /* = 10 */)
   }
 }
 //----------------------------------------
-float CTools::StrToFloat(const string& s) 
+float CTools::StrToFloat(const std::string& s) 
 {
 
   float f;
 
-  istringstream myStream(s);
+  std::istringstream myStream(s);
 
   if (myStream>>f)
   {
@@ -3015,16 +3019,16 @@ float CTools::StrToFloat(const string& s)
 
 }
 //----------------------------------------
-string CTools::FloatToStr(float f, int32_t precision /* = 10 */)
+std::string CTools::FloatToStr(float f, int32_t precision /* = 10 */)
 {
   
-  const string s;
-  ostringstream myStream;
+  const std::string s;
+  std::ostringstream myStream;
 
   //floating point values are converted to fixed 
   //notation with the number of digits after the decimal point equal 
-  // to the value of ios::x_precision set by precision(value)
-  myStream.setf(ios::fixed);
+  // to the value of std::ios::x_precision set by precision(value)
+  myStream.setf(std::ios::fixed);
   myStream.precision(precision);
 
   if (myStream<<f)
@@ -3037,11 +3041,11 @@ string CTools::FloatToStr(float f, int32_t precision /* = 10 */)
   }
 }
 //----------------------------------------
-int32_t CTools::StrToInt(const string &s)
+int32_t CTools::StrToInt(const std::string &s)
 {
   int32_t i;
 
-  istringstream myStream(s);
+  std::istringstream myStream(s);
   
   if (myStream>>i)
   {
@@ -3054,11 +3058,11 @@ int32_t CTools::StrToInt(const string &s)
   }
 }
 //----------------------------------------
-int64_t CTools::StrToInt64(const string &s)
+int64_t CTools::StrToInt64(const std::string &s)
 {
   int64_t i;
 
-  istringstream myStream(s);
+  std::istringstream myStream(s);
   
   if (myStream>>i)
   {
@@ -3071,11 +3075,11 @@ int64_t CTools::StrToInt64(const string &s)
   }
 }
 //----------------------------------------
-uint64_t CTools::StrToUInt64(const string &s)
+uint64_t CTools::StrToUInt64(const std::string &s)
 {
   uint64_t i;
 
-  istringstream myStream(s);
+  std::istringstream myStream(s);
   
   if (myStream>>i)
   {
@@ -3088,10 +3092,10 @@ uint64_t CTools::StrToUInt64(const string &s)
   }
 }
 //----------------------------------------
-string CTools::IntToStr(int32_t i)
+std::string CTools::IntToStr(int32_t i)
 {
   
-  ostringstream myStream;
+  std::ostringstream myStream;
 
   if (myStream<<i)
   {
@@ -3103,11 +3107,11 @@ string CTools::IntToStr(int32_t i)
   }
 }
 //----------------------------------------
-int64_t CTools::StrToLong(const string &s)
+int64_t CTools::StrToLong(const std::string &s)
 {
   int64_t i;
 
-  istringstream myStream(s);
+  std::istringstream myStream(s);
   
   if (myStream>>i)
   {
@@ -3120,10 +3124,10 @@ int64_t CTools::StrToLong(const string &s)
   }
 }
 //----------------------------------------
-string CTools::LongToStr(int64_t i)
+std::string CTools::LongToStr(int64_t i)
 {
   
-  ostringstream myStream;
+  std::ostringstream myStream;
 
   if (myStream<<i)
   {
@@ -3415,12 +3419,12 @@ void CTools::DeleteObject(CBratObject* ob)
   }
 }
 //----------------------------------------
-string CTools::BeforeFirst(const string& str, const char ch)
+std::string CTools::BeforeFirst(const std::string& str, const char ch)
 {
   size_t strLen = str.length();
   size_t iPos = str.find(ch);
 
-  if ( iPos == string::npos ) 
+  if ( iPos == std::string::npos ) 
   {
     return str;
   }
@@ -3429,23 +3433,23 @@ string CTools::BeforeFirst(const string& str, const char ch)
   return str.substr(0, nLen);
 }
 //----------------------------------------
-string CTools::ToString(const char *s, size_t len /*= string::npos*/)
+std::string CTools::ToString(const char *s, size_t len /*= std::string::npos*/)
 {
- return string(s, len != string::npos ? len : strlen(s));
+ return std::string(s, len != std::string::npos ? len : strlen(s));
 }
 
 //----------------------------------------
-void CTools::ReplaceAliases(const string& in,  string& out, vector<string>* aliases /*= NULL*/)
+void CTools::ReplaceAliases(const std::string& in,  std::string& out, std::vector<std::string>* aliases /*= NULL*/)
 {
   CTools::ReplaceAliases(in, "1", out, aliases);
 
 }
 //----------------------------------------
-void CTools::ReplaceAliases(const string& in, const string& replacedBy, string& out, vector<string>* aliases /*= NULL*/)
+void CTools::ReplaceAliases(const std::string& in, const std::string& replacedBy, std::string& out, std::vector<std::string>* aliases /*= NULL*/)
 {
 
-  vector<string> aliasesTmp;
-  vector<string>& aliasesFound = aliasesTmp;
+  std::vector<std::string> aliasesTmp;
+  std::vector<std::string>& aliasesFound = aliasesTmp;
   if (aliases !=  NULL)
   {
     aliasesFound = *aliases;
@@ -3457,11 +3461,11 @@ void CTools::ReplaceAliases(const string& in, const string& replacedBy, string& 
 
   out = in;
 
-  vector<string>::const_iterator it;
+  std::vector<std::string>::const_iterator it;
 
   for (it = aliasesFound.begin() ; it != aliasesFound.end() ; it++)
   {
-    string pattern = *it;
+    std::string pattern = *it;
     pattern = CTools::Replace(pattern, "\\%\\{", "\\%\\{");
     pattern = CTools::Replace(pattern, "\\}", "\\}");
     out = CTools::Replace(out, pattern, replacedBy);
@@ -3527,7 +3531,7 @@ double CTools::DistanceKmOnUnitSphere(double lat1, double long1, double lat2, do
 //	{
 //	if(*p != '%')
 //		{
-//    cout << *p << endl;
+//    std::cout << *p << std::endl;
 //		continue;
 //		}
 //
@@ -3535,28 +3539,28 @@ double CTools::DistanceKmOnUnitSphere(double lat1, double long1, double lat2, do
 //		{
 //		case 'c':
 //			c = va_arg(args, uint8_t);
-//      cout << c << endl;
+//      std::cout << c << std::endl;
 //			break;
 //
 //		case 'd':
 //			i = va_arg(args, int32_t);
-//      cout << i << endl;
+//      std::cout << i << std::endl;
 //			break;
 //
 //		case 'f':
 //			f = va_arg(args, double);
-//      cout << f << endl;
+//      std::cout << f << std::endl;
 //			break;
 //
 //		case 's':
 //			s = va_arg(args, const char *);
-//      cout << s << endl;
+//      std::cout << s << std::endl;
 //			break;
 //
 //		case 'o':
 // 			o = va_arg(args, CBratObject *);
-//      o->Dump(cout);
-//      cout << o << endl;
+//      o->Dump(std::cout);
+//      std::cout << o << std::endl;
 //			break;
 //
 //		//case 'x':
@@ -3570,7 +3574,7 @@ double CTools::DistanceKmOnUnitSphere(double lat1, double long1, double lat2, do
 //			break;
 //
 //    default:
-//      cout << "unrecognized format:'" << *(p-1) << *p << "'" << endl;
+//      std::cout << "unrecognized format:'" << *(p-1) << *p << "'" << std::endl;
 //      return 0.0;
 //
 //		}
@@ -3602,7 +3606,7 @@ double CTools::DistanceKmOnUnitSphere(double lat1, double long1, double lat2, do
 //	{
 //	if(*p != '%')
 //		{
-//    //cout << *p << endl;
+//    //std::cout << *p << std::endl;
 //		continue;
 //		}
 //
@@ -3611,44 +3615,44 @@ double CTools::DistanceKmOnUnitSphere(double lat1, double long1, double lat2, do
 //		{
 //		case 'c':
 //			c = va_arg(args, VA_CHAR);
-//      //cout << c << endl;
+//      //std::cout << c << std::endl;
 //      typeUnion = CTools::c2u(c);
 //      typeUnions.push_back(typeUnion);
 //			break;
 //
 //		case 'd':
 //			i = va_arg(args, int32_t);
-//      //cout << i << endl;
+//      //std::cout << i << std::endl;
 //      typeUnion = CTools::d2u(i);
 //      typeUnions.push_back(typeUnion);
 //			break;
 //
 //		case 'f':
 //			f = va_arg(args, VA_FLOAT);
-//      //cout << f << endl;
+//      //std::cout << f << std::endl;
 //      typeUnion = CTools::d2u(f);
 //      typeUnions.push_back(typeUnion);
 //			break;
 //
 //		case 'p':
 //			pd = va_arg(args, double*);
-//      cout << pd << endl;
-////      cout << static_cast<double>(*pd) << endl;
+//      std::cout << pd << std::endl;
+////      std::cout << static_cast<double>(*pd) << std::endl;
 //      typeUnion = CTools::d_ptr2u(pd);
 //      typeUnions.push_back(typeUnion);
 //			break;
 //
 //		case 's':
 //			s = va_arg(args, const char *);
-//      //cout << s << endl;
+//      //std::cout << s << std::endl;
 //      typeUnion= CTools::s2u(s);
 //      typeUnions.push_back(typeUnion);
 //			break;
 //
 //		//case 'o':
 // 	//		o = va_arg(args, CBratObject *);
-//  //    o->Dump(cout);
-//  //    cout << o << endl;
+//  //    o->Dump(std::cout);
+//  //    std::cout << o << std::endl;
 //		//	break;
 //
 //		//case 'x':
@@ -3770,7 +3774,7 @@ double CTools::DistanceKmOnUnitSphere(double lat1, double long1, double lat2, do
 //-------------------------------------------------------------
 
 //----------------------------------------
-//void CVectorTypeUnion::Dump(ostream& fOut /* = cerr */)
+//void CVectorTypeUnion::Dump(std::ostream& fOut /* = std::cerr */)
 //{
 //
 // if (CTrace::IsTrace() == false)
@@ -3781,7 +3785,7 @@ double CTools::DistanceKmOnUnitSphere(double lat1, double long1, double lat2, do
 //  CVectorTypeUnion::const_iterator it;
 //  int i = 0;
 //
-//  fOut << "==> Dump a CVectorTypeUnion Object at "<< this << " with " <<  size() << " elements" << endl;
+//  fOut << "==> Dump a CVectorTypeUnion Object at "<< this << " with " <<  size() << " elements" << std::endl;
 //
 //  for ( it = this->begin( ); it != this->end( ); it++ )
 //  {
@@ -3791,33 +3795,33 @@ double CTools::DistanceKmOnUnitSphere(double lat1, double long1, double lat2, do
 //    switch(typeUnion.t) 
 //    {
 //    case T_INT:
-//      fOut << typeUnion.i << endl;
+//      fOut << typeUnion.i << std::endl;
 //      break;
 //    case T_FLOAT:
-//      fOut << typeUnion.f << endl;
+//      fOut << typeUnion.f << std::endl;
 //      break;
 //    case T_DOUBLE:
-//      fOut << typeUnion.d << endl;
+//      fOut << typeUnion.d << std::endl;
 //      break;
 //    case T_CHAR:
-//      fOut << typeUnion.c << endl;
+//      fOut << typeUnion.c << std::endl;
 //      break;
 //    case T_STRING:
-//      fOut << typeUnion.s << endl;
+//      fOut << typeUnion.s << std::endl;
 //      break;
 //    case T_DOUBLE_PTR:
-//      fOut << typeUnion.d_ptr << endl;
+//      fOut << typeUnion.d_ptr << std::endl;
 //      break;
 //    default:
-//      fOut << CTools::Format("unrecognized format code '%d' in the parameter format of CTools::Exec method", typeUnion.t) << endl;
+//      fOut << CTools::Format("unrecognized format code '%d' in the parameter format of CTools::Exec method", typeUnion.t) << std::endl;
 //    }
 //    i++;
 //  }
 //
-//  fOut << "==> END Dump a CVectorTypeUnion Object at "<< this << " with " <<  size() << " elements" << endl;
+//  fOut << "==> END Dump a CVectorTypeUnion Object at "<< this << " with " <<  size() << " elements" << std::endl;
 //
 //
-//  fOut << endl;
+//  fOut << std::endl;
 //
 //}
 

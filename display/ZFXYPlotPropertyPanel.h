@@ -42,7 +42,7 @@
 #include "BratDisplay_wdr.h"
 
 #include "ZFXYPlotData.h"
-#include "MapProjection.h"
+#include "PlotData/MapProjection.h"
 #include "LabeledTextCtrl.h"
 #include "LUTPanel.h"
 #include "ZFXYContourPropFrame.h"

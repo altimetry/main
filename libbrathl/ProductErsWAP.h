@@ -48,7 +48,7 @@ public:
   
   /** Creates new CProductErsWAP object
     \param fileName [in] : file name to be connected */
-  CProductErsWAP(const string& fileName);
+  CProductErsWAP(const std::string& fileName);
   
   /** Creates new CProductErsWAP object
     \param fileNameList [in] : list of file to be connected */
@@ -60,7 +60,7 @@ public:
   virtual void InitCriteriaInfo();
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 
 protected:
@@ -92,9 +92,9 @@ public:
 
 protected:
   
-  string m_timeStampDayFieldName;
-  string m_timeStampMillisecondFieldName;
-  string m_timeStampMicrosecondFieldName;		
+  std::string m_timeStampDayFieldName;
+  std::string m_timeStampMillisecondFieldName;
+  std::string m_timeStampMicrosecondFieldName;		
 
 private:
   

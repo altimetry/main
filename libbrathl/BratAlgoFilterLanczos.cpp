@@ -335,7 +335,7 @@ void CBratAlgoFilterLanczos::PrepareDataWindow(ComputeMode mode, const CDoubleAr
   
   CTrace::Tracer(3, "===> WINDOW IS :");
 
-  string str;
+  std::string str;
   for (uint32_t i = 0 ; i < m_dataWindowLength ; i++)
   {
     double value = m_rawDataWindow[i];
@@ -477,7 +477,7 @@ void CBratAlgoFilterLanczos::ComputeInitialWeights()
 
 #if _DEBUG_BRAT_ALGO    
 
-  string str;
+  std::string str;
   str.append("initial weights are : ");
 
   for (uint32_t i  = 0; i < windowSize; i++)
@@ -538,7 +538,7 @@ double CBratAlgoFilterLanczos::ApplyFilter(ComputeMode mode, uint32_t from)
 
 #if _DEBUG_BRAT_ALGO    
 
-  string str;
+  std::string str;
   if (mode == ModeHorizontal)
   {
     str.append("Mode Horizontal: ");
@@ -773,7 +773,7 @@ void CBratAlgoFilterLanczos::PrepareDataReading2DY()
 
     if (indexX == 1)
     {
-      string msg = "qsdsqd";
+      std::string msg = "qsdsqd";
     }
 
     uint32_t dimX = fieldCaller->GetDimAt(0);
@@ -883,25 +883,25 @@ void CBratAlgoFilterLanczos::PrepareDataReading2DY()
 
 
 //----------------------------------------
-void CBratAlgoFilterLanczos::Dump(ostream& fOut /*= cerr*/)
+void CBratAlgoFilterLanczos::Dump(std::ostream& fOut /*= std::cerr*/)
 {
    if (CTrace::IsTrace() == false)
    { 
       return;
    }
 
-  fOut << "==> Dump a CBratAlgoFilterLanczos Object at "<< this << endl;
+  fOut << "==> Dump a CBratAlgoFilterLanczos Object at "<< this << std::endl;
   CBratAlgoFilterKernel::Dump(fOut);
 
-  fOut << "m_lanczos: " << m_lanczos << endl;
-  fOut << "m_cutOffPeriod: " << m_cutOffPeriod << endl;  
-  fOut << "m_cutOffFrequency: " << m_cutOffFrequency << endl;  
-  fOut << "m_initialWeights: " << endl;
+  fOut << "m_lanczos: " << m_lanczos << std::endl;
+  fOut << "m_cutOffPeriod: " << m_cutOffPeriod << std::endl;  
+  fOut << "m_cutOffFrequency: " << m_cutOffFrequency << std::endl;  
+  fOut << "m_initialWeights: " << std::endl;
   m_initialWeights.Dump();
-  //fOut << "m_weights: " << endl;
+  //fOut << "m_weights: " << std::endl;
   //m_weights.Dump();
 
-  fOut << "==> END Dump a CBratAlgoFilterLanczos Object at "<< this << endl;
+  fOut << "==> END Dump a CBratAlgoFilterLanczos Object at "<< this << std::endl;
 
 }
 

@@ -26,7 +26,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h" 
+#include <string> 
 
 #include "TraceLog.h" 
 #include "Tools.h" 
@@ -39,8 +39,8 @@ namespace brathl
 {
 
 
-const string CRYOSAT_SPH = "sph";
-const string CRYOSAT_MPH = "mph";
+const std::string CRYOSAT_SPH = "sph";
+const std::string CRYOSAT_MPH = "mph";
 
 CProductCryosat::CProductCryosat()
 {
@@ -50,7 +50,7 @@ CProductCryosat::CProductCryosat()
 
 //----------------------------------------
 
-CProductCryosat::CProductCryosat(const string& fileName)
+CProductCryosat::CProductCryosat(const std::string& fileName)
       : CProduct(fileName)
 {
   Init();    
@@ -219,7 +219,7 @@ bool CProductCryosat::IsHighResolutionField(CField* field)
   CFieldRecord* topParentField = dynamic_cast<CFieldRecord*>(*(parentFieldList.begin()));
   if (topParentField == NULL)
   {
-    string msg = CTools::Format("ERROR - CProductCryosat::IsHighResolutionField - top parent Field list NULL()"
+    std::string msg = CTools::Format("ERROR - CProductCryosat::IsHighResolutionField - top parent Field list NULL()"
                               "(field '%s')", 
                               field->GetKey().c_str());                                
     CProductException e(msg, BRATHL_INCONSISTENCY_ERROR);
@@ -229,7 +229,7 @@ bool CProductCryosat::IsHighResolutionField(CField* field)
 
   if (topParentField->GetTypeClass() != coda_array_class) //test the type of the parent type class
   {
-    string msg = CTools::Format("ERROR - CProductCryosat::IsHighResolutionField - top parent Field typeClass (%s) must be coda_array_class "
+    std::string msg = CTools::Format("ERROR - CProductCryosat::IsHighResolutionField - top parent Field typeClass (%s) must be coda_array_class "
                               "(field '%s')", 
                               coda_type_get_class_name(topParentField->GetTypeClass()),
                               topParentField->GetKey().c_str());                                
@@ -240,7 +240,7 @@ bool CProductCryosat::IsHighResolutionField(CField* field)
 
   if (topParentField->GetNbDims() != 1 )
   {
-    string msg = CTools::Format("ERROR - CProductCryosat::IsHighResolutionField - Number of array dim %d not implemented for this method "
+    std::string msg = CTools::Format("ERROR - CProductCryosat::IsHighResolutionField - Number of array dim %d not implemented for this method "
                               "(field '%s')", 
                               topParentField->GetNbDims(),
                               topParentField->GetKey().c_str());                                
@@ -253,7 +253,7 @@ bool CProductCryosat::IsHighResolutionField(CField* field)
     return false;
   }
 
-  string name = CTools::StringToLower(topParentField->GetName());
+  std::string name = CTools::StringToLower(topParentField->GetName());
   
   if ( (name.compare("time_orb_data") == 0) || (name.compare("meas_data") == 0) || (name.compare("wavef_data") == 0) )
   {
@@ -277,7 +277,7 @@ void CProductCryosat::ProcessHighResolutionWithoutFieldCalculation()
 
   if (recordSetToProcess == NULL)
   {
-    string msg = "ERROR in CProductCryosat::ProcessHighResolutionWithoutFieldCalculation - No current recordset";
+    std::string msg = "ERROR in CProductCryosat::ProcessHighResolutionWithoutFieldCalculation - No current recordset";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
@@ -337,7 +337,7 @@ void CProductCryosat::ProcessHighResolutionWithoutFieldCalculation()
 }
 
 //----------------------------------------
-void CProductCryosat::Dump(ostream& fOut /* = cerr */)
+void CProductCryosat::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -345,15 +345,15 @@ void CProductCryosat::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CProductCryosat Object at "<< this << endl;
+  fOut << "==> Dump a CProductCryosat Object at "<< this << std::endl;
 
   //------------------
   CProduct::Dump(fOut);
   //------------------
 
-  fOut << "==> END Dump a CProductCryosat Object at "<< this << endl;
+  fOut << "==> END Dump a CProductCryosat Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

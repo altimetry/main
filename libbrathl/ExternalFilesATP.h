@@ -20,9 +20,9 @@
 #ifndef _ExternalFilesATP_h_
 #define _ExternalFilesATP_h_
 
-#include <netcdf.h>
+#include "netcdf.h"
 #include "BratObject.h"
-#include "Stl.h"
+#include <string>
 #include "ExternalFilesNetCDF.h"
 
 namespace brathl
@@ -92,12 +92,12 @@ class CExternalFilesATP : public CExternalFilesNetCDFCF
 {
 public:
   CExternalFilesATP
-		(const string		&Name = "");
+		(const std::string		&Name = "");
 
   virtual ~CExternalFilesATP() { };
 
-  static string TypeOf() { return CExternalFilesATP::m_ALONG_TRACK_PRODUCT; };
-  virtual string GetType() { return TypeOf(); };
+  static std::string TypeOf() { return CExternalFilesATP::m_ALONG_TRACK_PRODUCT; };
+  virtual std::string GetType() { return TypeOf(); };
 
   virtual void Rewind();
 
@@ -107,30 +107,30 @@ public:
 
   // If WantedUnit is "", the returned value is in base (SI) unit.
   virtual void GetValue
-		(const string		&Name,
+		(const std::string		&Name,
 		 CExpressionValue	&Value,
-		 const string		&WantedUnit);
+		 const std::string		&WantedUnit);
 
   // If WantedUnit is "", the returned value is in base (SI) unit.
   virtual void GetValue
-		(const string &name,
+		(const std::string &name,
 		 double	&value,
-		 const string &wantedUnit);
+		 const std::string &wantedUnit);
 
   virtual void GetAllValues
-		(const string		&name,
+		(const std::string		&name,
 		 CExpressionValue	&value,
-		 const string		&wantedUnit);
+		 const std::string		&wantedUnit);
 
   virtual void GetAllValues
-		(const string& name,
+		(const std::string& name,
 		 CDoubleArray& array,
-		 const string& wantedUnit);
+		 const std::string& wantedUnit);
 
 
-  virtual void GetAllValues(CFieldNetCdf* field, const string& wantedUnit);
+  virtual void GetAllValues(CFieldNetCdf* field, const std::string& wantedUnit);
 
-  virtual void GetValues(const string& name, CExpressionValue &value, const string	&wantedUnit);
+  virtual void GetValues(const std::string& name, CExpressionValue &value, const std::string	&wantedUnit);
 
   static CRegisteredPass* GetRegisteredPass(CBratObject* ob, bool withExcept = true);
 
@@ -153,9 +153,9 @@ protected:
   // Add a variable in the variable list
   virtual void AddVar
 		      (int32_t	NetcdfId,
-		       const string	&Name,
-		       const string	&Description,
-		       const string	&Unit,
+		       const std::string	&Name,
+		       const std::string	&Description,
+		       const std::string	&Unit,
            int32_t type = NC_NAT,
            const CUIntArray* dimValues = NULL,
            const CStringArray* dimNames = NULL,
@@ -163,7 +163,7 @@ protected:
            const CStringMap* mapAttributes = NULL);
   
   // Add a variable in the variable list got from description in file
-  virtual void AddVar(const string	&Name);
+  virtual void AddVar(const std::string	&Name);
 
   virtual void AddBratIndexData() {};
 
@@ -192,14 +192,14 @@ private:
   // Return false if current Pass does not exists (end of data reached)
   bool LoadPass(bool resetValues = false);
 
-  //bool LoadPass(const string& name, bool resetValues = false);
+  //bool LoadPass(const std::string& name, bool resetValues = false);
   bool LoadPass(CFieldNetCdf* var, bool resetValues = false);
 
 public:
 
-  static const string m_ALONG_TRACK_PRODUCT;
-  static const string m_DATE_UNIT;
-  static const string m_DATA_DIM_NAME;
+  static const std::string m_ALONG_TRACK_PRODUCT;
+  static const std::string m_DATE_UNIT;
+  static const std::string m_DATA_DIM_NAME;
 
 };
 

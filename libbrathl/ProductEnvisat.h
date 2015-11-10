@@ -48,7 +48,7 @@ public:
   
   /** Creates new CProductEnvisat object
     \param fileName [in] : file name to be connected */
-  CProductEnvisat(const string& fileName);
+  CProductEnvisat(const std::string& fileName);
   
   /** Creates new CProductEnvisat object
     \param fileNameList [in] : list of file to be connected */
@@ -60,7 +60,7 @@ public:
   virtual void InitCriteriaInfo();
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
 
@@ -85,14 +85,14 @@ protected:
   bool IsParentHighResolutionField(CField* field);
 
   /** Get the "High resolution latitude differences" field name */
-  virtual string GetHighResolutionLatDiffFieldName() {return m_highResolutionLatDiffFieldName;};
+  virtual std::string GetHighResolutionLatDiffFieldName() {return m_highResolutionLatDiffFieldName;};
   /** Set the "High resolution latitude differences" field name */
-  virtual void SetHighResolutionLatDiffFieldName(const string& value) {m_highResolutionLatDiffFieldName = value;};
+  virtual void SetHighResolutionLatDiffFieldName(const std::string& value) {m_highResolutionLatDiffFieldName = value;};
 
   /** Get the "High resolution longitude differences" field name */
-  virtual string GetHighResolutionLonDiffFieldName() {return m_highResolutionLonDiffFieldName;};
+  virtual std::string GetHighResolutionLonDiffFieldName() {return m_highResolutionLonDiffFieldName;};
   /** Set the "High resolution longitude differences" field name */
-  virtual void SetHighResolutionLonDiffFieldName(const string& value) {m_highResolutionLonDiffFieldName = value;};
+  virtual void SetHighResolutionLonDiffFieldName(const std::string& value) {m_highResolutionLonDiffFieldName = value;};
 
   virtual void ProcessHighResolutionWithFieldCalculation();
   virtual void ProcessHighResolutionWithoutFieldCalculation();
@@ -116,10 +116,10 @@ public:
   
 
 protected:
-  string m_highResolutionLatDiffFieldName;
-  string m_highResolutionLonDiffFieldName;
+  std::string m_highResolutionLatDiffFieldName;
+  std::string m_highResolutionLonDiffFieldName;
 		
-  string m_timeStampFieldName;
+  std::string m_timeStampFieldName;
   CStringArray m_arrayTimeStampFieldName;
 
 

@@ -35,7 +35,7 @@
 #include "brathl.h" 
 #include "BratAlgorithmBase.h" 
 
-#include "Stl.h"
+#include <string>
 
 using namespace brathl;
 
@@ -83,7 +83,7 @@ typedef void (wxEvtHandler::*CBratTaskProcessEventFunction)(CBratTaskProcessEven
 //-------------------------------------------------------------
 //------------------- CMapBratTask class --------------------
 //-------------------------------------------------------------
-typedef map<wxLongLong_t, CBratTask*> mapbrattask; 
+typedef std::map<wxLongLong_t, CBratTask*> mapbrattask; 
 
 
 class CMapBratTask : public mapbrattask
@@ -101,7 +101,7 @@ public:
 
   virtual void RemoveAll();
 
-  virtual void Dump(ostream& fOut = cerr); 
+  virtual void Dump(std::ostream& fOut = std::cerr); 
 
   virtual CBratTask* Find(wxLongLong_t id) const;
 
@@ -124,7 +124,7 @@ protected:
 //------------------- CVectorBratTask class --------------------
 //-------------------------------------------------------------
 
-typedef vector<CBratTask*> vectorbrattask; 
+typedef std::vector<CBratTask*> vectorbrattask; 
 
 class CVectorBratTask : public vectorbrattask
 {
@@ -133,12 +133,12 @@ public:
   virtual ~CVectorBratTask();
 
   virtual void Insert(CBratTask* ob, bool bEnd = true);
-  virtual void Insert(const CVectorBratTask* vector, bool bRemoveAll = true,  bool bEnd = true);
+  virtual void Insert(const CVectorBratTask* vec, bool bRemoveAll = true,  bool bEnd = true);
   virtual CVectorBratTask::iterator InsertAt(CVectorBratTask::iterator where, CBratTask* ob);
 
   virtual void RemoveAll();
 
-  virtual void Dump(ostream& fOut = cerr); 
+  virtual void Dump(std::ostream& fOut = std::cerr); 
 
   bool GetDelete() {return m_bDelete;};
   void SetDelete(bool value) {m_bDelete = value;};
@@ -182,7 +182,7 @@ public:
   
   void Execute();
 
-  virtual void Dump(ostream& fOut = cerr); 
+  virtual void Dump(std::ostream& fOut = std::cerr); 
 
   const CBratTaskFunction& operator=(const CBratTaskFunction& o);
 
@@ -206,7 +206,7 @@ protected:
 //-------------------------------------------------------------
 //------------------- CMapBratTaskFunction class --------------------
 //-------------------------------------------------------------
-typedef map<wxString, CBratTaskFunction*> mapbrattaskfunction; 
+typedef std::map<wxString, CBratTaskFunction*> mapbrattaskfunction; 
 
 class CMapBratTaskFunction: public mapbrattaskfunction
 {
@@ -226,7 +226,7 @@ public:
 
   virtual void RemoveAll();
 
-  virtual void Dump(ostream& fOut = cerr); 
+  virtual void Dump(std::ostream& fOut = std::cerr); 
 
   virtual CBratTaskFunction* Find(const wxString& id) const;
 
@@ -332,7 +332,7 @@ public:
   static CBratTask::bratTaskStatus StringToTaskStatus(const wxString& status);
 
   /** Dump function */
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
   static void EvtBratTaskProcessCommand(wxEvtHandler& evtHandler, const CBratTaskProcessEventFunction& method,
                                                wxObject* userData = NULL, wxEvtHandler* eventSink = NULL);

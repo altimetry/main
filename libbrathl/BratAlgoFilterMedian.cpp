@@ -167,7 +167,7 @@ double CBratAlgoFilterMedian::ComputeMedian()
   
 #if _DEBUG_BRAT_ALGO    
   CTrace::Tracer(3, CTools::Format("m_rawDataWindow contains (%d elements):", m_rawDataWindow.size()));
-  string str;
+  std::string str;
   for (it = m_rawDataWindow.begin(); it != m_rawDataWindow.end(); it++)
   {
     if (CTools::IsDefaultValue(*it))
@@ -208,19 +208,19 @@ double CBratAlgoFilterMedian::ComputeMedian()
 
 
 //----------------------------------------
-void CBratAlgoFilterMedian::Dump(ostream& fOut /*= cerr*/)
+void CBratAlgoFilterMedian::Dump(std::ostream& fOut /*= std::cerr*/)
 {
    if (CTrace::IsTrace() == false)
    { 
       return;
    }
 
-  fOut << "==> Dump a CBratAlgoFilterMedian Object at "<< this << endl;
+  fOut << "==> Dump a CBratAlgoFilterMedian Object at "<< this << std::endl;
   CBratAlgoFilterKernel::Dump(fOut);
 
-  fOut << "m_median: " << m_median << endl;
+  fOut << "m_median: " << m_median << std::endl;
 
-  fOut << "==> END Dump a CBratAlgoFilterMedian Object at "<< this << endl;
+  fOut << "==> END Dump a CBratAlgoFilterMedian Object at "<< this << std::endl;
 
 }
 

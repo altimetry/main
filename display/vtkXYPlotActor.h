@@ -43,7 +43,7 @@ class VTK_EXPORT vtkXYPlotActor : public vtkActor2D
 {
 public:
   vtkTypeMacro(vtkXYPlotActor,vtkActor2D);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(std::ostream& os, vtkIndent indent);
 
   // Description:
   // Instantiate object with autorange computation; bold, italic, and shadows
@@ -54,13 +54,13 @@ public:
 
   //--------------------------------------------------------------------------
   // Description:
-  // Add a plotdata object to the list of plotdata.
+  // Add a plotdata object to the std::list of plotdata.
   // This will automatically create a corresponding Mapper2D and Actor2D.
   // If property!=0 then the property will be assigned to the Actor.
   void AddInput(vtkPlotData *plotData, vtkProperty2D* property);
 
   // Description:
-  // Remove a data object from the list of plotdata.
+  // Remove a data object from the std::list of plotdata.
   // This will automatically remove the corresponding Mapper2D and Actor2D.
   void RemoveInput(vtkPlotData *plotData);
 

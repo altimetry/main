@@ -32,7 +32,7 @@
 
 #include "BratDisplay_wdr.h"
 #include "LabeledTextCtrl.h"
-#include "WorldPlotData.h"
+#include "PlotData/WorldPlotData.h"
 
 BEGIN_DECLARE_EVENT_TYPES()
     DECLARE_EVENT_TYPE(wxEVT_CONTOUR_PROP_CHANGED, 7777) // 7777 is ignored, just for compatibility with v2.2

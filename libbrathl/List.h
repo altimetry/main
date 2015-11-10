@@ -21,10 +21,15 @@
 #if !defined(_List_h_)
 #define _List_h_
 
+#include <stack>
+#include <list>
+
+
+
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h"
+#include <string>
 
 #include "BratObject.h"
 #include "Tools.h"
@@ -37,83 +42,83 @@ namespace brathl
 
 typedef double* DoublePtr; 
 
-/*! Creates a type name for string list */ 
-typedef list<string> stringlist; 
+/*! Creates a type name for std::string std::list */ 
+typedef std::list<std::string> stringlist; 
 
-/*! Creates a type name for string array */ 
-typedef vector<string> stringarray; 
+/*! Creates a type name for std::string array */ 
+typedef std::vector<std::string> stringarray; 
 
-/*! Creates a type name for int list */ 
-typedef list<int32_t> intlist; 
+/*! Creates a type name for int std::list */ 
+typedef std::list<int32_t> intlist; 
 
-/*! Creates a type name for object list */ 
-typedef list<CBratObject*> oblist; 
+/*! Creates a type name for object std::list */ 
+typedef std::list<CBratObject*> oblist; 
 
 /*! Creates a type name for int32_t array */ 
-typedef vector<int32_t> int32array; 
+typedef std::vector<int32_t> int32array; 
   
 /*! Creates a type name for uint32_t array */ 
-typedef vector<uint32_t> uint32array; 
+typedef std::vector<uint32_t> uint32array; 
 
 /*! Creates a type name for int64_t array */ 
-typedef vector<int64_t> int64array; 
+typedef std::vector<int64_t> int64array; 
   
 /*! Creates a type name for uint64_t array */ 
-typedef vector<uint64_t> uint64array; 
+typedef std::vector<uint64_t> uint64array; 
 
 /*! Creates a type name for int16_t array */ 
-typedef vector<int16_t> int16array; 
+typedef std::vector<int16_t> int16array; 
   
 /*! Creates a type name for int16_t array */ 
-typedef vector<uint16_t> uint16array; 
+typedef std::vector<uint16_t> uint16array; 
 
 /*! Creates a type name for int8_t array */ 
-typedef vector<int8_t> int8array; 
+typedef std::vector<int8_t> int8array; 
   
 /*! Creates a type name for int16_t array */ 
-typedef vector<uint8_t> uint8array; 
+typedef std::vector<uint8_t> uint8array; 
     
 /*! Creates a type name for float array */ 
-typedef vector<float> floatarray; 
+typedef std::vector<float> floatarray; 
   
 /*! Creates a type name for double array */ 
-typedef vector<double> doublearray; 
+typedef std::vector<double> doublearray; 
 
 /*! Creates a type name for double pointer array */ 
-typedef vector<DoublePtr> doubleptrarray; 
+typedef std::vector<DoublePtr> doubleptrarray; 
 
 /*! Creates a type name for object array */ 
-typedef vector<CBratObject*> obarray; 
+typedef std::vector<CBratObject*> obarray; 
 
-/*! Creates a type name for map object base class */ 
-typedef map<string, string> mapstring; 
+/*! Creates a type name for std::map object base class */ 
+typedef std::map<std::string, std::string> mapstring; 
 
-/*! Creates a type name for map object base class */ 
-typedef map<string, CBratObject*> mapobject; 
+/*! Creates a type name for std::map object base class */ 
+typedef std::map<std::string, CBratObject*> mapobject; 
 
-/*! Creates a type name for map object base class */ 
-typedef map<int32_t, CBratObject*> mapintobject; 
+/*! Creates a type name for std::map object base class */ 
+typedef std::map<int32_t, CBratObject*> mapintobject; 
 
-/*! Creates a type name for map object base class */ 
-typedef map<double, CBratObject*> mapdoubleobject; 
+/*! Creates a type name for std::map object base class */ 
+typedef std::map<double, CBratObject*> mapdoubleobject; 
 
-/*! Creates a type name for map pointer base class */ 
-typedef map<string, void*> mapptr; 
+/*! Creates a type name for std::map pointer base class */ 
+typedef std::map<std::string, void*> mapptr; 
 
-/*! Creates a type name for map pointer base class */ 
-typedef map<double, DoublePtr*> mapdoubledoubleptr; 
+/*! Creates a type name for std::map pointer base class */ 
+typedef std::map<double, DoublePtr*> mapdoubledoubleptr; 
 
-/*! Creates a type name for map int base class */ 
-typedef map<string, int32_t> mapint; 
+/*! Creates a type name for std::map int base class */ 
+typedef std::map<std::string, int32_t> mapint; 
 
-/*! Creates a type name for map unsigned int base class */ 
-typedef map<string, uint32_t> mapuint; 
+/*! Creates a type name for std::map unsigned int base class */ 
+typedef std::map<std::string, uint32_t> mapuint; 
 
-/*! Creates a type name for map pointer base class */ 
-typedef map<string, double> mapdouble; 
+/*! Creates a type name for std::map pointer base class */ 
+typedef std::map<std::string, double> mapdouble; 
 
-/*! Creates a type name for object stack */ 
-typedef stack<CBratObject*> obstack; 
+/*! Creates a type name for object std::stack */ 
+typedef std::stack<CBratObject*> obstack; 
 
 
 //-------------------------------------------------------------
@@ -126,7 +131,7 @@ class CStringArray;
   @{ */
 
 /** 
-  A list of strings management class.
+  A std::list of strings management class.
 
 
  \version 1.0
@@ -142,7 +147,7 @@ public:
   CStringList();
     
   /** Creates new CStringList object from another CStringList
-    \param list [in] : list to be copied */
+    \param std::list [in] : std::list to be copied */
   CStringList(const CStringList& list);
   CStringList(const stringlist& list);
 
@@ -153,30 +158,30 @@ public:
   /// Destructor
   virtual ~CStringList();
 
-  virtual int32_t FindIndex(const string& str, bool compareNoCase = false) const;
+  virtual int32_t FindIndex(const std::string& str, bool compareNoCase = false) const;
 
-  virtual bool Exists(const string& str) const;
-  virtual bool ExistsNoCase(const string& str) const; 
+  virtual bool Exists(const std::string& str) const;
+  virtual bool ExistsNoCase(const std::string& str) const; 
 
   virtual void Insert(const CStringList& list, bool bEnd = true);  
-  virtual void Insert(const string& str, bool bEnd = true);
+  virtual void Insert(const std::string& str, bool bEnd = true);
   virtual void Insert(const CStringArray& vect, bool bEnd = true);
   virtual void Insert(const stringarray& vect, bool bEnd = true);
   virtual void Insert(const stringlist& lst, bool bEnd = true);
 
-  virtual void InsertUnique(const string& str, bool bEnd = true);
+  virtual void InsertUnique(const std::string& str, bool bEnd = true);
   virtual void InsertUnique(const CStringList& lst, bool bEnd = true);
   virtual void InsertUnique(const CStringArray* vect, bool bEnd = true);
   virtual void InsertUnique(const CStringArray& vect, bool bEnd = true);
   virtual void InsertUnique(const stringarray& vect, bool bEnd = true);
   virtual void InsertUnique(const stringlist& lst, bool bEnd = true);
 
-  virtual void ExtractStrings(const string& str, const char delim, bool bRemoveAll = true);
-  virtual void ExtractStrings(const string& str, const string& delim, bool bRemoveAll = true);
+  virtual void ExtractStrings(const std::string& str, const char delim, bool bRemoveAll = true);
+  virtual void ExtractStrings(const std::string& str, const std::string& delim, bool bRemoveAll = true);
 
-  virtual void ExtractKeys(const string& str, const string& delim, bool bRemoveAll = true) ;
+  virtual void ExtractKeys(const std::string& str, const std::string& delim, bool bRemoveAll = true) ;
   
-  virtual void Erase(const string& str);
+  virtual void Erase(const std::string& str);
   virtual void Erase(CStringList::iterator it);
 
   virtual void RemoveAll();
@@ -190,10 +195,10 @@ public:
   virtual const CStringList& operator= (const stringarray& vect);
   virtual const CStringList& operator= (const stringlist& lst);
 
-  virtual string ToString(const string& delim = ",", bool useBracket = true) const;
+  virtual std::string ToString(const std::string& delim = ",", bool useBracket = true) const;
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 
   
 
@@ -209,7 +214,7 @@ public:
   @{ */
 
 /** 
-  A list of strings management class.
+  A std::list of strings management class.
 
 
  \version 1.0
@@ -225,7 +230,7 @@ public:
   CIntList();
     
   /** Creates new CIntList object from another CStringList
-    \param list [in] : list to be copied */
+    \param std::list [in] : std::list to be copied */
   CIntList(const CIntList& list);
 
   /// Destructor
@@ -241,7 +246,7 @@ public:
   const CIntList& operator= (const CIntList& lst);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 
   
 
@@ -252,7 +257,7 @@ public:
 //-------------------------------------------------------------
 
 /** 
-  A list of CBratObject management class.
+  A std::list of CBratObject management class.
 
 
  \version 1.0
@@ -268,7 +273,7 @@ public:
   CObList(bool bDelete = true);
     
   /** Creates new CObList object from another CStringList
-    \param lst [in] : list to be copied */
+    \param lst [in] : std::list to be copied */
   CObList(const CObList& lst);
 
   /// Destructor
@@ -278,7 +283,7 @@ public:
 
   virtual void Insert(CBratObject* ob, bool bEnd = true);
 
-  /** Remove all elements and clear the list*/
+  /** Remove all elements and clear the std::list*/
   virtual void RemoveAll();
 
   /** Delete an element referenced by ob
@@ -298,7 +303,7 @@ public:
   void SetDelete(bool value) {m_bDelete = value;};
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 
   
 protected:
@@ -320,7 +325,7 @@ protected:
   @{ */
 
 /** 
-  An array (vector) of strings management class.
+  An array (std::vector) of strings management class.
 
 
  \version 1.0
@@ -338,7 +343,7 @@ public:
   CStringArray();
     
   /** Creates new CStringArray object from another CStringList
-    \param list [in] : list to be copied */
+    \param std::list [in] : std::list to be copied */
   CStringArray(const CStringArray& vect);
   CStringArray(const stringarray& vect);
   
@@ -349,59 +354,59 @@ public:
   /// Destructor
   virtual ~CStringArray();
 
-  virtual bool Exists(const string& str, bool compareNoCase = false) const;
+  virtual bool Exists(const std::string& str, bool compareNoCase = false) const;
 
-  virtual int32_t FindIndex(const string& str, bool compareNoCase = false) const;
-  virtual void FindIndexes(const string& str, CIntArray& indexes, bool compareNoCase = false) const;
+  virtual int32_t FindIndex(const std::string& str, bool compareNoCase = false) const;
+  virtual void FindIndexes(const std::string& str, CIntArray& indexes, bool compareNoCase = false) const;
 
   virtual void GetValues(const CIntArray& indexes, CStringArray& values) const;
-  virtual void GetValues(const CIntArray& indexes, string& values) const;
+  virtual void GetValues(const CIntArray& indexes, std::string& values) const;
 
   virtual void Insert(const CStringArray& vect, bool bEnd = true);
-  virtual void Insert(const string& str);
+  virtual void Insert(const std::string& str);
   virtual void Insert(const stringarray& vect, bool bEnd = true);
   virtual void Insert(const CIntArray& vect);
   virtual void Insert(const CStringList& lst);
   virtual void Insert(const stringlist& lst);
   
-  virtual CStringArray::iterator InsertAt(CStringArray::iterator where, const string& str);
-  virtual CStringArray::iterator InsertAt(int32_t index, const string& str);
+  virtual CStringArray::iterator InsertAt(CStringArray::iterator where, const std::string& str);
+  virtual CStringArray::iterator InsertAt(int32_t index, const std::string& str);
 
-  virtual CStringArray::iterator ReplaceAt(int32_t index, const string& str);
-  virtual CStringArray::iterator ReplaceAt(uint32_t index, const string& str);
-  virtual CStringArray::iterator ReplaceAt(CStringArray::iterator where, const string& str);
+  virtual CStringArray::iterator ReplaceAt(int32_t index, const std::string& str);
+  virtual CStringArray::iterator ReplaceAt(uint32_t index, const std::string& str);
+  virtual CStringArray::iterator ReplaceAt(CStringArray::iterator where, const std::string& str);
   virtual bool Erase(CStringArray::iterator it);
   virtual bool Erase(int32_t index);
   virtual bool Erase(uint32_t index);
 
-  virtual bool Remove(const string& array, bool compareNoCase = false);
+  virtual bool Remove(const std::string& array, bool compareNoCase = false);
   virtual bool Remove(const CStringArray& array, bool compareNoCase = false);
 
-  /** Remove all elements and clear the list*/
+  /** Remove all elements and clear the std::list*/
   virtual void RemoveAll();
 
-  virtual void ExtractStrings(const string& str, const char delim, bool bRemoveAll = true, bool insertUnique = false);
-  virtual void ExtractStrings(const string& str, const string& delim, bool bRemoveAll = true, bool insertUnique = false);
+  virtual void ExtractStrings(const std::string& str, const char delim, bool bRemoveAll = true, bool insertUnique = false);
+  virtual void ExtractStrings(const std::string& str, const std::string& delim, bool bRemoveAll = true, bool insertUnique = false);
 
-  virtual void ExtractKeys(const string& str, const string& delim, bool bRemoveAll = true) ;
+  virtual void ExtractKeys(const std::string& str, const std::string& delim, bool bRemoveAll = true) ;
 
-  virtual bool Intersect(const string& str, CStringArray& intersect, bool compareNoCase = false) const;
+  virtual bool Intersect(const std::string& str, CStringArray& intersect, bool compareNoCase = false) const;
   virtual bool Intersect(const CStringArray& array, CStringArray& intersect, bool compareNoCase = false) const;
-  virtual bool Intersect(const string& str, CUIntArray& intersect, bool compareNoCase = false) const;
+  virtual bool Intersect(const std::string& str, CUIntArray& intersect, bool compareNoCase = false) const;
   virtual bool Intersect(const CStringArray& array, CUIntArray& intersect, bool compareNoCase = false) const;
   virtual bool Complement(const CStringArray& array, CStringArray& complement) const;
   
-  virtual void Replace(const CStringArray& findString, const string& replaceBy, CStringArray& replaced, bool compareNoCase = false, bool insertUnique = false) const;
-  virtual void Replace(const string& findString, const string& replaceBy, CStringArray& replaced, bool compareNoCase = false, bool insertUnique = false) const;
+  virtual void Replace(const CStringArray& findString, const std::string& replaceBy, CStringArray& replaced, bool compareNoCase = false, bool insertUnique = false) const;
+  virtual void Replace(const std::string& findString, const std::string& replaceBy, CStringArray& replaced, bool compareNoCase = false, bool insertUnique = false) const;
 
-  virtual void InsertUnique(const string& str);
+  virtual void InsertUnique(const std::string& str);
   virtual void InsertUnique(const CStringArray* vect);
   virtual void InsertUnique(const CStringArray& vect);
   virtual void InsertUnique(const CStringList& lst);
   virtual void InsertUnique(const stringarray& vect);
   virtual void InsertUnique(const stringlist& lst);
 
-  virtual string ToString(const string& delim = ",", bool useBracket = true) const;
+  virtual std::string ToString(const std::string& delim = ",", bool useBracket = true) const;
 
   /** Equality operator overload
       Array are equal if they have same size and the same element values (at the same position)*/
@@ -418,7 +423,7 @@ public:
   virtual const CStringArray& operator= (const stringlist& lst);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 
   
 
@@ -435,7 +440,7 @@ public:
   @{ */
 
 /** 
-  An array (vector) of ints management class.
+  An array (std::vector) of ints management class.
 
 
  \version 1.0
@@ -451,7 +456,7 @@ public:
   CIntArray();
     
   /** Creates new CIntArray object from another CStringList
-    \param list [in] : list to be copied */
+    \param std::list [in] : std::list to be copied */
   CIntArray(const CIntArray& vect);
 
   /// Destructor
@@ -475,7 +480,7 @@ public:
 
   virtual void IncrementValue(uint32_t incr = 1);
 
-  virtual string ToString(const string& delim = ",", bool useBracket = true) const;
+  virtual std::string ToString(const std::string& delim = ",", bool useBracket = true) const;
 
   virtual int32_t* ToArray();
 
@@ -489,7 +494,7 @@ public:
   virtual const CIntArray& operator= (const CIntArray& vect);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 
   
 
@@ -505,7 +510,7 @@ public:
   @{ */
 
 /** 
-  An array (vector) of ints management class.
+  An array (std::vector) of ints management class.
 
 
  \version 1.0
@@ -521,7 +526,7 @@ public:
   CInt64Array();
     
   /** Creates new CInt64Array object from another CInt64Array
-    \param v [in] : vector to be copied */
+    \param v [in] : std::vector to be copied */
   CInt64Array(const CInt64Array& v);
 
   /// Destructor
@@ -545,7 +550,7 @@ public:
 
   virtual void IncrementValue(uint64_t incr = 1);
 
-  virtual string ToString(const string& delim = ",", bool useBracket = true) const;
+  virtual std::string ToString(const std::string& delim = ",", bool useBracket = true) const;
 
   virtual int64_t* ToArray();
 
@@ -559,7 +564,7 @@ public:
   virtual const CInt64Array& operator= (const CInt64Array& vect);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 
   
 
@@ -575,7 +580,7 @@ public:
   @{ */
 
 /** 
-  An array (vector) of ints management class.
+  An array (std::vector) of ints management class.
 
 
  \version 1.0
@@ -591,7 +596,7 @@ public:
   CUIntArray();
     
   /** Creates new CUIntArray object from another CStringList
-    \param list [in] : list to be copied */
+    \param std::list [in] : std::list to be copied */
   CUIntArray(const CUIntArray& vect);
 
   /// Destructor
@@ -599,7 +604,7 @@ public:
 
   virtual void Insert(CUIntArray* vect, bool bEnd = true);
   virtual void Insert(const CUIntArray& vect, bool bEnd = true);
-  virtual void Insert(const vector<uint32_t>& vect, bool bEnd = true);
+  virtual void Insert(const std::vector<uint32_t>& vect, bool bEnd = true);
   virtual void Insert(uint32_t* vect, size_t length);
 
   virtual void Insert(const uint32_t value);
@@ -615,7 +620,7 @@ public:
   virtual bool Intersect(const CUIntArray& array, CUIntArray& intersect) const; 
   virtual bool Complement(const CUIntArray& array, CUIntArray& complement) const;
 
-  virtual string ToString(const string& delim = ",", bool useBracket = true) const;
+  virtual std::string ToString(const std::string& delim = ",", bool useBracket = true) const;
   
   virtual uint32_t* ToArray();
   virtual int32_t* ToIntArray();
@@ -637,7 +642,7 @@ public:
   virtual const CUIntArray& operator= (const CUIntArray& vect);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 
   
 
@@ -652,7 +657,7 @@ public:
   @{ */
 
 /** 
-  An array (vector) of ints management class.
+  An array (std::vector) of ints management class.
 
 
  \version 1.0
@@ -668,7 +673,7 @@ public:
   CUInt64Array();
     
   /** Creates new CUInt64Array object from another CStringList
-    \param list [in] : list to be copied */
+    \param std::list [in] : std::list to be copied */
   CUInt64Array(const CUInt64Array& vect);
 
   /// Destructor
@@ -676,7 +681,7 @@ public:
 
   virtual void Insert(CUInt64Array* vect, bool bEnd = true);
   virtual void Insert(const CUInt64Array& vect, bool bEnd = true);
-  virtual void Insert(const vector<uint64_t>& vect, bool bEnd = true);
+  virtual void Insert(const std::vector<uint64_t>& vect, bool bEnd = true);
   virtual void Insert(uint64_t* vect, size_t length);
 
   virtual void Insert(const uint64_t value);
@@ -691,7 +696,7 @@ public:
 
   virtual bool Intersect(const CUInt64Array& array, CUInt64Array& intersect) const; 
 
-  virtual string ToString(const string& delim = ",", bool useBracket = true) const;
+  virtual std::string ToString(const std::string& delim = ",", bool useBracket = true) const;
   
   virtual uint64_t* ToArray();
 
@@ -711,7 +716,7 @@ public:
   virtual const CUInt64Array& operator= (const CUInt64Array& vect);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 };
 
 //-------------------------------------------------------------
@@ -723,7 +728,7 @@ public:
   @{ */
 
 /** 
-  An array (vector) of ints management class.
+  An array (std::vector) of ints management class.
 
 
  \version 1.0
@@ -739,7 +744,7 @@ public:
   CInt16Array();
     
   /** Creates new CInt16Array object from another CStringList
-    \param list [in] : list to be copied */
+    \param std::list [in] : std::list to be copied */
   CInt16Array(const CInt16Array& vect);
 
   /// Destructor
@@ -761,7 +766,7 @@ public:
 
   virtual bool Intersect(const CInt16Array& array, CInt16Array& intersect) const;
 
-  virtual string ToString(const string& delim = ",", bool useBracket = true) const;
+  virtual std::string ToString(const std::string& delim = ",", bool useBracket = true) const;
 
   virtual int16_t* ToArray();
 
@@ -771,7 +776,7 @@ public:
   virtual const CInt16Array& operator= (const CInt16Array& vect);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 
   
 
@@ -787,7 +792,7 @@ public:
   @{ */
 
 /** 
-  An array (vector) of ints management class.
+  An array (std::vector) of ints management class.
 
 
  \version 1.0
@@ -803,7 +808,7 @@ public:
   CUInt16Array();
     
   /** Creates new CUInt16Array object from another CStringList
-    \param list [in] : list to be copied */
+    \param std::list [in] : std::list to be copied */
   CUInt16Array(const CUInt16Array& vect);
 
   /// Destructor
@@ -811,7 +816,7 @@ public:
 
   virtual void Insert(CUInt16Array* vect, bool bEnd = true);
   virtual void Insert(const CUInt16Array& vect, bool bEnd = true);
-  virtual void Insert(const vector<uint16_t>& vect, bool bEnd = true);
+  virtual void Insert(const std::vector<uint16_t>& vect, bool bEnd = true);
 
   virtual void Insert(uint16_t* vect, size_t length);
 
@@ -828,7 +833,7 @@ public:
   virtual bool Intersect(const CUInt16Array& array, CUInt16Array& intersect) const; 
   virtual bool Complement(const CUInt16Array& array, CUInt16Array& complement) const;
 
-  virtual string ToString(const string& delim = ",", bool useBracket = true) const;
+  virtual std::string ToString(const std::string& delim = ",", bool useBracket = true) const;
   
   virtual uint16_t* ToArray();
   virtual int16_t* ToIntArray();
@@ -847,7 +852,7 @@ public:
   virtual const CUInt16Array& operator= (const CUInt16Array& vect);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 
   
 
@@ -864,7 +869,7 @@ public:
   @{ */
 
 /** 
-  An array (vector) of ints management class.
+  An array (std::vector) of ints management class.
 
 
  \version 1.0
@@ -880,7 +885,7 @@ public:
   CInt8Array();
     
   /** Creates new CInt8Array object from another CStringList
-    \param list [in] : list to be copied */
+    \param std::list [in] : std::list to be copied */
   CInt8Array(const CInt8Array& vect);
 
   /// Destructor
@@ -902,7 +907,7 @@ public:
 
   virtual bool Intersect(const CInt8Array& array, CInt8Array& intersect) const;
 
-  virtual string ToString(const string& delim = ",", bool useBracket = true) const;
+  virtual std::string ToString(const std::string& delim = ",", bool useBracket = true) const;
 
   virtual int8_t* ToArray();
 
@@ -912,7 +917,7 @@ public:
   virtual const CInt8Array& operator= (const CInt8Array& vect);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 
   
 
@@ -928,7 +933,7 @@ public:
   @{ */
 
 /** 
-  An array (vector) of ints management class.
+  An array (std::vector) of ints management class.
 
 
  \version 1.0
@@ -944,7 +949,7 @@ public:
   CUInt8Array();
     
   /** Creates new CUInt8Array object from another CStringList
-    \param list [in] : list to be copied */
+    \param std::list [in] : std::list to be copied */
   CUInt8Array(const CUInt8Array& vect);
 
   /// Destructor
@@ -952,7 +957,7 @@ public:
 
   virtual void Insert(CUInt8Array* vect, bool bEnd = true);
   virtual void Insert(const CUInt8Array& vect, bool bEnd = true);
-  virtual void Insert(const vector<uint8_t>& vect, bool bEnd = true);
+  virtual void Insert(const std::vector<uint8_t>& vect, bool bEnd = true);
 
   virtual void Insert(uint8_t* vect, size_t length);
 
@@ -969,7 +974,7 @@ public:
   virtual bool Intersect(const CUInt8Array& array, CUInt8Array& intersect) const; 
   virtual bool Complement(const CUInt8Array& array, CUInt8Array& complement) const;
 
-  virtual string ToString(const string& delim = ",", bool useBracket = true) const;
+  virtual std::string ToString(const std::string& delim = ",", bool useBracket = true) const;
   
   virtual uint8_t* ToArray();
   virtual int8_t* ToIntArray();
@@ -988,7 +993,7 @@ public:
   virtual const CUInt8Array& operator= (const CUInt8Array& vect);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 
   
 
@@ -1003,7 +1008,7 @@ public:
   @{ */
 
 /** 
-  An array (vector) of float management class.
+  An array (std::vector) of float management class.
 
 
  \version 1.0
@@ -1046,7 +1051,7 @@ public:
   virtual void Insert(const int32_t value);
   virtual void Insert(const uint32_t value);
 
-  /** Remove all elements and clear the list*/
+  /** Remove all elements and clear the std::list*/
   virtual void RemoveAll();
 
   virtual CFloatArray::iterator InsertAt(CFloatArray::iterator where, const float value);
@@ -1059,7 +1064,7 @@ public:
 
   virtual bool Intersect(const CFloatArray& array, CFloatArray& intersect) const;
 
-  virtual string ToString(const string& delim = ",", bool useBracket = true) const;
+  virtual std::string ToString(const std::string& delim = ",", bool useBracket = true) const;
 
   void GetRange(float& min, float& max);
 
@@ -1069,7 +1074,7 @@ public:
   virtual const CFloatArray& operator= (const CFloatArray& vect);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 
   
 
@@ -1083,7 +1088,7 @@ public:
   @{ */
 
 /** 
-  An array (vector) of double management class.
+  An array (std::vector) of double management class.
 
 
  \version 1.0
@@ -1133,7 +1138,7 @@ public:
   virtual void Insert(const CFloatArray& vect, bool bEnd = true);
 
   virtual void Insert(const CStringArray& vect, bool bEnd = true);
-  virtual void Insert(const string& vect, const string& delim = "," , bool bEnd = true);
+  virtual void Insert(const std::string& vect, const std::string& delim = "," , bool bEnd = true);
 
   virtual void Insert(const double value);
   virtual void Insert(const int32_t value);
@@ -1143,7 +1148,7 @@ public:
   virtual void Insert(const int8_t value);
   virtual void Insert(const uint8_t value);
 
-  /** Remove all elements and clear the list*/
+  /** Remove all elements and clear the std::list*/
   virtual void RemoveAll();
 
   virtual CDoubleArray::iterator InsertAt(CDoubleArray::iterator where, const double value);
@@ -1158,7 +1163,7 @@ public:
   
   virtual int32_t FindIndex(double value) const;
 
-  virtual string ToString(const string& delim = ",", bool useBracket = true) const;
+  virtual std::string ToString(const std::string& delim = ",", bool useBracket = true) const;
 
   void GetRange(double& min, double& max);
 
@@ -1176,7 +1181,7 @@ public:
   virtual bool operator !=(const CDoubleArray& vect) {return !(*this == vect);};
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 
   // Explicitly override data() as it is not a standard C++ stdlib method
   const double *data() const
@@ -1191,7 +1196,7 @@ public:
 //-------------------------------------------------------------
 
 /** 
-  An array (vector) of duble pointer management class.
+  An array (std::vector) of duble pointer management class.
 
 
  \version 1.0
@@ -1214,7 +1219,7 @@ public:
 
   virtual CDoublePtrArray::iterator ReplaceAt(CDoublePtrArray::iterator where, DoublePtr ob);
 
-   /** Remove all elements and clear the list*/
+   /** Remove all elements and clear the std::list*/
    virtual void RemoveAll();
 
    /** Delete an element referenced by it
@@ -1241,7 +1246,7 @@ public:
   DoublePtr NewMatrix(double initialValue = CTools::m_defaultValueDOUBLE);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 
 protected:
 
@@ -1266,14 +1271,14 @@ protected:
   @{ */
 
 /** 
-  An array (vector) of vector of double pointer
+  An array (std::vector) of std::vector of double pointer
 
 
  \version 1.0
 */
 
 /*! Creates a type name for array of DoublePtr array */ 
-typedef vector<doubleptrarray> arraydoubleptrarray; 
+typedef std::vector<doubleptrarray> arraydoubleptrarray; 
   
 
 class CArrayDoublePtrArray : public arraydoubleptrarray
@@ -1290,7 +1295,7 @@ public:
 
   void Set(const CArrayDoublePtrArray& m);
 
-  /** Remove all elements and clear the list*/
+  /** Remove all elements and clear the std::list*/
   virtual void RemoveAll();
 
   virtual void Remove(doubleptrarray& vect);
@@ -1322,7 +1327,7 @@ public:
 
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 protected:
 
   void Delete(DoublePtr matrix);
@@ -1351,14 +1356,14 @@ protected:
   @{ */
 
 /** 
-  An array (vector) of vector of double
+  An array (std::vector) of std::vector of double
 
 
  \version 1.0
 */
 
 /*! Creates a type name for array of double array */ 
-typedef vector<doublearray> arraydoublearray; 
+typedef std::vector<doublearray> arraydoublearray; 
   
 
 class CArrayDoubleArray : public arraydoublearray
@@ -1375,7 +1380,7 @@ public:
 
   void Set(const CArrayDoubleArray& m);
 
-  /** Remove all elements and clear the list*/
+  /** Remove all elements and clear the std::list*/
   virtual void RemoveAll();
 
   /*
@@ -1404,7 +1409,7 @@ public:
 
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 protected:
 
   void Init();
@@ -1422,14 +1427,14 @@ protected:
 //------------------- CArrayStringMap class --------------------
 //-------------------------------------------------------------
 /** 
-  a set of array string value management classes.
+  a set of array std::string value management classes.
 
  
  \version 1.0
 */
 
-/*! Creates a type name for map of string array */ 
-typedef map<string, CStringArray> maparraystring; 
+/*! Creates a type name for std::map of std::string array */ 
+typedef std::map<std::string, CStringArray> maparraystring; 
 
 class CArrayStringMap : public maparraystring
 {
@@ -1448,21 +1453,21 @@ public:
 public:
 
    
-   /** Inserts a string
-   * \param key : map key
-   * \param str : string value 
-   * \return the inserted string value or existing string value if key exists */
-   virtual CStringArray* Insert(const string& key, const CStringArray& str, bool withExcept = true);
+   /** Inserts a std::string
+   * \param key : std::map key
+   * \param str : std::string value 
+   * \return the inserted std::string value or existing std::string value if key exists */
+   virtual CStringArray* Insert(const std::string& key, const CStringArray& str, bool withExcept = true);
 
-   /** Inserts a string map 
-   * \param strmap : map to insert
+   /** Inserts a std::string std::map 
+   * \param strmap : std::map to insert
    * \param withExcept : true for exception handling, flse otherwise
-   * \return the inserted string value or existing string value if key exists */
+   * \return the inserted std::string value or existing std::string value if key exists */
    virtual void Set(const CArrayStringMap& a);
 
    /** Tests if an element identify by 'key' already exists
-   * \return a string array  value corresponding to the key; if exists, otherwise empty string */
-   virtual const CStringArray* Exists(const string& key) const;
+   * \return a std::string array  value corresponding to the key; if exists, otherwise empty std::string */
+   virtual const CStringArray* Exists(const std::string& key) const;
 
    /** Delete an element referenced by it
    * \return true if no error, otherwise false */
@@ -1470,15 +1475,15 @@ public:
    
    /** Delete an element by its key
    * \return true if no error, otherwise false */
-   virtual bool Erase(const string& key);
+   virtual bool Erase(const std::string& key);
 
    virtual const CArrayStringMap& operator= (const CArrayStringMap& a);
 
-   /** Remove all elements and clear the map*/
+   /** Remove all elements and clear the std::map*/
    virtual void RemoveAll();
 
    /// Dump fonction
-   virtual void Dump(ostream& fOut = cerr) const;
+   virtual void Dump(std::ostream& fOut = std::cerr) const;
 
 protected:
 
@@ -1510,7 +1515,7 @@ public:
 
   virtual const CDoubleArrayOb& operator= (const CDoubleArrayOb& vect);
 
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 
 
 };
@@ -1519,7 +1524,7 @@ public:
 //-------------------------------------------------------------
 
 /** 
-  An stack of CBratObject management class.
+  An std::stack of CBratObject management class.
 
 
  \version 1.0
@@ -1542,14 +1547,14 @@ public:
 
   virtual CBratObject* Top();
 
-   /** Remove all elements and clear the list*/
+   /** Remove all elements and clear the std::list*/
    virtual void RemoveAll();
 
   bool GetDelete() {return m_bDelete;};
   void SetDelete(bool value) {m_bDelete = value;};
 
   ///Dump fonction
-  //virtual void Dump(ostream& fOut = cerr) const;
+  //virtual void Dump(std::ostream& fOut = std::cerr) const;
 
 protected:
 
@@ -1565,7 +1570,7 @@ protected:
 //-------------------------------------------------------------
 
 /** 
-  An array (vector) of CBratObject management class.
+  An array (std::vector) of CBratObject management class.
 
 
  \version 1.0
@@ -1580,7 +1585,7 @@ public:
   CObArray(bool bDelete = true);
     
   /** Creates new CObArray object from another CObArray
-    \param vect [in] : list to be copied */
+    \param vect [in] : std::list to be copied */
   CObArray(const CObArray& vect);
 
   /// Destructor
@@ -1594,7 +1599,7 @@ public:
 
   virtual CObArray::iterator ReplaceAt(CObArray::iterator where, CBratObject* ob);
 
-   /** Remove all elements and clear the list*/
+   /** Remove all elements and clear the std::list*/
    virtual void RemoveAll();
 
    /** Delete an element referenced by ob
@@ -1619,14 +1624,11 @@ public:
   void SetDelete(bool value) {m_bDelete = value;};
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 
 protected:
 
   bool m_bDelete;
-
-
-  
 };
 
 
@@ -1649,7 +1651,7 @@ public:
 
   virtual const CObArrayOb& operator= (const CObArrayOb& vect);
 
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 
 
 };
@@ -1659,7 +1661,7 @@ public:
 //------------------- CStringMap class --------------------
 //-------------------------------------------------------------
 /** 
-  a set of string value management classes.
+  a set of std::string value management classes.
 
  
  \version 1.0
@@ -1681,25 +1683,25 @@ public:
 public:
 
    
-   /** Inserts a string
-   * \param key : map key
-   * \param str : string value 
-   * \return the inserted string value or existing string value if key exists */
-   virtual string Insert(const string& key, const string& str, bool withExcept = true);
+   /** Inserts a std::string
+   * \param key : std::map key
+   * \param str : std::string value 
+   * \return the inserted std::string value or existing std::string value if key exists */
+   virtual std::string Insert(const std::string& key, const std::string& str, bool withExcept = true);
 
-   /** Inserts a string map 
-   * \param strmap : map to insert
+   /** Inserts a std::string std::map 
+   * \param strmap : std::map to insert
    * \param withExcept : true for exception handling, flse otherwise
-   * \return the inserted string value or existing string value if key exists */
+   * \return the inserted std::string value or existing std::string value if key exists */
    virtual void Insert(const CStringMap& strmap, bool withExcept = true);
 
    /** Tests if an element identify by 'key' already exists
-   * \return a string value corresponding to the key; if exists, otherwise empty string */
-   virtual string Exists(const string& key) const;
+   * \return a std::string value corresponding to the key; if exists, otherwise empty std::string */
+   virtual std::string Exists(const std::string& key) const;
 
    /** Tests if an element value exists
-   * \return a string key corresponding to the value (or the first key found, if some values are the same); if exists, otherwise empty string */
-   virtual string IsValue(const string& value);
+   * \return a std::string key corresponding to the value (or the first key found, if some values are the same); if exists, otherwise empty std::string */
+   virtual std::string IsValue(const std::string& value);
 
    /** Delete an element referenced by it
    * \return true if no error, otherwise false */
@@ -1707,19 +1709,19 @@ public:
    
    /** Delete an element by its key
    * \return true if no error, otherwise false */
-   virtual bool Erase(const string& key);
+   virtual bool Erase(const std::string& key);
 
-   /** Remove all elements and clear the map*/
+   /** Remove all elements and clear the std::map*/
    virtual void RemoveAll();
 
-      /** Gets keys of the map 
-    * \param keys [out] : the keys of the map
+      /** Gets keys of the std::map 
+    * \param keys [out] : the keys of the std::map
     * \param bRemoveAll [in] : if true, remove keys array element before filling the keys
     */
    virtual void GetKeys(CStringArray& keys, bool bRemoveAll = true ) const;
 
    /// Dump fonction
-   virtual void Dump(ostream& fOut = cerr) const;
+   virtual void Dump(std::ostream& fOut = std::cerr) const;
 
 
 
@@ -1755,13 +1757,13 @@ public:
 
    
    /** Inserts an integer
-   * \param key : map key
+   * \param key : std::map key
    * \param value : int value 
    * \return the inserted integer value or existing integer value if key exists */
-   virtual int32_t Insert(const string& key, int32_t value, bool withExcept = true);
+   virtual int32_t Insert(const std::string& key, int32_t value, bool withExcept = true);
 
    /** Inserts a CIntMap
-   * \param map [in]: map
+   * \param std::map [in]: std::map
     * \param bRemoveAll [in] : if true, remove keys array element before filling the keys
    */
    virtual void Insert(const CIntMap& m, bool bRemoveAll = true, bool withExcept = true);
@@ -1770,7 +1772,7 @@ public:
 
    /** Tests if an element identify by 'key' already exists
    * \return a integer value corresponding to the key; if exists, otherwise default value CTools::m_defaultValueINT32 */
-   virtual int32_t Exists(const string& key) const;
+   virtual int32_t Exists(const std::string& key) const;
 
    /** Delete an element referenced by it
    * \return true if no error, otherwise false */
@@ -1778,18 +1780,18 @@ public:
    
    /** Delete an element by its key
    * \return true if no error, otherwise false */
-   virtual bool Erase(const string& key);
+   virtual bool Erase(const std::string& key);
 
-   /** Remove all elements and clear the map*/
+   /** Remove all elements and clear the std::map*/
    virtual void RemoveAll();
 
    /** operator[] redefinition. Searches an integer value identifiy by 'key'.
-     \param key : string keyword 
+     \param key : std::string keyword 
      \return the interger value if found, default value CTools::m_defaultValueINT32 if not found */
-   virtual int32_t operator[](const string& key);
+   virtual int32_t operator[](const std::string& key);
 
    /// Dump fonction
-   virtual void Dump(ostream& fOut = cerr) const;
+   virtual void Dump(std::ostream& fOut = std::cerr) const;
 
 
 
@@ -1823,19 +1825,19 @@ public:
 
    
    /** Inserts an integer
-   * \param key : map key
+   * \param key : std::map key
    * \param value : int value 
    * \return the inserted integer value or existing unsigned integer value if key exists */
-   virtual uint32_t Insert(const string& key, uint32_t value, bool withExcept = true);
+   virtual uint32_t Insert(const std::string& key, uint32_t value, bool withExcept = true);
 
    /** Inserts a CUIntMap
-   * \param map [in]: map
+   * \param std::map [in]: std::map
     * \param bRemoveAll [in] : if true, remove keys array element before filling the keys
    */
    virtual void Insert(const CUIntMap& m, bool bRemoveAll = true, bool withExcept = true);
 
    /** Inserts a CStrinArray as keys and initial value
-   * \param keys [in]: map keys to insert
+   * \param keys [in]: std::map keys to insert
    * \param initValue [in]: value of the keys
    * \param bRemoveAll [in] : if true, remove keys array element before filling the keys
    */
@@ -1852,7 +1854,7 @@ public:
 
    /** Tests if an element identify by 'key' already exists
    * \return a integer value corresponding to the key; if exists, otherwise default value CTools::m_defaultValueUINT32 */
-   virtual uint32_t Exists(const string& key) const;
+   virtual uint32_t Exists(const std::string& key) const;
 
    /** Delete an element referenced by it
    * \return true if no error, otherwise false */
@@ -1860,24 +1862,24 @@ public:
    
    /** Delete an element by its key
    * \return true if no error, otherwise false */
-   virtual bool Erase(const string& key);
+   virtual bool Erase(const std::string& key);
 
-   /** Remove all elements and clear the map*/
+   /** Remove all elements and clear the std::map*/
    virtual void RemoveAll();
 
-   /** Gets keys of the map 
-    * \param keys [out] : the keys of the map
+   /** Gets keys of the std::map 
+    * \param keys [out] : the keys of the std::map
     * \param bRemoveAll [in] : if true, remove keys array element before filling the keys
     */
    virtual void GetKeys(CStringArray& keys, bool bRemoveAll = true );
 
    /** operator[] redefinition. Searches an integer value identifiy by 'key'.
-     \param key : string keyword 
+     \param key : std::string keyword 
      \return the interger value if found, default value CTools::m_defaultValueUINT32 if not found */
-   virtual uint32_t operator[](const string& key);
+   virtual uint32_t operator[](const std::string& key);
 
    /// Dump fonction
-   virtual void Dump(ostream& fOut = cerr) const;
+   virtual void Dump(std::ostream& fOut = std::cerr) const;
 
 
 
@@ -1910,15 +1912,15 @@ public:
 
    
    /** Inserts an double
-   * \param key : map key
+   * \param key : std::map key
    * \param value : double value 
    * \return the inserted double value or existing double value if key exists */
-   virtual double Insert(const string& key, double value, bool withExcept = true);
+   virtual double Insert(const std::string& key, double value, bool withExcept = true);
 
    
    /** Tests if an element identify by 'key' already exists
    * \return a double value corresponding to the key; if exists, otherwise default value CTools::m_defaultValueDOUBLE */
-   virtual double Exists(const string& key) const;
+   virtual double Exists(const std::string& key) const;
 
    /** Delete an element referenced by it
    * \return true if no error, otherwise false */
@@ -1926,18 +1928,18 @@ public:
    
    /** Delete an element by its key
    * \return true if no error, otherwise false */
-   virtual bool Erase(const string& key);
+   virtual bool Erase(const std::string& key);
 
-   /** Remove all elements and clear the map*/
+   /** Remove all elements and clear the std::map*/
    virtual void RemoveAll();
 
    /** operator[] redefinition. Searches an integer value identifiy by 'key'.
-     \param key : string keyword 
+     \param key : std::string keyword 
      \return the double value if found, default value CTools::m_defaultValueDOUBLE if not found */
-   virtual double operator[](const string& key);
+   virtual double operator[](const std::string& key);
 
    /// Dump fonction
-   virtual void Dump(ostream& fOut = cerr) const;
+   virtual void Dump(std::ostream& fOut = std::cerr) const;
 
 
 
@@ -1973,11 +1975,11 @@ public:
 
    
    /** Inserts a CBratObject object
-   * \param key : CBratObject name (map key)
+   * \param key : CBratObject name (std::map key)
    * \param value : CBratObject value 
    * \param withExcept : true for exception handling, flse otherwise
    * \return CBratObject object or NULL if error */
-   virtual CBratObject* Insert(const string& key, CBratObject* ob, bool withExcept = true);
+   virtual CBratObject* Insert(const std::string& key, CBratObject* ob, bool withExcept = true);
 
    /** Inserts a CObMap 
    * \param obMap : CObMap to insert
@@ -1988,7 +1990,7 @@ public:
    
    /** Tests if an element identify by 'key' already exists
    * \return a CBratObject pointer if exists, otherwise NULL */
-   virtual CBratObject* Exists(const string& key) const;
+   virtual CBratObject* Exists(const std::string& key) const;
 
    /** Delete an element referenced by it
    * \return true if no error, otherwise false */
@@ -1996,39 +1998,39 @@ public:
    
    /** Delete an element by its key
    * \return true if no error, otherwise false */
-   virtual bool Erase(const string& key);
+   virtual bool Erase(const std::string& key);
 
    /** Rename a key 
    * \param oldKey : old key 
    * \param newKey : new key
    * \return true if key is renamed, otherwise false*/
-   bool RenameKey(const string& oldKey, const string& newKey);
+   bool RenameKey(const std::string& oldKey, const std::string& newKey);
 
-   /** Gets keys of the map 
-    * \param keys [out] : the keys of the map
+   /** Gets keys of the std::map 
+    * \param keys [out] : the keys of the std::map
     * \param bRemoveAll [in] : if true, remove keys array element before filling the keys
     */
    virtual void GetKeys(CStringArray& keys, bool bRemoveAll = true, bool bUnique = false);
   
-   /** Gets keys of the map 
-    * \param keys [out] : the keys of the map
+   /** Gets keys of the std::map 
+    * \param keys [out] : the keys of the std::map
     * \param bRemoveAll [in] : if true, remove keys array element before filling the keys
     */
    virtual void GetKeys(CStringList& keys, bool bRemoveAll = true, bool bUnique = false);
 
-   /** Remove all elements and clear the map*/
+   /** Remove all elements and clear the std::map*/
    virtual void RemoveAll();
 
    virtual void ToArray(CObArray& obArray);
 
    /** operator[] redefinition. Searches a CBratObject object identifiy by 'key'.
        DON'T USE this syntax if you are not sure the key exists, there's a bug in STL,  
-       after calling  'record = m_recordSetMap[recordSetName]', if key not existed and the map is empty 
-       then the key exists in the map and points to a NULL object
+       after calling  'record = m_recordSetMap[recordSetName]', if key not existed and the std::map is empty 
+       then the key exists in the std::map and points to a NULL object
         CBratObject *o = myMap[key] --> use Exists method instead ;
      \param key : CBratObject keyword 
      \return a pointer to the CBratObject object if found, NULL  if not found */
-  virtual CBratObject* operator[](const string& key);
+  virtual CBratObject* operator[](const std::string& key);
 
   virtual const CObMap& operator =(const CObMap& obMap);
 
@@ -2037,7 +2039,7 @@ public:
   void SetDelete(bool value) {m_bDelete = value;};
 
    /// Dump fonction
-   virtual void Dump(ostream& fOut = cerr) const;
+   virtual void Dump(std::ostream& fOut = std::cerr) const;
 
 
 protected:
@@ -2075,7 +2077,7 @@ public:
 
    
    /** Inserts a CBratObject object
-   * \param key : CBratObject name (map key)
+   * \param key : CBratObject name (std::map key)
    * \param value : CBratObject value 
    * \param withExcept : true for exception handling, flse otherwise
    * \return CBratObject object or NULL if error */
@@ -2106,19 +2108,19 @@ public:
    * \return true if key is renamed, otherwise false*/
    bool RenameKey(int32_t oldKey, int32_t newKey);
 
-   /** Gets keys of the map 
-    * \param keys [out] : the keys of the map
+   /** Gets keys of the std::map 
+    * \param keys [out] : the keys of the std::map
     * \param bRemoveAll [in] : if true, remove keys array element before filling the keys
     */
    virtual void GetKeys(CIntArray& keys, bool bRemoveAll = true );
 
-   /** Remove all elements and clear the map*/
+   /** Remove all elements and clear the std::map*/
    virtual void RemoveAll();
 
    /** operator[] redefinition. Searches a CBratObject object identifiy by 'key'.
        DON'T USE this syntax if you are not sure the key exists, there's a bug in STL,  
-       after calling  'record = m_recordSetMap[recordSetName]', if key not existed and the map is empty 
-       then the key exists in the map and points to a NULL object
+       after calling  'record = m_recordSetMap[recordSetName]', if key not existed and the std::map is empty 
+       then the key exists in the std::map and points to a NULL object
         CBratObject *o = myMap[key] --> use Exists method instead ;
      \param key : CBratObject keyword 
      \return a pointer to the CBratObject object if found, NULL  if not found */
@@ -2130,7 +2132,7 @@ public:
   virtual const CObIntMap& operator =(const CObIntMap& obMap);
 
    /// Dump fonction
-   virtual void Dump(ostream& fOut = cerr) const;
+   virtual void Dump(std::ostream& fOut = std::cerr) const;
 
 
 protected:
@@ -2168,7 +2170,7 @@ public:
 
    
    /** Inserts a CBratObject object
-   * \param key : CBratObject name (map key)
+   * \param key : CBratObject name (std::map key)
    * \param value : CBratObject value 
    * \param withExcept : true for exception handling, flse otherwise
    * \return CBratObject object or NULL if error */
@@ -2199,19 +2201,19 @@ public:
    * \return true if key is renamed, otherwise false*/
    bool RenameKey(double oldKey, double newKey);
 
-   /** Gets keys of the map 
-    * \param keys [out] : the keys of the map
+   /** Gets keys of the std::map 
+    * \param keys [out] : the keys of the std::map
     * \param bRemoveAll [in] : if true, remove keys array element before filling the keys
     */
    virtual void GetKeys(CDoubleArray& keys, bool bRemoveAll = true );
 
-   /** Remove all elements and clear the map*/
+   /** Remove all elements and clear the std::map*/
    virtual void RemoveAll();
 
    /** operator[] redefinition. Searches a CBratObject object identifiy by 'key'.
        DON'T USE this syntax if you are not sure the key exists, there's a bug in STL,  
-       after calling  'record = m_recordSetMap[recordSetName]', if key not existed and the map is empty 
-       then the key exists in the map and points to a NULL object
+       after calling  'record = m_recordSetMap[recordSetName]', if key not existed and the std::map is empty 
+       then the key exists in the std::map and points to a NULL object
         CBratObject *o = myMap[key] --> use Exists method instead ;
      \param key : CBratObject keyword 
      \return a pointer to the CBratObject object if found, NULL  if not found */
@@ -2223,7 +2225,7 @@ public:
   virtual const CObDoubleMap& operator =(const CObDoubleMap& obMap);
 
    /// Dump fonction
-   virtual void Dump(ostream& fOut = cerr) const;
+   virtual void Dump(std::ostream& fOut = std::cerr) const;
 
 
 protected:
@@ -2259,7 +2261,7 @@ public:
 
    
    /** Inserts a DoublePtr* object
-   * \param key : DoublePtr* name (map key)
+   * \param key : DoublePtr* name (std::map key)
    * \param value : DoublePtr* value 
    * \param withExcept : true for exception handling, flse otherwise
    * \return DoublePtr* object or NULL if error */
@@ -2285,19 +2287,19 @@ public:
    * \return true if key is renamed, otherwise false*/
    bool RenameKey(double oldKey, double newKey);
 
-   /** Gets keys of the map 
-    * \param keys [out] : the keys of the map
+   /** Gets keys of the std::map 
+    * \param keys [out] : the keys of the std::map
     * \param bRemoveAll [in] : if true, remove keys array element before filling the keys
     */
    virtual void GetKeys(CDoubleArray& keys, bool bRemoveAll = true );
 
-   /** Remove all elements and clear the map*/
+   /** Remove all elements and clear the std::map*/
    virtual void RemoveAll();
 
    /** operator[] redefinition. Searches a CBratObject object identifiy by 'key'.
        DON'T USE this syntax if you are not sure the key exists, there's a bug in STL,  
-       after calling  'record = m_recordSetMap[recordSetName]', if key not existed and the map is empty 
-       then the key exists in the map and points to a NULL object
+       after calling  'record = m_recordSetMap[recordSetName]', if key not existed and the std::map is empty 
+       then the key exists in the std::map and points to a NULL object
         CBratObject *o = myMap[key] --> use Exists method instead ;
      \param key : CBratObject keyword 
      \return a pointer to the CBratObject object if found, NULL  if not found */
@@ -2316,7 +2318,7 @@ public:
   DoublePtr* NewMatrix(double initialValue = CTools::m_defaultValueDOUBLE);
 
    /// Dump fonction
-   virtual void Dump(ostream& fOut = cerr) const;
+   virtual void Dump(std::ostream& fOut = std::cerr) const;
 
 protected:
 
@@ -2360,7 +2362,7 @@ public:
    * \param value : pointer value 
    * \param withExcept : true for exception handling, flse otherwise
    * \return pointer or NULL if error */
-   virtual void* Insert(const string& key, void* ptr, bool withExcept = true);
+   virtual void* Insert(const std::string& key, void* ptr, bool withExcept = true);
 
    /** Inserts a CPtrMap 
    * \param obMap : CPtrMap to insert
@@ -2371,7 +2373,7 @@ public:
    
    /** Tests if an element identify by 'key' already exists
    * \return a pointer if exists, otherwise NULL */
-   virtual void* Exists(const string& key) const;
+   virtual void* Exists(const std::string& key) const;
 
    /** Delete an element referenced by it
    * \return true if no error, otherwise false */
@@ -2379,22 +2381,22 @@ public:
    
    /** Delete an element by its key
    * \return true if no error, otherwise false */
-   virtual bool Erase(const string& key);
+   virtual bool Erase(const std::string& key);
 
-   /** Remove all elements and clear the map*/
+   /** Remove all elements and clear the std::map*/
    virtual void RemoveAll();
 
    /** operator[] redefinition. Searches a CBratObject object identifiy by 'key'.
        DON'T USE this syntax if you are not sure the key exists, there's a bug in STL,  
-       after calling  'record = m_recordSetMap[recordSetName]', if key not existed and the map is empty 
-       then the key exists in the map and points to a NULL object
+       after calling  'record = m_recordSetMap[recordSetName]', if key not existed and the std::map is empty 
+       then the key exists in the std::map and points to a NULL object
         void *p = myMap[key] --> use Exists method instead ;
      \param key : CBratObject keyword 
      \return a pointer to the pointer if found, NULL  if not found */
-   virtual void* operator[](const string& key);
+   virtual void* operator[](const std::string& key);
 
    /// Dump fonction
-   virtual void Dump(ostream& fOut = cerr)  const;
+   virtual void Dump(std::ostream& fOut = std::cerr)  const;
 
 
 protected:
@@ -2470,26 +2472,26 @@ public:
   */
   virtual void InitMatrix(double initialValue = CTools::m_defaultValueDOUBLE) = 0;
 
-  string GetName() { return m_name; };
-  void SetName(const string& value) { m_name = value; };
+  std::string GetName() { return m_name; };
+  void SetName(const std::string& value) { m_name = value; };
 
-  string GetXName() { return m_xName; };
-  void SetXName(const string& value) { m_xName = value; };
+  std::string GetXName() { return m_xName; };
+  void SetXName(const std::string& value) { m_xName = value; };
 
-  string GetYName() { return m_yName; };
-  void SetYName(const string& value) { m_yName = value; };
+  std::string GetYName() { return m_yName; };
+  void SetYName(const std::string& value) { m_yName = value; };
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 
 protected : 
 
 
 private:
  
-  string m_name;
-  string m_xName;
-  string m_yName;
+  std::string m_name;
+  std::string m_xName;
+  std::string m_yName;
 
 };
 
@@ -2555,7 +2557,7 @@ public:
   void InitMatrix(double initialValue = CTools::m_defaultValueDOUBLE) { m_data.InitMatrix(initialValue); };
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 
 protected : 
 
@@ -2626,7 +2628,7 @@ public:
 
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr) const;
+  virtual void Dump(std::ostream& fOut = std::cerr) const;
 
 protected : 
 

@@ -26,7 +26,7 @@
 #include "brathl_error.h"
 #include "brathl.h"
 
-#include "Stl.h"
+#include <string>
 
 #include "TraceLog.h"
 #include "Tools.h"
@@ -46,31 +46,31 @@ namespace brathl
 
 
 
-const string CProductNetCdf::m_virtualRecordName = "data";
+const std::string CProductNetCdf::m_virtualRecordName = "data";
 
 /*
 const int32_t CProductNetCdf::m_TIME_NAMES_SIZE = 6;
-const string CProductNetCdf::m_TIME_NAMES[] = {"time", "TIME", "Time",
+const std::string CProductNetCdf::m_TIME_NAMES[] = {"time", "TIME", "Time",
                                                "date", "Date", "DATE",
                                               };
 const int32_t CProductNetCdf::m_LAT_NAMES_SIZE = 9;
-const string CProductNetCdf::m_LAT_NAMES[] = {"latitude", "Latitude", "LATITUDE",
+const std::string CProductNetCdf::m_LAT_NAMES[] = {"latitude", "Latitude", "LATITUDE",
                                               "lat", "Lat", "LAT",
                                               "latitudes", "Latitudes", "LATITUDES",
                                              };
 const int32_t CProductNetCdf::m_LON_NAMES_SIZE = 9;
-const string CProductNetCdf::m_LON_NAMES[] = {"longitude", "Longitude", "LONGITUDE",
+const std::string CProductNetCdf::m_LON_NAMES[] = {"longitude", "Longitude", "LONGITUDE",
                                               "lon", "Lon", "LON",
                                               "latitudes", "Latitudes", "LATITUDES",
                                               };
 
 const int32_t CProductNetCdf::m_CYCLE_NAMES_SIZE = 10;
-const string CProductNetCdf::m_CYCLE_NAMES[] = {"cycle", "Cycle", "CYCLE",
+const std::string CProductNetCdf::m_CYCLE_NAMES[] = {"cycle", "Cycle", "CYCLE",
                                                 "cycles", "Cycles", "CYCLEs",
                                                 "cycle_number", "Cycle_number", "Cycle_Number", "CYCLE_NUMBER",
                                                };
 const int32_t CProductNetCdf::m_PASS_NAMES_SIZE = 13;
-const string CProductNetCdf::m_PASS_NAMES[] = {"pass", "Pass", "PASS",
+const std::string CProductNetCdf::m_PASS_NAMES[] = {"pass", "Pass", "PASS",
                                                "tracks", "Tracks", "TRACKS",
                                                "track", "Track", "TRACK",
                                                 "pass_number", "Pass_number", "Pass_Number", "PASS_NUMBER",
@@ -85,7 +85,7 @@ CProductNetCdf::CProductNetCdf()
 
 //----------------------------------------
 
-CProductNetCdf::CProductNetCdf(const string& fileName)
+CProductNetCdf::CProductNetCdf(const std::string& fileName)
       : CProduct(fileName)
 {
   Init();
@@ -401,7 +401,7 @@ bool CProductNetCdf::GetLatLonMinMax(CLatLonRect& latlonRectMinMax)
 
     latlonRectMinMax.Extend(latLonRect);
 
-    string str = latlonRectMinMax.AsString();
+    std::string str = latlonRectMinMax.AsString();
 
     this->Close();
   }
@@ -465,7 +465,7 @@ bool CProductNetCdf::GetDateMinMax(CDatePeriod& datePeriodMinMax)
       ReadDateCriteriaValue(*fieldInfo, endDate, false);
     }
 
-    string str = startDate.AsString();
+    std::string str = startDate.AsString();
     str = endDate.AsString();
 
     datePeriodMinMax.Union(startDate, endDate);
@@ -478,7 +478,7 @@ bool CProductNetCdf::GetDateMinMax(CDatePeriod& datePeriodMinMax)
 
 }
 //----------------------------------------
-void CProductNetCdf::ApplyCriteria(CStringList& filteredFileList, const string& logFileName /* = "" */)
+void CProductNetCdf::ApplyCriteria(CStringList& filteredFileList, const std::string& logFileName /* = "" */)
 {
   if (!logFileName.empty())
   {
@@ -756,7 +756,7 @@ bool CProductNetCdf::ApplyCriteriaDatetime(CCriteriaInfo* criteriaInfo)
     ReadDateCriteriaValue(*fieldInfo, endDate, false);
   }
 
-  string str = startDate.AsString();
+  std::string str = startDate.AsString();
   str = endDate.AsString();
 
   CDatePeriod datePeriod(startDate, endDate);
@@ -808,14 +808,14 @@ CFieldNetCdf* CProductNetCdf::ReadDateCriteriaValue(CFieldInfo& fieldInfo, CDate
 
   if (dataType == NC_CHAR)
   {
-    string strValue;
+    std::string strValue;
 
     Read(fieldInfo, strValue);
 
     int32_t result = date.SetDate(strValue.c_str());
     if (result != BRATHL_SUCCESS)
     {
-      string msg = CTools::Format("ERROR - CProductNetCdf::ReadDateCriteriaValue(CFieldInfo& fieldInfo, CDate& date) - invalid date value '%s' - Field info : name '%s' - Attribute Name '%s'",
+      std::string msg = CTools::Format("ERROR - CProductNetCdf::ReadDateCriteriaValue(CFieldInfo& fieldInfo, CDate& date) - invalid date value '%s' - Field info : name '%s' - Attribute Name '%s'",
                                   strValue.c_str(),
                                   fieldInfo.GetName().c_str(),
                                   fieldInfo.GetAttributeVarName().c_str()
@@ -980,13 +980,13 @@ bool CProductNetCdf::ApplyCriteriaPassString(CCriteriaInfo* criteriaInfo)
 
   CCriteriaPassStringInfo* criteriaPassInfo = CCriteriaPassStringInfo::GetCriteriaInfo(criteriaInfo);
 
-  string startPassValue = "";
-  string endPassValue = "";
+  std::string startPassValue = "";
+  std::string endPassValue = "";
 
   // Gets start and end pass
   CFieldInfo* fieldInfo = criteriaPassInfo->GetStartPassField();
 
-  string msg = CTools::Format("ERROR - CProductNetCdf::ApplyCriteriaPassString(CCriteriaInfo* criteriaInfo): Reading variable as string value is NOT IMPLEMENTED - Field Name '%s'",
+  std::string msg = CTools::Format("ERROR - CProductNetCdf::ApplyCriteriaPassString(CCriteriaInfo* criteriaInfo): Reading variable as std::string value is NOT IMPLEMENTED - Field Name '%s'",
                              fieldInfo->GetName().c_str());
   CUnImplementException e(msg, BRATHL_UNIMPLEMENT_ERROR);
   throw(e);
@@ -1023,13 +1023,13 @@ CFieldNetCdf* CProductNetCdf::ReadDoubleCriteriaValue(CFieldInfo& fieldInfo, dou
 
   if (dataType == NC_CHAR)
   {
-    string strValue;
+    std::string strValue;
     Read(fieldInfo, strValue);
     value = CTools::StrToDouble(strValue);
 
     if (CTools::IsDefaultValue(value))
     {
-      string msg = CTools::Format("ERROR - CProductNetCdf::ReadDoubleCriteriaValue(CFieldInfo& fieldInfo, double& date) - invalid 'double' value '%s' - Field info : name '%s' - Attribute Name '%s'",
+      std::string msg = CTools::Format("ERROR - CProductNetCdf::ReadDoubleCriteriaValue(CFieldInfo& fieldInfo, double& date) - invalid 'double' value '%s' - Field info : name '%s' - Attribute Name '%s'",
                                   strValue.c_str(),
                                   fieldInfo.GetName().c_str(),
                                   fieldInfo.GetAttributeVarName().c_str()
@@ -1152,12 +1152,12 @@ void CProductNetCdf::InitDateRef()
 }
 
 //----------------------------------------
-string CProductNetCdf::MakeInternalFieldName(const string& dataSetName, const string& field)
+std::string CProductNetCdf::MakeInternalFieldName(const std::string& dataSetName, const std::string& field)
 {
   return MakeInternalFieldName(field);
 }
 //----------------------------------------
-string CProductNetCdf::MakeInternalFieldName(const string& field)
+std::string CProductNetCdf::MakeInternalFieldName(const std::string& field)
 {
   //For NetCdf there is no dataset name (no record Brathl parameter)
   return CProduct::m_treeRootName + "." + field;
@@ -1187,7 +1187,7 @@ void CProductNetCdf::InitInternalFieldName(CStringList& listField, bool convertD
 }
 
 //----------------------------------------
-void CProductNetCdf::InitInternalFieldName(const string& dataSetName, CStringList& listField, bool convertDate /*= false*/)
+void CProductNetCdf::InitInternalFieldName(const std::string& dataSetName, CStringList& listField, bool convertDate /*= false*/)
 {
   CProduct::InitInternalFieldName(dataSetName, listField, convertDate);
 
@@ -1207,24 +1207,24 @@ void CProductNetCdf::InitInternalFieldName(const string& dataSetName, CStringLis
 }
 /*
 //----------------------------------------
-CField* CProductNetCdf::GetFieldRead(const string& fieldName)
+CField* CProductNetCdf::GetFieldRead(const std::string& fieldName)
 {
   return dynamic_cast<CField*> (m_fieldsToRead->Exists(fieldName));
 }
 */
 
 //----------------------------------------
-bool CProductNetCdf::Open(const string& fileName, const string& dataSetName, CStringList& listFieldToRead)
+bool CProductNetCdf::Open(const std::string& fileName, const std::string& dataSetName, CStringList& listFieldToRead)
 {
   return CProduct::Open(fileName, dataSetName, listFieldToRead);
 }
 //----------------------------------------
-bool CProductNetCdf::Open(const string& fileName, const string& dataSetName)
+bool CProductNetCdf::Open(const std::string& fileName, const std::string& dataSetName)
 {
   return CProduct::Open(fileName, dataSetName);
 }
 //----------------------------------------
-bool CProductNetCdf::Open(const string& fileName)
+bool CProductNetCdf::Open(const std::string& fileName)
 {
   return CProduct::Open(fileName);
 }
@@ -1279,7 +1279,7 @@ int32_t CProductNetCdf::GetNumberOfRecords()
 }
 
 //----------------------------------------
-int32_t CProductNetCdf::GetNumberOfRecords(const string& dataSetName /*NOT USED*/)
+int32_t CProductNetCdf::GetNumberOfRecords(const std::string& dataSetName /*NOT USED*/)
 {
   return GetNumberOfRecords();
 }
@@ -1390,7 +1390,7 @@ void CProductNetCdf::ReadBratRecord(int32_t iRecord)
 
   if ( (iRecord < 0) || (iRecord >= GetNumberOfRecords()) )
   {
-    string msg = CTools::Format("ERROR in CProductNetCdf::ReadBratRecord - record index %d out of range (min = 0 and max = %d)",
+    std::string msg = CTools::Format("ERROR in CProductNetCdf::ReadBratRecord - record index %d out of range (min = 0 and max = %d)",
                                 iRecord,
                                 GetNumberOfRecords() - 1);
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_RANGE_ERROR);
@@ -1441,7 +1441,7 @@ void CProductNetCdf::ReadBratRecord(int32_t iRecord)
 /*
     if (fieldSetArrayDbl == NULL)
     {
-      string msg = CTools::Format("ERROR in CProductNetCdf::ReadBratRecord - fieldSetArrayDbl not found for field '%s' at the record number %d of %d"
+      std::string msg = CTools::Format("ERROR in CProductNetCdf::ReadBratRecord - fieldSetArrayDbl not found for field '%s' at the record number %d of %d"
                                   "(fieldSetArrayDbl seems to be NULL or not a CFieldSetArrayDbl object",
                                   field->GetName().c_str(),
                                   iRecord,
@@ -1455,7 +1455,7 @@ void CProductNetCdf::ReadBratRecord(int32_t iRecord)
 /*
     if (fieldSetDbl == NULL)
     {
-      string msg = CTools::Format("ERROR in CProductNetCdf::ReadBratRecord - fieldSetDbl not found for field '%s' at the record number %d of %d"
+      std::string msg = CTools::Format("ERROR in CProductNetCdf::ReadBratRecord - fieldSetDbl not found for field '%s' at the record number %d of %d"
                                   "(fieldSetDbl seems to be NULL or not a CFieldSetDbl object",
                                   field->GetName().c_str(),
                                   iRecord,
@@ -1501,7 +1501,7 @@ void CProductNetCdf::ReadBratRecord(int32_t iRecord)
 }
 
 //----------------------------------------
-void CProductNetCdf::GetNetCdfDimensions(const vector<CExpression>& expressions, CStringArray& commonDimNames)
+void CProductNetCdf::GetNetCdfDimensions(const std::vector<CExpression>& expressions, CStringArray& commonDimNames)
 {
   GetNetCdfDimensions(expressions, commonDimNames, m_dataSetNameToRead);
 }
@@ -1516,9 +1516,9 @@ void CProductNetCdf::GetNetCdfDimensions(const CStringArray& fields, CStringArra
   GetNetCdfDimensions(fields, commonDimNames, m_dataSetNameToRead);
 }
 //----------------------------------------
-void CProductNetCdf::GetNetCdfDimensions(const vector<CExpression>& expressions, CStringArray& commonDimNames, const string& recordName)
+void CProductNetCdf::GetNetCdfDimensions(const std::vector<CExpression>& expressions, CStringArray& commonDimNames, const std::string& recordName)
 {
-  vector<CExpression>::const_iterator it;
+  std::vector<CExpression>::const_iterator it;
 
   for (it = expressions.begin() ; it != expressions.end() ; it++)
   {
@@ -1527,14 +1527,14 @@ void CProductNetCdf::GetNetCdfDimensions(const vector<CExpression>& expressions,
 
 }
 //----------------------------------------
-void CProductNetCdf::GetNetCdfDimensions(const CExpression& expr, CStringArray& commonDimNames, const string& recordName)
+void CProductNetCdf::GetNetCdfDimensions(const CExpression& expr, CStringArray& commonDimNames, const std::string& recordName)
 {
    GetNetCdfDimensions(*(expr.GetFieldNames()), commonDimNames);
 }
 //----------------------------------------
-void CProductNetCdf::GetNetCdfDimensionsWithoutAlgo(const vector<CExpression>& expressions, CStringArray& commonDimNames, const string& recordName)
+void CProductNetCdf::GetNetCdfDimensionsWithoutAlgo(const std::vector<CExpression>& expressions, CStringArray& commonDimNames, const std::string& recordName)
 {
-  vector<CExpression>::const_iterator it;
+  std::vector<CExpression>::const_iterator it;
 
   for (it = expressions.begin() ; it != expressions.end() ; it++)
   {
@@ -1542,7 +1542,7 @@ void CProductNetCdf::GetNetCdfDimensionsWithoutAlgo(const vector<CExpression>& e
   }
 
 }//----------------------------------------
-void CProductNetCdf::GetNetCdfDimensionsWithoutAlgo(const CExpression& expr, CStringArray& commonDimNames, const string& recordName)
+void CProductNetCdf::GetNetCdfDimensionsWithoutAlgo(const CExpression& expr, CStringArray& commonDimNames, const std::string& recordName)
 {
   if (!expr.HasAlgorithms())
   {
@@ -1550,7 +1550,7 @@ void CProductNetCdf::GetNetCdfDimensionsWithoutAlgo(const CExpression& expr, CSt
     return;
   }
 
-  string exprString = expr.AsString();
+  std::string exprString = expr.AsString();
   exprString = CTools::StringRemoveAllSpaces(exprString);
 
   const CVectorBratAlgorithm* algoArray = expr.GetAlgorithms();
@@ -1559,7 +1559,7 @@ void CProductNetCdf::GetNetCdfDimensionsWithoutAlgo(const CExpression& expr, CSt
   for (it = algoArray->begin() ; it != algoArray->end() ; it++)
   {
     CBratAlgorithmBase* algo = *it;
-    string algoExpression = algo->GetAlgoExpression();
+    std::string algoExpression = algo->GetAlgoExpression();
     algoExpression = CTools::StringRemoveAllSpaces(algoExpression);
     exprString = CTools::StringReplace(exprString, algoExpression, "1");
   }
@@ -1580,7 +1580,7 @@ void CProductNetCdf::GetNetCdfDimensionsWithoutAlgo(const CExpression& expr, CSt
 
 }
 //----------------------------------------
-void CProductNetCdf::GetNetCdfDimensions(const CStringArray& fields, CStringArray& commonDimNames, const string& recordName)
+void CProductNetCdf::GetNetCdfDimensions(const CStringArray& fields, CStringArray& commonDimNames, const std::string& recordName)
 {
 
   CStringArray::const_iterator it;
@@ -1613,7 +1613,7 @@ void CProductNetCdf::LoadFieldsInfo()
 
   m_tree.DeleteTree();
 
-  string desc = GetProductClass() + "/" + GetProductType();
+  std::string desc = GetProductClass() + "/" + GetProductType();
 
   CFieldRecord *virtualFieldRoot = new CFieldRecord(fields->size(), m_treeRootName, desc);
   m_tree.SetRoot(m_treeRootName, virtualFieldRoot, true);
@@ -1644,7 +1644,7 @@ void CProductNetCdf::LoadFieldsInfo()
 
 //----------------------------------------
 /*
-CFieldNetCdf* CProductNetCdf::CreateField(const string& fieldName)
+CFieldNetCdf* CProductNetCdf::CreateField(const std::string& fieldName)
 {
   CExternalFileFieldDescription* fieldDescription = m_externalFile->GetFieldDescription(fieldName);
 
@@ -1682,10 +1682,10 @@ void CProductNetCdf::CreateFieldSets()
 }
 
 //----------------------------------------
-void CProductNetCdf::ReadBratFieldRecord(const string& key)
+void CProductNetCdf::ReadBratFieldRecord(const std::string& key)
 {
 
-  CException e("ERROR - CProductNetCdf::ReadBratFieldRecord(const string& key) - unexpected call - CProductNetCdf::ReadBratFieldRecord(const string& key) have not to be called ", BRATHL_LOGIC_ERROR);
+  CException e("ERROR - CProductNetCdf::ReadBratFieldRecord(const std::string& key) - unexpected call - CProductNetCdf::ReadBratFieldRecord(const std::string& key) have not to be called ", BRATHL_LOGIC_ERROR);
   throw (e);
 /*
   m_listFields.RemoveAll();
@@ -1720,7 +1720,7 @@ void CProductNetCdf::ReadBratFieldRecord(const string& key)
 
   if (bFoundField == false)
   {
-    string msg = CTools::Format("ERROR - CProduct::ReadBratField() - Unknown dataset name or field name '%s'"
+    std::string msg = CTools::Format("ERROR - CProduct::ReadBratField() - Unknown dataset name or field name '%s'"
                                 "(internal name searched:'%s'",
                                 m_fieldsToProcess.front().c_str(),
                                 key.c_str());
@@ -1842,7 +1842,7 @@ CFieldNetCdf* CProductNetCdf::Read(CFieldInfo& fieldInfo, double& value, bool wa
       value = field->GetValidMax();
     }
 
-//    string msg = CTools::Format("ERROR - CProductNetCdf::Read(CFieldInfo& fieldInfo, double& value) : Reading variable value is NOT IMPLEMENTED - Field Name '%s'",
+//    std::string msg = CTools::Format("ERROR - CProductNetCdf::Read(CFieldInfo& fieldInfo, double& value) : Reading variable value is NOT IMPLEMENTED - Field Name '%s'",
 //                                fieldInfo.GetName().c_str());
 //    CUnImplementException e(msg, BRATHL_UNIMPLEMENT_ERROR);
 //    throw(e);
@@ -1860,7 +1860,7 @@ CFieldNetCdf* CProductNetCdf::Read(CFieldInfo& fieldInfo, double& value, bool wa
 }
 
 //----------------------------------------
-void CProductNetCdf::Read(CFieldInfo& fieldInfo, string& value)
+void CProductNetCdf::Read(CFieldInfo& fieldInfo, std::string& value)
 {
   MustBeOpened();
 
@@ -1875,14 +1875,14 @@ void CProductNetCdf::Read(CFieldInfo& fieldInfo, string& value)
   }
   else if (fieldInfo.IsNetCdfVarValue())
   {
-    string msg = CTools::Format("ERROR - CProductNetCdf::Read(CFieldInfo& fieldInfo, string& value) : Reading variable as string value is NOT IMPLEMENTED - Field Name '%s'",
+    std::string msg = CTools::Format("ERROR - CProductNetCdf::Read(CFieldInfo& fieldInfo, std::string& value) : Reading variable as std::string value is NOT IMPLEMENTED - Field Name '%s'",
                                 fieldInfo.GetName().c_str());
     CUnImplementException e(msg, BRATHL_UNIMPLEMENT_ERROR);
     throw(e);
   }
   else
   {
-      CException e(CTools::Format("ERROR - CProductNetCdf::Read(CFieldInfo& fieldInfo, string& value) - doesn't know what to read  - Field Name '%s'",
+      CException e(CTools::Format("ERROR - CProductNetCdf::Read(CFieldInfo& fieldInfo, std::string& value) - doesn't know what to read  - Field Name '%s'",
                                    fieldInfo.GetName().c_str()),
                    BRATHL_LOGIC_ERROR);
       throw(e);
@@ -1972,7 +1972,7 @@ bool CProductNetCdf::IsOpened()
 }
 
 //----------------------------------------
-bool CProductNetCdf::IsOpened(const string& fileName)
+bool CProductNetCdf::IsOpened(const std::string& fileName)
 {
   bool bOpen = IsOpened();
 
@@ -2110,7 +2110,7 @@ void CProductNetCdf::NetCdfProductInitialization(CProduct* from)
 
 }
 //----------------------------------------
-void CProductNetCdf::Dump(ostream& fOut /* = cerr */)
+void CProductNetCdf::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -2118,33 +2118,33 @@ void CProductNetCdf::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CProductNetCdf Object at "<< this << endl;
+  fOut << "==> Dump a CProductNetCdf Object at "<< this << std::endl;
 
   //------------------
   CProduct::Dump(fOut);
   //------------------
 
-  fOut << "m_axisDims " << endl;
+  fOut << "m_axisDims " << std::endl;
   m_axisDims.Dump(fOut);
 
-  fOut << "m_complementDims = " << endl;
+  fOut << "m_complementDims = " << std::endl;
   m_complementDims.Dump(fOut);
 
-  fOut << "m_dimsToReadOneByOne = " << endl;
+  fOut << "m_dimsToReadOneByOne = " << std::endl;
   m_dimsToReadOneByOne.Dump(fOut);
 
 
-  fOut << "m_currentRecord = " << m_currentRecord << endl;
-  fOut << "m_externalFile = " << m_externalFile << endl;
+  fOut << "m_currentRecord = " << m_currentRecord << std::endl;
+  fOut << "m_externalFile = " << m_externalFile << std::endl;
 
-  fOut << "m_forceReadDataOneByOne = " << m_forceReadDataOneByOne << endl;
-//  fOut << "m_forceReadDataComplementDimsOneByOne = " << m_forceReadDataComplementDimsOneByOne << endl;
+  fOut << "m_forceReadDataOneByOne = " << m_forceReadDataOneByOne << std::endl;
+//  fOut << "m_forceReadDataComplementDimsOneByOne = " << m_forceReadDataComplementDimsOneByOne << std::endl;
 
-  fOut << "m_virtualRecordName = " << m_virtualRecordName << endl;
+  fOut << "m_virtualRecordName = " << m_virtualRecordName << std::endl;
 
-  fOut << "==> END Dump a CProductNetCdf Object at "<< this << endl;
+  fOut << "==> END Dump a CProductNetCdf Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

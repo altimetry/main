@@ -424,7 +424,7 @@ void CLUTFrame::Open()
   
   try
   {
-    bOk = m_lutPanel->GetLUT()->LoadFromFile(m_fileName.GetFullPath());
+    bOk = m_lutPanel->GetLUT()->LoadFromFile(m_fileName.GetFullPath().ToStdString());
   }
   catch(CException& e)
   {
@@ -496,7 +496,7 @@ void CLUTFrame::OnSave( wxCommandEvent &event )
 
   try
   {
-    m_lutPanel->GetLUT()->SaveToFile(m_fileName.GetFullPath());
+    m_lutPanel->GetLUT()->SaveToFile(m_fileName.GetFullPath().ToStdString());
     AddFileToHistory(m_fileName.GetFullPath());
   }
   catch(...)
@@ -652,7 +652,7 @@ void CLUTFrame::UpdateMenuMode()
   }
   else
   {
-    string szMsg = CTools::Format("ERROR in CLUTFrame::UpdateMenuMode - Unexpected LUT curve encountered : '%s'",
+    std::string szMsg = CTools::Format("ERROR in CLUTFrame::UpdateMenuMode - Unexpected LUT curve encountered : '%s'",
                                   m_lutPanel->GetLUT()->GetCurve().c_str());
     CException e(szMsg, BRATHL_LOGIC_ERROR);
     throw(e);

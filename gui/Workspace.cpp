@@ -87,7 +87,7 @@ wxString CWorkspace::GetRootKey()
   wxString result;
 
   CStringArray array;
-  string key = (const char *)m_key.c_str();
+  std::string key = (const char *)m_key.c_str();
   array.ExtractStrings(key, (const char *)CTreeWorkspace::m_keyDelimiter.c_str());
 
   if (array.size() >= 1)
@@ -281,7 +281,7 @@ bool CWorkspace::RmdirRecurse()
   return (dir.HasFiles() == false) && (dir.HasSubDirs() == false);
 }
 //----------------------------------------
-void CWorkspace::Dump(ostream& fOut /* = cerr */)
+void CWorkspace::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -289,17 +289,17 @@ void CWorkspace::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CWorkspace Object at "<< this << endl;
-  fOut << "m_name = " << m_name << endl;
-  fOut << "m_path object at = " << &m_path << endl;
-  fOut << "m_path = " << m_path.GetPath() << endl;
-  fOut << "m_configFileName object at = " << &m_configFileName << endl;
-  fOut << "m_configFileName = " << m_configFileName.GetFullPath() << endl;
-  fOut << "m_config object at = " << m_config << endl;
+  fOut << "==> Dump a CWorkspace Object at "<< this << std::endl;
+  fOut << "m_name = " << m_name << std::endl;
+  fOut << "m_path object at = " << &m_path << std::endl;
+  fOut << "m_path = " << m_path.GetPath() << std::endl;
+  fOut << "m_configFileName object at = " << &m_configFileName << std::endl;
+  fOut << "m_configFileName = " << m_configFileName.GetFullPath() << std::endl;
+  fOut << "m_config object at = " << m_config << std::endl;
 
-  fOut << "==> END Dump a CWorkspace Object at "<< this << endl;
+  fOut << "==> END Dump a CWorkspace Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -688,7 +688,7 @@ void CWorkspaceDataset::GetDatasetNames(wxArrayString& array)
 
   for (it = m_datasets.begin() ; it != m_datasets.end() ; it++)
   {
-    //string value = it->first;
+    //std::string value = it->first;
     array.Add( (it->first).c_str());
   }
 }
@@ -699,7 +699,7 @@ void CWorkspaceDataset::GetDatasetNames(wxComboBox& combo)
 
   for (it = m_datasets.begin() ; it != m_datasets.end() ; it++)
   {
-    //string value = it->first;
+    //std::string value = it->first;
     combo.Append( (it->first).c_str());
   }
 }
@@ -716,7 +716,7 @@ bool CWorkspaceDataset::InsertDataset(wxString& name)
   return true;
 }
 //----------------------------------------
-void CWorkspaceDataset::Dump(ostream& fOut /* = cerr */)
+void CWorkspaceDataset::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -725,11 +725,11 @@ void CWorkspaceDataset::Dump(ostream& fOut /* = cerr */)
 
   CWorkspace::Dump(fOut);
 
-  fOut << "==> Dump a CWorkspaceDataset Object at "<< this << endl;
+  fOut << "==> Dump a CWorkspaceDataset Object at "<< this << std::endl;
 
-  fOut << "==> END Dump a CWorkspaceDataset Object at "<< this << endl;
+  fOut << "==> END Dump a CWorkspaceDataset Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -1072,7 +1072,7 @@ bool CWorkspaceFormula::LoadConfigFormula()
   return true;
 }
 //----------------------------------------
-void CWorkspaceFormula::Dump(ostream& fOut /* = cerr */)
+void CWorkspaceFormula::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -1081,11 +1081,11 @@ void CWorkspaceFormula::Dump(ostream& fOut /* = cerr */)
 
   CWorkspace::Dump(fOut);
 
-  fOut << "==> Dump a CWorkspaceFormula Object at "<< this << endl;
+  fOut << "==> Dump a CWorkspaceFormula Object at "<< this << std::endl;
 
-  fOut << "==> END Dump a CWorkspaceFormula Object at "<< this << endl;
+  fOut << "==> END Dump a CWorkspaceFormula Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -1415,7 +1415,7 @@ void CWorkspaceOperation::GetOperationNames(wxArrayString& array)
 
   for (it = m_operations.begin() ; it != m_operations.end() ; it++)
   {
-    //string value = it->first;
+    //std::string value = it->first;
     array.Add( (it->first).c_str());
   }
 }
@@ -1426,7 +1426,7 @@ void CWorkspaceOperation::GetOperationNames(wxComboBox& combo)
 
   for (it = m_operations.begin() ; it != m_operations.end() ; it++)
   {
-    //string value = it->first;
+    //std::string value = it->first;
     combo.Append( (it->first).c_str());
   }
 }
@@ -1479,7 +1479,7 @@ bool CWorkspaceOperation::DeleteOperation(COperation* operation)
 }
 
 //----------------------------------------
-void CWorkspaceOperation::Dump(ostream& fOut /* = cerr */)
+void CWorkspaceOperation::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -1488,11 +1488,11 @@ void CWorkspaceOperation::Dump(ostream& fOut /* = cerr */)
 
   CWorkspace::Dump(fOut);
 
-  fOut << "==> Dump a CWorkspaceOperation Object at "<< this << endl;
+  fOut << "==> Dump a CWorkspaceOperation Object at "<< this << std::endl;
 
-  fOut << "==> END Dump a CWorkspaceOperation Object at "<< this << endl;
+  fOut << "==> END Dump a CWorkspaceOperation Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -1816,7 +1816,7 @@ void CWorkspaceDisplay::GetDisplayNames(wxArrayString& array)
 
   for (it = m_displays.begin() ; it != m_displays.end() ; it++)
   {
-    //string value = it->first;
+    //std::string value = it->first;
     array.Add( (it->first).c_str());
   }
 }
@@ -1827,7 +1827,7 @@ void CWorkspaceDisplay::GetDisplayNames(wxComboBox& combo)
 
   for (it = m_displays.begin() ; it != m_displays.end() ; it++)
   {
-    //string value = it->first;
+    //std::string value = it->first;
     combo.Append( (it->first).c_str());
   }
 }
@@ -1841,7 +1841,7 @@ bool CWorkspaceDisplay::DeleteDisplay(CDisplay* display)
 
 
 //----------------------------------------
-void CWorkspaceDisplay::Dump(ostream& fOut /* = cerr */)
+void CWorkspaceDisplay::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -1850,10 +1850,10 @@ void CWorkspaceDisplay::Dump(ostream& fOut /* = cerr */)
 
   CWorkspace::Dump(fOut);
 
-  fOut << "==> Dump a CWorkspaceDisplay Object at "<< this << endl;
+  fOut << "==> Dump a CWorkspaceDisplay Object at "<< this << std::endl;
 
-  fOut << "==> END Dump a CWorkspaceDisplay Object at "<< this << endl;
+  fOut << "==> END Dump a CWorkspaceDisplay Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }

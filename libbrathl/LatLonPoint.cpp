@@ -7,7 +7,7 @@
 #include "brathl.h" 
 //#define BRAT_INTERNAL
 
-#include "Stl.h" 
+#include <string> 
 
 #include "TraceLog.h" 
 #include "Tools.h" 
@@ -322,7 +322,7 @@ bool CLatLonPoint::CloseEnough(double d1, double d2)
 
 }
 //-------------------------------------------------------------
-void CLatLonPoint::Dump(ostream& fOut /* = cerr */)
+void CLatLonPoint::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -330,14 +330,14 @@ void CLatLonPoint::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CLatLonPoint Object at "<< this << endl;
+  fOut << "==> Dump a CLatLonPoint Object at "<< this << std::endl;
 
-  fOut << "m_lat = " << m_lat << endl;
-  fOut << "m_lon = " << m_lon << endl;
+  fOut << "m_lat = " << m_lat << std::endl;
+  fOut << "m_lon = " << m_lon << std::endl;
   
-  fOut << "==> END Dump a CLatLonPoint Object at "<< this << endl;
+  fOut << "==> END Dump a CLatLonPoint Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

@@ -26,7 +26,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h" 
+#include <string> 
 
 #include "TraceLog.h" 
 #include "Tools.h" 
@@ -38,12 +38,12 @@ using namespace brathl;
 namespace brathl
 {
 
-const string PODAAC_HEADER = "header";
+const std::string PODAAC_HEADER = "header";
 
-const string CProductPodaac::m_J1SSHA_PASS_FILE = "J1SSHA_PASS_FILE";
-const string CProductPodaac::m_J1SSHA_ATG_FILE = "J1SSHA_ATG_FILE";
-const string CProductPodaac::m_TPSSHA_PASS_FILE = "TPSSHA_PASS_FILE";
-const string CProductPodaac::m_TPSSHA_ATG_FILE = "TPSSHA_ATG_FILE";
+const std::string CProductPodaac::m_J1SSHA_PASS_FILE = "J1SSHA_PASS_FILE";
+const std::string CProductPodaac::m_J1SSHA_ATG_FILE = "J1SSHA_ATG_FILE";
+const std::string CProductPodaac::m_TPSSHA_PASS_FILE = "TPSSHA_PASS_FILE";
+const std::string CProductPodaac::m_TPSSHA_ATG_FILE = "TPSSHA_ATG_FILE";
 
 CProductPodaac::CProductPodaac()
 {
@@ -53,7 +53,7 @@ CProductPodaac::CProductPodaac()
 
 //----------------------------------------
 
-CProductPodaac::CProductPodaac(const string& fileName)
+CProductPodaac::CProductPodaac(const std::string& fileName)
       : CProduct(fileName)
 {  
   Init();
@@ -92,7 +92,7 @@ void CProductPodaac::Init()
   InitCriteriaInfo();
 }
 //----------------------------------------
-string CProductPodaac::GetLabel()
+std::string CProductPodaac::GetLabel()
 {
   if ((m_fileList.m_productType.compare(CProductPodaac::m_J1SSHA_PASS_FILE) == 0) ||
       (m_fileList.m_productType.compare(CProductPodaac::m_TPSSHA_PASS_FILE) == 0))
@@ -113,8 +113,8 @@ void CProductPodaac::InitCriteriaInfo()
 {
   CProduct::InitCriteriaInfo();
 
-  //string productype = CTools::StringToUpper(m_fileList.m_productType);
-  string productype = m_fileList.m_productType;
+  //std::string productype = CTools::StringToUpper(m_fileList.m_productType);
+  std::string productype = m_fileList.m_productType;
   if ((productype.compare(CProductPodaac::m_J1SSHA_PASS_FILE) == 0) || ((productype.compare(CProductPodaac::m_TPSSHA_PASS_FILE) == 0)))
   {
     //-------------------------
@@ -169,7 +169,7 @@ void CProductPodaac::InitCriteriaInfo()
 
 
 //----------------------------------------
-void CProductPodaac::Dump(ostream& fOut /* = cerr */)
+void CProductPodaac::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -177,15 +177,15 @@ void CProductPodaac::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CProductPodaac Object at "<< this << endl;
+  fOut << "==> Dump a CProductPodaac Object at "<< this << std::endl;
 
   //------------------
   CProduct::Dump(fOut);
   //------------------
 
-  fOut << "==> END Dump a CProductPodaac Object at "<< this << endl;
+  fOut << "==> END Dump a CProductPodaac Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

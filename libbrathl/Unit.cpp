@@ -22,7 +22,7 @@
 #include <cctype>
 #include <cstring>
 #include <cassert>
-#include "Stl.h"
+#include <string>
 
 #include "brathl.h"
 
@@ -37,19 +37,19 @@ using namespace brathl;
 namespace brathl
 {
 
-const string CUnit::m_DATE_REF_UNIT = "seconds since 1950-01-01 00:00:00.000000 UTC";
+const std::string CUnit::m_DATE_REF_UNIT = "seconds since 1950-01-01 00:00:00.000000 UTC";
 
-const string CUnit::m_UNIT_SI = "SI";
+const std::string CUnit::m_UNIT_SI = "SI";
 
 bool CUnit::m_initialized = false;
 
-string CUnit::m_ErrInit	= "";
+std::string CUnit::m_ErrInit	= "";
 
 CDate CUnit::m_dateRefUdunits;
 
 //----------------------------------------
 
-CUnit::CUnit(const string	&text /* = "" */)
+CUnit::CUnit(const std::string	&text /* = "" */)
 {
   // initialize on instanciation of the first CUnit object.
 
@@ -101,13 +101,13 @@ void CUnit::InitializeUnitSystem()
 {
   CUnit::m_dateRefUdunits = "2001-01-01 00:00:00.0";
 
-  string FileName = CTools::FindDataFile(BRATHL_UNITFILE);
+  std::string FileName = CTools::FindDataFile(BRATHL_UNITFILE);
 
   m_initialized = true; // Only get one shot at this - failed or otherwise
 
   if (FileName.empty())
     {
-    string errorMsg = CTools::Format("Units system file '%s' not found in '%s' directory."
+    std::string errorMsg = CTools::Format("Units system file '%s' not found in '%s' directory."
                                      "Check directory '%s' or set correct environment variable %s",
                                       BRATHL_UNITFILE,
                                       CTools::GetDataDir().c_str(),
@@ -135,7 +135,7 @@ void CUnit::Set(const CUnit& u)
   m_Offset	= u.m_Offset;
 }
 //----------------------------------------
-void CUnit::Set(const string& text)
+void CUnit::Set(const std::string& text)
 {
   //try
   //{
@@ -182,13 +182,13 @@ void CUnit::Set(const char* text)
     return;
   }
 
-  string str = text;
+  std::string str = text;
   Set(str);
 }
 */
 //----------------------------------------
 
-CUnit &CUnit::operator=(const string& text)
+CUnit &CUnit::operator=(const std::string& text)
 {
   Set(text);
   return *this;
@@ -223,7 +223,7 @@ bool CUnit::operator==(CUnit& u)
   return CTools::CompareNoCase(this->AsString().c_str(), u.AsString().c_str());
 }
 //----------------------------------------
-bool CUnit::operator==(const string& text)
+bool CUnit::operator==(const std::string& text)
 {
   CUnit u = text;
   return (*this == u);
@@ -240,7 +240,7 @@ bool CUnit::HasUnit()
   return !HasNoUnit();
 }
 //----------------------------------------
-CUnit CUnit::ToUnit(const string& unitStr)
+CUnit CUnit::ToUnit(const std::string& unitStr)
 {
 
   CUnit unit;
@@ -284,7 +284,7 @@ void CUnit::SetConversionTo
 //----------------------------------------
 
 void CUnit::SetConversionTo
-		(const string	&Destination)
+		(const std::string	&Destination)
 {
   SetConversionTo(CUnit(Destination));
 }
@@ -305,7 +305,7 @@ void CUnit::SetConversionFrom
 //----------------------------------------
 
 void CUnit::SetConversionFrom
-		(const string	&Source)
+		(const std::string	&Source)
 {
   SetConversionFrom(CUnit(Source));
 }
@@ -410,7 +410,7 @@ double CUnit::Convert(const double fromValue)
 
 //----------------------------------------
 
-void CUnit::ConvertVector(vector<double>& vect)
+void CUnit::ConvertVector(std::vector<double>& vect)
 {
   for (uint32_t index = 0; index < vect.size(); index++)
   {
@@ -439,7 +439,7 @@ bool CUnit::IsDate
 
 //----------------------------------------
 
-bool CUnit::IsCompatible(const string& otherUnit, string* errorMsg /* = NULL */) const
+bool CUnit::IsCompatible(const std::string& otherUnit, std::string* errorMsg /* = NULL */) const
 {
   bool bOk = false;
 
@@ -498,17 +498,17 @@ bool CUnit::IsCompatible(const CUnit& otherUnit) const
 
 //----------------------------------------
 
-string CUnit::AsString
+std::string CUnit::AsString
 		(bool asBaseUnit /*= true*/, bool withDateOrigin /*= false*/, CDate* dateRef /*= NULL*/) const
 {
-  string result;
+  std::string result;
 
   if (asBaseUnit)
   {
     char	*Buffer;
     CheckUdunits(utPrint(&m_Compiled, &Buffer), m_Text);
   
-    result = string(Buffer);
+    result = std::string(Buffer);
   }
   else
   {
@@ -523,9 +523,9 @@ string CUnit::AsString
   return result;
 }
 //----------------------------------------
-string CUnit::GetDateUnitWithoutDateOrigin() const
+std::string CUnit::GetDateUnitWithoutDateOrigin() const
 {
-  string str = GetText();
+  std::string str = GetText();
 
   if (!IsDate())
   {
@@ -586,7 +586,7 @@ bool CUnit::HasDateRef(CDate* dateRef /*= NULL*/, CStringArray* array /*= NULL*/
   CDate dateTmp;
 
   int32_t result = BRATHL_ERROR;
-  string strDate;
+  std::string strDate;
 
   for (uint32_t i = index + 1 ; i < ar.size() ; i++)
   {
@@ -616,10 +616,10 @@ bool CUnit::HasDateRef(CDate* dateRef /*= NULL*/, CStringArray* array /*= NULL*/
 }
 
 //----------------------------------------
-string CUnit::GetDateRefAsString(CDate* dateRef /*= NULL*/) const
+std::string CUnit::GetDateRefAsString(CDate* dateRef /*= NULL*/) const
 {
 
-  string result;
+  std::string result;
 
   if (!IsDate())
   {
@@ -648,10 +648,10 @@ string CUnit::GetDateRefAsString(CDate* dateRef /*= NULL*/) const
 
 }
 //----------------------------------------
-string CUnit::GetDateRefAs1950() const
+std::string CUnit::GetDateRefAs1950() const
 {
 
-  string result;
+  std::string result;
 
   if (!IsDate())
   {
@@ -678,13 +678,13 @@ string CUnit::GetDateRefAs1950() const
 //----------------------------------------
 
 void CUnit::Dump
-		(ostream& fOut /*  = cerr */)
+		(std::ostream& fOut /*  = std::cerr */)
 {
-  fOut << endl;
-  fOut << "Unit dump of         : " << m_Text << endl;
-  fOut << "Base unit            : " << AsString() << endl;
-  fOut << "Conversion slope set : " << m_Slope << endl;
-  fOut << "Conversion offset set: " << m_Offset << endl;
+  fOut << std::endl;
+  fOut << "Unit dump of         : " << m_Text << std::endl;
+  fOut << "Base unit            : " << AsString() << std::endl;
+  fOut << "Conversion slope set : " << m_Slope << std::endl;
+  fOut << "Conversion offset set: " << m_Offset << std::endl;
 }
 
 
@@ -730,12 +730,12 @@ void CUnit::Compile
 
 void CUnit::CheckUdunits
 		(uint32_t	Code,
-		 const string	&Msg1	/*= ""*/,
-		 const string	&Msg2	/*= ""*/)
+		 const std::string	&Msg1	/*= ""*/,
+		 const std::string	&Msg2	/*= ""*/)
 {
   static CUnitSmartCleaner object; // can throw - but otherwise initializes the units system
 
-  string Message;
+  std::string Message;
 
   if ((Code == 0) && CUnit::m_ErrInit.empty())
     return;

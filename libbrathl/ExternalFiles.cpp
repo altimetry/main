@@ -19,7 +19,7 @@
 */
 
 #include <algorithm>
-#include "Stl.h"
+#include <string>
 
 #include "brathl.h"
 
@@ -41,34 +41,34 @@ namespace brathl
 {
 
 const int32_t CExternalFiles::m_EXCLUDE_ATTR_AS_FIELD_SIZE = 4;
-const string CExternalFiles::m_EXCLUDE_ATTR_AS_FIELD[] = {FILL_VALUE_ATTR, 
+const std::string CExternalFiles::m_EXCLUDE_ATTR_AS_FIELD[] = {FILL_VALUE_ATTR, 
                                                           SCALE_FACTOR_ATTR,
                                                           ADD_OFFSET_ATTR, 
                                                           UNITS_ATTR};
 
 /*
 const int32_t CExternalFiles::m_TIME_NAMES_SIZE = 6;
-const string CExternalFiles::m_TIME_NAMES[] = {"time", "TIME", "Time",
+const std::string CExternalFiles::m_TIME_NAMES[] = {"time", "TIME", "Time",
                                                "date", "Date", "DATE",
                                               };
 const int32_t CExternalFiles::m_LAT_NAMES_SIZE = 9;
-const string CExternalFiles::m_LAT_NAMES[] = {"latitude", "Latitude", "LATITUDE",
+const std::string CExternalFiles::m_LAT_NAMES[] = {"latitude", "Latitude", "LATITUDE",
                                               "lat", "Lat", "LAT",
                                               "latitudes", "Latitudes", "LATITUDES",
                                              };
 const int32_t CExternalFiles::m_LON_NAMES_SIZE = 9;
-const string CExternalFiles::m_LON_NAMES[] = {"longitude", "Longitude", "LONGITUDE",
+const std::string CExternalFiles::m_LON_NAMES[] = {"longitude", "Longitude", "LONGITUDE",
                                               "lon", "Lon", "LON",
                                               "latitudes", "Latitudes", "LATITUDES",
                                               };
 
 const int32_t CExternalFiles::m_CYCLE_NAMES_SIZE = 10;
-const string CExternalFiles::m_CYCLE_NAMES[] = {"cycle", "Cycle", "CYCLE",
+const std::string CExternalFiles::m_CYCLE_NAMES[] = {"cycle", "Cycle", "CYCLE",
                                                 "cycles", "Cycles", "CYCLEs",
                                                 "cycle_number", "Cycle_number", "Cycle_Number", "CYCLE_NUMBER",
                                                };
 const int32_t CExternalFiles::m_PASS_NAMES_SIZE = 13;
-const string CExternalFiles::m_PASS_NAMES[] = {"pass", "Pass", "PASS",
+const std::string CExternalFiles::m_PASS_NAMES[] = {"pass", "Pass", "PASS",
                                                "tracks", "Tracks", "TRACKS",
                                                "track", "Track", "TRACK",
                                                 "pass_number", "Pass_number", "Pass_Number", "PASS_NUMBER",
@@ -197,7 +197,7 @@ CFieldNetCdfIndexData* CExternalFiles::GetFieldNetCdfIndexData(CBratObject* ob, 
 }
 
 //----------------------------------------
-bool CExternalFiles::IsExcludedAttrAsField(const string& name)
+bool CExternalFiles::IsExcludedAttrAsField(const std::string& name)
 {
   bool candidate = false;
 

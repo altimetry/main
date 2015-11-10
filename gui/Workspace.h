@@ -184,7 +184,7 @@ public:
   bool GetCtrlDatasetFiles () { return m_ctrlDatasetFiles;};
   void SetCtrlDatasetFiles (bool value) { m_ctrlDatasetFiles = value;};
 
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 
 public:
@@ -270,7 +270,7 @@ public:
 
 
 
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   bool SaveConfigDataset();
@@ -331,7 +331,7 @@ public:
 
   bool SaveConfigPredefinedFormula();
 
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
 
@@ -393,7 +393,7 @@ public:
   bool DeleteOperation(COperation* operation);
 
 
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
 
@@ -449,7 +449,7 @@ public:
 
   bool RenameDisplay(CDisplay* display, const wxString& newName);
 
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
 

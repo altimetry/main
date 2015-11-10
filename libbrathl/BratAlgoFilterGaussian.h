@@ -23,7 +23,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h"
+#include <string>
 
 #include "Tools.h" 
 #include "Product.h" 
@@ -54,8 +54,8 @@ public:
 
   virtual uint32_t GetNumInputParam() { return CBratAlgoFilterGaussian::m_INPUT_PARAMS; };
   
-  virtual string GetInputParamDesc(uint32_t indexParam)  {
-        string value = "";
+  virtual std::string GetInputParamDesc(uint32_t indexParam)  {
+        std::string value = "";
         switch (indexParam) 
         {
           case 0: value = CBratAlgoFilterKernel::m_VAR_PARAM_DESCR; break;
@@ -98,8 +98,8 @@ public:
   /** Gets the unit of an input parameter :
    \param indexParam [in] : parameter index.
    */
-  virtual string GetInputParamUnit(uint32_t indexParam) {
-        string value = "";
+  virtual std::string GetInputParamUnit(uint32_t indexParam) {
+        std::string value = "";
         switch (indexParam) 
         {
           case 0: value = "this unit depends on the input data (variable or Brat expression)"; break;
@@ -119,12 +119,12 @@ public:
   /** Gets the unit of an output value returned by the 'Run' function.
    \param indexParam [in] : parameter index.
    */
-  virtual string GetOutputUnit() { return "this unit depends on the input data (variable or Brat expression), but it is always a SI unit"; };
+  virtual std::string GetOutputUnit() { return "this unit depends on the input data (variable or Brat expression), but it is always a SI unit"; };
 
   virtual void CheckInputParams(CVectorBratAlgorithmParam& args);
   virtual void SetParamValues(CVectorBratAlgorithmParam& args);
-  virtual string GetParamName(uint32_t indexParam) {
-        string value = "";
+  virtual std::string GetParamName(uint32_t indexParam) {
+        std::string value = "";
         switch (indexParam) 
         {
           case 0: value = CBratAlgoFilterKernel::m_VAR_PARAM_NAME; break;
@@ -162,7 +162,7 @@ public:
   CBratAlgoFilterGaussian& operator=(const CBratAlgoFilterGaussian &copy);
 
   /** Dump function */
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
  
 protected:
   enum ComputeMode {ModeHorizontal, ModeVertical};

@@ -31,7 +31,7 @@ namespace brathl
 class CTraceLog : public CTrace  
 {
 public:
-   CTraceLog(const string& szFilelog);
+   CTraceLog(const std::string& szFilelog);
    virtual ~CTraceLog();
 
 //Methods
@@ -41,7 +41,7 @@ protected:
 
    void OpenLogFile();
 
-   virtual ostream* GetDumpContextReel();
+   virtual std::ostream* GetDumpContextReel();
 // Attributes
 public:
 
@@ -49,11 +49,11 @@ protected:
    /*
    * Log file
    */
-   ofstream *m_pFileLog ;  
+   std::ofstream *m_pFileLog ;  
    /** 
    * Log file name
    */
-   string  m_szFileLogName ;       
+   std::string  m_szFileLogName ;       
 
 };
 

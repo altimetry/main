@@ -747,7 +747,7 @@ void CResolutionDlg::GetCtrlMinMaxAsDate(CFormula& formula, CLabeledTextCtrl* ct
   ctrlMin->GetValueAsDate(min, dateMin.Value(), dateMin.Value(), dateMax.Value());
   ctrlMax->GetValueAsDate(max, dateMax.Value(), dateMin.Value(), dateMax.Value());
 
-  // to set right date string format
+  // to set right date std::string format
   ctrlMin->SetValueAsDate(min, "");
   ctrlMax->SetValueAsDate(max, "");
 
@@ -849,7 +849,7 @@ void CResolutionDlg::GetMinMax(CFormula* formula)
     errorMsg = e.what();
     bOk = false;
   }
-  catch (exception &e)
+  catch (std::exception &e)
   {
     errorMsg = e.what();
     bOk = false;
@@ -920,7 +920,7 @@ void CResolutionDlg::GetMinMax(CFormula* formula)
       {
         if (!CTools::IsDefaultValue(productTmp->GetForceLatMinCriteriaValue()))
         {
-          CExpression expr = string(formula->GetDescription(true, &m_mapFormulaString, productTmp->GetAliasesAsString()).c_str());
+          CExpression expr = std::string(formula->GetDescription(true, &m_mapFormulaString, productTmp->GetAliasesAsString()).c_str());
           productTmp->GetValueMinMax(expr, (const char *)m_operation->GetRecord().c_str(), valueMin, valueMax, *(formula->GetUnit()));
         }
         else
@@ -945,7 +945,7 @@ void CResolutionDlg::GetMinMax(CFormula* formula)
     {
       double valueMin = 0.0;
       double valueMax = 0.0;
-      CExpression expr = string(formula->GetDescription(true, &m_mapFormulaString, productTmp->GetAliasesAsString()).c_str());
+      CExpression expr = std::string(formula->GetDescription(true, &m_mapFormulaString, productTmp->GetAliasesAsString()).c_str());
       if (formula->IsTimeDataType())
       {
         CUnit unit;
@@ -991,7 +991,7 @@ void CResolutionDlg::GetMinMax(CFormula* formula)
     errorMsg = e.what();
     bOk = false;
   }
-  catch (exception &e)
+  catch (std::exception &e)
   {
     errorMsg = e.what();
     bOk = false;
@@ -1037,7 +1037,7 @@ void CResolutionDlg::HelpMinMax(CFormula* formula )
   {
     msg = "Min and Max have to correspond to:\n"
           "\n"
-          "- either a date string: allowed formats are 'YYYY/MM/DD HH:MN:SS' or 'YYYY-MM-DD HH:MN:SS'. "
+          "- either a date std::string: allowed formats are 'YYYY/MM/DD HH:MN:SS' or 'YYYY-MM-DD HH:MN:SS'. "
           " Hours, minutes and seconds are optional:\n"
           " For instance:  1998-03-12 or 1998-03-12 22 or 1998-03-12 22:16 are valid dates\n"
           "\n"

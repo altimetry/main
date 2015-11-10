@@ -25,7 +25,7 @@
 #include "brathl_error.h"
 #include "brathl.h"
 
-#include "Stl.h"
+#include <string>
 
 
 namespace brathl
@@ -60,7 +60,7 @@ public:
     \param name [in] : full name of the file;
     \param mode [in] : access mode - default value : modeRead|typeBinary (see #openFlags);
   */
-  CFile(const string& name, uint32_t mode = modeRead|typeBinary);
+  CFile(const std::string& name, uint32_t mode = modeRead|typeBinary);
 
 
   /// Destructor
@@ -72,7 +72,7 @@ public:
     \param name [in] : full name of the file;
     \param mode [in] : access mode - default value : modeRead|typeBinary (see #openFlags);
     \return true on success, otherwise false */
-  bool Open(const string& name, uint32_t mode = modeRead|typeBinary);
+  bool Open(const std::string& name, uint32_t mode = modeRead|typeBinary);
 
 
   /** Opens the current file object.
@@ -90,7 +90,7 @@ public:
   bool Close();
 
   /** Gets the name of the file */
-  const string& GetFileName();
+  const std::string& GetFileName();
 
   /** Gets the name of the file */
   uint32_t GetMode();
@@ -153,9 +153,9 @@ public:
     \return true on success, otherwise false */
   bool WriteChar(const int character);
 
-  /** Writes a string to a file
+  /** Writes a std::string to a file
     If an error occurred, a CFileException is raised.
-    \param str [in] : string to write
+    \param str [in] : std::string to write
     \return true on success, otherwise false */
   bool WriteString(const char* str);
 
@@ -170,7 +170,7 @@ public:
     If file with specified filename exists, it's contents are erased.
     \param newFileName [in] : copy to file name
     \return true on success, otherwise false */
-  bool Duplicate(const string& newFileName);
+  bool Duplicate(const std::string& newFileName);
 
 
   /** Renames file object
@@ -178,14 +178,14 @@ public:
     The current file is closed, renamed and opened as new name
     \param newName [in] : new file name
     \return true on success, otherwise false */
-  bool Rename(const string& newName);
+  bool Rename(const std::string& newName);
 
   /** Renames a file
     If file with specified filename exists, it's contents are erased.
     \param oldName [in] : file to rename
     \param newName [in] : new file name
     \return true on success, otherwise false */
-  static bool Rename(const string& oldName, const string& newName);
+  static bool Rename(const std::string& oldName, const std::string& newName);
 
   /** Closes file object and deletes (removes) the file.
     IsOpen() and Open() are the only functions available just after this operation.
@@ -196,7 +196,7 @@ public:
     \param filename [in] : file to delete/remove
     IsOpen() and Open() are the only functions available just after this operation.
     \return true on success, otherwise false */
-  static bool Delete(const string& filename);
+  static bool Delete(const std::string& filename);
 
   /** Change buffering mode.
      Function must be used before any read/write operation occurs!
@@ -213,18 +213,18 @@ public:
     \param filename [in] : file toget the status
     \param fileStatus [in] : structure to store results
     \return true on success, otherwise false */
-  static bool GetStatus(const string& filename, struct stat& fileStatus);
+  static bool GetStatus(const std::string& filename, struct stat& fileStatus);
 
 
   bool Write(const int character);
-  bool Write(const string& str);
+  bool Write(const std::string& str);
   bool Write(const char *str);
 
   /// Gets the las error message encountered
   //const char* const GetLastError() {return m_lastError;};
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 
 private:
@@ -259,7 +259,7 @@ private:
   /// File handle
   FILE *m_hFile;
   /// Full file name
-  string m_fileName;
+  std::string m_fileName;
   /// Length of file, in bytes
   uint32_t m_length;
   /// File access mode - See #openFlags

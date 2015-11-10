@@ -735,7 +735,7 @@ CMapProcess::~CMapProcess()
 {
 }
 //----------------------------------------
-bool CMapProcess::ValidName(const string& name)
+bool CMapProcess::ValidName(const std::string& name)
 {
   return ValidName(name.c_str());
 }

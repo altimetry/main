@@ -75,7 +75,7 @@ public:
 
 
   bool ValidName(const char* name);
-  bool ValidName(const string& name);
+  bool ValidName(const std::string& name);
 
   wxString IdToName(uint32_t id);
   uint32_t NameToId(const wxString& name);
@@ -118,7 +118,7 @@ public:
 
 
   bool ValidName(const char* name);
-  bool ValidName(const string& name);
+  bool ValidName(const std::string& name);
 
   wxString IdToName(uint32_t id);
   uint32_t NameToId(const wxString& name);
@@ -161,7 +161,7 @@ public:
 
 
   bool ValidName(const char* name);
-  bool ValidName(const string& name);
+  bool ValidName(const std::string& name);
 
   wxString IdToName(uint32_t id);
   uint32_t NameToId(const wxString& name);
@@ -201,7 +201,7 @@ public:
 
 
   bool ValidName(const char* name);
-  bool ValidName(const string& name);
+  bool ValidName(const std::string& name);
 
   wxString IdToName(uint32_t id);
   uint32_t NameToId(const wxString& name);
@@ -245,7 +245,7 @@ public:
 
 
   bool ValidName(const char* name);
-  bool ValidName(const string& name);
+  bool ValidName(const std::string& name);
 
   wxString IdToName(uint32_t id);
   uint32_t NameToId(const wxString& name);
@@ -286,7 +286,7 @@ public:
 
 
   bool ValidName(const char* name);
-  bool ValidName(const string& name);
+  bool ValidName(const std::string& name);
 
   wxString IdToName(uint32_t id);
   uint32_t NameToId(const wxString& name);
@@ -318,7 +318,7 @@ public:
 
   CFormula();
   CFormula(const wxString& name, bool predefined, const wxString& description = "", const wxString& comment = "");
-  CFormula(const string& name, bool predefined, const string& description = "", const string& comment = "");
+  CFormula(const std::string& name, bool predefined, const std::string& description = "", const std::string& comment = "");
   CFormula(const CFormula& formula);
 
 
@@ -331,7 +331,7 @@ public:
 
   wxString GetDescription(bool removeCRLF = false, const CStringMap* formulaAliases = NULL, const CStringMap* fieldAliases = NULL);
   void SetDescription(const wxString& value) {m_description = value;};
-  void SetDescription(const string& value) {m_description = value.c_str();};
+  void SetDescription(const std::string& value) {m_description = value.c_str();};
   void SetDescription(const char* value) {m_description = value;};
   
   wxString GetAlias();
@@ -458,7 +458,7 @@ public:
   bool GetFields(CStringArray& fields, wxString& errorMsg, const CStringMap* aliases = NULL, const CStringMap* fieldAliases = NULL);
 
   static bool SetExpression(const wxString& value, CExpression& expr, wxString& errorMsg);
-  static bool SetExpression(const string& value, CExpression& expr, wxString& errorMsg);
+  static bool SetExpression(const std::string& value, CExpression& expr, wxString& errorMsg);
   static bool SetExpression(const char* value, CExpression& expr, wxString& errorMsg);
 
   double LonNormal360(double lon);
@@ -510,7 +510,7 @@ public:
   void SetDataMode(int32_t value) {m_dataMode = value;};
 
    ///Dump fonction
-   virtual void Dump(ostream& fOut = cerr);
+   virtual void Dump(std::ostream& fOut = std::cerr);
 
 public:
   static const char* FMT_FLOAT_XY;
@@ -577,7 +577,7 @@ public:
   bool SetCommentFormula(const wxString& name, const wxString& comment);
 
   bool ValidName(const char* name);
-  bool ValidName(const string& name);
+  bool ValidName(const std::string& name);
   
   void NamesToArrayString(wxArrayString& array);
   void NamesToComboBox(wxComboBox& combo);

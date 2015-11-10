@@ -40,7 +40,7 @@ int32_t	CTrace::m_TraceLevel = 0;
 
 CTrace::CTrace()
 {
-  m_fOut	= &cerr;
+  m_fOut	= &std::cerr;
   m_bFileLog	= false;
 }
 //----------------------------------------------------
@@ -53,17 +53,17 @@ CTrace::~CTrace()
 //----------------------------------------------------
 
 
-ostream* CTrace::GetDumpContextReel()
+std::ostream* CTrace::GetDumpContextReel()
 {
    return m_fOut;
 }
 
 //----------------------------------------------------
 
-ostream* CTrace::SetDumpContextReal(ostream* value)
+std::ostream* CTrace::SetDumpContextReal(std::ostream* value)
 {
 
-  ostream* old = m_fOut;
+  std::ostream* old = m_fOut;
 
   m_fOut = value;
 
@@ -72,12 +72,12 @@ ostream* CTrace::SetDumpContextReal(ostream* value)
 
 //----------------------------------------------------
 
-string CTrace::ParseArg(int argc, char *argv[])
+std::string CTrace::ParseArg(int argc, char *argv[])
 {
 
-   string szFileLog ="";
+   std::string szFileLog ="";
 
-   vector<string> vectArgs(argc);
+   std::vector<std::string> vectArgs(argc);
 
    // Remplissage du vecteur des arguments
    for (int i = 0; i < argc ; i++)
@@ -87,11 +87,11 @@ string CTrace::ParseArg(int argc, char *argv[])
 
 
    // Lecture des arguments
-   vector<string>::const_iterator it = vectArgs.begin();
+   std::vector<std::string>::const_iterator it = vectArgs.begin();
 
    while ( it < vectArgs.end())
    {
-      const string strArg = (*it);
+      const std::string strArg = (*it);
 
       if ( strArg[0] == '-')
       {
@@ -114,7 +114,7 @@ string CTrace::ParseArg(int argc, char *argv[])
 }
 //----------------------------------------------------
 
-CTrace* CTrace::CreateObject(const string& szFileLog)
+CTrace* CTrace::CreateObject(const std::string& szFileLog)
 {
    if (szFileLog.empty() == true)
    {
@@ -129,7 +129,7 @@ CTrace* CTrace::CreateObject(const string& szFileLog)
 
 CTrace* CTrace::CreateObject(int argc, char *argv[])
 {
-   string szFileLog = CTrace::ParseArg(argc, argv);
+   std::string szFileLog = CTrace::ParseArg(argc, argv);
 
    if (szFileLog.empty() == true)
    {
@@ -143,7 +143,7 @@ CTrace* CTrace::CreateObject(int argc, char *argv[])
 
 //----------------------------------------------------
 
-CTrace* CTrace::GetInstance(const string& szFileLog)
+CTrace* CTrace::GetInstance(const std::string& szFileLog)
  {
    if ( CTrace::m_instance == NULL)
    {
@@ -184,14 +184,14 @@ void CTrace::prepareSmartCleaner(void)
 }
 //----------------------------------------------------
 
-ostream* CTrace::SetDumpContext(ostream* value)
+std::ostream* CTrace::SetDumpContext(std::ostream* value)
 {
    CTrace * pTrace = GetInstance();
    return pTrace->SetDumpContextReal(value);
 }
 //----------------------------------------------------
 
-ostream* CTrace::GetDumpContext()
+std::ostream* CTrace::GetDumpContext()
 {
    CTrace * pTrace = GetInstance();
    return pTrace->GetDumpContextReel();
@@ -211,7 +211,7 @@ bool CTrace::IsTrace
 
 //----------------------------------------------------
 void CTrace::Tracer
-		(const string	&message)
+		(const std::string	&message)
 {
   if (! IsTrace(5))
     return;
@@ -260,7 +260,7 @@ void CTrace::Tracer
 
 void CTrace::Tracer
 		(const int32_t	Level,
-		 const string	&message)
+		 const std::string	&message)
 {
   if (! IsTrace(Level))
     return;
@@ -271,7 +271,7 @@ void CTrace::Tracer
 //----------------------------------------------------
 
 void CTrace::Print
-		(const string	&message)
+		(const std::string	&message)
 {
   if (! IsTrace(5))
     return;
@@ -320,7 +320,7 @@ void CTrace::Print
 
 void CTrace::Print
 		(const int32_t	Level,
-		 const string	&message)
+		 const std::string	&message)
 {
   if (! IsTrace(Level))
     return;
@@ -335,23 +335,23 @@ void CTrace::PrintText
 		 const char	*message,
 		 va_list	args)
 {
-  ostream* fOut = CTrace::GetDumpContext();
+  std::ostream* fOut = CTrace::GetDumpContext();
 
   *fOut << CTools::Format(MAXLINE_TRACE, message, args);
   if (NewLine)
-    *fOut << endl;
+    *fOut << std::endl;
 }
 //----------------------------------------------------
 
 void CTrace::PrintText
 		(bool		NewLine,
-		 const string	&message)
+		 const std::string	&message)
 {
-  ostream* fOut = CTrace::GetDumpContext();
+  std::ostream* fOut = CTrace::GetDumpContext();
 
   *fOut << message;
   if (NewLine)
-    *fOut << endl;
+    *fOut << std::endl;
 }
 //----------------------------------------------------
 

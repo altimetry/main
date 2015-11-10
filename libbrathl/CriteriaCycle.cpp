@@ -27,7 +27,7 @@
 #include "brathl.h" 
 //#define BRAT_INTERNAL
 
-#include "Stl.h" 
+#include <string> 
 
 #include "TraceLog.h" 
 #include "Tools.h" 
@@ -43,9 +43,9 @@ using namespace brathl;
 
 namespace brathl
 {
-  const string FORMAT_INT_CYCLE = "%d";
+  const std::string FORMAT_INT_CYCLE = "%d";
 
-  const string CCriteriaCycle::m_delimiter = " ";  
+  const std::string CCriteriaCycle::m_delimiter = " ";  
 
 //-------------------------------------------------------------
 //------------------- CCriteriaCycle class --------------------
@@ -77,7 +77,7 @@ CCriteriaCycle::CCriteriaCycle(int32_t from, int32_t to)
   Set(from, to);
 }
 //-------------------------------------------------------------
-CCriteriaCycle::CCriteriaCycle(const string& from, const string& to) 
+CCriteriaCycle::CCriteriaCycle(const std::string& from, const std::string& to) 
 {
   Init();
   Set(from, to);
@@ -111,9 +111,9 @@ const CCriteriaCycle& CCriteriaCycle::operator=(CCriteriaCycle& c)
 }
 
 //----------------------------------------
-string CCriteriaCycle::GetAsText(const string& delimiter /* = CCriteriaCycle::m_delimiter */)
+std::string CCriteriaCycle::GetAsText(const std::string& delimiter /* = CCriteriaCycle::m_delimiter */)
 {
-  string format = FORMAT_INT_CYCLE;
+  std::string format = FORMAT_INT_CYCLE;
   format.append(delimiter);
   format.append(FORMAT_INT_CYCLE);
 
@@ -185,7 +185,7 @@ void CCriteriaCycle::SetTo(int32_t to)
 
 }
 //-------------------------------------------------------------
-void CCriteriaCycle::SetTo(const string& to)
+void CCriteriaCycle::SetTo(const std::string& to)
 {
   m_to = CTools::StrToInt(to);
 
@@ -200,7 +200,7 @@ void CCriteriaCycle::SetFrom(int32_t from)
 }
 
 //-------------------------------------------------------------
-void CCriteriaCycle::SetFrom(const string& from)
+void CCriteriaCycle::SetFrom(const std::string& from)
 {
   m_from = CTools::StrToInt(from);
 
@@ -221,13 +221,13 @@ void CCriteriaCycle::Set(int32_t from, int32_t to)
 
 }
 //-------------------------------------------------------------
-void CCriteriaCycle::Set(const string& from, const string& to)
+void CCriteriaCycle::Set(const std::string& from, const std::string& to)
 {
   Set(CTools::StrToInt(from), CTools::StrToInt(to));
 
 }
 //-------------------------------------------------------------
-void CCriteriaCycle::SetFromText(const string& values, const string& delimiter /* = CCriteriaCycle::m_delimiter */)
+void CCriteriaCycle::SetFromText(const std::string& values, const std::string& delimiter /* = CCriteriaCycle::m_delimiter */)
 {
   CStringArray array;
   array.ExtractStrings(values, delimiter);
@@ -400,20 +400,20 @@ bool CCriteriaCycle::Intersect(double otherFrom, double otherTo, CIntArray& inte
 }
 
 //----------------------------------------
-bool CCriteriaCycle::Intersect(const string& from, const string& to, CStringArray& intersect)
+bool CCriteriaCycle::Intersect(const std::string& from, const std::string& to, CStringArray& intersect)
 {
   return Intersect(CTools::StrToInt(from), CTools::StrToInt(to), intersect);
 
 }
 //----------------------------------------
-bool CCriteriaCycle::Intersect(const string& from, const string& to, CIntArray& intersect)
+bool CCriteriaCycle::Intersect(const std::string& from, const std::string& to, CIntArray& intersect)
 {
   return Intersect(CTools::StrToInt(from), CTools::StrToInt(to), intersect);
 
 }
 
 //----------------------------------------
-void CCriteriaCycle::Dump(ostream& fOut /* = cerr */)
+void CCriteriaCycle::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -422,12 +422,12 @@ void CCriteriaCycle::Dump(ostream& fOut /* = cerr */)
 
   CCriteriaCycle::Dump(fOut);
 
-  fOut << "==> Dump a CCriteriaCycle Object at "<< this << endl;
-  fOut << "m_from "<< m_from << endl;
-  fOut << "m_to "<< m_to << endl;
-  fOut << "==> END Dump a CCriteriaCycle Object at "<< this << endl;
+  fOut << "==> Dump a CCriteriaCycle Object at "<< this << std::endl;
+  fOut << "m_from "<< m_from << std::endl;
+  fOut << "m_to "<< m_to << std::endl;
+  fOut << "==> END Dump a CCriteriaCycle Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

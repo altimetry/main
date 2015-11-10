@@ -25,7 +25,7 @@
 #include "brathl_error.h" 
 #include "brathl.h"
        
-#include "Stl.h"
+#include <string>
 
 
 #include "MapParameter.h" 
@@ -77,7 +77,7 @@ public:
     \param name [in] : full name of the file;
     \param mode [in] : access mode - default value : modeRead|typeBinary (see #openFlags);
   */
-  CFileParams(const string& name, uint32_t mode = modeRead|typeBinary);
+  CFileParams(const std::string& name, uint32_t mode = modeRead|typeBinary);
 
   
   /// Destructor
@@ -103,7 +103,7 @@ public:
     \param name [in] : full name of the file;
     \param mode [in] : access mode - default value : modeRead|typeBinary (see #openFlags);
     */
-  void Load(const string& name, uint32_t mode = modeRead|typeBinary);
+  void Load(const std::string& name, uint32_t mode = modeRead|typeBinary);
   //@}
     
   /** Throw an exception if the number of values is
@@ -114,13 +114,13 @@ public:
     \return actual number of occurences of the parameter
   */
   uint32_t CheckCount
-		(const string	&Key,
+		(const std::string	&Key,
 		 int32_t	ValidMin	= 1,
 		 int32_t	ValidMax	= 1);
     
-  void GetFieldNames(const string& key, CStringArray& fieldNames);
-  void GetFileList(const string& key, CStringArray& fileNames);
-  string GetFirstFile(const string& key);
+  void GetFieldNames(const std::string& key, CStringArray& fieldNames);
+  void GetFileList(const std::string& key, CStringArray& fileNames);
+  std::string GetFirstFile(const std::string& key);
 
   bool IsLoaded() { return m_isLoaded; };
 
@@ -132,7 +132,7 @@ public:
 
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 private:
 

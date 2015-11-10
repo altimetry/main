@@ -23,7 +23,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h"
+#include <string>
 
 #include "Tools.h" 
 #include "BratAlgoFilterMedian.h" 
@@ -56,16 +56,16 @@ public:
   /** Destructor */
   virtual ~CBratAlgoFilterMedian2D();
 
-  virtual string GetName() { return "BratAlgoFilterMedianGrid"; };
+  virtual std::string GetName() { return "BratAlgoFilterMedianGrid"; };
 
-  virtual string GetDescription() { return "Median filter for two-dimensionals data (e.g. gridded data) as input data source. "
+  virtual std::string GetDescription() { return "Median filter for two-dimensionals data (e.g. gridded data) as input data source. "
                                            "Median filter is windowed filter of nonlinear class, which removes destructive noise while preserving edges. "
                                            "The output value unit depends on the variable (data) filtered" ; };
 
   virtual uint32_t GetNumInputParam() { return CBratAlgoFilterMedian2D::m_INPUT_PARAMS; };
   
-  virtual string GetInputParamDesc(uint32_t indexParam)  {
-        string value = "";
+  virtual std::string GetInputParamDesc(uint32_t indexParam)  {
+        std::string value = "";
         switch (indexParam) 
         {
           case 0: value = CBratAlgoFilterKernel::m_VAR_PARAM_DESCR; break;
@@ -98,8 +98,8 @@ public:
   /** Gets the unit of an input parameter :
    \param indexParam [in] : parameter index.
    */
-  virtual string GetInputParamUnit(uint32_t indexParam) {
-        string value = "";
+  virtual std::string GetInputParamUnit(uint32_t indexParam) {
+        std::string value = "";
         switch (indexParam) 
         {
           case 0: value = "this unit depends on the input data (variable or Brat expression)"; break;
@@ -118,14 +118,14 @@ public:
   /** Gets the unit of an output value returned by the 'Run' function.
    \param indexParam [in] : parameter index.
    */
-  virtual string GetOutputUnit() { return "this unit depends on the input data (variable or Brat expression), but it is always a SI unit"; };
+  virtual std::string GetOutputUnit() { return "this unit depends on the input data (variable or Brat expression), but it is always a SI unit"; };
 
   virtual double Run(CVectorBratAlgorithmParam& args);
 
   virtual void CheckInputParams(CVectorBratAlgorithmParam& args);
   virtual void SetParamValues(CVectorBratAlgorithmParam& args);
-  virtual string GetParamName(uint32_t indexParam) {
-        string value = "";
+  virtual std::string GetParamName(uint32_t indexParam) {
+        std::string value = "";
         switch (indexParam) 
         {
           case 0: value = CBratAlgoFilterKernel::m_VAR_PARAM_NAME; break;
@@ -162,7 +162,7 @@ public:
   virtual uint32_t GetDataWindowSize() { return m_dataWindowHeight * m_dataWindowWidth; };
 
   /** Dump function */
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
  
 
 protected:

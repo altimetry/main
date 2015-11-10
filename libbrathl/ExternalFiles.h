@@ -20,9 +20,9 @@
 #ifndef _ExternalFiles_h_
 #define _ExternalFiles_h_
 
-#include <netcdf.h>
+#include "netcdf.h"
 #include "BratObject.h"
-#include "Stl.h"
+#include <string>
 #include "Expression.h"
 #include "List.h" 
 
@@ -42,9 +42,9 @@ namespace brathl
 
  \version 1.0
 */
-const string UNKNOWN_PRODUCT_CLASS = "UNKNOWN";
-const string NETCDF_PRODUCT_CLASS = "NETCDF";
-const string NETCDF_CF_PRODUCT_CLASS = "NETCDF_CF";
+const std::string UNKNOWN_PRODUCT_CLASS = "UNKNOWN";
+const std::string NETCDF_PRODUCT_CLASS = "NETCDF";
+const std::string NETCDF_CF_PRODUCT_CLASS = "NETCDF_CF";
 
 // Sentinel indicating first access to file (or after a rewind)
 // With this we are sure the value is greater than any valid number of pass
@@ -64,11 +64,11 @@ public:
 
   virtual ~CExternalFiles();
 
-  static string TypeOf() { return "unknown"; };
+  static std::string TypeOf() { return "unknown"; };
 
-  virtual string GetName() const = 0;
+  virtual std::string GetName() const = 0;
   virtual void SetName
-		(const string		&Name) = 0;
+		(const std::string		&Name) = 0;
 
   virtual void Open() = 0;
   
@@ -76,32 +76,32 @@ public:
 
   virtual bool IsOpened()	const	= 0;
 
-  virtual string GetType() = 0;
+  virtual std::string GetType() = 0;
 
   virtual void GetFieldNames(CStringArray& names) = 0;
 
 //  virtual CExternalFileFieldDescription* GetFieldDescription
-//		(const string& name) = 0;
+//		(const std::string& name) = 0;
   
   virtual CObMap* GetFields() = 0;
 
-  virtual void GetAllValues(const string& name, CExpressionValue& value, const string& wantedUnit) = 0;
+  virtual void GetAllValues(const std::string& name, CExpressionValue& value, const std::string& wantedUnit) = 0;
 
-  virtual void GetAllValues(CFieldNetCdf* field, CExpressionValue& value, const string& wantedUnit) = 0;
+  virtual void GetAllValues(CFieldNetCdf* field, CExpressionValue& value, const std::string& wantedUnit) = 0;
 
-  virtual void GetAllValues(const string& name, CDoubleArray& vect, const string& wantedUnit) = 0;
+  virtual void GetAllValues(const std::string& name, CDoubleArray& vect, const std::string& wantedUnit) = 0;
 
-  virtual void GetAllValues(CFieldNetCdf* field, const string& wantedUnit) = 0;
+  virtual void GetAllValues(CFieldNetCdf* field, const std::string& wantedUnit) = 0;
   
   // If WantedUnit is "", the returned value is in base (SI) unit.
-  virtual void GetValue(const string& name, CExpressionValue &value, const string	&wantedUnit) = 0;
+  virtual void GetValue(const std::string& name, CExpressionValue &value, const std::string	&wantedUnit) = 0;
   
   // If WantedUnit is "", the returned value is in base (SI) unit.
-  virtual void GetValue(const string &name, double	&value, const string &wantedUnit) = 0;
+  virtual void GetValue(const std::string &name, double	&value, const std::string &wantedUnit) = 0;
 
-  virtual void GetValues(const string& name, CExpressionValue &value, const string	&wantedUnit) = 0;
+  virtual void GetValues(const std::string& name, CExpressionValue &value, const std::string	&wantedUnit) = 0;
 
-  virtual void GetValues(CFieldNetCdf* field, CExpressionValue &value, const string	&wantedUnit) = 0;
+  virtual void GetValues(CFieldNetCdf* field, CExpressionValue &value, const std::string	&wantedUnit) = 0;
 
 
 
@@ -114,24 +114,24 @@ public:
   virtual bool PrevRecord () = 0;
 
 
-  virtual string GetVarTypeName(const string &name) = 0;
+  virtual std::string GetVarTypeName(const std::string &name) = 0;
 
-  virtual string GetProductClass() {return m_productClass;};
+  virtual std::string GetProductClass() {return m_productClass;};
   
   bool IsUnknownProduct() {return (m_productClass.compare(UNKNOWN_PRODUCT_CLASS) == 0); };
   bool IsNetCdfProduct() {return (m_productClass.compare(NETCDF_PRODUCT_CLASS) == 0); };
   bool IsNetCdfCFProduct() {return (m_productClass.compare(NETCDF_CF_PRODUCT_CLASS) == 0); };
 
-  virtual bool IsAxisVar (const string& name) = 0;
+  virtual bool IsAxisVar (const std::string& name) = 0;
 
-  virtual bool VarExists(const string& name) = 0;
+  virtual bool VarExists(const std::string& name) = 0;
   
   virtual void GetVariables (CStringArray& varNames) = 0;
 
   virtual void AddAttributesAsField(CFieldNetCdf* field) = 0;
 
-  virtual void GetDimensions (const string& varName, CUIntArray& dimensions) = 0;
-  virtual void GetDimensions(const string& varName, CStringArray& dimensions) = 0;
+  virtual void GetDimensions (const std::string& varName, CUIntArray& dimensions) = 0;
+  virtual void GetDimensions(const std::string& varName, CStringArray& dimensions) = 0;
 
   // throws an exception if file is not opened
   void MustBeOpened();
@@ -140,7 +140,7 @@ public:
   static CFieldNetCdf* GetFieldNetCdf(CBratObject* ob, bool withExcept = true);
   static CFieldNetCdfIndexData* GetFieldNetCdfIndexData(CBratObject* ob, bool withExcept = true);
 
-  static bool IsExcludedAttrAsField(const string& name);
+  static bool IsExcludedAttrAsField(const std::string& name);
 
 
   virtual CFieldNetCdf* FindTimeField() = 0;
@@ -155,32 +155,32 @@ public:
 
 public:
   static const int32_t m_EXCLUDE_ATTR_AS_FIELD_SIZE;
-  static const string m_EXCLUDE_ATTR_AS_FIELD[];
+  static const std::string m_EXCLUDE_ATTR_AS_FIELD[];
 
 
 protected:
-  string m_productClass;		
+  std::string m_productClass;		
 /*
   static const int32_t m_TIME_NAMES_SIZE;
-  static const string m_TIME_NAMES[];
+  static const std::string m_TIME_NAMES[];
 
   static const int32_t m_LAT_NAMES_SIZE;
-  static const string m_LAT_NAMES[];
+  static const std::string m_LAT_NAMES[];
 
   static const int32_t m_LON_NAMES_SIZE;
-  static const string m_LON_NAMES[];
+  static const std::string m_LON_NAMES[];
 
   static const int32_t m_CYCLE_NAMES_SIZE;
-  static const string m_CYCLE_NAMES[];
+  static const std::string m_CYCLE_NAMES[];
 
   static const int32_t m_PASS_NAMES_SIZE;
-  static const string m_PASS_NAMES[];
+  static const std::string m_PASS_NAMES[];
 */
 
   double m_offset;
 
 protected:
-   virtual void SetProductClass(const string& value) {m_productClass = value;};
+   virtual void SetProductClass(const std::string& value) {m_productClass = value;};
    
    void Init();
 

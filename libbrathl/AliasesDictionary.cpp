@@ -31,24 +31,24 @@ using namespace brathl;
 namespace brathl
 {
 
-const string CAliasesDictionary::m_ALIASES_DICT_FILE_NAME = "aliases.xml";
+const std::string CAliasesDictionary::m_ALIASES_DICT_FILE_NAME = "aliases.xml";
 
 CAliasesDictionary* CAliasesDictionary::m_instance = NULL;
 
-const string CAliasesDictionary::m_ROOT_ELT = "aliasesDefinition";
+const std::string CAliasesDictionary::m_ROOT_ELT = "aliasesDefinition";
 
-const string CAliasesDictionary::m_ALIAS_ELT = "alias";
-const string CAliasesDictionary::m_ALIASES_ELT = "aliases";
-const string CAliasesDictionary::m_DEFAULT_RECORD_ELT = "defaultRecord";
-const string CAliasesDictionary::m_PRODUCT_ELT = "product";
-const string CAliasesDictionary::m_PRODUCT_TYPE_ELT = "productType";
+const std::string CAliasesDictionary::m_ALIAS_ELT = "alias";
+const std::string CAliasesDictionary::m_ALIASES_ELT = "aliases";
+const std::string CAliasesDictionary::m_DEFAULT_RECORD_ELT = "defaultRecord";
+const std::string CAliasesDictionary::m_PRODUCT_ELT = "product";
+const std::string CAliasesDictionary::m_PRODUCT_TYPE_ELT = "productType";
 
-const string CAliasesDictionary::m_DESCR_ATTR = "description";
-const string CAliasesDictionary::m_CLASS_ATTR = "class";
-const string CAliasesDictionary::m_NAME_ATTR = "name";
-const string CAliasesDictionary::m_PRODUCT_TYPE_ATTR = "productType";
-const string CAliasesDictionary::m_RECORD_ATTR = "record";
-const string CAliasesDictionary::m_REF_ATTR = "ref";
+const std::string CAliasesDictionary::m_DESCR_ATTR = "description";
+const std::string CAliasesDictionary::m_CLASS_ATTR = "class";
+const std::string CAliasesDictionary::m_NAME_ATTR = "name";
+const std::string CAliasesDictionary::m_PRODUCT_TYPE_ATTR = "productType";
+const std::string CAliasesDictionary::m_RECORD_ATTR = "record";
+const std::string CAliasesDictionary::m_REF_ATTR = "ref";
 
 
 //-------------------------------------------------------------
@@ -74,7 +74,7 @@ CAliasesDictionary::CAliasesDictionary(const CAliasesDictionary& o)
   Set(o);
 }
 //----------------------------------------
-CAliasesDictionary::CAliasesDictionary(const string& filename, const string &encoding)
+CAliasesDictionary::CAliasesDictionary(const std::string& filename, const std::string &encoding)
 {
 
   // Don't call CXmlDocument(filename, encoding) because overriden 'Load' will not be called
@@ -91,7 +91,7 @@ CAliasesDictionary::CAliasesDictionary(const string& filename, const string &enc
     DeleteRoot();
     throw e;
   }
-  catch(exception& e)
+  catch(std::exception& e)
   {
     DeleteRoot();
     throw e;
@@ -105,7 +105,7 @@ CAliasesDictionary::CAliasesDictionary(const string& filename, const string &enc
 
 }
 //----------------------------------------
-CAliasesDictionary::CAliasesDictionary(istream& stream, const string &encoding)
+CAliasesDictionary::CAliasesDictionary(std::istream& stream, const std::string &encoding)
                       : CXmlDocument(stream, encoding)
 {
   Init();
@@ -140,7 +140,7 @@ CAliasesDictionary& CAliasesDictionary::operator=(const CAliasesDictionary& o)
 }
 
 //----------------------------------------
-string CAliasesDictionary::GetAliasesDictFilePath()
+std::string CAliasesDictionary::GetAliasesDictFilePath()
 {
   return CTools::Format("%s/%s", CTools::GetDataDir().c_str(), CAliasesDictionary::m_ALIASES_DICT_FILE_NAME.c_str());
 }
@@ -151,22 +151,22 @@ void CAliasesDictionary::PrepareSmartCleaner()
   static CSmartCleaner object(&CAliasesDictionary::m_instance);
 }
 //----------------------------------------
-CAliasesDictionary* CAliasesDictionary::GetInstance(const string& encoding)
+CAliasesDictionary* CAliasesDictionary::GetInstance(const std::string& encoding)
 {
-  string str = GetAliasesDictFilePath();
+  std::string str = GetAliasesDictFilePath();
   return CAliasesDictionary::GetInstance(&str, encoding);
 }
 //----------------------------------------------------
-CAliasesDictionary* CAliasesDictionary::GetInstance(const string* fileName, const string& encoding)
+CAliasesDictionary* CAliasesDictionary::GetInstance(const std::string* fileName, const std::string& encoding)
 {
 
-   //cout << "Enter GetInstance" << endl;
+   //std::cout << "Enter GetInstance" << std::endl;
   if (CAliasesDictionary::m_instance != NULL)
   {
     return CAliasesDictionary::m_instance;
   }
     
-  //cout << "GetInstance" << endl;
+  //std::cout << "GetInstance" << std::endl;
   if (fileName == NULL)
   {     
     throw CException("Error in CAliasesDictionary::GetInstance: Unable to load the aliases dictionary because fileName argument is NULL", BRATHL_ERROR);
@@ -175,7 +175,7 @@ CAliasesDictionary* CAliasesDictionary::GetInstance(const string* fileName, cons
 
   bool bOk = true;
 
-  string errorMsg;
+  std::string errorMsg;
   try
   {
     CAliasesDictionary::m_instance = new CAliasesDictionary(*fileName, encoding);
@@ -191,7 +191,7 @@ CAliasesDictionary* CAliasesDictionary::GetInstance(const string* fileName, cons
       
   if (!bOk)
   {
-    string msg;
+    std::string msg;
     if (errorMsg.empty())
     {
       msg = CTools::Format("Unable to load the aliases dictionary file '%s' for unknown reason - Please, check XML syntax.", fileName->c_str());
@@ -205,7 +205,7 @@ CAliasesDictionary* CAliasesDictionary::GetInstance(const string* fileName, cons
     throw CException(msg.c_str(), BRATHL_ERROR);
   }
       
-   //cout << "Exit GetInstance" << endl;
+   //std::cout << "Exit GetInstance" << std::endl;
 
   return CAliasesDictionary::m_instance;
 }
@@ -252,7 +252,7 @@ bool CAliasesDictionary::GetAliases(CProduct* product)
 }
 
 //----------------------------------------------------
-void CAliasesDictionary::Load(const string& fileName, const string& encoding, int flags)
+void CAliasesDictionary::Load(const std::string& fileName, const std::string& encoding, int flags)
 {
   try
   {
@@ -261,7 +261,7 @@ void CAliasesDictionary::Load(const string& fileName, const string& encoding, in
   }
   catch(CXMLParseException& e)
   {
-    string msg = CTools::Format("Unable to load the aliases dictionary file '%s' - Parsing errors found -  Native error: '%s'",
+    std::string msg = CTools::Format("Unable to load the aliases dictionary file '%s' - Parsing errors found -  Native error: '%s'",
                                 fileName.c_str(), e.GetMessage().c_str());
       
     DeleteRootNode();
@@ -270,7 +270,7 @@ void CAliasesDictionary::Load(const string& fileName, const string& encoding, in
   }
   catch(CXMLException& e)
   {
-    string msg = CTools::Format("Unable to load the aliases dictionary file '%s' - Native error: '%s'",
+    std::string msg = CTools::Format("Unable to load the aliases dictionary file '%s' - Native error: '%s'",
                                 fileName.c_str(), e.GetMessage().c_str());
       
     DeleteRootNode();
@@ -282,7 +282,7 @@ void CAliasesDictionary::Load(const string& fileName, const string& encoding, in
     DeleteRootNode();
     throw e;
   }
-  catch(exception& e)
+  catch(std::exception& e)
   {
     DeleteRootNode();
     throw e;
@@ -294,7 +294,7 @@ void CAliasesDictionary::Load(const string& fileName, const string& encoding, in
 
 }
 //----------------------------------------------------
-void CAliasesDictionary::Load(const string& encoding, int flags)
+void CAliasesDictionary::Load(const std::string& encoding, int flags)
 {
   Load(m_fullFileName, encoding, flags);
 }
@@ -345,12 +345,12 @@ CDefaultRecord* CAliasesDictionary::CreateDefaultRecord(CXmlNode* defaultRecordN
 
   CDefaultRecord* defaultRecord = new CDefaultRecord();
 
-  string value;
+  std::string value;
 
   bool bOk = defaultRecordNode->GetPropVal(CAliasesDictionary::m_NAME_ATTR, &value);
   if (!bOk)
   {
-    string msg = CTools::Format("Unable to create default record - Default record name is empty - "
+    std::string msg = CTools::Format("Unable to create default record - Default record name is empty - "
       "Please check all '%s' attributes of the '%s' elements in the aliases dictionary '%s'.",
       CAliasesDictionary::m_NAME_ATTR.c_str(),
       CAliasesDictionary::m_DEFAULT_RECORD_ELT.c_str(),
@@ -386,7 +386,7 @@ CDefaultRecord* CAliasesDictionary::CreateDefaultRecord(CXmlNode* defaultRecordN
       continue;
     }
 
-    string productType = textNode->GetContent().c_str();
+    std::string productType = textNode->GetContent().c_str();
     if (productType.empty())
     {
       continue;
@@ -434,7 +434,7 @@ CAliases* CAliasesDictionary::CreateAliases(CXmlNode* aliasesNode)
 
   CAliases* aliases = new CAliases();
 
-  string value;
+  std::string value;
 
   bool bOk = aliasesNode->GetPropVal(CAliasesDictionary::m_DESCR_ATTR, &value);
   aliases->SetDescription(value);
@@ -489,12 +489,12 @@ CAlias* CAliasesDictionary::CreateAlias(CXmlNode* aliasNode)
 
   CAlias* alias = new CAlias();
 
-  string value;
+  std::string value;
 
   bool bOk = aliasNode->GetPropVal(CAliasesDictionary::m_NAME_ATTR, &value);
   if (!bOk)
   {
-    string msg = CTools::Format("Unable to create alias - Alias name is empty - "
+    std::string msg = CTools::Format("Unable to create alias - Alias name is empty - "
       "Please check all '%s' attributes of the '%s' elements in the aliases dictionary '%s'.",
       CAliasesDictionary::m_NAME_ATTR.c_str(),
       CAliasesDictionary::m_ALIAS_ELT.c_str(),
@@ -516,7 +516,7 @@ CAlias* CAliasesDictionary::CreateAlias(CXmlNode* aliasNode)
 
   CXmlNode* textNode = aliasNode->GetChildren();
 
-  string aliasValue;
+  std::string aliasValue;
 
   if (textNode != NULL) 
   {
@@ -525,7 +525,7 @@ CAlias* CAliasesDictionary::CreateAlias(CXmlNode* aliasNode)
 
   if ((aliasValue.empty()) && (!alias->IsSynonym()))
   {
-    string msg = CTools::Format("Unable to create alias '%s' - Alias value is empty and alias ref. attribute is empty. "
+    std::string msg = CTools::Format("Unable to create alias '%s' - Alias value is empty and alias ref. attribute is empty. "
       "One of two values has to be filled (but not both of them)."
       "Please check all '%s' attributes of the '%s' elements in the aliases dictionary '%s'.",
       alias->GetName().c_str(),
@@ -542,7 +542,7 @@ CAlias* CAliasesDictionary::CreateAlias(CXmlNode* aliasNode)
 
   if ((!aliasValue.empty()) && (alias->IsSynonym()))
   {
-    string msg = CTools::Format("Unable to create alias '%s' - Alias value is not empty ('%s') and alias ref. attribute is not empty ('%s'). "
+    std::string msg = CTools::Format("Unable to create alias '%s' - Alias value is not empty ('%s') and alias ref. attribute is not empty ('%s'). "
       "Only one of two values has to be filled, not both of them."
       "Please check all '%s' attributes of the '%s' elements in the aliases dictionary '%s'.",
       alias->GetName().c_str(),
@@ -563,7 +563,7 @@ CAlias* CAliasesDictionary::CreateAlias(CXmlNode* aliasNode)
     CXmlNode* aliasRefNode = FindAliasNode(alias->GetRef(), aliasNode->GetParent());
     if (aliasRefNode == NULL) 
     {
-      string msg = CTools::Format("Unable to create alias '%s' - Alias is as synonym, but the referenced alias ('%s') is not found. "
+      std::string msg = CTools::Format("Unable to create alias '%s' - Alias is as synonym, but the referenced alias ('%s') is not found. "
         "Please check all '%s' attributes of the '%s' elements in the aliases dictionary '%s'.",
         alias->GetName().c_str(),
         alias->GetRef().c_str(),
@@ -583,7 +583,7 @@ CAlias* CAliasesDictionary::CreateAlias(CXmlNode* aliasNode)
 
     if (textNode == NULL) 
     {
-      string msg = CTools::Format("Unable to create alias '%s' - Alias is as synonym, but the referenced alias ('%s') value is empty. "
+      std::string msg = CTools::Format("Unable to create alias '%s' - Alias is as synonym, but the referenced alias ('%s') value is empty. "
         "Please check all '%s' attributes of the '%s' elements in the aliases dictionary '%s'.",
         alias->GetName().c_str(),
         alias->GetRef().c_str(),
@@ -607,12 +607,12 @@ CAlias* CAliasesDictionary::CreateAlias(CXmlNode* aliasNode)
 }
 
 //----------------------------------------------------
-CXmlNode* CAliasesDictionary::FindProductNode(const string& clazz, bool allDepths /* = false */)
+CXmlNode* CAliasesDictionary::FindProductNode(const std::string& clazz, bool allDepths /* = false */)
 {
   return FindProductNode(clazz, this->GetRoot(), allDepths);
 }
 //----------------------------------------------------
-CXmlNode* CAliasesDictionary::FindProductNode(const string& clazz, CXmlNode* parent, bool allDepths /* = false */)
+CXmlNode* CAliasesDictionary::FindProductNode(const std::string& clazz, CXmlNode* parent, bool allDepths /* = false */)
 {
   if (parent == NULL)
   {
@@ -620,7 +620,7 @@ CXmlNode* CAliasesDictionary::FindProductNode(const string& clazz, CXmlNode* par
   }
 
   CXmlNode* child =  parent->GetChildren();
-  string value;
+  std::string value;
 
   while (child != NULL)
   {
@@ -654,7 +654,7 @@ CXmlNode* CAliasesDictionary::FindProductNode(const string& clazz, CXmlNode* par
 
 }
 //----------------------------------------------------
-CXmlNode* CAliasesDictionary::FindAliasNode(const string& name, CXmlNode* parent, bool allDepths /* = false */)
+CXmlNode* CAliasesDictionary::FindAliasNode(const std::string& name, CXmlNode* parent, bool allDepths /* = false */)
 {
   if (parent == NULL)
   {
@@ -662,7 +662,7 @@ CXmlNode* CAliasesDictionary::FindAliasNode(const string& name, CXmlNode* parent
   }
 
   CXmlNode* child =  parent->GetChildren();
-  string value;
+  std::string value;
 
   while (child != NULL)
   {
@@ -712,12 +712,12 @@ CAliases* CAliasesDictionary::ResolveRef(const CAliases* aliases, const CObArray
     return NULL;
   }
 
-  string productType = aliases->GetProductType();
-  string ref = aliases->GetRef();
+  std::string productType = aliases->GetProductType();
+  std::string ref = aliases->GetRef();
   
   if ((!productType.empty()) && (!ref.empty()) && (productType.compare(ref) == 0))
   {
-    string msg = CTools::Format("Unable to load the aliases dictionary because the '%s' and '%s' attributes of the '%s' element have the same value (reference to itself). "
+    std::string msg = CTools::Format("Unable to load the aliases dictionary because the '%s' and '%s' attributes of the '%s' element have the same value (reference to itself). "
       "Please check the XML aliases dictionary and fix the error.",
       CAliasesDictionary::m_PRODUCT_TYPE_ATTR.c_str(),
       CAliasesDictionary::m_REF_ATTR.c_str(),
@@ -738,7 +738,7 @@ CAliases* CAliasesDictionary::ResolveRef(const CAliases* aliases, const CObArray
       continue;
     }
 
-    string productType = refAliases->GetProductType();
+    std::string productType = refAliases->GetProductType();
 
     if (productType.compare(ref) == 0)
     {
@@ -757,7 +757,7 @@ CAliases* CAliasesDictionary::ResolveRef(const CAliases* aliases, const CObArray
 }
 
 //----------------------------------------
-CAliasesDictionary* CAliasesDictionary::LoadAliasesDictionary(string* errorMsg, bool withExcept)
+CAliasesDictionary* CAliasesDictionary::LoadAliasesDictionary(std::string* errorMsg, bool withExcept)
 {
   CAliasesDictionary* aliasesDictionary = NULL;
   
@@ -771,7 +771,7 @@ CAliasesDictionary* CAliasesDictionary::LoadAliasesDictionary(string* errorMsg, 
     CAliasesDictionary::m_instance = new CAliasesDictionary();
     PrepareSmartCleaner();
     
-    string msg = CTools::Format("The aliases dictionary can't be loaded properly - This does not prevent Brat to continue to work properly but without the use of aliases - Native Error is '%s'", e.what());
+    std::string msg = CTools::Format("The aliases dictionary can't be loaded properly - This does not prevent Brat to continue to work properly but without the use of aliases - Native Error is '%s'", e.what());
 
     if (errorMsg != NULL)
     {
@@ -788,7 +788,7 @@ CAliasesDictionary* CAliasesDictionary::LoadAliasesDictionary(string* errorMsg, 
 }
 
 //----------------------------------------
-bool CAliasesDictionary::SetPropVal(CXmlNode* node, const string& propName, const string& value, bool allDepths /* = true */)
+bool CAliasesDictionary::SetPropVal(CXmlNode* node, const std::string& propName, const std::string& value, bool allDepths /* = true */)
 {
   bool bOk = false;
 

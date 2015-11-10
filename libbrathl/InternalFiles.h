@@ -20,8 +20,9 @@
 #ifndef _InternalFiles_h_
 #define _InternalFiles_h_
 
-#include <netcdf.h>
-#include "Stl.h"
+#include <string>
+
+#include "netcdf.h"
 #include "BratObject.h"
 #include "Expression.h"
 
@@ -46,26 +47,26 @@ class CInternalFiles : public CBratObject
 {
 public:
   CInternalFiles
-		(string			Name = "",
+		(std::string			Name = "",
 		 brathl_FileMode	Mode = ReadOnly);
 
   virtual ~CInternalFiles();
 
-  static string TypeOf() { return "unknown"; };
+  static std::string TypeOf() { return "unknown"; };
 
-  virtual string GetType
+  virtual std::string GetType
 		();		// Abstract method must be defined in all derived class
 
   int32_t GetVarDimIndex
-		(const string& varName,
-                 const string& dimName);
+		(const std::string& varName,
+                 const std::string& dimName);
 
 
-  int GetDimId(const string& name);
+  int GetDimId(const std::string& name);
 
-  virtual string GetName() const;
+  virtual std::string GetName() const;
 
-  virtual void SetName(const string& name);
+  virtual void SetName(const std::string& name);
   virtual void SetMode(brathl_FileMode mode);
 
   virtual void Open(brathl_FileMode mode);
@@ -76,68 +77,68 @@ public:
 
   virtual bool IsOpened();
 
-  virtual void WriteFileTitle	(const string& Title);
+  virtual void WriteFileTitle	(const std::string& Title);
 
   virtual bool IsGeographic() { return false; };
 
-  bool IsAxisVar(const string	&Name);
+  bool IsAxisVar(const std::string	&Name);
 
-  virtual void GetVariables(vector<string>	&VarNames);
+  virtual void GetVariables(std::vector<std::string>	&VarNames);
 
-  virtual void GetAxisVars(vector<string>	&VarNames);
-  virtual void GetDataVars(vector<string> &VarNames);
+  virtual void GetAxisVars(std::vector<std::string>	&VarNames);
+  virtual void GetDataVars(std::vector<std::string> &VarNames);
 
-  virtual NetCDFVarKind GetVarKind(const string& Name);
+  virtual NetCDFVarKind GetVarKind(const std::string& Name);
 
-  virtual void GetVarDims(const string& Name, ExpressionValueDimensions	&Dimensions);
+  virtual void GetVarDims(const std::string& Name, ExpressionValueDimensions	&Dimensions);
 
-  virtual void GetVarDims(const string& Name, vector<string>			&Dimensions);
+  virtual void GetVarDims(const std::string& Name, std::vector<std::string>			&Dimensions);
 
-  virtual bool GetCommonVarDims(const string& varName1, const string& varName2, CStringArray& intersect);
+  virtual bool GetCommonVarDims(const std::string& varName1, const std::string& varName2, CStringArray& intersect);
 
-  virtual bool GetComplementVarDims(const string& varName1, const string& varName2, CStringArray& complement);
+  virtual bool GetComplementVarDims(const std::string& varName1, const std::string& varName2, CStringArray& complement);
 
   virtual bool GetComplementVars(const CStringArray& varNames, CStringArray& complement, bool excludeDim = true );
 
-  virtual bool VarExists(const string& Name);
+  virtual bool VarExists(const std::string& Name);
 
   virtual bool HasVar(NetCDFVarKind		VarKind);
 
   virtual void WriteVar
-		(const string		&Name,
+		(const std::string		&Name,
 		 const CExpressionValue	&Value);
 
   virtual void ReadVar
-		(const string			&Name,
+		(const std::string			&Name,
 		       CExpressionValue		&Value,
-		 const string			&WantedUnit);
+		 const std::string			&WantedUnit);
 
   virtual CUnit GetUnit
-		(const string			&Name);
+		(const std::string			&Name);
 
   // If name is empty, it is the title of the file which is returned
   // (global attribute 'title' instead of 'long_name' of the variable)
-  virtual string GetTitle
-		(const string			&Name);
+  virtual std::string GetTitle
+		(const std::string			&Name);
 
   static bool IsVarNameValid
-		(const string	&Name);
+		(const std::string	&Name);
 
   int GetAttribute
-		(const string	&varName,
-		 const string	&attName,
+		(const std::string	&varName,
+		 const std::string	&attName,
 		       double	&attValue,
 		       bool	mustExist	= true,
 		       double   defaultValue	= CTools::m_defaultValueDOUBLE);
   int GetAttribute
-		(const string	&varName,
-		 const string	&attName,
-		       string	&attValue,
+		(const std::string	&varName,
+		 const std::string	&attName,
+		       std::string	&attValue,
 		       bool	mustExist	= true,
-		       string   defaultValue	= "");
+		       std::string   defaultValue	= "");
 
 
-  string GetComment(const string& varName);
+  std::string GetComment(const std::string& varName);
 
   uint32_t GetMaxFieldNumberOfDims(const CStringArray* fieldNames = NULL) {return m_file.GetMaxFieldNumberOfDims(fieldNames); };
 
@@ -145,14 +146,14 @@ public:
   CObMap* GetNetCDFDims() {return m_file.GetNetCDFDims(); };
   CNetCDFDimension* AddNetCDFDim(CNetCDFDimension& dim, bool forceReplace = false) { return m_file.AddNetCDFDim(dim, forceReplace); };
 
-  CNetCDFDimension* GetNetCDFDim(const string& name) {return  m_file.GetNetCDFDim(name); };
+  CNetCDFDimension* GetNetCDFDim(const std::string& name) {return  m_file.GetNetCDFDim(name); };
   
-  void GetNetCDFDims(const string& varName, CObArray* dims) { m_file.GetNetCDFDims(varName, dims); };
+  void GetNetCDFDims(const std::string& varName, CObArray* dims) { m_file.GetNetCDFDims(varName, dims); };
 
   CObMap* GetNetCDFVarDefs() {return m_file.GetNetCDFVarDefs(); };
   CNetCDFVarDef* AddNetCDFVarDef(CNetCDFVarDef& var, bool forceReplace = false) { return m_file.AddNetCDFVarDef(var, forceReplace); };
 
-  CNetCDFVarDef* GetNetCDFVarDef(const string& name) {return  m_file.GetNetCDFVarDef(name); };
+  CNetCDFVarDef* GetNetCDFVarDef(const std::string& name) {return  m_file.GetNetCDFVarDef(name); };
 
 
 
@@ -166,19 +167,19 @@ public:
   CNetCDFFiles*	GetFile() { return &m_file; };
 
 
-  static bool IsZFLatLonFile(const string& fileName, CInternalFiles** pf = NULL);
+  static bool IsZFLatLonFile(const std::string& fileName, CInternalFiles** pf = NULL);
   static bool IsZFLatLonFile(CInternalFiles* f);
 
-  //static bool IsYFXORZFXYFile(const string& fileName, CStringArray* fieldNames = NULL, CInternalFiles** pf = NULL);
+  //static bool IsYFXORZFXYFile(const std::string& fileName, CStringArray* fieldNames = NULL, CInternalFiles** pf = NULL);
   //static bool IsYFXORZFXYFile(CInternalFiles* f, CStringArray* fieldNamesIn = NULL);
 
-  static bool IsZFXYFile(const string& fileName, CStringArray* fieldNames = NULL, CInternalFiles** pf = NULL);
+  static bool IsZFXYFile(const std::string& fileName, CStringArray* fieldNames = NULL, CInternalFiles** pf = NULL);
   static bool IsZFXYFile(CInternalFiles* f, CStringArray* fieldNames = NULL);
 
-  static bool IsYFXFile(const string& fileName, CInternalFiles** pf = NULL);
+  static bool IsYFXFile(const std::string& fileName, CInternalFiles** pf = NULL);
   static bool IsYFXFile(CInternalFiles* f, CStringArray* fieldNamesIn = NULL);
 
-  static CInternalFiles* Create(const string& fileName, bool open = true, bool withExcept = true);
+  static CInternalFiles* Create(const std::string& fileName, bool open = true, bool withExcept = true);
 
 
 protected:

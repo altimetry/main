@@ -1057,7 +1057,7 @@ void CDatasetPanel::ApplySelectionCriteria(CStringList& filesIn, CStringList& fi
   p->GetProductList().Insert(filesIn);
 
 
-  string label = p->GetLabel();
+  std::string label = p->GetLabel();
   CProduct* productRef = dynamic_cast<CProduct*>( CMapProduct::GetInstance().Exists(label) );
 
   if (productRef == NULL)
@@ -1154,7 +1154,7 @@ void CDatasetPanel::DeleteDataset()
 
   if (bOk == false)
   {
-    string str = operationNames.ToString("\n", false);
+    std::string str = operationNames.ToString("\n", false);
     wxMessageBox(wxString::Format("Unable to delete dataset '%s'.\nIt is used by the operations below:\n%s\n",
                                   m_dataset->GetName().c_str(),
                                   str.c_str()),
@@ -1295,7 +1295,7 @@ bool CDatasetPanel::CheckFiles()
 
     if ((!isSameProductClassType) && (usedByOperation))
     {
-      string str = operationNames.ToString("\n", false);
+      std::string str = operationNames.ToString("\n", false);
       wxMessageBox(wxString::Format("Warning: Files contained in the dataset '%s' have been changed from '%s/%s' to '%s/%s' product class/type.\n"
                                     "\nThis dataset is used by the operations below:\n%s\n"
                                     "\nBe sure field's names used in these operations match the fields of the dataset files",
@@ -1380,7 +1380,7 @@ bool CDatasetPanel::CheckForEmptyDataset()
 
   if (bOk == false)
   {
-    string str = operationNames.ToString("\n", false);
+    std::string str = operationNames.ToString("\n", false);
     wxMessageBox(wxString::Format("Unable to remove all items of the list.\n"
                                   "\nThis dataset is used by the operations below:\n%s\n"
                                   "The dataset must contain at least one file.",

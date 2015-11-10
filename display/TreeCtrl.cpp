@@ -29,6 +29,8 @@
     #pragma hdrstop
 #endif
 
+#include <stack>
+
 #include "wx/treectrl.h"
 #include "wx/image.h"
 #include "wx/imaglist.h"
@@ -49,7 +51,7 @@
 
 #include "brathl.h"
 
-#include "Stl.h"
+#include <string>
 
 #include "Trace.h"
 using namespace brathl;
@@ -159,7 +161,7 @@ void CTreeCtrl::CreateImageList(int size)
   else
       m_imageSize = size;
 
-  // Make an image list containing small icons
+  // Make an image std::list containing small icons
   wxImageList *images = new wxImageList(size, size, true);
 
   // should correspond to TreeCtrlIcon_xxx enum
@@ -409,7 +411,7 @@ void CTreeCtrl::RemoveAllItems(bool bUnselect /*= true*/)
 void CTreeCtrl::RemoveItemRecurse(const wxTreeItemId& from)
 {
 
-  stack<wxTreeItemId> items;
+  std::stack<wxTreeItemId> items;
 
   wxTreeItemIdValue cookie;
   wxTreeItemId item  = from;
@@ -441,7 +443,7 @@ void CTreeCtrl::RemoveItemRecurse(const wxTreeItemId& from)
 
   //wxString itemtext = (item == GetRootItem() ? "Root" : GetItemText(item));
 
-  //CTrace::Tracer("%s Delete tree item %s - child count %ld - items stack %ld" , typeid(*this).name(), itemtext.c_str(),
+  //CTrace::Tracer("%s Delete tree item %s - child count %ld - items std::stack %ld" , typeid(*this).name(), itemtext.c_str(),
   //                                                                  (long)GetChildrenCount(item), items.size());
 
 	while (!items.empty())
@@ -562,7 +564,7 @@ void CTreeCtrl::CreateButtonsImageList(int size)
         return;
     }
 
-    // Make an image list containing small icons
+    // Make an image std::list containing small icons
     wxImageList *images = new wxImageList(size, size, true);
 
     // should correspond to TreeCtrlIcon_xxx enum

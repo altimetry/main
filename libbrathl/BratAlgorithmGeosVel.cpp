@@ -41,8 +41,8 @@ using namespace brathl;
 namespace brathl
 {
 
-  const string CBratAlgorithmGeosVel::m_LAT_PARAM_NAME = "%{lat}";
-  const string CBratAlgorithmGeosVel::m_LON_PARAM_NAME = "%{lon}";
+  const std::string CBratAlgorithmGeosVel::m_LAT_PARAM_NAME = "%{lat}";
+  const std::string CBratAlgorithmGeosVel::m_LON_PARAM_NAME = "%{lon}";
 
 //-------------------------------------------------------------
 //------------------- CBratAlgorithmGeosVel class --------------------
@@ -245,33 +245,33 @@ void CBratAlgorithmGeosVel::ComputeCoriolis()
 }
 
 //----------------------------------------
-void CBratAlgorithmGeosVel::Dump(ostream& fOut /*= cerr*/)
+void CBratAlgorithmGeosVel::Dump(std::ostream& fOut /*= std::cerr*/)
 {
    if (CTrace::IsTrace() == false)
    { 
       return;
    }
 
-  fOut << "==> Dump a CBratAlgorithmGeosVel Object at "<< this << endl;
+  fOut << "==> Dump a CBratAlgorithmGeosVel Object at "<< this << std::endl;
   CBratAlgorithmBase::Dump(fOut);
 
-  fOut << "m_earthRadius: " << m_earthRadius << endl;
-  fOut << "m_gravity: " << m_gravity << endl;
-  fOut << "m_omega: " << m_omega << endl;
-  fOut << "m_beta: " << m_beta << endl;
-  fOut << "m_degreeToRadianMutiplier: " << m_degreeToRadianMutiplier << endl;
-  fOut << "m_p2: " << m_p2 << endl;
-  fOut << "m_equatorTransition: " << m_equatorTransition << endl;
-  fOut << "m_equatorTransitionIsNext: " << m_equatorTransitionIsNext << endl;
-  fOut << "m_lat: " << m_lat << endl;
-  fOut << "m_lon: " << m_lon << endl;
-  fOut << "m_latPrev: " << m_latPrev << endl;
-  fOut << "m_lonPrev: " << m_lonPrev << endl;
-  fOut << "m_latNext: " << m_latNext << endl;
-  fOut << "m_lonNext: " << m_latNext << endl;
-  fOut << "m_coriolis: " << m_coriolis << endl;
-  fOut << "m_velocity: " << m_velocity << endl;
-  fOut << "==> END Dump a CBratAlgorithmGeosVel Object at "<< this << endl;
+  fOut << "m_earthRadius: " << m_earthRadius << std::endl;
+  fOut << "m_gravity: " << m_gravity << std::endl;
+  fOut << "m_omega: " << m_omega << std::endl;
+  fOut << "m_beta: " << m_beta << std::endl;
+  fOut << "m_degreeToRadianMutiplier: " << m_degreeToRadianMutiplier << std::endl;
+  fOut << "m_p2: " << m_p2 << std::endl;
+  fOut << "m_equatorTransition: " << m_equatorTransition << std::endl;
+  fOut << "m_equatorTransitionIsNext: " << m_equatorTransitionIsNext << std::endl;
+  fOut << "m_lat: " << m_lat << std::endl;
+  fOut << "m_lon: " << m_lon << std::endl;
+  fOut << "m_latPrev: " << m_latPrev << std::endl;
+  fOut << "m_lonPrev: " << m_lonPrev << std::endl;
+  fOut << "m_latNext: " << m_latNext << std::endl;
+  fOut << "m_lonNext: " << m_latNext << std::endl;
+  fOut << "m_coriolis: " << m_coriolis << std::endl;
+  fOut << "m_velocity: " << m_velocity << std::endl;
+  fOut << "==> END Dump a CBratAlgorithmGeosVel Object at "<< this << std::endl;
 
 }
 

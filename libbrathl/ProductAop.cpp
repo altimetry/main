@@ -26,7 +26,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h" 
+#include <string> 
 
 #include "TraceLog.h" 
 #include "Tools.h" 
@@ -48,7 +48,7 @@ CProductAop::CProductAop()
 
 //----------------------------------------
 
-CProductAop::CProductAop(const string& fileName)
+CProductAop::CProductAop(const std::string& fileName)
       : CProduct(fileName)
 {
   Init();
@@ -91,7 +91,7 @@ void CProductAop::Init()
 
 }
 //----------------------------------------
-void CProductAop::Dump(ostream& fOut /* = cerr */)
+void CProductAop::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -99,15 +99,15 @@ void CProductAop::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CProductAop Object at "<< this << endl;
+  fOut << "==> Dump a CProductAop Object at "<< this << std::endl;
 
   //------------------
   CProduct::Dump(fOut);
   //------------------
 
-  fOut << "==> END Dump a CProductAop Object at "<< this << endl;
+  fOut << "==> END Dump a CProductAop Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

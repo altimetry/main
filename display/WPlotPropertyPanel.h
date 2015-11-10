@@ -40,8 +40,8 @@
 
 #include "BratDisplay_wdr.h"
 
-#include "WorldPlotData.h"
-#include "MapProjection.h"
+#include "PlotData/WorldPlotData.h"
+#include "PlotData/MapProjection.h"
 #include "LabeledTextCtrl.h"
 #include "LUTPanel.h"
 

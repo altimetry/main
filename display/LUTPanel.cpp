@@ -1062,8 +1062,10 @@ bool CStandardModifyPanel::Create( CLUTPanel *parent, CBratLookupTable* lut, wxW
   CBratDisplayApp::DetermineCharSize(this, charwidth, charheight);
 
   m_label = new wxStaticText(this, -1, "Predefined Color Tables:");
-  m_defBox = new wxListBox(this, ID_STDMODIFYPANEL_DEFBOX, wxDefaultPosition, wxSize(-1, (m_LUT->GetColorTableList()->GetCount()+1)*charheight));
-  m_defBox->Set( *(m_LUT->GetColorTableList()) );
+  m_defBox = new wxListBox(this, ID_STDMODIFYPANEL_DEFBOX, wxDefaultPosition, wxSize(-1, (m_LUT->GetColorTableList()->size()+1)*charheight));
+  for ( auto ii = m_LUT->GetColorTableList()->begin(); ii != m_LUT->GetColorTableList()->end(); ++ii )
+	  m_defBox->AppendString(*ii);
+  //femm m_defBox->Set( *(m_LUT->GetColorTableList()) );
 
   SetDefaultLUT();
 
@@ -1105,8 +1107,8 @@ void CStandardModifyPanel::OnDefSelect( wxCommandEvent &event )
     return;
   }
   
-  wxString sel = event.GetString();
-  if (sel.IsEmpty())
+  std::string sel = event.GetString().ToStdString();
+  if (sel.empty())
   {
     return;
   }

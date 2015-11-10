@@ -66,19 +66,18 @@ class CZFXYPlotData;
 #include "vtkRenderer.h"
 #include "vtkScalarBarActor.h"
 
-#include "vtkProj2DFilter.h"
-#include "vtkGeoGridSource.h"
-#include "vtkGSHHSReader.h"
-#include "vtkList.h"
+#include "PlotData/vtkProj2DFilter.h"
+#include "PlotData/vtkGeoGridSource.h"
+#include "PlotData/vtkGSHHSReader.h"
+#include "PlotData/vtkList.h"
 
 #include "vtkSmoothPolyDataFilter.h"
 
-#include "BratLookupTable.h"
-
 #include "vtkZFXYPlotActor.h"
 
-#include "ZFXYPlot.h"
-#include "PlotField.h"
+#include "PlotData/ZFXYPlot.h"
+#include "PlotData/PlotField.h"
+#include "PlotData/BratLookupTable.h"
 
 //-------------------------------------------------------------
 //------------------- CLUTRenderer class --------------------
@@ -107,7 +106,7 @@ public:
   CBratLookupTable* GetLUT() {return m_LUT;};
 
   void ResetTextActor(CZFXYPlotData* geoMap);
-  void ResetTextActor(const string& text);
+  void ResetTextActor(const std::string& text);
 
   vtkLookupTable* GetLookupTable() 
     { 
@@ -224,7 +223,7 @@ public:
   virtual ~CZFXYPlotData();
 
 
-  void Create(wxWindow* parent, CObArray* data, const string& fieldName, CZFXYPlot* plot);
+  void Create(wxWindow* parent, CObArray* data, const std::string& fieldName, CZFXYPlot* plot);
 
   
   void SetInput(vtkPolyData* output);
@@ -241,10 +240,10 @@ public:
   vtkZFXYPlotFilter* GetCurrentPlotData();
   vtkZFXYPlotFilter* GetPlotData(int32_t i);
 
-  virtual string GetDataTitle() {return GetDataTitle(m_currentMap);};
-  virtual string GetDataTitle(uint32_t index) {return m_dataTitles[index];};
+  virtual std::string GetDataTitle() {return GetDataTitle(m_currentMap);};
+  virtual std::string GetDataTitle(uint32_t index) {return m_dataTitles[index];};
 
-  virtual string GetDataName() {return (const char *)(m_plotProperty.m_name);};
+  virtual std::string GetDataName() {return (const char *)(m_plotProperty.m_name);};
 
 
   vtkActor2D* GetVtkActor2D() {return m_vtkActor2D;};
@@ -330,11 +329,11 @@ public:
   bool GetContourLabelNeedUpdatePositionOnContour() {return m_contourLabelNeedUpdatePositionOnContour;};
   void SetContourLabelNeedUpdatePositionOnContour(bool value) {m_contourLabelNeedUpdatePositionOnContour = value;};
 
-  string GetDataDateString() {return GetDataDateString(m_currentMap);};
-  string GetDataDateString(uint32_t index);
+  std::string GetDataDateString() {return GetDataDateString(m_currentMap);};
+  std::string GetDataDateString(uint32_t index);
 
-  string GetDataUnitString() {return GetDataUnitString(m_currentMap);};
-  string GetDataUnitString(uint32_t index);
+  std::string GetDataUnitString() {return GetDataUnitString(m_currentMap);};
+  std::string GetDataUnitString(uint32_t index);
 
 
 protected:

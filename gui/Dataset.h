@@ -91,13 +91,13 @@ public:
 
   CStringMap* GetFieldSpecificUnits() { return &m_fieldSpecificUnit; };
   
-  string GetFieldSpecificUnit(const string& key);
-  void SetFieldSpecificUnit(const string& key, const string& value);
+  std::string GetFieldSpecificUnit(const std::string& key);
+  void SetFieldSpecificUnit(const std::string& key, const std::string& value);
 
   CDataset& operator=(CDataset& d);
 
    ///Dump fonction
-   virtual void Dump(ostream& fOut = cerr);
+   virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   void Init();

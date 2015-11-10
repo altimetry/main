@@ -23,7 +23,7 @@
 #include <cstdio>
 #include <cstring> 
 
-#include "Stl.h"
+#include <string>
 
 #include "brathl_error.h" 
 #include "brathl.h" 
@@ -134,7 +134,7 @@ int32_t CMission::SearchNearestDateRef()
   
   CMission missionSave = *this;
   
-  string refFilePathName = CTools::FindDataFile(CMission::m_refFileName);
+  std::string refFilePathName = CTools::FindDataFile(CMission::m_refFileName);
   if (refFilePathName == "")
   {
     if (m_printWarnings) 
@@ -441,7 +441,7 @@ int32_t CMission::LoadAliasName(CStringList& aliases)
   aliases.InsertUnique(GetName());
 
     
-  string refFilePathName = CTools::FindDataFile(CMission::m_refAliasName);
+  std::string refFilePathName = CTools::FindDataFile(CMission::m_refAliasName);
   if (refFilePathName == "")
   {
     if (m_printWarnings) 
@@ -615,24 +615,24 @@ double CMission::GetGlobalConstant(brathl_global_constants constantValue)
     return 0;
 }
 
-void CMission::Dump(ostream& fOut /* = cerr */)
+void CMission::Dump(std::ostream& fOut /* = std::cerr */)
 {
    
    if (CTrace::IsTrace() == false)
    {
       return;
    }
-   fOut << "==> Dump a CMission Object at "<< this << endl;
+   fOut << "==> Dump a CMission Object at "<< this << std::endl;
 
-   fOut << "m_repeat = " << m_repeat << endl;
+   fOut << "m_repeat = " << m_repeat << std::endl;
    m_dateRef.Dump(fOut);
-   fOut << "m_cycleRef = " << m_cycleRef << endl;
-   fOut << "m_passRef = " << m_passRef << endl;
-   fOut << "m_nbPass = " << m_nbPass << endl;
+   fOut << "m_cycleRef = " << m_cycleRef << std::endl;
+   fOut << "m_passRef = " << m_passRef << std::endl;
+   fOut << "m_nbPass = " << m_nbPass << std::endl;
 
-   fOut << "==> END Dump a CMission Object at "<< this << endl;
+   fOut << "==> END Dump a CMission Object at "<< this << std::endl;
 
-   fOut << endl;
+   fOut << std::endl;
 
 }
 

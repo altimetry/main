@@ -31,7 +31,7 @@
 
 #include "coda.h"
 
-#include "Stl.h"
+#include <string>
 
 #include "Tools.h"
 #include "TraceLog.h"
@@ -52,8 +52,8 @@ using namespace brathl;
 namespace brathl
 {
 
-const string CField::m_BRAT_INDEX_DATA_NAME = "brat_index_data";
-const string CField::m_BRAT_INDEX_DATA_DESC = "data index";
+const std::string CField::m_BRAT_INDEX_DATA_NAME = "brat_index_data";
+const std::string CField::m_BRAT_INDEX_DATA_DESC = "data index";
 
 //-------------------------------------------------------------
 //------------------- CField class --------------------
@@ -68,7 +68,7 @@ CField::CField()
 
 //----------------------------------------
 
-CField::CField(const string& name, const string& description, const string& unit)
+CField::CField(const std::string& name, const std::string& description, const std::string& unit)
 {
   Init();
 
@@ -90,7 +90,7 @@ CField::CField(CField& f)
 CField::~CField()
 {
   DeleteFieldIndexes();
-  //cout << "CField::~CField()" << endl;
+  //std::cout << "CField::~CField()" << std::endl;
 }
 
 //----------------------------------------
@@ -537,7 +537,7 @@ void CField::Convert(double* data, int32_t size)
       }
     }
 
-    //string temp = CTools::StringRemoveAllSpaces(m_unit);
+    //std::string temp = CTools::StringRemoveAllSpaces(m_unit);
     //temp = CTools::StringReplace(temp, '^', 'e');
     //CUnit unit = temp;
     CUnit unit = m_unit;
@@ -583,9 +583,9 @@ void CField::GetDimAsVector(CUIntArray& dim)
 
 
 //----------------------------------------
-string CField::GetDimAsString()
+std::string CField::GetDimAsString()
 {
-  string dims;
+  std::string dims;
   for (int32_t i = 0 ; i < m_nbDims ; i++)
   {
     dims += CTools::Format(30,  "[%d]=%ld ", i, m_dim[i]);
@@ -598,7 +598,7 @@ long CField::GetDimAt(int32_t index)
 {
   if (index >= m_nbDims)
   {
-    string msg = CTools::Format("ERROR - CField::GetDim(int32_t index) - invalid index %d - Field name %s - number of dimemnsions is %d",
+    std::string msg = CTools::Format("ERROR - CField::GetDim(int32_t index) - invalid index %d - Field name %s - number of dimemnsions is %d",
                                 index,
                                 m_name.c_str(),
                                 m_nbDims);
@@ -678,7 +678,7 @@ void CField::SetDim(int32_t nbElts)
 {
   //if (nbElts <= 0)
   //{
-  //  string msg = CTools::Format("ERROR CFieldArray::SetDim(int32_t nbElts) - nbElts %d --> incorrect value - FieldName:%s",
+  //  std::string msg = CTools::Format("ERROR CFieldArray::SetDim(int32_t nbElts) - nbElts %d --> incorrect value - FieldName:%s",
   //                              nbElts, m_name.c_str());
   //  CException e(msg, BRATHL_INCONSISTENCY_ERROR);
   //  throw(e);
@@ -717,7 +717,7 @@ bool CField::TransposeDim()
 }
 
 //----------------------------------------
-string CField::GetRecordName()
+std::string CField::GetRecordName()
 {
   if (m_recordName.empty() == false)
   {
@@ -736,11 +736,11 @@ string CField::GetRecordName()
   return m_recordName;
 }
 //----------------------------------------
-string CField::GetFullName()
+std::string CField::GetFullName()
 {
 
-  /*string fullName = m_key;
-  string delim = CProduct::m_treeRootName + CTreeField::m_keyDelimiter;
+  /*std::string fullName = m_key;
+  std::string delim = CProduct::m_treeRootName + CTreeField::m_keyDelimiter;
   int32_t pos = m_key.find(delim, 0);
 
   if (pos >= 0)
@@ -774,18 +774,18 @@ string CField::GetFullName()
 }
 
 //----------------------------------------
-string CField::GetFullNameWithRecord()
+std::string CField::GetFullNameWithRecord()
 {
 
-  string fieldNameWithRecord;
-  string fieldFullName = this->GetFullName();
+  std::string fieldNameWithRecord;
+  std::string fieldFullName = this->GetFullName();
 
   if (fieldFullName.empty())
   {
     return fieldNameWithRecord;
   }
 
-  string recordName = this->GetRecordName();
+  std::string recordName = this->GetRecordName();
 
   if (recordName.empty())
   {
@@ -830,7 +830,7 @@ void CField::ReadParent(CDoubleArray& vect, CFieldRecord* parentField)
 
   if (parentField->GetTypeClass() != coda_array_class) //test the type of the parent type class
   {
-    string msg = CTools::Format("ERROR - CFieldArray::ReadParent - parent Field typeClass (%s) must be coda_array_class "
+    std::string msg = CTools::Format("ERROR - CFieldArray::ReadParent - parent Field typeClass (%s) must be coda_array_class "
                               "(field '%s')",
                               coda_type_get_class_name(parentField->GetTypeClass()),
                               parentField->GetKey().c_str());
@@ -841,7 +841,7 @@ void CField::ReadParent(CDoubleArray& vect, CFieldRecord* parentField)
 
   if (parentField->GetNbDims() != 1 )
   {
-    string msg = CTools::Format("ERROR - CFieldBasic::ReadParent - Number of array dim %d not implemented for this method "
+    std::string msg = CTools::Format("ERROR - CFieldBasic::ReadParent - Number of array dim %d not implemented for this method "
                               "(field '%s')",
                               parentField->GetNbDims(),
                               parentField->GetKey().c_str());
@@ -902,7 +902,7 @@ void CField::ReadParent(CDoubleArray& vect, CObList* parentFieldList)
 
   if (parentFieldList->empty())
   {
-    string msg = CTools::Format("ERROR - CFieldArray::ReadParent - parent Field list is empty()"
+    std::string msg = CTools::Format("ERROR - CFieldArray::ReadParent - parent Field list is empty()"
                               "(field '%s')",
                               this->GetKey().c_str());
     CProductException e(msg, BRATHL_INCONSISTENCY_ERROR);
@@ -912,7 +912,7 @@ void CField::ReadParent(CDoubleArray& vect, CObList* parentFieldList)
   CFieldRecord* topParentField = dynamic_cast<CFieldRecord*>(*(parentFieldList->begin()));
   if (topParentField == NULL)
   {
-    string msg = CTools::Format("ERROR - CFieldArray::ReadParent - top parent Field list NULL()"
+    std::string msg = CTools::Format("ERROR - CFieldArray::ReadParent - top parent Field list NULL()"
                               "(field '%s')",
                               this->GetKey().c_str());
     CProductException e(msg, BRATHL_INCONSISTENCY_ERROR);
@@ -922,7 +922,7 @@ void CField::ReadParent(CDoubleArray& vect, CObList* parentFieldList)
 
   if (topParentField->GetTypeClass() != coda_array_class) //test the type of the parent type class
   {
-    string msg = CTools::Format("ERROR - CFieldArray::ReadParent - top parent Field typeClass (%s) must be coda_array_class "
+    std::string msg = CTools::Format("ERROR - CFieldArray::ReadParent - top parent Field typeClass (%s) must be coda_array_class "
                               "(field '%s')",
                               coda_type_get_class_name(topParentField->GetTypeClass()),
                               topParentField->GetKey().c_str());
@@ -933,7 +933,7 @@ void CField::ReadParent(CDoubleArray& vect, CObList* parentFieldList)
 
   if (topParentField->GetNbDims() != 1 )
   {
-    string msg = CTools::Format("ERROR - CFieldArray::ReadParent - Number of array dim %d not implemented for this method "
+    std::string msg = CTools::Format("ERROR - CFieldArray::ReadParent - Number of array dim %d not implemented for this method "
                               "(field '%s')",
                               topParentField->GetNbDims(),
                               topParentField->GetKey().c_str());
@@ -957,7 +957,7 @@ void CField::ReadParent(CDoubleArray& vect, CObList* parentFieldList)
 
     if (parentFieldRecord->GetTypeClass() == coda_array_class)
     {
-      string msg = CTools::Format("ERROR - CFieldArray::ReadParent - itermediate parent Field typeClass %s not not implemented for this method "
+      std::string msg = CTools::Format("ERROR - CFieldArray::ReadParent - itermediate parent Field typeClass %s not not implemented for this method "
                                 "(field '%s')",
                                 coda_type_get_class_name(parentFieldRecord->GetTypeClass()),
                                 parentFieldRecord->GetKey().c_str());
@@ -1006,7 +1006,7 @@ void CField::ReadParent(CDoubleArray& vect, CObList* parentFieldList)
 
     if (parentFieldRecord == NULL)
     {
-      string msg = CTools::Format("ERROR - CFieldArray::ReadParent - low parent Field list NULL()"
+      std::string msg = CTools::Format("ERROR - CFieldArray::ReadParent - low parent Field list NULL()"
                                 "(field '%s')",
                                 this->GetKey().c_str());
       CProductException e(msg, BRATHL_INCONSISTENCY_ERROR);
@@ -1047,21 +1047,21 @@ void CField::Read(CDoubleArray& vect, bool skip /*= false*/)
   throw (e);
 }
 //----------------------------------------
-void CField::Read(string& value, bool skip /*= false*/)
+void CField::Read(std::string& value, bool skip /*= false*/)
 {
 
-  CException e("ERROR - CField::Read(string& value) - unexpected call - CField::Read(string& value) have not to be called ", BRATHL_LOGIC_ERROR);
+  CException e("ERROR - CField::Read(std::string& value) - unexpected call - CField::Read(std::string& value) have not to be called ", BRATHL_LOGIC_ERROR);
   CTrace::Tracer("%s", e.what());
   Dump(*CTrace::GetDumpContext());
   throw (e);
 }
 //----------------------------------------
-string CField::GetNativeTypeName()
+std::string CField::GetNativeTypeName()
 {
   return coda_type_get_native_type_name(m_nativeType);
 }
 //----------------------------------------
-string CField::GetSpecialTypeName()
+std::string CField::GetSpecialTypeName()
 {
   return coda_type_get_special_type_name(m_specialType);
 }
@@ -1114,14 +1114,14 @@ CFieldNetCdfIndexData* CField::GetFieldNetCdfIndexData(CBratObject* ob, bool wit
 
 //----------------------------------------
 
-void CField::HandleBratError(const string& str /* = ""*/, int32_t errClass /* = BRATHL_LOGIC_ERROR*/)
+void CField::HandleBratError(const std::string& str /* = ""*/, int32_t errClass /* = BRATHL_LOGIC_ERROR*/)
 {
   if (coda_errno == 0)
   {
     return;
   }
 
-  string msg = CTools::Format("BRAT ERROR - %s - errno:#%d:%s", str.c_str(), coda_errno, coda_errno_to_string (coda_errno));
+  std::string msg = CTools::Format("BRAT ERROR - %s - errno:#%d:%s", str.c_str(), coda_errno, coda_errno_to_string (coda_errno));
   CProductException e(msg, errClass);
   CTrace::Tracer("%s", e.what());
   Dump(*CTrace::GetDumpContext());
@@ -1131,7 +1131,7 @@ void CField::HandleBratError(const string& str /* = ""*/, int32_t errClass /* = 
 
 
 //----------------------------------------
-void  CField::DumpFieldDictionary(ostream& fOut)
+void  CField::DumpFieldDictionary(std::ostream& fOut)
 {
   //fOut << typeid(*this).name() << "\t"
   fOut << m_name << "\t"
@@ -1153,7 +1153,7 @@ void  CField::DumpFieldDictionary(ostream& fOut)
 }
 //----------------------------------------
 
-void CField::Dump(ostream& fOut /* = cerr */)
+void CField::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -1161,29 +1161,29 @@ void CField::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CField Object at "<< this << endl;
+  fOut << "==> Dump a CField Object at "<< this << std::endl;
 
-  fOut << "m_name = " << m_name << endl;
-  fOut << "m_description = " << m_description << endl;
-  fOut << "m_unit = " << m_unit << endl;
-  fOut << "m_typeClass = " << m_typeClass << " (" << coda_type_get_class_name(m_typeClass) << ")" << endl;
-  fOut << "m_specialType = " << m_specialType << " (" << coda_type_get_special_type_name(m_specialType) << ")" << endl;
-  fOut << "m_nativeType = " << m_nativeType << " (" << coda_type_get_native_type_name(m_nativeType) << ")" << endl;
-  fOut << "m_metaData = " << m_metaData << endl;
-  fOut << "m_index = " << m_index << endl;
-  fOut << "m_isFixedSize = " << m_isFixedSize << endl;
-  fOut << "m_offset = " << m_offset << endl;
-  fOut << "m_nbDims = " << m_nbDims << endl;
+  fOut << "m_name = " << m_name << std::endl;
+  fOut << "m_description = " << m_description << std::endl;
+  fOut << "m_unit = " << m_unit << std::endl;
+  fOut << "m_typeClass = " << m_typeClass << " (" << coda_type_get_class_name(m_typeClass) << ")" << std::endl;
+  fOut << "m_specialType = " << m_specialType << " (" << coda_type_get_special_type_name(m_specialType) << ")" << std::endl;
+  fOut << "m_nativeType = " << m_nativeType << " (" << coda_type_get_native_type_name(m_nativeType) << ")" << std::endl;
+  fOut << "m_metaData = " << m_metaData << std::endl;
+  fOut << "m_index = " << m_index << std::endl;
+  fOut << "m_isFixedSize = " << m_isFixedSize << std::endl;
+  fOut << "m_offset = " << m_offset << std::endl;
+  fOut << "m_nbDims = " << m_nbDims << std::endl;
 
   for (int32_t i = 0 ; i < m_nbDims ; i++)
   {
-    fOut << "m_dim[" << i << "]=" << m_dim[i] << endl;
+    fOut << "m_dim[" << i << "]=" << m_dim[i] << std::endl;
   }
 
 
-  fOut << "==> END Dump a CField Object at "<< this << endl;
+  fOut << "==> END Dump a CField Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -1197,14 +1197,14 @@ CFieldRecord::CFieldRecord()
 }
 //----------------------------------------
 
-CFieldRecord::CFieldRecord(int32_t nbFields, const string& name, const string& description, const string& unit)
+CFieldRecord::CFieldRecord(int32_t nbFields, const std::string& name, const std::string& description, const std::string& unit)
     : CFieldArray(name, description, unit)
 {
   m_nbFields = nbFields;
 }
 //----------------------------------------
 
-CFieldRecord::CFieldRecord(int32_t nbDims, const long dim[], int32_t nbFields, const string& name, const string& description, const string& unit)
+CFieldRecord::CFieldRecord(int32_t nbDims, const long dim[], int32_t nbFields, const std::string& name, const std::string& description, const std::string& unit)
     : CFieldArray(nbDims, dim, name, description, unit)
 {
   m_nbFields = nbFields;
@@ -1310,7 +1310,7 @@ void CFieldRecord::Read(double* data, bool skip /*= false*/)
   coda_get_product_filename(pf, &fileName);
   HandleBratError("coda_get_product_filename in CFieldRecord::Read");
 
-  string msg = CTools::Format("ERROR - CFieldRecord::Read : Fieldname:'%s' is a record (structure) - It is not directly readable -"
+  std::string msg = CTools::Format("ERROR - CFieldRecord::Read : Fieldname:'%s' is a record (structure) - It is not directly readable -"
                               " Verify your field syntax with the file structure in the datadictionary - File:%s",
                               m_name.c_str(),
                               fileName);
@@ -1319,7 +1319,7 @@ void CFieldRecord::Read(double* data, bool skip /*= false*/)
 }
 
 //----------------------------------------
-void  CFieldRecord::DumpFieldDictionary(ostream& fOut)
+void  CFieldRecord::DumpFieldDictionary(std::ostream& fOut)
 {
   CFieldArray::DumpFieldDictionary(fOut);
 
@@ -1331,7 +1331,7 @@ void  CFieldRecord::DumpFieldDictionary(ostream& fOut)
 
 //----------------------------------------
 
-void CFieldRecord::Dump(ostream& fOut /* = cerr */)
+void CFieldRecord::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -1339,13 +1339,13 @@ void CFieldRecord::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CFieldRecord Object at "<< this << endl;
+  fOut << "==> Dump a CFieldRecord Object at "<< this << std::endl;
   CFieldArray::Dump(fOut);
-  fOut << "m_nbFields = " << m_nbFields << endl;
+  fOut << "m_nbFields = " << m_nbFields << std::endl;
 
-  fOut << "==> END Dump a CFieldRecord Object at "<< this << endl;
+  fOut << "==> END Dump a CFieldRecord Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -1363,7 +1363,7 @@ CFieldArray::CFieldArray()
 
 //----------------------------------------
 
-CFieldArray::CFieldArray(const string& name, const string& description, const string& unit)
+CFieldArray::CFieldArray(const std::string& name, const std::string& description, const std::string& unit)
     : CField(name, description, unit)
 {
 
@@ -1371,7 +1371,7 @@ CFieldArray::CFieldArray(const string& name, const string& description, const st
 
 //----------------------------------------
 
-CFieldArray::CFieldArray(int32_t nbDims, const long dim[], const string& name, const string& description, const string& unit)
+CFieldArray::CFieldArray(int32_t nbDims, const long dim[], const std::string& name, const std::string& description, const std::string& unit)
     : CField(name, description, unit)
 {
 
@@ -1468,8 +1468,8 @@ void CFieldArray::CreateFieldIndexes(CObArray& vect)
       continue;
     }
 
-    string name = CTools::Format("%s_index_%ld", m_name.c_str(), m_dim[i]);
-    string description = CTools::Format("dimension %d (value %ld) from '%s' field", i + 1, m_dim[i], m_name.c_str());
+    std::string name = CTools::Format("%s_index_%ld", m_name.c_str(), m_dim[i]);
+    std::string description = CTools::Format("dimension %d (value %ld) from '%s' field", i + 1, m_dim[i], m_name.c_str());
     CFieldIndex* field = new CFieldIndex(name, m_dim[i], description);
 
     AddFieldIndexes(field);
@@ -1551,7 +1551,7 @@ void CFieldArray::ReadParent(CDoubleArray& vect, CObList* parentFieldList)
 
   if (parentFieldList->empty())
   {
-    string msg = CTools::Format("ERROR - CFieldArray::ReadParent - parent Field list is empty()"
+    std::string msg = CTools::Format("ERROR - CFieldArray::ReadParent - parent Field list is empty()"
                               "(field '%s')",
                               this->GetKey().c_str());
     CProductException e(msg, BRATHL_INCONSISTENCY_ERROR);
@@ -1561,7 +1561,7 @@ void CFieldArray::ReadParent(CDoubleArray& vect, CObList* parentFieldList)
   CFieldRecord* topParentField = dynamic_cast<CFieldRecord*>(*(parentFieldList->begin()));
   if (topParentField == NULL)
   {
-    string msg = CTools::Format("ERROR - CFieldArray::ReadParent - top parent Field list NULL()"
+    std::string msg = CTools::Format("ERROR - CFieldArray::ReadParent - top parent Field list NULL()"
                               "(field '%s')",
                               this->GetKey().c_str());
     CProductException e(msg, BRATHL_INCONSISTENCY_ERROR);
@@ -1571,7 +1571,7 @@ void CFieldArray::ReadParent(CDoubleArray& vect, CObList* parentFieldList)
 
   if (topParentField->GetTypeClass() != coda_array_class) //test the type of the parent type class
   {
-    string msg = CTools::Format("ERROR - CFieldArray::ReadParent - top parent Field typeClass (%s) must be coda_array_class "
+    std::string msg = CTools::Format("ERROR - CFieldArray::ReadParent - top parent Field typeClass (%s) must be coda_array_class "
                               "(field '%s')",
                               coda_type_get_class_name(m_typeClass),
                               topParentField->GetKey().c_str());
@@ -1582,7 +1582,7 @@ void CFieldArray::ReadParent(CDoubleArray& vect, CObList* parentFieldList)
 
   if (topParentField->GetNbDims() != 1 )
   {
-    string msg = CTools::Format("ERROR - CFieldArray::ReadParent - Number of array dim %d not implemented for this method "
+    std::string msg = CTools::Format("ERROR - CFieldArray::ReadParent - Number of array dim %d not implemented for this method "
                               "(field '%s')",
                               topParentField->GetNbDims(),
                               topParentField->GetKey().c_str());
@@ -1606,7 +1606,7 @@ void CFieldArray::ReadParent(CDoubleArray& vect, CObList* parentFieldList)
 
     if (parentFieldRecord->GetTypeClass() == coda_array_class)
     {
-      string msg = CTools::Format("ERROR - CFieldArray::ReadParent - itermediate parent Field typeClass %s not not implemented for this method "
+      std::string msg = CTools::Format("ERROR - CFieldArray::ReadParent - itermediate parent Field typeClass %s not not implemented for this method "
                                 "(field '%s')",
                                 parentFieldRecord->GetNbDims(),
                                 parentFieldRecord->GetKey().c_str());
@@ -1652,7 +1652,7 @@ void CFieldArray::ReadParent(CDoubleArray& vect, CObList* parentFieldList)
 
     if (parentFieldRecord == NULL)
     {
-      string msg = CTools::Format("ERROR - CFieldArray::ReadParent - low parent Field list NULL()"
+      std::string msg = CTools::Format("ERROR - CFieldArray::ReadParent - low parent Field list NULL()"
                                 "(field '%s')",
                                 this->GetKey().c_str());
       CProductException e(msg, BRATHL_INCONSISTENCY_ERROR);
@@ -1683,7 +1683,7 @@ void CFieldArray::ReadParent(CDoubleArray& vect, CFieldRecord* parentField)
 
   if (parentField->GetTypeClass() != brat_array_class) //test the type of the parent type class
   {
-    string msg = CTools::Format("ERROR - CFieldArray::ReadParent - parent Field typeClass (%s) must be brat_array_class "
+    std::string msg = CTools::Format("ERROR - CFieldArray::ReadParent - parent Field typeClass (%s) must be brat_array_class "
                               "(field '%s')",
                               brat_type_get_class_name(m_typeClass),
                               parentField->GetKey().c_str());
@@ -1694,7 +1694,7 @@ void CFieldArray::ReadParent(CDoubleArray& vect, CFieldRecord* parentField)
 
   if (parentField->GetNbDims() != 1 )
   {
-    string msg = CTools::Format("ERROR - CFieldBasic::ReadParent - Number of array dim %d not implemented for this method "
+    std::string msg = CTools::Format("ERROR - CFieldBasic::ReadParent - Number of array dim %d not implemented for this method "
                               "(field '%s')",
                               parentField->GetNbDims(),
                               parentField->GetKey().c_str());
@@ -1788,7 +1788,7 @@ void CFieldArray::Read(double* data, bool skip /*= false*/)
       coda_get_product_filename(pf, &fileName);
       HandleBratError("coda_get_product_filename in CFieldArray::Read");
 
-      string msg = CTools::Format("ERROR - CFieldArray::Read : unexpected Brat special type %d (%s) -  FieldName:%s - File:%s",
+      std::string msg = CTools::Format("ERROR - CFieldArray::Read : unexpected Brat special type %d (%s) -  FieldName:%s - File:%s",
                                   this->m_specialType,
                                   coda_type_get_special_type_name(this->m_specialType),
                                   m_name.c_str(),
@@ -1835,7 +1835,7 @@ void CFieldArray::Read(double* data, bool skip /*= false*/)
       coda_get_product_filename(pf, &fileName);
       HandleBratError("coda_get_product_filename in CFieldArray::Read");
 
-      string msg = CTools::Format("ERROR - CFieldArray::Read : unexpected Brat native type %d (%s) -  FieldName:%s - File:%s",
+      std::string msg = CTools::Format("ERROR - CFieldArray::Read : unexpected Brat native type %d (%s) -  FieldName:%s - File:%s",
                                   this->m_nativeType,
                                   coda_type_get_native_type_name(this->m_nativeType),
                                   m_name.c_str(),
@@ -1854,7 +1854,7 @@ void CFieldArray::Read(double* data, bool skip /*= false*/)
 }
 
 //----------------------------------------
-void  CFieldArray::DumpFieldDictionary(ostream& fOut)
+void  CFieldArray::DumpFieldDictionary(std::ostream& fOut)
 {
   CField::DumpFieldDictionary(fOut);
 
@@ -1862,18 +1862,18 @@ void  CFieldArray::DumpFieldDictionary(ostream& fOut)
 
 //----------------------------------------
 
-void CFieldArray::Dump(ostream& fOut /* = cerr */)
+void CFieldArray::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
 
-  fOut << "==> Dump a CFieldArray Object at "<< this << endl;
+  fOut << "==> Dump a CFieldArray Object at "<< this << std::endl;
   CField::Dump(fOut);
-  fOut << "==> END Dump a CFieldArray Object at "<< this << endl;
+  fOut << "==> END Dump a CFieldArray Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -1888,7 +1888,7 @@ CFieldBasic::CFieldBasic()
 
 //----------------------------------------
 
-CFieldBasic::CFieldBasic(long length, const string& name, const string& description, const string& unit)
+CFieldBasic::CFieldBasic(long length, const std::string& name, const std::string& description, const std::string& unit)
     : CField(name, description, unit)
 {
     m_length = length;
@@ -1961,7 +1961,7 @@ void CFieldBasic::ReadParent(CDoubleArray& vect, CFieldRecord* parentField)
 
   if (parentField->GetTypeClass() != brat_array_class) //test the type of the parent type class
   {
-    string msg = CTools::Format("ERROR - CFieldBasic::ReadParent - parent Field typeClass (%s) must be brat_array_class "
+    std::string msg = CTools::Format("ERROR - CFieldBasic::ReadParent - parent Field typeClass (%s) must be brat_array_class "
                               "(field '%s')",
                               brat_type_get_class_name(m_typeClass),
                               parentField->GetKey().c_str());
@@ -1972,7 +1972,7 @@ void CFieldBasic::ReadParent(CDoubleArray& vect, CFieldRecord* parentField)
 
   if (parentField->GetNbDims() != 1 )
   {
-    string msg = CTools::Format("ERROR - CFieldBasic::ReadParent - Number of array dim %d not implemented for this method "
+    std::string msg = CTools::Format("ERROR - CFieldBasic::ReadParent - Number of array dim %d not implemented for this method "
                               "(field '%s')",
                               parentField->GetNbDims(),
                               parentField->GetKey().c_str());
@@ -2068,7 +2068,7 @@ void CFieldBasic::Read(double* data, bool skip /*= false*/)
       coda_get_product_filename(pf, &fileName);
       HandleBratError("coda_get_product_filename in CFieldBasic::Read");
 
-      string msg = CTools::Format("ERROR - CFieldBasic::Read : unexpected Brat special type %d (%s) -  FieldName:%s - File:%s",
+      std::string msg = CTools::Format("ERROR - CFieldBasic::Read : unexpected Brat special type %d (%s) -  FieldName:%s - File:%s",
                                   this->m_specialType,
                                   coda_type_get_special_type_name(this->m_specialType),
                                   m_name.c_str(),
@@ -2115,7 +2115,7 @@ void CFieldBasic::Read(double* data, bool skip /*= false*/)
       coda_get_product_filename(pf, &fileName);
       HandleBratError("coda_get_product_filename in CFieldBasic::Read");
 
-      string msg = CTools::Format("ERROR - CFieldBasic::Read : unexpected Brat native type %d (%s) -  FieldName:%s - File:%s",
+      std::string msg = CTools::Format("ERROR - CFieldBasic::Read : unexpected Brat native type %d (%s) -  FieldName:%s - File:%s",
                                   this->m_nativeType,
                                   coda_type_get_native_type_name(this->m_nativeType),
                                   m_name.c_str(),
@@ -2133,7 +2133,7 @@ void CFieldBasic::Read(double* data, bool skip /*= false*/)
 
 
 //----------------------------------------
-void CFieldBasic::Read(string& value, bool skip /*= false*/)
+void CFieldBasic::Read(std::string& value, bool skip /*= false*/)
 {
   if (skip)
   {
@@ -2159,12 +2159,12 @@ void CFieldBasic::Read(string& value, bool skip /*= false*/)
       const char *fileName;
 
       coda_cursor_get_product_file(&m_cursor, &pf);
-      HandleBratError("coda_cursor_get_product in CFieldBasic::Read(string& value)");
+      HandleBratError("coda_cursor_get_product in CFieldBasic::Read(std::string& value)");
 
       coda_get_product_filename(pf, &fileName);
-      HandleBratError("coda_get_product_filename in CFieldBasic::Read(string& value)");
+      HandleBratError("coda_get_product_filename in CFieldBasic::Read(std::string& value)");
 
-      string msg = CTools::Format("ERROR - CFieldBasic::Read (string& data): unexpected Brat special type %d (%s) -  FieldName:%s - File:%s",
+      std::string msg = CTools::Format("ERROR - CFieldBasic::Read (std::string& data): unexpected Brat special type %d (%s) -  FieldName:%s - File:%s",
                                   this->m_specialType,
                                   coda_type_get_special_type_name(this->m_specialType),
                                   m_name.c_str(),
@@ -2185,7 +2185,7 @@ void CFieldBasic::Read(string& value, bool skip /*= false*/)
       char *data = NULL;
 
       coda_cursor_get_string_length(&m_cursor, &length);
-      HandleBratError("coda_cursor_get_string_length in CFieldBasic::Read(string& value)");
+      HandleBratError("coda_cursor_get_string_length in CFieldBasic::Read(std::string& value)");
 
       if (length <= 0)
       {
@@ -2198,11 +2198,11 @@ void CFieldBasic::Read(string& value, bool skip /*= false*/)
         coda_set_error(CODA_ERROR_OUT_OF_MEMORY,
                        "out of memory (could not allocate %lu bytes)",
                        (long)length + 1);
-        HandleBratError("CFieldBasic::Read(string& value)");
+        HandleBratError("CFieldBasic::Read(std::string& value)");
       }
 
       coda_cursor_read_string(&m_cursor, data, length + 1);
-      HandleBratError("coda_cursor_read_string in CFieldBasic::Read(string& value)");
+      HandleBratError("coda_cursor_read_string in CFieldBasic::Read(std::string& value)");
 
       value = data;
       delete []data;
@@ -2216,12 +2216,12 @@ void CFieldBasic::Read(string& value, bool skip /*= false*/)
       const char *fileName;
 
       coda_cursor_get_product_file(&m_cursor, &pf);
-      HandleBratError("coda_cursor_set_product in CFieldBasic::Read(string& value)");
+      HandleBratError("coda_cursor_set_product in CFieldBasic::Read(std::string& value)");
 
       coda_get_product_filename(pf, &fileName);
-      HandleBratError("coda_get_product_filename in CFieldBasic::Read(string& value)");
+      HandleBratError("coda_get_product_filename in CFieldBasic::Read(std::string& value)");
 
-      string msg = CTools::Format("ERROR - CFieldBasic::Read(string& value) : unexpected Brat native type %d (%s) -  FieldName:%s - File:%s",
+      std::string msg = CTools::Format("ERROR - CFieldBasic::Read(std::string& value) : unexpected Brat native type %d (%s) -  FieldName:%s - File:%s",
                                   this->m_nativeType,
                                   coda_type_get_native_type_name(this->m_nativeType),
                                   m_name.c_str(),
@@ -2250,7 +2250,7 @@ void CFieldBasic::PopCursor()
 
 
 //----------------------------------------
-void  CFieldBasic::DumpFieldDictionary(ostream& fOut)
+void  CFieldBasic::DumpFieldDictionary(std::ostream& fOut)
 {
   CField::DumpFieldDictionary(fOut);
 
@@ -2258,18 +2258,18 @@ void  CFieldBasic::DumpFieldDictionary(ostream& fOut)
 
 //----------------------------------------
 
-void CFieldBasic::Dump(ostream& fOut /* = cerr */)
+void CFieldBasic::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
 
-  fOut << "==> Dump a CFieldBasic Object at "<< this << endl;
+  fOut << "==> Dump a CFieldBasic Object at "<< this << std::endl;
   CField::Dump(fOut);
-  fOut << "==> END Dump a CFieldBasic Object at "<< this << endl;
+  fOut << "==> END Dump a CFieldBasic Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -2285,7 +2285,7 @@ CFieldIndexData::CFieldIndexData()
 
 //----------------------------------------
 
-CFieldIndexData::CFieldIndexData(const string& name, const string& description, const string& unit /*= ""*/)
+CFieldIndexData::CFieldIndexData(const std::string& name, const std::string& description, const std::string& unit /*= ""*/)
     : CFieldBasic(-1, name, description, unit)
 {
   Init();
@@ -2383,7 +2383,7 @@ void CFieldIndexData::Read(double* data, bool skip /*= false*/)
 
 
 //----------------------------------------
-void CFieldIndexData::Read(string& value, bool skip /*= false*/)
+void CFieldIndexData::Read(std::string& value, bool skip /*= false*/)
 {
   if (skip)
   {
@@ -2412,7 +2412,7 @@ void CFieldIndexData::PopCursor()
 
 
 //----------------------------------------
-void  CFieldIndexData::DumpFieldDictionary(ostream& fOut)
+void  CFieldIndexData::DumpFieldDictionary(std::ostream& fOut)
 {
   CField::DumpFieldDictionary(fOut);
 
@@ -2420,21 +2420,21 @@ void  CFieldIndexData::DumpFieldDictionary(ostream& fOut)
 
 //----------------------------------------
 
-void CFieldIndexData::Dump(ostream& fOut /* = cerr */)
+void CFieldIndexData::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
 
-  fOut << "==> Dump a CFieldIndexData Object at "<< this << endl;
+  fOut << "==> Dump a CFieldIndexData Object at "<< this << std::endl;
   CField::Dump(fOut);
   
-  fOut << "GetValues returns " << this->GetValue() << endl;
+  fOut << "GetValues returns " << this->GetValue() << std::endl;
 
-  fOut << "==> END Dump a CFieldIndexData Object at "<< this << endl;
+  fOut << "==> END Dump a CFieldIndexData Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 //-------------------------------------------------------------
@@ -2448,9 +2448,9 @@ CFieldNetCdf::CFieldNetCdf()
 }
 
 //----------------------------------------
-CFieldNetCdf::CFieldNetCdf(const string& name,
-                           const string& description,
-                           const string& unit,
+CFieldNetCdf::CFieldNetCdf(const std::string& name,
+                           const std::string& description,
+                           const std::string& unit,
                            int32_t netCdfId /*= NC_GLOBAL*/,
                            int32_t type /*= NC_NAT*/,
                            const CUIntArray* dimValues  /*= NULL*/,
@@ -2573,9 +2573,9 @@ int32_t CFieldNetCdf::GetVirtualNbDims()
 }
 
 //----------------------------------------
-string CFieldNetCdf::GetMostExplicitName()
+std::string CFieldNetCdf::GetMostExplicitName()
 {
-  string str = m_mapAttributes.Exists(STANDARD_NAME_ATTR);
+  std::string str = m_mapAttributes.Exists(STANDARD_NAME_ATTR);
 
   if (str.empty())
   {
@@ -2591,7 +2591,7 @@ string CFieldNetCdf::GetMostExplicitName()
   return str;
 }
 //----------------------------------------
-void CFieldNetCdf::SetUnit(const string& unit)
+void CFieldNetCdf::SetUnit(const std::string& unit)
 {
 
   CUnit unitTmp;
@@ -2601,7 +2601,7 @@ void CFieldNetCdf::SetUnit(const string& unit)
   }
   catch (CException& e)
   {
-    //cerr << "Warning: " << m_name << " - unknown unit '" << unit << "'" << endl;
+    //std::cerr << "Warning: " << m_name << " - unknown unit '" << unit << "'" << std::endl;
     e.TypeOf();  // To avoid warning compilation
     unitTmp = "";
   }
@@ -2618,7 +2618,7 @@ void CFieldNetCdf::SetUnit(const CUnit& unit)
   }
   catch (CException& e)
   {
-    //cerr << "Warning: " << m_name << " - unknown unit '" << unit << "'" << endl;
+    //std::cerr << "Warning: " << m_name << " - unknown unit '" << unit << "'" << std::endl;
     e.TypeOf();  // To avoid warning compilation
     m_netCdfUnit = "";
   }
@@ -2628,12 +2628,12 @@ void CFieldNetCdf::SetUnit(const CUnit& unit)
 }
 
 //----------------------------------------
-string CFieldNetCdf::GetTypeName()
+std::string CFieldNetCdf::GetTypeName()
 {
   return CNetCDFFiles::GetTypeAsString(m_type);
 }
 //----------------------------------------
-string CFieldNetCdf::GetSpecialTypeName()
+std::string CFieldNetCdf::GetSpecialTypeName()
 {
   return CNetCDFFiles::GetTypeAsString(GetSpecialType());
 }
@@ -2756,7 +2756,7 @@ void CFieldNetCdf::SetAttributes(const CStringMap* mapAttributes)
 }
 
 //----------------------------------------
-string CFieldNetCdf::GetAttribute(const string attrName)
+std::string CFieldNetCdf::GetAttribute(const std::string attrName)
 {
   return m_mapAttributes.Exists(attrName);
 }
@@ -2800,7 +2800,7 @@ void CFieldNetCdf::SetDimNames(const CStringArray& dimNames)
 }
 
 //----------------------------------------
-uint32_t CFieldNetCdf::GetDimRange(const string& dimName)
+uint32_t CFieldNetCdf::GetDimRange(const std::string& dimName)
 {
   return m_dimRanges.Exists(dimName);
 }
@@ -2907,7 +2907,7 @@ void CFieldNetCdf::GetDimIdsAsArray(CIntArray& values, bool bRemoveAll /*= true*
 
 }
 //----------------------------------------
-CDoubleArray& CFieldNetCdf::GetValuesWithUnitConversion(const string& wantedUnit)
+CDoubleArray& CFieldNetCdf::GetValuesWithUnitConversion(const std::string& wantedUnit)
 {
   CUnit* unit = GetNetCdfUnit();
 
@@ -2946,7 +2946,7 @@ void CFieldNetCdf::SetValues(const CDoubleArray* values)
 }
 
 //----------------------------------------
-void CFieldNetCdf::SetValues(const string& values)
+void CFieldNetCdf::SetValues(const std::string& values)
 {
   m_values.RemoveAll();
   m_values.Insert(values);
@@ -3123,7 +3123,7 @@ void CFieldNetCdf::InitDimsIndexToMax()
 {
   for (int32_t i = 0 ; i < m_nbDims ; i++)
   {
-    //string dimName = m_dimNames.at(i);
+    //std::string dimName = m_dimNames.at(i);
     //m_dimsIndexArray[i] = m_dimValues.Exists(dimName) - 1;
     InitDimsIndexToMax(i);
   }
@@ -3131,7 +3131,7 @@ void CFieldNetCdf::InitDimsIndexToMax()
 //----------------------------------------
 void CFieldNetCdf::InitDimsIndexToMax(uint32_t index)
 {
-  string dimName = m_dimNames.at(index);
+  std::string dimName = m_dimNames.at(index);
   m_dimsIndexArray[index] = m_dimValues.Exists(dimName) - 1;
 }
 
@@ -3155,7 +3155,7 @@ bool CFieldNetCdf::NextIndex()
 
   for (int32_t i = m_nbDims - 1 ; i >= 0 ; i--)
   {
-    string dimName = m_dimNames.at(i);
+    std::string dimName = m_dimNames.at(i);
 
     uint32_t currentIndex = m_dimsIndexArray[i];
     uint32_t count = m_dimsCountArray[i];
@@ -3210,7 +3210,7 @@ bool CFieldNetCdf::PrevIndex()
 
   for (int32_t i = m_nbDims - 1 ; i >= 0 ; i--)
   {
-    string dimName = m_dimNames.at(i);
+    std::string dimName = m_dimNames.at(i);
 
     uint32_t currentIndex = m_dimsIndexArray[i];
     uint32_t count = m_dimsCountArray[i];
@@ -3250,7 +3250,7 @@ bool CFieldNetCdf::PrevIndex()
   return result;
 }
 //----------------------------------------
-void CFieldNetCdf::SetIndex(const string& dimName, uint32_t index, uint32_t count)
+void CFieldNetCdf::SetIndex(const std::string& dimName, uint32_t index, uint32_t count)
 {
   if (index == AT_BEGINNING)
   {
@@ -3271,7 +3271,7 @@ void CFieldNetCdf::SetIndex(const string& dimName, uint32_t index, uint32_t coun
 
   if (CTools::IsDefaultValue(range))
   {
-    CException e(CTools::Format("ERROR - CFieldNetCdf::SetIndex(const string& dimNames, uint32_t index, uint32_t count) - "
+    CException e(CTools::Format("ERROR - CFieldNetCdf::SetIndex(const std::string& dimNames, uint32_t index, uint32_t count) - "
                                 "dimension name not found : '%s'"
                                 " - Field name '%s'",
                                 dimName.c_str(),
@@ -3284,7 +3284,7 @@ void CFieldNetCdf::SetIndex(const string& dimName, uint32_t index, uint32_t coun
 
   if (int32_t(range) >= m_nbDims)
   {
-    CException e(CTools::Format("ERROR - CFieldNetCdf::SetIndex(const string& dimNames, uint32_t index, uint32_t count) - "
+    CException e(CTools::Format("ERROR - CFieldNetCdf::SetIndex(const std::string& dimNames, uint32_t index, uint32_t count) - "
                                 "range %d >= number of dimensions %d"
                                 " - Field name '%s' - Dimension name '%s' ",
                                 range,
@@ -3299,7 +3299,7 @@ void CFieldNetCdf::SetIndex(const string& dimName, uint32_t index, uint32_t coun
 
   if (int32_t(index) >= m_dim[range])
   {
-    CException e(CTools::Format("ERROR - CFieldNetCdf::SetIndex(const string& dimNames, uint32_t index, uint32_t count) - "
+    CException e(CTools::Format("ERROR - CFieldNetCdf::SetIndex(const std::string& dimNames, uint32_t index, uint32_t count) - "
                                 "dimension index  %d >= max dimension index %d"
                                 " - Field name '%s' - Dimension name '%s' - Dimension range %ld",
                                 range,
@@ -3315,7 +3315,7 @@ void CFieldNetCdf::SetIndex(const string& dimName, uint32_t index, uint32_t coun
 
   if (int32_t(count) > m_dim[range])
   {
-    CException e(CTools::Format("ERROR - CFieldNetCdf::SetIndex(const string& dimNames, uint32_t index, uint32_t count) - "
+    CException e(CTools::Format("ERROR - CFieldNetCdf::SetIndex(const std::string& dimNames, uint32_t index, uint32_t count) - "
                                 "dimension counter  %d > max dimension index %d"
                                 " - Field name '%s' - Dimension name '%s' - Dimension range %ld",
                                 range,
@@ -3413,7 +3413,7 @@ CFieldSet* CFieldNetCdf::CreateFieldSet()
 }
 
 //----------------------------------------
-string CFieldNetCdf::GetRecordName()
+std::string CFieldNetCdf::GetRecordName()
 {
   if (m_recordName.empty() == false)
   {
@@ -3425,7 +3425,7 @@ string CFieldNetCdf::GetRecordName()
   return m_recordName;
 }
 //----------------------------------------
-string CFieldNetCdf::GetFullName()
+std::string CFieldNetCdf::GetFullName()
 {
 
   if (m_fullName.empty() == false)
@@ -3450,7 +3450,7 @@ string CFieldNetCdf::GetFullName()
   return m_fullName;
 }
 //----------------------------------------
-string CFieldNetCdf::GetFullNameWithRecord()
+std::string CFieldNetCdf::GetFullNameWithRecord()
 {
   return GetFullName();
 }
@@ -3463,7 +3463,7 @@ NetCDFVarKind CFieldNetCdf::SearchDimKind()
     return T;
   }
 
-  string str = GetAttribute(STANDARD_NAME_ATTR);
+  std::string str = GetAttribute(STANDARD_NAME_ATTR);
 
   NetCDFVarKind dimKind = CNetCDFFiles::GetVarKindFromStringValue(str);
 
@@ -3503,7 +3503,7 @@ void CFieldNetCdf::Read(CExpressionValue& value, bool skip /*= false*/)
 }
 
 //----------------------------------------
-void CFieldNetCdf::DumpFieldDictionary(ostream& fOut)
+void CFieldNetCdf::DumpFieldDictionary(std::ostream& fOut)
 {
   CField::DumpFieldDictionary(fOut);
 
@@ -3548,67 +3548,67 @@ void CFieldNetCdf::SetValuesAsArray(const CDoubleArray* values)
 
 //----------------------------------------
 
-void CFieldNetCdf::Dump(ostream& fOut /* = cerr */)
+void CFieldNetCdf::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
 
-  fOut << "==> Dump a CFieldNetCdf Object at "<< this << endl;
+  fOut << "==> Dump a CFieldNetCdf Object at "<< this << std::endl;
   CField::Dump(fOut);
 
-  fOut << "m_type: " << m_type << endl;
-  fOut << "m_netCdfUnit: "  << endl;
+  fOut << "m_type: " << m_type << std::endl;
+  fOut << "m_netCdfUnit: "  << std::endl;
   m_netCdfUnit.Dump(fOut);
-  fOut << "m_scaleFactor: " << m_scaleFactor << endl;
-  fOut << "m_addOffset: " << m_addOffset << endl;
-  fOut << "m_fillValue: " << m_fillValue << endl;
-  fOut << "m_netCdfId: " << m_netCdfId << endl;
-  fOut << "m_type: " << m_type << endl;
-  fOut << "m_dimNames: "  << endl;
+  fOut << "m_scaleFactor: " << m_scaleFactor << std::endl;
+  fOut << "m_addOffset: " << m_addOffset << std::endl;
+  fOut << "m_fillValue: " << m_fillValue << std::endl;
+  fOut << "m_netCdfId: " << m_netCdfId << std::endl;
+  fOut << "m_type: " << m_type << std::endl;
+  fOut << "m_dimNames: "  << std::endl;
   m_dimNames.Dump(fOut);
-  fOut << "m_dimValues: "  << endl;
+  fOut << "m_dimValues: "  << std::endl;
   m_dimValues.Dump(fOut);
-  fOut << "m_dimIds: "  << endl;
+  fOut << "m_dimIds: "  << std::endl;
   m_dimIds.Dump(fOut);
-  fOut << "m_dimRanges: "  << endl;
+  fOut << "m_dimRanges: "  << std::endl;
   m_dimRanges.Dump(fOut);
-  fOut << "m_valuesWithUnitConversion: "  << endl;
+  fOut << "m_valuesWithUnitConversion: "  << std::endl;
   m_valuesWithUnitConversion.Dump(fOut);
-  fOut << "m_values: "  << endl;
+  fOut << "m_values: "  << std::endl;
   m_values.Dump(fOut);
-  fOut << "m_mapAttributes: "  << endl;
+  fOut << "m_mapAttributes: "  << std::endl;
   m_mapAttributes.Dump(fOut);
   if (m_dimsIndexArray == NULL)
   {
-    fOut << "m_dimsIndexArray: NULL"  << endl;
+    fOut << "m_dimsIndexArray: NULL"  << std::endl;
   }
   else
   {
-    fOut << "m_dimsIndexArray: "  << endl;
+    fOut << "m_dimsIndexArray: "  << std::endl;
     for (int32_t i = 0 ; i < m_nbDims ; i++)
     {
-      fOut << "m_dimsIndexArray[" << i << "]=" <<  m_dimsIndexArray[i] << endl;
+      fOut << "m_dimsIndexArray[" << i << "]=" <<  m_dimsIndexArray[i] << std::endl;
     }
   }
   if (m_dimsCountArray == NULL)
   {
-    fOut << "m_dimsCountArray: NULL"  << endl;
+    fOut << "m_dimsCountArray: NULL"  << std::endl;
   }
   else
   {
-    fOut << "m_dimsCountArray: "  << endl;
+    fOut << "m_dimsCountArray: "  << std::endl;
     for (int32_t i = 0 ; i < m_nbDims ; i++)
     {
-      fOut << "m_dimsCountArray[" << i << "]=" <<  m_dimsCountArray[i] << endl;
+      fOut << "m_dimsCountArray[" << i << "]=" <<  m_dimsCountArray[i] << std::endl;
     }
   }
-  fOut << "m_atBeginning: " << m_atBeginning << endl;
+  fOut << "m_atBeginning: " << m_atBeginning << std::endl;
 
-  fOut << "==> END Dump a CFieldNetCdf Object at "<< this << endl;
+  fOut << "==> END Dump a CFieldNetCdf Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -3625,9 +3625,9 @@ CFieldNetCdfCF::CFieldNetCdfCF()
 }
 
 //----------------------------------------
-CFieldNetCdfCF::CFieldNetCdfCF(const string& name,
-                           const string& description,
-                           const string& unit,
+CFieldNetCdfCF::CFieldNetCdfCF(const std::string& name,
+                           const std::string& description,
+                           const std::string& unit,
                            int32_t netCdfId /*= NC_GLOBAL*/,
                            int32_t type /*= NC_NAT*/,
                            const CUIntArray* dimValues  /*= NULL*/,
@@ -3680,9 +3680,9 @@ void CFieldNetCdfCF::Set(CFieldNetCdfCF& f)
 }
 
 //----------------------------------------
-string CFieldNetCdfCF::GetDimAsString()
+std::string CFieldNetCdfCF::GetDimAsString()
 {
-  string dims;
+  std::string dims;
 
   if ((m_dimValues.size() <= 0) || (int32_t(m_dimValues.size()) != m_nbDims))
   {
@@ -3695,14 +3695,14 @@ string CFieldNetCdfCF::GetDimAsString()
   return dims;
 }
 //----------------------------------------
-string CFieldNetCdfCF::GetDimAsStringWithIndexes()
+std::string CFieldNetCdfCF::GetDimAsStringWithIndexes()
 {
   return CFieldNetCdf::GetDimAsString();
 }
 //----------------------------------------
-string CFieldNetCdfCF::GetDimAsStringWithNames()
+std::string CFieldNetCdfCF::GetDimAsStringWithNames()
 {
-  string dims;
+  std::string dims;
   for (int32_t i = 0 ; i < m_nbDims ; i++)
   {
     dims += CTools::Format(128,  "[%s]=%ld ", m_dimNames.at(i).c_str(), m_dim[i]);
@@ -3712,7 +3712,7 @@ string CFieldNetCdfCF::GetDimAsStringWithNames()
 
 
 //----------------------------------------
-void CFieldNetCdfCF::DumpFieldDictionary(ostream& fOut)
+void CFieldNetCdfCF::DumpFieldDictionary(std::ostream& fOut)
 {
   CFieldNetCdf::DumpFieldDictionary(fOut);
 
@@ -3720,18 +3720,18 @@ void CFieldNetCdfCF::DumpFieldDictionary(ostream& fOut)
 
 //----------------------------------------
 
-void CFieldNetCdfCF::Dump(ostream& fOut /* = cerr */)
+void CFieldNetCdfCF::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
 
-  fOut << "==> Dump a CFieldNetCdfCF Object at "<< this << endl;
+  fOut << "==> Dump a CFieldNetCdfCF Object at "<< this << std::endl;
   CFieldNetCdf::Dump(fOut);
-  fOut << "==> END Dump a CFieldNetCdfCF Object at "<< this << endl;
+  fOut << "==> END Dump a CFieldNetCdfCF Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -3746,9 +3746,9 @@ CFieldNetCdfIndexData::CFieldNetCdfIndexData()
 }
 
 //----------------------------------------
-CFieldNetCdfIndexData::CFieldNetCdfIndexData(const string& name,
-                           const string& description,
-                           const string& unit,
+CFieldNetCdfIndexData::CFieldNetCdfIndexData(const std::string& name,
+                           const std::string& description,
+                           const std::string& unit,
                            int32_t netCdfId /*= NC_GLOBAL*/,
                            int32_t type /*= NC_NAT*/,
                            const CUIntArray* dimValues  /*= NULL*/,
@@ -3877,7 +3877,7 @@ void CFieldNetCdfIndexData::SetValuesWithOffset(double newOffset, bool force /*=
 }
 
 //----------------------------------------
-void CFieldNetCdfIndexData::DumpFieldDictionary(ostream& fOut)
+void CFieldNetCdfIndexData::DumpFieldDictionary(std::ostream& fOut)
 {
   CFieldNetCdfCF::DumpFieldDictionary(fOut);
 
@@ -3885,18 +3885,18 @@ void CFieldNetCdfIndexData::DumpFieldDictionary(ostream& fOut)
 
 //----------------------------------------
 
-void CFieldNetCdfIndexData::Dump(ostream& fOut /* = cerr */)
+void CFieldNetCdfIndexData::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
 
-  fOut << "==> Dump a CFieldNetCdfIndexData Object at "<< this << endl;
+  fOut << "==> Dump a CFieldNetCdfIndexData Object at "<< this << std::endl;
   CFieldNetCdfCF::Dump(fOut);
-  fOut << "==> END Dump a CFieldNetCdfIndexData Object at "<< this << endl;
+  fOut << "==> END Dump a CFieldNetCdfIndexData Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -3919,7 +3919,7 @@ CFieldNetCdfCFAttr::CFieldNetCdfCFAttr(CNetCDFVarDef* netCDFVarDef,
 
   SetNetCDFAttr(netCDFAttr);
 
-  string attrFullName;
+  std::string attrFullName;
 
   attrFullName.append(netCDFVarDef->GetName());
   attrFullName.append("_");
@@ -4032,7 +4032,7 @@ void CFieldNetCdfCFAttr::SetInfoFromAttr(CNetCDFAttr* netCDFAttr, CNetCDFVarDef*
     return;
   }
 
-  // If attribute value is a string date representation then
+  // If attribute value is a std::string date representation then
   // - set unit
   // - change data type
   if (netCDFAttr->IsValueDate())
@@ -4065,7 +4065,7 @@ void CFieldNetCdfCFAttr::SetValuesFromAttr(CNetCDFAttr* netCDFAttr)
     return;
   }
 
-  // If attribute value is a string date representation then
+  // If attribute value is a std::string date representation then
   // - set value from double data
   if (netCDFAttr->IsValueDate())
   {
@@ -4171,7 +4171,7 @@ bool CFieldNetCdfCFAttr::IsFieldNetCdfCFAttrVariable(CBratObject* ob)
 }
 
 //----------------------------------------
-string CFieldNetCdfCFAttr::GetMostExplicitName()
+std::string CFieldNetCdfCFAttr::GetMostExplicitName()
 {
   return m_name;
 }
@@ -4188,7 +4188,7 @@ void CFieldNetCdfCFAttr::SetAttributes(const CStringMap* mapAttributes)
 }
 
 //----------------------------------------
-void CFieldNetCdfCFAttr::DumpFieldDictionary(ostream& fOut)
+void CFieldNetCdfCFAttr::DumpFieldDictionary(std::ostream& fOut)
 {
   CFieldNetCdfCF::DumpFieldDictionary(fOut);
 
@@ -4198,19 +4198,19 @@ void CFieldNetCdfCFAttr::DumpFieldDictionary(ostream& fOut)
 
 //----------------------------------------
 
-void CFieldNetCdfCFAttr::Dump(ostream& fOut /* = cerr */)
+void CFieldNetCdfCFAttr::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
 
-  fOut << "==> Dump a CFieldNetCdfCFAttr Object at "<< this << endl;
+  fOut << "==> Dump a CFieldNetCdfCFAttr Object at "<< this << std::endl;
   CFieldNetCdfCF::Dump(fOut);
   m_netCDFAttr->Dump(fOut);
-  fOut << "==> END Dump a CFieldNetCdfCFAttr Object at "<< this << endl;
+  fOut << "==> END Dump a CFieldNetCdfCFAttr Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -4229,7 +4229,7 @@ CFieldIndex::CFieldIndex()
 
 //----------------------------------------
 
-CFieldIndex::CFieldIndex(const string& name, int32_t nbElts, const string& description, const string& unit)
+CFieldIndex::CFieldIndex(const std::string& name, int32_t nbElts, const std::string& description, const std::string& unit)
     : CField(name, description, unit)
 {
   Init();
@@ -4364,7 +4364,7 @@ void CFieldIndex::ReadAllValues(CDoubleArray& vect)
 }
 
 //----------------------------------------
-void  CFieldIndex::DumpFieldDictionary(ostream& fOut)
+void  CFieldIndex::DumpFieldDictionary(std::ostream& fOut)
 {
   CField::DumpFieldDictionary(fOut);
 
@@ -4372,18 +4372,18 @@ void  CFieldIndex::DumpFieldDictionary(ostream& fOut)
 
 //----------------------------------------
 
-void CFieldIndex::Dump(ostream& fOut /* = cerr */)
+void CFieldIndex::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
 
-  fOut << "==> Dump a CFieldIndex Object at "<< this << endl;
+  fOut << "==> Dump a CFieldIndex Object at "<< this << std::endl;
   CField::Dump(fOut);
-  fOut << "==> END Dump a CFieldIndex Object at "<< this << endl;
+  fOut << "==> END Dump a CFieldIndex Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -4491,7 +4491,7 @@ void  CField::CListField::RemoveAll()
 //------------------- CFieldSet class --------------------
 //-------------------------------------------------------------
 
-CFieldSet::CFieldSet(const string& name /* = ""*/)
+CFieldSet::CFieldSet(const std::string& name /* = ""*/)
 {
   Init();
   m_name = name;
@@ -4530,25 +4530,25 @@ CFieldSet& CFieldSet::operator=(CFieldSet& f)
 }
 
 //----------------------------------------
-void CFieldSet::Dump(ostream& fOut /* = cerr */)
+void CFieldSet::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
 
-  fOut << "==> Dump a CFieldSet Object at "<< this << endl;
-  fOut << "m_name " << m_name << endl;
-  fOut << "==> END Dump a CFieldSet Object at "<< this << endl;
+  fOut << "==> Dump a CFieldSet Object at "<< this << std::endl;
+  fOut << "m_name " << m_name << std::endl;
+  fOut << "==> END Dump a CFieldSet Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 //-------------------------------------------------------------
 //------------------- CFieldSetString class --------------------
 //-------------------------------------------------------------
 
-CFieldSetString::CFieldSetString(const string& name /* = "" */)
+CFieldSetString::CFieldSetString(const std::string& name /* = "" */)
       : CFieldSet(name)
 {
   Init();
@@ -4601,26 +4601,26 @@ void CFieldSetString::Insert(double value, bool bRemove)
 }
 
 //----------------------------------------
-void CFieldSetString::Insert(const string& value, bool bRemove)
+void CFieldSetString::Insert(const std::string& value, bool bRemove)
 {
   m_value = value;
 }
 
 //----------------------------------------
 
-void CFieldSetString::Dump(ostream& fOut /* = cerr */)
+void CFieldSetString::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
 
-  fOut << "==> Dump a CFieldSetString Object at "<< this << endl;
+  fOut << "==> Dump a CFieldSetString Object at "<< this << std::endl;
   CFieldSet::Dump(fOut);
-  fOut << "m_value " << m_value << endl;
-  fOut << "==> END Dump a CFieldSetString Object at "<< this << endl;
+  fOut << "m_value " << m_value << std::endl;
+  fOut << "==> END Dump a CFieldSetString Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -4628,7 +4628,7 @@ void CFieldSetString::Dump(ostream& fOut /* = cerr */)
 //------------------- CFieldSetDbl class --------------------
 //-------------------------------------------------------------
 
-CFieldSetDbl::CFieldSetDbl(const string& name /* = "" */)
+CFieldSetDbl::CFieldSetDbl(const std::string& name /* = "" */)
       : CFieldSet(name)
 {
   Init();
@@ -4691,26 +4691,26 @@ void CFieldSetDbl::Insert(double value, bool bRemove)
   m_value = value;
 }
 //----------------------------------------
-void CFieldSetDbl::Insert(const string& value, bool bRemove)
+void CFieldSetDbl::Insert(const std::string& value, bool bRemove)
 {
   m_value = CTools::StrToDouble(value);
 }
 
 //----------------------------------------
 
-void CFieldSetDbl::Dump(ostream& fOut /* = cerr */)
+void CFieldSetDbl::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
 
-  fOut << "==> Dump a CFieldSetDbl Object at "<< this << endl;
+  fOut << "==> Dump a CFieldSetDbl Object at "<< this << std::endl;
   CFieldSet::Dump(fOut);
-  fOut << "m_value " << m_value << endl;
-  fOut << "==> END Dump a CFieldSetDbl Object at "<< this << endl;
+  fOut << "m_value " << m_value << std::endl;
+  fOut << "==> END Dump a CFieldSetDbl Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -4718,7 +4718,7 @@ void CFieldSetDbl::Dump(ostream& fOut /* = cerr */)
 //------------------- CFieldSetArrayDbl class --------------------
 //-------------------------------------------------------------
 
-CFieldSetArrayDbl::CFieldSetArrayDbl(const string& name /* = "" */)
+CFieldSetArrayDbl::CFieldSetArrayDbl(const std::string& name /* = "" */)
       : CFieldSet(name)
 {
   Init();
@@ -4779,7 +4779,7 @@ void CFieldSetArrayDbl::Insert(double value, bool bRemove)
 }
 
 //----------------------------------------
-void CFieldSetArrayDbl::Insert(const string& value, bool bRemove)
+void CFieldSetArrayDbl::Insert(const std::string& value, bool bRemove)
 {
   if (bRemove)
   {
@@ -4791,23 +4791,23 @@ void CFieldSetArrayDbl::Insert(const string& value, bool bRemove)
 
 //----------------------------------------
 
-void CFieldSetArrayDbl::Dump(ostream& fOut /* = cerr */)
+void CFieldSetArrayDbl::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
 
-  fOut << "==> Dump a CFieldSetArrayDbl Object at "<< this << endl;
+  fOut << "==> Dump a CFieldSetArrayDbl Object at "<< this << std::endl;
   CFieldSet::Dump(fOut);
-  fOut << "m_nbDims " << m_nbDims << endl;
-  fOut << "m_dim:" << endl;
+  fOut << "m_nbDims " << m_nbDims << std::endl;
+  fOut << "m_dim:" << std::endl;
   m_dim.Dump(fOut);
-  fOut << "data:" << endl;
+  fOut << "data:" << std::endl;
   m_vector.Dump(fOut);
-  fOut << "==> END Dump a CFieldSetArrayDbl Object at "<< this << endl;
+  fOut << "==> END Dump a CFieldSetArrayDbl Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -4817,7 +4817,7 @@ void CFieldSetArrayDbl::Dump(ostream& fOut /* = cerr */)
 //------------------- CRecordSet class --------------------
 //-------------------------------------------------------------
 
-CRecordSet::CRecordSet(const string& name /* = "" */, bool bDelete /*= true*/)
+CRecordSet::CRecordSet(const std::string& name /* = "" */, bool bDelete /*= true*/)
           : CObMap(bDelete)
 {
   m_name = name;
@@ -4833,7 +4833,7 @@ CRecordSet::~CRecordSet()
 
 //----------------------------------------
 
-CFieldSet* CRecordSet::ExistsFieldSet(const string& key)
+CFieldSet* CRecordSet::ExistsFieldSet(const std::string& key)
 {
   return dynamic_cast<CFieldSet*>(CObMap::Exists(key));
 
@@ -4885,11 +4885,11 @@ bool CRecordSet::IsFieldHasToBeExpanded(CFieldSet* fieldSet, const CStringList& 
 }
 
 //----------------------------------------
-CFieldSet* CRecordSet::GetFieldSet(const string& dataSetName, const string& fieldName)
+CFieldSet* CRecordSet::GetFieldSet(const std::string& dataSetName, const std::string& fieldName)
 {
   //Search field with dataset name, some products (HDF4 and NetCDf have no dataset name)
   //If not found, search field wihtout dataset name
-  string str = CProduct::m_treeRootName + "." + dataSetName + "." + fieldName;
+  std::string str = CProduct::m_treeRootName + "." + dataSetName + "." + fieldName;
   CFieldSet* fieldSet = this->ExistsFieldSet(str);
   if (fieldSet == NULL)
   {
@@ -4906,7 +4906,7 @@ CFieldSet* CRecordSet::GetFieldSet(CRecordSet::iterator it)
   return dynamic_cast<CFieldSet*>(it->second);
 }
 //----------------------------------------
-void CRecordSet::ExecuteExpression(CExpression &expr, const string &recordName, CExpressionValue& exprValue, CProduct* product /* = NULL */)
+void CRecordSet::ExecuteExpression(CExpression &expr, const std::string &recordName, CExpressionValue& exprValue, CProduct* product /* = NULL */)
 {
   CStringList::iterator itFieldName;
   CStringList exprNames(*expr.GetFieldNames());
@@ -4963,18 +4963,18 @@ void CRecordSet::ExecuteExpression(CExpression &expr, const string &recordName, 
 
 
 //----------------------------------------
-void CRecordSet::Dump(ostream& fOut /* = cerr */)
+void CRecordSet::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
 
-  fOut << "==> Dump a CRecordSet Object at "<< this << " with " <<  size() << " elements" << endl;
-  fOut << "m_name " << m_name << endl;
+  fOut << "==> Dump a CRecordSet Object at "<< this << " with " <<  size() << " elements" << std::endl;
+  fOut << "m_name " << m_name << std::endl;
   CObMap::Dump(fOut);
-  fOut << "==> END Dump a CRecordSet Object at "<< this << " with " <<  size() << " elements" << endl;
-  fOut << endl;
+  fOut << "==> END Dump a CRecordSet Object at "<< this << " with " <<  size() << " elements" << std::endl;
+  fOut << std::endl;
 
 }
 //-------------------------------------------------------------
@@ -5001,7 +5001,7 @@ CRecord::~CRecord()
 
 
 //----------------------------------------
-const string& CRecord::GetName()
+const std::string& CRecord::GetName()
 {
   if (m_recordSet == NULL)
   {
@@ -5014,17 +5014,17 @@ const string& CRecord::GetName()
 }
 
 //----------------------------------------
-void CRecord::Dump(ostream& fOut /* = cerr */)
+void CRecord::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
 
-  fOut << "==> Dump a CRecord Object at "<< this << endl;
+  fOut << "==> Dump a CRecord Object at "<< this << std::endl;
   m_recordSet->Dump(fOut);
-  fOut << "==> END Dump a CRecord Object at "<< this << endl;
-  fOut << endl;
+  fOut << "==> END Dump a CRecord Object at "<< this << std::endl;
+  fOut << std::endl;
 
 }
 
@@ -5033,7 +5033,7 @@ void CRecord::Dump(ostream& fOut /* = cerr */)
 //------------------- CDataSet class --------------------
 //-------------------------------------------------------------
 
-CDataSet::CDataSet(const string& name /* = "" */, bool bDelete /*= true*/)
+CDataSet::CDataSet(const std::string& name /* = "" */, bool bDelete /*= true*/)
       : CObArray(bDelete),
         m_recordSetMap(false)
 {
@@ -5083,7 +5083,7 @@ bool CDataSet::Erase(CRecordSet* recordSet)
 
 }
 //----------------------------------------
-CRecordSet* CDataSet::FindRecord(const string& recordSetName)
+CRecordSet* CDataSet::FindRecord(const std::string& recordSetName)
 {
 
   // DON'T USE this syntax, there's a bug in STL,
@@ -5124,7 +5124,7 @@ void CDataSet::InsertDataset(CDataSet* dataSet, bool setAsCurrent /* = true */)
   }
 }
 //----------------------------------------
-CRecordSet* CDataSet::InsertRecord(const string& recordSetName, bool setAsCurrent /* = true */)
+CRecordSet* CDataSet::InsertRecord(const std::string& recordSetName, bool setAsCurrent /* = true */)
 {
 
   CRecordSet* recordSet = NULL;
@@ -5157,7 +5157,7 @@ CRecordSet* CDataSet::InsertRecord(const string& recordSetName, bool setAsCurren
 
 }
 //----------------------------------------
-CFieldSet* CDataSet::GetFieldSet(const string& fieldSetKey)
+CFieldSet* CDataSet::GetFieldSet(const std::string& fieldSetKey)
 {
   CRecordSet* recordSet = this->GetCurrentRecordSet();
   if (recordSet == NULL)
@@ -5169,23 +5169,23 @@ CFieldSet* CDataSet::GetFieldSet(const string& fieldSetKey)
 
 }
 //----------------------------------------
-CFieldSetArrayDbl* CDataSet::GetFieldSetAsArrayDbl(const string& fieldSetKey)
+CFieldSetArrayDbl* CDataSet::GetFieldSetAsArrayDbl(const std::string& fieldSetKey)
 {
   return dynamic_cast<CFieldSetArrayDbl*>(GetFieldSet(fieldSetKey));
 }
 //----------------------------------------
-CFieldSetDbl* CDataSet::GetFieldSetAsDbl(const string& fieldSetKey)
+CFieldSetDbl* CDataSet::GetFieldSetAsDbl(const std::string& fieldSetKey)
 {
   return dynamic_cast<CFieldSetDbl*>(GetFieldSet(fieldSetKey));
 }
 //----------------------------------------
-CFieldSetString* CDataSet::GetFieldSetAsString(const string& fieldSetKey)
+CFieldSetString* CDataSet::GetFieldSetAsString(const std::string& fieldSetKey)
 {
   return dynamic_cast<CFieldSetString*>(GetFieldSet(fieldSetKey));
 }
 
 //----------------------------------------
-double CDataSet::GetFieldSetAsDblValue(const string& fieldSetKey)
+double CDataSet::GetFieldSetAsDblValue(const std::string& fieldSetKey)
 {
 
   double value = CTools::m_defaultValueDOUBLE;
@@ -5199,10 +5199,10 @@ double CDataSet::GetFieldSetAsDblValue(const string& fieldSetKey)
   return value;
 }
 //----------------------------------------
-string CDataSet::GetFieldSetAsStringValue(const string& fieldSetKey)
+std::string CDataSet::GetFieldSetAsStringValue(const std::string& fieldSetKey)
 {
 
-  string value = "";
+  std::string value = "";
   CFieldSetString* fieldSet = GetFieldSetAsString(fieldSetKey);
 
   if (fieldSet != NULL)
@@ -5213,13 +5213,13 @@ string CDataSet::GetFieldSetAsStringValue(const string& fieldSetKey)
   return value;
 }
 //----------------------------------------
-void CDataSet::InsertFieldSet(const string& fieldSetKey, CFieldSet* fieldSet)
+void CDataSet::InsertFieldSet(const std::string& fieldSetKey, CFieldSet* fieldSet)
 {
   CRecordSet* recordSet = this->GetCurrentRecordSet();
 
   if (recordSet == NULL)
   {
-    string msg = CTools::Format("ERROR - CDataSet::InsertFieldSet - current recordset is NULL - Fieldset name %s",
+    std::string msg = CTools::Format("ERROR - CDataSet::InsertFieldSet - current recordset is NULL - Fieldset name %s",
                                 fieldSetKey.c_str());
     CException e(msg, BRATHL_LOGIC_ERROR);
     CTrace::Tracer("%s", e.what());
@@ -5231,12 +5231,12 @@ void CDataSet::InsertFieldSet(const string& fieldSetKey, CFieldSet* fieldSet)
 
 }
 //----------------------------------------
-void CDataSet::EraseFieldSet(const string& fieldSetKey)
+void CDataSet::EraseFieldSet(const std::string& fieldSetKey)
 {
   CRecordSet* recordSet = this->GetCurrentRecordSet();
   if (recordSet == NULL)
   {
-    string msg = CTools::Format("ERROR - CDataSet::EraseFieldSet - current recordset is NULL - Fieldset name %s",
+    std::string msg = CTools::Format("ERROR - CDataSet::EraseFieldSet - current recordset is NULL - Fieldset name %s",
                                 fieldSetKey.c_str());
     CException e(msg, BRATHL_LOGIC_ERROR);
     CTrace::Tracer("%s", e.what());
@@ -5283,13 +5283,13 @@ void CDataSet::SetCurrentRecordSet(CRecordSet* recordSet)
   m_currentRecordSet = recordSet;
 }
 //----------------------------------------
-void CDataSet::SetCurrentRecordSet(const string& recordSetName)
+void CDataSet::SetCurrentRecordSet(const std::string& recordSetName)
 {
   CRecord* record = GetRecord(recordSetName);
 
   if (record == NULL)
   {
-    string msg = CTools::Format("ERROR - SetCurrentRecordSet(CRecordSet* recordSet) - recordSet name '%s' not found name",
+    std::string msg = CTools::Format("ERROR - SetCurrentRecordSet(CRecordSet* recordSet) - recordSet name '%s' not found name",
                                 recordSetName.c_str());
     CException e(msg, BRATHL_LOGIC_ERROR);
     CTrace::Tracer("%s", e.what());
@@ -5393,13 +5393,13 @@ CRecord* CDataSet::GetRecord(CRecordSet* recordSet)
   return GetRecord(recordSet->m_name);
 }
 //----------------------------------------
-CRecord* CDataSet::GetRecord(const string& recordSetName)
+CRecord* CDataSet::GetRecord(const std::string& recordSetName)
 {
   return dynamic_cast<CRecord*>(m_recordSetMap.Exists(recordSetName));
 }
 
 //----------------------------------------
-void CDataSet::Dump(ostream& fOut /* = cerr */)
+void CDataSet::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -5408,20 +5408,20 @@ void CDataSet::Dump(ostream& fOut /* = cerr */)
 
   CObMap::iterator itObMap;
 
-  fOut << "==> Dump a CDataSet Object at "<< this << " with " <<  size() << " elements" << endl;
-  fOut << "m_name " << m_name << endl;
+  fOut << "==> Dump a CDataSet Object at "<< this << " with " <<  size() << " elements" << std::endl;
+  fOut << "m_name " << m_name << std::endl;
 
-  fOut << "m_recordSetMap " << endl;
+  fOut << "m_recordSetMap " << std::endl;
   for (itObMap = m_recordSetMap.begin() ; itObMap != m_recordSetMap.end() ; itObMap++)
   {
     fOut << "\tm_recordSetMap Key is = '" << (*itObMap).first;
-    fOut << "' and object at " << itObMap->second << endl;
+    fOut << "' and object at " << itObMap->second << std::endl;
   }
 
   CObArray::Dump(fOut);
-  fOut << "==> END Dump a CDataSet Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> END Dump a CDataSet Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

@@ -147,12 +147,12 @@ public:
                 double min = CTools::m_defaultValueDOUBLE, double max = CTools::m_defaultValueDOUBLE);
   void GetValueAsDate(double& seconds, double defValue = 0.0,
                 double min = CTools::m_defaultValueDOUBLE, double max = CTools::m_defaultValueDOUBLE);
-  void GetValue(string& value, const string& defValue = "");
+  void GetValue(std::string& value, const std::string& defValue = "");
   void GetValue(wxString& value, const wxString& defValue = "");
 
 
   void SetValue(const wxString& value, const wxString& defValue = "");
-  void SetValue(const string& value, const string& defValue = "");
+  void SetValue(const std::string& value, const std::string& defValue = "");
   void SetValue(const char* value);
   void SetValue(int32_t value, int32_t defValue = 0,
                 int32_t min = CTools::m_defaultValueINT32, int32_t max = CTools::m_defaultValueINT32);

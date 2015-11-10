@@ -66,7 +66,7 @@ void CDefaultRecord::GetRecordByProductType(CObMap& recordByProductType)
     }
     catch(CException& e)
     {
-      string msg = CTools::Format("Error in CDefaultRecord::GetRecordByProductType - A duplicate 'productType' definition '%s' has been found. "
+      std::string msg = CTools::Format("Error in CDefaultRecord::GetRecordByProductType - A duplicate 'productType' definition '%s' has been found. "
                                   "Native error: '%s'\n"
                                   "Check the Aliases Dictionary as a possibility. ",
                                   CAliases::m_ALL.c_str(), e.GetMessage().c_str());      
@@ -86,7 +86,7 @@ void CDefaultRecord::GetRecordByProductType(CObMap& recordByProductType)
       }
       catch(CException& e)
       {
-        string msg = CTools::Format("Error in CDefaultRecord::GetRecordByProductType - A duplicate 'productType' definition '%s' has been found. "
+        std::string msg = CTools::Format("Error in CDefaultRecord::GetRecordByProductType - A duplicate 'productType' definition '%s' has been found. "
                                     "Native error: '%s'\n"
                                     "Check the Aliases Dictionary as a possibility. ",
                                     (*it).c_str(), e.GetMessage().c_str());      
@@ -99,7 +99,7 @@ void CDefaultRecord::GetRecordByProductType(CObMap& recordByProductType)
     
 }
 //----------------------------------------
-void CDefaultRecord::Dump(ostream& fOut /* = cerr */)
+void CDefaultRecord::Dump(std::ostream& fOut /* = std::cerr */)
 {
 
  if (CTrace::IsTrace() == false)
@@ -107,14 +107,14 @@ void CDefaultRecord::Dump(ostream& fOut /* = cerr */)
     return;
   }
 
-  fOut << "==> Dump a CDefaultRecord Object at "<< this << endl;
-  fOut << "m_name: " << m_name << endl;
-  fOut << "m_productType: " << endl;
+  fOut << "==> Dump a CDefaultRecord Object at "<< this << std::endl;
+  fOut << "m_name: " << m_name << std::endl;
+  fOut << "m_productType: " << std::endl;
   m_productType.Dump(fOut);
-  fOut << "==> END Dump a CDefaultRecord Object at "<< this << " elements" << endl;
+  fOut << "==> END Dump a CDefaultRecord Object at "<< this << " elements" << std::endl;
 
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 //----------------------------------------
@@ -140,7 +140,7 @@ void CAlias::Init()
 }
 
 //----------------------------------------
-void CAlias::Dump(ostream& fOut /* = cerr */)
+void CAlias::Dump(std::ostream& fOut /* = std::cerr */)
 {
 
  if (CTrace::IsTrace() == false)
@@ -148,14 +148,14 @@ void CAlias::Dump(ostream& fOut /* = cerr */)
     return;
   }
 
-  fOut << "==> Dump a CAlias Object at "<< this << endl;
-  fOut << "m_name: " << m_name << endl;
-  fOut << "m_description: " << m_description << endl;
-  fOut << "m_ref: " << m_ref << endl;
-  fOut << "m_value: " << m_value << endl;
-  fOut << "==> END Dump a CAlias Object at "<< this << " elements" << endl;
+  fOut << "==> Dump a CAlias Object at "<< this << std::endl;
+  fOut << "m_name: " << m_name << std::endl;
+  fOut << "m_description: " << m_description << std::endl;
+  fOut << "m_ref: " << m_ref << std::endl;
+  fOut << "m_value: " << m_value << std::endl;
+  fOut << "==> END Dump a CAlias Object at "<< this << " elements" << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -163,7 +163,7 @@ void CAlias::Dump(ostream& fOut /* = cerr */)
 //------------------- CAliases class --------------------
 //-------------------------------------------------------------
 
-const string CAliases::m_ALL = "*";
+const std::string CAliases::m_ALL = "*";
 
 CAliases::CAliases()
 {
@@ -188,7 +188,7 @@ void CAliases::AddAlias(CAlias* value)
     return;
   }
 
-  string name = value->GetName();
+  std::string name = value->GetName();
 
   if (name.empty())
   {
@@ -206,7 +206,7 @@ void CAliases::AddAlias(CAlias* value)
   }
   catch(CException& e)
   {
-    string msg = CTools::Format("Error in CAliases::AddAlias - Unable to add alias because the alias '%s' already exists - Native error: '%s'",
+    std::string msg = CTools::Format("Error in CAliases::AddAlias - Unable to add alias because the alias '%s' already exists - Native error: '%s'",
                                 name.c_str(), e.GetMessage().c_str());      
     throw CException(msg, e.error());
   }
@@ -214,12 +214,12 @@ void CAliases::AddAlias(CAlias* value)
 }
 
 //----------------------------------------
-CAlias* CAliases::GetAlias(const string& key)
+CAlias* CAliases::GetAlias(const std::string& key)
 {
   CAlias* alias = dynamic_cast<CAlias*>(m_aliases.Exists(key));
   if (alias == NULL)
   {
-    string msg = CTools::Format("Error in CAliases::GetAlias - Alias '%s' does not exist",
+    std::string msg = CTools::Format("Error in CAliases::GetAlias - Alias '%s' does not exist",
                                 key.c_str());      
     throw CException(msg, BRATHL_LOGIC_ERROR);
   }
@@ -228,7 +228,7 @@ CAlias* CAliases::GetAlias(const string& key)
 }
 
 //----------------------------------------
-string CAliases::GetAliasValue(const string& key)
+std::string CAliases::GetAliasValue(const std::string& key)
 {
 
   CAlias* alias = GetAlias(key);
@@ -252,7 +252,7 @@ void CAliases::GetAliasesByProductType(CObMap& aliasesByProductType)
     }
     catch(CException& e)
     {
-      string msg = CTools::Format("Error in CAliases::GetAliasesByProductType - A duplicate 'productType' definition '%s' has been found. "
+      std::string msg = CTools::Format("Error in CAliases::GetAliasesByProductType - A duplicate 'productType' definition '%s' has been found. "
                                   "Native error: '%s'\n"
                                   "Check the Aliases Dictionary as a possibility. ",
                                   CAliases::m_ALL.c_str(), e.GetMessage().c_str());      
@@ -267,7 +267,7 @@ void CAliases::GetAliasesByProductType(CObMap& aliasesByProductType)
     }
     catch(CException& e)
     {
-      string msg = CTools::Format("Error in CAliases::GetAliasesByProductType - A duplicate 'productType' definition '%s' has been found. "
+      std::string msg = CTools::Format("Error in CAliases::GetAliasesByProductType - A duplicate 'productType' definition '%s' has been found. "
                                   "Native error: '%s'\n"
                                   "Check the Aliases Dictionary as a possibility. ",
                                   m_productType.c_str(), e.GetMessage().c_str());      
@@ -299,7 +299,7 @@ void CAliases::ResolveSynonyms()
 
 }
 //----------------------------------------
-void CAliases::Dump(ostream& fOut /* = cerr */)
+void CAliases::Dump(std::ostream& fOut /* = std::cerr */)
 {
 
  if (CTrace::IsTrace() == false)
@@ -307,16 +307,16 @@ void CAliases::Dump(ostream& fOut /* = cerr */)
     return;
   }
 
-  fOut << "==> Dump a CAliases Object at "<< this << endl;
-  fOut << "m_description: " << m_description << endl;
-  fOut << "m_record: " << m_record << endl;
-  fOut << "m_productType: " << m_productType << endl;
-  fOut << "m_aliases: " << endl;
+  fOut << "==> Dump a CAliases Object at "<< this << std::endl;
+  fOut << "m_description: " << m_description << std::endl;
+  fOut << "m_record: " << m_record << std::endl;
+  fOut << "m_productType: " << m_productType << std::endl;
+  fOut << "m_aliases: " << std::endl;
   m_aliases.Dump(fOut);
-  fOut << "==> END Dump a CAliases Object at "<< this << " elements" << endl;
+  fOut << "==> END Dump a CAliases Object at "<< this << " elements" << std::endl;
 
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 //----------------------------------------
@@ -355,7 +355,7 @@ void CProductAlias::Set(const CAlias& alias)
 //----------------------------------------
 
 //----------------------------------------
-void CProductAlias::Dump(ostream& fOut /* = cerr */)
+void CProductAlias::Dump(std::ostream& fOut /* = std::cerr */)
 {
 
  if (CTrace::IsTrace() == false)
@@ -363,15 +363,15 @@ void CProductAlias::Dump(ostream& fOut /* = cerr */)
     return;
   }
 
-  fOut << "==> Dump a CProductAlias Object at "<< this << endl;
-  fOut << "m_name: " << m_name << endl;
-  fOut << "m_description: " << m_description << endl;
-  fOut << "m_record: " << m_record << endl;
-  fOut << "m_value: " << m_value << endl;
-  fOut << "==> END Dump a CProductAlias Object at "<< this << " elements" << endl;
+  fOut << "==> Dump a CProductAlias Object at "<< this << std::endl;
+  fOut << "m_name: " << m_name << std::endl;
+  fOut << "m_description: " << m_description << std::endl;
+  fOut << "m_record: " << m_record << std::endl;
+  fOut << "m_value: " << m_value << std::endl;
+  fOut << "==> END Dump a CProductAlias Object at "<< this << " elements" << std::endl;
 
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 //----------------------------------------
@@ -380,7 +380,7 @@ void CProductAlias::Dump(ostream& fOut /* = cerr */)
 //------------------- CProductAliases class --------------------
 //-------------------------------------------------------------
 
-CProductAliases::CProductAliases(const string& defaultRecord)
+CProductAliases::CProductAliases(const std::string& defaultRecord)
 {
   Init();
 
@@ -410,14 +410,14 @@ void CProductAliases::AddAlias(CAliases* value)
   AddAlias(const_cast<CObMap*>(value->GetAliases()), value->GetRecord());
 }
 //----------------------------------------
-void CProductAliases::AddAlias(CObMap* value, const string& record)
+void CProductAliases::AddAlias(CObMap* value, const std::string& record)
 {
   if (value == NULL)
   {
     return;
   }
 
-  string recordTmp = m_record;
+  std::string recordTmp = m_record;
   if (!record.empty())
   {
     recordTmp = record;
@@ -436,14 +436,14 @@ void CProductAliases::AddAlias(CObMap* value, const string& record)
   }
 }
 //----------------------------------------
-void CProductAliases::AddAlias(CAlias* value, const string& record)
+void CProductAliases::AddAlias(CAlias* value, const std::string& record)
 {
   if (value == NULL)
   {
     return;
   }
 
-  string name = value->GetName();
+  std::string name = value->GetName();
 
   if (name.empty())
   {
@@ -466,7 +466,7 @@ void CProductAliases::AddAlias(CAlias* value, const string& record)
   }
   catch(CException& e)
   {
-    string msg = CTools::Format("Error in CProductAliases::AddAlias - Unable to add alias because the alias '%s' already exists - Native error: '%s'",
+    std::string msg = CTools::Format("Error in CProductAliases::AddAlias - Unable to add alias because the alias '%s' already exists - Native error: '%s'",
                                 name.c_str(), e.GetMessage().c_str());      
     throw CException(msg, e.error());
   }
@@ -474,12 +474,12 @@ void CProductAliases::AddAlias(CAlias* value, const string& record)
 }
 
 //----------------------------------------
-CProductAlias* CProductAliases::GetAlias(const string& key)
+CProductAlias* CProductAliases::GetAlias(const std::string& key)
 {
   CProductAlias* alias = dynamic_cast<CProductAlias*>(Exists(key));
   if (alias == NULL)
   {
-    string msg = CTools::Format("Error in CAliases::GetAlias - Alias '%s' does not exist",
+    std::string msg = CTools::Format("Error in CAliases::GetAlias - Alias '%s' does not exist",
                                 key.c_str());      
     throw CException(msg, BRATHL_LOGIC_ERROR);
   }
@@ -488,13 +488,13 @@ CProductAlias* CProductAliases::GetAlias(const string& key)
 }
 
 //----------------------------------------
-string CProductAliases::GetAliasValue(const string& key)
+std::string CProductAliases::GetAliasValue(const std::string& key)
 {
   CProductAlias* alias = GetAlias(key);
   return alias->GetValue();
 }
 //----------------------------------------
-bool CProductAliases::AddRecordNameToField(CStringMap& mapAliasesString, CProduct* product, string& errorMsg)
+bool CProductAliases::AddRecordNameToField(CStringMap& mapAliasesString, CProduct* product, std::string& errorMsg)
 {
 
   bool bOk = true;
@@ -508,11 +508,11 @@ bool CProductAliases::AddRecordNameToField(CStringMap& mapAliasesString, CProduc
       continue;
     }
 
-    string errorString;
+    std::string errorString;
 
-    string valueIn = productAlias->GetValue();
-    string record = productAlias->GetRecord();
-    string valueOut;
+    std::string valueIn = productAlias->GetValue();
+    std::string record = productAlias->GetRecord();
+    std::string valueOut;
 
     bool recordNameAdded = AddRecordNameToField(valueIn, record, valueOut, product, errorString);
     bOk &= recordNameAdded;
@@ -533,7 +533,7 @@ bool CProductAliases::AddRecordNameToField(CStringMap& mapAliasesString, CProduc
   return bOk;
 }
 //----------------------------------------
-bool CProductAliases::AddRecordNameToField(const string& in, const string& dataSetName, string& out, CProduct* product, string& errorMsg)
+bool CProductAliases::AddRecordNameToField(const std::string& in, const std::string& dataSetName, std::string& out, CProduct* product, std::string& errorMsg)
 {
   if (dataSetName.empty())
   {
@@ -566,7 +566,7 @@ bool CProductAliases::AddRecordNameToField(const string& in, const string& dataS
 
 }
 //----------------------------------------
-bool CProductAliases::AddRecordNameToField(const string& in, const string& dataSetName, const CStringArray& fieldsIn, bool complexExpression, string& out, CProduct* product, string& errorMsg)
+bool CProductAliases::AddRecordNameToField(const std::string& in, const std::string& dataSetName, const CStringArray& fieldsIn, bool complexExpression, std::string& out, CProduct* product, std::string& errorMsg)
 {
   bool bOk = true;
 
@@ -578,12 +578,12 @@ bool CProductAliases::AddRecordNameToField(const string& in, const string& dataS
   {
     return true;
   }
-  const string emptyString;
+  const std::string emptyString;
   for (it = fieldsIn.begin() ; it != fieldsIn.end() ; it++)
   {
     bool add = true;
     // Search if field name contains a record name (contains a dot)
-    if ((*it).find(".") != string::npos)
+    if ((*it).find(".") != std::string::npos)
     {
       if (product != NULL)
       {
@@ -599,7 +599,7 @@ bool CProductAliases::AddRecordNameToField(const string& in, const string& dataS
 
     if (add)
     {
-      string fullName = dataSetName;
+      std::string fullName = dataSetName;
       fullName.append(".");
       fullName.append(*it);
       out = CTools::ReplaceWord(out, *it, fullName);
@@ -618,7 +618,7 @@ bool CProductAliases::AddRecordNameToField(const string& in, const string& dataS
 }
 
 //----------------------------------------
-void CProductAliases::Dump(ostream& fOut /* = cerr */)
+void CProductAliases::Dump(std::ostream& fOut /* = std::cerr */)
 {
 
  if (CTrace::IsTrace() == false)
@@ -626,14 +626,14 @@ void CProductAliases::Dump(ostream& fOut /* = cerr */)
     return;
   }
 
-  fOut << "==> Dump a CProductAliases Object at "<< this << endl;
-  fOut << "m_record: " << m_record << endl;
-  //fOut << "m_aliases: " << endl;
+  fOut << "==> Dump a CProductAliases Object at "<< this << std::endl;
+  fOut << "m_record: " << m_record << std::endl;
+  //fOut << "m_aliases: " << std::endl;
   CObMap::Dump(fOut);
-  fOut << "==> END Dump a CProductAliases Object at "<< this << " elements" << endl;
+  fOut << "==> END Dump a CProductAliases Object at "<< this << " elements" << std::endl;
 
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 //----------------------------------------

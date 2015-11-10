@@ -21,7 +21,7 @@
 #if !defined(_Trace_h_)
 #define _Trace_h_
 
-#include "Stl.h"
+#include <string>
 #include "brathl.h"
 
 namespace brathl
@@ -43,17 +43,17 @@ public:
 // Methods
 public:
 
-   static string ParseArg(int argc, char *argv[]);
-   static CTrace* CreateObject(const string& szFileLog);
+   static std::string ParseArg(int argc, char *argv[]);
+   static CTrace* CreateObject(const std::string& szFileLog);
    static CTrace* CreateObject(int argc, char *argv[]);
 
-   static CTrace* GetInstance(const string& szFileLog);
+   static CTrace* GetInstance(const std::string& szFileLog);
    static CTrace* GetInstance(int argc, char *argv[]);
    static CTrace* GetInstance();
    
    //static void Release();
-   static ostream* SetDumpContext(ostream* value);
-   static ostream* GetDumpContext();
+   static std::ostream* SetDumpContext(std::ostream* value);
+   static std::ostream* GetDumpContext();
 
    static bool IsTrace
 		(int32_t	Level	= 5);
@@ -62,10 +62,10 @@ public:
 		 ...)
 	__attribute__ ((format(printf, 1, 2)));
    static void Tracer
-		(const string	&message);
+		(const std::string	&message);
    static void Tracer
 		(int32_t	Level,
-		 const string	&message);
+		 const std::string	&message);
    static void Tracer
 		(int32_t	Level,
 		 const char	*message,
@@ -76,10 +76,10 @@ public:
 		 ...)
 	__attribute__ ((format(printf, 1, 2)));
    static void Print
-		(const string	&message);
+		(const std::string	&message);
    static void Print
 		(int32_t	Level,
-		 const string	&message);
+		 const std::string	&message);
    static void Print
 		(int32_t	Level,
 		 const char	*message,
@@ -108,12 +108,12 @@ protected:
 		 va_list	args);
    static void PrintText
 		(bool		NewLine,
-		 const string	&message);
+		 const std::string	&message);
 
 protected:
 
-   virtual ostream* SetDumpContextReal(ostream* value);
-   virtual ostream* GetDumpContextReel();
+   virtual std::ostream* SetDumpContextReal(std::ostream* value);
+   virtual std::ostream* GetDumpContextReel();
 private:
    static void prepareSmartCleaner(void);
 
@@ -130,7 +130,7 @@ protected:
    /**
    * out stream
    */
-   ostream *m_fOut;
+   std::ostream *m_fOut;
 
   /**
   * Indicates is there is a file opened (whether log file is opened or closed)

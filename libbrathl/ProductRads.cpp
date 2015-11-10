@@ -26,7 +26,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h" 
+#include <string> 
 
 #include "TraceLog.h" 
 #include "Tools.h" 
@@ -49,7 +49,7 @@ CProductRads::CProductRads()
 
 //----------------------------------------
 
-CProductRads::CProductRads(const string& fileName)
+CProductRads::CProductRads(const std::string& fileName)
       : CProduct(fileName)
 {
   Init();  
@@ -93,7 +93,7 @@ void CProductRads::InitCriteriaInfo()
 }
 
 //----------------------------------------
-void CProductRads::Dump(ostream& fOut /* = cerr */)
+void CProductRads::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -101,15 +101,15 @@ void CProductRads::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CProductRads Object at "<< this << endl;
+  fOut << "==> Dump a CProductRads Object at "<< this << std::endl;
 
   //------------------
   CProduct::Dump(fOut);
   //------------------
 
-  fOut << "==> END Dump a CProductRads Object at "<< this << endl;
+  fOut << "==> END Dump a CProductRads Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

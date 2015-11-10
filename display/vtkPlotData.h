@@ -47,7 +47,7 @@ class VTK_EXPORT vtkPlotData : public vtkPolyDataSource
 {
 public:
   vtkTypeMacro(vtkPlotData, vtkPolyDataSource);
-  virtual void PrintSelf(ostream& os, vtkIndent indent);
+  virtual void PrintSelf(std::ostream& os, vtkIndent indent);
   
   virtual double GetXValue(int i) = 0;
   virtual double GetYValue(int i) = 0;

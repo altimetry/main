@@ -41,7 +41,7 @@ public:
 
   bool CheckCommandLineOptions(int argc, char	**argv);
 
-  virtual int32_t Execute(string& msg);
+  virtual int32_t Execute(std::string& msg);
 
 public:
   static const KeywordHelp ExportAsciiKeywordList[];
@@ -52,7 +52,7 @@ protected:
 
   void ResizeArrayDependOnFields(uint32_t size);
 
-  virtual void GetParameters(const string &commandFileName);
+  virtual void GetParameters(const std::string &commandFileName);
   virtual void GetParameters();
 
   //virtual void CheckNetCdfFields(CStringArray& fields);
@@ -67,7 +67,7 @@ protected:
 
 protected:
 
-  ostream *m_outputFile;
+  std::ostream *m_outputFile;
   bool m_dateAsPeriod;
 
   CStringArray m_formats;

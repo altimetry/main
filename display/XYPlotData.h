@@ -25,11 +25,11 @@
     #pragma interface "XYPlotData.h"
 #endif
 
-#ifndef WX_PRECOMP
-    #include "wx/wx.h"
-#endif
-
-#include "wx/progdlg.h"
+//#ifndef WX_PRECOMP
+//    #include "wx/wx.h"
+//#endif
+//
+//#include "wx/progdlg.h"
 
 #include "vtkProperty2D.h"
 //#include "vtkGlyphSource2D.h"
@@ -51,10 +51,10 @@
 #include "InternalFilesYFX.h"
 using namespace brathl;
 
-#include "VtkColor.h"
-#include "vtkList.h"
+#include "vtkColor.h"
+#include "PlotData/vtkList.h"
 #include "MapColor.h"
-#include "Plot.h"
+#include "PlotData/Plot.h"
 
 
 class CXYPlotData;
@@ -67,7 +67,7 @@ class vtkDoubleArrayBrathl : public vtkDoubleArray
 {
 public:
   static vtkDoubleArrayBrathl* New();
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(std::ostream& os, vtkIndent indent);
 
   virtual void ComputeRange(int comp);
   // Description:
@@ -462,8 +462,8 @@ public:
                        bool bCopy = true) = 0;
 
   /*
-  virtual void SetData(double* xArray, const vector<uint32_t>& xDims,  
-                       double* yArray, const vector<uint32_t>& yDims, bool bCopy = true) = 0;
+  virtual void SetData(double* xArray, const std::vector<uint32_t>& xDims,  
+                       double* yArray, const std::vector<uint32_t>& yDims, bool bCopy = true) = 0;
   */
   wxString GetName() {return m_plotProperty.GetName();};
   void SetName(const wxString& name ) {m_plotProperty.SetName(name);};
@@ -479,18 +479,18 @@ public:
   static void GetAxisX(CInternalFilesYFX* yfx, 
                        ExpressionValueDimensions& dimVal,
                        CExpressionValue& varX,
-                       string& varXName);
+                       std::string& varXName);
 */
   ///////void Create(CObArray* data, CPlot* plot, int32_t iField);
   void Create(CInternalFiles* yfx, CPlot* plot, int32_t iField);
 
-//  const string& GetVarComplementName() { return m_varComplementName; };
+//  const std::string& GetVarComplementName() { return m_varComplementName; };
 
   CExpressionValue& GetVarComplement() { return m_varComplement; };
   
   CFieldNetCdf& GetFieldComplement() { return m_fieldComplement; };
   
-  //const vector<CExpressionValue>& GetOtherVars() { return m_otherVars; };
+  //const std::vector<CExpressionValue>& GetOtherVars() { return m_otherVars; };
   const CObArray& GetOtherVars() { return m_otherVars; };
   const CObArray& GetOtherFields() { return m_otherFields; };
 
@@ -519,14 +519,14 @@ protected:
   CUnit m_unitX;
   CUnit m_unitY;
 
-//  string m_varComplementName;
+//  std::string m_varComplementName;
   CExpressionValue m_varComplement;
 //  ExpressionValueDimensions m_dimValComplement;
 
   CFieldNetCdf m_fieldComplement;
 
 
-  //vector<CExpressionValue> m_otherVars;
+  //std::vector<CExpressionValue> m_otherVars;
   // A "CExpressionValue*" array
   CObArray m_otherVars;
   
@@ -550,7 +550,7 @@ public:
   virtual ~CXYPlotDataSingle();
 
   virtual void SetData(double* xArray, const CUIntArray& xDims,  double* yArray, const CUIntArray& yDims, bool bCopy = true);
-  virtual void SetData(double* xArray, const vector<uint32_t>& xDims,  double* yArray, const vector<uint32_t>& yDims, bool bCopy = true);
+  virtual void SetData(double* xArray, const std::vector<uint32_t>& xDims,  double* yArray, const std::vector<uint32_t>& yDims, bool bCopy = true);
 
 protected:
   virtual void SetData(double* xArray, int32_t xSize,  double* yArray, int32_t ySize, bool bCopy = true);
@@ -576,7 +576,7 @@ public:
                        const CUIntArray& xCommonDimIndex,
                        const CUIntArray& yCommonDimIndex,
                        bool bCopy = true);
-  //virtual void SetData(double* xArray, const vector<uint32_t>& xDims,  double* yArray, const vector<uint32_t>& yDims, bool bCopy = true);
+  //virtual void SetData(double* xArray, const std::vector<uint32_t>& xDims,  double* yArray, const std::vector<uint32_t>& yDims, bool bCopy = true);
   //virtual void SetData(vtkDoubleArray* xArray, vtkDoubleArray* yArray);
 
 

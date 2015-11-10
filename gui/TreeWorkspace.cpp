@@ -34,7 +34,7 @@
 
 #include "brathl.h"
 
-//#include "Stl.h"
+//#include <string>
 
 #include "Trace.h"
 #include "Tools.h"
@@ -340,7 +340,7 @@ bool CTreeWorkspace::Import(CTreeWorkspace* treeSrc)
 }
 
 //----------------------------------------
-void CTreeWorkspace::Dump(ostream& fOut /* = cerr */)
+void CTreeWorkspace::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -348,14 +348,14 @@ void CTreeWorkspace::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CTreeWorkspace Object at "<< this << endl;
+  fOut << "==> Dump a CTreeWorkspace Object at "<< this << std::endl;
   if (m_pTreeroot == NULL)
   {
-    fOut << "==> END Dump a CTreeWorkspace Object at "<< this << endl;
+    fOut << "==> END Dump a CTreeWorkspace Object at "<< this << std::endl;
     return;
   }
 
-  fOut << "==> Dump Tree only "<< this << endl;
+  fOut << "==> Dump Tree only "<< this << std::endl;
 
   this->SetWalkDownRootPivot();
 
@@ -369,19 +369,19 @@ void CTreeWorkspace::Dump(ostream& fOut /* = cerr */)
     }
     wxString indent(this->m_WalkCurrent->GetLevel(), '-');
 
-    fOut << indent << wks->GetName() << "\t\t\t\t\t\tKey=" << this->m_WalkCurrent->GetKey() << endl;
+    fOut << indent << wks->GetName() << "\t\t\t\t\t\tKey=" << this->m_WalkCurrent->GetKey() << std::endl;
 
   }while (this->SubTreeWalkDown());
 
-  fOut << "==> END Dump Tree only "<< this << endl;
+  fOut << "==> END Dump Tree only "<< this << std::endl;
 
-  fOut << "==> Dump Tree  and CWorkspace  "<< this << endl;
+  fOut << "==> Dump Tree  and CWorkspace  "<< this << std::endl;
   CObjectTree::Dump(fOut);
-  fOut << "==> END Dump Tree  and CWorkspace  "<< this << endl;
+  fOut << "==> END Dump Tree  and CWorkspace  "<< this << std::endl;
 
-  fOut << "==> END Dump a CTreeWorkspace Object at "<< this << endl;
+  fOut << "==> END Dump a CTreeWorkspace Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

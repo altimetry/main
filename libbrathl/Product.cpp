@@ -30,7 +30,7 @@
 
 #include "coda.h"
 
-#include "Stl.h"
+#include <string>
 
 #include "TraceLog.h"
 #include "Tools.h"
@@ -100,7 +100,7 @@ CProductList::CProductList(const CProductList& lst)
 
 //----------------------------------------
 
-CProductList::CProductList(const string& fileName)
+CProductList::CProductList(const std::string& fileName)
 {
 
   this->Insert(fileName);
@@ -188,7 +188,7 @@ bool CProductList::IsJason2()
     return false;
   }
 
-  string str = CTools::StringToLower(m_productType).substr(0, CExternalFilesJason2::m_missionName.size());
+  std::string str = CTools::StringToLower(m_productType).substr(0, CExternalFilesJason2::m_missionName.size());
 
   return (CTools::StringToUpper(str).compare(CExternalFilesJason2::m_missionName) == 0);
 
@@ -201,7 +201,7 @@ bool CProductList::IsATP()
   {
     return false;
   }
-  string str = CTools::StringToLower(m_productType).substr(0, CExternalFilesATP::m_ALONG_TRACK_PRODUCT.size());
+  std::string str = CTools::StringToLower(m_productType).substr(0, CExternalFilesATP::m_ALONG_TRACK_PRODUCT.size());
 
   return (CTools::StringToUpper(str).compare(CExternalFilesATP::m_ALONG_TRACK_PRODUCT) == 0);
 
@@ -223,7 +223,7 @@ bool CProductList::IsGenericNetCdf()
   return (CTools::StringToLower(m_productType).compare(CTools::StringToLower(GENERIC_NETCDF_TYPE)) == 0);
 }
 //----------------------------------------
-bool CProductList::IsSameProduct(const string& productClass, const string& productType)
+bool CProductList::IsSameProduct(const std::string& productClass, const std::string& productType)
 {
   return ((m_productClass.compare(productClass) == 0) && (m_productType.compare(productType) == 0));
 }
@@ -257,7 +257,7 @@ bool CProductList::CheckFiles(bool onlyFirstFile /* = false */)
                                  );
     if (result != 0)
     {
-      string msg = CTools::Format("CProductList::CheckFiles - Error while checking file - errno:#%d:%s",
+      std::string msg = CTools::Format("CProductList::CheckFiles - Error while checking file - errno:#%d:%s",
                                    coda_errno, coda_errno_to_string(coda_errno));
       CFileException e(msg, *it, BRATHL_IO_ERROR);
       CTrace::Tracer("%s", e.what());
@@ -295,7 +295,7 @@ bool CProductList::CheckFiles(bool onlyFirstFile /* = false */)
         // if that's the case.
     if (productClassRead == NULL)
     {
-      string msg = CTools::Format("CProductList::CheckFiles - Unknown file format");
+      std::string msg = CTools::Format("CProductList::CheckFiles - Unknown file format");
       CFileException e(msg, *it, BRATHL_IO_ERROR);
       CTrace::Tracer("%s", e.what());
       Dump(*CTrace::GetDumpContext());
@@ -320,7 +320,7 @@ bool CProductList::CheckFiles(bool onlyFirstFile /* = false */)
 
       if (bFileOk == false)
       {
-        string msg = CTools::Format("CProductList::CheckFiles - Files are not in the same way - Expected Product Class/Type: '%s/%s",
+        std::string msg = CTools::Format("CProductList::CheckFiles - Files are not in the same way - Expected Product Class/Type: '%s/%s",
                                      m_productClass.c_str(), m_productType.c_str());
         CProductException e(msg,
                             *it,
@@ -361,7 +361,7 @@ bool CProductList::CheckFilesNetCdf()
 {
   m_productClass = NETCDF_PRODUCT_CLASS;
 
-  string productTypeRead;
+  std::string productTypeRead;
 
   stringlist::iterator it;
   CExternalFiles *f = NULL;
@@ -384,7 +384,7 @@ bool CProductList::CheckFilesNetCdf()
 
       if (bFileOk == false)
       {
-        string msg = CTools::Format("CProductList::CheckFilesNetCdf - Netcdf Files are not in the same way - Expected Product Class/Type: '%s/%s",
+        std::string msg = CTools::Format("CProductList::CheckFilesNetCdf - Netcdf Files are not in the same way - Expected Product Class/Type: '%s/%s",
                                      m_productClass.c_str(), m_productType.c_str());
         CProductException e(msg,
                             *it, m_productClass, productTypeRead, BRATHL_INCONSISTENCY_ERROR);
@@ -423,7 +423,7 @@ bool CProductList::CheckFilesNetCdf()
   return true;
 }
 //----------------------------------------
-void CProductList::Dump(ostream& fOut /* = cerr */)
+void CProductList::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -431,21 +431,21 @@ void CProductList::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CProductList Object at "<< this << endl;
+  fOut << "==> Dump a CProductList Object at "<< this << std::endl;
 
 
-  fOut << "m_productFormat = " << m_productFormat << endl;
-  fOut << "m_productClass = " << m_productClass << endl;
-  fOut << "m_productType = " << m_productType << endl;
+  fOut << "m_productFormat = " << m_productFormat << std::endl;
+  fOut << "m_productClass = " << m_productClass << std::endl;
+  fOut << "m_productType = " << m_productType << std::endl;
 
   //------------------
   CStringList::Dump(fOut);
   //------------------
 
 
-  fOut << "==> END Dump a CProductList Object at "<< this << endl;
+  fOut << "==> END Dump a CProductList Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -457,7 +457,7 @@ void CProductList::Dump(ostream& fOut /* = cerr */)
 coda_array_ordering  CProduct::m_arrayOrdering = coda_array_ordering_c;
 //bool CProduct::m_codaReleaseWhenDestroy = true;
 
-const string CProduct::m_treeRootName = "Root";
+const std::string CProduct::m_treeRootName = "Root";
 
 int32_t CProduct::m_codaRefCount = 0;
 
@@ -473,7 +473,7 @@ CProduct::CProduct()
 
 //----------------------------------------
 
-CProduct::CProduct(const string& fileName)
+CProduct::CProduct(const std::string& fileName)
     : m_listFields(false)
 {
   Init();
@@ -509,13 +509,13 @@ CProduct::~CProduct()
 
 /*
 //----------------------------------------
-string CProduct::GetHighResolutionLatDiffFieldName()
+std::string CProduct::GetHighResolutionLatDiffFieldName()
 {
   CProductException e("ERROR - CProduct;;GetHighResolutionLatDiffFieldName should not be called", m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
   throw(e);
 }
 //----------------------------------------
-string CProduct::GetHighResolutionLonDiffFieldName()
+std::string CProduct::GetHighResolutionLonDiffFieldName()
 {
   CProductException e("ERROR - CProduct;;GetHighResolutionLonDiffFieldName should not be called", m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
   throw(e);
@@ -553,7 +553,7 @@ void CProduct::RemoveCriteria()
 
 
 //----------------------------------------
-bool CProduct::GetValueMinMax(CExpression& expr, const string& recordName, double& valueMin, double& valueMax, const CUnit& unit)
+bool CProduct::GetValueMinMax(CExpression& expr, const std::string& recordName, double& valueMin, double& valueMax, const CUnit& unit)
 {
   CTools::SetDefaultValue(valueMin);
   CTools::SetDefaultValue(valueMax);
@@ -712,7 +712,7 @@ bool CProduct::GetLatLonMinMax(CLatLonRect& latlonRectMinMax)
       if (recordSet == NULL)
       {
 
-        string msg = CTools::Format("ERROR - CProduct::GetLatLonMinMax() - There is no data for record '%s' and fields '%s'. ",
+        std::string msg = CTools::Format("ERROR - CProduct::GetLatLonMinMax() - There is no data for record '%s' and fields '%s'. ",
                                     m_dataSetNameToRead.c_str(),
                                     listFieldToRead.ToString().c_str());
         CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
@@ -786,7 +786,7 @@ bool CProduct::GetLatLonMinMax(CLatLonRect& latlonRectMinMax)
 
       latlonRectMinMax.Extend(latLonRect);
 
-      string str = latlonRectMinMax.AsString();
+      std::string str = latlonRectMinMax.AsString();
     }
 
     this->Close();
@@ -872,7 +872,7 @@ bool CProduct::GetDateMinMax(CDatePeriod& datePeriodMinMax)
       if (recordSet == NULL)
       {
 
-        string msg = CTools::Format("ERROR - CProduct::GetDateMinMax() - There is no data for record '%s' and fields '%s'. ",
+        std::string msg = CTools::Format("ERROR - CProduct::GetDateMinMax() - There is no data for record '%s' and fields '%s'. ",
                                     m_dataSetNameToRead.c_str(),
                                     listFieldToRead.ToString().c_str());
         CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
@@ -926,7 +926,7 @@ bool CProduct::GetDateMinMax(CDatePeriod& datePeriodMinMax)
 
       datePeriodMinMax.Union(startDate, endDate);
 
-      string str = datePeriodMinMax.AsString();
+      std::string str = datePeriodMinMax.AsString();
     }
 
     this->Close();
@@ -962,7 +962,7 @@ void CProduct::AddCriteria(CProduct* product)
    AddCriteria(new CCriteriaPassString( product->GetPassStringCriteria()));
   }
 
-  // Set always pass criteria as integer after pass citeria as string
+  // Set always pass criteria as integer after pass citeria as std::string
   if (HasPassIntCriteriaInfo() && product->IsSetPassIntCriteria())
   {
    AddCriteria(new CCriteriaPassInt(product->GetPassIntCriteria()));
@@ -997,7 +997,7 @@ void CProduct::AddCriteria(bool force /* = false */)
    AddCriteria(new CCriteriaPassString());
   }
 
-  // Set always pass criteria as integer after pass citeria as string
+  // Set always pass criteria as integer after pass citeria as std::string
   if (HasPassIntCriteriaInfo() || force)
   {
    AddCriteria(new CCriteriaPassInt());
@@ -1010,7 +1010,7 @@ void CProduct::AddCriteria(bool force /* = false */)
 
 }
 //----------------------------------------
-void CProduct::LogSelectionResult(const string& fileName, bool result)
+void CProduct::LogSelectionResult(const std::string& fileName, bool result)
 {
     Log("\t\t\t>>>>>>>>>>>>>>>>>>>> Result of selection <<<<<<<<<<<<<<<<<<<<");
     Log("==>File ", false);
@@ -1029,7 +1029,7 @@ void CProduct::LogSelectionResult(const string& fileName, bool result)
 
 }
 //----------------------------------------
-void CProduct::ApplyCriteria(CStringList& filteredFileList, const string& logFileName /* = "" */)
+void CProduct::ApplyCriteria(CStringList& filteredFileList, const std::string& logFileName /* = "" */)
 {
 
   if (!logFileName.empty())
@@ -1113,7 +1113,7 @@ void CProduct::ApplyCriteria(CStringList& filteredFileList, const string& logFil
         if (recordSet == NULL)
         {
 
-          string msg = CTools::Format("ERROR - CProduct::ApplyCriteria() - There is no data for record '%s' and fields '%s'. ",
+          std::string msg = CTools::Format("ERROR - CProduct::ApplyCriteria() - There is no data for record '%s' and fields '%s'. ",
                                       m_dataSetNameToRead.c_str(),
                                       listFieldToRead.ToString().c_str());
           CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
@@ -1239,7 +1239,7 @@ CCriteria* CProduct::GetCriteria(CCriteriaInfo* criteriaInfo)
 {
   if (criteriaInfo == NULL)
   {
-    string msg = "ERROR - CProduct::GetCriteria() - Unknown criteria info is null";
+    std::string msg = "ERROR - CProduct::GetCriteria() - Unknown criteria info is null";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
     CTrace::Tracer("%s", e.what());
     throw (e);
@@ -1250,7 +1250,7 @@ CCriteria* CProduct::GetCriteria(CCriteriaInfo* criteriaInfo)
 /*
   if (criteria == NULL)
   {
-    string msg = CTools::Format("ERROR - CProduct::GetCriteria() - Unknown criteria key %d in criteria map",
+    std::string msg = CTools::Format("ERROR - CProduct::GetCriteria() - Unknown criteria key %d in criteria map",
                                 criteriaInfo->GetKey());
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
     CTrace::Tracer(e.what());
@@ -1394,7 +1394,7 @@ bool CProduct::ApplyCriteriaDatetime(CCriteriaInfo* criteriaInfo)
 
   CDatePeriod datePeriod(startDate, endDate);
 
-  //string str = startDate.AsString();
+  //std::string str = startDate.AsString();
   //str = endDate.AsString();
   CDatePeriod intersect;
 
@@ -1533,12 +1533,12 @@ bool CProduct::ApplyCriteriaPassString(CCriteriaInfo* criteriaInfo)
   // Gets start and end pass
   CStringArray passes;
 
-  string startPassValue = m_dataSet.GetFieldSetAsStringValue(m_fieldNameEquivalence.Exists(criteriaPassInfo->GetStartPassFieldName()));
+  std::string startPassValue = m_dataSet.GetFieldSetAsStringValue(m_fieldNameEquivalence.Exists(criteriaPassInfo->GetStartPassFieldName()));
   passes.Insert(startPassValue);
 
   if (!criteriaPassInfo->GetEndPassFieldName().empty())
   {
-    string endPassValue = m_dataSet.GetFieldSetAsStringValue(m_fieldNameEquivalence.Exists(criteriaPassInfo->GetEndPassFieldName()));
+    std::string endPassValue = m_dataSet.GetFieldSetAsStringValue(m_fieldNameEquivalence.Exists(criteriaPassInfo->GetEndPassFieldName()));
     passes.Insert(endPassValue);
   }
 
@@ -1625,7 +1625,7 @@ bool CProduct::ApplyCriteriaCycle(CCriteriaInfo* criteriaInfo)
 
 //----------------------------------------
 
-void CProduct::AddFile(const string& fileName, bool bEnd /*= true*/, bool checkFiles /*= true*/)
+void CProduct::AddFile(const std::string& fileName, bool bEnd /*= true*/, bool checkFiles /*= true*/)
 {
   m_fileList.Insert(fileName, bEnd);
   if (checkFiles)
@@ -1646,7 +1646,7 @@ void CProduct::AddFile(const CStringList& fileNameList, bool bEnd /*= true*/, bo
 
 }
 //----------------------------------------
-void CProduct::SetProductList(const string& fileName, bool checkFiles /*= true*/)
+void CProduct::SetProductList(const std::string& fileName, bool checkFiles /*= true*/)
 {
   m_fileList.clear();
   AddFile(fileName, true, checkFiles);
@@ -1674,7 +1674,7 @@ bool CProduct::IsSameProduct(const CProductList fileList)
 
 }
 //----------------------------------------
-bool CProduct::IsSameProduct(const string& productClass, const string& productType)
+bool CProduct::IsSameProduct(const std::string& productClass, const std::string& productType)
 {
   return m_fileList.IsSameProduct(productClass, productType);
 
@@ -1700,7 +1700,7 @@ CProduct* CProduct::Construct(CStringList& fileNameList)
 }
 
 //----------------------------------------
-CProduct* CProduct::Construct(const string& fileName)
+CProduct* CProduct::Construct(const std::string& fileName)
 {
   CProductList productList(fileName);
 
@@ -1721,13 +1721,13 @@ CProduct* CProduct::Construct(CProductList& fileNameList)
   {
     fileNameList.CheckFiles();
 
-    string productClass = fileNameList.m_productClass;
-    string productType = fileNameList.m_productType;
+    std::string productClass = fileNameList.m_productClass;
+    std::string productType = fileNameList.m_productType;
 
     if (productClass.compare("Altimeter_Ocean_Pathfinder") == 0)
     {
       //product = new CProductAop(fileNameList);
-      string msg = CTools::Format("ERROR - CProduct::Construct : UNIMPLEMENTED PRODUCT :'%s'",
+      std::string msg = CTools::Format("ERROR - CProduct::Construct : UNIMPLEMENTED PRODUCT :'%s'",
                                   productClass.c_str());
       CUnImplementException e(msg, BRATHL_UNIMPLEMENT_ERROR);
       throw(e);
@@ -1766,7 +1766,7 @@ CProduct* CProduct::Construct(CProductList& fileNameList)
     else if (productClass.compare("RADS") == 0)
     {
       //product = new CProductRads(fileNameList);
-      string msg = CTools::Format("ERROR - CProduct::Construct : UNIMPLEMENTED PRODUCT :'%s'",
+      std::string msg = CTools::Format("ERROR - CProduct::Construct : UNIMPLEMENTED PRODUCT :'%s'",
                                   productClass.c_str());
       CUnImplementException e(msg, BRATHL_UNIMPLEMENT_ERROR);
       throw(e);
@@ -1806,7 +1806,7 @@ CProduct* CProduct::Construct(CProductList& fileNameList)
     {
       product = new CProductGeneric(fileNameList);
       /*
-      string msg = CTools::Format("CProduct::Construct - Unknown product found:%s in file %s",
+      std::string msg = CTools::Format("CProduct::Construct - Unknown product found:%s in file %s",
                                    fileNameList.m_productClass.c_str(),
                                    fileNameList.front().c_str());
       CProductException e(msg, BRATHL_INCONSISTENCY_ERROR);
@@ -1837,7 +1837,7 @@ bool CProduct::CheckFiles()
 
 
 //----------------------------------------
-bool CProduct::Open(const string& fileName)
+bool CProduct::Open(const std::string& fileName)
 {
   Close();
 
@@ -1885,7 +1885,7 @@ void CProduct::SetListFieldToRead(CStringList& listFieldToRead, bool convertDate
 }
 
 //----------------------------------------
-bool CProduct::Open(const string& fileName, const string& dataSetName)
+bool CProduct::Open(const std::string& fileName, const std::string& dataSetName)
 {
   m_dataSetNameToRead = dataSetName;
 
@@ -1894,7 +1894,7 @@ bool CProduct::Open(const string& fileName, const string& dataSetName)
   return bOk;
 }
 //----------------------------------------
-bool CProduct::Open(const string& fileName, const string& dataSetName, CStringList& listFieldToRead,  bool convertDate /*= false */)
+bool CProduct::Open(const std::string& fileName, const std::string& dataSetName, CStringList& listFieldToRead,  bool convertDate /*= false */)
 {
   bool bOk = Open(fileName, dataSetName);
 
@@ -1929,7 +1929,7 @@ bool CProduct::Open()
   int32_t result = coda_open(m_currFileName.c_str(), &m_currFile);
   if (result != 0)
   {
-    string msg = CTools::Format("CProduct::Open - Error while opening file - errno:#%d:%s", coda_errno, coda_errno_to_string(coda_errno));
+    std::string msg = CTools::Format("CProduct::Open - Error while opening file - errno:#%d:%s", coda_errno, coda_errno_to_string(coda_errno));
     CFileException e(msg, m_currFileName, BRATHL_IO_ERROR);
     CTrace::Tracer("%s", e.what());
     Dump(*CTrace::GetDumpContext());
@@ -1957,7 +1957,7 @@ bool CProduct::Close()
   int32_t result = coda_close(m_currFile);
   if (result != 0)
   {
-    string msg = CTools::Format("CProduct::Close - Error while closing file - errno:#%d:%s", coda_errno, coda_errno_to_string(coda_errno));
+    std::string msg = CTools::Format("CProduct::Close - Error while closing file - errno:#%d:%s", coda_errno, coda_errno_to_string(coda_errno));
     CFileException e(msg, m_currFileName, BRATHL_IO_ERROR);
     CTrace::Tracer("%s", e.what());
     Dump(*CTrace::GetDumpContext());
@@ -1978,7 +1978,7 @@ bool CProduct::IsOpened()
   return (m_currFile == NULL) ? false : true;
 }
 //----------------------------------------
-bool CProduct::IsOpened(const string& fileName)
+bool CProduct::IsOpened(const std::string& fileName)
 {
   bool bOpen = IsOpened();
 
@@ -2018,19 +2018,19 @@ void CProduct::CheckFileOpened()
 }
 /*
 //----------------------------------------
-CField* CProduct::GetFieldRead(const string& fieldName)
+CField* CProduct::GetFieldRead(const std::string& fieldName)
 {
   return FindFieldByName(fieldName, false);
 }
 */
 //----------------------------------------
-bool CProduct::HasEqualDims(const string& value, string& msg)
+bool CProduct::HasEqualDims(const std::string& value, std::string& msg)
 {
 
   return HasEqualDims(value, m_dataSetNameToRead, msg);
 }
 //----------------------------------------
-bool CProduct::HasEqualDims(const string& value, const string& dataSetName, string& msg)
+bool CProduct::HasEqualDims(const std::string& value, const std::string& dataSetName, std::string& msg)
 {
   CExpression expr;
 
@@ -2044,22 +2044,22 @@ bool CProduct::HasEqualDims(const string& value, const string& dataSetName, stri
   return HasEqualDims(expr, dataSetName, msg);
 }
 //----------------------------------------
-bool CProduct::HasEqualDims(const CExpression& expr, string& msg)
+bool CProduct::HasEqualDims(const CExpression& expr, std::string& msg)
 {
   return HasEqualDims(expr.GetFieldNames(), m_dataSetNameToRead, msg);
 }
 //----------------------------------------
-bool CProduct::HasEqualDims(const CExpression& expr, const string& dataSetName, string& msg)
+bool CProduct::HasEqualDims(const CExpression& expr, const std::string& dataSetName, std::string& msg)
 {
   return HasEqualDims(expr.GetFieldNames(), dataSetName, msg);
 }
 //----------------------------------------
-bool CProduct::HasEqualDims(const CStringArray* fieldNames, string& msg)
+bool CProduct::HasEqualDims(const CStringArray* fieldNames, std::string& msg)
 {
   return HasEqualDims(fieldNames, m_dataSetNameToRead, msg);
 }
 //----------------------------------------
-bool CProduct::HasEqualDims(const CStringArray* fieldNames, const string& dataSetName,  string& msg)
+bool CProduct::HasEqualDims(const CStringArray* fieldNames, const std::string& dataSetName,  std::string& msg)
 {
 
   bool bOk = true;
@@ -2105,14 +2105,14 @@ bool CProduct::HasEqualDims(const CStringArray* fieldNames, const string& dataSe
 
 
 //----------------------------------------
-bool CProduct::HasCompatibleDims(const string& value, string& msg, bool useVirtualDims,
+bool CProduct::HasCompatibleDims(const std::string& value, std::string& msg, bool useVirtualDims,
                                  CUIntArray* commonDimensions)
 {
 
   return HasCompatibleDims(value, m_dataSetNameToRead, msg, useVirtualDims, commonDimensions);
 }
 //----------------------------------------
-bool CProduct::HasCompatibleDims(const string& value, const string& dataSetName, string& msg, bool useVirtualDims,
+bool CProduct::HasCompatibleDims(const std::string& value, const std::string& dataSetName, std::string& msg, bool useVirtualDims,
                                  CUIntArray* commonDimensions)
 {
   CExpression expr;
@@ -2127,25 +2127,25 @@ bool CProduct::HasCompatibleDims(const string& value, const string& dataSetName,
   return HasCompatibleDims(expr, dataSetName, msg, useVirtualDims, commonDimensions);
 }
 //----------------------------------------
-bool CProduct::HasCompatibleDims(const CExpression& expr, string& msg, bool useVirtualDims,
+bool CProduct::HasCompatibleDims(const CExpression& expr, std::string& msg, bool useVirtualDims,
                                  CUIntArray* commonDimensions)
 {
   return HasCompatibleDims(expr.GetFieldNames(), m_dataSetNameToRead, msg, useVirtualDims, commonDimensions);
 }
 //----------------------------------------
-bool CProduct::HasCompatibleDims(const CExpression& expr, const string& dataSetName, string& msg, bool useVirtualDims,
+bool CProduct::HasCompatibleDims(const CExpression& expr, const std::string& dataSetName, std::string& msg, bool useVirtualDims,
                                  CUIntArray* commonDimensions)
 {
   return HasCompatibleDims(expr.GetFieldNames(), dataSetName, msg, useVirtualDims, commonDimensions);
 }
 //----------------------------------------
-bool CProduct::HasCompatibleDims(const CStringArray* fieldNames, string& msg, bool useVirtualDims,
+bool CProduct::HasCompatibleDims(const CStringArray* fieldNames, std::string& msg, bool useVirtualDims,
                                  CUIntArray* commonDimensions)
 {
   return HasCompatibleDims(fieldNames, m_dataSetNameToRead, msg, useVirtualDims, commonDimensions);
 }
 //----------------------------------------
-bool CProduct::HasCompatibleDims(const CStringArray* fieldNames, const string& dataSetName, string& msg, bool useVirtualDims,
+bool CProduct::HasCompatibleDims(const CStringArray* fieldNames, const std::string& dataSetName, std::string& msg, bool useVirtualDims,
                                  CUIntArray* commonDimensions)
 {
 
@@ -2250,11 +2250,11 @@ bool CProduct::HasCompatibleDims(const CStringArray* fieldNames, const string& d
 }
 
 //----------------------------------------
-bool CProduct::AddRecordNameToField(const CExpression& expr, const string& dataSetName, CExpression& exprOut, string& errorMsg)
+bool CProduct::AddRecordNameToField(const CExpression& expr, const std::string& dataSetName, CExpression& exprOut, std::string& errorMsg)
 {
 
 
-  string exprStr;
+  std::string exprStr;
   try
   {
     exprStr = exprOut.AsString().c_str();
@@ -2266,7 +2266,7 @@ bool CProduct::AddRecordNameToField(const CExpression& expr, const string& dataS
 
   }
 
-  string exprStrOut;
+  std::string exprStrOut;
 
   bool bOk = AddRecordNameToField(exprStr, dataSetName, exprStrOut, errorMsg);
 
@@ -2286,7 +2286,7 @@ bool CProduct::AddRecordNameToField(const CExpression& expr, const string& dataS
 }
 
 //----------------------------------------
-bool CProduct::AddRecordNameToField(const string& in, const string& dataSetName, string& out, string& errorMsg)
+bool CProduct::AddRecordNameToField(const std::string& in, const std::string& dataSetName, std::string& out, std::string& errorMsg)
 {
 
   CTools::ReplaceAliases(in, out);
@@ -2312,7 +2312,7 @@ bool CProduct::AddRecordNameToField(const string& in, const string& dataSetName,
 }
 
 //----------------------------------------
-bool CProduct::AddRecordNameToField(const string& in, const string& dataSetName, const CStringArray& fieldsIn, string& out, string& errorMsg)
+bool CProduct::AddRecordNameToField(const std::string& in, const std::string& dataSetName, const CStringArray& fieldsIn, std::string& out, std::string& errorMsg)
 {
   bool bOk = true;
 
@@ -2326,7 +2326,7 @@ bool CProduct::AddRecordNameToField(const string& in, const string& dataSetName,
 
   for (it = fieldsIn.begin() ; it != fieldsIn.end() ; it++)
   {
-    string msg;
+    std::string msg;
     CField *field = FindFieldByName(*it, dataSetName, false, &msg);
     if (field != NULL)
     {
@@ -2357,13 +2357,13 @@ bool CProduct::CheckFieldNames(const CExpression& expr, CStringArray& fieldNames
   return CheckFieldNames(expr, m_dataSetNameToRead, fieldNamesNotFound);
 }
 //----------------------------------------
-bool CProduct::CheckFieldNames(const CExpression& expr, const string& dataSetName, CStringArray& fieldNamesNotFound)
+bool CProduct::CheckFieldNames(const CExpression& expr, const std::string& dataSetName, CStringArray& fieldNamesNotFound)
 {
 
   return CheckFieldNames(expr.GetFieldNames(), dataSetName, fieldNamesNotFound);
 }
 //----------------------------------------
-bool CProduct::CheckFieldNames(const CStringArray* fieldNames, const string& dataSetName, CStringArray& fieldNamesNotFound)
+bool CProduct::CheckFieldNames(const CStringArray* fieldNames, const std::string& dataSetName, CStringArray& fieldNamesNotFound)
 {
   bool bOk = true;
 
@@ -2389,11 +2389,11 @@ bool CProduct::CheckFieldNames(const CStringArray* fieldNames, CStringArray& fie
 }
 */
 //----------------------------------------
-CField* CProduct::FindFieldByName(const string& fieldName, const string& dataSetName, bool withExcept /*= true*/, string* errorMsg /*= NULL*/, bool showTrace /*=true*/)
+CField* CProduct::FindFieldByName(const std::string& fieldName, const std::string& dataSetName, bool withExcept /*= true*/, std::string* errorMsg /*= NULL*/, bool showTrace /*=true*/)
 {
   // field can be already coded as an internal name (i.e. record.name or datasetname.field)
 
-  string internalFieldName = MakeInternalNameByAddingRoot(fieldName);
+  std::string internalFieldName = MakeInternalNameByAddingRoot(fieldName);
 
   CField* field = FindFieldByInternalName( internalFieldName, false);
   if (field != NULL)
@@ -2412,8 +2412,8 @@ CField* CProduct::FindFieldByName(const string& fieldName, const string& dataSet
 
   // if field is not found as internal name, search it within all dataset names in the product
 
-  string errorString;
-  string fieldNameOut = fieldName;
+  std::string errorString;
+  std::string fieldNameOut = fieldName;
 
 
   GetDataDictionaryFieldNames();
@@ -2423,7 +2423,7 @@ CField* CProduct::FindFieldByName(const string& fieldName, const string& dataSet
 
   if (indexes.size() <= 0)
   {
-    string msg;
+    std::string msg;
     if (field == NULL)
     {
       msg = CTools::Format("Field '%s' not found.",
@@ -2455,10 +2455,10 @@ CField* CProduct::FindFieldByName(const string& fieldName, const string& dataSet
   }
   else if (showTrace)
   {
-    string possibleFieldNames;
+    std::string possibleFieldNames;
     m_dataDictionaryFieldNamesWithDatasetName.GetValues(indexes, possibleFieldNames);
 
-    string msg = CTools::Format("Ambiguous field '%s' in the expression."
+    std::string msg = CTools::Format("Ambiguous field '%s' in the expression."
                   " You should resolve ambiguity by changing it to one of the following names:\n%s\n",
       fieldNameOut.c_str(), possibleFieldNames.c_str());
     CTrace::Tracer(1,"\n>>>>>>>>>>>>>>>>>>>> WARNING >>>>>>>>>>>>>>>>>>>>>>>>>\n");
@@ -2476,14 +2476,14 @@ CField* CProduct::FindFieldByName(const string& fieldName, const string& dataSet
 
 }
 //----------------------------------------
-CField* CProduct::FindFieldByName(const string& fieldName, bool withExcept /*= true*/, string* errorMsg /*= NULL*/ , bool showTrace /*= true*/)
+CField* CProduct::FindFieldByName(const std::string& fieldName, bool withExcept /*= true*/, std::string* errorMsg /*= NULL*/ , bool showTrace /*= true*/)
 {
   //return FindFieldByInternalName( MakeInternalFieldName(fieldName), withExcept);
   return FindFieldByName(fieldName, m_dataSetNameToRead, withExcept, errorMsg, showTrace);
 
 }
 //----------------------------------------
-CField* CProduct::FindFieldByInternalName(const string& internalFieldName, bool withExcept /*= true*/)
+CField* CProduct::FindFieldByInternalName(const std::string& internalFieldName, bool withExcept /*= true*/)
 {
   CField* field = dynamic_cast<CField*>(m_tree.FindObject(internalFieldName));
   if (withExcept)
@@ -2520,7 +2520,7 @@ void CProduct::CheckFields(bool convertDate /*= false*/)
     CField* field =  FindFieldByInternalName((*itField), false);
     if (field == NULL)
     {
-      string msg = CTools::Format("ERROR in CProduct::CheckFields - Field (Key field) '%s' not found",
+      std::string msg = CTools::Format("ERROR in CProduct::CheckFields - Field (Key field) '%s' not found",
                                   (*itField).c_str());
       CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
       throw (e);
@@ -2771,7 +2771,7 @@ void CProduct::LoadAliases()
   
   //for(itMap = recordByProductType.begin() ; itMap != recordByProductType.end() ; itMap++)
   //{
-  //  string key = itMap->first;
+  //  std::string key = itMap->first;
 
   //  CDefaultRecord* defaultRecord = dynamic_cast<CDefaultRecord*>(itMap->second);
   //  if (defaultRecord == NULL)
@@ -2779,7 +2779,7 @@ void CProduct::LoadAliases()
   //    continue;
   //  }
   //  
-  //  cout << "ProductType: " << key << " - defaultRecord: " << defaultRecord->GetName() << endl;
+  //  std::cout << "ProductType: " << key << " - defaultRecord: " << defaultRecord->GetName() << std::endl;
   //}
 
   // ---------------------
@@ -2805,7 +2805,7 @@ void CProduct::LoadAliases()
 
   //for(itMap = aliasesByProductType.begin() ; itMap != aliasesByProductType.end() ; itMap++)
   //{
-  //  string key = itMap->first;
+  //  std::string key = itMap->first;
 
   //  CAliases* aliases = dynamic_cast<CAliases*>(itMap->second);
   //  if (aliases == NULL)
@@ -2813,7 +2813,7 @@ void CProduct::LoadAliases()
   //    continue;
   //  }
   //  
-  //  cout << "ProductType: '" << key << "'" <<  endl;
+  //  std::cout << "ProductType: '" << key << "'" <<  std::endl;
 
   // 
   //}
@@ -2822,7 +2822,7 @@ void CProduct::LoadAliases()
   // ---------------------
   // Maps aliases according to the product 
   // ---------------------
-  string record;
+  std::string record;
   // First, get the default record whatever the product type
   defaultRecord = dynamic_cast<CDefaultRecord*>(recordByProductType.Exists(CAliases::m_ALL));
   if (defaultRecord != NULL)
@@ -2840,16 +2840,16 @@ void CProduct::LoadAliases()
   DeleteProductAliases();
 
   // If record is empty: perhaps there is a some missing data in definition 
-  // But this may not be a mistake, then don't raise an exception, just log a message in the cerr.
+  // But this may not be a mistake, then don't raise an exception, just log a message in the std::cerr.
   // If product is Netcdf: there is no record.
   if (record.empty())
   {
     if (!this->IsNetCdfOrNetCdfCFProduct())
     {
-      string msg = CTools::Format("The aliases dictionary has some missing data - There is no record defined for product class/type %s/%s ", 
+      std::string msg = CTools::Format("The aliases dictionary has some missing data - There is no record defined for product class/type %s/%s ", 
                                                   this->GetProductClass().c_str(),
                                                   this->GetProductType().c_str());
-      cerr << "WARNING: " <<  msg << endl;
+      std::cerr << "WARNING: " <<  msg << std::endl;
     }
     //throw CLoadAliasesException(CTools::Format("The aliases dictionary has some errors or missing data - There is no record defined for product class/type %s/%s ", 
     //                                            this->GetProductClass().c_str(),
@@ -2875,7 +2875,7 @@ void CProduct::LoadAliases()
     m_productAliases->AddAlias(aliasesToAdd);
   }
 
-  string errorMsg;
+  std::string errorMsg;
 
 
   // Add record name to the fields contained in the alias value
@@ -2905,7 +2905,7 @@ void CProduct::LoadAliases()
 }
 
 //----------------------------------------
-const CProductAlias* CProduct::GetAlias(const string& key)
+const CProductAlias* CProduct::GetAlias(const std::string& key)
 {
   if (m_productAliases == NULL) 
   {
@@ -2922,13 +2922,13 @@ void CProduct::GetAliasKeys(CStringArray& keys)
 
 }
 //----------------------------------------
-string CProduct::GetAliasExpandedValue(const string& key)
+std::string CProduct::GetAliasExpandedValue(const std::string& key)
 {
   return m_mapStringAliases.Exists(key);
 }
 
 //----------------------------------------
-bool CProduct::CheckAliases(const string& fileName, CStringArray& errors)
+bool CProduct::CheckAliases(const std::string& fileName, CStringArray& errors)
 {
   CProduct* product = NULL;
   bool bOk = true;
@@ -2938,12 +2938,12 @@ bool CProduct::CheckAliases(const string& fileName, CStringArray& errors)
     product = CProduct::Construct(fileName);
     if (product == NULL)
     {
-      string msg = "Unable to process: product is NULL";
+      std::string msg = "Unable to process: product is NULL";
       errors.Insert(msg);
       return false;
     }
 
-    string msg = CTools::Format("Checking aliases for product class/type %s/%s",  
+    std::string msg = CTools::Format("Checking aliases for product class/type %s/%s",  
                                 product->GetProductClass().c_str(),
                                 product->GetProductType().c_str());
     errors.Insert(msg);
@@ -2951,7 +2951,7 @@ bool CProduct::CheckAliases(const string& fileName, CStringArray& errors)
     bOk = product->CheckAliases(errors);
     if (bOk)
     {
-      string msg = "No error has been found";
+      std::string msg = "No error has been found";
       errors.Insert(msg);
     }
   }
@@ -2981,7 +2981,7 @@ bool CProduct::CheckAliases(CStringArray& errors)
   for (itMap = m_mapStringAliases.begin() ; itMap != m_mapStringAliases.end() ; itMap++)
   {
     CStringArray fieldNames;
-    string errorString;
+    std::string errorString;
     bool bOk = CExpression::GetFieldNames(itMap->second, fieldNames, errorString);
     noError &= bOk;
     if (!bOk)
@@ -2998,14 +2998,14 @@ bool CProduct::CheckAliases(CStringArray& errors)
       CField* field = FindFieldByName(*itArray, "", false, &errorString , false);
       if (field == NULL)
       {
-        string nativeError;
+        std::string nativeError;
         if (!errorString.empty())
         {
           nativeError = CTools::Format("(Native error: %s).", errorString.c_str());
         }
 
         noError = false;
-        string msg = CTools::Format("Product class '%s' - Product type '%s' - Alias '%s': Field '%s' not found %s.",
+        std::string msg = CTools::Format("Product class '%s' - Product type '%s' - Alias '%s': Field '%s' not found %s.",
                                     this->GetProductClass().c_str(),
                                     this->GetProductType().c_str(),
                                     itMap->first.c_str(),
@@ -3032,7 +3032,7 @@ void CProduct::DeleteLogFile()
   }
 }
 //----------------------------------------
-void CProduct::CreateLogFile(const string& logFileName, uint32_t mode /* = CFile::modeWrite|CFile::typeText */)
+void CProduct::CreateLogFile(const std::string& logFileName, uint32_t mode /* = CFile::modeWrite|CFile::typeText */)
 {
   DeleteLogFile();
   try
@@ -3052,7 +3052,7 @@ void CProduct::CreateLogFile(const string& logFileName, uint32_t mode /* = CFile
 //----------------------------------------
 void CProduct::Log(bool n, bool bCrLf /*= true*/)
 {
-  string str = (n ? "yes" : "no");
+  std::string str = (n ? "yes" : "no");
   Log(str, bCrLf);
 }
 //----------------------------------------
@@ -3066,7 +3066,7 @@ void CProduct::Log(int32_t n, bool bCrLf /*= true*/)
   Log(CTools::IntToStr(n), bCrLf);
 }
 //----------------------------------------
-void CProduct::Log(const string& str, bool bCrLf /*= true*/)
+void CProduct::Log(const std::string& str, bool bCrLf /*= true*/)
 {
   Log(str.c_str(), bCrLf);
 }
@@ -3217,14 +3217,14 @@ void CProduct::Release()
 
 //----------------------------------------
 
-void CProduct::HandleBratError(const string& str /* = ""*/, int32_t errClass /* = BRATHL_LOGIC_ERROR*/)
+void CProduct::HandleBratError(const std::string& str /* = ""*/, int32_t errClass /* = BRATHL_LOGIC_ERROR*/)
 {
   if (coda_errno == 0)
   {
     return;
   }
 
-  string msg = CTools::Format("BRAT ERROR - %s - errno:#%d:%s", str.c_str(), coda_errno, coda_errno_to_string (coda_errno));
+  std::string msg = CTools::Format("BRAT ERROR - %s - errno:#%d:%s", str.c_str(), coda_errno, coda_errno_to_string (coda_errno));
   CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), errClass);
   CTrace::Tracer("%s", e.what());
   Dump(*CTrace::GetDumpContext());
@@ -3254,8 +3254,8 @@ void CProduct::InitBratOptions()
 //----------------------------------------
 void CProduct::ReplaceNamesCaseSensitive(const CExpression& exprIn, const CStringArray& fieldsIn, CExpression& exprOut, bool forceReload /*= false*/)
 {
-  string in = exprIn.AsString();
-  string out;
+  std::string in = exprIn.AsString();
+  std::string out;
 
   ReplaceNamesCaseSensitive(in, fieldsIn, out, forceReload);
 
@@ -3263,7 +3263,7 @@ void CProduct::ReplaceNamesCaseSensitive(const CExpression& exprIn, const CStrin
 
 }
 //----------------------------------------
-void CProduct::ReplaceNamesCaseSensitive(const string& in, const CStringArray& fieldsIn, string& out, bool forceReload /*= false*/)
+void CProduct::ReplaceNamesCaseSensitive(const std::string& in, const CStringArray& fieldsIn, std::string& out, bool forceReload /*= false*/)
 {
   CStringArray fieldsOutNoCaseSensitive;
   CStringArray fieldsOutCaseSensitive;
@@ -3275,15 +3275,15 @@ void CProduct::ReplaceNamesCaseSensitive(const string& in, const CStringArray& f
 }
 
 //----------------------------------------
-void CProduct::ReplaceNamesCaseSensitive(const CExpression& exprIn, string& out, bool forceReload /*= false*/)
+void CProduct::ReplaceNamesCaseSensitive(const CExpression& exprIn, std::string& out, bool forceReload /*= false*/)
 {
-  string in = exprIn.AsString();
+  std::string in = exprIn.AsString();
 
   ReplaceNamesCaseSensitive(in, out, forceReload);
 
 }
 //----------------------------------------
-void CProduct::ReplaceNamesCaseSensitive(const string& in, string& out, bool forceReload /*= false*/)
+void CProduct::ReplaceNamesCaseSensitive(const std::string& in, std::string& out, bool forceReload /*= false*/)
 {
   //CStringArray aliasesFound;
 
@@ -3297,7 +3297,7 @@ void CProduct::ReplaceNamesCaseSensitive(const string& in, string& out, bool for
 
   //for (it = aliasesFound.begin() ; it != aliasesFound.end() ; it++)
   //{
-  //  string pattern = *it;
+  //  std::string pattern = *it;
   //  pattern = CTools::Replace(pattern, "\\%\\{", "\\%\\{");
   //  pattern = CTools::Replace(pattern, "\\}", "\\}");
   //  out = CTools::Replace(out, pattern, "1");
@@ -3400,8 +3400,8 @@ CStringArray* CProduct::GetDataDictionaryFieldNames(bool forceReload /*= false*/
                                 m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     }
 
-    string fieldFullName = field->GetFullName();
-    string fieldNameWithRecord = field->GetFullNameWithRecord();
+    std::string fieldFullName = field->GetFullName();
+    std::string fieldNameWithRecord = field->GetFullNameWithRecord();
 
     if (fieldFullName.empty() == false)
     {
@@ -3409,7 +3409,7 @@ CStringArray* CProduct::GetDataDictionaryFieldNames(bool forceReload /*= false*/
       //m_dataDictionaryFieldNames.InsertUnique(field->GetFullName());
       m_dataDictionaryFieldNames.Insert(field->GetFullName());
 
-      string recordName = field->GetRecordName();
+      std::string recordName = field->GetRecordName();
 
       //m_dataDictionaryFieldNamesWithDatasetName.InsertUnique(fieldNameWithRecord);
       m_dataDictionaryFieldNamesWithDatasetName.Insert(fieldNameWithRecord);
@@ -3521,7 +3521,7 @@ void CProduct::SetDynInfo()
     coda_type_class typeclass;
     coda_cursor_get_type_class(&m_cursor, &typeclass);
 
-    //cout << field->GetTypeClass() <<" " << field->GetName() << endl;
+    //std::cout << field->GetTypeClass() <<" " << field->GetName() << std::endl;
 
     if (typeid(*field) == typeid(CFieldRecord))
     {
@@ -3658,7 +3658,7 @@ void CProduct::SetDynInfo()
 }
 
 //----------------------------------------
-void CProduct::FillListFields(const string& key)
+void CProduct::FillListFields(const std::string& key)
 {
   CStringList lstWork;
 
@@ -3668,7 +3668,7 @@ void CProduct::FillListFields(const string& key)
 
   if (m_fieldsToProcess.empty())
   {
-    string msg = CTools::Format("ERROR - CProduct::FillListFields(key) - invalid key '%s' - No field found - Verify your field syntax with the file structure in the datadictionary",
+    std::string msg = CTools::Format("ERROR - CProduct::FillListFields(key) - invalid key '%s' - No field found - Verify your field syntax with the file structure in the datadictionary",
                                 key.c_str());
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     CTrace::Tracer("%s", e.what());
@@ -3678,7 +3678,7 @@ void CProduct::FillListFields(const string& key)
 
   if (m_tree.IsKey(key) == false)
   {
-    string msg = CTools::Format("ERROR - CProduct::FillListFields(key) - invalid key '%s' - Field does not exist or some elements in its name are missing - Verify your field syntax with the file structure in the datadictionary",
+    std::string msg = CTools::Format("ERROR - CProduct::FillListFields(key) - invalid key '%s' - Field does not exist or some elements in its name are missing - Verify your field syntax with the file structure in the datadictionary",
                                 key.c_str());
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     CTrace::Tracer("%s", e.what());
@@ -3701,28 +3701,28 @@ bool CProduct::IsNetCdf()
   return (productNetCdf != NULL);
 }
 //----------------------------------------
-string CProduct::MakeInternalNameByAddingRoot(const string& name)
+std::string CProduct::MakeInternalNameByAddingRoot(const std::string& name)
 {
   return CProduct::m_treeRootName + CTreeField::m_keyDelimiter + name;
 }
 //----------------------------------------
-string CProduct::MakeInternalFieldName(const string& dataSetName, const string& field)
+std::string CProduct::MakeInternalFieldName(const std::string& dataSetName, const std::string& field)
 {
   return CProduct::m_treeRootName + CTreeField::m_keyDelimiter + dataSetName + CTreeField::m_keyDelimiter + field;
 }
 //----------------------------------------
-string CProduct::MakeInternalFieldName(const string& field)
+std::string CProduct::MakeInternalFieldName(const std::string& field)
 {
   return MakeInternalFieldName(m_dataSetNameToRead, field);
 }
 //----------------------------------------
-string CProduct::MakeInternalDataSetName(const string& dataSetName)
+std::string CProduct::MakeInternalDataSetName(const std::string& dataSetName)
 {
   return MakeInternalNameByAddingRoot(dataSetName);
 }
 
 //----------------------------------------
-void CProduct::InitInternalFieldName(const string& field, bool convertDate /*= false*/)
+void CProduct::InitInternalFieldName(const std::string& field, bool convertDate /*= false*/)
 {
   CStringList listField;
 
@@ -3737,7 +3737,7 @@ void CProduct::InitInternalFieldName(CStringList& listField, bool convertDate /*
   InitInternalFieldName(m_dataSetNameToRead, listField, convertDate);
 }
 //----------------------------------------
-void CProduct::InitInternalFieldName(const string& dataSetName, CStringList& listField, bool convertDate /*= false*/)
+void CProduct::InitInternalFieldName(const std::string& dataSetName, CStringList& listField, bool convertDate /*= false*/)
 {
   m_listInternalFieldName.RemoveAll();
   m_fieldNameEquivalence.RemoveAll();
@@ -3748,7 +3748,7 @@ void CProduct::InitInternalFieldName(const string& dataSetName, CStringList& lis
 
   CStringList::iterator itField;
 
-  string internalFieldName;
+  std::string internalFieldName;
 
   for (itField = listField.begin() ; itField != listField.end() ; itField++)
   {
@@ -3756,7 +3756,7 @@ void CProduct::InitInternalFieldName(const string& dataSetName, CStringList& lis
     
     if (field == NULL)
     {
-      string msg = CTools::Format("ERROR in CProduct::InitInternalFieldName - field '%s' in record name '%s' not found",
+      std::string msg = CTools::Format("ERROR in CProduct::InitInternalFieldName - field '%s' in record name '%s' not found",
                                   (*itField).c_str(), dataSetName.c_str());
       CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
       CTrace::Tracer("%s", e.what());
@@ -3764,7 +3764,7 @@ void CProduct::InitInternalFieldName(const string& dataSetName, CStringList& lis
       throw (e);
     }
 
-    string internalFieldName = MakeInternalNameByAddingRoot(field->GetFullNameWithRecord());
+    std::string internalFieldName = MakeInternalNameByAddingRoot(field->GetFullNameWithRecord());
 /*
     CField* field = FindFieldByInternalName( internalFieldName, false);
     if (field == NULL)
@@ -3781,7 +3781,7 @@ void CProduct::InitInternalFieldName(const string& dataSetName, CStringList& lis
 }
 /*
 //----------------------------------------
-void CProduct::ReadBratFile(const string& fileName, const string& dataSetName, const string& field)
+void CProduct::ReadBratFile(const std::string& fileName, const std::string& dataSetName, const std::string& field)
 {
 
   CStringList listField;
@@ -3794,7 +3794,7 @@ void CProduct::ReadBratFile(const string& fileName, const string& dataSetName, c
 
 
 //----------------------------------------
-void CProduct::ReadBratFile(const string& fileName, const string& dataSetName, CStringList& listField)
+void CProduct::ReadBratFile(const std::string& fileName, const std::string& dataSetName, CStringList& listField)
 {
   CStringList::iterator itField;
 
@@ -3802,7 +3802,7 @@ void CProduct::ReadBratFile(const string& fileName, const string& dataSetName, C
 
   m_recordCount = 0;
 
-  string str;
+  std::string str;
 
   Open(fileName);
 
@@ -3819,14 +3819,14 @@ void CProduct::ReadBratFile(const string& fileName, const string& dataSetName, C
 */
 
 //----------------------------------------
-string CProduct::DatasetRecordsNumberToString(const CIntMap& datasetRecordsNumber)
+std::string CProduct::DatasetRecordsNumberToString(const CIntMap& datasetRecordsNumber)
 {
-  string str;
+  std::string str;
   CIntMap::const_iterator itMap;
 
   for (itMap = datasetRecordsNumber.begin() ; itMap != datasetRecordsNumber.end() ; itMap++)
   {
-    string key = itMap->first;
+    std::string key = itMap->first;
     int32_t num = itMap->second;
     str.append(CTools::Format("Dataset/Record name: '%s' has %d record(s)\n", key.c_str(), num));
   }
@@ -3858,13 +3858,13 @@ int32_t CProduct::GetNumberOfRecords()
 
   m_nbRecords = max;
 
-  string msgRecordNumber = DatasetRecordsNumberToString(datasetRecordsNumber);
+  std::string msgRecordNumber = DatasetRecordsNumberToString(datasetRecordsNumber);
 
   if (min <= 0)
   {
     m_nbRecords = min;
 
-    string msg = CTools::Format("Regarding the file '%s', at least one dataset contains no data:\n\n%s\n\nFile '%s' will be skipped\n",
+    std::string msg = CTools::Format("Regarding the file '%s', at least one dataset contains no data:\n\n%s\n\nFile '%s' will be skipped\n",
       m_currFileName.c_str(), msgRecordNumber.c_str(), m_currFileName.c_str());
     CTrace::Tracer(1,"\n>>>>>>>>>>>>>>>>>>>> WARNING >>>>>>>>>>>>>>>>>>>>>>>>>\n");
     CTrace::Tracer(1,"%s", msg.c_str());
@@ -3874,7 +3874,7 @@ int32_t CProduct::GetNumberOfRecords()
   {
     if (datasetRecordsNumber.size() > 1)
     {
-      string msg = CTools::Format("Regarding the file '%s', number of records for each dataset are:\n\n%s\n",
+      std::string msg = CTools::Format("Regarding the file '%s', number of records for each dataset are:\n\n%s\n",
         m_currFileName.c_str(), msgRecordNumber.c_str());
       CTrace::Tracer(1,"\n>>>>>>>>>>>>>>>>>>>> INFORMATION >>>>>>>>>>>>>>>>>>>>>>>>>\n");
       CTrace::Tracer(1,"%s",msg.c_str());
@@ -3888,8 +3888,8 @@ int32_t CProduct::GetNumberOfRecords()
 
     if (!HasEqualsNumberOfRecord(datasetRecordsNumberTmp))
     {
-      string msgRecordNumberTmp = DatasetRecordsNumberToString(datasetRecordsNumberTmp);
-      string msg = CTools::Format("Regarding the file '%s', number of records for datasets below are different.\n"
+      std::string msgRecordNumberTmp = DatasetRecordsNumberToString(datasetRecordsNumberTmp);
+      std::string msg = CTools::Format("Regarding the file '%s', number of records for datasets below are different.\n"
                                   "Only %d data record(s) will be consider.\n\n%s\n",
         m_currFileName.c_str(), min, msgRecordNumberTmp.c_str());
       CTrace::Tracer(1,"\n>>>>>>>>>>>>>>>>>>>> WARNING >>>>>>>>>>>>>>>>>>>>>>>>>\n");
@@ -3906,7 +3906,7 @@ int32_t CProduct::GetNumberOfRecords()
 
 }
 //----------------------------------------
-int32_t CProduct::GetNumberOfRecords(const string& dataSetName)
+int32_t CProduct::GetNumberOfRecords(const std::string& dataSetName)
 {
   if (m_nbRecords >= 0)
   {
@@ -3929,14 +3929,14 @@ int32_t CProduct::GetNumberOfRecords(const string& dataSetName)
     return -1;
   }
 
-//  string str = CProduct::m_treeRootName + CTreeField::m_keyDelimiter + dataSetName;
+//  std::string str = CProduct::m_treeRootName + CTreeField::m_keyDelimiter + dataSetName;
 
   CFieldRecord* field =  dynamic_cast<CFieldRecord*>(FindFieldByInternalName( MakeInternalDataSetName(dataSetName),
                                                                               false ));
 
   if (field == NULL)
   {
-    string msg = CTools::Format("ERROR in CProduct::GetNumberOfRecords - field '%s' not found",
+    std::string msg = CTools::Format("ERROR in CProduct::GetNumberOfRecords - field '%s' not found",
                                 dataSetName.c_str());
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     CTrace::Tracer("%s", e.what());
@@ -3966,7 +3966,7 @@ void CProduct::GetNumberOfRecords(const CStringList& datasetNames, CIntMap& data
                                                                               false ));
     if (field == NULL)
     {
-      string msg = CTools::Format("ERROR in CProduct::GetNumberOfRecords - field '%s' is not a record",
+      std::string msg = CTools::Format("ERROR in CProduct::GetNumberOfRecords - field '%s' is not a record",
                                   itDataset->c_str());
       CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
       CTrace::Tracer("%s", e.what());
@@ -3991,7 +3991,7 @@ void CProduct::GetMinMaxNumberOfRecords(int32_t& min, int32_t& max, CIntMap* dat
 
   if (m_listInternalFieldName.size() <= 0)
   {
-    string msg = "ERROR in CProduct::GetMinMaxNumberOfRecords - List of fields is empty (m_listInternalFieldName) -  Perhaps CProduct::SetListFieldToRead has not been called yet.";
+    std::string msg = "ERROR in CProduct::GetMinMaxNumberOfRecords - List of fields is empty (m_listInternalFieldName) -  Perhaps CProduct::SetListFieldToRead has not been called yet.";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     CTrace::Tracer("%s", e.what());
     Dump(*CTrace::GetDumpContext());
@@ -4222,7 +4222,7 @@ void CProduct::ExpandArray()
 
     if (recordSetToProcess == NULL)
     {
-      string msg = "ERROR in CProduct::ExpandArray - No current recordset";
+      std::string msg = "ERROR in CProduct::ExpandArray - No current recordset";
       CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
       throw (e);
     }
@@ -4371,7 +4371,7 @@ void CProduct::ExpandFieldsArray()
 
     if (recordSetToProcess == NULL)
     {
-      string msg = "ERROR in CProduct::ExpandFieldsArray - No current recordset";
+      std::string msg = "ERROR in CProduct::ExpandFieldsArray - No current recordset";
       CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
       throw (e);
     }
@@ -4467,7 +4467,7 @@ void CProduct::CheckConsistencyHighResolutionField(CFieldSetArrayDbl* fieldSetAr
 {
   if ( (fieldSetArrayDbl->m_nbDims <= 0) || (fieldSetArrayDbl->m_nbDims > 2) )
   {
-    string msg = CTools::Format("ERROR - CProduct::CheckConsistencyHighResolutionField() - Number of array dim %d not implemented for this method "
+    std::string msg = CTools::Format("ERROR - CProduct::CheckConsistencyHighResolutionField() - Number of array dim %d not implemented for this method "
                                 "(field '%s')",
                                 fieldSetArrayDbl->m_nbDims,
                                 fieldSetArrayDbl->GetField()->GetKey().c_str());
@@ -4477,7 +4477,7 @@ void CProduct::CheckConsistencyHighResolutionField(CFieldSetArrayDbl* fieldSetAr
 
   if (CTools::IsDefaultValue(m_numHighResolutionMeasure))
   {
-    string msg = CTools::Format("ERROR - CProduct::CheckConsistencyHighResolutionField() - Number of high resolution measures is not intialized (equals default value"
+    std::string msg = CTools::Format("ERROR - CProduct::CheckConsistencyHighResolutionField() - Number of high resolution measures is not intialized (equals default value"
                                 "(field '%s')",
                                 fieldSetArrayDbl->GetField()->GetKey().c_str());
 
@@ -4487,7 +4487,7 @@ void CProduct::CheckConsistencyHighResolutionField(CFieldSetArrayDbl* fieldSetAr
 
   if (fieldSetArrayDbl->m_dim[0] != m_numHighResolutionMeasure)
   {
-    string msg = CTools::Format("ERROR - CProduct::CheckConsistencyHighResolutionField() - Array dim[0]: %d is not equal to numer of high resolution measures: %d "
+    std::string msg = CTools::Format("ERROR - CProduct::CheckConsistencyHighResolutionField() - Array dim[0]: %d is not equal to numer of high resolution measures: %d "
                                 "(field '%s')",
                                 fieldSetArrayDbl->m_dim[0],
                                 m_numHighResolutionMeasure,
@@ -4569,7 +4569,7 @@ void CProduct::PutFlatHighResolution(CDataSet* dataSet, CFieldSetArrayDbl* field
     }
     else
     {
-      string msg = CTools::Format("ERROR - CProduct::PutFlatHighResolution() - Number of array dim %d not implemented for this method "
+      std::string msg = CTools::Format("ERROR - CProduct::PutFlatHighResolution() - Number of array dim %d not implemented for this method "
                                   "(field '%s')",
                                   fieldSetArrayDbl->m_nbDims,
                                   fieldSetArrayDbl->GetField()->GetKey().c_str());
@@ -4618,7 +4618,7 @@ void CProduct::Put(CDataSet* dataSet, CFieldSetArrayDbl* fieldSetArrayDbl, uint3
 
   if (CTools::IsDefaultValue(repeat))
   {
-    string msg = CTools::Format("ERROR - CProduct::Put() - Number of high resolution measures is not intialized (equals default value"
+    std::string msg = CTools::Format("ERROR - CProduct::Put() - Number of high resolution measures is not intialized (equals default value"
                                 "(field '%s')",
                                 fieldSetArrayDbl->GetField()->GetKey().c_str());
 
@@ -4650,7 +4650,7 @@ void CProduct::Put(CDataSet* dataSet, CFieldSetDbl* fieldSetDbl)
 
   if (CTools::IsDefaultValue(m_numHighResolutionMeasure))
   {
-    string msg = CTools::Format("ERROR - CProduct::Put() - Number of high resolution measures is not intialized (equals default value"
+    std::string msg = CTools::Format("ERROR - CProduct::Put() - Number of high resolution measures is not intialized (equals default value"
                                 "(field '%s')",
                                 fieldSetDbl->GetField()->GetKey().c_str());
 
@@ -4702,7 +4702,7 @@ void CProduct::FillDescription()
 }
 
 //----------------------------------------
-void CProduct::ReadBratRecord(const string& dataSetName, const string& field, int32_t iRecord)
+void CProduct::ReadBratRecord(const std::string& dataSetName, const std::string& field, int32_t iRecord)
 {
   m_dataSetNameToRead = dataSetName;
 
@@ -4711,7 +4711,7 @@ void CProduct::ReadBratRecord(const string& dataSetName, const string& field, in
   ReadBratRecord(iRecord);
 }
 //----------------------------------------
-void CProduct::ReadBratRecord(const string& dataSetName, CStringList& listField, int32_t iRecord)
+void CProduct::ReadBratRecord(const std::string& dataSetName, CStringList& listField, int32_t iRecord)
 {
   m_dataSetNameToRead = dataSetName;
 
@@ -4727,7 +4727,7 @@ void CProduct::ReadBratRecord(int32_t iRecord)
 
   if (iRecord < 0)
   {
-    string msg = CTools::Format("ERROR in CProduct::ReadBratRecord - record index %d out of range (min = 0)",
+    std::string msg = CTools::Format("ERROR in CProduct::ReadBratRecord - record index %d out of range (min = 0)",
                                 iRecord);
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_RANGE_ERROR);
     CTrace::Tracer("%s", e.what());
@@ -4743,7 +4743,7 @@ void CProduct::ReadBratRecord(int32_t iRecord)
 
   m_recordCount = 0;
 
-  string str;
+  std::string str;
 
 
   if (!m_disableTrace)
@@ -4784,7 +4784,7 @@ void CProduct::ReadBratRecord(int32_t iRecord)
 
 
 //----------------------------------------
-void CProduct::ReadBratFieldRecord(const string& key, int32_t iRecord)
+void CProduct::ReadBratFieldRecord(const std::string& key, int32_t iRecord)
 {
 
   m_listFields.RemoveAll();
@@ -4828,7 +4828,7 @@ void CProduct::ReadBratFieldRecord(const string& key, int32_t iRecord)
 
   if (bFoundField == false)
   {
-    string msg = CTools::Format("ERROR - CProduct::ReadBratField() - Unknown dataset name or field name '%s'"
+    std::string msg = CTools::Format("ERROR - CProduct::ReadBratField() - Unknown dataset name or field name '%s'"
                                 "(internal name searched:'%s'",
                                 m_fieldsToProcess.front().c_str(),
                                 key.c_str());
@@ -4858,7 +4858,7 @@ void CProduct::ReadBratFieldRecord(const string& key, int32_t iRecord)
   if ( field->End() )
   {
     field->SetCurrentPosToLast();
-//    string msg = CTools::Format("ERROR in CProduct::ReadBratFieldRecord - record index %d out of range (max = %d)",
+//    std::string msg = CTools::Format("ERROR in CProduct::ReadBratFieldRecord - record index %d out of range (max = %d)",
 //                                iRecord,
 //                                field->GetMaxPos());
 //    CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_RANGE_ERROR);
@@ -4892,7 +4892,7 @@ void CProduct::ReadBratFieldRecord(CField::CListField::iterator it, bool& skipRe
   if (it == m_listFields.end())
   {
     CDoubleArray vect;
-    string value;
+    std::string value;
 
     CObList parentFieldList(false);
 
@@ -4908,7 +4908,7 @@ void CProduct::ReadBratFieldRecord(CField::CListField::iterator it, bool& skipRe
     CField* parentField = m_tree.FindParent(field);
     if (parentField == NULL)
     {
-      string msg = CTools::Format("CProduct::ReadBratFieldRecord - parentField of field '%s' is NULL - Read mustn't be called on root field",
+      std::string msg = CTools::Format("CProduct::ReadBratFieldRecord - parentField of field '%s' is NULL - Read mustn't be called on root field",
                                        field->GetKey().c_str());
       CException e(msg, BRATHL_LOGIC_ERROR);
       throw (e);
@@ -5003,7 +5003,7 @@ bool CProduct::FindParentToRead(CField* fromField, CObList* parentFieldList)
 }
 /*
 //----------------------------------------
-void CProduct::ReadBratField(const string& key)
+void CProduct::ReadBratField(const std::string& key)
 {
 
   m_listFields.RemoveAll();
@@ -5047,7 +5047,7 @@ void CProduct::ReadBratField(const string& key)
 
   if (bFoundField == false)
   {
-    string msg = CTools::Format("ERROR - CProduct::ReadBratField() - Unknown dataset name or field name '%s'"
+    std::string msg = CTools::Format("ERROR - CProduct::ReadBratField() - Unknown dataset name or field name '%s'"
                                 "(internal name searched:'%s'",
                                 m_fieldsToProcess.front().c_str(),
                                 key.c_str());
@@ -5140,7 +5140,7 @@ void CProduct::ReadBratField(CField::CListField::iterator it)
 //----------------------------------------
 void CProduct::InsertRecord(int32_t pos)
 {
-  string recordSetName =  CTools::Format(20, "#%d", pos + m_recordCount + 1);
+  std::string recordSetName =  CTools::Format(20, "#%d", pos + m_recordCount + 1);
 
   //inserts a new recordset if not exists and sets the recordset as current recordset
   //if recordset already exists, only sets the recordset as current recordset
@@ -5149,7 +5149,7 @@ void CProduct::InsertRecord(int32_t pos)
 //----------------------------------------
 void CProduct::InsertRecord(CDataSet& dataSet, int32_t pos)
 {
-  string recordSetName =  CTools::Format(20, "#%d", pos);
+  std::string recordSetName =  CTools::Format(20, "#%d", pos);
 
   //inserts a new recordset if not exists and sets the recordset as current recordset
   //if recordset already exists, only sets the recordset as current recordset
@@ -5208,10 +5208,10 @@ void CProduct::SetCursor(CField* field, bool& skipRecord)
   }
 
 
-  //ostream *fout = CTrace::GetDumpContext();
+  //std::ostream *fout = CTrace::GetDumpContext();
 
-  //*fout << field->GetTypeClass() <<" " << field->GetCurrentPos() <<" " << field->GetName() <<" " << field->GetMaxPos() << endl;
-  //*fout <<"its parent: " << parentField->GetTypeClass() <<" " << parentField->GetCurrentPos() <<" " << parentField->GetName() <<" " << parentField->GetMaxPos() << endl;
+  //*fout << field->GetTypeClass() <<" " << field->GetCurrentPos() <<" " << field->GetName() <<" " << field->GetMaxPos() << std::endl;
+  //*fout <<"its parent: " << parentField->GetTypeClass() <<" " << parentField->GetCurrentPos() <<" " << parentField->GetName() <<" " << parentField->GetMaxPos() << std::endl;
 
 
   //int32_t n_elements =0;
@@ -5233,10 +5233,10 @@ void CProduct::SetCursor(CField* field, bool& skipRecord)
 
   }
 
-  //cout << "----------------- " << endl;
-  //cout << "parentField->GetCurrentPos() " << parentField->GetName() << " - " << parentField->GetCurrentPos() << endl;
-  //cout << "field->GetCurrentPos() " << field->GetName() << " - " << field->GetCurrentPos() << endl;
-  //cout << "----------------- " << endl;
+  //std::cout << "----------------- " << std::endl;
+  //std::cout << "parentField->GetCurrentPos() " << parentField->GetName() << " - " << parentField->GetCurrentPos() << std::endl;
+  //std::cout << "field->GetCurrentPos() " << field->GetName() << " - " << field->GetCurrentPos() << std::endl;
+  //std::cout << "----------------- " << std::endl;
 
   //coda_Type *record_type;
   //result = coda_cursor_get_type(parentField->GetCursor(), &record_type);
@@ -5253,11 +5253,11 @@ void CProduct::SetCursor(CField* field, bool& skipRecord)
       //result = coda_type_get_record_field_name(record_type, indexUnion, &field_name);
       //HandleBratError("coda_type_get_record_field_name");
 
-      //cout << "parentField union index " << indexUnion << " field_name " << field_name << endl;
+      //std::cout << "parentField union index " << indexUnion << " field_name " << field_name << std::endl;
       if (indexUnion != field->GetIndex())
       {
         skipRecord = true;
-        //cout << "skipRecord " << skipRecord << endl;
+        //std::cout << "skipRecord " << skipRecord << std::endl;
         return;
       }
 
@@ -5282,7 +5282,7 @@ void CProduct::SetCursor(CField* field, bool& skipRecord)
 
 //----------------------------------------
 
-string CProduct::GetTypeName()
+std::string CProduct::GetTypeName()
 {
   const char *str = NULL;
   coda_type_get_name(m_listInfo.Back()->m_type, &str);
@@ -5298,13 +5298,13 @@ string CProduct::GetTypeName()
 
 //----------------------------------------
 
-string CProduct::GetTypeDesc()
+std::string CProduct::GetTypeDesc()
 {
   return GetTypeDesc(m_listInfo.Back()->m_type);
 }
 //----------------------------------------
 
-string CProduct::GetTypeDesc(coda_Type *type)
+std::string CProduct::GetTypeDesc(coda_Type *type)
 {
   const char *str = NULL;
   coda_type_get_description(type, &str);
@@ -5319,7 +5319,7 @@ string CProduct::GetTypeDesc(coda_Type *type)
 }
 //----------------------------------------
 
-string CProduct::GetTypeUnit()
+std::string CProduct::GetTypeUnit()
 {
   const char *str = NULL;
   coda_type_get_unit(m_listInfo.Back()->m_type, &str);
@@ -5336,13 +5336,13 @@ string CProduct::GetTypeUnit()
 
 //----------------------------------------
 
-string CProduct::GetRecordFieldName()
+std::string CProduct::GetRecordFieldName()
 {
   CInfo* p = m_listInfo.PrevBack(false);
 
   if (p == NULL)
   {
-    cerr << "WARNING - CProduct::GetRecordFieldName() - No record field name found" << endl;
+    std::cerr << "WARNING - CProduct::GetRecordFieldName() - No record field name found" << std::endl;
     return "";
   }
 
@@ -5491,7 +5491,7 @@ bool CProduct::TraverseData()
     default:
     //----------------------
     {
-      string msg = CTools::Format("ERROR - CProduct::TraverseData() : unexpected Brat type class %d (%s) - FieldName:%s - File:%s",
+      std::string msg = CTools::Format("ERROR - CProduct::TraverseData() : unexpected Brat type class %d (%s) - FieldName:%s - File:%s",
                                   m_listInfo.Back()->m_type_class,
                                   coda_type_get_class_name(m_listInfo.Back()->m_type_class),
                                   GetRecordFieldName().c_str(),
@@ -5532,7 +5532,7 @@ bool CProduct::GetInfoArray()
 
   bool bFieldAdded = true;
 
-  string fieldName = GetRecordFieldName();
+  std::string fieldName = GetRecordFieldName();
 
   // Get dimensions for fixed sized array
   result = coda_type_get_array_dim(m_listInfo.Back()->m_type, &nbDims, dim);
@@ -5572,7 +5572,7 @@ bool CProduct::GetInfoArray()
     case coda_real_class:
     //----------------------
     {
-      string description = CTools::Format("%s\n%s",
+      std::string description = CTools::Format("%s\n%s",
                                           GetTypeDesc(typeBckup).c_str(),
                                           GetTypeDesc().c_str());
       CFieldArray* field = new CFieldArray(nbDims, dim, fieldName, description, GetTypeUnit());
@@ -5654,7 +5654,7 @@ bool CProduct::GetInfoArray()
     default:
     //----------------------
     {
-      string msg = CTools::Format("ERROR - CProduct::GetInfoArray() : unexpected Brat type class %d (%s) - FieldName:%s - File:%s",
+      std::string msg = CTools::Format("ERROR - CProduct::GetInfoArray() : unexpected Brat type class %d (%s) - FieldName:%s - File:%s",
                                   m_listInfo.Back()->m_type_class,
                                   coda_type_get_class_name(m_listInfo.Back()->m_type_class),
                                   GetRecordFieldName().c_str(),
@@ -5703,8 +5703,8 @@ void CProduct::CreateFieldIndexes(CFieldArray* field)
 void CProduct::CreateFieldIndexData()
 {
 
-  string name = CField::m_BRAT_INDEX_DATA_NAME;
-  string description = CField::m_BRAT_INDEX_DATA_DESC;
+  std::string name = CField::m_BRAT_INDEX_DATA_NAME;
+  std::string description = CField::m_BRAT_INDEX_DATA_DESC;
   CFieldIndexData* field = new CFieldIndexData(name, description);
   
   field->SetTypeClass(coda_real_class);
@@ -5766,7 +5766,7 @@ bool CProduct::GetInfoSpecial(int32_t nbDims, const long dim[])
     case coda_special_vsf_integer:
     //----------------------
     {
-      string msg = CTools::Format("ERROR - CProduct::GetInfoSpecial() : unexpected Brat special type %d (%s) -  FieldName:%s - File:%s",
+      std::string msg = CTools::Format("ERROR - CProduct::GetInfoSpecial() : unexpected Brat special type %d (%s) -  FieldName:%s - File:%s",
                                   special_type,
                                   coda_type_get_special_type_name(special_type),
                                   GetRecordFieldName().c_str(),
@@ -5794,7 +5794,7 @@ bool CProduct::GetInfoRecord(int32_t nbDims, const long dim[])
   result = coda_type_get_num_record_fields(m_listInfo.Back()->m_type, &num_fields);
   HandleBratError("coda_type_get_num_record_fields");
 
-  string recordFieldName;
+  std::string recordFieldName;
 
   if (m_tree.GetRoot() == NULL)
   {
@@ -5819,7 +5819,7 @@ bool CProduct::GetInfoRecord(int32_t nbDims, const long dim[])
 
   if (m_tree.GetRoot() == NULL)
   {
-    string desc = GetProductClass() + "/" + GetProductType();
+    std::string desc = GetProductClass() + "/" + GetProductType();
     field->SetDescription(desc);
 
     m_tree.SetRoot(m_treeRootName, field, true);
@@ -5879,7 +5879,7 @@ bool CProduct::TraverseRecord(int32_t indexFields)
      // {
      //     return;
       //}
-    cerr << "WARNING get_record_field_available_status " << endl;
+    std::cerr << "WARNING get_record_field_available_status " << std::endl;
   }
   */
 
@@ -5973,7 +5973,7 @@ void CProduct::SetSpecialType(CField* field)
 //----------------------------------------
 void CProduct::GetRecords(CStringArray& array)
 {
-  string recordName;
+  std::string recordName;
 
   if (m_tree.GetRoot() == NULL)
   {
@@ -6018,7 +6018,7 @@ bool CProduct::LoadTransposeFieldsValue(CStringArray& fieldToTranspose)
   fieldToTranspose.RemoveAll();
 
 
-  string refFilePathName = CTools::FindDataFile(CProduct::m_transposeFieldValuesFileName);
+  std::string refFilePathName = CTools::FindDataFile(CProduct::m_transposeFieldValuesFileName);
   if (refFilePathName == "")
   {
     return false;
@@ -6069,9 +6069,9 @@ bool CProduct::LoadTransposeFieldsValue(CStringArray& fieldToTranspose)
 }
 
 //----------------------------------------
-string CProduct::GetProductClassType()
+std::string CProduct::GetProductClassType()
 {
-  string str;
+  std::string str;
 
   str.append(GetProductClass());
   str.append("_");
@@ -6125,7 +6125,7 @@ void CProduct::SetFieldSpecificUnit(CField* field)
   }
 
   //If field has a specific unit, loads and sets it.
-  string specificUnit = GetFieldSpecificUnit(field->GetFullName());
+  std::string specificUnit = GetFieldSpecificUnit(field->GetFullName());
   if (!specificUnit.empty())
   {
     field->SetUnit(specificUnit);
@@ -6140,12 +6140,12 @@ void CProduct::SetFieldSpecificUnits(const CStringMap& fieldSpecificUnit)
 }
 
 //----------------------------------------
-string CProduct::GetFieldSpecificUnit(const string& key)
+std::string CProduct::GetFieldSpecificUnit(const std::string& key)
 {
   return m_fieldSpecificUnit.Exists(key);
 }
 //----------------------------------------
-void CProduct::SetFieldSpecificUnit(const string& key, const string& value)
+void CProduct::SetFieldSpecificUnit(const std::string& key, const std::string& value)
 {
   m_fieldSpecificUnit.Erase(key);
   m_fieldSpecificUnit.Insert(key, value, false);
@@ -6181,7 +6181,7 @@ int32_t CProduct::ReadData(
 	CBratAlgorithmBase::RegisterAlgorithms();
 
 	// Load aliases dictionnary
-	string errorMsg;
+	std::string errorMsg;
 	CAliasesDictionary::LoadAliasesDictionary( &errorMsg, false );
 	if ( !( errorMsg.empty() ) )
 	{
@@ -6195,15 +6195,15 @@ int32_t CProduct::ReadData(
 
 	int32_t brathl_errno = BRATHL_SUCCESS;
 
-	string	strRecordName( recordName );
+	std::string	strRecordName( recordName );
 
 	try
 	{
 		CExpression			select( CTools::IsEmpty( selection ) ? "1" : selection );
-		vector<CExpression>		expressions;
+		std::vector<CExpression>		expressions;
 		CUIntArray		Positions;
 		CStringList			listFieldsToRead;
-		vector<CUnit>		wantedUnits;
+		std::vector<CUnit>		wantedUnits;
 
 		CStringArray		FileList;
 
@@ -6236,7 +6236,7 @@ int32_t CProduct::ReadData(
 			}
 			else
 			{
-				string str = CTools::ExpandVariables( dataExpressions[ index ], product->GetAliasesAsString(), NULL, true, '%', NULL, true, NULL );
+				std::string str = CTools::ExpandVariables( dataExpressions[ index ], product->GetAliasesAsString(), NULL, true, '%', NULL, true, NULL );
 
 				expr.SetExpression( str );
 				listFieldsToRead.InsertUnique( expr.GetFieldNames() );
@@ -6359,24 +6359,24 @@ int32_t CProduct::ReadData(
 			// Set expandable vectors to fixed (final) size
 			for ( index=0; index < nbData; index++ )
 			{
-				double *vector	= results[ index ];
+				double *vec	= results[ index ];
 				sizes[ index ]	= abs( sizes[ index ] );
 				// Finalize statistics
-				if ( statistics && ( sizes[ index ] != 0 ) && ( vector[ CProduct::COUNT_INDEX ] != 0.0 ) )
+				if ( statistics && ( sizes[ index ] != 0 ) && ( vec[ CProduct::COUNT_INDEX ] != 0.0 ) )
 				{// Compute final STDDEV
-					CTools::FinalizeIncrementalStats( vector[ CProduct::COUNT_INDEX ],
-						vector[ CProduct::MEAN_INDEX ],
-						vector[ CProduct::STDDEV_INDEX ],
-						vector[ CProduct::MIN_INDEX ],
-						vector[ CProduct::MAX_INDEX ] );
+					CTools::FinalizeIncrementalStats( vec[ CProduct::COUNT_INDEX ],
+						vec[ CProduct::MEAN_INDEX ],
+						vec[ CProduct::STDDEV_INDEX ],
+						vec[ CProduct::MIN_INDEX ],
+						vec[ CProduct::MAX_INDEX ] );
 				}
 				else
 				{
 					for ( int32_t IndexVal=0; IndexVal < *actualSize; IndexVal++ )
 					{
-						if ( CTools::IsDefaultValue( vector[ IndexVal ] ) )
+						if ( CTools::IsDefaultValue( vec[ IndexVal ] ) )
 						{
-							vector[ IndexVal ]	= defaultValue;
+							vec[ IndexVal ]	= defaultValue;
 						}
 					}
 				}
@@ -6386,7 +6386,7 @@ int32_t CProduct::ReadData(
 	catch ( CException &e )
 	{
 		brathl_errno = e.error();
-		cerr << "ERROR brathl_ReadData:" << e.what() << endl;
+		std::cerr << "ERROR brathl_ReadData:" << e.what() << std::endl;
 	}
 	catch ( ... )
 	{
@@ -6401,7 +6401,7 @@ int32_t CProduct::ReadData(
 	catch ( CException &e )
 	{
 		brathl_errno = e.error();
-		cerr << "ERROR brathl_ReadData:" << e.what() << endl;
+		std::cerr << "ERROR brathl_ReadData:" << e.what() << std::endl;
 	}
 	catch ( ... )
 	{
@@ -6414,10 +6414,10 @@ int32_t CProduct::ReadData(
 
 void CProduct::ReadDataForOneMeasure(
 	CDataSet			*dataSet,
-	const string			&recordName,
+	const std::string			&recordName,
 	CExpression			&select,
-	vector<CExpression>		&expressions,
-	const vector<CUnit>		&wantedUnits,
+	std::vector<CExpression>		&expressions,
+	const std::vector<CUnit>		&wantedUnits,
 	double				**results,
 	int32_t			*sizes,
 	int32_t			*actualSize,
@@ -6459,7 +6459,7 @@ void CProduct::ReadDataForOneMeasure(
 				}
 				else
 				{
-					throw CException( "Field value must be scalar not a vector or a matrix",
+					throw CException( "Field value must be scalar not a std::vector or a matrix",
 						BRATHL_LIMIT_ERROR );
 				}
 
@@ -6478,25 +6478,25 @@ void CProduct::ReadDataForOneMeasure(
 						}
 						else
 						{
-							double *vector	= results[ indexExpr ];
+							double *vec	= results[ indexExpr ];
 							CTools::DoIncrementalStats( convertedValue,
-								vector[ COUNT_INDEX ],
-								vector[ MEAN_INDEX ],
-								vector[ STDDEV_INDEX ],
-								vector[ MIN_INDEX ],
-								vector[ MAX_INDEX ] );
+								vec[ COUNT_INDEX ],
+								vec[ MEAN_INDEX ],
+								vec[ STDDEV_INDEX ],
+								vec[ MIN_INDEX ],
+								vec[ MAX_INDEX ] );
 						}
 					}
 				}
 				else
 				{
 					if ( ( sizes[ indexExpr ] < 0 ) && ( -sizes[ indexExpr ] <= *actualSize ) )
-					{// Size of expandable vector reached, resize it by doubling its size
+					{// Size of expandable std::vector reached, resize it by doubling its size
 						sizes[ indexExpr ]	*= 2;
 						void 	*NewPtr	= realloc( results[ indexExpr ],
 							-sizes[ indexExpr ] * sizeof( *( results[ indexExpr ] ) ) );
 						if ( NewPtr == NULL )
-							throw CMemoryException( CTools::Format( "ReadDataForOneMeasure: Not enough memory to allocate vector of size %d",
+							throw CMemoryException( CTools::Format( "ReadDataForOneMeasure: Not enough memory to allocate std::vector of size %d",
 							-sizes[ indexExpr ] ) );
 
 						results[ indexExpr ]	= static_cast<double *>( NewPtr );
@@ -6504,13 +6504,13 @@ void CProduct::ReadDataForOneMeasure(
 					}
 					if ( statistics )
 					{
-						double *vector	= results[ indexExpr ];
+						double *vec	= results[ indexExpr ];
 						CTools::DoIncrementalStats( convertedValue,
-							vector[ COUNT_INDEX ],
-							vector[ MEAN_INDEX ],
-							vector[ STDDEV_INDEX ],
-							vector[ MIN_INDEX ],
-							vector[ MAX_INDEX ] );
+							vec[ COUNT_INDEX ],
+							vec[ MEAN_INDEX ],
+							vec[ STDDEV_INDEX ],
+							vec[ MIN_INDEX ],
+							vec[ MAX_INDEX ] );
 
 					}
 					else
@@ -6545,9 +6545,9 @@ CProduct* CProduct::Clone()
 
 
 //----------------------------------------
-void CProduct::AddSameFieldName(const string& fieldNameToSearch, CStringArray& arrayFieldsAdded)
+void CProduct::AddSameFieldName(const std::string& fieldNameToSearch, CStringArray& arrayFieldsAdded)
 {
-  string internalFieldName;
+  std::string internalFieldName;
 
   CField* fieldTest = NULL;
 
@@ -6585,20 +6585,20 @@ void CProduct::AddSameFieldName(const string& fieldNameToSearch, CStringArray& a
 }
 //----------------------------------------
 
-void CProduct::DumpDictionary(ostream& fOut /* = cout */)
+void CProduct::DumpDictionary(std::ostream& fOut /* = std::cout */)
 {
   m_tree.DumpDictionary(fOut);
 }
 //----------------------------------------
 
-void CProduct::DumpDictionary(const string& outputFileName)
+void CProduct::DumpDictionary(const std::string& outputFileName)
 {
   m_tree.DumpDictionary(outputFileName);
 }
 
 
 //----------------------------------------
-void CProduct::Dump(ostream& fOut /* = cerr */)
+void CProduct::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -6606,30 +6606,30 @@ void CProduct::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CProduct Object at "<< this << endl;
+  fOut << "==> Dump a CProduct Object at "<< this << std::endl;
 
 
-  fOut << "m_currFileName = " << m_currFileName << endl;
+  fOut << "m_currFileName = " << m_currFileName << std::endl;
 
-  fOut << "m_fileList = " << endl;
+  fOut << "m_fileList = " << std::endl;
   m_fileList.Dump(fOut);
 
-  fOut << "m_tree = " << endl;
+  fOut << "m_tree = " << std::endl;
   m_tree.Dump(fOut);
 
   if (m_productAliases != NULL)
   {
-    fOut << "m_productAliases = " << endl;
+    fOut << "m_productAliases = " << std::endl;
     m_productAliases->Dump(fOut);
   }
   else
   {
-    fOut << "m_productAliases = NULL" << endl;
+    fOut << "m_productAliases = NULL" << std::endl;
   }
   
-  fOut << "==> END Dump a CProduct Object at "<< this << endl;
+  fOut << "==> END Dump a CProduct Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -6909,7 +6909,7 @@ void CMapProduct::GetProductKeysWithCriteria(CStringArray& keys)
 
 
 //----------------------------------------
-void CMapProduct::Dump(ostream& fOut /* = cerr */)
+void CMapProduct::Dump(std::ostream& fOut /* = std::cerr */)
 {
 
    if (CTrace::IsTrace() == false)
@@ -6917,19 +6917,19 @@ void CMapProduct::Dump(ostream& fOut /* = cerr */)
       return;
    }
 
-   fOut << "==> Dump a CMapProduct Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CMapProduct Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
    CMapProduct::iterator it;
 
    for (it = this->begin() ; it != this->end() ; it++)
    {
       CBratObject *ob = it->second;
-      fOut << "CMapProduct Key is = " << (*it).first << endl;
-      fOut << "CMapProduct Value is = " << endl;
+      fOut << "CMapProduct Key is = " << (*it).first << std::endl;
+      fOut << "CMapProduct Value is = " << std::endl;
       ob->Dump(fOut);
    }
 
-   fOut << "==> END Dump a CMapProduct Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CMapProduct Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
 }
 

@@ -30,7 +30,7 @@
 #endif
 
 #include "brathl.h"
-#include "Stl.h"
+#include <string>
 
 //#include "BratDisplay_wdr.h"
 
@@ -60,11 +60,11 @@ public:
   // This function can pop up an error message.
   virtual bool Validate(wxWindow *WXUNUSED(parent)) { return true; };
 
-  string GetDigits() {return m_digits;};   
+  std::string GetDigits() {return m_digits;};   
     
 private:
   // WDR: member variable declarations for CDigitValidator
-  string m_digits;    
+  std::string m_digits;    
 private:
   // WDR: handler declarations for CDigitValidator
   void OnChar( wxKeyEvent &event );
@@ -98,11 +98,11 @@ public:
   // This function can pop up an error message.
   virtual bool Validate(wxWindow *WXUNUSED(parent)) { return true; };
 
-  string GetFloatChars() {return m_floatChars;};   
+  std::string GetFloatChars() {return m_floatChars;};   
 
 private:
   // WDR: member variable declarations for CFloatValidator
-  string m_floatChars;
+  std::string m_floatChars;
 private:
   // WDR: handler declarations for CFloatValidator
   void OnChar( wxKeyEvent &event );
@@ -135,11 +135,11 @@ public:
   // This function can pop up an error message.
   virtual bool Validate(wxWindow *WXUNUSED(parent)) { return true; };
 
-  string GetFloatChars() {return m_floatChars;};   
+  std::string GetFloatChars() {return m_floatChars;};   
 
 private:
   // WDR: member variable declarations for CFloatExtendedValidator 
-  string m_floatChars;
+  std::string m_floatChars;
 private:
   // WDR: handler declarations for CFloatExtendedValidator 
   void OnChar( wxKeyEvent &event );
@@ -174,11 +174,11 @@ public:
   // This function can pop up an error message.
   virtual bool Validate(wxWindow *WXUNUSED(parent)) { return true; };
 
-  string GetDigits() {return m_digits;};   
+  std::string GetDigits() {return m_digits;};   
     
 private:
   // WDR: member variable declarations for CDigitValidator
-  string m_digits;    
+  std::string m_digits;    
 private:
   // WDR: handler declarations for CDigitValidator
   void OnChar( wxKeyEvent &event );
@@ -211,11 +211,11 @@ public:
   // This function can pop up an error message.
   virtual bool Validate(wxWindow *WXUNUSED(parent)) { return true; };
 
-  string GetDigits() {return m_digits;};   
+  std::string GetDigits() {return m_digits;};   
     
 private:
   // WDR: member variable declarations for CDigitValidator
-  string m_digits;    
+  std::string m_digits;    
 private:
   // WDR: handler declarations for CDigitValidator
   void OnChar( wxKeyEvent &event );
@@ -249,13 +249,13 @@ public:
   // This function can pop up an error message.
   virtual bool Validate(wxWindow *WXUNUSED(parent)) { return true; };
   
-  string GetDigits() {return m_digits;};   
+  std::string GetDigits() {return m_digits;};   
 
   bool IsValid(const wxString& string);
 
 private:
   // WDR: member variable declarations for CDigitValidator
-  string m_digits;    
+  std::string m_digits;    
 private:
   // WDR: handler declarations for CDigitValidator
   void OnChar( wxKeyEvent &event );
@@ -289,11 +289,11 @@ public:
   // This function can pop up an error message.
   virtual bool Validate(wxWindow *WXUNUSED(parent)) { return true; };
 
-  string GetDigits() {return m_digits;};   
+  std::string GetDigits() {return m_digits;};   
 
 private:
   // WDR: member variable declarations for CDigitValidator
-  string m_digits;    
+  std::string m_digits;    
 private:
   // WDR: handler declarations for CDigitValidator
   void OnChar( wxKeyEvent &event );

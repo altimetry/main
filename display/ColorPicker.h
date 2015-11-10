@@ -35,8 +35,9 @@ using namespace brathl;
 //#include "BratDisplay_wdr.h"
 #include "BratDisplay.h"
 
-#include "VtkColor.h"
+#include "vtkColor.h"
 #include "LabeledTextCtrl.h"
+#include "wxInterface.h"
 
 extern long ID_COLOR_SLIDER;
 extern long ID_COLOR_SLIDER_TEXT;
@@ -163,7 +164,7 @@ public:
                 long style = wxTAB_TRAVERSAL | wxNO_BORDER );
 
     const CVtkColor* GetVtkColor() {return &m_vtkColor;};
-    wxColour GetColor() {return m_vtkColor.GetWXColor();};
+    wxColour GetColor() {return color_cast(m_vtkColor);}
 
     void SetColor(const CVtkColor& vtkColor);
     

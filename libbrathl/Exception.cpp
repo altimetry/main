@@ -24,7 +24,7 @@
 #include <cstdio>
 #include <cstring>
 
-#include "Stl.h"
+#include <string>
 
 #include "brathl_error.h"
 #include "brathl.h"
@@ -44,7 +44,7 @@ CException::CException()
 
 //----------------------------------------
 
-CException::CException(const string& message, int32_t errcode)
+CException::CException(const std::string& message, int32_t errcode)
 {
   m_errcode = errcode;
   m_message = message;
@@ -66,22 +66,22 @@ const char* CException::what() const throw()
 
 
 //----------------------------------------
-void CException::Dump(ostream& fOut /* = cerr */)
+void CException::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
 
-  fOut << "==> Dump a CException Object at "<< this << endl;
-  fOut << "m_message = " << this->what() << endl;
-  fOut << "m_errcode = " << m_errcode << endl;
+  fOut << "==> Dump a CException Object at "<< this << std::endl;
+  fOut << "m_message = " << this->what() << std::endl;
+  fOut << "m_errcode = " << m_errcode << std::endl;
 
 
 
-  fOut << "==> END Dump a CException Object at "<< this << endl;
+  fOut << "==> END Dump a CException Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -93,7 +93,7 @@ void CException::Dump(ostream& fOut /* = cerr */)
 
 
 
-CFileException::CFileException(const string& message, const string& fileName, int32_t errcode)
+CFileException::CFileException(const std::string& message, const std::string& fileName, int32_t errcode)
   : CException(message, errcode)
 {
   m_message += " - File name: '" + fileName + "'";
@@ -114,7 +114,7 @@ CFileException::CFileException(const string& message, const string& fileName, in
 //------------------- CProductException class --------------------
 //-------------------------------------------------------------
  
-CProductException::CProductException(const string& message, const string& fileName, int32_t errcode)
+CProductException::CProductException(const std::string& message, const std::string& fileName, int32_t errcode)
       	: CException(message, errcode)
 {
   m_message += " - Product file name: '" + fileName + "'";
@@ -122,9 +122,9 @@ CProductException::CProductException(const string& message, const string& fileNa
 
 
 
-CProductException::CProductException(const string& message, const string& fileName,
-                                     const string& productClass,
-                                     const string& productType,
+CProductException::CProductException(const std::string& message, const std::string& fileName,
+                                     const std::string& productClass,
+                                     const std::string& productType,
                                      int32_t errcode)
       	: CException(message, errcode)
 {
@@ -139,7 +139,7 @@ CProductException::CProductException(const string& message, const string& fileNa
 //-------------------------------------------------------------
 
 
-CExpressionException::CExpressionException(const string& message, int32_t errcode, const string &expression /*= ""*/)
+CExpressionException::CExpressionException(const std::string& message, int32_t errcode, const std::string &expression /*= ""*/)
       	: CException(message, errcode)
 {
   if (expression != "")
@@ -159,7 +159,7 @@ CExpressionException::CExpressionException(const string& message, int32_t errcod
 //------------------- CAlgorithmException class --------------------
 //-------------------------------------------------------------
 
-CAlgorithmException::CAlgorithmException(const string& message, const string& algorithmName, int32_t errcode)
+CAlgorithmException::CAlgorithmException(const std::string& message, const std::string& algorithmName, int32_t errcode)
   : CException(message, errcode)
 {
   m_message += " - Algorithm name: '" + algorithmName + "'";

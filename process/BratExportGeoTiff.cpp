@@ -18,18 +18,19 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #include <cstdio>
-#include <netcdf.h>
+#include "netcdf.h"
 #include <cmath>
 #include <cfloat>
 #include <assert.h>
 #include <algorithm>
+#include <sstream>
 #include <fstream>
 #include <iomanip>
 
 #include "libxtiff/xtiffio.h"
 #include "geotiffio.h"
 
-#include "Stl.h"
+#include <string>
 #include "List.h"
 #include "Exception.h"
 #include "FileParams.h"
@@ -183,7 +184,7 @@ static char dataName[128];
 
 static bool isAltData;
 
-static vector<double> barLabelValues;
+static std::vector<double> barLabelValues;
 
 static unsigned int numberOfBarLabelValues = 9;
 
@@ -218,14 +219,14 @@ int main (int argc, char *argv[])
     if (!GetParameters(commandFile, inputFileName, outputFileName, kmlFileName,
     		colourTableName, screenLogoUrl, minValue, maxValue,
     		filetypeName, productList)) {
-      cerr << "Parameter File does not contain the required fields." << endl;
+      std::cerr << "Parameter File does not contain the required fields." << std::endl;
       return 2;
     }
 
     if (kmlFileName.empty()) {
       // straight TIFF export
       if (!ExportNetCdfAsGeoTiff(inputFileName, outputFileName, colourTableName, minValue, maxValue, false, NULL)) {
-        cerr << "Failed to export GeoTIFF file." << endl;
+        std::cerr << "Failed to export GeoTIFF file." << std::endl;
         return 2;
       }
     }
@@ -236,13 +237,13 @@ int main (int argc, char *argv[])
       kmlTrackVector.clear();
 
       if (!ExportNetCdfAsGeoTiff(inputFileName, outputFileName, colourTableName, minValue, maxValue, true, &cBounds)) {
-        cerr << "Failed to export GeoTIFF file." << endl;
+        std::cerr << "Failed to export GeoTIFF file." << std::endl;
         return 2;
       }
      
       if (!ExportKml(kmlFileName, outputFileName, screenLogoUrl, &cBounds,
     		  filetypeName, productList)) {
-        cerr << "Failed to export KML file." << endl;
+        std::cerr << "Failed to export KML file." << std::endl;
         return 2;
       }
     }
@@ -251,17 +252,17 @@ int main (int argc, char *argv[])
   }
   catch (CException &e)
   {
-    cerr << "BRAT ERROR: " << e.what() << endl;
+    std::cerr << "BRAT ERROR: " << e.what() << std::endl;
     return 1;
   }
-  catch (exception &e)
+  catch (std::exception &e)
   {
-    cerr << "BRAT RUNTIME ERROR: " << e.what() << endl;
+    std::cerr << "BRAT RUNTIME ERROR: " << e.what() << std::endl;
     return 254;
   }
   catch (...)
   {
-    cerr << "BRAT FATAL ERROR: Unexpected error" << endl;
+    std::cerr << "BRAT FATAL ERROR: Unexpected error" << std::endl;
     return 255;
   }
 }
@@ -296,8 +297,8 @@ bool GetParameters(const std::string &paramFile,
   else
     status = false;
 
-  // Leo: Visual C++ 6.0 does not have string::clear()
-  //      using string::erase() instead.
+  // Leo: Visual C++ 6.0 does not have std::string::clear()
+  //      using std::string::erase() instead.
 
   if ((par = params.m_mapParam.Exists(kwOUTPUT_KML)) != NULL)
     par->GetValue(kmlFileName);
@@ -385,7 +386,7 @@ bool ExportNetCdfAsGeoTiff(const std::string &inputFileName, const std::string &
   int status = nc_open(inputFileName.c_str(), NC_NOWRITE, &ncId);
   
   if (status != NC_NOERR) {
-    cerr << "ERROR: could not open input netcdf file" << endl;
+    std::cerr << "ERROR: could not open input netcdf file" << std::endl;
   }
 
   // expect at least two dimensions (ideally with names lat and lon)
@@ -394,7 +395,7 @@ bool ExportNetCdfAsGeoTiff(const std::string &inputFileName, const std::string &
     if (status == NC_NOERR) {
       status = (nDimensions >= 2 && nDimensions <= cMaxDimReasonable) ? NC_NOERR : 1;
       if (status != NC_NOERR)
-        cerr << "ERROR: input netcdf file should have at least 2 named dimensions" << endl;
+        std::cerr << "ERROR: input netcdf file should have at least 2 named dimensions" << std::endl;
     }
   }
   // expect at least 3 variables
@@ -403,7 +404,7 @@ bool ExportNetCdfAsGeoTiff(const std::string &inputFileName, const std::string &
     if (status == NC_NOERR) {
       status = (nVariables >= 3) ? NC_NOERR : 1;
       if (status != NC_NOERR)
-          cerr << "ERROR: input netcdf file should have at least 3 variables" << endl;
+          std::cerr << "ERROR: input netcdf file should have at least 3 variables" << std::endl;
     }
   }
 
@@ -413,7 +414,7 @@ bool ExportNetCdfAsGeoTiff(const std::string &inputFileName, const std::string &
 					      latVarId, latBndVarId, latDimId, nLat,
 					      lonVarId, lonBndVarId, lonDimId, nLon);
     if (status != NC_NOERR)
-      cerr << "ERROR: could not find lat/lon axis variables in input netcdf file" << endl;
+      std::cerr << "ERROR: could not find lat/lon axis variables in input netcdf file" << std::endl;
   }
 
   // expect a crs variable, but not essential
@@ -454,7 +455,7 @@ bool ExportNetCdfAsGeoTiff(const std::string &inputFileName, const std::string &
     // was a  data variable located
     if (status == NC_NOERR && dataVarId == -1) {
       status = 1;
-      cerr << "ERROR: could not find plottable variable in netcdf file" << endl;
+      std::cerr << "ERROR: could not find plottable variable in netcdf file" << std::endl;
     }
   }
 
@@ -488,7 +489,7 @@ bool ExportNetCdfAsGeoTiff(const std::string &inputFileName, const std::string &
     while (it != latAxis.end()) {
       if (fabs(*it - tmpValue) > tolerance) {
         toleranceError = true;
-        cerr << "ERROR: latitude grid is not equaly spaced" << endl;
+        std::cerr << "ERROR: latitude grid is not equaly spaced" << std::endl;
         break;
       }
       tmpValue += dLat;
@@ -500,7 +501,7 @@ bool ExportNetCdfAsGeoTiff(const std::string &inputFileName, const std::string &
     while (it != lonAxis.end()) {
       if (fabs(*it - tmpValue) > tolerance) {
           toleranceError = true;
-          cerr << "ERROR: longitude grid is not equaly spaced" << endl;
+          std::cerr << "ERROR: longitude grid is not equaly spaced" << std::endl;
           break;
       }
       tmpValue += dLon;
@@ -855,7 +856,7 @@ bool WriteGeoTiff(const std::string &filename,
   TIFF *tiff = XTIFFOpen(filename.c_str(), "w");
   
   if (tiff == NULL) {
-    cerr << "ERROR: could not open TIFF file for output" << endl;
+    std::cerr << "ERROR: could not open TIFF file for output" << std::endl;
     return false;
   }
 
@@ -1080,7 +1081,7 @@ bool WriteGeoTiff(const std::string &filename,
   TIFF *tiffBar = XTIFFOpen(colourBarFilename.c_str(), "w");
 
   if (tiffBar == NULL) {
-    cerr << "ERROR: could not open TIFF file for colour bar output" << endl;
+    std::cerr << "ERROR: could not open TIFF file for colour bar output" << std::endl;
     return false;
   }
 
@@ -1208,7 +1209,7 @@ bool ExportKml(const std::string &kmlFileName, const std::string &tiffFileName,
   std::ofstream stream(kmlFileName.c_str());
 
   if (!stream.is_open()) {
-    cerr << "ERROR: could not open KML file for output" << endl;
+    std::cerr << "ERROR: could not open KML file for output" << std::endl;
     return false;
   }
 

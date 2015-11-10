@@ -213,7 +213,7 @@ void CBratAlgoFilterLoess2D::ComputeInitialWeights()
 
       if (valueLocal == 1.0)
       {
-        string msg = "";
+        std::string msg = "";
       }
 
 		  double weight = (distance <= 1.0 ? pow((1.0 - pow(distance, 3.0)),3.0) : 0.0);
@@ -228,7 +228,7 @@ void CBratAlgoFilterLoess2D::ComputeInitialWeights()
 
 #if _DEBUG_BRAT_ALGO    
 
-  string str;
+  std::string str;
   str.append("initial weights are ");
 
   str.append(CTools::Format("(%ld elements): ", static_cast<long>(m_initialWeights.size())));
@@ -313,7 +313,7 @@ double CBratAlgoFilterLoess2D::ComputeLoess()
 
 #if _DEBUG_BRAT_ALGO    
   CTrace::Tracer(3, CTools::Format("m_rawDataWindow contains (%d elements):", m_rawDataWindow.size()));
-  string str;
+  std::string str;
   for (it = m_rawDataWindow.begin(); it != m_rawDataWindow.end(); it++)
   {
     if (CTools::IsDefaultValue(*it))
@@ -631,16 +631,16 @@ void CBratAlgoFilterLoess2D::CheckVarExpression(uint32_t index)
 }
 
 //----------------------------------------
-void CBratAlgoFilterLoess2D::Dump(ostream& fOut /*= cerr*/)
+void CBratAlgoFilterLoess2D::Dump(std::ostream& fOut /*= std::cerr*/)
 {
    if (CTrace::IsTrace() == false)
    { 
       return;
    }
 
-  fOut << "==> Dump a CBratAlgoFilterLoess2D Object at "<< this << endl;
+  fOut << "==> Dump a CBratAlgoFilterLoess2D Object at "<< this << std::endl;
   CBratAlgoFilterLoess::Dump(fOut);
-  fOut << "==> END Dump a CBratAlgoFilterLoess2D Object at "<< this << endl;
+  fOut << "==> END Dump a CBratAlgoFilterLoess2D Object at "<< this << std::endl;
 
 }
 

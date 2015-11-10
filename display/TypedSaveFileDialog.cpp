@@ -419,7 +419,7 @@ void CTypedSaveFileDialog::OnBrowse( wxCommandEvent &event )
   m_fileName.Assign(m_locField->GetValue());
   m_fileName.Normalize();
 
-  //string dir = CTools::DirName(m_locField->GetValue().c_str());
+  //std::string dir = CTools::DirName(m_locField->GetValue().c_str());
   if (m_fileName.GetPath().IsEmpty())
   {
     m_fileName = m_currentDir;

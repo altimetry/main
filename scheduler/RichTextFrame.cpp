@@ -507,7 +507,7 @@ void CRichTextFrame::OnFindDialog(wxFindDialogEvent& event)
         }
         if (iStart < 0)
         {
-          wxMessageBox(wxString::Format("Cannot find the string '%s'", 
+          wxMessageBox(wxString::Format("Cannot find the std::string '%s'", 
                                         sSearch.c_str()),
                       "Find text...",
                       wxOK | wxICON_EXCLAMATION,

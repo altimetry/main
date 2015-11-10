@@ -37,12 +37,12 @@ static void brathli_SetDataDir(void)
     {
         return;
     }
-    string filepath = CTools::FindFileInPath("brathl-idl.dlm", getenv("IDL_DLM_PATH"));
+    std::string filepath = CTools::FindFileInPath("brathl-idl.dlm", getenv("IDL_DLM_PATH"));
     if (filepath.empty())
     {
         return;
     }
-    string datadir = CTools::MakeCorrectPath(CTools::AbsolutePath(CTools::DirName(filepath) +
+    std::string datadir = CTools::MakeCorrectPath(CTools::AbsolutePath(CTools::DirName(filepath) +
                                                                   (PATH_SEPARATOR ".." PATH_SEPARATOR "data")));
     if (!datadir.empty())
     {
@@ -1355,14 +1355,14 @@ static IDL_VPTR brathli_ReadData(int argc, IDL_VPTR *argv)
     
     for (int32_t i = 0 ; i < num_data ; i++)
     {
-      double *vector = data[i];
+      double *std::vector = data[i];
       for (int32_t j = 0 ; j < actualSize ; j++)
       {
-      	*tmpData_d = vector[j];
+      	*tmpData_d = std::vector[j];
 	tmpData_d++;
       }
       // free memory allocated by brathl_readData.
-      delete []vector;
+      delete []std::vector;
     }
     
     //IDL_ImportNamedArray("vData", 2, dim, IDL_TYP_DOUBLE, (UCHAR*)data, free_cb, (void*)0);

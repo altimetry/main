@@ -50,7 +50,7 @@
 
 #include "vtkInteractorStyleZFXYPlot.h"
 
-#include "vtkList.h"
+#include "PlotData/vtkList.h"
 
 #include "Tools.h"
 #include "List.h"
@@ -203,7 +203,7 @@ public:
   void UpdateRender();
 
 
-  //void PrintPoints(ostream& os);
+  //void PrintPoints(std::ostream& os);
 
 
   // WDR: method declarations for CZFXYPlotPanel
@@ -218,7 +218,7 @@ private:
   void InstallEventListeners();
 
   //void SetProjection(int32_t proj);
-  //void SetProjectionByName(const string& projName);
+  //void SetProjectionByName(const std::string& projName);
 
 
   //void ZoomTo(double lon[2], double lat[2]);
@@ -253,7 +253,7 @@ private:
 
 public:
   bool m_finished;
-  //string m_hasProj;
+  //std::string m_hasProj;
   bool m_colorBarShowing;
   //bool m_is3D;
 
@@ -320,7 +320,7 @@ class VTK_EXPORT vtkCameraState : public vtkObject
 public:
   static vtkCameraState *New();
   vtkTypeMacro(vtkCameraState, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(std::ostream& os, vtkIndent indent);
 
   vtkSetVector3Macro(ViewUp,double);
   vtkGetVector3Macro(ViewUp,double);

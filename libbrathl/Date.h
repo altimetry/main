@@ -20,7 +20,8 @@
 #if !defined(_Date_h_)
 #define _Date_h_
 
-#include "Stl.h"
+#include <string>
+#include <iostream>
 
 
 namespace brathl
@@ -48,11 +49,11 @@ public:
   CDate();  
   
   /**
-    Constructs a date from a string 
+    Constructs a date from a std::string 
     \param strDate : 
       Allowed format are  :
-      - YYYY-MM-DD HH:MN:SS.MS string
-      - a julian string (format:positive 'Days Seconds Microseconds' or positive decimal julian day)
+      - YYYY-MM-DD HH:MN:SS.MS std::string
+      - a julian std::string (format:positive 'Days Seconds Microseconds' or positive decimal julian day)
   */   
   CDate(const char *strDate);
   /// Constructs a date from another CDate object
@@ -112,10 +113,10 @@ public:
   /// returns the date in a decimal julian day (since internal reference date, ie 1950)
   double ValueJulian();
 
-  /**  Formats a date as string.
+  /**  Formats a date as std::string.
      \param Format [in] : String controlling how the date
-	will be converted into string.
-	This format string consists of zero or more conversion specifications
+	will be converted into std::string.
+	This format std::string consists of zero or more conversion specifications
 	and ordinary characters. A conversion specification consists of a 
 	'%' (percent) character and one or two terminating conversion
 	characters that determine the conversion specification's
@@ -154,30 +155,30 @@ public:
 	%Y    Year, including the century (for example 1993).
 	%Z    Time zone name or abbreviation, or no bytes if no time
 	      zone information exists.
-	If the format is an empty string it is forced to be "%Y-%m-%d %H:%M:%S"
+	If the format is an empty std::string it is forced to be "%Y-%m-%d %H:%M:%S"
 	(ISO 8601)
-        \param withMuSecond [in] : add the microseconds of the date at the end of the string
+        \param withMuSecond [in] : add the microseconds of the date at the end of the std::string
         (format ".%06u")
-	\return Formatted string */
-  string AsString(const string& format = "",  bool withMuSecond = false);
+	\return Formatted std::string */
+  std::string AsString(const std::string& format = "",  bool withMuSecond = false);
 
-  /**  Convert a date string to a number of seconds since internal reference year (ie 1950)
+  /**  Convert a date std::string to a number of seconds since internal reference year (ie 1950)
     Allowed format are  :
-      - YYYY-MM-DD HH:MN:SS.MS string
-      - a julian string (format:positive 'Days Seconds Microseconds' or positive decimal julian day)
-    For julian string,  it can contain its date reference at the end by specifying @YYYY where YYYY the reference year.
+      - YYYY-MM-DD HH:MN:SS.MS std::string
+      - a julian std::string (format:positive 'Days Seconds Microseconds' or positive decimal julian day)
+    For julian std::string,  it can contain its date reference at the end by specifying @YYYY where YYYY the reference year.
     If no date reference is specified the default date reference is used.
-     \param strDate : date string 
+     \param strDate : date std::string 
      \return number of seconds since internal reference year (ie 1950) */
   static double CvDate(const char *strDate);
 
-  /**  Sets date value from a string 
+  /**  Sets date value from a std::string 
     Allowed format are  :
-      - YYYY-MM-DD HH:MN:SS.MS string
-      - a julian string (format:positive 'Days Seconds Microseconds' or positive decimal julian day)
-    For julian string,  it can contain its date reference at the end by specifying @YYYY where YYYY the reference year.
+      - YYYY-MM-DD HH:MN:SS.MS std::string
+      - a julian std::string (format:positive 'Days Seconds Microseconds' or positive decimal julian day)
+    For julian std::string,  it can contain its date reference at the end by specifying @YYYY where YYYY the reference year.
     If no date reference is specified the default date reference is used.
-     \param strDate : date string 
+     \param strDate : date std::string 
      \return #BRATHL_SUCCESS or error code (see \ref Date_error_codes) */
   int32_t SetDate(const char *strDate);
 
@@ -436,7 +437,7 @@ public:
   /** Assigns a new value to the CDate object, with a CDate object */
   const CDate& operator= (const CDate& date);
 
-  /** Assigns a new value to the CDate object, with a date string (format: YYYY-MM-DD HH:MN:SS.MS) */
+  /** Assigns a new value to the CDate object, with a date std::string (format: YYYY-MM-DD HH:MN:SS.MS) */
   const CDate& operator= (const char *strDate);
 
   /** Assigns a new value to the CDate object, with a number of seconds since  1950-01-01 */
@@ -464,7 +465,7 @@ public:
 
   
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 private:
 	
@@ -475,26 +476,26 @@ private:
       	      	             const uint32_t muSecond = 0);
 
 
-  /** Decodes a date from a string (format: YYYY-MM-DD HH:MN:SS.MS)
+  /** Decodes a date from a std::string (format: YYYY-MM-DD HH:MN:SS.MS)
     \param strDate [in] : date to decode
      \return #BRATHL_SUCCESS or error code (see \ref Date_error_codes) */
   int32_t DecodeDateYMDHMSM(const char *strDate);
   
-  /** Decodes a julian date from a string (format: 'Days Seconds Microseconds' or decimal julian day.) 
-    The string can contain its date reference at the en by specifying @YYYY where YYYY the reference year.
+  /** Decodes a julian date from a std::string (format: 'Days Seconds Microseconds' or decimal julian day.) 
+    The std::string can contain its date reference at the en by specifying @YYYY where YYYY the reference year.
     If no date reference is specified the default date reference is used.
     \param strDate [in] : date to decode
      \return #BRATHL_SUCCESS or error code (see \ref Date_error_codes) */
   int32_t DecodeDateDSM(const char *strDate);
 
-  /** Extract a date reference from a string
-     Date reference is specified by string '@YYYY' 
+  /** Extract a date reference from a std::string
+     Date reference is specified by std::string '@YYYY' 
      where YYYY the reference year (so value of date reference is the first day of the year) 
-    \param strDate [in/out] : date string with its reference, after calling methode date is altered
-     : date reference is eliminate from date string
+    \param strDate [in/out] : date std::string with its reference, after calling methode date is altered
+     : date reference is eliminate from date std::string
     \param dateRef [out]: date reference
     \param hasRef [out]: indcates a date reference has benne found in strDate (true), otherwise hasRef is false 
-    \return #BRATHL_SUCCESS if date reference is valid or date string has no reference, 
+    \return #BRATHL_SUCCESS if date reference is valid or date std::string has no reference, 
     otherwise returns error code (see \ref Date_error_codes) */
   int32_t ExtractRef(char *strDate, CDate& dateRef, bool& hasRef);
 

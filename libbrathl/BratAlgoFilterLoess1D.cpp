@@ -454,7 +454,7 @@ double CBratAlgoFilterLoess1D::ComputeLoess()
 
 
 #if _DEBUG_BRAT_ALGO    
-  string str;
+  std::string str;
 
   CDoubleArray::iterator it;
 
@@ -668,28 +668,28 @@ void CBratAlgoFilterLoess1D::CheckVarExpression(uint32_t index)
 }
 
 //----------------------------------------
-void CBratAlgoFilterLoess1D::Dump(ostream& fOut /*= cerr*/)
+void CBratAlgoFilterLoess1D::Dump(std::ostream& fOut /*= std::cerr*/)
 {
    if (CTrace::IsTrace() == false)
    { 
       return;
    }
 
-  fOut << "==> Dump a CBratAlgoFilterLoess1D Object at "<< this << endl;
+  fOut << "==> Dump a CBratAlgoFilterLoess1D Object at "<< this << std::endl;
   CBratAlgoFilterLoess::Dump(fOut);
 
-  fOut << "m_xValue: " << m_xValue << endl;
-  fOut << "m_xValueNext: " << m_xValueNext << endl;
-  fOut << "m_xValuePrev: " << m_xValuePrev << endl;
+  fOut << "m_xValue: " << m_xValue << std::endl;
+  fOut << "m_xValueNext: " << m_xValueNext << std::endl;
+  fOut << "m_xValuePrev: " << m_xValuePrev << std::endl;
 
-  fOut << "m_xDataWindow: " << endl;
+  fOut << "m_xDataWindow: " << std::endl;
   m_xDataWindow.Dump(fOut);
-  fOut << "m_distances: " << endl;
+  fOut << "m_distances: " << std::endl;
   m_distances.Dump(fOut);
-  fOut << "m_sortedDistances: " << endl;
+  fOut << "m_sortedDistances: " << std::endl;
   m_sortedDistances.Dump(fOut);
 
-  fOut << "==> END Dump a CBratAlgoFilterLoess1D Object at "<< this << endl;
+  fOut << "==> END Dump a CBratAlgoFilterLoess1D Object at "<< this << std::endl;
 
 
 }

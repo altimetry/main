@@ -26,7 +26,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h" 
+#include <string> 
 
 #include "TraceLog.h" 
 #include "Tools.h" 
@@ -46,7 +46,7 @@ CProductRiverLake::CProductRiverLake()
 
 //----------------------------------------
 
-CProductRiverLake::CProductRiverLake(const string& fileName)
+CProductRiverLake::CProductRiverLake(const std::string& fileName)
       : CProduct(fileName)
 {
   Init();  
@@ -89,7 +89,7 @@ void CProductRiverLake::InitCriteriaInfo()
 }
 
 //----------------------------------------
-void CProductRiverLake::Dump(ostream& fOut /* = cerr */)
+void CProductRiverLake::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -97,15 +97,15 @@ void CProductRiverLake::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CProductRiverLake Object at "<< this << endl;
+  fOut << "==> Dump a CProductRiverLake Object at "<< this << std::endl;
 
   //------------------
   CProduct::Dump(fOut);
   //------------------
 
-  fOut << "==> END Dump a CProductRiverLake Object at "<< this << endl;
+  fOut << "==> END Dump a CProductRiverLake Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

@@ -20,8 +20,11 @@
 #if !defined(_ObjectTree_h_)
 #define _ObjectTree_h_
 
+#include <map>
+
 #include "brathl.h"
-#include "Stl.h"
+#include <string>
+#include <vector>
 #include "BratObject.h"
 #include "Trace.h"
 
@@ -49,8 +52,8 @@ class CObjectTree;
 class CObjectTreeNode;
 class CObjectTreeIterator;
 
-typedef vector<CObjectTreeNode*> vectorTreeNode;
-typedef map<string, CObjectTreeNode*> mapTreeNode;
+typedef std::vector<CObjectTreeNode*> vectorTreeNode;
+typedef std::map<std::string, CObjectTreeNode*> mapTreeNode;
 
 
 class CObjectTreeNode 
@@ -60,7 +63,7 @@ public:
 
   CObjectTreeNode(CObjectTree* tr);
 
-  CObjectTreeNode(CObjectTree* tr, const string& key, CBratObject* x);
+  CObjectTreeNode(CObjectTree* tr, const std::string& key, CBratObject* x);
   
   virtual ~CObjectTreeNode();
 
@@ -68,12 +71,12 @@ public:
   void DeleteAllChildren();
 
   ///Deletes this node and all its children
-  void Delete(const string& key);
+  void Delete(const std::string& key);
 
   ///Returns a reference to parent node in the ObjectTree
   CObjectTreeNode* GetParent () const { return m_parent;	};
 
-  ///Returns a reference to vector to the children
+  ///Returns a reference to std::vector to the children
   vectorTreeNode& GetChildren ()   { return  m_children; };
 
   long ChildCount () const { return m_children.size(); 	};
@@ -87,7 +90,7 @@ public:
   void SetLevel(int32_t level) { m_level = level;};
   int32_t GetLevel() {return m_level;};
 
-  string GetKey() { return m_key; };
+  std::string GetKey() { return m_key; };
 
 public:
 
@@ -99,7 +102,7 @@ public:
 
 protected:
   ///key to locate myself  
-  string m_key;
+  std::string m_key;
 
   ///points to node of parent
   CObjectTreeNode* m_parent;
@@ -189,14 +192,14 @@ public:
   CObjectTree();
 
   ///instantiates a CObjectTree with the root node
-  CObjectTree(const string& nm, CBratObject* x);
+  CObjectTree(const std::string& nm, CBratObject* x);
 
   virtual ~CObjectTree();
 
 
 
   ///set a ObjectTree with the root node
-  virtual void SetRoot(const string& nm, CBratObject* x, bool goCurrent = false);
+  virtual void SetRoot(const std::string& nm, CBratObject* x, bool goCurrent = false);
 
   ///returns ObjectTree root node, or NULL for empty CObjectTree
   CObjectTreeNode* GetRoot() const { return m_pTreeroot; };
@@ -204,28 +207,28 @@ public:
   CObjectTreeNode* GetWalkCurrent() const { return m_WalkCurrent; };
   CObjectTreeNode* GetWalkParent() const { return m_WalkParent; };
 
-  virtual CObjectTreeIterator AddChild (CObjectTreeNode* parent, const string& nm, CBratObject* x, bool goCurrent = false);
+  virtual CObjectTreeIterator AddChild (CObjectTreeNode* parent, const std::string& nm, CBratObject* x, bool goCurrent = false);
 
-  virtual CObjectTreeIterator AddChild (CObjectTreeIterator& parent, const string& nm, CBratObject* x, bool goCurrent = false);
+  virtual CObjectTreeIterator AddChild (CObjectTreeIterator& parent, const std::string& nm, CBratObject* x, bool goCurrent = false);
 
-  virtual CObjectTreeIterator AddChild (const string& nm, CBratObject* x, bool goCurrent = false); 
+  virtual CObjectTreeIterator AddChild (const std::string& nm, CBratObject* x, bool goCurrent = false); 
 
   void DeleteAllChildren(CObjectTreeIterator & itr);
   void DeleteTree();
  
   size_t size(void) { return m_nodemap.size(); };
 
-  CBratObject* FindParentObject(const string& key); 
-  CObjectTreeNode* FindParentNode(const string& key); 
+  CBratObject* FindParentObject(const std::string& key); 
+  CObjectTreeNode* FindParentNode(const std::string& key); 
   
-  CBratObject* FindObject(const string& key); 
-  CObjectTreeNode* FindNode(const string& key); 
+  CBratObject* FindObject(const std::string& key); 
+  CObjectTreeNode* FindNode(const std::string& key); 
     
   bool GoLevelUp(bool firstChild = true);
   bool GoLevelDown(bool firstChild = true);
   void Go(CObjectTreeNode* child);
   void Go(CObjectTreeIterator child);
-  void GoToParent(const string& key);
+  void GoToParent(const std::string& key);
 
 
   ///Set the sub-ObjectTree walking root and traverse to the first node
@@ -280,14 +283,14 @@ public:
     return _tmp;
   }
 */
-  CObjectTreeIterator find(const string& key) 
+  CObjectTreeIterator find(const std::string& key) 
   {
     CObjectTreeIterator _tmp;
     _tmp.m_Node = m_nodemap.find(key);
     return _tmp;
   }
 
-  bool IsKey(const string& key) 
+  bool IsKey(const std::string& key) 
   {
     CObjectTreeIterator it = this->find(key);
 
@@ -296,7 +299,7 @@ public:
 
 
   /*
-  const_iterator find(const string& key) const
+  const_iterator find(const std::string& key) const
   {
     const_iterator _tmp;
     _tmp.m_Node = m_nodemap.find(key);
@@ -304,12 +307,12 @@ public:
   }
 */
   /// Dump function
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 
 protected:
   ///provides a name of the ObjectTreeNode to direct access to it
-  ///a map for fast accessing ObjectTreeNode
+  ///a std::map for fast accessing ObjectTreeNode
   mapTreeNode m_nodemap;		
   ///a pointer to root node
   CObjectTreeNode* m_pTreeroot;	

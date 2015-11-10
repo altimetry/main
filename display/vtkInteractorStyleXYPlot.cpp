@@ -673,18 +673,18 @@ void vtkInteractorStyleXYPlot::OnRightButtonUp()
 }
 
 //----------------------------------------------------------------------------
-void vtkInteractorStyleXYPlot::PrintSelf(ostream& os, vtkIndent indent)
+void vtkInteractorStyleXYPlot::PrintSelf(std::ostream& os, vtkIndent indent)
 {
   vtkInteractorStyle::PrintSelf(os,indent);
   
-  os << indent << "CurrentXYPlotActor: " << this->CurrentXYPlotActor << endl;
+  os << indent << "CurrentXYPlotActor: " << this->CurrentXYPlotActor << std::endl;
   os << indent << "CurrentXYPlotElement: " << this->CurrentXYPlotElement
-     << endl;
+     << std::endl;
   os << indent << "StartPos: (" << this->StartPos[0] << ", "
-     << this->StartPos[1] << ")" << endl;
+     << this->StartPos[1] << ")" << std::endl;
   os << indent << "PrevPos: (" << this->PrevPos[0] << ", "
-     << this->PrevPos[1] << ")" << endl;
+     << this->PrevPos[1] << ")" << std::endl;
   os << indent << "ViewportBounds: (" << this->ViewportBounds[0] << ", "
      << this->ViewportBounds[1] << ", " << this->ViewportBounds[2] << ", "
-     << this->ViewportBounds[3] << ")" << endl;
+     << this->ViewportBounds[3] << ")" << std::endl;
 }

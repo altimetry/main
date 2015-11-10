@@ -36,7 +36,7 @@ namespace brathl
 typedef double ExpressionCallableFunction1(double);
 
 // under Microsoft VC6 this instruction bugs in C1001 Internal Fatal Error
-//typedef string ExpressionCallableFunctionStrToStr1(const char *);
+//typedef std::string ExpressionCallableFunctionStrToStr1(const char *);
 // replace by instruction below
 typedef const char* ExpressionCallableFunctionStrToStr1(const char *);
 
@@ -67,11 +67,11 @@ enum FunctionCategory {
 /* Definition des fonctions */
 struct DefFunction1
 {
-  string			Name;
-  string			Desc;
+  std::string			Name;
+  std::string			Desc;
   ExpressionCallableFunction1	*ToCall;
   FunctionCategory              Category;
-  bool				Numeric;	// If true, the result is numeric even if parameter is string
+  bool				Numeric;	// If true, the result is numeric even if parameter is std::string
   DefFunction1
 	(const char		*Name,
 	 const char		*Desc,
@@ -86,8 +86,8 @@ struct DefFunction1
 /* Definition des fonctions */
 struct DefCharFunction1
 {
-  string				Name;
-  string			        Desc;
+  std::string				Name;
+  std::string			        Desc;
   ExpressionCallableFunctionStrToStr1	*ToCallStr;	// Only one callback function must be defined at a time
   ExpressionCallableFunctionStrToFlt1	*ToCallFlt;
   FunctionCategory                      Category;
@@ -103,11 +103,11 @@ struct DefCharFunction1
 
 struct DefFunction2
 {
-  string			Name;
-  string			Desc;
+  std::string			Name;
+  std::string			Desc;
   ExpressionCallableFunction2	*ToCall;
   FunctionCategory              Category;
-  bool				Numeric;	// If true, the result is numeric even if parameter is string
+  bool				Numeric;	// If true, the result is numeric even if parameter is std::string
   DefFunction2
 	(const char		*Name,
 	 const char	        *Desc,
@@ -120,11 +120,11 @@ struct DefFunction2
 
 struct DefFunction3
 {
-  string			Name;
-  string			Desc;
+  std::string			Name;
+  std::string			Desc;
   ExpressionCallableFunction3	*ToCall;
   FunctionCategory              Category;
-  bool				Numeric;	// If true, the result is numeric even if parameter is string
+  bool				Numeric;	// If true, the result is numeric even if parameter is std::string
   DefFunction3
 	(const char		*Name,
 	 const char	        *Desc,
@@ -137,11 +137,11 @@ struct DefFunction3
 
 struct DefFunctionAlgoN
 {
-  string			Name;
-  string			Desc;
+  std::string			Name;
+  std::string			Desc;
   ExpressionCallableFunctionAlgoN	*ToCall;
   FunctionCategory              Category;
-  bool				Numeric;	// If true, the result is numeric even if parameter is string
+  bool				Numeric;	// If true, the result is numeric even if parameter is std::string
   
   DefFunctionAlgoN(const char* Name,
                const char *Desc,
@@ -154,11 +154,11 @@ struct DefFunctionAlgoN
 
 struct DefFunctionBratAlgoBaseN
 {
-  string			Name;
-  string			Desc;
+  std::string			Name;
+  std::string			Desc;
   ExpressionCallableFunctionBratAlgoBaseN	*ToCall;
   FunctionCategory              Category;
-  bool				Numeric;	// If true, the result is numeric even if parameter is string
+  bool				Numeric;	// If true, the result is numeric even if parameter is std::string
   
   DefFunctionBratAlgoBaseN(
                ExpressionCallableFunctionBratAlgoBaseN	ToCall
@@ -169,8 +169,8 @@ struct DefFunctionBratAlgoBaseN
 /* Definition des constantes */
 struct DefConstant
 {
-  string			Name;
-  string			Desc;
+  std::string			Name;
+  std::string			Desc;
   double			Value;
   FunctionCategory              Category;
   DefConstant
@@ -231,21 +231,21 @@ static const DefFunction1 Fonctions1[]	=
 
 static const DefCharFunction1 CharFonctions1[]	=
 {
-	DefCharFunction1("to_date",      "Translates a string value into a date value"
+	DefCharFunction1("to_date",      "Translates a std::string value into a date value"
                                          "\nAllowed format are:"
-                                         "\n\n YYYY-MM-DD HH:MN:SS.MS string."
+                                         "\n\n YYYY-MM-DD HH:MN:SS.MS std::string."
                                          "\n For instance:"
                                          "\n '1995-12-05 12:02:10.1230'"
                                          "\n '1995-12-05 12:02:10'"
                                          "\n '1995-12-05'"
-                                         "\n\n a julian string: format:positive 'Days Seconds Microseconds'"
+                                         "\n\n a julian std::string: format:positive 'Days Seconds Microseconds'"
                                          "\n Seconds must be stricty less 86400 and Microseconds must be stricty less than 1000000"
                                          "\n For instance:"
                                          "\n '2530 230 4569'"
-                                         "\n\n a julian string: format:positive decimal julian day"
+                                         "\n\n a julian std::string: format:positive decimal julian day"
                                          "\n For instance:"
                                          "\n '850.2536985'"
-                                         "\n\nFor julian string,  it can contain its reference date at the end by specifying @YYYY where YYYY is the reference year"
+                                         "\n\nFor julian std::string,  it can contain its reference date at the end by specifying @YYYY where YYYY is the reference year"
                                          " that's must be one of 1950, 1958, 1985, 1990, 2000"
                                          "\nThe reference year YYYY stands for YYYY-01-01 00:00:00.0" 
                                          "\nIf no reference date is specified the default reference date (1950) is used."
@@ -343,9 +343,9 @@ class CExpressionValue : public CBratObject
 public:
   CExpressionValue(double			FloatValue  = CTools::m_defaultValueDOUBLE);
   
-  CExpressionValue(const vector<double>		&FloatValues);
+  CExpressionValue(const std::vector<double>		&FloatValues);
   
-  CExpressionValue(const string			&StrValue);
+  CExpressionValue(const std::string			&StrValue);
   
   CExpressionValue(ExpressionValueType Type, ExpressionValueDimensions &Dimensions, double *Value, bool MakeCopy = true);
   
@@ -363,7 +363,7 @@ public:
   
   CExpressionValue(ExpressionCallableFunction3 &Function, bool	IsNumeric, CExpressionValue	&Parameter1, CExpressionValue	&Parameter2, CExpressionValue	&Parameter3);
 
-//  CExpressionValue(ExpressionCallableFunctionAlgoN& function, const string& functionName, const string& parametersFormat, CObList* listParams);
+//  CExpressionValue(ExpressionCallableFunctionAlgoN& function, const std::string& functionName, const std::string& parametersFormat, CObList* listParams);
   CExpressionValue(ExpressionCallableFunctionAlgoN& function, const char* functionName, CVectorBratAlgorithmParam& arg);
   CExpressionValue(ExpressionCallableFunctionBratAlgoBaseN& function, CBratAlgorithmBase* algo, CVectorBratAlgorithmParam& arg);
 
@@ -371,11 +371,11 @@ public:
 
   CExpressionValue& operator=(const CExpressionValue	&Copy);
   
-  CExpressionValue& operator=(const string		&String);
+  CExpressionValue& operator=(const std::string		&String);
   
   CExpressionValue& operator=(double value);
   
-  CExpressionValue& operator=(const vector<double>	&Vector);
+  CExpressionValue& operator=(const std::vector<double>	&Vector);
 
   void SetNewValue(ExpressionValueType	type, uint32_t* dims, uint32_t nbDims, double	*value, bool makeCopy = true);
   void SetNewValue(ExpressionValueType Type, ExpressionValueDimensions	&Dimensions, double	*Value, bool MakeCopy = true);
@@ -398,14 +398,14 @@ public:
   double GetValue(uint32_t index) const;
   double GetValue(uint32_t i, uint32_t j) const;
 
-  string GetString() const;
+  std::string GetString() const;
 
   double Compare(CExpressionValue	&WithWhat);
 
   int32_t IsTrue();
 
-  string GetName() { return m_name; }
-  void SetName(const string& value) { m_name = value; }
+  std::string GetName() { return m_name; }
+  void SetName(const std::string& value) { m_name = value; }
 
   void DeleteValue();
 
@@ -413,23 +413,23 @@ public:
 
 
 
-// Format and unit are ignored if the value is a string
+// Format and unit are ignored if the value is a std::string
 // If Unit is a date, Format is a sting suitable for the AsString method
 // of the CDate object
-// If unit is not a date, it must be a valid unit string indicating
+// If unit is not a date, it must be a valid unit std::string indicating
 // the unit the data must be converted into. The value itself
 // is considered to be in the base unit of the specified unit.
 // If no unit is furnished, the numbers are returned without any
 // convertion.
-  string AsString(const CUnit  &Unit	= CUnit(""), const string Format	= "", bool dateAsPeriod = false) const;
+  std::string AsString(const CUnit  &Unit	= CUnit(""), const std::string Format	= "", bool dateAsPeriod = false) const;
 
-  string GetDimensionsAsString();
+  std::string GetDimensionsAsString();
 
   void Set(const CExpressionValue &Copy);
 
   static CExpressionValue* GetExpressionValue(CBratObject* ob, bool withExcept = true);
 
-  void Dump(ostream	&fOut = cerr);
+  void Dump(std::ostream	&fOut = std::cerr);
 
 protected:
 
@@ -456,7 +456,7 @@ protected:
 
     CValueData & operator=(const CValueData&);
 
-    void Dump(ostream	&fOut = cerr);
+    void Dump(std::ostream	&fOut = std::cerr);
 
   public:
 
@@ -489,7 +489,7 @@ private:
 
   CValueData *m_Value;
 
-  string m_name;
+  std::string m_name;
 
   void Init();
 
@@ -498,10 +498,10 @@ private:
   void BuildValue(ExpressionValueType	type, ExpressionValueDimensions	&dimensions, const CDoubleArray& value);
 
   void BuildFromString
-	  (const string			&StrValue);
+	  (const std::string			&StrValue);
 
   void BuildFromVector
-	  (const vector<double>		&VectValue);
+	  (const std::vector<double>		&VectValue);
 
   static void CheckDimensionsCombination
 	  (const CExpressionValue		&Parameter1,
@@ -552,7 +552,7 @@ public:
 
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   void Init();
@@ -576,7 +576,7 @@ class CExpression : public CBratObject
 {
 public:
 
-  CExpression(const string &StrExpression = "");
+  CExpression(const std::string &StrExpression = "");
 
   CExpression(const CExpression& e);
 
@@ -586,18 +586,18 @@ public:
 
   void SetExpression(const CExpression& e);
 
-  void SetExpression(const string &StrExpression);
+  void SetExpression(const std::string &StrExpression);
 
-  static bool SetExpression(const char* value, CExpression& expr, string& errorMsg);
-  static bool SetExpression(const string& value, CExpression& expr, string& errorMsg);
+  static bool SetExpression(const char* value, CExpression& expr, std::string& errorMsg);
+  static bool SetExpression(const std::string& value, CExpression& expr, std::string& errorMsg);
 
-  bool IsConstant(const string& value) const;
+  bool IsConstant(const std::string& value) const;
 
   CExpressionValue Execute(CProduct* product = NULL);
   
-  void Dump(ostream &Output = cerr);
+  void Dump(std::ostream &Output = std::cerr);
   
-  string AsString() const;
+  std::string AsString() const;
 
   CExpressionValue GetResult();
   
@@ -615,34 +615,34 @@ public:
   uint32_t GetNbAlgorithms() const	{ return m_algoArray.size(); }
   
   
-  void SetValue(string FieldName, CExpressionValue* value);
-  void SetValue(string fieldName, CExpressionValue& value);
-  void SetValue(string fieldName, double value);
+  void SetValue(std::string FieldName, CExpressionValue* value);
+  void SetValue(std::string fieldName, CExpressionValue& value);
+  void SetValue(std::string fieldName, double value);
 
   void DeleteValues();
   void DeleteConstants();
   void DeleteDataStack();
 
   static CExpression* GetExpression(CBratObject* ob, bool withExcept = true);
-  static bool GetFieldNames(const string& stringExpr, CStringArray& fieldNames, string& errorMsg);
+  static bool GetFieldNames(const std::string& stringExpr, CStringArray& fieldNames, std::string& errorMsg);
 
   const CExpression& operator= (const CExpression& e);
-  const CExpression& operator= (const string& str);
+  const CExpression& operator= (const std::string& str);
 
   bool operator== (CExpression& u);
-  bool operator== (const string& text);
+  bool operator== (const std::string& text);
   bool operator!= ( CExpression& e ) { return ! (*this == e); }
-  bool operator!= ( const string& text ) { return ! (*this == text); }
+  bool operator!= ( const std::string& text ) { return ! (*this == text); }
 
 
 protected:
 
   CUIntArray		m_code;
-  //vector<CExpressionValue>	m_constants;
+  //std::vector<CExpressionValue>	m_constants;
   // A "CExpressionValue*" array
   CObArray	m_constants;
   CStringArray		m_fieldNames;
-  //vector<CExpressionValue>	m_fieldValues;
+  //std::vector<CExpressionValue>	m_fieldValues;
   // A "CExpressionValue*" array
   CObArray	m_fieldValues;
   //stack<CExpressionValue>	m_dataStack;

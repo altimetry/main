@@ -31,17 +31,17 @@ public:
   vtkTypeMacro(vtkZFXYPlotFilterCollection,vtkCollection);
 
   // Description:
-  // Add a plotdata item to the list.
+  // Add a plotdata item to the std::list.
   void AddItem(vtkZFXYPlotFilter *pd)
     { this->vtkCollection::AddItem((vtkObject *)pd); }
 
   // Description:
-  // Get the next plotdata item in the list.
+  // Get the next plotdata item in the std::list.
   vtkZFXYPlotFilter *GetNextItem()
     { return static_cast<vtkZFXYPlotFilter *>(this->GetNextItemAsObject()); }
 
   // Description:
-  // Get the ith plotdata item in the list.
+  // Get the ith plotdata item in the std::list.
   vtkZFXYPlotFilter *GetItem(int i)
     { return static_cast<vtkZFXYPlotFilter *>(this->GetItemAsObject(i)); }
   

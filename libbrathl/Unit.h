@@ -52,40 +52,40 @@ class CUnitSmartCleaner;
 class CUnit : public CBratObject
 {
 public:
-  CUnit	(const string	&Text = "");
+  CUnit	(const std::string	&Text = "");
   //CUnit	(const char*	Text);
   CUnit (const CUnit	&Copy);
   virtual ~CUnit();
 
-  CUnit& operator= (const string	&Text);
+  CUnit& operator= (const std::string	&Text);
   //CUnit& operator= (const char*	text);
   CUnit& operator= (const CUnit	&Source);
   
   bool operator==(CUnit& u);
-  bool operator==(const string& text);
+  bool operator==(const std::string& text);
   bool operator!= ( CUnit& u ) { return ! (*this == u); }
-  bool operator!= ( const string& text ) { return ! (*this == text); }
+  bool operator!= ( const std::string& text ) { return ! (*this == text); }
 
   bool HasUnit();
   bool HasNoUnit();
 
-  static CUnit ToUnit(const string& unitStr);
+  static CUnit ToUnit(const std::string& unitStr);
 
   CUnit BaseUnit
 		();
 
   //void Set(const char* text);
-  void Set(const string& text);
+  void Set(const std::string& text);
   void Set(const CUnit& u);
 
   void SetConversionTo
 		(const CUnit	&Destination);
   void SetConversionTo
-		(const string	&Destination);
+		(const std::string	&Destination);
   void SetConversionFrom
 		(const CUnit	&Source);
   void SetConversionFrom
-		(const string	&Source);
+		(const std::string	&Source);
 
   void SetConversionFromBaseUnit();
   void SetConversionToBaseUnit();
@@ -97,31 +97,31 @@ public:
   static double ConvertToBaseUnit(CUnit* unitIn, const double	fromValue, double defaultValue = CTools::m_defaultValueDOUBLE);
 
   double Convert(const double	fromValue);
-  void ConvertVector(vector<double>	&vect);
+  void ConvertVector(std::vector<double>	&vect);
 
   void ConvertVector(double* vect, int32_t size);
 
   bool IsDate() const;
 
-  bool IsCompatible(const string& otherUnit, string* errorMsg = NULL) const;
+  bool IsCompatible(const std::string& otherUnit, std::string* errorMsg = NULL) const;
   bool IsCompatible(const CUnit& otherUnit) const;
   bool IsCompatible(const CUnit* otherUnit) const;
  
   
-  string AsString(bool asBaseUnit = true, bool withDateOrigin = false, CDate* dateRef = NULL) const;
+  std::string AsString(bool asBaseUnit = true, bool withDateOrigin = false, CDate* dateRef = NULL) const;
 
   bool HasDateRef(CDate* dateRef = NULL, CStringArray* array = NULL) const;
-  string GetDateUnitWithoutDateOrigin() const;
+  std::string GetDateUnitWithoutDateOrigin() const;
 
-  string GetDateRefAsString(CDate* dateRef = NULL) const;
+  std::string GetDateRefAsString(CDate* dateRef = NULL) const;
 
-  string GetDateRefAs1950() const;
+  std::string GetDateRefAs1950() const;
 
-  string GetText() const { return m_Text; };
+  std::string GetText() const { return m_Text; };
   double GetSlope() const { return m_Slope; };
   double GetOffset() const { return m_Offset; };
   void Dump
-		(ostream	&fOut  = cerr);
+		(std::ostream	&fOut  = std::cerr);
 
 // Clear the error from initialization
   void ClearInitError
@@ -129,8 +129,8 @@ public:
 
   static void CheckUdunits
 		(uint32_t	Code,
-		 const string	&Msg1	= "",
-		 const string	&Msg2	= "");
+		 const std::string	&Msg1	= "",
+		 const std::string	&Msg2	= "");
 
 private:
   static void InitializeUnitSystem();
@@ -143,16 +143,16 @@ private:
 
 public:
   static CDate m_dateRefUdunits;
-  static const string m_DATE_REF_UNIT;
-  static const string m_UNIT_SI;
+  static const std::string m_DATE_REF_UNIT;
+  static const std::string m_UNIT_SI;
 
 private:
-  string	m_Text;
+  std::string	m_Text;
   utUnit	m_Compiled;
   double	m_Slope;
   double	m_Offset;
 
-  static string	m_ErrInit;
+  static std::string	m_ErrInit;
   static bool m_initialized;
 };
 

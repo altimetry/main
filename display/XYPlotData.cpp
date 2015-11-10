@@ -29,6 +29,13 @@
     #pragma hdrstop
 #endif
 
+#ifndef WX_PRECOMP
+    #include "wx/wx.h"
+#endif
+
+#include "wx/progdlg.h"
+
+
 #include "Trace.h"
 #include "Exception.h"
 #include "ExternalFiles.h"
@@ -42,6 +49,7 @@ using namespace brathl;
 
 #include "MapColor.h"
 #include "XYPlotData.h"
+#include "wxInterface.h"
 
 
 //-------------------------------------------------------------
@@ -62,7 +70,7 @@ vtkDoubleArrayBrathl::~vtkDoubleArrayBrathl()
 }
 
 //----------------------------------------------------------------------------
-void vtkDoubleArrayBrathl::PrintSelf(ostream& os, vtkIndent indent)
+void vtkDoubleArrayBrathl::PrintSelf(std::ostream& os, vtkIndent indent)
 {
   this->vtkDoubleArray::PrintSelf(os,indent);
 }
@@ -103,7 +111,7 @@ void vtkDoubleArrayBrathl::ComputeRange(int comp)
           }
         }
       else
-        { // Compute range of vector magnitude.
+        { // Compute range of std::vector magnitude.
         s = 0.0;
         for (int j=0; j < this->NumberOfComponents; ++j)
           {
@@ -196,7 +204,7 @@ vtkDoubleArrayBrathl* CPlotArray::GetFrameData(uint32_t r)
   vtkDoubleArrayBrathl* data = dynamic_cast<vtkDoubleArrayBrathl*>(m_rows.at(r));
   if (data == NULL)
   {
-    string msg = CTools::Format("ERROR in CPlotArray::GetFrameData: dynamic_cast<vtkDoubleArrayBrathl*>(m_rows.at(%d) returns NULL pointer - "
+    std::string msg = CTools::Format("ERROR in CPlotArray::GetFrameData: dynamic_cast<vtkDoubleArrayBrathl*>(m_rows.at(%d) returns NULL pointer - "
                                 "Plot Array (rows) seems to contain objects other than those of the class vtkDoubleArrayBrathl class", r);
     CException e(msg, BRATHL_LOGIC_ERROR);
     throw (e);
@@ -255,7 +263,7 @@ void CPlotArray::SetFrameData(uint32_t r, vtkDoubleArrayBrathl* vect)
   }
   else
   {
-    string msg = CTools::Format("ERROR in  CPlotArray::SetFrameData : index %d out-of-range : [0, %ld]",
+    std::string msg = CTools::Format("ERROR in  CPlotArray::SetFrameData : index %d out-of-range : [0, %ld]",
                                 r, (long)m_rows.size());
     CException e(msg, BRATHL_LOGIC_ERROR);
     throw (e);
@@ -738,7 +746,7 @@ void CXYPlotProperty::SetXLog(bool value)
 
   if ((m_xMin <= 0) && (value))
   {
-    string msg = CTools::Format("ERROR in CXYPlotProperty::SetXLog : X range [%g, %g] contains value <= 0 - no logarithmic axis possible",
+    std::string msg = CTools::Format("ERROR in CXYPlotProperty::SetXLog : X range [%g, %g] contains value <= 0 - no logarithmic axis possible",
                                  m_xMin, m_xMax);
     CException e(msg, BRATHL_LOGIC_ERROR);
     throw (e);
@@ -751,7 +759,7 @@ void CXYPlotProperty::SetYLog(bool value)
 
   if ((m_yMin <= 0) && (value))
   {
-    string msg = CTools::Format("ERROR in CXYPlotProperty::SetYLog : Y range [%g, %g] contains value <= 0 - no logarithmic axis possible",
+    std::string msg = CTools::Format("ERROR in CXYPlotProperty::SetYLog : Y range [%g, %g] contains value <= 0 - no logarithmic axis possible",
                                  m_yMin, m_yMax);
     CException e(msg, BRATHL_LOGIC_ERROR);
     throw (e);
@@ -851,7 +859,7 @@ void CXYPlotProperty::SetColor(const CVtkColor& vtkColor)
 //----------------------------------------
 void CXYPlotProperty::SetColor(const wxColour& color)
 {
-  CVtkColor vtkColor(color);
+  CVtkColor vtkColor = color_cast(color);
 
   m_vtkProperty2D->SetColor(vtkColor.Red(),
                             vtkColor.Green(),
@@ -919,7 +927,7 @@ CXYPlotData* CXYPlotData::Construct(int32_t dimValSize)
   }
   else
   {
-    string msg = CTools::Format("CXYPlotData::Construct - Don't know how to create plot data - dimensions size of axis X : %d in file %s",
+    std::string msg = CTools::Format("CXYPlotData::Construct - Don't know how to create plot data - dimensions size of axis X : %d in file %s",
                                  dimVal.size(),
                                  f->GetName().c_str());
     CProductException e(msg, BRATHL_INCONSISTENCY_ERROR);
@@ -938,7 +946,7 @@ void CXYPlotData::Create(CObArray* data, CFieldGroup* fieldGroup)
   //CExpressionValue* varX = NULL;
   //CExpressionValue* varY = NULL;
 
-  string varXName;
+  std::string varXName;
 
   int32_t iPlot = 0;
   int32_t nrPlots = data->size();
@@ -946,8 +954,8 @@ void CXYPlotData::Create(CObArray* data, CFieldGroup* fieldGroup)
   CUnit unitXRead;
   CUnit unitYRead;
 
-  string unitXStr;
-  string unitYStr;
+  std::string unitXStr;
+  std::string unitYStr;
 
   //CObArray exprValuesX;
   //CObArray exprValuesY;
@@ -994,10 +1002,10 @@ void CXYPlotData::Create(CObArray* data, CFieldGroup* fieldGroup)
     }
     else
     {
-      string unitXReadStr = unitXRead.AsString();
+      std::string unitXReadStr = unitXRead.AsString();
       if ( unitXStr.compare(unitXReadStr) != 0)
       {
-        string msg = CTools::Format("CXYPlotData::Create - In group field number %d, field unit are not in the same way "
+        std::string msg = CTools::Format("CXYPlotData::Create - In group field number %d, field unit are not in the same way "
                                     "- Expected unit '%s' and found '%s' for axis X",
                                      fieldGroup->m_groupNumber,
                                      unitXStr.c_str(),
@@ -1009,7 +1017,7 @@ void CXYPlotData::Create(CObArray* data, CFieldGroup* fieldGroup)
       }
     }
     // Get title of plot
-    string titlePlot;
+    std::string titlePlot;
 
     if (m_plotProperty.GetTitle().IsEmpty())
     {
@@ -1018,7 +1026,7 @@ void CXYPlotData::Create(CObArray* data, CFieldGroup* fieldGroup)
     }
 
     // Get title of X axis
-    string titleX;
+    std::string titleX;
 
     if (m_plotProperty.GetXLabel().IsEmpty())
     {
@@ -1040,7 +1048,7 @@ void CXYPlotData::Create(CObArray* data, CFieldGroup* fieldGroup)
     for (iField = 0 ; iField < nrFields ; iField++)
     {
       CExpressionValue varY;
-      string fieldName = fieldGroup->m_fields[iField].GetFieldNames()[0];
+      std::string fieldName = fieldGroup->m_fields[iField].GetFieldNames()[0];
 
       // read data dimension
       ExpressionValueDimensions dimValY;
@@ -1048,7 +1056,7 @@ void CXYPlotData::Create(CObArray* data, CFieldGroup* fieldGroup)
       yfx->GetVarDims(fieldName, dimValY);
       if ( (dimValY.size() <= 0) || (dimValY.size() > 2) )
       {
-        string msg = CTools::Format("CXYPlotData::Create - '%s' axis -> number of dimensions  must be 1 or 2 - Found : %d",
+        std::string msg = CTools::Format("CXYPlotData::Create - '%s' axis -> number of dimensions  must be 1 or 2 - Found : %d",
                                      fieldName.c_str(), dimValY.size());
         CException e(msg, BRATHL_INCONSISTENCY_ERROR);
         CTrace::Tracer(e.what());
@@ -1060,7 +1068,7 @@ void CXYPlotData::Create(CObArray* data, CFieldGroup* fieldGroup)
 
       if (varKind != Data)
       {
-        string msg = CTools::Format("CXYPlotData::Create - variable '%s' is not a kind of Data (%d) : %d",
+        std::string msg = CTools::Format("CXYPlotData::Create - variable '%s' is not a kind of Data (%d) : %d",
                                      fieldName.c_str(), Data, varKind);
         CException e(msg, BRATHL_INCONSISTENCY_ERROR);
         CTrace::Tracer(e.what());
@@ -1080,10 +1088,10 @@ void CXYPlotData::Create(CObArray* data, CFieldGroup* fieldGroup)
       }
       else
       {
-        string unitYReadStr = unitYRead.AsString();
+        std::string unitYReadStr = unitYRead.AsString();
         if ( unitYStr.compare(unitYReadStr) != 0)
         {
-          string msg = CTools::Format("CXYPlotData::Create - In group field number %d, field unit are not in the same way "
+          std::string msg = CTools::Format("CXYPlotData::Create - In group field number %d, field unit are not in the same way "
                                       "- Expected unit '%s' and found '%s' for axis X",
                                        fieldGroup->m_groupNumber,
                                        unitYStr.c_str(),
@@ -1095,7 +1103,7 @@ void CXYPlotData::Create(CObArray* data, CFieldGroup* fieldGroup)
         }
       }
       // Get title of Y axis (as possible)
-      string titleY;
+      std::string titleY;
 
       if (nrFields == 1)
       {
@@ -1132,7 +1140,7 @@ void CXYPlotData::Create(CObArray* data, CFieldGroup* fieldGroup)
 //----------------------------------------
 void CXYPlotData::Create(CObArray* data, CPlot* plot, int32_t iField)
 {
-  string varXName;
+  std::string varXName;
 
   int32_t iFile = 0;
   int32_t nrFiles = data->size();
@@ -1140,8 +1148,8 @@ void CXYPlotData::Create(CObArray* data, CPlot* plot, int32_t iField)
   CUnit unitXRead;
   CUnit unitYRead;
 
-  string unitXStr;
-  string unitYStr;
+  std::string unitXStr;
+  std::string unitYStr;
 
   if (m_plotProperty.GetTitle().IsEmpty())
   {
@@ -1197,14 +1205,14 @@ void CXYPlotData::Create(CObArray* data, CPlot* plot, int32_t iField)
     unitXRead = yfx->GetUnit(varXName);
 
     CExpressionValue varY;
-    string fieldName = plot->GetPlotField(iField)->m_name.c_str();
+    std::string fieldName = plot->GetPlotField(iField)->m_name.c_str();
 
     // Set name of the data
     if (iFile == 0)
     {
       if (GetName().IsEmpty())
       {
-        string str = yfx->GetTitle(fieldName) + " (" + fieldName + ")";
+        std::string str = yfx->GetTitle(fieldName) + " (" + fieldName + ")";
         SetName(str.c_str());
       }
     }
@@ -1216,7 +1224,7 @@ void CXYPlotData::Create(CObArray* data, CPlot* plot, int32_t iField)
     yfx->GetVarDims(fieldName, dimValY);
     if ( (dimValY.size() <= 0) || (dimValY.size() > 2) )
     {
-      string msg = CTools::Format("CXYPlotData::Create - '%s' axis -> number of dimensions  must be 1 or 2 - Found : %d",
+      std::string msg = CTools::Format("CXYPlotData::Create - '%s' axis -> number of dimensions  must be 1 or 2 - Found : %d",
                                    fieldName.c_str(), dimValY.size());
       CException e(msg, BRATHL_INCONSISTENCY_ERROR);
       CTrace::Tracer(e.what());
@@ -1229,7 +1237,7 @@ void CXYPlotData::Create(CObArray* data, CPlot* plot, int32_t iField)
 
     if (varKind != Data)
     {
-      string msg = CTools::Format("CXYPlotData::Create - variable '%s' is not a kind of Data (%d) : %s",
+      std::string msg = CTools::Format("CXYPlotData::Create - variable '%s' is not a kind of Data (%d) : %s",
                                    fieldName.c_str(), Data, CNetCDFFiles::VarKindToString(varKind).c_str());
       CException e(msg, BRATHL_INCONSISTENCY_ERROR);
       CTrace::Tracer(e.what());
@@ -1258,13 +1266,13 @@ void CXYPlotData::Create(CObArray* data, CPlot* plot, int32_t iField)
 //----------------------------------------
 void CXYPlotData::Create(CInternalFiles* yfx, CPlot* plot, int32_t iField)
 {
-  string varXName;
+  std::string varXName;
 
   CUnit unitXRead;
   CUnit unitYRead;
 
-  string unitXStr;
-  string unitYStr;
+  std::string unitXStr;
+  std::string unitYStr;
 
   if (m_plotProperty.GetTitle().IsEmpty())
   {
@@ -1317,13 +1325,13 @@ void CXYPlotData::Create(CInternalFiles* yfx, CPlot* plot, int32_t iField)
   }
 
   CExpressionValue varY;
-  string fieldName = (const char *)(plot->GetPlotField(iField)->m_name);
+  std::string fieldName = plot->GetPlotField(iField)->m_name.c_str();
 
   // Set name of the data
 
   if (GetName().IsEmpty())
   {
-    string str = yfx->GetTitle(fieldName) + " (" + fieldName + ")";
+    std::string str = yfx->GetTitle(fieldName) + " (" + fieldName + ")";
     SetName(str.c_str());
   }
 
@@ -1333,7 +1341,7 @@ void CXYPlotData::Create(CInternalFiles* yfx, CPlot* plot, int32_t iField)
   yfx->GetVarDims(fieldName, dimValY);
   if ( (dimValY.size() <= 0) || (dimValY.size() > 2) )
   {
-    string msg = CTools::Format("CXYPlotData::Create - '%s' axis -> number of dimensions  must be 1 or 2 - Found : %ld",
+    std::string msg = CTools::Format("CXYPlotData::Create - '%s' axis -> number of dimensions  must be 1 or 2 - Found : %ld",
                                  fieldName.c_str(), (long)dimValY.size());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
     CTrace::Tracer("%s", e.what());
@@ -1347,7 +1355,7 @@ void CXYPlotData::Create(CInternalFiles* yfx, CPlot* plot, int32_t iField)
   /************************DEDEDE
   if (varKind != Data)
   {
-    string msg = CTools::Format("CXYPlotData::Create - variable '%s' is not a kind of Data (%d) : %s",
+    std::string msg = CTools::Format("CXYPlotData::Create - variable '%s' is not a kind of Data (%d) : %s",
                                  fieldName.c_str(), Data, CNetCDFFiles::VarKindToString(varKind).c_str());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
     CTrace::Tracer("%s", e.what());
@@ -1366,7 +1374,7 @@ void CXYPlotData::Create(CInternalFiles* yfx, CPlot* plot, int32_t iField)
 
   if (!intersect)
   {
-    string msg = CTools::Format("CXYPlotData::Create - variables '%s' and '%s' have no common dimension",
+    std::string msg = CTools::Format("CXYPlotData::Create - variables '%s' and '%s' have no common dimension",
                                  fieldName.c_str(), varXName.c_str());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
     CTrace::Tracer("%s", e.what());
@@ -1381,7 +1389,7 @@ void CXYPlotData::Create(CInternalFiles* yfx, CPlot* plot, int32_t iField)
 
   if ((commonDims.size() == dimXNames.size()) && (commonDims.size() == dimYNames.size()) && (dimXNames != dimYNames))
   {
-    string msg = CTools::Format("CXYPlotData::Create - variables '%s' (dim %s) and '%s' (dim %s) must have the same dimension fields",
+    std::string msg = CTools::Format("CXYPlotData::Create - variables '%s' (dim %s) and '%s' (dim %s) must have the same dimension fields",
                                  fieldName.c_str(), dimYNames.ToString().c_str(), varXName.c_str(), dimXNames.ToString().c_str());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
     CTrace::Tracer("%s", e.what());
@@ -1400,7 +1408,7 @@ void CXYPlotData::Create(CInternalFiles* yfx, CPlot* plot, int32_t iField)
     dimIndex = yfx->GetVarDimIndex(varXName, commonDims.at(iIntersect));
     if (dimIndex < 0)
     {
-      string msg = CTools::Format("CXYPlotData::Create - variables '%s' - dim '%s' not found ",
+      std::string msg = CTools::Format("CXYPlotData::Create - variables '%s' - dim '%s' not found ",
                                    varXName.c_str(), commonDims.at(iIntersect).c_str());
       CException e(msg, BRATHL_INCONSISTENCY_ERROR);
       CTrace::Tracer("%s", e.what());
@@ -1412,7 +1420,7 @@ void CXYPlotData::Create(CInternalFiles* yfx, CPlot* plot, int32_t iField)
     dimIndex = yfx->GetVarDimIndex(fieldName, commonDims.at(iIntersect));
     if (dimIndex < 0)
     {
-      string msg = CTools::Format("CXYPlotData::Create - variables '%s' - dim '%s' not found ",
+      std::string msg = CTools::Format("CXYPlotData::Create - variables '%s' - dim '%s' not found ",
                                    fieldName.c_str(), commonDims.at(iIntersect).c_str());
       CException e(msg, BRATHL_INCONSISTENCY_ERROR);
       CTrace::Tracer("%s", e.what());
@@ -1528,7 +1536,7 @@ void CXYPlotData::Init()
 void CXYPlotData::GetAxisX(CInternalFilesYFX* yfx,
                            ExpressionValueDimensions& dimVal,
                            CExpressionValue& varX,
-                           string& varXName)
+                           std::string& varXName)
 {
   CStringArray axisNames;
   CStringArray::iterator is;
@@ -1538,7 +1546,7 @@ void CXYPlotData::GetAxisX(CInternalFilesYFX* yfx,
 
   if (axisNames.size() != 1)
   {
-    string msg = CTools::Format("CXYPlotData::GetAxisX -  wrong number of axis in file '%s' : %d"
+    std::string msg = CTools::Format("CXYPlotData::GetAxisX -  wrong number of axis in file '%s' : %d"
                                 "Correct number is 1",
                                 yfx->GetName().c_str(),
                                 axisNames.size());
@@ -1552,13 +1560,13 @@ void CXYPlotData::GetAxisX(CInternalFilesYFX* yfx,
     yfx->GetVarDims(*is, dimVal);
     if ( (dimVal.size() <= 0) || (dimVal.size() > 2) )
     {
-      string msg = CTools::Format("CXYPlotData::GetAxisX - '%s' axis -> number of dimensions must be 1 or 2 - Found : %d",
+      std::string msg = CTools::Format("CXYPlotData::GetAxisX - '%s' axis -> number of dimensions must be 1 or 2 - Found : %d",
                                    (*is).c_str(), dimVal.size());
       CException e(msg, BRATHL_INCONSISTENCY_ERROR);
       CTrace::Tracer(e.what());
       throw (e);
     }
-    string wantedUnit;
+    std::string wantedUnit;
 
     NetCDFVarKind varKind = yfx->GetVarKind(*is);
     if (varKind == Longitude)
@@ -1593,7 +1601,7 @@ void CXYPlotData::SetRawData(CPlotArray* x, CPlotArray* y)
 
   if ( x->GetNumberOfFrames() != y->GetNumberOfFrames() )
   {
-    string msg = CTools::Format("ERROR in CXYPlotData::SetRawData : Number of frames in PlotArray must be the same for all data - "
+    std::string msg = CTools::Format("ERROR in CXYPlotData::SetRawData : Number of frames in PlotArray must be the same for all data - "
                                 "nb frames for x : %d - nb frames for y : %d",
                                 x->GetNumberOfFrames(), y->GetNumberOfFrames());
     CException e(msg, BRATHL_LOGIC_ERROR);
@@ -1686,7 +1694,7 @@ CXYPlotDataSingle::~CXYPlotDataSingle()
 
 }
 //----------------------------------------
-void CXYPlotDataSingle::SetData(double* xArray, const vector<uint32_t>& xDims,  double* yArray, const vector<uint32_t>& yDims, bool bCopy)
+void CXYPlotDataSingle::SetData(double* xArray, const std::vector<uint32_t>& xDims,  double* yArray, const std::vector<uint32_t>& yDims, bool bCopy)
 {
   SetData(xArray, xDims[0], yArray, yDims[0], bCopy);
 }
@@ -1764,7 +1772,7 @@ CXYPlotDataMulti::~CXYPlotDataMulti()
 }
 /*
 //----------------------------------------
-void CXYPlotDataMulti::SetData(double* xArray, const vector<uint32_t>& xDims,  double* yArray, const vector<uint32_t>& yDims, bool bCopy)
+void CXYPlotDataMulti::SetData(double* xArray, const std::vector<uint32_t>& xDims,  double* yArray, const std::vector<uint32_t>& yDims, bool bCopy)
 {
   CUIntArray dimsX;
   dimsX.Insert(xDims);
@@ -1805,7 +1813,7 @@ void CXYPlotDataMulti::SetData(double* xArray, const CUIntArray& xDims,  double*
 
   if ( (xDims.size() <= 0) || (yDims.size() <= 0) )
   {
-    string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : At least one of Arrays is 0 dimensional  -"
+    std::string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : At least one of Arrays is 0 dimensional  -"
                                 "xArray dim. is %ld and yArray dim. is %ld",
                                 (long)xDims.size(), (long)yDims.size());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
@@ -1815,7 +1823,7 @@ void CXYPlotDataMulti::SetData(double* xArray, const CUIntArray& xDims,  double*
 
   if ( (xCommonDimIndex.size() <= 0) || (yCommonDimIndex.size() <= 0) )
   {
-    string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : No common dimension have been set."
+    std::string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : No common dimension have been set."
                                 "xArray dim. is %ld and yArray dim. is %ld - "
                                 "xCommonDimIndex dim. is %ld and yCommonDimIndex dim. is %ld",
                                 (long)xDims.size(), (long)yDims.size(),
@@ -1827,7 +1835,7 @@ void CXYPlotDataMulti::SetData(double* xArray, const CUIntArray& xDims,  double*
 /*
   if ( xDims.at(xDims.size() - 1) != yDims.at(yDims.size() - 1) )
   {
-    string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : Array dimensions don't match  -"
+    std::string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : Array dimensions don't match  -"
                                 "xArray dim. is %d  xArray last dim. value is %d"
                                 "yArray dim. is %d  yArray last dim. value is %d",
                                 xDims.size(), xDims.at(xDims.size() - 1),
@@ -1840,7 +1848,7 @@ void CXYPlotDataMulti::SetData(double* xArray, const CUIntArray& xDims,  double*
 
   if ( (xDims.size() > 2) || (yDims.size() > 2) )
   {
-    string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : Arrays must be 2 dimensional or less -"
+    std::string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : Arrays must be 2 dimensional or less -"
                                 "xArray dim. is %ld and yArray dim. is %ld",
                                 (long)xDims.size(), (long)yDims.size());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
@@ -1850,7 +1858,7 @@ void CXYPlotDataMulti::SetData(double* xArray, const CUIntArray& xDims,  double*
 
   if ( (xCommonDimIndex.size() > 2) || (yCommonDimIndex.size() > 2) )
   {
-    string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : Common dimension arrays must be 2 dimensional or less -"
+    std::string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : Common dimension arrays must be 2 dimensional or less -"
                                 "xCommonDimIndex dim. is %ld and yCommonDimIndex dim. is %ld",
                                 (long)xCommonDimIndex.size(), (long)yCommonDimIndex.size());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
@@ -1861,7 +1869,7 @@ void CXYPlotDataMulti::SetData(double* xArray, const CUIntArray& xDims,  double*
 
   if ( xCommonDimIndex.size() != yCommonDimIndex.size() )
   {
-    string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : Common dimension arrays have not the same dimension -"
+    std::string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : Common dimension arrays have not the same dimension -"
                                 "xCommonDimIndex dim. is %ld and yCommonDimIndex dim. is %ld",
                                 (long)xCommonDimIndex.size(), (long)yCommonDimIndex.size());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
@@ -1874,7 +1882,7 @@ void CXYPlotDataMulti::SetData(double* xArray, const CUIntArray& xDims,  double*
 
   if (xCommonDimIndex.Intersect(yCommonDimIndex, intersect) == false)
   {
-    string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : Common dimension arrays have no intersection -"
+    std::string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : Common dimension arrays have no intersection -"
                                 "xCommonDimIndex dim. is %d, values are %s and yCommonDimIndex dim. is %d, values are %s",
                                 xCommonDimIndex.size(), xCommonDimIndex.ToString().c_str(), yCommonDimIndex.size(), xCommonDimIndex.ToString().c_str());
     CException e(msg, BRATHL_INCONSISTENCY_ERROR);
@@ -1906,7 +1914,7 @@ void CXYPlotDataMulti::SetData(double* xArray, const CUIntArray& xDims,  double*
   if ( commonDim < 0 )
   {
 
-    string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : Array dimensions don't match  -"
+    std::string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : Array dimensions don't match  -"
                                 "xArray dim. is %d  xArray dim. values are %s"
                                 "yArray dim. is %d  yArray dim. values are %s",
                                 xDims.size(), (xDims.ToString()).c_str(),
@@ -1953,7 +1961,7 @@ void CXYPlotDataMulti::SetData(double* xArray, const CUIntArray& xDims,  double*
       hasComplement = yCommonDimIndex.Complement(yDimIndex, complementX);
       if (!hasComplement)
       {
-        string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : No X complement have been found:"
+        std::string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : No X complement have been found:"
                                 "xCommonDimIndex dim. is %ld, values are %s and yCommonDimIndex dim. is %ld, values are %s -"
                                 "xDimIndex dim. is %ld, values are %s and yDimIndex dim. is %ld, values are %s",
                                 (long)xCommonDimIndex.size(), xCommonDimIndex.ToString().c_str(),
@@ -1971,7 +1979,7 @@ void CXYPlotDataMulti::SetData(double* xArray, const CUIntArray& xDims,  double*
       hasComplement = xCommonDimIndex.Complement(xDimIndex, complementY);
       if (!hasComplement)
       {
-        string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : No Y complement have been found:"
+        std::string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : No Y complement have been found:"
                                 "xCommonDimIndex dim. is %ld, values are %s and yCommonDimIndex dim. is %ld, values are %s"
                                 "xDimIndex dim. is %ld, values are %s and yDimIndex dim. is %ld, values are %s",
                                 (long)xCommonDimIndex.size(), xCommonDimIndex.ToString().c_str(),
@@ -1986,7 +1994,7 @@ void CXYPlotDataMulti::SetData(double* xArray, const CUIntArray& xDims,  double*
     }
     else
     {
-      string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : X and Y dimension must be equals:"
+      std::string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : X and Y dimension must be equals:"
                                 "xCommonDimIndex dim. is %ld, values are %s and yCommonDimIndex dim. is %ld, values are %s"
                                 "xDimIndex dim. is %ld, values are %s and yDimIndex dim. is %ld, values are %s",
                                 (long)xCommonDimIndex.size(), xCommonDimIndex.ToString().c_str(),
@@ -2004,7 +2012,7 @@ void CXYPlotDataMulti::SetData(double* xArray, const CUIntArray& xDims,  double*
     hasComplement |= xCommonDimIndex.Complement(xDimIndex, complementY);
     if (hasComplement)
     {
-      string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : X and Y must have the same dimension fields:"
+      std::string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : X and Y must have the same dimension fields:"
                                 "xCommonDimIndex dim. is %ld, values are %s and yCommonDimIndex dim. is %ld, values are %s"
                                 "xDimIndex dim. is %ld, values are %s and yDimIndex dim. is %ld, values are %s",
                                 (long)xCommonDimIndex.size(), xCommonDimIndex.ToString().c_str(),
@@ -2017,7 +2025,7 @@ void CXYPlotDataMulti::SetData(double* xArray, const CUIntArray& xDims,  double*
     }
     else if (xCommonDimIndex != yCommonDimIndex)
     {
-      string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : X and Y dimension must be equals:"
+      std::string msg = CTools::Format("ERROR in CXYPlotDataMulti::SetData : X and Y dimension must be equals:"
                                 "xCommonDimIndex dim. is %ld, values are %s and yCommonDimIndex dim. is %ld, values are %s"
                                 "xDimIndex dim. is %ld, values are %s and yDimIndex dim. is %ld, values are %s",
                                 (long)xCommonDimIndex.size(), xCommonDimIndex.ToString().c_str(),
@@ -2062,7 +2070,7 @@ void CXYPlotDataMulti::SetData(double* xArray, const CUIntArray& xDims,  double*
     int32_t xDim = -1;
     int32_t yDim = -1;
 
-    string msg = CTools::Format("Calculating Frame: %d of %d", i + 1, maxFrames);
+    std::string msg = CTools::Format("Calculating Frame: %d of %d", i + 1, maxFrames);
     if (pd->Update(i, msg.c_str()) == false)
     {
       m_aborted = true;
@@ -2194,7 +2202,7 @@ CXYPlotData* CXYPlotDataCollection::Get(int32_t index)
 {
   if ( (index < 0) || (static_cast<uint32_t>(index) >= this->size()) )
   {
-    string msg = CTools::Format("ERROR in  CXYPlotDataCollection::Get : index %d out-of-range "
+    std::string msg = CTools::Format("ERROR in  CXYPlotDataCollection::Get : index %d out-of-range "
                                 "Valid range is [0, %ld]",
                                 index,
                                 (long)this->size());

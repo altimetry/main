@@ -211,7 +211,7 @@ void CFieldsTreeItemData::SetSplittedFieldDescr(CField* field)
     }
   }
 
-  string fieldFullName = field->GetFullName();
+  std::string fieldFullName = field->GetFullName();
 
   if (fieldFullName.empty() == false)
   {
@@ -220,7 +220,7 @@ void CFieldsTreeItemData::SetSplittedFieldDescr(CField* field)
     m_splittedFieldDescr.Append("\n");
   }
 
-  string fieldFullNameWithRecord = field->GetFullNameWithRecord();
+  std::string fieldFullNameWithRecord = field->GetFullNameWithRecord();
 
   if (fieldFullNameWithRecord.empty() == false)
   {

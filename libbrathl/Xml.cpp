@@ -18,6 +18,10 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include <fstream>
+#include <sstream>
+#include <cassert>
+
 #define XML_BUILDING_EXPAT
 #include "expat.h"
 
@@ -35,7 +39,7 @@ namespace brathl
 //-------------------------------------------------------------
 
 CXmlNode::CXmlNode(CXmlNode *parent,CXmlNodeType type,
-                     const string& name, const string& content,
+                     const std::string& name, const std::string& content,
                      CXmlProperty *props, CXmlNode *next)
     : m_type(type), m_name(name), m_content(content),
       m_properties(props), m_parent(parent),
@@ -56,8 +60,8 @@ CXmlNode::CXmlNode(CXmlNode *parent,CXmlNodeType type,
 }
 
 //----------------------------------------
-CXmlNode::CXmlNode(CXmlNodeType type, const string& name,
-                     const string& content)
+CXmlNode::CXmlNode(CXmlNodeType type, const std::string& name,
+                     const std::string& content)
     : m_type(type), m_name(name), m_content(content),
       m_properties(NULL), m_parent(NULL),
       m_children(NULL), m_next(NULL)
@@ -144,7 +148,7 @@ void CXmlNode::DoCopy(const CXmlNode& node)
 }
 
 //----------------------------------------
-bool CXmlNode::HasProp(const string& propName) const
+bool CXmlNode::HasProp(const std::string& propName) const
 {
   CXmlProperty *prop = GetProperties();
 
@@ -162,7 +166,7 @@ bool CXmlNode::HasProp(const string& propName) const
 }
 
 //----------------------------------------
-bool CXmlNode::GetPropVal(const string& propName, string *value) const
+bool CXmlNode::GetPropVal(const std::string& propName, std::string *value) const
 {
   if (value == NULL)
   {
@@ -185,9 +189,9 @@ bool CXmlNode::GetPropVal(const string& propName, string *value) const
 }
 
 //----------------------------------------
-string CXmlNode::GetPropVal(const string& propName, const string& defaultVal) const
+std::string CXmlNode::GetPropVal(const std::string& propName, const std::string& defaultVal) const
 {
-  string tmp;
+  std::string tmp;
   if (GetPropVal(propName, &tmp))
   {
     return tmp;
@@ -336,7 +340,7 @@ bool CXmlNode::RemoveChild(CXmlNode *child)
 }
 
 //----------------------------------------
-void CXmlNode::AddProperty(const string& name, const string& value)
+void CXmlNode::AddProperty(const std::string& name, const std::string& value)
 {
   AddProperty(new CXmlProperty(name, value, NULL));
 }
@@ -356,7 +360,7 @@ void CXmlNode::AddProperty(CXmlProperty *prop)
 }
 
 //----------------------------------------
-bool CXmlNode::DeleteProperty(const string& name)
+bool CXmlNode::DeleteProperty(const std::string& name)
 {
   CXmlProperty *prop;
 
@@ -392,7 +396,7 @@ bool CXmlNode::DeleteProperty(const string& name)
 }
 
 //----------------------------------------
-string CXmlNode::GetNodeContent() const
+std::string CXmlNode::GetNodeContent() const
 {
   CXmlNode *n = GetChildren();
 
@@ -440,10 +444,10 @@ bool CXmlNode::IsWhitespaceOnly() const
 //------------------- CXmlDocument class --------------------
 //-------------------------------------------------------------
 
-const string CXmlDocument::m_XML_VERSION = "1.0";
+const std::string CXmlDocument::m_XML_VERSION = "1.0";
 
-const string CXmlDocument::m_UTF8_ENCODING = "UTF-8";
-const string CXmlDocument::m_DEFAULT_ENCODING = CXmlDocument::m_UTF8_ENCODING;
+const std::string CXmlDocument::m_UTF8_ENCODING = "UTF-8";
+const std::string CXmlDocument::m_DEFAULT_ENCODING = CXmlDocument::m_UTF8_ENCODING;
 
 
 CXmlDocument::CXmlDocument()
@@ -453,7 +457,7 @@ CXmlDocument::CXmlDocument()
 }
 
 //----------------------------------------
-CXmlDocument::CXmlDocument(const string& filename, const string& encoding)
+CXmlDocument::CXmlDocument(const std::string& filename, const std::string& encoding)
               :CBratObject(), m_root(NULL)
 {
   try
@@ -465,7 +469,7 @@ CXmlDocument::CXmlDocument(const string& filename, const string& encoding)
     DeleteRoot();
     throw e;
   }
-  catch(exception& e)
+  catch(std::exception& e)
   {
     DeleteRoot();
     throw e;
@@ -480,7 +484,7 @@ CXmlDocument::CXmlDocument(const string& filename, const string& encoding)
 
  }
 //----------------------------------------
-CXmlDocument::CXmlDocument(istream& stream, const string& encoding)
+CXmlDocument::CXmlDocument(std::istream& stream, const std::string& encoding)
               :CBratObject(), m_root(NULL)
 {
   try
@@ -492,7 +496,7 @@ CXmlDocument::CXmlDocument(istream& stream, const string& encoding)
     DeleteRoot();
     throw e;
   }
-  catch(exception& e)
+  catch(std::exception& e)
   {
     DeleteRoot();
     throw e;
@@ -549,7 +553,7 @@ void CXmlDocument::DoCopy(const CXmlDocument& doc)
 }
 
 //----------------------------------------
-void CXmlDocument::Load(const string& filename, const string& encoding, int flags)
+void CXmlDocument::Load(const std::string& filename, const std::string& encoding, int flags)
 {
   if (!CTools::FileExists(filename))
   {
@@ -560,13 +564,13 @@ void CXmlDocument::Load(const string& filename, const string& encoding, int flag
 
   }
 
-  ifstream stream;    
+  std::ifstream stream;    
   stream.open(filename.c_str());
     
   if (!stream.good()) 
   {
-    ostringstream myStream;
-    string errorCode = "?";
+    std::ostringstream myStream;
+    std::string errorCode = "?";
     if (myStream << stream.rdstate())
     {
       errorCode = myStream.str();
@@ -582,9 +586,9 @@ void CXmlDocument::Load(const string& filename, const string& encoding, int flag
 }
 
 //----------------------------------------
-bool CXmlDocument::Save(const string& filename, int indentstep) const
+bool CXmlDocument::Save(const std::string& filename, int indentstep) const
 {
-  ofstream stream(filename.c_str());
+  std::ofstream stream(filename.c_str());
   if (!stream.good())
   {
     return false;
@@ -625,8 +629,8 @@ struct structXmlParsingContext
   CXmlNode* node;                    // the node being parsed
   CXmlNode* lastChild;               // the last child of "node"
   CXmlNode* lastAsText;              // the last _text_ child of "node"
-  string encoding;
-  string version;
+  std::string encoding;
+  std::string version;
   bool removeWhiteOnlyNodes;
 };
 //----------------------------------------
@@ -689,7 +693,7 @@ extern "C" {
 static void TextHnd(void *userData, const char *s, int len)
 {
   structXmlParsingContext *ctx = (structXmlParsingContext*)userData;
-  string str = CTools::ToString(s, len);
+  std::string str = CTools::ToString(s, len);
 
   if (ctx->lastAsText)
   {
@@ -756,17 +760,17 @@ static void DefaultHnd(void *userData, const char *s, int len)
   {
     structXmlParsingContext *ctx = (structXmlParsingContext*)userData;
 
-    string buf = CTools::ToString(s, (size_t)len);
+    std::string buf = CTools::ToString(s, (size_t)len);
     int pos = buf.find("encoding=");
     if (pos != -1)
     {
-      string str = buf.substr(pos + 10);
+      std::string str = buf.substr(pos + 10);
       ctx->encoding = CTools::BeforeFirst(str, buf[(size_t)pos+9]);
     }
     pos = buf.find("version=");
     if (pos != -1) 
     {
-      string str = buf.substr(pos + 9);
+      std::string str = buf.substr(pos + 9);
       ctx->version = CTools::BeforeFirst(str, buf[(size_t)pos+8]);
     }
   }
@@ -775,7 +779,7 @@ static void DefaultHnd(void *userData, const char *s, int len)
 
 
 //----------------------------------------
-void CXmlDocument::Load(istream& stream, const string& encoding, int flags)
+void CXmlDocument::Load(std::istream& stream, const std::string& encoding, int flags)
 {
     m_encoding = encoding;
     const size_t BUFSIZE = 1024;
@@ -812,8 +816,8 @@ void CXmlDocument::Load(istream& stream, const string& encoding, int flags)
         done = (len < BUFSIZE);
         if (!XML_Parse(parser, buf, len, done))
         {
-            string error = XML_ErrorString(XML_GetErrorCode(parser));
-            string msg = CTools::Format("XML parsing error: '%s' at line %lu",
+            std::string error = XML_ErrorString(XML_GetErrorCode(parser));
+            std::string msg = CTools::Format("XML parsing error: '%s' at line %lu",
                                         error.c_str(),
                                         static_cast<long>(XML_GetCurrentLineNumber(parser)));
             if ( ctx.root != NULL ) 
@@ -849,8 +853,8 @@ void CXmlDocument::Load(istream& stream, const string& encoding, int flags)
 //  CXmlDocument saving routines
 //-----------------------------------------------------------------------------
 
-// write string to output:
-inline void CXmlDocument::OutputString(ostream& stream, const string& str)
+// write std::string to output:
+inline void CXmlDocument::OutputString(std::ostream& stream, const std::string& str)
 {
   if (str.empty())
   {
@@ -861,9 +865,9 @@ inline void CXmlDocument::OutputString(ostream& stream, const string& str)
 }
 
 //----------------------------------------
-void CXmlDocument::OutputStringEnt(ostream& stream, const string& str, int flags /*= 0*/)
+void CXmlDocument::OutputStringEnt(std::ostream& stream, const std::string& str, int flags /*= 0*/)
 {
-    string buf;
+    std::string buf;
     size_t i;
     size_t last;
     size_t len;
@@ -903,9 +907,9 @@ void CXmlDocument::OutputStringEnt(ostream& stream, const string& str, int flags
 }
 
 //----------------------------------------
-inline void CXmlDocument::OutputIndentation(ostream& stream, int indent)
+inline void CXmlDocument::OutputIndentation(std::ostream& stream, int indent)
 {
-    ostringstream ostrStream;
+    std::ostringstream ostrStream;
     ostrStream << "\n"; 
     for (int i = 0; i < indent; i++)
     {
@@ -915,7 +919,7 @@ inline void CXmlDocument::OutputIndentation(ostream& stream, int indent)
 }
 
 //----------------------------------------
-void CXmlDocument::OutputNode(ostream& stream, CXmlNode *node, int indent, int indentstep)
+void CXmlDocument::OutputNode(std::ostream& stream, CXmlNode *node, int indent, int indentstep)
 {
     CXmlNode *n = NULL;
     CXmlNode *prev = NULL;
@@ -1009,14 +1013,14 @@ void CXmlDocument::OutputNode(ostream& stream, CXmlNode *node, int indent, int i
 }
 
 //----------------------------------------
-bool CXmlDocument::Save(ostream& stream, int indentstep) const
+bool CXmlDocument::Save(std::ostream& stream, int indentstep) const
 {
     if ( !IsOk() ) 
     {
       return false;
     }
 
-    string s = CTools::Format("<?xml version=\"%s\" encoding=\"%s\"?>\n",
+    std::string s = CTools::Format("<?xml version=\"%s\" encoding=\"%s\"?>\n",
                                 GetVersion().c_str(), GetFileEncoding().c_str());
     CXmlDocument::OutputString(stream, s);
 
@@ -1027,7 +1031,7 @@ bool CXmlDocument::Save(ostream& stream, int indentstep) const
 }
 
 //----------------------------------------------------
-CXmlNode* CXmlDocument::FindNodeByName(const string& name, CXmlNode* parent, bool allDepths /* = false */)
+CXmlNode* CXmlDocument::FindNodeByName(const std::string& name, CXmlNode* parent, bool allDepths /* = false */)
 {
   if (parent == NULL)
   {
@@ -1063,7 +1067,7 @@ CXmlNode* CXmlDocument::FindNodeByName(const string& name, CXmlNode* parent, boo
 }
 
 //----------------------------------------------------
-void CXmlDocument::FindAllNodesByName(const string& name, CXmlNode* parent, CObMap& mapNodes, const string& propNameKey, bool allDepths /* = false */)
+void CXmlDocument::FindAllNodesByName(const std::string& name, CXmlNode* parent, CObMap& mapNodes, const std::string& propNameKey, bool allDepths /* = false */)
 {
   if (parent == NULL)
   {
@@ -1074,7 +1078,7 @@ void CXmlDocument::FindAllNodesByName(const string& name, CXmlNode* parent, CObM
 
   
   CXmlNode* child =  parent->GetChildren();
-  string value;
+  std::string value;
 
   while (child != NULL)
   {
@@ -1087,7 +1091,7 @@ void CXmlDocument::FindAllNodesByName(const string& name, CXmlNode* parent, CObM
       }
       else
       {
-        string msg = CTools::Format("Error in CXmlDocument::FindAllNodesByName - Unable to store node because node '%s' has no '%s' attribute", 
+        std::string msg = CTools::Format("Error in CXmlDocument::FindAllNodesByName - Unable to store node because node '%s' has no '%s' attribute", 
                                      child->GetName().c_str(),
                                      propNameKey.c_str());
         throw CXMLException(msg, BRATHL_LOGIC_ERROR);
@@ -1107,7 +1111,7 @@ void CXmlDocument::FindAllNodesByName(const string& name, CXmlNode* parent, CObM
 }
 
 //----------------------------------------------------
-void CXmlDocument::FindAllNodesByName(const string& name, CXmlNode* parent, CObArray& arrayNodes, bool allDepths /* = false */)
+void CXmlDocument::FindAllNodesByName(const std::string& name, CXmlNode* parent, CObArray& arrayNodes, bool allDepths /* = false */)
 {
   if (parent == NULL)
   {
@@ -1118,7 +1122,7 @@ void CXmlDocument::FindAllNodesByName(const string& name, CXmlNode* parent, CObA
 
   
   CXmlNode* child =  parent->GetChildren();
-  string value;
+  std::string value;
 
   while (child != NULL)
   {

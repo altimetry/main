@@ -23,7 +23,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h"
+#include <string>
 
 #include "BratObject.h"
 #include "List.h"
@@ -77,7 +77,7 @@ public:
   static CCriteriaPass* GetCriteria(CBratObject* ob, bool withExcept = true);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
 
@@ -107,7 +107,7 @@ private:
   @{ */
 
 /** 
-  Pass number (as string) Criteria management class.
+  Pass number (as std::string) Criteria management class.
 
 
  \version 1.0
@@ -131,11 +131,11 @@ public:
 
 
    /**
-     * Constructor from a string that contans passes delimited by a comma)
+     * Constructor from a std::string that contans passes delimited by a comma)
      * 
      * @param passes passes to set
     */
-  CCriteriaPassString(const string& passes, const string& delimiter = CCriteriaPassString::m_delimiter); 
+  CCriteriaPassString(const std::string& passes, const std::string& delimiter = CCriteriaPassString::m_delimiter); 
   
   /**
      * Constructor from a array that contains passes
@@ -152,11 +152,11 @@ public:
 
 
   /**
-     * Sets one or more passes from a string (delimited by a comma)
+     * Sets one or more passes from a std::string (delimited by a comma)
      * 
      * @param passes passes to set
     */
-  void Set(const string& passes, const string& delimiter = CCriteriaPassString::m_delimiter);
+  void Set(const std::string& passes, const std::string& delimiter = CCriteriaPassString::m_delimiter);
   /**
      * Sets passes from a array
      * 
@@ -172,7 +172,7 @@ public:
    * @param intersect intersection passes
    * @return true, or false if there is no intersection
    */
-  bool Intersect(const string& passes, CStringArray& intersect);
+  bool Intersect(const std::string& passes, CStringArray& intersect);
   /**
    * Creates the intersection of these passes with the given onee
    * @param passes intersect with this
@@ -190,25 +190,25 @@ public:
      */
   bool IsDefaultValue();
 
-  string GetAsText(const string& delimiter = CCriteriaPassString::m_delimiter);
+  std::string GetAsText(const std::string& delimiter = CCriteriaPassString::m_delimiter);
 
   const CCriteriaPassString& operator=(CCriteriaPassString& c);
 
   static CCriteriaPassString* GetCriteria(CBratObject* ob, bool withExcept = true);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
 
   void Init();
 
-  static void ExtractPass(const string& passes, CStringArray& arrayPass, const string& delimiter = CCriteriaPassString::m_delimiter);
+  static void ExtractPass(const std::string& passes, CStringArray& arrayPass, const std::string& delimiter = CCriteriaPassString::m_delimiter);
   static void ExtractPass(const CStringArray& array, CStringArray& arrayPass);
 
 public:
    
-  static const string m_delimiter;
+  static const std::string m_delimiter;
 
 
 protected:
@@ -266,10 +266,10 @@ public:
      * @param from start pass
      * @param to end pass
     */
-  CCriteriaPassInt(const string& from, const string& to);
+  CCriteriaPassInt(const std::string& from, const std::string& to);
 
   /**
-     * Constructor from a array that contains start pass as string, end pass as string
+     * Constructor from a array that contains start pass as std::string, end pass as std::string
      * 
      * @param array start and end dates
      */
@@ -296,7 +296,7 @@ public:
      * 
      * @param to end pass
     */
-  void SetTo(const string& to);
+  void SetTo(const std::string& to);
   
    /**
      * Sets start pass
@@ -309,7 +309,7 @@ public:
      * 
      * @param to start pass
     */
-  void SetFrom(const string& from);
+  void SetFrom(const std::string& from);
 
    /**
      * Sets date period from start and end pass
@@ -324,13 +324,13 @@ public:
      * @param from start pass
      * @param to end pass
     */
-  void Set(const string& from, const string& to);
+  void Set(const std::string& from, const std::string& to);
 
-  void SetFromText(const string& values, const string& delimiter = CCriteriaPassInt::m_delimiter);
+  void SetFromText(const std::string& values, const std::string& delimiter = CCriteriaPassInt::m_delimiter);
 
 
   /**
-     * Sets a date period from a array that contains start pass as string, end pass as string
+     * Sets a date period from a array that contains start pass as std::string, end pass as std::string
      * 
      * @param array start and end dates
     */
@@ -338,28 +338,28 @@ public:
   
   /**
    * Create the intersection of this date period with the given one
-   * @param array that contains start pass as string, end pass as string
+   * @param array that contains start pass as std::string, end pass as std::string
    * @param intersect intersection period
    * @return true, or false if there is no intersection
    */
   bool Intersect(CStringArray& array, CStringArray& intersect);
   /**
    * Create the intersection of this date period with the given one
-   * @param array that contains start pass as string, end pass as string
+   * @param array that contains start pass as std::string, end pass as std::string
    * @param intersect intersection period
    * @return true, or false if there is no intersection
    */
   bool Intersect(CStringArray& array, CIntArray& intersect);
   /**
    * Create the intersection of this date period with the given one
-   * @param array that contains start pass as string, end pass as string
+   * @param array that contains start pass as std::string, end pass as std::string
    * @param intersect intersection period
    * @return true, or false if there is no intersection
    */
   bool Intersect(CIntArray& array, CStringArray& intersect);
   /**
    * Create the intersection of this date period with the given one
-   * @param array that contains start pass as string, end pass as string
+   * @param array that contains start pass as std::string, end pass as std::string
    * @param intersect intersection period
    * @return true, or false if there is no intersection
    */
@@ -369,9 +369,9 @@ public:
   bool Intersect(int32_t from, int32_t to, CIntArray& intersect);
   bool Intersect(double otherFrom, double otherTo, CIntArray& intersect);
   
-  bool Intersect(const string& from, const string& to, CIntArray& intersect);
+  bool Intersect(const std::string& from, const std::string& to, CIntArray& intersect);
 
-  bool Intersect(const string& from, const string& to, CStringArray& intersect);  /** Sets internal value to the default value (uninitialized)*/
+  bool Intersect(const std::string& from, const std::string& to, CStringArray& intersect);  /** Sets internal value to the default value (uninitialized)*/
   void SetDefaultValue();
   /**
      * Tests whether the pass have been initialized or not
@@ -380,14 +380,14 @@ public:
      */
   bool IsDefaultValue();
 
-  string GetAsText(const string& delimiter = CCriteriaPassInt::m_delimiter);
+  std::string GetAsText(const std::string& delimiter = CCriteriaPassInt::m_delimiter);
 
   const CCriteriaPassInt& operator=(CCriteriaPassInt& c);
 
   static CCriteriaPassInt* GetCriteria(CBratObject* ob, bool withExcept = true);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
 
@@ -396,7 +396,7 @@ protected:
   void Adjust();
 
 public:
-  static const string m_delimiter;    
+  static const std::string m_delimiter;    
 
 protected:
 

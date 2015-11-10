@@ -54,7 +54,7 @@ public:
   
   /** Creates new CProductNetCdf object
     \param fileName [in] : file name to be connected */
-  CProductNetCdf(const string& fileName);
+  CProductNetCdf(const std::string& fileName);
   
   /** Creates new CProductNetCdf object
     \param fileNameList [in] : list of file to be connected */
@@ -70,7 +70,7 @@ public:
 
   virtual bool HasCriteriaInfo() { return true; };
 
-  virtual void ApplyCriteria(CStringList& filteredFileList, const string& logFileName = "");
+  virtual void ApplyCriteria(CStringList& filteredFileList, const std::string& logFileName = "");
 
   virtual bool ApplyCriteriaLatLon(CCriteriaInfo* criteriaInfo);
   virtual bool ApplyCriteriaDatetime(CCriteriaInfo* criteriaInfo);
@@ -84,15 +84,15 @@ public:
 
   virtual bool IsOpened();
   virtual void CheckFileOpened();
-  virtual bool IsOpened(const string& fileName);
+  virtual bool IsOpened(const std::string& fileName);
 
   virtual void GetRecords(CStringArray& array);
 
   virtual bool Close();
 
-  virtual bool Open(const string& fileName, const string& dataSetName, CStringList& listFieldToRead);
-  virtual bool Open(const string& fileName, const string& dataSetName);
-  virtual bool Open(const string& fileName);
+  virtual bool Open(const std::string& fileName, const std::string& dataSetName, CStringList& listFieldToRead);
+  virtual bool Open(const std::string& fileName, const std::string& dataSetName);
+  virtual bool Open(const std::string& fileName);
 
   virtual void Rewind ();
   virtual bool NextRecord ();
@@ -100,15 +100,15 @@ public:
 
   void InitDataset();
 
-  //virtual void ReadBratFile(const string& fileName, const string& dataSetName, const string& field);
-  //virtual void ReadBratFile(const string& fileName, const string& dataSetName, CStringList& listField);
+  //virtual void ReadBratFile(const std::string& fileName, const std::string& dataSetName, const std::string& field);
+  //virtual void ReadBratFile(const std::string& fileName, const std::string& dataSetName, CStringList& listField);
 
   virtual void ReadBratRecord(int32_t iRecord);
 
-  virtual int32_t GetNumberOfRecords(const string& dataSetName /*NOT USED*/);
+  virtual int32_t GetNumberOfRecords(const std::string& dataSetName /*NOT USED*/);
   virtual int32_t GetNumberOfRecords();
 
-  //virtual CField* GetFieldRead(const string& fieldName);
+  //virtual CField* GetFieldRead(const std::string& fieldName);
 
   void InitLatLonFieldName();
 
@@ -124,15 +124,15 @@ public:
   void SetDimsToReadOneByOne(const CStringArray& value) { m_dimsToReadOneByOne = value; };
   void AddDimsToReadOneByOne(const CStringArray& value) { m_dimsToReadOneByOne.InsertUnique(value); };
   
-  void GetNetCdfDimensions(const vector<CExpression>& expressions, CStringArray& commonDimNames);
+  void GetNetCdfDimensions(const std::vector<CExpression>& expressions, CStringArray& commonDimNames);
   void GetNetCdfDimensions(const CExpression& expr, CStringArray& commonDimNames);
   void GetNetCdfDimensions(const CStringArray& fields, CStringArray& commonDimNames);
-  void GetNetCdfDimensions(const vector<CExpression>& expressions, CStringArray& commonDimNames, const string& recordName);
-  void GetNetCdfDimensions(const CExpression& expr, CStringArray& commonDimNames, const string& recordName);
-  void GetNetCdfDimensions(const CStringArray& fields, CStringArray& commonDimNames, const string& recordName);
+  void GetNetCdfDimensions(const std::vector<CExpression>& expressions, CStringArray& commonDimNames, const std::string& recordName);
+  void GetNetCdfDimensions(const CExpression& expr, CStringArray& commonDimNames, const std::string& recordName);
+  void GetNetCdfDimensions(const CStringArray& fields, CStringArray& commonDimNames, const std::string& recordName);
 
-  void GetNetCdfDimensionsWithoutAlgo(const vector<CExpression>& expressions, CStringArray& commonDimNames, const string& recordName);
-  void GetNetCdfDimensionsWithoutAlgo(const CExpression& expr, CStringArray& commonDimNames, const string& recordName);
+  void GetNetCdfDimensionsWithoutAlgo(const std::vector<CExpression>& expressions, CStringArray& commonDimNames, const std::string& recordName);
+  void GetNetCdfDimensionsWithoutAlgo(const CExpression& expr, CStringArray& commonDimNames, const std::string& recordName);
 
   virtual void SetForceReadDataOneByOne(bool value) { m_forceReadDataOneByOne = value; };
   virtual bool GetForceReadDataOneByOne() { return m_forceReadDataOneByOne; };
@@ -152,7 +152,7 @@ public:
   void SetApplyNetcdfProductInitialisation(bool value) {m_applyNetcdfProductInitialisation = value;};
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
   static bool IsProductNetCdf(CBratObject* ob);
   
@@ -186,23 +186,23 @@ protected:
   void DeleteExternalFile();
   void DeleteFieldsToReadMap();
 
-  virtual void InitInternalFieldName(const string& dataSetName, CStringList& listField, bool convertDate = false);
+  virtual void InitInternalFieldName(const std::string& dataSetName, CStringList& listField, bool convertDate = false);
   virtual void InitInternalFieldName(CStringList& listField, bool convertDate = false);
 
   virtual bool Open();
 
-  virtual string MakeInternalFieldName(const string& dataSetName, const string& field);
-  virtual string MakeInternalFieldName(const string& field);
+  virtual std::string MakeInternalFieldName(const std::string& dataSetName, const std::string& field);
+  virtual std::string MakeInternalFieldName(const std::string& field);
 
   virtual void LoadFieldsInfo();
-  //virtual CFieldNetCdf* CreateField(const string& fieldName);
+  //virtual CFieldNetCdf* CreateField(const std::string& fieldName);
   virtual void CreateFieldSets();
 
-  virtual void ReadBratFieldRecord(const string& key);
+  virtual void ReadBratFieldRecord(const std::string& key);
   virtual void ReadBratFieldRecord(CField::CListField::iterator it);
   
   virtual CFieldNetCdf* Read(CFieldInfo& fieldInfo, double& value, bool wantMin = true);
-  virtual void Read(CFieldInfo& fieldInfo, string& value);
+  virtual void Read(CFieldInfo& fieldInfo, std::string& value);
   virtual void Read(CFieldNetCdf* field, double& value);
   virtual void Read(CFieldNetCdf* field, CDoubleArray& vect);
   virtual void Read(CFieldNetCdf* field, CExpressionValue& value);
@@ -214,7 +214,7 @@ protected:
 
 
 public:
-  static const string m_virtualRecordName;
+  static const std::string m_virtualRecordName;
 
 
 protected:
@@ -236,19 +236,19 @@ protected:
 
   /*
   static const int32_t m_TIME_NAMES_SIZE;
-  static const string m_TIME_NAMES[];
+  static const std::string m_TIME_NAMES[];
 
   static const int32_t m_LAT_NAMES_SIZE;
-  static const string m_LAT_NAMES[];
+  static const std::string m_LAT_NAMES[];
 
   static const int32_t m_LON_NAMES_SIZE;
-  static const string m_LON_NAMES[];
+  static const std::string m_LON_NAMES[];
 
   static const int32_t m_CYCLE_NAMES_SIZE;
-  static const string m_CYCLE_NAMES[];
+  static const std::string m_CYCLE_NAMES[];
 
   static const int32_t m_PASS_NAMES_SIZE;
-  static const string m_PASS_NAMES[];
+  static const std::string m_PASS_NAMES[];
 */
 
 

@@ -156,7 +156,7 @@ CAliasInfoDlg::CAliasInfoDlg( wxWindow *parent, wxWindowID id, const wxString &t
 
   for (uint32_t i = 0 ; i < aliasesArray.size() ; i++)
   {
-    string name = aliasesArray.at(i);
+    std::string name = aliasesArray.at(i);
     
     if (rowLabelSize < static_cast<int32_t>(name.size()))
     {
@@ -182,7 +182,7 @@ CAliasInfoDlg::CAliasInfoDlg( wxWindow *parent, wxWindowID id, const wxString &t
 
     if (hasOpFieldSelected)
     {
-      // Warning set col value to empty string ("") as value 'false'. Don't use "0".
+      // Warning set col value to empty std::string ("") as value 'false'. Don't use "0".
       // Because of in wxGridCellBoolEditor dafault are : "" as false and "1" as true
       // Using others values raises an assertion.
       GetAliasinfoGrid()->SetCellValue(i, CAliasInfoDlg::USE_COL, "");
@@ -277,7 +277,7 @@ CExpressionInfoDlg::CExpressionInfoDlg( wxWindow *parent, wxWindowID id, const w
 
   for (uint32_t i = 0 ; i < fieldNames->size() ; i++)
   {
-    string fieldName = fieldNames->at(i);
+    std::string fieldName = fieldNames->at(i);
     
     if (rowLabelSize < static_cast<int32_t>(fieldName.size()))
     {
@@ -1807,7 +1807,7 @@ void COperationPanel::OnShowExprInfo( wxCommandEvent &event )
   }
 
   const CStringMap* fieldAliases = m_product->GetAliasesAsString();
-  string errorString;
+  std::string errorString;
 
   wxString exprValue = CTools::ExpandVariables((const char *)GetOptextform()->GetValue().c_str(), &m_mapFormulaString, fieldAliases, true, '%', NULL, false, &errorString).c_str();
   
@@ -2647,7 +2647,7 @@ void COperationPanel::DeleteOperation()
 
   if (bOk == false)
   {
-    string str = displayNames.ToString("\n", false);
+    std::string str = displayNames.ToString("\n", false);
     wxMessageBox(wxString::Format("Unable to delete operation '%s'.\nIt is used by the views below:\n%s\n",
                                   m_operation->GetName().c_str(),
                                   str.c_str()),
@@ -2783,7 +2783,7 @@ void COperationPanel::OnDatasetFilesChanged(CDatasetFilesChangeEvent& event)
     errorMsg = e.what();
     bOk = false;
   }
-  catch (exception &e)
+  catch (std::exception &e)
   {
     errorMsg = e.what();
     bOk = false;

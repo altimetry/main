@@ -23,7 +23,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h"
+#include <string>
 
 #include "Tools.h" 
 #include "BratAlgorithmBase.h" 
@@ -54,7 +54,7 @@ public:
   CBratAlgoFilter& operator=(const CBratAlgoFilter &copy);
 
   /** Dump function */
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
  
 protected:
 

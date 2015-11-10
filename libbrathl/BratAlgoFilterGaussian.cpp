@@ -347,7 +347,7 @@ void CBratAlgoFilterGaussian::PrepareDataWindow(ComputeMode mode, const CDoubleA
   
   CTrace::Tracer(3, "===> WINDOW IS :");
 
-  string str;
+  std::string str;
   for (uint32_t i = 0 ; i < m_dataWindowLength ; i++)
   {
     double value = m_rawDataWindow[i];
@@ -466,7 +466,7 @@ void CBratAlgoFilterGaussian::ComputeInitialWeights()
 
 #if _DEBUG_BRAT_ALGO    
 
-  string str;
+  std::string str;
   str.append("initial weights are : ");
 
   for (uint32_t i  = 0; i < windowSize; i++)
@@ -519,7 +519,7 @@ void CBratAlgoFilterGaussian::ComputeInitialWeights()
 //    }
 //  }
 //
-//  //string str;
+//  //std::string str;
 //  //if (mode == ModeHorizontal)
 //  //{
 //  //  str.append("Mode Horizontal: ");
@@ -563,7 +563,7 @@ double CBratAlgoFilterGaussian::ApplyFilter(ComputeMode mode, uint32_t from)
   }
 
 #if _DEBUG_BRAT_ALGO    
-  string str;
+  std::string str;
   if (mode == ModeHorizontal)
   {
     str.append("Mode Horizontal: ");
@@ -803,7 +803,7 @@ void CBratAlgoFilterGaussian::PrepareDataReading2DY()
 
     if (indexX == 1)
     {
-      string msg = "qsdsqd";
+      std::string msg = "qsdsqd";
     }
 
     uint32_t dimX = fieldCaller->GetDimAt(0);
@@ -913,23 +913,23 @@ void CBratAlgoFilterGaussian::PrepareDataReading2DY()
 
 
 //----------------------------------------
-void CBratAlgoFilterGaussian::Dump(ostream& fOut /*= cerr*/)
+void CBratAlgoFilterGaussian::Dump(std::ostream& fOut /*= std::cerr*/)
 {
    if (CTrace::IsTrace() == false)
    { 
       return;
    }
 
-  fOut << "==> Dump a CBratAlgoFilterGaussian Object at "<< this << endl;
+  fOut << "==> Dump a CBratAlgoFilterGaussian Object at "<< this << std::endl;
   CBratAlgoFilterKernel::Dump(fOut);
 
-  fOut << "m_gaussian: " << m_gaussian << endl;
-  fOut << "m_initialWeights: " << endl;
+  fOut << "m_gaussian: " << m_gaussian << std::endl;
+  fOut << "m_initialWeights: " << std::endl;
   m_initialWeights.Dump();
-  //fOut << "m_weights: " << endl;
+  //fOut << "m_weights: " << std::endl;
   //m_weights.Dump();
 
-  fOut << "==> END Dump a CBratAlgoFilterGaussian Object at "<< this << endl;
+  fOut << "==> END Dump a CBratAlgoFilterGaussian Object at "<< this << std::endl;
 
 }
 

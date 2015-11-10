@@ -30,6 +30,10 @@
 
 //#include "vtkGlyphSource2D.h"
 
+#if defined ChooseColor
+#undef ChooseColor
+#endif
+
 #include "brathl.h"
 
 #include "List.h"
@@ -38,9 +42,9 @@
 #include "FileParams.h" 
 using namespace brathl;
 
-#include "VtkColor.h"
-
 #include "wx/arrstr.h"
+#include "wx/colourdata.h"
+#include "PlotData/vtkBratColor.h"
 
 /*
 enum PointGlyph{
@@ -112,18 +116,18 @@ public:
   static CMapPointGlyph& GetInstance();
 
   bool ValidName(const char* name);
-  bool ValidName(const string& name);
+  bool ValidName(const std::string& name);
   bool ValidName(const wxString& name);
 
   wxString GlyphToName(PointGlyph id);
   wxString GlyphToKey(PointGlyph id);
 
 
-  PointGlyph NameToGlyph(const string& name);
+  PointGlyph NameToGlyph(const std::string& name);
   PointGlyph NameToGlyph(const wxString& name);
-  PointGlyph KeyToGlyph(const string& name);
+  PointGlyph KeyToGlyph(const std::string& name);
   PointGlyph KeyToGlyph(const wxString& name);
-  wxString KeyToName(const string& name);
+  wxString KeyToName(const std::string& name);
   wxString KeyToName(const wxString& name);
 
 
@@ -134,7 +138,7 @@ public:
 
   PointGlyph GetPointGlyph(CFileParams& params,
 		                   int32_t index = 0,
-		                   const string& keyword = "DISPLAY_POINTGLYPH",
+		                   const std::string& keyword = "DISPLAY_POINTGLYPH",
 		                   PointGlyph defaultValue = displayCIRCLE_GLYPH);
 
 
@@ -181,17 +185,17 @@ public:
   static CMapStipplePattern& GetInstance();
 
   bool ValidName(const char* name);
-  bool ValidName(const string& name);
+  bool ValidName(const std::string& name);
   bool ValidName(const wxString& name);
 
   wxString StippleToName(StipplePattern id);
   wxString StippleToKey(StipplePattern id);
 
-  StipplePattern NameToStipple(const string& name);
+  StipplePattern NameToStipple(const std::string& name);
   StipplePattern NameToStipple(const wxString& name);
-  StipplePattern KeyToStipple(const string& name);
+  StipplePattern KeyToStipple(const std::string& name);
   StipplePattern KeyToStipple(const wxString& name);
-  wxString KeyToName(const string& name);
+  wxString KeyToName(const std::string& name);
   wxString KeyToName(const wxString& name);
 
 
@@ -202,7 +206,7 @@ public:
 
   StipplePattern GetStipplePattern(CFileParams& params,
 		                   int32_t index = 0,
-		                   const string& keyword = "DISPLAY_STIPPLEPATTERN",
+		                   const std::string& keyword = "DISPLAY_STIPPLEPATTERN",
 		                   StipplePattern defaultValue = displayFULL);
 
 
@@ -231,18 +235,18 @@ public:
   static CMapColor& GetInstance();
 
   bool ValidName(const char* name);
-  bool ValidName(const string& name);
+  bool ValidName(const std::string& name);
   bool ValidName(const wxString& name);
 
   wxString ColorToName(const wxColour& id);
   wxString ColorToName(const CVtkColor& id);
 
   CVtkColor NameToVtkColor(const char* name);
-  CVtkColor NameToVtkColor(const string& name);
+  CVtkColor NameToVtkColor(const std::string& name);
   CVtkColor NameToVtkColor(const wxString& name);
 
   wxColour NameToColour(const char* name);
-  wxColour NameToColour(const string& name);
+  wxColour NameToColour(const std::string& name);
   wxColour NameToColour(const wxString& name);
 
   wxColourData ChooseColor(const CVtkColor& color, wxWindow* parent = NULL);

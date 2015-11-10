@@ -186,7 +186,7 @@ void CLabeledTextCtrl::GetValue(int32_t& value, int32_t defValue, int32_t min, i
   // don't use this (it doesn't work)
   //value = strtol(m_text->GetValue().c_str(), &stopString, 10);
   // but this works
-  string str = (const char *)(m_text->GetValue());
+  std::string str = (const char *)(m_text->GetValue());
   if (str.empty())
   {
     value = defValue;
@@ -244,7 +244,7 @@ void CLabeledTextCtrl::GetValue(uint32_t& value, uint32_t defValue, uint32_t min
   // don't use this (it doesn't work)
   //value = strtoul(m_text->GetValue().c_str(), &stopString, 10);
   // but this works
-  string str = (const char *)(m_text->GetValue());
+  std::string str = (const char *)(m_text->GetValue());
   if (str.empty())
   {
     value = defValue;
@@ -356,7 +356,7 @@ void CLabeledTextCtrl::GetValue(double& value, double defValue, double min, doub
 //----------------------------------------
 void CLabeledTextCtrl::GetValue(bool& value, bool defValue)
 {
-  string What	= CTools::StringToUpper((const char *)(m_text->GetValue()));
+  std::string What	= CTools::StringToUpper((const char *)(m_text->GetValue()));
   if ((What == "YES")	||
       (What == "Y")	||
       (What == "TRUE")	||
@@ -493,7 +493,7 @@ void CLabeledTextCtrl::GetValueAsDate(double& seconds, double defValue, double m
   seconds = dateTmp.Value();
 }
 //----------------------------------------
-void CLabeledTextCtrl::GetValue(string& value, const string& defValue)
+void CLabeledTextCtrl::GetValue(std::string& value, const std::string& defValue)
 {
   value	= GetStringValue(defValue.c_str()).c_str();
 }
@@ -529,7 +529,7 @@ void CLabeledTextCtrl::SetValue(const char* value)
 }
 
 //----------------------------------------
-void CLabeledTextCtrl::SetValue(const string& value, const string& defValue)
+void CLabeledTextCtrl::SetValue(const std::string& value, const std::string& defValue)
 {
   wxString wxValue = value.c_str();
   wxString wxDefValue = defValue.c_str();

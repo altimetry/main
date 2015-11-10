@@ -42,26 +42,26 @@ using namespace brathl;
 
 #include "Function.h"
 
-const string LOGICAL_AND = "&&";
-const string LOGICAL_AND_DESC = "The logical AND operator (&&) returns the boolean value true if both operands are true and returns false otherwise."
+const std::string LOGICAL_AND = "&&";
+const std::string LOGICAL_AND_DESC = "The logical AND operator (&&) returns the boolean value true if both operands are true and returns false otherwise."
                                   "\nLogical AND has left-to-right associativity.";
-const string LOGICAL_OR = "||";
-const string LOGICAL_OR_DESC = "The logical OR operator (||) returns the boolean value true if either or both operands is true and returns false otherwise."
+const std::string LOGICAL_OR = "||";
+const std::string LOGICAL_OR_DESC = "The logical OR operator (||) returns the boolean value true if either or both operands is true and returns false otherwise."
                                 "\nLogical OR has left-to-right associativity";
-const string LOGICAL_NOT = "!";
-const string LOGICAL_NOT_DESC = "The logical negation operator (!) reverses the meaning of its operand"
+const std::string LOGICAL_NOT = "!";
+const std::string LOGICAL_NOT_DESC = "The logical negation operator (!) reverses the meaning of its operand"
                                   "\nThe result is true if the converted operand is false; the result is false if the converted operand is true.";
 
-const string RELATIONAL_EQUAL = "==";
-const string RELATIONAL_EQUAL_DESC = "The equal-to operator (==) returns true (1) if both operands have the same value; otherwise, it returns false (0)."
+const std::string RELATIONAL_EQUAL = "==";
+const std::string RELATIONAL_EQUAL_DESC = "The equal-to operator (==) returns true (1) if both operands have the same value; otherwise, it returns false (0)."
                                        "\nThe not-equal-to operator (!=) returns true if the operands do not have the same value; otherwise, it returns false";
-const string RELATIONAL_NOTEQUAL = "!=";
+const std::string RELATIONAL_NOTEQUAL = "!=";
 
-const string RELATIONAL_LESS = "<";
-const string RELATIONAL_LESS_THAN = "<=";
-const string RELATIONAL_GREATER = ">";
-const string RELATIONAL_GREATER_THAN = ">=";
-const string RELATIONAL_LESS_GREATER_DESC = "The binary relational operators determine the following relationships:\n"
+const std::string RELATIONAL_LESS = "<";
+const std::string RELATIONAL_LESS_THAN = "<=";
+const std::string RELATIONAL_GREATER = ">";
+const std::string RELATIONAL_GREATER_THAN = ">=";
+const std::string RELATIONAL_LESS_GREATER_DESC = "The binary relational operators determine the following relationships:\n"
                                               "Less than (<)\n"
                                               "Greater than (>)\n"
                                               "Less than or equal to (<=)\n"
@@ -69,8 +69,8 @@ const string RELATIONAL_LESS_GREATER_DESC = "The binary relational operators det
                                               "The relational operators have left-to-right associativity. Both operands of relational operators must be of arithmetic.\n"
                                               "They yield values of type bool. The value returned is false (0) if the relationship in the expression is false; otherwise, the value returned is true (1).";
 
-const string IIF_TEST = "iif";
-const string IIF_TEST_DESC = "Inline if\n"
+const std::string IIF_TEST = "iif";
+const std::string IIF_TEST_DESC = "Inline if\n"
 		"If the first parameter is true (not 0 and not default value),\n"
 		"the second parameter is returned, otherwise it is the third one.\n"
 		"Logically equivalent to:\n"
@@ -80,8 +80,8 @@ const string IIF_TEST_DESC = "Inline if\n"
 		"    return param3\n"
 		"  end if\n";
 
-const string IIF3_TEST = "iif3";
-const string IIF3_TEST_DESC = "Inline if with default value case\n"
+const std::string IIF3_TEST = "iif3";
+const std::string IIF3_TEST_DESC = "Inline if with default value case\n"
 		"If the first parameter is true (not 0 and not default value),\n"
 		"the second parameter is returned. If is is 0, the third one is\n"
 		"returned, otherwise (it is a default value) the fourth one is\n"
@@ -98,8 +98,8 @@ const string IIF3_TEST_DESC = "Inline if with default value case\n"
 		"  end if\n";
 
 
-const string BITWISE_AND = "&";
-const string BITWISE_AND_DESC = "Then the & operator looks at the binary representation\n"
+const std::string BITWISE_AND = "&";
+const std::string BITWISE_AND_DESC = "Then the & operator looks at the binary representation\n"
                 "of the values of two expressions and does a bitwise AND operation on them.\n"
                 "If at least one of the expression is default value or do not fall\n"
                 "in integer range, a default value is returned.\n"
@@ -113,8 +113,8 @@ const string BITWISE_AND_DESC = "Then the & operator looks at the binary represe
                 "Any time both of the expressions have a 1 in a digit,\n"
                 "the result has a 1 in that digit. Otherwise, the result has a 0 in that digit.";
 
-const string BITWISE_OR = "|";
-const string BITWISE_OR_DESC = "Then the | operator looks at the binary representation\n"
+const std::string BITWISE_OR = "|";
+const std::string BITWISE_OR_DESC = "Then the | operator looks at the binary representation\n"
                 "of the values of two expressions and does a bitwise OR operation on them.\n"
                 "If at least one of the expression is default value or do not fall\n"
                 "in integer range, a default value is returned.\n"
@@ -128,8 +128,8 @@ const string BITWISE_OR_DESC = "Then the | operator looks at the binary represen
                 "Any time either of the expressions have a 1 in a digit,\n"
                 "the result has a 1 in that digit. Otherwise, the result has a 0 in that digit.";
 
-const string BITWISE_NOT = "~";
-const string BITWISE_NOT_DESC = "Then the ~ operator looks at the binary representation\n"
+const std::string BITWISE_NOT = "~";
+const std::string BITWISE_NOT_DESC = "Then the ~ operator looks at the binary representation\n"
                 "of the values of an expression and does a bitwise negation operation on it.\n"
                 "If the expression is default value or do not fall\n"
                 "in integer range, a default value is returned.\n"
@@ -160,7 +160,7 @@ CFunction::CFunction(const wxString& name, const wxString& description, int32_t 
 }
 
 //----------------------------------------
-CFunction::CFunction(const string& name, const string& description, int32_t category, int32_t nbParams)
+CFunction::CFunction(const std::string& name, const std::string& description, int32_t category, int32_t nbParams)
 {
   m_name = name.c_str();
   m_description = description.c_str();
@@ -257,7 +257,7 @@ wxString CFunction::GetSyntax()
 }
 
 //----------------------------------------
-void CFunction::Dump(ostream& fOut /* = cerr */)
+void CFunction::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -265,18 +265,18 @@ void CFunction::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CFunction Object at "<< this << endl;
+  fOut << "==> Dump a CFunction Object at "<< this << std::endl;
   fOut << "m_name " << m_name;
   fOut << "m_description " << m_description;
   fOut << "m_nbParams " << m_nbParams;
-  fOut << "==> END Dump a CFunction Object at "<< this << endl;
+  fOut << "==> END Dump a CFunction Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
 //----------------------------------------
-void CFunction::DumpFmt(ostream& fOut /* = cerr */)
+void CFunction::DumpFmt(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -288,7 +288,7 @@ void CFunction::DumpFmt(ostream& fOut /* = cerr */)
   fOut << m_description.c_str() << "\t\t";
   fOut << GetSyntax().c_str() << "\t\t";
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -456,7 +456,7 @@ void CMapFunction::SaveFunctionDescrTemplate(wxFileConfig* config, bool flush)
 {
   if (config == NULL)
   {
-    string filePathName = CTools::GetDataDir();
+    std::string filePathName = CTools::GetDataDir();
     filePathName.append(PATH_SEPARATOR);
     filePathName.append(CMapFunction::m_configFilename.c_str());
     config = new wxFileConfig(wxEmptyString, wxEmptyString, filePathName.c_str(), wxEmptyString, wxCONFIG_USE_LOCAL_FILE);
@@ -503,7 +503,7 @@ void CMapFunction::GetCategory(wxChoice& choice)
   }
 }
 //----------------------------------------
-bool CMapFunction::ValidName(const string& name)
+bool CMapFunction::ValidName(const std::string& name)
 {
   return ValidName(name.c_str());
 }
@@ -593,7 +593,7 @@ void CMapFunction::NamesToListBox(wxListBox& listBox, int32_t category /*= -1*/)
 
 
 //----------------------------------------
-void CMapFunction::Dump(ostream& fOut /* = cerr */)
+void CMapFunction::Dump(std::ostream& fOut /* = std::cerr */)
 {
 
    if (CTrace::IsTrace() == false)
@@ -601,24 +601,24 @@ void CMapFunction::Dump(ostream& fOut /* = cerr */)
       return;
    }
 
-   fOut << "==> Dump a CMapFunction Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CMapFunction Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
    CMapFunction::iterator it;
 
    for (it = this->begin() ; it != this->end() ; it++)
    {
       CBratObject *ob = it->second;
-      fOut << "CMapFunction Key is = " << (*it).first << endl;
-      fOut << "CMapFunction Value is = " << endl;
+      fOut << "CMapFunction Key is = " << (*it).first << std::endl;
+      fOut << "CMapFunction Value is = " << std::endl;
       ob->Dump(fOut);
    }
 
-   fOut << "==> END Dump a CMapFunction Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CMapFunction Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
 }
 
 //----------------------------------------
-void CMapFunction::DumpFmt(ostream& fOut /* = cerr */)
+void CMapFunction::DumpFmt(std::ostream& fOut /* = std::cerr */)
 {
 
    if (CTrace::IsTrace() == false)
@@ -629,11 +629,11 @@ void CMapFunction::DumpFmt(ostream& fOut /* = cerr */)
   fOut << "Name" << "\t\t";
   fOut << "Description" << "\t\t";
   fOut << "Syntax" << "\t\t";
-  fOut << endl;
+  fOut << std::endl;
   fOut << "=====" << "\t\t";
   fOut << "============" << "\t\t";
   fOut << "======" << "\t\t";
-  fOut << endl;
+  fOut << std::endl;
 
    CMapFunction::iterator it;
 

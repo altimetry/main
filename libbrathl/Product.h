@@ -25,7 +25,7 @@
 
 #include "coda.h" 
 
-#include "Stl.h"
+#include <string>
 
 #include "List.h"
 #include "BratObject.h"
@@ -77,7 +77,7 @@ public:
 
   /** Creates new CProductList object
     \param fileName [in] : file name to be connected */
-  CProductList(const string& fileName);
+  CProductList(const std::string& fileName);
   
   /** Creates new CProduct object
     \param fileNameList [in] : list of file to be connected */
@@ -91,7 +91,7 @@ public:
     \param p [in] : productList object to be connected */
   void Set(const CProductList& lst);
 
-  const string GetMessage() {return m_message;};
+  const std::string GetMessage() {return m_message;};
 
   /// Destructor
   virtual ~CProductList();
@@ -114,12 +114,12 @@ public:
   bool IsNetCdfCFProduct() {return (m_productClass.compare(NETCDF_CF_PRODUCT_CLASS) == 0); };
   bool IsNetCdfOrNetCdfCFProduct() {return (IsNetCdfCFProduct() || IsNetCdfProduct()); };
 
-  bool IsSameProduct(const string& productClass, const string& productType);
+  bool IsSameProduct(const std::string& productClass, const std::string& productType);
 
   const CProductList& operator= (const CProductList& lst);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 
 protected:
@@ -128,11 +128,11 @@ protected:
 
 public:
 
-  string m_productClass;		
-  string m_productType;
+  std::string m_productClass;		
+  std::string m_productType;
   coda_format m_productFormat;  
   
-  string m_message;
+  std::string m_message;
 
   
 
@@ -172,7 +172,7 @@ public:
   
   /** Creates new CProduct object
     \param fileName [in] : file name to be connected */
-  CProduct(const string& fileName);
+  CProduct(const std::string& fileName);
   
   /** Creates new CProduct object
     \param fileNameList [in] : list of file to be connected */
@@ -187,14 +187,14 @@ public:
   virtual bool GetLatLonMinMax(double& latMin, double& lonMin, double& latMax, double& lonMax);
   virtual bool GetLatLonMinMax(CLatLonRect& latlonRectMinMax);
 
-  virtual bool GetValueMinMax(CExpression& expr, const string& recordName, 
+  virtual bool GetValueMinMax(CExpression& expr, const std::string& recordName, 
                               double& valueMin, double& valueMax, const CUnit& unit);
 
   void AddCriteria(bool force = false);
   void AddCriteria(CCriteria* criteria, bool erase = true);
   void AddCriteria(CProduct* product);
 
-  virtual void ApplyCriteria(CStringList& filteredFileList, const string& logFileName = "");
+  virtual void ApplyCriteria(CStringList& filteredFileList, const std::string& logFileName = "");
 
   virtual bool ApplyCriteriaLatLon(CCriteriaInfo* criteriaInfo);
   virtual bool ApplyCriteriaDatetime(CCriteriaInfo* criteriaInfo);
@@ -207,7 +207,7 @@ public:
 
   void RemoveCriteria();
 
-  void AddFile(const string& fileName, bool bEnd = true, bool checkFiles = true);
+  void AddFile(const std::string& fileName, bool bEnd = true, bool checkFiles = true);
   void AddFile(const CStringList& fileNameList, bool bEnd = true, bool checkFiles = true);
   
   bool CheckFiles();
@@ -218,40 +218,40 @@ public:
   int32_t GetPerformBoundaryChecks() {return m_performBoundaryChecks;};
   
 
-  string GetProductClass() {return m_fileList.m_productClass;};
-  string GetProductType() {return m_fileList.m_productType;};
+  std::string GetProductClass() {return m_fileList.m_productClass;};
+  std::string GetProductType() {return m_fileList.m_productType;};
 
   bool IsNetCdfProduct() {return (m_fileList.m_productClass.compare(NETCDF_PRODUCT_CLASS) == 0); };
   bool IsNetCdfCFProduct() {return (m_fileList.m_productClass.compare(NETCDF_CF_PRODUCT_CLASS) == 0); };
   bool IsNetCdfOrNetCdfCFProduct() {return (IsNetCdfCFProduct() || IsNetCdfProduct()); };
 
-  string GetProductClassType();
+  std::string GetProductClassType();
 
   virtual void GetRecords(CStringArray& array);
 
   virtual bool IsOpened();
   virtual void CheckFileOpened();
-  virtual bool IsOpened(const string& fileName);
+  virtual bool IsOpened(const std::string& fileName);
   
   void SetListFieldToRead(CStringList& listFieldToRead,  bool convertDate = false);
 
-  virtual bool Open(const string& fileName, const string& dataSetName, CStringList& listFieldToRead, bool convertDate = false);
-  virtual bool Open(const string& fileName, const string& dataSetName);
-  virtual bool Open(const string& fileName);
+  virtual bool Open(const std::string& fileName, const std::string& dataSetName, CStringList& listFieldToRead, bool convertDate = false);
+  virtual bool Open(const std::string& fileName, const std::string& dataSetName);
+  virtual bool Open(const std::string& fileName);
 
   virtual void Rewind ();
 
   virtual bool Close();
 
-  //virtual void ReadBratFile(const string& fileName, const string& dataSetName, const string& field);
-  //virtual void ReadBratFile(const string& fileName, const string& dataSetName, CStringList& listField);
+  //virtual void ReadBratFile(const std::string& fileName, const std::string& dataSetName, const std::string& field);
+  //virtual void ReadBratFile(const std::string& fileName, const std::string& dataSetName, CStringList& listField);
   
-  virtual void ReadBratRecord(const string& dataSetName, const string& field, int32_t iRecord);
-  virtual void ReadBratRecord(const string& dataSetName, CStringList& listField, int32_t iRecord);
+  virtual void ReadBratRecord(const std::string& dataSetName, const std::string& field, int32_t iRecord);
+  virtual void ReadBratRecord(const std::string& dataSetName, CStringList& listField, int32_t iRecord);
   virtual void ReadBratRecord(int32_t iRecord);
 
   virtual int32_t GetNumberOfRecords();
-  virtual int32_t GetNumberOfRecords(const string& dataSetName);
+  virtual int32_t GetNumberOfRecords(const std::string& dataSetName);
   virtual void GetNumberOfRecords(const CStringList& datasetNames, CIntMap& datasetRecordsNumber);
 
   virtual void GetMinMaxNumberOfRecords(int32_t& min, int32_t& max, 
@@ -259,11 +259,11 @@ public:
   
   virtual void ExtractDatasetNamesFromFields(const CStringList& listFields, CStringList& datasetNames);
 
-  string DatasetRecordsNumberToString(const CIntMap& datasetRecordsNumber);
+  std::string DatasetRecordsNumberToString(const CIntMap& datasetRecordsNumber);
 
   bool HasEqualsNumberOfRecord(const CIntMap& datasetRecordsNumber);
 
-  //virtual CField* GetFieldRead(const string& fieldName);
+  //virtual CField* GetFieldRead(const std::string& fieldName);
 
   //virtual double GetDeltaTHighResolution() {return m_deltaTHighResolution;};
   //virtual void SetDeltaTHighResolution(double value) {m_deltaTHighResolution = value;};
@@ -271,7 +271,7 @@ public:
   /** Determines if a field object is a 'high resolution' array data
       see classes derived from CProduct.
   */
-  virtual bool IsHighResolutionField(CField* field) {return false;};
+  virtual bool IsHighResolutionField(CField *) { return false; }
   virtual void SetHighResolution(CField* field);
 
 
@@ -294,12 +294,12 @@ public:
   static CProduct* Construct(CStringArray& fileNameArray);
   static CProduct* Construct(CStringList& fileNameList);
   static CProduct* Construct(CProductList& fileNameList);
-  static CProduct* Construct(const string& fileName);
+  static CProduct* Construct(const std::string& fileName);
 
   bool IsNetCdf();
 
-  const string& GetDescription() {return m_description;};
-  void SetDescription(const string& value) {m_description = value;};
+  const std::string& GetDescription() {return m_description;};
+  void SetDescription(const std::string& value) {m_description = value;};
 
   static void CodaInit();
   static void CodaRelease();
@@ -308,8 +308,8 @@ public:
 
   virtual CProduct* Clone();
 
-  void DumpDictionary(ostream& fOut = cout);
-  void DumpDictionary(const string& outputFileName);
+  void DumpDictionary(std::ostream& fOut = std::cout);
+  void DumpDictionary(const std::string& outputFileName);
 
   virtual bool HasCriteriaInfo() { return (m_criteriaInfoMap.size() > 0); };
 
@@ -351,23 +351,23 @@ public:
 
 
   CProductList& GetProductList() { return m_fileList; };
-  void SetProductList(const string& fileName, bool checkFiles = true);
+  void SetProductList(const std::string& fileName, bool checkFiles = true);
   void SetProductList(const CStringList& fileList, bool checkFiles = true);
 
   bool IsSameProduct(const CProductList fileList);
-  bool IsSameProduct(const string& productClass, const string& productType);
+  bool IsSameProduct(const std::string& productClass, const std::string& productType);
 
-  virtual string GetLongitudeFieldName() { return m_longitudeFieldName; };
-  virtual string GetLatitudeFieldName() { return m_latitudeFieldName; };
+  virtual std::string GetLongitudeFieldName() { return m_longitudeFieldName; };
+  virtual std::string GetLatitudeFieldName() { return m_latitudeFieldName; };
   
-  virtual bool IsLongitudeFieldName(const string& name) { return (m_longitudeFieldName.compare(name) == 0); };
-  virtual bool IsLatitudeFieldName(const string& name) { return (m_latitudeFieldName.compare(name) == 0); };
+  virtual bool IsLongitudeFieldName(const std::string& name) { return (m_longitudeFieldName.compare(name) == 0); };
+  virtual bool IsLatitudeFieldName(const std::string& name) { return (m_latitudeFieldName.compare(name) == 0); };
 
-  virtual string GetLabel() { return m_label; };
-  virtual void SetLabel(const string& value) { m_label = value; };
+  virtual std::string GetLabel() { return m_label; };
+  virtual void SetLabel(const std::string& value) { m_label = value; };
 
-  string GetDataSetNameToRead() { return m_dataSetNameToRead; };
-  void SetDataSetNameToRead(const string& value) { m_dataSetNameToRead = value; };
+  std::string GetDataSetNameToRead() { return m_dataSetNameToRead; };
+  void SetDataSetNameToRead(const std::string& value) { m_dataSetNameToRead = value; };
 
   virtual void InitCriteriaInfo();
   virtual void LoadAliases();
@@ -375,64 +375,64 @@ public:
   
   static void GroupAliases(const CProduct* product, const CStringMap* formulaAliases, CStringMap& allAliases);
 
-  static bool CheckAliases(const string& fileName, CStringArray& errors);
+  static bool CheckAliases(const std::string& fileName, CStringArray& errors);
   bool CheckAliases(CStringArray& errors);
 
   const CProductAliases* GetAliases() {return m_productAliases;};
   const CStringMap* GetAliasesAsString() const {return &m_mapStringAliases;};
   static const CStringMap* GetAliasesAsString(const CProduct* product);
 
-  const CProductAlias* GetAlias(const string& key);
+  const CProductAlias* GetAlias(const std::string& key);
   void GetAliasKeys(CStringArray& keys);
-  string GetAliasExpandedValue(const string& key);
+  std::string GetAliasExpandedValue(const std::string& key);
 
   int32_t GetIndexProcessedFile() { return m_indexProcessedFile; };
 
-  bool CheckFieldNames(const CExpression& expr, const string& dataSetName, CStringArray& fieldNamesNotFound);
+  bool CheckFieldNames(const CExpression& expr, const std::string& dataSetName, CStringArray& fieldNamesNotFound);
   bool CheckFieldNames(const CExpression& expr, CStringArray& fieldNamesNotFound);
-  bool CheckFieldNames(const CStringArray* fieldNames, const string& dataSetName, CStringArray& fieldNamesNotFound);
+  bool CheckFieldNames(const CStringArray* fieldNames, const std::string& dataSetName, CStringArray& fieldNamesNotFound);
   //bool CheckFieldNames(const CStringArray* fieldNames, CStringArray& fieldNamesNotFound);
 
-  bool HasEqualDims(const string& value, string& msg);
-  bool HasEqualDims(const string& value, const string& dataSetName, string& msg);
-  bool HasEqualDims(const CExpression& expr, string& msg);
-  bool HasEqualDims(const CExpression& expr, const string& dataSetName, string& msg);
-  bool HasEqualDims(const CStringArray* fieldNames, string& msg);
-  bool HasEqualDims(const CStringArray* fieldNames, const string& dataSetName,  string& msg);
+  bool HasEqualDims(const std::string& value, std::string& msg);
+  bool HasEqualDims(const std::string& value, const std::string& dataSetName, std::string& msg);
+  bool HasEqualDims(const CExpression& expr, std::string& msg);
+  bool HasEqualDims(const CExpression& expr, const std::string& dataSetName, std::string& msg);
+  bool HasEqualDims(const CStringArray* fieldNames, std::string& msg);
+  bool HasEqualDims(const CStringArray* fieldNames, const std::string& dataSetName,  std::string& msg);
   
-  virtual bool HasCompatibleDims(const string& value, string& msg, bool useVirtualDims, CUIntArray* commonDimensions = NULL);
-  virtual bool HasCompatibleDims(const string& value, const string& dataSetName, string& msg, bool useVirtualDims, CUIntArray* commonDimensions = NULL);
-  virtual bool HasCompatibleDims(const CExpression& expr, string& msg, bool useVirtualDims, CUIntArray* commonDimensions = NULL);
-  virtual bool HasCompatibleDims(const CExpression& expr, const string& dataSetName, string& msg, bool useVirtualDims, CUIntArray* commonDimensions = NULL);
-  virtual bool HasCompatibleDims(const CStringArray* fieldNames, string& msg, bool useVirtualDims, CUIntArray* commonDimensions = NULL);
-  virtual bool HasCompatibleDims(const CStringArray* fieldNames, const string& dataSetName, string& msg, bool useVirtualDims, CUIntArray* commonDimensions = NULL);
+  virtual bool HasCompatibleDims(const std::string& value, std::string& msg, bool useVirtualDims, CUIntArray* commonDimensions = NULL);
+  virtual bool HasCompatibleDims(const std::string& value, const std::string& dataSetName, std::string& msg, bool useVirtualDims, CUIntArray* commonDimensions = NULL);
+  virtual bool HasCompatibleDims(const CExpression& expr, std::string& msg, bool useVirtualDims, CUIntArray* commonDimensions = NULL);
+  virtual bool HasCompatibleDims(const CExpression& expr, const std::string& dataSetName, std::string& msg, bool useVirtualDims, CUIntArray* commonDimensions = NULL);
+  virtual bool HasCompatibleDims(const CStringArray* fieldNames, std::string& msg, bool useVirtualDims, CUIntArray* commonDimensions = NULL);
+  virtual bool HasCompatibleDims(const CStringArray* fieldNames, const std::string& dataSetName, std::string& msg, bool useVirtualDims, CUIntArray* commonDimensions = NULL);
 
 
-  CField* FindFieldByName(const string& fieldName, const string& dataSetName, bool withExcept = true, string* errorMsg = NULL, bool showTrace = true);
-  CField* FindFieldByName(const string& fieldName, bool withExcept = true, string* errorMsg = NULL, bool showTrace = true);
-  CField* FindFieldByInternalName(const string& internalFieldName, bool withExcept = true);
+  CField* FindFieldByName(const std::string& fieldName, const std::string& dataSetName, bool withExcept = true, std::string* errorMsg = NULL, bool showTrace = true);
+  CField* FindFieldByName(const std::string& fieldName, bool withExcept = true, std::string* errorMsg = NULL, bool showTrace = true);
+  CField* FindFieldByInternalName(const std::string& internalFieldName, bool withExcept = true);
 
 
   CStringArray* GetFieldToTranspose() { return &m_fieldsToTranspose; };
 
   bool LoadTransposeFieldsValue(CStringArray& fieldsToTranspose);
 
-  virtual void SetForceReadDataOneByOne(bool value) {  };
+  virtual void SetForceReadDataOneByOne(bool) {  };
   virtual bool GetForceReadDataOneByOne() { return false; };
 
   void ReplaceNamesCaseSensitive(const CExpression& exprIn, const CStringArray& fieldsIn, CExpression& exprOut, bool forceReload = false);
-  void ReplaceNamesCaseSensitive(const string& in, const CStringArray& fieldsIn, string& out, bool forceReload = false);
-  void ReplaceNamesCaseSensitive(const string& in, string& out, bool forceReload = false);
-  void ReplaceNamesCaseSensitive(const CExpression& exprIn, string& out, bool forceReload = false);
+  void ReplaceNamesCaseSensitive(const std::string& in, const CStringArray& fieldsIn, std::string& out, bool forceReload = false);
+  void ReplaceNamesCaseSensitive(const std::string& in, std::string& out, bool forceReload = false);
+  void ReplaceNamesCaseSensitive(const CExpression& exprIn, std::string& out, bool forceReload = false);
 
 
   void GetNamesCaseSensitive(const CStringArray& fieldsIn, CStringArray& fieldsOutNoCaseSensitive, CStringArray& fieldsOutCaseSensitive, bool forceReload = false);
 
   
-  bool AddRecordNameToField(const CExpression& expr, const string& dataSetName, CExpression& exprOut, string& errorMsg);
-  bool AddRecordNameToField(const string& in, const string& dataSetName, string& out, string& errorMsg);
-  bool AddRecordNameToField(const string& in, const string& dataSetName, const CStringArray& fieldsIn, string& out, string& errorMsg);
-  bool AddRecordNameToField(CProductAliases* productAliases, string& errorMsg);
+  bool AddRecordNameToField(const CExpression& expr, const std::string& dataSetName, CExpression& exprOut, std::string& errorMsg);
+  bool AddRecordNameToField(const std::string& in, const std::string& dataSetName, std::string& out, std::string& errorMsg);
+  bool AddRecordNameToField(const std::string& in, const std::string& dataSetName, const CStringArray& fieldsIn, std::string& out, std::string& errorMsg);
+  bool AddRecordNameToField(CProductAliases* productAliases, std::string& errorMsg);
 
   CStringArray* GetDataDictionaryFieldNames(bool forceReload = false);
   CStringArray* GetDataDictionaryFieldNamesWithDatasetName(bool forceReload = false);
@@ -443,13 +443,13 @@ public:
   CStringMap* GetFieldSpecificUnits() { return &m_fieldSpecificUnit; };
   void SetFieldSpecificUnits(const CStringMap& fieldSpecificUnit);
   
-  string GetFieldSpecificUnit(const string& key);
-  void SetFieldSpecificUnit(const string& key, const string& value);
+  std::string GetFieldSpecificUnit(const std::string& key);
+  void SetFieldSpecificUnit(const std::string& key, const std::string& value);
 
   virtual void SetFieldSpecificUnit(CField* field);
   
   virtual int32_t GetCurrentRecordNumber() { return m_currentRecord; };
-  virtual string GetCurrentFileName() { return m_currFileName; };
+  virtual std::string GetCurrentFileName() { return m_currFileName; };
 
   void SetDisableTrace(bool value) { m_disableTrace = value; };
   bool GetDisableTrace() { return m_disableTrace; };
@@ -481,10 +481,10 @@ public:
 
   static void ReadDataForOneMeasure
 		(CDataSet			*dataSet,
-		 const string			&recordName,
+		 const std::string			&recordName,
 		 CExpression			&Select,
-		 vector<CExpression>		&Expressions,
-		 const vector<CUnit>		&WantedUnits,
+		 std::vector<CExpression>		&Expressions,
+		 const std::vector<CUnit>		&WantedUnits,
 		 double				**results,
 		 int32_t			*sizes,
 		 int32_t			*actualSize,
@@ -494,7 +494,7 @@ public:
 
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 public:
 
@@ -515,7 +515,7 @@ public:
     coda_Type * m_type;
     coda_type_class m_type_class;
     int32_t m_isUnion;
-    string m_fieldName;
+    std::string m_fieldName;
 
     int32_t m_index;
    };
@@ -556,7 +556,7 @@ protected:
   virtual bool HasHighResolutionFieldCalculation() {return false;};
   virtual void AddInternalHighResolutionFieldCalculation() {};
 
-  virtual void AddSameFieldName(const string& fieldNameToSearch, CStringArray& arrayFieldsAdded);
+  virtual void AddSameFieldName(const std::string& fieldNameToSearch, CStringArray& arrayFieldsAdded);
 
   virtual void CheckConsistencyHighResolutionField(CFieldSetArrayDbl* fieldSetArrayDbl);
 
@@ -576,14 +576,14 @@ protected:
   void GetRootType();
 
 
-  void HandleBratError(const string& str = "", int32_t errClass = BRATHL_LOGIC_ERROR);
+  void HandleBratError(const std::string& str = "", int32_t errClass = BRATHL_LOGIC_ERROR);
 
 
-  string GetTypeName();
-  string GetTypeDesc();
-  string GetTypeDesc(coda_Type *type);
-  string GetTypeUnit();
-  string GetRecordFieldName();
+  std::string GetTypeName();
+  std::string GetTypeDesc();
+  std::string GetTypeDesc(coda_Type *type);
+  std::string GetTypeUnit();
+  std::string GetRecordFieldName();
 
   void SetTypeClass(CField* field);
   void SetNativeType(CField* field);
@@ -600,28 +600,28 @@ protected:
 
   void SetCursor(CField* field, bool& skipRecord);
 
-  //virtual void ReadBratField(const string& key);
+  //virtual void ReadBratField(const std::string& key);
   //virtual void ReadBratField(CField::CListField::iterator it);
 
-  virtual void ReadBratFieldRecord(const string& key, int32_t iRecord);
+  virtual void ReadBratFieldRecord(const std::string& key, int32_t iRecord);
   virtual void ReadBratFieldRecord(CField::CListField::iterator it);
   virtual void ReadBratFieldRecord(CField::CListField::iterator it, bool& skipRecord);
 
   virtual bool FindParentToRead(CField* fromField, CObList* parentFieldList);
 
-  void FillListFields(const string& key);
+  void FillListFields(const std::string& key);
 
-  virtual string MakeInternalNameByAddingRoot(const string& name);
+  virtual std::string MakeInternalNameByAddingRoot(const std::string& name);
 
-  virtual string MakeInternalFieldName(const string& dataSetName, const string& field);
+  virtual std::string MakeInternalFieldName(const std::string& dataSetName, const std::string& field);
 
-  virtual string MakeInternalFieldName(const string& field);
+  virtual std::string MakeInternalFieldName(const std::string& field);
   
-  virtual string MakeInternalDataSetName(const string& dataSetName);
+  virtual std::string MakeInternalDataSetName(const std::string& dataSetName);
 
-  virtual void InitInternalFieldName(const string& dataSetName, CStringList& listField, bool convertDate = false);
+  virtual void InitInternalFieldName(const std::string& dataSetName, CStringList& listField, bool convertDate = false);
   virtual void InitInternalFieldName(CStringList& listField, bool convertDate = false);
-  virtual void InitInternalFieldName(const string& field, bool convertDate = false);
+  virtual void InitInternalFieldName(const std::string& field, bool convertDate = false);
 
   void ProcessHighResolution();
   void ExpandArray();
@@ -646,17 +646,17 @@ protected:
 
   void BuildCriteriaFieldsToRead(CRecordDataMap& listRecord);
 
-  void CreateLogFile(const string& logFileName, uint32_t mode = CFile::modeWrite|CFile::typeText);
+  void CreateLogFile(const std::string& logFileName, uint32_t mode = CFile::modeWrite|CFile::typeText);
   void DeleteLogFile();
 
   void Log(const char* str, bool bCrLf = true);
-  void Log(const string& str, bool bCrLf = true);
+  void Log(const std::string& str, bool bCrLf = true);
   void Log(double n, bool bCrLf = true);
   void Log(int32_t n, bool bCrLf = true);
   void Log(bool n, bool bCrLf = true);
   void Log(const CStringList& l, bool bCrLf = true);
 
-  void LogSelectionResult(const string& fileName, bool result);
+  void LogSelectionResult(const std::string& fileName, bool result);
 
   virtual void InitApplyCriteriaStats();
   virtual void EndApplyCriteriaStats(const CStringList& filteredFileList);
@@ -678,7 +678,7 @@ public:
     
   static coda_array_ordering  m_arrayOrdering;
 
-  static const string m_treeRootName;
+  static const std::string m_treeRootName;
 
   static const char* m_transposeFieldValuesFileName;
 
@@ -695,10 +695,10 @@ protected:
   double m_forceLatMinCriteriaValue;
   double m_forceLatMaxCriteriaValue;
 
-  string m_label;
+  std::string m_label;
 
-  string m_latitudeFieldName;
-  string m_longitudeFieldName;
+  std::string m_latitudeFieldName;
+  std::string m_longitudeFieldName;
 
   CStringArray m_arrayLongitudeFieldName;
   CStringArray m_arrayLatitudeFieldName;
@@ -717,7 +717,7 @@ protected:
   coda_ProductFile* m_currFile;	
   coda_Cursor m_cursor;
 
-  string m_currFileName;		
+  std::string m_currFileName;		
 
   brathl_refDate m_refDate;
 
@@ -742,7 +742,7 @@ protected:
   // Field names --> internal field names equivalence
   CStringMap m_fieldNameEquivalence;
 
-  string m_dataSetNameToRead;
+  std::string m_dataSetNameToRead;
   CStringList m_listInternalFieldName;
   CStringList m_listFieldOrigin;
 
@@ -769,7 +769,7 @@ protected:
   */
   int32_t m_nbRecords;
 
-  string m_description;
+  std::string m_description;
 
   CObIntMap m_criteriaInfoMap;
 
@@ -814,7 +814,7 @@ public:
   
   /** Creates new CProdCProductGenericuct object
     \param fileName [in] : file name to be connected */
-  CProductGeneric(const string& fileName) : CProduct(fileName) {};
+  CProductGeneric(const std::string& fileName) : CProduct(fileName) {};
   
   /** Creates new CProductGeneric object
     \param fileNameList [in] : list of file to be connected */
@@ -858,7 +858,7 @@ public:
   void AddCriteriaToProducts();
   void RemoveCriteriaFromProducts();
 
-  virtual void Dump(ostream& fOut  = cerr); 
+  virtual void Dump(std::ostream& fOut  = std::cerr); 
 
 
 

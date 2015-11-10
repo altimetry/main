@@ -21,7 +21,7 @@
 #include <cmath>
 #include <cstdlib>
 
-#include "Stl.h"
+#include <string>
 
 #include "brathl.h"
 
@@ -51,7 +51,7 @@ namespace processes
 ** definitions are in ParametersDictionary.h
 */
 void PrintParameterHelp
-		(ostream		&where,
+		(std::ostream		&where,
 		 const KeywordHelp	*keywordList)
 {
 
@@ -70,9 +70,9 @@ void PrintParameterHelp
 bool CheckCommandLineOptions
 		(int			argc,
 		 char			**argv,
-		 const string		&helpString,
+		 const std::string		&helpString,
 		 const KeywordHelp	*keywordList,
-		 string			&commandFileName)
+		 std::string			&commandFileName)
 {
   return  CBratProcess::CheckCommandLineOptions(argc, argv, helpString, keywordList, commandFileName);
 
@@ -82,9 +82,9 @@ bool CheckCommandLineOptions
 //----------------------------------------
 int32_t GetFileList
 		(CFileParams		&params,
-		 const string		&keyword,
+		 const std::string		&keyword,
 		 CStringArray		&names,
-		 const string		&traceDescription,
+		 const std::string		&traceDescription,
 		 int32_t		minOccurences	/*= 1*/,
 		 int32_t		maxOccurences	/*= -1*/,
 		 bool			printTrace	/*= true*/)
@@ -95,16 +95,16 @@ int32_t GetFileList
 //----------------------------------------
 int32_t GetVarDef
 		(CFileParams		&params,
-		 const string		&prefix,
+		 const std::string		&prefix,
 		 CExpression    	&field,
-		 string			*name,
+		 std::string			*name,
 		 NetCDFVarKind		*kind,
 		 CUnit			*unit,
-		 string			*title,
-		 string			*comment,
-		 string			*dataFormat,
+		 std::string			*title,
+		 std::string			*comment,
+		 std::string			*dataFormat,
 		 uint32_t               *group,
- 		 const string		&traceDescription,
+ 		 const std::string		&traceDescription,
 		 int32_t		index		/*= 0*/,
 		 int32_t		minOccurences	/*= 1*/,
 		 int32_t		maxOccurences	/*= 1*/,
@@ -132,20 +132,20 @@ int32_t GetVarDef
 //----------------------------------------
 int32_t GetVarDef
 		(CFileParams		&params,
-		 const string		&prefix,
+		 const std::string		&prefix,
 		 CExpression    	&field,
-		 string			*name,
+		 std::string			*name,
 		 NetCDFVarKind		*kind,
 		 CUnit			*unit,
-		 string			*title,
-		 string			*comment,
-		 string			*dataFormat,
+		 std::string			*title,
+		 std::string			*comment,
+		 std::string			*dataFormat,
 		 uint32_t               *group,
 		 double			&min,
 		 double			&max,
 		 uint32_t		&count,
 		 double			&step,
-		 const string		&traceDescription,
+		 const std::string		&traceDescription,
 		 int32_t		index		/*= 0*/,
 		 int32_t		minOccurences	/*= 1*/,
 		 int32_t		maxOccurences	/*= 1*/,
@@ -178,7 +178,7 @@ int32_t GetVarDef
 //----------------------------------------
 void GetFilterDefinitions
 		(CFileParams		&params,
-		 const string		&prefix,
+		 const std::string		&prefix,
 		 bool			*smooth,
 		 bool			*extrapolate,
 		 int32_t		index		/*= 0*/,
@@ -205,7 +205,7 @@ CBratProcess::MergeDataMode GetDataMode
 		(CFileParams	&params,
 		 int32_t	minOccurences	/*= 0*/,
 		 int32_t	maxOccurences	/*= 1*/,
-		 const string	&keyword	/*= "DATA_MODE"*/,
+		 const std::string	&keyword	/*= "DATA_MODE"*/,
 		 int32_t	index		/*= 0*/,
 		 CBratProcess::MergeDataMode	Default		/*= CBratProcess::pctMEAN*/)
 {
@@ -217,7 +217,7 @@ CBratProcess::MergeDataMode GetDataMode
 
 CBratProcess::MergeDataMode GetDataMode
 		(CFileParams	&params,
-		 const string	&prefix,
+		 const std::string	&prefix,
 		 int32_t	minOccurences	/*= 0*/,
 		 int32_t	maxOccurences	/*= 1*/,
 		 int32_t	index		/*= 0*/,
@@ -228,7 +228,7 @@ CBratProcess::MergeDataMode GetDataMode
 }
 //----------------------------------------
 
-string DataModeStr
+std::string DataModeStr
 		(CBratProcess::MergeDataMode Mode)
 {
   return CBratProcess::DataModeStr(Mode);
@@ -241,7 +241,7 @@ CBratProcess::OutsideMode GetOutsideMode
 		(CFileParams	&params,
 		 int32_t	minOccurences	/*= 0*/,
 		 int32_t	maxOccurences	/*= 1*/,
-		 const string	&keyword	/*= "OUTSIDE_MODE"*/,
+		 const std::string	&keyword	/*= "OUTSIDE_MODE"*/,
 		 int32_t	index		/*= 0*/,
 		 CBratProcess::OutsideMode	defaultValue		/*= pctSTRICT*/)
 {
@@ -249,7 +249,7 @@ CBratProcess::OutsideMode GetOutsideMode
 }
 
 //----------------------------------------
-string OutsideModeStr
+std::string OutsideModeStr
 		(CBratProcess::OutsideMode mode)
 {
   return CBratProcess::OutsideModeStr(mode);
@@ -270,7 +270,7 @@ CBratProcess::PositionMode GetPositionMode
 		(CFileParams	&params,
 		 int32_t	minOccurences	/*= 0*/,
 		 int32_t	maxOccurences	/*= 1*/,
-		 const string	&keyword	/*= "POSITION_MODE"*/,
+		 const std::string	&keyword	/*= "POSITION_MODE"*/,
 		 int32_t	index		/*= 0*/,
 		 CBratProcess::PositionMode	defaultValue		/*= pctNEAREST*/)
 {
@@ -278,7 +278,7 @@ CBratProcess::PositionMode GetPositionMode
   return CBratProcess::GetPositionMode(params, minOccurences, maxOccurences, keyword, index, defaultValue);
 }
 //----------------------------------------
-string PositionModeStr
+std::string PositionModeStr
 		(CBratProcess::PositionMode	mode)
 {
   return CBratProcess::PositionModeStr(mode);

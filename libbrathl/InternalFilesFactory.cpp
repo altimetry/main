@@ -37,12 +37,12 @@ namespace brathl
 	if (Class::TypeOf() == TypeStr)		\
 	  return new Class(name)
 
-CInternalFiles* BuildExistingInternalFileKind (const string& name, const CStringArray* fieldNames /* = NULL */)
+CInternalFiles* BuildExistingInternalFileKind (const std::string& name, const CStringArray* fieldNames /* = NULL */)
 {
 
   CNetCDFFiles netCdfFile(name);
 
-  string TypeStr	= netCdfFile.IdentifyExistingFile();
+  std::string TypeStr	= netCdfFile.IdentifyExistingFile();
   CHECK_TYPE(CInternalFilesYFX);
   CHECK_TYPE(CInternalFilesZFXY);
 

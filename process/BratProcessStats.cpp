@@ -18,6 +18,8 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include <fstream>
+
 #include "Exception.h"
 #include "FileParams.h"
 
@@ -80,7 +82,7 @@ void CBratProcessStats::ResizeArrayDependOnFields(uint32_t size)
 }
 
 //----------------------------------------
-bool CBratProcessStats::Initialize(string& msg)
+bool CBratProcessStats::Initialize(std::string& msg)
 {
   CTrace *p = CTrace::GetInstance();
 
@@ -88,11 +90,11 @@ bool CBratProcessStats::Initialize(string& msg)
   CBratAlgorithmBase::RegisterAlgorithms();
 
   // Load aliases dictionnary
-  string errorMsg;
+  std::string errorMsg;
   CAliasesDictionary::LoadAliasesDictionary(&errorMsg, false);
   if (!(errorMsg.empty())) 
   {
-    string msg = CTools::Format("WARNING: %s",  errorMsg.c_str());
+    std::string msg = CTools::Format("WARNING: %s",  errorMsg.c_str());
     p->Tracer(1, msg);
   }
 
@@ -101,7 +103,7 @@ bool CBratProcessStats::Initialize(string& msg)
 }
 
 //----------------------------------------
-void CBratProcessStats::GetParameters(const string& commandFileName)
+void CBratProcessStats::GetParameters(const std::string& commandFileName)
 {
   m_commandFileName = commandFileName;
   GetParameters();
@@ -202,7 +204,7 @@ bool CBratProcessStats::CheckCommandLineOptions(int	argc, char	**argv)
 
 
 //----------------------------------------
-int32_t CBratProcessStats::Execute(string& msg)
+int32_t CBratProcessStats::Execute(std::string& msg)
 { 
 
   CDate startExec;
@@ -231,7 +233,7 @@ int32_t CBratProcessStats::Execute(string& msg)
 
   for (i = 0 ; i < nbFiles ; i++)
   {
-    string fileName = m_inputFiles.at(i);
+    std::string fileName = m_inputFiles.at(i);
 
     files[i] = new char[fileName.length() + 1];
 
@@ -240,7 +242,7 @@ int32_t CBratProcessStats::Execute(string& msg)
 
   for (i = 0 ; i < nbExpr ; i++)
   {
-    string exprStr = m_fields.at(i).AsString();
+    std::string exprStr = m_fields.at(i).AsString();
 
     expressions[i] = new char[exprStr.length() + 1];
 
@@ -252,7 +254,7 @@ int32_t CBratProcessStats::Execute(string& msg)
 
   for (i = 0 ; i < nbUnits ; i++)
   {
-    string unitStr = m_units.at(i).AsString();
+    std::string unitStr = m_units.at(i).AsString();
 
     units[i] = new char[unitStr.length() + 1];
 
@@ -280,30 +282,30 @@ int32_t CBratProcessStats::Execute(string& msg)
   }
   
 
-  ostream* fOut = NULL;
-  ofstream fStream;
+  std::ostream* fOut = NULL;
+  std::ofstream fStream;
   bool resultInFile = false;
 
   if (m_outputFileName.empty())
   {
-    fOut = &cout;
+    fOut = &std::cout;
   }
-  else if (m_outputFileName.compare("cout") == 0)
+  else if (m_outputFileName.compare("std::cout") == 0)
   {
-    fOut = &cout;
+    fOut = &std::cout;
   }
-  else if (m_outputFileName.compare("cerr") == 0)
+  else if (m_outputFileName.compare("std::cerr") == 0)
   {
-    fOut = &cerr;
+    fOut = &std::cerr;
   }
   else
   {
 
-    fStream.open(m_outputFileName.c_str(), ios::out | ios::trunc);
+    fStream.open(m_outputFileName.c_str(), std::ios::out | std::ios::trunc);
     if (fStream.good() != true)
     {
-      cerr << "Open file failed - file name  " << m_outputFileName << 
-                " error " << fStream.rdstate() << endl;
+      std::cerr << "Open file failed - file name  " << m_outputFileName << 
+                " error " << fStream.rdstate() << std::endl;
       return false;
     }
     resultInFile = true;
@@ -320,11 +322,11 @@ int32_t CBratProcessStats::Execute(string& msg)
   {
     fStream.flush();
 
-    string resultStr = CTools::Format("Result for '%s'",  expressions[j]);
+    std::string resultStr = CTools::Format("Result for '%s'",  expressions[j]);
 
-    *fOut << "========================== " << endl;
-    *fOut << resultStr << endl;
-    *fOut << "========================== " << endl;
+    *fOut << "========================== " << std::endl;
+    *fOut << resultStr << std::endl;
+    *fOut << "========================== " << std::endl;
 
     CTrace::Tracer(1, "==========================");
     CTrace::Tracer(1, resultStr);
@@ -334,7 +336,7 @@ int32_t CBratProcessStats::Execute(string& msg)
 
     for (i = 0 ; i < actualSize ; i++)
     {    
-      string label;
+      std::string label;
       switch (i)
       {
       case 0 : 
@@ -357,7 +359,7 @@ int32_t CBratProcessStats::Execute(string& msg)
 
       resultStr = CTools::Format("\t%s = %f", label.c_str(), vectorData[i]);
 
-      *fOut << resultStr << endl;
+      *fOut << resultStr << std::endl;
 
       CTrace::Tracer(1, resultStr);
     }

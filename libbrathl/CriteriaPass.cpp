@@ -27,7 +27,7 @@
 #include "brathl.h" 
 //#define BRAT_INTERNAL
 
-#include "Stl.h" 
+#include <string> 
 
 #include "TraceLog.h" 
 #include "Tools.h" 
@@ -44,7 +44,7 @@ using namespace brathl;
 namespace brathl
 {
 
-const string FORMAT_INT_PASS = "%d";
+const std::string FORMAT_INT_PASS = "%d";
 
 //-------------------------------------------------------------
 //------------------- CCriteriaPass class --------------------
@@ -87,7 +87,7 @@ CCriteriaPass* CCriteriaPass::GetCriteria(CBratObject* ob, bool withExcept /*= t
 }
 
 //-------------------------------------------------------------
-void CCriteriaPass::Dump(ostream& fOut /* = cerr */)
+void CCriteriaPass::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -96,10 +96,10 @@ void CCriteriaPass::Dump(ostream& fOut /* = cerr */)
 
   CCriteria::Dump(fOut);
 
-  fOut << "==> Dump a CCriteriaPass Object at "<< this << endl;
-  fOut << "==> END Dump a CCriteriaPass Object at "<< this << endl;
+  fOut << "==> Dump a CCriteriaPass Object at "<< this << std::endl;
+  fOut << "==> END Dump a CCriteriaPass Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -107,7 +107,7 @@ void CCriteriaPass::Dump(ostream& fOut /* = cerr */)
 //------------------- CCriteriaPassString class --------------------
 //-------------------------------------------------------------
 
-const string CCriteriaPassString::m_delimiter = ",";
+const std::string CCriteriaPassString::m_delimiter = ",";
 
 
 
@@ -132,7 +132,7 @@ CCriteriaPassString::CCriteriaPassString(CCriteriaPassString* c)
 }
 
 //-------------------------------------------------------------
-CCriteriaPassString::CCriteriaPassString(const string& passes, const string& delimiter /* = CCriteriaPassString::m_delimiter */) 
+CCriteriaPassString::CCriteriaPassString(const std::string& passes, const std::string& delimiter /* = CCriteriaPassString::m_delimiter */) 
 {
   Init();
   Set(passes, delimiter);
@@ -177,7 +177,7 @@ void CCriteriaPassString::Set(CCriteriaPassString& c)
 
 
 //----------------------------------------
-string CCriteriaPassString::GetAsText(const string& delimiter /* = CCriteriaPassString::m_delimiter */)
+std::string CCriteriaPassString::GetAsText(const std::string& delimiter /* = CCriteriaPassString::m_delimiter */)
 {
 
   return m_passes.ToString(delimiter, false);
@@ -218,7 +218,7 @@ bool CCriteriaPassString::IsDefaultValue()
 }
 
 //-------------------------------------------------------------
-void CCriteriaPassString::ExtractPass(const string& passes, CStringArray& arrayPass, const string& delimiter /*= CCriteriaPassString::m_delimiter*/)
+void CCriteriaPassString::ExtractPass(const std::string& passes, CStringArray& arrayPass, const std::string& delimiter /*= CCriteriaPassString::m_delimiter*/)
 {
 
   CStringArray array;
@@ -236,7 +236,7 @@ void CCriteriaPassString::ExtractPass(const CStringArray& array, CStringArray& a
 
   for ( it = array.begin( ); it != array.end( ); it++ )
   {
-    string str = CTools::StringTrim(*it);
+    std::string str = CTools::StringTrim(*it);
     if (!(str.empty()))
     {
       arrayPass.Insert(str);
@@ -245,7 +245,7 @@ void CCriteriaPassString::ExtractPass(const CStringArray& array, CStringArray& a
 }
 
 //-------------------------------------------------------------
-void CCriteriaPassString::Set(const string& passes, const string& delimiter /*= CCriteriaPassString::m_delimiter*/)
+void CCriteriaPassString::Set(const std::string& passes, const std::string& delimiter /*= CCriteriaPassString::m_delimiter*/)
 {
 
   CCriteriaPassString::ExtractPass(passes, m_passes, delimiter);
@@ -261,7 +261,7 @@ void CCriteriaPassString::Set(const CStringArray& array)
 
 //----------------------------------------
 
-bool CCriteriaPassString::Intersect(const string& passes, CStringArray& intersect)
+bool CCriteriaPassString::Intersect(const std::string& passes, CStringArray& intersect)
 {
   
   CStringArray array;
@@ -278,7 +278,7 @@ bool CCriteriaPassString::Intersect(CStringArray& passes, CStringArray& intersec
 }
 
 //----------------------------------------
-void CCriteriaPassString::Dump(ostream& fOut /* = cerr */)
+void CCriteriaPassString::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -287,11 +287,11 @@ void CCriteriaPassString::Dump(ostream& fOut /* = cerr */)
 
   CCriteriaPass::Dump(fOut);
 
-  fOut << "==> Dump a CCriteriaPassString Object at "<< this << endl;
+  fOut << "==> Dump a CCriteriaPassString Object at "<< this << std::endl;
   m_passes.Dump(fOut);
-  fOut << "==> END Dump a CCriteriaPassString Object at "<< this << endl;
+  fOut << "==> END Dump a CCriteriaPassString Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 //-------------------------------------------------------------
@@ -299,7 +299,7 @@ void CCriteriaPassString::Dump(ostream& fOut /* = cerr */)
 //-------------------------------------------------------------
 
 
-const string CCriteriaPassInt::m_delimiter = " ";  
+const std::string CCriteriaPassInt::m_delimiter = " ";  
 
 
 CCriteriaPassInt::CCriteriaPassInt() 
@@ -327,7 +327,7 @@ CCriteriaPassInt::CCriteriaPassInt(int32_t from, int32_t to)
   Set(from, to);
 }
 //-------------------------------------------------------------
-CCriteriaPassInt::CCriteriaPassInt(const string& from, const string& to) 
+CCriteriaPassInt::CCriteriaPassInt(const std::string& from, const std::string& to) 
 {
   Init();
   Set(from, to);
@@ -372,9 +372,9 @@ void CCriteriaPassInt::Set(CCriteriaPassInt& c)
 }
 
 //----------------------------------------
-string CCriteriaPassInt::GetAsText(const string& delimiter /* = CCriteriaPassInt::m_delimiter */)
+std::string CCriteriaPassInt::GetAsText(const std::string& delimiter /* = CCriteriaPassInt::m_delimiter */)
 {
-  string format = FORMAT_INT_PASS;
+  std::string format = FORMAT_INT_PASS;
   format.append(delimiter);
   format.append(FORMAT_INT_PASS);
 
@@ -446,7 +446,7 @@ void CCriteriaPassInt::SetTo(int32_t to)
 
 }
 //-------------------------------------------------------------
-void CCriteriaPassInt::SetTo(const string& to)
+void CCriteriaPassInt::SetTo(const std::string& to)
 {
   m_to = CTools::StrToInt(to);
 
@@ -461,7 +461,7 @@ void CCriteriaPassInt::SetFrom(int32_t from)
 }
 
 //-------------------------------------------------------------
-void CCriteriaPassInt::SetFrom(const string& from)
+void CCriteriaPassInt::SetFrom(const std::string& from)
 {
   m_from = CTools::StrToInt(from);
 
@@ -476,13 +476,13 @@ void CCriteriaPassInt::Set(int32_t from, int32_t to)
 
 }
 //-------------------------------------------------------------
-void CCriteriaPassInt::Set(const string& from, const string& to)
+void CCriteriaPassInt::Set(const std::string& from, const std::string& to)
 {
   Set(CTools::StrToInt(from), CTools::StrToInt(to));
 
 }
 //-------------------------------------------------------------
-void CCriteriaPassInt::SetFromText(const string& values, const string& delimiter /* = CCriteriaPassInt::m_delimiter */)
+void CCriteriaPassInt::SetFromText(const std::string& values, const std::string& delimiter /* = CCriteriaPassInt::m_delimiter */)
 {
   CStringArray array;
   array.ExtractStrings(values, delimiter);
@@ -655,13 +655,13 @@ bool CCriteriaPassInt::Intersect(int32_t otherFrom, int32_t otherTo, CIntArray& 
   return true;
 }
 //----------------------------------------
-bool CCriteriaPassInt::Intersect(const string& from, const string& to, CStringArray& intersect)
+bool CCriteriaPassInt::Intersect(const std::string& from, const std::string& to, CStringArray& intersect)
 {
   return Intersect(CTools::StrToInt(from), CTools::StrToInt(to), intersect);
 
 }
 //----------------------------------------
-bool CCriteriaPassInt::Intersect(const string& from, const string& to, CIntArray& intersect)
+bool CCriteriaPassInt::Intersect(const std::string& from, const std::string& to, CIntArray& intersect)
 {
   return Intersect(CTools::StrToInt(from), CTools::StrToInt(to), intersect);
 
@@ -669,7 +669,7 @@ bool CCriteriaPassInt::Intersect(const string& from, const string& to, CIntArray
 
 
 //----------------------------------------
-void CCriteriaPassInt::Dump(ostream& fOut /* = cerr */)
+void CCriteriaPassInt::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -678,12 +678,12 @@ void CCriteriaPassInt::Dump(ostream& fOut /* = cerr */)
 
   CCriteriaPass::Dump(fOut);
 
-  fOut << "==> Dump a CCriteriaPassInt Object at "<< this << endl;
-  fOut << "m_from "<< m_from << endl;
-  fOut << "m_to "<< m_to << endl;
-  fOut << "==> END Dump a CCriteriaPassInt Object at "<< this << endl;
+  fOut << "==> Dump a CCriteriaPassInt Object at "<< this << std::endl;
+  fOut << "m_from "<< m_from << std::endl;
+  fOut << "m_to "<< m_to << std::endl;
+  fOut << "==> END Dump a CCriteriaPassInt Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

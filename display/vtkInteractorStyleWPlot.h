@@ -36,7 +36,7 @@
 
 #include "brathl.h"
 
-#include "vtkList.h"
+#include "PlotData/vtkList.h"
 
 class vtkIndent;
 class vtkOutlineSource;
@@ -53,7 +53,7 @@ class VTK_EXPORT vtkWPlotState : public vtkObject
 public:
   static vtkWPlotState *New();
   vtkTypeMacro(vtkWPlotState, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(std::ostream& os, vtkIndent indent);
 
   vtkSetVector2Macro(Size, double);
   vtkGetVector2Macro(Size, double);
@@ -84,7 +84,7 @@ class VTK_EXPORT vtkWPlotProjectionState : public vtkObject
 public:
   static vtkWPlotProjectionState *New();
   vtkTypeMacro(vtkWPlotProjectionState, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(std::ostream& os, vtkIndent indent);
 
   vtkSetMacro(Projection, int32_t);
   vtkGetMacro(Projection, int32_t);
@@ -134,7 +134,7 @@ public:
 
   static vtkInteractorStyleWPlot *New();
   vtkTypeMacro(vtkInteractorStyleWPlot, vtkInteractorStyle);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(std::ostream& os, vtkIndent indent);
 
   // Description:
   // Event bindings controlling the effects of pressing mouse buttons

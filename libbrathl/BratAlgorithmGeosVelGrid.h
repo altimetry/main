@@ -23,7 +23,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h"
+#include <string>
 
 #include "Tools.h" 
 #include "BratAlgorithmGeosVel.h" 
@@ -58,8 +58,8 @@ public:
 
   virtual uint32_t GetNumInputParam() { return CBratAlgorithmGeosVelGrid::m_INPUT_PARAMS; };
   
-  virtual string GetInputParamDesc(uint32_t indexParam)  {
-        string value = "";
+  virtual std::string GetInputParamDesc(uint32_t indexParam)  {
+        std::string value = "";
         switch (indexParam) 
         {
           case 0: value = "Latitude field."; break;
@@ -92,8 +92,8 @@ public:
   /** Gets the unit of an input parameter :
    \param indexParam [in] : parameter index.
    */
-  virtual string GetInputParamUnit(uint32_t indexParam) {
-        string value = "";
+  virtual std::string GetInputParamUnit(uint32_t indexParam) {
+        std::string value = "";
         switch (indexParam) 
         {
           case 0: value = "degrees_north"; break;
@@ -111,14 +111,14 @@ public:
   /** Gets the unit of an output value returned by the 'Run' function.
    \param indexParam [in] : parameter index.
    */
-  virtual string GetOutputUnit() { return "m/s"; };
+  virtual std::string GetOutputUnit() { return "m/s"; };
 
   virtual double Run(CVectorBratAlgorithmParam& args);
 
   virtual void CheckInputParams(CVectorBratAlgorithmParam& args);
   virtual void SetParamValues(CVectorBratAlgorithmParam& args);
-  virtual string GetParamName(uint32_t indexParam) {
-        string value = "";
+  virtual std::string GetParamName(uint32_t indexParam) {
+        std::string value = "";
         switch (indexParam) 
         {
           case 0: value = CBratAlgorithmGeosVel::m_LAT_PARAM_NAME; break;
@@ -151,7 +151,7 @@ public:
   CBratAlgorithmGeosVelGrid& operator=(const CBratAlgorithmGeosVelGrid &copy);
 
   /** Dump function */
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
  
 
 protected:
@@ -261,12 +261,12 @@ public:
   /** Destructor */
   virtual ~CBratAlgorithmGeosVelGridU();
 
-  virtual string GetName() { return "BratAlgoGeosVelGridU"; };
+  virtual std::string GetName() { return "BratAlgoGeosVelGridU"; };
   
-  virtual string GetDescription() { return "Geostrophic velocity Zonal component (U) computation from gridded data"; };
+  virtual std::string GetDescription() { return "Geostrophic velocity Zonal component (U) computation from gridded data"; };
 
   /** Dump function */
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
 
@@ -300,13 +300,13 @@ public:
   /** Destructor */
   virtual ~CBratAlgorithmGeosVelGridV();
 
-  virtual string GetName() { return "BratAlgoGeosVelGridV"; };
+  virtual std::string GetName() { return "BratAlgoGeosVelGridV"; };
   
-  virtual string GetDescription() { return "Geostrophic velocity Meridional component (V) computation from gridded data"; };
+  virtual std::string GetDescription() { return "Geostrophic velocity Meridional component (V) computation from gridded data"; };
   
 
   /** Dump function */
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
 

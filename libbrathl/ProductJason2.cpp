@@ -35,7 +35,7 @@ CProductJason2::CProductJason2()
 
 //----------------------------------------
 
-CProductJason2::CProductJason2(const string& fileName)
+CProductJason2::CProductJason2(const std::string& fileName)
       : CProductNetCdfCF(fileName)
 {
   Init();
@@ -170,7 +170,7 @@ void CProductJason2::InitCriteriaInfo()
 }
 
 //----------------------------------------
-void CProductJason2::Dump(ostream& fOut /* = cerr */) 
+void CProductJason2::Dump(std::ostream& fOut /* = std::cerr */) 
 {
 
   if (CTrace::IsTrace() == false)
@@ -179,15 +179,15 @@ void CProductJason2::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CProductJason2 Object at "<< this << endl;
+  fOut << "==> Dump a CProductJason2 Object at "<< this << std::endl;
 
   //------------------
   CProductNetCdfCF::Dump(fOut);
   //------------------
 
-  fOut << "==> END Dump a CProductJason2 Object at "<< this << endl;
+  fOut << "==> END Dump a CProductJason2 Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

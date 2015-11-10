@@ -43,7 +43,7 @@ class VTK_EXPORT vtkCameraState : public vtkObject
 public:
   static vtkCameraState *New();
   vtkTypeMacro(vtkCameraState, vtkObject);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(std::ostream& os, vtkIndent indent);
 
   vtkSetVector3Macro(ViewUp,double);
   vtkGetVector3Macro(ViewUp,double);

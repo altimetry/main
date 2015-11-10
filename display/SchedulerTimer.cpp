@@ -69,11 +69,11 @@ void CSchedulerTimer::Notify()
 
   wxDateTime now = wxDateTime::Now();
 
-  vector<wxLongLong_t> vectorBratTaskToProcess;
+  std::vector<wxLongLong_t> vectorBratTaskToProcess;
 
   schedulerTaskConfig->GetMapPendingBratTaskToProcess(now, &vectorBratTaskToProcess);
 
-  vector<wxLongLong_t>::const_iterator it;
+  std::vector<wxLongLong_t>::const_iterator it;
 
   for (it = vectorBratTaskToProcess.begin() ; it != vectorBratTaskToProcess.end() ; it++)
   {

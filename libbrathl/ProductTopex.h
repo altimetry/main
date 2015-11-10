@@ -48,7 +48,7 @@ public:
   
   /** Creates new CProductTopex object
     \param fileName [in] : file name to be connected */
-  CProductTopex(const string& fileName);
+  CProductTopex(const std::string& fileName);
   
   /** Creates new CProductTopex object
     \param fileNameList [in] : list of file to be connected */
@@ -59,17 +59,17 @@ public:
 
   virtual void InitCriteriaInfo();
 
-  virtual string GetLabel();
+  virtual std::string GetLabel();
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 public:
-  static const string m_PASS_FILE;
-  static const string m_XNG_FILE;
-  static const string m_SDR_PASS_FILE;
+  static const std::string m_PASS_FILE;
+  static const std::string m_XNG_FILE;
+  static const std::string m_SDR_PASS_FILE;
 
-  static const string m_TOPEX_POSEIDON_HEADER;
+  static const std::string m_TOPEX_POSEIDON_HEADER;
 
   static const int32_t m_ALTIMETER_POSEIDON;		
   static const int32_t m_ALTIMETER_TOPEX;		
@@ -100,15 +100,15 @@ public:
     
 
 protected:
-  string m_timeStampDayFieldName;
-  string m_timeStampMillisecondFieldName;
-  string m_timeStampMicrosecondFieldName;
+  std::string m_timeStampDayFieldName;
+  std::string m_timeStampMillisecondFieldName;
+  std::string m_timeStampMicrosecondFieldName;
   /** Altimeter Indicator. 
       This element is computed for TOPEX and POSEIDON data. 
       It indicates which altimeter is on at the time of the measurement. 
       Value Definition: 0 = POSEIDON on, 1 = TOPEX on
       */
-  string m_altimeterIndicatorFieldName;
+  std::string m_altimeterIndicatorFieldName;
 
 private:
   

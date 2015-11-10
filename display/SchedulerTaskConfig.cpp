@@ -266,7 +266,7 @@ void CSchedulerTaskConfig::PrepareSmartCleaner()
   // make a single entry point for creating the smart cleaner because there are multiple
   // GetInstance interfaces.
   //wxCriticalSectionLocker locker(CSchedulerTaskConfig::CSmartCleaner::m_critSectSmartCleanerInstance);
-  //cout << "Enter PrepareSmartCleaner" << endl;
+  //cout << "Enter PrepareSmartCleaner" << std::endl;
   static CSmartCleaner object(&CSchedulerTaskConfig::m_instance, &CSchedulerTaskConfig::m_logBuffer);
 }
 //----------------------------------------
@@ -279,7 +279,7 @@ CSchedulerTaskConfig* CSchedulerTaskConfig::GetInstance(bool reload /* = false *
 CSchedulerTaskConfig* CSchedulerTaskConfig::GetInstance(const wxString* fileName, bool reload /* = false */, bool lockFile /* = true */, bool unlockFile  /* = true */, const wxString& encoding /* = "UTF-8" */)
 {
   wxCriticalSectionLocker locker(CSchedulerTaskConfig::m_critSectSchedulerTaskConfigInstance);
-   //cout << "Enter GetInstance" << endl;
+   //cout << "Enter GetInstance" << std::endl;
   if (CSchedulerTaskConfig::m_instance != NULL)
   {
     if (reload)
@@ -297,7 +297,7 @@ CSchedulerTaskConfig* CSchedulerTaskConfig::GetInstance(const wxString* fileName
   }
   else 
   {
-    //cout << "GetInstance" << endl;
+    //cout << "GetInstance" << std::endl;
     if (fileName != NULL)
     {      
 
@@ -349,12 +349,12 @@ CSchedulerTaskConfig* CSchedulerTaskConfig::GetInstance(const wxString* fileName
 
     }
   }
-   //cout << "Exit GetInstance" << endl;
+   //cout << "Exit GetInstance" << std::endl;
 
   return CSchedulerTaskConfig::m_instance;
 }
 ////----------------------------------------------------
-//CSchedulerTaskConfig* CSchedulerTaskConfig::GetInstance(const string* fileName, bool reload /* = false */, const wxString& encoding /* = "UTF-8" */)
+//CSchedulerTaskConfig* CSchedulerTaskConfig::GetInstance(const std::string* fileName, bool reload /* = false */, const wxString& encoding /* = "UTF-8" */)
 //{
 //  if (fileName == NULL)
 //  {
@@ -501,7 +501,7 @@ bool CSchedulerTaskConfig::ChangeProcessingToPending(CVectorBratTask& vectorTask
   vectorTasks.SetDelete(false);
 
   // tasks will be deleted from m_mapProcessingBratTask by ChangeTaskStatus function
-  // Don't change status within the loop, store tasks into a vecor and then change status from vector tasks
+  // Don't change status within the loop, store tasks into a vecor and then change status from std::vector tasks
   for (it = m_mapProcessingBratTask.begin() ; it != m_mapProcessingBratTask.end() ; it++)
   {
     CBratTask* bratTask = it->second;
@@ -846,7 +846,7 @@ bool CSchedulerTaskConfig::Load(const wxString& fileName, bool lockFile /* = tru
     UnLockConfigFile(unlockFile);
     throw e;
   }
-  catch(exception& e)
+  catch(std::exception& e)
   {
     UnLockConfigFile(unlockFile);
     throw e;
@@ -1011,7 +1011,7 @@ bool CSchedulerTaskConfig::AddNewTask(CSchedulerTaskConfig* sched)
     CBratTask* bratTask = m_mapBratTask.Find(id);
     if (bratTask == NULL)
     {
-      wxLogInfo("Add task '%s' to pending list", bratTaskNew->GetUidValueAsString().c_str());
+      wxLogInfo("Add task '%s' to pending std::list", bratTaskNew->GetUidValueAsString().c_str());
       
       wxXmlNode* nodeNew = sched->FindTaskNode(bratTaskNew->GetUidValue(), sched->GetPendingTaskNode(), true);
 
@@ -1079,7 +1079,7 @@ bool CSchedulerTaskConfig::Save(const wxString& fileName, bool lockFile /* = tru
     UnLockConfigFile(unlockFile);
     throw e;
   }
-  catch(exception& e)
+  catch(std::exception& e)
   {
     //MutexUnLock();
     UnLockConfigFile(unlockFile);
@@ -1225,13 +1225,13 @@ wxLongLong CSchedulerTaskConfig::GenerateId()
   // ensure that no other thread accesses the id
   //wxCriticalSectionLocker locker(m_criSectionMapBratTask);
   m_lastId = wxDateTime::UNow().GetValue();
-  //cout << "Enter generate id " << m_lastId.GetValue() << endl;
+  //cout << "Enter generate id " << m_lastId.GetValue() << std::endl;
   CBratTask* bratTask = m_mapBratTask.Find(m_lastId.GetValue());
 
   while (bratTask != NULL)
   {
     m_lastId++;
-    //cout << "Loop generate id " << m_lastId.GetValue() << endl;
+    //cout << "Loop generate id " << m_lastId.GetValue() << std::endl;
     bratTask = m_mapBratTask.Find(m_lastId.GetValue());
   }
 
@@ -2001,7 +2001,7 @@ void CSchedulerTaskConfig::ForceUnLockConfigFile()
 
 }
 //----------------------------------------
-void CSchedulerTaskConfig::GetMapPendingBratTaskToProcess(const wxDateTime& dateRef, vector<wxLongLong_t>* vectorBratTaskToProcess)
+void CSchedulerTaskConfig::GetMapPendingBratTaskToProcess(const wxDateTime& dateRef, std::vector<wxLongLong_t>* vectorBratTaskToProcess)
 {
   if (vectorBratTaskToProcess == NULL)
   {

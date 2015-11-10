@@ -73,7 +73,7 @@ CMapTypeDisp& CMapTypeDisp::GetInstance()
 }
 
 //----------------------------------------
-bool CMapTypeDisp::ValidName(const string& name)
+bool CMapTypeDisp::ValidName(const std::string& name)
 {   
   return ValidName(name.c_str());
 }

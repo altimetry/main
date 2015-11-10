@@ -20,10 +20,14 @@
 #if !defined(_BratAlgorithmBase_h_)
 #define _BratAlgorithmBase_h_
 
+
+#include <iostream>
+
+
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h"
+#include <string>
 
 #include "List.h" 
 #include "Tools.h" 
@@ -80,15 +84,15 @@ public:
   virtual ~CBratAlgorithmParam();
 
   bratAlgoParamTypeVal GetTypeVal() {return m_typeVal; };
-  string GetTypeValAsString() {return TypeValAsString(m_typeVal); };
+  std::string GetTypeValAsString() {return TypeValAsString(m_typeVal); };
 
-  string GetValue();
+  std::string GetValue();
 
   double GetValueAsDouble() {return m_valDouble; };
   int32_t GetValueAsInt() {return m_valInt;};
   int64_t GetValueAsLong() {return m_valLong;};
   float GetValueAsFloat() {return m_valFloat;};
-  string GetValueAsString() {return m_valString;};
+  std::string GetValueAsString() {return m_valString;};
   unsigned char GetValueAsChar() {return m_valChar;};
   CDoubleArray* GetValueAsVectDouble() {return &m_vectValDouble;};
 
@@ -96,21 +100,21 @@ public:
   void SetValue(float value);
   void SetValue(int32_t value);
   void SetValue(int64_t value);
-  void SetValue(const string& value);
+  void SetValue(const std::string& value);
   void SetValue(unsigned char value);
   void SetValue(const CDoubleArray& value);
   void SetValue(double* value, int32_t nbValues);
 
   void SetValue(double value, CBratAlgorithmParam::bratAlgoParamTypeVal type);
-  void SetValue(const string& value, CBratAlgorithmParam::bratAlgoParamTypeVal type);
+  void SetValue(const std::string& value, CBratAlgorithmParam::bratAlgoParamTypeVal type);
 
-  void SetValueAsDoubleArray(const string& value, const string& delim = ","); 
+  void SetValueAsDoubleArray(const std::string& value, const std::string& delim = ","); 
 
   bratAlgoParamTypeVal TypeVal(bratAlgoParamTypeVal type) { return type; };
 
-  static string TypeValAsString(bratAlgoParamTypeVal type);
+  static std::string TypeValAsString(bratAlgoParamTypeVal type);
 
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
   const CBratAlgorithmParam& operator=(const CBratAlgorithmParam &o);
   //virtual bool operator==(const CBratAlgorithmParam& o) { return true; };
@@ -129,14 +133,14 @@ protected:
   float m_valFloat;
   int32_t m_valInt;
   int64_t m_valLong;
-  string m_valString;
+  std::string m_valString;
   unsigned char m_valChar;
   CDoubleArray m_vectValDouble;
     
 
 };
 
-typedef vector<CBratAlgorithmParam> vectorbratalgorithmparam; 
+typedef std::vector<CBratAlgorithmParam> vectorbratalgorithmparam; 
 
 //-------------------------------------------------------------
 //------------------- CVectorBratAlgorithmParam class --------------------
@@ -155,17 +159,17 @@ public:
   void Insert(double value);
   void Insert(float value);
   void Insert(int32_t value);
-  void Insert(const string& value);
+  void Insert(const std::string& value);
   void Insert(unsigned char value);
   void Insert(const CDoubleArray& value);
   void Insert(double* value, int32_t nbValues);
 
   void Insert(double value, CBratAlgorithmParam::bratAlgoParamTypeVal type);
-  void Insert(const string& value, CBratAlgorithmParam::bratAlgoParamTypeVal type);
+  void Insert(const std::string& value, CBratAlgorithmParam::bratAlgoParamTypeVal type);
   
-  string ToString(const string& delim = ",", bool useBracket = true);
+  std::string ToString(const std::string& delim = ",", bool useBracket = true);
   
-  virtual void Dump(ostream& fOut = cerr); 
+  virtual void Dump(std::ostream& fOut = std::cerr); 
 
 
 protected:
@@ -201,32 +205,32 @@ public:
   virtual ~CBratAlgorithmBase();
 
   /** Runs the algorithm
-      \param fmt [in] : a string that indicates the format of each value of input parameters (number, string) :
+      \param fmt [in] : a std::string that indicates the format of each value of input parameters (number, std::string) :
         %d for integer
         %l for long integer
         %f for double
-        %s for string
+        %s for std::string
       \param args [in] : the values of input parameters i(a C/C++ va_list).
 
      \return the result of the execution */
   virtual double Run(CVectorBratAlgorithmParam& args) = 0;
   
   /** Gets the name of the algorithm */
-  virtual string GetName() = 0;
+  virtual std::string GetName() = 0;
   /** Gets the description of the algorithm */
-  virtual string GetDescription() = 0;
+  virtual std::string GetDescription() = 0;
   /** Gets the number of input parameters to pass to the 'Run' function */
   virtual uint32_t GetNumInputParam() = 0;
   /** Gets the description of an input parameter.
    \param indexParam [in] : parameter index. First parameter index is 0, last one is 'number of parameters - 1'.
    */
-  virtual string GetInputParamDesc(uint32_t indexParam) = 0;
+  virtual std::string GetInputParamDesc(uint32_t indexParam) = 0;
   /** Gets the format of an input parameter :
       CBratAlgorithmParam::T_DOUBLE for double
       CBratAlgorithmParam::T_FLOAT for float
       CBratAlgorithmParam::T_INT for integer
       CBratAlgorithmParam::T_LONG for long integer
-      CBratAlgorithmParam::T_STRING for string
+      CBratAlgorithmParam::T_STRING for std::string
       CBratAlgorithmParam::T_CHAR for a character
    \param indexParam [in] : parameter index. First parameter index is 0, last one is 'number of parameters - 1'.
    */
@@ -234,13 +238,13 @@ public:
   /** Gets the unit of an input parameter :
    \param indexParam [in] : parameter index. First parameter index is 0, last one is 'number of parameters - 1'.
    */
-  virtual string GetInputParamUnit(uint32_t indexParam) = 0;
+  virtual std::string GetInputParamUnit(uint32_t indexParam) = 0;
   /** Gets the unit of an output value returned by the 'Run' function.
    */
-  virtual string GetOutputUnit() = 0;
+  virtual std::string GetOutputUnit() = 0;
   
-  //virtual string GetParamFormats();
-  virtual string GetParamName(uint32_t /*indexParam*/) {return "";};
+  //virtual std::string GetParamFormats();
+  virtual std::string GetParamName(uint32_t /*indexParam*/) {return "";};
   virtual double GetParamDefaultValue(uint32_t /*indexParam*/) {return CTools::m_defaultValueDOUBLE;};
   
   void GetParamDefValue(uint32_t indexParam, double& value);
@@ -250,18 +254,18 @@ public:
   void GetParamDefValue(uint32_t indexParam, int32_t& value);
   void GetParamDefValue(uint32_t indexParam, int64_t& value);
 
-  string GetParamDefValueAsString(uint32_t indexParam);
-  string GetParamDefValueAsLabel(uint32_t indexParam);
+  std::string GetParamDefValueAsString(uint32_t indexParam);
+  std::string GetParamDefValueAsLabel(uint32_t indexParam);
 
-  string GetInputParamDescWithDefValueLabel(uint32_t indexParam);
+  std::string GetInputParamDescWithDefValueLabel(uint32_t indexParam);
 
-  virtual string GetInputParamFormatAsString(uint32_t indexParam) {
+  virtual std::string GetInputParamFormatAsString(uint32_t indexParam) {
     CBratAlgorithmParam::bratAlgoParamTypeVal type = GetInputParamFormat(indexParam);
     return CBratAlgorithmParam::TypeValAsString(type);
   };
 
-  string GetAlgoExpression() { return m_algoExpression; };
-  void SetAlgoExpression(const string& value);
+  std::string GetAlgoExpression() { return m_algoExpression; };
+  void SetAlgoExpression(const std::string& value);
 
   CObArray* GetAlgoParamExpressions() { return &m_algoParamExpressions; };
   void SetAlgoParamExpressions(const CStringArray& values);
@@ -276,7 +280,7 @@ public:
 
   CProductNetCdf* GetProductNetCdf(CProduct* product);
 
-  string GetSyntax();
+  std::string GetSyntax();
 
   void CheckConstantParam(uint32_t indexParam);
 
@@ -284,7 +288,7 @@ public:
   CBratAlgorithmBase& operator=(const CBratAlgorithmBase &o);
 
   /** Dump function */
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
  
   //static double Exec(const char* function, const char *fmt, const type_union *arg);
   static CBratAlgorithmBase* GetNew(const char* algorithName);
@@ -340,7 +344,7 @@ protected:
   void InitComplexExpressionArray();
   
   void AddXOrYFieldDependency(CFieldNetCdf* field, CFieldNetCdf* field2DAsRef);
-  void AddXOrYFieldDependency(CFieldNetCdf* field, const string& xDimName, const string& yDimName);
+  void AddXOrYFieldDependency(CFieldNetCdf* field, const std::string& xDimName, const std::string& yDimName);
 
   void SetField2DAsRef();
   CFieldNetCdf* GetField2DAsRef();
@@ -356,7 +360,7 @@ protected:
   CProduct* m_product;
 
   //The expression called for this algorithm instance
-  string m_algoExpression;
+  std::string m_algoExpression;
   //The algorithm parameters as expressions
   CObArrayOb m_algoParamExpressions;
   CStringList m_listFieldsToRead;
@@ -367,7 +371,7 @@ protected:
 
   int32_t m_callerProductRecordPrev;
 
-  string m_currentFileName;
+  std::string m_currentFileName;
 
   CObMap m_fieldDependOnXDim;
   CObMap m_fieldDependOnYDim;
@@ -379,8 +383,8 @@ protected:
 
   CFieldNetCdf* m_field2DAsRef;
 
-  vector<bool> m_isComplexExpression;
-  vector<bool> m_isComplexExpressionWithAlgo;
+  std::vector<bool> m_isComplexExpression;
+  std::vector<bool> m_isComplexExpressionWithAlgo;
 
   CIntArray m_expectedTypes;
 
@@ -392,8 +396,8 @@ protected:
 
 };
 
-typedef map<string, CBratAlgorithmBase*> mapbratalgorithmbase; 
-typedef vector<CBratAlgorithmBase*> vectorbratalgorithmbase; 
+typedef std::map<std::string, CBratAlgorithmBase*> mapbratalgorithmbase; 
+typedef std::vector<CBratAlgorithmBase*> vectorbratalgorithmbase; 
 
 //-------------------------------------------------------------
 //------------------- CMapBratAlgorithm class --------------------
@@ -406,18 +410,18 @@ public:
   CMapBratAlgorithm(bool bDelete = true);  
   virtual ~CMapBratAlgorithm();
 
-  virtual CBratAlgorithmBase* Insert(const string& key, CBratAlgorithmBase* ob, bool withExcept = true);
+  virtual CBratAlgorithmBase* Insert(const std::string& key, CBratAlgorithmBase* ob, bool withExcept = true);
 
   virtual void RemoveAll();
 
-  virtual void Dump(ostream& fOut  = cerr); 
+  virtual void Dump(std::ostream& fOut  = std::cerr); 
 
-  virtual CBratAlgorithmBase* Find(const string& algoName) const;
+  virtual CBratAlgorithmBase* Find(const std::string& algoName) const;
 
   bool GetDelete() {return m_bDelete;};
   void SetDelete(bool value) {m_bDelete = value;};
 
-  string GetSyntaxAlgo(const string& name);
+  std::string GetSyntaxAlgo(const std::string& name);
 
 protected:
 
@@ -447,7 +451,7 @@ public:
 
   virtual void RemoveAll();
 
-  virtual void Dump(ostream& fOut  = cerr); 
+  virtual void Dump(std::ostream& fOut  = std::cerr); 
 
   bool GetDelete() {return m_bDelete;};
   void SetDelete(bool value) {m_bDelete = value;};
@@ -502,8 +506,8 @@ public:
 
 
   static CBratAlgorithmBaseRegistry& GetInstance();        
-  static CBratAlgorithmBase* Find(const string& algoName);
-  static CBratAlgorithmBase* GetAlgorithm(const string& algoName, bool withExcept = true);
+  static CBratAlgorithmBase* Find(const std::string& algoName);
+  static CBratAlgorithmBase* GetAlgorithm(const std::string& algoName, bool withExcept = true);
   static CMapBratAlgorithm* GetAlgorithms();
   static CVectorBratAlgorithm* GetAlgorithmsAsSortedArray(bool forceToFill = false);
 
@@ -536,11 +540,11 @@ public:
   CBratAlgoExample1() {}
   virtual ~CBratAlgoExample1() {}
 
-  virtual string GetName() override
+  virtual std::string GetName() override
   {
       return "example1";
   }
-  virtual string GetDescription() override
+  virtual std::string GetDescription() override
   {
       return "example 1 of algorithm - return (parameter 2 + parameter 4)";
   }
@@ -548,9 +552,9 @@ public:
   {
       return 4;
   }
-  virtual string GetInputParamDesc(uint32_t indexParam) override
+  virtual std::string GetInputParamDesc(uint32_t indexParam) override
   {
-        string value = "";
+        std::string value = "";
         switch (indexParam) 
         {
           case 0: value = "first parameter"; break;
@@ -589,9 +593,9 @@ public:
   /** Gets the unit of an input parameter :
    \param indexParam [in] : parameter index.
    */
-  virtual string GetInputParamUnit(uint32_t indexParam) override
+  virtual std::string GetInputParamUnit(uint32_t indexParam) override
   {
-        string value = "";
+        std::string value = "";
         switch (indexParam) 
         {
           case 0: value = "degrees_north"; break;
@@ -609,21 +613,21 @@ public:
   /** Gets the unit of an output value returned by the 'Run' function.
    \param indexParam [in] : parameter index.
    */
-  virtual string GetOutputUnit() override
+  virtual std::string GetOutputUnit() override
   {
       return "m";
   }
 
   virtual double Run(CVectorBratAlgorithmParam& args) override ;
 
-  virtual void Dump(ostream& fOut = cerr) override ;
+  virtual void Dump(std::ostream& fOut = std::cerr) override ;
 
 
 protected:
 
   double m_1;
   int32_t m_2;
-  string m_3;
+  std::string m_3;
   int64_t m_4;
 
 

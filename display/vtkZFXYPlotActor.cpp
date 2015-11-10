@@ -397,7 +397,7 @@ void vtkZFXYPlotActor::AddInput(vtkZFXYPlotFilter* plotData)
     return;
   }
 
-  // Check if plotdata is not already in the list
+  // Check if plotdata is not already in the std::list
   if (this->PlotData->IsItemPresent(plotData) == 0)
   {
     this->PlotData->AddItem(plotData);
@@ -520,7 +520,7 @@ void vtkZFXYPlotActor::RemoveInput(CZFXYPlotData* pdata)
 }
 
 //----------------------------------------------------------------------------
-// Remove a data object from the list of data to plot.
+// Remove a data object from the std::list of data to plot.
 void vtkZFXYPlotActor::RemoveInput(vtkZFXYPlotFilter *plotData)
 {
   int location = this->PlotData->IsItemPresent(plotData);
@@ -657,7 +657,7 @@ void vtkZFXYPlotActor::AddActor(vtkActor2D* plotActor)
   }
 
 
-  // Check if plotActor is not already in the list
+  // Check if plotActor is not already in the std::list
   if (this->PlotActors->IsItemPresent(plotActor) == 0)
   {
     this->PlotActors->AddItem(plotActor);
@@ -1314,11 +1314,11 @@ unsigned long vtkZFXYPlotActor::GetMTime()
 }
 
 //----------------------------------------------------------------------------
-void vtkZFXYPlotActor::PrintSelf(ostream& os, vtkIndent indent)
+void vtkZFXYPlotActor::PrintSelf(std::ostream& os, vtkIndent indent)
 {
   vtkActor2D::PrintSelf(os, indent);
 
-  os << indent << "Input PlotData Objects:" << endl;
+  os << indent << "Input PlotData Objects:" << std::endl;
   this->PlotData->PrintSelf(os, indent.GetNextIndent());
   
   if (this->TitleTextProperty)
@@ -1355,46 +1355,46 @@ void vtkZFXYPlotActor::PrintSelf(ostream& os, vtkIndent indent)
      << this->InnerPlotBounds[0] << ", " 
      << this->InnerPlotBounds[1] << ", " 
      << this->InnerPlotBounds[2] << ", " 
-     << this->InnerPlotBounds[3] << ")" << endl;
+     << this->InnerPlotBounds[3] << ")" << std::endl;
 
-  os << indent << "Title: " << (this->Title ? this->Title : "(none)") << endl;
+  os << indent << "Title: " << (this->Title ? this->Title : "(none)") << std::endl;
 
   os << indent << "X Title: " 
-     << (this->XTitle ? this->XTitle : "(none)") << endl;
+     << (this->XTitle ? this->XTitle : "(none)") << std::endl;
   os << indent << "Y Title: " 
-     << (this->YTitle ? this->YTitle : "(none)") << endl;
+     << (this->YTitle ? this->YTitle : "(none)") << std::endl;
  
   os << indent << "X Range: ";
   if ( this->XRange[0] > this->XRange[1] )
     {
-    os << indent << "(Automatically Computed)" << endl;
+    os << indent << "(Automatically Computed)" << std::endl;
     }
   else
     {
-    os << "(" << this->XRange[0] << ", " << this->XRange[1] << ")" << endl;
+    os << "(" << this->XRange[0] << ", " << this->XRange[1] << ")" << std::endl;
     }
 
   os << indent << "Y Range: ";
   if ( this->XRange[0] > this->YRange[1] )
-    os << indent << "(Automatically Computed)" << endl;
+    os << indent << "(Automatically Computed)" << std::endl;
   else
-    os << "(" << this->YRange[0] << ", " << this->YRange[1] << ")" << endl;
+    os << "(" << this->YRange[0] << ", " << this->YRange[1] << ")" << std::endl;
 
-  os << indent << "Logarithmic X Axis: " << (this->LogX ? "On" : "Off") << endl;
-  os << indent << "Logarithmic Y Axis: " << (this->LogY ? "On" : "Off") << endl;
+  os << indent << "Logarithmic X Axis: " << (this->LogX ? "On" : "Off") << std::endl;
+  os << indent << "Logarithmic Y Axis: " << (this->LogY ? "On" : "Off") << std::endl;
 
-  os << indent << "Base for X Axis: " << this->BaseX << endl;
-  os << indent << "Base for Y Axis: " << this->BaseY << endl;
+  os << indent << "Base for X Axis: " << this->BaseX << std::endl;
+  os << indent << "Base for Y Axis: " << this->BaseY << std::endl;
 
-  os << indent << "Minimum Logarithmic Value: " << this->MinLogValue << endl;
+  os << indent << "Minimum Logarithmic Value: " << this->MinLogValue << std::endl;
 
-  os << indent << "Number Of X Labels: " << this->NumberOfXLabels << endl;
-  os << indent << "Number Of Y Labels: " << this->NumberOfYLabels << endl;
+  os << indent << "Number Of X Labels: " << this->NumberOfXLabels << std::endl;
+  os << indent << "Number Of Y Labels: " << this->NumberOfYLabels << std::endl;
 
-  os << indent << "Label X Format: " << this->LabelXFormat << endl;
-  os << indent << "Label Y Format: " << this->LabelYFormat << endl;
+  os << indent << "Label X Format: " << this->LabelXFormat << std::endl;
+  os << indent << "Label Y Format: " << this->LabelYFormat << std::endl;
 
-  os << indent << "Legend: " << (this->Legend ? "On" : "Off") << endl;
+  os << indent << "Legend: " << (this->Legend ? "On" : "Off") << std::endl;
   LegendActor->Print(os);
 }
 

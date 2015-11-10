@@ -48,7 +48,7 @@ public:
   
   /** Creates new CProductAop object
     \param fileName [in] : file name to be connected */
-  CProductAop(const string& fileName);
+  CProductAop(const std::string& fileName);
   
   /** Creates new CProductAop object
     \param fileNameList [in] : list of file to be connected */
@@ -60,7 +60,7 @@ public:
   virtual void InitCriteriaInfo();
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
 

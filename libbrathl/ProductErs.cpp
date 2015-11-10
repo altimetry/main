@@ -27,7 +27,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h" 
+#include <string> 
 
 #include "TraceLog.h" 
 #include "Tools.h" 
@@ -39,9 +39,9 @@ using namespace brathl;
 namespace brathl
 {
 
-const string ERS_HEADER = "header";
+const std::string ERS_HEADER = "header";
 
-const string CProductErs::m_WAP = "ALT.WAP";
+const std::string CProductErs::m_WAP = "ALT.WAP";
 
 
 CProductErs::CProductErs()
@@ -52,7 +52,7 @@ CProductErs::CProductErs()
 
 //----------------------------------------
 
-CProductErs::CProductErs(const string& fileName)
+CProductErs::CProductErs(const std::string& fileName)
       : CProduct(fileName)
 {
   Init();  
@@ -161,7 +161,7 @@ bool CProductErs::IsHighResolutionField(CField* field)
 //----------------------------------------
 void CProductErs::AddInternalHighResolutionFieldCalculation()
 {
-  string internalFieldName;
+  std::string internalFieldName;
   CField* fieldTest = NULL;
 
 //  internalFieldName = MakeInternalFieldName(m_latitudeFieldName);
@@ -228,7 +228,7 @@ void CProductErs::ProcessHighResolutionWithoutFieldCalculation()
 
   if (recordSetToProcess == NULL)
   {
-    string msg = "ERROR in CProductErs::ProcessHighResolutionWithoutFieldCalculation - No current recordset";
+    std::string msg = "ERROR in CProductErs::ProcessHighResolutionWithoutFieldCalculation - No current recordset";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
@@ -240,27 +240,27 @@ void CProductErs::ProcessHighResolutionWithoutFieldCalculation()
 
   if (fieldSetLat == NULL)
   {
-    string msg = "ERROR in CProductErs::ProcessHighResolutionWithoutFieldCalculation - latitude field has not been read";
+    std::string msg = "ERROR in CProductErs::ProcessHighResolutionWithoutFieldCalculation - latitude field has not been read";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
 
   if (fieldSetLon == NULL)
   {
-    string msg = "ERROR in CProductErs::ProcessHighResolutionWithoutFieldCalculation - longitude field has not been read";
+    std::string msg = "ERROR in CProductErs::ProcessHighResolutionWithoutFieldCalculation - longitude field has not been read";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
 
   if (fieldSetTimeStampSecond == NULL)
   {
-    string msg = "ERROR in CProductErs::ProcessHighResolutionWithoutFieldCalculation - timestamp second field has not been read";
+    std::string msg = "ERROR in CProductErs::ProcessHighResolutionWithoutFieldCalculation - timestamp second field has not been read";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
   if (fieldSetTimeStampMicrosecond == NULL)
   {
-    string msg = "ERROR in CProductErs::ProcessHighResolutionWithoutFieldCalculation - timestamp microsecond field has not been read";
+    std::string msg = "ERROR in CProductErs::ProcessHighResolutionWithoutFieldCalculation - timestamp microsecond field has not been read";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
@@ -280,7 +280,7 @@ void CProductErs::ProcessHighResolutionWithoutFieldCalculation()
   if  ( (timeStamp - m_previousTimeStamp > 2.0) ||
         (timeStamp <= m_previousTimeStamp) )
   {
-    string msg = CTools::Format("INFO - record skipped due to inconsistency between two measures\n"
+    std::string msg = CTools::Format("INFO - record skipped due to inconsistency between two measures\n"
                                 "\t previous record --> timestamp %f seconds\n"
                                 "\t current record --> timestamp %f seconds\n"
                                 "\t timestamp difference is %f seconds\n",
@@ -307,13 +307,13 @@ void CProductErs::ProcessHighResolutionWithoutFieldCalculation()
 
   if (CTools::IsDefaultValue(m_previousLatitude))
   {
-    string msg = "ERROR in CProductErs::ProcessHighResolutionWithoutFieldCalculation - previous latitude value read is inconsistent (is default value)";
+    std::string msg = "ERROR in CProductErs::ProcessHighResolutionWithoutFieldCalculation - previous latitude value read is inconsistent (is default value)";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
     throw (e);
   }
   if (CTools::IsDefaultValue(m_previousLongitude))
   {
-    string msg = "ERROR in CProductErs::ProcessHighResolutionWithoutFieldCalculation - previous longitude value read is inconsistent (is default value)";
+    std::string msg = "ERROR in CProductErs::ProcessHighResolutionWithoutFieldCalculation - previous longitude value read is inconsistent (is default value)";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
     throw (e);
   }
@@ -333,7 +333,7 @@ void CProductErs::ProcessHighResolutionWithoutFieldCalculation()
 
   if ( (m_numHighResolutionMeasure * CTools::Abs(deltaLon)) > 1.0)
   {
-    string msg = CTools::Format("ERROR in CProductErs::ProcessHighResolutionWithoutFieldCalculation - delta of longitude is set to an unexpected value: %f "
+    std::string msg = CTools::Format("ERROR in CProductErs::ProcessHighResolutionWithoutFieldCalculation - delta of longitude is set to an unexpected value: %f "
                                 "\n\tcurrent datetime: %f current latitude: %f current longitude: %f"
                                 "\n\tprevious datetime: %f previous latitude: %f previous longitude: %f",
                                 deltaLon,
@@ -522,7 +522,7 @@ void CProductErs::ComputeHighResolutionFields(CDataSet* dataSet, double deltaLat
 }
 
 //----------------------------------------
-void CProductErs::Dump(ostream& fOut /* = cerr */)
+void CProductErs::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -530,15 +530,15 @@ void CProductErs::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CProductErs Object at "<< this << endl;
+  fOut << "==> Dump a CProductErs Object at "<< this << std::endl;
 
   //------------------
   CProduct::Dump(fOut);
   //------------------
 
-  fOut << "==> END Dump a CProductErs Object at "<< this << endl;
+  fOut << "==> END Dump a CProductErs Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

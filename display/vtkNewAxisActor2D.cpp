@@ -241,66 +241,66 @@ void vtkNewAxisActor2D::ReleaseGraphicsResources(vtkWindow *win)
 }
 
 //----------------------------------------------------------------------------
-void vtkNewAxisActor2D::PrintSelf(ostream& os, vtkIndent indent)
+void vtkNewAxisActor2D::PrintSelf(std::ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os,indent);
 
   if (this->TitleTextProperty)
     {
-    os << indent << "Title Text Property:" << endl;
+    os << indent << "Title Text Property:" << std::endl;
     this->TitleTextProperty->PrintSelf(os,indent.GetNextIndent());
     }
   else
     {
-    os << indent << "Title Text Property: (none)" << endl;
+    os << indent << "Title Text Property: (none)" << std::endl;
     }
 
   if (this->LabelTextProperty)
     {
-    os << indent << "Label Text Property:" << endl;
+    os << indent << "Label Text Property:" << std::endl;
     this->LabelTextProperty->PrintSelf(os,indent.GetNextIndent());
     }
   else
     {
-    os << indent << "Label Text Property: (none)" << endl;
+    os << indent << "Label Text Property: (none)" << std::endl;
     }
 
-  os << indent << "Title: " << (this->Title ? this->Title : "(none)") << endl;
-  os << indent << "Number Of Labels: " << this->NumberOfLabels << endl;
+  os << indent << "Title: " << (this->Title ? this->Title : "(none)") << std::endl;
+  os << indent << "Number Of Labels: " << this->NumberOfLabels << std::endl;
   os << indent << "Range: (" << this->Range[0] 
-     << ", " << this->Range[1] << ")" << endl;
+     << ", " << this->Range[1] << ")" << std::endl;
 
   os << indent << "Adjusted Number Of Labels: " 
-     << this->AdjustedNumberOfLabels << endl;
+     << this->AdjustedNumberOfLabels << std::endl;
   os << indent << "Adjusted Range: (" << this->AdjustedRange[0] 
-     << ", " << this->AdjustedRange[1] << ")" << endl;
+     << ", " << this->AdjustedRange[1] << ")" << std::endl;
   os << indent << "Tick Range: (" << this->TickRange[0] 
-     << ", " << this->TickRange[1] << ")" << endl;
-  os << indent << "Interval: " << this->Interval << endl;
+     << ", " << this->TickRange[1] << ")" << std::endl;
+  os << indent << "Interval: " << this->Interval << std::endl;
 
-  os << indent << "Label Format: " << this->LabelFormat << endl;
-  os << indent << "Font Factor: " << this->FontFactor << endl;
-  os << indent << "Label Factor: " << this->LabelFactor << endl;
-  os << indent << "Tick Length: " << this->TickLength << endl;
-  os << indent << "Tick Offset: " << this->TickOffset << endl;
+  os << indent << "Label Format: " << this->LabelFormat << std::endl;
+  os << indent << "Font Factor: " << this->FontFactor << std::endl;
+  os << indent << "Label Factor: " << this->LabelFactor << std::endl;
+  os << indent << "Tick Length: " << this->TickLength << std::endl;
+  os << indent << "Tick Offset: " << this->TickOffset << std::endl;
   
   os << indent << "Adjust Range: " 
-     << (this->AdjustRange ? "On" : "Off") << endl;
+     << (this->AdjustRange ? "On" : "Off") << std::endl;
   
   os << indent << "Adjust Ticks: " 
-     << (this->AdjustTicks ? "On" : "Off") << endl;
+     << (this->AdjustTicks ? "On" : "Off") << std::endl;
   
   os << indent << "Axis Visibility: " 
-     << (this->AxisVisibility ? "On" : "Off") << endl;
+     << (this->AxisVisibility ? "On" : "Off") << std::endl;
   
   os << indent << "Tick Visibility: " 
-     << (this->TickVisibility ? "On" : "Off") << endl;
+     << (this->TickVisibility ? "On" : "Off") << std::endl;
   
   os << indent << "Label Visibility: " 
-     << (this->LabelVisibility ? "On" : "Off") << endl;
+     << (this->LabelVisibility ? "On" : "Off") << std::endl;
   
   os << indent << "Title Visibility: " 
-     << (this->TitleVisibility ? "On" : "Off") << endl;
+     << (this->TitleVisibility ? "On" : "Off") << std::endl;
 }
 
 //----------------------------------------------------------------------------
@@ -316,7 +316,7 @@ void vtkNewAxisActor2D::BuildAxis(vtkViewport *viewport)
   double theta;
   double val;
   int *size, stringSize[2];
-  char string[512];
+  char str[512];
 
   if (this->TitleVisibility && !this->TitleTextProperty)
     {
@@ -545,8 +545,8 @@ void vtkNewAxisActor2D::BuildAxis(vtkViewport *viewport)
             val = 0.0;
             }
           }
-        sprintf(string, this->LabelFormat, val);
-        this->LabelMappers[i]->SetInput(string);
+        sprintf(str, this->LabelFormat, val);
+        this->LabelMappers[i]->SetInput(str);
 
         // Check if the label text has changed
 
@@ -880,7 +880,7 @@ void vtkNewAxisActor2D::ComputeRange(double inRange[2],
        << (logAxis ? 0 : pow(base, lbase - flbase)) << " "
        << (logAxis ? 0 : norminterval) << ") -> (" << outRange[0]
        << "," << outRange[1] << ") " << outRange[1] - outRange[0]
-       << " / " << numTicks - 1 << " " << interval << endl;
+       << " / " << numTicks - 1 << " " << interval << std::endl;
 #endif
 
   if (inRange[0] > inRange[1])
@@ -963,7 +963,7 @@ void vtkNewAxisActor2D::ComputeInnerRange(double inRange[2],
     if (numTicks <= 1)
       {
 #if 0
-      cout << "Not enough ticks -> going for linear!" << endl;
+      cout << "Not enough ticks -> going for linear!" << std::endl;
 #endif
       // The amount of powers of 2 in the range is less then 2
       range = sRange[1] - sRange[0];
@@ -1015,7 +1015,7 @@ void vtkNewAxisActor2D::ComputeInnerRange(double inRange[2],
        << (logAxis ? 0 : pow(base, lbase - flbase)) << " "
        << (logAxis ? 0 : norminterval) << ") -> (" << outRange[0]
        << "," << outRange[1] << ") " << outRange[1] - outRange[0]
-       << " / " << numTicks - 1 << " " << interval << endl;
+       << " / " << numTicks - 1 << " " << interval << std::endl;
 #endif
 
   if (inRange[0] > inRange[1])

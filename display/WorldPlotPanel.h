@@ -29,6 +29,8 @@
     #include <wx/wx.h>
 #endif
 
+#include <set>
+
 #include "vtkTransformCollection.h"
 #include "vtkTextProperty.h"
 #include "vtkTextActor.h"
@@ -58,7 +60,7 @@
 #include "vtkInteractorStyleWPlot.h"
 #include "vtkInteractorStyle3DWPlot.h"
 
-#include "vtkList.h"
+#include "PlotData/vtkList.h"
 
 #include "Tools.h"
 #include "List.h"
@@ -70,12 +72,12 @@ using namespace brathl;
 #include "BratDisplay_wdr.h"
 
 #include "AnimationToolbar.h"
-#include "WorldPlotData.h"
+#include "PlotData/WorldPlotData.h"
 #include "WPlotPropertyPanel.h"
 #include "LUTPanel.h"
 #include "ContourPropFrame.h"
+#include "PlotData/GeoMap.h"
 
-#include <set>
 #include "proj_api.h"
 
 class CVtkCharEventCallback;
@@ -183,7 +185,7 @@ public:
   void DisplaySolidColor(bool show);
   void DisplayGridLabels(bool show);
 
-  void PrintPoints(ostream& os);
+  void PrintPoints(std::ostream& os);
 
   void ZoomInit(double scale);
 
@@ -194,13 +196,13 @@ private:
 
   void Init();
 
-  bool CreateControls();
+  //femm bool CreateControls();
   void CreatePropertyPanel();
   void CreateLayout();
   void InstallEventListeners();
 
   void SetProjection(int32_t proj);
-  void SetProjectionByName(const string& projName);
+  void SetProjectionByName(const std::string& projName);
 
 
   void ZoomTo(double lon[2], double lat[2]);
@@ -243,7 +245,7 @@ private:
 
 public:
   bool m_finished;
-  //string m_hasProj;
+  //std::string m_hasProj;
   bool m_colorBarShowing;
   bool m_is3D;
 
@@ -314,8 +316,8 @@ struct LabelPoint {
 
 bool operator==(LabelPoint, LabelPoint);
 bool operator<(LabelPoint, LabelPoint);
-set<LabelPoint>::iterator find_label(set<LabelPoint> &, double, int);
-set<LabelPoint>::iterator find_near(set<LabelPoint> &labels, LabelPoint label, double distance);
+std::set<LabelPoint>::iterator find_label(std::set<LabelPoint> &, double, int);
+std::set<LabelPoint>::iterator find_near(std::set<LabelPoint> &labels, LabelPoint label, double distance);
 
 
 class LatLonLabels {
@@ -356,7 +358,7 @@ class CWorldPlotRenderer
 
 public:
 
-  CWorldPlotRenderer(wxWindow *parent, string mode = "low");
+  CWorldPlotRenderer(wxWindow *parent, std::string mode = "low");
   virtual ~CWorldPlotRenderer();
 
   vtkRenderer* GetVtkRenderer() {return m_vtkRend;}
@@ -389,7 +391,7 @@ public:
   void UpdateLatLonLabels(double, double, double, bool);
   void UpdateLOD(double, double, double, double, double, double, double);
 
-  void SetProjectionByName(const string& projName);
+  void SetProjectionByName(const std::string& projName);
   void SetProjection(int32_t proj);
   void SetGlyphs(bool val);
   void OnKeyframeChanged(CKeyframeEvent& event);
@@ -457,11 +459,9 @@ protected:
 protected:
   CObList m_actors;
 
-  //bool m_actorAdded;
-
   wxWindow* m_parent;
 
-  string m_GSHHSFile;
+  std::string m_GSHHSFile;
 
   int32_t m_projection;
 
@@ -487,7 +487,6 @@ protected:
   //KAVOK
   vtkActor2DCollection *m_textActors;
   vtkActor2D *lActor;
-  CWorldPlotData* m_wData;
 
   LatLonLabels *m_latlonLabels;
 

@@ -98,7 +98,7 @@ public:
   wxString GetXAxis() {return m_xAxis;};
   void SetXAxis(const wxString& value) {m_xAxis = value;};
 
-  wxString GetXAxisText(const string& name);
+  wxString GetXAxisText(const std::string& name);
   wxString GetXAxisText(uint32_t index);
   void SetXAxisText(uint32_t index, const wxString& value);
 
@@ -195,7 +195,7 @@ public:
   /// CMapDisplayData dtor
   virtual ~CMapDisplayData();
 
-  CDisplayData* GetDisplayData(const string& name);
+  CDisplayData* GetDisplayData(const std::string& name);
   CDisplayData* GetDisplayData(const wxString& name);
   CDisplayData* GetDisplayData(const char* name);
   CDisplayData* GetDisplayData(CMapDisplayData::const_iterator& it);
@@ -207,7 +207,7 @@ public:
   void SplitFields();
 
   bool ValidName(const char* name);
-  bool ValidName(const string& name);
+  bool ValidName(const std::string& name);
 
   void NamesToArrayString(wxArrayString& array);
   void NamesToComboBox(wxComboBox& combo);
@@ -285,7 +285,7 @@ public:
   wxString GetTypeAsString() {return wxString::Format("%d", m_type);};
 
   CMapDisplayData* GetDataSelected() {return &m_data;};
-  wxString FmtCmdParam(const string& name);
+  wxString FmtCmdParam(const std::string& name);
 
   bool ExistData(const wxString& key);
   bool InsertData(const wxString& key, CDisplayData* data);
@@ -373,7 +373,7 @@ public:
 
 
    ///Dump fonction
-   virtual void Dump(ostream& fOut = cerr);
+   virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   void Copy(CDisplay& d);
@@ -401,7 +401,7 @@ protected:
 
   CLatLonRect m_zoom;
 
-  static const string m_zoomDelimiter;
+  static const std::string m_zoomDelimiter;
 
 };
 

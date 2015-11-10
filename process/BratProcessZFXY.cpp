@@ -29,7 +29,7 @@
 #include "BratProcess.h"
 #include "BratProcessZFXY.h"
 
-// When debugging changes all calls to “new” to be calls to “DEBUG_NEW” allowing for memory leaks to
+// When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
 // Needs to be included after all #include commands
 #include "Win32MemLeaksAccurate.h"
@@ -189,7 +189,7 @@ void CBratProcessZFXY::AddFieldIndexes(CFieldIndex* fieldIndex, CNetCDFVarDef* v
 */
 }
 //----------------------------------------
-void CBratProcessZFXY::GetParameters(const string& commandFileName)
+void CBratProcessZFXY::GetParameters(const std::string& commandFileName)
 {
   m_commandFileName = commandFileName;
   GetParameters();
@@ -469,7 +469,7 @@ CMatrixDoublePtr* CBratProcessZFXY::NewMatrixDoublePtr()
 					  e.what()),
             BRATHL_ERROR);
   }
-  catch (bad_alloc& e) // If memory allocation (new) failed...
+  catch (std::bad_alloc& e) // If memory allocation (new) failed...
   {
     m_grids.RemoveAll(); // free memory  to be able to allocate new for error msg
     throw CMemoryException(CTools::Format("ERROR: CBratProcessZFXY::NewMatrixDoublePtr() - Unable to allocate new memory to store the result.\nNative error: '%s'\n",
@@ -516,7 +516,7 @@ double* CBratProcessZFXY::NewDoubleArray(uint32_t nbElts)
             e.what()),
             BRATHL_ERROR);
   }
-  catch (bad_alloc& e) // If memory allocation (new) failed...
+  catch (std::bad_alloc& e) // If memory allocation (new) failed...
   {
     m_grids.RemoveAll(); // free memory  to be able to allocate new for error msg
     throw CMemoryException(CTools::Format("ERROR: CBratProcessZFXY::NewDoubleArray() - Unable to allocate new memory to store %ld elements.\nNative error: '%s'\n",
@@ -560,7 +560,7 @@ CMatrixDouble* CBratProcessZFXY::NewMatrixDouble()
 					  e.what()),
             BRATHL_ERROR);
   }
-  catch (bad_alloc& e) // If memory allocation (new) failed...
+  catch (std::bad_alloc& e) // If memory allocation (new) failed...
   {
     m_grids.RemoveAll(); // free memory  to be able to allocate new for error msg
     throw CMemoryException(CTools::Format("ERROR: CBratProcessZFXY::NewMatrixDouble() - Unable to allocate new memory to store the result.\nNative error: '%s'\n"
@@ -762,7 +762,7 @@ CMatrixDoublePtr* CBratProcessZFXY::CreateGridDoublePtr(uint32_t index, const CE
 					  e.what()),
             BRATHL_ERROR);
   }
-  catch (bad_alloc& e) // If memory allocation (new) failed...
+  catch (std::bad_alloc& e) // If memory allocation (new) failed...
   {
     m_grids.RemoveAll(); // free memory  to be able to allocate new for error msg
     throw CMemoryException(CTools::Format("ERROR: CBratProcessZFXY::CreateGridDoublePtr() - Unable to allocate new memory to store the result.\nNative error: '%s'\n"
@@ -839,7 +839,7 @@ CMatrixDouble* CBratProcessZFXY::CreateGridDouble(uint32_t index)
 					  e.what()),
             BRATHL_ERROR);
   }
-  catch (bad_alloc& e) // If memory allocation (new) failed...
+  catch (std::bad_alloc& e) // If memory allocation (new) failed...
   {
     m_grids.RemoveAll(); // free memory  to be able to allocate new for error msg
     throw CMemoryException(CTools::Format("ERROR: CBratProcessZFXY::CreateGridDouble() - Unable to allocate new memory to store the result.\nNative error: '%s'\n"
@@ -1117,7 +1117,7 @@ CMatrixDouble* CBratProcessZFXY::GetMatrixDouble(CBratObject* ob, bool withExcep
 
 
 //----------------------------------------
-int32_t CBratProcessZFXY::Execute(string& msg)
+int32_t CBratProcessZFXY::Execute(std::string& msg)
 { 
   int32_t result = BRATHL_SUCCESS;
 
@@ -1278,7 +1278,7 @@ void CBratProcessZFXY::RegisterData()
     }
     else
     {
-      throw CException("X value must be scalar not a vector or a matrix",
+      throw CException("X value must be scalar not a std::vector or a matrix",
 		       BRATHL_LIMIT_ERROR);
     }
 
@@ -1310,7 +1310,7 @@ void CBratProcessZFXY::RegisterData()
     }
     else
     {
-      throw CException("Y value must be scalar not a vector or a matrix",
+      throw CException("Y value must be scalar not a std::vector or a matrix",
 		       BRATHL_LIMIT_ERROR);
     }
 
@@ -1436,7 +1436,7 @@ void CBratProcessZFXY::RegisterData()
         CNetCDFCoordinateAxis* coordVar = dynamic_cast<CNetCDFCoordinateAxis*>(m_internalFiles->GetNetCDFVarDef(m_names[indexExpr]));
         if (coordVar != NULL)
         {
-          string msg;
+          std::string msg;
           bool areValuesSimilar = CheckValuesSimilar(indexExpr, exprValue.GetValues(), nbValues, xPos, yPos, msg);
           if (! areValuesSimilar)
           {
@@ -1865,7 +1865,7 @@ int32_t CBratProcessZFXY::WriteData()
 
 
 
-  //////////////string dimType = xCoordVar.GetDimType();
+  //////////////std::string dimType = xCoordVar.GetDimType();
 
 
 
@@ -2099,7 +2099,7 @@ int32_t CBratProcessZFXY::WriteData()
 
     CNetCDFCoordinateAxis* coordAxis = dynamic_cast<CNetCDFCoordinateAxis*>(varDef);
     
-    string coordAxisName = ((coordAxis != NULL) ? coordAxis->GetName() : "");
+    std::string coordAxisName = ((coordAxis != NULL) ? coordAxis->GetName() : "");
 
     if (! CBratProcess::IsProductNetCdf() && (coordAxis == NULL) ) 
     {
@@ -2378,7 +2378,7 @@ void CBratProcessZFXY::SubstituteAxisDim(const CStringArray& fieldDims, CStringA
   int32_t i = 0;
   for (i = first ; i <= last ; i++)
   {
-    string str = arrayTmp.at(i);
+    std::string str = arrayTmp.at(i);
 
     if (str.empty())
     {
@@ -2409,7 +2409,7 @@ void CBratProcessZFXY::SubstituteAxisDim(const CStringArray& fieldDims, CStringA
     arrayReplaceBy[i] = axisDimsSameRangeAsField[i];
   }
 
-  string replaceBy = arrayReplaceBy.ToString("," , false);
+  std::string replaceBy = arrayReplaceBy.ToString("," , false);
 
   fieldDims.Replace(axisDimsSameRangeAsField, replaceBy, fieldDimsOut, true, true);
 
@@ -2436,7 +2436,7 @@ void CBratProcessZFXY::OnAddDimensionsFromNetCdf()
 
 
 //----------------------------------------
-bool CBratProcessZFXY::CheckValuesSimilar(uint32_t indexExpr, double* dataValues, uint32_t nbValues, uint32_t xPos, uint32_t yPos,  string& msg)
+bool CBratProcessZFXY::CheckValuesSimilar(uint32_t indexExpr, double* dataValues, uint32_t nbValues, uint32_t xPos, uint32_t yPos,  std::string& msg)
 {
 
   bool bSimilarValues = true;
@@ -2505,7 +2505,7 @@ bool CBratProcessZFXY::CheckValuesSimilar(uint32_t indexExpr, double* dataValues
   }
 
 
-  string format = "WARNING - Regarding to X / Y values %.15g / %.15g, values contained in %s dimension are not similar with read previous values.\n"
+  std::string format = "WARNING - Regarding to X / Y values %.15g / %.15g, values contained in %s dimension are not similar with read previous values.\n"
         "Only the first values will be stored in the NetCdf output file.\n" 
         "Expressions below that depend on %s dimension might be inconsistent:\n%s";
 
@@ -2525,7 +2525,7 @@ bool CBratProcessZFXY::CheckValuesSimilar(uint32_t indexExpr, double* dataValues
 
   strArray.Complement(*coordVars, complement);
 
-  string coordVarAsString = complement.ToString(", ", false);
+  std::string coordVarAsString = complement.ToString(", ", false);
 
   msg = CTools::Format(format.c_str(), 
                        m_xData[xPos],

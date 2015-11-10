@@ -22,18 +22,17 @@
 
 #include <cstdio>
 #include <cstdlib>
-#include "Stl.h"
 
-#include "List.h"
-#include "FileParams.h"
-#include "InternalFiles.h"
+#include "../libbrathl/List.h"
+#include "../libbrathl/FileParams.h"
+#include "../libbrathl/InternalFiles.h"
 
 #include "ParametersDictionary.h"
 
-#include "Product.h"
-#include "ProductNetCdf.h"
-#include "ProductNetCdfCF.h"
-#include "Trace.h"
+#include "../libbrathl/Product.h"
+#include "../libbrathl/ProductNetCdf.h"
+#include "../libbrathl/ProductNetCdfCF.h"
+#include "../libbrathl/Trace.h"
 //#include "ProcessCommonTools.h"
 
 using namespace brathl;
@@ -96,14 +95,14 @@ public:
 
   int32_t GetNbFields() { return m_fields.size(); };
 
-  bool CheckCommandLineOptions(int argc, char	**argv, const string& helpString, const KeywordHelp	*keywordList);  
+  bool CheckCommandLineOptions(int argc, char	**argv, const std::string& helpString, const KeywordHelp	*keywordList);  
   
-  void ConstructProduct(const string& fileName, bool createVirtualField = true);
+  void ConstructProduct(const std::string& fileName, bool createVirtualField = true);
   void ConstructProduct(CStringArray& fileName, bool createVirtualField = true);
   void ConstructProduct(CStringList& fileName, bool createVirtualField = true);
 
-  virtual bool Initialize(string& msg);
-  virtual int32_t Execute(string& msg) = 0;
+  virtual bool Initialize(std::string& msg);
+  virtual int32_t Execute(std::string& msg) = 0;
 
   void AdjustValidMinMax(double value);
 
@@ -117,9 +116,9 @@ public:
   
   CStringMap* GetFieldSpecificUnits() { return &m_fieldSpecificUnit; };
 
-  string GetFieldSpecificUnit(const string& key);
+  std::string GetFieldSpecificUnit(const std::string& key);
 
-  void SetFieldSpecificUnit(const string& key, const string& value);
+  void SetFieldSpecificUnit(const std::string& key, const std::string& value);
   
   void SetFieldSpecificUnits(const CStringMap& fieldSpecificUnit);
   void SetFieldSpecificUnits(const CStringMap* fieldSpecificUnit);
@@ -141,25 +140,25 @@ public:
 		(CFileParams	&params,
 		 int32_t	minOccurences	= 0,
 		 int32_t	maxOccurences	= 1,
-		 const string	&keyword	= "DATA_MODE",
+		 const std::string	&keyword	= "DATA_MODE",
 		 int32_t	index		= 0,
 		 MergeDataMode defaultValue	= pctMEAN);
 
   static CBratProcess::MergeDataMode GetDataMode
 		(CFileParams	&params,
-		 const string	&prefix,
+		 const std::string	&prefix,
 		 int32_t	minOccurences	= 0,
 		 int32_t	maxOccurences	= 1,
 		 int32_t	index		= 0,
 		 MergeDataMode defaultValue	= pctMEAN);
 
-  static string DataModeStr (MergeDataMode mode);
+  static std::string DataModeStr (MergeDataMode mode);
 
   static int32_t GetFileList
 		(CFileParams		&params,
-		 const string		&keyword,
+		 const std::string		&keyword,
 		 CStringArray		&names,
-		 const string		&traceDescription,
+		 const std::string		&traceDescription,
 		 int32_t		minOccurences	= 1,
 		 int32_t		maxOccurences	= -1,
 		 bool			printTrace	= true);
@@ -170,16 +169,16 @@ public:
 
  int32_t GetDefinition
 		(CFileParams		&params,
-		 const string		&prefix,
+		 const std::string		&prefix,
 		 CExpression    	&field,
-		 string			*name,
+		 std::string			*name,
 		 NetCDFVarKind		*kind,
 		 CUnit			*unit,
-		 string			*title,
-		 string			*comment,
-		 string			*dataFormat,
+		 std::string			*title,
+		 std::string			*comment,
+		 std::string			*dataFormat,
 		 uint32_t               *group,
- 		 const string		&traceDescription,
+ 		 const std::string		&traceDescription,
      //CProduct* product,
 		 int32_t		index		= 0,
 		 int32_t		minOccurences	= 1,
@@ -189,20 +188,20 @@ public:
 
    int32_t GetDefinition
 		(CFileParams		&params,
-		 const string		&prefix,
+		 const std::string		&prefix,
 		 CExpression    	&field,
-		 string			*name,
+		 std::string			*name,
 		 NetCDFVarKind		*kind,
 		 CUnit			*unit,
-		 string			*title,
-		 string			*comment,
-		 string			*dataFormat,
+		 std::string			*title,
+		 std::string			*comment,
+		 std::string			*dataFormat,
 		 uint32_t               *group,
 		 double			&Min,
 		 double			&Max,
 		 uint32_t		&Count,
 		 double			&Step,
-		 const string		&traceDescription,
+		 const std::string		&traceDescription,
 		 int32_t		index	= 0,
 		 int32_t		minOccurences	= 1,
 		 int32_t		maxOccurences	= 1,
@@ -211,16 +210,16 @@ public:
 
  static int32_t GetVarDef
 		(CFileParams		&params,
-		 const string		&prefix,
+		 const std::string		&prefix,
 		 CExpression    	&field,
-		 string			*name,
+		 std::string			*name,
 		 NetCDFVarKind		*kind,
 		 CUnit			*unit,
-		 string			*title,
-		 string			*comment,
-		 string			*dataFormat,
+		 std::string			*title,
+		 std::string			*comment,
+		 std::string			*dataFormat,
 		 uint32_t               *group,
- 		 const string		&traceDescription,
+ 		 const std::string		&traceDescription,
 		 int32_t		index		= 0,
 		 int32_t		minOccurences	= 1,
 		 int32_t		maxOccurences	= 1,
@@ -228,20 +227,20 @@ public:
 
   static int32_t GetVarDef
 		(CFileParams		&params,
-		 const string		&prefix,
+		 const std::string		&prefix,
 		 CExpression    	&field,
-		 string			*name,
+		 std::string			*name,
 		 NetCDFVarKind		*kind,
 		 CUnit			*unit,
-		 string			*title,
-		 string			*comment,
-		 string			*dataFormat,
+		 std::string			*title,
+		 std::string			*comment,
+		 std::string			*dataFormat,
 		 uint32_t               *group,
 		 double			&Min,
 		 double			&Max,
 		 uint32_t		&Count,
 		 double			&Step,
-		 const string		&traceDescription,
+		 const std::string		&traceDescription,
 		 int32_t		index	= 0,
 		 int32_t		minOccurences	= 1,
 		 int32_t		maxOccurences	= 1,
@@ -257,30 +256,30 @@ public:
   static bool CheckCommandLineOptions
 		                (int			argc,
 		                 char			**argv,
-		                 const string		&helpString,
+		                 const std::string		&helpString,
                      const KeywordHelp	*keywordList,
-		                 string			&commandFileName);
+		                 std::string			&commandFileName);
 
   /*
   ** Print help about a list of keywords which can be foun in a parameter file
   ** definitions are in ParametersDictionary.h
   */
   static void PrintParameterHelp
-		  (ostream		&where,
+		  (std::ostream		&where,
       const KeywordHelp	*keywordList);
 
   /*
   ** Internal function used to print keyword/type definition
   */
   static void PrintDescription
-		  (ostream	&where,
+		  (std::ostream	&where,
 		   const char	*description,
 		   bool		firstLeading,
 		   const char	*defaultValue);
 
   static void GetFilterDefinitions
 		        (CFileParams		&params,
-		         const string		&prefix,
+		         const std::string		&prefix,
 		         bool			*smooth,
 		         bool			*extrapolate,
 		         int32_t		index	= 0,
@@ -299,11 +298,11 @@ public:
 		        (CFileParams	&params,
 		         int32_t	minOccurences	= 0,
 		         int32_t	maxOccurences	= 1,
-		         const string	&keyword	= "OUTSIDE_MODE",
+		         const std::string	&keyword	= "OUTSIDE_MODE",
 		         int32_t	index		= 0,
              OutsideMode	defaultValue		= CBratProcess::pctSTRICT);
 
-  static string OutsideModeStr(CBratProcess::OutsideMode mode);
+  static std::string OutsideModeStr(CBratProcess::OutsideMode mode);
 
   // true if outside
   static bool CheckOutsideValue
@@ -317,11 +316,11 @@ public:
 		            (CFileParams	&params,
 		             int32_t	minOccurences	= 0,
 		             int32_t	maxOccurences	= 1,
-		             const string	&keyword	= "POSITION_MODE",
+		             const std::string	&keyword	= "POSITION_MODE",
 		             int32_t	index		= 0,
                  PositionMode	defaultValue		= CBratProcess::pctNEAREST);
 
-  static string PositionModeStr(CBratProcess::PositionMode mode);
+  static std::string PositionModeStr(CBratProcess::PositionMode mode);
 
   static bool CheckPositionValue
 	                (double		value,
@@ -395,7 +394,7 @@ protected:
   void DeleteProduct();
   void DeleteInternalFile();
   void DeleteFileParams();
-  void LoadProductDictionary(const string& filename, bool createVirtualField = true);
+  void LoadProductDictionary(const std::string& filename, bool createVirtualField = true);
   void ResizeArrayDependOnFields(uint32_t size);
 
   void NetCdfProductInitialization();
@@ -404,30 +403,30 @@ protected:
   virtual void CheckDimensions(const CExpression& expr, CUIntArray& commonDimensions);
 
 
-  void GetOrderedDimNames(const vector<CExpression>& fields, CStringArray& commonDimensions);
+  void GetOrderedDimNames(const std::vector<CExpression>& fields, CStringArray& commonDimensions);
   void GetOrderedDimNames(const CExpression& expr, CStringArray& commonDimensions);
   void GetOrderedDimNames(const CStringArray& fieldNames, CStringArray& commonDimensionNames);
-  void GetOrderedDimNames(const string& fieldName, CStringArray& commonDimensionNames);
+  void GetOrderedDimNames(const std::string& fieldName, CStringArray& commonDimensionNames);
 
   void GetFieldWithNoXYCommonDim();
   /*
-  void GetNetCdfDimensions(const vector<CExpression>& expressions, CStringArray& commonDimNames);
+  void GetNetCdfDimensions(const std::vector<CExpression>& expressions, CStringArray& commonDimNames);
   void GetNetCdfDimensions(const CExpression& expr, CStringArray& commonDimNames);
   void GetNetCdfDimensions(const CStringArray& fields, CStringArray& commonDimNames);
   */
   void SetExpandArray(const CExpression& expr, bool expandArray);
   void SetExpandArray(const CStringArray* fields, bool expandArray);
 
-  static string GetIndexName(long nbElts);
+  static std::string GetIndexName(long nbElts);
 
-  CObArray* GetFieldIndexes(const string& fieldName);
+  CObArray* GetFieldIndexes(const std::string& fieldName);
 
   virtual void AddFieldIndexes(uint32_t indexExpr, CNetCDFVarDef* varDef, const CUIntArray& commonDimensions);
-  virtual void AddFieldIndexes(const string& fieldName, CNetCDFVarDef* varDef);
+  virtual void AddFieldIndexes(const std::string& fieldName, CNetCDFVarDef* varDef);
   virtual void AddFieldIndexes(CField* field, CNetCDFVarDef* varDef);
   virtual void AddFieldIndexes(CFieldIndex* fieldIndex, CNetCDFVarDef* varDef);
 
-  virtual void GetParameters(const string &commandFileName) = 0;
+  virtual void GetParameters(const std::string &commandFileName) = 0;
   virtual void GetParameters() = 0;
   
   void GetSelectParameter(CFileParams& params);
@@ -443,20 +442,20 @@ protected:
   virtual void SetDimCoordAxesToFieldWithoutDim(const CStringArray& fieldNames);
 
   //virtual void CheckNetCdfFields(CStringArray& fields);
-  CExternalFilesNetCDF* OpenExternalFilesNetCDF(const string& fileName);
+  CExternalFilesNetCDF* OpenExternalFilesNetCDF(const std::string& fileName);
 
   virtual void AddDimensionsFromNetCdf(CStringArray& fields);
   virtual void AddVarsFromNetCdf();
-  virtual bool IsOutputAxis(const string& name) { return false; };
+  virtual bool IsOutputAxis(const std::string& ) { return false; };
 
-  string GetExpressionNewName(const string& name);
+  std::string GetExpressionNewName(const std::string& name);
 
 
   virtual void SubstituteAxisDim(const CStringArray& fieldDims, CStringArray& fieldDimsOut);
   virtual void OnAddDimensionsFromNetCdf();
   
   // Creates, opens and read parameters file, then get the list of input files.
-  virtual void LoadParams(const string& name, uint32_t mode = CFile::modeRead|CFile::typeBinary);
+  virtual void LoadParams(const std::string& name, uint32_t mode = CFile::modeRead|CFile::typeBinary);
   
   void CheckFileParams();
 
@@ -493,33 +492,33 @@ protected:
   CExpression	m_xField;
   NetCDFVarKind	m_xType;
   CUnit m_xUnit;
-  string m_xName;
-  string m_xTitle;
-  string m_xComment;
+  std::string m_xName;
+  std::string m_xTitle;
+  std::string m_xComment;
 
   CExpression	m_yField;
   NetCDFVarKind	m_yType;
   CUnit m_yUnit;
-  string m_yName;
-  string m_yTitle;
+  std::string m_yName;
+  std::string m_yTitle;
 
 
   CStringArray m_inputFiles;
   CExpression m_select;
 
-  vector<CExpression> m_fields;
-  vector<NetCDFVarKind> m_types;
-  vector<CUnit> m_units;
+  std::vector<CExpression> m_fields;
+  std::vector<NetCDFVarKind> m_types;
+  std::vector<CUnit> m_units;
   
   CStringArray m_names;
   CStringArray m_titles;
   CStringArray m_comments;
 
 
-  string m_outputFileName;
-  string m_outputTitle;
+  std::string m_outputFileName;
+  std::string m_outputTitle;
   
-  string m_recordName;
+  std::string m_recordName;
 
   CProduct* m_product;
 
@@ -532,9 +531,9 @@ protected:
   bool m_expandArray;
 
   MergeDataMode m_dataModeGlobal;
-  vector<MergeDataMode> m_dataMode;
+  std::vector<MergeDataMode> m_dataMode;
 
-  string m_commandFileName;
+  std::string m_commandFileName;
 
   bool m_alwaysFalse;
   bool m_alwaysTrue;

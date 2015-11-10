@@ -20,7 +20,7 @@
 #include <cstdio>
 #include <typeinfo> 
 
-#include "Stl.h"
+#include <string>
 #include "List.h"
 #include "Exception.h"
 #include "FileParams.h"
@@ -36,7 +36,7 @@ using namespace processes;
 
 int main (int argc, char *argv[])
 {
-  string			FileName;
+  std::string			FileName;
   CStringArray			InputFiles;
   CProduct			*Product	= NULL;
   bool				Error		= false;
@@ -52,7 +52,7 @@ int main (int argc, char *argv[])
 
     if (! CTools::FileExists(FileName))
     {
-      cerr << "ERROR: Data file '" << FileName << "' not found" << endl << endl;
+      std::cerr << "ERROR: Data file '" << FileName << "' not found" << std::endl << std::endl;
       Error	= true;
     }
     InputFiles.push_back(FileName);
@@ -60,12 +60,12 @@ int main (int argc, char *argv[])
 
   if (Error || Help)
   {
-    cerr << "Usage : " << argv[0] << " [ -h | --help] FileName" << endl;
-    cerr << "Where FileName is the name of a file to show" << endl;
+    std::cerr << "Usage : " << argv[0] << " [ -h | --help] FileName" << std::endl;
+    std::cerr << "Where FileName is the name of a file to show" << std::endl;
   }
 
   if (Help)
-    cerr << endl << "Displays the fields available for a product file" << endl;
+    std::cerr << std::endl << "Displays the fields available for a product file" << std::endl;
 
   if (Error || Help)
     return 2;
@@ -101,12 +101,12 @@ int main (int argc, char *argv[])
 	if ((typeid(*field) == typeid(CFieldArray))  &&
 	    (! field->IsFixedSize()))
 	  continue;
-	string Unit	= field->GetUnit();
-	cout << CTools::Format("%-20s", field->GetRecordName().c_str())
+	std::string Unit	= field->GetUnit();
+	std::cout << CTools::Format("%-20s", field->GetRecordName().c_str())
 	     << field->GetFullName();
  	if (Unit != "")
-	  cout << " (" << Unit << ")";
-	cout << endl;
+	  std::cout << " (" << Unit << ")";
+	std::cout << std::endl;
       }
       while (Tree->SubTreeWalkDown());
     }
@@ -116,17 +116,17 @@ int main (int argc, char *argv[])
   }
   catch (CException &e)
   {
-    cerr << "BRAT ERROR: " << e.what() << endl;
+    std::cerr << "BRAT ERROR: " << e.what() << std::endl;
     return 1;
   }
-  catch (exception &e)
+  catch (std::exception &e)
   {
-    cerr << "BRAT RUNTIME ERROR: " << e.what() << endl;
+    std::cerr << "BRAT RUNTIME ERROR: " << e.what() << std::endl;
     return 254;
   }
   catch (...)
   {
-    cerr << "BRAT FATAL ERROR: Unexpected error" << endl;
+    std::cerr << "BRAT FATAL ERROR: Unexpected error" << std::endl;
     return 255;
   }
 }

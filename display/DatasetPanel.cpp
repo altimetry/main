@@ -160,7 +160,7 @@ bool CAttributeListPanel::CreateControls()
   m_label = new wxStaticText(this, -1, "Plot color", wxDefaultPosition, wxDefaultSize, wxCENTRE);
 
   m_colorBtn = new wxButton(this, -1, "", wxDefaultPosition, wxSize(3*charwidth, -1));
-  m_colorBtn->SetBackgroundColour(props->GetColor().GetWXColor());
+  m_colorBtn->SetBackgroundColour(color_cast(props->GetColor()));
 
 
   m_opacityCtrl = new CLabeledTextCtrl(this, NULL, m_ID_OPACITY,
@@ -471,7 +471,7 @@ void CAttributeListPanel::OnColor(wxCommandEvent& event)
 
   //props->Update();
 
-  m_colorBtn->SetBackgroundColour(props->GetColor().GetWXColor());
+  m_colorBtn->SetBackgroundColour(color_cast(props->GetColor()));
 
   Layout();
   GetParent()->Layout();

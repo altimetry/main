@@ -42,14 +42,14 @@ namespace brathl
 {
   const uint32_t CBratAlgoFilterKernel::m_VAR_PARAM_INDEX = 0;
 
-  const string CBratAlgoFilterKernel::m_VAR_PARAM_DESCR = "The input data (variable or Brat expression) on which the filter is applied.";
-  const string CBratAlgoFilterKernel::m_VALID_PARAM_DESCR = "The minimum number of valid points below which the algorithm is not applied. The parameter must be a constant value.";
-  const string CBratAlgoFilterKernel::m_EXTRAPOLATE_PARAM_DESCR = "A flag to specify if the algorithm is applied when the current data is 'defaut value' (no value). "
+  const std::string CBratAlgoFilterKernel::m_VAR_PARAM_DESCR = "The input data (variable or Brat expression) on which the filter is applied.";
+  const std::string CBratAlgoFilterKernel::m_VALID_PARAM_DESCR = "The minimum number of valid points below which the algorithm is not applied. The parameter must be a constant value.";
+  const std::string CBratAlgoFilterKernel::m_EXTRAPOLATE_PARAM_DESCR = "A flag to specify if the algorithm is applied when the current data is 'defaut value' (no value). "
                                                                   "0: not applied, 1: applied.";
 
-  const string CBratAlgoFilterKernel::m_VAR_PARAM_NAME = "Expr";
-  const string CBratAlgoFilterKernel::m_VALID_PARAM_NAME = "ValidPts";
-  const string CBratAlgoFilterKernel::m_EXTRAPOLATE_PARAM_NAME = "Extrapolate";
+  const std::string CBratAlgoFilterKernel::m_VAR_PARAM_NAME = "Expr";
+  const std::string CBratAlgoFilterKernel::m_VALID_PARAM_NAME = "ValidPts";
+  const std::string CBratAlgoFilterKernel::m_EXTRAPOLATE_PARAM_NAME = "Extrapolate";
 
 //-------------------------------------------------------------
 //------------------- CBratAlgoFilterKernel class --------------------
@@ -341,7 +341,7 @@ void CBratAlgoFilterKernel::PrepareDataValues1D(uint32_t shiftSymmetry)
     // Data should be extended symmetrically.
     if (currentAlgoRecord >= m_nProductRecords - 1)
     {
-      //cout << "THIS IS THE END OF FILE:" << endl;
+      //std::cout << "THIS IS THE END OF FILE:" << std::endl;
       this->TreatRightEdge1D(shiftSymmetry, m_lastIndexDataToInsert);
       m_lastIndexDataToInsert++;
     }
@@ -677,7 +677,7 @@ void CBratAlgoFilterKernel::PrepareDataWindow2DSymmetrically(double* dataValue, 
 
   for (uint32_t i = 0 ; i < m_dataWindowWidth ; i++)
   {
-    string str;
+    std::string str;
     for (uint32_t j = 0 ; j < m_dataWindowHeight ; j++)
     {
       double value = m_rawDataWindow[(i * m_dataWindowHeight) + j];
@@ -698,42 +698,42 @@ void CBratAlgoFilterKernel::PrepareDataWindow2DSymmetrically(double* dataValue, 
 
 }  
 //----------------------------------------
-void CBratAlgoFilterKernel::Dump(ostream& fOut /*= cerr*/)
+void CBratAlgoFilterKernel::Dump(std::ostream& fOut /*= std::cerr*/)
 {
    if (CTrace::IsTrace() == false)
    { 
       return;
    }
 
-  fOut << "==> Dump a CBratAlgoFilterKernel Object at "<< this << endl;
+  fOut << "==> Dump a CBratAlgoFilterKernel Object at "<< this << std::endl;
   CBratAlgoFilter::Dump(fOut);
 
-  fOut << "m_varValue: " << m_varValue << endl;
-  fOut << "m_varValuePrev: " << m_varValuePrev << endl;
-  fOut << "m_varValueNext: " << m_varValueNext << endl;
-  fOut << "m_extrapolate: " << m_extrapolate << endl;  
-  fOut << "m_dataWindowLength: " << m_dataWindowLength << endl;
-  fOut << "m_dataWindowHeight: " << m_dataWindowHeight << endl;
-  fOut << "m_dataWindowWidth: " << m_dataWindowWidth << endl;
-  fOut << "m_countX: " << m_countX << endl;
-  fOut << "m_countY: " << m_countY << endl;
-  fOut << "m_addHeightBottom: " << m_addHeightBottom << endl;
-  fOut << "m_addHeightTop: " << m_dataWindowWidth << endl;
-  fOut << "m_addWidthRight: " << m_addWidthRight << endl;
-  fOut << "m_addWidthLeft: " << m_addWidthLeft << endl;
-  fOut << "m_gapWidth: " << m_gapWidth << endl;
-  fOut << "m_gapHeight: " << m_gapHeight << endl;
-  fOut << "m_lastIndexDataToInsert: " << m_lastIndexDataToInsert << endl;
+  fOut << "m_varValue: " << m_varValue << std::endl;
+  fOut << "m_varValuePrev: " << m_varValuePrev << std::endl;
+  fOut << "m_varValueNext: " << m_varValueNext << std::endl;
+  fOut << "m_extrapolate: " << m_extrapolate << std::endl;  
+  fOut << "m_dataWindowLength: " << m_dataWindowLength << std::endl;
+  fOut << "m_dataWindowHeight: " << m_dataWindowHeight << std::endl;
+  fOut << "m_dataWindowWidth: " << m_dataWindowWidth << std::endl;
+  fOut << "m_countX: " << m_countX << std::endl;
+  fOut << "m_countY: " << m_countY << std::endl;
+  fOut << "m_addHeightBottom: " << m_addHeightBottom << std::endl;
+  fOut << "m_addHeightTop: " << m_dataWindowWidth << std::endl;
+  fOut << "m_addWidthRight: " << m_addWidthRight << std::endl;
+  fOut << "m_addWidthLeft: " << m_addWidthLeft << std::endl;
+  fOut << "m_gapWidth: " << m_gapWidth << std::endl;
+  fOut << "m_gapHeight: " << m_gapHeight << std::endl;
+  fOut << "m_lastIndexDataToInsert: " << m_lastIndexDataToInsert << std::endl;
 
-  fOut << "m_expectedTypes: " << endl;
+  fOut << "m_expectedTypes: " << std::endl;
   m_expectedTypes.Dump(fOut);
 
-  fOut << "m_rawDataWindow: " << endl;
+  fOut << "m_rawDataWindow: " << std::endl;
   m_rawDataWindow.Dump(fOut);
-  fOut << "m_dataWindow: " << endl;
+  fOut << "m_dataWindow: " << std::endl;
   m_dataWindow.Dump(fOut);
 
-  fOut << "==> END Dump a CBratAlgoFilterKernel Object at "<< this << endl;
+  fOut << "==> END Dump a CBratAlgoFilterKernel Object at "<< this << std::endl;
 
 }
 

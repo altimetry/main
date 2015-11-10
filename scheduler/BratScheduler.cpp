@@ -59,9 +59,9 @@ using namespace brathl;
 #include "Win32MemLeaksAccurate.h"
 
 #ifdef WIN32
-const string BRATHL_ICON_FILENAME = "BratIcon.ico";
+const std::string BRATHL_ICON_FILENAME = "BratIcon.ico";
 #else
-const string BRATHL_ICON_FILENAME = "BratIcon.bmp";
+const std::string BRATHL_ICON_FILENAME = "BratIcon.bmp";
 #endif
 
 const wxString BRATGUI_APPNAME = "BratGui";
@@ -161,7 +161,7 @@ bool CBratSchedulerApp::OnInit()
   }
 
 
-  string errorMsg;
+  std::string errorMsg;
   if (!CTools::LoadAndCheckUdUnitsSystem(errorMsg))
   {
       std::cerr << errorMsg << std::endl;

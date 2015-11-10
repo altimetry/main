@@ -23,7 +23,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h"
+#include <string>
 
 #include "List.h"
 #include "ObjectTree.h"
@@ -34,7 +34,7 @@ using namespace brathl;
 namespace brathl
 {
 
-//typedef ObjectTree<string, CField*> CTree_field;
+//typedef ObjectTree<std::string, CField*> CTree_field;
 
 /** \addtogroup product Products
   @{ */
@@ -59,20 +59,20 @@ public:
   /// Destructor
   virtual ~CTreeField();
 
-  virtual CObjectTreeIterator AddChild (CObjectTreeNode* parent, const string& nm, CField* x, bool goCurrent = false);
+  virtual CObjectTreeIterator AddChild (CObjectTreeNode* parent, const std::string& nm, CField* x, bool goCurrent = false);
 
-  virtual CObjectTreeIterator AddChild (CObjectTreeIterator& parent, const string& nm, CField* x, bool goCurrent = false);
+  virtual CObjectTreeIterator AddChild (CObjectTreeIterator& parent, const std::string& nm, CField* x, bool goCurrent = false);
 
-  virtual CObjectTreeIterator AddChild (const string& nm, CField* x, bool goCurrent = false); 
+  virtual CObjectTreeIterator AddChild (const std::string& nm, CField* x, bool goCurrent = false); 
 
   void ResetHiddenFlag ();
 
-  void DumpDictionary(ostream& fOut = cout);
-  void DumpDictionary(const string& outputFileName);
+  void DumpDictionary(std::ostream& fOut = std::cout);
+  void DumpDictionary(const std::string& outputFileName);
 
 
   /// Dump function
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
   static CFieldRecord * GetDataAsFieldRecordObject(CObjectTreeNode* node, bool withExcept  = true);
   static CField * GetDataAsFieldObject(CObjectTreeNode* node, bool withExcept  = true);
@@ -91,7 +91,7 @@ private:
   
 
 public:
-  static const string m_keyDelimiter;
+  static const std::string m_keyDelimiter;
 
 protected:
 		

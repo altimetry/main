@@ -23,11 +23,12 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring> 
+#include <sstream> 
 
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h"  
+#include <string>  
 
 #include "TraceLog.h" 
 #include "Exception.h"
@@ -213,7 +214,7 @@ void CStringList::Insert(const stringlist& lst, bool bEnd /*= true*/)
 
 //----------------------------------------
 
-void CStringList::Insert(const string& str, bool bEnd /*= true*/)
+void CStringList::Insert(const std::string& str, bool bEnd /*= true*/)
 {
   
   if (bEnd)
@@ -229,7 +230,7 @@ void CStringList::Insert(const string& str, bool bEnd /*= true*/)
 }
 
 //----------------------------------------
-bool CStringList::Exists(const string& str) const
+bool CStringList::Exists(const std::string& str) const
 {
    CStringList::const_iterator it;
 
@@ -244,7 +245,7 @@ bool CStringList::Exists(const string& str) const
   return false;  
 }
 //----------------------------------------
-bool CStringList::ExistsNoCase(const string& str) const
+bool CStringList::ExistsNoCase(const std::string& str) const
 {
    CStringList::const_iterator it;
 
@@ -259,7 +260,7 @@ bool CStringList::ExistsNoCase(const string& str) const
   return false;  
 }
 //----------------------------------------
-int32_t CStringList::FindIndex(const string& str, bool compareNoCase /* = false */) const
+int32_t CStringList::FindIndex(const std::string& str, bool compareNoCase /* = false */) const
 {
   CStringList::const_iterator it;
   int32_t i = -1;
@@ -288,7 +289,7 @@ int32_t CStringList::FindIndex(const string& str, bool compareNoCase /* = false 
 
 //----------------------------------------
 
-void CStringList::InsertUnique(const string& str, bool bEnd /*= true*/)
+void CStringList::InsertUnique(const std::string& str, bool bEnd /*= true*/)
 {
   if (this->Exists(str))
   {
@@ -332,7 +333,7 @@ void CStringList::InsertUnique(const CStringArray* vect, bool bEnd /*= true*/)
 //----------------------------------------
 void CStringList::InsertUnique(const stringarray& vect, bool bEnd /*= true*/)
 {
-   vector<string>::const_iterator it;
+   std::vector<std::string>::const_iterator it;
 
    for ( it = vect.begin( ); it != vect.end( ); it++ )
    {
@@ -343,7 +344,7 @@ void CStringList::InsertUnique(const stringarray& vect, bool bEnd /*= true*/)
 //----------------------------------------
 void CStringList::InsertUnique(const stringlist& lst, bool bEnd /*= true*/)
 {
-   list<string>::const_iterator it;
+   std::list<std::string>::const_iterator it;
 
    for ( it = lst.begin( ); it != lst.end( ); it++ )
    {
@@ -419,7 +420,7 @@ bool CStringList::Complement(const CStringList& array, CStringList& complement) 
 
 //----------------------------------------
 
-void CStringList::ExtractStrings(const string& str, const char delim, bool bRemoveAll /* = true */) 
+void CStringList::ExtractStrings(const std::string& str, const char delim, bool bRemoveAll /* = true */) 
 {
 
 if (bRemoveAll == true)
@@ -427,7 +428,7 @@ if (bRemoveAll == true)
   this->clear();
   }
 
-string sequence = str;
+std::string sequence = str;
 
 int32_t pos = sequence.find(delim);
 
@@ -466,7 +467,7 @@ return;
 
 //----------------------------------------
 
-void CStringList::ExtractStrings(const string& str, const string& delim, bool bRemoveAll /* = true */) 
+void CStringList::ExtractStrings(const std::string& str, const std::string& delim, bool bRemoveAll /* = true */) 
 {
 
 if (bRemoveAll == true)
@@ -474,7 +475,7 @@ if (bRemoveAll == true)
   this->clear();
   }
 
-string sequence = str;
+std::string sequence = str;
 
 int32_t pos = sequence.find(delim);
 
@@ -512,9 +513,9 @@ return;
 
 //----------------------------------------
 
-string CStringList::ToString(const string& delim /*= "," */, bool useBracket /*= true */) const
+std::string CStringList::ToString(const std::string& delim /*= "," */, bool useBracket /*= true */) const
 {
-  string str;
+  std::string str;
   CStringList::const_iterator it;
   for ( it = this->begin( ); it != this->end( ); it++ )
   {
@@ -530,7 +531,7 @@ string CStringList::ToString(const string& delim /*= "," */, bool useBracket /*=
   return str;
 }
 //----------------------------------------
-void CStringList::Erase(const string& str) 
+void CStringList::Erase(const std::string& str) 
 {
   
   CStringList::iterator it;
@@ -558,7 +559,7 @@ void CStringList::Erase(CStringList::iterator it)
 
 }
 //----------------------------------------
-void CStringList::ExtractKeys(const string& str, const string& delim, bool bRemoveAll /* = true */) 
+void CStringList::ExtractKeys(const std::string& str, const std::string& delim, bool bRemoveAll /* = true */) 
 {
 
 if (bRemoveAll == true)
@@ -566,7 +567,7 @@ if (bRemoveAll == true)
   this->clear();
   }
 
-string sequence = str;
+std::string sequence = str;
 
 int32_t pos = sequence.find(delim, 0);
 
@@ -600,7 +601,7 @@ return;
 }
 
 //----------------------------------------
-void CStringList::Dump(ostream& fOut /* = cerr */) const
+void CStringList::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -611,18 +612,18 @@ void CStringList::Dump(ostream& fOut /* = cerr */) const
    CStringList::const_iterator it;
    int i = 0;
 
-   fOut << "==> Dump a CStringList Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CStringList Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
    for ( it = this->begin( ); it != this->end( ); it++ )
    {
-     fOut << "CStringList[" << i << "]= " << *it << endl;  
+     fOut << "CStringList[" << i << "]= " << *it << std::endl;  
      i++;
    }
     
-   fOut << "==> END Dump a CStringList Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CStringList Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
  
-   fOut << endl;
+   fOut << std::endl;
    
 
 }
@@ -707,7 +708,7 @@ void CIntList::Insert(const int value, bool bEnd /*= true*/)
 
 
 //----------------------------------------
-void CIntList::Dump(ostream& fOut /* = cerr */) const
+void CIntList::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -718,18 +719,18 @@ void CIntList::Dump(ostream& fOut /* = cerr */) const
    CIntList::const_iterator it;
    int i = 0;
 
-   fOut << "==> Dump a CIntList Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CIntList Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
    for ( it = this->begin( ); it != this->end( ); it++ )
    {
-     fOut << "CIntList[" << i << "]= " << *it << endl;  
+     fOut << "CIntList[" << i << "]= " << *it << std::endl;  
      i++;
    }
     
-   fOut << "==> END Dump a CIntList Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CIntList Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
  
-   fOut << endl;
+   fOut << std::endl;
    
 
 }
@@ -892,7 +893,7 @@ void CObList::RemoveAll()
 }
 
 //----------------------------------------
-void CObList::Dump(ostream& fOut /* = cerr */) const
+void CObList::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -903,11 +904,11 @@ void CObList::Dump(ostream& fOut /* = cerr */) const
   CObList::const_iterator it;
   int i = 0;
 
-  fOut << "==> Dump a CObList Object at " << this << " with " <<  size() << " elements" << endl;
+  fOut << "==> Dump a CObList Object at " << this << " with " <<  size() << " elements" << std::endl;
 
   for ( it = this->begin( ); it != this->end( ); it++ )
   {
-    fOut << "CObList[" << i << "]= " << endl;  
+    fOut << "CObList[" << i << "]= " << std::endl;  
     if ((*it) != NULL)
     {
       (*it)->Dump(fOut);
@@ -915,10 +916,10 @@ void CObList::Dump(ostream& fOut /* = cerr */) const
     i++;
   }
 
-  fOut << "==> END Dump a CObList Object at " << this << " with " <<  size() << " elements" << endl;
+  fOut << "==> END Dump a CObList Object at " << this << " with " <<  size() << " elements" << std::endl;
 
 
-  fOut << endl;
+  fOut << std::endl;
    
 
 }
@@ -1102,7 +1103,7 @@ void CStringArray::Insert(const stringarray& vect, bool bEnd /*= true*/)
 }
 //----------------------------------------
 
-void CStringArray::Insert(const string& str)
+void CStringArray::Insert(const std::string& str)
 {
   
 stringarray::push_back(str);    
@@ -1132,7 +1133,7 @@ void CStringArray::Insert(const CIntArray& vect)
 
   for ( it = vect.begin( ); it != vect.end( ); it++ )
   {
-    string str = CTools::IntToStr(*it);
+    std::string str = CTools::IntToStr(*it);
     if (!(str.empty()))
     {
       this->Insert(str);
@@ -1146,7 +1147,7 @@ void CStringArray::Insert(const CIntArray& vect)
 void CStringArray::Insert(const stringlist& lst)
 {
  
-  list<string>::const_iterator it;
+  std::list<std::string>::const_iterator it;
 
    for ( it = lst.begin( ); it != lst.end( ); it++ )
    {
@@ -1156,13 +1157,13 @@ void CStringArray::Insert(const stringlist& lst)
 }
 
 //----------------------------------------
-CStringArray::iterator CStringArray::InsertAt(CStringArray::iterator where, const string& str)
+CStringArray::iterator CStringArray::InsertAt(CStringArray::iterator where, const std::string& str)
 { 
   return stringarray::insert(where, str);     
 }
 
 //----------------------------------------
-CStringArray::iterator CStringArray::InsertAt(int32_t index, const string& str)
+CStringArray::iterator CStringArray::InsertAt(int32_t index, const std::string& str)
 { 
   if (index < 0)
   {
@@ -1201,13 +1202,13 @@ bool CStringArray::Erase(CStringArray::iterator where)
   return true;
 }
 //----------------------------------------
-CStringArray::iterator CStringArray::ReplaceAt(uint32_t index, const string& str)
+CStringArray::iterator CStringArray::ReplaceAt(uint32_t index, const std::string& str)
 {
   (*this)[index] = str;
   return this->begin() + index;
 }
 //----------------------------------------
-CStringArray::iterator CStringArray::ReplaceAt(int32_t index, const string& str)
+CStringArray::iterator CStringArray::ReplaceAt(int32_t index, const std::string& str)
 {
   if (index < 0)
   {
@@ -1219,14 +1220,14 @@ CStringArray::iterator CStringArray::ReplaceAt(int32_t index, const string& str)
 
 }
 //----------------------------------------
-CStringArray::iterator CStringArray::ReplaceAt(CStringArray::iterator where, const string& str)
+CStringArray::iterator CStringArray::ReplaceAt(CStringArray::iterator where, const std::string& str)
 {
   Erase(where);
   return InsertAt(where, str);     
 }
 
 //----------------------------------------
-bool CStringArray::Exists(const string& str, bool compareNoCase /* = false */) const
+bool CStringArray::Exists(const std::string& str, bool compareNoCase /* = false */) const
 {
   CStringArray::const_iterator it;
 
@@ -1253,7 +1254,7 @@ bool CStringArray::Exists(const string& str, bool compareNoCase /* = false */) c
 
 
 //----------------------------------------
-int32_t CStringArray::FindIndex(const string& str, bool compareNoCase /* = false */) const
+int32_t CStringArray::FindIndex(const std::string& str, bool compareNoCase /* = false */) const
 {
   for (uint32_t i = 0 ; i < size() ; i++ )
   {
@@ -1276,7 +1277,7 @@ int32_t CStringArray::FindIndex(const string& str, bool compareNoCase /* = false
   return -1;  
 }
 //----------------------------------------
-void CStringArray::FindIndexes(const string& str, CIntArray& indexes, bool compareNoCase /* = false */) const
+void CStringArray::FindIndexes(const std::string& str, CIntArray& indexes, bool compareNoCase /* = false */) const
 {
   for (uint32_t i = 0 ; i < size() ; i++ )
   {
@@ -1317,7 +1318,7 @@ void CStringArray::GetValues(const CIntArray& indexes, CStringArray& values) con
 }
 
 //----------------------------------------
-void CStringArray::GetValues(const CIntArray& indexes, string& values) const
+void CStringArray::GetValues(const CIntArray& indexes, std::string& values) const
 {
   CStringArray arrayValues;
 
@@ -1327,7 +1328,7 @@ void CStringArray::GetValues(const CIntArray& indexes, string& values) const
 }
 
 //----------------------------------------
-bool CStringArray::Intersect(const string& str, CStringArray& intersect, bool compareNoCase /* = false */) const
+bool CStringArray::Intersect(const std::string& str, CStringArray& intersect, bool compareNoCase /* = false */) const
 {
   CStringArray array;
   array.Insert(str);
@@ -1370,7 +1371,7 @@ bool CStringArray::Intersect(const CStringArray& array, CStringArray& intersect,
   return (!(intersect.empty()));
 }
 //----------------------------------------
-bool CStringArray::Intersect(const string& str, CUIntArray& intersect, bool compareNoCase /* = false */) const
+bool CStringArray::Intersect(const std::string& str, CUIntArray& intersect, bool compareNoCase /* = false */) const
 {
   CStringArray array;
   array.Insert(str);
@@ -1409,7 +1410,7 @@ bool CStringArray::Intersect(const CStringArray& array, CUIntArray& intersect, b
 }
 
 //----------------------------------------
-bool CStringArray::Remove(const string& str, bool compareNoCase /* = false */)
+bool CStringArray::Remove(const std::string& str, bool compareNoCase /* = false */)
 {
   CStringArray array;
   array.Insert(str);
@@ -1474,7 +1475,7 @@ bool CStringArray::Complement(const CStringArray& array, CStringArray& complemen
 }
 
 //----------------------------------------
-void CStringArray::Replace(const string& findString, const string& replaceBy, CStringArray& replaced, bool compareNoCase /* = false */, bool insertUnique /* = false */) const
+void CStringArray::Replace(const std::string& findString, const std::string& replaceBy, CStringArray& replaced, bool compareNoCase /* = false */, bool insertUnique /* = false */) const
 { 
   CStringArray findVect;
   findVect.Insert(findString);
@@ -1483,7 +1484,7 @@ void CStringArray::Replace(const string& findString, const string& replaceBy, CS
 
 }
 //----------------------------------------
-void CStringArray::Replace(const CStringArray& findString, const string& replaceBy, CStringArray& replaced, bool compareNoCase /* = false */, bool insertUnique /* = false */) const
+void CStringArray::Replace(const CStringArray& findString, const std::string& replaceBy, CStringArray& replaced, bool compareNoCase /* = false */, bool insertUnique /* = false */) const
 {
   if (this == &replaced)
   {
@@ -1503,8 +1504,8 @@ void CStringArray::Replace(const CStringArray& findString, const string& replace
     return;
   }
 
-  string thisStr = this->ToString(",", false);
-  string findStringStr = findStringTmp.ToString(",", false);
+  std::string thisStr = this->ToString(",", false);
+  std::string findStringStr = findStringTmp.ToString(",", false);
 
   thisStr = CTools::StringReplace(thisStr, findStringStr, replaceBy, compareNoCase);
 
@@ -1540,7 +1541,7 @@ void CStringArray::Replace(const CStringArray& findString, const string& replace
     {
       bool same = false;
       
-      string str = *itThis;
+      std::string str = *itThis;
 
       if (compareNoCase)
       {
@@ -1581,7 +1582,7 @@ void CStringArray::Replace(const CStringArray& findString, const string& replace
 */
 }
 //----------------------------------------
-void CStringArray::ExtractKeys(const string& str, const string& delim, bool bRemoveAll /* = true */) 
+void CStringArray::ExtractKeys(const std::string& str, const std::string& delim, bool bRemoveAll /* = true */) 
 {
 
 if (bRemoveAll == true)
@@ -1589,7 +1590,7 @@ if (bRemoveAll == true)
   this->clear();
   }
 
-string sequence = str;
+std::string sequence = str;
 
 int32_t pos = sequence.find(delim, 0);
 
@@ -1623,7 +1624,7 @@ return;
 }
 //----------------------------------------
 
-void CStringArray::ExtractStrings(const string& str, const char delim, bool bRemoveAll /* = true */ , bool insertUnique /* = false */) 
+void CStringArray::ExtractStrings(const std::string& str, const char delim, bool bRemoveAll /* = true */ , bool insertUnique /* = false */) 
 {
 
 if (bRemoveAll == true)
@@ -1631,7 +1632,7 @@ if (bRemoveAll == true)
   this->clear();
   }
 
-string sequence = str;
+std::string sequence = str;
 
 int32_t pos = sequence.find(delim);
 
@@ -1685,7 +1686,7 @@ return;
 
 //----------------------------------------
 
-void CStringArray::ExtractStrings(const string& str, const string& delim, bool bRemoveAll /* = true */, bool insertUnique /* = false */) 
+void CStringArray::ExtractStrings(const std::string& str, const std::string& delim, bool bRemoveAll /* = true */, bool insertUnique /* = false */) 
 {
 
 if (bRemoveAll == true)
@@ -1693,7 +1694,7 @@ if (bRemoveAll == true)
   this->clear();
   }
 
-string sequence = str;
+std::string sequence = str;
 
 int32_t pos = sequence.find(delim);
 
@@ -1746,7 +1747,7 @@ return;
 
 //----------------------------------------
 
-void CStringArray::InsertUnique(const string& str)
+void CStringArray::InsertUnique(const std::string& str)
 {
   if (this->Exists(str))
   {
@@ -1797,7 +1798,7 @@ void CStringArray::InsertUnique(const CStringArray* vect)
 void CStringArray::InsertUnique(const stringarray& vect)
 {
  
-   vector<string>::const_iterator it;
+   std::vector<std::string>::const_iterator it;
 
    for ( it = vect.begin( ); it != vect.end( ); it++ )
    {
@@ -1811,7 +1812,7 @@ void CStringArray::InsertUnique(const stringarray& vect)
 void CStringArray::InsertUnique(const stringlist& lst)
 {
  
-   list<string>::const_iterator it;
+   std::list<std::string>::const_iterator it;
 
    for ( it = lst.begin( ); it != lst.end( ); it++ )
    {
@@ -1821,9 +1822,9 @@ void CStringArray::InsertUnique(const stringlist& lst)
 }
 
 //----------------------------------------
-string CStringArray::ToString(const string& delim /*= "," */, bool useBracket /*= true */) const
+std::string CStringArray::ToString(const std::string& delim /*= "," */, bool useBracket /*= true */) const
 {
-  ostringstream myStream;
+  std::ostringstream myStream;
 
   if (useBracket)
   {
@@ -1854,7 +1855,7 @@ string CStringArray::ToString(const string& delim /*= "," */, bool useBracket /*
 
 
 //----------------------------------------
-void CStringArray::Dump(ostream& fOut /* = cerr */) const
+void CStringArray::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -1865,18 +1866,18 @@ void CStringArray::Dump(ostream& fOut /* = cerr */) const
    CStringArray::const_iterator it;
    int i = 0;
 
-   fOut << "==> Dump a CStringArray Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CStringArray Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
    for ( it = this->begin( ); it != this->end( ); it++ )
    {
-     fOut << "CStringArray[" << i << "]= " << *it << endl;  
+     fOut << "CStringArray[" << i << "]= " << *it << std::endl;  
      i++;
    }
     
-   fOut << "==> END Dump a CStringArray Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CStringArray Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
  
-   fOut << endl;
+   fOut << std::endl;
    
 
 }
@@ -2087,9 +2088,9 @@ void CIntArray::IncrementValue(uint32_t incr /* = 1 */)
 }
 
 //----------------------------------------
-string CIntArray::ToString(const string& delim /*= "," */, bool useBracket /*= true */) const
+std::string CIntArray::ToString(const std::string& delim /*= "," */, bool useBracket /*= true */) const
 {
-  ostringstream myStream;
+  std::ostringstream myStream;
 
   if (useBracket)
   {
@@ -2132,7 +2133,7 @@ int32_t* CIntArray::ToArray()
 }
 
 //----------------------------------------
-void CIntArray::Dump(ostream& fOut /* = cerr */) const
+void CIntArray::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -2143,18 +2144,18 @@ void CIntArray::Dump(ostream& fOut /* = cerr */) const
    CIntArray::const_iterator it;
    int i = 0;
 
-   fOut << "==> Dump a CIntArray Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CIntArray Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
    for ( it = this->begin( ); it != this->end( ); it++ )
    {
-     fOut << "CIntArray[" << i << "]= " << *it << endl;  
+     fOut << "CIntArray[" << i << "]= " << *it << std::endl;  
      i++;
    }
     
-   fOut << "==> END Dump a CIntArray Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CIntArray Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
  
-   fOut << endl;
+   fOut << std::endl;
    
 
 }
@@ -2358,9 +2359,9 @@ void CInt64Array::IncrementValue(uint64_t incr /* = 1 */)
 }
 
 //----------------------------------------
-string CInt64Array::ToString(const string& delim /*= "," */, bool useBracket /*= true */) const
+std::string CInt64Array::ToString(const std::string& delim /*= "," */, bool useBracket /*= true */) const
 {
-  ostringstream myStream;
+  std::ostringstream myStream;
 
   if (useBracket)
   {
@@ -2403,7 +2404,7 @@ int64_t* CInt64Array::ToArray()
 }
 
 //----------------------------------------
-void CInt64Array::Dump(ostream& fOut /* = cerr */) const
+void CInt64Array::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -2414,18 +2415,18 @@ void CInt64Array::Dump(ostream& fOut /* = cerr */) const
    CInt64Array::const_iterator it;
    int i = 0;
 
-   fOut << "==> Dump a CInt64Array Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CInt64Array Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
    for ( it = this->begin( ); it != this->end( ); it++ )
    {
-     fOut << "CInt64Array[" << i << "]= " << *it << endl;  
+     fOut << "CInt64Array[" << i << "]= " << *it << std::endl;  
      i++;
    }
     
-   fOut << "==> END Dump a CInt64Array Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CInt64Array Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
  
-   fOut << endl;
+   fOut << std::endl;
    
 
 }
@@ -2525,7 +2526,7 @@ void CUIntArray::Insert(const CUIntArray& vect, bool bEnd /*= true*/)
   
 }
 //----------------------------------------
-void CUIntArray::Insert(const vector<uint32_t>& vect, bool bEnd /*= true*/)
+void CUIntArray::Insert(const std::vector<uint32_t>& vect, bool bEnd /*= true*/)
 {
   
   if (vect.empty())
@@ -2671,9 +2672,9 @@ bool CUIntArray::Complement(const CUIntArray& array, CUIntArray& complement) con
 
 
 //----------------------------------------
-string CUIntArray::ToString(const string& delim /*= "," */, bool useBracket /*= true */) const
+std::string CUIntArray::ToString(const std::string& delim /*= "," */, bool useBracket /*= true */) const
 {
-  ostringstream myStream;
+  std::ostringstream myStream;
 
   if (useBracket)
   {
@@ -2763,7 +2764,7 @@ uint32_t CUIntArray::GetProductValues() const
 }
 
 //----------------------------------------
-void CUIntArray::Dump(ostream& fOut /* = cerr */) const
+void CUIntArray::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -2774,18 +2775,18 @@ void CUIntArray::Dump(ostream& fOut /* = cerr */) const
    CUIntArray::const_iterator it;
    int i = 0;
 
-   fOut << "==> Dump a CUIntArray Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CUIntArray Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
    for ( it = this->begin( ); it != this->end( ); it++ )
    {
-     fOut << "CUIntArray[" << i << "]= " << *it << endl;  
+     fOut << "CUIntArray[" << i << "]= " << *it << std::endl;  
      i++;
    }
     
-   fOut << "==> END Dump a CUIntArray Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CUIntArray Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
  
-   fOut << endl;
+   fOut << std::endl;
    
 
 }
@@ -2881,7 +2882,7 @@ void CUInt64Array::Insert(CUInt64Array* vect, bool bEnd /*= true*/)
 }
 
 //----------------------------------------
-void CUInt64Array::Insert(const vector<uint64_t>& vect, bool bEnd /*= true*/)
+void CUInt64Array::Insert(const std::vector<uint64_t>& vect, bool bEnd /*= true*/)
 {
   
   if (vect.empty())
@@ -2983,9 +2984,9 @@ bool CUInt64Array::Intersect(const CUInt64Array& array, CUInt64Array& intersect)
 }
 
 //----------------------------------------
-string CUInt64Array::ToString(const string& delim /*= "," */, bool useBracket /*= true */) const
+std::string CUInt64Array::ToString(const std::string& delim /*= "," */, bool useBracket /*= true */) const
 {
-  ostringstream myStream;
+  std::ostringstream myStream;
 
   if (useBracket)
   {
@@ -3028,7 +3029,7 @@ uint64_t* CUInt64Array::ToArray()
 }
 
 //----------------------------------------
-void CUInt64Array::Dump(ostream& fOut /* = cerr */) const
+void CUInt64Array::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -3039,18 +3040,18 @@ void CUInt64Array::Dump(ostream& fOut /* = cerr */) const
    CUInt64Array::const_iterator it;
    int i = 0;
 
-   fOut << "==> Dump a CUInt64Array Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CUInt64Array Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
    for ( it = this->begin( ); it != this->end( ); it++ )
    {
-     fOut << "CUInt64Array[" << i << "]= " << *it << endl;  
+     fOut << "CUInt64Array[" << i << "]= " << *it << std::endl;  
      i++;
    }
     
-   fOut << "==> END Dump a CUInt64Array Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CUInt64Array Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
  
-   fOut << endl;
+   fOut << std::endl;
    
 
 }
@@ -3219,9 +3220,9 @@ bool CInt16Array::Intersect(const CInt16Array& array, CInt16Array& intersect) co
 
 
 //----------------------------------------
-string CInt16Array::ToString(const string& delim /*= "," */, bool useBracket /*= true */) const
+std::string CInt16Array::ToString(const std::string& delim /*= "," */, bool useBracket /*= true */) const
 {
-  ostringstream myStream;
+  std::ostringstream myStream;
 
   if (useBracket)
   {
@@ -3264,7 +3265,7 @@ int16_t* CInt16Array::ToArray()
 }
 
 //----------------------------------------
-void CInt16Array::Dump(ostream& fOut /* = cerr */) const
+void CInt16Array::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -3275,18 +3276,18 @@ void CInt16Array::Dump(ostream& fOut /* = cerr */) const
    CInt16Array::const_iterator it;
    int i = 0;
 
-   fOut << "==> Dump a CInt16Array Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CInt16Array Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
    for ( it = this->begin( ); it != this->end( ); it++ )
    {
-     fOut << "CInt16Array[" << i << "]= " << *it << endl;  
+     fOut << "CInt16Array[" << i << "]= " << *it << std::endl;  
      i++;
    }
     
-   fOut << "==> END Dump a CInt16Array Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CInt16Array Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
  
-   fOut << endl;
+   fOut << std::endl;
    
 
 }
@@ -3386,7 +3387,7 @@ void CUInt16Array::Insert(const CUInt16Array& vect, bool bEnd /*= true*/)
   
 }
 //----------------------------------------
-void CUInt16Array::Insert(const vector<uint16_t>& vect, bool bEnd /*= true*/)
+void CUInt16Array::Insert(const std::vector<uint16_t>& vect, bool bEnd /*= true*/)
 {
   
   if (vect.empty())
@@ -3532,9 +3533,9 @@ bool CUInt16Array::Complement(const CUInt16Array& array, CUInt16Array& complemen
 
 
 //----------------------------------------
-string CUInt16Array::ToString(const string& delim /*= "," */, bool useBracket /*= true */) const
+std::string CUInt16Array::ToString(const std::string& delim /*= "," */, bool useBracket /*= true */) const
 {
-  ostringstream myStream;
+  std::ostringstream myStream;
 
   if (useBracket)
   {
@@ -3590,7 +3591,7 @@ int16_t* CUInt16Array::ToIntArray()
 
 }
 //----------------------------------------
-void CUInt16Array::Dump(ostream& fOut /* = cerr */) const
+void CUInt16Array::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -3601,18 +3602,18 @@ void CUInt16Array::Dump(ostream& fOut /* = cerr */) const
    CUInt16Array::const_iterator it;
    int i = 0;
 
-   fOut << "==> Dump a CUInt16Array Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CUInt16Array Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
    for ( it = this->begin( ); it != this->end( ); it++ )
    {
-     fOut << "CUInt16Array[" << i << "]= " << *it << endl;  
+     fOut << "CUInt16Array[" << i << "]= " << *it << std::endl;  
      i++;
    }
     
-   fOut << "==> END Dump a CUInt16Array Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CUInt16Array Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
  
-   fOut << endl;
+   fOut << std::endl;
    
 
 }
@@ -3781,9 +3782,9 @@ bool CInt8Array::Intersect(const CInt8Array& array, CInt8Array& intersect) const
 
 
 //----------------------------------------
-string CInt8Array::ToString(const string& delim /*= "," */, bool useBracket /*= true */) const
+std::string CInt8Array::ToString(const std::string& delim /*= "," */, bool useBracket /*= true */) const
 {
-  ostringstream myStream;
+  std::ostringstream myStream;
 
   if (useBracket)
   {
@@ -3826,7 +3827,7 @@ int8_t* CInt8Array::ToArray()
 }
 
 //----------------------------------------
-void CInt8Array::Dump(ostream& fOut /* = cerr */) const
+void CInt8Array::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -3837,18 +3838,18 @@ void CInt8Array::Dump(ostream& fOut /* = cerr */) const
    CInt8Array::const_iterator it;
    int i = 0;
 
-   fOut << "==> Dump a CInt8Array Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CInt8Array Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
    for ( it = this->begin( ); it != this->end( ); it++ )
    {
-     fOut << "CInt8Array[" << i << "]= " << *it << endl;  
+     fOut << "CInt8Array[" << i << "]= " << *it << std::endl;  
      i++;
    }
     
-   fOut << "==> END Dump a CInt8Array Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CInt8Array Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
  
-   fOut << endl;
+   fOut << std::endl;
    
 
 }
@@ -3948,7 +3949,7 @@ void CUInt8Array::Insert(const CUInt8Array& vect, bool bEnd /*= true*/)
   
 }
 //----------------------------------------
-void CUInt8Array::Insert(const vector<uint8_t>& vect, bool bEnd /*= true*/)
+void CUInt8Array::Insert(const std::vector<uint8_t>& vect, bool bEnd /*= true*/)
 {
   
   if (vect.empty())
@@ -4095,9 +4096,9 @@ bool CUInt8Array::Complement(const CUInt8Array& array, CUInt8Array& complement) 
 
 
 //----------------------------------------
-string CUInt8Array::ToString(const string& delim /*= "," */, bool useBracket /*= true */) const
+std::string CUInt8Array::ToString(const std::string& delim /*= "," */, bool useBracket /*= true */) const
 {
-  ostringstream myStream;
+  std::ostringstream myStream;
 
   if (useBracket)
   {
@@ -4153,7 +4154,7 @@ int8_t* CUInt8Array::ToIntArray()
 
 }
 //----------------------------------------
-void CUInt8Array::Dump(ostream& fOut /* = cerr */) const
+void CUInt8Array::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -4164,18 +4165,18 @@ void CUInt8Array::Dump(ostream& fOut /* = cerr */) const
    CUInt8Array::const_iterator it;
    int i = 0;
 
-   fOut << "==> Dump a CUInt8Array Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CUInt8Array Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
    for ( it = this->begin( ); it != this->end( ); it++ )
    {
-     fOut << "CUInt8Array[" << i << "]= " << *it << endl;  
+     fOut << "CUInt8Array[" << i << "]= " << *it << std::endl;  
      i++;
    }
     
-   fOut << "==> END Dump a CUInt8Array Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CUInt8Array Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
  
-   fOut << endl;
+   fOut << std::endl;
    
 
 }
@@ -4388,9 +4389,9 @@ float* CFloatArray::ToArray()
 }
 
 //----------------------------------------
-string CFloatArray::ToString(const string& delim /*= "," */, bool useBracket /*= true */) const
+std::string CFloatArray::ToString(const std::string& delim /*= "," */, bool useBracket /*= true */) const
 {
-  ostringstream myStream;
+  std::ostringstream myStream;
 
   if (useBracket)
   {
@@ -4443,7 +4444,7 @@ void CFloatArray::GetRange(float& min, float& max)
 }
 
 //----------------------------------------
-void CFloatArray::Dump(ostream& fOut /* = cerr */) const
+void CFloatArray::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -4454,18 +4455,18 @@ void CFloatArray::Dump(ostream& fOut /* = cerr */) const
    CFloatArray::const_iterator it;
    int i = 0;
 
-   fOut << "==> Dump a CFloatArray Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CFloatArray Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
    for ( it = this->begin( ); it != this->end( ); it++ )
    {
-     fOut << "CFloatArray[" << i << "]= " << CTools::Format(DUMP_FORMAT_DOUBLE, (*it)) << endl;  
+     fOut << "CFloatArray[" << i << "]= " << CTools::Format(DUMP_FORMAT_DOUBLE, (*it)) << std::endl;  
      i++;
    }
     
-   fOut << "==> END Dump a CFloatArray Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CFloatArray Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
  
-   fOut << endl;
+   fOut << std::endl;
    
 
 }
@@ -4732,7 +4733,7 @@ void CDoubleArray::Insert(const CStringArray& vect, bool bEnd /*= true*/)
   {
     double value; 
 
-    istringstream myStream(vect.at(i));
+    std::istringstream myStream(vect.at(i));
 
     if (!(myStream>>value))
     {
@@ -4753,13 +4754,13 @@ void CDoubleArray::Insert(const CStringArray& vect, bool bEnd /*= true*/)
   
 }
 //----------------------------------------
-void CDoubleArray::Insert(const string& vect, const string& delim /*= "," */, bool bEnd /*= true*/)
+void CDoubleArray::Insert(const std::string& vect, const std::string& delim /*= "," */, bool bEnd /*= true*/)
 {
   if (vect.empty())
   {
     return;
   }
-  string value = vect;
+  std::string value = vect;
 
   if (value.at(0) == '[')
   {
@@ -4939,9 +4940,9 @@ double* CDoubleArray::ToArray()
 
 
 //----------------------------------------
-string CDoubleArray::ToString(const string& delim /*= "," */, bool useBracket /*= true */) const
+std::string CDoubleArray::ToString(const std::string& delim /*= "," */, bool useBracket /*= true */) const
 {
-  ostringstream myStream;
+  std::ostringstream myStream;
 
   if (useBracket)
   {
@@ -5023,7 +5024,7 @@ bool CDoubleArray::operator ==(const CDoubleArray& vect)
 
 
 //----------------------------------------
-void CDoubleArray::Dump(ostream& fOut /* = cerr */) const
+void CDoubleArray::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -5034,18 +5035,18 @@ void CDoubleArray::Dump(ostream& fOut /* = cerr */) const
    CDoubleArray::const_iterator it;
    int i = 0;
 
-   fOut << "==> Dump a CDoubleArray Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CDoubleArray Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
    for ( it = this->begin( ); it != this->end( ); it++ )
    {
-     fOut << "CDoubleArray[" << i << "]= " << CTools::Format(DUMP_FORMAT_DOUBLE, (*it)) << endl;  
+     fOut << "CDoubleArray[" << i << "]= " << CTools::Format(DUMP_FORMAT_DOUBLE, (*it)) << std::endl;  
      i++;
    }
     
-   fOut << "==> END Dump a CDoubleArray Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CDoubleArray Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
  
-   fOut << endl;
+   fOut << std::endl;
    
 
 }
@@ -5210,7 +5211,7 @@ DoublePtr CDoublePtrArray::NewMatrix(double initialValue /* = CTools::m_defaultV
   return matrix;
 }
 //----------------------------------------
-void CDoublePtrArray::Dump(ostream& fOut /* = cerr */) const
+void CDoublePtrArray::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -5221,7 +5222,7 @@ void CDoublePtrArray::Dump(ostream& fOut /* = cerr */) const
   CDoublePtrArray::const_iterator it;
   int i = 0;
 
-  fOut << "==> Dump a CDoublePtrArray Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> Dump a CDoublePtrArray Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
   for ( it = this->begin( ); it != this->end( ); it++ )
   {
@@ -5232,7 +5233,7 @@ void CDoublePtrArray::Dump(ostream& fOut /* = cerr */) const
 
       for (uint32_t i = 0 ; i < nbValues ; i++)
       {
-        fOut << "CDoublePtrArray[" << i << "]= " << matrix[i] << endl;
+        fOut << "CDoublePtrArray[" << i << "]= " << matrix[i] << std::endl;
       }
     }
     else
@@ -5243,10 +5244,10 @@ void CDoublePtrArray::Dump(ostream& fOut /* = cerr */) const
     i++;
   }
 
-  fOut << "==> END Dump a CDoublePtrArray Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> END Dump a CDoublePtrArray Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -5520,7 +5521,7 @@ DoublePtr CArrayDoublePtrArray::NewMatrix(double initialValue /* = CTools::m_def
 					  e.what()),
             BRATHL_ERROR);
   }
-  catch (bad_alloc& e) // If memory allocation (new) failed...
+  catch (std::bad_alloc& e) // If memory allocation (new) failed...
   {
     RemoveAll(); // free memory  to be able to allocate new for error msg
     throw CMemoryException(CTools::Format("ERROR: CArrayDoublePtrArray::NewMatrix) - Unable to allocate new memory to store the result.\nNative error: '%s'\n"
@@ -5555,7 +5556,7 @@ DoublePtr CArrayDoublePtrArray::NewMatrix(double initialValue /* = CTools::m_def
 }
 
 //----------------------------------------
-void CArrayDoublePtrArray::Dump(ostream& fOut /* = cerr */) const
+void CArrayDoublePtrArray::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -5563,7 +5564,7 @@ void CArrayDoublePtrArray::Dump(ostream& fOut /* = cerr */) const
     return;
   }
 
-  fOut << "==> Dump a CArrayDoublePtrArray Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> Dump a CArrayDoublePtrArray Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
   for ( uint32_t row = 0 ; row < this->size() ; row++ )
   {
@@ -5571,7 +5572,7 @@ void CArrayDoublePtrArray::Dump(ostream& fOut /* = cerr */) const
     for ( uint32_t col = 0 ; col < this->at(row).size() ; col++ )
     {
 
-      fOut << "CArrayDoublePtrArray[" << row << "," << col << "]=" << endl;
+      fOut << "CArrayDoublePtrArray[" << row << "," << col << "]=" << std::endl;
 
       DoublePtr matrix = this->at(row).at(col);
       if ( matrix != NULL)
@@ -5580,7 +5581,7 @@ void CArrayDoublePtrArray::Dump(ostream& fOut /* = cerr */) const
 
         for (uint32_t i = 0 ; i < nbValues ; i++)
         {
-          fOut << "double array[" << i << "]= " << matrix[i] << endl;
+          fOut << "double array[" << i << "]= " << matrix[i] << std::endl;
         }
       }
       else
@@ -5588,15 +5589,15 @@ void CArrayDoublePtrArray::Dump(ostream& fOut /* = cerr */) const
         fOut << "NULL";
       }
 
-      fOut << endl;
+      fOut << std::endl;
 
     }     
   }
      
-  fOut << "==> END Dump a CArrayDoublePtrArray Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> END Dump a CArrayDoublePtrArray Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
 
-  fOut << endl;
+  fOut << std::endl;
    
 
 }
@@ -5786,7 +5787,7 @@ void CArrayDoubleArray::InitMatrix(double initialValue /* = CTools::m_defaultVal
 
 
 //----------------------------------------
-void CArrayDoubleArray::Dump(ostream& fOut /* = cerr */) const
+void CArrayDoubleArray::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -5794,21 +5795,21 @@ void CArrayDoubleArray::Dump(ostream& fOut /* = cerr */) const
     return;
   }
 
-  fOut << "==> Dump a CArrayDoubleArray Object at "<< this << " with " <<  this->size() << " rows" << endl;
+  fOut << "==> Dump a CArrayDoubleArray Object at "<< this << " with " <<  this->size() << " rows" << std::endl;
 
   for ( uint32_t row = 0 ; row < this->size() ; row++ )
   {
-    fOut << "==> CArrayDoubleArray Object at row " << row << " with " <<   this->at(row).size() << " cols" << endl;
+    fOut << "==> CArrayDoubleArray Object at row " << row << " with " <<   this->at(row).size() << " cols" << std::endl;
     for ( uint32_t col = 0 ; col < this->at(row).size() ; col++ )
     {
-      fOut << "CArrayDoubleArray[" << row << "," << col << "]=" << this->at(row).at(col) << endl;
+      fOut << "CArrayDoubleArray[" << row << "," << col << "]=" << this->at(row).at(col) << std::endl;
     }     
   }
      
-  fOut << "==> END Dump a CArrayDoubleArray Object at "<< this << " with " <<  this->size()  << " rows" << endl;
+  fOut << "==> END Dump a CArrayDoubleArray Object at "<< this << " with " <<  this->size()  << " rows" << std::endl;
 
 
-  fOut << endl;
+  fOut << std::endl;
    
 
 }
@@ -5857,11 +5858,11 @@ void CArrayStringMap::Set(const CArrayStringMap& a)
 }
 
 //----------------------------------------
-CStringArray* CArrayStringMap::Insert(const string& key, const CStringArray& array, bool withExcept /* = true */)
+CStringArray* CArrayStringMap::Insert(const std::string& key, const CStringArray& array, bool withExcept /* = true */)
 {
   
 
-  pair <maparraystring::iterator,bool> pairInsert;
+  std::pair <maparraystring::iterator,bool> pairInsert;
   //If 'key' already exists --> pairInsert.second == false and
   // pairInsert.first then contains an iterator on the existing object
   // If 'key' does not exist --> pairInsert.second == true and
@@ -5871,7 +5872,7 @@ CStringArray* CArrayStringMap::Insert(const string& key, const CStringArray& arr
 
   if( (pairInsert.second == false) && (withExcept))
   {
-    CException e("ERROR in CStringMap::Insert - try to insert a string that already exists and parameter withExcept is true", BRATHL_LOGIC_ERROR);
+    CException e("ERROR in CStringMap::Insert - try to insert a std::string that already exists and parameter withExcept is true", BRATHL_LOGIC_ERROR);
     throw(e);
   }
   
@@ -5883,7 +5884,7 @@ CStringArray* CArrayStringMap::Insert(const string& key, const CStringArray& arr
 
 //----------------------------------------
 
-const CStringArray* CArrayStringMap::Exists(const string& key) const
+const CStringArray* CArrayStringMap::Exists(const std::string& key) const
 {
   CArrayStringMap::const_iterator it = maparraystring::find(key);
   if (it == end())
@@ -5919,7 +5920,7 @@ bool CArrayStringMap::Erase(CArrayStringMap::iterator it)
 //----------------------------------------
 
 
-bool CArrayStringMap::Erase(const string& key)
+bool CArrayStringMap::Erase(const std::string& key)
 {
 
   CArrayStringMap::iterator it;
@@ -5958,7 +5959,7 @@ void CArrayStringMap::RemoveAll()
 
 
 //----------------------------------------
-void CArrayStringMap::Dump(ostream& fOut /* = cerr */) const
+void CArrayStringMap::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -5966,22 +5967,22 @@ void CArrayStringMap::Dump(ostream& fOut /* = cerr */) const
     return;
   }
 
-   fOut << "==> Dump a CArrayStringMap Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CArrayStringMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
  
    CArrayStringMap::const_iterator it;
 
    for (it = this->begin() ; it != this->end() ; it++)
    {
-      fOut << "CArrayStringMap Key is = " << (*it).first << endl;
-      fOut << "CArrayStringMap Value is = " <<  endl;
+      fOut << "CArrayStringMap Key is = " << (*it).first << std::endl;
+      fOut << "CArrayStringMap Value is = " <<  std::endl;
 
       (it->second).Dump(fOut);
    }
 
-   fOut << "==> END Dump a CArrayStringMap Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CArrayStringMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
   
 
-  fOut << endl;
+  fOut << std::endl;
    
 
 }
@@ -6021,7 +6022,7 @@ const CMatrix& CMatrix::operator =(const CMatrix& m)
 }
 
 //----------------------------------------
-void CMatrix::Dump(ostream& fOut /* = cerr */) const
+void CMatrix::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -6030,17 +6031,17 @@ void CMatrix::Dump(ostream& fOut /* = cerr */) const
   }
 
   fOut << "==> Dump a CMatrix Object at "<< this
-       << " with " <<  GetNumberOfRows() << " rows and " <<  GetNumberOfCols() << " columns" << endl;
+       << " with " <<  GetNumberOfRows() << " rows and " <<  GetNumberOfCols() << " columns" << std::endl;
 
-  fOut << "m_name = "<< m_name << endl;
-  fOut << "m_xName = "<< m_xName << endl;
-  fOut << "m_yName = "<< m_yName << endl;
+  fOut << "m_name = "<< m_name << std::endl;
+  fOut << "m_xName = "<< m_xName << std::endl;
+  fOut << "m_yName = "<< m_yName << std::endl;
 
   fOut << "==> END Dump a CDoublePtrArray Object at "<< this
-       << " with " <<  GetNumberOfRows() << " rows  and " <<  GetNumberOfCols() << " columns" << endl;
+       << " with " <<  GetNumberOfRows() << " rows  and " <<  GetNumberOfCols() << " columns" << std::endl;
 
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -6254,7 +6255,7 @@ void CMatrixDoublePtr::ScaleUpData(double scaleFactor, double addOffset, double 
 }
 
 //----------------------------------------
-void CMatrixDoublePtr::Dump(ostream& fOut /* = cerr */) const
+void CMatrixDoublePtr::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -6263,18 +6264,18 @@ void CMatrixDoublePtr::Dump(ostream& fOut /* = cerr */) const
   }
 
   fOut << "==> Dump a CMatrixDoublePtr Object at "<< this
-       << " with " <<  GetNumberOfRows() << " rows and " <<  GetNumberOfCols() << " columns" << endl;
+       << " with " <<  GetNumberOfRows() << " rows and " <<  GetNumberOfCols() << " columns" << std::endl;
 
   CMatrix::Dump(fOut);
 
   m_data.Dump(fOut);
 
   fOut << "==> END Dump a CDoublePtrArray Object at "<< this
-       << " with " <<  GetNumberOfRows() << " rows  and " <<  GetNumberOfCols() << " columns" << endl;
+       << " with " <<  GetNumberOfRows() << " rows  and " <<  GetNumberOfCols() << " columns" << std::endl;
 
 
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -6436,7 +6437,7 @@ void CMatrixDouble::ScaleUpData(double scaleFactor, double addOffset, double def
 }
 
 //----------------------------------------
-void CMatrixDouble::Dump(ostream& fOut /* = cerr */) const
+void CMatrixDouble::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -6445,18 +6446,18 @@ void CMatrixDouble::Dump(ostream& fOut /* = cerr */) const
   }
 
   fOut << "==> Dump a CMatrixDouble Object at "<< this
-       << " with " <<  GetNumberOfRows() << " rows and " <<  GetNumberOfCols() << " columns" << endl;
+       << " with " <<  GetNumberOfRows() << " rows and " <<  GetNumberOfCols() << " columns" << std::endl;
 
   CMatrix::Dump(fOut);
 
   m_data.Dump(fOut);
 
   fOut << "==> END Dump a CDoublePtrArray Object at "<< this
-       << " with " <<  GetNumberOfRows() << " rows  and " <<  GetNumberOfCols() << " columns" << endl;
+       << " with " <<  GetNumberOfRows() << " rows  and " <<  GetNumberOfCols() << " columns" << std::endl;
 
 
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 
@@ -6499,7 +6500,7 @@ CBratObject* CDoubleArrayOb::Clone()
 }
 //----------------------------------------
 
-void CDoubleArrayOb::Dump(ostream& fOut /* = cerr */) const
+void CDoubleArrayOb::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -6507,14 +6508,14 @@ void CDoubleArrayOb::Dump(ostream& fOut /* = cerr */) const
     return;
   }
 
-  fOut << "==> Dump a CDoubleArrayOb Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> Dump a CDoubleArrayOb Object at "<< this << " with " <<  size() << " elements" << std::endl;
   
   CDoubleArray::Dump(fOut);
 
-  fOut << "==> END Dump a CDoubleArrayOb Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> END Dump a CDoubleArrayOb Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
 
-  fOut << endl;
+  fOut << std::endl;
    
 
 }
@@ -6765,7 +6766,7 @@ void CObArray::RemoveAll()
 }
 
 //----------------------------------------
-void CObArray::Dump(ostream& fOut /* = cerr */) const
+void CObArray::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -6776,11 +6777,11 @@ void CObArray::Dump(ostream& fOut /* = cerr */) const
   CObArray::const_iterator it;
   int i = 0;
 
-  fOut << "==> Dump a CObArray Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> Dump a CObArray Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
   for ( it = this->begin( ); it != this->end( ); it++ )
   {
-    fOut << "CObArray[" << i << "]= " << endl;  
+    fOut << "CObArray[" << i << "]= " << std::endl;  
     if ((*it) != NULL)
     {
      (*it)->Dump(fOut);
@@ -6788,10 +6789,10 @@ void CObArray::Dump(ostream& fOut /* = cerr */) const
     i++;
   }
 
-  fOut << "==> END Dump a CObArray Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> END Dump a CObArray Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
 
-  fOut << endl;
+  fOut << std::endl;
 
 
 }
@@ -6838,7 +6839,7 @@ const CObArrayOb& CObArrayOb::operator =(const CObArrayOb& vect)
 
 
 //----------------------------------------
-void CObArrayOb::Dump(ostream& fOut /* = cerr */) const
+void CObArrayOb::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
   if (CTrace::IsTrace() == false)
@@ -6846,14 +6847,14 @@ void CObArrayOb::Dump(ostream& fOut /* = cerr */) const
     return;
   }
 
-  fOut << "==> Dump a CObArrayOb Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> Dump a CObArrayOb Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
   CObArray::Dump(fOut);
 
-  fOut << "==> END Dump a CObArrayOb Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> END Dump a CObArrayOb Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
 
-  fOut << endl;
+  fOut << std::endl;
 
 
 }
@@ -6891,11 +6892,11 @@ void CStringMap::Insert(const CStringMap& strmap, bool withExcept /* = true */)
 }
 
 //----------------------------------------
-string CStringMap::Insert(const string& key, const string& str, bool withExcept /* = true */)
+std::string CStringMap::Insert(const std::string& key, const std::string& str, bool withExcept /* = true */)
 {
   
 
-  pair <mapstring::iterator,bool> pairInsert;
+  std::pair <mapstring::iterator,bool> pairInsert;
   //If 'key' already exists --> pairInsert.second == false and
   // pairInsert.first then contains an iterator on the existing object
   // If 'key' does not exist --> pairInsert.second == true and
@@ -6905,7 +6906,7 @@ string CStringMap::Insert(const string& key, const string& str, bool withExcept 
 
   if( (pairInsert.second == false) && (withExcept))
   {
-    CException e("ERROR in CStringMap::Insert - try to insert a string that already exists and parameter withExcept is true", BRATHL_LOGIC_ERROR);
+    CException e("ERROR in CStringMap::Insert - try to insert a std::string that already exists and parameter withExcept is true", BRATHL_LOGIC_ERROR);
     throw(e);
   }
   
@@ -6917,7 +6918,7 @@ string CStringMap::Insert(const string& key, const string& str, bool withExcept 
 
 //----------------------------------------
 
-string CStringMap::Exists(const string& key) const
+std::string CStringMap::Exists(const std::string& key) const
 {
   CStringMap::const_iterator it = mapstring::find(key);
   if (it == end())
@@ -6931,7 +6932,7 @@ string CStringMap::Exists(const string& key) const
 
 }
 //----------------------------------------
-string CStringMap::IsValue(const string& value)
+std::string CStringMap::IsValue(const std::string& value)
 {
   CStringMap::iterator it;
   
@@ -6967,7 +6968,7 @@ bool CStringMap::Erase(CStringMap::iterator it)
 
   bool bOk = false;
 
-  string str = it->second;
+  std::string str = it->second;
   if (str.empty() == false)
   {
     bOk = true;
@@ -6980,7 +6981,7 @@ bool CStringMap::Erase(CStringMap::iterator it)
 //----------------------------------------
 
 
-bool CStringMap::Erase(const string& key)
+bool CStringMap::Erase(const std::string& key)
 {
 
   CStringMap::iterator it;
@@ -7010,7 +7011,7 @@ void CStringMap::GetKeys(CStringArray& keys, bool bRemoveAll /* = true */) const
 //----------------------------------------
 
 
-void CStringMap::Dump(ostream& fOut /* = cerr */) const
+void CStringMap::Dump(std::ostream& fOut /* = std::cerr */) const
 {
 
    if (CTrace::IsTrace() == false)
@@ -7018,18 +7019,18 @@ void CStringMap::Dump(ostream& fOut /* = cerr */) const
       return;
    }
 
-   fOut << "==> Dump a CStringMap Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CStringMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
  
    CStringMap::const_iterator it;
 
    for (it = this->begin() ; it != this->end() ; it++)
    {
-      string str = it->second;
-      fOut << "CStringMap Key is = " << (*it).first << endl;
-      fOut << "CStringMap Value is = " << (*it).second << endl;
+      std::string str = it->second;
+      fOut << "CStringMap Key is = " << (*it).first << std::endl;
+      fOut << "CStringMap Value is = " << (*it).second << std::endl;
    }
 
-   fOut << "==> END Dump a CStringMap Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CStringMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
   
 }
 
@@ -7053,11 +7054,11 @@ CIntMap::~CIntMap()
 
 //----------------------------------------
 
-int32_t CIntMap::Insert(const string& key, int32_t value, bool withExcept /* = true */)
+int32_t CIntMap::Insert(const std::string& key, int32_t value, bool withExcept /* = true */)
 {
   
 
-  pair <mapint::iterator,bool> pairInsert;
+  std::pair <mapint::iterator,bool> pairInsert;
   //If 'key' already exists --> pairInsert.second == false and
   // pairInsert.first then contains an iterator on the existing object
   // If 'key' does not exist --> pairInsert.second == true and
@@ -7079,7 +7080,7 @@ int32_t CIntMap::Insert(const string& key, int32_t value, bool withExcept /* = t
 
 //----------------------------------------
 
-int32_t CIntMap::Exists(const string& key) const
+int32_t CIntMap::Exists(const std::string& key) const
 {
   CIntMap::const_iterator it = mapint::find(key);
   if (it == end())
@@ -7168,7 +7169,7 @@ bool CIntMap::Erase(CIntMap::iterator it)
 //----------------------------------------
 
 
-bool CIntMap::Erase(const string& key)
+bool CIntMap::Erase(const std::string& key)
 {
 
   CIntMap::iterator it;
@@ -7181,7 +7182,7 @@ bool CIntMap::Erase(const string& key)
 
 //----------------------------------------
 
-int32_t CIntMap::operator[](const string& key)
+int32_t CIntMap::operator[](const std::string& key)
 {
 
   //int32_t value = mapint::operator[](key);
@@ -7192,7 +7193,7 @@ int32_t CIntMap::operator[](const string& key)
 //----------------------------------------
 
 
-void CIntMap::Dump(ostream& fOut /* = cerr */) const 
+void CIntMap::Dump(std::ostream& fOut /* = std::cerr */) const 
 {
 
    if (CTrace::IsTrace() == false)
@@ -7200,17 +7201,17 @@ void CIntMap::Dump(ostream& fOut /* = cerr */) const
       return;
    }
 
-   fOut << "==> Dump a CIntMap Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CIntMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
  
    CIntMap::const_iterator it;
 
    for (it = this->begin() ; it != this->end() ; it++)
    {
-      fOut << "CIntMap Key is = " << (*it).first << endl;
-      fOut << "CIntMap Value is = " << (*it).second << endl;
+      fOut << "CIntMap Key is = " << (*it).first << std::endl;
+      fOut << "CIntMap Value is = " << (*it).second << std::endl;
    }
 
-   fOut << "==> END Dump a CIntMap Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CIntMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
   
 }
 
@@ -7307,11 +7308,11 @@ void CUIntMap::Insert(const CStringArray& keys, bool bRemoveAll /* = true */, bo
 
 //----------------------------------------
 
-uint32_t CUIntMap::Insert(const string& key, uint32_t value, bool withExcept /* = true */)
+uint32_t CUIntMap::Insert(const std::string& key, uint32_t value, bool withExcept /* = true */)
 {
   
 
-  pair <mapuint::iterator,bool> pairInsert;
+  std::pair <mapuint::iterator,bool> pairInsert;
   //If 'key' already exists --> pairInsert.second == false and
   // pairInsert.first then contains an iterator on the existing object
   // If 'key' does not exist --> pairInsert.second == true and
@@ -7348,7 +7349,7 @@ void CUIntMap::GetKeys(CStringArray& keys, bool bRemoveAll /* = true */)
 }
 //----------------------------------------
 
-uint32_t CUIntMap::Exists(const string& key) const
+uint32_t CUIntMap::Exists(const std::string& key) const
 {
   CUIntMap::const_iterator it = mapuint::find(key);
   if (it == end())
@@ -7395,7 +7396,7 @@ bool CUIntMap::Erase(CUIntMap::iterator it)
 //----------------------------------------
 
 
-bool CUIntMap::Erase(const string& key)
+bool CUIntMap::Erase(const std::string& key)
 {
 
   CUIntMap::iterator it;
@@ -7408,7 +7409,7 @@ bool CUIntMap::Erase(const string& key)
 
 //----------------------------------------
 
-uint32_t CUIntMap::operator[](const string& key)
+uint32_t CUIntMap::operator[](const std::string& key)
 {
 
   //uint32_t value = mapuint::operator[](key);
@@ -7419,7 +7420,7 @@ uint32_t CUIntMap::operator[](const string& key)
 //----------------------------------------
 
 
-void CUIntMap::Dump(ostream& fOut /* = cerr */) const 
+void CUIntMap::Dump(std::ostream& fOut /* = std::cerr */) const 
 {
 
    if (CTrace::IsTrace() == false)
@@ -7427,17 +7428,17 @@ void CUIntMap::Dump(ostream& fOut /* = cerr */) const
       return;
    }
 
-   fOut << "==> Dump a CUIntMap Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CUIntMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
  
    CUIntMap::const_iterator it;
 
    for (it = this->begin() ; it != this->end() ; it++)
    {
-      fOut << "CUIntMap Key is = " << (*it).first << endl;
-      fOut << "CUIntMap Value is = " << (*it).second << endl;
+      fOut << "CUIntMap Key is = " << (*it).first << std::endl;
+      fOut << "CUIntMap Value is = " << (*it).second << std::endl;
    }
 
-   fOut << "==> END Dump a CUIntMap Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CUIntMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
   
 }
 //-------------------------------------------------------------
@@ -7459,11 +7460,11 @@ CDoubleMap::~CDoubleMap()
 
 //----------------------------------------
 
-double CDoubleMap::Insert(const string& key, double value, bool withExcept /* = true */)
+double CDoubleMap::Insert(const std::string& key, double value, bool withExcept /* = true */)
 {
   
 
-  pair <mapdouble::iterator,bool> pairInsert;
+  std::pair <mapdouble::iterator,bool> pairInsert;
   //If 'key' already exists --> pairInsert.second == false and
   // pairInsert.first then contains an iterator on the existing object
   // If 'key' does not exist --> pairInsert.second == true and
@@ -7485,7 +7486,7 @@ double CDoubleMap::Insert(const string& key, double value, bool withExcept /* = 
 
 //----------------------------------------
 
-double CDoubleMap::Exists(const string& key) const
+double CDoubleMap::Exists(const std::string& key) const
 {
   CDoubleMap::const_iterator it = mapdouble::find(key);
   if (it == end())
@@ -7532,7 +7533,7 @@ bool CDoubleMap::Erase(CDoubleMap::iterator it)
 //----------------------------------------
 
 
-bool CDoubleMap::Erase(const string& key)
+bool CDoubleMap::Erase(const std::string& key)
 {
 
   CDoubleMap::iterator it;
@@ -7545,7 +7546,7 @@ bool CDoubleMap::Erase(const string& key)
 
 //----------------------------------------
 
-double CDoubleMap::operator[](const string& key)
+double CDoubleMap::operator[](const std::string& key)
 {
 
   //double value = mapdouble::operator[](key);
@@ -7556,7 +7557,7 @@ double CDoubleMap::operator[](const string& key)
 //----------------------------------------
 
 
-void CDoubleMap::Dump(ostream& fOut /* = cerr */) const 
+void CDoubleMap::Dump(std::ostream& fOut /* = std::cerr */) const 
 {
 
    if (CTrace::IsTrace() == false)
@@ -7564,17 +7565,17 @@ void CDoubleMap::Dump(ostream& fOut /* = cerr */) const
       return;
    }
 
-   fOut << "==> Dump a CDoubleMap Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CDoubleMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
  
    CDoubleMap::const_iterator it;
 
    for (it = this->begin() ; it != this->end() ; it++)
    {
-      fOut << "CDoubleMap Key is = " << (*it).first << endl;
-      fOut << "CDoubleMap Value is = " << CTools::Format(DUMP_FORMAT_DOUBLE, (*it).second) << endl;
+      fOut << "CDoubleMap Key is = " << (*it).first << std::endl;
+      fOut << "CDoubleMap Value is = " << CTools::Format(DUMP_FORMAT_DOUBLE, (*it).second) << std::endl;
    }
 
-   fOut << "==> END Dump a CDoubleMap Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CDoubleMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
   
 }
 //-------------------------------------------------------------
@@ -7604,11 +7605,11 @@ CObMap::~CObMap()
 
 //----------------------------------------
 
-CBratObject* CObMap::Insert(const string& key, CBratObject* ob, bool withExcept /* = true */)
+CBratObject* CObMap::Insert(const std::string& key, CBratObject* ob, bool withExcept /* = true */)
 {
   
 
-  pair <CObMap::iterator,bool> pairInsert;
+  std::pair <CObMap::iterator,bool> pairInsert;
 
 
   //If 'key' already exists --> pairInsert.second == false and
@@ -7670,7 +7671,7 @@ const CObMap& CObMap::operator =(const CObMap& obMap)
 
 //----------------------------------------
 
-CBratObject* CObMap::Exists(const string& key) const
+CBratObject* CObMap::Exists(const std::string& key) const
 {
   CObMap::const_iterator it = mapobject::find(key);
   if (it == end())
@@ -7733,7 +7734,7 @@ void CObMap::GetKeys(CStringList& keys, bool bRemoveAll /* = true */, bool bUniq
 }
 //----------------------------------------
 
-bool CObMap::RenameKey(const string& oldKey, const string& newKey)
+bool CObMap::RenameKey(const std::string& oldKey, const std::string& newKey)
 {
   CObMap::iterator itOld = mapobject::find(oldKey);
   if (itOld == end())
@@ -7823,7 +7824,7 @@ bool CObMap::Erase(CObMap::iterator it)
 //----------------------------------------
 
 
-bool CObMap::Erase(const string& key)
+bool CObMap::Erase(const std::string& key)
 {
 
   CObMap::iterator it = mapobject::find(key);
@@ -7834,7 +7835,7 @@ bool CObMap::Erase(const string& key)
 
 //----------------------------------------
 
-CBratObject* CObMap::operator[](const string& key)
+CBratObject* CObMap::operator[](const std::string& key)
 {
 
   CBratObject *ob = mapobject::operator[](key);
@@ -7850,7 +7851,7 @@ return  ob;
 //----------------------------------------
 
 
-void CObMap::Dump(ostream& fOut /* = cerr */) const 
+void CObMap::Dump(std::ostream& fOut /* = std::cerr */) const 
 {
 
   if (CTrace::IsTrace() == false)
@@ -7858,22 +7859,22 @@ void CObMap::Dump(ostream& fOut /* = cerr */) const
     return;
   }
 
-  fOut << "==> Dump a CObMap Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> Dump a CObMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
   CObMap::const_iterator it;
 
   for (it = this->begin() ; it != this->end() ; it++)
   {
     CBratObject *ob = it->second;
-    fOut << "CObMap Key is = " << (*it).first << endl;
-    fOut << "CObMap Value is = " << endl;
+    fOut << "CObMap Key is = " << (*it).first << std::endl;
+    fOut << "CObMap Value is = " << std::endl;
     if ( ob != NULL)
     {
       ob->Dump(fOut);
     }
   }
 
-  fOut << "==> END Dump a CObMap Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> END Dump a CObMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
   
 }
 
@@ -7901,7 +7902,7 @@ CBratObject* CObIntMap::Insert(int32_t key, CBratObject* ob, bool withExcept /* 
 {
   
 
-  pair <CObIntMap::iterator,bool> pairInsert;
+  std::pair <CObIntMap::iterator,bool> pairInsert;
 
 
   //If 'key' already exists --> pairInsert.second == false and
@@ -8096,7 +8097,7 @@ return  ob;
 //----------------------------------------
 
 
-void CObIntMap::Dump(ostream& fOut /* = cerr */) const 
+void CObIntMap::Dump(std::ostream& fOut /* = std::cerr */) const 
 {
 
   if (CTrace::IsTrace() == false)
@@ -8104,22 +8105,22 @@ void CObIntMap::Dump(ostream& fOut /* = cerr */) const
     return;
   }
 
-  fOut << "==> Dump a CObIntMap Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> Dump a CObIntMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
   CObIntMap::const_iterator it;
 
   for (it = this->begin() ; it != this->end() ; it++)
   {
     CBratObject *ob = it->second;
-    fOut << "CObIntMap Key is = " << (*it).first << endl;
-    fOut << "CObIntMap Value is = " << endl;
+    fOut << "CObIntMap Key is = " << (*it).first << std::endl;
+    fOut << "CObIntMap Value is = " << std::endl;
     if ( ob != NULL)
     {
       ob->Dump(fOut);
     }
   }
 
-   fOut << "==> END Dump a CObIntMap Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CObIntMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
   
 }
 
@@ -8147,7 +8148,7 @@ CBratObject* CObDoubleMap::Insert(double key, CBratObject* ob, bool withExcept /
 {
   
 
-  pair <CObDoubleMap::iterator,bool> pairInsert;
+  std::pair <CObDoubleMap::iterator,bool> pairInsert;
 
 
   //If 'key' already exists --> pairInsert.second == false and
@@ -8343,7 +8344,7 @@ return  ob;
 //----------------------------------------
 
 
-void CObDoubleMap::Dump(ostream& fOut /* = cerr */) const 
+void CObDoubleMap::Dump(std::ostream& fOut /* = std::cerr */) const 
 {
 
   if (CTrace::IsTrace() == false)
@@ -8351,22 +8352,22 @@ void CObDoubleMap::Dump(ostream& fOut /* = cerr */) const
     return;
   }
 
-  fOut << "==> Dump a CObDoubleMap Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> Dump a CObDoubleMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
   CObDoubleMap::const_iterator it;
 
   for (it = this->begin() ; it != this->end() ; it++)
   {
     CBratObject *ob = it->second;
-    fOut << "CObDoubleMap Key is = " << CTools::Format(DUMP_FORMAT_DOUBLE, (*it).first) << endl;
-    fOut << "CObDoubleMap Value is = " << endl;
+    fOut << "CObDoubleMap Key is = " << CTools::Format(DUMP_FORMAT_DOUBLE, (*it).first) << std::endl;
+    fOut << "CObDoubleMap Value is = " << std::endl;
     if ( ob != NULL)
     {
       ob->Dump(fOut);
     }
   }
 
-  fOut << "==> END Dump a CObDoubleMap Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> END Dump a CObDoubleMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
   
 }
 
@@ -8433,7 +8434,7 @@ DoublePtr* CDoublePtrDoubleMap::NewMatrix(double initialValue /* = CTools::m_def
 					  e.what()),
             BRATHL_ERROR);
   }
-  catch (bad_alloc& e) // If memory allocation (new) failed...
+  catch (std::bad_alloc& e) // If memory allocation (new) failed...
   {
     RemoveAll(); // free memory  to be able to allocate new for error msg
     throw CMemoryException(CTools::Format("ERROR: CDoublePtrDoubleMap::NewMatrix) - Unable to allocate new memory to store the result.\nNative error: '%s'\n"
@@ -8499,7 +8500,7 @@ DoublePtr* CDoublePtrDoubleMap::Insert(double key, DoublePtr* ob, bool withExcep
 {
   
 
-  pair <CDoublePtrDoubleMap::iterator,bool> pairInsert;
+  std::pair <CDoublePtrDoubleMap::iterator,bool> pairInsert;
 
 
   //If 'key' already exists --> pairInsert.second == false and
@@ -8671,7 +8672,7 @@ return  ob;
 //----------------------------------------
 
 
-void CDoublePtrDoubleMap::Dump(ostream& fOut /* = cerr */) const 
+void CDoublePtrDoubleMap::Dump(std::ostream& fOut /* = std::cerr */) const 
 {
 
   if (CTrace::IsTrace() == false)
@@ -8679,15 +8680,15 @@ void CDoublePtrDoubleMap::Dump(ostream& fOut /* = cerr */) const
     return;
   }
 
-  fOut << "==> Dump a CDoublePtrDoubleMap Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> Dump a CDoublePtrDoubleMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
   CDoublePtrDoubleMap::const_iterator it;
 
   for (it = this->begin() ; it != this->end() ; it++)
   {
     DoublePtr* matrix = it->second;
-    fOut << "CDoublePtrDoubleMap Key is = " << CTools::Format(DUMP_FORMAT_DOUBLE, (*it).first) << endl;
-    fOut << "CDoublePtrDoubleMap Value is = " << endl;
+    fOut << "CDoublePtrDoubleMap Key is = " << CTools::Format(DUMP_FORMAT_DOUBLE, (*it).first) << std::endl;
+    fOut << "CDoublePtrDoubleMap Value is = " << std::endl;
     if ( matrix != NULL)
     {
      // Here's how to access the (i,j) element:
@@ -8699,12 +8700,12 @@ void CDoublePtrDoubleMap::Dump(ostream& fOut /* = cerr */) const
          fOut << matrix[i][j] << " ";
        }
 
-       fOut << endl;
+       fOut << std::endl;
      }
     }
   }
 
-  fOut << "==> END Dump a CDoublePtrDoubleMap Object at "<< this << " with " <<  size() << " elements" << endl;
+  fOut << "==> END Dump a CDoublePtrDoubleMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
   
 }
 
@@ -8729,11 +8730,11 @@ CPtrMap::~CPtrMap()
 
 //----------------------------------------
 
-void* CPtrMap::Insert(const string& key, void* ptr, bool withExcept /* = true */)
+void* CPtrMap::Insert(const std::string& key, void* ptr, bool withExcept /* = true */)
 {
   
 
-  pair <CPtrMap::iterator,bool> pairInsert;
+  std::pair <CPtrMap::iterator,bool> pairInsert;
 
 
   //If 'key' already exists --> pairInsert.second == false and
@@ -8773,7 +8774,7 @@ void CPtrMap::Insert(const CPtrMap& ptrMap, bool withExcept /* = true */)
 
 //----------------------------------------
 
-void* CPtrMap::Exists(const string& key) const
+void* CPtrMap::Exists(const std::string& key) const
 {
   CPtrMap::const_iterator it = mapptr::find(key);
   if (it == end())
@@ -8837,7 +8838,7 @@ bool CPtrMap::Erase(CPtrMap::iterator it)
 //----------------------------------------
 
 
-bool CPtrMap::Erase(const string& key)
+bool CPtrMap::Erase(const std::string& key)
 {
 
   CPtrMap::iterator it;
@@ -8850,7 +8851,7 @@ bool CPtrMap::Erase(const string& key)
 
 //----------------------------------------
 
-void* CPtrMap::operator[](const string& key)
+void* CPtrMap::operator[](const std::string& key)
 {
 
   void *ptr = mapptr::operator[](key);
@@ -8866,7 +8867,7 @@ return  ptr;
 //----------------------------------------
 
 
-void CPtrMap::Dump(ostream& fOut /* = cerr */) const 
+void CPtrMap::Dump(std::ostream& fOut /* = std::cerr */) const 
 {
 
    if (CTrace::IsTrace() == false)
@@ -8874,17 +8875,17 @@ void CPtrMap::Dump(ostream& fOut /* = cerr */) const
       return;
    }
 
-   fOut << "==> Dump a CPtrMap Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CPtrMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
  
    CPtrMap::const_iterator it;
 
    for (it = this->begin() ; it != this->end() ; it++)
    {
-      fOut << "CPtrMap Key is = " << (*it).first << endl;
-      fOut << "CPtrMap Value is = " << (*it).second << endl;
+      fOut << "CPtrMap Key is = " << (*it).first << std::endl;
+      fOut << "CPtrMap Value is = " << (*it).second << std::endl;
    }
 
-   fOut << "==> END Dump a (*it).first <<  Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a (*it).first <<  Object at "<< this << " with " <<  size() << " elements" << std::endl;
   
 }
 

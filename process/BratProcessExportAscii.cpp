@@ -18,6 +18,8 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include <fstream>
+
 #include "Exception.h"
 #include "FileParams.h"
 
@@ -90,7 +92,7 @@ void CBratProcessExportAscii::ResizeArrayDependOnFields(uint32_t size)
 
 
 //----------------------------------------
-void CBratProcessExportAscii::GetParameters(const string& commandFileName)
+void CBratProcessExportAscii::GetParameters(const std::string& commandFileName)
 {
   m_commandFileName = commandFileName;
   GetParameters();
@@ -134,9 +136,9 @@ void CBratProcessExportAscii::GetParameters()
 
   if (m_outputFileName != "")
   {
-    ofstream	*oFile;
+    std::ofstream	*oFile;
     p->Tracer(1, CBratProcess::PCT_StrFmt, "Output file", m_outputFileName.c_str());
-    oFile = new ofstream;
+    oFile = new std::ofstream;
     oFile->open(m_outputFileName.c_str());
     if (oFile->fail())
     {
@@ -147,7 +149,7 @@ void CBratProcessExportAscii::GetParameters()
   else
   {
     p->Tracer(1, CBratProcess::PCT_StrFmt, "Output file", "Standard output");
-    m_outputFile	= &cout;
+    m_outputFile	= &std::cout;
   }
 
   params.m_mapParam[kwRECORD]->GetValue(m_recordName);
@@ -174,7 +176,7 @@ void CBratProcessExportAscii::GetParameters()
 
   for (index = 0; index < nbExpr; index++)
   {
-    string* namesTmp = NULL;
+    std::string* namesTmp = NULL;
 
     if (nbNames > 0)
     {
@@ -236,7 +238,7 @@ void CBratProcessExportAscii::BuildListFieldsToRead()
 
 
 //----------------------------------------
-int32_t CBratProcessExportAscii::Execute(string& msg)
+int32_t CBratProcessExportAscii::Execute(std::string& msg)
 { 
 
   int32_t result = BRATHL_SUCCESS;
@@ -296,7 +298,7 @@ int32_t CBratProcessExportAscii::Execute(string& msg)
 
   if (m_product->GetSkippedRecordCount() > 0)
   {
-    string msg = CTools::Format("WARNING - %d input data records have been skipped due to inconsistency between two measures",
+    std::string msg = CTools::Format("WARNING - %d input data records have been skipped due to inconsistency between two measures",
                                 m_product->GetSkippedRecordCount());
     CTrace::Tracer(1, msg);
   }
@@ -350,9 +352,9 @@ int32_t CBratProcessExportAscii::WriteData()
         CExpressionValue exprValueData;
         recordSet->ExecuteExpression(m_fields[indexExpr], m_recordName, exprValueData, m_product);
         
-        string colName = (m_names[indexExpr].empty() ? m_fields[indexExpr].AsString() : m_names[indexExpr]);
+        std::string colName = (m_names[indexExpr].empty() ? m_fields[indexExpr].AsString() : m_names[indexExpr]);
 
-        string unitStr;
+        std::string unitStr;
         unitStr.append(" (");
         unitStr.append(m_units[indexExpr].AsString(false, true));
         unitStr.append(") ");
@@ -369,7 +371,7 @@ int32_t CBratProcessExportAscii::WriteData()
 
         *m_outputFile << colName << unitStr  << " " << exprValueData.GetDimensionsAsString() << "\t";
       }
-      *m_outputFile << endl;
+      *m_outputFile << std::endl;
       m_writeHeader = false;
     }
 
@@ -391,7 +393,7 @@ int32_t CBratProcessExportAscii::WriteData()
 
       *m_outputFile << exprValueData.AsString(m_units[indexExpr], m_formats[indexExpr], m_dateAsPeriod) << "\t";
     }
-    *m_outputFile << endl;
+    *m_outputFile << std::endl;
 
   }
 

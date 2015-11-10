@@ -41,9 +41,9 @@ namespace brathl
 	  return new Class(Name)
 
 CExternalFiles* BuildExistingExternalFileKind
-		(const string		&Name)
+		(const std::string		&Name)
 {
-  string TypeStr	= CNetCDFFiles::IdentifyExistingFile(Name, true, true);
+  std::string TypeStr	= CNetCDFFiles::IdentifyExistingFile(Name, true, true);
   CHECK_TYPE(CExternalFilesATP);
   CHECK_TYPE(CExternalFilesDotGrid);
   CHECK_TYPE(CExternalFilesBoxGrid);

@@ -19,7 +19,7 @@
 */
 
 #include <algorithm>
-#include "Stl.h"
+#include <string>
 
 #include "brathl.h"
 
@@ -60,11 +60,11 @@ namespace brathl
 // With this we are sure the value is greater than any valid number of pass
 //#define AT_BEGINNING		0xFFFFFFFFUL
 
-const string CExternalFilesATP::m_ALONG_TRACK_PRODUCT = "ALONG_TRACK_PRODUCT";
-const string CExternalFilesATP::m_DATE_UNIT = "days since 1950-01-01 00:00:00.000000 UTC";
-const string CExternalFilesATP::m_DATA_DIM_NAME = "Data";
+const std::string CExternalFilesATP::m_ALONG_TRACK_PRODUCT = "ALONG_TRACK_PRODUCT";
+const std::string CExternalFilesATP::m_DATE_UNIT = "days since 1950-01-01 00:00:00.000000 UTC";
+const std::string CExternalFilesATP::m_DATA_DIM_NAME = "Data";
 
-CExternalFilesATP::CExternalFilesATP(const string		&Name /*= ""*/)
+CExternalFilesATP::CExternalFilesATP(const std::string		&Name /*= ""*/)
 	: CExternalFilesNetCDFCF(Name)
 {
 
@@ -185,7 +185,7 @@ bool CExternalFilesATP::PrevRecord()
 }
 
 //----------------------------------------
-void CExternalFilesATP::GetAllValues(CFieldNetCdf* field, const string& wantedUnit)
+void CExternalFilesATP::GetAllValues(CFieldNetCdf* field, const std::string& wantedUnit)
 {
   if (field == NULL)
   {
@@ -221,7 +221,7 @@ void CExternalFilesATP::GetAllValues(CFieldNetCdf* field, const string& wantedUn
 
 }
 //----------------------------------------
-void CExternalFilesATP::GetAllValues(const string& name, CDoubleArray& array, const string& wantedUnit)
+void CExternalFilesATP::GetAllValues(const std::string& name, CDoubleArray& array, const std::string& wantedUnit)
 {
   CFieldNetCdf* field = GetFieldNetCdf(name);
   if (field == NULL)
@@ -239,7 +239,7 @@ void CExternalFilesATP::GetAllValues(const string& name, CDoubleArray& array, co
 }
 
 //----------------------------------------
-void CExternalFilesATP::GetAllValues(const string& name, CExpressionValue& value, const string& wantedUnit)
+void CExternalFilesATP::GetAllValues(const std::string& name, CExpressionValue& value, const std::string& wantedUnit)
 {
   CDoubleArray array;
   
@@ -289,7 +289,7 @@ void CExternalFilesATP::GetAllValues(const string& name, CExpressionValue& value
 
 
 //----------------------------------------
-void CExternalFilesATP::GetValues(const string& name, CExpressionValue &value, const string	&wantedUnit)
+void CExternalFilesATP::GetValues(const std::string& name, CExpressionValue &value, const std::string	&wantedUnit)
 {
 
   CFieldNetCdf* field = GetFieldNetCdf(name);
@@ -348,7 +348,7 @@ void CExternalFilesATP::GetValues(const string& name, CExpressionValue &value, c
  }
 
 //----------------------------------------
-void CExternalFilesATP::GetValue(const string& name, CExpressionValue& value, const string& wantedUnit)
+void CExternalFilesATP::GetValue(const std::string& name, CExpressionValue& value, const std::string& wantedUnit)
 {
   double result;
   GetValue(name, result, wantedUnit);
@@ -358,7 +358,7 @@ void CExternalFilesATP::GetValue(const string& name, CExpressionValue& value, co
 //----------------------------------------
 
 // If WantedUnit is "", the returned value is in base (SI) unit.
-void CExternalFilesATP::GetValue(const string& name, double& value, const string& wantedUnit)
+void CExternalFilesATP::GetValue(const std::string& name, double& value, const std::string& wantedUnit)
 {
   MustBeOpened();
 
@@ -582,7 +582,7 @@ void CExternalFilesATP::AddVirtualVariables()
 
   mapAttributes.RemoveAll();
   mapAttributes.Insert(STANDARD_NAME_ATTR, CField::m_BRAT_INDEX_DATA_NAME);
-  string desc = CField::m_BRAT_INDEX_DATA_DESC;
+  std::string desc = CField::m_BRAT_INDEX_DATA_DESC;
   desc.append(" based on date of measurement ('Date' field)");
   AddVar(INTERNAL_BRAT_INDEX_DATA, CField::m_BRAT_INDEX_DATA_NAME, desc , "count", NC_DOUBLE,
          &m_dataDimValues, &m_dataDimNames, &m_dataDimIds, &mapAttributes);
@@ -627,9 +627,9 @@ void CExternalFilesATP::CheckVariables()
 //----------------------------------------
 void CExternalFilesATP::AddVar
 		            (int32_t	netcdfId,
-		             const string	&name,
-		             const string	&description,
-		             const string	&unit,
+		             const std::string	&name,
+		             const std::string	&description,
+		             const std::string	&unit,
                  int32_t type /*= NC_NAT*/,
                  const CUIntArray* dimValues  /*= NULL*/,
                  const CStringArray* dimNames  /*= NULL*/, 
@@ -674,7 +674,7 @@ void CExternalFilesATP::AddVar
 
 }
 //----------------------------------------
-void CExternalFilesATP::AddVar(const string	&name)
+void CExternalFilesATP::AddVar(const std::string	&name)
 {
   CExternalFilesNetCDF::AddVar(name);
 }
@@ -705,7 +705,7 @@ bool CExternalFilesATP::LoadPass(bool resetValues /* = false */)
 
     for (it = m_varList.begin(); it != m_varList.end(); it++)
     {
-      string varName = it->first;
+      std::string varName = it->first;
       
       CFieldNetCdf* var = CExternalFiles::GetFieldNetCdf(it->second);
       
@@ -808,7 +808,7 @@ bool CExternalFilesATP::LoadPass(bool resetValues /* = false */)
 }
 
 //----------------------------------------
-//bool CExternalFilesATP::LoadPass(const string& name, bool resetValues /* = false */)
+//bool CExternalFilesATP::LoadPass(const std::string& name, bool resetValues /* = false */)
 /*{
   CFieldNetCdf* field = GetFieldNetCdf(name);
   return LoadPass(field, resetValues);

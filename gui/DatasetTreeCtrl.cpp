@@ -196,7 +196,7 @@ void CDatasetTreeCtrl::AddItemsToTree()
   {
     CDataset* dataset = dynamic_cast<CDataset*>(it->second);
 
-    //string value = it->first;
+    //std::string value = it->first;
     image = CTreeCtrl::TreeCtrlIcon_File;
     wxTreeItemId id = AppendItem(rootId, (it->first).c_str(), image, image + 1, new CDatasetTreeItemData(dataset));
   }

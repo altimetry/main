@@ -40,7 +40,7 @@ public:
 
   bool CheckCommandLineOptions(int argc, char	**argv);
 
-  virtual int32_t Execute(string& msg);
+  virtual int32_t Execute(std::string& msg);
 
 public:
   static const KeywordHelp YFXKeywordList[];
@@ -53,7 +53,7 @@ protected:
   virtual void AddFieldIndexes(CFieldIndex* fieldIndex, CNetCDFVarDef* varDef);
   
 
-  virtual void GetParameters(const string &commandFileName);
+  virtual void GetParameters(const std::string &commandFileName);
   virtual void GetParameters();
 
   //virtual void CheckNetCdfFields(CStringArray& fields);
@@ -64,7 +64,7 @@ protected:
 
   void AddComplementDimensionsFromNetCdf();
 
-  virtual bool IsOutputAxis(const string& name) { return (name == m_xName); };
+  virtual bool IsOutputAxis(const std::string& name) { return (name == m_xName); };
 
 
   void RegisterData();
@@ -78,7 +78,7 @@ protected:
   virtual void SubstituteAxisDim(const CStringArray& fieldDims, CStringArray& fieldDimsOut);
   virtual void OnAddDimensionsFromNetCdf();
 
-  bool CheckValuesSimilar(uint32_t indexExpr, double* dataValues, uint32_t nbValues, string& msg);
+  bool CheckValuesSimilar(uint32_t indexExpr, double* dataValues, uint32_t nbValues, std::string& msg);
   bool CheckValuesSimilar(uint32_t indexExpr);
 
 

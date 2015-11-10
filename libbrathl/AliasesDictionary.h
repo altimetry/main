@@ -48,9 +48,9 @@ protected:
   CAliasesDictionary(const CXmlDocument& doc);
 
 
-  CAliasesDictionary(const string& filename, const string& encoding = CXmlDocument::m_DEFAULT_ENCODING);
+  CAliasesDictionary(const std::string& filename, const std::string& encoding = CXmlDocument::m_DEFAULT_ENCODING);
 
- 	CAliasesDictionary(istream& stream, const string& encoding = CXmlDocument::m_DEFAULT_ENCODING);
+ 	CAliasesDictionary(std::istream& stream, const std::string& encoding = CXmlDocument::m_DEFAULT_ENCODING);
 
 public:
   
@@ -60,17 +60,17 @@ public:
 
   CAliasesDictionary& operator=(const CAliasesDictionary& doc);
 
-  const string& GetFullFileName() { return m_fullFileName; };
+  const std::string& GetFullFileName() { return m_fullFileName; };
 
-  void Load(const string& fileName, const string& encoding = CXmlDocument::m_DEFAULT_ENCODING, int flags = CXmlDocument::XMLDOC_NONE);
-  void Load(const string& encoding = CXmlDocument::m_DEFAULT_ENCODING, int flags = CXmlDocument::XMLDOC_NONE);
+  void Load(const std::string& fileName, const std::string& encoding = CXmlDocument::m_DEFAULT_ENCODING, int flags = CXmlDocument::XMLDOC_NONE);
+  void Load(const std::string& encoding = CXmlDocument::m_DEFAULT_ENCODING, int flags = CXmlDocument::XMLDOC_NONE);
 
   static bool IsLoaded() { return (CAliasesDictionary::m_instance != NULL); };
   
-  CXmlNode* FindProductNode(const string& clazz, bool allDepths = false);
-  CXmlNode* FindProductNode(const string& clazz, CXmlNode* parent, bool allDepths = false);
+  CXmlNode* FindProductNode(const std::string& clazz, bool allDepths = false);
+  CXmlNode* FindProductNode(const std::string& clazz, CXmlNode* parent, bool allDepths = false);
   
-  CXmlNode* FindAliasNode(const string& name, CXmlNode* parent, bool allDepths = false);
+  CXmlNode* FindAliasNode(const std::string& name, CXmlNode* parent, bool allDepths = false);
 
  
   
@@ -83,34 +83,34 @@ public:
   CAliases* CreateAliases(CXmlNode* aliasesNode);
   CAlias* CreateAlias(CXmlNode* aliasNode);
   
-  bool SetPropVal(CXmlNode* node, const string& propName, const string& value, bool allDepths = true);
+  bool SetPropVal(CXmlNode* node, const std::string& propName, const std::string& value, bool allDepths = true);
 
-  static CAliasesDictionary* LoadAliasesDictionary(string* errorMsg, bool withExcept);
+  static CAliasesDictionary* LoadAliasesDictionary(std::string* errorMsg, bool withExcept);
   
-  static string GetAliasesDictFilePath();
+  static std::string GetAliasesDictFilePath();
 
-  static CAliasesDictionary* GetInstance(const string& encoding = CXmlDocument::m_DEFAULT_ENCODING);
-  static CAliasesDictionary* GetInstance(const string* fileName, const string& encoding = CXmlDocument::m_DEFAULT_ENCODING);
+  static CAliasesDictionary* GetInstance(const std::string& encoding = CXmlDocument::m_DEFAULT_ENCODING);
+  static CAliasesDictionary* GetInstance(const std::string* fileName, const std::string& encoding = CXmlDocument::m_DEFAULT_ENCODING);
 
   static CAliases* ResolveRef(const CAliases* aliases, const CObArray* aliasesArray);
 
 
 public:
 
-  static const string m_ROOT_ELT;
+  static const std::string m_ROOT_ELT;
 
-  static const string m_ALIAS_ELT;
-  static const string m_ALIASES_ELT;
-  static const string m_DEFAULT_RECORD_ELT;
-  static const string m_PRODUCT_ELT;
-  static const string m_PRODUCT_TYPE_ELT;
+  static const std::string m_ALIAS_ELT;
+  static const std::string m_ALIASES_ELT;
+  static const std::string m_DEFAULT_RECORD_ELT;
+  static const std::string m_PRODUCT_ELT;
+  static const std::string m_PRODUCT_TYPE_ELT;
 
-  static const string m_DESCR_ATTR;
-  static const string m_CLASS_ATTR;
-  static const string m_NAME_ATTR;
-  static const string m_PRODUCT_TYPE_ATTR;
-  static const string m_RECORD_ATTR;
-  static const string m_REF_ATTR;
+  static const std::string m_DESCR_ATTR;
+  static const std::string m_CLASS_ATTR;
+  static const std::string m_NAME_ATTR;
+  static const std::string m_PRODUCT_TYPE_ATTR;
+  static const std::string m_RECORD_ATTR;
+  static const std::string m_REF_ATTR;
 
 protected:
   //----------------------------------------------------------------------------
@@ -153,9 +153,9 @@ protected:
 
 protected:
 
-  string m_fullFileName;
+  std::string m_fullFileName;
 
-  static const string m_ALIASES_DICT_FILE_NAME;
+  static const std::string m_ALIASES_DICT_FILE_NAME;
 
 
   static CAliasesDictionary* m_instance;

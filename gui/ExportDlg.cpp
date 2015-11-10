@@ -110,7 +110,7 @@ CExportDlg::CExportDlg( wxWindow *parent, wxWindowID id, const wxString &title,
   GetExportAsciiNumberPrecision()->SetValue(m_asciiNumberPrecision);
   GetExportAsciiNumberPrecision()->SetMaxLength(2);
   GetExportAsciiNumberPrecision()->SetToolTip(wxString::Format("Precision specifies the minimum number of digits to be written after the decimal point.\n"
-                                                       "This precision is applied on all fields, except for date string representation.\n"
+                                                       "This precision is applied on all fields, except for date std::string representation.\n"
                                                        "When no precision is specified, the decimal precision is %d.\n"
                                                        "The maximum valid precision depends on the operating system (usually 16).\n",
                                                         m_asciiNumberPrecision));

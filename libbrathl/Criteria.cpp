@@ -27,7 +27,7 @@
 #include "brathl.h" 
 //#define BRAT_INTERNAL
 
-#include "Stl.h" 
+#include <string> 
 
 #include "TraceLog.h" 
 #include "Tools.h" 
@@ -133,19 +133,19 @@ void CCriteria::Adjust(CIntArray& array)
 }
 
 //----------------------------------------
-void CCriteria::Dump(ostream& fOut /* = cerr */)
+void CCriteria::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
-  fOut << "==> Dump a CCriteria Object at "<< this << endl;
+  fOut << "==> Dump a CCriteria Object at "<< this << std::endl;
   
-  fOut << "m_key "<< m_key << endl;
+  fOut << "m_key "<< m_key << std::endl;
   
-  fOut << "==> END Dump a CCriteria Object at "<< this << endl;
+  fOut << "==> END Dump a CCriteria Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

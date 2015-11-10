@@ -30,7 +30,7 @@
 
 #include "brathl.h" 
 
-#include "Stl.h"
+#include <string>
 
 #include "List.h"
 #include "ObjectTree.h"
@@ -77,7 +77,7 @@ public:
   bool Import(CTreeWorkspace* treeSrc);
 
   /// Dump function
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
   CWorkspaceFormula* GetWorkspaceFormula();
   static CWorkspaceFormula * GetWorkspaceFormula(CWorkspace *w, bool withExcept  = true);

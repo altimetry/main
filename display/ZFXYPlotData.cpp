@@ -144,7 +144,7 @@ CLUTZFXYRenderer::~CLUTZFXYRenderer()
 //----------------------------------------
 void CLUTZFXYRenderer::ResetTextActor(CZFXYPlotData* zfxyPlotData)
 {
-  string text = zfxyPlotData->GetDataTitle();
+  std::string text = zfxyPlotData->GetDataTitle();
   text += "\t\t(" + zfxyPlotData->m_plotProperty.m_name;
   text += ")\t\t-\t\tUnit:\t" +  zfxyPlotData->GetDataUnitString();
   text += "\t" + zfxyPlotData->GetDataDateString();
@@ -152,7 +152,7 @@ void CLUTZFXYRenderer::ResetTextActor(CZFXYPlotData* zfxyPlotData)
   ResetTextActor(text);
 }
 //----------------------------------------
-void CLUTZFXYRenderer::ResetTextActor(const string& text)
+void CLUTZFXYRenderer::ResetTextActor(const std::string& text)
 {
   m_scalarBarActor->SetTitle(text.c_str());
 }
@@ -434,7 +434,7 @@ CZFXYPlotData::CZFXYPlotData(wxWindow* parent, CZFXYPlot* plot, CPlotField* fiel
   CTools::SetDefaultValue(m_yMin);
   CTools::SetDefaultValue(m_yMax);
 
-  Create(parent, &(field->m_internalFiles), (const char *)(field->m_name), plot);
+  Create(parent, &(field->m_internalFiles), field->m_name, plot);
 
 
 
@@ -634,7 +634,7 @@ bool CZFXYPlotData::HasActor2D()
   return ((m_vtkActor2D != NULL) || (m_vtkContourActor2D != NULL));
 }
 //----------------------------------------
-string CZFXYPlotData::GetDataDateString(uint32_t index)
+std::string CZFXYPlotData::GetDataDateString(uint32_t index)
 {
 
   if (index >= m_dataDates.size())
@@ -655,7 +655,7 @@ string CZFXYPlotData::GetDataDateString(uint32_t index)
 }
 
 //----------------------------------------
-string CZFXYPlotData::GetDataUnitString(uint32_t index)
+std::string CZFXYPlotData::GetDataUnitString(uint32_t index)
 {
   if (index >= m_dataUnits.size())
   {
@@ -698,7 +698,7 @@ void CZFXYPlotData::SetInput(vtkPolyData* output)
 }
 
 //----------------------------------------
-void CZFXYPlotData::Create(wxWindow* parent, CObArray* data, const string& fieldName, CZFXYPlot* plot)
+void CZFXYPlotData::Create(wxWindow* parent, CObArray* data, const std::string& fieldName, CZFXYPlot* plot)
 {
   m_contourLabelNeedUpdateOnWindow = false;
   m_contourLabelNeedUpdatePositionOnContour = false;
@@ -816,7 +816,7 @@ void CZFXYPlotData::Create(wxWindow* parent, CObArray* data, const string& field
 
 
     //update ProgressDialog
-    string msg = CTools::Format("Calculating Frame: %d of %d", iMap + 1, m_nrMaps);
+    std::string msg = CTools::Format("Calculating Frame: %d of %d", iMap + 1, m_nrMaps);
     if (pd.Update(iMap, msg.c_str()) == false)
     {
       m_aborted = true;
@@ -830,8 +830,8 @@ void CZFXYPlotData::Create(wxWindow* parent, CObArray* data, const string& field
     uint32_t dimRangeX = 0;
     uint32_t dimRangeY = 1;
 
-    string varXName;
-    string varYName;
+    std::string varXName;
+    std::string varYName;
 
     plot->GetPlotWidthHeight(zfxy, fieldName, mapWidth, mapHeight, varX, varY, dimRangeX, dimRangeY, varXName, varYName);
 
@@ -862,7 +862,7 @@ void CZFXYPlotData::Create(wxWindow* parent, CObArray* data, const string& field
     m_dataUnits.Insert(unit);
 
     // Get data title
-    string dataTitle = zfxy->GetTitle(fieldName);
+    std::string dataTitle = zfxy->GetTitle(fieldName);
     if (dataTitle.empty())
     {
       dataTitle = m_plotProperty.m_name;
@@ -878,7 +878,7 @@ void CZFXYPlotData::Create(wxWindow* parent, CObArray* data, const string& field
 
     if (varKind != Data)
     {
-      string msg = CTools::Format("CZFXYPlotData ctor - variable '%s' is not a kind of Data (%d) : %s",
+      std::string msg = CTools::Format("CZFXYPlotData ctor - variable '%s' is not a kind of Data (%d) : %s",
                                    fieldName.c_str(), Data, CNetCDFFiles::VarKindToString(varKind).c_str());
       CException e(msg, BRATHL_INCONSISTENCY_ERROR);
       CTrace::Tracer("%s", e.what());
@@ -1102,7 +1102,7 @@ vtkZFXYPlotFilter*  CZFXYPlotData::GetCurrentPlotData()
   if (zfxyPlotFilter == NULL)
   {
     throw CException(CTools::Format("ERROR in CZFXYPlotData::GetCurrentPlotData : dynamic_cast<vtkZFXYPlotFilter*>(m_zfxyPlotFilterList[%d]) returns NULL pointer - "
-                     "m_zfxyPlotFilterList list seems to contain objects other than those of the class vtkZFXYPlotFilter", m_currentMap),
+                     "m_zfxyPlotFilterList std::list seems to contain objects other than those of the class vtkZFXYPlotFilter", m_currentMap),
                      BRATHL_LOGIC_ERROR);
 
   }
@@ -1116,7 +1116,7 @@ vtkZFXYPlotFilter*  CZFXYPlotData::GetPlotData(int32_t i)
   if (zfxyPlotFilter == NULL)
   {
     throw CException(CTools::Format("ERROR in CZFXYPlotData::GetPlotData : dynamic_cast<vtkZFXYPlotFilter*>(m_zfxyPlotFilterList[%d]) returns NULL pointer - "
-                     "m_zfxyPlotFilterList list seems to contain objects other than those of the class vtkZFXYPlotFilter", i),
+                     "m_zfxyPlotFilterList std::list seems to contain objects other than those of the class vtkZFXYPlotFilter", i),
                      BRATHL_LOGIC_ERROR);
 
   }
@@ -1285,7 +1285,7 @@ void CZFXYPlotData::FindVisiblePlanePoints(void* arg)
   }
 
   // Finds visible points on sphere based on cosine angle of points
-  // relative to camera view vector.
+  // relative to camera view std::vector.
   // Works on assumption that sphere origin is world coord (0,0,0).
   vtkPolyData* input = zfxyPlotData->GetVtkVisibleSpherePointsFilter()->GetPolyDataInput();
   vtkPolyData* output = zfxyPlotData->GetVtkVisibleSpherePointsFilter()->GetPolyDataOutput();

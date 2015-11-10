@@ -34,7 +34,7 @@
 //#include "BratDisplay_wdr.h"
 
 #include "WorldPlotPanel.h"
-#include "WorldPlotData.h"
+#include "PlotData/WorldPlotData.h"
 #include "LUTFrame.h"
 #include "ContourPropFrame.h"
 #include "WindowHandler.h"
@@ -140,7 +140,7 @@ private:
 private:
   void Init();
   void CreateMenuBar();
-  bool CreateControls();
+  //bool CreateControls();
   void CreateLayout();
   void UpdateMinSize();
   void InstallEventListeners();

@@ -27,7 +27,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h" 
+#include <string> 
 
 #include "TraceLog.h" 
 #include "Tools.h" 
@@ -50,7 +50,7 @@ CProductTopexSDR::CProductTopexSDR()
 }
 
 //----------------------------------------
-CProductTopexSDR::CProductTopexSDR(const string& fileName)
+CProductTopexSDR::CProductTopexSDR(const std::string& fileName)
       : CProductTopex(fileName)
 {
   Init();
@@ -107,7 +107,7 @@ void CProductTopexSDR::Init()
   
 }
 //----------------------------------------
-string CProductTopexSDR::GetLabel()
+std::string CProductTopexSDR::GetLabel()
 {
   return m_label; 
 }
@@ -168,7 +168,7 @@ void CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation()
 
   if (recordSetToProcess == NULL)
   {
-    string msg = "ERROR in CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation - No current recordset";
+    std::string msg = "ERROR in CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation - No current recordset";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
@@ -211,33 +211,33 @@ void CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation()
 
   if (fieldSetLat == NULL)
   {
-    string msg = "ERROR in CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation - latitude field has not been read";
+    std::string msg = "ERROR in CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation - latitude field has not been read";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
 
   if (fieldSetLon == NULL)
   {
-    string msg = "ERROR in CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation - longitude field has not been read";
+    std::string msg = "ERROR in CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation - longitude field has not been read";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
 
   if (fieldSetTimeStampDay == NULL)
   {
-    string msg = "ERROR in CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation - timestamp day field has not been read";
+    std::string msg = "ERROR in CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation - timestamp day field has not been read";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
   if (fieldSetTimeStampMillisecond == NULL)
   {
-    string msg = "ERROR in CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation - timestamp millisecond field has not been read";
+    std::string msg = "ERROR in CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation - timestamp millisecond field has not been read";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
   if (fieldSetTimeStampMicrosecond == NULL)
   {
-    string msg = "ERROR in CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation - timestamp microsecond field has not been read";
+    std::string msg = "ERROR in CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation - timestamp microsecond field has not been read";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
@@ -258,7 +258,7 @@ void CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation()
   if  ( (timeStamp - m_previousTimeStamp > 2.0) ||
         (timeStamp <= m_previousTimeStamp) )
   {
-    string msg = CTools::Format("INFO - record skipped due to inconsistency between two measures\n"
+    std::string msg = CTools::Format("INFO - record skipped due to inconsistency between two measures\n"
                                 "\t previous record --> timestamp %f seconds\n"
                                 "\t current record --> timestamp %f seconds\n"
                                 "\t timestamp difference is %f seconds\n",
@@ -285,13 +285,13 @@ void CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation()
 
   if (CTools::IsDefaultValue(m_previousLatitude))
   {
-    string msg = "ERROR in CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation - previous latitude value read is inconsistent (is default value)";
+    std::string msg = "ERROR in CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation - previous latitude value read is inconsistent (is default value)";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
     throw (e);
   }
   if (CTools::IsDefaultValue(m_previousLongitude))
   {
-    string msg = "ERROR in CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation - previous longitude value read is inconsistent (is default value)";
+    std::string msg = "ERROR in CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation - previous longitude value read is inconsistent (is default value)";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
     throw (e);
   }
@@ -311,7 +311,7 @@ void CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation()
 
   if ( (m_numHighResolutionMeasure * CTools::Abs(deltaLon)) > 1.0)
   {
-    string msg = CTools::Format("ERROR in CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation - delta of longitude is set to an unexpected value: %f "
+    std::string msg = CTools::Format("ERROR in CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation - delta of longitude is set to an unexpected value: %f "
                                 "\n\tcurrent datetime: %f current latitude: %f current longitude: %f"
                                 "\n\tprevious datetime: %f previous latitude: %f previous longitude: %f",
                                 deltaLon,
@@ -467,7 +467,7 @@ void CProductTopexSDR::ComputeHighResolutionFields(CDataSet* dataSet, double del
       
     if (CTools::IsDefaultValue(m_deltaTimeHighResolution))
     {
-      string msg = "ERROR in CProductTopexSDR::ComputeHighResolutionFields - high resolution delta time has no been set";
+      std::string msg = "ERROR in CProductTopexSDR::ComputeHighResolutionFields - high resolution delta time has no been set";
       CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
       throw (e);
 
@@ -524,7 +524,7 @@ void CProductTopexSDR::CheckConsistencyHighResolutionField(CFieldSetArrayDbl* fi
 {
   if ( (fieldSetArrayDbl->m_nbDims <= 0) || (fieldSetArrayDbl->m_nbDims > 2) )
   {
-    string msg = CTools::Format("ERROR - CProductTopexSDR::CheckConsistencyHighResolutionField() - Number of array dim %d not implemented for this method "
+    std::string msg = CTools::Format("ERROR - CProductTopexSDR::CheckConsistencyHighResolutionField() - Number of array dim %d not implemented for this method "
                                 "(field '%s')", 
                                 fieldSetArrayDbl->m_nbDims,
                                 fieldSetArrayDbl->GetField()->GetKey().c_str());                                
@@ -534,7 +534,7 @@ void CProductTopexSDR::CheckConsistencyHighResolutionField(CFieldSetArrayDbl* fi
 
   if (CTools::IsDefaultValue(m_numHighResolutionMeasure))
   {
-    string msg = CTools::Format("ERROR - CProductTopexSDR::CheckConsistencyHighResolutionField() - Number of high resolution measures is not intialized (equals default value"
+    std::string msg = CTools::Format("ERROR - CProductTopexSDR::CheckConsistencyHighResolutionField() - Number of high resolution measures is not intialized (equals default value"
                                 "(field '%s')", 
                                 fieldSetArrayDbl->GetField()->GetKey().c_str());                                
 
@@ -543,7 +543,7 @@ void CProductTopexSDR::CheckConsistencyHighResolutionField(CFieldSetArrayDbl* fi
   }
   if (CTools::IsDefaultValue(m_lowRateNumHighResolutionMeasure))
   {
-    string msg = CTools::Format("ERROR - CProductTopexSDR::CheckConsistencyHighResolutionField() - Number of low rate high resolution measures is not intialized (equals default value"
+    std::string msg = CTools::Format("ERROR - CProductTopexSDR::CheckConsistencyHighResolutionField() - Number of low rate high resolution measures is not intialized (equals default value"
                                 "(field '%s')", 
                                 fieldSetArrayDbl->GetField()->GetKey().c_str());                                
 
@@ -553,7 +553,7 @@ void CProductTopexSDR::CheckConsistencyHighResolutionField(CFieldSetArrayDbl* fi
 
   if ((fieldSetArrayDbl->m_dim[0] != m_highRateNumHighResolutionMeasure) && (fieldSetArrayDbl->m_dim[0] != m_lowRateNumHighResolutionMeasure))
   {
-    string msg = CTools::Format("ERROR - CProduct::CheckConsistencyHighResolutionField() - Array dim[0]: %d is not equal to number of high resolution measures: %d or %d "
+    std::string msg = CTools::Format("ERROR - CProduct::CheckConsistencyHighResolutionField() - Array dim[0]: %d is not equal to number of high resolution measures: %d or %d "
                                 "(field '%s')", 
                                 fieldSetArrayDbl->m_dim[0],
                                 m_highRateNumHighResolutionMeasure,
@@ -585,7 +585,7 @@ void CProductTopexSDR::PutFlatHighResolution(CDataSet* dataSet, CFieldSetArrayDb
 
   if (CTools::IsDefaultValue(ratio))
   {
-    string msg = CTools::Format("ERROR - CProductTopexSDR::PutFlatHighResolution() - Ratio is equals to 'default value' (dimFieldSetArrayDbl=%d, m_numHighResolutionMeasure=%d)."
+    std::string msg = CTools::Format("ERROR - CProductTopexSDR::PutFlatHighResolution() - Ratio is equals to 'default value' (dimFieldSetArrayDbl=%d, m_numHighResolutionMeasure=%d)."
                                 "(field '%s')", 
                                 dimFieldSetArrayDbl,
                                 m_numHighResolutionMeasure,
@@ -624,7 +624,7 @@ void CProductTopexSDR::PutFlatHighResolution(CDataSet* dataSet, CFieldSetArrayDb
     } 
     else
     {
-      string msg = CTools::Format("ERROR - CProductTopexSDR::PutFlatHighResolution() - Number of array dim %d not implemented for this method "
+      std::string msg = CTools::Format("ERROR - CProductTopexSDR::PutFlatHighResolution() - Number of array dim %d not implemented for this method "
                                   "(field '%s')", 
                                   fieldSetArrayDbl->m_nbDims,
                                   fieldSetArrayDbl->GetField()->GetKey().c_str());                                
@@ -640,7 +640,7 @@ void CProductTopexSDR::PutFlatHighResolution(CDataSet* dataSet, CFieldSetArrayDb
 }
 
 //----------------------------------------
-void CProductTopexSDR::Dump(ostream& fOut /* = cerr */)
+void CProductTopexSDR::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -648,15 +648,15 @@ void CProductTopexSDR::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CProductTopexSDR Object at "<< this << endl;
+  fOut << "==> Dump a CProductTopexSDR Object at "<< this << std::endl;
 
   //------------------
   CProductTopex::Dump(fOut);
   //------------------
 
-  fOut << "==> END Dump a CProductTopexSDR Object at "<< this << endl;
+  fOut << "==> END Dump a CProductTopexSDR Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 }
 //----------------------------------------
 

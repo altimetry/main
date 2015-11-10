@@ -23,7 +23,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h"
+#include <string>
 
 #include "BratObject.h"
 #include "LatLonRect.h"
@@ -109,7 +109,7 @@ public:
      * @param latHigh latitude high
      * @param lonHigh longitude high
      */
-  CCriteriaLatLon(const string& latLow, const string& lonLow, const string& latHigh, const string& lonHigh);
+  CCriteriaLatLon(const std::string& latLow, const std::string& lonLow, const std::string& latHigh, const std::string& lonHigh);
   /**
      * Constructor from a list that contains low latitude value, low longitude value, high latitude value,
      * high longitude value.
@@ -168,13 +168,13 @@ public:
      * @param latHigh latitude high
      * @param lonHigh longitude high
      */
-  void Set(const string& latLow, const string& lonLow, const string& latHigh, const string& lonHigh);
+  void Set(const std::string& latLow, const std::string& lonLow, const std::string& latHigh, const std::string& lonHigh);
   /**
      * Setter of the property t&amp;lt;tl&amp;gt;atLonRect/&amp;lt;tt.&amp;gt;
      * 
      * @param latLonRect latitude low, longitude low, latitude high, longitude high 
      */
-  void Set(const string& latLonRect, const string& delimiter = CLatLonRect::m_delimiter);
+  void Set(const std::string& latLonRect, const std::string& delimiter = CLatLonRect::m_delimiter);
 
   void Set(CCriteriaLatLon& c);
 
@@ -238,7 +238,7 @@ public:
      */
   bool IsDefaultValue();
 
-  virtual string GetAsText(const string& delimiter = CLatLonRect::m_delimiter);
+  virtual std::string GetAsText(const std::string& delimiter = CLatLonRect::m_delimiter);
 
   const CCriteriaLatLon& operator=(CCriteriaLatLon& c);
 
@@ -246,7 +246,7 @@ public:
 
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
 

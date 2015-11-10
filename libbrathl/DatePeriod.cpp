@@ -27,7 +27,7 @@
 #include "brathl.h" 
 //#define BRAT_INTERNAL
 
-#include "Stl.h" 
+#include <string> 
 
 #include "TraceLog.h" 
 #include "Tools.h" 
@@ -44,7 +44,7 @@ namespace brathl
 {
 
 
-const string CDatePeriod::m_delimiter = "/";
+const std::string CDatePeriod::m_delimiter = "/";
 
 //-------------------------------------------------------------
 //------------------- CDatePeriod class --------------------
@@ -72,7 +72,7 @@ CDatePeriod::CDatePeriod(CDate& from, CDate& to)
   SetFrom(from);
 }
 //-------------------------------------------------------------
-CDatePeriod::CDatePeriod(const string& from, const string& to) 
+CDatePeriod::CDatePeriod(const std::string& from, const std::string& to) 
 {
   Init();
   Set(from, to);
@@ -147,7 +147,7 @@ void CDatePeriod::SetTo(CDate& to)
   Adjust();
 }
 //-------------------------------------------------------------
-void CDatePeriod::SetTo(const string& strDate)
+void CDatePeriod::SetTo(const std::string& strDate)
 {
   int32_t result = m_to.SetDate(strDate.c_str());
   if (result != BRATHL_SUCCESS)
@@ -167,7 +167,7 @@ void CDatePeriod::SetFrom(CDate& from)
 }
 
 //-------------------------------------------------------------
-void CDatePeriod::SetFrom(const string& strDate)
+void CDatePeriod::SetFrom(const std::string& strDate)
 {
   int32_t result = m_from.SetDate(strDate.c_str());
   if (result != BRATHL_SUCCESS)
@@ -181,7 +181,7 @@ void CDatePeriod::SetFrom(const string& strDate)
 }
 
 //-------------------------------------------------------------
-void CDatePeriod::Set(const string& from, const string& to)
+void CDatePeriod::Set(const std::string& from, const std::string& to)
 {
   SetFrom(from);
   SetTo(to);
@@ -370,47 +370,47 @@ bool CDatePeriod::Union(CDate& otherFrom, CDate& otherTo, CDatePeriod& unionDate
 
 }
 //----------------------------------------
-string CDatePeriod::GetAsText(const string& delimiter /* = CDatePeriod::m_delimiter */)
+std::string CDatePeriod::GetAsText(const std::string& delimiter /* = CDatePeriod::m_delimiter */)
 {
-  string str = GetFromAsText();
+  std::string str = GetFromAsText();
   str.append(delimiter);
   str.append(GetToAsText());
   return str;
 }
 //----------------------------------------
-string CDatePeriod::GetFromAsText()
+std::string CDatePeriod::GetFromAsText()
 {
   return m_from.AsString(m_format, m_withMuSecond);
 }
 //----------------------------------------
-string CDatePeriod::GetToAsText()
+std::string CDatePeriod::GetToAsText()
 {
   return m_to.AsString(m_format, m_withMuSecond);
 }
 //----------------------------------------
-string CDatePeriod::AsString(const string& format /*= ""*/, bool withMuSecond /* = false */)
+std::string CDatePeriod::AsString(const std::string& format /*= ""*/, bool withMuSecond /* = false */)
 {
-  string str = m_from.AsString(format, withMuSecond);
+  std::string str = m_from.AsString(format, withMuSecond);
   str.append("/");
   str.append(m_to.AsString(format, withMuSecond));
   return str;
 }
 //----------------------------------------
-void CDatePeriod::Dump(ostream& fOut /* = cerr */)
+void CDatePeriod::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
     return;
   }
 
-  fOut << "==> Dump a CDatePeriod Object at "<< this << endl;
-  fOut << "==> m_from  at "<< &m_from << endl;
+  fOut << "==> Dump a CDatePeriod Object at "<< this << std::endl;
+  fOut << "==> m_from  at "<< &m_from << std::endl;
   m_from.Dump(fOut);
-  fOut << "==> m_to  at "<< &m_to << endl;
+  fOut << "==> m_to  at "<< &m_to << std::endl;
   m_to.Dump(fOut);
-  fOut << "==> END Dump a CDatePeriod Object at "<< this << endl;
+  fOut << "==> END Dump a CDatePeriod Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

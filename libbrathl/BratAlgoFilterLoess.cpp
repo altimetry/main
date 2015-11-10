@@ -134,21 +134,21 @@ void CBratAlgoFilterLoess::PrepareReturn()
 }
 
 //----------------------------------------
-void CBratAlgoFilterLoess::Dump(ostream& fOut /*= cerr*/)
+void CBratAlgoFilterLoess::Dump(std::ostream& fOut /*= std::cerr*/)
 {
    if (CTrace::IsTrace() == false)
    { 
       return;
    }
 
-  fOut << "==> Dump a CBratAlgoFilterLoess Object at "<< this << endl;
+  fOut << "==> Dump a CBratAlgoFilterLoess Object at "<< this << std::endl;
   CBratAlgoFilterKernel::Dump(fOut);
 
-  fOut << "m_initialWeights: " << endl;
+  fOut << "m_initialWeights: " << std::endl;
   m_initialWeights.Dump();
-  fOut << "m_loess: " << m_loess << endl;
+  fOut << "m_loess: " << m_loess << std::endl;
 
-  fOut << "==> END Dump a CBratAlgoFilterLoess Object at "<< this << endl;
+  fOut << "==> END Dump a CBratAlgoFilterLoess Object at "<< this << std::endl;
 
 }
 

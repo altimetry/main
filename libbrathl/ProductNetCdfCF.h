@@ -53,7 +53,7 @@ public:
   
   /** Creates new CProductNetCdf object
     \param fileName [in] : file name to be connected */
-  CProductNetCdfCF(const string& fileName);
+  CProductNetCdfCF(const std::string& fileName);
   
   /** Creates new CProductNetCdf object
     \param fileNameList [in] : list of file to be connected */
@@ -69,8 +69,8 @@ public:
 
   //virtual bool Close();
 
-  //virtual void ReadBratFile(const string& fileName, const string& dataSetName, const string& field);
-  //virtual void ReadBratFile(const string& fileName, const string& dataSetName, CStringList& listField);
+  //virtual void ReadBratFile(const std::string& fileName, const std::string& dataSetName, const std::string& field);
+  //virtual void ReadBratFile(const std::string& fileName, const std::string& dataSetName, CStringList& listField);
 
   virtual void Rewind ();
   virtual bool NextRecord ();
@@ -80,13 +80,13 @@ public:
 
   //virtual void ReadBratRecord(int32_t iRecord);
 
-  virtual int32_t GetNumberOfRecords(const string& dataSetName /*NOT USED*/);
+  virtual int32_t GetNumberOfRecords(const std::string& dataSetName /*NOT USED*/);
   virtual int32_t GetNumberOfRecords();
 
   virtual CProduct* Clone();
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
   static bool IsProductNetCdfCF(CBratObject* ob);
 
@@ -105,10 +105,10 @@ protected:
 
   //virtual bool Open();
 
-  //virtual string MakeInternalFieldName(const string& field);
+  //virtual std::string MakeInternalFieldName(const std::string& field);
 
   //virtual void LoadFieldsInfo();
-  //virtual CFieldNetCdf* CreateField(const string& fieldName);
+  //virtual CFieldNetCdf* CreateField(const std::string& fieldName);
 
   void InitDimIndexes(uint32_t value);
   bool IsAtBeginning();
@@ -133,7 +133,7 @@ protected:
   //virtual void ReadBratFieldRecord(CField::CListField::iterator it);
 
 public:
-//  static string m_virtualRecordName;
+//  static std::string m_virtualRecordName;
 
 protected:
   // map index dimensions of the read fields (key : dim name --> current index)

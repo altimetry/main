@@ -63,7 +63,7 @@ public:
   wxTextCtrl* GetUnitfieldActualunit()  { return (wxTextCtrl*) FindWindow( ID_UNITFIELD_ACTUALUNIT ); }
   wxTextCtrl* GetUnitfieldField()  { return (wxTextCtrl*) FindWindow( ID_UNITFIELD_FIELD ); }
     
-  const string& GetUnit() {return m_newUnit;};
+  const std::string& GetUnit() {return m_newUnit;};
 
 private:
   void Init();
@@ -72,7 +72,7 @@ private:
 private:
     // WDR: member variable declarations for CUnitFieldDlg
     CField* m_field;
-    string m_newUnit;
+    std::string m_newUnit;
 
 private:
     // WDR: handler declarations for CUnitFieldDlg

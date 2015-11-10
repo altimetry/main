@@ -690,18 +690,18 @@ void vtkInteractorStyleZFXYPlot::OnRightButtonUp()
 }
 
 //----------------------------------------------------------------------------
-void vtkInteractorStyleZFXYPlot::PrintSelf(ostream& os, vtkIndent indent)
+void vtkInteractorStyleZFXYPlot::PrintSelf(std::ostream& os, vtkIndent indent)
 {
   vtkInteractorStyle::PrintSelf(os,indent);
   
-  os << indent << "CurrentZFXYPlotActor: " << this->CurrentZFXYPlotActor << endl;
+  os << indent << "CurrentZFXYPlotActor: " << this->CurrentZFXYPlotActor << std::endl;
   os << indent << "CurrentZFXYPlotElement: " << this->CurrentZFXYPlotElement
-     << endl;
+     << std::endl;
   os << indent << "StartPos: (" << this->StartPos[0] << ", "
-     << this->StartPos[1] << ")" << endl;
+     << this->StartPos[1] << ")" << std::endl;
   os << indent << "PrevPos: (" << this->PrevPos[0] << ", "
-     << this->PrevPos[1] << ")" << endl;
+     << this->PrevPos[1] << ")" << std::endl;
   os << indent << "ViewportBounds: (" << this->ViewportBounds[0] << ", "
      << this->ViewportBounds[1] << ", " << this->ViewportBounds[2] << ", "
-     << this->ViewportBounds[3] << ")" << endl;
+     << this->ViewportBounds[3] << ")" << std::endl;
 }

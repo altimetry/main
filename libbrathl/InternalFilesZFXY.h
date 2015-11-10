@@ -20,8 +20,9 @@
 #ifndef _InternalFilesZFXY_h_
 #define _InternalFilesZFXY_h_
 
+#include <string>
+
 #include "Expression.h"
-#include "Stl.h"
 
 #include "InternalFiles.h"
 
@@ -46,15 +47,15 @@ class CInternalFilesZFXY : public CInternalFiles
 {
 public:
   CInternalFilesZFXY
-		(string 		Name = "",
+		(std::string 		Name = "",
 		 brathl_FileMode	Mode = ReadOnly)
 	: CInternalFiles(Name, Mode)
   {};
 
 
-  static string TypeOf() { return ZFXY_NETCDF_TYPE; };
+  static std::string TypeOf() { return ZFXY_NETCDF_TYPE; };
 
-  virtual string GetType
+  virtual std::string GetType
 		();
 
   virtual bool IsGeographic
@@ -62,21 +63,21 @@ public:
 
   virtual void CreateDim
 		(NetCDFVarKind		Kind,
-		 const string		&XName,
+		 const std::string		&XName,
 		 const CExpressionValue	&Values,
-		 const string		&Units,
-		 const string		&LongName,
-                 const string           &Comment = "",
+		 const std::string		&Units,
+		 const std::string		&LongName,
+                 const std::string           &Comment = "",
       	         double	                ValidMin = CTools::m_defaultValueDOUBLE,
 		 double	                ValidMax = CTools::m_defaultValueDOUBLE);
 
   virtual void CreateData
-		(const string		&Name,
-		 const string		&Units,
-		 const string		&LongName,
-		 const string		&Dim1Name,
-		 const string		&Dim2Name,
-                 const string           &Comment = "",
+		(const std::string		&Name,
+		 const std::string		&Units,
+		 const std::string		&LongName,
+		 const std::string		&Dim1Name,
+		 const std::string		&Dim2Name,
+                 const std::string           &Comment = "",
       	         double	                ValidMin = CTools::m_defaultValueDOUBLE,
 		 double	                ValidMax = CTools::m_defaultValueDOUBLE,
 		 nc_type		Type	= NC_DOUBLE);

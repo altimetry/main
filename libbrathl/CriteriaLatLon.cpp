@@ -27,7 +27,7 @@
 #include "brathl.h" 
 //#define BRAT_INTERNAL
 
-#include "Stl.h" 
+#include <string> 
 
 #include "TraceLog.h" 
 #include "Tools.h" 
@@ -104,7 +104,7 @@ CCriteriaLatLon::CCriteriaLatLon(double latLow,double lonLow,double latHigh,doub
 
 //-------------------------------------------------------------
 
-CCriteriaLatLon::CCriteriaLatLon(const string& latLow, const string& lonLow, const string& latHigh, const string& lonHigh) 
+CCriteriaLatLon::CCriteriaLatLon(const std::string& latLow, const std::string& lonLow, const std::string& latHigh, const std::string& lonHigh) 
 {
   Init();
   Set(latLow, lonLow, latHigh, lonHigh); 
@@ -148,7 +148,7 @@ void CCriteriaLatLon::Set(CCriteriaLatLon& c)
 }
 
 //----------------------------------------
-string CCriteriaLatLon::GetAsText(const string& delimiter /* = CLatLonRect::m_delimiter */)
+std::string CCriteriaLatLon::GetAsText(const std::string& delimiter /* = CLatLonRect::m_delimiter */)
 {
   return m_latLonRect.GetAsText(delimiter);
 }
@@ -202,12 +202,12 @@ void CCriteriaLatLon::Set(double latLow, double lonLow, double latHigh, double l
 
 //-------------------------------------------------------------
 
-void CCriteriaLatLon::Set(const string& latLow, const string& lonLow, const string& latHigh, const string& lonHigh) 
+void CCriteriaLatLon::Set(const std::string& latLow, const std::string& lonLow, const std::string& latHigh, const std::string& lonHigh) 
 {
   m_latLonRect.Set(latLow, lonLow, latHigh, lonHigh);
 }
 //-------------------------------------------------------------
-void CCriteriaLatLon::Set(const string& latLonRect, const string& delimiter /* = CLatLonRect::m_delimiter */)
+void CCriteriaLatLon::Set(const std::string& latLonRect, const std::string& delimiter /* = CLatLonRect::m_delimiter */)
 {
   m_latLonRect.Set(latLonRect, delimiter);
 
@@ -243,7 +243,7 @@ bool CCriteriaLatLon::IsDefaultValue()
 
 
 //----------------------------------------
-void CCriteriaLatLon::Dump(ostream& fOut /* = cerr */)
+void CCriteriaLatLon::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -252,11 +252,11 @@ void CCriteriaLatLon::Dump(ostream& fOut /* = cerr */)
 
   CCriteria::Dump(fOut);
 
-  fOut << "==> Dump a CCriteriaLatLon Object at "<< this << endl;
+  fOut << "==> Dump a CCriteriaLatLon Object at "<< this << std::endl;
   m_latLonRect.Dump(fOut);
-  fOut << "==> END Dump a CCriteriaLatLon Object at "<< this << endl;
+  fOut << "==> END Dump a CCriteriaLatLon Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

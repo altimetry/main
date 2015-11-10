@@ -23,7 +23,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h"
+#include <string>
 
 #include "BratObject.h"
 #include "List.h"
@@ -35,7 +35,7 @@ namespace brathl
 {
 
 
-const string FORMAT_FLOAT_LATLON = "%-#.5g";
+const std::string FORMAT_FLOAT_LATLON = "%-#.5g";
 
 //-------------------------------------------------------------
 //------------------- CLatLonRect class --------------------
@@ -110,7 +110,7 @@ public:
      * @param latHigh latitude high
      * @param lonHigh longitude high
      */
-  CLatLonRect(const string& latLow, const string& lonLow, const string& latHigh, const string& lonHigh);
+  CLatLonRect(const std::string& latLow, const std::string& lonLow, const std::string& latHigh, const std::string& lonHigh);
 
 
   virtual ~CLatLonRect();
@@ -167,10 +167,10 @@ public:
      * @param latHigh latitude high
      * @param lonHigh longitude high
      */
-  void Set(const string& latLow, const string& lonLow, const string& latHigh, const string& lonHigh);
+  void Set(const std::string& latLow, const std::string& lonLow, const std::string& latHigh, const std::string& lonHigh);
 
 
-  void Set(const string& latLonRect, const string& delimiter = CLatLonRect::m_delimiter);
+  void Set(const std::string& latLonRect, const std::string& delimiter = CLatLonRect::m_delimiter);
 
   void Set(const CStringArray& array);
 
@@ -308,14 +308,14 @@ public:
 
   void GetAsString(CStringArray& array);
 
-  string GetAsText(const string& delimiter = CLatLonRect::m_delimiter);
+  std::string GetAsText(const std::string& delimiter = CLatLonRect::m_delimiter);
 
-  string AsString(const string& format = "");
+  std::string AsString(const std::string& format = "");
 
   void Reset();
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
   const CLatLonRect& operator= (CLatLonRect& f);
 
@@ -324,19 +324,19 @@ public:
   /**
    * Latitude min.
    */
-  static const string LATITUDE_MIN_STR;
+  static const std::string LATITUDE_MIN_STR;
   /**
    * Latitude max.
    */
-  static const string LATITUDE_MAX_STR;
+  static const std::string LATITUDE_MAX_STR;
   /**
    * Longitude min.
    */
-  static const string LONGITUDE_MIN_STR;
+  static const std::string LONGITUDE_MIN_STR;
   /**
    * Longitude max.
    */
-  static const string LONGITUDE_MAX_STR;
+  static const std::string LONGITUDE_MAX_STR;
   
   /**
    * Latitude min.
@@ -355,7 +355,7 @@ public:
    */
   static const double LONGITUDE_MAX;
 
-  static const string m_delimiter;
+  static const std::string m_delimiter;
 
 
 

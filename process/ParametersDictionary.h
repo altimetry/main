@@ -21,14 +21,14 @@
 #define _ParametersDictionary_h_
 
 struct KeywordHelp {
-	const string	Name;
+	const std::string	Name;
 	int		MinCount;	// Positive = value, negative = group alone
 	int		MaxCount;	// 0 = infinite, positive = value, negative = group
 	int		Group;		// 1 to 26 letter identifying a group
 	const char	*Default;	// If not NULL a default value is printed
 
 	KeywordHelp
-		(const string	&AName,
+		(const std::string	&AName,
 		 int		AMinCount	= 1,
 		 int		AMaxCount	= 1,
 		 const char	*ADefault	= NULL,
@@ -42,11 +42,11 @@ struct KeywordHelp {
 };
 
 struct KeywordDefinition {
-	const string	Name;
+	const std::string	Name;
 	const char	*Type;
 	const char	*Description;
 
-	KeywordDefinition (const string &AName, const char *AType, const char *ADescription)
+	KeywordDefinition (const std::string &AName, const char *AType, const char *ADescription)
 		: Name(AName), Type(AType), Description(ADescription)
 	{
 	}
@@ -74,107 +74,107 @@ struct TypeDefinition {
 ** Any modification (add/remove) must have its counterpart in
 ** ParametersDictionary.h in order to have up to date help
 */
-const string kwALIAS_NAME			= "ALIAS_NAME";
-const string kwALIAS_VALUE			= "ALIAS_VALUE";
-const string kwDATA_MODE			= "DATA_MODE";
-const string kwDATE_AS_PERIOD			= "DATE_AS_PERIOD";
-const string kwDISPLAY_ANIMATIONBAR		= "DISPLAY_ANIMATIONBAR";
-const string kwDISPLAY_CENTERLAT		= "DISPLAY_CENTERLAT";
-const string kwDISPLAY_CENTERLON		= "DISPLAY_CENTERLON";
-const string kwDISPLAY_COASTRESOLUTION		= "DISPLAY_COASTRESOLUTION";
-const string kwDISPLAY_COLOR			= "DISPLAY_COLOR";
-const string kwDISPLAY_COLORBAR			= "DISPLAY_COLORBAR";
-const string kwDISPLAY_COLORCURVE		= "DISPLAY_COLORCURVE";
-const string kwDISPLAY_COLORTABLE		= "DISPLAY_COLORTABLE";
-const string kwDISPLAY_CONTOUR			= "DISPLAY_CONTOUR";
-const string kwDISPLAY_CONTOUR_LABEL		= "DISPLAY_CONTOUR_LABEL";
-const string kwDISPLAY_CONTOUR_LABEL_NUMBER	= "DISPLAY_CONTOUR_LABEL_NUMBER";
-const string kwDISPLAY_CONTOUR_MAXVALUE		= "DISPLAY_CONTOUR_MAXVALUE";
-const string kwDISPLAY_CONTOUR_MINVALUE		= "DISPLAY_CONTOUR_MINVALUE";
-const string kwDISPLAY_CONTOUR_NUMBER		= "DISPLAY_CONTOUR_NUMBER";
-const string kwDISPLAY_ANIMATION		= "DISPLAY_ANIMATION";
-const string kwDISPLAY_LINES			= "DISPLAY_LINES";
-const string kwDISPLAY_LINEWIDTH		= "DISPLAY_LINEWIDTH";
-const string kwDISPLAY_LOGO_URL                 = "DISPLAY_LOGO_URL";
-const string kwFILETYPE					= "FILETYPE";
-const string kwPRODUCT_LIST				= "PRODUCT_LIST";
-const string kwDISPLAY_MAXVALUE			= "DISPLAY_MAXVALUE";
-const string kwDISPLAY_MINVALUE			= "DISPLAY_MINVALUE";
-const string kwDISPLAY_PLOT_TYPE = "DISPLAY_PLOT_TYPE";
-const string kwDISPLAY_NAME			= "DISPLAY_NAME";
-const string kwDISPLAY_NUMCOLORLABELS		= "DISPLAY_NUMCOLORLABELS";
-const string kwDISPLAY_OPACITY			= "DISPLAY_OPACITY";
-const string kwDISPLAY_POINTFILLED		= "DISPLAY_POINTFILLED";
-const string kwDISPLAY_POINTGLYPH		= "DISPLAY_POINTGLYPH";
-const string kwDISPLAY_POINTS			= "DISPLAY_POINTS";
-const string kwDISPLAY_POINTSIZE		= "DISPLAY_POINTSIZE";
-const string kwDISPLAY_PROJECTION		= "DISPLAY_PROJECTION";
-const string kwDISPLAY_PROPERTIES		= "DISPLAY_PROPERTIES";
-const string kwDISPLAY_SOLID_COLOR		= "DISPLAY_SOLID_COLOR";
-const string kwDISPLAY_EAST_COMPONENT		= "DISPLAY_EAST_COMPONENT";
-const string kwDISPLAY_NORTH_COMPONENT		= "DISPLAY_NORTH_COMPONENT";
-const string kwDISPLAY_STIPPLEPATTERN		= "DISPLAY_STIPPLEPATTERN";
-const string kwDISPLAY_TITLE			= "DISPLAY_TITLE";
-const string kwDISPLAY_XAXIS		= "DISPLAY_XAXIS";
-const string kwDISPLAY_XLABEL			= "DISPLAY_XLABEL";
-const string kwDISPLAY_YAXIS		= "DISPLAY_YAXIS";
-const string kwDISPLAY_YLABEL			= "DISPLAY_YLABEL";
-const string kwDISPLAY_XMAXVALUE		= "DISPLAY_XMAXVALUE";
-const string kwDISPLAY_XMINVALUE		= "DISPLAY_XMINVALUE";
-const string kwDISPLAY_XTICKS			= "DISPLAY_XTICKS";
-const string kwDISPLAY_YMAXVALUE		= "DISPLAY_YMAXVALUE";
-const string kwDISPLAY_YMINVALUE		= "DISPLAY_YMINVALUE";
-const string kwDISPLAY_YTICKS			= "DISPLAY_YTICKS";
-const string kwDISPLAY_ZOOM_LAT1		= "DISPLAY_ZOOM_LAT1";
-const string kwDISPLAY_ZOOM_LAT2		= "DISPLAY_ZOOM_LAT2";
-const string kwDISPLAY_ZOOM_LON1		= "DISPLAY_ZOOM_LON1";
-const string kwDISPLAY_ZOOM_LON2		= "DISPLAY_ZOOM_LON2";
-const string kwEXPAND_ARRAY			= "EXPAND_ARRAY";
-const string kwFIELD				= "FIELD";
-const string kwFIELD_COMMENT			= "FIELD_COMMENT";
-const string kwFIELD_DATA_MODE			= "FIELD_DATA_MODE";
-const string kwFIELD_FILTER			= "FIELD_FILTER";
-const string kwFIELD_FORMAT			= "FIELD_FORMAT";
-const string kwFIELD_GROUP			= "FIELD_GROUP";
-const string kwFIELD_NAME			= "FIELD_NAME";
-const string kwFIELD_TITLE			= "FIELD_TITLE";
-const string kwFIELD_TYPE			= "FIELD_TYPE";
-const string kwFIELD_UNIT			= "FIELD_UNIT";
-const string kwFILE				= "FILE";
-const string kwLOGFILE				= "LOGFILE";
-const string kwOUTPUT				= "OUTPUT";
-const string kwOUTPUT_KML                       = "OUTPUT_KML";
-const string kwOUTPUT_TITLE			= "OUTPUT_TITLE";
-const string kwOUTSIDE_MODE			= "OUTSIDE_MODE";
-const string kwPOSITION_MODE			= "POSITION_MODE";
-const string kwRECORD				= "RECORD";
-const string kwSELECT				= "SELECT";
-const string kwUNIT = "UNIT";
-const string kwUNIT_ATTR_NAME = "UNIT_ATTR_NAME";
-const string kwUNIT_ATTR_VALUE = "UNIT_ATTR_VALUE";
-const string kwVERBOSE				= "VERBOSE";
-const string kwX				= "X";
-const string kwX_COMMENT			= "X_COMMENT";
-const string kwX_FILTER				= "X_FILTER";
-const string kwX_INTERVALS			= "X_INTERVALS";
-const string kwX_LOESS_CUTOFF			= "X_LOESS_CUTOFF";
-const string kwX_MAX				= "X_MAX";
-const string kwX_MIN				= "X_MIN";
-const string kwX_NAME				= "X_NAME";
-const string kwX_TITLE				= "X_TITLE";
-const string kwX_TYPE				= "X_TYPE";
-const string kwX_UNIT				= "X_UNIT";
-const string kwY				= "Y";
-const string kwY_COMMENT			= "Y_COMMENT";
-const string kwY_FILTER				= "Y_FILTER";
-const string kwY_INTERVALS			= "Y_INTERVALS";
-const string kwY_LOESS_CUTOFF			= "Y_LOESS_CUTOFF";
-const string kwY_MAX				= "Y_MAX";
-const string kwY_MIN				= "Y_MIN";
-const string kwY_NAME				= "Y_NAME";
-const string kwY_TITLE				= "Y_TITLE";
-const string kwY_TYPE				= "Y_TYPE";
-const string kwY_UNIT				= "Y_UNIT";
+const std::string kwALIAS_NAME			= "ALIAS_NAME";
+const std::string kwALIAS_VALUE			= "ALIAS_VALUE";
+const std::string kwDATA_MODE			= "DATA_MODE";
+const std::string kwDATE_AS_PERIOD			= "DATE_AS_PERIOD";
+const std::string kwDISPLAY_ANIMATIONBAR		= "DISPLAY_ANIMATIONBAR";
+const std::string kwDISPLAY_CENTERLAT		= "DISPLAY_CENTERLAT";
+const std::string kwDISPLAY_CENTERLON		= "DISPLAY_CENTERLON";
+const std::string kwDISPLAY_COASTRESOLUTION		= "DISPLAY_COASTRESOLUTION";
+const std::string kwDISPLAY_COLOR			= "DISPLAY_COLOR";
+const std::string kwDISPLAY_COLORBAR			= "DISPLAY_COLORBAR";
+const std::string kwDISPLAY_COLORCURVE		= "DISPLAY_COLORCURVE";
+const std::string kwDISPLAY_COLORTABLE		= "DISPLAY_COLORTABLE";
+const std::string kwDISPLAY_CONTOUR			= "DISPLAY_CONTOUR";
+const std::string kwDISPLAY_CONTOUR_LABEL		= "DISPLAY_CONTOUR_LABEL";
+const std::string kwDISPLAY_CONTOUR_LABEL_NUMBER	= "DISPLAY_CONTOUR_LABEL_NUMBER";
+const std::string kwDISPLAY_CONTOUR_MAXVALUE		= "DISPLAY_CONTOUR_MAXVALUE";
+const std::string kwDISPLAY_CONTOUR_MINVALUE		= "DISPLAY_CONTOUR_MINVALUE";
+const std::string kwDISPLAY_CONTOUR_NUMBER		= "DISPLAY_CONTOUR_NUMBER";
+const std::string kwDISPLAY_ANIMATION		= "DISPLAY_ANIMATION";
+const std::string kwDISPLAY_LINES			= "DISPLAY_LINES";
+const std::string kwDISPLAY_LINEWIDTH		= "DISPLAY_LINEWIDTH";
+const std::string kwDISPLAY_LOGO_URL                 = "DISPLAY_LOGO_URL";
+const std::string kwFILETYPE					= "FILETYPE";
+const std::string kwPRODUCT_LIST				= "PRODUCT_LIST";
+const std::string kwDISPLAY_MAXVALUE			= "DISPLAY_MAXVALUE";
+const std::string kwDISPLAY_MINVALUE			= "DISPLAY_MINVALUE";
+const std::string kwDISPLAY_PLOT_TYPE = "DISPLAY_PLOT_TYPE";
+const std::string kwDISPLAY_NAME			= "DISPLAY_NAME";
+const std::string kwDISPLAY_NUMCOLORLABELS		= "DISPLAY_NUMCOLORLABELS";
+const std::string kwDISPLAY_OPACITY			= "DISPLAY_OPACITY";
+const std::string kwDISPLAY_POINTFILLED		= "DISPLAY_POINTFILLED";
+const std::string kwDISPLAY_POINTGLYPH		= "DISPLAY_POINTGLYPH";
+const std::string kwDISPLAY_POINTS			= "DISPLAY_POINTS";
+const std::string kwDISPLAY_POINTSIZE		= "DISPLAY_POINTSIZE";
+const std::string kwDISPLAY_PROJECTION		= "DISPLAY_PROJECTION";
+const std::string kwDISPLAY_PROPERTIES		= "DISPLAY_PROPERTIES";
+const std::string kwDISPLAY_SOLID_COLOR		= "DISPLAY_SOLID_COLOR";
+const std::string kwDISPLAY_EAST_COMPONENT		= "DISPLAY_EAST_COMPONENT";
+const std::string kwDISPLAY_NORTH_COMPONENT		= "DISPLAY_NORTH_COMPONENT";
+const std::string kwDISPLAY_STIPPLEPATTERN		= "DISPLAY_STIPPLEPATTERN";
+const std::string kwDISPLAY_TITLE			= "DISPLAY_TITLE";
+const std::string kwDISPLAY_XAXIS		= "DISPLAY_XAXIS";
+const std::string kwDISPLAY_XLABEL			= "DISPLAY_XLABEL";
+const std::string kwDISPLAY_YAXIS		= "DISPLAY_YAXIS";
+const std::string kwDISPLAY_YLABEL			= "DISPLAY_YLABEL";
+const std::string kwDISPLAY_XMAXVALUE		= "DISPLAY_XMAXVALUE";
+const std::string kwDISPLAY_XMINVALUE		= "DISPLAY_XMINVALUE";
+const std::string kwDISPLAY_XTICKS			= "DISPLAY_XTICKS";
+const std::string kwDISPLAY_YMAXVALUE		= "DISPLAY_YMAXVALUE";
+const std::string kwDISPLAY_YMINVALUE		= "DISPLAY_YMINVALUE";
+const std::string kwDISPLAY_YTICKS			= "DISPLAY_YTICKS";
+const std::string kwDISPLAY_ZOOM_LAT1		= "DISPLAY_ZOOM_LAT1";
+const std::string kwDISPLAY_ZOOM_LAT2		= "DISPLAY_ZOOM_LAT2";
+const std::string kwDISPLAY_ZOOM_LON1		= "DISPLAY_ZOOM_LON1";
+const std::string kwDISPLAY_ZOOM_LON2		= "DISPLAY_ZOOM_LON2";
+const std::string kwEXPAND_ARRAY			= "EXPAND_ARRAY";
+const std::string kwFIELD				= "FIELD";
+const std::string kwFIELD_COMMENT			= "FIELD_COMMENT";
+const std::string kwFIELD_DATA_MODE			= "FIELD_DATA_MODE";
+const std::string kwFIELD_FILTER			= "FIELD_FILTER";
+const std::string kwFIELD_FORMAT			= "FIELD_FORMAT";
+const std::string kwFIELD_GROUP			= "FIELD_GROUP";
+const std::string kwFIELD_NAME			= "FIELD_NAME";
+const std::string kwFIELD_TITLE			= "FIELD_TITLE";
+const std::string kwFIELD_TYPE			= "FIELD_TYPE";
+const std::string kwFIELD_UNIT			= "FIELD_UNIT";
+const std::string kwFILE				= "FILE";
+const std::string kwLOGFILE				= "LOGFILE";
+const std::string kwOUTPUT				= "OUTPUT";
+const std::string kwOUTPUT_KML                       = "OUTPUT_KML";
+const std::string kwOUTPUT_TITLE			= "OUTPUT_TITLE";
+const std::string kwOUTSIDE_MODE			= "OUTSIDE_MODE";
+const std::string kwPOSITION_MODE			= "POSITION_MODE";
+const std::string kwRECORD				= "RECORD";
+const std::string kwSELECT				= "SELECT";
+const std::string kwUNIT = "UNIT";
+const std::string kwUNIT_ATTR_NAME = "UNIT_ATTR_NAME";
+const std::string kwUNIT_ATTR_VALUE = "UNIT_ATTR_VALUE";
+const std::string kwVERBOSE				= "VERBOSE";
+const std::string kwX				= "X";
+const std::string kwX_COMMENT			= "X_COMMENT";
+const std::string kwX_FILTER				= "X_FILTER";
+const std::string kwX_INTERVALS			= "X_INTERVALS";
+const std::string kwX_LOESS_CUTOFF			= "X_LOESS_CUTOFF";
+const std::string kwX_MAX				= "X_MAX";
+const std::string kwX_MIN				= "X_MIN";
+const std::string kwX_NAME				= "X_NAME";
+const std::string kwX_TITLE				= "X_TITLE";
+const std::string kwX_TYPE				= "X_TYPE";
+const std::string kwX_UNIT				= "X_UNIT";
+const std::string kwY				= "Y";
+const std::string kwY_COMMENT			= "Y_COMMENT";
+const std::string kwY_FILTER				= "Y_FILTER";
+const std::string kwY_INTERVALS			= "Y_INTERVALS";
+const std::string kwY_LOESS_CUTOFF			= "Y_LOESS_CUTOFF";
+const std::string kwY_MAX				= "Y_MAX";
+const std::string kwY_MIN				= "Y_MIN";
+const std::string kwY_NAME				= "Y_NAME";
+const std::string kwY_TITLE				= "Y_TITLE";
+const std::string kwY_TYPE				= "Y_TYPE";
+const std::string kwY_UNIT				= "Y_UNIT";
 
 
 
@@ -196,7 +196,7 @@ KD(kwALIAS_NAME,		"Str",
 		"%{NAME} construct. Names are case sensitive.\n"
 		"If a name reference (%{XXX}) does not correspond to\n"
 		"an actually defined alias, the expansion is an empty\n"
-		"string."),
+		"std::string."),
 KD(kwALIAS_VALUE,		"Str",
 		"The value of the alias. ALIAS_VALUE keyword must have at\n"
 		"least as many occurences as the ALIAS_NAME one."),
@@ -294,9 +294,9 @@ KD(kwDISPLAY_PROPERTIES,	"Bool",
 KD(kwDISPLAY_SOLID_COLOR,	"Bool",
 		"Indicates if color layer of the field is shown or not."),
 KD(kwDISPLAY_EAST_COMPONENT,	"Bool",
-		"Indicates if this field is the East component of a vector plot."),
+		"Indicates if this field is the East component of a std::vector plot."),
 KD(kwDISPLAY_NORTH_COMPONENT,	"Bool",
-		"Indicates if this field is the North component of a vector plot."),
+		"Indicates if this field is the North component of a std::vector plot."),
 KD(kwDISPLAY_STIPPLEPATTERN,	"KW10",
 		"Stipple pattern for the line (field) (XY plot)."),
 KD(kwDISPLAY_TITLE,		"Str",
@@ -383,7 +383,7 @@ KD(kwOUTPUT,			"Str",
 KD(kwOUTPUT_KML,		 "Str",
 		"Name of created KML file."),
 KD(kwOUTPUT_TITLE,		"Str",
-		"Title of created/modified file (string describing the\n"
+		"Title of created/modified file (std::string describing the\n"
 		"content and which should appear as a graphic title,\n"
 		"for example)."),
 KD(kwOUTSIDE_MODE,		"KW4",
@@ -504,7 +504,7 @@ TD("Expr",	"Combination of fields of the current record.\n"
 		"An expression which can contain function calls like\n"
 		"trigonometric, conversion, test..."),
 TD("Str",	"String. Leading and trailing blanks are ignored."),
-TD("Unit",	"Unit string conforming to Udunits package and the special\n"
+TD("Unit",	"Unit std::string conforming to Udunits package and the special\n"
 		"keyword 'DATE' which means that the data is a date."),
 TD("Fmt",	"Format of field (for ascii conversion). String explaining\n"
 		"how to output a value."),

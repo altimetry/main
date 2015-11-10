@@ -19,7 +19,7 @@
 */
 
 #include <algorithm>
-#include "Stl.h"
+#include <string>
 
 #include "brathl.h"
 
@@ -47,7 +47,7 @@ namespace brathl
 
 
 CExternalFilesNetCDF::CExternalFilesNetCDF
-		(const string	&Name	/*= ""*/)
+		(const std::string	&Name	/*= ""*/)
 	: CExternalFiles()
 {
   SetProductClass(NETCDF_PRODUCT_CLASS);
@@ -61,14 +61,14 @@ CExternalFilesNetCDF::~CExternalFilesNetCDF()
 }
 
 //----------------------------------------
-string CExternalFilesNetCDF::GetName
+std::string CExternalFilesNetCDF::GetName
 		() const
 {
   return m_file.GetName();
 }
 
 //----------------------------------------
-void CExternalFilesNetCDF::SetName(const string	&name)
+void CExternalFilesNetCDF::SetName(const std::string	&name)
 {
   m_file.SetName(name);
 }
@@ -98,12 +98,12 @@ void CExternalFilesNetCDF::GetVariables (CStringArray& varNames)
 }
 
 //----------------------------------------
-void CExternalFilesNetCDF::GetDimensions (const string& varName, CUIntArray& dimensions)
+void CExternalFilesNetCDF::GetDimensions (const std::string& varName, CUIntArray& dimensions)
 {
   m_file.GetVarDims(varName, dimensions);
 }
 //----------------------------------------
-void CExternalFilesNetCDF::GetDimensions(const string& varName, CStringArray& dimensions)
+void CExternalFilesNetCDF::GetDimensions(const std::string& varName, CStringArray& dimensions)
 {
   m_file.GetVarDims(varName, dimensions);
 }
@@ -160,7 +160,7 @@ void CExternalFilesNetCDF::Open
 
 //----------------------------------------
 
-bool CExternalFilesNetCDF::IsAxisVar (const string& name)
+bool CExternalFilesNetCDF::IsAxisVar (const std::string& name)
 {
   return m_file.IsAxisVar(name);
 }
@@ -201,7 +201,7 @@ int32_t CExternalFilesNetCDF::NumberOfRecords()
 }
 
 //----------------------------------------
-void CExternalFilesNetCDF::GetValue(const string& name, CExpressionValue& value, const string& wantedUnit)
+void CExternalFilesNetCDF::GetValue(const std::string& name, CExpressionValue& value, const std::string& wantedUnit)
 {
   double result;
   GetValue(name, result, wantedUnit);
@@ -210,7 +210,7 @@ void CExternalFilesNetCDF::GetValue(const string& name, CExpressionValue& value,
 }
 
 //----------------------------------------
-void CExternalFilesNetCDF::GetValue(const string& name, double& value, const string& wantedUnit)
+void CExternalFilesNetCDF::GetValue(const std::string& name, double& value, const std::string& wantedUnit)
 {
   //double	result;
 
@@ -242,7 +242,7 @@ void CExternalFilesNetCDF::GetValue(const string& name, double& value, const str
 
 }
 //----------------------------------------
-void CExternalFilesNetCDF::GetAllValues(CFieldNetCdf* field, const string& wantedUnit)
+void CExternalFilesNetCDF::GetAllValues(CFieldNetCdf* field, const std::string& wantedUnit)
 {
   if (field == NULL)
   {
@@ -263,13 +263,13 @@ void CExternalFilesNetCDF::GetAllValues(CFieldNetCdf* field, const string& wante
 }
 
 //----------------------------------------
-void CExternalFilesNetCDF::GetAllValues(CFieldNetCdf* field, CExpressionValue& value, const string& wantedUnit)
+void CExternalFilesNetCDF::GetAllValues(CFieldNetCdf* field, CExpressionValue& value, const std::string& wantedUnit)
 {
   GetAllValues(field->GetName(), value, wantedUnit);
 
 }
 //----------------------------------------
-void CExternalFilesNetCDF::GetAllValues(const string& name, CExpressionValue& value, const string& wantedUnit)
+void CExternalFilesNetCDF::GetAllValues(const std::string& name, CExpressionValue& value, const std::string& wantedUnit)
 {
 
   if (m_file.VarExists(name))
@@ -284,7 +284,7 @@ void CExternalFilesNetCDF::GetAllValues(const string& name, CExpressionValue& va
 
 }
 //----------------------------------------
-void CExternalFilesNetCDF::GetAllValues(const string& name, CDoubleArray& vect, const string& wantedUnit)
+void CExternalFilesNetCDF::GetAllValues(const std::string& name, CDoubleArray& vect, const std::string& wantedUnit)
 {
 
   if (m_file.VarExists(name))
@@ -304,7 +304,7 @@ void CExternalFilesNetCDF::GetAllValues(const string& name, CDoubleArray& vect, 
 
 /*
 //----------------------------------------
-void CExternalFilesNetCDF::GetValues(CFieldNetCdfCFAttr* field,  CExpressionValue &value, const string	&wantedUnit)
+void CExternalFilesNetCDF::GetValues(CFieldNetCdfCFAttr* field,  CExpressionValue &value, const std::string	&wantedUnit)
 {
 
   exprValue.SetNewValue(FloatType, count, nbDimensions, NULL);
@@ -314,14 +314,14 @@ void CExternalFilesNetCDF::GetValues(CFieldNetCdfCFAttr* field,  CExpressionValu
 }
 */
 //----------------------------------------
-void CExternalFilesNetCDF::GetValues(CFieldNetCdf* field,  CExpressionValue &value, const string	&wantedUnit)
+void CExternalFilesNetCDF::GetValues(CFieldNetCdf* field,  CExpressionValue &value, const std::string	&wantedUnit)
 {
   GetValues(field->GetName(), value, wantedUnit);
 }
 
 
 //----------------------------------------
-void CExternalFilesNetCDF::GetValues(const string& name, CExpressionValue &value, const string	&wantedUnit)
+void CExternalFilesNetCDF::GetValues(const std::string& name, CExpressionValue &value, const std::string	&wantedUnit)
 {
   
   MustBeOpened();
@@ -407,7 +407,7 @@ void CExternalFilesNetCDF::GetValues(const string& name, CExpressionValue &value
 }
 
 //----------------------------------------
-void CExternalFilesNetCDF::ExecuteExpression(CExpression &expr, CExpressionValue& exprValue, const string& wantedUnit, CProduct* product /* = NULL */)
+void CExternalFilesNetCDF::ExecuteExpression(CExpression &expr, CExpressionValue& exprValue, const std::string& wantedUnit, CProduct* product /* = NULL */)
 {
   CStringArray::const_iterator itFieldName;
   const CStringArray* fields = expr.GetFieldNames();
@@ -447,14 +447,14 @@ void CExternalFilesNetCDF::GetFieldNames
   m_varList.GetKeys(names);
 }
 //----------------------------------------
-CFieldNetCdf* CExternalFilesNetCDF::GetFieldNetCdf(const string &name, bool withExcept /*= true*/)
+CFieldNetCdf* CExternalFilesNetCDF::GetFieldNetCdf(const std::string &name, bool withExcept /*= true*/)
 {
   CFieldNetCdf *var  = CExternalFiles::GetFieldNetCdf(m_varList.Exists(name), withExcept); 
 
   return var;
 }
 //----------------------------------------
-int32_t CExternalFilesNetCDF::GetNetCdfId(const string &name, bool withExcept /*= true*/)
+int32_t CExternalFilesNetCDF::GetNetCdfId(const std::string &name, bool withExcept /*= true*/)
 {
   CFieldNetCdf* var = GetFieldNetCdf(name, withExcept);
 
@@ -470,7 +470,7 @@ int32_t CExternalFilesNetCDF::GetNetCdfId(const string &name, bool withExcept /*
 /*
 //----------------------------------------
 CExternalFileFieldDescription* CExternalFilesNetCDF::GetFieldDescription
-		(const string& name)
+		(const std::string& name)
 {
   // Return its description
   CRegisteredVar *var  = GetRegisteredVar(name);
@@ -483,13 +483,13 @@ CExternalFileFieldDescription* CExternalFilesNetCDF::GetFieldDescription
 }
 */
 //----------------------------------------
-nc_type CExternalFilesNetCDF::GetVarType(const string &name)
+nc_type CExternalFilesNetCDF::GetVarType(const std::string &name)
 {
   return m_file.GetVarType(name);
 }
 
 //----------------------------------------
-string CExternalFilesNetCDF::GetVarTypeName(const string &name)
+std::string CExternalFilesNetCDF::GetVarTypeName(const std::string &name)
 {
   return m_file.GetVarTypeName(name);
 }
@@ -498,12 +498,12 @@ string CExternalFilesNetCDF::GetVarTypeName(const string &name)
 //----------------------------------------
 void CExternalFilesNetCDF::AddVar
 		            (int32_t	netcdfId,
-		             const string	&name,
-		             const string	&description,
-		             const string	&unit,
+		             const std::string	&name,
+		             const std::string	&description,
+		             const std::string	&unit,
                  int32_t type,
                  uint32_t dimValue,
-                 const string dimName, 
+                 const std::string dimName, 
                  int32_t dimId,
                  const CStringMap* mapAttributes /*= NULL*/)
 {
@@ -523,9 +523,9 @@ void CExternalFilesNetCDF::AddVar
 //----------------------------------------
 void CExternalFilesNetCDF::AddVar
 		            (int32_t	netcdfId,
-		             const string	&name,
-		             const string	&description,
-		             const string	&unit,
+		             const std::string	&name,
+		             const std::string	&description,
+		             const std::string	&unit,
                  int32_t type /*= NC_NAT*/,
                  const CUIntArray* dimValues  /*= NULL*/,
                  const CStringArray* dimNames  /*= NULL*/, 
@@ -626,7 +626,7 @@ void CExternalFilesNetCDF::AddAttributesAsField(CFieldNetCdf* field /*= NULL*/)
       continue;
     }
 
-    // Excludes non-numeric attributes, except string date representation attributes
+    // Excludes non-numeric attributes, except std::string date representation attributes
     if (!netCDFattribute->IsTypeNumericOrDateString())
     {
       continue;
@@ -685,7 +685,7 @@ void CExternalFilesNetCDF::AddBratIndexData()
       continue;
     }
 
-    string name;
+    std::string name;
     name.append(CField::m_BRAT_INDEX_DATA_NAME);
     if (i > 1)
     {
@@ -702,7 +702,7 @@ void CExternalFilesNetCDF::AddBratIndexData()
 
     CFieldNetCdfIndexData* fieldIndexData = new CFieldNetCdfIndexData(*var);
     fieldIndexData->SetName(name);
-    string desc;
+    std::string desc;
     desc.append(CField::m_BRAT_INDEX_DATA_DESC);
     desc.append(" based on field ");
     desc.append(var->GetName());
@@ -722,7 +722,7 @@ void CExternalFilesNetCDF::AddBratIndexData()
 }
 
 //----------------------------------------
-bool CExternalFilesNetCDF::VarExists(const string& name)
+bool CExternalFilesNetCDF::VarExists(const std::string& name)
 {
   return m_file.VarExists(name);
 }
@@ -732,13 +732,13 @@ void CExternalFilesNetCDF::SubstituteDimNames(CStringArray& dimNames)
 {
 }
 //----------------------------------------
-void CExternalFilesNetCDF::AddVar(const string& name)
+void CExternalFilesNetCDF::AddVar(const std::string& name)
 {
   int32_t varId	= m_file.GetVarId(name);
-  string description;
-  string comment;
-  string unit;
-  string standardName;
+  std::string description;
+  std::string comment;
+  std::string unit;
+  std::string standardName;
 
 //  m_file.GetAtt(varId, LONG_NAME_ATTR, description, false, name + " field");
 //  m_file.GetAtt(varId, UNITS_ATTR, unit, false, "count");
@@ -804,8 +804,8 @@ void CExternalFilesNetCDF::AddVar(const string& name)
   CStringMap::iterator it;
   for (it = mapAttributes.begin() ; it != mapAttributes.end() ; it++)
   {
-    string attName = (*it).first;
-    string attValue = (*it).second;
+    std::string attName = (*it).first;
+    std::string attValue = (*it).second;
 
 
     if ((attName.compare(LONG_NAME_ATTR) == 0) ||
@@ -827,7 +827,7 @@ void CExternalFilesNetCDF::AddVar(const string& name)
 
 
 //----------------------------------------
-CFieldNetCdf* CExternalFilesNetCDF::GetVarByAttribute(const string& attrName, const string& attrValueToSearch)
+CFieldNetCdf* CExternalFilesNetCDF::GetVarByAttribute(const std::string& attrName, const std::string& attrValueToSearch)
 {
 
   CFieldNetCdf* fieldToReturn = NULL;
@@ -835,7 +835,7 @@ CFieldNetCdf* CExternalFilesNetCDF::GetVarByAttribute(const string& attrName, co
   for (it = m_varList.begin() ; it != m_varList.end() ; it++)
   {
     CFieldNetCdf* field = CExternalFiles::GetFieldNetCdf(it->second);
-    string attrValue = field->GetAttribute(attrName);
+    std::string attrValue = field->GetAttribute(attrName);
     if ((attrValue.empty() == false) && (attrValue.compare(attrValueToSearch) == 0))
     {
       fieldToReturn = field;
@@ -849,7 +849,7 @@ CFieldNetCdf* CExternalFilesNetCDF::GetVarByAttribute(const string& attrName, co
 //----------------------------------------
 
 int CExternalFilesNetCDF::GetGlobalAttribute
-		(const string	&attName,
+		(const std::string	&attName,
 		       double	&attValue,
 		       bool	mustExist	/*= true*/,
 		       double   defaultValue	/*= CTools::m_defaultValueDOUBLE*/)
@@ -858,18 +858,18 @@ int CExternalFilesNetCDF::GetGlobalAttribute
 }
 //----------------------------------------
 int CExternalFilesNetCDF::GetGlobalAttribute
-		(const string	&attName,
-		       string	&attValue,
+		(const std::string	&attName,
+		       std::string	&attValue,
 		       bool	mustExist	/*= true*/,
-		       string   defaultValue	/*= ""*/)
+		       std::string   defaultValue	/*= ""*/)
 {
   return m_file.GetGlobalAttributeAsString(attName, attValue, mustExist, defaultValue);
 }
 
 //----------------------------------------
 int CExternalFilesNetCDF::GetAttribute
-		(const string	&varName,
-		 const string	&attName,
+		(const std::string	&varName,
+		 const std::string	&attName,
 		       double	&attValue,
 		       bool	mustExist	/*= true*/,
 		       double   defaultValue	/*= CTools::m_defaultValueDOUBLE*/)
@@ -879,22 +879,22 @@ int CExternalFilesNetCDF::GetAttribute
 
 //----------------------------------------
 int CExternalFilesNetCDF::GetAttribute
-		(const string	&varName,
-		 const string	&attName,
-		       string	&attValue,
+		(const std::string	&varName,
+		 const std::string	&attName,
+		       std::string	&attValue,
 		       bool	mustExist	/*= true*/,
-		       string   defaultValue	/*= ""*/)
+		       std::string   defaultValue	/*= ""*/)
 {
   return m_file.GetAttributeAsString(varName, attName, attValue, mustExist, defaultValue);
 }
 
 //----------------------------------------
-nc_type CExternalFilesNetCDF::GetAttributeType(const string& attName)
+nc_type CExternalFilesNetCDF::GetAttributeType(const std::string& attName)
 {
   return m_file.GetAttributeType(NC_GLOBAL, attName);
 }
 //----------------------------------------
-nc_type CExternalFilesNetCDF::GetAttributeType(const string& varName, const string& attName)
+nc_type CExternalFilesNetCDF::GetAttributeType(const std::string& varName, const std::string& attName)
 {
   return m_file.GetAttributeType(varName, attName);
 }
@@ -913,7 +913,7 @@ void CExternalFilesNetCDF::GetGlobalAttributes(CDoubleMap& mapAttributes)
 }
 
 //----------------------------------------
-void CExternalFilesNetCDF::GetGlobalAttributes(string& attributes)
+void CExternalFilesNetCDF::GetGlobalAttributes(std::string& attributes)
 {
   CStringMap mapAttributes;
   m_file.GetAttributes(NC_GLOBAL, mapAttributes);
@@ -923,8 +923,8 @@ void CExternalFilesNetCDF::GetGlobalAttributes(string& attributes)
   CStringMap::iterator it;
   for (it = mapAttributes.begin() ; it != mapAttributes.end() ; it++)
   {
-    string attName = (*it).first;
-    string attValue = (*it).second;
+    std::string attName = (*it).first;
+    std::string attValue = (*it).second;
 
     attributes += CTools::Format("\n %s: %s", attName.c_str(), attValue.c_str());;
   }
@@ -935,11 +935,11 @@ void CExternalFilesNetCDF::GetGlobalAttributes(string& attributes)
 
 
 //----------------------------------------
-void CExternalFilesNetCDF::GetOrderedDimNames(const string& value, CStringArray& commonDimensionNames)
+void CExternalFilesNetCDF::GetOrderedDimNames(const std::string& value, CStringArray& commonDimensionNames)
 {
   CExpression expr;
   
-  string msg;
+  std::string msg;
 
   bool bOk = CExpression::SetExpression(value, expr, msg);
 
@@ -1028,7 +1028,7 @@ bool CExternalFilesNetCDF::IsLatField(CFieldNetCdf* field)
       break;
     }
 
-    string value = field->GetAttribute(STANDARD_NAME_ATTR);
+    std::string value = field->GetAttribute(STANDARD_NAME_ATTR);
     if (!value.empty())
     {
       if (value.compare(CNetCDFFiles::m_LAT_NAMES[i]) == 0)
@@ -1056,7 +1056,7 @@ bool CExternalFilesNetCDF::IsLatField(CFieldNetCdf* field)
 
   for (int i = 0 ; i < CNetCDFFiles::m_LAT_UNITS_SIZE - 1 ; i++)
   {
-    string value = field->GetAttribute(UNITS_ATTR);
+    std::string value = field->GetAttribute(UNITS_ATTR);
     if (!value.empty())
     {
       if (value.compare(CNetCDFFiles::m_LAT_UNITS[i]) == 0)
@@ -1089,7 +1089,7 @@ bool CExternalFilesNetCDF::IsLonField(CFieldNetCdf* field)
       break;
     }
 
-    string value = field->GetAttribute(STANDARD_NAME_ATTR);
+    std::string value = field->GetAttribute(STANDARD_NAME_ATTR);
     if (!value.empty())
     {
       if (value.compare(CNetCDFFiles::m_LON_NAMES[i]) == 0)
@@ -1117,7 +1117,7 @@ bool CExternalFilesNetCDF::IsLonField(CFieldNetCdf* field)
 
   for (int i = 0 ; i < CNetCDFFiles::m_LON_UNITS_SIZE - 1 ; i++)
   {
-    string value = field->GetAttribute(UNITS_ATTR);
+    std::string value = field->GetAttribute(UNITS_ATTR);
     if (!value.empty())
     {
       if (value.compare(CNetCDFFiles::m_LON_UNITS[i]) == 0)
@@ -1327,14 +1327,14 @@ void CExternalFilesNetCDF::SetOffset(bool force /*= false*/)
 }
 
 ////----------------------------------------
-//void CExternalFilesNetCDF::ReadEntireVar(CNetCDFVarDef* netCDFVarDef, CDoubleArray& array, const string& wantedUnit)
+//void CExternalFilesNetCDF::ReadEntireVar(CNetCDFVarDef* netCDFVarDef, CDoubleArray& array, const std::string& wantedUnit)
 //{
 //
 //  m_file.ReadEntireVar(netCDFVarDef, array, wantedUnit);
 //
 //}
 ////----------------------------------------
-//void CExternalFilesNetCDF::ReadEntireVar(CNetCDFDimension* netCDFDimension, CDoubleArray& array, const string& wantedUnit)
+//void CExternalFilesNetCDF::ReadEntireVar(CNetCDFDimension* netCDFDimension, CDoubleArray& array, const std::string& wantedUnit)
 //{
 //
 //  m_file.ReadEntireVar(netCDFDimension, array, wantedUnit);
@@ -1346,7 +1346,7 @@ void CExternalFilesNetCDF::SetOffset(bool force /*= false*/)
 
 
 CExternalFilesNetCDFCF::CExternalFilesNetCDFCF
-		(const string	&name	/*= ""*/)
+		(const std::string	&name	/*= ""*/)
 	: CExternalFilesNetCDF(name)
 {
   SetProductClass(NETCDF_CF_PRODUCT_CLASS);
@@ -1406,7 +1406,7 @@ bool CExternalFilesNetCDFCF::PrevRecord ()
 //-------------------------------------------------------------
 
 CExternalFilesYFX::CExternalFilesYFX
-		(const string		&name /*= ""*/)
+		(const std::string		&name /*= ""*/)
 	: CExternalFilesNetCDFCF(name)
 {
 }
@@ -1420,7 +1420,7 @@ CExternalFilesYFX::~CExternalFilesYFX()
 //-------------------------------------------------------------
 
 CExternalFilesZFXY::CExternalFilesZFXY
-		(const string		&name /*= ""*/)
+		(const std::string		&name /*= ""*/)
 	: CExternalFilesNetCDFCF(name)
 {
 }
@@ -1434,7 +1434,7 @@ CExternalFilesZFXY::~CExternalFilesZFXY()
 //-------------------------------------------------------------
 
 CExternalFilesNetCDFCFGeneric::CExternalFilesNetCDFCFGeneric
-		(const string		&name /*= ""*/)
+		(const std::string		&name /*= ""*/)
 	: CExternalFilesNetCDFCF(name)
 {
 }

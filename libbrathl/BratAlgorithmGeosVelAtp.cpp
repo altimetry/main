@@ -413,20 +413,20 @@ void CBratAlgorithmGeosVelAtp::SetParamValues(CVectorBratAlgorithmParam& args)
 }
 
 //----------------------------------------
-void CBratAlgorithmGeosVelAtp::Dump(ostream& fOut /*= cerr*/)
+void CBratAlgorithmGeosVelAtp::Dump(std::ostream& fOut /*= std::cerr*/)
 {
    if (CTrace::IsTrace() == false)
    { 
       return;
    }
 
-  fOut << "==> Dump a CBratAlgorithmGeosVelAtp Object at "<< this << endl;
+  fOut << "==> Dump a CBratAlgorithmGeosVelAtp Object at "<< this << std::endl;
   CBratAlgorithmGeosVel::Dump(fOut);
-  fOut << "m_varValue: " << m_varValue << endl;
-  fOut << "m_varValuePrev: " << m_varValuePrev << endl;
-  fOut << "m_varValueNext: " << m_varValueNext << endl;
-  fOut << "m_gap: " << m_gap << endl;
-  fOut << "==> END Dump a CBratAlgorithmGeosVelAtp Object at "<< this << endl;
+  fOut << "m_varValue: " << m_varValue << std::endl;
+  fOut << "m_varValuePrev: " << m_varValuePrev << std::endl;
+  fOut << "m_varValueNext: " << m_varValueNext << std::endl;
+  fOut << "m_gap: " << m_gap << std::endl;
+  fOut << "==> END Dump a CBratAlgorithmGeosVelAtp Object at "<< this << std::endl;
 
 }
 

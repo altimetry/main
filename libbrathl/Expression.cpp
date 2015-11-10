@@ -22,7 +22,8 @@
 #include <cctype>
 #include <cstring>
 #include <cstdlib>
-#include "Stl.h"
+#include <cassert>
+#include <string>
 
 #include "brathl.h"
 
@@ -31,7 +32,7 @@
 #include "Tools.h" 
 #include "TraceLog.h" 
 
-// When debugging changes all calls to “new” to be calls to “DEBUG_NEW” allowing for memory leaks to
+// When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
 // Needs to be included after all #include commands
 #include "Win32MemLeaksAccurate.h"
@@ -124,7 +125,7 @@ namespace brathl
 
 
 // To test char range
-typedef numeric_limits<char> numeric_limits_char;
+typedef std::numeric_limits<char> numeric_limits_char;
 
 
 //-------------------------------------------------------------
@@ -139,16 +140,16 @@ public:
   CCompiler();
 
   void Compile
-		(const string& text,
+		(const std::string& text,
 		 CUIntArray* code,
 		 CObArray	*constants,
 		 CStringArray* fieldNames,
      CVectorBratAlgorithm* algoArray);
 
-  string GetText() { return m_text; };
-  const stack<uint32_t>& GetOperators() { return m_operators; };
+  std::string GetText() { return m_text; };
+  const std::stack<uint32_t>& GetOperators() { return m_operators; };
   const CUIntArray* GetCode() { return m_code; };
-  //const vector<CExpressionValue>* GetConstants() { return m_constants; };
+  //const std::vector<CExpressionValue>* GetConstants() { return m_constants; };
   const CObArray* GetConstants() { return m_constants; };
   const CStringArray* GetFieldNames() { return m_fieldNames; };
 
@@ -162,22 +163,22 @@ private:
   void Element();
   void ScanFunctionParameters(uint32_t NbParameters);
   void ScanFunctionParameters(uint32_t	NbParameters, CStringArray* params);
-  string GetAlgoFunctionName();
-  string GetAlgoTokenName();
+  std::string GetAlgoFunctionName();
+  std::string GetAlgoTokenName();
 
   void IifInst();
   void Iif3Inst();
   static const char m_charEnd;
 
-  string m_text;		// Text to compile
-  stack<uint32_t> m_operators;	// Stack for storing operators
+  std::string m_text;		// Text to compile
+  std::stack<uint32_t> m_operators;	// Stack for storing operators
   uint32_t m_token;	// current token
   uint32_t m_tokenId;	// current token id
   bool m_followOperator; // Indicates if we are behind an operator
   uint32_t m_iifCount;	// Iif count for iif numbering
   uint32_t m_current;	// current char analysis pos in m_text
   CUIntArray* m_code;	// OPCodes of resulting code
-  //vector<CExpressionValue>* m_constants;	// Constants used in the expression
+  //std::vector<CExpressionValue>* m_constants;	// Constants used in the expression
   // Constants used in the expression. A "CExpressionValue*" array.
   CObArray* m_constants;	// Constants used in the expression
   CStringArray*	m_fieldNames;	// Fields mentionned in the expression
@@ -256,7 +257,7 @@ double* NewValue(uint32_t nbValues)
 					  e.what()),
             BRATHL_ERROR);
   }
-  catch (bad_alloc& e) // If memory allocation (new) failed...
+  catch (std::bad_alloc& e) // If memory allocation (new) failed...
   {
     throw CMemoryException(CTools::Format("ERROR in CExpressionValue::ValueData::NewValue - Unable to allocate new memory to store the result.\nNative error: '%s'\n"
                                            " or try to allocate more than your system architecture can ever handle",
@@ -422,7 +423,7 @@ double* CExpressionValue::CValueData::NewValue(uint32_t nbValues)
 					  e.what()),
             BRATHL_ERROR);
   }
-  catch (bad_alloc& e) // If memory allocation (new) failed...
+  catch (std::bad_alloc& e) // If memory allocation (new) failed...
   {
     throw CMemoryException(CTools::Format("ERROR in CValueData::NewValue - Unable to allocate new memory to store the result.\nNative error: '%s'\n"
                                            " or try to allocate more than your system architecture can ever handle",
@@ -448,32 +449,32 @@ double* CExpressionValue::CValueData::NewValue(uint32_t nbValues)
 }
 
 //----------------------------------------
-void CExpressionValue::CValueData::Dump(ostream	&fOut /* = cerr */)
+void CExpressionValue::CValueData::Dump(std::ostream	&fOut /* = std::cerr */)
 {
   if (! CTrace::IsTrace())
   {
     return;
   }
 
-  fOut << "==> Dump a CExpressionValue::CValueData Object at "<< this << endl;
+  fOut << "==> Dump a CExpressionValue::CValueData Object at "<< this << std::endl;
 
-  fOut << "m_refCount: "<< m_refCount << endl; 
-  fOut << "m_nbValues: "<< m_nbValues << endl; 
-  fOut << "m_allocated: "<< m_allocated << endl; 
+  fOut << "m_refCount: "<< m_refCount << std::endl; 
+  fOut << "m_nbValues: "<< m_nbValues << std::endl; 
+  fOut << "m_allocated: "<< m_allocated << std::endl; 
   fOut << "m_dataValue: ";
   if (m_dataValue != NULL)
   {
-    fOut << endl;
+    fOut << std::endl;
     for (uint32_t i = 0 ; i < m_nbValues ; i++)
     {
-      fOut << "m_dataValue[" << i << "] = " << m_dataValue[i] << endl;
+      fOut << "m_dataValue[" << i << "] = " << m_dataValue[i] << std::endl;
     }
   }
   else
   {
-    fOut << "NULL" << endl;
+    fOut << "NULL" << std::endl;
   }
-  fOut << "==> END Dump a CExpressionValue::CValueData Object at "<< this << endl;
+  fOut << "==> END Dump a CExpressionValue::CValueData Object at "<< this << std::endl;
 }
 //-------------------------------------------------------------
 //------------------- CExpressionValue class --------------------
@@ -491,7 +492,7 @@ CExpressionValue::CExpressionValue
 
 //----------------------------------------
 
-CExpressionValue::CExpressionValue(const vector<double>	&FloatValues)
+CExpressionValue::CExpressionValue(const std::vector<double>	&FloatValues)
 {
   Init();
   BuildFromVector(FloatValues);
@@ -518,7 +519,7 @@ CExpressionValue::CExpressionValue(ExpressionValueType type, ExpressionValueDime
 
 //----------------------------------------
 
-CExpressionValue::CExpressionValue(const string& StrValue)
+CExpressionValue::CExpressionValue(const std::string& StrValue)
 {
   Init();
   BuildFromString(StrValue);
@@ -571,7 +572,7 @@ CExpressionValue::CExpressionValue
 }
 
 ////----------------------------------------
-//CExpressionValue::CExpressionValue(ExpressionCallableFunctionAlgoN& function, const string& functionName, const string& parametersFormat, CObList* listParams)
+//CExpressionValue::CExpressionValue(ExpressionCallableFunctionAlgoN& function, const std::string& functionName, const std::string& parametersFormat, CObList* listParams)
 //{
 //  Init();
 //
@@ -592,11 +593,11 @@ CExpressionValue::CExpressionValue(ExpressionCallableFunctionAlgoN& function, co
   //va_start( args, parametersFormat );
 
 	//CBratObject* o = va_arg(args, CBratObject *);
- // o->Dump(cout);
+ // o->Dump(std::cout);
 	//o = va_arg(args, CBratObject *);
- // o->Dump(cout);
+ // o->Dump(std::cout);
 	//o = va_arg(args, CBratObject *);
- // o->Dump(cout);
+ // o->Dump(std::cout);
 
   double Result	= function(functionName, arg);
   //double Result	= function(functionName.c_str(), parametersFormat.c_str(), new CExpressionValue(10), new CExpressionValue(11), new CExpressionValue(12));
@@ -614,11 +615,11 @@ CExpressionValue::CExpressionValue(ExpressionCallableFunctionBratAlgoBaseN& func
   //va_start( args, parametersFormat );
 
 	//CBratObject* o = va_arg(args, CBratObject *);
- // o->Dump(cout);
+ // o->Dump(std::cout);
 	//o = va_arg(args, CBratObject *);
- // o->Dump(cout);
+ // o->Dump(std::cout);
 	//o = va_arg(args, CBratObject *);
- // o->Dump(cout);
+ // o->Dump(std::cout);
 
   double Result	= function(algo, arg);
   //double Result	= function(functionName.c_str(), parametersFormat.c_str(), new CExpressionValue(10), new CExpressionValue(11), new CExpressionValue(12));
@@ -785,7 +786,7 @@ CExpressionValue& CExpressionValue::operator=(const CExpressionValue &Copy)
 
 //----------------------------------------
 
-CExpressionValue& CExpressionValue::operator=(const string &String)
+CExpressionValue& CExpressionValue::operator=(const std::string &String)
 {
   DeleteValue();
   m_Value = NULL;
@@ -807,7 +808,7 @@ CExpressionValue& CExpressionValue::operator=(double value)
 
 //----------------------------------------
 
-CExpressionValue& CExpressionValue::operator=(const vector<double> &Vector)
+CExpressionValue& CExpressionValue::operator=(const std::vector<double> &Vector)
 {
   DeleteValue();
   m_Value = NULL;
@@ -1000,7 +1001,7 @@ void CExpressionValue::BuildValue(ExpressionValueType	type, ExpressionValueDimen
 //----------------------------------------
 
 void CExpressionValue::BuildFromString
-		(const string			&StrValue)
+		(const std::string			&StrValue)
 {
   //double			*Value;
   ExpressionValueDimensions	Dimensions;
@@ -1019,7 +1020,7 @@ void CExpressionValue::BuildFromString
 //----------------------------------------
 
 void CExpressionValue::BuildFromVector
-		(const vector<double>		&VectValue)
+		(const std::vector<double>		&VectValue)
 {
   //double			*Value;
   ExpressionValueDimensions	Dimensions;
@@ -1070,7 +1071,7 @@ void CExpressionValue::CheckDimensionsCombination
       if ((Params[index]->m_Dimensions.size() == 1) &&
 	  (Params[index]->m_Dimensions[0] < Dimensions[0]))
       {
-	// Minimal size of vector
+	// Minimal size of std::vector
 	Dimensions[0] = Params[index]->m_Dimensions[0];
       }
     }
@@ -1127,7 +1128,7 @@ void CExpressionValue::CheckDimensionsCombination(const CUIntArray** params, uin
     {
       if ((params[index]->size() == 1) &&(params[index]->at(0) < dimensions.at(0)))
       {
-	      // Minimal size of vector
+	      // Minimal size of std::vector
 	      dimensions[0] = params[index]->at(0);
       }
     }
@@ -1225,9 +1226,9 @@ double CExpressionValue::GetValue(uint32_t i, uint32_t j) const
 
 //----------------------------------------
 
-string CExpressionValue::GetString() const
+std::string CExpressionValue::GetString() const
 {
-  string Result;
+  std::string Result;
 
   if ((GetType() == CharacterType) && (GetNbDimensions() <= 1))
   {
@@ -1236,7 +1237,7 @@ string CExpressionValue::GetString() const
     for (size_t index=0; index < GetNbValues(); index++)
     {
       double Value	= Values[index];
-      char ToPrint	= '¿';
+      char ToPrint	= '?';
       
       if ((Value >= (numeric_limits_char::min)()) && (Value <= (numeric_limits_char::max)()))
       {
@@ -1333,7 +1334,7 @@ int32_t CExpressionValue::IsTrue
     return 0; // No value is false
 
   if (m_Type == CharacterType)
-    return 1; // A non empty string is true
+    return 1; // A non empty std::string is true
 
   if (m_Value->m_nbValues > 1)
   {
@@ -1353,9 +1354,9 @@ int32_t CExpressionValue::IsTrue
 
 //----------------------------------------
 
-string CExpressionValue::AsString(const CUnit &Unit	/*= ""*/, const string Format	/*= ""*/, bool dateAsPeriod /*= false*/) const
+std::string CExpressionValue::AsString(const CUnit &Unit	/*= ""*/, const std::string Format	/*= ""*/, bool dateAsPeriod /*= false*/) const
 {
-  string	Result;
+  std::string	Result;
 
   double	*Values	= GetValues();
   
@@ -1366,12 +1367,12 @@ string CExpressionValue::AsString(const CUnit &Unit	/*= ""*/, const string Forma
   //-------------------
   if (GetType() == CharacterType)
   {
-    //numeric_limits<char> CLimits;
+    //std::numeric_limits<char> CLimits;
     Result	= '"';
     for (index=0; index < GetNbValues() ; index++)
     {
       double Value	= Values[index];
-      char ToPrint	= '¿';
+      char ToPrint	= '?';
 
       if ((Value >= (numeric_limits_char::min)()) && (Value <= (numeric_limits_char::max)()))
       {
@@ -1421,7 +1422,7 @@ string CExpressionValue::AsString(const CUnit &Unit	/*= ""*/, const string Forma
 
         CDate date(Values[index]);          
 
-        string fmtDate = Format;
+        std::string fmtDate = Format;
         
         int32_t precision = CTools::StrToInt(fmtDate);
 
@@ -1495,14 +1496,14 @@ string CExpressionValue::AsString(const CUnit &Unit	/*= ""*/, const string Forma
 }
 
 //----------------------------------------
-string CExpressionValue::GetDimensionsAsString()
+std::string CExpressionValue::GetDimensionsAsString()
 {
   if (m_Dimensions.size() <= 0)
   {
     return "";
   }
 
-  string str = "[";
+  std::string str = "[";
   for (uint32_t i = 0 ; i < m_Dimensions.size() ; i++)
   {
     str += CTools::Format(50, "%d,", m_Dimensions[i]);
@@ -1515,30 +1516,30 @@ string CExpressionValue::GetDimensionsAsString()
   return str;
 }
 //----------------------------------------
-void CExpressionValue::Dump(ostream	&fOut /* = cerr */)
+void CExpressionValue::Dump(std::ostream	&fOut /* = std::cerr */)
 {
   if (! CTrace::IsTrace())
   {
     return;
   }
 
-  fOut << "==> Dump a CExpressionValue Object at "<< this << endl;
-  fOut << "m_name: "<< m_name << endl; 
-  fOut << "m_Type: "<< m_Type << endl; 
-  fOut << "m_Dimensions: " << endl;
+  fOut << "==> Dump a CExpressionValue Object at "<< this << std::endl;
+  fOut << "m_name: "<< m_name << std::endl; 
+  fOut << "m_Type: "<< m_Type << std::endl; 
+  fOut << "m_Dimensions: " << std::endl;
   m_Dimensions.Dump(fOut);
 
-  fOut << "m_Value: " << endl;
+  fOut << "m_Value: " << std::endl;
   if (m_Value != NULL)
   {
     m_Value->Dump(fOut);
   }
   else
   {
-    fOut << "NULL" << endl;
+    fOut << "NULL" << std::endl;
   }
 
-  fOut << "==> END Dump a CExpressionValue Object at "<< this << endl;
+  fOut << "==> END Dump a CExpressionValue Object at "<< this << std::endl;
 
   
 }
@@ -1736,25 +1737,25 @@ CExpressionValues* CExpressionValues::GetExpressionValues(CBratObject* ob, bool 
 
 }
 //----------------------------------------
-void CExpressionValues::Dump(ostream	&fOut /* = cerr */)
+void CExpressionValues::Dump(std::ostream	&fOut /* = std::cerr */)
 {
   if (! CTrace::IsTrace())
   {
     return;
   }
 
-  fOut << "==> Dump a CExpressionValues Object at "<< this << endl;
-  fOut << "m_expressionDataValues: " << endl;
+  fOut << "==> Dump a CExpressionValues Object at "<< this << std::endl;
+  fOut << "m_expressionDataValues: " << std::endl;
   if (m_expressionDataValues != NULL)
   {
     m_expressionDataValues->Dump(fOut);
   }
   else
   {
-    fOut << "NULL" << endl;
+    fOut << "NULL" << std::endl;
   }
 
-  fOut << "==> END Dump a CExpressionValues Object at "<< this << endl;
+  fOut << "==> END Dump a CExpressionValues Object at "<< this << std::endl;
 
   
 }
@@ -1773,7 +1774,7 @@ CCompiler::CCompiler()
 //----------------------------------------
 
 void CCompiler::Compile
-		(const string& text,
+		(const std::string& text,
 		 CUIntArray* code,
 		 CObArray* constants,
 		 CStringArray* fieldNames,
@@ -1827,9 +1828,9 @@ void CCompiler::GetToken()
   uint32_t beginning;
   uint32_t current;
   bool atEnd;
-  string buffer;
+  std::string buffer;
   uint32_t index;
-  string localText; // Text beginning at m_current and a sentinnel at the end.
+  std::string localText; // Text beginning at m_current and a sentinnel at the end.
 				   // Not suitable for printing/messages
 
   atEnd		= false;
@@ -1962,7 +1963,7 @@ void CCompiler::GetToken()
     //-----------------------------
     case '"':
     //-----------------------------
-		  // String analysis. String double " like "ABC""DFE" means one inside the string: ABC"DEF
+		  // String analysis. String double " like "ABC""DFE" means one inside the std::string: ABC"DEF
 		  // No \" interpreted
 		  buffer	= "";
 		  do
@@ -1980,7 +1981,7 @@ void CCompiler::GetToken()
 
 		    if (localText[current] == m_charEnd)
         {
-		      throw CExpressionException("Unterminated string constant",
+		      throw CExpressionException("Unterminated std::string constant",
 					         BRATHL_SYNTAX_ERROR,
 					         m_text);
         }
@@ -2295,13 +2296,13 @@ void CCompiler::GetToken()
 
 //----------------------------------------
 
-string CCompiler::GetAlgoTokenName()
+std::string CCompiler::GetAlgoTokenName()
 {
   uint32_t beginning;
   uint32_t current;
   bool atEnd;
-  string buffer;
-  string localText; // Text beginning at m_current and a sentinnel at the end.
+  std::string buffer;
+  std::string localText; // Text beginning at m_current and a sentinnel at the end.
 				   // Not suitable for printing/messages
 
   atEnd		= false;
@@ -2335,7 +2336,7 @@ string CCompiler::GetAlgoTokenName()
     //-----------------------------
     case '"':
     //-----------------------------
-		  // String analysis. String double " like "ABC""DFE" means one inside the string: ABC"DEF
+		  // String analysis. String double " like "ABC""DFE" means one inside the std::string: ABC"DEF
 		  // No \" interpreted
 		  buffer	= "";
 		  do
@@ -2353,7 +2354,7 @@ string CCompiler::GetAlgoTokenName()
 
 		    if (localText[current] == m_charEnd)
         {
-		      throw CExpressionException("Unterminated string constant",
+		      throw CExpressionException("Unterminated std::string constant",
 					         BRATHL_SYNTAX_ERROR,
 					         m_text);
         }
@@ -2383,7 +2384,7 @@ string CCompiler::GetAlgoTokenName()
 
 //----------------------------------------
 
-// Remove an operator from the operator stack and add it to the code
+// Remove an operator from the operator std::stack and add it to the code
 // Compile time only
 
 void CCompiler::PopOp()
@@ -2411,7 +2412,7 @@ void CCompiler::PopAllOp()
 
 //----------------------------------------
 
-// Put an operator on the operator stack and remove the ones with less priority
+// Put an operator on the operator std::stack and remove the ones with less priority
 void CCompiler::PushOp(uint32_t	theOperator)
 {
   uint32_t     priority;
@@ -2420,7 +2421,7 @@ void CCompiler::PushOp(uint32_t	theOperator)
   priority	= theOperator & OP_VALUEMASK;
 
   if (theOperator != OP_LEFTPAR)
-  { // Nothing to remove from stack if left parenthesis
+  { // Nothing to remove from std::stack if left parenthesis
 
     // ASSERT: The following mecanism pops evrything until a left parenthesis
     //	       is found in case of a right parenthesis
@@ -2666,7 +2667,7 @@ void CCompiler::Element()
 		GetToken(); // Consummes function name
 
     // Get the algorithm name (first parameter)
-    string algoName = GetAlgoFunctionName();
+    std::string algoName = GetAlgoFunctionName();
 
     // Find the algorithm in the registry and create a new instance of the algorithm
     CBratAlgorithmBase* algo = CBratAlgorithmBase::GetNew(algoName.c_str());
@@ -2694,7 +2695,7 @@ void CCompiler::Element()
     //CTrace::Tracer("=====> Params for " + algoName);
     //params.Dump();
 
-    string algoExpression;
+    std::string algoExpression;
     algoExpression.append(FonctionsAlgoN[tokenIdSaved].Name);
     algoExpression.append(m_text.substr(algoBeginningParam, m_current - algoBeginningParam));
 
@@ -2754,7 +2755,7 @@ void CCompiler::Element()
 }
 //----------------------------------------
 
-string CCompiler::GetAlgoFunctionName()
+std::string CCompiler::GetAlgoFunctionName()
 {
   uint32_t currentSaved = m_current;
 
@@ -2766,7 +2767,7 @@ string CCompiler::GetAlgoFunctionName()
   }
 
 
-  string functionName = GetAlgoTokenName(); // Consummes parenthesis
+  std::string functionName = GetAlgoTokenName(); // Consummes parenthesis
 
   m_current = currentSaved;
 
@@ -2795,7 +2796,7 @@ void CCompiler::ScanFunctionParameters(uint32_t	NbParameters, CStringArray* para
 
   if (NbParameters > 0)
   {
-    // Compiles each expression as inside parenthesis to force the stack
+    // Compiles each expression as inside parenthesis to force the std::stack
     // to be emptied at the end of the expression
 
     PushOp(OP_LEFTPAR);
@@ -2823,7 +2824,7 @@ void CCompiler::ScanFunctionParameters(uint32_t	NbParameters, CStringArray* para
 
       GetToken(); // Consummes comma
       
-      // Compiles each expression as inside parenthesis to force the stack
+      // Compiles each expression as inside parenthesis to force the std::stack
       // to be emptied at the end of the expression
       PushOp(OP_LEFTPAR);
       Expression();
@@ -2857,7 +2858,7 @@ void CCompiler::IifInst()
 
 // Grammar: iifinst	::= 'iif' '(' Expression ',' Expression ',' Expression ')'
 
-// The whole iif is inside parenthesis in order to save the stack state
+// The whole iif is inside parenthesis in order to save the std::stack state
   PushOp(OP_LEFTPAR);
 
   if (m_token != TOKEN_LEFTPAR)
@@ -2870,7 +2871,7 @@ void CCompiler::IifInst()
   GetToken(); // Consummes parenthesis
 
   /*
-  ** Compile test (between parenthesis to empty the stack at the end)
+  ** Compile test (between parenthesis to empty the std::stack at the end)
   */
   PushOp(OP_LEFTPAR);
   Expression();
@@ -2890,7 +2891,7 @@ void CCompiler::IifInst()
   GetToken(); // Consummes the comma
 
   /*
-  ** Compile the true part (between parenthesis to empty the stack at the end)
+  ** Compile the true part (between parenthesis to empty the std::stack at the end)
   */
   PushOp(OP_LEFTPAR);
   Expression();
@@ -2908,7 +2909,7 @@ void CCompiler::IifInst()
   GetToken(); // Consummes the comma
 
   /*
-  ** Compile the false part (between parenthesis to empty the stack at the end)
+  ** Compile the false part (between parenthesis to empty the std::stack at the end)
   */
   PushOp(OP_LEFTPAR);
   Expression();
@@ -2937,7 +2938,7 @@ void CCompiler::Iif3Inst
 
 // Grammar: iif3inst	::= 'iif3' '(' Expression ',' Expression ',' Expression ',' Expression ')'
 
-// The whole iif3 is inside parenthesis in order to save the stack state
+// The whole iif3 is inside parenthesis in order to save the std::stack state
   PushOp(OP_LEFTPAR);
 
   if (m_token != TOKEN_LEFTPAR)
@@ -2950,7 +2951,7 @@ void CCompiler::Iif3Inst
   GetToken(); // Consummes parenthesis
 
   /*
-  ** Compile test (between parenthesis to empty the stack at the end)
+  ** Compile test (between parenthesis to empty the std::stack at the end)
   */
   PushOp(OP_LEFTPAR);
   Expression();
@@ -2969,7 +2970,7 @@ void CCompiler::Iif3Inst
   GetToken(); // Consummes the comma
 
   /*
-  ** Compile the true part (between parenthesis to empty the stack at the end)
+  ** Compile the true part (between parenthesis to empty the std::stack at the end)
   */
   PushOp(OP_LEFTPAR);
   Expression();
@@ -2987,7 +2988,7 @@ void CCompiler::Iif3Inst
   GetToken(); // Consummes the comma
 
   /*
-  ** Compile the false part (between parenthesis to empty the stack at the end)
+  ** Compile the false part (between parenthesis to empty the std::stack at the end)
   */
   PushOp(OP_LEFTPAR);
   Expression();
@@ -3005,7 +3006,7 @@ void CCompiler::Iif3Inst
   GetToken(); // Consummes the comma
 
   /*
-  ** Compile the default part (between parenthesis to empty the stack at the end)
+  ** Compile the default part (between parenthesis to empty the std::stack at the end)
   */
   PushOp(OP_LEFTPAR);
   Expression();
@@ -3038,7 +3039,7 @@ void CCompiler::Iif3Inst
 //------------------- CExpression class --------------------
 //-------------------------------------------------------------
 
-CExpression::CExpression(const string &StrExpression /*= "" */)
+CExpression::CExpression(const std::string &StrExpression /*= "" */)
 {
   SetExpression(StrExpression);
 }
@@ -3070,7 +3071,7 @@ const CExpression& CExpression::operator =(const CExpression& e)
   return *this;
 }
 //----------------------------------------
-const CExpression& CExpression::operator =(const string& str)
+const CExpression& CExpression::operator =(const std::string& str)
 {
   SetExpression(str); 
   return *this;
@@ -3082,7 +3083,7 @@ bool CExpression::operator==(CExpression& e)
   return CTools::Compare(this->AsString().c_str(), e.AsString().c_str());
 }
 //----------------------------------------
-bool CExpression::operator==(const string& text)
+bool CExpression::operator==(const std::string& text)
 {
   CExpression e = text;
   return (*this == e);
@@ -3090,7 +3091,7 @@ bool CExpression::operator==(const string& text)
 
 
 //----------------------------------------
-void CExpression::SetExpression(const string& strExpression)
+void CExpression::SetExpression(const std::string& strExpression)
 {
   CCompiler compiler;
 
@@ -3102,7 +3103,7 @@ void CExpression::SetExpression(const string& strExpression)
   
   DeleteDataStack();
 
-  string strExpressionTrimmed = CTools::StringTrim(strExpression);
+  std::string strExpressionTrimmed = CTools::StringTrim(strExpression);
 
   if (! strExpressionTrimmed.empty())
   {
@@ -3115,9 +3116,9 @@ void CExpression::SetExpression(const CExpression& e)
   SetExpression(e.AsString());
 }
 //----------------------------------------
-bool CExpression::SetExpression(const char* value, CExpression& expr, string& errorMsg)
+bool CExpression::SetExpression(const char* value, CExpression& expr, std::string& errorMsg)
 {
-  string str;
+  std::string str;
   if (value != NULL)
   {
     str = value;
@@ -3127,7 +3128,7 @@ bool CExpression::SetExpression(const char* value, CExpression& expr, string& er
   
 }
 //----------------------------------------
-bool CExpression::SetExpression(const string& value, CExpression& expr, string& errorMsg)
+bool CExpression::SetExpression(const std::string& value, CExpression& expr, std::string& errorMsg)
 {
   bool bOk = true;
 
@@ -3146,7 +3147,7 @@ bool CExpression::SetExpression(const string& value, CExpression& expr, string& 
   return bOk;
 }
 //----------------------------------------
-bool CExpression::IsConstant(const string& value) const
+bool CExpression::IsConstant(const std::string& value) const
 {
   bool bOk = false;
 
@@ -3419,7 +3420,7 @@ CExpressionValue CExpression::Execute(CProduct* product /* = NULL */)
 
         }
   
-        string algoName = algoNameExpr->GetString();
+        std::string algoName = algoNameExpr->GetString();
         if (algoName.empty())
         {
           throw CExpressionException(CTools::Format("ERROR while processing algorithm. In your expression below an algorithm name is empty (near position %d)", PC),
@@ -3436,7 +3437,7 @@ CExpressionValue CExpression::Execute(CProduct* product /* = NULL */)
         //type_union* parameterValues = new type_union[nbParametersValues + 1]; // nbParametersValues + END
         CVectorBratAlgorithmParam parameterValues;
 
-        string valueStr;
+        std::string valueStr;
         double valueDouble;
         double *valuesDoubleArray = NULL;
 
@@ -3500,7 +3501,7 @@ CExpressionValue CExpression::Execute(CProduct* product /* = NULL */)
         //algo->Dump();
 
         //Get parameters format.
-        //string paramFormats = algo->GetParamFormats();
+        //std::string paramFormats = algo->GetParamFormats();
 
         //m_dataStack.Push(new CExpressionValue(*FonctionsAlgoN[SubOPCode].ToCall, algoName.c_str(), paramFormats.c_str(), parameterValues)); 
         //--------------------------------------------------------
@@ -3644,7 +3645,7 @@ CExpressionValue CExpression::Execute(CProduct* product /* = NULL */)
 
   DeleteValues();	   // Field values have to be reloaded for another execution
 
-  //  assert(m_dataStack.size() == 1); // Since only the result should be left
+  //  std::assert(m_dataStack.size() == 1); // Since only the result should be left
 
   if (m_dataStack.size() != 1)
   {
@@ -3656,7 +3657,7 @@ CExpressionValue CExpression::Execute(CProduct* product /* = NULL */)
 }
 
 //----------------------------------------
-void CExpression::Dump(ostream	&Output /* = cerr */)
+void CExpression::Dump(std::ostream	&Output /* = std::cerr */)
 {
   uint32_t		PC;
   int32_t		OPCode;
@@ -3667,15 +3668,15 @@ void CExpression::Dump(ostream	&Output /* = cerr */)
     return;
   }
 
-  Output << "==> Dump a CExpression Object at "<< this << endl;
+  Output << "==> Dump a CExpression Object at "<< this << std::endl;
 
-  Output << endl << "Decompiled expression: " << AsString() << endl;
+  Output << std::endl << "Decompiled expression: " << AsString() << std::endl;
 
-  Output << "Expression code:" << endl;
+  Output << "Expression code:" << std::endl;
   
   if (m_code.size() == 0)
   {
-    Output << "\tEmpty expression" << endl;
+    Output << "\tEmpty expression" << std::endl;
   }
 
   for (PC=0; PC < m_code.size(); PC++)
@@ -3854,7 +3855,7 @@ void CExpression::Dump(ostream	&Output /* = cerr */)
 					     BRATHL_LOGIC_ERROR);
     }
 
-    Output << endl;
+    Output << std::endl;
   }
 
   CExpressionValue* exprValue = NULL;
@@ -3862,7 +3863,7 @@ void CExpression::Dump(ostream	&Output /* = cerr */)
 
   if (m_fieldNames.size() != 0)
   {
-    Output << endl << "Fields used:" << endl;
+    Output << std::endl << "Fields used:" << std::endl;
   }
 
   for (PC=0; PC<m_fieldNames.size(); ++PC)
@@ -3875,27 +3876,27 @@ void CExpression::Dump(ostream	&Output /* = cerr */)
       Output << " = " << exprValue->AsString();
     }
 
-    Output << endl;
+    Output << std::endl;
   }
 
   if (m_constants.size() != 0)
   {
-    Output << endl << "Constants used:" << endl;
+    Output << std::endl << "Constants used:" << std::endl;
   }
 
   for (PC=0; PC<m_constants.size(); ++PC)
   {
     exprValue = CExpressionValue::GetExpressionValue(m_constants[PC]);
-    Output << "\t" << exprValue->AsString() << endl;
+    Output << "\t" << exprValue->AsString() << std::endl;
   }
 
-  Output << "==> END Dump a CExpression Object at "<< this << endl;
+  Output << "==> END Dump a CExpression Object at "<< this << std::endl;
 
 
 }
 //----------------------------------------
 
-string CExpression::AsString() const
+std::string CExpression::AsString() const
 		
 {
   uint32_t		PC;
@@ -3904,7 +3905,7 @@ string CExpression::AsString() const
   //int32_t		NbOPCode;
   CStringArray	Stack;
   CUIntArray	PriorityStack;
-  string		Text;
+  std::string		Text;
 
 #define AsString_POP						\
 	Stack.pop_back();					\
@@ -4220,7 +4221,7 @@ CExpressionValue CExpression::GetResult()
 
 //----------------------------------------
 
-void CExpression::SetValue(string fieldName, CExpressionValue* value)
+void CExpression::SetValue(std::string fieldName, CExpressionValue* value)
 {
   if (m_fieldValues.size() != m_fieldNames.size())
   {
@@ -4246,7 +4247,7 @@ void CExpression::SetValue(string fieldName, CExpressionValue* value)
 }
 
 //----------------------------------------
-void CExpression::SetValue(string fieldName, CExpressionValue& value)
+void CExpression::SetValue(std::string fieldName, CExpressionValue& value)
 {
   if (m_fieldValues.size() != m_fieldNames.size())
   {
@@ -4272,7 +4273,7 @@ void CExpression::SetValue(string fieldName, CExpressionValue& value)
 }
 
 //----------------------------------------
-void CExpression::SetValue(string fieldName, double value)
+void CExpression::SetValue(std::string fieldName, double value)
 {
   if (m_fieldValues.size() != m_fieldNames.size())
   {
@@ -4333,11 +4334,11 @@ CExpression* CExpression::GetExpression(CBratObject* ob, bool withExcept /*= tru
 }
 
 //----------------------------------------
-bool CExpression::GetFieldNames(const string& stringExpr, CStringArray& fieldNames, string& errorMsg)
+bool CExpression::GetFieldNames(const std::string& stringExpr, CStringArray& fieldNames, std::string& errorMsg)
 {
     CExpression expr;
     
-    string out;
+    std::string out;
     CTools::ReplaceAliases(stringExpr, out);
 
     try

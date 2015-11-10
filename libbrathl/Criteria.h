@@ -23,7 +23,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h"
+#include <string>
 
 #include "BratObject.h"
 #include "List.h"
@@ -79,13 +79,13 @@ public:
      */
   virtual bool IsDefaultValue() = 0;
 
-  virtual string GetAsText(const string& delimiter) = 0;
+  virtual std::string GetAsText(const std::string& delimiter) = 0;
  
   static CCriteria* GetCriteria(CBratObject* ob, bool withExcept = true);
   static void Adjust(CIntArray& array);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 public:
 

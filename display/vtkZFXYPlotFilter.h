@@ -38,7 +38,7 @@ class VTK_EXPORT vtkZFXYPlotFilter : public vtkPolyDataSource
 {
 public:
   vtkTypeMacro(vtkZFXYPlotFilter,vtkPolyDataSource);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(std::ostream& os, vtkIndent indent);
   static vtkZFXYPlotFilter *New();
 
   virtual void SetValues(vtkDoubleArray*);

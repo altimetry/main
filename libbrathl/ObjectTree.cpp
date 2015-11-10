@@ -18,7 +18,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "Stl.h"
+#include <string>
 
 #include "Exception.h"
 #include "ObjectTree.h"
@@ -48,7 +48,7 @@ CObjectTreeNode::CObjectTreeNode(CObjectTree* tr) : m_parent(NULL)
 }
 	
 //----------------------------------------
-CObjectTreeNode::CObjectTreeNode(CObjectTree* tr, const string& key, CBratObject* x)
+CObjectTreeNode::CObjectTreeNode(CObjectTree* tr, const std::string& key, CBratObject* x)
 {
   m_key = key;
   m_data = x;
@@ -67,7 +67,7 @@ CObjectTreeNode::~CObjectTreeNode()
   }
 }
 //----------------------------------------
-void CObjectTreeNode::Delete(const string& key)
+void CObjectTreeNode::Delete(const std::string& key)
 {
   vectorTreeNode::iterator pchild;
   mapTreeNode::iterator itrmap;
@@ -151,7 +151,7 @@ CObjectTree::CObjectTree()
 
 //----------------------------------------
 
-CObjectTree::CObjectTree(const string& nm, CBratObject* x)
+CObjectTree::CObjectTree(const std::string& nm, CBratObject* x)
 {
   m_pTreeroot = NULL;
   m_WalkPivot = NULL;
@@ -197,7 +197,7 @@ void CObjectTree::DeleteTree()
 
 //----------------------------------------
 
-void CObjectTree::SetRoot(const string& nm, CBratObject* x, bool goCurrent)
+void CObjectTree::SetRoot(const std::string& nm, CBratObject* x, bool goCurrent)
 {
   DeleteTree();
 
@@ -220,7 +220,7 @@ void CObjectTree::SetRoot(const string& nm, CBratObject* x, bool goCurrent)
 
 //----------------------------------------
 
-CObjectTreeNode* CObjectTree::FindParentNode(const string& key) 
+CObjectTreeNode* CObjectTree::FindParentNode(const std::string& key) 
 { 
   CObjectTree::iterator it;
   
@@ -242,7 +242,7 @@ CObjectTreeNode* CObjectTree::FindParentNode(const string& key)
 }
 //----------------------------------------
 
-CBratObject* CObjectTree::FindParentObject(const string& key) 
+CBratObject* CObjectTree::FindParentObject(const std::string& key) 
 { 
   CObjectTreeNode *treeNodeParent = FindParentNode(key) ;
   
@@ -257,7 +257,7 @@ CBratObject* CObjectTree::FindParentObject(const string& key)
 
 //----------------------------------------
 
-CObjectTreeNode* CObjectTree::FindNode(const string& key) 
+CObjectTreeNode* CObjectTree::FindNode(const std::string& key) 
 { 
   CObjectTree::iterator it;
   
@@ -274,7 +274,7 @@ CObjectTreeNode* CObjectTree::FindNode(const string& key)
 
 //----------------------------------------
 
-CBratObject* CObjectTree::FindObject(const string& key) 
+CBratObject* CObjectTree::FindObject(const std::string& key) 
 { 
   CObjectTreeNode *treeNode = FindNode(key) ;
   
@@ -290,7 +290,7 @@ CBratObject* CObjectTree::FindObject(const string& key)
 
 //----------------------------------------
 
-CObjectTreeIterator CObjectTree::AddChild (CObjectTreeNode* parent, const string& nm, CBratObject* x, bool goCurrent)
+CObjectTreeIterator CObjectTree::AddChild (CObjectTreeNode* parent, const std::string& nm, CBratObject* x, bool goCurrent)
 {
 
   if (parent == NULL)
@@ -312,7 +312,7 @@ CObjectTreeIterator CObjectTree::AddChild (CObjectTreeNode* parent, const string
     m_WalkParent = parent;
   }
 
-  pair<mapTreeNode::iterator, bool> pt = m_nodemap.insert(mapTreeNode::value_type(nm, pNew));
+  std::pair<mapTreeNode::iterator, bool> pt = m_nodemap.insert(mapTreeNode::value_type(nm, pNew));
 
   CObjectTreeIterator _tmp;
   _tmp.m_Node = pt.first;
@@ -322,7 +322,7 @@ CObjectTreeIterator CObjectTree::AddChild (CObjectTreeNode* parent, const string
 }
 //----------------------------------------
 
-CObjectTreeIterator CObjectTree::AddChild (CObjectTreeIterator& parent, const string& nm, CBratObject* x, bool goCurrent)
+CObjectTreeIterator CObjectTree::AddChild (CObjectTreeIterator& parent, const std::string& nm, CBratObject* x, bool goCurrent)
 {
   CObjectTreeNode* pNew;
 
@@ -338,7 +338,7 @@ CObjectTreeIterator CObjectTree::AddChild (CObjectTreeIterator& parent, const st
     m_WalkParent = parent.m_Node->second;
   }
 
-  pair<mapTreeNode::iterator, bool> pt = m_nodemap.insert(mapTreeNode::value_type(nm, pNew));
+  std::pair<mapTreeNode::iterator, bool> pt = m_nodemap.insert(mapTreeNode::value_type(nm, pNew));
 
   CObjectTreeIterator _tmp;
   _tmp.m_Node = pt.first;
@@ -346,7 +346,7 @@ CObjectTreeIterator CObjectTree::AddChild (CObjectTreeIterator& parent, const st
 }
 
 //----------------------------------------
-CObjectTreeIterator CObjectTree::AddChild (const string& nm, CBratObject* x, bool goCurrent) 
+CObjectTreeIterator CObjectTree::AddChild (const std::string& nm, CBratObject* x, bool goCurrent) 
 {
   CObjectTreeNode* pNew;
 
@@ -362,7 +362,7 @@ CObjectTreeIterator CObjectTree::AddChild (const string& nm, CBratObject* x, boo
     m_WalkParent = NULL;
   }
 
-  pair<mapTreeNode::iterator, bool> pt = m_nodemap.insert(mapTreeNode::value_type(nm, pNew));
+  std::pair<mapTreeNode::iterator, bool> pt = m_nodemap.insert(mapTreeNode::value_type(nm, pNew));
 
   CObjectTreeIterator _tmp;
   _tmp.m_Node = pt.first;
@@ -563,7 +563,7 @@ bool CObjectTree::GoLevelUp(bool firstChild /*= true*/)
 
 //----------------------------------------
 
-void CObjectTree::GoToParent(const string& key) 
+void CObjectTree::GoToParent(const std::string& key) 
 {
   Go( FindParentNode(key) );
 
@@ -596,7 +596,7 @@ void CObjectTree::Go(CObjectTreeNode* child)
 }
 
 //----------------------------------------
-void CObjectTree::Dump(ostream& fOut /* = cerr */)
+void CObjectTree::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -604,11 +604,11 @@ void CObjectTree::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CObjectTree Object at "<< this << endl;
+  fOut << "==> Dump a CObjectTree Object at "<< this << std::endl;
 
   if (m_pTreeroot == NULL)
   {
-    fOut << "==> END Dump a CObjectTree Object at "<< this << endl;
+    fOut << "==> END Dump a CObjectTree Object at "<< this << std::endl;
     return;
   }
 
@@ -616,17 +616,17 @@ void CObjectTree::Dump(ostream& fOut /* = cerr */)
 
   do
   {
-    string indent(this->m_WalkCurrent->GetLevel(), '-');
+    std::string indent(this->m_WalkCurrent->GetLevel(), '-');
 
-    fOut << indent << this->m_WalkCurrent->GetKey()<< endl;
+    fOut << indent << this->m_WalkCurrent->GetKey()<< std::endl;
     this->SubTreeGetData()->Dump(fOut);
 
   }while (this->SubTreeWalkDown());
 
   
-  fOut << "==> END Dump a CObjectTree Object at "<< this << endl;
+  fOut << "==> END Dump a CObjectTree Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

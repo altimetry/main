@@ -41,7 +41,7 @@ public:
 
   bool CheckCommandLineOptions(int argc, char	**argv);
 
-  virtual int32_t Execute(string& msg);
+  virtual int32_t Execute(std::string& msg);
 
   static bool LoessFilterGrid(CMatrix& matrix, CMatrix *result,
 		                                   bool circularX, int32_t waveLengthX,
@@ -77,7 +77,7 @@ protected:
   virtual void AddFieldIndexes(CFieldIndex* fieldIndex, CNetCDFVarDef* varDef);
   
 
-  virtual void GetParameters(const string &commandFileName);
+  virtual void GetParameters(const std::string &commandFileName);
   virtual void GetParameters();
 
   //virtual void CheckNetCdfFields(CStringArray& fields);
@@ -88,7 +88,7 @@ protected:
 
   void AddComplementDimensionsFromNetCdf();
 
-  virtual bool IsOutputAxis(const string& name) { return (name == m_xName) || (name == m_yName) ; };
+  virtual bool IsOutputAxis(const std::string& name) { return (name == m_xName) || (name == m_yName) ; };
 
 
   void InitGrids();
@@ -123,7 +123,7 @@ protected:
   virtual void OnAddDimensionsFromNetCdf();
 
 
-  bool CheckValuesSimilar(uint32_t indexExpr, double* dataValues, uint32_t nbValues, uint32_t xPos, uint32_t yPos, string& msg);
+  bool CheckValuesSimilar(uint32_t indexExpr, double* dataValues, uint32_t nbValues, uint32_t xPos, uint32_t yPos, std::string& msg);
   //bool CheckValuesSimilar(uint32_t indexExpr);
 
   /*
@@ -162,7 +162,7 @@ protected:
   int32_t	m_xLoessCutoff;
 
 
-  string m_yComment;
+  std::string m_yComment;
   double m_yMin;
   double m_yMax;
   uint32_t m_yCount;
@@ -173,8 +173,8 @@ protected:
   CBratProcess::PositionMode m_positionMode;
   CBratProcess::OutsideMode m_outsideMode;
 
-  vector<bool> m_smooth;
-  vector<bool> m_extrapolate;
+  std::vector<bool> m_smooth;
+  std::vector<bool> m_extrapolate;
 
   uint32_t m_nbDataByGrid;
   

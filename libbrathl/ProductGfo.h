@@ -48,7 +48,7 @@ public:
   
   /** Creates new CProductGfo object
     \param fileName [in] : file name to be connected */
-  CProductGfo(const string& fileName);
+  CProductGfo(const std::string& fileName);
   
   /** Creates new CProductGfo object
     \param fileNameList [in] : list of file to be connected */
@@ -60,7 +60,7 @@ public:
   virtual void InitCriteriaInfo();
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 
 protected:
@@ -87,8 +87,8 @@ public:
     
 
 protected:  
-  string m_timeStampSecondFieldName;
-  string m_timeStampMicrosecondFieldName;
+  std::string m_timeStampSecondFieldName;
+  std::string m_timeStampMicrosecondFieldName;
 		
 
 private:

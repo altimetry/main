@@ -20,9 +20,9 @@
 #ifndef _ExternalFilesJason2_h_
 #define _ExternalFilesJason2_h_
 
-#include <netcdf.h>
+#include "netcdf.h"
 #include "BratObject.h"
-#include "Stl.h"
+#include <string>
 #include "Mission.h"
 #include "ExternalFilesNetCDF.h"
 
@@ -53,18 +53,18 @@ class CExternalFilesJason2 : public CExternalFilesNetCDFCF
 {
 public:
   CExternalFilesJason2
-		(const string		&name = "");
+		(const std::string		&name = "");
 
   virtual ~CExternalFilesJason2() { };
 
-  static string TypeOf() { return "unknown"; };
+  static std::string TypeOf() { return "unknown"; };
 
  
 protected:
 
 
 public:
-    static const string m_missionName;
+    static const std::string m_missionName;
 
 protected:
 
@@ -79,12 +79,12 @@ class CExternalFilesJason2SSHA : public CExternalFilesJason2
 {
 public:
   CExternalFilesJason2SSHA
-		(const string		&Name = "");
+		(const std::string		&Name = "");
 
   virtual ~CExternalFilesJason2SSHA() { };
 
-  static string TypeOf() { return CTools::Format("%s/%s", m_missionName.c_str(), SSHA.c_str()); };
-  virtual string GetType() { return TypeOf(); };
+  static std::string TypeOf() { return CTools::Format("%s/%s", m_missionName.c_str(), SSHA.c_str()); };
+  virtual std::string GetType() { return TypeOf(); };
 
 protected:
 
@@ -102,7 +102,7 @@ class CExternalFilesJason2SSHAOGDR : public CExternalFilesJason2SSHA
 {
 public:
   CExternalFilesJason2SSHAOGDR
-		(const string		&name = "")
+		(const std::string		&name = "")
 	: CExternalFilesJason2SSHA(name)
   {
   }
@@ -110,8 +110,8 @@ public:
   virtual ~CExternalFilesJason2SSHAOGDR() { };
 
 
-  static string TypeOf() { return CTools::Format("%s/%s/OGDR", m_missionName.c_str(), SSHA.c_str()); };
-  virtual string GetType() { return TypeOf(); };
+  static std::string TypeOf() { return CTools::Format("%s/%s/OGDR", m_missionName.c_str(), SSHA.c_str()); };
+  virtual std::string GetType() { return TypeOf(); };
 protected:
 
 };
@@ -123,15 +123,15 @@ class CExternalFilesJason2SSHAIGDR : public CExternalFilesJason2SSHA
 {
 public:
   CExternalFilesJason2SSHAIGDR
-		(const string		&name = "")
+		(const std::string		&name = "")
 	: CExternalFilesJason2SSHA(name)
   {
   }
 
   virtual ~CExternalFilesJason2SSHAIGDR() { };
 
-  static string TypeOf() { return CTools::Format("%s/%s/IGDR", m_missionName.c_str(), SSHA.c_str());};
-  virtual string GetType() { return TypeOf(); };
+  static std::string TypeOf() { return CTools::Format("%s/%s/IGDR", m_missionName.c_str(), SSHA.c_str());};
+  virtual std::string GetType() { return TypeOf(); };
 };
 //-------------------------------------------------------------
 //------------------- CExternalFilesJason2SSHAGDR class --------------------
@@ -141,15 +141,15 @@ class CExternalFilesJason2SSHAGDR : public CExternalFilesJason2SSHA
 {
 public:
   CExternalFilesJason2SSHAGDR
-		(const string		&name = "")
+		(const std::string		&name = "")
 	: CExternalFilesJason2SSHA(name)
   {
   }
 
   virtual ~CExternalFilesJason2SSHAGDR() { };
 
-  static string TypeOf() { return CTools::Format("%s/%s/GDR", m_missionName.c_str(), SSHA.c_str()); };
-  virtual string GetType() { return TypeOf(); };
+  static std::string TypeOf() { return CTools::Format("%s/%s/GDR", m_missionName.c_str(), SSHA.c_str()); };
+  virtual std::string GetType() { return TypeOf(); };
 };
 
 
@@ -162,12 +162,12 @@ public:
 class CExternalFilesJason2GDR : public CExternalFilesJason2
 {
 public:
-  CExternalFilesJason2GDR (const string &name = "");
+  CExternalFilesJason2GDR (const std::string &name = "");
 
   virtual ~CExternalFilesJason2GDR() { };
 
-  static string TypeOf() { return CTools::Format("%s/%s", m_missionName.c_str(), GDR.c_str());};
-  virtual string GetType() { return TypeOf(); };
+  static std::string TypeOf() { return CTools::Format("%s/%s", m_missionName.c_str(), GDR.c_str());};
+  virtual std::string GetType() { return TypeOf(); };
 
 
 protected:
@@ -183,15 +183,15 @@ class CExternalFilesJason2GDROGDR : public CExternalFilesJason2GDR
 {
 public:
   CExternalFilesJason2GDROGDR
-		(const string		&name = "")
+		(const std::string		&name = "")
 	: CExternalFilesJason2GDR(name)
   {
   }
 
   virtual ~CExternalFilesJason2GDROGDR() { };
 
-  static string TypeOf() { return CTools::Format("%s/%s/OGDR", m_missionName.c_str(), GDR.c_str()); };
-  virtual string GetType() { return TypeOf(); };
+  static std::string TypeOf() { return CTools::Format("%s/%s/OGDR", m_missionName.c_str(), GDR.c_str()); };
+  virtual std::string GetType() { return TypeOf(); };
 };
 
 //-------------------------------------------------------------
@@ -202,15 +202,15 @@ class CExternalFilesJason2GDRIGDR : public CExternalFilesJason2GDR
 {
 public:
   CExternalFilesJason2GDRIGDR
-		(const string		&name = "")
+		(const std::string		&name = "")
 	: CExternalFilesJason2GDR(name)
   {
   }
 
   virtual ~CExternalFilesJason2GDRIGDR() { };
 
-  static string TypeOf() { return CTools::Format("%s/%s/IGDR", m_missionName.c_str(), GDR.c_str()); };
-  virtual string GetType() { return TypeOf(); };
+  static std::string TypeOf() { return CTools::Format("%s/%s/IGDR", m_missionName.c_str(), GDR.c_str()); };
+  virtual std::string GetType() { return TypeOf(); };
 };
 
 //-------------------------------------------------------------
@@ -221,15 +221,15 @@ class CExternalFilesJason2GDRGDR : public CExternalFilesJason2GDR
 {
 public:
   CExternalFilesJason2GDRGDR
-		(const string		&name = "")
+		(const std::string		&name = "")
 	: CExternalFilesJason2GDR(name)
   {
   }
 
   virtual ~CExternalFilesJason2GDRGDR() { };
 
-  static string TypeOf() { return CTools::Format("%s/%s/GDR", m_missionName.c_str(), GDR.c_str()); };
-  virtual string GetType() { return TypeOf(); };
+  static std::string TypeOf() { return CTools::Format("%s/%s/GDR", m_missionName.c_str(), GDR.c_str()); };
+  virtual std::string GetType() { return TypeOf(); };
 };
 
 
@@ -246,12 +246,12 @@ public:
 class CExternalFilesJason2SGDR : public CExternalFilesJason2
 {
 public:
-  CExternalFilesJason2SGDR (const string &name = "");
+  CExternalFilesJason2SGDR (const std::string &name = "");
 
   virtual ~CExternalFilesJason2SGDR() { };
 
-  static string TypeOf() { return CTools::Format("%s/%s", m_missionName.c_str(), SGDR.c_str()); };
-  virtual string GetType() { return TypeOf(); };
+  static std::string TypeOf() { return CTools::Format("%s/%s", m_missionName.c_str(), SGDR.c_str()); };
+  virtual std::string GetType() { return TypeOf(); };
   
 
 protected:
@@ -269,14 +269,14 @@ class CExternalFilesJason2SGDRIGDR : public CExternalFilesJason2SGDR
 {
 public:
   CExternalFilesJason2SGDRIGDR
-		(const string		&name = "")
+		(const std::string		&name = "")
 	: CExternalFilesJason2SGDR(name)
   {
   }
   virtual ~CExternalFilesJason2SGDRIGDR() { };
 
-  static string TypeOf() { return CTools::Format("%s/%s/IGDR", m_missionName.c_str(), SGDR.c_str()); };
-  virtual string GetType() { return TypeOf(); };
+  static std::string TypeOf() { return CTools::Format("%s/%s/IGDR", m_missionName.c_str(), SGDR.c_str()); };
+  virtual std::string GetType() { return TypeOf(); };
 };
 
 //-------------------------------------------------------------
@@ -287,14 +287,14 @@ class CExternalFilesJason2SGDRGDR : public CExternalFilesJason2SGDR
 {
 public:
   CExternalFilesJason2SGDRGDR
-		(const string		&name = "")
+		(const std::string		&name = "")
 	: CExternalFilesJason2SGDR(name)
   {
   }
   virtual ~CExternalFilesJason2SGDRGDR() { };
 
-  static string TypeOf() { return CTools::Format("%s/%s/GDR", m_missionName.c_str(), SGDR.c_str()); };
-  virtual string GetType() { return TypeOf(); };
+  static std::string TypeOf() { return CTools::Format("%s/%s/GDR", m_missionName.c_str(), SGDR.c_str()); };
+  virtual std::string GetType() { return TypeOf(); };
 };
 
 

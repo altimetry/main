@@ -50,7 +50,7 @@ using namespace brathl;
 
 #include "vtkCallbackCommand.h"
 #include "vtkLookupTable.h"
-#include "vtkGeoMapFilter.h"
+#include "PlotData/vtkGeoMapFilter.h"
 
 #include "WPlotPropertyPanel.h"
 #include "WorldPlotPanel.h"
@@ -81,19 +81,15 @@ CWorldPlotPanel::CWorldPlotPanel()
 
 //----------------------------------------
 CWorldPlotPanel::CWorldPlotPanel( wxWindow *parent, wxWindowID id, CWorldPlotProperty* plotProperty,
-                                  const wxPoint &position, const wxSize& size, long style )
-                        //: wxPanel( parent, id, position, size, style ), --> called in Create
+	const wxPoint &position, const wxSize& size, long style )
+	//: wxPanel( parent, id, position, size, style ), --> called in Create
 {
-
-  Init();
-
-  bool bOk = Create(parent, id, plotProperty, position, size, style);
-  if (bOk == false)
-  {
-    CException e("ERROR in CWorldPlotPanel ctor - Unenable to create wxWidgets (Create method returns false)", BRATHL_SYSTEM_ERROR);
-    throw(e);
-  }
-
+	Init();
+	if ( !Create( parent, id, plotProperty, position, size, style ) )
+	{
+		CException e( "ERROR in CWorldPlotPanel ctor - Unable to create wxWidgets (Create method returns false)", BRATHL_SYSTEM_ERROR );
+		throw( e );
+	}
 }
 //----------------------------------------
 
@@ -175,65 +171,90 @@ void CWorldPlotPanel::Init()
 
 //----------------------------------------
 bool CWorldPlotPanel::Create( wxWindow *parent, wxWindowID id, CWorldPlotProperty* plotProperty,
-                              const wxPoint &position, const wxSize& size, long style )
+	const wxPoint &position, const wxSize& size, long style )
 {
-  bool bOk = true;
+	if ( plotProperty != NULL )
+		m_plotProperty = *plotProperty;
 
-  if (plotProperty != NULL)
-  {
-    m_plotProperty = *plotProperty;
-  }
+	wxPanel::Create( parent, id, position, size, style );
 
-  wxPanel::Create( parent, id, position, size, style );
+	ID_WPLOTPANEL_VTK_INTERACTOR = ::wxNewId();
+	ID_WPLOTPANEL_SPLIT = ::wxNewId();
 
-  bOk = CreateControls();
-  if (bOk == false)
-  {
-    return false;
-  }
-  CreateLayout();
-  InstallEventListeners();
-  return true;
+	m_splitPanel = new wxSplitterWindow( this, ID_WPLOTPANEL_SPLIT, wxDefaultPosition, wxDefaultSize, wxSP_LIVE_UPDATE );
+	m_splitPanel->SetMinimumPaneSize( 50 );
 
+	m_plotRenderer = new CWorldPlotRenderer( this, m_plotProperty.m_coastResolution );
+	m_plotRenderer->GetVtkRenderer()->InteractiveOn();
+
+
+	m_style2D = vtkInteractorStyleWPlot::New();
+	m_style2D->SetTransformCollection( m_plotRenderer->GetVtkTransformCollection() );
+
+	// KAVOK: a more flexible interactor, from VISAN
+	m_style3D = vtkInteractorStyle3DWPlot::New();
+
+	//femm: This is a window as well as an inter-actor
+	m_vtkWidget = new wxVTKRenderWindowInteractor( m_splitPanel, ID_WPLOTPANEL_VTK_INTERACTOR );
+	m_vtkWidget->SetRenderWhenDisabled( 0 );
+	m_vtkWidget->Disable();
+	m_vtkWidget->UseCaptureMouseOn();
+	m_vtkWidget->GetRenderWindow()->AddRenderer( m_plotRenderer->GetVtkRenderer() );
+	m_vtkWidget->SetInteractorStyle( m_style2D );
+
+	m_plotRenderer->SetVtkWidget( m_vtkWidget );
+
+	CreatePropertyPanel();
+
+	m_splitPanel->Initialize( m_vtkWidget );
+
+	m_animationToolbar = new CAnimationToolbar( this );
+	//if ( !CreateControls() )
+	//	return false;
+
+	CreateLayout();
+	InstallEventListeners();
+
+	return true;
 }
 
 //----------------------------------------
-bool CWorldPlotPanel::CreateControls()
-{
-
-  ID_WPLOTPANEL_VTK_INTERACTOR = ::wxNewId();
-  ID_WPLOTPANEL_SPLIT = ::wxNewId();
-
-  m_splitPanel = new wxSplitterWindow(this, ID_WPLOTPANEL_SPLIT, wxDefaultPosition, wxDefaultSize, wxSP_LIVE_UPDATE);
-  m_splitPanel->SetMinimumPaneSize(50);
-
-  m_plotRenderer = new CWorldPlotRenderer(this, m_plotProperty.m_coastResolution);
-  m_plotRenderer->GetVtkRenderer()->InteractiveOn();
-
-
-  m_style2D = vtkInteractorStyleWPlot::New();
-  m_style2D->SetTransformCollection(m_plotRenderer->GetVtkTransformCollection());
-
-  // KAVOK: a more felixible interactor, from VISAN
-  m_style3D = vtkInteractorStyle3DWPlot::New();
-
-  m_vtkWidget = new wxVTKRenderWindowInteractor(m_splitPanel, ID_WPLOTPANEL_VTK_INTERACTOR);
-  m_vtkWidget->SetRenderWhenDisabled(0);
-  m_vtkWidget->Disable();
-  m_vtkWidget->UseCaptureMouseOn();
-  m_vtkWidget->GetRenderWindow()->AddRenderer(m_plotRenderer->GetVtkRenderer());
-  m_vtkWidget->SetInteractorStyle(m_style2D);
-
-  m_plotRenderer->SetVtkWidget(m_vtkWidget);
-
-  CreatePropertyPanel();
-
-  m_splitPanel->Initialize(m_vtkWidget);
-
-  m_animationToolbar = new CAnimationToolbar(this);
-
-  return true;
-}
+//bool CWorldPlotPanel::CreateControls()
+//{
+//
+//  ID_WPLOTPANEL_VTK_INTERACTOR = ::wxNewId();
+//  ID_WPLOTPANEL_SPLIT = ::wxNewId();
+//
+//  m_splitPanel = new wxSplitterWindow(this, ID_WPLOTPANEL_SPLIT, wxDefaultPosition, wxDefaultSize, wxSP_LIVE_UPDATE);
+//  m_splitPanel->SetMinimumPaneSize(50);
+//
+//  m_plotRenderer = new CWorldPlotRenderer(this, m_plotProperty.m_coastResolution);
+//  m_plotRenderer->GetVtkRenderer()->InteractiveOn();
+//
+//
+//  m_style2D = vtkInteractorStyleWPlot::New();
+//  m_style2D->SetTransformCollection(m_plotRenderer->GetVtkTransformCollection());
+//
+//  // KAVOK: a more felixible interactor, from VISAN
+//  m_style3D = vtkInteractorStyle3DWPlot::New();
+//
+//  m_vtkWidget = new wxVTKRenderWindowInteractor(m_splitPanel, ID_WPLOTPANEL_VTK_INTERACTOR);
+//  m_vtkWidget->SetRenderWhenDisabled(0);
+//  m_vtkWidget->Disable();
+//  m_vtkWidget->UseCaptureMouseOn();
+//  m_vtkWidget->GetRenderWindow()->AddRenderer(m_plotRenderer->GetVtkRenderer());
+//  m_vtkWidget->SetInteractorStyle(m_style2D);
+//
+//  m_plotRenderer->SetVtkWidget(m_vtkWidget);
+//
+//  CreatePropertyPanel();
+//
+//  m_splitPanel->Initialize(m_vtkWidget);
+//
+//  m_animationToolbar = new CAnimationToolbar(this);
+//
+//  return true;
+//}
 
 //----------------------------------------
 void CWorldPlotPanel::CreatePropertyPanel()
@@ -244,7 +265,7 @@ void CWorldPlotPanel::CreatePropertyPanel()
   // We create a parent wxWindow for the notebook to be able to give a
   // proper background colour for the area behind the tabs
   m_propertyPanel = new wxWindow(m_splitPanel, ID_WPLOTPANEL_PROPPANEL);
-  // We must set the background 'explicitly' to have it stick
+  // We must std::set the background 'explicitly' to have it stick
   ////m_propertyPanel->SetBackgroundColour(m_propertyPanel->GetBackgroundColour());
   m_propertyNotebook = new wxNotebook(m_propertyPanel, ID_WPLOTPANEL_NOTEBOOK);
 
@@ -421,6 +442,7 @@ void CWorldPlotPanel::AddData(CWorldPlotData* pdata, wxProgressDialog* dlg)
   }
 
   m_animationToolbar->SetMaxFrame(nFrames);
+  m_animationToolbar->SetBackgroundColour( wxColor( 0, 0, 0 ) );
 
   if (dlg != NULL)
   {
@@ -447,7 +469,7 @@ bool CWorldPlotPanel::IsNumberOfMapsEquals(int32_t* numberOfMaps)
 }
 
 //----------------------------------------
-void CWorldPlotPanel::SetProjectionByName(const string& projName)
+void CWorldPlotPanel::SetProjectionByName(const std::string& projName)
 {
   int32_t nprojection = CMapProjection::GetInstance()->NameToId(projName);
 
@@ -1046,7 +1068,7 @@ void CWorldPlotPanel::OnSetPreferredRatio2(wxSizeEvent *event)
 
 }
 //----------------------------------------
-void CWorldPlotPanel::PrintPoints(ostream& os)
+void CWorldPlotPanel::PrintPoints(std::ostream& os)
 {
 
   vtkPolyData *outputSource = (vtkPolyData *) m_plotRenderer->GetGeoGrid()->GetVtkGeoGridSource()->GetOutput();
@@ -1065,7 +1087,7 @@ void CWorldPlotPanel::PrintPoints(ostream& os)
   vtkFloatingPointType* xyz;
   vtkIdType p;
 
-  os <<  "Point dump" << endl;
+  os <<  "Point dump" << std::endl;
   for (int j = 0 ; j < outputSource->GetNumberOfPoints() ; j++)
   {
     xyz = outputSource->GetPoint(j);
@@ -1075,7 +1097,7 @@ void CWorldPlotPanel::PrintPoints(ostream& os)
       << " y: " << xyz[1]
       << " z: " << xyz[2]
       << " find point : " << p
-      << endl;
+      << std::endl;
 
     xyz = outputFilter->GetPoint(j);
     p = outputFilter->FindPoint(xyz);
@@ -1084,7 +1106,7 @@ void CWorldPlotPanel::PrintPoints(ostream& os)
       << " y: " << xyz[1]
       << " z: " << xyz[2]
       << " find point : " << p
-      << endl;
+      << std::endl;
 
     xyz = outputTransform->GetPoint(j);
     p = outputTransform->FindPoint(xyz);
@@ -1093,21 +1115,21 @@ void CWorldPlotPanel::PrintPoints(ostream& os)
       << " y: " << xyz[1]
       << " z: " << xyz[2]
       << " find point : " << p
-      << endl;
+      << std::endl;
 
     c->SetValue(xyz);
     ivalue = c->GetComputedDisplayValue (m_plotRenderer->GetVtkRenderer());
     os << whichCoord << "(" << xyz[0] << ", " << xyz[1] << ", " << xyz[2]
-     << ") -> Display(" << ivalue[0] << ", " << ivalue[1] << ")" << endl;
+     << ") -> Display(" << ivalue[0] << ", " << ivalue[1] << ")" << std::endl;
     ivalue = c->GetComputedLocalDisplayValue (m_plotRenderer->GetVtkRenderer());
     os << whichCoord << "(" << xyz[0] << ", " << xyz[1] << ", " << xyz[2]
-     << ") -> LocalDisplay(" << ivalue[0] << ", " << ivalue[1] << ")" << endl;
+     << ") -> LocalDisplay(" << ivalue[0] << ", " << ivalue[1] << ")" << std::endl;
     ivalue = c->GetComputedViewportValue (m_plotRenderer->GetVtkRenderer());
     os << whichCoord << "(" << xyz[0] << ", " << xyz[1] << ", " << xyz[2]
-     << ") -> ViewPort(" << ivalue[0] << ", " << ivalue[1] << ")" << endl;
+     << ") -> ViewPort(" << ivalue[0] << ", " << ivalue[1] << ")" << std::endl;
     value = c->GetComputedWorldValue (m_plotRenderer->GetVtkRenderer());
     os << whichCoord << "(" << xyz[0] << ", " << xyz[1] << ", " << xyz[2]
-     << ") -> World(" << value[0] << ", " << value[1] << ", " << value[2] << ")" << endl;
+     << ") -> World(" << value[0] << ", " << value[1] << ", " << value[2] << ")" << std::endl;
 
   }
 }
@@ -1925,9 +1947,9 @@ bool operator<(LabelPoint l1, LabelPoint l2)
     return d1<d2;
 }
 
-set<LabelPoint>::iterator find_label(set<LabelPoint> &labels, GeoGridLineInfo gInfo)
+std::set<LabelPoint>::iterator find_label(std::set<LabelPoint> &labels, GeoGridLineInfo gInfo)
 {
-    set<LabelPoint>::iterator it;
+    std::set<LabelPoint>::iterator it;
     for ( it = labels.begin(); it != labels.end(); it++ )
     {
         LabelPoint il = *it;
@@ -1938,12 +1960,12 @@ set<LabelPoint>::iterator find_label(set<LabelPoint> &labels, GeoGridLineInfo gI
     return it;
 }
 
-set<LabelPoint>::iterator find_near(set<LabelPoint> &labels, LabelPoint label, double distance)
+std::set<LabelPoint>::iterator find_near(std::set<LabelPoint> &labels, LabelPoint label, double distance)
 {
     double dx, dy, dz;
     double d;
 
-    set<LabelPoint>::iterator it;
+    std::set<LabelPoint>::iterator it;
     for ( it = labels.begin(); it != labels.end(); it++ )
     {
         LabelPoint il = *it;
@@ -2047,7 +2069,7 @@ void LatLonLabels::Update3D(double xmpoint, double ympoint, double zoom){
       // so that poles don't seem too crowded
       double distance = 1000.0;
 
-      // this is the numerical value as a string
+      // this is the numerical value as a std::string
       char degtext[50];
 
       // find if the line is within the viewing bounds
@@ -2087,10 +2109,10 @@ void LatLonLabels::Update3D(double xmpoint, double ympoint, double zoom){
               worldcoord.x +=  midgrat;
       }
 
-      // convert coordinate value to string
+      // convert coordinate value to std::string
       if ( gInfo.lineType == GRIDLINE_LAT )
       {
-          // convert coordinate value to string
+          // convert coordinate value to std::string
           if ( gInfo.val < 0 )
           {
              snprintf(degtext, 49, m_format, fabs(gInfo.val), "S");
@@ -2102,7 +2124,7 @@ void LatLonLabels::Update3D(double xmpoint, double ympoint, double zoom){
       }
       else
       {
-          // convert coordinate value to string
+          // convert coordinate value to std::string
           if ( gInfo.val < 0 )
           {
              snprintf(degtext, 49, m_format, fabs(gInfo.val), "W");
@@ -2138,7 +2160,7 @@ void LatLonLabels::Update3D(double xmpoint, double ympoint, double zoom){
 
 
       label->GetPositionCoordinate()->SetViewport(m_renderer);
-      // set the coordinates in world position
+      // std::set the coordinates in world position
       label->GetPositionCoordinate()->SetValue(labelpos);
       label->GetPositionCoordinate()->SetCoordinateSystemToWorld();
       label->GetPositionCoordinate()->GetValue(worldcoord.x, worldcoord.y, worldcoord.z);
@@ -2211,7 +2233,7 @@ void LatLonLabels::Update2D(double xmpoint, double ympoint, double zoom){
 
       double distance = 0.6;
 
-      // this is the numerical value as a string
+      // this is the numerical value as a std::string
       char degtext[50];
 
       // find if the line is within the viewing bounds
@@ -2245,7 +2267,7 @@ void LatLonLabels::Update2D(double xmpoint, double ympoint, double zoom){
 
       if ( gInfo.lineType == GRIDLINE_LAT )
       {
-          // convert coordinate value to string
+          // convert coordinate value to std::string
           if ( gInfo.val < 0 )
           {
              snprintf(degtext, 49, m_format, fabs(gInfo.val), "S");
@@ -2257,7 +2279,7 @@ void LatLonLabels::Update2D(double xmpoint, double ympoint, double zoom){
       }
       else
       {
-          // convert coordinate value to string
+          // convert coordinate value to std::string
           if ( gInfo.val < 0 )
           {
              snprintf(degtext, 49, m_format, fabs(gInfo.val), "W");
@@ -2268,8 +2290,8 @@ void LatLonLabels::Update2D(double xmpoint, double ympoint, double zoom){
           }
       }
 
-      // save the point in the list, so no other label
-      // can be set here
+      // save the point in the std::list, so no other label
+      // can be std::set here
       lpset.insert(labelPos);
 
 
@@ -2329,103 +2351,81 @@ void LatLonLabels::SetLabelSize(int s){
 //-------------------------------------------------------------
 //------------------- CWorldPlotRenderer class --------------------
 //-------------------------------------------------------------
-CWorldPlotRenderer::CWorldPlotRenderer(wxWindow *parent, string mode)
-  : m_actors(false)
+CWorldPlotRenderer::CWorldPlotRenderer( wxWindow *parent, std::string mode ) : m_actors( false )
 {
-  Init();
+	Init();
 
-  m_parent = parent;
+	m_parent = parent;
 
-  if ((mode == "crude") ||
-      (mode == "intermediate") ||
-      (mode == "high") ||
-      (mode == "full"))
-    m_GSHHSFile = mode[0];
-  else
-    m_GSHHSFile = "l";  // Low
+	if ( ( mode == "crude" ) ||	( mode == "intermediate" ) || ( mode == "high" ) || ( mode == "full" ) )
+		m_GSHHSFile = mode[ 0 ];
+	else
+		m_GSHHSFile = "l";  // Low
 
-  m_GSHHSFile   = CTools::GetDataDir() +  PATH_SEPARATOR + "gshhs_" + m_GSHHSFile + ".b";
+	m_GSHHSFile   = CTools::GetDataDir() + PATH_SEPARATOR + "gshhs_" + m_GSHHSFile + ".b";
 
-  m_vtkRend = vtkRenderer::New();
-  //KAVOK: added some default values
-  vtkCamera* camera = m_vtkRend->GetActiveCamera();
-  camera->SetRoll(-90);
-  camera->Elevation(-60);
-  camera->Zoom(1.5);
+	m_vtkRend = vtkRenderer::New();
+	//KAVOK: added some default values
+	vtkCamera* camera = m_vtkRend->GetActiveCamera();
+	camera->SetRoll( -90 );
+	camera->Elevation( -60 );
+	camera->Zoom( 1.5 );
 
-  m_transformations = vtkTransformCollection::New();
+	m_transformations = vtkTransformCollection::New();
 
-  m_globe = new CGlobe();
-  m_geoGrid = new CGeoGrid();
-  m_coastLine = new CCoastLine(m_GSHHSFile);
+	m_globe = new CGlobe();
+	m_geoGrid = new CGeoGrid();
+	m_coastLine = new CCoastLine( m_GSHHSFile );
 
-  SetTextActor();
+	SetTextActor();
 
-  m_latlonLabels = new LatLonLabels(m_geoGrid, m_vtkRend);
+	m_latlonLabels = new LatLonLabels( m_geoGrid, m_vtkRend );
 
-  AddData(m_globe);
-  AddData(m_geoGrid);
-  AddData(m_coastLine);
+	AddData( m_globe );
+	AddData( m_geoGrid );
+	AddData( m_coastLine );
 
-  m_cLong = 0;
-  m_cLati = 0;
+	m_cLong = 0;
+	m_cLati = 0;
 
-  SetCenterLatitude(m_cLati);
-  SetCenterLongitude(m_cLong);
-
+	SetCenterLatitude( m_cLati );
+	SetCenterLongitude( m_cLong );
 }
 
 //----------------------------------------
 CWorldPlotRenderer::~CWorldPlotRenderer()
 {
-  DeleteTextActor();
+	DeleteTextActor();
 
-  if (m_vtkRend != NULL)
-  {
-    m_vtkRend->Delete();
-    m_vtkRend = NULL;
-  }
+	if ( m_vtkRend != NULL ){
+		m_vtkRend->Delete();
+		m_vtkRend = NULL;
+	}
 
-  if (m_transformations != NULL)
-  {
-    m_transformations->Delete();
-    m_transformations = NULL;
-  }
+	if ( m_transformations != NULL ){
+		m_transformations->Delete();
+		m_transformations = NULL;
+	}
 
-  if (m_globe != NULL)
-  {
-    delete m_globe;
-    m_globe = NULL;
-  }
+	delete m_globe;
+	m_globe = NULL;
 
-  if (m_geoGrid != NULL)
-  {
-    delete m_geoGrid;
-    m_geoGrid = NULL;
-  }
+	delete m_geoGrid;
+	m_geoGrid = NULL;
 
-  if (m_coastLine != NULL)
-  {
-    delete m_coastLine;
-    m_coastLine = NULL;
-  }
+	delete m_coastLine;
+	m_coastLine = NULL;
 
-  if ( m_latlonLabels != NULL )
-  {
-      delete m_latlonLabels;
-      m_latlonLabels = NULL;
-  }
-
+	delete m_latlonLabels;
+	m_latlonLabels = NULL;
 }
 //----------------------------------------
 void CWorldPlotRenderer::DeleteTextActor()
 {
-  if (m_textActor != NULL)
-  {
-    m_textActor->Delete();
-    m_textActor = NULL;
-  }
-
+	if ( m_textActor != NULL ) {
+		m_textActor->Delete();
+		m_textActor = NULL;
+	}
 }
 //----------------------------------------
 void CWorldPlotRenderer::Init()
@@ -2434,7 +2434,6 @@ void CWorldPlotRenderer::Init()
   m_cLong = 0.0;
   m_cLati = 0.0;
 
-  //m_actorAdded = false;
   m_cameraResetted = true;
 
   m_parent = NULL;
@@ -2623,26 +2622,22 @@ void CWorldPlotRenderer::SetTextActor()
 }
 
 //----------------------------------------
-void CWorldPlotRenderer::AddData(CWorldPlotData* pdata)
+void CWorldPlotRenderer::AddData( CWorldPlotData* pdata )
 {
-  m_wData = pdata;
-  pdata->SetRenderer(m_vtkRend);
+	pdata->SetRenderer( m_vtkRend );
 
-  m_actors.Insert(pdata);
-  m_transformations->AddItem(pdata->GetTransform());
-  pdata->GetVtkTransform()->SetTransform(pdata->GetTransform());
+	m_actors.Insert( pdata );
+	m_transformations->AddItem( pdata->GetTransform() );
+	pdata->GetVtkTransform()->SetTransform( pdata->GetTransform() );
 
-  ResetTextActor();
-
-  //m_actorAdded = true;
-
+	ResetTextActor();
 }
 //----------------------------------------
 void CWorldPlotRenderer::ResetTextActor()
 {
 
   CGeoMap* geoMap = NULL;
-  string text;
+  std::string text;
   CObList::iterator it;
 
   for (it = m_actors.begin() ; it != m_actors.end() ; it++)
@@ -2837,7 +2832,7 @@ void CWorldPlotRenderer::OnKeyframeChanged(CKeyframeEvent& event)
     if (pdata == NULL)
     {
       throw CException("ERROR in  CWorldPlotRenderer::OnKeyframeChanged : dynamic_cast<CWorldPlotData*>(*it) returns NULL pointer - "
-                   "actors list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
+                   "actors std::list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
     }
     */
     CGeoMap* pdata = dynamic_cast<CGeoMap*>(*it);
@@ -2870,7 +2865,7 @@ void CWorldPlotRenderer::SetCenterLatitude(double c)
     if (pdata == NULL)
     {
       throw CException("ERROR in  CWorldPlotRenderer::SetCenterLatitude : dynamic_cast<CWorldPlotData*>(pdata) returns NULL pointer - "
-                   "actors list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
+                   "actors std::list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
     }
     pdata->SetCenterLatitude(m_cLati);
   }
@@ -3027,14 +3022,14 @@ void CWorldPlotRenderer::SetCenterLongitude(double c)
     if (pdata == NULL)
     {
       throw CException("ERROR in  CWorldPlotRenderer::SetCenterLongitude : dynamic_cast<CWorldPlotData*>(pdata) returns NULL pointer - "
-                   "actors list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
+                   "actors std::list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
     }
     pdata->SetCenterLongitude(m_cLong);
   }
 
 }
 //----------------------------------------
-void CWorldPlotRenderer::SetProjectionByName(const string& projName)
+void CWorldPlotRenderer::SetProjectionByName(const std::string& projName)
 {
   int32_t nprojection = CMapProjection::GetInstance()->NameToId(projName);
 
@@ -3149,8 +3144,8 @@ void CWorldPlotRenderer::SetProjection(int32_t proj)
     CWorldPlotData* pdata = dynamic_cast<CWorldPlotData*>(*it);
     if (pdata == NULL)
     {
-      throw CException("ERROR when set projection in CWorldPlotRenderer::SetProjection : dynamic_cast<CWorldPlotData*>(pdata) returns NULL pointer - "
-                   "actors list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
+      throw CException("ERROR when std::set projection in CWorldPlotRenderer::SetProjection : dynamic_cast<CWorldPlotData*>(pdata) returns NULL pointer - "
+                   "actors std::list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
     }
     pdata->SetProjection(proj);
   }
@@ -3234,7 +3229,7 @@ void CWorldPlotRenderer::AddActorsBackgroundToRenderer()
     if (pdata == NULL)
     {
       throw CException("ERROR in CWorldPlotRenderer::AddActorsBackgroundToRenderer : dynamic_cast<CWorldPlotData*>(*it) returns NULL pointer - "
-                   "actors list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
+                   "actors std::list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
     }
 
     CGeoMap* geoMap = dynamic_cast<CGeoMap*>(pdata);
@@ -3288,7 +3283,7 @@ void CWorldPlotRenderer::RemoveActorsFromRenderer()
     if (pdata == NULL)
     {
       throw CException("ERROR when cleaning in CWorldPlotRenderer::RemoveActorsFromRenderer : dynamic_cast<CWorldPlotData*>(pdata) returns NULL pointer - "
-                   "actors list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
+                   "actors std::list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
     }
     RemoveActors(pdata);
   }
@@ -3317,7 +3312,7 @@ void CWorldPlotRenderer::AddActorsBackground2DToRenderer()
     if (pdata == NULL)
     {
       throw CException("ERROR in CWorldPlotRenderer::AddActors2DToRenderer : dynamic_cast<CWorldPlotData*>(*it) returns NULL pointer - "
-                   "actors list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
+                   "actors std::list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
     }
 
     CGeoMap* geoMap = dynamic_cast<CGeoMap*>(pdata);
@@ -3372,7 +3367,7 @@ void CWorldPlotRenderer::RemoveActors2DFromRenderer()
     if (pdata == NULL)
     {
       throw CException("ERROR when cleaning in CWorldPlotRenderer::RemoveActors2DFromRenderer : dynamic_cast<CWorldPlotData*>(pdata) returns NULL pointer - "
-                   "actors list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
+                   "actors std::list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
     }
     RemoveActors2D(pdata);
   }

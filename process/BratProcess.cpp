@@ -22,7 +22,7 @@
 #include "BratAlgorithmBase.h"
 #include "BratProcess.h"
 
-// When debugging changes all calls to “new” to be calls to “DEBUG_NEW” allowing for memory leaks to
+// When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
 // Needs to be included after all #include commands
 #include "Win32MemLeaksAccurate.h"
@@ -156,7 +156,7 @@ void CBratProcess::DeleteFileParams()
   }
 }
 //----------------------------------------
-void CBratProcess::LoadParams(const string& name, uint32_t mode /*= CFile::modeRead|CFile::typeBinary*/)
+void CBratProcess::LoadParams(const std::string& name, uint32_t mode /*= CFile::modeRead|CFile::typeBinary*/)
 {
   DeleteFileParams();
 
@@ -216,7 +216,7 @@ void CBratProcess::SetExpandArray(const CStringArray* fields, bool expandArray)
 
 }
 //----------------------------------------
-void CBratProcess::LoadProductDictionary(const string& filename, bool createVirtualField /* = true */)
+void CBratProcess::LoadProductDictionary(const std::string& filename, bool createVirtualField /* = true */)
 {
 
   ConstructProduct(filename, true);
@@ -225,7 +225,7 @@ void CBratProcess::LoadProductDictionary(const string& filename, bool createVirt
 
 }
 //----------------------------------------
-void CBratProcess::GetOrderedDimNames(const vector<CExpression>& fields, CStringArray& commonDimensions)
+void CBratProcess::GetOrderedDimNames(const std::vector<CExpression>& fields, CStringArray& commonDimensions)
 {
   uint32_t nbExpr = fields.size();
   
@@ -242,7 +242,7 @@ void CBratProcess::GetOrderedDimNames(const CExpression& expr, CStringArray& com
   GetOrderedDimNames(*(expr.GetFieldNames()), commonDimensions);
 }
 //----------------------------------------
-void CBratProcess::GetOrderedDimNames(const string& fieldName, CStringArray& commonDimensionNames)
+void CBratProcess::GetOrderedDimNames(const std::string& fieldName, CStringArray& commonDimensionNames)
 {
   CStringArray fieldNames;
   fieldNames.Insert(fieldName);
@@ -283,7 +283,7 @@ void CBratProcess::GetOrderedDimNames(const CStringArray& fieldNames, CStringArr
 void CBratProcess::CheckDimensions(const CExpression& expr, CUIntArray& commonDimensions)
 {
 
-  string msg;
+  std::string msg;
   if (m_product == NULL)
   {
     throw CException("ERROR: CBratProcess::CheckDimensions - Unable to continue process because m_product is NULL.\n",
@@ -324,7 +324,7 @@ void CBratProcess::AddFieldIndexes(uint32_t indexExpr, CNetCDFVarDef* varDef, co
   {
     uint32_t nbElts = *itUint;
 
-    string name = CBratProcess::GetIndexName(nbElts); 
+    std::string name = CBratProcess::GetIndexName(nbElts); 
     
     indexNames.Insert(name);
 
@@ -370,7 +370,7 @@ void CBratProcess::AddFieldIndexes(uint32_t indexExpr, CNetCDFVarDef* varDef, co
 }
 
 //----------------------------------------
-void CBratProcess::AddFieldIndexes(const string& fieldName, CNetCDFVarDef* varDef)
+void CBratProcess::AddFieldIndexes(const std::string& fieldName, CNetCDFVarDef* varDef)
 {
   if (varDef == NULL)
   {
@@ -436,9 +436,9 @@ void CBratProcess::AddFieldIndexes(CFieldIndex* fieldIndex, CNetCDFVarDef* varDe
   
   CUnit unit;
   
-  string name = CTools::Format("index_%ld", nbElts); 
+  std::string name = CTools::Format("index_%ld", nbElts); 
 
-  string title = CTools::Format("Index of array dimension with %ld elements", nbElts); 
+  std::string title = CTools::Format("Index of array dimension with %ld elements", nbElts); 
 
   m_fields.push_back(expr);
   
@@ -460,7 +460,7 @@ void CBratProcess::AddFieldIndexes(CFieldIndex* fieldIndex, CNetCDFVarDef* varDe
   // Make a copy of CFieldIndex object becuse product file can be close and so CFieldIndex object not eanble anymore)
   long nbElts = static_cast<long>(fieldIndex->GetNbElts());
 
-  string name = CBratProcess::GetIndexName(nbElts);
+  std::string name = CBratProcess::GetIndexName(nbElts);
   
   CFieldIndex* fIndex = new CFieldIndex(*fieldIndex);
   m_mapFieldIndexesToRead.Insert(name, fIndex, false);
@@ -501,7 +501,7 @@ void CBratProcess::AddFieldIndexes(CFieldIndex* fieldIndex, CNetCDFVarDef* varDe
 }
 
 //----------------------------------------
-string CBratProcess::GetIndexName(long nbElts)
+std::string CBratProcess::GetIndexName(long nbElts)
 {
   return CTools::Format("index_%ld", nbElts); 
 
@@ -555,7 +555,7 @@ CBratProcess::MergeDataMode CBratProcess::GetDataMode
 		(CFileParams	&params,
 		 int32_t	minOccurences	/* = 0 */,
 		 int32_t	maxOccurences	/* = 1 */,
-		 const string	&Keyword	/* = "DATA_MODE" */,
+		 const std::string	&Keyword	/* = "DATA_MODE" */,
 		 int32_t	index		/* = 0 */,
 		 MergeDataMode defaultValue /* = pctMEAN */)
 {
@@ -567,7 +567,7 @@ CBratProcess::MergeDataMode CBratProcess::GetDataMode
     return defaultValue;
   }
 
-  string	tmp;
+  std::string	tmp;
   uint32_t	tmpVal;
 
   params.m_mapParam[Keyword]->GetValue(tmpVal,
@@ -587,14 +587,14 @@ CBratProcess::MergeDataMode CBratProcess::GetDataMode
 
 CBratProcess::MergeDataMode CBratProcess::GetDataMode
 		(CFileParams	&params,
-		 const string	&prefix,
+		 const std::string	&prefix,
 		 int32_t	minOccurences	/*= 0*/,
 		 int32_t	maxOccurences	/*= 1*/,
 		 int32_t	index		/*= 0*/,
 		 MergeDataMode	defaultValue		/*= pctMEAN*/)
 {
 
-  string tmpKey	= prefix + "_DATA_MODE";
+  std::string tmpKey	= prefix + "_DATA_MODE";
 
   return CBratProcess::GetDataMode(params, minOccurences, maxOccurences, tmpKey, index, defaultValue);
 
@@ -602,10 +602,10 @@ CBratProcess::MergeDataMode CBratProcess::GetDataMode
 
 //----------------------------------------
 
-string CBratProcess::DataModeStr
+std::string CBratProcess::DataModeStr
 		(MergeDataMode	mode)
 {
-  string result;
+  std::string result;
 
   switch (mode)
   {
@@ -651,9 +651,9 @@ string CBratProcess::DataModeStr
 //----------------------------------------
 int32_t CBratProcess::GetFileList
 		(CFileParams		&params,
-		 const string		&keyword,
+		 const std::string		&keyword,
 		 CStringArray		&names,
-		 const string		&traceDescription,
+		 const std::string		&traceDescription,
 		 int32_t		minOccurences	/*= 1*/,
 		 int32_t		maxOccurences	/*= -1*/,
 		 bool			printTrace	/*= true*/)
@@ -709,12 +709,12 @@ void CBratProcess::AdjustDefinition(CFileParams& params, CExpression& field, boo
   }
 
   //Try to correct lower/upper case error in field names.
-  string out;
+  std::string out;
   m_product->ReplaceNamesCaseSensitive(field, out);
 
   //Add record name to field names
-  string out2 = out;
-  string errorString;
+  std::string out2 = out;
+  std::string errorString;
   bool bOk = m_product->AddRecordNameToField(out2, m_recordName, out, errorString);
 
   if (!bOk) 
@@ -740,7 +740,7 @@ void CBratProcess::AdjustDefinition(CFileParams& params, CExpression& field, boo
 
 
 //----------------------------------------
-//void CBratProcess::GetParametersSpecificUnit(const string& commandFileName)
+//void CBratProcess::GetParametersSpecificUnit(const std::string& commandFileName)
 //{
 //  m_commandFileName = commandFileName;
 //  GetParameters();
@@ -749,16 +749,16 @@ void CBratProcess::AdjustDefinition(CFileParams& params, CExpression& field, boo
 //----------------------------------------
 int32_t CBratProcess::GetDefinition
 		(CFileParams		&params,
-		 const string		&prefix,
+		 const std::string		&prefix,
 		 CExpression    	&field,
-		 string			*name,
+		 std::string			*name,
 		 NetCDFVarKind		*kind,
 		 CUnit			*unit,
-		 string			*title,
-		 string			*comment,
-		 string			*dataFormat,
+		 std::string			*title,
+		 std::string			*comment,
+		 std::string			*dataFormat,
 		 uint32_t               *group,
- 		 const string		&traceDescription,
+ 		 const std::string		&traceDescription,
 		 int32_t		index		/*= 0*/,
 		 int32_t		minOccurences	/*= 1*/,
 		 int32_t		maxOccurences	/*= 1*/,
@@ -791,20 +791,20 @@ int32_t CBratProcess::GetDefinition
 //----------------------------------------
 int32_t CBratProcess::GetDefinition
 		(CFileParams		&params,
-		 const string		&prefix,
+		 const std::string		&prefix,
 		 CExpression    	&field,
-		 string			*name,
+		 std::string			*name,
 		 NetCDFVarKind		*kind,
 		 CUnit			*unit,
-		 string			*title,
-		 string			*comment,
-		 string			*dataFormat,
+		 std::string			*title,
+		 std::string			*comment,
+		 std::string			*dataFormat,
 		 uint32_t               *group,
 		 double			&min,
 		 double			&max,
 		 uint32_t		&count,
 		 double			&step,
-		 const string		&traceDescription,
+		 const std::string		&traceDescription,
 		 int32_t		index		/*= 0*/,
 		 int32_t		minOccurences	/*= 1*/,
 		 int32_t		maxOccurences	/*= 1*/,
@@ -841,24 +841,24 @@ int32_t CBratProcess::GetDefinition
 //----------------------------------------
 int32_t CBratProcess::GetVarDef
 		(CFileParams		&params,
-		 const string		&prefix,
+		 const std::string		&prefix,
 		 CExpression    	&field,
-		 string			*name,
+		 std::string			*name,
 		 NetCDFVarKind		*kind,
 		 CUnit			*unit,
-		 string			*title,
-		 string			*comment,
-		 string			*dataFormat,
+		 std::string			*title,
+		 std::string			*comment,
+		 std::string			*dataFormat,
 		 uint32_t               *group,
- 		 const string		&traceDescription,
+ 		 const std::string		&traceDescription,
 		 int32_t		index		/*= 0*/,
 		 int32_t		minOccurences	/*= 1*/,
 		 int32_t		maxOccurences	/*= 1*/,
 		 bool			printTrace	/*= true*/)
 {
   CTrace		*p	= CTrace::GetInstance();
-  string		tmpKey;
-  string		tmp;
+  std::string		tmpKey;
+  std::string		tmp;
 
   if (printTrace)
   {
@@ -926,7 +926,7 @@ int32_t CBratProcess::GetVarDef
 
   if (unit != NULL)
   {
-    string defaultValue	= "count";
+    std::string defaultValue	= "count";
     if (kind != NULL)
     {
       switch (*kind)
@@ -1052,27 +1052,27 @@ int32_t CBratProcess::GetVarDef
 //----------------------------------------
 int32_t CBratProcess::GetVarDef
 		(CFileParams		&params,
-		 const string		&prefix,
+		 const std::string		&prefix,
 		 CExpression    	&field,
-		 string			*name,
+		 std::string			*name,
 		 NetCDFVarKind		*kind,
 		 CUnit			*unit,
-		 string			*title,
-		 string			*comment,
-		 string			*dataFormat,
+		 std::string			*title,
+		 std::string			*comment,
+		 std::string			*dataFormat,
 		 uint32_t               *group,
 		 double			&min,
 		 double			&max,
 		 uint32_t		&count,
 		 double			&step,
-		 const string		&traceDescription,
+		 const std::string		&traceDescription,
 		 int32_t		index		/*= 0*/,
 		 int32_t		minOccurences	/*= 1*/,
 		 int32_t		maxOccurences	/*= 1*/,
 		 bool			printTrace	/*= true*/)
 {
   CTrace		*p	= CTrace::GetInstance();
-  string		tmpKey;
+  std::string		tmpKey;
   CDate			TmpDate;
   NetCDFVarKind		TheKind = brathl::Unknown;
   bool			isDate	= false;
@@ -1198,7 +1198,7 @@ int32_t CBratProcess::GetVarDef
     case Latitude:
     //-----------------
     {
-      string unitText = unitTmp.GetText();
+      std::string unitText = unitTmp.GetText();
 
       if (isDate)
       {
@@ -1407,31 +1407,31 @@ int32_t CBratProcess::GetMergedDataSlices(CBratProcess::MergeDataMode	mode)
 bool CBratProcess::CheckCommandLineOptions
 		(int			argc,
 		 char			**argv,
-		 const string		&helpString,
+		 const std::string		&helpString,
 		 const KeywordHelp	*keywordList,
-		 string			&commandFileName)
+		 std::string			&commandFileName)
 {
   bool		error		= false;
   bool		help		= false;
   bool		keywords	= false;
-  ostream	*out		= &cerr;
+  std::ostream	*out		= &std::cerr;
   if (argc != 2)
     error	= true;
   else if ((strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "--help") == 0))
   {
     help	= true;
-    out		= &cout;
+    out		= &std::cout;
   }
   else if ((strcmp(argv[1], "-k") == 0) || (strcmp(argv[1], "--keywords") == 0))
   {
     if (keywordList != NULL)
     {
       keywords		= true;
-      out		= &cout;
+      out		= &std::cout;
     }
     else
     {
-      *out << "invalid option: " << argv[1] << endl;
+      *out << "invalid option: " << argv[1] << std::endl;
       error		= true;
     }
   }
@@ -1441,7 +1441,7 @@ bool CBratProcess::CheckCommandLineOptions
 
     if (! CTools::FileExists(commandFileName))
     {
-      *out << "ERROR: Command file '" << commandFileName << "' not found" << endl << endl;
+      *out << "ERROR: Command file '" << commandFileName << "' not found" << std::endl << std::endl;
       error	= true;
     }
   }
@@ -1451,8 +1451,8 @@ bool CBratProcess::CheckCommandLineOptions
     *out << "Usage : " << argv[0] << " [ -h | --help";
     if (keywordList != NULL)
       *out << " | -k | --keywords";
-    *out << "] commandFileName" << endl;
-    *out << "Where commandFileName is the name of a file containing runtime parameters" << endl;
+    *out << "] commandFileName" << std::endl;
+    *out << "Where commandFileName is the name of a file containing runtime parameters" << std::endl;
   }
 
   if (keywords)
@@ -1461,13 +1461,13 @@ bool CBratProcess::CheckCommandLineOptions
   }
 
   if (help && (helpString != ""))
-    *out << endl << helpString << endl;
+    *out << std::endl << helpString << std::endl;
 
   return error || help || keywords;
 }
 
 //----------------------------------------
-bool CBratProcess::CheckCommandLineOptions(int argc, char	**argv, const string& helpString, const KeywordHelp	*keywordList)
+bool CBratProcess::CheckCommandLineOptions(int argc, char	**argv, const std::string& helpString, const KeywordHelp	*keywordList)
 {
   return CBratProcess::CheckCommandLineOptions(argc, argv, helpString, keywordList, m_commandFileName);
 }
@@ -1478,7 +1478,7 @@ bool CBratProcess::CheckCommandLineOptions(int argc, char	**argv, const string& 
 ** definitions are in ParametersDictionary.h
 */
 void CBratProcess::PrintParameterHelp
-		(ostream		&where,
+		(std::ostream		&where,
 		 const KeywordHelp	*keywordList)
 {
   int NbTypes	  = sizeof(KnownTypes)/sizeof(KnownTypes[0]);
@@ -1498,7 +1498,7 @@ void CBratProcess::PrintParameterHelp
     {
       if (CTools::StrCaseCmp(keywordList->Name.c_str(), CurrentKW->Name.c_str()) == 0)
       {
-        string	Count	= "";
+        std::string	Count	= "";
 	int	min	= keywordList->MinCount;
 	int	max	= keywordList->MaxCount;
 	int 	group	= keywordList->Group;
@@ -1532,7 +1532,7 @@ void CBratProcess::PrintParameterHelp
 					CurrentKW->Name.c_str(),
 					CurrentKW->Type,
 					Count.c_str())
-		<< endl;
+		<< std::endl;
 	PrintDescription(where, CurrentKW->Description, true, keywordList->Default);
 	index	= 0;
 	//for (CurrentType = static_cast<TypeDefinition*>(KnownTypes);
@@ -1549,17 +1549,17 @@ void CBratProcess::PrintParameterHelp
 	}
 	if (CurrentType->Name == NULL)
 	{
-	  where << endl << CurrentKW->Type  << " ===== ERROR unknown type cannot print help" << endl << endl;
+	  where << std::endl << CurrentKW->Type  << " ===== ERROR unknown type cannot print help" << std::endl << std::endl;
 	}
       }
     }
     if (CurrentKW->Name.length() != 0)
     {
-      where << endl << keywordList->Name << "   ERROR unknown keyword cannot print help" << endl << endl;
+      where << std::endl << keywordList->Name << "   ERROR unknown keyword cannot print help" << std::endl << std::endl;
     }
   }
 
-  where << "=====================" << endl << "Description of types:" << endl << endl;
+  where << "=====================" << std::endl << "Description of types:" << std::endl << std::endl;
   for (index = 0; index < NbTypes; index++)
   {
     if (TypesIndex[index] != 0)
@@ -1578,7 +1578,7 @@ void CBratProcess::PrintParameterHelp
 ** Internal function used to print keyword/type definition
 */
 void CBratProcess::PrintDescription
-		(ostream	&where,
+		(std::ostream	&where,
 		 const char	*description,
 		 bool		firstLeading,
 		 const char	*defaultValue)
@@ -1594,15 +1594,15 @@ void CBratProcess::PrintDescription
   while (*description != '\0')
   {
     if (*description == '\n')
-      where << endl << leading;
+      where << std::endl << leading;
     else
       where << *description;
     description++;
   }
-  where << endl;
+  where << std::endl;
   if (defaultValue != NULL)
   {
-    where << leading << "(defaultValue=" << defaultValue << ")" << endl;
+    where << leading << "(defaultValue=" << defaultValue << ")" << std::endl;
   }
 }
 
@@ -1610,7 +1610,7 @@ void CBratProcess::PrintDescription
 //----------------------------------------
 void CBratProcess::GetFilterDefinitions
 		(CFileParams		&params,
-		 const string		&prefix,
+		 const std::string		&prefix,
 		 bool			*smooth,
 		 bool			*extrapolate,
 		 int32_t		index		/*= 0*/,
@@ -1620,7 +1620,7 @@ void CBratProcess::GetFilterDefinitions
 
   CTrace	*p	= CTrace::GetInstance();
 
-  string	tmpKey;
+  std::string	tmpKey;
   int32_t	Count;
   bitSet32	Choice;
 
@@ -1671,7 +1671,7 @@ void CBratProcess::GetLoessCutoff
 		 bool			printTrace	/*= true*/)
 {
   CTrace	*p	= CTrace::GetInstance();
-  string	tmpKey;
+  std::string	tmpKey;
 
   if (printTrace && ((xCutoff != NULL) || (yCutoff != NULL)))
   {
@@ -1704,7 +1704,7 @@ CBratProcess::OutsideMode CBratProcess::GetOutsideMode
 		  (CFileParams	&params,
 		   int32_t	minOccurences	/*= 0*/,
 		   int32_t	maxOccurences	/*= 1*/,
-		   const string	&keyword	/*= "OUTSIDE_MODE"*/,
+		   const std::string	&keyword	/*= "OUTSIDE_MODE"*/,
 		   int32_t	index		/*= 0*/,
 		   OutsideMode	defaultValue		/*= CBratProcess::pctSTRICT*/)
 {
@@ -1714,7 +1714,7 @@ CBratProcess::OutsideMode CBratProcess::GetOutsideMode
     return defaultValue;
   }
 
-  string	tmp;
+  std::string	tmp;
   uint32_t	ympVal;
   
   params.m_mapParam[keyword]->GetValue(ympVal,
@@ -1727,7 +1727,7 @@ CBratProcess::OutsideMode CBratProcess::GetOutsideMode
 }
 
 //----------------------------------------
-string CBratProcess::OutsideModeStr(CBratProcess::OutsideMode	mode)
+std::string CBratProcess::OutsideModeStr(CBratProcess::OutsideMode	mode)
 {
   switch (mode)
   {
@@ -1805,7 +1805,7 @@ CBratProcess::PositionMode CBratProcess::GetPositionMode
 		(CFileParams	&params,
 		 int32_t	minOccurences	/*= 0*/,
 		 int32_t	maxOccurences	/*= 1*/,
-		 const string	&keyword	/*= "POSITION_MODE"*/,
+		 const std::string	&keyword	/*= "POSITION_MODE"*/,
 		 int32_t	index		/*= 0*/,
 		 CBratProcess::PositionMode	defaultValue		/*= CBratProcess::pctNEAREST*/)
 {
@@ -1814,7 +1814,7 @@ CBratProcess::PositionMode CBratProcess::GetPositionMode
     return defaultValue;
   }
 
-  string	tmp;
+  std::string	tmp;
   uint32_t	ympVal;
   
   params.m_mapParam[keyword]->GetValue(ympVal,
@@ -1826,7 +1826,7 @@ CBratProcess::PositionMode CBratProcess::GetPositionMode
   return static_cast<PositionMode>(ympVal);
 }
 //----------------------------------------
-string CBratProcess::PositionModeStr(CBratProcess::PositionMode	mode)
+std::string CBratProcess::PositionModeStr(CBratProcess::PositionMode	mode)
 {
   switch (mode)
   {
@@ -2011,7 +2011,7 @@ void CBratProcess::AddCritSelectionComplementDimensionsFromNetCdf()
   //productNetCdf->GetDimsToReadOneByOne()->Dump(*(CTrace::GetInstance()->GetDumpContext()));
 }
 //----------------------------------------
-void CBratProcess::ConstructProduct(const string& fileName, bool createVirtualField /* = true */)
+void CBratProcess::ConstructProduct(const std::string& fileName, bool createVirtualField /* = true */)
 {
   CStringArray stringArray;
   stringArray.Insert(fileName);
@@ -2044,7 +2044,7 @@ void CBratProcess::ConstructProduct(CStringList& fileName, bool createVirtualFie
   ConstructProduct(stringArray, createVirtualField); 
 }
 //----------------------------------------
-bool CBratProcess::Initialize(string& msg)
+bool CBratProcess::Initialize(std::string& msg)
 {
   CTrace *p = CTrace::GetInstance();
 
@@ -2052,11 +2052,11 @@ bool CBratProcess::Initialize(string& msg)
   CBratAlgorithmBase::RegisterAlgorithms();
 
   // Load aliases dictionnary
-  string errorMsg;
+  std::string errorMsg;
   CAliasesDictionary::LoadAliasesDictionary(&errorMsg, false);
   if (!(errorMsg.empty())) 
   {
-    string msg = CTools::Format("WARNING: %s",  errorMsg.c_str());
+    std::string msg = CTools::Format("WARNING: %s",  errorMsg.c_str());
     p->Tracer(1, msg);
   }
   
@@ -2378,17 +2378,17 @@ void CBratProcess::BuildListFieldsToRead()
 }
 
 //----------------------------------------
-string CBratProcess::GetExpressionNewName(const string& name)
+std::string CBratProcess::GetExpressionNewName(const std::string& name)
 {
   int32_t i = 1;
-  string str;
+  std::string str;
 
   if (! m_names.Exists(name) )
   {
     return name;
   }
 
-  string format = name;
+  std::string format = name;
   format.append("_%d");
 
   do
@@ -2402,7 +2402,7 @@ string CBratProcess::GetExpressionNewName(const string& name)
 }
 
 //----------------------------------------
-CExternalFilesNetCDF* CBratProcess::OpenExternalFilesNetCDF(const string& fileName)
+CExternalFilesNetCDF* CBratProcess::OpenExternalFilesNetCDF(const std::string& fileName)
 {
   CExternalFilesNetCDF* externalFile = NULL;
   
@@ -2473,9 +2473,9 @@ void CBratProcess::AddDimensionsFromNetCdf(CStringArray& dimNames)
     
     NetCDFVarKind dimKind = field->SearchDimKind();
 
-    string title = field->GetAttribute(LONG_NAME_ATTR);
+    std::string title = field->GetAttribute(LONG_NAME_ATTR);
     
-    string comment = field->GetAttribute(COMMENT_ATTR);
+    std::string comment = field->GetAttribute(COMMENT_ATTR);
 
 
     // insert dimension in a map (for a later check)
@@ -2562,7 +2562,7 @@ void CBratProcess::AddDimensionsFromNetCdf(CStringArray& dimNames)
 
     for ( itDims = mapDims.begin() ; itDims != mapDims.end( ); itDims++ )
     {
-      string dimName = itDims->first;
+      std::string dimName = itDims->first;
       CNetCDFDimension* netCDFDim = dynamic_cast<CNetCDFDimension*>(itDims->second);
       if (netCDFDim == NULL)
       {
@@ -2587,7 +2587,7 @@ void CBratProcess::AddDimensionsFromNetCdf(CStringArray& dimNames)
         CStringArray keys;
         mapDims.GetKeys(keys);
 
-        string dimsAsString = keys.ToString(", ", false);
+        std::string dimsAsString = keys.ToString(", ", false);
 
         throw CException(CTools::Format("ERROR: Unable to process. Reason: "
                                         "'%s' dimension value (%ld) in file '%s' is not equal to "
@@ -2898,12 +2898,12 @@ CProductNetCdfCF* CBratProcess::GetProductNetCdfCF(CBratObject* ob, bool withExc
 
 }
 //----------------------------------------
-string CBratProcess::GetFieldSpecificUnit(const string& key)
+std::string CBratProcess::GetFieldSpecificUnit(const std::string& key)
 {
   return m_fieldSpecificUnit.Exists(key); 
 }
 //----------------------------------------
-void CBratProcess::SetFieldSpecificUnit(const string& key, const string& value)
+void CBratProcess::SetFieldSpecificUnit(const std::string& key, const std::string& value)
 {
   m_fieldSpecificUnit.Erase(key);
   m_fieldSpecificUnit.Insert(key, value, false);

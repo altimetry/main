@@ -6,7 +6,7 @@
 #include "brathl.h" 
 //#define BRAT_INTERNAL
 
-#include "Stl.h" 
+#include <string> 
 
 #include "TraceLog.h" 
 #include "Tools.h" 
@@ -20,17 +20,17 @@ namespace brathl
 //------------------- CLatLonRect class --------------------
 //-------------------------------------------------------------
 
-const string CLatLonRect::LATITUDE_MIN_STR = "-90";
-const string CLatLonRect::LATITUDE_MAX_STR = "90";
-const string CLatLonRect::LONGITUDE_MIN_STR = "-180";
-const string CLatLonRect::LONGITUDE_MAX_STR = "180";
+const std::string CLatLonRect::LATITUDE_MIN_STR = "-90";
+const std::string CLatLonRect::LATITUDE_MAX_STR = "90";
+const std::string CLatLonRect::LONGITUDE_MIN_STR = "-180";
+const std::string CLatLonRect::LONGITUDE_MAX_STR = "180";
 
 const double CLatLonRect::LATITUDE_MIN = -90.0;
 const double CLatLonRect::LATITUDE_MAX = 90.0;
 const double CLatLonRect::LONGITUDE_MIN = -180.0;
 const double CLatLonRect::LONGITUDE_MAX = 180.0;
 
-const string CLatLonRect::m_delimiter = " ";
+const std::string CLatLonRect::m_delimiter = " ";
 
 //-------------------------------------------------------------
 
@@ -84,7 +84,7 @@ CLatLonRect::CLatLonRect(double latLow, double lonLow, double latHigh, double lo
   Set(latLow, lonLow, latHigh, lonHigh);
 }
 //-------------------------------------------------------------
-CLatLonRect::CLatLonRect(const string& latLow, const string& lonLow, const string& latHigh, const string& lonHigh) 
+CLatLonRect::CLatLonRect(const std::string& latLow, const std::string& lonLow, const std::string& latHigh, const std::string& lonHigh) 
 {
   Init();
   Set(latLow, lonLow, latHigh, lonHigh);
@@ -122,9 +122,9 @@ void CLatLonRect::GetAsString(CStringArray& array)
   array.Insert(CTools::Format(30, FORMAT_FLOAT_LATLON.c_str(), m_upperRight.GetLongitude()));
 }
 //-------------------------------------------------------------
-string CLatLonRect::GetAsText(const string& delimiter /* = CLatLonRect::m_delimiter*/)
+std::string CLatLonRect::GetAsText(const std::string& delimiter /* = CLatLonRect::m_delimiter*/)
 {
-  string format = FORMAT_FLOAT_LATLON;
+  std::string format = FORMAT_FLOAT_LATLON;
   format.append(delimiter);
   format.append(FORMAT_FLOAT_LATLON);
   format.append(delimiter);
@@ -182,7 +182,7 @@ void CLatLonRect::Set(CLatLonRect& r)
   Set(r.GetLowerLeftPoint(), r.GetUpperRightPoint().GetLatitude() - r.GetLowerLeftPoint().GetLatitude(), r.GetWidth()); 
 }
 //-------------------------------------------------------------
-void CLatLonRect::Set(const string& latLonRect, const string& delimiter /* = CLatLonRect::m_delimiter */)
+void CLatLonRect::Set(const std::string& latLonRect, const std::string& delimiter /* = CLatLonRect::m_delimiter */)
 {
   CStringArray array;
 
@@ -353,7 +353,7 @@ void CLatLonRect::Set(double latLow, double lonLow , double latHigh , double lon
 
 }
 //-------------------------------------------------------------
-void CLatLonRect::Set(const string& latLow, const string& lonLow, const string& latHigh, const string& lonHigh) 
+void CLatLonRect::Set(const std::string& latLow, const std::string& lonLow, const std::string& latHigh, const std::string& lonHigh) 
 {
 // to fix problem with LatLonrect width computation : unconvert longitude with no normalization here.
   Set(CTools::UnconvertLat(latLow), CTools::UnconvertLon(lonLow, false), CTools::UnconvertLat(latHigh),
@@ -622,16 +622,16 @@ bool CLatLonRect::IsDefaultValue()
 
 }
 //----------------------------------------
-string CLatLonRect::AsString(const string& format /*= ""*/)
+std::string CLatLonRect::AsString(const std::string& format /*= ""*/)
 {
-  string theFormat;
-  string formatRef = format;
+  std::string theFormat;
+  std::string formatRef = format;
   if (formatRef.empty())
   {
     formatRef = "%-#.5g";
   }
   theFormat = "Latitude min.: " + formatRef;
-  string str = CTools::Format(theFormat.c_str(), GetLatMin());
+  std::string str = CTools::Format(theFormat.c_str(), GetLatMin());
   str.append("/");
   theFormat = "Longitude min.: " + formatRef;
   str.append(CTools::Format(theFormat.c_str(), GetLonMin()));
@@ -646,7 +646,7 @@ string CLatLonRect::AsString(const string& format /*= ""*/)
 }
 
 //-------------------------------------------------------------
-void CLatLonRect::Dump(ostream& fOut /* = cerr */)
+void CLatLonRect::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -654,21 +654,21 @@ void CLatLonRect::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CLatLonRect Object at "<< this << endl;
+  fOut << "==> Dump a CLatLonRect Object at "<< this << std::endl;
 
-  fOut << "m_allLongitude = " << m_allLongitude << endl;
-  fOut << "m_crossDateline = " << m_crossDateline << endl;
-  fOut << "m_lon0 = " << m_lon0 << endl;
-  fOut << "m_width = " << m_width << endl;
+  fOut << "m_allLongitude = " << m_allLongitude << std::endl;
+  fOut << "m_crossDateline = " << m_crossDateline << std::endl;
+  fOut << "m_lon0 = " << m_lon0 << std::endl;
+  fOut << "m_width = " << m_width << std::endl;
 
-  fOut << "m_lowerLeft at " << &m_lowerLeft << endl;
+  fOut << "m_lowerLeft at " << &m_lowerLeft << std::endl;
   m_lowerLeft.Dump(fOut);
-  fOut << "m_upperRight at " << &m_upperRight << endl;
+  fOut << "m_upperRight at " << &m_upperRight << std::endl;
   m_upperRight.Dump(fOut);
 
-  fOut << "==> END Dump a CLatLonRect Object at "<< this << endl;
+  fOut << "==> END Dump a CLatLonRect Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

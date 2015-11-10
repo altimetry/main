@@ -61,7 +61,7 @@ using namespace brathl;
 //#endif
 
 #ifdef WIN32
-const string BRATHL_ICON_FILENAME = "BratIcon.ico";
+const std::string BRATHL_ICON_FILENAME = "BratIcon.ico";
 const wxString BRATCREATEYFX_EXE = "BratCreateYFX.exe";
 const wxString BRATCREATEZFXY_EXE = "BratCreateZFXY.exe";
 const wxString BRATDISPLAY_EXE = "BratDisplay.exe";
@@ -70,7 +70,7 @@ const wxString BRATEXPORTGEOTIFF_EXE = "BratExportGeoTiff.exe";
 const wxString BRATSHOWSTATS_EXE = "BratStats.exe";
 const wxString BRATSCHEDULER_EXE = "BratScheduler.exe";
 #else
-const string BRATHL_ICON_FILENAME = "BratIcon.bmp";
+const std::string BRATHL_ICON_FILENAME = "BratIcon.bmp";
 const wxString BRATCREATEYFX_EXE = "BratCreateYFX";
 const wxString BRATCREATEZFXY_EXE = "BratCreateZFXY";
 const wxString BRATDISPLAY_EXE = "BratDisplay";
@@ -217,7 +217,7 @@ bool CBratGuiApp::OnInit()
   }
 
 
-  string errorMsg;
+  std::string errorMsg;
   if (!CTools::LoadAndCheckUdUnitsSystem(errorMsg))
   {
       std::cerr << errorMsg << std::endl;
@@ -270,7 +270,7 @@ bool CBratGuiApp::OnInit()
     LoadConfig();
   }
   catch(CException &e) {
-    wxMessageBox(wxString::Format("An error occured while loading Brat configuration (CBratGui::LoadConfig)\nNavive exception: %s", e.what()),
+    wxMessageBox(wxString::Format("An error occured while loading Brat configuration (CBratGui::LoadConfig)\nNavive std::exception: %s", e.what()),
 		 "Warning",
 		 wxOK | wxCENTRE | wxICON_EXCLAMATION);
   }

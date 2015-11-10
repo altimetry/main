@@ -692,7 +692,7 @@ void wxVTKRenderWindowInteractor::OnButtonUp(wxMouseEvent &event)
     return;
     }
 
-  // See report by Shang Mu / Kerry Loux on wxVTK mailing list
+  // See report by Shang Mu / Kerry Loux on wxVTK mailing std::list
     this->SetFocus();
 
 #if VTK_MAJOR_VERSION > 4 || (VTK_MAJOR_VERSION == 4 && VTK_MINOR_VERSION > 0)
@@ -862,7 +862,7 @@ void wxVTKRenderWindowInteractor::SetStereo(int capable)
 //---------------------------------------------------------------------------
 //
 //
-void wxVTKRenderWindowInteractor::PrintSelf(ostream& os, vtkIndent indent)
+void wxVTKRenderWindowInteractor::PrintSelf(std::ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 }

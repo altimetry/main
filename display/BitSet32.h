@@ -26,7 +26,7 @@
 
 #include "brathl.h"
 
-#include "Stl.h"
+#include <string>
 
 #include "BratObject.h"
 #include "Tools.h"

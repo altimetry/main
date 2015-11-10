@@ -19,7 +19,7 @@
 */
 #include <algorithm>
 #include <cmath>
-#include "Stl.h"
+#include <string>
 
 #include "brathl.h"
 
@@ -46,11 +46,11 @@ namespace brathl
 //-------------------------------------------------------------
 //------------------- CExternalFilesJason2 class --------------------
 //-------------------------------------------------------------
-const string  CExternalFilesJason2::m_missionName = CTools::StringToUpper(CMission::m_nameJ2);
+const std::string  CExternalFilesJason2::m_missionName = CTools::StringToUpper(CMission::m_nameJ2);
 
 
 CExternalFilesJason2::CExternalFilesJason2
-		(const string		&name /*= ""*/)
+		(const std::string		&name /*= ""*/)
 	: CExternalFilesNetCDFCF(name)
 {
 }
@@ -59,7 +59,7 @@ CExternalFilesJason2::CExternalFilesJason2
 //------------------- CExternalFilesJason2SSHA class --------------------
 //-------------------------------------------------------------
 CExternalFilesJason2SSHA::CExternalFilesJason2SSHA
-		(const string		&name /*= ""*/)
+		(const std::string		&name /*= ""*/)
 	: CExternalFilesJason2(name)
 {
 }
@@ -69,7 +69,7 @@ CExternalFilesJason2SSHA::CExternalFilesJason2SSHA
 //-------------------------------------------------------------
 
 CExternalFilesJason2GDR::CExternalFilesJason2GDR
-		(const string		&name /*= ""*/)
+		(const std::string		&name /*= ""*/)
 	: CExternalFilesJason2(name)
 {
 }
@@ -79,7 +79,7 @@ CExternalFilesJason2GDR::CExternalFilesJason2GDR
 //------------------- CExternalFilesJason2SGDR class --------------------
 //-------------------------------------------------------------
 CExternalFilesJason2SGDR::CExternalFilesJason2SGDR
-		(const string		&name /*= ""*/)
+		(const std::string		&name /*= ""*/)
 	: CExternalFilesJason2(name)
 {
 

@@ -20,7 +20,7 @@
 
 #include <algorithm>
 #include <cmath>
-#include "Stl.h"
+#include <string>
 
 #include "brathl.h"
 
@@ -49,17 +49,17 @@ namespace brathl
 
 //----------------------------------------
 
-const string CExternalFilesAvisoGrid::m_LON_DIM_NAME = "Longitude";
-const string CExternalFilesAvisoGrid::m_LAT_DIM_NAME = "Latitude";
-//const string CExternalFilesAvisoGrid::m_DEPTH_DIM_NAME = "Depth";
+const std::string CExternalFilesAvisoGrid::m_LON_DIM_NAME = "Longitude";
+const std::string CExternalFilesAvisoGrid::m_LAT_DIM_NAME = "Latitude";
+//const std::string CExternalFilesAvisoGrid::m_DEPTH_DIM_NAME = "Depth";
 
-const string CExternalFilesAvisoGrid::m_INTERNAL_LON_DIM_NAME = "NbLongitudes";
-const string CExternalFilesAvisoGrid::m_INTERNAL_LAT_DIM_NAME = "NbLatitudes";
-const string CExternalFilesAvisoGrid::m_INTERNAL_DEPTH_DIM_NAME = "GridDepth";
-const string CExternalFilesAvisoGrid::m_INTERNAL_LATLON_DIM_NAME = "LatLon";
+const std::string CExternalFilesAvisoGrid::m_INTERNAL_LON_DIM_NAME = "NbLongitudes";
+const std::string CExternalFilesAvisoGrid::m_INTERNAL_LAT_DIM_NAME = "NbLatitudes";
+const std::string CExternalFilesAvisoGrid::m_INTERNAL_DEPTH_DIM_NAME = "GridDepth";
+const std::string CExternalFilesAvisoGrid::m_INTERNAL_LATLON_DIM_NAME = "LatLon";
 
-const string CExternalFilesAvisoGrid::m_LATLONMIN_NAME = "LatLonMin";
-const string CExternalFilesAvisoGrid::m_LATLONSTEP_NAME = "LatLonStep";
+const std::string CExternalFilesAvisoGrid::m_LATLONMIN_NAME = "LatLonMin";
+const std::string CExternalFilesAvisoGrid::m_LATLONSTEP_NAME = "LatLonStep";
 
 //----------------------------------------
 
@@ -90,7 +90,7 @@ const string CExternalFilesAvisoGrid::m_LATLONSTEP_NAME = "LatLonStep";
 //-------------------------------------------------------------
 
 //----------------------------------------
-CExternalFilesAvisoGrid::CExternalFilesAvisoGrid(const string& name /*= ""*/)
+CExternalFilesAvisoGrid::CExternalFilesAvisoGrid(const std::string& name /*= ""*/)
 	: CExternalFilesNetCDFCF(name)
 {
   Init();
@@ -209,9 +209,9 @@ bool CExternalFilesAvisoGrid::PrevRecord()
 
 //----------------------------------------
 void CExternalFilesAvisoGrid::GetValue
-		(const string		&name,
+		(const std::string		&name,
 		 CExpressionValue	&value,
-		 const string		&wantedUnit)
+		 const std::string		&wantedUnit)
 {
   double result;
   GetValue(name, result, wantedUnit);
@@ -222,9 +222,9 @@ void CExternalFilesAvisoGrid::GetValue
 
 // If WantedUnit is "", the returned value is in base (SI) unit.
 void CExternalFilesAvisoGrid::GetValue
-		(const string		&name,
+		(const std::string		&name,
 		 double         	&value,
-		 const string		&wantedUnit)
+		 const std::string		&wantedUnit)
 {
   uint32_t	start[3];
   uint32_t	count[3]	= {1, 1, 1};
@@ -581,12 +581,12 @@ void CExternalFilesAvisoGrid::CheckVariables()
 //----------------------------------------
 void CExternalFilesAvisoGrid::AddVar
 		            (int32_t	netcdfId,
-		             const string	&name,
-		             const string	&description,
-		             const string	&unit,
+		             const std::string	&name,
+		             const std::string	&description,
+		             const std::string	&unit,
                  int32_t type,
                  uint32_t dimValue,
-                 const string dimName, 
+                 const std::string dimName, 
                  int32_t dimId,
                  const CStringMap* mapAttributes /*= NULL*/)
 {
@@ -599,9 +599,9 @@ void CExternalFilesAvisoGrid::AddVar
 //----------------------------------------
 void CExternalFilesAvisoGrid::AddVar
 		            (int32_t	netcdfId,
-		             const string	&name,
-		             const string	&description,
-		             const string	&unit,
+		             const std::string	&name,
+		             const std::string	&description,
+		             const std::string	&unit,
                  int32_t type /*= NC_NAT*/,
                  const CUIntArray* dimValues  /*= NULL*/,
                  const CStringArray* dimNames  /*= NULL*/, 
@@ -690,7 +690,7 @@ void CExternalFilesAvisoGrid::SubstituteDimNames(CStringArray& dimNames)
 }
 
 //----------------------------------------
-void CExternalFilesAvisoGrid::AddVar(const string	&name)
+void CExternalFilesAvisoGrid::AddVar(const std::string	&name)
 {
   CExternalFilesNetCDF::AddVar(name);
 }
@@ -722,13 +722,13 @@ void CExternalFilesAvisoGrid::GetLongitudes
   }
 }
 ////----------------------------------------
-//void CExternalFilesAvisoGrid::ReadEntireVar(CNetCDFVarDef* netCDFVarDef, CDoubleArray& array, const string& wantedUnit)
+//void CExternalFilesAvisoGrid::ReadEntireVar(CNetCDFVarDef* netCDFVarDef, CDoubleArray& array, const std::string& wantedUnit)
 //{
 //  m_file.ReadEntireVar(netCDFVarDef, array, wantedUnit);
 //
 //}
 ////----------------------------------------
-//void CExternalFilesAvisoGrid::ReadEntireVar(CNetCDFDimension* netCDFDimension, CDoubleArray& array, const string& wantedUnit)
+//void CExternalFilesAvisoGrid::ReadEntireVar(CNetCDFDimension* netCDFDimension, CDoubleArray& array, const std::string& wantedUnit)
 //{
 //
 //  m_file.ReadEntireVar(netCDFDimension, array, wantedUnit);

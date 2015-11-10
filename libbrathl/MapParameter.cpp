@@ -48,11 +48,11 @@ CMapParameter::~CMapParameter()
 
 //----------------------------------------
 
-CParameter* CMapParameter::Insert(const string& key, const string& value)
+CParameter* CMapParameter::Insert(const std::string& key, const std::string& value)
 {
   
 
-  pair <CMapParameter::iterator,bool> pairInsert;
+  std::pair <CMapParameter::iterator,bool> pairInsert;
 
 
   // Si la cle existe deja --> pairInsert.second == false et 
@@ -81,7 +81,7 @@ CParameter* CMapParameter::Insert(const string& key, const string& value)
 }
 //----------------------------------------
 
-CParameter* CMapParameter::Exists(const string& key)
+CParameter* CMapParameter::Exists(const std::string& key)
 {
   CMapParameter::iterator it = map_parameter::find(key);
   if (it == end())
@@ -139,7 +139,7 @@ bool CMapParameter::Erase(CMapParameter::iterator iteratorParameter)
 //----------------------------------------
 
 
-bool CMapParameter::Erase(const string& key)
+bool CMapParameter::Erase(const std::string& key)
 {
 
    CMapParameter::iterator iteratorParameter;
@@ -159,7 +159,7 @@ bool CMapParameter::Erase(const string& key)
 
 //----------------------------------------
 
-CParameter* CMapParameter::operator[](const string key)
+CParameter* CMapParameter::operator[](const std::string key)
 {
 
   CParameter *p = map_parameter::operator[](key);
@@ -175,7 +175,7 @@ return  p;
 //----------------------------------------
 
 
-void CMapParameter::Dump(ostream& fOut /* = cerr */) 
+void CMapParameter::Dump(std::ostream& fOut /* = std::cerr */) 
 {
 
    if (CTrace::IsTrace() == false)
@@ -183,19 +183,19 @@ void CMapParameter::Dump(ostream& fOut /* = cerr */)
       return;
    }
 
-   fOut << "==> Dump a CMapParameter Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a CMapParameter Object at "<< this << " with " <<  size() << " elements" << std::endl;
  
    CMapParameter::iterator iteratorParameter;
 
    for (iteratorParameter = this->begin() ; iteratorParameter != this->end() ; iteratorParameter++)
    {
       CParameter *pParameterTmp = iteratorParameter->second;
-      fOut << "CMapParameter Key is = " << (*iteratorParameter).first << endl;
-      fOut << "CMapParameter Value is = " << endl;
+      fOut << "CMapParameter Key is = " << (*iteratorParameter).first << std::endl;
+      fOut << "CMapParameter Value is = " << std::endl;
       pParameterTmp->Dump(fOut);
    }
 
-   fOut << "==> END Dump a CMapParameter Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a CMapParameter Object at "<< this << " with " <<  size() << " elements" << std::endl;
   
 }
 

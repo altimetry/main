@@ -159,7 +159,7 @@ public:
   static bool LoadSchedulerTaskConfig(bool quiet = false);
   static bool SaveSchedulerTaskConfig(bool quiet = false);
 
-  void GetMapPendingBratTaskToProcess(const wxDateTime& dateref,  vector<wxLongLong_t>* vectorBratTaskToProcess);
+  void GetMapPendingBratTaskToProcess(const wxDateTime& dateref,  std::vector<wxLongLong_t>* vectorBratTaskToProcess);
 
   //wxMutexError MutexLock();
   //wxMutexError MutexUnLock();
@@ -183,7 +183,7 @@ public:
 
   static CSchedulerTaskConfig* GetInstance(bool reload = false, bool lockFile = true, bool unlockFile = true, const wxString& encoding = "UTF-8");
   static CSchedulerTaskConfig* GetInstance(const wxString* fileName, bool reload = false , bool lockFile = true, bool unlockFile = true, const wxString& encoding = "UTF-8");
-  //static CSchedulerTaskConfig* GetInstance(const string* fileName, bool reload = false, const wxString& encoding = "UTF-8");
+  //static CSchedulerTaskConfig* GetInstance(const std::string* fileName, bool reload = false, const wxString& encoding = "UTF-8");
 
   bool ParseDateTime(const wxString& value, wxDateTime& dt, wxString& error);
 
@@ -244,7 +244,7 @@ protected:
       
       virtual ~CSmartCleaner()
       {
-        //cout << "Enter ~CSmartCleaner" << endl;
+        //cout << "Enter ~CSmartCleaner" << std::endl;
 
         if( *m_pAddressOfSchedulerTaskConfigLogger != NULL )
         {

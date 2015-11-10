@@ -805,7 +805,7 @@ void CBratAlgorithmGeosVelGrid::PrepareDataValues2DOneField(CExpressionValue& ex
 
 
   //// Read data
-  //string fieldName = fieldNames->at(0);
+  //std::string fieldName = fieldNames->at(0);
   //CFieldNetCdf* field = CExternalFiles::GetFieldNetCdf(m_fieldVars.Exists(fieldName));
  
   //field->SetAtBeginning(false);
@@ -856,7 +856,7 @@ void CBratAlgorithmGeosVelGrid::PrepareDataValues2DComplexExpressionWithAlgo(CEx
   //  CRecordSet* recordSet = NULL;
 
   //  CDataSet* dataSet = m_product->GetDataSet();
-  //  string recordName = m_product->GetDataSetNameToRead();
+  //  std::string recordName = m_product->GetDataSetNameToRead();
 
   //    //dataSet->Dump(*CTrace::GetDumpContext());
 
@@ -924,7 +924,7 @@ void CBratAlgorithmGeosVelGrid::PrepareDataValues2DComplexExpression(CExpression
 
   //  field->SetAtBeginning(false);
   //  
-  //  string fieldName = field->GetName();
+  //  std::string fieldName = field->GetName();
   //  //CTrace::Tracer(fieldName);
 
   //  CExpressionValue* values = new CExpressionValue();
@@ -1119,7 +1119,7 @@ void CBratAlgorithmGeosVelGrid::GetLongitudes()
 
   CExpressionValue values;
 
-  string fieldName = expr->GetFieldNames()->at(0);
+  std::string fieldName = expr->GetFieldNames()->at(0);
 
   productNetCdf->GetExternalFile()->GetAllValues(fieldName, values, CUnit::m_UNIT_SI);
   
@@ -1161,7 +1161,7 @@ void CBratAlgorithmGeosVelGrid::GetLatitudes()
 
   CExpressionValue values;
 
-  string fieldName = expr->GetFieldNames()->at(0);
+  std::string fieldName = expr->GetFieldNames()->at(0);
 
   productNetCdf->GetExternalFile()->GetAllValues(fieldName, values, CUnit::m_UNIT_SI);
   
@@ -1291,7 +1291,7 @@ void CBratAlgorithmGeosVelGrid::CheckLatLonExpression(uint32_t index)
   }
 
 
-  string fieldName = field->GetName();
+  std::string fieldName = field->GetName();
 
   m_fieldVars.Insert(fieldName, field, false);
 
@@ -1419,54 +1419,54 @@ void CBratAlgorithmGeosVelGrid::CheckVarExpression(uint32_t index)
 }
 
 //----------------------------------------
-void CBratAlgorithmGeosVelGrid::Dump(ostream& fOut /*= cerr*/)
+void CBratAlgorithmGeosVelGrid::Dump(std::ostream& fOut /*= std::cerr*/)
 {
    if (CTrace::IsTrace() == false)
    { 
       return;
    }
 
-  fOut << "==> Dump a CBratAlgorithmGeosVelGrid Object at "<< this << endl;
+  fOut << "==> Dump a CBratAlgorithmGeosVelGrid Object at "<< this << std::endl;
   CBratAlgorithmGeosVel::Dump(fOut);
-  fOut << "m_varValue: " << m_varValue << endl;
-  fOut << "m_varValueW: " << m_varValueW << endl;
-  fOut << "m_varValueE: " << m_varValueE << endl;
-  fOut << "m_varValueN: " << m_varValueN << endl;
-  fOut << "m_varValueS: " << m_varValueS << endl;
-  fOut << "m_equatorLimit: " << m_equatorLimit << endl;
-  fOut << "m_allLongitudes: " << m_allLongitudes << endl;
-  fOut << "m_lonMin: " << m_lonMin << endl;
-  fOut << "m_lonMax: " << m_lonMax << endl;
-  fOut << "m_indexLon: " << m_indexLon << endl;
-  fOut << "m_indexLat: " << m_indexLat << endl;
-  fOut << "m_lonMax: " << m_lonMax << endl;
-  fOut << "m_varDimLatIndex: " << m_varDimLatIndex << endl;
-  fOut << "m_varDimLonIndex: " << m_varDimLonIndex << endl;
-  fOut << "m_longitudes: " << endl;
+  fOut << "m_varValue: " << m_varValue << std::endl;
+  fOut << "m_varValueW: " << m_varValueW << std::endl;
+  fOut << "m_varValueE: " << m_varValueE << std::endl;
+  fOut << "m_varValueN: " << m_varValueN << std::endl;
+  fOut << "m_varValueS: " << m_varValueS << std::endl;
+  fOut << "m_equatorLimit: " << m_equatorLimit << std::endl;
+  fOut << "m_allLongitudes: " << m_allLongitudes << std::endl;
+  fOut << "m_lonMin: " << m_lonMin << std::endl;
+  fOut << "m_lonMax: " << m_lonMax << std::endl;
+  fOut << "m_indexLon: " << m_indexLon << std::endl;
+  fOut << "m_indexLat: " << m_indexLat << std::endl;
+  fOut << "m_lonMax: " << m_lonMax << std::endl;
+  fOut << "m_varDimLatIndex: " << m_varDimLatIndex << std::endl;
+  fOut << "m_varDimLonIndex: " << m_varDimLonIndex << std::endl;
+  fOut << "m_longitudes: " << std::endl;
   m_longitudes.Dump(fOut);
-  fOut << "m_latitudes: " << endl;
+  fOut << "m_latitudes: " << std::endl;
   m_latitudes.Dump(fOut);
 
   if (m_fieldLon == NULL)
   {
-    fOut << "m_fieldLon: NULL " << endl;
+    fOut << "m_fieldLon: NULL " << std::endl;
   }
   else
   {
-    fOut << "m_fieldLon: " << endl;
+    fOut << "m_fieldLon: " << std::endl;
     m_fieldLon->Dump(fOut);
   }
   if (m_fieldLat == NULL)
   {
-    fOut << "m_fieldLat: NULL " << endl;
+    fOut << "m_fieldLat: NULL " << std::endl;
   }
   else
   {
-    fOut << "m_fieldLat: " << endl;
+    fOut << "m_fieldLat: " << std::endl;
     m_fieldLat->Dump(fOut);
   }
 
-  fOut << "==> END Dump a CBratAlgorithmGeosVelGrid Object at "<< this << endl;
+  fOut << "==> END Dump a CBratAlgorithmGeosVelGrid Object at "<< this << std::endl;
 
 }
 
@@ -1573,16 +1573,16 @@ double CBratAlgorithmGeosVelGridU::ComputeVelocity()
 }
 
 //----------------------------------------
-void CBratAlgorithmGeosVelGridU::Dump(ostream& fOut /*= cerr*/)
+void CBratAlgorithmGeosVelGridU::Dump(std::ostream& fOut /*= std::cerr*/)
 {
    if (CTrace::IsTrace() == false)
    { 
       return;
    }
 
-  fOut << "==> Dump a CBratAlgorithmGeosVelGridU Object at "<< this << endl;
+  fOut << "==> Dump a CBratAlgorithmGeosVelGridU Object at "<< this << std::endl;
   CBratAlgorithmGeosVelGrid::Dump(fOut);
-  fOut << "==> END Dump a CBratAlgorithmGeosVelGridU Object at "<< this << endl;
+  fOut << "==> END Dump a CBratAlgorithmGeosVelGridU Object at "<< this << std::endl;
 
 }
 //-------------------------------------------------------------
@@ -1685,16 +1685,16 @@ double CBratAlgorithmGeosVelGridV::ComputeVelocity()
 }
 //----------------------------------------
 
-void CBratAlgorithmGeosVelGridV::Dump(ostream& fOut /*= cerr*/)
+void CBratAlgorithmGeosVelGridV::Dump(std::ostream& fOut /*= std::cerr*/)
 {
    if (CTrace::IsTrace() == false)
    { 
       return;
    }
 
-  fOut << "==> Dump a CBratAlgorithmGeosVelGridV Object at "<< this << endl;
+  fOut << "==> Dump a CBratAlgorithmGeosVelGridV Object at "<< this << std::endl;
   CBratAlgorithmGeosVelGrid::Dump(fOut);
-  fOut << "==> END Dump a CBratAlgorithmGeosVelGridV Object at "<< this << endl;
+  fOut << "==> END Dump a CBratAlgorithmGeosVelGridV Object at "<< this << std::endl;
 
 }
 

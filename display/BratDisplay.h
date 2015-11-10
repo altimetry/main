@@ -32,6 +32,7 @@
 #endif
 
 #include "wx/filename.h" // (wxFileConfig class)
+#include "wx/fileconf.h" // (wxFileConfig class)
 
 #include "brathl.h"
 
@@ -49,13 +50,16 @@ using namespace brathl;
 
 
 //#include "BratDisplay_wdr.h"
-#include "Plot.h"
-#include "WPlot.h"
-#include "ZFXYPlot.h"
+#include "PlotData/Plot.h"
+#include "PlotData/WPlot.h"
+#include "PlotData/ZFXYPlot.h"
 
-#include "WorldPlotData.h"
+#include "PlotData/WorldPlotData.h"
 #include "XYPlotData.h"
 #include "ZFXYPlotData.h"
+
+
+#include "wxInterface.h"
 
 
 // WDR: class declarations
@@ -121,19 +125,7 @@ public:
 
   static void DetermineCharSize(wxWindow* wnd, int32_t& width, int32_t& height);
   wxFileConfig* GetConfig() {return m_config;};
-  //int32_t FindFieldPosInGlobalList(const string& fieldName);
-
-  wxFileName* GetExecName() {return &m_execName;};
-
-  wxString GetExecPathName(int32_t flags = wxPATH_GET_VOLUME, wxPathFormat format = wxPATH_NATIVE) 
-#ifdef __WXMAC__
-                        {return (m_execName.IsRelative() ? 
-                                 m_execName.GetPath(flags, format) + "/BratDisplay.app/Contents/MacOS" :
-                                 m_execName.GetPath(flags, format));};
-#else
-                        {return m_execName.GetPath(flags, format);};
-#endif
-
+  //int32_t FindFieldPosInGlobalList(const std::string& fieldName);
 
 private:
 //-------------------------------------------------------------
@@ -178,10 +170,10 @@ private:
   //void CheckFieldsData(CInternalFilesZFXY* zfxy, int32_t indexField);
   //void CheckFieldsData(CInternalFilesYFX* yfx, int32_t indexField);
   
-  //int32_t FindFieldIndexExpression(const string& str);
+  //int32_t FindFieldIndexExpression(const std::string& str);
 
   //CInternalFiles* GetFirstFile();
-  string GetFirstFileName();
+  std::string GetFirstFileName();
 
   bool IsWPlot();
   void WorldPlot();
@@ -212,10 +204,10 @@ private:
 
 private:
 
-  string m_paramFile;
+  std::string m_paramFile;
 
-  string m_paramXAxis;
-  string m_paramYAxis;
+  std::string m_paramXAxis;
+  std::string m_paramYAxis;
 
   CStringList m_paramVars;
 
@@ -224,14 +216,14 @@ private:
   CStringArray m_inputFiles;
   CObMap m_fieldBitSets;
  
-  vector<CExpression> m_fields;
+  std::vector<CExpression> m_fields;
   CObArray m_plots;
 
-  string m_inputFileType;
+  std::string m_inputFileType;
 
-  CObArray m_internalData;
+  //femm CObArray m_internalData;
 
-  CObArray m_geoMaps;
+  //CObArray m_geoMaps;
   CObArray m_zfxyMaps;
 
 
@@ -251,7 +243,7 @@ private:
   bool m_isZFLatLon;
   bool m_isZFXY;
 
-  wxFileName m_execName;
+  //wxFileName m_execName;
 
 };
 

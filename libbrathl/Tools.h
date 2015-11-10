@@ -21,8 +21,10 @@
 #define _Tools_h_
 
 #include <cstdarg>
-#include <cstring>
-#include "Stl.h"
+#include <string>
+#include <vector>
+#include <bitset>
+#include <map>
 
 #include "brathl_error.h"
 #include "brathl.h"
@@ -34,7 +36,7 @@ namespace brathl
 {
 
 
-typedef bitset<32> bitSet32;
+typedef std::bitset<32> bitSet32;
 
 
 //typedef struct _type_union type_union;
@@ -93,7 +95,7 @@ va_arg(lvalp, type);
 
 //static const type_union END = { T_END };
 //
-//typedef vector<type_union> vectorTypeUnion;
+//typedef std::vector<type_union> vectorTypeUnion;
 
 //-------------------------------------------------------------
 //------------------- CVectorTypeUnion class --------------------
@@ -110,7 +112,7 @@ va_arg(lvalp, type);
 //
 //  virtual void RemoveAll() { vectorTypeUnion::clear(); };
 //
-//  virtual void Dump(ostream& fOut  = cerr);
+//  virtual void Dump(std::ostream& fOut  = std::cerr);
 //
 //};
 
@@ -178,74 +180,74 @@ public:
 
   static bool Compare(const char *str1, const char *str2);
   static bool CompareNoCase(const char *str1, const char *str2);
-  static bool CompareNoCase(const string& str1, const string& str2);
+  static bool CompareNoCase(const std::string& str1, const std::string& str2);
 
-  static int32_t FindNoCase(const string& src, const string& findWhat, uint32_t pos = 0);
+  static int32_t FindNoCase(const std::string& src, const std::string& findWhat, uint32_t pos = 0);
   static int32_t FindNoCase(const char* src, const char* findWhat, uint32_t pos = 0);
   
-  static int32_t RFindNoCase(const string& src, const string& findWhat, uint32_t pos = 0);
+  static int32_t RFindNoCase(const std::string& src, const std::string& findWhat, uint32_t pos = 0);
   static int32_t RFindNoCase(const char* src, const char* findWhat, uint32_t pos = 0);
 
 
-  /** Remove all the blank characters at the  beginning and the end of a string.
+  /** Remove all the blank characters at the  beginning and the end of a std::string.
     Blank characters are identified by the function isspace (3C).
-    \param str [in/out] : string to be modified
-    \return a pointer to the string*/
+    \param str [in/out] : std::string to be modified
+    \return a pointer to the std::string*/
   static char * Trim(char *str);
 
   /** Compare the two strings str1 and str2,
      while being unaware of the differences between upper-case and lower-case.
      This  method is thus identical to the function strcasecmp (3C) with the following difference :
-     str1, str2 can be NULL, in this case, the string concerned is regarded as a null string.
-    \param[in] str1 : string 1
-    \param[in] str2 : string 2
+     str1, str2 can be NULL, in this case, the std::string concerned is regarded as a null std::string.
+    \param[in] str1 : std::string 1
+    \param[in] str2 : std::string 2
      \return : negative, null (= 0) or positive value if the str1 is respectively lower, equal or higher than str2.
   */
   static int32_t StrCaseCmp(const char *str1, const char *str2);
 
-  /** Remove all the blank characters in a string.
+  /** Remove all the blank characters in a std::string.
     Blank characters are identified by the function isspace (3C).
-    \param str [in/out] : string to be modified
-    \return a pointer to the string*/
+    \param str [in/out] : std::string to be modified
+    \return a pointer to the std::string*/
   static char * RemoveAllSpaces(char *str);
 
-  /** Remove all the blank characters in a string.
+  /** Remove all the blank characters in a std::string.
     Blank characters are identified by the function isspace (3C).
-    \param[in] str : string to be modified
-    \return the modified string */
-  static string StringRemoveAllSpaces(const string& str);
+    \param[in] str : std::string to be modified
+    \return the modified std::string */
+  static std::string StringRemoveAllSpaces(const std::string& str);
 
-  /** Replace all tokens of char c by char replaceBy  in a string.
-    \param[in] str : string to be modified
+  /** Replace all tokens of char c by char replaceBy  in a std::string.
+    \param[in] str : std::string to be modified
     \param[in] c : char to replace
     \param[in] replaceBy : char replaced
-    \return the modified string */
-  static string StringReplace(const string& str, char c, char replaceBy);
+    \return the modified std::string */
+  static std::string StringReplace(const std::string& str, char c, char replaceBy);
 
-  static bool StringCompare(const string& s1, const string& s2);
+  static bool StringCompare(const std::string& s1, const std::string& s2);
 
-  /** Replace all tokens of string c by string replaceBy  in a string.
-    \param[in] str : string to be modified
-    \param[in] c : string to replace
-    \param[in] replaceBy : string replaced
-    \return the modified string */
-  static string StringReplace(const string& str, const string& c, const string& replaceBy, bool compareNoCase = false);
+  /** Replace all tokens of std::string c by std::string replaceBy  in a std::string.
+    \param[in] str : std::string to be modified
+    \param[in] c : std::string to replace
+    \param[in] replaceBy : std::string replaced
+    \return the modified std::string */
+  static std::string StringReplace(const std::string& str, const std::string& c, const std::string& replaceBy, bool compareNoCase = false);
 
-  /** Remove all the blank characters at the  beginning and the end of a string.
+  /** Remove all the blank characters at the  beginning and the end of a std::string.
     Blank characters are identified by the function isspace (3C).
-    \param str [in/out] : string to be modified
-    \return a trimmed string*/
-  static string StringTrim(const string& str);
+    \param str [in/out] : std::string to be modified
+    \return a trimmed std::string*/
+  static std::string StringTrim(const std::string& str);
 
 
-  /** Set a string in uppercase
-    \param str [in/out] : string to be modified
-    \return a pointer to the string*/
+  /** Set a std::string in uppercase
+    \param str [in/out] : std::string to be modified
+    \return a pointer to the std::string*/
   static char * ToUpper(char *str);
 
-  /** Set a string in lowercase
-    \param str [in/out] : string to be modified
-    \return a pointer to the string*/
+  /** Set a std::string in lowercase
+    \param str [in/out] : std::string to be modified
+    \return a pointer to the std::string*/
   static char * ToLower(char *str);
 
   /** Set a character in uppercase
@@ -253,59 +255,59 @@ public:
     \return the uppercase character */
   static char ToUpper(const char chr);
 
-  /** Set a string in lowercase
+  /** Set a std::string in lowercase
     \param[in] chr : character
     \return the lowercase character */
   static char ToLower(const char chr);
 
-  /** Set a string object in lowercase
-    \param str [in/out] : string to be modified
-    \return a new string object in lowercase*/
-  static string StringToLower(const string& str);
+  /** Set a std::string object in lowercase
+    \param str [in/out] : std::string to be modified
+    \return a new std::string object in lowercase*/
+  static std::string StringToLower(const std::string& str);
 
-  /** Set a string object in uppercase
+  /** Set a std::string object in uppercase
     \param[in] str : character
-    \return a new string object in uppercase */
-  static string StringToUpper(const string& str);
+    \return a new std::string object in uppercase */
+  static std::string StringToUpper(const std::string& str);
 
-  /**Write formatted data to a string.
+  /**Write formatted data to a std::string.
     WARNING : this method use vsnprintf if vsnprintf is defined,
     otherwise vsprintf is used and 'size' parameter is ignored
     \param[out] str : storage location for output.
     \param[in] size : maximum number of characters to store
-    \param[in] format : format-control string
+    \param[in] format : format-control std::string
     \param[in] ... : optional arguments
     \return return value of the vsnprintf or vsprintf - see documentation of these functions*/
   static int32_t snprintf(char* str, size_t size, const char *format, ...)
       	__attribute__ ((format(printf, 3, 4)));
 
-  /**Write formatted data to a string.
+  /**Write formatted data to a std::string.
     WARNING : this method use vsnprintf if vsnprintf is defined,
     otherwise vsprintf is used and 'size' parameter is ignored
     \param[in] size : maximum number of characters to store
-    \param[in] format : format-control string
+    \param[in] format : format-control std::string
     \param[in] ... : optional arguments
-    \return formatted string*/
-  static string Format(size_t size, const char *format, ...)
+    \return formatted std::string*/
+  static std::string Format(size_t size, const char *format, ...)
       	__attribute__ ((format(printf, 2, 3)));
 
-  /**Write formatted data to a string.
+  /**Write formatted data to a std::string.
     WARNING : this method use vsnprintf if vsnprintf is defined,
     otherwise vsprintf is used and 'size' parameter is ignored
-    \param[in] format : format-control string
+    \param[in] format : format-control std::string
     \param[in] ... : optional arguments
-    \return formatted string*/
-  static string Format(const char *format, ...)
+    \return formatted std::string*/
+  static std::string Format(const char *format, ...)
 	__attribute__ ((format(printf, 1, 2)));
 
-  /**Write formatted data to a string.
+  /**Write formatted data to a std::string.
     WARNING : this method use vsnprintf if vsnprintf is defined,
     otherwise vsprintf is used and 'size' parameter is ignored
     \param[in] size : maximum number of characters to store
-    \param[in] format : format-control string
+    \param[in] format : format-control std::string
     \param[in] args : optional arguments
-    \return formatted string*/
-  static string Format(size_t size, const char *format, va_list args);
+    \return formatted std::string*/
+  static std::string Format(size_t size, const char *format, va_list args);
 
 
 
@@ -741,8 +743,8 @@ public:
   /**Removes trailing zeroes from a number: 2.30000 is transformed into 2.3.
     \param[in] Text : String
     \param[in] dotTrim : if true, remove dot at the end : 2.000 --> 2, if false, leave dot : 2.000 --> 2.
-    \return Returns modifed string*/
-  static string TrailingZeroesTrim(const string	&Text, bool dotTrim = true);
+    \return Returns modifed std::string*/
+  static std::string TrailingZeroesTrim(const std::string	&Text, bool dotTrim = true);
 
 //----------------------------------------
 
@@ -750,14 +752,14 @@ public:
     \param[in] Name : File name
     \return Returns true if file exists and is readable*/
   static bool FileExists
-		(const string	&Name);
+		(const std::string	&Name);
 
 //----------------------------------------
   /**Indicates if a directory exists
     \param[in] Name : Directory name
     \return Returns true if directory exists*/
   static bool DirectoryExists
-		(const string	&Name);
+		(const std::string	&Name);
 
 //----------------------------------------
   /**Explicitly set the Data Directory based on a relative path to the current executable.
@@ -771,14 +773,14 @@ public:
   /**Explicitly set the Data Directory.
     \param[in] DataDir : Full path to data directory.*/
   static void SetDataDir
-		(const string &DataDir);
+		(const std::string &DataDir);
 
 //----------------------------------------
 
   /**Returns the constant data directory defined at compilation time,
      by environment variable, or set by application.
-    \return Returns the path of found file or an empty string if not found*/
-  static string GetDataDir
+    \return Returns the path of found file or an empty std::string if not found*/
+  static std::string GetDataDir
 		();
 
 //----------------------------------------
@@ -786,42 +788,42 @@ public:
   /**Finds a file path known only by its name. The path is retreived
      from compilation (intallation prefix) or by environment variable.
     \param[in] Name : File name
-    \return Returns the path of found file or an empty string if not found*/
-  static string FindDataFile
-		(const string	&Name);
+    \return Returns the path of found file or an empty std::string if not found*/
+  static std::string FindDataFile
+		(const std::string	&Name);
 
   /**Finds a file location known only by its name using the give path.
      The path should be similar to what can be used for the PATH environment
      variable on the current system.
     \param[in] filename : File name
     \param[in] path : Search path
-    \return Returns the full path to the file or an empty string if not found*/
-  static string FindFileInPath
-    (const string &filename, const string &path);
+    \return Returns the full path to the file or an empty std::string if not found*/
+  static std::string FindFileInPath
+    (const std::string &filename, const std::string &path);
 
   /** This encodes characters that are not printable or can be encode with
       one of the C/C++ standard escape sequences. The 'exclude' list is a
       list of chars to exclude from the encoding process. Since the '\\0' is
-      used to determine the end of the string and will not be encoded.
-   \param[in] str  : The string to encode.
+      used to determine the end of the std::string and will not be encoded.
+   \param[in] str  : The std::string to encode.
    \param[in] exclude : A list of charters to exclude from encoding.
    \param[in] literals :A list of printable characters to be included in the
      encodeing.
    \param hexadecimal If true, non-standard, non-printable charecters will
      be encoded in hexadecimal. If false they will be encoded in octal
      format.
-   \return the newly encoded string.*/
-  static string SlashesEncode (const string& str, const string& exclude = "", const string& literals = "", bool hexadecimal = true);
+   \return the newly encoded std::string.*/
+  static std::string SlashesEncode (const std::string& str, const std::string& exclude = "", const std::string& literals = "", bool hexadecimal = true);
 
-  /** Takes a string with escaped charters including decimal and
+  /** Takes a std::string with escaped charters including decimal and
       hexadecimal escapes and decodes them to the literal charter. This
       function supports only standard C/C++ escaped literals.
-   \param[in] str : The string to decode.
+   \param[in] str : The std::string to decode.
    \param[in] exclude : A list of charters to exclude from decoding.
    \param[in] decodeliterals : Set if non standard escaped literals are to be
      deocded.
-   \return the newly encoded string.*/
-  static string SlashesDecode (const string& str, const string& exclude = "", bool decodeliterals = true);
+   \return the newly encoded std::string.*/
+  static std::string SlashesDecode (const std::string& str, const std::string& exclude = "", bool decodeliterals = true);
 
   /** Removes characters c1 and c2, if these characters surround an number (integer or decimal).
     For example:
@@ -829,72 +831,72 @@ public:
       RemoveCharSurroundingNumber("ABCD (+125.63)", '(', ')') will return "ABCD +125.63"
       RemoveCharSurroundingNumber("ABCD (-45) (XYZ*2)", '(', ')') will return "ABCD -45 (XYZ*2)"
       RemoveCharSurroundingNumber("(ABCD ((-45)))", '(', ')') will return "(ABCD (-45))"
-   \param[in] str : The string to modify
+   \param[in] str : The std::string to modify
    \param[in] c1 : the first surrounding char
    \param[in] c2 : the last surrounding char
-   \return the newly modified string.*/
-  static string RemoveCharSurroundingNumber (const string& str, const char c1 = '(', const char c2 = ')');
+   \return the newly modified std::string.*/
+  static std::string RemoveCharSurroundingNumber (const std::string& str, const char c1 = '(', const char c2 = ')');
 
   /** Expands shell variables (i.e. ${HOME}).
     If the '$' character is preceded by '\', it's taken into account as a common character.and 
     not as a shell variable identifier.
     Shell variables beginning by '+' are expanded in uppercase.
     Shell variables beginning by '-' are expanded in lowercase.
-   \param[in] value : The string to expand
-   \return the newly expanded string.*/
-  static string ExpandShellVar(const string& value);
+   \param[in] value : The std::string to expand
+   \return the newly expanded std::string.*/
+  static std::string ExpandShellVar(const std::string& value);
 
   /** Expand variables (i.e. %{VAR}).
     If the '%' character is preceded by '\', it's taken into account as a common
     character and not as a variable identifier.
     Variables begining by '+' are expanded in uppercase.
     Variables begining by '-' are expanded in lowercase.
-   \param[in] value : The string to expand
+   \param[in] value : The std::string to expand
    \param[in] VarValues : The values of the variables. If NULL, the environment
 			variables are taken.
    \param[in] Begining : Char identifying the begining of a var reference
    \param[in] Recurse : If true, variable expanded can contain references to
 		other variables which are then expanded.
-   \return the newly expanded string.*/
-  static string ExpandVariables	(const string	&valueIn, const map<string, string> *varValues,
-                                 bool recurse = false, char beginning = '%', uint32_t* numberVarsExpanded = NULL, bool withExcept = false, string* errorMsg = NULL);
+   \return the newly expanded std::string.*/
+  static std::string ExpandVariables	(const std::string	&valueIn, const std::map<std::string, std::string> *varValues,
+                                 bool recurse = false, char beginning = '%', uint32_t* numberVarsExpanded = NULL, bool withExcept = false, std::string* errorMsg = NULL);
 
-  static string ExpandVariables	(const string	&valueIn, const map<string, string> *varValues, const map<string, string>	*fieldAliases,
-                                 bool recurse = false, char beginning = '%', uint32_t* numberVarsExpanded = NULL, bool withExcept = false, string* errorMsg = NULL);
+  static std::string ExpandVariables	(const std::string	&valueIn, const std::map<std::string, std::string> *varValues, const std::map<std::string, std::string>	*fieldAliases,
+                                 bool recurse = false, char beginning = '%', uint32_t* numberVarsExpanded = NULL, bool withExcept = false, std::string* errorMsg = NULL);
 
-  static void StringToAlias(const string& in, string& out, const char beginning	/*= '%'*/);
+  static void StringToAlias(const std::string& in, std::string& out, const char beginning	/*= '%'*/);
 
   /** Cleans a path variable
     - change path separator in a suitable path separator ('\' or '/' depending on the system)
     - skip trailing "../..", if any
     - remove back references: translate dir1/../dir2 to dir2
-   \param[in] path : The string to clean
-   \return the newly cleaned string.*/
-  static string MakeCorrectPath(const string& path);
+   \param[in] path : The std::string to clean
+   \return the newly cleaned std::string.*/
+  static std::string MakeCorrectPath(const std::string& path);
 
   /** Creates an absolute or full path name for the specified relative path name.
     - change path separator in a suitable path separator ('\' or '/' depending on the system)
     - skip trailing "../..", if any
     - remove back references: translate dir1/../dir2 to dir2
    \param[in] partialPath : the relative path
-   \return the absolute path name, or  empty string if there is an error 
+   \return the absolute path name, or  empty std::string if there is an error 
       (for example, if the value passed in relPath includes a drive letter that is not valid or cannot be found,
        or if the length of the created absolute path name  is greater than the BRATHL_PATH_MAX defined in brathl.h) */
-  static string AbsolutePath(const string& partialPath);
+  static std::string AbsolutePath(const std::string& partialPath);
 
   /** Gets a file name extension.
    \param[in] filename : file name 
-   \return the extension, or empty string if none */
-  static string FileExtension(const string& fileName);
+   \return the extension, or empty std::string if none */
+  static std::string FileExtension(const std::string& fileName);
 
-  /** Gets a directory name from a string
+  /** Gets a directory name from a std::string
    \param[in] path : full path
    \return the directory name, or '.' if path has only one component */
-  static string DirName(const string& fileName);
+  static std::string DirName(const std::string& fileName);
 
-  /** Gets a base file name from a string
+  /** Gets a base file name from a std::string
    \param[in] path : full path
-   \return the base file name (no extension), or empty string, or :
+   \return the base file name (no extension), or empty std::string, or :
       '.' returns '.',
       './' returns '.',
       '/' returns '/',
@@ -902,7 +904,7 @@ public:
       '../' returns '..'
       'abc/def/' returns 'def'
   */
-  static string BaseName(const string& fileName);
+  static std::string BaseName(const std::string& fileName);
 
 #if HAVE_SPLITPATH
   /** Breaks a path name into components
@@ -912,8 +914,8 @@ public:
    \param[out] fname : Optional Base filename (no extension) 
    \param[out] ext : Optional filename extension, including leading period (.) 
    */
-  static void SplitPath(const string& path, 
-                        string* drive = NULL, string* dir = NULL, string* fname = NULL, string* ext= NULL);
+  static void SplitPath(const std::string& path, 
+                        std::string* drive = NULL, std::string* dir = NULL, std::string* fname = NULL, std::string* ext= NULL);
 #endif
 
 
@@ -924,65 +926,65 @@ public:
   static void SwapValue(double &value);
 
    /**
-   * Converts and normalize a latitude string representation (eg 60 N, 75.56 W, 60, -75.56) Normalize +/-90.
+   * Converts and normalize a latitude std::string representation (eg 60 N, 75.56 W, 60, -75.56) Normalize +/-90.
    * 
-   * @param value latitude string representation
+   * @param value latitude std::string representation
    * 
    */
-  static double UnconvertLat(const string& value);
+  static double UnconvertLat(const std::string& value);
 
    /**
-     * Converts and eventually normalize a longitude string representation (eg 60 E, 120.23 W, 60, -120.23)
+     * Converts and eventually normalize a longitude std::string representation (eg 60 E, 120.23 W, 60, -120.23)
      * Normalize +/-180.
      * 
      * @param normalize set to true to normalize longitude value
-     * @param value longitude string representation
+     * @param value longitude std::string representation
      * 
      * @return converted longitude.
      */
-  static double UnconvertLon(const string& value, bool normalize = true);
+  static double UnconvertLon(const std::string& value, bool normalize = true);
 
-  /** Convert an string to double
-   \param[in] value : string to be converted
+  /** Convert an std::string to double
+   \param[in] value : std::string to be converted
    \return coanverted value or CTool::m_defaultValueDOUBLE if no possible conversion.
    */
-  static double StrToDouble(const string& value);
+  static double StrToDouble(const std::string& value);
 
-  /** Convert an string to int
-   \param[in] value : string to be converted
+  /** Convert an std::string to int
+   \param[in] value : std::string to be converted
    \return coanverted value or CTool::m_defaultValueINT if no possible conversion.
    */
-  static int32_t StrToInt(const string &s);
+  static int32_t StrToInt(const std::string &s);
 
-  /** Convert an string to int64
-   \param[in] value : string to be converted
+  /** Convert an std::string to int64
+   \param[in] value : std::string to be converted
    \return coanverted value or CTool::m_defaultValueINT if no possible conversion.
    */
-  static int64_t StrToInt64(const string &s);
+  static int64_t StrToInt64(const std::string &s);
 
-  /** Convert an string to uint64
-   \param[in] value : string to be converted
+  /** Convert an std::string to uint64
+   \param[in] value : std::string to be converted
    \return coanverted value or CTool::m_defaultValueINT if no possible conversion.
    */
-  static uint64_t StrToUInt64(const string &s);
+  static uint64_t StrToUInt64(const std::string &s);
 
-  /** Convert an int to string
+  /** Convert an int to std::string
    \param[in] value : int to be converted
-   \return coanverted value or empty string if no possible conversion.
+   \return coanverted value or empty std::string if no possible conversion.
    */
-  static string IntToStr(int32_t i);
+  static std::string IntToStr(int32_t i);
 
-  static int64_t StrToLong(const string &s);
-  static string LongToStr(int64_t i);
+  static int64_t StrToLong(const std::string &s);
+  static std::string LongToStr(int64_t i);
 
-  /** Convert an double to string
+  /** Convert an double to std::string
    \param[in] value : double to be converted
-   \return coanverted value or empty string if no possible conversion.
+   \return coanverted value or empty std::string if no possible conversion.
    */
-  static string DoubleToStr(double d, int32_t precision = 10);
+  static std::string DoubleToStr(double d, int32_t precision = 10);
 
-  static float StrToFloat(const string& value);
-  static string FloatToStr(float f, int32_t precision = 10);
+  static float StrToFloat(const std::string& value);
+  static std::string FloatToStr(float f, int32_t precision = 10);
 
   /* 
   * Translate the array indexes pair into a seek index
@@ -1004,36 +1006,36 @@ public:
 
   static uint32_t GetProductValues(uint32_t* shape, uint32_t nbDims);
 
-  static string Replace(const string& inText, const string& regexpPattern, const string replaceString);
+  static std::string Replace(const std::string& inText, const std::string& regexpPattern, const std::string replaceString);
 
-  static string ReplaceString(const string& inText, const vector<string>& findString, const vector<string>& replaceWords);
-  static string ReplaceWord(const string& inText, const vector<string>& findWords, const vector<string>& replaceWords);
-  static string ReplaceWord(const string& inText, const string& findWords, const string& replaceWords);
+  static std::string ReplaceString(const std::string& inText, const std::vector<std::string>& findString, const std::vector<std::string>& replaceWords);
+  static std::string ReplaceWord(const std::string& inText, const std::vector<std::string>& findWords, const std::vector<std::string>& replaceWords);
+  static std::string ReplaceWord(const std::string& inText, const std::string& findWords, const std::string& replaceWords);
 
-  static void Find(const string& inText, const string& regexpPattern, vector<string>& stringFound);
+  static void Find(const std::string& inText, const std::string& regexpPattern, std::vector<std::string>& stringFound);
 
-  static void FindWord(const string& inText, vector<string>& wordsFound);
+  static void FindWord(const std::string& inText, std::vector<std::string>& wordsFound);
 
-  static void FindAliases(const string& inText, vector<string>& aliasesFound,                                 
+  static void FindAliases(const std::string& inText, std::vector<std::string>& aliasesFound,                                 
                          bool onlyName = false,                                 
-                         const string& begining	= "%",
+                         const std::string& begining	= "%",
                          bool recurse = false, 
-                         const map<string, string>* varValues = NULL,
-                         const map<string, string>* fieldAliases = NULL,
-                         bool withExcept = false, string* errorMsg = NULL);
+                         const std::map<std::string, std::string>* varValues = NULL,
+                         const std::map<std::string, std::string>* fieldAliases = NULL,
+                         bool withExcept = false, std::string* errorMsg = NULL);
 
   static void DeleteObject(CBratObject* ob);
 
-  static bool LoadAndCheckUdUnitsSystem(string& errorMsg);
+  static bool LoadAndCheckUdUnitsSystem(std::string& errorMsg);
 
   // get all characters before the first occurence of ch
-  // (returns the whole string if ch not found)
-  static string BeforeFirst(const string& str, const char ch);
+  // (returns the whole std::string if ch not found)
+  static std::string BeforeFirst(const std::string& str, const char ch);
 
-  static string ToString(const char *s, size_t len = string::npos);
+  static std::string ToString(const char *s, size_t len = std::string::npos);
 
-  static void ReplaceAliases(const string& in, string& out, vector<string>* aliases = NULL);
-  static void ReplaceAliases(const string& in, const string& replacedBy, string& out, vector<string>* aliases = NULL);
+  static void ReplaceAliases(const std::string& in, std::string& out, std::vector<std::string>* aliases = NULL);
+  static void ReplaceAliases(const std::string& in, const std::string& replacedBy, std::string& out, std::vector<std::string>* aliases = NULL);
 
   // The following code returns the distance between to locations based on each point's longitude and latitude. 
   // The distance returned is relative to Earth's radius. 
@@ -1119,7 +1121,7 @@ public:
   /// default values for float
   static const float m_defaultValueFLOAT;
 
-  /// default values for string
+  /// default values for std::string
   static const char *m_defaultValueString;
 
   // maximum difference used to declare that two real values are equal
@@ -1127,10 +1129,10 @@ public:
 
   static const double m_deltaLatitudeMercator;
 
-  //static const string CTools::m_warningHeader;
+  //static const std::string CTools::m_warningHeader;
 
 private:
-  static string	m_DataDir;
+  static std::string	m_DataDir;
 
 };
 

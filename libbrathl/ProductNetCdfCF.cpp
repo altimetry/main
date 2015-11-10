@@ -26,7 +26,7 @@
 #include "brathl_error.h"
 #include "brathl.h"
 
-#include "Stl.h"
+#include <string>
 
 #include "TraceLog.h"
 #include "Tools.h"
@@ -48,7 +48,7 @@ CProductNetCdfCF::CProductNetCdfCF()
 
 //----------------------------------------
 
-CProductNetCdfCF::CProductNetCdfCF(const string& fileName)
+CProductNetCdfCF::CProductNetCdfCF(const std::string& fileName)
       : CProductNetCdf(fileName)
 {
   Init();
@@ -379,7 +379,7 @@ bool CProductNetCdfCF::NextIndex()
       break;
     }
 
-    string dimName = it->first;
+    std::string dimName = it->first;
 
     uint32_t count = m_dimsCount.Exists(dimName);
 
@@ -559,7 +559,7 @@ void CProductNetCdfCF::AdjustIndexesFromField(CFieldNetCdf *field, bool next /* 
 
   for (int32_t i = 0 ; i < field->GetNbDims() ; i++)
   {
-    string dimName = field->GetDimNames().at(i);
+    std::string dimName = field->GetDimNames().at(i);
     uint32_t currentFieldIndex = field->GetDimsIndexArray()[i];
 
     CUIntMap::iterator it = m_dimIndexes.find(dimName);
@@ -605,7 +605,7 @@ void CProductNetCdfCF::AdjustIndexesToMin(CFieldNetCdf *field, bool next /* = tr
 
   for (int32_t i = 0 ; i < field->GetNbDims() ; i++)
   {
-    string dimName = field->GetDimNames().at(i);
+    std::string dimName = field->GetDimNames().at(i);
     uint32_t currentFieldIndex = field->GetDimsIndexArray()[i];
 
     CUIntMap::iterator it = m_dimIndexes.find(dimName);
@@ -648,7 +648,7 @@ int32_t CProductNetCdfCF::GetNumberOfRecords()
 }
 
 //----------------------------------------
-int32_t CProductNetCdfCF::GetNumberOfRecords(const string& dataSetName /*NOT USED*/)
+int32_t CProductNetCdfCF::GetNumberOfRecords(const std::string& dataSetName /*NOT USED*/)
 {
   return GetNumberOfRecords();
 }
@@ -691,7 +691,7 @@ CProduct* CProductNetCdfCF::Clone()
   return product;
 }
 //----------------------------------------
-void CProductNetCdfCF::Dump(ostream& fOut /* = cerr */)
+void CProductNetCdfCF::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -699,29 +699,29 @@ void CProductNetCdfCF::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CProductNetCdfCF Object at "<< this << endl;
+  fOut << "==> Dump a CProductNetCdfCF Object at "<< this << std::endl;
 
   //------------------
   CProductNetCdf::Dump(fOut);
   //------------------
 
-  fOut << "m_atBeginning = " << m_atBeginning << endl;
+  fOut << "m_atBeginning = " << m_atBeginning << std::endl;
 
-  fOut << "m_dimIds = " << endl;
+  fOut << "m_dimIds = " << std::endl;
   m_dimIds.Dump(fOut);
 
-  fOut << "m_dimIndexes = " << endl;
+  fOut << "m_dimIndexes = " << std::endl;
   m_dimIndexes.Dump(fOut);
 
-  fOut << "m_dimsCount = " << endl;
+  fOut << "m_dimsCount = " << std::endl;
   m_dimsCount.Dump(fOut);
 
-  fOut << "m_dimValues = " << endl;
+  fOut << "m_dimValues = " << std::endl;
   m_dimValues.Dump(fOut);
 
-  fOut << "==> END Dump a CProductNetCdfCF Object at "<< this << endl;
+  fOut << "==> END Dump a CProductNetCdfCF Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

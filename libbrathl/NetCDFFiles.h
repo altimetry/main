@@ -20,9 +20,9 @@
 #ifndef _NetCDFFiles_h_
 #define _NetCDFFiles_h_
 
-#include <netcdf.h>
+#include "netcdf.h"
 #include "BratObject.h"
-#include "Stl.h"
+#include <string>
 #include "List.h"
 #include "Expression.h"
 
@@ -63,13 +63,13 @@ using namespace brathl;
 namespace brathl
 {
 
-  const string SSHA = "SSHA";
-  const string GDR = "GDR";
-  const string SGDR = "SGDR";
+  const std::string SSHA = "SSHA";
+  const std::string GDR = "GDR";
+  const std::string SGDR = "SGDR";
   
-  const string SSHA_TITLE = "reduced dataset";
-  const string GDR_TITLE = "standard dataset";
-  const string SGDR_TITLE = "expertise dataset";
+  const std::string SSHA_TITLE = "reduced dataset";
+  const std::string GDR_TITLE = "standard dataset";
+  const std::string SGDR_TITLE = "expertise dataset";
 
 
 /** \addtogroup tools Tools
@@ -102,9 +102,9 @@ namespace brathl
 #define VALID_MIN_ATTR		"valid_min"
 #define VALID_MAX_ATTR		"valid_max"
 
-const string GENERIC_NETCDF_TYPE  = "Generic NetCdf";
-const string YFX_NETCDF_TYPE  = "Y=F(X)";
-const string ZFXY_NETCDF_TYPE  = "Z=F(X,Y)";
+const std::string GENERIC_NETCDF_TYPE  = "Generic NetCdf";
+const std::string YFX_NETCDF_TYPE  = "Y=F(X)";
+const std::string ZFXY_NETCDF_TYPE  = "Z=F(X,Y)";
 
 
 //-------------------------------------------------------------
@@ -115,7 +115,7 @@ class CNetCDFAttr : public CBratObject
 protected:
 
   CNetCDFAttr();
-  CNetCDFAttr(const string& name, bool globalAttr = false);
+  CNetCDFAttr(const std::string& name, bool globalAttr = false);
 
   CNetCDFAttr(CNetCDFAttr& a);
 
@@ -124,8 +124,8 @@ public:
 
   virtual ~CNetCDFAttr();
   
-  string GetName() { return m_name;};
-  void SetName(const string& value) { m_name = value; };
+  std::string GetName() { return m_name;};
+  void SetName(const std::string& value) { m_name = value; };
   
   bool IsGlobalAttr() { return m_globalAttr;};
   void SetGlobalAttr(bool value) { m_globalAttr = value; };
@@ -141,7 +141,7 @@ public:
 
   static CNetCDFAttr* NewFillValueAttr(nc_type type);
 
-  static CNetCDFAttr* NewAttr(nc_type type, const string& name, size_t length = 1);
+  static CNetCDFAttr* NewAttr(nc_type type, const std::string& name, size_t length = 1);
 
   nc_type GetType() { return m_type;};
 
@@ -174,14 +174,14 @@ public:
   static CNetCDFAttrStringArray* GetNetCDFAttrStringArray(CBratObject* ob, bool withExcept = false);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   
   void Init();
 
 protected:
-  string m_name;
+  std::string m_name;
   nc_type m_type;
   bool m_globalAttr;
   
@@ -196,9 +196,9 @@ class CNetCDFAttrString : public CNetCDFAttr
 public:
 
   CNetCDFAttrString();
-  CNetCDFAttrString(const string& name);
-  CNetCDFAttrString(const string& name, const string& value, bool globalAttr = false);
-  CNetCDFAttrString(const string& name, CUnit& unit, bool globalAttr = false);
+  CNetCDFAttrString(const std::string& name);
+  CNetCDFAttrString(const std::string& name, const std::string& value, bool globalAttr = false);
+  CNetCDFAttrString(const std::string& name, CUnit& unit, bool globalAttr = false);
   CNetCDFAttrString(CNetCDFAttrString& a);
 
   virtual ~CNetCDFAttrString();
@@ -207,8 +207,8 @@ public:
   double GetValueDateAsDouble();
   virtual bool IsValueDate() { return !m_date.IsDefaultValue();};
 
-  string GetValue() { return m_value;};
-  void SetValue(const string& value);
+  std::string GetValue() { return m_value;};
+  void SetValue(const std::string& value);
   void SetValue(const char* value);
   void SetValue(const char* value, size_t length);
   
@@ -223,7 +223,7 @@ public:
   virtual void ReadAttribute(int32_t fileId, int32_t varId);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   
@@ -231,11 +231,11 @@ protected:
 
 public:
 
-  static const string m_DATE_UNIT;
+  static const std::string m_DATE_UNIT;
 
 
 protected:
-  string m_value;
+  std::string m_value;
 
   CDate m_date;
 
@@ -250,8 +250,8 @@ class CNetCDFAttrUByte : public CNetCDFAttr
 public:
 
   CNetCDFAttrUByte();
-  CNetCDFAttrUByte(const string& name);
-  CNetCDFAttrUByte(const string& name, uint8_t value, bool globalAttr = false);
+  CNetCDFAttrUByte(const std::string& name);
+  CNetCDFAttrUByte(const std::string& name, uint8_t value, bool globalAttr = false);
   CNetCDFAttrUByte(CNetCDFAttrUByte& a);
 
   virtual ~CNetCDFAttrUByte();
@@ -274,7 +274,7 @@ public:
   virtual void ReadAttribute(int32_t fileId, int32_t varId);
   
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   
@@ -293,8 +293,8 @@ class CNetCDFAttrDouble : public CNetCDFAttr
 public:
 
   CNetCDFAttrDouble();
-  CNetCDFAttrDouble(const string& name);
-  CNetCDFAttrDouble(const string& name, double value, bool globalAttr = false);
+  CNetCDFAttrDouble(const std::string& name);
+  CNetCDFAttrDouble(const std::string& name, double value, bool globalAttr = false);
   CNetCDFAttrDouble(CNetCDFAttrDouble& a);
 
   virtual ~CNetCDFAttrDouble();
@@ -318,7 +318,7 @@ public:
   virtual void ReadAttribute(int32_t fileId, int32_t varId);
   
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   
@@ -338,8 +338,8 @@ class CNetCDFAttrByte : public CNetCDFAttr
 public:
 
   CNetCDFAttrByte();
-  CNetCDFAttrByte(const string& name);
-  CNetCDFAttrByte(const string& name, int8_t value, bool globalAttr = false);
+  CNetCDFAttrByte(const std::string& name);
+  CNetCDFAttrByte(const std::string& name, int8_t value, bool globalAttr = false);
   CNetCDFAttrByte(CNetCDFAttrByte& a);
 
   virtual ~CNetCDFAttrByte();
@@ -362,7 +362,7 @@ public:
   virtual void ReadAttribute(int32_t fileId, int32_t varId);
   
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   
@@ -382,8 +382,8 @@ class CNetCDFAttrShort : public CNetCDFAttr
 public:
 
   CNetCDFAttrShort();
-  CNetCDFAttrShort(const string& name);
-  CNetCDFAttrShort(const string& name, int16_t value, bool globalAttr = false);
+  CNetCDFAttrShort(const std::string& name);
+  CNetCDFAttrShort(const std::string& name, int16_t value, bool globalAttr = false);
   CNetCDFAttrShort(CNetCDFAttrShort& a);
 
   virtual ~CNetCDFAttrShort();
@@ -406,7 +406,7 @@ public:
   virtual void ReadAttribute(int32_t fileId, int32_t varId);
   
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   
@@ -426,8 +426,8 @@ class CNetCDFAttrUShort : public CNetCDFAttr
 public:
 
   CNetCDFAttrUShort();
-  CNetCDFAttrUShort(const string& name);
-  CNetCDFAttrUShort(const string& name, uint16_t value, bool globalAttr = false);
+  CNetCDFAttrUShort(const std::string& name);
+  CNetCDFAttrUShort(const std::string& name, uint16_t value, bool globalAttr = false);
   CNetCDFAttrUShort(CNetCDFAttrUShort& a);
 
   virtual ~CNetCDFAttrUShort();
@@ -450,7 +450,7 @@ public:
   virtual void ReadAttribute(int32_t fileId, int32_t varId);
   
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   
@@ -470,8 +470,8 @@ class CNetCDFAttrInt : public CNetCDFAttr
 public:
 
   CNetCDFAttrInt();
-  CNetCDFAttrInt(const string& name);
-  CNetCDFAttrInt(const string& name, int32_t value, bool globalAttr = false);
+  CNetCDFAttrInt(const std::string& name);
+  CNetCDFAttrInt(const std::string& name, int32_t value, bool globalAttr = false);
   CNetCDFAttrInt(CNetCDFAttrInt& a);
 
   virtual ~CNetCDFAttrInt();
@@ -494,7 +494,7 @@ public:
   virtual void ReadAttribute(int32_t fileId, int32_t varId);
   
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   
@@ -514,8 +514,8 @@ class CNetCDFAttrUInt : public CNetCDFAttr
 public:
 
   CNetCDFAttrUInt();
-  CNetCDFAttrUInt(const string& name);
-  CNetCDFAttrUInt(const string& name, uint32_t value, bool globalAttr = false);
+  CNetCDFAttrUInt(const std::string& name);
+  CNetCDFAttrUInt(const std::string& name, uint32_t value, bool globalAttr = false);
   CNetCDFAttrUInt(CNetCDFAttrUInt& a);
 
   virtual ~CNetCDFAttrUInt();
@@ -538,7 +538,7 @@ public:
   virtual void ReadAttribute(int32_t fileId, int32_t varId);
   
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   
@@ -558,8 +558,8 @@ class CNetCDFAttrInt64 : public CNetCDFAttr
 public:
 
   CNetCDFAttrInt64();
-  CNetCDFAttrInt64(const string& name);
-  CNetCDFAttrInt64(const string& name, int64_t value, bool globalAttr = false);
+  CNetCDFAttrInt64(const std::string& name);
+  CNetCDFAttrInt64(const std::string& name, int64_t value, bool globalAttr = false);
   CNetCDFAttrInt64(CNetCDFAttrInt64& a);
 
   virtual ~CNetCDFAttrInt64();
@@ -582,7 +582,7 @@ public:
   virtual void ReadAttribute(int32_t fileId, int32_t varId);
   
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   
@@ -602,8 +602,8 @@ class CNetCDFAttrUInt64 : public CNetCDFAttr
 public:
 
   CNetCDFAttrUInt64();
-  CNetCDFAttrUInt64(const string& name);
-  CNetCDFAttrUInt64(const string& name, uint64_t value, bool globalAttr = false);
+  CNetCDFAttrUInt64(const std::string& name);
+  CNetCDFAttrUInt64(const std::string& name, uint64_t value, bool globalAttr = false);
   CNetCDFAttrUInt64(CNetCDFAttrUInt64& a);
 
   virtual ~CNetCDFAttrUInt64();
@@ -626,7 +626,7 @@ public:
   virtual void ReadAttribute(int32_t fileId, int32_t varId);
   
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   
@@ -646,8 +646,8 @@ class CNetCDFAttrFloat : public CNetCDFAttr
 public:
 
   CNetCDFAttrFloat();
-  CNetCDFAttrFloat(const string& name);
-  CNetCDFAttrFloat(const string& name, float value, bool globalAttr = false);
+  CNetCDFAttrFloat(const std::string& name);
+  CNetCDFAttrFloat(const std::string& name, float value, bool globalAttr = false);
   CNetCDFAttrFloat(CNetCDFAttrFloat& a);
 
   virtual ~CNetCDFAttrFloat();
@@ -670,7 +670,7 @@ public:
   virtual void ReadAttribute(int32_t fileId, int32_t varId);
   
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   
@@ -692,14 +692,14 @@ class CNetCDFDimension : public CBratObject
 public:
 
   CNetCDFDimension();
-  CNetCDFDimension(const string& name, int32_t length, bool isUnlimited = false);
-  CNetCDFDimension(const string& name, CNetCDFDimension& from);
+  CNetCDFDimension(const std::string& name, int32_t length, bool isUnlimited = false);
+  CNetCDFDimension(const std::string& name, CNetCDFDimension& from);
   CNetCDFDimension(CNetCDFDimension& d);
 
   virtual ~CNetCDFDimension();
   
-  string GetName() { return m_name;};
-  void SetName(const string& value) { m_name = value; };
+  std::string GetName() { return m_name;};
+  void SetName(const std::string& value) { m_name = value; };
  
   bool IsUnlimited() { return m_isUnlimited;};
   void SetIsUnlimited(bool value) { m_isUnlimited = value; };
@@ -715,22 +715,22 @@ public:
 
   void AddCoordinateVariable(CNetCDFVarDef& v);
   void AddCoordinateVariable(CNetCDFVarDef* v);
-  void AddCoordinateVariable(const string& name);
+  void AddCoordinateVariable(const std::string& name);
 
-  bool IsCoordinateVariable(const string& name);
+  bool IsCoordinateVariable(const std::string& name);
   bool IsCoordinateVariable(CNetCDFVarDef& cv);
   bool IsCoordinateVariable(CNetCDFVarDef* cv);
   
-  //CNetCDFVarDef* GetCoordinateVariable(const string& name);
+  //CNetCDFVarDef* GetCoordinateVariable(const std::string& name);
 
   void Set(CNetCDFDimension& d);
 
   const CNetCDFDimension& operator= (CNetCDFDimension& d);
   virtual bool operator== ( CNetCDFDimension& d ) { return CTools::CompareNoCase(this->GetName(), d.GetName()); }
-  virtual bool operator== ( const string& text ) { return CTools::CompareNoCase(this->GetName(), text); }
+  virtual bool operator== ( const std::string& text ) { return CTools::CompareNoCase(this->GetName(), text); }
 
   virtual bool operator!= ( CNetCDFDimension& d ) { return ! (*this == d); }
-  virtual bool operator!= ( const string& text ) { return ! (*this == text); }
+  virtual bool operator!= ( const std::string& text ) { return ! (*this == text); }
 
 
   virtual bool IsEqual(CNetCDFDimension& d) 
@@ -743,7 +743,7 @@ public:
   CNetCDFDimension* CloneThis() { return dynamic_cast<CNetCDFDimension*>(Clone()); };
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 
 
@@ -752,7 +752,7 @@ protected:
 
 protected:
 
-  string m_name;
+  std::string m_name;
   int32_t m_length;
 
   int32_t m_dimId;
@@ -773,29 +773,29 @@ class CNetCDFVarDef : public CBratObject
 public:
 
   CNetCDFVarDef(nc_type type = NC_DOUBLE);
-  CNetCDFVarDef(const string& name, const CUnit& unit, nc_type type = NC_DOUBLE);
-  CNetCDFVarDef(const string& name, const string& unit, nc_type type = NC_DOUBLE);
-  CNetCDFVarDef(const string& name, nc_type type = NC_DOUBLE);
-  //CNetCDFVarDef(const string& name, CNetCDFDimension* dim, nc_type type = NC_DOUBLE);
+  CNetCDFVarDef(const std::string& name, const CUnit& unit, nc_type type = NC_DOUBLE);
+  CNetCDFVarDef(const std::string& name, const std::string& unit, nc_type type = NC_DOUBLE);
+  CNetCDFVarDef(const std::string& name, nc_type type = NC_DOUBLE);
+  //CNetCDFVarDef(const std::string& name, CNetCDFDimension* dim, nc_type type = NC_DOUBLE);
   CNetCDFVarDef(CNetCDFVarDef& v);
 
   virtual ~CNetCDFVarDef();
   
-  string GetName() { return m_name;};
-  void SetName(const string& value) { m_name = value; };
+  std::string GetName() { return m_name;};
+  void SetName(const std::string& value) { m_name = value; };
   
-  string GetLongName();
+  std::string GetLongName();
   
   CObMap* GetAttributes() { return &m_mapAttributes;};
 
   void AddAttribute(CNetCDFAttr* attr);
   void AddAttributes(const CStringMap& mapAttributes);
 
-  CNetCDFAttr* GetAttribute(const string& name);
+  CNetCDFAttr* GetAttribute(const std::string& name);
 
   CUnit* GetUnit() { return &m_unit;};
   void SetUnit(const CUnit& value);
-  void SetUnit(const string& value);
+  void SetUnit(const std::string& value);
 
   bool IsDateTime() { return m_unit.HasDateRef();};
 
@@ -849,37 +849,37 @@ public:
   CNetCDFDimension* ReplaceNetCDFDim(CNetCDFDimension& dim);
 
   
-  CNetCDFDimension* GetNetCDFDim(const string& name);
+  CNetCDFDimension* GetNetCDFDim(const std::string& name);
   CNetCDFDimension* GetNetCDFDim(uint32_t index);
 
-  uint32_t GetNetCDFDimRange(const string& name);
+  uint32_t GetNetCDFDimRange(const std::string& name);
 
   void GetNetCdfDimNames(CStringArray& dimNames) const;
   
   void GetNetCdfDimIds(CIntArray& dimId) const;
 
-  bool HasCommonDims(const string& dimName);
+  bool HasCommonDims(const std::string& dimName);
   bool HasCommonDims(const CStringArray& dimNames);
 
-  void GetCommomDims(const string& dimName, CStringArray& intersect);
+  void GetCommomDims(const std::string& dimName, CStringArray& intersect);
   void GetCommomDims(const CStringArray& dimNames, CStringArray& intersect);
 
-  void GetComplementDims(const string& dimName, CStringArray& complement);
+  void GetComplementDims(const std::string& dimName, CStringArray& complement);
   void GetComplementDims(const CStringArray& dimNames, CStringArray& complement);
 
-  bool HaveEqualDimSizes(CNetCDFVarDef* netCDFVarDef, string* msg = NULL);
+  bool HaveEqualDimSizes(CNetCDFVarDef* netCDFVarDef, std::string* msg = NULL);
 
-  bool HaveEqualDimNames(CNetCDFVarDef* netCDFVarDef,string* msg = NULL);
+  bool HaveEqualDimNames(CNetCDFVarDef* netCDFVarDef,std::string* msg = NULL);
 
-  bool HaveEqualDims(CNetCDFVarDef* netCDFVarDef, CNetCDFFiles* netCDFFiles1 = NULL, CNetCDFFiles* netCDFFiles2 = NULL, string* msg = NULL);
+  bool HaveEqualDims(CNetCDFVarDef* netCDFVarDef, CNetCDFFiles* netCDFFiles1 = NULL, CNetCDFFiles* netCDFFiles2 = NULL, std::string* msg = NULL);
   
-  bool HaveCompatibleDimUnits(CNetCDFVarDef* netCDFVarDef, CNetCDFFiles* netCDFFiles1, CNetCDFFiles* netCDFFiles2, string* msg = NULL);
+  bool HaveCompatibleDimUnits(CNetCDFVarDef* netCDFVarDef, CNetCDFFiles* netCDFFiles1, CNetCDFFiles* netCDFFiles2, std::string* msg = NULL);
 
   virtual bool operator== ( CNetCDFVarDef& d ) { return CTools::CompareNoCase(this->GetName(), d.GetName()); }
-  virtual bool operator== ( const string& text ) { return CTools::CompareNoCase(this->GetName(), text); }
+  virtual bool operator== ( const std::string& text ) { return CTools::CompareNoCase(this->GetName(), text); }
   
   virtual bool operator!= ( CNetCDFVarDef& d ) { return ! (*this == d); }
-  virtual bool operator!= ( const string& text ) { return ! (*this == text); }
+  virtual bool operator!= ( const std::string& text ) { return ! (*this == text); }
 
   double GetValidMin() { return m_validMin; };
   double GetValidMax() { return m_validMax; };
@@ -917,7 +917,7 @@ public:
   static bool NetcdfVarCompareByName(CBratObject* o1, CBratObject* o2);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 
 protected:
@@ -931,7 +931,7 @@ protected:
   void SetDims(const CUIntArray& dims) ;
 
 protected:
-  string m_name;
+  std::string m_name;
   
   CObMap m_mapAttributes;
  
@@ -964,10 +964,10 @@ class CNetCDFCoordinateAxis : public CNetCDFVarDef
 public:
 
   CNetCDFCoordinateAxis(NetCDFVarKind dimKind = Unknown, nc_type type = NC_DOUBLE);
-  CNetCDFCoordinateAxis(const string& name, NetCDFVarKind dimKind = Unknown, nc_type type = NC_DOUBLE);
-  //CNetCDFCoordinateAxis(const string& name, CNetCDFDimension* dim, NetCDFVarKind dimKind = Unknown, nc_type type = NC_DOUBLE);
-  CNetCDFCoordinateAxis(const string& name, const CUnit& unit, NetCDFVarKind dimKind = Unknown, nc_type type = NC_DOUBLE);
-  CNetCDFCoordinateAxis(const string& name, const string& unit, NetCDFVarKind dimKind = Unknown, nc_type type = NC_DOUBLE);
+  CNetCDFCoordinateAxis(const std::string& name, NetCDFVarKind dimKind = Unknown, nc_type type = NC_DOUBLE);
+  //CNetCDFCoordinateAxis(const std::string& name, CNetCDFDimension* dim, NetCDFVarKind dimKind = Unknown, nc_type type = NC_DOUBLE);
+  CNetCDFCoordinateAxis(const std::string& name, const CUnit& unit, NetCDFVarKind dimKind = Unknown, nc_type type = NC_DOUBLE);
+  CNetCDFCoordinateAxis(const std::string& name, const std::string& unit, NetCDFVarKind dimKind = Unknown, nc_type type = NC_DOUBLE);
   CNetCDFCoordinateAxis(CNetCDFCoordinateAxis& v);
   CNetCDFCoordinateAxis(CNetCDFVarDef& v);
 
@@ -977,11 +977,11 @@ public:
   NetCDFVarKind GetDimKind() { return m_dimKind;};
   void SetDimKind(NetCDFVarKind value);
   
-  string GetDimType() { return m_dimType;};
-  void SetDimType(const string& value) { m_dimType = value;};
+  std::string GetDimType() { return m_dimType;};
+  void SetDimType(const std::string& value) { m_dimType = value;};
 
-  string GetAxis() { return m_axis;};
-  void SetAxis(const string& value) { m_axis = value;};
+  std::string GetAxis() { return m_axis;};
+  void SetAxis(const std::string& value) { m_axis = value;};
   
   void Set(CNetCDFCoordinateAxis& v);
   void Set(CNetCDFVarDef& v);
@@ -994,13 +994,13 @@ public:
   virtual CBratObject* Clone();
   CNetCDFCoordinateAxis* CloneThis() { return dynamic_cast<CNetCDFCoordinateAxis*>(Clone()); };
 
-  //static void GetDimType(NetCDFVarKind dimKind, string& dimType, string& axis);
+  //static void GetDimType(NetCDFVarKind dimKind, std::string& dimType, std::string& axis);
   virtual void WriteAttributes(int32_t fileId);
 
   static CNetCDFCoordinateAxis* GetNetCDFCoordAxis(CBratObject* ob, bool withExcept = false);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   
@@ -1014,8 +1014,8 @@ protected:
       
   NetCDFVarKind m_dimKind;
   
-  string m_dimType;
-  string m_axis;
+  std::string m_dimType;
+  std::string m_axis;
 };
 
 //-------------------------------------------------------------
@@ -1027,20 +1027,20 @@ public:
 
   CNetCDFFiles ();
  
-  CNetCDFFiles (const string& name,
+  CNetCDFFiles (const std::string& name,
 	        brathl_FileMode	mode = ReadOnly);
  
   ~CNetCDFFiles();
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 /*
 ** File management
 */
 
-  void SetName(const string& name);
-  string GetName() const {return m_fileName;};
+  void SetName(const std::string& name);
+  std::string GetName() const {return m_fileName;};
 
   void SetMode(brathl_FileMode mode);
 
@@ -1058,17 +1058,17 @@ public:
   bool IsCreating();
 
 
-  static string IdentifyExistingFile
-		(const string		&name,
+  static std::string IdentifyExistingFile
+		(const std::string		&name,
 		 bool			checkConvention	= false,
 		 bool			noError		= false);
   
-  string IdentifyExistingFile
+  std::string IdentifyExistingFile
 		(bool			checkConvention	= false,
                 bool			noError		= false);
 
   void WriteFileTitle
-		(const string	&Title);
+		(const std::string	&Title);
 
 
 /*
@@ -1077,10 +1077,10 @@ public:
   uint32_t GetMaxFieldNumberOfDims(const CStringArray* fieldNames = NULL);
   
 
-  bool HaveEqualDimNames(const string& v1, const CStringArray& v2, string* msg = NULL);
-  bool HaveEqualDimNames(const CStringArray& v1, const CStringArray& v2, string* msg = NULL);
-  bool HaveEqualDimNames(const string& v1, const string& v2, string* msg = NULL);
-  bool HaveEqualDimNames(CNetCDFVarDef* v1, CNetCDFVarDef* v2, string* msg = NULL);
+  bool HaveEqualDimNames(const std::string& v1, const CStringArray& v2, std::string* msg = NULL);
+  bool HaveEqualDimNames(const CStringArray& v1, const CStringArray& v2, std::string* msg = NULL);
+  bool HaveEqualDimNames(const std::string& v1, const std::string& v2, std::string* msg = NULL);
+  bool HaveEqualDimNames(CNetCDFVarDef* v1, CNetCDFVarDef* v2, std::string* msg = NULL);
   
   void GetNetCDFDimsNames(CStringArray& names) {m_mapNetCDFDims.GetKeys(names); };
 
@@ -1089,21 +1089,21 @@ public:
 
   void SetNetCDFDims(const CStringArray* dimNames, const CUIntArray* dimValues, const CIntArray* dimIds = NULL);
 
-  void GetNetCDFDims(const string& varName, CObArray* dims);
-  CNetCDFDimension* GetNetCDFDim(const string& name);
+  void GetNetCDFDims(const std::string& varName, CObArray* dims);
+  CNetCDFDimension* GetNetCDFDim(const std::string& name);
   
   void GetNetCDFVarDefNames(CStringArray& names) {m_mapNetCDFVarDefs.GetKeys(names); };
 
   CObMap* GetNetCDFVarDefs() {return &m_mapNetCDFVarDefs; };
   CNetCDFVarDef* AddNetCDFVarDef(CNetCDFVarDef& var, bool forceReplace = false);
 
-  CNetCDFVarDef* GetNetCDFVarDef(const string& name, bool withExcept = false);
+  CNetCDFVarDef* GetNetCDFVarDef(const std::string& name, bool withExcept = false);
 
   void ReplaceNetCDFDim(CNetCDFDimension& dim);
 
-  void GetNetCDFCoordAxes(const string& varName, CObMap* coordAxes);
-  void GetNetCDFCoordAxes(const string& varName, CObArray* coordAxes);
-  void GetNetCDFCoordAxes(const string& varName, CStringArray* coordAxes, bool bRemoveAll = true, bool bUnique = false);
+  void GetNetCDFCoordAxes(const std::string& varName, CObMap* coordAxes);
+  void GetNetCDFCoordAxes(const std::string& varName, CObArray* coordAxes);
+  void GetNetCDFCoordAxes(const std::string& varName, CStringArray* coordAxes, bool bRemoveAll = true, bool bUnique = false);
   void GetNetCDFCoordAxes(const CStringArray& varNames, CStringArray* coordAxes, bool bRemoveAll = true, bool bUnique = false);
 
   void GetNetCDFCoordAxes(CObMap* coordAxes);
@@ -1119,12 +1119,12 @@ public:
   void GetNetCDFCoordAxesTime(CObArray* coordAxes);
   void GetNetCDFCoordAxesTime(CObMap* coordAxes);
 
-  void AddCoordinateVariable(const CStringArray& dimNames, const string& varName);
-  void AddCoordinateVariable(const CStringArray* dimNames, const string& varName);
+  void AddCoordinateVariable(const CStringArray& dimNames, const std::string& varName);
+  void AddCoordinateVariable(const CStringArray* dimNames, const std::string& varName);
 
   CObMap* GetNetCDFGlobalAttributes() { return &m_mapNetCDFGlobalAttrs; };
 
-  CNetCDFAttr* GetNetCDFGlobalAttribute(const string& name, bool withExcept = false);
+  CNetCDFAttr* GetNetCDFGlobalAttribute(const std::string& name, bool withExcept = false);
 
   //CNetCDFAttr* AddNetCDFGlobalAttributes(CNetCDFAttr& attr);
   CNetCDFAttr* AddNetCDFGlobalAttributes(CNetCDFAttr* attr);
@@ -1136,28 +1136,28 @@ public:
 
   int32_t GetNbDimensions();
 
-  int GetDimId(const string& name, bool withExcept = true);
+  int GetDimId(const std::string& name, bool withExcept = true);
 
-  bool DimExists(const string& name);
+  bool DimExists(const std::string& name);
 
-  string GetDimName(int			DimId);
+  std::string GetDimName(int			DimId);
 
-  void GetDimensions(vector<string>		&Names);
+  void GetDimensions(std::vector<std::string>		&Names);
 
   uint32_t GetDimension
-		(const string		&Name);
+		(const std::string		&Name);
 
   uint32_t GetDimension
 		(int			DimId);
 
   int SetDimension
 		(NetCDFVarKind		DimKind,
-		 const string		&DimName,
+		 const std::string		&DimName,
 		 int32_t		Value,
 		 const CExpressionValue	&DimValue,
-		 const string		&Units,
-		 const string		&LongName,
-                 const string           &Comment = "",
+		 const std::string		&Units,
+		 const std::string		&LongName,
+                 const std::string           &Comment = "",
       	         double	                ValidMin = CTools::m_defaultValueDOUBLE,
 		 double	                ValidMax = CTools::m_defaultValueDOUBLE);
 
@@ -1175,45 +1175,45 @@ public:
 
   int32_t GetNbVariables();
 
-  int GetVarId(const string	&name, bool	global = false, bool withExcept = true);
+  int GetVarId(const std::string	&name, bool	global = false, bool withExcept = true);
 
-  string GetVarName(int		VarId);
+  std::string GetVarName(int		VarId);
 
-  int GetVarNbDims(const string			&Name);
+  int GetVarNbDims(const std::string			&Name);
   int GetVarNbDims(int				VarId);
 
-  void GetVarDims(const string &Name, ExpressionValueDimensions	&Dimensions);
+  void GetVarDims(const std::string &Name, ExpressionValueDimensions	&Dimensions);
   void GetVarDims(int				VarId, ExpressionValueDimensions	&Dimensions);
 
-  void GetVarDims(const string &Name, vector<string>			&Dimensions);
-  void GetVarDims(int	VarId, vector<string>			&Dimensions);
+  void GetVarDims(const std::string &Name, std::vector<std::string>			&Dimensions);
+  void GetVarDims(int	VarId, std::vector<std::string>			&Dimensions);
 
-  void GetVarDimIds(const string	&name, CIntArray& dimIds);
+  void GetVarDimIds(const std::string	&name, CIntArray& dimIds);
 
   void GetVarDimIds(int		varId, CIntArray& dimIds);
   
-  bool IsAxisVar(const string		&Name);
+  bool IsAxisVar(const std::string		&Name);
   bool IsAxisVar(int			VarId);
 
-  void GetVariables(vector<string>		&VarNames);
+  void GetVariables(std::vector<std::string>		&VarNames);
 
-  void GetAxisVars(vector<string>		&VarNames);
+  void GetAxisVars(std::vector<std::string>		&VarNames);
 
-  void GetAxisVars(vector<int>		&VarIds);
+  void GetAxisVars(std::vector<int>		&VarIds);
 
-  void GetDataVars(vector<string>		&VarNames);
+  void GetDataVars(std::vector<std::string>		&VarNames);
 
-  void GetDataVars(vector<int>		&VarIds);
+  void GetDataVars(std::vector<int>		&VarIds);
 
-  bool VarExists(const string		&Name);
+  bool VarExists(const std::string		&Name);
 
 
   int AddVar
-		(const string	&VarName,
+		(const std::string	&VarName,
 		       nc_type	VarType,
-		 const string	&Units,
-		 const string	&LongName,
-		 const string	&Comment  = "",
+		 const std::string	&Units,
+		 const std::string	&LongName,
+		 const std::string	&Comment  = "",
 		       int	Dim1Id	= -1,
 		       int	Dim2Id	= -1,
 		       int	Dim3Id	= -1,
@@ -1221,11 +1221,11 @@ public:
                        double	ValidMin = CTools::m_defaultValueDOUBLE,
 		       double	ValidMax = CTools::m_defaultValueDOUBLE);
 
-  void WriteVar(const string		&Name, const CExpressionValue	&Value);
+  void WriteVar(const std::string		&Name, const CExpressionValue	&Value);
 
-  void ReadVar(const string		&name, CExpressionValue	&exprValue, const string		&wantedUnit);
+  void ReadVar(const std::string		&name, CExpressionValue	&exprValue, const std::string		&wantedUnit);
 
-  void ReadVar(const string& name, CDoubleArray& value, const string& wantedUnit);
+  void ReadVar(const std::string& name, CDoubleArray& value, const std::string& wantedUnit);
 
                  // Low level access. Should be used with extreme care: no control is done on size of data
   // Nbdimensions: Number of dimensions od data
@@ -1233,32 +1233,32 @@ public:
   // Count: number of daa in each dimension
   // Value: should be able to contain X double data where X is the product of the 'NbDimensions'
   //        values of 'Count' or 1 if 'NbDimensions' is 0.
-  void ReadVar(const string	&Name, uint32_t	NbDimensions, uint32_t	*Start, uint32_t	*Count, double	*Value, const string	&WantedUnit);
+  void ReadVar(const std::string	&Name, uint32_t	NbDimensions, uint32_t	*Start, uint32_t	*Count, double	*Value, const std::string	&WantedUnit);
 
-  void ReadVar(CFieldNetCdf* field, double& value, const string& wantedUnit);
-  void ReadVar(CFieldNetCdf* field, CExpressionValue& exprValue, const string& wantedUnit);
-  void ReadVar(CFieldNetCdf* field, CDoubleArray& values, const string& wantedUnit);
-  void ReadVar(CFieldNetCdf* field, const string& wantedUnit);
+  void ReadVar(CFieldNetCdf* field, double& value, const std::string& wantedUnit);
+  void ReadVar(CFieldNetCdf* field, CExpressionValue& exprValue, const std::string& wantedUnit);
+  void ReadVar(CFieldNetCdf* field, CDoubleArray& values, const std::string& wantedUnit);
+  void ReadVar(CFieldNetCdf* field, const std::string& wantedUnit);
 
-  void ReadEntireVar(CNetCDFVarDef* netCDFVarDef, CDoubleArray& array, const string& wantedUnit);
-  void ReadEntireVar(CNetCDFDimension* netCDFDimension, CDoubleArray& array, const string& wantedUnit);
+  void ReadEntireVar(CNetCDFVarDef* netCDFVarDef, CDoubleArray& array, const std::string& wantedUnit);
+  void ReadEntireVar(CNetCDFDimension* netCDFDimension, CDoubleArray& array, const std::string& wantedUnit);
 
-  static bool IsVarNameValid(const string	&Name);
+  static bool IsVarNameValid(const std::string	&Name);
 
-  static NetCDFVarKind StringToVarKind(const string	&Name);
+  static NetCDFVarKind StringToVarKind(const std::string	&Name);
 
-  static string VarKindToString(NetCDFVarKind	VarKind);
+  static std::string VarKindToString(NetCDFVarKind	VarKind);
 
 
-  NetCDFVarKind GetVarKind(const string		&Name);
+  NetCDFVarKind GetVarKind(const std::string		&Name);
 
   NetCDFVarKind GetVarKind(int			VarId);
 
-  static NetCDFVarKind GetVarKindFromStringValue(const string& value);
+  static NetCDFVarKind GetVarKindFromStringValue(const std::string& value);
 
-  static bool IsCandidateForLatitude(const string& name);
-  static bool IsCandidateForLongitude(const string& name);
-  static bool IsCandidateForTime(const string& name);
+  static bool IsCandidateForLatitude(const std::string& name);
+  static bool IsCandidateForLongitude(const std::string& name);
+  static bool IsCandidateForTime(const std::string& name);
 
   bool HasVar(NetCDFVarKind	VarKind);
   
@@ -1270,7 +1270,7 @@ public:
   CNetCDFCoordinateAxis* WhichCoordAxis(NetCDFVarKind	varKind);
 
   // Returns coordinate axis corresponding to var kind and a variable name
-  CNetCDFCoordinateAxis* WhichCoordAxis(NetCDFVarKind	varKind, const string& varName);
+  CNetCDFCoordinateAxis* WhichCoordAxis(NetCDFVarKind	varKind, const std::string& varName);
 
   // Returns coordinate axis corresponding to var kind and a coordiante axes list
   static CNetCDFCoordinateAxis* WhichCoordAxis(NetCDFVarKind varKind, CObMap* coordAxes);
@@ -1282,90 +1282,90 @@ public:
   void WriteAttributes(CNetCDFVarDef* var);
 
   // Unit of a variable or 'count' if not set
-  CUnit GetUnit(const string			&Name);
+  CUnit GetUnit(const std::string			&Name);
 
   CUnit GetUnit(int				VarId);
 
   // If name is empty, it is the title of the file which is returned
   // (global attribute 'title' instead of 'long_name' of the variable)
-  string GetTitle(const string			&Name);
+  std::string GetTitle(const std::string			&Name);
 
-  int GetAtt(const string	&VarName,
-		 const string	&AttName,
-		       string	&AttValue,
+  int GetAtt(const std::string	&VarName,
+		 const std::string	&AttName,
+		       std::string	&AttValue,
 		       bool	MustExist	= true,
-		 const string	Default		= "");
+		 const std::string	Default		= "");
 
   
   int GetAtt(int		VarId,
-		 const string	&AttName,
-		       string	&AttValue,
+		 const std::string	&AttName,
+		       std::string	&AttValue,
 		       bool	MustExist	= true,
-		 const string	Default		= "");
+		 const std::string	Default		= "");
 
-  int GetAtt(const string	&VarName,
-		 const string	&AttName,
+  int GetAtt(const std::string	&VarName,
+		 const std::string	&AttName,
 		       double	&AttValue,
 		       bool	MustExist	= true,
 		       double   Default		= CTools::m_defaultValueDOUBLE);
 
   int GetAtt(int		VarId,
-		 const string	&AttName,
+		 const std::string	&AttName,
 		       double	&AttValue,
 		       bool	MustExist	= true,
 		       double   Default		= CTools::m_defaultValueDOUBLE);
 
-  int GetGlobalAttributeAsDouble(const string	&attName,
+  int GetGlobalAttributeAsDouble(const std::string	&attName,
 		       double	&attValue,
 		       bool	mustExist	= true,
 		       double   defaultValue	= CTools::m_defaultValueDOUBLE);
 
-  int GetGlobalAttributeAsString(const string	&attName,
-		       string	&attValue,
+  int GetGlobalAttributeAsString(const std::string	&attName,
+		       std::string	&attValue,
 		       bool	mustExist	= true,
-		       string   defaultValue	= "");
+		       std::string   defaultValue	= "");
   
-  int GetAttributeAsDouble(const string	&varName,
-		 const string	&attName,
+  int GetAttributeAsDouble(const std::string	&varName,
+		 const std::string	&attName,
 		       double	&attValue,
 		       bool	mustExist	= true,
 		       double   defaultValue		= CTools::m_defaultValueDOUBLE);
 
   int GetAttributeAsDouble(int		varId,
-		 const string	&attName,
+		 const std::string	&attName,
 		       double	&attValue,
 		       bool	mustExist	= true,
 		       double   defaultValue		= CTools::m_defaultValueDOUBLE);
 
   int GetAttributeAsString(int		varId,
-		 const string&	attName,
-		       string&	attValue,
+		 const std::string&	attName,
+		       std::string&	attValue,
 		       bool	mustExist	= true,
-		 const string&	defaultValue	= "");
+		 const std::string&	defaultValue	= "");
 
-  int GetAttributeAsString(const string	&varName,
-		 const string&	attName,
-		       string&	attValue,
+  int GetAttributeAsString(const std::string	&varName,
+		 const std::string&	attName,
+		       std::string&	attValue,
 		       bool	mustExist	= true,
-		 const string&	defaultValue	= "");
+		 const std::string&	defaultValue	= "");
 
 
-  int GetAttributeInfo(const string	&varName,
-		 const string&  attName,
+  int GetAttributeInfo(const std::string	&varName,
+		 const std::string&  attName,
 		 nc_type&	type,
 		 size_t&	length,
                  bool	        mustExist	= true);
 
   int GetAttributeInfo(int		varId,
-		 const string&  attName,
+		 const std::string&  attName,
 		 nc_type&	type,
 		 size_t&	length,
                  bool	        mustExist	= true);
 
-  void GetAttributes(const string&  varName,
+  void GetAttributes(const std::string&  varName,
 		   CStringMap&	mapAttributes);
 
-  void GetAttributes(const string&  varName,
+  void GetAttributes(const std::string&  varName,
 		   CDoubleMap&	mapAttributes);
 
   void GetAttributes(int		varId,
@@ -1375,26 +1375,26 @@ public:
 		   CDoubleMap&	mapAttributes);
 
 
-  void DelAtt(const string	&VarName,
-		 const string	&AttName);
+  void DelAtt(const std::string	&VarName,
+		 const std::string	&AttName);
   void DelAtt(int		VarId,
-		 const string	&AttName);
+		 const std::string	&AttName);
 
-  void PutAtt(const string	&VarName,
-		 const string	&AttName,
-		 const string	&AttValue);
+  void PutAtt(const std::string	&VarName,
+		 const std::string	&AttName,
+		 const std::string	&AttValue);
 
   void PutAtt(int		VarId,
-		 const string	&AttName,
-		 const string	&AttValue);
+		 const std::string	&AttName,
+		 const std::string	&AttValue);
 
-  void PutAtt(const string	&VarName,
-		 const string	&AttName,
+  void PutAtt(const std::string	&VarName,
+		 const std::string	&AttName,
 		       double	AttValue,
 		       nc_type	AttType	= NC_DOUBLE);
 
   void PutAtt(int		VarId,
-		 const string	&AttName,
+		 const std::string	&AttName,
 		       double	AttValue,
 		       nc_type	AttType	= NC_DOUBLE);
 
@@ -1411,17 +1411,17 @@ public:
   // a data type
   double GetDefValue(nc_type	VarType);
 
-  nc_type GetVarType(const string &name);
+  nc_type GetVarType(const std::string &name);
   nc_type GetVarType(int varId);
   
-  virtual string GetVarTypeName(const string &name);
-  virtual string GetVarTypeName(int varId);
+  virtual std::string GetVarTypeName(const std::string &name);
+  virtual std::string GetVarTypeName(int varId);
   
-  nc_type GetAttributeType(const string& attName);
-  nc_type GetAttributeType(const string& varName, const string& attName);
-  nc_type GetAttributeType(int varId, const string& attName);
+  nc_type GetAttributeType(const std::string& attName);
+  nc_type GetAttributeType(const std::string& varName, const std::string& attName);
+  nc_type GetAttributeType(int varId, const std::string& attName);
 
-  static string GetTypeAsString(int varType);
+  static std::string GetTypeAsString(int varType);
 
   bool LoadDimensions();
   bool LoadVariables();
@@ -1429,35 +1429,35 @@ public:
 
   bool IsGeographic();
 
-  static void HandleNetcdfError(int	status, const string& message = "PROGRAM ERROR: error should not happen");
+  static void HandleNetcdfError(int	status, const std::string& message = "PROGRAM ERROR: error should not happen");
   
 public:
 
   static const int32_t m_TIME_NAMES_SIZE;
-  static const string m_TIME_NAMES[];
+  static const std::string m_TIME_NAMES[];
 
   static const int32_t m_LAT_NAMES_SIZE;
-  static const string m_LAT_NAMES[];
+  static const std::string m_LAT_NAMES[];
 
   static const int32_t m_LON_NAMES_SIZE;
-  static const string m_LON_NAMES[];
+  static const std::string m_LON_NAMES[];
 
   static const int32_t m_CYCLE_NAMES_SIZE;
-  static const string m_CYCLE_NAMES[];
+  static const std::string m_CYCLE_NAMES[];
 
   static const int32_t m_PASS_NAMES_SIZE;
-  static const string m_PASS_NAMES[];
+  static const std::string m_PASS_NAMES[];
   
   static const int32_t m_LAT_UNITS_SIZE;
-  static const string m_LAT_UNITS[];
+  static const std::string m_LAT_UNITS[];
   
   static const int32_t m_LON_UNITS_SIZE;
-  static const string m_LON_UNITS[];
+  static const std::string m_LON_UNITS[];
 
 
 protected:
 
-  string			m_fileName;
+  std::string			m_fileName;
   brathl_FileMode		m_fileMode;
   
   CObMap m_mapNetCDFDims;
@@ -1486,7 +1486,7 @@ protected:
   void SetDataMode
 		();
 
-  void CheckNetcdfError(int	Error, const string	&Message = "PROGRAM ERROR: error should not happen");
+  void CheckNetcdfError(int	Error, const std::string	&Message = "PROGRAM ERROR: error should not happen");
 
 private:
   int				m_file;
@@ -1497,13 +1497,13 @@ private:
 		(double		*Data,
 		 uint32_t	NbData,
 		 int		VarId,
-		 const string	&WantedUnit);
+		 const std::string	&WantedUnit);
 
 /*
   void ApplyUnitAndFactorsToDataRead
 		(CDoubleArray& array,
 		 int		varId,
-		 const string& wantedUnit);
+		 const std::string& wantedUnit);
 */
 };
 

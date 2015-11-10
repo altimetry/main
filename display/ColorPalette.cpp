@@ -31,6 +31,7 @@
 
 
 
+#include "PlotData/ColorPalleteNames.h"
 #include "ColorPalette.h"
 
 

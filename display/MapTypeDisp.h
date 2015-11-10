@@ -47,7 +47,7 @@ public:
 
 
   bool ValidName(const char* name);
-  bool ValidName(const string& name);
+  bool ValidName(const std::string& name);
 
   wxString IdToName(uint32_t id);
   uint32_t NameToId(const wxString& name);

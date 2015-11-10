@@ -1016,14 +1016,14 @@ double vtkZFXYPlotFilter::ComputeGlyphScale()
 
 
 //----------------------------------------------------------------------------
-void vtkZFXYPlotFilter::PrintSelf(ostream& os, vtkIndent indent)
+void vtkZFXYPlotFilter::PrintSelf(std::ostream& os, vtkIndent indent)
 {
   this->Superclass::PrintSelf(os, indent);
 
-  os << indent << "OffsetY : " << this->OffsetY << endl;
-  os << indent << "OffsetX : " << this->OffsetX << endl;
-  os << indent << "MinMappedValue : " << this->MinMappedValue << endl;
-  os << indent << "MaxMappedValue : " << this->MaxMappedValue << endl;
-  os << indent << "PlotWidth : " << this->PlotWidth << endl;
-  os << indent << "PlotHeight : " << this->PlotHeight << endl;
+  os << indent << "OffsetY : " << this->OffsetY << std::endl;
+  os << indent << "OffsetX : " << this->OffsetX << std::endl;
+  os << indent << "MinMappedValue : " << this->MinMappedValue << std::endl;
+  os << indent << "MaxMappedValue : " << this->MaxMappedValue << std::endl;
+  os << indent << "PlotWidth : " << this->PlotWidth << std::endl;
+  os << indent << "PlotHeight : " << this->PlotHeight << std::endl;
 }

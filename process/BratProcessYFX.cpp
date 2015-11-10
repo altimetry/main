@@ -114,7 +114,7 @@ void CBratProcessYFX::AddFieldIndexes(CFieldIndex* fieldIndex, CNetCDFVarDef* va
 */
 }
 //----------------------------------------
-void CBratProcessYFX::GetParameters(const string& commandFileName)
+void CBratProcessYFX::GetParameters(const std::string& commandFileName)
 {
   m_commandFileName = commandFileName;
   GetParameters();
@@ -352,7 +352,7 @@ void CBratProcessYFX::AddComplementDimensionsFromNetCdf()
 
 
 //----------------------------------------
-int32_t CBratProcessYFX::Execute(string& msg)
+int32_t CBratProcessYFX::Execute(std::string& msg)
 { 
   int32_t result = BRATHL_SUCCESS;
 
@@ -512,7 +512,7 @@ void CBratProcessYFX::RegisterData()
     }
     else
     {
-      throw CException("X value must be scalar not a vector or a matrix",
+      throw CException("X value must be scalar not a std::vector or a matrix",
 		       BRATHL_LIMIT_ERROR);
     }
     uint32_t indexExpr = 0;
@@ -573,7 +573,7 @@ void CBratProcessYFX::RegisterData()
       {
         fieldsArray = m_measures.Insert(xValue, CBratProcess::MergeIdentifyUnsetData);
       }
-      catch (bad_alloc& e) // If memory allocation (new) failed...
+      catch (std::bad_alloc& e) // If memory allocation (new) failed...
       {
         m_measures.RemoveAll(); // free memory  to be able to allocate new for error msg
         throw CMemoryException(CTools::Format("ERROR: CBratProcessYFX::RegisterData() - Unable to allocate new memory to store the result.\nNative error: '%s'\n"
@@ -727,7 +727,7 @@ void CBratProcessYFX::RegisterData()
         CNetCDFCoordinateAxis* coordVar = dynamic_cast<CNetCDFCoordinateAxis*>(m_internalFiles->GetNetCDFVarDef(m_names[indexExpr]));
         if (coordVar != NULL)
         {
-          string msg;
+          std::string msg;
           bool areValuesSimilar = CheckValuesSimilar(indexExpr, exprValue.GetValues(), nbValues, msg);
           if (! areValuesSimilar)
           {
@@ -860,7 +860,7 @@ int32_t CBratProcessYFX::WriteData()
   }
 
 
-  //////////////string dimType = xCoordVar.GetDimType();
+  //////////////std::string dimType = xCoordVar.GetDimType();
 
 
 
@@ -1117,7 +1117,7 @@ int32_t CBratProcessYFX::WriteData()
 
     CNetCDFCoordinateAxis* coordAxis = dynamic_cast<CNetCDFCoordinateAxis*>(varDef);
     
-    string coordAxisName = ((coordAxis != NULL) ? coordAxis->GetName() : "");
+    std::string coordAxisName = ((coordAxis != NULL) ? coordAxis->GetName() : "");
 
     if (! CBratProcess::IsProductNetCdf() && (coordAxis == NULL) ) 
     {
@@ -1244,7 +1244,7 @@ int32_t CBratProcessYFX::WriteData()
     int32_t indexVar = mapVarIndexExpr.Exists(varDef->GetName());
     
     CExpressionValue dataWritten;
-    string name = "dataWritten1 ";
+    std::string name = "dataWritten1 ";
     name.append(varDef->GetName());
     dataWritten.SetName(name);
 
@@ -1364,7 +1364,7 @@ void CBratProcessYFX::OnAddDimensionsFromNetCdf()
 
 
 //----------------------------------------
-bool CBratProcessYFX::CheckValuesSimilar(uint32_t indexExpr, double* dataValues, uint32_t nbValues, string& msg)
+bool CBratProcessYFX::CheckValuesSimilar(uint32_t indexExpr, double* dataValues, uint32_t nbValues, std::string& msg)
 {
 
   bool bSimilarValues = true;
@@ -1410,7 +1410,7 @@ bool CBratProcessYFX::CheckValuesSimilar(uint32_t indexExpr, double* dataValues,
   }
 
 
-  string format = "WARNING - Regarding to X value %.15g, values contained in %s dimension are not similar with read previous values.\n"
+  std::string format = "WARNING - Regarding to X value %.15g, values contained in %s dimension are not similar with read previous values.\n"
         "Only the first values will be stored in the NetCdf output file.\n" 
         "Expressions below that depend on %s dimension might be inconsistent:\n%s";
 
@@ -1430,7 +1430,7 @@ bool CBratProcessYFX::CheckValuesSimilar(uint32_t indexExpr, double* dataValues,
 
   strArray.Complement(*coordVars, complement);
 
-  string coordVarAsString = complement.ToString(", ", false);
+  std::string coordVarAsString = complement.ToString(", ", false);
 
   msg = CTools::Format(format.c_str(), 
                        m_measures.begin()->first,

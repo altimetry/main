@@ -32,6 +32,9 @@
 #include "BratDisplay.h"
 #include "ContourPropFrame.h"
 #include "MapColor.h"
+#include "wxInterface.h"
+#include "PlotData/GeoMap.h"
+
 
 DEFINE_EVENT_TYPE(wxEVT_CONTOUR_PROP_CHANGED)
 DEFINE_EVENT_TYPE(wxEVT_CONTOUR_PROP_CLOSE)
@@ -131,14 +134,14 @@ void CContourPropPanel::FillProperties()
   GetContourNumber()->SetValue(m_plotProperty.m_numContour, 5, 1);
 
   m_lineColor = m_plotProperty.m_contourLineColor;
-  GetContourLineColor()->SetBackgroundColour(m_lineColor.GetWXColor());
+  GetContourLineColor()->SetBackgroundColour(color_cast(m_lineColor));
   GetContourLineWidth()->SetValue(m_plotProperty.m_contourLineWidth, 1.0, 0.5);
 
   GetContourLabel()->SetValue(m_plotProperty.m_withContourLabel);
   GetContourLabelNumber()->SetValue(m_plotProperty.m_numContourLabel, 1, 1);
 
   m_labelColor = m_plotProperty.m_contourLabelColor;
-  GetContourLabelColor()->SetBackgroundColour(m_labelColor.GetWXColor());
+  GetContourLabelColor()->SetBackgroundColour(color_cast(m_labelColor));
   
   GetContourLabelColorSame()->SetValue( m_labelColor == m_lineColor );
  
@@ -227,7 +230,7 @@ void CContourPropPanel::OnSameColor( wxCommandEvent &event )
   if (sameColor)
   {
     m_labelColor = m_lineColor;
-    GetContourLabelColor()->SetBackgroundColour(m_lineColor.GetWXColor());
+    GetContourLabelColor()->SetBackgroundColour(color_cast(m_lineColor));
     Layout();
   }
 }
@@ -236,9 +239,9 @@ void CContourPropPanel::OnSameColor( wxCommandEvent &event )
 void CContourPropPanel::OnLabelColor( wxCommandEvent &event )
 {
   wxColourData colorData = CMapColor::GetInstance().ChooseColor(m_geoMap->m_plotProperty.m_contourLabelColor, this);
-  m_labelColor = colorData;
+  m_labelColor = color_cast(colorData);
 
-  GetContourLabelColor()->SetBackgroundColour(m_labelColor.GetWXColor());
+  GetContourLabelColor()->SetBackgroundColour(color_cast(m_labelColor));
 
   GetContourLabelColorSame()->SetValue(m_labelColor == m_lineColor);
 
@@ -251,14 +254,14 @@ void CContourPropPanel::OnLabelColor( wxCommandEvent &event )
 void CContourPropPanel::OnLineColor( wxCommandEvent &event )
 {
   wxColourData colorData = CMapColor::GetInstance().ChooseColor(m_geoMap->m_plotProperty.m_contourLineColor, this);
-  m_lineColor = colorData;
+  m_lineColor = color_cast(colorData);
 
-  GetContourLineColor()->SetBackgroundColour(m_lineColor.GetWXColor());
+  GetContourLineColor()->SetBackgroundColour(color_cast(m_lineColor));
 
   if ( GetContourLabelColorSame()->GetValue())
   {
     m_labelColor = m_lineColor;
-    GetContourLabelColor()->SetBackgroundColour(m_labelColor.GetWXColor());
+    GetContourLabelColor()->SetBackgroundColour(color_cast(m_labelColor));
   }
 
   GetContourLabelColorSame()->SetValue(m_labelColor == m_lineColor);

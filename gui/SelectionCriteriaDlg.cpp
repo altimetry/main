@@ -380,7 +380,7 @@ void CSelectionCriteriaDlg::StoreCriteriaValueDatetime(CProduct* product, bool c
   GetCritDateMin()->GetValueAsDate(min, defaultValue);
   GetCritDateMax()->GetValueAsDate(max, defaultValue);
 
-  // to set right date string format
+  // to set right date std::string format
   GetCritDateMin()->SetValueAsDate(min, "");
   GetCritDateMax()->SetValueAsDate(max, "");
 

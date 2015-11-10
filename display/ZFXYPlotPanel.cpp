@@ -655,7 +655,7 @@ void CZFXYPlotPanel::OnAutoZoomDataRange(CAutoZoomDataRangeEvent& event)
 
 /*
 //----------------------------------------
-void CZFXYPlotPanel::PrintPoints(ostream& os)
+void CZFXYPlotPanel::PrintPoints(std::ostream& os)
 {
   if (m_plotRenderer->GetZFXYPlotData() == NULL)
   {
@@ -684,7 +684,7 @@ void CZFXYPlotPanel::PrintPoints(ostream& os)
   vtkFloatingPointType* xyz;
   vtkIdType p;
 
-  os <<  "Point dump" << endl;
+  os <<  "Point dump" << std::endl;
   for (int j = 0 ; j < outputSource->GetNumberOfPoints() ; j++)
   {
     xyz = outputSource->GetPoint(j);
@@ -694,7 +694,7 @@ void CZFXYPlotPanel::PrintPoints(ostream& os)
       << " y: " << xyz[1] 
       << " z: " << xyz[2] 
       << " find point : " << p 
-      << endl;
+      << std::endl;
 
     xyz = outputFilter->GetPoint(j);
     p = outputFilter->FindPoint(xyz);
@@ -703,7 +703,7 @@ void CZFXYPlotPanel::PrintPoints(ostream& os)
       << " y: " << xyz[1] 
       << " z: " << xyz[2] 
       << " find point : " << p 
-      << endl;
+      << std::endl;
 
     xyz = outputTransform->GetPoint(j);
     p = outputTransform->FindPoint(xyz);
@@ -712,21 +712,21 @@ void CZFXYPlotPanel::PrintPoints(ostream& os)
       << " y: " << xyz[1] 
       << " z: " << xyz[2] 
       << " find point : " << p 
-      << endl;
+      << std::endl;
 
     c->SetValue(xyz);
     ivalue = c->GetComputedDisplayValue (m_plotRenderer->GetVtkRenderer());
     os << whichCoord << "(" << xyz[0] << ", " << xyz[1] << ", " << xyz[2]
-     << ") -> Display(" << ivalue[0] << ", " << ivalue[1] << ")" << endl;
+     << ") -> Display(" << ivalue[0] << ", " << ivalue[1] << ")" << std::endl;
     ivalue = c->GetComputedLocalDisplayValue (m_plotRenderer->GetVtkRenderer());
     os << whichCoord << "(" << xyz[0] << ", " << xyz[1] << ", " << xyz[2]
-     << ") -> LocalDisplay(" << ivalue[0] << ", " << ivalue[1] << ")" << endl;
+     << ") -> LocalDisplay(" << ivalue[0] << ", " << ivalue[1] << ")" << std::endl;
     ivalue = c->GetComputedViewportValue (m_plotRenderer->GetVtkRenderer());
     os << whichCoord << "(" << xyz[0] << ", " << xyz[1] << ", " << xyz[2]
-     << ") -> ViewPort(" << ivalue[0] << ", " << ivalue[1] << ")" << endl;
+     << ") -> ViewPort(" << ivalue[0] << ", " << ivalue[1] << ")" << std::endl;
     value = c->GetComputedWorldValue (m_plotRenderer->GetVtkRenderer());
     os << whichCoord << "(" << xyz[0] << ", " << xyz[1] << ", " << xyz[2]
-     << ") -> World(" << value[0] << ", " << value[1] << ", " << value[2] << ")" << endl;
+     << ") -> World(" << value[0] << ", " << value[1] << ", " << value[2] << ")" << std::endl;
 
   }
 

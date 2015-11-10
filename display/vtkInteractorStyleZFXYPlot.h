@@ -67,7 +67,7 @@ public:
 
   static vtkInteractorStyleZFXYPlot *New();
   vtkTypeMacro(vtkInteractorStyleZFXYPlot, vtkInteractorStyle);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(std::ostream& os, vtkIndent indent);
 
   // Description:
   // Event bindings controlling the effects of pressing mouse buttons

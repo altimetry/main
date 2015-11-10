@@ -33,7 +33,7 @@
 #include "wx/filename.h"
 
 
-#include "BratLookupTable.h"
+#include "PlotData/BratLookupTable.h"
 #include "BratDisplay_wdr.h"
 #include "LUTPanel.h"
 

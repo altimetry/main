@@ -97,7 +97,7 @@ class wxVTKRenderWindowInteractor : public wxWindow, public vtkRenderWindowInter
                                 const wxString &name = wxPanelNameStr);
     vtkTypeRevisionMacro(wxVTKRenderWindowInteractor,vtkRenderWindowInteractor);
     static wxVTKRenderWindowInteractor * New();
-    void PrintSelf(ostream& os, vtkIndent indent);
+    void PrintSelf(std::ostream& os, vtkIndent indent);
 
 	  //destructor
     ~wxVTKRenderWindowInteractor();

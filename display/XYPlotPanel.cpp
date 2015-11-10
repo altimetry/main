@@ -370,19 +370,19 @@ void CXYPlotPanel::SetLogY(bool value)
 //----------------------------------------
 void CXYPlotPanel::SetXTitle(const wxString& value)
 {
-  string str = CTools::SlashesDecode((const char *)(value));
+  std::string str = CTools::SlashesDecode((const char *)(value));
   m_plotActor->SetXTitle(str.c_str());
 }
 //----------------------------------------
 void CXYPlotPanel::SetYTitle(const wxString& value)
 {
-  string str = CTools::SlashesDecode((const char *)(value));
+  std::string str = CTools::SlashesDecode((const char *)(value));
   m_plotActor->SetYTitle(str.c_str());
 }
 //----------------------------------------
 void CXYPlotPanel::SetTitle(const wxString& value)
 {
-  string str = CTools::SlashesDecode((const char *)(value));
+  std::string str = CTools::SlashesDecode((const char *)(value));
   m_plotActor->SetTitle(str.c_str());
 }
 //----------------------------------------
@@ -527,8 +527,8 @@ void CXYPlotPanel::SetAnimationDescr(uint32_t indexValue)
     }
 
     CFieldNetCdf& field = data->GetFieldComplement();
-    string fieldDescr = field.GetMostExplicitName();
-    string strUnit = field.GetUnit();
+    std::string fieldDescr = field.GetMostExplicitName();
+    std::string strUnit = field.GetUnit();
 
     CUnit* unit = field.GetNetCdfUnit();
   
@@ -560,7 +560,7 @@ void CXYPlotPanel::SetAnimationDescr(uint32_t indexValue)
     uint32_t iOtherFields = 0;
 
     const CObArray& otherFields = data->GetOtherFields();
-    //const vector<CExpressionValue>& otherData = data->GetOtherVars();
+    //const std::vector<CExpressionValue>& otherData = data->GetOtherVars();
     const CObArray& otherData = data->GetOtherVars();
     
     //otherFields.Dump(*(CTrace::GetInstance()->GetDumpContext()));
@@ -573,8 +573,8 @@ void CXYPlotPanel::SetAnimationDescr(uint32_t indexValue)
         continue;
       }
 
-      string fieldDescr = field->GetMostExplicitName();
-      string strUnit = field->GetUnit();
+      std::string fieldDescr = field->GetMostExplicitName();
+      std::string strUnit = field->GetUnit();
 
       CUnit* unit = field->GetNetCdfUnit();
 

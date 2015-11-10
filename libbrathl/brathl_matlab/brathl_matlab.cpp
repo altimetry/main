@@ -40,10 +40,10 @@ static void brathlm_SetDataDir(void)
     char *path = (char *)mxCalloc(path_length + 1, 1);
     if (mxGetString(mxpath, path, path_length + 1) != 0)
     {
-        mexErrMsgTxt("Error copying string");
+        mexErrMsgTxt("Error copying std::string");
     }
 
-    string datadir = CTools::MakeCorrectPath(CTools::AbsolutePath(CTools::DirName(path) +
+    std::string datadir = CTools::MakeCorrectPath(CTools::AbsolutePath(CTools::DirName(path) +
                                                                   (PATH_SEPARATOR ".." PATH_SEPARATOR "data")));
     if (!datadir.empty())
     {
@@ -170,25 +170,25 @@ static void brathlm_SetRefUser1(int nlhs, mxArray *plhs[], int nrhs, const mxArr
     mexErrMsgTxt("brathlm_SetRefUser1 - No output argument required.");
   }
 
-  // Input must be a string. 
+  // Input must be a std::string. 
   if (mxIsChar(prhs[0]) != 1)
   {
-    mexErrMsgTxt("brathlm_SetRefUser1 - Input must be a string.");
+    mexErrMsgTxt("brathlm_SetRefUser1 - Input must be a std::string.");
   }
 
-  // Input must be a row vector.
+  // Input must be a row std::vector.
   if (mxGetM(prhs[0]) != 1)
   {
-    mexErrMsgTxt("brathlm_SetRefUser1 - Input must be a row vector.");
+    mexErrMsgTxt("brathlm_SetRefUser1 - Input must be a row std::vector.");
   }
     
-  // Get the length of the input string.
+  // Get the length of the input std::string.
   int32_t lenSrc = (mxGetM(prhs[0]) * mxGetN(prhs[0])) + 1;
 
   // Allocate memory for input and output strings. 
   dateRefUser = static_cast<char*>(mxCalloc(lenSrc, sizeof(char)));
  
-  // Copy the string data from prhs[0] into a C string 
+  // Copy the std::string data from prhs[0] into a C std::string 
   // dateRefUser.
   status = mxGetString(prhs[0], dateRefUser, lenSrc);
   if (status != 0) 
@@ -219,25 +219,25 @@ static void brathlm_SetRefUser2(int nlhs, mxArray *plhs[], int nrhs, const mxArr
   }
 
   
-  // Input must be a string. 
+  // Input must be a std::string. 
   if (mxIsChar(prhs[0]) != 1)
   {
-    mexErrMsgTxt("brathlm_SetRefUser1 - Input must be a string.");
+    mexErrMsgTxt("brathlm_SetRefUser1 - Input must be a std::string.");
   }
 
-  // Input must be a row vector.
+  // Input must be a row std::vector.
   if (mxGetM(prhs[0]) != 1)
   {
-    mexErrMsgTxt("brathlm_SetRefUser1 - Input must be a row vector.");
+    mexErrMsgTxt("brathlm_SetRefUser1 - Input must be a row std::vector.");
   }
     
-  // Get the length of the input string.
+  // Get the length of the input std::string.
   int32_t lenSrc = (mxGetM(prhs[0]) * mxGetN(prhs[0])) + 1;
 
   // Allocate memory for input and output strings. 
   dateRefUser = static_cast<char*>(mxCalloc(lenSrc, sizeof(char)));
  
-  // Copy the string data from prhs[0] into a C string 
+  // Copy the std::string data from prhs[0] into a C std::string 
   // dateRefUser.
   status = mxGetString(prhs[0], dateRefUser, lenSrc);
   if (status != 0) 
@@ -1215,11 +1215,11 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
   if (nrhs != 8)
   {
       mexErrMsgTxt("brathlm_ReadData Function needs 7 input arguments :\n"
-	      	  "1) Input files - string or an array of string cells\n"
-	      	  "2) Record name - string\n"
-	      	  "3) Selection expression - string - (empty string for no selection)\n"
-	      	  "4) Data expression - string or an array of string cells\n"
-	      	  "5) Units \n - string or an array of string cells - (empty string for default unit)\n"
+	      	  "1) Input files - std::string or an array of std::string cells\n"
+	      	  "2) Record name - std::string\n"
+	      	  "3) Selection expression - std::string - (empty std::string for no selection)\n"
+	      	  "4) Data expression - std::string or an array of std::string cells\n"
+	      	  "5) Units \n - std::string or an array of std::string cells - (empty std::string for default unit)\n"
 	      	  "6) Ignore out of range flag - boolean\n"
 	      	  "7) Statistics flag - boolean\n"
 	      	  "8) Default value - double precesion, floating-points number\n"
@@ -1241,7 +1241,7 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
   category = mxGetClassID(mxFiles);
   if ( (category != mxCELL_CLASS) && (category != mxCHAR_CLASS) )
   {
-    mexPrintf("ERROR Parameter 1 (filenames) must be a string or an array of cell and found '%s' type.\n",
+    mexPrintf("ERROR Parameter 1 (filenames) must be a std::string or an array of cell and found '%s' type.\n",
 	      mxGetClassName(mxFiles));
     mexErrMsgTxt("BRATHL Error - see above");
   }
@@ -1263,17 +1263,17 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
       category = mxGetClassID(cell_element_ptr);
       if (category != mxCHAR_CLASS)
       {
-          mexPrintf("ERROR Parameter 1 (filenames) at index %d must be a string and found '%s' type.\n",
+          mexPrintf("ERROR Parameter 1 (filenames) at index %d must be a std::string and found '%s' type.\n",
                     mxGetClassName(cell_element_ptr));
           mexErrMsgTxt("BRATHL Error - see above");
       }
 
       //buflen = mxGetNumberOfElements(cell_element_ptr) + 1;
       buflen = (mxGetM(cell_element_ptr) * mxGetN(cell_element_ptr)) + 1;
-      // Input must be a row vector.
+      // Input must be a row std::vector.
       if (mxGetM(cell_element_ptr) != 1)
       {
-          mexPrintf("ERROR Parameter 1 (filenames) at index %d must be a row vector.\n", index);
+          mexPrintf("ERROR Parameter 1 (filenames) at index %d must be a row std::vector.\n", index);
           mexErrMsgTxt("BRATHL Error - see above");
       }
 
@@ -1281,7 +1281,7 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
 
       if (mxGetString(cell_element_ptr, fileNames[index], buflen) != 0)
       {
-          mexPrintf("ERROR parameter 1 (filenames) at index %d : could not convert string data\n", index);
+          mexPrintf("ERROR parameter 1 (filenames) at index %d : could not convert std::string data\n", index);
           mexErrMsgTxt("BRATHL Error - see above");
       }
 
@@ -1291,21 +1291,21 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
   }
   else // category is not mxCELL_CLASS
   {    
-    // Input must be a string. 
+    // Input must be a std::string. 
     if (mxIsChar(mxFiles) == false)
     {
-      mexErrMsgTxt("ERROR Parameter 1 (filenames) must be a string.");
+      mexErrMsgTxt("ERROR Parameter 1 (filenames) must be a std::string.");
     }
-     // Input must be a row vector.
+     // Input must be a row std::vector.
     if (mxGetM(mxFiles) != 1)
     {
-      mexErrMsgTxt("ERROR if Parameter 1 (filenames) is a string, it must be a row vector.");
+      mexErrMsgTxt("ERROR if Parameter 1 (filenames) is a std::string, it must be a row std::vector.");
     }
 	
 	num_files = 1;
     fileNames = static_cast<char**>(mxCalloc(num_files, sizeof(char *)));
 
-    // Get the length of the input string.
+    // Get the length of the input std::string.
     buflen = (mxGetM(mxFiles) * mxGetN(mxFiles)) + 1;
 
     // Allocate memory for input and output strings. 
@@ -1313,7 +1313,7 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
 
     if (mxGetString(mxFiles, fileNames[0], buflen) != 0)
     {
-      mexPrintf("ERROR parameter 1 (fileNames) : could not convert string data\n");
+      mexPrintf("ERROR parameter 1 (fileNames) : could not convert std::string data\n");
       mexErrMsgTxt("BRATHL Error - see above");
     }
   }
@@ -1323,18 +1323,18 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
   //-------------------------------
   const mxArray* mxRecordName = prhs[1];
       
-  // Input must be a string. 
+  // Input must be a std::string. 
   if (mxIsChar(mxRecordName) == false)
   {
-    mexErrMsgTxt("ERROR Parameter 2 (recordname) must be a string.");
+    mexErrMsgTxt("ERROR Parameter 2 (recordname) must be a std::string.");
   }
-   // Input must be a row vector.
+   // Input must be a row std::vector.
   if (mxGetM(mxRecordName) != 1)
   {
-    mexErrMsgTxt("ERROR Parameter 2 (recordname) must be a row vector.");
+    mexErrMsgTxt("ERROR Parameter 2 (recordname) must be a row std::vector.");
   }
  
-  // Get the length of the input string.
+  // Get the length of the input std::string.
   buflen = (mxGetM(mxRecordName) * mxGetN(mxRecordName)) + 1;
 
   // Allocate memory for input and output strings. 
@@ -1342,7 +1342,7 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
   //mexPrintf("RecordName '%s' len %d\n", mxRecordName, buflen);
   if (mxGetString(mxRecordName, recordName, buflen) != 0)
   {
-    mexPrintf("ERROR parameter 2 (recordName) : could not convert string data\n");
+    mexPrintf("ERROR parameter 2 (recordName) : could not convert std::string data\n");
     mexErrMsgTxt("BRATHL Error - see above");
   }
 
@@ -1351,26 +1351,26 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
   //-------------------------------
   const mxArray* mxSelection = prhs[2];
       
-  // Input must be a string. 
+  // Input must be a std::string. 
   if (mxIsChar(mxSelection) == false)
   {
-    mexErrMsgTxt("ERROR Parameter 3 (selection) must be a string.");
+    mexErrMsgTxt("ERROR Parameter 3 (selection) must be a std::string.");
   }
-   // Input must be a row vector.
+   // Input must be a row std::vector.
   ////if (mxGetM(mxSelection) != 1)
   ////{
-////    mexErrMsgTxt("ERROR Parameter 3 (selection) must be a row vector.");
+////    mexErrMsgTxt("ERROR Parameter 3 (selection) must be a row std::vector.");
 ////  }
   
  
-  // Get the length of the input string.
+  // Get the length of the input std::string.
   buflen = (mxGetM(mxSelection) * mxGetN(mxSelection)) + 1;
 
   // Allocate memory for input and output strings. 
   selection = static_cast<char*>(mxCalloc(buflen, sizeof(char)));
   if (mxGetString(mxSelection, selection, buflen) != 0)
   {
-    mexPrintf("ERROR parameter 3 (selection) : could not convert string data\n");
+    mexPrintf("ERROR parameter 3 (selection) : could not convert std::string data\n");
     mexErrMsgTxt("BRATHL Error - see above");
   }
   
@@ -1384,7 +1384,7 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
   category = mxGetClassID(mxDataExpressions);
   if ( (category != mxCELL_CLASS) && (category != mxCHAR_CLASS) )
   {
-    mexPrintf("ERROR Parameter 4 (data expressions) must be be a string or an array of cell and found '%s' type.\n",
+    mexPrintf("ERROR Parameter 4 (data expressions) must be be a std::string or an array of cell and found '%s' type.\n",
               mxGetClassName(mxDataExpressions));
     mexErrMsgTxt("BRATHL Error - see above");
   }
@@ -1405,17 +1405,17 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
       category = mxGetClassID(cell_element_ptr);
       if (category != mxCHAR_CLASS)
       {
-          mexPrintf("ERROR Parameter 4 (data expressions) at index %d must be a string and found '%s' type.\n",
+          mexPrintf("ERROR Parameter 4 (data expressions) at index %d must be a std::string and found '%s' type.\n",
                     mxGetClassName(cell_element_ptr));
           mexErrMsgTxt("BRATHL Error - see above");
       }
 
       buflen = (mxGetM(cell_element_ptr) * mxGetN(cell_element_ptr)) + 1;
 
-      // Input must be a row vector.
+      // Input must be a row std::vector.
       if (mxGetM(cell_element_ptr) != 1)
       {
-          mexPrintf("ERROR Parameter 4 (data expressions) at index %d must be a row vector.\n", index);
+          mexPrintf("ERROR Parameter 4 (data expressions) at index %d must be a row std::vector.\n", index);
           mexErrMsgTxt("BRATHL Error - see above");
       }
 
@@ -1423,7 +1423,7 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
 
       if (mxGetString(cell_element_ptr, dataExpressions[index], buflen) != 0)
       {
-          mexPrintf("ERROR parameter 4 (data expressions) at index %d : could not convert string data\n", index);
+          mexPrintf("ERROR parameter 4 (data expressions) at index %d : could not convert std::string data\n", index);
           mexErrMsgTxt("BRATHL Error - see above");
       }
 
@@ -1433,21 +1433,21 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
   }
   else // category is not mxCELL_CLASS
   {    
-    // Input must be a string. 
+    // Input must be a std::string. 
     if (mxIsChar(mxDataExpressions) == false)
     {
-      mexErrMsgTxt("ERROR Parameter 4 (data expressions) must be a string.");
+      mexErrMsgTxt("ERROR Parameter 4 (data expressions) must be a std::string.");
     }
-     // Input must be a row vector.
+     // Input must be a row std::vector.
     if (mxGetM(mxDataExpressions) != 1)
     {
-      mexErrMsgTxt("ERROR if Parameter 4 (data expressions) is a string, it must be a row vector.");
+      mexErrMsgTxt("ERROR if Parameter 4 (data expressions) is a std::string, it must be a row std::vector.");
     }
 
     num_expr = 1;
     dataExpressions = static_cast<char**>(mxCalloc(1, sizeof(char *)));
 
-    // Get the length of the input string.
+    // Get the length of the input std::string.
     buflen = (mxGetM(mxDataExpressions) * mxGetN(mxDataExpressions)) + 1;
 
     // Allocate memory for input and output strings. 
@@ -1455,7 +1455,7 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
 
     if (mxGetString(mxDataExpressions, dataExpressions[0], buflen) != 0)
     {
-      mexPrintf("ERROR parameter 4 (data expressions) : could not convert string data\n");
+      mexPrintf("ERROR parameter 4 (data expressions) : could not convert std::string data\n");
       mexErrMsgTxt("BRATHL Error - see above");
     }
   }
@@ -1470,7 +1470,7 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
   category = mxGetClassID(mxUnits);
   if ( (category != mxCELL_CLASS) && (category != mxCHAR_CLASS) )
   {
-    mexPrintf("ERROR Parameter 5 (units) must be be a string or an array of cell and found '%s' type.\n",
+    mexPrintf("ERROR Parameter 5 (units) must be be a std::string or an array of cell and found '%s' type.\n",
               mxGetClassName(mxFiles));
     mexErrMsgTxt("BRATHL Error - see above");
   }
@@ -1493,7 +1493,7 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
       category = mxGetClassID(cell_element_ptr);
       if (category != mxCHAR_CLASS)
       {
-          mexPrintf("ERROR Parameter 5 (units) at index %d must be a string and found '%s' type.\n",
+          mexPrintf("ERROR Parameter 5 (units) at index %d must be a std::string and found '%s' type.\n",
                     mxGetClassName(cell_element_ptr));
           mexErrMsgTxt("BRATHL Error - see above");
       }
@@ -1502,10 +1502,10 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
       buflen = (mxGetM(cell_element_ptr) * mxGetN(cell_element_ptr)) + 1;
       //mexPrintf("buflen %d :\n",
       //		buflen);
-      // Input must be a row vector.
+      // Input must be a row std::vector.
       if (mxGetM(cell_element_ptr) != 1)
       {
-          mexPrintf("ERROR Parameter 5 (units) at index %d must be a row vector.\n", index);
+          mexPrintf("ERROR Parameter 5 (units) at index %d must be a row std::vector.\n", index);
           mexErrMsgTxt("BRATHL Error - see above");
       }
 
@@ -1513,7 +1513,7 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
 
       if (mxGetString(cell_element_ptr, units[index], buflen) != 0)
       {
-          mexPrintf("ERROR parameter 5 (units) at index %d : could not convert string data\n", index);
+          mexPrintf("ERROR parameter 5 (units) at index %d : could not convert std::string data\n", index);
           mexErrMsgTxt("BRATHL Error - see above");
       }
 
@@ -1523,21 +1523,21 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
   }
   else // category is not mxCELL_CLASS
   {    
-    // Input must be a string. 
+    // Input must be a std::string. 
     if (mxIsChar(mxUnits) == false)
     {
-      mexErrMsgTxt("ERROR Parameter 5 (units) must be a string.");
+      mexErrMsgTxt("ERROR Parameter 5 (units) must be a std::string.");
     }
-     // Input must be a row vector.
+     // Input must be a row std::vector.
 ////    if (mxGetM(mxUnits) != 1)
 ////    {
-////      mexErrMsgTxt("ERROR if Parameter 5 (units) is a string, it must be a row vector.");
+////      mexErrMsgTxt("ERROR if Parameter 5 (units) is a std::string, it must be a row std::vector.");
 ////    }
 
     num_units = 1;
     units = static_cast<char**>(mxCalloc(1, sizeof(char *)));
 
-    // Get the length of the input string.
+    // Get the length of the input std::string.
     buflen = (mxGetM(mxUnits) * mxGetN(mxUnits)) + 1;
 
     // Allocate memory for input and output strings. 
@@ -1545,7 +1545,7 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
 
     if (mxGetString(mxUnits, units[0], buflen) != 0)
     {
-      mexPrintf("ERROR parameter 5 (units) : could not convert string data\n");
+      mexPrintf("ERROR parameter 5 (units) : could not convert std::string data\n");
       mexErrMsgTxt("BRATHL Error - see above");
     }
   }
@@ -1644,15 +1644,15 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
 
     for (int32_t r = 0 ; r < num_data ; r++)
     {
-      double* vector = data[r];
+      double* std::vector = data[r];
 
       for (int32_t c = 0 ; c < actualSize ; c++)
       {    
-        memcpy((void*)pdata, &(vector[c]), sizebuf);
+        memcpy((void*)pdata, &(std::vector[c]), sizebuf);
         pdata += sizebuf;
       }
       // free memory allocated by brathl_readData.
-      delete []vector;    
+      delete []std::vector;    
     }
   }  
        
@@ -1713,7 +1713,7 @@ void mexFunction(int nlhs, mxArray *plhs[], int nrhs, const mxArray *prhs[])
   result = mxGetString(prhs[0], funcname, MAX_FUNCNAME_LENGTH + 1);
   if (result != 0)
   {
-      mexErrMsgTxt("Error in BRATHL_MATLAB gateway function: Could not copy string.");
+      mexErrMsgTxt("Error in BRATHL_MATLAB gateway function: Could not copy std::string.");
   }
   
   if (strcmp(funcname, "CREATESTRUCT") == 0)

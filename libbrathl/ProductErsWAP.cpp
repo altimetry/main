@@ -27,7 +27,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h" 
+#include <string> 
 
 #include "TraceLog.h" 
 #include "Tools.h" 
@@ -48,7 +48,7 @@ CProductErsWAP::CProductErsWAP()
 
 //----------------------------------------
 
-CProductErsWAP::CProductErsWAP(const string& fileName)
+CProductErsWAP::CProductErsWAP(const std::string& fileName)
       : CProductErs(fileName)
 {
   Init();  
@@ -161,7 +161,7 @@ bool CProductErsWAP::IsHighResolutionField(CField* field)
   CFieldRecord* topParentField = dynamic_cast<CFieldRecord*>(*(parentFieldList.begin()));
   if (topParentField == NULL)
   {
-    string msg = CTools::Format("ERROR - CProductErsWAP::IsHighResolutionField - top parent Field list NULL()"
+    std::string msg = CTools::Format("ERROR - CProductErsWAP::IsHighResolutionField - top parent Field list NULL()"
                               "(field '%s')", 
                               field->GetKey().c_str());                                
     CProductException e(msg, BRATHL_INCONSISTENCY_ERROR);
@@ -171,7 +171,7 @@ bool CProductErsWAP::IsHighResolutionField(CField* field)
 
   if (topParentField->GetTypeClass() != coda_array_class) //test the type of the parent type class
   {
-    string msg = CTools::Format("ERROR - CProductErsWAP::IsHighResolutionField - top parent Field typeClass (%s) must be coda_array_class "
+    std::string msg = CTools::Format("ERROR - CProductErsWAP::IsHighResolutionField - top parent Field typeClass (%s) must be coda_array_class "
                               "(field '%s')", 
                               coda_type_get_class_name(topParentField->GetTypeClass()),
                               topParentField->GetKey().c_str());                                
@@ -182,7 +182,7 @@ bool CProductErsWAP::IsHighResolutionField(CField* field)
 
   if (topParentField->GetNbDims() != 1 )
   {
-    string msg = CTools::Format("ERROR - CProductErsWAP::IsHighResolutionField - Number of array dim %d not implemented for this method "
+    std::string msg = CTools::Format("ERROR - CProductErsWAP::IsHighResolutionField - Number of array dim %d not implemented for this method "
                               "(field '%s')", 
                               topParentField->GetNbDims(),
                               topParentField->GetKey().c_str());                                
@@ -230,7 +230,7 @@ bool CProductErsWAP::FindParentToRead(CField* fromField, CObList* parentFieldLis
 //----------------------------------------
 void CProductErsWAP::AddInternalHighResolutionFieldCalculation()
 {
-  string internalFieldName;
+  std::string internalFieldName;
   CField* fieldTest = NULL;
 
   fieldTest = FindFieldByName(m_timeStampDayFieldName, false, NULL, false);
@@ -273,7 +273,7 @@ void CProductErsWAP::ProcessHighResolutionWithoutFieldCalculation()
 
   if (recordSetToProcess == NULL)
   {
-    string msg = "ERROR in CProductErsWAP::ProcessHighResolutionWithoutFieldCalculation - No current recordset";
+    std::string msg = "ERROR in CProductErsWAP::ProcessHighResolutionWithoutFieldCalculation - No current recordset";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
@@ -285,19 +285,19 @@ void CProductErsWAP::ProcessHighResolutionWithoutFieldCalculation()
 
   if (fieldSetTimeStampDay == NULL)
   {
-    string msg = "ERROR in CProductErsWAP::ProcessHighResolutionWithoutFieldCalculation - timestamp day field has not been read";
+    std::string msg = "ERROR in CProductErsWAP::ProcessHighResolutionWithoutFieldCalculation - timestamp day field has not been read";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
   if (fieldSetTimeStampMillisecond == NULL)
   {
-    string msg = "ERROR in CProductErsWAP::ProcessHighResolutionWithoutFieldCalculation - timestamp millisecond field has not been read";
+    std::string msg = "ERROR in CProductErsWAP::ProcessHighResolutionWithoutFieldCalculation - timestamp millisecond field has not been read";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
   if (fieldSetTimeStampMicrosecond == NULL)
   {
-    string msg = "ERROR in CProductErsWAP::ProcessHighResolutionWithoutFieldCalculation - timestamp microsecond field has not been read";
+    std::string msg = "ERROR in CProductErsWAP::ProcessHighResolutionWithoutFieldCalculation - timestamp microsecond field has not been read";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
@@ -318,7 +318,7 @@ void CProductErsWAP::ProcessHighResolutionWithoutFieldCalculation()
   if  ( (timeStamp - m_previousTimeStamp > 2.0) ||
         (timeStamp <= m_previousTimeStamp) )
   {
-    string msg = CTools::Format("INFO - record skipped due to inconsistency between two measures\n"
+    std::string msg = CTools::Format("INFO - record skipped due to inconsistency between two measures\n"
                                 "\t previous record --> timestamp %f seconds\n"
                                 "\t current record --> timestamp %f seconds\n"
                                 "\t timestamp difference is %f seconds\n",
@@ -453,7 +453,7 @@ void CProductErsWAP::ComputeHighResolutionFields(CDataSet* dataSet)
             
     if (CTools::IsDefaultValue(m_deltaTimeHighResolution))
     {
-      string msg = "ERROR in CProductErsWAP::ComputeHighResolutionFields - high resolution delta time has no been set";
+      std::string msg = "ERROR in CProductErsWAP::ComputeHighResolutionFields - high resolution delta time has no been set";
       CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
       throw (e);
 
@@ -508,7 +508,7 @@ void CProductErsWAP::ComputeHighResolutionFields(CDataSet* dataSet)
 }
 
 //----------------------------------------
-void CProductErsWAP::Dump(ostream& fOut /* = cerr */)
+void CProductErsWAP::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -516,15 +516,15 @@ void CProductErsWAP::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CProductErsWAP Object at "<< this << endl;
+  fOut << "==> Dump a CProductErsWAP Object at "<< this << std::endl;
 
   //------------------
   CProduct::Dump(fOut);
   //------------------
 
-  fOut << "==> END Dump a CProductErsWAP Object at "<< this << endl;
+  fOut << "==> END Dump a CProductErsWAP Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

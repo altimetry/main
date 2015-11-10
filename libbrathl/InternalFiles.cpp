@@ -19,7 +19,7 @@
 */
 
 #include <algorithm>
-#include "Stl.h"
+#include <string>
 
 #include "brathl.h"
 
@@ -46,7 +46,7 @@ namespace brathl
 //----------------------------------------
 
 CInternalFiles::CInternalFiles
-		(string			name /*= ""*/,
+		(std::string			name /*= ""*/,
 		 brathl_FileMode mode /*= ReadOnly*/)
 {
   SetName(name);
@@ -60,7 +60,7 @@ CInternalFiles::~CInternalFiles()
 }
 //----------------------------------------
 
-string CInternalFiles::GetName
+std::string CInternalFiles::GetName
 		() const
 {
   return m_file.GetName();
@@ -68,7 +68,7 @@ string CInternalFiles::GetName
 
 //----------------------------------------
 
-void CInternalFiles::SetName(const string& name)
+void CInternalFiles::SetName(const std::string& name)
 {
   m_file.SetName(name);
 }
@@ -109,7 +109,7 @@ bool CInternalFiles::IsOpened
 //----------------------------------------
 
 void CInternalFiles::WriteFileTitle
-		(const string	&Title)
+		(const std::string	&Title)
 {
   m_file.WriteFileTitle(Title);
 }
@@ -117,7 +117,7 @@ void CInternalFiles::WriteFileTitle
 //----------------------------------------
 
 int CInternalFiles::GetDimId
-		(const string& name)
+		(const std::string& name)
 {
   
   return m_file.GetDimId(name);
@@ -126,8 +126,8 @@ int CInternalFiles::GetDimId
 //----------------------------------------
 
 int32_t CInternalFiles::GetVarDimIndex
-		(const string& varName,
-                 const string& dimName)
+		(const std::string& varName,
+                 const std::string& dimName)
 {
   CStringArray dimensions;
   GetVarDims(varName, dimensions);
@@ -145,7 +145,7 @@ int32_t CInternalFiles::GetVarDimIndex
 
 //----------------------------------------
 
-string CInternalFiles::GetType
+std::string CInternalFiles::GetType
 		()
 {
   throw CException("Virtual function GetType must be defined in all derived types of CInternalFiles",
@@ -156,35 +156,35 @@ string CInternalFiles::GetType
 //----------------------------------------
 
 void CInternalFiles::GetVariables
-		(vector<string> &VarNames)
+		(std::vector<std::string> &VarNames)
 {
   m_file.GetVariables(VarNames);
 }
 //----------------------------------------
 
 void CInternalFiles::GetAxisVars
-		(vector<string> &VarNames)
+		(std::vector<std::string> &VarNames)
 {
   m_file.GetAxisVars(VarNames);
 }
 //----------------------------------------
 
 void CInternalFiles::GetDataVars
-		(vector<string> &VarNames)
+		(std::vector<std::string> &VarNames)
 {
   m_file.GetDataVars(VarNames);
 }
 //----------------------------------------
 
 NetCDFVarKind CInternalFiles::GetVarKind
-		(const string		&Name)
+		(const std::string		&Name)
 {
   return m_file.GetVarKind(Name);
 }
 //----------------------------------------
 
 void CInternalFiles::GetVarDims
-		(const string			&Name,
+		(const std::string			&Name,
 		 ExpressionValueDimensions	&Dimensions)
 {
   m_file.GetVarDims(Name, Dimensions);
@@ -192,14 +192,14 @@ void CInternalFiles::GetVarDims
 //----------------------------------------
 
 void CInternalFiles::GetVarDims
-		(const string			&Name,
-		 vector<string>			&Dimensions)
+		(const std::string			&Name,
+		 std::vector<std::string>			&Dimensions)
 {
   m_file.GetVarDims(Name, Dimensions);
 }
 //----------------------------------------
 
-bool CInternalFiles::GetCommonVarDims(const string& varName1, const string& varName2, CStringArray& intersect)
+bool CInternalFiles::GetCommonVarDims(const std::string& varName1, const std::string& varName2, CStringArray& intersect)
 {
   CStringArray dims1;
   CStringArray dims2;
@@ -211,7 +211,7 @@ bool CInternalFiles::GetCommonVarDims(const string& varName1, const string& varN
 }
 //----------------------------------------
 
-bool CInternalFiles::GetComplementVarDims(const string& varName1, const string& varName2, CStringArray& complement)
+bool CInternalFiles::GetComplementVarDims(const std::string& varName1, const std::string& varName2, CStringArray& complement)
 {
   CStringArray dims1;
   CStringArray dims2;
@@ -241,7 +241,7 @@ bool CInternalFiles::GetComplementVars(const CStringArray& varNames, CStringArra
 //----------------------------------------
 
 bool CInternalFiles::VarExists
-		(const string		&Name)
+		(const std::string		&Name)
 {
   return m_file.VarExists(Name);
 }
@@ -255,7 +255,7 @@ bool CInternalFiles::HasVar(NetCDFVarKind	VarKind)
 //----------------------------------------
 
 void CInternalFiles::WriteVar
-		(const string		&Name,
+		(const std::string		&Name,
 		 const CExpressionValue	&Value)
 {
   m_file.WriteVar(Name, Value);
@@ -263,9 +263,9 @@ void CInternalFiles::WriteVar
 //----------------------------------------
 
 void CInternalFiles::ReadVar
-		(const string			&Name,
+		(const std::string			&Name,
 		       CExpressionValue		&Value,
-		 const string			&WantedUnit)
+		 const std::string			&WantedUnit)
 {
   m_file.ReadVar(Name, Value, WantedUnit);
 }
@@ -274,7 +274,7 @@ void CInternalFiles::ReadVar
 //----------------------------------------
 
 bool CInternalFiles::IsVarNameValid
-		(const string	&Name)
+		(const std::string	&Name)
 {
   return CNetCDFFiles::IsVarNameValid(Name);
 }
@@ -282,7 +282,7 @@ bool CInternalFiles::IsVarNameValid
 //----------------------------------------
 
 bool CInternalFiles::IsAxisVar
-		(const string	&Name)
+		(const std::string	&Name)
 {
   return m_file.IsAxisVar(Name);
 }
@@ -291,15 +291,15 @@ bool CInternalFiles::IsAxisVar
 //----------------------------------------
 
 CUnit CInternalFiles::GetUnit
-		(const string			&Name)
+		(const std::string			&Name)
 {
   return m_file.GetUnit(Name);
 }
 
 //----------------------------------------
 
-string CInternalFiles::GetTitle
-		(const string			&Name)
+std::string CInternalFiles::GetTitle
+		(const std::string			&Name)
 {
   return m_file.GetTitle(Name);
 }
@@ -319,8 +319,8 @@ void CInternalFiles::SetFixedGlobalAttributes
 
 //----------------------------------------
 int CInternalFiles::GetAttribute
-		(const string	&varName,
-		 const string	&attName,
+		(const std::string	&varName,
+		 const std::string	&attName,
 		       double	&attValue,
 		       bool	mustExist	/*= true*/,
 		       double   defaultValue	/*= CTools::m_defaultValueDOUBLE*/)
@@ -330,19 +330,19 @@ int CInternalFiles::GetAttribute
 
 //----------------------------------------
 int CInternalFiles::GetAttribute
-		(const string	&varName,
-		 const string	&attName,
-		       string	&attValue,
+		(const std::string	&varName,
+		 const std::string	&attName,
+		       std::string	&attValue,
 		       bool	mustExist	/*= true*/,
-		       string   defaultValue	/*= ""*/)
+		       std::string   defaultValue	/*= ""*/)
 {
   return m_file.GetAttributeAsString(varName, attName, attValue, mustExist, defaultValue);
 }
 
 //----------------------------------------
-string CInternalFiles::GetComment(const string& varName)
+std::string CInternalFiles::GetComment(const std::string& varName)
 {
-  string attValue;
+  std::string attValue;
   GetAttribute(varName, COMMENT_ATTR, attValue, false);
   return attValue;
 }
@@ -374,7 +374,7 @@ void CInternalFiles::ReplaceNetCDFDim(CNetCDFDimension& dim)
 }
 
 //----------------------------------------
-CInternalFiles* CInternalFiles::Create(const string& fileName, bool open /* = true */, bool withExcept /* = true */)
+CInternalFiles* CInternalFiles::Create(const std::string& fileName, bool open /* = true */, bool withExcept /* = true */)
 {
   CInternalFiles* f = NULL;
   
@@ -440,7 +440,7 @@ CInternalFiles* CInternalFiles::Create(const string& fileName, bool open /* = tr
 }
 */
 //----------------------------------------
-bool CInternalFiles::IsZFLatLonFile(const string& fileName, CInternalFiles** pf /* = NULL */)
+bool CInternalFiles::IsZFLatLonFile(const std::string& fileName, CInternalFiles** pf /* = NULL */)
 {
   CInternalFiles* f = Create(fileName, true, false);
   
@@ -478,7 +478,7 @@ bool CInternalFiles::IsZFLatLonFile(CInternalFiles* f)
 
 }
 //----------------------------------------
-bool CInternalFiles::IsZFXYFile(const string& fileName, CStringArray* fieldNamesIn /* = NULL */, CInternalFiles** pf /* = NULL */)
+bool CInternalFiles::IsZFXYFile(const std::string& fileName, CStringArray* fieldNamesIn /* = NULL */, CInternalFiles** pf /* = NULL */)
 {
   CInternalFiles* f = Create(fileName, true, false);
   
@@ -528,7 +528,7 @@ bool CInternalFiles::IsZFXYFile(CInternalFiles* f, CStringArray* fieldNamesIn /*
 
 }
 //----------------------------------------
-bool CInternalFiles::IsYFXFile(const string& fileName, CInternalFiles** pf /* = NULL */)
+bool CInternalFiles::IsYFXFile(const std::string& fileName, CInternalFiles** pf /* = NULL */)
 {
   CInternalFiles* f = Create(fileName, true, false);
   

@@ -39,7 +39,7 @@
 using namespace brathl;
 
 #include "ColorPalette.h"
-#include "MapProjection.h"
+#include "PlotData/MapProjection.h"
 #include "Validators.h"
 
 #include "BratGui.h"
@@ -48,6 +48,9 @@ using namespace brathl;
 
 #include "DisplayPanel.h"
 #include "MapTypeDisp.h"
+#include "PlotData/ColorPalleteNames.h"
+#include "wxGuiInterface.h"
+
 
 // WDR: class implementations
 
@@ -1009,7 +1012,7 @@ void CDisplayPanel::GetOperations(int32_t type /*= -1*/)
 
         displayData->GetField()->SetName(*itField);
 
-        string unit = file->GetUnit(*itField).GetText();
+        std::string unit = file->GetUnit(*itField).GetText();
         displayData->GetField()->SetUnit(unit);
 
         wxString comment = file->GetComment(*itField).c_str();
@@ -1025,10 +1028,10 @@ void CDisplayPanel::GetOperations(int32_t type /*= -1*/)
 
         if (nbDims >= 1)
         {
-          string dimName = varDimensions.at(0);
+          std::string dimName = varDimensions.at(0);
           displayData->GetX()->SetName(varDimensions.at(0));
 
-          string unit = file->GetUnit(dimName).GetText();
+          std::string unit = file->GetUnit(dimName).GetText();
           displayData->GetX()->SetUnit(unit);
 
           displayData->GetX()->SetDescription(file->GetTitle(dimName));
@@ -1036,10 +1039,10 @@ void CDisplayPanel::GetOperations(int32_t type /*= -1*/)
 
         if (nbDims >= 2)
         {
-          string dimName = varDimensions.at(1);
+          std::string dimName = varDimensions.at(1);
           displayData->GetY()->SetName(varDimensions.at(1));
 
-          string unit = file->GetUnit(dimName).GetText();
+          std::string unit = file->GetUnit(dimName).GetText();
           displayData->GetY()->SetUnit(unit);
 
           displayData->GetY()->SetDescription(file->GetTitle(dimName));
@@ -1047,10 +1050,10 @@ void CDisplayPanel::GetOperations(int32_t type /*= -1*/)
 
         if (nbDims >= 3)
         {
-          string dimName = varDimensions.at(2);
+          std::string dimName = varDimensions.at(2);
           displayData->GetZ()->SetName(varDimensions.at(2));
 
-          string unit = file->GetUnit(dimName).GetText();
+          std::string unit = file->GetUnit(dimName).GetText();
           displayData->GetZ()->SetUnit(unit);
 
           displayData->GetZ()->SetDescription(file->GetTitle(dimName));
@@ -2135,7 +2138,7 @@ void CDisplayPanel::FillPaletteList()
 void CDisplayPanel::FillProjList()
 {
   GetDispProj()->Clear();
-  CMapProjection::GetInstance()->NamesToComboBox(*GetDispProj());
+  NamesToComboBox(*CMapProjection::GetInstance(), *GetDispProj());
 }
 
 //----------------------------------------

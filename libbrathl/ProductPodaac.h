@@ -48,7 +48,7 @@ public:
   
   /** Creates new CProductPodaac object
     \param fileName [in] : file name to be connected */
-  CProductPodaac(const string& fileName);
+  CProductPodaac(const std::string& fileName);
   
   /** Creates new CProductPodaac object
     \param fileNameList [in] : list of file to be connected */
@@ -57,18 +57,18 @@ public:
   /// Destructor
   virtual ~CProductPodaac();
 
-  virtual string GetLabel();
+  virtual std::string GetLabel();
 
   virtual void InitCriteriaInfo();
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 public:
 
-  static const string m_J1SSHA_PASS_FILE;
-  static const string m_J1SSHA_ATG_FILE;
-  static const string m_TPSSHA_PASS_FILE;
-  static const string m_TPSSHA_ATG_FILE;
+  static const std::string m_J1SSHA_PASS_FILE;
+  static const std::string m_J1SSHA_ATG_FILE;
+  static const std::string m_TPSSHA_PASS_FILE;
+  static const std::string m_TPSSHA_ATG_FILE;
 
 
 protected:

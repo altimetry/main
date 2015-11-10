@@ -23,7 +23,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h"
+#include <string>
 
 #include "Tools.h" 
 #include "BratAlgoFilter.h" 
@@ -54,7 +54,7 @@ public:
   CBratAlgoFilterKernel& operator=(const CBratAlgoFilterKernel &copy);
 
   /** Dump function */
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
  
 protected:
 
@@ -143,13 +143,13 @@ protected:
 
   uint32_t m_lastIndexDataToInsert;
 
-  static const string m_VAR_PARAM_DESCR;
-  static const string m_VALID_PARAM_DESCR;
-  static const string m_EXTRAPOLATE_PARAM_DESCR;
+  static const std::string m_VAR_PARAM_DESCR;
+  static const std::string m_VALID_PARAM_DESCR;
+  static const std::string m_EXTRAPOLATE_PARAM_DESCR;
 
-  static const string m_VAR_PARAM_NAME;
-  static const string m_VALID_PARAM_NAME;
-  static const string m_EXTRAPOLATE_PARAM_NAME;
+  static const std::string m_VAR_PARAM_NAME;
+  static const std::string m_VALID_PARAM_NAME;
+  static const std::string m_EXTRAPOLATE_PARAM_NAME;
 
 
   static const uint32_t m_VAR_PARAM_INDEX;

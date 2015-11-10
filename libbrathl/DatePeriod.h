@@ -23,7 +23,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h"
+#include <string>
 
 #include "List.h"
 #include "Date.h"
@@ -81,7 +81,7 @@ public:
      * @param from start date
      * @param to end date
     */
-  CDatePeriod(const string& from, const string& to);
+  CDatePeriod(const std::string& from, const std::string& to);
 
    /**
      * Constructor.
@@ -92,7 +92,7 @@ public:
   CDatePeriod(double from, double to);
 
   /**
-     * Constructor from a array that contains start date as string, end date as string
+     * Constructor from a array that contains start date as std::string, end date as std::string
      * 
      * @param array start and end dates
      */
@@ -128,7 +128,7 @@ public:
      * 
      * @param to end date
     */
-  void SetTo(const string& strDate);
+  void SetTo(const std::string& strDate);
   
    /**
      * Sets start date
@@ -141,7 +141,7 @@ public:
      * 
      * @param to start date
     */
-  void SetFrom(const string& strDate);
+  void SetFrom(const std::string& strDate);
 
    /**
      * Sets date period from start and end date
@@ -156,7 +156,7 @@ public:
      * @param from start date
      * @param to end date
     */
-  void Set(const string& from, const string& to);
+  void Set(const std::string& from, const std::string& to);
     /*
      * Sets date period from start and end date
      * 
@@ -166,7 +166,7 @@ public:
   void Set(double from, double to);
 
   /**
-     * Sets a date period from a array that contains start date as string, end date as string
+     * Sets a date period from a array that contains start date as std::string, end date as std::string
      * 
      * @param array start and end dates
     */
@@ -216,20 +216,20 @@ public:
   const CDatePeriod& operator= (CDatePeriod& datePeriod);
 
 
-  string AsString(const string& format = "",  bool withMuSecond = false);
+  std::string AsString(const std::string& format = "",  bool withMuSecond = false);
 
-  string GetAsText(const string& delimiter = CDatePeriod::m_delimiter);
-  string GetFromAsText();
-  string GetToAsText();
+  std::string GetAsText(const std::string& delimiter = CDatePeriod::m_delimiter);
+  std::string GetFromAsText();
+  std::string GetToAsText();
 
   bool GetWithMuSecond() { return m_withMuSecond; };
   void SetWithMuSecond(bool value) { m_withMuSecond = value; };
 
-  string GetFormat() { return m_format; };
-  void SetFormat(const string& value) { m_format = value; };
+  std::string GetFormat() { return m_format; };
+  void SetFormat(const std::string& value) { m_format = value; };
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
 
@@ -238,7 +238,7 @@ protected:
 
 public:
     
-  static const string m_delimiter;
+  static const std::string m_delimiter;
 
 protected:
 
@@ -253,7 +253,7 @@ protected:
   CDate m_to;
 
   bool m_withMuSecond;
-  string m_format;
+  std::string m_format;
 
 
 private:

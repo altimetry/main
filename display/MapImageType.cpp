@@ -33,7 +33,7 @@
 #include "Exception.h" 
 using namespace brathl;
 
-#include "vtkProj2DFilter.h" 
+#include "PlotData/vtkProj2DFilter.h" 
 #include "MapImageType.h" 
 
 //CMapImageType* CMapImageType::m_instance = NULL;
@@ -96,7 +96,7 @@ CMapImageType& CMapImageType::GetInstance()
 }
  */
 //----------------------------------------
-bool CMapImageType::ValidName(const string& name)
+bool CMapImageType::ValidName(const std::string& name)
 {   
   return ValidName(name.c_str());
 }

@@ -18,7 +18,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #include <cstdio>
-#include "Stl.h"
+#include <string>
 #include "List.h"
 #include "Exception.h"
 #include "FileParams.h"
@@ -52,7 +52,7 @@ int main (int argc, char *argv[])
 
   int32_t result = BRATHL_SUCCESS;
 
-  string msg;
+  std::string msg;
 
   bool bOk = true;
 
@@ -63,7 +63,7 @@ int main (int argc, char *argv[])
 
   if (!CTools::LoadAndCheckUdUnitsSystem(msg))
   {
-    cerr << msg << endl;
+    std::cerr << msg << std::endl;
     return BRATHL_ERROR;
   }
 
@@ -102,21 +102,21 @@ int main (int argc, char *argv[])
   }
   catch (CException &e)
   {
-    cerr << "BRAT ERROR: " << e.what() << endl;
+    std::cerr << "BRAT ERROR: " << e.what() << std::endl;
     CTools::DeleteObject(bratProcess);
     bratProcess = NULL;
     return BRATHL_ERROR;
   }
-  catch (exception &e)
+  catch (std::exception &e)
   {
-    cerr << "BRAT RUNTIME ERROR: " << e.what() << endl;
+    std::cerr << "BRAT RUNTIME ERROR: " << e.what() << std::endl;
     CTools::DeleteObject(bratProcess);
     bratProcess = NULL;
     return 254;
   }
   catch (...)
   {
-    cerr << "BRAT FATAL ERROR: Unexpected error" << endl;
+    std::cerr << "BRAT FATAL ERROR: Unexpected error" << std::endl;
     CTools::DeleteObject(bratProcess);
     bratProcess = NULL;
     return 255;

@@ -20,9 +20,16 @@
 #if !defined(_Exception_h_)
 #define _Exception_h_
 
+#include <iostream>
+#include <string>
+#include <cstring>
+#include <limits>
+
+
 #include "brathl_error.h"
 #include "brathl.h"
-#include "Stl.h"
+
+
 
 namespace brathl
 {
@@ -32,7 +39,7 @@ namespace brathl
 //-------------------------------------------------------------
 
 /** \file
-  This file contains the various exception classes of brathl
+  This file contains the various std::exception classes of brathl
 */
 
 
@@ -46,7 +53,7 @@ namespace brathl
  \version 1.0
 */
 
-class CException : public exception
+class CException : public std::exception
 {
 
 public:
@@ -59,7 +66,7 @@ public:
     \param message [in] : error message
     \param errcode [in] : error code
     */
-  CException(const string& message, int32_t errcode);
+  CException(const std::string& message, int32_t errcode);
 
    //@}
 
@@ -68,19 +75,19 @@ public:
   virtual ~CException() throw();
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
-  virtual const char * TypeOf() const { return "exception"; };
+  virtual const char * TypeOf() const { return "std::exception"; };
 
   virtual const char *what() const throw();
   int32_t error() { return m_errcode;};
-  string GetMessage() { return m_message; };
+  std::string GetMessage() { return m_message; };
 
 protected:
 
 
   int32_t m_errcode;
-  string m_message;
+  std::string m_message;
 
 
 
@@ -109,7 +116,7 @@ public:
     \param message [in] : error message
     \param errcode [in] : error code
     */
-  CFileException(const string& message, int32_t errcode = BRATHL_ERROR)
+  CFileException(const std::string& message, int32_t errcode = BRATHL_ERROR)
       	: CException(message, errcode){};
 
   /** Creates a new CFileException object.
@@ -117,12 +124,12 @@ public:
     \param fileName [in] : file name in error
     \param errcode [in] : error code
     */
-  CFileException(const string& message, const string& fileName, int32_t errcode);
+  CFileException(const std::string& message, const std::string& fileName, int32_t errcode);
 
   /// Destructor
   virtual ~CFileException() throw() {};
 
-  /// Identification of exception (human readable)
+  /// Identification of std::exception (human readable)
   virtual const char * TypeOf() const { return "FileException"; };
 
 
@@ -153,12 +160,12 @@ public:
     \param message [in] : error message
     \param errcode [in] : error code
     */
-  CParameterException(const string& message, int32_t errcode)
+  CParameterException(const std::string& message, int32_t errcode)
       	: CException(message, errcode){};
   /// Destructor
   virtual ~CParameterException()  throw() {};
 
-  /// Identification of exception (human readable)
+  /// Identification of std::exception (human readable)
   virtual const char * TypeOf() const { return "ParameterException"; };
 
 
@@ -190,7 +197,7 @@ public:
     \param message [in] : error message
     \param errcode [in] : error code
     */
-  CProductException(const string& message, int32_t errcode)
+  CProductException(const std::string& message, int32_t errcode)
       	: CException(message, errcode){};
 
 
@@ -199,7 +206,7 @@ public:
     \param fileName [in] : file name in error
     \param errcode [in] : error code
     */
-  CProductException(const string& message, const string& fileName, int32_t errcode);
+  CProductException(const std::string& message, const std::string& fileName, int32_t errcode);
 
     /** Creates a new CProductException object.
     \param message [in] : error message
@@ -208,15 +215,15 @@ public:
     \param productType [in] : product type
     \param errcode [in] : error code
     */
-  CProductException(const string& message, const string& fileName,
-                                       const string& productClass,
-                                       const string& productType,
+  CProductException(const std::string& message, const std::string& fileName,
+                                       const std::string& productClass,
+                                       const std::string& productType,
                                        int32_t errcode);
 
   /// Destructor
   virtual ~CProductException()  throw() {};
 
-  /// Identification of exception (human readable)
+  /// Identification of std::exception (human readable)
   virtual const char * TypeOf() const { return "ProductExeption"; };
 
 };
@@ -249,12 +256,12 @@ public:
     \param errcode [in] : error code
     \param expression [in] : expression being compiled
     */
-  CExpressionException(const string& message, int32_t errcode, const string& expression = "");
+  CExpressionException(const std::string& message, int32_t errcode, const std::string& expression = "");
 
   /// Destructor
   virtual ~CExpressionException()  throw() {};
 
-  /// Identification of exception (human readable)
+  /// Identification of std::exception (human readable)
   virtual const char * TypeOf() const { return "ExpressionException"; };
 
 };
@@ -286,13 +293,13 @@ public:
     \param message [in] : error message
     \param errcode [in] : error code
     */
-  CMemoryException(const string& message, int32_t errcode = BRATHL_MEMORY_ERROR)
+  CMemoryException(const std::string& message, int32_t errcode = BRATHL_MEMORY_ERROR)
       	: CException(message, errcode){};
 
   /// Destructor
   virtual ~CMemoryException()  throw() {};
 
-  /// Identification of exception (human readable)
+  /// Identification of std::exception (human readable)
   virtual const char * TypeOf() const { return "MemoryException"; };
 
 };
@@ -322,7 +329,7 @@ public:
     \param message [in] : error message
     \param errcode [in] : error code
     */
-  CUnImplementException(const string& message, int32_t errcode = BRATHL_UNIMPLEMENT_ERROR)
+  CUnImplementException(const std::string& message, int32_t errcode = BRATHL_UNIMPLEMENT_ERROR)
       	: CException(message, errcode)
   {};
 
@@ -332,7 +339,7 @@ public:
   /// Destructor
   virtual ~CUnImplementException() throw() {};
 
-  /// Identification of exception (human readable)
+  /// Identification of std::exception (human readable)
   virtual const char * TypeOf() const { return "UnimplementedException"; };
 
 };
@@ -362,7 +369,7 @@ public:
     \param message [in] : error message
     \param errcode [in] : error code
     */
-  CAlgorithmException(const string& message, int32_t errcode = BRATHL_ERROR)
+  CAlgorithmException(const std::string& message, int32_t errcode = BRATHL_ERROR)
       	: CException(message, errcode){};
 
   /** Creates a new CAlgorithmException object.
@@ -370,12 +377,12 @@ public:
     \param fileName [in] : file name in error
     \param errcode [in] : error code
     */
-  CAlgorithmException(const string& message, const string& algorithmName, int32_t errcode);
+  CAlgorithmException(const std::string& message, const std::string& algorithmName, int32_t errcode);
 
   /// Destructor
   virtual ~CAlgorithmException() throw() {};
 
-  /// Identification of exception (human readable)
+  /// Identification of std::exception (human readable)
   virtual const char * TypeOf() const { return "AlgorithmException"; };
 
 
@@ -406,12 +413,12 @@ public:
     \param message [in] : error message
     \param errcode [in] : error code
     */
-  CXMLException(const string& message, int32_t errcode)
+  CXMLException(const std::string& message, int32_t errcode)
       	: CException(message, errcode){};
   /// Destructor
   virtual ~CXMLException()  throw() {};
 
-  /// Identification of exception (human readable)
+  /// Identification of std::exception (human readable)
   virtual const char * TypeOf() const { return "XMLException"; };
 
 
@@ -440,12 +447,12 @@ public:
     \param message [in] : error message
     \param errcode [in] : error code
     */
-  CXMLParseException(const string& message, int32_t errcode)
+  CXMLParseException(const std::string& message, int32_t errcode)
       	: CXMLException(message, errcode){};
   /// Destructor
   virtual ~CXMLParseException()  throw() {};
 
-  /// Identification of exception (human readable)
+  /// Identification of std::exception (human readable)
   virtual const char * TypeOf() const { return "XMLParseException"; };
 
 
@@ -474,12 +481,12 @@ public:
     \param message [in] : error message
     \param errcode [in] : error code
     */
-  CLoadAliasesException(const string& message, int32_t errcode)
+  CLoadAliasesException(const std::string& message, int32_t errcode)
       	: CException(message, errcode){};
   /// Destructor
   virtual ~CLoadAliasesException()  throw() {};
 
-  /// Identification of exception (human readable)
+  /// Identification of std::exception (human readable)
   virtual const char * TypeOf() const { return "LoadAliasesException"; };
 
 

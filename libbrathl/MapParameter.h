@@ -21,7 +21,7 @@
 #if !defined(_MapParameter_h_)
 #define _MapParameter_h_
 
-#include "Stl.h"
+#include <string>
 
 #include "Parameter.h"
 using namespace brathl;
@@ -36,8 +36,8 @@ namespace brathl
 */
   
   
-/*! Creates a type name for map parameter base class */ 
-typedef map<string, CParameter*> map_parameter; 
+/*! Creates a type name for std::map parameter base class */ 
+typedef std::map<std::string, CParameter*> map_parameter; 
 
 /** \addtogroup parameters Parameters
   @{ */
@@ -45,7 +45,7 @@ typedef map<string, CParameter*> map_parameter;
 /** 
   Parameter management class.
 
-  This class provides a map of CParameter objects
+  This class provides a std::map of CParameter objects
 
  \version 1.0
 */
@@ -67,10 +67,10 @@ public:
 
    
    /** Inserts a CParameter object
-   * \param key : parameter name (map key)
+   * \param key : parameter name (std::map key)
    * \param value : parameter value 
    * \return CParameter oject or NULL if error */
-   CParameter* Insert(const string& key, const string& value);
+   CParameter* Insert(const std::string& key, const std::string& value);
 
    
    /** Delete an element referenced by iteratorMnemo
@@ -79,26 +79,26 @@ public:
 
   /** Tests if an element identify by 'key' already exists
    * \return a CParameter pointer if exists, otherwise NULL */
-  CParameter* Exists(const string& key);
+  CParameter* Exists(const std::string& key);
 
    /** Delete an element by its key
    * \return true if no error, otherwise false */
-   bool Erase(const string& key);
+   bool Erase(const std::string& key);
 
-   /** Remove all elements and clear the map*/
+   /** Remove all elements and clear the std::map*/
    void RemoveAll();
 
    /** operator[] redefinition. Searches a CParameter object identifiy by 'key'.
       DON'T USE this syntax if you are not sure the key exists, there's a bug in STL,  
-       after calling  'record = m_recordSetMap[recordSetName]', if key not existed and the map is empty 
-       then the key exists in the map and points to a NULL object
+       after calling  'record = m_recordSetMap[recordSetName]', if key not existed and the std::map is empty 
+       then the key exists in the std::map and points to a NULL object
         CParameter *p = m_mapParam[key] --> use Exists method instead ;
      \param key : parameter keyword 
      \return a pointer to th CParameter object if found, NULL  if not found */
-   CParameter* operator[](const string key);
+   CParameter* operator[](const std::string key);
 
    /// Dump fonction
-   virtual void Dump(ostream& fOut = cerr);
+   virtual void Dump(std::ostream& fOut = std::cerr);
 
 
 protected:

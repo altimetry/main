@@ -21,7 +21,7 @@
 #define _BratObject_h_
 
 
-#include "Stl.h"
+#include <string>
 /** \addtogroup tools Tools
   @{ */
 
@@ -48,19 +48,19 @@ public:
   virtual ~CBratObject() {};
   virtual CBratObject* Clone() 
   { 
-    string className = typeid(*this).name();
-    string msg = "ERROR - A 'Clone' method must be defined in class '";
+    std::string className = typeid(*this).name();
+    std::string msg = "ERROR - A 'Clone' method must be defined in class '";
     msg.append(className.c_str());
     msg.append("'");
     throw CException(msg, BRATHL_LOGIC_ERROR);
   };
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr) 
+  virtual void Dump(std::ostream& fOut = std::cerr) 
   {
-    fOut << "==> Dump a CBratObject Object at "<< this << endl;
-    fOut << "==> END Dump a CBratObject Object at "<< this << endl;
-    fOut << endl;
+    fOut << "==> Dump a CBratObject Object at "<< this << std::endl;
+    fOut << "==> END Dump a CBratObject Object at "<< this << std::endl;
+    fOut << std::endl;
   };
 
 };

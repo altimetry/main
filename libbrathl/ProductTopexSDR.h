@@ -48,7 +48,7 @@ public:
   
   /** Creates new CProductTopexSDR object
     \param fileName [in] : file name to be connected */
-  CProductTopexSDR(const string& fileName);
+  CProductTopexSDR(const std::string& fileName);
   
   /** Creates new CProductTopexSDR object
     \param fileNameList [in] : list of file to be connected */
@@ -57,10 +57,10 @@ public:
   /// Destructor
   virtual ~CProductTopexSDR();
 
-  virtual string GetLabel();
+  virtual std::string GetLabel();
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 public:
 

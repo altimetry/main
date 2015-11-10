@@ -53,7 +53,7 @@ public:
 
   /** Creates new CProductNetCdf object
     \param fileName [in] : file name to be connected */
-  CProductJason2(const string& fileName);
+  CProductJason2(const std::string& fileName);
   
   /** Creates new CProductNetCdf object
     \param fileNameList [in] : list of file to be connected */
@@ -67,7 +67,7 @@ public:
 
   virtual void InitDateRef();
 
-  virtual void Dump(ostream& fOut  = cerr); 
+  virtual void Dump(std::ostream& fOut  = std::cerr); 
 
 
 

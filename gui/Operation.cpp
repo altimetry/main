@@ -1863,7 +1863,7 @@ bool COperation::ControlDimensions(CFormula* formula, wxString& errorMsg,  const
     return true;
   }
 
-  string msg;
+  std::string msg;
 
   wxString stringExpr = formula->GetDescription(true, aliases, m_product->GetAliasesAsString());
 
@@ -2052,7 +2052,7 @@ bool COperation::Control(wxString& msg, bool basicControl /* = false */, const C
 
 
 //----------------------------------------
-void COperation::Dump(ostream& fOut /* = cerr */)
+void COperation::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -2060,12 +2060,12 @@ void COperation::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a COperation Object at "<< this << endl;
+  fOut << "==> Dump a COperation Object at "<< this << std::endl;
 
   m_dataset->Dump(fOut);
-  fOut << "==> END Dump a COperation Object at "<< this << endl;
+  fOut << "==> END Dump a COperation Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

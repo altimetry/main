@@ -23,7 +23,7 @@
 #include <cstdio>
 #include <cstring>
 
-#include "Stl.h"
+#include <string>
 #include "Tools.h"
 #include "TraceLog.h"
 #include "brathl.h"
@@ -32,12 +32,12 @@
 
 #include "FileParams.h"
 
-const string kwALIAS_NAME			= "ALIAS_NAME";
-const string kwALIAS_VALUE			= "ALIAS_VALUE";
-const string kwUNIT_ATTR_NAME = "UNIT_ATTR_NAME";
-const string kwUNIT_ATTR_VALUE = "UNIT_ATTR_VALUE";
-const string kwVERBOSE				= "VERBOSE";
-const string kwLOGFILE				= "LOGFILE";
+const std::string kwALIAS_NAME			= "ALIAS_NAME";
+const std::string kwALIAS_VALUE			= "ALIAS_VALUE";
+const std::string kwUNIT_ATTR_NAME = "UNIT_ATTR_NAME";
+const std::string kwUNIT_ATTR_VALUE = "UNIT_ATTR_VALUE";
+const std::string kwVERBOSE				= "VERBOSE";
+const std::string kwLOGFILE				= "LOGFILE";
 
 // When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
@@ -58,7 +58,7 @@ CFileParams::CFileParams()
 
 //----------------------------------------
 
-CFileParams::CFileParams(const string& name, uint32_t mode /* = modeRead|typeBinary */)
+CFileParams::CFileParams(const std::string& name, uint32_t mode /* = modeRead|typeBinary */)
       : CFile(name, mode)
 {
   Init();
@@ -122,7 +122,7 @@ void CFileParams::Load()
 
 
 //----------------------------------------
-void CFileParams::Load(const string& name, uint32_t mode /* = modeRead|typeBinary */)
+void CFileParams::Load(const std::string& name, uint32_t mode /* = modeRead|typeBinary */)
 {
   CTrace::Tracer("Entered CFileParams::Load(name, mode)\n");
   Open(name, mode);
@@ -135,7 +135,7 @@ void CFileParams::LoadAliases()
 
   uint32_t nbAliases = CheckCount(kwALIAS_NAME, 0, -1);
 
-  const string ValidChars	= "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_0123456789";
+  const std::string ValidChars	= "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz_0123456789";
 
   if (nbAliases != 0)
   {
@@ -143,8 +143,8 @@ void CFileParams::LoadAliases()
 
     for (uint32_t Index=0; Index < nbAliases; Index++)
     {
-      string		Name, Value;
-      string::size_type	Where;
+      std::string		Name, Value;
+      std::string::size_type	Where;
       
       m_mapParam[kwALIAS_NAME]->GetValue(Name, Index, "-NO-DEFAULT-VALUE-FOR-ALIAS-NAME-");
 
@@ -152,7 +152,7 @@ void CFileParams::LoadAliases()
 
       Where	= ValidChars.find(Name[0]);
       
-      if ((Where == string::npos) || (Where >= 26*2))
+      if ((Where == std::string::npos) || (Where >= 26*2))
       {
         throw CParameterException("Alias name must begin with a letter: '"+Name+"' is invalid",
 				  BRATHL_SYNTAX_ERROR);
@@ -160,7 +160,7 @@ void CFileParams::LoadAliases()
 
       Where	= Name.find_first_not_of(ValidChars);
 
-      if (Where != string::npos)
+      if (Where != std::string::npos)
       {
         throw CParameterException("Alias name must contain only letter, digits and '_': '"+Name+"' is invalid",
 				  BRATHL_SYNTAX_ERROR);
@@ -203,8 +203,8 @@ void CFileParams::LoadFieldSpecificUnits()
   {
     return;
   }
-  string name;
-  string value;
+  std::string name;
+  std::string value;
 
   CheckCount(kwUNIT_ATTR_VALUE, nbFieldSpecificUnit, -1);
 
@@ -249,7 +249,7 @@ void CFileParams::Decode(char *line)
     throw CParameterException("CFileParams::Decode - Error - Invalid line data (not a 'keyword=value' format) - filename:" +
 			      GetFileName() +
 			      " line:" +
-			      string(line),
+			      std::string(line),
 			      BRATHL_SYNTAX_ERROR);
   }
 
@@ -284,7 +284,7 @@ void CFileParams::Decode(char *line)
 
 //----------------------------------------
 uint32_t CFileParams::CheckCount
-		(const string	&Key,
+		(const std::string	&Key,
 		 int32_t	ValidMin	/*= 1*/,
 		 int32_t	ValidMax	/*= 0 */)
 {
@@ -323,7 +323,7 @@ uint32_t CFileParams::CheckCount
 }
 
 //----------------------------------------
-void CFileParams::GetFieldNames(const string& key, CStringArray& fieldNames)
+void CFileParams::GetFieldNames(const std::string& key, CStringArray& fieldNames)
 {
 
   if (!IsLoaded())
@@ -342,14 +342,14 @@ void CFileParams::GetFieldNames(const string& key, CStringArray& fieldNames)
   }
 }
 //----------------------------------------
-string CFileParams::GetFirstFile(const string& key)
+std::string CFileParams::GetFirstFile(const std::string& key)
 {
 
   if (!IsLoaded())
   {
     Load();
   }
-  string fileName;
+  std::string fileName;
   
   CheckCount(key,  1, -1);
   
@@ -357,7 +357,7 @@ string CFileParams::GetFirstFile(const string& key)
   return fileName;
 }
 //----------------------------------------
-void CFileParams::GetFileList(const string& key, CStringArray& fileNames)
+void CFileParams::GetFileList(const std::string& key, CStringArray& fileNames)
 {
 
   if (!IsLoaded())
@@ -386,7 +386,7 @@ void CFileParams::SetVerboseLevel()
 
   CTrace* pTrace = NULL;
 
-  string logFile;
+  std::string logFile;
 
   if (CheckCount(kwLOGFILE, 0, 1) == 1)
   {
@@ -406,33 +406,33 @@ void CFileParams::SetVerboseLevel()
 
 
 //----------------------------------------
-void CFileParams::Dump(ostream& fOut /* = cerr */)
+void CFileParams::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (! CTrace::IsTrace())
   {
     return;
   }
 
-  fOut << "==> Dump a CFileParams Object at "<< this << endl;
+  fOut << "==> Dump a CFileParams Object at "<< this << std::endl;
 
   //---------------------------------
   CFile::Dump(fOut);
   //---------------------------------
 
-  fOut << "m_mapParam = " << endl;
+  fOut << "m_mapParam = " << std::endl;
   m_mapParam.Dump(fOut);
 
-  fOut << "m_aliases = " << endl;
+  fOut << "m_aliases = " << std::endl;
   m_aliases.Dump(fOut);
 
-  fOut << "m_fieldSpecificUnit = " << endl;
+  fOut << "m_fieldSpecificUnit = " << std::endl;
   m_fieldSpecificUnit.Dump(fOut);
 
-  fOut << "m_fieldSpecificUnit = " << m_isLoaded << endl;
+  fOut << "m_fieldSpecificUnit = " << m_isLoaded << std::endl;
 
-  fOut << "==> END Dump a CFileParams Object at "<< this << endl;
+  fOut << "==> END Dump a CFileParams Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

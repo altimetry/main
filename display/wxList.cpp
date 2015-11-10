@@ -24,7 +24,7 @@
 #include <cstdio>
 #include <cstring> 
 
-#include "Stl.h" 
+#include <string> 
 
 #include "TraceLog.h" 
 #include "Exception.h" 
@@ -174,7 +174,7 @@ void wxObList::RemoveAll()
 }
 
 //----------------------------------------
-void wxObList::Dump(ostream& fOut /* = cerr */)
+void wxObList::Dump(std::ostream& fOut /* = std::cerr */)
 {
 
   if (CTrace::IsTrace() == false)
@@ -185,19 +185,19 @@ void wxObList::Dump(ostream& fOut /* = cerr */)
    wxObList::iterator it;
    int i = 0;
 
-   fOut << "==> Dump a wxObList Object at " << this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a wxObList Object at " << this << " with " <<  size() << " elements" << std::endl;
 
    for ( it = this->begin( ); it != this->end( ); it++ )
    {
-     fOut << "wxObList[" << i << "] at " << (*it) << endl;  
+     fOut << "wxObList[" << i << "] at " << (*it) << std::endl;  
      //(*it)->Dump(fOut);
      i++;
    }
 
-   fOut << "==> END Dump a wxObList Object at " << this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a wxObList Object at " << this << " with " <<  size() << " elements" << std::endl;
     
  
-   fOut << endl;
+   fOut << std::endl;
    
 
 }
@@ -358,7 +358,7 @@ void wxObArray::RemoveAll()
 }
 
 //----------------------------------------
-void wxObArray::Dump(ostream& fOut /* = cerr */)
+void wxObArray::Dump(std::ostream& fOut /* = std::cerr */)
 {
 
   if (CTrace::IsTrace() == false)
@@ -369,19 +369,19 @@ void wxObArray::Dump(ostream& fOut /* = cerr */)
    wxObArray::iterator it;
    int i = 0;
 
-   fOut << "==> Dump a wxObArray Object ast "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a wxObArray Object ast "<< this << " with " <<  size() << " elements" << std::endl;
 
    for ( it = this->begin( ); it != this->end( ); it++ )
    {
-     fOut << "wxObArray[" << i << "] at " << (*it) << endl;  
+     fOut << "wxObArray[" << i << "] at " << (*it) << std::endl;  
      //(*it)->Dump(fOut);
      i++;
    }
 
-   fOut << "==> END Dump a wxObArray Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a wxObArray Object at "<< this << " with " <<  size() << " elements" << std::endl;
     
  
-   fOut << endl;
+   fOut << std::endl;
    
 
 }
@@ -408,11 +408,11 @@ wxObMap::~wxObMap()
 
 //----------------------------------------
 
-wxObject* wxObMap::Insert(const string& key, wxObject* ob, bool withExcept /* = true */)
+wxObject* wxObMap::Insert(const std::string& key, wxObject* ob, bool withExcept /* = true */)
 {
   
 
-  pair <wxObMap::iterator,bool> pairInsert;
+  std::pair <wxObMap::iterator,bool> pairInsert;
 
 
   //If 'key' already exists --> pairInsert.second == false and
@@ -447,7 +447,7 @@ void wxObMap::Insert(const wxObMap& obMap, bool withExcept )
 */
 //----------------------------------------
 
-wxObject* wxObMap::Exists(const string& key)
+wxObject* wxObMap::Exists(const std::string& key)
 {
   wxObMap::iterator it = mapwxobject::find(key);
   if (it == end())
@@ -514,7 +514,7 @@ bool wxObMap::Erase(wxObMap::iterator it)
 //----------------------------------------
 
 
-bool wxObMap::Erase(const string& key)
+bool wxObMap::Erase(const std::string& key)
 {
 
   wxObMap::iterator it;
@@ -527,7 +527,7 @@ bool wxObMap::Erase(const string& key)
 
 //----------------------------------------
 
-wxObject* wxObMap::operator[](const string& key)
+wxObject* wxObMap::operator[](const std::string& key)
 {
 
   wxObject *ob = mapwxobject::operator[](key);
@@ -543,7 +543,7 @@ return  ob;
 //----------------------------------------
 
 
-void wxObMap::Dump(ostream& fOut /* = cerr */) 
+void wxObMap::Dump(std::ostream& fOut /* = std::cerr */) 
 {
 
    if (CTrace::IsTrace() == false)
@@ -551,19 +551,19 @@ void wxObMap::Dump(ostream& fOut /* = cerr */)
       return;
    }
 
-   fOut << "==> Dump a wxObMap Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> Dump a wxObMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
  
    wxObMap::iterator it;
 
    for (it = this->begin() ; it != this->end() ; it++)
    {
       wxObject *ob = it->second;
-      fOut << "wxObMap Key is = " << (*it).first << endl;
-      fOut << "wxObMap Value at " << ob << endl;
+      fOut << "wxObMap Key is = " << (*it).first << std::endl;
+      fOut << "wxObMap Value at " << ob << std::endl;
       //ob->Dump(fOut);
    }
 
-   fOut << "==> END Dump a wxObMap Object at "<< this << " with " <<  size() << " elements" << endl;
+   fOut << "==> END Dump a wxObMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
   
 }
 

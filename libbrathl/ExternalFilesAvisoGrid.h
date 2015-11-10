@@ -20,9 +20,9 @@
 #ifndef _ExternalFilesAvisoGrid_h_
 #define _ExternalFilesAvisoGrid_h_
 
-#include <netcdf.h>
+#include "netcdf.h"
 #include "BratObject.h"
-#include "Stl.h"
+#include <string>
 #include "ExternalFilesNetCDF.h"
 
 namespace brathl
@@ -47,11 +47,11 @@ class CExternalFilesAvisoGrid : public CExternalFilesNetCDFCF
 {
 public:
   CExternalFilesAvisoGrid
-		(const string		&Name = "");
+		(const std::string		&Name = "");
 
   virtual ~CExternalFilesAvisoGrid() { };
 
-  static string TypeOf() { return "unknown"; };
+  static std::string TypeOf() { return "unknown"; };
 
   virtual void Rewind
 		();
@@ -62,31 +62,31 @@ public:
 
   // If WantedUnit is "", the returned value is in base (SI) unit.
   virtual void GetValue
-		(const string		&Name,
+		(const std::string		&Name,
 		 CExpressionValue	&Value,
-		 const string		&WantedUnit);
+		 const std::string		&WantedUnit);
 
   // If WantedUnit is "", the returned value is in base (SI) unit.
   virtual void GetValue
-		(const string &name,
+		(const std::string &name,
 		 double	&value,
-		 const string &wantedUnit);
+		 const std::string &wantedUnit);
 
-  //virtual void ReadEntireVar(CNetCDFVarDef* netCDFVarDef, CDoubleArray& array, const string& wantedUnit);
-  //virtual void ReadEntireVar(CNetCDFDimension* netCDFDimension, CDoubleArray& array, const string& wantedUnit);
+  //virtual void ReadEntireVar(CNetCDFVarDef* netCDFVarDef, CDoubleArray& array, const std::string& wantedUnit);
+  //virtual void ReadEntireVar(CNetCDFDimension* netCDFDimension, CDoubleArray& array, const std::string& wantedUnit);
 
 public:
-  static const string m_LON_DIM_NAME;
-  static const string m_LAT_DIM_NAME;
-  //static const string m_DEPTH_DIM_NAME;
+  static const std::string m_LON_DIM_NAME;
+  static const std::string m_LAT_DIM_NAME;
+  //static const std::string m_DEPTH_DIM_NAME;
 
-  static const string m_INTERNAL_LON_DIM_NAME;
-  static const string m_INTERNAL_LAT_DIM_NAME;
-  static const string m_INTERNAL_DEPTH_DIM_NAME;
-  static const string m_INTERNAL_LATLON_DIM_NAME;
+  static const std::string m_INTERNAL_LON_DIM_NAME;
+  static const std::string m_INTERNAL_LAT_DIM_NAME;
+  static const std::string m_INTERNAL_DEPTH_DIM_NAME;
+  static const std::string m_INTERNAL_LATLON_DIM_NAME;
 
-  static const string m_LATLONMIN_NAME;
-  static const string m_LATLONSTEP_NAME;
+  static const std::string m_LATLONMIN_NAME;
+  static const std::string m_LATLONSTEP_NAME;
 
 
 protected:
@@ -125,9 +125,9 @@ protected:
   // Add a variable in the variable list
   virtual void AddVar
 		      (int32_t	NetcdfId,
-		       const string	&Name,
-		       const string	&Description,
-		       const string	&Unit,
+		       const std::string	&Name,
+		       const std::string	&Description,
+		       const std::string	&Unit,
            int32_t type = NC_NAT,
            const CUIntArray* dimValues = NULL,
            const CStringArray* dimNames = NULL,
@@ -135,16 +135,16 @@ protected:
            const CStringMap* mapAttributes = NULL);
   
   // Add a variable in the variable list got from description in file
-  virtual void AddVar(const string	&Name);
+  virtual void AddVar(const std::string	&Name);
 
   virtual void AddVar
 		      (int32_t	netcdfId,
-		       const string	&name,
-		       const string	&description,
-		       const string	&unit,
+		       const std::string	&name,
+		       const std::string	&description,
+		       const std::string	&unit,
            int32_t type,
            uint32_t dimValue,
-           const string dimName, 
+           const std::string dimName, 
            int32_t dimId,
            const CStringMap* mapAttributes = NULL);
 
@@ -163,15 +163,15 @@ class CExternalFilesDotGrid : public CExternalFilesAvisoGrid
 {
 public:
   CExternalFilesDotGrid
-		(const string		&Name = "")
+		(const std::string		&Name = "")
 	: CExternalFilesAvisoGrid(Name)
   {
   }
 
   virtual ~CExternalFilesDotGrid() { };
 
-  static string TypeOf() { return "GRID_DOTS"; };
-  virtual string GetType() { return TypeOf(); };
+  static std::string TypeOf() { return "GRID_DOTS"; };
+  virtual std::string GetType() { return TypeOf(); };
 };
 
 //-------------------------------------------------------------
@@ -182,15 +182,15 @@ class CExternalFilesMercatorDotGrid : public CExternalFilesAvisoGrid
 {
 public:
   CExternalFilesMercatorDotGrid
-		(const string		&Name = "")
+		(const std::string		&Name = "")
 	: CExternalFilesAvisoGrid(Name)
   {
   }
 
   virtual ~CExternalFilesMercatorDotGrid() { };
 
-  static string TypeOf() { return "GRID_DOTS_MERCATOR"; };
-  virtual string GetType() { return TypeOf(); };
+  static std::string TypeOf() { return "GRID_DOTS_MERCATOR"; };
+  virtual std::string GetType() { return TypeOf(); };
   virtual void GetLatitudes
 		(double		Min,
 		 double		Step,
@@ -205,14 +205,14 @@ class CExternalFilesBoxGrid : public CExternalFilesDotGrid
 {
 public:
   CExternalFilesBoxGrid
-		(const string		&Name = "")
+		(const std::string		&Name = "")
 	: CExternalFilesDotGrid(Name)
   {
   }
   virtual ~CExternalFilesBoxGrid() { };
 
-  static string TypeOf() { return "GRID_BOXES"; };
-  virtual string GetType() { return TypeOf(); };
+  static std::string TypeOf() { return "GRID_BOXES"; };
+  virtual std::string GetType() { return TypeOf(); };
 };
 
 //-------------------------------------------------------------
@@ -222,15 +222,15 @@ class CExternalFilesMercatorBoxGrid : public CExternalFilesMercatorDotGrid
 {
 public:
   CExternalFilesMercatorBoxGrid
-		(const string		&Name = "")
+		(const std::string		&Name = "")
 	: CExternalFilesMercatorDotGrid(Name)
   {
   }
 
   virtual ~CExternalFilesMercatorBoxGrid() { };
 
-  static string TypeOf() { return "GRID_BOXES_MERCATOR"; };
-  virtual string GetType() { return TypeOf(); };
+  static std::string TypeOf() { return "GRID_BOXES_MERCATOR"; };
+  virtual std::string GetType() { return TypeOf(); };
 };
 
 

@@ -27,7 +27,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h" 
+#include <string> 
 
 #include "TraceLog.h" 
 #include "Tools.h" 
@@ -39,8 +39,8 @@ using namespace brathl;
 namespace brathl
 {
 
-const string ENVISAT_SPH = "sph";
-const string ENVISAT_MPH = "mph";
+const std::string ENVISAT_SPH = "sph";
+const std::string ENVISAT_MPH = "mph";
 
 
 
@@ -52,7 +52,7 @@ CProductEnvisat::CProductEnvisat()
 
 //----------------------------------------
 
-CProductEnvisat::CProductEnvisat(const string& fileName)
+CProductEnvisat::CProductEnvisat(const std::string& fileName)
       : CProduct(fileName)
 {
   Init();
@@ -84,8 +84,8 @@ void CProductEnvisat::Init()
 
   InitDateRef();
 
-  //string productype = CTools::StringToUpper(m_fileList.m_productType);
-  string productype = m_fileList.m_productType;
+  //std::string productype = CTools::StringToUpper(m_fileList.m_productType);
+  std::string productype = m_fileList.m_productType;
   if ( (productype.compare("RA2_GDR_2P") == 0) || (productype.compare("RA2_MWS_2P") == 0) )
   {
     m_highResolutionLatDiffFieldName = "hz18_lat_diff";
@@ -182,7 +182,7 @@ void CProductEnvisat::AddInternalHighResolutionFieldCalculation()
   m_arrayLatitudeFieldName.RemoveAll();
   m_arrayTimeStampFieldName.RemoveAll();
 
-  string internalFieldName;
+  std::string internalFieldName;
 
   CField* fieldTest = NULL;
 
@@ -238,7 +238,7 @@ void CProductEnvisat::AddInternalHighResolutionFieldCalculation()
   }
   else
   {
-    string otherName;
+    std::string otherName;
     otherName.append("ra2_mds.");
     otherName.append(m_latitudeFieldName);
 
@@ -268,7 +268,7 @@ void CProductEnvisat::AddInternalHighResolutionFieldCalculation()
   }
   else
   {
-    string otherName;
+    std::string otherName;
     otherName.append("ra2_mds.");
     otherName.append(m_longitudeFieldName);
 
@@ -316,7 +316,7 @@ bool CProductEnvisat::HasHighResolutionFieldCalculationValue(CDataSet* dataset)
 {
   if (dataset->size() <= 0)
   {
-    string msg = "ERROR in CProductEnvisat::HasHighResolutionFieldCalculationValue - dataset is empty";
+    std::string msg = "ERROR in CProductEnvisat::HasHighResolutionFieldCalculationValue - dataset is empty";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
@@ -342,7 +342,7 @@ bool CProductEnvisat::HasHighResolutionFieldCalculationValue(CDataSet* dataset, 
 
   if (dataset->size() <= 0)
   {
-    string msg = "ERROR in CProductEnvisat::HasHighResolutionFieldCalculationValue - dataset is empty";
+    std::string msg = "ERROR in CProductEnvisat::HasHighResolutionFieldCalculationValue - dataset is empty";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
@@ -393,14 +393,14 @@ bool CProductEnvisat::IsHighResolutionField(CField* field)
   }
 
 
-  string name = CTools::StringToLower(field->GetName());
+  std::string name = CTools::StringToLower(field->GetName());
   // Note that m_highResolutionLatDiffFieldName and m_highResolutionLonDiffFieldName are set only for RA2_GDR_2P and RA2_MWS_2P
   if ( (name.compare(m_highResolutionLatDiffFieldName) == 0) || (name.compare(m_highResolutionLonDiffFieldName) == 0) )
   {
     return false;
   }
 
-  if ( (name.find("hz18") != string::npos) || (name.find("18hz") != string::npos) )
+  if ( (name.find("hz18") != std::string::npos) || (name.find("18hz") != std::string::npos) )
   {
     return true;
   }
@@ -441,7 +441,7 @@ bool CProductEnvisat::IsParentHighResolutionField(CField* field)
   CFieldRecord* topParentField = dynamic_cast<CFieldRecord*>(*(parentFieldList.begin()));
   if (topParentField == NULL)
   {
-    string msg = CTools::Format("ERROR - CProductEnvisat::IsParentHighResolutionField - top parent Field list NULL()"
+    std::string msg = CTools::Format("ERROR - CProductEnvisat::IsParentHighResolutionField - top parent Field list NULL()"
                               "(field '%s')", 
                               field->GetKey().c_str());                                
     CProductException e(msg, BRATHL_INCONSISTENCY_ERROR);
@@ -451,7 +451,7 @@ bool CProductEnvisat::IsParentHighResolutionField(CField* field)
 
   if (topParentField->GetTypeClass() != coda_array_class) //test the type of the parent type class
   {
-    string msg = CTools::Format("ERROR - CProductEnvisat::IsParentHighResolutionField - top parent Field typeClass (%s) must be coda_array_class "
+    std::string msg = CTools::Format("ERROR - CProductEnvisat::IsParentHighResolutionField - top parent Field typeClass (%s) must be coda_array_class "
                               "(field '%s')", 
                               coda_type_get_class_name(topParentField->GetTypeClass()),
                               topParentField->GetKey().c_str());                                
@@ -462,7 +462,7 @@ bool CProductEnvisat::IsParentHighResolutionField(CField* field)
 
   if (topParentField->GetNbDims() != 1 )
   {
-    string msg = CTools::Format("ERROR - CProductEnvisat::IsParentHighResolutionField - Number of array dim %d not implemented for this method "
+    std::string msg = CTools::Format("ERROR - CProductEnvisat::IsParentHighResolutionField - Number of array dim %d not implemented for this method "
                               "(field '%s')", 
                               topParentField->GetNbDims(),
                               topParentField->GetKey().c_str());                                
@@ -475,7 +475,7 @@ bool CProductEnvisat::IsParentHighResolutionField(CField* field)
     return false;
   }
 
-  string name = CTools::StringToLower(topParentField->GetName());
+  std::string name = CTools::StringToLower(topParentField->GetName());
   
   if (name.compare("data_blk_info") == 0) 
   {
@@ -545,7 +545,7 @@ void CProductEnvisat::ProcessHighResolutionWithFieldCalculation()
   CFieldSetArrayDbl *fieldSetLonDiff = m_dataSet.GetFieldSetAsArrayDbl( m_fieldNameEquivalence.Exists(m_highResolutionLonDiffFieldName) );
   if ( (fieldSetLatDiff == NULL) || (fieldSetLonDiff == NULL) )
   {
-    string msg = CTools::Format("ERROR in CProductEnvisat::ProcessHighResolutionWithFieldCalculation - at least one of the fields '%s' and '%s' has not been read or doesn't exist", 
+    std::string msg = CTools::Format("ERROR in CProductEnvisat::ProcessHighResolutionWithFieldCalculation - at least one of the fields '%s' and '%s' has not been read or doesn't exist", 
                                 m_highResolutionLatDiffFieldName.c_str(),
                                 m_highResolutionLonDiffFieldName.c_str());
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
@@ -557,7 +557,7 @@ void CProductEnvisat::ProcessHighResolutionWithFieldCalculation()
 
   if (recordSetToProcess == NULL)
   {
-    string msg = "ERROR in CProductEnvisat::ProcessHighResolutionWithFieldCalculation - No current recordset";
+    std::string msg = "ERROR in CProductEnvisat::ProcessHighResolutionWithFieldCalculation - No current recordset";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
@@ -618,7 +618,7 @@ void CProductEnvisat::ProcessHighResolutionWithFieldCalculation()
 
   if (dataSetHighResolution.size() != m_numHighResolutionMeasure)
   {
-    string msg = CTools::Format("ERROR - CProductEnvisat::ProcessHighResolutionWithFieldCalculation() - Numberd of record %ld is not equal number of high resolution measures %d",
+    std::string msg = CTools::Format("ERROR - CProductEnvisat::ProcessHighResolutionWithFieldCalculation() - Numberd of record %ld is not equal number of high resolution measures %d",
                                 (long)dataSetHighResolution.size(),
                                 m_numHighResolutionMeasure);
 
@@ -669,7 +669,7 @@ void CProductEnvisat::ComputeHighResolutionFields(CDataSet* dataSet)
 
     if ( (fieldSetLatDiff == NULL) || (fieldSetLonDiff == NULL) )
     {
-      string msg = CTools::Format("ERROR in CProductEnvisat::ComputeHighResolutionFields - no data found for at least one of the fields '%s' and '%s'", 
+      std::string msg = CTools::Format("ERROR in CProductEnvisat::ComputeHighResolutionFields - no data found for at least one of the fields '%s' and '%s'", 
                                   m_highResolutionLatDiffFieldName.c_str(),
                                   m_highResolutionLonDiffFieldName.c_str());
       CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_RANGE_ERROR);
@@ -745,7 +745,7 @@ void CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation()
 
   if (recordSetToProcess == NULL)
   {
-    string msg = "ERROR in CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation - No current recordset";
+    std::string msg = "ERROR in CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation - No current recordset";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
@@ -783,7 +783,7 @@ void CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation()
   if ((fieldUsed.size() > 1) && (fieldSetLat != NULL) && !warnedLat)
   {
     warnedLat = true;
-    string msg = CTools::Format("WARNING - you use more than one field as latitude: %s.\n"
+    std::string msg = CTools::Format("WARNING - you use more than one field as latitude: %s.\n"
                                 "Only field %s will be use to compute latitude delta for high resolution fields.\n",
                                 fieldUsed.ToString().c_str(),
                                 fieldSetLat->GetName().c_str());
@@ -810,7 +810,7 @@ void CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation()
   if ((fieldUsed.size() > 1) && (fieldSetLon != NULL) && !warnedLon)
   {
     warnedLon = true;
-    string msg = CTools::Format("WARNING - you use more than one field as longitude: %s.\n"
+    std::string msg = CTools::Format("WARNING - you use more than one field as longitude: %s.\n"
                                 "Only field %s will be use to compute longitude delta for high resolution fields.\n",
                                 fieldUsed.ToString().c_str(),
                                 fieldSetLon->GetName().c_str());
@@ -836,7 +836,7 @@ void CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation()
   if ((fieldUsed.size() > 1) && (fieldSetTimeStamp != NULL) && !warnedTimeStamp)
   {
     warnedTimeStamp = true;
-    string msg = CTools::Format("WARNING - you use more than one field as date/time: %s.\n"
+    std::string msg = CTools::Format("WARNING - you use more than one field as date/time: %s.\n"
                                 "Only field %s will be use to compute date/time delta for high resolution fields.\n",
                                 fieldUsed.ToString().c_str(),
                                 fieldSetLon->GetName().c_str());
@@ -846,21 +846,21 @@ void CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation()
 /*
   if (fieldSetLat == NULL)
   {
-    string msg = "ERROR in CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation - latitude field has not been read";
+    std::string msg = "ERROR in CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation - latitude field has not been read";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
 
   if (fieldSetLon == NULL)
   {
-    string msg = "ERROR in CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation - longitude field has not been read";
+    std::string msg = "ERROR in CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation - longitude field has not been read";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
 */
   if (fieldSetTimeStamp == NULL)
   {
-    string msg = "ERROR in CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation - timestamp field has not been read";
+    std::string msg = "ERROR in CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation - timestamp field has not been read";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
@@ -871,7 +871,7 @@ void CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation()
   if  ( (fieldSetTimeStamp->m_value - m_previousTimeStamp > 2.0) ||
         (fieldSetTimeStamp->m_value <= m_previousTimeStamp) )
   {
-    string msg = CTools::Format("INFO - record skipped due to inconsistency between two measures\n"
+    std::string msg = CTools::Format("INFO - record skipped due to inconsistency between two measures\n"
                                 "\t previous record --> timestamp %f seconds\n"
                                 "\t current record --> timestamp %f seconds\n"
                                 "\t timestamp difference is %f seconds\n",
@@ -909,13 +909,13 @@ void CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation()
   /*
   if (CTools::IsDefaultValue(m_previousLatitude))
   {
-    string msg = "ERROR in CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation - previous latitude value read is inconsistent (is default value)";
+    std::string msg = "ERROR in CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation - previous latitude value read is inconsistent (is default value)";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
     throw (e);
   }
   if (CTools::IsDefaultValue(m_previousLongitude))
   {
-    string msg = "ERROR in CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation - previous longitude value read is inconsistent (is default value)";
+    std::string msg = "ERROR in CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation - previous longitude value read is inconsistent (is default value)";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
     throw (e);
   }
@@ -946,7 +946,7 @@ void CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation()
 
     if ( (m_numHighResolutionMeasure * CTools::Abs(deltaLon)) > 1.0)
     {
-      string msg = CTools::Format("ERROR in CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation - delta of longitude is set to an unexpected value: %f "
+      std::string msg = CTools::Format("ERROR in CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation - delta of longitude is set to an unexpected value: %f "
                                   "\n\tcurrent datetime: %f current latitude: %f current longitude: %f"
                                   "\n\tprevious datetime: %f previous latitude: %f previous longitude: %f",
                                   deltaLon,
@@ -1109,7 +1109,7 @@ void CProductEnvisat::ComputeHighResolutionFields(CDataSet* dataSet, double delt
 }
 
 //----------------------------------------
-void CProductEnvisat::Dump(ostream& fOut /* = cerr */)
+void CProductEnvisat::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -1117,15 +1117,15 @@ void CProductEnvisat::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CProductEnvisat Object at "<< this << endl;
+  fOut << "==> Dump a CProductEnvisat Object at "<< this << std::endl;
 
   //------------------
   CProduct::Dump(fOut);
   //------------------
 
-  fOut << "==> END Dump a CProductEnvisat Object at "<< this << endl;
+  fOut << "==> END Dump a CProductEnvisat Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

@@ -52,10 +52,10 @@
 /*
 static void ReadDataForOneMeasure
 		(CDataSet			*dataSet,
-		 const string			&recordName,
+		 const std::string			&recordName,
 		 CExpression			&Select,
-		 vector<CExpression>		&Expressions,
-		 const vector<CUnit>		&WantedUnits,
+		 std::vector<CExpression>		&Expressions,
+		 const std::vector<CUnit>		&WantedUnits,
 		 double				**results,
 		 int32_t			*sizes,
 		 int32_t			*actualSize,
@@ -96,7 +96,7 @@ static void ReadDataForOneMeasure
         }
 	      else
         {
-	        throw CException("Field value must be scalar not a vector or a matrix",
+	        throw CException("Field value must be scalar not a std::vector or a matrix",
 		                 BRATHL_LIMIT_ERROR);
         }
 
@@ -112,38 +112,38 @@ static void ReadDataForOneMeasure
             }
             else
             {
-	            double *vector	= results[indexExpr];
+	            double *std::vector	= results[indexExpr];
  	            CTools::DoIncrementalStats(Value,
-				               vector[COUNT_INDEX],
-				               vector[MEAN_INDEX],
-				               vector[STDDEV_INDEX],
-				               vector[MIN_INDEX],
-				               vector[MAX_INDEX]);
+				               std::vector[COUNT_INDEX],
+				               std::vector[MEAN_INDEX],
+				               std::vector[STDDEV_INDEX],
+				               std::vector[MIN_INDEX],
+				               std::vector[MAX_INDEX]);
             }
           }
 	      }
 	      else
 	      {
 	        if ((sizes[indexExpr] < 0) && (-sizes[indexExpr] <= *actualSize))
-	        {// Size of expandable vector reached, resize it by doubling its size
+	        {// Size of expandable std::vector reached, resize it by doubling its size
 	          sizes[indexExpr]	*= 2;
 	          void 	*NewPtr	= realloc(results[indexExpr],
 					        -sizes[indexExpr]*sizeof(*(results[indexExpr])));
 	          if (NewPtr == NULL)
-	            throw CMemoryException(CTools::Format("ReadDataForOneMeasure: Not enough memory to allocate vector of size %d",
+	            throw CMemoryException(CTools::Format("ReadDataForOneMeasure: Not enough memory to allocate std::vector of size %d",
 						          -sizes[indexExpr]));
 
 	          results[indexExpr]	= static_cast<double *>(NewPtr);
 	        }
 	        if (statistics)
 	        {
-	          double *vector	= results[indexExpr];
+	          double *std::vector	= results[indexExpr];
  	          CTools::DoIncrementalStats(Value,
-				             vector[COUNT_INDEX],
-				             vector[MEAN_INDEX],
-				             vector[STDDEV_INDEX],
-				             vector[MIN_INDEX],
-				             vector[MAX_INDEX]);
+				             std::vector[COUNT_INDEX],
+				             std::vector[MEAN_INDEX],
+				             std::vector[STDDEV_INDEX],
+				             std::vector[MIN_INDEX],
+				             std::vector[MAX_INDEX]);
 
 	        }
 	        else
@@ -637,15 +637,15 @@ LIBRATHL_API int32_t brathl_ReadData
   int32_t	Index;
   brathl_errno = BRATHL_SUCCESS;
 
-  string	strRecordName(recordName);
+  std::string	strRecordName(recordName);
 
   try
   {
     CExpression			Select(CTools::IsEmpty(selection) ? "1" : selection);
-    vector<CExpression>		Expressions;
+    std::vector<CExpression>		Expressions;
     CUIntArray		Positions;
     CStringList			ListFieldsToRead;
-    vector<CUnit>		WantedUnits;
+    std::vector<CUnit>		WantedUnits;
 
     CStringArray		FileList;
     
@@ -792,24 +792,24 @@ LIBRATHL_API int32_t brathl_ReadData
       // Set expandable vectors to fixed (final) size
       for (Index=0; Index<nbData; Index++)
       {
-	      double *vector	= results[Index];
+	      double *std::vector	= results[Index];
 	      sizes[Index]	= abs(sizes[Index]);
 	      // Finalize statistics
-	      if (statistics && (sizes[Index] != 0) && (vector[COUNT_INDEX] != 0.0))
+	      if (statistics && (sizes[Index] != 0) && (std::vector[COUNT_INDEX] != 0.0))
 	      {// Compute final STDDEV
- 	        CTools::FinalizeIncrementalStats(vector[COUNT_INDEX],
-					         vector[MEAN_INDEX],
-					         vector[STDDEV_INDEX],
-					         vector[MIN_INDEX],
-					         vector[MAX_INDEX]);
+ 	        CTools::FinalizeIncrementalStats(std::vector[COUNT_INDEX],
+					         std::vector[MEAN_INDEX],
+					         std::vector[STDDEV_INDEX],
+					         std::vector[MIN_INDEX],
+					         std::vector[MAX_INDEX]);
 	      }
 	      else
 	      {
 	        for (int32_t IndexVal=0; IndexVal<*actualSize; IndexVal++)
 	        {
-	          if (CTools::IsDefaultValue(vector[IndexVal]))
+	          if (CTools::IsDefaultValue(std::vector[IndexVal]))
             {
-	            vector[IndexVal]	= defaultValue;
+	            std::vector[IndexVal]	= defaultValue;
             }
 	        }
 	      }
@@ -819,7 +819,7 @@ LIBRATHL_API int32_t brathl_ReadData
   catch (CException &e)
   {
     brathl_errno = e.error();
-    cerr << "ERROR brathl_ReadData:" << e.what() << endl;
+    std::cerr << "ERROR brathl_ReadData:" << e.what() << std::endl;
   }
   catch (...)
   {
@@ -834,7 +834,7 @@ LIBRATHL_API int32_t brathl_ReadData
   catch (CException &e)
   {
     brathl_errno = e.error();
-    cerr << "ERROR brathl_ReadData:" << e.what() << endl;
+    std::cerr << "ERROR brathl_ReadData:" << e.what() << std::endl;
   }
   catch (...)
   {
@@ -886,7 +886,7 @@ LIBRATHL_API int32_t brathl_ReadData
   catch (CException &e)
   {
     brathl_errno = e.error();
-    cerr << "ERROR brathl_ReadData:" << e.what() << endl;
+    std::cerr << "ERROR brathl_ReadData:" << e.what() << std::endl;
   }
   catch (...)
   {
@@ -910,7 +910,7 @@ LIBRATHL_API void brathl_RegisterAlgorithms()
 LIBRATHL_API void brathl_LoadAliasesDictionary()
 {	
   // Load aliases dictionnary
-  string errorMsg;
+  std::string errorMsg;
   CAliasesDictionary::LoadAliasesDictionary(&errorMsg, false);
   if (!(errorMsg.empty())) 
   {

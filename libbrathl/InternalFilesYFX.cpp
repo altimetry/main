@@ -18,7 +18,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	 02110-1301, USA.
 */
 
-#include "Stl.h"
+#include <string>
 
 #include "brathl.h"
 
@@ -39,7 +39,7 @@ namespace brathl
 
 
 //----------------------------------------
-CInternalFilesYFX::CInternalFilesYFX(string Name /* = "" */, brathl_FileMode Mode /*= ReadOnly*/)
+CInternalFilesYFX::CInternalFilesYFX(std::string Name /* = "" */, brathl_FileMode Mode /*= ReadOnly*/)
 	    : CInternalFiles(Name, Mode)
 {
 
@@ -51,7 +51,7 @@ CInternalFilesYFX::~CInternalFilesYFX()
 }
 
 //----------------------------------------
-string CInternalFilesYFX::GetType
+std::string CInternalFilesYFX::GetType
 		()
 {
   return TypeOf();
@@ -63,11 +63,11 @@ string CInternalFilesYFX::GetType
 
 void CInternalFilesYFX::CreateDim
 		(NetCDFVarKind kind,
-		 const string& xName,
+		 const std::string& xName,
 		 const CExpressionValue& values,
-		 const string& units,
-		 const string& longName,
-     const string& comment /* = ""*/,
+		 const std::string& units,
+		 const std::string& longName,
+     const std::string& comment /* = ""*/,
      double	validMin /* = CTools::m_defaultValueDOUBLE */,
 		 double	validMax /* = CTools::m_defaultValueDOUBLE */)
 {
@@ -85,10 +85,10 @@ void CInternalFilesYFX::CreateDim
 
 //----------------------------------------
 void CInternalFilesYFX::CreateData
-		(const string		&Name,
-		 const string		&Units,
-		 const string		&LongName,
-                 const string           &Comment /* = ""*/,
+		(const std::string		&Name,
+		 const std::string		&Units,
+		 const std::string		&LongName,
+                 const std::string           &Comment /* = ""*/,
       	         double	                ValidMin /* = CTools::m_defaultValueDOUBLE */,
 		 double	                ValidMax /* = CTools::m_defaultValueDOUBLE */,
 		 nc_type		Type	/*= NC_DOUBLE*/)
@@ -110,7 +110,7 @@ void CInternalFilesYFX::CreateData
   }
 
   CUnit unit = CUnit::ToUnit(Units);
-  string strUnit = unit.AsString(false, true);
+  std::string strUnit = unit.AsString(false, true);
 
   m_file.AddVar(Name, Type, strUnit, LongName, Comment, 0, -1, -1, -1, ValidMin, ValidMax);
 }

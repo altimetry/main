@@ -28,7 +28,7 @@
 //#define XML_BUILDING_EXPAT
 //#include "expat.h"
 
-#include "Stl.h"
+#include <string>
 
 #include "List.h"
 #include "BratObject.h"
@@ -53,22 +53,22 @@ class CXmlProperty
 {
 public:
   CXmlProperty() : m_next(NULL) {}
-  CXmlProperty(const string& name, const string& value,
+  CXmlProperty(const std::string& name, const std::string& value,
                 CXmlProperty *next = NULL)
           : m_name(name), m_value(value), m_next(next) {}
   virtual ~CXmlProperty() {}
 
-  string GetName() const { return m_name; }
-  string GetValue() const { return m_value; }
+  std::string GetName() const { return m_name; }
+  std::string GetValue() const { return m_value; }
   CXmlProperty *GetNext() const { return m_next; }
 
-  void SetName(const string& name) { m_name = name; }
-  void SetValue(const string& value) { m_value = value; }
+  void SetName(const std::string& name) { m_name = name; }
+  void SetValue(const std::string& value) { m_value = value; }
   void SetNext(CXmlProperty *next) { m_next = next; }
 
 private:
-  string m_name;
-  string m_value;
+  std::string m_name;
+  std::string m_value;
   CXmlProperty *m_next;
 };
 
@@ -112,7 +112,7 @@ public:
   CXmlNode() : m_properties(NULL), m_parent(NULL),
                 m_children(NULL), m_next(NULL) {}
   CXmlNode(CXmlNode *parent, CXmlNodeType type,
-            const string& name, const string& content = "",
+            const std::string& name, const std::string& content = "",
             CXmlProperty *props = NULL, CXmlNode *next = NULL);
   virtual ~CXmlNode();
 
@@ -127,18 +127,18 @@ public:
   void DeleteChildren();
 
   // user-friendly creation:
-  CXmlNode(CXmlNodeType type, const string& name, const string& content = "");
+  CXmlNode(CXmlNodeType type, const std::string& name, const std::string& content = "");
   virtual void AddChild(CXmlNode *child);
   virtual bool InsertChild(CXmlNode *child, CXmlNode *followingNode);
   bool InsertChildAfter(CXmlNode *child, CXmlNode *precedingNode);
   virtual bool RemoveChild(CXmlNode *child);
-  virtual void AddProperty(const string& name, const string& value);
-  virtual bool DeleteProperty(const string& name);
+  virtual void AddProperty(const std::string& name, const std::string& value);
+  virtual bool DeleteProperty(const std::string& name);
 
   // access methods:
   CXmlNodeType GetType() const { return m_type; }
-  string GetName() const { return m_name; }
-  string GetContent() const { return m_content; }
+  std::string GetName() const { return m_name; }
+  std::string GetContent() const { return m_content; }
 
   bool IsWhitespaceOnly() const;
   int GetDepth(CXmlNode *grandparent = NULL) const;
@@ -148,20 +148,20 @@ public:
   // XML_ENTITY_NODE name="tag", content=""
   //    |-- XML_TEXT_NODE or
   //        XML_CDATA_SECTION_NODE name="" content="content"
-  string GetNodeContent() const;
+  std::string GetNodeContent() const;
 
   CXmlNode *GetParent() const { return m_parent; }
   CXmlNode *GetNext() const { return m_next; }
   CXmlNode *GetChildren() const { return m_children; }
 
   CXmlProperty *GetProperties() const { return m_properties; }
-  bool GetPropVal(const string& propName, string *value) const;
-  string GetPropVal(const string& propName, const string& defaultVal) const;
-  bool HasProp(const string& propName) const;
+  bool GetPropVal(const std::string& propName, std::string *value) const;
+  std::string GetPropVal(const std::string& propName, const std::string& defaultVal) const;
+  bool HasProp(const std::string& propName) const;
 
   void SetType(CXmlNodeType type) { m_type = type; }
-  void SetName(const string& name) { m_name = name; }
-  void SetContent(const string& con) { m_content = con; }
+  void SetName(const std::string& name) { m_name = name; }
+  void SetContent(const std::string& con) { m_content = con; }
 
   void SetParent(CXmlNode *parent) { m_parent = parent; }
   void SetNext(CXmlNode *next) { m_next = next; }
@@ -172,8 +172,8 @@ public:
 
 private:
   CXmlNodeType m_type;
-  string m_name;
-  string m_content;
+  std::string m_name;
+  std::string m_content;
   CXmlProperty *m_properties;
   CXmlNode *m_parent, *m_children, *m_next;
 
@@ -210,9 +210,9 @@ public:
 public:
   CXmlDocument();
   
-  CXmlDocument(const string& filename, const string& encoding = CXmlDocument::m_DEFAULT_ENCODING);
+  CXmlDocument(const std::string& filename, const std::string& encoding = CXmlDocument::m_DEFAULT_ENCODING);
 
-  CXmlDocument(istream& stream, const string& encoding = CXmlDocument::m_DEFAULT_ENCODING);
+  CXmlDocument(std::istream& stream, const std::string& encoding = CXmlDocument::m_DEFAULT_ENCODING);
   
   virtual ~CXmlDocument();
 
@@ -223,16 +223,16 @@ public:
 
   // Parses .xml file and loads data. Returns TRUE on success, FALSE
   // otherwise.
-  virtual void Load(const string& filename, const string& encoding = CXmlDocument::m_DEFAULT_ENCODING, int flags = CXmlDocument::XMLDOC_NONE);
-  virtual void Load(istream& stream, const string& encoding = CXmlDocument::m_DEFAULT_ENCODING, int flags = CXmlDocument::XMLDOC_NONE);
+  virtual void Load(const std::string& filename, const std::string& encoding = CXmlDocument::m_DEFAULT_ENCODING, int flags = CXmlDocument::XMLDOC_NONE);
+  virtual void Load(std::istream& stream, const std::string& encoding = CXmlDocument::m_DEFAULT_ENCODING, int flags = CXmlDocument::XMLDOC_NONE);
     
   // Saves document as .xml file.
-  virtual bool Save(const string& filename, int indentstep = 1) const;
-  virtual bool Save(ostream& stream, int indentstep = 1) const;
+  virtual bool Save(const std::string& filename, int indentstep = 1) const;
+  virtual bool Save(std::ostream& stream, int indentstep = 1) const;
 
-  virtual CXmlNode* FindNodeByName(const string& name, CXmlNode* parent, bool allDepths = false);
-  virtual void FindAllNodesByName(const string& name, CXmlNode* parent, CObMap& mapNodes, const string& propNameKey, bool allDepths = false);
-  virtual void FindAllNodesByName(const string& name, CXmlNode* parent, CObArray& arrayNodes, bool allDepths = false);
+  virtual CXmlNode* FindNodeByName(const std::string& name, CXmlNode* parent, bool allDepths = false);
+  virtual void FindAllNodesByName(const std::string& name, CXmlNode* parent, CObMap& mapNodes, const std::string& propNameKey, bool allDepths = false);
+  virtual void FindAllNodesByName(const std::string& name, CXmlNode* parent, CObArray& arrayNodes, bool allDepths = false);
 
   bool IsOk() const { return m_root != NULL; }
 
@@ -240,44 +240,44 @@ public:
   CXmlNode *GetRoot() const { return m_root; }
 
   // Returns version of document (may be empty).
-  string GetVersion() const { return m_version; }
+  std::string GetVersion() const { return m_version; }
   // Returns encoding of document (may be empty).
   // Note: this is the encoding original file was saved in, *not* the
   // encoding of in-memory representation!
-  string GetFileEncoding() const { return m_fileEncoding; }
+  std::string GetFileEncoding() const { return m_fileEncoding; }
 
   // Write-access methods:
   CXmlNode *DetachRoot() { CXmlNode *old=m_root; m_root=NULL; return old; }
   void SetRoot(CXmlNode *node) { DeleteRoot(); m_root = node; }
-  void SetVersion(const string& version) { m_version = version; }
-  void SetFileEncoding(const string& encoding) { m_fileEncoding = encoding; }
+  void SetVersion(const std::string& version) { m_version = version; }
+  void SetFileEncoding(const std::string& encoding) { m_fileEncoding = encoding; }
 
   // Returns encoding of in-memory representation of the document
   // (same as passed to Load or ctor, defaults to UTF-8).
   // NB: this is meaningless in Unicode build where data are stored as wchar_t*
-  string GetEncoding() const { return m_encoding; }
-  void SetEncoding(const string& enc) { m_encoding = enc; }
+  std::string GetEncoding() const { return m_encoding; }
+  void SetEncoding(const std::string& enc) { m_encoding = enc; }
 
 
-  // returns true if the given string contains only whitespaces
+  // returns true if the given std::string contains only whitespaces
   static bool IsWhiteOnly(const char *buf);
 
-  static void OutputString(ostream& stream, const string& str);
+  static void OutputString(std::ostream& stream, const std::string& str);
   // Same as OutputString, but create entities first.
   // Translates '<' to "&lt;", '>' to "&gt;" and '&' to "&amp;"
-  static void OutputStringEnt(ostream& stream, const string& str, int flags = 0);
-  static void OutputIndentation(ostream& stream, int indent);
-  static void OutputNode(ostream& stream, CXmlNode *node, int indent, int indentstep);
+  static void OutputStringEnt(std::ostream& stream, const std::string& str, int flags = 0);
+  static void OutputIndentation(std::ostream& stream, int indent);
+  static void OutputNode(std::ostream& stream, CXmlNode *node, int indent, int indentstep);
 
 public:
-  static const string m_XML_VERSION;
-  static const string m_UTF8_ENCODING;
-  static const string m_DEFAULT_ENCODING;
+  static const std::string m_XML_VERSION;
+  static const std::string m_UTF8_ENCODING;
+  static const std::string m_DEFAULT_ENCODING;
 
 private:
-  string   m_version;
-  string   m_fileEncoding;
-  string   m_encoding;
+  std::string   m_version;
+  std::string   m_fileEncoding;
+  std::string   m_encoding;
   CXmlNode *m_root;
 
   void DoCopy(const CXmlDocument& doc);

@@ -152,7 +152,7 @@ CWorkspaceDlg::CWorkspaceDlg( wxWindow *parent, wxWindowID id, const wxString &t
       GetOk()->SetLabel("Delete");
       break;
     default:
-      string msg = CTools::Format("ERROR - CWorkspaceDlg ctor : unexpected action flags %d",
+      std::string msg = CTools::Format("ERROR - CWorkspaceDlg ctor : unexpected action flags %d",
                                   m_action);
       CUnImplementException e(msg, BRATHL_UNIMPLEMENT_ERROR);
       throw(e);
@@ -545,7 +545,7 @@ bool CWorkspaceDlg::ValidateData()
       bOk &= VerifyConfig();
       break;
     default:
-      string msg = CTools::Format("ERROR - CWorkspaceDlg::Validate : unexpected action flags %d",
+      std::string msg = CTools::Format("ERROR - CWorkspaceDlg::Validate : unexpected action flags %d",
                                   m_action);
       CUnImplementException e(msg, BRATHL_UNIMPLEMENT_ERROR);
       throw(e);

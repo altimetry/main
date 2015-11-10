@@ -48,7 +48,7 @@ public:
   
   /** Creates new CProductErs object
     \param fileName [in] : file name to be connected */
-  CProductErs(const string& fileName);
+  CProductErs(const std::string& fileName);
   
   /** Creates new CProductErs object
     \param fileNameList [in] : list of file to be connected */
@@ -60,7 +60,7 @@ public:
   virtual void InitCriteriaInfo();
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 
 protected:
@@ -85,12 +85,12 @@ private:
   void Init();
 
 public:
-  static const string m_WAP;
+  static const std::string m_WAP;
 
 protected:
   
-  string m_timeStampSecondFieldName;
-  string m_timeStampMicrosecondFieldName;		
+  std::string m_timeStampSecondFieldName;
+  std::string m_timeStampMicrosecondFieldName;		
 
 private:
   

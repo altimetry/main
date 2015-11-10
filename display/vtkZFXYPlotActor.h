@@ -53,7 +53,7 @@ class VTK_EXPORT vtkZFXYPlotActor : public vtkActor2D
 {
 public:
   vtkTypeMacro(vtkZFXYPlotActor,vtkActor2D);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(std::ostream& os, vtkIndent indent);
 
   // Description:
   // Instantiate object with autorange computation; bold, italic, and shadows
@@ -64,13 +64,13 @@ public:
 
   //--------------------------------------------------------------------------
   // Description:
-  // Add a plotdata object to the list of plotdata.
+  // Add a plotdata object to the std::list of plotdata.
   void AddInput(CZFXYPlotData* pdata);
   
   void AddInput(vtkZFXYPlotFilter* plotData);
 
   // Description:
-  // Remove a data object from the list of plotdata.
+  // Remove a data object from the std::list of plotdata.
   // This will automatically remove the corresponding Mapper2D and Actor2D.
   void RemoveInput(vtkZFXYPlotFilter *plotData);
 

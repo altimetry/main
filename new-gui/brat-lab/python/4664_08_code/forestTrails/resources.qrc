@@ -1,0 +1,16 @@
+<RCC>
+    <qresource>
+        <file>resources/mActionZoomIn.png</file>
+        <file>resources/mActionZoomOut.png</file>
+        <file>resources/mActionPan.png</file>
+        <file>resources/mActionEdit.svg</file>
+        <file>resources/mActionAddTrack.svg</file>
+        <file>resources/mActionEditTrack.png</file>
+        <file>resources/mActionDeleteTrack.svg</file>
+        <file>resources/mActionGetInfo.svg</file>
+        <file>resources/mActionSetStartPoint.svg</file>
+        <file>resources/mActionSetEndPoint.svg</file>
+        <file>resources/mActionFindShortestPath.svg</file>
+    </qresource>
+</RCC>
+

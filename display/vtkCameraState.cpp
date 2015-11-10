@@ -50,7 +50,7 @@ vtkCameraState::~vtkCameraState()
 
 }
 //----------------------------------------------------------------------------
-void vtkCameraState::PrintSelf(ostream& os, vtkIndent indent)
+void vtkCameraState::PrintSelf(std::ostream& os, vtkIndent indent)
 {
  
   os << indent << "ClippingRange: (" << this->ClippingRange[0] << ", " 

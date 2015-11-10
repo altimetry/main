@@ -23,7 +23,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h"
+#include <string>
 
 #include "Tools.h" 
 #include "BratAlgorithmBase.h" 
@@ -61,7 +61,7 @@ public:
   CBratAlgorithmGeosVel& operator=(const CBratAlgorithmGeosVel &copy);
 
   /** Dump function */
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
  
   //static double Exec(const char* function, const char *fmt, const type_union *arg);
   //static CBratAlgorithmGeosVel* GetNew(const char* algorithName);
@@ -108,8 +108,8 @@ protected:
 
   double m_velocity;
 
-  static const string m_LAT_PARAM_NAME; 
-  static const string m_LON_PARAM_NAME; 
+  static const std::string m_LAT_PARAM_NAME; 
+  static const std::string m_LON_PARAM_NAME; 
 
 };
 

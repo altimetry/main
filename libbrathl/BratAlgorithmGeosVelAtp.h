@@ -23,7 +23,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h"
+#include <string>
 
 #include "Tools.h" 
 #include "BratAlgorithmGeosVel.h" 
@@ -56,14 +56,14 @@ public:
   /** Destructor */
   virtual ~CBratAlgorithmGeosVelAtp() {};
 
-  virtual string GetName() { return "BratAlgoGeosVelAtp"; };
+  virtual std::string GetName() { return "BratAlgoGeosVelAtp"; };
   
-  virtual string GetDescription() { return "Geostrophic velocity computation for along-track data; result is the value of the geostrophic velocity component perpendicular to the track."; };
+  virtual std::string GetDescription() { return "Geostrophic velocity computation for along-track data; result is the value of the geostrophic velocity component perpendicular to the track."; };
   
   virtual uint32_t GetNumInputParam() { return CBratAlgorithmGeosVelAtp::m_INPUT_PARAMS; };
   
-  virtual string GetInputParamDesc(uint32_t indexParam)  {
-        string value = "";
+  virtual std::string GetInputParamDesc(uint32_t indexParam)  {
+        std::string value = "";
         switch (indexParam) 
         {
           case 0: value = "Latitude field."; break;
@@ -93,8 +93,8 @@ public:
   /** Gets the unit of an input parameter :
    \param indexParam [in] : parameter index.
    */
-  virtual string GetInputParamUnit(uint32_t indexParam) {
-        string value = "";
+  virtual std::string GetInputParamUnit(uint32_t indexParam) {
+        std::string value = "";
         switch (indexParam) 
         {
           case 0: value = "degrees_north"; break;
@@ -111,14 +111,14 @@ public:
   /** Gets the unit of an output value returned by the 'Run' function.
    \param indexParam [in] : parameter index.
    */
-  virtual string GetOutputUnit() { return "m/s"; };
+  virtual std::string GetOutputUnit() { return "m/s"; };
 
   virtual double Run(CVectorBratAlgorithmParam& args);
 
   virtual void CheckInputParams(CVectorBratAlgorithmParam& args);
   virtual void SetParamValues(CVectorBratAlgorithmParam& args);
-  virtual string GetParamName(uint32_t indexParam) {
-        string value = "";
+  virtual std::string GetParamName(uint32_t indexParam) {
+        std::string value = "";
         switch (indexParam) 
         {
           case 0: value = CBratAlgorithmGeosVel::m_LAT_PARAM_NAME; break;
@@ -137,7 +137,7 @@ public:
   CBratAlgorithmGeosVelAtp& operator=(const CBratAlgorithmGeosVelAtp &copy);
 
   /** Dump function */
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
  
 protected:
 

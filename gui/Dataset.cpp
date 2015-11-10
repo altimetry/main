@@ -84,12 +84,12 @@ void CDataset::Init()
   //m_product = NULL;
 }
 //----------------------------------------
-string CDataset::GetFieldSpecificUnit(const string& key)
+std::string CDataset::GetFieldSpecificUnit(const std::string& key)
 {
   return m_fieldSpecificUnit.Exists(key);
 }
 //----------------------------------------
-void CDataset::SetFieldSpecificUnit(const string& key, const string& value)
+void CDataset::SetFieldSpecificUnit(const std::string& key, const std::string& value)
 {
   m_fieldSpecificUnit.Erase(key);
   m_fieldSpecificUnit.Insert(key, value, false);
@@ -366,7 +366,7 @@ bool CDataset::LoadConfig(wxFileConfig* config)
 
 }
 //----------------------------------------
-void CDataset::Dump(ostream& fOut /* = cerr */)
+void CDataset::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -374,12 +374,12 @@ void CDataset::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CDataset Object at "<< this << endl;
+  fOut << "==> Dump a CDataset Object at "<< this << std::endl;
 
   m_files.Dump(fOut);
-  fOut << "==> END Dump a CDataset Object at "<< this << endl;
+  fOut << "==> END Dump a CDataset Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

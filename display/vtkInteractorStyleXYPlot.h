@@ -57,7 +57,7 @@ class VTK_EXPORT vtkInteractorStyleXYPlot : public vtkInteractorStyle
 public:
   static vtkInteractorStyleXYPlot *New();
   vtkTypeMacro(vtkInteractorStyleXYPlot, vtkInteractorStyle);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(std::ostream& os, vtkIndent indent);
 
   // Description:
   // Event bindings controlling the effects of pressing mouse buttons

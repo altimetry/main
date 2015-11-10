@@ -27,7 +27,7 @@
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h" 
+#include <string> 
 
 #include "TraceLog.h" 
 #include "Tools.h" 
@@ -48,11 +48,11 @@ namespace brathl
 const int32_t CProductTopex::m_ALTIMETER_POSEIDON = 0;		
 const int32_t CProductTopex::m_ALTIMETER_TOPEX = 1;		
 
-const string CProductTopex::m_TOPEX_POSEIDON_HEADER = "header";
+const std::string CProductTopex::m_TOPEX_POSEIDON_HEADER = "header";
 
-const string CProductTopex::m_PASS_FILE = "MGDR_pass_file";
-const string CProductTopex::m_XNG_FILE = "MGDR_crossover_point_file";
-const string CProductTopex::m_SDR_PASS_FILE = "SDR_pass_file";
+const std::string CProductTopex::m_PASS_FILE = "MGDR_pass_file";
+const std::string CProductTopex::m_XNG_FILE = "MGDR_crossover_point_file";
+const std::string CProductTopex::m_SDR_PASS_FILE = "SDR_pass_file";
 
 
 
@@ -63,7 +63,7 @@ CProductTopex::CProductTopex()
 }
 
 //----------------------------------------
-CProductTopex::CProductTopex(const string& fileName)
+CProductTopex::CProductTopex(const std::string& fileName)
       : CProduct(fileName)
 {
   Init();
@@ -119,7 +119,7 @@ void CProductTopex::Init()
 
 }
 //----------------------------------------
-string CProductTopex::GetLabel()
+std::string CProductTopex::GetLabel()
 {
   if (m_fileList.m_productType.compare(CProductTopex::m_PASS_FILE) == 0)
   {
@@ -138,8 +138,8 @@ void CProductTopex::InitCriteriaInfo()
 {
   CProduct::InitCriteriaInfo();
 
-  //string productype = CTools::StringToUpper(m_fileList.m_productType);
-  string productype = m_fileList.m_productType;
+  //std::string productype = CTools::StringToUpper(m_fileList.m_productType);
+  std::string productype = m_fileList.m_productType;
   if ((productype.compare(CProductTopex::m_PASS_FILE) == 0) || (productype.compare(CProductTopex::m_SDR_PASS_FILE) == 0))
   {
     //-------------------------
@@ -207,7 +207,7 @@ void CProductTopex::SetDeltaTimeHighResolution(int32_t altimeterIndicator)
   }
   else
   {
-    string msg = CTools::Format("ERROR in CProductTopex::SetDeltaTimeHighResolution - Invalid altimeter indicator value: %d - valid valid are %d (POSEIDON) or %d (TOPEX)",
+    std::string msg = CTools::Format("ERROR in CProductTopex::SetDeltaTimeHighResolution - Invalid altimeter indicator value: %d - valid valid are %d (POSEIDON) or %d (TOPEX)",
                                 altimeterIndicator,
                                 CProductTopex::m_ALTIMETER_POSEIDON,
                                 CProductTopex::m_ALTIMETER_TOPEX);
@@ -219,7 +219,7 @@ void CProductTopex::SetDeltaTimeHighResolution(int32_t altimeterIndicator)
 //----------------------------------------
 void CProductTopex::AddInternalHighResolutionFieldCalculation()
 {
-  string internalFieldName;
+  std::string internalFieldName;
   CField* fieldTest = NULL;
 
 //  internalFieldName = MakeInternalFieldName(m_latitudeFieldName);
@@ -335,7 +335,7 @@ void CProductTopex::ProcessHighResolutionWithoutFieldCalculation()
 
   if (recordSetToProcess == NULL)
   {
-    string msg = "ERROR in CProductTopex::ProcessHighResolutionWithoutFieldCalculation - No current recordset";
+    std::string msg = "ERROR in CProductTopex::ProcessHighResolutionWithoutFieldCalculation - No current recordset";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
@@ -349,40 +349,40 @@ void CProductTopex::ProcessHighResolutionWithoutFieldCalculation()
 
   if (fieldSetLat == NULL)
   {
-    string msg = "ERROR in CProductTopex::ProcessHighResolutionWithoutFieldCalculation - latitude field has not been read";
+    std::string msg = "ERROR in CProductTopex::ProcessHighResolutionWithoutFieldCalculation - latitude field has not been read";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
 
   if (fieldSetLon == NULL)
   {
-    string msg = "ERROR in CProductTopex::ProcessHighResolutionWithoutFieldCalculation - longitude field has not been read";
+    std::string msg = "ERROR in CProductTopex::ProcessHighResolutionWithoutFieldCalculation - longitude field has not been read";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
 
   if (fieldSetTimeStampDay == NULL)
   {
-    string msg = "ERROR in CProductTopex::ProcessHighResolutionWithoutFieldCalculation - timestamp day field has not been read";
+    std::string msg = "ERROR in CProductTopex::ProcessHighResolutionWithoutFieldCalculation - timestamp day field has not been read";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
   if (fieldSetTimeStampMillisecond == NULL)
   {
-    string msg = "ERROR in CProductTopex::ProcessHighResolutionWithoutFieldCalculation - timestamp millisecond field has not been read";
+    std::string msg = "ERROR in CProductTopex::ProcessHighResolutionWithoutFieldCalculation - timestamp millisecond field has not been read";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
   if (fieldSetTimeStampMicrosecond == NULL)
   {
-    string msg = "ERROR in CProductTopex::ProcessHighResolutionWithoutFieldCalculation - timestamp microsecond field has not been read";
+    std::string msg = "ERROR in CProductTopex::ProcessHighResolutionWithoutFieldCalculation - timestamp microsecond field has not been read";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
 
   if (fieldSetAltimeterIndicator == NULL)
   {
-    string msg = "ERROR in CProductTopex::ProcessHighResolutionWithoutFieldCalculation - altimeter indicator field has not been read";
+    std::string msg = "ERROR in CProductTopex::ProcessHighResolutionWithoutFieldCalculation - altimeter indicator field has not been read";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_LOGIC_ERROR);
     throw (e);
   }
@@ -406,7 +406,7 @@ void CProductTopex::ProcessHighResolutionWithoutFieldCalculation()
   if  ( (timeStamp - m_previousTimeStamp > 2.0) ||
         (timeStamp <= m_previousTimeStamp) )
   {
-    string msg = CTools::Format("INFO - record skipped due to inconsistency between two measures\n"
+    std::string msg = CTools::Format("INFO - record skipped due to inconsistency between two measures\n"
                                 "\t previous record --> timestamp %f seconds\n"
                                 "\t current record --> timestamp %f seconds\n"
                                 "\t timestamp difference is %f seconds\n",
@@ -433,13 +433,13 @@ void CProductTopex::ProcessHighResolutionWithoutFieldCalculation()
 
   if (CTools::IsDefaultValue(m_previousLatitude))
   {
-    string msg = "ERROR in CProductTopex::ProcessHighResolutionWithoutFieldCalculation - previous latitude value read is inconsistent (is default value)";
+    std::string msg = "ERROR in CProductTopex::ProcessHighResolutionWithoutFieldCalculation - previous latitude value read is inconsistent (is default value)";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
     throw (e);
   }
   if (CTools::IsDefaultValue(m_previousLongitude))
   {
-    string msg = "ERROR in CProductTopex::ProcessHighResolutionWithoutFieldCalculation - previous longitude value read is inconsistent (is default value)";
+    std::string msg = "ERROR in CProductTopex::ProcessHighResolutionWithoutFieldCalculation - previous longitude value read is inconsistent (is default value)";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
     throw (e);
   }
@@ -459,7 +459,7 @@ void CProductTopex::ProcessHighResolutionWithoutFieldCalculation()
 
   if ( (m_numHighResolutionMeasure * CTools::Abs(deltaLon)) > 1.0)
   {
-    string msg = CTools::Format("ERROR in CProductTopex::ProcessHighResolutionWithoutFieldCalculation - delta of longitude is set to an unexpected value: %f "
+    std::string msg = CTools::Format("ERROR in CProductTopex::ProcessHighResolutionWithoutFieldCalculation - delta of longitude is set to an unexpected value: %f "
                                 "\n\tcurrent datetime: %f current latitude: %f current longitude: %f"
                                 "\n\tprevious datetime: %f previous latitude: %f previous longitude: %f",
                                 deltaLon,
@@ -615,7 +615,7 @@ void CProductTopex::ComputeHighResolutionFields(CDataSet* dataSet, double deltaL
       
     if (CTools::IsDefaultValue(m_deltaTimeHighResolution))
     {
-      string msg = "ERROR in CProductTopex::ComputeHighResolutionFields - high resolution delta time has no been set";
+      std::string msg = "ERROR in CProductTopex::ComputeHighResolutionFields - high resolution delta time has no been set";
       CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
       throw (e);
 
@@ -682,7 +682,7 @@ void CProductTopex::ComputeHighResolutionFields(CDataSet* dataSet, double deltaL
 
 
 //----------------------------------------
-void CProductTopex::Dump(ostream& fOut /* = cerr */)
+void CProductTopex::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -690,15 +690,15 @@ void CProductTopex::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CProductTopex Object at "<< this << endl;
+  fOut << "==> Dump a CProductTopex Object at "<< this << std::endl;
 
   //------------------
   CProduct::Dump(fOut);
   //------------------
 
-  fOut << "==> END Dump a CProductTopex Object at "<< this << endl;
+  fOut << "==> END Dump a CProductTopex Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 }
 //----------------------------------------
 

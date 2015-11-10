@@ -28,7 +28,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 =========================================================================*/
-#include "MapProjection.h"
+#include "PlotData/MapProjection.h"
 
 
 #include "vtkActor2D.h"
@@ -74,16 +74,16 @@ vtkWPlotState::~vtkWPlotState()
 
 }
 //----------------------------------------------------------------------------
-void vtkWPlotState::PrintSelf(ostream& os, vtkIndent indent)
+void vtkWPlotState::PrintSelf(std::ostream& os, vtkIndent indent)
 {
 
   os << indent << "MidPoint: (" << this->MidPoint[0] << ", "
-     << this->MidPoint[1] << ")" << endl;
+     << this->MidPoint[1] << ")" << std::endl;
   os << indent << "Size: (" << this->Size[0] << ", "
-     << this->Size[1] << ")" << endl;
+     << this->Size[1] << ")" << std::endl;
 
      //KAVOK: now we have a zoom parameter
-  os << indent << "Zoom: (" << this->ZoomScale << endl;
+  os << indent << "Zoom: (" << this->ZoomScale << std::endl;
 }
 
 //-------------------------------------------------------------
@@ -188,9 +188,9 @@ vtkWPlotState* vtkWPlotProjectionState::GetState(int32_t index)
   return state;
 }
 //----------------------------------------------------------------------------
-void vtkWPlotProjectionState::PrintSelf(ostream& os, vtkIndent indent)
+void vtkWPlotProjectionState::PrintSelf(std::ostream& os, vtkIndent indent)
 {
-  os << indent << "Projection: (" << this->Projection << endl;
+  os << indent << "Projection: (" << this->Projection << std::endl;
 }
 
 
@@ -943,7 +943,7 @@ void vtkInteractorStyleWPlot::OnMiddleButtonUp()
 //----------------------------------------------------------------------------
 vtkWPlotProjectionState* vtkInteractorStyleWPlot::GetProjState(int32_t projection)
 {
-  string projName = CMapProjection::GetInstance()->IdToName(projection);
+  std::string projName = CMapProjection::GetInstance()->IdToName(projection);
 
   vtkWPlotProjectionState* projState = dynamic_cast<vtkWPlotProjectionState*>(this->ProjStates.Exists(projName));
   if (projState == NULL)
@@ -957,7 +957,7 @@ vtkWPlotProjectionState* vtkInteractorStyleWPlot::GetProjState(int32_t projectio
 //----------------------------------------------------------------------------
 void vtkInteractorStyleWPlot::SaveState(int32_t projection)
 {
-  string projName = CMapProjection::GetInstance()->IdToName(projection);
+  std::string projName = CMapProjection::GetInstance()->IdToName(projection);
 
   vtkWPlotProjectionState* projState = this->GetProjState(projection);
 
@@ -1020,22 +1020,22 @@ uint32_t vtkInteractorStyleWPlot::CountState(int32_t projection)
 }
 
 //----------------------------------------------------------------------------
-void vtkInteractorStyleWPlot::PrintSelf(ostream& os, vtkIndent indent)
+void vtkInteractorStyleWPlot::PrintSelf(std::ostream& os, vtkIndent indent)
 {
   vtkInteractorStyle::PrintSelf(os,indent);
 
   os << indent << "MidPoint: (" << this->MidPoint[0] << ", "
-     << this->MidPoint[1] << ")" << endl;
+     << this->MidPoint[1] << ")" << std::endl;
   os << indent << "PrevPos: (" << this->PrevPos[0] << ", "
-     << this->PrevPos[1] << ")" << endl;
+     << this->PrevPos[1] << ")" << std::endl;
   os << indent << "RatioVector: (" << this->RatioVector[0] << ", "
-     << this->RatioVector[1] << ")" << endl;
+     << this->RatioVector[1] << ")" << std::endl;
   os << indent << "Size: (" << this->Size[0] << ", "
-     << this->Size[1] << ")" << endl;
+     << this->Size[1] << ")" << std::endl;
   os << indent << "StartPos: (" << this->StartPos[0] << ", "
-     << this->StartPos[1] << ")" << endl;
+     << this->StartPos[1] << ")" << std::endl;
   os << indent << "ViewportSize: (" << this->ViewportSize[0] << ", "
-     << this->ViewportSize[1] << ")" << endl;
+     << this->ViewportSize[1] << ")" << std::endl;
   //KAVOK
-  os << indent << "ZoomScale: (" << this->ZoomScale << endl;
+  os << indent << "ZoomScale: (" << this->ZoomScale << std::endl;
 }

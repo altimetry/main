@@ -266,7 +266,7 @@ public:
   COperation& operator=(COperation& o);
 
    ///Dump fonction
-   virtual void Dump(ostream& fOut = cerr);
+   virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   void Init();

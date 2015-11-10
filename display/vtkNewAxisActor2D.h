@@ -36,7 +36,7 @@ class VTK_EXPORT vtkNewAxisActor2D : public vtkActor2D
 {
 public:
   vtkTypeMacro(vtkNewAxisActor2D,vtkActor2D);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(std::ostream& os, vtkIndent indent);
 
   // Description:
   // Instantiate object.
@@ -248,7 +248,7 @@ public:
   // Description:
   // General method to computes font size from a representative size on the 
   // viewport (given by size[2]). The method returns the font size (in points)
-  // and the string height/width (in pixels). It also sets the font size of the
+  // and the std::string height/width (in pixels). It also sets the font size of the
   // instance of vtkTextMapper provided. The factor is used when you're trying
   // to create text of different size-factor (it is usually = 1 but you can
   // adjust the font size by making factor larger or smaller).

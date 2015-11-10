@@ -24,11 +24,12 @@
 #include <cstdio>
 #include <cstring> 
 #include <typeinfo> 
+#include <fstream> 
 
 #include "brathl_error.h" 
 #include "brathl.h" 
 
-#include "Stl.h" 
+#include <string> 
 
 #include "TraceLog.h" 
 #include "Tools.h" 
@@ -42,7 +43,7 @@ namespace brathl
 {
 
 
-const string CTreeField::m_keyDelimiter = ".";
+const std::string CTreeField::m_keyDelimiter = ".";
 
 //----------------------------------------
 
@@ -145,10 +146,10 @@ CField* CTreeField::GetRootData()
 
 //----------------------------------------
 
-CObjectTreeIterator CTreeField::AddChild (CObjectTreeNode* parent, const string& nm, CField* x, bool goCurrent)
+CObjectTreeIterator CTreeField::AddChild (CObjectTreeNode* parent, const std::string& nm, CField* x, bool goCurrent)
 {
 
-  string key = parent->GetKey() + CTreeField::m_keyDelimiter + nm;
+  std::string key = parent->GetKey() + CTreeField::m_keyDelimiter + nm;
 
   x->SetKey(key);
   
@@ -157,10 +158,10 @@ CObjectTreeIterator CTreeField::AddChild (CObjectTreeNode* parent, const string&
 } 
 //----------------------------------------
 
-CObjectTreeIterator CTreeField::AddChild (CObjectTreeIterator& parent, const string& nm, CField* x, bool goCurrent)
+CObjectTreeIterator CTreeField::AddChild (CObjectTreeIterator& parent, const std::string& nm, CField* x, bool goCurrent)
 {
 
-  string key = parent.m_Node->second->GetKey() + CTreeField::m_keyDelimiter + nm;
+  std::string key = parent.m_Node->second->GetKey() + CTreeField::m_keyDelimiter + nm;
 
   x->SetKey(key);
   
@@ -168,9 +169,9 @@ CObjectTreeIterator CTreeField::AddChild (CObjectTreeIterator& parent, const str
 }
 
 //----------------------------------------
-CObjectTreeIterator CTreeField::AddChild (const string& nm, CField* x, bool goCurrent) 
+CObjectTreeIterator CTreeField::AddChild (const std::string& nm, CField* x, bool goCurrent) 
 {
-  string key = m_pTreeroot->GetKey() + CTreeField::m_keyDelimiter + nm;
+  std::string key = m_pTreeroot->GetKey() + CTreeField::m_keyDelimiter + nm;
 
   x->SetKey(key);
   
@@ -199,28 +200,28 @@ void CTreeField::ResetHiddenFlag ()
 }
 
 //----------------------------------------
-void CTreeField::DumpDictionary(const string& outputFileName)
+void CTreeField::DumpDictionary(const std::string& outputFileName)
 {
-  ostream* fOut = NULL;
-  ofstream* fStream = NULL;
+  std::ostream* fOut = NULL;
+  std::ofstream* fStream = NULL;
 
-  if (outputFileName.compare("cout") == 0)
+  if (outputFileName.compare("std::cout") == 0)
   {
-    fOut = &cout;
+    fOut = &std::cout;
   }
-  else if (outputFileName.compare("cerr") == 0)
+  else if (outputFileName.compare("std::cerr") == 0)
   {
-    fOut = &cerr;
+    fOut = &std::cerr;
   }
   else
   {
 
-    fStream = new ofstream;
-    fStream->open(outputFileName.c_str(), ios::out | ios::trunc);
+    fStream = new std::ofstream;
+    fStream->open(outputFileName.c_str(), std::ios::out | std::ios::trunc);
     if (fStream->good() != true)
     {
-      cerr << "CTreeField::DumpDictionary - Open file failed - file name  " << outputFileName << 
-                " error " << fStream->rdstate() << endl;
+      std::cerr << "CTreeField::DumpDictionary - Open file failed - file name  " << outputFileName << 
+                " error " << fStream->rdstate() << std::endl;
       delete fStream;
       fStream = NULL;
       return;
@@ -240,11 +241,11 @@ void CTreeField::DumpDictionary(const string& outputFileName)
 }
 //----------------------------------------
 
-void CTreeField::DumpDictionary(ostream& fOut /* = cout */)
+void CTreeField::DumpDictionary(std::ostream& fOut /* = std::cout */)
 {
   if (m_pTreeroot == NULL)
   {
-    fOut << "==> Nothing to dump !!!"<< endl;
+    fOut << "==> Nothing to dump !!!"<< std::endl;
     return;
   }
 
@@ -262,7 +263,7 @@ void CTreeField::DumpDictionary(ostream& fOut /* = cout */)
        << "Number dims" << "\t"
        << "Dimensions" << "\t"
        << "Number fields";
-  fOut << endl;
+  fOut << std::endl;
 
   this->SetWalkDownRootPivot();    
 
@@ -274,12 +275,12 @@ void CTreeField::DumpDictionary(ostream& fOut /* = cout */)
       CException e("ERROR in CTreeField::DumpDictionary - at least one of the tree object is not a CField object", BRATHL_LOGIC_ERROR);
       throw(e);
     }
-    string indent(this->m_WalkCurrent->GetLevel(), '-');
+    std::string indent(this->m_WalkCurrent->GetLevel(), '-');
 
     fOut << this->m_WalkCurrent->GetLevel() << "\t"
          << typeid(*field).name() << "\t";
     field->DumpFieldDictionary(fOut);
-    fOut << endl;
+    fOut << std::endl;
 
   }while (this->SubTreeWalkDown());
 
@@ -287,7 +288,7 @@ void CTreeField::DumpDictionary(ostream& fOut /* = cout */)
 }
 
 //----------------------------------------
-void CTreeField::Dump(ostream& fOut /* = cerr */)
+void CTreeField::Dump(std::ostream& fOut /* = std::cerr */)
 {
   if (CTrace::IsTrace() == false)
   {
@@ -295,14 +296,14 @@ void CTreeField::Dump(ostream& fOut /* = cerr */)
   }
 
 
-  fOut << "==> Dump a CTreeField Object at "<< this << endl;
+  fOut << "==> Dump a CTreeField Object at "<< this << std::endl;
   if (m_pTreeroot == NULL)
   {
-    fOut << "==> END Dump a CTreeField Object at "<< this << endl;
+    fOut << "==> END Dump a CTreeField Object at "<< this << std::endl;
     return;
   }
 
-  fOut << "==> Dump Tree only "<< this << endl;
+  fOut << "==> Dump Tree only "<< this << std::endl;
 
   this->SetWalkDownRootPivot();    
 
@@ -314,21 +315,21 @@ void CTreeField::Dump(ostream& fOut /* = cerr */)
       CException e("ERROR in CTreeField::Dump - at least one of the tree object is not a CField object", BRATHL_LOGIC_ERROR);
       throw(e);
     }
-    string indent(this->m_WalkCurrent->GetLevel(), '-');
+    std::string indent(this->m_WalkCurrent->GetLevel(), '-');
 
-    fOut << indent << field->GetName() << "\t\t\t\t\t\tKey=" << this->m_WalkCurrent->GetKey() << endl;
+    fOut << indent << field->GetName() << "\t\t\t\t\t\tKey=" << this->m_WalkCurrent->GetKey() << std::endl;
 
   }while (this->SubTreeWalkDown());
 
-  fOut << "==> END Dump Tree only "<< this << endl;
+  fOut << "==> END Dump Tree only "<< this << std::endl;
 
-  fOut << "==> Dump Tree  and CField  "<< this << endl;
+  fOut << "==> Dump Tree  and CField  "<< this << std::endl;
   CObjectTree::Dump(fOut);
-  fOut << "==> END Dump Tree  and CField  "<< this << endl;
+  fOut << "==> END Dump Tree  and CField  "<< this << std::endl;
   
-  fOut << "==> END Dump a CTreeField Object at "<< this << endl;
+  fOut << "==> END Dump a CTreeField Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

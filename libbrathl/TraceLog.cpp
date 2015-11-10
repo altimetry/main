@@ -18,13 +18,16 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include <fstream>
+#include <iostream>
+
 #include "TraceLog.h"
 using namespace brathl;
 
 namespace brathl
 {
 
-CTraceLog::CTraceLog(const string& szFilelog)
+CTraceLog::CTraceLog(const std::string& szFilelog)
 {
    m_pFileLog		= NULL;
    m_szFileLogName	= szFilelog;
@@ -49,19 +52,19 @@ CTraceLog::~CTraceLog()
 void CTraceLog::OpenLogFile()
 {
 
-   m_pFileLog = new ofstream;
-   m_pFileLog->open(m_szFileLogName.c_str(), ios::out | ios::trunc);
-   //m_pFileLog.open(m_szFileLogName, ios::out)
+   m_pFileLog = new std::ofstream;
+   m_pFileLog->open(m_szFileLogName.c_str(), std::ios::out | std::ios::trunc);
+   //m_pFileLog.open(m_szFileLogName, std::ios::out)
    if (m_pFileLog->good() != true)
    {
-      cerr << "CTrace::OpenLogFile() - Open trace file failed - Filename " << m_szFileLogName << ", error " << m_pFileLog->rdstate() << endl;
+      std::cerr << "CTrace::OpenLogFile() - Open trace file failed - Filename " << m_szFileLogName << ", error " << m_pFileLog->rdstate() << std::endl;
       return;
    }
 
    m_bFileLog = true;
 }
 
-ostream* CTraceLog::GetDumpContextReel()
+std::ostream* CTraceLog::GetDumpContextReel()
 {
 
    if (m_bFileLog)

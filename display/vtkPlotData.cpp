@@ -530,25 +530,25 @@ void vtkPlotData::ComputePlotLinesWithClipping(vtkPoints* pts,
 }
   
 //----------------------------------------------------------------------------
-void vtkPlotData::PrintSelf(ostream& os, vtkIndent indent)
+void vtkPlotData::PrintSelf(std::ostream& os, vtkIndent indent)
 {
-  os << indent << "Number of Items: " << this->GetNumberOfItems() << endl;
+  os << indent << "Number of Items: " << this->GetNumberOfItems() << std::endl;
   os << indent << "X Range: (" << this->XRange[0] << ", " <<
-    this->XRange[1] << ")" << endl;
+    this->XRange[1] << ")" << std::endl;
   os << indent << "Y Range: (" << this->YRange[0] << ", " <<
-    this->YRange[1] << ")" << endl;
+    this->YRange[1] << ")" << std::endl;
   os << indent << "Z Range: (" << this->ZRange[0] << ", " <<
-    this->ZRange[1] << ")" << endl;
-  os << indent << "Log X: " << (this->LogX ? "On" : "Off") << endl;
-  os << indent << "Log Y: " << (this->LogY ? "On" : "Off") << endl;
-  os << indent << "Log Z: " << (this->LogZ ? "On" : "Off") << endl;
+    this->ZRange[1] << ")" << std::endl;
+  os << indent << "Log X: " << (this->LogX ? "On" : "Off") << std::endl;
+  os << indent << "Log Y: " << (this->LogY ? "On" : "Off") << std::endl;
+  os << indent << "Log Z: " << (this->LogZ ? "On" : "Off") << std::endl;
   os << indent << "Viewport Bounds: (" << this->ViewportBounds[0] << ", " <<
     this->ViewportBounds[1] << ", " << this->ViewportBounds[2] << ", " <<
     this->ViewportBounds[3] << ", " << this->ViewportBounds[4] << ", " <<
-    this->ViewportBounds[5] << ")" << endl;
-  os << indent << "Plot Points: " << (this->PlotPoints ? "On" : "Off") << endl;
-  os << indent << "Plot Lines: " << (this->PlotLines ? "On" : "Off") << endl;
-  os << indent << "Glyph Size: " << this->GlyphSize << endl;
+    this->ViewportBounds[5] << ")" << std::endl;
+  os << indent << "Plot Points: " << (this->PlotPoints ? "On" : "Off") << std::endl;
+  os << indent << "Plot Lines: " << (this->PlotLines ? "On" : "Off") << std::endl;
+  os << indent << "Glyph Size: " << this->GlyphSize << std::endl;
 }
 
 //----------------------------------------------------------------------------

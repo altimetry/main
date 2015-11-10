@@ -20,9 +20,9 @@
 #ifndef _ExternalFilesFactory_h_
 #define _ExternalFilesFactory_h_
 
-#include <netcdf.h>
+#include "netcdf.h"
 #include "Expression.h"
-#include "Stl.h"
+#include <string>
 
 namespace brathl
 {
@@ -46,7 +46,7 @@ namespace brathl
 ** Return NULL if file cannot be identified or an error occured
 */
 CExternalFiles* BuildExistingExternalFileKind
-		(const string		&Name);
+		(const std::string		&Name);
 
 /** @} */
 

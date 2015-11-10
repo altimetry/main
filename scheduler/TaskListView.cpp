@@ -433,8 +433,8 @@ bool CTaskListView::RemoveTasks(bool ask /* = true */)
 
   int32_t selCount = GetSelectedItemCount();
 
-  vector<long> itemToDelete;
-  vector<wxLongLong_t> dataKeyToDelete;
+  std::vector<long> itemToDelete;
+  std::vector<wxLongLong_t> dataKeyToDelete;
 
   long item = GetNextItem(-1, wxLIST_NEXT_ALL,
                               wxLIST_STATE_SELECTED);
@@ -481,7 +481,7 @@ bool CTaskListView::RemoveTasks(bool ask /* = true */)
       return true;
     }
 
-    vector<wxLongLong_t>::const_iterator itData;
+    std::vector<wxLongLong_t>::const_iterator itData;
     for (itData = dataKeyToDelete.begin(); itData != dataKeyToDelete.end() ; itData++)
     {
       try

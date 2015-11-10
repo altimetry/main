@@ -42,7 +42,7 @@ public:
 
 
   CFunction(const wxString& name, const wxString& description, int32_t category = MathTrigo, int32_t nbParams = 1);
-  CFunction(const string& name, const string& description, int32_t category = MathTrigo, int32_t nbParams = 1);
+  CFunction(const std::string& name, const std::string& description, int32_t category = MathTrigo, int32_t nbParams = 1);
 
 
   /// Destructor
@@ -66,8 +66,8 @@ public:
   static wxString GetCategoryAsString(int32_t category);
 
    ///Dump fonction
-   virtual void Dump(ostream& fOut = cerr);
-   virtual void DumpFmt(ostream& fOut = cerr);
+   virtual void Dump(std::ostream& fOut = std::cerr);
+   virtual void DumpFmt(std::ostream& fOut = std::cerr);
 
 
 protected:
@@ -102,7 +102,7 @@ public:
 
 
   bool ValidName(const char* name);
-  bool ValidName(const string& name);
+  bool ValidName(const std::string& name);
   
   void NamesToArrayString(wxArrayString& array);
   void NamesToComboBox(wxComboBox& combo);
@@ -118,8 +118,8 @@ public:
 
   static void SaveFunctionDescrTemplate(wxFileConfig* config, bool flush = true);
 
-  virtual void Dump(ostream& fOut  = cerr); 
-  virtual void DumpFmt(ostream& fOut  = cerr); 
+  virtual void Dump(std::ostream& fOut  = std::cerr); 
+  virtual void DumpFmt(std::ostream& fOut  = std::cerr); 
 
 
 

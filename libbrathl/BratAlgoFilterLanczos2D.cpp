@@ -417,16 +417,16 @@ void CBratAlgoFilterLanczos2D::CheckVarExpression(uint32_t index)
 }
 
 //----------------------------------------
-void CBratAlgoFilterLanczos2D::Dump(ostream& fOut /*= cerr*/)
+void CBratAlgoFilterLanczos2D::Dump(std::ostream& fOut /*= std::cerr*/)
 {
    if (CTrace::IsTrace() == false)
    { 
       return;
    }
 
-  fOut << "==> Dump a CBratAlgoFilterLanczos2D Object at "<< this << endl;
+  fOut << "==> Dump a CBratAlgoFilterLanczos2D Object at "<< this << std::endl;
   CBratAlgoFilterLanczos::Dump(fOut);
-  fOut << "==> END Dump a CBratAlgoFilterLanczos2D Object at "<< this << endl;
+  fOut << "==> END Dump a CBratAlgoFilterLanczos2D Object at "<< this << std::endl;
 
 }
 

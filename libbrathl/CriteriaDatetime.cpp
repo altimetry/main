@@ -27,7 +27,7 @@
 #include "brathl.h" 
 //#define BRAT_INTERNAL
 
-#include "Stl.h" 
+#include <string> 
 
 #include "TraceLog.h" 
 #include "Tools.h" 
@@ -85,7 +85,7 @@ CCriteriaDatetime::CCriteriaDatetime(CDate& from, CDate& to)
   Set(from, to);
 }
 //-------------------------------------------------------------
-CCriteriaDatetime::CCriteriaDatetime(const string& from, const string& to) 
+CCriteriaDatetime::CCriteriaDatetime(const std::string& from, const std::string& to) 
 {
   Init();
   Set(from, to);
@@ -139,7 +139,7 @@ void CCriteriaDatetime::Set(CCriteriaDatetime& c)
 }
 
 //----------------------------------------
-string CCriteriaDatetime::GetAsText(const string& delimiter /* = CDatePeriod::m_delimiter */)
+std::string CCriteriaDatetime::GetAsText(const std::string& delimiter /* = CDatePeriod::m_delimiter */)
 {
   return m_datePeriod.GetAsText(delimiter);
 }
@@ -183,7 +183,7 @@ void CCriteriaDatetime::SetTo(CDate& to)
   m_datePeriod.SetTo(to);
 }
 //-------------------------------------------------------------
-void CCriteriaDatetime::SetTo(const string& strDate)
+void CCriteriaDatetime::SetTo(const std::string& strDate)
 {
   m_datePeriod.SetTo(strDate);
 }
@@ -194,7 +194,7 @@ void CCriteriaDatetime::SetFrom(CDate& from)
 }
 
 //-------------------------------------------------------------
-void CCriteriaDatetime::SetFrom(const string& strDate)
+void CCriteriaDatetime::SetFrom(const std::string& strDate)
 {
   m_datePeriod.SetFrom(strDate);
 }
@@ -218,13 +218,13 @@ void CCriteriaDatetime::Set(double from, double to)
 
 }
 //-------------------------------------------------------------
-void CCriteriaDatetime::Set(const string& from, const string& to)
+void CCriteriaDatetime::Set(const std::string& from, const std::string& to)
 {
   m_datePeriod.Set(from, to);
 
 }
 //-------------------------------------------------------------
-void CCriteriaDatetime::SetFromText(const string& values, const string& delimiter /* = CDatePeriod::m_delimiter */)
+void CCriteriaDatetime::SetFromText(const std::string& values, const std::string& delimiter /* = CDatePeriod::m_delimiter */)
 {
   CStringArray array;
   array.ExtractStrings(values, delimiter);
@@ -255,7 +255,7 @@ bool CCriteriaDatetime::Intersect(CDatePeriod& datePeriod, CDatePeriod& intersec
 }
 
 //----------------------------------------
-void CCriteriaDatetime::Dump(ostream& fOut /* = cerr */)
+void CCriteriaDatetime::Dump(std::ostream& fOut /* = std::cerr */)
 {
 
   if (CTrace::IsTrace() == false)
@@ -265,11 +265,11 @@ void CCriteriaDatetime::Dump(ostream& fOut /* = cerr */)
 
   CCriteria::Dump(fOut);
 
-  fOut << "==> Dump a CCriteriaDatetime Object at "<< this << endl;
+  fOut << "==> Dump a CCriteriaDatetime Object at "<< this << std::endl;
   m_datePeriod.Dump(fOut);
-  fOut << "==> END Dump a CCriteriaDatetime Object at "<< this << endl;
+  fOut << "==> END Dump a CCriteriaDatetime Object at "<< this << std::endl;
 
-  fOut << endl;
+  fOut << std::endl;
 
 }
 

@@ -25,7 +25,7 @@
 
 #include "coda.h"
 
-#include "Stl.h"
+#include <string>
 
 #include "List.h"
 #include "BratObject.h"
@@ -83,7 +83,7 @@ public:
   /// Ctor
   CField();  
   
-  CField(const string& name, const string& description = "", const string& unit = "");  
+  CField(const std::string& name, const std::string& description = "", const std::string& unit = "");  
   CField(CField& f);  
   
   /// Dtor
@@ -122,24 +122,24 @@ public:
 
 //-------------------------------------------------------------
 
-  virtual string GetNativeTypeName();
-  virtual string GetSpecialTypeName();
+  virtual std::string GetNativeTypeName();
+  virtual std::string GetSpecialTypeName();
 
-  void SetKey(const string& key) { m_key = key; };
-  const string& GetKey() { return m_key; };
+  void SetKey(const std::string& key) { m_key = key; };
+  const std::string& GetKey() { return m_key; };
 
-  void SetName(const string& name) { m_name = name; };
-  const string& GetName() { return m_name; };
+  void SetName(const std::string& name) { m_name = name; };
+  const std::string& GetName() { return m_name; };
 
-  virtual string GetFullName();
-  virtual string GetRecordName();
-  virtual string GetFullNameWithRecord();
+  virtual std::string GetFullName();
+  virtual std::string GetRecordName();
+  virtual std::string GetFullNameWithRecord();
 
-  void SetDescription(const string& description) { m_description = description; };
-  const string& GetDescription() { return m_description; };
+  void SetDescription(const std::string& description) { m_description = description; };
+  const std::string& GetDescription() { return m_description; };
 
-  virtual void SetUnit(const string& unit) { m_unit = CTools::RemoveCharSurroundingNumber(unit); };
-  const string& GetUnit() { return m_unit; };
+  virtual void SetUnit(const std::string& unit) { m_unit = CTools::RemoveCharSurroundingNumber(unit); };
+  const std::string& GetUnit() { return m_unit; };
   
   void SetTypeClass(coda_type_class typeClass) { m_typeClass = typeClass; };
   coda_type_class GetTypeClass() { return m_typeClass; };
@@ -207,7 +207,7 @@ public:
   long* GetDim() { return m_dim;};
   long GetDimAt(int32_t index);
   void GetDimAsVector(CUIntArray& dim);
-  virtual string GetDimAsString();
+  virtual std::string GetDimAsString();
 
   bool IsFixedSize() {return m_isFixedSize;};
   void SetFixedSize(bool isFixedSize) {m_isFixedSize = isFixedSize;};
@@ -237,7 +237,7 @@ public:
 
   virtual void Read(CDoubleArray& vect, bool skip = false);
   virtual void Read(double* data, bool skip = false);
-  virtual void Read(string& value, bool skip = false);
+  virtual void Read(std::string& value, bool skip = false);
 
   virtual CFieldSet* CreateFieldSet(const CField::CListField& listFields) = 0;
 
@@ -275,10 +275,10 @@ public:
   void AddFieldIndexes(CFieldIndex* value);
   void AddFieldIndexes(CObArray* vect, bool removeAll = true);
 
-  virtual void DumpFieldDictionary(ostream& fOut = cout);
+  virtual void DumpFieldDictionary(std::ostream& fOut = std::cout);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
   void DeleteFieldIndexes();
 
@@ -288,7 +288,7 @@ public:
 
   bool HasEqualDims(CField* field);
 
-  void HandleBratError(const string& str = "", int32_t errClass = BRATHL_LOGIC_ERROR);
+  void HandleBratError(const std::string& str = "", int32_t errClass = BRATHL_LOGIC_ERROR);
 
   virtual uint32_t GetNumHighResolutionMeasure() { return m_numHighResolutionMeasure; };
   virtual void SetNumHighResolutionMeasure(uint32_t value) { m_numHighResolutionMeasure = value; };
@@ -310,18 +310,18 @@ public:
   static CFieldNetCdfIndexData* GetFieldNetCdfIndexData(CBratObject* ob, bool withExcept = true);
 
 public:
-  static const string m_BRAT_INDEX_DATA_NAME;
-  static const string m_BRAT_INDEX_DATA_DESC;
+  static const std::string m_BRAT_INDEX_DATA_NAME;
+  static const std::string m_BRAT_INDEX_DATA_DESC;
 
 protected :
   void Init();
 
 protected:
-  string m_key;
+  std::string m_key;
 
-  string m_name;
-  string m_description;
-  string m_unit;
+  std::string m_name;
+  std::string m_description;
+  std::string m_unit;
   bool m_unitIsDate;
 
   CDate m_dateRef;
@@ -329,8 +329,8 @@ protected:
   bool m_convertDate;
 
 
-  string m_fullName;
-  string m_recordName;
+  std::string m_fullName;
+  std::string m_recordName;
 
   // true by default. Have to be set to false is field is in output (asked by user)
   bool m_hidden;
@@ -412,9 +412,9 @@ public:
   /// Ctor
   CFieldArray();  
 
-  CFieldArray(const string& name, const string& description = "", const string& unit = "");
+  CFieldArray(const std::string& name, const std::string& description = "", const std::string& unit = "");
 
-  CFieldArray(int32_t nbDims, const long dim[], const string& name, const string& description = "", const string& unit = "");
+  CFieldArray(int32_t nbDims, const long dim[], const std::string& name, const std::string& description = "", const std::string& unit = "");
   
   CFieldArray(CFieldArray& f);  
   
@@ -444,10 +444,10 @@ public:
 
   virtual CFieldSet* CreateFieldSet(const CField::CListField& listFields);
 
-  virtual void DumpFieldDictionary(ostream& fOut = cout);
+  virtual void DumpFieldDictionary(std::ostream& fOut = std::cout);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 
 public:
@@ -473,8 +473,8 @@ public:
   /// Ctor
   CFieldRecord();  
 
-  CFieldRecord(int32_t nbFields, const string& name, const string& description = "", const string& unit = "");
-  CFieldRecord(int32_t nbDims, const long dim[], int32_t nbFields, const string& name, const string& description = "", const string& unit = "");
+  CFieldRecord(int32_t nbFields, const std::string& name, const std::string& description = "", const std::string& unit = "");
+  CFieldRecord(int32_t nbDims, const long dim[], int32_t nbFields, const std::string& name, const std::string& description = "", const std::string& unit = "");
   CFieldRecord(CFieldRecord& f);  
 
   /// Dtor
@@ -501,10 +501,10 @@ public:
   virtual void Read(CDoubleArray& vect, bool skip = false);
   virtual void Read(double* data, bool skip = false);
 
-  virtual void DumpFieldDictionary(ostream& fOut = cout);
+  virtual void DumpFieldDictionary(std::ostream& fOut = std::cout);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
 
@@ -531,7 +531,7 @@ public:
   /// Ctor
   CFieldBasic();  
 
-  CFieldBasic(long length, const string& name, const string& description, const string& unit);
+  CFieldBasic(long length, const std::string& name, const std::string& description, const std::string& unit);
 
   CFieldBasic(CFieldBasic& f);  
 
@@ -546,17 +546,17 @@ public:
   
   virtual void Read(CDoubleArray& vect, bool skip = false);
   virtual void Read(double* data, bool skip = false);
-  virtual void Read(string& data, bool skip = false);
+  virtual void Read(std::string& data, bool skip = false);
 
   virtual void PushPos();
   virtual void PopCursor();
 
   virtual CFieldSet* CreateFieldSet(const CField::CListField& listFields);
 
-  virtual void DumpFieldDictionary(ostream& fOut = cout);
+  virtual void DumpFieldDictionary(std::ostream& fOut = std::cout);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 public:
 
@@ -582,7 +582,7 @@ public:
   /// Ctor
   CFieldIndexData();  
 
-  CFieldIndexData(const string& name, const string& description, const string& unit = "");
+  CFieldIndexData(const std::string& name, const std::string& description, const std::string& unit = "");
 
   CFieldIndexData(CFieldIndexData& f);  
 
@@ -595,7 +595,7 @@ public:
   
   virtual void Read(CDoubleArray& vect, bool skip = false);
   virtual void Read(double* data, bool skip = false);
-  virtual void Read(string& data, bool skip = false);
+  virtual void Read(std::string& data, bool skip = false);
   virtual void Read(double& value);
   virtual double Read();
 
@@ -604,14 +604,14 @@ public:
 
   virtual CFieldSet* CreateFieldSet(const CField::CListField& listFields);
 
-  virtual void DumpFieldDictionary(ostream& fOut = cout);
+  virtual void DumpFieldDictionary(std::ostream& fOut = std::cout);
 
   double GetValue();
 
   //void SetAtBeginning(bool value);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected: 
   void Init();
@@ -640,9 +640,9 @@ public:
   /// Ctor
   CFieldNetCdf();  
 
-  CFieldNetCdf(const string& name,
-               const string& description = "",
-               const string& unit = "",
+  CFieldNetCdf(const std::string& name,
+               const std::string& description = "",
+               const std::string& unit = "",
                int32_t netCdfId = NC_GLOBAL,
                int32_t type = NC_NAT,
                const CUIntArray* dimValues = NULL,
@@ -679,7 +679,7 @@ public:
   bool NextIndex();
   bool PrevIndex();
 
-  virtual void SetIndex(const string& dimName, uint32_t index, uint32_t count);
+  virtual void SetIndex(const std::string& dimName, uint32_t index, uint32_t count);
 
   uint32_t* GetDimsIndexArray() { return m_dimsIndexArray; };
   uint32_t* GetDimsCountArray() { return m_dimsCountArray; };
@@ -687,14 +687,14 @@ public:
   void SetNativeType(int32_t type) { SetType(type); };
   int32_t GetNativeType() { return GetType(); };
   
-  virtual string GetNativeTypeName() {return GetTypeName();}
+  virtual std::string GetNativeTypeName() {return GetTypeName();}
 
   virtual void SetType(int32_t type) { m_type = type; };
   int32_t GetType() { return m_type; };
-  virtual string GetTypeName();
+  virtual std::string GetTypeName();
   
   int32_t GetSpecialType();
-  virtual string GetSpecialTypeName();
+  virtual std::string GetSpecialTypeName();
   
   virtual bool IsSpecialType() { return false; };
 
@@ -714,7 +714,7 @@ public:
   const CStringArray& GetDimNames() { return m_dimNames; };
 
   const CUIntMap& GetDimRanges() { return m_dimRanges; };;
-  uint32_t GetDimRange(const string& dimName);
+  uint32_t GetDimRange(const std::string& dimName);
 
   virtual void SetDimInfo(const CStringArray& dimNames, const CIntArray& dimIds, const CUIntArray& dimValues);
   virtual void SetDimInfo(const CStringArray* dimNames, const CIntArray* dimIds, const CUIntArray* dimValues);
@@ -740,10 +740,10 @@ public:
   virtual void SetValues(const CFloatArray& values);
   virtual void SetValues(const CFloatArray* values);
 
-  virtual void SetValues(const string& values);
+  virtual void SetValues(const std::string& values);
 
   virtual CDoubleArray& GetValues() { return m_values; };
-  virtual CDoubleArray& GetValuesWithUnitConversion(const string& wantedUnit);
+  virtual CDoubleArray& GetValuesWithUnitConversion(const std::string& wantedUnit);
 
   void EmptyValues();
 
@@ -763,11 +763,11 @@ public:
   virtual void SetAttributes(const CStringMap* mapAttributes);
   const CStringMap& GetAttributes() { return m_mapAttributes; };
 
-  virtual string GetAttribute(const string attrName);
+  virtual std::string GetAttribute(const std::string attrName);
 
-  virtual string GetFullName();
-  virtual string GetRecordName();
-  virtual string GetFullNameWithRecord();
+  virtual std::string GetFullName();
+  virtual std::string GetRecordName();
+  virtual std::string GetFullNameWithRecord();
 
   NetCDFVarKind SearchDimKind();
 
@@ -778,7 +778,7 @@ public:
   //virtual CFieldSet* CreateFieldSet(const CUIntArray& dims);
   virtual CFieldSet* CreateFieldSet();
 
-  virtual void SetUnit(const string& unit);
+  virtual void SetUnit(const std::string& unit);
   virtual void SetUnit(const CUnit& unit);
   CUnit* GetNetCdfUnit() { return &m_netCdfUnit; };
   
@@ -791,17 +791,17 @@ public:
   void SetFillValue(double value) { m_fillValue = value;};
   double GetFillValue() { return m_fillValue; };
 
-  virtual string GetMostExplicitName();
+  virtual std::string GetMostExplicitName();
 
   uint32_t* NewDimIndexArray(CFieldNetCdf* fromField = NULL);
 
   int32_t GetPosFromDimIndexArray();
   int32_t GetCounFromDimCountArray();
 
-  virtual void DumpFieldDictionary(ostream& fOut = cout);
+  virtual void DumpFieldDictionary(std::ostream& fOut = std::cout);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 
 protected:
@@ -858,7 +858,7 @@ protected:
   //CExternalFiles* m_externalFile;
 
 
-  /** Map of the netcdf attributes (as string representation).
+  /** Map of the netcdf attributes (as std::string representation).
     */
   CStringMap m_mapAttributes;
   
@@ -907,9 +907,9 @@ public:
   /// Ctor
   CFieldNetCdfCF();  
 
-  CFieldNetCdfCF(const string& name,
-                 const string& description = "",
-                 const string& unit = "",
+  CFieldNetCdfCF(const std::string& name,
+                 const std::string& description = "",
+                 const std::string& unit = "",
                  int32_t netCdfId = NC_GLOBAL,
                  int32_t type = NC_NAT,
                  const CUIntArray* dimValues = NULL,
@@ -928,15 +928,15 @@ public:
 
   void Set(CFieldNetCdfCF& f);
 
-  virtual string GetDimAsString();
-  string GetDimAsStringWithIndexes();
-  string GetDimAsStringWithNames();
+  virtual std::string GetDimAsString();
+  std::string GetDimAsStringWithIndexes();
+  std::string GetDimAsStringWithNames();
 
 
-  virtual void DumpFieldDictionary(ostream& fOut = cout);
+  virtual void DumpFieldDictionary(std::ostream& fOut = std::cout);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   void Init();
@@ -962,9 +962,9 @@ public:
   /// Ctor
   CFieldNetCdfIndexData();  
 
-  CFieldNetCdfIndexData(const string& name,
-                 const string& description = "",
-                 const string& unit = "",
+  CFieldNetCdfIndexData(const std::string& name,
+                 const std::string& description = "",
+                 const std::string& unit = "",
                  int32_t netCdfId = NC_GLOBAL,
                  int32_t type = NC_NAT,
                  const CUIntArray* dimValues = NULL,
@@ -993,10 +993,10 @@ public:
   virtual void SetOffset(double value, bool force = false);
   virtual void AddOffset(double value, bool force = false);
 
-  virtual void DumpFieldDictionary(ostream& fOut = cout);
+  virtual void DumpFieldDictionary(std::ostream& fOut = std::cout);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   void Init();
@@ -1062,13 +1062,13 @@ public:
 
   void DeleteNetCDFAttr();
 
-  const string& GetRelatedVarName() {return m_relatedVarName;};
-  void SetRelatedVarName(const string& value) {m_relatedVarName = value;};
+  const std::string& GetRelatedVarName() {return m_relatedVarName;};
+  void SetRelatedVarName(const std::string& value) {m_relatedVarName = value;};
 
   virtual void SetAttributes(const CStringMap& mapAttributes);
   virtual void SetAttributes(const CStringMap* mapAttributes);
 
-  virtual string GetMostExplicitName();
+  virtual std::string GetMostExplicitName();
 
   bool IsFieldNetCdfCFAttrGlobal();
   bool IsFieldNetCdfCFAttrVariable();
@@ -1077,18 +1077,18 @@ public:
   static bool IsFieldNetCdfCFAttrVariable(CBratObject* ob);
 
 
-  virtual void DumpFieldDictionary(ostream& fOut = cout);
+  virtual void DumpFieldDictionary(std::ostream& fOut = std::cout);
 
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 
 protected:
 
   CNetCDFAttr* m_netCDFAttr;
 
-  string m_relatedVarName;
+  std::string m_relatedVarName;
 
 
 protected:
@@ -1114,7 +1114,7 @@ public:
   /// Ctor
   CFieldIndex();  
 
-  CFieldIndex(const string& name, int32_t nbElts, const string& description = "", const string& unit = "");
+  CFieldIndex(const std::string& name, int32_t nbElts, const std::string& description = "", const std::string& unit = "");
   
   CFieldIndex(CFieldIndex& f);  
   
@@ -1141,10 +1141,10 @@ public:
   //bool IsAtBeginning();
   void SetAtBeginning(bool value);
 
-  virtual void DumpFieldDictionary(ostream& fOut = cout);
+  virtual void DumpFieldDictionary(std::ostream& fOut = std::cout);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 
 public:
@@ -1182,7 +1182,7 @@ class CFieldSet : public CBratObject
 
 public:   
   /// Ctor
-  CFieldSet(const string& name = "");  
+  CFieldSet(const std::string& name = "");  
 
   CFieldSet(CFieldSet& f);
 
@@ -1191,9 +1191,9 @@ public:
 
   virtual void Insert(const CDoubleArray& vect, bool bRemove = false) = 0;
   virtual void Insert(double value, bool bRemove = false) = 0;
-  virtual void Insert(const string& value, bool bRemove = false) = 0;
+  virtual void Insert(const std::string& value, bool bRemove = false) = 0;
 
-  const string& GetName() { return m_name; };
+  const std::string& GetName() { return m_name; };
 
   virtual CField* GetField() {return m_field;};
   virtual void SetField(CField* value) {m_field = value;};
@@ -1201,7 +1201,7 @@ public:
   CFieldSet& operator=(CFieldSet& o);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   void Copy(CFieldSet& f);
@@ -1211,7 +1211,7 @@ private:
 
 protected:
 
-  string m_name;
+  std::string m_name;
   CField* m_field;
 
 };                      
@@ -1221,7 +1221,7 @@ protected:
 //-------------------------------------------------------------
 
 /** 
-  a set of string field value.
+  a set of std::string field value.
 
  
  \version 1.0
@@ -1232,7 +1232,7 @@ class CFieldSetString : public CFieldSet
 
 public:   
   /// Ctor
-  CFieldSetString(const string& name = "");  
+  CFieldSetString(const std::string& name = "");  
   
   CFieldSetString(CFieldSetString& f);
 
@@ -1241,17 +1241,17 @@ public:
 
   virtual void Insert(const CDoubleArray& vect, bool bRemove = false);
   virtual void Insert(double value, bool bRemove = false);
-  virtual void Insert(const string& value, bool bRemove = false);
+  virtual void Insert(const std::string& value, bool bRemove = false);
   
 
   CFieldSetString& operator=(CFieldSetString& o);
 
-  string& GetDataRef() {return m_value;}; 
-  string GetData() {return m_value;}; 
-  void SetData(const string& value) {m_value = value;}; 
+  std::string& GetDataRef() {return m_value;}; 
+  std::string GetData() {return m_value;}; 
+  void SetData(const std::string& value) {m_value = value;}; 
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   void Copy(CFieldSetString& f);
@@ -1261,7 +1261,7 @@ private:
 
 public:
 
-  string m_value;
+  std::string m_value;
 
 };                      
 
@@ -1282,7 +1282,7 @@ class CFieldSetDbl : public CFieldSet
 
 public:   
   /// Ctor
-  CFieldSetDbl(const string& name = "");  
+  CFieldSetDbl(const std::string& name = "");  
   
   CFieldSetDbl(CFieldSetDbl& f);
 
@@ -1291,7 +1291,7 @@ public:
 
   virtual void Insert(const CDoubleArray& vect, bool bRemove = false);
   virtual void Insert(double value, bool bRemove = false);
-  virtual void Insert(const string& value, bool bRemove = false);
+  virtual void Insert(const std::string& value, bool bRemove = false);
 
   int32_t AsInt32() {return static_cast<int32_t>(m_value);};
   int32_t AsUInt32() {return static_cast<uint32_t>(m_value);};
@@ -1305,7 +1305,7 @@ public:
   void SetData(double value) {m_value = value;}; 
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   void Copy(CFieldSetDbl& f);
@@ -1335,7 +1335,7 @@ class CFieldSetArrayDbl : public CFieldSet
 
 public:   
   /// Ctor
-  CFieldSetArrayDbl(const string& name = "");  
+  CFieldSetArrayDbl(const std::string& name = "");  
   
   CFieldSetArrayDbl(CFieldSetArrayDbl& f);
 
@@ -1344,14 +1344,14 @@ public:
 
   virtual void Insert(const CDoubleArray& vect, bool bRemove = false);
   virtual void Insert(double value, bool bRemove = false);
-  virtual void Insert(const string& value, bool bRemove = false);
+  virtual void Insert(const std::string& value, bool bRemove = false);
 
   CDoubleArray& GetDataVector() {return m_vector; };
 
   CFieldSetArrayDbl& operator=(CFieldSetArrayDbl& o);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   void Copy(CFieldSetArrayDbl& f);
@@ -1384,15 +1384,15 @@ class CRecordSet : public CObMap
 
 public:   
   /// Ctor
-  CRecordSet(const string& name = "", bool bDelete = true);  
+  CRecordSet(const std::string& name = "", bool bDelete = true);  
 
   /// Dtor
   virtual ~CRecordSet();
 
-  CFieldSet* ExistsFieldSet(const string& key);
+  CFieldSet* ExistsFieldSet(const std::string& key);
 
   CFieldSet* GetFieldSet(CRecordSet::iterator it);
-  CFieldSet* GetFieldSet(const string& dataSetName, const string& fieldName);
+  CFieldSet* GetFieldSet(const std::string& dataSetName, const std::string& fieldName);
 
   CField* GetField(CRecordSet::iterator it);
 
@@ -1400,16 +1400,16 @@ public:
   bool IsFieldHasToBeExpanded(CFieldSet* fieldSet, const CStringList& listFieldExpandArray);
 
   
-  void ExecuteExpression(CExpression &expr, const string &recordName, CExpressionValue &exprValue, CProduct* product = NULL);
+  void ExecuteExpression(CExpression &expr, const std::string &recordName, CExpressionValue &exprValue, CProduct* product = NULL);
 
 
  
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 public:
 
-  string m_name;
+  std::string m_name;
 
 };                      
 
@@ -1433,12 +1433,12 @@ public:
   /// Dtor
   virtual ~CRecord();
 
-  const string& GetName();
+  const std::string& GetName();
 
   CRecordSet* GetRecordSet() {return m_recordSet;};
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
 
@@ -1463,26 +1463,26 @@ class CDataSet : public CObArray
 
 public:   
   /// Ctor
-  CDataSet(const string& name = "", bool bDelete = true);  
+  CDataSet(const std::string& name = "", bool bDelete = true);  
 
   /// Dtor
   virtual ~CDataSet();
 
-  const string& GetName() { return m_name; };
-  void SetName(const string& name) { m_name = name; };
+  const std::string& GetName() { return m_name; };
+  void SetName(const std::string& name) { m_name = name; };
 
   CObMap* GetRecordSetMap() { return &m_recordSetMap; };
 
   CRecordSet* Back(bool withExcept = true);
 
-  CRecordSet* FindRecord(const string& recordSetName);
+  CRecordSet* FindRecord(const std::string& recordSetName);
 
   void InsertDataset(CDataSet* dataSet, bool setAsCurrent = true);
-  CRecordSet* InsertRecord(const string& recordSetName, bool setAsCurrent = true);
+  CRecordSet* InsertRecord(const std::string& recordSetName, bool setAsCurrent = true);
   
   void SetCurrentRecordSet(int32_t index);
   void SetCurrentRecordSet(CDataSet::iterator itDataSet);
-  void SetCurrentRecordSet(const string& recordSetName); 
+  void SetCurrentRecordSet(const std::string& recordSetName); 
   void SetCurrentRecordSet(CRecordSet* recordSet); 
 
   CRecordSet* GetCurrentRecordSet() {return m_currentRecordSet;}; 
@@ -1492,29 +1492,29 @@ public:
   CRecordSet* GetRecordSet(CDataSet::iterator itDataSet);
   CRecordSet* GetRecordSet(int32_t index);
 
-  CRecord* GetRecord(const string& recordSetName);
+  CRecord* GetRecord(const std::string& recordSetName);
   CRecord* GetRecord(CRecordSet* recordSet);
 
   /** Gets the fieldset object (identify by its name) of the current recordset
     \param fieldSetKey [in] : fieldset key to be searched
     \return a pointer to the fieldset object if found, otherwise NULL */
-  CFieldSet* GetFieldSet(const string& fieldSetKey);
+  CFieldSet* GetFieldSet(const std::string& fieldSetKey);
 
-  CFieldSetArrayDbl* GetFieldSetAsArrayDbl(const string& fieldSetKey);
-  CFieldSetDbl* GetFieldSetAsDbl(const string& fieldSetKey);
-  CFieldSetString* GetFieldSetAsString(const string& fieldSetKey);
+  CFieldSetArrayDbl* GetFieldSetAsArrayDbl(const std::string& fieldSetKey);
+  CFieldSetDbl* GetFieldSetAsDbl(const std::string& fieldSetKey);
+  CFieldSetString* GetFieldSetAsString(const std::string& fieldSetKey);
 
-  double GetFieldSetAsDblValue(const string& fieldSetKey);
-  string GetFieldSetAsStringValue(const string& fieldSetKey);
+  double GetFieldSetAsDblValue(const std::string& fieldSetKey);
+  std::string GetFieldSetAsStringValue(const std::string& fieldSetKey);
 
   /** Inserts a fieldset object (identify by its name)  into the current recordset
     \param fieldSetKey [in] : fieldset key 
     \param fieldSet [in] : fieldset object to be inserted*/
-  void InsertFieldSet(const string& fieldSetKey, CFieldSet* fieldSet);
+  void InsertFieldSet(const std::string& fieldSetKey, CFieldSet* fieldSet);
 
   /** remove a fieldset object (identify by its name)  from the current recordset
     \param fieldSetKey [in] : fieldset key */
-  void EraseFieldSet(const string& fieldSetKey);
+  void EraseFieldSet(const std::string& fieldSetKey);
 
   virtual void RemoveAll();
   virtual bool Erase(CRecordSet* recordSet);
@@ -1524,11 +1524,11 @@ public:
   //virtual const CDataSet& operator= (const CDataSet& lst);
 
   ///Dump fonction
-  virtual void Dump(ostream& fOut = cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr);
 
 protected:
   
-  string m_name;
+  std::string m_name;
 
   CRecordSet* m_currentRecordSet;
 

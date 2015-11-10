@@ -271,7 +271,7 @@ public:
   virtual ~CMapProcess();
 
   bool ValidName(const char* name);
-  bool ValidName(const string& name);
+  bool ValidName(const std::string& name);
   
   void NamesToArrayString(wxArrayString& array);
   void NamesToComboBox(wxComboBox& combo);

@@ -16,7 +16,7 @@ public:
 
   static vtkInteractorStyle3DWPlot *New();
   vtkTypeMacro(vtkInteractorStyle3DWPlot, vtkInteractorStyle);
-  void PrintSelf(ostream& os, vtkIndent indent);
+  void PrintSelf(std::ostream& os, vtkIndent indent);
 
   // Set and get the default view
   void SetDefaultViewParameters(double  latitude, double  longitude, double  roll, double  zoom);

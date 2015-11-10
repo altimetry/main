@@ -18,7 +18,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	 02110-1301, USA.
 */
 
-#include "Stl.h"
+#include <string>
 
 #include "brathl.h"
 
@@ -41,7 +41,7 @@ namespace brathl
 //----------------------------------------
 
 
-string CInternalFilesZFXY::GetType()
+std::string CInternalFilesZFXY::GetType()
 {
   return TypeOf();
 }
@@ -55,11 +55,11 @@ bool CInternalFilesZFXY::IsGeographic()
 
 void CInternalFilesZFXY::CreateDim
 		(NetCDFVarKind		Kind,
-		 const string		&XName,
+		 const std::string		&XName,
 		 const CExpressionValue	&Values,
-		 const string		&Units,
-		 const string		&LongName,
-                 const string           &Comment /* = ""*/,
+		 const std::string		&Units,
+		 const std::string		&LongName,
+                 const std::string           &Comment /* = ""*/,
       	         double	                ValidMin /* = CTools::m_defaultValueDOUBLE */,
 		 double	                ValidMax /* = CTools::m_defaultValueDOUBLE */)
 {
@@ -75,12 +75,12 @@ void CInternalFilesZFXY::CreateDim
 //----------------------------------------
 
 void CInternalFilesZFXY::CreateData
-		(const string		&Name,
-		 const string		&Units,
-		 const string		&LongName,
-		 const string		&Dim1Name,
-		 const string		&Dim2Name,
-                 const string           &Comment /* = ""*/,
+		(const std::string		&Name,
+		 const std::string		&Units,
+		 const std::string		&LongName,
+		 const std::string		&Dim1Name,
+		 const std::string		&Dim2Name,
+                 const std::string           &Comment /* = ""*/,
       	         double	                ValidMin /* = CTools::m_defaultValueDOUBLE */,
 		 double	                ValidMax /* = CTools::m_defaultValueDOUBLE */,
 		 nc_type		Type	/*= NC_DOUBLE*/)
@@ -102,7 +102,7 @@ void CInternalFilesZFXY::CreateData
   }
  
   CUnit unit = CUnit::ToUnit(Units);
-  string strUnit = unit.AsString(false, true);
+  std::string strUnit = unit.AsString(false, true);
 
 
   m_file.AddVar(Name,

@@ -116,7 +116,7 @@ public:
   const CMission& operator= (const CMission& m);
 
    ///Dump fonction
-   virtual void Dump(ostream& fOut = cerr);
+   virtual void Dump(std::ostream& fOut = std::cerr);
 
 
 private:

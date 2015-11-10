@@ -32,18 +32,6 @@
 #include "List.h" 
 using namespace brathl;
 
-const string PALETTE_AEROSOL2 = "Aerosol2";
-const string PALETTE_AEROSOL = "Aerosol";
-const string PALETTE_BLACKTOWHITE = "BlackToWhite";
-const string PALETTE_WHITETOBLACK = "WhiteToBlack";
-const string PALETTE_REDTOGREEN = "RedToGreen";
-const string PALETTE_GREENTORED = "GreenToRed";
-const string PALETTE_CLOUD = "Cloud";
-const string PALETTE_RAINBOW = "Rainbow";
-const string PALETTE_RAINBOW2 = "Rainbow2";
-const string PALETTE_OZONE = "Ozone";
-const string PALETTE_BLACKBODY = "Blackbody";
-
 //-------------------------------------------------------------
 //------------------- CListColorPalette class --------------------
 //-------------------------------------------------------------

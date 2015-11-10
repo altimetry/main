@@ -453,16 +453,16 @@ void CBratAlgoFilterMedian2D::CheckVarExpression(uint32_t index)
 }
 
 //----------------------------------------
-void CBratAlgoFilterMedian2D::Dump(ostream& fOut /*= cerr*/)
+void CBratAlgoFilterMedian2D::Dump(std::ostream& fOut /*= std::cerr*/)
 {
    if (CTrace::IsTrace() == false)
    { 
       return;
    }
 
-  fOut << "==> Dump a CBratAlgoFilterMedian2D Object at "<< this << endl;
+  fOut << "==> Dump a CBratAlgoFilterMedian2D Object at "<< this << std::endl;
   CBratAlgoFilterMedian::Dump(fOut);
-  fOut << "==> END Dump a CBratAlgoFilterMedian2D Object at "<< this << endl;
+  fOut << "==> END Dump a CBratAlgoFilterMedian2D Object at "<< this << std::endl;
 
 }
 
