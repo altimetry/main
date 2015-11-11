@@ -23,7 +23,7 @@
 #endif
 
 // For compilers that support precompilation
-#include "wx/wxprec.h"
+#include <wx/wxprec.h>
 
 #ifdef __BORLANDC__
     #pragma hdrstop
