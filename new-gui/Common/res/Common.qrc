@@ -1,0 +1,5 @@
+<RCC>
+    <qresource prefix="/">
+        <file>BratIcon.png</file>
+    </qresource>
+</RCC>
