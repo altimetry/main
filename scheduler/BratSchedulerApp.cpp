@@ -47,13 +47,13 @@
 #include "Exception.h"
 using namespace brathl;
 
-#include "BratScheduler.h"
+#include "BratSchedulerApp.h"
 #include "SchedulerTaskConfig.h"
 #include "RichTextFrame.h"
 #include "DirTraverser.h"
 
 
-// When debugging changes all calls to “new” to be calls to “DEBUG_NEW” allowing for memory leaks to
+// When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
 // Needs to be included after all #include commands
 #include "Win32MemLeaksAccurate.h"
@@ -749,7 +749,7 @@ void CBratSchedulerApp::ViewUserManual()
   if ( ft == NULL )
   {
     //wxMessageBox(wxString::Format("There is no program associated with '%s' file. "
-    //                              "Brat can’t open the User Manual from '%s'. "
+    //                              "Brat can't open the User Manual from '%s'. "
     //                              "Check your system configuration and/or try to open the User Manuel manually (outside Brat)",
     //                              ext.c_str(),
     //                              m_userManual.c_str()),

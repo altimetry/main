@@ -35,7 +35,7 @@
 #include "wx/numdlg.h"
 #include "wx/tokenzr.h"
 
-#include "BratScheduler.h"
+#include "BratSchedulerApp.h"
 
 #include "RichTextFrame.h"
 
