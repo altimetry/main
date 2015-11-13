@@ -1,6 +1,8 @@
 #ifndef QT_UTILS_H
 #define QT_UTILS_H
 
+#include "+Utils.h"
+
 #include <QFile>
 #if QT_VERSION >= 0x050000
 	#include <QtWidgets/QApplication>
@@ -25,7 +27,7 @@
 #include <QResource>
 #include <QElapsedTimer>
 
-#include "+Utils.h"
+#include <Libraries/+/+Utils.h>
 
 //Table of Contents
 //                      QSettings Reader/Writer Helpers

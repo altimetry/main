@@ -1,14 +1,14 @@
-#if !defined(Q_BRAT_APP_H)
-#define Q_BRAT_APP_H
+#if !defined(BRAT_STDAFX_H)
+#define BRAT_STDAFX_H
 
 #ifndef Q_MOC_RUN       //problems with boost 1_59_0 caused by qt moc
                         // see https://bugreports.qt.io/browse/QTBUG-22829
 
 
-#if !defined(_USE_MATH_DEFINES)
-#define _USE_MATH_DEFINES
-#endif
-#include <math.h> 
+//#if !defined(_USE_MATH_DEFINES)
+//#define _USE_MATH_DEFINES
+//#endif
+//#include <cmath> 
 
 #include <cassert>
 #include <sstream>
@@ -150,7 +150,9 @@
 #if QT_VERSION >= 0x050000
 #include <QtWidgets>
 #endif
+#if !defined (WIN32) && !defined (_WIN32) 
 #include <QtOpenGL>     //This was added here to include, in debian 32 bit, glext.h, that defines 64 bit types like Gluint64 and so on
+#endif
 
 //#include "Graphics/RTS-VTK.h"
 //#include "Graphics/RTS-OSG.h"
@@ -169,4 +171,4 @@
 
 
 #endif      //Q_MOC_RUN
-#endif      //Q_BRAT_APP_H
+#endif      //BRAT_STDAFX_H
