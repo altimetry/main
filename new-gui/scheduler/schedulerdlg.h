@@ -1,6 +1,8 @@
 #ifndef SCHEDULERDLG_H
 #define SCHEDULERDLG_H
 
+#include <QtGui/QToolBar>
+
 #include "ui_schedulerdlg.h"
 
 

@@ -13,6 +13,10 @@
   <property name="windowTitle">
    <string>SchedulerDlg</string>
   </property>
+  <property name="windowIcon">
+   <iconset resource="../Common/res/Common.qrc">
+    <normaloff>:/BratIcon.png</normaloff>:/BratIcon.png</iconset>
+  </property>
   <property name="autoFillBackground">
    <bool>false</bool>
   </property>
@@ -20,7 +24,7 @@
    <item row="0" column="0" colspan="2">
     <widget class="QTabWidget" name="tabWidget">
      <property name="currentIndex">
-      <number>0</number>
+      <number>1</number>
      </property>
      <widget class="QWidget" name="tab_PendingTasks">
       <attribute name="title">
@@ -335,29 +339,11 @@
      </widget>
     </widget>
    </item>
-   <item row="1" column="0">
-    <widget class="QPushButton" name="pushButton">
-     <property name="text">
-      <string>View Configuration File</string>
-     </property>
-    </widget>
-   </item>
-   <item row="1" column="1">
-    <spacer name="horizontalSpacer">
-     <property name="orientation">
-      <enum>Qt::Horizontal</enum>
-     </property>
-     <property name="sizeHint" stdset="0">
-      <size>
-       <width>366</width>
-       <height>20</height>
-      </size>
-     </property>
-    </spacer>
-   </item>
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="../Common/res/Common.qrc"/>
+ </resources>
  <connections/>
 </ui>
