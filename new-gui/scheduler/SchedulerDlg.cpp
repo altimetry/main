@@ -73,12 +73,19 @@ SchedulerDlg::SchedulerDlg(QWidget *parent) : QDialog(parent)
 		//	"else") of the if. In the "then" branch (mIsDialog is true), create button(s)
 		//	to close the dialog and the respective actions (ok and cancel, or simply close:
 		//	see in BratGui which of them make sense).
+        //
+        //	(2015/11/16)
+        //  Is a maximize button possible? In a dialog? I didn't check, but please see if it is.
+        //
+        //	For dialogs, including dialog applications, the minimum size should be the
+        //  opening one. Use setMinimumSize, or similar.
 
-		//	And now for something completely different: generate tasks xml with arguments
+        //  Disregard the following notes, until we talk (I left them here to serve as
+        //      reminders for me)
+        //
+        //      - generate tasks xml with arguments
 		//
-		//	maximize button possible?
-		//	for dialogs, minimum size is the opening one
-		//	wxBratTools::wxStringTowxLongLong_t
+        //      - wxBratTools::wxStringTowxLongLong_t
 
 
         QMenuBar *menuBar = new QMenuBar(this);
