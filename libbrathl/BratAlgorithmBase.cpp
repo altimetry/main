@@ -289,7 +289,7 @@ std::string CBratAlgorithmParam::TypeValAsString(CBratAlgorithmParam::bratAlgoPa
   return value; 
 }
 //----------------------------------------
-std::string CBratAlgorithmParam::GetValue()
+std::string CBratAlgorithmParam::GetValue() const
 {
   std::string value = "";
 
@@ -462,7 +462,7 @@ void CVectorBratAlgorithmParam::Insert(double* value, int32_t nbValues)
   this->Insert(p);
 }
 //----------------------------------------
-std::string CVectorBratAlgorithmParam::ToString(const std::string& delim /*= "," */, bool useBracket /*= true */)
+std::string CVectorBratAlgorithmParam::ToString(const std::string& delim /*= "," */, bool useBracket /*= true */) const
 {
   std::ostringstream myStream;
 
@@ -471,9 +471,9 @@ std::string CVectorBratAlgorithmParam::ToString(const std::string& delim /*= ","
     myStream << "(";
   }
 
-  CVectorBratAlgorithmParam::iterator it;
+  //CVectorBratAlgorithmParam::iterator it;
 
-  for ( it = this->begin( ); it != this->end( ); it++ )
+  for ( auto it = cbegin( ); it != cend( ); it++ )
   {
     myStream << it->GetValue();  
     if ((it+1) != this->end())

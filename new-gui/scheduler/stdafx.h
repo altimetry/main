@@ -17,6 +17,10 @@
 #undef DOMDocument
 #endif		//WIN32
 
+#include <xercesc/util/PlatformUtils.hpp>
+#include <xercesc/framework/LocalFileFormatTarget.hpp>
+
+
 #if !defined(NDEBUG)
 	#if !defined(DEBUG)
 	#define DEBUG

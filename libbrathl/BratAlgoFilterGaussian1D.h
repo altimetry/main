@@ -56,7 +56,7 @@ public:
   /** Destructor */
   virtual ~CBratAlgoFilterGaussian1D() {};
 
-  virtual std::string GetName() { return "BratAlgoFilterGaussianAtp"; };
+  virtual std::string GetName() const override { return "BratAlgoFilterGaussianAtp"; };
   
   virtual std::string GetDescription() { return "Gaussian filter for one-dimensional data (e.g. along-track data) as input data source. "
                                            "Gaussian filter is windowed filter of linear class, by its nature is weighted mean. "

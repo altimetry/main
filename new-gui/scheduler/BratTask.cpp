@@ -17,48 +17,36 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
+//#include "stdafx.h"
 
+#include "new-gui/Common/+/QtFileUtils.h"
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "BratTask.h"
-#endif
+//#include "libbrathl/TraceLog.h"
+//#include "Exception.h"
 
-// For compilers that support precompilation, includes "wx/wx.h".
-#include "wx/wxprec.h"
-
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
-
-#include "TraceLog.h" 
-#include "Exception.h"
-
-#include "wxBratTools.h"
+//#include "wxBratTools.h"
 
 #include "BratTask.h"
-#include "SchedulerTaskConfig.h"
+//#include "SchedulerTaskConfig.h"
 
 // When debugging changes all calls to “new” to be calls to “DEBUG_NEW” allowing for memory leaks to
 // give you the file name and line number where it occurred.
 // Needs to be included after all #include commands
-#include "Win32MemLeaksAccurate.h"
+#include "libbrathl/Win32MemLeaksAccurate.h"
+
 
 using namespace brathl;
 
 
+const std::string CBratTaskFunction::m_TASK_FUNC_COPYFILE = "CopyFile";
 
+//const QString CBratTask::FormatISODateTime = "%Y-%m-%d %H:%M:%S";
 
-DEFINE_EVENT_TYPE(wxEVT_BRAT_TASK_PROCESS)
-
-const wxString CBratTaskFunction::m_TASK_FUNC_COPYFILE = "CopyFile";
-
-const wxString CBratTask::FormatISODateTime = "%Y-%m-%d %H:%M:%S";
-
-const wxString CBratTask::m_BRAT_STATUS_ENDED_LABEL = "ended";
-const wxString CBratTask::m_BRAT_STATUS_ERROR_LABEL = "error";
-const wxString CBratTask::m_BRAT_STATUS_PENDING_LABEL = "pending";
-const wxString CBratTask::m_BRAT_STATUS_PROCESSING_LABEL = "in progress";
-const wxString CBratTask::m_BRAT_STATUS_WARNING_LABEL = "warning";
+//const std::string CBratTask::m_BRAT_STATUS_ENDED_LABEL = "ended";
+//const std::string CBratTask::m_BRAT_STATUS_ERROR_LABEL = "error";
+//const std::string CBratTask::m_BRAT_STATUS_PENDING_LABEL = "pending";
+//const std::string CBratTask::m_BRAT_STATUS_PROCESSING_LABEL = "in progress";
+//const std::string CBratTask::m_BRAT_STATUS_WARNING_LABEL = "warning";
 
 //-------------------------------------------------------------
 //------------------- CBratTaskFunction class --------------------
@@ -70,7 +58,7 @@ CBratTaskFunction::CBratTaskFunction()
   Init();
 }
 //----------------------------------------
-CBratTaskFunction::CBratTaskFunction(const wxString& name, BratTaskFunctionCallableN* call)
+CBratTaskFunction::CBratTaskFunction(const std::string& name, BratTaskFunctionCallableN* call)
 {
   Init();
   m_name = name;
@@ -113,77 +101,74 @@ void CBratTaskFunction::Set(const CBratTaskFunction& o)
 }
 
 //----------------------------------------
-void CBratTaskFunction::GetParamsAsString(wxString& value)
+void CBratTaskFunction::GetParamsAsString(std::string& value) const
 {
   value = m_params.ToString().c_str();
 }
 //----------------------------------------
 void CBratTaskFunction::Execute()
 {
-  try
-  {
-    m_call(m_params);
-  }
-  catch(CException& e)
-  {
-    wxString msg = wxString::Format("Unable to execute function '%s' - Native error: %s.", m_name.c_str(), e.GetMessage().c_str());
-    throw CException(msg.ToStdString(), BRATHL_ERROR);
-  }
-  catch(std::exception& e)
-  {
-    wxString msg = wxString::Format("Unable to execute function '%s' - Native error: %s.", m_name.c_str(), e.what());
-    throw CException(msg.ToStdString(), BRATHL_ERROR);
+	try
+	{
+		m_call( m_params );
+	}
+	catch ( CException& e )
+	{
+		std::string msg = "Unable to execute function " + m_name + " - Native error: " + e.GetMessage();
+		throw CException( msg, BRATHL_ERROR );
+	}
+	catch ( std::exception& e )
+	{
+		std::string msg = "Unable to execute function " + m_name + " - Native error: " + e.what();
+		throw CException( msg, BRATHL_ERROR );
 
-  }
-  catch(...)
-  {
-    wxString msg = wxString::Format("Unable to execute function '%s' - Native error is unknow (perhaps runtime error)", m_name.c_str());
-    throw CException(msg.ToStdString(), BRATHL_ERROR);
-
-  }
+	}
+	catch ( ... )
+	{
+		std::string msg = "Unable to execute function " + m_name + " - Native error is unknown";
+		throw CException( msg, BRATHL_ERROR );
+	}
 }
 //----------------------------------------
 
-void CBratTaskFunction::CopyFile(CVectorBratAlgorithmParam& arg)
+void CBratTaskFunction::CopyFile( CVectorBratAlgorithmParam& arg )
 {
-  if (arg.size() != 2)
-  {
-    wxString msg = wxString::Format("CBratTaskFunction::CopyFile - Unable to execute  Brat task - Expected number of parameters is 2, but found %d",
-                                    static_cast<int32_t>(arg.size()));
-  
-    throw CException(msg.ToStdString(), BRATHL_ERROR);
-  }
+	if ( arg.size() != 2 )
+	{
+		std::string msg = "CBratTaskFunction::CopyFile - Unable to execute  Brat task - Expected number of parameters is 2, but found "
+			+ n2s< std::string >( static_cast<int32_t>( arg.size() ) );
 
-  wxString p1 = arg.at(0).GetValueAsString().c_str();
-  wxString p2 = arg.at(1).GetValueAsString().c_str();
+		throw CException( msg, BRATHL_ERROR );
+	}
 
-  bool bOk = wxCopyFile(p1, p2);
+	std::string p1 = arg.at( 0 ).GetValueAsString().c_str();
+	std::string p2 = arg.at( 1 ).GetValueAsString().c_str();
 
-  if (!bOk)
-    {
-      wxString msg = wxString::Format("Unable to copy file '%s' to '%s'" ,
-                        p1.c_str(),
-                        p2.c_str());
+	bool bOk = copyFile( p1, p2 );		//femm bool bOk = wxCopyFile( p1, p2 );
 
-      throw CException(msg.ToStdString(), BRATHL_ERROR);
-    }
-
+	if ( !bOk )
+	{
+		std::string msg = "Unable to copy file " + p1 + " to " + p2;
+		throw CException( msg, BRATHL_ERROR );
+	}
 }
 
 //----------------------------------------
-void CBratTaskFunction::Dump(std::ostream& fOut /*= std::cerr*/)
+void CBratTaskFunction::Dump( std::ostream& fOut /*= std::cerr*/ )
 {
-  if (! CTrace::IsTrace())
-  {
-    return;
-  }
+	// femm: comment in, when trace and log modules decoupled from all externals stuff
+	//
+	//if (! CTrace::IsTrace())
+	//{
+	//  return;
+	//}
 
-  fOut << "==> Dump a CBratTaskFunction Object at "<< this << std::endl;
-  fOut << "m_name: " << m_name << std::endl;
-  fOut << "m_call: " << m_call << std::endl;
-  fOut << "m_params: " << std::endl;
-  m_params.Dump(fOut);
-  fOut << "==> END Dump a CBratTaskFunction Object at "<< this << std::endl;
+	fOut << "==> Dump a CBratTaskFunction Object at " << this << std::endl;
+	fOut << "m_name: " << m_name << std::endl;
+	fOut << "m_call: " << m_call << std::endl;
+	fOut << "m_params: " << std::endl;
+	m_params.Dump( fOut );
+	fOut << "==> END Dump a CBratTaskFunction Object at " << this << std::endl;
 
 }//----------------------------------------
 
@@ -218,7 +203,7 @@ CMapBratTaskFunction& CMapBratTaskFunction::GetInstance()
  return instance;
 }
 //----------------------------------------
-CBratTaskFunction* CMapBratTaskFunction::Insert(const wxString& key, CBratTaskFunction* ob, bool withExcept /* = true */)
+CBratTaskFunction* CMapBratTaskFunction::Insert(const std::string& key, CBratTaskFunction* ob, bool withExcept /* = true */)
 {
   
 
@@ -234,7 +219,9 @@ CBratTaskFunction* CMapBratTaskFunction::Insert(const wxString& key, CBratTaskFu
   if( (pairInsert.second == false) && (withExcept))
   {
     CException e("ERROR in CMapBratTaskFunction::Insert - try to insert an task that already exists. Check that no task have the same id", BRATHL_INCONSISTENCY_ERROR);
-    Dump(*CTrace::GetDumpContext());
+	// femm: comment in, when trace and log modules decoupled from all externals stuff
+	//
+    //Dump(*CTrace::GetDumpContext());
 
     throw(e);
   }
@@ -244,7 +231,7 @@ CBratTaskFunction* CMapBratTaskFunction::Insert(const wxString& key, CBratTaskFu
 
 }
 //----------------------------------------
-CBratTaskFunction* CMapBratTaskFunction::Find(const wxString& id) const
+CBratTaskFunction* CMapBratTaskFunction::Find(const std::string& id) const
 {
   CMapBratTaskFunction::const_iterator it = mapbrattaskfunction::find(id);
   if (it == end())
@@ -259,7 +246,7 @@ CBratTaskFunction* CMapBratTaskFunction::Find(const wxString& id) const
 }
 
 //----------------------------------------
-bool CMapBratTaskFunction::Remove(const wxString& id)
+bool CMapBratTaskFunction::Remove(const std::string& id)
 {
   CMapBratTaskFunction::iterator it = mapbrattaskfunction::find(id);
   
@@ -312,10 +299,12 @@ void CMapBratTaskFunction::RemoveAll()
 void CMapBratTaskFunction::Dump(std::ostream& fOut /* = std::cerr */)
 {
 
-   if (CTrace::IsTrace() == false)
-   { 
-      return;
-   }
+	// femm: comment in, when trace and log modules decoupled from all externals stuff
+	//
+   //if (CTrace::IsTrace() == false)
+   //{ 
+   //   return;
+   //}
 
    fOut << "==> Dump a CMapBratTaskFunction Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
@@ -369,11 +358,17 @@ const CBratTask& CBratTask::operator=(const CBratTask &o)
 
   return *this;
 }
+void CBratTask::SetAt( const std::string& value ) 
+{ 
+	QDateTime dt = QDateTime::fromString( t2q( value ), qformatISODateTime() );
+	assert__( dt.isValid() );															 	//!!! TODO !!!: error handling
+	m_at = dt; 
+}
 //----------------------------------------
 void CBratTask::Init()
 {
   m_uid = -1;
-  m_status = CBratTask::BRAT_STATUS_PENDING;
+  m_status = CBratTask::e_BRAT_STATUS_PENDING;
 }
 //----------------------------------------
 void CBratTask::Set(const CBratTask &o) 
@@ -390,25 +385,9 @@ void CBratTask::Set(const CBratTask &o)
 
 }
 //----------------------------------------
-void CBratTask::EvtBratTaskProcessCommand(wxEvtHandler& evtHandler, const CBratTaskProcessEventFunction& method,
-                                               wxObject* userData, wxEvtHandler* eventSink)
+void CBratTask::SetUid( const std::string& value )
 {
-  evtHandler.Connect(wxEVT_BRAT_TASK_PROCESS,
-                 (wxObjectEventFunction)
-                 (wxEventFunction)
-                 method,
-                 userData,
-                 eventSink);
-}
-//----------------------------------------
-void CBratTask::DisconnectEvtBratTaskProcessCommand(wxEvtHandler& evtHandler)
-{
-  evtHandler.Disconnect(wxEVT_BRAT_TASK_PROCESS);
-}
-//----------------------------------------
-void CBratTask::SetUid(const wxString& value)
-{
-  m_uid = wxBratTools::wxStringTowxLongLong_t(value);
+	m_uid = s2n<uid_t>( value );	//femm m_uid = wxBratTools::wxStringTowxLongLong_t(value);
 }
 //----------------------------------------
 void CBratTask::ExecuteFunction()
@@ -417,70 +396,73 @@ void CBratTask::ExecuteFunction()
 }
 
 //----------------------------------------
-wxString CBratTask::TaskStatusToString(CBratTask::bratTaskStatus status)
-{
-  wxString value = "";
-  switch (status) 
-  {
-    case CBratTask::BRAT_STATUS_PENDING: value = CBratTask::m_BRAT_STATUS_PENDING_LABEL; break;
-    case CBratTask::BRAT_STATUS_PROCESSING: value = CBratTask::m_BRAT_STATUS_PROCESSING_LABEL; break;
-    case CBratTask::BRAT_STATUS_ENDED: value = CBratTask::m_BRAT_STATUS_ENDED_LABEL; break;
-    case CBratTask::BRAT_STATUS_ERROR: value = CBratTask::m_BRAT_STATUS_ERROR_LABEL; break;
-    case CBratTask::BRAT_STATUS_WARNING: value = CBratTask::m_BRAT_STATUS_WARNING_LABEL; break;
-    default: value = wxString::Format("CBratTask::TaskStatusToString: unknown status %d.",
-               static_cast<uint32_t>(status)); break;
-
-  }
-
-  return value; 
-}
+//femm commented out
+//std::string CBratTask::TaskStatusToString(CBratTask::bratTaskStatus status)
+//{
+//  std::string value = "";
+//  switch (status) 
+//  {
+//    case CBratTask::e_BRAT_STATUS_PENDING: value = CBratTask::m_BRAT_STATUS_PENDING_LABEL; break;
+//    case CBratTask::BRAT_STATUS_PROCESSING: value = CBratTask::m_BRAT_STATUS_PROCESSING_LABEL; break;
+//    case CBratTask::BRAT_STATUS_ENDED: value = CBratTask::m_BRAT_STATUS_ENDED_LABEL; break;
+//    case CBratTask::BRAT_STATUS_ERROR: value = CBratTask::m_BRAT_STATUS_ERROR_LABEL; break;
+//    case CBratTask::BRAT_STATUS_WARNING: value = CBratTask::m_BRAT_STATUS_WARNING_LABEL; break;
+//    default: value = std::string::Format("CBratTask::TaskStatusToString: unknown status %d.",
+//               static_cast<uint32_t>(status)); break;
+//
+//  }
+//
+//  return value; 
+//}
 
 //----------------------------------------
-CBratTask::bratTaskStatus CBratTask::StringToTaskStatus(const wxString& status)
-{
-  CBratTask::bratTaskStatus value;
-
-  if (status.CmpNoCase(CBratTask::m_BRAT_STATUS_PENDING_LABEL) == 0)
-  {
-    value = CBratTask::BRAT_STATUS_PENDING;
-  }
-  else if (status.CmpNoCase(CBratTask::m_BRAT_STATUS_PROCESSING_LABEL) == 0)
-  {
-    value = CBratTask::BRAT_STATUS_PROCESSING;
-  }
-  else if (status.CmpNoCase(CBratTask::m_BRAT_STATUS_ENDED_LABEL) == 0)
-  {
-    value = CBratTask::BRAT_STATUS_ENDED;
-  }
-  else if (status.CmpNoCase(CBratTask::m_BRAT_STATUS_ERROR_LABEL) == 0)
-  {
-    value = CBratTask::BRAT_STATUS_ERROR;
-  }
-  else if (status.CmpNoCase(CBratTask::m_BRAT_STATUS_WARNING_LABEL) == 0)
-  {
-    value = CBratTask::BRAT_STATUS_WARNING;
-  }
-  else 
-  {
-    wxString msg = wxString::Format("CBratTask::StringToTaskStatus: unknown status label '%s'.", status.c_str());
-    throw CException(msg.ToStdString(), BRATHL_INCONSISTENCY_ERROR);
-  }
-
-
-  return value; 
-}
+//Status CBratTask::StringToTaskStatus(const std::string& status)
+//{
+//  Status value;
+//
+//  if (status.CmpNoCase(CBratTask::m_BRAT_STATUS_PENDING_LABEL) == 0)
+//  {
+//    value = CBratTask::e_BRAT_STATUS_PENDING;
+//  }
+//  else if (status.CmpNoCase(CBratTask::m_BRAT_STATUS_PROCESSING_LABEL) == 0)
+//  {
+//    value = CBratTask::BRAT_STATUS_PROCESSING;
+//  }
+//  else if (status.CmpNoCase(CBratTask::m_BRAT_STATUS_ENDED_LABEL) == 0)
+//  {
+//    value = CBratTask::BRAT_STATUS_ENDED;
+//  }
+//  else if (status.CmpNoCase(CBratTask::m_BRAT_STATUS_ERROR_LABEL) == 0)
+//  {
+//    value = CBratTask::BRAT_STATUS_ERROR;
+//  }
+//  else if (status.CmpNoCase(CBratTask::m_BRAT_STATUS_WARNING_LABEL) == 0)
+//  {
+//    value = CBratTask::BRAT_STATUS_WARNING;
+//  }
+//  else 
+//  {
+//    std::string msg = std::string::Format("CBratTask::StringToTaskStatus: unknown status label '%s'.", status.c_str());
+//    throw CException(msg.ToStdString(), BRATHL_INCONSISTENCY_ERROR);
+//  }
+//
+//
+//  return value; 
+//}
 //----------------------------------------
 void CBratTask::Dump(std::ostream& fOut /*= std::cerr*/)
 {
-  if (! CTrace::IsTrace())
-  {
-    return;
-  }
+	// femm: comment in, when trace and log modules decoupled from all externals stuff
+	//
+  //if (! CTrace::IsTrace())
+  //{
+  //  return;
+  //}
  
   fOut << "==> Dump a CBratTask Object at "<< this << std::endl;
   
-  fOut << "m_uid: " << this->GetUidValue() << std::endl;
-  fOut << "m_at: " << m_at.GetValue().GetValue() << "(" << GetAtAsString() << ")" << std::endl;
+  fOut << "m_uid: " << m_uid << std::endl;
+  fOut << "m_at: " << GetAtAsString() << std::endl;
   fOut << "m_status: " << m_status << std::endl;
   fOut << "m_cmd: " << m_cmd << std::endl;
   fOut << "m_function: " << std::endl;
@@ -534,7 +516,7 @@ void CMapBratTask::Insert(const CMapBratTask* map, bool bRemoveAll /* = true */)
 }
 
 //----------------------------------------
-CBratTask* CMapBratTask::Insert(wxLongLong_t key, CBratTask* ob, bool withExcept /* = true */)
+CBratTask* CMapBratTask::Insert(uid_t key, CBratTask* ob, bool withExcept /* = true */)
 {
   
 
@@ -550,7 +532,9 @@ CBratTask* CMapBratTask::Insert(wxLongLong_t key, CBratTask* ob, bool withExcept
   if( (pairInsert.second == false) && (withExcept))
   {
     CException e("ERROR in CMapBratTask::Insert - try to insert an task that already exists. Check that no task have the same id", BRATHL_INCONSISTENCY_ERROR);
-    Dump(*CTrace::GetDumpContext());
+	// femm: comment in, when trace and log modules decoupled from all externals stuff
+	//
+    //Dump(*CTrace::GetDumpContext());
 
     throw(e);
   }
@@ -565,7 +549,7 @@ void CMapBratTask::Init()
 }
 
 //----------------------------------------
-CBratTask* CMapBratTask::Find(wxLongLong_t id) const
+CBratTask* CMapBratTask::Find(uid_t id) const
 {
   CMapBratTask::const_iterator it = mapbrattask::find(id);
   if (it == end())
@@ -580,7 +564,7 @@ CBratTask* CMapBratTask::Find(wxLongLong_t id) const
 }
 
 //----------------------------------------
-bool CMapBratTask::Remove(wxLongLong_t id)
+bool CMapBratTask::Remove(uid_t id)
 {
   CMapBratTask::iterator it = mapbrattask::find(id);
   
@@ -632,10 +616,12 @@ void CMapBratTask::RemoveAll()
 void CMapBratTask::Dump(std::ostream& fOut /* = std::cerr */)
 {
 
-   if (CTrace::IsTrace() == false)
-   { 
-      return;
-   }
+	// femm: comment in, when trace and log modules decoupled from all externals stuff
+	//
+   //if (CTrace::IsTrace() == false)
+   //{ 
+   //   return;
+   //}
 
    fOut << "==> Dump a CMapBratTask Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
@@ -744,10 +730,13 @@ void CVectorBratTask::RemoveAll()
 void CVectorBratTask::Dump(std::ostream& fOut /* = std::cerr */)
 {
 
- if (CTrace::IsTrace() == false)
-  {
-    return;
-  }
+
+	// femm: comment in, when trace and log modules decoupled from all externals stuff
+	//
+ //if (CTrace::IsTrace() == false)
+ // {
+ //   return;
+ // }
 
   CVectorBratTask::const_iterator it;
   int i = 0;

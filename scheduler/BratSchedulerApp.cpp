@@ -56,7 +56,7 @@ using namespace brathl;
 // When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
 // Needs to be included after all #include commands
-#include "Win32MemLeaksAccurate.h"
+//#include "Win32MemLeaksAccurate.h"
 
 #ifdef WIN32
 const std::string BRATHL_ICON_FILENAME = "BratIcon.ico";
@@ -84,24 +84,26 @@ IMPLEMENT_APP(CBratSchedulerApp)
 BEGIN_EVENT_TABLE(CBratSchedulerApp,wxApp)
 END_EVENT_TABLE()
 
+#include <xercesc/util/PlatformUtils.hpp>
+//#include <xercesc/framework/LocalFileFormatTarget.hpp>
+
+
 CBratSchedulerApp::CBratSchedulerApp()
 {
-  m_configXml = NULL;
-  m_checker = NULL;
-  m_frame = NULL;
-  m_configBratGui = NULL;
+	::xercesc::XMLPlatformUtils::Initialize();
 
+	m_configXml = NULL;
+	m_checker = NULL;
+	m_frame = NULL;
+	m_configBratGui = NULL;
 }
-//----------------------------------------
-void CBratSchedulerApp::DeleteChecker()
+//virtual
+CBratSchedulerApp::~CBratSchedulerApp()
 {
-  if (m_checker != NULL)
-  {
-    delete m_checker;
-    m_checker = NULL;
-  }
-
+	::xercesc::XMLPlatformUtils::Terminate();
 }
+
+
 //----------------------------------------
 bool CBratSchedulerApp::OnInit()
 {
@@ -115,7 +117,7 @@ bool CBratSchedulerApp::OnInit()
             		 "Information",
 		             wxOK | wxCENTRE | wxICON_INFORMATION);
 
-    DeleteChecker(); // OnExit() won't be called if we return false
+    delete m_checker;	// OnExit() won't be called if we return false
 
     return false;
   }
@@ -155,7 +157,7 @@ bool CBratSchedulerApp::OnInit()
       std::cerr << "ERROR: " << CTools::GetDataDir() << " is not a valid directory" << std::endl;
       ::wxMessageBox(wxString(CTools::GetDataDir().c_str()) + " is not a valid directory -- BRAT cannot continue. \n\nAre you sure your " + BRATHL_ENVVAR + " environment variable is set correctly?", "BRAT ERROR");
 
-      DeleteChecker(); // OnExit() won't be called if we return false
+		delete m_checker;	// OnExit() won't be called if we return false
 
       return false;
   }
@@ -167,7 +169,7 @@ bool CBratSchedulerApp::OnInit()
       std::cerr << errorMsg << std::endl;
       ::wxMessageBox(errorMsg.c_str(), "BRAT ERROR");
 
-      DeleteChecker(); // OnExit() won't be called if we return false
+      delete m_checker;	// OnExit() won't be called if we return false
 
       return false;
   }
@@ -216,7 +218,7 @@ bool CBratSchedulerApp::OnInit()
 
   if (m_frame == NULL)
   {
-    DeleteChecker();
+    delete m_checker;
     return false;
   }
 
@@ -229,9 +231,7 @@ bool CBratSchedulerApp::OnInit()
   }
   catch(CException &e)
   {
-    wxMessageBox(wxString(e.what()),
-	            	 "Warning",
-		             wxOK | wxCENTRE | wxICON_EXCLAMATION);
+    wxMessageBox(wxString(e.what()), "Warning", wxOK | wxCENTRE | wxICON_EXCLAMATION);
   }
 
   m_frame->SetTitle();
@@ -249,7 +249,7 @@ int CBratSchedulerApp::OnExit()
   StopCheckConfigFileTimer();
   StopSchedulerTimer();
 
-  DeleteChecker();
+  delete m_checker;	
 
   return 0;
 }
@@ -260,7 +260,7 @@ void CBratSchedulerApp::InstallEventListeners()
   CProcess::EvtProcessTermCommand(*this,
                                 (CProcessTermEventFunction)&CBratSchedulerApp::OnProcessTerm, NULL, this);
 
-  CBratTask::EvtBratTaskProcessCommand(*this,
+  CSchedulerTaskConfig::EvtBratTaskProcessCommand(*this,
                                  (CBratTaskProcessEventFunction)&CBratSchedulerApp::OnBratTaskProcess, NULL, this);
 
   CCheckFileChange::EvtCheckFileChangeCommand(*this,
@@ -271,7 +271,7 @@ void CBratSchedulerApp::DeInstallEventListeners()
 {
   CProcess::DisconnectEvtProcessTermCommand(*this);
 
-  CBratTask::DisconnectEvtBratTaskProcessCommand(*this);
+  CSchedulerTaskConfig::DisconnectEvtBratTaskProcessCommand(*this);
 
   CCheckFileChange::DisconnectEvtCheckFileChangeCommand(*this);
 }
@@ -498,7 +498,7 @@ void CBratSchedulerApp::OnBratTaskProcess(CBratTaskProcessEvent& event)
     LoadSchedulerTaskConfig(true);
 
     GetListPending()->RemoveTasksFromList(event.m_uid);
-    CSchedulerTaskConfig::GetInstance()->ChangeTaskStatus(event.m_uid, CBratTask::BRAT_STATUS_PROCESSING);
+    CSchedulerTaskConfig::GetInstance()->ChangeTaskStatus(event.m_uid, CBratTask::e_BRAT_STATUS_PROCESSING);
 
     bool saved = CSchedulerTaskConfig::SaveSchedulerTaskConfig(true);
 
@@ -546,15 +546,15 @@ void CBratSchedulerApp::OnProcessTerm(CProcessTermEvent& event)
     LoadSchedulerTaskConfig(true);
 
     GetListProcessing()->RemoveTasksFromList(event.m_taskUid);
-    CBratTask::bratTaskStatus bratTaskStatus = CBratTask::BRAT_STATUS_ERROR;
+    CBratTask::Status bratTaskStatus = CBratTask::e_BRAT_STATUS_ERROR;
 
     if (event.m_exitcode == BRATHL_SUCCESS)
     {
-      bratTaskStatus = CBratTask::BRAT_STATUS_ENDED;
+      bratTaskStatus = CBratTask::e_BRAT_STATUS_ENDED;
     }
     else if (event.m_exitcode == BRATHL_WARNING)
     {
-      bratTaskStatus = CBratTask::BRAT_STATUS_WARNING;
+      bratTaskStatus = CBratTask::e_BRAT_STATUS_WARNING;
     }
 
     CSchedulerTaskConfig::GetInstance()->ChangeTaskStatus(event.m_taskUid, bratTaskStatus);
@@ -569,7 +569,7 @@ void CBratSchedulerApp::OnProcessTerm(CProcessTermEvent& event)
     {
       wxString msg = wxString::Format("Unable to add task to '%s' task list: task uid '%s' is not found.",
                                       ENDED_PAGE_NAME.c_str(),
-                                      bratTask->GetUidValueAsString().c_str());
+                                      bratTask->GetUidAsString().c_str());
       wxLogError("%s",msg.c_str());
 
     }

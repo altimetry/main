@@ -137,7 +137,7 @@ void CEndedPanel::OnShowLog( wxCommandEvent &event )
       continue;
     }
 
-    wxString logFile = bratTask->GetLogFileAsString();
+    wxString logFile = bratTask->GetLogFile();
     CBratSchedulerApp::ViewFileGeneric(logFile, this);
   }
 

@@ -90,14 +90,14 @@ void CProcessingPanel::InstallEventListeners()
                                 (CProcessTermEventFunction)&CProcessingPanel::OnProcessTerm, NULL, this);
 
 
-  CBratTask::EvtBratTaskProcessCommand(*this,
+  CSchedulerTaskConfig::EvtBratTaskProcessCommand(*this,
                                  (CBratTaskProcessEventFunction)&CProcessingPanel::OnBratTaskProcess, NULL, this);
 }
 //----------------------------------------
 void CProcessingPanel::DeInstallEventListeners()
 {
   CProcess::DisconnectEvtProcessTermCommand(*this);
-  CBratTask::DisconnectEvtBratTaskProcessCommand(*this);
+  CSchedulerTaskConfig::DisconnectEvtBratTaskProcessCommand(*this);
 }
 
 //----------------------------------------
@@ -286,7 +286,7 @@ void CProcessingPanel::KillSelectedProcess()
     if (bratTask != NULL)
     {
       // Process name is Brat Task uid
-      CProcess* process = GetProcess(bratTask->GetUidValueAsString());
+      CProcess* process = GetProcess(bratTask->GetUidAsString());
       if (process != NULL)
       {
         KillProcess(process);
@@ -365,7 +365,7 @@ void CProcessingPanel::OnBratTaskProcess(CBratTaskProcessEvent& event)
   if (bratTask == NULL)
   {
     wxString msg = wxString::Format("Unable to process task: task uid '%s' is not found.",
-                                    bratTask->GetUidValueAsString().c_str());
+                                    bratTask->GetUidAsString().c_str());
     //wxMessageBox(msg,
     //            "Error",
     //            wxOK | wxICON_ERROR);
@@ -374,7 +374,7 @@ void CProcessingPanel::OnBratTaskProcess(CBratTaskProcessEvent& event)
 
   }
 
-  bratTask->SetStatus(CBratTask::BRAT_STATUS_PROCESSING);
+  bratTask->SetStatus(CBratTask::e_BRAT_STATUS_PROCESSING);
 
   CBratTaskProcess* process = new CBratTaskProcess(bratTask,
                                                   this);

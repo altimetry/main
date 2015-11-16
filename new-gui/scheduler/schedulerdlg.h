@@ -1,5 +1,5 @@
-#ifndef SCHEDULERDLG_H
-#define SCHEDULERDLG_H
+#ifndef SCHEDULER_DLG_H
+#define SCHEDULER_DLG_H
 
 #include <QtGui/QToolBar>
 
@@ -23,6 +23,11 @@ class SchedulerDlg : public QDialog, private Ui::SchedulerDlg
 
 public:
     explicit SchedulerDlg(QWidget *parent = 0);
+
+    static void functionWithCodeToMoveToApplicationClassConstructor();
+
+public slots:
+	void action_BlackAdder_slot();
 };
 
-#endif // SCHEDULERDLG_H
+#endif // SCHEDULER_DLG_H

@@ -79,6 +79,7 @@ class CBratSchedulerApp: public wxApp
 {
 public:
   CBratSchedulerApp();
+  virtual ~CBratSchedulerApp();
   
   virtual bool OnInit();
   virtual int OnExit();
@@ -159,7 +160,7 @@ public:
   static const int32_t m_SCHEDULER_TIMER_INTERVAL;
   static const int32_t m_CHECK_CONFIGFILE_TIMER_INTERVAL;
 
-protected:
+private:
 
   wxSingleInstanceChecker* m_checker;
 
@@ -180,9 +181,8 @@ protected:
 
   wxFileConfig* m_configBratGui;
 
-protected:
+//protected:
   
-  void DeleteChecker();
   bool ChangeProcessingToPending();
 
   void InstallEventListeners();

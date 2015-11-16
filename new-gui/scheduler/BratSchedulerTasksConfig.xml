@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<bratSchedulerConfig>
+  <pendingTasks>
+    <task uid="1447393617203" name="melro" logFile="C:\Users\fernando\AppData\Roaming/BratScheduler/Logs/BratTask_melro_1447393617203.log" at="2016-11-19 11:46:00" status="pending" cmd="&quot;L:\bin\v120_xp\x64\Debug\brat\BratCreateZFXY.exe&quot; &quot;L:\lib\esa\S3ALTB\project\workspaces\S3A\Operations\CreateOperations_MW_1_MWR____2004.par&quot;"/>
+    <task uid="1447393617204" name="melro2" logFile="C:\Users\fernando\AppData\Roaming/BratScheduler/Logs/BratTask_melro_1447393617203.log" at="2016-11-19 11:46:00" status="pending" cmd="&quot;L:\bin\v120_xp\x64\Debug\brat\BratCreateZFXY.exe&quot; &quot;L:\lib\esa\S3ALTB\project\workspaces\S3A\Operations\CreateOperations_MW_1_MWR____2004.par&quot;"/>
+  </pendingTasks>
+  <processingTasks>
+    <task uid="1447393613203" name="mocho" logFile="C:\Users\fernando\AppData\Roaming/BratScheduler/Logs/BratTask_melro_1447393617203.log" at="2015-11-19 11:46:00" status="pending" cmd="&quot;L:\bin\v120_xp\x64\Debug\brat\BratCreateZFXY.exe&quot; &quot;L:\lib\esa\S3ALTB\project\workspaces\S3A\Operations\CreateOperations_MW_1_MWR____2004.par&quot;"/>
+    <task uid="1447393613204" name="mocho2" logFile="C:\Users\fernando\AppData\Roaming/BratScheduler/Logs/BratTask_melro_1447393617203.log" at="2015-11-19 11:46:00" status="pending" cmd="&quot;L:\bin\v120_xp\x64\Debug\brat\BratCreateZFXY.exe&quot; &quot;L:\lib\esa\S3ALTB\project\workspaces\S3A\Operations\CreateOperations_MW_1_MWR____2004.par&quot;"/>
+  </processingTasks>
+  <endedTasks>
+    <task uid="1447393571200" name="escaravelho" logFile="C:\Users\fernando\AppData\Roaming/BratScheduler/Logs/BratTask_escaravelho_1447393571200.log" at="2015-11-14 05:45:00" status="error" cmd="&quot;L:\bin\v120_xp\x64\Debug\brat\BratCreateZFXY.exe&quot; &quot;L:\lib\esa\S3ALTB\project\workspaces\S3A\Operations\CreateOperations_MW_1_MWR____2004.par&quot;"/>
+    <task uid="1447393571201" name="escaravelho2" logFile="C:\Users\fernando\AppData\Roaming/BratScheduler/Logs/BratTask_escaravelho_1447393571200.log" at="2015-11-14 05:45:00" status="error" cmd="&quot;L:\bin\v120_xp\x64\Debug\brat\BratCreateZFXY.exe&quot; &quot;L:\lib\esa\S3ALTB\project\workspaces\S3A\Operations\CreateOperations_MW_1_MWR____2004.par&quot;"/>
+  </endedTasks>
+</bratSchedulerConfig>

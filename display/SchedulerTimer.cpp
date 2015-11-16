@@ -71,7 +71,7 @@ void CSchedulerTimer::Notify()
 
   std::vector<wxLongLong_t> vectorBratTaskToProcess;
 
-  schedulerTaskConfig->GetMapPendingBratTaskToProcess(now, &vectorBratTaskToProcess);
+  schedulerTaskConfig->GetMapPendingBratTaskToProcess(/*now, femm*/&vectorBratTaskToProcess);
 
   std::vector<wxLongLong_t>::const_iterator it;
 

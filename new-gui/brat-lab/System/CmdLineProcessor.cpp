@@ -1,6 +1,6 @@
 #include "../stdafx.h"
 
-#include "../../display/Libraries/+/QtUtils.h"
+#include "new-gui/Common/+/QtUtils.h"
 
 #include "../libbrathl/Tools.h"
 #include "../libbrathl/Trace.h"

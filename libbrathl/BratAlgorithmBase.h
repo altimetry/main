@@ -86,14 +86,15 @@ public:
   bratAlgoParamTypeVal GetTypeVal() {return m_typeVal; };
   std::string GetTypeValAsString() {return TypeValAsString(m_typeVal); };
 
-  std::string GetValue();
+  std::string GetValue() const;
 
-  double GetValueAsDouble() {return m_valDouble; };
-  int32_t GetValueAsInt() {return m_valInt;};
-  int64_t GetValueAsLong() {return m_valLong;};
-  float GetValueAsFloat() {return m_valFloat;};
-  std::string GetValueAsString() {return m_valString;};
-  unsigned char GetValueAsChar() {return m_valChar;};
+  double GetValueAsDouble() const {return m_valDouble; };
+  int32_t GetValueAsInt() const {return m_valInt;};
+  int64_t GetValueAsLong() const {return m_valLong;};
+  float GetValueAsFloat() const {return m_valFloat;};
+  std::string GetValueAsString() const {return m_valString;};
+  unsigned char GetValueAsChar() const {return m_valChar;};
+  const CDoubleArray* GetValueAsVectDouble() const {return &m_vectValDouble;};
   CDoubleArray* GetValueAsVectDouble() {return &m_vectValDouble;};
 
   void SetValue(double value);
@@ -167,7 +168,7 @@ public:
   void Insert(double value, CBratAlgorithmParam::bratAlgoParamTypeVal type);
   void Insert(const std::string& value, CBratAlgorithmParam::bratAlgoParamTypeVal type);
   
-  std::string ToString(const std::string& delim = ",", bool useBracket = true);
+  std::string ToString(const std::string& delim = ",", bool useBracket = true) const;
   
   virtual void Dump(std::ostream& fOut = std::cerr); 
 
@@ -216,7 +217,7 @@ public:
   virtual double Run(CVectorBratAlgorithmParam& args) = 0;
   
   /** Gets the name of the algorithm */
-  virtual std::string GetName() = 0;
+  virtual std::string GetName() const = 0;
   /** Gets the description of the algorithm */
   virtual std::string GetDescription() = 0;
   /** Gets the number of input parameters to pass to the 'Run' function */
@@ -540,7 +541,7 @@ public:
   CBratAlgoExample1() {}
   virtual ~CBratAlgoExample1() {}
 
-  virtual std::string GetName() override
+  virtual std::string GetName() const override
   {
       return "example1";
   }

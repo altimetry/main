@@ -2,7 +2,7 @@
 
 #include "QtInterface.h"
 
-#include "../../display/Libraries/+/QtUtils.h"
+#include "Common/+/QtUtils.h"
 
 
 

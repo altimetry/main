@@ -56,7 +56,7 @@ public:
   /** Destructor */
   virtual ~CBratAlgorithmGeosVelAtp() {};
 
-  virtual std::string GetName() { return "BratAlgoGeosVelAtp"; };
+  virtual std::string GetName() const override { return "BratAlgoGeosVelAtp"; };
   
   virtual std::string GetDescription() { return "Geostrophic velocity computation for along-track data; result is the value of the geostrophic velocity component perpendicular to the track."; };
   

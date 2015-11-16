@@ -3,7 +3,7 @@
 
 #include <QtGui>
 
-#include "../display/Libraries/+/QtUtils.h"
+#include "new-gui/Common/+/QtUtils.h"
 
 
 ////////////////////////////////////////////////////////////////
