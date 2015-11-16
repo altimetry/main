@@ -256,7 +256,9 @@ void SchedulerDlg::functionWithCodeToMoveToApplicationClassConstructor()
 	//m_frame->SetTitle();
 	*/
 
-	readTasks( "C:\\Users\\fernando\\AppData\\Roaming\\BratScheduler\\BratSchedulerTasksConfig.xml" );
+#if defined (WIN32)
+    readTasks( "C:\\Users\\fernando\\AppData\\Roaming\\BratScheduler\\BratSchedulerTasksConfig.xml" );
+#endif
 }
 
 

@@ -1,7 +1,11 @@
 #ifndef TASK_SCHEDULER_CONFIG_H
 #define TASK_SCHEDULER_CONFIG_H
 
-#include "tmp\TasksScheduler.hxx"
+#if defined (WIN32)
+    #include "tmp\TasksScheduler.hxx"
+#else
+    #include "TasksScheduler.hxx"
+#endif
 
 
 template< class GE >
