@@ -1,9 +1,12 @@
-#include "schedulerdlg.h"
 #include <QApplication>
+
+#include "qschedulerapplication.h"
+#include "schedulerdlg.h"
+
 
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
+    QSchedulerApplication a(argc, argv);
     SchedulerDlg w;
     w.show();
 

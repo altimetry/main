@@ -33,9 +33,6 @@ const std::string BRATHL_ICON_FILENAME = "BratIcon.bmp";
 //const wxString ENTRY_USER_MANUAL = "UserManual";
 //const wxString ENTRY_USER_MANUAL_VIEWER = "UserManualViewer";
 
-//QString mUserManualViewer;
-//wxString m_userManual;
-
 
 
 
