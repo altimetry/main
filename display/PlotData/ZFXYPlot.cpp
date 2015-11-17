@@ -27,7 +27,7 @@
     #pragma hdrstop
 #endif
 
-#include "../Libraries/+/+Utils.h"
+#include "../../new-gui/Common/+/+Utils.h"
 
 
 #include "../libbrathl/Trace.h"

@@ -36,7 +36,7 @@
      <x>0</x>
      <y>0</y>
      <width>957</width>
-     <height>21</height>
+     <height>19</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -277,7 +277,7 @@
   </action>
   <action name="action_Open">
    <property name="icon">
-    <iconset resource="res/QBratApp.qrc">
+    <iconset resource="res/brat-lab.qrc">
      <normaloff>:/open.png</normaloff>:/open.png</iconset>
    </property>
    <property name="text">
@@ -286,7 +286,7 @@
   </action>
   <action name="action_New">
    <property name="icon">
-    <iconset resource="res/QBratApp.qrc">
+    <iconset resource="res/brat-lab.qrc">
      <normaloff>:/new.png</normaloff>:/new.png</iconset>
    </property>
    <property name="text">
@@ -295,7 +295,7 @@
   </action>
   <action name="action_Save">
    <property name="icon">
-    <iconset resource="res/QBratApp.qrc">
+    <iconset resource="res/brat-lab.qrc">
      <normaloff>:/save.png</normaloff>:/save.png</iconset>
    </property>
    <property name="text">
@@ -312,7 +312,7 @@
   </action>
   <action name="action_About">
    <property name="icon">
-    <iconset resource="res/QBratApp.qrc">
+    <iconset resource="res/brat-lab.qrc">
      <normaloff>:/butterfly.png</normaloff>:/butterfly.png</iconset>
    </property>
    <property name="text">
@@ -321,7 +321,7 @@
   </action>
   <action name="action_Close">
    <property name="icon">
-    <iconset resource="res/QBratApp.qrc">
+    <iconset resource="res/brat-lab.qrc">
      <normaloff>:/button-close.png</normaloff>:/button-close.png</iconset>
    </property>
    <property name="text">
@@ -345,7 +345,7 @@
   </action>
   <action name="action_Reload">
    <property name="icon">
-    <iconset resource="res/QBratApp.qrc">
+    <iconset resource="res/brat-lab.qrc">
      <normaloff>:/rotateleft.png</normaloff>:/rotateleft.png</iconset>
    </property>
    <property name="text">
@@ -354,7 +354,7 @@
   </action>
   <action name="action_Cut">
    <property name="icon">
-    <iconset resource="res/QBratApp.qrc">
+    <iconset resource="res/brat-lab.qrc">
      <normaloff>:/cut.png</normaloff>:/cut.png</iconset>
    </property>
    <property name="text">
@@ -363,7 +363,7 @@
   </action>
   <action name="action_Copy">
    <property name="icon">
-    <iconset resource="res/QBratApp.qrc">
+    <iconset resource="res/brat-lab.qrc">
      <normaloff>:/copy.png</normaloff>:/copy.png</iconset>
    </property>
    <property name="text">
@@ -372,7 +372,7 @@
   </action>
   <action name="action_Paste">
    <property name="icon">
-    <iconset resource="res/QBratApp.qrc">
+    <iconset resource="res/brat-lab.qrc">
      <normaloff>:/paste.png</normaloff>:/paste.png</iconset>
    </property>
    <property name="text">
@@ -391,7 +391,7 @@
   </action>
   <action name="action_Options">
    <property name="icon">
-    <iconset resource="res/QBratApp.qrc">
+    <iconset resource="res/brat-lab.qrc">
      <normaloff>:/config.png</normaloff>:/config.png</iconset>
    </property>
    <property name="text">
@@ -408,7 +408,7 @@
   </action>
   <action name="action_Undo">
    <property name="icon">
-    <iconset resource="res/QBratApp.qrc">
+    <iconset resource="res/brat-lab.qrc">
      <normaloff>:/undo.png</normaloff>:/undo.png</iconset>
    </property>
    <property name="text">
@@ -420,7 +420,7 @@
   </action>
   <action name="action_Redo">
    <property name="icon">
-    <iconset resource="res/QBratApp.qrc">
+    <iconset resource="res/brat-lab.qrc">
      <normaloff>:/redo.png</normaloff>:/redo.png</iconset>
    </property>
    <property name="text">
@@ -432,7 +432,7 @@
   </action>
   <action name="action_Font">
    <property name="icon">
-    <iconset resource="res/QBratApp.qrc">
+    <iconset resource="res/brat-lab.qrc">
      <normaloff>:/fontcombobox.png</normaloff>:/fontcombobox.png</iconset>
    </property>
    <property name="text">
@@ -441,7 +441,7 @@
   </action>
   <action name="action_Delete">
    <property name="icon">
-    <iconset resource="res/QBratApp.qrc">
+    <iconset resource="res/brat-lab.qrc">
      <normaloff>:/edit-delete.png</normaloff>:/edit-delete.png</iconset>
    </property>
    <property name="text">
@@ -470,7 +470,7 @@
   </action>
   <action name="action_New_Map">
    <property name="icon">
-    <iconset resource="res/QBratApp.qrc">
+    <iconset resource="res/brat-lab.qrc">
      <normaloff>:/map_tools.png</normaloff>:/map_tools.png</iconset>
    </property>
    <property name="text">
@@ -479,7 +479,7 @@
   </action>
   <action name="action_Globe">
    <property name="icon">
-    <iconset resource="res/QBratApp.qrc">
+    <iconset resource="res/brat-lab.qrc">
      <normaloff>:/images/globe.png</normaloff>:/images/globe.png</iconset>
    </property>
    <property name="text">
@@ -488,7 +488,7 @@
   </action>
   <action name="action_Plot_2D">
    <property name="icon">
-    <iconset resource="res/QBratApp.qrc">
+    <iconset resource="res/brat-lab.qrc">
      <normaloff>:/2.png</normaloff>:/2.png</iconset>
    </property>
    <property name="text">
@@ -497,7 +497,7 @@
   </action>
   <action name="action_Plot_3D">
    <property name="icon">
-    <iconset resource="res/QBratApp.qrc">
+    <iconset resource="res/brat-lab.qrc">
      <normaloff>:/3.png</normaloff>:/3.png</iconset>
    </property>
    <property name="text">
@@ -506,7 +506,7 @@
   </action>
   <action name="mAction_Test">
    <property name="icon">
-    <iconset resource="res/QBratApp.qrc">
+    <iconset resource="res/brat-lab.qrc">
      <normaloff>:/images/test.png</normaloff>:/images/test.png</iconset>
    </property>
    <property name="text">
@@ -519,21 +519,21 @@
   <customwidget>
    <class>QFontToolBar</class>
    <extends>QToolBar</extends>
-   <header>GUI/QFontToolBar.h</header>
+   <header>new-gui/brat-lab/GUI/QFontToolBar.h</header>
   </customwidget>
   <customwidget>
    <class>QFormatToolBar</class>
    <extends>QToolBar</extends>
-   <header>GUI/QFormatToolBar.h</header>
+   <header>new-gui/brat-lab/GUI/QFormatToolBar.h</header>
   </customwidget>
   <customwidget>
    <class>Editor</class>
    <extends>QTextEdit</extends>
-   <header>GUI/Editor.h</header>
+   <header>new-gui/brat-lab/GUI/Editor.h</header>
   </customwidget>
  </customwidgets>
  <resources>
-  <include location="res/QBratApp.qrc"/>
+  <include location="res/brat-lab.qrc"/>
  </resources>
  <connections>
   <connection>

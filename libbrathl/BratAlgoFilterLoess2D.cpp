@@ -29,7 +29,7 @@
 
 #include "BratAlgoFilterLoess2D.h" 
 
-// When debugging changes all calls to “new” to be calls to “DEBUG_NEW” allowing for memory leaks to
+// When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
 // Needs to be included after all #include commands
 #include "Win32MemLeaksAccurate.h"

@@ -56,7 +56,7 @@ public:
   /** Destructor */
   virtual ~CBratAlgoFilterMedian1D() {};
 
-  virtual std::string GetName() { return "BratAlgoFilterMedianAtp"; };
+  virtual std::string GetName() const override { return "BratAlgoFilterMedianAtp"; };
   
   virtual std::string GetDescription() { return "Median filter for one-dimensional data (e.g. along-track data) as input data source. "
                                            "Median filter is windowed filter of nonlinear class, which removes destructive noise while preserving edges. "

@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<xs:element name="task">
+		<xs:complexType>
+			<xs:attribute name="uid" type="xs:long" use="required"/>
+			<xs:attribute name="status" use="required">
+				<xs:simpleType>
+					<xs:restriction base="xs:string">
+						<xs:enumeration value="error"/>
+						<xs:enumeration value="pending"/>
+					</xs:restriction>
+				</xs:simpleType>
+			</xs:attribute>
+			<xs:attribute name="name" type="xs:string" use="required"/>
+			<xs:attribute name="logFile" type="xs:string" use="required"/>
+			<xs:attribute name="cmd" type="xs:string" use="required"/>
+			<xs:attribute name="at" type="xs:string" use="required"/>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="processingTasks">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="task" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="pendingTasks">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="task" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="endedTasks">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="task" maxOccurs="unbounded"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+	<xs:element name="bratSchedulerConfig">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="pendingTasks"/>
+				<xs:element ref="processingTasks"/>
+				<xs:element ref="endedTasks"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

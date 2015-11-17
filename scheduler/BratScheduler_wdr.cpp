@@ -38,7 +38,7 @@
 #include "brathl.h"
 
 #include "TaskListView.h"
-#include "BratScheduler.h"
+#include "BratSchedulerApp.h"
 #include "Validators.h"
 #include "LabeledTextCtrl.h"
 #include "CheckListBox.h"

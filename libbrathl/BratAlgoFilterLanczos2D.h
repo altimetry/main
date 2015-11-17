@@ -56,7 +56,7 @@ public:
   /** Destructor */
   virtual ~CBratAlgoFilterLanczos2D();
 
-  virtual std::string GetName() { return "BratAlgoFilterLanczosGrid"; };
+  virtual std::string GetName() const override { return "BratAlgoFilterLanczosGrid"; };
 
   virtual std::string GetDescription() { return "Lanczos filter for two-dimensional data (e.g. gridded data) as input data source. "
                                            "Lanczos filter is windowed filter. The Lanczos window is the central lobe of a horizontally-stretched sinc, sinc(X/a) for -a <= X <= a, with (2 x a) = window length."

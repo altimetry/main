@@ -29,6 +29,14 @@
     #include "wx/wx.h"
 #endif
 
+#if defined(WIN32)					   //!!! DELETE THIS AFTER INETGRATION IN NEW SCHEDULER !!! femm
+//avoid later inclusion of Microsoft XML stuff, which causes name collisions with xerces
+#define DOMDocument MsDOMDocument
+#include <msxml.h>
+#include <urlmon.h>
+#undef DOMDocument
+#endif		//WIN32
+
 #include "brathl.h"
 
 #include "wx/snglinst.h" // (wxSingleInstanceChecker class)
@@ -39,7 +47,46 @@
 
 using namespace brathl;
 
-#include "BratTask.h"
+#include "new-gui/scheduler/BratTask.h"
+
+
+
+//-------------------------------------------------------------
+//------------------- CBratTaskProcessEvent class --------------------
+//-------------------------------------------------------------
+
+//femm moved here from BratTask.h
+BEGIN_DECLARE_EVENT_TYPES()
+    DECLARE_EVENT_TYPE(wxEVT_BRAT_TASK_PROCESS, 7777) // 7777 is ignored, just for compatibility with v2.2
+END_DECLARE_EVENT_TYPES()
+
+//femm moved here from BratTask.h
+
+class CBratTaskProcessEvent : public wxCommandEvent
+{
+public:
+  CBratTaskProcessEvent(wxWindowID id, wxLongLong_t uid)
+    : wxCommandEvent(wxEVT_BRAT_TASK_PROCESS, id)
+  {
+    m_uid = uid;
+  };
+
+  CBratTaskProcessEvent(const CBratTaskProcessEvent& event)
+    : wxCommandEvent(wxEVT_BRAT_TASK_PROCESS, event.m_id)
+  {
+    m_uid = event.m_uid;
+  };
+  
+  virtual wxEvent *Clone() const 
+    {
+      return new CBratTaskProcessEvent(*this); 
+    };
+
+  wxLongLong_t m_uid;
+
+};
+typedef void (wxEvtHandler::*CBratTaskProcessEventFunction)(CBratTaskProcessEvent&);
+
 
 
 
@@ -62,6 +109,13 @@ protected:
   CSchedulerTaskConfig(const wxString &filename, bool lockFile = true, bool unlockFile = true, const wxString &encoding = "UTF-8");
 
  	CSchedulerTaskConfig(wxInputStream &stream, const wxString &encoding = "UTF-8");
+
+public:
+	//femm moved here from BratTask.h  
+  static void EvtBratTaskProcessCommand(wxEvtHandler& evtHandler, const CBratTaskProcessEventFunction& method,
+                                               wxObject* userData = NULL, wxEvtHandler* eventSink = NULL);
+  
+  static void DisconnectEvtBratTaskProcessCommand(wxEvtHandler& evtHandler);
 
 public:
   
@@ -125,10 +179,10 @@ public:
   
   bool ChangeProcessingToPending(CVectorBratTask& vectorTasks);
   
-  void ChangeTaskStatus(CBratTask* bratTask, CBratTask::bratTaskStatus newStatus);
-  void ChangeTaskStatus(wxLongLong_t id, CBratTask::bratTaskStatus newStatus);
-  void ChangeTaskStatusFromXml(wxLongLong_t id, CBratTask::bratTaskStatus newStatus);
-  CBratTask::bratTaskStatus ChangeTaskStatusFromMap(wxLongLong_t id, CBratTask::bratTaskStatus newStatus);
+  void ChangeTaskStatus(CBratTask* bratTask, CBratTask::Status newStatus);
+  void ChangeTaskStatus(wxLongLong_t id, CBratTask::Status newStatus);
+  void ChangeTaskStatusFromXml(wxLongLong_t id, CBratTask::Status newStatus);
+  CBratTask::Status ChangeTaskStatusFromMap(wxLongLong_t id, CBratTask::Status newStatus);
 
   void LoadTasks();
   
@@ -159,7 +213,7 @@ public:
   static bool LoadSchedulerTaskConfig(bool quiet = false);
   static bool SaveSchedulerTaskConfig(bool quiet = false);
 
-  void GetMapPendingBratTaskToProcess(const wxDateTime& dateref,  std::vector<wxLongLong_t>* vectorBratTaskToProcess);
+  void GetMapPendingBratTaskToProcess(/*const wxDateTime& dateref,  femm*/std::vector<wxLongLong_t>* vectorBratTaskToProcess);
 
   //wxMutexError MutexLock();
   //wxMutexError MutexUnLock();
@@ -210,7 +264,7 @@ public:
   static const wxString m_TASK_STATUS_ATTR;
   static const wxString m_TYPE_ATTR;
 
-  static const wxString m_DEFAULT_TASK_NAME;;
+  static const wxString m_DEFAULT_TASK_NAME;
 
   static wxString m_CONFIG_APPNAME;
 

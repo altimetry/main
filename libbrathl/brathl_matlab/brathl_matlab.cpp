@@ -1644,15 +1644,15 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
 
     for (int32_t r = 0 ; r < num_data ; r++)
     {
-      double* std::vector = data[r];
+      double* vec = data[r];
 
       for (int32_t c = 0 ; c < actualSize ; c++)
       {    
-        memcpy((void*)pdata, &(std::vector[c]), sizebuf);
+        memcpy((void*)pdata, &(vec[c]), sizebuf);
         pdata += sizebuf;
       }
       // free memory allocated by brathl_readData.
-      delete []std::vector;    
+      delete []vec;
     }
   }  
        

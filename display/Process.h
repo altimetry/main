@@ -37,7 +37,7 @@
 
 #include "wxList.h"
 #include "List.h"
-#include "BratTask.h"
+#include "new-gui/scheduler/BratTask.h"
 using namespace brathl;
 
 

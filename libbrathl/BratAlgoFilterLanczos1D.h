@@ -56,7 +56,7 @@ public:
   /** Destructor */
   virtual ~CBratAlgoFilterLanczos1D() {};
 
-  virtual std::string GetName() { return "BratAlgoFilterLanczosAtp"; };
+  virtual std::string GetName() const override { return "BratAlgoFilterLanczosAtp"; };
   
   virtual std::string GetDescription() { return "Lanczos filter for one-dimensional data (e.g. along-track data) as input data source. "
                                            "Lanczos filter is low-pass windowed filter. The Lanczos window is the central lobe of a horizontally-stretched sinc, sinc(X/a) for -a <= X <= a, with (2 x a) = window length."

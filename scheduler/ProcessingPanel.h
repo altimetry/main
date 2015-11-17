@@ -29,6 +29,8 @@
     #include "wx/wx.h"
 #endif
 
+#include "SchedulerTaskConfig.h"
+
 #include "BratScheduler_wdr.h"
 
 #include "Process.h"

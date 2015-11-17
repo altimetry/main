@@ -36,7 +36,7 @@
 
 #include "Process.h"
 
-// When debugging changes all calls to “new” to be calls to “DEBUG_NEW” allowing for memory leaks to
+// When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
 // Needs to be included after all #include commands
 #include "Win32MemLeaksAccurate.h"
@@ -387,7 +387,7 @@ CBratTaskProcess::CBratTaskProcess(CBratTask* bratTask, wxWindow *parent)
 
   m_bratTask = bratTask;
 
-  SetName(m_bratTask->GetUidValueAsString());
+  SetName(m_bratTask->GetUidAsString());
 
   SetLogFile(m_bratTask->GetLogFile());
 
@@ -492,7 +492,7 @@ int32_t CBratTaskProcess::ExecuteAsync()
   wxString msg = wxString::Format("====> TASK '%s' (pid %ld) - STARTED ON %s WITH COMMAND LINE BELOW:<===\n'%s'",
                                   m_name.c_str(),
                                   m_pid,
-                                  wxDateTime::UNow().Format(CBratTask::FormatISODateTime).c_str(),
+                                  wxDateTime::UNow().Format(CBratTask::formatISODateTime()).c_str(),
                                   GetCmd().c_str());
   wxLogInfo("%s", msg.c_str());
   WriteToLogFile(msg);
@@ -531,9 +531,9 @@ int32_t CBratTaskProcess::ExecuteAsyncSubordinateTasks()
   m_currentPid = wxExecute(m_cmd, m_executeFlags, this);
 
   wxString msg = wxString::Format("===> SUB-TASK '%s' (pid %ld) STARTED ON %s WITH COMMAND LINE BELOW:<===\n'%s'",
-                          subTask->GetUidValueAsString().c_str(),
+                          subTask->GetUidAsString().c_str(),
                           m_currentPid,
-                          wxDateTime::UNow().Format(CBratTask::FormatISODateTime).c_str(),
+                          wxDateTime::UNow().Format(CBratTask::formatISODateTime()).c_str(),
                           GetCmd().c_str());
 
   wxLogInfo("%s", msg.c_str());
@@ -559,18 +559,18 @@ int32_t CBratTaskProcess::ExecuteFunction(CBratTask* bratTask)
   int32_t status = BRATHL_SUCCESS;
   try
   {
-    CBratTaskFunction* function = bratTask->GetBratTaskFunction();
+    const CBratTaskFunction* function = bratTask->GetBratTaskFunction();
     if (function == NULL)
     {
       throw CException("Function is NULL (CBratTaskProcess#ExecuteFunction)", BRATHL_ERROR);
     }
 
-    wxString params;
+    std::string params;
     function->GetParamsAsString(params);
 
     wxString msg = wxString::Format("===> SUB-TASK '%s' STARTED ON %s WITH FUNCTION BELOW:<===\n'%s%s'",
-                            bratTask->GetUidValueAsString().c_str(),
-                            wxDateTime::UNow().Format(CBratTask::FormatISODateTime).c_str(),
+                            bratTask->GetUidAsString().c_str(),
+                            wxDateTime::UNow().Format(CBratTask::formatISODateTime()).c_str(),
                             function->GetName().c_str(),
                             params.c_str());
 
@@ -583,7 +583,7 @@ int32_t CBratTaskProcess::ExecuteFunction(CBratTask* bratTask)
     //-------------------------
 
     //msg = wxString::Format("===> SUB-TASK '%s' SUCCESSFULLY ENDED ON %s <===",
-    //                        bratTask->GetUidValueAsString().c_str(),
+    //                        bratTask->GetUidAsString().c_str(),
     //                        wxDateTime::UNow().Format(CBratTask::FormatISODateTime).c_str());
     //wxLogInfo(msg);
     //WriteToLogFile(msg);
@@ -593,7 +593,7 @@ int32_t CBratTaskProcess::ExecuteFunction(CBratTask* bratTask)
   {
     status = BRATHL_ERROR;
     wxString msg = wxString::Format("===> SUB-TASK '%s' - ERROR: <===\n%s",
-                            bratTask->GetUidValueAsString().c_str(),
+                            bratTask->GetUidAsString().c_str(),
                             e.what());
 
     wxLogInfo("%s", msg.c_str());
@@ -601,7 +601,7 @@ int32_t CBratTaskProcess::ExecuteFunction(CBratTask* bratTask)
     WriteToLogFile("\n");
   }
 
-  CProcessTermEvent ev(wxID_ANY, bratTask->GetUidValueAsString(), m_type, 0, status);
+  CProcessTermEvent ev(wxID_ANY, bratTask->GetUidAsString(), m_type, 0, status);
   wxPostEvent(this, ev);
 
   return 0;
@@ -654,7 +654,7 @@ void CBratTaskProcess::OnTerminate(int pid, int status)
 
   DeInstallEventListeners();
 
-  CProcessTermEvent ev(m_parent->GetId(), m_name, m_bratTask->GetUidValue(), m_type, m_pid, status);
+  CProcessTermEvent ev(m_parent->GetId(), m_name, m_bratTask->GetUid(), m_type, m_pid, status);
   wxPostEvent(m_parent, ev);
 
 }
@@ -666,12 +666,12 @@ void CBratTaskProcess::OnTerminateReport(int pid, int status, CBratTask* bratTas
 
   if (bratTask != NULL)
   {
-    taskUid = bratTask->GetUidValueAsString();
+    taskUid = bratTask->GetUidAsString();
   }
 
   wxString msg;
 
-  wxString nowAsString = wxDateTime::UNow().Format(CBratTask::FormatISODateTime);
+  wxString nowAsString = wxDateTime::UNow().Format(CBratTask::formatISODateTime());
 
   m_running = -1;
 

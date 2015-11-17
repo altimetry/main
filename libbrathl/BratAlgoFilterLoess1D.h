@@ -56,7 +56,7 @@ public:
   /** Destructor */
   virtual ~CBratAlgoFilterLoess1D() {};
 
-  virtual std::string GetName() { return "BratAlgoFilterLoessAtp"; };
+  virtual std::string GetName() const override { return "BratAlgoFilterLoessAtp"; };
   
   virtual std::string GetDescription() { return "Loess filter (smoothing filter) for one-dimensional data (e.g. along-track data) as input data source. "
                                            "Description to be completed... . "

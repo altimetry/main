@@ -1,7 +1,7 @@
 #ifndef QT_INTERFACE_H
 #define QT_INTERFACE_H
 
-#include "BratLookupTable.h"
+#include "display/PlotData/BratLookupTable.h"
 
 
 bool LoadFromFile( CBratLookupTable &lut, const std::string& fileName );

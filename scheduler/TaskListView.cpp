@@ -30,12 +30,14 @@
     #pragma hdrstop
 #endif
 
+#include "new-gui/Common/+/+Utils.h"
+
 #include "SchedulerTaskConfig.h"
-#include "BratScheduler.h"
+#include "BratSchedulerApp.h"
 
 #include "TaskListView.h"
 
-// When debugging changes all calls to “new” to be calls to “DEBUG_NEW” allowing for memory leaks to
+// When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
 // Needs to be included after all #include commands
 #include "Win32MemLeaksAccurate.h"
@@ -63,7 +65,7 @@ static int wxCALLBACK TaskListCompareFunction(wxIntPtr item1, wxIntPtr item2, wx
   {
   case TASKLISTCOL_UID :
     {
-      if (d1->GetUidValue() > d2->GetUidValue())
+      if (d1->GetUid() > d2->GetUid())
       {
         result = 1;
       } 
@@ -74,7 +76,7 @@ static int wxCALLBACK TaskListCompareFunction(wxIntPtr item1, wxIntPtr item2, wx
       break;
     }
   case TASKLISTCOL_NAME :
-    result = d1->GetName().CmpNoCase(d2->GetName());
+    result = str_icmp( d1->GetName(), d2->GetName() );
     break;
   case TASKLISTCOL_START :
     {
@@ -89,13 +91,13 @@ static int wxCALLBACK TaskListCompareFunction(wxIntPtr item1, wxIntPtr item2, wx
       break;
     }
   case TASKLISTCOL_STATUS :
-    result = d1->GetStatusAsString().CmpNoCase(d2->GetStatusAsString());
+    result = str_icmp( d1->GetStatusAsString(), d2->GetStatusAsString() );
     break;
   case TASKLISTCOL_CMD :
-    result = d1->GetCmd().CmpNoCase(d2->GetCmd());
+    result = str_icmp( d1->GetCmd(), d2->GetCmd() );
     break;
   case TASKLISTCOL_LOGFILE :
-    result = d1->GetLogFileAsString().CmpNoCase(d2->GetLogFileAsString());
+    result = str_icmp( d1->GetLogFile(), d2->GetLogFile() );
     break;
   default:
     break;
@@ -370,7 +372,7 @@ long CTaskListView::InsertTask(CBratTask* bratTask)
 
 
   wxListItem itemRow;
-  itemRow.SetText(bratTask->GetUidValueAsString());
+  itemRow.SetText(bratTask->GetUidAsString());
   itemRow.SetMask(wxLIST_MASK_TEXT);
   itemRow.SetImage(-1);
   itemRow.SetData(bratTask);
@@ -383,7 +385,7 @@ long CTaskListView::InsertTask(CBratTask* bratTask)
   SetItem(index, TASKLISTCOL_START, bratTask->GetAtAsString());
   SetItem(index, TASKLISTCOL_STATUS, bratTask->GetStatusAsString());
   SetItem(index, TASKLISTCOL_CMD, bratTask->GetCmd());
-  SetItem(index, TASKLISTCOL_LOGFILE, bratTask->GetLogFileAsString());
+  SetItem(index, TASKLISTCOL_LOGFILE, bratTask->GetLogFile());
 
   return indexInserted;
 
@@ -446,7 +448,7 @@ bool CTaskListView::RemoveTasks(bool ask /* = true */)
       //We just inspect the items to delete.
       //They will be deleted after the file is sucessfully saved.
       Select(item, false);
-      dataKeyToDelete.push_back(data->GetUidValue());
+      dataKeyToDelete.push_back(data->GetUid());
       itemToDelete.push_back(item);
     }
 
@@ -539,7 +541,7 @@ bool CTaskListView::RemoveTasksFromList(wxLongLong_t id)
     CBratTask* data = (CBratTask*)(GetItemData(item));
     if (data != NULL)
     {
-      if (data->GetUidValue() == id)
+      if (data->GetUid() == id)
       {
         bOk = DeleteItem(item);
         break;

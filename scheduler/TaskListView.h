@@ -36,7 +36,7 @@
 
 #include "BratScheduler_wdr.h"
 
-#include "BratTask.h"
+#include "new-gui/scheduler/BratTask.h"
 
 // WDR: class declarations
 

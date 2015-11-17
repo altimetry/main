@@ -10,7 +10,7 @@
 #endif
 
 
-#include "../../display/Libraries/+/QtUtils.h"
+#include "new-gui/Common/+/QtUtils.h"
 
 #include "../../libbrathl/brathl.h"
 

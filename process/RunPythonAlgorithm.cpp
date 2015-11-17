@@ -344,7 +344,7 @@ public:
     // CBratAlgorithmBase implementation
     //////////////////////////////////////////////////////////////
 
-    virtual std::string GetName() override
+    virtual std::string GetName() const override
     {
         std::string result;
         return processCall( PyObject_CallMethod( m_instance, "GetName", nullptr ), result );

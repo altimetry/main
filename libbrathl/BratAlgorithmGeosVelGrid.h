@@ -261,7 +261,7 @@ public:
   /** Destructor */
   virtual ~CBratAlgorithmGeosVelGridU();
 
-  virtual std::string GetName() { return "BratAlgoGeosVelGridU"; };
+  virtual std::string GetName() const override { return "BratAlgoGeosVelGridU"; };
   
   virtual std::string GetDescription() { return "Geostrophic velocity Zonal component (U) computation from gridded data"; };
 
@@ -300,7 +300,7 @@ public:
   /** Destructor */
   virtual ~CBratAlgorithmGeosVelGridV();
 
-  virtual std::string GetName() { return "BratAlgoGeosVelGridV"; };
+  virtual std::string GetName() const override { return "BratAlgoGeosVelGridV"; };
   
   virtual std::string GetDescription() { return "Geostrophic velocity Meridional component (V) computation from gridded data"; };
   
