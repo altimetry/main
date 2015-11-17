@@ -264,7 +264,7 @@ public:
   static const wxString m_TASK_STATUS_ATTR;
   static const wxString m_TYPE_ATTR;
 
-  static const wxString m_DEFAULT_TASK_NAME;;
+  static const wxString m_DEFAULT_TASK_NAME;
 
   static wxString m_CONFIG_APPNAME;
 

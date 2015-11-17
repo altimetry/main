@@ -36,7 +36,7 @@
 
 #include "Process.h"
 
-// When debugging changes all calls to “new” to be calls to “DEBUG_NEW” allowing for memory leaks to
+// When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
 // Needs to be included after all #include commands
 #include "Win32MemLeaksAccurate.h"
@@ -565,8 +565,8 @@ int32_t CBratTaskProcess::ExecuteFunction(CBratTask* bratTask)
       throw CException("Function is NULL (CBratTaskProcess#ExecuteFunction)", BRATHL_ERROR);
     }
 
-    wxString params;
-    function->GetParamsAsString(params.ToStdString());
+    std::string params;
+    function->GetParamsAsString(params);
 
     wxString msg = wxString::Format("===> SUB-TASK '%s' STARTED ON %s WITH FUNCTION BELOW:<===\n'%s%s'",
                             bratTask->GetUidAsString().c_str(),

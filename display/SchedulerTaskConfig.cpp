@@ -38,7 +38,7 @@
 
 #include "SchedulerTaskConfig.h"
 
-// When debugging changes all calls to “new” to be calls to “DEBUG_NEW” allowing for memory leaks to
+// When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
 // Needs to be included after all #include commands
 #include "Win32MemLeaksAccurate.h"
@@ -1811,13 +1811,13 @@ CBratTask* CSchedulerTaskConfig::CreateBratTask(wxXmlNode* taskNode)
   if (!bOk)
   {
     std::string msg = "Unable to create Brat task - Neither Task's command-line nor task's function have been set.\nPlease check "
-		+ CSchedulerTaskConfig::m_TASK_CMD_ATTR
+        + CSchedulerTaskConfig::m_TASK_CMD_ATTR.ToStdString()
 		+ " attribute of the "
-		+ CSchedulerTaskConfig::m_TASK_ELT
+        + CSchedulerTaskConfig::m_TASK_ELT.ToStdString()
 		+ " element for task id "
 		+ bratTask->GetUidAsString()
 		+ " in the Brat Scheduler configuration file "
-		+ m_fullFileName
+        + m_fullFileName.ToStdString()
 		+ ".";
 
     delete bratTask;
