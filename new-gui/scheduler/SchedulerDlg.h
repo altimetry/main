@@ -3,7 +3,7 @@
 
 #include <QtGui/QToolBar>
 
-#include "ui_schedulerdlg.h"
+#include "new-gui/scheduler/tmp/ui_SchedulerDlg.h"
 
 
 class SchedulerDlg : public QDialog, private Ui::SchedulerDlg

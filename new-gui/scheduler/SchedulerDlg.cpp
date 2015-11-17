@@ -23,6 +23,7 @@
 //#include "RichTextFrame.h"
 //#include "DirTraverser.h"
 
+#include "SchedulerDlg.h"
 
 // When debugging changes all calls to new to be calls to DEBUG_NEW allowing for memory leaks to
 // give you the file name and line number where it occurred.
@@ -43,7 +44,7 @@ const std::string BRATHL_ICON_FILENAME = "BratIcon.bmp";
 //QString mUserManualViewer;
 //std::string m_userManual;
 
-#include "SchedulerDlg.h"	//RCCC: move this; except in very special conditions, includes come before any other declarations/definitions
+
 
 
 SchedulerDlg::SchedulerDlg(QWidget *parent) : QDialog(parent)
@@ -88,40 +89,53 @@ SchedulerDlg::SchedulerDlg(QWidget *parent) : QDialog(parent)
         //      - wxBratTools::wxStringTowxLongLong_t
 
 
+        // 1. MenuBar
         QMenuBar *menuBar = new QMenuBar(this);
         menuBar->setObjectName(QString::fromUtf8("menuBar"));
         //menuBar->setGeometry(QRect(0, 0, 957, 21));
-        QMenu *menu_File = new QMenu("File", menuBar);
+
+        // 1.1. Menu File
+        QMenu *menu_File = new QMenu(tr("&File"), menuBar);
         menu_File->setObjectName(QString::fromUtf8("menu_File"));
-        QMenu *menuNew_Plot = new QMenu("Plot", menu_File);
-        menuNew_Plot->setObjectName(QString::fromUtf8("menuNew_Plot"));
-        QMenu *menu_Edit = new QMenu("Edit", menuBar);
-        menu_Edit->setObjectName(QString::fromUtf8("menu_Edit"));
-        QMenu *menu_Format = new QMenu("Format", menu_Edit);
-        menu_Format->setObjectName(QString::fromUtf8("menu_Format"));
-        QMenu *menu_Window = new QMenu("Window", menuBar);
-        menu_Window->setObjectName(QString::fromUtf8("menu_Window"));
-        QMenu *menu_Help = new QMenu("Help", menuBar);
-        menu_Help->setObjectName(QString::fromUtf8("menu_Help"));
-        QMenu *menu_View = new QMenu("View", menuBar);
-        menu_View->setObjectName(QString::fromUtf8("menu_View"));
-        QMenu *menu_Tools = new QMenu("Tools", menuBar);
-        menu_Tools->setObjectName(QString::fromUtf8("menu_Tools"));
-
         menuBar->addAction(menu_File->menuAction());
-        menuBar->addAction(menu_Edit->menuAction());
-        menuBar->addAction(menu_View->menuAction());
-        menuBar->addAction(menu_Tools->menuAction());
-        menuBar->addAction(menu_Window->menuAction());
-        menuBar->addAction(menu_Help->menuAction());
 
-        QAction *action_Exit = new QAction("Exit", this);
+        // 1.1.1. Action Exit
+        QAction *action_Exit = new QAction(tr("&Exit"), this);
+        action_Exit->setShortcut(QKeySequence::Quit);
+        action_Exit->setStatusTip(tr("Quit BRAT Scheduler"));
         QObject::connect(action_Exit, SIGNAL(triggered()), this, SLOT(close()));
         menu_File->addAction(action_Exit);
 
-        QAction *action_BlackAdder = new QAction("Stupid Item...", this);
-        QObject::connect(action_BlackAdder, SIGNAL(triggered()), this, SLOT(action_BlackAdder_slot()));
-        menu_Help->addAction(action_BlackAdder);
+        // 1.2. Menu View
+        QMenu *menu_View = new QMenu(tr("&View"), menuBar);
+        menu_View->setObjectName(QString::fromUtf8("menu_View"));
+        menuBar->addAction(menu_View->menuAction());
+
+        // 1.2.1. Action ViewConfig
+        QAction *action_ViewConfig = new QAction(tr("&Configuration file..."), this);
+        action_ViewConfig->setStatusTip(tr("Open task configuration file"));
+        QObject::connect(action_ViewConfig, SIGNAL(triggered()), this, SLOT(action_ViewConfig_slot()));
+        menu_View->addAction(action_ViewConfig);
+
+        // 1.3. Menu Help
+        QMenu *menu_Help = new QMenu(tr("&Help"), menuBar);
+        menu_Help->setObjectName(QString::fromUtf8("menu_Help"));
+        menuBar->addAction(menu_Help->menuAction());
+
+        // 1.3.1. Action UserManual
+        QAction *action_UserManual = new QAction(tr("&User's manual"), this);
+        action_UserManual->setShortcut(QKeySequence::HelpContents);
+        action_UserManual->setStatusTip(tr("Open user's manual"));
+        QObject::connect(action_UserManual, SIGNAL(triggered()), this, SLOT(action_UserManual_slot()));
+        menu_Help->addAction(action_UserManual);
+        menu_Help->addSeparator();
+
+        // 1.3.2. Action Help
+        QAction *action_About = new QAction(tr("&About"), this);
+        action_About->setShortcut(QKeySequence::WhatsThis);
+        QObject::connect(action_About, SIGNAL(triggered()), this, SLOT(action_About_slot()));
+        menu_Help->addAction(action_About);
+
 
         mVerticalLayout->setMenuBar(menuBar);
 
