@@ -566,54 +566,55 @@ bool CProductAliases::AddRecordNameToField(const std::string& in, const std::str
 
 }
 //----------------------------------------
-bool CProductAliases::AddRecordNameToField(const std::string& in, const std::string& dataSetName, const CStringArray& fieldsIn, bool complexExpression, std::string& out, CProduct* product, std::string& errorMsg)
+bool CProductAliases::AddRecordNameToField( const std::string& in, const std::string& dataSetName, const CStringArray& fieldsIn, bool complexExpression, std::string& out, CProduct* product, std::string& errorMsg )
 {
-  bool bOk = true;
+	UNUSED(errorMsg);
+	bool bOk = true;
 
-  CStringArray::const_iterator it;
+	CStringArray::const_iterator it;
 
-  out = in;
+	out = in;
 
-  if (dataSetName.empty())
-  {
-    return true;
-  }
-  const std::string emptyString;
-  for (it = fieldsIn.begin() ; it != fieldsIn.end() ; it++)
-  {
-    bool add = true;
-    // Search if field name contains a record name (contains a dot)
-    if ((*it).find(".") != std::string::npos)
-    {
-      if (product != NULL)
-      {
-        // If the field name already contains a record name
-        // don't add any record to the field.
-        CField *field = product->FindFieldByName(*it, emptyString, false, NULL);
-        if (field != NULL)
-        {
-          add = false;
-        }
-      }
-    }
+	if ( dataSetName.empty() )
+	{
+		return true;
+	}
+	const std::string emptyString;
+	for ( it = fieldsIn.begin(); it != fieldsIn.end(); it++ )
+	{
+		bool add = true;
+		// Search if field name contains a record name (contains a dot)
+		if ( ( *it ).find( "." ) != std::string::npos )
+		{
+			if ( product != NULL )
+			{
+				// If the field name already contains a record name
+				// don't add any record to the field.
+				CField *field = product->FindFieldByName( *it, emptyString, false, NULL );
+				if ( field != NULL )
+				{
+					add = false;
+				}
+			}
+		}
 
-    if (add)
-    {
-      std::string fullName = dataSetName;
-      fullName.append(".");
-      fullName.append(*it);
-      out = CTools::ReplaceWord(out, *it, fullName);
-    }
-  }
+		if ( add )
+		{
+			std::string fullName = dataSetName;
+			fullName.append( "." );
+			fullName.append( *it );
+			out = CTools::ReplaceWord( out, *it, fullName );
+		}
+	}
 
-  if (complexExpression)
-  {
-    out.insert(0, "(");
-    out.append(")");
-  }
+	if ( complexExpression )
+	{
+		out.insert( 0, "(" );
+		out.append( ")" );
+	}
 
 
-  return bOk;
+	return bOk;
 
 }
 

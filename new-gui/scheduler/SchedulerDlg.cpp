@@ -59,6 +59,7 @@ SchedulerDlg::SchedulerDlg(QWidget *parent) : QDialog(parent)
     else
     {
         setWindowTitle( "Brat Scheduler");
+        createMenuBar();
 
 		//RCCC (2015/11/14): Eliminate menu items in excess (left here only for "education" 
 		//	purposes) and add the pertinent ones. Create event handlers (slots) for all 
@@ -88,66 +89,6 @@ SchedulerDlg::SchedulerDlg(QWidget *parent) : QDialog(parent)
 		//
         //      - wxBratTools::wxStringTowxLongLong_t
 
-
-        // 1. MenuBar
-        QMenuBar *menuBar = new QMenuBar(this);
-        menuBar->setObjectName(QString::fromUtf8("menuBar"));
-        //menuBar->setGeometry(QRect(0, 0, 957, 21));
-
-        // 1.1. Menu File
-        QMenu *menu_File = new QMenu(tr("&File"), menuBar);
-        menu_File->setObjectName(QString::fromUtf8("menu_File"));
-        menuBar->addAction(menu_File->menuAction());
-
-        // 1.1.1. Action Exit
-        QAction *action_Exit = new QAction(tr("&Exit"), this);
-        action_Exit->setShortcut(QKeySequence::Quit);
-        action_Exit->setStatusTip(tr("Quit BRAT Scheduler"));
-        QObject::connect(action_Exit, SIGNAL(triggered()), this, SLOT(close()));
-        menu_File->addAction(action_Exit);
-
-        // 1.2. Menu View
-        QMenu *menu_View = new QMenu(tr("&View"), menuBar);
-        menu_View->setObjectName(QString::fromUtf8("menu_View"));
-        menuBar->addAction(menu_View->menuAction());
-
-        // 1.2.1. Action ViewConfig
-        QAction *action_ViewConfig = new QAction(tr("&Configuration file..."), this);
-        action_ViewConfig->setStatusTip(tr("Open task configuration file"));
-        QObject::connect(action_ViewConfig, SIGNAL(triggered()), this, SLOT(action_ViewConfig_slot()));
-        menu_View->addAction(action_ViewConfig);
-
-        // 1.3. Menu Help
-        QMenu *menu_Help = new QMenu(tr("&Help"), menuBar);
-        menu_Help->setObjectName(QString::fromUtf8("menu_Help"));
-        menuBar->addAction(menu_Help->menuAction());
-
-        // 1.3.1. Action UserManual
-        QAction *action_UserManual = new QAction(tr("&User's manual"), this);
-        action_UserManual->setShortcut(QKeySequence::HelpContents);
-        action_UserManual->setStatusTip(tr("Open user's manual"));
-        QObject::connect(action_UserManual, SIGNAL(triggered()), this, SLOT(action_UserManual_slot()));
-        menu_Help->addAction(action_UserManual);
-        menu_Help->addSeparator();
-
-        // 1.3.2. Action Help
-        QAction *action_About = new QAction(tr("&About"), this);
-        action_About->setShortcut(QKeySequence::WhatsThis);
-        QObject::connect(action_About, SIGNAL(triggered()), this, SLOT(action_About_slot()));
-        menu_Help->addAction(action_About);
-
-
-        mVerticalLayout->setMenuBar(menuBar);
-
-//        QToolBar *toolBar = new QToolBar();
-//        gridLayout->addWidget(toolBar);
-//        QAction *action1 = new QAction("Add", toolBar);
-//        QAction *action2 = new QAction("Del", toolBar);
-
-//        menuBar = new QMenuBar(this)
-//        layout()->setMenuBar(menuBar);
-
-          //QMainWindow* mainWindow = new QMainWindow();
     }
 
     // Single Instance Checker TODO!!!!!
@@ -157,11 +98,74 @@ SchedulerDlg::SchedulerDlg(QWidget *parent) : QDialog(parent)
     setlocale(LC_NUMERIC, "C");
 }
 
-
-void SchedulerDlg::action_BlackAdder_slot()
+void SchedulerDlg::createMenuBar()
 {
-	SimpleMsgBox("This message is false.");
+    // 1. MenuBar
+    QMenuBar *menuBar = new QMenuBar(this);
+    menuBar->setObjectName(QString::fromUtf8("menuBar"));
+    //menuBar->setGeometry(QRect(0, 0, 957, 21));
+
+    // 1.1. Menu File
+    QMenu *menu_File = new QMenu(tr("&File"), menuBar);
+    menu_File->setObjectName(QString::fromUtf8("menu_File"));
+    menuBar->addAction(menu_File->menuAction());
+
+    // 1.1.1. Action Exit
+    QAction *action_Exit = new QAction(tr("&Exit"), this);
+    action_Exit->setShortcut(QKeySequence::Quit);
+    action_Exit->setStatusTip(tr("Quit BRAT Scheduler"));
+    QObject::connect(action_Exit, SIGNAL(triggered()), this, SLOT(close()));
+    menu_File->addAction(action_Exit);
+
+    // 1.2. Menu View
+    QMenu *menu_Tools = new QMenu(tr("&Tools"), menuBar);
+    menu_Tools->setObjectName(QString::fromUtf8("menu_Tools"));
+    menuBar->addAction(menu_Tools->menuAction());
+
+    // 1.2.1. Action ViewConfig
+    QAction *action_ViewConfig = new QAction(tr("&View Configuration..."), this);
+    action_ViewConfig->setStatusTip(tr("Open task configuration file"));
+    QObject::connect(action_ViewConfig, SIGNAL(triggered()), this, SLOT(action_ViewConfig_slot()));
+    menu_Tools->addAction(action_ViewConfig);
+
+    // 1.3. Menu Help
+    QMenu *menu_Help = new QMenu(tr("&Help"), menuBar);
+    menu_Help->setObjectName(QString::fromUtf8("menu_Help"));
+    menuBar->addAction(menu_Help->menuAction());
+
+    // 1.3.1. Action UserManual
+    QAction *action_UserManual = new QAction(tr("&User's manual"), this);
+    action_UserManual->setShortcut(QKeySequence::HelpContents);
+    action_UserManual->setStatusTip(tr("Open user's manual"));
+    QObject::connect(action_UserManual, SIGNAL(triggered()), this, SLOT(action_UserManual_slot()));
+    menu_Help->addAction(action_UserManual);
+    menu_Help->addSeparator();
+
+    // 1.3.2. Action Help
+    QAction *action_About = new QAction(tr("&About"), this);
+    action_About->setShortcut(QKeySequence::WhatsThis);
+    QObject::connect(action_About, SIGNAL(triggered()), this, SLOT(action_About_slot()));
+    menu_Help->addAction(action_About);
+
+    mVerticalLayout->setMenuBar(menuBar);
 }
+
+
+void SchedulerDlg::action_ViewConfig_slot()
+{
+    SimpleMsgBox("This should open Config file.");
+}
+
+void SchedulerDlg::action_UserManual_slot()
+{
+    SimpleMsgBox("This should open User's manual.");
+}
+
+void SchedulerDlg::action_About_slot()
+{
+    SimpleMsgBox("This should open About info.");
+}
+
 
 void SchedulerDlg::functionWithCodeToMoveToApplicationClassConstructor()
 {
@@ -277,9 +281,8 @@ void SchedulerDlg::functionWithCodeToMoveToApplicationClassConstructor()
 	//m_frame->SetTitle();
 	*/
 
-#if defined (WIN32)
-    readTasks( "C:\\Users\\fernando\\AppData\\Roaming\\BratScheduler\\BratSchedulerTasksConfig.xml" );
-#endif
+    const std::string path = std::string( getenv( "S3ALTB_ROOT") ) + "\\project\\dev\\source\\new-gui\\scheduler\\BratSchedulerTasksConfig.xml";
+    readTasks( path );
 }
 
 

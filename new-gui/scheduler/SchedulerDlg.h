@@ -24,10 +24,14 @@ class SchedulerDlg : public QDialog, private Ui::SchedulerDlg
 public:
     explicit SchedulerDlg(QWidget *parent = 0);
 
+    void createMenuBar();
+
     static void functionWithCodeToMoveToApplicationClassConstructor();
 
 public slots:
-	void action_BlackAdder_slot();
+    void action_ViewConfig_slot();
+    void action_UserManual_slot();
+    void action_About_slot();
 };
 
 #endif // SCHEDULER_DLG_H

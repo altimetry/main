@@ -295,4 +295,14 @@ bool readTasks( const std::string &path )
 //
 ///////////////////////////////////////////////////////////////////////////////////////////
 
+#if defined (__unix__)
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
+
 #include "ScheduledTasksList.cxx"
+
+
+#if defined (__unix__)
+#pragma GCC diagnostic warning "-Wdeprecated-declarations"
+#endif

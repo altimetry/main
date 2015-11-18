@@ -33,6 +33,18 @@ extern "C" {
 #include "brathl_config.h"
 
 
+#if defined (Q_UNUSED)
+    #define UNUSED Q_UNUSED
+#else
+    #if defined(Q_CC_INTEL) && !defined(Q_OS_WIN) || defined(Q_CC_RVCT)
+    template <typename T>
+    inline void bratUnused(T &x) { (void)x; }
+    #  define UNUSED(x) bratUnused(x);
+    #else
+    #  define UNUSED(x) (void)x;
+    #endif
+#endif
+
     
 #if defined(GCC_VERSION) && (GCC_VERSION < 40600)				//4.6.0
 #define nullptr NULL
