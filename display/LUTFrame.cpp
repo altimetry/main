@@ -30,7 +30,7 @@
 #endif
 
 #include <wx/numdlg.h>
-#include "BratDisplay.h"
+#include "BratDisplayApp.h"
 #include "LUTFrame.h"
 #include "Trace.h"
 #include "Tools.h"

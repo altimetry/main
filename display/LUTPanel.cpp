@@ -35,7 +35,7 @@ using namespace brathl;
 #include "wx/tooltip.h"
 
 #include "LUTPanel.h"
-#include "BratDisplay.h"
+#include "BratDisplayApp.h"
 
 DEFINE_EVENT_TYPE(wxEVT_CLUT_CHANGED)
 DEFINE_EVENT_TYPE(wxEVT_CLUT_CLOSE)

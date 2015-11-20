@@ -3,6 +3,9 @@
 #include "qschedulerapplication.h"
 #include "SchedulerDlg.h"
 
+#if _XERCES_VERSION < 30000
+#  error Xerces-C++ 2-series is not supported
+#endif
 
 struct xerces
 {

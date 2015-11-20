@@ -34,7 +34,7 @@
 
 // Custom source
 #include "brathl.h"
-#include "BratDisplay.h"
+#include "BratDisplayApp.h"
 #include "Validators.h"
 #include "LabeledTextCtrl.h"
 

@@ -35,7 +35,7 @@ using namespace brathl;
 
 #include "vtkInteractorObserver.h"
 
-#include "BratDisplay.h"
+#include "BratDisplayApp.h"
 #include "LabeledTextCtrl.h"
 #include "Validators.h"
 #include "ZFXYPlotPropertyPanel.h"

@@ -30,7 +30,7 @@
 #endif
 
 
-#include "BratDisplay.h"
+#include "BratDisplayApp.h"
 
 #include "AxisPropertyPanel.h"
 #include "XYPlotData.h"

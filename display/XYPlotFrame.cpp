@@ -36,7 +36,7 @@ using namespace brathl;
 
 #include "vtkWindowToImageFilter.h"
 
-#include "BratDisplay.h"
+#include "BratDisplayApp.h"
 #include "TypedSaveFileDialog.h"
 #include "MapImageType.h"
 

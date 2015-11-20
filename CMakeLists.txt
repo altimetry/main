@@ -307,7 +307,11 @@ IF (WIN32)
 #    IF ("${BRAT_TARGET_PROCESSOR}" STREQUAL "Win32")
         set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _USING_V110_SDK71_" )
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D _USING_V110_SDK71_" )
-        SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS,5.01")
+		IF ("${BRAT_TARGET_PROCESSOR}" STREQUAL "x64")
+			SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS\",5.02\"")
+		ELSE()
+			SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS\",5.01\"")
+		ENDIF ()
 #    ENDIF ()
 ENDIF ()
 
@@ -673,6 +677,7 @@ set(LIBBRATHL_C_SOURCES_H
 
 include(UseCWithCXX)
 
+include_directories(${BRAT_SOURCE_DIR})
 include_directories(${BRAT_SOURCE_DIR}/libbrathl/brathl_c)
 set(SAMPLE BratSampleCProgram)
 add_executable(${SAMPLE} libbrathl/brathl_c/${SAMPLE}.c)
@@ -1125,6 +1130,45 @@ add_library(brathlProcessUtilities STATIC ${PROCESS_LIB_SOURCES} ${PROCESS_LIB_S
 
 if(BRAT_BUILD_GUI)
 
+	# ---------------------------------
+	# Check for Qt
+	# ---------------------------------	
+	SET(QT_MIN_VERSION 4.8.0)
+	SET (ENABLE_QT5 FALSE CACHE BOOL "If enabled will try to find Qt5 before looking for Qt4")
+	IF (ENABLE_QT5)
+	  FIND_PACKAGE(Qt5Core QUIET)
+	  FIND_PACKAGE(Qt5Gui REQUIRED)
+	  FIND_PACKAGE(Qt5Widgets REQUIRED)
+	  FIND_PACKAGE(Qt5Network REQUIRED)
+	  FIND_PACKAGE(Qt5Xml REQUIRED)
+	  FIND_PACKAGE(Qt5Svg REQUIRED)
+	  FIND_PACKAGE(Qt5Concurrent REQUIRED)
+	  FIND_PACKAGE(Qt5PrintSupport REQUIRED)
+	  FIND_PACKAGE(Qt5WebKit REQUIRED)
+	  FIND_PACKAGE(Qt5WebKitWidgets REQUIRED)
+	  FIND_PACKAGE(Qt5Test REQUIRED)
+	  FIND_PACKAGE(Qt5UiTools REQUIRED)
+	  FIND_PACKAGE(Qt5Script REQUIRED)
+	  FIND_PACKAGE(Qt5Sql REQUIRED)
+	  SET(QT5_BUILD TRUE)
+	  INCLUDE("cmake/modules/ECMQt4To5Porting.cmake")
+	  MESSAGE(STATUS "Found Qt version: ${Qt5Core_VERSION_STRING}")
+	ELSE()
+	  FIND_PACKAGE(Qt4 ${QT_MIN_VERSION} REQUIRED)
+	  SET(QT_USE_QTXML 1)
+	  SET(QT_USE_QTNETWORK 1)
+	  SET(QT_USE_QTSVG 1)
+	  SET(QT_USE_QTSQL 1)
+	  SET(QT_USE_QTWEBKIT 1)
+	  IF (NOT QT_QTXML_FOUND OR NOT QT_QTNETWORK_FOUND OR NOT QT_QTSVG_FOUND OR NOT QT_QTSQL_FOUND OR NOT QT_QTWEBKIT_FOUND OR (WITH_CUSTOM_WIDGETS AND NOT QT_QTDESIGNER_FOUND))
+		MESSAGE(SEND_ERROR "Some Qt4 modules haven't been found!")
+	  ENDIF (NOT QT_QTXML_FOUND OR NOT QT_QTNETWORK_FOUND OR NOT QT_QTSVG_FOUND OR NOT QT_QTSQL_FOUND OR NOT QT_QTWEBKIT_FOUND OR (WITH_CUSTOM_WIDGETS AND NOT QT_QTDESIGNER_FOUND))
+
+	  INCLUDE( ${QT_USE_FILE} )
+
+	  MESSAGE(STATUS "Found Qt version: ${QTVERSION}")
+	ENDIF()
+
   # ---------------------------------
   # Check for VTK..
   # ---------------------------------
@@ -1185,7 +1229,7 @@ if(BRAT_BUILD_GUI)
   # -----------------------------------------------------
   set(DISPLAY_LIB_SOURCES
     display/BitSet32.cpp
-    display/BratTask.cpp
+    new-gui/scheduler/BratTask.cpp
     display/CheckListBox.cpp
     display/ColorPicker.cpp
     display/ColorPalette.cpp
@@ -1216,7 +1260,7 @@ if(BRAT_BUILD_GUI)
   set(DISPLAY_SOURCES
     display/AnimationToolbar.cpp
     display/AxisPropertyPanel.cpp
-    display/BratDisplay.cpp
+    display/BratDisplayApp.cpp
     display/BratDisplay_wdr.cpp
     display/PlotData/BratLookupTable.cpp
     display/ContourPropFrame.cpp
@@ -1340,7 +1384,25 @@ if(BRAT_BUILD_GUI)
     ${DISPLAY_SOURCES} ${DISPLAY_SOURCES_RC} ${DISPLAY_SOURCES_H}
     )
 
-  target_link_libraries(BratDisplay brathl proj brathlProcessUtilities brathlGuiUtilities ${BRAT_VTK_LIBRARIES} ${wxWidgets_LIBRARIES} vtktiff vtkjpeg )
+  target_link_libraries(BratDisplay brathl proj brathlProcessUtilities brathlGuiUtilities ${QT_QTCORE_LIBRARY} ${BRAT_VTK_LIBRARIES} ${wxWidgets_LIBRARIES} vtktiff vtkjpeg )
+#	TARGET_LINK_LIBRARIES(qgis_core
+#	  ${QT_QTMAIN_LIBRARY}
+#	  ${QT_QTXML_LIBRARY}
+#	  ${QT_QTCORE_LIBRARY}
+#	  ${QT_QTGUI_LIBRARY}
+#	  ${QT_QTNETWORK_LIBRARY}
+#	  ${QT_QTSVG_LIBRARY}
+#	  ${QT_QTWEBKIT_LIBRARY}
+#	  ${QSCINTILLA_LIBRARY}
+#
+#	  ${PROJ_LIBRARY}
+#	  ${GEOS_LIBRARY}
+#	  ${GDAL_LIBRARY}
+#	  ${SPATIALINDEX_LIBRARY}
+#	  ${EXPAT_LIBRARY}
+#	  ${SQLITE3_LIBRARY}
+#	  ${SPATIALITE_LIBRARY}
+#	)
 
   if(APPLE)
     # On Mac OS X we install a script that invokes the BratDisplay binary that is located in BratGui.app
@@ -1368,7 +1430,7 @@ if(BRAT_BUILD_GUI)
   # Set BratScheduler sources
   # -----------------------------------------------------
   set(SCHEDULER_SOURCES
-    scheduler/BratScheduler.cpp
+    scheduler/BratSchedulerApp.cpp
     scheduler/BratScheduler_wdr.cpp
     scheduler/EndedPanel.cpp
     scheduler/LogPanel.cpp
@@ -1416,7 +1478,7 @@ if(BRAT_BUILD_GUI)
     WIN32 MACOSX_BUNDLE
     ${SCHEDULER_SOURCES} ${SCHEDULER_SOURCES_RC} ${SCHEDULER_SOURCES_H})
 
-  target_link_libraries(BratScheduler brathlGuiUtilities brathlProcessUtilities brathl ${wxWidgets_LIBRARIES})
+  target_link_libraries(BratScheduler brathlGuiUtilities  ${QT_QTCORE_LIBRARY} brathlProcessUtilities brathl ${wxWidgets_LIBRARIES})
   install(TARGETS BratScheduler DESTINATION bin BUNDLE DESTINATION .)
 
   if(APPLE)
@@ -1512,7 +1574,7 @@ if(BRAT_BUILD_GUI)
 
   add_executable(BratGui WIN32 MACOSX_BUNDLE ${GUI_SOURCES} ${GUI_SOURCES_RC} ${GUI_SOURCES_H})
 
-  target_link_libraries(BratGui brathlGuiUtilities brathlProcessUtilities brathl proj ${wxWidgets_LIBRARIES})
+  target_link_libraries(BratGui brathlGuiUtilities  ${QT_QTCORE_LIBRARY} brathlProcessUtilities brathl proj ${wxWidgets_LIBRARIES})
   install(TARGETS BratGui DESTINATION bin BUNDLE DESTINATION .)
 
   if(APPLE)

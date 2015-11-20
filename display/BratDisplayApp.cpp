@@ -58,7 +58,7 @@ using namespace processes;
 #include "PlotData/ColorPalleteNames.h"
 #include "PlotData/GeoMap.h"
 
-#include "BratDisplay.h"
+#include "BratDisplayApp.h"
 
 #include <map>
 

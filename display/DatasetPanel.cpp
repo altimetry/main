@@ -31,7 +31,7 @@
 
 #include "Validators.h"
 
-#include "BratDisplay.h"
+#include "BratDisplayApp.h"
 #include "XYPlotPanel.h"
 #include "XYPlotData.h"
 #include "MapColor.h"

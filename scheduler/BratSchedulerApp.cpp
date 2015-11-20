@@ -85,7 +85,10 @@ BEGIN_EVENT_TABLE(CBratSchedulerApp,wxApp)
 END_EVENT_TABLE()
 
 #include <xercesc/util/PlatformUtils.hpp>
-//#include <xercesc/framework/LocalFileFormatTarget.hpp>
+
+#if _XERCES_VERSION < 30000
+#  error Xerces-C++ 2-series is not supported
+#endif
 
 
 CBratSchedulerApp::CBratSchedulerApp()

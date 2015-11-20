@@ -29,7 +29,7 @@
     #pragma hdrstop
 #endif
 
-#include "BratDisplay.h"
+#include "BratDisplayApp.h"
 #include "ContourPropFrame.h"
 #include "MapColor.h"
 #include "wxInterface.h"

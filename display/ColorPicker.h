@@ -33,7 +33,7 @@
 using namespace brathl;
 
 //#include "BratDisplay_wdr.h"
-#include "BratDisplay.h"
+#include "BratDisplayApp.h"
 
 #include "vtkColor.h"
 #include "LabeledTextCtrl.h"

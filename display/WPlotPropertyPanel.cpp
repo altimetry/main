@@ -33,7 +33,7 @@
 #include "Exception.h"
 using namespace brathl;
 
-#include "BratDisplay.h"
+#include "BratDisplayApp.h"
 #include "LabeledTextCtrl.h"
 #include "Validators.h"
 #include "WPlotPropertyPanel.h"

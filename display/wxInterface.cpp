@@ -6,7 +6,7 @@
 
 #include "wx/fileconf.h" // (wxFileConfig class)
 
-#include "BratDisplay.h"
+#include "BratDisplayApp.h"
 
 
 
