@@ -24,8 +24,8 @@
 #include "brathl.h" 
 
 
-#include "TraceLog.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/TraceLog.h" 
+#include "new-gui/Common/tools/Exception.h" 
 
 #include "BratAlgoFilterMedian.h" 
 
@@ -132,7 +132,7 @@ void CBratAlgoFilterMedian::PrepareReturn()
 //----------------------------------------
 double CBratAlgoFilterMedian::ComputeMedian()
 {
-  CTools::SetDefaultValue(m_median);
+  setDefaultValue(m_median);
 
   CDoubleArray::const_iterator it;
   m_dataWindow.RemoveAll();
@@ -140,7 +140,7 @@ double CBratAlgoFilterMedian::ComputeMedian()
   for (it = m_rawDataWindow.begin(); it != m_rawDataWindow.end(); it++)
   {
     double value = *it;
-    if (!CTools::IsDefaultValue(value))
+    if (!isDefaultValue(value))
     {
       m_dataWindow.Insert(value);    
     }
@@ -154,7 +154,7 @@ double CBratAlgoFilterMedian::ComputeMedian()
   // using default comparison (operator <):
   nth_element(m_dataWindow.begin(), m_dataWindow.begin() + m_dataWindow.size()/2, m_dataWindow.end());
 
-  uint32_t middle = m_dataWindow.size() / 2;
+  size_t middle = m_dataWindow.size() / 2;
 
   m_median = *(m_dataWindow.begin() + middle);
 
@@ -170,7 +170,7 @@ double CBratAlgoFilterMedian::ComputeMedian()
   std::string str;
   for (it = m_rawDataWindow.begin(); it != m_rawDataWindow.end(); it++)
   {
-    if (CTools::IsDefaultValue(*it))
+    if (isDefaultValue(*it))
     {
       str.append("DV ");
     }
@@ -186,7 +186,7 @@ double CBratAlgoFilterMedian::ComputeMedian()
   str.clear();
   for (it = m_dataWindow.begin(); it != m_dataWindow.end(); it++)
   {
-    if (CTools::IsDefaultValue(*it))
+    if (isDefaultValue(*it))
     {
       str.append("DV ");
     }

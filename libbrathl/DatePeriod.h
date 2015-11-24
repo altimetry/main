@@ -20,10 +20,10 @@
 #if !defined(_DatePeriod_h_)
 #define _DatePeriod_h_
 
-#include "brathl_error.h" 
-#include "brathl.h" 
-
 #include <string>
+
+#include "new-gui/Common/tools/brathl_error.h" 
+#include "brathl.h" 
 
 #include "List.h"
 #include "Date.h"

@@ -19,8 +19,8 @@
 */
 
 #include "Tools.h"
-#include "Trace.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Trace.h"
+#include "new-gui/Common/tools/Exception.h"
 using namespace brathl;
 
 

@@ -18,6 +18,8 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "SchedulerTaskConfig.h"
+
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
     #pragma implementation "SchedulerTimer.h"
 #endif
@@ -28,8 +30,6 @@
 #ifdef __BORLANDC__
     #pragma hdrstop
 #endif
-
-#include "SchedulerTaskConfig.h"
 
 #include "SchedulerTimer.h"
 

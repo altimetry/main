@@ -1,7 +1,4 @@
-
 /*
-* 
-*
 * This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
@@ -18,33 +15,19 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
-
-#include <cerrno>
-#include <cstdio>
-#include <cstring>
-
-#include <string>
+#include "stdafx.h"
 
 #include "brathl_error.h"
-#include "brathl.h"
+//#include "brathl.h"
 
 #include "TraceLog.h"
-#include "Tools.h"
+//#include "Tools.h"
 #include "Exception.h"
-using namespace brathl;
 
-namespace brathl
-{
-
-CException::CException()
-{
-
-}
 
 //----------------------------------------
 
-CException::CException(const std::string& message, int32_t errcode)
+CException::CException(const std::string& message, int errcode)
 {
   m_errcode = errcode;
   m_message = message;
@@ -57,11 +40,11 @@ CException::~CException() throw()
 
 
 //----------------------------------------
-const char* CException::what() const throw()
+const char* CException::what() const throw( )
 {
-  static char msg[2048];
-  CTools::snprintf(msg, sizeof(msg), "%s #%d: %s", TypeOf(), m_errcode, m_message.c_str());
-  return msg;
+	static std::string buffer;
+	buffer = std::string( TypeOf() ) + " #" + n2s<std::string>( m_errcode ) + ": " + m_message;
+	return buffer.c_str();
 }
 
 
@@ -77,12 +60,9 @@ void CException::Dump(std::ostream& fOut /* = std::cerr */)
   fOut << "m_message = " << this->what() << std::endl;
   fOut << "m_errcode = " << m_errcode << std::endl;
 
-
-
   fOut << "==> END Dump a CException Object at "<< this << std::endl;
 
   fOut << std::endl;
-
 }
 
 
@@ -93,7 +73,7 @@ void CException::Dump(std::ostream& fOut /* = std::cerr */)
 
 
 
-CFileException::CFileException(const std::string& message, const std::string& fileName, int32_t errcode)
+CFileException::CFileException(const std::string& message, const std::string& fileName, int errcode)
   : CException(message, errcode)
 {
   m_message += " - File name: '" + fileName + "'";
@@ -114,7 +94,7 @@ CFileException::CFileException(const std::string& message, const std::string& fi
 //------------------- CProductException class --------------------
 //-------------------------------------------------------------
  
-CProductException::CProductException(const std::string& message, const std::string& fileName, int32_t errcode)
+CProductException::CProductException(const std::string& message, const std::string& fileName, int errcode)
       	: CException(message, errcode)
 {
   m_message += " - Product file name: '" + fileName + "'";
@@ -125,7 +105,7 @@ CProductException::CProductException(const std::string& message, const std::stri
 CProductException::CProductException(const std::string& message, const std::string& fileName,
                                      const std::string& productClass,
                                      const std::string& productType,
-                                     int32_t errcode)
+                                     int errcode)
       	: CException(message, errcode)
 {
   m_message += " - Product file name: '" + fileName + "' - Product Class/Type '" + productClass + "/" + productType;
@@ -139,7 +119,7 @@ CProductException::CProductException(const std::string& message, const std::stri
 //-------------------------------------------------------------
 
 
-CExpressionException::CExpressionException(const std::string& message, int32_t errcode, const std::string &expression /*= ""*/)
+CExpressionException::CExpressionException(const std::string& message, int errcode, const std::string &expression /*= ""*/)
       	: CException(message, errcode)
 {
   if (expression != "")
@@ -159,11 +139,8 @@ CExpressionException::CExpressionException(const std::string& message, int32_t e
 //------------------- CAlgorithmException class --------------------
 //-------------------------------------------------------------
 
-CAlgorithmException::CAlgorithmException(const std::string& message, const std::string& algorithmName, int32_t errcode)
+CAlgorithmException::CAlgorithmException(const std::string& message, const std::string& algorithmName, int errcode)
   : CException(message, errcode)
 {
   m_message += " - Algorithm name: '" + algorithmName + "'";
-}
-
-
 }

@@ -1,5 +1,5 @@
-#if !defined(BRAT_STDAFX_H)
-#define BRAT_STDAFX_H
+#if !defined(STDAFX_H)
+#define STDAFX_H
 
 #ifndef Q_MOC_RUN       //problems with boost 1_59_0 caused by qt moc
                         // see https://bugreports.qt.io/browse/QTBUG-22829
@@ -171,4 +171,4 @@
 
 
 #endif      //Q_MOC_RUN
-#endif      //BRAT_STDAFX_H
+#endif      //STDAFX_H

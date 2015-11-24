@@ -26,7 +26,7 @@
 
 #include "Tools.h"
 #include "Date.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "Expression.h"
 #include "LatLonPoint.h"
 

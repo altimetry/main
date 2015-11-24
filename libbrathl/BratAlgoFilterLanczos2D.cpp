@@ -20,8 +20,8 @@
 */
 #include "brathl.h" 
 
-#include "TraceLog.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/TraceLog.h" 
+#include "new-gui/Common/tools/Exception.h" 
 #include "Product.h" 
 #include "ProductNetCdf.h" 
 
@@ -125,7 +125,7 @@ double CBratAlgoFilterLanczos2D::Run(CVectorBratAlgorithmParam& args)
 
   m_varValueArray = NULL;
 
-  CTools::SetDefaultValue(m_lanczos);
+  setDefaultValue(m_lanczos);
 
   OpenProductFile();
   
@@ -156,7 +156,7 @@ double CBratAlgoFilterLanczos2D::Run(CVectorBratAlgorithmParam& args)
 //----------------------------------------
 double CBratAlgoFilterLanczos2D::ComputeLanczos(CExpressionValue& exprValue)
 {
-  CTools::SetDefaultValue(m_lanczos);
+  setDefaultValue(m_lanczos);
 
   CDoubleArray dataLanczosX;
   
@@ -195,12 +195,12 @@ double CBratAlgoFilterLanczos2D::ComputeLanczos(CExpressionValue& exprValue)
   }
 
   double* dataValue = exprValueXReading.GetValues();
-  uint32_t nbValues = exprValueXReading.GetNbValues();
+  size_t nbValues = exprValueXReading.GetNbValues();
 
-  uint32_t nbValidPoints = nbValues;
+  size_t nbValidPoints = nbValues;
   for (uint32_t i = 0 ; i < nbValues ; i++)
   {
-    if (CTools::IsDefaultValue(dataValue[i]))
+    if (isDefaultValue(dataValue[i]))
     {
       nbValidPoints--;    
     }
@@ -263,7 +263,7 @@ double CBratAlgoFilterLanczos2D::ComputeLanczos(CExpressionValue& exprValue)
 double CBratAlgoFilterLanczos2D::ComputeSingle() 
 {
   // If 'default value' and no extrapolation then returns
-  if (CTools::IsDefaultValue(m_varValue) && (m_extrapolate == 0))
+  if (isDefaultValue(m_varValue) && (m_extrapolate == 0))
   {
     return m_lanczos;
   }
@@ -313,12 +313,12 @@ double CBratAlgoFilterLanczos2D::ComputeMean()
 
   //uint32_t iVarValue;
   //
-  //CTools::SetDefaultValue(m_median);
+  //setDefaultValue(m_median);
   //double countValue = 0.0;
   //double dummy = 0.0;
 
   //double medianTmp;
-  //CTools::SetDefaultValue(medianTmp);
+  //setDefaultValue(medianTmp);
 
   //SetField2DAsRef();
 

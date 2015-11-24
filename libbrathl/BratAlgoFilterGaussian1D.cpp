@@ -21,8 +21,8 @@
 #include "brathl.h" 
 
 
-#include "TraceLog.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/TraceLog.h" 
+#include "new-gui/Common/tools/Exception.h" 
 #include "Product.h" 
 
 #include "BratAlgoFilterGaussian1D.h" 
@@ -61,7 +61,7 @@ void CBratAlgoFilterGaussian1D::Init()
 {
   m_expectedTypes.Insert(static_cast<int32_t>(CBratAlgorithmParam::T_DOUBLE));
 
-  CTools::SetDefaultValue(m_dataWindowLength);
+  setDefaultValue(m_dataWindowLength);
 
   SetBeginOfFile();
 }
@@ -99,7 +99,7 @@ void CBratAlgoFilterGaussian1D::SetEndOfFile()
 {
   CBratAlgoFilterGaussian::SetEndOfFile();
 
-  CTools::SetDefaultValue(m_varValueNext);
+  setDefaultValue(m_varValueNext);
 }
 //----------------------------------------
 double CBratAlgoFilterGaussian1D::Run(CVectorBratAlgorithmParam& args)
@@ -112,7 +112,7 @@ double CBratAlgoFilterGaussian1D::Run(CVectorBratAlgorithmParam& args)
     return m_gaussian;
   }
 
-  CTools::SetDefaultValue(m_gaussian);
+  setDefaultValue(m_gaussian);
   
   OpenProductFile();
 
@@ -152,7 +152,7 @@ double CBratAlgoFilterGaussian1D::Run(CVectorBratAlgorithmParam& args)
   }
 
   // If 'default value' and no extrapolation then returns
-  if (CTools::IsDefaultValue(m_varValue) && (m_extrapolate == 0))
+  if (isDefaultValue(m_varValue) && (m_extrapolate == 0))
   {
     PrepareReturn();
     return m_gaussian;
@@ -172,15 +172,15 @@ double CBratAlgoFilterGaussian1D::Run(CVectorBratAlgorithmParam& args)
 //----------------------------------------
 double CBratAlgoFilterGaussian1D::ComputeGaussian()
 {
-  CTools::SetDefaultValue(m_gaussian);
+  setDefaultValue(m_gaussian);
 
-  uint32_t nbValues = m_rawDataWindow.size();
+  size_t nbValues = m_rawDataWindow.size();
 
-  uint32_t nbValidPoints = nbValues;
+  size_t nbValidPoints = nbValues;
   CDoubleArray::const_iterator it;
   for (it = m_rawDataWindow.begin(); it != m_rawDataWindow.end(); it++)
   {
-    if (CTools::IsDefaultValue(*it))
+    if (isDefaultValue(*it))
     {
       nbValidPoints--;    
     }

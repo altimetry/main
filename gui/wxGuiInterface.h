@@ -18,7 +18,7 @@ inline void NamesToArrayString( const CMapProjection &mapp, wxArrayString& array
 	for (CMapProjection::const_iterator it = mapp.begin(); it != mapp.end(); it++ )
 	{
 		uint32_t value = it->second;
-		if ( !CTools::IsDefaultValue( value ) )
+		if ( !isDefaultValue( value ) )
 		{
 			array.Add( ( it->first ).c_str() );
 		}
@@ -31,7 +31,7 @@ inline void NamesToComboBox( const CMapProjection &mapp, wxComboBox& combo )
 	for (CMapProjection::const_iterator it = mapp.begin(); it != mapp.end(); it++ )
 	{
 		uint32_t value = it->second;
-		if ( !CTools::IsDefaultValue( value ) )
+		if ( !isDefaultValue( value ) )
 		{
 			combo.Append( ( it->first ).c_str() );
 		}

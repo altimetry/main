@@ -34,7 +34,7 @@
 #endif
 
 #include "Tools.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 
 using namespace brathl;
 
@@ -109,8 +109,8 @@ CTimeChangeTextCtrl::CTimeChangeTextCtrl(CTimeCtrl *timectrl, const wxString& va
 	m_timeCtrl = timectrl;
 	m_buffer = wxT("");
   m_pos = 0;
-  CTools::SetDefaultValue(m_min);
-  CTools::SetDefaultValue(m_max);
+  setDefaultValue(m_min);
+  setDefaultValue(m_max);
 }
 
 //----------------------------------------

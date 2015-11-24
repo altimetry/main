@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
@@ -23,21 +21,11 @@
 
 #include <string>
 
-#include "../Common/+/QtStringUtils.h"
-
 #include <QDateTime>
 
-
-//#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-//    #pragma interface "BratTask.h"
-//#endif
-//
-//#ifndef WX_PRECOMP
-//    #include "wx/wx.h"
-//#endif
-
-//#include <wx/xml/xml.h> // (wxXmlDocument, wxXmlNode, wxXmlProperty classes)
-//#include "wx/filename.h"
+#include "../Common/QtStringUtils.h"
+#include "new-gui/Common/ScheduledTasksList.hxx"
+#include "../Common/XmlSerializer.h"            // use after generated ScheduledTasksList.hxx
 
 #include "libbrathl/brathl.h" 
 #include "libbrathl/BratAlgorithmBase.h" 
@@ -89,51 +77,62 @@ protected:
 //------------------- CBratTaskFunction class --------------------
 //-------------------------------------------------------------
 
-typedef void BratTaskFunctionCallableN(CVectorBratAlgorithmParam& arg);
+typedef void (*BratTaskFunctionCallableN)(CVectorBratAlgorithmParam& arg);
 
 class CBratTaskFunction
 {
-
 public:
-  CBratTaskFunction();
-  CBratTaskFunction(const std::string& name, BratTaskFunctionCallableN* call);
-  CBratTaskFunction(const CBratTaskFunction& o);
-
-  virtual ~CBratTaskFunction();
-
-  const std::string& GetName() const { return m_name;};
-  void SetName(const std::string& value) { m_name = value;};
-  
-  BratTaskFunctionCallableN* GetCall() { return m_call;};
-  void SetCall(BratTaskFunctionCallableN* value) { m_call = value;};
-  
-  const CVectorBratAlgorithmParam* GetParams() const { return &m_params;};
-  CVectorBratAlgorithmParam* GetParams() { return &m_params;};
-  void GetParamsAsString(std::string& value) const;
-  
-  void Execute();
-
-  virtual void Dump(std::ostream& fOut = std::cerr); 
-
-  const CBratTaskFunction& operator=(const CBratTaskFunction& o);
-
-  static void CopyFile(CVectorBratAlgorithmParam& arg);
-
-public:
-
-  static const std::string m_TASK_FUNC_COPYFILE;
+	static const std::string m_TASK_FUNC_COPYFILE;
 
 protected:
-  void Init();
-  void Set(const CBratTaskFunction& o);
+	std::string m_name;
+    BratTaskFunctionCallableN m_call = nullptr;
+	CVectorBratAlgorithmParam m_params;
 
-protected:
+public:
+	CBratTaskFunction()
+	{}
+    CBratTaskFunction( const std::string& name, BratTaskFunctionCallableN call ) :
+		m_name( name ), m_call( call )
+	{}
+	CBratTaskFunction( const CBratTaskFunction& o )
+	{
+		*this = o;
+	}
+	const CBratTaskFunction& operator=( const CBratTaskFunction& o )
+	{
+		if ( this == &o )
+		{
+			m_name = o.m_name;
+			m_call = o.m_call;
+		}
+		return *this;
+	}
 
-  std::string m_name;
-  BratTaskFunctionCallableN* m_call;
-  CVectorBratAlgorithmParam m_params;
+	virtual ~CBratTaskFunction()
+	{}
 
+    const std::string& GetName() const { return m_name; }
+    void SetName( const std::string& value ) { m_name = value; }
+
+    BratTaskFunctionCallableN GetCall() { return m_call; }
+    void SetCall( BratTaskFunctionCallableN value ) { m_call = value; }
+
+    const CVectorBratAlgorithmParam* GetParams() const { return &m_params; }
+    CVectorBratAlgorithmParam* GetParams() { return &m_params; }
+	void GetParamsAsString( std::string& value ) const
+	{
+	  value = m_params.ToString().c_str();
+	}
+
+	void Execute();
+
+	virtual void Dump( std::ostream& fOut = std::cerr );
+
+	static void CopyFile( CVectorBratAlgorithmParam& arg );
 };
+
+
 //-------------------------------------------------------------
 //------------------- CMapBratTaskFunction class --------------------
 //-------------------------------------------------------------
@@ -161,8 +160,8 @@ public:
 
   virtual CBratTaskFunction* Find(const std::string& id) const;
 
-  bool GetDelete() {return m_bDelete;};
-  void SetDelete(bool value) {m_bDelete = value;};
+  bool GetDelete() {return m_bDelete;}
+  void SetDelete(bool value) {m_bDelete = value;}
 
 protected:
 
@@ -263,14 +262,12 @@ protected:
 	//instance data members
 	
 protected:
-	uid_t m_uid;		//uid_t m_uid;
-	//std::string m_id;	original comment 
+	uid_t m_uid = -1;
 	std::string m_name;
 	std::string m_cmd;
 	CBratTaskFunction m_function;
-	QDateTime m_at;						//typedef wxDateTime QDateTime;
-	Status m_status;
-
+	QDateTime m_at;											//typedef wxDateTime QDateTime;
+	Status m_status = CBratTask::e_BRAT_STATUS_PENDING;
 	std::string m_logFile;
 
 	CVectorBratTask m_subordinateTasks;
@@ -278,21 +275,124 @@ protected:
 public:
 	// construction / destruction
 
-	CBratTask();
+	CBratTask()
+	{}
 
-	CBratTask( const CBratTask	&o );	//CBratTask( wxXmlNode* task );			 commented out by femm: not used !...
+	CBratTask( const CBratTask &o )
+	{
+		*this = o;
+	}
 
-	const CBratTask& operator=( const CBratTask &o );
+	const CBratTask& operator=( const CBratTask &o )
+	{
+	  if (this != &o)
+	  {
+		  m_uid = o.m_uid;
+		  m_name = o.m_name;
+		  m_cmd = o.m_cmd;
+		  m_at = o.m_at;
+		  m_status = o.m_status;
+		  m_function = o.m_function;
+		  m_logFile = o.m_logFile;
+
+		  m_subordinateTasks.Insert(&o.m_subordinateTasks);		//CHECK THIS !!! Apparently only called here
+	  }
+	  return *this;
+	}
 
 	virtual CBratTask* Clone() { return new CBratTask( *this ); }
 
-	virtual ~CBratTask();
+	virtual ~CBratTask()
+	{}
+
+	// serialization
+
+
+//__cdecl brathl::CException::CException(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,int)" (??0CException@brathl@@QEAA@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@H@Z) referenced in function "public: static void __cdecl CBratTaskFunction::CopyFileW(class brathl::CVectorBratAlgorithmParam &)" (?CopyFileW@CBratTaskFunction@@SAXAEAVCVectorBratAlgorithmParam@brathl@@@Z)
+//__cdecl brathl::CException::~CException(void)" (??1CException@brathl@@UEAA@XZ) referenced in function "public: virtual class CBratTaskFunction * __cdecl CMapBratTaskFunction::Insert(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,class CBratTaskFunction *,bool)" (?Insert@CMapBratTaskFunction@@UEAAPEAVCBratTaskFunction@@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PEAV2@_N@Z)
+//__cdecl brathl::CException::Dump(class std::basic_ostream<char,struct std::char_traits<char> > &)" (?Dump@CException@brathl@@UEAAXAEAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z)
+//__cdecl brathl::CException::what(void)const " (?what@CException@brathl@@UEBAPEBDXZ)
+//__cdecl brathl::CVectorBratAlgorithmParam::CVectorBratAlgorithmParam(void)" (??0CVectorBratAlgorithmParam@brathl@@QEAA@XZ) referenced in function "public: __cdecl CBratTaskFunction::CBratTaskFunction(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,void (__cdecl*)(class brathl::CVectorBratAlgorithmParam &))" (??0CBratTaskFunction@@QEAA@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@P6AXAEAVCVectorBratAlgorithmParam@brathl@@@Z@Z)
+//__cdecl brathl::CVectorBratAlgorithmParam::CVectorBratAlgorithmParam(void)" (??0CVectorBratAlgorithmParam@brathl@@QEAA@XZ)
+//__cdecl brathl::CVectorBratAlgorithmParam::~CVectorBratAlgorithmParam(void)" (??1CVectorBratAlgorithmParam@brathl@@UEAA@XZ) referenced in function "int `public: __cdecl CBratTaskFunction::CBratTaskFunction(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,void (__cdecl*)(class brathl::CVectorBratAlgorithmParam &))'::`1'::dtor$1" (?dtor$1@?0???0CBratTaskFunction@@QEAA@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@P6AXAEAVCVectorBratAlgorithmParam@brathl@@@Z@Z@4HA)
+//__cdecl brathl::CVectorBratAlgorithmParam::~CVectorBratAlgorithmParam(void)" (??1CVectorBratAlgorithmParam@brathl@@UEAA@XZ)
+//__cdecl brathl::CVectorBratAlgorithmParam::Insert(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &)" (?Insert@CVectorBratAlgorithmParam@brathl@@QEAAXAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z) referenced in function "public: __cdecl CBratTask::CBratTask(class task const &)" (??
+
+	CBratTask( const task &oxml )				//USED ON LOAD
+	{
+		m_uid = oxml.uid();
+		m_name = oxml.name();
+		m_cmd = fromOpt( oxml.cmd(), std::string() );
+
+		CBratTaskFunction* functionRef = CMapBratTaskFunction::GetInstance().Find( fromOpt( oxml.function(), std::string() ) );
+		SetBratTaskFunction( functionRef );
+		if ( oxml.task1().present() )										//femm!!! NOT CLEAR so far: there can only be one child t the same level????????
+			GetSubordinateTasks()->Insert( new CBratTask( *oxml.task1() ) );
+
+		//wxXmlNode* argNode = taskNode->GetChildren();
+		CVectorBratAlgorithmParam* params = GetBratTaskFunction()->GetParams();
+		auto const &args = oxml.arg();
+		for ( auto ii = args.begin(); ii != args.end(); ++ii )
+		{
+			params->Insert( *ii );
+		}
+
+		//while ( argNode != NULL )
+		//{
+		//	if ( argNode->GetName().CmpNoCase( CSchedulerTaskConfig::m_ARG_ELT ) == 0 )
+		//	{
+		//		wxXmlNode* argTextNode = argNode->GetChildren();
+		//		if ( argTextNode != NULL )
+		//		{
+		//			params->Insert( argTextNode->GetContent().ToStdString() );
+		//		}
+		//	}
+		//	argNode = argNode->GetNext();
+		//}
+
+		SetAt( oxml.at() );
+		m_status = enum_cast<Status>( oxml.status() );
+		m_logFile = oxml.logFile();
+	}
+
+	task& IOcopy( task &oxml ) const			//USED ON STORE
+	{
+		oxml.uid( m_uid );
+		oxml.name( m_name );
+		oxml.cmd( m_cmd );
+		oxml.at( GetAtAsString() );
+		oxml.status( enum_reverse_cast< task::status_type >( m_status ) );
+		oxml.logFile( m_logFile );
+
+		return oxml;
+	}
+
+	bool operator == ( const CBratTask &o ) const 
+	{
+		return 
+			m_uid == o.m_uid &&
+			m_name == o.m_name &&
+			m_cmd == o.m_cmd &&
+			//m_function;
+			m_at == o.m_at &&
+			m_status == o.m_status &&
+			m_logFile == o.m_logFile
+			;
+	}
+
+	bool operator != ( const CBratTask &o ) const
+	{
+		return !( *this == o );
+	}
 
 	// getters / setters
 
 	const uid_t GetUid() const { return m_uid; }									//uid_t GetUidValue() const { return m_uid; }
 	std::string GetUidAsString() const { return n2s<std::string>( m_uid ); }
-	void SetUid( const std::string& value );										//void SetUid( const uid_t& value ) { m_uid = value; }
+	void SetUid( const std::string& value )
+	{
+		m_uid = s2n<uid_t>( value );	//femm m_uid = wxBratTools::wxStringTowxLongLong_t(value);
+	}
 	void SetUid( uid_t value ) { m_uid = value; }
 
 	//void SetId(const std::string& value) {m_id = value;};
@@ -315,7 +415,12 @@ public:
 		return q2t<std::string>( s );
 	}
 	//void SetAt( const QDateTime& value ) { m_at = value; }
-	void SetAt( const std::string &value );
+	void SetAt( const std::string &value )
+	{ 
+		QDateTime dt = QDateTime::fromString( t2q( value ), qformatISODateTime() );
+		assert__( dt.isValid() );															 	//!!! TODO !!!: error handling
+		m_at = dt; 
+	}
 	bool laterThanNow() const { return GetAt() > QDateTime::currentDateTime(); }
 
 	const std::string& GetCmd() const { return m_cmd; }
@@ -350,19 +455,17 @@ public:
 
 	// remaining data members
 
-	void ExecuteFunction();
+	void ExecuteFunction()
+	{
+		m_function.Execute();
+	}
 
 	//femm
 	//static std::string TaskStatusToString( Status status );
 	//static Status StringToTaskStatus( const std::string& status );
 
-	/** Dump function */
+	// Dump function
 	virtual void Dump( std::ostream& fOut = std::cerr );
-
-protected:
-
-	void Init();
-	void Set( const CBratTask &o );
 };
 
 
@@ -396,8 +499,8 @@ public:
 
 	virtual CBratTask* Find( uid_t id ) const;
 
-	bool GetDelete() const { return m_bDelete; };
-	void SetDelete( bool value ) { m_bDelete = value; };
+    bool GetDelete() const { return m_bDelete; }
+    void SetDelete( bool value ) { m_bDelete = value; }
 
 
 protected:

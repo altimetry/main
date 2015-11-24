@@ -24,7 +24,7 @@
 #include "Expression.h"
 #include <string>
 #include "brathl.h"
-#include "brathl_error.h"
+#include "new-gui/Common/tools/brathl_error.h"
 #include "List.h"
 
 using namespace brathl;
@@ -92,7 +92,7 @@ public:
   bool RemoveAllValue();
 
   /** \return the number of values. */
-  uint32_t Count();
+  size_t Count();
 
   /** Register the formulas aliases defined.
     \param Aliases [in] : Names/values of aliases

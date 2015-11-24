@@ -24,8 +24,8 @@
 #include "brathl.h" 
 
 
-#include "TraceLog.h" 
-#include "Exception.h"
+#include "new-gui/Common/tools/TraceLog.h" 
+#include "new-gui/Common/tools/Exception.h"
 
 #include "Product.h" 
 #include "ProductNetCdf.h" 
@@ -53,473 +53,6 @@ using namespace brathl;
 
 namespace brathl
 {
-
-//-------------------------------------------------------------
-//------------------- CBratAlgorithmParam class --------------------
-//-------------------------------------------------------------
-
-//----------------------------------------
-CBratAlgorithmParam::CBratAlgorithmParam()
-{
-  Init();
-}
-  
-//----------------------------------------
-CBratAlgorithmParam::CBratAlgorithmParam(const CBratAlgorithmParam &o)
-{
-  Init();
-  Set(o); 
-}
-  
-//----------------------------------------
-CBratAlgorithmParam::~CBratAlgorithmParam()
-{
-}
-
-//----------------------------------------
-const CBratAlgorithmParam& CBratAlgorithmParam::operator=(const CBratAlgorithmParam &o)
-{
-  if (this == &o)
-  {
-    return *this;
-  }
-
-  Set(o);
-
-  return *this;
-}
-//----------------------------------------
-void CBratAlgorithmParam::Init()
-{
-  m_typeVal = CBratAlgorithmParam::T_UNDEF;
-  CTools::SetDefaultValue(m_valDouble);
-  CTools::SetDefaultValue(m_valFloat);
-  CTools::SetDefaultValue(m_valInt);
-  CTools::SetDefaultValue(m_valLong);
-  m_valChar = '\0';
-  m_vectValDouble.RemoveAll();
-
-}
-//----------------------------------------
-void CBratAlgorithmParam::Set(const CBratAlgorithmParam &o) 
-{
-  m_typeVal = o.m_typeVal;
-
-  m_valDouble = o.m_valDouble;
-  m_valFloat = o.m_valFloat;
-  m_valInt = o.m_valInt;
-  m_valLong = o.m_valLong;
-  m_valString = o.m_valString;
-  m_valChar = o.m_valChar;
-
-  Copy(o.m_vectValDouble);
-}
-//----------------------------------------
-void CBratAlgorithmParam::SetValue(double value, CBratAlgorithmParam::bratAlgoParamTypeVal type)
-{
-  switch (type)
-  {
-  case CBratAlgorithmParam::T_INT :
-    {
-      int32_t v = static_cast<int32_t>(value);
-      if (CTools::IsDefaultValue(value))
-      {
-        CTools::SetDefaultValue(v);
-      }
-      SetValue(v);
-      break;
-    }
-  case CBratAlgorithmParam::T_LONG :
-    {
-      int64_t v = static_cast<int64_t>(value);
-      if (CTools::IsDefaultValue(value))
-      {
-        CTools::SetDefaultValue(v);
-      }
-      SetValue(v);
-      break;
-    }
-  case CBratAlgorithmParam::T_FLOAT :
-    {
-      float v = static_cast<float>(value);
-      if (CTools::IsDefaultValue(value))
-      {
-        CTools::SetDefaultValue(v);
-      }
-      SetValue(v);
-      break;
-    }
-  case CBratAlgorithmParam::T_DOUBLE :
-    {
-      SetValue(value);
-      break;
-    }
-  case CBratAlgorithmParam::T_CHAR :
-    {
-      SetValue(static_cast<char>(value));
-      break;
-    }
-  default :
-    {
-      throw CException(CTools::Format("CBratAlgorithmParam#SetValue : Setting value from double to Brat algorithm type %d is not valid", static_cast<int32_t>(type)),  BRATHL_LOGIC_ERROR);
-      break;
-    }
-  }
-}
-//----------------------------------------
-void CBratAlgorithmParam::SetValue(const std::string& value, CBratAlgorithmParam::bratAlgoParamTypeVal type)
-{
-  switch (type)
-  {
-  case CBratAlgorithmParam::T_INT :
-  case CBratAlgorithmParam::T_LONG :
-  case CBratAlgorithmParam::T_FLOAT :
-  case CBratAlgorithmParam::T_DOUBLE :
-  case CBratAlgorithmParam::T_CHAR :
-    {
-      SetValue(CTools::StrToDouble(value), type);
-      break;
-    }
-  case CBratAlgorithmParam::T_STRING :
-    {
-      SetValue(value);
-      break;
-    }
-  case CBratAlgorithmParam::T_VECTOR_DOUBLE :
-    {
-      SetValueAsDoubleArray(value);
-      break;
-    }
-  default :
-    {
-      throw CException(CTools::Format("CBratAlgorithmParam#SetValue : Setting value from std::string to Brat algorithm type %d is not valid", static_cast<int32_t>(type)),  BRATHL_LOGIC_ERROR);
-      break;
-    }
-  }
-}
-
-//----------------------------------------
-void CBratAlgorithmParam::SetValue(double value)
-{
-  m_typeVal = CBratAlgorithmParam::T_DOUBLE;
-  m_valDouble = value;
-}
-//----------------------------------------
-void CBratAlgorithmParam::SetValue(float value)
-{
-  m_typeVal = CBratAlgorithmParam::T_FLOAT;
-  m_valFloat = value;
-}
-//----------------------------------------
-void CBratAlgorithmParam::SetValue(int32_t value)
-{
-  m_typeVal = CBratAlgorithmParam::T_INT;
-  m_valInt = value;
-}
-//----------------------------------------
-void CBratAlgorithmParam::SetValue(int64_t value)
-{
-  m_typeVal = CBratAlgorithmParam::T_LONG;
-  m_valLong = value;
-}
-//----------------------------------------
-void CBratAlgorithmParam::SetValue(const std::string& value) 
-{
-  m_typeVal = CBratAlgorithmParam::T_STRING;
-  m_valString = value;
-}
-
-//----------------------------------------
-void CBratAlgorithmParam::SetValue(unsigned char value)
-{
-  m_typeVal = CBratAlgorithmParam::T_CHAR;
-  m_valChar = value;
-}
-//----------------------------------------
-void CBratAlgorithmParam::SetValue(const CDoubleArray& value)
-{
-  m_typeVal = CBratAlgorithmParam::T_VECTOR_DOUBLE;
-  Copy(value);
-}
-
-//----------------------------------------
-void CBratAlgorithmParam::SetValueAsDoubleArray(const std::string& value, const std::string& delim /*= "," */) 
-{
-  m_typeVal = CBratAlgorithmParam::T_VECTOR_DOUBLE;
-  m_vectValDouble.RemoveAll(); 
-  m_vectValDouble.Insert(value);
-}
-//----------------------------------------
-void CBratAlgorithmParam::Copy(const CDoubleArray& value)
-{
-  m_vectValDouble.RemoveAll(); 
-  m_vectValDouble.Insert(value);
-}
-//----------------------------------------
-void CBratAlgorithmParam::SetValue(double* value, int32_t nbValues)
-{
-  m_typeVal = CBratAlgorithmParam::T_VECTOR_DOUBLE;
-
-  m_vectValDouble.RemoveAll(); 
-
-  for (int32_t i = 0 ; i < nbValues ; i++) 
-  {
-    m_vectValDouble.Insert(value[i]);
-  }
-}
-//----------------------------------------
-std::string CBratAlgorithmParam::TypeValAsString(CBratAlgorithmParam::bratAlgoParamTypeVal type)
-{
-  std::string value = "";
-  switch (type) 
-  {
-    case T_UNDEF: value = "undefined"; break;
-    case T_INT: value = "integer"; break;
-    case T_LONG: value = "long"; break;
-    case T_FLOAT: value = "float"; break;
-    case T_DOUBLE: value = "double"; break;
-    case T_CHAR: value = "char"; break;
-    case T_STRING: value = "std::string"; break;
-    case T_VECTOR_DOUBLE: value = "array of double"; break;
-    default: value = CTools::Format("CBratAlgorithmParam#TypeValAsString: unknown type %d.",
-               static_cast<uint32_t>(type)); break;
-
-  }
-
-  return value; 
-}
-//----------------------------------------
-std::string CBratAlgorithmParam::GetValue() const
-{
-  std::string value = "";
-
-  switch (m_typeVal)
-  {
-  case CBratAlgorithmParam::T_INT :
-    {
-      value = CTools::IntToStr(this->GetValueAsInt());
-      break;
-    }
-  case CBratAlgorithmParam::T_LONG :
-    {
-      value = CTools::LongToStr(this->GetValueAsLong());
-      break;
-    }
-  case CBratAlgorithmParam::T_FLOAT :
-    {
-      value = CTools::FloatToStr(this->GetValueAsFloat(), 15);
-      break;
-    }
-  case CBratAlgorithmParam::T_DOUBLE :
-    {
-      value = CTools::DoubleToStr(this->GetValueAsDouble(), 15);
-      break;
-    }
-  case CBratAlgorithmParam::T_CHAR :
-    {
-      value = this->GetValueAsChar();
-      break;
-    }
-  case CBratAlgorithmParam::T_STRING :
-    {
-      value = this->GetValueAsString();
-      break;
-    }
-  case CBratAlgorithmParam::T_VECTOR_DOUBLE :
-    {
-      value = this->GetValueAsVectDouble()->ToString();
-      break;
-    }
-  default :
-    {
-      throw CException(CTools::Format("CBratAlgorithmParam#GetValue : GetValue value as std::string from Brat algorithm type %d is not valid", static_cast<int32_t>(m_typeVal)),  BRATHL_LOGIC_ERROR);
-      break;
-    }
-  }
-
-  return value;
-}
-
-//----------------------------------------
-void CBratAlgorithmParam::Dump(std::ostream& fOut /* = std::cerr */)
-{
-
- if (CTrace::IsTrace() == false)
-  {
-    return;
-  }
-
-  fOut << "==> Dump a CBratAlgorithmParam Object at "<< this << std::endl;
-  fOut << "m_typeVal: " << m_typeVal << std::endl;
-  fOut << "m_valDouble: " << m_valDouble << std::endl;
-  fOut << "m_valInt: " << m_valInt<< std::endl;
-  fOut << "m_valFloat: " << m_valFloat << std::endl;
-  fOut << "m_valString: " << m_valString << std::endl;
-  fOut << "m_valChar: " << m_valChar << std::endl;
-  fOut << "m_vectValDouble: " << std::endl;
-  m_vectValDouble.Dump(fOut);
-  fOut << "==> END Dump a CBratAlgorithmParam Object at "<< this << " elements" << std::endl;
-
-
-  fOut << std::endl;
-
-}
-//-------------------------------------------------------------
-//------------------- CVectorBratAlgorithmParam class --------------------
-//-------------------------------------------------------------
-
-CVectorBratAlgorithmParam::CVectorBratAlgorithmParam()
-{
-  Init();
-}
-
-
-//----------------------------------------
-CVectorBratAlgorithmParam::~CVectorBratAlgorithmParam()
-{
-  RemoveAll();
-}
-//----------------------------------------
-void CVectorBratAlgorithmParam::Init()
-{
-}
-
-//----------------------------------------
-void CVectorBratAlgorithmParam::Insert(const CBratAlgorithmParam& o)
-{
-  vectorbratalgorithmparam::push_back(o);   
-}
-
-//----------------------------------------
-void CVectorBratAlgorithmParam::RemoveAll()
-{
-  vectorbratalgorithmparam::clear();
-
-}
-//----------------------------------------
-void CVectorBratAlgorithmParam::Insert(double value, CBratAlgorithmParam::bratAlgoParamTypeVal type)
-{
-  CBratAlgorithmParam p;
-  p.SetValue(value, type);
-  this->Insert(p);
-}
-//----------------------------------------
-void CVectorBratAlgorithmParam::Insert(const std::string& value, CBratAlgorithmParam::bratAlgoParamTypeVal type)
-{
-  CBratAlgorithmParam p;
-  p.SetValue(value, type);
-  this->Insert(p);
-}
-
-//----------------------------------------
-void CVectorBratAlgorithmParam::Insert(double value)
-{
-  CBratAlgorithmParam p;
-  p.SetValue(value);
-  this->Insert(p);
-}
-//----------------------------------------
-void CVectorBratAlgorithmParam::Insert(float value)
-{
-  CBratAlgorithmParam p;
-  p.SetValue(value);
-  this->Insert(p);
-}
-//----------------------------------------
-void CVectorBratAlgorithmParam::Insert(int32_t value)
-{
-  CBratAlgorithmParam p;
-  p.SetValue(value);
-  this->Insert(p);
-}
-//----------------------------------------
-void CVectorBratAlgorithmParam::Insert(const std::string& value) 
-{
-  CBratAlgorithmParam p;
-  p.SetValue(value);
-  this->Insert(p);
-}
-//----------------------------------------
-void CVectorBratAlgorithmParam::Insert(unsigned char value)
-{
-  CBratAlgorithmParam p;
-  p.SetValue(value);
-  this->Insert(p);
-}
-//----------------------------------------
-void CVectorBratAlgorithmParam::Insert(const CDoubleArray& value)
-{
-  CBratAlgorithmParam p;
-  p.SetValue(value);
-  this->Insert(p);
-}
-
-//----------------------------------------
-void CVectorBratAlgorithmParam::Insert(double* value, int32_t nbValues)
-{
-  CBratAlgorithmParam p;
-  p.SetValue(value, nbValues);
-  this->Insert(p);
-}
-//----------------------------------------
-std::string CVectorBratAlgorithmParam::ToString(const std::string& delim /*= "," */, bool useBracket /*= true */) const
-{
-  std::ostringstream myStream;
-
-  if (useBracket)
-  {
-    myStream << "(";
-  }
-
-  //CVectorBratAlgorithmParam::iterator it;
-
-  for ( auto it = cbegin( ); it != cend( ); it++ )
-  {
-    myStream << it->GetValue();  
-    if ((it+1) != this->end())
-    {
-      myStream << delim;  
-    }
-  }
-
-  if (useBracket)
-  {
-    myStream << ")";
-  }
-
-
-  return myStream.str();
-
-
-
-}
-//----------------------------------------
-void CVectorBratAlgorithmParam::Dump(std::ostream& fOut /* = std::cerr */)
-{
-
- if (CTrace::IsTrace() == false)
-  {
-    return;
-  }
-
-  CVectorBratAlgorithmParam::iterator it;
-  int i = 0;
-
-  fOut << "==> Dump a CVectorBratAlgorithmParam Object at "<< this << " with " <<  size() << " elements" << std::endl;
-
-  for ( it = this->begin( ); it != this->end( ); it++ )
-  {
-    fOut << "CVectorBratAlgorithmParam[" << i << "]= " << std::endl;  
-    (*it).Dump(fOut);
-    i++;
-  }
-
-  fOut << "==> END Dump a CVectorBratAlgorithmParam Object at "<< this << " with " <<  size() << " elements" << std::endl;
-
-
-  fOut << std::endl;
-
-}
 
 //-------------------------------------------------------------
 //------------------- CBratAlgorithmBase class --------------------
@@ -657,8 +190,8 @@ void CBratAlgorithmBase::SetField2DAsRef()
 //----------------------------------------
 CFieldNetCdf* CBratAlgorithmBase::GetField2DAsRef()
 {
-  uint32_t sizeXYFields = m_fieldDependOnXYDim.size();
-  if (sizeXYFields <= 0)
+  size_t sizeXYFields = m_fieldDependOnXYDim.size();
+  if ((long)sizeXYFields <= 0)
   {
     throw CAlgorithmException(CTools::Format("'%s' algorithm can't be applied because of an internal error: ERROR in CBratAlgorithmBase::SetField2DAsRef: reference 2D fields map is empty. This function shouldn't happened. There is something wrong in the Brat software."
                                               "\nPlease contact Brat Helpdesk", 
@@ -1291,7 +824,7 @@ void CBratAlgorithmBase::PrepareDataValues2DOneField(CExpressionValue& exprValue
   CExpression* expr = CExpression::GetExpression(m_algoParamExpressions.at(algoExprIndex), true);
   const CStringArray* fieldNames = expr->GetFieldNames();
 
-  uint32_t nbFields = fieldNames->size();
+  size_t nbFields = fieldNames->size();
   if (nbFields != 1)
   {
     throw CAlgorithmException(CTools::Format("'%s' algorithm can't be applied because of an internal error: ERROR in CBratAlgorithmBase::PrepareDataValues2DOneField: number of fields is: %d and the expected number is 1."
@@ -1474,7 +1007,7 @@ void CBratAlgorithmBase::PrepareDataValues2DComplexExpression(CExpressionValue& 
           }
 
           double value;
-          CTools::SetDefaultValue(value);
+          setDefaultValue(value);
 
           if (CExternalFiles::GetFieldNetCdf(m_fieldDependOnXYDim.Exists(*itFieldName), false) != NULL)
           {
@@ -1530,78 +1063,78 @@ void CBratAlgorithmBase::GetParamDefValue(uint32_t indexParam, double& value)
   value = this->GetParamDefaultValue(indexParam);
 }
 //----------------------------------------
-void CBratAlgorithmBase::GetParamDefValue(uint32_t indexParam, float& value)
+void CBratAlgorithmBase::GetParamDefValue( uint32_t indexParam, float& value )
 {
-  double v = GetParamDefaultValue(indexParam);
-  if (CTools::IsDefaultValue(v))
-  {
-    CTools::SetDefaultValue(value);
-    return;
-  }
+	double v = GetParamDefaultValue( indexParam );
+	if ( isDefaultValue( v ) )
+	{
+		setDefaultValue( value );
+		return;
+	}
 
-  value = static_cast<float>(v);
+	value = static_cast<float>( v );
 }
 //----------------------------------------
-void CBratAlgorithmBase::GetParamDefValue(uint32_t indexParam, uint32_t& value)
+void CBratAlgorithmBase::GetParamDefValue( uint32_t indexParam, uint32_t& value )
 {
-  double v = GetParamDefaultValue(indexParam);
-  if (CTools::IsDefaultValue(v))
-  {
-    CTools::SetDefaultValue(value);
-    return;
-  }
+	double v = GetParamDefaultValue( indexParam );
+	if ( isDefaultValue( v ) )
+	{
+		setDefaultValue( value );
+		return;
+	}
 
-  value = static_cast<uint32_t>(v);
+	value = static_cast<uint32_t>( v );
 }
 //----------------------------------------
-void CBratAlgorithmBase::GetParamDefValue(uint32_t indexParam, uint64_t& value)
+void CBratAlgorithmBase::GetParamDefValue( uint32_t indexParam, uint64_t& value )
 {
-  double v = GetParamDefaultValue(indexParam);
-  if (CTools::IsDefaultValue(v))
-  {
-    CTools::SetDefaultValue(value);
-    return;
-  }
+	double v = GetParamDefaultValue( indexParam );
+	if ( isDefaultValue( v ) )
+	{
+		setDefaultValue( value );
+		return;
+	}
 
-  value = static_cast<uint64_t>(v);
+	value = static_cast<uint64_t>( v );
 }
 //----------------------------------------
-void CBratAlgorithmBase::GetParamDefValue(uint32_t indexParam, int32_t& value)
+void CBratAlgorithmBase::GetParamDefValue( uint32_t indexParam, int32_t& value )
 {
-  double v = GetParamDefaultValue(indexParam);
-  if (CTools::IsDefaultValue(v))
-  {
-    CTools::SetDefaultValue(value);
-    return;
-  }
+	double v = GetParamDefaultValue( indexParam );
+	if ( isDefaultValue( v ) )
+	{
+		setDefaultValue( value );
+		return;
+	}
 
-  value = static_cast<int32_t>(v);
+	value = static_cast<int32_t>( v );
 }
 //----------------------------------------
-void CBratAlgorithmBase::GetParamDefValue(uint32_t indexParam, int64_t& value)
+void CBratAlgorithmBase::GetParamDefValue( uint32_t indexParam, int64_t& value )
 {
-  double v = GetParamDefaultValue(indexParam);
-  if (CTools::IsDefaultValue(v))
-  {
-    CTools::SetDefaultValue(value);
-    return;
-  }
+	double v = GetParamDefaultValue( indexParam );
+	if ( isDefaultValue( v ) )
+	{
+		setDefaultValue( value );
+		return;
+	}
 
-  value = static_cast<int64_t>(v);
+	value = static_cast<int64_t>( v );
 }
 
 
 //----------------------------------------
-std::string CBratAlgorithmBase::GetParamDefValueAsString(uint32_t indexParam)
+std::string CBratAlgorithmBase::GetParamDefValueAsString( uint32_t indexParam )
 {
-  std::string value;
-  double defaultValue = this->GetParamDefaultValue(indexParam);
-  if (!CTools::IsDefaultValue(defaultValue))
-  {
-    value = CTools::TrailingZeroesTrim(CTools::DoubleToStr(defaultValue), true);
-  }
+	std::string value;
+	double defaultValue = this->GetParamDefaultValue( indexParam );
+	if ( !isDefaultValue( defaultValue ) )
+	{
+		value = CTools::TrailingZeroesTrim( CTools::DoubleToStr( defaultValue ), true );
+	}
 
-  return value;
+	return value;
 }
 
 //----------------------------------------
@@ -1811,7 +1344,7 @@ std::string CBratAlgorithmBase::GetSyntax()
   {
     std::string value = this->GetParamName(i);
     double defaultValue = this->GetParamDefaultValue(i);
-    if (!CTools::IsDefaultValue(defaultValue))
+    if (!isDefaultValue(defaultValue))
     {
       value = CTools::TrailingZeroesTrim(CTools::DoubleToStr(defaultValue), true);
     }

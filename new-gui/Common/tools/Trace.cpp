@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
@@ -17,24 +15,18 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
+#include "stdafx.h"
 
-
-#include <cstdarg>
-#include <cstdio> 
-
-#include "Tools.h"
+//#include "Tools.h"
 #include "Trace.h"
 #include "TraceLog.h"
-using namespace brathl;
 
-namespace brathl
-{
 
 const int MAXLINE_TRACE = 1024;
 
   // Static initialization
 CTrace* CTrace::m_instance = NULL;
-int32_t	CTrace::m_TraceLevel = 0;
+int	CTrace::m_TraceLevel = 0;
 
 //----------------------------------------------------
 
@@ -199,7 +191,7 @@ std::ostream* CTrace::GetDumpContext()
 //----------------------------------------------------
 
 bool CTrace::IsTrace
-		(int32_t	Level	/*= 5*/)
+		(int	Level	/*= 5*/)
 {
   if (Level < 0)
     return true;
@@ -210,56 +202,49 @@ bool CTrace::IsTrace
 }
 
 //----------------------------------------------------
-void CTrace::Tracer
-		(const std::string	&message)
+void CTrace::Tracer( const std::string &message )
 {
-  if (! IsTrace(5))
-    return;
+	if ( ! IsTrace( 5 ) )
+		return;
 
-  PrintText(true, message);
+	PrintText( true, message );
 }
 //----------------------------------------------------
 
-void CTrace::Tracer
-		(const char	*message,
-		 ...)
+void CTrace::Tracer( const char	*message, ... )
 {
-  if (! IsTrace(5))
-    return;
+	if ( ! IsTrace( 5 ) )
+		return;
 
-  va_list args;
-  va_start( args, message );
+	va_list args;
+	va_start( args, message );
 
-  PrintText(true, message, args);
+	PrintText( true, message, args );
 
-  va_end( args );
-
+	va_end( args );
 }
 
 
 //----------------------------------------------------
 
-void CTrace::Tracer
-		(const int32_t	Level,
-		 const char	*message,
-		 ...)
+void CTrace::Tracer( const int	Level, const char *message, ... )
 {
-  if (! IsTrace(Level))
-    return;
+	if ( ! IsTrace( Level ) )
+		return;
 
-  va_list args;
-  va_start( args, message );
+	va_list args;
+	va_start( args, message );
 
-  PrintText(true, message, args);
+	PrintText( true, message, args );
 
-  va_end( args );
+	va_end( args );
 }
 
 //----------------------------------------------------
 
 
 void CTrace::Tracer
-		(const int32_t	Level,
+		(const int	Level,
 		 const std::string	&message)
 {
   if (! IsTrace(Level))
@@ -299,10 +284,7 @@ void CTrace::Print
 
 //----------------------------------------------------
 
-void CTrace::Print
-		(const int32_t	Level,
-		 const char	*message,
-		 ...)
+void CTrace::Print(const int	Level, const char	*message, ... )
 {
   if (! IsTrace(Level))
     return;
@@ -317,46 +299,37 @@ void CTrace::Print
 
 //----------------------------------------------------
 
-
-void CTrace::Print
-		(const int32_t	Level,
-		 const std::string	&message)
+void CTrace::Print( const int Level, const std::string &message )
 {
-  if (! IsTrace(Level))
-    return;
+	if ( ! IsTrace( Level ) )
+		return;
 
-  PrintText(false, message);
+	PrintText( false, message );
 }
 //----------------------------------------------------
 
-
-void CTrace::PrintText
-		(bool		NewLine,
-		 const char	*message,
-		 va_list	args)
+void CTrace::PrintText( bool NewLine, const char *message, va_list args )
 {
-  std::ostream* fOut = CTrace::GetDumpContext();
+	std::ostream* fOut = CTrace::GetDumpContext();
 
-  *fOut << CTools::Format(MAXLINE_TRACE, message, args);
-  if (NewLine)
-    *fOut << std::endl;
+	*fOut << stdFormat( MAXLINE_TRACE, message, args );
+	if ( NewLine )
+		*fOut << std::endl;
 }
 //----------------------------------------------------
 
-void CTrace::PrintText
-		(bool		NewLine,
-		 const std::string	&message)
+void CTrace::PrintText( bool NewLine, const std::string &message )
 {
-  std::ostream* fOut = CTrace::GetDumpContext();
+	std::ostream* fOut = CTrace::GetDumpContext();
 
-  *fOut << message;
-  if (NewLine)
-    *fOut << std::endl;
+	*fOut << message;
+	if ( NewLine )
+		*fOut << std::endl;
 }
 //----------------------------------------------------
 
 void CTrace::SetTraceLevel
-		(int32_t	Level)
+		(int	Level)
 {
   if (Level < 0)
     m_TraceLevel	= 0;
@@ -364,15 +337,4 @@ void CTrace::SetTraceLevel
     m_TraceLevel	= 5;
   else
     m_TraceLevel	= Level;
-}
-
-//----------------------------------------------------
-
-int32_t CTrace::GetTraceLevel
-		()
-{
-  return m_TraceLevel;
-}
-
-
 }

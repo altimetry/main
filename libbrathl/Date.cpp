@@ -27,11 +27,11 @@
 #include <cerrno>
 #include <ctime>
 
-#include "brathl_error.h"
+#include "new-gui/Common/tools/brathl_error.h"
 #include "brathl.h"
 
-#include "Exception.h"
-#include "TraceLog.h"
+#include "new-gui/Common/tools/Exception.h"
+#include "new-gui/Common/tools/TraceLog.h"
 #include "Tools.h"
 #include "Date.h"
 using namespace brathl;
@@ -160,7 +160,7 @@ double CDate::GetNbSeconds()
   double value = 0.0;
   if (IsDefaultValue())
   {
-    CTools::SetDefaultValue(value);
+    setDefaultValue(value);
   }
   else
   {
@@ -432,7 +432,7 @@ double CDate::CvDate(const char *strDate)
 bool CDate::IsCharDate(const char *strDate)
 {
 
-  return CTools::IsDefaultValue( CTools::StrToDouble(strDate) ) ;
+  return isDefaultValue( CTools::StrToDouble(strDate) ) ;
 }
 
 //----------------------------------------
@@ -446,7 +446,7 @@ int32_t CDate::SetDate(const char *strDate)
     SetDefaultValue();
     return result;
   }
-  if (CTools::CompareNoCase(strDate, "dv"))
+  if (str_icmp(strDate, "dv"))
   {
     SetDefaultValue();
     return result;
@@ -618,7 +618,7 @@ int32_t CDate::SetDate(const double dateSeconds, brathl_refDate refDate /*= REF1
 
   int32_t result = BRATHL_SUCCESS;
 
-  if (CTools::IsDefaultValue(dateSeconds))
+  if (isDefaultValue(dateSeconds))
   {
     SetDefaultValue();
     return result;
@@ -673,7 +673,7 @@ int32_t CDate::SetDateJulian(const double dateJulian, brathl_refDate refDate/*= 
   int32_t result = BRATHL_SUCCESS;
 
 
-  if (CTools::IsDefaultValue(dateJulian) == true)
+  if (isDefaultValue(dateJulian) == true)
   {
     return BRATHL_SUCCESS;
   }
@@ -977,16 +977,16 @@ int32_t CDate::CheckMuSecond(uint32_t muSecond)
 void CDate::SetDefaultValue()
 {
 
-  CTools::SetDefaultValue(m_minutes);
-  CTools::SetDefaultValue(m_muSeconds);
+  setDefaultValue(m_minutes);
+  setDefaultValue(m_muSeconds);
 
 }
 
 
 bool CDate::IsDefaultValue()
 {
-  if ((CTools::IsDefaultValue(m_minutes) == true) ||
-      (CTools::IsDefaultValue(m_muSeconds) == true))
+  if ((isDefaultValue(m_minutes) == true) ||
+      (isDefaultValue(m_muSeconds) == true))
   {
     return true;
   }
@@ -999,13 +999,13 @@ bool CDate::IsDefaultValueYMDHMSM(const uint32_t year, const uint32_t month /*= 
       	      	         const uint32_t hour /*= 0*/, const uint32_t minute /*= 0*/, const uint32_t second /*= 0*/,
       	      	         const uint32_t muSecond /*= 0*/)
 {
-  if ((CTools::IsDefaultValue(year) == true) ||
-      (CTools::IsDefaultValue(month) == true) ||
-      (CTools::IsDefaultValue(day) == true) ||
-      (CTools::IsDefaultValue(hour) == true) ||
-      (CTools::IsDefaultValue(minute) == true) ||
-      (CTools::IsDefaultValue(second) == true) ||
-      (CTools::IsDefaultValue(muSecond) == true))
+  if ((isDefaultValue(year) == true) ||
+      (isDefaultValue(month) == true) ||
+      (isDefaultValue(day) == true) ||
+      (isDefaultValue(hour) == true) ||
+      (isDefaultValue(minute) == true) ||
+      (isDefaultValue(second) == true) ||
+      (isDefaultValue(muSecond) == true))
   {
     return true;
   }
@@ -1188,8 +1188,8 @@ int32_t CDate::Convert2SM(double& seconds, double& muSeconds,
 
   if (result !=  BRATHL_SUCCESS)
   {
-    CTools::SetDefaultValue(seconds);
-    CTools::SetDefaultValue(muSeconds);
+    setDefaultValue(seconds);
+    setDefaultValue(muSeconds);
   }
   else
   {
@@ -1215,8 +1215,8 @@ int32_t CDate::Convert2SM(int32_t& seconds, int32_t& muSeconds,
 
   if (IsDefaultValue() == true)
   {
-    CTools::SetDefaultValue(seconds);
-    CTools::SetDefaultValue(muSeconds);
+    setDefaultValue(seconds);
+    setDefaultValue(muSeconds);
     return result;
   }
 
@@ -1252,9 +1252,9 @@ int32_t CDate::Convert2DMM(double& days, double& milliSeconds, double& muSeconds
 
   if (result !=  BRATHL_SUCCESS)
   {
-    CTools::SetDefaultValue(days);
-    CTools::SetDefaultValue(milliSeconds);
-    CTools::SetDefaultValue(muSeconds);
+    setDefaultValue(days);
+    setDefaultValue(milliSeconds);
+    setDefaultValue(muSeconds);
   }
   else
   {
@@ -1282,9 +1282,9 @@ int32_t CDate::Convert2DMM(int32_t& days, int32_t& milliSeconds, int32_t& muSeco
 
   if (IsDefaultValue() == true)
   {
-    CTools::SetDefaultValue(days);
-    CTools::SetDefaultValue(milliSeconds);
-    CTools::SetDefaultValue(muSeconds);
+    setDefaultValue(days);
+    setDefaultValue(milliSeconds);
+    setDefaultValue(muSeconds);
     return result;
   }
 
@@ -1331,9 +1331,9 @@ int32_t CDate::Convert2DSM(int32_t& days, int32_t& seconds, int32_t& muSeconds,
 
   if (IsDefaultValue() == true)
   {
-    CTools::SetDefaultValue(days);
-    CTools::SetDefaultValue(seconds);
-    CTools::SetDefaultValue(muSeconds);
+    setDefaultValue(days);
+    setDefaultValue(seconds);
+    setDefaultValue(muSeconds);
     return result;
   }
 
@@ -1376,9 +1376,9 @@ int32_t CDate::Convert2DSM(double& days, double& seconds, double& muSeconds,
 
   if (result !=  BRATHL_SUCCESS)
   {
-    CTools::SetDefaultValue(days);
-    CTools::SetDefaultValue(seconds);
-    CTools::SetDefaultValue(muSeconds);
+    setDefaultValue(days);
+    setDefaultValue(seconds);
+    setDefaultValue(muSeconds);
   }
   else
   {
@@ -1404,7 +1404,7 @@ int32_t CDate::Convert2DecimalJulian(double& julian, const brathl_refDate refDat
     return BRATHL_SUCCESS;
   }
 
-  CTools::SetDefaultValue(julian);
+  setDefaultValue(julian);
 
   result = Convert2DSM(days, seconds, muSeconds, refDate);
 
@@ -1452,13 +1452,13 @@ int32_t CDate::Convert2YMDHMSM(uint32_t& year, uint32_t& month, uint32_t& day,
   //double tmp = 0.0;
   int32_t tmp = 0;
 
-  CTools::SetDefaultValue(year);
-  CTools::SetDefaultValue(month);
-  CTools::SetDefaultValue(day);
-  CTools::SetDefaultValue(hour);
-  CTools::SetDefaultValue(minute);
-  CTools::SetDefaultValue(second);
-  CTools::SetDefaultValue(muSecond);
+  setDefaultValue(year);
+  setDefaultValue(month);
+  setDefaultValue(day);
+  setDefaultValue(hour);
+  setDefaultValue(minute);
+  setDefaultValue(second);
+  setDefaultValue(muSecond);
 
   if (IsDefaultValue())
   {
@@ -1598,9 +1598,9 @@ int32_t CDate::DSM2Second(const uint32_t days, const uint32_t seconds, const uin
 {
   int32_t result = BRATHL_SUCCESS;
 
-  if ((CTools::IsDefaultValue(days) == true) ||
-      (CTools::IsDefaultValue(seconds) == true) ||
-      (CTools::IsDefaultValue(muSeconds) == true))
+  if ((isDefaultValue(days) == true) ||
+      (isDefaultValue(seconds) == true) ||
+      (isDefaultValue(muSeconds) == true))
   {
     SetDefaultValue();
     return result;
@@ -1977,7 +1977,7 @@ int32_t CDate::DecodeDateDSM(const char *strDateDSM)
     isNumber = false;
   }
 
-  if (CTools::IsDefaultValue(tabResult[0]) == true)
+  if (isDefaultValue(tabResult[0]) == true)
   {
     return BRATHL_ERROR_INVALID_DAY;
   }

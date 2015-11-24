@@ -31,9 +31,9 @@
 #include <algorithm>
 
 #include "../libbrathl/Tools.h"
-#include "../libbrathl/Trace.h"
+#include "new-gui/Common/tools/Trace.h"
 #include "../libbrathl/LatLonPoint.h"
-#include "../libbrathl/Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 using namespace brathl;
 
 #include "vtkProj2DFilter.h"
@@ -293,7 +293,7 @@ void vtkVelocityGlyphFilter::Execute()
 
     int nMaxHeight = this->MapHeight;
     bool fullLat = false;
-    if ( CTools::AreEqual(latitudes[0],-90.0) && CTools::AreEqual(latitudes[this->MapHeight - 1], 90.0) )
+    if ( areEqual(latitudes[0],-90.0) && areEqual(latitudes[this->MapHeight - 1], 90.0) )
     {
         nMaxHeight = this->MapHeight - 1;
         fullLat = true;

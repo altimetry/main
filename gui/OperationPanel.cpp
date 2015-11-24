@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
@@ -18,12 +16,25 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+// Temporary hack to prevent the inclusion of Windows XML 
+// headers, which collide with xerces
+//
+#if defined (WIN32) || defined (_WIN32)
+//avoid later inclusion of Microsoft XML stuff, which causes name collisions with xerces
+#define DOMDocument MsDOMDocument
+#include <msxml.h>
+#include <urlmon.h>
+#undef DOMDocument
+#endif
+
+
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
     #pragma implementation "OperationPanel.h"
 #endif
 
 // For compilers that support precompilation, includes "wx/wx.h".
-#include "wx/wxprec.h"
+//#include "wx/wxprec.h"
+#include "wx/wx.h"
 
 #ifdef __BORLANDC__
     #pragma hdrstop
@@ -34,7 +45,7 @@
 #include <wx/ffile.h>
 #include <wx/generic/gridctrl.h>
 
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "Expression.h"
 using namespace brathl;
 
@@ -3778,11 +3789,11 @@ void COperationPanel::DelayExportOperationAsGeoTiff(CExportDlg& exportDlg)
   file.Write("=");
   file.Write(exportDlg.m_colorTable);
   file.Write("\n");
-  if (!CTools::IsDefaultValue(exportDlg.m_colorRangeMin))
+  if (!isDefaultValue(exportDlg.m_colorRangeMin))
   {
     file.Write(wxString::Format("%s=%lf\n", kwDISPLAY_MINVALUE.c_str(), exportDlg.m_colorRangeMin));
   }
-  if (!CTools::IsDefaultValue(exportDlg.m_colorRangeMax))
+  if (!isDefaultValue(exportDlg.m_colorRangeMax))
   {
     file.Write(wxString::Format("%s=%lf\n", kwDISPLAY_MAXVALUE.c_str(), exportDlg.m_colorRangeMax));
   }
@@ -4118,11 +4129,11 @@ void COperationPanel::ExportGeoTiff(wxFileName inputFile, wxFileName outputFile,
   file.Write("=");
   file.Write(colorTable);
   file.Write("\n");
-  if (!CTools::IsDefaultValue(rangeMin))
+  if (!isDefaultValue(rangeMin))
   {
     file.Write(wxString::Format("%s=%lf\n", kwDISPLAY_MINVALUE.c_str(), rangeMin));
   }
-  if (!CTools::IsDefaultValue(rangeMax))
+  if (!isDefaultValue(rangeMax))
   {
     file.Write(wxString::Format("%s=%lf\n", kwDISPLAY_MAXVALUE.c_str(), rangeMax));
   }

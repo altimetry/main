@@ -28,10 +28,10 @@ CWorldPlotProperty::CWorldPlotProperty()
 
   //m_colorTable = NULL;
 
-  CTools::SetDefaultValue(m_minHeightValue);
-  CTools::SetDefaultValue(m_maxHeightValue);
+  setDefaultValue(m_minHeightValue);
+  setDefaultValue(m_maxHeightValue);
 
-  //CTools::SetDefaultValue(m_stipplepattern);
+  //setDefaultValue(m_stipplepattern);
   m_valueConversion = 0.0;
   m_heightConversion = 0.0;
 
@@ -53,8 +53,8 @@ CWorldPlotProperty::CWorldPlotProperty()
   m_gridLabel = true;
 
   m_withContourLabel = false;
-  CTools::SetDefaultValue(m_minContourValue);
-  CTools::SetDefaultValue(m_maxContourValue);
+  setDefaultValue(m_minContourValue);
+  setDefaultValue(m_maxContourValue);
   m_numContour = 5;
   m_numContourLabel = 1;
 

@@ -25,12 +25,12 @@
 
 #include <string>
 
-#include "brathl_error.h" 
+#include "new-gui/Common/tools/brathl_error.h" 
 #include "brathl.h" 
 
-#include "TraceLog.h" 
+#include "new-gui/Common/tools/TraceLog.h" 
 #include "Tools.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/Exception.h" 
 #include "File.h" 
 #include "Mission.h" 
 using namespace brathl;

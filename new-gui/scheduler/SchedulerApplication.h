@@ -24,13 +24,13 @@ class QSchedulerApplication : public QApplication
 public:
     //explicit SchedulerDlg(QWidget *parent = 0);
     QSchedulerApplication(int &argc, char **argv, int flags = ApplicationFlags);
-    QSchedulerApplication(int &argc, char **argv, bool GUIenabled, int = ApplicationFlags)
-        : base_t(argc, argv, GUIenabled, ApplicationFlags)
-    {}
-    QSchedulerApplication(int &argc, char **argv, Type t, int = ApplicationFlags)
-        : base_t(argc, argv, t, ApplicationFlags)
-    {}
-
+//    QSchedulerApplication(int &argc, char **argv, bool GUIenabled, int = ApplicationFlags)
+//        : base_t(argc, argv, GUIenabled, ApplicationFlags)
+//    {}
+//    QSchedulerApplication(int &argc, char **argv, Type t, int = ApplicationFlags)
+//        : base_t(argc, argv, t, ApplicationFlags)
+//    {}
+    virtual ~QSchedulerApplication();
 };
 
 

@@ -726,8 +726,8 @@ public:
   void Set(CNetCDFDimension& d);
 
   const CNetCDFDimension& operator= (CNetCDFDimension& d);
-  virtual bool operator== ( CNetCDFDimension& d ) { return CTools::CompareNoCase(this->GetName(), d.GetName()); }
-  virtual bool operator== ( const std::string& text ) { return CTools::CompareNoCase(this->GetName(), text); }
+  virtual bool operator== ( CNetCDFDimension& d ) { return str_icmp(this->GetName(), d.GetName()); }
+  virtual bool operator== ( const std::string& text ) { return str_icmp(this->GetName(), text); }
 
   virtual bool operator!= ( CNetCDFDimension& d ) { return ! (*this == d); }
   virtual bool operator!= ( const std::string& text ) { return ! (*this == text); }
@@ -875,8 +875,8 @@ public:
   
   bool HaveCompatibleDimUnits(CNetCDFVarDef* netCDFVarDef, CNetCDFFiles* netCDFFiles1, CNetCDFFiles* netCDFFiles2, std::string* msg = NULL);
 
-  virtual bool operator== ( CNetCDFVarDef& d ) { return CTools::CompareNoCase(this->GetName(), d.GetName()); }
-  virtual bool operator== ( const std::string& text ) { return CTools::CompareNoCase(this->GetName(), text); }
+  virtual bool operator== ( CNetCDFVarDef& d ) { return str_icmp(this->GetName(), d.GetName()); }
+  virtual bool operator== ( const std::string& text ) { return str_icmp(this->GetName(), text); }
   
   virtual bool operator!= ( CNetCDFVarDef& d ) { return ! (*this == d); }
   virtual bool operator!= ( const std::string& text ) { return ! (*this == text); }
@@ -1147,8 +1147,7 @@ public:
   uint32_t GetDimension
 		(const std::string		&Name);
 
-  uint32_t GetDimension
-		(int			DimId);
+  size_t GetDimension(int DimId);
 
   int SetDimension
 		(NetCDFVarKind		DimKind,

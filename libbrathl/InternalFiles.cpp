@@ -25,7 +25,7 @@
 
 #include "Tools.h"
 #include "Date.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "Expression.h"
 
 #include "InternalFilesFactory.h"
@@ -390,7 +390,7 @@ CInternalFiles* CInternalFiles::Create(const std::string& fileName, bool open /*
   }
   catch (CException& e)
   {
-    CTools::DeleteObject(f);
+    delete f;
     f = NULL;
 
 
@@ -448,7 +448,7 @@ bool CInternalFiles::IsZFLatLonFile(const std::string& fileName, CInternalFiles*
 
   if (pf == NULL)
   {
-    CTools::DeleteObject(f);
+    delete f;
     f = NULL;
   }
   else
@@ -486,7 +486,7 @@ bool CInternalFiles::IsZFXYFile(const std::string& fileName, CStringArray* field
 
   if (pf == NULL)
   {
-    CTools::DeleteObject(f);
+    delete f;
     f = NULL;
   }
   else
@@ -536,7 +536,7 @@ bool CInternalFiles::IsYFXFile(const std::string& fileName, CInternalFiles** pf 
 
   if (pf == NULL)
   {
-    CTools::DeleteObject(f);
+    delete f;
     f = NULL;
 
   }

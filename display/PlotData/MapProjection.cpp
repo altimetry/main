@@ -27,7 +27,7 @@
 #endif
 
 #include "../libbrathl/Tools.h"
-#include "../libbrathl/Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 using namespace brathl;
 
 #include "vtkProj2DFilter.h"	//VISAN
@@ -103,7 +103,7 @@ bool CMapProjection::ValidName(const std::string& name)
 bool CMapProjection::ValidName(const char* name)
 {
   uint32_t value = Exists(name);
-  return (!CTools::IsDefaultValue(value));
+  return (!isDefaultValue(value));
 }
 
 //----------------------------------------
@@ -163,7 +163,7 @@ void CMapProjection::NamesToArrayString(wxArrayString& array)
   for (it = begin() ; it != end() ; it++)
   {
     uint32_t value = it->second;
-    if (!CTools::IsDefaultValue(value))
+    if (!isDefaultValue(value))
     {
       array.Add( (it->first).c_str());
     }
@@ -178,7 +178,7 @@ void CMapProjection::NamesToComboBox(wxComboBox& combo)
   for (it = begin() ; it != end() ; it++)
   {
     uint32_t value = it->second;
-    if (!CTools::IsDefaultValue(value))
+    if (!isDefaultValue(value))
     {
       combo.Append((it->first).c_str());
     }
@@ -194,7 +194,7 @@ uint32_t CMapProjection::Exists(const std::string& key)
   uint32_t value = CUIntMap::Exists(key);
 
   /*
-  if (CTools::IsDefaultValue(value))
+  if (isDefaultValue(value))
   {
     CException e(CTools::Format("ERROR in CMapProjection::Exists - Invalid projection name '%s' - id %d",
                                 key.c_str(), value),

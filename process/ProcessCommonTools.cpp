@@ -18,18 +18,18 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA	 02110-1301, USA.
 */
 
+#include <string>
+
 #include <cmath>
 #include <cstdlib>
-
-#include <string>
 
 #include "brathl.h"
 
 #include "Date.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "Expression.h"
 #include "Tools.h"
-#include "Trace.h"
+#include "new-gui/Common/tools/Trace.h"
 #include "LatLonPoint.h"
 
 // Included inside namespace since it is local data only
@@ -385,7 +385,7 @@ void MergeDataValue
 		 uint32_t		MeanValueOffset,
 		 CBratProcess::MergeDataMode		Mode)
 {
-  if (CTools::IsDefaultValue(Value))
+  if (isDefaultValue(Value))
     return;
 
   double Dummy	= 0.0;
@@ -397,7 +397,7 @@ void MergeDataValue
 	      *Data	= Value;
 	    break;
     case CBratProcess::pctLAST:
-	    if (! CTools::IsDefaultValue(Value))
+	    if (! isDefaultValue(Value))
 	      *Data	= Value;
 	    break;
     case CBratProcess::pctMIN:
@@ -493,13 +493,13 @@ void FinalizeMergingOfDataValues
     case CBratProcess::pctPRODUCT:
 	    if (*Data == CBratProcess::MergeIdentifyUnsetData)
 	    {
-	      CTools::SetDefaultValue(*Data);
+	      setDefaultValue(*Data);
 	    }
 	    break;
     case CBratProcess::pctMEAN:
 	    if (*Data == CBratProcess::MergeIdentifyUnsetData)
 	    {
-	      CTools::SetDefaultValue(*Data);
+	      setDefaultValue(*Data);
 	    }
 	    else
 	    {
@@ -513,7 +513,7 @@ void FinalizeMergingOfDataValues
     case CBratProcess::pctSTDDEV:
 	    if (*Data == CBratProcess::MergeIdentifyUnsetData)
 	    {
-	      CTools::SetDefaultValue(*Data);
+	      setDefaultValue(*Data);
 	    }
 	    else
 	    {
@@ -605,7 +605,7 @@ void LoessFilterGrid
       for (int32_t YIndex=0; YIndex < NbY; YIndex++)
       {
 	int32_t	IndexInGrid	= GRIDINDEX(XIndex, YIndex);
-	bool	IsDefault	= CTools::IsDefaultValue(Data[IndexInGrid]);
+	bool	IsDefault	= isDefaultValue(Data[IndexInGrid]);
 
         if ((SmoothData && (! IsDefault)) ||
 	    (ExtrapolData && IsDefault))
@@ -626,7 +626,7 @@ void LoessFilterGrid
 			 YLocal++)
 	    {
 	      int32_t	LocalIndexInGrid	= GRIDINDEX(XLocal, YLocal);
-	      if (! CTools::IsDefaultValue(Data[LocalIndexInGrid]))
+	      if (! isDefaultValue(Data[LocalIndexInGrid]))
 	      {
 		// Weighting
 		if (DoDist)
@@ -641,7 +641,7 @@ void LoessFilterGrid
 	      }
 	    }
 	  }
-	  if (! CTools::IsZero(Weight))
+	  if (!isZero(Weight))
 	    Buffer[IndexInGrid]	= Smooth/Weight;
         }
       }

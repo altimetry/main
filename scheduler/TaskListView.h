@@ -36,7 +36,11 @@
 
 #include "BratScheduler_wdr.h"
 
-#include "new-gui/scheduler/BratTask.h"
+
+
+class CVectorBratTask;
+class CMapBratTask;
+class CBratTask;
 
 // WDR: class declarations
 

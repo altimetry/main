@@ -24,13 +24,13 @@
 #include <cstring>
 #include <cstdlib>
 
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "Expression.h"
 #include <string>
 #include "Tools.h"
-#include "TraceLog.h"
+#include "new-gui/Common/tools/TraceLog.h"
 #include "brathl.h"
-#include "brathl_error.h"
+#include "new-gui/Common/tools/brathl_error.h"
 
 #include "Parameter.h"
 using namespace brathl;
@@ -121,7 +121,7 @@ bool CParameter::RemoveAllValue()
 
 
 //----------------------------------------
-uint32_t CParameter::Count()
+size_t CParameter::Count()
 {
   return m_values.size();
 }
@@ -359,7 +359,7 @@ void CParameter::GetValue(CDate& value, CUnit& unit, int32_t pos /* = 0*/)
   else
   {
     double valueDouble;
-    CTools::SetDefaultValue(valueDouble);
+    setDefaultValue(valueDouble);
 
     GetValue(valueDouble, pos);
 
@@ -403,7 +403,7 @@ void CParameter::GetValue(char* value, int32_t bufferSize, int32_t pos /* = 0*/,
   }
   else
   {
-    int32_t lenToCopy = m_values[pos].length();
+    auto lenToCopy = m_values[pos].length();
 
     if (bufferSize <= lenToCopy)
     {
@@ -576,7 +576,7 @@ void CParameter::GetValue
 
   value = KeywordList[ValueName];
 
-  if (CTools::IsDefaultValue(value))
+  if (isDefaultValue(value))
   {
     throw CParameterException(CTools::Format("Invalid value for keyword %s: '%s'",
 					     m_keyword.c_str(),

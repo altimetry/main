@@ -2,7 +2,7 @@
 
 #include "CmdLineProcessor.h"
 
-#include "../libbrathl/Trace.h"
+#include "new-gui/Common/tools/Trace.h"
 #include "../libbrathl/ExternalFilesNetCDF.h"
 #include "../libbrathl/ExternalFilesFactory.h"
 #include "../libbrathl/InternalFilesZFXY.h"

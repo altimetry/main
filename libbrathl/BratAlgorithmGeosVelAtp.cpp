@@ -21,8 +21,8 @@
 #include "brathl.h" 
 
 
-#include "TraceLog.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/TraceLog.h" 
+#include "new-gui/Common/tools/Exception.h" 
 #include "Product.h" 
 
 #include "BratAlgorithmGeosVelAtp.h" 
@@ -65,7 +65,7 @@ CBratAlgorithmGeosVelAtp::CBratAlgorithmGeosVelAtp(const CBratAlgorithmGeosVelAt
 //----------------------------------------
 void CBratAlgorithmGeosVelAtp::Init()
 {
-  CTools::SetDefaultValue(m_varValue);
+  setDefaultValue(m_varValue);
   SetBeginOfFile();
 }
 
@@ -101,8 +101,8 @@ void CBratAlgorithmGeosVelAtp::SetBeginOfFile()
   CBratAlgorithmGeosVel::SetBeginOfFile();
   
   m_gap = 0.0;
-  CTools::SetDefaultValue(m_varValuePrev);
-  CTools::SetDefaultValue(m_varValueNext);
+  setDefaultValue(m_varValuePrev);
+  setDefaultValue(m_varValueNext);
 
 }
 
@@ -111,7 +111,7 @@ void CBratAlgorithmGeosVelAtp::SetEndOfFile()
 {
   CBratAlgorithmGeosVel::SetEndOfFile();
 
-  CTools::SetDefaultValue(m_varValueNext);
+  setDefaultValue(m_varValueNext);
 
 }
 //----------------------------------------
@@ -189,8 +189,8 @@ double CBratAlgorithmGeosVelAtp::ComputeVelocity()
 //----------------------------------------
 double CBratAlgorithmGeosVelAtp::ComputeVelocityEquator() 
 {
-  CTools::SetDefaultValue(m_velocity);
-  if (CTools::IsDefaultValue(m_varValuePrev) || CTools::IsDefaultValue(m_varValue) || CTools::IsDefaultValue(m_varValueNext))
+  setDefaultValue(m_velocity);
+  if (isDefaultValue(m_varValuePrev) || isDefaultValue(m_varValue) || isDefaultValue(m_varValueNext))
   {
     return m_velocity;
   }
@@ -227,8 +227,8 @@ double CBratAlgorithmGeosVelAtp::ComputeVelocityEquator()
   double dxBeforeSqr = CTools::Sqr(dxBefore);
   double dyBeforeSqr = CTools::Sqr(dyBefore);
 
-  if (CTools::IsDefaultValue(dxAfterSqr) || CTools::IsDefaultValue(dyAfterSqr) || 
-      CTools::IsDefaultValue(dxBeforeSqr) || CTools::IsDefaultValue(dyBeforeSqr))
+  if (isDefaultValue(dxAfterSqr) || isDefaultValue(dyAfterSqr) || 
+      isDefaultValue(dxBeforeSqr) || isDefaultValue(dyBeforeSqr))
   {
     return m_velocity;
   }
@@ -238,7 +238,7 @@ double CBratAlgorithmGeosVelAtp::ComputeVelocityEquator()
                  * 1000.0;
 
   double distanceSqr = CTools::Sqr(distance);
-  if (CTools::IsDefaultValue(distanceSqr))
+  if (isDefaultValue(distanceSqr))
   {
     return m_velocity;
   }
@@ -256,15 +256,15 @@ double CBratAlgorithmGeosVelAtp::ComputeVelocityEquator()
 //----------------------------------------
 double CBratAlgorithmGeosVelAtp::ComputeVelocityOutsideEquator() 
 {
-  CTools::SetDefaultValue(m_velocity);
-  if (CTools::IsDefaultValue(m_varValue) || CTools::IsDefaultValue(m_lon))
+  setDefaultValue(m_velocity);
+  if (isDefaultValue(m_varValue) || isDefaultValue(m_lon))
   {
     return m_velocity;
   }
 
   double dxBefore = 0.0;
   double dyBefore = 0.0;
-  bool hasPrevious = (!CTools::IsDefaultValue(m_latPrev) && !CTools::IsDefaultValue(m_lonPrev) && !CTools::IsDefaultValue(m_varValuePrev));
+  bool hasPrevious = (!isDefaultValue(m_latPrev) && !isDefaultValue(m_lonPrev) && !isDefaultValue(m_varValuePrev));
   double varValuePrev = m_varValuePrev;
 //  	PositionAvant	= Index-1;
   if (hasPrevious)
@@ -285,7 +285,7 @@ double CBratAlgorithmGeosVelAtp::ComputeVelocityOutsideEquator()
   double dxAfter = 0.0;
   double dyAfter = 0.0;
 
-  bool hasNext = (!CTools::IsDefaultValue(m_latNext) && !CTools::IsDefaultValue(m_lonNext) && !CTools::IsDefaultValue(m_varValueNext));
+  bool hasNext = (!isDefaultValue(m_latNext) && !isDefaultValue(m_lonNext) && !isDefaultValue(m_varValueNext));
   double varValueNext = m_varValueNext;
 
   if (hasNext)
@@ -313,8 +313,8 @@ double CBratAlgorithmGeosVelAtp::ComputeVelocityOutsideEquator()
   double dxBeforeSqr = CTools::Sqr(dxBefore);
   double dyBeforeSqr = CTools::Sqr(dyBefore);
 
-  if (CTools::IsDefaultValue(dxAfterSqr) || CTools::IsDefaultValue(dyAfterSqr) || 
-      CTools::IsDefaultValue(dxBeforeSqr) || CTools::IsDefaultValue(dyBeforeSqr))
+  if (isDefaultValue(dxAfterSqr) || isDefaultValue(dyAfterSqr) || 
+      isDefaultValue(dxBeforeSqr) || isDefaultValue(dyBeforeSqr))
   {
     return m_velocity;
   }
@@ -342,7 +342,7 @@ void CBratAlgorithmGeosVelAtp::SetGap()
 {
   m_gap	= 0.0;
 
-  if (CTools::IsDefaultValue(m_lat) || CTools::IsDefaultValue(m_latNext)) 
+  if (isDefaultValue(m_lat) || isDefaultValue(m_latNext)) 
   {
     return;
   }
@@ -367,7 +367,7 @@ void CBratAlgorithmGeosVelAtp::SetEquatorTransition()
   m_equatorTransition	= false;
   m_equatorTransitionIsNext = false;
 
-  if (CTools::IsDefaultValue(m_lat) || CTools::IsDefaultValue(m_latNext)) 
+  if (isDefaultValue(m_lat) || isDefaultValue(m_latNext)) 
   {
     return;
   }

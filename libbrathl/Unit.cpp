@@ -27,7 +27,7 @@
 #include "brathl.h"
 
 #include "Tools.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "Expression.h"
 
 #include "Unit.h"
@@ -220,7 +220,7 @@ CUnit &CUnit::operator=
 //----------------------------------------
 bool CUnit::operator==(CUnit& u)
 {
-  return CTools::CompareNoCase(this->AsString().c_str(), u.AsString().c_str());
+  return str_icmp(this->AsString().c_str(), u.AsString().c_str());
 }
 //----------------------------------------
 bool CUnit::operator==(const std::string& text)
@@ -353,9 +353,9 @@ double CUnit::ConvertToUnit(const double	fromValue, double defaultValue /* = CTo
 {
   double out = defaultValue;
 
-  if (CTools::IsDefaultValue(fromValue))
+  if (isDefaultValue(fromValue))
   {
-    if (!CTools::IsDefaultValue(defaultValue))
+    if (!isDefaultValue(defaultValue))
     {
       out = ConvertToUnit(defaultValue);
     }
@@ -386,9 +386,9 @@ double CUnit::ConvertToBaseUnit(const double	fromValue, double defaultValue /* =
 {
   double out = defaultValue;
 
-  if (CTools::IsDefaultValue(fromValue))
+  if (isDefaultValue(fromValue))
   {
-    if (!CTools::IsDefaultValue(defaultValue))
+    if (!isDefaultValue(defaultValue))
     {
       out = ConvertToBaseUnit(defaultValue);
     }
@@ -541,7 +541,7 @@ std::string CUnit::GetDateUnitWithoutDateOrigin() const
 
   ar.ExtractStrings(GetText().c_str(), " since ");
 
-  int32_t len = ar.size();
+  size_t len = ar.size();
 
 
   if (len <= 1)
@@ -568,7 +568,7 @@ bool CUnit::HasDateRef(CDate* dateRef /*= NULL*/, CStringArray* array /*= NULL*/
 
   ar.ExtractStrings(GetText().c_str(), ' ');
 
-  int32_t len = ar.size();
+  size_t len = ar.size();
 
 
   if (len <= 2)

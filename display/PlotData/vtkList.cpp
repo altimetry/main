@@ -26,8 +26,8 @@
 
 #include <string> 
 
-#include "../libbrathl/TraceLog.h" 
-#include "../libbrathl/Exception.h" 
+#include "new-gui/Common/tools/TraceLog.h" 
+#include "new-gui/Common/tools/Exception.h" 
 #include "../libbrathl/Tools.h" 
 #include "vtkList.h" 
 

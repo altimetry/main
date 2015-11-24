@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
@@ -17,9 +15,10 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-//#include "stdafx.h"
 
-#include "new-gui/Common/+/QtFileUtils.h"
+#include "stdafx.h"
+
+#include "new-gui/Common/QtFileUtils.h"
 
 //#include "libbrathl/TraceLog.h"
 //#include "Exception.h"
@@ -51,61 +50,6 @@ const std::string CBratTaskFunction::m_TASK_FUNC_COPYFILE = "CopyFile";
 //-------------------------------------------------------------
 //------------------- CBratTaskFunction class --------------------
 //-------------------------------------------------------------
-
-//----------------------------------------
-CBratTaskFunction::CBratTaskFunction()
-{
-  Init();
-}
-//----------------------------------------
-CBratTaskFunction::CBratTaskFunction(const std::string& name, BratTaskFunctionCallableN* call)
-{
-  Init();
-  m_name = name;
-  m_call = call;
-}
-//----------------------------------------
-CBratTaskFunction::CBratTaskFunction(const CBratTaskFunction& o)
-{
-  Init();
-  Set(o);
-}
-//----------------------------------------
-
-CBratTaskFunction::~CBratTaskFunction()
-{
-}
-//----------------------------------------
-void CBratTaskFunction::Init()
-{
-  m_call = NULL;
-}
-
-//----------------------------------------
-const CBratTaskFunction& CBratTaskFunction::operator=(const CBratTaskFunction& o)
-{
-  if (this == &o)
-  {
-    return *this;
-  }
-
-  Set(o);
-
-  return *this;
-}
-//----------------------------------------
-void CBratTaskFunction::Set(const CBratTaskFunction& o)
-{
-  m_name = o.m_name;
-  m_call = o.m_call;
-}
-
-//----------------------------------------
-void CBratTaskFunction::GetParamsAsString(std::string& value) const
-{
-  value = m_params.ToString().c_str();
-}
-//----------------------------------------
 void CBratTaskFunction::Execute()
 {
 	try
@@ -130,7 +74,6 @@ void CBratTaskFunction::Execute()
 	}
 }
 //----------------------------------------
-
 void CBratTaskFunction::CopyFile( CVectorBratAlgorithmParam& arg )
 {
 	if ( arg.size() != 2 )
@@ -152,7 +95,6 @@ void CBratTaskFunction::CopyFile( CVectorBratAlgorithmParam& arg )
 		throw CException( msg, BRATHL_ERROR );
 	}
 }
-
 //----------------------------------------
 void CBratTaskFunction::Dump( std::ostream& fOut /*= std::cerr*/ )
 {
@@ -326,153 +268,29 @@ void CMapBratTaskFunction::Dump(std::ostream& fOut /* = std::cerr */)
 //-------------------------------------------------------------
 //------------------- CBratTask class --------------------
 //-------------------------------------------------------------
-
-//----------------------------------------
-CBratTask::CBratTask()
+void CBratTask::Dump( std::ostream& fOut )	//fOut = std::cerr
 {
-  Init();
-}
-  
-//----------------------------------------
-CBratTask::CBratTask(const CBratTask &o)
-{
-  Init();
-  Set(o); 
-}
-  
-
-//----------------------------------------
-CBratTask::~CBratTask()
-{
-}
-
-//----------------------------------------
-const CBratTask& CBratTask::operator=(const CBratTask &o)
-{
-  if (this == &o)
-  {
-    return *this;
-  }
-
-  Set(o);
-
-  return *this;
-}
-void CBratTask::SetAt( const std::string& value ) 
-{ 
-	QDateTime dt = QDateTime::fromString( t2q( value ), qformatISODateTime() );
-	assert__( dt.isValid() );															 	//!!! TODO !!!: error handling
-	m_at = dt; 
-}
-//----------------------------------------
-void CBratTask::Init()
-{
-  m_uid = -1;
-  m_status = CBratTask::e_BRAT_STATUS_PENDING;
-}
-//----------------------------------------
-void CBratTask::Set(const CBratTask &o) 
-{
-  m_uid = o.m_uid;
-  m_name = o.m_name;
-  m_cmd = o.m_cmd;
-  m_at = o.m_at;
-  m_status = o.m_status;
-  m_function = o.m_function;
-  m_logFile = o.m_logFile;
-
-  m_subordinateTasks.Insert(&o.m_subordinateTasks);
-
-}
-//----------------------------------------
-void CBratTask::SetUid( const std::string& value )
-{
-	m_uid = s2n<uid_t>( value );	//femm m_uid = wxBratTools::wxStringTowxLongLong_t(value);
-}
-//----------------------------------------
-void CBratTask::ExecuteFunction()
-{
-  m_function.Execute();
-}
-
-//----------------------------------------
-//femm commented out
-//std::string CBratTask::TaskStatusToString(CBratTask::bratTaskStatus status)
-//{
-//  std::string value = "";
-//  switch (status) 
-//  {
-//    case CBratTask::e_BRAT_STATUS_PENDING: value = CBratTask::m_BRAT_STATUS_PENDING_LABEL; break;
-//    case CBratTask::BRAT_STATUS_PROCESSING: value = CBratTask::m_BRAT_STATUS_PROCESSING_LABEL; break;
-//    case CBratTask::BRAT_STATUS_ENDED: value = CBratTask::m_BRAT_STATUS_ENDED_LABEL; break;
-//    case CBratTask::BRAT_STATUS_ERROR: value = CBratTask::m_BRAT_STATUS_ERROR_LABEL; break;
-//    case CBratTask::BRAT_STATUS_WARNING: value = CBratTask::m_BRAT_STATUS_WARNING_LABEL; break;
-//    default: value = std::string::Format("CBratTask::TaskStatusToString: unknown status %d.",
-//               static_cast<uint32_t>(status)); break;
-//
-//  }
-//
-//  return value; 
-//}
-
-//----------------------------------------
-//Status CBratTask::StringToTaskStatus(const std::string& status)
-//{
-//  Status value;
-//
-//  if (status.CmpNoCase(CBratTask::m_BRAT_STATUS_PENDING_LABEL) == 0)
-//  {
-//    value = CBratTask::e_BRAT_STATUS_PENDING;
-//  }
-//  else if (status.CmpNoCase(CBratTask::m_BRAT_STATUS_PROCESSING_LABEL) == 0)
-//  {
-//    value = CBratTask::BRAT_STATUS_PROCESSING;
-//  }
-//  else if (status.CmpNoCase(CBratTask::m_BRAT_STATUS_ENDED_LABEL) == 0)
-//  {
-//    value = CBratTask::BRAT_STATUS_ENDED;
-//  }
-//  else if (status.CmpNoCase(CBratTask::m_BRAT_STATUS_ERROR_LABEL) == 0)
-//  {
-//    value = CBratTask::BRAT_STATUS_ERROR;
-//  }
-//  else if (status.CmpNoCase(CBratTask::m_BRAT_STATUS_WARNING_LABEL) == 0)
-//  {
-//    value = CBratTask::BRAT_STATUS_WARNING;
-//  }
-//  else 
-//  {
-//    std::string msg = std::string::Format("CBratTask::StringToTaskStatus: unknown status label '%s'.", status.c_str());
-//    throw CException(msg.ToStdString(), BRATHL_INCONSISTENCY_ERROR);
-//  }
-//
-//
-//  return value; 
-//}
-//----------------------------------------
-void CBratTask::Dump(std::ostream& fOut /*= std::cerr*/)
-{
-	// femm: comment in, when trace and log modules decoupled from all externals stuff
+	// femm !!! : comment in, when trace and log modules decoupled from all externals stuff
 	//
-  //if (! CTrace::IsTrace())
-  //{
-  //  return;
-  //}
- 
-  fOut << "==> Dump a CBratTask Object at "<< this << std::endl;
-  
-  fOut << "m_uid: " << m_uid << std::endl;
-  fOut << "m_at: " << GetAtAsString() << std::endl;
-  fOut << "m_status: " << m_status << std::endl;
-  fOut << "m_cmd: " << m_cmd << std::endl;
-  fOut << "m_function: " << std::endl;
-  m_function.Dump(fOut);
-  fOut << "m_subordinateTasks: " << std::endl;
-  m_subordinateTasks.Dump(fOut);
+	//if (! CTrace::IsTrace())
+	//{
+	//  return;
+	//}
 
-  fOut << "==> END Dump a CBratTask Object at "<< this << std::endl;
+	fOut << "==> Dump a CBratTask Object at " << this << std::endl;
 
+	fOut << "m_uid: " << m_uid << std::endl;
+	fOut << "m_at: " << GetAtAsString() << std::endl;
+	fOut << "m_status: " << m_status << std::endl;
+	fOut << "m_cmd: " << m_cmd << std::endl;
+	fOut << "m_function: " << std::endl;
+	m_function.Dump( fOut );
+	fOut << "m_subordinateTasks: " << std::endl;
+	m_subordinateTasks.Dump( fOut );
+
+	fOut << "==> END Dump a CBratTask Object at " << this << std::endl;
 }
+
 //-------------------------------------------------------------
 //------------------- CMapBratTask class --------------------
 //-------------------------------------------------------------
@@ -760,3 +578,19 @@ void CVectorBratTask::Dump(std::ostream& fOut /* = std::cerr */)
 
 }
 
+
+///////////////////////////////////////////////////////////////////////////////////////////
+//
+///////////////////////////////////////////////////////////////////////////////////////////
+
+#if defined (__unix__)
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
+
+#include "new-gui/Common/ScheduledTasksList.cxx"
+
+
+#if defined (__unix__)
+#pragma GCC diagnostic warning "-Wdeprecated-declarations"
+#endif

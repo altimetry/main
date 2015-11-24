@@ -1,16 +1,34 @@
+/*
+* This file is part of BRAT
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
+
 #include <cstdlib>
 #include <cstdio>
 #include <cstring> 
 
-#include "brathl_error.h" 
+#include "new-gui/Common/tools/brathl_error.h" 
 #include "brathl.h" 
 //#define BRAT_INTERNAL
 
 #include <string> 
 
-#include "TraceLog.h" 
+#include "new-gui/Common/tools/TraceLog.h" 
 #include "Tools.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/Exception.h" 
 
 #include "LatLonRect.h"
 
@@ -230,12 +248,12 @@ void CLatLonRect::Set(CLatLonPoint& left, CLatLonPoint& right)
   }
   if (!left.IsDefaultValue() && right.IsDefaultValue())
   {
-    double lat = ( CTools::IsDefaultValue(right.GetLatitude()) ? 90 : right.GetLatitude());
+    double lat = ( isDefaultValue(right.GetLatitude()) ? 90 : right.GetLatitude());
     right.Set(lat, 360 + left.GetLongitude() - 0.001);
   }
   if (left.IsDefaultValue() && !right.IsDefaultValue())
   {
-    double lat = ( CTools::IsDefaultValue(left.GetLatitude()) ? -90 : left.GetLatitude());
+    double lat = ( isDefaultValue(left.GetLatitude()) ? -90 : left.GetLatitude());
     left.Set(lat, right.GetLongitude() - 0.001);
   }
 
@@ -301,36 +319,36 @@ void CLatLonRect::Set(CLatLonPoint& p1, double deltaLat, double deltaLon)
 //-------------------------------------------------------------
 void CLatLonRect::Set(double latLow, double lonLow , double latHigh , double lonHigh)
 {
-  if (  CTools::IsDefaultValue(latLow) &&
-        CTools::IsDefaultValue(lonLow) &&
-        CTools::IsDefaultValue(latHigh) &&
-        CTools::IsDefaultValue(lonHigh)   )
+  if (  isDefaultValue(latLow) &&
+        isDefaultValue(lonLow) &&
+        isDefaultValue(latHigh) &&
+        isDefaultValue(lonHigh)   )
   {
     SetDefaultValue();
   }
 
-  if (!(CTools::IsDefaultValue(lonLow)) && (CTools::IsDefaultValue(lonHigh)))
+  if (!(isDefaultValue(lonLow)) && (isDefaultValue(lonHigh)))
   {
     lonHigh = 360 + lonLow - 0.001;
   }
-  if ((CTools::IsDefaultValue(lonLow)) && !(CTools::IsDefaultValue(lonHigh)))
+  if ((isDefaultValue(lonLow)) && !(isDefaultValue(lonHigh)))
   {
     lonLow = lonHigh - 0.001;
   }
 
-  if (CTools::IsDefaultValue(latLow))
+  if (isDefaultValue(latLow))
   {
     latLow = CLatLonRect::LATITUDE_MIN;
   }
-  if (CTools::IsDefaultValue(lonLow))
+  if (isDefaultValue(lonLow))
   {
     lonLow = CLatLonRect::LONGITUDE_MIN;
   }
-  if (CTools::IsDefaultValue(latHigh))
+  if (isDefaultValue(latHigh))
   {
     latHigh = CLatLonRect::LATITUDE_MAX;
   }
-  if (CTools::IsDefaultValue(lonHigh))
+  if (isDefaultValue(lonHigh))
   {
     lonHigh = CLatLonRect::LONGITUDE_MAX;
   }

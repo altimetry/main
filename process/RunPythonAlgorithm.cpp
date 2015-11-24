@@ -407,19 +407,6 @@ const PythonEngine& PyAlgo::sm_pe = PythonEngine::Instance();
 //							Main
 //////////////////////////////////////////////////////////////
 
-/**
- * \brief       Function to convert a std::string to a number (of a selected data type).
- * \param[in]   s     String to be converted.
- * \return      v     Converted number
- */
-template< class T >
-inline T s2n( const std::string s )
-{
-    T v;
-    std::stringstream( s ) >> v;
-    return v;
-}
-
 
 /**
  * \brief       Function to create a std::vector with the algorithm parameters.

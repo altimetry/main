@@ -172,8 +172,8 @@ void CSelectionCriteriaDlg::EnableCtrl()
 
   if (GetProduct() != NULL)
   {
-    GetCritLatSouth()->Enable(CTools::IsDefaultValue(GetProduct()->GetForceLatMinCriteriaValue()));
-    GetCritLatNorth()->Enable(CTools::IsDefaultValue(GetProduct()->GetForceLatMaxCriteriaValue()));
+    GetCritLatSouth()->Enable(isDefaultValue(GetProduct()->GetForceLatMinCriteriaValue()));
+    GetCritLatNorth()->Enable(isDefaultValue(GetProduct()->GetForceLatMaxCriteriaValue()));
   }
 
   ShowCriteriaSizer();
@@ -290,7 +290,7 @@ void CSelectionCriteriaDlg::StoreCriteriaValueLatLon(CProduct* product, bool che
   criteria->SetDefaultValue();
 
   double defaultValue;
-  CTools::SetDefaultValue(defaultValue);
+  setDefaultValue(defaultValue);
   double lat;
   double lon;
 
@@ -299,12 +299,12 @@ void CSelectionCriteriaDlg::StoreCriteriaValueLatLon(CProduct* product, bool che
 /*
   if (checkDefault)
   {
-    if (CTools::IsDefaultValue(lat) && !CTools::IsDefaultValue(lon))
+    if (isDefaultValue(lat) && !isDefaultValue(lon))
     {
       lat = -90;
     }
 
-    if (!CTools::IsDefaultValue(lat) && CTools::IsDefaultValue(lon))
+    if (!isDefaultValue(lat) && isDefaultValue(lon))
     {
       lon = -180;
     }
@@ -320,12 +320,12 @@ void CSelectionCriteriaDlg::StoreCriteriaValueLatLon(CProduct* product, bool che
 /*
   if (checkDefault)
   {
-    if (CTools::IsDefaultValue(lat) && !CTools::IsDefaultValue(lon))
+    if (isDefaultValue(lat) && !isDefaultValue(lon))
     {
       lat = 90;
     }
 
-    if (!CTools::IsDefaultValue(lat) && CTools::IsDefaultValue(lon))
+    if (!isDefaultValue(lat) && isDefaultValue(lon))
     {
       lon = 180;
     }
@@ -356,7 +356,7 @@ void CSelectionCriteriaDlg::StoreCriteriaValueDatetime(CProduct* product, bool c
   criteria->SetDefaultValue();
 
   double defaultValue;
-  CTools::SetDefaultValue(defaultValue);
+  setDefaultValue(defaultValue);
 
   CDate dateMin;
   CDate dateMax;
@@ -401,7 +401,7 @@ void CSelectionCriteriaDlg::StoreCriteriaValueCycle(CProduct* product, bool chec
     return;
   }
   int32_t defaultValue;
-  CTools::SetDefaultValue(defaultValue);
+  setDefaultValue(defaultValue);
 
   int32_t min;
   int32_t max;
@@ -429,7 +429,7 @@ void CSelectionCriteriaDlg::StoreCriteriaValuePassInt(CProduct* product, bool ch
   }
 
   int32_t defaultValue;
-  CTools::SetDefaultValue(defaultValue);
+  setDefaultValue(defaultValue);
 
   int32_t min;
   int32_t max;
@@ -529,11 +529,11 @@ void CSelectionCriteriaDlg::FillCriteria(CProduct* product)
 
   }
 
-  if (!CTools::IsDefaultValue(product->GetForceLatMinCriteriaValue()))
+  if (!isDefaultValue(product->GetForceLatMinCriteriaValue()))
   {
     GetCritLatSouth()->SetValue(product->GetForceLatMinCriteriaValue());
   }
-  if (!CTools::IsDefaultValue(product->GetForceLatMaxCriteriaValue()))
+  if (!isDefaultValue(product->GetForceLatMaxCriteriaValue()))
   {
     GetCritLatNorth()->SetValue(product->GetForceLatMaxCriteriaValue());
   }

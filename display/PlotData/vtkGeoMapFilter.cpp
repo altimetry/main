@@ -28,9 +28,9 @@
 
 =========================================================================*/
 #include "../libbrathl/Tools.h"
-#include "../libbrathl/Trace.h"
+#include "new-gui/Common/tools/Trace.h"
 #include "../libbrathl/LatLonPoint.h"
-#include "../libbrathl/Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 using namespace brathl;
 
 #include "vtkProj2DFilter.h"
@@ -121,7 +121,7 @@ vtkGeoMapFilter::~vtkGeoMapFilter()
     }
 }
 //----------------------------------------------------------------------------
-bool vtkGeoMapFilter::IsValidPoint(int32_t index)
+bool vtkGeoMapFilter::IsValidPoint(int index)
 {
   if (this->Bitarray == NULL)
   {
@@ -296,7 +296,7 @@ void vtkGeoMapFilter::Execute()
 
   int nMaxHeight = this->MapHeight;
   bool fullLat = false;
-  if ( CTools::AreEqual(latitudes[0],-90.0) && CTools::AreEqual(latitudes[this->MapHeight - 1], 90.0) )
+  if ( areEqual(latitudes[0],-90.0) && areEqual(latitudes[this->MapHeight - 1], 90.0) )
   {
     nMaxHeight = this->MapHeight - 1;
     fullLat = true;

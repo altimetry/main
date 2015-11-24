@@ -20,7 +20,7 @@
 #if !defined(_Product_h_)
 #define _Product_h_
 
-#include "brathl_error.h" 
+#include "new-gui/Common/tools/brathl_error.h" 
 #include "brathl.h" 
 
 #include "coda.h" 
@@ -649,20 +649,50 @@ protected:
   void CreateLogFile(const std::string& logFileName, uint32_t mode = CFile::modeWrite|CFile::typeText);
   void DeleteLogFile();
 
-  void Log(const char* str, bool bCrLf = true);
-  void Log(const std::string& str, bool bCrLf = true);
-  void Log(double n, bool bCrLf = true);
-  void Log(int32_t n, bool bCrLf = true);
-  void Log(bool n, bool bCrLf = true);
-  void Log(const CStringList& l, bool bCrLf = true);
+  template< typename T >
+  void Log( const T n, bool bCrLf )
+  {
+	  Log(n2s<std::string>(n).c_str(), bCrLf);
+  }
+
+  void Log( const char *str, bool bCrLf )
+  {
+	  if ( !m_logFile || !m_logFile->IsOpen() )
+		  return;
+
+	  try
+	  {
+		  m_logFile->Write( str );
+		  if ( bCrLf )
+			  m_logFile->Write( '\n' );
+	  }
+	  catch ( ... )
+	  {}
+  }
+
+  void Log( const std::string& str, bool bCrLf )
+  {
+	  Log( str.c_str(), bCrLf );
+  }
+
+  void Log( const bool n, bool bCrLf )
+  {
+	  std::string str = ( n ? "yes" : "no" );
+	  Log( str, bCrLf );
+  }
+
+  // template<>
+  void Log( const CStringList& l, bool bCrLf )
+  {
+	  for ( auto it = l.begin(); it != l.end(); it++ )
+		  Log( it->c_str(), bCrLf );
+  }
+
 
   void LogSelectionResult(const std::string& fileName, bool result);
 
   virtual void InitApplyCriteriaStats();
   virtual void EndApplyCriteriaStats(const CStringList& filteredFileList);
-
-
-
 
 private:
 
@@ -671,8 +701,6 @@ private:
   void DeleteProductAliases();
 
   void InitBratOptions();
-
-  
 
 public:
     
@@ -725,7 +753,7 @@ protected:
   CField::CListField m_listFields;
 
 
-  int32_t m_recordCount;
+  size_t m_recordCount;
   int32_t m_currentRecord;
 
   

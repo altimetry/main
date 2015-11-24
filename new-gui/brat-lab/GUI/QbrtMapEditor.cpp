@@ -27,7 +27,7 @@
 #include "qgsapplayertreeviewmenuprovider.h"
 
 
-#include "../libbrathl/Trace.h"
+#include "new-gui/Common/tools/Trace.h"
 
 #include "../System/BackServices.h"
 #include "../System/CmdLineProcessor.h"

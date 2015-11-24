@@ -31,8 +31,8 @@
 
 #include <ctime>
 
-#include "Trace.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Trace.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "LatLonPoint.h"
 using namespace brathl;
 
@@ -234,23 +234,23 @@ CZFXYPlotProperty::CZFXYPlotProperty()
 
   m_numColorLabels = 5;
 
-  CTools::SetDefaultValue(m_minHeightValue);
-  CTools::SetDefaultValue(m_maxHeightValue);
+  setDefaultValue(m_minHeightValue);
+  setDefaultValue(m_maxHeightValue);
 
   m_LUT = new CBratLookupTable();
 
   m_LUT->ExecMethodDefaultColorTable();
 
-  CTools::SetDefaultValue(m_xMax);
-  CTools::SetDefaultValue(m_xMin);
-  CTools::SetDefaultValue(m_yMax);
-  CTools::SetDefaultValue(m_yMin);
+  setDefaultValue(m_xMax);
+  setDefaultValue(m_xMin);
+  setDefaultValue(m_yMax);
+  setDefaultValue(m_yMin);
 
   m_xBase = 10.0;
   m_yBase = 10.0;
 
-  CTools::SetDefaultValue(m_xNumTicks);
-  CTools::SetDefaultValue(m_yNumTicks);
+  setDefaultValue(m_xNumTicks);
+  setDefaultValue(m_yNumTicks);
 
   m_xLog = false;
   m_yLog = false;
@@ -259,8 +259,8 @@ CZFXYPlotProperty::CZFXYPlotProperty()
   m_solidColor = true;;
 
   m_withContourLabel = false;
-  CTools::SetDefaultValue(m_minContourValue);
-  CTools::SetDefaultValue(m_maxContourValue);
+  setDefaultValue(m_minContourValue);
+  setDefaultValue(m_maxContourValue);
   m_numContour = 5;
   m_numContourLabel = 1;
 
@@ -425,14 +425,14 @@ CZFXYPlotData::CZFXYPlotData(wxWindow* parent, CZFXYPlot* plot, CPlotField* fiel
 
   m_aborted = false;
 
-  CTools::SetDefaultValue(m_minhv);
-  CTools::SetDefaultValue(m_maxhv);
+  setDefaultValue(m_minhv);
+  setDefaultValue(m_maxhv);
 
-  CTools::SetDefaultValue(m_xMin);
-  CTools::SetDefaultValue(m_xMax);
+  setDefaultValue(m_xMin);
+  setDefaultValue(m_xMax);
 
-  CTools::SetDefaultValue(m_yMin);
-  CTools::SetDefaultValue(m_yMax);
+  setDefaultValue(m_yMin);
+  setDefaultValue(m_yMax);
 
   Create(parent, &(field->m_internalFiles), field->m_name, plot);
 
@@ -782,10 +782,10 @@ void CZFXYPlotData::Create(wxWindow* parent, CObArray* data, const std::string& 
 
   for (iMap = 0 ; iMap < m_nrMaps ; iMap++)
   {
-    CTools::SetDefaultValue(minXDataMapValue);
-    CTools::SetDefaultValue(maxYDataMapValue);
-    CTools::SetDefaultValue(minYDataMapValue);
-    CTools::SetDefaultValue(maxYDataMapValue);
+    setDefaultValue(minXDataMapValue);
+    setDefaultValue(maxYDataMapValue);
+    setDefaultValue(minYDataMapValue);
+    setDefaultValue(maxYDataMapValue);
 
     minHeightValue = m_plotProperty.m_minHeightValue;
     maxHeightValue = m_plotProperty.m_maxHeightValue;
@@ -953,7 +953,7 @@ void CZFXYPlotData::Create(wxWindow* parent, CObArray* data, const std::string& 
         }
 
         double v = varValue.GetValues()[iTemp];
-        if ( (CTools::IsNan(v) != 0) || CTools::IsDefaultValue(v))
+        if ( (CTools::IsNan(v) != 0) || isDefaultValue(v))
         {
 
           values->InsertNextValue(0);
@@ -986,11 +986,11 @@ void CZFXYPlotData::Create(wxWindow* parent, CObArray* data, const std::string& 
       }
     }
 
-    if (CTools::IsDefaultValue(minHeightValue))
+    if (isDefaultValue(minHeightValue))
     {
       minHeightValue = m_minhv;
     }
-    if (CTools::IsDefaultValue(maxHeightValue))
+    if (isDefaultValue(maxHeightValue))
     {
       maxHeightValue = m_maxhv;
     }
@@ -1058,12 +1058,12 @@ void CZFXYPlotData::Create(wxWindow* parent, CObArray* data, const std::string& 
   }
 
 
-  if (CTools::IsDefaultValue(m_plotProperty.m_minContourValue))
+  if (isDefaultValue(m_plotProperty.m_minContourValue))
   {
     m_plotProperty.m_minContourValue = minHeightValue;
   }
 
-  if (CTools::IsDefaultValue(m_plotProperty.m_maxContourValue))
+  if (isDefaultValue(m_plotProperty.m_maxContourValue))
   {
     m_plotProperty.m_maxContourValue = maxHeightValue;
   }

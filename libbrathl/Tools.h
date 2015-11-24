@@ -26,11 +26,10 @@
 #include <bitset>
 #include <map>
 
-#include "brathl_error.h"
+#include "new-gui/Common/tools/brathl_error.h"
+#include "new-gui/Common/tools/CoreTypes.h"
 #include "brathl.h"
 
-#include "BratObject.h"
-using namespace brathl;
 
 namespace brathl
 {
@@ -144,43 +143,43 @@ public:
 
   static double Rnd (double value, double precision);
   
-  static void SetDefaultValue(float& value);
-  static void SetDefaultValue(double& value);
-  static void SetDefaultValue(int8_t& value);
-  static void SetDefaultValue(uint8_t& value);
-  static void SetDefaultValue(int16_t& value);
-  static void SetDefaultValue(uint16_t& value);
-  static void SetDefaultValue(int32_t& value);
-  static void SetDefaultValue(uint32_t& value);
-  static void SetDefaultValue(int64_t& value);
-  static void SetDefaultValue(uint64_t& value);
+  //static void SetDefaultValue(float& value); femm
+  //static void SetDefaultValue(double& value);
+  //static void SetDefaultValue(int8_t& value);
+  //static void SetDefaultValue(uint8_t& value);
+  //static void SetDefaultValue(int16_t& value);
+  //static void SetDefaultValue(uint16_t& value);
+  //static void SetDefaultValue(int32_t& value);
+  //static void SetDefaultValue(uint32_t& value);
+  //static void SetDefaultValue(int64_t& value);
+  //static void SetDefaultValue(uint64_t& value);
 
-  static bool IsDefaultValue(const float value);
-  static bool IsDefaultValue(const double value);
-  static bool IsDefaultValue(const int8_t value);
-  static bool IsDefaultValue(const uint8_t value);
-  static bool IsDefaultValue(const int16_t value);
-  static bool IsDefaultValue(const uint16_t value);
-  static bool IsDefaultValue(const int32_t value);
-  static bool IsDefaultValue(const uint32_t value);
-  static bool IsDefaultValue(const int64_t value);
-  static bool IsDefaultValue(const uint64_t value);
+  //static bool IsDefaultValue(const float value);
+  //static bool IsDefaultValue(const double value);
+  //static bool IsDefaultValue(const int8_t value);
+  //static bool IsDefaultValue(const uint8_t value);
+  //static bool IsDefaultValue(const int16_t value);
+  //static bool IsDefaultValue(const uint16_t value);
+  //static bool IsDefaultValue(const int32_t value);
+  //static bool IsDefaultValue(const uint32_t value);
+  //static bool IsDefaultValue(const int64_t value);
+  //static bool IsDefaultValue(const uint64_t value);
 
 // Return false if Source is default value or does not fall
 // in Dest range
   static bool CastValue(int32_t &Dest, const double Source);
 
-  static bool IsZero(double X);
-  static bool AreEqual(double X, double Y);
-  static bool AreEqual(double X, double Y, double compareEpsilon);
+  //static bool IsZero(double X);				   femm
+  //static bool AreEqual(double X, double Y);
+  //static bool AreEqual(double X, double Y, double compareEpsilon);
   static bool AreValidMercatorLatitude(double lat);
 
 // Default value is greater than anything except default value (they are equal)
   static int Compare(double X, double Y, double compareEpsilon = CTools::m_CompareEpsilon);
 
   static bool Compare(const char *str1, const char *str2);
-  static bool CompareNoCase(const char *str1, const char *str2);
-  static bool CompareNoCase(const std::string& str1, const std::string& str2);
+  //static bool CompareNoCase(const char *str1, const char *str2);
+  //static bool CompareNoCase(const std::string& str1, const std::string& str2);
 
   static int32_t FindNoCase(const std::string& src, const std::string& findWhat, uint32_t pos = 0);
   static int32_t FindNoCase(const char* src, const char* findWhat, uint32_t pos = 0);
@@ -954,7 +953,7 @@ public:
    \param[in] value : std::string to be converted
    \return coanverted value or CTool::m_defaultValueINT if no possible conversion.
    */
-  static int32_t StrToInt(const std::string &s);
+  static int32_t StrToInt32(const std::string &s);
 
   /** Convert an std::string to int64
    \param[in] value : std::string to be converted
@@ -1023,8 +1022,6 @@ public:
                          const std::map<std::string, std::string>* varValues = NULL,
                          const std::map<std::string, std::string>* fieldAliases = NULL,
                          bool withExcept = false, std::string* errorMsg = NULL);
-
-  static void DeleteObject(CBratObject* ob);
 
   static bool LoadAndCheckUdUnitsSystem(std::string& errorMsg);
 

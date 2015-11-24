@@ -1,10 +1,12 @@
 #include "stdafx.h"
 
-#include "../Common/+/+Utils.h"
+#include "new-gui/Common/+Utils.h"
+#include "new-gui/Common/ScheduledTasksList.hxx"
 
 #include "TaskProcessor.h"
+#include "BratTask.h"
 
-
+/*
 class TBratTask
 {
 public:
@@ -63,7 +65,7 @@ protected:
 	long long m_uid;
 	std::string m_name;
 	std::string m_cmd;
-//	CBratTaskFunction m_function;	??? also in xml ???
+	CBratTaskFunction m_function;	//??? also in xml ???
 //	wxDateTime m_at;
 	std::string m_at;
 	Status m_status;
@@ -72,26 +74,12 @@ protected:
 
 //	CVectorBratTask m_subordinateTasks;
 
-	template< typename TO, typename FROM >
-	static TO enum_cast( FROM e )
-	{
-		typedef typename FROM::value value;
-		return (TO)(value)e;
-	}
-
-	template< typename TO, typename FROM >
-	static TO enum_reverse_cast( FROM e )
-	{
-		typedef typename TO::value value;
-		return (value)e;
-	}
-
 public:
 	TBratTask( const task &oxml )				//USED ON LOAD
 	{
 		m_uid = oxml.uid();
 		m_name = oxml.name();
-		m_cmd = oxml.cmd();
+		m_cmd = fromOpt( oxml.cmd(), std::string() );
 		m_at = oxml.at();
 		m_status = enum_cast< Status >( oxml.status() );
 		m_logFile = oxml.logFile();
@@ -127,11 +115,11 @@ public:
 		return !( *this == o );
 	}
 };
-
+*/
 
 class SchedulerTasks
 {
-	typedef std::vector<TBratTask*> tasks_set_t;
+	typedef std::vector<CBratTask*> tasks_set_t;
 
 	tasks_set_t mPendingTasks;
 	tasks_set_t mProcessingTasks;
@@ -199,15 +187,15 @@ SchedulerTasks& SchedulerTasks::operator = ( const bratSchedulerConfig &oxml )		
 
 	for ( auto ii = pending.begin(); ii != pending.end(); ++ii )
 	{
-		mPendingTasks.push_back( new TBratTask(*ii) );
+		mPendingTasks.push_back( new CBratTask(*ii) );
 	}
 	for ( auto ii = processing.begin(); ii != processing.end(); ++ii )
 	{
-		mProcessingTasks.push_back( new TBratTask(*ii) );
+		mProcessingTasks.push_back( new CBratTask(*ii) );
 	}
 	for ( auto ii = ended.begin(); ii != ended.end(); ++ii )
 	{
-		mEndedTasks.push_back( new TBratTask(*ii) );
+		mEndedTasks.push_back( new CBratTask(*ii) );
 	}
 	return *this;
 }
@@ -278,7 +266,7 @@ bool readTasks( const std::string &path )
 	SchedulerTasks debug_tasks;
 	if ( result )
 	{
-		std::string debug_path = std::string( getenv( "S3ALTB_ROOT") ) + "\\project\\dev\\source\\new-gui\\scheduler\\BratSchedulerTasksConfig_backup.xml";
+		std::string debug_path = std::string( getenv( "S3ALTB_ROOT") ) + "/project/dev/source/new-gui/scheduler/BratSchedulerTasksConfig_backup.xml";
 		result = tasks.store( debug_path );
 		if ( result )
 			result = debug_tasks.load( debug_path );		
@@ -290,19 +278,3 @@ bool readTasks( const std::string &path )
 	return result;
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////
-//
-///////////////////////////////////////////////////////////////////////////////////////////
-
-#if defined (__unix__)
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-
-
-#include "ScheduledTasksList.cxx"
-
-
-#if defined (__unix__)
-#pragma GCC diagnostic warning "-Wdeprecated-declarations"
-#endif

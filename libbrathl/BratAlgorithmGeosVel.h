@@ -20,10 +20,10 @@
 #if !defined(_BratAlgorithmGeosVel_h_)
 #define _BratAlgorithmGeosVel_h_
 
-#include "brathl_error.h" 
-#include "brathl.h" 
-
 #include <string>
+
+#include "new-gui/Common/tools/brathl_error.h" 
+#include "brathl.h" 
 
 #include "Tools.h" 
 #include "BratAlgorithmBase.h" 

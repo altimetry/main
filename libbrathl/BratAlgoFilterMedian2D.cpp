@@ -22,8 +22,8 @@
 
 #include <cstdlib>
 
-#include "TraceLog.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/TraceLog.h" 
+#include "new-gui/Common/tools/Exception.h" 
 #include "Product.h" 
 #include "ProductNetCdf.h" 
 
@@ -111,7 +111,7 @@ void CBratAlgoFilterMedian2D::SetBeginOfFile()
 {
   CBratAlgoFilterMedian::SetBeginOfFile();
 
-  CTools::SetDefaultValue(m_median);
+  setDefaultValue(m_median);
 
 
 
@@ -139,7 +139,7 @@ double CBratAlgoFilterMedian2D::Run(CVectorBratAlgorithmParam& args)
 
   m_varValueArray = NULL;
 
-  CTools::SetDefaultValue(m_median);
+  setDefaultValue(m_median);
 
   OpenProductFile();
   
@@ -179,7 +179,7 @@ double CBratAlgoFilterMedian2D::Run(CVectorBratAlgorithmParam& args)
 double CBratAlgoFilterMedian2D::ComputeSingle() 
 {
   // If 'default value' and no extrapolation then returns
-  if (CTools::IsDefaultValue(m_varValue) && (m_extrapolate == 0))
+  if (isDefaultValue(m_varValue) && (m_extrapolate == 0))
   {
     return m_median;
   }
@@ -227,12 +227,12 @@ double CBratAlgoFilterMedian2D::ComputeMean()
 
   //uint32_t iVarValue;
   //
-  //CTools::SetDefaultValue(m_median);
+  //setDefaultValue(m_median);
   //double countValue = 0.0;
   //double dummy = 0.0;
 
   //double medianTmp;
-  //CTools::SetDefaultValue(medianTmp);
+  //setDefaultValue(medianTmp);
 
   //SetField2DAsRef();
 
@@ -331,7 +331,7 @@ void CBratAlgoFilterMedian2D::SetParamValues(CVectorBratAlgorithmParam& args)
   int32_t valueInt32;
 
   // Set data window width (once)
-  if (CTools::IsDefaultValue(m_dataWindowWidth))
+  if (isDefaultValue(m_dataWindowWidth))
   {
     this->CheckConstantParam(CBratAlgoFilterMedian2D::m_WINDOW_WIDTH_PARAM_INDEX);
     
@@ -347,14 +347,14 @@ void CBratAlgoFilterMedian2D::SetParamValues(CVectorBratAlgorithmParam& args)
 
     m_dataWindowWidth = valueInt32;
 
-    if (CTools::IsDefaultValue(valueInt32))
+    if (isDefaultValue(valueInt32))
     {
       m_dataWindowWidth = 3;
     }
   }
 
   // Set data window height (once)
-  if (CTools::IsDefaultValue(m_dataWindowHeight))
+  if (isDefaultValue(m_dataWindowHeight))
   {
     this->CheckConstantParam(CBratAlgoFilterMedian2D::m_WINDOW_HEIGHT_PARAM_INDEX);
 
@@ -370,14 +370,14 @@ void CBratAlgoFilterMedian2D::SetParamValues(CVectorBratAlgorithmParam& args)
 
     m_dataWindowHeight = valueInt32;
 
-    if (CTools::IsDefaultValue(valueInt32))
+    if (isDefaultValue(valueInt32))
     {
       m_dataWindowHeight = 3;
     }
   }
 
   // Set valid points limit (once)
-  if (CTools::IsDefaultValue(m_validPts))
+  if (isDefaultValue(m_validPts))
   {
     this->CheckConstantParam(CBratAlgoFilterMedian2D::m_VALID_PARAM_INDEX);
 
@@ -395,7 +395,7 @@ void CBratAlgoFilterMedian2D::SetParamValues(CVectorBratAlgorithmParam& args)
 
 
     m_validPts = valueInt32;
-    if (CTools::IsDefaultValue(valueInt32))
+    if (isDefaultValue(valueInt32))
     {
       m_validPts = GetDataWindowSize()/2;
     }
@@ -413,7 +413,7 @@ void CBratAlgoFilterMedian2D::SetParamValues(CVectorBratAlgorithmParam& args)
   }
 
   // Set extrapolate flag (once)
-  if (CTools::IsDefaultValue(m_extrapolate))
+  if (isDefaultValue(m_extrapolate))
   {
     SetParamValueExtrapolate(args, CBratAlgoFilterMedian2D::m_EXTRAPOLATE_PARAM_INDEX);
   }

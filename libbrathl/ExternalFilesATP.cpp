@@ -24,9 +24,9 @@
 #include "brathl.h"
 
 #include "Tools.h"
-#include "Trace.h"
+#include "new-gui/Common/tools/Trace.h"
 #include "Date.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "Expression.h"
 #include "LatLonPoint.h"
 
@@ -208,7 +208,7 @@ void CExternalFilesATP::GetAllValues(CFieldNetCdf* field, const std::string& wan
   // field is an array (number of dimension is > 0)
   //---------------------------
 
-  uint32_t numPass = m_passList.size();
+  size_t numPass = m_passList.size();
 
   Rewind();
   
@@ -496,7 +496,7 @@ void CExternalFilesATP::LoadStructure
     for (PassIndex=0; PassIndex<MaxPasses; ++PassIndex)
     {
       // Skip undefined entries or emptied ones
-      if (CTools::IsDefaultValue(Passes[PassIndex]) || (PassSizes[PassIndex] == 0.0))
+      if (isDefaultValue(Passes[PassIndex]) || (PassSizes[PassIndex] == 0.0))
       {
 	      continue;
       }
@@ -523,7 +523,7 @@ void CExternalFilesATP::LoadStructure
       for (CycleIndex=0; CycleIndex < MaxCycles; ++CycleIndex)
       {
 	      // Skip undefined cycle entry
-	      if (CTools::IsDefaultValue(Cycles[CycleIndex]))
+	      if (isDefaultValue(Cycles[CycleIndex]))
         {
 	        continue;
         }

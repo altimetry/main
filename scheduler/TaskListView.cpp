@@ -18,6 +18,16 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+// Temporary hack to prevent the inclusion of Windows XML 
+// headers, which collide with xerces
+//
+#if defined (WIN32) || defined (_WIN32)
+//avoid later inclusion of Microsoft XML stuff, which causes name collisions with xerces
+#define DOMDocument MsDOMDocument
+#include <msxml.h>
+#include <urlmon.h>
+#undef DOMDocument
+#endif
 
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
     #pragma implementation "TaskListView.h"
@@ -30,7 +40,7 @@
     #pragma hdrstop
 #endif
 
-#include "new-gui/Common/+/+Utils.h"
+#include "new-gui/Common/+Utils.h"
 
 #include "SchedulerTaskConfig.h"
 #include "BratSchedulerApp.h"

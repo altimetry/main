@@ -20,7 +20,7 @@
 
 #include <fstream>
 
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "FileParams.h"
 
 #include "BratProcess.h"
@@ -210,9 +210,9 @@ int32_t CBratProcessStats::Execute(std::string& msg)
   CDate startExec;
   startExec.SetDateNow();
   
-  int32_t nbFiles = m_inputFiles.size();
-  int32_t nbExpr = m_fields.size();
-  int32_t nbUnits = m_units.size();
+  size_t nbFiles = m_inputFiles.size();
+  size_t nbExpr = m_fields.size();
+  size_t nbUnits = m_units.size();
 
   const int32_t NUMBER_OF_STATISTICS = 5;
 

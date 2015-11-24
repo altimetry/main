@@ -27,10 +27,10 @@
 
 #include "brathl.h"
 
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "Expression.h"
 #include "Tools.h" 
-#include "TraceLog.h" 
+#include "new-gui/Common/tools/TraceLog.h" 
 
 // When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
@@ -410,7 +410,7 @@ CExpressionValue::CValueData& CExpressionValue::CValueData::operator=(const CExp
 }
 
 //----------------------------------------
-double* CExpressionValue::CValueData::NewValue(uint32_t nbValues)
+double* CExpressionValue::CValueData::NewValue(size_t nbValues)
 {
   double* values = NULL;
   try
@@ -871,7 +871,7 @@ void CExpressionValue::SetNewValue(CObDoubleMap& mp, bool	makeCopy /* = true */)
   }
   
   uint32_t nbValues = GetNbValues();
-  uint32_t nbDataToGet = mp.size();
+  size_t nbDataToGet = mp.size();
 
   if (nbValues != nbDataToGet)
   {
@@ -907,7 +907,7 @@ void CExpressionValue::SetNewValue(CDoublePtrDoubleMap& mp, bool	makeCopy /* = t
   }
   
   uint32_t nbValues = GetNbValues();
-  uint32_t nbDataToGet = mp.size();
+  size_t nbDataToGet = mp.size();
 
   if (nbValues != nbDataToGet)
   {
@@ -1000,8 +1000,7 @@ void CExpressionValue::BuildValue(ExpressionValueType	type, ExpressionValueDimen
 
 //----------------------------------------
 
-void CExpressionValue::BuildFromString
-		(const std::string			&StrValue)
+void CExpressionValue::BuildFromString(const std::string &StrValue)
 {
   //double			*Value;
   ExpressionValueDimensions	Dimensions;
@@ -1178,9 +1177,9 @@ void CExpressionValue::SetDimensionsCombination
 
 //----------------------------------------
 
-uint32_t CExpressionValue::GetNbValues() const
+size_t CExpressionValue::GetNbValues() const
 {
-  return m_Value->m_nbValues;
+	return m_Value->m_nbValues;
 }
 
 //----------------------------------------
@@ -1208,7 +1207,7 @@ double CExpressionValue::GetValue(uint32_t index) const
 //----------------------------------------
 double CExpressionValue::GetValue(uint32_t i, uint32_t j) const
 {
-  uint32_t nbDims = GetNbDimensions();
+  size_t nbDims = GetNbDimensions();
 
   if (nbDims != 2)
   {
@@ -1280,7 +1279,7 @@ double CExpressionValue::Compare
     //diff	= CTools::Minus(*current1, *current2);
     diff	= (*current1 - *current2);
 
-    if (CTools::IsDefaultValue(diff))
+    if (isDefaultValue(diff))
     {
       result	= diff;
     }
@@ -1344,9 +1343,9 @@ int32_t CExpressionValue::IsTrue
 
   for (index = 0; index < m_Value->m_nbValues; index++)
   {
-    if (CTools::IsDefaultValue(m_Value->m_dataValue[index]))
+    if (isDefaultValue(m_Value->m_dataValue[index]))
       return -1;
-    if (CTools::IsZero(m_Value->m_dataValue[index]))
+    if (isZero(m_Value->m_dataValue[index]))
       return 0;
   }
   return 1;
@@ -1413,7 +1412,7 @@ std::string CExpressionValue::AsString(const CUnit &Unit	/*= ""*/, const std::st
 	      Result.append(", ");
       }
 
-      if (CTools::IsDefaultValue(Values[index]))
+      if (isDefaultValue(Values[index]))
       {
         Result.append("DV");
       }
@@ -1424,9 +1423,9 @@ std::string CExpressionValue::AsString(const CUnit &Unit	/*= ""*/, const std::st
 
         std::string fmtDate = Format;
         
-        int32_t precision = CTools::StrToInt(fmtDate);
+        int32_t precision = CTools::StrToInt32(fmtDate);
 
-        if ( ! CTools::IsDefaultValue(precision) )
+        if ( ! isDefaultValue(precision) )
         {
           fmtDate = "";
         }
@@ -1459,7 +1458,7 @@ std::string CExpressionValue::AsString(const CUnit &Unit	/*= ""*/, const std::st
     {
 	    Result.append(", ");
     }
-    if (CTools::IsDefaultValue(Values[index]))
+    if (isDefaultValue(Values[index]))
     {
       Result.append("DV");
     }
@@ -1474,8 +1473,8 @@ std::string CExpressionValue::AsString(const CUnit &Unit	/*= ""*/, const std::st
       }
       else
       {
-        int32_t precision = CTools::StrToInt(Format);
-        if ( ! CTools::IsDefaultValue(precision) )
+        int32_t precision = CTools::StrToInt32(Format);
+        if ( ! isDefaultValue(precision) )
         {
           Result.append(CTools::TrailingZeroesTrim(CTools::DoubleToStr(WantedUnit.Convert(Values[index]), precision)));
         }
@@ -1591,7 +1590,7 @@ void CExpressionValues::SetDimensions(const CUIntArray& dimensions)
 }
 
 //----------------------------------------
-uint32_t CExpressionValues::GetNbDimensions() const
+size_t CExpressionValues::GetNbDimensions() const
 {
   if (m_dimensions.size() <= 0)
   {
@@ -1660,7 +1659,7 @@ void CExpressionValues::DeleteExpressionDataValues()
 double CExpressionValues::GetExpressionValueAsDouble(uint32_t index /* = 0 */)
 {
   double value;
-  CTools::SetDefaultValue(value);
+  setDefaultValue(value);
 
   if (m_expressionDataValues == NULL)
   {
@@ -3157,7 +3156,7 @@ bool CExpression::IsConstant(const std::string& value) const
   {
     CExpressionValue* exprValue = CExpressionValue::GetExpressionValue(*it);
 
-    bOk = CTools::AreEqual( CTools::StrToDouble(value), exprValue->GetValues()[0] );
+    bOk = areEqual( CTools::StrToDouble(value), exprValue->GetValues()[0] );
     if (bOk)
     {
       break;
@@ -3230,7 +3229,7 @@ CExpressionValue CExpression::Execute(CProduct* product /* = NULL */)
 	m_dataStack.Pop();							\
 	Comparizon	= oper1->Compare(*oper2);					\
 	m_dataStack.Push(new CExpressionValue					\
-				(CTools::IsDefaultValue(Comparizon) ?		\
+				(isDefaultValue(Comparizon) ?		\
 					Comparizon :				\
 					Comparizon OPERATOR 0.0)); \
   delete oper2; \
@@ -4096,7 +4095,7 @@ std::string CExpression::AsString() const
       {
         //Stack.Dump();
 
-        uint32_t nbParameters = static_cast<uint32_t>(CTools::StrToInt(Stack.back()));
+        uint32_t nbParameters = static_cast<uint32_t>(CTools::StrToInt32(Stack.back()));
 
         AsString_POP;							
 

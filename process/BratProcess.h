@@ -32,7 +32,7 @@
 #include "../libbrathl/Product.h"
 #include "../libbrathl/ProductNetCdf.h"
 #include "../libbrathl/ProductNetCdfCF.h"
-#include "../libbrathl/Trace.h"
+#include "new-gui/Common/tools/Trace.h"
 //#include "ProcessCommonTools.h"
 
 using namespace brathl;
@@ -93,7 +93,7 @@ public:
   CExpression* GetSelect() { return &m_select; };
   void SetSelect(const CExpression& value ) { m_select = value; };
 
-  int32_t GetNbFields() { return m_fields.size(); };
+  size_t GetNbFields() { return m_fields.size(); };
 
   bool CheckCommandLineOptions(int argc, char	**argv, const std::string& helpString, const KeywordHelp	*keywordList);  
   

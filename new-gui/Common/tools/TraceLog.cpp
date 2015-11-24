@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -17,15 +15,10 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
-#include <fstream>
-#include <iostream>
+#include "stdafx.h"
 
 #include "TraceLog.h"
-using namespace brathl;
 
-namespace brathl
-{
 
 CTraceLog::CTraceLog(const std::string& szFilelog)
 {
@@ -76,5 +69,3 @@ std::ostream* CTraceLog::GetDumpContextReel()
       return m_fOut;
    }
 };
-
-}

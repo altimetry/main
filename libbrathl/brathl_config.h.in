@@ -7,10 +7,10 @@
 // Result check for various functions...
 // -------------------------------
 
-#cmakedefine HAVE_SNPRINTF              ${HAVE_SNPRINTF}
-#cmakedefine HAVE_USCORE_SNPRINTF       ${HAVE_USCORE_SNPRINTF}
-#cmakedefine HAVE_VSNPRINTF             ${HAVE_VSNPRINTF}
-#cmakedefine HAVE_USCORE_VSNPRINTF      ${HAVE_USCORE_VSNPRINTF}
+// #cmakedefine HAVE_SNPRINTF              ${HAVE_SNPRINTF}			femm commented out
+// #cmakedefine HAVE_USCORE_SNPRINTF       ${HAVE_USCORE_SNPRINTF}
+// #cmakedefine HAVE_VSNPRINTF             ${HAVE_VSNPRINTF}
+// #cmakedefine HAVE_USCORE_VSNPRINTF      ${HAVE_USCORE_VSNPRINTF}
 #cmakedefine HAVE_STRCASECMP            ${HAVE_STRCASECMP}
 #cmakedefine HAVE_USCORE_STRICMP        ${HAVE_USCORE_STRICMP}
 #cmakedefine HAVE_ISINF                 ${HAVE_ISINF}

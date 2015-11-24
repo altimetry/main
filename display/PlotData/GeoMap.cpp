@@ -1,8 +1,8 @@
 
 #include <ctime>
 
-#include "../libbrathl/Trace.h"
-#include "../libbrathl/Exception.h"
+#include "new-gui/Common/tools/Trace.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "../libbrathl/LatLonPoint.h"
 using namespace brathl;
 
@@ -205,7 +205,7 @@ void CGeoMap::Create( CObArray* data, const std::string& fieldName )
 				valids.push_back( static_cast<bool>( validLatitude ) );
 
 				double v = varValue.GetValues()[ iTemp ];
-				if ( ( CTools::IsNan( v ) != 0 ) || CTools::IsDefaultValue( v ) )
+				if ( ( CTools::IsNan( v ) != 0 ) || isDefaultValue( v ) )
 				{
 					values->InsertNextValue( 0 );
 					bitarray->InsertNextValue( 0 );					//bitarray->InsertNextValue(1);
@@ -239,9 +239,9 @@ void CGeoMap::Create( CObArray* data, const std::string& fieldName )
 			}
 		}
 
-		if ( CTools::IsDefaultValue( minHeightValue ) )
+		if ( isDefaultValue( minHeightValue ) )
 			minHeightValue = m_minhv;
-		if ( CTools::IsDefaultValue( maxHeightValue ) )
+		if ( isDefaultValue( maxHeightValue ) )
 			maxHeightValue = m_maxhv;
 
 		for ( int32_t iX = 0; iX < maxX; iX++ ){
@@ -279,10 +279,10 @@ void CGeoMap::Create( CObArray* data, const std::string& fieldName )
 	}
 	
 
-	if ( CTools::IsDefaultValue( m_plotProperty.m_minContourValue ) )
+	if ( isDefaultValue( m_plotProperty.m_minContourValue ) )
 		m_plotProperty.m_minContourValue = minHeightValue;
 
-	if ( CTools::IsDefaultValue( m_plotProperty.m_maxContourValue ) )
+	if ( isDefaultValue( m_plotProperty.m_maxContourValue ) )
 		m_plotProperty.m_maxContourValue = maxHeightValue;
 
 	//femm TODO - begin
@@ -1506,7 +1506,7 @@ void CGeoVelocityMap::Create(CObArray* northData, CObArray* eastData, const std:
 
         // invalid values?
         if ( (CTools::IsNan(vN) != 0) || (CTools::IsNan(vE) != 0) ||
-                        CTools::IsDefaultValue(vN) || CTools::IsDefaultValue(vE))
+                        isDefaultValue(vN) || isDefaultValue(vE))
         {
 
           valuesNorth->InsertNextValue(0);
@@ -1573,11 +1573,11 @@ void CGeoVelocityMap::Create(CObArray* northData, CObArray* eastData, const std:
       }
     }
 
-    if (CTools::IsDefaultValue(minHeightValue))
+    if (isDefaultValue(minHeightValue))
     {
       minHeightValue = m_minhvN < m_minhvE ? m_minhvN : m_minhvE;
     }
-    if (CTools::IsDefaultValue(maxHeightValue))
+    if (isDefaultValue(maxHeightValue))
     {
       maxHeightValue = m_minhvN > m_minhvE ? m_minhvN : m_minhvE;
     }
@@ -1626,12 +1626,12 @@ void CGeoVelocityMap::Create(CObArray* northData, CObArray* eastData, const std:
   }
 
 
-  if (CTools::IsDefaultValue(m_plotProperty.m_minContourValue))
+  if (isDefaultValue(m_plotProperty.m_minContourValue))
   {
     m_plotProperty.m_minContourValue = minHeightValue;
   }
 
-  if (CTools::IsDefaultValue(m_plotProperty.m_maxContourValue))
+  if (isDefaultValue(m_plotProperty.m_maxContourValue))
   {
     m_plotProperty.m_maxContourValue = maxHeightValue;
   }

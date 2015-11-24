@@ -20,10 +20,10 @@
 #if !defined(_BratAlgoFilterMedian1D_h_)
 #define _BratAlgoFilterMedian1D_h_
 
-#include "brathl_error.h" 
-#include "brathl.h" 
-
 #include <string>
+
+#include "new-gui/Common/tools/brathl_error.h" 
+#include "brathl.h" 
 
 #include "Tools.h" 
 #include "BratAlgoFilterMedian.h" 
@@ -138,7 +138,7 @@ public:
 
   virtual double GetParamDefaultValue(uint32_t indexParam) {
         double value;
-        CTools::SetDefaultValue(value);
+        setDefaultValue(value);
         switch (indexParam) 
         {
           case 0: break;

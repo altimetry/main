@@ -23,18 +23,18 @@
 #include <cstdio>
 #include <cstring>
 #include <typeinfo>
+#include <string>
 
-#include "brathl_error.h"
+
+#include "new-gui/Common/tools/brathl_error.h"
 #include "brathl.h"
 //#define BRAT_INTERNAL
 
 #include "coda.h"
 
-#include <string>
-
-#include "TraceLog.h"
+#include "new-gui/Common/tools/TraceLog.h"
 #include "Tools.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 
 
 #include "Expression.h"
@@ -555,8 +555,8 @@ void CProduct::RemoveCriteria()
 //----------------------------------------
 bool CProduct::GetValueMinMax(CExpression& expr, const std::string& recordName, double& valueMin, double& valueMax, const CUnit& unit)
 {
-  CTools::SetDefaultValue(valueMin);
-  CTools::SetDefaultValue(valueMax);
+  setDefaultValue(valueMin);
+  setDefaultValue(valueMax);
 
   CStringList listFieldsToRead;
   listFieldsToRead.InsertUnique(expr.GetFieldNames());
@@ -751,9 +751,9 @@ bool CProduct::GetLatLonMinMax(CLatLonRect& latlonRectMinMax)
 
       // Gets start latitude
       double lat;
-      CTools::SetDefaultValue(lat);
+      setDefaultValue(lat);
 
-      if (CTools::IsDefaultValue(m_forceLatMinCriteriaValue))
+      if (isDefaultValue(m_forceLatMinCriteriaValue))
       {
         lat = m_dataSet.GetFieldSetAsDblValue(m_fieldNameEquivalence.Exists(criteriaInfo->GetStartLatFieldName()));
       }
@@ -767,9 +767,9 @@ bool CProduct::GetLatLonMinMax(CLatLonRect& latlonRectMinMax)
       CLatLonPoint left(lat, lon);
 
       // Gets end latitude
-      CTools::SetDefaultValue(lat);
+      setDefaultValue(lat);
 
-      if (CTools::IsDefaultValue(m_forceLatMinCriteriaValue))
+      if (isDefaultValue(m_forceLatMinCriteriaValue))
       {
         lat = m_dataSet.GetFieldSetAsDblValue(m_fieldNameEquivalence.Exists(criteriaInfo->GetEndLatFieldName()));
       }
@@ -1012,19 +1012,19 @@ void CProduct::AddCriteria(bool force /* = false */)
 //----------------------------------------
 void CProduct::LogSelectionResult(const std::string& fileName, bool result)
 {
-    Log("\t\t\t>>>>>>>>>>>>>>>>>>>> Result of selection <<<<<<<<<<<<<<<<<<<<");
+    Log("\t\t\t>>>>>>>>>>>>>>>>>>>> Result of selection <<<<<<<<<<<<<<<<<<<<", true);
     Log("==>File ", false);
     Log(fileName, false);
 
     if (result)
     {
-      Log(" is candidate");
+      Log(" is candidate", true);
     }
     else
     {
-      Log(" is rejected");
+      Log(" is rejected", true);
     }
-    Log("\t\t\t===============================================================");
+    Log("\t\t\t===============================================================", true);
 
 
 }
@@ -1065,22 +1065,22 @@ void CProduct::ApplyCriteria(CStringList& filteredFileList, const std::string& l
 
     try
     {
-      Log("---------------------------");
+      Log("---------------------------", true);
       Log("File ", false);
-      Log(*itFile);
-      Log("---------------------------");
+      Log(*itFile, true);
+      Log("---------------------------", true);
 
       this->Open(*itFile);
     }
     catch (CException& e)
     {
       Log("Error while opening file:", false);
-      Log(e.what());
+      Log(e.what(), true);
       continue;
     }
     catch (...)
     {
-      Log("Unknown error while opening file");
+      Log("Unknown error while opening file", true);
       continue;
     }
 
@@ -1208,13 +1208,13 @@ void CProduct::ApplyCriteria(CStringList& filteredFileList, const std::string& l
       catch (CException& e)
       {
         Log("Error while processing file:", false);
-        Log(e.what());
+        Log(e.what(), true);
         fileOk = false;
         break;
       }
       catch (...)
       {
-        Log("Unknown error while processing file");
+        Log("Unknown error while processing file", true);
         fileOk = false;
         break;
       }
@@ -1338,7 +1338,7 @@ bool CProduct::ApplyCriteriaLatLon(CCriteriaInfo* criteriaInfo)
   bool bOk = criteriaLatLon->Intersect(latLonRect, intersect);
 
   Log("Criteria Lat/Lon box: ", false);
-  Log(criteriaLatLon->GetAsText());
+  Log(criteriaLatLon->GetAsText(), true);
   Log("File Lat/Lon box: ", false);
   Log(latLonRect.GetAsText(), false);
   Log(". Intersect: ", false);
@@ -1346,7 +1346,7 @@ bool CProduct::ApplyCriteriaLatLon(CCriteriaInfo* criteriaInfo)
   if (bOk)
   {
     Log(". Intersection box ", false);
-    Log(intersect.GetAsText());
+    Log(intersect.GetAsText(), true);
   }
 
   return bOk;
@@ -1401,7 +1401,7 @@ bool CProduct::ApplyCriteriaDatetime(CCriteriaInfo* criteriaInfo)
   bool bOk =  criteriaDatetime->Intersect(datePeriod, intersect);
 
   Log("Criteria Date period: ", false);
-  Log(criteriaDatetime->GetAsText());
+  Log(criteriaDatetime->GetAsText(), true);
   Log("File Date period: ", false);
   Log(datePeriod.GetAsText(), false);
   Log(". Intersect: ", false);
@@ -1409,7 +1409,7 @@ bool CProduct::ApplyCriteriaDatetime(CCriteriaInfo* criteriaInfo)
   if (bOk)
   {
     Log(". Intersection box ", false);
-    Log(intersect.GetAsText());
+    Log(intersect.GetAsText(), true);
   }
 
   return bOk;
@@ -1487,7 +1487,7 @@ bool CProduct::ApplyCriteriaPassInt(CCriteriaInfo* criteriaInfo)
   bool bOk = criteriaPass->Intersect(startPassValue, endPassValue, intersect);
 
   Log("Criteria Pass: ", false);
-  Log(criteriaPass->GetAsText());
+  Log(criteriaPass->GetAsText(), true);
   Log("File Pass from: ", false);
   Log(startPassValue, false);
   Log(" Pass end: ", false);
@@ -1497,7 +1497,7 @@ bool CProduct::ApplyCriteriaPassInt(CCriteriaInfo* criteriaInfo)
   if (bOk)
   {
     Log(". Intersection box ", false);
-    Log(intersect.ToString());
+    Log(intersect.ToString(), true);
   }
 
   return bOk;
@@ -1543,14 +1543,14 @@ bool CProduct::ApplyCriteriaPassString(CCriteriaInfo* criteriaInfo)
   }
 
   Log("Passes: ", false);
-  Log(passes.ToString());
+  Log(passes.ToString(), true);
 
   CStringArray intersect;
 
   bool bOk = criteriaPass->Intersect(passes, intersect);
 
   Log("Criteria Passes: ", false);
-  Log(criteriaPass->GetAsText());
+  Log(criteriaPass->GetAsText(), true);
   Log("File Passes: ", false);
   Log(passes.ToString(), false);
   Log(". Intersect: ", false);
@@ -1558,7 +1558,7 @@ bool CProduct::ApplyCriteriaPassString(CCriteriaInfo* criteriaInfo)
   if (bOk)
   {
     Log(". Intersection box ", false);
-    Log(intersect.ToString());
+    Log(intersect.ToString(), true);
   }
 
   return bOk;
@@ -1606,7 +1606,7 @@ bool CProduct::ApplyCriteriaCycle(CCriteriaInfo* criteriaInfo)
   bool bOk = criteriaCycle->Intersect(startCycleValue, endCycleValue, intersect);
 
   Log("Criteria Cycle: ", false);
-  Log(criteriaCycle->GetAsText());
+  Log(criteriaCycle->GetAsText(), true);
   Log("File Cycle from: ", false);
   Log(startCycleValue, false);
   Log(" Cycle end: ", false);
@@ -1616,7 +1616,7 @@ bool CProduct::ApplyCriteriaCycle(CCriteriaInfo* criteriaInfo)
   if (bOk)
   {
     Log(". Intersection box ", false);
-    Log(intersect.ToString());
+    Log(intersect.ToString(), true);
   }
 
   return bOk;
@@ -1987,7 +1987,7 @@ bool CProduct::IsOpened(const std::string& fileName)
     return bOpen;
   }
 
-  if (!CTools::CompareNoCase(m_currFileName, fileName))
+  if (!str_icmp(m_currFileName, fileName))
   {
     bOpen = false;
   }
@@ -2617,8 +2617,8 @@ void CProduct::Init()
 
   LoadTransposeFieldsValue(m_fieldsToTranspose);
 
-  CTools::SetDefaultValue(m_forceLatMinCriteriaValue);
-  CTools::SetDefaultValue(m_forceLatMaxCriteriaValue);
+  setDefaultValue(m_forceLatMinCriteriaValue);
+  setDefaultValue(m_forceLatMaxCriteriaValue);
 
   m_indexProcessedFile = -1;
 
@@ -2650,12 +2650,12 @@ void CProduct::Init()
 
   m_hasHighResolutionFieldToProcess = false;
 
-  CTools::SetDefaultValue(m_deltaTimeHighResolution);
-  CTools::SetDefaultValue(m_numHighResolutionMeasure);
-  CTools::SetDefaultValue(m_refPoint);
+  setDefaultValue(m_deltaTimeHighResolution);
+  setDefaultValue(m_numHighResolutionMeasure);
+  setDefaultValue(m_refPoint);
 
-  CTools::SetDefaultValue(m_previousLatitude);
-  CTools::SetDefaultValue(m_previousLongitude);
+  setDefaultValue(m_previousLatitude);
+  setDefaultValue(m_previousLongitude);
 
   m_previousTimeStamp = 0.0;
 
@@ -3050,83 +3050,22 @@ void CProduct::CreateLogFile(const std::string& logFileName, uint32_t mode /* = 
 
 }
 //----------------------------------------
-void CProduct::Log(bool n, bool bCrLf /*= true*/)
-{
-  std::string str = (n ? "yes" : "no");
-  Log(str, bCrLf);
-}
-//----------------------------------------
-void CProduct::Log(double n, bool bCrLf /*= true*/)
-{
-  Log(CTools::DoubleToStr(n), bCrLf);
-}
-//----------------------------------------
-void CProduct::Log(int32_t n, bool bCrLf /*= true*/)
-{
-  Log(CTools::IntToStr(n), bCrLf);
-}
-//----------------------------------------
-void CProduct::Log(const std::string& str, bool bCrLf /*= true*/)
-{
-  Log(str.c_str(), bCrLf);
-}
-//----------------------------------------
-void CProduct::Log(const CStringList& l, bool bCrLf /*= true*/)
-{
-  CStringList::const_iterator it;
-  for (it = l.begin() ; it != l.end() ; it++)
-  {
-    Log(it->c_str(), bCrLf);
-  }
-}
-//----------------------------------------
-void CProduct::Log(const char* str, bool bCrLf /*= true*/)
-{
-
-  if (m_logFile == NULL)
-  {
-    return;
-  }
-
-  if (!m_logFile->IsOpen())
-  {
-    return;
-  }
-
-  try
-  {
-    m_logFile->Write(str);
-    if (bCrLf)
-    {
-      m_logFile->Write('\n');
-    }
-  }
-  catch (CException& e)
-  {
-    e.what(); // to avoid compiler complaint
-  }
-  catch (...)
-  {
-  }
-
-}
-//----------------------------------------
 void CProduct::InitApplyCriteriaStats()
 {
   m_dateProcessBegin.SetDateNow();
-  Log("\t\t====================================");
-  Log("\t\t\tTABLE OF CONTENTS");
-  Log("\t\t====================================");
-  Log("");
-  Log("1 - SELECTION DETAILS");
-  Log("2 - SUMMARY/STATISTIC");
-  Log("3 - SELECTED FILES");
-  Log("4 - REJECTED FILES");
-  Log("");
-  Log("====================================");
-  Log("1 - DETAILS: ");
-  Log("====================================");
-  Log("");
+  Log("\t\t====================================", true);
+  Log("\t\t\tTABLE OF CONTENTS", true);
+  Log("\t\t====================================", true);
+  Log("", true);
+  Log("1 - SELECTION DETAILS", true);
+  Log("2 - SUMMARY/STATISTIC", true);
+  Log("3 - SELECTED FILES", true);
+  Log("4 - REJECTED FILES", true);
+  Log("", true);
+  Log("====================================", true);
+  Log("1 - DETAILS: ", true);
+  Log("====================================", true);
+  Log("", true);
 
 }
 //----------------------------------------
@@ -3134,49 +3073,49 @@ void CProduct::EndApplyCriteriaStats(const CStringList& filteredFileList)
 {
   m_dateProcessEnd.SetDateNow();
 
-  int32_t countIn = m_fileList.size();
-  int32_t countOut = filteredFileList.size();
+  size_t countIn = m_fileList.size();
+  size_t countOut = filteredFileList.size();
 
-  Log("====================================");
-  Log("2 - SUMMARY/STATISTIC:");
-  Log("====================================");
-  Log("");
+  Log("====================================", true);
+  Log("2 - SUMMARY/STATISTIC:", true);
+  Log("====================================", true);
+  Log("", true);
   Log("Process date: ", false);
-  Log(m_dateProcessEnd.AsString());
+  Log(m_dateProcessEnd.AsString(), true);
   Log("Number of files processed: ", false);
   Log(countIn, false);
   Log(". Number of files selected: ", false);
   Log(countOut, false);
   Log(". Number of files rejected: ", false);
-  Log((countIn - countOut));
+  Log((countIn - countOut), true);
   Log("Elapsed time: ", false);
   Log((m_dateProcessEnd - m_dateProcessBegin), false);
   Log(" seconds (", false);
   Log(((m_dateProcessEnd - m_dateProcessBegin) / 60.0), false);
-  Log(" minutes)");
-  Log("");
+  Log(" minutes)", true);
+  Log("", true);
 
-  Log("====================================");
-  Log("3 - SELECTED FILES:");
-  Log("====================================");
-  Log("");
-  Log(filteredFileList);
-  Log("");
+  Log("====================================", true);
+  Log("3 - SELECTED FILES:", true);
+  Log("====================================", true);
+  Log("", true);
+  Log(filteredFileList, true);
+  Log("", true);
 
-  Log("====================================");
-  Log("4 - REJECTED FILES:");
-  Log("====================================");
-  Log("");
+  Log("====================================", true);
+  Log("4 - REJECTED FILES:", true);
+  Log("====================================", true);
+  Log("", true);
 
   CStringList rejectedfiles;
   filteredFileList.Complement(m_fileList, rejectedfiles);
 
-  Log(rejectedfiles);
-  Log("");
+  Log(rejectedfiles, true);
+  Log("", true);
 
-  Log("\t\t====================================");
-  Log("\t\t\tEND OF REPORT");
-  Log("\t\t====================================");
+  Log("\t\t====================================", true);
+  Log("\t\t\tEND OF REPORT", true);
+  Log("\t\t====================================", true);
 
 }
 //----------------------------------------
@@ -4009,8 +3948,8 @@ void CProduct::GetMinMaxNumberOfRecords(int32_t& min, int32_t& max, CIntMap* dat
   GetNumberOfRecords(datasetNames, datasetRecordsNumberTmp);
 
 
-  CTools::SetDefaultValue(min);
-  CTools::SetDefaultValue(max);
+  setDefaultValue(min);
+  setDefaultValue(max);
 
 
   CIntMap::iterator itMap;
@@ -4029,7 +3968,7 @@ void CProduct::GetMinMaxNumberOfRecords(int32_t& min, int32_t& max, CIntMap* dat
       datasetRecordsNumber->Insert(itMap->first, itMap->second);
     }
 
-    if (CTools::IsDefaultValue(max))
+    if (isDefaultValue(max))
     {
       max = num;
     }
@@ -4038,7 +3977,7 @@ void CProduct::GetMinMaxNumberOfRecords(int32_t& min, int32_t& max, CIntMap* dat
       max = num;
     }
 
-    if (CTools::IsDefaultValue(min))
+    if (isDefaultValue(min))
     {
       min = num;
     }
@@ -4048,12 +3987,12 @@ void CProduct::GetMinMaxNumberOfRecords(int32_t& min, int32_t& max, CIntMap* dat
     }
   }
 
-  if (CTools::IsDefaultValue(min))
+  if (isDefaultValue(min))
   {
     min = 0;
   }
 
-  if (CTools::IsDefaultValue(max))
+  if (isDefaultValue(max))
   {
     max = 0;
   }
@@ -4155,7 +4094,7 @@ void CProduct::ExpandArray()
 
   // All array must have the same dimensions
   int32_t nbDims;
-  CTools::SetDefaultValue(nbDims);
+  setDefaultValue(nbDims);
   CUIntArray dim;
 
   CRecordSet::iterator it;
@@ -4179,7 +4118,7 @@ void CProduct::ExpandArray()
 
     hasArray = true;
 
-    if (CTools::IsDefaultValue(nbDims))
+    if (isDefaultValue(nbDims))
     {
       nbDims = fieldSetArrayDbl->m_nbDims;
       dim.Insert(fieldSetArrayDbl->m_dim);
@@ -4282,7 +4221,7 @@ void CProduct::ExpandFieldsArray()
   bool canExpandArray = true;
   bool hasArray = false;
 
-  int32_t countRecord = m_dataSet.size();
+  size_t countRecord = m_dataSet.size();
 
   if (countRecord <= 0)
   {
@@ -4294,7 +4233,7 @@ void CProduct::ExpandFieldsArray()
 
   // All array must have the same dimensions
   int32_t nbDims;
-  CTools::SetDefaultValue(nbDims);
+  setDefaultValue(nbDims);
   CUIntArray dim;
 
   CRecordSet::iterator it;
@@ -4327,7 +4266,7 @@ void CProduct::ExpandFieldsArray()
 
     hasArray = true;
 
-    if (CTools::IsDefaultValue(nbDims))
+    if (isDefaultValue(nbDims))
     {
       nbDims = fieldSetArrayDbl->m_nbDims;
       dim.Insert(fieldSetArrayDbl->m_dim);
@@ -4356,7 +4295,7 @@ void CProduct::ExpandFieldsArray()
   // Create a new dataset which contains simple fields
   // This dataset will contains as  many records as number of array element number
   CDataSet dataSetArray("Array", false);
-  uint32_t insertRecordAt = 0;
+  size_t insertRecordAt = 0;
 
   uint32_t repeat = 1;
   for (int32_t i = 0 ; i < nbDims ; i++)
@@ -4475,7 +4414,7 @@ void CProduct::CheckConsistencyHighResolutionField(CFieldSetArrayDbl* fieldSetAr
     throw (e);
   }
 
-  if (CTools::IsDefaultValue(m_numHighResolutionMeasure))
+  if (isDefaultValue(m_numHighResolutionMeasure))
   {
     std::string msg = CTools::Format("ERROR - CProduct::CheckConsistencyHighResolutionField() - Number of high resolution measures is not intialized (equals default value"
                                 "(field '%s')",
@@ -4616,7 +4555,7 @@ void CProduct::Put(CDataSet* dataSet, CFieldSetArrayDbl* fieldSetArrayDbl, uint3
     return;
   }
 
-  if (CTools::IsDefaultValue(repeat))
+  if (isDefaultValue(repeat))
   {
     std::string msg = CTools::Format("ERROR - CProduct::Put() - Number of high resolution measures is not intialized (equals default value"
                                 "(field '%s')",
@@ -4648,7 +4587,7 @@ void CProduct::Put(CDataSet* dataSet, CFieldSetDbl* fieldSetDbl)
     return;
   }
 
-  if (CTools::IsDefaultValue(m_numHighResolutionMeasure))
+  if (isDefaultValue(m_numHighResolutionMeasure))
   {
     std::string msg = CTools::Format("ERROR - CProduct::Put() - Number of high resolution measures is not intialized (equals default value"
                                 "(field '%s')",
@@ -6053,7 +5992,7 @@ bool CProduct::LoadTransposeFieldsValue(CStringArray& fieldToTranspose)
       	      	      	    alias);
     */
 
-    if (CTools::CompareNoCase(product, GetProductClassType().c_str()))
+    if (str_icmp(product, GetProductClassType().c_str()))
     {
       fieldToTranspose.InsertUnique(CTools::StringTrim(field));
     }
@@ -6312,7 +6251,7 @@ int32_t CProduct::ReadData(
 
 		*actualSize	= 0;
 
-		uint32_t nbFiles = FileList.size();
+		auto nbFiles = FileList.size();
 		uint32_t cptFile = 0;
 
 		product->SetExpandArray( true );
@@ -6374,7 +6313,7 @@ int32_t CProduct::ReadData(
 				{
 					for ( int32_t IndexVal=0; IndexVal < *actualSize; IndexVal++ )
 					{
-						if ( CTools::IsDefaultValue( vec[ IndexVal ] ) )
+						if ( isDefaultValue( vec[ IndexVal ] ) )
 						{
 							vec[ IndexVal ]	= defaultValue;
 						}
@@ -6445,7 +6384,7 @@ void CProduct::ReadDataForOneMeasure(
 			{
 				recordSet->ExecuteExpression( expressions[ indexExpr ], recordName, exprValue, product );
 
-				int32_t nbValues	= exprValue.GetNbValues();
+				size_t nbValues	= exprValue.GetNbValues();
 
 				double value;
 

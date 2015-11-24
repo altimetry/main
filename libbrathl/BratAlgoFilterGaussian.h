@@ -20,7 +20,7 @@
 #if !defined(_BratAlgoFilterGaussian_h_)
 #define _BratAlgoFilterGaussian_h_
 
-#include "brathl_error.h" 
+#include "new-gui/Common/tools/brathl_error.h" 
 #include "brathl.h" 
 
 #include <string>
@@ -142,7 +142,7 @@ public:
 
   virtual double GetParamDefaultValue(uint32_t indexParam) {
         double value;
-        CTools::SetDefaultValue(value);
+        setDefaultValue(value);
         switch (indexParam) 
         {
           case 0: break;

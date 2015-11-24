@@ -24,7 +24,7 @@
 #include <cstring>
 #include <typeinfo>
 
-#include "brathl_error.h"
+#include "new-gui/Common/tools/brathl_error.h"
 #include "brathl.h"
 
 //#define BRAT_INTERNAL
@@ -34,8 +34,8 @@
 #include <string>
 
 #include "Tools.h"
-#include "TraceLog.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/TraceLog.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "Product.h"
 #include "ProductNetCdf.h"
 #include "Unit.h"
@@ -136,9 +136,9 @@ void CField::Init()
 
   m_highResolution = false;
 
-  CTools::SetDefaultValue(m_validMin);
-  CTools::SetDefaultValue(m_validMax);
-  CTools::SetDefaultValue(m_numHighResolutionMeasure);
+  setDefaultValue(m_validMin);
+  setDefaultValue(m_validMax);
+  setDefaultValue(m_numHighResolutionMeasure);
 
   m_convertDate = false;
 
@@ -286,16 +286,16 @@ void CField::AdjustValidMinMax(double value)
 //----------------------------------------
 void CField::AdjustValidMinMax(double value, double& min, double& max)
 {
-  if (CTools::IsDefaultValue(value))
+  if (isDefaultValue(value))
   {
     return;
   }
-  if (CTools::IsDefaultValue(min))
+  if (isDefaultValue(min))
   {
     min = value;
   }
 
-  if (CTools::IsDefaultValue(max))
+  if (isDefaultValue(max))
   {
     max = value;
   }
@@ -357,9 +357,9 @@ void CField::ConvertDefaultValueInt8(double* data, int32_t size)
 {
   for (int32_t i = 0 ; i < size ; i++)
   {
-    if (CTools::IsDefaultValue(static_cast<int8_t>(data[i])))
+    if (isDefaultValue(static_cast<int8_t>(data[i])))
     {
-      CTools::SetDefaultValue(data[i]);
+      setDefaultValue(data[i]);
     }
   }
 }
@@ -368,9 +368,9 @@ void CField::ConvertDefaultValueUInt8(double* data, int32_t size)
 {
   for (int32_t i = 0 ; i < size ; i++)
   {
-    if (CTools::IsDefaultValue(static_cast<uint8_t>(data[i])))
+    if (isDefaultValue(static_cast<uint8_t>(data[i])))
     {
-      CTools::SetDefaultValue(data[i]);
+      setDefaultValue(data[i]);
     }
   }
 }
@@ -379,9 +379,9 @@ void CField::ConvertDefaultValueInt16(double* data, int32_t size)
 {
   for (int32_t i = 0 ; i < size ; i++)
   {
-    if (CTools::IsDefaultValue(static_cast<int16_t>(data[i])))
+    if (isDefaultValue(static_cast<int16_t>(data[i])))
     {
-      CTools::SetDefaultValue(data[i]);
+      setDefaultValue(data[i]);
     }
   }
 }
@@ -390,9 +390,9 @@ void CField::ConvertDefaultValueUInt16(double* data, int32_t size)
 {
   for (int32_t i = 0 ; i < size ; i++)
   {
-    if (CTools::IsDefaultValue(static_cast<uint16_t>(data[i])))
+    if (isDefaultValue(static_cast<uint16_t>(data[i])))
     {
-      CTools::SetDefaultValue(data[i]);
+      setDefaultValue(data[i]);
     }
   }
 }
@@ -401,9 +401,9 @@ void CField::ConvertDefaultValueInt32(double* data, int32_t size)
 {
   for (int32_t i = 0 ; i < size ; i++)
   {
-    if (CTools::IsDefaultValue(static_cast<int32_t>(data[i])))
+    if (isDefaultValue(static_cast<int32_t>(data[i])))
     {
-      CTools::SetDefaultValue(data[i]);
+      setDefaultValue(data[i]);
     }
   }
 }
@@ -412,9 +412,9 @@ void CField::ConvertDefaultValueUInt32(double* data, int32_t size)
 {
   for (int32_t i = 0 ; i < size ; i++)
   {
-    if (CTools::IsDefaultValue(static_cast<uint32_t>(data[i])))
+    if (isDefaultValue(static_cast<uint32_t>(data[i])))
     {
-      CTools::SetDefaultValue(data[i]);
+      setDefaultValue(data[i]);
     }
   }
 }
@@ -423,9 +423,9 @@ void CField::ConvertDefaultValueInt64(double* data, int32_t size)
 {
   for (int32_t i = 0 ; i < size ; i++)
   {
-    if (CTools::IsDefaultValue(static_cast<int64_t>(data[i])))
+    if (isDefaultValue(static_cast<int64_t>(data[i])))
     {
-      CTools::SetDefaultValue(data[i]);
+      setDefaultValue(data[i]);
     }
   }
 }
@@ -434,9 +434,9 @@ void CField::ConvertDefaultValueUInt64(double* data, int32_t size)
 {
   for (int32_t i = 0 ; i < size ; i++)
   {
-    if (CTools::IsDefaultValue(static_cast<uint64_t>(data[i])))
+    if (isDefaultValue(static_cast<uint64_t>(data[i])))
     {
-      CTools::SetDefaultValue(data[i]);
+      setDefaultValue(data[i]);
     }
   }
 }
@@ -445,9 +445,9 @@ void CField::ConvertDefaultValueFloat(double* data, int32_t size)
 {
   for (int32_t i = 0 ; i < size ; i++)
   {
-    if (CTools::IsDefaultValue(static_cast<float>(data[i])))
+    if (isDefaultValue(static_cast<float>(data[i])))
     {
-      CTools::SetDefaultValue(data[i]);
+      setDefaultValue(data[i]);
     }
   }
 }
@@ -456,7 +456,7 @@ void CField::SetDefaultValue(double* data, int32_t size)
 {
   for (int32_t i = 0 ; i < size ; i++)
   {
-      CTools::SetDefaultValue(data[i]);
+      setDefaultValue(data[i]);
   }
 }
 //----------------------------------------
@@ -1197,14 +1197,14 @@ CFieldRecord::CFieldRecord()
 }
 //----------------------------------------
 
-CFieldRecord::CFieldRecord(int32_t nbFields, const std::string& name, const std::string& description, const std::string& unit)
+CFieldRecord::CFieldRecord(size_t nbFields, const std::string& name, const std::string& description, const std::string& unit)
     : CFieldArray(name, description, unit)
 {
   m_nbFields = nbFields;
 }
 //----------------------------------------
 
-CFieldRecord::CFieldRecord(int32_t nbDims, const long dim[], int32_t nbFields, const std::string& name, const std::string& description, const std::string& unit)
+CFieldRecord::CFieldRecord(int32_t nbDims, const long dim[], size_t nbFields, const std::string& name, const std::string& description, const std::string& unit)
     : CFieldArray(nbDims, dim, name, description, unit)
 {
   m_nbFields = nbFields;
@@ -2831,9 +2831,9 @@ void CFieldNetCdf::SetDimInfo(const CStringArray* dimNames, const CIntArray* dim
 //----------------------------------------
 void CFieldNetCdf::SetDimInfo(const CStringArray& dimNames, const CIntArray& dimIds, const CUIntArray& dimValues)
 {
-  uint32_t nbNames = dimNames.size();
-  uint32_t nbIds = dimIds.size();
-  uint32_t nbValues = dimValues.size();
+  size_t nbNames = dimNames.size();
+  size_t nbIds = dimIds.size();
+  size_t nbValues = dimValues.size();
 
   if ((nbNames != nbIds) ||  (nbNames != nbValues))
   {
@@ -2872,7 +2872,7 @@ void CFieldNetCdf::GetDimValuesAsArray(CUIntArray& values, bool bRemoveAll /*= t
   {
     value = m_dimValues.Exists(*it);
 
-    if (CTools::IsDefaultValue(value))
+    if (isDefaultValue(value))
     {
       continue;
     }
@@ -2897,7 +2897,7 @@ void CFieldNetCdf::GetDimIdsAsArray(CIntArray& values, bool bRemoveAll /*= true*
   {
     value = m_dimIds.Exists(*it);
 
-    if (CTools::IsDefaultValue(value))
+    if (isDefaultValue(value))
     {
       continue;
     }
@@ -3269,7 +3269,7 @@ void CFieldNetCdf::SetIndex(const std::string& dimName, uint32_t index, uint32_t
 
   uint32_t range = m_dimRanges.Exists(dimName);
 
-  if (CTools::IsDefaultValue(range))
+  if (isDefaultValue(range))
   {
     CException e(CTools::Format("ERROR - CFieldNetCdf::SetIndex(const std::string& dimNames, uint32_t index, uint32_t count) - "
                                 "dimension name not found : '%s'"
@@ -3859,7 +3859,7 @@ void CFieldNetCdfIndexData::AddOffset(double value, bool force /*= false*/)
 //----------------------------------------
 void CFieldNetCdfIndexData::SetValuesWithOffset(double newOffset, bool force /*= false*/)
 {
-  uint32_t valuesSize = m_values.size();
+  size_t valuesSize = m_values.size();
   if (!force && (static_cast<int>(valuesSize) == this->GetNbElts()) && (m_offset == newOffset))
   {
     return;

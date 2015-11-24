@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
@@ -17,8 +15,8 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-#if !defined(_Exception_h_)
-#define _Exception_h_
+#if !defined(BRAT_EXCEPTION_H)
+#define BRAT_EXCEPTION_H
 
 #include <iostream>
 #include <string>
@@ -27,12 +25,7 @@
 
 
 #include "brathl_error.h"
-#include "brathl.h"
 
-
-
-namespace brathl
-{
 
 //-------------------------------------------------------------
 //------------------- CException class --------------------
@@ -53,44 +46,42 @@ namespace brathl
  \version 1.0
 */
 
+#if defined(WIN32) && defined(GetMessage)
+#undef GetMessage
+#endif
+
 class CException : public std::exception
 {
+protected:
+	int m_errcode;
+	std::string m_message;
 
 public:
+	/// Empty CException ctor
+	CException()
+	{}
 
-  /// Empty CException ctor
-  CException();
+	//@{
+	/** Creates a new CException object.
+	  \param message [in] : error message
+	  \param errcode [in] : error code
+	  */
+	CException( const std::string& message, int errcode );
 
-  //@{
-  /** Creates a new CException object.
-    \param message [in] : error message
-    \param errcode [in] : error code
-    */
-  CException(const std::string& message, int32_t errcode);
-
-   //@}
-
-
-  /// Destructor
-  virtual ~CException() throw();
-
-  ///Dump fonction
-  virtual void Dump(std::ostream& fOut = std::cerr);
-
-  virtual const char * TypeOf() const { return "std::exception"; };
-
-  virtual const char *what() const throw();
-  int32_t error() { return m_errcode;};
-  std::string GetMessage() { return m_message; };
-
-protected:
+	//@}
 
 
-  int32_t m_errcode;
-  std::string m_message;
+	/// Destructor
+	virtual ~CException() throw( );
 
+	///Dump fonction
+	virtual void Dump( std::ostream& fOut = std::cerr );
 
+	virtual const char* TypeOf() const { return "std::exception"; }
 
+	virtual const char *what() const throw( );
+	int error() { return m_errcode; }
+	std::string GetMessage() { return m_message; }
 };
 
 //-------------------------------------------------------------
@@ -116,7 +107,7 @@ public:
     \param message [in] : error message
     \param errcode [in] : error code
     */
-  CFileException(const std::string& message, int32_t errcode = BRATHL_ERROR)
+  CFileException(const std::string& message, int errcode = BRATHL_ERROR)
       	: CException(message, errcode){};
 
   /** Creates a new CFileException object.
@@ -124,7 +115,7 @@ public:
     \param fileName [in] : file name in error
     \param errcode [in] : error code
     */
-  CFileException(const std::string& message, const std::string& fileName, int32_t errcode);
+  CFileException(const std::string& message, const std::string& fileName, int errcode);
 
   /// Destructor
   virtual ~CFileException() throw() {};
@@ -160,7 +151,7 @@ public:
     \param message [in] : error message
     \param errcode [in] : error code
     */
-  CParameterException(const std::string& message, int32_t errcode)
+  CParameterException(const std::string& message, int errcode)
       	: CException(message, errcode){};
   /// Destructor
   virtual ~CParameterException()  throw() {};
@@ -197,7 +188,7 @@ public:
     \param message [in] : error message
     \param errcode [in] : error code
     */
-  CProductException(const std::string& message, int32_t errcode)
+  CProductException(const std::string& message, int errcode)
       	: CException(message, errcode){};
 
 
@@ -206,7 +197,7 @@ public:
     \param fileName [in] : file name in error
     \param errcode [in] : error code
     */
-  CProductException(const std::string& message, const std::string& fileName, int32_t errcode);
+  CProductException(const std::string& message, const std::string& fileName, int errcode);
 
     /** Creates a new CProductException object.
     \param message [in] : error message
@@ -218,7 +209,7 @@ public:
   CProductException(const std::string& message, const std::string& fileName,
                                        const std::string& productClass,
                                        const std::string& productType,
-                                       int32_t errcode);
+                                       int errcode);
 
   /// Destructor
   virtual ~CProductException()  throw() {};
@@ -256,7 +247,7 @@ public:
     \param errcode [in] : error code
     \param expression [in] : expression being compiled
     */
-  CExpressionException(const std::string& message, int32_t errcode, const std::string& expression = "");
+  CExpressionException(const std::string& message, int errcode, const std::string& expression = "");
 
   /// Destructor
   virtual ~CExpressionException()  throw() {};
@@ -293,7 +284,7 @@ public:
     \param message [in] : error message
     \param errcode [in] : error code
     */
-  CMemoryException(const std::string& message, int32_t errcode = BRATHL_MEMORY_ERROR)
+  CMemoryException(const std::string& message, int errcode = BRATHL_MEMORY_ERROR)
       	: CException(message, errcode){};
 
   /// Destructor
@@ -329,7 +320,7 @@ public:
     \param message [in] : error message
     \param errcode [in] : error code
     */
-  CUnImplementException(const std::string& message, int32_t errcode = BRATHL_UNIMPLEMENT_ERROR)
+  CUnImplementException(const std::string& message, int errcode = BRATHL_UNIMPLEMENT_ERROR)
       	: CException(message, errcode)
   {};
 
@@ -369,7 +360,7 @@ public:
     \param message [in] : error message
     \param errcode [in] : error code
     */
-  CAlgorithmException(const std::string& message, int32_t errcode = BRATHL_ERROR)
+  CAlgorithmException(const std::string& message, int errcode = BRATHL_ERROR)
       	: CException(message, errcode){};
 
   /** Creates a new CAlgorithmException object.
@@ -377,7 +368,7 @@ public:
     \param fileName [in] : file name in error
     \param errcode [in] : error code
     */
-  CAlgorithmException(const std::string& message, const std::string& algorithmName, int32_t errcode);
+  CAlgorithmException(const std::string& message, const std::string& algorithmName, int errcode);
 
   /// Destructor
   virtual ~CAlgorithmException() throw() {};
@@ -413,7 +404,7 @@ public:
     \param message [in] : error message
     \param errcode [in] : error code
     */
-  CXMLException(const std::string& message, int32_t errcode)
+  CXMLException(const std::string& message, int errcode)
       	: CException(message, errcode){};
   /// Destructor
   virtual ~CXMLException()  throw() {};
@@ -447,7 +438,7 @@ public:
     \param message [in] : error message
     \param errcode [in] : error code
     */
-  CXMLParseException(const std::string& message, int32_t errcode)
+  CXMLParseException(const std::string& message, int errcode)
       	: CXMLException(message, errcode){};
   /// Destructor
   virtual ~CXMLParseException()  throw() {};
@@ -481,7 +472,7 @@ public:
     \param message [in] : error message
     \param errcode [in] : error code
     */
-  CLoadAliasesException(const std::string& message, int32_t errcode)
+  CLoadAliasesException(const std::string& message, int errcode)
       	: CException(message, errcode){};
   /// Destructor
   virtual ~CLoadAliasesException()  throw() {};
@@ -493,6 +484,4 @@ public:
 };
 /** @} */
 
-}
-
-#endif // !defined(_Exception_h_)
+#endif // !defined(BRAT_EXCEPTION_H)

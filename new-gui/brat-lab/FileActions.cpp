@@ -1,6 +1,6 @@
 #include "stdafx.h"
 
-#include "../libbrathl/Trace.h"
+#include "new-gui/Common/tools/Trace.h"
 
 #include "System/CmdLineProcessor.h"
 #include "../../display/PlotData/WPlot.h"

@@ -22,8 +22,8 @@
 
 #include <cmath>
 
-#include "TraceLog.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/TraceLog.h" 
+#include "new-gui/Common/tools/Exception.h" 
 #include "Product.h" 
 #include "ProductNetCdf.h" 
 
@@ -112,7 +112,7 @@ void CBratAlgoFilterLoess2D::SetBeginOfFile()
 {
   CBratAlgoFilterLoess::SetBeginOfFile();
 
-  CTools::SetDefaultValue(m_loess);
+  setDefaultValue(m_loess);
 
 
 
@@ -140,7 +140,7 @@ double CBratAlgoFilterLoess2D::Run(CVectorBratAlgorithmParam& args)
 
   m_varValueArray = NULL;
 
-  CTools::SetDefaultValue(m_loess);
+  setDefaultValue(m_loess);
 
   OpenProductFile();
   
@@ -260,7 +260,7 @@ double CBratAlgoFilterLoess2D::ApplyFilter()
 	double sum = 0.0;
   for (uint32_t i = 0; i < windowSize; i++)
   {
-    if (CTools::IsDefaultValue(m_rawDataWindow.at(i)))
+    if (isDefaultValue(m_rawDataWindow.at(i)))
     {
       nbMissingValue++;
       continue;
@@ -280,7 +280,7 @@ double CBratAlgoFilterLoess2D::ApplyFilter()
 
   if (nbValidPts < m_validPts)
   {
-    CTools::SetDefaultValue(sum);
+    setDefaultValue(sum);
     return sum;
   }
 
@@ -295,7 +295,7 @@ double CBratAlgoFilterLoess2D::ApplyFilter()
 //----------------------------------------
 double CBratAlgoFilterLoess2D::ComputeLoess()
 {
-  CTools::SetDefaultValue(m_loess);
+  setDefaultValue(m_loess);
 
   CDoubleArray::const_iterator it;
 
@@ -316,7 +316,7 @@ double CBratAlgoFilterLoess2D::ComputeLoess()
   std::string str;
   for (it = m_rawDataWindow.begin(); it != m_rawDataWindow.end(); it++)
   {
-    if (CTools::IsDefaultValue(*it))
+    if (isDefaultValue(*it))
     {
       str.append("DV ");
     }
@@ -339,7 +339,7 @@ double CBratAlgoFilterLoess2D::ComputeLoess()
 double CBratAlgoFilterLoess2D::ComputeSingle() 
 {
   // If 'default value' and no extrapolation then returns
-  if (CTools::IsDefaultValue(m_varValue) && (m_extrapolate == 0))
+  if (isDefaultValue(m_varValue) && (m_extrapolate == 0))
   {
     return m_loess;
   }
@@ -386,12 +386,12 @@ double CBratAlgoFilterLoess2D::ComputeMean()
 
   //uint32_t iVarValue;
   //
-  //CTools::SetDefaultValue(m_median);
+  //setDefaultValue(m_median);
   //double countValue = 0.0;
   //double dummy = 0.0;
 
   //double medianTmp;
-  //CTools::SetDefaultValue(medianTmp);
+  //setDefaultValue(medianTmp);
 
   //SetField2DAsRef();
 
@@ -490,7 +490,7 @@ void CBratAlgoFilterLoess2D::SetParamValues(CVectorBratAlgorithmParam& args)
   int32_t valueInt32;
 
   // Set data window width (once)
-  if (CTools::IsDefaultValue(m_dataWindowWidth))
+  if (isDefaultValue(m_dataWindowWidth))
   {
     this->CheckConstantParam(CBratAlgoFilterLoess2D::m_WINDOW_WIDTH_PARAM_INDEX);
     
@@ -506,7 +506,7 @@ void CBratAlgoFilterLoess2D::SetParamValues(CVectorBratAlgorithmParam& args)
 
     m_dataWindowWidth = valueInt32;
 
-    if (CTools::IsDefaultValue(valueInt32))
+    if (isDefaultValue(valueInt32))
     {
       m_dataWindowWidth = 3;
     }
@@ -522,7 +522,7 @@ void CBratAlgoFilterLoess2D::SetParamValues(CVectorBratAlgorithmParam& args)
   }
 
   // Set data window height (once)
-  if (CTools::IsDefaultValue(m_dataWindowHeight))
+  if (isDefaultValue(m_dataWindowHeight))
   {
     this->CheckConstantParam(CBratAlgoFilterLoess2D::m_WINDOW_HEIGHT_PARAM_INDEX);
 
@@ -538,7 +538,7 @@ void CBratAlgoFilterLoess2D::SetParamValues(CVectorBratAlgorithmParam& args)
 
     m_dataWindowHeight = valueInt32;
 
-    if (CTools::IsDefaultValue(valueInt32))
+    if (isDefaultValue(valueInt32))
     {
       m_dataWindowHeight = 3;
     }
@@ -556,7 +556,7 @@ void CBratAlgoFilterLoess2D::SetParamValues(CVectorBratAlgorithmParam& args)
   }
 
   // Set valid points limit (once)
-  if (CTools::IsDefaultValue(m_validPts))
+  if (isDefaultValue(m_validPts))
   {
     this->CheckConstantParam(CBratAlgoFilterLoess2D::m_VALID_PARAM_INDEX);
 
@@ -574,7 +574,7 @@ void CBratAlgoFilterLoess2D::SetParamValues(CVectorBratAlgorithmParam& args)
 
 
     m_validPts = valueInt32;
-    if (CTools::IsDefaultValue(valueInt32))
+    if (isDefaultValue(valueInt32))
     {
       m_validPts = GetDataWindowSize()/2;
     }
@@ -592,7 +592,7 @@ void CBratAlgoFilterLoess2D::SetParamValues(CVectorBratAlgorithmParam& args)
   }
 
   // Set extrapolate flag (once)
-  if (CTools::IsDefaultValue(m_extrapolate))
+  if (isDefaultValue(m_extrapolate))
   {
     SetParamValueExtrapolate(args, CBratAlgoFilterLoess2D::m_EXTRAPOLATE_PARAM_INDEX);
   }

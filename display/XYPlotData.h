@@ -43,7 +43,7 @@
 #include "Tools.h"
 #include "List.h"
 #include "Date.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "Unit.h"
 
 #include "InternalFiles.h"

@@ -268,32 +268,32 @@ void vtkZFXYPlotActor::SetPlotProperties(CZFXYPlotProperty* props)
   GetXPlotDataRange(xrMin, xrMax);
   GetYPlotDataRange(yrMin, yrMax);
   /*
-  if ( (CTools::IsDefaultValue(props->m_xMin)) ||
-       (CTools::IsDefaultValue(props->m_xMax)) )
+  if ( (isDefaultValue(props->m_xMin)) ||
+       (isDefaultValue(props->m_xMax)) )
   {
     GetXPlotDataRange(xrMin, xrMax);
   }
 
-  if ( (CTools::IsDefaultValue(props->m_yMin)) ||
-       (CTools::IsDefaultValue(props->m_yMax)) )
+  if ( (isDefaultValue(props->m_yMin)) ||
+       (isDefaultValue(props->m_yMax)) )
   {
     GetYPlotDataRange(yrMin, yrMax);
   }
 */
-  if (CTools::IsDefaultValue(props->m_xMin) == false)
+  if (isDefaultValue(props->m_xMin) == false)
   {
     xrMin = props->m_xMin;
   }
-  if (CTools::IsDefaultValue(props->m_xMax) == false)
+  if (isDefaultValue(props->m_xMax) == false)
   {
     xrMax = props->m_xMax;
   }
 
-  if (CTools::IsDefaultValue(props->m_yMin) == false)
+  if (isDefaultValue(props->m_yMin) == false)
   {
     yrMin = props->m_yMin;
   }
-  if (CTools::IsDefaultValue(props->m_yMax) == false)
+  if (isDefaultValue(props->m_yMax) == false)
   {
     yrMax = props->m_yMax;
   }
@@ -312,12 +312,12 @@ void vtkZFXYPlotActor::SetPlotProperties(CZFXYPlotProperty* props)
   ZoomToYRange(yrMin, yrMax);
 
 
-  if (CTools::IsDefaultValue(props->m_xNumTicks) == false)
+  if (isDefaultValue(props->m_xNumTicks) == false)
   {
     SetNumberOfXLabels(props->m_xNumTicks);
   }
 
-  if (CTools::IsDefaultValue(props->m_yNumTicks) == false)
+  if (isDefaultValue(props->m_yNumTicks) == false)
   {
     SetNumberOfYLabels(props->m_yNumTicks);
   }
@@ -711,8 +711,8 @@ void vtkZFXYPlotActor::GetXPlotDataRange(double& min, double& max, uint32_t fram
 {
   CObArray::iterator it;
   
-  CTools::SetDefaultValue(min);
-  CTools::SetDefaultValue(max);
+  setDefaultValue(min);
+  setDefaultValue(max);
 
 
   for (it = ZFXYData.begin(); it != ZFXYData.end() ; it++)
@@ -728,7 +728,7 @@ void vtkZFXYPlotActor::GetXPlotDataRange(double& min, double& max, uint32_t fram
 
     pdata->GetXRange(l, h, frame);
 
-    if (CTools::IsDefaultValue(min))
+    if (isDefaultValue(min))
     {
       min = l;
       max = h;
@@ -752,8 +752,8 @@ void vtkZFXYPlotActor::GetXPlotDataRange(double& min, double& max)
 {
   CObArray::iterator it;
   
-  CTools::SetDefaultValue(min);
-  CTools::SetDefaultValue(max);
+  setDefaultValue(min);
+  setDefaultValue(max);
 
   for (it = ZFXYData.begin(); it != ZFXYData.end() ; it++)
   {
@@ -769,16 +769,16 @@ void vtkZFXYPlotActor::GetXPlotDataRange(double& min, double& max)
 
     pdata->GetXRange(l, h);
 
-    if (CTools::IsDefaultValue(props->m_xMin) == false)
+    if (isDefaultValue(props->m_xMin) == false)
     {
       l = props->m_xMin;
     }
-    if (CTools::IsDefaultValue(props->m_xMax) == false)
+    if (isDefaultValue(props->m_xMax) == false)
     {
       h = props->m_xMax;
     }
 
-    if (CTools::IsDefaultValue(min))
+    if (isDefaultValue(min))
     {
       min = l;
       max = h;
@@ -804,8 +804,8 @@ void vtkZFXYPlotActor::GetYPlotDataRange(double& min, double& max, uint32_t fram
 {
   CObArray::iterator it;
   
-  CTools::SetDefaultValue(min);
-  CTools::SetDefaultValue(max);
+  setDefaultValue(min);
+  setDefaultValue(max);
 
   for (it = ZFXYData.begin(); it != ZFXYData.end() ; it++)
   {
@@ -820,7 +820,7 @@ void vtkZFXYPlotActor::GetYPlotDataRange(double& min, double& max, uint32_t fram
 
     pdata->GetYRange(l, h, frame);
 
-    if (CTools::IsDefaultValue(min))
+    if (isDefaultValue(min))
     {
       min = l;
       max = h;
@@ -844,8 +844,8 @@ void vtkZFXYPlotActor::GetYPlotDataRange(double range[2])
 void vtkZFXYPlotActor::GetYPlotDataRange(double& min, double& max)
 {
   CObArray::iterator it;
-  CTools::SetDefaultValue(min);
-  CTools::SetDefaultValue(max);
+  setDefaultValue(min);
+  setDefaultValue(max);
 
   for (it = ZFXYData.begin(); it != ZFXYData.end() ; it++)
   {
@@ -862,16 +862,16 @@ void vtkZFXYPlotActor::GetYPlotDataRange(double& min, double& max)
 
     pdata->GetYRange(l, h);
 
-    if (CTools::IsDefaultValue(props->m_yMin) == false)
+    if (isDefaultValue(props->m_yMin) == false)
     {
       l = props->m_yMin;
     }
-    if (CTools::IsDefaultValue(props->m_yMax) == false)
+    if (isDefaultValue(props->m_yMax) == false)
     {
       h = props->m_yMax;
     }
 
-    if (CTools::IsDefaultValue(min))
+    if (isDefaultValue(min))
     {
       min = l;
       max = h;

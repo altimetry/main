@@ -1,9 +1,9 @@
 #include "../stdafx.h"
 
-#include "new-gui/Common/+/QtUtils.h"
+#include "new-gui/Common/QtUtils.h"
 
 #include "../libbrathl/Tools.h"
-#include "../libbrathl/Trace.h"
+#include "new-gui/Common/tools/Trace.h"
 #include "../libbrathl/InternalFilesFactory.h"
 #include "../libbrathl/InternalFilesZFXY.h"
 #include "../libbrathl/InternalFilesYFX.h"
@@ -330,7 +330,7 @@ void CmdLineProcessor::GetParameters()
 	uint32_t groupNumber;
 	uint32_t groupNumberMax = 0;
 	uint32_t groupNumberMin = 0;
-	CTools::SetDefaultValue( groupNumberMin );
+    setDefaultValue( groupNumberMin );
 
 	int32_t nbGroup = m_params.CheckCount( kwFIELD_GROUP, 0, nbExpr );
 	if ( nbGroup != 0 )

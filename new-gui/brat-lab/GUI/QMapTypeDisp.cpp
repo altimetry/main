@@ -10,7 +10,7 @@
 #endif
 
 
-#include "new-gui/Common/+/QtUtils.h"
+#include "new-gui/Common/QtUtils.h"
 
 #include "../../libbrathl/brathl.h"
 
@@ -62,7 +62,7 @@ bool QMapTypeDisp::ValidName( const std::string& name )
 bool QMapTypeDisp::ValidName( const char* name )
 {
 	uint32_t value = Exists( name );
-	return ( !CTools::IsDefaultValue( value ) );
+    return (!isDefaultValue( value ) );
 }
 
 //----------------------------------------
@@ -98,7 +98,7 @@ void QMapTypeDisp::NamesToArrayString( QStringList& array )
 	for ( it = begin(); it != end(); it++ )
 	{
 		uint32_t value = it->second;
-		if ( !CTools::IsDefaultValue( value ) )
+        if (isDefaultValue( value ) )
 		{
 			array << it->first.c_str();
 		}
@@ -113,7 +113,7 @@ void QMapTypeDisp::NamesToComboBox( QComboBox& combo )
 	for ( it = begin(); it != end(); it++ )
 	{
 		uint32_t value = it->second;
-		if ( !CTools::IsDefaultValue( value ) )
+        if (isDefaultValue( value ) )
 		{
 			//combo.Insert((it->first).c_str(), value);
 			combo.addItem( ( it->first ).c_str() );

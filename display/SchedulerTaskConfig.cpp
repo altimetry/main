@@ -20,9 +20,7 @@
 
 #include <cerrno>
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "SchedulerTaskConfig.h"
-#endif
+#include "SchedulerTaskConfig.h"
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
@@ -36,7 +34,6 @@
 
 #include "wxBratTools.h"
 
-#include "SchedulerTaskConfig.h"
 
 // When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
@@ -741,33 +738,56 @@ void CSchedulerTaskConfig::LoadTasks()
   LoadEndedTasks();
 }
 //----------------------------------------------------
-bool CSchedulerTaskConfig::LoadTasks(wxXmlNode* node)
+bool CSchedulerTaskConfig::LoadSubordinateTasks( wxXmlNode* taskNode, CBratTask* bratTask )
 {
-  if (node == NULL)
-  {
-    return false;
-  }
+	if ( !taskNode || !bratTask )
+		return false;
 
-  wxXmlNode* child = node->GetChildren();
-  
-  while (child != NULL) 
-  {
-    if (child->GetName().CmpNoCase(CSchedulerTaskConfig::m_TASK_ELT) != 0)
-    {
-      child = child->GetNext();
-      continue;
-    }
+	wxXmlNode* child = taskNode->GetChildren();
 
-    CBratTask* bratTask = CreateBratTask(child);
-    AddTaskToMap(bratTask);
+	while ( child != NULL )
+	{
+		if ( child->GetName().CmpNoCase( CSchedulerTaskConfig::m_TASK_ELT ) != 0 )
+		{
+			child = child->GetNext();
+			continue;
+		}
 
-    LoadSubordinateTasks(child, bratTask);
+		CBratTask* bratTask = CreateBratTask( child );
+		bratTask->GetSubordinateTasks()->Insert( bratTask );
 
-    child = child->GetNext();
-  }
+		LoadSubordinateTasks( child, bratTask );
 
-  return true;
+		child = child->GetNext();
+	}
 
+	return ( bratTask->GetSubordinateTasks()->size() > 0 );
+}
+//----------------------------------------------------
+bool CSchedulerTaskConfig::LoadTasks( wxXmlNode* node )
+{
+	if ( !node )
+		return false;
+
+	wxXmlNode* child = node->GetChildren();
+
+	while ( child != NULL )
+	{
+		if ( child->GetName().CmpNoCase( CSchedulerTaskConfig::m_TASK_ELT ) != 0 )
+		{
+			child = child->GetNext();
+			continue;
+		}
+
+		CBratTask* bratTask = CreateBratTask( child );
+		AddTaskToMap( bratTask );
+
+		LoadSubordinateTasks( child, bratTask );
+
+		child = child->GetNext();
+	}
+
+	return true;
 }
 
 //----------------------------------------------------
@@ -793,37 +813,6 @@ bool CSchedulerTaskConfig::LoadProcessingTasks()
   return (m_mapProcessingBratTask.size() > 0);
 }
 
-//----------------------------------------------------
-bool CSchedulerTaskConfig::LoadSubordinateTasks(wxXmlNode* taskNode, CBratTask* bratTask)
-{
-  if (taskNode == NULL)
-  {
-    return false;
-  }
-  if (bratTask == NULL)
-  {
-    return false;
-  }
-  wxXmlNode* child = taskNode->GetChildren();
-  
-  while (child != NULL) 
-  {
-    if (child->GetName().CmpNoCase(CSchedulerTaskConfig::m_TASK_ELT) != 0)
-    {
-      child = child->GetNext();
-      continue;
-    }
-
-    CBratTask* subordinateBratTask = CreateBratTask(child);
-    bratTask->GetSubordinateTasks()->Insert(subordinateBratTask);
-    
-    LoadSubordinateTasks(child, subordinateBratTask);
-
-    child = child->GetNext();
-  }
-
-  return (bratTask->GetSubordinateTasks()->size() > 0);
-}
 //----------------------------------------------------
 bool CSchedulerTaskConfig::Load(const wxString& fileName, bool lockFile /* = true */, bool unlockFile /* = true */, const wxString& encoding /* = wxT("UTF-8") */, int flags /* = wxXMLDOC_NONE */)
 {
@@ -1732,7 +1721,7 @@ CBratTask* CSchedulerTaskConfig::CreateBratTask(wxXmlNode* taskNode)
     return NULL;
   }
 
-  CBratTask* bratTask = new CBratTask();
+  CBratTask* bratTask = new CBratTask;
 
   wxString value;
   bool bOk = true;

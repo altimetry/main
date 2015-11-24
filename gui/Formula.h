@@ -369,7 +369,7 @@ public:
   void SetMinValue(CDate& d); 
   void SetMinValueFromDateString(const wxString& value); 
 
-  void SetMinValueDefault() {CTools::SetDefaultValue(m_minValue);}; 
+  void SetMinValueDefault() {setDefaultValue(m_minValue);}; 
   
 
   wxString GetMaxValueAsDateString(const wxString& format = "") {return CFormula::GetAsDateString(m_maxValue, format);};
@@ -380,7 +380,7 @@ public:
   void SetMaxValue(CDate& d); 
   void SetMaxValueFromDateString(const wxString& value); 
 
-  void SetMaxValueDefault() {CTools::SetDefaultValue(m_maxValue);}; 
+  void SetMaxValueDefault() {setDefaultValue(m_maxValue);}; 
 
   static double GetStepAsDouble(const wxString& step);
   double GetStepAsDouble();
@@ -391,13 +391,13 @@ public:
   int32_t GetInterval() {return m_interval;};
   void SetInterval(int32_t value) {m_interval = value;}; 
 
-  void SetIntervalDefault() {CTools::SetDefaultValue(m_interval);}; 
+  void SetIntervalDefault() {setDefaultValue(m_interval);}; 
 
   wxString GetLoessCutOffAsText() {return wxString::Format("%d", m_loessCutOff);};
   int32_t GetLoessCutOff() {return m_loessCutOff;};
   void SetLoessCutOff(int32_t value) {m_loessCutOff = value;}; 
 
-  void SetLoessCutOffDefault() {CTools::SetDefaultValue(m_loessCutOff);}; 
+  void SetLoessCutOffDefault() {setDefaultValue(m_loessCutOff);}; 
 
   wxString GetTypeAsString() {return CMapTypeField::GetInstance().IdToName(m_type);};
   int32_t GetType() {return m_type;};

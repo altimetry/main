@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
@@ -32,10 +30,9 @@
 
 
 #include "brathl.h"
-#include "coda.h"
 
-#include "Exception.h"
-#include "Trace.h"
+#include "new-gui/Common/tools/Exception.h"
+#include "new-gui/Common/tools/Trace.h"
 #include "Tools.h"
 #include "LatLonPoint.h"
 #include "deelx.h"
@@ -47,13 +44,6 @@ namespace brathl
 #if defined(min)
 #undef min
 #endif
-
-#define MIN(X,Y) ((X) <= (Y) ? (X) : (Y))
-//TYPE_FUN(i2u, T_INT, int, i)
-//TYPE_FUN(c2u, T_CHAR, char, c)
-//TYPE_FUN(f2u, T_FLOAT, float, f)
-//TYPE_FUN(d2u, T_DOUBLE, double, d)
-//TYPE_FUN(s2u, T_STRING, const char *, s)
 
 // default values for int 8 bits
 const int8_t CTools::m_defaultValueINT8 = 0x7F;
@@ -214,157 +204,16 @@ double CTools::Rnd ( double value , double precision )
 
 //----------------------------------------
 
-void CTools::SetDefaultValue(float& value)
-{
-  value = m_defaultValueFLOAT;
-}
-
-//----------------------------------------
-
-void CTools::SetDefaultValue(double& value)
-{
-  value = m_defaultValueDOUBLE;
-}
-
-//----------------------------------------
-
-void CTools::SetDefaultValue(int8_t& value)
-{
-  value = CTools::m_defaultValueINT8;
-}
-
-//----------------------------------------
-
-void CTools::SetDefaultValue(uint8_t& value)
-{
-  value = m_defaultValueUINT8;
-}
-
-//----------------------------------------
-
-void CTools::SetDefaultValue(int16_t& value)
-{
-  value = CTools::m_defaultValueINT16;
-}
-
-//----------------------------------------
-
-void CTools::SetDefaultValue(uint16_t& value)
-{
-  value = m_defaultValueUINT16;
-}
-
-//----------------------------------------
-
-void CTools::SetDefaultValue(int32_t& value)
-{
-  value = CTools::m_defaultValueINT32;
-}
-
-//----------------------------------------
-
-void CTools::SetDefaultValue(uint32_t& value)
-{
-  value = m_defaultValueUINT32;
-}
-
-
-//----------------------------------------
-
-void CTools::SetDefaultValue(int64_t& value)
-{
-  value = CTools::m_defaultValueINT64;
-}
-
-//----------------------------------------
-
-void CTools::SetDefaultValue(uint64_t& value)
-{
-  value = m_defaultValueUINT64;
-}
-
-//----------------------------------------
-
-bool CTools::IsDefaultValue(const double value)
-{
-  return value == m_defaultValueDOUBLE;
-}
-
-//----------------------------------------
-
-bool CTools::IsDefaultValue(const float value)
-{
-  return value == m_defaultValueFLOAT;
-}
-
-//----------------------------------------
-
-bool CTools::IsDefaultValue(const int8_t value)
-{
-  return value == m_defaultValueINT8;
-}
-//----------------------------------------
-
-bool CTools::IsDefaultValue(const uint8_t value)
-{
-  return value == m_defaultValueUINT8;
-}
-
-//----------------------------------------
-
-bool CTools::IsDefaultValue(const int16_t value)
-{
-  return value == m_defaultValueINT16;
-}
-//----------------------------------------
-
-bool CTools::IsDefaultValue(const uint16_t value)
-{
-  return value == m_defaultValueUINT16;
-}
-
-//----------------------------------------
-
-bool CTools::IsDefaultValue(const int32_t value)
-{
-  return value == CTools::m_defaultValueINT32;
-}
-
-//----------------------------------------
-
-bool CTools::IsDefaultValue(const uint32_t value)
-{
-  return value == m_defaultValueUINT32;
-
-}
-
-//----------------------------------------
-
-bool CTools::IsDefaultValue(const int64_t value)
-{
-  return value == CTools::m_defaultValueINT64;
-}
-
-//----------------------------------------
-
-bool CTools::IsDefaultValue(const uint64_t value)
-{
-  return value == m_defaultValueUINT64;
-
-}
-
-//----------------------------------------
-
 bool CTools::CastValue(int32_t &Dest, const double Source)
 {
   static const double max	= 4294967296.0;		// 2^32 pour les entiers non signes
   static const double min	= -2147483648.0;	// -2^31 pour les entiers signes
   double Src	= Round(Source);
-  if (IsDefaultValue(Src) ||
+  if (isDefaultValue(Src) ||
       (Src < min) ||
       (Src > max))
   {
-    SetDefaultValue(Dest);
+    setDefaultValue(Dest);
     return false;
   }
   Dest	= static_cast<int32_t>(Src);
@@ -374,35 +223,6 @@ bool CTools::CastValue(int32_t &Dest, const double Source)
 
 //----------------------------------------
 
-bool CTools::IsZero
-		(double X)
-{
-  return fabs(X) < m_CompareEpsilon;
-}
-
-//----------------------------------------
-bool CTools::AreEqual
-		(double X, double Y)
-{
-  return CTools::AreEqual(X, Y, m_CompareEpsilon);
-}
-//----------------------------------------
-bool CTools::AreEqual
-		(double X, double Y, double compareEpsilon)
-{
-  if (X == m_defaultValueDOUBLE)
-  {
-    return Y == m_defaultValueDOUBLE;
-  }
-  if (Y == m_defaultValueDOUBLE)
-  {
-    return false;
-  }
-
-  return fabs(X-Y) < compareEpsilon;
-}
-//----------------------------------------
-
 bool CTools::AreValidMercatorLatitude
 		(double lat)
 {
@@ -410,16 +230,16 @@ bool CTools::AreValidMercatorLatitude
 }
 
 //----------------------------------------
-int32_t CTools::FindNoCase
-		(const std::string& src,
-		 const std::string& findWhat, uint32_t pos /* = 0 */)
-{
-  std::string szSrc = CTools::StringToLower(src);
-  std::string szFindWhat = CTools::StringToLower(findWhat);
- ;
-  return szSrc.find(szFindWhat, pos );
+	int32_t CTools::FindNoCase
+			(const std::string& src,
+			 const std::string& findWhat, uint32_t pos /* = 0 */)
+	{
+	  std::string szSrc = CTools::StringToLower(src);
+	  std::string szFindWhat = CTools::StringToLower(findWhat);
+	 ;
+	  return szSrc.find(szFindWhat, pos );
 
-}
+	}
 //----------------------------------------
 int32_t CTools::FindNoCase
 		(const char* src,
@@ -451,24 +271,24 @@ int32_t CTools::RFindNoCase
 
   return RFindNoCase(szSrc, szFindWhat, pos);
 }
-//----------------------------------------
-bool CTools::CompareNoCase
-		(const std::string& str1,
-		 const std::string& str2)
-{
-  return CTools::CompareNoCase(str1.c_str(), str2.c_str());
-
-}
-//----------------------------------------
-bool CTools::CompareNoCase
-		(const char* str1,
-		 const char* str2)
-{
-  std::string sz1 = CTools::StringToLower(str1);
-  std::string sz2 = CTools::StringToLower(str2);
-
-  return (CTools::StrCaseCmp(sz1.c_str(), sz2.c_str()) == 0);
-}
+////----------------------------------------
+//bool CTools::CompareNoCase
+//		(const std::string& str1,
+//		 const std::string& str2)
+//{
+//  return CTools::CompareNoCase(str1.c_str(), str2.c_str());
+//
+//}
+////----------------------------------------
+//bool CTools::CompareNoCase
+//		(const char* str1,
+//		 const char* str2)
+//{
+//  std::string sz1 = CTools::StringToLower(str1);
+//  std::string sz2 = CTools::StringToLower(str2);
+//
+//  return (CTools::StrCaseCmp(sz1.c_str(), sz2.c_str()) == 0);
+//}
 
 //----------------------------------------
 bool CTools::Compare
@@ -482,9 +302,9 @@ bool CTools::Compare
 
 int CTools::Compare(double X, double Y, double compareEpsilon /*= CTools::m_CompareEpsilon*/)
 {
-  if (CTools::IsDefaultValue(X))
+  if (isDefaultValue(X))
   {
-    if (CTools::IsDefaultValue(Y))
+    if (isDefaultValue(Y))
     {
       return 0;
     }
@@ -492,7 +312,7 @@ int CTools::Compare(double X, double Y, double compareEpsilon /*= CTools::m_Comp
     return -1;
   }
 
-  if (CTools::IsDefaultValue(Y))
+  if (isDefaultValue(Y))
   {
     return 1;
   }
@@ -562,39 +382,37 @@ bool CTools::StringCompare(const std::string& s1, const std::string& s2)
 }
 
 //----------------------------------------
-std::string CTools::StringReplace(const std::string& str, const std::string& c, const std::string& replaceBy, bool compareNoCase /* = false */ )
+std::string CTools::StringReplace( const std::string& str, const std::string& c, const std::string& replaceBy, bool compareNoCase /* = false */ )
 {
 
-  std::string strRet = str;
-  std::string subStr;
-  int32_t pos = -1;
+	std::string strRet = str;
+	std::string subStr;
+	int32_t pos = -1;
 
-  if (compareNoCase)
-  {
-    pos = CTools::FindNoCase(str, c);   
-  }
-  else
-  {
-    pos = strRet.find(c);
-  }
+	if ( compareNoCase )
+	{
+		pos = CTools::FindNoCase( str, c );
+	}
+	else
+	{
+		pos = strRet.find( c );
+	}
 
+	while ( pos >= 0 )
+	{
+		strRet.replace( pos, c.length(), replaceBy );
+		if ( compareNoCase )
+		{
+			pos = CTools::FindNoCase( str, c, pos + replaceBy.length() );
+		}
+		else
+		{
+			pos = strRet.find( c, pos + replaceBy.length() );
+		}
 
-  while (pos >= 0)
-  {
-    strRet.replace(pos, c.length(), replaceBy);
-    if (compareNoCase)
-    {
-      pos = CTools::FindNoCase(str, c, pos + replaceBy.length());   
-    }
-    else
-    {
-      pos = strRet.find(c, pos + replaceBy.length());
-    }
+	}
 
-  }
-
-  return strRet;
-
+	return strRet;
 }
 
 
@@ -882,10 +700,10 @@ void CTools::DoIncrementalStats
 		 double &min,
 		 double &max)
 {
-  if (IsDefaultValue(newValue))
+  if (isDefaultValue(newValue))
     return;
 
-  if (IsDefaultValue(count) || (count == 0.0))
+  if (isDefaultValue(count) || (count == 0.0))
   {
     count	= 1.0;
     mean	= newValue;
@@ -921,7 +739,7 @@ void CTools::FinalizeIncrementalStats
 		 double &max,
 		 double defaultValue	/*= m_defaultValueDOUBLE*/)
 {
-  if (IsDefaultValue(count) || (count == 0.0))
+  if (isDefaultValue(count) || (count == 0.0))
   {
     mean	= defaultValue;
     stdDev	= defaultValue;
@@ -2861,7 +2679,7 @@ double CTools::UnconvertLat(const std::string& value)
   if( result.IsMatched() == 0) 
   {
     origVal =  CTools::StrToDouble(valueTrim.c_str());
-    if (CTools::IsDefaultValue(origVal))
+    if (isDefaultValue(origVal))
     {
       return origVal;
     } 
@@ -2883,7 +2701,7 @@ double CTools::UnconvertLat(const std::string& value)
 
   origVal = CTools::StrToDouble(str);
 
-  if (CTools::IsDefaultValue(origVal))
+  if (isDefaultValue(origVal))
   {
     return origVal;
   }
@@ -2917,7 +2735,7 @@ double CTools::UnconvertLon(const std::string& value, bool normalize /*= true*/)
   if( result.IsMatched() == 0) 
   {
     origVal =  CTools::StrToDouble(valueTrim.c_str());
-    if (CTools::IsDefaultValue(origVal))
+    if (isDefaultValue(origVal))
     {
       return origVal;
     } 
@@ -2939,7 +2757,7 @@ double CTools::UnconvertLon(const std::string& value, bool normalize /*= true*/)
 
   origVal = CTools::StrToDouble(str);
 
-  if (CTools::IsDefaultValue(origVal))
+  if (isDefaultValue(origVal))
   {
     return origVal;
   }
@@ -3013,7 +2831,7 @@ float CTools::StrToFloat(const std::string& s)
   }
   else
   {
-    CTools::SetDefaultValue(f);
+    setDefaultValue(f);
     return f;
   }
 
@@ -3041,7 +2859,7 @@ std::string CTools::FloatToStr(float f, int32_t precision /* = 10 */)
   }
 }
 //----------------------------------------
-int32_t CTools::StrToInt(const std::string &s)
+int32_t CTools::StrToInt32(const std::string &s)
 {
   int32_t i;
 
@@ -3053,7 +2871,7 @@ int32_t CTools::StrToInt(const std::string &s)
   }
   else
   {
-    CTools::SetDefaultValue(i);
+    setDefaultValue(i);
     return i;
   }
 }
@@ -3070,7 +2888,7 @@ int64_t CTools::StrToInt64(const std::string &s)
   }
   else
   {
-    CTools::SetDefaultValue(i);
+    setDefaultValue(i);
     return i;
   }
 }
@@ -3087,7 +2905,7 @@ uint64_t CTools::StrToUInt64(const std::string &s)
   }
   else
   {
-    CTools::SetDefaultValue(i);
+    setDefaultValue(i);
     return i;
   }
 }
@@ -3119,7 +2937,7 @@ int64_t CTools::StrToLong(const std::string &s)
   }
   else
   {
-    CTools::SetDefaultValue(i);
+    setDefaultValue(i);
     return i;
   }
 }
@@ -3411,14 +3229,6 @@ uint32_t CTools::GetProductValues(uint32_t* shape, uint32_t nbDims)
   return nbElts;
 }
 //----------------------------------------
-void CTools::DeleteObject(CBratObject* ob)
-{
-  if (ob != NULL)
-  {
-    delete ob;
-  }
-}
-//----------------------------------------
 std::string CTools::BeforeFirst(const std::string& str, const char ch)
 {
   size_t strLen = str.length();
@@ -3510,319 +3320,5 @@ double CTools::DistanceKmOnUnitSphere(double lat1, double long1, double lat2, do
 {
   return CTools::DistanceOnUnitSphere(lat1, long1, lat2, long2) * 6373;
 }
-
-//----------------------------------------
-//double CTools::ExecZ(const char* function, const char* fmt, ...)
-//{
-//const char *p;
-//int32_t i;
-//uint8_t c;
-//double f;
-//const char *s;
-//CBratObject* o = NULL;
-//
-////char fmtbuf[256];
-//
-//va_list args;
-//
-//va_start(args, fmt);
-//
-//for(p = fmt; *p != '\0'; p++)
-//	{
-//	if(*p != '%')
-//		{
-//    std::cout << *p << std::endl;
-//		continue;
-//		}
-//
-//	switch(*++p)
-//		{
-//		case 'c':
-//			c = va_arg(args, uint8_t);
-//      std::cout << c << std::endl;
-//			break;
-//
-//		case 'd':
-//			i = va_arg(args, int32_t);
-//      std::cout << i << std::endl;
-//			break;
-//
-//		case 'f':
-//			f = va_arg(args, double);
-//      std::cout << f << std::endl;
-//			break;
-//
-//		case 's':
-//			s = va_arg(args, const char *);
-//      std::cout << s << std::endl;
-//			break;
-//
-//		case 'o':
-// 			o = va_arg(args, CBratObject *);
-//      o->Dump(std::cout);
-//      std::cout << o << std::endl;
-//			break;
-//
-//		//case 'x':
-//		//	i = va_arg(argp, int);
-//		//	s = itoa(i, fmtbuf, 16);
-//		//	fputs(s, stdout);
-//		//	break;
-//
-//		case '%':
-//			putchar('%');
-//			break;
-//
-//    default:
-//      std::cout << "unrecognized format:'" << *(p-1) << *p << "'" << std::endl;
-//      return 0.0;
-//
-//		}
-//	}
-//
-//va_end(args);
-//
-//
-//  return 0.0;
-//}
-
-
-
-//----------------------------------------
-//void CTools::VaListToTypeUnion(const char* fmt, va_list args, CVectorTypeUnion& typeUnions)
-//{
-//const char *p;
-//int32_t i;
-//uint8_t c;
-//double f;
-//double* pd;
-//const char *s;
-////CBratObject* o = NULL;
-//
-//
-//type_union typeUnion;
-//
-//for(p = fmt; *p != '\0'; p++)
-//	{
-//	if(*p != '%')
-//		{
-//    //std::cout << *p << std::endl;
-//		continue;
-//		}
-//
-//
-//	switch(*++p)
-//		{
-//		case 'c':
-//			c = va_arg(args, VA_CHAR);
-//      //std::cout << c << std::endl;
-//      typeUnion = CTools::c2u(c);
-//      typeUnions.push_back(typeUnion);
-//			break;
-//
-//		case 'd':
-//			i = va_arg(args, int32_t);
-//      //std::cout << i << std::endl;
-//      typeUnion = CTools::d2u(i);
-//      typeUnions.push_back(typeUnion);
-//			break;
-//
-//		case 'f':
-//			f = va_arg(args, VA_FLOAT);
-//      //std::cout << f << std::endl;
-//      typeUnion = CTools::d2u(f);
-//      typeUnions.push_back(typeUnion);
-//			break;
-//
-//		case 'p':
-//			pd = va_arg(args, double*);
-//      std::cout << pd << std::endl;
-////      std::cout << static_cast<double>(*pd) << std::endl;
-//      typeUnion = CTools::d_ptr2u(pd);
-//      typeUnions.push_back(typeUnion);
-//			break;
-//
-//		case 's':
-//			s = va_arg(args, const char *);
-//      //std::cout << s << std::endl;
-//      typeUnion= CTools::s2u(s);
-//      typeUnions.push_back(typeUnion);
-//			break;
-//
-//		//case 'o':
-// 	//		o = va_arg(args, CBratObject *);
-//  //    o->Dump(std::cout);
-//  //    std::cout << o << std::endl;
-//		//	break;
-//
-//		//case 'x':
-//		//	i = va_arg(argp, int);
-//		//	s = itoa(i, fmtbuf, 16);
-//		//	fputs(s, stdout);
-//		//	break;
-//
-//		//case '%':
-//		//	putchar('%');
-//		//	break;
-//
-//    default:
-//      throw CException(CTools::Format("CTools::VaListToTypeUnion: unrecognized format code '%c' in the parameter format '%s'", static_cast<char>(*(p-1)), fmt), BRATHL_LOGIC_ERROR);
-//
-//		}
-//	}
-//
-//  va_end(args);
-//
-//  
-//}
-////----------------------------------------
-//double CTools::Exec(const char* function, const char *fmt, const type_union *arg)
-//{
-//  va_list out;
-//  
-//  const int32_t STATIC_ARG_TBL_SIZE = 100;
-//  double aligned[STATIC_ARG_TBL_SIZE]; /* aligned buffer of ridiculously large size */
-//  memset (aligned, 0, STATIC_ARG_TBL_SIZE);
-//
-//
-//  va_start_assign(out, aligned[0]);
-//
-//  int i;
-//  for(i = 0; arg[i].t != T_END; i++)
-//  {
-//    switch(arg[i].t) 
-//    {
-//    case T_INT:
-//      va_assign(out, int32_t, arg[i].i);
-//      break;
-//    case T_FLOAT:
-//      va_assign(out, VA_FLOAT, arg[i].f);
-//      break;
-//    case T_DOUBLE:
-//      va_assign(out, double, arg[i].d);
-//      break;
-//    case T_CHAR:
-//      va_assign(out, VA_CHAR, arg[i].c);
-//      break;
-//    case T_STRING:
-//      va_assign(out, const char *, arg[i].s);
-//      break;
-//    case T_DOUBLE_PTR:
-//      va_assign(out, double *, arg[i].d_ptr);
-//      break;
-//    default:
-//      throw CException(CTools::Format("CTools::Exec: unrecognized format code '%d' in the parameter format of CTools::Exec method", arg[i].t), BRATHL_LOGIC_ERROR);
-//    }
-//  }
-//
-//  va_end(out);
-//
-//  va_start_assign(out, aligned[0]);
-//
-//  double returnedValue = CTools::Exec(function, fmt, out);
-//  va_end(out);
-//
-//  return returnedValue;
-//}
-
-//----------------------------------------
-//void CTools::TypeUnionToArray(const type_union *arg, double* aligned, uint32_t alignedLen)
-//{
-//  va_list out;
-//
-//  va_start_assign(out, aligned[0]);
-//
-//  uint32_t i;
-//  for(i = 0; arg[i].t != T_END; i++)
-//  {
-//    if (i >= alignedLen)
-//    {
-//      break;
-//    }
-//
-//    switch(arg[i].t) 
-//    {
-//    case T_INT:
-//      va_assign(out, int, arg[i].i);
-//      break;
-//    case T_FLOAT:
-//      va_assign(out, VA_FLOAT, arg[i].f);
-//      break;
-//    case T_DOUBLE:
-//      va_assign(out, double, arg[i].d);
-//      break;
-//    case T_CHAR:
-//      va_assign(out, VA_CHAR, arg[i].c);
-//      break;
-//    case T_STRING:
-//      va_assign(out, const char *, arg[i].s);
-//      break;
-//    case T_DOUBLE_PTR:
-//      va_assign(out, double *, arg[i].d_ptr);
-//      break;
-//    default:
-//      throw CException(CTools::Format("unrecognized format code '%d' in the parameter format of CTools::Exec method", arg[i].t), BRATHL_LOGIC_ERROR);
-//    }
-//  }
-//
-//  va_end(out);
-//}
-
-
-//-------------------------------------------------------------
-//------------------- CVectorTypeUnion class --------------------
-//-------------------------------------------------------------
-
-//----------------------------------------
-//void CVectorTypeUnion::Dump(std::ostream& fOut /* = std::cerr */)
-//{
-//
-// if (CTrace::IsTrace() == false)
-//  {
-//    return;
-//  }
-//
-//  CVectorTypeUnion::const_iterator it;
-//  int i = 0;
-//
-//  fOut << "==> Dump a CVectorTypeUnion Object at "<< this << " with " <<  size() << " elements" << std::endl;
-//
-//  for ( it = this->begin( ); it != this->end( ); it++ )
-//  {
-//    fOut << "CVectorTypeUnion[" << i << "]= ";  
-//    type_union typeUnion = *it;
-//
-//    switch(typeUnion.t) 
-//    {
-//    case T_INT:
-//      fOut << typeUnion.i << std::endl;
-//      break;
-//    case T_FLOAT:
-//      fOut << typeUnion.f << std::endl;
-//      break;
-//    case T_DOUBLE:
-//      fOut << typeUnion.d << std::endl;
-//      break;
-//    case T_CHAR:
-//      fOut << typeUnion.c << std::endl;
-//      break;
-//    case T_STRING:
-//      fOut << typeUnion.s << std::endl;
-//      break;
-//    case T_DOUBLE_PTR:
-//      fOut << typeUnion.d_ptr << std::endl;
-//      break;
-//    default:
-//      fOut << CTools::Format("unrecognized format code '%d' in the parameter format of CTools::Exec method", typeUnion.t) << std::endl;
-//    }
-//    i++;
-//  }
-//
-//  fOut << "==> END Dump a CVectorTypeUnion Object at "<< this << " with " <<  size() << " elements" << std::endl;
-//
-//
-//  fOut << std::endl;
-//
-//}
 
 } // end namespace

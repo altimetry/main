@@ -21,11 +21,11 @@
 #define _File_h_
 
 #include <sys/stat.h>
+#include <string>
 
-#include "brathl_error.h"
+#include "new-gui/Common/tools/brathl_error.h"
 #include "brathl.h"
 
-#include <string>
 
 
 namespace brathl

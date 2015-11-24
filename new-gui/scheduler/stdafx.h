@@ -1,5 +1,5 @@
-#if !defined(SCHEDULER_STDAFX_H)
-#define SCHEDULER_STDAFX_H
+#if !defined(STDAFX_H)
+#define STDAFX_H
 
 #include <cassert>
 #include <sstream>
@@ -7,19 +7,6 @@
 #include <vector>
 #include <fstream>
 #include <functional> 
-
-
-#if defined(WIN32)
-//avoid later inclusion of Microsoft XML stuff, which causes name collisions with xerces
-#define DOMDocument MsDOMDocument
-#include <msxml.h>
-#include <urlmon.h>
-#undef DOMDocument
-#endif		//WIN32
-
-#include <xercesc/util/PlatformUtils.hpp>
-#include <xercesc/framework/LocalFileFormatTarget.hpp>
-
 
 #if !defined(NDEBUG)
 	#if !defined(DEBUG)
@@ -29,6 +16,7 @@
 	#define _DEBUG
 	#endif
 #endif
+
 
 #if defined HAVE_STAT			 	//Python also defines this
 #define SAVE_HAVE_STAT	HAVE_STAT
@@ -66,4 +54,4 @@
 //#endif
 
 
-#endif      //SCHEDULER_STDAFX_H
+#endif      //STDAFX_H

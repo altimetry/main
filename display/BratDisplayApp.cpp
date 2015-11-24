@@ -35,9 +35,9 @@
 
 #include "brathl_c/argtable2.h"
 
-#include "Trace.h"
+#include "new-gui/Common/tools/Trace.h"
 #include "Tools.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 using namespace brathl;
 
 #include "BratProcess.h"
@@ -697,7 +697,7 @@ void CBratDisplayApp::GetXYPlotPropertyParams(int32_t nFields)
     }
 
     m_params.m_mapParam[kwDISPLAY_OPACITY]->GetValue(doubleValue, i, 0.6);
-    if (CTools::IsDefaultValue(doubleValue) == false)
+    if (isDefaultValue(doubleValue) == false)
     {
       props->SetOpacity(doubleValue);
     }
@@ -2387,7 +2387,7 @@ void CBratDisplayApp::GetParameters()
   uint32_t groupNumber;
   uint32_t groupNumberMax = 0;
   uint32_t groupNumberMin = 0;
-  CTools::SetDefaultValue(groupNumberMin);
+  setDefaultValue(groupNumberMin);
 
   int32_t nbGroup = m_params.CheckCount(kwFIELD_GROUP, 0, nbExpr);
   if (nbGroup != 0)

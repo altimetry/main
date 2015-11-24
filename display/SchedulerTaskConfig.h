@@ -21,21 +21,12 @@
 #ifndef __SchedulerTaskConfig_H__
 #define __SchedulerTaskConfig_H__
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "SchedulerTaskConfig.h"
-#endif
+#include "new-gui/scheduler/BratTask.h"
+
 
 #ifndef WX_PRECOMP
     #include "wx/wx.h"
 #endif
-
-#if defined(WIN32)					   //!!! DELETE THIS AFTER INETGRATION IN NEW SCHEDULER !!! femm
-//avoid later inclusion of Microsoft XML stuff, which causes name collisions with xerces
-#define DOMDocument MsDOMDocument
-#include <msxml.h>
-#include <urlmon.h>
-#undef DOMDocument
-#endif		//WIN32
 
 #include "brathl.h"
 
@@ -47,7 +38,6 @@
 
 using namespace brathl;
 
-#include "new-gui/scheduler/BratTask.h"
 
 
 

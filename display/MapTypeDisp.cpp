@@ -81,7 +81,7 @@ bool CMapTypeDisp::ValidName(const std::string& name)
 bool CMapTypeDisp::ValidName(const char* name)
 {   
   uint32_t value = Exists(name);
-  return (!CTools::IsDefaultValue(value));
+  return (!isDefaultValue(value));
 }
 
 //----------------------------------------
@@ -117,7 +117,7 @@ void CMapTypeDisp::NamesToArrayString(wxArrayString& array)
   for (it = begin() ; it != end() ; it++)
   {
     uint32_t value = it->second;
-    if (!CTools::IsDefaultValue(value))
+    if (!isDefaultValue(value))
     {
       array.Add( (it->first).c_str());
     }
@@ -132,7 +132,7 @@ void CMapTypeDisp::NamesToComboBox(wxComboBox& combo)
   for (it = begin() ; it != end() ; it++)
   {
     uint32_t value = it->second;
-    if (!CTools::IsDefaultValue(value))
+    if (!isDefaultValue(value))
     {
       //combo.Insert((it->first).c_str(), value);
       combo.Append( (it->first).c_str());

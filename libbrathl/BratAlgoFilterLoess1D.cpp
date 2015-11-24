@@ -24,8 +24,8 @@
 #include "brathl.h" 
 
 
-#include "TraceLog.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/TraceLog.h" 
+#include "new-gui/Common/tools/Exception.h" 
 #include "Product.h" 
 
 #include "BratAlgoFilterLoess1D.h" 
@@ -106,9 +106,9 @@ void CBratAlgoFilterLoess1D::SetBeginOfFile()
 {
   CBratAlgoFilterLoess::SetBeginOfFile();
 
-  CTools::SetDefaultValue(m_xValue);
-  CTools::SetDefaultValue(m_xValueNext);
-  CTools::SetDefaultValue(m_xValuePrev);
+  setDefaultValue(m_xValue);
+  setDefaultValue(m_xValueNext);
+  setDefaultValue(m_xValuePrev);
 
 }
 
@@ -117,7 +117,7 @@ void CBratAlgoFilterLoess1D::SetEndOfFile()
 {
   CBratAlgoFilterLoess::SetEndOfFile();
 
-  CTools::SetDefaultValue(m_xValueNext);
+  setDefaultValue(m_xValueNext);
 }
 
 //----------------------------------------
@@ -155,7 +155,7 @@ double CBratAlgoFilterLoess1D::Run(CVectorBratAlgorithmParam& args)
     return m_loess;
   }
 
-  CTools::SetDefaultValue(m_loess);
+  setDefaultValue(m_loess);
   
   OpenProductFile();
 
@@ -188,9 +188,9 @@ double CBratAlgoFilterLoess1D::Run(CVectorBratAlgorithmParam& args)
   }
 
   // If 'default value' and no extrapolation then returns
-  //if (CTools::IsDefaultValue(m_varValue) && (m_extrapolate == 0))
+  //if (isDefaultValue(m_varValue) && (m_extrapolate == 0))
   // If 'default value' then returns
-  if (CTools::IsDefaultValue(m_varValue))
+  if (isDefaultValue(m_varValue))
   {
     PrepareReturn();
     return m_loess;
@@ -211,11 +211,11 @@ double CBratAlgoFilterLoess1D::Run(CVectorBratAlgorithmParam& args)
 //----------------------------------------
 double CBratAlgoFilterLoess1D::Tricube(double u, double t)
 {
-  if (CTools::IsDefaultValue(u))
+  if (isDefaultValue(u))
   {
     return u;
   }
-  if (CTools::IsDefaultValue(t))
+  if (isDefaultValue(t))
   {
     return t;
   }
@@ -270,7 +270,7 @@ void CBratAlgoFilterLoess1D::FitWLinear(const double *x, const uint32_t xstride,
     {
       const double wi = w[i * wstride];
 
-      if (CTools::IsDefaultValue(w[i * wstride]) || CTools::IsDefaultValue(x[i * xstride]) ||  CTools::IsDefaultValue(y[i * ystride]))
+      if (isDefaultValue(w[i * wstride]) || isDefaultValue(x[i * xstride]) ||  isDefaultValue(y[i * ystride]))
       {
         continue;
       }
@@ -289,7 +289,7 @@ void CBratAlgoFilterLoess1D::FitWLinear(const double *x, const uint32_t xstride,
   for (i = 0; i < n; i++)
     {
 
-      if (CTools::IsDefaultValue(w[i * wstride]) || CTools::IsDefaultValue(x[i * xstride]) ||  CTools::IsDefaultValue(y[i * ystride]))
+      if (isDefaultValue(w[i * wstride]) || isDefaultValue(x[i * xstride]) ||  isDefaultValue(y[i * ystride]))
       {
         continue;
       }
@@ -325,7 +325,7 @@ void CBratAlgoFilterLoess1D::FitWLinear(const double *x, const uint32_t xstride,
 
     for (i = 0; i < n; i++)
     {
-      if (CTools::IsDefaultValue(w[i * wstride]) || CTools::IsDefaultValue(x[i * xstride]) ||  CTools::IsDefaultValue(y[i * ystride]))
+      if (isDefaultValue(w[i * wstride]) || isDefaultValue(x[i * xstride]) ||  isDefaultValue(y[i * ystride]))
       {
         continue;
       }
@@ -381,7 +381,7 @@ double CBratAlgoFilterLoess1D::ApplyFilter()
 //----------------------------------------
 double CBratAlgoFilterLoess1D::ComputeLoess()
 {
-  CTools::SetDefaultValue(m_loess);
+  setDefaultValue(m_loess);
 
   uint32_t windowSize = GetDataWindowSize();
 
@@ -392,9 +392,9 @@ double CBratAlgoFilterLoess1D::ComputeLoess()
   // Compute distances.
   for (uint32_t i = 0; i < windowSize; i++)
   {
-    if (CTools::IsDefaultValue(m_xDataWindow.at(i)))
+    if (isDefaultValue(m_xDataWindow.at(i)))
     {
-      CTools::SetDefaultValue(m_distances[i]); 
+      setDefaultValue(m_distances[i]); 
       continue;
     }
 
@@ -406,13 +406,13 @@ double CBratAlgoFilterLoess1D::ComputeLoess()
   std::sort(m_sortedDistances.begin(), m_sortedDistances.end());
 
   double maxDistance;
-  CTools::SetDefaultValue(maxDistance);
+  setDefaultValue(maxDistance);
 
   // Get max distance:
   // Last 'non default value' value of the sorted array.
   for (uint32_t i = windowSize - 1; i >= 0; i--)
   {
-    if (!CTools::IsDefaultValue(m_sortedDistances.at(i)))
+    if (!isDefaultValue(m_sortedDistances.at(i)))
     {
       maxDistance = (m_sortedDistances.at(i)); 
       break;
@@ -428,15 +428,15 @@ double CBratAlgoFilterLoess1D::ComputeLoess()
   {
     m_initialWeights[i] = this->Tricube(m_distances.at(i), maxDistance);
 
-    if (CTools::IsDefaultValue(m_initialWeights.at(i)) && CTools::IsDefaultValue(m_rawDataWindow.at(i)))
+    if (isDefaultValue(m_initialWeights.at(i)) && isDefaultValue(m_rawDataWindow.at(i)))
     {
       nbMissingValue++;
     }
-    else if (CTools::IsDefaultValue(m_initialWeights.at(i)))
+    else if (isDefaultValue(m_initialWeights.at(i)))
     {
       nbMissingValue++;
     }
-    else if (CTools::IsDefaultValue(m_rawDataWindow.at(i)))
+    else if (isDefaultValue(m_rawDataWindow.at(i)))
     {
       nbMissingValue++;
     }
@@ -462,7 +462,7 @@ double CBratAlgoFilterLoess1D::ComputeLoess()
   str.clear();
   for (it = m_xDataWindow.begin(); it != m_xDataWindow.end(); it++)
   {
-    if (CTools::IsDefaultValue(*it))
+    if (isDefaultValue(*it))
     {
       str.append("DV ");
     }
@@ -478,7 +478,7 @@ double CBratAlgoFilterLoess1D::ComputeLoess()
   str.clear();
   for (it = m_rawDataWindow.begin(); it != m_rawDataWindow.end(); it++)
   {
-    if (CTools::IsDefaultValue(*it))
+    if (isDefaultValue(*it))
     {
       str.append("DV ");
     }
@@ -496,7 +496,7 @@ double CBratAlgoFilterLoess1D::ComputeLoess()
   str.clear();
   for (it = m_distances.begin(); it != m_distances.end(); it++)
   {
-    if (CTools::IsDefaultValue(*it))
+    if (isDefaultValue(*it))
     {
       str.append("DV ");
     }
@@ -589,7 +589,7 @@ void CBratAlgoFilterLoess1D::SetParamValues(CVectorBratAlgorithmParam& args)
   int32_t valueInt32;
 
   // Set data window size (once)
-  if (CTools::IsDefaultValue(m_dataWindowLength))
+  if (isDefaultValue(m_dataWindowLength))
   {
     this->CheckConstantParam(CBratAlgoFilterLoess1D::m_WINDOW_PARAM_INDEX);
     
@@ -604,7 +604,7 @@ void CBratAlgoFilterLoess1D::SetParamValues(CVectorBratAlgorithmParam& args)
     }
 
     m_dataWindowLength = valueInt32;
-    if (CTools::IsDefaultValue(valueInt32))
+    if (isDefaultValue(valueInt32))
     {
       m_dataWindowLength = 9;
     }
@@ -620,7 +620,7 @@ void CBratAlgoFilterLoess1D::SetParamValues(CVectorBratAlgorithmParam& args)
   }
 
   // Set valid points limit (once)
-  if (CTools::IsDefaultValue(m_validPts))
+  if (isDefaultValue(m_validPts))
   {
     this->CheckConstantParam(CBratAlgoFilterLoess1D::m_VALID_PARAM_INDEX);
 
@@ -637,7 +637,7 @@ void CBratAlgoFilterLoess1D::SetParamValues(CVectorBratAlgorithmParam& args)
     }
 
     m_validPts = valueInt32;
-    if (CTools::IsDefaultValue(valueInt32))
+    if (isDefaultValue(valueInt32))
     {
       m_validPts = GetDataWindowSize()/2;
     }
@@ -655,7 +655,7 @@ void CBratAlgoFilterLoess1D::SetParamValues(CVectorBratAlgorithmParam& args)
   }
 
   //// Set extrapolate flag (once)
-  //if (CTools::IsDefaultValue(m_extrapolate))
+  //if (isDefaultValue(m_extrapolate))
   //{
   //  SetParamValueExtrapolate(args, CBratAlgoFilterLoess1D::m_EXTRAPOLATE_PARAM_INDEX);
   //}

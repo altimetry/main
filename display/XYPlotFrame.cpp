@@ -29,9 +29,9 @@
     #pragma hdrstop
 #endif
 
-#include "Trace.h"
+#include "new-gui/Common/tools/Trace.h"
 #include "Tools.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 using namespace brathl;
 
 #include "vtkWindowToImageFilter.h"

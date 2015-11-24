@@ -23,8 +23,8 @@
 #include "brathl.h" 
 
 
-#include "TraceLog.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/TraceLog.h" 
+#include "new-gui/Common/tools/Exception.h" 
 
 #include "BratAlgoFilterGaussian.h" 
 
@@ -75,8 +75,8 @@ CBratAlgoFilterGaussian::~CBratAlgoFilterGaussian()
 //----------------------------------------
 void CBratAlgoFilterGaussian::Init()
 {
-  CTools::SetDefaultValue(m_sigma);
-  CTools::SetDefaultValue(m_trunc);
+  setDefaultValue(m_sigma);
+  setDefaultValue(m_trunc);
 
   SetBeginOfFile();
 }
@@ -112,7 +112,7 @@ void CBratAlgoFilterGaussian::SetBeginOfFile()
 {
   CBratAlgoFilterKernel::SetBeginOfFile();
 
-  CTools::SetDefaultValue(m_gaussian);  
+  setDefaultValue(m_gaussian);  
 }
 
 //----------------------------------------
@@ -177,7 +177,7 @@ void CBratAlgoFilterGaussian::SetParamValues(CVectorBratAlgorithmParam& args)
   int32_t valueInt32;
 
   // Set data window size (once)
-  if (CTools::IsDefaultValue(m_dataWindowLength))
+  if (isDefaultValue(m_dataWindowLength))
   {
     this->CheckConstantParam(CBratAlgoFilterGaussian::m_WINDOW_PARAM_INDEX);
 
@@ -192,7 +192,7 @@ void CBratAlgoFilterGaussian::SetParamValues(CVectorBratAlgorithmParam& args)
     }
 
     m_dataWindowLength = valueInt32;
-    if (CTools::IsDefaultValue(valueInt32))
+    if (isDefaultValue(valueInt32))
     {
       m_dataWindowLength = 3;
     }
@@ -211,7 +211,7 @@ void CBratAlgoFilterGaussian::SetParamValues(CVectorBratAlgorithmParam& args)
   }
 
   // Set valid points limit (once)
-  if (CTools::IsDefaultValue(m_validPts))
+  if (isDefaultValue(m_validPts))
   {
     this->CheckConstantParam(CBratAlgoFilterGaussian::m_VALID_PARAM_INDEX);
 
@@ -228,7 +228,7 @@ void CBratAlgoFilterGaussian::SetParamValues(CVectorBratAlgorithmParam& args)
     }
 
     m_validPts = valueInt32;
-    if (CTools::IsDefaultValue(valueInt32))
+    if (isDefaultValue(valueInt32))
     {
       m_validPts = GetDataWindowSize()/2;
     }
@@ -244,7 +244,7 @@ void CBratAlgoFilterGaussian::SetParamValues(CVectorBratAlgorithmParam& args)
     }
   }
   // Set trunc (once)
-  if (CTools::IsDefaultValue(m_trunc))
+  if (isDefaultValue(m_trunc))
   {
     this->CheckConstantParam(CBratAlgoFilterGaussian::m_TRUNC_PARAM_INDEX);
 
@@ -261,25 +261,25 @@ void CBratAlgoFilterGaussian::SetParamValues(CVectorBratAlgorithmParam& args)
     }
 
     m_trunc = valueInt32;
-    if (CTools::IsDefaultValue(valueInt32))
+    if (isDefaultValue(valueInt32))
     {
       this->GetParamDefValue(CBratAlgoFilterGaussian::m_TRUNC_PARAM_INDEX, m_trunc);
     }
   }
   
   // Set sigma (once)
-  if (CTools::IsDefaultValue(m_sigma))
+  if (isDefaultValue(m_sigma))
   {
     this->CheckConstantParam(CBratAlgoFilterGaussian::m_SIGMA_PARAM_INDEX);
     m_sigma = args.at(CBratAlgoFilterGaussian::m_SIGMA_PARAM_INDEX).GetValueAsDouble();
-    if (CTools::IsDefaultValue(m_sigma))
+    if (isDefaultValue(m_sigma))
     {
       this->GetParamDefValue(CBratAlgoFilterGaussian::m_SIGMA_PARAM_INDEX, m_sigma);
     }
   }
 
   // Set extrapolate flag (once)
-  if (CTools::IsDefaultValue(m_extrapolate))
+  if (isDefaultValue(m_extrapolate))
   {
     SetParamValueExtrapolate(args, CBratAlgoFilterGaussian::m_EXTRAPOLATE_PARAM_INDEX);
   }
@@ -351,7 +351,7 @@ void CBratAlgoFilterGaussian::PrepareDataWindow(ComputeMode mode, const CDoubleA
   for (uint32_t i = 0 ; i < m_dataWindowLength ; i++)
   {
     double value = m_rawDataWindow[i];
-    if (CTools::IsDefaultValue(value))
+    if (isDefaultValue(value))
     {
       str.append("DV ");
     }
@@ -403,7 +403,7 @@ void CBratAlgoFilterGaussian::PrepareDataWindowVertical(const CDoubleArray& data
 {
 
   int32_t offset = m_addWidthLeft;
-  uint32_t sizeData = dataValue.size();
+  size_t sizeData = dataValue.size();
 
   for (uint32_t i = 0 ; i < sizeData ; i++)
   {
@@ -495,7 +495,7 @@ void CBratAlgoFilterGaussian::ComputeInitialWeights()
 //
 //  for (uint32_t i = 0; i < m_dataWindowLength; i++)
 //  {
-//    if (CTools::IsDefaultValue(m_rawDataWindow.at(i)))
+//    if (isDefaultValue(m_rawDataWindow.at(i)))
 //    {
 //      missingValue[i] = 1;
 //    }
@@ -511,7 +511,7 @@ void CBratAlgoFilterGaussian::ComputeInitialWeights()
 //  {
 //    if (missingValue.at(i) == 1)
 //    {
-//      CTools::SetDefaultValue(m_weights[i]);
+//      setDefaultValue(m_weights[i]);
 //    }
 //    else
 //    {
@@ -552,7 +552,7 @@ double CBratAlgoFilterGaussian::ApplyFilter(ComputeMode mode, uint32_t from)
 	double sum = 0.0;
   for (uint32_t i = 0; i < m_dataWindowLength; i++)
   {
-    if (CTools::IsDefaultValue(m_rawDataWindow.at(i)))
+    if (isDefaultValue(m_rawDataWindow.at(i)))
     {
       continue;
     }

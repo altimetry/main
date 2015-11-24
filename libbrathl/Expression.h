@@ -22,7 +22,7 @@
 
 #include <cstdarg>
 
-#include "brathl_error.h"
+#include "new-gui/Common/tools/brathl_error.h"
 #include "brathl.h"
 #include "Tools.h"
 #include "Date.h"
@@ -387,11 +387,11 @@ public:
 
   ExpressionValueType	GetType() const { return m_Type; }
   
-  uint32_t GetNbDimensions() const	{ return m_Dimensions.size(); }
+  size_t GetNbDimensions() const	{ return m_Dimensions.size(); }
   
   const ExpressionValueDimensions	&GetDimensions() const { return m_Dimensions; }
   
-  uint32_t GetNbValues() const;
+  size_t GetNbValues() const;
 
   double *GetValues() const;
 
@@ -460,9 +460,9 @@ protected:
 
   public:
 
-    uint32_t	m_refCount;
-    uint32_t	m_nbValues;
-    bool		m_allocated;
+    size_t	m_refCount;
+    size_t	m_nbValues;
+    bool	m_allocated;
     double	*m_dataValue;
 
   protected:
@@ -471,7 +471,7 @@ protected:
 
     void DeleteDataValue();
 
-    double* NewValue(uint32_t nbValues);
+    double* NewValue(size_t nbValues);
 
 
   };
@@ -541,7 +541,7 @@ public:
 
   void GetExpressionDataValuesAsArrayOfSingleValue(uint32_t index, double*& values, uint32_t& nbValues);
 
-  uint32_t GetNbDimensions() const;
+  size_t GetNbDimensions() const;
   
   void SetDimensions(uint32_t i);
   void SetDimensions(uint32_t i, uint32_t j);
@@ -610,9 +610,9 @@ public:
   bool HasConstants() const	{ return m_constants.size() > 0; }
   bool HasAlgorithms() const	{ return m_algoArray.size() > 0; }
   
-  uint32_t GetNbFieldNames() const	{ return m_fieldNames.size(); }
-  uint32_t GetNbConstants() const	{ return m_constants.size(); }
-  uint32_t GetNbAlgorithms() const	{ return m_algoArray.size(); }
+  size_t GetNbFieldNames() const	{ return m_fieldNames.size(); }
+  size_t GetNbConstants() const	{ return m_constants.size(); }
+  size_t GetNbAlgorithms() const	{ return m_algoArray.size(); }
   
   
   void SetValue(std::string FieldName, CExpressionValue* value);

@@ -30,8 +30,8 @@
     #pragma hdrstop
 #endif
 
-#include "Exception.h"
-using namespace brathl;
+#include "new-gui/Common/tools/Exception.h"
+
 
 #include "vtkInteractorObserver.h"
 

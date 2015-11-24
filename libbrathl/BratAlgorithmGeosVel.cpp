@@ -21,8 +21,8 @@
 #include "brathl.h" 
 
 
-#include "TraceLog.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/TraceLog.h" 
+#include "new-gui/Common/tools/Exception.h" 
 #include "Mission.h" 
 #include "Expression.h" 
 #include "LatLonRect.h" 
@@ -77,8 +77,8 @@ void CBratAlgorithmGeosVel::Init()
   m_degreeToRadianMutiplier = M_PI / 180.0;
   m_p2 = m_degreeToRadianMutiplier * m_earthRadius;
 
-  CTools::SetDefaultValue(m_lat);
-  CTools::SetDefaultValue(m_lon);
+  setDefaultValue(m_lat);
+  setDefaultValue(m_lon);
 
   SetBeginOfFile();
 }
@@ -192,12 +192,12 @@ void CBratAlgorithmGeosVel::SetBeginOfFile()
   m_equatorTransitionIsNext = false;
   m_equatorTransition = false;
 
-  CTools::SetDefaultValue(m_latPrev);
-  CTools::SetDefaultValue(m_lonPrev);   
-  CTools::SetDefaultValue(m_latNext);
-  CTools::SetDefaultValue(m_lonNext);   
-  CTools::SetDefaultValue(m_coriolis);
-  CTools::SetDefaultValue(m_velocity);
+  setDefaultValue(m_latPrev);
+  setDefaultValue(m_lonPrev);   
+  setDefaultValue(m_latNext);
+  setDefaultValue(m_lonNext);   
+  setDefaultValue(m_coriolis);
+  setDefaultValue(m_velocity);
 
   m_latArray = NULL;
   m_lonArray = NULL;
@@ -210,8 +210,8 @@ void CBratAlgorithmGeosVel::SetEndOfFile()
 {
   CBratAlgorithmBase::SetEndOfFile();
 
-  CTools::SetDefaultValue(m_latNext);
-  CTools::SetDefaultValue(m_lonNext);
+  setDefaultValue(m_latNext);
+  setDefaultValue(m_lonNext);
   
   m_equatorTransitionIsNext = false;
 
@@ -234,9 +234,9 @@ void CBratAlgorithmGeosVel::SetNextValues()
 //----------------------------------------
 void CBratAlgorithmGeosVel::ComputeCoriolis() 
 {
-  if (CTools::IsDefaultValue(m_lon) || CTools::IsDefaultValue(m_lat))
+  if (isDefaultValue(m_lon) || isDefaultValue(m_lat))
   {
-    CTools::SetDefaultValue(m_coriolis);
+    setDefaultValue(m_coriolis);
   }
   else
   {

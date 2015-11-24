@@ -21,10 +21,10 @@
 #include <cstdlib>
 #include <string>
 #include "List.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "FileParams.h"
 #include "Product.h"
-#include "Trace.h"
+#include "new-gui/Common/tools/Trace.h"
 #include "BratProcess.h"
 #include "BratProcessYFX.h"
 #include "InternalFilesYFX.h"
@@ -83,7 +83,7 @@ int main (int argc, char *argv[])
     if (!bOk)
     {
       CTrace::Tracer(1, msg);
-      CTools::DeleteObject(bratProcess);
+      delete bratProcess;
       bratProcess = NULL;
       return BRATHL_ERROR;
     }
@@ -96,7 +96,7 @@ int main (int argc, char *argv[])
     }
 
 
-    CTools::DeleteObject(bratProcess);
+    delete bratProcess;
     bratProcess = NULL;
 
 
@@ -105,21 +105,21 @@ int main (int argc, char *argv[])
   catch (CException &e)
   {
     std::cerr << "BRAT ERROR: " << e.what() << std::endl;
-    CTools::DeleteObject(bratProcess);
+    delete bratProcess;
     bratProcess = NULL;
     return BRATHL_ERROR;
   }
   catch (std::exception &e)
   {
     std::cerr << "BRAT RUNTIME ERROR: " << e.what() << std::endl;
-    CTools::DeleteObject(bratProcess);
+    delete bratProcess;
     bratProcess = NULL;
     return 254;
   }
   catch (...)
   {
     std::cerr << "BRAT FATAL ERROR: Unexpected error" << std::endl;
-    CTools::DeleteObject(bratProcess);
+    delete bratProcess;
     bratProcess = NULL;
     return 255;
   }

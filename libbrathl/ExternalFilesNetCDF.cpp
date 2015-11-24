@@ -24,9 +24,9 @@
 #include "brathl.h"
 
 #include "Tools.h"
-#include "Trace.h"
+#include "new-gui/Common/tools/Trace.h"
 #include "Date.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "Expression.h"
 
 #include "ExternalFilesNetCDF.h"
@@ -127,7 +127,7 @@ void CExternalFilesNetCDF::CheckDimensions
   for (it = dimNamesArray.begin() ; it != dimNamesArray.end() ; it++)
   {
     int32_t dimId = m_file.GetDimId(*it);
-    uint32_t dimValue = m_file.GetDimension(dimId);
+    size_t dimValue = m_file.GetDimension(dimId);
     
     m_dimValues.Insert(*it, dimValue);
     m_dimIds.Insert(*it, dimId);
@@ -787,12 +787,12 @@ void CExternalFilesNetCDF::AddVar(const std::string& name)
   CIntArray dimIds;
   m_file.GetVarDimIds(varId, dimIds);
 
-  uint32_t nbDims = dimNames.size();
+  size_t nbDims = dimNames.size();
 
   if ((nbDims == dimValues.size()) && (nbDims > 0))
   {
     description += "\nDimensions: ";
-    for (uint32_t i = 0 ; i < nbDims ; i++)
+    for (size_t i = 0 ; i < nbDims ; i++)
     {
       description += CTools::Format("  %s=%d   ", dimNames[i].c_str(), dimValues[i]);
     }

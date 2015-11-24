@@ -23,15 +23,15 @@
 #include <cstdio>
 #include <cstring> 
 #include <typeinfo> 
-
-#include "brathl_error.h" 
-#include "brathl.h" 
-
 #include <string> 
 
-#include "TraceLog.h" 
+
+#include "new-gui/Common/tools/brathl_error.h" 
+#include "brathl.h" 
+
+#include "new-gui/Common/tools/TraceLog.h" 
 #include "Tools.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/Exception.h" 
 #include "ProductTopex.h" 
 
 using namespace brathl;
@@ -195,7 +195,7 @@ void CProductTopex::InitCriteriaInfo()
 //----------------------------------------
 void CProductTopex::SetDeltaTimeHighResolution(int32_t altimeterIndicator)
 {
-  CTools::SetDefaultValue(m_deltaTimeHighResolution);
+  setDefaultValue(m_deltaTimeHighResolution);
 
   if (altimeterIndicator == CProductTopex::m_ALTIMETER_POSEIDON)
   {
@@ -431,13 +431,13 @@ void CProductTopex::ProcessHighResolutionWithoutFieldCalculation()
   // This dataset will contains as  many records as number of high resolution measures (m_numHighResolutionMeasure)
   CDataSet dataSetHighResolution("HighResolution", false);
 
-  if (CTools::IsDefaultValue(m_previousLatitude))
+  if (isDefaultValue(m_previousLatitude))
   {
     std::string msg = "ERROR in CProductTopex::ProcessHighResolutionWithoutFieldCalculation - previous latitude value read is inconsistent (is default value)";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
     throw (e);
   }
-  if (CTools::IsDefaultValue(m_previousLongitude))
+  if (isDefaultValue(m_previousLongitude))
   {
     std::string msg = "ERROR in CProductTopex::ProcessHighResolutionWithoutFieldCalculation - previous longitude value read is inconsistent (is default value)";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
@@ -550,7 +550,7 @@ void CProductTopex::ComputeHighResolutionFields(CDataSet* dataSet, double deltaL
   CFieldSetDbl *fieldSetTimeStampMillisecond = NULL;
   CFieldSetDbl *fieldSetTimeStampMicrosecond = NULL;
 
-  int32_t count = dataSet->size();
+  size_t count = dataSet->size();
 
   for (int32_t index = 0 ; index < count ; index++)
   {
@@ -613,7 +613,7 @@ void CProductTopex::ComputeHighResolutionFields(CDataSet* dataSet, double deltaL
       
 
       
-    if (CTools::IsDefaultValue(m_deltaTimeHighResolution))
+    if (isDefaultValue(m_deltaTimeHighResolution))
     {
       std::string msg = "ERROR in CProductTopex::ComputeHighResolutionFields - high resolution delta time has no been set";
       CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);

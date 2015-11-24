@@ -31,9 +31,9 @@
 
 #include "brathl.h"
 
-#include "Trace.h"
-#include "Exception.h"
-using namespace brathl;
+#include "new-gui/Common/tools/Trace.h"
+#include "new-gui/Common/tools/Exception.h"
+
 
 #include "BratGui.h"
 #include "DirTraverser.h"

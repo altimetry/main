@@ -22,15 +22,14 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
-
-#include "brathl_error.h"
-#include "brathl.h"
-
 #include <string>
 
-#include "TraceLog.h"
+#include "new-gui/Common/tools/brathl_error.h"
+#include "brathl.h"
+
+#include "new-gui/Common/tools/TraceLog.h"
 #include "Tools.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "ProductNetCdfCF.h"
 
 using namespace brathl;
@@ -229,10 +228,10 @@ void CProductNetCdfCF::RewindProcess ()
   }
 
 
-  uint32_t nbIndexes = m_dimIndexes.size();
-  uint32_t nbIds = m_dimIds.size();
-  uint32_t nbDimValues = m_dimValues.size();
-  uint32_t nbDimsCount = m_dimsCount.size();
+  size_t nbIndexes = m_dimIndexes.size();
+  size_t nbIds = m_dimIds.size();
+  size_t nbDimValues = m_dimValues.size();
+  size_t nbDimsCount = m_dimsCount.size();
 
   if ((nbIndexes != nbIds) || (nbIndexes != nbDimValues) || (nbIndexes != nbDimsCount))
   {
@@ -317,7 +316,7 @@ void CProductNetCdfCF::SetFieldIndex(CFieldNetCdf *field)
   {
     // index can have AT_BEGINNING value
     uint32_t index = m_dimIndexes.Exists(*it);
-    if (CTools::IsDefaultValue(index))
+    if (isDefaultValue(index))
     {
       CException e(CTools::Format("ERROR - CProductNetCdfCF::SetFieldIndex(CFieldNetCdf *field) - "
                                   "dimension name not found : '%s'"
@@ -332,7 +331,7 @@ void CProductNetCdfCF::SetFieldIndex(CFieldNetCdf *field)
 
     uint32_t count = m_dimsCount.Exists(*it);
 
-    if (CTools::IsDefaultValue(count))
+    if (isDefaultValue(count))
     {
       CException e(CTools::Format("ERROR - CProductNetCdfCF::SetFieldIndex(CFieldNetCdf *field) - "
                                   "dimension counter not found : '%s'"
@@ -383,7 +382,7 @@ bool CProductNetCdfCF::NextIndex()
 
     uint32_t count = m_dimsCount.Exists(dimName);
 
-    if (CTools::IsDefaultValue(count))
+    if (isDefaultValue(count))
     {
       CException e(CTools::Format("ERROR - CProductNetCdfCF::NextIndex - "
                                   "dimension counter not found : '%s'",

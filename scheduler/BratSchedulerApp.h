@@ -22,10 +22,6 @@
 #ifndef __BratScheduler_H__
 #define __BratScheduler_H__
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "BratScheduler.h"
-#endif
-
 // Include wxWindows' headers
 
 #ifndef WX_PRECOMP

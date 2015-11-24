@@ -32,9 +32,9 @@
 
 #include "brathl.h"
 
-#include "Trace.h"
+#include "new-gui/Common/tools/Trace.h"
 #include "Tools.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 using namespace brathl;
 
 #include "BratProcess.h"
@@ -109,10 +109,10 @@ void CFormula::Init()
   m_filter = CMapTypeFilter::filterNone;
   //m_step = DEFAULT_STEP_LATLON_ASSTRING;
   m_step = "";
-  CTools::SetDefaultValue(m_minValue);
-  CTools::SetDefaultValue(m_maxValue);
-  CTools::SetDefaultValue(m_interval);
-  CTools::SetDefaultValue(m_loessCutOff);
+  setDefaultValue(m_minValue);
+  setDefaultValue(m_maxValue);
+  setDefaultValue(m_interval);
+  setDefaultValue(m_loessCutOff);
 
   m_dataMode = CMapDataMode::GetInstance().GetDefault();
 
@@ -143,8 +143,8 @@ void CFormula::Copy(const CFormula& formula)
 //----------------------------------------
 void CFormula::SetDefaultMinMax()
 {
-  CTools::SetDefaultValue(m_minValue);
-  CTools::SetDefaultValue(m_maxValue);
+  setDefaultValue(m_minValue);
+  setDefaultValue(m_maxValue);
 
   switch (m_dataType)
   {
@@ -324,7 +324,7 @@ wxString CFormula::GetResolutionAsLabel(bool hasFilter)
 
   if (hasFilter)
   {
-    if (CTools::IsDefaultValue(m_loessCutOff))
+    if (isDefaultValue(m_loessCutOff))
     {
       loessCutOffLabel = wxString::Format(FORMAT_LOESS_CUT_OFF_LABEL,
                                           "Not defined");
@@ -336,7 +336,7 @@ wxString CFormula::GetResolutionAsLabel(bool hasFilter)
     }
   }
 
-  if (CTools::IsDefaultValue(m_interval))
+  if (isDefaultValue(m_interval))
   {
     intervalLabel = wxString::Format(FORMAT_INTERVAL_LABEL,
                                           "Not defined");
@@ -348,8 +348,8 @@ wxString CFormula::GetResolutionAsLabel(bool hasFilter)
   }
 
   return wxString::Format(FORMAT_XY_RESOLUTION_LABEL,
-            (CTools::IsDefaultValue(m_minValue) ? "Not defined" : GetMinAsString().c_str()),
-            (CTools::IsDefaultValue(m_maxValue) ? "Not defined" : GetMaxAsString().c_str()),
+            (isDefaultValue(m_minValue) ? "Not defined" : GetMinAsString().c_str()),
+            (isDefaultValue(m_maxValue) ? "Not defined" : GetMaxAsString().c_str()),
             loessCutOffLabel.c_str(),
             GetStep().c_str(),
             intervalLabel.c_str());
@@ -978,25 +978,25 @@ bool CFormula::ControlResolution(wxString& errorMsg)
   wxString str;
 
 
-  if (CTools::IsDefaultValue(m_minValue))
+  if (isDefaultValue(m_minValue))
   {
     str.Append("\n\tMin. value is not defined.");
     bOk &= false;
   }
 
-  if (CTools::IsDefaultValue(m_maxValue))
+  if (isDefaultValue(m_maxValue))
   {
     str.Append("\n\tMax. value is not defined.");
     bOk &= false;
   }
 
-  if (CTools::IsDefaultValue(m_interval))
+  if (isDefaultValue(m_interval))
   {
     str.Append("\n\tNumber of intervals is not defined.");
     bOk &= false;
   }
 
-  if (!CTools::IsDefaultValue(m_minValue) || !CTools::IsDefaultValue(m_maxValue))
+  if (!isDefaultValue(m_minValue) || !isDefaultValue(m_maxValue))
   {
     bOk &= CtrlMinMaxValue(errorMsg);
   }
@@ -1499,7 +1499,7 @@ bool CFormula::SaveConfig(wxFileConfig* config, const wxString& pathSuff)
   bOk &= config->Write(ENTRY_DATATYPE, GetDataTypeAsString());
   bOk &= config->Write(ENTRY_TITLE, m_title);
   bOk &= config->Write(ENTRY_FILTER, GetFilterAsString());
-  if (CTools::IsDefaultValue(m_minValue) == false)
+  if (isDefaultValue(m_minValue) == false)
   {
     if (IsTimeDataType())
     {
@@ -1510,7 +1510,7 @@ bool CFormula::SaveConfig(wxFileConfig* config, const wxString& pathSuff)
       bOk &= config->Write(ENTRY_MINVALUE, CTools::Format("%.15g", m_minValue).c_str());
     }
   }
-  if (CTools::IsDefaultValue(m_maxValue) == false)
+  if (isDefaultValue(m_maxValue) == false)
   {
     if (IsTimeDataType())
     {
@@ -1521,7 +1521,7 @@ bool CFormula::SaveConfig(wxFileConfig* config, const wxString& pathSuff)
       bOk &= config->Write(ENTRY_MAXVALUE, CTools::Format("%.15g", m_maxValue).c_str());
     }
   }
-  if (CTools::IsDefaultValue(m_interval) == false)
+  if (isDefaultValue(m_interval) == false)
   {
     bOk &= config->Write(ENTRY_INTERVAL, m_interval);
   }
@@ -1529,7 +1529,7 @@ bool CFormula::SaveConfig(wxFileConfig* config, const wxString& pathSuff)
   {
     bOk &= config->Write(ENTRY_STEP, m_step);
   }
-  if (CTools::IsDefaultValue(m_loessCutOff) == false)
+  if (isDefaultValue(m_loessCutOff) == false)
   {
     bOk &= config->Write(ENTRY_LOESSCUTOFF, m_loessCutOff);
   }
@@ -1579,7 +1579,7 @@ void CFormula::SetMinValue(CDate& d)
 {
   if (d.IsDefaultValue())
   {
-    CTools::SetDefaultValue(m_minValue);
+    setDefaultValue(m_minValue);
     return;
   }
 
@@ -1596,7 +1596,7 @@ void CFormula::SetMaxValue(CDate& d)
 {
   if (d.IsDefaultValue())
   {
-    CTools::SetDefaultValue(m_maxValue);
+    setDefaultValue(m_maxValue);
     return;
   }
 
@@ -1635,7 +1635,7 @@ bool CFormula::ConvertToFormulaBaseUnit(double in, double& out)
 {
   out = m_unit.ConvertToBaseUnit(in);
 
-  return !CTools::IsDefaultValue(out);;
+  return !isDefaultValue(out);;
 
 }
 //----------------------------------------
@@ -1652,7 +1652,7 @@ bool CFormula::ConvertToFormulaUnit(double in, double& out)
 {
   out = m_unit.ConvertToUnit(in);
 
-  return !CTools::IsDefaultValue(out);;
+  return !isDefaultValue(out);;
 }
 //----------------------------------------
 double CFormula::ConvertToFormulaUnit(double in)
@@ -1685,14 +1685,14 @@ bool CFormula::ComputeInterval(bool showMsg)
   return bOk;
 */
 
-  CTools::SetDefaultValue(m_interval);
+  setDefaultValue(m_interval);
 
   if (!IsXYType())
   {
     return true;
   }
 
-  if (CTools::IsDefaultValue(m_minValue) && CTools::IsDefaultValue(m_maxValue))
+  if (isDefaultValue(m_minValue) && isDefaultValue(m_maxValue))
   {
     return true;
   }
@@ -1701,7 +1701,7 @@ bool CFormula::ComputeInterval(bool showMsg)
   double intervalTmp = 0.0;
   double step = GetStepAsDouble();
 
-  if (CTools::IsDefaultValue(step))
+  if (isDefaultValue(step))
   {
     return true;
   }
@@ -1725,11 +1725,11 @@ bool CFormula::ComputeInterval(bool showMsg)
     ConvertToFormulaUnit(CDate::m_secInDay, maxValueDefault);
   }
 
-  if (CTools::IsDefaultValue(m_minValue))
+  if (isDefaultValue(m_minValue))
   {
     m_minValue = minValueDefault;
   }
-  if (CTools::IsDefaultValue(m_maxValue))
+  if (isDefaultValue(m_maxValue))
   {
     m_maxValue = maxValueDefault;
   }
@@ -1740,7 +1740,7 @@ bool CFormula::ComputeInterval(bool showMsg)
     m_step.Replace("-", "");
   }
 
-  if (CTools::IsZero(step))
+  if (isZero(step))
   {
     SetStepToDefault();
 
@@ -1785,7 +1785,7 @@ bool CFormula::ComputeInterval(bool showMsg)
   }
 
 
-  if ( (showMsg) && (CTools::AreEqual( interval, intervalTmp ) == false) )
+  if ( (showMsg) && (areEqual( interval, intervalTmp ) == false) )
   {
     wxMessageBox(wxString::Format("Formula '%s':\nInterval was round up or down to the nearest integer value.",
                                   m_name.c_str()),
@@ -1793,20 +1793,20 @@ bool CFormula::ComputeInterval(bool showMsg)
                   wxOK | wxCENTRE | wxICON_INFORMATION);
   }
 
-  return CTools::AreEqual( interval, intervalTmp );
+  return areEqual( interval, intervalTmp );
 
 }
 /*
 //----------------------------------------
 bool CFormula::ComputeIntervalAsDouble(bool showMsg)
 {
-  CTools::SetDefaultValue(m_interval);
+  setDefaultValue(m_interval);
 
   if (!IsXYType())
   {
     return true;
   }
-  if (CTools::IsDefaultValue(m_minValue) && CTools::IsDefaultValue(m_maxValue))
+  if (isDefaultValue(m_minValue) && isDefaultValue(m_maxValue))
   {
     return true;
   }
@@ -1815,7 +1815,7 @@ bool CFormula::ComputeIntervalAsDouble(bool showMsg)
   double intervalTmp = 0.0;
   double step = GetStepAsDouble();
 
-  if (CTools::IsDefaultValue(step))
+  if (isDefaultValue(step))
   {
     return true;
   }
@@ -1834,11 +1834,11 @@ bool CFormula::ComputeIntervalAsDouble(bool showMsg)
     maxValueDefault = 90;
   }
 
-  if (CTools::IsDefaultValue(m_minValue))
+  if (isDefaultValue(m_minValue))
   {
     m_minValue = minValueDefault;
   }
-  if (CTools::IsDefaultValue(m_maxValue))
+  if (isDefaultValue(m_maxValue))
   {
     m_maxValue = maxValueDefault;
   }
@@ -1849,7 +1849,7 @@ bool CFormula::ComputeIntervalAsDouble(bool showMsg)
     m_step.Replace("-", "");
   }
 
-  if (CTools::IsZero(step))
+  if (isZero(step))
   {
     SetStepToDefault();
 
@@ -1866,7 +1866,7 @@ bool CFormula::ComputeIntervalAsDouble(bool showMsg)
     m_interval = 1;
   }
 
-  if ( (showMsg) && (CTools::AreEqual( interval, intervalTmp ) == false) )
+  if ( (showMsg) && (areEqual( interval, intervalTmp ) == false) )
   {
     wxMessageBox(wxString::Format("Formula '%s':\nInterval was round up or down to the nearest integer value.",
                                   m_name.c_str()),
@@ -1874,21 +1874,21 @@ bool CFormula::ComputeIntervalAsDouble(bool showMsg)
                   wxOK | wxCENTRE | wxICON_INFORMATION);
   }
 
-  return CTools::AreEqual( interval, intervalTmp );
+  return areEqual( interval, intervalTmp );
 }
 */
 /*
 //----------------------------------------
 bool CFormula::ComputeIntervalAsDate(bool showMsg)
 {
-  CTools::SetDefaultValue(m_interval);
+  setDefaultValue(m_interval);
 
   if (!IsXYType())
   {
     return true;
   }
 
-  if (CTools::IsDefaultValue(m_minValue) && CTools::IsDefaultValue(m_maxValue))
+  if (isDefaultValue(m_minValue) && isDefaultValue(m_maxValue))
   {
     return true;
   }
@@ -1897,7 +1897,7 @@ bool CFormula::ComputeIntervalAsDate(bool showMsg)
   double intervalTmp = 0.0;
   double step = GetStepAsDouble();
 
-  if (CTools::IsDefaultValue(step))
+  if (isDefaultValue(step))
   {
     return true;
   }
@@ -1905,11 +1905,11 @@ bool CFormula::ComputeIntervalAsDate(bool showMsg)
   double minValueDefault =  0.0;
   double maxValueDefault =  CDate::m_secInDay;
 
-  if (CTools::IsDefaultValue(m_minValue))
+  if (isDefaultValue(m_minValue))
   {
     m_minValue = minValueDefault;
   }
-  if (CTools::IsDefaultValue(m_maxValue))
+  if (isDefaultValue(m_maxValue))
   {
     m_maxValue = maxValueDefault;
   }
@@ -1920,7 +1920,7 @@ bool CFormula::ComputeIntervalAsDate(bool showMsg)
     m_step.Replace("-", "");
   }
 
-  if (CTools::IsZero(step))
+  if (isZero(step))
   {
     SetStepToDefault();
 
@@ -1945,7 +1945,7 @@ bool CFormula::ComputeIntervalAsDate(bool showMsg)
     m_interval = 1;
   }
 
-  if ( (showMsg) && (CTools::AreEqual( interval, intervalTmp ) == false) )
+  if ( (showMsg) && (areEqual( interval, intervalTmp ) == false) )
   {
     wxMessageBox(wxString::Format("Formula '%s':\nInterval was round up or down to the nearest integer value.",
                                   m_name.c_str()),
@@ -1953,7 +1953,7 @@ bool CFormula::ComputeIntervalAsDate(bool showMsg)
                   wxOK | wxCENTRE | wxICON_INFORMATION);
   }
 
-  return CTools::AreEqual( interval, intervalTmp );
+  return areEqual( interval, intervalTmp );
 }
 */
 //----------------------------------------
@@ -2592,7 +2592,7 @@ bool CMapTypeFilter::ValidName(const std::string& name)
 bool CMapTypeFilter::ValidName(const char* name)
 {
   uint32_t value = Exists(name);
-  return (!CTools::IsDefaultValue(value));
+  return (!isDefaultValue(value));
 }
 
 //----------------------------------------
@@ -2628,7 +2628,7 @@ void CMapTypeFilter::NamesToArrayString(wxArrayString& array)
   for (it = begin() ; it != end() ; it++)
   {
     uint32_t value = it->second;
-    if (!CTools::IsDefaultValue(value))
+    if (!isDefaultValue(value))
     {
       array.Add( (it->first).c_str());
     }
@@ -2643,7 +2643,7 @@ void CMapTypeFilter::NamesToComboBox(wxComboBox& combo)
   for (it = begin() ; it != end() ; it++)
   {
     uint32_t value = it->second;
-    if (!CTools::IsDefaultValue(value))
+    if (!isDefaultValue(value))
     {
       //combo.Insert((it->first).c_str(), value);
       combo.Append( (it->first).c_str());
@@ -2691,7 +2691,7 @@ bool CMapTypeData::ValidName(const std::string& name)
 bool CMapTypeData::ValidName(const char* name)
 {
   uint32_t value = Exists(name);
-  return (!CTools::IsDefaultValue(value));
+  return (!isDefaultValue(value));
 }
 
 //----------------------------------------
@@ -2731,7 +2731,7 @@ void CMapTypeData::NamesToArrayString(wxArrayString& array, bool noData)
     {
       continue;
     }
-    if (!CTools::IsDefaultValue(value))
+    if (!isDefaultValue(value))
     {
       array.Add( (it->first).c_str());
     }
@@ -2750,7 +2750,7 @@ void CMapTypeData::NamesToComboBox(wxComboBox& combo, bool noData)
     {
       continue;
     }
-    if (!CTools::IsDefaultValue(value))
+    if (!isDefaultValue(value))
     {
       //combo.Insert((it->first).c_str(), value);
       combo.Append( (it->first).c_str());
@@ -2792,7 +2792,7 @@ bool CMapTypeOp::ValidName(const std::string& name)
 bool CMapTypeOp::ValidName(const char* name)
 {
   uint32_t value = Exists(name);
-  return (!CTools::IsDefaultValue(value));
+  return (!isDefaultValue(value));
 }
 //----------------------------------------
 
@@ -2827,7 +2827,7 @@ void CMapTypeOp::NamesToArrayString(wxArrayString& array)
   for (it = begin() ; it != end() ; it++)
   {
     uint32_t value = it->second;
-    if (!CTools::IsDefaultValue(value))
+    if (!isDefaultValue(value))
     {
       array.Add( (it->first).c_str());
     }
@@ -2842,7 +2842,7 @@ void CMapTypeOp::NamesToComboBox(wxComboBox& combo)
   for (it = begin() ; it != end() ; it++)
   {
     uint32_t value = it->second;
-    if (!CTools::IsDefaultValue(value))
+    if (!isDefaultValue(value))
     {
       //combo.Insert((it->first).c_str(), value);
       combo.Append( (it->first).c_str());
@@ -2885,7 +2885,7 @@ bool CMapTypeDisp::ValidName(const std::string& name)
 bool CMapTypeDisp::ValidName(const char* name)
 {
   uint32_t value = Exists(name);
-  return (!CTools::IsDefaultValue(value));
+  return (!isDefaultValue(value));
 }
 
 //----------------------------------------
@@ -2921,7 +2921,7 @@ void CMapTypeDisp::NamesToArrayString(wxArrayString& array)
   for (it = begin() ; it != end() ; it++)
   {
     uint32_t value = it->second;
-    if (!CTools::IsDefaultValue(value))
+    if (!isDefaultValue(value))
     {
       array.Add( (it->first).c_str());
     }
@@ -2936,7 +2936,7 @@ void CMapTypeDisp::NamesToComboBox(wxComboBox& combo)
   for (it = begin() ; it != end() ; it++)
   {
     uint32_t value = it->second;
-    if (!CTools::IsDefaultValue(value))
+    if (!isDefaultValue(value))
     {
       //combo.Insert((it->first).c_str(), value);
       combo.Append( (it->first).c_str());
@@ -2995,7 +2995,7 @@ bool CMapTypeField::ValidName(const std::string& name)
 bool CMapTypeField::ValidName(const char* name)
 {
   uint32_t value = Exists(name);
-  return (!CTools::IsDefaultValue(value));
+  return (!isDefaultValue(value));
 }
 
 //----------------------------------------
@@ -3031,7 +3031,7 @@ void CMapTypeField::NamesToArrayString(wxArrayString& array)
   for (it = begin() ; it != end() ; it++)
   {
     uint32_t value = it->second;
-    if (!CTools::IsDefaultValue(value))
+    if (!isDefaultValue(value))
     {
       array.Add( (it->first).c_str());
     }
@@ -3046,7 +3046,7 @@ void CMapTypeField::NamesToComboBox(wxComboBox& combo)
   for (it = begin() ; it != end() ; it++)
   {
     uint32_t value = it->second;
-    if (!CTools::IsDefaultValue(value))
+    if (!isDefaultValue(value))
     {
       //combo.Insert((it->first).c_str(), value);
       combo.Append( (it->first).c_str());
@@ -3090,7 +3090,7 @@ bool CMapDataMode::ValidName(const std::string& name)
 bool CMapDataMode::ValidName(const char* name)
 {
   uint32_t value = Exists(name);
-  return (!CTools::IsDefaultValue(value));
+  return (!isDefaultValue(value));
 }
 
 //----------------------------------------
@@ -3126,7 +3126,7 @@ void CMapDataMode::NamesToArrayString(wxArrayString& array)
   for (it = begin() ; it != end() ; it++)
   {
     uint32_t value = it->second;
-    if (!CTools::IsDefaultValue(value))
+    if (!isDefaultValue(value))
     {
       array.Add( (it->first).c_str());
     }
@@ -3141,7 +3141,7 @@ void CMapDataMode::NamesToComboBox(wxComboBox& combo)
   for (it = begin() ; it != end() ; it++)
   {
     uint32_t value = it->second;
-    if (!CTools::IsDefaultValue(value))
+    if (!isDefaultValue(value))
     {
       //combo.Insert((it->first).c_str(), value);
       combo.Append( (it->first).c_str());

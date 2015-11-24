@@ -33,7 +33,7 @@
 
 #include "Tools.h"
 #include "List.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 using namespace brathl;
 
 #include "TypedSaveFileDialog.h"

@@ -29,8 +29,8 @@
     #pragma hdrstop
 #endif
 
-#include "Trace.h"
-using namespace brathl;
+#include "new-gui/Common/tools/Trace.h"
+
 
 #include "XYPlotPanel.h"
 #include "vtkCallbackCommand.h"
@@ -142,10 +142,10 @@ void CXYPlotPanel::Init()
   m_finished = false;
   m_multiFrame = false;
   
-  CTools::SetDefaultValue(m_currentXMin);
-  CTools::SetDefaultValue(m_currentXMax);
-  CTools::SetDefaultValue(m_currentYMin);
-  CTools::SetDefaultValue(m_currentYMax);
+  setDefaultValue(m_currentXMin);
+  setDefaultValue(m_currentXMax);
+  setDefaultValue(m_currentYMin);
+  setDefaultValue(m_currentYMax);
 
 }
 //----------------------------------------
@@ -421,32 +421,32 @@ void CXYPlotPanel::AddData(CXYPlotData* pdata)
   double yrMin = 0;
   double yrMax = 0;
 
-  if ( (CTools::IsDefaultValue(props->GetXMin())) ||
-       (CTools::IsDefaultValue(props->GetXMax())) )
+  if ( (isDefaultValue(props->GetXMin())) ||
+       (isDefaultValue(props->GetXMax())) )
   {
     m_plotDataCollection->GetXRange(xrMin, xrMax);
   }
 
-  if ( (CTools::IsDefaultValue(props->GetYMin())) ||
-       (CTools::IsDefaultValue(props->GetYMax())) )
+  if ( (isDefaultValue(props->GetYMin())) ||
+       (isDefaultValue(props->GetYMax())) )
   {
     m_plotDataCollection->GetYRange(yrMin, yrMax);
   }
 
-  if (CTools::IsDefaultValue(props->GetXMin()) == false)
+  if (isDefaultValue(props->GetXMin()) == false)
   {
     xrMin = props->GetXMin();
   }
-  if (CTools::IsDefaultValue(props->GetXMax()) == false)
+  if (isDefaultValue(props->GetXMax()) == false)
   {
     xrMax = props->GetXMax();
   }
 
-  if (CTools::IsDefaultValue(props->GetYMin()) == false)
+  if (isDefaultValue(props->GetYMin()) == false)
   {
     yrMin = props->GetYMin();
   }
-  if (CTools::IsDefaultValue(props->GetYMax()) == false)
+  if (isDefaultValue(props->GetYMax()) == false)
   {
     yrMax = props->GetYMax();
   }
@@ -465,12 +465,12 @@ void CXYPlotPanel::AddData(CXYPlotData* pdata)
 
   SetTitle(props->GetTitle());
 
-  if (CTools::IsDefaultValue(props->GetXNumTicks()) == false)
+  if (isDefaultValue(props->GetXNumTicks()) == false)
   {
     m_plotActor->SetNumberOfXLabels(props->GetXNumTicks());
   }
 
-  if (CTools::IsDefaultValue(props->GetYNumTicks()) == false)
+  if (isDefaultValue(props->GetYNumTicks()) == false)
   {
     m_plotActor->SetNumberOfYLabels(props->GetYNumTicks());
   }
@@ -601,7 +601,7 @@ void CXYPlotPanel::SetAnimationDescr(uint32_t indexValue)
         double value = exprValue->GetValues()[index];
         wxString valueStr;
 
-        if (CTools::IsDefaultValue(value))
+        if (isDefaultValue(value))
         {
           valueStr = "No value (default value)";
         }

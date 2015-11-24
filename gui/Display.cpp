@@ -32,10 +32,9 @@
 
 #include "brathl.h"
 
-
-#include "Trace.h"
+#include "new-gui/Common/tools/Trace.h"
 #include "Tools.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "InternalFilesFactory.h"
 #include "InternalFiles.h"
 
@@ -210,8 +209,8 @@ void CDisplayData::Init()
 
   m_type = -1;
 
-  CTools::SetDefaultValue(m_minValue);
-  CTools::SetDefaultValue(m_maxValue);
+  setDefaultValue(m_minValue);
+  setDefaultValue(m_maxValue);
 
   m_dimFields.SetDelete(false);
   m_dimFields.Insert(GetX());
@@ -355,7 +354,7 @@ wxString CDisplayData::GetXAxisText(const std::string& name)
       return "";
     }
 
-    if (CTools::CompareNoCase(dim->GetName(), name))
+    if (str_icmp(dim->GetName(), name))
     {
       str = dim->GetDescription().c_str();
     }
@@ -622,11 +621,11 @@ bool CDisplayData::SaveConfig(wxFileConfig* config, const wxString& pathSuff)
 
   bOk &= config->Write(ENTRY_INVERT_XYAXES, m_invertXYAxes);
 
-  if (CTools::IsDefaultValue(m_minValue) == false)
+  if (isDefaultValue(m_minValue) == false)
   {
     bOk &= config->Write(ENTRY_MINVALUE, CTools::Format("%.15g", m_minValue).c_str());
   }
-  if (CTools::IsDefaultValue(m_maxValue) == false)
+  if (isDefaultValue(m_maxValue) == false)
   {
     bOk &= config->Write(ENTRY_MAXVALUE, CTools::Format("%.15g", m_maxValue).c_str());
   }
@@ -1365,11 +1364,11 @@ void CDisplay::Init()
 //  m_projection = CMapProjection::GetInstance()->IdToName(VTK_PROJ2D_3D);
   m_projection = "3D";
 
-  CTools::SetDefaultValue(m_minXValue);
-  CTools::SetDefaultValue(m_maxXValue);
+  setDefaultValue(m_minXValue);
+  setDefaultValue(m_maxXValue);
 
-  CTools::SetDefaultValue(m_minYValue);
-  CTools::SetDefaultValue(m_maxYValue);
+  setDefaultValue(m_minYValue);
+  setDefaultValue(m_maxYValue);
 
 }
 //----------------------------------------
@@ -1424,20 +1423,20 @@ bool CDisplay::SaveConfig(wxFileConfig* config)
   bOk &= config->Write(ENTRY_ANIMATION, GetWithAnimation());
   bOk &= config->Write(ENTRY_PROJECTION, GetProjection());
 
-  if (CTools::IsDefaultValue(m_minXValue) == false)
+  if (isDefaultValue(m_minXValue) == false)
   {
     bOk &= config->Write(ENTRY_MINXVALUE, m_minXValue);
   }
-  if (CTools::IsDefaultValue(m_maxXValue) == false)
+  if (isDefaultValue(m_maxXValue) == false)
   {
     bOk &= config->Write(ENTRY_MAXXVALUE, m_maxXValue);
   }
 
-  if (CTools::IsDefaultValue(m_minYValue) == false)
+  if (isDefaultValue(m_minYValue) == false)
   {
     bOk &= config->Write(ENTRY_MINYVALUE, m_minYValue);
   }
-  if (CTools::IsDefaultValue(m_maxYValue) == false)
+  if (isDefaultValue(m_maxYValue) == false)
   {
     bOk &= config->Write(ENTRY_MAXYVALUE, m_maxYValue);
   }
@@ -1651,16 +1650,16 @@ bool CDisplay::BuildCmdFileGeneralPropertiesXY()
 {
   wxString valueString;
 
-  valueString = (CTools::IsDefaultValue(GetMinXValue())) ? "DV" : GetMinXValueAsText();
+  valueString = (isDefaultValue(GetMinXValue())) ? "DV" : GetMinXValueAsText();
   WriteLine(FmtCmdParam(kwDISPLAY_XMINVALUE) + valueString);
 
-  valueString = (CTools::IsDefaultValue(GetMaxXValue())) ? "DV" : GetMaxXValueAsText();
+  valueString = (isDefaultValue(GetMaxXValue())) ? "DV" : GetMaxXValueAsText();
   WriteLine(FmtCmdParam(kwDISPLAY_XMAXVALUE) + valueString);
 
-  valueString = (CTools::IsDefaultValue(GetMinYValue())) ? "DV" : GetMinYValueAsText();
+  valueString = (isDefaultValue(GetMinYValue())) ? "DV" : GetMinYValueAsText();
   WriteLine(FmtCmdParam(kwDISPLAY_YMINVALUE) + valueString);
 
-  valueString = (CTools::IsDefaultValue(GetMaxYValue())) ? "DV" : GetMaxYValueAsText();
+  valueString = (isDefaultValue(GetMaxYValue())) ? "DV" : GetMaxYValueAsText();
   WriteLine(FmtCmdParam(kwDISPLAY_YMAXVALUE) + valueString);
 
   WriteEmptyLine();
@@ -1713,16 +1712,16 @@ bool CDisplay::BuildCmdFileGeneralPropertiesZXY()
 
   WriteLine(FmtCmdParam(kwDISPLAY_ANIMATION) + GetWithAnimationAsText());
 
-  valueString = (CTools::IsDefaultValue(GetMinXValue())) ? "DV" : GetMinXValueAsText();
+  valueString = (isDefaultValue(GetMinXValue())) ? "DV" : GetMinXValueAsText();
   WriteLine(FmtCmdParam(kwDISPLAY_XMINVALUE) + valueString);
 
-  valueString = (CTools::IsDefaultValue(GetMaxXValue())) ? "DV" : GetMaxXValueAsText();
+  valueString = (isDefaultValue(GetMaxXValue())) ? "DV" : GetMaxXValueAsText();
   WriteLine(FmtCmdParam(kwDISPLAY_XMAXVALUE) + valueString);
 
-  valueString = (CTools::IsDefaultValue(GetMinYValue())) ? "DV" : GetMinYValueAsText();
+  valueString = (isDefaultValue(GetMinYValue())) ? "DV" : GetMinYValueAsText();
   WriteLine(FmtCmdParam(kwDISPLAY_YMINVALUE) + valueString);
 
-  valueString = (CTools::IsDefaultValue(GetMaxYValue())) ? "DV" : GetMaxYValueAsText();
+  valueString = (isDefaultValue(GetMaxYValue())) ? "DV" : GetMaxYValueAsText();
   WriteLine(FmtCmdParam(kwDISPLAY_YMAXVALUE) + valueString);
 
   WriteEmptyLine();
@@ -1946,10 +1945,10 @@ bool CDisplay::BuildCmdFileFieldPropertiesZXY(CDisplayData* value)
     return false;
   }
 
-  valueString = (CTools::IsDefaultValue(value->GetMinValue())) ? "DV" : value->GetMinValueAsText();
+  valueString = (isDefaultValue(value->GetMinValue())) ? "DV" : value->GetMinValueAsText();
   WriteLine(FmtCmdParam(kwDISPLAY_MINVALUE) + valueString);
 
-  valueString = (CTools::IsDefaultValue(value->GetMaxValue())) ? "DV" : value->GetMaxValueAsText();
+  valueString = (isDefaultValue(value->GetMaxValue())) ? "DV" : value->GetMaxValueAsText();
   WriteLine(FmtCmdParam(kwDISPLAY_MAXVALUE) + valueString);
 
   WriteLine(FmtCmdParam(kwDISPLAY_CONTOUR) + value->GetContourAsText());

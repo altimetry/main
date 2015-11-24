@@ -94,7 +94,7 @@ protected:
   vtkGeoMapFilter();
   virtual ~vtkGeoMapFilter();
 
-  bool IsValidPoint(int32_t index);
+  bool IsValidPoint(int index);
 
   virtual void Execute();
 

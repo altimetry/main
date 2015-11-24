@@ -26,9 +26,9 @@
     #pragma hdrstop
 #endif
 
-#include "../libbrathl/Trace.h"
+#include "new-gui/Common/tools//Trace.h"
 #include "../libbrathl/Tools.h"
-#include "../libbrathl/Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "../libbrathl/InternalFiles.h"
 #include "../libbrathl/InternalFilesYFX.h"
 

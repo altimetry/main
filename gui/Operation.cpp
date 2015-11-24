@@ -32,9 +32,9 @@
 
 #include "brathl.h"
 
-#include "Trace.h"
+#include "new-gui/Common/tools/Trace.h"
 #include "Tools.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "BratProcess.h"
 using namespace brathl;
 using namespace processes;
@@ -90,7 +90,7 @@ void COperation::Init()
   m_exportAsciiNoDataComputation = false;
   m_executeAgain = false;
 
-  CTools::SetDefaultValue(m_exportAsciiNumberPrecision);
+  setDefaultValue(m_exportAsciiNumberPrecision);
 }
 //----------------------------------------
 void COperation::DeleteSelect()
@@ -261,7 +261,7 @@ bool COperation::CtrlLoessCutOff(wxString& msg)
 
     if (value->GetType() == CMapTypeField::typeOpAsField)
     {
-      if ( (CTools::IsDefaultValue(value->GetFilter()) == false) &&
+      if ( (isDefaultValue(value->GetFilter()) == false) &&
         (value->GetFilter() != CMapTypeFilter::filterNone) )
       {
         hasFilter = true;
@@ -270,7 +270,7 @@ bool COperation::CtrlLoessCutOff(wxString& msg)
     }
     if (value->GetType() == CMapTypeField::typeOpAsX)
     {
-      if ( (CTools::IsDefaultValue(value->GetLoessCutOff()) == false) &&
+      if ( (isDefaultValue(value->GetLoessCutOff()) == false) &&
            (value->GetLoessCutOff() > 1) )
       {
         hasCutOffX = true;
@@ -278,7 +278,7 @@ bool COperation::CtrlLoessCutOff(wxString& msg)
     }
     if (value->GetType() == CMapTypeField::typeOpAsY)
     {
-      if ( (CTools::IsDefaultValue(value->GetLoessCutOff()) == false) &&
+      if ( (isDefaultValue(value->GetLoessCutOff()) == false) &&
            (value->GetLoessCutOff() > 1) )
       {
         hasCutOffY = true;
@@ -1171,7 +1171,7 @@ bool COperation::BuildExportAsciiCmdFileFields()
     WriteLine(value->GetExportAsciiFieldPrefix()  + "_NAME=" + value->GetName());
     WriteLine(value->GetExportAsciiFieldPrefix()  + "_UNIT=" + value->GetUnitAsText());
 
-    if (! CTools::IsDefaultValue(m_exportAsciiNumberPrecision) )
+    if (! isDefaultValue(m_exportAsciiNumberPrecision) )
     {
       WriteLine(wxString::Format("%s_FORMAT=%d", value->GetExportAsciiFieldPrefix().c_str(), m_exportAsciiNumberPrecision));
     }
@@ -1250,25 +1250,25 @@ bool COperation::BuildCmdFileFieldsSpecificZFXY(CFormula* value)
 
     if (value->IsTimeDataType())
     {
-      valueString = (CTools::IsDefaultValue(value->GetMinValue())) ? "DV" : value->GetMinValueAsDateString();
+      valueString = (isDefaultValue(value->GetMinValue())) ? "DV" : value->GetMinValueAsDateString();
       WriteLine(value->GetFieldPrefix()  + "_MIN=" + valueString);
 
-      valueString = (CTools::IsDefaultValue(value->GetMaxValue())) ? "DV" : value->GetMaxValueAsDateString();
+      valueString = (isDefaultValue(value->GetMaxValue())) ? "DV" : value->GetMaxValueAsDateString();
       WriteLine(value->GetFieldPrefix()  + "_MAX=" + valueString);
     }
     else
     {
-      valueString = (CTools::IsDefaultValue(value->GetMinValue())) ? "DV" : value->GetMinValueAsText();
+      valueString = (isDefaultValue(value->GetMinValue())) ? "DV" : value->GetMinValueAsText();
       WriteLine(value->GetFieldPrefix()  + "_MIN=" + valueString);
 
-      valueString = (CTools::IsDefaultValue(value->GetMaxValue())) ? "DV" : value->GetMaxValueAsText();
+      valueString = (isDefaultValue(value->GetMaxValue())) ? "DV" : value->GetMaxValueAsText();
       WriteLine(value->GetFieldPrefix()  + "_MAX=" + valueString);
     }
 
-    valueString = (CTools::IsDefaultValue(value->GetInterval())) ? "DV" : value->GetIntervalAsText();
+    valueString = (isDefaultValue(value->GetInterval())) ? "DV" : value->GetIntervalAsText();
     WriteLine(value->GetFieldPrefix()  + "_INTERVALS=" + valueString);
 
-    valueString = (CTools::IsDefaultValue(value->GetLoessCutOff())) ? "DV" : value->GetLoessCutOffAsText();
+    valueString = (isDefaultValue(value->GetLoessCutOff())) ? "DV" : value->GetLoessCutOffAsText();
     WriteLine(value->GetFieldPrefix()  + "_LOESS_CUTOFF=" + valueString);
   }
 

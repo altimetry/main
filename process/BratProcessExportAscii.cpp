@@ -20,7 +20,7 @@
 
 #include <fstream>
 
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "FileParams.h"
 
 #include "Field.h"
@@ -224,7 +224,7 @@ void CBratProcessExportAscii::AfterBuildListFieldsToRead()
 void CBratProcessExportAscii::BuildListFieldsToRead()
 {
   // get original number of expresion, because AddFielIndexes can add new expression (insert at the end of m_fields) 
-  uint32_t nbExpr = m_fields.size();
+  size_t nbExpr = m_fields.size();
 
   // build, from FIELD parameter, the list of the fields to read in the data files
   for (uint32_t i = 0 ; i < nbExpr ; i++)
@@ -261,7 +261,7 @@ int32_t CBratProcessExportAscii::Execute(std::string& msg)
 
   m_writeHeader = true;
 
-  uint32_t nbFiles = m_inputFiles.size();
+  size_t nbFiles = m_inputFiles.size();
   uint32_t cptFile = 0;
 
   CStringArray::iterator itFile;

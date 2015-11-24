@@ -1,17 +1,33 @@
+/*
+* This file is part of BRAT
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #include <cstdlib>
 #include <cstdio>
 #include <cstring> 
 #include <typeinfo> 
+#include <string> 
 
-#include "brathl_error.h" 
+#include "new-gui/Common/tools/brathl_error.h" 
 #include "brathl.h" 
 //#define BRAT_INTERNAL
 
-#include <string> 
-
-#include "TraceLog.h" 
+#include "new-gui/Common/tools/TraceLog.h" 
 #include "Tools.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/Exception.h" 
 
 #include "LatLonPoint.h"
 
@@ -27,8 +43,8 @@ const double CLatLonPoint::m_LONGITUDE_COMPARE_EPSILON = 1.0E-4;
 //-------------------------------------------------------------
 CLatLonPoint::CLatLonPoint() 
 {
-  CTools::SetDefaultValue(m_lat);
-  CTools::SetDefaultValue(m_lon);
+  setDefaultValue(m_lat);
+  setDefaultValue(m_lon);
 }
 
 //----------------------------------------
@@ -238,9 +254,9 @@ void CLatLonPoint::Set(float lat,float lon)
 //----------------------------------------
 void CLatLonPoint::SetLongitude(double lon) 
 {
-  if (CTools::IsDefaultValue(lon) )
+  if (isDefaultValue(lon) )
   {
-    CTools::SetDefaultValue(m_lon);
+    setDefaultValue(m_lon);
   }
   else
   {
@@ -251,9 +267,9 @@ void CLatLonPoint::SetLongitude(double lon)
 //----------------------------------------
 void CLatLonPoint::SetLatitude(double lat) 
 {
-  if (CTools::IsDefaultValue(lat))
+  if (isDefaultValue(lat))
   {
-    CTools::SetDefaultValue(m_lat);
+    setDefaultValue(m_lat);
   }
   else
   {
@@ -264,8 +280,8 @@ void CLatLonPoint::SetLatitude(double lat)
 //----------------------------------------
 void CLatLonPoint::SetDefaultValue()
 {
-  CTools::SetDefaultValue(m_lat);
-  CTools::SetDefaultValue(m_lon);
+  setDefaultValue(m_lat);
+  setDefaultValue(m_lon);
 }
 
 
@@ -300,8 +316,8 @@ bool CLatLonPoint::Equals(CLatLonPoint& pt)
 //----------------------------------------
 bool CLatLonPoint::IsDefaultValue()
 {
-  return ((CTools::IsDefaultValue(m_lat) == true) ||
-          (CTools::IsDefaultValue(m_lon) == true));
+  return ((isDefaultValue(m_lat) == true) ||
+          (isDefaultValue(m_lon) == true));
 
 }
 

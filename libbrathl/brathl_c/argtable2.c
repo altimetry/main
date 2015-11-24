@@ -966,7 +966,7 @@ void arg_print_glossary(FILE *fp, void **argtable, const char *format)
 static
 void arg_print_formatted( FILE *fp, const unsigned lmargin, const unsigned rmargin, const char *text )
     {
-    const unsigned textlen = strlen( text );
+    const size_t textlen = strlen( text );
     unsigned line_start = 0;
     unsigned line_end = textlen + 1;
     const unsigned colwidth = (rmargin - lmargin) + 1;

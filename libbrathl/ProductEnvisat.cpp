@@ -23,15 +23,14 @@
 #include <cstdio>
 #include <cstring> 
 #include <typeinfo> 
-
-#include "brathl_error.h" 
-#include "brathl.h" 
-
 #include <string> 
 
-#include "TraceLog.h" 
+#include "new-gui/Common/tools/brathl_error.h" 
+#include "brathl.h" 
+
+#include "new-gui/Common/tools/TraceLog.h" 
 #include "Tools.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/Exception.h" 
 #include "ProductEnvisat.h" 
 
 using namespace brathl;
@@ -658,7 +657,7 @@ void CProductEnvisat::ComputeHighResolutionFields(CDataSet* dataSet)
   CFieldSetDbl *fieldSetLon = NULL;
   CFieldSetDbl *fieldSetTimeStamp = NULL;
 
-  int32_t count = dataSet->size();
+  size_t count = dataSet->size();
 
   for (int32_t index = 0 ; index < count ; index++)
   {
@@ -907,13 +906,13 @@ void CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation()
   // Warning Lat/lon doesn't exist for some record (e.g. avg_waveforms_mds - 18 Hz Waveforms MDS)
   // So m_previousLatitude and m_previousLongitude can be equal to default value
   /*
-  if (CTools::IsDefaultValue(m_previousLatitude))
+  if (isDefaultValue(m_previousLatitude))
   {
     std::string msg = "ERROR in CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation - previous latitude value read is inconsistent (is default value)";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
     throw (e);
   }
-  if (CTools::IsDefaultValue(m_previousLongitude))
+  if (isDefaultValue(m_previousLongitude))
   {
     std::string msg = "ERROR in CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation - previous longitude value read is inconsistent (is default value)";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
@@ -921,17 +920,17 @@ void CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation()
   }
 */
   double deltaLat;
-  CTools::SetDefaultValue(deltaLat);
+  setDefaultValue(deltaLat);
   double deltaLon;
-  CTools::SetDefaultValue(deltaLon);
+  setDefaultValue(deltaLon);
 
   // Compute delta latitude an deltat longitude.
-  if ( ! CTools::IsDefaultValue(m_previousLatitude) ) 
+  if ( ! isDefaultValue(m_previousLatitude) ) 
   {
     deltaLat = (fieldSetLat->m_value - m_previousLatitude) / m_numHighResolutionMeasure;
   }
 
-  if ( ! CTools::IsDefaultValue(m_previousLongitude) ) 
+  if ( ! isDefaultValue(m_previousLongitude) ) 
   {
     deltaLon = (fieldSetLon->m_value - m_previousLongitude) / m_numHighResolutionMeasure;
 
@@ -1040,7 +1039,7 @@ void CProductEnvisat::ProcessHighResolutionWithoutFieldCalculation()
 //----------------------------------------
 void CProductEnvisat::ComputeHighResolutionFields(CDataSet* dataSet, double deltaLat, double deltaLon)
 {
-//  if ( CTools::IsDefaultValue(deltaLat) || CTools::IsDefaultValue(deltaLon) ) 
+//  if ( isDefaultValue(deltaLat) || isDefaultValue(deltaLon) ) 
 //  {
 //    return;
 //  }
@@ -1054,7 +1053,7 @@ void CProductEnvisat::ComputeHighResolutionFields(CDataSet* dataSet, double delt
   CFieldSetDbl *fieldSetLon = NULL;
   CFieldSetDbl *fieldSetTimeStamp = NULL;
 
-  int32_t count = dataSet->size();
+  size_t count = dataSet->size();
 
   for (int32_t index = 0 ; index < count ; index++)
   {

@@ -23,15 +23,15 @@
 #include <cstdio>
 #include <cstring> 
 
-#include "brathl_error.h" 
+#include "new-gui/Common/tools/brathl_error.h" 
 #include "brathl.h" 
 //#define BRAT_INTERNAL
 
 #include <string> 
 
-#include "TraceLog.h" 
+#include "new-gui/Common/tools/TraceLog.h" 
 #include "Tools.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/Exception.h" 
 
 #include "Criteria.h" 
 
@@ -112,7 +112,7 @@ void CCriteria::Adjust(CIntArray& array)
 
   }
 
-  if (!(CTools::IsDefaultValue(array.at(0))) && !(CTools::IsDefaultValue(array.at(1)))) 
+  if (!(isDefaultValue(array.at(0))) && !(isDefaultValue(array.at(1)))) 
   {
     if (array.at(0) > array.at(1))
     {
@@ -121,11 +121,11 @@ void CCriteria::Adjust(CIntArray& array)
       array.ReplaceAt(array.begin() + 1, tmp);
     }
   } 
-  else if ((CTools::IsDefaultValue(array.at(0))) && !(CTools::IsDefaultValue(array.at(1)))) 
+  else if ((isDefaultValue(array.at(0))) && !(isDefaultValue(array.at(1)))) 
   {
     array.ReplaceAt(array.begin(), array.at(1));
   } 
-  else if (!(CTools::IsDefaultValue(array.at(0))) && (CTools::IsDefaultValue(array.at(1)))) 
+  else if (!(isDefaultValue(array.at(0))) && (isDefaultValue(array.at(1)))) 
   {
     array.ReplaceAt(array.begin() + 1 , array.at(0));
   }

@@ -20,10 +20,10 @@
 #if !defined(_CriteriaDatetime_h_)
 #define _CriteriaDatetime_h_
 
-#include "brathl_error.h" 
-#include "brathl.h" 
-
 #include <string>
+
+#include "new-gui/Common/tools/brathl_error.h" 
+#include "brathl.h" 
 
 #include "BratObject.h"
 #include "List.h"

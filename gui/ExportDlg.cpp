@@ -78,8 +78,8 @@ CExportDlg::CExportDlg( wxWindow *parent, wxWindowID id, const wxString &title,
   m_isGeoImage = m_operation->IsMap() && m_operation->GetFormulaCountDataFields() > 0;
   m_createKML = false;
   m_colorTable = "Aerosol";
-  CTools::SetDefaultValue(m_colorRangeMin);
-  CTools::SetDefaultValue(m_colorRangeMax);
+  setDefaultValue(m_colorRangeMin);
+  setDefaultValue(m_colorRangeMax);
 
   m_asciiNumberPrecision = CExportDlg::m_defaultDecimalPrecision;
 

@@ -23,15 +23,14 @@
 #include <cstdio>
 #include <cstring> 
 #include <typeinfo> 
-
-#include "brathl_error.h" 
-#include "brathl.h" 
-
 #include <string> 
 
-#include "TraceLog.h" 
+#include "new-gui/Common/tools/brathl_error.h" 
+#include "brathl.h" 
+
+#include "new-gui/Common/tools/TraceLog.h" 
 #include "Tools.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/Exception.h" 
 #include "ProductErsWAP.h" 
 
 using namespace brathl;
@@ -412,7 +411,7 @@ void CProductErsWAP::ComputeHighResolutionFields(CDataSet* dataSet)
   CFieldSetDbl *fieldSetTimeStampMillisecond = NULL;
   CFieldSetDbl *fieldSetTimeStampMicrosecond = NULL;
 
-  int32_t count = dataSet->size();
+  size_t count = dataSet->size();
 
   for (int32_t index = 0 ; index < count ; index++)
   {
@@ -451,7 +450,7 @@ void CProductErsWAP::ComputeHighResolutionFields(CDataSet* dataSet)
       nbSeconds = CTools::Plus(nbSeconds, fieldSetTimeStampMicrosecond->m_value);
     }
             
-    if (CTools::IsDefaultValue(m_deltaTimeHighResolution))
+    if (isDefaultValue(m_deltaTimeHighResolution))
     {
       std::string msg = "ERROR in CProductErsWAP::ComputeHighResolutionFields - high resolution delta time has no been set";
       CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);

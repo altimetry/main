@@ -22,13 +22,13 @@
 #include <sys/stat.h>
 #include <cstdio>
 #include <cstring>
-
 #include <string>
+
 #include "Tools.h"
-#include "TraceLog.h"
+#include "new-gui/Common/tools/TraceLog.h"
 #include "brathl.h"
-#include "brathl_error.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/brathl_error.h"
+#include "new-gui/Common/tools/Exception.h"
 
 #include "FileParams.h"
 

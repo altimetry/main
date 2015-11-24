@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
@@ -18,14 +16,12 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#if !defined(_Trace_h_)
-#define _Trace_h_
+#if !defined(BRAT_TRACE_H)
+#define BRAT_TRACE_H
 
 #include <string>
-#include "brathl.h"
-
-namespace brathl
-{
+//#include "brathl.h"
+#include "brathl_error.h"
 
 
 class CSmartCleaner;
@@ -56,7 +52,7 @@ public:
    static std::ostream* GetDumpContext();
 
    static bool IsTrace
-		(int32_t	Level	= 5);
+		(int	Level	= 5);
    static void Tracer
 		(const char	*message,
 		 ...)
@@ -64,10 +60,10 @@ public:
    static void Tracer
 		(const std::string	&message);
    static void Tracer
-		(int32_t	Level,
+		(int	Level,
 		 const std::string	&message);
    static void Tracer
-		(int32_t	Level,
+		(int	Level,
 		 const char	*message,
 		 ...)
 	__attribute__ ((format(printf, 2, 3)));
@@ -78,10 +74,10 @@ public:
    static void Print
 		(const std::string	&message);
    static void Print
-		(int32_t	Level,
+		(int	Level,
 		 const std::string	&message);
    static void Print
-		(int32_t	Level,
+		(int	Level,
 		 const char	*message,
 		 ...)
 	__attribute__ ((format(printf, 2, 3)));
@@ -95,20 +91,17 @@ public:
   *     5: Debug (very verbose for development perpose). Default for
   *	   trace in a file
   */
-   static void SetTraceLevel
-		(int32_t	Level);
-   static int32_t GetTraceLevel
-		();
+   static void SetTraceLevel( int Level );
+
+   static int GetTraceLevel()
+   {
+	   return m_TraceLevel;
+   }
 
 
 protected:
-   static void PrintText
-		(bool		NewLine,
-		 const char	*message,
-		 va_list	args);
-   static void PrintText
-		(bool		NewLine,
-		 const std::string	&message);
+   static void PrintText(bool NewLine, const char	*message, va_list args);
+   static void PrintText(bool NewLine, const std::string &message);
 
 protected:
 
@@ -138,7 +131,7 @@ protected:
   bool  	m_bFileLog ;
 
 private :
-  static int32_t	m_TraceLevel;
+  static int	m_TraceLevel;
 
 };
 
@@ -169,5 +162,5 @@ class CSmartCleaner
         }
   };
 
-}
-#endif // !defined(_Trace_h_)
+
+#endif // !defined(BRAT_TRACE_H)

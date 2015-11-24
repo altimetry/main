@@ -18,7 +18,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "BratAlgorithmBase.h"
 #include "BratProcess.h"
 
@@ -36,7 +36,7 @@ const int32_t CBratProcess::NB_MAX_Y = 100;
 
 /*
 ** Value used to distinguish invalid/missing data (known as default value
-** and set by set by CTools::SetDefaultValue) and the fact that no data
+** and set by set by setDefaultValue) and the fact that no data
 ** has yet been taken into account.
 */
 const double CBratProcess::MergeIdentifyUnsetData = 61615590737044764481.0; // Reversed order of digits of CTools::m_defaultValueDOUBLE
@@ -123,8 +123,8 @@ void CBratProcess::Init()
   m_alwaysFalse = false;
   m_alwaysTrue = false;
 
-  CTools::SetDefaultValue(m_validMin);
-  CTools::SetDefaultValue(m_validMax);
+  setDefaultValue(m_validMin);
+  setDefaultValue(m_validMax);
 
 }
 
@@ -227,7 +227,7 @@ void CBratProcess::LoadProductDictionary(const std::string& filename, bool creat
 //----------------------------------------
 void CBratProcess::GetOrderedDimNames(const std::vector<CExpression>& fields, CStringArray& commonDimensions)
 {
-  uint32_t nbExpr = fields.size();
+  size_t nbExpr = fields.size();
   
   // Add each expression (as NetCdf variable) to the output Netcdf fle
   for (uint32_t i = 0 ; i < nbExpr ; i++)
@@ -525,12 +525,12 @@ void CBratProcess::ResizeArrayDependOnFields(uint32_t size)
 //----------------------------------------
 void CBratProcess::AdjustValidMinMax(double value)
 {
-  if (CTools::IsDefaultValue(value))
+  if (isDefaultValue(value))
   {
     return;
   }
 
-  if (CTools::IsDefaultValue(m_validMin))
+  if (isDefaultValue(m_validMin))
   {
     m_validMin = value;
   }
@@ -539,7 +539,7 @@ void CBratProcess::AdjustValidMinMax(double value)
     m_validMin = value;
   }
 
-  if (CTools::IsDefaultValue(m_validMax))
+  if (isDefaultValue(m_validMax))
   {
     m_validMax = value;
   }
@@ -1161,7 +1161,7 @@ int32_t CBratProcess::GetVarDef
         unitTmp = CLatLonPoint::m_DEFAULT_UNIT_LATITUDE;
       }
 
-      if (CTools::IsDefaultValue(Intervals))
+      if (isDefaultValue(Intervals))
       {
         Intervals = static_cast<uint32_t>( CTools::Round(180.0 * CUnit::ConvertToUnit(&unitTmp, 1, 1)) );
       }
@@ -1175,7 +1175,7 @@ int32_t CBratProcess::GetVarDef
         unitTmp = CLatLonPoint::m_DEFAULT_UNIT_LONGITUDE;
       }
 
-      if (CTools::IsDefaultValue(Intervals))
+      if (isDefaultValue(Intervals))
       {
        Intervals = static_cast<uint32_t>( CTools::Round(360.0 * CUnit::ConvertToUnit(&unitTmp, 1, 1)) );
       }
@@ -1184,7 +1184,7 @@ int32_t CBratProcess::GetVarDef
     //-------------------------
     default:
     //-------------------------
-      if (CTools::IsDefaultValue(Intervals))
+      if (isDefaultValue(Intervals))
       {
         throw CParameterException(CTools::Format("Invalid default value for interval of variable '%s' which is of type '%s'",
 						name->c_str(), CNetCDFFiles::VarKindToString(*kind).c_str()),
@@ -1205,7 +1205,7 @@ int32_t CBratProcess::GetVarDef
 	        throw CParameterException("Time unit for a latitude is onvalid", BRATHL_UNIT_ERROR);
       }
 
-      if (CTools::IsDefaultValue(min))
+      if (isDefaultValue(min))
       {
 	      min	= CUnit::ConvertToUnit(&unitTmp, -90, -90.0);
       }
@@ -1220,7 +1220,7 @@ int32_t CBratProcess::GetVarDef
         }
       }
 
-      if (CTools::IsDefaultValue(max))
+      if (isDefaultValue(max))
       {
 	      max	= CUnit::ConvertToUnit(&unitTmp, 90, 90.0);
       }
@@ -1251,14 +1251,14 @@ int32_t CBratProcess::GetVarDef
       {
 	      throw CParameterException("Time unit for a longitude is invalid", BRATHL_UNIT_ERROR);
       }
-      if (CTools::IsDefaultValue(min))
+      if (isDefaultValue(min))
       {
 	      min	= CUnit::ConvertToUnit(&unitTmp, -180, -180.0);
       }
 
       double minBaseUnit = CUnit::ConvertToBaseUnit(&unitTmp, min);
 
-      if (CTools::IsDefaultValue(max))
+      if (isDefaultValue(max))
       {
       	max	= CUnit::ConvertToUnit(&unitTmp, minBaseUnit + 360.0, 180.0);
       }
@@ -1266,7 +1266,7 @@ int32_t CBratProcess::GetVarDef
       //max	= CTools::NormalizeLongitude(min, max);
       max = CLatLonPoint::LonNormalFrom(max, min, &unitTmp); 
 
-      if (CTools::AreEqual(min, max))
+      if (areEqual(min, max))
       {
       	max	= CUnit::ConvertToUnit(&unitTmp, minBaseUnit + 360.0, 180.0);
       }
@@ -1276,7 +1276,7 @@ int32_t CBratProcess::GetVarDef
     //-----------------
     default:
     //-----------------
-      if (CTools::IsDefaultValue(min) || CTools::IsDefaultValue(max))
+      if (isDefaultValue(min) || isDefaultValue(max))
       {
 	      throw CParameterException(CTools::Format("Invalid default value for min/max of var '%s'",
 				                 name->c_str()),
@@ -2307,7 +2307,7 @@ void CBratProcess::GetFieldWithNoXYCommonDim()
 
   CStringArray dimNames;
 
-  uint32_t nbExpr = m_fields.size();
+  size_t nbExpr = m_fields.size();
   
   for (uint32_t i = 0 ; i < nbExpr ; i++)
   {
@@ -2334,7 +2334,7 @@ void CBratProcess::GetFieldWithNoXYCommonDim()
 void CBratProcess::BuildListFieldsToRead()
 {
   // get original number of expresion, because AddFielIndexes can add new expression (insert at the end of m_fields) 
-  uint32_t nbExpr = m_fields.size();
+  size_t nbExpr = m_fields.size();
 
   if (m_product == NULL)
   {
@@ -2653,7 +2653,7 @@ void CBratProcess::AddVarsFromNetCdf()
 
   m_fieldDefinitionToReplace.RemoveAll();
   
-  uint32_t nbExpr = m_fields.size();
+  size_t nbExpr = m_fields.size();
   
   // Add each expression (as NetCdf variable) to the output Netcdf fle
   for (uint32_t i = 0 ; i < nbExpr ; i++)
@@ -3030,7 +3030,7 @@ void CBratProcess::MergeDataValue
 		 double*	meanValue,
 		 CBratProcess::MergeDataMode	mode)
 {
-  if (CTools::IsDefaultValue(value))
+  if (isDefaultValue(value))
   {
     return;
   }
@@ -3052,7 +3052,7 @@ void CBratProcess::MergeDataValue
     //--------------------------
       data	= value;
       /*
-	    if (! CTools::IsDefaultValue(value))
+	    if (! isDefaultValue(value))
       {
 	      data	= value;
       }
@@ -3235,7 +3235,7 @@ void CBratProcess::FinalizeMergingOfDataValues
     //--------------------------
 	    if (data == CBratProcess::MergeIdentifyUnsetData)
 	    {
-	      CTools::SetDefaultValue(data);
+	      setDefaultValue(data);
 	    }
 	    break;
     //--------------------------
@@ -3243,7 +3243,7 @@ void CBratProcess::FinalizeMergingOfDataValues
     //--------------------------
 	    if (data == CBratProcess::MergeIdentifyUnsetData)
 	    {
-	      CTools::SetDefaultValue(data);
+	      setDefaultValue(data);
 	    }
 	    else
 	    {
@@ -3269,7 +3269,7 @@ void CBratProcess::FinalizeMergingOfDataValues
     //--------------------------
 	    if (data == CBratProcess::MergeIdentifyUnsetData)
 	    {
-	      CTools::SetDefaultValue(data);
+	      setDefaultValue(data);
 	    }
 	    else
 	    {

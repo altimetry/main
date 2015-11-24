@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<bratSchedulerConfig>
+  <pendingTasks>
+    <task uid="1448043127546" name="rccc" logFile="/home/femm/BratScheduler/Logs/BratTask_rccc_1448043127546.log" at="2015-11-20 18:12:00" status="pending" cmd="&quot;/home/femm/brat-3.3.0-x86_64/bin/BratCreateZFXY&quot; &quot;/home/brat/s3-altb/project/workspaces/W1/Operations/CreateOperations_FM_1.par&quot;"/>
+    <task uid="1448044242469" name="rccc2" logFile="/home/femm/BratScheduler/Logs/BratTask_rccc2_1448044242469.log" at="2015-11-20 18:30:00" status="pending" cmd="&quot;/home/femm/brat-3.3.0-x86_64/bin/BratExportAscii&quot; &quot;/home/brat/s3-altb/project/workspaces/W1/Operations/ExportAsciiOperations_FM_1.export.par&quot;"/>
+    <task uid="1448044345268" name="rccc4" logFile="/home/femm/BratScheduler/Logs/BratTask_rccc4_1448044345268.log" at="2015-11-20 18:32:00" status="pending" cmd="&quot;/home/femm/brat-3.3.0-x86_64/bin/BratCreateZFXY&quot; &quot;/home/brat/s3-altb/project/workspaces/W1/Operations/CreateOperations_FM_1.par&quot;">
+      <task uid="1448044345352" name="rccc4" logFile="/home/femm/BratScheduler/Logs/BratTask_rccc4_1448044345352.log" at="2015-11-20 18:32:00" status="pending" function="CopyFile">
+        <arg type="string">/home/brat/s3-altb/project/workspaces/W1/Operations/CreateOperations_FM_1.nc</arg>
+        <arg type="string">/home/brat/s3-altb/project/workspaces/W1/Operations/ExportAsciiOperations_FM_1.nc</arg>
+      </task>
+    </task>
+    <task uid="1448044575143" name="femm" logFile="/home/femm/BratScheduler/Logs/BratTask_femm_1448044575143.log" at="2015-11-20 18:35:00" status="pending" cmd="&quot;/home/femm/brat-3.3.0-x86_64/bin/BratCreateZFXY&quot; &quot;/home/brat/s3-altb/project/workspaces/W1/Operations/CreateOperations_FM_1.par&quot;">
+      <task uid="1448044575227" name="femm" logFile="/home/femm/BratScheduler/Logs/BratTask_femm_1448044575227.log" at="2015-11-20 18:35:00" status="pending" function="CopyFile">
+        <arg type="string">/home/brat/s3-altb/project/workspaces/W1/Operations/CreateOperations_FM_1.nc</arg>
+        <arg type="string">/home/brat/s3-altb/project/workspaces/W1/Operations/ExportAsciiOperations_FM_1.nc</arg>
+      </task>
+    </task>
+    <task uid="1448045059665" name="test" logFile="/home/femm/BratScheduler/Logs/BratTask_test_1448045059665.log" at="2015-11-20 18:43:00" status="pending" cmd="&quot;/home/femm/brat-3.3.0-x86_64/bin/BratExportAscii&quot; &quot;/home/brat/s3-altb/project/workspaces/W1/Operations/ExportAsciiOperations_FM_1.export.par&quot;"/>
+    <task uid="1448045109215" name="test1" logFile="/home/femm/BratScheduler/Logs/BratTask_test1_1448045109215.log" at="2015-11-20 18:44:00" status="pending" cmd="&quot;/home/femm/brat-3.3.0-x86_64/bin/BratCreateZFXY&quot; &quot;/home/brat/s3-altb/project/workspaces/W1/Operations/CreateOperations_FM_1.par&quot;">
+      <task uid="1448045109298" name="test1" logFile="/home/femm/BratScheduler/Logs/BratTask_test1_1448045109298.log" at="2015-11-20 18:44:00" status="pending" function="CopyFile">
+        <arg type="string">/home/brat/s3-altb/project/workspaces/W1/Operations/CreateOperations_FM_1.nc</arg>
+        <arg type="string">/home/brat/s3-altb/project/workspaces/W1/Operations/ExportAsciiOperations_FM_1.nc</arg>
+      </task>
+    </task>
+  </pendingTasks>
+  <endedTasks/>
+</bratSchedulerConfig>

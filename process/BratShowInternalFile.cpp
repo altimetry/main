@@ -20,10 +20,10 @@
 #include <cstdlib>
 #include <string>
 #include "List.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "FileParams.h"
 #include "Product.h"
-#include "Trace.h"
+#include "new-gui/Common/tools/Trace.h"
 #include "InternalFiles.h"
 #include "InternalFilesFactory.h"
 #include "InternalFilesYFX.h"

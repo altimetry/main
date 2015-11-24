@@ -29,7 +29,7 @@
     #pragma hdrstop
 #endif
 
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "Expression.h"
 using namespace brathl;
 
@@ -112,11 +112,11 @@ void CResolutionDlg::Init()
     glb_FormulaOptFilterSizer->Show(false);
   }
 
-  CTools::SetDefaultValue(m_xMinValueDefault);
-  CTools::SetDefaultValue(m_xMaxValueDefault);
+  setDefaultValue(m_xMinValueDefault);
+  setDefaultValue(m_xMaxValueDefault);
 
-  CTools::SetDefaultValue(m_yMinValueDefault);
-  CTools::SetDefaultValue(m_yMaxValueDefault);
+  setDefaultValue(m_yMinValueDefault);
+  setDefaultValue(m_yMaxValueDefault);
 
   m_xIntervalDefault = 0;
   m_yIntervalDefault = 0;
@@ -263,12 +263,12 @@ void CResolutionDlg::Init()
     GetFormulaoptFilter()->SetSelection(m_formula->GetFilter());
   }
 
-  if (!CTools::IsDefaultValue(m_x->GetLoessCutOff()))
+  if (!isDefaultValue(m_x->GetLoessCutOff()))
   {
     GetFormulaoptXloesscut()->SetValue(m_x->GetLoessCutOff());
   }
 
-  if (!CTools::IsDefaultValue(m_y->GetLoessCutOff()))
+  if (!isDefaultValue(m_y->GetLoessCutOff()))
   {
     GetFormulaoptYloesscut()->SetValue(m_y->GetLoessCutOff());
   }
@@ -327,7 +327,7 @@ void CResolutionDlg::Init()
 
 
   if ( (VerifyXMinMax() == false) ||
-    (CTools::IsZero( m_x->GetStepAsDouble() )) )
+    (isZero( m_x->GetStepAsDouble() )) )
   {
     if (m_x->IsTimeDataType())
     {
@@ -347,7 +347,7 @@ void CResolutionDlg::Init()
 
 
   if ( (VerifyYMinMax() == false) ||
-    (CTools::IsZero( m_y->GetStepAsDouble() )) )
+    (isZero( m_y->GetStepAsDouble() )) )
   {
     if (m_y->IsTimeDataType())
     {
@@ -463,7 +463,7 @@ bool CResolutionDlg::ComputeInterval(CFormula& formula, CLabeledTextCtrl* ctrlIn
   int32_t interval = formula.GetInterval();
   wxString step = formula.GetStep();
 
-  if (!CTools::IsDefaultValue(interval))
+  if (!isDefaultValue(interval))
   {
     ctrlInterval->SetValue(interval);
   }
@@ -540,7 +540,7 @@ bool CResolutionDlg::VerifyMinMax(CFormula& formula, CLabeledTextCtrl* ctrlMin, 
   double min = formula.GetMinValue();
   double max = formula.GetMaxValue();
 
-  if (CTools::IsDefaultValue(min) && CTools::IsDefaultValue(max))
+  if (isDefaultValue(min) && isDefaultValue(max))
   {
     return true;
   }
@@ -770,7 +770,7 @@ bool CResolutionDlg::VerifyMinMaxAsDate(CFormula& formula, CLabeledTextCtrl* ctr
   double min = formula.GetMinValue();
   double max = formula.GetMaxValue();
 
-  if (CTools::IsDefaultValue(min) && CTools::IsDefaultValue(max))
+  if (isDefaultValue(min) && isDefaultValue(max))
   {
     return true;
   }
@@ -893,7 +893,7 @@ void CResolutionDlg::GetMinMax(CFormula* formula)
       }
 
     }
-    //else if (formula->IsLatLonDataType() && CTools::IsDefaultValue(productTmp->GetForceLatMinCriteriaValue()))
+    //else if (formula->IsLatLonDataType() && isDefaultValue(productTmp->GetForceLatMinCriteriaValue()))
     else if (formula->IsLatLonDataType())
     {
       double latMin;
@@ -918,7 +918,7 @@ void CResolutionDlg::GetMinMax(CFormula* formula)
       }
       else
       {
-        if (!CTools::IsDefaultValue(productTmp->GetForceLatMinCriteriaValue()))
+        if (!isDefaultValue(productTmp->GetForceLatMinCriteriaValue()))
         {
           CExpression expr = std::string(formula->GetDescription(true, &m_mapFormulaString, productTmp->GetAliasesAsString()).c_str());
           productTmp->GetValueMinMax(expr, (const char *)m_operation->GetRecord().c_str(), valueMin, valueMax, *(formula->GetUnit()));

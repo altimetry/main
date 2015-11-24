@@ -30,7 +30,7 @@ extern "C" {
 ** includes configuration parameters
 */
 #include "brathl.h"
-#include "brathl_error.h"
+#include "new-gui/Common/tools/brathl_error.h"
 
 
 

@@ -21,8 +21,8 @@
 #include "brathl.h" 
 
 
-#include "TraceLog.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/TraceLog.h" 
+#include "new-gui/Common/tools/Exception.h" 
 #include "Expression.h" 
 #include "Product.h" 
 #include "ProductNetCdf.h" 
@@ -76,11 +76,11 @@ CBratAlgoFilterKernel::~CBratAlgoFilterKernel()
 //----------------------------------------
 void CBratAlgoFilterKernel::Init()
 {
-  CTools::SetDefaultValue(m_dataWindowHeight);
-  CTools::SetDefaultValue(m_dataWindowWidth);
+  setDefaultValue(m_dataWindowHeight);
+  setDefaultValue(m_dataWindowWidth);
 
-  CTools::SetDefaultValue(m_dataWindowLength);
-  CTools::SetDefaultValue(m_extrapolate);
+  setDefaultValue(m_dataWindowLength);
+  setDefaultValue(m_extrapolate);
 
   SetBeginOfFile();
 }
@@ -125,7 +125,7 @@ void CBratAlgoFilterKernel::Set(const CBratAlgoFilterKernel &o)
 //----------------------------------------
 void CBratAlgoFilterKernel::SetParamValueExtrapolate(CVectorBratAlgorithmParam& args, uint32_t paramIndex)
 {
-  if (!CTools::IsDefaultValue(m_extrapolate))
+  if (!isDefaultValue(m_extrapolate))
   {
     return;
   }
@@ -148,7 +148,7 @@ void CBratAlgoFilterKernel::SetParamValueExtrapolate(CVectorBratAlgorithmParam& 
   }
 
   m_extrapolate = valueInt32;
-  if (CTools::IsDefaultValue(valueInt32))
+  if (isDefaultValue(valueInt32))
   {
     m_extrapolate = 0;
   }
@@ -181,9 +181,9 @@ void CBratAlgoFilterKernel::SetBeginOfFile()
 {
   CBratAlgoFilter::SetBeginOfFile();
 
-  CTools::SetDefaultValue(m_varValue);
-  CTools::SetDefaultValue(m_varValuePrev);
-  CTools::SetDefaultValue(m_varValueNext);
+  setDefaultValue(m_varValue);
+  setDefaultValue(m_varValuePrev);
+  setDefaultValue(m_varValueNext);
 
   //m_varDimXIndex = -1;
   //m_varDimYIndex = -1;
@@ -191,7 +191,7 @@ void CBratAlgoFilterKernel::SetBeginOfFile()
   //m_indexX = -1;
   //m_indexY = -1;
 
-  CTools::SetDefaultValue(m_validPts);
+  setDefaultValue(m_validPts);
   
   m_rawDataWindow.RemoveAll();
   
@@ -216,7 +216,7 @@ void CBratAlgoFilterKernel::SetEndOfFile()
 {
   CBratAlgoFilter::SetEndOfFile();
 
-  CTools::SetDefaultValue(m_varValueNext);
+  setDefaultValue(m_varValueNext);
 
 }
 //----------------------------------------
@@ -681,7 +681,7 @@ void CBratAlgoFilterKernel::PrepareDataWindow2DSymmetrically(double* dataValue, 
     for (uint32_t j = 0 ; j < m_dataWindowHeight ; j++)
     {
       double value = m_rawDataWindow[(i * m_dataWindowHeight) + j];
-      if (CTools::IsDefaultValue(value))
+      if (isDefaultValue(value))
       {
         str.append("DV ");
       }

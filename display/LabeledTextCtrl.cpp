@@ -33,7 +33,7 @@
 
 #include "Tools.h"
 #include "Expression.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 using namespace brathl;
 
 #include "wx/gdicmn.h"
@@ -179,7 +179,7 @@ void CLabeledTextCtrl::GetValue(int32_t& value, int32_t defValue, int32_t min, i
   char *stopString = NULL;
   if (CTools::StrCaseCmp(m_text->GetValue().c_str(), "DV") == 0)
   {
-    CTools::SetDefaultValue(value);
+    setDefaultValue(value);
     SetValue(value);
     return;
   }
@@ -208,7 +208,7 @@ void CLabeledTextCtrl::GetValue(int32_t& value, int32_t defValue, int32_t min, i
     return;
   }
 
-  if (CTools::IsDefaultValue(min) == false)
+  if (isDefaultValue(min) == false)
   {
     if (value < min)
     {
@@ -218,7 +218,7 @@ void CLabeledTextCtrl::GetValue(int32_t& value, int32_t defValue, int32_t min, i
 
     }
   }
-  if (CTools::IsDefaultValue(max) == false)
+  if (isDefaultValue(max) == false)
   {
     if (value > max)
     {
@@ -236,7 +236,7 @@ void CLabeledTextCtrl::GetValue(uint32_t& value, uint32_t defValue, uint32_t min
   char *stopString = NULL;
   if (CTools::StrCaseCmp(m_text->GetValue().c_str(), "DV") == 0)
   {
-    CTools::SetDefaultValue(value);
+    setDefaultValue(value);
     SetValue(static_cast<int32_t>(value));
     return;
   }
@@ -264,7 +264,7 @@ void CLabeledTextCtrl::GetValue(uint32_t& value, uint32_t defValue, uint32_t min
     return;
   }
 
-  if (CTools::IsDefaultValue(min) == false)
+  if (isDefaultValue(min) == false)
   {
     if (value < min)
     {
@@ -274,7 +274,7 @@ void CLabeledTextCtrl::GetValue(uint32_t& value, uint32_t defValue, uint32_t min
 
     }
   }
-  if (CTools::IsDefaultValue(max) == false)
+  if (isDefaultValue(max) == false)
   {
     if (value > max)
     {
@@ -321,7 +321,7 @@ void CLabeledTextCtrl::GetValue(double& value, double defValue, double min, doub
     exprValue = expression.Execute();
     value = *(exprValue.GetValues());
 
-    if (CTools::IsDefaultValue(min) == false)
+    if (isDefaultValue(min) == false)
     {
       if (value < min)
       {
@@ -331,7 +331,7 @@ void CLabeledTextCtrl::GetValue(double& value, double defValue, double min, doub
 
       }
     }
-    if (CTools::IsDefaultValue(max) == false)
+    if (isDefaultValue(max) == false)
     {
       if (value > max)
       {
@@ -415,7 +415,7 @@ void CLabeledTextCtrl::GetValue(CDate& value, double defValue, double min, doubl
     wxString str = GetStringValue();
     if (str.IsEmpty())
     {
-      if (CTools::IsDefaultValue(defValue))
+      if (isDefaultValue(defValue))
       {
         value.SetDefaultValue();
       }
@@ -431,7 +431,7 @@ void CLabeledTextCtrl::GetValue(CDate& value, double defValue, double min, doubl
 
     if (value.IsDefaultValue())
     {
-      if (!CTools::IsDefaultValue(defValue))
+      if (!isDefaultValue(defValue))
       {
         value = defValue;
         SetValue(value);
@@ -439,11 +439,11 @@ void CLabeledTextCtrl::GetValue(CDate& value, double defValue, double min, doubl
       return;
     }
 
-    if (CTools::IsDefaultValue(min) == false)
+    if (isDefaultValue(min) == false)
     {
       if (value < min)
       {
-        if (CTools::IsDefaultValue(defValue))
+        if (isDefaultValue(defValue))
         {
           value.SetDefaultValue();
         }
@@ -456,11 +456,11 @@ void CLabeledTextCtrl::GetValue(CDate& value, double defValue, double min, doubl
 
       }
     }
-    if (CTools::IsDefaultValue(max) == false)
+    if (isDefaultValue(max) == false)
     {
       if (value > max)
       {
-        if (CTools::IsDefaultValue(defValue))
+        if (isDefaultValue(defValue))
         {
           value.SetDefaultValue();
         }
@@ -540,14 +540,14 @@ void CLabeledTextCtrl::SetValue(int32_t value, int32_t defValue,
                                 int32_t min, int32_t max)
 {
   wxString wxValue;
-  if (CTools::IsDefaultValue(value))
+  if (isDefaultValue(value))
   {
     wxValue = "";
     m_text->SetValue(wxValue);
     return;
   }
 
-  if (CTools::IsDefaultValue(min) == false)
+  if (isDefaultValue(min) == false)
   {
     if (value < min)
     {
@@ -555,7 +555,7 @@ void CLabeledTextCtrl::SetValue(int32_t value, int32_t defValue,
 
     }
   }
-  if (CTools::IsDefaultValue(max) == false)
+  if (isDefaultValue(max) == false)
   {
     if (value > max)
     {
@@ -564,7 +564,7 @@ void CLabeledTextCtrl::SetValue(int32_t value, int32_t defValue,
     }
   }
 
-  if (CTools::IsDefaultValue(value))
+  if (isDefaultValue(value))
   {
     wxValue = "";
   }
@@ -590,14 +590,14 @@ void CLabeledTextCtrl::SetValue(uint32_t value, uint32_t defValue,
                                 uint32_t min, uint32_t max)
 {
   wxString wxValue;
-  if (CTools::IsDefaultValue(value))
+  if (isDefaultValue(value))
   {
     wxValue = "";
     m_text->SetValue(wxValue);
     return;
   }
 
-  if (CTools::IsDefaultValue(min) == false)
+  if (isDefaultValue(min) == false)
   {
     if (value < min)
     {
@@ -605,7 +605,7 @@ void CLabeledTextCtrl::SetValue(uint32_t value, uint32_t defValue,
 
     }
   }
-  if (CTools::IsDefaultValue(max) == false)
+  if (isDefaultValue(max) == false)
   {
     if (value > max)
     {
@@ -613,7 +613,7 @@ void CLabeledTextCtrl::SetValue(uint32_t value, uint32_t defValue,
     }
   }
 
-  if (CTools::IsDefaultValue(value))
+  if (isDefaultValue(value))
   {
     wxValue = "";
   }
@@ -648,14 +648,14 @@ void CLabeledTextCtrl::SetValue(double value, double defValue,
 {
   wxString wxValue;
 
-  if (CTools::IsDefaultValue(value))
+  if (isDefaultValue(value))
   {
     wxValue = "";
     m_text->SetValue(wxValue);
     return;
   }
 
-  if (CTools::IsDefaultValue(min) == false)
+  if (isDefaultValue(min) == false)
   {
     if (value < min)
     {
@@ -663,7 +663,7 @@ void CLabeledTextCtrl::SetValue(double value, double defValue,
     }
   }
 
-  if (CTools::IsDefaultValue(max) == false)
+  if (isDefaultValue(max) == false)
   {
     if (value > max)
     {
@@ -671,7 +671,7 @@ void CLabeledTextCtrl::SetValue(double value, double defValue,
     }
   }
 
-  if (CTools::IsDefaultValue(value))
+  if (isDefaultValue(value))
   {
     wxValue = "";
   }

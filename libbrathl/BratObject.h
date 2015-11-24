@@ -31,9 +31,8 @@
  \version 1.0
 */
 #include <typeinfo>
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 
-using namespace brathl;
 
 namespace brathl
 {

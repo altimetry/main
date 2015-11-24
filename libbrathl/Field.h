@@ -20,15 +20,17 @@
 #if !defined(_Field_h_)
 #define _Field_h_
 
-#include "brathl_error.h" 
+#include <string>
+
+#include "new-gui/Common/tools/brathl_error.h" 
 #include "brathl.h" 
 
 #include "coda.h"
 
-#include <string>
-
 #include "List.h"
 #include "BratObject.h"
+
+
 namespace brathl
 {
   class CNetCDFFiles;
@@ -468,13 +470,15 @@ public:
 
 class CFieldRecord : public CFieldArray 
 {
+protected:
+  size_t m_nbFields;
 
 public:   
   /// Ctor
   CFieldRecord();  
 
-  CFieldRecord(int32_t nbFields, const std::string& name, const std::string& description = "", const std::string& unit = "");
-  CFieldRecord(int32_t nbDims, const long dim[], int32_t nbFields, const std::string& name, const std::string& description = "", const std::string& unit = "");
+  CFieldRecord(size_t nbFields, const std::string& name, const std::string& description = "", const std::string& unit = "");
+  CFieldRecord(int32_t nbDims, const long dim[], size_t nbFields, const std::string& name, const std::string& description = "", const std::string& unit = "");
   CFieldRecord(CFieldRecord& f);  
 
   /// Dtor
@@ -484,8 +488,8 @@ public:
 
   void Set(CFieldRecord& f);
 
-  void SetNbFields(int32_t value) { m_nbFields = value; };
-  int32_t GetNbFields() { return m_nbFields; };
+  void SetNbFields(size_t value) { m_nbFields = value; };
+  size_t GetNbFields() { return m_nbFields; };
 
   virtual void PushPos();
   virtual void PushPos(int32_t iDim);  
@@ -505,12 +509,6 @@ public:
 
   ///Dump fonction
   virtual void Dump(std::ostream& fOut = std::cerr);
-
-protected:
-
-  int32_t m_nbFields;
-
-
 };                      
 
 //-------------------------------------------------------------

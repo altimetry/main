@@ -26,7 +26,7 @@
 #include "Tools.h"
 #include "Date.h"
 #include "List.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "Expression.h"
 #include "Mission.h"
 #include "ProductNetCdf.h"
@@ -2235,7 +2235,7 @@ bool CNetCDFDimension::IsCoordinateVariable(const std::string& name)
 
   for (it = m_coordVars.begin() ; it !=  m_coordVars.end() ; it++)
   {
-    if (CTools::CompareNoCase(*it, name))
+    if (str_icmp(*it, name))
     {
       bOk = true;
       break;
@@ -2337,12 +2337,12 @@ void CNetCDFVarDef::Init()
 {
   m_varId = -1;
   m_type = NC_DOUBLE;
-  CTools::SetDefaultValue(m_validMin);
-  CTools::SetDefaultValue(m_validMax);
+  setDefaultValue(m_validMin);
+  setDefaultValue(m_validMax);
   
   m_scaleFactor = 1.0;
   m_addOffset = 0.0;
-  CTools::SetDefaultValue(m_fillValue);
+  setDefaultValue(m_fillValue);
 
 }
 //----------------------------------------
@@ -2475,7 +2475,7 @@ void CNetCDFVarDef::SetNetCDFDims(const CStringArray* dimNames, const CUIntArray
     return;
   }
 
-  uint32_t size = dimNames->size();
+  size_t size = dimNames->size();
   if (dimValues->size() != size)
   {
     return;
@@ -2681,7 +2681,7 @@ CNetCDFDimension* CNetCDFVarDef::ReplaceNetCDFDim(CNetCDFDimension& dim)
 
   uint32_t range = GetNetCDFDimRange(dim.GetName());
 
-  if (CTools::IsDefaultValue(range))
+  if (isDefaultValue(range))
   {
     return NULL;
   }
@@ -2757,7 +2757,7 @@ uint32_t CNetCDFVarDef::GetNetCDFDimRange(const std::string& name)
   CNetCDFDimension* dim = NULL;
   uint32_t range;
   
-  CTools::SetDefaultValue(range);
+  setDefaultValue(range);
 
   for (uint32_t i = 0 ; i < m_netCDFdims.size() ; i++)
   {
@@ -2916,9 +2916,9 @@ bool CNetCDFVarDef::HaveEqualDims(CNetCDFVarDef* netCDFVarDef, CNetCDFFiles* net
 
   bool sameDims = true;
 
-  uint32_t nbDims = thisDims->size();
+  size_t nbDims = thisDims->size();
 
-  for (uint32_t i = 0 ; i < nbDims ; i++)
+  for (size_t i = 0 ; i < nbDims ; i++)
   {
     CNetCDFDimension* thisDim = dynamic_cast<CNetCDFDimension*>(thisDims->at(i));
     CNetCDFDimension* netCDFDim = dynamic_cast<CNetCDFDimension*>(netCDFDims->at(i));
@@ -3030,7 +3030,7 @@ bool CNetCDFVarDef::HaveEqualDimNames(CNetCDFVarDef* netCDFVarDef, std::string* 
 
   bool sameDims = true;
 
-  uint32_t nbDims = thisDims->size();
+  size_t nbDims = thisDims->size();
 
   for (uint32_t i = 0 ; i < nbDims ; i++)
   {
@@ -3118,7 +3118,7 @@ bool CNetCDFVarDef::HaveCompatibleDimUnits(CNetCDFVarDef* netCDFVarDef, CNetCDFF
 
   bool bOk = true;
 
-  uint32_t nbDims = thisCoordAxes.size();
+  size_t nbDims = thisCoordAxes.size();
 
   for (uint32_t i = 0 ; i < nbDims ; i++)
   {
@@ -3219,7 +3219,7 @@ void CNetCDFVarDef::WriteData(int32_t fileId, CMatrixDoublePtr* matrix)
   //std::cout << matrix->GetXName() << matrix->GetYName() << std::endl;
 
   long nbData = GetNbData();
-  long nbDataToWrite = matrix->GetNumberOfValues();
+  size_t nbDataToWrite = matrix->GetNumberOfValues();
 
   if (nbData != nbDataToWrite)
   {
@@ -3238,11 +3238,11 @@ void CNetCDFVarDef::WriteData(int32_t fileId, CMatrixDoublePtr* matrix)
 			                    BRATHL_LOGIC_ERROR);  
   }
 
-  bool conversion = !(CTools::IsDefaultValue(m_fillValue) && (m_scaleFactor == 1.0) && (m_addOffset == 0.0));
+  bool conversion = !(isDefaultValue(m_fillValue) && (m_scaleFactor == 1.0) && (m_addOffset == 0.0));
 
 
-  uint32_t nRows = matrix->GetNumberOfRows();
-  uint32_t nCols = matrix->GetNumberOfCols();
+  size_t nRows = matrix->GetNumberOfRows();
+  size_t nCols = matrix->GetNumberOfCols();
 
   if (conversion)
   {
@@ -3253,7 +3253,7 @@ void CNetCDFVarDef::WriteData(int32_t fileId, CMatrixDoublePtr* matrix)
   uint32_t indexYDim = this->GetNetCDFDimRange(matrix->GetYName());
 
 
-  if (CTools::IsDefaultValue(indexXDim))
+  if (isDefaultValue(indexXDim))
   {
     throw CException(CTools::Format("Error in CNetCDFVarDef::WriteData - Dimension range of field %s not found. "
                                     "Variable is %s. Matrix name is %s.",
@@ -3263,7 +3263,7 @@ void CNetCDFVarDef::WriteData(int32_t fileId, CMatrixDoublePtr* matrix)
 			                    BRATHL_LOGIC_ERROR);  
 
   }
-  if (CTools::IsDefaultValue(indexYDim))
+  if (isDefaultValue(indexYDim))
   {
     throw CException(CTools::Format("Error in CNetCDFVarDef::WriteData - Dimension range of field %s not found. "
                                     "Variable is %s. Matrix name is %s.",
@@ -3295,7 +3295,7 @@ void CNetCDFVarDef::WriteData(int32_t fileId, CMatrixDoublePtr* matrix)
   {
     indexDimOther = this->GetNetCDFDimRange(*it);
 
-    if (CTools::IsDefaultValue(indexDimOther))
+    if (isDefaultValue(indexDimOther))
     {
       throw CException(CTools::Format("Error in CNetCDFVarDef::WriteData - Dimension range of field %s not found. "
                                       "Variable is %s. Matrix name is %s.",
@@ -3363,7 +3363,7 @@ void CNetCDFVarDef::WriteData(int32_t fileId, CMatrixDoublePtr* matrix)
 void CNetCDFVarDef::WriteData(int32_t fileId, CMatrixDouble* matrix)
 {
   long nbData = GetNbData();
-  long nbDataToWrite = matrix->GetNumberOfValues();
+  size_t nbDataToWrite = matrix->GetNumberOfValues();
 
   if (nbData != nbDataToWrite)
   {
@@ -3381,10 +3381,10 @@ void CNetCDFVarDef::WriteData(int32_t fileId, CMatrixDouble* matrix)
 			                    BRATHL_LOGIC_ERROR);  
   }
 
-  bool conversion = !(CTools::IsDefaultValue(m_fillValue) && (m_scaleFactor == 1.0) && (m_addOffset == 0.0));
+  bool conversion = !(isDefaultValue(m_fillValue) && (m_scaleFactor == 1.0) && (m_addOffset == 0.0));
 
-  uint32_t nRows = matrix->GetNumberOfRows();
-  uint32_t nCols = matrix->GetNumberOfCols();
+  size_t nRows = matrix->GetNumberOfRows();
+  size_t nCols = matrix->GetNumberOfCols();
 
   if (conversion)
   {
@@ -3395,7 +3395,7 @@ void CNetCDFVarDef::WriteData(int32_t fileId, CMatrixDouble* matrix)
   uint32_t indexXDim = this->GetNetCDFDimRange(matrix->GetXName());
   uint32_t indexYDim = this->GetNetCDFDimRange(matrix->GetYName());
 
-  if (CTools::IsDefaultValue(indexXDim))
+  if (isDefaultValue(indexXDim))
   {
     throw CException(CTools::Format("Error in CNetCDFVarDef::WriteData - Dimension range of field %s not found. "
                                     "Variable is %s. Matrix name is %s.",
@@ -3405,7 +3405,7 @@ void CNetCDFVarDef::WriteData(int32_t fileId, CMatrixDouble* matrix)
 			                    BRATHL_LOGIC_ERROR);  
 
   }
-  if (CTools::IsDefaultValue(indexYDim))
+  if (isDefaultValue(indexYDim))
   {
     throw CException(CTools::Format("Error in CNetCDFVarDef::WriteData - Dimension range of field %s not found. "
                                     "Variable is %s. Matrix name is %s.",
@@ -3456,7 +3456,7 @@ void CNetCDFVarDef::WriteData(int32_t fileId, CExpressionValue* values)
 {
 
   long nbData = GetNbData();
-  long nbDataToWrite = values->GetNbValues();
+  size_t nbDataToWrite = values->GetNbValues();
 
   if (nbData != nbDataToWrite)
   {
@@ -3474,7 +3474,7 @@ void CNetCDFVarDef::WriteData(int32_t fileId, CExpressionValue* values)
 			                    BRATHL_LOGIC_ERROR);  
   }
 
-  bool conversion = !(CTools::IsDefaultValue(m_fillValue) && (m_scaleFactor == 1.0) && (m_addOffset == 0.0));
+  bool conversion = !(isDefaultValue(m_fillValue) && (m_scaleFactor == 1.0) && (m_addOffset == 0.0));
   
   double *source	= values->GetValues();
   double *dest	= values->GetValues();
@@ -3485,11 +3485,11 @@ void CNetCDFVarDef::WriteData(int32_t fileId, CExpressionValue* values)
     CExpressionValue	varValues(FloatType, *dims, NULL);
     dest	= varValues.GetValues();
 
-    uint32_t nbValues	= varValues.GetNbValues();
+    size_t nbValues	= varValues.GetNbValues();
 
     for (uint32_t index = 0 ; index < nbValues ; index++)
     {
-      if (CTools::IsDefaultValue(source[index]))
+      if (isDefaultValue(source[index]))
       {
 	      dest[index]	= m_fillValue;
       }
@@ -3802,7 +3802,7 @@ void CNetCDFCoordinateAxis::WriteMinMaxGobalAttr(int32_t fileId, bool wantMin)
   }
 
   
-  if (!CTools::IsDefaultValue(value))
+  if (!isDefaultValue(value))
   {
     //if (m_dimKind == T)
     if (m_unit.IsDate())
@@ -4930,8 +4930,7 @@ uint32_t CNetCDFFiles::GetDimension
 }
 
 //----------------------------------------
-uint32_t CNetCDFFiles::GetDimension
-		(int			dimId)
+size_t CNetCDFFiles::GetDimension(int dimId)
 {
   size_t	DimLen;
   MustBeOpened();
@@ -5281,7 +5280,7 @@ int CNetCDFFiles::SetDimension
       PutAtt(varId, AXIS_ATTR, axis);
 
 
-      if (!CTools::IsDefaultValue(validMin))
+      if (!isDefaultValue(validMin))
       {
         if (dimKind == T)
         {
@@ -5297,7 +5296,7 @@ int CNetCDFFiles::SetDimension
         }
 
       }
-      if (!CTools::IsDefaultValue(validMax))
+      if (!isDefaultValue(validMax))
       {
         if (dimKind == T)
         {
@@ -5389,7 +5388,7 @@ void CNetCDFFiles::WriteVar
     CExpressionValue	VarValue(FloatType, Dimensions, NULL);
     double *Source	= value.GetValues();
     double *Dest	= VarValue.GetValues();
-    uint32_t NbValues	= VarValue.GetNbValues();
+    size_t NbValues	= VarValue.GetNbValues();
 
     for (uint32_t Index=0; Index<NbValues; ++Index)
     {
@@ -5428,7 +5427,7 @@ void CNetCDFFiles::ReadVar(const std::string& name, CExpressionValue	&exprValue,
 
   exprValue.SetNewValue(FloatType, Dimensions, NULL);
 
-  uint32_t nbValues	= exprValue.GetNbValues();
+  size_t nbValues	= exprValue.GetNbValues();
   double* values	= exprValue.GetValues();
 
   CheckNetcdfError(nc_get_var_double(m_file, varId, values),
@@ -5626,7 +5625,7 @@ void CNetCDFFiles::ReadVar(CFieldNetCdf* field, CExpressionValue& exprValue, con
 
   exprValue.SetNewValue(FloatType, count, nbDimensions, NULL);
 
-  uint32_t nbValues = exprValue.GetNbValues();
+  size_t nbValues = exprValue.GetNbValues();
   double* values = exprValue.GetValues();
 
   if (nbDimensions == 0)
@@ -6284,7 +6283,7 @@ void CNetCDFFiles::SetNetCDFDims(const CStringArray* dimNames, const CUIntArray*
     return;
   }
 
-  uint32_t size = dimNames->size();
+  size_t size = dimNames->size();
   if (dimValues->size() != size)
   {
     return;
@@ -6475,11 +6474,11 @@ int CNetCDFFiles::AddVar
   {
     PutAtt(varId, COMMENT_ATTR, comment);
   }
-  if (!CTools::IsDefaultValue(validMin))
+  if (!isDefaultValue(validMin))
   {
     PutAtt(varId, VALID_MIN_ATTR, validMin);
   }
-  if (!CTools::IsDefaultValue(validMax))
+  if (!isDefaultValue(validMax))
   {
     PutAtt(varId, VALID_MAX_ATTR, validMax);
   }

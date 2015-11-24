@@ -238,7 +238,7 @@ bool CAliasesDictionary::GetAliases(CProduct* product)
   
   while (child != NULL) 
   {
-    if (!CTools::CompareNoCase(child->GetName(), CAliasesDictionary::m_PRODUCT_ELT))
+    if (!str_icmp(child->GetName(), CAliasesDictionary::m_PRODUCT_ELT))
     {
       child = child->GetNext();
       continue;
@@ -624,12 +624,12 @@ CXmlNode* CAliasesDictionary::FindProductNode(const std::string& clazz, CXmlNode
 
   while (child != NULL)
   {
-    if (CTools::CompareNoCase(child->GetName(), CAliasesDictionary::m_PRODUCT_ELT))
+    if (str_icmp(child->GetName(), CAliasesDictionary::m_PRODUCT_ELT))
     {
       bool bOk = child->GetPropVal(CAliasesDictionary::m_CLASS_ATTR, &value);
       if (bOk)
       {
-        if (CTools::CompareNoCase(clazz, value))
+        if (str_icmp(clazz, value))
         {
           break;
         }
@@ -666,12 +666,12 @@ CXmlNode* CAliasesDictionary::FindAliasNode(const std::string& name, CXmlNode* p
 
   while (child != NULL)
   {
-    if (CTools::CompareNoCase(child->GetName(), CAliasesDictionary::m_ALIAS_ELT))
+    if (str_icmp(child->GetName(), CAliasesDictionary::m_ALIAS_ELT))
     {
       bool bOk = child->GetPropVal(CAliasesDictionary::m_NAME_ATTR, &value);
       if (bOk)
       {
-        if (CTools::CompareNoCase(name, value))
+        if (str_icmp(name, value))
         {
           break;
         }

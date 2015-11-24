@@ -1964,11 +1964,11 @@ void vtkProj2DFilter::PerformCylindricalProjection()
     // then subtract 1.0e-7 from latitude value to avoid infinite number
     if (this->Projection == VTK_PROJ2D_MERCATOR)
       {
-      if (CTools::AreEqual(pt[1], 90.0))
+      if (areEqual(pt[1], 90.0))
         {
           pt[1] = pt[1] - CTools::m_deltaLatitudeMercator;
         }
-      else if (CTools::AreEqual(pt[1], -90.0))
+      else if (areEqual(pt[1], -90.0))
         {
           pt[1] = pt[1] + CTools::m_deltaLatitudeMercator;
         }

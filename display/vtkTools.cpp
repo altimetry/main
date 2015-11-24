@@ -113,7 +113,7 @@ void vtkTools::ViewportToData(double &x,
 
 int vtkTools::IsNaN(const double x)
 {
-  if (CTools::IsDefaultValue(x))
+  if (isDefaultValue(x))
   {
     return 1;
   }

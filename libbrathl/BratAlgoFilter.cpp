@@ -21,7 +21,7 @@
 #include "brathl.h" 
 
 
-#include "TraceLog.h" 
+#include "new-gui/Common/tools/TraceLog.h" 
 
 #include "BratAlgoFilter.h" 
 

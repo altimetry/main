@@ -23,15 +23,15 @@
 #include <cstdio>
 #include <cstring> 
 #include <typeinfo> 
-
-#include "brathl_error.h" 
-#include "brathl.h" 
-
 #include <string> 
 
-#include "TraceLog.h" 
+
+#include "new-gui/Common/tools/brathl_error.h" 
+#include "brathl.h" 
+
+#include "new-gui/Common/tools/TraceLog.h" 
 #include "Tools.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/Exception.h" 
 #include "ProductErs.h" 
 
 using namespace brathl;
@@ -305,13 +305,13 @@ void CProductErs::ProcessHighResolutionWithoutFieldCalculation()
   // This dataset will contains as  many records as number of high resolution measures (m_numHighResolutionMeasure)
   CDataSet dataSetHighResolution("HighResolution", false);
 
-  if (CTools::IsDefaultValue(m_previousLatitude))
+  if (isDefaultValue(m_previousLatitude))
   {
     std::string msg = "ERROR in CProductErs::ProcessHighResolutionWithoutFieldCalculation - previous latitude value read is inconsistent (is default value)";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
     throw (e);
   }
-  if (CTools::IsDefaultValue(m_previousLongitude))
+  if (isDefaultValue(m_previousLongitude))
   {
     std::string msg = "ERROR in CProductErs::ProcessHighResolutionWithoutFieldCalculation - previous longitude value read is inconsistent (is default value)";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
@@ -422,7 +422,7 @@ void CProductErs::ComputeHighResolutionFields(CDataSet* dataSet, double deltaLat
   CFieldSetDbl *fieldSetTimeStampSecond = NULL;
   CFieldSetDbl *fieldSetTimeStampMicrosecond = NULL;
 
-  int32_t count = dataSet->size();
+  size_t count = dataSet->size();
 
   for (int32_t index = 0 ; index < count ; index++)
   {

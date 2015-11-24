@@ -28,9 +28,9 @@
     #pragma hdrstop
 #endif
 
-#include "Trace.h"
+#include "new-gui/Common/tools/Trace.h"
 #include "Tools.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "Expression.h"
 #include "InternalFilesFactory.h"
 #include "InternalFiles.h"
@@ -1064,12 +1064,12 @@ void CDisplayPanel::GetOperations(int32_t type /*= -1*/)
 
     }
 
-    CTools::DeleteObject(file);
+    delete file;
     file = NULL;
   }
 
 
-  CTools::DeleteObject(file);
+  delete file;
   file = NULL;
 
 
@@ -1416,20 +1416,20 @@ void CDisplayPanel::ShowGeneralProperties()
 
   GetDispTitle()->SetValue(m_display->GetTitle());
 
-  if (CTools::IsDefaultValue(m_display->GetMinXValue()) == false)
+  if (isDefaultValue(m_display->GetMinXValue()) == false)
   {
     GetDispXmin()->SetValue(m_display->GetMinXValue());
   }
-  if (CTools::IsDefaultValue(m_display->GetMaxXValue()) == false)
+  if (isDefaultValue(m_display->GetMaxXValue()) == false)
   {
     GetDispXmax()->SetValue(m_display->GetMaxXValue());
   }
 
-  if (CTools::IsDefaultValue(m_display->GetMinYValue()) == false)
+  if (isDefaultValue(m_display->GetMinYValue()) == false)
   {
     GetDispYmin()->SetValue(m_display->GetMinYValue());
   }
-  if (CTools::IsDefaultValue(m_display->GetMaxYValue()) == false)
+  if (isDefaultValue(m_display->GetMaxYValue()) == false)
   {
     GetDispYmax()->SetValue(m_display->GetMaxYValue());
   }
@@ -1673,11 +1673,11 @@ void CDisplayPanel::ShowFieldProperties()
   GetDispNorthComponent()->SetValue(m_currentData->IsNorthComponent());
 
 
-  if (CTools::IsDefaultValue(m_currentData->GetMinValue()) == false)
+  if (isDefaultValue(m_currentData->GetMinValue()) == false)
   {
     GetDispMin()->SetValue(m_currentData->GetMinValue());
   }
-  if (CTools::IsDefaultValue(m_currentData->GetMaxValue()) == false)
+  if (isDefaultValue(m_currentData->GetMaxValue()) == false)
   {
     GetDispMax()->SetValue(m_currentData->GetMaxValue());
   }
@@ -1808,7 +1808,7 @@ void CDisplayPanel::OnValueChangeXMin(CValueChangedEvent& event)
   GetDispXmin()->GetValue(doubleValue, CTools::m_defaultValueDOUBLE);
   m_display->SetMinXValue(doubleValue);
 
-  if (CTools::IsDefaultValue(doubleValue))
+  if (isDefaultValue(doubleValue))
   {
     GetDispXmin()->Clear();
   }
@@ -1826,7 +1826,7 @@ void CDisplayPanel::OnValueChangeXMax(CValueChangedEvent& event)
   GetDispXmax()->GetValue(doubleValue, CTools::m_defaultValueDOUBLE);
   m_display->SetMaxXValue(doubleValue);
 
-  if (CTools::IsDefaultValue(doubleValue))
+  if (isDefaultValue(doubleValue))
   {
     GetDispXmax()->Clear();
   }
@@ -1844,7 +1844,7 @@ void CDisplayPanel::OnValueChangeYMin(CValueChangedEvent& event)
   GetDispYmin()->GetValue(doubleValue, CTools::m_defaultValueDOUBLE);
   m_display->SetMinYValue(doubleValue);
 
-  if (CTools::IsDefaultValue(doubleValue))
+  if (isDefaultValue(doubleValue))
   {
     GetDispYmin()->Clear();
   }
@@ -1862,7 +1862,7 @@ void CDisplayPanel::OnValueChangeYMax(CValueChangedEvent& event)
   GetDispYmax()->GetValue(doubleValue, CTools::m_defaultValueDOUBLE);
   m_display->SetMaxYValue(doubleValue);
 
-  if (CTools::IsDefaultValue(doubleValue))
+  if (isDefaultValue(doubleValue))
   {
     GetDispYmax()->Clear();
   }
@@ -1932,7 +1932,7 @@ void CDisplayPanel::SetValueMin()
 
   m_currentData->SetMinValue(doubleValue);
 
-  if (CTools::IsDefaultValue(doubleValue))
+  if (isDefaultValue(doubleValue))
   {
     GetDispMin()->Clear();
   }
@@ -1962,7 +1962,7 @@ void CDisplayPanel::SetValueMax()
 
   m_currentData->SetMaxValue(doubleValue);
 
-  if (CTools::IsDefaultValue(doubleValue))
+  if (isDefaultValue(doubleValue))
   {
     GetDispMax()->Clear();
   }

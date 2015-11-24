@@ -558,7 +558,7 @@ set(BRAT_DISPLAY_DATA_FILES
 
 set(BRAT_GUI_DATA_FILES
   data/function_descr.txt
-  data/BratIcon.png
+  new-gui/Common/res/BratIcon.png
   data/BratLogo.png
   data/Formulas.ini
   )
@@ -572,6 +572,26 @@ set(DATA_FILES
   )
 
 install(FILES ${DATA_FILES} DESTINATION data/)
+
+
+# The BRAT core tools library
+
+set(BRAT_TOOLS_SOURCES
+  new-gui/Common/tools/Exception.cpp
+  new-gui/Common/tools/Trace.cpp
+  new-gui/Common/tools/TraceLog.cpp
+  )
+
+set(BRAT_TOOLS_SOURCES_H
+  new-gui/Common/tools/Exception.h
+  new-gui/Common/tools/Trace.h
+  new-gui/Common/tools/TraceLog.h
+  )
+
+include_directories(${BRAT_TOOLS_SOURCES_H})
+
+add_library(brat-tools STATIC ${BRAT_TOOLS_SOURCES} ${BRAT_TOOLS_SOURCES_H})
+
 
 # The libbrathl/ subdirectory
 
@@ -795,7 +815,7 @@ string(REGEX REPLACE "\\.cpp" .h LIBBRATHL_CXX_SOURCES_H
 set(LIBBRATHL_CXX_SOURCES_H
   ${LIBBRATHL_CXX_SOURCES_H}
   libbrathl/brathl.h
-  libbrathl/brathl_error.h
+  new-gui/Common/tools/brathl_error.h
   )
 
 set(LIBBRATHL_SOURCES_H
@@ -837,9 +857,9 @@ set(ALL_BRATHL_SOURCES
 add_library(brathl STATIC ${ALL_BRATHL_SOURCES})
 
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
-    target_link_libraries(brathl netcdf coda_static hdf5 ssh2 udunits)
+    target_link_libraries(brathl brat-tools netcdf coda_static hdf5 ssh2 udunits)
 else()
-    target_link_libraries(brathl netcdf coda_static hdf5 udunits)
+    target_link_libraries(brathl brat-tools netcdf coda_static hdf5 udunits)
 endif()
 
 # required by brathl_python
@@ -1169,6 +1189,24 @@ if(BRAT_BUILD_GUI)
 	  MESSAGE(STATUS "Found Qt version: ${QTVERSION}")
 	ENDIF()
 
+	# ---------------------------------
+	# Check for xerces 3
+	# ---------------------------------	
+	SET(XERCES_MIN_VERSION 3.1.1)
+    FIND_PACKAGE(XercesC ${XERCES_MIN_VERSION} REQUIRED)
+	IF (NOT XercesC_FOUND)
+		MESSAGE(SEND_ERROR "Xerces not found!")
+	ELSE()
+		INCLUDE_DIRECTORIES(${XercesC_INCLUDE_DIRS})
+	ENDIF()
+
+#XercesC_FOUND - true if the Xerces headers and libraries were found
+#XercesC_VERSION - Xerces release version
+#XercesC_INCLUDE_DIRS - the directory containing the Xerces headers
+#XercesC_LIBRARIES 	
+#XercesC_INCLUDE_DIR - the directory containing the Xerces headers
+#XercesC_LIBRARY 
+
   # ---------------------------------
   # Check for VTK..
   # ---------------------------------
@@ -1478,7 +1516,7 @@ if(BRAT_BUILD_GUI)
     WIN32 MACOSX_BUNDLE
     ${SCHEDULER_SOURCES} ${SCHEDULER_SOURCES_RC} ${SCHEDULER_SOURCES_H})
 
-  target_link_libraries(BratScheduler brathlGuiUtilities  ${QT_QTCORE_LIBRARY} brathlProcessUtilities brathl ${wxWidgets_LIBRARIES})
+  target_link_libraries(BratScheduler brathlGuiUtilities  ${QT_QTCORE_LIBRARY} ${XercesC_LIBRARIES} brathlProcessUtilities brathl ${wxWidgets_LIBRARIES})
   install(TARGETS BratScheduler DESTINATION bin BUNDLE DESTINATION .)
 
   if(APPLE)
@@ -1878,8 +1916,9 @@ if(APPLE)
     COMMAND cp ${BRAT_SOURCE_DIR}/libbrathl/brathl_python/brathl.py ${BDIST_ROOT}/bin
 
     COMMAND mkdir -p ${BDIST_ROOT}/include
+    COMMAND cp ${BRAT_TOOLS_SOURCES_H} ${BDIST_ROOT}/include
     COMMAND cp ${LIBBRATHL_CXX_SOURCES_H} ${BDIST_ROOT}/include
-    COMMAND cp libbrathl/brathl.h libbrathl/brathl_error.h ${BDIST_ROOT}/include
+    COMMAND cp libbrathl/brathl.h new-gui/Common/tools/brathl_error.h ${BDIST_ROOT}/include
     COMMAND cp ${LIBBRATHL_C_SOURCES_H} ${BDIST_ROOT}/include
     COMMAND cp ${BRAT_BINARY_DIR}/externals/coda/coda.h ${BDIST_ROOT}/include
     COMMAND cp ${BRAT_SOURCE_DIR}/externals/netcdf-c/include/netcdf.h ${BDIST_ROOT}/include
@@ -1964,6 +2003,15 @@ if(INSTALL_BUILDER_FOUND)
   # Copy the header files that need to be installed. I beg
   # forgiveness for abusing 'configure_file()' as a glorified
   # copying mechanism, but it does work.
+
+
+  foreach(SOURCE ${BRAT_TOOLS_SOURCES_H})
+    string(REGEX REPLACE "^new-gui/Common/tools" "" TARGET ${SOURCE})
+    configure_file(
+      ${BRAT_SOURCE_DIR}/${SOURCE}
+      ${BRAT_BINARY_DIR}/include/${TARGET}
+      COPYONLY)
+  endforeach(SOURCE)
 
   foreach(SOURCE ${LIBBRATHL_CXX_SOURCES_H})
     string(REGEX REPLACE "^libbrathl" "" TARGET ${SOURCE})

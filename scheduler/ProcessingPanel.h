@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
@@ -29,13 +27,15 @@
     #include "wx/wx.h"
 #endif
 
-#include "SchedulerTaskConfig.h"
-
 #include "BratScheduler_wdr.h"
 
 #include "Process.h"
 
 #include "TaskListView.h"
+
+
+class CBratTaskProcessEvent;
+
 
 // WDR: class declarations
 

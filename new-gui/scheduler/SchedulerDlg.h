@@ -26,8 +26,6 @@ public:
 
     void createMenuBar();
 
-    static void functionWithCodeToMoveToApplicationClassConstructor();
-
 public slots:
     void action_ViewConfig_slot();
     void action_UserManual_slot();

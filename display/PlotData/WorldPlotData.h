@@ -36,7 +36,7 @@
 #include "../libbrathl/Tools.h"
 #include "../libbrathl/List.h"
 #include "../libbrathl/Date.h"
-#include "../libbrathl/Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "../libbrathl/Unit.h"
 
 #include "../libbrathl/InternalFiles.h"

@@ -40,10 +40,10 @@
 //#endif
 
 
-#include "Trace.h"
+#include "new-gui/Common/tools/Trace.h"
 #include "List.h"
 #include "Tools.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "InternalFilesFactory.h"
 #include "InternalFiles.h"
 #include "InternalFilesYFX.h"
@@ -1087,7 +1087,7 @@ void CBratGuiApp::GetDisplayType(COperation* operation, CUIntArray& displayTypes
 
   if (pf == NULL)
   {
-    CTools::DeleteObject(f);
+    delete f;
     f = NULL;
   }
   else

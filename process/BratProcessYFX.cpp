@@ -18,7 +18,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "FileParams.h"
 #include "InternalFilesYFX.h"
 
@@ -367,8 +367,8 @@ int32_t CBratProcessYFX::Execute(std::string& msg)
 
   m_measures.RemoveAll();
 
-  uint32_t nbFiles = m_inputFiles.size();
-  uint32_t cptFile = 0;
+  size_t nbFiles = m_inputFiles.size();
+  size_t cptFile = 0;
 
   CStringArray::iterator itFile;
 
@@ -449,11 +449,10 @@ void CBratProcessYFX::RegisterData()
   CRecordSet* recordSet = NULL;
 
   CExpressionValue exprValue;
-  uint32_t	nbValues;
 
   double xValue;
   
-  CTools::SetDefaultValue(xValue);
+  setDefaultValue(xValue);
 
 //  OneMeasure	Measure;
 
@@ -490,7 +489,7 @@ void CBratProcessYFX::RegisterData()
     //---------------------------------
     recordSet->ExecuteExpression(m_xField, m_recordName, exprValue, m_product);
     
-    nbValues	= exprValue.GetNbValues();
+    size_t nbValues = exprValue.GetNbValues();
 
     if (nbValues == 0)
     {
@@ -501,7 +500,7 @@ void CBratProcessYFX::RegisterData()
     {
       xValue = exprValue.GetValues()[0];
       
-      if (CTools::IsDefaultValue(xValue))
+      if (isDefaultValue(xValue))
       {
         //---------
         continue;
@@ -788,7 +787,7 @@ int32_t CBratProcessYFX::WriteData()
   xValues.SetName("xValues");
   xValues.SetNewValue(m_measures);
   
-  uint32_t nbXValues = xValues.GetNbValues();
+  size_t nbXValues = xValues.GetNbValues();
   double* xDataValues = xValues.GetValues();
 
   // Warning : if data account for a date, they are expressed in numbers of seconds since 1950-01-01 00:00:00.0
@@ -807,8 +806,8 @@ int32_t CBratProcessYFX::WriteData()
   //---------------------------------------------
   // Get X min and X max  (X is sorted)
   //---------------------------------------------
-  CTools::SetDefaultValue(m_validMin);
-  CTools::SetDefaultValue(m_validMax);
+  setDefaultValue(m_validMin);
+  setDefaultValue(m_validMax);
 
   if (nbXValues > 0)
   {
@@ -880,8 +879,8 @@ int32_t CBratProcessYFX::WriteData()
   {
     CTrace::Tracer(1,CTools::Format("\t==> Merge data of field '%s'", m_names[indexExpr].c_str()));
 
-    CTools::SetDefaultValue(m_validMin);
-    CTools::SetDefaultValue(m_validMax);
+    setDefaultValue(m_validMin);
+    setDefaultValue(m_validMax);
    
     int32_t countOffset = m_countOffsets.at(indexExpr);
     int32_t meanOffset = m_meanOffsets.at(indexExpr);
@@ -1006,7 +1005,7 @@ int32_t CBratProcessYFX::WriteData()
         //---------------------------------------------
         // converts to asked unit
         //---------------------------------------------
-        if (!CTools::IsDefaultValue(dataValues[indexValues]))
+        if (!isDefaultValue(dataValues[indexValues]))
         {
           dataValues[indexValues]	= unit.Convert(dataValues[indexValues]);
         }
@@ -1176,7 +1175,7 @@ int32_t CBratProcessYFX::WriteData()
 
         int32_t indexVar = mapVarIndexExpr.Exists(varDef->GetName());
 
-        if (CTools::IsDefaultValue(indexVar))
+        if (isDefaultValue(indexVar))
         {
           throw CException(CTools::Format("ERROR: CBratProcessYFX::WriteData() - variable index not found\n. Coordinate axis name is '%s'.\n",
                                           varDef->GetName().c_str()),
@@ -1273,7 +1272,7 @@ int32_t CBratProcessYFX::WriteData()
       }
 
 
-      if (CTools::IsDefaultValue(indexVar))
+      if (isDefaultValue(indexVar))
       {
         throw CException(CTools::Format("ERROR: CBratProcessYFX::WriteData() - variable index not found\n. Variable name is '%s'.\n",
                                         varDef->GetName().c_str()),
@@ -1402,7 +1401,7 @@ bool CBratProcessYFX::CheckValuesSimilar(uint32_t indexExpr, double* dataValues,
     {
       break;
     }
-    if ( ! CTools::AreEqual(dataValuesRef[indexValues], dataValues[indexValues]) )
+    if ( !areEqual(dataValuesRef[indexValues], dataValues[indexValues]) )
     {
       bSimilarValues = false;
       break;
@@ -1483,7 +1482,7 @@ bool CBratProcessYFX::CheckValuesSimilar(uint32_t indexExpr)
 
     for (indexValues = 0 ; indexValues < cols; indexValues++)
     {
-      if ( ! CTools::AreEqual(dataValues[indexValues], dataValues[indexValues]) )
+      if ( !areEqual(dataValues[indexValues], dataValues[indexValues]) )
       {
         bSimilarValues = false;
         break;

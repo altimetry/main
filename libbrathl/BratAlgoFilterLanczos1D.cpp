@@ -21,8 +21,8 @@
 #include "brathl.h" 
 
 
-#include "TraceLog.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/TraceLog.h" 
+#include "new-gui/Common/tools/Exception.h" 
 #include "Product.h" 
 
 #include "BratAlgoFilterLanczos1D.h" 
@@ -61,7 +61,7 @@ void CBratAlgoFilterLanczos1D::Init()
 {
   m_expectedTypes.Insert(static_cast<int32_t>(CBratAlgorithmParam::T_DOUBLE));
 
-  CTools::SetDefaultValue(m_dataWindowLength);
+  setDefaultValue(m_dataWindowLength);
 
   SetBeginOfFile();
 }
@@ -99,7 +99,7 @@ void CBratAlgoFilterLanczos1D::SetEndOfFile()
 {
   CBratAlgoFilterLanczos::SetEndOfFile();
 
-  CTools::SetDefaultValue(m_varValueNext);
+  setDefaultValue(m_varValueNext);
 }
 //----------------------------------------
 double CBratAlgoFilterLanczos1D::Run(CVectorBratAlgorithmParam& args)
@@ -112,7 +112,7 @@ double CBratAlgoFilterLanczos1D::Run(CVectorBratAlgorithmParam& args)
     return m_lanczos;
   }
 
-  CTools::SetDefaultValue(m_lanczos);
+  setDefaultValue(m_lanczos);
   
   OpenProductFile();
 
@@ -152,7 +152,7 @@ double CBratAlgoFilterLanczos1D::Run(CVectorBratAlgorithmParam& args)
   }
 
   // If 'default value' and no extrapolation then returns
-  if (CTools::IsDefaultValue(m_varValue) && (m_extrapolate == 0))
+  if (isDefaultValue(m_varValue) && (m_extrapolate == 0))
   {
     PrepareReturn();
     return m_lanczos;
@@ -172,15 +172,15 @@ double CBratAlgoFilterLanczos1D::Run(CVectorBratAlgorithmParam& args)
 //----------------------------------------
 double CBratAlgoFilterLanczos1D::ComputeLanczos()
 {
-  CTools::SetDefaultValue(m_lanczos);
+  setDefaultValue(m_lanczos);
 
-  uint32_t nbValues = m_rawDataWindow.size();
+  size_t nbValues = m_rawDataWindow.size();
 
-  uint32_t nbValidPoints = nbValues;
+  size_t nbValidPoints = nbValues;
   CDoubleArray::const_iterator it;
   for (it = m_rawDataWindow.begin(); it != m_rawDataWindow.end(); it++)
   {
-    if (CTools::IsDefaultValue(*it))
+    if (isDefaultValue(*it))
     {
       nbValidPoints--;    
     }
@@ -201,7 +201,7 @@ double CBratAlgoFilterLanczos1D::ComputeLanczos()
   for (uint32_t i = 0 ; i < m_dataWindowLength ; i++)
   {
     double value = m_rawDataWindow[i];
-    if (CTools::IsDefaultValue(value))
+    if (isDefaultValue(value))
     {
       str.append("DV ");
     }

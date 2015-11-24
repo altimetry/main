@@ -20,7 +20,7 @@
 
 #include <string>
 
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "ObjectTree.h"
 using namespace brathl;
 

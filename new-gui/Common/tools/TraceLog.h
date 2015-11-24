@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -18,44 +16,37 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#if !defined(_TraceLog_h_)
-#define _TraceLog_h_
-
+#if !defined(BRAT_TRACELOG_H)
+#define BRAT_TRACELOG_H
 
 #include "Trace.h"
-using namespace brathl;
 
-namespace brathl
-{
-
-class CTraceLog : public CTrace  
+class CTraceLog : public CTrace
 {
 public:
-   CTraceLog(const std::string& szFilelog);
-   virtual ~CTraceLog();
+	CTraceLog( const std::string& szFilelog );
+	virtual ~CTraceLog();
 
-//Methods
+	//Methods
 public:
 
 protected:
 
-   void OpenLogFile();
+	void OpenLogFile();
 
-   virtual std::ostream* GetDumpContextReel();
-// Attributes
+	virtual std::ostream* GetDumpContextReel();
+	// Attributes
 public:
 
 protected:
-   /*
-   * Log file
-   */
-   std::ofstream *m_pFileLog ;  
-   /** 
-   * Log file name
-   */
-   std::string  m_szFileLogName ;       
-
+	/*
+	* Log file
+	*/
+	std::ofstream *m_pFileLog;
+	/**
+	* Log file name
+	*/
+	std::string  m_szFileLogName;
 };
 
-}
-#endif // !defined(_TraceLog_h_)
+#endif // !defined(BRAT_TRACELOG_H)

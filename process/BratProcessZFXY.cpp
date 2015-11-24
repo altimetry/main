@@ -21,7 +21,7 @@
 #include <cmath>
 #include <cstdlib>
 
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "FileParams.h"
 #include "InternalFilesZFXY.h"
 
@@ -105,24 +105,24 @@ void CBratProcessZFXY::Init()
   //m_nbMaxDataSlices = 1;
   m_nbDataAllocated = 0;
 
-  CTools::SetDefaultValue(m_xMin);
-  CTools::SetDefaultValue(m_xMax);
-  CTools::SetDefaultValue(m_xCount);
-  CTools::SetDefaultValue(m_xStep);
-  CTools::SetDefaultValue(m_xLoessCutoff);
+  setDefaultValue(m_xMin);
+  setDefaultValue(m_xMax);
+  setDefaultValue(m_xCount);
+  setDefaultValue(m_xStep);
+  setDefaultValue(m_xLoessCutoff);
   m_xCircular = false;
 
-  CTools::SetDefaultValue(m_yMin);
-  CTools::SetDefaultValue(m_yMax);
-  CTools::SetDefaultValue(m_yCount);
-  CTools::SetDefaultValue(m_yStep);
-  CTools::SetDefaultValue(m_yLoessCutoff);
+  setDefaultValue(m_yMin);
+  setDefaultValue(m_yMax);
+  setDefaultValue(m_yCount);
+  setDefaultValue(m_yStep);
+  setDefaultValue(m_yLoessCutoff);
   m_yCircular = false;
 
   m_positionMode = CBratProcess::pctNEAREST;
   m_outsideMode = CBratProcess::pctSTRICT;
 
-  CTools::SetDefaultValue(m_nbDataByGrid);
+  setDefaultValue(m_nbDataByGrid);
 
   m_xData = NULL;
   m_yData = NULL;
@@ -1132,8 +1132,8 @@ int32_t CBratProcessZFXY::Execute(std::string& msg)
 
   InitGrids();
 
-  uint32_t nbFiles = m_inputFiles.size();
-  uint32_t cptFile = 0;
+  size_t nbFiles = m_inputFiles.size();
+  size_t cptFile = 0;
 
   CStringArray::iterator itFile;
 
@@ -1214,12 +1214,11 @@ void CBratProcessZFXY::RegisterData()
   CRecordSet* recordSet = NULL;
 
   CExpressionValue exprValue;
-  uint32_t	nbValues;
 
   double xValue;
   double yValue;
   
-  CTools::SetDefaultValue(xValue);
+  setDefaultValue(xValue);
 
 //  OneMeasure	Measure;
 
@@ -1256,7 +1255,7 @@ void CBratProcessZFXY::RegisterData()
     //---------------------------------
     recordSet->ExecuteExpression(m_xField, m_recordName, exprValue, m_product);
     
-    nbValues	= exprValue.GetNbValues();
+    uint32_t nbValues = exprValue.GetNbValues();
 
     if (nbValues == 0)
     {
@@ -1267,7 +1266,7 @@ void CBratProcessZFXY::RegisterData()
     {
       xValue = exprValue.GetValues()[0];
       
-      if (CTools::IsDefaultValue(xValue))
+      if (isDefaultValue(xValue))
       {
         //---------
         continue;
@@ -1299,7 +1298,7 @@ void CBratProcessZFXY::RegisterData()
     {
       yValue = exprValue.GetValues()[0];
       
-      if (CTools::IsDefaultValue(yValue))
+      if (isDefaultValue(yValue))
       {
         //---------
         continue;
@@ -1725,8 +1724,8 @@ int32_t CBratProcessZFXY::WriteData()
   //---------------------------------------------
   // Get X min and X max  (X is sorted)
   //---------------------------------------------
-  CTools::SetDefaultValue(m_validMin);
-  CTools::SetDefaultValue(m_validMax);
+  setDefaultValue(m_validMin);
+  setDefaultValue(m_validMax);
 
   if (m_xCount > 0)
   {
@@ -1798,8 +1797,8 @@ int32_t CBratProcessZFXY::WriteData()
   //---------------------------------------------
   // Get Y min and Y max  (Y is sorted)
   //---------------------------------------------
-  CTools::SetDefaultValue(m_validMin);
-  CTools::SetDefaultValue(m_validMax);
+  setDefaultValue(m_validMin);
+  setDefaultValue(m_validMax);
 
   if (m_yCount > 0)
   {
@@ -1882,8 +1881,8 @@ int32_t CBratProcessZFXY::WriteData()
   // 2 loops for netcdf performance
   for (indexExpr = 0; indexExpr < m_fields.size(); indexExpr++)
   {
-    CTools::SetDefaultValue(m_validMin);
-    CTools::SetDefaultValue(m_validMax);
+    setDefaultValue(m_validMin);
+    setDefaultValue(m_validMax);
    
     double* dataValues = NULL;
     double* countValues = NULL;
@@ -1929,7 +1928,7 @@ int32_t CBratProcessZFXY::WriteData()
             //---------------------------------------------
             // converts to asked unit
             //---------------------------------------------
-            if (!CTools::IsDefaultValue(dataValues[indexValues]))
+            if (!isDefaultValue(dataValues[indexValues]))
             {
               dataValues[indexValues]	= unit.Convert(dataValues[indexValues]);
             }
@@ -1949,7 +1948,7 @@ int32_t CBratProcessZFXY::WriteData()
           //---------------------------------------------
           // converts to asked unit
           //---------------------------------------------
-          if (!CTools::IsDefaultValue(*dataValues))
+          if (!isDefaultValue(*dataValues))
           {
             *dataValues	= unit.Convert(*dataValues);
           }
@@ -2155,7 +2154,7 @@ int32_t CBratProcessZFXY::WriteData()
         
         int32_t indexVar = mapVarIndexExpr.Exists(varDef->GetName());
 
-        if (CTools::IsDefaultValue(indexVar))
+        if (isDefaultValue(indexVar))
         {
           throw CException(CTools::Format("ERROR: CBratProcessZFXY::WriteData() - variable index not found\n. Coordinate axis name is '%s'.\n",
                                           varDef->GetName().c_str()),
@@ -2341,7 +2340,7 @@ void CBratProcessZFXY::SubstituteAxisDim(const CStringArray& fieldDims, CStringA
   for (it = m_netCdfAxisDims.begin() ; it != m_netCdfAxisDims.end() ; it++)
   {
     uint32_t index = fieldDims.FindIndex(*it);
-    if (CTools::IsDefaultValue(index))
+    if (isDefaultValue(index))
     {
       continue;
     }
@@ -2485,7 +2484,7 @@ bool CBratProcessZFXY::CheckValuesSimilar(uint32_t indexExpr, double* dataValues
       {
         break;
       }
-      if ( ! CTools::AreEqual(dataValuesRef[indexValues], dataValues[indexValues]) )
+      if ( ! areEqual(dataValuesRef[indexValues], dataValues[indexValues]) )
       {
         bSimilarValues = false;
         break;
@@ -2497,7 +2496,7 @@ bool CBratProcessZFXY::CheckValuesSimilar(uint32_t indexExpr, double* dataValues
   else if (CBratProcessZFXY::IsMatrixDouble(matrix))
   //---------------------------------------------
   {
-    if ( ! CTools::AreEqual(*dataValuesRef, *dataValues) )
+    if ( ! areEqual(*dataValuesRef, *dataValues) )
     {
       bSimilarValues = false;
     }
@@ -2622,7 +2621,7 @@ bool CBratProcessZFXY::LoessFilterGrid(double	*data, double	*result,
       {
       	int32_t	indexInGrid	= GRIDINDEX(xIndex, yIndex);
 
-	      bool	isDefault	= CTools::IsDefaultValue( data[indexInGrid] );
+	      bool	isDefault	= isDefaultValue( data[indexInGrid] );
 
         if ((smoothData && (! isDefault)) || (extrapolData && isDefault))
         {
@@ -2640,7 +2639,7 @@ bool CBratProcessZFXY::LoessFilterGrid(double	*data, double	*result,
 	          {
 	            int32_t	localIndexInGrid	= GRIDINDEX(xLocal, yLocal);
 
-	            if (! CTools::IsDefaultValue(data[localIndexInGrid]))
+	            if (! isDefaultValue(data[localIndexInGrid]))
 	            {
 		            // Weighting
 		            if (doDist)
@@ -2658,7 +2657,7 @@ bool CBratProcessZFXY::LoessFilterGrid(double	*data, double	*result,
 	          }
 	        }
 
-	        if (! CTools::IsZero(weight))
+	        if (!isZero(weight))
           {
 	          buffer[indexInGrid]	= smooth / weight;
           }
@@ -2860,7 +2859,7 @@ bool CBratProcessZFXY::LoessFilterGrid(CMatrixDouble& matrix, CMatrixDouble *res
 
         double value = values[0];
 
-	      bool isDefault	= CTools::IsDefaultValue( value );
+	      bool isDefault	= isDefaultValue( value );
 
         if ((smoothData && (! isDefault)) || (extrapolData && isDefault))
         {
@@ -2891,7 +2890,7 @@ bool CBratProcessZFXY::LoessFilterGrid(CMatrixDouble& matrix, CMatrixDouble *res
 
               double valueLocal = valuesLocal[0];
 
-	            if (! CTools::IsDefaultValue(valueLocal))
+	            if (! isDefaultValue(valueLocal))
 	            {
 		            // Weighting
 		            if (doDist)
@@ -2909,7 +2908,7 @@ bool CBratProcessZFXY::LoessFilterGrid(CMatrixDouble& matrix, CMatrixDouble *res
 	          }
 	        }
 
-	        if (! CTools::IsZero(weight))
+	        if (!isZero(weight))
           {
             DoublePtr bufferValues = buffer->At(xIndex, yIndex);
             if (bufferValues != NULL)
@@ -3071,7 +3070,7 @@ bool CBratProcessZFXY::LoessFilterGrid(CMatrixDoublePtr& matrix, CMatrixDoublePt
 
         double value = values[0];
 
-	      bool isDefault	= CTools::IsDefaultValue( value );
+	      bool isDefault	= isDefaultValue( value );
 
         if ((smoothData && (! isDefault)) || (extrapolData && isDefault))
         {
@@ -3102,7 +3101,7 @@ bool CBratProcessZFXY::LoessFilterGrid(CMatrixDoublePtr& matrix, CMatrixDoublePt
 
               double valueLocal = valuesLocal[0];
 
-	            if (! CTools::IsDefaultValue(valueLocal))
+	            if (! isDefaultValue(valueLocal))
 	            {
 		            // Weighting
 		            if (doDist)
@@ -3120,7 +3119,7 @@ bool CBratProcessZFXY::LoessFilterGrid(CMatrixDoublePtr& matrix, CMatrixDoublePt
 	          }
 	        }
 
-	        if (! CTools::IsZero(weight))
+	        if (!isZero(weight))
           {
             DoublePtr bufferValues = buffer->At(xIndex, yIndex);
             if (bufferValues != NULL)

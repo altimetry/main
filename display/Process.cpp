@@ -17,9 +17,10 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "Process.h"
-#endif
+
+#include "new-gui/scheduler/BratTask.h"
+
+#include "Process.h"
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
@@ -33,8 +34,6 @@
 #include "wx/wfstream.h"
 #include "wx/thread.h"
 #include "wx/numdlg.h"
-
-#include "Process.h"
 
 // When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.

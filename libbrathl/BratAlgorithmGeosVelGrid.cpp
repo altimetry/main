@@ -20,8 +20,8 @@
 */
 #include "brathl.h" 
 
-#include "TraceLog.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/TraceLog.h" 
+#include "new-gui/Common/tools/Exception.h" 
 #include "Product.h" 
 #include "ProductNetCdf.h" 
 
@@ -76,8 +76,8 @@ void CBratAlgorithmGeosVelGrid::Init()
   m_expectedTypes.Insert(static_cast<int32_t>(CBratAlgorithmParam::T_DOUBLE));
   m_expectedTypes.Insert(static_cast<int32_t>(CBratAlgorithmParam::T_VECTOR_DOUBLE));
 
-  CTools::SetDefaultValue(m_varValue);
-  CTools::SetDefaultValue(m_equatorLimit);
+  setDefaultValue(m_varValue);
+  setDefaultValue(m_equatorLimit);
 
   m_fieldLon = NULL;
   m_fieldLat = NULL;
@@ -157,12 +157,12 @@ void CBratAlgorithmGeosVelGrid::SetBeginOfFile()
   
   m_rawDataCache.DeleteValue();
 
-  CTools::SetDefaultValue(m_varValueW);
-  CTools::SetDefaultValue(m_varValueE);
-  CTools::SetDefaultValue(m_varValueN);
-  CTools::SetDefaultValue(m_varValueS);
-  CTools::SetDefaultValue(m_lonMin);
-  CTools::SetDefaultValue(m_lonMax);
+  setDefaultValue(m_varValueW);
+  setDefaultValue(m_varValueE);
+  setDefaultValue(m_varValueN);
+  setDefaultValue(m_varValueS);
+  setDefaultValue(m_lonMin);
+  setDefaultValue(m_lonMax);
   m_allLongitudes = false;
   m_longitudes.RemoveAll();
   m_latitudes.RemoveAll();
@@ -219,7 +219,7 @@ double CBratAlgorithmGeosVelGrid::Run(CVectorBratAlgorithmParam& args)
   
   SetParamValues(args);
 
-  CTools::SetDefaultValue(m_velocity);
+  setDefaultValue(m_velocity);
 
   if ( (m_lonArray == NULL) && (m_latArray == NULL) && (m_varValueArray == NULL) )
   {
@@ -245,7 +245,7 @@ double CBratAlgorithmGeosVelGrid::Run(CVectorBratAlgorithmParam& args)
 //----------------------------------------
 double CBratAlgorithmGeosVelGrid::ComputeSingle()
 {
-  CTools::SetDefaultValue(m_velocity);
+  setDefaultValue(m_velocity);
 
   if (CTools::Abs(m_lat) <= m_equatorLimit)
   {
@@ -308,15 +308,15 @@ double CBratAlgorithmGeosVelGrid::ComputeMean()
 
   //uint32_t firstArraySize =  firstArrayTmp->size();
   //uint32_t secondArraySize =  secondArrayTmp->size();
-  uint32_t lonArraySize =  m_lonArray->size();
-  uint32_t latArraySize =  m_latArray->size();
+  size_t lonArraySize =  m_lonArray->size();
+  size_t latArraySize =  m_latArray->size();
   
-  CTools::SetDefaultValue(m_velocity);
+  setDefaultValue(m_velocity);
   double countValue = 0.0;
   double dummy = 0.0;
 
   double velocityTmp;
-  CTools::SetDefaultValue(velocityTmp);
+  setDefaultValue(velocityTmp);
 
   if (m_varDimLonIndex == 0)
   {
@@ -378,8 +378,8 @@ double CBratAlgorithmGeosVelGrid::ComputeMean()
 //----------------------------------------
 bool CBratAlgorithmGeosVelGrid::PrepareComputeVelocity() 
 {
-  int32_t lastIndexLon = m_longitudes.size() - 1;
-  int32_t lastIndexLat = m_latitudes.size() - 1;
+  size_t lastIndexLon = m_longitudes.size() - 1;
+  size_t lastIndexLat = m_latitudes.size() - 1;
 
 
   if ((m_indexLat == 0) || (m_indexLat == lastIndexLat))
@@ -458,9 +458,9 @@ bool CBratAlgorithmGeosVelGrid::PrepareComputeVelocity()
     m_varValueS = this->GetVarExpressionValue(m_indexLat - 1, m_indexLon);
   }
   
-  if ( CTools::IsDefaultValue(m_varValueW) || CTools::IsDefaultValue(m_varValueE) 
-    || CTools::IsDefaultValue(m_varValueN) || CTools::IsDefaultValue(m_varValueS) 
-    || CTools::IsDefaultValue(m_varValue))
+  if ( isDefaultValue(m_varValueW) || isDefaultValue(m_varValueE) 
+    || isDefaultValue(m_varValueN) || isDefaultValue(m_varValueS) 
+    || isDefaultValue(m_varValue))
   {
     return false;
   }
@@ -559,7 +559,7 @@ void CBratAlgorithmGeosVelGrid::SetParamValues(CVectorBratAlgorithmParam& args)
   }
 
   // Set equator limit (once)
-  if (CTools::IsDefaultValue(m_equatorLimit))
+  if (isDefaultValue(m_equatorLimit))
   {
     CheckEquatorLimit();
     m_equatorLimit = args.at(CBratAlgorithmGeosVelGrid::m_EQUATOR_LAT_LIMIT_INDEX).GetValueAsDouble();
@@ -985,7 +985,7 @@ void CBratAlgorithmGeosVelGrid::PrepareDataValues2DComplexExpression(CExpression
   //        }
 
   //        double value;
-  //        CTools::SetDefaultValue(value);
+  //        setDefaultValue(value);
 
   //        if (CExternalFiles::GetFieldNetCdf(m_fieldDependOnXYDim.Exists(*itFieldName), false) != NULL)
   //        {
@@ -1363,7 +1363,7 @@ void CBratAlgorithmGeosVelGrid::CheckVarExpression(uint32_t index)
     int32_t lonIndex = static_cast<int32_t>(GetLonDimRange(field));
     int32_t latIndex = static_cast<int32_t>(GetLatDimRange(field));
     
-    if (CTools::IsDefaultValue(lonIndex))
+    if (isDefaultValue(lonIndex))
     {
       throw CAlgorithmException(CTools::Format("Parameter %d is not valid: field '%s' has no longitude dimension (dimensions: '%s').",
                                                index, 
@@ -1372,7 +1372,7 @@ void CBratAlgorithmGeosVelGrid::CheckVarExpression(uint32_t index)
                                 this->GetName(), BRATHL_LOGIC_ERROR);
     }
 
-    if (CTools::IsDefaultValue(latIndex))
+    if (isDefaultValue(latIndex))
     {
       throw CAlgorithmException(CTools::Format("Parameter %d is not valid: field '%s' has no latitude dimension (dimensions: '%s').",
                                                index, 
@@ -1506,7 +1506,7 @@ double CBratAlgorithmGeosVelGridU::ComputeVelocity()
 {
   //Dump(*CTrace::GetDumpContext());
 
-  CTools::SetDefaultValue(m_velocity);
+  setDefaultValue(m_velocity);
 
   bool bOk = PrepareComputeVelocity();
 
@@ -1620,7 +1620,7 @@ double CBratAlgorithmGeosVelGridV::ComputeVelocity()
 {
   //Dump(*CTrace::GetDumpContext());
 
-  CTools::SetDefaultValue(m_velocity);
+  setDefaultValue(m_velocity);
 
   bool bOk = PrepareComputeVelocity();
 

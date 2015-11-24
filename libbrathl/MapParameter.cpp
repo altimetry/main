@@ -18,11 +18,11 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "brathl_error.h" 
+#include "new-gui/Common/tools/brathl_error.h" 
 #include "brathl.h" 
 
-#include "Trace.h"
-#include "TraceLog.h"
+#include "new-gui/Common/tools/Trace.h"
+#include "new-gui/Common/tools/TraceLog.h"
 #include "MapParameter.h"
 using namespace brathl;
 

@@ -22,15 +22,14 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring> 
-
-#include "brathl_error.h" 
-#include "brathl.h" 
-
 #include <string> 
 
-#include "TraceLog.h" 
+#include "new-gui/Common/tools/brathl_error.h" 
+#include "brathl.h" 
+
+#include "new-gui/Common/tools/TraceLog.h" 
 #include "Tools.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/Exception.h" 
 #include "ProductCryosat.h" 
 
 using namespace brathl;

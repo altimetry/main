@@ -22,16 +22,16 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring> 
+#include <string> 
 
-#include "brathl_error.h" 
+
+#include "new-gui/Common/tools/brathl_error.h" 
 #include "brathl.h" 
 //#define BRAT_INTERNAL
 
-#include <string> 
-
-#include "TraceLog.h" 
+#include "new-gui/Common/tools/TraceLog.h" 
 #include "Tools.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/Exception.h" 
 
 #include "Criteria.h" 
 #include "CriteriaPass.h" 
@@ -385,8 +385,8 @@ std::string CCriteriaPassInt::GetAsText(const std::string& delimiter /* = CCrite
 //----------------------------------------
 void CCriteriaPassInt::SetDefaultValue()
 {
-  CTools::SetDefaultValue(m_from);
-  CTools::SetDefaultValue(m_to);
+  setDefaultValue(m_from);
+  setDefaultValue(m_to);
 
 }
 //----------------------------------------
@@ -411,14 +411,14 @@ CCriteriaPassInt* CCriteriaPassInt::GetCriteria(CBratObject* ob, bool withExcept
 //----------------------------------------
 bool CCriteriaPassInt::IsDefaultValue()
 {
-  return (CTools::IsDefaultValue(m_from) || CTools::IsDefaultValue(m_to));
+  return (isDefaultValue(m_from) || isDefaultValue(m_to));
 }
 
 
 //-------------------------------------------------------------
 void CCriteriaPassInt::Adjust() 
 {
-  if (!(CTools::IsDefaultValue(m_from)) && !(CTools::IsDefaultValue(m_to))) 
+  if (!(isDefaultValue(m_from)) && !(isDefaultValue(m_to))) 
   {
     if (m_from > m_to)
     {
@@ -427,11 +427,11 @@ void CCriteriaPassInt::Adjust()
       m_to = tmp;
     }
   } 
-  else if ((CTools::IsDefaultValue(m_from)) && !(CTools::IsDefaultValue(m_to))) 
+  else if ((isDefaultValue(m_from)) && !(isDefaultValue(m_to))) 
   {
     m_from = m_to;
   } 
-  else if (!(CTools::IsDefaultValue(m_from)) && (CTools::IsDefaultValue(m_to))) 
+  else if (!(isDefaultValue(m_from)) && (isDefaultValue(m_to))) 
   {
     m_to = m_from;
   }
@@ -448,7 +448,7 @@ void CCriteriaPassInt::SetTo(int32_t to)
 //-------------------------------------------------------------
 void CCriteriaPassInt::SetTo(const std::string& to)
 {
-  m_to = CTools::StrToInt(to);
+  m_to = CTools::StrToInt32(to);
 
   Adjust();
 }
@@ -463,7 +463,7 @@ void CCriteriaPassInt::SetFrom(int32_t from)
 //-------------------------------------------------------------
 void CCriteriaPassInt::SetFrom(const std::string& from)
 {
-  m_from = CTools::StrToInt(from);
+  m_from = CTools::StrToInt32(from);
 
   Adjust();
 }
@@ -478,7 +478,7 @@ void CCriteriaPassInt::Set(int32_t from, int32_t to)
 //-------------------------------------------------------------
 void CCriteriaPassInt::Set(const std::string& from, const std::string& to)
 {
-  Set(CTools::StrToInt(from), CTools::StrToInt(to));
+  Set(CTools::StrToInt32(from), CTools::StrToInt32(to));
 
 }
 //-------------------------------------------------------------
@@ -611,7 +611,7 @@ bool CCriteriaPassInt::Intersect(double otherFrom, double otherTo, CIntArray& in
 bool CCriteriaPassInt::Intersect(int32_t otherFrom, int32_t otherTo, CIntArray& intersect)
 {
   
-  if ((this->IsDefaultValue()) || (CTools::IsDefaultValue(otherFrom)) || (CTools::IsDefaultValue(otherTo))) {
+  if ((this->IsDefaultValue()) || (isDefaultValue(otherFrom)) || (isDefaultValue(otherTo))) {
       return false;
   }
 
@@ -657,13 +657,13 @@ bool CCriteriaPassInt::Intersect(int32_t otherFrom, int32_t otherTo, CIntArray& 
 //----------------------------------------
 bool CCriteriaPassInt::Intersect(const std::string& from, const std::string& to, CStringArray& intersect)
 {
-  return Intersect(CTools::StrToInt(from), CTools::StrToInt(to), intersect);
+  return Intersect(CTools::StrToInt32(from), CTools::StrToInt32(to), intersect);
 
 }
 //----------------------------------------
 bool CCriteriaPassInt::Intersect(const std::string& from, const std::string& to, CIntArray& intersect)
 {
-  return Intersect(CTools::StrToInt(from), CTools::StrToInt(to), intersect);
+  return Intersect(CTools::StrToInt32(from), CTools::StrToInt32(to), intersect);
 
 }
 

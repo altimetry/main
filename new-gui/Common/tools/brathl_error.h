@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -17,18 +15,29 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-#ifndef _brathl_error_h_
-#define _brathl_error_h_  
+#ifndef BRAT_ERROR_H
+#define BRAT_ERROR_H
 
-#if defined(WIN32) && defined(LIBRATHLDLL)
-# ifdef LIBRATHLDLL_EXPORTS
-#  define LIBRATHL_API __declspec(dllexport)
-# else
-#  define LIBRATHL_API __declspec(dllimport)
-# endif
+#if defined (Q_UNUSED)
+    #define UNUSED Q_UNUSED
 #else
-# define LIBRATHL_API
+    #if defined(Q_CC_INTEL) && !defined(Q_OS_WIN) || defined(Q_CC_RVCT)
+    template <typename T>
+    inline void bratUnused(T &x) { (void)x; }
+    #  define UNUSED(x) bratUnused(x);
+    #else
+    #  define UNUSED(x) (void)x;
+    #endif
 #endif
+
+/*
+** Used to verify format functions via compiler but only available
+** under gnu C compiler
+*/
+#ifndef __GNUC__
+#define __attribute__(x)
+#endif
+
 
 #if defined( __cplusplus )
 extern "C" {
@@ -125,4 +134,4 @@ extern "C" {
 #endif  /* __cplusplus */
 
 
-#endif // !defined(_brathl_error_h_)
+#endif // !defined(BRAT_ERROR_H)

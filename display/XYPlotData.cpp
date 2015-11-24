@@ -36,8 +36,8 @@
 #include "wx/progdlg.h"
 
 
-#include "Trace.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Trace.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "ExternalFiles.h"
 #include "ExternalFilesNetCDF.h"
 #include "ExternalFilesFactory.h"
@@ -103,7 +103,7 @@ void vtkDoubleArrayBrathl::ComputeRange(int comp)
       if (comp >= 0)
         {
         s = this->GetComponent(i,comp);
-        if (CTools::IsDefaultValue(s))
+        if (isDefaultValue(s))
           {
           //------------------
           continue;
@@ -116,7 +116,7 @@ void vtkDoubleArrayBrathl::ComputeRange(int comp)
         for (int j=0; j < this->NumberOfComponents; ++j)
           {
           t = this->GetComponent(i,j);
-          if (CTools::IsDefaultValue(t))
+          if (isDefaultValue(t))
             {
             //------------------
             continue;
@@ -186,8 +186,8 @@ CRowDouble::~CRowDouble()
 CPlotArray::CPlotArray()
 {
   m_didCalculateRange = false;
-  CTools::SetDefaultValue(m_min);
-  CTools::SetDefaultValue(m_max);
+  setDefaultValue(m_min);
+  setDefaultValue(m_max);
 }
 //----------------------------------------
 CPlotArray::~CPlotArray()
@@ -276,8 +276,8 @@ void CPlotArray::SetFrameData(uint32_t r, vtkDoubleArrayBrathl* vect)
 void CPlotArray::GetRange(double& min, double& max, uint32_t frame)
 {
 
-  CTools::SetDefaultValue(min);
-  CTools::SetDefaultValue(max);
+  setDefaultValue(min);
+  setDefaultValue(max);
 
   vtkDoubleArrayBrathl* data = GetFrameData(frame);
   if (data == NULL)
@@ -300,8 +300,8 @@ void CPlotArray::GetRange(double& min, double& max)
   }
 
   vtkObArray::iterator it;
-  CTools::SetDefaultValue(min);
-  CTools::SetDefaultValue(max);
+  setDefaultValue(min);
+  setDefaultValue(max);
 
   for (it = m_rows.begin(); it != m_rows.end() ; it++)
   {
@@ -311,7 +311,7 @@ void CPlotArray::GetRange(double& min, double& max)
 
     //data->GetRange(l, h);
 
-    if (CTools::IsDefaultValue(min))
+    if (isDefaultValue(min))
     {
       min = l;
       max = h;
@@ -376,10 +376,10 @@ CXYPlotProperty::CXYPlotProperty(CXYPlotData* parent)
   SetOpacity(0.6);
   SetOpacityFactor(1 / GetOpacity());
 
-  CTools::SetDefaultValue(m_xMax);
-  CTools::SetDefaultValue(m_xMin);
-  CTools::SetDefaultValue(m_yMax);
-  CTools::SetDefaultValue(m_yMin);
+  setDefaultValue(m_xMax);
+  setDefaultValue(m_xMin);
+  setDefaultValue(m_yMax);
+  setDefaultValue(m_yMin);
 
 
   SetXLog(false);
@@ -395,8 +395,8 @@ CXYPlotProperty::CXYPlotProperty(CXYPlotData* parent)
 
   SetFps(30);
 
-  CTools::SetDefaultValue(m_xNumTicks);
-  CTools::SetDefaultValue(m_yNumTicks);
+  setDefaultValue(m_xNumTicks);
+  setDefaultValue(m_yNumTicks);
 
   SetXBase(10.0);
   SetYBase(10.0);
@@ -2245,8 +2245,8 @@ void CXYPlotDataCollection::OnFrameChange(int32_t f)
 void CXYPlotDataCollection::GetXRange(double& min, double& max, uint32_t frame)
 {
   CObArray::iterator it;
-  CTools::SetDefaultValue(min);
-  CTools::SetDefaultValue(max);
+  setDefaultValue(min);
+  setDefaultValue(max);
   for (it = begin(); it != end() ; it++)
   {
     CXYPlotData* data = Get(it);
@@ -2261,16 +2261,16 @@ void CXYPlotDataCollection::GetXRange(double& min, double& max, uint32_t frame)
 
     data->GetXRange(l, h, frame);
 
-    if (CTools::IsDefaultValue(props->GetXMin()) == false)
+    if (isDefaultValue(props->GetXMin()) == false)
     {
       l = props->GetXMin();
     }
-    if (CTools::IsDefaultValue(props->GetXMax()) == false)
+    if (isDefaultValue(props->GetXMax()) == false)
     {
       h = props->GetXMax();
     }
 
-    if (CTools::IsDefaultValue(min))
+    if (isDefaultValue(min))
     {
       min = l;
       max = h;
@@ -2288,8 +2288,8 @@ void CXYPlotDataCollection::GetXRange(double& min, double& max, uint32_t frame)
 void CXYPlotDataCollection::GetYRange(double& min, double& max, uint32_t frame)
 {
   CObArray::iterator it;
-  CTools::SetDefaultValue(min);
-  CTools::SetDefaultValue(max);
+  setDefaultValue(min);
+  setDefaultValue(max);
 
   for (it = begin(); it != end() ; it++)
   {
@@ -2301,16 +2301,16 @@ void CXYPlotDataCollection::GetYRange(double& min, double& max, uint32_t frame)
 
     data->GetYRange(l, h, frame);
 
-    if (CTools::IsDefaultValue(props->GetYMin()) == false)
+    if (isDefaultValue(props->GetYMin()) == false)
     {
       l = props->GetYMin();
     }
-    if (CTools::IsDefaultValue(props->GetYMax()) == false)
+    if (isDefaultValue(props->GetYMax()) == false)
     {
       h = props->GetYMax();
     }
 
-    if (CTools::IsDefaultValue(min))
+    if (isDefaultValue(min))
     {
       min = l;
       max = h;
@@ -2327,8 +2327,8 @@ void CXYPlotDataCollection::GetYRange(double& min, double& max, uint32_t frame)
 void CXYPlotDataCollection::GetXRange(double& min, double& max)
 {
   CObArray::iterator it;
-  CTools::SetDefaultValue(min);
-  CTools::SetDefaultValue(max);
+  setDefaultValue(min);
+  setDefaultValue(max);
   for (it = begin(); it != end() ; it++)
   {
     CXYPlotData* data = Get(it);
@@ -2339,16 +2339,16 @@ void CXYPlotDataCollection::GetXRange(double& min, double& max)
 
     data->GetXRange(l, h);
 
-    if (CTools::IsDefaultValue(props->GetXMin()) == false)
+    if (isDefaultValue(props->GetXMin()) == false)
     {
       l = props->GetXMin();
     }
-    if (CTools::IsDefaultValue(props->GetXMax()) == false)
+    if (isDefaultValue(props->GetXMax()) == false)
     {
       h = props->GetXMax();
     }
 
-    if (CTools::IsDefaultValue(min))
+    if (isDefaultValue(min))
     {
       min = l;
       max = h;
@@ -2367,8 +2367,8 @@ void CXYPlotDataCollection::GetXRange(double& min, double& max)
 void CXYPlotDataCollection::GetYRange(double& min, double& max)
 {
   CObArray::iterator it;
-  CTools::SetDefaultValue(min);
-  CTools::SetDefaultValue(max);
+  setDefaultValue(min);
+  setDefaultValue(max);
 
   for (it = begin(); it != end() ; it++)
   {
@@ -2380,16 +2380,16 @@ void CXYPlotDataCollection::GetYRange(double& min, double& max)
 
     data->GetYRange(l, h);
 
-    if (CTools::IsDefaultValue(props->GetYMin()) == false)
+    if (isDefaultValue(props->GetYMin()) == false)
     {
       l = props->GetYMin();
     }
-    if (CTools::IsDefaultValue(props->GetYMax()) == false)
+    if (isDefaultValue(props->GetYMax()) == false)
     {
       h = props->GetYMax();
     }
 
-    if (CTools::IsDefaultValue(min))
+    if (isDefaultValue(min))
     {
       min = l;
       max = h;

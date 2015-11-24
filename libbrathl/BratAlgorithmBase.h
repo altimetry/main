@@ -22,12 +22,11 @@
 
 
 #include <iostream>
-
-
-#include "brathl_error.h" 
-#include "brathl.h" 
-
 #include <string>
+
+#include "new-gui/Common/tools/brathl_error.h" 
+#include "new-gui/Common/tools/CoreTypes.h" 
+#include "brathl.h" 
 
 #include "List.h" 
 #include "Tools.h" 
@@ -62,125 +61,125 @@ class CFieldNetCdf;
 //-------------------------------------------------------------
 //------------------- CBratAlgorithmParam class --------------------
 //-------------------------------------------------------------
-class CBratAlgorithmParam
-{
-public:
-    typedef enum {
-    T_UNDEF = 0, 
-    T_INT,
-    T_LONG,
-    T_FLOAT,
-    T_DOUBLE,
-    T_CHAR,
-    T_STRING,
-    T_VECTOR_DOUBLE,
-  } bratAlgoParamTypeVal;
-
-public:
-  CBratAlgorithmParam();
-  
-  CBratAlgorithmParam(const CBratAlgorithmParam &o);
-  
-  virtual ~CBratAlgorithmParam();
-
-  bratAlgoParamTypeVal GetTypeVal() {return m_typeVal; };
-  std::string GetTypeValAsString() {return TypeValAsString(m_typeVal); };
-
-  std::string GetValue() const;
-
-  double GetValueAsDouble() const {return m_valDouble; };
-  int32_t GetValueAsInt() const {return m_valInt;};
-  int64_t GetValueAsLong() const {return m_valLong;};
-  float GetValueAsFloat() const {return m_valFloat;};
-  std::string GetValueAsString() const {return m_valString;};
-  unsigned char GetValueAsChar() const {return m_valChar;};
-  const CDoubleArray* GetValueAsVectDouble() const {return &m_vectValDouble;};
-  CDoubleArray* GetValueAsVectDouble() {return &m_vectValDouble;};
-
-  void SetValue(double value);
-  void SetValue(float value);
-  void SetValue(int32_t value);
-  void SetValue(int64_t value);
-  void SetValue(const std::string& value);
-  void SetValue(unsigned char value);
-  void SetValue(const CDoubleArray& value);
-  void SetValue(double* value, int32_t nbValues);
-
-  void SetValue(double value, CBratAlgorithmParam::bratAlgoParamTypeVal type);
-  void SetValue(const std::string& value, CBratAlgorithmParam::bratAlgoParamTypeVal type);
-
-  void SetValueAsDoubleArray(const std::string& value, const std::string& delim = ","); 
-
-  bratAlgoParamTypeVal TypeVal(bratAlgoParamTypeVal type) { return type; };
-
-  static std::string TypeValAsString(bratAlgoParamTypeVal type);
-
-  virtual void Dump(std::ostream& fOut = std::cerr);
-
-  const CBratAlgorithmParam& operator=(const CBratAlgorithmParam &o);
-  //virtual bool operator==(const CBratAlgorithmParam& o) { return true; };
-
-
-protected:
-  void Set(const CBratAlgorithmParam &o);
-  void Init();
-  void Copy(const CDoubleArray& value);
-
-protected:
-  
-  bratAlgoParamTypeVal m_typeVal;
-
-  double m_valDouble;
-  float m_valFloat;
-  int32_t m_valInt;
-  int64_t m_valLong;
-  std::string m_valString;
-  unsigned char m_valChar;
-  CDoubleArray m_vectValDouble;
-    
-
-};
-
-typedef std::vector<CBratAlgorithmParam> vectorbratalgorithmparam; 
-
-//-------------------------------------------------------------
-//------------------- CVectorBratAlgorithmParam class --------------------
-//-------------------------------------------------------------
-
-
-class CVectorBratAlgorithmParam : public vectorbratalgorithmparam
-{
-public:
-  CVectorBratAlgorithmParam();  
-  virtual ~CVectorBratAlgorithmParam();
-
-  virtual void Insert(const CBratAlgorithmParam& o);
-  virtual void RemoveAll();
-
-  void Insert(double value);
-  void Insert(float value);
-  void Insert(int32_t value);
-  void Insert(const std::string& value);
-  void Insert(unsigned char value);
-  void Insert(const CDoubleArray& value);
-  void Insert(double* value, int32_t nbValues);
-
-  void Insert(double value, CBratAlgorithmParam::bratAlgoParamTypeVal type);
-  void Insert(const std::string& value, CBratAlgorithmParam::bratAlgoParamTypeVal type);
-  
-  std::string ToString(const std::string& delim = ",", bool useBracket = true) const;
-  
-  virtual void Dump(std::ostream& fOut = std::cerr); 
-
-
-protected:
-
-  void Init();
-
-protected:
-
-
-};
+//class CBratAlgorithmParam
+//{
+//public:
+//    typedef enum {
+//    T_UNDEF = 0, 
+//    T_INT,
+//    T_LONG,
+//    T_FLOAT,
+//    T_DOUBLE,
+//    T_CHAR,
+//    T_STRING,
+//    T_VECTOR_DOUBLE,
+//  } bratAlgoParamTypeVal;
+//
+//public:
+//  CBratAlgorithmParam();
+//  
+//  CBratAlgorithmParam(const CBratAlgorithmParam &o);
+//  
+//  virtual ~CBratAlgorithmParam();
+//
+//  bratAlgoParamTypeVal GetTypeVal() {return m_typeVal; };
+//  std::string GetTypeValAsString() {return TypeValAsString(m_typeVal); };
+//
+//  std::string GetValue() const;
+//
+//  double GetValueAsDouble() const {return m_valDouble; };
+//  int32_t GetValueAsInt() const {return m_valInt;};
+//  int64_t GetValueAsLong() const {return m_valLong;};
+//  float GetValueAsFloat() const {return m_valFloat;};
+//  std::string GetValueAsString() const {return m_valString;};
+//  unsigned char GetValueAsChar() const {return m_valChar;};
+//  const CDoubleArray* GetValueAsVectDouble() const {return &m_vectValDouble;};
+//  CDoubleArray* GetValueAsVectDouble() {return &m_vectValDouble;};
+//
+//  void SetValue(double value);
+//  void SetValue(float value);
+//  void SetValue(int32_t value);
+//  void SetValue(int64_t value);
+//  void SetValue(const std::string& value);
+//  void SetValue(unsigned char value);
+//  void SetValue(const CDoubleArray& value);
+//  void SetValue(double* value, int32_t nbValues);
+//
+//  void SetValue(double value, CBratAlgorithmParam::bratAlgoParamTypeVal type);
+//  void SetValue(const std::string& value, CBratAlgorithmParam::bratAlgoParamTypeVal type);
+//
+//  void SetValueAsDoubleArray(const std::string& value, const std::string& delim = ","); 
+//
+//  bratAlgoParamTypeVal TypeVal(bratAlgoParamTypeVal type) { return type; };
+//
+//  static std::string TypeValAsString(bratAlgoParamTypeVal type);
+//
+//  virtual void Dump(std::ostream& fOut = std::cerr);
+//
+//  const CBratAlgorithmParam& operator=(const CBratAlgorithmParam &o);
+//  //virtual bool operator==(const CBratAlgorithmParam& o) { return true; };
+//
+//
+//protected:
+//  void Set(const CBratAlgorithmParam &o);
+//  void Init();
+//  void Copy(const CDoubleArray& value);
+//
+//protected:
+//  
+//  bratAlgoParamTypeVal m_typeVal;
+//
+//  double m_valDouble;
+//  float m_valFloat;
+//  int32_t m_valInt;
+//  int64_t m_valLong;
+//  std::string m_valString;
+//  unsigned char m_valChar;
+//  CDoubleArray m_vectValDouble;
+//    
+//
+//};
+//
+//typedef std::vector<CBratAlgorithmParam> vectorbratalgorithmparam; 
+//
+////-------------------------------------------------------------
+////------------------- CVectorBratAlgorithmParam class --------------------
+////-------------------------------------------------------------
+//
+//
+//class CVectorBratAlgorithmParam : public vectorbratalgorithmparam
+//{
+//public:
+//  CVectorBratAlgorithmParam();  
+//  virtual ~CVectorBratAlgorithmParam();
+//
+//  virtual void Insert(const CBratAlgorithmParam& o);
+//  virtual void RemoveAll();
+//
+//  void Insert(double value);
+//  void Insert(float value);
+//  void Insert(int32_t value);
+//  void Insert(const std::string& value);
+//  void Insert(unsigned char value);
+//  void Insert(const CDoubleArray& value);
+//  void Insert(double* value, int32_t nbValues);
+//
+//  void Insert(double value, CBratAlgorithmParam::bratAlgoParamTypeVal type);
+//  void Insert(const std::string& value, CBratAlgorithmParam::bratAlgoParamTypeVal type);
+//  
+//  std::string ToString(const std::string& delim = ",", bool useBracket = true) const;
+//  
+//  virtual void Dump(std::ostream& fOut = std::cerr); 
+//
+//
+//protected:
+//
+//  void Init();
+//
+//protected:
+//
+//
+//};
 
 //-------------------------------------------------------------
 //------------------- CBratAlgorithmBase class --------------------

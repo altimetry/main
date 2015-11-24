@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
@@ -20,6 +18,18 @@
 #ifndef _brathl_h_
 #define _brathl_h_
 
+
+//#if defined(WIN32) && defined(LIBRATHLDLL)
+//# ifdef LIBRATHLDLL_EXPORTS
+//#  define LIBRATHL_API __declspec(dllexport)
+//# else
+//#  define LIBRATHL_API __declspec(dllimport)
+//# endif
+//#else
+//# define LIBRATHL_API
+//#endif
+//
+
 #if defined( __cplusplus )
 extern "C" {
 #endif  /* __cplusplus */
@@ -33,19 +43,6 @@ extern "C" {
 #include "brathl_config.h"
 
 
-#if defined (Q_UNUSED)
-    #define UNUSED Q_UNUSED
-#else
-    #if defined(Q_CC_INTEL) && !defined(Q_OS_WIN) || defined(Q_CC_RVCT)
-    template <typename T>
-    inline void bratUnused(T &x) { (void)x; }
-    #  define UNUSED(x) bratUnused(x);
-    #else
-    #  define UNUSED(x) (void)x;
-    #endif
-#endif
-
-    
 #if defined(GCC_VERSION) && (GCC_VERSION < 40600)				//4.6.0
 #define nullptr NULL
 #endif
@@ -53,6 +50,8 @@ extern "C" {
 
 
 #ifdef WIN32
+
+#include <stdint.h>
 
 #include <windows.h>
 #ifdef __WXMSW__
@@ -66,18 +65,9 @@ extern "C" {
 #ifndef S_ISDIR
 #define S_ISDIR(X) (((X) & _S_IFDIR) == _S_IFDIR)
 #endif
-    
-typedef signed char		int8_t;
-typedef short int		int16_t;
-typedef int			int32_t;
-typedef __int64	      	      	int64_t;
-
-typedef unsigned char		uint8_t;
-typedef unsigned short int	uint16_t;
-typedef unsigned int		uint32_t;
-typedef unsigned __int64	uint64_t;
 
 #endif /* ifdef WIN32 */
+
 
 #if defined(WIN32) && defined(LIBRATHLDLL)
 # ifdef LIBRATHLDLL_EXPORTS
@@ -88,6 +78,7 @@ typedef unsigned __int64	uint64_t;
 #else
 # define LIBRATHL_API
 #endif
+
 
 #if HAVE_INTTYPES_H
 #include <inttypes.h>
@@ -242,14 +233,6 @@ typedef enum
     EARTH_RADIUS,
     ELLIPSOID_PARAM
 } brathl_global_constants;
-
-/*
-** Used to verify format functions via compiler but only available
-** under gnu C compiler
-*/
-#ifndef __GNUC__
-#define __attribute__(x)
-#endif
 
 
 #if defined( __cplusplus )

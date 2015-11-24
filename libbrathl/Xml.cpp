@@ -27,7 +27,7 @@
 
 #include "Xml.h"
 
-#include "Exception.h" 
+#include "new-gui/Common/tools/Exception.h" 
 #include "Tools.h"
 using namespace brathl;
 
@@ -793,7 +793,7 @@ void CXmlDocument::Load(std::istream& stream, const std::string& encoding, int f
     ctx.root = NULL;
     ctx.node = NULL;
     ctx.encoding = CXmlDocument::m_DEFAULT_ENCODING; // default in absence of encoding=""
-    if (!(CTools::CompareNoCase(encoding, CXmlDocument::m_DEFAULT_ENCODING)))
+    if (!(str_icmp(encoding, CXmlDocument::m_DEFAULT_ENCODING)))
     {
       throw CUnImplementException(CTools::Format("Error in CXmlDocument::Load - '%s' encoding is not implemented , only '%s' is supported",
                                                   encoding.c_str(), 
@@ -1044,7 +1044,7 @@ CXmlNode* CXmlDocument::FindNodeByName(const std::string& name, CXmlNode* parent
 
   while (child != NULL)
   {
-    if (CTools::CompareNoCase(child->GetName(), name))
+    if (str_icmp(child->GetName(), name))
     {
       break;
     }
@@ -1082,7 +1082,7 @@ void CXmlDocument::FindAllNodesByName(const std::string& name, CXmlNode* parent,
 
   while (child != NULL)
   {
-    if (CTools::CompareNoCase(child->GetName(), name))
+    if (str_icmp(child->GetName(), name))
     {
       bool bOk = child->GetPropVal(propNameKey, &value);
       if (bOk)
@@ -1126,7 +1126,7 @@ void CXmlDocument::FindAllNodesByName(const std::string& name, CXmlNode* parent,
 
   while (child != NULL)
   {
-    if (CTools::CompareNoCase(child->GetName(), name))
+    if (str_icmp(child->GetName(), name))
     {
       arrayNodes.Insert(child);
     }

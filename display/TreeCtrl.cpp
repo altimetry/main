@@ -53,8 +53,7 @@
 
 #include <string>
 
-#include "Trace.h"
-using namespace brathl;
+#include "new-gui/Common/tools/Trace.h"
 
 #include "TreeCtrl.h"
 

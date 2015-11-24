@@ -32,7 +32,7 @@
 
 #include <string>
 #include "List.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "FileParams.h"
 
 #include "ProcessCommonTools.h"

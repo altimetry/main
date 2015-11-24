@@ -22,10 +22,6 @@
 #ifndef __Process_H__
 #define __Process_H__
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "Process.h"
-#endif
-
 #ifndef WX_PRECOMP
     #include "wx/wx.h"
 #endif
@@ -37,7 +33,6 @@
 
 #include "wxList.h"
 #include "List.h"
-#include "new-gui/scheduler/BratTask.h"
 using namespace brathl;
 
 
@@ -47,6 +42,8 @@ END_DECLARE_EVENT_TYPES()
 
 
 class CProcess;
+class CBratTask;
+
 // WDR: class declarations
 
 //-------------------------------------------------------------

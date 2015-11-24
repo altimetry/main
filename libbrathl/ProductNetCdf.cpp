@@ -22,15 +22,15 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring>
-
-#include "brathl_error.h"
-#include "brathl.h"
-
 #include <string>
 
-#include "TraceLog.h"
+#include "new-gui/Common/tools/brathl_error.h"
+#include "brathl.h"
+
+
+#include "new-gui/Common/tools/TraceLog.h"
 #include "Tools.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 #include "ProductNetCdf.h"
 
 // When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
@@ -511,21 +511,21 @@ void CProductNetCdf::ApplyCriteria(CStringList& filteredFileList, const std::str
 
     try
     {
-      Log("---------------------------");
+      Log("---------------------------", true);
       Log("File ", false);
-      Log(*itFile);
-      Log("---------------------------");
+      Log(*itFile, true);
+      Log("---------------------------", true);
       this->Open(*itFile);
     }
     catch (CException e)
     {
       Log("Error while opening file:", false);
-      Log(e.what());
+      Log(e.what(), true);
       continue;
     }
     catch (...)
     {
-      Log("Unknown error while opening file");
+      Log("Unknown error while opening file", true);
       continue;
     }
 
@@ -583,13 +583,13 @@ void CProductNetCdf::ApplyCriteria(CStringList& filteredFileList, const std::str
       catch (CException e)
       {
         Log("Error while processing file:", false);
-        Log(e.what());
+        Log(e.what(), true);
         fileOk = false;
         break;
       }
       catch (...)
       {
-        Log("Unknown error while processing file");
+        Log("Unknown error while processing file", true);
         fileOk = false;
         break;
       }
@@ -682,7 +682,7 @@ bool CProductNetCdf::ApplyCriteriaLatLon(CCriteriaInfo* criteriaInfo)
   bool bOk = criteriaLatLon->Intersect(latLonRect, intersect);
 
   Log("Criteria Lat/Lon box: ", false);
-  Log(criteriaLatLon->GetAsText());
+  Log(criteriaLatLon->GetAsText(), true);
   Log("Lat/Lon box: ", false);
   Log(latLonRect.GetAsText(), false);
   Log(". Intersect: ", false);
@@ -690,7 +690,7 @@ bool CProductNetCdf::ApplyCriteriaLatLon(CCriteriaInfo* criteriaInfo)
   if (bOk)
   {
     Log(". Intersection box ", false);
-    Log(intersect.GetAsText());
+    Log(intersect.GetAsText(), true);
   }
 
   return bOk;
@@ -765,7 +765,7 @@ bool CProductNetCdf::ApplyCriteriaDatetime(CCriteriaInfo* criteriaInfo)
   bool bOk = criteriaDatetime->Intersect(datePeriod, intersect);
 
   Log("Criteria Date period: ", false);
-  Log(criteriaDatetime->GetAsText());
+  Log(criteriaDatetime->GetAsText(), true);
   Log("File Date period: ", false);
   Log(datePeriod.GetAsText(), false);
   Log(". Intersect: ", false);
@@ -773,7 +773,7 @@ bool CProductNetCdf::ApplyCriteriaDatetime(CCriteriaInfo* criteriaInfo)
   if (bOk)
   {
     Log(". Intersection box ", false);
-    Log(intersect.GetAsText());
+    Log(intersect.GetAsText(), true);
   }
 
   return bOk;
@@ -937,7 +937,7 @@ bool CProductNetCdf::ApplyCriteriaPassInt(CCriteriaInfo* criteriaInfo)
   bool bOk = criteriaPass->Intersect(startPassValue, endPassValue, intersect);
 
   Log("Criteria Pass: ", false);
-  Log(criteriaPass->GetAsText());
+  Log(criteriaPass->GetAsText(), true);
   Log("File Pass from: ", false);
   Log(startPassValue, false);
   Log(" Pass end: ", false);
@@ -947,7 +947,7 @@ bool CProductNetCdf::ApplyCriteriaPassInt(CCriteriaInfo* criteriaInfo)
   if (bOk)
   {
     Log(". Intersection box ", false);
-    Log(intersect.ToString());
+    Log(intersect.ToString(), true);
   }
 
   return bOk;
@@ -1027,7 +1027,7 @@ CFieldNetCdf* CProductNetCdf::ReadDoubleCriteriaValue(CFieldInfo& fieldInfo, dou
     Read(fieldInfo, strValue);
     value = CTools::StrToDouble(strValue);
 
-    if (CTools::IsDefaultValue(value))
+    if (isDefaultValue(value))
     {
       std::string msg = CTools::Format("ERROR - CProductNetCdf::ReadDoubleCriteriaValue(CFieldInfo& fieldInfo, double& date) - invalid 'double' value '%s' - Field info : name '%s' - Attribute Name '%s'",
                                   strValue.c_str(),
@@ -1107,7 +1107,7 @@ bool CProductNetCdf::ApplyCriteriaCycle(CCriteriaInfo* criteriaInfo)
   bool bOk = criteriaCycle->Intersect(startCycleValue, endCycleValue, intersect);
 
   Log("Criteria Cycle: ", false);
-  Log(criteriaCycle->GetAsText());
+  Log(criteriaCycle->GetAsText(), true);
   Log("File Cycle from: ", false);
   Log(startCycleValue, false);
   Log(" Cycle end: ", false);
@@ -1117,7 +1117,7 @@ bool CProductNetCdf::ApplyCriteriaCycle(CCriteriaInfo* criteriaInfo)
   if (bOk)
   {
     Log(". Intersection box ", false);
-    Log(intersect.ToString());
+    Log(intersect.ToString(), true);
   }
 
   return bOk;
@@ -1895,10 +1895,10 @@ void CProductNetCdf::Read(CFieldNetCdf* field, double& value)
   CExpressionValue data;
   Read(field, data);
 
-  int32_t dataSize = data.GetNbValues();
+  size_t dataSize = data.GetNbValues();
   if (dataSize <= 0)
   {
-    CTools::SetDefaultValue(value);
+    setDefaultValue(value);
   }
   else
   {
@@ -1914,7 +1914,7 @@ void CProductNetCdf::Read(CFieldNetCdf* field, CDoubleArray& vect)
   CExpressionValue data;
   Read(field, data);
 
-  int32_t dataSize = data.GetNbValues();
+  size_t dataSize = data.GetNbValues();
   for (int32_t i = 0 ; i < dataSize ; i++)
   {
     vect.Insert(data.GetValues()[i]);
@@ -1928,7 +1928,7 @@ void CProductNetCdf::Read(CFieldNetCdf* field, CExpressionValue& value)
 
   m_externalFile->GetValues(field, value, CUnit::m_UNIT_SI);
 
-  int32_t dataSize = value.GetNbValues();
+  size_t dataSize = value.GetNbValues();
   for (int32_t i = 0 ; i < dataSize ; i++)
   {
     field->AdjustValidMinMax(value.GetValues()[i]);
@@ -1952,7 +1952,7 @@ void CProductNetCdf::ReadAll(CFieldNetCdf* field, CExpressionValue& value)
   MustBeOpened();
   m_externalFile->GetAllValues(field, value, CUnit::m_UNIT_SI);
 
-  int32_t dataSize = value.GetNbValues();
+  size_t dataSize = value.GetNbValues();
   for (int32_t i = 0 ; i < dataSize ; i++)
   {
     field->AdjustValidMinMax(value.GetValues()[i]);
@@ -1981,7 +1981,7 @@ bool CProductNetCdf::IsOpened(const std::string& fileName)
     return bOpen;
   }
 
-  if (!CTools::CompareNoCase(m_externalFile->GetName(), fileName))
+  if (!str_icmp(m_externalFile->GetName(), fileName))
   {
     bOpen = false;
   }

@@ -23,8 +23,8 @@
 #include "brathl.h" 
 
 
-#include "TraceLog.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/TraceLog.h" 
+#include "new-gui/Common/tools/Exception.h" 
 #include "Product.h" 
 
 #include "BratAlgoFilterMedian1D.h" 
@@ -112,7 +112,7 @@ double CBratAlgoFilterMedian1D::Run(CVectorBratAlgorithmParam& args)
     return m_median;
   }
 
-  CTools::SetDefaultValue(m_median);
+  setDefaultValue(m_median);
   
   OpenProductFile();
 
@@ -145,7 +145,7 @@ double CBratAlgoFilterMedian1D::Run(CVectorBratAlgorithmParam& args)
   }
 
   // If 'default value' and no extrapolation then returns
-  if (CTools::IsDefaultValue(m_varValue) && (m_extrapolate == 0))
+  if (isDefaultValue(m_varValue) && (m_extrapolate == 0))
   {
     PrepareReturn();
     return m_median;
@@ -212,7 +212,7 @@ void CBratAlgoFilterMedian1D::SetParamValues(CVectorBratAlgorithmParam& args)
   int32_t valueInt32;
 
   // Set data window size (once)
-  if (CTools::IsDefaultValue(m_dataWindowLength))
+  if (isDefaultValue(m_dataWindowLength))
   {
     this->CheckConstantParam(CBratAlgoFilterMedian1D::m_WINDOW_PARAM_INDEX);
     
@@ -227,14 +227,14 @@ void CBratAlgoFilterMedian1D::SetParamValues(CVectorBratAlgorithmParam& args)
     }
 
     m_dataWindowLength = valueInt32;
-    if (CTools::IsDefaultValue(valueInt32))
+    if (isDefaultValue(valueInt32))
     {
       m_dataWindowLength = 9;
     }
   }
 
   // Set valid points limit (once)
-  if (CTools::IsDefaultValue(m_validPts))
+  if (isDefaultValue(m_validPts))
   {
     this->CheckConstantParam(CBratAlgoFilterMedian1D::m_VALID_PARAM_INDEX);
 
@@ -251,7 +251,7 @@ void CBratAlgoFilterMedian1D::SetParamValues(CVectorBratAlgorithmParam& args)
     }
 
     m_validPts = valueInt32;
-    if (CTools::IsDefaultValue(valueInt32))
+    if (isDefaultValue(valueInt32))
     {
       m_validPts = GetDataWindowSize()/2;
     }
@@ -270,7 +270,7 @@ void CBratAlgoFilterMedian1D::SetParamValues(CVectorBratAlgorithmParam& args)
   }
 
   // Set extrapolate flag (once)
-  if (CTools::IsDefaultValue(m_extrapolate))
+  if (isDefaultValue(m_extrapolate))
   {
     SetParamValueExtrapolate(args, CBratAlgoFilterMedian1D::m_EXTRAPOLATE_PARAM_INDEX);
   }

@@ -21,6 +21,7 @@
 #include <vector>
 #include <map>
 #include <iterator>
+#include <iomanip>
 
 #include <time.h>
 
@@ -879,7 +880,6 @@ bool str_icmp( STRING const& a, STRING const& b )
 	return compare_( a, b, pred );
 }
 
-
 template< class STRING >
 bool str_cmp( STRING const& a, STRING const& b )
 {
@@ -890,6 +890,19 @@ bool str_cmp( STRING const& a, STRING const& b )
 
 	return compare_( a, b, pred );
 }
+
+
+//convenience for pointers
+
+template< class CHAR >
+bool str_icmp( const CHAR *a, const CHAR *b )
+{
+	typedef typename char_traits< CHAR >::string_type string_type;
+
+	return str_icmp( string_type( a ), string_type( b ) );
+}
+
+
 
 
 
@@ -909,7 +922,7 @@ struct upper_char
 };
 
 template< class STRING >
-inline STRING& ToUpper( STRING &s )
+inline STRING& toUpper( STRING &s )
 {
     std::transform( s.begin(), s.end(), s.begin(), upper_char< typename STRING::value_type > () );
     return s;
@@ -925,7 +938,7 @@ struct lower_char
 };
 
 template< class STRING >
-inline STRING& ToLower( STRING &s )
+inline STRING& toLower( STRING &s )
 {
     std::transform( s.begin(), s.end(), s.begin(), lower_char< typename STRING::value_type >() );
     return s;
@@ -936,14 +949,14 @@ template< class STRING >
 inline STRING ToUpperCopy( const STRING &s )
 {
     STRING s2(s);
-    return ToUpper(s2);
+    return toUpper(s2);
 }
 
 template< class STRING >
 inline STRING ToLowerCopy( const STRING &s )
 {
     STRING s2(s);
-    return ToLower(s2);
+    return toLower(s2);
 }
 
 
@@ -951,10 +964,10 @@ inline STRING ToLowerCopy( const STRING &s )
 //				Convert numbers to strings
 //////////////////////////////////////////////////////////////////
 
-//replaces itoa
+// with hexadecimal option
 
 template< class STRING, typename T >
-STRING n2s( T n, bool hex = false )
+STRING hn2s( T n, bool hex )
 {
     //return ((typename string_traits< STRING >::str_stream_type&)(typename string_traits< STRING >::str_stream_type() << n)).str();	//<< yields ostream type (not stringstream)
     typename string_traits< STRING >::str_stream_type st;
@@ -966,16 +979,41 @@ STRING n2s( T n, bool hex = false )
     return st.str();                                        //<< yields ostream type (not stringstream)
 }
 
+// with precision
+
+template< class STRING, typename T >
+STRING n2s( T n, std::streamsize precision )
+{
+    typename string_traits< STRING >::str_stream_type st;
+	st << std::setprecision(precision) << n;
+    if ( !st )
+        throw std::invalid_argument( "Invalid number." );
+    return st.str();                                        //<< yields ostream type (not stringstream)
+}
+
+
+// default
+
+template< class STRING, typename T >
+STRING n2s( T n )
+{
+    return hn2s< STRING >( n, false );
+}
+
+// replaces itoa
+
 template< typename T >
 std_string_t itoa( T n )
 {
 	return ((std_stringstream_t&)(std_stringstream_t() << n)).str();	//<< yields ostream type (not stringstream)
 }
 
+// hexadecimal
+
 template< class STRING, typename T >
 STRING hn2s( T n )
 {
-    return n2s< STRING >( n, true );
+    return hn2s< STRING >( n, true );
 }
 
 
@@ -986,6 +1024,11 @@ STRING hn2s( T n )
 
 //replaces atoi
 
+/**
+ * \brief       Function to convert a std::string to a number (of a selected data type).
+ * \param[in]   s     String to be converted.
+ * \return      v     Converted number
+ */
 template< typename T, class STRING >
 inline T s2n( const STRING& s )
 {
@@ -1005,6 +1048,18 @@ inline T atoi( const std_string_t& s )
     std_stringstream_t( s ) >> v;
     return v;
 }
+
+
+// for pointers
+
+template< typename T, typename CHAR >
+inline T s2n( CHAR *s )
+{
+    typedef typename char_traits< CHAR >::string_type string_type;
+
+	return s2n< T >( string_type( s ) );
+}
+
 
 
 
@@ -1149,9 +1204,24 @@ inline bool endsWith( const STRING &s, const STRING &substr )
 	return ( found != STRING::npos ) && found == ( s.length() - substr.length() );	//condition found != STRING::npos is critical (if its value is -1, it can issue a false positive)
 }
 
+// not tested
+template< typename STRING >
+inline 
+typename STRING::size_type i_find( const STRING &source, const STRING &find, size_t pos = 0 )
+{
+	auto it = std::search(
+		source.begin() + pos, source.end(), find.begin(), find.end(),
+		[]( typename STRING::value_type ch1, typename STRING::value_type ch2 )
+		{ 
+			return std::toupper( ch1 ) == std::toupper( ch2 ); 
+		}
+	);
+
+	return it - source.begin();
+}
 
 template< typename STRING >
-inline STRING& FindAndReplace( STRING& source, const typename STRING::value_type* find, const typename STRING::value_type* replace, size_t pos = 0 )
+inline STRING& FindAndReplace( STRING& source, const typename STRING::value_type *find, const typename STRING::value_type *replace, size_t pos = 0 )
 {
 																	assert__( find && replace );
 	size_t findLen = Tstrlen( find );
@@ -1331,6 +1401,50 @@ short Rand(short top = (short)RAND_MAX, short bottom = 0)
 
 #if defined (__unix__)
 #pragma GCC diagnostic warning "-Wunused-variable"
+#endif
+
+
+
+
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+//					REFORMULATED BRAT UTILITIES
+////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////
+
+#if defined (WIN32) || defined (_WIN32)
+#pragma warning ( disable : 4996 )		//_CRT_SECURE_NO_WARNINGS: "This function or variable may be unsafe"
+#endif
+
+
+inline std::string stdFormat( size_t size, const char *format, va_list args )
+{
+	std::string	result;
+	char *str = nullptr;
+	try
+	{
+		str = new char[ size ];
+		vsnprintf( str, size, format, args );	//_vsnprintf(str, size, format, args );		//vsprintf( str, format, args );
+		result	= str;
+	}
+	catch ( ... )
+	{
+		delete[] str;
+		throw;
+	}
+	delete[]str;
+	return result;
+}
+
+
+inline std::string stdFormat( const char *format, va_list args )
+{
+	return stdFormat( 4096, format, args );
+}
+
+
+#if defined (WIN32) || defined (_WIN32)
+#pragma warning ( default : 4996 )
 #endif
 
 

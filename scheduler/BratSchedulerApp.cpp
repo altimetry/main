@@ -18,8 +18,15 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "BratScheduler.h"
+// Temporary hack to prevent the inclusion of Windows XML 
+// headers, which collide with xerces
+//
+#if defined (WIN32) || defined (_WIN32)
+//avoid later inclusion of Microsoft XML stuff, which causes name collisions with xerces
+#define DOMDocument MsDOMDocument
+#include <msxml.h>
+#include <urlmon.h>
+#undef DOMDocument
 #endif
 
 // For compilers that support precompilation
@@ -41,14 +48,14 @@
 #include <wx/mimetype.h>
 #include <wx/ffile.h>
 
-#include "Trace.h"
+#include "new-gui/Common/tools/Trace.h"
 #include "List.h"
 #include "Tools.h"
-#include "Exception.h"
+#include "new-gui/Common/tools/Exception.h"
 using namespace brathl;
 
-#include "BratSchedulerApp.h"
 #include "SchedulerTaskConfig.h"
+#include "BratSchedulerApp.h"
 #include "RichTextFrame.h"
 #include "DirTraverser.h"
 

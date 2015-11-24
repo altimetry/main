@@ -26,7 +26,7 @@
 #include <string>
 #include <vector>
 #include "BratObject.h"
-#include "Trace.h"
+#include "new-gui/Common/tools/Trace.h"
 
 namespace brathl
 {
@@ -79,7 +79,7 @@ public:
   ///Returns a reference to std::vector to the children
   vectorTreeNode& GetChildren ()   { return  m_children; };
 
-  long ChildCount () const { return m_children.size(); 	};
+  size_t ChildCount () const { return m_children.size(); 	};
 
   ///Add a child node to this node
   void AddChild (CObjectTreeNode* child);

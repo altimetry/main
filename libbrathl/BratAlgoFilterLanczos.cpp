@@ -23,8 +23,8 @@
 #include "brathl.h" 
 
 
-#include "TraceLog.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/TraceLog.h" 
+#include "new-gui/Common/tools/Exception.h" 
 
 #include "BratAlgoFilterLanczos.h" 
 
@@ -107,9 +107,9 @@ void CBratAlgoFilterLanczos::SetBeginOfFile()
 {
   CBratAlgoFilterKernel::SetBeginOfFile();
 
-  CTools::SetDefaultValue(m_lanczos);
-  CTools::SetDefaultValue(m_cutOffPeriod);
-  CTools::SetDefaultValue(m_cutOffFrequency);
+  setDefaultValue(m_lanczos);
+  setDefaultValue(m_cutOffPeriod);
+  setDefaultValue(m_cutOffFrequency);
 }
 
 //----------------------------------------
@@ -174,7 +174,7 @@ void CBratAlgoFilterLanczos::SetParamValues(CVectorBratAlgorithmParam& args)
   int32_t valueInt32;
 
   // Set data window size (once)
-  if (CTools::IsDefaultValue(m_dataWindowLength))
+  if (isDefaultValue(m_dataWindowLength))
   {
     this->CheckConstantParam(CBratAlgoFilterLanczos::m_WINDOW_PARAM_INDEX);
 
@@ -189,7 +189,7 @@ void CBratAlgoFilterLanczos::SetParamValues(CVectorBratAlgorithmParam& args)
     }
 
     m_dataWindowLength = valueInt32;
-    if (CTools::IsDefaultValue(valueInt32))
+    if (isDefaultValue(valueInt32))
     {
       m_dataWindowLength = 3;
     }
@@ -208,7 +208,7 @@ void CBratAlgoFilterLanczos::SetParamValues(CVectorBratAlgorithmParam& args)
   }
 
   // Set valid points limit (once)
-  if (CTools::IsDefaultValue(m_validPts))
+  if (isDefaultValue(m_validPts))
   {
     this->CheckConstantParam(CBratAlgoFilterLanczos::m_VALID_PARAM_INDEX);
 
@@ -225,7 +225,7 @@ void CBratAlgoFilterLanczos::SetParamValues(CVectorBratAlgorithmParam& args)
     }
 
     m_validPts = valueInt32;
-    if (CTools::IsDefaultValue(valueInt32))
+    if (isDefaultValue(valueInt32))
     {
       m_validPts = GetDataWindowSize()/2;
     }
@@ -242,7 +242,7 @@ void CBratAlgoFilterLanczos::SetParamValues(CVectorBratAlgorithmParam& args)
   }
 
   // Set cut-off period  (once)
-  if (CTools::IsDefaultValue(m_cutOffPeriod))
+  if (isDefaultValue(m_cutOffPeriod))
   {
     this->CheckConstantParam(CBratAlgoFilterLanczos::m_CUTOFF_PERIOD_PARAM_INDEX);
 
@@ -259,7 +259,7 @@ void CBratAlgoFilterLanczos::SetParamValues(CVectorBratAlgorithmParam& args)
     }
 
     m_cutOffPeriod = valueInt32;
-    if (CTools::IsDefaultValue(valueInt32))
+    if (isDefaultValue(valueInt32))
     {
       this->GetParamDefValue(CBratAlgoFilterLanczos::m_CUTOFF_PERIOD_PARAM_INDEX, m_cutOffPeriod);
     }
@@ -269,7 +269,7 @@ void CBratAlgoFilterLanczos::SetParamValues(CVectorBratAlgorithmParam& args)
   }
 
   // Set extrapolate flag (once)
-  if (CTools::IsDefaultValue(m_extrapolate))
+  if (isDefaultValue(m_extrapolate))
   {
     SetParamValueExtrapolate(args, CBratAlgoFilterLanczos::m_EXTRAPOLATE_PARAM_INDEX);
   }
@@ -339,7 +339,7 @@ void CBratAlgoFilterLanczos::PrepareDataWindow(ComputeMode mode, const CDoubleAr
   for (uint32_t i = 0 ; i < m_dataWindowLength ; i++)
   {
     double value = m_rawDataWindow[i];
-    if (CTools::IsDefaultValue(value))
+    if (isDefaultValue(value))
     {
       str.append("DV ");
     }
@@ -390,7 +390,7 @@ void CBratAlgoFilterLanczos::PrepareDataWindowVertical(const CDoubleArray& dataV
 {
 
   int32_t offset = m_addWidthLeft;
-  uint32_t sizeData = dataValue.size();
+  size_t sizeData = dataValue.size();
 
   for (uint32_t i = 0 ; i < sizeData ; i++)
   {
@@ -420,18 +420,18 @@ void CBratAlgoFilterLanczos::PrepareDataWindowVertical(const CDoubleArray& dataV
 double CBratAlgoFilterLanczos::Lanczos(uint32_t support, double cutOffFrequency,  double x)
 {
   double value;
-  CTools::SetDefaultValue(value);
+  setDefaultValue(value);
 
 
-  if (CTools::IsDefaultValue(support))
+  if (isDefaultValue(support))
   {
     return value;
   }
-  if (CTools::IsDefaultValue(cutOffFrequency))
+  if (isDefaultValue(cutOffFrequency))
   {
     return value;
   }
-  if (CTools::IsDefaultValue(x))
+  if (isDefaultValue(x))
   {
     return value;
   }
@@ -505,7 +505,7 @@ double CBratAlgoFilterLanczos::ApplyFilter(ComputeMode mode, uint32_t from)
 	double sum = 0.0;
   for (uint32_t i = 0; i < m_dataWindowLength; i++)
   {
-    if (CTools::IsDefaultValue(m_rawDataWindow.at(i)))
+    if (isDefaultValue(m_rawDataWindow.at(i)))
     {
       continue;
     }
@@ -531,7 +531,7 @@ double CBratAlgoFilterLanczos::ApplyFilter(ComputeMode mode, uint32_t from)
   }
 
   // Middle point treatment
-  if (!CTools::IsDefaultValue(m_rawDataWindow.at(halfWindow)))
+  if (!isDefaultValue(m_rawDataWindow.at(halfWindow)))
   {
     sum += m_initialWeights.at(halfWindow) * m_rawDataWindow.at(halfWindow);
   }

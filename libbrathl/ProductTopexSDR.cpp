@@ -23,15 +23,14 @@
 #include <cstdio>
 #include <cstring> 
 #include <typeinfo> 
-
-#include "brathl_error.h" 
-#include "brathl.h" 
-
 #include <string> 
 
-#include "TraceLog.h" 
+#include "new-gui/Common/tools/brathl_error.h" 
+#include "brathl.h" 
+
+#include "new-gui/Common/tools/TraceLog.h" 
 #include "Tools.h" 
-#include "Exception.h" 
+#include "new-gui/Common/tools/Exception.h" 
 #include "ProductTopex.h" 
 #include "ProductTopexSDR.h" 
 
@@ -101,7 +100,7 @@ void CProductTopexSDR::Init()
   m_numHighResolutionMeasure = 10;
 
   // WARNING  Reference point of high resolution measures will be computed when the real number (dim.) of high resolution data will be set
-  CTools::SetDefaultValue(m_refPoint);
+  setDefaultValue(m_refPoint);
  
   // WARNING InitCriteriaInfo() is calles in the CProductTopex::Init() function
   
@@ -283,13 +282,13 @@ void CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation()
   // This dataset will contains as  many records as number of high resolution measures (m_numHighResolutionMeasure)
   CDataSet dataSetHighResolution("HighResolution", false);
 
-  if (CTools::IsDefaultValue(m_previousLatitude))
+  if (isDefaultValue(m_previousLatitude))
   {
     std::string msg = "ERROR in CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation - previous latitude value read is inconsistent (is default value)";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
     throw (e);
   }
-  if (CTools::IsDefaultValue(m_previousLongitude))
+  if (isDefaultValue(m_previousLongitude))
   {
     std::string msg = "ERROR in CProductTopexSDR::ProcessHighResolutionWithoutFieldCalculation - previous longitude value read is inconsistent (is default value)";
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
@@ -402,7 +401,7 @@ void CProductTopexSDR::ComputeHighResolutionFields(CDataSet* dataSet, double del
   CFieldSetDbl *fieldSetTimeStampMillisecond = NULL;
   CFieldSetDbl *fieldSetTimeStampMicrosecond = NULL;
 
-  int32_t count = dataSet->size();
+  size_t count = dataSet->size();
 
   for (int32_t index = 0 ; index < count ; index++)
   {
@@ -465,7 +464,7 @@ void CProductTopexSDR::ComputeHighResolutionFields(CDataSet* dataSet, double del
       
 
       
-    if (CTools::IsDefaultValue(m_deltaTimeHighResolution))
+    if (isDefaultValue(m_deltaTimeHighResolution))
     {
       std::string msg = "ERROR in CProductTopexSDR::ComputeHighResolutionFields - high resolution delta time has no been set";
       CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
@@ -532,7 +531,7 @@ void CProductTopexSDR::CheckConsistencyHighResolutionField(CFieldSetArrayDbl* fi
     throw (e);
   }
 
-  if (CTools::IsDefaultValue(m_numHighResolutionMeasure))
+  if (isDefaultValue(m_numHighResolutionMeasure))
   {
     std::string msg = CTools::Format("ERROR - CProductTopexSDR::CheckConsistencyHighResolutionField() - Number of high resolution measures is not intialized (equals default value"
                                 "(field '%s')", 
@@ -541,7 +540,7 @@ void CProductTopexSDR::CheckConsistencyHighResolutionField(CFieldSetArrayDbl* fi
     CProductException e(msg, m_currFileName, GetProductClass(), GetProductType(), BRATHL_INCONSISTENCY_ERROR);
     throw (e);
   }
-  if (CTools::IsDefaultValue(m_lowRateNumHighResolutionMeasure))
+  if (isDefaultValue(m_lowRateNumHighResolutionMeasure))
   {
     std::string msg = CTools::Format("ERROR - CProductTopexSDR::CheckConsistencyHighResolutionField() - Number of low rate high resolution measures is not intialized (equals default value"
                                 "(field '%s')", 
@@ -583,7 +582,7 @@ void CProductTopexSDR::PutFlatHighResolution(CDataSet* dataSet, CFieldSetArrayDb
   uint32_t dimFieldSetArrayDbl = fieldSetArrayDbl->m_dim[0];
   double ratio = CTools::Divide(dimFieldSetArrayDbl, m_numHighResolutionMeasure);
 
-  if (CTools::IsDefaultValue(ratio))
+  if (isDefaultValue(ratio))
   {
     std::string msg = CTools::Format("ERROR - CProductTopexSDR::PutFlatHighResolution() - Ratio is equals to 'default value' (dimFieldSetArrayDbl=%d, m_numHighResolutionMeasure=%d)."
                                 "(field '%s')", 
