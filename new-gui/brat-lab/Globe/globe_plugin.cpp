@@ -204,7 +204,7 @@ private:
   GlobePlugin* mGlobe;
 };
 
-osgViewer::Viewer* GlobePlugin::run()
+osgViewer::Viewer* GlobePlugin::run( const std::string &imgDir )
 {
 	assert( !mOsgViewer );
 
@@ -286,7 +286,7 @@ osgViewer::Viewer* GlobePlugin::run()
 		osgEarth::Util::Viewpoint( nullptr, -90, 0, 0, 0.0, -90.0, 2e7 ),
 		1.0 );
 
-	setupControls();
+	setupControls( imgDir );
 
 	// add our handlers
 	mOsgViewer->addEventHandler( new FlyToExtentHandler( this ) );
@@ -511,13 +511,8 @@ void GlobePlugin::setVerticalScale( double value )
 }
 #endif
 
-void GlobePlugin::setupControls()
+void GlobePlugin::setupControls( const std::string &imgDir )
 {
-  std::string imgDir = QDir::cleanPath( QgsApplication::pkgDataPath() + "/globe/gui" ).toStdString();
-  if ( QgsApplication::isRunningFromBuildDir() )
-  {
-    imgDir = QDir::cleanPath( QgsApplication::buildSourcePath() + "/src/plugins/globe/images/gui" ).toStdString();
-  }
   osgEarth::Util::EarthManipulator* manip = dynamic_cast<osgEarth::Util::EarthManipulator*>( mOsgViewer->getCameraManipulator() );
 
   osg::Image* yawPitchWheelImg = osgDB::readImageFile( imgDir + "/YawPitchWheel.png" );

@@ -71,7 +71,7 @@ public:
 
 public slots:
 	//! Show the dialog box
-	osgViewer::Viewer* run();
+	osgViewer::Viewer* run( const std::string &imgDir );
 	//! Show the settings dialog box
 	void settings();
 	//!  Reset globe
@@ -127,7 +127,7 @@ private:
 	//!  Setup map
 	void setupMap();
 	//!  Setup map controls
-	void setupControls();
+	void setupControls( const std::string &imgDir );
 
 private://! Checks if the globe is open
 	//! Pointer to the QGIS interface object

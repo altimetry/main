@@ -15,18 +15,37 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
 #include "stdafx.h"
 
-#include "new-gui/Common/QtFileUtils.h"
-
-//#include "libbrathl/TraceLog.h"
-//#include "Exception.h"
-
-//#include "wxBratTools.h"
+#include "../Common/QtFileUtils.h"
 
 #include "BratTask.h"
 //#include "SchedulerTaskConfig.h"
+
+#include "new-gui/Common/ScheduledTasksList.hxx"
+#include "../Common/XmlSerializer.h"            // use after generated ScheduledTasksList.hxx
+
+
+///////////////////////////////////////////////////////////////////////////////////////////
+//
+///////////////////////////////////////////////////////////////////////////////////////////
+
+#if defined (__unix__)
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
+
+#include "new-gui/Common/ScheduledTasksList.cxx"
+
+
+#if defined (__unix__)
+#pragma GCC diagnostic warning "-Wdeprecated-declarations"
+#endif
+
+///////////////////////////////////////////////////////////////////////////////////////////
+//
+///////////////////////////////////////////////////////////////////////////////////////////
+
 
 // When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
@@ -268,6 +287,70 @@ void CMapBratTaskFunction::Dump(std::ostream& fOut /* = std::cerr */)
 //-------------------------------------------------------------
 //------------------- CBratTask class --------------------
 //-------------------------------------------------------------
+
+	// serialization
+
+
+//__cdecl brathl::CException::CException(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,int)" (??0CException@brathl@@QEAA@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@H@Z) referenced in function "public: static void __cdecl CBratTaskFunction::CopyFileW(class brathl::CVectorBratAlgorithmParam &)" (?CopyFileW@CBratTaskFunction@@SAXAEAVCVectorBratAlgorithmParam@brathl@@@Z)
+//__cdecl brathl::CException::~CException(void)" (??1CException@brathl@@UEAA@XZ) referenced in function "public: virtual class CBratTaskFunction * __cdecl CMapBratTaskFunction::Insert(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,class CBratTaskFunction *,bool)" (?Insert@CMapBratTaskFunction@@UEAAPEAVCBratTaskFunction@@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PEAV2@_N@Z)
+//__cdecl brathl::CException::Dump(class std::basic_ostream<char,struct std::char_traits<char> > &)" (?Dump@CException@brathl@@UEAAXAEAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z)
+//__cdecl brathl::CException::what(void)const " (?what@CException@brathl@@UEBAPEBDXZ)
+//__cdecl brathl::CVectorBratAlgorithmParam::CVectorBratAlgorithmParam(void)" (??0CVectorBratAlgorithmParam@brathl@@QEAA@XZ) referenced in function "public: __cdecl CBratTaskFunction::CBratTaskFunction(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,void (__cdecl*)(class brathl::CVectorBratAlgorithmParam &))" (??0CBratTaskFunction@@QEAA@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@P6AXAEAVCVectorBratAlgorithmParam@brathl@@@Z@Z)
+//__cdecl brathl::CVectorBratAlgorithmParam::CVectorBratAlgorithmParam(void)" (??0CVectorBratAlgorithmParam@brathl@@QEAA@XZ)
+//__cdecl brathl::CVectorBratAlgorithmParam::~CVectorBratAlgorithmParam(void)" (??1CVectorBratAlgorithmParam@brathl@@UEAA@XZ) referenced in function "int `public: __cdecl CBratTaskFunction::CBratTaskFunction(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,void (__cdecl*)(class brathl::CVectorBratAlgorithmParam &))'::`1'::dtor$1" (?dtor$1@?0???0CBratTaskFunction@@QEAA@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@P6AXAEAVCVectorBratAlgorithmParam@brathl@@@Z@Z@4HA)
+//__cdecl brathl::CVectorBratAlgorithmParam::~CVectorBratAlgorithmParam(void)" (??1CVectorBratAlgorithmParam@brathl@@UEAA@XZ)
+//__cdecl brathl::CVectorBratAlgorithmParam::Insert(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &)" (?Insert@CVectorBratAlgorithmParam@brathl@@QEAAXAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z) referenced in function "public: __cdecl CBratTask::CBratTask(class task const &)" (??
+
+CBratTask::CBratTask( const task &oxml )				//USED ON LOAD
+{
+	m_uid = oxml.uid();
+	m_name = oxml.name();
+	m_cmd = fromOpt( oxml.cmd(), std::string() );
+
+	CBratTaskFunction* functionRef = CMapBratTaskFunction::GetInstance().Find( fromOpt( oxml.function(), std::string() ) );
+	SetBratTaskFunction( functionRef );
+	if ( oxml.task1().present() )										//femm!!! NOT CLEAR so far: there can only be one child t the same level????????
+		GetSubordinateTasks()->Insert( new CBratTask( *oxml.task1() ) );
+
+	//wxXmlNode* argNode = taskNode->GetChildren();
+	CVectorBratAlgorithmParam* params = GetBratTaskFunction()->GetParams();
+	auto const &args = oxml.arg();
+	for ( auto ii = args.begin(); ii != args.end(); ++ii )
+	{
+		params->Insert( *ii );
+	}
+
+	//while ( argNode != NULL )
+	//{
+	//	if ( argNode->GetName().CmpNoCase( CSchedulerTaskConfig::m_ARG_ELT ) == 0 )
+	//	{
+	//		wxXmlNode* argTextNode = argNode->GetChildren();
+	//		if ( argTextNode != NULL )
+	//		{
+	//			params->Insert( argTextNode->GetContent().ToStdString() );
+	//		}
+	//	}
+	//	argNode = argNode->GetNext();
+	//}
+
+	SetAt( oxml.at() );
+	m_status = enum_cast<Status>( oxml.status() );
+	m_logFile = oxml.logFile();
+}
+
+task& CBratTask::IOcopy( task &oxml ) const			//USED ON STORE
+{
+	oxml.uid( m_uid );
+	oxml.name( m_name );
+	oxml.cmd( m_cmd );
+	oxml.at( GetAtAsString() );
+	oxml.status( enum_reverse_cast< task::status_type >( m_status ) );
+	oxml.logFile( m_logFile );
+
+	return oxml;
+}
+
+
 void CBratTask::Dump( std::ostream& fOut )	//fOut = std::cerr
 {
 	// femm !!! : comment in, when trace and log modules decoupled from all externals stuff
@@ -577,20 +660,3 @@ void CVectorBratTask::Dump(std::ostream& fOut /* = std::cerr */)
   fOut << std::endl;
 
 }
-
-
-///////////////////////////////////////////////////////////////////////////////////////////
-//
-///////////////////////////////////////////////////////////////////////////////////////////
-
-#if defined (__unix__)
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#endif
-
-
-#include "new-gui/Common/ScheduledTasksList.cxx"
-
-
-#if defined (__unix__)
-#pragma GCC diagnostic warning "-Wdeprecated-declarations"
-#endif

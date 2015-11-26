@@ -32,7 +32,7 @@
 //#include <wx/colourdata.h>
 //
 #include "../libbrathl/brathl.h"
-#include "BratObject.h"
+#include "../libbrathl/BratObject.h"
 #include "../libbrathl/Tools.h"
 using namespace brathl;
 

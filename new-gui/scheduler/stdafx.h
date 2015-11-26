@@ -18,6 +18,15 @@
 #endif
 
 
+#if defined(WIN32)
+//avoid later inclusion of Microsoft XML stuff, which causes name collisions with xerces
+#define DOMDocument MsDOMDocument
+#include <msxml.h>
+#include <urlmon.h>
+#undef DOMDocument
+#endif		//WIN32
+
+
 #if defined HAVE_STAT			 	//Python also defines this
 #define SAVE_HAVE_STAT	HAVE_STAT
 #undef HAVE_STAT

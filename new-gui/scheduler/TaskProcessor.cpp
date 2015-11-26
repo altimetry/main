@@ -2,6 +2,7 @@
 
 #include "new-gui/Common/+Utils.h"
 #include "new-gui/Common/ScheduledTasksList.hxx"
+#include "new-gui/Common/XmlSerializer.h"
 
 #include "TaskProcessor.h"
 #include "BratTask.h"

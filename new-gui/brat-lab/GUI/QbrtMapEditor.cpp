@@ -26,6 +26,7 @@
 
 #include "qgsapplayertreeviewmenuprovider.h"
 
+#include "new-gui/Common/QtFileUtils.h"
 
 #include "new-gui/Common/tools/Trace.h"
 
@@ -448,11 +449,11 @@ void QbrtMapCanvas::addGrid()
 
 void QbrtMapCanvas::addLabelsLayer()
 {
-	QString myLayerPath         = "E:/VMachines/S3-ALTB/software/COTS/B/QGIS/QGIS-Code-Examples-master/3_basic_labelling/data";
+	QString mVectorLayerPath         = "E:/VMachines/S3-ALTB/software/COTS/B/QGIS/QGIS-Code-Examples-master/3_basic_labelling/data";
 	QString myLayerBaseName     = "test";
 	QString myProviderName      = "ogr";
 
-	QgsVectorLayer * mMainLayer = new QgsVectorLayer( myLayerPath, myLayerBaseName, myProviderName );
+	QgsVectorLayer * mMainLayer = new QgsVectorLayer( mVectorLayerPath, myLayerBaseName, myProviderName );
 
 	if ( mMainLayer->isValid() )
 	{
@@ -482,7 +483,7 @@ void QbrtMapCanvas::addLabelsLayer()
 	//get the field list associated with the layer
 	//we'll print the names out to console for diagnostic purposes
 	QgsFields myFields = mMainLayer->dataProvider()->fields();
-	for ( unsigned int i = 0; i < myFields.size(); i++ )
+	for ( int i = 0; i < myFields.size(); i++ )
 	{
 		qDebug( "Field Name: " + QString( myFields[ i ].name() ).toLocal8Bit() );
 	}
@@ -532,7 +533,120 @@ void QbrtMapCanvas::addLabelsLayer()
 }
 
 
+//
+#if defined(_WIN32)
+	#if defined(_WIN64)
+		#define PLATFORM_SUBDIR "x64"
+	#else defined(_WIN32)
+		#define PLATFORM_SUBDIR "Win32"
+	#endif
+#else
+	#if defined(__LP64__) || defined(__x86_64__)
+		#define PLATFORM_SUBDIR "x86_64"
+	#else
+		#define PLATFORM_SUBDIR "i386"
+	#endif
+#endif
 
+#if defined(_DEBUG) || defined(DEBUG)
+	#define CONFIG_SUBDIR "Debug"
+#else
+	#define CONFIG_SUBDIR "Release"
+#endif
+
+#if defined(_WIN32)
+	#define QGIS_PLUGINS_SUBDIR "plugins"
+#elif defined (__APPLE__)
+    #define QGIS_PLUGINS_SUBDIR "QGIS.app/Contents/PlugIns/qgis"
+#else
+	#define QGIS_PLUGINS_SUBDIR "lib/qgis/plugins"
+#endif
+
+struct ApplicationDirectories
+{
+	std::string mBasePath;
+	std::string mPlatform;
+	std::string mConfiguration;
+
+	std::string mQgisDir;
+	std::string mQgisPluginsDir;
+
+	std::string mExecutableDir;
+	std::string mInternalDataDir;
+	std::string mExternalDataDir;
+
+	std::string mRasterLayerPath;
+	std::string mVectorLayerPath;
+
+	std::string mGlobeDir;
+
+	static std::string computeBaseDirectory()
+	{
+		auto s3root = getenv( "S3ALTB_ROOT" );
+		if ( s3root )
+			return s3root;
+
+		return std::string();
+	}
+	static std::string computeInternalDataDirectory( const std::string &ExecutableDir )
+	{
+		std::string InternalDataDir;
+		auto s3data = getenv( "BRAT_DATA_DIR" );
+		if ( s3data )
+			InternalDataDir = s3data;
+        else
+        {
+            InternalDataDir = getDirectoryFromPath( ExecutableDir );    //strip first parent directory (MacOS in mac)
+        #if defined (__APPLE__)
+            InternalDataDir = getDirectoryFromPath( InternalDataDir );  //strip Contents
+            InternalDataDir = getDirectoryFromPath( InternalDataDir );  //strip brat.app
+            InternalDataDir = getDirectoryFromPath( InternalDataDir );  //strip wherever brat.app is
+        #endif
+            InternalDataDir += "/data";
+        }
+        return InternalDataDir;
+	}
+private:
+	ApplicationDirectories() :
+		  mBasePath( computeBaseDirectory() )
+		, mPlatform( PLATFORM_SUBDIR )
+		, mConfiguration( CONFIG_SUBDIR )
+
+		, mQgisDir( mBasePath + "/lib/Graphics/QGIS/default/bin/" + mPlatform + "/" + mConfiguration )
+		, mQgisPluginsDir( mQgisDir + "/" + QGIS_PLUGINS_SUBDIR )
+
+		, mExecutableDir( getDirectoryFromPath( qApp->argv()[ 0 ] ) )
+		, mInternalDataDir( computeInternalDataDirectory( mExecutableDir ) )
+		, mExternalDataDir( mBasePath + "/lib/data" )
+
+		, mRasterLayerPath( mExternalDataDir + "/maps/NE1_HR_LC_SR_W_DR/NE1_HR_LC_SR_W_DR.tif" )
+		, mVectorLayerPath( mExternalDataDir + "/maps/ne_10m_coastline/ne_10m_coastline.shp" )
+	{
+		//mGlobeDir = QDir::cleanPath( QgsApplication::pkgDataPath() + "/globe/gui" ).toStdString();
+		//if ( QgsApplication::isRunningFromBuildDir() )
+		//{
+		//	mGlobeDir = QDir::cleanPath( QgsApplication::buildSourcePath() + "/src/plugins/globe/images/gui" ).toStdString();
+		//}
+		mGlobeDir = mExternalDataDir + "/globe/gui";
+	}
+
+public:
+	static const ApplicationDirectories& instance()
+	{
+		static const ApplicationDirectories ad;
+		if ( !ad.valid() )
+			SimpleErrorBox("Some standard application directories or files are not valid.\nIt will continue but more or less serious errors are to be expected.\nUsers like you are a disgrace.");
+		return ad;
+	}
+
+	bool valid() const 
+	{ 
+		return 
+			!mBasePath.empty() && !mInternalDataDir.empty() &&
+			IsDir( mBasePath ) && IsDir( mInternalDataDir ) &&
+			IsFile( mRasterLayerPath) && IsFile( mVectorLayerPath ); 
+	}
+};
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -544,6 +658,8 @@ void QbrtMapCanvas::addLabelsLayer()
 
 QbrtMapCanvas::QbrtMapCanvas(QWidget *parent) : base_t(parent)
 {
+	static const ApplicationDirectories &ad = ApplicationDirectories::instance();
+
 	//char *argv[] =
 	//{
 	//	"",
@@ -554,7 +670,7 @@ QbrtMapCanvas::QbrtMapCanvas(QWidget *parent) : base_t(parent)
 	//const int argc = sizeof(argv) / sizeof(*argv);
 
 	//if ( !gshhs( argc, argv ) )
-	//	std::cout << "porra" << std::endl;
+	//	std::cout << "error" << std::endl;
 
     //connect( document(), SIGNAL(modificationChanged(bool)), this, SLOT(setWindowModified(bool)));
     //if ( qobject_cast< QMainWindow* >( parent ) )
@@ -563,49 +679,11 @@ QbrtMapCanvas::QbrtMapCanvas(QWidget *parent) : base_t(parent)
     //    connect( this, SIGNAL( setCurrentFile( const QbrtMapEditor* )), parent, SLOT(setCurrentFile( const QbrtMapEditor* )) );
     //}
 
-#if defined(_WIN32)
-	#if defined(_WIN64)
-        #define SUBDIR "x64"
-	#else defined(_WIN32)
-        #define SUBDIR "Win32"
-	#endif
-#else
-    #if defined(__LP64__) || defined(__x86_64__)
-        #define SUBDIR "x86_64"
-    #else
-        #define SUBDIR "i386"
-    #endif
-#endif
-
-#if defined(WIN32)
-#if defined(_DEBUG) || defined(DEBUG)
-    QString myPluginsDir        = "L:\\lib\\Graphics\\QGIS\\default\\bin\\" SUBDIR "\\Debug\\plugins";
-#else
-    QString myPluginsDir        = "L:\\lib\\Graphics\\QGIS\\default\\bin\\" SUBDIR "\\Release\\plugins";
-#endif
-    //QString myLayerPath         = "L:\\lib\\Graphics\\QGIS\\default\\source\\tests\\testdata\\france_parts.shp";
-	//QString myLayerPath         = "E:\\VMachines\\S3-ALTB\\software\\COTS\\B\\QGIS\\data\\ne_10m_admin_0_countries\\ne_10m_admin_0_countries.shp";
-	//QString myLayerPath         = "E:\\VMachines\\S3-ALTB\\software\\COTS\\B\\QGIS\\data\\ne_110m_admin_0_countries\\ne_110m_admin_0_countries.shp";
-	QString myRasterLayerPath   = "L:\\project\\workspaces\\data\\maps\\NE1_HR_LC_SR_W_DR\\NE1_HR_LC_SR_W_DR.tif";
-	QString myLayerPath         = "L:\\project\\dev\\source\\new-gui\\brat-lab\\res\\maps\\ne_10m_coastline\\ne_10m_coastline.shp";
-	//QString myLayerPath         = "L:\\project\\dev\\source\\data\\stuff\\data.dbf";
-	//QString myLayerPath         = file2;
-#else
-#if defined(_DEBUG) || defined(DEBUG)
-    QString myPluginsDir        = "/home/brat/dev/lib/Graphics/QGIS/default/bin/" SUBDIR "/Debug/lib/qgis/plugins";
-#else
-    QString myPluginsDir        = "/home/brat/dev/lib/Graphics/QGIS/default/bin/" SUBDIR "/Release/lib/qgis/plugins";
-#endif
-    QString myRasterLayerPath   = "/home/brat/s3-altb/project/workspaces/data/maps/NE1_HR_LC_SR_W_DR/NE1_HR_LC_SR_W_DR.tif";
-    QString myLayerPath         = "/home/brat/s3-altb/project/dev/source/new-gui/brat-lab/res/maps/ne_10m_coastline/ne_10m_coastline.shp";
-#endif
-
-
     QString myLayerBaseName     = "italy";
     QString myProviderName      = "ogr";
 
     // Instantiate Provider Registry
-    QgsProviderRegistry *preg = QgsProviderRegistry::instance(myPluginsDir);
+    QgsProviderRegistry *preg = QgsProviderRegistry::instance( t2q( ad.mQgisPluginsDir ) );
 	Q_UNUSED( preg );
 
 	//QString source, dest;
@@ -614,12 +692,12 @@ QbrtMapCanvas::QbrtMapCanvas(QWidget *parent) : base_t(parent)
 	//else
 	//	qDebug() << dest;
 	
-	mMainLayer = addOGRLayer( myLayerPath );
+	mMainLayer = addOGRLayer( t2q( ad.mVectorLayerPath ) );
 	mMainLayer->rendererV2()->symbols()[ 0 ]->setColor( "black" );
 
-	mMainRasterLayer = addRasterLayer( myRasterLayerPath, "raster", "" );
+	mMainRasterLayer = addRasterLayer( t2q( ad.mRasterLayerPath ), "raster", "" );
 
-    //mMainLayer =  new QgsVectorLayer(myLayerPath, myLayerBaseName, myProviderName);
+    //mMainLayer =  new QgsVectorLayer(mVectorLayerPath, myLayerBaseName, myProviderName);
     //QgsSingleSymbolRendererV2 *mypRenderer = new QgsSingleSymbolRendererV2(QgsSymbolV2::defaultSymbol(mMainLayer->geometryType()));
 
     //mMainLayer->setRendererV2(mypRenderer);    mMainLayer->isValid() ? qDebug("Layer is valid") : qDebug("Layer is NOT valid");
@@ -744,10 +822,12 @@ void QbrtMapEditor::action_View_Globe( bool visible )
 
 void QbrtMapEditor::createGlobe()
 {
+	static const ApplicationDirectories &ad = ApplicationDirectories::instance();
+
 	if ( !mGlobe /* && mSplitter*/)
 	{
 		mGlobe = new GlobePlugin( nullptr, mMapCanvas );
-		mOsgViewer = mGlobe->run();						//can return null
+		mOsgViewer = mGlobe->run( ad.mGlobeDir );						//can return null
 
 		mGlobeViewerWidget = new osgEarth::QtGui::ViewerWidget( mOsgViewer );	//mGlobeViewerWidget->setGeometry( 100, 100, 1024, 800 );	//mGlobeViewerWidget->show();
 		osg::Camera* camera = mOsgViewer->getCamera();
@@ -1246,6 +1326,7 @@ void QbrtMapCanvas::CreateWPlot( const CmdLineProcessor *proc, CWPlot* wplot )
 	wplot->GetInfo();
 
 	CWorldPlotProperty* wPlotProperty = proc->GetWorldPlotProperty( 0 );
+	UNUSED( wPlotProperty );
 
 	//TODO CWorldPlotFrame* frame = new CWorldPlotFrame( NULL, -1, title, wPlotProperty, pos, size );
 
@@ -1340,7 +1421,7 @@ void QbrtMapCanvas::AddData( CWorldPlotData* pdata )
 
 #if defined (USE_POINTS)	//(**)
 
-	for ( auto i = 0; i < size; ++ i )
+	for ( auto i = 0u; i < size; ++ i )
 	{
 		if ( !IsValidPoint( i ) )
 			continue;
