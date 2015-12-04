@@ -391,7 +391,7 @@ void CParameter::GetValue(std::string& value, int32_t pos /* = 0*/, const std::s
 }
 
 //----------------------------------------
-void CParameter::GetValue(char* value, int32_t bufferSize, int32_t pos /* = 0*/, const char *DefValue /*=""*/)
+void CParameter::GetValue(char* value, size_t bufferSize, int32_t pos /* = 0*/, const char *DefValue /*=""*/)
 {
   memset(value, '\0', bufferSize);
 

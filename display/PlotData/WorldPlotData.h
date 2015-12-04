@@ -176,7 +176,7 @@ public:
   virtual void Update() {}
 
   virtual std::string GetDataTitle() {return "";}
-  virtual std::string GetDataTitle(uint32_t index) {return "";}
+  virtual std::string GetDataTitle(uint32_t index) { UNUSED(index); return "";}
 
   virtual std::string GetDataName() {return "";}
 

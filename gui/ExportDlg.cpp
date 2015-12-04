@@ -164,6 +164,8 @@ void CExportDlg::CalculateColorValueRange( void )
 //----------------------------------------
 void CExportDlg::OnDelayExecution( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   m_delayExecution = false;
   
   int32_t result = m_delayDlg.ShowModal();
@@ -181,6 +183,8 @@ void CExportDlg::OnDelayExecution( wxCommandEvent &event )
 //----------------------------------------
 void CExportDlg::OnNoDataComputation( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   m_noDataComputation = GetExportNoDataComputation()->GetValue();
 
   bool enableExecAgain = AsNetCdf() || (AsAscii() && !m_noDataComputation);
@@ -192,30 +196,31 @@ void CExportDlg::OnNoDataComputation( wxCommandEvent &event )
 //----------------------------------------
 void CExportDlg::OnExpandArray( wxCommandEvent &event )
 {
-  m_expandArray = GetExpandArray()->GetValue();
+    UNUSED(event);
 
+  m_expandArray = GetExpandArray()->GetValue();
 }
 //----------------------------------------
 
 void CExportDlg::OnDateAsPeriod( wxCommandEvent &event )
 {
-  m_dateAsPeriod = GetDateAsPeriod()->GetValue();
+    UNUSED(event);
 
+  m_dateAsPeriod = GetDateAsPeriod()->GetValue();
 }
 
 //----------------------------------------
 void CExportDlg::OnExecAgain( wxCommandEvent &event )
 {
+    UNUSED(event);
 
   m_executeAgain = GetExecagain()->GetValue();
-
 }
 //----------------------------------------
 void CExportDlg::OnFormat( wxCommandEvent &event )
 {
   int32_t sel = event.GetInt();
   Format(sel);
-
 }
 //----------------------------------------
 void CExportDlg::Format( int32_t format )
@@ -265,6 +270,8 @@ void CExportDlg::Format( int32_t format )
 //----------------------------------------
 void CExportDlg::OnBrowse( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   m_currentName.Assign(GetExportoutputfile()->GetValue());
   m_currentName.Normalize();
 
@@ -291,6 +298,8 @@ void CExportDlg::OnBrowse( wxCommandEvent &event )
 
 void CExportDlg::OnCalcColorRange( wxCommandEvent &event )
 {
+    UNUSED(event);
+
     CalculateColorValueRange();
 }
 //----------------------------------------

@@ -445,6 +445,8 @@ bool CBratGuiApp::CanDeleteOperation(const wxString& name, CStringArray* display
 //----------------------------------------
 bool CBratGuiApp::CanDeleteDisplay(const wxString& name)
 {
+    UNUSED(name);
+
   bool canDelete = true;
 
   return canDelete;
@@ -665,6 +667,8 @@ bool CBratGuiApp::SaveConfig(bool flush)
 //----------------------------------------
 bool CBratGuiApp::SaveConfigSelectionCriteria(bool flush)
 {
+    UNUSED(flush);
+
   bool bOk = true;
   if (m_config == NULL)
   {

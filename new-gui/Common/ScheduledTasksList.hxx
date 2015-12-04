@@ -254,11 +254,11 @@ class pendingTasks;
 class endedTasks;
 class bratSchedulerConfig;
 class arg;
-class uid;
-class status;
-class name;
-class function;
 class at;
+class function;
+class name;
+class status;
+class uid;
 class type;
 
 #include <memory>    // ::std::auto_ptr
@@ -315,73 +315,22 @@ class task: public ::xml_schema::type
   void
   task1 (::std::auto_ptr< task1_type > p);
 
-  // uid
+  // at
   //
-  typedef ::uid uid_type;
-  typedef ::xsd::cxx::tree::traits< uid_type, char > uid_traits;
+  typedef ::at at_type;
+  typedef ::xsd::cxx::tree::traits< at_type, char > at_traits;
 
-  const uid_type&
-  uid () const;
+  const at_type&
+  at () const;
 
-  uid_type&
-  uid ();
-
-  void
-  uid (const uid_type& x);
+  at_type&
+  at ();
 
   void
-  uid (::std::auto_ptr< uid_type > p);
-
-  // status
-  //
-  typedef ::status status_type;
-  typedef ::xsd::cxx::tree::traits< status_type, char > status_traits;
-
-  const status_type&
-  status () const;
-
-  status_type&
-  status ();
+  at (const at_type& x);
 
   void
-  status (const status_type& x);
-
-  void
-  status (::std::auto_ptr< status_type > p);
-
-  // name
-  //
-  typedef ::name name_type;
-  typedef ::xsd::cxx::tree::traits< name_type, char > name_traits;
-
-  const name_type&
-  name () const;
-
-  name_type&
-  name ();
-
-  void
-  name (const name_type& x);
-
-  void
-  name (::std::auto_ptr< name_type > p);
-
-  // logFile
-  //
-  typedef ::xml_schema::string logFile_type;
-  typedef ::xsd::cxx::tree::traits< logFile_type, char > logFile_traits;
-
-  const logFile_type&
-  logFile () const;
-
-  logFile_type&
-  logFile ();
-
-  void
-  logFile (const logFile_type& x);
-
-  void
-  logFile (::std::auto_ptr< logFile_type > p);
+  at (::std::auto_ptr< at_type > p);
 
   // function
   //
@@ -425,32 +374,83 @@ class task: public ::xml_schema::type
   void
   cmd (::std::auto_ptr< cmd_type > p);
 
-  // at
+  // logFile
   //
-  typedef ::at at_type;
-  typedef ::xsd::cxx::tree::traits< at_type, char > at_traits;
+  typedef ::xml_schema::string logFile_type;
+  typedef ::xsd::cxx::tree::traits< logFile_type, char > logFile_traits;
 
-  const at_type&
-  at () const;
+  const logFile_type&
+  logFile () const;
 
-  at_type&
-  at ();
-
-  void
-  at (const at_type& x);
+  logFile_type&
+  logFile ();
 
   void
-  at (::std::auto_ptr< at_type > p);
+  logFile (const logFile_type& x);
+
+  void
+  logFile (::std::auto_ptr< logFile_type > p);
+
+  // name
+  //
+  typedef ::name name_type;
+  typedef ::xsd::cxx::tree::traits< name_type, char > name_traits;
+
+  const name_type&
+  name () const;
+
+  name_type&
+  name ();
+
+  void
+  name (const name_type& x);
+
+  void
+  name (::std::auto_ptr< name_type > p);
+
+  // status
+  //
+  typedef ::status status_type;
+  typedef ::xsd::cxx::tree::traits< status_type, char > status_traits;
+
+  const status_type&
+  status () const;
+
+  status_type&
+  status ();
+
+  void
+  status (const status_type& x);
+
+  void
+  status (::std::auto_ptr< status_type > p);
+
+  // uid
+  //
+  typedef ::uid uid_type;
+  typedef ::xsd::cxx::tree::traits< uid_type, char > uid_traits;
+
+  const uid_type&
+  uid () const;
+
+  uid_type&
+  uid ();
+
+  void
+  uid (const uid_type& x);
+
+  void
+  uid (::std::auto_ptr< uid_type > p);
 
   // Constructors.
   //
   task ();
 
-  task (const uid_type&,
-        const status_type&,
-        const name_type&,
+  task (const at_type&,
         const logFile_type&,
-        const at_type&);
+        const name_type&,
+        const status_type&,
+        const uid_type&);
 
   task (const ::xercesc::DOMElement& e,
         ::xml_schema::flags f = 0,
@@ -480,13 +480,13 @@ class task: public ::xml_schema::type
   protected:
   arg_sequence arg_;
   task1_optional task1_;
-  ::xsd::cxx::tree::one< uid_type > uid_;
-  ::xsd::cxx::tree::one< status_type > status_;
-  ::xsd::cxx::tree::one< name_type > name_;
-  ::xsd::cxx::tree::one< logFile_type > logFile_;
+  ::xsd::cxx::tree::one< at_type > at_;
   function_optional function_;
   cmd_optional cmd_;
-  ::xsd::cxx::tree::one< at_type > at_;
+  ::xsd::cxx::tree::one< logFile_type > logFile_;
+  ::xsd::cxx::tree::one< name_type > name_;
+  ::xsd::cxx::tree::one< status_type > status_;
+  ::xsd::cxx::tree::one< uid_type > uid_;
 };
 
 class processingTasks: public ::xml_schema::type
@@ -809,168 +809,42 @@ class arg: public ::xml_schema::string
   ::xsd::cxx::tree::one< type_type > type_;
 };
 
-class uid: public ::xsd::cxx::tree::fundamental_base< ::xml_schema::long_, char, ::xml_schema::simple_type >
+class at: public ::xml_schema::string
 {
   public:
-  uid ();
+  // Constructors.
+  //
+  at ();
 
-  uid (::xml_schema::long_ v);
+  at (const char*);
 
-  uid (const ::xercesc::DOMElement& e,
-       ::xml_schema::flags f = 0,
-       ::xml_schema::container* c = 0);
+  at (const ::std::string&);
 
-  uid (const ::xercesc::DOMAttr& a,
-       ::xml_schema::flags f = 0,
-       ::xml_schema::container* c = 0);
+  at (const ::xml_schema::string&);
 
-  uid (const ::std::string& s,
-       const ::xercesc::DOMElement* e,
-       ::xml_schema::flags f = 0,
-       ::xml_schema::container* c = 0);
+  at (const ::xercesc::DOMElement& e,
+      ::xml_schema::flags f = 0,
+      ::xml_schema::container* c = 0);
 
-  uid (const uid& x,
-       ::xml_schema::flags f = 0,
-       ::xml_schema::container* c = 0);
+  at (const ::xercesc::DOMAttr& a,
+      ::xml_schema::flags f = 0,
+      ::xml_schema::container* c = 0);
 
-  virtual uid*
-  _clone (::xml_schema::flags f = 0,
-          ::xml_schema::container* c = 0) const;
-};
+  at (const ::std::string& s,
+      const ::xercesc::DOMElement* e,
+      ::xml_schema::flags f = 0,
+      ::xml_schema::container* c = 0);
 
-class status: public ::xml_schema::string
-{
-  public:
-  enum value
-  {
-    ended,
-    pending
-  };
+  at (const at& x,
+      ::xml_schema::flags f = 0,
+      ::xml_schema::container* c = 0);
 
-  status ();
-
-  status (value v);
-
-  status (const char* v);
-
-  status (const ::std::string& v);
-
-  status (const ::xml_schema::string& v);
-
-  status (const ::xercesc::DOMElement& e,
-          ::xml_schema::flags f = 0,
-          ::xml_schema::container* c = 0);
-
-  status (const ::xercesc::DOMAttr& a,
-          ::xml_schema::flags f = 0,
-          ::xml_schema::container* c = 0);
-
-  status (const ::std::string& s,
-          const ::xercesc::DOMElement* e,
-          ::xml_schema::flags f = 0,
-          ::xml_schema::container* c = 0);
-
-  status (const status& x,
-          ::xml_schema::flags f = 0,
-          ::xml_schema::container* c = 0);
-
-  virtual status*
+  virtual at*
   _clone (::xml_schema::flags f = 0,
           ::xml_schema::container* c = 0) const;
 
-  status&
-  operator= (value v);
-
-  virtual
-  operator value () const
-  {
-    return _xsd_status_convert ();
-  }
-
-  protected:
-  value
-  _xsd_status_convert () const;
-
-  public:
-  static const char* const _xsd_status_literals_[2];
-  static const value _xsd_status_indexes_[2];
-};
-
-class name: public ::xml_schema::string
-{
-  public:
-  enum value
-  {
-    CreateEnv_GDR_04,
-    Env_GDR_04,
-    Env_GDR_04_loess,
-    Gridded_Data,
-    Gridded_Data_STD,
-    J2_240_157_2D,
-    J2_240_157_2D_filtered,
-    J2_240_edit,
-    J2_240_edit_Loess,
-    JA1_GPR,
-    JA2_GPR,
-    Wave_Height,
-    Waveforms,
-    Waveforms_Summer,
-    Wind_Speed,
-    complex,
-    processing,
-    processing2,
-    rccc4,
-    test,
-    test1
-  };
-
-  name ();
-
-  name (value v);
-
-  name (const char* v);
-
-  name (const ::std::string& v);
-
-  name (const ::xml_schema::string& v);
-
-  name (const ::xercesc::DOMElement& e,
-        ::xml_schema::flags f = 0,
-        ::xml_schema::container* c = 0);
-
-  name (const ::xercesc::DOMAttr& a,
-        ::xml_schema::flags f = 0,
-        ::xml_schema::container* c = 0);
-
-  name (const ::std::string& s,
-        const ::xercesc::DOMElement* e,
-        ::xml_schema::flags f = 0,
-        ::xml_schema::container* c = 0);
-
-  name (const name& x,
-        ::xml_schema::flags f = 0,
-        ::xml_schema::container* c = 0);
-
-  virtual name*
-  _clone (::xml_schema::flags f = 0,
-          ::xml_schema::container* c = 0) const;
-
-  name&
-  operator= (value v);
-
-  virtual
-  operator value () const
-  {
-    return _xsd_name_convert ();
-  }
-
-  protected:
-  value
-  _xsd_name_convert () const;
-
-  public:
-  static const char* const _xsd_name_literals_[21];
-  static const value _xsd_name_indexes_[21];
+  virtual 
+  ~at ();
 };
 
 class function: public ::xml_schema::string
@@ -1030,77 +904,135 @@ class function: public ::xml_schema::string
   static const value _xsd_function_indexes_[1];
 };
 
-class at: public ::xml_schema::string
+class name: public ::xml_schema::string
+{
+  public:
+  // Constructors.
+  //
+  name ();
+
+  name (const char*);
+
+  name (const ::std::string&);
+
+  name (const ::xml_schema::string&);
+
+  name (const ::xercesc::DOMElement& e,
+        ::xml_schema::flags f = 0,
+        ::xml_schema::container* c = 0);
+
+  name (const ::xercesc::DOMAttr& a,
+        ::xml_schema::flags f = 0,
+        ::xml_schema::container* c = 0);
+
+  name (const ::std::string& s,
+        const ::xercesc::DOMElement* e,
+        ::xml_schema::flags f = 0,
+        ::xml_schema::container* c = 0);
+
+  name (const name& x,
+        ::xml_schema::flags f = 0,
+        ::xml_schema::container* c = 0);
+
+  virtual name*
+  _clone (::xml_schema::flags f = 0,
+          ::xml_schema::container* c = 0) const;
+
+  virtual 
+  ~name ();
+};
+
+class status: public ::xml_schema::string
 {
   public:
   enum value
   {
-    cxx_2015_11_12_16_44_00,
-    cxx_2015_11_17_18_05_00,
-    cxx_2015_11_20_18_12_00,
-    cxx_2015_11_20_18_30_00,
-    cxx_2015_11_20_18_32_00,
-    cxx_2015_11_20_18_34_00,
-    cxx_2015_11_20_18_35_00,
-    cxx_2015_11_20_18_36_00,
-    cxx_2015_11_20_18_37_00,
-    cxx_2015_11_20_18_38_00,
-    cxx_2015_11_20_18_44_00,
-    cxx_2015_11_20_20_38_00,
-    cxx_2015_11_21_17_39_00,
-    cxx_2015_11_22_17_39_00,
-    cxx_2015_11_23_17_40_00,
-    cxx_2015_11_24_17_40_00,
-    cxx_2015_11_25_17_40_00
+    pending,
+    processing,
+    ended
   };
 
-  at ();
+  status ();
 
-  at (value v);
+  status (value v);
 
-  at (const char* v);
+  status (const char* v);
 
-  at (const ::std::string& v);
+  status (const ::std::string& v);
 
-  at (const ::xml_schema::string& v);
+  status (const ::xml_schema::string& v);
 
-  at (const ::xercesc::DOMElement& e,
-      ::xml_schema::flags f = 0,
-      ::xml_schema::container* c = 0);
+  status (const ::xercesc::DOMElement& e,
+          ::xml_schema::flags f = 0,
+          ::xml_schema::container* c = 0);
 
-  at (const ::xercesc::DOMAttr& a,
-      ::xml_schema::flags f = 0,
-      ::xml_schema::container* c = 0);
+  status (const ::xercesc::DOMAttr& a,
+          ::xml_schema::flags f = 0,
+          ::xml_schema::container* c = 0);
 
-  at (const ::std::string& s,
-      const ::xercesc::DOMElement* e,
-      ::xml_schema::flags f = 0,
-      ::xml_schema::container* c = 0);
+  status (const ::std::string& s,
+          const ::xercesc::DOMElement* e,
+          ::xml_schema::flags f = 0,
+          ::xml_schema::container* c = 0);
 
-  at (const at& x,
-      ::xml_schema::flags f = 0,
-      ::xml_schema::container* c = 0);
+  status (const status& x,
+          ::xml_schema::flags f = 0,
+          ::xml_schema::container* c = 0);
 
-  virtual at*
+  virtual status*
   _clone (::xml_schema::flags f = 0,
           ::xml_schema::container* c = 0) const;
 
-  at&
+  status&
   operator= (value v);
 
   virtual
   operator value () const
   {
-    return _xsd_at_convert ();
+    return _xsd_status_convert ();
   }
 
   protected:
   value
-  _xsd_at_convert () const;
+  _xsd_status_convert () const;
 
   public:
-  static const char* const _xsd_at_literals_[17];
-  static const value _xsd_at_indexes_[17];
+  static const char* const _xsd_status_literals_[3];
+  static const value _xsd_status_indexes_[3];
+};
+
+class uid: public ::xsd::cxx::tree::fundamental_base< ::xml_schema::long_, char, ::xml_schema::simple_type >
+{
+  public:
+  // Constructors.
+  //
+  uid ();
+
+  uid (const ::xml_schema::long_&);
+
+  uid (const ::xercesc::DOMElement& e,
+       ::xml_schema::flags f = 0,
+       ::xml_schema::container* c = 0);
+
+  uid (const ::xercesc::DOMAttr& a,
+       ::xml_schema::flags f = 0,
+       ::xml_schema::container* c = 0);
+
+  uid (const ::std::string& s,
+       const ::xercesc::DOMElement* e,
+       ::xml_schema::flags f = 0,
+       ::xml_schema::container* c = 0);
+
+  uid (const uid& x,
+       ::xml_schema::flags f = 0,
+       ::xml_schema::container* c = 0);
+
+  virtual uid*
+  _clone (::xml_schema::flags f = 0,
+          ::xml_schema::container* c = 0) const;
+
+  virtual 
+  ~uid ();
 };
 
 class type: public ::xml_schema::string
@@ -1108,7 +1040,14 @@ class type: public ::xml_schema::string
   public:
   enum value
   {
-    string
+    undefined,
+    integer,
+    long_,
+    float_,
+    double_,
+    char_,
+    string,
+    array_of_double
   };
 
   type ();
@@ -1156,8 +1095,8 @@ class type: public ::xml_schema::string
   _xsd_type_convert () const;
 
   public:
-  static const char* const _xsd_type_literals_[1];
-  static const value _xsd_type_indexes_[1];
+  static const char* const _xsd_type_literals_[8];
+  static const value _xsd_type_indexes_[8];
 };
 
 #include <iosfwd>
@@ -2159,34 +2098,14 @@ void
 operator<< (::xercesc::DOMElement&, const arg&);
 
 void
-operator<< (::xercesc::DOMElement&, const uid&);
+operator<< (::xercesc::DOMElement&, const at&);
 
 void
-operator<< (::xercesc::DOMAttr&, const uid&);
-
-void
-operator<< (::xml_schema::list_stream&,
-            const uid&);
-
-void
-operator<< (::xercesc::DOMElement&, const status&);
-
-void
-operator<< (::xercesc::DOMAttr&, const status&);
+operator<< (::xercesc::DOMAttr&, const at&);
 
 void
 operator<< (::xml_schema::list_stream&,
-            const status&);
-
-void
-operator<< (::xercesc::DOMElement&, const name&);
-
-void
-operator<< (::xercesc::DOMAttr&, const name&);
-
-void
-operator<< (::xml_schema::list_stream&,
-            const name&);
+            const at&);
 
 void
 operator<< (::xercesc::DOMElement&, const function&);
@@ -2199,14 +2118,34 @@ operator<< (::xml_schema::list_stream&,
             const function&);
 
 void
-operator<< (::xercesc::DOMElement&, const at&);
+operator<< (::xercesc::DOMElement&, const name&);
 
 void
-operator<< (::xercesc::DOMAttr&, const at&);
+operator<< (::xercesc::DOMAttr&, const name&);
 
 void
 operator<< (::xml_schema::list_stream&,
-            const at&);
+            const name&);
+
+void
+operator<< (::xercesc::DOMElement&, const status&);
+
+void
+operator<< (::xercesc::DOMAttr&, const status&);
+
+void
+operator<< (::xml_schema::list_stream&,
+            const status&);
+
+void
+operator<< (::xercesc::DOMElement&, const uid&);
+
+void
+operator<< (::xercesc::DOMAttr&, const uid&);
+
+void
+operator<< (::xml_schema::list_stream&,
+            const uid&);
 
 void
 operator<< (::xercesc::DOMElement&, const type&);

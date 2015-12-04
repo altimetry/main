@@ -509,6 +509,8 @@ void CStringList::ExtractStrings( const std::string& str, const std::string& del
 
 std::string CStringList::ToString(const std::string& delim /*= "," */, bool useBracket /*= true */) const
 {
+    UNUSED(useBracket);
+
   std::string str;
   CStringList::const_iterator it;
   for ( it = this->begin( ); it != this->end( ); it++ )

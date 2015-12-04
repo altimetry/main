@@ -151,7 +151,7 @@ public:
     \param bufferSize [in] : size of value
     \param pos [in] : position of the parameter 0.. n (default is 0, first value)
     \return false if one can't get the value, otherwise true */
-  void GetValue(char* value, int32_t bufferSize, int32_t pos  = 0, const char *DefValue = "");
+  void GetValue(char* value, size_t bufferSize, int32_t pos  = 0, const char *DefValue = "");
 
    ///Dump fonction
    virtual void Dump(std::ostream& fOut = std::cerr);

@@ -431,7 +431,7 @@ void CDisplayPanel::EnableCtrl()
   bool enableExecute = false;
   bool enableGroupFields = false;
 
-  bool enableAsY = false;
+  //bool enableAsY = false;
 
   CWorkspaceDisplay* wksDisp = wxGetApp().GetCurrentWorkspaceDisplay();
   if (wksDisp != NULL)
@@ -879,6 +879,8 @@ void CDisplayPanel::LoadAvailableData()
 //----------------------------------------
 void CDisplayPanel::GetOperations(int32_t type /*= -1*/)
 {
+    UNUSED(type);
+
   m_dataList.RemoveAll();
 
   CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
@@ -1086,6 +1088,8 @@ bool CDisplayPanel::Control(wxString& msg)
 //----------------------------------------
 bool CDisplayPanel::ControlSolidColor(wxString& msg)
 {
+    UNUSED(msg);
+
   if (m_display == NULL)
   {
     return false;
@@ -1799,6 +1803,8 @@ void CDisplayPanel::OnComboDisplayKillFocus( wxFocusEvent &event )
 //----------------------------------------
 void CDisplayPanel::OnValueChangeXMin(CValueChangedEvent& event)
 {
+    UNUSED(event);
+
   if (m_display == NULL)
   {
     return;
@@ -1817,6 +1823,8 @@ void CDisplayPanel::OnValueChangeXMin(CValueChangedEvent& event)
 //----------------------------------------
 void CDisplayPanel::OnValueChangeXMax(CValueChangedEvent& event)
 {
+    UNUSED(event);
+
   if (m_display == NULL)
   {
     return;
@@ -1835,6 +1843,8 @@ void CDisplayPanel::OnValueChangeXMax(CValueChangedEvent& event)
 //----------------------------------------
 void CDisplayPanel::OnValueChangeYMin(CValueChangedEvent& event)
 {
+    UNUSED(event);
+
   if (m_display == NULL)
   {
     return;
@@ -1853,6 +1863,8 @@ void CDisplayPanel::OnValueChangeYMin(CValueChangedEvent& event)
 //----------------------------------------
 void CDisplayPanel::OnValueChangeYMax(CValueChangedEvent& event)
 {
+    UNUSED(event);
+
   if (m_display == NULL)
   {
     return;
@@ -1871,11 +1883,15 @@ void CDisplayPanel::OnValueChangeYMax(CValueChangedEvent& event)
 //----------------------------------------
 void CDisplayPanel::OnValueChangeMin(CValueChangedEvent& event)
 {
+    UNUSED(event);
+
   SetValueMin();
 }
 //----------------------------------------
 void CDisplayPanel::OnValueChangeZoom(CValueChangedEvent& event)
 {
+    UNUSED(event);
+
   SetValueZoom();
 }
 //----------------------------------------
@@ -1940,8 +1956,9 @@ void CDisplayPanel::SetValueMin()
 //----------------------------------------
 void CDisplayPanel::OnValueChangeMax(CValueChangedEvent& event)
 {
-  SetValueMax();
+    UNUSED(event);
 
+  SetValueMax();
 }
 //----------------------------------------
 void CDisplayPanel::SetValueMax()
@@ -1997,7 +2014,7 @@ void CDisplayPanel::LoadSelectedData()
     return;
   }
 
-  bool bOk = true;
+  //bool bOk = true;
 
   GetDispDataSel()->InsertDisplay(m_display);
 
@@ -2312,11 +2329,15 @@ void CDisplayPanel::OnTitleTextEnter( wxCommandEvent &event )
 //----------------------------------------
 void CDisplayPanel::OnInvertXYAxes( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   SetInvertXYAxes();
 }
 
 void CDisplayPanel::OnNorthComponent( wxCommandEvent &event )
 {
+    UNUSED(event);
+
    long item = -1;
     for ( ;; )
     {
@@ -2346,6 +2367,8 @@ void CDisplayPanel::OnNorthComponent( wxCommandEvent &event )
 
 void CDisplayPanel::OnEastComponent( wxCommandEvent &event )
 {
+    UNUSED(event);
+
     long item = -1;
 
 
@@ -2427,13 +2450,16 @@ void CDisplayPanel::XAxisChanged()
 
 void CDisplayPanel::OnXAxis( wxCommandEvent &event )
 {
-  XAxisChanged();
+    UNUSED(event);
 
+  XAxisChanged();
 }
 //----------------------------------------
 
 void CDisplayPanel::OnFieldGroup( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   bool bOk = CheckSelectedFields();
 
   if ( bOk )
@@ -2448,12 +2474,15 @@ void CDisplayPanel::OnFieldGroup( wxCommandEvent &event )
 
 void CDisplayPanel::OnDataAvailableSelChanged( wxTreeEvent &event )
 {
+    UNUSED(event);
+
   EnableCtrl();
 }
 
 //----------------------------------------
 void CDisplayPanel::OnRefresh( wxCommandEvent &event )
 {
+    UNUSED(event);
 
   Freeze();
 
@@ -2483,6 +2512,8 @@ void CDisplayPanel::OnComboPaletteTextEnter( wxCommandEvent &event )
 //----------------------------------------
 void CDisplayPanel::OnComboPalette( wxCommandEvent &event )
 {
+    UNUSED(event);
+
  SetPaletteName();
  wxGetApp().SetLastColorTable(GetDispPalette()->GetValue());
  m_paletteDirty = false;
@@ -2492,6 +2523,8 @@ void CDisplayPanel::OnComboPalette( wxCommandEvent &event )
 //----------------------------------------
 void CDisplayPanel::OnBrowsePalette( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   if (m_display == NULL)
   {
     m_currentData = NULL;
@@ -2531,20 +2564,24 @@ void CDisplayPanel::OnBrowsePalette( wxCommandEvent &event )
 //----------------------------------------
 void CDisplayPanel::OnContour( wxCommandEvent &event )
 {
-  SetContour();
+    UNUSED(event);
 
+  SetContour();
 }
 
 //----------------------------------------
 void CDisplayPanel::OnSolidColor( wxCommandEvent &event )
 {
-  SetSolidColor();
+    UNUSED(event);
 
+  SetSolidColor();
 }
 
 //----------------------------------------
 void CDisplayPanel::OnWithAnimation( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   if (m_display == NULL)
   {
     return;
@@ -2566,6 +2603,8 @@ void CDisplayPanel::OnFieldNameTextEnter( wxCommandEvent &event )
 //----------------------------------------
 void CDisplayPanel::OnComboDisplayTextEnter( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   DispNameChanged();
 }
 
@@ -2622,12 +2661,15 @@ void CDisplayPanel::OnDataSelSelected( wxListEvent &event )
 //----------------------------------------
 void CDisplayPanel::OnRemoveField( wxCommandEvent &event )
 {
-  RemoveFields();
+    UNUSED(event);
 
+  RemoveFields();
 }
 //----------------------------------------
 void CDisplayPanel::OnDispSelFieldDeleted(CDeleteDisplaySelFieldEvent& event)
 {
+    UNUSED(event);
+
   GetDispType()->SetLabel(CMapTypeDisp::GetInstance().IdToName(m_display->GetType()).c_str());
   m_currentData = NULL;
 
@@ -2638,12 +2680,16 @@ void CDisplayPanel::OnDispSelFieldDeleted(CDeleteDisplaySelFieldEvent& event)
 //----------------------------------------
 void CDisplayPanel::OnAddField( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   AddField();
 }
 
 //----------------------------------------
 void CDisplayPanel::OnComboProj( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   if (m_display == NULL)
   {
     return;
@@ -2656,20 +2702,24 @@ void CDisplayPanel::OnComboProj( wxCommandEvent &event )
 //----------------------------------------
 void CDisplayPanel::OnExecute( wxCommandEvent &event )
 {
+    UNUSED(event);
 
   Execute();
-
 }
 
 //----------------------------------------
 void CDisplayPanel::OnDeleteView( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   DeleteDisplay();
 }
 //----------------------------------------
 
 void CDisplayPanel::OnNewView( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   NewDisplay();
 }
 
@@ -2729,12 +2779,16 @@ void CDisplayPanel::RemoveFields()
 //----------------------------------------
 void CDisplayPanel::OnNewOperation(CNewOperationEvent& event)
 {
+    UNUSED(event);
+
   LoadAvailableData();
   EnableCtrl();
 }
 //----------------------------------------
 void CDisplayPanel::OnRenameOperation(CRenameOperationEvent& event)
 {
+    UNUSED(event);
+
   LoadAvailableData();
   LoadSelectedData();
   EnableCtrl();
@@ -2742,6 +2796,8 @@ void CDisplayPanel::OnRenameOperation(CRenameOperationEvent& event)
 //----------------------------------------
 void CDisplayPanel::OnDeleteOperation(CDeleteOperationEvent& event)
 {
+    UNUSED(event);
+
   LoadAvailableData();
   EnableCtrl();
 }
@@ -2754,13 +2810,17 @@ void CDisplayPanel::OnDeleteOperation(CDeleteOperationEvent& event)
 
 wxDragResult CDisplayDataDropTarget::OnDragOver(wxCoord x, wxCoord y, wxDragResult def)
 {
+    UNUSED(y);    UNUSED(x);
+
   return (def == wxDragMove ? wxDragCopy : def);
 }
 
 //----------------------------------------
 wxDragResult CDisplayDataDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult def)
 {
-  if (!GetData())
+    UNUSED(def);    UNUSED(y);    UNUSED(x);
+
+    if (!GetData())
   {
     return wxDragNone;
   }

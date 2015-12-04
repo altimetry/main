@@ -127,7 +127,8 @@ void CBratProcessExportAscii::GetParameters()
 
 // Get keyword values
 
-  CTrace *p = CTrace::GetInstance();
+  //CTrace *p =
+  CTrace::GetInstance();
 
   if (nbOutput != 0)
   {
@@ -137,7 +138,7 @@ void CBratProcessExportAscii::GetParameters()
   if (m_outputFileName != "")
   {
     std::ofstream	*oFile;
-    p->Tracer(1, CBratProcess::PCT_StrFmt, "Output file", m_outputFileName.c_str());
+    CTrace::Tracer(1, CBratProcess::PCT_StrFmt, "Output file", m_outputFileName.c_str());
     oFile = new std::ofstream;
     oFile->open(m_outputFileName.c_str());
     if (oFile->fail())
@@ -148,25 +149,25 @@ void CBratProcessExportAscii::GetParameters()
   }
   else
   {
-    p->Tracer(1, CBratProcess::PCT_StrFmt, "Output file", "Standard output");
+    CTrace::Tracer(1, CBratProcess::PCT_StrFmt, "Output file", "Standard output");
     m_outputFile	= &std::cout;
   }
 
   params.m_mapParam[kwRECORD]->GetValue(m_recordName);
-  p->Tracer(1, CBratProcess::PCT_StrFmt, "Data set name", m_recordName.c_str());
+  CTrace::Tracer(1, CBratProcess::PCT_StrFmt, "Data set name", m_recordName.c_str());
 
   //ExpandArray = false;
   if (params.CheckCount(kwEXPAND_ARRAY, 0, 1) == 1)
   {
     params.m_mapParam[kwEXPAND_ARRAY]->GetValue(m_expandArray);
   }
-  p->Tracer(1, CBratProcess::PCT_IntFmt, "Expand array", m_expandArray);
+  CTrace::Tracer(1, CBratProcess::PCT_IntFmt, "Expand array", m_expandArray);
 
   if (params.CheckCount(kwDATE_AS_PERIOD, 0, 1) == 1)
   {
     params.m_mapParam[kwDATE_AS_PERIOD]->GetValue(m_dateAsPeriod);
   }
-  p->Tracer(1, CBratProcess::PCT_IntFmt, "Date as period", m_dateAsPeriod);
+  CTrace::Tracer(1, CBratProcess::PCT_IntFmt, "Date as period", m_dateAsPeriod);
 
   GetSelectParameter(params);
 
@@ -240,6 +241,7 @@ void CBratProcessExportAscii::BuildListFieldsToRead()
 //----------------------------------------
 int32_t CBratProcessExportAscii::Execute(std::string& msg)
 { 
+    UNUSED(msg);
 
   int32_t result = BRATHL_SUCCESS;
 

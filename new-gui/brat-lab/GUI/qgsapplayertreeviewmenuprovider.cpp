@@ -70,7 +70,7 @@ QMenu* QgsAppLayerTreeViewMenuProvider::createContextMenu()
 		else if ( QgsLayerTree::isLayer( node ) )
 		{
 			QgsMapLayer *layer = QgsLayerTree::toLayer( node )->layer();
-			QgsRasterLayer *rlayer = qobject_cast<QgsRasterLayer *>( layer );
+			//QgsRasterLayer *rlayer = qobject_cast<QgsRasterLayer *>( layer );
 			QgsVectorLayer *vlayer = qobject_cast<QgsVectorLayer *>( layer );
 
 			menu->addAction( actions->actionZoomToLayer( mEditor->canvas(), menu ) );

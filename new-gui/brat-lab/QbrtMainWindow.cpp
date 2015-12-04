@@ -61,6 +61,7 @@ QbrtMainWindow::QbrtMainWindow(QWidget *parent) :
     m_FindDialog( NULL )
 {
     setupUi(this);
+    //mdiArea->setViewMode(QMdiArea::SubWindowView);
     setWindowIcon( QIcon(":/butterfly.png") );
     setWindowTitle( tr("%1[*] - %2").arg( windowTitle() ).arg( tr("Rich Text") ) );     //set title sensitive to doc (un)modifications
 

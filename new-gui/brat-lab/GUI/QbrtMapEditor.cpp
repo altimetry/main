@@ -656,6 +656,9 @@ public:
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+//template<>
+//QgsMapLayerRegistry* QgsSingleton<QgsMapLayerRegistry>::sInstance;
+
 QbrtMapCanvas::QbrtMapCanvas(QWidget *parent) : base_t(parent)
 {
 	static const ApplicationDirectories &ad = ApplicationDirectories::instance();
@@ -2018,7 +2021,8 @@ bool gshhs(int argc, char **argv)
 {
     double w, e, s, n, area, f_area, lon, lat;
     char source, kind[2] = {'P', 'L'}, c = '>', *file = NULL;
-    char *name[2] = {"polygon", "line"}, container[800], ancestor[800];
+    const char *name[2] = {"polygon", "line"};
+    char container[800], ancestor[800];
     FILE *fp = NULL;
     FILE *fp2 = NULL;
     int k, line, max_east = 270000000, info, single, error, ID, flip;

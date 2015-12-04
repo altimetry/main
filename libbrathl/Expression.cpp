@@ -835,6 +835,8 @@ void CExpressionValue::SetNewValue(ExpressionValueType type, ExpressionValueDime
 //----------------------------------------
 void CExpressionValue::SetNewValue(CDoubleArray& vect, bool	makeCopy /* = true */)
 {
+    UNUSED(makeCopy);
+
   CUIntArray dimension;
   dimension.Insert(vect.size());
 
@@ -846,6 +848,8 @@ void CExpressionValue::SetNewValue(CDoubleArray& vect, bool	makeCopy /* = true *
 //----------------------------------------
 void CExpressionValue::SetNewValue(double* dataValue, uint32_t nbValues, bool	makeCopy /* = true */)
 {
+    UNUSED(makeCopy);
+
   CUIntArray dimension;
   dimension.Insert(nbValues);
 
@@ -1105,6 +1109,8 @@ void CExpressionValue::CheckDimensionsCombination(const CUIntArray	&dim1, const 
 //----------------------------------------
 void CExpressionValue::CheckDimensionsCombination(const CUIntArray** params, uint32_t nbParams, CUIntArray& dimensions)
 {
+    UNUSED(nbParams);
+
   int32_t	index;
 
   dimensions.clear();
@@ -1697,6 +1703,8 @@ double CExpressionValues::GetExpressionValueAsDouble(uint32_t i, uint32_t j)
 //----------------------------------------
 void CExpressionValues::GetExpressionDataValuesAsArrayOfSingleValue(uint32_t index, double*& values, uint32_t& nbValues)
 {
+    UNUSED(index);
+
   if (m_expressionDataValues == NULL)
   {
     return;

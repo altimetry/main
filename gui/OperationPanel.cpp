@@ -45,6 +45,7 @@
 #include <wx/ffile.h>
 #include <wx/generic/gridctrl.h>
 
+#include "new-gui/Common/+Utils.h"
 #include "new-gui/Common/tools/Exception.h"
 #include "Expression.h"
 using namespace brathl;
@@ -63,7 +64,6 @@ using namespace brathl;
 #include "RichTextFrame.h"
 #include "AlgorithmDlg.h"
 #include "DelayDlg.h"
-#include "SchedulerTaskConfig.h"
 
 #include "OperationPanel.h"
 
@@ -3360,99 +3360,11 @@ void COperationPanel::Execute(bool wait /*= false*/)
 //----------------------------------------
 bool COperationPanel::LoadSchedulerTaskConfig()
 {
-  if (CSchedulerTaskConfig::IsLoaded())
-  {
-    CSchedulerTaskConfig::GetInstance()->SetReloadAll(true);
-  }
+	if ( CSchedulerTaskConfig::IsLoaded() )
+		CSchedulerTaskConfig::GetInstance()->setReloadAll( true );
 
-  return CSchedulerTaskConfig::LoadSchedulerTaskConfig();
-
-  //bool loaded = false;
-  //bool cancelled = false;
-
-  //CSchedulerTaskConfig* schedulerTaskConfig = NULL;
-
-  //do
-  //{
-  //  try
-  //  {
-  //    schedulerTaskConfig = CSchedulerTaskConfig::GetInstance(true, true, false);
-  //    loaded = true;
-  //  }
-  //  catch(CException& e)
-  //  {
-  //    loaded = false;
-  //    wxString msg = wxString::Format("%s\n Try again ?", e.GetMessage().c_str());
-  //    int32_t result = wxMessageBox(msg,
-  //                   "Warning",
-  //                    wxYES_NO | wxCENTRE | wxICON_EXCLAMATION);
-  //    
-  //    if (result != wxYES)
-  //    {
-  //      cancelled = true;;
-  //    }
-
-  //  }
-  //} while (!loaded && !cancelled);
-  //
-  //if (!loaded)
-  //{    
-  //  wxString msg = "Operation cancelled - Task has not been added";
-  //  int32_t result = wxMessageBox(msg,
-  //                 "Warning",
-  //                  wxOK | wxCENTRE | wxICON_EXCLAMATION);
-
-  //  if (schedulerTaskConfig != NULL)
-  //  {
-  //    schedulerTaskConfig->UnLockConfigFile();
-  //  }
-  //}
-
-  //return loaded;
-
+	return CSchedulerTaskConfig::LoadAllSchedulerTaskConfig();
 }
-//----------------------------------------
-bool COperationPanel::SaveSchedulerTaskConfig()
-{
-  return CSchedulerTaskConfig::SaveSchedulerTaskConfig();
-
-  //bool saved = false;
-  //bool cancelled = false;
-  //
-  //do
-  //{
-  //  try
-  //  {
-  //    saved = CSchedulerTaskConfig::GetInstance()->Save(false, true);    
-  //  }
-  //  catch(CException& e)
-  //  {
-  //    wxString msg = wxString::Format("%s\n Try again ?", e.GetMessage().c_str());
-  //    int32_t result = wxMessageBox(msg,
-  //                   "Warning",
-  //                    wxYES_NO | wxCENTRE | wxICON_EXCLAMATION);
-  //    
-  //    if (result != wxYES)
-  //    {
-  //      cancelled = true;;
-  //    }
-
-  //  }
-  //} while (!saved && !cancelled);
-  //
-
-  //if (!saved)
-  //{
-  //  wxString msg = "Operation cancelled - Task has not been added";
-  //  int32_t result = wxMessageBox(msg,
-  //                 "Warning",
-  //                  wxOK | wxCENTRE | wxICON_EXCLAMATION);
-  //}
-
-  //return saved;
-
-}
-
 //----------------------------------------
 bool COperationPanel::RemoveTaskFromSchedulerTaskConfig(wxXmlNode* taskNode)
 {
@@ -3473,81 +3385,63 @@ bool COperationPanel::RemoveTaskFromSchedulerTaskConfig(wxXmlNode* taskNode)
   return bOk;
 }
 //----------------------------------------
-wxXmlNode* COperationPanel::Delay()
+TaskRet COperationPanel::Delay()
 {
-  if (m_operation == NULL)
-  {
-    return NULL;
-  }
+	TaskRet r;
+	if ( m_operation )
+		return r;
 
-  CDelayDlg delayDlg (this, -1, "Delay execution...");
-  
-  int32_t result = delayDlg.ShowModal();
-  
-  if (result != wxID_OK)
-  {
-    return NULL;
-  }
-  
-  return Delay(delayDlg);
+	CDelayDlg delayDlg( this, -1, "Delay execution..." );
 
+	if ( delayDlg.ShowModal() != wxID_OK )
+		return r;
+
+	return Delay( delayDlg );
 }
 //----------------------------------------
-wxXmlNode* COperationPanel::Delay(CDelayDlg& delayDlg)
+TaskRet COperationPanel::Delay( CDelayDlg& delayDlg )
 {
-  if (m_operation == NULL)
-  {
-    return NULL;
-  }
+	TaskRet r;
+	if ( !m_operation )
+		return r;
+
+	wxString msg;
+	bool operationOk = CtrlOperation( msg, false, &m_mapFormulaString );
+	if ( !operationOk )
+	{
+		wxMessageBox( wxString::Format( "Operation '%s' has some errors and can't be execute:\n%s",
+			m_operation->GetName().c_str(), msg.c_str() ),
+			"Warning",
+			wxOK | wxCENTRE | wxICON_EXCLAMATION );
+		return r;
+	}
+
+	this->SetCursor( *wxHOURGLASS_CURSOR );
+
+	BuildCmdFile();
+
+	wxString taskLabel = delayDlg.GetTaskName()->GetValue();
+	if ( taskLabel.IsEmpty() )
+		taskLabel = m_operation->GetTaskName().c_str();
+
+	wxDateTime at;
+	delayDlg.GetDateTime( at );
+
+	if ( !LoadSchedulerTaskConfig() )
+	{
+		this->SetCursor( wxNullCursor );
+		return r;
+	}
+
+	r = CSchedulerTaskConfig::GetInstance()->AddTaskAsPending( m_operation->GetFullCmd(), at, taskLabel );
+
+	if ( !CSchedulerTaskConfig::SaveSchedulerTaskConfig() )
+		RemoveTaskFromSchedulerTaskConfig( r.n );
 
 
-  wxString msg;
-  bool operationOk = CtrlOperation(msg, false, &m_mapFormulaString);
-  if (operationOk == false)
-  {
-    wxMessageBox(wxString::Format("Operation '%s' has some errors and can't be execute:\n%s",
-                                                    m_operation->GetName().c_str(), msg.c_str()),
-                                 "Warning",
-                                  wxOK | wxCENTRE | wxICON_EXCLAMATION);
-    return NULL;
-  }
+	this->SetCursor( wxNullCursor );
 
-  this->SetCursor(*wxHOURGLASS_CURSOR);
-
-  BuildCmdFile();
-
-  wxString taskLabel = delayDlg.GetTaskName()->GetValue();
-  if (taskLabel.IsEmpty())
-  {
-    taskLabel = m_operation->GetTaskName().c_str();
-  }
-
-  wxDateTime at;
-  delayDlg.GetDateTime(at);
-
-  bool loaded = LoadSchedulerTaskConfig();
-
-  if (!loaded)
-  {    
-    this->SetCursor(wxNullCursor);
-    return NULL;
-  }
-
-  wxXmlNode* taskNode = CSchedulerTaskConfig::GetInstance()->AddTaskAsPending(m_operation->GetFullCmd(),
-                                                              at,
-                                                              taskLabel);
-
-  bool saved = SaveSchedulerTaskConfig();
-
-  if (!saved)
-  {
-    RemoveTaskFromSchedulerTaskConfig(taskNode);
-  }
-
-  this->SetCursor(wxNullCursor);
-
-  return taskNode;
-    
+	return r;
 }
 //----------------------------------------
 void COperationPanel::ShowStats()
@@ -3747,273 +3641,210 @@ void COperationPanel::ExportOperation()
 #endif
 
 
-void COperationPanel::DelayExportOperationAsGeoTiff(CExportDlg& exportDlg)
+void COperationPanel::DelayExportOperationAsGeoTiff( CExportDlg& exportDlg )
 {
- if (m_operation == NULL)
-  {
-    return;
-  }
+	if ( !m_operation )
+		return;
 
-  wxXmlNode* mainTaskNode = Delay(exportDlg.m_delayDlg);
-  if (mainTaskNode == NULL)
-  {
-    return;
-  }
+	TaskRet r = Delay( exportDlg.m_delayDlg );
+	if ( !r.n )
+		return;
 
-  CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-  wxFileName exportGeoTiffCmdFile = exportDlg.m_currentName;
-  exportGeoTiffCmdFile.SetExt(EXPORTGEOTIFF_COMMANDFILE_EXTENSION);
+	CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+	wxFileName exportGeoTiffCmdFile = exportDlg.m_currentName;
+	exportGeoTiffCmdFile.SetExt( EXPORTGEOTIFF_COMMANDFILE_EXTENSION );
 
-  if (wks == NULL)
-  {
-    exportGeoTiffCmdFile.Normalize();
-  }
-  else
-  {
-    exportGeoTiffCmdFile.Normalize(wxPATH_NORM_ALL, wks->GetPathName());
-  }
+	if ( wks == NULL )
+	{
+		exportGeoTiffCmdFile.Normalize();
+	}
+	else
+	{
+		exportGeoTiffCmdFile.Normalize( wxPATH_NORM_ALL, wks->GetPathName() );
+	}
 
-  wxFile file;
+	wxFile file;
+	file.Create( exportGeoTiffCmdFile.GetFullPath(), true, wxS_DEFAULT | wxS_IXUSR );
+	//  file.Write("#!/usr/bin/env " + wxGetApp().GetExecExportGeoTiffName()->GetName() + "\n");
+	file.Write( "\n#----- LOG -----\n\n" );
+	file.Write( wxString::Format( "%s=2\n", kwVERBOSE.c_str() ) );
+	file.Write( "\n#----- INPUT -----\n\n" );
+	file.Write( kwFILE.c_str() );
+	file.Write( "=" );
+	file.Write( m_operation->GetOutput()->GetFullPath() );
+	file.Write( "\n" );
+	file.Write( "\n#----- COLORTABLE -----\n\n" );
+	file.Write( kwDISPLAY_COLORTABLE.c_str() );
+	file.Write( "=" );
+	file.Write( exportDlg.m_colorTable );
+	file.Write( "\n" );
+	if ( !isDefaultValue( exportDlg.m_colorRangeMin ) )
+	{
+		file.Write( wxString::Format( "%s=%lf\n", kwDISPLAY_MINVALUE.c_str(), exportDlg.m_colorRangeMin ) );
+	}
+	if ( !isDefaultValue( exportDlg.m_colorRangeMax ) )
+	{
+		file.Write( wxString::Format( "%s=%lf\n", kwDISPLAY_MAXVALUE.c_str(), exportDlg.m_colorRangeMax ) );
+	}
+	if ( exportDlg.m_createKML )
+	{
+		wxFileName kmlOutputFile = exportDlg.m_currentName;
+		kmlOutputFile.SetExt( "kml" );
+		file.Write( "\n#----- GOOGLE EARTH -----\n\n" );
+		file.Write( kwOUTPUT_KML.c_str() );
+		file.Write( "=" );
+		file.Write( kmlOutputFile.GetFullPath() );
+		file.Write( "\n" );
+		file.Write( kwDISPLAY_LOGO_URL.c_str() );
+		file.Write( "=" );
+		file.Write( CTools::GetDataDir().c_str() );
+		file.Write( "/BratLogo.png" );
+		file.Write( "\n" );
+	}
+	file.Write( "\n#----- OUTPUT -----\n\n" );
+	file.Write( kwOUTPUT.c_str() );
+	file.Write( "=" );
+	file.Write( exportDlg.m_currentName.GetFullPath() );
+	file.Write( "\n" );
 
-  file.Create(exportGeoTiffCmdFile.GetFullPath(), true, wxS_DEFAULT | wxS_IXUSR);
-//  file.Write("#!/usr/bin/env " + wxGetApp().GetExecExportGeoTiffName()->GetName() + "\n");
-  file.Write("\n#----- LOG -----\n\n");
-  file.Write(wxString::Format("%s=2\n", kwVERBOSE.c_str()));
-  file.Write("\n#----- INPUT -----\n\n");
-  file.Write(kwFILE.c_str());
-  file.Write("=");
-  file.Write(m_operation->GetOutput()->GetFullPath());
-  file.Write("\n");
-  file.Write("\n#----- COLORTABLE -----\n\n");
-  file.Write(kwDISPLAY_COLORTABLE.c_str());
-  file.Write("=");
-  file.Write(exportDlg.m_colorTable);
-  file.Write("\n");
-  if (!isDefaultValue(exportDlg.m_colorRangeMin))
-  {
-    file.Write(wxString::Format("%s=%lf\n", kwDISPLAY_MINVALUE.c_str(), exportDlg.m_colorRangeMin));
-  }
-  if (!isDefaultValue(exportDlg.m_colorRangeMax))
-  {
-    file.Write(wxString::Format("%s=%lf\n", kwDISPLAY_MAXVALUE.c_str(), exportDlg.m_colorRangeMax));
-  }
-  if (exportDlg.m_createKML)
-  {
-    wxFileName kmlOutputFile = exportDlg.m_currentName;
-    kmlOutputFile.SetExt("kml");
-    file.Write("\n#----- GOOGLE EARTH -----\n\n");
-    file.Write(kwOUTPUT_KML.c_str());
-    file.Write("=");
-    file.Write(kmlOutputFile.GetFullPath());
-    file.Write("\n");
-    file.Write(kwDISPLAY_LOGO_URL.c_str());
-    file.Write("=");
-    file.Write(CTools::GetDataDir().c_str());
-    file.Write("/BratLogo.png");
-    file.Write("\n");
-  }
-  file.Write("\n#----- OUTPUT -----\n\n");
-  file.Write(kwOUTPUT.c_str());
-  file.Write("=");
-  file.Write(exportDlg.m_currentName.GetFullPath());
-  file.Write("\n");
+	file.Close();
 
-  file.Close();
-
-  wxString fullCommand = wxString::Format("\"%s\" \"%s\"",
-                                          wxGetApp().GetExecExportGeoTiffName()->GetFullPath().c_str(),
-                                          exportGeoTiffCmdFile.GetFullPath().c_str());
+	wxString fullCommand = wxString::Format( "\"%s\" \"%s\"",
+		wxGetApp().GetExecExportGeoTiffName()->GetFullPath().c_str(),
+		exportGeoTiffCmdFile.GetFullPath().c_str() );
 
 
+	wxString taskLabel = exportDlg.m_delayDlg.GetTaskName()->GetValue();
+	if ( taskLabel.IsEmpty() )
+		taskLabel = exportGeoTiffCmdFile.GetName().c_str();
 
+	wxDateTime at;
+	exportDlg.m_delayDlg.GetDateTime( at );
 
-  wxString taskLabel = exportDlg.m_delayDlg.GetTaskName()->GetValue();
-  if (taskLabel.IsEmpty())
-  {
-    taskLabel = exportGeoTiffCmdFile.GetName().c_str();
-  }
+	// Save tasks uid because LoadSchedulerTaskConfig can reload all the file
+	// and 'mainTaskNode' will be invalid
+	wxString uidSaved;
+	r.n->GetPropVal( CSchedulerTaskConfig::m_TASK_ID_ATTR, &uidSaved );		assert__( uidSaved == r.t->GetUidAsString() );
+	r.n = NULL;
 
-  wxDateTime at;
-  exportDlg.m_delayDlg.GetDateTime(at);
+	if ( !LoadSchedulerTaskConfig() )
+		return;
 
-  // Save tasks uid because LoadSchedulerTaskConfig can reload all the file
-  // and 'mainTaskNode' will be invalid
-  wxString uidSaved;
+	r.n = CSchedulerTaskConfig::GetInstance()->FindTaskNode( uidSaved, true );
 
-  mainTaskNode->GetPropVal(CSchedulerTaskConfig::m_TASK_ID_ATTR, &uidSaved);
-  mainTaskNode = NULL;
+	r = CSchedulerTaskConfig::GetInstance()->AddTaskAsPending( r, fullCommand, at, taskLabel );
 
-  bool loaded = LoadSchedulerTaskConfig();
+	if ( !CSchedulerTaskConfig::SaveSchedulerTaskConfig() )
+		RemoveTaskFromSchedulerTaskConfig( r.n );
 
-  if (!loaded)
-  {    
-    return;
-  }
-
-  mainTaskNode = CSchedulerTaskConfig::GetInstance()->FindTaskNode(uidSaved, true);
-
-  wxXmlNode* taskNode = CSchedulerTaskConfig::GetInstance()->AddTaskAsPending(mainTaskNode, fullCommand,
-                                                              at,
-                                                              taskLabel);
-
-  bool saved = SaveSchedulerTaskConfig();
-
-  if (!saved)
-  {
-    RemoveTaskFromSchedulerTaskConfig(taskNode);
-  }
-    
-
-  EnableCtrl();
-
+	EnableCtrl();
 }
 //----------------------------------------
-void COperationPanel::DelayExportOperationAsNetCdf(CExportDlg& exportDlg)
+void COperationPanel::DelayExportOperationAsNetCdf( CExportDlg& exportDlg )
 {
-  if (m_operation == NULL)
-  {
-    return;
-  }
+	if ( !m_operation )
+		return;
 
-  wxXmlNode* mainTaskNode = Delay(exportDlg.m_delayDlg);
+	TaskRet r = Delay( exportDlg.m_delayDlg );
+	if ( !r.n )
+		return;
 
-  if (mainTaskNode == NULL)
-  {
-    return;
-  }
+	// Save tasks uid because LoadSchedulerTaskConfig can reload all the file
+	// and 'mainTaskNode' will be invalid
+	wxString uidSaved;
+	r.n->GetPropVal( CSchedulerTaskConfig::m_TASK_ID_ATTR, &uidSaved );		assert__( uidSaved == r.t->GetUidAsString() );
+	r.n = NULL;
 
-  // Save tasks uid because LoadSchedulerTaskConfig can reload all the file
-  // and 'mainTaskNode' will be invalid
-  wxString uidSaved;
+	if ( !LoadSchedulerTaskConfig() )
+		return;
 
-  mainTaskNode->GetPropVal(CSchedulerTaskConfig::m_TASK_ID_ATTR, &uidSaved);
-  mainTaskNode = NULL;
+	r.n = CSchedulerTaskConfig::GetInstance()->FindTaskNode( uidSaved, true );
 
-  bool loaded = LoadSchedulerTaskConfig();
+	wxString taskLabel = exportDlg.m_delayDlg.GetTaskName()->GetValue();
+	if ( taskLabel.IsEmpty() )
+		taskLabel = m_operation->GetTaskName().c_str();
 
-  if (!loaded)
-  {    
-    return;
-  }
+	wxDateTime at;
+	exportDlg.m_delayDlg.GetDateTime( at );
 
-  mainTaskNode = CSchedulerTaskConfig::GetInstance()->FindTaskNode(uidSaved, true);
+	CVectorBratAlgorithmParam params;
+	params.Insert( m_operation->GetOutput()->GetFullPath().ToStdString() );
+	params.Insert( exportDlg.m_currentName.GetFullPath().ToStdString() );
 
-  wxString taskLabel = exportDlg.m_delayDlg.GetTaskName()->GetValue();
-  if (taskLabel.IsEmpty())
-  {
-    taskLabel = m_operation->GetTaskName().c_str();
-  }
+	r = CSchedulerTaskConfig::GetInstance()->AddFunctionTaskAsPending( r,		//femm: AddTaskAsPending -> AddFunctionTaskAsPending
+		CBratTaskFunction::m_TASK_FUNC_COPYFILE,
+		params,
+		at,
+		taskLabel );
 
-  wxDateTime at;
-  exportDlg.m_delayDlg.GetDateTime(at);
+	if ( !CSchedulerTaskConfig::SaveSchedulerTaskConfig() )
+		RemoveTaskFromSchedulerTaskConfig( r.n );
 
-  CVectorBratAlgorithmParam params;
-  
-  params.Insert(m_operation->GetOutput()->GetFullPath().ToStdString());
-  params.Insert(exportDlg.m_currentName.GetFullPath().ToStdString());
-
-  wxXmlNode* taskNode = CSchedulerTaskConfig::GetInstance()->AddTaskAsPending(mainTaskNode,
-                                                                              CBratTaskFunction::m_TASK_FUNC_COPYFILE,
-                                                                              params,
-                                                                              at,
-                                                                              taskLabel);
-
-  bool saved = SaveSchedulerTaskConfig();
-
-  if (!saved)
-  {
-    RemoveTaskFromSchedulerTaskConfig(taskNode);
-  }
-    
-  EnableCtrl();
-
+	EnableCtrl();
 }
 //----------------------------------------
-void COperationPanel::DelayExportOperationAsAscii(CDelayDlg& delayDlg)
+void COperationPanel::DelayExportOperationAsAscii( CDelayDlg& delayDlg )
 {
-  if (m_operation == NULL)
-  {
-    return;
-  }
+	if ( !m_operation )
+		return;
 
-  wxXmlNode* mainTaskNode = NULL;
+	TaskRet r;
 
-  // Exports operation with data computation, otherwise only dumps expressions
-  if ( ! m_operation->IsExportAsciiNoDataComputation())
-  {
+	// Exports operation with data computation, otherwise only dumps expressions
+	if ( ! m_operation->IsExportAsciiNoDataComputation() )
+	{
+		bool bExecute = m_operation->IsExecuteAgain() || ( ! wxFileExists( m_operation->GetOutputName() ) );
+		if ( bExecute )
+		{
+			r = Delay( delayDlg );
+			if ( !r.n )
+				return;
+		}
+	}
 
-    bool bExecute = m_operation->IsExecuteAgain() || ( ! wxFileExists(m_operation->GetOutputName()) );
+	DelayExportOperationAsAsciiDump( delayDlg, r );
 
-    if (bExecute)
-    {
-      mainTaskNode = Delay(delayDlg);
-      if (mainTaskNode == NULL)
-      {
-        return;
-      }
-
-    }
-  }
-
-  DelayExportOperationAsAsciiDump(delayDlg, mainTaskNode);
-
-  EnableCtrl();
-
+	EnableCtrl();
 }
 //----------------------------------------
-void COperationPanel::DelayExportOperationAsAsciiDump(CDelayDlg& delayDlg, wxXmlNode* parent)
+void COperationPanel::DelayExportOperationAsAsciiDump( CDelayDlg& delayDlg, TaskRet r )
 {
-  if (m_operation == NULL)
-  {
-    return;
-  }
+	if ( !m_operation )
+		return;
 
-  BuildExportAsciiCmdFile();
+	BuildExportAsciiCmdFile();
 
-  wxString taskLabel = delayDlg.GetTaskName()->GetValue();
-  if (taskLabel.IsEmpty())
-  {
-    taskLabel = m_operation->GetExportAsciiTaskName().c_str();
-  }
+	wxString taskLabel = delayDlg.GetTaskName()->GetValue();
+	if ( taskLabel.IsEmpty() )
+		taskLabel = m_operation->GetExportAsciiTaskName().c_str();
 
-  wxDateTime at;
-  delayDlg.GetDateTime(at);
+	wxDateTime at;
+	delayDlg.GetDateTime( at );
 
-  // Save tasks uid because LoadSchedulerTaskConfig can reload all the file
-  // and 'parent' will be invalid
-  wxString uidSaved;
+	// Save tasks uid because LoadSchedulerTaskConfig can reload all the file
+	// and 'parent' will be invalid
+	wxString uidSaved;
 
-  if (parent != NULL)
-  {
-    parent->GetPropVal(CSchedulerTaskConfig::m_TASK_ID_ATTR, &uidSaved);
-    parent = NULL;
-  }
+	if ( r.n != NULL )
+	{
+		r.n->GetPropVal( CSchedulerTaskConfig::m_TASK_ID_ATTR, &uidSaved );
+		r.n = NULL;
+	}
 
-  bool loaded = LoadSchedulerTaskConfig();
+	if ( !LoadSchedulerTaskConfig() )
+		return;
 
-  if (!loaded)
-  {    
-    return;
-  }
+	if ( r.n == NULL )
+	{
+		r.n = CSchedulerTaskConfig::GetInstance()->FindTaskNode( uidSaved, true );
+	}
 
-  if (parent == NULL)
-  {
-    parent = CSchedulerTaskConfig::GetInstance()->FindTaskNode(uidSaved, true);
-  }
+	r = CSchedulerTaskConfig::GetInstance()->AddTaskAsPending( r, m_operation->GetExportAsciiFullCmd(), at, taskLabel );
 
-  wxXmlNode* taskNode = CSchedulerTaskConfig::GetInstance()->AddTaskAsPending(parent, m_operation->GetExportAsciiFullCmd(),
-                                                              at,
-                                                              taskLabel);
+	if ( !CSchedulerTaskConfig::SaveSchedulerTaskConfig() )
+		RemoveTaskFromSchedulerTaskConfig( r.n );
 
-  bool saved = SaveSchedulerTaskConfig();
-
-  if (!saved)
-  {
-    RemoveTaskFromSchedulerTaskConfig(taskNode);
-  }
-    
-  EnableCtrl();
-
+	EnableCtrl();
 }
 
 

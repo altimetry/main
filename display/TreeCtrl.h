@@ -111,7 +111,7 @@ public:
 
   static wxBitmap TreeIconsDefault( size_t index );
 
-  virtual void ShowMenu(wxTreeItemId id, const wxPoint& pt) { };
+  virtual void ShowMenu(wxTreeItemId id, const wxPoint& pt) { UNUSED(id); UNUSED(pt); }
 
   virtual wxTreeItemId FindItem(const wxString& text, bool bCaseSensitive = true, bool bExactMatch = true, bool bFindAtBeginning = false);
   virtual wxTreeItemId FindItem(const wxTreeItemId& from, const wxString& text, bool bCaseSensitive = true, bool bExactMatch = true, bool bFindAtBeginning = false);

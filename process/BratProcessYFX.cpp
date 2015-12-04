@@ -137,12 +137,13 @@ void CBratProcessYFX::GetParameters()
 
 // Get keyword values
 
-  CTrace *p = CTrace::GetInstance();
+  //CTrace *p =
+  CTrace::GetInstance();
 
   //---------
   
   params.m_mapParam[kwOUTPUT]->GetValue(m_outputFileName);
-  p->Tracer(1, PCT_StrFmt, "Output file", m_outputFileName.c_str());
+  CTrace::Tracer(1, PCT_StrFmt, "Output file", m_outputFileName.c_str());
 
   m_internalFiles = new CInternalFilesYFX(m_outputFileName.c_str(), Replace);
   m_internalFiles->Open();
@@ -154,12 +155,12 @@ void CBratProcessYFX::GetParameters()
     params.m_mapParam[kwOUTPUT_TITLE]->GetValue(m_outputTitle);
   }
 
-  p->Tracer(1, PCT_QStrFmt, "Output title", m_outputTitle.c_str());
+  CTrace::Tracer(1, PCT_QStrFmt, "Output title", m_outputTitle.c_str());
 
   //---------
   
   params.m_mapParam[kwRECORD]->GetValue(m_recordName);
-  p->Tracer(1, PCT_StrFmt, "Data set name", m_recordName.c_str());
+  CTrace::Tracer(1, PCT_StrFmt, "Data set name", m_recordName.c_str());
 
   //---------
 
@@ -167,7 +168,7 @@ void CBratProcessYFX::GetParameters()
   {
     params.m_mapParam[kwEXPAND_ARRAY]->GetValue(m_expandArray);
   }
-  p->Tracer(1, PCT_IntFmt, "Expand array", m_expandArray);
+  CTrace::Tracer(1, PCT_IntFmt, "Expand array", m_expandArray);
 
 
   //---------
@@ -178,7 +179,7 @@ void CBratProcessYFX::GetParameters()
 
   //---------
   m_dataModeGlobal = GetDataMode(params);
-  p->Tracer(1, PCT_StrFmt, "Default data mode",  CBratProcess::DataModeStr(m_dataModeGlobal).c_str());
+  CTrace::Tracer(1, PCT_StrFmt, "Default data mode",  CBratProcess::DataModeStr(m_dataModeGlobal).c_str());
 
   //---------
   this->GetDefinition(params,
@@ -354,6 +355,8 @@ void CBratProcessYFX::AddComplementDimensionsFromNetCdf()
 //----------------------------------------
 int32_t CBratProcessYFX::Execute(std::string& msg)
 { 
+    UNUSED(msg);
+
   int32_t result = BRATHL_SUCCESS;
 
   CDate startExec;
@@ -582,7 +585,7 @@ void CBratProcessYFX::RegisterData()
       catch (...) // If memory allocation (new) failed... ??? 
       {
         m_measures.RemoveAll(); // free memory  to be able to allocate new for error msg
-        throw CMemoryException("ERROR: CBratProcessYFX::RegisterData() - Unable to allocate new memory to store the résult.\nPerhaps not enough memory available."
+        throw CMemoryException("ERROR: CBratProcessYFX::RegisterData() - Unable to allocate new memory to store the result.\nPerhaps not enough memory available."
                                 " or try to allocate more than your system architecture can ever handle"
                                 );
       }
@@ -590,7 +593,7 @@ void CBratProcessYFX::RegisterData()
       if (fieldsArray == NULL)
       {
         m_measures.RemoveAll(); // free memory  to be able to allocate new for error msg
-        throw CMemoryException("ERROR: CBratProcessYFX::RegisterData() - Unable to allocate new memory to store the résult.\nPerhaps not enough memory available."
+        throw CMemoryException("ERROR: CBratProcessYFX::RegisterData() - Unable to allocate new memory to store the result.\nPerhaps not enough memory available."
                                 " or try to allocate more than your system architecture can ever handle"
                                 );
       }

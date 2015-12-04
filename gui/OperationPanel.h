@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -54,6 +52,7 @@ class CDatasetFilesChangeEvent;
 #include "Process.h"
 #include "DelayDlg.h"
 #include "ExportDlg.h"
+#include "SchedulerTaskConfig.h"
 
 
 // WDR: class declarations
@@ -317,8 +316,8 @@ private:
 
   void DatasetSelChanged( const wxTreeItemId& id );
   
-  wxXmlNode* Delay();
-  wxXmlNode* Delay(CDelayDlg& delayDlg);
+  TaskRet Delay();
+  TaskRet Delay(CDelayDlg& delayDlg);
 
   void Execute(bool wait = false);
   void ExportOperation();
@@ -328,7 +327,7 @@ private:
                      wxString colorTable, double rangeMin, double rangeMax);
 
   void DelayExportOperationAsAscii(CDelayDlg& delayDlg);
-  void DelayExportOperationAsAsciiDump(CDelayDlg& delayDlg, wxXmlNode* parent);
+  void DelayExportOperationAsAsciiDump(CDelayDlg& delayDlg, TaskRet r);
 
   void DelayExportOperationAsNetCdf(CExportDlg& exportDlg);
 
@@ -342,9 +341,9 @@ private:
   void ComputeInterval(CFormula* formula);
   void ComputeInterval();
 
-  bool LoadSchedulerTaskConfig();
-  bool SaveSchedulerTaskConfig();
-  bool RemoveTaskFromSchedulerTaskConfig(wxXmlNode* taskNode);
+private:
+	bool LoadSchedulerTaskConfig();
+	bool RemoveTaskFromSchedulerTaskConfig(wxXmlNode* taskNode);
 
 
 

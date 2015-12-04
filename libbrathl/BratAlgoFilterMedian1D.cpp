@@ -279,7 +279,7 @@ void CBratAlgoFilterMedian1D::SetParamValues(CVectorBratAlgorithmParam& args)
 //----------------------------------------
 void CBratAlgoFilterMedian1D::CheckVarExpression(uint32_t index)
 {  
-
+    UNUSED(index);
 }
 
 //----------------------------------------

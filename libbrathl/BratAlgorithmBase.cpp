@@ -782,7 +782,7 @@ void CBratAlgorithmBase::GetAllData(CExpression* expression, CDoubleArray& data)
 //----------------------------------------
 void CBratAlgorithmBase::SetPreviousValues(bool fromProduct) 
 {
-
+    UNUSED(fromProduct);
 }
 
 //----------------------------------------

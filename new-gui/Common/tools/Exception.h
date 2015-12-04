@@ -80,8 +80,8 @@ public:
 	virtual const char* TypeOf() const { return "std::exception"; }
 
 	virtual const char *what() const throw( );
-	int error() { return m_errcode; }
-	std::string GetMessage() { return m_message; }
+	int error() const { return m_errcode; }
+	std::string GetMessage() const { return m_message; }
 };
 
 //-------------------------------------------------------------

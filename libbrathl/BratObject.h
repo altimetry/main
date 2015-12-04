@@ -42,9 +42,9 @@ class CBratObject
 public:
 
   ///Ctor
-  CBratObject() {};
+  CBratObject() {}
   ///Dtor
-  virtual ~CBratObject() {};
+  virtual ~CBratObject() {}
   virtual CBratObject* Clone() 
   { 
     std::string className = typeid(*this).name();
@@ -52,7 +52,7 @@ public:
     msg.append(className.c_str());
     msg.append("'");
     throw CException(msg, BRATHL_LOGIC_ERROR);
-  };
+  }
 
   ///Dump fonction
   virtual void Dump(std::ostream& fOut = std::cerr) 
@@ -60,7 +60,7 @@ public:
     fOut << "==> Dump a CBratObject Object at "<< this << std::endl;
     fOut << "==> END Dump a CBratObject Object at "<< this << std::endl;
     fOut << std::endl;
-  };
+  }
 
 };
 

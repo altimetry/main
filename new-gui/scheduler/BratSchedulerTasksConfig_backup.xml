@@ -15,16 +15,31 @@
     <task at="2015-11-23 17:40:00" cmd="&quot;/home/brat/brat-3.3.0-x86_64/bin/BratCreateYFX&quot; &quot;/home/brat/brat-3.3.0-x86_64/RCCC/Operations/CreateWaveforms_Summer.par&quot;" logFile="/home/brat/BratScheduler/Logs/BratTask_Waveforms_Summer_1448041224478.log" name="Waveforms_Summer" status="pending" uid="1448041224478"/>
     <task at="2015-11-24 17:40:00" cmd="&quot;/home/brat/brat-3.3.0-x86_64/bin/BratCreateYFX&quot; &quot;/home/brat/brat-3.3.0-x86_64/RCCC/Operations/CreateWave_Height.par&quot;" logFile="/home/brat/BratScheduler/Logs/BratTask_Wave_Height_1448041236854.log" name="Wave_Height" status="pending" uid="1448041236854"/>
     <task at="2015-11-25 17:40:00" cmd="&quot;/home/brat/brat-3.3.0-x86_64/bin/BratCreateYFX&quot; &quot;/home/brat/brat-3.3.0-x86_64/RCCC/Operations/CreateWind_Speed.par&quot;" logFile="/home/brat/BratScheduler/Logs/BratTask_Wind_Speed_1448041247366.log" name="Wind_Speed" status="pending" uid="1448041247366"/>
-    <task at="2015-11-20 18:32:00" cmd="&quot;/home/femm/brat-3.3.0-x86_64/bin/BratCreateZFXY&quot; &quot;/home/brat/s3-altb/project/workspaces/W1/Operations/CreateOperations_FM_1.par&quot;" logFile="/home/femm/BratScheduler/Logs/BratTask_rccc4_1448044345268.log" name="rccc4" status="pending" uid="1448044345268"/>
-    <task at="2015-11-20 18:44:00" cmd="&quot;/home/femm/brat-3.3.0-x86_64/bin/BratCreateZFXY&quot; &quot;/home/brat/s3-altb/project/workspaces/W1/Operations/CreateOperations_FM_1.par&quot;" logFile="/home/femm/BratScheduler/Logs/BratTask_test1_1448045109215.log" name="test1" status="pending" uid="1448045109215"/>
-    <task at="2015-11-20 18:35:00" cmd="&quot;/home/femm/brat-3.3.0-x86_64/bin/BratCreateZFXY&quot; &quot;/home/brat/s3-altb/project/workspaces/W1/Operations/CreateOperations_FM_1.par&quot;" logFile="/home/femm/BratScheduler/Logs/BratTask_femm_1448044575143.log" name="complex" status="pending" uid="1448044575143"/>
+    <task at="2015-11-20 18:32:00" cmd="&quot;/home/femm/brat-3.3.0-x86_64/bin/BratCreateZFXY&quot; &quot;/home/brat/s3-altb/project/workspaces/W1/Operations/CreateOperations_FM_1.par&quot;" logFile="/home/femm/BratScheduler/Logs/BratTask_rccc4_1448044345268.log" name="rccc4" status="pending" uid="1448044345268">
+      <task at="2015-11-20 18:32:00" function="CopyFile" logFile="/home/femm/BratScheduler/Logs/BratTask_rccc4_1448044345352.log" name="rccc4" status="pending" uid="1448044345352">
+        <arg type="string">/home/brat/s3-altb/project/workspaces/W1/Operations/CreateOperations_FM_1.nc</arg>
+        <arg type="string">/home/brat/s3-altb/project/workspaces/W1/Operations/ExportAsciiOperations_FM_1.nc</arg>
+      </task>
+    </task>
+    <task at="2015-11-20 18:44:00" cmd="&quot;/home/femm/brat-3.3.0-x86_64/bin/BratCreateZFXY&quot; &quot;/home/brat/s3-altb/project/workspaces/W1/Operations/CreateOperations_FM_1.par&quot;" logFile="/home/femm/BratScheduler/Logs/BratTask_test1_1448045109215.log" name="test1" status="pending" uid="1448045109215">
+      <task at="2015-11-20 18:44:00" function="CopyFile" logFile="/home/femm/BratScheduler/Logs/BratTask_test1_1448045109298.log" name="test1" status="pending" uid="1448045109298">
+        <arg type="string">/home/brat/s3-altb/project/workspaces/W1/Operations/CreateOperations_FM_1.nc</arg>
+        <arg type="string">/home/brat/s3-altb/project/workspaces/W1/Operations/ExportAsciiOperations_FM_1.nc</arg>
+      </task>
+    </task>
+    <task at="2015-11-20 18:35:00" cmd="&quot;/home/femm/brat-3.3.0-x86_64/bin/BratCreateZFXY&quot; &quot;/home/brat/s3-altb/project/workspaces/W1/Operations/CreateOperations_FM_1.par&quot;" logFile="/home/femm/BratScheduler/Logs/BratTask_femm_1448044575143.log" name="complex" status="pending" uid="1448044575143">
+      <task at="2015-11-20 18:35:00" function="CopyFile" logFile="/home/femm/BratScheduler/Logs/BratTask_femm_1448044575227.log" name="complex" status="pending" uid="1448044575227">
+        <arg type="string">/home/brat/s3-altb/project/workspaces/W1/Operations/CreateOperations_FM_1.nc</arg>
+        <arg type="string">/home/brat/s3-altb/project/workspaces/W1/Operations/ExportAsciiOperations_FM_1.nc</arg>
+      </task>
+    </task>
   </pendingTasks>
   <endedTasks>
     <task at="2015-11-12 16:44:00" cmd="&quot;/home/brat/brat-3.3.0-x86_64/bin/BratCreateZFXY&quot; &quot;/home/brat/brat-3.3.0-x86_64/RCCC/Operations/CreateEnv_GDR_04.par&quot;" logFile="/home/brat/BratScheduler/Logs/BratTask_CreateEnv_GDR_04_1447343100170.log" name="CreateEnv_GDR_04" status="ended" uid="1447343100170"/>
     <task at="2015-11-17 18:05:00" cmd="&quot;/home/brat/brat-3.3.0-x86_64/bin/BratCreateZFXY&quot; &quot;/home/brat/brat-3.3.0-x86_64/RCCC/Operations/CreateEnv_GDR_04.par&quot;" logFile="/home/brat/BratScheduler/Logs/BratTask_test_1447783474754.log" name="test" status="ended" uid="1447783474754"/>
   </endedTasks>
   <processingTasks>
-    <task at="2015-11-20 18:12:00" cmd="&quot;/home/femm/brat-3.3.0-x86_64/bin/BratCreateZFXY&quot; &quot;/home/brat/s3-altb/project/workspaces/W1/Operations/CreateOperations_FM_1.par&quot;" logFile="/home/femm/BratScheduler/Logs/BratTask_rccc_1448043127546.log" name="processing" status="pending" uid="1448043127546"/>
-    <task at="2015-11-20 18:30:00" cmd="&quot;/home/femm/brat-3.3.0-x86_64/bin/BratExportAscii&quot; &quot;/home/brat/s3-altb/project/workspaces/W1/Operations/ExportAsciiOperations_FM_1.export.par&quot;" logFile="/home/femm/BratScheduler/Logs/BratTask_rccc2_1448044242469.log" name="processing2" status="pending" uid="1448044242469"/>
+    <task at="2015-11-20 18:12:00" cmd="&quot;/home/femm/brat-3.3.0-x86_64/bin/BratCreateZFXY&quot; &quot;/home/brat/s3-altb/project/workspaces/W1/Operations/CreateOperations_FM_1.par&quot;" logFile="/home/femm/BratScheduler/Logs/BratTask_rccc_1448043127546.log" name="processing" status="processing" uid="1448043127546"/>
+    <task at="2015-11-20 18:30:00" cmd="&quot;/home/femm/brat-3.3.0-x86_64/bin/BratExportAscii&quot; &quot;/home/brat/s3-altb/project/workspaces/W1/Operations/ExportAsciiOperations_FM_1.export.par&quot;" logFile="/home/femm/BratScheduler/Logs/BratTask_rccc2_1448044242469.log" name="processing2" status="processing" uid="1448044242469"/>
   </processingTasks>
 </bratSchedulerConfig>

@@ -676,6 +676,8 @@ static void StartElementHnd(void *userData, const char *name, const char **atts)
 extern "C" {
 static void EndElementHnd(void *userData, const char* name)
 {
+    UNUSED(name);
+
   structXmlParsingContext *ctx = (structXmlParsingContext*)userData;
 
   // we're exiting the last children of ctx->node->GetParent() and going

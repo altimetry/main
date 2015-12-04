@@ -32,6 +32,7 @@
 #endif
 
 #include "SchedulerTimer.h"
+#include "../scheduler/ProcessingPanel.h"
 
 // When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
@@ -73,9 +74,7 @@ void CSchedulerTimer::Notify()
 
   schedulerTaskConfig->GetMapPendingBratTaskToProcess(/*now, femm*/&vectorBratTaskToProcess);
 
-  std::vector<wxLongLong_t>::const_iterator it;
-
-  for (it = vectorBratTaskToProcess.begin() ; it != vectorBratTaskToProcess.end() ; it++)
+  for (std::vector<wxLongLong_t>::const_iterator it = vectorBratTaskToProcess.begin() ; it != vectorBratTaskToProcess.end() ; it++)
   {
     CBratTaskProcessEvent ev(GetId(), *it);
     wxPostEvent(this->GetOwner(), ev);

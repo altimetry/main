@@ -211,12 +211,13 @@ void CBratProcessZFXY::GetParameters()
 
 // Get keyword values
 
-  CTrace *p = CTrace::GetInstance();
+  //CTrace *p =
+  CTrace::GetInstance();
 
   //---------
 
   params.m_mapParam[kwOUTPUT]->GetValue(m_outputFileName);
-  p->Tracer(1, CBratProcess::PCT_StrFmt, "Output file", m_outputFileName.c_str());
+  CTrace::Tracer(1, CBratProcess::PCT_StrFmt, "Output file", m_outputFileName.c_str());
   
   m_internalFiles = new CInternalFilesZFXY(m_outputFileName.c_str(), Replace);
   m_internalFiles->Open();
@@ -228,12 +229,12 @@ void CBratProcessZFXY::GetParameters()
     params.m_mapParam[kwOUTPUT_TITLE]->GetValue(m_outputTitle);
   }
 
-  p->Tracer(1, CBratProcess::PCT_QStrFmt, "Output title", m_outputTitle.c_str());
+  CTrace::Tracer(1, CBratProcess::PCT_QStrFmt, "Output title", m_outputTitle.c_str());
   
   //---------
 
   params.m_mapParam[kwRECORD]->GetValue(m_recordName);
-  p->Tracer(1, CBratProcess::PCT_StrFmt, "Data set name", m_recordName.c_str());
+  CTrace::Tracer(1, CBratProcess::PCT_StrFmt, "Data set name", m_recordName.c_str());
 
   //---------
 
@@ -241,7 +242,7 @@ void CBratProcessZFXY::GetParameters()
   {
     params.m_mapParam[kwEXPAND_ARRAY]->GetValue(m_expandArray);
   }
-  p->Tracer(1, PCT_IntFmt, "Expand array", m_expandArray);
+  CTrace::Tracer(1, PCT_IntFmt, "Expand array", m_expandArray);
 
   //---------
 
@@ -250,17 +251,17 @@ void CBratProcessZFXY::GetParameters()
   //---------
 
   m_dataModeGlobal	= GetDataMode(params);
-  p->Tracer(1, CBratProcess::PCT_StrFmt, "Default data mode",  CBratProcess::DataModeStr(m_dataModeGlobal).c_str());
+  CTrace::Tracer(1, CBratProcess::PCT_StrFmt, "Default data mode",  CBratProcess::DataModeStr(m_dataModeGlobal).c_str());
 
   //---------
 
   m_positionMode	= CBratProcess::GetPositionMode(params);
-  p->Tracer(1, CBratProcess::PCT_StrFmt, "Position mode",  CBratProcess::PositionModeStr(m_positionMode).c_str());
+  CTrace::Tracer(1, CBratProcess::PCT_StrFmt, "Position mode",  CBratProcess::PositionModeStr(m_positionMode).c_str());
 
   //---------
 
   m_outsideMode	= CBratProcess::GetOutsideMode(params);
-  p->Tracer(1, CBratProcess::PCT_StrFmt, "Outside mode",  CBratProcess::OutsideModeStr(m_outsideMode).c_str());
+  CTrace::Tracer(1, CBratProcess::PCT_StrFmt, "Outside mode",  CBratProcess::OutsideModeStr(m_outsideMode).c_str());
 
   //---------
 
@@ -378,7 +379,7 @@ void CBratProcessZFXY::GetParameters()
 
 
   
-  p->Tracer(1,"Allocating and initialising working structures");
+  CTrace::Tracer(1,"Allocating and initialising working structures");
   
   m_nbDataByGrid	= m_xCount * m_yCount;
   
@@ -1119,6 +1120,8 @@ CMatrixDouble* CBratProcessZFXY::GetMatrixDouble(CBratObject* ob, bool withExcep
 //----------------------------------------
 int32_t CBratProcessZFXY::Execute(std::string& msg)
 { 
+    UNUSED(msg);
+
   int32_t result = BRATHL_SUCCESS;
 
   CDate startExec;

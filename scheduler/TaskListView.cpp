@@ -267,7 +267,8 @@ void CTaskListView::ResetColumnImage()
 void CTaskListView::OnInsertItem( wxListEvent &event )
 {
 
-  CBratTask* bratTask = (CBratTask*)(event.GetData());
+  //CBratTask* bratTask =
+    (CBratTask*)(event.GetData());
 
 //  event.Veto();
 }
@@ -483,7 +484,7 @@ bool CTaskListView::RemoveTasks(bool ask /* = true */)
     wxGetApp().StopCheckConfigFileTimer();
     //---------------------
 
-    bool loaded = CSchedulerTaskConfig::LoadSchedulerTaskConfig();
+    bool loaded = CSchedulerTaskConfig::LoadAllSchedulerTaskConfig();
 
     if (!loaded)
     {    

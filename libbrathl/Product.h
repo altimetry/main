@@ -91,7 +91,7 @@ public:
     \param p [in] : productList object to be connected */
   void Set(const CProductList& lst);
 
-  const std::string GetMessage() {return m_message;};
+  const std::string GetMessage() {return m_message;}
 
   /// Destructor
   virtual ~CProductList();
@@ -110,9 +110,9 @@ public:
   bool IsJason2();
   bool IsATP();
 
-  bool IsNetCdfProduct() {return (m_productClass.compare(NETCDF_PRODUCT_CLASS) == 0); };
-  bool IsNetCdfCFProduct() {return (m_productClass.compare(NETCDF_CF_PRODUCT_CLASS) == 0); };
-  bool IsNetCdfOrNetCdfCFProduct() {return (IsNetCdfCFProduct() || IsNetCdfProduct()); };
+  bool IsNetCdfProduct() {return (m_productClass.compare(NETCDF_PRODUCT_CLASS) == 0); }
+  bool IsNetCdfCFProduct() {return (m_productClass.compare(NETCDF_CF_PRODUCT_CLASS) == 0); }
+  bool IsNetCdfOrNetCdfCFProduct() {return (IsNetCdfCFProduct() || IsNetCdfProduct()); }
 
   bool IsSameProduct(const std::string& productClass, const std::string& productType);
 
@@ -213,17 +213,17 @@ public:
   bool CheckFiles();
 
   void SetPerformConversions(bool performConversions);
-  int32_t GetPerformConversions() {return m_performConversions;};
+  int32_t GetPerformConversions() {return m_performConversions;}
   void SetPerformBoundaryChecks(bool performBoundaryChecks);
-  int32_t GetPerformBoundaryChecks() {return m_performBoundaryChecks;};
+  int32_t GetPerformBoundaryChecks() {return m_performBoundaryChecks;}
   
 
-  std::string GetProductClass() {return m_fileList.m_productClass;};
-  std::string GetProductType() {return m_fileList.m_productType;};
+  std::string GetProductClass() {return m_fileList.m_productClass;}
+  std::string GetProductType() {return m_fileList.m_productType;}
 
-  bool IsNetCdfProduct() {return (m_fileList.m_productClass.compare(NETCDF_PRODUCT_CLASS) == 0); };
-  bool IsNetCdfCFProduct() {return (m_fileList.m_productClass.compare(NETCDF_CF_PRODUCT_CLASS) == 0); };
-  bool IsNetCdfOrNetCdfCFProduct() {return (IsNetCdfCFProduct() || IsNetCdfProduct()); };
+  bool IsNetCdfProduct() {return (m_fileList.m_productClass.compare(NETCDF_PRODUCT_CLASS) == 0); }
+  bool IsNetCdfCFProduct() {return (m_fileList.m_productClass.compare(NETCDF_CF_PRODUCT_CLASS) == 0); }
+  bool IsNetCdfOrNetCdfCFProduct() {return (IsNetCdfCFProduct() || IsNetCdfProduct()); }
 
   std::string GetProductClassType();
 
@@ -275,20 +275,20 @@ public:
   virtual void SetHighResolution(CField* field);
 
 
-  CDataSet* GetDataSet() {return &m_dataSet;};
+  CDataSet* GetDataSet() {return &m_dataSet;}
 
-  brathl_refDate GetRefDate() {return m_refDate;};
-  CDate GetRefDateAsDate() {return CDate(0.0, m_refDate);};
+  brathl_refDate GetRefDate() {return m_refDate;}
+  CDate GetRefDateAsDate() {return CDate(0.0, m_refDate);}
 
-  CTreeField* GetTreeField() {return &m_tree;};
+  CTreeField* GetTreeField() {return &m_tree;}
 
-  uint32_t GetSkippedRecordCount() {return m_nSkippedRecord;};
+  uint32_t GetSkippedRecordCount() {return m_nSkippedRecord;}
 
-  bool GetExpandArray() {return m_expandArray;};
-  void SetExpandArray(bool value) {m_expandArray = value;};
+  bool GetExpandArray() {return m_expandArray;}
+  void SetExpandArray(bool value) {m_expandArray = value;}
   
-  bool GetCreateVirtualField() {return m_createVirtualField;};
-  void SetCreateVirtualField(bool value) {m_createVirtualField = value;};
+  bool GetCreateVirtualField() {return m_createVirtualField;}
+  void SetCreateVirtualField(bool value) {m_createVirtualField = value;}
 
   
   static CProduct* Construct(CStringArray& fileNameArray);
@@ -298,8 +298,8 @@ public:
 
   bool IsNetCdf();
 
-  const std::string& GetDescription() {return m_description;};
-  void SetDescription(const std::string& value) {m_description = value;};
+  const std::string& GetDescription() {return m_description;}
+  void SetDescription(const std::string& value) {m_description = value;}
 
   static void CodaInit();
   static void CodaRelease();
@@ -311,82 +311,82 @@ public:
   void DumpDictionary(std::ostream& fOut = std::cout);
   void DumpDictionary(const std::string& outputFileName);
 
-  virtual bool HasCriteriaInfo() { return (m_criteriaInfoMap.size() > 0); };
+  virtual bool HasCriteriaInfo() { return (m_criteriaInfoMap.size() > 0); }
 
-  bool HasLatLonCriteriaInfo() { return (GetLatLonCriteriaInfo() != NULL); };
-  bool HasDatetimeCriteriaInfo() { return (GetDatetimeCriteriaInfo() != NULL); };
-  bool HasPassCriteriaInfo() { return (GetPassCriteriaInfo() != NULL); };
-  bool HasPassIntCriteriaInfo() { return (GetPassIntCriteriaInfo() != NULL); };
-  bool HasPassStringCriteriaInfo() { return (GetPassStringCriteriaInfo() != NULL); };
-  bool HasCycleCriteriaInfo() { return (GetCycleCriteriaInfo() != NULL); };
+  bool HasLatLonCriteriaInfo() { return (GetLatLonCriteriaInfo() != NULL); }
+  bool HasDatetimeCriteriaInfo() { return (GetDatetimeCriteriaInfo() != NULL); }
+  bool HasPassCriteriaInfo() { return (GetPassCriteriaInfo() != NULL); }
+  bool HasPassIntCriteriaInfo() { return (GetPassIntCriteriaInfo() != NULL); }
+  bool HasPassStringCriteriaInfo() { return (GetPassStringCriteriaInfo() != NULL); }
+  bool HasCycleCriteriaInfo() { return (GetCycleCriteriaInfo() != NULL); }
   
-  CCriteriaLatLonInfo* GetLatLonCriteriaInfo() { return CCriteriaLatLonInfo::GetCriteriaInfo(m_criteriaInfoMap.Exists(CCriteria::LATLON), false); };
-  CCriteriaDatetimeInfo* GetDatetimeCriteriaInfo() { return CCriteriaDatetimeInfo::GetCriteriaInfo(m_criteriaInfoMap.Exists(CCriteria::DATETIME), false); };
-  CCriteriaPassInfo* GetPassCriteriaInfo() { return CCriteriaPassInfo::GetCriteriaInfo(m_criteriaInfoMap.Exists(CCriteria::PASS), false); };
-  CCriteriaPassIntInfo* GetPassIntCriteriaInfo() { return CCriteriaPassIntInfo::GetCriteriaInfo(m_criteriaInfoMap.Exists(CCriteria::PASS), false); };
-  CCriteriaPassStringInfo* GetPassStringCriteriaInfo() { return CCriteriaPassStringInfo::GetCriteriaInfo(m_criteriaInfoMap.Exists(CCriteria::PASS), false); };
-  CCriteriaCycleInfo* GetCycleCriteriaInfo() { return CCriteriaCycleInfo::GetCriteriaInfo(m_criteriaInfoMap.Exists(CCriteria::CYCLE), false); };
+  CCriteriaLatLonInfo* GetLatLonCriteriaInfo() { return CCriteriaLatLonInfo::GetCriteriaInfo(m_criteriaInfoMap.Exists(CCriteria::LATLON), false); }
+  CCriteriaDatetimeInfo* GetDatetimeCriteriaInfo() { return CCriteriaDatetimeInfo::GetCriteriaInfo(m_criteriaInfoMap.Exists(CCriteria::DATETIME), false); }
+  CCriteriaPassInfo* GetPassCriteriaInfo() { return CCriteriaPassInfo::GetCriteriaInfo(m_criteriaInfoMap.Exists(CCriteria::PASS), false); }
+  CCriteriaPassIntInfo* GetPassIntCriteriaInfo() { return CCriteriaPassIntInfo::GetCriteriaInfo(m_criteriaInfoMap.Exists(CCriteria::PASS), false); }
+  CCriteriaPassStringInfo* GetPassStringCriteriaInfo() { return CCriteriaPassStringInfo::GetCriteriaInfo(m_criteriaInfoMap.Exists(CCriteria::PASS), false); }
+  CCriteriaCycleInfo* GetCycleCriteriaInfo() { return CCriteriaCycleInfo::GetCriteriaInfo(m_criteriaInfoMap.Exists(CCriteria::CYCLE), false); }
 
 
-  bool HasLatLonCriteria() { return (GetLatLonCriteria() != NULL); };
-  bool HasDatetimeCriteria() { return (GetDatetimeCriteria() != NULL); };
-  bool HasPassCriteria() { return (GetPassCriteria() != NULL); };
-  bool HasPassIntCriteria() { return (GetPassIntCriteria() != NULL); };
-  bool HasPassStringCriteria() { return (GetPassStringCriteria() != NULL); };
-  bool HasCycleCriteria() { return (GetCycleCriteria() != NULL); };
+  bool HasLatLonCriteria() { return (GetLatLonCriteria() != NULL); }
+  bool HasDatetimeCriteria() { return (GetDatetimeCriteria() != NULL); }
+  bool HasPassCriteria() { return (GetPassCriteria() != NULL); }
+  bool HasPassIntCriteria() { return (GetPassIntCriteria() != NULL); }
+  bool HasPassStringCriteria() { return (GetPassStringCriteria() != NULL); }
+  bool HasCycleCriteria() { return (GetCycleCriteria() != NULL); }
 
-  bool IsSetLatLonCriteria() { return (HasLatLonCriteria() ? !GetLatLonCriteria()->IsDefaultValue() : false); };
-  bool IsSetDatetimeCriteria() { return (HasDatetimeCriteria() ? !GetDatetimeCriteria()->IsDefaultValue() : false); };
-  bool IsSetPassCriteria() { return (HasPassCriteria() ? !GetPassCriteria()->IsDefaultValue() : false); };
-  bool IsSetPassIntCriteria() { return (HasPassIntCriteria() ? !GetPassIntCriteria()->IsDefaultValue() : false); };
-  bool IsSetPassStringCriteria() { return (HasPassStringCriteria() ? !GetPassStringCriteria()->IsDefaultValue() : false); };
-  bool IsSetCycleCriteria() { return (HasCycleCriteria() ? !GetCycleCriteria()->IsDefaultValue() : false); };
+  bool IsSetLatLonCriteria() { return (HasLatLonCriteria() ? !GetLatLonCriteria()->IsDefaultValue() : false); }
+  bool IsSetDatetimeCriteria() { return (HasDatetimeCriteria() ? !GetDatetimeCriteria()->IsDefaultValue() : false); }
+  bool IsSetPassCriteria() { return (HasPassCriteria() ? !GetPassCriteria()->IsDefaultValue() : false); }
+  bool IsSetPassIntCriteria() { return (HasPassIntCriteria() ? !GetPassIntCriteria()->IsDefaultValue() : false); }
+  bool IsSetPassStringCriteria() { return (HasPassStringCriteria() ? !GetPassStringCriteria()->IsDefaultValue() : false); }
+  bool IsSetCycleCriteria() { return (HasCycleCriteria() ? !GetCycleCriteria()->IsDefaultValue() : false); }
 
-  CCriteriaLatLon* GetLatLonCriteria() { return CCriteriaLatLon::GetCriteria(m_criteriaMap.Exists(CCriteria::LATLON), false); };
-  CCriteriaDatetime* GetDatetimeCriteria() { return CCriteriaDatetime::GetCriteria(m_criteriaMap.Exists(CCriteria::DATETIME), false); };
-  CCriteriaPass* GetPassCriteria() { return CCriteriaPass::GetCriteria(m_criteriaMap.Exists(CCriteria::PASS), false); };
-  CCriteriaPassInt* GetPassIntCriteria() { return CCriteriaPassInt::GetCriteria(m_criteriaMap.Exists(CCriteria::PASS), false); };
-  CCriteriaPassString* GetPassStringCriteria() { return CCriteriaPassString::GetCriteria(m_criteriaMap.Exists(CCriteria::PASS), false); };
-  CCriteriaCycle* GetCycleCriteria() { return CCriteriaCycle::GetCriteria(m_criteriaMap.Exists(CCriteria::CYCLE), false); };
+  CCriteriaLatLon* GetLatLonCriteria() { return CCriteriaLatLon::GetCriteria(m_criteriaMap.Exists(CCriteria::LATLON), false); }
+  CCriteriaDatetime* GetDatetimeCriteria() { return CCriteriaDatetime::GetCriteria(m_criteriaMap.Exists(CCriteria::DATETIME), false); }
+  CCriteriaPass* GetPassCriteria() { return CCriteriaPass::GetCriteria(m_criteriaMap.Exists(CCriteria::PASS), false); }
+  CCriteriaPassInt* GetPassIntCriteria() { return CCriteriaPassInt::GetCriteria(m_criteriaMap.Exists(CCriteria::PASS), false); }
+  CCriteriaPassString* GetPassStringCriteria() { return CCriteriaPassString::GetCriteria(m_criteriaMap.Exists(CCriteria::PASS), false); }
+  CCriteriaCycle* GetCycleCriteria() { return CCriteriaCycle::GetCriteria(m_criteriaMap.Exists(CCriteria::CYCLE), false); }
 
 
-  CProductList& GetProductList() { return m_fileList; };
+  CProductList& GetProductList() { return m_fileList; }
   void SetProductList(const std::string& fileName, bool checkFiles = true);
   void SetProductList(const CStringList& fileList, bool checkFiles = true);
 
   bool IsSameProduct(const CProductList fileList);
   bool IsSameProduct(const std::string& productClass, const std::string& productType);
 
-  virtual std::string GetLongitudeFieldName() { return m_longitudeFieldName; };
-  virtual std::string GetLatitudeFieldName() { return m_latitudeFieldName; };
+  virtual std::string GetLongitudeFieldName() { return m_longitudeFieldName; }
+  virtual std::string GetLatitudeFieldName() { return m_latitudeFieldName; }
   
-  virtual bool IsLongitudeFieldName(const std::string& name) { return (m_longitudeFieldName.compare(name) == 0); };
-  virtual bool IsLatitudeFieldName(const std::string& name) { return (m_latitudeFieldName.compare(name) == 0); };
+  virtual bool IsLongitudeFieldName(const std::string& name) { return (m_longitudeFieldName.compare(name) == 0); }
+  virtual bool IsLatitudeFieldName(const std::string& name) { return (m_latitudeFieldName.compare(name) == 0); }
 
-  virtual std::string GetLabel() { return m_label; };
-  virtual void SetLabel(const std::string& value) { m_label = value; };
+  virtual std::string GetLabel() { return m_label; }
+  virtual void SetLabel(const std::string& value) { m_label = value; }
 
-  std::string GetDataSetNameToRead() { return m_dataSetNameToRead; };
-  void SetDataSetNameToRead(const std::string& value) { m_dataSetNameToRead = value; };
+  std::string GetDataSetNameToRead() { return m_dataSetNameToRead; }
+  void SetDataSetNameToRead(const std::string& value) { m_dataSetNameToRead = value; }
 
   virtual void InitCriteriaInfo();
   virtual void LoadAliases();
-  virtual bool HasAliases() {return (m_productAliases != NULL);};
+  virtual bool HasAliases() {return (m_productAliases != NULL);}
   
   static void GroupAliases(const CProduct* product, const CStringMap* formulaAliases, CStringMap& allAliases);
 
   static bool CheckAliases(const std::string& fileName, CStringArray& errors);
   bool CheckAliases(CStringArray& errors);
 
-  const CProductAliases* GetAliases() {return m_productAliases;};
-  const CStringMap* GetAliasesAsString() const {return &m_mapStringAliases;};
+  const CProductAliases* GetAliases() {return m_productAliases;}
+  const CStringMap* GetAliasesAsString() const {return &m_mapStringAliases;}
   static const CStringMap* GetAliasesAsString(const CProduct* product);
 
   const CProductAlias* GetAlias(const std::string& key);
   void GetAliasKeys(CStringArray& keys);
   std::string GetAliasExpandedValue(const std::string& key);
 
-  int32_t GetIndexProcessedFile() { return m_indexProcessedFile; };
+  int32_t GetIndexProcessedFile() { return m_indexProcessedFile; }
 
   bool CheckFieldNames(const CExpression& expr, const std::string& dataSetName, CStringArray& fieldNamesNotFound);
   bool CheckFieldNames(const CExpression& expr, CStringArray& fieldNamesNotFound);
@@ -413,12 +413,12 @@ public:
   CField* FindFieldByInternalName(const std::string& internalFieldName, bool withExcept = true);
 
 
-  CStringArray* GetFieldToTranspose() { return &m_fieldsToTranspose; };
+  CStringArray* GetFieldToTranspose() { return &m_fieldsToTranspose; }
 
   bool LoadTransposeFieldsValue(CStringArray& fieldsToTranspose);
 
-  virtual void SetForceReadDataOneByOne(bool) {  };
-  virtual bool GetForceReadDataOneByOne() { return false; };
+  virtual void SetForceReadDataOneByOne(bool) {  }
+  virtual bool GetForceReadDataOneByOne() { return false; }
 
   void ReplaceNamesCaseSensitive(const CExpression& exprIn, const CStringArray& fieldsIn, CExpression& exprOut, bool forceReload = false);
   void ReplaceNamesCaseSensitive(const std::string& in, const CStringArray& fieldsIn, std::string& out, bool forceReload = false);
@@ -437,10 +437,10 @@ public:
   CStringArray* GetDataDictionaryFieldNames(bool forceReload = false);
   CStringArray* GetDataDictionaryFieldNamesWithDatasetName(bool forceReload = false);
 
-  double GetForceLatMinCriteriaValue() { return m_forceLatMinCriteriaValue; };
-  double GetForceLatMaxCriteriaValue() { return m_forceLatMaxCriteriaValue; };
+  double GetForceLatMinCriteriaValue() { return m_forceLatMinCriteriaValue; }
+  double GetForceLatMaxCriteriaValue() { return m_forceLatMaxCriteriaValue; }
 
-  CStringMap* GetFieldSpecificUnits() { return &m_fieldSpecificUnit; };
+  CStringMap* GetFieldSpecificUnits() { return &m_fieldSpecificUnit; }
   void SetFieldSpecificUnits(const CStringMap& fieldSpecificUnit);
   
   std::string GetFieldSpecificUnit(const std::string& key);
@@ -448,18 +448,18 @@ public:
 
   virtual void SetFieldSpecificUnit(CField* field);
   
-  virtual int32_t GetCurrentRecordNumber() { return m_currentRecord; };
-  virtual std::string GetCurrentFileName() { return m_currFileName; };
+  virtual int32_t GetCurrentRecordNumber() { return m_currentRecord; }
+  virtual std::string GetCurrentFileName() { return m_currFileName; }
 
-  void SetDisableTrace(bool value) { m_disableTrace = value; };
-  bool GetDisableTrace() { return m_disableTrace; };
+  void SetDisableTrace(bool value) { m_disableTrace = value; }
+  bool GetDisableTrace() { return m_disableTrace; }
 
-  CStringList* GetListFieldOrigin(){ return &m_listFieldOrigin; }; ;
+  CStringList* GetListFieldOrigin(){ return &m_listFieldOrigin; }
   void SetListFieldOrigin(const CStringList& listFieldOrigin);
   
-  virtual void SetOffset(double value) { m_offset = value; };
+  virtual void SetOffset(double value) { m_offset = value; }
   virtual void AddOffset(double value, CField* field = NULL);
-  virtual double GetOffset() { return m_offset; };
+  virtual double GetOffset() { return m_offset; }
 
 
   static int32_t ReadData
@@ -472,7 +472,7 @@ public:
 		 char		**units,
 		 double		**results,
 		 int32_t	sizes[],
-		 int32_t	*actualSize,
+         size_t	*actualSize,
 		 int		ignoreOutOfRange,
 		 int		statistics,
 		 double		defaultValue,
@@ -487,7 +487,7 @@ public:
 		 const std::vector<CUnit>		&WantedUnits,
 		 double				**results,
 		 int32_t			*sizes,
-		 int32_t			*actualSize,
+         size_t			*actualSize,
 		 int				ignoreOutOfRange,
 		 int				statistics,
      CProduct* product = NULL);
@@ -534,8 +534,8 @@ public:
   class CListInfo : public CObList
   {
   public:
-    CListInfo() {};
-   virtual ~CListInfo() {};
+    CListInfo() {}
+   virtual ~CListInfo() {}
    CInfo* AddNew();
    CInfo* Back(bool withExcept = true);
    CInfo* Front(bool withExcept = true);
@@ -553,8 +553,8 @@ protected:
   virtual void RewindProcess ();
   virtual void RewindEnd ();
 
-  virtual bool HasHighResolutionFieldCalculation() {return false;};
-  virtual void AddInternalHighResolutionFieldCalculation() {};
+  virtual bool HasHighResolutionFieldCalculation() {return false;}
+  virtual void AddInternalHighResolutionFieldCalculation() {}
 
   virtual void AddSameFieldName(const std::string& fieldNameToSearch, CStringArray& arrayFieldsAdded);
 
@@ -842,16 +842,16 @@ public:
   
   /** Creates new CProdCProductGenericuct object
     \param fileName [in] : file name to be connected */
-  CProductGeneric(const std::string& fileName) : CProduct(fileName) {};
+  CProductGeneric(const std::string& fileName) : CProduct(fileName) {}
   
   /** Creates new CProductGeneric object
     \param fileNameList [in] : list of file to be connected */
-  CProductGeneric(const CStringList& fileNameList) : CProduct(fileNameList) {};;
+  CProductGeneric(const CStringList& fileNameList) : CProduct(fileNameList) {}
   
   /// Destructor
-  virtual ~CProductGeneric() { };
+  virtual ~CProductGeneric() { }
   //----------------------------------------
-  virtual void InitDateRef() { m_refDate = REF20000101; };
+  virtual void InitDateRef() { m_refDate = REF20000101; }
 
 };
 //-------------------------------------------------------------

@@ -323,7 +323,8 @@ bool CDataset::LoadConfig(wxFileConfig* config)
 
   config->SetPath("/" + m_name);
 
-  long maxEntries = config->GetNumberOfEntries();
+  //long maxEntries =
+  config->GetNumberOfEntries();
   wxString entry;
   wxString valueString;
   long i = 0;

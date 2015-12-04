@@ -857,7 +857,7 @@ LIBRATHL_API int32_t brathl_ReadData
 		 char		**units,
 		 double		**results,
 		 int32_t	sizes[],
-		 int32_t	*actualSize,
+		 size_t		*actualSize,
 		 int		ignoreOutOfRange,
 		 int		statistics,
 		 double		defaultValue

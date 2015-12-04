@@ -156,6 +156,8 @@ double CBratAlgoFilterGaussian2D::Run(CVectorBratAlgorithmParam& args)
 //----------------------------------------
 double CBratAlgoFilterGaussian2D::ComputeGaussian(CExpressionValue& exprValue)
 {
+    UNUSED(exprValue);
+
   setDefaultValue(m_gaussian);
 
   CDoubleArray dataGaussianX;

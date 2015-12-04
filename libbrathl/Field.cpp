@@ -1031,6 +1031,8 @@ void CField::ReadParent(CDoubleArray& vect, CObList* parentFieldList)
 //----------------------------------------
 void CField::Read(double* data, bool skip /*= false*/)
 {
+    UNUSED(data);   UNUSED(skip);
+
   CException e("ERROR - CField::Read(double* data) - unexpected call - CField::Read(double* data) have not to be called ", BRATHL_LOGIC_ERROR);
   CTrace::Tracer("%s", e.what());
   Dump(*CTrace::GetDumpContext());
@@ -1040,6 +1042,7 @@ void CField::Read(double* data, bool skip /*= false*/)
 //----------------------------------------
 void CField::Read(CDoubleArray& vect, bool skip /*= false*/)
 {
+    UNUSED(vect);   UNUSED(skip);
 
   CException e("ERROR - CField::Read(CDoubleArray& vect) - unexpected call - CField::Read(CDoubleArray& vect) have not to be called ", BRATHL_LOGIC_ERROR);
   CTrace::Tracer("%s", e.what());
@@ -1049,6 +1052,7 @@ void CField::Read(CDoubleArray& vect, bool skip /*= false*/)
 //----------------------------------------
 void CField::Read(std::string& value, bool skip /*= false*/)
 {
+    UNUSED(value);   UNUSED(skip);
 
   CException e("ERROR - CField::Read(std::string& value) - unexpected call - CField::Read(std::string& value) have not to be called ", BRATHL_LOGIC_ERROR);
   CTrace::Tracer("%s", e.what());
@@ -1300,6 +1304,7 @@ void CFieldRecord::Read(CDoubleArray& vect, bool skip /*= false*/)
 //----------------------------------------
 void CFieldRecord::Read(double* data, bool skip /*= false*/)
 {
+    UNUSED(data);   UNUSED(skip);
 
   coda_ProductFile *pf;
   const char *fileName;
@@ -2329,6 +2334,8 @@ void CFieldIndexData::Init()
 
 CFieldSet* CFieldIndexData::CreateFieldSet(const CField::CListField& listFields)
 {
+    UNUSED(listFields);
+
   CFieldSetDbl* fieldSet = new CFieldSetDbl(m_key);
   fieldSet->SetField(this);
   return fieldSet;
@@ -2353,6 +2360,8 @@ double CFieldIndexData::Read()
 //----------------------------------------
 void CFieldIndexData::Read(CDoubleArray& vect, bool skip /*= false*/)
 {
+    UNUSED(skip);
+
   vect.Insert(this->GetValue());
   m_currentPos++;
 }
@@ -3336,6 +3345,8 @@ void CFieldNetCdf::SetIndex(const std::string& dimName, uint32_t index, uint32_t
 //----------------------------------------
 CFieldSet* CFieldNetCdf::CreateFieldSet(const CField::CListField& listFields)
 {
+    UNUSED(listFields);
+
   CException e("ERROR - CFieldNetCdf::CreateFieldSet(const CField::CListField& listFields)  - unexpected call - CFieldNetCdf::CreateFieldSet(const CField::CListField& listFields)  have not to be called ", BRATHL_LOGIC_ERROR);
   throw (e);
 
@@ -3487,6 +3498,8 @@ NetCDFVarKind CFieldNetCdf::SearchDimKind()
 //----------------------------------------
 void CFieldNetCdf::Read(CDoubleArray& vect, bool skip /*= false*/)
 {
+    UNUSED(vect);   UNUSED(skip);
+
   CException e("ERROR - CFieldNetCdf::Read(CDoubleArray& vect) - unexpected call - CFieldNetCdf::Read(CDoubleArray& vect) have not to be called ", BRATHL_LOGIC_ERROR);
   CTrace::Tracer("%s", e.what());
   Dump(*CTrace::GetDumpContext());
@@ -3496,6 +3509,8 @@ void CFieldNetCdf::Read(CDoubleArray& vect, bool skip /*= false*/)
 //----------------------------------------
 void CFieldNetCdf::Read(CExpressionValue& value, bool skip /*= false*/)
 {
+    UNUSED(value);   UNUSED(skip);
+
   CException e("ERROR - CFieldNetCdf::Read(CExpressionValue& vect) - unexpected call - CFieldNetCdf::Read(CExpressionValue& vect) have not to be called ", BRATHL_LOGIC_ERROR);
   CTrace::Tracer("%s", e.what());
   Dump(*CTrace::GetDumpContext());
@@ -3533,6 +3548,8 @@ void CFieldNetCdf::SetValuesAsArray()
 //----------------------------------------
 void CFieldNetCdf::SetValuesAsArray(const CDoubleArray& values)
 {
+    UNUSED(values);
+
   DeleteValuesAsArray();
 
   m_valuesAsArray = new double[m_values.size()];
@@ -4179,12 +4196,12 @@ std::string CFieldNetCdfCFAttr::GetMostExplicitName()
 //----------------------------------------
 void CFieldNetCdfCFAttr::SetAttributes(const CStringMap& mapAttributes)
 {
-
+    UNUSED(mapAttributes);
 }
 //----------------------------------------
 void CFieldNetCdfCFAttr::SetAttributes(const CStringMap* mapAttributes)
 {
-
+    UNUSED(mapAttributes);
 }
 
 //----------------------------------------
@@ -4307,6 +4324,8 @@ CFieldSet* CFieldIndex::CreateFieldSet()
 //----------------------------------------
 CFieldSet* CFieldIndex::CreateFieldSet(const CField::CListField& listFields)
 {
+    UNUSED(listFields);
+
   return CreateFieldSet();
 }
 
@@ -4324,6 +4343,8 @@ void CFieldIndex::SetAtBeginning(bool value)
 //----------------------------------------
 void CFieldIndex::Read(CDoubleArray& vect, bool skip /*= false*/ /* NOT USED */)
 {
+    UNUSED(skip);
+
   if (m_expandArray)
   {
     ReadOneValue(vect);
@@ -4585,6 +4606,8 @@ CFieldSetString& CFieldSetString::operator=(CFieldSetString& f)
 //----------------------------------------
 void CFieldSetString::Insert(const CDoubleArray& vect, bool bRemove)
 {
+    UNUSED(bRemove);
+
   if (vect.empty())
   {
     m_value = "";
@@ -4597,12 +4620,16 @@ void CFieldSetString::Insert(const CDoubleArray& vect, bool bRemove)
 //----------------------------------------
 void CFieldSetString::Insert(double value, bool bRemove)
 {
+    UNUSED(bRemove);
+
   m_value = CTools::DoubleToStr(value);
 }
 
 //----------------------------------------
 void CFieldSetString::Insert(const std::string& value, bool bRemove)
 {
+    UNUSED(bRemove);
+
   m_value = value;
 }
 
@@ -4682,17 +4709,23 @@ CFieldSetDbl& CFieldSetDbl::operator=(int32_t value)
 //----------------------------------------
 void CFieldSetDbl::Insert(const CDoubleArray& vect, bool bRemove)
 {
+    UNUSED(bRemove);
+
   m_value = vect.front();
 }
 //----------------------------------------
 
 void CFieldSetDbl::Insert(double value, bool bRemove)
 {
+    UNUSED(bRemove);
+
   m_value = value;
 }
 //----------------------------------------
 void CFieldSetDbl::Insert(const std::string& value, bool bRemove)
 {
+    UNUSED(bRemove);
+
   m_value = CTools::StrToDouble(value);
 }
 

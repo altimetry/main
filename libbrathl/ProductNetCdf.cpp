@@ -1154,6 +1154,8 @@ void CProductNetCdf::InitDateRef()
 //----------------------------------------
 std::string CProductNetCdf::MakeInternalFieldName(const std::string& dataSetName, const std::string& field)
 {
+    UNUSED(dataSetName);
+
   return MakeInternalFieldName(field);
 }
 //----------------------------------------
@@ -1281,6 +1283,8 @@ int32_t CProductNetCdf::GetNumberOfRecords()
 //----------------------------------------
 int32_t CProductNetCdf::GetNumberOfRecords(const std::string& dataSetName /*NOT USED*/)
 {
+    UNUSED(dataSetName);
+
   return GetNumberOfRecords();
 }
 
@@ -1361,6 +1365,8 @@ void CProductNetCdf::SetOffset(double value)
 //----------------------------------------
 void CProductNetCdf::AddOffset(double value, CField* field /*= NULL*/)
 {
+    UNUSED(field);
+
   CProduct::AddOffset(value);
 
   if (m_externalFile != NULL)
@@ -1518,6 +1524,8 @@ void CProductNetCdf::GetNetCdfDimensions(const CStringArray& fields, CStringArra
 //----------------------------------------
 void CProductNetCdf::GetNetCdfDimensions(const std::vector<CExpression>& expressions, CStringArray& commonDimNames, const std::string& recordName)
 {
+    UNUSED(recordName);
+
   std::vector<CExpression>::const_iterator it;
 
   for (it = expressions.begin() ; it != expressions.end() ; it++)
@@ -1529,6 +1537,8 @@ void CProductNetCdf::GetNetCdfDimensions(const std::vector<CExpression>& express
 //----------------------------------------
 void CProductNetCdf::GetNetCdfDimensions(const CExpression& expr, CStringArray& commonDimNames, const std::string& recordName)
 {
+    UNUSED(recordName);
+
    GetNetCdfDimensions(*(expr.GetFieldNames()), commonDimNames);
 }
 //----------------------------------------
@@ -1544,6 +1554,8 @@ void CProductNetCdf::GetNetCdfDimensionsWithoutAlgo(const std::vector<CExpressio
 }//----------------------------------------
 void CProductNetCdf::GetNetCdfDimensionsWithoutAlgo(const CExpression& expr, CStringArray& commonDimNames, const std::string& recordName)
 {
+    UNUSED(recordName);
+
   if (!expr.HasAlgorithms())
   {
     GetNetCdfDimensions(*(expr.GetFieldNames()), commonDimNames);
@@ -1684,6 +1696,7 @@ void CProductNetCdf::CreateFieldSets()
 //----------------------------------------
 void CProductNetCdf::ReadBratFieldRecord(const std::string& key)
 {
+    UNUSED(key);
 
   CException e("ERROR - CProductNetCdf::ReadBratFieldRecord(const std::string& key) - unexpected call - CProductNetCdf::ReadBratFieldRecord(const std::string& key) have not to be called ", BRATHL_LOGIC_ERROR);
   throw (e);
@@ -1915,7 +1928,7 @@ void CProductNetCdf::Read(CFieldNetCdf* field, CDoubleArray& vect)
   Read(field, data);
 
   size_t dataSize = data.GetNbValues();
-  for (int32_t i = 0 ; i < dataSize ; i++)
+  for (size_t i = 0 ; i < dataSize ; i++)
   {
     vect.Insert(data.GetValues()[i]);
   }
@@ -1929,7 +1942,7 @@ void CProductNetCdf::Read(CFieldNetCdf* field, CExpressionValue& value)
   m_externalFile->GetValues(field, value, CUnit::m_UNIT_SI);
 
   size_t dataSize = value.GetNbValues();
-  for (int32_t i = 0 ; i < dataSize ; i++)
+  for (size_t i = 0 ; i < dataSize ; i++)
   {
     field->AdjustValidMinMax(value.GetValues()[i]);
   }
@@ -1953,7 +1966,7 @@ void CProductNetCdf::ReadAll(CFieldNetCdf* field, CExpressionValue& value)
   m_externalFile->GetAllValues(field, value, CUnit::m_UNIT_SI);
 
   size_t dataSize = value.GetNbValues();
-  for (int32_t i = 0 ; i < dataSize ; i++)
+  for (size_t i = 0 ; i < dataSize ; i++)
   {
     field->AdjustValidMinMax(value.GetValues()[i]);
   }

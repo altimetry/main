@@ -18,6 +18,7 @@
 #include "stdafx.h"
 
 #include "../Common/QtFileUtils.h"
+#include "../Common/tools/Trace.h"
 
 #include "BratTask.h"
 //#include "SchedulerTaskConfig.h"
@@ -290,35 +291,32 @@ void CMapBratTaskFunction::Dump(std::ostream& fOut /* = std::cerr */)
 
 	// serialization
 
-
-//__cdecl brathl::CException::CException(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,int)" (??0CException@brathl@@QEAA@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@H@Z) referenced in function "public: static void __cdecl CBratTaskFunction::CopyFileW(class brathl::CVectorBratAlgorithmParam &)" (?CopyFileW@CBratTaskFunction@@SAXAEAVCVectorBratAlgorithmParam@brathl@@@Z)
-//__cdecl brathl::CException::~CException(void)" (??1CException@brathl@@UEAA@XZ) referenced in function "public: virtual class CBratTaskFunction * __cdecl CMapBratTaskFunction::Insert(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,class CBratTaskFunction *,bool)" (?Insert@CMapBratTaskFunction@@UEAAPEAVCBratTaskFunction@@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@PEAV2@_N@Z)
-//__cdecl brathl::CException::Dump(class std::basic_ostream<char,struct std::char_traits<char> > &)" (?Dump@CException@brathl@@UEAAXAEAV?$basic_ostream@DU?$char_traits@D@std@@@std@@@Z)
-//__cdecl brathl::CException::what(void)const " (?what@CException@brathl@@UEBAPEBDXZ)
-//__cdecl brathl::CVectorBratAlgorithmParam::CVectorBratAlgorithmParam(void)" (??0CVectorBratAlgorithmParam@brathl@@QEAA@XZ) referenced in function "public: __cdecl CBratTaskFunction::CBratTaskFunction(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,void (__cdecl*)(class brathl::CVectorBratAlgorithmParam &))" (??0CBratTaskFunction@@QEAA@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@P6AXAEAVCVectorBratAlgorithmParam@brathl@@@Z@Z)
-//__cdecl brathl::CVectorBratAlgorithmParam::CVectorBratAlgorithmParam(void)" (??0CVectorBratAlgorithmParam@brathl@@QEAA@XZ)
-//__cdecl brathl::CVectorBratAlgorithmParam::~CVectorBratAlgorithmParam(void)" (??1CVectorBratAlgorithmParam@brathl@@UEAA@XZ) referenced in function "int `public: __cdecl CBratTaskFunction::CBratTaskFunction(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &,void (__cdecl*)(class brathl::CVectorBratAlgorithmParam &))'::`1'::dtor$1" (?dtor$1@?0???0CBratTaskFunction@@QEAA@AEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@P6AXAEAVCVectorBratAlgorithmParam@brathl@@@Z@Z@4HA)
-//__cdecl brathl::CVectorBratAlgorithmParam::~CVectorBratAlgorithmParam(void)" (??1CVectorBratAlgorithmParam@brathl@@UEAA@XZ)
-//__cdecl brathl::CVectorBratAlgorithmParam::Insert(class std::basic_string<char,struct std::char_traits<char>,class std::allocator<char> > const &)" (?Insert@CVectorBratAlgorithmParam@brathl@@QEAAXAEBV?$basic_string@DU?$char_traits@D@std@@V?$allocator@D@2@@std@@@Z) referenced in function "public: __cdecl CBratTask::CBratTask(class task const &)" (??
-
 CBratTask::CBratTask( const task &oxml )				//USED ON LOAD
 {
-	m_uid = oxml.uid();
+	//1
+	m_uid = oxml.uid();									
+	//2
 	m_name = oxml.name();
+	//3
 	m_cmd = fromOpt( oxml.cmd(), std::string() );
-
+	//4
 	CBratTaskFunction* functionRef = CMapBratTaskFunction::GetInstance().Find( fromOpt( oxml.function(), std::string() ) );
 	SetBratTaskFunction( functionRef );
-	if ( oxml.task1().present() )										//femm!!! NOT CLEAR so far: there can only be one child t the same level????????
-		GetSubordinateTasks()->Insert( new CBratTask( *oxml.task1() ) );
-
-	//wxXmlNode* argNode = taskNode->GetChildren();
-	CVectorBratAlgorithmParam* params = GetBratTaskFunction()->GetParams();
+	CVectorBratAlgorithmParam *params = GetBratTaskFunction()->GetParams();
 	auto const &args = oxml.arg();
 	for ( auto ii = args.begin(); ii != args.end(); ++ii )
 	{
 		params->Insert( *ii );
 	}
+
+	assert__( ( m_cmd.empty() && !args.empty() ) || ( !m_cmd.empty() && args.empty() ) );		//Not sure this can be asserted: TODO: delete when there is a full understanding
+
+	//5
+	SetAt( oxml.at() );
+	//6
+	m_status = enum_cast<Status>( oxml.status() );
+	//7
+	m_logFile = oxml.logFile();
 
 	//while ( argNode != NULL )
 	//{
@@ -333,20 +331,46 @@ CBratTask::CBratTask( const task &oxml )				//USED ON LOAD
 	//	argNode = argNode->GetNext();
 	//}
 
-	SetAt( oxml.at() );
-	m_status = enum_cast<Status>( oxml.status() );
-	m_logFile = oxml.logFile();
+	//8
+	if ( oxml.task1().present() )										//TODO: NOT CLEAR so far: there can only be one child at the same level????????
+		GetSubordinateTasks()->Insert( new CBratTask( *oxml.task1() ) );
 }
 
 task& CBratTask::IOcopy( task &oxml ) const			//USED ON STORE
 {
+	//1
 	oxml.uid( m_uid );
+	//2
 	oxml.name( m_name );
-	oxml.cmd( m_cmd );
+	//3
+	if ( !m_cmd.empty() )
+		oxml.cmd( m_cmd );
+	else 
+	//4
+	{
+		oxml.function( GetBratTaskFunction()->GetName() );
+		const CVectorBratAlgorithmParam *params = GetBratTaskFunction()->GetParams();
+		task::arg_sequence args;
+		for ( auto ii = params->begin(); ii != params->end(); ++ii )
+		{
+			task::arg_type arg( ii->GetValueAsString(), ii->GetTypeValAsString() );
+			args.push_back( arg );
+		}
+		oxml.arg( args );
+	}
+	//5
 	oxml.at( GetAtAsString() );
+	//6
 	oxml.status( enum_reverse_cast< task::status_type >( m_status ) );
+	//7
 	oxml.logFile( m_logFile );
-
+	//8
+	for ( auto ii = m_subordinateTasks.begin(); ii != m_subordinateTasks.end(); ++ii )
+	{
+		task child;
+		(*ii)->IOcopy( child );
+		oxml.task1().set( child );
+	}
 	return oxml;
 }
 
@@ -544,119 +568,68 @@ void CMapBratTask::Dump(std::ostream& fOut /* = std::cerr */)
 //------------------- CVectorBratTask class --------------------
 //-------------------------------------------------------------
 
-CVectorBratTask::CVectorBratTask(bool bDelete /*= true*/)
+//---------------------------------------- femm: new
+bool CVectorBratTask::operator == ( const CVectorBratTask &o ) const
 {
-  m_bDelete = bDelete;
-  Init();
+	const size_t size = base_t::size();
 
-}
+	if ( size != o.size() )
+		return false;
 
+	for ( size_t i = 0; i < size; ++i )
+	{
+		if ( *(at( i )) != *(o[ i ]) )
+			return false;
+	}
 
-//----------------------------------------
-CVectorBratTask::~CVectorBratTask()
-{
-  RemoveAll();
-}
-
-//----------------------------------------
-void CVectorBratTask::Init()
-{
+	return true;
 }
 //----------------------------------------
-void CVectorBratTask::Insert(CBratTask* ob, bool bEnd /* = true */)
+void CVectorBratTask::Insert( const CVectorBratTask* vec, bool bRemoveAll /* = true */ )
 {
-  if (bEnd)
-  {  
-    vectorbrattask::push_back(ob);   
-  }
-  else
-  {  
-    CVectorBratTask::InsertAt(this->begin(), ob);   
-  }
+	if ( !vec )
+		return;
 
+	if ( bRemoveAll )
+		RemoveAll();
+
+	for ( CVectorBratTask::const_iterator it = vec->begin(); it != vec->end(); it++ )
+	{
+		CBratTask* ob = ( *it )->Clone();
+		Insert( ob );
+	}
 }
-//----------------------------------------
-void CVectorBratTask::Insert(const CVectorBratTask* vec, bool bRemoveAll /* = true */, bool bEnd /* = true */)
-{
-  if (vec == NULL)
-  {
-    return;
-  }
-
-  if (bRemoveAll)
-  {
-    this->RemoveAll();
-  }
-
-
-  CVectorBratTask::const_iterator it;
-
-  for (it = vec->begin() ; it != vec->end() ; it++)
-  {
-    CBratTask* ob = (*it)->Clone();
-    Insert(ob, bEnd);
-  }
-
-}
-
-//----------------------------------------
-CVectorBratTask::iterator CVectorBratTask::InsertAt(CVectorBratTask::iterator where, CBratTask* ob)
-{ 
-  return vectorbrattask::insert(where, ob);     
-}
-
 
 //----------------------------------------
 void CVectorBratTask::RemoveAll()
 {
-  
-  CVectorBratTask::iterator it;
+	if ( m_bDelete )
+		for ( CVectorBratTask::iterator it = begin(); it != end(); it++ )
+			delete  *it;
 
-  if (m_bDelete)
-  {
-    for (it = begin() ; it != end() ; it++)
-    {
-      CBratTask* ob = *it;
-      if (ob != NULL)
-      {
-        delete  ob;
-      }
-    }
-  }
-
-  vectorbrattask::clear();
-
+	clear();
 }
+
 //----------------------------------------
-void CVectorBratTask::Dump(std::ostream& fOut /* = std::cerr */)
+void CVectorBratTask::Dump( std::ostream& fOut /* = std::cerr */ )
 {
+	if ( !CTrace::IsTrace() )
+		return;
 
+	fOut << "==> Dump a CVectorBratTask Object at " << this << " with " << size() << " elements" << std::endl;
 
-	// femm: comment in, when trace and log modules decoupled from all externals stuff
-	//
- //if (CTrace::IsTrace() == false)
- // {
- //   return;
- // }
+	int i = 0;
+	for ( CVectorBratTask::const_iterator it = this->begin(); it != this->end(); it++ )
+	{
+		fOut << "CVectorBratTask[" << i << "]= " << std::endl;
+		if ( ( *it ) != NULL )
+		{
+			( *it )->Dump( fOut );
+		}
+		i++;
+	}
 
-  CVectorBratTask::const_iterator it;
-  int i = 0;
+	fOut << "==> END Dump a CVectorBratTask Object at " << this << " with " << size() << " elements" << std::endl;
 
-  fOut << "==> Dump a CVectorBratTask Object at "<< this << " with " <<  size() << " elements" << std::endl;
-
-  for ( it = this->begin( ); it != this->end( ); it++ )
-  {
-    fOut << "CVectorBratTask[" << i << "]= " << std::endl;  
-    if ((*it) != NULL)
-    {
-     (*it)->Dump(fOut);
-    }
-    i++;
-  }
-
-  fOut << "==> END Dump a CVectorBratTask Object at "<< this << " with " <<  size() << " elements" << std::endl;
-
-
-  fOut << std::endl;
-
+	fOut << std::endl;
 }

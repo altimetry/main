@@ -8,6 +8,7 @@
 #include "QbrtMainWindow.h"
 #include "GUI/QbrtMapEditor.h"
 #include "GUI/QbrtPlotEditor.h"
+#include "GUI/Qbrt2DPlotEditor.h"
 
 
 
@@ -45,9 +46,9 @@ void QbrtMainWindow::addEditor( Editor *editor )
     QMdiSubWindow *subWindow = mdiArea->addSubWindow( editor );
     menu_Window->addAction( editor->windowMenuAction() );
     windowActionGroup->addAction( editor->windowMenuAction() );
-#if !defined(__APPLE__)
-	subWindow->setWindowFlags( subWindow->windowFlags() | Qt::FramelessWindowHint );
-#endif
+//#if !defined(__APPLE__)
+//	subWindow->setWindowFlags( subWindow->windowFlags() | Qt::FramelessWindowHint );
+//#endif
     subWindow->show();
 }
 void QbrtMainWindow::addEditor( QbrtMapEditor *editor )
@@ -57,9 +58,9 @@ void QbrtMainWindow::addEditor( QbrtMapEditor *editor )
     QMdiSubWindow *subWindow = mdiArea->addSubWindow( editor );
     menu_Window->addAction( editor->windowMenuAction() );
     windowActionGroup->addAction( editor->windowMenuAction() );
-#if !defined(__APPLE__)
-    subWindow->setWindowFlags( subWindow->windowFlags() | Qt::FramelessWindowHint );
-#endif
+//#if !defined(__APPLE__)
+//    subWindow->setWindowFlags( subWindow->windowFlags() | Qt::FramelessWindowHint );
+//#endif
     subWindow->show();
 }
 void QbrtMainWindow::addEditor( QbrtPlotEditor *editor )
@@ -69,9 +70,21 @@ void QbrtMainWindow::addEditor( QbrtPlotEditor *editor )
     QMdiSubWindow *subWindow = mdiArea->addSubWindow( editor );
     menu_Window->addAction( editor->windowMenuAction() );
     windowActionGroup->addAction( editor->windowMenuAction() );
-#if !defined(__APPLE__)
-    subWindow->setWindowFlags( subWindow->windowFlags() | Qt::FramelessWindowHint );
-#endif
+//#if !defined(__APPLE__)
+//    subWindow->setWindowFlags( subWindow->windowFlags() | Qt::FramelessWindowHint );
+//#endif
+    subWindow->show();
+}
+void QbrtMainWindow::addEditor( Qbrt2DPlotEditor *editor )
+{
+    // MDI sub-windows logic
+    //
+    QMdiSubWindow *subWindow = mdiArea->addSubWindow( editor );
+    menu_Window->addAction( editor->windowMenuAction() );
+    windowActionGroup->addAction( editor->windowMenuAction() );
+//#if !defined(__APPLE__)
+//    subWindow->setWindowFlags( subWindow->windowFlags() | Qt::FramelessWindowHint );
+//#endif
     subWindow->show();
 }
 
@@ -89,6 +102,15 @@ void QbrtMainWindow::on_action_New_triggered()
 
 void QbrtMainWindow::on_action_New_Map_triggered()
 {
+//    QbrtMapCanvas *mMapCanvas = new QbrtMapCanvas( this );
+
+//    QMdiSubWindow *subWindow = mdiArea->addSubWindow( mMapCanvas );
+//#if !defined(__APPLE__)
+//    subWindow->setWindowFlags( subWindow->windowFlags() | Qt::FramelessWindowHint );
+//#endif
+//    subWindow->show();
+//    return;
+
     QbrtMapEditor *editor = new QbrtMapEditor( this );
     editor->newFile();
     addEditor(editor);
@@ -113,6 +135,9 @@ void QbrtMainWindow::on_action_New_Globe_triggered()
 }
 void QbrtMainWindow::on_action_Plot_2D_triggered()
 {
+    Qbrt2DPlotEditor *editor = new Qbrt2DPlotEditor( this );
+    editor->newFile();
+    addEditor(editor);
 }
 void QbrtMainWindow::on_action_Plot_3D_triggered()
 {

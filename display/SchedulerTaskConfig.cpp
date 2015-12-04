@@ -41,26 +41,6 @@
 #include "Win32MemLeaksAccurate.h"
 
 
-DEFINE_EVENT_TYPE(wxEVT_BRAT_TASK_PROCESS)	//femm moved here from BratTask.cpp
-
-//femm moved here from BratTask.cpp
-void CSchedulerTaskConfig::EvtBratTaskProcessCommand(wxEvtHandler& evtHandler, const CBratTaskProcessEventFunction& method,
-                                               wxObject* userData, wxEvtHandler* eventSink)
-{
-  evtHandler.Connect(wxEVT_BRAT_TASK_PROCESS,
-                 (wxObjectEventFunction)
-                 (wxEventFunction)
-                 method,
-                 userData,
-                 eventSink);
-}
-//femm moved here from BratTask.cpp
-void CSchedulerTaskConfig::DisconnectEvtBratTaskProcessCommand(wxEvtHandler& evtHandler)
-{
-  evtHandler.Disconnect(wxEVT_BRAT_TASK_PROCESS);
-}
-
-
 // WDR: class implementations
 
 
@@ -76,7 +56,7 @@ CSchedulerTaskConfig* CSchedulerTaskConfig::m_instance = NULL;
 wxLogBuffer* CSchedulerTaskConfig::m_logBuffer = NULL;
 wxLog* CSchedulerTaskConfig::m_initialLog = NULL;
 
-const wxString CSchedulerTaskConfig::m_DEFAULT_TASK_NAME = "unnamed";
+//const wxString CSchedulerTaskConfig::m_DEFAULT_TASK_NAME = "unnamed";
 
 const wxString CSchedulerTaskConfig::m_ENDED_ELT = "endedTasks";
 const wxString CSchedulerTaskConfig::m_PENDING_ELT = "pendingTasks";
@@ -100,46 +80,6 @@ const wxString CSchedulerTaskConfig::m_TYPE_ATTR = "type";
 // SchedulerTaskConfig
 //----------------------------------------------------------------------------
 
-CSchedulerTaskConfig::CSchedulerTaskConfig()
-{
-  Init();
-}
-
-//----------------------------------------
-CSchedulerTaskConfig::CSchedulerTaskConfig(const wxXmlDocument& doc)
-                      : wxXmlDocument(doc)
-{
-  Init();
-}
-
-//----------------------------------------
-CSchedulerTaskConfig::CSchedulerTaskConfig(const CSchedulerTaskConfig& o)                     
-{
-  Init();
-  Set(o);
-}
-//----------------------------------------
-CSchedulerTaskConfig::CSchedulerTaskConfig(const wxString& filename, bool lockFile /* = true */, bool unlockFile /* = true */, const wxString &encoding /* = "UTF-8" */)
-{
-
-  // Don't call wxXmlDocument(filename, encoding) because overriden 'Load' will be not called
-
-  Init();
-  m_fullFileName = filename;
-
-  if ( !Load(filename, lockFile, unlockFile, encoding) )
-  {
-    DeleteRootNode();
-  }
-
-}
-//----------------------------------------
-CSchedulerTaskConfig::CSchedulerTaskConfig(wxInputStream& stream, const wxString &encoding /* = "UTF-8" */)
-                      : wxXmlDocument(stream, encoding)
-{
-  Init();
-}
-
 //----------------------------------------
 CSchedulerTaskConfig::~CSchedulerTaskConfig()
 {
@@ -157,28 +97,6 @@ void CSchedulerTaskConfig::Init()
   m_configFileChecker = NULL;
   
   m_reloadAll = false;
-}
-//----------------------------------------
-void CSchedulerTaskConfig::Set(const CSchedulerTaskConfig& o)                     
-{
-  wxXmlDocument::operator=(o);
-
-  RemoveMapBratTasks();
-  AddTask(&o.m_mapBratTask);
-
-
-}
-//----------------------------------------
-CSchedulerTaskConfig& CSchedulerTaskConfig::operator=(const CSchedulerTaskConfig& o)                     
-{
-  if (this == &o)
-  {
-    return *this;
-  }
-
-  Set(o);
-  return *this;
-
 }
 //----------------------------------------
 wxString CSchedulerTaskConfig::GetUserDataDir()
@@ -288,88 +206,84 @@ void CSchedulerTaskConfig::PrepareSmartCleaner()
   static CSmartCleaner object(&CSchedulerTaskConfig::m_instance, &CSchedulerTaskConfig::m_logBuffer);
 }
 //----------------------------------------
-CSchedulerTaskConfig* CSchedulerTaskConfig::GetInstance(bool reload /* = false */, bool lockFile /* = true */, bool unlockFile  /* = true */, const wxString& encoding /* = "UTF-8" */)
+CSchedulerTaskConfig* CSchedulerTaskConfig::GetInstance( bool reload /* = false */, bool lockFile /* = true */, bool unlockFile )
 {
-  wxString str = GetConfigFilePath(CSchedulerTaskConfig::m_CONFIG_APPNAME);
-  return CSchedulerTaskConfig::GetInstance(&str, reload, lockFile, unlockFile, encoding);
+	wxString fileName = GetConfigFilePath( CSchedulerTaskConfig::m_CONFIG_APPNAME );
+	return CSchedulerTaskConfig::GetInstance( &fileName, reload, lockFile, unlockFile );
 }
 //----------------------------------------------------
-CSchedulerTaskConfig* CSchedulerTaskConfig::GetInstance(const wxString* fileName, bool reload /* = false */, bool lockFile /* = true */, bool unlockFile  /* = true */, const wxString& encoding /* = "UTF-8" */)
+CSchedulerTaskConfig* CSchedulerTaskConfig::GetInstance( const wxString* fileName, bool reload /* = false */, bool lockFile /* = true */, bool unlockFile )
 {
-  wxCriticalSectionLocker locker(CSchedulerTaskConfig::m_critSectSchedulerTaskConfigInstance);
-   //cout << "Enter GetInstance" << std::endl;
-  if (CSchedulerTaskConfig::m_instance != NULL)
-  {
-    if (reload)
-    {
-      if (CSchedulerTaskConfig::m_instance->m_reloadAll)
-      {
-        CSchedulerTaskConfig::m_instance->Load(*fileName, lockFile, unlockFile, encoding);
-      }
-      else
-      {
-        // "Reload" function just load (add in memory) new defined tasks from the configuration file
-        CSchedulerTaskConfig::m_instance->Reload(lockFile, unlockFile);
-      }
-    }
-  }
-  else 
-  {
-    //cout << "GetInstance" << std::endl;
-    if (fileName != NULL)
-    {      
+	wxCriticalSectionLocker locker( m_critSectSchedulerTaskConfigInstance );
+	
+	if ( m_instance )
+	{
+		if ( reload )
+		{
+			if ( m_instance->m_reloadAll )
+			{
+				m_instance->LoadXmlAndCreateTasks( *fileName, lockFile, unlockFile );
+			}
+			else
+			{
+				// "Reload" function just load (add in memory) new defined tasks from the configuration file
+				m_instance->ReloadOnlyNew( lockFile, unlockFile );
+			}
+		}
+	}
+	else
+	{
+		if ( fileName != NULL )
+		{
+			if ( m_logBuffer == NULL )
+			{
+				m_logBuffer = new wxLogBuffer();
+				m_initialLog = wxLog::GetActiveTarget();
+			}
 
-      if (CSchedulerTaskConfig::m_logBuffer == NULL)
-      {
-        CSchedulerTaskConfig::m_logBuffer = new wxLogBuffer();
-        CSchedulerTaskConfig::m_initialLog = wxLog::GetActiveTarget();
-      }
-      
-      CreateXmlFile(*fileName);
+			CreateXmlFile( *fileName );
 
-      wxLog::SetActiveTarget(m_logBuffer);
+			wxLog::SetActiveTarget( m_logBuffer );
 
-      bool bOk = true;
+			bool bOk = true;
 
-      wxString errorMsg;
-      try
-      {
-          CSchedulerTaskConfig::m_instance = new CSchedulerTaskConfig(*fileName, lockFile, unlockFile, encoding);
-          bOk = CSchedulerTaskConfig::m_instance->IsOk();
-      }
-      catch(CException& e)
-      {
-        bOk = false;
-        errorMsg = e.GetMessage().c_str();
-      }
+			wxString errorMsg;
+			try
+			{
+				m_instance = new CSchedulerTaskConfig( *fileName, lockFile, unlockFile );
+				bOk = m_instance->IsOk();
+			}
+			catch ( CException& e )
+			{
+				bOk = false;
+				errorMsg = e.GetMessage().c_str();
+			}
 
-      PrepareSmartCleaner();
-      
-      if (!bOk)
-      {
-        wxString msg;
-        if (errorMsg.IsEmpty())
-        {
-          wxString parserError = m_logBuffer->GetBuffer();
-          msg = wxString::Format("Unable to load Brat Scheduler configuration file '%s' - Please, check XML syntax - Parser error: '%s'", fileName->c_str(), parserError.c_str());
-        }
-        else
-        {
-          msg = errorMsg;
-        }
+			PrepareSmartCleaner();
 
-        wxLog::SetActiveTarget(CSchedulerTaskConfig::m_initialLog);
-        
-        throw CException(msg.ToStdString(), BRATHL_ERROR);
-      }
-      
-      wxLog::SetActiveTarget(CSchedulerTaskConfig::m_initialLog);
+			if ( !bOk )
+			{
+				wxString msg;
+				if ( errorMsg.IsEmpty() )
+				{
+					wxString parserError = m_logBuffer->GetBuffer();
+					msg = wxString::Format( "Unable to load Brat Scheduler configuration file '%s' - Please, check XML syntax - Parser error: '%s'", fileName->c_str(), parserError.c_str() );
+				}
+				else
+				{
+					msg = errorMsg;
+				}
 
-    }
-  }
-   //cout << "Exit GetInstance" << std::endl;
+				wxLog::SetActiveTarget( m_initialLog );
 
-  return CSchedulerTaskConfig::m_instance;
+				throw CException( msg.ToStdString(), BRATHL_ERROR );
+			}
+
+			wxLog::SetActiveTarget( m_initialLog );
+		}
+	}
+
+	return m_instance;
 }
 ////----------------------------------------------------
 //CSchedulerTaskConfig* CSchedulerTaskConfig::GetInstance(const std::string* fileName, bool reload /* = false */, const wxString& encoding /* = "UTF-8" */)
@@ -391,9 +305,9 @@ bool CSchedulerTaskConfig::CreateXmlFile(const wxString& fileName)
   }
 
   CSchedulerTaskConfig xml;
-  xml.AddRootNode();
-  xml.AddPendingTaskNode();
-  xml.AddEndedTaskNode();
+  xml.GetOrAddRootNode_xml();
+  xml.GetOrAddPendingTasksElement_xml();
+  xml.GetOrAddEndedTasksElement();
   
   return xml.Save(fileName);
 
@@ -425,12 +339,6 @@ bool CSchedulerTaskConfig::CreateXmlFile(const wxString& fileName)
 //
 //  return mutexError;
 //}
-//----------------------------------------------------
-void CSchedulerTaskConfig::DeleteRootNode()
-{
-  wxXmlNode* root = DetachRoot();
-  wxDELETE(root);
-}
 //----------------------------------------------------
 void CSchedulerTaskConfig::DeleteConfigFileChecker()
 {
@@ -573,7 +481,7 @@ void CSchedulerTaskConfig::ChangeTaskStatusFromXml(wxLongLong_t id, CBratTask::S
   wxLongLong idObj(id);
   wxString idAsString = idObj.ToString();
 
-  wxXmlNode* node = FindTaskNode(id, this->GetRoot(), true);
+  wxXmlNode* node = FindTaskNode(id, this->GetRoot_xml(), true);
 
   if (node == NULL)
   {
@@ -610,19 +518,19 @@ void CSchedulerTaskConfig::ChangeTaskStatusFromXml(wxLongLong_t id, CBratTask::S
   {
     case CBratTask::e_BRAT_STATUS_PENDING:
     {
-      parent = AddPendingTaskNode();
+      parent = GetOrAddPendingTasksElement_xml();
       break;
     }
     case CBratTask::e_BRAT_STATUS_PROCESSING:
     {
-      parent = AddProcessingTaskNode();
+      parent = GetOrAddProcessingTasksElement();
       break;
     }
     case CBratTask::e_BRAT_STATUS_ENDED:
     case CBratTask::e_BRAT_STATUS_ERROR:
     case CBratTask::e_BRAT_STATUS_WARNING:
     {
-      parent = AddEndedTaskNode();
+      parent = GetOrAddEndedTasksElement();
       break;
     }
     default:
@@ -730,7 +638,7 @@ CBratTask::Status CSchedulerTaskConfig::ChangeTaskStatusFromMap(wxLongLong_t id,
 
 }
 //----------------------------------------------------
-void CSchedulerTaskConfig::LoadTasks()
+void CSchedulerTaskConfig::LoadAllTasks()
 {
   RemoveMapBratTasks();
   LoadPendingTasks();
@@ -793,7 +701,7 @@ bool CSchedulerTaskConfig::LoadTasks( wxXmlNode* node )
 //----------------------------------------------------
 bool CSchedulerTaskConfig::LoadEndedTasks()
 {
-  LoadTasks(GetEndedTaskNode());
+  LoadTasks(GetEndedTasksNode_xml());
 
   return (m_mapEndedBratTask.size() > 0);
 }
@@ -801,184 +709,149 @@ bool CSchedulerTaskConfig::LoadEndedTasks()
 //----------------------------------------------------
 bool CSchedulerTaskConfig::LoadPendingTasks()
 {
-  LoadTasks(GetPendingTaskNode());
+  LoadTasks(GetPendingTasksNode_xml());
 
   return (m_mapPendingBratTask.size() > 0);
 }
 //----------------------------------------------------
 bool CSchedulerTaskConfig::LoadProcessingTasks()
 {
-  LoadTasks(GetProcessingTaskNode());
+  LoadTasks(GetProcessingTasksNode_xml());
 
   return (m_mapProcessingBratTask.size() > 0);
 }
 
 //----------------------------------------------------
-bool CSchedulerTaskConfig::Load(const wxString& fileName, bool lockFile /* = true */, bool unlockFile /* = true */, const wxString& encoding /* = wxT("UTF-8") */, int flags /* = wxXMLDOC_NONE */)
+bool CSchedulerTaskConfig::LoadXmlAndCreateTasks( const wxString& fileName, bool lockFile /* = true */, bool unlockFile /* = true, const wxString& encoding = wxT("UTF-8") */, int flags /* = wxXMLDOC_NONE */ )
 {
-  bool bOk = LockConfigFile(fileName, lockFile);
+	if ( !LockConfigFile( fileName, lockFile ) )
+	{
+		UnLockConfigFile( unlockFile );
+		wxString msg = "Unable to load Brat Scheduler configuration file. Perhaps, it's used by another application - Try again later.";
+		throw CException( msg.ToStdString(), BRATHL_WARNING );
+	}
 
-  if (!bOk)
-  {
-    UnLockConfigFile(unlockFile);
-    wxString msg = "Unable to load Brat Scheduler configuration file. Perhaps, it's used by another application - Try again later.";
-    throw CException(msg.ToStdString(), BRATHL_WARNING);
-  }
+	wxLog::SetActiveTarget( m_initialLog );
+	wxLogInfo( "Loading '%s' ...", fileName.c_str() );
+	wxLog::SetActiveTarget( m_logBuffer );
 
-  wxLog::SetActiveTarget(CSchedulerTaskConfig::m_initialLog);
-  wxLogInfo("Loading '%s' ...", fileName.c_str());
+	bool bOk = false;
 
-  wxLog::SetActiveTarget(m_logBuffer);
+	try
+	{
+		delete DetachRoot_xml();
 
-  bOk = false;
+		bOk = mdoc.Load( fileName, encoding(), flags );
+		if ( !bOk )
+		{
+			wxString parserError = m_logBuffer->GetBuffer();
+			wxString msg = wxString::Format( "Unable to load Brat Scheduler configuration file '%s' -  Native error: '%s'", fileName.c_str(), parserError.c_str() );
+			wxLog::SetActiveTarget( m_initialLog );
 
-  try
-  {
+			delete DetachRoot_xml();
 
-    DeleteRootNode();
-    
-    bOk = wxXmlDocument::Load(fileName, encoding, flags);
-    if (!bOk)
-    {
-      wxString parserError = m_logBuffer->GetBuffer();
-      wxString msg = wxString::Format("Unable to load Brat Scheduler configuration file '%s' -  Native error: '%s'", fileName.c_str(), parserError.c_str());
+			throw CException( msg.ToStdString(), BRATHL_WARNING );
+		}
+	}
+    catch ( const CException& )
+	{
+		UnLockConfigFile( unlockFile );
+		throw;
+	}
+    catch ( const std::exception& )
+	{
+		UnLockConfigFile( unlockFile );
+		throw;
+	}
+	catch ( ... )
+	{
+		UnLockConfigFile( unlockFile );
+		throw CException( "Unexpected error while loading Brat Scheduler configuration file - No Context and no message have been set for this error", BRATHL_ERROR );
+	}
 
-      wxLog::SetActiveTarget(CSchedulerTaskConfig::m_initialLog);
-      
-      DeleteRootNode();
+	wxLog::SetActiveTarget( m_initialLog );
 
-      throw CException(msg.ToStdString(), BRATHL_WARNING);
+	if ( bOk )
+		LoadAllTasks();
 
-    }
-  }
-  catch(CException& e)
-  {
-    UnLockConfigFile(unlockFile);
-    throw e;
-  }
-  catch(std::exception& e)
-  {
-    UnLockConfigFile(unlockFile);
-    throw e;
-  }
-  catch(...)
-  {
-    UnLockConfigFile(unlockFile);
-    throw CException("Unexpected error while loading Brat Scheduler configuration file - No Context and no message have been set for this error", BRATHL_ERROR);
-  }
+	UnLockConfigFile( unlockFile );
 
-  wxLog::SetActiveTarget(CSchedulerTaskConfig::m_initialLog);
+	wxLogInfo( "'%s' loaded.", fileName.c_str() );
 
-  if (bOk)
-  {
-    LoadTasks();
-  }
-
-  UnLockConfigFile(unlockFile);
-
-  wxLogInfo("'%s' loaded.", fileName.c_str());
-
-  return bOk;
-
+	return bOk;
 }
 //----------------------------------------------------
-bool CSchedulerTaskConfig::Load(bool lockFile /* = true */, bool unlockFile  /* = true */, const wxString& encoding /* = wxT("UTF-8") */, int flags /* = wxXMLDOC_NONE */)
+bool CSchedulerTaskConfig::ReloadOnlyNew( bool lockFile /* = true */, bool unlockFile  /* = true */ )
 {
-  return Load(m_fullFileName, lockFile, unlockFile, encoding, flags);
+	m_mapNewBratTask.RemoveAll();
+
+	bool bOk = this->LockConfigFile( lockFile );
+
+	if ( !bOk )
+	{
+		UnLockConfigFile( unlockFile );
+		wxString msg = "Unable to load Brat Scheduler configuration file. Perhaps, it's used by another application - Try again later.";
+		throw CException( msg.ToStdString(), BRATHL_WARNING );
+	}
+
+	wxLog::SetActiveTarget( CSchedulerTaskConfig::m_initialLog );
+	wxLogInfo( "Re-loading '%s' ...", m_fullFileName.c_str() );
+
+
+	CSchedulerTaskConfig* schedulerTaskConfig = NULL;
+	bOk = true;
+
+	wxLog::SetActiveTarget( m_logBuffer );
+
+	wxString errorMsg;
+	try
+	{		
+		schedulerTaskConfig = new CSchedulerTaskConfig( m_fullFileName, false, false );		assert__(this->GetFileEncoding() == encoding() );
+		bOk = schedulerTaskConfig->IsOk();
+	}
+	catch ( CException& e )
+	{
+		bOk = false;
+		errorMsg = e.GetMessage().c_str();
+	}
+
+	if ( !bOk )
+	{
+		wxString msg;
+		if ( errorMsg.IsEmpty() )
+		{
+			wxString parserError = m_logBuffer->GetBuffer();
+			msg = wxString::Format( "Unable to load Brat Scheduler configuration file '%s' - Please, check XML syntax - Parser error: '%s'", m_fullFileName.c_str(), parserError.c_str() );
+		}
+		else
+		{
+			msg = errorMsg;
+		}
+
+		wxLog::SetActiveTarget( CSchedulerTaskConfig::m_initialLog );
+
+		delete schedulerTaskConfig;
+		schedulerTaskConfig = NULL;
+
+		this->UnLockConfigFile( unlockFile );
+
+		throw CException( msg.ToStdString(), BRATHL_ERROR );
+	}
+
+	wxLog::SetActiveTarget( CSchedulerTaskConfig::m_initialLog );
+
+	AddNewTasksFromSibling( schedulerTaskConfig );
+
+	delete schedulerTaskConfig;
+	schedulerTaskConfig = NULL;
+
+	this->UnLockConfigFile( unlockFile );
+
+	wxLogInfo( "'%s' re-loaded.", m_fullFileName.c_str() );
+
+	return bOk;
 }
 
-//----------------------------------------------------
-bool CSchedulerTaskConfig::Reload(bool lockFile /* = true */, bool unlockFile  /* = true */)
-{
-  m_mapNewBratTask.RemoveAll();
-
-  bool bOk = this->LockConfigFile(lockFile);
-
-  if (!bOk)
-  {
-    UnLockConfigFile(unlockFile);
-    wxString msg = "Unable to load Brat Scheduler configuration file. Perhaps, it's used by another application - Try again later.";
-    throw CException(msg.ToStdString(), BRATHL_WARNING);
-  }
-
-  wxLog::SetActiveTarget(CSchedulerTaskConfig::m_initialLog);
-  wxLogInfo("Re-loading '%s' ...", m_fullFileName.c_str());
-
-
-  CSchedulerTaskConfig* schedulerTaskConfig = NULL;
-  bOk = true;
-
-  wxLog::SetActiveTarget(m_logBuffer);
-
-  wxString errorMsg;
-  try
-  {
-    schedulerTaskConfig = new CSchedulerTaskConfig(m_fullFileName, false, false, this->GetFileEncoding());
-    bOk = schedulerTaskConfig->IsOk();
-  }
-  catch(CException& e)
-  {
-    bOk = false;
-    errorMsg = e.GetMessage().c_str();
-  }
-
-  if (!bOk)
-  {
-    wxString msg;
-    if (errorMsg.IsEmpty())
-    {
-      wxString parserError = m_logBuffer->GetBuffer();
-      msg = wxString::Format("Unable to load Brat Scheduler configuration file '%s' - Please, check XML syntax - Parser error: '%s'", m_fullFileName.c_str(), parserError.c_str());
-    }
-    else
-    {
-      msg = errorMsg;
-    }
-
-    wxLog::SetActiveTarget(CSchedulerTaskConfig::m_initialLog);
-        
-    Delete(schedulerTaskConfig);
-
-    this->UnLockConfigFile(unlockFile);
-
-    throw CException(msg.ToStdString(), BRATHL_ERROR);
-  }
-      
-  wxLog::SetActiveTarget(CSchedulerTaskConfig::m_initialLog);
-  
-  Synchronize(schedulerTaskConfig);
-
-  Delete(schedulerTaskConfig);
-
-  this->UnLockConfigFile(unlockFile);
-
-  wxLogInfo("'%s' re-loaded.", m_fullFileName.c_str());
-
-  return bOk;
-}
-
-//----------------------------------------------------
-void CSchedulerTaskConfig::Delete(CSchedulerTaskConfig*& schedulerTaskConfig)
-{
-  if (schedulerTaskConfig != NULL)
-  {
-    delete schedulerTaskConfig;
-    schedulerTaskConfig = NULL;
-  }
-}
-//----------------------------------------------------
-bool CSchedulerTaskConfig::Synchronize(CSchedulerTaskConfig* sched)
-{
-  if (sched == NULL)
-  {
-    return false;
-  }
-
-  bool bOk = true;
-  bOk &= AddNewTask(sched);
-
-  return bOk;
-}
 //----------------------------------------------------
 void CSchedulerTaskConfig::AddTask(const CMapBratTask* mapBratTask)
 {
@@ -990,7 +863,7 @@ void CSchedulerTaskConfig::AddTask(const CMapBratTask* mapBratTask)
   CMapBratTask::const_iterator it;
   for (it = mapBratTask->begin() ; it != mapBratTask->end() ; it++)
   {
-    wxLongLong_t id = it->first;
+    //wxLongLong_t id = it->first;
     CBratTask* bratTaskNew = it->second;
     if (bratTaskNew == NULL)
     {
@@ -1002,49 +875,45 @@ void CSchedulerTaskConfig::AddTask(const CMapBratTask* mapBratTask)
 
 }
 //----------------------------------------------------
-bool CSchedulerTaskConfig::AddNewTask(CSchedulerTaskConfig* sched)
+bool CSchedulerTaskConfig::AddNewTasksFromSibling( CSchedulerTaskConfig* sched )
 {
-  if (sched == NULL)
-  {
-    return false;
-  }
+	if ( !sched )
+		return false;
 
-  CMapBratTask::const_iterator it;
-  for (it = sched->m_mapBratTask.begin() ; it != sched->m_mapBratTask.end() ; it++)
-  {
-    wxLongLong_t id = it->first;
-    CBratTask* bratTaskNew = it->second;
-    if (bratTaskNew == NULL)
-    {
-      continue;
-    }
-    CBratTask* bratTask = m_mapBratTask.Find(id);
-    if (bratTask == NULL)
-    {
-      wxLogInfo("Add task '%s' to pending std::list", bratTaskNew->GetUidAsString().c_str());
-      
-      wxXmlNode* nodeNew = sched->FindTaskNode(bratTaskNew->GetUid(), sched->GetPendingTaskNode(), true);
+	for ( CMapBratTask::const_iterator it = sched->m_mapBratTask.begin(); it != sched->m_mapBratTask.end(); it++ )
+	{
+		wxLongLong_t id = it->first;
+		CBratTask* bratTaskNew = it->second;
+		if ( !bratTaskNew )
+			continue;
 
-      if (nodeNew == NULL)
-      {
-        wxString msg = wxString::Format("Unable to find task id '%s' in Xml file while adding new tasks (CSchedulerTaskConfig::AddNewTask) ", bratTaskNew->GetUidAsString().c_str());
-        throw CException(msg.ToStdString(), BRATHL_ERROR);
-      }
+		CBratTask* bratTask = m_mapBratTask.Find( id );
+		if ( bratTask == NULL )
+		{
+			wxLogInfo( "Add task '%s' to pending std::list", bratTaskNew->GetUidAsString().c_str() );
 
-      wxXmlNode* taskNodeToAdd = new wxXmlNode(*nodeNew);
+			wxXmlNode* nodeNew = sched->FindTaskNode( bratTaskNew->GetUid(), sched->GetPendingTasksNode_xml(), true );
 
-      wxXmlNode* pending = AddPendingTaskNode();
-      pending->AddChild(taskNodeToAdd);
+			if ( nodeNew == NULL )
+			{
+				wxString msg = wxString::Format( "Unable to find task id '%s' in Xml file while adding new tasks (CSchedulerTaskConfig::AddNewTask) ", bratTaskNew->GetUidAsString().c_str() );
+				throw CException( msg.ToStdString(), BRATHL_ERROR );
+			}
 
-      CBratTask* bratTaskToAdd = new CBratTask(*bratTaskNew);
-      
-      AddTaskToMap(bratTaskToAdd);
+			wxXmlNode* taskNodeToAdd = new wxXmlNode( *nodeNew );
 
-      m_mapNewBratTask.Insert(bratTaskToAdd->GetUid(), bratTaskToAdd);
-    }
-  }
+			wxXmlNode* pending = GetOrAddPendingTasksElement_xml();
+			pending->AddChild( taskNodeToAdd );
 
-  return true;
+			CBratTask* bratTaskToAdd = new CBratTask( *bratTaskNew );
+
+			AddTaskToMap( bratTaskToAdd );
+
+			m_mapNewBratTask.Insert( bratTaskToAdd->GetUid(), bratTaskToAdd );
+		}
+	}
+
+	return true;
 }
 //----------------------------------------------------
 bool CSchedulerTaskConfig::Save(const wxString& fileName, bool lockFile /* = true */, bool unlockFile  /* = true */, int indentStep /* = 2 */)
@@ -1071,7 +940,7 @@ bool CSchedulerTaskConfig::Save(const wxString& fileName, bool lockFile /* = tru
   try
   {
 
-    bOk = wxXmlDocument::Save(fileName, indentStep);
+    bOk = mdoc.Save(fileName, indentStep);
     if (!bOk)
     {
       wxString parserError = m_logBuffer->GetBuffer();
@@ -1118,69 +987,64 @@ bool CSchedulerTaskConfig::Save(bool lockFile /* = true */, bool unlockFile  /* 
 }
 
 //----------------------------------------------------
-wxXmlNode* CSchedulerTaskConfig::GetPendingTaskNode()
+wxXmlNode* CSchedulerTaskConfig::GetPendingTasksNode_xml()
 {
-  return FindNodeByName(CSchedulerTaskConfig::m_PENDING_ELT, this->GetRoot(), false);
+  return FindNodeByName_xml(CSchedulerTaskConfig::m_PENDING_ELT);		//, this->GetRoot(), false
 }
 //----------------------------------------------------
-wxXmlNode* CSchedulerTaskConfig::GetProcessingTaskNode()
+wxXmlNode* CSchedulerTaskConfig::GetProcessingTasksNode_xml()
 {
-  return FindNodeByName(CSchedulerTaskConfig::m_PROCESSING_ELT, this->GetRoot(), false);
+  return FindNodeByName_xml(CSchedulerTaskConfig::m_PROCESSING_ELT);	//, this->GetRoot(), false
 }
 //----------------------------------------------------
-wxXmlNode* CSchedulerTaskConfig::GetEndedTaskNode()
+wxXmlNode* CSchedulerTaskConfig::GetEndedTasksNode_xml()
 {
-  return FindNodeByName(CSchedulerTaskConfig::m_ENDED_ELT, this->GetRoot(), false);
+  return FindNodeByName_xml(CSchedulerTaskConfig::m_ENDED_ELT);	//, this->GetRoot(), false
 }
 //----------------------------------------------------
-wxXmlNode* CSchedulerTaskConfig::FindNodeByName(const wxString& name, wxXmlNode* parent, bool allDepths /* = false */)
+wxXmlNode* CSchedulerTaskConfig::FindNodeByName_xml( const wxString& name )	//, wxXmlNode* parent, bool allDepths
 {
-  if (parent == NULL)
-  {
-    return NULL;
-  }
+	wxXmlNode *parent = GetRoot_xml();
+	if ( !parent )
+		return NULL;
 
-  
-  //wxXmlNode* node = NULL;
-  wxXmlNode* child =  parent->GetChildren();
+	wxXmlNode* child =  parent->GetChildren();
+	while ( child != NULL )
+	{
+		if ( child->GetName().CmpNoCase( name ) == 0 )
+			break;
 
-  while (child != NULL)
-  {
-    if (child->GetName().CmpNoCase(name) == 0)
-    {
-      break;
-    }
-    if ((allDepths) && (child->GetChildren() != NULL))
-    {
-      wxXmlNode* newChild = FindNodeByName(name, child, allDepths);
-      
-      if (newChild != NULL)
-      {
-        child = newChild;
-        break;
-      }
-    }
+		//if ( ( allDepths ) && ( child->GetChildren() != NULL ) )	//function always called with allDepths false
+		//{
+		//	wxXmlNode* newChild = FindNodeByName( name, child/*, allDepths */);
 
-    child = child->GetNext();
-  }
+		//	if ( newChild != NULL )
+		//	{
+		//		child = newChild;
+		//		break;
+		//	}
+		//}
 
-  return child;
-
+		child = child->GetNext();
+	}
+	return child;
 }
 //----------------------------------------------------
 wxXmlNode* CSchedulerTaskConfig::FindTaskNode(const wxLongLong_t& taskId, bool allDepths /* = false */)
 {
-  return FindTaskNode(taskId, this->GetRoot(), allDepths);
+  return FindTaskNode(taskId, this->GetRoot_xml(), allDepths);
 }
 //----------------------------------------------------
 wxXmlNode* CSchedulerTaskConfig::FindTaskNode(const wxString& taskId, bool allDepths /* = false */)
 {
-  return FindTaskNode(wxBratTools::wxStringTowxLongLong_t(taskId), this->GetRoot(), allDepths);
+  return FindTaskNode(wxBratTools::wxStringTowxLongLong_t(taskId), this->GetRoot_xml(), allDepths);
 }
 //----------------------------------------------------
 wxXmlNode* CSchedulerTaskConfig::FindTaskNode(const wxString& taskId, wxXmlNode* parent, bool allDepths /* = false */)
 {
-  return FindTaskNode(wxBratTools::wxStringTowxLongLong_t(taskId), this->GetRoot(), allDepths);
+    UNUSED(parent);
+
+  return FindTaskNode(wxBratTools::wxStringTowxLongLong_t(taskId), this->GetRoot_xml(), allDepths);
 }
 
 #if defined (_MSC_VER)
@@ -1270,165 +1134,129 @@ wxLongLong CSchedulerTaskConfig::GenerateId()
 //}
 
 //----------------------------------------------------
-wxXmlNode* CSchedulerTaskConfig::AddTaskAsPending(const wxString& cmd, wxDateTime& at, const wxString& name /* = CSchedulerTaskConfig::m_DEFAULT_TASK_NAME */ )
+//
+// femm: If r.t is nullptr, means failure
+//
+TaskRet CSchedulerTaskConfig::AddTaskAsPending( const wxString& cmd, wxDateTime& at, const wxString& name )
 {
-  // ensure that no other thread accesses the id
-  //wxCriticalSectionLocker locker(m_critSectMapBratTask);
+	// ensure that no other thread accesses the id
+	//wxCriticalSectionLocker locker(m_critSectMapBratTask);
 
-  wxXmlNode* pending = AddPendingTaskNode();
-  if (pending == NULL)
-  {
-    return NULL;
-  }
+	TaskRet r;
+	r.n = GetOrAddPendingTasksElement_xml();
+	if ( r.n )
+		return AddTaskAsPending( r, cmd, at, name );
 
-  return AddTaskAsPending(pending, cmd, at, name);
+	return r;
 }
 //----------------------------------------------------
-wxXmlNode* CSchedulerTaskConfig::AddTaskAsPending(wxXmlNode* parent, const wxString& cmd, wxDateTime& at, const wxString& name /* = CSchedulerTaskConfig::m_DEFAULT_TASK_NAME */ )
+TaskRet CSchedulerTaskConfig::AddTaskAsPending( TaskRet parent, const wxString& cmd, wxDateTime& at, const wxString& name )
 {
-  if (parent == NULL)
-  {
-    return AddTaskAsPending(cmd, at, name);
-  }
+	if ( !parent.n )
+		return AddTaskAsPending( cmd, at, name );
 
-  wxXmlNode* taskNode = CreateTaskNodeAsPending(at, name);
-  
-  if (taskNode == NULL)
-  {
-    return NULL;
-  }
+	TaskRet r;
+	r.n = CreateTaskNodeAsPending_xml( at, name, m_TASK_CMD_ATTR, cmd );
+	if ( !r.n )
+		return r;
+	parent.n->AddChild( r.n );
 
-  // ensure that no other thread accesses the tasks' map
-  //wxCriticalSectionLocker locker(m_critSectMapBratTask);
+	// ensure that no other thread accesses the tasks' map
+	//wxCriticalSectionLocker locker(m_critSectMapBratTask);
 
-  
-  taskNode->AddProperty(CSchedulerTaskConfig::m_TASK_CMD_ATTR, cmd);
-  
-  parent->AddChild(taskNode);
+	r.t = CreateBratTask( r.n );
+	if ( IsPendingTasksElement( parent.n ) )
+	{
+		AddTaskToMap( r.t );
+	}
+	else
+	{
+		AddTask( GetTaskId( parent.n ), r.t );		assert__( GetTaskId( parent.n ) == parent.t->GetUid() );
+	}
 
-  CBratTask* bratTask = CreateBratTask(taskNode);
-  
-  if (CSchedulerTaskConfig::IsPendingTaskNode(parent))
-  {
-    AddTaskToMap(bratTask);
-  }
-  else
-  {
-    AddTask(CSchedulerTaskConfig::GetTaskId(parent), bratTask);
-  }
-
-  return taskNode;
-
+	return r;
 }
 //----------------------------------------------------
-wxXmlNode* CSchedulerTaskConfig::AddTaskAsPending(wxXmlNode* parent, const wxString& function, CVectorBratAlgorithmParam& params, wxDateTime& at, const wxString& name /* = CSchedulerTaskConfig::m_DEFAULT_TASK_NAME */ )
+//femm changed name
+TaskRet CSchedulerTaskConfig::AddFunctionTaskAsPending( TaskRet parent, const wxString& function, CVectorBratAlgorithmParam& params, wxDateTime& at, const wxString& name )
 {
-  if (parent == NULL)
-  {
-    return NULL;
-  }
+	if ( !parent.n )
+		return TaskRet();
 
-  wxXmlNode* taskNode = CreateTaskNodeAsPending(at, name);
-  
-  if (taskNode == NULL)
-  {
-    return NULL;
-  }
+	TaskRet r;
+	r.n = CreateTaskNodeAsPending_xml( at, name, m_TASK_FUNCTION_ATTR, function, &params );
+	if ( !r.n )
+		return r;
+	parent.n->AddChild( r.n );
 
-  // ensure that no other thread accesses the tasks' map
-  //wxCriticalSectionLocker locker(m_critSectMapBratTask);
-  
-  taskNode->AddProperty(CSchedulerTaskConfig::m_TASK_FUNCTION_ATTR, function);
- 
-  CreateArgNode(taskNode, params);
+	// ensure that no other thread accesses the tasks' map
+	//wxCriticalSectionLocker locker(m_critSectMapBratTask);
 
-  parent->AddChild(taskNode);
+	r.t = CreateBratTask( r.n );
+	if ( IsPendingTasksElement( parent.n ) )
+	{
+		AddTaskToMap( r.t );
+	}
+	else
+	{
+		AddTask( GetTaskId( parent.n ), r.t );		assert__( GetTaskId( parent.n ) == parent.t->GetUid() );
+	}
 
-  CBratTask* bratTask = CreateBratTask(taskNode);
-  
-  if (CSchedulerTaskConfig::IsPendingTaskNode(parent))
-  {
-    AddTaskToMap(bratTask);
-  }
-  else
-  {
-    AddTask(CSchedulerTaskConfig::GetTaskId(parent), bratTask);
-  }
-
-  return taskNode;
-
-
+	return r;
 }
 
 //----------------------------------------------------
-wxXmlNode* CSchedulerTaskConfig::CreateTaskNodeAsPending(wxDateTime& at, const wxString& name /* = CSchedulerTaskConfig::m_DEFAULT_TASK_NAME */ )
+wxXmlNode* CSchedulerTaskConfig::CreateTaskNodeAsPending_xml( wxDateTime& at, const wxString& name, const wxString &property, const wxString &value, 
+	const CVectorBratAlgorithmParam *params )		//const CVectorBratAlgorithmParam *params = nullptr 
 {
+	// ensure that no other thread accesses 
+	wxCriticalSectionLocker locker( m_critSectXmlConfigFile );
 
-  // ensure that no other thread accesses 
-  wxCriticalSectionLocker locker(m_critSectXmlConfigFile);
-  
-  wxXmlNode* taskNode = new wxXmlNode(wxXML_ELEMENT_NODE, CSchedulerTaskConfig::m_TASK_ELT);
-  wxLongLong id = GenerateId();
-  
-  
-  taskNode->AddProperty(CSchedulerTaskConfig::m_TASK_ID_ATTR, id.ToString());
+	wxXmlNode* taskNode = new wxXmlNode( wxXML_ELEMENT_NODE, CSchedulerTaskConfig::m_TASK_ELT );
+	wxLongLong id = GenerateId();
 
-  if (!name.IsEmpty())
-  {
-    taskNode->AddProperty(CSchedulerTaskConfig::m_TASK_NAME_ATTR, name);
-  }
+	taskNode->AddProperty( CSchedulerTaskConfig::m_TASK_ID_ATTR, id.ToString() );
 
-  wxString fullLogFileName = wxString::Format("%s/BratTask_%s_%s.log", CSchedulerTaskConfig::GetLogFilePath(m_CONFIG_APPNAME).c_str(), name.c_str(), id.ToString().c_str());
-  taskNode->AddProperty(CSchedulerTaskConfig::m_TASK_LOG_FILE_ATTR, fullLogFileName);
-  
-  taskNode->AddProperty(CSchedulerTaskConfig::m_TASK_AT_ATTR, at.Format(CBratTask::formatISODateTime()));
-  
-  taskNode->AddProperty(CSchedulerTaskConfig::m_TASK_STATUS_ATTR, CBratTask::TaskStatusToString( CBratTask::e_BRAT_STATUS_PENDING) );	//m_BRAT_STATUS_PENDING_LABEL
+	if ( !name.IsEmpty() )
+		taskNode->AddProperty( CSchedulerTaskConfig::m_TASK_NAME_ATTR, name );
 
-  return taskNode;
+	wxString fullLogFileName = wxString::Format( "%s/BratTask_%s_%s.log", CSchedulerTaskConfig::GetLogFilePath( m_CONFIG_APPNAME ).c_str(), name.c_str(), id.ToString().c_str() );
 
+	taskNode->AddProperty( CSchedulerTaskConfig::m_TASK_LOG_FILE_ATTR,	fullLogFileName );
+	taskNode->AddProperty( CSchedulerTaskConfig::m_TASK_AT_ATTR,		at.Format( CBratTask::formatISODateTime() ) );
+	taskNode->AddProperty( CSchedulerTaskConfig::m_TASK_STATUS_ATTR,	CBratTask::TaskStatusToString( CBratTask::e_BRAT_STATUS_PENDING ) );	//m_BRAT_STATUS_PENDING_LABEL
+	taskNode->AddProperty( property,									value );
+
+	if ( params )
+	{
+		for ( CVectorBratAlgorithmParam::const_iterator it = params->begin(); it != params->end(); it++ )
+		{
+			wxXmlNode* argNode = new wxXmlNode( wxXML_ELEMENT_NODE, CSchedulerTaskConfig::m_ARG_ELT );
+			argNode->AddProperty( CSchedulerTaskConfig::m_TYPE_ATTR, it->GetTypeValAsString().c_str() );
+			wxXmlNode* argTextNode = new wxXmlNode( wxXML_TEXT_NODE, "" );
+			argNode->AddChild( argTextNode );
+			try
+			{
+				argTextNode->SetContent( it->GetValue().c_str() );
+			}
+			catch ( CException& e )
+			{
+				argTextNode->SetContent( e.GetMessage().c_str() );
+			}
+
+			taskNode->AddChild( argNode );
+		}
+	}
+
+	return taskNode;
 }
 //----------------------------------------------------
-wxXmlNode* CSchedulerTaskConfig::CreateArgNode(wxXmlNode* parent, CVectorBratAlgorithmParam& params)
+bool CSchedulerTaskConfig::IsPendingTasksElement( wxXmlNode* node )
 {
+	if ( !node )
+		return false;
 
-  if (parent == NULL)
-  {
-    return NULL;
-  }
-
-  CVectorBratAlgorithmParam::iterator it;
-
-  for(it = params.begin() ; it != params.end() ; it++)
-  {
-    wxXmlNode* argNode = new wxXmlNode(wxXML_ELEMENT_NODE, CSchedulerTaskConfig::m_ARG_ELT);
-    argNode->AddProperty(CSchedulerTaskConfig::m_TYPE_ATTR, it->GetTypeValAsString().c_str());
-    wxXmlNode* argTextNode = new wxXmlNode(wxXML_TEXT_NODE, "");
-    argNode->AddChild(argTextNode);
-    try
-    {
-      argTextNode->SetContent(it->GetValue().c_str());
-    }
-    catch(CException& e)
-    {
-      argTextNode->SetContent(e.GetMessage().c_str());
-    }
-  
-    parent->AddChild(argNode);
-  }
-   
-  return parent;
-
-}
-//----------------------------------------------------
-bool CSchedulerTaskConfig::IsPendingTaskNode(wxXmlNode* node)
-{
-  if (node == NULL)
-  {
-    return false;
-  }
-
-  return (node->GetName().CmpNoCase(CSchedulerTaskConfig::m_PENDING_ELT) == 0);
+	return ( node->GetName().CmpNoCase( CSchedulerTaskConfig::m_PENDING_ELT ) == 0 );
 }
 //----------------------------------------------------
 wxString CSchedulerTaskConfig::GetTaskIdAsString(wxXmlNode* node)
@@ -1524,14 +1352,9 @@ bool CSchedulerTaskConfig::RemoveTask(wxXmlNode*& node)
 }
 
 //----------------------------------------------------
-bool CSchedulerTaskConfig::RemoveTask(const wxLongLong& id)
-{
-  return RemoveTask(id.GetValue());
-}
-//----------------------------------------------------
 bool CSchedulerTaskConfig::RemoveTask(wxLongLong_t id)
 {
-  wxXmlNode* root = this->GetRoot();
+  wxXmlNode* root = this->GetRoot_xml();
 
   wxXmlNode* node = FindTaskNode(id, root, true);
 
@@ -1599,120 +1422,83 @@ bool CSchedulerTaskConfig::RemoveTaskFromMap(wxLongLong_t id)
   return true;
 }
 //----------------------------------------------------
-void CSchedulerTaskConfig::AddTask(wxLongLong_t parentId, CBratTask* bratTask)
+void CSchedulerTaskConfig::AddTask( wxLongLong_t parentId, CBratTask* bratTask )
 {
+	if ( !bratTask )
+		return;
 
-  if (bratTask == NULL)
-  {
-    return;
-  }
+	wxCriticalSectionLocker locker( m_critSectMapBratTask );
 
-  wxCriticalSectionLocker locker(m_critSectMapBratTask);
-  CBratTask* parentBratTask = m_mapBratTask.Find(parentId);
-  if (parentBratTask == NULL)
-  {
-    return;
-  }
+	CBratTask* parentBratTask = m_mapBratTask.Find( parentId );
+	if ( !parentBratTask )
+		return;
 
-  parentBratTask->GetSubordinateTasks()->Insert(bratTask);
-
+	parentBratTask->GetSubordinateTasks()->Insert( bratTask );
 }
 //----------------------------------------------------
-void CSchedulerTaskConfig::AddTaskToMap(CBratTask* bratTask)
+void CSchedulerTaskConfig::AddTaskToMap( CBratTask* bratTask )
 {
-  if (bratTask == NULL)
-  {
-    return;
-  }
+	if ( !bratTask )
+		return;
 
-  wxLongLong_t uid = bratTask->GetUid();
-  CBratTask::Status status = bratTask->GetStatus();
+	wxCriticalSectionLocker locker( m_critSectMapBratTask );
 
-  wxCriticalSectionLocker locker(m_critSectMapBratTask);
-  m_mapBratTask.Insert(uid, bratTask);
-  switch (status)
-  {
-    case CBratTask::e_BRAT_STATUS_PENDING:
-    {
-      m_mapPendingBratTask.Insert(uid, bratTask);
-      break;
-    }
-    case CBratTask::e_BRAT_STATUS_PROCESSING:
-    {
-      m_mapProcessingBratTask.Insert(uid, bratTask);
-      break;
-    }
-    case CBratTask::e_BRAT_STATUS_ENDED:
-    case CBratTask::e_BRAT_STATUS_ERROR:
-    case CBratTask::e_BRAT_STATUS_WARNING:
-    {
-      m_mapEndedBratTask.Insert(uid, bratTask);
-      break;
-    }
-    default:
-    {
-      wxString msg = wxString::Format("ERROR in CSchedulerTaskConfig#AddTaskToMap - status %d (%s) not implemented in the function.", 
-                                      static_cast<int32_t>(status), bratTask->GetStatusAsString().c_str());
+	wxLongLong_t uid = bratTask->GetUid();
+	m_mapBratTask.Insert( uid, bratTask );
 
-      throw CException(msg.ToStdString(), BRATHL_ERROR);
-    }
-  }
+	CBratTask::Status status = bratTask->GetStatus();
+	switch ( status )
+	{
+		case CBratTask::e_BRAT_STATUS_PENDING:
+		{
+			m_mapPendingBratTask.Insert( uid, bratTask );
+			break;
+		}
+		case CBratTask::e_BRAT_STATUS_PROCESSING:
+		{
+			m_mapProcessingBratTask.Insert( uid, bratTask );
+			break;
+		}
+		case CBratTask::e_BRAT_STATUS_ENDED:
+		case CBratTask::e_BRAT_STATUS_ERROR:
+		case CBratTask::e_BRAT_STATUS_WARNING:
+		{
+			m_mapEndedBratTask.Insert( uid, bratTask );
+			break;
+		}
+		default:
+		{
+			wxString msg = wxString::Format( "ERROR in CSchedulerTaskConfig#AddTaskToMap - status %d (%s) not implemented in the function.",
+				static_cast<int32_t>( status ), bratTask->GetStatusAsString().c_str() );
 
+			throw CException( msg.ToStdString(), BRATHL_ERROR );
+		}
+	}
 }
 //----------------------------------------------------
-wxXmlNode* CSchedulerTaskConfig::AddRootNode()
+wxXmlNode* CSchedulerTaskConfig::GetOrAddRootNode_xml()
 {
-  wxXmlNode* root = this->GetRoot();
-  if (root == NULL)
-  {
-    root = new wxXmlNode(wxXML_ELEMENT_NODE, CSchedulerTaskConfig::m_ROOT_ELT);
-    this->SetRoot(root);
-  }
-
-  return root;
+	wxXmlNode* root = this->GetRoot_xml();
+	if ( !root )
+	{
+		root = new wxXmlNode( wxXML_ELEMENT_NODE, m_ROOT_ELT );
+		SetRoot_xml( root );
+	}
+	return root;
 }
 //----------------------------------------------------
-wxXmlNode* CSchedulerTaskConfig::AddPendingTaskNode()
+wxXmlNode* CSchedulerTaskConfig::GetOrAddTasksElement_xml( const wxString &elt )
 {
-  wxXmlNode* root = this->AddRootNode();
-
-  wxXmlNode* node = GetPendingTaskNode();
-  if (node == NULL)
-  {
-    node = new wxXmlNode(wxXML_ELEMENT_NODE, CSchedulerTaskConfig::m_PENDING_ELT);
-    root->AddChild(node);
-  }
-
-  return node;
+	wxXmlNode* node = FindNodeByName_xml(elt);
+	if ( !node )
+	{
+		node = new wxXmlNode( wxXML_ELEMENT_NODE, elt );
+		wxXmlNode* root = this->GetOrAddRootNode_xml();
+		root->AddChild( node );
+	}
+	return node;
 }
-//----------------------------------------------------
-wxXmlNode* CSchedulerTaskConfig::AddProcessingTaskNode()
-{
-  wxXmlNode* root = this->AddRootNode();
 
-  wxXmlNode* node = GetProcessingTaskNode();
-  if (node == NULL)
-  {
-    node = new wxXmlNode(wxXML_ELEMENT_NODE, CSchedulerTaskConfig::m_PROCESSING_ELT);
-    root->AddChild(node);
-  }
-
-  return node;
-}
-//----------------------------------------------------
-wxXmlNode* CSchedulerTaskConfig::AddEndedTaskNode()
-{
-  wxXmlNode* root = this->AddRootNode();
-
-  wxXmlNode* node = GetEndedTaskNode();
-  if (node == NULL)
-  {
-    node = new wxXmlNode(wxXML_ELEMENT_NODE, CSchedulerTaskConfig::m_ENDED_ELT);
-    root->AddChild(node);
-  }
-
-  return node;
-}
 //----------------------------------------
 CBratTask* CSchedulerTaskConfig::CreateBratTask(wxXmlNode* taskNode) 
 {
@@ -1909,56 +1695,46 @@ bool CSchedulerTaskConfig::ParseDateTime(const wxString& value, wxDateTime& dt, 
 
 }
 //----------------------------------------
-bool CSchedulerTaskConfig::LoadSchedulerTaskConfig(bool quiet /* = false */)
+bool CSchedulerTaskConfig::LoadAllSchedulerTaskConfig( bool quiet /* = false */ )
 {
-  bool loaded = false;
-  bool cancelled = false;
+	bool loaded = false;
+	bool cancelled = false;
 
-  do
-  {
-    try
-    {
-      CSchedulerTaskConfig::GetInstance(true, true, false);
-      loaded = true;
-    }
-    catch(CException& e)
-    {
-      //-----------------------
-      if (quiet)
-      {
-        CSchedulerTaskConfig::ForceUnLockConfigFile();
+	do
+	{
+		try
+		{
+			bool reload = true;		//femm
+			GetInstance( reload, true, false );
+			loaded = true;
+		}
+		catch ( const CException& e )
+		{
+			//-----------------------
+			if ( quiet )
+			{
+				ForceUnLockConfigFile();
+				throw;
+			}
+			//-----------------------
 
-        throw e;
-      }
-      //-----------------------
+			loaded = false;
+			wxString msg = wxString::Format( "%s\n Try again ?", e.GetMessage().c_str() );
+			cancelled = wxMessageBox( msg, "Warning", wxYES_NO | wxCENTRE | wxICON_EXCLAMATION ) != wxYES;
 
-      loaded = false;
-      wxString msg = wxString::Format("%s\n Try again ?", e.GetMessage().c_str());
-      int32_t result = wxMessageBox(msg,
-                     "Warning",
-                      wxYES_NO | wxCENTRE | wxICON_EXCLAMATION);
-      
-      if (result != wxYES)
-      {
-        cancelled = true;;
-      }
+		}
+	} while ( !loaded && !cancelled );
 
-    }
-  } while (!loaded && !cancelled);
-  
-  if (!loaded)
-  {    
-    wxString msg = "Operation cancelled";
-    int32_t result = wxMessageBox(msg,
-                   "Warning",
-                    wxOK | wxCENTRE | wxICON_EXCLAMATION);
-    
-    CSchedulerTaskConfig::ForceUnLockConfigFile();
+	if ( !loaded )
+	{
+		wxString msg = "Operation cancelled";
+        //int32_t result =
+                wxMessageBox( msg, "Warning", wxOK | wxCENTRE | wxICON_EXCLAMATION );
 
-  }
+		ForceUnLockConfigFile();
+	}
 
-  return loaded;
-
+	return loaded;
 }
 //----------------------------------------
 bool CSchedulerTaskConfig::SaveSchedulerTaskConfig(bool quiet /* = false */)
@@ -1999,7 +1775,8 @@ bool CSchedulerTaskConfig::SaveSchedulerTaskConfig(bool quiet /* = false */)
     CSchedulerTaskConfig::ForceUnLockConfigFile();
 
     wxString msg = "Operation cancelled";
-    int32_t result = wxMessageBox(msg,
+    //int32_t result =
+            wxMessageBox(msg,
                    "Warning",
                     wxOK | wxCENTRE | wxICON_EXCLAMATION);
   }

@@ -112,7 +112,7 @@ CDndDisplayDataObject::CDndDisplayDataObject(CDndDisplayData* dndDisplayData)
 size_t CDndDisplayDataObject::GetDataSize() const
 {
   size_t ret = 0;
-  size_t count = 0;
+  //size_t count = 0;
 
   if (m_dndDisplayData == NULL)
   {
@@ -151,6 +151,8 @@ bool CDndDisplayDataObject::GetDataHere(void* buf) const
 
 bool CDndDisplayDataObject::SetData(size_t len, const void* buf)
 {
+    UNUSED(len);
+
   if (m_dndDisplayData == NULL)
   {
     m_dndDisplayData = new CDndDisplayData();
@@ -460,7 +462,7 @@ void CDisplayData::GetAvailableAxes(CStringArray& names)
 //----------------------------------------
 bool CDisplayData::LoadConfig(wxFileConfig* config, const wxString& path)
 {
-  bool bOk = true;
+  //bool bOk = true;
   wxString valueString;
 
   if (config == NULL)
@@ -876,7 +878,8 @@ bool CMapDisplayData::LoadConfig(wxFileConfig* config, const wxString& pathSuff)
   }
   config->SetPath("/" + path);
 
-  long maxEntries = config->GetNumberOfEntries();
+  //long maxEntries =
+  config->GetNumberOfEntries();
   wxString entry;
   wxString valueString;
   wxString displayDataName;
@@ -956,7 +959,7 @@ bool CMapDisplayData::LoadConfig(wxFileConfig* config, const wxString& pathSuff)
 //----------------------------------------
 bool CMapDisplayData::SaveConfig(wxFileConfig* config, const wxString& pathSuff)
 {
-  bool bOk = true;
+  //bool bOk = true;
 
   if (config == NULL)
   {
@@ -1458,7 +1461,7 @@ bool CDisplay::SaveConfig(wxFileConfig* config)
 //----------------------------------------
 bool CDisplay::LoadConfig(wxFileConfig* config)
 {
-  bool bOk = true;
+  //bool bOk = true;
   if (config == NULL)
   {
     return true;

@@ -1036,6 +1036,7 @@ void CBratAlgorithmGeosVelGrid::PrepareDataValues2DComplexExpression(CExpression
 //----------------------------------------
 double CBratAlgorithmGeosVelGrid::GetVarExpressionValue(int32_t indexLat, int32_t indexLon)
 {
+    UNUSED(indexLon);
 
   PrepareDataReading2D(indexLat, indexLat);
 

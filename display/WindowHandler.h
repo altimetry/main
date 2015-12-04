@@ -32,14 +32,13 @@
 #include "brathl.h"
 
 #include "BratObject.h"
-using namespace brathl;
 
 //#include "BratDisplay_wdr.h"
 
 // WDR: class declarations
 
 
-class CWindowHandler : public CBratObject
+class CWindowHandler : public brathl::CBratObject
 {
 public:
     

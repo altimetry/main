@@ -461,7 +461,7 @@ bool CBratTaskProcess::HasInput()
 //----------------------------------------
 int32_t CBratTaskProcess::Execute()
 {
-  int32_t result = -1;
+  //int32_t result = -1;
 
   if (m_bratTask->HasFunction())
   {
@@ -615,6 +615,8 @@ void CBratTaskProcess::OnProcessTerm(CProcessTermEvent& event)
 //----------------------------------------
 void CBratTaskProcess::OnTerminate(int status)
 {
+    UNUSED(status);
+
    throw CException("CBratTaskProcess::OnTerminate(int status) is not implemented", BRATHL_UNIMPLEMENT_ERROR);
 
 }

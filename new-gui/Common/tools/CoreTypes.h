@@ -1081,7 +1081,7 @@ public:
 	virtual ~CBratAlgorithmParam();
 
         bratAlgoParamTypeVal GetTypeVal() { return m_typeVal; }
-        std::string GetTypeValAsString() { return TypeValAsString( m_typeVal ); }
+	std::string GetTypeValAsString() const { return TypeValAsString( m_typeVal ); }
 
 	std::string GetValue() const;
 

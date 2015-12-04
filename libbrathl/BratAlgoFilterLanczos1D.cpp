@@ -248,7 +248,7 @@ void CBratAlgoFilterLanczos1D::SetNextValues()
 //----------------------------------------
 void CBratAlgoFilterLanczos1D::CheckVarExpression(uint32_t index)
 {  
-
+    UNUSED(index);
 }
 
 //----------------------------------------

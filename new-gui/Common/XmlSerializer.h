@@ -67,14 +67,14 @@ template< typename TO, typename FROM >
 static TO enum_cast( FROM e )
 {
 	typedef typename FROM::value value;
-	return (TO)(value)e;
+	return static_cast<TO>(static_cast<value>( e ));
 }
 
 template< typename TO, typename FROM >
 static TO enum_reverse_cast( FROM e )
 {
 	typedef typename TO::value value;
-	return (value)e;
+	return static_cast<value>( e );
 }
 
 template< typename TO, typename FROM >

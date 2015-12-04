@@ -3457,7 +3457,7 @@ std::string CBratAlgorithmParam::TypeValAsString( CBratAlgorithmParam::bratAlgoP
 		case T_FLOAT: value = "float"; break;
 		case T_DOUBLE: value = "double"; break;
 		case T_CHAR: value = "char"; break;
-		case T_STRING: value = "std::string"; break;
+		case T_STRING: value = "string"; break;
 		case T_VECTOR_DOUBLE: value = "array of double"; break;
 		default: value =
 			"CBratAlgorithmParam#TypeValAsString: unknown type "

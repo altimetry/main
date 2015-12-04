@@ -541,6 +541,9 @@ void CBratAlgoFilterGaussian::ComputeInitialWeights()
 //----------------------------------------
 double CBratAlgoFilterGaussian::ApplyFilter(ComputeMode mode, uint32_t from)
 {
+    UNUSED(mode);
+    UNUSED(from);
+
   ComputeInitialWeights();
 
   //m_weights.resize(m_initialWeights.size());

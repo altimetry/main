@@ -664,7 +664,7 @@ void CBratAlgoFilterLoess1D::SetParamValues(CVectorBratAlgorithmParam& args)
 //----------------------------------------
 void CBratAlgoFilterLoess1D::CheckVarExpression(uint32_t index)
 {  
-
+    UNUSED(index);
 }
 
 //----------------------------------------

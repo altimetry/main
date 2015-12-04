@@ -12,6 +12,7 @@ extern const QString rsrcPath;
 
 class QbrtMapEditor;
 class QbrtPlotEditor;
+class Qbrt2DPlotEditor;
 class CmdLineProcessor;
 class CWPlot;
 
@@ -83,6 +84,7 @@ protected:
     void addEditor(Editor *editor);
     void addEditor(QbrtMapEditor *editor);
     void addEditor(QbrtPlotEditor *editor);
+    void addEditor(Qbrt2DPlotEditor *editor);
 
 
     //not slots: manually called

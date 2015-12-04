@@ -260,8 +260,7 @@ void CDatasetPanel::DeleteProduct()
 //----------------------------------------
 void CDatasetPanel::OnWindowCreate(wxWindowCreateEvent& evt)
 {
-
-
+    UNUSED(evt);
 }
 //----------------------------------------
 CDataset* CDatasetPanel::GetCurrentDataset()
@@ -501,6 +500,8 @@ void CDatasetPanel::ShowFieldDescription()
 //----------------------------------------
 void CDatasetPanel::OnShowSelectionReport( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   if (!m_logFileName.FileExists())
   {
     wxMessageBox("There is no report to show.",
@@ -529,6 +530,8 @@ void CDatasetPanel::OnShowSelectionReport( wxCommandEvent &event )
 //----------------------------------------
 void CDatasetPanel::OnDefineCriteria( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   wxString title = "Define selection criteria...";
 
 
@@ -547,24 +550,29 @@ void CDatasetPanel::OnDefineCriteria( wxCommandEvent &event )
 //----------------------------------------
 void CDatasetPanel::OnApplyCriteria( wxCommandEvent &event )
 {
-
+    UNUSED(event);
 }
 //----------------------------------------
 
 void CDatasetPanel::OnDeleteDataset( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   DeleteDataset();
 }
 //----------------------------------------
 
 void CDatasetPanel::OnNewDataset( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   NewDataset();
 }
 
 //----------------------------------------
 void CDatasetPanel::OnFileRemove( wxCommandEvent &event )
 {
+    UNUSED(event);
 
   int32_t pos = GetDsfilelist()->GetSelection();
   RemoveFileFromList(pos);
@@ -607,12 +615,16 @@ void CDatasetPanel::OnListBox( wxCommandEvent &event )
 //----------------------------------------
 void CDatasetPanel::OnCheckFiles( wxCommandEvent &event )
 {
+    UNUSED(event);
+
     CheckFiles();
 }
 
 //----------------------------------------
 void CDatasetPanel::OnFileClear( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   if (m_dataset == NULL)
   {
     return;
@@ -654,6 +666,8 @@ void CDatasetPanel::OnFileClear( wxCommandEvent &event )
 //----------------------------------------
 void CDatasetPanel::OnFileSort( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   m_currentFilename = GetDsfilelist()->GetStringSelection();
 
   wxArrayString array;
@@ -680,6 +694,8 @@ void CDatasetPanel::OnFileSort( wxCommandEvent &event )
 //----------------------------------------
 void CDatasetPanel::OnFileDown( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   m_currentFile = GetDsfilelist()->GetSelection();
 
   if ((m_currentFile < 0) || (m_currentFile >= static_cast<int32_t>(GetDsfilelist()->GetCount()) - 1))
@@ -702,6 +718,8 @@ void CDatasetPanel::OnFileDown( wxCommandEvent &event )
 //----------------------------------------
 void CDatasetPanel::OnFileUp( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   int32_t m_currentFile = GetDsfilelist()->GetSelection();
 
   if (m_currentFile <= 0)
@@ -763,11 +781,15 @@ void CDatasetPanel::OnComboKillFocus( wxFocusEvent &event )
 //----------------------------------------
 void CDatasetPanel::OnComboText( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   //m_dsNameDirty = true;
 }
 //----------------------------------------
 void CDatasetPanel::OnComboTextEnter( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   DsNameChanged();
 }
 //----------------------------------------
@@ -781,6 +803,8 @@ void CDatasetPanel::OnComboBox( wxCommandEvent &event )
 //----------------------------------------
 void CDatasetPanel::OnAddDir( wxCommandEvent &event )
 {
+    UNUSED(event);
+
   int32_t style = wxDD_DEFAULT_STYLE;
   style &= ~wxDD_NEW_DIR_BUTTON;
 
@@ -848,7 +872,9 @@ void CDatasetPanel::OnAddDir( wxCommandEvent &event )
 //----------------------------------------
 void CDatasetPanel::OnAddFiles( wxCommandEvent &event )
 {
-  bool bOk = true;
+    UNUSED(event);
+
+  //bool bOk = true;
 
   if (m_dataset == NULL)
   {
@@ -1089,7 +1115,7 @@ void CDatasetPanel::LoadDataset()
 {
   ClearAll();
 
-  bool bOk = true;
+  //bool bOk = true;
 
   CWorkspaceDataset* wks = wxGetApp().GetCurrentWorkspaceDataset();
   if (wks == NULL)

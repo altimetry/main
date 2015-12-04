@@ -111,7 +111,7 @@ CDndFieldDataObject::CDndFieldDataObject(CDndField* dndField)
 size_t CDndFieldDataObject::GetDataSize() const
 {
   size_t ret = 0;
-  size_t count = 0;
+  //size_t count = 0;
 
   if (m_dndField == NULL)  
   {
@@ -170,6 +170,7 @@ bool CDndFieldDataObject::GetDataHere(void* buf) const
 
 bool CDndFieldDataObject::SetData(size_t len, const void* buf)
 {
+    UNUSED(len);
   /*
   CObArray* fields = static_cast<CObArray*>(const_cast<void*>(buf));
 

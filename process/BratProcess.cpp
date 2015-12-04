@@ -167,8 +167,8 @@ void CBratProcess::LoadParams(const std::string& name, uint32_t mode /*= CFile::
   m_fileParams->SetVerboseLevel();
   m_fileParams->Dump(*CTrace::GetDumpContext());
 
-  CTrace *p = CTrace::GetInstance();
-  p->Tracer(1,"Parameters:");
+  CTrace::GetInstance();
+  CTrace::Tracer(1,"Parameters:");
 
   SetFieldSpecificUnits(m_fileParams->GetFieldSpecificUnits());
 
@@ -218,6 +218,7 @@ void CBratProcess::SetExpandArray(const CStringArray* fields, bool expandArray)
 //----------------------------------------
 void CBratProcess::LoadProductDictionary(const std::string& filename, bool createVirtualField /* = true */)
 {
+    UNUSED(createVirtualField);
 
   ConstructProduct(filename, true);
   
@@ -560,7 +561,7 @@ CBratProcess::MergeDataMode CBratProcess::GetDataMode
 		 MergeDataMode defaultValue /* = pctMEAN */)
 {
 
-  CTrace *p = CTrace::GetInstance();
+  CTrace::GetInstance();
 
   if (params.CheckCount(Keyword, minOccurences, maxOccurences) == 0)
   {
@@ -578,7 +579,7 @@ CBratProcess::MergeDataMode CBratProcess::GetDataMode
 
   CBratProcess::MergeDataMode val = static_cast<CBratProcess::MergeDataMode>(tmpVal);
 
-  p->Tracer(1, CBratProcess::PCT_StrFmt2, "Data mode",  CBratProcess::DataModeStr(val).c_str());
+  CTrace::Tracer(1, CBratProcess::PCT_StrFmt2, "Data mode",  CBratProcess::DataModeStr(val).c_str());
 
   return val;
 }
@@ -658,7 +659,9 @@ int32_t CBratProcess::GetFileList
 		 int32_t		maxOccurences	/*= -1*/,
 		 bool			printTrace	/*= true*/)
 {
-  CTrace *p = CTrace::GetInstance();
+    UNUSED(printTrace);
+
+  CTrace::GetInstance();
   
   int32_t	result	= params.CheckCount(keyword, minOccurences, maxOccurences);
   
@@ -669,11 +672,11 @@ int32_t CBratProcess::GetFileList
     params.m_mapParam[keyword]->GetValue(names[index], index);
     if (index == 0)
     {
-      p->Tracer(1, CBratProcess::PCT_StrFmt, traceDescription.c_str(), names[index].c_str());
+      CTrace::Tracer(1, CBratProcess::PCT_StrFmt, traceDescription.c_str(), names[index].c_str());
     }
     else
     {
-      p->Tracer(1, CBratProcess::PCT_StrFmt, "", names[index].c_str());
+      CTrace::Tracer(1, CBratProcess::PCT_StrFmt, "", names[index].c_str());
     }
   }
   return result;
@@ -682,8 +685,7 @@ int32_t CBratProcess::GetFileList
 //----------------------------------------
 void CBratProcess::AdjustDefinition(CFileParams& params, CExpression& field, bool printTrace /*= true*/)
 {
-
-  CTrace* p	= CTrace::GetInstance();
+    CTrace::GetInstance();
 
   if (params.CheckCount(kwFILE, 0, -1) < 1)
   {
@@ -733,7 +735,7 @@ void CBratProcess::AdjustDefinition(CFileParams& params, CExpression& field, boo
 
   if (printTrace)
   {
-    p->Tracer(1, CBratProcess::PCT_StrFmt2, "Adjusted expression", field.AsString().c_str());
+    CTrace::Tracer(1, CBratProcess::PCT_StrFmt2, "Adjusted expression", field.AsString().c_str());
   }
 
 }
@@ -810,6 +812,7 @@ int32_t CBratProcess::GetDefinition
 		 int32_t		maxOccurences	/*= 1*/,
 		 bool			printTrace	/*= true*/)
 {
+    UNUSED(printTrace);
 
   int32_t result	= GetVarDef(params,
 				                      prefix,
@@ -856,16 +859,16 @@ int32_t CBratProcess::GetVarDef
 		 int32_t		maxOccurences	/*= 1*/,
 		 bool			printTrace	/*= true*/)
 {
-  CTrace		*p	= CTrace::GetInstance();
+    CTrace::GetInstance();
   std::string		tmpKey;
   std::string		tmp;
 
   if (printTrace)
   {
     if ((index==0) && (minOccurences <= 1) && (maxOccurences <= 1))
-      p->Tracer(1, CBratProcess::PCT_HeaderFmt, traceDescription.c_str());
+      CTrace::Tracer(1, CBratProcess::PCT_HeaderFmt, traceDescription.c_str());
     else
-      p->Tracer(1, CBratProcess::PCT_HeaderCountFmt, traceDescription.c_str(), index+1);
+      CTrace::Tracer(1, CBratProcess::PCT_HeaderCountFmt, traceDescription.c_str(), index+1);
   }
 
   int32_t result	= params.CheckCount(prefix, minOccurences, maxOccurences);
@@ -874,7 +877,7 @@ int32_t CBratProcess::GetVarDef
 
   if (printTrace)
   {
-    p->Tracer(1, CBratProcess::PCT_StrFmt2, "Expression", field.AsString().c_str());
+    CTrace::Tracer(1, CBratProcess::PCT_StrFmt2, "Expression", field.AsString().c_str());
   }
 
   /*
@@ -891,7 +894,7 @@ int32_t CBratProcess::GetVarDef
     params.m_mapParam[tmpKey]->GetValue(*name, index);
     if (printTrace)
     {
-      p->Tracer(1, CBratProcess::PCT_StrFmt2, "name",  name->c_str());
+      CTrace::Tracer(1, CBratProcess::PCT_StrFmt2, "name",  name->c_str());
     }
 
     if (! CInternalFiles::IsVarNameValid(*name))
@@ -920,7 +923,7 @@ int32_t CBratProcess::GetVarDef
     
     if (printTrace)
     {
-      p->Tracer(1, CBratProcess::PCT_StrFmt2, "Type",  CNetCDFFiles::VarKindToString(*kind).c_str());
+      CTrace::Tracer(1, CBratProcess::PCT_StrFmt2, "Type",  CNetCDFFiles::VarKindToString(*kind).c_str());
     }
   }
 
@@ -962,7 +965,7 @@ int32_t CBratProcess::GetVarDef
 
     if (printTrace)
     {
-      p->Tracer(1, CBratProcess::PCT_StrFmt2, "unit",  unit->GetText().c_str());
+      CTrace::Tracer(1, CBratProcess::PCT_StrFmt2, "unit",  unit->GetText().c_str());
     }
     if (kind != NULL)
     {
@@ -987,7 +990,7 @@ int32_t CBratProcess::GetVarDef
     }
     if (printTrace)
     {
-      p->Tracer(1, CBratProcess::PCT_QStrFmt2, "title (long name)",  title->c_str());
+      CTrace::Tracer(1, CBratProcess::PCT_QStrFmt2, "title (long name)",  title->c_str());
     }
   }
 
@@ -1004,7 +1007,7 @@ int32_t CBratProcess::GetVarDef
     }
     if (printTrace)
     {
-      p->Tracer(1, CBratProcess::PCT_QStrFmt2, "comment",  comment->c_str());
+      CTrace::Tracer(1, CBratProcess::PCT_QStrFmt2, "comment",  comment->c_str());
     }
   }
   
@@ -1024,7 +1027,7 @@ int32_t CBratProcess::GetVarDef
     }
     if (printTrace)
     {
-      p->Tracer(1, CBratProcess::PCT_QStrFmt2, "Data format",  dataFormat->c_str());
+      CTrace::Tracer(1, CBratProcess::PCT_QStrFmt2, "Data format",  dataFormat->c_str());
     }
   }
 
@@ -1042,7 +1045,7 @@ int32_t CBratProcess::GetVarDef
     }
     if (printTrace)
     {
-      p->Tracer(1, CBratProcess::PCT_IntFmt2, "group",  *group);
+      CTrace::Tracer(1, CBratProcess::PCT_IntFmt2, "group",  *group);
     }
   }
 
@@ -1071,7 +1074,7 @@ int32_t CBratProcess::GetVarDef
 		 int32_t		maxOccurences	/*= 1*/,
 		 bool			printTrace	/*= true*/)
 {
-  CTrace		*p	= CTrace::GetInstance();
+    CTrace::GetInstance();
   std::string		tmpKey;
   CDate			TmpDate;
   NetCDFVarKind		TheKind = brathl::Unknown;
@@ -1315,27 +1318,27 @@ int32_t CBratProcess::GetVarDef
     if ((TheKind == T) || isDate)
     {
       TmpDate = min;
-      p->Tracer(1, CBratProcess::PCT_StrFmt2, "min value", TmpDate.AsString("", true).c_str());
+      CTrace::Tracer(1, CBratProcess::PCT_StrFmt2, "min value", TmpDate.AsString("", true).c_str());
 
       TmpDate = max;
-      p->Tracer(1, CBratProcess::PCT_StrFmt2, "max value", TmpDate.AsString("", true).c_str());
+      CTrace::Tracer(1, CBratProcess::PCT_StrFmt2, "max value", TmpDate.AsString("", true).c_str());
     }
     else
     {
       if (unit != NULL)
       {
-        p->Tracer(1, CBratProcess::PCT_FltFmt2BaseUnit, "min value",  min, unit->ConvertToBaseUnit(min), unit->BaseUnit().GetText().c_str());
-        p->Tracer(1, CBratProcess::PCT_FltFmt2BaseUnit, "max value",  max, unit->ConvertToBaseUnit(max), unit->BaseUnit().GetText().c_str());
+        CTrace::Tracer(1, CBratProcess::PCT_FltFmt2BaseUnit, "min value",  min, unit->ConvertToBaseUnit(min), unit->BaseUnit().GetText().c_str());
+        CTrace::Tracer(1, CBratProcess::PCT_FltFmt2BaseUnit, "max value",  max, unit->ConvertToBaseUnit(max), unit->BaseUnit().GetText().c_str());
       }
       else
       {
-        p->Tracer(1, CBratProcess::PCT_FltFmt2, "min value",  min);
-        p->Tracer(1, CBratProcess::PCT_FltFmt2, "max value",  max);
+        CTrace::Tracer(1, CBratProcess::PCT_FltFmt2, "min value",  min);
+        CTrace::Tracer(1, CBratProcess::PCT_FltFmt2, "max value",  max);
       }
     }
 
-    p->Tracer(1, CBratProcess::PCT_IntFmt2, "Bin count",  Intervals);
-    p->Tracer(1, CBratProcess::PCT_FltFmt2, "step",  step);
+    CTrace::Tracer(1, CBratProcess::PCT_IntFmt2, "Bin count",  Intervals);
+    CTrace::Tracer(1, CBratProcess::PCT_FltFmt2, "step",  step);
   }
 
   if ( (TheKind != T) && !isDate )
@@ -1352,7 +1355,8 @@ int32_t CBratProcess::GetVarDef
 //----------------------------------------
 void CBratProcess::GetSelectParameter(CFileParams& params)
 {
-  CTrace* p = CTrace::GetInstance();
+  //CTrace* p =
+    CTrace::GetInstance();
 
   uint32_t nbSelect = params.CheckCount(kwSELECT, 0, -1);
 
@@ -1365,7 +1369,7 @@ void CBratProcess::GetSelectParameter(CFileParams& params)
     m_select.SetExpression("1"); // Everything is selected
   }
 
-  p->Tracer(1, PCT_StrFmt, "Selection",  m_select.AsString().c_str());
+  CTrace::Tracer(1, PCT_StrFmt, "Selection",  m_select.AsString().c_str());
 
   AdjustDefinition(params, m_select);
 }
@@ -1618,7 +1622,8 @@ void CBratProcess::GetFilterDefinitions
 		 bool			printTrace	/*= true*/)
 {
 
-  CTrace	*p	= CTrace::GetInstance();
+  //CTrace	*p	=
+    CTrace::GetInstance();
 
   std::string	tmpKey;
   int32_t	Count;
@@ -1651,11 +1656,11 @@ void CBratProcess::GetFilterDefinitions
     {
       if (smooth != NULL)
       {
-	      p->Tracer(1, CBratProcess::PCT_StrFmt2, "smoothing", (*smooth ? "YES" : "NO"));
+          CTrace::Tracer(1, CBratProcess::PCT_StrFmt2, "smoothing", (*smooth ? "YES" : "NO"));
       }
       if (extrapolate != NULL)
       {
-	      p->Tracer(1, CBratProcess::PCT_StrFmt2, "Extrapolating", (*extrapolate ? "YES" : "NO"));
+          CTrace::Tracer(1, CBratProcess::PCT_StrFmt2, "Extrapolating", (*extrapolate ? "YES" : "NO"));
       }
     }
   }
@@ -1670,12 +1675,12 @@ void CBratProcess::GetLoessCutoff
 		 int32_t		occurences	/*= 1*/,
 		 bool			printTrace	/*= true*/)
 {
-  CTrace	*p	= CTrace::GetInstance();
+    CTrace::GetInstance();
   std::string	tmpKey;
 
   if (printTrace && ((xCutoff != NULL) || (yCutoff != NULL)))
   {
-    p->Tracer(1, CBratProcess::PCT_HeaderFmt, "Loess parameters");
+    CTrace::Tracer(1, CBratProcess::PCT_HeaderFmt, "Loess parameters");
   }
   if (xCutoff != NULL)
   {
@@ -1684,7 +1689,7 @@ void CBratProcess::GetLoessCutoff
     params.m_mapParam[tmpKey]->GetValue(*xCutoff, index, 0);
     if (printTrace)
     {
-      p->Tracer(1, CBratProcess::PCT_IntFmt2, "X cutoff", *xCutoff);
+      CTrace::Tracer(1, CBratProcess::PCT_IntFmt2, "X cutoff", *xCutoff);
     }
   }
   if (yCutoff != NULL)
@@ -1694,7 +1699,7 @@ void CBratProcess::GetLoessCutoff
     params.m_mapParam[tmpKey]->GetValue(*yCutoff, index, 0);
     if (printTrace)
     {
-      p->Tracer(1, CBratProcess::PCT_IntFmt2, "Y cutoff", *yCutoff);
+      CTrace::Tracer(1, CBratProcess::PCT_IntFmt2, "Y cutoff", *yCutoff);
     }
   }
 }
@@ -2046,7 +2051,7 @@ void CBratProcess::ConstructProduct(CStringList& fileName, bool createVirtualFie
 //----------------------------------------
 bool CBratProcess::Initialize(std::string& msg)
 {
-  CTrace *p = CTrace::GetInstance();
+    CTrace::GetInstance();
 
   // Register Brat algorithms
   CBratAlgorithmBase::RegisterAlgorithms();
@@ -2057,7 +2062,7 @@ bool CBratProcess::Initialize(std::string& msg)
   if (!(errorMsg.empty())) 
   {
     std::string msg = CTools::Format("WARNING: %s",  errorMsg.c_str());
-    p->Tracer(1, msg);
+    CTrace::Tracer(1, msg);
   }
   
   GetParameters();
@@ -2639,6 +2644,7 @@ void CBratProcess::OnAddDimensionsFromNetCdf()
 //----------------------------------------
 void CBratProcess::SubstituteAxisDim(const CStringArray& fieldDims, CStringArray& fieldDimsOut)
 {
+    UNUSED(fieldDims);    UNUSED(fieldDimsOut);
 }
 //----------------------------------------
 void CBratProcess::AddVarsFromNetCdf()
@@ -3007,6 +3013,7 @@ void CBratProcess::MergeDataValue
 		 double* countValue,
 		 double* meanValue)
 {
+    UNUSED(nbValues);
 
   double valueTmp = CBratProcess::CheckLongitudeValue(value, -180.0, m_types[indexExpr]);
   CBratProcess::MergeDataValue(data, valueTmp, countValue, meanValue, m_dataMode[indexExpr]);

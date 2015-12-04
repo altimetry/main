@@ -430,7 +430,7 @@ void CProductGfo::ComputeHighResolutionFields(CDataSet* dataSet, double deltaLat
 
   size_t count = dataSet->size();
 
-  for (int32_t index = 0 ; index < count ; index++)
+  for (size_t index = 0 ; index < count ; index++)
   {
     dataSet->SetCurrentRecordSet(index);
 

@@ -187,6 +187,8 @@ bool CExternalFilesATP::PrevRecord()
 //----------------------------------------
 void CExternalFilesATP::GetAllValues(CFieldNetCdf* field, const std::string& wantedUnit)
 {
+    UNUSED(wantedUnit);
+
   if (field == NULL)
   {
     return;
@@ -636,7 +638,8 @@ void CExternalFilesATP::AddVar
                  const CIntArray* dimIds /*= NULL*/,
                  const CStringMap* mapAttributes /*= NULL*/)
 {
-  
+  UNUSED(dimValues);    UNUSED(dimNames);    UNUSED(dimIds);
+
   //m_file.SetNetCDFDims(dimNames, dimValues, dimIds);
   //m_file.AddCoordinateVariable(m_dataDimNames, name);
   m_dataDim.AddCoordinateVariable(name);

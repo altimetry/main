@@ -36,7 +36,6 @@
 
 #include "Field.h" 
 #include "List.h"
-using namespace brathl;
 
 
 static const wxChar* fieldFormatId = _T("CDndFieldDataObject");
@@ -52,12 +51,12 @@ class CDndField
 public:
 
 //  CDndField() : m_fields(false) {  };
-  CDndField() { m_field = NULL; };
-  CDndField(CField* field) { m_field = field; };
+  CDndField() { m_field = NULL; }
+  CDndField(CField* field) { m_field = field; }
 
   CDndField(CDndField& dndField);
   
-  ~CDndField() { };
+  virtual ~CDndField() { }
 
   //void AddField(CField* field);
   //void AddField(CObArray& fields);

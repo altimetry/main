@@ -40,35 +40,41 @@ class CBratTask;
 //------------------- CVectorBratTask class --------------------
 //-------------------------------------------------------------
 
-typedef std::vector<CBratTask*> vectorbrattask; 
-
-class CVectorBratTask : public vectorbrattask
+class CVectorBratTask : public std::vector<CBratTask*>
 {
+	typedef std::vector<CBratTask*> base_t;
+
+	bool m_bDelete;
+
 public:
-  CVectorBratTask(bool bDelete = true);  
-  virtual ~CVectorBratTask();
+	CVectorBratTask( bool bDelete = true ) : base_t(), m_bDelete( bDelete )
+	{}
 
-  virtual void Insert(CBratTask* ob, bool bEnd = true);
-  virtual void Insert(const CVectorBratTask* vec, bool bRemoveAll = true,  bool bEnd = true);
-  virtual CVectorBratTask::iterator InsertAt(CVectorBratTask::iterator where, CBratTask* ob);
+	virtual ~CVectorBratTask()
+	{
+		RemoveAll();
+	}
 
-  virtual void RemoveAll();
+	bool operator == ( const CVectorBratTask &o ) const;		//femm: new
 
-  virtual void Dump(std::ostream& fOut = std::cerr); 
+	bool GetDelete() { return m_bDelete; };
+	void SetDelete( bool value ) { m_bDelete = value; };
 
-  bool GetDelete() {return m_bDelete;};
-  void SetDelete(bool value) {m_bDelete = value;};
+	virtual void Insert( CBratTask* ob )
+	{
+		push_back( ob );
+	}
 
-protected:
+	virtual void Insert( const CVectorBratTask* vec, bool bRemoveAll = true );
 
-  void Init();
+	virtual CVectorBratTask::iterator InsertAt( CVectorBratTask::iterator where, CBratTask* ob )
+	{
+		return insert( where, ob );
+	}
 
-protected:
+	virtual void RemoveAll();
 
-  bool m_bDelete;
-
-
-
+	virtual void Dump( std::ostream& fOut = std::cerr );
 };
 
 //-------------------------------------------------------------
@@ -99,16 +105,26 @@ public:
 	}
 	const CBratTaskFunction& operator=( const CBratTaskFunction& o )
 	{
-		if ( this == &o )
+		if ( this != &o )
 		{
 			m_name = o.m_name;
 			m_call = o.m_call;
+			//	m_params = o.m_params;		//femm: the original ignored m_params
 		}
 		return *this;
 	}
 
 	virtual ~CBratTaskFunction()
 	{}
+
+	bool operator == ( const CBratTaskFunction& o ) const
+	{
+		return 
+			m_name == o.m_name &&
+			m_call == o.m_call
+			//m_params == o.m_params		//femm: follow assignment operator and ignore m_params in equality test
+			;
+	}
 
     const std::string& GetName() const { return m_name; }
     void SetName( const std::string& value ) { m_name = value; }
@@ -263,15 +279,15 @@ protected:
 	//instance data members
 	
 protected:
-	uid_t m_uid = -1;
-	std::string m_name;
-	std::string m_cmd;
-	CBratTaskFunction m_function;
-	QDateTime m_at;											//typedef wxDateTime QDateTime;
-	Status m_status = CBratTask::e_BRAT_STATUS_PENDING;
-	std::string m_logFile;
+	uid_t m_uid = -1;										//1
+	std::string m_name;										//2
+	std::string m_cmd;										//3
+	CBratTaskFunction m_function;							//4
+	QDateTime m_at;											//5	//typedef wxDateTime QDateTime;
+	Status m_status = CBratTask::e_BRAT_STATUS_PENDING;		//6
+	std::string m_logFile;									//7
 
-	CVectorBratTask m_subordinateTasks;
+	CVectorBratTask m_subordinateTasks;						//8
 
 public:
 	// construction / destruction
@@ -286,19 +302,19 @@ public:
 
 	const CBratTask& operator=( const CBratTask &o )
 	{
-	  if (this != &o)
-	  {
-		  m_uid = o.m_uid;
-		  m_name = o.m_name;
-		  m_cmd = o.m_cmd;
-		  m_at = o.m_at;
-		  m_status = o.m_status;
-		  m_function = o.m_function;
-		  m_logFile = o.m_logFile;
+		if ( this != &o )
+		{
+			m_uid = o.m_uid;				//1
+			m_name = o.m_name;				//2
+			m_cmd = o.m_cmd;				//3
+			m_function = o.m_function;		//4
+			m_at = o.m_at;					//5
+			m_status = o.m_status;			//6
+			m_logFile = o.m_logFile;		//7
 
-		  m_subordinateTasks.Insert(&o.m_subordinateTasks);		//CHECK THIS !!! Apparently only called here
-	  }
-	  return *this;
+			m_subordinateTasks.Insert( &o.m_subordinateTasks );		//8		//CHECK THIS !!! Apparently only called here
+		}
+		return *this;
 	}
 
 	virtual CBratTask* Clone() { return new CBratTask( *this ); }
@@ -317,17 +333,17 @@ public:
 	bool operator == ( const CBratTask &o ) const 
 	{
 		return 
-			m_uid == o.m_uid &&
-			m_name == o.m_name &&
-			m_cmd == o.m_cmd &&
-			//m_function;
-			m_at == o.m_at &&
-			m_status == o.m_status &&
-			m_logFile == o.m_logFile
+			m_uid == o.m_uid &&							//1
+			m_name == o.m_name &&						//2
+			m_cmd == o.m_cmd &&							//3
+			m_function == o.m_function &&				//4
+			m_at == o.m_at &&							//5
+			m_status == o.m_status &&					//6
+			m_logFile == o.m_logFile &&					//7
+			m_subordinateTasks == o.m_subordinateTasks	//8
 			;
 	}
-
-	bool operator != ( const CBratTask &o ) const
+	bool operator != ( const CBratTask& o ) const
 	{
 		return !( *this == o );
 	}

@@ -141,6 +141,8 @@ bool CColorSlider::Create( wxWindow *parent, const wxString& label, wxWindowID i
 //----------------------------------------
 void CColorSlider::OnText(CValueChangedEvent& event)
 {
+    UNUSED(event);
+
   int32_t value;
   m_colorText->GetValue(value);
   
@@ -155,6 +157,8 @@ void CColorSlider::OnText(CValueChangedEvent& event)
 //----------------------------------------
 void CColorSlider::OnSlider(wxCommandEvent& event)
 {
+    UNUSED(event);
+
   m_colorText->SetValue(m_colorSlider->GetValue());
   PostValueChangedEvent();
 }
@@ -302,6 +306,8 @@ bool CColorPicker::Create( wxWindow *parent, const wxString& title, wxWindowID i
 //----------------------------------------
 void CColorPicker::OnValueChanged(CValueChangedEvent& event)
 {
+    UNUSED(event);
+
   ColorChanged();
   m_colorBtn->SetBackgroundColour(GetColor());
   

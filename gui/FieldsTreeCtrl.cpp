@@ -712,7 +712,7 @@ void CFieldsTreeCtrl::OnBeginDrag( wxTreeEvent &event )
   wxDropSource source(dndFieldDataObject, this, wxDROP_ICON(dnd_copy),
                      wxDROP_ICON(dnd_move), wxDROP_ICON(dnd_none));
 
-  //source.DoDragDrop(wxDrag_DefaultMove); // Effectuer l'opération de D&D
+  //source.DoDragDrop(wxDrag_DefaultMove); // Effectuer l'operation de D&D
   source.DoDragDrop(); // Effectuer l'opération de D&D
 
   event.Skip();

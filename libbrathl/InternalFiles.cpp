@@ -376,6 +376,8 @@ void CInternalFiles::ReplaceNetCDFDim(CNetCDFDimension& dim)
 //----------------------------------------
 CInternalFiles* CInternalFiles::Create(const std::string& fileName, bool open /* = true */, bool withExcept /* = true */)
 {
+    UNUSED(open);
+
   CInternalFiles* f = NULL;
   
   try

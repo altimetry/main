@@ -202,7 +202,7 @@ void CGeoMap::Create( CObArray* data, const std::string& fieldName )
 
 				int16_t validLatitude = ( CTools::AreValidMercatorLatitude( varLat.GetValues()[ iY ] ) ? 1 : 0 );
 				validMercatorLatitudes->InsertNextValue( validLatitude );
-				valids.push_back( static_cast<bool>( validLatitude ) );
+				valids.push_back( validLatitude != 0 );
 
 				double v = varValue.GetValues()[ iTemp ];
 				if ( ( CTools::IsNan( v ) != 0 ) || isDefaultValue( v ) )

@@ -608,6 +608,7 @@ void CBratAlgoFilterKernel::PrepareDataWindow2DSymmetrically(CExpressionValue& e
 //----------------------------------------
 void CBratAlgoFilterKernel::PrepareDataWindow2DSymmetrically(double* dataValue, uint32_t nbValues, uint32_t shiftSymmetry /* = 0 */)
 {
+    UNUSED(nbValues);
 
   // Fill data window with data values
   m_rawDataWindow.RemoveAll();

@@ -649,6 +649,8 @@ int32_t CProductNetCdfCF::GetNumberOfRecords()
 //----------------------------------------
 int32_t CProductNetCdfCF::GetNumberOfRecords(const std::string& dataSetName /*NOT USED*/)
 {
+    UNUSED(dataSetName);
+
   return GetNumberOfRecords();
 }
 

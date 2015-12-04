@@ -50,7 +50,7 @@ class QbrtMapCanvas : public QgsMapCanvas
 
 	QgsVectorLayer *mMainLayer = nullptr;
 	QgsRasterLayer *mMainRasterLayer = nullptr;
-	QList <QgsMapCanvasLayer> mLayerSet;
+    QList <QgsMapCanvasLayer> mLayerSet;
 
 	void setupDatabase();
 	void setupMapLayers();
@@ -107,7 +107,13 @@ public:
 
 	virtual ~QbrtMapCanvas();
 
-	void CreateWPlot( const CmdLineProcessor *proc, CWPlot* wplot );
+    QSize sizeHint() const override
+    {
+        return QSize(72 * fontMetrics().width('x'),
+                     25 * fontMetrics().lineSpacing());
+    }
+
+    void CreateWPlot( const CmdLineProcessor *proc, CWPlot* wplot );
 	void AddData( CWorldPlotData* data );
 };
 

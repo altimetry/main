@@ -730,6 +730,7 @@ bool CExternalFilesNetCDF::VarExists(const std::string& name)
 //----------------------------------------
 void CExternalFilesNetCDF::SubstituteDimNames(CStringArray& dimNames)
 {
+    UNUSED(dimNames);
 }
 //----------------------------------------
 void CExternalFilesNetCDF::AddVar(const std::string& name)
@@ -1313,6 +1314,8 @@ void CExternalFilesNetCDF::AddOffset(double value, bool force /*= false*/)
 //----------------------------------------
 void CExternalFilesNetCDF::SetOffset(bool force /*= false*/)
 {
+    UNUSED(force);
+
   CObMap::const_iterator it;
   for (it = m_varList.begin() ; it != m_varList.end() ; it++)
   {

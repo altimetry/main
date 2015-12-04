@@ -51,6 +51,28 @@
 // Needs to be included after all #include commands
 #include "Win32MemLeaksAccurate.h"
 
+
+
+DEFINE_EVENT_TYPE(wxEVT_BRAT_TASK_PROCESS)	//femm moved here from BratTask.cpp
+
+//femm moved here from BratTask.cpp
+void CProcessingPanel::EvtBratTaskProcessCommand(wxEvtHandler& evtHandler, const CBratTaskProcessEventFunction& method,
+                                               wxObject* userData, wxEvtHandler* eventSink)
+{
+  evtHandler.Connect(wxEVT_BRAT_TASK_PROCESS,
+                 (wxObjectEventFunction)
+                 (wxEventFunction)
+                 method,
+                 userData,
+                 eventSink);
+}
+//femm moved here from BratTask.cpp
+void CProcessingPanel::DisconnectEvtBratTaskProcessCommand(wxEvtHandler& evtHandler)
+{
+  evtHandler.Disconnect(wxEVT_BRAT_TASK_PROCESS);
+}
+
+
 // WDR: class implementations
 
 //----------------------------------------------------------------------------
@@ -102,14 +124,14 @@ void CProcessingPanel::InstallEventListeners()
                                 (CProcessTermEventFunction)&CProcessingPanel::OnProcessTerm, NULL, this);
 
 
-  CSchedulerTaskConfig::EvtBratTaskProcessCommand(*this,
+  CProcessingPanel::EvtBratTaskProcessCommand(*this,
                                  (CBratTaskProcessEventFunction)&CProcessingPanel::OnBratTaskProcess, NULL, this);
 }
 //----------------------------------------
 void CProcessingPanel::DeInstallEventListeners()
 {
   CProcess::DisconnectEvtProcessTermCommand(*this);
-  CSchedulerTaskConfig::DisconnectEvtBratTaskProcessCommand(*this);
+  CProcessingPanel::DisconnectEvtBratTaskProcessCommand(*this);
 }
 
 //----------------------------------------

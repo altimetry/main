@@ -42,8 +42,9 @@
 //----------------------------------------------------------------------------
 CDisplayDataTreeItemData::CDisplayDataTreeItemData(bool allowLabelChange /*= true*/)
 {
-  Init();
+    UNUSED(allowLabelChange);
 
+    Init();
 }
 
 //----------------------------------------

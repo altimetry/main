@@ -30,6 +30,7 @@
     #pragma hdrstop
 #endif
 
+#include "new-gui/Common/tools/brathl_error.h"
 #include "DirTraverser.h"
 
 // WDR: class implementations
@@ -66,6 +67,8 @@ wxDirTraverseResult CDirTraverserDeleteFile::OnFile(const wxString& filename)
 //----------------------------------------
 wxDirTraverseResult CDirTraverserDeleteFile::OnDir(const wxString& dirname)
 {
+    UNUSED(dirname);
+
   return wxDIR_CONTINUE;
 }
 
@@ -87,6 +90,7 @@ CDirTraverserDeleteDir::~CDirTraverserDeleteDir()
 //----------------------------------------
 wxDirTraverseResult CDirTraverserDeleteDir::OnFile(const wxString& filename)
 {
+    UNUSED(filename);
 
   return wxDIR_CONTINUE;
 }
@@ -162,6 +166,7 @@ wxDirTraverseResult CDirTraverserCopyFile::OnFile(const wxString& fileName)
 //----------------------------------------
 wxDirTraverseResult CDirTraverserCopyFile::OnDir(const wxString& dirName)
 {
+    UNUSED(dirName);
 
   return wxDIR_CONTINUE;
 }
@@ -190,6 +195,8 @@ wxDirTraverseResult CDirTraverserListFile::OnFile(const wxString& fileName)
 //----------------------------------------
 wxDirTraverseResult CDirTraverserListFile::OnDir(const wxString& dirName)
 {
+    UNUSED(dirName);
+
   return wxDIR_CONTINUE;
 }
 //-------------------------------------------------------------
@@ -226,5 +233,7 @@ wxDirTraverseResult CDirTraverserExistFile::OnFile(const wxString& fileName)
 //----------------------------------------
 wxDirTraverseResult CDirTraverserExistFile::OnDir(const wxString& dirName)
 { 
+    UNUSED(dirName);
+
   return wxDIR_CONTINUE;
 }

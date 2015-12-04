@@ -145,136 +145,154 @@ bool CBratSchedulerApp::OnInit()
   ////////////////////////////////////////////////////
 #endif
 
-  const wxString name = wxString::Format("%s-%s", wxGetApp().GetAppName().c_str(), wxGetUserId().c_str());
-  m_checker = new wxSingleInstanceChecker(name);
-  if ( m_checker->IsAnotherRunning() )
-  {
-    wxString msg = wxString::Format("%s (user %s) is already running", wxGetApp().GetAppName().c_str(), wxGetUserId().c_str());
-    //wxLogError(msg.c_str());
-    wxMessageBox(msg.c_str(),
-            		 "Information",
-		             wxOK | wxCENTRE | wxICON_INFORMATION);
-
-    delete m_checker;	// OnExit() won't be called if we return false
-
-    return false;
-  }
-
-  bool bOk = true;
-
-  // Set verbose to true to allow LogInfo messages
-  wxLog::SetVerbose();
-
-  // To be sure that number have always a decimal point (and not a comma
-  // or something else)
-  setlocale(LC_NUMERIC, "C");
-
-  m_execName.Assign(wxGetApp().argv[0]);
-
-  wxString appPath = GetExecPathName();
-
-  if (getenv(BRATHL_ENVVAR) == NULL)
-  {
-      // Note that this won't work on Mac OS X when you use './BratGui' from within the Contents/MacOS directory of
-      // you .app bundle. The problem is that in that case Mac OS X will change the current working directory to the
-      // location of the .app bundle and thus the calculation of absolute paths will break
-      CTools::SetDataDirForExecutable(wxGetApp().argv[0]);
-  }
-
-
-  if (appPath != "")
-  {
-    if (getenv(BRATHL_ENVVAR) == NULL)
-    {
-      CTools::SetDataDirForExecutable(wxGetApp().argv[0]);
-    }
-  }
-
-  if (!CTools::DirectoryExists(CTools::GetDataDir()))
-  {
-      std::cerr << "ERROR: " << CTools::GetDataDir() << " is not a valid directory" << std::endl;
-      ::wxMessageBox(wxString(CTools::GetDataDir().c_str()) + " is not a valid directory -- BRAT cannot continue. \n\nAre you sure your " + BRATHL_ENVVAR + " environment variable is set correctly?", "BRAT ERROR");
+	//	I. TODO: SingleInstanceChecker
+	
+	const wxString name = wxString::Format( "%s-%s", wxGetApp().GetAppName().c_str(), wxGetUserId().c_str() );
+	m_checker = new wxSingleInstanceChecker( name );
+	if ( m_checker->IsAnotherRunning() )
+	{
+		wxString msg = wxString::Format( "%s (user %s) is already running", wxGetApp().GetAppName().c_str(), wxGetUserId().c_str() );
+		//wxLogError(msg.c_str());
+		wxMessageBox( msg.c_str(),
+			"Information",
+			wxOK | wxCENTRE | wxICON_INFORMATION );
 
 		delete m_checker;	// OnExit() won't be called if we return false
 
-      return false;
-  }
+		return false;
+	}
+
+	bool bOk = true;
+
+    //	II. Logging
+
+	// Set verbose to true to allow LogInfo messages
+	wxLog::SetVerbose();
+
+    //	II a ( ... )
+
+	// To be sure that number have always a decimal point (and not a comma
+	// or something else)
+	setlocale( LC_NUMERIC, "C" );
+
+	m_execName.Assign( wxGetApp().argv[ 0 ] );
+
+	wxString appPath = GetExecPathName();
+
+    //	III. Locate data directory
+
+	if ( getenv( BRATHL_ENVVAR ) == NULL )
+	{
+		// Note that this won't work on Mac OS X when you use './BratGui' from within the Contents/MacOS directory of
+		// you .app bundle. The problem is that in that case Mac OS X will change the current working directory to the
+		// location of the .app bundle and thus the calculation of absolute paths will break
+		CTools::SetDataDirForExecutable( wxGetApp().argv[ 0 ] );
+	}
+
+	if ( appPath != "" )
+	{
+		if ( getenv( BRATHL_ENVVAR ) == NULL )
+		{
+			CTools::SetDataDirForExecutable( wxGetApp().argv[ 0 ] );
+		}
+	}
+
+	if ( !CTools::DirectoryExists( CTools::GetDataDir() ) )
+	{
+		std::cerr << "ERROR: " << CTools::GetDataDir() << " is not a valid directory" << std::endl;
+		::wxMessageBox( wxString( CTools::GetDataDir().c_str() ) + " is not a valid directory -- BRAT cannot continue. \n\nAre you sure your " + BRATHL_ENVVAR + " environment variable is set correctly?", "BRAT ERROR" );
+
+		delete m_checker;	// OnExit() won't be called if we return false
+
+		return false;
+	}
 
 
-  std::string errorMsg;
-  if (!CTools::LoadAndCheckUdUnitsSystem(errorMsg))
-  {
-      std::cerr << errorMsg << std::endl;
-      ::wxMessageBox(errorMsg.c_str(), "BRAT ERROR");
+    //	IV. Units System
 
-      delete m_checker;	// OnExit() won't be called if we return false
+	std::string errorMsg;
+	if ( !CTools::LoadAndCheckUdUnitsSystem( errorMsg ) )
+	{
+		std::cerr << errorMsg << std::endl;
+		::wxMessageBox( errorMsg.c_str(), "BRAT ERROR" );
 
-      return false;
-  }
+		delete m_checker;	// OnExit() won't be called if we return false
 
-  try 
-  {
-    LoadConfigBratGui();
-  }
-  catch(CException &e) 
-  {
-    std::cerr << errorMsg << std::endl;
-    wxMessageBox(wxString::Format("An error occured while loading BratGui configuration (CBratSchedulerApp::LoadConfigBratGui)\nNavive exception: %s", e.what()),
-		                               "Warning",
-		                               wxOK | wxCENTRE | wxICON_EXCLAMATION);
-    
-  }
+		return false;
+	}
 
-  //----------------
-  // Install listeners
-  //----------------
-  InstallEventListeners();
+    //	V. Application Configuration
 
-  m_schedulerTimerId = ::wxNewId();
-  m_checkConfigFileTimerId = ::wxNewId();
+	try
+	{
+		LoadConfigBratGui();
+	}
+	catch ( CException &e )
+	{
+		std::cerr << errorMsg << std::endl;
+		wxMessageBox( wxString::Format( "An error occured while loading BratGui configuration (CBratSchedulerApp::LoadConfigBratGui)\nNavive exception: %s", e.what() ),
+			"Warning",
+			wxOK | wxCENTRE | wxICON_EXCLAMATION );
+	}
 
-  try
-  {
-    m_frame = new CSchedulerFrame( NULL, -1, BRATSCHEDULER_TITLE);
+    //	Va. wxWidgtes paraphernalia NOTTODO
 
-    CSchedulerTaskConfig* schedulerTaskConfig = CSchedulerTaskConfig::GetInstance();
+	//----------------
+	// Install listeners
+	//----------------
+	InstallEventListeners();
 
-    // After loading, tasks whose status is 'in progress' are considered as 'pending'
-    // They have to be re-executed.
-    ChangeProcessingToPending();
+    //	VI. Load Tasks & Create Timers
 
-    m_checkConfigFileTimer.SetFileName(schedulerTaskConfig->GetFullFileName());
-    m_checkConfigFileTimer.SetOwner(this, m_checkConfigFileTimerId);
+	m_schedulerTimerId = ::wxNewId();
+	m_checkConfigFileTimerId = ::wxNewId();
 
-    m_schedulerTimer.SetOwner(this, m_schedulerTimerId);
-  }
-  catch(CException &e) {
-    wxMessageBox(wxString::Format("An error occured while loading Brat Scheduler configuration\nNavive exception: %s", e.what()),
-		 "Warning",
-		 wxOK | wxCENTRE | wxICON_EXCLAMATION);
-  }
+	try
+	{
+		m_frame = new CSchedulerFrame( NULL, -1, BRATSCHEDULER_TITLE );		//tasks are loaded here (instantiating CSchedulerTaskConfig) by a certain CPendingPanel
 
-  if (m_frame == NULL)
-  {
-    delete m_checker;
-    return false;
-  }
+		CSchedulerTaskConfig* schedulerTaskConfig = CSchedulerTaskConfig::GetInstance();
 
-  m_frame->Show( TRUE );
+		// After loading, tasks whose status is 'in progress' are considered as 'pending'
+		// They have to be re-executed.
+		ChangeProcessingToPending();
 
-  try
-  {
-    StartSchedulerTimer();
-    StartCheckConfigFileTimer();
-  }
-  catch(CException &e)
-  {
-    wxMessageBox(wxString(e.what()), "Warning", wxOK | wxCENTRE | wxICON_EXCLAMATION);
-  }
+		m_checkConfigFileTimer.SetFileName( schedulerTaskConfig->GetFullFileName() );
+		m_checkConfigFileTimer.SetOwner( this, m_checkConfigFileTimerId );
 
-  m_frame->SetTitle();
+		m_schedulerTimer.SetOwner( this, m_schedulerTimerId );
+	}
+	catch ( CException &e ) {
+		wxMessageBox( wxString::Format( "An error occured while loading Brat Scheduler configuration\nNavive exception: %s", e.what() ),
+			"Warning",
+			wxOK | wxCENTRE | wxICON_EXCLAMATION );
+	}
 
-  return true;
+    //	VIa. wxWidgtes paraphernalia NOTTODO
+
+	if ( m_frame == NULL )
+	{
+		delete m_checker;
+		return false;
+	}
+
+	m_frame->Show( TRUE );
+
+    //	VII. Start timers
+
+	try
+	{
+		StartSchedulerTimer();
+		StartCheckConfigFileTimer();
+	}
+	catch ( CException &e )
+	{
+		wxMessageBox( wxString( e.what() ), "Warning", wxOK | wxCENTRE | wxICON_EXCLAMATION );
+	}
+
+	m_frame->SetTitle();
+
+	return true;
 }
 
 //----------------------------------------
@@ -298,7 +316,7 @@ void CBratSchedulerApp::InstallEventListeners()
   CProcess::EvtProcessTermCommand(*this,
                                 (CProcessTermEventFunction)&CBratSchedulerApp::OnProcessTerm, NULL, this);
 
-  CSchedulerTaskConfig::EvtBratTaskProcessCommand(*this,
+  CProcessingPanel::EvtBratTaskProcessCommand(*this,
                                  (CBratTaskProcessEventFunction)&CBratSchedulerApp::OnBratTaskProcess, NULL, this);
 
   CCheckFileChange::EvtCheckFileChangeCommand(*this,
@@ -309,7 +327,7 @@ void CBratSchedulerApp::DeInstallEventListeners()
 {
   CProcess::DisconnectEvtProcessTermCommand(*this);
 
-  CSchedulerTaskConfig::DisconnectEvtBratTaskProcessCommand(*this);
+  CProcessingPanel::DisconnectEvtBratTaskProcessCommand(*this);
 
   CCheckFileChange::DisconnectEvtCheckFileChangeCommand(*this);
 }
@@ -494,7 +512,7 @@ void CBratSchedulerApp::OnCheckFileChange(CCheckFileChangeEvent& event)
 
     m_checkConfigFileTimer.SetFileDirty(false);
 
-    CSchedulerTaskConfig::LoadSchedulerTaskConfig(true);
+    CSchedulerTaskConfig::LoadAllSchedulerTaskConfig(true);
     UnLockConfigFile();
   }
   catch(CException& e)
@@ -640,7 +658,7 @@ void CBratSchedulerApp::OnProcessTerm(CProcessTermEvent& event)
 //----------------------------------------
 void CBratSchedulerApp::LoadSchedulerTaskConfig(bool quiet /* = false */)
 {
-  CSchedulerTaskConfig::LoadSchedulerTaskConfig(true);
+  CSchedulerTaskConfig::LoadAllSchedulerTaskConfig(true);
 
   if (CSchedulerTaskConfig::GetInstance()->HasMapNewBratTask())
   {

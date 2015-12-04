@@ -356,6 +356,8 @@ void CTimeChangeTextCtrl::UpdateBuffer()
 //----------------------------------------
 void CTimeChangeTextCtrl::FlushBuffer(bool clear)
 {
+    UNUSED(clear);
+
 	long start, end;
 	GetSelection(&start, &end);
 	Replace(start, end, m_buffer);

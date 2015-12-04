@@ -2252,7 +2252,7 @@ bool CProduct::HasCompatibleDims(const CStringArray* fieldNames, const std::stri
 //----------------------------------------
 bool CProduct::AddRecordNameToField(const CExpression& expr, const std::string& dataSetName, CExpression& exprOut, std::string& errorMsg)
 {
-
+    UNUSED(expr);
 
   std::string exprStr;
   try
@@ -4304,7 +4304,7 @@ void CProduct::ExpandFieldsArray()
   }
 
 
-  for (int32_t index = 0 ; index < countRecord ; index++)
+  for (size_t index = 0 ; index < countRecord ; index++)
   {
     recordSetToProcess = m_dataSet.GetRecordSet(index);
 
@@ -4938,6 +4938,8 @@ void CProduct::ReadBratFieldRecord(CField::CListField::iterator it, bool& skipRe
 //----------------------------------------
 bool CProduct::FindParentToRead(CField* fromField, CObList* parentFieldList)
 {
+    UNUSED(fromField);  UNUSED(parentFieldList);
+
   return false;
 }
 /*
@@ -5658,6 +5660,8 @@ void CProduct::CreateFieldIndexData()
 //----------------------------------------
 bool CProduct::GetInfoSpecial(int32_t nbDims, const long dim[])
 {
+    UNUSED(nbDims);  UNUSED(dim);
+
   int32_t result = 0;
 
   bool bFieldAdded = true;
@@ -6109,7 +6113,7 @@ int32_t CProduct::ReadData(
 	char		**units,
 	double		**results,
 	int32_t	sizes[],
-	int32_t	*actualSize,
+    size_t	*actualSize,
 	int		ignoreOutOfRange,
 	int		statistics,
 	double		defaultValue,
@@ -6311,7 +6315,7 @@ int32_t CProduct::ReadData(
 				}
 				else
 				{
-					for ( int32_t IndexVal=0; IndexVal < *actualSize; IndexVal++ )
+					for ( size_t IndexVal=0; IndexVal < *actualSize; IndexVal++ )
 					{
 						if ( isDefaultValue( vec[ IndexVal ] ) )
 						{
@@ -6359,7 +6363,7 @@ void CProduct::ReadDataForOneMeasure(
 	const std::vector<CUnit>		&wantedUnits,
 	double				**results,
 	int32_t			*sizes,
-	int32_t			*actualSize,
+	size_t			*actualSize,
 	int				ignoreOutOfRange,
 	int				statistics,
 	CProduct* product /* = NULL */ )
@@ -6405,7 +6409,7 @@ void CProduct::ReadDataForOneMeasure(
 				CUnit unit = wantedUnits[ indexExpr ];
 				double convertedValue = unit.Convert( value );
 
-				if ( ( sizes[ indexExpr ] >= 0 ) && ( *actualSize >= sizes[ indexExpr ] ) )
+				if ( ( sizes[ indexExpr ] >= 0 ) && ((int32_t)*actualSize >= sizes[ indexExpr ] ) )
 				{
 					if ( ! ( ( sizes[ indexExpr ] == 0 ) || ignoreOutOfRange ) )
 					{
@@ -6429,7 +6433,7 @@ void CProduct::ReadDataForOneMeasure(
 				}
 				else
 				{
-					if ( ( sizes[ indexExpr ] < 0 ) && ( -sizes[ indexExpr ] <= *actualSize ) )
+					if ( ( sizes[ indexExpr ] < 0 ) && ( -sizes[ indexExpr ] <= (int32_t)*actualSize ) )
 					{// Size of expandable std::vector reached, resize it by doubling its size
 						sizes[ indexExpr ]	*= 2;
 						void 	*NewPtr	= realloc( results[ indexExpr ],

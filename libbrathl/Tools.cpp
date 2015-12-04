@@ -38,6 +38,11 @@
 #include "deelx.h"
 using namespace brathl;
 
+
+#if defined (__unix__)
+#define _strdup strdup
+#endif
+
 namespace brathl
 {
 
@@ -1705,7 +1710,7 @@ std::string CTools::SlashesDecode (const std::string& str, const std::string& ex
       case 'v':
 	      if (strchr (exclude.c_str(), 'v')) break;
 	      replace = "\a";
-	      replace=strdup ("\v");
+          replace=_strdup ("\v");
 	      break;
 
       case '\\':
@@ -2189,6 +2194,8 @@ std::string CTools::ExpandVariables(const std::string& valueIn, const std::map<s
                                bool recurse /*= false*/, char beginning	/*= '%'*/, uint32_t* numberVarsExpanded /*= NULL*/,
                                bool withExcept /*= false*/, std::string* errorMsg /*= NULL*/)
 {
+    UNUSED(withExcept);    UNUSED(errorMsg);
+
   return CTools::ExpandVariables(valueIn, varValues, NULL, recurse,  beginning	, numberVarsExpanded);
 }
 //----------------------------------------

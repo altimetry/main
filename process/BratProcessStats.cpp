@@ -84,7 +84,10 @@ void CBratProcessStats::ResizeArrayDependOnFields(uint32_t size)
 //----------------------------------------
 bool CBratProcessStats::Initialize(std::string& msg)
 {
-  CTrace *p = CTrace::GetInstance();
+    UNUSED(msg);
+
+  //CTrace *p =
+          CTrace::GetInstance();
 
   // Register Brat algorithms
   CBratAlgorithmBase::RegisterAlgorithms();
@@ -95,7 +98,7 @@ bool CBratProcessStats::Initialize(std::string& msg)
   if (!(errorMsg.empty())) 
   {
     std::string msg = CTools::Format("WARNING: %s",  errorMsg.c_str());
-    p->Tracer(1, msg);
+    CTrace::Tracer(1, msg);
   }
 
   GetParameters();
@@ -125,7 +128,8 @@ void CBratProcessStats::GetParameters()
 
 // Get keyword values
 
-  CTrace *p = CTrace::GetInstance();
+  //CTrace *p =
+  CTrace::GetInstance();
 
   //---------
   
@@ -137,17 +141,17 @@ void CBratProcessStats::GetParameters()
 
     //m_outputFileName.append(date.AsString("%Y%m%d%H%M%S"));
 
-    p->Tracer(1, PCT_StrFmt, "Output file", m_outputFileName.c_str());
+    CTrace::Tracer(1, PCT_StrFmt, "Output file", m_outputFileName.c_str());
   }
   else
   {
-    p->Tracer(1, PCT_StrFmt, "Output file", "stdout");
+    CTrace::Tracer(1, PCT_StrFmt, "Output file", "stdout");
   }
 
   //---------
   
   params.m_mapParam[kwRECORD]->GetValue(m_recordName);
-  p->Tracer(1, PCT_StrFmt, "Data set name", m_recordName.c_str());
+  CTrace::Tracer(1, PCT_StrFmt, "Data set name", m_recordName.c_str());
 
   //---------
 
@@ -155,7 +159,7 @@ void CBratProcessStats::GetParameters()
   {
     params.m_mapParam[kwEXPAND_ARRAY]->GetValue(m_expandArray);
   }
-  p->Tracer(1, PCT_IntFmt, "Expand array", m_expandArray);
+  CTrace::Tracer(1, PCT_IntFmt, "Expand array", m_expandArray);
 
 
   //---------
@@ -206,6 +210,7 @@ bool CBratProcessStats::CheckCommandLineOptions(int	argc, char	**argv)
 //----------------------------------------
 int32_t CBratProcessStats::Execute(std::string& msg)
 { 
+    UNUSED(msg);
 
   CDate startExec;
   startExec.SetDateNow();
@@ -226,12 +231,10 @@ int32_t CBratProcessStats::Execute(std::string& msg)
   
   int32_t*	sizes	= new int32_t[nbExpr];
   
-  int32_t	actualSize;
+  size_t	actualSize;
   
 
-  int32_t i = 0;
-
-  for (i = 0 ; i < nbFiles ; i++)
+  for (size_t i = 0 ; i < nbFiles ; i++)
   {
     std::string fileName = m_inputFiles.at(i);
 
@@ -240,7 +243,7 @@ int32_t CBratProcessStats::Execute(std::string& msg)
     strcpy(files[i], fileName.c_str());
   }
 
-  for (i = 0 ; i < nbExpr ; i++)
+  for (size_t i = 0 ; i < nbExpr ; i++)
   {
     std::string exprStr = m_fields.at(i).AsString();
 
@@ -252,7 +255,7 @@ int32_t CBratProcessStats::Execute(std::string& msg)
     sizes[i] = NUMBER_OF_STATISTICS;
   }
 
-  for (i = 0 ; i < nbUnits ; i++)
+  for (size_t i = 0 ; i < nbUnits ; i++)
   {
     std::string unitStr = m_units.at(i).AsString();
 
@@ -315,10 +318,8 @@ int32_t CBratProcessStats::Execute(std::string& msg)
 
 
   double *vectorData = NULL;
-  int32_t j = 0;
-
   
-  for (j = 0 ; j < nbExpr ; j++)
+  for (size_t j = 0 ; j < nbExpr ; j++)
   {
     fStream.flush();
 
@@ -334,7 +335,7 @@ int32_t CBratProcessStats::Execute(std::string& msg)
 
     vectorData = data[j];
 
-    for (i = 0 ; i < actualSize ; i++)
+    for (size_t i = 0 ; i < actualSize ; i++)
     {    
       std::string label;
       switch (i)
@@ -372,7 +373,7 @@ int32_t CBratProcessStats::Execute(std::string& msg)
     fStream.close();
   }
 
-  for (i = 0 ; i < nbFiles ; i++)
+  for (size_t i = 0 ; i < nbFiles ; i++)
   {
     delete []files[i];
     files[i] = NULL;
@@ -381,7 +382,7 @@ int32_t CBratProcessStats::Execute(std::string& msg)
   delete []files;
   files = NULL;
 
-  for (i = 0 ; i < nbExpr ; i++)
+  for (size_t i = 0 ; i < nbExpr ; i++)
   {
     delete []expressions[i];
     expressions[i] = NULL;
@@ -396,7 +397,7 @@ int32_t CBratProcessStats::Execute(std::string& msg)
   delete []data;
   data = NULL;
 
-  for (i = 0 ; i < nbUnits ; i++)
+  for (size_t i = 0 ; i < nbUnits ; i++)
   {
     delete []units[i];
     units[i] = NULL;

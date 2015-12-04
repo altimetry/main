@@ -294,7 +294,7 @@ protected:
         // Creating python list with items of different python types (arguments)
         PyObject *pArgs   = PyList_New(0);
 
-        for (int i = 0; i < args.size(); ++i )
+        for (size_t i = 0; i < args.size(); ++i )
         {
             PyObject *pValue;
             CBratAlgorithmParam::bratAlgoParamTypeVal ParamTypeVal = args[i].GetTypeVal();

@@ -34,7 +34,45 @@
 #include "TaskListView.h"
 
 
-class CBratTaskProcessEvent;
+
+//-------------------------------------------------------------
+//------------------- CBratTaskProcessEvent class --------------------
+//-------------------------------------------------------------
+
+//femm moved here from BratTask.h
+BEGIN_DECLARE_EVENT_TYPES()
+    DECLARE_EVENT_TYPE(wxEVT_BRAT_TASK_PROCESS, 7777) // 7777 is ignored, just for compatibility with v2.2
+END_DECLARE_EVENT_TYPES()
+
+//femm moved here from BratTask.h
+
+class CBratTaskProcessEvent : public wxCommandEvent
+{
+public:
+  CBratTaskProcessEvent(wxWindowID id, wxLongLong_t uid)
+    : wxCommandEvent(wxEVT_BRAT_TASK_PROCESS, id)
+  {
+    m_uid = uid;
+  };
+
+  CBratTaskProcessEvent(const CBratTaskProcessEvent& event)
+    : wxCommandEvent(wxEVT_BRAT_TASK_PROCESS, event.m_id)
+  {
+    m_uid = event.m_uid;
+  };
+  
+  virtual wxEvent *Clone() const 
+    {
+      return new CBratTaskProcessEvent(*this); 
+    };
+
+  wxLongLong_t m_uid;
+
+};
+typedef void (wxEvtHandler::*CBratTaskProcessEventFunction)(CBratTaskProcessEvent&);
+
+
+
 
 
 // WDR: class declarations
@@ -45,6 +83,13 @@ class CBratTaskProcessEvent;
 
 class CProcessingPanel: public wxPanel
 {
+public:
+	//femm moved here from BratTask.h  
+	static void EvtBratTaskProcessCommand( wxEvtHandler& evtHandler, const CBratTaskProcessEventFunction& method,
+		wxObject* userData = NULL, wxEvtHandler* eventSink = NULL );
+
+	static void DisconnectEvtBratTaskProcessCommand( wxEvtHandler& evtHandler );
+
 public:
   // constructors and destructors
   CProcessingPanel( wxWindow *parent, wxWindowID id = -1,

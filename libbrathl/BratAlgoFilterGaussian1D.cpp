@@ -243,7 +243,7 @@ void CBratAlgoFilterGaussian1D::SetNextValues()
 //----------------------------------------
 void CBratAlgoFilterGaussian1D::CheckVarExpression(uint32_t index)
 {  
-
+    UNUSED(index);
 }
 
 //----------------------------------------

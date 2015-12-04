@@ -156,6 +156,8 @@ double CBratAlgoFilterLanczos2D::Run(CVectorBratAlgorithmParam& args)
 //----------------------------------------
 double CBratAlgoFilterLanczos2D::ComputeLanczos(CExpressionValue& exprValue)
 {
+    UNUSED(exprValue);
+
   setDefaultValue(m_lanczos);
 
   CDoubleArray dataLanczosX;

@@ -36,6 +36,12 @@
 #include "File.h"
 using namespace brathl;
 
+
+#if defined(__unix__)
+#define _fileno fileno
+#endif
+
+
 namespace brathl
 {
 
@@ -815,7 +821,7 @@ bool CFile::SetBufferingMode(bool mode /*  = true */)
 
 bool CFile::GetStatus(struct stat& fileStatus)
 {
-  bool bOk = (fstat(fileno(m_hFile), &fileStatus) != 0);
+  bool bOk = (fstat(_fileno(m_hFile), &fileStatus) != 0);
 
   return bOk;
 
@@ -829,7 +835,7 @@ bool CFile::GetStatus(const std::string& fileName, struct stat& fileStatus)
 
   if (bOk == false)
   {
-    bOk = (fstat(fileno(file.m_hFile), &fileStatus) != 0);
+    bOk = (fstat(_fileno(file.m_hFile), &fileStatus) != 0);
   }
 
   return bOk;

@@ -493,6 +493,9 @@ void CBratAlgoFilterLanczos::ComputeInitialWeights()
 //----------------------------------------
 double CBratAlgoFilterLanczos::ApplyFilter(ComputeMode mode, uint32_t from)
 {
+    UNUSED(mode);
+    UNUSED(from);
+
   ComputeInitialWeights();
 
   uint32_t halfWindow = static_cast<uint32_t>(m_dataWindowLength) / 2;

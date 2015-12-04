@@ -56,8 +56,8 @@ static const double NcFillDouble = NC_FILL_DOUBLE;
 static const double NcFillUByte = NC_FILL_UBYTE;
 static const double NcFillUShort = NC_FILL_USHORT;
 static const double NcFillUInt = NC_FILL_UINT;
-static const double NcFillInt64 = NC_FILL_INT64;
-static const double NcFillUInt64 = NC_FILL_UINT64;
+static const double NcFillInt64 = (double)NC_FILL_INT64;
+static const double NcFillUInt64 = (double)NC_FILL_UINT64;
 static const double NcFillString = (double)(ptrdiff_t)NC_FILL_STRING;
 }
 
@@ -6312,6 +6312,8 @@ void CNetCDFFiles::SetNetCDFDims(const CStringArray* dimNames, const CUIntArray*
 //----------------------------------------
 bool CNetCDFFiles::HaveEqualDimNames(const std::string& v1, const CStringArray& v2, std::string* msg /*= NULL*/)
 { 
+    UNUSED(msg);
+
   CStringArray v1Array;
   v1Array.Insert(v1);
   return HaveEqualDimNames(v1Array, v2);

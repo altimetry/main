@@ -48,6 +48,7 @@ QSchedulerApplication::QSchedulerApplication(int &argc, char **argv, int flags)
         return false;
     }
 
+    //	IV. Units System
 
     std::string errorMsg;
     if ( !CTools::LoadAndCheckUdUnitsSystem( errorMsg ) )
@@ -59,6 +60,8 @@ QSchedulerApplication::QSchedulerApplication(int &argc, char **argv, int flags)
 
         return false;
     }
+
+    //	V. Application Configuration
 
     try
     {
@@ -73,17 +76,21 @@ QSchedulerApplication::QSchedulerApplication(int &argc, char **argv, int flags)
 
     }
 
+    //	V a wxWidgtes paraphernalia NOTTODO
+
     //----------------
     // Install listeners
     //----------------
     InstallEventListeners();
+
+    //	VI. Load Tasks & Create Timers
 
     m_schedulerTimerId = ::wxNewId();
     m_checkConfigFileTimerId = ::wxNewId();
 
     try
     {
-        //m_frame = new CSchedulerFrame( NULL, -1, BRATSCHEDULER_TITLE );
+        m_frame = new CSchedulerFrame( NULL, -1, BRATSCHEDULER_TITLE );			//tasks are loaded here by a certain CPendingPanel
 
         CSchedulerTaskConfig* schedulerTaskConfig = CSchedulerTaskConfig::GetInstance();
 
@@ -102,6 +109,8 @@ QSchedulerApplication::QSchedulerApplication(int &argc, char **argv, int flags)
             wxOK | wxCENTRE | wxICON_EXCLAMATION );
     }
 
+    //	VIa. wxWidgtes paraphernalia NOTTODO
+
     if ( m_frame == NULL )
     {
         DeleteChecker();
@@ -109,6 +118,8 @@ QSchedulerApplication::QSchedulerApplication(int &argc, char **argv, int flags)
     }
 
     m_frame->Show( TRUE );
+
+    //	VII. Start timers
 
     try
     {

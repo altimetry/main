@@ -1529,7 +1529,7 @@ int32_t CDate::Convert2YMDHMSM(uint32_t& year, uint32_t& month, uint32_t& day,
 /// <GROUP NAME="02-Conversion"/>
 /// <DESCRIPTION>
 ///	Convertit une date exprimee sous la forme  Jour/Mois/Annee
-///     Heure/Minute/Seconde/µSecondes en nombre de secondes ecoulees depuis
+///     Heure/Minute/Seconde/mSecondes en nombre de secondes ecoulees depuis
 ///     le 01-Jan-1950 00:00:00.
 /// </DESCRIPTION>
 ///
@@ -1539,7 +1539,7 @@ int32_t CDate::Convert2YMDHMSM(uint32_t& year, uint32_t& month, uint32_t& day,
 /// <PARAM NAME=Ijv_Heures	  UNIT="0-23"	TITLE="Heure dans le jour" ></PARAM>
 /// <PARAM NAME=Ijv_Minutes	  UNIT="0-59"	TITLE="Minutes" ></PARAM>
 /// <PARAM NAME=Ijv_Secondes	  UNIT="0-59"	TITLE="Secondes" ></PARAM>
-/// <PARAM NAME=Ijv_muSecondes	  UNIT="0-999999"	TITLE="µSecondes" ></PARAM>
+/// <PARAM NAME=Ijv_muSecondes	  UNIT="0-999999"	TITLE="mSecondes" ></PARAM>
 /// <PARAM NAME=Odv_DateSec50	  UNIT="s"	TITLE="Nombre de secondes ecoulees depuis 1950" ></PARAM>
 /// <RESULT	UNIT=""	TITLE="Code retour"></RESULT>
 /// <PROTOTYPE>

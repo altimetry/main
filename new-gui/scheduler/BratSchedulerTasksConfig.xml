@@ -39,7 +39,7 @@
     <task uid="1447783474754" name="test" logFile="/home/brat/BratScheduler/Logs/BratTask_test_1447783474754.log" at="2015-11-17 18:05:00" status="ended" cmd="&quot;/home/brat/brat-3.3.0-x86_64/bin/BratCreateZFXY&quot; &quot;/home/brat/brat-3.3.0-x86_64/RCCC/Operations/CreateEnv_GDR_04.par&quot;"/>
   </endedTasks>
   <processingTasks>
-    <task uid="1448043127546" name="processing" logFile="/home/femm/BratScheduler/Logs/BratTask_rccc_1448043127546.log" at="2015-11-20 18:12:00" status="pending" cmd="&quot;/home/femm/brat-3.3.0-x86_64/bin/BratCreateZFXY&quot; &quot;/home/brat/s3-altb/project/workspaces/W1/Operations/CreateOperations_FM_1.par&quot;"/>
-    <task uid="1448044242469" name="processing2" logFile="/home/femm/BratScheduler/Logs/BratTask_rccc2_1448044242469.log" at="2015-11-20 18:30:00" status="pending" cmd="&quot;/home/femm/brat-3.3.0-x86_64/bin/BratExportAscii&quot; &quot;/home/brat/s3-altb/project/workspaces/W1/Operations/ExportAsciiOperations_FM_1.export.par&quot;"/>
+    <task uid="1448043127546" name="processing" logFile="/home/femm/BratScheduler/Logs/BratTask_rccc_1448043127546.log" at="2015-11-20 18:12:00" status="processing" cmd="&quot;/home/femm/brat-3.3.0-x86_64/bin/BratCreateZFXY&quot; &quot;/home/brat/s3-altb/project/workspaces/W1/Operations/CreateOperations_FM_1.par&quot;"/>
+    <task uid="1448044242469" name="processing2" logFile="/home/femm/BratScheduler/Logs/BratTask_rccc2_1448044242469.log" at="2015-11-20 18:30:00" status="processing" cmd="&quot;/home/femm/brat-3.3.0-x86_64/bin/BratExportAscii&quot; &quot;/home/brat/s3-altb/project/workspaces/W1/Operations/ExportAsciiOperations_FM_1.export.par&quot;"/>
   </processingTasks>
 </bratSchedulerConfig>
