@@ -1183,9 +1183,9 @@ TselfInsert(I From, I Till, L far* const Bf, I far &BfLen, I TotalLen, I Where)
 
 
 //////////////////////////////////////////////
-//	  										//
-//   			Find&Replace
-//              	         	  			//
+//	  				    //
+//   			Find&Replace        //
+//              	         	    //
 //////////////////////////////////////////////
 
 
@@ -1204,7 +1204,6 @@ inline bool endsWith( const STRING &s, const STRING &substr )
 	return ( found != STRING::npos ) && found == ( s.length() - substr.length() );	//condition found != STRING::npos is critical (if its value is -1, it can issue a false positive)
 }
 
-// not tested
 template< typename STRING >
 inline 
 typename STRING::size_type i_find( const STRING &source, const STRING &find, size_t pos = 0 )
@@ -1217,7 +1216,7 @@ typename STRING::size_type i_find( const STRING &source, const STRING &find, siz
 		}
 	);
 
-	return it - source.begin();
+        return ( it == source.end() ?  STRING::npos  :  it - source.begin() );
 }
 
 template< typename STRING >

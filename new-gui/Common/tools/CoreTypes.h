@@ -216,6 +216,11 @@ inline bool areEqual( double X, double Y )
 ////////////////////////////////////////////////////////////////////////////
 
 
+//// RCCC _ TEMPORARY DECLARATION OF... /////
+std::string replace(const std::string& str, const std::string& strToFind, const std::string& replaceBy, bool compareNoCase );
+///////////////////////////////////////
+
+
 //-------------------------------------------------------------
 //------------------- CStringArray class --------------------
 //-------------------------------------------------------------
@@ -237,8 +242,6 @@ class CUIntArray;
 
 class CStringArray : public std::vector<std::string>
 {
-	typedef std::vector<std::string> stringarray;
-
 public:
 	/// Empty CStringArray ctor
 	CStringArray()
@@ -246,13 +249,10 @@ public:
 
 	/** Creates new CStringArray object from another CStringList
 	  \param std::list [in] : std::list to be copied */
-	CStringArray( const CStringArray& v ) : stringarray( v )
+        CStringArray( const CStringArray& v ) : std::vector<std::string>( v )
 	{}
-	CStringArray( const stringarray& v ): stringarray( v )
+        CStringArray( const std::vector<std::string>& v ): std::vector<std::string>( v )
 	{}
-
-	//CStringArray(const CStringList& lst);	femm
-	//CStringArray(const stringlist& lst);	femm
 
 	/// Destructor
 	virtual ~CStringArray()
@@ -268,9 +268,8 @@ public:
 
 	virtual void Insert( const CStringArray& vect, bool bEnd = true );
 	virtual void Insert( const std::string& str );
-	virtual void Insert( const stringarray& vect, bool bEnd = true );
+        virtual void Insert( const std::vector<std::string>& vect, bool bEnd = true );
 	virtual void Insert( const CIntArray& vect );
-	//virtual void Insert(const CStringList& lst);	femm
 	virtual void Insert(const std::list<std::string> &lst);
 
 	virtual CStringArray::iterator InsertAt( CStringArray::iterator where, const std::string& str );
@@ -303,24 +302,20 @@ public:
 	virtual void Replace( const CStringArray& findString, const std::string& replaceBy, CStringArray& replaced, bool compareNoCase = false, bool insertUnique = false ) const;
 	virtual void Replace( const std::string& findString, const std::string& replaceBy, CStringArray& replaced, bool compareNoCase = false, bool insertUnique = false ) const;
 
-	virtual void InsertUnique( const std::string& str );
+        virtual void InsertUnique( const std::string& str );
 	virtual void InsertUnique( const CStringArray* vect );
 	virtual void InsertUnique( const CStringArray& vect );
-	virtual void InsertUnique( const stringarray& vect );
-	//virtual void InsertUnique(const CStringList& lst);	femm
+        virtual void InsertUnique( const std::vector<std::string>& vect );
 	virtual void InsertUnique(const std::list<std::string> &lst);
 
 	virtual std::string ToString( const std::string& delim = ",", bool useBracket = true ) const;
 
 	/** Inequality operator overload
 		Array are unequal if they are not equal*/
-	virtual bool operator !=( const CStringArray& vect ) { return !( *this == vect ); };
+        virtual bool operator !=( const CStringArray& vect ) { return !( *this == vect ); }
 
 	/** Copy a new CStringArray to the object */
-	virtual const CStringArray& operator= ( const CStringArray& vect );
-	virtual const CStringArray& operator= ( const stringarray& vect );
 	virtual const CStringArray& operator= (const std::list<std::string> & lst);
-	//virtual const CStringArray& operator= (const CStringList& lst);	femm
 
 	///Dump fonction
 	virtual void Dump( std::ostream& fOut = std::cerr ) const;
@@ -466,18 +461,6 @@ public:
 
 	virtual void Insert( const CInt64Array& vect, bool bEnd = true );
 
-	//virtual void Insert( const CStringArray& vect ) femm
-	//{
-	//	for ( auto it = vect.begin(); it != vect.end(); it++ )
-	//	{
-	//		int64_t value = CTools::StrToInt64( *it );
-	//		if ( !( CTools::IsDefaultValue( value ) ) )
-	//		{
-	//			this->Insert( value );
-	//		}
-	//	}
-	//}
-
 	virtual void Insert( int64_t* vect, size_t length );
 
 	virtual void Insert( const int64_t value );
@@ -497,14 +480,7 @@ public:
 
 	virtual int64_t* ToArray();
 
-	virtual void RemoveAll() { this->clear(); };
-
-	/** Equality operator overload
-		Array are equal if they have same size and the same element values (at the same position)*/
-	virtual bool operator ==( const CInt64Array& vect );
-
-	/** Copy a new CInt64Array to the object */
-	virtual const CInt64Array& operator= ( const CInt64Array& vect );
+        virtual void RemoveAll() { this->clear(); }
 
 	///Dump fonction
 	virtual void Dump( std::ostream& fOut = std::cerr ) const;
@@ -569,20 +545,9 @@ public:
 	virtual int32_t* ToIntArray();
 	virtual size_t* ToSizeTArray();
 
-	virtual void RemoveAll() { this->clear(); };
+        virtual void RemoveAll() { this->clear(); }
 
 	uint32_t GetProductValues() const;
-
-	/** Equality operator overload
-		Array are equal if they have same size and the same element values (at the same position)*/
-	virtual bool operator ==( const CUIntArray& vect );
-
-	/** Inequality operator overload
-		Array are unequal if they are not equal*/
-	virtual bool operator !=( const CUIntArray& vect ) { return !( *this == vect ); };
-
-	/** Copy a new CUIntArray to the object */
-	virtual const CUIntArray& operator= ( const CUIntArray& vect );
 
 	///Dump fonction
 	virtual void Dump( std::ostream& fOut = std::cerr ) const;
@@ -642,20 +607,9 @@ public:
 
 	virtual uint64_t* ToArray();
 
-	virtual void RemoveAll() { this->clear(); };
+        virtual void RemoveAll() { this->clear(); }
 
 	uint64_t GetProductValues() const;
-
-	/** Equality operator overload
-		Array are equal if they have same size and the same element values (at the same position)*/
-	virtual bool operator ==( const CUInt64Array& vect );
-
-	/** Inequality operator overload
-		Array are unequal if they are not equal*/
-	virtual bool operator !=( const CUInt64Array& vect ) { return !( *this == vect ); };
-
-	/** Copy a new CUIntArray to the object */
-	virtual const CUInt64Array& operator= ( const CUInt64Array& vect );
 
 	///Dump fonction
 	virtual void Dump( std::ostream& fOut = std::cerr ) const;
@@ -695,18 +649,6 @@ public:
 
 	virtual void Insert( const CInt16Array& vect, bool bEnd = true );
 
-	//virtual void Insert( const CStringArray& vect ) femm
-	//{
-	//	for ( auto it = vect.begin(); it != vect.end(); it++ )
-	//	{
-	//		int16_t value = CTools::StrToInt( *it );
-	//		if ( !( CTools::IsDefaultValue( value ) ) )
-	//		{
-	//			this->Insert( value );
-	//		}
-	//	}
-	//}
-
 	virtual void Insert( int16_t* vect, size_t length );
 
 	virtual void Insert( const int16_t value );
@@ -724,10 +666,7 @@ public:
 
 	virtual int16_t* ToArray();
 
-	virtual void RemoveAll() { this->clear(); };
-
-	/** Copy a new CInt16Array to the object */
-	virtual const CInt16Array& operator= ( const CInt16Array& vect );
+        virtual void RemoveAll() { this->clear(); }
 
 	///Dump fonction
 	virtual void Dump( std::ostream& fOut = std::cerr ) const;
@@ -788,18 +727,7 @@ public:
 	virtual uint16_t* ToArray();
 	virtual int16_t* ToIntArray();
 
-	virtual void RemoveAll() { this->clear(); };
-
-	/** Equality operator overload
-		Array are equal if they have same size and the same element values (at the same position)*/
-	virtual bool operator ==( const CUInt16Array& vect );
-
-	/** Inequality operator overload
-		Array are unequal if they are not equal*/
-	virtual bool operator !=( const CUInt16Array& vect ) { return !( *this == vect ); };
-
-	/** Copy a new CUInt16Array to the object */
-	virtual const CUInt16Array& operator= ( const CUInt16Array& vect );
+        virtual void RemoveAll() { this->clear(); }
 
 	///Dump fonction
 	virtual void Dump( std::ostream& fOut = std::cerr ) const;
@@ -840,18 +768,6 @@ public:
 
 	virtual void Insert( const CInt8Array& vect, bool bEnd = true );
 
-	//virtual void Insert( const CStringArray& vect )	femm
-	//{
-	//	for ( auto it = vect.begin(); it != vect.end(); it++ )
-	//	{
-	//		int8_t value = CTools::StrToInt( *it );
-	//		if ( !( CTools::IsDefaultValue( value ) ) )
-	//		{
-	//			this->Insert( value );
-	//		}
-	//	}
-	//}
-
 	virtual void Insert( int8_t* vect, size_t length );
 
 	virtual void Insert( const int8_t value );
@@ -869,10 +785,7 @@ public:
 
 	virtual int8_t* ToArray();
 
-	virtual void RemoveAll() { this->clear(); };
-
-	/** Copy a new CInt8Array to the object */
-	virtual const CInt8Array& operator= ( const CInt8Array& vect );
+        virtual void RemoveAll() { this->clear(); }
 
 	///Dump fonction
 	virtual void Dump( std::ostream& fOut = std::cerr ) const;
@@ -936,18 +849,7 @@ public:
 	virtual uint8_t* ToArray();
 	virtual int8_t* ToIntArray();
 
-	virtual void RemoveAll() { this->clear(); };
-
-	/** Equality operator overload
-		Array are equal if they have same size and the same element values (at the same position)*/
-	virtual bool operator ==( const CUInt8Array& vect );
-
-	/** Inequality operator overload
-		Array are unequal if they are not equal*/
-	virtual bool operator !=( const CUInt8Array& vect ) { return !( *this == vect ); };
-
-	/** Copy a new CUInt8Array to the object */
-	virtual const CUInt8Array& operator= ( const CUInt8Array& vect );
+        virtual void RemoveAll() { this->clear(); }
 
 	///Dump fonction
 	virtual void Dump( std::ostream& fOut = std::cerr ) const;
@@ -1025,9 +927,6 @@ public:
 
 	float* ToArray();
 
-	/** Copy a new CFloatArray to the object */
-	virtual const CFloatArray& operator= ( const CFloatArray& vect );
-
 	///Dump fonction
 	virtual void Dump( std::ostream& fOut = std::cerr ) const;
 
@@ -1093,7 +992,6 @@ public:
 
 	virtual void Insert( const CFloatArray& vect, bool bEnd = true );
 
-	//virtual void Insert( const CStringArray& vect, bool bEnd = true );		femm
 	virtual void Insert( const std::string& vect, const std::string& delim = ",", bool bEnd = true );
 
 	virtual void Insert( const double value );
@@ -1124,17 +1022,6 @@ public:
 	void GetRange( double& min, double& max );
 
 	double* ToArray();
-
-	/** Copy a new CDoubleArray to the object */
-	virtual const CDoubleArray& operator= ( const CDoubleArray& vect );
-
-	/** Equality operator overload
-		Array are equal if they have same size and the same element values (at the same position)*/
-	virtual bool operator ==( const CDoubleArray& vect );
-
-	/** Inequality operator overload
-		Array are unequal if they are not equal*/
-	virtual bool operator !=( const CDoubleArray& vect ) { return !( *this == vect ); };
 
 	///Dump fonction
 	virtual void Dump( std::ostream& fOut = std::cerr ) const;
@@ -1193,19 +1080,19 @@ public:
 
 	virtual ~CBratAlgorithmParam();
 
-	bratAlgoParamTypeVal GetTypeVal() { return m_typeVal; };
-	std::string GetTypeValAsString() { return TypeValAsString( m_typeVal ); };
+        bratAlgoParamTypeVal GetTypeVal() { return m_typeVal; }
+        std::string GetTypeValAsString() { return TypeValAsString( m_typeVal ); }
 
 	std::string GetValue() const;
 
-	double GetValueAsDouble() const { return m_valDouble; };
-	int32_t GetValueAsInt() const { return m_valInt; };
-	int64_t GetValueAsLong() const { return m_valLong; };
-	float GetValueAsFloat() const { return m_valFloat; };
-	std::string GetValueAsString() const { return m_valString; };
-	unsigned char GetValueAsChar() const { return m_valChar; };
-	const CDoubleArray* GetValueAsVectDouble() const { return &m_vectValDouble; };
-	CDoubleArray* GetValueAsVectDouble() { return &m_vectValDouble; };
+        double GetValueAsDouble() const { return m_valDouble; }
+        int32_t GetValueAsInt() const { return m_valInt; }
+        int64_t GetValueAsLong() const { return m_valLong; }
+        float GetValueAsFloat() const { return m_valFloat; }
+        std::string GetValueAsString() const { return m_valString; }
+        unsigned char GetValueAsChar() const { return m_valChar; }
+        const CDoubleArray* GetValueAsVectDouble() const { return &m_vectValDouble; }
+        CDoubleArray* GetValueAsVectDouble() { return &m_vectValDouble; }
 
 	void SetValue( double value );
 	void SetValue( float value );
@@ -1221,7 +1108,7 @@ public:
 
 	void SetValueAsDoubleArray( const std::string& value, const std::string& delim = "," );
 
-	bratAlgoParamTypeVal TypeVal( bratAlgoParamTypeVal type ) { return type; };
+        bratAlgoParamTypeVal TypeVal( bratAlgoParamTypeVal type ) { return type; }
 
 	static std::string TypeValAsString( bratAlgoParamTypeVal type );
 

@@ -19,51 +19,6 @@ const std::streamsize floatPrecision = 15;
 //------------------- CStringArray class --------------------
 //-------------------------------------------------------------
 
-////----------------------------------------
-//CStringArray::CStringArray(const CStringList& lst)
-//{
-//  this->Insert(lst);  
-//}
-////----------------------------------------
-//CStringArray::CStringArray(const stringlist& lst)
-//{
-//  this->Insert(lst);  
-//}
-
-//----------------------------------------
-const CStringArray& CStringArray::operator =(const CStringArray& vect)
-{
-  
-  this->clear();
-
-  Insert(vect);
-    
-  return *this;    
-}
-
-////----------------------------------------
-//const CStringArray& CStringArray::operator =(const CStringList& lst)
-//{  
-//  this->clear();
-//
-//  Insert(lst);
-//    
-//  return *this;    
-//}
-//----------------------------------------
-
-const CStringArray& CStringArray::operator =(const stringarray& vect)
-{
-  
-  this->clear();
-
-  Insert(vect);
-    
-  return *this;
-
-    
-}
-
 //----------------------------------------
 
 const CStringArray& CStringArray::operator =( const std::list<std::string> & lst )
@@ -87,17 +42,17 @@ void CStringArray::Insert(const CStringArray& vect, bool bEnd /*= true*/)
 
   if (bEnd)
   {  
-    stringarray::insert(this->end(), vect.begin(), vect.end());
+    std::vector<std::string>::insert(this->end(), vect.begin(), vect.end());
   }
   else
   {  
-    stringarray::insert(this->begin(), vect.begin(), vect.end());
+    std::vector<std::string>::insert(this->begin(), vect.begin(), vect.end());
   }    
   
 }
 //----------------------------------------
 
-void CStringArray::Insert(const stringarray& vect, bool bEnd /*= true*/)
+void CStringArray::Insert(const std::vector<std::string>& vect, bool bEnd /*= true*/)
 {
   if (vect.empty())
   {
@@ -106,33 +61,23 @@ void CStringArray::Insert(const stringarray& vect, bool bEnd /*= true*/)
   
   if (bEnd)
   {  
-    stringarray::insert(this->end(), vect.begin(), vect.end());
+    std::vector<std::string>::insert(this->end(), vect.begin(), vect.end());
   }
   else
   {  
-    stringarray::insert(this->begin(), vect.begin(), vect.end());
+    std::vector<std::string>::insert(this->begin(), vect.begin(), vect.end());
   }    
   
 }
+
 //----------------------------------------
 
 void CStringArray::Insert(const std::string& str)
 {
   
-stringarray::push_back(str);    
+std::vector<std::string>::push_back(str);
   
 }
-
-////----------------------------------------
-//void CStringArray::Insert( const CStringList& lst )
-//{
-//	CStringList::const_iterator it;
-//
-//	for ( it = lst.begin(); it != lst.end(); it++ )
-//	{
-//		this->Insert( *it );
-//	}
-//}
 
 //----------------------------------------
 void CStringArray::Insert( const CIntArray& vect )
@@ -162,7 +107,7 @@ void CStringArray::Insert( const std::list<std::string> & lst )
 //----------------------------------------
 CStringArray::iterator CStringArray::InsertAt(CStringArray::iterator where, const std::string& str)
 { 
-  return stringarray::insert(where, str);     
+  return std::vector<std::string>::insert(where, str);
 }
 
 //----------------------------------------
@@ -180,7 +125,7 @@ CStringArray::iterator CStringArray::InsertAt(int32_t index, const std::string& 
     return this->begin() + index;
   }
 
-  return stringarray::insert(this->begin() + index, str);     
+  return std::vector<std::string>::insert(this->begin() + index, str);
 }
 
 //----------------------------------------
@@ -201,7 +146,7 @@ bool CStringArray::Erase(uint32_t index)
 //----------------------------------------
 bool CStringArray::Erase(CStringArray::iterator where)
 { 
-  stringarray::erase(where);   
+  std::vector<std::string>::erase(where);
   return true;
 }
 //----------------------------------------
@@ -304,7 +249,7 @@ void CStringArray::FindIndexes(const std::string& str, CIntArray& indexes, bool 
 //----------------------------------------
 void CStringArray::GetValues( const CIntArray& indexes, CStringArray& values ) const
 {
-	const size_t maxIndex =  this->size() - 1;
+    const int32_t maxIndex =  this->size() - 1;
 
 	for ( auto it = indexes.begin(); it != indexes.end(); it++ )
 	{
@@ -478,28 +423,21 @@ void CStringArray::Replace(const std::string& findString, const std::string& rep
 
 //----------------------------------------
 
-std::string StringReplace( const std::string& str, const std::string& c, const std::string& replaceBy, bool compareNoCase = false )
+std::string replace( const std::string& str, const std::string& strToFind, const std::string& replaceBy, bool compareNoCase = false )
 {
-	std::string strRet = str;
+    std::string strRet = str;
 
-    //RCCC: pos is alwyas positive, etc, etc.
+    auto pos = compareNoCase ? i_find( strRet, strToFind ) : strRet.find( strToFind );
+    while (pos != std::string::npos)
+    {
+        strRet.replace( pos, strToFind.length(), replaceBy );
 
-	auto pos = compareNoCase ? i_find( str, c ) : strRet.find( c );
-	while ( pos >= 0 )
-	{
-		strRet.replace( pos, c.length(), replaceBy );
-		if ( compareNoCase )
-		{
-			pos = i_find( str, c, pos + replaceBy.length() );
-		}
-		else
-		{
-			pos = strRet.find( c, pos + replaceBy.length() );
-		}
-	}
-
-	return strRet;
+        if ( compareNoCase ){  pos = i_find(strRet, strToFind, pos + replaceBy.length() ); }
+        else                {  pos = strRet.find( strToFind, pos + replaceBy.length() );  }
+    }
+    return strRet;
 }
+
 
 void CStringArray::Replace( const CStringArray& findString, const std::string& replaceBy, CStringArray& replaced, bool compareNoCase /* = false */, bool insertUnique /* = false */ ) const
 {
@@ -529,7 +467,7 @@ void CStringArray::Replace( const CStringArray& findString, const std::string& r
 	std::string thisStr = this->ToString( ",", false );
 	std::string findStringStr = findStringTmp.ToString( ",", false );
 
-	thisStr = StringReplace( thisStr, findStringStr, replaceBy, compareNoCase );
+    thisStr = replace( thisStr, findStringStr, replaceBy, compareNoCase );
 
 	replaced.ExtractStrings( thisStr, ",", true, insertUnique );
 }
@@ -696,17 +634,6 @@ void CStringArray::InsertUnique(const std::string& str)
   return;  
 }
 
-////----------------------------------------
-//void CStringArray::InsertUnique( const CStringList& lst )
-//{
-//	CStringList::const_iterator it;
-//
-//	for ( it = lst.begin(); it != lst.end(); it++ )
-//	{
-//		this->InsertUnique( *it );
-//	}
-//}
-
 //----------------------------------------
 
 void CStringArray::InsertUnique(const CStringArray& vect)
@@ -728,7 +655,7 @@ void CStringArray::InsertUnique(const CStringArray* vect)
 }
 
 //----------------------------------------
-void CStringArray::InsertUnique( const stringarray& vect )
+void CStringArray::InsertUnique( const std::vector<std::string>& vect )
 {
 	for ( auto it = vect.begin(); it != vect.end(); it++ )
 	{
@@ -810,7 +737,7 @@ void CStringArray::Dump(std::ostream& fOut /* = std::cerr */) const
 //-------------------------------------------------------------
 CIntArray::iterator CIntArray::InsertAt( int32_t index, const int32_t value )
 {
-	assert__( index > -1 && index < size() );	//if it doesn't assert (exhaustive use cases), we can get rid of conditions below
+    assert__( index > -1 && index < (int32_t)size() );	//if it doesn't assert (exhaustive use cases), we can get rid of conditions below
 
 	if ( index < 0 )
 		return this->end();
@@ -828,7 +755,7 @@ CIntArray::iterator CIntArray::InsertAt( int32_t index, const int32_t value )
 
 CIntArray::iterator CIntArray::ReplaceAt( int32_t index, const int32_t value )
 {
-	assert__( index > -1 && index < size() );	//if it doesn't assert (exhaustive use cases), we can get rid of condition below
+    assert__( index > -1 && index < (int32_t)size() );	//if it doesn't assert (exhaustive use cases), we can get rid of condition below
 
 	if ( index < 0 )
 		return this->end();
@@ -920,45 +847,7 @@ void CIntArray::Dump( std::ostream& fOut ) const	//fOut = std::cerr
 //-------------------------------------------------------------
 
 //----------------------------------------
-bool CInt64Array::operator ==( const CInt64Array& vect )
-{
-	size_t count = this->size();
 
-	if ( count != vect.size() )
-	{
-		return false;
-	}
-
-	if ( count == 0 )
-	{
-		return true;
-	}
-
-	bool isEqual = true;
-
-	for ( size_t i = 0; i < count; i++ )
-	{
-		if ( this->at( i ) != vect.at( i ) )
-		{
-			isEqual = false;
-			break;
-		}
-	}
-
-	return isEqual;
-}
-//----------------------------------------
-const CInt64Array& CInt64Array::operator =( const CInt64Array& vect )
-{
-
-	this->clear();
-
-	Insert( vect );
-
-	return *this;
-
-
-}
 //----------------------------------------
 void CInt64Array::Insert( const CInt64Array& vect, bool bEnd /*= true*/ )
 {
@@ -1149,51 +1038,11 @@ void CInt64Array::Dump( std::ostream& fOut /* = std::cerr */ ) const
 //-------------------------------------------------------------
 
 //----------------------------------------
-bool CUIntArray::operator ==( const CUIntArray& vect )
-{
-	size_t count = this->size();
-
-	if ( count != vect.size() )
-	{
-		return false;
-	}
-
-	if ( count == 0 )
-	{
-		return true;
-	}
-
-	bool isEqual = true;
-
-	for ( uint32_t i = 0; i < count; i++ )
-	{
-		if ( this->at( i ) != vect.at( i ) )
-		{
-			isEqual = false;
-			break;
-		}
-	}
-
-	return isEqual;
-}
-
-//----------------------------------------
-
-const CUIntArray& CUIntArray::operator =( const CUIntArray& vect )
-{
-
-	this->clear();
-
-	Insert( vect );
-
-	return *this;
-
-
-}
-//----------------------------------------
 
 void CUIntArray::Insert( CUIntArray* vect, bool bEnd /*= true*/ )
 {
+    UNUSED(bEnd);
+
 	Insert( *vect );
 }
 
@@ -1492,46 +1341,6 @@ void CUIntArray::Dump( std::ostream& fOut /* = std::cerr */ ) const
 //-------------------------------------------------------------
 
 //----------------------------------------
-bool CUInt64Array::operator ==( const CUInt64Array& vect )
-{
-	size_t count = this->size();
-
-	if ( count != vect.size() )
-	{
-		return false;
-	}
-
-	if ( count == 0 )
-	{
-		return true;
-	}
-
-	bool isEqual = true;
-
-	for ( size_t i = 0; i < count; i++ )
-	{
-		if ( this->at( i ) != vect.at( i ) )
-		{
-			isEqual = false;
-			break;
-		}
-	}
-
-	return isEqual;
-}
-//----------------------------------------
-const CUInt64Array& CUInt64Array::operator =( const CUInt64Array& vect )
-{
-
-	this->clear();
-
-	Insert( vect );
-
-	return *this;
-
-
-}
-//----------------------------------------
 void CUInt64Array::Insert( const CUInt64Array& vect, bool bEnd /*= true*/ )
 {
 
@@ -1555,7 +1364,9 @@ void CUInt64Array::Insert( const CUInt64Array& vect, bool bEnd /*= true*/ )
 
 void CUInt64Array::Insert( CUInt64Array* vect, bool bEnd /*= true*/ )
 {
-	Insert( *vect );
+    UNUSED(bEnd);
+
+    Insert( *vect );
 }
 
 //----------------------------------------
@@ -1740,18 +1551,6 @@ void CUInt64Array::Dump( std::ostream& fOut /* = std::cerr */ ) const
 //------------------- CInt16Array class --------------------
 //-------------------------------------------------------------
 
-const CInt16Array& CInt16Array::operator =( const CInt16Array& vect )
-{
-
-	this->clear();
-
-	Insert( vect );
-
-	return *this;
-
-
-}
-//----------------------------------------
 void CInt16Array::Insert( const CInt16Array& vect, bool bEnd /*= true*/ )
 {
 
@@ -1941,52 +1740,12 @@ void CInt16Array::Dump( std::ostream& fOut /* = std::cerr */ ) const
 //-------------------------------------------------------------
 
 //----------------------------------------
-bool CUInt16Array::operator ==( const CUInt16Array& vect )
-{
-	size_t count = this->size();
-
-	if ( count != vect.size() )
-	{
-		return false;
-	}
-
-	if ( count == 0 )
-	{
-		return true;
-	}
-
-	bool isEqual = true;
-
-	for ( uint16_t i = 0; i < count; i++ )
-	{
-		if ( this->at( i ) != vect.at( i ) )
-		{
-			isEqual = false;
-			break;
-		}
-	}
-
-	return isEqual;
-}
-
-//----------------------------------------
-
-const CUInt16Array& CUInt16Array::operator =( const CUInt16Array& vect )
-{
-
-	this->clear();
-
-	Insert( vect );
-
-	return *this;
-
-
-}
-//----------------------------------------
 
 void CUInt16Array::Insert( CUInt16Array* vect, bool bEnd /*= true*/ )
 {
-	Insert( *vect );
+    UNUSED(bEnd);
+
+    Insert( *vect );
 }
 
 //----------------------------------------
@@ -2248,17 +2007,6 @@ void CUInt16Array::Dump( std::ostream& fOut /* = std::cerr */ ) const
 //------------------- CInt8Array class --------------------
 //-------------------------------------------------------------
 
-const CInt8Array& CInt8Array::operator =( const CInt8Array& vect )
-{
-
-	this->clear();
-
-	Insert( vect );
-
-	return *this;
-
-
-}
 //----------------------------------------
 void CInt8Array::Insert( const CInt8Array& vect, bool bEnd /*= true*/ )
 {
@@ -2448,52 +2196,13 @@ void CInt8Array::Dump( std::ostream& fOut /* = std::cerr */ ) const
 //------------------- CUInt8Array class --------------------
 //-------------------------------------------------------------
 
-bool CUInt8Array::operator ==( const CUInt8Array& vect )
-{
-	size_t count = this->size();
-
-	if ( count != vect.size() )
-	{
-		return false;
-	}
-
-	if ( count == 0 )
-	{
-		return true;
-	}
-
-	bool isEqual = true;
-
-	for ( uint8_t i = 0; i < count; i++ )
-	{
-		if ( this->at( i ) != vect.at( i ) )
-		{
-			isEqual = false;
-			break;
-		}
-	}
-
-	return isEqual;
-}
-
-//----------------------------------------
-
-const CUInt8Array& CUInt8Array::operator =( const CUInt8Array& vect )
-{
-
-	this->clear();
-
-	Insert( vect );
-
-	return *this;
-
-
-}
 //----------------------------------------
 
 void CUInt8Array::Insert( CUInt8Array* vect, bool bEnd /*= true*/ )
 {
-	Insert( *vect );
+    UNUSED(bEnd);
+
+    Insert( *vect );
 }
 
 //----------------------------------------
@@ -2765,21 +2474,6 @@ void CFloatArray::RemoveAll()
 }
 
 //----------------------------------------
-
-
-const CFloatArray& CFloatArray::operator =( const CFloatArray& vect )
-{
-
-	this->clear();
-
-	Insert( vect );
-
-	return *this;
-
-
-}
-
-//----------------------------------------
 void CFloatArray::Insert( float* data, int32_t size )
 {
 	if ( size <= 0 )
@@ -3035,20 +2729,6 @@ void CDoubleArray::RemoveAll()
 }
 
 //----------------------------------------
-
-
-const CDoubleArray& CDoubleArray::operator =( const CDoubleArray& vect )
-{
-
-	this->clear();
-
-	Insert( vect );
-
-	return *this;
-
-
-}
-//----------------------------------------
 void CDoubleArray::Insert( int32_t* data, int32_t size )
 {
 	if ( size <= 0 )
@@ -3252,42 +2932,14 @@ void CDoubleArray::Insert( const CDoubleArray& vect, int32_t first, int32_t last
 
 
 }
+
 //----------------------------------------
-//void CDoubleArray::Insert( const CStringArray& vect, bool bEnd /*= true*/ )
-//{
-//	if ( vect.empty() )
-//	{
-//		return;
-//	}
-//
-//	for ( uint32_t i = 0; i < vect.size(); i++ )
-//	{
-//		double value;
-//
-//		std::istringstream myStream( vect.at( i ) );
-//
-//		if ( !( myStream >> value ) )
-//		{
-//			CTools::SetDefaultValue( value );
-//		}
-//
-//
-//		if ( bEnd )
-//		{
-//			doublearray::insert( this->end(), value );
-//		}
-//		else
-//		{
-//			doublearray::insert( this->begin(), value );
-//		}
-//	}
-//
-//
-//}
-//----------------------------------------
+
 void CDoubleArray::Insert( const std::string& vect, const std::string& delim /*= "," */, bool bEnd /*= true*/ )
 {
-	if ( vect.empty() )
+    UNUSED(bEnd);
+
+    if ( vect.empty() )
 	{
 		return;
 	}
@@ -3530,35 +3182,6 @@ void CDoubleArray::GetRange( double& min, double& max )
 	}
 
 }
-//----------------------------------------
-bool CDoubleArray::operator ==( const CDoubleArray& vect )
-{
-	size_t count = this->size();
-
-	if ( count != vect.size() )
-	{
-		return false;
-	}
-
-	if ( count == 0 )
-	{
-		return true;
-	}
-
-	bool isEqual = true;
-
-	for ( uint32_t i = 0; i < count; i++ )
-	{
-		if ( ! areEqual( this->at( i ), vect.at( i ) ) )
-		{
-			isEqual = false;
-			break;
-		}
-	}
-
-	return isEqual;
-}
-
 
 //----------------------------------------
 void CDoubleArray::Dump( std::ostream& fOut /* = std::cerr */ ) const
@@ -3798,7 +3421,9 @@ void CBratAlgorithmParam::SetValue( const CDoubleArray& value )
 //----------------------------------------
 void CBratAlgorithmParam::SetValueAsDoubleArray( const std::string& value, const std::string& delim /*= "," */ )
 {
-	m_typeVal = CBratAlgorithmParam::T_VECTOR_DOUBLE;
+    UNUSED(delim);
+
+    m_typeVal = CBratAlgorithmParam::T_VECTOR_DOUBLE;
 	m_vectValDouble.RemoveAll();
 	m_vectValDouble.Insert( value );
 }

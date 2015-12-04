@@ -113,10 +113,38 @@ CBratSchedulerApp::~CBratSchedulerApp()
 	::xercesc::XMLPlatformUtils::Terminate();
 }
 
+#if defined (RCCC_test)
+///// RCCC - to delete //////////////////////
+#include "wxBratTools.h"
+/////////////////////////////////////////////
+#endif
 
 //----------------------------------------
 bool CBratSchedulerApp::OnInit()
 {
+#if defined (RCCC_test)
+  /// RCCC test - to delete /////////////////////
+  wxString cwxString;
+  wxLongLong_t cwxLongLong = 0;
+
+  for (long long i = -10123456789; i < 10123456789; i += 1000000000 )
+  {
+    cwxString   = std::to_string(i);
+    cwxLongLong = wxBratTools::wxStringTowxLongLong_t( cwxString );
+
+    std::cout << "'wxString' = " << cwxString   << " ==> 'wxLongLong_t' = " << cwxLongLong;
+
+    if (i == cwxLongLong) //(cwxString.compare(std::to_string(cwxLongLong)) == 0)
+    {
+      std::cout << "  OK!" << std::endl;
+    }else
+    {
+      std::cout << "  WRONG!" << std::endl;
+    }
+  }
+  ////////////////////////////////////////////////////
+#endif
+
   const wxString name = wxString::Format("%s-%s", wxGetApp().GetAppName().c_str(), wxGetUserId().c_str());
   m_checker = new wxSingleInstanceChecker(name);
   if ( m_checker->IsAnotherRunning() )
