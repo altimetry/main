@@ -5,15 +5,6 @@
 #include <qgsapplication.h>
 
 
-///// RCCC - test //////////////////
-#include "unitTests.h"
-
-// This macro expands to a simple main() method that runs all the test functions.
-QTEST_MAIN(unitTests)
-
-//////////////////////////////////
-
-/*
 int main(int argc, char *argv[])
 {
 
@@ -25,6 +16,6 @@ int main(int argc, char *argv[])
     return a.exec();
 
 }
-*/
+
 
 
