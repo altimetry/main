@@ -948,8 +948,10 @@ class status: public ::xml_schema::string
   enum value
   {
     pending,
-    processing,
-    ended
+    in_progress,
+    ended,
+    error,
+    warning
   };
 
   status ();
@@ -997,8 +999,8 @@ class status: public ::xml_schema::string
   _xsd_status_convert () const;
 
   public:
-  static const char* const _xsd_status_literals_[3];
-  static const value _xsd_status_indexes_[3];
+  static const char* const _xsd_status_literals_[5];
+  static const value _xsd_status_indexes_[5];
 };
 
 class uid: public ::xsd::cxx::tree::fundamental_base< ::xml_schema::long_, char, ::xml_schema::simple_type >

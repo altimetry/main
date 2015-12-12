@@ -422,23 +422,6 @@ void CStringArray::Replace(const std::string& findString, const std::string& rep
 }
 
 //----------------------------------------
-
-std::string replace( const std::string& str, const std::string& strToFind, const std::string& replaceBy, bool compareNoCase = false )
-{
-    std::string strRet = str;
-
-    auto pos = compareNoCase ? i_find( strRet, strToFind ) : strRet.find( strToFind );
-    while (pos != std::string::npos)
-    {
-        strRet.replace( pos, strToFind.length(), replaceBy );
-
-        if ( compareNoCase ){  pos = i_find(strRet, strToFind, pos + replaceBy.length() ); }
-        else                {  pos = strRet.find( strToFind, pos + replaceBy.length() );  }
-    }
-    return strRet;
-}
-
-
 void CStringArray::Replace( const CStringArray& findString, const std::string& replaceBy, CStringArray& replaced, bool compareNoCase /* = false */, bool insertUnique /* = false */ ) const
 {
 	if ( this == &replaced )

@@ -216,11 +216,6 @@ inline bool areEqual( double X, double Y )
 ////////////////////////////////////////////////////////////////////////////
 
 
-//// RCCC _ TEMPORARY DECLARATION OF... /////
-std::string replace(const std::string& str, const std::string& strToFind, const std::string& replaceBy, bool compareNoCase );
-///////////////////////////////////////
-
-
 //-------------------------------------------------------------
 //------------------- CStringArray class --------------------
 //-------------------------------------------------------------

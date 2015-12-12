@@ -333,14 +333,14 @@ void CTaskListView::OnKeyUp( wxKeyEvent &event )
 
 }
 //----------------------------------------
-void CTaskListView::AddTasks(CMapBratTask* data)
+void CTaskListView::AddTasks(const CMapBratTask* data)
 {
   if (data == NULL)
   {
     return;
   }
 
-  CMapBratTask::iterator it;
+  CMapBratTask::const_iterator it;
 
   for (it = data->begin(); it != data->end(); it++)
   {

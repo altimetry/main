@@ -1619,11 +1619,11 @@ _xsd_status_convert () const
   ::xsd::cxx::tree::enum_comparator< char > c (_xsd_status_literals_);
   const value* i (::std::lower_bound (
                     _xsd_status_indexes_,
-                    _xsd_status_indexes_ + 3,
+                    _xsd_status_indexes_ + 5,
                     *this,
                     c));
 
-  if (i == _xsd_status_indexes_ + 3 || _xsd_status_literals_[*i] != *this)
+  if (i == _xsd_status_indexes_ + 5 || _xsd_status_literals_[*i] != *this)
   {
     throw ::xsd::cxx::tree::unexpected_enumerator < char > (*this);
   }
@@ -1632,19 +1632,23 @@ _xsd_status_convert () const
 }
 
 const char* const status::
-_xsd_status_literals_[3] =
+_xsd_status_literals_[5] =
 {
   "pending",
-  "processing",
-  "ended"
+  "in progress",
+  "ended",
+  "error",
+  "warning"
 };
 
 const status::value status::
-_xsd_status_indexes_[3] =
+_xsd_status_indexes_[5] =
 {
   ::status::ended,
+  ::status::error,
+  ::status::in_progress,
   ::status::pending,
-  ::status::processing
+  ::status::warning
 };
 
 // uid

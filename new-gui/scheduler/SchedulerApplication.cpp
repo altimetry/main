@@ -5,11 +5,31 @@
 #include "new-gui/Common/XmlSerializer.h"
 #include "new-gui/scheduler/TaskProcessor.h"
 
+#if defined(MEM_LEAKS)
+	#include "new-gui/Common/WinMemChecker.h"
+	MemChecker MemChecker::instance;
+
+	_CrtMemState QSchedulerApplication::FirstState;			//before all run-time allocations
+	_CrtMemState QSchedulerApplication::BeforeRunState;		//after app creation, before running engine
+	_CrtMemState QSchedulerApplication::AfterRunState;		//after running engine, before de-allocating
+#endif
+
+ 
+// When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
+// give you the file name and line number where it occurred.
+// Needs to be included after all #include commands
+#include "libbrathl/Win32MemLeaksAccurate.h"
+
+
 
 QSchedulerApplication::QSchedulerApplication(int &argc, char **argv, int flags)
     : base_t(argc, argv, flags)
 {
     ::xercesc::XMLPlatformUtils::Initialize();
+
+#if defined(MEM_LEAKS)
+	_CrtMemCheckpoint( &FirstState );			//set first flag
+#endif
 
     //	I. SingleInstanceChecker
 
@@ -92,8 +112,11 @@ QSchedulerApplication::QSchedulerApplication(int &argc, char **argv, int flags)
     {
         m_frame = new CSchedulerFrame( NULL, -1, BRATSCHEDULER_TITLE );			//tasks are loaded here by a certain CPendingPanel
 
-        CSchedulerTaskConfig* schedulerTaskConfig = CSchedulerTaskConfig::GetInstance();
+		*/
 
+		CTasksProcessor* schedulerTaskConfig = CTasksProcessor::GetInstance();
+
+		/*
         // After loading, tasks whose status is 'in progress' are considered as 'pending'
         // They have to be re-executed.
         ChangeProcessingToPending();
@@ -133,15 +156,39 @@ QSchedulerApplication::QSchedulerApplication(int &argc, char **argv, int flags)
 
     //m_frame->SetTitle();
     */
-
-    const std::string path = std::string( getenv( "S3ALTB_ROOT") ) + "/project/dev/source/new-gui/scheduler/BratSchedulerTasksConfig.xml";
-    readTasks( path );
 }
 
 //virtual
 QSchedulerApplication::~QSchedulerApplication()
 {
+	//_CrtMemState state, CurrentState, AfterState, ComparisonState;
+	//_CrtMemCheckpoint( &CurrentState );
+	//
+	//int _CrtMemDifference(
+	//	_CrtMemState *stateDiff,
+	//	const _CrtMemState *oldState,
+	//	const _CrtMemState *newState
+	//	);
+	//
     ::xercesc::XMLPlatformUtils::Terminate();
+	//_CrtMemCheckpoint( &AfterState );
+	//_CrtMemDifference( &ComparisonState, &CurrentState, &AfterState );
+	//_CrtMemDifference( &state, &ComparisonState, &FirstState );
+	//_CrtMemDifference( &FirstState, &FirstState, &state );
+
+	CTasksProcessor::DestroyInstance();
+}
+
+
+void QSchedulerApplication::dumpMemoryStatistics()
+{
+#if defined(MEM_LEAKS)
+
+	if ( MemChecker::dumpStatistics( FirstState ) /*||		//all wasted memory 
+		MemChecker::dumpStatistics( BeforeRunState )*/ )	//all memory wasted while running engine
+		OutputDebugString( "Possible Memory Leaks" );
+
+#endif
 }
 
 

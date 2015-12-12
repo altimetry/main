@@ -33,6 +33,8 @@
 
 #include "Date.h"
 #include "Tools.h"
+#include "new-gui/scheduler/TaskProcessor.h"
+
 
 using namespace brathl;
 
@@ -62,18 +64,20 @@ struct TaskRet
 
 
 
-class CSchedulerTaskConfig
+class CSchedulerTaskConfig : public CTasksProcessor
 {
+	typedef CTasksProcessor base_t;
+
 	//wxXmlDocument sub-object
 
 	wxXmlDocument mdoc;
 
-    bool IsOk() const { return GetRoot_xml() != NULL; }
+    virtual bool IsOk() const override { return GetRoot_xml() != NULL; }
 
     // Returns encoding of document (may be empty).
     // Note: this is the encoding original file was saved in, *not* the
     // encoding of in-memory representation!
-    const wxString& GetFileEncoding() const { return mdoc.GetFileEncoding(); }
+    const std::string GetFileEncoding() const { return mdoc.GetFileEncoding().ToStdString(); }
 
     // Returns root node of the document.
 	wxXmlNode *GetRoot_xml() const { return mdoc.GetRoot(); }
@@ -87,26 +91,37 @@ class CSchedulerTaskConfig
 
 	////////////////////////////////////////////////////////////////////////
 
+	//wxMutex m_mutex;
+	// m_configFileChecker is use to lock and get exclusive access to the configuration file.
+	// In the wxWoidgets documentation, we cant find that :
+	// "...A critical section object is used for exactly the same purpose as a wxMutex.
+	// The only difference is that under Windows platform critical sections are only visible inside one process,
+	// while mutexes may be shared among processes, so using critical sections is slightly more efficient."
+	// But wxMutex use 'unnamed' mutex for Windows, so in this case mutex are only intra-process and not inter-process.
+	// To bypass this, we use wxSingleInstanceChecker interface to  lock and get exclusive access to the configuration file,
+	// because under Windows wxSingleInstanceChecker implementation use 'named' mutex.
+	wxSingleInstanceChecker* m_configFileChecker = nullptr;
+
 	// constructors
-	CSchedulerTaskConfig()
+public:
+	CSchedulerTaskConfig() : base_t()
 	{
-		Init();
+		assert__( !m_reloadAll && !m_configFileChecker );
 	}
 
-	CSchedulerTaskConfig( const wxString &filename, bool lockFile = true, bool unlockFile = true ) :
-		m_fullFileName( filename )
+	CSchedulerTaskConfig( const std::string &filename, bool lockFile = true, bool unlockFile = true ) :
+		base_t( filename, lockFile, unlockFile )
 	{
+		assert__( !m_reloadAll && !m_configFileChecker );
+
 		// Don't call wxXmlDocument(filename, encoding) because overriden 'Load' will be not called
 
-		Init();
-		if ( !LoadXmlAndCreateTasks( filename, lockFile, unlockFile ) )
+		if ( !LoadAndCreateTasks( filename, lockFile, unlockFile ) )
 			delete DetachRoot_xml();
 	}
 
+	static const std::string m_TASK_ID_ATTR;			  //femm: moved from below
 public:
-
-
-	static const wxString m_TASK_ID_ATTR;			  //femm: moved from below
 
 	static CSchedulerTaskConfig* GetInstance( bool reload = false, bool lockFile = true, bool unlockFile = true );
 
@@ -117,16 +132,14 @@ public:
 
 	virtual ~CSchedulerTaskConfig();
 
-	TaskRet AddTaskAsPending( const wxString& cmd, wxDateTime& at, const wxString& name );
-	TaskRet AddTaskAsPending( TaskRet parent, const wxString& cmd, wxDateTime& at, const wxString& name );
+	TaskRet AddTaskAsPending( const std::string& cmd, wxDateTime& at, const std::string& name );
+	TaskRet AddTaskAsPending( TaskRet parent, const std::string& cmd, wxDateTime& at, const std::string& name );
 	//femm changed name
-	TaskRet AddFunctionTaskAsPending( TaskRet parent, const wxString& function, CVectorBratAlgorithmParam& params, wxDateTime& at, const wxString& name );
+	TaskRet AddFunctionTaskAsPending( TaskRet parent, const std::string& function, CVectorBratAlgorithmParam& params, wxDateTime& at, const std::string& name );
 
-	wxXmlNode* FindTaskNode( const wxString& taskId, bool allDepths = false );
+	wxXmlNode* FindTaskNode_xml( const std::string& taskId, bool allDepths = false );
 
-	void GetMapPendingBratTaskToProcess(/*const wxDateTime& dateref,  femm*/std::vector<wxLongLong_t>* vectorBratTaskToProcess );
-
-	static bool IsLoaded() { return m_instance != NULL; }
+    static bool IsLoaded() { return mInstance != NULL; }
 
 	void setReloadAll( bool value ) { m_reloadAll = value; }
 
@@ -134,15 +147,9 @@ public:
 
 	//used only by scheduler
 
-	static wxString m_CONFIG_APPNAME;
+	static std::string m_CONFIG_APPNAME;
 
-	CMapBratTask* GetMapPendingBratTask() { return &m_mapPendingBratTask; }
-	CMapBratTask* GetMapEndedBratTask() { return &m_mapEndedBratTask; }
-
-	CMapBratTask* GetMapNewBratTask() { return &m_mapNewBratTask; }
-	bool HasMapNewBratTask() { return ( m_mapNewBratTask.size() > 0 ); }
-
-	void ChangeTaskStatus( wxLongLong_t id, CBratTask::Status newStatus );
+	virtual Status ChangeTaskStatus( uid_t id, Status newStatus ) override;
 
 	bool RemoveTask( const wxLongLong& id )
 	{
@@ -150,131 +157,110 @@ public:
 	}
 	bool RemoveTask( wxLongLong_t id );
 
-	CBratTask* FindTaskFromMap( wxLongLong_t id );
+	const std::string& GetFullFileName() { return m_fullFileName; }
 
-	bool ChangeProcessingToPending( CVectorBratTask& vectorTasks );
+	static std::string GetConfigFilePath( const std::string& appName )
+	{
+		if ( appName.empty() )
+			return GetConfigFilePath();
 
-	const wxString& GetFullFileName() { return m_fullFileName; }
-
-	static wxString GetConfigFilePath( const wxString& appName );
+		return CSchedulerTaskConfig::GetUserConfigDir( appName ) + "/" + CSchedulerTaskConfig::m_CONFIG_FILE_NAME;
+	}
 
 	static void ForceUnLockConfigFile();
 
 private:
-
-	bool IsReloadAll() { return m_reloadAll; };
-
-	bool Save( const wxString& fileName, bool lockFile = true, bool unlockFile = true, int indentStep = 2 );
-	bool Save( bool lockFile = true, bool unlockFile = true, int indentStep = 2 );
-	bool LoadXmlAndCreateTasks( const wxString& fileName, bool lockFile = true, bool unlockFile = true, /*const wxString& encoding = wxT( "UTF-8" ), */int flags = wxXMLDOC_NONE );
-	bool Load( bool lockFile = true, bool unlockFile = true, int flags = wxXMLDOC_NONE )
+	static std::string GetConfigFilePath()
 	{
-		return LoadXmlAndCreateTasks( m_fullFileName, lockFile, unlockFile, flags );
+		return CSchedulerTaskConfig::GetUserDataDir() + "/" + CSchedulerTaskConfig::m_CONFIG_FILE_NAME;
 	}
 
 
-
-	bool ReloadOnlyNew( bool lockFile = true, bool unlockFile = true );
+	bool Save( const std::string& fileName, bool lockFile = true, bool unlockFile = true, int indentStep = 2 );
+	bool Save( bool lockFile = true, bool unlockFile = true, int indentStep = 2 );
+	virtual bool LoadAndCreateTasks( const std::string& fileName, bool lockFile = true, bool unlockFile = true ) override;
 
 	wxXmlNode* GetPendingTasksNode_xml();
 	wxXmlNode* GetEndedTasksNode_xml();
 	wxXmlNode* GetProcessingTasksNode_xml();
 
 	wxXmlNode* GetOrAddRootNode_xml();
-	wxXmlNode* GetOrAddTasksElement_xml( const wxString &elt );
+	wxXmlNode* GetOrAddTasksElement_xml( const std::string &elt );
 	wxXmlNode* GetOrAddPendingTasksElement_xml() { return GetOrAddTasksElement_xml( m_PENDING_ELT ); }
-	wxXmlNode* GetOrAddProcessingTasksElement() { return GetOrAddTasksElement_xml( m_PROCESSING_ELT ); }
-	wxXmlNode* GetOrAddEndedTasksElement() { return GetOrAddTasksElement_xml( m_ENDED_ELT ); }
+	wxXmlNode* GetOrAddProcessingTasksElement_xml() { return GetOrAddTasksElement_xml( m_PROCESSING_ELT ); }
+	wxXmlNode* GetOrAddEndedTasksElement_xml() { return GetOrAddTasksElement_xml( m_ENDED_ELT ); }
 
-	wxXmlNode* CreateTaskNodeAsPending_xml( wxDateTime& at, const wxString& name, const wxString &property, const wxString &value, const CVectorBratAlgorithmParam *params = nullptr );
+	wxXmlNode* CreateTaskNodeAsPending_xml( wxDateTime& at, const std::string& name, const std::string &property, const std::string &value, const CVectorBratAlgorithmParam *params = nullptr );
 
-	void AddTask( wxLongLong_t parentId, CBratTask* bratTask );
+	wxXmlNode* FindNodeByName_xml( const std::string& name);	//, wxXmlNode* parent, bool allDepths = false
 
-	void AddTaskToMap( CBratTask* bratTask );
-	bool RemoveTaskFromMap( CBratTask* bratTask );
-	bool RemoveTaskFromMap( wxLongLong_t id );
-
-	wxXmlNode* FindNodeByName_xml( const wxString& name);	//, wxXmlNode* parent, bool allDepths = false
-
-	wxXmlNode* FindTaskNode( const wxLongLong_t& taskId, bool allDepths = false );
-	wxXmlNode* FindTaskNode( const wxString& taskId, wxXmlNode* parent, bool allDepths = false );
-	wxXmlNode* FindTaskNode( const wxLongLong_t& taskId, wxXmlNode* parent, bool allDepths = false );
+	wxXmlNode* FindTaskNode_xml( const wxLongLong_t& taskId, bool allDepths = false );
+	wxXmlNode* FindTaskNode_xml( const std::string& taskId, wxXmlNode* parent, bool allDepths = false );
+	wxXmlNode* FindTaskNode_xml( const wxLongLong_t& taskId, wxXmlNode* parent, bool allDepths = false );
 
 	CBratTask* CreateBratTask( wxXmlNode* taskNode );
 
-	void RemoveMapBratTasks();
+	virtual void RemoveMapBratTasks() override;
 
-	void ChangeTaskStatus( CBratTask* bratTask, CBratTask::Status newStatus );
-	void ChangeTaskStatusFromXml( wxLongLong_t id, CBratTask::Status newStatus );
-	CBratTask::Status ChangeTaskStatusFromMap( wxLongLong_t id, CBratTask::Status newStatus );
-
-
-	void LoadAllTasks();
+	virtual bool LoadAllTasks() override;
 	bool LoadTasks( wxXmlNode* node );
-
-	bool LoadPendingTasks();
-	bool LoadEndedTasks();
-	bool LoadProcessingTasks();
-
 	bool LoadSubordinateTasks( wxXmlNode* taskNode, CBratTask* bratTask );
 
-	bool SetPropVal( wxXmlNode* node, const wxString& propName, const wxString& value, bool allDepths = true );
+	bool SetPropVal( wxXmlNode* node, const std::string& propName, const std::string& value, bool allDepths = true );
 
 
-	CMapBratTask* GetMapBratTask() { return &m_mapBratTask; };
-	CMapBratTask* GetMapProcessingBratTask() { return &m_mapProcessingBratTask; };
-
-	bool LockConfigFile( bool lockFile = true );
-	bool LockConfigFile( const wxString& fileName, bool lockFile = true );
-	void UnLockConfigFile( bool unlockFile );
+	virtual bool LockConfigFile( bool lockFile = true ) override
+	{
+		return LockConfigFile( m_fullFileName, lockFile );
+	}
+	virtual bool LockConfigFile( const std::string& fileName, bool lockFile = true ) override;
+	virtual void UnLockConfigFile( bool unlockFile ) override;
 
 	//wxMutexError MutexLock();
 	//wxMutexError MutexUnLock();
 
-	static wxString GetConfigFilePath();
+	static std::string GetLogFilePath();
+	static std::string GetLogFilePath( const std::string& appName );
 
-	static wxString GetLogFilePath();
-	static wxString GetLogFilePath( const wxString& appName );
-
-	static wxString GetUserDataDir();
-	static wxString GetUserConfigDir();
-	static wxString GetUserConfigDir( const wxString& appName );
+	static std::string GetUserDataDir();
+	static std::string GetUserConfigDir();
+	static std::string GetUserConfigDir( const std::string& appName );
 
 	static bool IsPendingTasksElement( wxXmlNode* node );
 
-	static wxString GetTaskIdAsString( wxXmlNode* node );
-	static wxLongLong_t GetTaskId( wxXmlNode* node );
+	static std::string GetTaskIdAsString( wxXmlNode* node );
+	static uid_t GetTaskId( wxXmlNode* node );
 
-	static CSchedulerTaskConfig* GetInstance( const wxString* fileName, bool reload = false, bool lockFile = true, bool unlockFile = true );
-	//static CSchedulerTaskConfig* GetInstance(const std::string* fileName, bool reload = false, const wxString& encoding = "UTF-8");
+	static CSchedulerTaskConfig* GetInstance( const std::string* fileName, bool reload = false, bool lockFile = true, bool unlockFile = true );
+	//static CSchedulerTaskConfig* GetInstance(const std::string* fileName, bool reload = false, const std::string& encoding = "UTF-8");
 
-	bool ParseDateTime( const wxString& value, wxDateTime& dt, wxString& error );
+	bool ParseDateTime( const std::string& value, wxDateTime& dt, std::string& error );
 
 
 	// WDR: method declarations for SchedulerTaskConfig
 
-	static const wxString m_ENDED_ELT;
-	static const wxString m_PENDING_ELT;
-	static const wxString m_PROCESSING_ELT;
-	static const wxString m_ROOT_ELT;
-	static const wxString m_TASK_ELT;
-	static const wxString m_ARG_ELT;
+	static const std::string m_ENDED_ELT;
+	static const std::string m_PENDING_ELT;
+	static const std::string m_PROCESSING_ELT;
+	static const std::string m_ROOT_ELT;
+	static const std::string m_TASK_ELT;
+	static const std::string m_ARG_ELT;
 
-	//static const wxString m_TASK_ID_ATTR;			  //femm: see above in public section
-	static const wxString m_TASK_CMD_ATTR;
-	static const wxString m_TASK_FUNCTION_ATTR;
-	static const wxString m_TASK_AT_ATTR;
-	static const wxString m_TASK_LOG_FILE_ATTR;
-	static const wxString m_TASK_NAME_ATTR;
-	static const wxString m_TASK_RETURN_CODE_ATTR;
-	static const wxString m_TASK_STATUS_ATTR;
-	static const wxString m_TYPE_ATTR;
+	//static const std::string m_TASK_ID_ATTR;			  //femm: see above in public section
+	static const std::string m_TASK_CMD_ATTR;
+	static const std::string m_TASK_FUNCTION_ATTR;
+	static const std::string m_TASK_AT_ATTR;
+	static const std::string m_TASK_LOG_FILE_ATTR;
+	static const std::string m_TASK_NAME_ATTR;
+	static const std::string m_TASK_RETURN_CODE_ATTR;
+	static const std::string m_TASK_STATUS_ATTR;
+	static const std::string m_TYPE_ATTR;
 
-//	static const wxString m_DEFAULT_TASK_NAME;
+//	static const std::string m_DEFAULT_TASK_NAME;
 
-	static const wxString& encoding()
+	static const std::string& encoding()
 	{
-		static const wxString e = wxT( "UTF-8" );
+		static const std::string e( "UTF-8" );
 		return e;
 	}
 
@@ -292,12 +278,12 @@ private:
 		// the singleton object IS explicitly deleted.
 
 	private:
-		CSchedulerTaskConfig **m_pAddressOfSchedulerTaskConfigPtr;
+		CTasksProcessor **m_pAddressOfSchedulerTaskConfigPtr;
 		wxLogBuffer **m_pAddressOfSchedulerTaskConfigLogger;
 
 
 	public:
-		CSmartCleaner( CSchedulerTaskConfig **addressOfSchedulerTaskConfigPtr, wxLogBuffer **addressOfSchedulerTaskConfigLogger )
+		CSmartCleaner( CTasksProcessor **addressOfSchedulerTaskConfigPtr, wxLogBuffer **addressOfSchedulerTaskConfigLogger )
 			: m_pAddressOfSchedulerTaskConfigPtr( addressOfSchedulerTaskConfigPtr ),
 			m_pAddressOfSchedulerTaskConfigLogger( addressOfSchedulerTaskConfigLogger )
 		{
@@ -321,37 +307,17 @@ private:
 			}
 		}
 
-		CSchedulerTaskConfig * GetObject() { return *m_pAddressOfSchedulerTaskConfigPtr; }
+		CSchedulerTaskConfig* GetObject() { return dynamic_cast<CSchedulerTaskConfig*>( *m_pAddressOfSchedulerTaskConfigPtr ); }
 		wxLogBuffer * GetObjectLogger() { return *m_pAddressOfSchedulerTaskConfigLogger; }
-
 	};
 
 private:
 
-	bool m_reloadAll;
-
-	wxString m_fullFileName;
 	wxDateTime m_dateTimeFullFileNameMod;
 
-	// Map for all tasks (the reference map)
-	CMapBratTask m_mapBratTask;
-	// Map for pending tasks - Warning : don't delete object stored in it.
-	CMapBratTask m_mapPendingBratTask;
-	// Map for processing tasks - Warning : don't delete object stored in it.
-	CMapBratTask m_mapProcessingBratTask;
-	// Map for ended (or error) tasks - Warning : don't delete object stored in it.
-	CMapBratTask m_mapEndedBratTask;
-	// Map used to stored new pending tasks when file is reloaded.
-	// Tasks are just added as reference - Warning : don't delete object stored in it.
-	CMapBratTask m_mapNewBratTask;
+	static const std::string m_CONFIG_FILE_NAME;
+	static const std::string m_LOG_REL_PATH;
 
-	wxLongLong m_lastId;
-
-	static const wxString m_CONFIG_FILE_NAME;
-	static const wxString m_LOG_REL_PATH;
-
-
-	static CSchedulerTaskConfig* m_instance;
 	static wxLogBuffer* m_logBuffer;
 
 	// Initial reference of the wxLog object - Don't delete
@@ -364,35 +330,20 @@ private:
 
 	wxCriticalSection m_critSectConfigFileChecker;
 
-	//wxMutex m_mutex;
-	// m_configFileChecker is use to lock and get exclusive access to the configuration file.
-	// In the wxWoidgets documentation, we cant find that :
-	// "...A critical section object is used for exactly the same purpose as a wxMutex.
-	// The only difference is that under Windows platform critical sections are only visible inside one process,
-	// while mutexes may be shared among processes, so using critical sections is slightly more efficient."
-	// But wxMutex use 'unnamed' mutex for Windows, so in this case mutex are only intra-process and not inter-process.
-	// To bypass this, we use wxSingleInstanceChecker interface to  lock and get exclusive access to the configuration file,
-	// because under Windows wxSingleInstanceChecker implementation use 'named' mutex.
-	wxSingleInstanceChecker* m_configFileChecker;
-
 	// WDR: member variable declarations for SchedulerTaskConfig
 
 private:
-	void Init();
 
-	void NewConfigFileChecker( const wxString& fileName );
+	void NewConfigFileChecker( const std::string& fileName );
 	void DeleteConfigFileChecker();
 
-	bool AddNewTasksFromSibling( CSchedulerTaskConfig* sched );
+	virtual bool AddNewTasksFromSibling( CTasksProcessor* sched ) override;
 
-	void AddTask( const CMapBratTask* mapBratTask );
-
-	wxLongLong GenerateId();
-	//wxString GetLastIdAsString(bool generateNewId);
+	//std::string GetLastIdAsString(bool generateNewId);
 	//wxLongLong_t GetLastIdAsLongLong(bool generateNewId);
 
 
-	static bool CreateXmlFile( const wxString& fileName );
+	static bool CreateXmlFile( const std::string& fileName );
 
 	static void PrepareSmartCleaner();
 

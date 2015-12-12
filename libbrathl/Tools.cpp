@@ -39,7 +39,7 @@
 using namespace brathl;
 
 
-#if defined (__unix__)
+#if defined (__unix__) || defined(__APPLE__)
 #define _strdup strdup
 #endif
 

@@ -79,7 +79,7 @@ public:
 
   bool AskToRemove();
 
-  void AddTasks(CMapBratTask* data);
+  void AddTasks(const CMapBratTask* data);
 
   void SelectAll();
   void DeselectAll();

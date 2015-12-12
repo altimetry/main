@@ -1183,9 +1183,9 @@ TselfInsert(I From, I Till, L far* const Bf, I far &BfLen, I TotalLen, I Where)
 
 
 //////////////////////////////////////////////
-//	  				    //
-//   			Find&Replace        //
-//              	         	    //
+//
+//   			Find&Replace
+//
 //////////////////////////////////////////////
 
 
@@ -1219,19 +1219,47 @@ typename STRING::size_type i_find( const STRING &source, const STRING &find, siz
         return ( it == source.end() ?  STRING::npos  :  it - source.begin() );
 }
 
-template< typename STRING >
-inline STRING& FindAndReplace( STRING& source, const typename STRING::value_type *find, const typename STRING::value_type *replace, size_t pos = 0 )
-{
-																	assert__( find && replace );
-	size_t findLen = Tstrlen( find );
-	size_t replaceLen = Tstrlen( replace );
+//template< typename STRING >
+//inline STRING& FindAndReplace( STRING& source, const typename STRING::value_type *find, const typename STRING::value_type *replace, size_t pos = 0 )
+//{
+//																	assert__( find && replace );
+//	size_t findLen = Tstrlen( find );
+//	size_t replaceLen = Tstrlen( replace );
+//
+//	while ( ( pos = source.find( find, pos) ) != std::string::npos ) {
+//		source.replace( pos, findLen, replace );
+//		pos += replaceLen;
+//	}
+//	return source;
+//}
 
-	while ( ( pos = source.find( find, pos) ) != std::string::npos ) {
-		source.replace( pos, findLen, replace );
-		pos += replaceLen;
-	}
-	return source;
+
+template< typename STRING, typename TOKEN_STRING >
+STRING replace( const STRING &str, const TOKEN_STRING &strToFind, const TOKEN_STRING &replaceBy, bool compareNoCase = false )
+{
+    std::string strRet = str;
+
+    auto pos = compareNoCase ? i_find( strRet, strToFind ) : strRet.find( strToFind );
+    while (pos != std::string::npos)
+    {
+        strRet.replace( pos, strToFind.length(), replaceBy );
+
+        if ( compareNoCase ){  pos = i_find(strRet, strToFind, pos + replaceBy.length() ); }
+        else                {  pos = strRet.find( strToFind, pos + replaceBy.length() );  }
+    }
+    return strRet;
 }
+
+template< typename STRING >
+STRING replace( const STRING &str, const typename STRING::value_type *strToFind, const typename STRING::value_type *replaceBy, bool compareNoCase = false )
+{
+	return replace( str, STRING( strToFind ), STRING( replaceBy ), compareNoCase );
+}
+
+
+
+
+
 
 
 #include <cwctype>

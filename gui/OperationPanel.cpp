@@ -3433,7 +3433,7 @@ TaskRet COperationPanel::Delay( CDelayDlg& delayDlg )
 		return r;
 	}
 
-	r = CSchedulerTaskConfig::GetInstance()->AddTaskAsPending( m_operation->GetFullCmd(), at, taskLabel );
+    r = CSchedulerTaskConfig::GetInstance()->AddTaskAsPending( m_operation->GetFullCmd().ToStdString(), at, taskLabel.ToStdString() );
 
 	if ( !CSchedulerTaskConfig::SaveSchedulerTaskConfig() )
 		RemoveTaskFromSchedulerTaskConfig( r.n );
@@ -3723,16 +3723,18 @@ void COperationPanel::DelayExportOperationAsGeoTiff( CExportDlg& exportDlg )
 
 	// Save tasks uid because LoadSchedulerTaskConfig can reload all the file
 	// and 'mainTaskNode' will be invalid
-	wxString uidSaved;
-	r.n->GetPropVal( CSchedulerTaskConfig::m_TASK_ID_ATTR, &uidSaved );		assert__( uidSaved == r.t->GetUidAsString() );
+    std::string uidSaved;
+    wxString uidSaved2;
+    r.n->GetPropVal( CSchedulerTaskConfig::m_TASK_ID_ATTR, &uidSaved2 );
+    uidSaved = r.t->GetUidAsString();		assert__( uidSaved2.ToStdString() == uidSaved );
 	r.n = NULL;
 
 	if ( !LoadSchedulerTaskConfig() )
 		return;
 
-	r.n = CSchedulerTaskConfig::GetInstance()->FindTaskNode( uidSaved, true );
+    r.n = CSchedulerTaskConfig::GetInstance()->FindTaskNode_xml( uidSaved, true );
 
-	r = CSchedulerTaskConfig::GetInstance()->AddTaskAsPending( r, fullCommand, at, taskLabel );
+    r = CSchedulerTaskConfig::GetInstance()->AddTaskAsPending( r, fullCommand.ToStdString(), at, taskLabel.ToStdString() );
 
 	if ( !CSchedulerTaskConfig::SaveSchedulerTaskConfig() )
 		RemoveTaskFromSchedulerTaskConfig( r.n );
@@ -3758,7 +3760,7 @@ void COperationPanel::DelayExportOperationAsNetCdf( CExportDlg& exportDlg )
 	if ( !LoadSchedulerTaskConfig() )
 		return;
 
-	r.n = CSchedulerTaskConfig::GetInstance()->FindTaskNode( uidSaved, true );
+    r.n = CSchedulerTaskConfig::GetInstance()->FindTaskNode_xml( uidSaved.ToStdString(), true );
 
 	wxString taskLabel = exportDlg.m_delayDlg.GetTaskName()->GetValue();
 	if ( taskLabel.IsEmpty() )
@@ -3775,7 +3777,7 @@ void COperationPanel::DelayExportOperationAsNetCdf( CExportDlg& exportDlg )
 		CBratTaskFunction::m_TASK_FUNC_COPYFILE,
 		params,
 		at,
-		taskLabel );
+        taskLabel.ToStdString() );
 
 	if ( !CSchedulerTaskConfig::SaveSchedulerTaskConfig() )
 		RemoveTaskFromSchedulerTaskConfig( r.n );
@@ -3836,10 +3838,10 @@ void COperationPanel::DelayExportOperationAsAsciiDump( CDelayDlg& delayDlg, Task
 
 	if ( r.n == NULL )
 	{
-		r.n = CSchedulerTaskConfig::GetInstance()->FindTaskNode( uidSaved, true );
+        r.n = CSchedulerTaskConfig::GetInstance()->FindTaskNode_xml( uidSaved.ToStdString(), true );
 	}
 
-	r = CSchedulerTaskConfig::GetInstance()->AddTaskAsPending( r, m_operation->GetExportAsciiFullCmd(), at, taskLabel );
+    r = CSchedulerTaskConfig::GetInstance()->AddTaskAsPending( r, m_operation->GetExportAsciiFullCmd().ToStdString(), at, taskLabel.ToStdString() );
 
 	if ( !CSchedulerTaskConfig::SaveSchedulerTaskConfig() )
 		RemoveTaskFromSchedulerTaskConfig( r.n );

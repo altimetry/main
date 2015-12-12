@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2009 sp1 (http://www.altova.com) by fernando (CL&P) -->
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
 	<xs:element name="task">
 		<xs:complexType>
@@ -29,8 +30,10 @@
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
 						<xs:enumeration value="pending"/>
-						<xs:enumeration value="processing"/>
+						<xs:enumeration value="in progress"/>
 						<xs:enumeration value="ended"/>
+						<xs:enumeration value="error"/>
+						<xs:enumeration value="warning"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>

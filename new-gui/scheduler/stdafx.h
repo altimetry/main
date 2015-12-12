@@ -58,9 +58,11 @@
 #define BOOST_LOCALE_LINKED   //required for utf <-> ascii conversions
 
 
-//#if defined (_MSC_VER)
-//#pragma warning( disable : 4100 )
-//#endif
+#if defined (DEBUG) || defined (_DEBUG)
+#if defined (WIN32) || defined (_WIN32)
+	#define MEM_LEAKS
+#endif
+#endif
 
 
 #endif      //STDAFX_H

@@ -24,6 +24,7 @@
 #include <QDateTime>
 
 #include "../Common/QtStringUtils.h"
+#include "../Common/tools/Trace.h"
 
 #include "libbrathl/brathl.h" 
 #include "libbrathl/BratAlgorithmBase.h" 
@@ -218,7 +219,7 @@ public:
 	//static members (functions and data)
 
 protected:
-	static const std::string* statusNames()
+	static const std::string* statusNames()		//XSD: these are values of the XSD enumeration of status attribute
 	{
 		static const std::string labels[ e_Status_size ] =
 		{
@@ -436,39 +437,108 @@ public:
 //-------------------------------------------------------------
 //------------------- CMapBratTask class --------------------
 //-------------------------------------------------------------
-typedef std::map< CBratTask::uid_t, CBratTask* > mapbrattask; 
 
 
-class CMapBratTask : public mapbrattask
+class CMapBratTask : public std::map< CBratTask::uid_t, CBratTask* >
 {
+	//types
+
+	typedef std::map< CBratTask::uid_t, CBratTask* > base_t; 
 	typedef CBratTask::uid_t uid_t;
+
+	//data members
 
 	bool m_bDelete;
 
+	// constructors / destructor
+
 public:
-	CMapBratTask( bool bDelete = true );
-	virtual ~CMapBratTask();
+	CMapBratTask( bool bDelete = true ) : base_t(), m_bDelete( bDelete )
+	{}
+	virtual ~CMapBratTask()
+	{
+		RemoveAll();
+	}
 
-	virtual CBratTask* Insert( uid_t key, CBratTask* ob, bool withExcept = true );
-	virtual void Insert( const CMapBratTask* map, bool bRemoveAll = true );
-
-	virtual bool Remove( uid_t id );
-	virtual bool Remove( CMapBratTask::iterator it );
-
-
-	virtual void RemoveAll();
-
-	virtual void Dump( std::ostream& fOut = std::cerr );
-
-	virtual CBratTask* Find( uid_t id ) const;
+	// getters / setters & access
 
     bool GetDelete() const { return m_bDelete; }
     void SetDelete( bool value ) { m_bDelete = value; }
 
+	virtual CBratTask* Find( uid_t id ) const
+	{
+		const_iterator it = find( id );
+		if ( it == end() )
+			return NULL;
 
-protected:
+		return it->second;
+	}
 
-	void Init();
+	// insert
+
+	//If 'key' already exists --> pairInsert.second == false and
+	// pairInsert.first then contains an iterator on the existing object
+	// If 'key' does not exist --> pairInsert.second == true and
+	// pairInsert.first then contains a iterator on the inserted object
+	//
+	virtual CBratTask* Insert( uid_t key, CBratTask* ob, bool withExcept = true )
+	{
+		std::pair <iterator, bool> pairInsert = insert( value_type( key, ob ) );
+
+		if ( !pairInsert.second && withExcept )
+		{
+			CException e( "ERROR in CMapBratTask::Insert - try to insert an task that already exists. Check that no task have the same id", BRATHL_INCONSISTENCY_ERROR );
+			Dump(*CTrace::GetDumpContext());
+			throw e;
+		}
+
+		CMapBratTask::iterator it = ( pairInsert.first );
+		return it->second;
+	}
+
+	virtual void Insert( const CMapBratTask* map, bool bRemoveAll = true )
+	{
+		if ( map == NULL )
+			return;
+
+		if ( bRemoveAll )
+			RemoveAll();
+
+		for ( const_iterator it = map->begin(); it != map->end(); it++ )
+			Insert( it->first, it->second->Clone() );
+	}
+
+	// remove
+
+	virtual bool Remove( uid_t id )
+	{
+		return Remove( find( id ) );
+	}
+
+	virtual bool Remove( iterator it )
+	{
+		if ( it == end() )
+			return false;
+
+		if ( m_bDelete && it->second != NULL )
+			delete it->second;
+
+		base_t::erase( it );
+
+		return true;
+	}
+
+	virtual void RemoveAll()
+	{
+		if ( m_bDelete )
+			destroyPointersAndContainer( *this );
+		else
+			clear();
+	}
+
+	// ...
+
+	virtual void Dump( std::ostream& fOut = std::cerr );
 };
 
 

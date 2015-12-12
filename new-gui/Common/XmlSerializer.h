@@ -3,6 +3,8 @@
 
 #include <memory>
 
+#include "+Utils.h"
+
 
 ///////////////////////////////////////
 //		Include Xerces
@@ -18,12 +20,19 @@
 
 #include <xercesc/util/PlatformUtils.hpp>
 #include <xercesc/framework/LocalFileFormatTarget.hpp>
+#include <xsd/cxx/tree/exceptions.hxx>
 
 
 // This header must be included after the XSD generated header files,
 //  because some compilers (like gcc) require xml_schema to be known,
 //  even if it appears here only in a template, that is, before the
 //  compiler needs it to generate code.
+
+
+namespace xml_schema
+{
+	typedef ::xsd::cxx::tree::exception< char > exception;
+}
 
 
 ///////////////////////////////////////
@@ -57,6 +66,17 @@ inline bool load( GP &ge, const std::string &path )
 	ge = *pgp;
 	return true;
 }
+
+
+template< typename STRING >
+inline STRING& translate_exception( STRING &s, const xml_schema::exception &e )
+{
+    typename string_traits< STRING >::str_stream_type st;
+	st << e;
+	s = st.str();
+	return s;
+}
+
 
 
 ///////////////////////////////////////
