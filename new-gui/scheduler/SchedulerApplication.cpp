@@ -116,6 +116,7 @@ QSchedulerApplication::QSchedulerApplication(int &argc, char **argv, int flags)
 
 		CTasksProcessor* schedulerTaskConfig = CTasksProcessor::GetInstance();
 
+
 		/*
         // After loading, tasks whose status is 'in progress' are considered as 'pending'
         // They have to be re-executed.

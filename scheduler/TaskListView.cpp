@@ -363,9 +363,7 @@ void CTaskListView::InsertTasks(CMapBratTask* data)
     return;
   }
 
-  CMapBratTask::iterator it;
-
-  for (it = m_data->begin(); it != m_data->end(); it++)
+  for (CMapBratTask::const_iterator it = m_data->begin(); it != m_data->end(); it++)
   {
     CBratTask* bratTask = it->second;
     InsertTask(bratTask);

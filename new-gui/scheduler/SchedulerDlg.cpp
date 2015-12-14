@@ -46,7 +46,6 @@ const std::string BRATHL_ICON_FILENAME = "BratIcon.bmp";
 
 
 
-
 SchedulerDlg::SchedulerDlg(QWidget *parent) : QDialog(parent)
 	, mIsDialog( parent ? true : false )
 {
@@ -91,11 +90,83 @@ SchedulerDlg::SchedulerDlg(QWidget *parent) : QDialog(parent)
 
     }
 
-    // Single Instance Checker TODO!!!!!
+    //// Enabling sorting in all tables: pending, processing and end tasks.
+    tablePendingTask->setSortingEnabled(true);
+    tableProcTask->setSortingEnabled(true);
+    tableEndTask->setSortingEnabled(true);
 
-    // To be sure that number have always a decimal point (and not a comma
-    // or something else)
-    setlocale(LC_NUMERIC, "C");
+
+    // Enum task list columns
+    enum ETaskListCol{
+        eTaskUid,
+        eTaskName,
+        eTaskStart,
+        eTaskStatus,
+        eTaskCMD,
+        eTaskLogFile,
+        eTaskListCol_size
+    };
+
+    const CMapBratTask &data = *CTasksProcessor::GetInstance()->GetMapPendingBratTask();
+
+//    std::vector<int> v;
+//    const size_t size = v.size();
+//    for ( size_t i = 0; i < size; ++i)
+//    {
+//        auto task = v[i];
+
+//    }
+//    std::vector<CBratTask*> v2;
+//    for (std::vector<CBratTask*>::const_iterator it = v2.begin(); it != v2.end(); it++)
+//    {
+//        qDebug() << *it;
+
+//        //it->->GetUidAsString();
+
+//        (**it).GetUidAsString();
+//        (*it)->GetUidAsString();
+
+//    }
+    tablePendingTask->setRowCount(data.size());
+    size_t index = 0;
+    for (CMapBratTask::const_iterator it = data.begin(); it != data.end(); it++)
+    {
+      CBratTask* bratTask = it->second;
+      //// InsertTask(bratTask);////
+      if (bratTask == NULL)
+      {
+        //return -1;
+      }
+
+      tablePendingTask->setItem(index, eTaskUid, new QTableWidgetItem(bratTask->GetUidAsString().c_str()) );
+      tablePendingTask->setItem(index, eTaskName,new QTableWidgetItem(    bratTask->GetName().c_str()));
+      tablePendingTask->setItem(index, eTaskStart, new QTableWidgetItem(   bratTask->GetAtAsString().c_str()));
+      tablePendingTask->setItem(index, eTaskStatus, new QTableWidgetItem(  bratTask->GetStatusAsString().c_str()));
+      tablePendingTask->setItem(index, eTaskCMD,new QTableWidgetItem(     bratTask->GetCmd().c_str()));
+      tablePendingTask->setItem(index, eTaskLogFile, new QTableWidgetItem( bratTask->GetLogFile().c_str()));
+
+
+      //m_pTableWidget->setItem(0, 1, new QTableWidgetItem("Hello"));
+
+//      QString s = t2q(std::string("sdjfhgi"));
+//      std::string s2 = q2t<std::string>(QString("sdjfhgi"));
+//      auto s3 = n2s<std::string>(890);
+//      auto n = s2n<double>(std::string("789") );
+
+//      for ( auto &t : data )
+//      {
+//          qDebug() << t.first;
+//          qDebug() << t.second->GetUidAsString().c_str();
+
+//      }
+
+      index++;
+      /// END InsertTask(bratTask) ///
+
+    }
+
+    ////////////////////////////////////////////////////////////////////
+
 }
 
 void SchedulerDlg::createMenuBar()
