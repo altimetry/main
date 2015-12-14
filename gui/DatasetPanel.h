@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -21,10 +19,6 @@
 #ifndef __DatasetPanel_H__
 #define __DatasetPanel_H__
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "DatasetPanel.h"
-#endif
-
 #ifndef WX_PRECOMP
     #include "wx/wx.h"
 #endif
@@ -37,9 +31,12 @@ using namespace brathl;
 #include "BratGui_wdr.h"
 
 #include "Dictionary.h"
-#include "Dataset.h"
 
+
+
+class CDataset;
 class CDatasetPanel;
+
 
 // WDR: class declarations
 //----------------------------------------------------------------------------

@@ -47,12 +47,14 @@ class CDatasetFilesChangeEvent;
 #include "OperationTreeCtrl.h"
 
 #include "Dictionary.h"
-#include "Dataset.h"
 #include "Operation.h"
 #include "Process.h"
 #include "DelayDlg.h"
 #include "ExportDlg.h"
 #include "SchedulerTaskConfig.h"
+
+
+class CDataset;
 
 
 // WDR: class declarations
@@ -182,7 +184,7 @@ public:
 
   bool HasOperation() {return m_currentOperation >= 0;};
 
-  bool CtrlOperation(wxString& msg, bool basicControl = false, const CStringMap* aliases = NULL);
+  bool CtrlOperation(std::string &msg, bool basicControl = false, const CStringMap* aliases = NULL);
   bool BuildCmdFile();
 
   bool BuildExportAsciiCmdFile();
@@ -244,7 +246,7 @@ public:
   void SaveFormulaAs(CFormula* formula);
 
   bool CheckExpression(wxTextCtrl* ctrl);
-  bool CheckExpression(const wxString& value, wxString* strExprUnit = NULL, wxString* valueOut = NULL);
+  bool CheckExpression( const std::string& value, std::string *strExprUnit = NULL, std::string *valueOut = NULL);
 
   void FillFormulaList();
 //  void InitDefaultFormulaValue(const wxString& fieldName, int32_t type);

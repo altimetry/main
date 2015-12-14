@@ -6,10 +6,6 @@
 #ifndef __WDR_BratGui_H__
 #define __WDR_BratGui_H__
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "BratGui_wdr.h"
-#endif
-
 // Include wxWidgets' headers
 
 #ifndef WX_PRECOMP

@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
@@ -19,9 +17,7 @@
 */
 
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "Operation.h"
-#endif
+#include "new-gui/brat/stdafx.h"
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
@@ -226,13 +222,13 @@ void COperation::SetLogFile()
   }
   else
   {
-    m_logFile.Normalize(wxPATH_NORM_ALL, wks->GetPathName());
+    m_logFile.Normalize(wxPATH_NORM_ALL, wks->GetPath());
   }
 
 }
 
 //----------------------------------------
-bool COperation::CtrlLoessCutOff(wxString& msg)
+bool COperation::CtrlLoessCutOff( std::string &msg )
 {
   if (m_type != CMapTypeOp::typeOpZFXY)
   {
@@ -331,13 +327,12 @@ bool COperation::CtrlLoessCutOff(wxString& msg)
   return bOk;
 }
 //----------------------------------------
-bool COperation::UseDataset(const wxString& name)
+bool COperation::UseDataset( const wxString& name )
 {
-  if (m_dataset == NULL)
-  {
-    return false;
-  }
-  return (m_dataset->GetName().CmpNoCase(name) == 0);
+	if ( m_dataset == NULL )
+		return false;
+
+	return str_icmp( m_dataset->GetName(), name.ToStdString() );
 }
 
 //----------------------------------------
@@ -349,7 +344,7 @@ wxString COperation::GetFormulaNewName()
 
   do
   {
-    key = wxString::Format(WKS_EXPRESSION_NAME +"_%d", i + 1);
+    key = WKS_EXPRESSION_NAME + "_" + n2s<std::string>( i + 1 );
     i++;
   }
   while (m_formulas.Exists((const char *)key.c_str()) != NULL);
@@ -380,7 +375,7 @@ wxString COperation::GetFormulaNewName(const wxString& prefix)
 
 
 //----------------------------------------
-bool COperation::RenameFormula(CFormula* formula, const wxString& newName)
+bool COperation::RenameFormula(CFormula* formula, const std::string &newName)
 {
  bool bOk = m_formulas.RenameKey((const char *)formula->GetName().c_str(), (const char *)newName.c_str());
  if (bOk == false)
@@ -444,11 +439,11 @@ CFormula* COperation::NewUserFormula(const wxString& name, int32_t typeField, co
 
   CFormula* formulaToReturn = NULL;
 
-  wxString formulaName = (name.IsEmpty()) ? GetFormulaNewName() : GetFormulaNewName(name);
+  std::string formulaName = ( name.IsEmpty() ? GetFormulaNewName() : GetFormulaNewName(name) ).ToStdString();
 
   CFormula formula(formulaName, false);
   formula.SetType(typeField);
-  formula.SetUnit(strUnit, "", false);
+  formula.SetUnit(strUnit.ToStdString(), "", false);
 
   CUnit* unit = formula.GetUnit();
 
@@ -515,19 +510,19 @@ bool COperation::DeleteFormula(const wxString& name)
  return bOk;
 }
 //----------------------------------------
-wxString COperation::GetCommentFormula(const wxString& name)
+wxString COperation::GetCommentFormula(const std::string& name)
 {
   return m_formulas.GetCommentFormula(name);
 }
 //----------------------------------------
-void COperation::SetCommentFormula(const wxString& name, const wxString& value)
+void COperation::SetCommentFormula(const std::string &name, const std::string &value)
 {
   m_formulas.SetCommentFormula(name, value);
 }
 //----------------------------------------
-wxString COperation::GetDescFormula(const wxString& name, bool alias)
+std::string COperation::GetDescFormula( const std::string& name, bool alias )
 {
-  return m_formulas.GetDescFormula(name, alias);
+	return m_formulas.GetDescFormula( name, alias );
 }
 /*
 //----------------------------------------
@@ -629,53 +624,38 @@ wxString COperation::GetSelectDescription()
   return m_select->GetDescription();
 }
 //----------------------------------------
-bool COperation::SaveConfig(wxFileConfig* config)
+bool COperation::SaveConfig( CConfiguration *config )
 {
-  bool bOk = true;
-  if (config == NULL)
-  {
-    return true;
-  }
+	if ( config == NULL )
+		return true;
 
-  config->SetPath("/" + m_name);
+	config->SetPath( "/" + m_name.ToStdString() );
 
-  if (m_dataset != NULL)
-  {
-    bOk &= config->Write(ENTRY_DSNAME,
-                         m_dataset->GetName());
-    bOk &= config->Write(ENTRY_RECORDNAME,
-                         GetRecord());
-  }
-/*  else
-  {
-    bOk &= config->Write(ENTRY_DSNAME,
-                         "");
-  }
-*/
-  bOk &= config->Write(ENTRY_TYPE,
-                       CMapTypeOp::GetInstance().IdToName(m_type));
+	bool bOk = true;
+	if ( m_dataset != NULL )
+		bOk &= config->Write( ENTRY_DSNAME, m_dataset->GetName().c_str() ) && config->Write( ENTRY_RECORDNAME, GetRecord().ToStdString() );
 
-  // Data mode is no more for a operation, but for each formula (data expression)
-  //bOk &= config->Write(ENTRY_DATA_MODE,
-  //                     CMapDataMode::GetInstance().IdToName(m_dataMode));
+	bOk &= config->Write( ENTRY_TYPE, CMapTypeOp::GetInstance().IdToName( m_type ) );
 
-  m_select->SaveConfigDesc(config, config->GetPath());
+	// Data mode is no more for a operation, but for each formula (data expression)
+	//bOk &= config->Write(ENTRY_DATA_MODE,
+	//                     CMapDataMode::GetInstance().IdToName(m_dataMode));
 
-  // Save relative path based on path operation workspace for output file
-  //bOk &= config->Write(ENTRY_OUTPUT, GetOutputName());
-  bOk &= config->Write(ENTRY_OUTPUT, GetOutputNameRelativeToWks());
+	m_select->SaveConfigDesc( config, config->GetPath().ToStdString() );
 
-  bOk &= config->Write(ENTRY_EXPORT_ASCII_OUTPUT, GetExportAsciiOutputNameRelativeToWks());
+	// Save relative path based on path operation workspace for output file
+	//bOk &= config->Write(ENTRY_OUTPUT, GetOutputName());
+	bOk &= config->Write( ENTRY_OUTPUT, GetOutputNameRelativeToWks().ToStdString() );
 
-  // Warning after formulas Load config conig path has changed
-  m_formulas.SaveConfig(config, false, GetName() );
+	bOk &= config->Write( ENTRY_EXPORT_ASCII_OUTPUT, GetExportAsciiOutputNameRelativeToWks().ToStdString() );
 
-  return bOk;
+	// Warning after formulas Load config conig path has changed
+	m_formulas.SaveConfig( config, false, GetName().ToStdString() );
 
-
+	return bOk;
 }
 //----------------------------------------
-bool COperation::LoadConfig(wxFileConfig* config)
+bool COperation::LoadConfig( CConfiguration *config)
 {
   bool bOk = true;
   if (config == NULL)
@@ -683,14 +663,14 @@ bool COperation::LoadConfig(wxFileConfig* config)
     return true;
   }
 
-  config->SetPath("/" + m_name);
+  config->SetPath("/" + m_name.ToStdString());
 
-  wxString valueString;
+  std::string valueString;
   valueString = config->Read(ENTRY_DSNAME);
   m_dataset = FindDataset(valueString);
 
-  valueString = config->Read(ENTRY_TYPE, (const char *)CMapTypeOp::GetInstance().IdToName(m_type).c_str());
-  if (valueString.IsEmpty())
+  valueString = config->Read( ENTRY_TYPE, CMapTypeOp::GetInstance().IdToName(m_type) );
+  if (valueString.empty())
   {
     m_type = CMapTypeOp::typeOpYFX;
   }
@@ -699,8 +679,8 @@ bool COperation::LoadConfig(wxFileConfig* config)
     m_type = CMapTypeOp::GetInstance().NameToId(valueString);
   }
 
-  valueString = config->Read(ENTRY_DATA_MODE, (const char *)CMapDataMode::GetInstance().IdToName(m_dataMode).c_str());
-  if (valueString.IsEmpty())
+  valueString = config->Read( ENTRY_DATA_MODE, CMapDataMode::GetInstance().IdToName(m_dataMode) );
+  if (valueString.empty())
   {
     m_dataMode = CMapDataMode::GetInstance().GetDefault();
   }
@@ -717,7 +697,7 @@ bool COperation::LoadConfig(wxFileConfig* config)
     m_record = CProductNetCdf::m_virtualRecordName.c_str();
   }
   valueString = config->Read(ENTRY_OUTPUT);
-  if (valueString.IsEmpty() == false)
+  if (valueString.empty() == false)
   {
     // Note that if the path to the output is in relative form,
     // SetOutput make it in absolute form based on workspace Operation path.
@@ -725,7 +705,7 @@ bool COperation::LoadConfig(wxFileConfig* config)
   }
 
   valueString = config->Read(ENTRY_EXPORT_ASCII_OUTPUT);
-  if (valueString.IsEmpty() == false)
+  if (valueString.empty() == false)
   {
     // Note that if the path to the output is in relative form,
     // SetOutput make it in absolute form based on workspace Operation path.
@@ -736,10 +716,10 @@ bool COperation::LoadConfig(wxFileConfig* config)
     InitExportAsciiOutput();
   }
 
-  m_select->LoadConfigDesc(config, config->GetPath());
+  m_select->LoadConfigDesc(config, config->GetPath().ToStdString());
 
   // Warning after formulas Load config conig path has changed
-  m_formulas.LoadConfig(config, false, GetName());
+  m_formulas.LoadConfig(config, false, GetName().ToStdString());
 
   m_formulas.InitFormulaDataMode(m_dataMode);
 
@@ -756,7 +736,7 @@ CDataset* COperation::FindDataset(const wxString& datasetName)
     return NULL;
   }
 
-  return wks->GetDataset(datasetName);
+  return wks->GetDataset(datasetName.ToStdString());
 }
 //----------------------------------------
 wxFileName* COperation::GetSystemCommand()
@@ -1082,7 +1062,7 @@ bool COperation::BuildCmdFileDataset()
   WriteLine(wxString(kwRECORD.c_str()) + "=" + m_record);
   WriteEmptyLine();
   wxArrayString array;
-  m_dataset->GetFiles(array);
+  GetFiles( *m_dataset, array);
   for (uint32_t i = 0 ; i < array.GetCount() ; i++)
   {
     WriteLine(wxString(kwFILE.c_str()) + "=" + array[i]);
@@ -1120,10 +1100,10 @@ bool COperation::BuildCmdFileFields()
       WriteLine(value->GetFieldPrefix()  + "_DATA_MODE=" + wxString(value->GetDataModeAsString().c_str()));
     }
 
-    valueString = (value->GetTitle().IsEmpty()) ? value->GetName() : value->GetTitle();
+    valueString = (value->GetTitle().empty()) ? value->GetName() : value->GetTitle();
     WriteLine(value->GetFieldPrefix()  + "_TITLE=" + valueString);
 
-    valueString = (value->GetComment().IsEmpty()) ? "DV" : value->GetComment();
+    valueString = (value->GetComment().empty()) ? "DV" : value->GetComment();
     WriteLine(value->GetFieldPrefix()  + "_COMMENT=" + valueString);
 
     BuildCmdFileFieldsSpecificZFXY(value);
@@ -1282,7 +1262,7 @@ bool COperation::BuildCmdFileSelect()
   WriteEmptyLine();
   WriteComment("----- SELECT -----");
   WriteEmptyLine();
-  if (m_select->GetDescription(true).IsEmpty() == false)
+  if (m_select->GetDescription(true).empty() == false)
   {
     WriteLine(wxString(kwSELECT.c_str()) + "=" + m_select->GetDescription(true));
   }
@@ -1398,7 +1378,7 @@ void COperation::SetShowStatsOutput(const wxFileName& value)
   }
   else
   {
-    m_showStatsOutput.Normalize(wxPATH_NORM_ALL, wks->GetPathName());
+    m_showStatsOutput.Normalize(wxPATH_NORM_ALL, wks->GetPath());
   }
 
   SetShowStatsCmdFile();
@@ -1416,7 +1396,7 @@ void COperation::SetShowStatsOutput(const wxString& value)
   }
   else
   {
-    m_showStatsOutput.Normalize(wxPATH_NORM_ALL, wks->GetPathName());
+    m_showStatsOutput.Normalize(wxPATH_NORM_ALL, wks->GetPath());
   }
 
   SetShowStatsCmdFile();
@@ -1434,7 +1414,7 @@ void COperation::SetExportAsciiOutput(const wxFileName& value)
   }
   else
   {
-    m_exportAsciiOutput.Normalize(wxPATH_NORM_ALL, wks->GetPathName());
+    m_exportAsciiOutput.Normalize(wxPATH_NORM_ALL, wks->GetPath());
   }
 
   SetExportAsciiCmdFile();
@@ -1452,7 +1432,7 @@ void COperation::SetExportAsciiOutput(const wxString& value)
   }
   else
   {
-    m_exportAsciiOutput.Normalize(wxPATH_NORM_ALL, wks->GetPathName());
+    m_exportAsciiOutput.Normalize(wxPATH_NORM_ALL, wks->GetPath());
   }
 
   SetExportAsciiCmdFile();
@@ -1471,7 +1451,7 @@ void COperation::SetOutput(const wxFileName& value)
   }
   else
   {
-    m_output.Normalize(wxPATH_NORM_ALL, wks->GetPathName());
+    m_output.Normalize(wxPATH_NORM_ALL, wks->GetPath());
   }
 
   SetCmdFile();
@@ -1489,7 +1469,7 @@ void COperation::SetOutput(const wxString& value)
   }
   else
   {
-    m_output.Normalize(wxPATH_NORM_ALL, wks->GetPathName());
+    m_output.Normalize(wxPATH_NORM_ALL, wks->GetPath());
   }
 
   SetCmdFile();
@@ -1508,7 +1488,7 @@ void COperation::SetCmdFile()
   }
   else
   {
-    m_cmdFile.Normalize(wxPATH_NORM_ALL, wks->GetPathName());
+    m_cmdFile.Normalize(wxPATH_NORM_ALL, wks->GetPath());
   }
 
 }
@@ -1517,7 +1497,7 @@ void COperation::SetExportAsciiCmdFile()
 {
   CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
 
-  m_exportAsciiCmdFile.AssignDir(wks->GetPathName());
+  m_exportAsciiCmdFile.AssignDir(wks->GetPath());
   m_exportAsciiCmdFile.SetFullName(m_exportAsciiOutput.GetFullName());
   m_exportAsciiCmdFile.SetExt(EXPORTASCII_COMMANDFILE_EXTENSION);
   if (wks == NULL)
@@ -1526,7 +1506,7 @@ void COperation::SetExportAsciiCmdFile()
   }
   else
   {
-    m_exportAsciiCmdFile.Normalize(wxPATH_NORM_ALL, wks->GetPathName());
+    m_exportAsciiCmdFile.Normalize(wxPATH_NORM_ALL, wks->GetPath());
   }
 
 }
@@ -1535,7 +1515,7 @@ void COperation::SetShowStatsCmdFile()
 {
   CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
 
-  m_showStatsCmdFile.AssignDir(wks->GetPathName());
+  m_showStatsCmdFile.AssignDir(wks->GetPath());
   m_showStatsCmdFile.SetFullName(m_showStatsOutput.GetFullName());
   m_showStatsCmdFile.SetExt(SHOWSTAT_COMMANDFILE_EXTENSION);
   if (wks == NULL)
@@ -1544,7 +1524,7 @@ void COperation::SetShowStatsCmdFile()
   }
   else
   {
-    m_showStatsCmdFile.Normalize(wxPATH_NORM_ALL, wks->GetPathName());
+    m_showStatsCmdFile.Normalize(wxPATH_NORM_ALL, wks->GetPath());
   }
 
 }
@@ -1559,9 +1539,8 @@ wxString COperation::GetOutputNameRelativeToWks()
   }
 
   wxFileName relative = m_output;
-  relative.MakeRelativeTo(wks->GetPathName());
+  relative.MakeRelativeTo(wks->GetPath());
   return relative.GetFullPath();
-
 }
 //----------------------------------------
 wxString COperation::GetExportAsciiOutputNameRelativeToWks()
@@ -1573,7 +1552,7 @@ wxString COperation::GetExportAsciiOutputNameRelativeToWks()
   }
 
   wxFileName relative = m_exportAsciiOutput;
-  relative.MakeRelativeTo(wks->GetPathName());
+  relative.MakeRelativeTo(wks->GetPath());
   return relative.GetFullPath();
 
 }
@@ -1587,7 +1566,7 @@ wxString COperation::GetShowStatsOutputNameRelativeToWks()
   }
 
   wxFileName relative = m_showStatsOutput;
-  relative.MakeRelativeTo(wks->GetPathName());
+  relative.MakeRelativeTo(wks->GetPath());
   return relative.GetFullPath();
 
 }
@@ -1600,8 +1579,8 @@ void COperation::InitOutput()
     return;
   }
 
-  wxString output = wks->GetPathName(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR)
-                                     + "Create"
+  wxString output = wks->GetPath()		//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR				!!! femm attention here !!!
+                                     + "/Create"
                                      + GetName() + ".nc";
   SetOutput(output);
 
@@ -1615,8 +1594,8 @@ void COperation::InitShowStatsOutput()
     return;
   }
 
-  wxString output = wks->GetPathName(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR)
-                                     + "Stats"
+  wxString output = wks->GetPath()				//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR		!!! femm attention here !!!
+                                     + "/Stats"
                                      + GetName() + ".txt";
   SetShowStatsOutput(output);
 
@@ -1630,8 +1609,8 @@ void COperation::InitExportAsciiOutput()
     return;
   }
 
-  wxString output = wks->GetPathName(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR)
-                                     + "ExportAscii"
+  wxString output = wks->GetPath()						//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR !!! femm attention here !!!
+                                     + "/ExportAscii"
                                      + GetName() + ".txt";
   SetExportAsciiOutput(output);
 
@@ -1688,7 +1667,7 @@ bool COperation::ComputeInterval(CFormula* f, bool showMsg)
 }
 
 //----------------------------------------
-bool COperation::GetXExpression(CExpression& expr, wxString& errorMsg, const CStringMap* aliases /* = NULL*/)
+bool COperation::GetXExpression(CExpression& expr, std::string& errorMsg, const CStringMap* aliases /* = NULL*/)
 {
   bool bOk = true;
 
@@ -1710,7 +1689,7 @@ bool COperation::GetXExpression(CExpression& expr, wxString& errorMsg, const CSt
 }
 
 //----------------------------------------
-bool COperation::GetYExpression(CExpression& expr, wxString& errorMsg, const CStringMap* aliases /* = NULL*/)
+bool COperation::GetYExpression(CExpression& expr, std::string& errorMsg, const CStringMap* aliases /* = NULL*/)
 {
   bool bOk = true;
 
@@ -1732,7 +1711,7 @@ bool COperation::GetYExpression(CExpression& expr, wxString& errorMsg, const CSt
 }
 
 //----------------------------------------
-bool COperation::ControlXYDataFields(wxString& errorMsg, const CStringMap* aliases /* = NULL*/)
+bool COperation::ControlXYDataFields(std::string &errorMsg, const CStringMap* aliases /* = NULL*/)
 {
   bool bOk = true;
 
@@ -1818,7 +1797,7 @@ bool COperation::ControlXYDataFields(wxString& errorMsg, const CStringMap* alias
   return bOk;
 }
 //----------------------------------------
-bool COperation::ControlResolution(wxString& errorMsg)
+bool COperation::ControlResolution( std::string& errorMsg)
 {
   bool bOk = true;
 
@@ -1845,7 +1824,7 @@ bool COperation::ControlResolution(wxString& errorMsg)
   return bOk;
 }
 //----------------------------------------
-bool COperation::ControlDimensions(CFormula* formula, wxString& errorMsg,  const CStringMap* aliases /* = NULL*/)
+bool COperation::ControlDimensions(CFormula* formula, std::string &errorMsg,  const CStringMap* aliases /* = NULL*/)
 {
   if (formula == NULL)
   {
@@ -1876,7 +1855,7 @@ bool COperation::ControlDimensions(CFormula* formula, wxString& errorMsg,  const
   CUIntArray commonDimensions;
   bool bOk = m_product->HasCompatibleDims( (const char *)stringExpr.c_str(), (const char *)m_record.c_str(), msg, true, &commonDimensions);
 
-  errorMsg.Append(msg.c_str());
+  errorMsg += msg;
 
   return bOk;
 
@@ -1930,8 +1909,12 @@ bool COperation::ControlDimensions(CFormula* formula, wxString& errorMsg,  const
     return bOk;
   }
 
-  errorMsg.Append(wxString::Format("\nFields as array are not allowed in selection criteria expression unless they are present in X and/or Y axes.\nWrong field(s) is (are):\n%s\n",
-                                   complement.ToString("\n", false).c_str() ) );
+  errorMsg += (
+	  std::string("\nFields as array are not allowed in selection criteria expression unless they are present in X and/or Y axes.\nWrong field(s) is (are):\n" )
+	  + complement.ToString("\n", false)
+	  + "\n"
+	  );
+
   bOk = false;
 
   return bOk;
@@ -1939,7 +1922,7 @@ bool COperation::ControlDimensions(CFormula* formula, wxString& errorMsg,  const
 }
 
 //----------------------------------------
-bool COperation::Control(wxString& msg, bool basicControl /* = false */, const CStringMap* aliases /* = NULL*/)
+bool COperation::Control(std::string& msg, bool basicControl /* = false */, const CStringMap* aliases /* = NULL*/)
 {
   CMapFormula::iterator it;
   int32_t xCount = 0;
@@ -1968,7 +1951,7 @@ bool COperation::Control(wxString& msg, bool basicControl /* = false */, const C
       fieldCount++;
       break;
     }
-    bOk = value->CheckExpression(msg, m_record, aliases, m_product);
+    bOk = value->CheckExpression(msg, m_record.ToStdString(), aliases, m_product);
     if (!bOk)
     {
       errorCount++;
@@ -1993,7 +1976,7 @@ bool COperation::Control(wxString& msg, bool basicControl /* = false */, const C
   }
 
 
-  bOk = m_select->CheckExpression(msg, m_record, aliases, m_product);
+  bOk = m_select->CheckExpression(msg, m_record.ToStdString(), aliases, m_product);
   if (!bOk)
   {
     errorCount++;
@@ -2012,21 +1995,18 @@ bool COperation::Control(wxString& msg, bool basicControl /* = false */, const C
   {
     if (xCount == 0)
     {
-      msg.Append(wxString::Format("\nThere is no 'X field' for operation '%s'.",
-                                    this->GetName().c_str()));
+      msg += ( std::string("\nThere is no 'X field' for operation '" ) + GetName() + "'." );
       errorCount++;
     }
 
     if ( (yCount == 0) && (this->GetType() == CMapTypeOp::typeOpZFXY) )
     {
-      msg.Append(wxString::Format("\nThere is no 'Y field' for operation '%s'.",
-                                    this->GetName().c_str()));
+      msg += ( std::string("\nThere is no 'Y field' for operation '" ) + GetName() + "'." );
       errorCount++;
     }
     if (fieldCount == 0)
     {
-      msg.Append(wxString::Format("\nThere is no 'Data field' for operation '%s'.",
-                                    this->GetName().c_str()));
+      msg += ( std::string( "\nThere is no 'Data field' for operation '" ) + GetName() + "'." );
       errorCount++;
     }
 

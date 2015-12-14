@@ -18,10 +18,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "Display.h"
-#endif
+#include "new-gui/brat/stdafx.h"
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
@@ -94,13 +91,13 @@ void CDndDisplayData::Set(const CObArray& data)
 
 CDndDisplayDataObject::CDndDisplayDataObject(CDndDisplayData* dndDisplayData)
 {
-  if (dndDisplayData != NULL)
+  if (dndDisplayData != nullptr)
   {
     m_dndDisplayData = new CDndDisplayData(*dndDisplayData);
   }
   else
   {
-    m_dndDisplayData = NULL;
+    m_dndDisplayData = nullptr;
   }
 
   wxDataFormat dataDisplayFormat;
@@ -114,7 +111,7 @@ size_t CDndDisplayDataObject::GetDataSize() const
   size_t ret = 0;
   //size_t count = 0;
 
-  if (m_dndDisplayData == NULL)
+  if (m_dndDisplayData == nullptr)
   {
     return 0;
   }
@@ -126,12 +123,12 @@ size_t CDndDisplayDataObject::GetDataSize() const
 
 bool CDndDisplayDataObject::GetDataHere(void* buf) const
 {
-  if (m_dndDisplayData == NULL)
+  if (m_dndDisplayData == nullptr)
   {
     return false;
   }
 /*
-  if (m_dndDisplayData->m_displayData == NULL)
+  if (m_dndDisplayData->m_displayData == nullptr)
   {
     return false;
   }
@@ -153,7 +150,7 @@ bool CDndDisplayDataObject::SetData(size_t len, const void* buf)
 {
     UNUSED(len);
 
-  if (m_dndDisplayData == NULL)
+  if (m_dndDisplayData == nullptr)
   {
     m_dndDisplayData = new CDndDisplayData();
   }
@@ -201,7 +198,7 @@ CDisplayData::~CDisplayData()
 //----------------------------------------
 void CDisplayData::Init()
 {
-  m_operation = NULL;
+  m_operation = nullptr;
   m_group = 1;
   m_withContour = false;
   m_withSolidColor = true;
@@ -269,8 +266,8 @@ void CDisplayData::Copy(CDisplayData& d)
   m_z.SetUnit(d.m_z.GetUnit());
   m_z.SetDescription(d.m_z.GetDescription());
 
-  m_operation = NULL;
-  if (d.m_operation != NULL)
+  m_operation = nullptr;
+  if (d.m_operation != nullptr)
   {
     m_operation = CDisplay::FindOperation(d.m_operation->GetName());
   }
@@ -291,7 +288,7 @@ void CDisplayData::Copy(CDisplayData& d)
 //----------------------------------------
 wxString CDisplayData::GetDataKey()
 {
-  if (m_operation == NULL)
+  if (m_operation == nullptr)
   {
     return "";
   }
@@ -303,7 +300,7 @@ wxString CDisplayData::GetDataKey()
 //----------------------------------------
 wxString CDisplayData::GetDataKey(int32_t type)
 {
-  if (m_operation == NULL)
+  if (m_operation == nullptr)
   {
     return "";
   }
@@ -333,7 +330,7 @@ void CDisplayData::GetAvailableDisplayTypes(CUIntArray& displayTypes)
 {
   displayTypes.RemoveAll();
 
-  if (m_operation == NULL)
+  if (m_operation == nullptr)
   {
     return;
   }
@@ -351,7 +348,7 @@ wxString CDisplayData::GetXAxisText(const std::string& name)
   {
     CField* dim = dynamic_cast<CField*>(m_dimFields.at(index));
 
-    if (dim == NULL)
+    if (dim == nullptr)
     {
       return "";
     }
@@ -376,7 +373,7 @@ wxString CDisplayData::GetXAxisText(uint32_t index)
 
   CField* dim = dynamic_cast<CField*>(m_dimFields.at(index));
 
-  if (dim == NULL)
+  if (dim == nullptr)
   {
     return "";
   }
@@ -394,7 +391,7 @@ void CDisplayData::SetXAxisText(uint32_t index, const wxString& value)
 
   CField* dim = dynamic_cast<CField*>(m_dimFields.at(index));
 
-  if (dim == NULL)
+  if (dim == nullptr)
   {
     return;
   }
@@ -443,7 +440,7 @@ void CDisplayData::GetAvailableAxes(CStringArray& names)
   {
     CField* dim = dynamic_cast<CField*>(m_dimFields.at(i));
 
-    if (dim == NULL)
+    if (dim == nullptr)
     {
       continue;
     }
@@ -465,7 +462,7 @@ bool CDisplayData::LoadConfig(wxFileConfig* config, const wxString& path)
   //bool bOk = true;
   wxString valueString;
 
-  if (config == NULL)
+  if (config == nullptr)
   {
     return true;
   }
@@ -564,9 +561,9 @@ bool CDisplayData::LoadConfig(wxFileConfig* config, const wxString& path)
   if (relative.HasExt())
   {
     CWorkspaceDisplay* wks = wxGetApp().GetCurrentWorkspaceDisplay();
-    if (wks != NULL)
+    if (wks != nullptr)
     {
-      relative.Normalize(wxPATH_NORM_ALL, wks->GetPathName());
+      relative.Normalize(wxPATH_NORM_ALL, wks->GetPath());
       m_colorPalette = relative.GetFullPath();
     }
   }
@@ -578,7 +575,7 @@ bool CDisplayData::LoadConfig(wxFileConfig* config, const wxString& path)
 bool CDisplayData::SaveConfig(wxFileConfig* config, const wxString& pathSuff)
 {
   bool bOk = true;
-  if (config == NULL)
+  if (config == nullptr)
   {
     return true;
   }
@@ -610,7 +607,7 @@ bool CDisplayData::SaveConfig(wxFileConfig* config, const wxString& pathSuff)
   bOk &= config->Write(ENTRY_ZUNIT, m_z.GetUnit().c_str());
 
 
-  if (m_operation != NULL)
+  if (m_operation != nullptr)
   {
     bOk &= config->Write(ENTRY_OPNAME, m_operation->GetName());
   }
@@ -641,9 +638,9 @@ bool CDisplayData::SaveConfig(wxFileConfig* config, const wxString& pathSuff)
     if (relative.HasExt())
     {
       CWorkspaceDisplay* wks = wxGetApp().GetCurrentWorkspaceDisplay();
-      if (wks != NULL)
+      if (wks != nullptr)
       {
-        relative.MakeRelativeTo(wks->GetPathName());
+        relative.MakeRelativeTo(wks->GetPath());
         paletteToWrite = relative.GetFullPath();
       }
     }
@@ -707,7 +704,7 @@ void CMapDisplayData::Copy(CMapDisplayData& m)
   for (it = m.begin() ; it != m.end() ; it++)
   {
     CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
-    if (value == NULL)
+    if (value == nullptr)
     {
       continue;
     }
@@ -741,7 +738,7 @@ bool CMapDisplayData::AreFieldsGrouped()
   for (it = begin() ; it != end() ; it++)
   {
     CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
-    if (value != NULL)
+    if (value != nullptr)
     {
       int otherNumber = value->GetGroup();
 
@@ -768,7 +765,7 @@ void CMapDisplayData::GroupFields()
   for (it = begin() ; it != end() ; it++)
   {
     CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
-    if (value != NULL)
+    if (value != nullptr)
     {
       value->SetGroup(1);
     }
@@ -783,7 +780,7 @@ void CMapDisplayData::SplitFields()
   for (it = begin() ; it != end() ; it++)
   {
     CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
-    if (value != NULL)
+    if (value != nullptr)
     {
       groupNumber++;
       value->SetGroup(groupNumber);
@@ -800,7 +797,7 @@ bool CMapDisplayData::ValidName(const std::string& name)
 bool CMapDisplayData::ValidName(const char* name)
 {
   CDisplayData* value = dynamic_cast<CDisplayData*>(Exists(name));
-  return (value != NULL);
+  return (value != nullptr);
 }
 //----------------------------------------
 void CMapDisplayData::SetAllAxis(uint32_t index, const wxString& axisName, const wxString& axisLabel)
@@ -811,7 +808,7 @@ void CMapDisplayData::SetAllAxis(uint32_t index, const wxString& axisName, const
   {
     CDisplayData* displayData = dynamic_cast<CDisplayData*>(it->second);
 
-    if (displayData == NULL)
+    if (displayData == nullptr)
     {
       continue;
     }
@@ -831,7 +828,7 @@ void CMapDisplayData::SetAllInvertXYAxes(bool value)
   {
     CDisplayData* displayData = dynamic_cast<CDisplayData*>(it->second);
 
-    if (displayData == NULL)
+    if (displayData == nullptr)
     {
       continue;
     }
@@ -866,7 +863,7 @@ bool CMapDisplayData::LoadConfig(wxFileConfig* config, const wxString& pathSuff)
 {
   bool bOk = true;
 
-  if (config == NULL)
+  if (config == nullptr)
   {
     return false;
   }
@@ -902,7 +899,7 @@ bool CMapDisplayData::LoadConfig(wxFileConfig* config, const wxString& pathSuff)
       }
 
       CDisplayData* value = dynamic_cast<CDisplayData*>(Exists((const char *)displayDataName.c_str()));
-      if (value != NULL)
+      if (value != nullptr)
       {
         Erase((const char *)displayDataName.c_str());
       }
@@ -922,10 +919,10 @@ bool CMapDisplayData::LoadConfig(wxFileConfig* config, const wxString& pathSuff)
   {
     index++;
     CDisplayData* displayData = dynamic_cast<CDisplayData*>(it->second);
-    if (displayData == NULL)
+    if (displayData == nullptr)
     {
 
-      wxMessageBox("ERROR in  CMapDisplayData::LoadConfig\ndynamic_cast<CDisplayData*>(it->second) returns NULL pointer"
+      wxMessageBox("ERROR in  CMapDisplayData::LoadConfig\ndynamic_cast<CDisplayData*>(it->second) returns nullptr pointer"
                    "\nList seems to contain objects other than those of the class CDisplayData",
                    "Error",
                     wxOK | wxCENTRE | wxICON_ERROR);
@@ -957,50 +954,37 @@ bool CMapDisplayData::LoadConfig(wxFileConfig* config, const wxString& pathSuff)
 }
 
 //----------------------------------------
-bool CMapDisplayData::SaveConfig(wxFileConfig* config, const wxString& pathSuff)
+bool CMapDisplayData::SaveConfig( wxFileConfig* config, const wxString& pathSuff )
 {
-  //bool bOk = true;
+	if ( config == nullptr )
+		return false;
 
-  if (config == NULL)
-  {
-    return false;
-  }
+	int index = 0;
+	for ( CMapDisplayData::iterator it = begin(); it != end(); it++ )
+	{
+		wxString path = GROUP_DISPLAY;
+		if ( pathSuff.IsEmpty() == false )
+		{
+			path += "_" + pathSuff;
+		}
+		config->SetPath( "/" + path );
 
+		CDisplayData* displayData = dynamic_cast<CDisplayData*>( it->second );
+		if ( displayData != nullptr )
+		{
+			index++;
+			wxString key = displayData->GetDataKey();
+			if ( pathSuff.IsEmpty() == false )
+			{
+				key += "_" + pathSuff;
+			}
 
-  int32_t index = 0;
-  CMapDisplayData::iterator it;
+			config->Write( ENTRY_DISPLAY_DATA + n2s<std::string>( index ), key);
 
-  for (it = begin() ; it != end() ; it++)
-  {
-    wxString path = GROUP_DISPLAY;
-    if (pathSuff.IsEmpty() == false)
-    {
-      path += "_" + pathSuff;
-    }
-    config->SetPath("/" + path);
-
-    CDisplayData* displayData = dynamic_cast<CDisplayData*>(it->second);
-
-    if (displayData != NULL)
-    {
-      index++;
-      wxString key = displayData->GetDataKey();
-      if (pathSuff.IsEmpty() == false)
-      {
-        key += "_" + pathSuff;
-      }
-
-      config->Write(wxString::Format(ENTRY_DISPLAY_DATA + "%d", index),
-                    key);
-
-      displayData->SaveConfig(config, pathSuff);
-
-    }
-
-  }
-
-  return true;
-
+			displayData->SaveConfig( config, pathSuff );
+		}
+	}
+	return true;
 }
 
 //----------------------------------------
@@ -1011,7 +995,7 @@ void CMapDisplayData::NamesToArrayString(wxArrayString& array)
   for (it = begin() ; it != end() ; it++)
   {
     CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
-    if (value != NULL)
+    if (value != nullptr)
     {
       array.Add(value->GetDataKey());
     }
@@ -1026,7 +1010,7 @@ void CMapDisplayData::NamesToComboBox(wxComboBox& combo)
   for (it = begin() ; it != end() ; it++)
   {
     CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
-    if (value != NULL)
+    if (value != nullptr)
     {
       combo.Append(value->GetDataKey());
     }
@@ -1041,7 +1025,7 @@ void CMapDisplayData::GetFiles(wxArrayString& array)
   for (it = begin() ; it != end() ; it++)
   {
     CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
-    if (value != NULL)
+    if (value != nullptr)
     {
       array.Add(value->GetOperation()->GetOutputName().c_str());
     }
@@ -1073,7 +1057,7 @@ void CMapDisplayData::GetDistinctFiles(CStringMap& array)
   for (it = begin() ; it != end() ; it++)
   {
     CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
-    if (value != NULL)
+    if (value != nullptr)
     {
       array.Insert((const char *)value->GetOperation()->GetName().c_str(), (const char *)value->GetOperation()->GetOutputName().c_str(), false);
     }
@@ -1089,7 +1073,7 @@ void CMapDisplayData::GetFields(wxArrayString& array)
   for (it = begin() ; it != end() ; it++)
   {
     CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
-    if (value != NULL)
+    if (value != nullptr)
     {
       array.Add(value->GetField()->GetName().c_str());
     }
@@ -1122,7 +1106,7 @@ void CMapDisplayData::GetDistinctFields(CStringMap& array)
   for (it = begin() ; it != end() ; it++)
   {
     CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
-    if (value != NULL)
+    if (value != nullptr)
     {
       array.Insert(value->GetField()->GetName().c_str(), it->first, false);
     }
@@ -1138,12 +1122,12 @@ bool CMapDisplayData::CheckFields(wxString& errorMsg, CDisplay* display)
     return true;
   }
 
-  if (display == NULL)
+  if (display == nullptr)
   {
     return false;
   }
 
-  CInternalFiles *file = NULL;
+  CInternalFiles *file = nullptr;
 
   CObMap internalFilesMap;
 
@@ -1151,17 +1135,17 @@ bool CMapDisplayData::CheckFields(wxString& errorMsg, CDisplay* display)
 
   for (it = begin() ; it != end() ; it++)
   {
-    file = NULL;
+    file = nullptr;
 
     CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
-    if (value == NULL)
+    if (value == nullptr)
     {
       continue;
     }
 
     COperation* operation = value->GetOperation();
 
-    if (operation == NULL)
+    if (operation == nullptr)
     {
       continue;
     }
@@ -1173,7 +1157,7 @@ bool CMapDisplayData::CheckFields(wxString& errorMsg, CDisplay* display)
     }
 
     file = dynamic_cast<CInternalFiles*>(internalFilesMap.Exists((const char *)operation->GetOutputName().c_str()));
-    if (file != NULL)
+    if (file != nullptr)
     {
       continue;
     }
@@ -1187,10 +1171,10 @@ bool CMapDisplayData::CheckFields(wxString& errorMsg, CDisplay* display)
     catch (CException& e)
     {
       e.what();
-      if (file != NULL)
+      if (file != nullptr)
       {
         delete file;
-        file = NULL;
+        file = nullptr;
       }
 
       continue;
@@ -1201,50 +1185,50 @@ bool CMapDisplayData::CheckFields(wxString& errorMsg, CDisplay* display)
   }
 
 
-  CNetCDFVarDef* firstNetCDFVardef = NULL;
-  CInternalFiles *firstFile = NULL;
+  CNetCDFVarDef* firstNetCDFVardef = nullptr;
+  CInternalFiles *firstFile = nullptr;
 
   bool bOk = true;
 
 
   for (it = begin() ; it != end() ; it++)
   {
-    file = NULL;
+    file = nullptr;
 
     CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
-    if (value == NULL)
+    if (value == nullptr)
     {
       continue;
     }
 
     COperation* operation = value->GetOperation();
 
-    if (operation == NULL)
+    if (operation == nullptr)
     {
       continue;
     }
 
     file = dynamic_cast<CInternalFiles*>(internalFilesMap.Exists((const char *)operation->GetOutputName().c_str()));
 
-    if (file == NULL)
+    if (file == nullptr)
     {
       continue;
     }
 
 
     CField *field = value->GetField();
-    if (field == NULL)
+    if (field == nullptr)
     {
       continue;
     }
 
     CNetCDFVarDef* netCDFVardef = file->GetNetCDFVarDef(field->GetName());
-    if (netCDFVardef == NULL)
+    if (netCDFVardef == nullptr)
     {
       continue;
     }
 
-    if (firstNetCDFVardef == NULL)
+    if (firstNetCDFVardef == nullptr)
     {
       firstNetCDFVardef = netCDFVardef;
       firstFile = file;
@@ -1411,7 +1395,7 @@ wxString CDisplay::FmtCmdParam(const std::string& name)
 bool CDisplay::SaveConfig(wxFileConfig* config)
 {
   bool bOk = true;
-  if (config == NULL)
+  if (config == nullptr)
   {
     return true;
   }
@@ -1462,7 +1446,7 @@ bool CDisplay::SaveConfig(wxFileConfig* config)
 bool CDisplay::LoadConfig(wxFileConfig* config)
 {
   //bool bOk = true;
-  if (config == NULL)
+  if (config == nullptr)
   {
     return true;
   }
@@ -1513,12 +1497,12 @@ bool CDisplay::LoadConfig(wxFileConfig* config)
 COperation* CDisplay::FindOperation(const wxString& name)
 {
   CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-  if (wks == NULL)
+  if (wks == nullptr)
   {
-    return NULL;
+    return nullptr;
   }
 
-  return wks->GetOperation(name);
+  return wks->GetOperation(name.ToStdString());
 }
 //----------------------------------------
 bool CDisplay::UseOperation(const wxString& name)
@@ -1529,10 +1513,10 @@ bool CDisplay::UseOperation(const wxString& name)
   for (it = m_data.begin() ; it != m_data.end() ; it++)
   {
     CDisplayData* data = dynamic_cast<CDisplayData*>(it->second);
-    if (data == NULL)
+    if (data == nullptr)
     {
 
-      wxMessageBox("ERROR in  CDisplay::UseOperation\ndynamic_cast<CDisplay*>(it->second) returns NULL pointer"
+      wxMessageBox("ERROR in  CDisplay::UseOperation\ndynamic_cast<CDisplay*>(it->second) returns nullptr pointer"
                    "\nList seems to contain objects other than those of the class CDisplayData",
                    "Error",
                     wxOK | wxCENTRE | wxICON_ERROR);
@@ -1677,7 +1661,7 @@ bool CDisplay::BuildCmdFileGeneralPropertiesXY()
   {
     CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
 
-    if (value == NULL)
+    if (value == nullptr)
     {
       continue;
     }
@@ -1739,7 +1723,7 @@ bool CDisplay::BuildCmdFileGeneralPropertiesZXY()
   {
     CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
 
-    if (value == NULL)
+    if (value == nullptr)
     {
       continue;
     }
@@ -1819,7 +1803,7 @@ bool CDisplay::BuildCmdFileFieldsZFXY()
   {
     CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
 
-    if (value == NULL)
+    if (value == nullptr)
     {
       continue;
     }
@@ -1865,7 +1849,7 @@ bool CDisplay::BuildCmdFileFieldsYFX()
   {
     CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
 
-    if (value == NULL)
+    if (value == nullptr)
     {
       continue;
     }
@@ -1886,10 +1870,10 @@ bool CDisplay::BuildCmdFileFieldsYFX()
 bool CDisplay::BuildCmdFileFieldProperties(const wxString& dataKey)
 {
   CDisplayData* data = m_data.GetDisplayData(dataKey);
-  if (data == NULL)
+  if (data == nullptr)
   {
 
-    wxMessageBox("ERROR in  CDisplay::BuildCmdFileFieldProperties\ndynamic_cast<CDisplay*>(it->second) returns NULL pointer"
+    wxMessageBox("ERROR in  CDisplay::BuildCmdFileFieldProperties\ndynamic_cast<CDisplay*>(it->second) returns nullptr pointer"
                  "\nList seems to contain objects other than those of the class CDisplayData",
                  "Error",
                   wxOK | wxCENTRE | wxICON_ERROR);
@@ -1931,7 +1915,7 @@ bool CDisplay::BuildCmdFileFieldProperties(const wxString& dataKey)
 //----------------------------------------
 bool CDisplay::BuildCmdFileFieldPropertiesXY(CDisplayData* value)
 {
-  if (value == NULL)
+  if (value == nullptr)
   {
     return false;
   }
@@ -1943,7 +1927,7 @@ bool CDisplay::BuildCmdFileFieldPropertiesZXY(CDisplayData* value)
 {
   wxString valueString;
 
-  if (value == NULL)
+  if (value == nullptr)
   {
     return false;
   }
@@ -2010,24 +1994,21 @@ bool CDisplay::WriteEmptyLine()
 //----------------------------------------
 void CDisplay::InitOutput()
 {
-  CWorkspaceDisplay* wks = wxGetApp().GetCurrentWorkspaceDisplay();
-  if (wks == NULL)
-  {
-    return;
-  }
+	CWorkspaceDisplay* wks = wxGetApp().GetCurrentWorkspaceDisplay();
+	if ( wks == nullptr )
+		return;
 
-  wxString output = wks->GetPathName(wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR)
-                                     + "Display"
-                                     + GetName() + "." + COMMANDFILE_EXTENSION;
-  SetOutput(output);
-
+	wxString output = wks->GetPath()	//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR	!!! femm: Check this !!!
+		+ "/Display"
+		+ GetName() + "." + COMMANDFILE_EXTENSION;
+	SetOutput( output );
 }
 
 //----------------------------------------
 bool CDisplay::ExistData(const wxString& key)
 {
   CDisplayData* dataTmp = dynamic_cast<CDisplayData*>(m_data.Exists((const char *)key.c_str()));
-  return (dataTmp != NULL);
+  return (dataTmp != nullptr);
 }
 //----------------------------------------
 bool CDisplay::InsertData(const wxString& key, CDisplayData* data)

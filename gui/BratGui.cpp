@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
@@ -18,9 +16,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "BratGui.h"
-#endif
+#include "new-gui/brat/stdafx.h"
 
 // For compilers that support precompilation
 #include "wx/wxprec.h"
@@ -151,7 +147,7 @@ wxString CBratGuiApp::GetWorkspaceKey(const wxString& subKey)
     return "";
   }
 
-  return wks->GetKey() + CTreeWorkspace::m_keyDelimiter + subKey;
+  return wks->GetKey() + CWorkspace::m_keyDelimiter + subKey;
 }
 
 //----------------------------------------
@@ -438,7 +434,7 @@ bool CBratGuiApp::CanDeleteOperation(const wxString& name, CStringArray* display
     return true;
   }
 
-  canDelete &= (wks->UseOperation(name, displayNames) == false);
+  canDelete &= (wks->UseOperation(name.ToStdString(), displayNames) == false);
 
   return canDelete;
 }
@@ -461,7 +457,7 @@ bool CBratGuiApp::CanDeleteDataset(const wxString& name, CStringArray* operation
     return true;
   }
 
-  canDelete &= (wks->UseDataset(name, operationNames) == false);
+  canDelete &= (wks->UseDataset(name.ToStdString(), operationNames) == false);
 
   return canDelete;
 }
@@ -623,7 +619,7 @@ bool CBratGuiApp::SaveConfig(bool flush)
 
   if (wks != NULL)
   {
-    m_lastWksPath = wks->GetPathName();
+    m_lastWksPath = wks->GetPath();
   }
 
   //------------------------------------
@@ -860,49 +856,40 @@ void CBratGuiApp::CreateTree(CWorkspace* root)
   CreateTree(root, m_tree);
 }
 //----------------------------------------
-void CBratGuiApp::CreateTree(CWorkspace* root, CTreeWorkspace& tree)
+void CBratGuiApp::CreateTree( CWorkspace* root, CTreeWorkspace& tree )
 {
-  wxFileName path;
+	tree.DeleteTree();
 
-  tree.DeleteTree();
+	// Set tree root
+	tree.SetRoot( root->GetName(), root, true );
 
-  // Set tree root
-  tree.SetRoot(root->GetName(), root, true);
+	//WARNING : the sequence of workspaces object creation is significant, because of the interdependence of them
 
-  //WARNING : the sequence of workspaces object creation is significant, because of the interdependence of them
+	std::string 
 
-  //FIRSTLY - Create "Datasets" branch
-  path = root->GetPath();
-  path.AppendDir(WKS_DATASET_NAME);
+	//FIRSTLY - Create "Datasets" branch
+	path = root->GetPath() + "/" + WKS_DATASET_NAME;
 
-  CWorkspaceDataset* wksDataSet = new CWorkspaceDataset(WKS_DATASET_NAME, path);
+	CWorkspaceDataset* wksDataSet = new CWorkspaceDataset( WKS_DATASET_NAME, path );
+	tree.AddChild( wksDataSet->GetName(), wksDataSet );
 
-  tree.AddChild(wksDataSet->GetName(), wksDataSet);
+	//SECOND Create "Formulas" branch
+	path = root->GetPath() + "/" + WKS_FORMULA_NAME;
 
-  //SECOND Create "Formulas" branch
-  path = root->GetPath();
-  path.AppendDir(WKS_FORMULA_NAME);
+	CWorkspaceFormula* wksFormula = new CWorkspaceFormula( WKS_FORMULA_NAME, path );
+	tree.AddChild( wksFormula->GetName(), wksFormula );
 
-  CWorkspaceFormula* wksFormula = new CWorkspaceFormula(WKS_FORMULA_NAME, path);
+	//THIRDLY - Create "Operations" branch
+	path = root->GetPath() + "/" + WKS_OPERATION_NAME;
 
-  tree.AddChild(wksFormula->GetName(), wksFormula);
+	CWorkspaceOperation* wksOperation = new CWorkspaceOperation( WKS_OPERATION_NAME, path );
+	tree.AddChild( wksOperation->GetName(), wksOperation );
 
-  //THIRDLY - Create "Operations" branch
-  path = root->GetPath();
-  path.AppendDir(WKS_OPERATION_NAME);
+	//FOURTHLY -  Create "Displays" branch
+	path = root->GetPath() + "/" + WKS_DISPLAY_NAME;
 
-  CWorkspaceOperation* wksOperation = new CWorkspaceOperation(WKS_OPERATION_NAME, path);
-
-  tree.AddChild( wksOperation->GetName(), wksOperation);
-
-  //FOURTHLY -  Create "Displays" branch
-  path = root->GetPath();
-  path.AppendDir(WKS_DISPLAY_NAME);
-
-  CWorkspaceDisplay* wksDisplay = new CWorkspaceDisplay(WKS_DISPLAY_NAME, path);
-
-  tree.AddChild(wksDisplay->GetName(), wksDisplay);
-
+	CWorkspaceDisplay* wksDisplay = new CWorkspaceDisplay( WKS_DISPLAY_NAME, path );
+	tree.AddChild( wksDisplay->GetName(), wksDisplay );
 }
 
 //----------------------------------------
@@ -938,13 +925,12 @@ void CBratGuiApp::CStringArrayToWxArray(CStringArray& from, wxArrayString& to)
   }
 }
 //----------------------------------------
-void CBratGuiApp::CStringListToWxArray(CStringList& from, wxArrayString& to)
+void CBratGuiApp::CStringListToWxArray( const CStringList& from, wxArrayString& to )
 {
-  CStringList::iterator it;
-  for (it = from.begin() ; it != from.end() ; it++)
-  {
-    to.Add((*it).c_str());
-  }
+	for ( CStringList::const_iterator it = from.begin(); it != from.end(); it++ )
+	{
+		to.Add( it->c_str() );
+	}
 }
 //----------------------------------------
 void CBratGuiApp::CProductListToWxArray(CProductList& from, wxArrayString& to)

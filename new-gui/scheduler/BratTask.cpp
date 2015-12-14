@@ -107,7 +107,7 @@ void CBratTaskFunction::CopyFile( CVectorBratAlgorithmParam& arg )
 	std::string p1 = arg.at( 0 ).GetValueAsString().c_str();
 	std::string p2 = arg.at( 1 ).GetValueAsString().c_str();
 
-	bool bOk = copyFile( p1, p2 );		//femm bool bOk = wxCopyFile( p1, p2 );
+	bool bOk = DuplicateFile( p1, p2 );		//femm bool bOk = wxCopyFile( p1, p2 );
 
 	if ( !bOk )
 	{

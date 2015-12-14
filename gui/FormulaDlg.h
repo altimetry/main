@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -20,10 +18,6 @@
 
 #ifndef __FormulaDlg_H__
 #define __FormulaDlg_H__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "FormulaDlg.cpp"
-#endif
 
 #ifndef WX_PRECOMP
     #include "wx/wx.h"

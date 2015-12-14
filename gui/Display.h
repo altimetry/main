@@ -20,10 +20,6 @@
 #if !defined(_Display_h_)
 #define _Display_h_
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "Display.h"
-#endif
-
 #ifndef WX_PRECOMP
     #include "wx/wx.h"
 #endif
@@ -43,7 +39,7 @@
 using namespace brathl;
 
 
-#include "Dataset.h"
+//#include "Dataset.h"
 #include "Formula.h"
 #include "Operation.h"
 

@@ -3,9 +3,7 @@
 // Do not modify this file, all changes will be lost!
 //------------------------------------------------------------------------------
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "BratGui_wdr.h"
-#endif
+#include "new-gui/brat/stdafx.h"
 
 // For compilers that support precompilation
 #include "wx/wxprec.h"

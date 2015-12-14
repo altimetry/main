@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
@@ -18,9 +16,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "WorkspaceDlg.h"
-#endif
+#include "new-gui/brat/stdafx.h"
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
@@ -67,7 +63,7 @@ END_EVENT_TABLE()
 
 //----------------------------------------
 CWorkspaceDlg::CWorkspaceDlg( wxWindow *parent, wxWindowID id, const wxString &title,
-                              CWorkspace::actionFlags action, CWorkspace* wks,
+                              actionFlags action, CWorkspace* wks,
                               const wxString& initialDir,
                               const wxPoint &position, const wxSize& size, long style ) :
                               wxDialog( parent, id, title, position, size, style )
@@ -110,7 +106,7 @@ CWorkspaceDlg::CWorkspaceDlg( wxWindow *parent, wxWindowID id, const wxString &t
 
   switch (m_action)
   {
-    case CWorkspace::wksNew :
+    case wksNew :
     {
       GetWksName()->Enable(true);
       GetWksName()->Clear();
@@ -122,13 +118,13 @@ CWorkspaceDlg::CWorkspaceDlg( wxWindow *parent, wxWindowID id, const wxString &t
       }
       break;
     }
-    case CWorkspace::wksOpen:
+    case wksOpen:
       GetWksName()->Enable(false);
       GetWksName()->Clear();
       GetWksLoc()->Enable(true);
       GetOk()->SetLabel("Open");
       break;
-    case CWorkspace::wksImport :
+    case wksImport :
       GetWksName()->Enable(false);
       GetWksName()->Clear();
       GetWksLoc()->Enable(true);
@@ -141,12 +137,12 @@ CWorkspaceDlg::CWorkspaceDlg( wxWindow *parent, wxWindowID id, const wxString &t
       brathlGuiImportOptionsSizer->Show(true);
 
       break;
-    case CWorkspace::wksRename :
+    case wksRename :
       GetWksName()->Enable(true);
       GetWksLoc()->Enable(false);
       GetOk()->SetLabel("Rename");
       break;
-    case CWorkspace::wksDelete :
+    case wksDelete :
       GetWksName()->Enable(false);
       GetWksLoc()->Enable(false);
       GetOk()->SetLabel("Delete");
@@ -252,7 +248,7 @@ bool CWorkspaceDlg::VerifyConfig(bool withMsg)
   }
 
   CWorkspace wks;
-  wks.SetPath(GetWksLoc()->GetValue(), false);
+  wks.SetPath(GetWksLoc()->GetValue().ToStdString(), false);
   bOk = wks.IsConfigFile();
   if (bOk)
   {
@@ -300,7 +296,7 @@ bool CWorkspaceDlg::VerifyNotConfig(bool withMsg)
 //----------------------------------------
 void CWorkspaceDlg::FillImportFormulas()
 {
-  if (m_action != CWorkspace::wksImport)
+  if (m_action != wksImport)
   {
     return;
   }
@@ -320,7 +316,7 @@ void CWorkspaceDlg::FillImportFormulas()
     return;
   }
 
-  CWorkspace* wks = new CWorkspace(GetWksName()->GetValue(), m_currentDir);
+  CWorkspace* wks = new CWorkspace(GetWksName()->GetValue().ToStdString(), m_currentDir.GetFullPath().ToStdString());
 
   wxGetApp().CreateTree(wks, wxGetApp().m_treeImport);
 
@@ -329,7 +325,10 @@ void CWorkspaceDlg::FillImportFormulas()
   if (wksFormula != NULL)
   {
     m_userFormulas.Clear();
-    wksFormula->GetFormulaNames(m_userFormulas, false, true);
+	std::vector< std::string > userFormulas;
+    wksFormula->GetFormulaNames(userFormulas, false, true);
+	for ( auto &s : userFormulas )
+		m_userFormulas.Add( s );
   }
 
   wxGetApp().m_treeImport.DeleteTree();
@@ -514,10 +513,12 @@ void CWorkspaceDlg::GetCheckedFormulas()
 
 }
 //----------------------------------------
-void CWorkspaceDlg::GetCheckedFormulas(wxArrayString& to)
+void CWorkspaceDlg::GetCheckedFormulas( std::vector<std::string>& to )
 {
-  GetImportFormulasList()->GetCheckItemStrings(to);
-
+	wxArrayString wto;
+	GetImportFormulasList()->GetCheckItemStrings( wto );
+	for ( size_t i = 0; i < wto.GetCount(); ++i )
+		to.push_back( wto[ i ].ToStdString() );
 }
 //----------------------------------------
 bool CWorkspaceDlg::ValidateData()
@@ -526,21 +527,21 @@ bool CWorkspaceDlg::ValidateData()
 
   switch (m_action)
   {
-    case CWorkspace::wksNew :
+    case wksNew :
       bOk &= VerifyName();
       bOk &= VerifyPathName();
       bOk &= VerifyNotConfig();
       break;
-    case CWorkspace::wksOpen :
+    case wksOpen :
       bOk &= VerifyConfig();
       break;
-    case CWorkspace::wksImport :
+    case wksImport :
       bOk &= VerifyConfig();
       break;
-    case CWorkspace::wksRename :
+    case wksRename :
       bOk &= VerifyName();
       break;
-    case CWorkspace::wksDelete :
+    case wksDelete :
       bOk &= VerifyPathName();
       bOk &= VerifyConfig();
       break;
@@ -563,7 +564,7 @@ void CWorkspaceDlg::OnBrowse( wxCommandEvent &event )
 
   int32_t style = wxDD_DEFAULT_STYLE;
 
-  if (m_action == CWorkspace::wksNew)
+  if (m_action == wksNew)
   {
     style |= wxDD_NEW_DIR_BUTTON;
   }
@@ -593,20 +594,20 @@ void CWorkspaceDlg::OnBrowse( wxCommandEvent &event )
   bool bOk = true;
   switch (m_action)
   {
-    case CWorkspace::wksOpen :
-    case CWorkspace::wksImport :
+    case wksOpen :
+    case wksImport :
       bOk &= VerifyConfig();
       if (bOk)
       {
         CWorkspace wks;
-        wks.SetPath(GetWksLoc()->GetValue());
+        wks.SetPath(GetWksLoc()->GetValue().ToStdString());
         wks.LoadConfig();
         GetWksName()->SetValue(wks.GetName());
       }
       break;
-    case CWorkspace::wksNew :
-    case CWorkspace::wksRename :
-    case CWorkspace::wksDelete :
+    case wksNew :
+    case wksRename :
+    case wksDelete :
       break;
     default:
       break;

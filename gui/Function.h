@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
@@ -19,10 +17,6 @@
 */
 #if !defined(_Function_h_)
 #define _Function_h_
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "Function.h"
-#endif
 
 #ifndef WX_PRECOMP
     #include "wx/wx.h"

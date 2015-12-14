@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -21,10 +19,6 @@
 
 #ifndef __GuiFrame_H__
 #define __GuiFrame_H__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "GuiFrame.h"
-#endif
 
 // Include wxWindows' headers
 

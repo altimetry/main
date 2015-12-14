@@ -187,7 +187,7 @@ void QSchedulerApplication::dumpMemoryStatistics()
 
 	if ( MemChecker::dumpStatistics( FirstState ) /*||		//all wasted memory 
 		MemChecker::dumpStatistics( BeforeRunState )*/ )	//all memory wasted while running engine
-		OutputDebugString( "Possible Memory Leaks" );
+        OutputDebugString( _T( "Possible Memory Leaks" ) );
 
 #endif
 }

@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -20,7 +18,6 @@
 #if !defined(_BratObject_h_)
 #define _BratObject_h_
 
-
 #include <string>
 /** \addtogroup tools Tools
   @{ */
@@ -33,40 +30,39 @@
 #include <typeinfo>
 #include "new-gui/Common/tools/Exception.h"
 
-
 namespace brathl
 {
 
-class CBratObject
-{
-public:
+	class CBratObject
+	{
+	public:
 
-  ///Ctor
-  CBratObject() {}
-  ///Dtor
-  virtual ~CBratObject() {}
-  virtual CBratObject* Clone() 
-  { 
-    std::string className = typeid(*this).name();
-    std::string msg = "ERROR - A 'Clone' method must be defined in class '";
-    msg.append(className.c_str());
-    msg.append("'");
-    throw CException(msg, BRATHL_LOGIC_ERROR);
-  }
+		///Ctor
+		CBratObject() {}
 
-  ///Dump fonction
-  virtual void Dump(std::ostream& fOut = std::cerr) 
-  {
-    fOut << "==> Dump a CBratObject Object at "<< this << std::endl;
-    fOut << "==> END Dump a CBratObject Object at "<< this << std::endl;
-    fOut << std::endl;
-  }
+		///Dtor
+		virtual ~CBratObject() {}
 
-};
+		virtual CBratObject* Clone()
+		{
+			std::string className = typeid( *this ).name();
+			std::string msg = "ERROR - A 'Clone' method must be defined in class '";
+			msg.append( className.c_str() );
+			msg.append( "'" );
+			throw CException( msg, BRATHL_LOGIC_ERROR );
+		}
+
+		///Dump function
+		virtual void Dump( std::ostream& fOut = std::cerr )
+		{
+			fOut << "==> Dump a CBratObject Object at " << this << std::endl;
+			fOut << "==> END Dump a CBratObject Object at " << this << std::endl;
+			fOut << std::endl;
+		}
+	};
 
 /** @} */
 
 }
 
 #endif // !defined(_Object_h_)
-

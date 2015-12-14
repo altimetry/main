@@ -25,7 +25,7 @@ bool TBackServices::RestoreSettingsFile()
             RenameFile( path, path + ".bak" );
         else
             MakeDirectory( std::string( GetSettingsPath() ) + "/" + GetOrgName() );
-        return copyFile( backup_path, path );
+        return DuplicateFile( backup_path, path );
     }
     return true;
 }
@@ -39,7 +39,7 @@ bool TBackServices::BackupSettingsFile()
     {
         if ( IsFile( backup_path.c_str() ) )
             RenameFile( backup_path, backup_path + ".bak" );
-        return copyFile( path, backup_path );
+        return DuplicateFile( path, backup_path );
     }
     return false;
 }

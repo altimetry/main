@@ -1,5 +1,9 @@
-#ifndef CROSS_PLATFORM_UTILS_IO_H
-#define CROSS_PLATFORM_UTILS_IO_H
+#ifndef BRAT_CROSS_PLATFORM_UTILS_IO_H
+#define BRAT_CROSS_PLATFORM_UTILS_IO_H
+
+#if defined (CROSS_PLATFORM_UTILS_IO_H)
+#error Wrong +UtilsIO.h included 
+#endif
 
 #ifndef __cplusplus
 #error Must use C++ for +UtilsIO.h
@@ -7,7 +11,7 @@
 
 #include <fcntl.h>
 
-#include <Libraries/+/+Utils.h>
+#include "+Utils.h"
 
 #if defined(WIN32)
 #include <codecvt>
@@ -181,7 +185,7 @@ public:
 
 
 
-// Use Example:
+// Usage Example:
 //
 //        StdInFILERedirect stdinRedirect( content.c_str(), content.length() );	//reset when variable goes out of scope
 //
@@ -286,4 +290,63 @@ inline bool readFromUnicodeFile( std::wstring &s, const std::wstring &path )
 
 
 
-#endif  //CROSS_PLATFORM_UTILS_IO_H
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//													
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+inline const std::string portable_data_path_prefix()
+{
+	static const std::string s = ".../";
+	return s;
+}
+
+
+inline bool isPortableDataPath( const std::string &path )
+{
+	return startsWith( path, portable_data_path_prefix() );
+}
+
+
+inline std::string normalizedPath( const std::string &path )
+{
+	std::string normalized = path;
+	replace( normalized, "//", "/" );
+	replace( normalized, "\\\\", "/" );
+	replace( normalized, "\\", "/" );
+	return normalized;
+}
+
+
+inline std::string Absolute2PortableDataPath( const std::string &path, const std::string &standard_path )
+{
+	const std::string data_path = normalizedPath( standard_path );
+	const std::string new_path = normalizedPath( path );
+
+    if ( startsWith( new_path, data_path ) )
+		return portable_data_path_prefix() + new_path.substr( data_path.length() ); 
+
+	return new_path;
+}
+
+
+// (*) do NOT normalize. 2 reasons: 1) it is already normalized by setPath (if inside standard data 
+//	path, and if not, is the user responsibility) and 2) can eliminate the 1st char of "prefix" ('/'),
+//	which then will not be found.
+//
+inline std::string PortableData2AbsolutePath( const std::string &path, const std::string &standard_path )
+{
+	const std::string data_path = normalizedPath( standard_path );
+	const std::string new_path = path;								//(*)
+
+    if ( isPortableDataPath( new_path ) )
+		return data_path + new_path.substr( portable_data_path_prefix().length() ); 
+
+    return new_path;
+}
+
+
+
+#endif  //BRAT_CROSS_PLATFORM_UTILS_IO_H

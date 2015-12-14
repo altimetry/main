@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
@@ -18,9 +16,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "DatasetPanel.h"
-#endif
+#include "new-gui/brat/stdafx.h"
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
@@ -271,7 +267,7 @@ CDataset* CDatasetPanel::GetCurrentDataset()
     return NULL;
   }
 
-  return wks->GetDataset(GetDsnames()->GetString(m_currentDataset));
+  return wks->GetDataset(GetDsnames()->GetString(m_currentDataset).ToStdString());
 }
 //----------------------------------------
 bool CDatasetPanel::SetCurrentDataset()
@@ -346,7 +342,7 @@ void CDatasetPanel::FillDict()
   try
   {
     DeleteProduct();
-    m_product = dataset->SetProduct(m_currentFilename);
+    m_product = dataset->SetProduct(m_currentFilename.ToStdString());
     GetDictlist()->InsertProduct(m_product);
   }
   catch (CException& e)
@@ -416,7 +412,7 @@ void CDatasetPanel::DsNameChanged()
 
   wxString datasetOldName = dataset->GetName();
 
-  if (wks->RenameDataset(dataset, dsName) == false)
+  if (wks->RenameDataset(dataset, dsName.ToStdString()) == false)
   {
     m_dsNameDirty = false; // must be here, to avoid loop, because  on wxMessageBox, combo kill focus event is process again
 
@@ -965,7 +961,7 @@ void CDatasetPanel::AddDir( wxString& dirName )
 
   GetDsfilelist()->Clear();
 
-  m_dataset->GetFiles(*GetDsfilelist());
+  ::GetFiles(*m_dataset, *GetDsfilelist());
 
   CheckFiles();
 
@@ -1014,7 +1010,7 @@ void CDatasetPanel::AddFiles( wxArrayString& paths )
 
   GetDsfilelist()->Clear();
 
-  m_dataset->GetFiles(*GetDsfilelist());
+  ::GetFiles( *m_dataset, *GetDsfilelist());
 
   CheckFiles();
 
@@ -1117,7 +1113,7 @@ void CDatasetPanel::LoadDataset()
 
   //bool bOk = true;
 
-  CWorkspaceDataset* wks = wxGetApp().GetCurrentWorkspaceDataset();
+  const CWorkspaceDataset* wks = wxGetApp().GetCurrentWorkspaceDataset();
   if (wks == NULL)
   {
     return;
@@ -1128,7 +1124,7 @@ void CDatasetPanel::LoadDataset()
     return;
   }
 
-  wks->GetDatasetNames(*GetDsnames());
+  GetDatasetNames(wks, *GetDsnames());
 
   m_currentDataset = 0;
   GetDsnames()->SetSelection(m_currentDataset);
@@ -1238,7 +1234,7 @@ void CDatasetPanel::NewDataset()
 
   wxString dsName = wks->GetDatasetNewName();
 
-  bOk = wks->InsertDataset(dsName);
+  bOk = wks->InsertDataset(dsName.ToStdString());
 
   if (bOk == false)
   {
@@ -1362,17 +1358,16 @@ void CDatasetPanel::GetFiles( wxArrayString& array )
 //----------------------------------------
 void CDatasetPanel::FillFileList()
 {
-  GetDsfilelist()->Clear();
-  ClearDict();
+	GetDsfilelist()->Clear();
+	ClearDict();
 
-  if (m_dataset == NULL)
-  {
-    return;
-  }
-  wxArrayString array;
+	if ( m_dataset == NULL )
+		return;
 
-  m_dataset->GetFiles(array);
-  GetDsfilelist()->Set(array);
+	wxArrayString array;
+
+	::GetFiles( *m_dataset, array );
+	GetDsfilelist()->Set( array );
 }
 //----------------------------------------
 void CDatasetPanel::ClearAll()

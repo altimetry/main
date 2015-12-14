@@ -1,7 +1,5 @@
 /*
-* 
-*
-* This file is part of BRAT 
+* This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public License
@@ -20,12 +18,12 @@
 #if !defined(_Product_h_)
 #define _Product_h_
 
+#include <string>
+
 #include "new-gui/Common/tools/brathl_error.h" 
 #include "brathl.h" 
 
 #include "coda.h" 
-
-#include <string>
 
 #include "List.h"
 #include "BratObject.h"
@@ -65,6 +63,13 @@ namespace brathl
 
 class CProductList : public CStringList
 {
+public:
+
+  std::string m_productClass;		
+  std::string m_productType;
+  coda_format m_productFormat;  
+  
+  std::string m_message;
 
 public:
     
@@ -121,22 +126,9 @@ public:
   ///Dump fonction
   virtual void Dump(std::ostream& fOut = std::cerr);
 
-
 protected:
 
   bool CheckFileList();
-
-public:
-
-  std::string m_productClass;		
-  std::string m_productType;
-  coda_format m_productFormat;  
-  
-  std::string m_message;
-
-  
-
-
 };
 
 

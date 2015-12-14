@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -22,9 +20,7 @@
 #ifndef __BratGui_H__
 #define __BratGui_H__
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "BratGui.h"
-#endif
+#include "new-gui/brat/stdafx.h"
 
 // Include wxWindows' headers
 
@@ -46,6 +42,7 @@
 using namespace brathl;
 
 //#include "BratGui_wdr.h"
+#include "wxGuiInterface.h"		// (to let wxWidgets choose a wxConfig class for your platform)
 #include "Workspace.h"
 #include "TreeWorkspace.h"
 #include "GuiFrame.h"
@@ -227,7 +224,7 @@ public:
   void SetLastPageReached(const wxString& value) {m_lastPageReached = value;};
 
   static void CStringArrayToWxArray(CStringArray& from, wxArrayString& to);
-  static void CStringListToWxArray(CStringList& from, wxArrayString& to);
+  static void CStringListToWxArray(const CStringList& from, wxArrayString& to);
   static void CProductListToWxArray(CProductList& from, wxArrayString& to);
   
   static wxString FindFile(const wxString& fileName );

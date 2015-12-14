@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -21,10 +19,6 @@
 #ifndef __WorkspaceDlg_H__
 #define __WorkspaceDlg_H__
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "WorkspaceDlg.h"
-#endif
-
 #ifndef WX_PRECOMP
     #include "wx/wx.h"
 #endif
@@ -33,8 +27,8 @@
 #include  "wx/checklst.h"
 
 #include "BratGui_wdr.h"
+#include "BratGui.h"
 #include "CheckListBox.h"
-#include "Workspace.h"
 
 //#include "GuiPanel.h"
 
@@ -47,9 +41,20 @@
 class CWorkspaceDlg: public wxDialog
 {
 public:
+
+	enum actionFlags
+	{
+		wksNew,
+		wksOpen,
+		wksImport,
+		wksRename,
+		wksDelete
+	};
+
+public:
   // constructors and destructors
   CWorkspaceDlg( wxWindow *parent, wxWindowID id, const wxString &title,
-                  CWorkspace::actionFlags action, CWorkspace* wks,
+                  actionFlags action, CWorkspace* wks,
                   const wxString& initialDir, 
                   const wxPoint& pos = wxDefaultPosition,
                   const wxSize& size = wxDefaultSize,
@@ -71,7 +76,7 @@ public:
   wxTextCtrl* GetWksName()  { return (wxTextCtrl*) FindWindow( ID_WKS_NAME ); }
 
   void GetCheckedFormulas();
-  void GetCheckedFormulas(wxArrayString& to);
+  void GetCheckedFormulas(std::vector<std::string>& to);
 
   bool ValidateData();
 
@@ -85,7 +90,7 @@ public:
 
 private:
     // WDR: member variable declarations for CWorkspaceDlg
-  CWorkspace::actionFlags m_action;
+  actionFlags m_action;
 
 private:
 

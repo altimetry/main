@@ -785,7 +785,7 @@ std::vector< STRING > String2Vector( const STRING &s, const STRING &nl = STRING(
 //////////////////////////////////////////////////////////////////
 
 template< class STRING >
-STRING Vector2String( const std::vector< STRING >&v, const STRING separator = STRING::value_type( "," ) )
+STRING Vector2String( const std::vector< STRING >&v, const STRING separator = STRING( "," ) )	//STRING::value_type => STRING (2015/12/12)
 {
 	STRING result;
 	if ( !v.empty() ){
@@ -794,6 +794,11 @@ STRING Vector2String( const std::vector< STRING >&v, const STRING separator = ST
 			result += (separator + *ii);
 	}
 	return result;
+}
+template< class STRING >
+inline STRING Vector2String( const std::vector< STRING >&v, const typename STRING::value_type *separator = ",")	//STRING::value_type => STRING (2015/12/12)
+{
+	return Vector2String( v, STRING( separator ) );
 }
 
 
@@ -1301,6 +1306,18 @@ inline STRING &rtrim( STRING &s )
 {
     s.erase( std::find_if( s.rbegin(), s.rend(), std::not1( std::ptr_fun< typename isspace_t<STRING>::parameter_type, int >( isspace_t<STRING>::is ) ) ).base(), s.end() );
     return s;
+}
+template< typename STRING >
+inline STRING ltrim( const STRING &s )
+{
+    STRING stmp( s );
+    return ltrim( stmp );
+}
+template< typename STRING >
+inline STRING rtrim( const STRING &s )
+{
+    STRING stmp( s );
+    return rtrim( stmp );
 }
 template< typename STRING >
 inline STRING &trim( STRING &s ) 

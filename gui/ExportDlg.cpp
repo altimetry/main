@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
@@ -18,9 +16,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "ExportDlg.cpp"
-#endif
+#include "new-gui/brat/stdafx.h"
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
@@ -132,7 +128,7 @@ void CExportDlg::CalculateColorValueRange( void )
 
   CProduct* productTmp = CProduct::Construct(*(m_operation->GetDataset()->GetProductList()));
 
-  wxString errorMsg;
+  std::string errorMsg;
   CExpression expr;
   bool bOk = CFormula::SetExpression((const char *)formula->GetDescription(true, m_aliases, productTmp->GetAliasesAsString()).c_str(), expr, errorMsg);
 

@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -18,9 +16,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "GuiFrame.h"
-#endif
+#include "new-gui/brat/stdafx.h"
 
 // For compilers that support precompilation
 #include "wx/wxprec.h"
@@ -105,14 +101,14 @@ CGuiFrame::CGuiFrame( wxWindow *parent, wxWindowID id, const wxString &title,
     const wxPoint &position, const wxSize& size, long style ) :
     wxFrame( parent, id, title, position, size, style )
 {
-  m_menuBar = NULL;
-  m_menuWorkspace = NULL;
-  m_menuHistory = NULL;
+  m_menuBar = nullptr;
+  m_menuWorkspace = nullptr;
+  m_menuHistory = nullptr;
 
-  m_menuBarPopup = NULL;
-  m_menuFieldsTreeCtrl = NULL;
-  m_menuOperationTreeCtrl = NULL;
-  m_menuDisplayTreeCtrl = NULL;
+  m_menuBarPopup = nullptr;
+  m_menuFieldsTreeCtrl = nullptr;
+  m_menuOperationTreeCtrl = nullptr;
+  m_menuDisplayTreeCtrl = nullptr;
 
   CreateMainMenuBar();
   
@@ -169,12 +165,12 @@ void CGuiFrame::CreateMainMenuBar()
   m_menuBar->Enable(ID_MENU_FILE_RECENT, false);
 
   wxMenuItem* menuItemRecent = m_menuBar->FindItem(ID_MENU_FILE_RECENT, &m_menuWorkspace);
-  if (menuItemRecent != NULL)
+  if (menuItemRecent != nullptr)
   {
     m_menuHistory = menuItemRecent->GetSubMenu();
   }
 
-  if (m_menuHistory != NULL)
+  if (m_menuHistory != nullptr)
   {
     m_wksHistory.UseMenu(m_menuHistory);
     ConfigToFileHistory();
@@ -237,7 +233,7 @@ bool CGuiFrame::CreateWorkspace()
   }
 
   CWorkspaceDlg wksDlg (this, -1, "Create a new workspace...", 
-                        CWorkspace::wksNew, wxGetApp().GetCurrentWorkspace(), ".");
+                        CWorkspaceDlg::wksNew, wxGetApp().GetCurrentWorkspace(), ".");
   
   int32_t result = wksDlg.ShowModal();
   if (result != wxID_OK)
@@ -263,7 +259,7 @@ bool CGuiFrame::CreateWorkspace()
   //m_guiPanel->GetDisplayPanel()->ClearAll();
   m_guiPanel->GetDisplayPanel()->ClearAll();
   
-  CWorkspace* wks = new CWorkspace(name, path);
+  CWorkspace* wks = new CWorkspace(name.ToStdString(), path.GetFullPath().ToStdString());
   
   wxGetApp().CreateTree(wks);
   wxGetApp().m_tree.SaveConfig();
@@ -274,9 +270,9 @@ bool CGuiFrame::CreateWorkspace()
   //m_guiPanel->GetDisplayPanel()->EnableCtrl();
   m_guiPanel->GetDisplayPanel()->EnableCtrl();
 
-  if (wks != NULL)
+  if (wks != nullptr)
   {
-    AddWorkspaceToHistory(wks->GetPathName());
+    AddWorkspaceToHistory(wks->GetPath());
   }
 
   SetTitle();
@@ -287,7 +283,7 @@ bool CGuiFrame::CreateWorkspace()
 //----------------------------------------
 void CGuiFrame::ConfigToFileHistory()
 {
-  if (wxGetApp().GetConfig() == NULL)
+  if (wxGetApp().GetConfig() == nullptr)
   {
     return;
   }
@@ -349,7 +345,7 @@ void CGuiFrame::LoadFromWorkspaceHistory(int32_t fileNum)
 //----------------------------------------
 void CGuiFrame::FileHistoryToConfig()
 {
-  if (wxGetApp().GetConfig() == NULL)
+  if (wxGetApp().GetConfig() == nullptr)
   {
     return;
   }
@@ -390,9 +386,9 @@ bool CGuiFrame::SaveWorkspace()
 
   CWorkspace* wks = wxGetApp().GetCurrentWorkspace();
 
-  if (wks != NULL)
+  if (wks != nullptr)
   {
-    AddWorkspaceToHistory(wks->GetPathName());
+    AddWorkspaceToHistory(wks->GetPath());
   }
 
 
@@ -401,108 +397,103 @@ bool CGuiFrame::SaveWorkspace()
 //----------------------------------------
 bool CGuiFrame::OpenWorkspace()
 {
+	bool bOk = false;
 
-  bool bOk = false;
+	bool cancel = AskToSave();
+	if ( cancel )
+		return true;
 
-  bool cancel = AskToSave();
+	CWorkspaceDlg wksDlg( this, -1, "Open a workspace...",
+		CWorkspaceDlg::wksOpen, wxGetApp().GetCurrentWorkspace(), "." );
 
-  if (cancel)
-  {
-    return true;
-  }
+	int result = wksDlg.ShowModal();
+	if ( result != wxID_OK )
+		return true;
 
-  CWorkspaceDlg wksDlg (this, -1, "Open a workspace...",
-                        CWorkspace::wksOpen, wxGetApp().GetCurrentWorkspace(), ".");
-  
-  int32_t result = wksDlg.ShowModal();
-  if (result != wxID_OK)
-  {
-    return true;
-  }
+	CWorkspace* wks = new CWorkspace( wksDlg.GetWksName()->GetValue().ToStdString(), wksDlg.GetWksLoc()->GetValue().ToStdString() );
 
-  CWorkspace* wks = new CWorkspace(wksDlg.GetWksName()->GetValue(), wksDlg.GetWksLoc()->GetValue());
+	wxGetApp().CreateTree( wks );
 
-  wxGetApp().CreateTree(wks);
+	CWorkspace *failed_wks = nullptr;
+	bOk = wxGetApp().m_tree.LoadConfig( failed_wks );
+	if ( !bOk )
+	{
+		wxMessageBox( "Unable to load workspace '" + ( failed_wks ? failed_wks->GetName() : "" ) + "'.",
+			"Warning",
+			wxOK | wxICON_EXCLAMATION );
 
-  bOk = wxGetApp().m_tree.LoadConfig();
+		DoEmptyWorkspace();
+		return false;
+	}
 
-  if (bOk == false)
-  {
-    DoEmptyWorkspace();
-    return false;
-  }
+	ResetWorkspace();
 
-  ResetWorkspace();
+	LoadWorkspace();
 
-  LoadWorkspace();  
-
-  EnableCtrlWorkspace();
+	EnableCtrlWorkspace();
 
 
-  if (wks != NULL)
-  {
-    AddWorkspaceToHistory(wks->GetPathName());
-  }
+	if ( wks != nullptr )
+	{
+		AddWorkspaceToHistory( wks->GetPath() );
+	}
 
-  SetTitle();
+	SetTitle();
 
-  return true;
+	return true;
 }
 
 //----------------------------------------
-bool CGuiFrame::OpenWorkspace(const wxString& path)
+bool CGuiFrame::OpenWorkspace( const wxString& path )
 {
-  if (path.IsEmpty())
-  {
-    DoEmptyWorkspace();
-    return true;
-  }
+	if ( path.IsEmpty() )
+	{
+		DoEmptyWorkspace();
+		return true;
+	}
 
+	bool cancel = AskToSave();
+	if ( cancel )
+		return true;
 
-  bool cancel = AskToSave();
+	CWorkspaceDlg wksDlg( this, -1, "Open a workspace...",
+		CWorkspaceDlg::wksOpen, wxGetApp().GetCurrentWorkspace(), path );
 
-  if (cancel)
-  {
-    return true;
-  }
+	wksDlg.GetWksLoc()->SetValue( path );
 
-  CWorkspaceDlg wksDlg (this, -1, "Open a workspace...",
-                        CWorkspace::wksOpen, wxGetApp().GetCurrentWorkspace(), path);
-  
-  wksDlg.GetWksLoc()->SetValue(path);
+	bool bOk = wksDlg.ValidateData();
+	if ( !bOk )
+		return bOk;
 
-  bool bOk = wksDlg.ValidateData();
-  if (bOk == false)
-  {
-    return bOk;
-  }
+	CWorkspace* wks = new CWorkspace( wksDlg.GetWksName()->GetValue().ToStdString(), wksDlg.GetWksLoc()->GetValue().ToStdString() );
 
-  CWorkspace* wks = new CWorkspace(wksDlg.GetWksName()->GetValue(), wksDlg.GetWksLoc()->GetValue());
- 
-  wxGetApp().CreateTree(wks);
-  bOk = wxGetApp().m_tree.LoadConfig();
-  
-  if (bOk == false)
-  {
-    DoEmptyWorkspace();
-    return false;
-  }
+	wxGetApp().CreateTree( wks );
+	CWorkspace *failed_wks = nullptr;
+	bOk = wxGetApp().m_tree.LoadConfig( failed_wks );
+	if ( !bOk )
+	{
+		wxMessageBox( "Unable to load workspace '" + ( failed_wks ? failed_wks->GetName() : "" ) + "'.",
+			"Warning",
+			wxOK | wxICON_EXCLAMATION );
 
-  ResetWorkspace();
+		DoEmptyWorkspace();
+		return false;
+	}
 
-  LoadWorkspace();  
+	ResetWorkspace();
 
-  EnableCtrlWorkspace();
+	LoadWorkspace();
 
-  if (wks != NULL)
-  {
-    AddWorkspaceToHistory(wks->GetPathName());
-  }
- 
-  SetTitle();
+	EnableCtrlWorkspace();
 
-  return true;
+	if ( wks )
+	{
+		AddWorkspaceToHistory( wks->GetPath() );
+	}
 
+	SetTitle();
+
+	return true;
 }
 
 //----------------------------------------
@@ -556,141 +547,155 @@ void CGuiFrame::DoEmptyWorkspace()
 //----------------------------------------
 bool CGuiFrame::ImportWorkspace()
 {
+	bool bOk = false;
+	if ( wxGetApp().GetCurrentWorkspace() == nullptr )
+		return false;
 
-  bool bOk = false;
+	wxGetApp().m_treeImport.DeleteTree();
 
-  if (wxGetApp().GetCurrentWorkspace() == NULL)
-  {
-    return false;
-  }
+	wxString wksPath = wxGetApp().GetCurrentWorkspace()->GetPath();
+	wxFileName currentWksPath;
+	currentWksPath.AssignDir( wksPath );
+	currentWksPath.MakeAbsolute();
 
-  wxGetApp().m_treeImport.DeleteTree();
+	SaveWorkspace();
+
+	CWorkspaceDlg wksDlg( this, -1, "Import a workspace...", CWorkspaceDlg::wksImport, wxGetApp().GetCurrentWorkspace(), "." );
+
+	wxGetApp().m_tree.GetImportBitSet()->m_bitSet.reset();
+
+	wxString wksPathToImport;
+	wxArrayString formulasToImport;
+
+	while ( true )
+	{
+		int result = wksDlg.ShowModal();
+		if ( result != wxID_OK )
+		{
+			bOk = false;
+			break;
+		}
+
+		wksPathToImport = wksDlg.GetWksLoc()->GetValue();
+		wxFileName importWksPath;
+		importWksPath.AssignDir( wksPathToImport );
+		importWksPath.MakeAbsolute();
+
+		if ( currentWksPath.GetPath().CmpNoCase( importWksPath.GetPath() ) == 0 )
+		{
+			wxMessageBox( "You can't import a workspace from itself.",
+				"Warning",
+				wxOK | wxCENTRE | wxICON_EXCLAMATION );
+			bOk = false;
+		}
+		else
+		{
+			bOk = true;
+			break;
+		}
+	}
+
+	if ( !bOk )
+		return bOk;
+
+	wxGetApp().m_tree.GetImportBitSet()->m_bitSet.set( IMPORT_DATASET_INDEX, wksDlg.GetImportDataset()->GetValue() );
+	wxGetApp().m_tree.GetImportBitSet()->m_bitSet.set( IMPORT_FORMULA_INDEX, wksDlg.GetImportFormulas()->GetValue() );
+	wxGetApp().m_tree.GetImportBitSet()->m_bitSet.set( IMPORT_OPERATION_INDEX, wksDlg.GetImportOperations()->GetValue() );
+	wxGetApp().m_tree.GetImportBitSet()->m_bitSet.set( IMPORT_DISPLAY_INDEX, wksDlg.GetImportViews()->GetValue() );
+
+	CWorkspace* wks = new CWorkspace( wksDlg.GetWksName()->GetValue().ToStdString(), wksPathToImport.ToStdString(), false );
+
+	wxGetApp().m_treeImport.SetCtrlDatasetFiles( wxGetApp().m_tree.GetImportBitSet()->m_bitSet.test( IMPORT_DATASET_INDEX ) );
+
+	wxGetApp().CreateTree( wks, wxGetApp().m_treeImport );
+
+	//-----------------------------------------
+	wxGetApp().SetCurrentTree( &( wxGetApp().m_treeImport ) );
+	//-----------------------------------------
+
+	CWorkspace *failed_wks = nullptr;
+	bOk = wxGetApp().m_treeImport.LoadConfig( failed_wks );
+	if ( !bOk )
+	{
+		wxMessageBox( "Unable to load workspace '" + ( failed_wks ? failed_wks->GetName() : "" ) + "'.",
+			"Warning",
+			wxOK | wxICON_EXCLAMATION );
+
+		wxGetApp().m_treeImport.DeleteTree();
+		wxGetApp().m_tree.DeleteTree();
+
+		bool oldValue = wxGetApp().m_tree.GetCtrlDatasetFiles();
+		wxGetApp().m_tree.SetCtrlDatasetFiles( false );
+
+		OpenWorkspace( wksPath );
+
+		wxGetApp().m_tree.SetCtrlDatasetFiles( oldValue );
+
+		return bOk;
+	}
+
+	CWorkspaceOperation* wksOpImport = wxGetApp().GetCurrentWorkspaceOperation();
+
+	//-----------------------------------------
+	wxGetApp().SetCurrentTree( &( wxGetApp().m_tree ) );
+	//-----------------------------------------
+
+	// Retrieve formula to Import
+	CWorkspaceFormula* wksFormula = wxGetApp().GetCurrentWorkspaceFormula();
+
+	wksDlg.GetCheckedFormulas( wksFormula->GetFormulasToImport() );
 
 
-  wxString wksPath = wxGetApp().GetCurrentWorkspace()->GetPathName();
-  wxFileName currentWksPath;
-  currentWksPath.AssignDir( wksPath );
-  currentWksPath.MakeAbsolute();
+	std::string missingKey;
+	bOk = wxGetApp().m_tree.GetRootData() && wxGetApp().m_tree.Import( &( wxGetApp().m_treeImport ), missingKey );
+	if ( bOk )
+	{
+		SaveWorkspace();
 
+		CWorkspaceOperation* wksOp = wxGetApp().GetCurrentWorkspaceOperation();
+		if ( ( wksOp != nullptr ) && ( wksOpImport != nullptr ) )
+		{
+			CDirTraverserCopyFile traverserCopyFile( wksOp->GetPath(), "nc" );
+			//path name given to wxDir is locked until wxDir object is deleted
+			wxDir dir;
 
-  SaveWorkspace();    
+			dir.Open( wksOpImport->GetPath() );
+			dir.Traverse( traverserCopyFile );
+		}
 
-  CWorkspaceDlg wksDlg (this, -1, "Import a workspace...",
-                        CWorkspace::wksImport, wxGetApp().GetCurrentWorkspace(), ".");
-  
-  wxGetApp().m_tree.GetImportBitSet()->m_bitSet.reset();
+	}
+	else	//femm: original code didn't return on failure; so this else (created to strip out wxMessageBoxes from CTreeWorkspace) won't return also
+	{
+		if ( wxGetApp().m_tree.GetRootData() == nullptr )
+		{
+			wxMessageBox( "Unable to import workspace. No root found",
+				"Warning",
+				wxOK | wxCENTRE | wxICON_EXCLAMATION );
+		}
+		else 
+		{
+			wxMessageBox( 
+				"Unable to import workspace. Workspace '"
+				+ wxGetApp().m_tree.GetRootData()->GetName()
+				+ "' doesn't contain '"
+				+ missingKey
+				+ "'",
+				"Warning",
+				wxOK | wxCENTRE | wxICON_EXCLAMATION );
+		}
+	}
 
-  wxString wksPathToImport;
-  wxArrayString formulasToImport;
+	wxGetApp().m_treeImport.DeleteTree();
+	wxGetApp().m_tree.DeleteTree();
 
-  while (true)
-  {
-    int32_t result = wksDlg.ShowModal();
-    if (result != wxID_OK)
-    {
-      bOk = false;
-      break;
-    }
+	bool oldValue = wxGetApp().m_tree.GetCtrlDatasetFiles();
+	wxGetApp().m_tree.SetCtrlDatasetFiles( false );
 
-    wksPathToImport = wksDlg.GetWksLoc()->GetValue();
-    wxFileName importWksPath;
-    importWksPath.AssignDir( wksPathToImport );
-    importWksPath.MakeAbsolute();
-  
-    if (currentWksPath.GetPath().CmpNoCase(importWksPath.GetPath()) == 0)
-    {
-      wxMessageBox("You can't import a workspace from itself.",
-                   "Warning",
-                    wxOK | wxCENTRE | wxICON_EXCLAMATION);
-      bOk = false;
-    }
-    else
-    {
+	bOk = OpenWorkspace( wksPath );
 
-      bOk = true;
-      break;
-    }
-  }
+	wxGetApp().m_tree.SetCtrlDatasetFiles( oldValue );
 
-  if (!bOk)
-  {
-    return bOk;
-  }
-
-  wxGetApp().m_tree.GetImportBitSet()->m_bitSet.set(IMPORT_DATASET_INDEX, wksDlg.GetImportDataset()->GetValue());  
-  wxGetApp().m_tree.GetImportBitSet()->m_bitSet.set(IMPORT_FORMULA_INDEX, wksDlg.GetImportFormulas()->GetValue());  
-  wxGetApp().m_tree.GetImportBitSet()->m_bitSet.set(IMPORT_OPERATION_INDEX, wksDlg.GetImportOperations()->GetValue());  
-  wxGetApp().m_tree.GetImportBitSet()->m_bitSet.set(IMPORT_DISPLAY_INDEX, wksDlg.GetImportViews()->GetValue());  
-
-
-  CWorkspace* wks = new CWorkspace(wksDlg.GetWksName()->GetValue(), wksPathToImport, false);
-  
-  wxGetApp().m_treeImport.SetCtrlDatasetFiles( wxGetApp().m_tree.GetImportBitSet()->m_bitSet.test(IMPORT_DATASET_INDEX) );
-
-  wxGetApp().CreateTree(wks, wxGetApp().m_treeImport);
-
-  //-----------------------------------------
-  wxGetApp().SetCurrentTree(&(wxGetApp().m_treeImport));
-  //-----------------------------------------
-  
-  bOk = wxGetApp().m_treeImport.LoadConfig();
-  
-  if (bOk == false)
-  {
-    wxGetApp().m_treeImport.DeleteTree();
-    wxGetApp().m_tree.DeleteTree();
-
-    bool oldValue = wxGetApp().m_tree.GetCtrlDatasetFiles();
-    wxGetApp().m_tree.SetCtrlDatasetFiles(false);
-
-    OpenWorkspace(wksPath);
-
-    wxGetApp().m_tree.SetCtrlDatasetFiles(oldValue);
-    
-    return bOk;
-  }
-
-  CWorkspaceOperation* wksOpImport = wxGetApp().GetCurrentWorkspaceOperation();
-
-  //-----------------------------------------
-  wxGetApp().SetCurrentTree(&(wxGetApp().m_tree));
-  //-----------------------------------------
-  
-  // Retrieve formula to Import
-  CWorkspaceFormula* wksFormula = wxGetApp().GetCurrentWorkspaceFormula();
-  
-  wksDlg.GetCheckedFormulas(wksFormula->GetFormulasToImport());
-
-  
-  bOk = wxGetApp().m_tree.Import(&(wxGetApp().m_treeImport));
-  if (bOk)
-  {    
-    SaveWorkspace(); 
- 
-    CWorkspaceOperation* wksOp = wxGetApp().GetCurrentWorkspaceOperation();
-    if ( (wksOp != NULL) && (wksOpImport != NULL) )
-    {
-      CDirTraverserCopyFile traverserCopyFile(wksOp->GetPath(), "nc");
-      //path name given to wxDir is locked until wxDir object is deleted
-      wxDir dir;
-
-      dir.Open(wksOpImport->GetPathName());
-      dir.Traverse(traverserCopyFile);
-    }
- 
-  }
-
-  wxGetApp().m_treeImport.DeleteTree();
-  wxGetApp().m_tree.DeleteTree();
-
-  bool oldValue = wxGetApp().m_tree.GetCtrlDatasetFiles();
-  wxGetApp().m_tree.SetCtrlDatasetFiles(false);
-
-  bOk = OpenWorkspace(wksPath);
-
-  wxGetApp().m_tree.SetCtrlDatasetFiles(oldValue);
-
-  return bOk;
+	return bOk;
 }
 //----------------------------------------
 bool CGuiFrame::RenameWorkspace()
@@ -698,7 +703,7 @@ bool CGuiFrame::RenameWorkspace()
   bool bOk = true;
   CWorkspace* wks = wxGetApp().GetCurrentWorkspace();
 
-  if (wks == NULL)
+  if (wks == nullptr)
   {
     wxMessageBox("There is no current workspace opened",
                  "Warning",
@@ -707,7 +712,7 @@ bool CGuiFrame::RenameWorkspace()
   }
 
   CWorkspaceDlg wksDlg (this, -1, "Rename a workspace...",
-                        CWorkspace::wksRename, wks, ".");
+                        CWorkspaceDlg::wksRename, wks, ".");
   
   int32_t result = wksDlg.ShowModal();
   if (result != wxID_OK)
@@ -715,7 +720,7 @@ bool CGuiFrame::RenameWorkspace()
     return true;
   }
   
-  wks->SetName(wksDlg.GetWksName()->GetValue());
+  wks->SetName(wksDlg.GetWksName()->GetValue().ToStdString());
   wks->SaveConfig();
 
   return bOk;
@@ -727,7 +732,7 @@ bool CGuiFrame::DeleteWorkspace()
 
   CWorkspace* wks = wxGetApp().GetCurrentWorkspace();
 
-  if (wks == NULL)
+  if (wks == nullptr)
   {
     wxMessageBox("There is no current workspace opened",
                  "Warning",
@@ -738,14 +743,14 @@ bool CGuiFrame::DeleteWorkspace()
   wxString msg = wxString::Format("Delete workspace '%s' ...", wks->GetName().c_str());
 
   CWorkspaceDlg wksDlg (this, -1, msg,
-                        CWorkspace::wksDelete, wks, ".");
+                        CWorkspaceDlg::wksDelete, wks, ".");
   
   int32_t result = wksDlg.ShowModal();
   if (result != wxID_OK)
   {
     return true;
   }
-  msg = wxString::Format("WARNING - All files under '%s' will be deleted\nAre you sure ?", wks->GetPathName().c_str());
+  msg = wxString::Format("WARNING - All files under '%s' will be deleted\nAre you sure ?", wks->GetPath().c_str());
   result = wxMessageBox(msg,
                         "Warning",
                         wxYES_NO | wxCENTRE | wxICON_QUESTION);
@@ -757,7 +762,7 @@ bool CGuiFrame::DeleteWorkspace()
 
   bOk = wks->Rmdir();
 
-  RemoveWorkspaceFromHistory(wks->GetPathName());
+  RemoveWorkspaceFromHistory(wks->GetPath());
   
   DoEmptyWorkspace();
 
@@ -769,7 +774,7 @@ bool CGuiFrame::AskToSave()
   CWorkspace* wks = wxGetApp().GetCurrentWorkspace();
   bool cancel = false;
 
-  if (wks != NULL)
+  if (wks != nullptr)
   {
     int32_t result = wxMessageBox("Do you want to save the current workspace ?\n"
                                    "Click Yes to save and continue\n"
@@ -914,7 +919,7 @@ void CGuiFrame::OnInsertEmptyExpression( wxCommandEvent &event )
 void CGuiFrame::OnInsertIntoSelect( wxCommandEvent &event )
 {    
   CField* field = GetFieldstreectrl()->GetCurrentField();    
-  if (field == NULL)
+  if (field == nullptr)
   {
     return;
   }
@@ -926,7 +931,7 @@ void CGuiFrame::OnInsertIntoSelect( wxCommandEvent &event )
 void CGuiFrame::OnSetAsData( wxCommandEvent &event )
 {    
   CField* field = GetFieldstreectrl()->GetCurrentField();    
-  if (field == NULL)
+  if (field == nullptr)
   {
     return;
   }
@@ -938,7 +943,7 @@ void CGuiFrame::OnSetAsData( wxCommandEvent &event )
 void CGuiFrame::OnSetAsY( wxCommandEvent &event )
 {
   CField* field = GetFieldstreectrl()->GetCurrentField();    
-  if (field == NULL)
+  if (field == nullptr)
   {
     return;
   }
@@ -951,7 +956,7 @@ void CGuiFrame::OnSetAsY( wxCommandEvent &event )
 void CGuiFrame::OnSetAsX( wxCommandEvent &event )
 {
   CField* field = GetFieldstreectrl()->GetCurrentField();    
-  if (field == NULL)
+  if (field == nullptr)
   {
     return;
   }
@@ -1115,25 +1120,25 @@ void CGuiFrame::OnNewDataset( wxCommandEvent &event )
 
 void CGuiFrame::OnImportWorkspaceUpdateUI( wxUpdateUIEvent &event )
 {
-  event.Enable(wxGetApp().GetCurrentWorkspace() != NULL);        
+  event.Enable(wxGetApp().GetCurrentWorkspace() != nullptr);        
 }
 
 //----------------------------------------
 void CGuiFrame::OnSaveWorkspaceUpdateUI( wxUpdateUIEvent &event )
 {
-  event.Enable(wxGetApp().GetCurrentWorkspace() != NULL);        
+  event.Enable(wxGetApp().GetCurrentWorkspace() != nullptr);        
 }
 
 //----------------------------------------
 void CGuiFrame::OnDeleteWorkspaceUpdateUI( wxUpdateUIEvent &event )
 {
-  event.Enable(wxGetApp().GetCurrentWorkspace() != NULL);        
+  event.Enable(wxGetApp().GetCurrentWorkspace() != nullptr);        
 }
 
 //----------------------------------------
 void CGuiFrame::OnRenameWorkspaceUpdateUI( wxUpdateUIEvent &event )
 {
-  event.Enable(wxGetApp().GetCurrentWorkspace() != NULL);        
+  event.Enable(wxGetApp().GetCurrentWorkspace() != nullptr);        
 }
 
 //----------------------------------------
@@ -1208,10 +1213,10 @@ void CGuiFrame::OnCloseWindow( wxCloseEvent &event )
 
   FileHistoryToConfig();
   
-  if (m_menuBarPopup != NULL)
+  if (m_menuBarPopup != nullptr)
   {
     delete m_menuBarPopup;
-    m_menuBarPopup = NULL;
+    m_menuBarPopup = nullptr;
   }
   // if ! saved changes -> return
   Destroy();
@@ -1234,7 +1239,7 @@ void CGuiFrame::SetTitle()
 {
   wxString title = BRATGUI_TITLE;
   CWorkspace* wks =wxGetApp().GetCurrentWorkspace();
-  if (wks != NULL)
+  if (wks != nullptr)
   {
     title += " - " + wks->GetName();
   }

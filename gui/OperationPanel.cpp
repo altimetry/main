@@ -269,9 +269,8 @@ CExpressionInfoDlg::CExpressionInfoDlg( wxWindow *parent, wxWindowID id, const w
   //int32_t charwidth, charheight;
   //CBratGuiApp::DetermineCharSize(this, charwidth, charheight);
 
-  wxString errorMsg;
+  std::string errorMsg;
   CExpression expr;
-
   CFormula::SetExpression(exprValue, expr, errorMsg);
 
   const CStringArray* fieldNames = expr.GetFieldNames();
@@ -561,7 +560,7 @@ void COperationPanel::SetUnitText()
   }
 
   wxString unitValue = GetOpunit()->GetValue();
-  wxString defaultValue;
+  std::string defaultValue;
 
   wxString formulaValue = GetOptextform()->GetValue();
   formulaValue.Trim(false);
@@ -581,10 +580,10 @@ void COperationPanel::SetUnitText()
   }
 
 
-  m_userFormula->SetUnit(GetOpunit()->GetValue(), defaultValue, false, true);
+  m_userFormula->SetUnit(GetOpunit()->GetValue().ToStdString(), defaultValue, false, true);
   GetOpunit()->SetValue(m_userFormula->GetUnitAsText());
 
-  wxString msg;
+  std::string msg;
   bool bOk = m_userFormula->ControlUnitConsistency(msg);
   if (!bOk)
   {
@@ -741,7 +740,7 @@ void COperationPanel::OpNameChanged()
 
   wxString operationOldName = m_operation->GetName();
 
-  if (wks->RenameOperation(m_operation, opName) == false)
+  if (wks->RenameOperation(m_operation, opName.ToStdString()) == false)
   {
     m_opNameDirty = false; // must be here, to avoid loop, because  on wxMessageBox, combo kill focus event is process again
 
@@ -1157,7 +1156,7 @@ CDataset* COperationPanel::GetCurrentDataset()
 
   if (m_currentDataset.IsOk())
   {
-    dataset = wks->GetDataset(GetDatasettreectrl()->GetItemText(m_currentDataset));
+    dataset = wks->GetDataset(GetDatasettreectrl()->GetItemText(m_currentDataset).ToStdString());
   }
   return dataset;
 }
@@ -1435,7 +1434,7 @@ COperation* COperationPanel::GetCurrentOperation()
     return NULL;
   }
 
-  return wks->GetOperation(GetOpnames()->GetString(m_currentOperation));
+  return wks->GetOperation(GetOpnames()->GetString(m_currentOperation).ToStdString());
 }
 //----------------------------------------
 bool COperationPanel::SetCurrentOperation()
@@ -1551,7 +1550,7 @@ void COperationPanel::DatasetSelChanged( const wxTreeItemId& id )
 
 }
 //----------------------------------------
-bool COperationPanel::CtrlOperation(wxString& msg, bool basicControl /* = false */, const CStringMap* aliases /* = NULL*/)
+bool COperationPanel::CtrlOperation(std::string& msg, bool basicControl /* = false */, const CStringMap* aliases /* = NULL*/)
 {
   if (m_operation == NULL)
   {
@@ -1663,8 +1662,8 @@ void COperationPanel::AddFormulaComment(CFormula* formula)
     return;
   }
 
-  formula->SetTitle(dlg.GetFormulaTitle()->GetValue());
-  formula->SetComment(dlg.GetFormulaComment()->GetValue());
+  formula->SetTitle(dlg.GetFormulaTitle()->GetValue().ToStdString());
+  formula->SetComment(dlg.GetFormulaComment()->GetValue().ToStdString());
 
 }
 
@@ -1862,7 +1861,7 @@ void COperationPanel::OnComboDataType( wxCommandEvent &event )
   {
     return;
   }
-  m_userFormula->SetDataType( CMapTypeData::GetInstance().NameToId(GetOptype()->GetStringSelection()));
+  m_userFormula->SetDataType( CMapTypeData::GetInstance().NameToId(GetOptype()->GetStringSelection().ToStdString()));
   m_userFormula->SetDefaultMinMax();
   m_userFormula->SetStepToDefault();
   GetOpunit()->SetValue(m_userFormula->GetDefaultUnit());
@@ -1956,7 +1955,7 @@ void COperationPanel::OnComboDataMode( wxCommandEvent &event )
     return;
   }
 
-  uint32_t id   = CMapDataMode::GetInstance().NameToId(GetOpDataMode()->GetValue());
+  uint32_t id   = CMapDataMode::GetInstance().NameToId(GetOpDataMode()->GetValue().ToStdString());
   formula->SetDataMode(id);
 
 }
@@ -2521,7 +2520,7 @@ void COperationPanel::NewOperation()
 
   wxString opName = wks->GetOperationNewName();
 
-  bOk = wks->InsertOperation(opName);
+  bOk = wks->InsertOperation(opName.ToStdString());
 
   if (bOk == false)
   {
@@ -2596,9 +2595,9 @@ void COperationPanel::DuplicateOperation()
   }
 
 
-  wxString opName = wks->GetOperationCopyName(m_operation->GetName());
+  wxString opName = wks->GetOperationCopyName(m_operation->GetName().ToStdString());
 
-  bOk = wks->InsertOperation(opName, m_operation);
+  bOk = wks->InsertOperation(opName.ToStdString(), m_operation);
 
   if (bOk == false)
   {
@@ -2774,10 +2773,8 @@ void COperationPanel::OnDatasetFilesChanged(CDatasetFilesChangeEvent& event)
   }
 
   wxString eventDatasetName = event.m_datasetName;
-  if (dataset->GetName().CmpNoCase(event.m_datasetName) != 0)
-  {
+  if ( !str_icmp( dataset->GetName(), event.m_datasetName.ToStdString() ) )
     return;
-  }
 
   wxString errorMsg;
   bool bOk = true;
@@ -3035,24 +3032,22 @@ bool COperationPanel::CheckExpression(wxTextCtrl* ctrl)
   }
 
 
-  wxString value = ctrl->GetValue();
-  wxString valueOut;
+  std::string value = ctrl->GetValue().ToStdString();
+  std::string valueOut;
 
   if (IsFormulaSelectField())
   {
-    bOk = CheckExpression(value.c_str(), NULL, &valueOut);
+    bOk = CheckExpression(value, NULL, &valueOut);
   }
   else
   {
-    wxString unit = GetOpunit()->GetValue();
-    bOk = CheckExpression(value.c_str(), &unit, &valueOut);
+    std::string unit = GetOpunit()->GetValue().ToStdString();
+    bOk = CheckExpression(value, &unit, &valueOut);
   }
 
-
-
-  if (! valueOut.IsEmpty())
+  if (! valueOut.empty())
   {
-    if (value.Cmp(valueOut) != 0)
+    if ( !str_cmp( value, valueOut) )
     {
       ctrl->SetValue(valueOut);
     }
@@ -3067,15 +3062,15 @@ bool COperationPanel::CheckExpression(wxTextCtrl* ctrl)
 
 }
 //----------------------------------------
-bool COperationPanel::CheckExpression(const wxString& value, wxString* strExprUnit /*= NULL*/, wxString* valueOut /*= NULL*/)
+bool COperationPanel::CheckExpression(const std::string &value, std::string *strExprUnit /*= NULL*/, std::string *valueOut /*= NULL*/)
 {
   if (m_operation == NULL)
   {
     return true;
   }
 
-  wxString msg;
-  bool bOk = CFormula::CheckExpression(value, m_operation->GetRecord(), msg, strExprUnit, &m_mapFormulaString, m_product, valueOut);
+  std::string msg;
+  bool bOk = CFormula::CheckExpression(value, m_operation->GetRecord().ToStdString(), msg, strExprUnit, &m_mapFormulaString, m_product, valueOut);
 
   if (!bOk)
   {
@@ -3103,8 +3098,6 @@ void COperationPanel::FillFormulaList()
   }
 
   wks->GetFormulaNames(m_mapFormulaString);
-
-
 }
 /*
 //----------------------------------------
@@ -3231,7 +3224,7 @@ wxString COperationPanel::GetFormulaSyntax(wxTextCtrl* textCtrl, wxTextCtrl* uni
   }
 
   wxString name = dlg.GetFormulaList()->GetStringSelection();
-  wxString syntax = wks->GetDescFormula(name, dlg.GetFormulaAlias()->IsChecked());
+  wxString syntax = wks->GetDescFormula(name.ToStdString(), dlg.GetFormulaAlias()->IsChecked());
 
   if (textCtrl != NULL)
   {
@@ -3273,7 +3266,7 @@ void COperationPanel::Execute(bool wait /*= false*/)
     return;
   }
 
-  wxString msg;
+  std::string msg;
   bool operationOk = CtrlOperation(msg, false, &m_mapFormulaString);
   if (operationOk == false)
   {
@@ -3405,7 +3398,7 @@ TaskRet COperationPanel::Delay( CDelayDlg& delayDlg )
 	if ( !m_operation )
 		return r;
 
-	wxString msg;
+	std::string msg;
 	bool operationOk = CtrlOperation( msg, false, &m_mapFormulaString );
 	if ( !operationOk )
 	{
@@ -3452,7 +3445,7 @@ void COperationPanel::ShowStats()
     return;
   }
 
-  wxString msg;
+  std::string msg;
   bool operationOk = CtrlOperation(msg, true, &m_mapFormulaString);
   if (operationOk == false)
   {
@@ -3500,7 +3493,7 @@ void COperationPanel::ExportOperation()
     return;
   }
 
-  wxString msg;
+  std::string msg;
   bool operationOk = CtrlOperation(msg, true, &m_mapFormulaString);
   if (operationOk == false)
   {
@@ -3660,7 +3653,7 @@ void COperationPanel::DelayExportOperationAsGeoTiff( CExportDlg& exportDlg )
 	}
 	else
 	{
-		exportGeoTiffCmdFile.Normalize( wxPATH_NORM_ALL, wks->GetPathName() );
+		exportGeoTiffCmdFile.Normalize( wxPATH_NORM_ALL, wks->GetPath() );
 	}
 
 	wxFile file;
@@ -3936,7 +3929,7 @@ void COperationPanel::ExportGeoTiff(wxFileName inputFile, wxFileName outputFile,
 
   wxGetApp().GotoLogPage();
 
-  exportGeoTiffCmdFile.AssignDir(wks->GetPathName());
+  exportGeoTiffCmdFile.AssignDir(wks->GetPath());
   exportGeoTiffCmdFile.SetFullName(outputFile.GetFullName());
   exportGeoTiffCmdFile.SetExt(EXPORTGEOTIFF_COMMANDFILE_EXTENSION);
   if (wks == NULL)
@@ -3945,7 +3938,7 @@ void COperationPanel::ExportGeoTiff(wxFileName inputFile, wxFileName outputFile,
   }
   else
   {
-    exportGeoTiffCmdFile.Normalize(wxPATH_NORM_ALL, wks->GetPathName());
+    exportGeoTiffCmdFile.Normalize(wxPATH_NORM_ALL, wks->GetPath());
   }
 
   file.Create(exportGeoTiffCmdFile.GetFullPath(), true, wxS_DEFAULT | wxS_IXUSR);

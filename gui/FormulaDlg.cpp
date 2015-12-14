@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -18,9 +16,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "FormulaDlg.cpp"
-#endif
+#include "new-gui/brat/stdafx.h"
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
@@ -98,9 +94,9 @@ void CFormulasDlg::OnFormulaList( wxCommandEvent &event )
 
   wxString name = GetFormulaList()->GetString(static_cast<uint32_t>(sel));
 
-  m_formula = wks->GetFormula(name);
+  m_formula = wks->GetFormula(name.ToStdString());
   
-  wxString value = wks->GetDescFormula(name, false);
+  wxString value = wks->GetDescFormula(name.ToStdString(), false);
  // value = CTools::SlashesDecode(value.c_str()).c_str();
 
   GetFormulaValue()->SetValue(value);
@@ -134,7 +130,7 @@ void CFormulasDlg::OnRemove( wxCommandEvent &event )
 
   wxString name = GetFormulaList()->GetStringSelection();
 
-  CFormula* formula = wks->GetFormula(name);
+  CFormula* formula = wks->GetFormula(name.ToStdString());
   if (formula == NULL)
   {
     return;
@@ -161,7 +157,7 @@ void CFormulasDlg::OnRemove( wxCommandEvent &event )
     return;
   }
 
-  wks->RemoveFormula(name);
+  wks->RemoveFormula(name.ToStdString());
   m_formula = NULL;
 
   FillFormulaList();
@@ -254,10 +250,10 @@ bool CFormulaDlg::ValidateData()
 {
   bool bOk = true;
   bOk &= VerifyName();
-  m_formula->SetName(GetFormulaName()->GetValue());
-  m_formula->SetComment(GetFormulaComment()->GetValue());
-  m_formula->SetTitle(GetFormulaTitle()->GetValue());
-  m_formula->SetUnit(GetFormulaUnit()->GetValue());
+  m_formula->SetName(GetFormulaName()->GetValue().ToStdString());
+  m_formula->SetComment(GetFormulaComment()->GetValue().ToStdString());
+  m_formula->SetTitle(GetFormulaTitle()->GetValue().ToStdString());
+  m_formula->SetUnit(GetFormulaUnit()->GetValue().ToStdString());
   return bOk;
 
 }

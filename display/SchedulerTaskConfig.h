@@ -19,8 +19,7 @@
 #ifndef __SchedulerTaskConfig_H__
 #define __SchedulerTaskConfig_H__
 
-#include "new-gui/scheduler/BratTask.h"
-
+#include "new-gui/brat/stdafx.h"
 
 #ifndef WX_PRECOMP
     #include "wx/wx.h"

@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -18,9 +16,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "DatasetTreeCtrl.h"
-#endif
+#include "new-gui/brat/stdafx.h"
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
@@ -140,7 +136,7 @@ wxTreeItemId CDatasetTreeCtrl::AddItemToTree(const wxString& datasetName)
     return id;
   }
 
-  CDataset* dataset = wks->GetDataset(datasetName);
+  CDataset* dataset = wks->GetDataset(datasetName.ToStdString());
   
   int image = CTreeCtrl::TreeCtrlIcon_File;
 
@@ -189,10 +185,8 @@ void CDatasetTreeCtrl::AddItemsToTree()
                                          
   }  
 */
-  CObMap* datasets = wks->GetDatasets();
-  CObMap::iterator it;
-
-  for (it = datasets->begin() ; it != datasets->end() ; it++)
+  const CObMap* datasets = wks->GetDatasets();
+  for (CObMap::const_iterator it = datasets->begin() ; it != datasets->end() ; it++)
   {
     CDataset* dataset = dynamic_cast<CDataset*>(it->second);
 
@@ -200,8 +194,6 @@ void CDatasetTreeCtrl::AddItemsToTree()
     image = CTreeCtrl::TreeCtrlIcon_File;
     wxTreeItemId id = AppendItem(rootId, (it->first).c_str(), image, image + 1, new CDatasetTreeItemData(dataset));
   }
-
-
 
 /*
   m_currentDataset = -1;

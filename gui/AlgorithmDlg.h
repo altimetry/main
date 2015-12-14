@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
@@ -20,10 +18,6 @@
 
 #ifndef __AlgorithmDlg_H__
 #define __AlgorithmDlg_H__
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "AlgorithmDlg.h"
-#endif
 
 #ifndef WX_PRECOMP
     #include "wx/wx.h"

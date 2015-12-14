@@ -21,10 +21,10 @@
 #define _ObjectTree_h_
 
 #include <map>
-
-#include "brathl.h"
 #include <string>
 #include <vector>
+
+#include "brathl.h"
 #include "BratObject.h"
 #include "new-gui/Common/tools/Trace.h"
 
@@ -43,7 +43,6 @@ namespace brathl
 */
 
 
-
 //-------------------------------------------------------------
 //------------------- CObjectTreeNode class --------------------
 //-------------------------------------------------------------
@@ -59,8 +58,6 @@ typedef std::map<std::string, CObjectTreeNode*> mapTreeNode;
 class CObjectTreeNode 
 {
 public:
-
-
   CObjectTreeNode(CObjectTree* tr);
 
   CObjectTreeNode(CObjectTree* tr, const std::string& key, CBratObject* x);
@@ -180,151 +177,125 @@ public:
 
 class CObjectTree
 {
-  friend class CObjectTreeNode;
+	friend class CObjectTreeNode;
 
 public:
 
-  typedef CObjectTreeIterator iterator;
+	typedef CObjectTreeIterator iterator;
 
-  //typedef const iterator const_iterator;
+	//typedef const iterator const_iterator;
 
-  ///instantiates an empty CObjectTree
-  CObjectTree();
+	///instantiates an empty CObjectTree
+	CObjectTree();
 
-  ///instantiates a CObjectTree with the root node
-  CObjectTree(const std::string& nm, CBratObject* x);
+	///instantiates a CObjectTree with the root node
+	CObjectTree( const std::string& nm, CBratObject* x );
 
-  virtual ~CObjectTree();
-
-
-
-  ///set a ObjectTree with the root node
-  virtual void SetRoot(const std::string& nm, CBratObject* x, bool goCurrent = false);
-
-  ///returns ObjectTree root node, or NULL for empty CObjectTree
-  CObjectTreeNode* GetRoot() const { return m_pTreeroot; };
-
-  CObjectTreeNode* GetWalkCurrent() const { return m_WalkCurrent; };
-  CObjectTreeNode* GetWalkParent() const { return m_WalkParent; };
-
-  virtual CObjectTreeIterator AddChild (CObjectTreeNode* parent, const std::string& nm, CBratObject* x, bool goCurrent = false);
-
-  virtual CObjectTreeIterator AddChild (CObjectTreeIterator& parent, const std::string& nm, CBratObject* x, bool goCurrent = false);
-
-  virtual CObjectTreeIterator AddChild (const std::string& nm, CBratObject* x, bool goCurrent = false); 
-
-  void DeleteAllChildren(CObjectTreeIterator & itr);
-  void DeleteTree();
- 
-  size_t size(void) { return m_nodemap.size(); };
-
-  CBratObject* FindParentObject(const std::string& key); 
-  CObjectTreeNode* FindParentNode(const std::string& key); 
-  
-  CBratObject* FindObject(const std::string& key); 
-  CObjectTreeNode* FindNode(const std::string& key); 
-    
-  bool GoLevelUp(bool firstChild = true);
-  bool GoLevelDown(bool firstChild = true);
-  void Go(CObjectTreeNode* child);
-  void Go(CObjectTreeIterator child);
-  void GoToParent(const std::string& key);
+	virtual ~CObjectTree();
 
 
-  ///Set the sub-ObjectTree walking root and traverse to the first node
-  void SetPostOrderSubTreePivot(CObjectTreeIterator& it);
 
-  ///Set the sub-ObjectTree walking root and traverse to the first node
-  void SetPostOrderRootPivot();
+	///set a ObjectTree with the root node
+	virtual void SetRoot( const std::string& nm, CBratObject* x, bool goCurrent = false );
 
-  void SetWalkDownRootPivot();
-  
-  ///it advances m_WalkCurrent in post-order, and returns true if a move is made
-  ///else it returns false
-  bool SubTreePostOrderWalk(); 
+	///returns ObjectTree root node, or NULL for empty CObjectTree
+	CObjectTreeNode* GetRoot() const { return m_pTreeroot; };
 
-  //It advance the ObjectTree in top-down style with parent first
-  bool SubTreeWalkDown();
+	CObjectTreeNode* GetWalkCurrent() const { return m_WalkCurrent; };
+	CObjectTreeNode* GetWalkParent() const { return m_WalkParent; };
 
+	virtual CObjectTreeIterator AddChild( CObjectTreeNode* parent, const std::string& nm, CBratObject* x, bool goCurrent = false );
 
-  //void DelSubTree() {};
+	virtual CObjectTreeIterator AddChild( CObjectTreeIterator& parent, const std::string& nm, CBratObject* x, bool goCurrent = false );
 
-  CBratObject* SubTreeGetData(void) { return m_WalkCurrent->GetData(); }
-  int SubTreeGetLevel(void) { return m_WalkCurrent->GetLevel(); }
+	virtual CObjectTreeIterator AddChild( const std::string& nm, CBratObject* x, bool goCurrent = false );
 
+	void DeleteAllChildren( CObjectTreeIterator & itr );
+	void DeleteTree();
 
-  CObjectTreeIterator begin() 
-  {
-    CObjectTreeIterator _tmp;
-    _tmp.m_Node = m_nodemap.begin();
-    return _tmp;
-  }
+	size_t size( void ) { return m_nodemap.size(); };
 
-  CObjectTreeIterator end() 
-  {
-    CObjectTreeIterator _tmp;
-    _tmp.m_Node = m_nodemap.end();
-    return _tmp;
-  }
+	CBratObject* FindParentObject( const std::string& key );
+	CObjectTreeNode* FindParentNode( const std::string& key );
 
-  /*
-  const_iterator begin() const
-  {
-    iterator _tmp;
-    _tmp.m_Node = m_nodemap.begin();
-    return _tmp;
-  }
-*/
-  /*
-  const_iterator end() const
-  {
-    const_iterator _tmp;
-    _tmp.m_Node = m_nodemap.end();
-    return _tmp;
-  }
-*/
-  CObjectTreeIterator find(const std::string& key) 
-  {
-    CObjectTreeIterator _tmp;
-    _tmp.m_Node = m_nodemap.find(key);
-    return _tmp;
-  }
+	CBratObject* FindObject( const std::string& key );
+	CObjectTreeNode* FindNode( const std::string& key );
 
-  bool IsKey(const std::string& key) 
-  {
-    CObjectTreeIterator it = this->find(key);
-
-    return (it != this->end() );
-  }
+	bool GoLevelUp( bool firstChild = true );
+	bool GoLevelDown( bool firstChild = true );
+	void Go( CObjectTreeNode* child );
+	void Go( CObjectTreeIterator child );
+	void GoToParent( const std::string& key );
 
 
-  /*
-  const_iterator find(const std::string& key) const
-  {
-    const_iterator _tmp;
-    _tmp.m_Node = m_nodemap.find(key);
-    return _tmp;
-  }
-*/
-  /// Dump function
-  virtual void Dump(std::ostream& fOut = std::cerr);
+	///Set the sub-ObjectTree walking root and traverse to the first node
+	void SetPostOrderSubTreePivot( CObjectTreeIterator& it );
 
+	///Set the sub-ObjectTree walking root and traverse to the first node
+	void SetPostOrderRootPivot();
+
+	void SetWalkDownRootPivot();
+
+	///it advances m_WalkCurrent in post-order, and returns true if a move is made
+	///else it returns false
+	bool SubTreePostOrderWalk();
+
+	//It advance the ObjectTree in top-down style with parent first
+	bool SubTreeWalkDown();
+
+
+	//void DelSubTree() {};
+
+	CBratObject* SubTreeGetData( void ) { return m_WalkCurrent->GetData(); }
+	int SubTreeGetLevel( void ) { return m_WalkCurrent->GetLevel(); }
+
+
+	CObjectTreeIterator begin()
+	{
+		CObjectTreeIterator _tmp;
+		_tmp.m_Node = m_nodemap.begin();
+		return _tmp;
+	}
+
+	CObjectTreeIterator end()
+	{
+		CObjectTreeIterator _tmp;
+		_tmp.m_Node = m_nodemap.end();
+		return _tmp;
+	}
+
+	CObjectTreeIterator find( const std::string& key )
+	{
+		CObjectTreeIterator _tmp;
+		_tmp.m_Node = m_nodemap.find( key );
+		return _tmp;
+	}
+
+	bool IsKey( const std::string& key )
+	{
+		CObjectTreeIterator it = this->find( key );
+
+		return ( it != this->end() );
+	}
+
+	/// Dump function
+	virtual void Dump( std::ostream& fOut = std::cerr );
 
 protected:
-  ///provides a name of the ObjectTreeNode to direct access to it
-  ///a std::map for fast accessing ObjectTreeNode
-  mapTreeNode m_nodemap;		
-  ///a pointer to root node
-  CObjectTreeNode* m_pTreeroot;	
+	///provides a name of the ObjectTreeNode to direct access to it
+	///a std::map for fast accessing ObjectTreeNode
+	mapTreeNode m_nodemap;
+	///a pointer to root node
+	CObjectTreeNode* m_pTreeroot;
 
-  //Sub-ObjectTree root for walking
-  CObjectTreeNode* m_WalkPivot;
+	//Sub-ObjectTree root for walking
+	CObjectTreeNode* m_WalkPivot;
 
-  //points to current node of walking
-  CObjectTreeNode* m_WalkCurrent;
+	//points to current node of walking
+	CObjectTreeNode* m_WalkCurrent;
 
-  //point to parent node of current node
-  CObjectTreeNode* m_WalkParent;
+	//point to parent node of current node
+	CObjectTreeNode* m_WalkParent;
 
 };
 

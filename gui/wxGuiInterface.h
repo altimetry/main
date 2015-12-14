@@ -1,6 +1,10 @@
 #ifndef WX_GUI_INTERFACE_H
 #define WX_GUI_INTERFACE_H
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Declarations / Definitions involving (tying) wxWidgets and migrated code, stripped out of wxWidgtes dependencies
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #ifndef WX_PRECOMP
     #include <wx/wx.h>
 #endif
@@ -12,6 +16,7 @@
 
 #include "../display/PlotData/MapProjection.h"
 
+// old CMapProjection member functions
 
 inline void NamesToArrayString( const CMapProjection &mapp, wxArrayString& array )
 {
@@ -37,6 +42,22 @@ inline void NamesToComboBox( const CMapProjection &mapp, wxComboBox& combo )
 		}
 	}
 }
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//											CDataSet 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class CDataset;
+class CWorkspaceDataset;
+
+// old CDataset member functions
+
+void GetFiles( const CDataset &d, wxArrayString& array );
+void GetFiles( const CDataset &d, wxListBox& array );
+
+void GetDatasetNames( const CWorkspaceDataset *d, wxComboBox& combo );
 
 
 

@@ -21,9 +21,7 @@
 #ifndef __DisplayPanel_H__
 #define __DisplayPanel_H__
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "DisplayPanel.cpp"
-#endif
+
 
 #ifndef WX_PRECOMP
     #include "wx/wx.h"

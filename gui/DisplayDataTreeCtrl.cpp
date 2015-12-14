@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
@@ -18,9 +16,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "DisplayDataTreeCtrl.h"
-#endif
+#include "new-gui/brat/stdafx.h"
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
@@ -31,10 +27,10 @@
 
 #include "wx/tokenzr.h"
 
-#include "MapColor.h"
-
 #include "DisplayDataTreeCtrl.h"
 #include "MapTypeDisp.h"
+
+#include "MapColor.h"
 
 // WDR: class implementations
 //----------------------------------------------------------------------------

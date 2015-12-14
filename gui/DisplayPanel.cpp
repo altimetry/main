@@ -17,9 +17,8 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "DisplayPanel.cpp"
-#endif
+
+#include "new-gui/brat/stdafx.h"
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
@@ -336,7 +335,7 @@ void CDisplayPanel::NewDisplay()
 
   wxString dispName = wks->GetDisplayNewName();
 
-  bOk = wks->InsertDisplay(dispName);
+  bOk = wks->InsertDisplay(dispName.ToStdString());
 
   if (bOk == false)
   {
@@ -1398,7 +1397,7 @@ CDisplay* CDisplayPanel::GetCurrentDisplay()
     return NULL;
   }
 
-  return wks->GetDisplay(GetDispNames()->GetString(m_currentDisplay));
+  return wks->GetDisplay(GetDispNames()->GetString(m_currentDisplay).ToStdString());
 }
 //----------------------------------------
 bool CDisplayPanel::SetCurrentDisplay()
@@ -2207,7 +2206,7 @@ void CDisplayPanel::DispNameChanged()
   wxString displayOldName = m_display->GetName();
   wxString displayOldOutputName = m_display->GetOutputName();
 
-  if (wks->RenameDisplay(m_display, dispName) == false)
+  if (wks->RenameDisplay(m_display, dispName.ToStdString()) == false)
   {
     m_dispNameDirty = false; // must be here, to avoid loop, because  on wxMessageBox, combo kill focus event is process again
 

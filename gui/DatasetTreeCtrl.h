@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -21,10 +19,6 @@
 #ifndef __DatasetTreeCtrl_H__
 #define __DatasetTreeCtrl_H__
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "DatasetTreeCtrl.h"
-#endif
-
 #ifndef WX_PRECOMP
     #include "wx/wx.h"
 #endif
@@ -33,7 +27,7 @@
 #include "TreeCtrl.h"
 
 #include "Product.h"
-#include "Dataset.h"
+#include "new-gui/brat/Workspaces/Dataset.h"
 
 // WDR: class declarations
 

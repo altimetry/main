@@ -1,6 +1,11 @@
 #ifndef WX_DISPLAY_INTERFACE_H
 #define WX_DISPLAY_INTERFACE_H
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Declarations / Definitions involving (tying) wxWidgets and migrated code, stripped out of wxWidgtes dependencies
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
 #ifndef WX_PRECOMP
     #include <wx/wx.h>
 #endif
@@ -97,18 +102,6 @@ inline CVtkColor color_cast( const wxColourData &colorData, int32_t indexCustomC
 	}
 }
 
-
-
-
-//
-//	CPlotField					=> CBratObject
-//	CPlot		=> CPlotBase	=> CBratObject
-//	CWPlot		=> CPlotBase
-//	CZFXYPlot	=> CPlotBase
-//
-bool LoadFromFile( CBratLookupTable &lut, const std::string& fileName );
-
-void SaveToFile( CBratLookupTable &lut, const std::string& fileName );
 
 
 

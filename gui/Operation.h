@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
@@ -20,10 +18,6 @@
 #if !defined(_Operation_h_)
 #define _Operation_h_
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "Operation.h"
-#endif
-
 #ifndef WX_PRECOMP
     #include "wx/wx.h"
 #endif
@@ -32,12 +26,10 @@
 #include "wx/config.h"  // (to let wxWidgets choose a wxConfig class for your platform)
 #include "wx/confbase.h"  // (base config class)
 #include "wx/fileconf.h" // (wxFileConfig class)
-//#include "wx/msw/regconf.h" // (wxRegConfig class)
-
 
 #include "brathl.h"
 
-#include "Dataset.h"
+#include "new-gui/brat/Workspaces/Dataset.h"
 #include "Formula.h"
 #include "Product.h" 
 
@@ -71,12 +63,12 @@ public:
   int32_t GetFormulaCount() {return m_formulas.size();};
   int32_t GetFormulaCountDataFields();
 
-  bool RenameFormula(CFormula* formula, const wxString& newName);
+  bool RenameFormula(CFormula* formula, const std::string &newName);
 
   void GetFormulaNames(wxComboBox& combo);
 
-  bool SaveConfig(wxFileConfig* config);
-  bool LoadConfig(wxFileConfig* config);
+  bool SaveConfig( CConfiguration *config );
+  bool LoadConfig( CConfiguration *config );
 
   CDataset* FindDataset(const wxString& datasetName);
 
@@ -109,7 +101,7 @@ public:
   bool AddFormula(CFormula& value);
   bool DeleteFormula(const wxString& name);
 
-  wxString GetDescFormula(const wxString& name, bool alias = false);
+  std::string GetDescFormula(const std::string& name, bool alias = false);
   //void SetDescFormula(const wxString& name, const wxString& value);
   
   wxFileName* GetOutput() {return &m_output;};
@@ -150,8 +142,8 @@ public:
   void SetShowStatsCmdFile();
 
 
-  wxString GetCommentFormula(const wxString& name);
-  void SetCommentFormula(const wxString& name, const wxString& value);
+  wxString GetCommentFormula(const std::string& name);
+  void SetCommentFormula(const std::string &name, const std::string &value);
 
   CFormula* GetSelect() {return m_select;};
   void SetSelect(CFormula* value);
@@ -198,7 +190,7 @@ public:
   //bool IsDelayExecution() {return m_delayExecution;};
   //void SetDelayExecution(bool value) {m_delayExecution = value;};
 
-  bool CtrlLoessCutOff(wxString& msg);
+  bool CtrlLoessCutOff(std::string &msg);
 
   bool UseDataset(const wxString& name);
 
@@ -245,14 +237,14 @@ public:
   bool ComputeInterval(const wxString& formulaName, bool showMsg = false);
   bool ComputeInterval(CFormula* f, bool showMsg = false);
 
-  bool ControlDimensions(CFormula* formula, wxString& errorMsg, const CStringMap* aliases = NULL);
-  bool ControlResolution(wxString& errorMsg);
-  bool Control(wxString& msg, bool basicControl = false, const CStringMap* aliases = NULL);
+  bool ControlDimensions(CFormula* formula, std::string &errorMsg, const CStringMap* aliases = NULL);
+  bool ControlResolution( std::string &errorMsg );
+  bool Control(std::string& msg, bool basicControl = false, const CStringMap* aliases = NULL);
 
-  bool GetXExpression(CExpression& expr, wxString& errorMsg, const CStringMap* aliases = NULL);
-  bool GetYExpression(CExpression& expr, wxString& errorMsg, const CStringMap* aliases = NULL);
+  bool GetXExpression(CExpression& expr, std::string& errorMsg, const CStringMap* aliases = NULL);
+  bool GetYExpression(CExpression& expr, std::string& errorMsg, const CStringMap* aliases = NULL);
 
-  bool ControlXYDataFields(wxString& errorMsg, const CStringMap* aliases = NULL);
+  bool ControlXYDataFields(std::string &errorMsg, const CStringMap* aliases = NULL);
 
   void DeleteSelect();
 

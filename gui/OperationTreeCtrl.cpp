@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -18,9 +16,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "OperationTreeCtrl.h"
-#endif
+#include "new-gui/brat/stdafx.h"
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
@@ -548,7 +544,7 @@ void COperationTreeCtrl::OnEndLabelEdit( wxTreeEvent &event )
     }
   }
 
-  m_operation->RenameFormula(formula, label);
+  m_operation->RenameFormula(formula, label.ToStdString());
     
 }
 
@@ -1014,8 +1010,8 @@ void COperationTreeCtrl::OnFormulaChanged(CFormula* formula)
 
   if (m_operation->IsSelect(formula))
   {
-    wxString value = formula->GetDescription(true).Trim();
-    SetItemBold( GetSelectRootId(), !(value.IsEmpty()) );
+    std::string value = rtrim( formula->GetDescription(true) );
+    SetItemBold( GetSelectRootId(), !(value.empty()) );
   }
 
 }
@@ -1325,7 +1321,7 @@ void COperationTreeCtrl::OnGetToolTip( wxTreeEvent &event )
     return;
   }
 
-  if (!formula->GetTitle().IsEmpty())
+  if (!formula->GetTitle().empty())
   {
     description.Append(formula->GetTitle().c_str());
     description.Append("\n\n");
@@ -1339,7 +1335,7 @@ void COperationTreeCtrl::OnGetToolTip( wxTreeEvent &event )
   description.Append(formula->GetUnitAsText());
   description.Append("\n");
 
-  if (!formula->GetComment().IsEmpty())
+  if (!formula->GetComment().empty())
   {
     description.Append("\n");
     description.Append(formula->GetComment().c_str());
@@ -1469,7 +1465,7 @@ void COperationTreeCtrl::ShowMenu(wxTreeItemId id, const wxPoint& pt)
 
     if (formula != NULL)
     {
-      if (!formula->GetDescription().IsEmpty())
+      if (!formula->GetDescription().empty())
       {
         enable = true;
       }

@@ -545,9 +545,7 @@ bool CResolutionDlg::VerifyMinMax(CFormula& formula, CLabeledTextCtrl* ctrlMin, 
     return true;
   }
 
-  wxString errorMsg = wxString::Format("resolution for '%s': ",
-                                  formula.GetName().c_str());
-
+  std::string errorMsg = "resolution for '" + formula.GetName() + "': ";
   if (!formula.CtrlMinMaxValue(errorMsg))
   {
      wxMessageBox(errorMsg,
@@ -1154,7 +1152,7 @@ void CResolutionDlg::OnYMax(CValueChangedEvent& event)
 //----------------------------------------
 void CResolutionDlg::OnXStep(CValueChangedEvent& event)
 {
-  wxString step;
+  std::string step;
 
   GetFormulaoptXstep()->GetValue(step, m_xFormulaTmp.GetDefaultStep());
 
@@ -1165,7 +1163,7 @@ void CResolutionDlg::OnXStep(CValueChangedEvent& event)
 //----------------------------------------
 void CResolutionDlg::OnYStep(CValueChangedEvent& event)
 {
-  wxString step;
+  std::string step;
 
   GetFormulaoptYstep()->GetValue(step, m_yFormulaTmp.GetDefaultStep());
 
