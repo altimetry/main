@@ -25,9 +25,9 @@
     #pragma interface "Plot.h"
 #endif
 
-#include "../libbrathl/brathl.h"
+#include "libbrathl/brathl.h"
 
-#include "../libbrathl/List.h"
+#include "libbrathl/List.h"
 //#include "../libbrathl/Tools.h"
 //#include "../libbrathl/Unit.h"
 //#include "../libbrathl/InternalFiles.h"

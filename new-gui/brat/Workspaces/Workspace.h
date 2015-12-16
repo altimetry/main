@@ -25,16 +25,15 @@
 
 #include "new-gui/brat/Workspaces/Constants.h"
 #include "new-gui/brat/Workspaces/Dataset.h"
-#include "Formula.h"
-#include "Operation.h"
-#include "Display.h"
+#include "new-gui/brat/Workspaces/Formula.h"
 
 
 using namespace brathl;
 
 
 class CBitSet32;
-
+class COperation;
+class CDisplay;
 
 
 
@@ -127,9 +126,9 @@ public:
 	bool IsConfigFile() const { return IsFile( m_configFileName ); }
 	bool IsRoot() const { return m_level == 1; }
 
-	virtual bool SaveConfig( bool flush = true );
-	virtual bool LoadConfig();
-	virtual bool Import( CWorkspace* wks )
+	virtual bool SaveConfig( std::string &errorMsg, bool flush = true );
+	virtual bool LoadConfig( std::string &errorMsg );
+	virtual bool Import( CWorkspace* wks, std::string &errorMsg )
 	{
 		return true;
 	}
@@ -180,12 +179,12 @@ public:
 
 	bool HasDataset() { return GetDatasetCount() > 0; }
 
-	bool CheckFiles();
+	bool CheckFiles( std::string &errorMsg );			// femm: Apparently not used...
 
 
-	virtual bool SaveConfig( bool flush = true ) override;
-	virtual bool LoadConfig() override;
-	virtual bool Import( CWorkspace* wks ) override;
+	virtual bool SaveConfig( std::string &errorMsg, bool flush = true ) override;
+	virtual bool LoadConfig( std::string &errorMsg ) override;
+	virtual bool Import( CWorkspace* wks, std::string &errorMsg ) override;
 
 	bool RenameDataset( CDataset* dataset, const std::string& newName );
 	bool DeleteDataset( CDataset* dataset );
@@ -206,8 +205,8 @@ public:
 	virtual void Dump( std::ostream& fOut = std::cerr );
 
 protected:
-	bool SaveConfigDataset();
-	bool LoadConfigDataset();
+	bool SaveConfigDataset( std::string &errorMsg );
+	bool LoadConfigDataset( std::string &errorMsg );
 };
 
 //-------------------------------------------------------------
@@ -216,6 +215,8 @@ protected:
 
 class CWorkspaceFormula : public CWorkspace
 {
+	using base_t = CWorkspace;
+
 protected:
 	CMapFormula m_formulas;
 
@@ -223,37 +224,37 @@ protected:
 
 public:
 	// constructors and destructors
-	CWorkspaceFormula()
+	CWorkspaceFormula( std::string &errorMsg ) : base_t(), m_formulas( errorMsg, true )
 	{}
 	//CWorkspaceFormula( const std::string& name, const wxFileName& path, bool createPath = true )
 	//	: CWorkspace( name, path, createPath )
 	//{}
-	CWorkspaceFormula( const std::string& name, const std::string& path, bool createPath = true )
-		: CWorkspace( name, path, createPath )
+	CWorkspaceFormula( std::string &errorMsg, const std::string& name, const std::string& path, bool createPath = true )
+		: base_t( name, path, createPath ), m_formulas( errorMsg, true )
 	{}
 
 	virtual ~CWorkspaceFormula()
 	{}
 
-	virtual bool SaveConfig( bool flush = true ) override;
-	virtual bool LoadConfig() override;
-	virtual bool Import( CWorkspace* wks ) override;
+	virtual bool SaveConfig( std::string &errorMsg, bool flush = true ) override;
+	virtual bool LoadConfig( std::string &errorMsg ) override;
+	virtual bool Import( CWorkspace* wks, std::string &errorMsg ) override;
 
-	void AddFormula( CFormula& formula );
+	bool AddFormula( CFormula& formula, std::string &errorMsg );
 	void RemoveFormula( const std::string& name );
 
 	std::string GetDescFormula( const std::string& name, bool alias = false );
 	std::string GetCommentFormula( const std::string& name );
 	CFormula* GetFormula( const std::string& name );
 	CFormula* GetFormula( CMapFormula::iterator it );
+	const CFormula* GetFormula( CMapFormula::const_iterator it ) const;
 
-	int32_t GetFormulaCount() { return m_formulas.size(); }
+	size_t GetFormulaCount() { return m_formulas.size(); }
 	CMapFormula* GetFormulas() { return &m_formulas; }
+	const CMapFormula* GetFormulas() const { return &m_formulas; }
 
 	void GetFormulaNames( CStringMap& stringMap, bool getPredefined = true, bool getUser = true );
 	void GetFormulaNames( std::vector< std::string >& array, bool getPredefined = true, bool getUser = true );
-	void GetFormulaNames( wxComboBox& combo, bool getPredefined = true, bool getUser = true );
-	void GetFormulaNames( wxListBox& lb, bool getPredefined = true, bool getUser = true );
 
 	std::vector< std::string >& GetFormulasToImport() { return m_formulasToImport; }
 	void SetFormulasToImport( const std::vector< std::string >& array );
@@ -267,7 +268,7 @@ public:
 	virtual void Dump( std::ostream& fOut = std::cerr );
 
 protected:
-	bool LoadConfigFormula();
+	bool LoadConfigFormula( std::string &errorMsg );
 	bool SaveConfigFormula();
 };
 
@@ -293,24 +294,21 @@ public:
 		m_operations.RemoveAll();
 	}
 
-	virtual bool SaveConfig( bool flush = true ) override;
-	virtual bool LoadConfig() override;
-	virtual bool Import( CWorkspace* wks ) override;
+	virtual bool SaveConfig( std::string &errorMsg, bool flush = true ) override;
+	virtual bool LoadConfig( std::string &errorMsg ) override;
+	virtual bool Import( CWorkspace* wks, std::string &errorMsg ) override;
 
 	void GetOperationNames( std::vector< std::string >& array );
-	void GetOperationNames( wxComboBox& combo );
 
 	bool HasOperation() { return GetOperationCount() > 0; }
 
 	std::string GetOperationNewName();
 	std::string GetOperationCopyName( const std::string& baseName );
 
-	COperation* GetOperation( const std::string& name )
-	{
-		return dynamic_cast<COperation*>( m_operations.Exists( name ) );
-	}
+	COperation* GetOperation( const std::string& name );
 
 	CObMap* GetOperations() { return &m_operations; }
+	const CObMap* GetOperations() const { return &m_operations; }
 
 	size_t GetOperationCount()
 	{
@@ -322,7 +320,7 @@ public:
 
 	bool RenameOperation( COperation* operation, const std::string& newName );
 
-	bool UseDataset( const std::string& name, CStringArray* operationNames = nullptr );
+	bool UseDataset( const std::string& name, std::string &errorMsg, CStringArray* operationNames = nullptr );
 
 	bool DeleteOperation( COperation* operation );
 
@@ -330,8 +328,8 @@ public:
 	virtual void Dump( std::ostream& fOut = std::cerr );
 
 protected:
-	bool SaveConfigOperation();
-	bool LoadConfigOperation();
+	bool SaveConfigOperation( std::string &errorMsg );
+	bool LoadConfigOperation( std::string &errorMsg );
 };
 
 //-------------------------------------------------------------
@@ -357,23 +355,19 @@ public:
 		m_displays.RemoveAll();
 	}
 
-	virtual bool SaveConfig( bool flush = true ) override;
-	virtual bool LoadConfig() override;
-	virtual bool Import( CWorkspace* wks ) override;
+	virtual bool SaveConfig( std::string &errorMsg, bool flush = true ) override;
+	virtual bool LoadConfig( std::string &errorMsg ) override;
+	virtual bool Import( CWorkspace* wks, std::string &errorMsg ) override;
 
-	bool UseOperation( const std::string& name, CStringArray* displayNames = nullptr );
+	bool UseOperation( const std::string& name, std::string &errorMsg, CStringArray* displayNames = nullptr );
 
 	void GetDisplayNames( std::vector< std::string >& array );
-	void GetDisplayNames( wxComboBox& combo );
 
 	bool HasDisplay() { return GetDisplayCount() > 0; }
 
 	std::string GetDisplayNewName();
 
-	CDisplay* GetDisplay( const std::string& name )
-	{
-		return dynamic_cast<CDisplay*>( m_displays.Exists( name ) );
-	}
+	CDisplay* GetDisplay( const std::string& name );
 
 	size_t GetDisplayCount()
 	{
@@ -381,6 +375,7 @@ public:
 	}
 
 	CObMap* GetDisplays() { return &m_displays; }
+	const CObMap* GetDisplays() const { return &m_displays; }
 
     bool InsertDisplay( const std::string& name );
 
@@ -391,8 +386,8 @@ public:
 	virtual void Dump( std::ostream& fOut = std::cerr );
 
 private:
-	bool SaveConfigDisplay();
-	bool LoadConfigDisplay();
+	bool SaveConfigDisplay( std::string &errorMsg );
+	bool LoadConfigDisplay( std::string &errorMsg );
 };
 
 

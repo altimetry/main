@@ -33,7 +33,7 @@
 #include <cmath>
 #include <cstring>
 
-#include "../libbrathl/Tools.h"
+#include "libbrathl/Tools.h"
 using namespace brathl;
 
 #include "vtkCell.h"

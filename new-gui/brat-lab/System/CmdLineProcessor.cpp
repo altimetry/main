@@ -1,27 +1,27 @@
-#include "../stdafx.h"
+#include "new-gui/brat-lab/stdafx.h"
 
 #include "new-gui/Common/QtUtils.h"
 
-#include "../libbrathl/Tools.h"
+#include "libbrathl/Tools.h"
 #include "new-gui/Common/tools/Trace.h"
-#include "../libbrathl/InternalFilesFactory.h"
-#include "../libbrathl/InternalFilesZFXY.h"
-#include "../libbrathl/InternalFilesYFX.h"
+#include "libbrathl/InternalFilesFactory.h"
+#include "libbrathl/InternalFilesZFXY.h"
+#include "libbrathl/InternalFilesYFX.h"
 
-#include "../libbrathl/brathl_c/argtable2.h"
+#include "libbrathl/brathl_c/argtable2.h"
 
-#include "../process/ParametersDictionary.h"
-#include "../process/BratProcess.h"
+#include "process/ParametersDictionary.h"
+#include "process/BratProcess.h"
 
-#include "../GUI/QMapTypeDisp.h"
+#include "new-gui/brat-lab/GUI/QMapTypeDisp.h"
 
-#include "../display/PlotData/ColorPalleteNames.h"
-#include "../display/PlotData/MapProjection.h"
-#include "../display/PlotData/WorldPlotProperty.h"
-#include "../display/PlotData/BratLookupTable.h"
-#include "../display/PlotData/Plot.h"
-#include "../display/PlotData/WPlot.h"
-#include "../display/PlotData/ZFXYPlot.h"
+#include "display/PlotData/ColorPalleteNames.h"
+#include "display/PlotData/MapProjection.h"
+#include "display/PlotData/WorldPlotProperty.h"
+#include "display/PlotData/BratLookupTable.h"
+#include "display/PlotData/Plot.h"
+#include "display/PlotData/WPlot.h"
+#include "display/PlotData/ZFXYPlot.h"
 
 
 #include "CmdLineProcessor.h"

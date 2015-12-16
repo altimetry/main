@@ -33,7 +33,7 @@
 
 #include "new-gui/Common/tools/Trace.h"
 #include "new-gui/Common/tools/Exception.h"
-#include "../libbrathl/LatLonPoint.h"
+#include "libbrathl/LatLonPoint.h"
 using namespace brathl;
 
 #include "vtkProperty.h"

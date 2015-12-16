@@ -118,10 +118,10 @@ static int wxCALLBACK DictDisplayListCompareFunction(wxIntPtr item1, wxIntPtr it
   switch (dictList->GetSortedCol())
   {
   case DICTDISPCOL_OPNAME :
-    result = d1->GetOperation()->GetName().CmpNoCase(d2->GetOperation()->GetName());
+    result = wxString(d1->GetOperation()->GetName()).CmpNoCase(d2->GetOperation()->GetName());
     break;
   case DICTDISPCOL_FILENAME :
-    result = d1->GetOperation()->GetOutputName().CmpNoCase(d2->GetOperation()->GetOutputName());
+    result = wxString(d1->GetOperation()->GetOutputName()).CmpNoCase(d2->GetOperation()->GetOutputName());
     break;
   case DICTDISPCOL_FIELDNAME :
     result = d1->GetField()->GetName().compare(d2->GetField()->GetName());

@@ -13,7 +13,7 @@ class QComboBox;
 QT_END_NAMESPACE
 
 
-#include "../../libbrathl/List.h"
+#include "libbrathl/List.h"
 using namespace brathl;
 
 

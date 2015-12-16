@@ -23,15 +23,15 @@
 #include <cstdio>
 #include <cstdlib>
 
-#include "../libbrathl/List.h"
-#include "../libbrathl/FileParams.h"
-#include "../libbrathl/InternalFiles.h"
+#include "libbrathl/List.h"
+#include "libbrathl/FileParams.h"
+#include "libbrathl/InternalFiles.h"
 
 #include "ParametersDictionary.h"
 
-#include "../libbrathl/Product.h"
-#include "../libbrathl/ProductNetCdf.h"
-#include "../libbrathl/ProductNetCdfCF.h"
+#include "libbrathl/Product.h"
+#include "libbrathl/ProductNetCdf.h"
+#include "libbrathl/ProductNetCdfCF.h"
 #include "new-gui/Common/tools/Trace.h"
 //#include "ProcessCommonTools.h"
 

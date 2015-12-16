@@ -3,7 +3,7 @@
 #pragma implementation "QMapTypeDisp.h"
 #endif
 
-#include "../stdafx.h"
+#include "new-gui/brat-lab/stdafx.h"
 
 #ifdef __BORLANDC__
 #pragma hdrstop
@@ -12,7 +12,7 @@
 
 #include "new-gui/Common/QtUtils.h"
 
-#include "../../libbrathl/brathl.h"
+#include "libbrathl/brathl.h"
 
 
 /*

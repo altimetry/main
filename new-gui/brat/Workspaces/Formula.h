@@ -15,46 +15,20 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-#if !defined(_Formula_h_)
-#define _Formula_h_
-
-#ifndef WX_PRECOMP
-    #include "wx/wx.h"
-#endif
-
-#include "wx/filename.h"
-#include "wx/config.h"  // (to let wxWidgets choose a wxConfig class for your platform)
-#include "wx/confbase.h"  // (base config class)
-#include "wx/fileconf.h" // (wxFileConfig class)
-//#include "wx/msw/regconf.h" // (wxRegConfig class)
-
+#if !defined(WORKSPACES_FORMULA_H)
+#define WORKSPACES_FORMULA_H
 
 #include "new-gui/QtInterface.h"
-
 
 #include "brathl.h"
 
 #include "List.h"
 #include "Unit.h"
 #include "Date.h"
+
+
 using namespace brathl;
 
-//const std::string DEFAULT_UNIT_COUNT = "count";
-
-////const std::string DEFAULT_UNIT_LONGITUDE = "degrees_east";
-////const std::string DEFAULT_UNIT_LATITUDE = "degrees_north";
-////const std::string DEFAULT_UNIT_SECOND = "second";
-
-//const std::string DEFAULT_STEP_LATLON_ASSTRING = "1/3";
-//const std::string DEFAULT_STEP_TIME_ASSTRING = "1"; 
-//const std::string DEFAULT_STEP_GENERAL_ASSTRING = "1";
-
-//const std::string FORMAT_FILTER_LABEL = "Filter to apply on '%s': %s";
-//const std::string FORMAT_FILTER_LABEL_NONE = "No filter to apply on '%s'";
-//const std::string FORMAT_LOESS_CUT_OFF_LABEL = "Loess cut-off: %s";
-//const std::string FORMAT_INTERVAL_LABEL = "Number of intervals: %s";
-//const std::string FORMAT_XY_RESOLUTION_LABEL = "Min.: %s   Max.: %s   %s   Step: %s   %s";
-//
 
 //-------------------------------------------------------------
 //------------------- CMapTypeFilter class --------------------
@@ -64,12 +38,14 @@ class CMapTypeFilter : public CUIntMap
 {
 public:
 
-	enum typeFilter
+	enum ETypeFilter
 	{
-		filterNone,
-		filterLoessSmooth,
-		filterLoessExtrapolate,
-		filterLoess
+		eFilterNone,
+		eFilterLoessSmooth,
+		eFilterLoessExtrapolate,
+		eFilterLoess,
+
+		ETypeFilter_size
 	};
 
 public:
@@ -88,93 +64,113 @@ public:
 	std::string IdToName( uint32_t id );
 	uint32_t NameToId( const std::string& name );
 
-	void NamesToArrayString( wxArrayString& array );
-	void NamesToComboBox( wxComboBox& combo );
+	//void NamesToArrayString( wxArrayString& array )
+	//{
+	//	for ( CMapTypeFilter::iterator it = begin(); it != end(); it++ )
+	//	{
+	//		uint32_t value = it->second;
+	//		if ( !isDefaultValue( value ) )
+	//		{
+	//			array.Add( ( it->first ).c_str() );
+	//		}
+	//	}
+	//}
 };
 
 //-------------------------------------------------------------
 //------------------- CMapTypeData class --------------------
 //-------------------------------------------------------------
 
-class CMapTypeData: public CUIntMap
+class CMapTypeData : public CUIntMap
 {
 public:
-  /// CIntMap ctor
-  CMapTypeData();
-
-  /// CIntMap dtor
-  virtual ~CMapTypeData();
-
-  static CMapTypeData&  GetInstance();
-
-
-  bool ValidName(const char* name);
-  bool ValidName(const std::string& name);
-
-  std::string IdToName(uint32_t id);
-  uint32_t NameToId(const std::string& name);
-
-  void NamesToArrayString(wxArrayString& array, bool noData = false);
-  void NamesToComboBox(wxComboBox& combo, bool noData = false);
-
-protected:
+	enum ETypeData
+	{
+		eTypeOpData,
+		eTypeOpLongitude,
+		eTypeOpLatitude,
+		eTypeOpX,
+		eTypeOpY,
+		eTypeOpZ,
+		eTypeOpT
+	};
 
 public:
-  enum typeData
-  {
-    typeOpData,
-    typeOpLongitude,
-    typeOpLatitude,
-    typeOpX,
-    typeOpY,
-    typeOpZ,
-    typeOpT
-  };
+	/// CIntMap ctor
+	CMapTypeData();
+
+	/// CIntMap dtor
+	virtual ~CMapTypeData();
+
+	static CMapTypeData&  GetInstance();
 
 
+	bool ValidName( const char* name );
+	bool ValidName( const std::string& name );
 
-private :
+	std::string IdToName( uint32_t id );
+	uint32_t NameToId( const std::string& name );
 
+	//void NamesToArrayString( wxArrayString& array, bool noData = false )
+	//{
+	//	CMapTypeData::iterator it;
+
+	//	for ( it = begin(); it != end(); it++ )
+	//	{
+	//		uint32_t value = it->second;
+	//		if ( ( value == eTypeOpData ) && ( noData ) )
+	//		{
+	//			continue;
+	//		}
+	//		if ( !isDefaultValue( value ) )
+	//		{
+	//			array.Add( ( it->first ).c_str() );
+	//		}
+	//	}
+	//}
 
 };
 //-------------------------------------------------------------
 //------------------- CMapTypeOp class --------------------
 //-------------------------------------------------------------
 
-class CMapTypeOp: public CUIntMap
+class CMapTypeOp : public CUIntMap
 {
 public:
-  CMapTypeOp();
 
-  virtual ~CMapTypeOp();
-
-  static CMapTypeOp&  GetInstance();
-
-
-  bool ValidName(const char* name);
-  bool ValidName(const std::string& name);
-
-  std::string IdToName(uint32_t id);
-  uint32_t NameToId(const std::string& name);
-
-  void NamesToArrayString(wxArrayString& array);
-  void NamesToComboBox(wxComboBox& combo);
-
-protected:
+	enum ETypeOp
+	{
+		eTypeOpYFX,
+		eTypeOpZFXY
+	};
 
 public:
+	CMapTypeOp();
 
-  enum typeOp
-  {
-    typeOpYFX,
-    typeOpZFXY
-  };
+	virtual ~CMapTypeOp();
 
+	static CMapTypeOp&  GetInstance();
 
 
-private :
+	bool ValidName( const char* name );
+	bool ValidName( const std::string& name );
 
+	std::string IdToName( uint32_t id );
+	uint32_t NameToId( const std::string& name );
 
+	//void NamesToArrayString( wxArrayString& array )
+	//{
+	//	CMapTypeOp::iterator it;
+
+	//	for ( it = begin(); it != end(); it++ )
+	//	{
+	//		uint32_t value = it->second;
+	//		if ( !isDefaultValue( value ) )
+	//		{
+	//			array.Add( ( it->first ).c_str() );
+	//		}
+	//	}
+	//}
 };
 /*
 //-------------------------------------------------------------
@@ -225,81 +221,95 @@ private :
 //------------------- CMapTypeField class --------------------
 //-------------------------------------------------------------
 
-class CMapTypeField: public CUIntMap
+class CMapTypeField : public CUIntMap
 {
 public:
-  CMapTypeField();
-
-  virtual ~CMapTypeField();
-
-  static CMapTypeField&  GetInstance();
-
-
-  bool ValidName(const char* name);
-  bool ValidName(const std::string& name);
-
-  std::string IdToName(uint32_t id);
-  uint32_t NameToId(const std::string& name);
-
-  void NamesToArrayString(wxArrayString& array);
-  void NamesToComboBox(wxComboBox& combo);
-
-protected:
-
+	enum ETypeField
+	{
+		eTypeOpAsField,
+		eTypeOpAsX,
+		eTypeOpAsY,
+		eTypeOpAsSelect
+	};
 public:
-  enum typeField
-  {
-    typeOpAsField,
-    typeOpAsX,
-    typeOpAsY,
-    typeOpAsSelect
-  };
+	CMapTypeField();
+
+	virtual ~CMapTypeField();
+
+	static CMapTypeField&  GetInstance();
 
 
+	bool ValidName( const char* name );
+	bool ValidName( const std::string& name );
 
+	std::string IdToName( uint32_t id );
+	uint32_t NameToId( const std::string& name );
 
-private :
+	//void NamesToArrayString( wxArrayString& array )
+	//{
+	//	CMapTypeField::iterator it;
 
-
+	//	for ( it = begin(); it != end(); it++ )
+	//	{
+	//		uint32_t value = it->second;
+	//		if ( !isDefaultValue( value ) )
+	//		{
+	//			array.Add( ( it->first ).c_str() );
+	//		}
+	//	}
+	//}
 };
+
 //-------------------------------------------------------------
 //------------------- CMapDataMode class --------------------
 //-------------------------------------------------------------
 
-class CMapDataMode: public CUIntMap
+class CMapDataMode : public CUIntMap
 {
 public:
-  CMapDataMode();
+	CMapDataMode();
 
-  virtual ~CMapDataMode();
+	virtual ~CMapDataMode();
 
-  static CMapDataMode&  GetInstance();
-
-
-  bool ValidName(const char* name);
-  bool ValidName(const std::string& name);
-
-  std::string IdToName(uint32_t id);
-  uint32_t NameToId(const std::string& name);
-
-  void NamesToArrayString(wxArrayString& array);
-  void NamesToComboBox(wxComboBox& combo);
-
-  uint32_t GetDefault();
-  std::string GetDefaultAsString();
-
-protected:
-
-public:
+	static CMapDataMode&  GetInstance();
 
 
-private :
+	bool ValidName( const char* name );
+	bool ValidName( const std::string& name );
 
+	std::string IdToName( uint32_t id );
+	uint32_t NameToId( const std::string& name );
 
+	//void NamesToArrayString( wxArrayString& array )
+	//{
+	//	CMapDataMode::iterator it;
+
+	//	for ( it = begin(); it != end(); it++ )
+	//	{
+	//		uint32_t value = it->second;
+	//		if ( !isDefaultValue( value ) )
+	//		{
+	//			array.Add( ( it->first ).c_str() );
+	//		}
+	//	}
+	//}
+
+	uint32_t GetDefault();
+	std::string GetDefaultAsString();
 };
+
+
+
+
 //-------------------------------------------------------------
 //------------------- CFormula class --------------------
 //-------------------------------------------------------------
+
+
+
+class CWorkspaceFormula;
+
+
 
 class CFormula : public CBratObject
 {
@@ -309,13 +319,13 @@ protected:
 	std::string m_title;
 	std::string m_description;
 	std::string m_comment;
-	int32_t m_type = CMapTypeField::typeOpAsField;
+	int32_t m_type = CMapTypeField::eTypeOpAsField;
 
 	CUnit m_unit;
 
 	int32_t m_dataType = -1;
 
-	int32_t m_filter = CMapTypeFilter::filterNone;
+	int m_filter = CMapTypeFilter::eFilterNone;
 
 	double m_minValue = defaultValue< double >();
 	double m_maxValue = defaultValue< double >();
@@ -382,14 +392,14 @@ public:
 	std::string GetComment( bool removeCRLF = false );
 	void SetComment( const std::string& value ) { m_comment = value; };
 
-	bool IsPredefined() { return m_predefined; };
+	bool IsPredefined() const { return m_predefined; };
 	void SetPredefined( bool value ) { m_predefined = value; };
 
-	bool LoadConfig( wxFileConfig* config );
-	bool LoadConfig( wxFileConfig* config, const std::string& pathSuff = "" );
-	bool LoadConfigDesc( wxFileConfig* config, const std::string& path );
+	bool LoadConfig( CConfiguration *config );
+	bool LoadConfig( CConfiguration *config, std::string &errorMsg, const std::string& pathSuff );
+	bool LoadConfigDesc( CConfiguration *config, const std::string& path );
 
-	bool SaveConfig( wxFileConfig* config );
+	bool SaveConfig( CConfiguration *config );
 	bool SaveConfig( CConfiguration *config, const std::string& pathSuff = "" );
 
 	bool SaveConfigDesc( CConfiguration *config, const std::string& path );
@@ -400,7 +410,7 @@ public:
 	int32_t GetFilter() { return m_filter; };
 	void SetFilter( int32_t value ) { m_filter = value; };
 
-	void SetFilterDefault() { SetFilter( CMapTypeFilter::filterNone ); };
+	void SetFilterDefault() { SetFilter( CMapTypeFilter::eFilterNone ); };
 
 	std::string GetMinValueAsText();
 	std::string GetMinAsString();
@@ -426,8 +436,8 @@ public:
 
 	void SetMaxValueDefault() { setDefaultValue( m_maxValue ); };
 
-	static double GetStepAsDouble( const std::string& step );
-	double GetStepAsDouble();
+	static double GetStepAsDouble( const std::string& step, std::string errorMsg );
+	double GetStepAsDouble( std::string &errorMsg );
 	std::string GetStep() { return m_step; };
 	void SetStep( const std::string& value ) { m_step = value; };
 
@@ -463,8 +473,8 @@ public:
 
 	CUnit* GetUnit() { return &m_unit; };
 	std::string GetUnitAsText() { return m_unit.GetText().c_str(); };
-	void SetUnit( const std::string& value, const std::string& defaultValue = "", bool withMsg = true, bool convertMinMax = false );
-	void SetUnit( const CUnit& value, const std::string& defaultValue = "", bool withMsg = true, bool convertMinMax = false );
+	void SetUnit( const std::string& value, std::string &errorMsg, const std::string& defaultValue, bool convertMinMax = false );
+	void SetUnit( const CUnit& value, std::string &errorMsg, const std::string& defaultValue, bool convertMinMax = false );
 
 	std::string GetDefaultUnit();
 	static std::string GetDefaultUnit( int32_t dataType );
@@ -490,9 +500,9 @@ public:
 	static bool CheckFieldNames( const CExpression& expr, const std::string& record, CProduct* product, CExpression& exprOut, std::string& errorMsg );
 	static bool CheckFieldNames( const std::string& expr, const std::string& record, CProduct* product, std::string& exprOut, std::string& errorMsg );
 
-	static bool CheckExpression( const std::string& value, const std::string& record, std::string& errorMsg, std::string* strUnitExpr = NULL,
+	static bool CheckExpression( CWorkspaceFormula *wks, const std::string& value, const std::string& record, std::string& errorMsg, std::string* strUnitExpr = NULL,
 		const CStringMap* aliases = NULL, CProduct* product = NULL, std::string* valueOut = NULL );
-	bool CheckExpression( std::string& errorMsg, const std::string& record,
+	bool CheckExpression( CWorkspaceFormula *wks, std::string& errorMsg, const std::string& record,
 		const CStringMap* aliases = NULL, CProduct* product = NULL, std::string* valueOut = NULL );
 
 	static bool CheckExpressionUnits( const std::string& exprStr, const std::string& record, const std::string& strUnitExpr, CProduct* product, std::string& errorMsg );
@@ -527,8 +537,8 @@ public:
 	std::string GetExportAsciiFieldPrefix();
 
 
-	void ConvertToMinMaxFormulaUnit();
-	void ConvertToMinMaxFormulaBaseUnit();
+	void ConvertToMinMaxFormulaUnit( std::string &errorMsg );
+	void ConvertToMinMaxFormulaBaseUnit( std::string &errorMsg );
 
 	double ConvertToFormulaBaseUnit( double in );
 	bool ConvertToFormulaBaseUnit( double in, double& out );
@@ -536,7 +546,7 @@ public:
 	double ConvertToFormulaUnit( double in );
 	bool ConvertToFormulaUnit( double in, double& out );
 
-	bool ComputeInterval( bool showMsg = false );
+	bool ComputeInterval( std::string &errorMsg );
 	//bool ComputeIntervalAsDouble(bool showMsg = false);
 	//bool ComputeIntervalAsDate(bool showMsg = false);
 
@@ -573,10 +583,13 @@ public:
 
 public:
 	/// CIntMap ctor
-	CMapFormula( bool withPredefined = true )
+	CMapFormula( bool withPredefined )
+	{}
+
+	CMapFormula( std::string &errorMsg, bool withPredefined )
 	{
 		if ( withPredefined )
-			InsertPredefined();
+			InsertPredefined( errorMsg );
 	}
 
 	CMapFormula( CMapFormula &o )
@@ -623,8 +636,19 @@ public:
 	bool ValidName( const char* name );
 	bool ValidName( const std::string& name );
 
-	void NamesToArrayString( wxArrayString& array );
-	void NamesToComboBox( wxComboBox& combo );
+	//void NamesToArrayString( wxArrayString& array )
+	//{
+	//	CMapFormula::iterator it;
+
+	//	for ( it = begin(); it != end(); it++ )
+	//	{
+	//		CFormula* value = dynamic_cast<CFormula*>( it->second );
+	//		if ( value != nullptr )
+	//		{
+	//			array.Add( value->GetName() );
+	//		}
+	//	}
+	//}
 
 	int32_t CountDataFields();
 
@@ -632,14 +656,14 @@ public:
 
 	void Amend( const CStringArray& keys, CProduct* product, const std::string& record );
 
-	bool InsertPredefined();
-	bool InsertUserDefined( const wxFileName& fileName );
-	bool InsertUserDefined( CConfiguration *config );
-	bool InsertUserDefined( CFormula* formula );
-	bool InsertUserDefined( CFormula& formula );
+	bool InsertPredefined( std::string &errorMsg );
+	//bool InsertUserDefined( const wxFileName& fileName );
+	bool InsertUserDefined( CConfiguration *config, std::string &errorMsg );
+	bool InsertUserDefined( CFormula* formula, std::string &errorMsg );
+	bool InsertUserDefined_ReplacePredefinedNotAllowed( CFormula& formula, std::string &errorMsg );
 
-	bool LoadConfig( bool predefined );
-	bool LoadConfig( CConfiguration *config, bool predefined, const std::string& pathSuff = "" );
+	bool LoadConfig( std::string &errorMsg, bool predefined );
+	bool LoadConfig( CConfiguration *config, std::string &errorMsg, bool predefined, const std::string& pathSuff = "" );
 
 	bool SaveConfig( CConfiguration *config, bool predefined, const std::string& pathSuff = "" );
 };
@@ -648,4 +672,4 @@ public:
 /** @} */
 
 
-#endif 
+#endif			//	WORKSPACES_FORMULA_H

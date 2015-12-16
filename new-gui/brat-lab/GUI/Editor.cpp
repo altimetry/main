@@ -1,9 +1,9 @@
-#include "../stdafx.h"
+#include "new-gui/brat-lab/stdafx.h"
 
 #include <QtGui>
 
 #include "Editor.h"
-#include "../System/BackServices.h"
+#include "new-gui/brat-lab/System/BackServices.h"
 
 
 Editor::Editor(QWidget *parent)

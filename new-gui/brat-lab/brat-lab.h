@@ -6,8 +6,8 @@
 
 #include <qgsapplication.h>
 
-#include "../libbrathl/List.h"
-#include "../libbrathl/FileParams.h"
+#include "libbrathl/List.h"
+#include "libbrathl/FileParams.h"
 
 
 enum EApplicationStyleSheets

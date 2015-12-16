@@ -30,7 +30,7 @@ using namespace brathl;
 
 #include "BratGui.h"
 #include "Validators.h"
-#include "Formula.h"
+#include "new-gui/brat/Workspaces/Formula.h"
 #include "FieldsTreeCtrl.h"
 #include "OperationTreeCtrl.h"
 
@@ -209,16 +209,16 @@ int32_t COperationTreeItemData::GetMaxAllowed()
   int32_t max = 0;
   switch (m_type)
   {
-  case CMapTypeField::typeOpAsX: 
+  case CMapTypeField::eTypeOpAsX: 
     max = 1;
     break;
-  case CMapTypeField::typeOpAsY: 
+  case CMapTypeField::eTypeOpAsY: 
     max = 1;
     break;
-  case CMapTypeField::typeOpAsField: 
+  case CMapTypeField::eTypeOpAsField: 
     max = -1;
     break;
-  case CMapTypeField::typeOpAsSelect: 
+  case CMapTypeField::eTypeOpAsSelect: 
     max = 1;
     break;
   }
@@ -289,7 +289,7 @@ void COperationTreeCtrl::InitItemsToTree()
 
 
   COperationTreeItemData* itemData =  new COperationTreeItemData(false);
-  itemData->SetType(CMapTypeField::typeOpAsX);  
+  itemData->SetType(CMapTypeField::eTypeOpAsX);  
 
   wxTreeItemId id = AppendItem(rootId, "X", image, image + 1, itemData );
   SetItemBold(id, true);
@@ -298,7 +298,7 @@ void COperationTreeCtrl::InitItemsToTree()
 
 
   itemData =  new COperationTreeItemData(false);
-  itemData->SetType(CMapTypeField::typeOpAsY);
+  itemData->SetType(CMapTypeField::eTypeOpAsY);
 
   id = AppendItem(rootId, "Y (optional)", image, image + 1, itemData);
   SetItemBold(id, true);
@@ -306,7 +306,7 @@ void COperationTreeCtrl::InitItemsToTree()
                      wxTreeItemIcon_Expanded);
 
   itemData =  new COperationTreeItemData(false);
-  itemData->SetType(CMapTypeField::typeOpAsField);
+  itemData->SetType(CMapTypeField::eTypeOpAsField);
 
   id = AppendItem(rootId, "Data ", image, image + 1, itemData);
   SetItemBold(id, true);
@@ -314,7 +314,7 @@ void COperationTreeCtrl::InitItemsToTree()
                      wxTreeItemIcon_Expanded);
   
   itemData =  new COperationTreeItemData(false);
-  itemData->SetType(CMapTypeField::typeOpAsSelect);
+  itemData->SetType(CMapTypeField::eTypeOpAsSelect);
 
   id = AppendItem(rootId, "Selection criteria (optional)", CTreeCtrl::TreeCtrlIcon_File, CTreeCtrl::TreeCtrlIcon_File + 1, itemData);
   SetItemBold(id, false);
@@ -527,7 +527,7 @@ void COperationTreeCtrl::OnEndLabelEdit( wxTreeEvent &event )
   }
 
 
-  CFormula* otherFormula = m_operation->GetFormula(label);
+  CFormula* otherFormula = m_operation->GetFormula(label.ToStdString());
   if (otherFormula != NULL)
   {
     // Compare pointer, if same, don't warn
@@ -600,13 +600,13 @@ void COperationTreeCtrl::Insert(COperation* operation)
 
     switch (formula->GetType())
     {
-    case CMapTypeField::typeOpAsX: 
+    case CMapTypeField::eTypeOpAsX: 
       Add(idRootX, formula);
       break;
-    case CMapTypeField::typeOpAsY: 
+    case CMapTypeField::eTypeOpAsY: 
       Add(idRootY, formula);
       break;
-    case CMapTypeField::typeOpAsField: 
+    case CMapTypeField::eTypeOpAsField: 
       Add(idRootData, formula);
       break;
     }
@@ -655,41 +655,39 @@ void COperationTreeCtrl::DeleteFormulaAll(const wxTreeItemId& idParent, wxTreeIt
   
 }
 //----------------------------------------
-void COperationTreeCtrl::DeleteFormula(const wxTreeItemId& id)
+void COperationTreeCtrl::DeleteFormula( const wxTreeItemId& id )
 {
-  if (!id)
-  {
-    return;
-  }
+	if ( !id )
+		return;
 
-  wxString name;
+	std::string name;
 
-  CFormula* formula = GetFormula(id);
-  if (formula != NULL)
-  {
-    name = formula->GetName();
-    
-    wxTreeItemId selectRootId = GetSelectRootId();
-  
-    if (id != selectRootId)
-    {
-      SetFormula(id, NULL);
-    }
-    m_operation->DeleteFormula(name);
-  }
-  
-  //Delete(id);
+	CFormula* formula = GetFormula( id );
+	if ( formula != NULL )
+	{
+		name = formula->GetName();
 
-  //m_operation->SetType(GetTypeOperation());
+		wxTreeItemId selectRootId = GetSelectRootId();
 
-  CDeleteDataExprEvent ev(GetId(), name);
-  if (m_owner != NULL)
-  {
-    wxPostEvent(m_owner, ev);
-  }
-  
-  Refresh();
-  
+		if ( id != selectRootId )
+		{
+			SetFormula( id, NULL );
+		}
+		m_operation->DeleteFormula( name );
+	}
+
+	//Delete(id);
+
+	//m_operation->SetType(GetTypeOperation());
+
+	CDeleteDataExprEvent ev( GetId(), name );
+	if ( m_owner != NULL )
+	{
+		wxPostEvent( m_owner, ev );
+	}
+
+	Refresh();
+
 }
 //----------------------------------------
 void COperationTreeCtrl::DeleteCurrentFormula()
@@ -722,7 +720,7 @@ bool COperationTreeCtrl::SelectRecord(CProduct* product)
 
   CSelectRecord recordDlg (this, product, -1, "Select a record...");
   
-  wxString recordName;
+  std::string recordName;
   int32_t result = wxID_CANCEL;
   do 
   {
@@ -731,7 +729,7 @@ bool COperationTreeCtrl::SelectRecord(CProduct* product)
     recordName = recordDlg.GetRecordName();
 
   }
-  while ((result == wxID_OK) && (recordName.IsEmpty()));
+  while ((result == wxID_OK) && (recordName.empty()));
 
   if (result != wxID_OK)
   {
@@ -850,7 +848,7 @@ void COperationTreeCtrl::Add(const wxTreeItemId& parentId, CField* field)
   }
   */
   wxString operationRecord = m_operation->GetRecord();
-  wxString fieldRecord = field->GetRecordName().c_str();
+  std::string fieldRecord = field->GetRecordName().c_str();
 
   /*
   if (m_operation->HasFormula())
@@ -1078,11 +1076,11 @@ int32_t COperationTreeCtrl::GetTypeOperation()
 
   if ((hasX) && (hasY))
   {
-    typeOp =  CMapTypeOp::typeOpZFXY;
+    typeOp =  CMapTypeOp::eTypeOpZFXY;
   }
   else
   {
-    typeOp =  CMapTypeOp::typeOpYFX;
+    typeOp =  CMapTypeOp::eTypeOpYFX;
   }
   
   return typeOp;
@@ -1193,22 +1191,22 @@ int32_t COperationTreeCtrl::GetMaxAllowed(const wxTreeItemId& id)
 //----------------------------------------
 wxTreeItemId COperationTreeCtrl::GetXRootId()
 {
-  return FindItem(CMapTypeField::typeOpAsX);
+  return FindItem(CMapTypeField::eTypeOpAsX);
 }
 //----------------------------------------
 wxTreeItemId COperationTreeCtrl::GetYRootId()
 {
-  return FindItem(CMapTypeField::typeOpAsY);
+  return FindItem(CMapTypeField::eTypeOpAsY);
 }
 //----------------------------------------
 wxTreeItemId COperationTreeCtrl::GetDataRootId()
 {
-  return FindItem(CMapTypeField::typeOpAsField);
+  return FindItem(CMapTypeField::eTypeOpAsField);
 }
 //----------------------------------------
 wxTreeItemId COperationTreeCtrl::GetSelectRootId()
 {
-  return FindItem(CMapTypeField::typeOpAsSelect);
+  return FindItem(CMapTypeField::eTypeOpAsSelect);
 }
 
 //----------------------------------------
@@ -1251,7 +1249,7 @@ wxTreeItemId COperationTreeCtrl::FindItem(const wxTreeItemId& from, int32_t type
 
       if (type == typeFound)
       {
-        if (type == CMapTypeField::typeOpAsSelect)
+        if (type == CMapTypeField::eTypeOpAsSelect)
         {
           bFound = true;
         } 

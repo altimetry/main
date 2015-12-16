@@ -15,8 +15,6 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
-
 #include "new-gui/brat/stdafx.h"
 
 // For compilers that support precompilation, includes "wx/wx.h".
@@ -26,24 +24,26 @@
     #pragma hdrstop
 #endif
 
+#include "new-gui/Common/tools/Trace.h"
+#include "new-gui/Common/tools/Exception.h"
+
 #include "brathl.h"
 
-#include "new-gui/Common/tools/Trace.h"
 #include "Tools.h"
-#include "new-gui/Common/tools/Exception.h"
 #include "BratProcess.h"
+
 using namespace brathl;
 using namespace processes;
 
 #include "BratGui.h"
-#include "Workspace.h"
-
+#include "new-gui/brat/Workspaces/Workspace.h"
 #include "Operation.h"
+
 
 
 //----------------------------------------
 
-COperation::COperation(wxString name)
+COperation::COperation(std::string name)
       : m_formulas(false)
 {
   Init();
@@ -52,10 +52,10 @@ COperation::COperation(wxString name)
 }
 //----------------------------------------
 COperation::COperation(COperation& o)
+      : m_formulas(false)
 {
   Init();
   Copy(o);
-
 }
 //----------------------------------------
 
@@ -72,13 +72,13 @@ COperation& COperation::operator=(COperation& o)
 //----------------------------------------
 void COperation::Init()
 {
-  m_product = NULL;
-  m_dataset = NULL;
+  m_product = nullptr;
+  m_dataset = nullptr;
 
   m_select = new CFormula(ENTRY_SELECT, false);
-  m_select->SetType(CMapTypeField::typeOpAsSelect);
+  m_select->SetType(CMapTypeField::eTypeOpAsSelect);
 
-  m_type = CMapTypeOp::typeOpYFX;
+  m_type = CMapTypeOp::eTypeOpYFX;
   m_dataMode = CMapDataMode::GetInstance().GetDefault();
   m_verbose = 2;
   m_exportAsciiDateAsPeriod = false;
@@ -92,10 +92,10 @@ void COperation::Init()
 void COperation::DeleteSelect()
 {
 
-  if (m_select != NULL)
+  if (m_select != nullptr)
   {
     delete m_select;
-    m_select = NULL;
+    m_select = nullptr;
   }
 }
 //----------------------------------------
@@ -107,12 +107,12 @@ bool COperation::IsSelect(CFormula* value)
 //----------------------------------------
 bool COperation::IsZFXY()
 {
-  return (m_type == CMapTypeOp::typeOpZFXY);
+  return (m_type == CMapTypeOp::eTypeOpZFXY);
 }
 //----------------------------------------
 bool COperation::IsYFX()
 {
-  return (m_type == CMapTypeOp::typeOpYFX);
+  return (m_type == CMapTypeOp::eTypeOpYFX);
 }
 //----------------------------------------
 bool COperation::IsMap()
@@ -122,10 +122,10 @@ bool COperation::IsMap()
     return false;
   }
 
-  CFormula* xFormula = GetFormula(CMapTypeField::typeOpAsX);
-  CFormula* yFormula = GetFormula(CMapTypeField::typeOpAsY);
+  CFormula* xFormula = GetFormula(CMapTypeField::eTypeOpAsX);
+  CFormula* yFormula = GetFormula(CMapTypeField::eTypeOpAsY);
 
-  if ((xFormula == NULL)  || (yFormula == NULL))
+  if ((xFormula == nullptr)  || (yFormula == nullptr))
   {
     return false;
   }
@@ -137,9 +137,9 @@ bool COperation::IsMap()
 }
 
 //----------------------------------------
-bool COperation::IsSelect(const wxString& name)
+bool COperation::IsSelect( const std::string& name )
 {
-  return (name.CmpNoCase(ENTRY_SELECT) == 0);
+	  return str_icmp( name, ENTRY_SELECT );
 }
 
 //----------------------------------------
@@ -162,8 +162,8 @@ void COperation::Copy(COperation& o)
 {
   m_name = o.m_name;
 
-  m_dataset = NULL;
-  if (o.m_dataset != NULL)
+  m_dataset = nullptr;
+  if (o.m_dataset != nullptr)
   {
     m_dataset = FindDataset(o.m_dataset->GetName());
   }
@@ -171,9 +171,9 @@ void COperation::Copy(COperation& o)
   m_record = o.m_record;
   m_product = o.m_product;
 
-  if (o.m_select != NULL)
+  if (o.m_select != nullptr)
   {
-    if (m_select != NULL)
+    if (m_select != nullptr)
     {
       *m_select = *(o.m_select);
     }
@@ -204,7 +204,7 @@ void COperation::ClearLogFile()
   m_logFile.Clear();
 }
 //----------------------------------------
-void COperation::SetLogFile(const wxString& value)
+void COperation::SetLogFile(const std::string& value)
 {
   m_logFile.Assign(value);
   m_logFile.Normalize();
@@ -216,7 +216,7 @@ void COperation::SetLogFile()
 
   m_logFile = m_output;
   m_logFile.SetExt(LOGFILE_EXTENSION);
-  if (wks == NULL)
+  if (wks == nullptr)
   {
     m_logFile.Normalize();
   }
@@ -230,7 +230,7 @@ void COperation::SetLogFile()
 //----------------------------------------
 bool COperation::CtrlLoessCutOff( std::string &msg )
 {
-  if (m_type != CMapTypeOp::typeOpZFXY)
+  if (m_type != CMapTypeOp::eTypeOpZFXY)
   {
     return true;
   }
@@ -240,31 +240,31 @@ bool COperation::CtrlLoessCutOff( std::string &msg )
   bool hasCutOffX = false;
   bool hasCutOffY = false;
   bool hasFilter = false;
-  wxString fields;
+  std::string fields;
 
   for (it = m_formulas.begin() ; it != m_formulas.end() ; it++)
   {
     CFormula* value = dynamic_cast<CFormula*>(it->second);
-    if (value == NULL)
+    if (value == nullptr)
     {
       continue;
     }
 
-    if (value->GetType() == CMapTypeField::typeOpAsSelect)
+    if (value->GetType() == CMapTypeField::eTypeOpAsSelect)
     {
       continue;
     }
 
-    if (value->GetType() == CMapTypeField::typeOpAsField)
+    if (value->GetType() == CMapTypeField::eTypeOpAsField)
     {
       if ( (isDefaultValue(value->GetFilter()) == false) &&
-        (value->GetFilter() != CMapTypeFilter::filterNone) )
+        (value->GetFilter() != CMapTypeFilter::eFilterNone) )
       {
         hasFilter = true;
-        fields += wxString::Format("\t'%s'", value->GetName().c_str());
+        fields += "\t'" + value->GetName() + "'";
       }
     }
-    if (value->GetType() == CMapTypeField::typeOpAsX)
+    if (value->GetType() == CMapTypeField::eTypeOpAsX)
     {
       if ( (isDefaultValue(value->GetLoessCutOff()) == false) &&
            (value->GetLoessCutOff() > 1) )
@@ -272,7 +272,7 @@ bool COperation::CtrlLoessCutOff( std::string &msg )
         hasCutOffX = true;
       }
     }
-    if (value->GetType() == CMapTypeField::typeOpAsY)
+    if (value->GetType() == CMapTypeField::eTypeOpAsY)
     {
       if ( (isDefaultValue(value->GetLoessCutOff()) == false) &&
            (value->GetLoessCutOff() > 1) )
@@ -284,9 +284,13 @@ bool COperation::CtrlLoessCutOff( std::string &msg )
 
   if (hasFilter)
   {
-    msg += wxString::Format("At least a filter is defined for operation '%s'\non 'Data field(s)' \n%s\n",
-                            GetName().c_str(),
-                            fields.c_str());
+    msg += 
+		"At least a filter is defined for operation '"
+		+ GetName()
+		+ "'\non 'Data field(s)' \n"
+		+ fields 
+		+ "\n";
+
     if (hasCutOffX == false)
     {
       msg += "No 'Loess cut-off' is defined for X field (or 'Loess-cut-off value is <= 1)\n";
@@ -299,7 +303,7 @@ bool COperation::CtrlLoessCutOff( std::string &msg )
   /*
   else
   {
-    msg += wxString::Format("No filter is defined on 'Data field(s)' for operation '%s'.\n",
+    msg += std::string::Format("No filter is defined on 'Data field(s)' for operation '%s'.\n",
                             GetName().c_str());
     if (hasCutOffX)
     {
@@ -327,50 +331,45 @@ bool COperation::CtrlLoessCutOff( std::string &msg )
   return bOk;
 }
 //----------------------------------------
-bool COperation::UseDataset( const wxString& name )
+bool COperation::UseDataset( const std::string& name )
 {
-	if ( m_dataset == NULL )
+	if ( m_dataset == nullptr )
 		return false;
 
-	return str_icmp( m_dataset->GetName(), name.ToStdString() );
+	return str_icmp( m_dataset->GetName(), name );
 }
 
 //----------------------------------------
-wxString COperation::GetFormulaNewName()
+std::string COperation::GetFormulaNewName()
 {
 
   int32_t i = m_formulas.size();
-  wxString key;
+  std::string key;
 
   do
   {
     key = WKS_EXPRESSION_NAME + "_" + n2s<std::string>( i + 1 );
     i++;
   }
-  while (m_formulas.Exists((const char *)key.c_str()) != NULL);
+  while (m_formulas.Exists((const char *)key.c_str()) != nullptr);
 
   return key;
 }
 //----------------------------------------
-wxString COperation::GetFormulaNewName(const wxString& prefix)
+std::string COperation::GetFormulaNewName( const std::string& prefix )
 {
+	if ( m_formulas.Exists( prefix ) == nullptr )
+		return prefix;
 
-  if (m_formulas.Exists((const char *)prefix.c_str()) == NULL)
-  {
-    return prefix;
-  }
+	int i = 1;
+	std::string key;
+	do
+	{
+		key = prefix + "_" + n2s<std::string>( i );
+		i++;
+	} while ( m_formulas.Exists( key ) != nullptr );
 
-  int32_t i = 1;
-  wxString key;
-
-  do
-  {
-    key = wxString::Format(prefix +"_%d", i);
-    i++;
-  }
-  while (m_formulas.Exists((const char *)key.c_str()) != NULL);
-
-  return key;
+	return key;
 }
 
 
@@ -388,9 +387,9 @@ bool COperation::RenameFormula(CFormula* formula, const std::string &newName)
 }
 
 //----------------------------------------
-wxString COperation::GetDatasetName()
+std::string COperation::GetDatasetName()
 {
-  if (m_dataset == NULL)
+  if (m_dataset == nullptr)
   {
     return "";
   }
@@ -412,9 +411,9 @@ void COperation::GetFormulaNames(wxComboBox& combo)
 //----------------------------------------
 CFormula* COperation::NewUserFormula(CField* field, int32_t typeField, bool addToMap, CProduct* product)
 {
-  if (field == NULL)
+  if (field == nullptr)
   {
-    return NULL;
+    return nullptr;
 
   }
 
@@ -433,63 +432,70 @@ CFormula* COperation::NewUserFormula(CField* field, int32_t typeField, bool addT
   return formula;
 }
 //----------------------------------------
-CFormula* COperation::NewUserFormula(const wxString& name, int32_t typeField, const wxString& strUnit, bool addToMap, CProduct* product)
+CFormula* COperation::NewUserFormula( const std::string& name, int32_t typeField, const std::string& strUnit, bool addToMap, CProduct* product )
 {
-  bool bOk = true;
+	bool bOk = true;
 
-  CFormula* formulaToReturn = NULL;
+	CFormula* formulaToReturn = nullptr;
 
-  std::string formulaName = ( name.IsEmpty() ? GetFormulaNewName() : GetFormulaNewName(name) ).ToStdString();
+	std::string formulaName = name.empty() ? GetFormulaNewName() : GetFormulaNewName( name );
 
-  CFormula formula(formulaName, false);
-  formula.SetType(typeField);
-  formula.SetUnit(strUnit.ToStdString(), "", false);
+	CFormula formula( formulaName, false );
+	formula.SetType( typeField );
+	std::string errorMsg;
+	formula.SetUnit( strUnit, errorMsg, "", false );
+	if ( !errorMsg.empty() )
+		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
 
-  CUnit* unit = formula.GetUnit();
+	CUnit* unit = formula.GetUnit();
 
-  formula.SetDataType(typeField, *unit, product);
+	formula.SetDataType( typeField, *unit, product );
 
-  if (strUnit.IsEmpty())
-  {
-    formula.SetDefaultUnit();
-  }
+	if ( strUnit.empty() )
+	{
+		formula.SetDefaultUnit();
+	}
 
-  formula.SetDefaultMinMax();
+	formula.SetDefaultMinMax();
 
-  if (addToMap)
-  {
-    bOk = AddFormula(formula);
-    formulaToReturn = GetFormula(formulaName);
-  }
-  else
-  {
-    formulaToReturn = new CFormula(formula);
-  }
+	if ( addToMap )
+	{
+		bOk = AddFormula( formula );
+		formulaToReturn = GetFormula( formulaName );
+	}
+	else
+	{
+		formulaToReturn = new CFormula( formula );
+	}
 
-  return formulaToReturn;
+	return formulaToReturn;
 }
 //----------------------------------------
-bool COperation::AddFormula(CFormula& formula)
+bool COperation::AddFormula( CFormula& formula )
 {
-  CFormula* value = dynamic_cast<CFormula*>(m_formulas.Exists((const char *)formula.GetName().c_str()));
-  if (value != NULL)
-  {
-    return false;
-  }
+	CFormula* value = dynamic_cast<CFormula*>( m_formulas.Exists( (const char *)formula.GetName().c_str() ) );
+	if ( value != nullptr )
+	{
+		return false;
+	}
 
-  m_formulas.InsertUserDefined(formula);
-  return true;
+	std::string errorMsg;
+	m_formulas.InsertUserDefined_ReplacePredefinedNotAllowed( formula, errorMsg );
+	if ( !errorMsg.empty() )
+		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
+
+	return true;
 }
 
 //----------------------------------------
-bool COperation::DeleteFormula(const wxString& name)
+bool COperation::DeleteFormula(const std::string& name)
 {
 
   bool bOk = false;
 
   CFormula* formula = GetFormula(name);
 
-  if (formula != NULL)
+  if (formula != nullptr)
   {
     if (IsSelect(formula))
     {
@@ -510,7 +516,7 @@ bool COperation::DeleteFormula(const wxString& name)
  return bOk;
 }
 //----------------------------------------
-wxString COperation::GetCommentFormula(const std::string& name)
+std::string COperation::GetCommentFormula(const std::string& name)
 {
   return m_formulas.GetCommentFormula(name);
 }
@@ -526,13 +532,13 @@ std::string COperation::GetDescFormula( const std::string& name, bool alias )
 }
 /*
 //----------------------------------------
-void COperation::SetDescFormula(const wxString& name, const wxString& value)
+void COperation::SetDescFormula(const std::string& name, const std::string& value)
 {
   m_formulas.SetDescFormula(name, value);
 }
 */
 //----------------------------------------
-CFormula* COperation::GetFormula(const wxString& name)
+CFormula* COperation::GetFormula(const std::string& name)
 {
   return dynamic_cast<CFormula*>(m_formulas.Exists((const char *)name.c_str()));
 }
@@ -559,9 +565,9 @@ bool COperation::HasFilters()
 }
 /*
 //----------------------------------------
-wxString COperation::GetFormulaName()
+std::string COperation::GetFormulaName()
 {
-  if (m_formula == NULL)
+  if (m_formula == nullptr)
   {
     return "";
   }
@@ -570,9 +576,9 @@ wxString COperation::GetFormulaName()
 }
 
 //----------------------------------------
-wxString COperation::GetFormulaDescription()
+std::string COperation::GetFormulaDescription()
 {
-  if (m_formula == NULL)
+  if (m_formula == nullptr)
   {
     return "";
   }
@@ -580,9 +586,9 @@ wxString COperation::GetFormulaDescription()
   return m_formula->GetDescription();
 }
 //----------------------------------------
-void COperation::SetFormulaDesc(const wxString& value)
+void COperation::SetFormulaDesc(const std::string& value)
 {
-  if (m_formula == NULL)
+  if (m_formula == nullptr)
   {
     return;
   }
@@ -592,9 +598,9 @@ void COperation::SetFormulaDesc(const wxString& value)
 */
 //----------------------------------------
 /*
-void COperation::SetSelectDesc(const wxString& value)
+void COperation::SetSelectDesc(const std::string& value)
 {
-  if (m_select == NULL)
+  if (m_select == nullptr)
   {
     return;
   }
@@ -604,9 +610,9 @@ void COperation::SetSelectDesc(const wxString& value)
 }
 */
 //----------------------------------------
-wxString COperation::GetSelectName()
+std::string COperation::GetSelectName()
 {
-  if (m_select == NULL)
+  if (m_select == nullptr)
   {
     return "";
   }
@@ -614,9 +620,9 @@ wxString COperation::GetSelectName()
   return m_select->GetName();
 }
 //----------------------------------------
-wxString COperation::GetSelectDescription()
+std::string COperation::GetSelectDescription()
 {
-  if (m_select == NULL)
+  if (m_select == nullptr)
   {
     return "";
   }
@@ -626,14 +632,14 @@ wxString COperation::GetSelectDescription()
 //----------------------------------------
 bool COperation::SaveConfig( CConfiguration *config )
 {
-	if ( config == NULL )
+	if ( config == nullptr )
 		return true;
 
-	config->SetPath( "/" + m_name.ToStdString() );
+	config->SetPath( "/" + m_name );
 
 	bool bOk = true;
-	if ( m_dataset != NULL )
-		bOk &= config->Write( ENTRY_DSNAME, m_dataset->GetName().c_str() ) && config->Write( ENTRY_RECORDNAME, GetRecord().ToStdString() );
+	if ( m_dataset != nullptr )
+		bOk &= config->Write( ENTRY_DSNAME, m_dataset->GetName().c_str() ) && config->Write( ENTRY_RECORDNAME, GetRecord() );
 
 	bOk &= config->Write( ENTRY_TYPE, CMapTypeOp::GetInstance().IdToName( m_type ) );
 
@@ -645,114 +651,113 @@ bool COperation::SaveConfig( CConfiguration *config )
 
 	// Save relative path based on path operation workspace for output file
 	//bOk &= config->Write(ENTRY_OUTPUT, GetOutputName());
-	bOk &= config->Write( ENTRY_OUTPUT, GetOutputNameRelativeToWks().ToStdString() );
+	bOk &= config->Write( ENTRY_OUTPUT, GetOutputNameRelativeToWks() );
 
-	bOk &= config->Write( ENTRY_EXPORT_ASCII_OUTPUT, GetExportAsciiOutputNameRelativeToWks().ToStdString() );
+	bOk &= config->Write( ENTRY_EXPORT_ASCII_OUTPUT, GetExportAsciiOutputNameRelativeToWks() );
 
 	// Warning after formulas Load config conig path has changed
-	m_formulas.SaveConfig( config, false, GetName().ToStdString() );
+	m_formulas.SaveConfig( config, false, GetName() );
 
 	return bOk;
 }
 //----------------------------------------
-bool COperation::LoadConfig( CConfiguration *config)
+bool COperation::LoadConfig( CConfiguration *config, std::string &errorMsg )
 {
-  bool bOk = true;
-  if (config == NULL)
-  {
-    return true;
-  }
+	bool bOk = true;
+	if ( config == nullptr )
+	{
+		return true;
+	}
 
-  config->SetPath("/" + m_name.ToStdString());
+	config->SetPath( "/" + m_name );
 
-  std::string valueString;
-  valueString = config->Read(ENTRY_DSNAME);
-  m_dataset = FindDataset(valueString);
+	std::string valueString;
+	valueString = config->Read( ENTRY_DSNAME );
+	m_dataset = FindDataset( valueString );
 
-  valueString = config->Read( ENTRY_TYPE, CMapTypeOp::GetInstance().IdToName(m_type) );
-  if (valueString.empty())
-  {
-    m_type = CMapTypeOp::typeOpYFX;
-  }
-  else
-  {
-    m_type = CMapTypeOp::GetInstance().NameToId(valueString);
-  }
+	valueString = config->Read( ENTRY_TYPE, CMapTypeOp::GetInstance().IdToName( m_type ) );
+	if ( valueString.empty() )
+	{
+		m_type = CMapTypeOp::eTypeOpYFX;
+	}
+	else
+	{
+		m_type = CMapTypeOp::GetInstance().NameToId( valueString );
+	}
 
-  valueString = config->Read( ENTRY_DATA_MODE, CMapDataMode::GetInstance().IdToName(m_dataMode) );
-  if (valueString.empty())
-  {
-    m_dataMode = CMapDataMode::GetInstance().GetDefault();
-  }
-  else
-  {
-    m_dataMode = CMapDataMode::GetInstance().NameToId(valueString);
-  }
+	valueString = config->Read( ENTRY_DATA_MODE, CMapDataMode::GetInstance().IdToName( m_dataMode ) );
+	if ( valueString.empty() )
+	{
+		m_dataMode = CMapDataMode::GetInstance().GetDefault();
+	}
+	else
+	{
+		m_dataMode = CMapDataMode::GetInstance().NameToId( valueString );
+	}
 
 
-  m_record = config->Read(ENTRY_RECORDNAME);
+	m_record = config->Read( ENTRY_RECORDNAME );
 
-  if (m_record.IsEmpty())
-  {
-    m_record = CProductNetCdf::m_virtualRecordName.c_str();
-  }
-  valueString = config->Read(ENTRY_OUTPUT);
-  if (valueString.empty() == false)
-  {
-    // Note that if the path to the output is in relative form,
-    // SetOutput make it in absolute form based on workspace Operation path.
-    SetOutput(valueString);
-  }
+	if ( m_record.empty() )
+	{
+		m_record = CProductNetCdf::m_virtualRecordName.c_str();
+	}
+	valueString = config->Read( ENTRY_OUTPUT );
+	if ( valueString.empty() == false )
+	{
+		// Note that if the path to the output is in relative form,
+		// SetOutput make it in absolute form based on workspace Operation path.
+		SetOutput( valueString );
+	}
 
-  valueString = config->Read(ENTRY_EXPORT_ASCII_OUTPUT);
-  if (valueString.empty() == false)
-  {
-    // Note that if the path to the output is in relative form,
-    // SetOutput make it in absolute form based on workspace Operation path.
-    SetExportAsciiOutput(valueString);
-  }
-  else
-  {
-    InitExportAsciiOutput();
-  }
+	valueString = config->Read( ENTRY_EXPORT_ASCII_OUTPUT );
+	if ( valueString.empty() == false )
+	{
+		// Note that if the path to the output is in relative form,
+		// SetOutput make it in absolute form based on workspace Operation path.
+		SetExportAsciiOutput( valueString );
+	}
+	else
+	{
+		InitExportAsciiOutput();
+	}
 
-  m_select->LoadConfigDesc(config, config->GetPath().ToStdString());
+	m_select->LoadConfigDesc( config, config->GetPath().ToStdString() );
 
-  // Warning after formulas Load config conig path has changed
-  m_formulas.LoadConfig(config, false, GetName().ToStdString());
+	// Warning after formulas Load config conig path has changed
+	m_formulas.LoadConfig( config, errorMsg, false, GetName() );
 
-  m_formulas.InitFormulaDataMode(m_dataMode);
+	m_formulas.InitFormulaDataMode( m_dataMode );
 
-  return true;
-
+	return true;
 }
 
 //----------------------------------------
-CDataset* COperation::FindDataset(const wxString& datasetName)
+CDataset* COperation::FindDataset(const std::string& datasetName)
 {
   CWorkspaceDataset* wks = wxGetApp().GetCurrentWorkspaceDataset();
-  if (wks == NULL)
+  if (wks == nullptr)
   {
-    return NULL;
+    return nullptr;
   }
 
-  return wks->GetDataset(datasetName.ToStdString());
+  return wks->GetDataset(datasetName);
 }
 //----------------------------------------
 wxFileName* COperation::GetSystemCommand()
 {
-  switch (m_type)
-  {
-  case CMapTypeOp::typeOpYFX:
-    return wxGetApp().GetExecYFXName();
-    break;
-  case CMapTypeOp::typeOpZFXY:
-    return wxGetApp().GetExecZFXYName();
-    break;
-  default :
-    return &m_cmdFile;
-    break;
-  }
+	switch ( m_type )
+	{
+		case CMapTypeOp::eTypeOpYFX:
+			return wxGetApp().GetExecYFXName();
+			break;
+		case CMapTypeOp::eTypeOpZFXY:
+			return wxGetApp().GetExecZFXYName();
+			break;
+		default:
+			return &m_cmdFile;
+			break;
+	}
 }
 //----------------------------------------
 wxFileName* COperation::GetShowStatsSystemCommand()
@@ -765,32 +770,26 @@ wxFileName* COperation::GetExportAsciiSystemCommand()
   return wxGetApp().GetExecExportAsciiName();
 }
 //----------------------------------------
-wxString COperation::GetFullCmd()
+std::string COperation::GetFullCmd()
 {
-  return wxString::Format("\"%s\" \"%s\"",
-                           GetSystemCommand()->GetFullPath().c_str(),
-                           m_cmdFile.GetFullPath().c_str());
+	return "\"" + GetSystemCommand()->GetFullPath().ToStdString() + "\" \"" + GetCmdFileFullName() + "\"";
 }
 //----------------------------------------
-wxString COperation::GetExportAsciiFullCmd()
+std::string COperation::GetExportAsciiFullCmd()
 {
-  return wxString::Format("\"%s\" \"%s\"",
-                           GetExportAsciiSystemCommand()->GetFullPath().c_str(),
-                           m_exportAsciiCmdFile.GetFullPath().c_str());
+	return "\"" + GetExportAsciiSystemCommand()->GetFullPath().ToStdString() + "\" \"" + GetExportAsciiCmdFileFullName() + "\"";
 }
 //----------------------------------------
-wxString COperation::GetShowStatsFullCmd()
+std::string COperation::GetShowStatsFullCmd()
 {
-  return wxString::Format("\"%s\" \"%s\"",
-                           GetShowStatsSystemCommand()->GetFullPath().c_str(),
-                           m_showStatsCmdFile.GetFullPath().c_str());
+	return "\"" + GetShowStatsSystemCommand()->GetFullPath().ToStdString() + "\" \"" + GetShowStatsCmdFileFullName() + "\"";
 }
 
 
 //----------------------------------------
-wxString COperation::GetTaskName()
+std::string COperation::GetTaskName()
 {
-  //wxString value = m_cmdFile.GetName();
+  //std::string value = m_cmdFile.GetName();
   if (m_cmdFile.GetName().IsEmpty())
   {
     return "NoName";
@@ -802,12 +801,12 @@ wxString COperation::GetTaskName()
   }
   return value;
   */
-  return m_cmdFile.GetName();
+  return m_cmdFile.GetName().ToStdString();
 }
 //----------------------------------------
-wxString COperation::GetExportAsciiTaskName()
+std::string COperation::GetExportAsciiTaskName()
 {
-  //wxString value = m_cmdFile.GetName();
+  //std::string value = m_cmdFile.GetName();
   if (m_exportAsciiCmdFile.GetName().IsEmpty())
   {
     return "NoName";
@@ -819,13 +818,13 @@ wxString COperation::GetExportAsciiTaskName()
   }
   return value;
   */
-  return m_exportAsciiCmdFile.GetName();
+  return m_exportAsciiCmdFile.GetName().ToStdString();
 }
 
 //----------------------------------------
-wxString COperation::GetShowStatsTaskName()
+std::string COperation::GetShowStatsTaskName()
 {
-  //wxString value = m_cmdFile.GetName();
+  //std::string value = m_cmdFile.GetName();
   if (m_showStatsCmdFile.GetName().IsEmpty())
   {
     return "NoName";
@@ -837,7 +836,7 @@ wxString COperation::GetShowStatsTaskName()
   }
   return value;
   */
-  return m_showStatsCmdFile.GetName();
+  return m_showStatsCmdFile.GetName().ToStdString();
 }
 
 //----------------------------------------
@@ -955,13 +954,13 @@ bool COperation::BuildExportAsciiCmdFileGeneralProperties()
   WriteComment("----- GENERAL PROPERTIES -----");
   WriteEmptyLine();
 
-  wxString valueString = (m_exportAsciiDateAsPeriod ? "Yes" : "No");
+  std::string valueString = (m_exportAsciiDateAsPeriod ? "Yes" : "No");
 
-  WriteLine(wxString(kwDATE_AS_PERIOD.c_str()) + "=" + valueString);
+  WriteLine(std::string(kwDATE_AS_PERIOD.c_str()) + "=" + valueString);
 
   valueString = (m_exportAsciiExpandArray ? "Yes" : "No");
 
-  WriteLine(wxString(kwEXPAND_ARRAY.c_str()) + "=" + valueString);
+  WriteLine(std::string(kwEXPAND_ARRAY.c_str()) + "=" + valueString);
 
   return true;
 
@@ -974,7 +973,7 @@ bool COperation::BuildCmdFileGeneralProperties()
   WriteComment("----- GENERAL PROPERTIES -----");
   WriteEmptyLine();
   // Data mode is no more for a operation, but for each formula (data expression)
-  //WriteLine(wxString::Format("DATA_MODE=%s", CMapDataMode::GetInstance().IdToName(m_dataMode).c_str()));
+  //WriteLine(std::string::Format("DATA_MODE=%s", CMapDataMode::GetInstance().IdToName(m_dataMode).c_str()));
 
   return true;
 
@@ -986,7 +985,7 @@ bool COperation::BuildCmdFileAlias()
   CMapFormula::iterator it;
 
   CWorkspaceFormula* wks = wxGetApp().GetCurrentWorkspaceFormula();
-  if (wks == NULL)
+  if (wks == nullptr)
   {
     return false;
   }
@@ -999,12 +998,12 @@ bool COperation::BuildCmdFileAlias()
   for (it = formulas->begin() ; it != formulas->end() ; it++)
   {
     CFormula* value = dynamic_cast<CFormula*>(it->second);
-    if (value == NULL)
+    if (value == nullptr)
     {
       continue;
     }
-    WriteLine(wxString(kwALIAS_NAME.c_str()) + wxString("=") + wxString(value->GetName().c_str()));
-    WriteLine(wxString(kwALIAS_VALUE.c_str()) + wxString("=") + wxString(value->GetDescription(true)));
+    WriteLine(std::string(kwALIAS_NAME.c_str()) + std::string("=") + std::string(value->GetName().c_str()));
+    WriteLine(std::string(kwALIAS_VALUE.c_str()) + std::string("=") + std::string(value->GetDescription(true)));
   }
 
   return true;
@@ -1013,30 +1012,23 @@ bool COperation::BuildCmdFileAlias()
 //----------------------------------------
 bool COperation::BuildCmdFileSpecificUnit()
 {
-  CMapFormula::iterator it;
-
-  CDataset* dataset = GetDataset();
-  if (dataset == NULL)
-  {
-    return false;
-  }
+	CDataset* dataset = GetDataset();
+	if ( dataset == nullptr )
+		return false;
 
 
-  WriteEmptyLine();
-  WriteComment("----- SPECIFIC UNIT -----");
+	WriteEmptyLine();
+	WriteComment( "----- SPECIFIC UNIT -----" );
 
-  CStringMap* fieldSpecificUnit = dataset->GetFieldSpecificUnits();
-  CStringMap::iterator itMap;
+	CStringMap* fieldSpecificUnit = dataset->GetFieldSpecificUnits();
 
-  for (itMap = fieldSpecificUnit->begin() ; itMap != fieldSpecificUnit->end() ; itMap++)
-  {
-    WriteLine( wxString::Format("%s=%s", kwUNIT_ATTR_NAME.c_str(), (itMap->first).c_str()));
-    WriteLine( wxString::Format("%s=%s", kwUNIT_ATTR_VALUE.c_str(), (itMap->second).c_str()));
+	for ( CStringMap::iterator itMap = fieldSpecificUnit->begin(); itMap != fieldSpecificUnit->end(); itMap++ )
+	{
+		WriteLine( kwUNIT_ATTR_NAME + "=" + itMap->first );
+		WriteLine( kwUNIT_ATTR_VALUE + "=" + itMap->second );
+	}
 
-  }
-
-  return true;
-
+	return true;
 }
 //----------------------------------------
 bool COperation::BuildCmdFileFromOutputOperation()
@@ -1045,9 +1037,9 @@ bool COperation::BuildCmdFileFromOutputOperation()
   WriteEmptyLine();
   WriteComment("----- DATASET -----");
   WriteEmptyLine();
-  WriteLine(wxString(kwRECORD.c_str()) + "=" + CProductNetCdf::m_virtualRecordName.c_str());
+  WriteLine(std::string(kwRECORD.c_str()) + "=" + CProductNetCdf::m_virtualRecordName.c_str());
   WriteEmptyLine();
-  WriteLine(wxString(kwFILE.c_str()) + "=" + this->GetOutputName());
+  WriteLine(std::string(kwFILE.c_str()) + "=" + this->GetOutputName());
 
   return true;
 
@@ -1055,25 +1047,23 @@ bool COperation::BuildCmdFileFromOutputOperation()
 //----------------------------------------
 bool COperation::BuildCmdFileDataset()
 {
-
-  WriteEmptyLine();
-  WriteComment("----- DATASET -----");
-  WriteEmptyLine();
-  WriteLine(wxString(kwRECORD.c_str()) + "=" + m_record);
-  WriteEmptyLine();
-  wxArrayString array;
-  GetFiles( *m_dataset, array);
-  for (uint32_t i = 0 ; i < array.GetCount() ; i++)
-  {
-    WriteLine(wxString(kwFILE.c_str()) + "=" + array[i]);
-  }
-  return true;
-
+	WriteEmptyLine();
+	WriteComment( "----- DATASET -----" );
+	WriteEmptyLine();
+	WriteLine( kwRECORD + "=" + m_record );
+	WriteEmptyLine();
+	std::vector< std::string >  array;
+	m_dataset->GetFiles( array );
+	for ( size_t i = 0; i < array.size(); i++ )
+	{
+		WriteLine( kwFILE + "=" + array[ i ] );
+	}
+	return true;
 }
 //----------------------------------------
 bool COperation::BuildCmdFileFields()
 {
-  wxString valueString;
+  std::string valueString;
 
   WriteEmptyLine();
   WriteComment("----- FIELDS -----");
@@ -1084,7 +1074,7 @@ bool COperation::BuildCmdFileFields()
   for (it = m_formulas.begin() ; it != m_formulas.end() ; it++)
   {
     CFormula* value = dynamic_cast<CFormula*>(it->second);
-    if (value == NULL)
+    if (value == nullptr)
     {
       continue;
     }
@@ -1097,7 +1087,7 @@ bool COperation::BuildCmdFileFields()
 
     if (value->IsFieldType())
     {
-      WriteLine(value->GetFieldPrefix()  + "_DATA_MODE=" + wxString(value->GetDataModeAsString().c_str()));
+      WriteLine(value->GetFieldPrefix()  + "_DATA_MODE=" + std::string(value->GetDataModeAsString().c_str()));
     }
 
     valueString = (value->GetTitle().empty()) ? value->GetName() : value->GetTitle();
@@ -1116,54 +1106,53 @@ bool COperation::BuildCmdFileFields()
 //----------------------------------------
 bool COperation::BuildExportAsciiCmdFileFields()
 {
-  wxString valueString;
+	std::string valueString;
 
-  WriteEmptyLine();
-  WriteComment("----- FIELDS -----");
-  WriteEmptyLine();
+	WriteEmptyLine();
+	WriteComment( "----- FIELDS -----" );
+	WriteEmptyLine();
 
-  CMapFormula::iterator it;
+	CMapFormula::iterator it;
 
-  for (it = m_formulas.begin() ; it != m_formulas.end() ; it++)
-  {
-    CFormula* value = dynamic_cast<CFormula*>(it->second);
-    if (value == NULL)
-    {
-      continue;
-    }
-    WriteEmptyLine();
-    WriteComment(value->GetComment(true));
+	for ( it = m_formulas.begin(); it != m_formulas.end(); it++ )
+	{
+		CFormula* value = dynamic_cast<CFormula*>( it->second );
+		if ( value == nullptr )
+		{
+			continue;
+		}
+		WriteEmptyLine();
+		WriteComment( value->GetComment( true ) );
 
-    // If export operation  is not a dump export,
-    // Field name in not the field name of the source data file
-    // but the field name of the operation result file (intermediate netcdf file).
-    if (m_exportAsciiNoDataComputation)
-    {
-      // Just a dump --> get the name of the source file
-      WriteLine(value->GetExportAsciiFieldPrefix()  + "=" + value->GetDescription(true));
-    }
-    else
-    {
-      // Not a dump --> get the name of operation file (intermediate netcdf file).
-      WriteLine(value->GetExportAsciiFieldPrefix()  + "=" + value->GetName());
-    }
+		// If export operation  is not a dump export,
+		// Field name in not the field name of the source data file
+		// but the field name of the operation result file (intermediate netcdf file).
+		if ( m_exportAsciiNoDataComputation )
+		{
+			// Just a dump --> get the name of the source file
+			WriteLine( value->GetExportAsciiFieldPrefix() + "=" + value->GetDescription( true ) );
+		}
+		else
+		{
+			// Not a dump --> get the name of operation file (intermediate netcdf file).
+			WriteLine( value->GetExportAsciiFieldPrefix() + "=" + value->GetName() );
+		}
 
-    WriteLine(value->GetExportAsciiFieldPrefix()  + "_NAME=" + value->GetName());
-    WriteLine(value->GetExportAsciiFieldPrefix()  + "_UNIT=" + value->GetUnitAsText());
+		WriteLine( value->GetExportAsciiFieldPrefix() + "_NAME=" + value->GetName() );
+		WriteLine( value->GetExportAsciiFieldPrefix() + "_UNIT=" + value->GetUnitAsText() );
 
-    if (! isDefaultValue(m_exportAsciiNumberPrecision) )
-    {
-      WriteLine(wxString::Format("%s_FORMAT=%d", value->GetExportAsciiFieldPrefix().c_str(), m_exportAsciiNumberPrecision));
-    }
-  }
+		if ( ! isDefaultValue( m_exportAsciiNumberPrecision ) )
+		{
+			WriteLine( value->GetExportAsciiFieldPrefix() + "_FORMAT=" + n2s<std::string>( m_exportAsciiNumberPrecision ) );
+		}
+	}
 
-  return true;
-
+	return true;
 }
 //----------------------------------------
 bool COperation::BuildShowStatsCmdFileFields()
 {
-  wxString valueString;
+  std::string valueString;
 
   WriteEmptyLine();
   WriteComment("----- FIELDS -----");
@@ -1174,11 +1163,11 @@ bool COperation::BuildShowStatsCmdFileFields()
   for (it = m_formulas.begin() ; it != m_formulas.end() ; it++)
   {
     CFormula* value = dynamic_cast<CFormula*>(it->second);
-    if (value == NULL)
+    if (value == nullptr)
     {
       continue;
     }
-    if (value->GetType() != CMapTypeField::typeOpAsField)
+    if (value->GetType() != CMapTypeField::eTypeOpAsField)
     {
       continue;
     }
@@ -1194,66 +1183,67 @@ bool COperation::BuildShowStatsCmdFileFields()
 }
 
 //----------------------------------------
-bool COperation::BuildCmdFileFieldsSpecificZFXY(CFormula* value)
+bool COperation::BuildCmdFileFieldsSpecificZFXY( CFormula* value )
 {
 
-  // if operation is not X/Y as Lat/Lon or Lon/Lat, force to default value
-  /*
-  if (!IsMap())
-  {
-    value->SetFilterDefault();
-    value->SetMinValueDefault();
-    value->SetMaxValueDefault();
-    value->SetIntervalDefault();
-    value->SetLoessCutOffDefault();
-  }
-*/
-  wxString valueString;
+	// if operation is not X/Y as Lat/Lon or Lon/Lat, force to default value
+	/*
+	if (!IsMap())
+	{
+	value->SetFilterDefault();
+	value->SetMinValueDefault();
+	value->SetMaxValueDefault();
+	value->SetIntervalDefault();
+	value->SetLoessCutOffDefault();
+	}
+	*/
+	std::string valueString;
 
-  if (m_type != CMapTypeOp::typeOpZFXY)
-  {
-    return false;
-  }
+	if ( m_type != CMapTypeOp::eTypeOpZFXY )
+	{
+		return false;
+	}
 
-  if (value == NULL)
-  {
-    return false;
-  }
+	if ( value == nullptr )
+	{
+		return false;
+	}
 
-  valueString = (value->GetFilter() == CMapTypeFilter::filterNone) ? "DV" : value->GetFilterAsString();
-  WriteLine(value->GetFieldPrefix()  + "_FILTER=" + valueString);
+	valueString = ( value->GetFilter() == CMapTypeFilter::eFilterNone ) ? "DV" : value->GetFilterAsString();
+	WriteLine( value->GetFieldPrefix() + "_FILTER=" + valueString );
 
-  if (value->IsXYType())
-  {
-    value->ComputeInterval(false);
+	if ( value->IsXYType() )
+	{
+		std::string errorMsg;
+		value->ComputeInterval( errorMsg );
+		if ( !errorMsg.empty() )
+			wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
 
+		if ( value->IsTimeDataType() )
+		{
+			valueString = ( isDefaultValue( value->GetMinValue() ) ) ? "DV" : value->GetMinValueAsDateString();
+			WriteLine( value->GetFieldPrefix() + "_MIN=" + valueString );
 
-    if (value->IsTimeDataType())
-    {
-      valueString = (isDefaultValue(value->GetMinValue())) ? "DV" : value->GetMinValueAsDateString();
-      WriteLine(value->GetFieldPrefix()  + "_MIN=" + valueString);
+			valueString = ( isDefaultValue( value->GetMaxValue() ) ) ? "DV" : value->GetMaxValueAsDateString();
+			WriteLine( value->GetFieldPrefix() + "_MAX=" + valueString );
+		}
+		else
+		{
+			valueString = ( isDefaultValue( value->GetMinValue() ) ) ? "DV" : value->GetMinValueAsText();
+			WriteLine( value->GetFieldPrefix() + "_MIN=" + valueString );
 
-      valueString = (isDefaultValue(value->GetMaxValue())) ? "DV" : value->GetMaxValueAsDateString();
-      WriteLine(value->GetFieldPrefix()  + "_MAX=" + valueString);
-    }
-    else
-    {
-      valueString = (isDefaultValue(value->GetMinValue())) ? "DV" : value->GetMinValueAsText();
-      WriteLine(value->GetFieldPrefix()  + "_MIN=" + valueString);
+			valueString = ( isDefaultValue( value->GetMaxValue() ) ) ? "DV" : value->GetMaxValueAsText();
+			WriteLine( value->GetFieldPrefix() + "_MAX=" + valueString );
+		}
 
-      valueString = (isDefaultValue(value->GetMaxValue())) ? "DV" : value->GetMaxValueAsText();
-      WriteLine(value->GetFieldPrefix()  + "_MAX=" + valueString);
-    }
+		valueString = ( isDefaultValue( value->GetInterval() ) ) ? "DV" : value->GetIntervalAsText();
+		WriteLine( value->GetFieldPrefix() + "_INTERVALS=" + valueString );
 
-    valueString = (isDefaultValue(value->GetInterval())) ? "DV" : value->GetIntervalAsText();
-    WriteLine(value->GetFieldPrefix()  + "_INTERVALS=" + valueString);
+		valueString = ( isDefaultValue( value->GetLoessCutOff() ) ) ? "DV" : value->GetLoessCutOffAsText();
+		WriteLine( value->GetFieldPrefix() + "_LOESS_CUTOFF=" + valueString );
+	}
 
-    valueString = (isDefaultValue(value->GetLoessCutOff())) ? "DV" : value->GetLoessCutOffAsText();
-    WriteLine(value->GetFieldPrefix()  + "_LOESS_CUTOFF=" + valueString);
-  }
-
-  return true;
-
+	return true;
 }
 //----------------------------------------
 bool COperation::BuildCmdFileSelect()
@@ -1264,7 +1254,7 @@ bool COperation::BuildCmdFileSelect()
   WriteEmptyLine();
   if (m_select->GetDescription(true).empty() == false)
   {
-    WriteLine(wxString(kwSELECT.c_str()) + "=" + m_select->GetDescription(true));
+    WriteLine(std::string(kwSELECT.c_str()) + "=" + m_select->GetDescription(true));
   }
 
   return true;
@@ -1281,7 +1271,7 @@ bool COperation::BuildCmdFileOutput()
   {
     InitOutput();
   }
-  WriteLine(wxString(kwOUTPUT.c_str()) + "=" + m_output.GetFullPath());
+  WriteLine( kwOUTPUT + "=" + m_output.GetFullPath().ToStdString() );
 
   return true;
 
@@ -1297,7 +1287,7 @@ bool COperation::BuildExportAsciiCmdFileOutput()
   {
     InitExportAsciiOutput();
   }
-  WriteLine(wxString(kwOUTPUT.c_str()) + "=" + m_exportAsciiOutput.GetFullPath());
+  WriteLine( kwOUTPUT + "=" + m_exportAsciiOutput.GetFullPath().ToStdString() );
 
   return true;
 
@@ -1313,7 +1303,7 @@ bool COperation::BuildShowStatsCmdFileOutput()
   {
     InitShowStatsOutput();
   }
-  WriteLine(wxString(kwOUTPUT.c_str()) + "=" + m_showStatsOutput.GetFullPath());
+  WriteLine( kwOUTPUT + "=" + m_showStatsOutput.GetFullPath().ToStdString() );
 
   return true;
 
@@ -1327,11 +1317,11 @@ bool COperation::BuildCmdFileVerbose()
   WriteEmptyLine();
   WriteComment("----- LOG -----");
   WriteEmptyLine();
-  WriteLine(wxString::Format("%s=%d", kwVERBOSE.c_str(), m_verbose));
+  WriteLine( kwVERBOSE + "=" + n2s<std::string>( m_verbose ) );
 
   if (m_logFile.IsOk())
   {
-    WriteLine(wxString::Format("%s=%s", kwLOGFILE.c_str(), m_logFile.GetFullPath().c_str()));
+    WriteLine( kwLOGFILE + "=" + m_logFile.GetFullPath().ToStdString() );
   }
 
   return true;
@@ -1339,13 +1329,13 @@ bool COperation::BuildCmdFileVerbose()
 }
 
 //----------------------------------------
-bool COperation::WriteComment(const wxString& text)
+bool COperation::WriteComment(const std::string& text)
 {
   WriteLine("#" + text);
   return true;
 }
 //----------------------------------------
-bool COperation::WriteLine(const wxString& text)
+bool COperation::WriteLine(const std::string& text)
 {
   if (m_file.IsOpened() == false)
   {
@@ -1372,7 +1362,7 @@ void COperation::SetShowStatsOutput(const wxFileName& value)
 
   m_showStatsOutput = value;
 
-  if (wks == NULL)
+  if (wks == nullptr)
   {
     m_showStatsOutput.Normalize();
   }
@@ -1384,13 +1374,13 @@ void COperation::SetShowStatsOutput(const wxFileName& value)
   SetShowStatsCmdFile();
 }
 //----------------------------------------
-void COperation::SetShowStatsOutput(const wxString& value)
+void COperation::SetShowStatsOutput(const std::string& value)
 {
   CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
 
   m_showStatsOutput.Assign(value);
 
-  if (wks == NULL)
+  if (wks == nullptr)
   {
     m_showStatsOutput.Normalize();
   }
@@ -1408,7 +1398,7 @@ void COperation::SetExportAsciiOutput(const wxFileName& value)
 
   m_exportAsciiOutput = value;
 
-  if (wks == NULL)
+  if (wks == nullptr)
   {
     m_exportAsciiOutput.Normalize();
   }
@@ -1420,13 +1410,13 @@ void COperation::SetExportAsciiOutput(const wxFileName& value)
   SetExportAsciiCmdFile();
 }
 //----------------------------------------
-void COperation::SetExportAsciiOutput(const wxString& value)
+void COperation::SetExportAsciiOutput(const std::string& value)
 {
   CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
 
   m_exportAsciiOutput.Assign(value);
 
-  if (wks == NULL)
+  if (wks == nullptr)
   {
     m_exportAsciiOutput.Normalize();
   }
@@ -1445,7 +1435,7 @@ void COperation::SetOutput(const wxFileName& value)
 
   m_output = value;
 
-  if (wks == NULL)
+  if (wks == nullptr)
   {
     m_output.Normalize();
   }
@@ -1457,13 +1447,13 @@ void COperation::SetOutput(const wxFileName& value)
   SetCmdFile();
 }
 //----------------------------------------
-void COperation::SetOutput(const wxString& value)
+void COperation::SetOutput(const std::string& value)
 {
   CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
 
   m_output.Assign(value);
 
-  if (wks == NULL)
+  if (wks == nullptr)
   {
     m_output.Normalize();
   }
@@ -1482,7 +1472,7 @@ void COperation::SetCmdFile()
 
   m_cmdFile = m_output;
   m_cmdFile.SetExt(COMMANDFILE_EXTENSION);
-  if (wks == NULL)
+  if (wks == nullptr)
   {
     m_cmdFile.Normalize();
   }
@@ -1500,7 +1490,7 @@ void COperation::SetExportAsciiCmdFile()
   m_exportAsciiCmdFile.AssignDir(wks->GetPath());
   m_exportAsciiCmdFile.SetFullName(m_exportAsciiOutput.GetFullName());
   m_exportAsciiCmdFile.SetExt(EXPORTASCII_COMMANDFILE_EXTENSION);
-  if (wks == NULL)
+  if (wks == nullptr)
   {
     m_exportAsciiCmdFile.Normalize();
   }
@@ -1518,7 +1508,7 @@ void COperation::SetShowStatsCmdFile()
   m_showStatsCmdFile.AssignDir(wks->GetPath());
   m_showStatsCmdFile.SetFullName(m_showStatsOutput.GetFullName());
   m_showStatsCmdFile.SetExt(SHOWSTAT_COMMANDFILE_EXTENSION);
-  if (wks == NULL)
+  if (wks == nullptr)
   {
     m_showStatsCmdFile.Normalize();
   }
@@ -1530,56 +1520,56 @@ void COperation::SetShowStatsCmdFile()
 }
 
 //----------------------------------------
-wxString COperation::GetOutputNameRelativeToWks()
+std::string COperation::GetOutputNameRelativeToWks()
 {
   CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-  if (wks == NULL)
+  if (wks == nullptr)
   {
     return GetOutputName();
   }
 
   wxFileName relative = m_output;
   relative.MakeRelativeTo(wks->GetPath());
-  return relative.GetFullPath();
+  return relative.GetFullPath().ToStdString();
 }
 //----------------------------------------
-wxString COperation::GetExportAsciiOutputNameRelativeToWks()
+std::string COperation::GetExportAsciiOutputNameRelativeToWks()
 {
   CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-  if (wks == NULL)
+  if (wks == nullptr)
   {
     return GetExportAsciiOutputName();
   }
 
   wxFileName relative = m_exportAsciiOutput;
   relative.MakeRelativeTo(wks->GetPath());
-  return relative.GetFullPath();
+  return relative.GetFullPath().ToStdString();
 
 }
 //----------------------------------------
-wxString COperation::GetShowStatsOutputNameRelativeToWks()
+std::string COperation::GetShowStatsOutputNameRelativeToWks()
 {
   CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-  if (wks == NULL)
+  if (wks == nullptr)
   {
     return GetShowStatsOutputName();
   }
 
   wxFileName relative = m_showStatsOutput;
   relative.MakeRelativeTo(wks->GetPath());
-  return relative.GetFullPath();
+  return relative.GetFullPath().ToStdString();
 
 }
 //----------------------------------------
 void COperation::InitOutput()
 {
   CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-  if (wks == NULL)
+  if (wks == nullptr)
   {
     return;
   }
 
-  wxString output = wks->GetPath()		//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR				!!! femm attention here !!!
+  std::string output = wks->GetPath()		//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR				!!! femm attention here !!!
                                      + "/Create"
                                      + GetName() + ".nc";
   SetOutput(output);
@@ -1589,12 +1579,12 @@ void COperation::InitOutput()
 void COperation::InitShowStatsOutput()
 {
   CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-  if (wks == NULL)
+  if (wks == nullptr)
   {
     return;
   }
 
-  wxString output = wks->GetPath()				//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR		!!! femm attention here !!!
+  std::string output = wks->GetPath()				//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR		!!! femm attention here !!!
                                      + "/Stats"
                                      + GetName() + ".txt";
   SetShowStatsOutput(output);
@@ -1604,12 +1594,12 @@ void COperation::InitShowStatsOutput()
 void COperation::InitExportAsciiOutput()
 {
   CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-  if (wks == NULL)
+  if (wks == nullptr)
   {
     return;
   }
 
-  wxString output = wks->GetPath()						//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR !!! femm attention here !!!
+  std::string output = wks->GetPath()						//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR !!! femm attention here !!!
                                      + "/ExportAscii"
                                      + GetName() + ".txt";
   SetExportAsciiOutput(output);
@@ -1625,7 +1615,7 @@ bool COperation::RemoveOutput()
   return bOk;
 }
 //----------------------------------------
-bool COperation::RenameOutput(const wxString& oldName)
+bool COperation::RenameOutput(const std::string& oldName)
 {
   bool bOk = CBratGuiApp::RenameFile(oldName, GetOutputName());
 
@@ -1639,44 +1629,35 @@ bool COperation::RenameOutput(const wxString& oldName)
 }
 
 //----------------------------------------
-bool COperation::ComputeInterval(const wxString& formulaName, bool showMsg)
+bool COperation::ComputeInterval( const std::string& formulaName, std::string &errorMsg )
 {
-  CFormula* f = dynamic_cast<CFormula*>(m_formulas.Exists((const char *)formulaName.c_str()));
+	CFormula* f = dynamic_cast<CFormula*>( m_formulas.Exists( (const char *)formulaName.c_str() ) );
 
-  return ComputeInterval(f, showMsg);
-
+	return ComputeInterval( f, errorMsg );
 }
 //----------------------------------------
-bool COperation::ComputeInterval(CFormula* f, bool showMsg)
+bool COperation::ComputeInterval( CFormula* f, std::string &errorMsg )
 {
-  if (f == NULL)
-  {
-    return false;
-  }
-  if (!IsZFXY())
-  {
-    return true;
-  }
+	if ( f == nullptr )
+		return false;
 
-  if (!f->IsXYType())
-  {
-    return true;
-  }
+	if ( !IsZFXY() || !f->IsXYType() )
+		return true;
 
-  return f->ComputeInterval(showMsg);
+	return f->ComputeInterval( errorMsg );
 }
 
 //----------------------------------------
-bool COperation::GetXExpression(CExpression& expr, std::string& errorMsg, const CStringMap* aliases /* = NULL*/)
+bool COperation::GetXExpression(CExpression& expr, std::string& errorMsg, const CStringMap* aliases /* = nullptr*/)
 {
   bool bOk = true;
 
-  CFormula* formula = GetFormula(CMapTypeField::typeOpAsX);
+  CFormula* formula = GetFormula(CMapTypeField::eTypeOpAsX);
 
-  if (formula != NULL)
+  if (formula != nullptr)
   {
-    const CStringMap* fieldAliases = NULL;
-    if (m_product != NULL)
+    const CStringMap* fieldAliases = nullptr;
+    if (m_product != nullptr)
     {
       fieldAliases = m_product->GetAliasesAsString();
     }
@@ -1689,16 +1670,16 @@ bool COperation::GetXExpression(CExpression& expr, std::string& errorMsg, const 
 }
 
 //----------------------------------------
-bool COperation::GetYExpression(CExpression& expr, std::string& errorMsg, const CStringMap* aliases /* = NULL*/)
+bool COperation::GetYExpression(CExpression& expr, std::string& errorMsg, const CStringMap* aliases /* = nullptr*/)
 {
   bool bOk = true;
 
-  CFormula* formula = GetFormula(CMapTypeField::typeOpAsY);
+  CFormula* formula = GetFormula(CMapTypeField::eTypeOpAsY);
 
-  if (formula != NULL)
+  if (formula != nullptr)
   {
-    const CStringMap* fieldAliases = NULL;
-    if (m_product != NULL)
+    const CStringMap* fieldAliases = nullptr;
+    if (m_product != nullptr)
     {
       fieldAliases = m_product->GetAliasesAsString();
     }
@@ -1711,7 +1692,7 @@ bool COperation::GetYExpression(CExpression& expr, std::string& errorMsg, const 
 }
 
 //----------------------------------------
-bool COperation::ControlXYDataFields(std::string &errorMsg, const CStringMap* aliases /* = NULL*/)
+bool COperation::ControlXYDataFields(std::string &errorMsg, const CStringMap* aliases /* = nullptr*/)
 {
   bool bOk = true;
 
@@ -1722,20 +1703,20 @@ bool COperation::ControlXYDataFields(std::string &errorMsg, const CStringMap* al
   /*
   CFormula* xFormula = GetFormula(CMapTypeField::typeOpAsX);
 
-  if (xFormula != NULL)
+  if (xFormula != nullptr)
   {
     bOk &= CFormula::SetExpression(xFormula->GetDescription(true, aliases), xExpr, errorMsg);
   }
 
   CFormula* yFormula = GetFormula(CMapTypeField::typeOpAsY);
 
-  if (yFormula != NULL)
+  if (yFormula != nullptr)
   {
     bOk &= CFormula::SetExpression(yFormula->GetDescription(true, aliases), yExpr, errorMsg);
   }
   */
-  const CStringMap* fieldAliases = NULL;
-  if (m_product != NULL)
+  const CStringMap* fieldAliases = nullptr;
+  if (m_product != nullptr)
   {
     fieldAliases = m_product->GetAliasesAsString();
   }
@@ -1748,7 +1729,7 @@ bool COperation::ControlXYDataFields(std::string &errorMsg, const CStringMap* al
   for (it = m_formulas.begin() ; it != m_formulas.end() ; it++)
   {
     CFormula* value = dynamic_cast<CFormula*>(it->second);
-    if (value == NULL)
+    if (value == nullptr)
     {
       continue;
     }
@@ -1757,13 +1738,13 @@ bool COperation::ControlXYDataFields(std::string &errorMsg, const CStringMap* al
     {
 
     //-----------------------------
-    case CMapTypeField::typeOpAsX:
-    case CMapTypeField::typeOpAsY:
+    case CMapTypeField::eTypeOpAsX:
+    case CMapTypeField::eTypeOpAsY:
     //-----------------------------
       continue;
       break;
     //-----------------------------
-    case CMapTypeField::typeOpAsField:
+    case CMapTypeField::eTypeOpAsField:
     //-----------------------------
       bOk &= CFormula::SetExpression(value->GetDescription(true, aliases, fieldAliases), dataExpr, errorMsg);
 
@@ -1801,22 +1782,22 @@ bool COperation::ControlResolution( std::string& errorMsg)
 {
   bool bOk = true;
 
-  if (this->GetType() != CMapTypeOp::typeOpZFXY)
+  if (this->GetType() != CMapTypeOp::eTypeOpZFXY)
   {
     return bOk;
   }
 
 
-  CFormula* xFormula = GetFormula(CMapTypeField::typeOpAsX);
+  CFormula* xFormula = GetFormula(CMapTypeField::eTypeOpAsX);
 
-  if (xFormula != NULL)
+  if (xFormula != nullptr)
   {
     bOk &= xFormula->ControlResolution(errorMsg);
   }
 
-  CFormula* yFormula = GetFormula(CMapTypeField::typeOpAsY);
+  CFormula* yFormula = GetFormula(CMapTypeField::eTypeOpAsY);
 
-  if (yFormula != NULL)
+  if (yFormula != nullptr)
   {
     bOk &= yFormula->ControlResolution(errorMsg);
   }
@@ -1824,9 +1805,9 @@ bool COperation::ControlResolution( std::string& errorMsg)
   return bOk;
 }
 //----------------------------------------
-bool COperation::ControlDimensions(CFormula* formula, std::string &errorMsg,  const CStringMap* aliases /* = NULL*/)
+bool COperation::ControlDimensions(CFormula* formula, std::string &errorMsg,  const CStringMap* aliases /* = nullptr*/)
 {
-  if (formula == NULL)
+  if (formula == nullptr)
   {
     return true;
   }
@@ -1837,16 +1818,16 @@ bool COperation::ControlDimensions(CFormula* formula, std::string &errorMsg,  co
     return true;
   }
 */
-  if (m_product == NULL)
+  if (m_product == nullptr)
   {
     return true;
   }
 
   std::string msg;
 
-  wxString stringExpr = formula->GetDescription(true, aliases, m_product->GetAliasesAsString());
+  std::string stringExpr = formula->GetDescription(true, aliases, m_product->GetAliasesAsString());
 
-  if (stringExpr.IsEmpty())
+  if (stringExpr.empty())
   {
     return true;
   }
@@ -1859,7 +1840,7 @@ bool COperation::ControlDimensions(CFormula* formula, std::string &errorMsg,  co
 
   return bOk;
 
-  if (formula->GetType() != CMapTypeField::typeOpAsSelect)
+  if (formula->GetType() != CMapTypeField::eTypeOpAsSelect)
   {
     return bOk;
   }
@@ -1873,9 +1854,9 @@ bool COperation::ControlDimensions(CFormula* formula, std::string &errorMsg,  co
 
   CStringArray fields;
 
-  CFormula* xFormula = GetFormula(CMapTypeField::typeOpAsX);
+  CFormula* xFormula = GetFormula(CMapTypeField::eTypeOpAsX);
 
-  if (xFormula != NULL)
+  if (xFormula != nullptr)
   {
     fields.RemoveAll();
 
@@ -1884,9 +1865,9 @@ bool COperation::ControlDimensions(CFormula* formula, std::string &errorMsg,  co
     axesFields.Insert(fields);
   }
 
-  CFormula* yFormula = GetFormula(CMapTypeField::typeOpAsY);
+  CFormula* yFormula = GetFormula(CMapTypeField::eTypeOpAsY);
 
-  if (yFormula != NULL)
+  if (yFormula != nullptr)
   {
     fields.RemoveAll();
 
@@ -1922,7 +1903,7 @@ bool COperation::ControlDimensions(CFormula* formula, std::string &errorMsg,  co
 }
 
 //----------------------------------------
-bool COperation::Control(std::string& msg, bool basicControl /* = false */, const CStringMap* aliases /* = NULL*/)
+bool COperation::Control(CWorkspaceFormula *wks, std::string& msg, bool basicControl /* = false */, const CStringMap* aliases /* = nullptr*/)
 {
   CMapFormula::iterator it;
   int32_t xCount = 0;
@@ -1934,24 +1915,24 @@ bool COperation::Control(std::string& msg, bool basicControl /* = false */, cons
   for (it = m_formulas.begin() ; it != m_formulas.end() ; it++)
   {
     CFormula* value = dynamic_cast<CFormula*>(it->second);
-    if (value == NULL)
+    if (value == nullptr)
     {
       continue;
     }
 
     switch (value->GetType())
     {
-    case CMapTypeField::typeOpAsX:
+    case CMapTypeField::eTypeOpAsX:
       xCount++;
       break;
-    case CMapTypeField::typeOpAsY:
+    case CMapTypeField::eTypeOpAsY:
       yCount++;
       break;
-    case CMapTypeField::typeOpAsField:
+    case CMapTypeField::eTypeOpAsField:
       fieldCount++;
       break;
     }
-    bOk = value->CheckExpression(msg, m_record.ToStdString(), aliases, m_product);
+    bOk = value->CheckExpression(wks, msg, m_record, aliases, m_product);
     if (!bOk)
     {
       errorCount++;
@@ -1976,7 +1957,7 @@ bool COperation::Control(std::string& msg, bool basicControl /* = false */, cons
   }
 
 
-  bOk = m_select->CheckExpression(msg, m_record.ToStdString(), aliases, m_product);
+  bOk = m_select->CheckExpression(wks, msg, m_record, aliases, m_product);
   if (!bOk)
   {
     errorCount++;
@@ -1999,7 +1980,7 @@ bool COperation::Control(std::string& msg, bool basicControl /* = false */, cons
       errorCount++;
     }
 
-    if ( (yCount == 0) && (this->GetType() == CMapTypeOp::typeOpZFXY) )
+    if ( (yCount == 0) && (this->GetType() == CMapTypeOp::eTypeOpZFXY) )
     {
       msg += ( std::string("\nThere is no 'Y field' for operation '" ) + GetName() + "'." );
       errorCount++;

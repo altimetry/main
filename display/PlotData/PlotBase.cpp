@@ -26,9 +26,9 @@
     #pragma hdrstop
 #endif
 
-#include "../libbrathl/InternalFiles.h"
+#include "libbrathl/InternalFiles.h"
 #include "new-gui/Common/tools/Trace.h"
-#include "../libbrathl/Tools.h"
+#include "libbrathl/Tools.h"
 #include "new-gui/Common/tools/Exception.h"
 
 using namespace brathl;

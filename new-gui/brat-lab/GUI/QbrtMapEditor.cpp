@@ -1,4 +1,4 @@
-#include "../stdafx.h"
+#include "new-gui/brat-lab/stdafx.h"
 
 #include <QtGui>
 #include <QColor>
@@ -33,10 +33,10 @@
 
 #include "new-gui/Common/tools/Trace.h"
 
-#include "../System/BackServices.h"
-#include "../System/CmdLineProcessor.h"
-#include "../../display/PlotData/GeoMap.h"
-#include "../../display/PlotData/WPlot.h"
+#include "new-gui/brat-lab/System/BackServices.h"
+#include "new-gui/brat-lab/System/CmdLineProcessor.h"
+#include "display/PlotData/GeoMap.h"
+#include "display/PlotData/WPlot.h"
 
 
 #include "QbrtMapEditor.h"
@@ -625,7 +625,7 @@ QbrtMapCanvas::QbrtMapCanvas(QWidget *parent) : base_t(parent)
 }
 
 #include <osgViewer/Viewer>
-#include "../Globe/globe_plugin.h"
+#include "new-gui/brat-lab/Globe/globe_plugin.h"
 
 QbrtMapEditor::QbrtMapEditor(QWidget *parent) : base_t(parent), m_ToolEditor( false )
 {

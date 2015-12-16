@@ -42,7 +42,7 @@ using namespace brathl;
 #include "Validators.h"
 
 #include "BratGui.h"
-#include "Workspace.h"
+#include "new-gui/brat/Workspaces/Workspace.h"
 #include "Process.h"
 
 #include "DisplayPanel.h"
@@ -393,7 +393,7 @@ void CDisplayPanel::LoadDisplay()
 
   this->SetCursor(*wxHOURGLASS_CURSOR);
 
-  wks->GetDisplayNames(*GetDispNames());
+  GetDisplayNames( *wks, *GetDispNames() );
 
   m_currentDisplay = 0;
   GetDispNames()->SetSelection(m_currentDisplay);

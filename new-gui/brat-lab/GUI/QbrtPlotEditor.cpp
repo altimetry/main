@@ -1,4 +1,4 @@
-#include "../stdafx.h"
+#include "new-gui/brat-lab/stdafx.h"
 
 #include <QtGui>
 #include <QColor>
@@ -6,7 +6,7 @@
 #include <qwt3d_plot.h>
 #include <qwt3d_function.h>
 
-#include "../System/BackServices.h"
+#include "new-gui/brat-lab/System/BackServices.h"
 
 #include "QbrtPlotEditor.h"
 

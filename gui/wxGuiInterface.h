@@ -14,7 +14,7 @@
 //											CMapProjection
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "../display/PlotData/MapProjection.h"
+#include "display/PlotData/MapProjection.h"
 
 // old CMapProjection member functions
 
@@ -58,6 +58,67 @@ void GetFiles( const CDataset &d, wxArrayString& array );
 void GetFiles( const CDataset &d, wxListBox& array );
 
 void GetDatasetNames( const CWorkspaceDataset *d, wxComboBox& combo );
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//											CFormula and related
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+class CMapTypeFilter;
+
+void NamesToComboBox( const CMapTypeFilter &map, wxComboBox& combo );
+
+
+class CMapTypeData;
+
+void NamesToComboBox( const CMapTypeData &map, wxComboBox& combo, bool noData = false );
+
+
+class CMapTypeOp;
+
+void NamesToComboBox( const CMapTypeOp &map, wxComboBox& combo );
+
+
+class CMapDataMode;
+
+void NamesToComboBox( const CMapDataMode &map, wxComboBox& combo );
+
+
+class CMapTypeField;
+
+void NamesToComboBox( const CMapTypeField &map, wxComboBox& combo );
+
+
+class CMapFormula;
+
+void NamesToComboBox( const CMapFormula &map, wxComboBox& combo );
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//											CWorkspace and related
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+class CWorkspaceFormula;
+
+void GetFormulaNames( const CWorkspaceFormula &wks, wxComboBox& combo, bool getPredefined = true, bool getUser = true );
+void GetFormulaNames( const CWorkspaceFormula &wks, wxListBox& lb, bool getPredefined = true, bool getUser = true );
+
+
+
+class CWorkspaceOperation;
+
+void GetOperationNames( const CWorkspaceOperation &wks, wxComboBox& combo );
+
+
+
+class CWorkspaceDisplay;
+
+void GetDisplayNames( const CWorkspaceDisplay &wks, wxComboBox& combo );
 
 
 

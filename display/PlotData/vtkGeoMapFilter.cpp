@@ -27,9 +27,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 =========================================================================*/
-#include "../libbrathl/Tools.h"
+#include "libbrathl/Tools.h"
 #include "new-gui/Common/tools/Trace.h"
-#include "../libbrathl/LatLonPoint.h"
+#include "libbrathl/LatLonPoint.h"
 #include "new-gui/Common/tools/Exception.h"
 using namespace brathl;
 

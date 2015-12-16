@@ -4,8 +4,8 @@
 
 #include <qgsapplication.h>
 
-#include "../QtInterface.h"
-#include "../Common/QtFileUtils.h"
+#include "new-gui/QtInterface.h"
+#include "new-gui/Common/QtFileUtils.h"
 #include "Workspaces/Dataset.h"
 
 /*	

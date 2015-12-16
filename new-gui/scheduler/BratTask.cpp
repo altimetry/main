@@ -17,14 +17,14 @@
 */
 #include "stdafx.h"
 
-#include "../Common/QtFileUtils.h"
-#include "../Common/tools/Trace.h"
+#include "new-gui/Common/QtFileUtils.h"
+#include "new-gui/Common/tools/Trace.h"
 
 #include "BratTask.h"
 //#include "SchedulerTaskConfig.h"
 
 #include "new-gui/Common/ScheduledTasksList.hxx"
-#include "../Common/XmlSerializer.h"            // use after generated ScheduledTasksList.hxx
+#include "new-gui/Common/XmlSerializer.h"            // use after generated ScheduledTasksList.hxx
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

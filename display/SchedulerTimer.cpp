@@ -32,7 +32,7 @@
 #endif
 
 #include "SchedulerTimer.h"
-#include "../scheduler/ProcessingPanel.h"
+#include "scheduler/ProcessingPanel.h"
 
 // When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.

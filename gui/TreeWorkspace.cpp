@@ -25,7 +25,7 @@
 #include "new-gui/Common/tools/Exception.h"
 #include "Tools.h"
 
-#include "Workspace.h"
+#include "new-gui/brat/Workspaces/Workspace.h"
 #include "TreeWorkspace.h"
 
 
@@ -158,7 +158,7 @@ CObjectTreeIterator CTreeWorkspace::AddChild (const std::string& nm, CWorkspace*
 }
 
 //----------------------------------------
-bool CTreeWorkspace::SaveConfig( bool flush )
+bool CTreeWorkspace::SaveConfig( std::string &errorMsg, bool flush )
 {
 	if ( GetRootData() == nullptr )
 		return true;
@@ -169,14 +169,14 @@ bool CTreeWorkspace::SaveConfig( bool flush )
 
 	do
 	{
-		bOk &= GetCurrentData()->SaveConfig( flush );
+		bOk &= GetCurrentData()->SaveConfig( errorMsg, flush );
 	} while ( this->SubTreeWalkDown() );
 
 	return bOk;
 }
 
 //----------------------------------------
-bool CTreeWorkspace::LoadConfig( CWorkspace *&wks )
+bool CTreeWorkspace::LoadConfig( CWorkspace *&wks, std::string &errorMsg )
 {
 	if ( GetRootData() == nullptr )
 		return true;
@@ -186,7 +186,7 @@ bool CTreeWorkspace::LoadConfig( CWorkspace *&wks )
 	{
 		wks = GetCurrentData();
 		wks->SetCtrlDatasetFiles( m_ctrlDatasetFiles );
-		if ( !wks->LoadConfig() )
+		if ( !wks->LoadConfig( errorMsg ) )
 			return false;
 
 	} while ( this->SubTreeWalkDown() );
@@ -194,17 +194,17 @@ bool CTreeWorkspace::LoadConfig( CWorkspace *&wks )
 	return true;
 }
 //----------------------------------------
-CWorkspaceFormula* CTreeWorkspace::LoadConfigFormula()
+CWorkspaceFormula* CTreeWorkspace::LoadConfigFormula( std::string &errorMsg )
 {
 	CWorkspaceFormula* wks = GetWorkspaceFormula();
 	if ( wks != nullptr )
-		wks->LoadConfig();
+		wks->LoadConfig( errorMsg );
 
 	return wks;
 }
 
 //----------------------------------------
-bool CTreeWorkspace::Import( CTreeWorkspace* treeSrc, std::string &keyToFind )
+bool CTreeWorkspace::Import( CTreeWorkspace* treeSrc, std::string &keyToFind, std::string &errorMsg )
 {
 	if ( GetRootData() == nullptr )
 		return false;
@@ -236,7 +236,7 @@ bool CTreeWorkspace::Import( CTreeWorkspace* treeSrc, std::string &keyToFind )
 
 		currentWorkspace->SetImportBitSet( &m_importBitSet );
 
-		bOk = currentWorkspace->Import( wksImport );
+		bOk = currentWorkspace->Import( wksImport, errorMsg );
 		if ( !bOk )
 			break;
 

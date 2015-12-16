@@ -27,8 +27,9 @@
 
 #include "BratGui.h"
 #include "Validators.h"
-#include "Workspace.h"
+#include "new-gui/brat/Workspaces/Workspace.h"
 #include "FormulaDlg.h"
+#include "wxGuiInterface.h"
 
 // WDR: class implementations
 
@@ -181,23 +182,22 @@ void CFormulasDlg::OnCancel(wxCommandEvent &event)
 //----------------------------------------
 void CFormulasDlg::FillFormulaList()
 {
-  bool bOk = true;
-  
-  GetFormulaList()->Clear();
+	bool bOk = true;
 
-  CWorkspaceFormula* wks = wxGetApp().GetCurrentWorkspaceFormula();
-  if (wks == NULL)
-  {
-    return;
-  }
-  
-  if (wks->GetFormulaCount() <= 0)
-  {
-    return;
-  }
-  
-  wks->GetFormulaNames(*GetFormulaList());
+	GetFormulaList()->Clear();
 
+	CWorkspaceFormula* wks = wxGetApp().GetCurrentWorkspaceFormula();
+	if ( wks == NULL )
+	{
+		return;
+	}
+
+	if ( wks->GetFormulaCount() <= 0 )
+	{
+		return;
+	}
+
+	GetFormulaNames( *wks, *GetFormulaList() );
 }
 
 
@@ -248,13 +248,16 @@ CFormulaDlg::~CFormulaDlg()
 //----------------------------------------
 bool CFormulaDlg::ValidateData()
 {
-  bool bOk = true;
-  bOk &= VerifyName();
-  m_formula->SetName(GetFormulaName()->GetValue().ToStdString());
-  m_formula->SetComment(GetFormulaComment()->GetValue().ToStdString());
-  m_formula->SetTitle(GetFormulaTitle()->GetValue().ToStdString());
-  m_formula->SetUnit(GetFormulaUnit()->GetValue().ToStdString());
-  return bOk;
+	bool bOk = true;
+	bOk &= VerifyName();
+	m_formula->SetName( GetFormulaName()->GetValue().ToStdString() );
+	m_formula->SetComment( GetFormulaComment()->GetValue().ToStdString() );
+	m_formula->SetTitle( GetFormulaTitle()->GetValue().ToStdString() );
+	std::string errorMsg;
+	m_formula->SetUnit( GetFormulaUnit()->GetValue().ToStdString(), errorMsg, "" );
+	if ( !errorMsg.empty() )
+		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
+	return bOk;
 
 }
 

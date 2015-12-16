@@ -89,6 +89,15 @@ public:
 	std::string GetFieldSpecificUnit( const std::string& key );
 	void SetFieldSpecificUnit( const std::string& key, const std::string& value );
 
+	void GetFiles( std::vector<std::string> &v ) const
+	{
+		for ( CProductList::const_iterator it = m_files.begin(); it != m_files.end(); ++it )
+		{
+			v.push_back( *it );
+		}
+	}
+
+
 	///Dump fonction
 	virtual void Dump( std::ostream& fOut = std::cerr );
 };

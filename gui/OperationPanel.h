@@ -184,7 +184,7 @@ public:
 
   bool HasOperation() {return m_currentOperation >= 0;};
 
-  bool CtrlOperation(std::string &msg, bool basicControl = false, const CStringMap* aliases = NULL);
+  bool CtrlOperation(CWorkspaceFormula *wks, std::string &msg, bool basicControl = false, const CStringMap* aliases = NULL);
   bool BuildCmdFile();
 
   bool BuildExportAsciiCmdFile();

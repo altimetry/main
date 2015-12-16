@@ -26,8 +26,8 @@
 #endif
 
 
-#include "../libbrathl/brathl.h"
-#include "../libbrathl/List.h"
+#include "libbrathl/brathl.h"
+#include "libbrathl/List.h"
 using namespace brathl;
 
 class CXYPlotProperty;

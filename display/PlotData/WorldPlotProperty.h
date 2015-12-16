@@ -2,7 +2,7 @@
 #define WORLD_PLOT_PROPERTY_H
 
 
-#include "../libbrathl/BratObject.h"
+#include "libbrathl/BratObject.h"
 #include "vtkBratColor.h"
 
 

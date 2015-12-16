@@ -15,31 +15,25 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
-
 #include "new-gui/brat/stdafx.h"
-// For compilers that support precompilation, includes "wx/wx.h".
-#include "wx/wxprec.h"
-
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #include "brathl.h"
 
 #include "new-gui/Common/tools/Trace.h"
-#include "Tools.h"
 #include "new-gui/Common/tools/Exception.h"
+#include "Tools.h"
+
 using namespace brathl;
 
 #include "BratProcess.h"
+
 using namespace processes;
 
-#include "BratGui.h"
 #include "Workspace.h"
+#include "Constants.h"
 #include "Formula.h"
 
-static std::function<std::string( const std::string &filename, bool lockFile, bool unlockFile )> mFactory;
+
 
 
 
@@ -63,13 +57,13 @@ void CFormula::SetDefaultMinMax()
 
 	switch ( m_dataType )
 	{
-		case CMapTypeData::typeOpLongitude:
+		case CMapTypeData::eTypeOpLongitude:
 		{
 			SetMinValue( ConvertToFormulaUnit( -180 ) );
 			SetMaxValue( ConvertToFormulaUnit( 180 ) );
 			break;
 		}
-		case CMapTypeData::typeOpLatitude:
+		case CMapTypeData::eTypeOpLatitude:
 		{
 			SetMinValue( ConvertToFormulaUnit( -90 ) );
 			SetMaxValue( ConvertToFormulaUnit( 90 ) );
@@ -149,63 +143,63 @@ void CFormula::SetDataType(int32_t typeField, const CUnit& unit, CProduct* produ
 
   switch (typeField)
   {
-  case CMapTypeField::typeOpAsX :
+  case CMapTypeField::eTypeOpAsX :
     {
       if (unit.IsDate())
       {
-        SetDataType(CMapTypeData::typeOpT);
+        SetDataType(CMapTypeData::eTypeOpT);
       }
       else if (unit.IsCompatible(CLatLonPoint::m_DEFAULT_UNIT_LONGITUDE))
       {
-        SetDataType(CMapTypeData::typeOpLongitude);
+        SetDataType(CMapTypeData::eTypeOpLongitude);
 
         if (product != nullptr)
         {
           if ( (product->IsLatitudeFieldName((const char *)m_name.c_str())) || (CTools::FindNoCase((const char *)m_name.c_str(), "lat") == 0) )
           {
-            SetDataType(CMapTypeData::typeOpLatitude);
+            SetDataType(CMapTypeData::eTypeOpLatitude);
           }
         }
       }
       else
       {
-        SetDataType(CMapTypeData::typeOpX);
+        SetDataType(CMapTypeData::eTypeOpX);
       }
 
       break;
     }
-  case CMapTypeField::typeOpAsY :
+  case CMapTypeField::eTypeOpAsY :
     {
       if (unit.IsDate())
       {
-        SetDataType(CMapTypeData::typeOpT);
+        SetDataType(CMapTypeData::eTypeOpT);
       }
       else if (unit.IsCompatible(CLatLonPoint::m_DEFAULT_UNIT_LATITUDE))
       {
-        SetDataType(CMapTypeData::typeOpLatitude);
+        SetDataType(CMapTypeData::eTypeOpLatitude);
         if (product != nullptr)
         {
           if ( product->IsLongitudeFieldName( m_name ) || ( CTools::FindNoCase(m_name, "lon") == 0) )
           {
-            SetDataType(CMapTypeData::typeOpLongitude);
+            SetDataType(CMapTypeData::eTypeOpLongitude);
           }
         }
 
       }
       else
       {
-        SetDataType(CMapTypeData::typeOpY);
+        SetDataType(CMapTypeData::eTypeOpY);
       }
       break;
     }
-  case CMapTypeField::typeOpAsField :
-      SetDataType(CMapTypeData::typeOpData);
+  case CMapTypeField::eTypeOpAsField :
+      SetDataType(CMapTypeData::eTypeOpData);
       break;
-  case CMapTypeField::typeOpAsSelect :
-      SetDataType(CMapTypeData::typeOpData);
+  case CMapTypeField::eTypeOpAsSelect :
+      SetDataType(CMapTypeData::eTypeOpData);
       break;
   default :
-      SetDataType(CMapTypeData::typeOpData);
+      SetDataType(CMapTypeData::eTypeOpData);
       break;
   }
 
@@ -225,7 +219,7 @@ std::string CFormula::GetFilterAsLabel()
 	};
 
 
-	if ( m_filter == CMapTypeFilter::filterNone )
+	if ( m_filter == CMapTypeFilter::eFilterNone )
 	{
 		return FORMAT_FILTER_LABEL_NONE( GetName() );
 	}
@@ -302,168 +296,153 @@ std::string CFormula::GetMaxAsString()
 
 
 //----------------------------------------
-double CFormula::GetStepAsDouble()
+double CFormula::GetStepAsDouble( std::string &errorMsg )
 {
-  CExpression expression;
-  CExpressionValue exprValue;
-  double result = 0.0;
+	CExpression expression;
+	CExpressionValue exprValue;
+	double result = 0.0;
 
-  SetStepToDefaultAsNecessary();
+	SetStepToDefaultAsNecessary();
 
-  std::string errorMsg;
+	bool bOk = CFormula::SetExpression( m_step, expression, errorMsg );
+	if ( !bOk )
+	{
+		//wxMessageBox(errorMsg,		//             "Warning",		//              wxOK | wxCENTRE | wxICON_EXCLAMATION);
+		SetStepToDefault();
+		SetExpression( m_step, expression, errorMsg );
+	}
 
-  bool bOk = CFormula::SetExpression(m_step, expression, errorMsg);
+	if ( expression.GetFieldNames()->size() != 0 )
+	{
+		//errorMsg = "Fieldnames are not allowed for step in formula";		//	wxMessageBox( errorMsg,		//	"Warning",		//	wxOK | wxCENTRE | wxICON_EXCLAMATION );
+		SetStepToDefault();
+		SetExpression( m_step, expression, errorMsg );
+	}
 
-  if (!bOk)
-  {
-    wxMessageBox(errorMsg,
-                 "Warning",
-                  wxOK | wxCENTRE | wxICON_EXCLAMATION);
-    SetStepToDefault();
-    CFormula::SetExpression(m_step, expression, errorMsg);
-  }
+	try
+	{
+		exprValue = expression.Execute();
+		result = *( exprValue.GetValues() );
+	}
+	catch ( CException& e )
+	{
+		errorMsg += 		
+			"Formula '"
+			+ m_name
+			+ "':\nSyntax for step ('"
+			+ m_step
+			+ "') is not valid\nReason:\n"
+			+ e.what()
+			+ "\n";
 
-  if (expression.GetFieldNames()->size() != 0)
-  {
-    wxMessageBox("Fieldnames are not allowed for step in formula",
-                 "Warning",
-                  wxOK | wxCENTRE | wxICON_EXCLAMATION);
-    SetStepToDefault();
-    CFormula::SetExpression(m_step, expression, errorMsg);
-  }
+		//wxMessageBox( errorMsg, "Warning", wxOK | wxICON_EXCLAMATION );
 
-  try
-  {
-    exprValue = expression.Execute();
-    result = *(exprValue.GetValues());
-  }
-  catch (CException& e)
-  {
-    wxMessageBox(
-		"Formula '"
-		+ m_name
-		+ "':\nSyntax for step ('"
-		+ m_step
-		+ "') is not valid\nReason:\n"
-		+ e.what(),
+		result = CTools::m_defaultValueDOUBLE;
+	}
+	catch ( std::exception& e )
+	{
+		errorMsg = 		
+			"Formula '"
+			+ m_name
+			+ "':\nSyntax for step ('"
+			+ m_step
+			+ "') is not valid\nReason:\n"
+			+ e.what(),
 
-		"Warning",
-		wxOK | wxICON_EXCLAMATION);
+		//wxMessageBox( errorMsg, "Warning", wxOK | wxICON_EXCLAMATION );
 
-    result = CTools::m_defaultValueDOUBLE;
-  }
-  catch (std::exception& e)
-  {
-    wxMessageBox(
-		"Formula '"
-		+ m_name
-		+ "':\nSyntax for step ('"
-		+ m_step
-		+ "') is not valid\nReason:\n"
-		+ e.what(),
+		result = CTools::m_defaultValueDOUBLE;
+	}
+	catch ( ... )
+	{
+		errorMsg = 		
+			"Formula '"
+			+ m_name
+			+ "':\nSyntax for step ('"
+			+ m_step
+			+ "') is not valid\n",
 
-		"Warning",
-		wxOK | wxICON_EXCLAMATION);
+		//wxMessageBox( errorMsg, 		//	"Warning",		//	wxOK | wxICON_EXCLAMATION );
 
-    result = CTools::m_defaultValueDOUBLE;
-  }
-  catch (...)
-  {
-    wxMessageBox(
-		"Formula '"
-		+ m_name
-		+ "':\nSyntax for step ('"
-		+ m_step
-		+ "') is not valid\n",
+		result = CTools::m_defaultValueDOUBLE;
+	}
 
-		"Warning",
-		wxOK | wxICON_EXCLAMATION);
-
-    result = CTools::m_defaultValueDOUBLE;
-  }
-
-  return result;
+	return result;
 }
 //----------------------------------------
-double CFormula::GetStepAsDouble(const std::string& step)
+double CFormula::GetStepAsDouble( const std::string& step, std::string errorMsg )
 {
-  CExpression expression;
-  CExpressionValue exprValue;
-  double result = 0.0;
-  if (step.empty())
-  {
-   return CTools::m_defaultValueDOUBLE;
-  }
+	CExpression expression;
+	CExpressionValue exprValue;
+	double result = 0.0;
+	if ( step.empty() )
+	{
+		return CTools::m_defaultValueDOUBLE;
+	}
 
-  std::string errorMsg;
+	bool bOk = CFormula::SetExpression( step, expression, errorMsg );
 
-  bool bOk = CFormula::SetExpression(step, expression, errorMsg);
+	if ( !bOk )
+	{
+		//wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_EXCLAMATION );
 
-  if (!bOk)
-  {
-    wxMessageBox(errorMsg,
-                 "Warning",
-                  wxOK | wxCENTRE | wxICON_EXCLAMATION);
-    CFormula::SetExpression(DEFAULT_STEP_GENERAL_ASSTRING, expression, errorMsg);
-  }
+		SetExpression( DEFAULT_STEP_GENERAL_ASSTRING, expression, errorMsg );
+	}
 
-  if (expression.GetFieldNames()->size() != 0)
-  {
-    wxMessageBox("Fieldnames are not allowed for step in formula",
-                 "Warning",
-                  wxOK | wxCENTRE | wxICON_EXCLAMATION);
-    CFormula::SetExpression(DEFAULT_STEP_GENERAL_ASSTRING, expression, errorMsg);
-  }
+	if ( expression.GetFieldNames()->size() != 0 )
+	{
+		errorMsg = "Fieldnames are not allowed for step in formula";
 
-  try
-  {
+		//wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_EXCLAMATION );
 
-    exprValue = expression.Execute();
-    result = *(exprValue.GetValues());
-  }
-  catch (CException& e)
-  {
-    wxMessageBox(
-		"Syntax for step ('"
-		+ step
-		+ "') is not valid\nReason:\n"
-		+ e.what(),
-		
-		"Warning",
-		wxOK | wxICON_EXCLAMATION);
+		SetExpression( DEFAULT_STEP_GENERAL_ASSTRING, expression, errorMsg );
+	}
 
-    result = CTools::m_defaultValueDOUBLE;
-  }
-  catch (std::exception& e)
-  {
-    wxMessageBox(
-		"Syntax for step ('"
-		+ step
-		+ "') is not valid\nReason:\n"
-		+ e.what(),
+	try
+	{
 
-		"Warning",
-		wxOK | wxICON_EXCLAMATION);
+		exprValue = expression.Execute();
+		result = *( exprValue.GetValues() );
+	}
+	catch ( CException& e )
+	{
+		errorMsg = 
+			"Syntax for step ('"
+			+ step
+			+ "') is not valid\nReason:\n"
+			+ e.what(),
 
-    result = CTools::m_defaultValueDOUBLE;
-  }
-  catch (...)
-  {
-    wxMessageBox(
-		"Syntax for step ('"
-		+ step
-		+ "') is not valid\n",
+		//wxMessageBox( errorMsg,			"Warning",			wxOK | wxICON_EXCLAMATION );
 
-		"Warning",
-		wxOK | wxICON_EXCLAMATION);
+		result = CTools::m_defaultValueDOUBLE;
+	}
+	catch ( std::exception& e )
+	{
+		errorMsg = 
+			"Syntax for step ('"
+			+ step
+			+ "') is not valid\nReason:\n"
+			+ e.what(),
 
-    result = CTools::m_defaultValueDOUBLE;
-  }
+		//wxMessageBox( errorMsg, "Warning", wxOK | wxICON_EXCLAMATION );
 
-  return result;
+		result = CTools::m_defaultValueDOUBLE;
+	}
+	catch ( ... )
+	{
+		errorMsg = 
+			"Syntax for step ('"
+			+ step
+			+ "') is not valid\n",
 
+		//wxMessageBox( errorMsg, "Warning", wxOK | wxICON_EXCLAMATION );
 
+		result = CTools::m_defaultValueDOUBLE;
+	}
+
+	return result;
 }
+
 //----------------------------------------
 std::string CFormula::GetDefaultUnit()
 {
@@ -476,16 +455,16 @@ std::string CFormula::GetDefaultUnit(int32_t dataType)
 
   switch (dataType)
   {
-    case CMapTypeData::typeOpData:
+    case CMapTypeData::eTypeOpData:
       //unit = DEFAULT_UNIT_COUNT.c_str();
       break;
-    case CMapTypeData::typeOpLongitude:
+    case CMapTypeData::eTypeOpLongitude:
       unit = CLatLonPoint::m_DEFAULT_UNIT_LONGITUDE;
       break;
-    case CMapTypeData::typeOpLatitude:
+    case CMapTypeData::eTypeOpLatitude:
       unit = CLatLonPoint::m_DEFAULT_UNIT_LATITUDE;
       break;
-    case CMapTypeData::typeOpT:
+    case CMapTypeData::eTypeOpT:
       unit = CDate::m_DEFAULT_UNIT_SECOND;
       break;
     default:
@@ -703,7 +682,7 @@ bool CFormula::CheckFieldNames(const CExpression& expr, const std::string& recor
   return bOk;
 }
 //----------------------------------------
-bool CFormula::CheckExpression(const std::string& value, const std::string& record, std::string& errorMsg, std::string* strUnitExpr,
+bool CFormula::CheckExpression( CWorkspaceFormula *wks, const std::string& value, const std::string& record, std::string& errorMsg, std::string* strUnitExpr,
                                const CStringMap* aliases /* = nullptr*/, CProduct* product /* = nullptr*/, std::string* valueOut /*= nullptr*/)
 {
 
@@ -750,7 +729,6 @@ bool CFormula::CheckExpression(const std::string& value, const std::string& reco
     CStringArray aliasesFoundUnique;
     aliasesFoundUnique.InsertUnique(aliasesFound);
 
-      CWorkspaceFormula* wks = wxGetApp().GetCurrentWorkspaceFormula();
       if (wks != nullptr)
       {
         wks->AmendFormulas(aliasesFoundUnique, product, record);
@@ -849,14 +827,14 @@ bool CFormula::GetFields(CStringArray& fields, std::string& errorMsg, const CStr
 }
 
 //----------------------------------------
-bool CFormula::CheckExpression(std::string& errorMsg, const std::string& record,
+bool CFormula::CheckExpression(CWorkspaceFormula *wks, std::string& errorMsg, const std::string& record,
                                const CStringMap* aliases /* = nullptr*/, CProduct* product /* = nullptr*/, std::string* valueOut /*= nullptr*/)
 {
 
   std::string stringExpr = GetDescription(true);
 
   // Empty expression is allowed for selection criteria
-  if ((this->GetType() == CMapTypeField::typeOpAsSelect) && (stringExpr.empty()))
+  if ((this->GetType() == CMapTypeField::eTypeOpAsSelect) && (stringExpr.empty()))
   {
     return true;
   }
@@ -865,7 +843,7 @@ bool CFormula::CheckExpression(std::string& errorMsg, const std::string& record,
   std::string valueOutTemp;
   std::string strUnit = m_unit.AsString(false).c_str();
 
-  bool bOk = CFormula::CheckExpression(stringExpr, record, str, &strUnit, aliases, product, &valueOutTemp);
+  bool bOk = CFormula::CheckExpression(wks, stringExpr, record, str, &strUnit, aliases, product, &valueOutTemp);
 
   rtrim( valueOutTemp );
 
@@ -891,7 +869,7 @@ bool CFormula::CheckExpression(std::string& errorMsg, const std::string& record,
 double CFormula::LonNormal360(double value)
 {
 
-  CUnit unit((const char *)GetDefaultUnit(CMapTypeData::typeOpLongitude).c_str());
+  CUnit unit((const char *)GetDefaultUnit(CMapTypeData::eTypeOpLongitude).c_str());
   unit.SetConversionFrom(m_unit);
 
   value = unit.Convert(value);
@@ -974,17 +952,17 @@ bool CFormula::CtrlMinMaxValue(std::string& errorMsg)
 //----------------------------------------
 bool CFormula::IsFieldType()
 {
-  return (GetType() == CMapTypeField::typeOpAsField);
+  return (GetType() == CMapTypeField::eTypeOpAsField);
 }
 //----------------------------------------
 bool CFormula::IsXType()
 {
-  return (GetType() == CMapTypeField::typeOpAsX);
+  return (GetType() == CMapTypeField::eTypeOpAsX);
 }
 //----------------------------------------
 bool CFormula::IsYType()
 {
-  return (GetType() == CMapTypeField::typeOpAsY);
+  return (GetType() == CMapTypeField::eTypeOpAsY);
 }
 //----------------------------------------
 bool CFormula::IsXYType()
@@ -1006,17 +984,17 @@ bool CFormula::IsLatLonDataType()
 //----------------------------------------
 bool CFormula::IsLonDataType()
 {
-  return (GetDataType() == CMapTypeData::typeOpLongitude);
+  return (GetDataType() == CMapTypeData::eTypeOpLongitude);
 }
 //----------------------------------------
 bool CFormula::IsLatDataType()
 {
-  return (GetDataType() == CMapTypeData::typeOpLatitude);
+  return (GetDataType() == CMapTypeData::eTypeOpLatitude);
 }
 //----------------------------------------
 bool CFormula::IsTimeDataType()
 {
-  return (GetDataType() == CMapTypeData::typeOpT);
+  return (GetDataType() == CMapTypeData::eTypeOpT);
 }
 //----------------------------------------
 bool CFormula::IsXYLatLon()
@@ -1154,94 +1132,87 @@ void CFormula::SetDefaultUnit()
 */
 }
 //----------------------------------------
-void CFormula::SetUnit(const std::string& value, const std::string& defaultValue /*= ""*/, bool withMsg /*= true*/, bool convertMinMax /*= false*/)
+void CFormula::SetUnit( const std::string& value, std::string &errorMsg, const std::string& defaultValue, bool convertMinMax /*= false*/ )
 {
-  if (convertMinMax)
-  {
-    ConvertToMinMaxFormulaBaseUnit();
-  }
+	if ( convertMinMax )
+	{
+		ConvertToMinMaxFormulaBaseUnit( errorMsg );
+	}
 
-  try
-  {
-    if (value.empty())
-    {
-      SetDefaultUnit();
-    }
-    else
-    {
-      m_unit = (const char *)value.c_str();
-    }
-  }
-  catch (CException& e)
-  {
-    if (withMsg)
-    {
-      wxMessageBox(
-		  "Formula '"
-		  + m_name
-		  + "' - Invalid unit '"
-		  + value
-		  + "'\nReason\n'"
-		  + e.what()
-		  + "'",
+	try
+	{
+		if ( value.empty() )
+		{
+			SetDefaultUnit();
+		}
+		else
+		{
+			m_unit = (const char *)value.c_str();
+		}
+	}
+	catch ( CException& e )
+	{
+			errorMsg +=
+				"Formula '"
+				+ m_name
+				+ "' - Invalid unit '"
+				+ value
+				+ "'\nReason\n'"
+				+ e.what()
+				+ "'\n";
 
-		  "Warning",
-		  wxOK | wxICON_EXCLAMATION);
-    }
-    m_unit = (const char *)defaultValue.c_str();
-  }
+				//wxMessageBox(				"Warning",				wxOK | wxICON_EXCLAMATION );
 
-  SetStepToDefaultAsNecessary();
+		m_unit = (const char *)defaultValue.c_str();
+	}
 
-  if (convertMinMax)
-  {
-    ConvertToMinMaxFormulaUnit();
-  }
+	SetStepToDefaultAsNecessary();
+
+	if ( convertMinMax )
+	{
+		ConvertToMinMaxFormulaUnit( errorMsg );
+	}
 
 }
 //----------------------------------------
-void CFormula::SetUnit(const CUnit& value, const std::string& defaultValue /*= ""*/, bool withMsg /*= true*/, bool convertMinMax /*= false*/)
+void CFormula::SetUnit( const CUnit& value, std::string &errorMsg, const std::string& defaultValue, bool convertMinMax /*= false*/ )
 {
-  if (convertMinMax)
-  {
-    if (!IsTimeDataType())
-    {
-      ConvertToMinMaxFormulaBaseUnit();
-    }
-  }
+	if ( convertMinMax )
+	{
+		if ( !IsTimeDataType() )
+		{
+			ConvertToMinMaxFormulaBaseUnit( errorMsg );
+		}
+	}
 
-  try
-  {
-    m_unit = value;
-  }
-  catch (CException& e)
-  {
-    if (withMsg)
-    {
-      wxMessageBox(
-		  "Formula '"
-		  + m_name
-		  + "' - Invalid unit '"
-		  + value.GetText()
-		  + "'\nReason\n'"
-		  + e.what()
-		  + "'",
+	try
+	{
+		m_unit = value;
+	}
+	catch ( CException& e )
+	{
+		errorMsg =
+			"Formula '"
+			+ m_name
+			+ "' - Invalid unit '"
+			+ value.GetText()
+			+ "'\nReason\n'"
+			+ e.what()
+			+ "'\n";
+		//wxMessageBox(		  "Warning",		  wxOK | wxICON_EXCLAMATION);
 
-		  "Warning",
-		  wxOK | wxICON_EXCLAMATION);
-    }
-    m_unit = (const char *)defaultValue.c_str();
-  }
+		m_unit = (const char *)defaultValue.c_str();
+	}
 
-  SetStepToDefaultAsNecessary();
+	SetStepToDefaultAsNecessary();
 
-  if (convertMinMax)
-  {
-    if (!IsTimeDataType())
-    {
-      ConvertToMinMaxFormulaUnit();
-    }
-  }
+	if ( convertMinMax )
+	{
+		if ( !IsTimeDataType() )
+		{
+			ConvertToMinMaxFormulaUnit( errorMsg );
+		}
+	}
 
 }
 //----------------------------------------
@@ -1250,13 +1221,13 @@ std::string CFormula::GetFieldPrefix(int32_t type)
   std::string result;
   switch (type)
   {
-    case CMapTypeField::typeOpAsField:
+    case CMapTypeField::eTypeOpAsField:
       result = "FIELD";
       break;
-    case CMapTypeField::typeOpAsX:
+    case CMapTypeField::eTypeOpAsX:
       result = "X";
       break;
-    case CMapTypeField::typeOpAsY:
+    case CMapTypeField::eTypeOpAsY:
       result = "Y";
       break;
     default:
@@ -1274,11 +1245,11 @@ std::string CFormula::GetFieldPrefix()
 //----------------------------------------
 std::string CFormula::GetExportAsciiFieldPrefix()
 {
-  return GetFieldPrefix(CMapTypeField::typeOpAsField);
+  return GetFieldPrefix(CMapTypeField::eTypeOpAsField);
 }
 
 //----------------------------------------
-bool CFormula::LoadConfigDesc(wxFileConfig* config, const std::string& path)
+bool CFormula::LoadConfigDesc(CConfiguration *config, const std::string& path)
 {
   bool bOk = true;
   if (config == nullptr)
@@ -1293,98 +1264,98 @@ bool CFormula::LoadConfigDesc(wxFileConfig* config, const std::string& path)
   return true;
 }
 //----------------------------------------
-bool CFormula::LoadConfig(wxFileConfig* config, const std::string& pathSuff)
+bool CFormula::LoadConfig( CConfiguration *config, std::string &errorMsg, const std::string& pathSuff )
 {
-  bool bOk = true;
-  std::string valueString;
+	bool bOk = true;
+	std::string valueString;
 
-  if (config == nullptr)
-  {
-    return true;
-  }
-  std::string path = m_name;
-  if (pathSuff.empty() == false)
-  {
-    path += "_" + pathSuff;
-  }
+	if ( config == nullptr )
+	{
+		return true;
+	}
+	std::string path = m_name;
+	if ( pathSuff.empty() == false )
+	{
+		path += "_" + pathSuff;
+	}
 
-  config->SetPath("/" + path);
+	config->SetPath( "/" + path );
 
-  m_description = config->Read(ENTRY_DEFINE, m_description);
-  m_comment = config->Read(ENTRY_COMMENT, m_comment);
+	m_description = config->Read( ENTRY_DEFINE, m_description );
+	m_comment = config->Read( ENTRY_COMMENT, m_comment );
 
-  valueString = config->Read(ENTRY_UNIT, m_unit.GetText().c_str());
-  SetUnit(valueString);
+	valueString = config->Read( ENTRY_UNIT, m_unit.GetText().c_str() );
+	SetUnit( valueString, errorMsg, "" );
 
-  valueString = config->Read(ENTRY_FIELDTYPE, GetTypeAsString());
-  if (valueString.empty())
-  {
-    m_type = CMapTypeField::typeOpAsField;
-  }
-  else
-  {
-    m_type = CMapTypeField::GetInstance().NameToId(valueString);
-  }
+	valueString = config->Read( ENTRY_FIELDTYPE, GetTypeAsString() );
+	if ( valueString.empty() )
+	{
+		m_type = CMapTypeField::eTypeOpAsField;
+	}
+	else
+	{
+		m_type = CMapTypeField::GetInstance().NameToId( valueString );
+	}
 
-  valueString = config->Read(ENTRY_DATATYPE, GetDataTypeAsString());
-  if (valueString.empty())
-  {
-    m_dataType = CMapTypeData::typeOpData;
-  }
-  else
-  {
-    m_dataType = CMapTypeData::GetInstance().NameToId(valueString);
-  }
+	valueString = config->Read( ENTRY_DATATYPE, GetDataTypeAsString() );
+	if ( valueString.empty() )
+	{
+		m_dataType = CMapTypeData::eTypeOpData;
+	}
+	else
+	{
+		m_dataType = CMapTypeData::GetInstance().NameToId( valueString );
+	}
 
-  m_title = config->Read(ENTRY_TITLE, m_title);
+	m_title = config->Read( ENTRY_TITLE, m_title );
 
-  valueString = config->Read(ENTRY_FILTER, GetFilterAsString());
-  if (valueString.empty())
-  {
-    m_filter = CMapTypeFilter::filterNone;
-  }
-  else
-  {
-    m_filter = CMapTypeFilter::GetInstance().NameToId(valueString);
-  }
-  if (IsTimeDataType())
-  {
-    valueString = config->Read(ENTRY_MINVALUE);
-    SetMinValueFromDateString(valueString);
+	valueString = config->Read( ENTRY_FILTER, GetFilterAsString() );
+	if ( valueString.empty() )
+	{
+		m_filter = CMapTypeFilter::eFilterNone;
+	}
+	else
+	{
+		m_filter = CMapTypeFilter::GetInstance().NameToId( valueString );
+	}
+	if ( IsTimeDataType() )
+	{
+		valueString = config->Read( ENTRY_MINVALUE );
+		SetMinValueFromDateString( valueString );
 
-    valueString = config->Read(ENTRY_MAXVALUE);
-    SetMaxValueFromDateString(valueString);
-  }
-  else
-  {
-    config->Read(ENTRY_MINVALUE, &m_minValue, CTools::m_defaultValueDOUBLE);
-    config->Read(ENTRY_MAXVALUE, &m_maxValue, CTools::m_defaultValueDOUBLE);
-  }
-  
-  // 3.3.1 note: wxWidgets asserts if value >= INT_MAX, but CTools::m_defaultValueINT32 is INT_MAX, so,
-  // if value is not read and the default is used, we have a failed assertion. This was not changed, to
-  // avoid unknown implications.
+		valueString = config->Read( ENTRY_MAXVALUE );
+		SetMaxValueFromDateString( valueString );
+	}
+	else
+	{
+		config->Read( ENTRY_MINVALUE, &m_minValue, CTools::m_defaultValueDOUBLE );
+		config->Read( ENTRY_MAXVALUE, &m_maxValue, CTools::m_defaultValueDOUBLE );
+	}
 
-  config->Read(ENTRY_INTERVAL, &m_interval, CTools::m_defaultValueINT32);		
-  m_step = config->Read(ENTRY_STEP, DEFAULT_STEP_GENERAL_ASSTRING);
-  if (m_step.empty())
-  {
-    m_step = DEFAULT_STEP_GENERAL_ASSTRING;
-  }
+	// 3.3.1 note: wxWidgets asserts if value >= INT_MAX, but CTools::m_defaultValueINT32 is INT_MAX, so,
+	// if value is not read and the default is used, we have a failed assertion. This was not changed, to
+	// avoid unknown implications.
 
-  config->Read(ENTRY_LOESSCUTOFF, &m_loessCutOff, CTools::m_defaultValueINT32);
+	config->Read( ENTRY_INTERVAL, &m_interval, CTools::m_defaultValueINT32 );
+	m_step = config->Read( ENTRY_STEP, DEFAULT_STEP_GENERAL_ASSTRING );
+	if ( m_step.empty() )
+	{
+		m_step = DEFAULT_STEP_GENERAL_ASSTRING;
+	}
 
-  valueString = config->Read(ENTRY_DATA_MODE);
-  if (valueString.empty())
-  {
-    m_dataMode = -1;
-  }
-  else
-  {
-    m_dataMode = CMapDataMode::GetInstance().NameToId(valueString);
-  }
+	config->Read( ENTRY_LOESSCUTOFF, &m_loessCutOff, CTools::m_defaultValueINT32 );
 
-  return true;
+	valueString = config->Read( ENTRY_DATA_MODE );
+	if ( valueString.empty() )
+	{
+		m_dataMode = -1;
+	}
+	else
+	{
+		m_dataMode = CMapDataMode::GetInstance().NameToId( valueString );
+	}
+
+	return true;
 }
 //----------------------------------------
 bool CFormula::SaveConfigDesc( CConfiguration *config, const std::string& path)
@@ -1561,7 +1532,7 @@ void CFormula::SetMaxValueFromDateString(const std::string& value)
   SetMaxValue(d);
 }
 //----------------------------------------
-void CFormula::ConvertToMinMaxFormulaBaseUnit()
+void CFormula::ConvertToMinMaxFormulaBaseUnit( std::string &errorMsg )
 {
   if (!IsTimeDataType())
   {
@@ -1569,10 +1540,10 @@ void CFormula::ConvertToMinMaxFormulaBaseUnit()
     m_maxValue = ConvertToFormulaBaseUnit(m_maxValue);
   }
 
-  ComputeInterval();
+  ComputeInterval( errorMsg );
 }
 //----------------------------------------
-void CFormula::ConvertToMinMaxFormulaUnit()
+void CFormula::ConvertToMinMaxFormulaUnit( std::string &errorMsg )
 {
   if (!IsTimeDataType())
   {
@@ -1580,7 +1551,7 @@ void CFormula::ConvertToMinMaxFormulaUnit()
     m_maxValue = ConvertToFormulaUnit(m_maxValue);
   }
 
-  ComputeInterval();
+  ComputeInterval( errorMsg );
 }
 //----------------------------------------
 bool CFormula::ConvertToFormulaBaseUnit(double in, double& out)
@@ -1615,141 +1586,139 @@ double CFormula::ConvertToFormulaUnit(double in)
 }
 
 //----------------------------------------
-bool CFormula::ComputeInterval(bool showMsg)
+bool CFormula::ComputeInterval( std::string &errorMsg )
 {
-  bool bOk = true;
+	bool bOk = true;
 
-  if (!IsXYType())
-  {
-    return true;
-  }
+	if ( !IsXYType() )
+	{
+		return true;
+	}
 
-/*
-  if (IsTimeDataType())
-  {
-    bOk = ComputeIntervalAsDate(showMsg);
-  }
-  else
-  {
-    bOk = ComputeIntervalAsDouble(showMsg);
-  }
+	/*
+	  if (IsTimeDataType())
+	  {
+	  bOk = ComputeIntervalAsDate(showMsg);
+	  }
+	  else
+	  {
+	  bOk = ComputeIntervalAsDouble(showMsg);
+	  }
 
-  return bOk;
-*/
+	  return bOk;
+	  */
 
-  setDefaultValue(m_interval);
+	setDefaultValue( m_interval );
 
-  if (!IsXYType())
-  {
-    return true;
-  }
+	if ( !IsXYType() )
+	{
+		return true;
+	}
 
-  if (isDefaultValue(m_minValue) && isDefaultValue(m_maxValue))
-  {
-    return true;
-  }
+	if ( isDefaultValue( m_minValue ) && isDefaultValue( m_maxValue ) )
+	{
+		return true;
+	}
 
-  double interval = 0.0;
-  double intervalTmp = 0.0;
-  double step = GetStepAsDouble();
+	double interval = 0.0;
+	double intervalTmp = 0.0;
+	double step = GetStepAsDouble( errorMsg );
 
-  if (isDefaultValue(step))
-  {
-    return true;
-  }
+	if ( isDefaultValue( step ) )
+	{
+		return true;
+	}
 
-  double minValueDefault =  0.0;
-  double maxValueDefault =  1.0;
+	double minValueDefault =  0.0;
+	double maxValueDefault =  1.0;
 
-  if (IsLonDataType())
-  {
-    ConvertToFormulaUnit(-180, minValueDefault);
-    ConvertToFormulaUnit(180, maxValueDefault);
-  }
-  else if (IsLatDataType())
-  {
-    ConvertToFormulaUnit(-90, minValueDefault);
-    ConvertToFormulaUnit(90, maxValueDefault);
-  }
-  else if (IsTimeDataType())
-  {
-    ConvertToFormulaUnit(0, minValueDefault);
-    ConvertToFormulaUnit(CDate::m_secInDay, maxValueDefault);
-  }
+	if ( IsLonDataType() )
+	{
+		ConvertToFormulaUnit( -180, minValueDefault );
+		ConvertToFormulaUnit( 180, maxValueDefault );
+	}
+	else if ( IsLatDataType() )
+	{
+		ConvertToFormulaUnit( -90, minValueDefault );
+		ConvertToFormulaUnit( 90, maxValueDefault );
+	}
+	else if ( IsTimeDataType() )
+	{
+		ConvertToFormulaUnit( 0, minValueDefault );
+		ConvertToFormulaUnit( CDate::m_secInDay, maxValueDefault );
+	}
 
-  if (isDefaultValue(m_minValue))
-  {
-    m_minValue = minValueDefault;
-  }
-  if (isDefaultValue(m_maxValue))
-  {
-    m_maxValue = maxValueDefault;
-  }
+	if ( isDefaultValue( m_minValue ) )
+	{
+		m_minValue = minValueDefault;
+	}
+	if ( isDefaultValue( m_maxValue ) )
+	{
+		m_maxValue = maxValueDefault;
+	}
 
-  if (step < 0)
-  {
-    step = -(step);
-    replace( m_step, "-", "" );
-  }
+	if ( step < 0 )
+	{
+		step = -( step );
+		replace( m_step, "-", "" );
+	}
 
-  if (isZero(step))
-  {
-    SetStepToDefault();
+	if ( isZero( step ) )
+	{
+		SetStepToDefault();
 
-    step = CFormula::GetStepAsDouble(m_step);
-  }
+		step = CFormula::GetStepAsDouble( m_step );
+	}
 
-/*
-  CUnit	unit	= m_unit.BaseUnit();
-  unit.SetConversionTo(m_unit);
-  double minValue	= unit.Convert(m_minValue);
-  double maxValue	= unit.Convert(m_maxValue);
-*/
-  double minValue	= m_minValue;
-  double maxValue	= m_maxValue;
+	/*
+	  CUnit	unit	= m_unit.BaseUnit();
+	  unit.SetConversionTo(m_unit);
+	  double minValue	= unit.Convert(m_minValue);
+	  double maxValue	= unit.Convert(m_maxValue);
+	  */
+	double minValue	= m_minValue;
+	double maxValue	= m_maxValue;
 
-  if (IsLonDataType())
-  {
-    if (minValue >= maxValue)
-    {
-      maxValue	= LonNormal360(maxValue);
-    }
-  }
-  else if (IsTimeDataType())
-  {
-    CUnit	unit	= m_unit.BaseUnit();
-    unit.SetConversionTo(m_unit);
-    minValue	= unit.Convert(m_minValue);
-    maxValue	= unit.Convert(m_maxValue);
-  }
-
-
-  //intervalTmp = ((m_maxValue - m_minValue) / step) / CDate::m_secInDay;
-  intervalTmp = ((maxValue - minValue) / step);
-  //interval = CTools::Round( ((m_maxValue - m_minValue) / step) / CDate::m_secInDay);
-  interval = CTools::Round( ((maxValue - minValue) / step));
-
-  m_interval = static_cast<int32_t>( CTools::Int(interval) );
-
-  if (m_interval <= 0)
-  {
-    m_interval = 1;
-  }
+	if ( IsLonDataType() )
+	{
+		if ( minValue >= maxValue )
+		{
+			maxValue	= LonNormal360( maxValue );
+		}
+	}
+	else if ( IsTimeDataType() )
+	{
+		CUnit	unit	= m_unit.BaseUnit();
+		unit.SetConversionTo( m_unit );
+		minValue	= unit.Convert( m_minValue );
+		maxValue	= unit.Convert( m_maxValue );
+	}
 
 
-  if ( (showMsg) && (areEqual( interval, intervalTmp ) == false) )
-  {
-    wxMessageBox(
-		"Formula '"
-		+ m_name
-		+ "':\nInterval was round up or down to the nearest integer value.",
+	//intervalTmp = ((m_maxValue - m_minValue) / step) / CDate::m_secInDay;
+	intervalTmp = ( ( maxValue - minValue ) / step );
+	//interval = CTools::Round( ((m_maxValue - m_minValue) / step) / CDate::m_secInDay);
+	interval = CTools::Round( ( ( maxValue - minValue ) / step ) );
 
-		"Information",
-		wxOK | wxCENTRE | wxICON_INFORMATION);
-  }
+	m_interval = static_cast<int32_t>( CTools::Int( interval ) );
 
-  return areEqual( interval, intervalTmp );
+	if ( m_interval <= 0 )
+	{
+		m_interval = 1;
+	}
 
+
+	if ( !areEqual( interval, intervalTmp ) )
+	{
+		errorMsg +=
+			"Formula '"
+			+ m_name
+			+ "':\nInterval was round up or down to the nearest integer value.\n";
+
+			//wxMessageBox(			"Information",			wxOK | wxCENTRE | wxICON_INFORMATION );
+	}
+
+	return areEqual( interval, intervalTmp );
 }
 /*
 //----------------------------------------
@@ -2000,84 +1969,79 @@ bool CMapFormula::ValidName(const char* name)
 }
 
 //----------------------------------------
-bool CMapFormula::LoadConfig(bool predefined)
+bool CMapFormula::LoadConfig( std::string &errorMsg, bool predefined )
 {
-  return LoadConfig(m_config, predefined);
+  return LoadConfig( m_config, errorMsg, predefined );
 }
 //----------------------------------------
-bool CMapFormula::LoadConfig(CConfiguration *config, bool predefined, const std::string& pathSuff)
+bool CMapFormula::LoadConfig( CConfiguration *config, std::string &errorMsg, bool predefined, const std::string& pathSuff )
 {
-  bool bOk = true;
+	bool bOk = true;
 
-  if (config == nullptr)
-  {
-    return false;
-  }
+	if ( config == nullptr )
+	{
+		return false;
+	}
 
-  std::string path = GROUP_FORMULAS;
-  if (pathSuff.empty() == false)
-  {
-    path += "_" + pathSuff;
-  }
-  config->SetPath("/" + path);
+	std::string path = GROUP_FORMULAS;
+	if ( pathSuff.empty() == false )
+	{
+		path += "_" + pathSuff;
+	}
+	config->SetPath( "/" + path );
 
-  long maxEntries = config->GetNumberOfEntries();
-  std::string entry;
-  std::string valueString;
-  std::string formulaName;
-  long i = 0;
+	//long maxEntries = config->GetNumberOfEntries();
+	std::string entry;
+	std::string valueString;
+	std::string formulaName;
+	long i = 0;
 
-  do
-  {
-    bOk = config->GetNextEntry(entry, i);
-    if (bOk)
-    {
-      valueString = config->Read(entry);
+	do
+	{
+		bOk = config->GetNextEntry( entry, i );
+		if ( bOk )
+		{
+			valueString = config->Read( entry );
 
-      if ( !pathSuff.empty() )
-      {
-        //formulaName = valueString.Left(valueString.Length() - pathSuff.Length() - 1);
-        formulaName = valueString.substr( 0, valueString.length() - pathSuff.length() - 1 );
-      }
-      else
-      {
-        formulaName = valueString;
-      }
-      CFormula* value = dynamic_cast<CFormula*>(Exists((const char *)formulaName.c_str()));
-      if (value != nullptr)
-      {
-        Erase(formulaName);
-      }
+			if ( !pathSuff.empty() )
+			{
+				//formulaName = valueString.Left(valueString.Length() - pathSuff.Length() - 1);
+				formulaName = valueString.substr( 0, valueString.length() - pathSuff.length() - 1 );
+			}
+			else
+			{
+				formulaName = valueString;
+			}
+			CFormula* value = dynamic_cast<CFormula*>( Exists( (const char *)formulaName.c_str() ) );
+			if ( value != nullptr )
+			{
+				Erase( formulaName );
+			}
 
-      Insert(formulaName, new CFormula(formulaName, predefined));
-    }
-  }
-  while (bOk);
+			Insert( formulaName, new CFormula( formulaName, predefined ) );
+		}
+	} while ( bOk );
 
-  CMapFormula::iterator it;
+	//int32_t index = 0;
 
-  int32_t index = 0;
+	for ( CMapFormula::iterator it = begin(); it != end(); it++ )
+	{
+		//index++;
+		CFormula* formula = dynamic_cast<CFormula*>( it->second );
+		if ( formula == nullptr )
+		{
+			errorMsg +=
+				"ERROR in  CMapFormula::LoadConfig\ndynamic_cast<CFormula*>(it->second) returns nullptr pointer"
+				"\nList seems to contain objects other than those of the class CFormula.\n";
 
-  for (it = begin() ; it != end() ; it++)
-  {
-    index++;
-    CFormula* formula = dynamic_cast<CFormula*>(it->second);
-    if (formula == nullptr)
-    {
+			//wxMessageBox(,                   "Error",                    wxOK | wxCENTRE | wxICON_ERROR);
 
-      wxMessageBox("ERROR in  CMapFormula::LoadConfig\ndynamic_cast<CFormula*>(it->second) returns nullptr pointer"
-                   "\nList seems to contain objects other than those of the class CFormula",
-                   "Error",
-                    wxOK | wxCENTRE | wxICON_ERROR);
-      return false;
-    }
+			return false;
+		}
 
-    formula->LoadConfig(config, pathSuff);
-  }
-
-
-  return true;
-
+		formula->LoadConfig( config, errorMsg, pathSuff );
+	}
+	return true;
 }
 
 //----------------------------------------
@@ -2118,44 +2082,38 @@ bool CMapFormula::SaveConfig( CConfiguration *config, bool predefined, const std
 	return true;
 }
 //----------------------------------------
-bool CMapFormula::InsertPredefined()
+bool CMapFormula::InsertPredefined( std::string &errorMsg )
 {
-	wxFileName formulaPath;
-	formulaPath.Assign( CTools::GetDataDir().c_str(), CMapFormula::m_predefFormulaFile );
-	formulaPath.Normalize();
+	std::string formulaPath = CTools::GetDataDir() + "/" + CMapFormula::m_predefFormulaFile;		//TODO check this conversion from wxFileName to std::string
+	//wxFileName formulaPath;
+	//formulaPath.Assign( CTools::GetDataDir().c_str(), CMapFormula::m_predefFormulaFile );
+	//formulaPath.Normalize();
 
     delete m_config;
 	//m_config = new CConfiguration( wxEmptyString, wxEmptyString, formulaPath.GetFullPath(), wxEmptyString, wxCONFIG_USE_LOCAL_FILE );
-	m_config = new CConfiguration( formulaPath.GetFullPath().ToStdString() );
+	m_config = new CConfiguration( formulaPath );
 
-	return LoadConfig( true );
+	return LoadConfig( errorMsg, true );
 }
 //----------------------------------------
-bool CMapFormula::InsertUserDefined( CFormula* formula )
+bool CMapFormula::InsertUserDefined( CFormula* formula, std::string &errorMsg )
 {
-	std::string name = (const char *)formula->GetName().c_str();
+	std::string name = formula->GetName();
 
 	CFormula* value = dynamic_cast<CFormula*>( Exists( name ) );
 	if ( value != nullptr )
 	{
-		int32_t result = wxMessageBox( 
+		errorMsg +=
 			"Formula '"
 			+ value->GetName()
 			+ "' already exists\nContent:\n"
 			+ value->GetDescription()
-			+ "\nReplace by:\n"
+			+ "\nIt will be replaced by:\n"
 			+ formula->GetDescription()
-			+ "?",
+			+ ".\n";
 
-
-			"Warning",
-			wxYES_NO | wxCENTRE | wxICON_QUESTION );
-
-		if ( result == wxYES )
-		{
-			value->SetDescription( formula->GetDescription() );
-			value->SetComment( formula->GetComment() );
-		}
+		value->SetDescription( formula->GetDescription() );
+		value->SetComment( formula->GetComment() );
 	}
 	else
 	{
@@ -2165,43 +2123,26 @@ bool CMapFormula::InsertUserDefined( CFormula* formula )
 	return true;
 }
 //----------------------------------------
-bool CMapFormula::InsertUserDefined( CFormula& formula )
+bool CMapFormula::InsertUserDefined_ReplacePredefinedNotAllowed( CFormula& formula, std::string &errorMsg )
 {
-	std::string name = (const char *)formula.GetName().c_str();
+	std::string name = formula.GetName();
 
 	CFormula* value = dynamic_cast<CFormula*>( Exists( name ) );
 	if ( value != nullptr )
 	{
 		if ( value->IsPredefined() )
 		{
-			wxMessageBox( 
+			errorMsg +=
 				"Formula '"
 				+ value->GetName()
 				+ "' already exists and is a predefined formula.\n"
-				+ "You are not allowed to replace predefined formula.",
+				+ "You are not allowed to replace predefined formula.";
 
-				"Warning",
-				wxOK | wxCENTRE | wxICON_INFORMATION );
+			return false;		//femm: returned true;
 		}
 		else
 		{
-			int result = wxMessageBox( 
-				"Formula '"
-				+ value->GetName()
-				+ "' already exists\nContent:\n"
-				+ value->GetDescription()
-				+ "\nReplace by:\n"
-				+ formula.GetDescription()
-				+ "?",
-
-				"Warning",
-				wxYES_NO | wxCENTRE | wxICON_QUESTION );
-
-			if ( result == wxYES )
-			{
-				value->SetDescription( formula.GetDescription() );
-				value->SetComment( formula.GetComment() );
-			}
+			return InsertUserDefined( &formula, errorMsg );
 		}
 	}
 	else
@@ -2212,18 +2153,18 @@ bool CMapFormula::InsertUserDefined( CFormula& formula )
 	return true;
 }
 //----------------------------------------
-bool CMapFormula::InsertUserDefined( const wxFileName& fileName )
-{
-    delete m_config;
-	m_config = new CConfiguration( fileName.GetFullPath().ToStdString() );
-	//m_config = new wxFileConfig( wxEmptyString, wxEmptyString, fileName.GetFullPath(), wxEmptyString, wxCONFIG_USE_LOCAL_FILE );
-
-	return LoadConfig( false );
-}
+//bool CMapFormula::InsertUserDefined( const wxFileName& fileName )
+//{
+//    delete m_config;
+//	m_config = new CConfiguration( fileName.GetFullPath().ToStdString() );
+//	//m_config = new wxFileConfig( wxEmptyString, wxEmptyString, fileName.GetFullPath(), wxEmptyString, wxCONFIG_USE_LOCAL_FILE );
+//
+//	return LoadConfig( false );
+//}
 //----------------------------------------
-bool CMapFormula::InsertUserDefined( CConfiguration *config )
+bool CMapFormula::InsertUserDefined( CConfiguration *config, std::string &errorMsg )
 {
-	return LoadConfig( config, false );
+	return LoadConfig( config, errorMsg, false );
 }
 //----------------------------------------
 std::string CMapFormula::GetDescFormula( const std::string& name, bool alias )
@@ -2314,36 +2255,6 @@ void CMapFormula::InitFormulaDataMode(int32_t dataMode)
 }
 
 //----------------------------------------
-void CMapFormula::NamesToArrayString(wxArrayString& array)
-{
-  CMapFormula::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    CFormula* value = dynamic_cast<CFormula*>(it->second);
-    if (value != nullptr)
-    {
-      array.Add(value->GetName());
-    }
-  }
-
-}
-//----------------------------------------
-void CMapFormula::NamesToComboBox(wxComboBox& combo)
-{
-  CMapFormula::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    CFormula* value = dynamic_cast<CFormula*>(it->second);
-    if (value != nullptr)
-    {
-      combo.Append(value->GetName());
-    }
-  }
-
-}
-//----------------------------------------
 int32_t CMapFormula::CountDataFields()
 {
   CMapFormula::iterator it;
@@ -2355,7 +2266,7 @@ int32_t CMapFormula::CountDataFields()
     CFormula* value = dynamic_cast<CFormula*>(it->second);
     if (value != nullptr)
     {
-      if (value->GetType() == CMapTypeField::typeOpAsField)
+      if (value->GetType() == CMapTypeField::eTypeOpAsField)
       {
         count++;
       }
@@ -2378,9 +2289,9 @@ bool CMapFormula::HasFilters()
     CFormula* value = dynamic_cast<CFormula*>(it->second);
     if (value != nullptr)
     {
-      if (value->GetType() == CMapTypeField::typeOpAsField)
+      if (value->GetType() == CMapTypeField::eTypeOpAsField)
       {
-        if (value->GetFilter() != CMapTypeFilter::filterNone)
+        if (value->GetFilter() != CMapTypeFilter::eFilterNone)
         {
           hasFilter = true;
           break;
@@ -2438,10 +2349,10 @@ void CMapFormula::Amend(const CStringArray& keys, CProduct* product, const std::
 
 CMapTypeFilter::CMapTypeFilter()
 {
-  Insert("NONE", filterNone);
-  Insert("LOESS_SMOOTH", filterLoessSmooth);
-  Insert("LOESS_EXTRAPOLATE", filterLoessExtrapolate);
-  Insert("LOESS", filterLoess);
+  Insert("NONE", eFilterNone);
+  Insert("LOESS_SMOOTH", eFilterLoessSmooth);
+  Insert("LOESS_EXTRAPOLATE", eFilterLoessExtrapolate);
+  Insert("LOESS", eFilterLoess);
 }
 
 //----------------------------------------
@@ -2495,38 +2406,6 @@ uint32_t CMapTypeFilter::NameToId(const std::string& name)
   return Exists((const char *)name.c_str());
 }
 
-//----------------------------------------
-void CMapTypeFilter::NamesToArrayString(wxArrayString& array)
-{
-  CMapTypeFilter::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    uint32_t value = it->second;
-    if (!isDefaultValue(value))
-    {
-      array.Add( (it->first).c_str());
-    }
-  }
-
-}
-//----------------------------------------
-void CMapTypeFilter::NamesToComboBox(wxComboBox& combo)
-{
-  CMapTypeFilter::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    uint32_t value = it->second;
-    if (!isDefaultValue(value))
-    {
-      //combo.Insert((it->first).c_str(), value);
-      combo.Append( (it->first).c_str());
-    }
-  }
-
-}
-
 
 //-------------------------------------------------------------
 //------------------- CMapTypeData class --------------------
@@ -2534,13 +2413,13 @@ void CMapTypeFilter::NamesToComboBox(wxComboBox& combo)
 
 CMapTypeData::CMapTypeData()
 {
-  Insert("Data", typeOpData);
-  Insert("Longitude", typeOpLongitude);
-  Insert("Latitude", typeOpLatitude);
-  Insert("X", typeOpX);
-  Insert("Y", typeOpY);
-  Insert("Z", typeOpZ);
-  Insert("Date", typeOpT);
+  Insert("Data", eTypeOpData);
+  Insert("Longitude", eTypeOpLongitude);
+  Insert("Latitude", eTypeOpLatitude);
+  Insert("X", eTypeOpX);
+  Insert("Y", eTypeOpY);
+  Insert("Z", eTypeOpZ);
+  Insert("Date", eTypeOpT);
 }
 
 //----------------------------------------
@@ -2594,54 +2473,14 @@ uint32_t CMapTypeData::NameToId(const std::string& name)
   return Exists((const char *)name.c_str());
 }
 
-//----------------------------------------
-void CMapTypeData::NamesToArrayString(wxArrayString& array, bool noData)
-{
-  CMapTypeData::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    uint32_t value = it->second;
-    if ( (value == typeOpData) && (noData) )
-    {
-      continue;
-    }
-    if (!isDefaultValue(value))
-    {
-      array.Add( (it->first).c_str());
-    }
-  }
-
-}
-//----------------------------------------
-void CMapTypeData::NamesToComboBox(wxComboBox& combo, bool noData)
-{
-  CMapTypeData::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    uint32_t value = it->second;
-    if ( (value == typeOpData) && (noData) )
-    {
-      continue;
-    }
-    if (!isDefaultValue(value))
-    {
-      //combo.Insert((it->first).c_str(), value);
-      combo.Append( (it->first).c_str());
-    }
-  }
-
-}
-
 //-------------------------------------------------------------
 //------------------- CMapTypeOp class --------------------
 //-------------------------------------------------------------
 
 CMapTypeOp::CMapTypeOp()
 {
-  Insert("Y=F(X)", typeOpYFX);
-  Insert("Z=F(X,Y)", typeOpZFXY);
+  Insert("Y=F(X)", eTypeOpYFX);
+  Insert("Z=F(X,Y)", eTypeOpZFXY);
 }
 
 //----------------------------------------
@@ -2694,37 +2533,6 @@ uint32_t CMapTypeOp::NameToId(const std::string& name)
   return Exists((const char *)name.c_str());
 }
 
-//----------------------------------------
-void CMapTypeOp::NamesToArrayString(wxArrayString& array)
-{
-  CMapTypeOp::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    uint32_t value = it->second;
-    if (!isDefaultValue(value))
-    {
-      array.Add( (it->first).c_str());
-    }
-  }
-
-}
-//----------------------------------------
-void CMapTypeOp::NamesToComboBox(wxComboBox& combo)
-{
-  CMapTypeOp::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    uint32_t value = it->second;
-    if (!isDefaultValue(value))
-    {
-      //combo.Insert((it->first).c_str(), value);
-      combo.Append( (it->first).c_str());
-    }
-  }
-
-}
 /*
 //-------------------------------------------------------------
 //------------------- CMapTypeDisp class --------------------
@@ -2842,9 +2650,9 @@ std::string CMapTypeDisp::Enum()
 
 CMapTypeField::CMapTypeField()
 {
-  Insert("asField", typeOpAsField);
-  Insert("asX", typeOpAsX);
-  Insert("asY", typeOpAsY);
+  Insert("asField", eTypeOpAsField);
+  Insert("asX", eTypeOpAsX);
+  Insert("asY", eTypeOpAsY);
 }
 
 //----------------------------------------
@@ -2898,37 +2706,6 @@ uint32_t CMapTypeField::NameToId(const std::string& name)
   return Exists((const char *)name.c_str());
 }
 
-//----------------------------------------
-void CMapTypeField::NamesToArrayString(wxArrayString& array)
-{
-  CMapTypeField::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    uint32_t value = it->second;
-    if (!isDefaultValue(value))
-    {
-      array.Add( (it->first).c_str());
-    }
-  }
-
-}
-//----------------------------------------
-void CMapTypeField::NamesToComboBox(wxComboBox& combo)
-{
-  CMapTypeField::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    uint32_t value = it->second;
-    if (!isDefaultValue(value))
-    {
-      //combo.Insert((it->first).c_str(), value);
-      combo.Append( (it->first).c_str());
-    }
-  }
-
-}
 //-------------------------------------------------------------
 //------------------- CMapDataMode class --------------------
 //-------------------------------------------------------------
@@ -2991,38 +2768,6 @@ std::string CMapDataMode::IdToName(uint32_t id)
 uint32_t CMapDataMode::NameToId(const std::string& name)
 {
   return Exists((const char *)name.c_str());
-}
-
-//----------------------------------------
-void CMapDataMode::NamesToArrayString(wxArrayString& array)
-{
-  CMapDataMode::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    uint32_t value = it->second;
-    if (!isDefaultValue(value))
-    {
-      array.Add( (it->first).c_str());
-    }
-  }
-
-}
-//----------------------------------------
-void CMapDataMode::NamesToComboBox(wxComboBox& combo)
-{
-  CMapDataMode::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    uint32_t value = it->second;
-    if (!isDefaultValue(value))
-    {
-      //combo.Insert((it->first).c_str(), value);
-      combo.Append( (it->first).c_str());
-    }
-  }
-
 }
 
 //----------------------------------------

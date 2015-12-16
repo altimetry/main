@@ -25,7 +25,7 @@
     #pragma interface "WPlot.h"
 #endif
 
-#include "../libbrathl/brathl.h"
+#include "libbrathl/brathl.h"
 using namespace brathl;
 
 

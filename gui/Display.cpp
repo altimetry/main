@@ -43,7 +43,8 @@ using namespace brathl;
 #include "PlotData/MapProjection.h"
 
 #include "BratGui.h"
-#include "Workspace.h"
+#include "new-gui/brat/Workspaces/Workspace.h"
+#include "Operation.h"
 
 #include "Display.h"
 #include "MapTypeDisp.h"
@@ -609,7 +610,7 @@ bool CDisplayData::SaveConfig(wxFileConfig* config, const wxString& pathSuff)
 
   if (m_operation != nullptr)
   {
-    bOk &= config->Write(ENTRY_OPNAME, m_operation->GetName());
+    bOk &= config->Write(ENTRY_OPNAME, m_operation->GetName().c_str());
   }
 
   bOk &= config->Write(ENTRY_GROUP, m_group);
@@ -1505,32 +1506,31 @@ COperation* CDisplay::FindOperation(const wxString& name)
   return wks->GetOperation(name.ToStdString());
 }
 //----------------------------------------
-bool CDisplay::UseOperation(const wxString& name)
+bool CDisplay::UseOperation( const wxString& name )
 {
-  CMapDisplayData::iterator it;
-  bool useOperation = false;
+	CMapDisplayData::iterator it;
+	bool useOperation = false;
 
-  for (it = m_data.begin() ; it != m_data.end() ; it++)
-  {
-    CDisplayData* data = dynamic_cast<CDisplayData*>(it->second);
-    if (data == nullptr)
-    {
+	for ( it = m_data.begin(); it != m_data.end(); it++ )
+	{
+		CDisplayData* data = dynamic_cast<CDisplayData*>( it->second );
+		if ( data == nullptr )
+		{
+			wxMessageBox( "ERROR in  CDisplay::UseOperation\ndynamic_cast<CDisplay*>(it->second) returns nullptr pointer"
+				"\nList seems to contain objects other than those of the class CDisplayData",
+				"Error",
+				wxOK | wxCENTRE | wxICON_ERROR );
+			return false;
+		}
 
-      wxMessageBox("ERROR in  CDisplay::UseOperation\ndynamic_cast<CDisplay*>(it->second) returns nullptr pointer"
-                   "\nList seems to contain objects other than those of the class CDisplayData",
-                   "Error",
-                    wxOK | wxCENTRE | wxICON_ERROR);
-      return false;
-    }
+		if ( str_icmp( data->GetOperation()->GetName(), name.ToStdString() ) )
+		{
+			useOperation = true;
+			break;
+		}
+	}
 
-    if (data->GetOperation()->GetName().CmpNoCase(name) == 0)
-    {
-      useOperation = true;
-      break;
-    }
-  }
-
-  return useOperation;
+	return useOperation;
 }
 
 //----------------------------------------

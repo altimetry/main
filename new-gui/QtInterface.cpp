@@ -92,6 +92,20 @@ bool CConfiguration::Read( const std::string& str, int *value ) const
 {
 	return true;
 }
+bool CConfiguration::Read( const std::string& str, double *value, double defValue ) const
+{
+	return true;
+}
+bool CConfiguration::Read( const std::string& str, int32_t *value, double defValue ) const
+{
+	return true;
+}
+bool CConfiguration::Flush( bool bCurrentOnly )		//bCurrentOnly = false
+{
+	return true;
+}
+
+
 
 bool CConfiguration::SaveConfig( const CDataset *d )
 {

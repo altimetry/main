@@ -425,18 +425,21 @@ bool CBratGuiApp::IsCurrentLogPage()
   return (GetCurrentPageText().CmpNoCase(LOG_PAGE_NAME) == 0);
 }
 //----------------------------------------
-bool CBratGuiApp::CanDeleteOperation(const wxString& name, CStringArray* displayNames /*= NULL*/)
+bool CBratGuiApp::CanDeleteOperation( const wxString& name, CStringArray* displayNames /*= NULL*/ )
 {
-  bool canDelete = true;
-  CWorkspaceDisplay* wks = GetCurrentWorkspaceDisplay();
-  if (wks == NULL)
-  {
-    return true;
-  }
+	bool canDelete = true;
+	CWorkspaceDisplay* wks = GetCurrentWorkspaceDisplay();
+	if ( wks == NULL )
+	{
+		return true;
+	}
 
-  canDelete &= (wks->UseOperation(name.ToStdString(), displayNames) == false);
+	std::string errorMsg;
+	canDelete &= ( wks->UseOperation( name.ToStdString(), errorMsg, displayNames ) == false );
+	if ( !errorMsg.empty() )
+		wxMessageBox( errorMsg, "Error", wxOK | wxCENTRE | wxICON_ERROR );
 
-  return canDelete;
+	return canDelete;
 }
 //----------------------------------------
 bool CBratGuiApp::CanDeleteDisplay(const wxString& name)
@@ -448,18 +451,21 @@ bool CBratGuiApp::CanDeleteDisplay(const wxString& name)
   return canDelete;
 }
 //----------------------------------------
-bool CBratGuiApp::CanDeleteDataset(const wxString& name, CStringArray* operationNames /*= NULL*/)
+bool CBratGuiApp::CanDeleteDataset( const wxString& name, CStringArray* operationNames /*= NULL*/ )
 {
-  bool canDelete = true;
-  CWorkspaceOperation* wks = GetCurrentWorkspaceOperation();
-  if (wks == NULL)
-  {
-    return true;
-  }
+	bool canDelete = true;
+	CWorkspaceOperation* wks = GetCurrentWorkspaceOperation();
+	if ( wks == NULL )
+	{
+		return true;
+	}
 
-  canDelete &= (wks->UseDataset(name.ToStdString(), operationNames) == false);
+	std::string errorMsg;
+	canDelete &= ( wks->UseDataset( name.ToStdString(), errorMsg, operationNames ) == false );
+	if ( !errorMsg.empty() )
+		wxMessageBox( errorMsg, "Error", wxOK | wxCENTRE | wxICON_ERROR );
 
-  return canDelete;
+	return canDelete;
 }
 //----------------------------------------
 void CBratGuiApp::DetermineCharSize(wxWindow* wnd, int32_t& width, int32_t& height)
@@ -876,7 +882,11 @@ void CBratGuiApp::CreateTree( CWorkspace* root, CTreeWorkspace& tree )
 	//SECOND Create "Formulas" branch
 	path = root->GetPath() + "/" + WKS_FORMULA_NAME;
 
-	CWorkspaceFormula* wksFormula = new CWorkspaceFormula( WKS_FORMULA_NAME, path );
+	std::string errorMsg;
+	CWorkspaceFormula* wksFormula = new CWorkspaceFormula( errorMsg, WKS_FORMULA_NAME, path );
+	if ( !errorMsg.empty() )
+		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
+
 	tree.AddChild( wksFormula->GetName(), wksFormula );
 
 	//THIRDLY - Create "Operations" branch

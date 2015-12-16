@@ -25,8 +25,8 @@
     #pragma interface "PlotBase.h"
 #endif
 
-#include "../libbrathl/brathl.h"
-#include "../libbrathl/Expression.h"
+#include "libbrathl/brathl.h"
+#include "libbrathl/Expression.h"
 using namespace brathl;
 
 

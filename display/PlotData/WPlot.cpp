@@ -27,10 +27,10 @@
 #endif
 
 #include "new-gui/Common/tools/Trace.h"
-#include "../libbrathl/Tools.h"
+#include "libbrathl/Tools.h"
 #include "new-gui/Common/tools/Exception.h"
-#include "../libbrathl/InternalFiles.h"
-#include "../libbrathl/InternalFilesZFXY.h"
+#include "libbrathl/InternalFiles.h"
+#include "libbrathl/InternalFilesZFXY.h"
 using namespace brathl;
 
 #include "PlotField.h"

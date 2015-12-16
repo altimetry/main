@@ -21,8 +21,8 @@
 #define __MapProjection_H__
 
 
-#include "../libbrathl/brathl.h"
-#include "../libbrathl/List.h"
+#include "libbrathl/brathl.h"
+#include "libbrathl/List.h"
 using namespace brathl;
 
 class CSmartCleanerMapProj;

@@ -53,7 +53,7 @@ using namespace brathl;
 #include "Validators.h"
 #include "MapColor.h"
 #include "BratGui.h"
-#include "Workspace.h"
+#include "new-gui/brat/Workspaces/Workspace.h"
 #include "Function.h"
 #include "Process.h"
 #include "ResolutionDlg.h"
@@ -801,7 +801,7 @@ void COperationPanel::GetOperationOutput()
 {
   if (m_operation != NULL)
   {
-    if (m_operation->GetOutputName().IsEmpty())
+    if (m_operation->GetOutputName().empty())
     {
       InitOperationOutput();
     }
@@ -820,7 +820,7 @@ void COperationPanel::GetOperationExportAsciiOutput()
 {
   if (m_operation != NULL)
   {
-    if (m_operation->GetExportAsciiOutputName().IsEmpty())
+    if (m_operation->GetExportAsciiOutputName().empty())
     {
       InitOperationExportAsciiOutput();
     }
@@ -863,32 +863,31 @@ void COperationPanel::RemoveOutput()
 }
 
 //----------------------------------------
-void COperationPanel::RenameOutput(const wxString& oldName)
+void COperationPanel::RenameOutput( const wxString& oldName )
 {
-  if (m_operation == NULL)
-  {
-    return;
-  }
+	if ( m_operation == NULL )
+		return;
 
-  bool outputExists = wxFileExists(oldName);
+	bool outputExists = wxFileExists( oldName );
 
-  bool bOk = m_operation->RenameOutput(oldName);
+	bool bOk = m_operation->RenameOutput( oldName.ToStdString() );
 
-  if (bOk == false)
-  {
-    wxMessageBox(wxString::Format("Unable to rename file '%s' by '%s'\nYou have to rename it by yourself",
-                                  oldName.c_str(),
-                                  m_operation->GetOutputName().c_str()),
-                "Warning",
-                wxOK | wxICON_EXCLAMATION);
-  }
+	if ( bOk == false )
+	{
+		wxMessageBox( wxString::Format( "Unable to rename file '%s' by '%s'\nYou have to rename it by yourself",
+			oldName.c_str(),
+			m_operation->GetOutputName().c_str() ),
+			"Warning",
+			wxOK | wxICON_EXCLAMATION );
+	}
 
-  if (outputExists) // old file has been renamed, so we ha ve to save ALL workspaces to keep consistency
-  {
-    wxGetApp().m_tree.SaveConfig();
-  }
-
-
+	if ( outputExists ) // old file has been renamed, so we ha ve to save ALL workspaces to keep consistency
+	{
+		std::string errorMsg;
+		wxGetApp().m_tree.SaveConfig( errorMsg );
+		if ( !errorMsg.empty() )
+			wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
+	}
 }
 //----------------------------------------
 void COperationPanel::ClearFieldsInfo()
@@ -1020,8 +1019,8 @@ void COperationPanel::ShowResolutionAndFilterSizer(bool showIt)
     return;
   }
 
-  CFormula* xFormula = m_operation->GetFormula(CMapTypeField::typeOpAsX);
-  CFormula* yFormula = m_operation->GetFormula(CMapTypeField::typeOpAsY);
+  CFormula* xFormula = m_operation->GetFormula(CMapTypeField::eTypeOpAsX);
+  CFormula* yFormula = m_operation->GetFormula(CMapTypeField::eTypeOpAsY);
 
   if (xFormula != NULL)
   {
@@ -1049,7 +1048,7 @@ bool COperationPanel::IsFormulaDataField()
     return enable;
   }
 
-  return (m_userFormula->GetType() == CMapTypeField::typeOpAsField);
+  return (m_userFormula->GetType() == CMapTypeField::eTypeOpAsField);
 }
 //----------------------------------------
 bool COperationPanel::IsFormulaSelectField()
@@ -1164,13 +1163,13 @@ CDataset* COperationPanel::GetCurrentDataset()
 void COperationPanel::FillDataTypeList()
 {
   GetOptype()->Clear();
-  CMapTypeData::GetInstance().NamesToComboBox(*GetOptype(), true);
+  NamesToComboBox(CMapTypeData::GetInstance(), *GetOptype(), true);
 }
 //----------------------------------------
 void COperationPanel::FillDataModeList()
 {
   GetOpDataMode()->Clear();
-  CMapDataMode::GetInstance().NamesToComboBox(*GetOpDataMode());
+  NamesToComboBox(CMapDataMode::GetInstance(), *GetOpDataMode());
 }
 
 //----------------------------------------
@@ -1200,7 +1199,7 @@ void COperationPanel::LoadOperation()
 
   this->SetCursor(*wxHOURGLASS_CURSOR);
 
-  wks->GetOperationNames(*GetOpnames());
+  GetOperationNames( *wks, *GetOpnames() );
 
   m_currentOperation = 0;
   GetOpnames()->SetSelection(m_currentOperation);
@@ -1257,8 +1256,8 @@ void COperationPanel::SetResolutionLabels()
 
   if (m_operation->IsZFXY())
   {
-    CFormula* xFormula = m_operation->GetFormula(CMapTypeField::typeOpAsX);
-    CFormula* yFormula = m_operation->GetFormula(CMapTypeField::typeOpAsY);
+    CFormula* xFormula = m_operation->GetFormula(CMapTypeField::eTypeOpAsX);
+    CFormula* yFormula = m_operation->GetFormula(CMapTypeField::eTypeOpAsY);
 
 
     if (m_userFormula != NULL)
@@ -1550,14 +1549,14 @@ void COperationPanel::DatasetSelChanged( const wxTreeItemId& id )
 
 }
 //----------------------------------------
-bool COperationPanel::CtrlOperation(std::string& msg, bool basicControl /* = false */, const CStringMap* aliases /* = NULL*/)
+bool COperationPanel::CtrlOperation(CWorkspaceFormula *wks, std::string& msg, bool basicControl /* = false */, const CStringMap* aliases /* = NULL*/)
 {
   if (m_operation == NULL)
   {
     return false;
   }
 
-  bool bOk = m_operation->Control(msg, basicControl, aliases);
+  bool bOk = m_operation->Control(wks, msg, basicControl, aliases);
 
   if (bOk)
   {
@@ -1668,15 +1667,18 @@ void COperationPanel::AddFormulaComment(CFormula* formula)
 }
 
 //----------------------------------------
-void COperationPanel::AddFormula(CFormula& formula)
+void COperationPanel::AddFormula( CFormula& formula )
 {
-  CWorkspaceFormula* wks = wxGetApp().GetCurrentWorkspaceFormula();
-  if (wks == NULL)
-  {
-    return;
-  }
+	CWorkspaceFormula* wks = wxGetApp().GetCurrentWorkspaceFormula();
+	if ( wks == NULL )
+	{
+		return;
+	}
 
-  wks->AddFormula(formula);
+	std::string errorMsg;
+	wks->AddFormula( formula, errorMsg );
+	if ( !errorMsg.empty() )
+		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
 }
 
 //----------------------------------------
@@ -1769,7 +1771,7 @@ void COperationPanel::OnChangeDefaultRecord( wxCommandEvent &event )
 
   CSelectRecord recordDlg (this, m_product, -1, "Select a record...");
 
-  wxString recordName;
+  std::string recordName;
   int32_t result = wxID_CANCEL;
   do
   {
@@ -1778,7 +1780,7 @@ void COperationPanel::OnChangeDefaultRecord( wxCommandEvent &event )
     recordName = recordDlg.GetRecordName();
 
   }
-  while ((result == wxID_OK) && (recordName.IsEmpty()));
+  while ((result == wxID_OK) && (recordName.empty()));
 
   if (result != wxID_OK)
   {
@@ -2271,28 +2273,23 @@ void COperationPanel::SetDataSetAndRecordLabel()
 //----------------------------------------
 bool COperationPanel::SetCurrentRecord()
 {
+	if ( m_operation == NULL )
+		return false;
 
-  if (m_operation == NULL)
-  {
-    return false;
-  }
+	m_operation->SetRecord( GetFieldstreectrl()->GetCurrentRecord().ToStdString() );
 
+	/*
+	InitDefaultFormulaValue("longitude", CMapTypeField::typeOpAsX);
+	InitDefaultFormulaValue("lon_tra", CMapTypeField::typeOpAsX);
+	InitDefaultFormulaValue("lon", CMapTypeField::typeOpAsX);
 
-  m_operation->SetRecord(GetFieldstreectrl()->GetCurrentRecord());
+	InitDefaultFormulaValue("latitude", CMapTypeField::typeOpAsY);
+	InitDefaultFormulaValue("lat_tra", CMapTypeField::typeOpAsY);
+	InitDefaultFormulaValue("lat", CMapTypeField::typeOpAsY);
+	*/
+	EnableCtrl();
 
-  /*
-  InitDefaultFormulaValue("longitude", CMapTypeField::typeOpAsX);
-  InitDefaultFormulaValue("lon_tra", CMapTypeField::typeOpAsX);
-  InitDefaultFormulaValue("lon", CMapTypeField::typeOpAsX);
-
-  InitDefaultFormulaValue("latitude", CMapTypeField::typeOpAsY);
-  InitDefaultFormulaValue("lat_tra", CMapTypeField::typeOpAsY);
-  InitDefaultFormulaValue("lat", CMapTypeField::typeOpAsY);
-*/
-  EnableCtrl();
-
-  return (m_operation->GetRecord().IsEmpty() == false);
-
+	return !m_operation->GetRecord().empty();
 }
 
 //----------------------------------------
@@ -2342,7 +2339,7 @@ void COperationPanel::Resolution()
 
   if (m_userFormula != NULL)
   {
-    if (m_userFormula->GetType() == CMapTypeField::typeOpAsField)
+    if (m_userFormula->GetType() == CMapTypeField::eTypeOpAsField)
     {
       title = wxString::Format("Set filter for '%s' and X/Y resolution...", m_userFormula->GetName().c_str());
     }
@@ -2595,7 +2592,7 @@ void COperationPanel::DuplicateOperation()
   }
 
 
-  wxString opName = wks->GetOperationCopyName(m_operation->GetName().ToStdString());
+  wxString opName = wks->GetOperationCopyName(m_operation->GetName());
 
   bOk = wks->InsertOperation(opName.ToStdString(), m_operation);
 
@@ -2728,34 +2725,42 @@ void COperationPanel::ComputeInterval()
     return;
   }
 
-  CFormula* xFormula = m_operation->GetFormula(CMapTypeField::typeOpAsX);
-  CFormula* yFormula = m_operation->GetFormula(CMapTypeField::typeOpAsY);
+  CFormula* xFormula = m_operation->GetFormula(CMapTypeField::eTypeOpAsX);
+  CFormula* yFormula = m_operation->GetFormula(CMapTypeField::eTypeOpAsY);
 
   ComputeInterval(xFormula);
   ComputeInterval(yFormula);
 
 }
 //----------------------------------------
-void COperationPanel::ComputeInterval(CFormula* formula)
+void COperationPanel::ComputeInterval( CFormula* formula )
 {
-  if (!m_operation->IsZFXY())
-  {
-    return;
-  }
+	if ( !m_operation->IsZFXY() )
+	{
+		return;
+	}
 
-  m_operation->ComputeInterval(formula);
-  SetResolutionLabels();
+	std::string errorMsg;
+	m_operation->ComputeInterval( formula, errorMsg );
+	if ( !errorMsg.empty() )
+		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
+
+	SetResolutionLabels();
 }
 //----------------------------------------
-void COperationPanel::ComputeInterval(const wxString& formulaName)
+void COperationPanel::ComputeInterval( const wxString& formulaName )
 {
-  if (!m_operation->IsZFXY())
-  {
-    return;
-  }
+	if ( !m_operation->IsZFXY() )
+	{
+		return;
+	}
 
-  m_operation->ComputeInterval(formulaName);
-  SetResolutionLabels();
+	std::string errorMsg;
+	m_operation->ComputeInterval( formulaName.ToStdString(), errorMsg );
+	if ( !errorMsg.empty() )
+		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
+
+	SetResolutionLabels();
 }
 
 //----------------------------------------
@@ -3062,24 +3067,23 @@ bool COperationPanel::CheckExpression(wxTextCtrl* ctrl)
 
 }
 //----------------------------------------
-bool COperationPanel::CheckExpression(const std::string &value, std::string *strExprUnit /*= NULL*/, std::string *valueOut /*= NULL*/)
+bool COperationPanel::CheckExpression( const std::string &value, std::string *strExprUnit /*= NULL*/, std::string *valueOut /*= NULL*/ )
 {
-  if (m_operation == NULL)
-  {
-    return true;
-  }
+	if ( m_operation == NULL )
+		return true;
 
-  std::string msg;
-  bool bOk = CFormula::CheckExpression(value, m_operation->GetRecord().ToStdString(), msg, strExprUnit, &m_mapFormulaString, m_product, valueOut);
+	std::string msg;
+	CWorkspaceFormula *wks = wxGetApp().GetCurrentWorkspaceFormula();
+	bool bOk = CFormula::CheckExpression( wks, value, m_operation->GetRecord(), msg, strExprUnit, &m_mapFormulaString, m_product, valueOut );
 
-  if (!bOk)
-  {
-    wxMessageBox(msg,
-                "Warning",
-                wxOK | wxICON_EXCLAMATION);
-  }
+	if ( !bOk )
+	{
+		wxMessageBox( msg,
+			"Warning",
+			wxOK | wxICON_EXCLAMATION );
+	}
 
-  return bOk;
+	return bOk;
 }
 //----------------------------------------
 void COperationPanel::FillFormulaList()
@@ -3267,7 +3271,8 @@ void COperationPanel::Execute(bool wait /*= false*/)
   }
 
   std::string msg;
-  bool operationOk = CtrlOperation(msg, false, &m_mapFormulaString);
+  CWorkspaceFormula *wks = wxGetApp().GetCurrentWorkspaceFormula();
+  bool operationOk = CtrlOperation(wks, msg, false, &m_mapFormulaString);
   if (operationOk == false)
   {
     wxMessageBox(wxString::Format("Operation '%s' has some errors and can't be execute:\n%s",
@@ -3399,7 +3404,8 @@ TaskRet COperationPanel::Delay( CDelayDlg& delayDlg )
 		return r;
 
 	std::string msg;
-	bool operationOk = CtrlOperation( msg, false, &m_mapFormulaString );
+	CWorkspaceFormula *wks = wxGetApp().GetCurrentWorkspaceFormula();
+	bool operationOk = CtrlOperation( wks, msg, false, &m_mapFormulaString );
 	if ( !operationOk )
 	{
 		wxMessageBox( wxString::Format( "Operation '%s' has some errors and can't be execute:\n%s",
@@ -3426,7 +3432,7 @@ TaskRet COperationPanel::Delay( CDelayDlg& delayDlg )
 		return r;
 	}
 
-    r = CSchedulerTaskConfig::GetInstance()->AddTaskAsPending( m_operation->GetFullCmd().ToStdString(), at, taskLabel.ToStdString() );
+    r = CSchedulerTaskConfig::GetInstance()->AddTaskAsPending( m_operation->GetFullCmd(), at, taskLabel.ToStdString() );
 
 	if ( !CSchedulerTaskConfig::SaveSchedulerTaskConfig() )
 		RemoveTaskFromSchedulerTaskConfig( r.n );
@@ -3446,7 +3452,8 @@ void COperationPanel::ShowStats()
   }
 
   std::string msg;
-  bool operationOk = CtrlOperation(msg, true, &m_mapFormulaString);
+  CWorkspaceFormula *wks = wxGetApp().GetCurrentWorkspaceFormula();
+  bool operationOk = CtrlOperation(wks, msg, true, &m_mapFormulaString);
   if (operationOk == false)
   {
     wxMessageBox(wxString::Format("Operation '%s' has some errors and process can't be achieved:\n%s",
@@ -3494,7 +3501,8 @@ void COperationPanel::ExportOperation()
   }
 
   std::string msg;
-  bool operationOk = CtrlOperation(msg, true, &m_mapFormulaString);
+  CWorkspaceFormula *wks = wxGetApp().GetCurrentWorkspaceFormula();
+  bool operationOk = CtrlOperation(wks, msg, true, &m_mapFormulaString);
   if (operationOk == false)
   {
     wxMessageBox(wxString::Format("Operation '%s' has some errors and can't be execute:\n%s",
@@ -3834,7 +3842,7 @@ void COperationPanel::DelayExportOperationAsAsciiDump( CDelayDlg& delayDlg, Task
         r.n = CSchedulerTaskConfig::GetInstance()->FindTaskNode_xml( uidSaved.ToStdString(), true );
 	}
 
-    r = CSchedulerTaskConfig::GetInstance()->AddTaskAsPending( r, m_operation->GetExportAsciiFullCmd().ToStdString(), at, taskLabel.ToStdString() );
+    r = CSchedulerTaskConfig::GetInstance()->AddTaskAsPending( r, m_operation->GetExportAsciiFullCmd(), at, taskLabel.ToStdString() );
 
 	if ( !CSchedulerTaskConfig::SaveSchedulerTaskConfig() )
 		RemoveTaskFromSchedulerTaskConfig( r.n );

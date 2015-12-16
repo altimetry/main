@@ -27,11 +27,11 @@
 #endif
 
 #include "new-gui/Common/tools//Trace.h"
-#include "../libbrathl/Tools.h"
+#include "libbrathl/Tools.h"
 #include "new-gui/Common/tools/Exception.h"
-#include "../libbrathl/LatLonPoint.h"
-#include "../libbrathl/InternalFiles.h"
-#include "../libbrathl/InternalFilesYFX.h"
+#include "libbrathl/LatLonPoint.h"
+#include "libbrathl/InternalFiles.h"
+#include "libbrathl/InternalFilesYFX.h"
 
 using namespace brathl;
 

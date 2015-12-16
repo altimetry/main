@@ -43,7 +43,7 @@ using namespace brathl;
 
 //#include "BratGui_wdr.h"
 #include "wxGuiInterface.h"		// (to let wxWidgets choose a wxConfig class for your platform)
-#include "Workspace.h"
+#include "new-gui/brat/Workspaces/Workspace.h"
 #include "TreeWorkspace.h"
 #include "GuiFrame.h"
 

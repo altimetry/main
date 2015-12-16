@@ -15,15 +15,16 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
 #include "new-gui/brat/stdafx.h"
 
 #include "new-gui/Common/tools/Trace.h"
 #include "new-gui/Common/tools/Exception.h"
 
 #include "brathl.h"
-#include "BitSet32.h"
+#include "display/BitSet32.h"
 
+#include "gui/Operation.h"
+#include "gui/Display.h"
 #include "Workspace.h"
 
 
@@ -71,8 +72,10 @@ void CWorkspace::InitConfig()
 	//m_config = new CConfiguration( "", "", m_configFileName.GetFullPath().ToStdString(), "", wxCONFIG_USE_LOCAL_FILE );
 }
 //----------------------------------------
-bool CWorkspace::SaveConfig( bool flush )
+bool CWorkspace::SaveConfig( std::string &errorMsg, bool flush )
 {
+	UNUSED( errorMsg );
+
 	if ( m_config == nullptr )
 		return true;
 
@@ -102,8 +105,10 @@ bool CWorkspace::SaveCommonConfig( bool flush )
 	return bOk;
 }
 //----------------------------------------
-bool CWorkspace::LoadConfig()
+bool CWorkspace::LoadConfig( std::string &errorMsg )
 {
+	UNUSED( errorMsg );
+
 	return LoadCommonConfig();
 }
 //----------------------------------------
@@ -238,110 +243,96 @@ void CWorkspace::Dump( std::ostream& fOut /* = std::cerr */ )
 //-------------------------------------------------------------
 
 //----------------------------------------
-bool CWorkspaceDataset::Import(CWorkspace* wks)
+bool CWorkspaceDataset::Import( CWorkspace* wks, std::string &errorMsg )
 {
-  if (wks == nullptr)
-  {
-    return true;
-  }
+	if ( wks == nullptr )
+		return true;
 
-  CWorkspaceDataset* wksToImport = dynamic_cast<CWorkspaceDataset*>(wks);
-  if (wksToImport == nullptr)
-  {
-    return true;
-  }
 
-  if (m_importBitSet == nullptr)
-  {
-    return true;
-  }
+	CWorkspaceDataset* wksToImport = dynamic_cast<CWorkspaceDataset*>( wks );
+	if ( wksToImport == nullptr )
+		return true;
 
-  if (m_importBitSet->m_bitSet.test(IMPORT_DATASET_INDEX) == false)
-  {
-    return true;
-  }
+	if ( m_importBitSet == nullptr || !m_importBitSet->m_bitSet.test( IMPORT_DATASET_INDEX ) )
+		return true;
 
-  for ( CObMap::const_iterator it = wksToImport->GetDatasets()->begin() ; it != wksToImport->GetDatasets()->end()  ; it++)
-  {
-    CDataset* datasetImport = dynamic_cast<CDataset*>(it->second);
-    if (datasetImport == nullptr)
-    {
+	for ( CObMap::const_iterator it = wksToImport->GetDatasets()->begin(); it != wksToImport->GetDatasets()->end(); it++ )
+	{
+		CDataset* datasetImport = dynamic_cast<CDataset*>( it->second );
+		if ( datasetImport == nullptr )
+		{
+			errorMsg += "ERROR in  CWorkspaceDataset::Import\ndynamic_cast<CDataset*>(it->second) returns nullptr pointer"
+				"\nList seems to contain objects other than those of the class CDataset";
 
-      wxMessageBox("ERROR in  CWorkspaceDataset::Import\ndynamic_cast<CDataset*>(it->second) returns nullptr pointer"
-                   "\nList seems to contain objects other than those of the class CDataset",
-                   "Error",
-                    wxOK | wxCENTRE | wxICON_ERROR);
-      return false;
-    }
+			//wxMessageBox( ,				"Error",				wxOK | wxCENTRE | wxICON_ERROR );
 
-    CDataset* dataset = GetDataset(datasetImport->GetName());
-    if (dataset != nullptr)
-    {
-      wxMessageBox(
-		  "Dataset to import '"
-		  + datasetImport->GetName()
-		  + "':\nUnable to process, a dataset with the same name already exists\n"
-		  + "Import cancelled",
-		  
-		  "Warning",
-		  wxOK | wxICON_EXCLAMATION);
-      return false;
-    }
+			return false;
+		}
 
-    m_datasets.Insert((const char *)datasetImport->GetName().c_str(), new CDataset(*datasetImport));
+		CDataset* dataset = GetDataset( datasetImport->GetName() );
+		if ( dataset != nullptr )
+		{
+			errorMsg +=
+				"Dataset to import '"
+				+ datasetImport->GetName()
+				+ "':\nUnable to process, a dataset with the same name already exists\n"
+				+ "Import cancelled";
 
-  }
+			//wxMessageBox( 				"Warning",				wxOK | wxICON_EXCLAMATION );
 
-  return true;
+			return false;
+		}
+
+		m_datasets.Insert( (const char *)datasetImport->GetName().c_str(), new CDataset( *datasetImport ) );
+
+	}
+	return true;
 }
 
 //----------------------------------------
-bool CWorkspaceDataset::CheckFiles()
+// femm: Apparently not used...
+bool CWorkspaceDataset::CheckFiles( std::string &errorMsg )
 {
-  bool bOk = true;
-  CObMap::iterator it;
+	bool bOk = true;
+	CObMap::iterator it;
 
-  for (it = m_datasets.begin() ; it != m_datasets.end() ; it++)
-  {
-    CDataset* dataset = dynamic_cast<CDataset*>(it->second);
-    if (dataset == nullptr)
-    {
+	for ( it = m_datasets.begin(); it != m_datasets.end(); it++ )
+	{
+		CDataset* dataset = dynamic_cast<CDataset*>( it->second );
+		if ( dataset == nullptr )
+		{
+			errorMsg +=
+				"ERROR in  CWorkspaceDataset::CheckFiles\ndynamic_cast<CDataset*>(it->second) returns nullptr pointer"
+				"\nList seems to contain objects other than those of the class CDataset";
 
-      wxMessageBox("ERROR in  CWorkspaceDataset::CheckFiles\ndynamic_cast<CDataset*>(it->second) returns nullptr pointer"
-                   "\nList seems to contain objects other than those of the class CDataset",
-                   "Error",
-                    wxOK | wxCENTRE | wxICON_ERROR);
-      return false;
-    }
+			return false;
+		}
 
-    try
-    {
-      dataset->GetProductList()->CheckFiles();
-    }
-    catch (CException& e)
-    {
-      bOk = false;
-      wxMessageBox(
-		  "Dataset '"
-		  + dataset->GetName()
-		  + "':\nUnable to process files. Please apply correction\n\nReason:\n"
-		  + e.what(),
-		  
-		  "Warning",
-		  wxOK | wxICON_EXCLAMATION);
+		try
+		{
+			dataset->GetProductList()->CheckFiles();
+		}
+		catch ( CException& e )
+		{
+			bOk = false;
+			errorMsg +=
+				"Dataset '"
+				+ dataset->GetName()
+				+ "':\nUnable to process files. Please apply correction\n\nReason:\n"
+				+ e.what()
+				+ "\n";
+		}
+	}
 
-    }
-  }
-
-  return bOk;
+	return bOk;
 }
 //----------------------------------------
-bool CWorkspaceDataset::SaveConfig( bool flush )
+bool CWorkspaceDataset::SaveConfig( std::string &errorMsg, bool flush )
 {
 	if ( m_config == nullptr )
 		return true;
 
-	bool bOk = DeleteConfigFile() && SaveCommonConfig() && SaveConfigDataset();
+	bool bOk = DeleteConfigFile() && SaveCommonConfig() && SaveConfigDataset( errorMsg );
 
 	if ( flush )
 		m_config->Flush();
@@ -349,7 +340,7 @@ bool CWorkspaceDataset::SaveConfig( bool flush )
 	return bOk;
 }
 //----------------------------------------
-bool CWorkspaceDataset::SaveConfigDataset()
+bool CWorkspaceDataset::SaveConfigDataset( std::string &errorMsg )
 {
 	bool bOk = true;
 	if ( m_config == nullptr )
@@ -363,11 +354,8 @@ bool CWorkspaceDataset::SaveConfigDataset()
 		CDataset* dataset = dynamic_cast<CDataset*>( it->second );
 		if ( dataset == nullptr )
 		{
-
-			wxMessageBox( "ERROR in  CWorkspaceDataset::SaveConfigDataset\ndynamic_cast<CDataset*>(it->second) returns nullptr pointer"
-				"\nList seems to contain objects other than those of the class CDataset",
-				"Error",
-				wxOK | wxCENTRE | wxICON_ERROR );
+			errorMsg += "ERROR in  CWorkspaceDataset::SaveConfigDataset\ndynamic_cast<CDataset*>(it->second) returns nullptr pointer"
+				"\nList seems to contain objects other than those of the class CDataset";
 			return false;
 		}
 
@@ -382,13 +370,15 @@ bool CWorkspaceDataset::SaveConfigDataset()
 }
 
 //----------------------------------------
-bool CWorkspaceDataset::LoadConfig()
+bool CWorkspaceDataset::LoadConfig( std::string &errorMsg )
 {
-	return m_config && LoadCommonConfig() && LoadConfigDataset();
+	UNUSED( errorMsg );
+
+	return m_config && LoadCommonConfig() && LoadConfigDataset( errorMsg );
 }
 
 //----------------------------------------
-bool CWorkspaceDataset::LoadConfigDataset()
+bool CWorkspaceDataset::LoadConfigDataset( std::string &errorMsg )
 {
 	if ( m_config == nullptr )
 		return true;
@@ -427,10 +417,7 @@ bool CWorkspaceDataset::LoadConfigDataset()
 			if ( !dataset->CtrlFiles(v) )
 			{
 				std::string s = Vector2String( v, "\n" );
-				wxMessageBox(
-					"Dataset '" + m_name + "':\n contains file '" + s + "' that doesn't exist\n",
-					"Warning",
-					wxOK | wxICON_EXCLAMATION );
+				errorMsg += "Dataset '" + m_name + "':\n contains file '" + s + "' that doesn't exist\n";
 				return false;
 			}
 			else
@@ -574,7 +561,7 @@ bool CWorkspaceFormula::IsFormulaToImport( const std::string& name )
 	return false;
 }
 //----------------------------------------
-bool CWorkspaceFormula::Import( CWorkspace* wks )
+bool CWorkspaceFormula::Import( CWorkspace* wks, std::string &errorMsg )
 {
 	if ( wks == nullptr )
 		return true;
@@ -624,16 +611,12 @@ bool CWorkspaceFormula::Import( CWorkspace* wks )
 
 			} while ( formulaTmp != nullptr );
 
-
-			wxMessageBox( 
+			errorMsg +=
 				"Import formula '"
 				+ formulaImport->GetName()
 				+ "':\n\nA formula with the same name already exists.\n\nImported formula has been renamed to:\n\n '"
 				+ formulaNewName
-				+ "'\n",
-
-				"Warning",
-				wxOK | wxICON_EXCLAMATION );
+				+ "'\n";
 		}
 
 		CFormula* newFormula = new CFormula( *formulaImport );
@@ -646,9 +629,9 @@ bool CWorkspaceFormula::Import( CWorkspace* wks )
 }
 
 //----------------------------------------
-void CWorkspaceFormula::AddFormula(CFormula& formula)
+bool CWorkspaceFormula::AddFormula( CFormula& formula, std::string &errorMsg )
 {
-  m_formulas.InsertUserDefined(formula);
+	return m_formulas.InsertUserDefined_ReplacePredefinedNotAllowed( formula, errorMsg );
 }
 //----------------------------------------
 void CWorkspaceFormula::RemoveFormula(const std::string& name)
@@ -671,6 +654,10 @@ CFormula* CWorkspaceFormula::GetFormula(const std::string& name)
   return dynamic_cast<CFormula*>(m_formulas.Exists((const char *)name.c_str()));
 }
 //----------------------------------------
+const CFormula* CWorkspaceFormula::GetFormula( CMapFormula::const_iterator it ) const
+{
+	return dynamic_cast<const CFormula*>( it->second );
+}
 CFormula* CWorkspaceFormula::GetFormula(CMapFormula::iterator it)
 {
   return dynamic_cast<CFormula*>(it->second);
@@ -708,45 +695,12 @@ void CWorkspaceFormula::GetFormulaNames( std::vector< std::string >& array, bool
 		}
 	}
 }
-//----------------------------------------
-void CWorkspaceFormula::GetFormulaNames(wxComboBox& combo, bool getPredefined /* = true*/, bool getUser /* = true*/)
-{
-  CMapFormula::iterator it;
-
-  for (it = m_formulas.begin() ; it != m_formulas.end() ; it++)
-  {
-    CFormula* formula = GetFormula(it);
-    if (formula != nullptr)
-    {
-      if ( ( getPredefined && formula->IsPredefined() ) || ( getUser && !formula->IsPredefined() ) )
-      {
-        combo.Append( (it->first).c_str());
-      }
-    }
-  }
-}
-//----------------------------------------
-void CWorkspaceFormula::GetFormulaNames(wxListBox& lb, bool getPredefined /* = true*/, bool getUser /* = true*/)
-{
-  CMapFormula::iterator it;
-
-  for (it = m_formulas.begin() ; it != m_formulas.end() ; it++)
-  {
-    CFormula* formula = GetFormula(it);
-    if (formula != nullptr)
-    {
-      if ( ( getPredefined && formula->IsPredefined() ) || ( getUser && !formula->IsPredefined() ) )
-      {
-        lb.Append( (it->first).c_str());
-      }
-    }
-  }
-}
-
 
 //----------------------------------------
-bool CWorkspaceFormula::SaveConfig(bool flush)
+bool CWorkspaceFormula::SaveConfig( std::string &errorMsg, bool flush)
 {
+	UNUSED( errorMsg );
+
   bool bOk = true;
 
   if (m_config == nullptr)
@@ -793,14 +747,14 @@ bool CWorkspaceFormula::SaveConfigPredefinedFormula()
 	return config.DeleteAll() && m_formulas.SaveConfig( &config, true );
 }
 //----------------------------------------
-bool CWorkspaceFormula::LoadConfig()
+bool CWorkspaceFormula::LoadConfig( std::string &errorMsg )
 {
-	return m_config && LoadCommonConfig() && LoadConfigFormula();
+	return m_config && LoadCommonConfig() && LoadConfigFormula( errorMsg );
 }
 //----------------------------------------
-bool CWorkspaceFormula::LoadConfigFormula()
+bool CWorkspaceFormula::LoadConfigFormula( std::string &errorMsg )
 {
-	return !m_config || m_formulas.InsertUserDefined( m_config );
+	return !m_config || m_formulas.InsertUserDefined( m_config, errorMsg );
 }
 //----------------------------------------
 void CWorkspaceFormula::Dump(std::ostream& fOut /* = std::cerr */)
@@ -824,201 +778,174 @@ void CWorkspaceFormula::Dump(std::ostream& fOut /* = std::cerr */)
 //------------------- CWorkspaceOperation class --------------------
 //-------------------------------------------------------------
 //----------------------------------------
-bool CWorkspaceOperation::Import(CWorkspace* wks)
+bool CWorkspaceOperation::Import( CWorkspace* wks, std::string &errorMsg )
 {
-  if (wks == nullptr)
-  {
-    return true;
-  }
+	if ( wks == nullptr )
+	{
+		return true;
+	}
 
-  CWorkspaceOperation* wksToImport = dynamic_cast<CWorkspaceOperation*>(wks);
-  if (wksToImport == nullptr)
-  {
-    return true;
-  }
+	CWorkspaceOperation* wksToImport = dynamic_cast<CWorkspaceOperation*>( wks );
+	if ( wksToImport == nullptr )
+	{
+		return true;
+	}
 
-  if (m_importBitSet == nullptr)
-  {
-    return true;
-  }
+	if ( m_importBitSet == nullptr )
+	{
+		return true;
+	}
 
-  if (m_importBitSet->m_bitSet.test(IMPORT_OPERATION_INDEX) == false)
-  {
-    return true;
-  }
+	if ( m_importBitSet->m_bitSet.test( IMPORT_OPERATION_INDEX ) == false )
+	{
+		return true;
+	}
 
 
-  CObMap::iterator it;
-  for (it = wksToImport->GetOperations()->begin() ; it != wksToImport->GetOperations()->end()  ; it++)
-  {
-    COperation* operationImport = dynamic_cast<COperation*>(it->second);
-    if (operationImport == nullptr)
-    {
+	CObMap::iterator it;
+	for ( it = wksToImport->GetOperations()->begin(); it != wksToImport->GetOperations()->end(); it++ )
+	{
+		COperation* operationImport = dynamic_cast<COperation*>( it->second );
+		if ( operationImport == nullptr )
+		{
+			errorMsg += "ERROR in  CWorkspaceOperation::Import\ndynamic_cast<COperation*>(it->second) returns nullptr pointer"
+				"\nList seems to contain objects other than those of the class COperation\n";
 
-      wxMessageBox("ERROR in  CWorkspaceOperation::Import\ndynamic_cast<COperation*>(it->second) returns nullptr pointer"
-                   "\nList seems to contain objects other than those of the class COperation",
-                   "Error",
-                    wxOK | wxCENTRE | wxICON_ERROR);
-      return false;
-    }
+			return false;
+		}
 
-    COperation* operation = GetOperation(operationImport->GetName().ToStdString());
-    if (operation != nullptr)
-    {
-      wxMessageBox(
-		  "Operation to import '"
-		  + operationImport->GetName()
-		  + "':\nUnable to process, an operation with the same name already exists\n"
-		  + "Import cancelled",
+		COperation* operation = GetOperation( operationImport->GetName() );
+		if ( operation != nullptr )
+		{
+			errorMsg += 
+				"Operation to import '"
+				+ operationImport->GetName()
+				+ "':\nUnable to process, an operation with the same name already exists\n"
+				+ "Import cancelled\n";
 
-		  "Warning",
-		  wxOK | wxICON_EXCLAMATION);
-      return false;
-    }
+			return false;
+		}
 
-    m_operations.Insert((const char *)operationImport->GetName().c_str(), new COperation(*operationImport));
+		m_operations.Insert( operationImport->GetName(), new COperation( *operationImport ) );
+	}
 
-  }
-
-  return true;
+	return true;
 }
 
 //----------------------------------------
-bool CWorkspaceOperation::RenameOperation(COperation* operation, const std::string& newName)
+bool CWorkspaceOperation::RenameOperation( COperation* operation, const std::string& newName )
 {
-  if (operation->GetName().Cmp(newName) == 0)
-  {
-    return true;
-  }
+	if ( str_cmp( operation->GetName(), newName ) )
+		return true;
 
-  bool bOk = m_operations.RenameKey((const char *)operation->GetName().c_str(), (const char *)newName.c_str());
-  if (bOk == false)
-  {
-   return false;
-  }
+	if ( !m_operations.RenameKey( operation->GetName(), newName ) )
+		return false;
 
-  operation->SetName(newName);
+	operation->SetName( newName );
 
-  return true;
+	return true;
 }
 //----------------------------------------
-bool CWorkspaceOperation::SaveConfig(bool flush)
+bool CWorkspaceOperation::SaveConfig( std::string &errorMsg, bool flush )
 {
-  bool bOk = true;
+	if ( m_config == nullptr )
+		return true;
 
-  if (m_config == nullptr)
-  {
-    return true;
-  }
+	bool bOk = DeleteConfigFile() && SaveCommonConfig() && SaveConfigOperation( errorMsg );
 
-  bOk &= DeleteConfigFile();
+	if ( flush )
+		m_config->Flush();
 
-  bOk &= SaveCommonConfig();
-
-  bOk &= SaveConfigOperation();
-
-  if (flush)
-  {
-    m_config->Flush();
-  }
-
-  return bOk;
+	return bOk;
 }
 
 //----------------------------------------
-bool CWorkspaceOperation::SaveConfigOperation()
+bool CWorkspaceOperation::SaveConfigOperation( std::string &errorMsg )
 {
-  bool bOk = true;
-  if (m_config == nullptr)
-  {
-    return true;
-  }
+	bool bOk = true;
+	if ( m_config == nullptr )
+	{
+		return true;
+	}
 
-  std::string entry;
+	std::string entry;
 
-  CObMap::iterator it;
+	CObMap::iterator it;
 
-  int32_t index = 0;
+	int32_t index = 0;
 
-  for (it = m_operations.begin() ; it != m_operations.end() ; it++)
-  {
-    index++;
-    COperation* operation = dynamic_cast<COperation*>(it->second);
-    if (operation == nullptr)
-    {
+	for ( it = m_operations.begin(); it != m_operations.end(); it++ )
+	{
+		index++;
+		COperation* operation = dynamic_cast<COperation*>( it->second );
+		if ( operation == nullptr )
+		{
+			errorMsg += "ERROR in  CWorkspaceOperation::SaveConfigOperation\ndynamic_cast<COperation*>(it->second) returns nullptr pointer"
+				"\nList seems to contain objects other than those of the class COperation\n";
 
-      wxMessageBox("ERROR in  CWorkspaceOperation::SaveConfigOperation\ndynamic_cast<COperation*>(it->second) returns nullptr pointer"
-                   "\nList seems to contain objects other than those of the class COperation",
-                   "Error",
-                    wxOK | wxCENTRE | wxICON_ERROR);
-      return false;
-    }
+			return false;
+		}
 
-    m_config->SetPath("/" + GROUP_OPERATIONS);
+		m_config->SetPath( "/" + GROUP_OPERATIONS );
 
-    bOk &= m_config->Write(ENTRY_OPNAME + n2s< std::string >( index ), operation->GetName().ToStdString() );
+		bOk &= m_config->Write( ENTRY_OPNAME + n2s< std::string >( index ), operation->GetName() );
 
-    operation->SaveConfig(m_config);
-  }
+		operation->SaveConfig( m_config );
+	}
 
-  return bOk;
+	return bOk;
 }
 
 //----------------------------------------
-bool CWorkspaceOperation::LoadConfig()
+bool CWorkspaceOperation::LoadConfig( std::string &errorMsg )
 {
-  return !m_config || ( LoadCommonConfig() && LoadConfigOperation() );
+  return !m_config || ( LoadCommonConfig() && LoadConfigOperation( errorMsg ) );
 }
 
 //----------------------------------------
-bool CWorkspaceOperation::LoadConfigOperation()
+bool CWorkspaceOperation::LoadConfigOperation( std::string &errorMsg )
 {
-  bool bOk = true;
-  if (m_config == nullptr)
-  {
-    return true;
-  }
+	bool bOk = true;
+	if ( m_config == nullptr )
+		return true;
 
-  m_config->SetPath("/" + GROUP_OPERATIONS);
+	m_config->SetPath( "/" + GROUP_OPERATIONS );
 
-  long maxEntries = m_config->GetNumberOfEntries();
-  std::string entry;
-  std::string valueString;
-  long i = 0;
+	long maxEntries = m_config->GetNumberOfEntries();
+	std::string entry;
+	std::string valueString;
+	long i = 0;
 
-  do
-  {
-    bOk = m_config->GetNextEntry(entry, i);
-    if (bOk)
-    {
-      valueString = m_config->Read(entry);
-      InsertOperation(valueString);
-    }
-  }
-  while (bOk);
+	do
+	{
+		bOk = m_config->GetNextEntry( entry, i );
+		if ( bOk )
+		{
+			valueString = m_config->Read( entry );
+			InsertOperation( valueString );
+		}
+	} while ( bOk );
 
-  CObMap::iterator it;
+	CObMap::iterator it;
 
-  int32_t index = 0;
+	int32_t index = 0;
 
-  for (it = m_operations.begin() ; it != m_operations.end() ; it++)
-  {
-    index++;
-    COperation* operation = dynamic_cast<COperation*>(it->second);
-    if (operation == nullptr)
-    {
+	for ( it = m_operations.begin(); it != m_operations.end(); it++ )
+	{
+		index++;
+		COperation* operation = dynamic_cast<COperation*>( it->second );
+		if ( operation == nullptr )
+		{
+			errorMsg += "ERROR in  CWorkspaceOperation::LoadConfigOperation\ndynamic_cast<COperation*>(it->second) returns nullptr pointer"
+				"\nList seems to contain objects other than those of the class COperation";
 
-      wxMessageBox("ERROR in  CWorkspaceOperation::LoadConfigOperation\ndynamic_cast<COperation*>(it->second) returns nullptr pointer"
-                   "\nList seems to contain objects other than those of the class COperation",
-                   "Error",
-                    wxOK | wxCENTRE | wxICON_ERROR);
-      return false;
-    }
+			return false;
+		}
 
-    operation->LoadConfig(m_config);
-  }
+		operation->LoadConfig( m_config, errorMsg );
+	}
 
-  return true;
+	return true;
 }
 //----------------------------------------
 std::string CWorkspaceOperation::GetOperationNewName()
@@ -1034,6 +961,11 @@ std::string CWorkspaceOperation::GetOperationNewName()
   while (m_operations.Exists((const char *)key.c_str()) != nullptr);
 
   return key;
+}
+
+COperation* CWorkspaceOperation::GetOperation( const std::string& name )
+{
+	return dynamic_cast<COperation*>( m_operations.Exists( name ) );
 }
 //----------------------------------------
 std::string CWorkspaceOperation::GetOperationCopyName( const std::string& baseName )
@@ -1095,55 +1027,42 @@ void CWorkspaceOperation::GetOperationNames( std::vector< std::string >& array )
 		array.push_back( it->first );
 }
 //----------------------------------------
-void CWorkspaceOperation::GetOperationNames(wxComboBox& combo)
+bool CWorkspaceOperation::UseDataset( const std::string& name, std::string &errorMsg, CStringArray* operationNames /*= nullptr*/ )
 {
-  CObMap::iterator it;
+	CObMap::iterator it;
+	bool useDataset = false;
+	for ( it = m_operations.begin(); it != m_operations.end(); it++ )
+	{
+		COperation* operation = dynamic_cast<COperation*>( it->second );
+		if ( operation == nullptr )
+		{
+			errorMsg += "ERROR in  CWorkspaceOperation::UseDataset\ndynamic_cast<COperation*>(it->second) returns nullptr pointer"
+				"\nList seems to contain objects other than those of the class COperation\n";
 
-  for (it = m_operations.begin() ; it != m_operations.end() ; it++)
-  {
-    //std::string value = it->first;
-    combo.Append( (it->first).c_str());
-  }
-}
-//----------------------------------------
-bool CWorkspaceOperation::UseDataset(const std::string& name, CStringArray* operationNames /*= nullptr*/)
-{
-  CObMap::iterator it;
-  bool useDataset = false;
-  for (it = m_operations.begin() ; it != m_operations.end() ; it++)
-  {
-    COperation* operation = dynamic_cast<COperation*>(it->second);
-    if (operation == nullptr)
-    {
+			return false;
+		}
 
-      wxMessageBox("ERROR in  CWorkspaceOperation::UseDataset\ndynamic_cast<COperation*>(it->second) returns nullptr pointer"
-                   "\nList seems to contain objects other than those of the class COperation",
-                   "Error",
-                    wxOK | wxCENTRE | wxICON_ERROR);
-      return false;
-    }
+		bool useIt = operation->UseDataset( name );
+		useDataset |= useIt;
 
-    bool useIt = operation->UseDataset(name);
-    useDataset |= useIt;
+		if ( operationNames != nullptr )
+		{
+			if ( useIt )
+			{
+				operationNames->Insert( (const char *)operation->GetName().c_str() );
+			}
 
-    if (operationNames != nullptr)
-    {
-      if (useIt)
-      {
-        operationNames->Insert((const char *)operation->GetName().c_str());
-      }
+		}
+		else
+		{
+			if ( useDataset )
+			{
+				break;
+			}
+		}
+	}
 
-    }
-    else
-    {
-      if (useDataset)
-      {
-        break;
-      }
-    }
-  }
-
-  return useDataset;
+	return useDataset;
 }
 //----------------------------------------
 bool CWorkspaceOperation::DeleteOperation(COperation* operation)
@@ -1154,242 +1073,217 @@ bool CWorkspaceOperation::DeleteOperation(COperation* operation)
 }
 
 //----------------------------------------
-void CWorkspaceOperation::Dump(std::ostream& fOut /* = std::cerr */)
+void CWorkspaceOperation::Dump( std::ostream& fOut /* = std::cerr */ )
 {
-  if (CTrace::IsTrace() == false)
-  {
-    return;
-  }
+	if ( !CTrace::IsTrace() )
+		return;
 
-  CWorkspace::Dump(fOut);
+	CWorkspace::Dump( fOut );
 
-  fOut << "==> Dump a CWorkspaceOperation Object at "<< this << std::endl;
+	fOut << "==> Dump a CWorkspaceOperation Object at " << this << std::endl;
 
-  fOut << "==> END Dump a CWorkspaceOperation Object at "<< this << std::endl;
+	fOut << "==> END Dump a CWorkspaceOperation Object at " << this << std::endl;
 
-  fOut << std::endl;
-
+	fOut << std::endl;
 }
 
 //-------------------------------------------------------------
 //------------------- CWorkspaceDisplay class --------------------
 //-------------------------------------------------------------
 
-bool CWorkspaceDisplay::Import(CWorkspace* wks)
+bool CWorkspaceDisplay::Import( CWorkspace* wks, std::string &errorMsg )
 {
-  if (wks == nullptr)
-  {
-    return true;
-  }
+	if ( wks == nullptr )
+	{
+		return true;
+	}
 
-  CWorkspaceDisplay* wksToImport = dynamic_cast<CWorkspaceDisplay*>(wks);
-  if (wksToImport == nullptr)
-  {
-    return true;
-  }
+	CWorkspaceDisplay* wksToImport = dynamic_cast<CWorkspaceDisplay*>( wks );
+	if ( wksToImport == nullptr )
+	{
+		return true;
+	}
 
-  if (m_importBitSet == nullptr)
-  {
-    return true;
-  }
+	if ( m_importBitSet == nullptr )
+	{
+		return true;
+	}
 
-  if (m_importBitSet->m_bitSet.test(IMPORT_DISPLAY_INDEX) == false)
-  {
-    return true;
-  }
+	if ( m_importBitSet->m_bitSet.test( IMPORT_DISPLAY_INDEX ) == false )
+	{
+		return true;
+	}
 
+	for ( CObMap::iterator it = wksToImport->GetDisplays()->begin(); it != wksToImport->GetDisplays()->end(); it++ )
+	{
+		CDisplay* displayImport = dynamic_cast<CDisplay*>( it->second );
+		if ( displayImport == nullptr )
+		{
+			errorMsg += 
+				"ERROR in  CWorkspaceDisplay::Import\ndynamic_cast<CDisplay*>(it->second) returns nullptr pointer"
+				"\nList seems to contain objects other than those of the class CDisplay";
 
-  CObMap::iterator it;
-  for (it = wksToImport->GetDisplays()->begin() ; it != wksToImport->GetDisplays()->end()  ; it++)
-  {
-    CDisplay* displayImport = dynamic_cast<CDisplay*>(it->second);
-    if (displayImport == nullptr)
-    {
+			return false;
+		}
 
-      wxMessageBox("ERROR in  CWorkspaceDisplay::Import\ndynamic_cast<CDisplay*>(it->second) returns nullptr pointer"
-                   "\nList seems to contain objects other than those of the class CDisplay",
-                   "Error",
-                    wxOK | wxCENTRE | wxICON_ERROR);
-      return false;
-    }
+		CDisplay* display = GetDisplay( displayImport->GetName().ToStdString() );
+		if ( display != nullptr )
+		{
+			errorMsg += 
+				"Operation to import '"
+				+ displayImport->GetName()
+				+ "':\nUnable to process, an operation with the same name already exists\n"
+				+ "Import canceled\n";
 
-    CDisplay* display = GetDisplay(displayImport->GetName().ToStdString());
-    if (display != nullptr)
-    {
-      wxMessageBox(
-		  "Operation to import '"
-		  + displayImport->GetName()
-		  + "':\nUnable to process, an operation with the same name already exists\n"
-		  + "Import cancelled",
+			return false;
+		}
 
-		  "Warning",
-		  wxOK | wxICON_EXCLAMATION);
-      return false;
-    }
+		m_displays.Insert( (const char *)displayImport->GetName().c_str(), new CDisplay( *displayImport ) );
+	}
 
-    m_displays.Insert((const char *)displayImport->GetName().c_str(), new CDisplay(*displayImport));
-
-  }
-
-  return true;
+	return true;
 }
 //----------------------------------------
-bool CWorkspaceDisplay::UseOperation(const std::string& name, CStringArray* displayNames /*= nullptr*/)
+bool CWorkspaceDisplay::UseOperation( const std::string& name, std::string &errorMsg, CStringArray* displayNames /*= nullptr*/ )
 {
-  CObMap::iterator it;
-  bool useOperation = false;
+	CObMap::iterator it;
+	bool useOperation = false;
 
-  for (it = m_displays.begin() ; it != m_displays.end() ; it++)
-  {
-    CDisplay* display = dynamic_cast<CDisplay*>(it->second);
-    if (display == nullptr)
-    {
+	for ( it = m_displays.begin(); it != m_displays.end(); it++ )
+	{
+		CDisplay* display = dynamic_cast<CDisplay*>( it->second );
+		if ( display == nullptr )
+		{
+			errorMsg += 
+				"ERROR in  CWorkspaceDisplay::UseOperation\ndynamic_cast<CDisplay*>(it->second) returns nullptr pointer"
+				"\nList seems to contain objects other than those of the class CDisplay\n";
 
-      wxMessageBox("ERROR in  CWorkspaceDisplay::UseOperation\ndynamic_cast<CDisplay*>(it->second) returns nullptr pointer"
-                   "\nList seems to contain objects other than those of the class CDisplay",
-                   "Error",
-                    wxOK | wxCENTRE | wxICON_ERROR);
-      return false;
-    }
+			return false;
+		}
 
-    bool useIt = display->UseOperation(name);
-    useOperation |= useIt;
+		bool useIt = display->UseOperation( name );
+		useOperation |= useIt;
 
-    if (displayNames != nullptr)
-    {
-      if (useIt)
-      {
-        displayNames->Insert((const char *)display->GetName().c_str());
-      }
+		if ( displayNames != nullptr )
+		{
+			if ( useIt )
+			{
+				displayNames->Insert( (const char *)display->GetName().c_str() );
+			}
+		}
+		else
+		{
+			if ( useOperation )
+			{
+				break;
+			}
+		}
+	}
 
-    }
-    else
-    {
-      if (useOperation)
-      {
-        break;
-      }
-    }
-  }
-
-  return useOperation;
+	return useOperation;
 }
 //----------------------------------------
-bool CWorkspaceDisplay::SaveConfig(bool flush)
+bool CWorkspaceDisplay::SaveConfig( std::string &errorMsg, bool flush )
 {
-  bool bOk = true;
+	if ( m_config == nullptr )
+		return true;
 
-  if (m_config == nullptr)
-  {
-    return true;
-  }
+	bool bOk = DeleteConfigFile() && SaveCommonConfig() && SaveConfigDisplay( errorMsg );
 
-  bOk &= DeleteConfigFile();
+	if ( flush )
+		m_config->Flush();
 
-  bOk &= SaveCommonConfig();
-  bOk &= SaveConfigDisplay();
-
-  if (flush)
-  {
-    m_config->Flush();
-  }
-
-  return bOk;
-
+	return bOk;
 }
 //----------------------------------------
-bool CWorkspaceDisplay::SaveConfigDisplay()
+bool CWorkspaceDisplay::SaveConfigDisplay( std::string &errorMsg )
 {
-  bool bOk = true;
-  if (m_config == nullptr)
-  {
-    return true;
-  }
+	bool bOk = true;
+	if ( m_config == nullptr )
+	{
+		return true;
+	}
 
-  std::string entry;
+	std::string entry;
 
-  CObMap::iterator it;
+	CObMap::iterator it;
 
-  int32_t index = 0;
+	int32_t index = 0;
 
-  for (it = m_displays.begin() ; it != m_displays.end() ; it++)
-  {
-    index++;
-    CDisplay* display = dynamic_cast<CDisplay*>(it->second);
-    if (display == nullptr)
-    {
+	for ( it = m_displays.begin(); it != m_displays.end(); it++ )
+	{
+		index++;
+		CDisplay* display = dynamic_cast<CDisplay*>( it->second );
+		if ( display == nullptr )
+		{
+			errorMsg += 
+				"ERROR in  CWorkspaceDisplay::m_displays\ndynamic_cast<CDisplay*>(it->second) returns nullptr pointer"
+				"\nList seems to contain objects other than those of the class CDisplay";
 
-      wxMessageBox("ERROR in  CWorkspaceDisplay::m_displays\ndynamic_cast<CDisplay*>(it->second) returns nullptr pointer"
-                   "\nList seems to contain objects other than those of the class CDisplay",
-                   "Error",
-                    wxOK | wxCENTRE | wxICON_ERROR);
-      return false;
-    }
+			return false;
+		}
 
-    m_config->SetPath("/" + GROUP_DISPLAY);
+		m_config->SetPath( "/" + GROUP_DISPLAY );
 
-    bOk &= m_config->Write(ENTRY_DISPLAYNAME + n2s< std::string >( index ), display->GetName().ToStdString() );
+		bOk &= m_config->Write( ENTRY_DISPLAYNAME + n2s< std::string >( index ), display->GetName().ToStdString() );
 
-    display->SaveConfig(m_config);
-  }
+		display->SaveConfig( m_config );
+	}
 
-  return bOk;
+	return bOk;
 }
 
 //----------------------------------------
-bool CWorkspaceDisplay::LoadConfig()
+bool CWorkspaceDisplay::LoadConfig( std::string &errorMsg )
 {
-	return !m_config || ( LoadCommonConfig() && LoadConfigDisplay() );
+	return !m_config || ( LoadCommonConfig() && LoadConfigDisplay( errorMsg ) );
 }
 //----------------------------------------
-bool CWorkspaceDisplay::LoadConfigDisplay()
+bool CWorkspaceDisplay::LoadConfigDisplay( std::string &errorMsg )
 {
-  bool bOk = true;
-  if (m_config == nullptr)
-  {
-    return true;
-  }
+	bool bOk = true;
+	if ( m_config == nullptr )
+	{
+		return true;
+	}
 
-  m_config->SetPath("/" + GROUP_DISPLAY);
+	m_config->SetPath( "/" + GROUP_DISPLAY );
 
-  long maxEntries = m_config->GetNumberOfEntries();
-  std::string entry;
-  std::string valueString;
-  long i = 0;
+	long maxEntries = m_config->GetNumberOfEntries();
+	std::string entry;
+	std::string valueString;
+	long i = 0;
+	do
+	{
+		bOk = m_config->GetNextEntry( entry, i );
+		if ( bOk )
+		{
+			valueString = m_config->Read( entry );
+			InsertDisplay( valueString );
+		}
+	} while ( bOk );
 
-  do
-  {
-    bOk = m_config->GetNextEntry(entry, i);
-    if (bOk)
-    {
-      valueString = m_config->Read(entry);
-      InsertDisplay(valueString);
-    }
-  }
-  while (bOk);
+	CObMap::iterator it;
 
-  CObMap::iterator it;
+	int32_t index = 0;
 
-  int32_t index = 0;
+	for ( it = m_displays.begin(); it != m_displays.end(); it++ )
+	{
+		index++;
+		CDisplay* display = dynamic_cast<CDisplay*>( it->second );
+		if ( display == nullptr )
+		{
+			errorMsg +=
+				"ERROR in  CWorkspaceDisplay::LoadConfigOperation\ndynamic_cast<CDisplay*>(it->second) returns nullptr pointer"
+				"\nList seems to contain objects other than those of the class CDisplay\n";
 
-  for (it = m_displays.begin() ; it != m_displays.end() ; it++)
-  {
-    index++;
-    CDisplay* display = dynamic_cast<CDisplay*>(it->second);
-    if (display == nullptr)
-    {
+			return false;
+		}
 
-      wxMessageBox("ERROR in  CWorkspaceDisplay::LoadConfigOperation\ndynamic_cast<CDisplay*>(it->second) returns nullptr pointer"
-                   "\nList seems to contain objects other than those of the class CDisplay",
-                   "Error",
-                    wxOK | wxCENTRE | wxICON_ERROR);
-      return false;
-    }
+		display->LoadConfig( m_config );
+	}
 
-    display->LoadConfig(m_config);
-  }
-
-  return true;
+	return true;
 }
 //----------------------------------------
 bool CWorkspaceDisplay::RenameDisplay(CDisplay* display, const std::string& newName)
@@ -1409,6 +1303,14 @@ bool CWorkspaceDisplay::RenameDisplay(CDisplay* display, const std::string& newN
 
   return true;
 }
+
+
+
+CDisplay* CWorkspaceDisplay::GetDisplay( const std::string& name )
+{
+	return dynamic_cast<CDisplay*>( m_displays.Exists( name ) );
+}
+
 
 //----------------------------------------
 std::string CWorkspaceDisplay::GetDisplayNewName()
@@ -1441,14 +1343,6 @@ void CWorkspaceDisplay::GetDisplayNames( std::vector< std::string >& array )
 {
 	for ( CObMap::iterator it = m_displays.begin(); it != m_displays.end(); it++ )
 		array.push_back( it->first );
-}
-//----------------------------------------
-void CWorkspaceDisplay::GetDisplayNames( wxComboBox& combo )
-{
-	for ( CObMap::iterator it = m_displays.begin(); it != m_displays.end(); it++ )
-	{
-		combo.Append( it->first.c_str() );
-	}
 }
 //----------------------------------------
 bool CWorkspaceDisplay::DeleteDisplay( CDisplay* display )

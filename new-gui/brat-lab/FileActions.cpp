@@ -3,7 +3,7 @@
 #include "new-gui/Common/tools/Trace.h"
 
 #include "System/CmdLineProcessor.h"
-#include "../../display/PlotData/WPlot.h"
+#include "display/PlotData/WPlot.h"
 
 #include "QbrtMainWindow.h"
 #include "GUI/QbrtMapEditor.h"

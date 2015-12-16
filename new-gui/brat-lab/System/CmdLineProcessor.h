@@ -4,8 +4,8 @@
 		
 #include <QtGui/QApplication>
 
-#include "../libbrathl/List.h"
-#include "../libbrathl/FileParams.h"
+#include "libbrathl/List.h"
+#include "libbrathl/FileParams.h"
 
 
 //  - empirical assumption (without this crashes): a forward like this is

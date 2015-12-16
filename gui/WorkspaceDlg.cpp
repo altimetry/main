@@ -238,38 +238,38 @@ bool CWorkspaceDlg::VerifyPath(bool withMsg)
   return true;
 }
 //----------------------------------------
-bool CWorkspaceDlg::VerifyConfig(bool withMsg)
+bool CWorkspaceDlg::VerifyConfig( bool withMsg )
 {
-  bool bOk = false;
+	if ( !VerifyPath( withMsg ) )
+		return false;
 
-  if (VerifyPath(withMsg) == false)
-  {
-    return bOk;
-  }
+	CWorkspace wks;
+	wks.SetPath( GetWksLoc()->GetValue().ToStdString(), false );
+	bool bOk = wks.IsConfigFile();
+	if ( bOk )
+	{
+		std::string errorMsg;
+		bOk &= wks.LoadConfig( errorMsg );
+		if ( !errorMsg.empty() )
+			wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
 
-  CWorkspace wks;
-  wks.SetPath(GetWksLoc()->GetValue().ToStdString(), false);
-  bOk = wks.IsConfigFile();
-  if (bOk)
-  {
-    bOk &= wks.LoadConfig();
-    bOk &= wks.IsRoot();
-  }
-  if (bOk == false)
-  {
-    if (withMsg)
-    {
-      wxMessageBox(wxString::Format("Path %s doesn't contain any workspace informations or is not the root folder\nPlease set a correct pathname\n",
-                                    GetWksLoc()->GetValue().c_str()),
-                   "Warning",
-                    wxOK | wxCENTRE | wxICON_EXCLAMATION);
-    }
-  }
-  else
-  {
-    GetWksName()->SetValue(wks.GetName());
-  }
-  return bOk;
+		bOk &= wks.IsRoot();
+	}
+	if ( bOk == false )
+	{
+		if ( withMsg )
+		{
+			wxMessageBox( wxString::Format( "Path %s doesn't contain any workspace informations or is not the root folder\nPlease set a correct pathname\n",
+				GetWksLoc()->GetValue().c_str() ),
+				"Warning",
+				wxOK | wxCENTRE | wxICON_EXCLAMATION );
+		}
+	}
+	else
+	{
+		GetWksName()->SetValue( wks.GetName() );
+	}
+	return bOk;
 }
 
 //----------------------------------------
@@ -296,45 +296,48 @@ bool CWorkspaceDlg::VerifyNotConfig(bool withMsg)
 //----------------------------------------
 void CWorkspaceDlg::FillImportFormulas()
 {
-  if (m_action != wksImport)
-  {
-    return;
-  }
+	if ( m_action != wksImport )
+	{
+		return;
+	}
 
-  bool bOk = false;
+	bool bOk = false;
 
-  GetImportFormulasList()->DeleteAll();
+	GetImportFormulasList()->DeleteAll();
 
-  m_currentDir.AssignDir(GetWksLoc()->GetValue());
-  m_currentDir.Normalize();
-  m_currentDir.MakeAbsolute();
+	m_currentDir.AssignDir( GetWksLoc()->GetValue() );
+	m_currentDir.Normalize();
+	m_currentDir.MakeAbsolute();
 
-  bOk = VerifyConfig(false);
+	bOk = VerifyConfig( false );
 
-  if (!bOk)
-  {
-    return;
-  }
+	if ( !bOk )
+	{
+		return;
+	}
 
-  CWorkspace* wks = new CWorkspace(GetWksName()->GetValue().ToStdString(), m_currentDir.GetFullPath().ToStdString());
+	CWorkspace* wks = new CWorkspace( GetWksName()->GetValue().ToStdString(), m_currentDir.GetFullPath().ToStdString() );
 
-  wxGetApp().CreateTree(wks, wxGetApp().m_treeImport);
+	wxGetApp().CreateTree( wks, wxGetApp().m_treeImport );
 
-  CWorkspaceFormula* wksFormula =  wxGetApp().m_treeImport.LoadConfigFormula();
+	std::string errorMsg;
+	CWorkspaceFormula* wksFormula =  wxGetApp().m_treeImport.LoadConfigFormula( errorMsg );
+	if ( !errorMsg.empty() )
+		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
 
-  if (wksFormula != NULL)
-  {
-    m_userFormulas.Clear();
-	std::vector< std::string > userFormulas;
-    wksFormula->GetFormulaNames(userFormulas, false, true);
-	for ( auto &s : userFormulas )
-		m_userFormulas.Add( s );
-  }
+	if ( wksFormula != NULL )
+	{
+		m_userFormulas.Clear();
+		std::vector< std::string > userFormulas;
+		wksFormula->GetFormulaNames( userFormulas, false, true );
+		for ( auto &s : userFormulas )
+			m_userFormulas.Add( s );
+	}
 
-  wxGetApp().m_treeImport.DeleteTree();
+	wxGetApp().m_treeImport.DeleteTree();
 
-  GetImportFormulasList()->Append(m_userFormulas);
-  GetImportFormulasList()->CheckAll(GetImportFormulas()->GetValue());
+	GetImportFormulasList()->Append( m_userFormulas );
+	GetImportFormulasList()->CheckAll( GetImportFormulas()->GetValue() );
 
 }
 //----------------------------------------
@@ -559,60 +562,64 @@ bool CWorkspaceDlg::ValidateData()
 //----------------------------------------
 void CWorkspaceDlg::OnBrowse( wxCommandEvent &event )
 {
-  m_currentDir.AssignDir(GetWksLoc()->GetValue());
-  m_currentDir.Normalize();
+	m_currentDir.AssignDir( GetWksLoc()->GetValue() );
+	m_currentDir.Normalize();
 
-  int32_t style = wxDD_DEFAULT_STYLE;
+	int32_t style = wxDD_DEFAULT_STYLE;
 
-  if (m_action == wksNew)
-  {
-    style |= wxDD_NEW_DIR_BUTTON;
-  }
-  else
-  {
-    style &= ~wxDD_NEW_DIR_BUTTON;
-  }
+	if ( m_action == wksNew )
+	{
+		style |= wxDD_NEW_DIR_BUTTON;
+	}
+	else
+	{
+		style &= ~wxDD_NEW_DIR_BUTTON;
+	}
 
-  wxDirDialog dirDlg(this, "Select a directory for the workspace", m_currentDir.GetPath(), style);
+	wxDirDialog dirDlg( this, "Select a directory for the workspace", m_currentDir.GetPath(), style );
 
-  if (dirDlg.ShowModal() != wxID_OK)
-  {
-    return;
-  }
+	if ( dirDlg.ShowModal() != wxID_OK )
+	{
+		return;
+	}
 
-  m_currentDir.AssignDir( dirDlg.GetPath());
+	m_currentDir.AssignDir( dirDlg.GetPath() );
 
-  m_currentDir.Normalize();
+	m_currentDir.Normalize();
 
 
-  if (m_currentDir.GetPath().IsEmpty() == false)
-  {
-    GetWksLoc()->SetValue(m_currentDir.GetPath());
-    GetWksLoc()->SetInsertionPointEnd();
-  }
+	if ( m_currentDir.GetPath().IsEmpty() == false )
+	{
+		GetWksLoc()->SetValue( m_currentDir.GetPath() );
+		GetWksLoc()->SetInsertionPointEnd();
+	}
 
-  bool bOk = true;
-  switch (m_action)
-  {
-    case wksOpen :
-    case wksImport :
-      bOk &= VerifyConfig();
-      if (bOk)
-      {
-        CWorkspace wks;
-        wks.SetPath(GetWksLoc()->GetValue().ToStdString());
-        wks.LoadConfig();
-        GetWksName()->SetValue(wks.GetName());
-      }
-      break;
-    case wksNew :
-    case wksRename :
-    case wksDelete :
-      break;
-    default:
-      break;
-  }
+	bool bOk = true;
+	switch ( m_action )
+	{
+		case wksOpen:
+		case wksImport:
+			bOk &= VerifyConfig();
+			if ( bOk )
+			{
+				CWorkspace wks;
+				wks.SetPath( GetWksLoc()->GetValue().ToStdString() );
 
+				std::string errorMsg;
+				wks.LoadConfig( errorMsg );
+				if ( !errorMsg.empty() )
+					wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
+
+				GetWksName()->SetValue( wks.GetName() );
+			}
+			break;
+		case wksNew:
+		case wksRename:
+		case wksDelete:
+			break;
+		default:
+			break;
+	}
 }
 
 

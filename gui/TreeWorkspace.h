@@ -62,12 +62,12 @@ public:
 
 	virtual CObjectTreeIterator AddChild( const std::string& nm, CWorkspace* x, bool goCurrent = false );
 
-	bool SaveConfig( bool flush = true );
-	bool LoadConfig( CWorkspace *&wks );
+	bool SaveConfig( std::string &errorMsg, bool flush = true );
+	bool LoadConfig( CWorkspace *&wks, std::string &errorMsg );
 
-	CWorkspaceFormula* LoadConfigFormula();
+	CWorkspaceFormula* LoadConfigFormula( std::string &errorMsg );
 
-	bool Import( CTreeWorkspace* treeSrc, std::string &keyToFind );
+	bool Import( CTreeWorkspace* treeSrc, std::string &keyToFind, std::string &errorMsg );
 
 	/// Dump function
 	virtual void Dump( std::ostream& fOut = std::cerr );

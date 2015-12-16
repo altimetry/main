@@ -2,7 +2,7 @@
 #define GEO_MAP_H
 
 
-#include "../libbrathl/brathl.h"
+#include "libbrathl/brathl.h"
 
 //#include "BratObject.h"
 //#include "Tools.h"

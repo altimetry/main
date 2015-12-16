@@ -3,17 +3,17 @@
 #include "CmdLineProcessor.h"
 
 #include "new-gui/Common/tools/Trace.h"
-#include "../libbrathl/ExternalFilesNetCDF.h"
-#include "../libbrathl/ExternalFilesFactory.h"
-#include "../libbrathl/InternalFilesZFXY.h"
-#include "../libbrathl/InternalFilesYFX.h"
+#include "libbrathl/ExternalFilesNetCDF.h"
+#include "libbrathl/ExternalFilesFactory.h"
+#include "libbrathl/InternalFilesZFXY.h"
+#include "libbrathl/InternalFilesYFX.h"
 
 //#define __ZFXYPlotData_H__
 //#define __vtkPlotData_h
-#include "../display/PlotData/PlotField.h"
-#include "../display/PlotData/Plot.h"
-#include "../display/PlotData/WPlot.h"
-#include "../display/PlotData/ZFXYPlot.h"
+#include "display/PlotData/PlotField.h"
+#include "display/PlotData/Plot.h"
+#include "display/PlotData/WPlot.h"
+#include "display/PlotData/ZFXYPlot.h"
 
 
 bool CmdLineProcessor::GetParametersNetcdfYFX( CExternalFilesNetCDF* externalFile )

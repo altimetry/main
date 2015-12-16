@@ -40,7 +40,7 @@ using namespace brathl;
 
 
 //#include "Dataset.h"
-#include "Formula.h"
+#include "new-gui/brat/Workspaces/Formula.h"
 #include "Operation.h"
 
 static const wxChar* displayDataFormatId = _T("CDndDisplayDataObject");

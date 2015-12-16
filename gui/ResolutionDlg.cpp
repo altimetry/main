@@ -85,327 +85,330 @@ CResolutionDlg::~CResolutionDlg()
 //----------------------------------------
 void CResolutionDlg::Init()
 {
-  if (m_operation != NULL)
-  {
-    m_x = m_operation->GetFormula(CMapTypeField::typeOpAsX);
-    m_y = m_operation->GetFormula(CMapTypeField::typeOpAsY);
-  }
+	if ( m_operation != NULL )
+	{
+		m_x = m_operation->GetFormula( CMapTypeField::eTypeOpAsX );
+		m_y = m_operation->GetFormula( CMapTypeField::eTypeOpAsY );
+	}
 
-  if (m_x == NULL)
-  {
-    return;
-  }
-  if (m_y == NULL)
-  {
-    return;
-  }
+	if ( m_x == NULL )
+	{
+		return;
+	}
+	if ( m_y == NULL )
+	{
+		return;
+	}
 
-  m_xFormulaTmp = *m_x;
-  m_yFormulaTmp = *m_y;
+	m_xFormulaTmp = *m_x;
+	m_yFormulaTmp = *m_y;
 
-  if (m_formula != NULL)
-  {
-    glb_FormulaOptFilterSizer->Show((m_formula != m_x) && (m_formula != m_y));
-  }
-  else
-  {
-    glb_FormulaOptFilterSizer->Show(false);
-  }
+	if ( m_formula != NULL )
+	{
+		glb_FormulaOptFilterSizer->Show( ( m_formula != m_x ) && ( m_formula != m_y ) );
+	}
+	else
+	{
+		glb_FormulaOptFilterSizer->Show( false );
+	}
 
-  setDefaultValue(m_xMinValueDefault);
-  setDefaultValue(m_xMaxValueDefault);
+	setDefaultValue( m_xMinValueDefault );
+	setDefaultValue( m_xMaxValueDefault );
 
-  setDefaultValue(m_yMinValueDefault);
-  setDefaultValue(m_yMaxValueDefault);
+	setDefaultValue( m_yMinValueDefault );
+	setDefaultValue( m_yMaxValueDefault );
 
-  m_xIntervalDefault = 0;
-  m_yIntervalDefault = 0;
-
-
-
-  GetFormulaoptXmin()->SetToolTip(wxString::Format("Minimun value for '%s' field.",
-                                                  m_x->GetName().c_str()));
-  GetFormulaoptXmax()->SetToolTip(wxString::Format("Maximum value for '%s' field.",
-                                                  m_x->GetName().c_str()));
-
-  GetFormulaoptYmin()->SetToolTip(wxString::Format("Minimun value for '%s' field.",
-                                                  m_y->GetName().c_str()));
-  GetFormulaoptYmax()->SetToolTip(wxString::Format("Maximum value for '%s' field.",
-                                                  m_y->GetName().c_str()));
-
-  GetFormulaoptXstep()->SetToolTip(wxString::Format("Step between min. an max value for '%s' field.\n"
-                                                   "'Step' is correlate with 'Number of intervals',",
-                                                  m_x->GetName().c_str()));
-
-  GetFormulaoptYstep()->SetToolTip(wxString::Format("Step between min. an max value for '%s' field.\n"
-                                                   "'Step' is correlate with 'Number of intervals',",
-                                                  m_y->GetName().c_str()));
-
-  GetFormulaoptXinterval()->SetToolTip(wxString::Format("Number of intervals between min. an max value for '%s' field.\n"
-                                                       "'Number of intervals' is correlate with 'Step',",
-                                                  m_x->GetName().c_str()));
-
-  GetFormulaoptYinterval()->SetToolTip(wxString::Format("Number of intervals between min. an max value for '%s' field.\n"
-                                                       "'Number of intervals' is correlate with 'Step',",
-                                                  m_y->GetName().c_str()));
-
-  GetFormulaoptXloesscut()->SetToolTip(wxString::Format("Distance (in dots) for '%s' field where LOESS filter reaches 0 along Y axis.\n"
-                                                       "Must be an odd integer. If 1 or 0, Distance computation is disabled.",
-                                                  m_x->GetName().c_str()));
-  GetFormulaoptYloesscut()->SetToolTip(wxString::Format("Distance (in dots) for '%s' field where LOESS filter reaches 0 along Y axis.\n"
-                                                       "Must be an odd integer. If 1 or 0, Distance computation is disabled.",
-                                                  m_y->GetName().c_str()));
-  if (m_x->IsTimeDataType())
-  {
-    GetFormulaoptXgetminmax()->SetLabel("Get min/max date coverage");
-    GetFormulaoptXgetminmax()->SetToolTip("Gets the minimun and maximum datetime coverage of the dataset");
-  }
-  else if (m_x->IsLonDataType())
-  {
-    GetFormulaoptXgetminmax()->SetLabel("Get min/max longitude coverage");
-    GetFormulaoptXgetminmax()->SetToolTip("Gets the minimun and maximum longitude coverage of the the dataset");
-  }
-  else if (m_x->IsLatDataType())
-  {
-    GetFormulaoptXgetminmax()->SetLabel("Get min/max latitude coverage");
-    GetFormulaoptXgetminmax()->SetToolTip("Gets the minimun and maximum latitude coverage of the dataset");
-  }
-  else
-  {
-    GetFormulaoptXgetminmax()->SetLabel("Get min/max expression values");
-    GetFormulaoptXgetminmax()->SetToolTip(wxString::Format("Gets the minimun and maximum values of the '%s' expression from the dataset",
-                                                  m_x->GetName().c_str()));
-  }
-
-  if (m_y->IsTimeDataType())
-  {
-    GetFormulaoptYgetminmax()->SetLabel("Get min/max date coverage");
-    GetFormulaoptYgetminmax()->SetToolTip("Gets the minimun and maximum datetime coverage of the dataset");
-  }
-  else if (m_y->IsLonDataType())
-  {
-    GetFormulaoptYgetminmax()->SetLabel("Get min/max longitude coverage");
-    GetFormulaoptYgetminmax()->SetToolTip("Gets the minimun and maximum longitude coverage of the dataset");
-  }
-  else if (m_y->IsLatDataType())
-  {
-    GetFormulaoptYgetminmax()->SetLabel("Get min/max latitude coverage");
-    GetFormulaoptYgetminmax()->SetToolTip("Gets the minimun and maximum latitude coverage of the dataset");
-  }
-  else
-  {
-    GetFormulaoptYgetminmax()->SetLabel("Get min/max expression values");
-    GetFormulaoptYgetminmax()->SetToolTip(wxString::Format("Gets the minimun and maximum values of the '%s' expression from the dataset",
-                                                  m_y->GetName().c_str()));
-  }
-
-
-  GetFormulaoptXinterval()->SetBackgroundColour(*wxLIGHT_GREY);
-  GetFormulaoptYinterval()->SetBackgroundColour(*wxLIGHT_GREY);
-
-
-  if (m_formula != NULL)
-  {
-    (static_cast<wxStaticBoxSizer*>(glb_FormulaOptFilterSizer))->GetStaticBox()->SetLabel(m_formula->GetName());
-  }
-  if (m_x != NULL)
-  {
-    wxString label = wxString::Format(XRESOLUTION_LABELFORMAT, m_x->GetName().c_str(), m_x->GetUnitAsText().c_str());
-    (static_cast<wxStaticBoxSizer*>(glb_FormulaOptXIntervalSizer))->GetStaticBox()->SetLabel(label);
-  }
-  if (m_y != NULL)
-  {
-    wxString label = wxString::Format(YRESOLUTION_LABELFORMAT, m_y->GetName().c_str(), m_y->GetUnitAsText().c_str());
-    (static_cast<wxStaticBoxSizer*>(glb_FormulaOptYIntervalSizer))->GetStaticBox()->SetLabel(label);
-  }
+	m_xIntervalDefault = 0;
+	m_yIntervalDefault = 0;
 
 
 
-  CDateValidator dateValidator;
-  CFloatValidator floatValidator;
+	GetFormulaoptXmin()->SetToolTip( wxString::Format( "Minimun value for '%s' field.",
+		m_x->GetName().c_str() ) );
+	GetFormulaoptXmax()->SetToolTip( wxString::Format( "Maximum value for '%s' field.",
+		m_x->GetName().c_str() ) );
 
-  if (m_x->IsTimeDataType())
-  {
-    GetFormulaoptXmin()->SetTextValidator(dateValidator);
-    GetFormulaoptXmax()->SetTextValidator(dateValidator);
+	GetFormulaoptYmin()->SetToolTip( wxString::Format( "Minimun value for '%s' field.",
+		m_y->GetName().c_str() ) );
+	GetFormulaoptYmax()->SetToolTip( wxString::Format( "Maximum value for '%s' field.",
+		m_y->GetName().c_str() ) );
 
-    GetFormulaoptXmin()->SetFormat("");
-    GetFormulaoptXmax()->SetFormat("");
-  }
-  else
-  {
-    GetFormulaoptXmin()->SetTextValidator(floatValidator);
-    GetFormulaoptXmax()->SetTextValidator(floatValidator);
+	GetFormulaoptXstep()->SetToolTip( wxString::Format( "Step between min. an max value for '%s' field.\n"
+		"'Step' is correlate with 'Number of intervals',",
+		m_x->GetName().c_str() ) );
 
-    GetFormulaoptXmin()->SetFormat(m_x->GetFormatString());
-    GetFormulaoptXmax()->SetFormat(m_x->GetFormatString());
-  }
-  if (m_y->IsTimeDataType())
-  {
-    GetFormulaoptYmin()->SetTextValidator(dateValidator);
-    GetFormulaoptYmax()->SetTextValidator(dateValidator);
+	GetFormulaoptYstep()->SetToolTip( wxString::Format( "Step between min. an max value for '%s' field.\n"
+		"'Step' is correlate with 'Number of intervals',",
+		m_y->GetName().c_str() ) );
 
-    GetFormulaoptYmin()->SetFormat("");
-    GetFormulaoptYmax()->SetFormat("");
-  }
-  else
-  {
-    GetFormulaoptYmin()->SetTextValidator(floatValidator);
-    GetFormulaoptYmax()->SetTextValidator(floatValidator);
+	GetFormulaoptXinterval()->SetToolTip( wxString::Format( "Number of intervals between min. an max value for '%s' field.\n"
+		"'Number of intervals' is correlate with 'Step',",
+		m_x->GetName().c_str() ) );
 
-    GetFormulaoptYmin()->SetFormat(m_y->GetFormatString());
-    GetFormulaoptYmax()->SetFormat(m_y->GetFormatString());
-  }
+	GetFormulaoptYinterval()->SetToolTip( wxString::Format( "Number of intervals between min. an max value for '%s' field.\n"
+		"'Number of intervals' is correlate with 'Step',",
+		m_y->GetName().c_str() ) );
 
+	GetFormulaoptXloesscut()->SetToolTip( wxString::Format( "Distance (in dots) for '%s' field where LOESS filter reaches 0 along Y axis.\n"
+		"Must be an odd integer. If 1 or 0, Distance computation is disabled.",
+		m_x->GetName().c_str() ) );
+	GetFormulaoptYloesscut()->SetToolTip( wxString::Format( "Distance (in dots) for '%s' field where LOESS filter reaches 0 along Y axis.\n"
+		"Must be an odd integer. If 1 or 0, Distance computation is disabled.",
+		m_y->GetName().c_str() ) );
+	if ( m_x->IsTimeDataType() )
+	{
+		GetFormulaoptXgetminmax()->SetLabel( "Get min/max date coverage" );
+		GetFormulaoptXgetminmax()->SetToolTip( "Gets the minimun and maximum datetime coverage of the dataset" );
+	}
+	else if ( m_x->IsLonDataType() )
+	{
+		GetFormulaoptXgetminmax()->SetLabel( "Get min/max longitude coverage" );
+		GetFormulaoptXgetminmax()->SetToolTip( "Gets the minimun and maximum longitude coverage of the the dataset" );
+	}
+	else if ( m_x->IsLatDataType() )
+	{
+		GetFormulaoptXgetminmax()->SetLabel( "Get min/max latitude coverage" );
+		GetFormulaoptXgetminmax()->SetToolTip( "Gets the minimun and maximum latitude coverage of the dataset" );
+	}
+	else
+	{
+		GetFormulaoptXgetminmax()->SetLabel( "Get min/max expression values" );
+		GetFormulaoptXgetminmax()->SetToolTip( wxString::Format( "Gets the minimun and maximum values of the '%s' expression from the dataset",
+			m_x->GetName().c_str() ) );
+	}
 
-  if (m_formula != NULL)
-  {
-    GetFormulaoptFilter()->SetSelection(m_formula->GetFilter());
-  }
-
-  if (!isDefaultValue(m_x->GetLoessCutOff()))
-  {
-    GetFormulaoptXloesscut()->SetValue(m_x->GetLoessCutOff());
-  }
-
-  if (!isDefaultValue(m_y->GetLoessCutOff()))
-  {
-    GetFormulaoptYloesscut()->SetValue(m_y->GetLoessCutOff());
-  }
-
-  if (m_x->IsLatLonDataType())
-  {
-    if (m_x->IsLonDataType())
-    {
-      m_x->ConvertToFormulaUnit(-180, m_xMinValueDefault);
-      m_x->ConvertToFormulaUnit(180, m_xMaxValueDefault);
-    }
-    else
-    {
-      m_x->ConvertToFormulaUnit(-90, m_xMinValueDefault);
-      m_x->ConvertToFormulaUnit(90, m_xMaxValueDefault);
-    }
-
-    InitCtrlMinMax(*m_x, GetFormulaoptXmin(), GetFormulaoptXmax(), m_xMinValueDefault, m_xMaxValueDefault);
-  }
-  else if (m_x->IsTimeDataType())
-  {
-    InitCtrlMinMaxAsDate(*m_x, GetFormulaoptXmin(), GetFormulaoptXmax());
-  }
-  else
-  {
-    InitCtrlMinMax(*m_x, GetFormulaoptXmin(), GetFormulaoptXmax(), m_xMinValueDefault, m_xMaxValueDefault);
-  }
-
-  GetFormulaoptXstep()->SetValue(m_x->GetStep(),  m_x->GetDefaultStep());
-
-  if (m_y->IsLatLonDataType())
-  {
-    if (m_y->IsLonDataType())
-    {
-      m_y->ConvertToFormulaUnit(-180, m_yMinValueDefault);
-      m_y->ConvertToFormulaUnit(180, m_yMaxValueDefault);
-    }
-    else
-    {
-      m_y->ConvertToFormulaUnit(-90, m_yMinValueDefault);
-      m_y->ConvertToFormulaUnit(90, m_yMaxValueDefault);
-    }
-
-    InitCtrlMinMax(*m_y, GetFormulaoptYmin(), GetFormulaoptYmax(), m_yMinValueDefault, m_yMaxValueDefault);
-  }
-  else if (m_y->IsTimeDataType())
-  {
-    InitCtrlMinMaxAsDate(*m_y, GetFormulaoptYmin(), GetFormulaoptYmax());
-  }
-  else
-  {
-    InitCtrlMinMax(*m_y, GetFormulaoptYmin(), GetFormulaoptYmax(), m_yMinValueDefault, m_yMaxValueDefault);
-  }
-
-  GetFormulaoptYstep()->SetValue(m_y->GetStep(), m_y->GetDefaultStep());
+	if ( m_y->IsTimeDataType() )
+	{
+		GetFormulaoptYgetminmax()->SetLabel( "Get min/max date coverage" );
+		GetFormulaoptYgetminmax()->SetToolTip( "Gets the minimun and maximum datetime coverage of the dataset" );
+	}
+	else if ( m_y->IsLonDataType() )
+	{
+		GetFormulaoptYgetminmax()->SetLabel( "Get min/max longitude coverage" );
+		GetFormulaoptYgetminmax()->SetToolTip( "Gets the minimun and maximum longitude coverage of the dataset" );
+	}
+	else if ( m_y->IsLatDataType() )
+	{
+		GetFormulaoptYgetminmax()->SetLabel( "Get min/max latitude coverage" );
+		GetFormulaoptYgetminmax()->SetToolTip( "Gets the minimun and maximum latitude coverage of the dataset" );
+	}
+	else
+	{
+		GetFormulaoptYgetminmax()->SetLabel( "Get min/max expression values" );
+		GetFormulaoptYgetminmax()->SetToolTip( wxString::Format( "Gets the minimun and maximum values of the '%s' expression from the dataset",
+			m_y->GetName().c_str() ) );
+	}
 
 
-  if ( (VerifyXMinMax() == false) ||
-    (isZero( m_x->GetStepAsDouble() )) )
-  {
-    if (m_x->IsTimeDataType())
-    {
-      InitCtrlMinMaxAsDate(m_xFormulaTmp, GetFormulaoptXmin(), GetFormulaoptXmax());
-    }
-    else if (m_x->IsLatLonDataType())
-    {
-      InitCtrlMinMax(m_xFormulaTmp, GetFormulaoptXmin(), GetFormulaoptXmax(), m_xMinValueDefault, m_xMaxValueDefault);
-    }
-    else
-    {
-      InitCtrlMinMax(m_xFormulaTmp, GetFormulaoptXmin(), GetFormulaoptXmax(), m_xMinValueDefault, m_xMaxValueDefault);
-    }
-
-    GetFormulaoptXstep()->SetValue(m_xFormulaTmp.GetDefaultStep());
-  }
+	GetFormulaoptXinterval()->SetBackgroundColour( *wxLIGHT_GREY );
+	GetFormulaoptYinterval()->SetBackgroundColour( *wxLIGHT_GREY );
 
 
-  if ( (VerifyYMinMax() == false) ||
-    (isZero( m_y->GetStepAsDouble() )) )
-  {
-    if (m_y->IsTimeDataType())
-    {
-      InitCtrlMinMaxAsDate(m_yFormulaTmp, GetFormulaoptYmin(), GetFormulaoptYmax());
-    }
-    else if (m_y->IsLatLonDataType())
-    {
-      InitCtrlMinMax(m_yFormulaTmp, GetFormulaoptYmin(), GetFormulaoptYmax(), m_yMinValueDefault, m_yMaxValueDefault);
-    }
-    else
-    {
-      InitCtrlMinMax(m_yFormulaTmp, GetFormulaoptYmin(), GetFormulaoptYmax(), m_yMinValueDefault, m_yMaxValueDefault);
-    }
-
-    GetFormulaoptYstep()->SetValue(m_xFormulaTmp.GetDefaultStep());
-  }
+	if ( m_formula != NULL )
+	{
+		( static_cast<wxStaticBoxSizer*>( glb_FormulaOptFilterSizer ) )->GetStaticBox()->SetLabel( m_formula->GetName() );
+	}
+	if ( m_x != NULL )
+	{
+		wxString label = wxString::Format( XRESOLUTION_LABELFORMAT, m_x->GetName().c_str(), m_x->GetUnitAsText().c_str() );
+		( static_cast<wxStaticBoxSizer*>( glb_FormulaOptXIntervalSizer ) )->GetStaticBox()->SetLabel( label );
+	}
+	if ( m_y != NULL )
+	{
+		wxString label = wxString::Format( YRESOLUTION_LABELFORMAT, m_y->GetName().c_str(), m_y->GetUnitAsText().c_str() );
+		( static_cast<wxStaticBoxSizer*>( glb_FormulaOptYIntervalSizer ) )->GetStaticBox()->SetLabel( label );
+	}
 
 
-  ComputeInterval();
+
+	CDateValidator dateValidator;
+	CFloatValidator floatValidator;
+
+	if ( m_x->IsTimeDataType() )
+	{
+		GetFormulaoptXmin()->SetTextValidator( dateValidator );
+		GetFormulaoptXmax()->SetTextValidator( dateValidator );
+
+		GetFormulaoptXmin()->SetFormat( "" );
+		GetFormulaoptXmax()->SetFormat( "" );
+	}
+	else
+	{
+		GetFormulaoptXmin()->SetTextValidator( floatValidator );
+		GetFormulaoptXmax()->SetTextValidator( floatValidator );
+
+		GetFormulaoptXmin()->SetFormat( m_x->GetFormatString() );
+		GetFormulaoptXmax()->SetFormat( m_x->GetFormatString() );
+	}
+	if ( m_y->IsTimeDataType() )
+	{
+		GetFormulaoptYmin()->SetTextValidator( dateValidator );
+		GetFormulaoptYmax()->SetTextValidator( dateValidator );
+
+		GetFormulaoptYmin()->SetFormat( "" );
+		GetFormulaoptYmax()->SetFormat( "" );
+	}
+	else
+	{
+		GetFormulaoptYmin()->SetTextValidator( floatValidator );
+		GetFormulaoptYmax()->SetTextValidator( floatValidator );
+
+		GetFormulaoptYmin()->SetFormat( m_y->GetFormatString() );
+		GetFormulaoptYmax()->SetFormat( m_y->GetFormatString() );
+	}
 
 
-  CLabeledTextCtrl::EvtValueChanged(*this,
-                                    ID_FORMULAOPT_XMIN,
-                                    (CValueChangedEventFunction)&CResolutionDlg::OnXMin);
-  CLabeledTextCtrl::EvtValueChanged(*this,
-                                    ID_FORMULAOPT_XMAX,
-                                    (CValueChangedEventFunction)&CResolutionDlg::OnXMax);
-  CLabeledTextCtrl::EvtValueChanged(*this,
-                                    ID_FORMULAOPT_XSTEP,
-                                    (CValueChangedEventFunction)&CResolutionDlg::OnXStep);
-  CLabeledTextCtrl::EvtValueChanged(*this,
-                                    ID_FORMULAOPT_XINTERVAL,
-                                    (CValueChangedEventFunction)&CResolutionDlg::OnXInterval);
-  CLabeledTextCtrl::EvtValueChanged(*this,
-                                    ID_FORMULAOPT_XLOESSCUT,
-                                    (CValueChangedEventFunction)&CResolutionDlg::OnXLoessCut);
+	if ( m_formula != NULL )
+	{
+		GetFormulaoptFilter()->SetSelection( m_formula->GetFilter() );
+	}
+
+	if ( !isDefaultValue( m_x->GetLoessCutOff() ) )
+	{
+		GetFormulaoptXloesscut()->SetValue( m_x->GetLoessCutOff() );
+	}
+
+	if ( !isDefaultValue( m_y->GetLoessCutOff() ) )
+	{
+		GetFormulaoptYloesscut()->SetValue( m_y->GetLoessCutOff() );
+	}
+
+	if ( m_x->IsLatLonDataType() )
+	{
+		if ( m_x->IsLonDataType() )
+		{
+			m_x->ConvertToFormulaUnit( -180, m_xMinValueDefault );
+			m_x->ConvertToFormulaUnit( 180, m_xMaxValueDefault );
+		}
+		else
+		{
+			m_x->ConvertToFormulaUnit( -90, m_xMinValueDefault );
+			m_x->ConvertToFormulaUnit( 90, m_xMaxValueDefault );
+		}
+
+		InitCtrlMinMax( *m_x, GetFormulaoptXmin(), GetFormulaoptXmax(), m_xMinValueDefault, m_xMaxValueDefault );
+	}
+	else if ( m_x->IsTimeDataType() )
+	{
+		InitCtrlMinMaxAsDate( *m_x, GetFormulaoptXmin(), GetFormulaoptXmax() );
+	}
+	else
+	{
+		InitCtrlMinMax( *m_x, GetFormulaoptXmin(), GetFormulaoptXmax(), m_xMinValueDefault, m_xMaxValueDefault );
+	}
+
+	GetFormulaoptXstep()->SetValue( m_x->GetStep(), m_x->GetDefaultStep() );
+
+	if ( m_y->IsLatLonDataType() )
+	{
+		if ( m_y->IsLonDataType() )
+		{
+			m_y->ConvertToFormulaUnit( -180, m_yMinValueDefault );
+			m_y->ConvertToFormulaUnit( 180, m_yMaxValueDefault );
+		}
+		else
+		{
+			m_y->ConvertToFormulaUnit( -90, m_yMinValueDefault );
+			m_y->ConvertToFormulaUnit( 90, m_yMaxValueDefault );
+		}
+
+		InitCtrlMinMax( *m_y, GetFormulaoptYmin(), GetFormulaoptYmax(), m_yMinValueDefault, m_yMaxValueDefault );
+	}
+	else if ( m_y->IsTimeDataType() )
+	{
+		InitCtrlMinMaxAsDate( *m_y, GetFormulaoptYmin(), GetFormulaoptYmax() );
+	}
+	else
+	{
+		InitCtrlMinMax( *m_y, GetFormulaoptYmin(), GetFormulaoptYmax(), m_yMinValueDefault, m_yMaxValueDefault );
+	}
+
+	GetFormulaoptYstep()->SetValue( m_y->GetStep(), m_y->GetDefaultStep() );
 
 
-  CLabeledTextCtrl::EvtValueChanged(*this,
-                                    ID_FORMULAOPT_YMIN,
-                                    (CValueChangedEventFunction)&CResolutionDlg::OnYMin);
-  CLabeledTextCtrl::EvtValueChanged(*this,
-                                    ID_FORMULAOPT_YMAX,
-                                    (CValueChangedEventFunction)&CResolutionDlg::OnYMax);
-  CLabeledTextCtrl::EvtValueChanged(*this,
-                                    ID_FORMULAOPT_YSTEP,
-                                    (CValueChangedEventFunction)&CResolutionDlg::OnYStep);
-  CLabeledTextCtrl::EvtValueChanged(*this,
-                                    ID_FORMULAOPT_YINTERVAL,
-                                    (CValueChangedEventFunction)&CResolutionDlg::OnYInterval);
-  CLabeledTextCtrl::EvtValueChanged(*this,
-                                    ID_FORMULAOPT_YLOESSCUT,
-                                    (CValueChangedEventFunction)&CResolutionDlg::OnYLoessCut);
+	std::string errorMsg;
+	if ( !VerifyXMinMax() || isZero( m_x->GetStepAsDouble( errorMsg ) ) )
+	{
+		if ( m_x->IsTimeDataType() )
+		{
+			InitCtrlMinMaxAsDate( m_xFormulaTmp, GetFormulaoptXmin(), GetFormulaoptXmax() );
+		}
+		else if ( m_x->IsLatLonDataType() )
+		{
+			InitCtrlMinMax( m_xFormulaTmp, GetFormulaoptXmin(), GetFormulaoptXmax(), m_xMinValueDefault, m_xMaxValueDefault );
+		}
+		else
+		{
+			InitCtrlMinMax( m_xFormulaTmp, GetFormulaoptXmin(), GetFormulaoptXmax(), m_xMinValueDefault, m_xMaxValueDefault );
+		}
 
-  glb_FormulaResolutionSizer->Fit(this);
+		GetFormulaoptXstep()->SetValue( m_xFormulaTmp.GetDefaultStep() );
+	}
+	if ( !errorMsg.empty() ){
+		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
+		errorMsg = "";
+	}
+
+	if ( !VerifyYMinMax() || isZero( m_y->GetStepAsDouble( errorMsg ) ) )
+	{
+		if ( m_y->IsTimeDataType() )
+		{
+			InitCtrlMinMaxAsDate( m_yFormulaTmp, GetFormulaoptYmin(), GetFormulaoptYmax() );
+		}
+		else if ( m_y->IsLatLonDataType() )
+		{
+			InitCtrlMinMax( m_yFormulaTmp, GetFormulaoptYmin(), GetFormulaoptYmax(), m_yMinValueDefault, m_yMaxValueDefault );
+		}
+		else
+		{
+			InitCtrlMinMax( m_yFormulaTmp, GetFormulaoptYmin(), GetFormulaoptYmax(), m_yMinValueDefault, m_yMaxValueDefault );
+		}
+
+		GetFormulaoptYstep()->SetValue( m_xFormulaTmp.GetDefaultStep() );
+	}
+	if ( !errorMsg.empty() ){
+		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
+		errorMsg = "";
+	}
+
+	ComputeInterval();
+
+	CLabeledTextCtrl::EvtValueChanged( *this,
+		ID_FORMULAOPT_XMIN,
+		(CValueChangedEventFunction)&CResolutionDlg::OnXMin );
+	CLabeledTextCtrl::EvtValueChanged( *this,
+		ID_FORMULAOPT_XMAX,
+		(CValueChangedEventFunction)&CResolutionDlg::OnXMax );
+	CLabeledTextCtrl::EvtValueChanged( *this,
+		ID_FORMULAOPT_XSTEP,
+		(CValueChangedEventFunction)&CResolutionDlg::OnXStep );
+	CLabeledTextCtrl::EvtValueChanged( *this,
+		ID_FORMULAOPT_XINTERVAL,
+		(CValueChangedEventFunction)&CResolutionDlg::OnXInterval );
+	CLabeledTextCtrl::EvtValueChanged( *this,
+		ID_FORMULAOPT_XLOESSCUT,
+		(CValueChangedEventFunction)&CResolutionDlg::OnXLoessCut );
 
 
-  EnableCtrl();
+	CLabeledTextCtrl::EvtValueChanged( *this,
+		ID_FORMULAOPT_YMIN,
+		(CValueChangedEventFunction)&CResolutionDlg::OnYMin );
+	CLabeledTextCtrl::EvtValueChanged( *this,
+		ID_FORMULAOPT_YMAX,
+		(CValueChangedEventFunction)&CResolutionDlg::OnYMax );
+	CLabeledTextCtrl::EvtValueChanged( *this,
+		ID_FORMULAOPT_YSTEP,
+		(CValueChangedEventFunction)&CResolutionDlg::OnYStep );
+	CLabeledTextCtrl::EvtValueChanged( *this,
+		ID_FORMULAOPT_YINTERVAL,
+		(CValueChangedEventFunction)&CResolutionDlg::OnYInterval );
+	CLabeledTextCtrl::EvtValueChanged( *this,
+		ID_FORMULAOPT_YLOESSCUT,
+		(CValueChangedEventFunction)&CResolutionDlg::OnYLoessCut );
+
+	glb_FormulaResolutionSizer->Fit( this );
+
+	EnableCtrl();
 }
 //----------------------------------------
 void CResolutionDlg::EnableCtrl()
@@ -445,31 +448,33 @@ bool CResolutionDlg::ComputeInterval()
 }
 
 //----------------------------------------
-bool CResolutionDlg::ComputeInterval(CFormula& formula, CLabeledTextCtrl* ctrlInterval, CLabeledTextCtrl* ctrlStep, wxStaticText* ctrlWarning)
+bool CResolutionDlg::ComputeInterval( CFormula& formula, CLabeledTextCtrl* ctrlInterval, CLabeledTextCtrl* ctrlStep, wxStaticText* ctrlWarning )
 {
+	std::string errorMsg;
+	bool bOk = formula.ComputeInterval( errorMsg );
+	if ( !errorMsg.empty() )
+		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
 
-  bool bOk = formula.ComputeInterval();
+	wxString label;
+	if ( bOk == false )
+	{
+		label = "Interval was round up or down\nto the nearest integer value.";
+	}
+	ctrlWarning->SetLabel( label );
 
-  wxString label;
-  if (bOk == false)
-  {
-    label = "Interval was round up or down\nto the nearest integer value.";
-  }
-  ctrlWarning->SetLabel(label);
+	ctrlWarning->Layout();
+	this->Layout();
 
-  ctrlWarning->Layout();
-  this->Layout();
+	int32_t interval = formula.GetInterval();
+	wxString step = formula.GetStep();
 
-  int32_t interval = formula.GetInterval();
-  wxString step = formula.GetStep();
+	if ( !isDefaultValue( interval ) )
+	{
+		ctrlInterval->SetValue( interval );
+	}
+	ctrlStep->SetValue( step );
 
-  if (!isDefaultValue(interval))
-  {
-    ctrlInterval->SetValue(interval);
-  }
-  ctrlStep->SetValue(step);
-
-  return bOk;
+	return bOk;
 }
 //----------------------------------------
 bool CResolutionDlg::ComputeXInterval()

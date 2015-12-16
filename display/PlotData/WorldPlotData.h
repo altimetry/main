@@ -30,17 +30,17 @@
 //
 //#include "wx/progdlg.h"
 
-#include "../libbrathl/brathl.h"
+#include "libbrathl/brathl.h"
 
-#include "../libbrathl/BratObject.h"
-#include "../libbrathl/Tools.h"
-#include "../libbrathl/List.h"
-#include "../libbrathl/Date.h"
+#include "libbrathl/BratObject.h"
+#include "libbrathl/Tools.h"
+#include "libbrathl/List.h"
+#include "libbrathl/Date.h"
 #include "new-gui/Common/tools/Exception.h"
-#include "../libbrathl/Unit.h"
+#include "libbrathl/Unit.h"
 
-#include "../libbrathl/InternalFiles.h"
-#include "../libbrathl/InternalFilesZFXY.h"
+#include "libbrathl/InternalFiles.h"
+#include "libbrathl/InternalFilesZFXY.h"
 
 using namespace brathl;
 

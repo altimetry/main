@@ -16,7 +16,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "../stdafx.h"
+#include "new-gui/brat/stdafx.h"
 #include "new-gui/Common/QtFileUtils.h"
 #include "new-gui/Common/tools/Trace.h"
 #include "new-gui/Common/tools/Exception.h"

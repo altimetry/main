@@ -26,7 +26,7 @@
     #pragma interface "ZFXYPlot.h"
 #endif
 
-#include "../libbrathl/brathl.h"
+#include "libbrathl/brathl.h"
 using namespace brathl;
 
 namespace brathl {

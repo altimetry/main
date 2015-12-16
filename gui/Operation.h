@@ -30,14 +30,16 @@
 #include "brathl.h"
 
 #include "new-gui/brat/Workspaces/Dataset.h"
-#include "Formula.h"
+#include "new-gui/brat/Workspaces/Formula.h"
 #include "Product.h" 
 
-const wxString LOGFILE_EXTENSION = "log";
-const wxString COMMANDFILE_EXTENSION = "par";
-const wxString EXPORTASCII_COMMANDFILE_EXTENSION = "export.par";
-const wxString EXPORTGEOTIFF_COMMANDFILE_EXTENSION = "geotiff_export.par";
-const wxString SHOWSTAT_COMMANDFILE_EXTENSION = "stats.par";
+const std::string LOGFILE_EXTENSION = "log";
+const std::string COMMANDFILE_EXTENSION = "par";
+const std::string EXPORTASCII_COMMANDFILE_EXTENSION = "export.par";
+const std::string EXPORTGEOTIFF_COMMANDFILE_EXTENSION = "geotiff_export.par";
+const std::string SHOWSTAT_COMMANDFILE_EXTENSION = "stats.par";
+
+
 
 class COperation : public CBratObject
 {
@@ -46,21 +48,21 @@ public:
 
 
   /// Empty COperation ctor
-  COperation(const wxString name);
+  COperation( const std::string name );
 
   COperation(COperation& o);
 
   /// Destructor
   virtual ~COperation();
 
-  wxString GetName() {return m_name;};
-  void SetName(const wxString& value) {m_name = value;};
+  std::string GetName() {return m_name;}
+  void SetName(const std::string& value) {m_name = value;}
 
-  bool HasFormula() {return GetFormulaCount() > 0;};
+  bool HasFormula() {return GetFormulaCount() > 0;}
 
   bool HasFilters();
   
-  int32_t GetFormulaCount() {return m_formulas.size();};
+  int32_t GetFormulaCount() {return m_formulas.size();}
   int32_t GetFormulaCountDataFields();
 
   bool RenameFormula(CFormula* formula, const std::string &newName);
@@ -68,84 +70,84 @@ public:
   void GetFormulaNames(wxComboBox& combo);
 
   bool SaveConfig( CConfiguration *config );
-  bool LoadConfig( CConfiguration *config );
+  bool LoadConfig( CConfiguration *config, std::string &errorMsg );
 
-  CDataset* FindDataset(const wxString& datasetName);
+  CDataset* FindDataset(const std::string& datasetName);
 
-  wxString GetRecord() {return m_record;};
-  void SetRecord(const wxString& value) {m_record = value;};
+  std::string GetRecord() {return m_record;}
+  void SetRecord(const std::string& value) {m_record = value;}
   
-  int32_t GetType() {return m_type;};
-  void SetType(int32_t value) {m_type = value;};
+  int32_t GetType() {return m_type;}
+  void SetType(int32_t value) {m_type = value;}
   
-  wxString GetDataModeAsString() {return CMapDataMode::GetInstance().IdToName(m_dataMode);};
-  int32_t GetDataMode() {return m_dataMode;};
-  void SetDataMode(int32_t value) {m_dataMode = value;};
+  std::string GetDataModeAsString() {return CMapDataMode::GetInstance().IdToName(m_dataMode);}
+  int32_t GetDataMode() {return m_dataMode;}
+  void SetDataMode(int32_t value) {m_dataMode = value;}
   
-  CDataset* GetDataset() {return m_dataset;};
-  void SetDataset(CDataset* value) {m_dataset = value;};
-  wxString GetDatasetName();
+  CDataset* GetDataset() {return m_dataset;}
+  void SetDataset(CDataset* value) {m_dataset = value;}
+  std::string GetDatasetName();
 
-  CProduct* GetProduct() {return m_product;};
-  void SetProduct(CProduct* value) {m_product = value;};
+  CProduct* GetProduct() {return m_product;}
+  void SetProduct(CProduct* value) {m_product = value;}
 
-  CMapFormula* GetFormulas() { return &m_formulas; };
+  CMapFormula* GetFormulas() { return &m_formulas; }
 
-  CFormula* GetFormula(const wxString& name);
+  CFormula* GetFormula(const std::string& name);
   CFormula* GetFormula(int32_t type);
   CFormula* GetFormula(CMapFormula::iterator it);
   
   CFormula* NewUserFormula(CField* field, int32_t typeField, bool addToMap = true, CProduct* product = NULL);
-  CFormula* NewUserFormula( const wxString& name = "", int32_t typeField = CMapTypeField::typeOpAsField, const wxString& strUnit = "", bool addToMap = true, CProduct* product = NULL);
+  CFormula* NewUserFormula( const std::string& name = "", int32_t typeField = CMapTypeField::eTypeOpAsField, const std::string& strUnit = "", bool addToMap = true, CProduct* product = NULL);
 
   bool AddFormula(CFormula& value);
-  bool DeleteFormula(const wxString& name);
+  bool DeleteFormula(const std::string& name);
 
   std::string GetDescFormula(const std::string& name, bool alias = false);
-  //void SetDescFormula(const wxString& name, const wxString& value);
+  //void SetDescFormula(const std::string& name, const std::string& value);
   
-  wxFileName* GetOutput() {return &m_output;};
-  wxString GetOutputName() {return m_output.GetFullPath();};
-  wxString GetOutputNameRelativeToWks();
+  wxFileName* GetOutput() {return &m_output;}
+  std::string GetOutputName() {return m_output.GetFullPath().ToStdString();}
+  std::string GetOutputNameRelativeToWks();
   
   void SetOutput(const wxFileName& value);
-  void SetOutput(const wxString& value);
+  void SetOutput(const std::string& value);
   
-  wxFileName* GetExportAsciiOutput() {return &m_exportAsciiOutput;};
-  wxString GetExportAsciiOutputName() {return m_exportAsciiOutput.GetFullPath();};
-  wxString GetExportAsciiOutputNameRelativeToWks();
+  wxFileName* GetExportAsciiOutput() {return &m_exportAsciiOutput;}
+  std::string GetExportAsciiOutputName() {return m_exportAsciiOutput.GetFullPath().ToStdString();}
+  std::string GetExportAsciiOutputNameRelativeToWks();
 
   void SetExportAsciiOutput(const wxFileName& value);
-  void SetExportAsciiOutput(const wxString& value);
+  void SetExportAsciiOutput(const std::string& value);
 
 
-  wxFileName* GetShowStatsOutput() {return &m_showStatsOutput;};
-  wxString GetShowStatsOutputName() {return m_showStatsOutput.GetFullPath();};
-  wxString GetShowStatsOutputNameRelativeToWks();
+  wxFileName* GetShowStatsOutput() {return &m_showStatsOutput;}
+  std::string GetShowStatsOutputName() {return m_showStatsOutput.GetFullPath().ToStdString();}
+  std::string GetShowStatsOutputNameRelativeToWks();
   
   void SetShowStatsOutput(const wxFileName& value);
-  void SetShowStatsOutput(const wxString& value);
+  void SetShowStatsOutput(const std::string& value);
 
-  wxString GetTaskName();
-  wxFileName* GetCmdFile() {return &m_cmdFile;};
-  wxString GetCmdFileFullName() {return m_cmdFile.GetFullPath();};
+  std::string GetTaskName();
+  wxFileName* GetCmdFile() {return &m_cmdFile;}
+  std::string GetCmdFileFullName() {return m_cmdFile.GetFullPath().ToStdString();}
   void SetCmdFile();
 
-  wxString GetExportAsciiTaskName();
-  wxFileName* GetExportAsciiCmdFile() {return &m_exportAsciiCmdFile;};
-  wxString GetExportAsciiCmdFileFullName() {return m_exportAsciiCmdFile.GetFullPath();};
+  std::string GetExportAsciiTaskName();
+  wxFileName* GetExportAsciiCmdFile() {return &m_exportAsciiCmdFile;}
+  std::string GetExportAsciiCmdFileFullName() {return m_exportAsciiCmdFile.GetFullPath().ToStdString();}
   void SetExportAsciiCmdFile();
   
-  wxString GetShowStatsTaskName();
-  wxFileName* GetShowStatsCmdFile() {return &m_showStatsCmdFile;};
-  wxString GetShowStatsCmdFileFullName() {return m_showStatsCmdFile.GetFullPath();};
+  std::string GetShowStatsTaskName();
+  wxFileName* GetShowStatsCmdFile() {return &m_showStatsCmdFile;}
+  std::string GetShowStatsCmdFileFullName() {return m_showStatsCmdFile.GetFullPath().ToStdString();}
   void SetShowStatsCmdFile();
 
 
-  wxString GetCommentFormula(const std::string& name);
+  std::string GetCommentFormula(const std::string& name);
   void SetCommentFormula(const std::string &name, const std::string &value);
 
-  CFormula* GetSelect() {return m_select;};
+  CFormula* GetSelect() {return m_select;}
   void SetSelect(CFormula* value);
   
   bool IsYFX();
@@ -153,49 +155,49 @@ public:
   bool IsMap();
 
   bool IsSelect(CFormula* value);
-  static bool IsSelect(const wxString& name);
+  static bool IsSelect( const std::string& name );
 
-  wxString GetSelectName();
-  wxString GetSelectDescription();
-//  void SetSelectDesc(const wxString& value);
+  std::string GetSelectName();
+  std::string GetSelectDescription();
+//  void SetSelectDesc(const std::string& value);
 
-  wxString GetFormulaNewName();
-  wxString GetFormulaNewName(const wxString& prefix);
+  std::string GetFormulaNewName();
+  std::string GetFormulaNewName(const std::string& prefix);
 
   wxFileName* GetSystemCommand();
-  wxString GetFullCmd();
+  std::string GetFullCmd();
   
   wxFileName* GetExportAsciiSystemCommand();
-  wxString GetExportAsciiFullCmd();
+  std::string GetExportAsciiFullCmd();
 
   wxFileName* GetShowStatsSystemCommand();
-  wxString GetShowStatsFullCmd();
+  std::string GetShowStatsFullCmd();
 
 
-  bool IsExportAsciiDateAsPeriod() {return m_exportAsciiDateAsPeriod;};
-  void SetExportAsciiDateAsPeriod(bool value) {m_exportAsciiDateAsPeriod = value;};
+  bool IsExportAsciiDateAsPeriod() {return m_exportAsciiDateAsPeriod;}
+  void SetExportAsciiDateAsPeriod(bool value) {m_exportAsciiDateAsPeriod = value;}
 
-  bool IsExportAsciiExpandArray() {return m_exportAsciiExpandArray;};
-  void SetExportAsciiExpandArray(bool value) {m_exportAsciiExpandArray = value;};
+  bool IsExportAsciiExpandArray() {return m_exportAsciiExpandArray;}
+  void SetExportAsciiExpandArray(bool value) {m_exportAsciiExpandArray = value;}
 
-  bool IsExportAsciiNoDataComputation() {return m_exportAsciiNoDataComputation;};
-  void SetExportAsciiNoDataComputation(bool value) {m_exportAsciiNoDataComputation = value;};
+  bool IsExportAsciiNoDataComputation() {return m_exportAsciiNoDataComputation;}
+  void SetExportAsciiNoDataComputation(bool value) {m_exportAsciiNoDataComputation = value;}
   
-  int32_t GetExportAsciiNumberPrecision() {return m_exportAsciiNumberPrecision;};
-  void SetExportAsciiNumberPrecision(int32_t value) {m_exportAsciiNumberPrecision = value;};
+  int32_t GetExportAsciiNumberPrecision() {return m_exportAsciiNumberPrecision;}
+  void SetExportAsciiNumberPrecision(int32_t value) {m_exportAsciiNumberPrecision = value;}
 
-  bool IsExecuteAgain() {return m_executeAgain;};
-  void SetExecuteAgain(bool value) {m_executeAgain = value;};
+  bool IsExecuteAgain() {return m_executeAgain;}
+  void SetExecuteAgain(bool value) {m_executeAgain = value;}
 
-  //bool IsDelayExecution() {return m_delayExecution;};
-  //void SetDelayExecution(bool value) {m_delayExecution = value;};
+  //bool IsDelayExecution() {return m_delayExecution;}
+  //void SetDelayExecution(bool value) {m_delayExecution = value;}
 
   bool CtrlLoessCutOff(std::string &msg);
 
-  bool UseDataset(const wxString& name);
+  bool UseDataset(const std::string& name);
 
   bool RemoveOutput();
-  bool RenameOutput(const wxString& oldName);
+  bool RenameOutput(const std::string& oldName);
 
   bool BuildShowStatsCmdFile();
   bool BuildShowStatsCmdFileHeader();
@@ -226,20 +228,20 @@ public:
   bool BuildCmdFileVerbose();
 
 
-  bool WriteComment(const wxString& text);
-  bool WriteLine(const wxString& text);
+  bool WriteComment(const std::string& text);
+  bool WriteLine(const std::string& text);
   bool WriteEmptyLine();
 
   void InitOutput();
   void InitExportAsciiOutput();
   void InitShowStatsOutput();
 
-  bool ComputeInterval(const wxString& formulaName, bool showMsg = false);
-  bool ComputeInterval(CFormula* f, bool showMsg = false);
+  bool ComputeInterval(const std::string& formulaName, std::string &errorMsg );
+  bool ComputeInterval(CFormula* f, std::string &errorMsg );
 
   bool ControlDimensions(CFormula* formula, std::string &errorMsg, const CStringMap* aliases = NULL);
   bool ControlResolution( std::string &errorMsg );
-  bool Control(std::string& msg, bool basicControl = false, const CStringMap* aliases = NULL);
+  bool Control(CWorkspaceFormula *wks, std::string& msg, bool basicControl = false, const CStringMap* aliases = NULL);
 
   bool GetXExpression(CExpression& expr, std::string& errorMsg, const CStringMap* aliases = NULL);
   bool GetYExpression(CExpression& expr, std::string& errorMsg, const CStringMap* aliases = NULL);
@@ -250,10 +252,10 @@ public:
 
   void ClearLogFile();
 
-  void SetLogFile(const wxString& value);
+  void SetLogFile(const std::string& value);
   void SetLogFile();
 
-  wxFileName* GetLogFile() {return &m_logFile;};
+  wxFileName* GetLogFile() {return &m_logFile;}
 
   COperation& operator=(COperation& o);
 
@@ -269,7 +271,7 @@ protected:
   
   CProduct* m_product;
   CDataset* m_dataset;
-  wxString m_record;
+  std::string m_record;
   //CFormula* m_formula;
   CFormula* m_select;
   CMapFormula m_formulas;
@@ -298,7 +300,7 @@ protected:
   int32_t m_exportAsciiNumberPrecision;
 
 private:
-  wxString m_name;
+  std::string m_name;
 
 
 

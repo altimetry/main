@@ -70,6 +70,26 @@ bool CConfiguration::Read( const std::string& str, int *value ) const
 	return base_t::Read( wstr, value );
 }
 
+bool CConfiguration::Read( const std::string& str, double *value, double defValue ) const
+{
+	wxString wstr( str );
+	return base_t::Read( wstr, value, defValue );
+}
+
+bool CConfiguration::Read( const std::string& str, int32_t *value, double defValue ) const
+{
+	wxString wstr( str );
+	return base_t::Read( wstr, value, defValue );
+}
+
+bool CConfiguration::Flush( bool bCurrentOnly )		//bCurrentOnly = false
+{
+	return base_t::Flush( bCurrentOnly );
+}
+
+
+
+
 
 
 bool CConfiguration::SaveConfig( const CDataset *d )
@@ -177,5 +197,146 @@ void GetDatasetNames( const CWorkspaceDataset *d, wxComboBox& combo )
 	{
 		//std::string value = it->first;
 		combo.Append( ( it->first ).c_str() );
+	}
+}
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//											CFormula and related
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void NamesToComboBox( const CMapTypeFilter &map, wxComboBox& combo )
+{
+	for ( CMapTypeFilter::const_iterator it = map.begin(); it != map.end(); it++ )
+	{
+		uint32_t value = it->second;
+		if ( !isDefaultValue( value ) )
+		{
+			//combo.Insert((it->first).c_str(), value);
+			combo.Append( ( it->first ).c_str() );
+		}
+	}
+}
+
+void NamesToComboBox( const CMapTypeData &map, wxComboBox& combo, bool noData )	//noData = false 
+{
+	for ( CMapTypeData::const_iterator it = map.begin(); it != map.end(); it++ )
+	{
+		uint32_t value = it->second;
+		if ( ( value == CMapTypeData::eTypeOpData ) && ( noData ) )
+		{
+			continue;
+		}
+		if ( !isDefaultValue( value ) )
+		{
+			//combo.Insert((it->first).c_str(), value);
+			combo.Append( ( it->first ).c_str() );
+		}
+	}
+}
+
+void NamesToComboBox( const CMapTypeOp &map, wxComboBox& combo )
+{
+	for ( CMapTypeOp::const_iterator it = map.begin(); it != map.end(); it++ )
+	{
+		uint32_t value = it->second;
+		if ( !isDefaultValue( value ) )
+		{
+			//combo.Insert((it->first).c_str(), value);
+			combo.Append( ( it->first ).c_str() );
+		}
+	}
+}
+
+void NamesToComboBox( const CMapDataMode &map, wxComboBox& combo )
+{
+	for ( CMapDataMode::const_iterator it = map.begin(); it != map.end(); it++ )
+	{
+		uint32_t value = it->second;
+		if ( !isDefaultValue( value ) )
+		{
+			//combo.Insert((it->first).c_str(), value);
+			combo.Append( ( it->first ).c_str() );
+		}
+	}
+}
+
+void NamesToComboBox( const CMapTypeField &map, wxComboBox& combo )
+{
+	for ( CMapTypeField::const_iterator it = map.begin(); it != map.end(); it++ )
+	{
+		uint32_t value = it->second;
+		if ( !isDefaultValue( value ) )
+		{
+			//combo.Insert((it->first).c_str(), value);
+			combo.Append( ( it->first ).c_str() );
+		}
+	}
+}
+
+void NamesToComboBox( const CMapFormula &map, wxComboBox& combo )
+{
+	for ( CMapFormula::const_iterator it = map.begin(); it != map.end(); it++ )
+	{
+		CFormula* value = dynamic_cast<CFormula*>( it->second );
+		if ( value != nullptr )
+		{
+			combo.Append( value->GetName() );
+		}
+	}
+}
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//											CWorkspace and related
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void GetFormulaNames( const CWorkspaceFormula &wks, wxComboBox& combo, bool getPredefined, bool getUser )	//bool getPredefined = true, bool getUser = true 
+{
+	for ( CMapFormula::const_iterator it = wks.GetFormulas()->begin(); it != wks.GetFormulas()->end(); it++ )
+	{
+		const CFormula* formula = wks.GetFormula( it );
+		if ( formula != nullptr )
+		{
+			if ( ( getPredefined && formula->IsPredefined() ) || ( getUser && !formula->IsPredefined() ) )
+			{
+				combo.Append( ( it->first ).c_str() );
+			}
+		}
+	}
+}
+void GetFormulaNames( const CWorkspaceFormula &wks, wxListBox& lb, bool getPredefined, bool getUser )		//bool getPredefined = true, bool getUser = true
+{
+	for ( CMapFormula::const_iterator it = wks.GetFormulas()->begin(); it != wks.GetFormulas()->end(); it++ )
+	{
+		const CFormula* formula = wks.GetFormula( it );
+		if ( formula != nullptr )
+		{
+			if ( ( getPredefined && formula->IsPredefined() ) || ( getUser && !formula->IsPredefined() ) )
+			{
+				lb.Append( ( it->first ).c_str() );
+			}
+		}
+	}
+}
+
+void GetOperationNames( const CWorkspaceOperation &wks, wxComboBox& combo )
+{
+	for ( CObMap::const_iterator it = wks.GetOperations()->begin(); it != wks.GetOperations()->end(); it++ )
+	{
+		//std::string value = it->first;
+		combo.Append( ( it->first ).c_str() );
+	}
+}
+
+void GetDisplayNames( const CWorkspaceDisplay &wks, wxComboBox& combo )
+{
+	for ( CObMap::const_iterator it = wks.GetDisplays()->begin(); it != wks.GetDisplays()->end(); it++ )
+	{
+		combo.Append( it->first.c_str() );
 	}
 }

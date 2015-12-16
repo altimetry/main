@@ -22,11 +22,11 @@
 
 #include <vtkLookupTable.h>
 
-#include "../libbrathl/brathl.h"
+#include "libbrathl/brathl.h"
 
-#include "../libbrathl/Tools.h"
-#include "../libbrathl/List.h"
-#include "../libbrathl/CallBack.h"
+#include "libbrathl/Tools.h"
+#include "libbrathl/List.h"
+#include "libbrathl/CallBack.h"
 using namespace brathl;
 
 #include "vtkBratColor.h"

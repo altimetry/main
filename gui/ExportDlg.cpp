@@ -124,7 +124,7 @@ CExportDlg::~CExportDlg()
 
 void CExportDlg::CalculateColorValueRange( void )
 {
-  CFormula *formula = m_operation->GetFormula(CMapTypeField::typeOpAsField);
+  CFormula *formula = m_operation->GetFormula(CMapTypeField::eTypeOpAsField);
 
   CProduct* productTmp = CProduct::Construct(*(m_operation->GetDataset()->GetProductList()));
 

@@ -1,6 +1,9 @@
 #ifndef QT_INTERFACE_H
 #define QT_INTERFACE_H
 
+//#include <cstdint>"
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Common declarations (interfaces) implemented differently in QtInterface.cpp and wxInterface.cpp / wxGuiInterface.cpp
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -46,8 +49,10 @@ struct CConfiguration : public CONFIG
 
 
 	void SetPath( const std::string& strPath );
+
 	bool Write( const std::string& key, const std::string& value );
 	bool Write( const std::string& key, const int& value );
+
 	size_t GetNumberOfEntries();
 	bool GetNextEntry( std::string& str, long& lIndex );
 
@@ -55,6 +60,11 @@ struct CConfiguration : public CONFIG
 	bool Read( const std::string& str, std::string *value ) const;
 	std::string Read( const std::string& str, const std::string &value ) const;
 	bool Read( const std::string& str, int *value ) const;
+
+	bool Read( const std::string& str, double *value, double defValue ) const;
+	bool Read( const std::string& str, int32_t *value, double defValue ) const;
+
+	bool Flush( bool bCurrentOnly = false );
 };
 
 

@@ -32,7 +32,7 @@
 
 #include <cstdio>
 
-#include "../libbrathl/brathl.h"
+#include "libbrathl/brathl.h"
 #include "vtkPolyDataSource.h"
 
 class VTK_EXPORT vtkGSHHSReader : public vtkPolyDataSource

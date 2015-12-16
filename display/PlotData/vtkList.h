@@ -24,7 +24,7 @@
 #include <string>
 
 
-#include "../libbrathl/brathl.h"
+#include "libbrathl/brathl.h"
 
 #include "vtkObject.h"
 
