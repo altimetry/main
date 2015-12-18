@@ -1462,7 +1462,7 @@ bool CFormula::SaveConfig( CConfiguration *config, const std::string& pathSuff )
   return true;
 }
 //----------------------------------------
-std::string CFormula::GetDescription(bool removeCRLF /* = false */, const CStringMap* formulaAliases /* = nullptr*/, const CStringMap* fieldAliases /* = nullptr*/)
+std::string CFormula::GetDescription(bool removeCRLF /* = false */, const CStringMap* formulaAliases /* = nullptr*/, const CStringMap* fieldAliases /* = nullptr*/) const
 {
   if (removeCRLF == false)
   {

@@ -104,7 +104,7 @@ typedef void (wxEvtHandler::*CProcessTermEventFunction)(CProcessTermEvent&);
 class CProcess : public wxProcess
 {
 public:
-  CProcess(const wxString& name, wxWindow *parent, const wxString& cmd, wxFileName* output = NULL, int32_t type = -1);
+  CProcess(const wxString& name, wxWindow *parent, const wxString& cmd, const wxFileName* output = NULL, int32_t type = -1);
 
   virtual ~CProcess();
 
@@ -181,7 +181,7 @@ protected:
 class CPipedProcess : public CProcess
 {
 public:
-  CPipedProcess(const wxString& name, wxWindow *parent, const wxString& cmd, wxTextCtrl* logCtrl = NULL, wxFileName* output = NULL, int32_t type = -1);
+  CPipedProcess(const wxString& name, wxWindow *parent, const wxString& cmd, wxTextCtrl* logCtrl = NULL, const wxFileName* output = NULL, int32_t type = -1);
 
   virtual ~CPipedProcess();
 

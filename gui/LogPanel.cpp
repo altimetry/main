@@ -385,7 +385,7 @@ void CLogPanel::OnLogClear( wxCommandEvent &event )
   GetLogMess()->Clear();
 }
 //----------------------------------------
-void CLogPanel::LogFile( wxFileName* file )
+void CLogPanel::LogFile( const wxFileName* file )
 {
   if (file == NULL)
   {

@@ -17,13 +17,6 @@
 */
 #include "new-gui/brat/stdafx.h"
 
-// For compilers that support precompilation, includes "wx/wx.h".
-#include "wx/wxprec.h"
-
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
-
 #include "new-gui/Common/tools/Trace.h"
 #include "new-gui/Common/tools/Exception.h"
 
@@ -35,9 +28,477 @@
 using namespace brathl;
 using namespace processes;
 
-#include "BratGui.h"
 #include "new-gui/brat/Workspaces/Workspace.h"
 #include "Operation.h"
+
+
+
+
+class non_copyable
+{
+protected:
+	non_copyable() = default;
+	~non_copyable() = default;
+
+	non_copyable( non_copyable const & ) = delete;
+	void operator=( non_copyable const &x ) = delete;
+};
+
+
+/////////////////////////////////////////////////////
+
+
+class CCmdFile : non_copyable
+{
+	fstream mFile;
+	const COperation &mOp;
+
+public:
+	CCmdFile( const std::string &path, const COperation &Op ) :
+		mFile( path, ios::binary | ios::out | ios::trunc ), mOp( Op )
+	{}
+
+	virtual ~CCmdFile()
+	{
+		mFile.close();		// just in case
+	}
+
+	bool IsOk() const { return !!mFile; }
+
+	///////////////////////////////////////////////////
+
+	void WriteLn( const std::string& text = "" )
+	{
+		assert__( !!mFile );
+
+		mFile << text << "\n";
+	}
+	void Comment( const std::string& text )
+	{
+		WriteLn( "#" + text );
+	}
+
+	///////////////////////////////////////////////////
+
+	bool BuildCmdFileHeader()
+	{
+		// Comment("!/usr/bin/env " + GetSystemCommand()->GetName());
+		Comment( "Type:" + CMapTypeOp::GetInstance().IdToName( mOp.GetType() ) );
+		return true;
+	}
+
+	bool BuildCmdFileVerbose()
+	{
+		WriteLn();
+		Comment( "----- LOG -----" );
+		WriteLn();
+		WriteLn( kwVERBOSE + "=" + n2s<std::string>( mOp.m_verbose ) );
+
+		if ( mOp.GetLogFile()->IsOk() )
+		{
+			WriteLn( kwLOGFILE + "=" + mOp.GetLogFile()->GetFullPath().ToStdString() );
+		}
+		return true;
+	}
+
+	bool BuildCmdFileGeneralProperties()
+	{
+		WriteLn();
+		Comment( "----- GENERAL PROPERTIES -----" );
+		WriteLn();
+		// Data mode is no more for a operation, but for each formula (data expression)
+		//WriteLine(std::string::Format("DATA_MODE=%s", CMapDataMode::GetInstance().IdToName(m_dataMode).c_str()));
+
+		return true;
+	}
+
+	bool BuildCmdFileAlias( CWorkspaceFormula *wks )
+	{
+		//CWorkspaceFormula* wks = wxGetApp().GetCurrentWorkspaceFormula();
+		if ( wks == nullptr )
+			return false;
+
+		WriteLn();
+		Comment( "----- ALIAS -----" );
+
+		CMapFormula* formulas = wks->GetFormulas();
+		for ( CMapFormula::iterator it = formulas->begin(); it != formulas->end(); it++ )
+		{
+			CFormula* value = dynamic_cast<CFormula*>( it->second );
+			if ( value == nullptr )
+				continue;
+			WriteLn( std::string( kwALIAS_NAME.c_str() ) + std::string( "=" ) + std::string( value->GetName().c_str() ) );
+			WriteLn( std::string( kwALIAS_VALUE.c_str() ) + std::string( "=" ) + std::string( value->GetDescription( true ) ) );
+		}
+
+		return true;
+	}
+
+	bool BuildCmdFileDataset()
+	{
+		WriteLn();
+		Comment( "----- DATASET -----" );
+		WriteLn();
+		WriteLn( kwRECORD + "=" + mOp.GetRecord() );
+		WriteLn();
+		std::vector< std::string >  array;
+		mOp.GetDataset()->GetFiles( array );
+		for ( size_t i = 0; i < array.size(); i++ )
+		{
+			WriteLn( kwFILE + "=" + array[ i ] );
+		}
+		return true;
+	}
+
+	bool BuildCmdFileSpecificUnit()
+	{
+		const CDataset* dataset = mOp.GetDataset();
+		if ( dataset == nullptr )
+			return false;
+
+		WriteLn();
+		Comment( "----- SPECIFIC UNIT -----" );
+
+		const CStringMap* fieldSpecificUnit = dataset->GetFieldSpecificUnits();
+		for ( CStringMap::const_iterator itMap = fieldSpecificUnit->begin(); itMap != fieldSpecificUnit->end(); itMap++ )
+		{
+			WriteLn( kwUNIT_ATTR_NAME + "=" + itMap->first );
+			WriteLn( kwUNIT_ATTR_VALUE + "=" + itMap->second );
+		}
+
+		return true;
+	}
+
+	bool BuildCmdFileFieldsSpecificZFXY( CFormula* value, std::string &errorMsg )
+	{
+		// if operation is not X/Y as Lat/Lon or Lon/Lat, force to default value
+		/*
+		if (!IsMap())
+		{
+		value->SetFilterDefault();
+		value->SetMinValueDefault();
+		value->SetMaxValueDefault();
+		value->SetIntervalDefault();
+		value->SetLoessCutOffDefault();
+		}
+		*/
+		;
+
+		if ( mOp.GetType() != CMapTypeOp::eTypeOpZFXY )
+			return false;
+
+		if ( value == nullptr )
+			return false;
+
+		std::string valueString = ( value->GetFilter() == CMapTypeFilter::eFilterNone ) ? "DV" : value->GetFilterAsString();
+		WriteLn( value->GetFieldPrefix() + "_FILTER=" + valueString );
+
+		if ( value->IsXYType() )
+		{
+			value->ComputeInterval( errorMsg );
+
+			if ( value->IsTimeDataType() )
+			{
+				valueString = ( isDefaultValue( value->GetMinValue() ) ) ? "DV" : value->GetMinValueAsDateString();
+				WriteLn( value->GetFieldPrefix() + "_MIN=" + valueString );
+
+				valueString = ( isDefaultValue( value->GetMaxValue() ) ) ? "DV" : value->GetMaxValueAsDateString();
+				WriteLn( value->GetFieldPrefix() + "_MAX=" + valueString );
+			}
+			else
+			{
+				valueString = ( isDefaultValue( value->GetMinValue() ) ) ? "DV" : value->GetMinValueAsText();
+				WriteLn( value->GetFieldPrefix() + "_MIN=" + valueString );
+
+				valueString = ( isDefaultValue( value->GetMaxValue() ) ) ? "DV" : value->GetMaxValueAsText();
+				WriteLn( value->GetFieldPrefix() + "_MAX=" + valueString );
+			}
+
+			valueString = ( isDefaultValue( value->GetInterval() ) ) ? "DV" : value->GetIntervalAsText();
+			WriteLn( value->GetFieldPrefix() + "_INTERVALS=" + valueString );
+
+			valueString = ( isDefaultValue( value->GetLoessCutOff() ) ) ? "DV" : value->GetLoessCutOffAsText();
+			WriteLn( value->GetFieldPrefix() + "_LOESS_CUTOFF=" + valueString );
+		}
+
+		return true;
+	}
+
+	bool BuildCmdFileFields( std::string &errorMsg )
+	{
+		WriteLn();
+		Comment( "----- FIELDS -----" );
+		WriteLn();
+
+		const CMapFormula &formulas = *mOp.GetFormulas();
+		for ( CMapFormula::const_iterator it = formulas.begin(); it != formulas.end(); it++ )
+		{
+			CFormula* value = dynamic_cast<CFormula*>( it->second );
+			if ( value == nullptr )
+				continue;
+
+			WriteLn();
+			Comment( value->GetComment( true ) );
+			WriteLn( value->GetFieldPrefix() + "=" + value->GetDescription( true ) );
+			WriteLn( value->GetFieldPrefix() + "_NAME=" + value->GetName() );
+			WriteLn( value->GetFieldPrefix() + "_TYPE=" + value->GetDataTypeAsString() );
+			WriteLn( value->GetFieldPrefix() + "_UNIT=" + value->GetUnitAsText() );
+
+			if ( value->IsFieldType() )
+				WriteLn( value->GetFieldPrefix() + "_DATA_MODE=" + std::string( value->GetDataModeAsString().c_str() ) );
+
+			std::string valueString = ( value->GetTitle().empty() ) ? value->GetName() : value->GetTitle();
+			WriteLn( value->GetFieldPrefix() + "_TITLE=" + valueString );
+
+			valueString = ( value->GetComment().empty() ) ? "DV" : value->GetComment();
+			WriteLn( value->GetFieldPrefix() + "_COMMENT=" + valueString );
+
+			BuildCmdFileFieldsSpecificZFXY( value, errorMsg );
+		}
+
+		return true;
+	}
+
+	bool BuildCmdFileSelect()
+	{
+		WriteLn();
+		Comment( "----- SELECT -----" );
+		WriteLn();
+		if ( mOp.GetSelect()->GetDescription( true ).empty() == false )
+		{
+			WriteLn( std::string( kwSELECT.c_str() ) + "=" + mOp.GetSelect()->GetDescription( true ) );
+		}
+		return true;
+	}
+
+	bool BuildCmdFileOutput()
+	{
+		WriteLn();
+		Comment( "----- OUTPUT -----" );
+		WriteLn();
+		//if ( m_output.GetFullPath().IsEmpty() )
+		//{
+		//	InitOutput();
+		//}
+		WriteLn( kwOUTPUT + "=" + mOp.GetOutput()->GetFullPath().ToStdString() );
+
+		return true;
+	}
+
+	bool BuildExportAsciiCmdFileHeader()
+	{
+		// Comment("!/usr/bin/env " + GetExportAsciiSystemCommand()->GetName());
+		return true;
+	}
+
+	bool BuildExportAsciiCmdFileGeneralProperties()
+	{
+		WriteLn();
+		Comment( "----- GENERAL PROPERTIES -----" );
+		WriteLn();
+
+		std::string valueString = ( mOp.IsExportAsciiDateAsPeriod() ? "Yes" : "No" );
+
+		WriteLn( std::string( kwDATE_AS_PERIOD.c_str() ) + "=" + valueString );
+
+		valueString = ( mOp.IsExportAsciiExpandArray() ? "Yes" : "No" );
+
+		WriteLn( std::string( kwEXPAND_ARRAY.c_str() ) + "=" + valueString );
+
+		return true;
+	}
+
+	bool BuildCmdFileFromOutputOperation()
+	{
+		WriteLn();
+		Comment( "----- DATASET -----" );
+		WriteLn();
+		WriteLn( std::string( kwRECORD.c_str() ) + "=" + CProductNetCdf::m_virtualRecordName.c_str() );
+		WriteLn();
+		WriteLn( std::string( kwFILE.c_str() ) + "=" + mOp.GetOutputName() );
+
+		return true;
+	}
+
+	bool BuildExportAsciiCmdFileFields()
+	{
+		WriteLn();
+		Comment( "----- FIELDS -----" );
+		WriteLn();
+
+		auto formulas = mOp.GetFormulas();
+		for ( CMapFormula::const_iterator it = formulas->begin(); it != formulas->end(); it++ )
+		{
+			CFormula* value = dynamic_cast<CFormula*>( it->second );
+			if ( value == nullptr )
+			{
+				continue;
+			}
+			WriteLn();
+			Comment( value->GetComment( true ) );
+
+			// If export operation  is not a dump export,
+			// Field name in not the field name of the source data file
+			// but the field name of the operation result file (intermediate netcdf file).
+			if ( mOp.IsExportAsciiNoDataComputation() )
+			{
+				// Just a dump --> get the name of the source file
+				WriteLn( value->GetExportAsciiFieldPrefix() + "=" + value->GetDescription( true ) );
+			}
+			else
+			{
+				// Not a dump --> get the name of operation file (intermediate netcdf file).
+				WriteLn( value->GetExportAsciiFieldPrefix() + "=" + value->GetName() );
+			}
+
+			WriteLn( value->GetExportAsciiFieldPrefix() + "_NAME=" + value->GetName() );
+			WriteLn( value->GetExportAsciiFieldPrefix() + "_UNIT=" + value->GetUnitAsText() );
+
+			if ( ! isDefaultValue( mOp.GetExportAsciiNumberPrecision() ) )
+			{
+				WriteLn( value->GetExportAsciiFieldPrefix() + "_FORMAT=" + n2s<std::string>( mOp.GetExportAsciiNumberPrecision() ) );
+			}
+		}
+
+		return true;
+	}
+
+	bool BuildExportAsciiCmdFileOutput()
+	{
+		WriteLn();
+		Comment( "----- OUTPUT -----" );
+		WriteLn();
+		//if ( mOp.GetExportAsciiOutput()->GetFullPath().IsEmpty() )
+		//{
+		//	InitExportAsciiOutput();
+		//}
+		WriteLn( kwOUTPUT + "=" + mOp.GetExportAsciiOutput()->GetFullPath().ToStdString() );
+
+		return true;
+
+	}
+
+	bool BuildShowStatsCmdFileHeader()
+	{
+		//  WriteComment("!/usr/bin/env " + GetShowStatsSystemCommand()->GetName());
+		return true;
+	}
+
+	bool BuildShowStatsCmdFileFields()
+	{
+		WriteLn();
+		Comment( "----- FIELDS -----" );
+		WriteLn();
+
+		auto formulas = mOp.GetFormulas();
+		for ( CMapFormula::const_iterator it = formulas->begin(); it != formulas->end(); it++ )
+		{
+			CFormula* value = dynamic_cast<CFormula*>( it->second );
+			if ( value == nullptr )
+				continue;
+
+			if ( value->GetType() != CMapTypeField::eTypeOpAsField )
+				continue;
+
+			WriteLn();
+			Comment( value->GetComment( true ) );
+			WriteLn( value->GetExportAsciiFieldPrefix() + "=" + value->GetDescription( true ) );
+			//WriteLine(value->GetExportAsciiFieldPrefix()  + "_NAME=" + value->GetName());
+			WriteLn( value->GetExportAsciiFieldPrefix() + "_UNIT=" + value->GetUnitAsText() );
+		}
+
+		return true;
+	}
+
+	bool BuildShowStatsCmdFileOutput()
+	{
+		WriteLn();
+		Comment( "----- OUTPUT -----" );
+		WriteLn();
+		//if ( m_showStatsOutput.GetFullPath().IsEmpty() )
+		//{
+		//	InitShowStatsOutput();
+		//}
+		WriteLn( kwOUTPUT + "=" + mOp.GetShowStatsOutput()->GetFullPath().ToStdString() );
+
+		return true;
+	}
+
+
+	////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////
+	////////////////////////////////////////////////////////////////////////////
+
+
+public:
+
+	static bool BuildCmdFile( const std::string &path, const COperation &Op, CWorkspaceFormula *wks, std::string &errorMsg )
+	{
+		CCmdFile f( path, Op );
+		//m_cmdFile.Normalize();
+		//m_file.Create( m_cmdFile.GetFullPath(), true, wxS_DEFAULT | wxS_IXUSR );
+
+		return 
+			f.IsOk()							&&
+			f.BuildCmdFileHeader()				&&
+			f.BuildCmdFileVerbose()				&&
+			f.BuildCmdFileGeneralProperties()	&&
+			f.BuildCmdFileAlias( wks )			&&
+			f.BuildCmdFileDataset()				&&
+			f.BuildCmdFileSpecificUnit()		&&
+			f.BuildCmdFileFields( errorMsg )	&&
+			f.BuildCmdFileSelect()				&&
+			f.BuildCmdFileOutput()				&&
+			f.IsOk();
+	}
+
+
+	static bool BuildExportAsciiCmdFile( const std::string &path, const COperation &Op, CWorkspaceFormula *wks )
+	{
+		CCmdFile f( path, Op );
+		//m_exportAsciiCmdFile.Normalize();
+		//m_file.Create( m_exportAsciiCmdFile.GetFullPath(), true, wxS_DEFAULT | wxS_IXUSR );
+
+		return
+			f.IsOk()																								&&
+			f.BuildExportAsciiCmdFileHeader()																		&&
+			f.BuildCmdFileVerbose()																					&&
+			f.BuildExportAsciiCmdFileGeneralProperties()															&&
+			f.BuildCmdFileAlias( wks )																				&&
+			( Op.IsExportAsciiNoDataComputation() ? f.BuildCmdFileDataset() : f.BuildCmdFileFromOutputOperation() ) &&
+			f.BuildCmdFileSpecificUnit()																			&&
+			f.BuildExportAsciiCmdFileFields()																		&&
+			// If Export ascii is done from the output operation file, 
+			// don't include the select expression in the command line,
+			// because the select expression has already been applied 
+			// and the fields contained in the select expression are not necessarily in the output file. 
+			( !Op.IsExportAsciiNoDataComputation() || f.BuildCmdFileSelect() )										&&
+			f.BuildExportAsciiCmdFileOutput()																		&&
+			f.IsOk();
+	}
+
+
+	static bool BuildShowStatsCmdFile( const std::string &path, const COperation &Op, CWorkspaceFormula *wks )
+	{
+		CCmdFile f( path, Op );
+		//m_showStatsCmdFile.Normalize();
+		//m_file.Create( m_showStatsCmdFile.GetFullPath(), true, wxS_DEFAULT | wxS_IXUSR );
+
+		return
+			f.IsOk()							&&
+			f.BuildShowStatsCmdFileHeader()		&&
+			f.BuildCmdFileVerbose()				&&
+			f.BuildCmdFileAlias( wks )			&&
+			f.BuildCmdFileDataset()				&&
+			f.BuildCmdFileSpecificUnit()		&&
+			f.BuildShowStatsCmdFileFields()		&&
+			f.BuildCmdFileSelect()				&&
+			f.BuildShowStatsCmdFileOutput()		&&
+			f.IsOk();
+	}
+};
+
+
 
 
 
@@ -51,11 +512,11 @@ COperation::COperation(std::string name)
 
 }
 //----------------------------------------
-COperation::COperation(COperation& o)
+COperation::COperation(COperation& o, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
       : m_formulas(false)
 {
   Init();
-  Copy(o);
+  Copy( o, wks, wkso );
 }
 //----------------------------------------
 
@@ -64,11 +525,12 @@ COperation::~COperation()
   DeleteSelect();
 }
 //----------------------------------------
-COperation& COperation::operator=(COperation& o)
-{
-  Copy(o);
-  return *this;
-}
+//COperation& COperation::operator = ( COperation& o )
+//{
+//
+//  Copy(o);
+//  return *this;
+//}
 //----------------------------------------
 void COperation::Init()
 {
@@ -80,7 +542,7 @@ void COperation::Init()
 
   m_type = CMapTypeOp::eTypeOpYFX;
   m_dataMode = CMapDataMode::GetInstance().GetDefault();
-  m_verbose = 2;
+  //m_verbose = 2;
   m_exportAsciiDateAsPeriod = false;
   m_exportAsciiExpandArray = false;
   m_exportAsciiNoDataComputation = false;
@@ -158,44 +620,42 @@ void COperation::SetSelect(CFormula* value)
 }
 
 //----------------------------------------
-void COperation::Copy(COperation& o)
+void COperation::Copy( COperation& o, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
 {
-  m_name = o.m_name;
+	m_name = o.m_name;
 
-  m_dataset = nullptr;
-  if (o.m_dataset != nullptr)
-  {
-    m_dataset = FindDataset(o.m_dataset->GetName());
-  }
+	m_dataset = nullptr;
+	if ( o.m_dataset != nullptr )
+	{
+		m_dataset = FindDataset( o.m_dataset->GetName(), wks );
+	}
 
-  m_record = o.m_record;
-  m_product = o.m_product;
+	m_record = o.m_record;
+	m_product = o.m_product;
 
-  if (o.m_select != nullptr)
-  {
-    if (m_select != nullptr)
-    {
-      *m_select = *(o.m_select);
-    }
-    else
-    {
-      m_select = new CFormula(*(o.m_select));
-    }
-  }
+	if ( o.m_select != nullptr )
+	{
+		if ( m_select != nullptr )
+		{
+			*m_select = *( o.m_select );
+		}
+		else
+		{
+			m_select = new CFormula( *( o.m_select ) );
+		}
+	}
 
-  m_formulas = o.m_formulas;
+	m_formulas = o.m_formulas;
 
-  m_type = o.m_type;
-  m_dataMode = o.m_dataMode;
-  m_exportAsciiDateAsPeriod = o.m_exportAsciiDateAsPeriod;
+	m_type = o.m_type;
+	m_dataMode = o.m_dataMode;
+	m_exportAsciiDateAsPeriod = o.m_exportAsciiDateAsPeriod;
 
-  InitOutput();
-  SetCmdFile();
+	InitOutput( wkso );
+	SetCmdFile( wkso );
 
-  InitExportAsciiOutput();
-  SetExportAsciiCmdFile();
-
-
+	InitExportAsciiOutput( wkso );
+	SetExportAsciiCmdFile( wkso );
 }
 
 //----------------------------------------
@@ -210,9 +670,9 @@ void COperation::SetLogFile(const std::string& value)
   m_logFile.Normalize();
 }
 //----------------------------------------
-void COperation::SetLogFile()
+void COperation::SetLogFile( CWorkspaceOperation *wks )
 {
-  CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
 
   m_logFile = m_output;
   m_logFile.SetExt(LOGFILE_EXTENSION);
@@ -396,17 +856,6 @@ std::string COperation::GetDatasetName()
 
   return m_dataset->GetName();
 }
-//----------------------------------------
-void COperation::GetFormulaNames(wxComboBox& combo)
-{
-  CMapFormula::iterator it;
-
-  for (it = m_formulas.begin() ; it != m_formulas.end() ; it++)
-  {
-    combo.Append( (it->first).c_str());
-  }
-}
-
 
 //----------------------------------------
 CFormula* COperation::NewUserFormula(CField* field, int32_t typeField, bool addToMap, CProduct* product)
@@ -552,6 +1001,10 @@ CFormula* COperation::GetFormula(CMapFormula::iterator it)
 {
   return dynamic_cast<CFormula*>(it->second);
 }
+const CFormula* COperation::GetFormula(CMapFormula::const_iterator it)
+{
+  return dynamic_cast<const CFormula*>(it->second);
+}
 
 //----------------------------------------
 int32_t COperation::GetFormulaCountDataFields()
@@ -630,7 +1083,7 @@ std::string COperation::GetSelectDescription()
   return m_select->GetDescription();
 }
 //----------------------------------------
-bool COperation::SaveConfig( CConfiguration *config )
+bool COperation::SaveConfig( CConfiguration *config, CWorkspaceOperation *wkso )
 {
 	if ( config == nullptr )
 		return true;
@@ -651,9 +1104,9 @@ bool COperation::SaveConfig( CConfiguration *config )
 
 	// Save relative path based on path operation workspace for output file
 	//bOk &= config->Write(ENTRY_OUTPUT, GetOutputName());
-	bOk &= config->Write( ENTRY_OUTPUT, GetOutputNameRelativeToWks() );
+	bOk &= config->Write( ENTRY_OUTPUT, GetOutputNameRelativeToWks(wkso) );
 
-	bOk &= config->Write( ENTRY_EXPORT_ASCII_OUTPUT, GetExportAsciiOutputNameRelativeToWks() );
+	bOk &= config->Write( ENTRY_EXPORT_ASCII_OUTPUT, GetExportAsciiOutputNameRelativeToWks(wkso) );
 
 	// Warning after formulas Load config conig path has changed
 	m_formulas.SaveConfig( config, false, GetName() );
@@ -661,7 +1114,7 @@ bool COperation::SaveConfig( CConfiguration *config )
 	return bOk;
 }
 //----------------------------------------
-bool COperation::LoadConfig( CConfiguration *config, std::string &errorMsg )
+bool COperation::LoadConfig( CConfiguration *config, std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
 {
 	bool bOk = true;
 	if ( config == nullptr )
@@ -673,7 +1126,7 @@ bool COperation::LoadConfig( CConfiguration *config, std::string &errorMsg )
 
 	std::string valueString;
 	valueString = config->Read( ENTRY_DSNAME );
-	m_dataset = FindDataset( valueString );
+	m_dataset = FindDataset( valueString, wks );
 
 	valueString = config->Read( ENTRY_TYPE, CMapTypeOp::GetInstance().IdToName( m_type ) );
 	if ( valueString.empty() )
@@ -707,7 +1160,7 @@ bool COperation::LoadConfig( CConfiguration *config, std::string &errorMsg )
 	{
 		// Note that if the path to the output is in relative form,
 		// SetOutput make it in absolute form based on workspace Operation path.
-		SetOutput( valueString );
+		SetOutput( valueString, wkso );
 	}
 
 	valueString = config->Read( ENTRY_EXPORT_ASCII_OUTPUT );
@@ -715,7 +1168,7 @@ bool COperation::LoadConfig( CConfiguration *config, std::string &errorMsg )
 	{
 		// Note that if the path to the output is in relative form,
 		// SetOutput make it in absolute form based on workspace Operation path.
-		SetExportAsciiOutput( valueString );
+		SetExportAsciiOutput( valueString, wkso );
 	}
 	else
 	{
@@ -733,9 +1186,9 @@ bool COperation::LoadConfig( CConfiguration *config, std::string &errorMsg )
 }
 
 //----------------------------------------
-CDataset* COperation::FindDataset(const std::string& datasetName)
+CDataset* COperation::FindDataset(const std::string& datasetName, CWorkspaceDataset *wks )
 {
-  CWorkspaceDataset* wks = wxGetApp().GetCurrentWorkspaceDataset();
+  //CWorkspaceDataset* wks = wxGetApp().GetCurrentWorkspaceDataset();
   if (wks == nullptr)
   {
     return nullptr;
@@ -840,525 +1293,552 @@ std::string COperation::GetShowStatsTaskName()
 }
 
 //----------------------------------------
-bool COperation::BuildCmdFile()
+bool COperation::BuildCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &errorMsg )
 {
-  m_cmdFile.Normalize();
+#ifndef OLD_CREATE_FILES
 
-  m_file.Create(m_cmdFile.GetFullPath(), true, wxS_DEFAULT | wxS_IXUSR);
+	if ( GetOutput()->GetFullPath().IsEmpty() )
+		InitOutput( wkso );
+	
+	return CCmdFile::BuildCmdFile( m_cmdFile.GetFullPath().ToStdString(), *this, wks, errorMsg );
 
-  BuildCmdFileHeader();
-  BuildCmdFileVerbose();
-  BuildCmdFileGeneralProperties();
-  BuildCmdFileAlias();
-  BuildCmdFileDataset();
-  BuildCmdFileSpecificUnit();
-  BuildCmdFileFields();
-  BuildCmdFileSelect();
-  BuildCmdFileOutput();
+#else
 
-  m_file.Close();
-  return true;
+	m_cmdFile.Normalize();
 
+	m_file.Create( m_cmdFile.GetFullPath(), true, wxS_DEFAULT | wxS_IXUSR );
 
-}
-//----------------------------------------
-bool COperation::BuildExportAsciiCmdFile()
-{
-  m_exportAsciiCmdFile.Normalize();
+	BuildCmdFileHeader();
+	BuildCmdFileVerbose();
+	BuildCmdFileGeneralProperties();
+	BuildCmdFileAlias();
+	BuildCmdFileDataset();
+	BuildCmdFileSpecificUnit();
+	BuildCmdFileFields();
+	BuildCmdFileSelect();
+	BuildCmdFileOutput();
 
-  m_file.Create(m_exportAsciiCmdFile.GetFullPath(), true, wxS_DEFAULT | wxS_IXUSR);
-
-  BuildExportAsciiCmdFileHeader();
-  BuildCmdFileVerbose();
-  BuildExportAsciiCmdFileGeneralProperties();
-  BuildCmdFileAlias();
-
-  if (m_exportAsciiNoDataComputation)
-  {
-    BuildCmdFileDataset();
-  }
-  else
-  {
-    BuildCmdFileFromOutputOperation();
-  }
-
-  BuildCmdFileSpecificUnit();
-  BuildExportAsciiCmdFileFields();
-
-  // If Export ascii is done from the output operation file, 
-  // don't include the select expression in the command line,
-  // because the select expression has already been applied 
-  // and the fields contained in the select expression are not necessarily in the output file. 
-  if (m_exportAsciiNoDataComputation)
-  {
-    BuildCmdFileSelect();
-  }
-
-  BuildExportAsciiCmdFileOutput();
-
-  m_file.Close();
-  return true;
-
-
-}
-//----------------------------------------
-bool COperation::BuildShowStatsCmdFile()
-{
-  m_showStatsCmdFile.Normalize();
-
-  m_file.Create(m_showStatsCmdFile.GetFullPath(), true, wxS_DEFAULT | wxS_IXUSR);
-
-  BuildShowStatsCmdFileHeader();
-  BuildCmdFileVerbose();
-  BuildCmdFileAlias();
-  BuildCmdFileDataset();
-  BuildCmdFileSpecificUnit();
-  BuildShowStatsCmdFileFields();
-  BuildCmdFileSelect();
-  BuildShowStatsCmdFileOutput();
-
-  m_file.Close();
-  return true;
-
-
-}
-//----------------------------------------
-bool COperation::BuildShowStatsCmdFileHeader()
-{
-//  WriteComment("!/usr/bin/env " + GetShowStatsSystemCommand()->GetName());
-  return true;
-
-}
-
-//----------------------------------------
-bool COperation::BuildExportAsciiCmdFileHeader()
-{
-//  WriteComment("!/usr/bin/env " + GetExportAsciiSystemCommand()->GetName());
-  return true;
-
-}
-
-//----------------------------------------
-bool COperation::BuildCmdFileHeader()
-{
-//  WriteComment("!/usr/bin/env " + GetSystemCommand()->GetName());
-  WriteComment("Type:" + CMapTypeOp::GetInstance().IdToName(m_type));
-  return true;
-
-}
-//----------------------------------------
-bool COperation::BuildExportAsciiCmdFileGeneralProperties()
-{
-
-  WriteEmptyLine();
-  WriteComment("----- GENERAL PROPERTIES -----");
-  WriteEmptyLine();
-
-  std::string valueString = (m_exportAsciiDateAsPeriod ? "Yes" : "No");
-
-  WriteLine(std::string(kwDATE_AS_PERIOD.c_str()) + "=" + valueString);
-
-  valueString = (m_exportAsciiExpandArray ? "Yes" : "No");
-
-  WriteLine(std::string(kwEXPAND_ARRAY.c_str()) + "=" + valueString);
-
-  return true;
-
-}
-//----------------------------------------
-bool COperation::BuildCmdFileGeneralProperties()
-{
-
-  WriteEmptyLine();
-  WriteComment("----- GENERAL PROPERTIES -----");
-  WriteEmptyLine();
-  // Data mode is no more for a operation, but for each formula (data expression)
-  //WriteLine(std::string::Format("DATA_MODE=%s", CMapDataMode::GetInstance().IdToName(m_dataMode).c_str()));
-
-  return true;
-
-}
-
-//----------------------------------------
-bool COperation::BuildCmdFileAlias()
-{
-  CMapFormula::iterator it;
-
-  CWorkspaceFormula* wks = wxGetApp().GetCurrentWorkspaceFormula();
-  if (wks == nullptr)
-  {
-    return false;
-  }
-
-  CMapFormula* formulas = wks->GetFormulas();
-
-  WriteEmptyLine();
-  WriteComment("----- ALIAS -----");
-
-  for (it = formulas->begin() ; it != formulas->end() ; it++)
-  {
-    CFormula* value = dynamic_cast<CFormula*>(it->second);
-    if (value == nullptr)
-    {
-      continue;
-    }
-    WriteLine(std::string(kwALIAS_NAME.c_str()) + std::string("=") + std::string(value->GetName().c_str()));
-    WriteLine(std::string(kwALIAS_VALUE.c_str()) + std::string("=") + std::string(value->GetDescription(true)));
-  }
-
-  return true;
-
-}
-//----------------------------------------
-bool COperation::BuildCmdFileSpecificUnit()
-{
-	CDataset* dataset = GetDataset();
-	if ( dataset == nullptr )
-		return false;
-
-
-	WriteEmptyLine();
-	WriteComment( "----- SPECIFIC UNIT -----" );
-
-	CStringMap* fieldSpecificUnit = dataset->GetFieldSpecificUnits();
-
-	for ( CStringMap::iterator itMap = fieldSpecificUnit->begin(); itMap != fieldSpecificUnit->end(); itMap++ )
-	{
-		WriteLine( kwUNIT_ATTR_NAME + "=" + itMap->first );
-		WriteLine( kwUNIT_ATTR_VALUE + "=" + itMap->second );
-	}
-
+	m_file.Close();
 	return true;
+
+#endif
 }
 //----------------------------------------
-bool COperation::BuildCmdFileFromOutputOperation()
+bool COperation::BuildExportAsciiCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso )
 {
+#ifndef OLD_CREATE_FILES
 
-  WriteEmptyLine();
-  WriteComment("----- DATASET -----");
-  WriteEmptyLine();
-  WriteLine(std::string(kwRECORD.c_str()) + "=" + CProductNetCdf::m_virtualRecordName.c_str());
-  WriteEmptyLine();
-  WriteLine(std::string(kwFILE.c_str()) + "=" + this->GetOutputName());
+	if ( GetExportAsciiOutput()->GetFullPath().IsEmpty() )
+		InitExportAsciiOutput( wkso );
 
-  return true;
+	return CCmdFile::BuildExportAsciiCmdFile( m_exportAsciiCmdFile.GetFullPath().ToStdString(), *this, wks );
 
-}
-//----------------------------------------
-bool COperation::BuildCmdFileDataset()
-{
-	WriteEmptyLine();
-	WriteComment( "----- DATASET -----" );
-	WriteEmptyLine();
-	WriteLine( kwRECORD + "=" + m_record );
-	WriteEmptyLine();
-	std::vector< std::string >  array;
-	m_dataset->GetFiles( array );
-	for ( size_t i = 0; i < array.size(); i++ )
+#else
+
+	m_exportAsciiCmdFile.Normalize();
+
+	m_file.Create( m_exportAsciiCmdFile.GetFullPath(), true, wxS_DEFAULT | wxS_IXUSR );
+
+	BuildExportAsciiCmdFileHeader();
+	BuildCmdFileVerbose();
+	BuildExportAsciiCmdFileGeneralProperties();
+	BuildCmdFileAlias();
+
+	if ( m_exportAsciiNoDataComputation )
 	{
-		WriteLine( kwFILE + "=" + array[ i ] );
+		BuildCmdFileDataset();
 	}
+	else
+	{
+		BuildCmdFileFromOutputOperation();
+	}
+
+	BuildCmdFileSpecificUnit();
+	BuildExportAsciiCmdFileFields();
+
+	// If Export ascii is done from the output operation file, 
+	// don't include the select expression in the command line,
+	// because the select expression has already been applied 
+	// and the fields contained in the select expression are not necessarily in the output file. 
+	if ( m_exportAsciiNoDataComputation )
+	{
+		BuildCmdFileSelect();
+	}
+
+	BuildExportAsciiCmdFileOutput();
+
+	m_file.Close();
 	return true;
+
+#endif
 }
 //----------------------------------------
-bool COperation::BuildCmdFileFields()
+bool COperation::BuildShowStatsCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso )
 {
-  std::string valueString;
+#ifndef OLD_CREATE_FILES
 
-  WriteEmptyLine();
-  WriteComment("----- FIELDS -----");
-  WriteEmptyLine();
+	if ( m_showStatsOutput.GetFullPath().IsEmpty() )
+		InitShowStatsOutput( wkso );
 
-  CMapFormula::iterator it;
+	return CCmdFile::BuildShowStatsCmdFile( m_showStatsCmdFile.GetFullPath().ToStdString(), *this, wks );
 
-  for (it = m_formulas.begin() ; it != m_formulas.end() ; it++)
-  {
-    CFormula* value = dynamic_cast<CFormula*>(it->second);
-    if (value == nullptr)
-    {
-      continue;
-    }
-    WriteEmptyLine();
-    WriteComment(value->GetComment(true));
-    WriteLine(value->GetFieldPrefix()  + "=" + value->GetDescription(true));
-    WriteLine(value->GetFieldPrefix()  + "_NAME=" + value->GetName());
-    WriteLine(value->GetFieldPrefix()  + "_TYPE=" + value->GetDataTypeAsString());
-    WriteLine(value->GetFieldPrefix()  + "_UNIT=" + value->GetUnitAsText());
+#else
 
-    if (value->IsFieldType())
-    {
-      WriteLine(value->GetFieldPrefix()  + "_DATA_MODE=" + std::string(value->GetDataModeAsString().c_str()));
-    }
+	m_showStatsCmdFile.Normalize();
 
-    valueString = (value->GetTitle().empty()) ? value->GetName() : value->GetTitle();
-    WriteLine(value->GetFieldPrefix()  + "_TITLE=" + valueString);
+	m_file.Create( m_showStatsCmdFile.GetFullPath(), true, wxS_DEFAULT | wxS_IXUSR );
 
-    valueString = (value->GetComment().empty()) ? "DV" : value->GetComment();
-    WriteLine(value->GetFieldPrefix()  + "_COMMENT=" + valueString);
+	BuildShowStatsCmdFileHeader();
+	BuildCmdFileVerbose();
+	BuildCmdFileAlias();
+	BuildCmdFileDataset();
+	BuildCmdFileSpecificUnit();
+	BuildShowStatsCmdFileFields();
+	BuildCmdFileSelect();
+	BuildShowStatsCmdFileOutput();
 
-    BuildCmdFileFieldsSpecificZFXY(value);
-
-  }
-
-  return true;
-
-}
-//----------------------------------------
-bool COperation::BuildExportAsciiCmdFileFields()
-{
-	std::string valueString;
-
-	WriteEmptyLine();
-	WriteComment( "----- FIELDS -----" );
-	WriteEmptyLine();
-
-	CMapFormula::iterator it;
-
-	for ( it = m_formulas.begin(); it != m_formulas.end(); it++ )
-	{
-		CFormula* value = dynamic_cast<CFormula*>( it->second );
-		if ( value == nullptr )
-		{
-			continue;
-		}
-		WriteEmptyLine();
-		WriteComment( value->GetComment( true ) );
-
-		// If export operation  is not a dump export,
-		// Field name in not the field name of the source data file
-		// but the field name of the operation result file (intermediate netcdf file).
-		if ( m_exportAsciiNoDataComputation )
-		{
-			// Just a dump --> get the name of the source file
-			WriteLine( value->GetExportAsciiFieldPrefix() + "=" + value->GetDescription( true ) );
-		}
-		else
-		{
-			// Not a dump --> get the name of operation file (intermediate netcdf file).
-			WriteLine( value->GetExportAsciiFieldPrefix() + "=" + value->GetName() );
-		}
-
-		WriteLine( value->GetExportAsciiFieldPrefix() + "_NAME=" + value->GetName() );
-		WriteLine( value->GetExportAsciiFieldPrefix() + "_UNIT=" + value->GetUnitAsText() );
-
-		if ( ! isDefaultValue( m_exportAsciiNumberPrecision ) )
-		{
-			WriteLine( value->GetExportAsciiFieldPrefix() + "_FORMAT=" + n2s<std::string>( m_exportAsciiNumberPrecision ) );
-		}
-	}
-
+	m_file.Close();
 	return true;
+
+#endif
 }
 //----------------------------------------
-bool COperation::BuildShowStatsCmdFileFields()
-{
-  std::string valueString;
-
-  WriteEmptyLine();
-  WriteComment("----- FIELDS -----");
-  WriteEmptyLine();
-
-  CMapFormula::iterator it;
-
-  for (it = m_formulas.begin() ; it != m_formulas.end() ; it++)
-  {
-    CFormula* value = dynamic_cast<CFormula*>(it->second);
-    if (value == nullptr)
-    {
-      continue;
-    }
-    if (value->GetType() != CMapTypeField::eTypeOpAsField)
-    {
-      continue;
-    }
-    WriteEmptyLine();
-    WriteComment(value->GetComment(true));
-    WriteLine(value->GetExportAsciiFieldPrefix()  + "=" + value->GetDescription(true));
-    //WriteLine(value->GetExportAsciiFieldPrefix()  + "_NAME=" + value->GetName());
-    WriteLine(value->GetExportAsciiFieldPrefix()  + "_UNIT=" + value->GetUnitAsText());
-  }
-
-  return true;
-
-}
+//bool COperation::BuildShowStatsCmdFileHeader()
+//{
+////  WriteComment("!/usr/bin/env " + GetShowStatsSystemCommand()->GetName());
+//  return true;
+//
+//}
+//
+////----------------------------------------
+//bool COperation::BuildExportAsciiCmdFileHeader()
+//{
+////  WriteComment("!/usr/bin/env " + GetExportAsciiSystemCommand()->GetName());
+//  return true;
+//
+//}
+//
+////----------------------------------------
+//bool COperation::BuildCmdFileHeader()
+//{
+////  WriteComment("!/usr/bin/env " + GetSystemCommand()->GetName());
+//  WriteComment("Type:" + CMapTypeOp::GetInstance().IdToName(m_type));
+//  return true;
+//
+//}
+////----------------------------------------
+//bool COperation::BuildExportAsciiCmdFileGeneralProperties()
+//{
+//
+//  WriteEmptyLine();
+//  WriteComment("----- GENERAL PROPERTIES -----");
+//  WriteEmptyLine();
+//
+//  std::string valueString = (m_exportAsciiDateAsPeriod ? "Yes" : "No");
+//
+//  WriteLine(std::string(kwDATE_AS_PERIOD.c_str()) + "=" + valueString);
+//
+//  valueString = (m_exportAsciiExpandArray ? "Yes" : "No");
+//
+//  WriteLine(std::string(kwEXPAND_ARRAY.c_str()) + "=" + valueString);
+//
+//  return true;
+//
+//}
+////----------------------------------------
+//bool COperation::BuildCmdFileGeneralProperties()
+//{
+//
+//  WriteEmptyLine();
+//  WriteComment("----- GENERAL PROPERTIES -----");
+//  WriteEmptyLine();
+//  // Data mode is no more for a operation, but for each formula (data expression)
+//  //WriteLine(std::string::Format("DATA_MODE=%s", CMapDataMode::GetInstance().IdToName(m_dataMode).c_str()));
+//
+//  return true;
+//
+//}
+//
+////----------------------------------------
+//bool COperation::BuildCmdFileAlias()
+//{
+//  CMapFormula::iterator it;
+//
+//  CWorkspaceFormula* wks = wxGetApp().GetCurrentWorkspaceFormula();
+//  if (wks == nullptr)
+//  {
+//    return false;
+//  }
+//
+//  CMapFormula* formulas = wks->GetFormulas();
+//
+//  WriteEmptyLine();
+//  WriteComment("----- ALIAS -----");
+//
+//  for (it = formulas->begin() ; it != formulas->end() ; it++)
+//  {
+//    CFormula* value = dynamic_cast<CFormula*>(it->second);
+//    if (value == nullptr)
+//    {
+//      continue;
+//    }
+//    WriteLine(std::string(kwALIAS_NAME.c_str()) + std::string("=") + std::string(value->GetName().c_str()));
+//    WriteLine(std::string(kwALIAS_VALUE.c_str()) + std::string("=") + std::string(value->GetDescription(true)));
+//  }
+//
+//  return true;
+//
+//}
+////----------------------------------------
+//bool COperation::BuildCmdFileSpecificUnit()
+//{
+//	const CDataset* dataset = GetDataset();
+//	if ( dataset == nullptr )
+//		return false;
+//
+//
+//	WriteEmptyLine();
+//	WriteComment( "----- SPECIFIC UNIT -----" );
+//
+//	const CStringMap* fieldSpecificUnit = dataset->GetFieldSpecificUnits();
+//
+//	for ( CStringMap::const_iterator itMap = fieldSpecificUnit->begin(); itMap != fieldSpecificUnit->end(); itMap++ )
+//	{
+//		WriteLine( kwUNIT_ATTR_NAME + "=" + itMap->first );
+//		WriteLine( kwUNIT_ATTR_VALUE + "=" + itMap->second );
+//	}
+//
+//	return true;
+//}
+////----------------------------------------
+//bool COperation::BuildCmdFileFromOutputOperation()
+//{
+//
+//  WriteEmptyLine();
+//  WriteComment("----- DATASET -----");
+//  WriteEmptyLine();
+//  WriteLine(std::string(kwRECORD.c_str()) + "=" + CProductNetCdf::m_virtualRecordName.c_str());
+//  WriteEmptyLine();
+//  WriteLine(std::string(kwFILE.c_str()) + "=" + this->GetOutputName());
+//
+//  return true;
+//
+//}
+////----------------------------------------
+//bool COperation::BuildCmdFileDataset()
+//{
+//	WriteEmptyLine();
+//	WriteComment( "----- DATASET -----" );
+//	WriteEmptyLine();
+//	WriteLine( kwRECORD + "=" + m_record );
+//	WriteEmptyLine();
+//	std::vector< std::string >  array;
+//	m_dataset->GetFiles( array );
+//	for ( size_t i = 0; i < array.size(); i++ )
+//	{
+//		WriteLine( kwFILE + "=" + array[ i ] );
+//	}
+//	return true;
+//}
+////----------------------------------------
+//bool COperation::BuildCmdFileFields()
+//{
+//  std::string valueString;
+//
+//  WriteEmptyLine();
+//  WriteComment("----- FIELDS -----");
+//  WriteEmptyLine();
+//
+//  CMapFormula::iterator it;
+//
+//  for (it = m_formulas.begin() ; it != m_formulas.end() ; it++)
+//  {
+//    CFormula* value = dynamic_cast<CFormula*>(it->second);
+//    if (value == nullptr)
+//    {
+//      continue;
+//    }
+//    WriteEmptyLine();
+//    WriteComment(value->GetComment(true));
+//    WriteLine(value->GetFieldPrefix()  + "=" + value->GetDescription(true));
+//    WriteLine(value->GetFieldPrefix()  + "_NAME=" + value->GetName());
+//    WriteLine(value->GetFieldPrefix()  + "_TYPE=" + value->GetDataTypeAsString());
+//    WriteLine(value->GetFieldPrefix()  + "_UNIT=" + value->GetUnitAsText());
+//
+//    if (value->IsFieldType())
+//    {
+//      WriteLine(value->GetFieldPrefix()  + "_DATA_MODE=" + std::string(value->GetDataModeAsString().c_str()));
+//    }
+//
+//    valueString = (value->GetTitle().empty()) ? value->GetName() : value->GetTitle();
+//    WriteLine(value->GetFieldPrefix()  + "_TITLE=" + valueString);
+//
+//    valueString = (value->GetComment().empty()) ? "DV" : value->GetComment();
+//    WriteLine(value->GetFieldPrefix()  + "_COMMENT=" + valueString);
+//
+//    BuildCmdFileFieldsSpecificZFXY(value);
+//
+//  }
+//
+//  return true;
+//
+//}
+////----------------------------------------
+//bool COperation::BuildExportAsciiCmdFileFields()
+//{
+//	std::string valueString;
+//
+//	WriteEmptyLine();
+//	WriteComment( "----- FIELDS -----" );
+//	WriteEmptyLine();
+//
+//	CMapFormula::iterator it;
+//
+//	for ( it = m_formulas.begin(); it != m_formulas.end(); it++ )
+//	{
+//		CFormula* value = dynamic_cast<CFormula*>( it->second );
+//		if ( value == nullptr )
+//		{
+//			continue;
+//		}
+//		WriteEmptyLine();
+//		WriteComment( value->GetComment( true ) );
+//
+//		// If export operation  is not a dump export,
+//		// Field name in not the field name of the source data file
+//		// but the field name of the operation result file (intermediate netcdf file).
+//		if ( m_exportAsciiNoDataComputation )
+//		{
+//			// Just a dump --> get the name of the source file
+//			WriteLine( value->GetExportAsciiFieldPrefix() + "=" + value->GetDescription( true ) );
+//		}
+//		else
+//		{
+//			// Not a dump --> get the name of operation file (intermediate netcdf file).
+//			WriteLine( value->GetExportAsciiFieldPrefix() + "=" + value->GetName() );
+//		}
+//
+//		WriteLine( value->GetExportAsciiFieldPrefix() + "_NAME=" + value->GetName() );
+//		WriteLine( value->GetExportAsciiFieldPrefix() + "_UNIT=" + value->GetUnitAsText() );
+//
+//		if ( ! isDefaultValue( m_exportAsciiNumberPrecision ) )
+//		{
+//			WriteLine( value->GetExportAsciiFieldPrefix() + "_FORMAT=" + n2s<std::string>( m_exportAsciiNumberPrecision ) );
+//		}
+//	}
+//
+//	return true;
+//}
+////----------------------------------------
+//bool COperation::BuildShowStatsCmdFileFields()
+//{
+//  std::string valueString;
+//
+//  WriteEmptyLine();
+//  WriteComment("----- FIELDS -----");
+//  WriteEmptyLine();
+//
+//  CMapFormula::iterator it;
+//
+//  for (it = m_formulas.begin() ; it != m_formulas.end() ; it++)
+//  {
+//    CFormula* value = dynamic_cast<CFormula*>(it->second);
+//    if (value == nullptr)
+//    {
+//      continue;
+//    }
+//    if (value->GetType() != CMapTypeField::eTypeOpAsField)
+//    {
+//      continue;
+//    }
+//    WriteEmptyLine();
+//    WriteComment(value->GetComment(true));
+//    WriteLine(value->GetExportAsciiFieldPrefix()  + "=" + value->GetDescription(true));
+//    //WriteLine(value->GetExportAsciiFieldPrefix()  + "_NAME=" + value->GetName());
+//    WriteLine(value->GetExportAsciiFieldPrefix()  + "_UNIT=" + value->GetUnitAsText());
+//  }
+//
+//  return true;
+//
+//}
+//
+////----------------------------------------
+//bool COperation::BuildCmdFileFieldsSpecificZFXY( CFormula* value )
+//{
+//
+//	// if operation is not X/Y as Lat/Lon or Lon/Lat, force to default value
+//	/*
+//	if (!IsMap())
+//	{
+//	value->SetFilterDefault();
+//	value->SetMinValueDefault();
+//	value->SetMaxValueDefault();
+//	value->SetIntervalDefault();
+//	value->SetLoessCutOffDefault();
+//	}
+//	*/
+//	std::string valueString;
+//
+//	if ( m_type != CMapTypeOp::eTypeOpZFXY )
+//	{
+//		return false;
+//	}
+//
+//	if ( value == nullptr )
+//	{
+//		return false;
+//	}
+//
+//	valueString = ( value->GetFilter() == CMapTypeFilter::eFilterNone ) ? "DV" : value->GetFilterAsString();
+//	WriteLine( value->GetFieldPrefix() + "_FILTER=" + valueString );
+//
+//	if ( value->IsXYType() )
+//	{
+//		std::string errorMsg;
+//		value->ComputeInterval( errorMsg );
+//		if ( !errorMsg.empty() )
+//			wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
+//
+//		if ( value->IsTimeDataType() )
+//		{
+//			valueString = ( isDefaultValue( value->GetMinValue() ) ) ? "DV" : value->GetMinValueAsDateString();
+//			WriteLine( value->GetFieldPrefix() + "_MIN=" + valueString );
+//
+//			valueString = ( isDefaultValue( value->GetMaxValue() ) ) ? "DV" : value->GetMaxValueAsDateString();
+//			WriteLine( value->GetFieldPrefix() + "_MAX=" + valueString );
+//		}
+//		else
+//		{
+//			valueString = ( isDefaultValue( value->GetMinValue() ) ) ? "DV" : value->GetMinValueAsText();
+//			WriteLine( value->GetFieldPrefix() + "_MIN=" + valueString );
+//
+//			valueString = ( isDefaultValue( value->GetMaxValue() ) ) ? "DV" : value->GetMaxValueAsText();
+//			WriteLine( value->GetFieldPrefix() + "_MAX=" + valueString );
+//		}
+//
+//		valueString = ( isDefaultValue( value->GetInterval() ) ) ? "DV" : value->GetIntervalAsText();
+//		WriteLine( value->GetFieldPrefix() + "_INTERVALS=" + valueString );
+//
+//		valueString = ( isDefaultValue( value->GetLoessCutOff() ) ) ? "DV" : value->GetLoessCutOffAsText();
+//		WriteLine( value->GetFieldPrefix() + "_LOESS_CUTOFF=" + valueString );
+//	}
+//
+//	return true;
+//}
+////----------------------------------------
+//bool COperation::BuildCmdFileSelect()
+//{
+//
+//  WriteEmptyLine();
+//  WriteComment("----- SELECT -----");
+//  WriteEmptyLine();
+//  if (m_select->GetDescription(true).empty() == false)
+//  {
+//    WriteLine(std::string(kwSELECT.c_str()) + "=" + m_select->GetDescription(true));
+//  }
+//
+//  return true;
+//
+//}
+////----------------------------------------
+//bool COperation::BuildCmdFileOutput()
+//{
+//
+//  WriteEmptyLine();
+//  WriteComment("----- OUTPUT -----");
+//  WriteEmptyLine();
+//  if (m_output.GetFullPath().IsEmpty())
+//  {
+//    InitOutput();
+//  }
+//  WriteLine( kwOUTPUT + "=" + m_output.GetFullPath().ToStdString() );
+//
+//  return true;
+//
+//}
+////----------------------------------------
+//bool COperation::BuildExportAsciiCmdFileOutput()
+//{
+//
+//  WriteEmptyLine();
+//  WriteComment("----- OUTPUT -----");
+//  WriteEmptyLine();
+//  if (m_exportAsciiOutput.GetFullPath().IsEmpty())
+//  {
+//    InitExportAsciiOutput();
+//  }
+//  WriteLine( kwOUTPUT + "=" + m_exportAsciiOutput.GetFullPath().ToStdString() );
+//
+//  return true;
+//
+//}
+////----------------------------------------
+//bool COperation::BuildShowStatsCmdFileOutput()
+//{
+//
+//  WriteEmptyLine();
+//  WriteComment("----- OUTPUT -----");
+//  WriteEmptyLine();
+//  if (m_showStatsOutput.GetFullPath().IsEmpty())
+//  {
+//    InitShowStatsOutput();
+//  }
+//  WriteLine( kwOUTPUT + "=" + m_showStatsOutput.GetFullPath().ToStdString() );
+//
+//  return true;
+//
+//}
+//
+//
+////----------------------------------------
+//bool COperation::BuildCmdFileVerbose()
+//{
+//
+//  WriteEmptyLine();
+//  WriteComment("----- LOG -----");
+//  WriteEmptyLine();
+//  WriteLine( kwVERBOSE + "=" + n2s<std::string>( m_verbose ) );
+//
+//  if (m_logFile.IsOk())
+//  {
+//    WriteLine( kwLOGFILE + "=" + m_logFile.GetFullPath().ToStdString() );
+//  }
+//
+//  return true;
+//
+//}
+//
+////----------------------------------------
+//bool COperation::WriteComment(const std::string& text)
+//{
+//  WriteLine("#" + text);
+//  return true;
+//}
+////----------------------------------------
+//bool COperation::WriteLine(const std::string& text)
+//{
+//  if (m_file.IsOpened() == false)
+//  {
+//    return false;
+//  }
+//  m_file.Write(text + "\n");
+//  return true;
+//}
+////----------------------------------------
+//bool COperation::WriteEmptyLine()
+//{
+//  if (m_file.IsOpened() == false)
+//  {
+//    return false;
+//  }
+//  m_file.Write("\n");
+//  return true;
+//}
 
 //----------------------------------------
-bool COperation::BuildCmdFileFieldsSpecificZFXY( CFormula* value )
+void COperation::SetShowStatsOutput(const wxFileName& value, CWorkspaceOperation* wks )
 {
-
-	// if operation is not X/Y as Lat/Lon or Lon/Lat, force to default value
-	/*
-	if (!IsMap())
-	{
-	value->SetFilterDefault();
-	value->SetMinValueDefault();
-	value->SetMaxValueDefault();
-	value->SetIntervalDefault();
-	value->SetLoessCutOffDefault();
-	}
-	*/
-	std::string valueString;
-
-	if ( m_type != CMapTypeOp::eTypeOpZFXY )
-	{
-		return false;
-	}
-
-	if ( value == nullptr )
-	{
-		return false;
-	}
-
-	valueString = ( value->GetFilter() == CMapTypeFilter::eFilterNone ) ? "DV" : value->GetFilterAsString();
-	WriteLine( value->GetFieldPrefix() + "_FILTER=" + valueString );
-
-	if ( value->IsXYType() )
-	{
-		std::string errorMsg;
-		value->ComputeInterval( errorMsg );
-		if ( !errorMsg.empty() )
-			wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
-
-		if ( value->IsTimeDataType() )
-		{
-			valueString = ( isDefaultValue( value->GetMinValue() ) ) ? "DV" : value->GetMinValueAsDateString();
-			WriteLine( value->GetFieldPrefix() + "_MIN=" + valueString );
-
-			valueString = ( isDefaultValue( value->GetMaxValue() ) ) ? "DV" : value->GetMaxValueAsDateString();
-			WriteLine( value->GetFieldPrefix() + "_MAX=" + valueString );
-		}
-		else
-		{
-			valueString = ( isDefaultValue( value->GetMinValue() ) ) ? "DV" : value->GetMinValueAsText();
-			WriteLine( value->GetFieldPrefix() + "_MIN=" + valueString );
-
-			valueString = ( isDefaultValue( value->GetMaxValue() ) ) ? "DV" : value->GetMaxValueAsText();
-			WriteLine( value->GetFieldPrefix() + "_MAX=" + valueString );
-		}
-
-		valueString = ( isDefaultValue( value->GetInterval() ) ) ? "DV" : value->GetIntervalAsText();
-		WriteLine( value->GetFieldPrefix() + "_INTERVALS=" + valueString );
-
-		valueString = ( isDefaultValue( value->GetLoessCutOff() ) ) ? "DV" : value->GetLoessCutOffAsText();
-		WriteLine( value->GetFieldPrefix() + "_LOESS_CUTOFF=" + valueString );
-	}
-
-	return true;
-}
-//----------------------------------------
-bool COperation::BuildCmdFileSelect()
-{
-
-  WriteEmptyLine();
-  WriteComment("----- SELECT -----");
-  WriteEmptyLine();
-  if (m_select->GetDescription(true).empty() == false)
-  {
-    WriteLine(std::string(kwSELECT.c_str()) + "=" + m_select->GetDescription(true));
-  }
-
-  return true;
-
-}
-//----------------------------------------
-bool COperation::BuildCmdFileOutput()
-{
-
-  WriteEmptyLine();
-  WriteComment("----- OUTPUT -----");
-  WriteEmptyLine();
-  if (m_output.GetFullPath().IsEmpty())
-  {
-    InitOutput();
-  }
-  WriteLine( kwOUTPUT + "=" + m_output.GetFullPath().ToStdString() );
-
-  return true;
-
-}
-//----------------------------------------
-bool COperation::BuildExportAsciiCmdFileOutput()
-{
-
-  WriteEmptyLine();
-  WriteComment("----- OUTPUT -----");
-  WriteEmptyLine();
-  if (m_exportAsciiOutput.GetFullPath().IsEmpty())
-  {
-    InitExportAsciiOutput();
-  }
-  WriteLine( kwOUTPUT + "=" + m_exportAsciiOutput.GetFullPath().ToStdString() );
-
-  return true;
-
-}
-//----------------------------------------
-bool COperation::BuildShowStatsCmdFileOutput()
-{
-
-  WriteEmptyLine();
-  WriteComment("----- OUTPUT -----");
-  WriteEmptyLine();
-  if (m_showStatsOutput.GetFullPath().IsEmpty())
-  {
-    InitShowStatsOutput();
-  }
-  WriteLine( kwOUTPUT + "=" + m_showStatsOutput.GetFullPath().ToStdString() );
-
-  return true;
-
-}
-
-
-//----------------------------------------
-bool COperation::BuildCmdFileVerbose()
-{
-
-  WriteEmptyLine();
-  WriteComment("----- LOG -----");
-  WriteEmptyLine();
-  WriteLine( kwVERBOSE + "=" + n2s<std::string>( m_verbose ) );
-
-  if (m_logFile.IsOk())
-  {
-    WriteLine( kwLOGFILE + "=" + m_logFile.GetFullPath().ToStdString() );
-  }
-
-  return true;
-
-}
-
-//----------------------------------------
-bool COperation::WriteComment(const std::string& text)
-{
-  WriteLine("#" + text);
-  return true;
-}
-//----------------------------------------
-bool COperation::WriteLine(const std::string& text)
-{
-  if (m_file.IsOpened() == false)
-  {
-    return false;
-  }
-  m_file.Write(text + "\n");
-  return true;
-}
-//----------------------------------------
-bool COperation::WriteEmptyLine()
-{
-  if (m_file.IsOpened() == false)
-  {
-    return false;
-  }
-  m_file.Write("\n");
-  return true;
-}
-
-//----------------------------------------
-void COperation::SetShowStatsOutput(const wxFileName& value)
-{
-  CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
 
   m_showStatsOutput = value;
 
@@ -1371,12 +1851,12 @@ void COperation::SetShowStatsOutput(const wxFileName& value)
     m_showStatsOutput.Normalize(wxPATH_NORM_ALL, wks->GetPath());
   }
 
-  SetShowStatsCmdFile();
+  SetShowStatsCmdFile( wks );
 }
 //----------------------------------------
-void COperation::SetShowStatsOutput(const std::string& value)
+void COperation::SetShowStatsOutput(const std::string& value, CWorkspaceOperation* wks )
 {
-  CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
 
   m_showStatsOutput.Assign(value);
 
@@ -1389,12 +1869,12 @@ void COperation::SetShowStatsOutput(const std::string& value)
     m_showStatsOutput.Normalize(wxPATH_NORM_ALL, wks->GetPath());
   }
 
-  SetShowStatsCmdFile();
+  SetShowStatsCmdFile( wks );
 }
 //----------------------------------------
-void COperation::SetExportAsciiOutput(const wxFileName& value)
+void COperation::SetExportAsciiOutput(const wxFileName& value, CWorkspaceOperation* wks )
 {
-  CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
 
   m_exportAsciiOutput = value;
 
@@ -1407,12 +1887,12 @@ void COperation::SetExportAsciiOutput(const wxFileName& value)
     m_exportAsciiOutput.Normalize(wxPATH_NORM_ALL, wks->GetPath());
   }
 
-  SetExportAsciiCmdFile();
+  SetExportAsciiCmdFile( wks );
 }
 //----------------------------------------
-void COperation::SetExportAsciiOutput(const std::string& value)
+void COperation::SetExportAsciiOutput(const std::string& value, CWorkspaceOperation* wks )
 {
-  CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
 
   m_exportAsciiOutput.Assign(value);
 
@@ -1425,13 +1905,13 @@ void COperation::SetExportAsciiOutput(const std::string& value)
     m_exportAsciiOutput.Normalize(wxPATH_NORM_ALL, wks->GetPath());
   }
 
-  SetExportAsciiCmdFile();
+  SetExportAsciiCmdFile( wks );
 }
 
 //----------------------------------------
-void COperation::SetOutput(const wxFileName& value)
+void COperation::SetOutput(const wxFileName& value, CWorkspaceOperation* wks )
 {
-  CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
 
   m_output = value;
 
@@ -1444,31 +1924,27 @@ void COperation::SetOutput(const wxFileName& value)
     m_output.Normalize(wxPATH_NORM_ALL, wks->GetPath());
   }
 
-  SetCmdFile();
+  SetCmdFile( wks );
 }
 //----------------------------------------
-void COperation::SetOutput(const std::string& value)
+void COperation::SetOutput( const std::string& value, CWorkspaceOperation* wks )
 {
-  CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+	//CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
 
-  m_output.Assign(value);
+	m_output.Assign( value );
 
-  if (wks == nullptr)
-  {
-    m_output.Normalize();
-  }
-  else
-  {
-    m_output.Normalize(wxPATH_NORM_ALL, wks->GetPath());
-  }
+	if ( wks == nullptr )
+		m_output.Normalize();
+	else
+		m_output.Normalize( wxPATH_NORM_ALL, wks->GetPath() );
 
-  SetCmdFile();
+	SetCmdFile( wks );
 }
 
 //----------------------------------------
-void COperation::SetCmdFile()
+void COperation::SetCmdFile( CWorkspaceOperation* wks )
 {
-  CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
 
   m_cmdFile = m_output;
   m_cmdFile.SetExt(COMMANDFILE_EXTENSION);
@@ -1483,9 +1959,9 @@ void COperation::SetCmdFile()
 
 }
 //----------------------------------------
-void COperation::SetExportAsciiCmdFile()
+void COperation::SetExportAsciiCmdFile( CWorkspaceOperation *wks )
 {
-  CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+  //CWorkspaceOperation *wks = wxGetApp().GetCurrentWorkspaceOperation();
 
   m_exportAsciiCmdFile.AssignDir(wks->GetPath());
   m_exportAsciiCmdFile.SetFullName(m_exportAsciiOutput.GetFullName());
@@ -1501,9 +1977,9 @@ void COperation::SetExportAsciiCmdFile()
 
 }
 //----------------------------------------
-void COperation::SetShowStatsCmdFile()
+void COperation::SetShowStatsCmdFile( CWorkspaceOperation *wks )
 {
-  CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
 
   m_showStatsCmdFile.AssignDir(wks->GetPath());
   m_showStatsCmdFile.SetFullName(m_showStatsOutput.GetFullName());
@@ -1520,9 +1996,9 @@ void COperation::SetShowStatsCmdFile()
 }
 
 //----------------------------------------
-std::string COperation::GetOutputNameRelativeToWks()
+std::string COperation::GetOutputNameRelativeToWks( CWorkspaceOperation *wks )
 {
-  CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
   if (wks == nullptr)
   {
     return GetOutputName();
@@ -1533,9 +2009,9 @@ std::string COperation::GetOutputNameRelativeToWks()
   return relative.GetFullPath().ToStdString();
 }
 //----------------------------------------
-std::string COperation::GetExportAsciiOutputNameRelativeToWks()
+std::string COperation::GetExportAsciiOutputNameRelativeToWks( CWorkspaceOperation *wks )
 {
-  CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
   if (wks == nullptr)
   {
     return GetExportAsciiOutputName();
@@ -1547,9 +2023,9 @@ std::string COperation::GetExportAsciiOutputNameRelativeToWks()
 
 }
 //----------------------------------------
-std::string COperation::GetShowStatsOutputNameRelativeToWks()
+std::string COperation::GetShowStatsOutputNameRelativeToWks( CWorkspaceOperation *wks )
 {
-  CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
   if (wks == nullptr)
   {
     return GetShowStatsOutputName();
@@ -1561,24 +2037,24 @@ std::string COperation::GetShowStatsOutputNameRelativeToWks()
 
 }
 //----------------------------------------
-void COperation::InitOutput()
+void COperation::InitOutput( CWorkspaceOperation *wks )
 {
-  CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-  if (wks == nullptr)
-  {
-    return;
-  }
+	//CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+	if ( wks == nullptr )
+	{
+		return;
+	}
 
-  std::string output = wks->GetPath()		//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR				!!! femm attention here !!!
-                                     + "/Create"
-                                     + GetName() + ".nc";
-  SetOutput(output);
+	std::string output = wks->GetPath()		//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR				!!! femm attention here !!!
+		+ "/Create"
+		+ GetName() + ".nc";
 
+	SetOutput( output, wks );
 }
 //----------------------------------------
-void COperation::InitShowStatsOutput()
+void COperation::InitShowStatsOutput( CWorkspaceOperation *wks )
 {
-  CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
   if (wks == nullptr)
   {
     return;
@@ -1587,13 +2063,13 @@ void COperation::InitShowStatsOutput()
   std::string output = wks->GetPath()				//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR		!!! femm attention here !!!
                                      + "/Stats"
                                      + GetName() + ".txt";
-  SetShowStatsOutput(output);
+  SetShowStatsOutput(output, wks );
 
 }
 //----------------------------------------
-void COperation::InitExportAsciiOutput()
+void COperation::InitExportAsciiOutput( CWorkspaceOperation *wks )
 {
-  CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
   if (wks == nullptr)
   {
     return;
@@ -1602,29 +2078,29 @@ void COperation::InitExportAsciiOutput()
   std::string output = wks->GetPath()						//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR !!! femm attention here !!!
                                      + "/ExportAscii"
                                      + GetName() + ".txt";
-  SetExportAsciiOutput(output);
+  SetExportAsciiOutput(output, wks );
 
 }
 //----------------------------------------
 bool COperation::RemoveOutput()
 {
-  bool bOk = CBratGuiApp::RemoveFile(GetOutputName());
+  bool bOk = RemoveFile(GetOutputName());
 
-  CBratGuiApp::RemoveFile(GetCmdFileFullName());
+  RemoveFile(GetCmdFileFullName());
 
   return bOk;
 }
 //----------------------------------------
 bool COperation::RenameOutput(const std::string& oldName)
 {
-  bool bOk = CBratGuiApp::RenameFile(oldName, GetOutputName());
+  bool bOk = RenameFile( oldName, GetOutputName() );
 
   wxFileName oldCmdFile;
   oldCmdFile.Assign(oldName);
   oldCmdFile.SetExt(COMMANDFILE_EXTENSION);
 
   //RenameFile(oldCmdFile.GetFullPath(), GetCmdFile());
-  CBratGuiApp::RemoveFile(oldCmdFile.GetFullPath());
+  RemoveFile( oldCmdFile.GetFullPath().ToStdString() );
   return bOk;
 }
 

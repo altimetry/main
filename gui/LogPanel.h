@@ -59,7 +59,7 @@ public:
 
   void EnableCtrl();
 
-  void LogFile( wxFileName* file );
+  void LogFile( const wxFileName* file );
   void LogFile( const wxString& file );
 
 

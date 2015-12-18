@@ -99,6 +99,23 @@ inline bool IsDir( const std::string &DirName )
 
 // On files...
 
+inline bool NewFile( const std::string &NewName, bool close = false )			  				//CAUTION: There is a CreateFile in windows
+{
+	QFile f( NewName.c_str() );
+	if ( !f.open( QIODevice::ReadWrite ) )
+		return false;
+	if ( close )
+		f.close();
+
+    return true;
+}
+
+inline void CloseFile( const std::string &NewName )
+{
+	QFile f( NewName.c_str() );
+	f.close();
+}
+
 inline bool RenameFile( const std::string &OldName, const std::string &NewName )
 {
     return QFile::rename( OldName.c_str(), NewName.c_str() );

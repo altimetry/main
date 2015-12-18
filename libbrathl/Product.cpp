@@ -1682,7 +1682,7 @@ bool CProduct::IsSameProduct(const std::string& productClass, const std::string&
 
 //----------------------------------------
 
-CProduct* CProduct::Construct(CStringArray& fileNameArray)
+CProduct* CProduct::Construct(const CStringArray& fileNameArray)
 {
   CProductList productList(fileNameArray);
 

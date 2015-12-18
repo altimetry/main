@@ -588,9 +588,7 @@ void COperationTreeCtrl::Insert(COperation* operation)
   wxTreeItemId idRootSelect = GetSelectRootId();
 
   CMapFormula* formulas = m_operation->GetFormulas();
-  CMapFormula::iterator it;
-
-  for (it = formulas->begin() ; it != formulas->end() ; it++)
+  for (CMapFormula::iterator it = formulas->begin() ; it != formulas->end() ; it++)
   {
     CFormula* formula = m_operation->GetFormula(it);
     if (formula == NULL)

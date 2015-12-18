@@ -1573,13 +1573,17 @@ bool COperationPanel::CtrlOperation(CWorkspaceFormula *wks, std::string& msg, bo
 //----------------------------------------
 bool COperationPanel::BuildCmdFile()
 {
-  if (m_operation == NULL)
-  {
-    return false;
-  }
+	if ( m_operation == NULL )
+	{
+		return false;
+	}
 
-  return m_operation->BuildCmdFile();
+	std::string errorMsg;
+	bool result = m_operation->BuildCmdFile( wxGetApp().GetCurrentWorkspaceFormula(), wxGetApp().GetCurrentWorkspaceOperation(), errorMsg );
+	if ( !errorMsg.empty() )
+		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
 
+	return  result;
 }
 //----------------------------------------
 bool COperationPanel::BuildExportAsciiCmdFile()
@@ -3317,7 +3321,7 @@ void COperationPanel::Execute(bool wait /*= false*/)
 
   if (wait)
   {
-    m_operation->SetLogFile();
+    m_operation->SetLogFile( wxGetApp().GetCurrentWorkspaceOperation() );
   }
   else
   {

@@ -48,7 +48,7 @@ DEFINE_EVENT_TYPE(wxEVT_PROCESS_TERM)
 //-------------------------------------------------------------
 //------------------- CProcess class --------------------
 //-------------------------------------------------------------
-CProcess::CProcess(const wxString& name, wxWindow *parent, const wxString& cmd, wxFileName* output, int32_t type)
+CProcess::CProcess(const wxString& name, wxWindow *parent, const wxString& cmd, const wxFileName* output, int32_t type)
     : wxProcess(parent), m_cmd(cmd)
 {
   m_name = name;
@@ -222,7 +222,7 @@ void CProcess::DisconnectEvtProcessTermCommand(wxEvtHandler& evtHandler)
 //-------------------------------------------------------------
 //------------------- CPipedProcess class --------------------
 //-------------------------------------------------------------
-CPipedProcess::CPipedProcess(const wxString& name, wxWindow *parent, const wxString& cmd, wxTextCtrl* logCtrl, wxFileName* output, int32_t type)
+CPipedProcess::CPipedProcess(const wxString& name, wxWindow *parent, const wxString& cmd, wxTextCtrl* logCtrl, const wxFileName* output, int32_t type)
       : CProcess(name, parent, cmd, output, type)
 {
   Init();

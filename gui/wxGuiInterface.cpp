@@ -340,3 +340,19 @@ void GetDisplayNames( const CWorkspaceDisplay &wks, wxComboBox& combo )
 		combo.Append( it->first.c_str() );
 	}
 }
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//											COperation and related
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+void GetFormulaNames( const COperation &op, wxComboBox& combo )
+{
+	for ( CMapFormula::const_iterator it = op.GetFormulas()->begin(); it != op.GetFormulas()->end(); it++ )
+	{
+		combo.Append( ( it->first ).c_str() );
+	}
+}

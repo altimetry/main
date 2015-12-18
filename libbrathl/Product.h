@@ -283,7 +283,7 @@ public:
   void SetCreateVirtualField(bool value) {m_createVirtualField = value;}
 
   
-  static CProduct* Construct(CStringArray& fileNameArray);
+  static CProduct* Construct(const CStringArray& fileNameArray);
   static CProduct* Construct(CStringList& fileNameList);
   static CProduct* Construct(CProductList& fileNameList);
   static CProduct* Construct(const std::string& fileName);

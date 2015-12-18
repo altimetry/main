@@ -383,7 +383,7 @@ public:
 	std::string GetName() { return m_name; };
 	void SetName( const std::string& value ) { m_name = value; };
 
-	std::string GetDescription( bool removeCRLF = false, const CStringMap* formulaAliases = NULL, const CStringMap* fieldAliases = NULL );
+	std::string GetDescription( bool removeCRLF = false, const CStringMap* formulaAliases = NULL, const CStringMap* fieldAliases = NULL ) const;
 	void SetDescription( const std::string& value ) { m_description = value; };
 	void SetDescription( const char* value ) { m_description = value; };
 
@@ -454,7 +454,7 @@ public:
 	void SetLoessCutOffDefault() { setDefaultValue( m_loessCutOff ); };
 
 	std::string GetTypeAsString() { return CMapTypeField::GetInstance().IdToName( m_type ); };
-	int32_t GetType() { return m_type; };
+	int32_t GetType() const { return m_type; };
 	void SetType( int32_t value ) { m_type = value; };
 
 	std::string GetDataTypeAsString() { return CMapTypeData::GetInstance().IdToName( m_dataType ); };
