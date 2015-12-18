@@ -149,7 +149,7 @@ CTaskListView::CTaskListView( wxWindow *parent, wxWindowID id,
   m_data = NULL;
   m_bratTask = NULL;
 
-  m_allowSuppr = true;
+  //m_allowSuppr = true;
 
   m_imageListSmall = new wxImageList(16, 16, true);
   m_imageListSmall->Add( BitmapsList(0) );
@@ -425,116 +425,127 @@ bool CTaskListView::GetSelectedItems(CVectorBratTask& selectedTasks)
 
 //----------------------------------------
 bool CTaskListView::RemoveTasks(bool ask /* = true */)
-{
+{    
+//    if (!m_allowSuppr)
+//    {
+//        return true;
+//    }
 
-  if (!m_allowSuppr)
-  {
-    return true;
-  }
+    // II. confirm deletion with user - TODO SimpleQuestionBox("question?") -> true on "Yes"
 
-  if (ask)
-  {
-    bool cancel = AskToRemove();
-    if (cancel)
+    if (ask)
     {
-      return true;
-    }
-  }
-
-
-  int32_t selCount = GetSelectedItemCount();
-
-  std::vector<long> itemToDelete;
-  std::vector<wxLongLong_t> dataKeyToDelete;
-
-  long item = GetNextItem(-1, wxLIST_NEXT_ALL,
-                              wxLIST_STATE_SELECTED);
-  while ( selCount != 0 )
-  {
-    CBratTask* data = (CBratTask*)(GetItemData(item));
-    if (data != NULL)
-    {
-      //We just inspect the items to delete.
-      //They will be deleted after the file is sucessfully saved.
-      Select(item, false);
-      dataKeyToDelete.push_back(data->GetUid());
-      itemToDelete.push_back(item);
+        bool cancel = AskToRemove();
+        if (cancel)
+        {
+            return true;
+        }
     }
 
-    selCount = GetSelectedItemCount();
+    // III. Create lists (GUI and task ids) of tasks to delete - TODO
 
-    item = GetNextItem(-1, wxLIST_NEXT_ALL,
-                              wxLIST_STATE_SELECTED);
+    int32_t selCount = GetSelectedItemCount();
 
-  }
+    std::vector<long> itemToDelete;
+    std::vector<uid_t> dataKeyToDelete;
 
-  // Nothing to delete ==> return
-  if (dataKeyToDelete.size() <= 0)
-  {
-    return true;
-  }
+    long item = GetNextItem(-1, wxLIST_NEXT_ALL,
+                            wxLIST_STATE_SELECTED);
+    while ( selCount != 0 )
+    {
+        CBratTask* data = (CBratTask*)(GetItemData(item));
+        if (data != NULL)
+        {
+            //We just inspect the items to delete.
+            //They will be deleted after the file is sucessfully saved.
+            Select(item, false);
+            dataKeyToDelete.push_back(data->GetUid());
+            itemToDelete.push_back(item);
+        }
 
-  bool saved = false;
+        selCount = GetSelectedItemCount();
 
-  try
-  {
-    //---------------------
-    wxGetApp().StopCheckConfigFileTimer();
-    //---------------------
+        item = GetNextItem(-1, wxLIST_NEXT_ALL,
+                           wxLIST_STATE_SELECTED);
 
-    bool loaded = CSchedulerTaskConfig::LoadAllSchedulerTaskConfig();
-
-    if (!loaded)
-    {    
-      //---------------------
-      wxGetApp().StartCheckConfigFileTimer();
-      //---------------------
-      return true;
     }
 
-    std::vector<wxLongLong_t>::const_iterator itData;
-    for (itData = dataKeyToDelete.begin(); itData != dataKeyToDelete.end() ; itData++)
+    // Nothing to delete ==> return
+    if (dataKeyToDelete.size() <= 0)
     {
-      try
-      {
-        CSchedulerTaskConfig::GetInstance()->RemoveTask(*itData);
-      }
-      catch(CException& e)
-      {
+        return true;
+    }
+
+    bool saved = false;
+
+    try
+    {
+        // III. Suspend timer
+
+        //---------------------
+        wxGetApp().StopCheckConfigFileTimer();
+        //---------------------
+
+        // IV. Verify
+
+        bool loaded = CSchedulerTaskConfig::LoadAllSchedulerTaskConfig();
+        if (!loaded)
+        {
+            //---------------------
+            wxGetApp().StartCheckConfigFileTimer();
+            //---------------------
+            return true;
+        }
+
+        // V. Delete tasks - TODO
+
+        std::vector<wxLongLong_t>::const_iterator itData;
+        for (itData = dataKeyToDelete.begin(); itData != dataKeyToDelete.end() ; itData++)
+        {
+            try
+            {
+                CSchedulerTaskConfig::GetInstance()->RemoveTask(*itData);
+            }
+            catch(CException& e)
+            {
+                wxMessageBox(e.GetMessage().c_str(),
+                             "Warning",
+                             wxOK | wxCENTRE | wxICON_EXCLAMATION);
+            }
+        }
+
+        saved = CSchedulerTaskConfig::SaveSchedulerTaskConfig();
+
+        // VI. Verify
+
+        wxGetApp().ResetConfigFileChange();
+
+    }
+    catch(const CException& e)
+    {
+        //wxGetApp().UnLockConfigFile();
         wxMessageBox(e.GetMessage().c_str(),
-		                 "Warning",
-		                  wxOK | wxCENTRE | wxICON_EXCLAMATION);
-      }
+                     "Warning",
+                     wxOK | wxCENTRE | wxICON_EXCLAMATION);
+
     }
- 
-    saved = CSchedulerTaskConfig::SaveSchedulerTaskConfig();
 
-    wxGetApp().ResetConfigFileChange();    
-
-  }
-  catch(CException& e)
-  {
-    //wxGetApp().UnLockConfigFile();
-    wxMessageBox(e.GetMessage().c_str(),
-		              "Warning",
-		              wxOK | wxCENTRE | wxICON_EXCLAMATION);
-
-  }  
-
-  //---------------------
-  wxGetApp().StartCheckConfigFileTimer();
-  //---------------------
+    //---------------------
+    wxGetApp().StartCheckConfigFileTimer();
+    //---------------------
 
 
-  // Now really delete items from list (start from the end)
-  int32_t size = static_cast<int32_t>(itemToDelete.size());
+    // VII. Delete GUI items - TODO
 
-  for (int32_t i = size - 1; i >= 0 ; i--)
-  {
-    DeleteItem(itemToDelete.at(i));
-  }
+    // Now really delete items from list (start from the end)
+    int32_t size = static_cast<int32_t>(itemToDelete.size());
 
-  return saved;
+    for (int32_t i = size - 1; i >= 0 ; i--)
+    {
+        DeleteItem(itemToDelete.at(i));
+    }
+
+    return saved;
 
 }
 

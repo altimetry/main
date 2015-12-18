@@ -179,7 +179,7 @@ protected:
 public:
     virtual bool IsOk() const { return true; }
 
-	bool IsReloadAll() { return m_reloadAll; };
+    bool IsReloadAll() { return m_reloadAll; }
 
 	CMapBratTask* GetMapPendingBratTask() { return &m_mapPendingBratTask; }
 	CMapBratTask* GetMapEndedBratTask() { return &m_mapEndedBratTask; }

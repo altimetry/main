@@ -144,6 +144,13 @@ SchedulerDlg::SchedulerDlg(QWidget *parent) : QDialog(parent)
     tableProcTask->setSelectionBehavior(QAbstractItemView::SelectRows);
     tableEndTask->setSelectionBehavior(QAbstractItemView::SelectRows);
 
+    // Setting alternating row colors
+    tablePendingTask->setAlternatingRowColors(true);
+    tableProcTask->setAlternatingRowColors(true);
+    tableEndTask->setAlternatingRowColors(true);
+
+    //tablePendingTask->setEditTriggers();
+
     // Disable grid lines.
     tablePendingTask->setShowGrid(false);
     tableProcTask->setShowGrid(false);
