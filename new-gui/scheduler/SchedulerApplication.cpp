@@ -110,17 +110,15 @@ QSchedulerApplication::QSchedulerApplication(int &argc, char **argv, int flags)
 
     try
     {
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
         m_frame = new CSchedulerFrame( NULL, -1, BRATSCHEDULER_TITLE );			//tasks are loaded here by a certain CPendingPanel
-
-		*/
 
 		CTasksProcessor* schedulerTaskConfig = CTasksProcessor::GetInstance();
 
-
-		/*
         // After loading, tasks whose status is 'in progress' are considered as 'pending'
         // They have to be re-executed.
         ChangeProcessingToPending();
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
         m_checkConfigFileTimer.SetFileName( schedulerTaskConfig->GetFullFileName() );
         m_checkConfigFileTimer.SetOwner( this, m_checkConfigFileTimerId );
@@ -179,6 +177,11 @@ QSchedulerApplication::~QSchedulerApplication()
 
 	CTasksProcessor::DestroyInstance();
 }
+
+
+
+
+
 
 
 void QSchedulerApplication::dumpMemoryStatistics()

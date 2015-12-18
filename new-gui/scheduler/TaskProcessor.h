@@ -84,12 +84,12 @@ public:	//TODO: pass to private after transition
 	}
 
 public:
-	static CTasksProcessor* GetInstance( const std::string* fileName, bool reload = false, bool lockFile = true, bool unlockFile = true );
+    static CTasksProcessor* GetInstance( const std::string* fileName, bool reload = false, bool lockFile = true, bool unlockFile = true );
 	static CTasksProcessor* GetInstance( bool reload = false, bool lockFile = true, bool unlockFile = true )
 	{
 		const std::string path = std::string( getenv( "S3ALTB_ROOT") ) + "/project/dev/source/new-gui/scheduler/BratSchedulerTasksConfig.xml";
 		//std::string fileName = GetConfigFilePath( CSchedulerTaskConfig::m_CONFIG_APPNAME );
-		return GetInstance( &path, reload, lockFile, unlockFile );
+        return GetInstance( &path, reload, lockFile, unlockFile );
 
 		return mInstance;
 	}
@@ -197,8 +197,8 @@ public:
 
 protected:
 //were private
-	CMapBratTask* GetMapBratTask() { return &m_mapBratTask; };
-	CMapBratTask* GetMapProcessingBratTask() { return &m_mapProcessingBratTask; };
+    CMapBratTask* GetMapBratTask() { return &m_mapBratTask; }
+    CMapBratTask* GetMapProcessingBratTask() { return &m_mapProcessingBratTask; }
 
 
 

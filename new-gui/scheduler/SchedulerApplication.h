@@ -16,15 +16,15 @@ class QSchedulerApplication : public QApplication
     // static data members
 
 #if defined(MEM_LEAKS)
-	static _CrtMemState FirstState;			//before all run-time allocations
-	static _CrtMemState BeforeRunState;		//after app creation, before running engine
-	static _CrtMemState AfterRunState;		//after running engine, before de-allocating
+    static _CrtMemState FirstState;			//before all run-time allocations
+    static _CrtMemState BeforeRunState;		//after app creation, before running engine
+    static _CrtMemState AfterRunState;		//after running engine, before de-allocating
 #endif
 
     // static member functions
 
 public:
-	static void dumpMemoryStatistics();
+    static void dumpMemoryStatistics();
 
 private:
 
@@ -47,6 +47,7 @@ public:
     {}
 
     virtual ~QSchedulerApplication();
+
 };
 
 
