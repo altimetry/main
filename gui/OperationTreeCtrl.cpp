@@ -751,145 +751,123 @@ bool COperationTreeCtrl::SelectRecord()
 
 }
 //----------------------------------------
-void COperationTreeCtrl::Add(const wxTreeItemId& parentId)
+void COperationTreeCtrl::Add( const wxTreeItemId& parentId )
 {
-
-  if (m_operation == NULL)  
-  {
-    return;
-  }
-
-  if (!parentId)  
-  {
-    return;
-  }
-
-  bool bOk = true;
-
-  wxString operationRecord = m_operation->GetRecord();
-  
-  if (operationRecord.IsEmpty())
-  {
-    bOk = SelectRecord();
-  }
-
-  if (!bOk)
-  {
-    return;
-  }
+	if ( m_operation == NULL || !parentId )
+		return;
 
 
-  wxTreeItemId theParentId = FindParentRootTypeItem(parentId);
-  COperationTreeItemData* itemDataParent = dynamic_cast<COperationTreeItemData*>(GetItemData(theParentId));
+	wxString operationRecord = m_operation->GetRecord();
+	bool bOk = true;
+	if ( operationRecord.IsEmpty() )
+	{
+		bOk = SelectRecord();
+	}
 
-  wxTreeItemId selectRootId = GetSelectRootId();
-  
-  if (itemDataParent != NULL)
-  {
-    CFormula* formula = m_operation->NewUserFormula(m_operation->GetFormulaNewName(), itemDataParent->GetType(), "", (theParentId != selectRootId));
-    Add(theParentId, formula);
-  }
-  
-  return;
+	if ( !bOk )
+		return;
+
+	wxTreeItemId theParentId = FindParentRootTypeItem( parentId );
+	COperationTreeItemData* itemDataParent = dynamic_cast<COperationTreeItemData*>( GetItemData( theParentId ) );
+
+	wxTreeItemId selectRootId = GetSelectRootId();
+
+	if ( itemDataParent != NULL )
+	{
+		std::string errorMsg;
+		CFormula* formula = m_operation->NewUserFormula( errorMsg, m_operation->GetFormulaNewName(), itemDataParent->GetType(), "", ( theParentId != selectRootId ) );
+		if ( !errorMsg.empty() )
+			wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
+		Add( theParentId, formula );
+	}
 }
 
 //----------------------------------------
-void COperationTreeCtrl::Add(const wxTreeItemId& parentId, CField* field)
+void COperationTreeCtrl::Add( const wxTreeItemId& parentId, CField* field )
 {
-  if (field == NULL)  
-  {
-    return;
-  }
+	if ( field == NULL || m_operation == NULL || !parentId )
+		return;
 
-  if (m_operation == NULL)  
-  {
-    return;
-  }
+	wxTreeItemId theParentId = FindParentRootTypeItem( parentId );
 
-  if (!parentId)  
-  {
-    return;
-  }
+	//int32_t nbVirtualDims = field->GetVirtualNbDims();
+	/*
+	  if (nbVirtualDims > 1)
+	  {
+	  wxMessageBox(wxString::Format("Field '%s' is a %d-dimensional field.\n"
+	  "It is no allowed as '%s' expression.\n",
+	  field->GetName().c_str(),
+	  nbVirtualDims,
+	  GetItemText(theParentId).c_str()),
+	  "Warning",
+	  wxOK | wxICON_HAND);
+	  return;
 
-  wxTreeItemId theParentId = FindParentRootTypeItem(parentId);
-  
-  //int32_t nbVirtualDims = field->GetVirtualNbDims();
-/*
-  if (nbVirtualDims > 1)
-  {
-    wxMessageBox(wxString::Format("Field '%s' is a %d-dimensional field.\n"
-                              "It is no allowed as '%s' expression.\n",
-                                  field->GetName().c_str(),
-                                  nbVirtualDims,
-                                  GetItemText(theParentId).c_str()),
-                "Warning",
-                wxOK | wxICON_HAND);
-    return;
+	  }
+	  */
+	/*
+	if (theParentId != GetDataRootId())
+	{
+	if (field->HasVirtualNbDims() && !field->IsHighResolution())
+	{
+	wxMessageBox(wxString::Format("Field '%s' is neither a scalar (dimension: '%s') nor a 'high resolution' field.\n"
+	"It is no allowed as '%s' expression.\n",
+	field->GetName().c_str(),
+	field->GetDimAsString().c_str(),
+	GetItemText(theParentId).c_str()),
+	"Warning",
+	wxOK | wxICON_HAND);
+	return;
 
-  }
- */
-  /*
-  if (theParentId != GetDataRootId())
-  {
-    if (field->HasVirtualNbDims() && !field->IsHighResolution())
-    {
-      wxMessageBox(wxString::Format("Field '%s' is neither a scalar (dimension: '%s') nor a 'high resolution' field.\n"
-                                "It is no allowed as '%s' expression.\n",
-                                    field->GetName().c_str(),
-                                    field->GetDimAsString().c_str(),
-                                    GetItemText(theParentId).c_str()),
-                  "Warning",
-                  wxOK | wxICON_HAND);
-      return;
+	}
+	}
+	*/
+	wxString operationRecord = m_operation->GetRecord();
+	std::string fieldRecord = field->GetRecordName().c_str();
 
-    }
-  }
-  */
-  wxString operationRecord = m_operation->GetRecord();
-  std::string fieldRecord = field->GetRecordName().c_str();
+	/*
+	if (m_operation->HasFormula())
+	{
+	if (operationRecord.CmpNoCase(fieldRecord) != 0)
+	{
+	wxMessageBox(wxString::Format("Data expression must have the same record.\n"
+	"The current record of the operation is: '%s'\n"
+	"and you are currently going to add a field from record: '%s' \n",
+	operationRecord.c_str(),
+	fieldRecord.c_str()),
+	"Warning",
+	wxOK | wxICON_HAND);
+	return;
 
-  /*
-  if (m_operation->HasFormula())
-  {
-    if (operationRecord.CmpNoCase(fieldRecord) != 0)
-    {
-      wxMessageBox(wxString::Format("Data expression must have the same record.\n"
-                                "The current record of the operation is: '%s'\n"
-                                "and you are currently going to add a field from record: '%s' \n",
-                                    operationRecord.c_str(),
-                                    fieldRecord.c_str()),
-                  "Warning",
-                  wxOK | wxICON_HAND);
-      return;
+	}
+	}
+	else
+	{
+	m_operation->SetRecord(fieldRecord);
+	}
+	*/
 
-    }
-  }
-  else
-  {
-    m_operation->SetRecord(fieldRecord);
-  }
-  */
+	if ( !m_operation->HasFormula() )
+	{
+		m_operation->SetRecord( fieldRecord );
+	}
 
-  if (!m_operation->HasFormula())
-  {
-    m_operation->SetRecord(fieldRecord);
-  }
+	DeInstallEventListeners();
 
-  DeInstallEventListeners();
+	COperationTreeItemData* itemDataParent = dynamic_cast<COperationTreeItemData*>( GetItemData( theParentId ) );
 
-  COperationTreeItemData* itemDataParent = dynamic_cast<COperationTreeItemData*>(GetItemData(theParentId));
+	wxTreeItemId selectRootId = GetSelectRootId();
 
-  wxTreeItemId selectRootId = GetSelectRootId();
-  
-  if (itemDataParent != NULL)
-  {
-    CFormula* formula = m_operation->NewUserFormula(field, itemDataParent->GetType(), (theParentId != selectRootId), GetFieldstreectrl()->GetProduct());
-    Add(theParentId, formula);
-  }
+	if ( itemDataParent != NULL )
+	{
+		std::string errorMsg;
+		CFormula* formula = m_operation->NewUserFormula( errorMsg, field, itemDataParent->GetType(), theParentId != selectRootId, GetFieldstreectrl()->GetProduct() );
+		if ( !errorMsg.empty() )
+			wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
+		Add( theParentId, formula );
+	}
 
-  ConnectToolTipEvent();
-
-  return;
+	ConnectToolTipEvent();
 }
 
 //----------------------------------------

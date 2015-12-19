@@ -104,7 +104,7 @@ typedef void (wxEvtHandler::*CProcessTermEventFunction)(CProcessTermEvent&);
 class CProcess : public wxProcess
 {
 public:
-  CProcess(const wxString& name, wxWindow *parent, const wxString& cmd, const wxFileName* output = NULL, int32_t type = -1);
+  CProcess(const wxString& name, wxWindow *parent, const wxString& cmd, const std::string *output = NULL, int32_t type = -1);
 
   virtual ~CProcess();
 
@@ -159,7 +159,7 @@ protected:
 
   int32_t m_running;
   bool m_killed;
-  wxFileName m_output;
+  std::string m_output;
   int32_t m_type;
 
   int32_t m_executeFlags;
@@ -181,7 +181,7 @@ protected:
 class CPipedProcess : public CProcess
 {
 public:
-  CPipedProcess(const wxString& name, wxWindow *parent, const wxString& cmd, wxTextCtrl* logCtrl = NULL, const wxFileName* output = NULL, int32_t type = -1);
+  CPipedProcess(const wxString& name, wxWindow *parent, const wxString& cmd, wxTextCtrl* logCtrl = NULL, const std::string *output = NULL, int32_t type = -1);
 
   virtual ~CPipedProcess();
 

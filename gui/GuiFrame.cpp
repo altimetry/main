@@ -264,7 +264,7 @@ bool CGuiFrame::CreateWorkspace()
 	wxGetApp().CreateTree( wks );
 
 	std::string errorMsg;
-	wxGetApp().m_tree.SaveConfig(errorMsg);
+	wxGetApp().m_tree.SaveConfig(errorMsg, wxGetApp().GetCurrentWorkspaceOperation() );
 	if ( !errorMsg.empty() )
 		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
 
@@ -388,7 +388,7 @@ bool CGuiFrame::SaveWorkspace()
 	bool bOk = false;
 
 	std::string errorMsg;
-	wxGetApp().m_tree.SaveConfig( errorMsg );		// TODO: save failed but life goes on???
+	wxGetApp().m_tree.SaveConfig( errorMsg, wxGetApp().GetCurrentWorkspaceOperation() );		// TODO: save failed but life goes on???
 	if ( !errorMsg.empty() )
 		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
 
@@ -421,7 +421,7 @@ bool CGuiFrame::OpenWorkspace()
 
 	CWorkspace *failed_wks = nullptr;
 	std::string errorMsg;
-	bOk = wxGetApp().m_tree.LoadConfig( failed_wks, errorMsg );
+	bOk = wxGetApp().m_tree.LoadConfig( failed_wks, wxGetApp().GetCurrentWorkspaceDataset(), wxGetApp().GetCurrentWorkspaceOperation(), errorMsg );
 	if ( !bOk )
 	{
 		wxMessageBox( errorMsg + "\nUnable to load workspace '" + ( failed_wks ? failed_wks->GetName() : "" ) + "'.",
@@ -476,7 +476,7 @@ bool CGuiFrame::OpenWorkspace( const wxString& path )
 	wxGetApp().CreateTree( wks );
 	CWorkspace *failed_wks = nullptr;
 	std::string errorMsg;
-	bOk = wxGetApp().m_tree.LoadConfig( failed_wks, errorMsg );
+	bOk = wxGetApp().m_tree.LoadConfig( failed_wks, wxGetApp().GetCurrentWorkspaceDataset(), wxGetApp().GetCurrentWorkspaceOperation(), errorMsg );
 	if ( !bOk )
 	{
 		wxMessageBox( errorMsg + "\nUnable to load workspace '" + ( failed_wks ? failed_wks->GetName() : "" ) + "'.",
@@ -622,7 +622,7 @@ bool CGuiFrame::ImportWorkspace()
 
 	CWorkspace *failed_wks = nullptr;
 	std::string errorMsg;
-	bOk = wxGetApp().m_treeImport.LoadConfig( failed_wks, errorMsg );
+	bOk = wxGetApp().m_treeImport.LoadConfig( failed_wks, wxGetApp().GetCurrentWorkspaceDataset(), wxGetApp().GetCurrentWorkspaceOperation(), errorMsg );
 	if ( !bOk )
 	{
 		wxMessageBox( errorMsg + "\nUnable to load workspace '" + ( failed_wks ? failed_wks->GetName() : "" ) + "'.",
@@ -735,7 +735,7 @@ bool CGuiFrame::RenameWorkspace()
 	wks->SetName( wksDlg.GetWksName()->GetValue().ToStdString() );
 
 	std::string errorMsg;
-	wks->SaveConfig( errorMsg );
+	wks->SaveConfig( errorMsg, wxGetApp().GetCurrentWorkspaceOperation() );
 	if ( !errorMsg.empty() )
 		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
 

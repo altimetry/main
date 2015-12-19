@@ -249,7 +249,7 @@ bool CWorkspaceDlg::VerifyConfig( bool withMsg )
 	if ( bOk )
 	{
 		std::string errorMsg;
-		bOk &= wks.LoadConfig( errorMsg );
+		bOk &= wks.LoadConfig( errorMsg, wxGetApp().GetCurrentWorkspaceDataset(), wxGetApp().GetCurrentWorkspaceOperation() );
 		if ( !errorMsg.empty() )
 			wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
 
@@ -321,7 +321,7 @@ void CWorkspaceDlg::FillImportFormulas()
 	wxGetApp().CreateTree( wks, wxGetApp().m_treeImport );
 
 	std::string errorMsg;
-	CWorkspaceFormula* wksFormula =  wxGetApp().m_treeImport.LoadConfigFormula( errorMsg );
+	CWorkspaceFormula* wksFormula =  wxGetApp().m_treeImport.LoadConfigFormula( wxGetApp().GetCurrentWorkspaceDataset(), wxGetApp().GetCurrentWorkspaceOperation(), errorMsg );
 	if ( !errorMsg.empty() )
 		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
 
@@ -606,7 +606,7 @@ void CWorkspaceDlg::OnBrowse( wxCommandEvent &event )
 				wks.SetPath( GetWksLoc()->GetValue().ToStdString() );
 
 				std::string errorMsg;
-				wks.LoadConfig( errorMsg );
+				wks.LoadConfig( errorMsg, wxGetApp().GetCurrentWorkspaceDataset(), wxGetApp().GetCurrentWorkspaceOperation() );
 				if ( !errorMsg.empty() )
 					wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
 

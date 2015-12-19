@@ -3,6 +3,7 @@
 #include "QtInterface.h"
 
 #include "Common/QtUtils.h"
+#include "Common/QtFileUtils.h"
 
 
 
@@ -61,6 +62,10 @@ CConfiguration::CConfiguration( const std::string& fileName )
 	: base_t( t2q( fileName), QSettings::IniFormat )
 {}
 
+const std::string CConfiguration::GetConfigPath() const
+{
+	return "";
+}
 void CConfiguration::SetPath( const std::string& strPath )
 {
 }
@@ -214,4 +219,33 @@ bool CConfiguration::LoadConfig( CDataset *d  )
 	//}
 
 	return true;
+}
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//											File Names
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+std::string GetFileName( const std::string &path )
+{
+	return GetBaeFilenameFromPath( path );
+}
+
+void SetFileExtension( std::string &path, const std::string &extension )
+{
+	std::string dir = GetDirectoryFromPath( path );
+	std::string name = GetFilenameFromPath( path );
+	path = path + "/" + name + "." + extension;
+}
+
+std::string NormalizedPath( const std::string &path, const std::string &dir )
+{
+	std::string d = NormalizedPath( dir );
+	std::string f = NormalizedPath( path );
+	if ( QDir::isAbsolutePath( t2q( f ) ) )
+		return f;
+	else
+		return dir + "/" + path;
 }

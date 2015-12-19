@@ -630,7 +630,7 @@ public:
 
 	void InitFormulaDataMode( int32_t dataMode );
 
-	std::string GetCommentFormula( const std::string& name );
+	std::string GetCommentFormula( const std::string& name ) const;
 	bool SetCommentFormula( const std::string& name, const std::string& comment );
 
 	bool ValidName( const char* name );

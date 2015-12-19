@@ -23,7 +23,7 @@
 #include "brathl.h"
 #include "display/BitSet32.h"
 
-#include "gui/Operation.h"
+#include "Operation.h"
 #include "gui/Display.h"
 #include "Workspace.h"
 
@@ -72,7 +72,7 @@ void CWorkspace::InitConfig()
 	//m_config = new CConfiguration( "", "", m_configFileName.GetFullPath().ToStdString(), "", wxCONFIG_USE_LOCAL_FILE );
 }
 //----------------------------------------
-bool CWorkspace::SaveConfig( std::string &errorMsg, bool flush )
+bool CWorkspace::SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, bool flush )
 {
 	UNUSED( errorMsg );
 
@@ -105,7 +105,7 @@ bool CWorkspace::SaveCommonConfig( bool flush )
 	return bOk;
 }
 //----------------------------------------
-bool CWorkspace::LoadConfig( std::string &errorMsg )
+bool CWorkspace::LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
 {
 	UNUSED( errorMsg );
 
@@ -327,7 +327,7 @@ bool CWorkspaceDataset::CheckFiles( std::string &errorMsg )
 	return bOk;
 }
 //----------------------------------------
-bool CWorkspaceDataset::SaveConfig( std::string &errorMsg, bool flush )
+bool CWorkspaceDataset::SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, bool flush )
 {
 	if ( m_config == nullptr )
 		return true;
@@ -370,7 +370,7 @@ bool CWorkspaceDataset::SaveConfigDataset( std::string &errorMsg )
 }
 
 //----------------------------------------
-bool CWorkspaceDataset::LoadConfig( std::string &errorMsg )
+bool CWorkspaceDataset::LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
 {
 	UNUSED( errorMsg );
 
@@ -697,7 +697,7 @@ void CWorkspaceFormula::GetFormulaNames( std::vector< std::string >& array, bool
 }
 
 //----------------------------------------
-bool CWorkspaceFormula::SaveConfig( std::string &errorMsg, bool flush)
+bool CWorkspaceFormula::SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, bool flush)
 {
 	UNUSED( errorMsg );
 
@@ -747,7 +747,7 @@ bool CWorkspaceFormula::SaveConfigPredefinedFormula()
 	return config.DeleteAll() && m_formulas.SaveConfig( &config, true );
 }
 //----------------------------------------
-bool CWorkspaceFormula::LoadConfig( std::string &errorMsg )
+bool CWorkspaceFormula::LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
 {
 	return m_config && LoadCommonConfig() && LoadConfigFormula( errorMsg );
 }
@@ -846,12 +846,12 @@ bool CWorkspaceOperation::RenameOperation( COperation* operation, const std::str
 	return true;
 }
 //----------------------------------------
-bool CWorkspaceOperation::SaveConfig( std::string &errorMsg, bool flush )
+bool CWorkspaceOperation::SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, bool flush )		//flush = true
 {
 	if ( m_config == nullptr )
 		return true;
 
-	bool bOk = DeleteConfigFile() && SaveCommonConfig() && SaveConfigOperation( errorMsg );
+	bool bOk = DeleteConfigFile() && SaveCommonConfig() && SaveConfigOperation( errorMsg, wkso );
 
 	if ( flush )
 		m_config->Flush();
@@ -860,7 +860,7 @@ bool CWorkspaceOperation::SaveConfig( std::string &errorMsg, bool flush )
 }
 
 //----------------------------------------
-bool CWorkspaceOperation::SaveConfigOperation( std::string &errorMsg )
+bool CWorkspaceOperation::SaveConfigOperation( std::string &errorMsg, CWorkspaceOperation *wkso )
 {
 	bool bOk = true;
 	if ( m_config == nullptr )
@@ -890,20 +890,20 @@ bool CWorkspaceOperation::SaveConfigOperation( std::string &errorMsg )
 
 		bOk &= m_config->Write( ENTRY_OPNAME + n2s< std::string >( index ), operation->GetName() );
 
-		operation->SaveConfig( m_config );
+		operation->SaveConfig( m_config, wkso );
 	}
 
 	return bOk;
 }
 
 //----------------------------------------
-bool CWorkspaceOperation::LoadConfig( std::string &errorMsg )
+bool CWorkspaceOperation::LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
 {
-  return !m_config || ( LoadCommonConfig() && LoadConfigOperation( errorMsg ) );
+  return !m_config || ( LoadCommonConfig() && LoadConfigOperation( errorMsg, wks, wkso ) );
 }
 
 //----------------------------------------
-bool CWorkspaceOperation::LoadConfigOperation( std::string &errorMsg )
+bool CWorkspaceOperation::LoadConfigOperation( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
 {
 	bool bOk = true;
 	if ( m_config == nullptr )
@@ -942,7 +942,7 @@ bool CWorkspaceOperation::LoadConfigOperation( std::string &errorMsg )
 			return false;
 		}
 
-		operation->LoadConfig( m_config, errorMsg );
+		operation->LoadConfig( m_config, errorMsg, wks, wkso );
 	}
 
 	return true;
@@ -1002,7 +1002,7 @@ bool CWorkspaceOperation::InsertOperation(const std::string &name)
     return true;
 }
 //----------------------------------------
-bool CWorkspaceOperation::InsertOperation(const std::string &name, COperation* operationToCopy)
+bool CWorkspaceOperation::InsertOperation(const std::string &name, COperation* operationToCopy, CWorkspaceOperation *wkso )
 {
     if (m_operations.Exists(name))
     {
@@ -1014,8 +1014,8 @@ bool CWorkspaceOperation::InsertOperation(const std::string &name, COperation* o
 
     // Set the correct names
     newOperation->SetName(name);
-    newOperation->InitOutput();
-    newOperation->InitExportAsciiOutput();
+    newOperation->InitOutput( wkso );
+    newOperation->InitExportAsciiOutput( wkso );
 
     m_operations.Insert(name, newOperation);
     return true;
@@ -1183,7 +1183,7 @@ bool CWorkspaceDisplay::UseOperation( const std::string& name, std::string &erro
 	return useOperation;
 }
 //----------------------------------------
-bool CWorkspaceDisplay::SaveConfig( std::string &errorMsg, bool flush )
+bool CWorkspaceDisplay::SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, bool flush )
 {
 	if ( m_config == nullptr )
 		return true;
@@ -1234,7 +1234,7 @@ bool CWorkspaceDisplay::SaveConfigDisplay( std::string &errorMsg )
 }
 
 //----------------------------------------
-bool CWorkspaceDisplay::LoadConfig( std::string &errorMsg )
+bool CWorkspaceDisplay::LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
 {
 	return !m_config || ( LoadCommonConfig() && LoadConfigDisplay( errorMsg ) );
 }

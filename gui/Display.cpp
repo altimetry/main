@@ -44,7 +44,7 @@ using namespace brathl;
 
 #include "BratGui.h"
 #include "new-gui/brat/Workspaces/Workspace.h"
-#include "Operation.h"
+#include "new-gui/brat/Workspaces/Operation.h"
 
 #include "Display.h"
 #include "MapTypeDisp.h"
@@ -1539,11 +1539,11 @@ wxString CDisplay::GetFullCmd()
   wxString cmd;
 #ifdef  USE_SYNC_OPTION
   cmd = wxString::Format("\"%s\" --sync \"%s\"",
-                           wxGetApp().GetExecDisplayName()->GetFullPath().c_str(),
+                           COperation::GetExecDisplayName(),
                            m_cmdFile.GetFullPath().c_str());
 #else
   cmd = wxString::Format("\"%s\" \"%s\"",
-                           wxGetApp().GetExecDisplayName()->GetFullPath().c_str(),
+                           COperation::GetExecDisplayName(),
                            m_cmdFile.GetFullPath().c_str());
 #endif
   return cmd;

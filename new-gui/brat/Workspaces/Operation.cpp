@@ -94,9 +94,9 @@ public:
 		WriteLn();
 		WriteLn( kwVERBOSE + "=" + n2s<std::string>( mOp.m_verbose ) );
 
-		if ( mOp.GetLogFile()->IsOk() )
+		if ( !mOp.GetLogFile().empty() )
 		{
-			WriteLn( kwLOGFILE + "=" + mOp.GetLogFile()->GetFullPath().ToStdString() );
+			WriteLn( kwLOGFILE + "=" + mOp.GetLogFile() );
 		}
 		return true;
 	}
@@ -280,7 +280,7 @@ public:
 		//{
 		//	InitOutput();
 		//}
-		WriteLn( kwOUTPUT + "=" + mOp.GetOutput()->GetFullPath().ToStdString() );
+		WriteLn( kwOUTPUT + "=" + mOp.GetOutput() );
 
 		return true;
 	}
@@ -372,7 +372,7 @@ public:
 		//{
 		//	InitExportAsciiOutput();
 		//}
-		WriteLn( kwOUTPUT + "=" + mOp.GetExportAsciiOutput()->GetFullPath().ToStdString() );
+		WriteLn( kwOUTPUT + "=" + mOp.GetExportAsciiOutput() );
 
 		return true;
 
@@ -419,7 +419,7 @@ public:
 		//{
 		//	InitShowStatsOutput();
 		//}
-		WriteLn( kwOUTPUT + "=" + mOp.GetShowStatsOutput()->GetFullPath().ToStdString() );
+		WriteLn( kwOUTPUT + "=" + mOp.GetShowStatsOutput() );
 
 		return true;
 	}
@@ -498,6 +498,88 @@ public:
 	}
 };
 
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifdef WIN32
+	const std::string BRATCREATEYFX_EXE = "BratCreateYFX.exe";
+	const std::string BRATCREATEZFXY_EXE = "BratCreateZFXY.exe";
+	const std::string BRATDISPLAY_EXE = "BratDisplay.exe";
+	const std::string BRATEXPORTASCII_EXE = "BratExportAscii.exe";
+	const std::string BRATEXPORTGEOTIFF_EXE = "BratExportGeoTiff.exe";
+	const std::string BRATSHOWSTATS_EXE = "BratStats.exe";
+	const std::string BRATSCHEDULER_EXE = "BratScheduler.exe";
+#else
+	const std::string BRATCREATEYFX_EXE = "BratCreateYFX";
+	const std::string BRATCREATEZFXY_EXE = "BratCreateZFXY";
+	const std::string BRATDISPLAY_EXE = "BratDisplay";
+	const std::string BRATEXPORTASCII_EXE = "BratExportAscii";
+	const std::string BRATEXPORTGEOTIFF_EXE = "BratExportGeoTiff";
+	const std::string BRATSHOWSTATS_EXE = "BratStats";
+	const std::string BRATSCHEDULER_EXE = "BratScheduler";
+#endif
+
+
+//static 
+std::string COperation::m_execYFXName;
+//static 
+std::string COperation::m_execZFXYName;
+//static 
+std::string COperation::m_execDisplayName;
+//static 
+std::string COperation::m_execExportAsciiName;
+//static 
+std::string COperation::m_execExportGeoTiffName;
+//static 
+std::string COperation::m_execShowStatsName;
+//static 
+std::string COperation::m_execBratSchedulerName;
+
+
+//static 
+void COperation::SetExecNames( const std::string &appPath )
+{
+	m_execYFXName = appPath + "/" + BRATCREATEYFX_EXE;					//m_execYFXName.MakeAbsolute();
+
+	m_execZFXYName = appPath + "/" + BRATCREATEZFXY_EXE;				//m_execZFXYName.MakeAbsolute();
+
+	m_execDisplayName = appPath + "/" + BRATDISPLAY_EXE;				//m_execDisplayName.MakeAbsolute();
+
+	m_execExportAsciiName = appPath + "/" + BRATEXPORTASCII_EXE;		//m_execExportAsciiName.MakeAbsolute();
+
+	m_execExportGeoTiffName = appPath + "/" + BRATEXPORTGEOTIFF_EXE;	//m_execExportGeoTiffName.MakeAbsolute();
+
+	m_execShowStatsName = appPath + "/" + BRATSHOWSTATS_EXE;			//m_execShowStatsName.MakeAbsolute();
+
+	m_execBratSchedulerName = appPath + "/" + BRATSCHEDULER_EXE;		//m_execBratSchedulerName.MakeAbsolute();
+
+
+#ifdef __APPLE__
+
+	//m_execName.IsRelative() ? 
+	//m_execName.GetPath(flags, format) + "/BratScheduler.app/Contents/MacOS" :
+	//m_execName.GetPath(flags, format));
+	m_execBratSchedulerName = appPath + "/BratScheduler.app/Contents/MacOS/" + BRATSCHEDULER_EXE;		//m_execBratSchedulerName.MakeAbsolute();
+#else
+
+	m_execBratSchedulerName = appPath + "/" + BRATSCHEDULER_EXE;		//m_execBratSchedulerName.MakeAbsolute();
+#endif
+
+assert__(
+	IsFile( m_execYFXName )				&&
+	IsFile( m_execZFXYName )			&&
+	IsFile( m_execDisplayName )			&&
+	IsFile( m_execExportAsciiName )		&&
+	IsFile( m_execExportGeoTiffName )	&&
+	IsFile( m_execShowStatsName )		&&
+	IsFile( m_execBratSchedulerName )
+	);
+}
 
 
 
@@ -661,30 +743,28 @@ void COperation::Copy( COperation& o, CWorkspaceDataset *wks, CWorkspaceOperatio
 //----------------------------------------
 void COperation::ClearLogFile()
 {
-  m_logFile.Clear();
+	m_logFile.clear();
 }
 //----------------------------------------
-void COperation::SetLogFile(const std::string& value)
+void COperation::SetLogFile( const std::string& value )
 {
-  m_logFile.Assign(value);
-  m_logFile.Normalize();
+	m_logFile = value;
 }
 //----------------------------------------
 void COperation::SetLogFile( CWorkspaceOperation *wks )
 {
-  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+	//CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
 
-  m_logFile = m_output;
-  m_logFile.SetExt(LOGFILE_EXTENSION);
-  if (wks == nullptr)
-  {
-    m_logFile.Normalize();
-  }
-  else
-  {
-    m_logFile.Normalize(wxPATH_NORM_ALL, wks->GetPath());
-  }
-
+	m_logFile = m_output;
+	SetFileExtension( m_logFile, LOGFILE_EXTENSION );
+	if ( wks == nullptr )
+	{
+		//m_logFile.Normalize();
+	}
+	else
+	{
+		m_logFile + wks->GetPath() + "/" + m_logFile;	//m_logFile.Normalize( wxPATH_NORM_ALL, wks->GetPath() );
+	}
 }
 
 //----------------------------------------
@@ -858,7 +938,7 @@ std::string COperation::GetDatasetName()
 }
 
 //----------------------------------------
-CFormula* COperation::NewUserFormula(CField* field, int32_t typeField, bool addToMap, CProduct* product)
+CFormula* COperation::NewUserFormula( std::string &errorMsg, CField* field, int32_t typeField, bool addToMap, CProduct* product )
 {
   if (field == nullptr)
   {
@@ -866,7 +946,7 @@ CFormula* COperation::NewUserFormula(CField* field, int32_t typeField, bool addT
 
   }
 
-  CFormula* formula =  NewUserFormula(field->GetName().c_str(), typeField, field->GetUnit().c_str(), addToMap, product);
+  CFormula* formula =  NewUserFormula( errorMsg, field->GetName().c_str(), typeField, field->GetUnit().c_str(), addToMap, product);
 
   //formula->SetUnit(field->GetUnit().c_str());
   if (m_record.compare(field->GetRecordName().c_str()) != 0)
@@ -881,7 +961,7 @@ CFormula* COperation::NewUserFormula(CField* field, int32_t typeField, bool addT
   return formula;
 }
 //----------------------------------------
-CFormula* COperation::NewUserFormula( const std::string& name, int32_t typeField, const std::string& strUnit, bool addToMap, CProduct* product )
+CFormula* COperation::NewUserFormula( std::string &errorMsg, const std::string& name, int32_t typeField, const std::string& strUnit, bool addToMap, CProduct* product )
 {
 	bool bOk = true;
 
@@ -891,10 +971,7 @@ CFormula* COperation::NewUserFormula( const std::string& name, int32_t typeField
 
 	CFormula formula( formulaName, false );
 	formula.SetType( typeField );
-	std::string errorMsg;
 	formula.SetUnit( strUnit, errorMsg, "", false );
-	if ( !errorMsg.empty() )
-		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
 
 	CUnit* unit = formula.GetUnit();
 
@@ -909,7 +986,7 @@ CFormula* COperation::NewUserFormula( const std::string& name, int32_t typeField
 
 	if ( addToMap )
 	{
-		bOk = AddFormula( formula );
+		bOk = AddFormula( formula, errorMsg );
 		formulaToReturn = GetFormula( formulaName );
 	}
 	else
@@ -920,7 +997,7 @@ CFormula* COperation::NewUserFormula( const std::string& name, int32_t typeField
 	return formulaToReturn;
 }
 //----------------------------------------
-bool COperation::AddFormula( CFormula& formula )
+bool COperation::AddFormula( CFormula& formula, std::string &errorMsg )
 {
 	CFormula* value = dynamic_cast<CFormula*>( m_formulas.Exists( (const char *)formula.GetName().c_str() ) );
 	if ( value != nullptr )
@@ -928,10 +1005,7 @@ bool COperation::AddFormula( CFormula& formula )
 		return false;
 	}
 
-	std::string errorMsg;
 	m_formulas.InsertUserDefined_ReplacePredefinedNotAllowed( formula, errorMsg );
-	if ( !errorMsg.empty() )
-		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
 
 	return true;
 }
@@ -965,7 +1039,7 @@ bool COperation::DeleteFormula(const std::string& name)
  return bOk;
 }
 //----------------------------------------
-std::string COperation::GetCommentFormula(const std::string& name)
+std::string COperation::GetCommentFormula(const std::string& name) const 
 {
   return m_formulas.GetCommentFormula(name);
 }
@@ -1100,7 +1174,7 @@ bool COperation::SaveConfig( CConfiguration *config, CWorkspaceOperation *wkso )
 	//bOk &= config->Write(ENTRY_DATA_MODE,
 	//                     CMapDataMode::GetInstance().IdToName(m_dataMode));
 
-	m_select->SaveConfigDesc( config, config->GetPath().ToStdString() );
+	m_select->SaveConfigDesc( config, config->GetConfigPath() );
 
 	// Save relative path based on path operation workspace for output file
 	//bOk &= config->Write(ENTRY_OUTPUT, GetOutputName());
@@ -1172,10 +1246,10 @@ bool COperation::LoadConfig( CConfiguration *config, std::string &errorMsg, CWor
 	}
 	else
 	{
-		InitExportAsciiOutput();
+		InitExportAsciiOutput( wkso );
 	}
 
-	m_select->LoadConfigDesc( config, config->GetPath().ToStdString() );
+	m_select->LoadConfigDesc( config, config->GetConfigPath() );
 
 	// Warning after formulas Load config conig path has changed
 	m_formulas.LoadConfig( config, errorMsg, false, GetName() );
@@ -1197,99 +1271,103 @@ CDataset* COperation::FindDataset(const std::string& datasetName, CWorkspaceData
   return wks->GetDataset(datasetName);
 }
 //----------------------------------------
-wxFileName* COperation::GetSystemCommand()
+const std::string& COperation::GetSystemCommand() const
 {
 	switch ( m_type )
 	{
 		case CMapTypeOp::eTypeOpYFX:
-			return wxGetApp().GetExecYFXName();
+			return GetExecYFXName();
 			break;
 		case CMapTypeOp::eTypeOpZFXY:
-			return wxGetApp().GetExecZFXYName();
+			return GetExecZFXYName();
 			break;
 		default:
-			return &m_cmdFile;
+			return m_cmdFile;
 			break;
 	}
 }
 //----------------------------------------
-wxFileName* COperation::GetShowStatsSystemCommand()
+const std::string& COperation::GetShowStatsSystemCommand() const
 {
-  return wxGetApp().GetExecShowStatsName();
+  return GetExecShowStatsName();
 }
 //----------------------------------------
-wxFileName* COperation::GetExportAsciiSystemCommand()
+const std::string& COperation::GetExportAsciiSystemCommand() const
 {
-  return wxGetApp().GetExecExportAsciiName();
+  return GetExecExportAsciiName();
 }
 //----------------------------------------
 std::string COperation::GetFullCmd()
 {
-	return "\"" + GetSystemCommand()->GetFullPath().ToStdString() + "\" \"" + GetCmdFileFullName() + "\"";
+	return "\"" + GetSystemCommand() + "\" \"" + GetCmdFile() + "\"";
 }
 //----------------------------------------
 std::string COperation::GetExportAsciiFullCmd()
 {
-	return "\"" + GetExportAsciiSystemCommand()->GetFullPath().ToStdString() + "\" \"" + GetExportAsciiCmdFileFullName() + "\"";
+	return "\"" + GetExportAsciiSystemCommand() + "\" \"" + GetExportAsciiCmdFile() + "\"";
 }
 //----------------------------------------
 std::string COperation::GetShowStatsFullCmd()
 {
-	return "\"" + GetShowStatsSystemCommand()->GetFullPath().ToStdString() + "\" \"" + GetShowStatsCmdFileFullName() + "\"";
+	return "\"" + GetShowStatsSystemCommand() + "\" \"" + GetShowStatsCmdFile() + "\"";
 }
 
 
+
+
+static const std::string NoName = "NoName";
+
 //----------------------------------------
-std::string COperation::GetTaskName()
+const std::string& COperation::GetTaskName() const
 {
-  //std::string value = m_cmdFile.GetName();
-  if (m_cmdFile.GetName().IsEmpty())
-  {
-    return "NoName";
-  }
-  /*
-  if (value.Last() == '.')
-  {
-    value.RemoveLast();
-  }
-  return value;
-  */
-  return m_cmdFile.GetName().ToStdString();
+	//std::string value = m_cmdFile.GetName();
+	if ( m_cmdFile.empty() )
+	{
+		return NoName;
+	}
+	/*
+	if (value.Last() == '.')
+	{
+	value.RemoveLast();
+	}
+	return value;
+	*/
+	return m_cmdFile;
 }
 //----------------------------------------
-std::string COperation::GetExportAsciiTaskName()
+const std::string& COperation::GetExportAsciiTaskName() const
 {
-  //std::string value = m_cmdFile.GetName();
-  if (m_exportAsciiCmdFile.GetName().IsEmpty())
-  {
-    return "NoName";
-  }
-  /*
-  if (value.Last() == '.')
-  {
-    value.RemoveLast();
-  }
-  return value;
-  */
-  return m_exportAsciiCmdFile.GetName().ToStdString();
+	//std::string value = m_cmdFile.GetName();
+	if ( m_exportAsciiCmdFile.empty() )
+	{
+		return NoName;
+	}
+	/*
+	if (value.Last() == '.')
+	{
+	value.RemoveLast();
+	}
+	return value;
+	*/
+	return m_exportAsciiCmdFile;
 }
 
 //----------------------------------------
-std::string COperation::GetShowStatsTaskName()
+const std::string& COperation::GetShowStatsTaskName() const
 {
-  //std::string value = m_cmdFile.GetName();
-  if (m_showStatsCmdFile.GetName().IsEmpty())
-  {
-    return "NoName";
-  }
-  /*
-  if (value.Last() == '.')
-  {
-    value.RemoveLast();
-  }
-  return value;
-  */
-  return m_showStatsCmdFile.GetName().ToStdString();
+	//std::string value = m_cmdFile.GetName();
+	if ( m_showStatsCmdFile.empty() )
+	{
+		return NoName;
+	}
+	/*
+	if (value.Last() == '.')
+	{
+	value.RemoveLast();
+	}
+	return value;
+	*/
+	return m_showStatsCmdFile;
 }
 
 //----------------------------------------
@@ -1297,10 +1375,10 @@ bool COperation::BuildCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso
 {
 #ifndef OLD_CREATE_FILES
 
-	if ( GetOutput()->GetFullPath().IsEmpty() )
+	if ( GetOutput().empty() )
 		InitOutput( wkso );
 	
-	return CCmdFile::BuildCmdFile( m_cmdFile.GetFullPath().ToStdString(), *this, wks, errorMsg );
+	return CCmdFile::BuildCmdFile( m_cmdFile, *this, wks, errorMsg );
 
 #else
 
@@ -1328,10 +1406,10 @@ bool COperation::BuildExportAsciiCmdFile( CWorkspaceFormula *wks, CWorkspaceOper
 {
 #ifndef OLD_CREATE_FILES
 
-	if ( GetExportAsciiOutput()->GetFullPath().IsEmpty() )
+	if ( GetExportAsciiOutput().empty() )
 		InitExportAsciiOutput( wkso );
 
-	return CCmdFile::BuildExportAsciiCmdFile( m_exportAsciiCmdFile.GetFullPath().ToStdString(), *this, wks );
+	return CCmdFile::BuildExportAsciiCmdFile( m_exportAsciiCmdFile, *this, wks );
 
 #else
 
@@ -1377,10 +1455,10 @@ bool COperation::BuildShowStatsCmdFile( CWorkspaceFormula *wks, CWorkspaceOperat
 {
 #ifndef OLD_CREATE_FILES
 
-	if ( m_showStatsOutput.GetFullPath().IsEmpty() )
+	if ( m_showStatsOutput.empty() )
 		InitShowStatsOutput( wkso );
 
-	return CCmdFile::BuildShowStatsCmdFile( m_showStatsCmdFile.GetFullPath().ToStdString(), *this, wks );
+	return CCmdFile::BuildShowStatsCmdFile( m_showStatsCmdFile, *this, wks );
 
 #else
 
@@ -1835,215 +1913,158 @@ bool COperation::BuildShowStatsCmdFile( CWorkspaceFormula *wks, CWorkspaceOperat
 //  return true;
 //}
 
-//----------------------------------------
-void COperation::SetShowStatsOutput(const wxFileName& value, CWorkspaceOperation* wks )
+inline std::string normalize( std::string &path, const std::string &dir )
 {
-  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-
-  m_showStatsOutput = value;
-
-  if (wks == nullptr)
-  {
-    m_showStatsOutput.Normalize();
-  }
-  else
-  {
-    m_showStatsOutput.Normalize(wxPATH_NORM_ALL, wks->GetPath());
-  }
-
-  SetShowStatsCmdFile( wks );
-}
-//----------------------------------------
-void COperation::SetShowStatsOutput(const std::string& value, CWorkspaceOperation* wks )
-{
-  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-
-  m_showStatsOutput.Assign(value);
-
-  if (wks == nullptr)
-  {
-    m_showStatsOutput.Normalize();
-  }
-  else
-  {
-    m_showStatsOutput.Normalize(wxPATH_NORM_ALL, wks->GetPath());
-  }
-
-  SetShowStatsCmdFile( wks );
-}
-//----------------------------------------
-void COperation::SetExportAsciiOutput(const wxFileName& value, CWorkspaceOperation* wks )
-{
-  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-
-  m_exportAsciiOutput = value;
-
-  if (wks == nullptr)
-  {
-    m_exportAsciiOutput.Normalize();
-  }
-  else
-  {
-    m_exportAsciiOutput.Normalize(wxPATH_NORM_ALL, wks->GetPath());
-  }
-
-  SetExportAsciiCmdFile( wks );
-}
-//----------------------------------------
-void COperation::SetExportAsciiOutput(const std::string& value, CWorkspaceOperation* wks )
-{
-  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-
-  m_exportAsciiOutput.Assign(value);
-
-  if (wks == nullptr)
-  {
-    m_exportAsciiOutput.Normalize();
-  }
-  else
-  {
-    m_exportAsciiOutput.Normalize(wxPATH_NORM_ALL, wks->GetPath());
-  }
-
-  SetExportAsciiCmdFile( wks );
+	path = NormalizedPath( path, dir );
+	return path;
 }
 
 //----------------------------------------
-void COperation::SetOutput(const wxFileName& value, CWorkspaceOperation* wks )
+void COperation::SetShowStatsOutput( const std::string& value, CWorkspaceOperation* wks )
 {
-  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+	//CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
 
-  m_output = value;
+	m_showStatsOutput = value;
 
-  if (wks == nullptr)
-  {
-    m_output.Normalize();
-  }
-  else
-  {
-    m_output.Normalize(wxPATH_NORM_ALL, wks->GetPath());
-  }
+	if ( wks == nullptr )
+	{
+		//m_showStatsOutput.Normalize();
+	}
+	else
+	{
+		//m_showStatsOutput.Normalize( wxPATH_NORM_ALL, wks->GetPath() );
+		normalize( m_showStatsOutput, wks->GetPath() );
+	}
 
-  SetCmdFile( wks );
+	SetShowStatsCmdFile( wks );
+}
+//----------------------------------------
+void COperation::SetExportAsciiOutput( const std::string& value, CWorkspaceOperation* wks )
+{
+	//CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+
+	m_exportAsciiOutput = value;
+
+	if ( wks == nullptr )
+	{
+		//m_exportAsciiOutput.Normalize();
+	}
+	else
+	{
+		//m_exportAsciiOutput.Normalize( wxPATH_NORM_ALL, wks->GetPath() );
+		normalize( m_exportAsciiOutput, wks->GetPath() );
+	}
+
+	SetExportAsciiCmdFile( wks );
 }
 //----------------------------------------
 void COperation::SetOutput( const std::string& value, CWorkspaceOperation* wks )
 {
 	//CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
 
-	m_output.Assign( value );
+	m_output = value;
 
 	if ( wks == nullptr )
-		m_output.Normalize();
+	{
+		//m_output.Normalize();
+	}
 	else
-		m_output.Normalize( wxPATH_NORM_ALL, wks->GetPath() );
+	{
+		//m_output.Normalize( wxPATH_NORM_ALL, wks->GetPath() );
+		normalize( m_output, wks->GetPath() );
+	}
 
 	SetCmdFile( wks );
 }
-
 //----------------------------------------
 void COperation::SetCmdFile( CWorkspaceOperation* wks )
 {
-  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+	//CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
 
-  m_cmdFile = m_output;
-  m_cmdFile.SetExt(COMMANDFILE_EXTENSION);
-  if (wks == nullptr)
-  {
-    m_cmdFile.Normalize();
-  }
-  else
-  {
-    m_cmdFile.Normalize(wxPATH_NORM_ALL, wks->GetPath());
-  }
-
+	m_cmdFile = m_output;
+	SetFileExtension( m_cmdFile, COMMANDFILE_EXTENSION );
+	if ( wks == nullptr )
+	{
+		//m_cmdFile.Normalize();
+	}
+	else
+	{
+		//m_cmdFile.Normalize( wxPATH_NORM_ALL, wks->GetPath() );
+		normalize( m_cmdFile, wks->GetPath() );
+	}
 }
 //----------------------------------------
 void COperation::SetExportAsciiCmdFile( CWorkspaceOperation *wks )
 {
-  //CWorkspaceOperation *wks = wxGetApp().GetCurrentWorkspaceOperation();
+	//CWorkspaceOperation *wks = wxGetApp().GetCurrentWorkspaceOperation();
 
-  m_exportAsciiCmdFile.AssignDir(wks->GetPath());
-  m_exportAsciiCmdFile.SetFullName(m_exportAsciiOutput.GetFullName());
-  m_exportAsciiCmdFile.SetExt(EXPORTASCII_COMMANDFILE_EXTENSION);
-  if (wks == nullptr)
-  {
-    m_exportAsciiCmdFile.Normalize();
-  }
-  else
-  {
-    m_exportAsciiCmdFile.Normalize(wxPATH_NORM_ALL, wks->GetPath());
-  }
-
+	m_exportAsciiCmdFile = wks->GetPath() + "/" + GetFileName( m_exportAsciiOutput );
+	SetFileExtension( m_exportAsciiCmdFile, EXPORTASCII_COMMANDFILE_EXTENSION );
+	if ( wks == nullptr )
+	{
+		//m_exportAsciiCmdFile.Normalize();
+	}
+	else
+	{
+		//m_exportAsciiCmdFile.Normalize( wxPATH_NORM_ALL, wks->GetPath() );
+		normalize( m_exportAsciiCmdFile, wks->GetPath() );
+	}
 }
 //----------------------------------------
 void COperation::SetShowStatsCmdFile( CWorkspaceOperation *wks )
 {
-  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+	//CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
 
-  m_showStatsCmdFile.AssignDir(wks->GetPath());
-  m_showStatsCmdFile.SetFullName(m_showStatsOutput.GetFullName());
-  m_showStatsCmdFile.SetExt(SHOWSTAT_COMMANDFILE_EXTENSION);
-  if (wks == nullptr)
-  {
-    m_showStatsCmdFile.Normalize();
-  }
-  else
-  {
-    m_showStatsCmdFile.Normalize(wxPATH_NORM_ALL, wks->GetPath());
-  }
-
+	m_showStatsCmdFile = wks->GetPath() + "/" + GetFileName( m_showStatsOutput );
+	SetFileExtension( m_showStatsCmdFile, SHOWSTAT_COMMANDFILE_EXTENSION );
+	if ( wks == nullptr )
+	{
+		//m_showStatsCmdFile.Normalize();
+	}
+	else
+	{
+		//m_showStatsCmdFile.Normalize( wxPATH_NORM_ALL, wks->GetPath() );
+		normalize( m_showStatsCmdFile, wks->GetPath() );
+	}
 }
 
 //----------------------------------------
 std::string COperation::GetOutputNameRelativeToWks( CWorkspaceOperation *wks )
 {
-  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-  if (wks == nullptr)
-  {
-    return GetOutputName();
-  }
+	//CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+	if ( wks == nullptr )
+		return GetOutputName();
 
-  wxFileName relative = m_output;
-  relative.MakeRelativeTo(wks->GetPath());
-  return relative.GetFullPath().ToStdString();
+	std::string relative = wks->GetPath() + "/" + m_output;  //relative.MakeRelativeTo(wks->GetPath());
+	return relative;
 }
 //----------------------------------------
 std::string COperation::GetExportAsciiOutputNameRelativeToWks( CWorkspaceOperation *wks )
 {
-  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-  if (wks == nullptr)
-  {
-    return GetExportAsciiOutputName();
-  }
+	//CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+	if ( wks == nullptr )
+		return GetExportAsciiOutputName();
 
-  wxFileName relative = m_exportAsciiOutput;
-  relative.MakeRelativeTo(wks->GetPath());
-  return relative.GetFullPath().ToStdString();
+	std::string relative = wks->GetPath() + "/" + m_exportAsciiOutput;  //relative.MakeRelativeTo(wks->GetPath());
+	return relative;
 
 }
 //----------------------------------------
 std::string COperation::GetShowStatsOutputNameRelativeToWks( CWorkspaceOperation *wks )
 {
-  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-  if (wks == nullptr)
-  {
-    return GetShowStatsOutputName();
-  }
+	//CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+	if ( wks == nullptr )
+		return GetShowStatsOutputName();
 
-  wxFileName relative = m_showStatsOutput;
-  relative.MakeRelativeTo(wks->GetPath());
-  return relative.GetFullPath().ToStdString();
-
+	std::string relative = wks->GetPath() + "/" + m_showStatsOutput;  //relative.MakeRelativeTo(wks->GetPath());
+	return relative;
 }
 //----------------------------------------
 void COperation::InitOutput( CWorkspaceOperation *wks )
 {
 	//CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
 	if ( wks == nullptr )
-	{
 		return;
-	}
 
 	std::string output = wks->GetPath()		//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR				!!! femm attention here !!!
 		+ "/Create"
@@ -2054,54 +2075,47 @@ void COperation::InitOutput( CWorkspaceOperation *wks )
 //----------------------------------------
 void COperation::InitShowStatsOutput( CWorkspaceOperation *wks )
 {
-  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-  if (wks == nullptr)
-  {
-    return;
-  }
+	//CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+	if ( wks == nullptr )
+		return;
 
-  std::string output = wks->GetPath()				//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR		!!! femm attention here !!!
-                                     + "/Stats"
-                                     + GetName() + ".txt";
-  SetShowStatsOutput(output, wks );
-
+	std::string output = wks->GetPath()				//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR		!!! femm attention here !!!
+		+ "/Stats"
+		+ GetName() + ".txt";
+	SetShowStatsOutput( output, wks );
 }
 //----------------------------------------
 void COperation::InitExportAsciiOutput( CWorkspaceOperation *wks )
 {
-  //CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-  if (wks == nullptr)
-  {
-    return;
-  }
+	//CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+	if ( wks == nullptr )
+		return;
 
-  std::string output = wks->GetPath()						//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR !!! femm attention here !!!
-                                     + "/ExportAscii"
-                                     + GetName() + ".txt";
-  SetExportAsciiOutput(output, wks );
-
+	std::string output = wks->GetPath()						//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR !!! femm attention here !!!
+		+ "/ExportAscii"
+		+ GetName() + ".txt";
+	SetExportAsciiOutput( output, wks );
 }
 //----------------------------------------
 bool COperation::RemoveOutput()
 {
-  bool bOk = RemoveFile(GetOutputName());
+	bool bOk = RemoveFile( GetOutputName() );
 
-  RemoveFile(GetCmdFileFullName());
+	RemoveFile( GetCmdFile() );
 
-  return bOk;
+	return bOk;
 }
 //----------------------------------------
-bool COperation::RenameOutput(const std::string& oldName)
+bool COperation::RenameOutput( const std::string& oldName )
 {
-  bool bOk = RenameFile( oldName, GetOutputName() );
+	bool bOk = RenameFile( oldName, GetOutputName() );
 
-  wxFileName oldCmdFile;
-  oldCmdFile.Assign(oldName);
-  oldCmdFile.SetExt(COMMANDFILE_EXTENSION);
+	std::string oldCmdFile = oldName;
+	SetFileExtension( oldCmdFile, COMMANDFILE_EXTENSION );
 
-  //RenameFile(oldCmdFile.GetFullPath(), GetCmdFile());
-  RemoveFile( oldCmdFile.GetFullPath().ToStdString() );
-  return bOk;
+	//RenameFile(oldCmdFile.GetFullPath(), GetCmdFile());
+	RemoveFile( oldCmdFile );
+	return bOk;
 }
 
 //----------------------------------------
@@ -2505,4 +2519,3 @@ void COperation::Dump(std::ostream& fOut /* = std::cerr */)
   fOut << std::endl;
 
 }
-

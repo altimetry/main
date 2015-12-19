@@ -777,7 +777,7 @@ void COperationPanel::InitOperationExportAsciiOutput()
 {
   if (m_operation != NULL)
   {
-    m_operation->InitExportAsciiOutput();
+    m_operation->InitExportAsciiOutput( wxGetApp().GetCurrentWorkspaceOperation() );
   }
 
 }
@@ -786,7 +786,7 @@ void COperationPanel::InitOperationOutput()
 {
   if (m_operation != NULL)
   {
-    m_operation->InitOutput();
+    m_operation->InitOutput( wxGetApp().GetCurrentWorkspaceOperation() );
   }
 
 }
@@ -884,7 +884,7 @@ void COperationPanel::RenameOutput( const wxString& oldName )
 	if ( outputExists ) // old file has been renamed, so we ha ve to save ALL workspaces to keep consistency
 	{
 		std::string errorMsg;
-		wxGetApp().m_tree.SaveConfig( errorMsg );
+		wxGetApp().m_tree.SaveConfig( errorMsg, wxGetApp().GetCurrentWorkspaceOperation() );
 		if ( !errorMsg.empty() )
 			wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
 	}
@@ -1593,7 +1593,7 @@ bool COperationPanel::BuildExportAsciiCmdFile()
     return false;
   }
 
-  return m_operation->BuildExportAsciiCmdFile();
+  return m_operation->BuildExportAsciiCmdFile( wxGetApp().GetCurrentWorkspaceFormula(), wxGetApp().GetCurrentWorkspaceOperation() );
 
 }
 //----------------------------------------
@@ -1604,7 +1604,7 @@ bool COperationPanel::BuildShowStatsCmdFile()
     return false;
   }
 
-  return m_operation->BuildShowStatsCmdFile();
+  return m_operation->BuildShowStatsCmdFile( wxGetApp().GetCurrentWorkspaceFormula(), wxGetApp().GetCurrentWorkspaceOperation() );
 
 }
 //----------------------------------------
@@ -1741,7 +1741,7 @@ void COperationPanel::OnShowAliases( wxCommandEvent &event )
 //----------------------------------------
 void COperationPanel::OnLaunchScheduler( wxCommandEvent &event )
 {
-  ::wxExecute(wxGetApp().GetExecBratSchedulerName()->GetFullPath());        
+  ::wxExecute(COperation::GetExecBratSchedulerName());
 }
 //----------------------------------------
 void COperationPanel::OnDelay( wxCommandEvent &event )
@@ -2577,8 +2577,8 @@ void COperationPanel::DuplicateOperation()
   bool bOk = true;
 
 
-  CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-  if (wks == NULL)
+  CWorkspaceOperation* wkso = wxGetApp().GetCurrentWorkspaceOperation();
+  if (wkso == NULL)
   {
     return;
   }
@@ -2596,9 +2596,9 @@ void COperationPanel::DuplicateOperation()
   }
 
 
-  wxString opName = wks->GetOperationCopyName(m_operation->GetName());
+  wxString opName = wkso->GetOperationCopyName(m_operation->GetName());
 
-  bOk = wks->InsertOperation(opName.ToStdString(), m_operation);
+  bOk = wkso->InsertOperation(opName.ToStdString(), m_operation, wkso );
 
   if (bOk == false)
   {
@@ -3335,7 +3335,7 @@ void COperationPanel::Execute(bool wait /*= false*/)
                                            wxGetApp().GetLogPanel(),
                                            m_operation->GetFullCmd(),
                                            wxGetApp().GetLogPanel()->GetLogMess(),
-                                           m_operation->GetOutput(),
+                                           &m_operation->GetOutput(),
                                            m_operation->GetType());
 
 
@@ -3353,7 +3353,7 @@ void COperationPanel::Execute(bool wait /*= false*/)
 
   if (wait)
   {
-    wxGetApp().GetLogPanel()->LogFile( m_operation->GetLogFile() );
+    wxGetApp().GetLogPanel()->LogFile( wxFileName( m_operation->GetLogFile() ) );
   }
 
 
@@ -3472,7 +3472,7 @@ void COperationPanel::ShowStats()
 
   m_operation->ClearLogFile();
 
-  m_operation->InitShowStatsOutput();
+  m_operation->InitShowStatsOutput( wxGetApp().GetCurrentWorkspaceOperation() );
 
   BuildShowStatsCmdFile();
 
@@ -3480,7 +3480,7 @@ void COperationPanel::ShowStats()
                                            wxGetApp().GetLogPanel(),
                                            m_operation->GetShowStatsFullCmd(),
                                            wxGetApp().GetLogPanel()->GetLogMess(),
-                                           m_operation->GetShowStatsOutput(),
+                                           &m_operation->GetShowStatsOutput(),
                                            -1);
 
   bool bOk = wxGetApp().GetLogPanel()->AddProcess(process);
@@ -3529,7 +3529,7 @@ void COperationPanel::ExportOperation()
   //------------------
   wxFileName filenameToSave = dlg.m_currentName;
   filenameToSave.SetExt(CExportDlg::m_defaultExtensionAscii);
-  m_operation->SetExportAsciiOutput(filenameToSave);
+  m_operation->SetExportAsciiOutput( filenameToSave.GetFullPath().ToStdString(), wxGetApp().GetCurrentWorkspaceOperation() );
 
   m_operation->SetExecuteAgain(dlg.m_executeAgain);
 //  m_operation->SetDelayExecution(dlg.m_delayExecution);
@@ -3568,7 +3568,7 @@ void COperationPanel::ExportOperation()
       wxMessageBox(wxString::Format("There is no need to delay the execution because you haven't check '%s' "
                                     "and the file '%s' already exists",
                                     dlg.GetExecagain()->GetLabelText().c_str(),
-                                    m_operation->GetOutput()->GetFullPath().c_str()),
+                                    m_operation->GetOutput()),
                                    "Warning",
                                     wxOK | wxCENTRE | wxICON_EXCLAMATION);
       return;
@@ -3588,18 +3588,18 @@ void COperationPanel::ExportOperation()
       }
     }
 
-    if (wxFileExists(m_operation->GetOutput()->GetFullPath()) == false)
+    if (wxFileExists(m_operation->GetOutput()) == false)
     {
       wxMessageBox(wxString::Format("File'%s' doesn't exist - Please, look at the messages in the log panel"
                                     " and check if the operation have been correcly processed" ,
-                                    m_operation->GetOutput()->GetFullPath().c_str()),
+                                    m_operation->GetOutput()),
                                    "Warning",
                                     wxOK | wxCENTRE | wxICON_EXCLAMATION);
     }
-    else if (wxCopyFile(m_operation->GetOutput()->GetFullPath(), dlg.m_currentName.GetFullPath()) == false)
+    else if (wxCopyFile(m_operation->GetOutput(), dlg.m_currentName.GetFullPath()) == false)
     {
       wxMessageBox(wxString::Format("Unable to copy file '%s' to '%s'" ,
-                                    m_operation->GetOutput()->GetFullPath().c_str(),
+                                    m_operation->GetOutput(),
                                     dlg.m_currentName.GetFullPath().c_str()),
                    "Warning",
                     wxOK | wxCENTRE | wxICON_EXCLAMATION);
@@ -3631,7 +3631,7 @@ void COperationPanel::ExportOperation()
     {
       // Always execute again
       Execute(true);
-      ExportGeoTiff(m_operation->GetOutput()->GetFullPath(), dlg.m_currentName.GetFullPath(),
+      ExportGeoTiff(wxFileName( m_operation->GetOutput() ), dlg.m_currentName.GetFullPath(),
                     dlg.m_createKML, dlg.m_colorTable, dlg.m_colorRangeMin, dlg.m_colorRangeMax);
     }
   }
@@ -3676,7 +3676,7 @@ void COperationPanel::DelayExportOperationAsGeoTiff( CExportDlg& exportDlg )
 	file.Write( "\n#----- INPUT -----\n\n" );
 	file.Write( kwFILE.c_str() );
 	file.Write( "=" );
-	file.Write( m_operation->GetOutput()->GetFullPath() );
+	file.Write( m_operation->GetOutput() );
 	file.Write( "\n" );
 	file.Write( "\n#----- COLORTABLE -----\n\n" );
 	file.Write( kwDISPLAY_COLORTABLE.c_str() );
@@ -3715,7 +3715,7 @@ void COperationPanel::DelayExportOperationAsGeoTiff( CExportDlg& exportDlg )
 	file.Close();
 
 	wxString fullCommand = wxString::Format( "\"%s\" \"%s\"",
-		wxGetApp().GetExecExportGeoTiffName()->GetFullPath().c_str(),
+		COperation::GetExecExportGeoTiffName(),
 		exportGeoTiffCmdFile.GetFullPath().c_str() );
 
 
@@ -3775,7 +3775,7 @@ void COperationPanel::DelayExportOperationAsNetCdf( CExportDlg& exportDlg )
 	exportDlg.m_delayDlg.GetDateTime( at );
 
 	CVectorBratAlgorithmParam params;
-	params.Insert( m_operation->GetOutput()->GetFullPath().ToStdString() );
+	params.Insert( m_operation->GetOutput() );
 	params.Insert( exportDlg.m_currentName.GetFullPath().ToStdString() );
 
 	r = CSchedulerTaskConfig::GetInstance()->AddFunctionTaskAsPending( r,		//femm: AddTaskAsPending -> AddFunctionTaskAsPending
@@ -3881,11 +3881,11 @@ void COperationPanel::ExportOperationAsAscii()
 		{
 			Execute( true );
 
-			if ( wxFileExists( m_operation->GetOutput()->GetFullPath() ) == false )
+			if ( wxFileExists( m_operation->GetOutput() ) == false )
 			{
 				wxMessageBox( wxString::Format( "File'%s' doesn't exist - Please, look at the messages in the log panel"
 					" and check if the operation has been correctly processed",
-					m_operation->GetOutput()->GetFullPath().c_str() ),
+					m_operation->GetOutput() ),
 					"Warning",
 					wxOK | wxCENTRE | wxICON_EXCLAMATION );
 				EnableCtrl();
@@ -3918,7 +3918,7 @@ void COperationPanel::ExportOperationAsAsciiDump()
                                            wxGetApp().GetLogPanel(),
                                            m_operation->GetExportAsciiFullCmd(),
                                            wxGetApp().GetLogPanel()->GetLogMess(),
-                                           m_operation->GetExportAsciiOutput(),
+                                           &m_operation->GetExportAsciiOutput(),
                                            m_operation->GetType());
 
   bool bOk = wxGetApp().GetLogPanel()->AddProcess(process);
@@ -4009,14 +4009,15 @@ void COperationPanel::ExportGeoTiff(wxFileName inputFile, wxFileName outputFile,
   file.Close();
 
   wxString fullCommand = wxString::Format("\"%s\" \"%s\"",
-                                          wxGetApp().GetExecExportGeoTiffName()->GetFullPath().c_str(),
+                                          COperation::GetExecExportGeoTiffName(),
                                           exportGeoTiffCmdFile.GetFullPath().c_str());
 
+  std::string outputFile_str = outputFile.GetFullPath().ToStdString();
   CPipedProcess* process = new CPipedProcess(exportGeoTiffCmdFile.GetName(),
                                              wxGetApp().GetLogPanel(),
                                              fullCommand,
                                              wxGetApp().GetLogPanel()->GetLogMess(),
-                                             &outputFile,
+                                             &outputFile_str,
                                              m_operation->GetType());
 
   bool bOk = wxGetApp().GetLogPanel()->AddProcess(process);

@@ -2191,7 +2191,7 @@ bool CMapFormula::SetDescFormula(const std::string& name, const std::string& des
 }
 */
 //----------------------------------------
-std::string CMapFormula::GetCommentFormula( const std::string& name )
+std::string CMapFormula::GetCommentFormula( const std::string& name ) const
 {
 	CFormula* value = dynamic_cast<CFormula*>( Exists( name ) );
 	if ( value == nullptr )

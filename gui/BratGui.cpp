@@ -58,22 +58,22 @@ using namespace brathl;
 
 #ifdef WIN32
 const std::string BRATHL_ICON_FILENAME = "BratIcon.ico";
-const wxString BRATCREATEYFX_EXE = "BratCreateYFX.exe";
-const wxString BRATCREATEZFXY_EXE = "BratCreateZFXY.exe";
-const wxString BRATDISPLAY_EXE = "BratDisplay.exe";
-const wxString BRATEXPORTASCII_EXE = "BratExportAscii.exe";
-const wxString BRATEXPORTGEOTIFF_EXE = "BratExportGeoTiff.exe";
-const wxString BRATSHOWSTATS_EXE = "BratStats.exe";
-const wxString BRATSCHEDULER_EXE = "BratScheduler.exe";
+//const wxString BRATCREATEYFX_EXE = "BratCreateYFX.exe";
+//const wxString BRATCREATEZFXY_EXE = "BratCreateZFXY.exe";
+//const wxString BRATDISPLAY_EXE = "BratDisplay.exe";
+//const wxString BRATEXPORTASCII_EXE = "BratExportAscii.exe";
+//const wxString BRATEXPORTGEOTIFF_EXE = "BratExportGeoTiff.exe";
+//const wxString BRATSHOWSTATS_EXE = "BratStats.exe";
+//const wxString BRATSCHEDULER_EXE = "BratScheduler.exe";
 #else
 const std::string BRATHL_ICON_FILENAME = "BratIcon.bmp";
-const wxString BRATCREATEYFX_EXE = "BratCreateYFX";
-const wxString BRATCREATEZFXY_EXE = "BratCreateZFXY";
-const wxString BRATDISPLAY_EXE = "BratDisplay";
-const wxString BRATEXPORTASCII_EXE = "BratExportAscii";
-const wxString BRATEXPORTGEOTIFF_EXE = "BratExportGeoTiff";
-const wxString BRATSHOWSTATS_EXE = "BratStats";
-const wxString BRATSCHEDULER_EXE = "BratScheduler";
+//const wxString BRATCREATEYFX_EXE = "BratCreateYFX";
+//const wxString BRATCREATEZFXY_EXE = "BratCreateZFXY";
+//const wxString BRATDISPLAY_EXE = "BratDisplay";
+//const wxString BRATEXPORTASCII_EXE = "BratExportAscii";
+//const wxString BRATEXPORTGEOTIFF_EXE = "BratExportGeoTiff";
+//const wxString BRATSHOWSTATS_EXE = "BratStats";
+//const wxString BRATSCHEDULER_EXE = "BratScheduler";
 #endif
 
 // WDR: class implementations
@@ -193,12 +193,7 @@ bool CBratGuiApp::OnInit()
 
   if (appPath != "")
   {
-    m_execYFXName.AssignDir(appPath);
-    m_execZFXYName.AssignDir(appPath);
-    m_execDisplayName.AssignDir(appPath);
-    m_execExportAsciiName.AssignDir(appPath);
-    m_execExportGeoTiffName.AssignDir(appPath);
-    m_execShowStatsName.AssignDir(appPath);
+	  COperation::SetExecNames( appPath.ToStdString() );
     if (getenv(BRATHL_ENVVAR) == NULL)
     {
       CTools::SetDataDirForExecutable(wxGetApp().argv[0]);
@@ -231,30 +226,6 @@ bool CBratGuiApp::OnInit()
 		 "Warning",
 		 wxOK | wxCENTRE | wxICON_EXCLAMATION);
   }
-
-  m_execYFXName.SetFullName(BRATCREATEYFX_EXE);
-  m_execYFXName.MakeAbsolute();
-
-  m_execZFXYName.SetFullName(BRATCREATEZFXY_EXE);
-  m_execZFXYName.MakeAbsolute();
-
-  m_execDisplayName.SetFullName(BRATDISPLAY_EXE);
-  m_execDisplayName.MakeAbsolute();
-
-  m_execExportAsciiName.SetFullName(BRATEXPORTASCII_EXE);
-  m_execExportAsciiName.MakeAbsolute();
-
-  m_execExportGeoTiffName.SetFullName(BRATEXPORTGEOTIFF_EXE);
-  m_execExportGeoTiffName.MakeAbsolute();
-
-  m_execShowStatsName.SetFullName(BRATSHOWSTATS_EXE);
-  m_execShowStatsName.MakeAbsolute();
-
-  m_execBratSchedulerName.AssignDir(appPath);
-  m_execBratSchedulerName.SetFullName(BRATSCHEDULER_EXE);
-  m_execBratSchedulerName.MakeAbsolute();
-
-  SetExecBratSchedulerName();
 
   CProduct::CodaInit();
   //CProduct::SetCodaReleaseWhenDestroy(false);
@@ -321,14 +292,6 @@ int CBratGuiApp::OnExit()
   CProduct::CodaRelease();
 
   return 0;
-}
-//----------------------------------------
-void CBratGuiApp::SetExecBratSchedulerName()
-{
-  m_execBratSchedulerName.AssignDir(GetExecBratSchedulerPathName());
-  m_execBratSchedulerName.SetFullName(BRATSCHEDULER_EXE);
-  m_execBratSchedulerName.MakeAbsolute();
-
 }
 //----------------------------------------
 bool CBratGuiApp::RemoveFile(const wxString& name)

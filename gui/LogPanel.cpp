@@ -385,19 +385,9 @@ void CLogPanel::OnLogClear( wxCommandEvent &event )
   GetLogMess()->Clear();
 }
 //----------------------------------------
-void CLogPanel::LogFile( const wxFileName* file )
+void CLogPanel::LogFile( const wxFileName& file )
 {
-  if (file == NULL)
-  {
-    return;
-  }
-
-  if (!file->IsOk())
-  {
-    return;
-  }
-
-  LogFile(file->GetFullPath());
+  LogFile(file.GetFullPath());
 
 }
 

@@ -65,7 +65,24 @@ struct CConfiguration : public CONFIG
 	bool Read( const std::string& str, int32_t *value, double defValue ) const;
 
 	bool Flush( bool bCurrentOnly = false );
+
+	const std::string GetConfigPath() const;
 };
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//											File Names
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+std::string GetFileName( const std::string &path );
+
+void SetFileExtension( std::string &path, const std::string &extension );
+
+std::string NormalizedPath( const std::string &path, const std::string &dir );
+
+
+
 
 
 

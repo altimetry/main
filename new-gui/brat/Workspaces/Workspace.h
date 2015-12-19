@@ -43,6 +43,11 @@ const int IMPORT_OPERATION_INDEX = 2;
 const int IMPORT_DISPLAY_INDEX = 3;
 
 
+
+class CWorkspaceOperation;
+class CWorkspaceDataset;
+
+
 //-------------------------------------------------------------
 //------------------- CWorkspace class --------------------
 //-------------------------------------------------------------
@@ -126,8 +131,8 @@ public:
 	bool IsConfigFile() const { return IsFile( m_configFileName ); }
 	bool IsRoot() const { return m_level == 1; }
 
-	virtual bool SaveConfig( std::string &errorMsg, bool flush = true );
-	virtual bool LoadConfig( std::string &errorMsg );
+	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, bool flush = true );
+	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso );
 	virtual bool Import( CWorkspace* wks, std::string &errorMsg )
 	{
 		return true;
@@ -182,8 +187,8 @@ public:
 	bool CheckFiles( std::string &errorMsg );			// femm: Apparently not used...
 
 
-	virtual bool SaveConfig( std::string &errorMsg, bool flush = true ) override;
-	virtual bool LoadConfig( std::string &errorMsg ) override;
+	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, bool flush = true ) override;
+	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso ) override;
 	virtual bool Import( CWorkspace* wks, std::string &errorMsg ) override;
 
 	bool RenameDataset( CDataset* dataset, const std::string& newName );
@@ -236,8 +241,8 @@ public:
 	virtual ~CWorkspaceFormula()
 	{}
 
-	virtual bool SaveConfig( std::string &errorMsg, bool flush = true ) override;
-	virtual bool LoadConfig( std::string &errorMsg ) override;
+	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, bool flush = true ) override;
+	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso ) override;
 	virtual bool Import( CWorkspace* wks, std::string &errorMsg ) override;
 
 	bool AddFormula( CFormula& formula, std::string &errorMsg );
@@ -294,8 +299,8 @@ public:
 		m_operations.RemoveAll();
 	}
 
-	virtual bool SaveConfig( std::string &errorMsg, bool flush = true ) override;
-	virtual bool LoadConfig( std::string &errorMsg ) override;
+	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, bool flush = true ) override;
+	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso ) override;
 	virtual bool Import( CWorkspace* wks, std::string &errorMsg ) override;
 
 	void GetOperationNames( std::vector< std::string >& array );
@@ -316,7 +321,7 @@ public:
 	}
 
     bool InsertOperation( const std::string& name );
-    bool InsertOperation( const std::string& name, COperation* operationToCopy );
+    bool InsertOperation( const std::string& name, COperation* operationToCopy, CWorkspaceOperation *wkso );
 
 	bool RenameOperation( COperation* operation, const std::string& newName );
 
@@ -328,8 +333,8 @@ public:
 	virtual void Dump( std::ostream& fOut = std::cerr );
 
 protected:
-	bool SaveConfigOperation( std::string &errorMsg );
-	bool LoadConfigOperation( std::string &errorMsg );
+	bool SaveConfigOperation( std::string &errorMsg, CWorkspaceOperation *wkso );
+	bool LoadConfigOperation( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso  );
 };
 
 //-------------------------------------------------------------
@@ -355,8 +360,8 @@ public:
 		m_displays.RemoveAll();
 	}
 
-	virtual bool SaveConfig( std::string &errorMsg, bool flush = true ) override;
-	virtual bool LoadConfig( std::string &errorMsg ) override;
+	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, bool flush = true ) override;
+	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso ) override;
 	virtual bool Import( CWorkspace* wks, std::string &errorMsg ) override;
 
 	bool UseOperation( const std::string& name, std::string &errorMsg, CStringArray* displayNames = nullptr );

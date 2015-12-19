@@ -124,23 +124,23 @@ public:
   wxString GetIconFile();
   wxString GetIconFileName();
 
-  wxFileConfig* GetConfig() {return m_config;};
+  wxFileConfig* GetConfig() {return m_config;}
 
   void CreateTree(CWorkspace* root);
   void CreateTree(CWorkspace* root, CTreeWorkspace& tree);
 
-  wxNotebook* GetMainnotebook()  { return  m_frame->GetMainnotebook(); };
-  CGuiFrame* GetGuiFrame()  { return  m_frame; };
-  CGuiPanel* GetGuiPanel()  { return  m_frame->GetGuiPanel(); };
-  CLogPanel* GetLogPanel()  { return  m_frame->GetGuiPanel()->GetLogPanel(); };
-  //CDisplayPanel* GetDisplayPanel()  { return  m_frame->GetGuiPanel()->GetDisplayPanel(); };
-  CDisplayPanel* GetDisplayPanel()  { return  m_frame->GetGuiPanel()->GetDisplayPanel(); };
+  wxNotebook* GetMainnotebook()  { return  m_frame->GetMainnotebook(); }
+  CGuiFrame* GetGuiFrame()  { return  m_frame; }
+  CGuiPanel* GetGuiPanel()  { return  m_frame->GetGuiPanel(); }
+  CLogPanel* GetLogPanel()  { return  m_frame->GetGuiPanel()->GetLogPanel(); }
+  //CDisplayPanel* GetDisplayPanel()  { return  m_frame->GetGuiPanel()->GetDisplayPanel(); }
+  CDisplayPanel* GetDisplayPanel()  { return  m_frame->GetGuiPanel()->GetDisplayPanel(); }
 
-  COperationPanel* GetOperationPanel()  { return  m_frame->GetGuiPanel()->GetOperationPanel(); };
+  COperationPanel* GetOperationPanel()  { return  m_frame->GetGuiPanel()->GetOperationPanel(); }
 
-  wxMenu* GetMenuFieldsTreeCtrl()  { return  m_frame->GetMenuFieldsTreeCtrl(); };
-  wxMenu* GetMenuOperationTreeCtrl()  { return  m_frame->GetMenuOperationTreeCtrl(); };
-  wxMenu* GetMenuDisplayTreeCtrl() { return m_frame->GetMenuDisplayTreeCtrl(); };
+  wxMenu* GetMenuFieldsTreeCtrl()  { return  m_frame->GetMenuFieldsTreeCtrl(); }
+  wxMenu* GetMenuOperationTreeCtrl()  { return  m_frame->GetMenuOperationTreeCtrl(); }
+  wxMenu* GetMenuDisplayTreeCtrl() { return m_frame->GetMenuDisplayTreeCtrl(); }
 
   CWorkspace* GetCurrentWorkspace();
   CWorkspaceDataset* GetCurrentWorkspaceDataset();
@@ -171,57 +171,39 @@ public:
 
   bool IsCurrentLogPage();
 
-  int32_t GotoDatasetPage() {return GotoPage(DATASETS_PAGE_NAME);};
-  int32_t GotoOperationPage() {return GotoPage(OPERATIONS_PAGE_NAME);};
-  int32_t GotoDisplayPage() {return GotoPage(DISPLAY_PAGE_NAME);};
-  int32_t GotoLogPage() {return GotoPage(LOG_PAGE_NAME);};
+  int32_t GotoDatasetPage() {return GotoPage(DATASETS_PAGE_NAME);}
+  int32_t GotoOperationPage() {return GotoPage(OPERATIONS_PAGE_NAME);}
+  int32_t GotoDisplayPage() {return GotoPage(DISPLAY_PAGE_NAME);}
+  int32_t GotoLogPage() {return GotoPage(LOG_PAGE_NAME);}
 
-  wxFileName* GetExecYFXName() {return &m_execYFXName;};
-  wxFileName* GetExecZFXYName() {return &m_execZFXYName;};
-  wxFileName* GetExecDisplayName() {return &m_execDisplayName;};
-  wxFileName* GetExecExportAsciiName() {return &m_execExportAsciiName;};
-  wxFileName* GetExecExportGeoTiffName() {return &m_execExportGeoTiffName;};
-  wxFileName* GetExecName() {return &m_execName;};
-  wxFileName* GetExecShowStatsName() {return &m_execShowStatsName;};
+  wxFileName* GetExecName() {return &m_execName;}
   
-  void SetExecBratSchedulerName();
-  wxFileName* GetExecBratSchedulerName() {return &m_execBratSchedulerName;};
-
   wxString GetExecPathName(int32_t flags = wxPATH_GET_VOLUME, wxPathFormat format = wxPATH_NATIVE) 
 #ifdef __WXMAC__
                         {return (m_execName.IsRelative() ? 
                                  m_execName.GetPath(flags, format) + "/BratGui.app/Contents/MacOS" :
-                                 m_execName.GetPath(flags, format));};
+                                 m_execName.GetPath(flags, format));}
 #else
-                        {return m_execName.GetPath(flags, format);};
+                        {return m_execName.GetPath(flags, format);}
 #endif
 
-  wxString GetExecBratSchedulerPathName(int32_t flags = wxPATH_GET_VOLUME, wxPathFormat format = wxPATH_NATIVE) 
-#ifdef __WXMAC__
-                        {return (m_execName.IsRelative() ? 
-                                 m_execName.GetPath(flags, format) + "/BratScheduler.app/Contents/MacOS" :
-                                 m_execName.GetPath(flags, format));};
-#else
-                        {return m_execName.GetPath(flags, format);};
-#endif
+  CTreeWorkspace* GetCurrentTree() {return m_currentTree;}
+  void SetCurrentTree(CTreeWorkspace* value) {m_currentTree = value;}
 
-  CTreeWorkspace* GetCurrentTree() {return m_currentTree;};
-  void SetCurrentTree(CTreeWorkspace* value) {m_currentTree = value;};
-
-  wxString GetLastColorTable() {return m_lastColorTable;};
-  void SetLastColorTable(const wxString& value) {m_lastColorTable = value;};
+  wxString GetLastColorTable() {return m_lastColorTable;}
+  void SetLastColorTable(const wxString& value) {m_lastColorTable = value;}
 
   wxString BuildUserManualPath();
   void ViewUserManual();
 
-  wxString GetUserManual() {return m_userManual;};
-  void SetUserManual(const wxString& value) {m_userManual = value;};
+  wxString GetUserManual() {return m_userManual;}
+  void SetUserManual(const wxString& value) {m_userManual = value;}
 
-  wxString GetLastDataPath() {return m_lastDataPath;};
-  void SetLastDataPath(const wxString& value) {m_lastDataPath = value;};
+  wxString GetLastDataPath() {return m_lastDataPath;}
+  void SetLastDataPath(const wxString& value) {m_lastDataPath = value;}
   
-  wxString GetLastPageReached() {return m_lastPageReached;};
-  void SetLastPageReached(const wxString& value) {m_lastPageReached = value;};
+  wxString GetLastPageReached() {return m_lastPageReached;}
+  void SetLastPageReached(const wxString& value) {m_lastPageReached = value;}
 
   static void CStringArrayToWxArray(CStringArray& from, wxArrayString& to);
   static void CStringListToWxArray(const CStringList& from, wxArrayString& to);
@@ -273,14 +255,6 @@ private:
   CGuiFrame* m_frame;
 
   wxFileName m_execName;
-  wxFileName m_execYFXName;
-  wxFileName m_execZFXYName;
-  wxFileName m_execDisplayName;
-  wxFileName m_execExportAsciiName;
-  wxFileName m_execExportGeoTiffName;
-  wxFileName m_execShowStatsName;
-  wxFileName m_execBratSchedulerName;
-
 };
 
 DECLARE_APP(CBratGuiApp)

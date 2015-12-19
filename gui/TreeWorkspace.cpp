@@ -158,7 +158,7 @@ CObjectTreeIterator CTreeWorkspace::AddChild (const std::string& nm, CWorkspace*
 }
 
 //----------------------------------------
-bool CTreeWorkspace::SaveConfig( std::string &errorMsg, bool flush )
+bool CTreeWorkspace::SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, bool flush )		//flush = true
 {
 	if ( GetRootData() == nullptr )
 		return true;
@@ -169,14 +169,14 @@ bool CTreeWorkspace::SaveConfig( std::string &errorMsg, bool flush )
 
 	do
 	{
-		bOk &= GetCurrentData()->SaveConfig( errorMsg, flush );
+		bOk &= GetCurrentData()->SaveConfig( errorMsg, wkso, flush );
 	} while ( this->SubTreeWalkDown() );
 
 	return bOk;
 }
 
 //----------------------------------------
-bool CTreeWorkspace::LoadConfig( CWorkspace *&wks, std::string &errorMsg )
+bool CTreeWorkspace::LoadConfig( CWorkspace *&wks, CWorkspaceDataset *wksd, CWorkspaceOperation *wkso, std::string &errorMsg )
 {
 	if ( GetRootData() == nullptr )
 		return true;
@@ -186,7 +186,7 @@ bool CTreeWorkspace::LoadConfig( CWorkspace *&wks, std::string &errorMsg )
 	{
 		wks = GetCurrentData();
 		wks->SetCtrlDatasetFiles( m_ctrlDatasetFiles );
-		if ( !wks->LoadConfig( errorMsg ) )
+		if ( !wks->LoadConfig( errorMsg, wksd, wkso ) )
 			return false;
 
 	} while ( this->SubTreeWalkDown() );
@@ -194,11 +194,11 @@ bool CTreeWorkspace::LoadConfig( CWorkspace *&wks, std::string &errorMsg )
 	return true;
 }
 //----------------------------------------
-CWorkspaceFormula* CTreeWorkspace::LoadConfigFormula( std::string &errorMsg )
+CWorkspaceFormula* CTreeWorkspace::LoadConfigFormula( CWorkspaceDataset *wksd, CWorkspaceOperation *wkso, std::string &errorMsg )
 {
 	CWorkspaceFormula* wks = GetWorkspaceFormula();
 	if ( wks != nullptr )
-		wks->LoadConfig( errorMsg );
+		wks->LoadConfig( errorMsg, wksd, wkso );
 
 	return wks;
 }

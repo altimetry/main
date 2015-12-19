@@ -18,6 +18,8 @@
 #if !defined(WORKSPACES_OPERATION_H)
 #define WORKSPACES_OPERATION_H
 
+//#include "new-gui/Common/QtFileUtils.h"
+
 #include "brathl.h"
 
 #include "new-gui/brat/Workspaces/Dataset.h"
@@ -43,28 +45,35 @@ protected:
 
 	CProduct* m_product;
 	CDataset* m_dataset;
-	std::string m_record;
-	//CFormula* m_formula;
+	std::string m_record;	//CFormula* m_formula;
 	CFormula* m_select;
 	CMapFormula m_formulas;
 	int32_t m_type;
 	int32_t m_dataMode;
 
-	wxFileName m_output;
-	wxFileName m_exportAsciiOutput;
-	wxFileName m_showStatsOutput;
+	std::string m_output;
+	std::string m_exportAsciiOutput;
+	std::string m_showStatsOutput;
 
-	wxFileName m_cmdFile;
-	wxFileName m_exportAsciiCmdFile;
-	wxFileName m_showStatsCmdFile;
+	std::string m_cmdFile;
+	std::string m_exportAsciiCmdFile;
+	std::string m_showStatsCmdFile;
 
 	//wxFile m_file;
+
+	static std::string m_execYFXName;
+	static std::string m_execZFXYName;
+	static std::string m_execDisplayName;
+	static std::string m_execExportAsciiName;
+	static std::string m_execExportGeoTiffName;
+	static std::string m_execShowStatsName;
+	static std::string m_execBratSchedulerName;
 
 public:
 	const int32_t m_verbose = 2;
 
 protected:
-	wxFileName m_logFile;
+	std::string m_logFile;
 
 	bool m_exportAsciiDateAsPeriod;
 	bool m_exportAsciiExpandArray;
@@ -86,6 +95,15 @@ public:
 
 	/// Destructor
 	virtual ~COperation();
+
+	static void SetExecNames( const std::string &appPath );
+	static const std::string& GetExecYFXName() { return m_execYFXName; }
+	static const std::string& GetExecZFXYName() { return m_execZFXYName; }
+	static const std::string& GetExecDisplayName() { return m_execDisplayName; }
+	static const std::string& GetExecExportAsciiName() { return m_execExportAsciiName; }
+	static const std::string& GetExecExportGeoTiffName() { return m_execExportGeoTiffName; }
+	static const std::string& GetExecShowStatsName() { return m_execShowStatsName; }
+	static const std::string& GetExecBratSchedulerName() { return m_execBratSchedulerName; }
 
 	std::string GetName() { return m_name; }
 	void SetName( const std::string& value ) { m_name = value; }
@@ -130,54 +148,47 @@ public:
 	CFormula* GetFormula( CMapFormula::iterator it );
 	const CFormula* GetFormula( CMapFormula::const_iterator it );
 
-	CFormula* NewUserFormula( CField* field, int32_t typeField, bool addToMap = true, CProduct* product = NULL );
-	CFormula* NewUserFormula( const std::string& name = "", int32_t typeField = CMapTypeField::eTypeOpAsField, const std::string& strUnit = "", bool addToMap = true, CProduct* product = NULL );
+	CFormula* NewUserFormula( std::string &errorMsg, CField* field, int32_t typeField, bool addToMap = true, CProduct* product = NULL );
+	CFormula* NewUserFormula( std::string &errorMsg, const std::string& name = "", int32_t typeField = CMapTypeField::eTypeOpAsField, const std::string& strUnit = "", bool addToMap = true, CProduct* product = NULL );
 
-	bool AddFormula( CFormula& value );
+	bool AddFormula( CFormula& value, std::string &errorMsg );
 	bool DeleteFormula( const std::string& name );
 
 	std::string GetDescFormula( const std::string& name, bool alias = false );
 	//void SetDescFormula(const std::string& name, const std::string& value);
 
-	const wxFileName* GetOutput() const { return &m_output; }
-	std::string GetOutputName() const { return m_output.GetFullPath().ToStdString(); }
+	const std::string& GetOutput() const { return m_output; }
+	std::string GetOutputName() const { return GetFileName( m_output ); }
 	std::string GetOutputNameRelativeToWks( CWorkspaceOperation *wks );
 
-	void SetOutput( const wxFileName& value, CWorkspaceOperation* wks );
 	void SetOutput( const std::string& value, CWorkspaceOperation* wks );
 
-	const wxFileName* GetExportAsciiOutput() const { return &m_exportAsciiOutput; }
-	std::string GetExportAsciiOutputName() { return m_exportAsciiOutput.GetFullPath().ToStdString(); }
+	const std::string& GetExportAsciiOutput() const { return m_exportAsciiOutput; }
+	std::string GetExportAsciiOutputName() const { return GetFileName( m_exportAsciiOutput ); }
 	std::string GetExportAsciiOutputNameRelativeToWks( CWorkspaceOperation *wks );
 
-	void SetExportAsciiOutput( const wxFileName& value, CWorkspaceOperation* wks );
 	void SetExportAsciiOutput( const std::string& value, CWorkspaceOperation* wks );
 
-
-	const wxFileName* GetShowStatsOutput() const { return &m_showStatsOutput; }
-	std::string GetShowStatsOutputName() { return m_showStatsOutput.GetFullPath().ToStdString(); }
+	const std::string& GetShowStatsOutput() const { return m_showStatsOutput; }
+	std::string GetShowStatsOutputName() const { return GetFileName( m_showStatsOutput ); }
 	std::string GetShowStatsOutputNameRelativeToWks( CWorkspaceOperation *wks );
 
-	void SetShowStatsOutput( const wxFileName& value, CWorkspaceOperation* wks );
-	void SetShowStatsOutput( const std::string& value, CWorkspaceOperation* wks  );
+	void SetShowStatsOutput( const std::string& value, CWorkspaceOperation* wks );
 
-	std::string GetTaskName();
-	wxFileName* GetCmdFile() { return &m_cmdFile; }
-	std::string GetCmdFileFullName() { return m_cmdFile.GetFullPath().ToStdString(); }
+	const std::string& GetTaskName() const;
+	const std::string GetCmdFile() const { return m_cmdFile; }	
 	void SetCmdFile( CWorkspaceOperation* wks );
 
-	std::string GetExportAsciiTaskName();
-	wxFileName* GetExportAsciiCmdFile() { return &m_exportAsciiCmdFile; }
-	std::string GetExportAsciiCmdFileFullName() { return m_exportAsciiCmdFile.GetFullPath().ToStdString(); }
+	const std::string& GetExportAsciiTaskName() const;
+	const std::string& GetExportAsciiCmdFile() const { return m_exportAsciiCmdFile; }
 	void SetExportAsciiCmdFile( CWorkspaceOperation *wks );
 
-	std::string GetShowStatsTaskName();
-	wxFileName* GetShowStatsCmdFile() { return &m_showStatsCmdFile; }
-	std::string GetShowStatsCmdFileFullName() { return m_showStatsCmdFile.GetFullPath().ToStdString(); }
+	const std::string& GetShowStatsTaskName() const;
+	const std::string& GetShowStatsCmdFile() const { return m_showStatsCmdFile; }
 	void SetShowStatsCmdFile( CWorkspaceOperation *wks );
 
 
-	std::string GetCommentFormula( const std::string& name );
+	std::string GetCommentFormula( const std::string& name ) const;
 	void SetCommentFormula( const std::string &name, const std::string &value );
 
 	const CFormula* GetSelect() const { return m_select; }
@@ -198,13 +209,13 @@ public:
 	std::string GetFormulaNewName();
 	std::string GetFormulaNewName( const std::string& prefix );
 
-	wxFileName* GetSystemCommand();
+	const std::string& GetSystemCommand() const;
 	std::string GetFullCmd();
 
-	wxFileName* GetExportAsciiSystemCommand();
+	const std::string& GetExportAsciiSystemCommand() const;
 	std::string GetExportAsciiFullCmd();
 
-	wxFileName* GetShowStatsSystemCommand();
+	const std::string& GetShowStatsSystemCommand() const;
 	std::string GetShowStatsFullCmd();
 
 
@@ -292,7 +303,7 @@ public:
 	void SetLogFile( const std::string& value );
 	void SetLogFile( CWorkspaceOperation *wks );
 
-	const wxFileName* GetLogFile() const { return &m_logFile; }
+	const std::string& GetLogFile() const { return m_logFile; }
 
 	//COperation& operator=( COperation& o );
 

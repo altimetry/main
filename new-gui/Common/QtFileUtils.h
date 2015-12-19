@@ -33,12 +33,17 @@ inline QString& switchExtension( QString &fullPath, const QString &ext_a, const 
     return fullPath;
 }
 
-inline std::string getFilenameFromPath( const std::string &path )
+inline std::string GetBaeFilenameFromPath( const std::string &path )
+{
+	return q2t< std::string >( QFileInfo( t2q( path ) ).baseName() );
+}
+
+inline std::string GetFilenameFromPath( const std::string &path )
 {
 	return q2t< std::string >( QFileInfo( t2q( path ) ).fileName() );
 }
 
-inline std::string getDirectoryFromPath( const std::string &path )
+inline std::string GetDirectoryFromPath( const std::string &path )
 {
 	return q2t< std::string >( QFileInfo( t2q( path ) ).absoluteDir().absolutePath() );
 }
@@ -277,11 +282,11 @@ struct ApplicationDirectories
 			InternalDataDir = s3data;
         else
         {
-            InternalDataDir = getDirectoryFromPath( ExecutableDir );    //strip first parent directory (MacOS in mac)
+            InternalDataDir = GetDirectoryFromPath( ExecutableDir );    //strip first parent directory (MacOS in mac)
         #if defined (__APPLE__)
-            InternalDataDir = getDirectoryFromPath( InternalDataDir );  //strip Contents
-            InternalDataDir = getDirectoryFromPath( InternalDataDir );  //strip brat.app
-            InternalDataDir = getDirectoryFromPath( InternalDataDir );  //strip wherever brat.app is
+            InternalDataDir = GetDirectoryFromPath( InternalDataDir );  //strip Contents
+            InternalDataDir = GetDirectoryFromPath( InternalDataDir );  //strip brat.app
+            InternalDataDir = GetDirectoryFromPath( InternalDataDir );  //strip wherever brat.app is
         #endif
             InternalDataDir += "/data";
         }
@@ -296,7 +301,7 @@ private:
 		, mQgisDir( mBasePath + "/lib/Graphics/QGIS/default/bin/" + mPlatform + "/" + mConfiguration )
 		, mQgisPluginsDir( mQgisDir + "/" + QGIS_PLUGINS_SUBDIR )
 
-		, mExecutableDir( getDirectoryFromPath( qApp->argv()[ 0 ] ) )
+		, mExecutableDir( GetDirectoryFromPath( qApp->argv()[ 0 ] ) )
 		, mInternalDataDir( computeInternalDataDirectory( mExecutableDir ) )
 		, mExternalDataDir( mBasePath + "/lib/data" )
 

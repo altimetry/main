@@ -23,6 +23,10 @@ CConfiguration::CConfiguration(
 	: base_t( "", "", localFilename, "", wxCONFIG_USE_LOCAL_FILE )
 {}
 
+const std::string CConfiguration::GetConfigPath() const
+{
+	return base_t::GetPath().ToStdString();
+}
 void CConfiguration::SetPath( const std::string& strPath )
 {
 	base_t::SetPath( strPath );
@@ -355,4 +359,34 @@ void GetFormulaNames( const COperation &op, wxComboBox& combo )
 	{
 		combo.Append( ( it->first ).c_str() );
 	}
+}
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//											Extract File Name
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+std::string GetFileName( const std::string &path )
+{
+	return wxFileName( path ).GetName().ToStdString();
+}
+
+void SetFileExtension( std::string &path, const std::string &extension )
+{
+	wxFileName file( path );
+	file.SetExt( extension );
+	path = file.GetFullPath().ToStdString();
+}
+
+std::string NormalizedPath( const std::string &path, const std::string &dir )
+{
+	wxFileName file( path );
+	file.Normalize( wxPATH_NORM_ALL, dir );
+	return file.GetFullPath().ToStdString();
 }

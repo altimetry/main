@@ -36,6 +36,8 @@
 #include "TreeField.h"
 #include "Unit.h"
 #include "new-gui/Common/tools/Exception.h"
+#include "new-gui/brat/Workspaces/Operation.h"
+
 using namespace brathl;
 
 #include "Dictionary.h"
