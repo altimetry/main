@@ -33,21 +33,6 @@
       <layout class="QGridLayout" name="gridLayout_2">
        <item row="0" column="0" rowspan="4">
         <widget class="QTableWidget" name="tablePendingTask">
-         <row>
-          <property name="text">
-           <string>1</string>
-          </property>
-         </row>
-         <row>
-          <property name="text">
-           <string>2</string>
-          </property>
-         </row>
-         <row>
-          <property name="text">
-           <string>3</string>
-          </property>
-         </row>
          <column>
           <property name="text">
            <string>Uid</string>

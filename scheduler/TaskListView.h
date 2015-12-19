@@ -87,8 +87,8 @@ public:
   int32_t GetSortedCol() {return m_sortedCol;};
   bool GetSortAsc() {return m_sortAsc;};
 
-  bool GetAllowSuppr() { return m_allowSuppr; };
-  void SetAllowSuppr(bool value) { m_allowSuppr = value; };
+  //bool GetAllowSuppr() { return m_allowSuppr; };
+  //void SetAllowSuppr(bool value) { m_allowSuppr = value; };
 
   static void EvtListCtrl(wxWindow& window,  int32_t eventType, const wxListEventFunction& method,
                         wxObject* userData = NULL, wxEvtHandler* eventSink = NULL);
@@ -102,7 +102,7 @@ private:
   CBratTask* m_bratTask;
 
   int32_t m_sortedCol;
-  bool m_allowSuppr;
+  //bool m_allowSuppr;
 
   bool m_sortAsc;
   // WDR: member variable declarations for CTaskListView

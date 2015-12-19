@@ -45,6 +45,18 @@ const std::string BRATHL_ICON_FILENAME = "BratIcon.bmp";
 //std::string m_userManual;
 
 
+/// RCCC - TODO - Organize or insert in the rigth place ////
+// Enum task list columns
+enum ETaskListCol{
+    eTaskUid,
+    eTaskName,
+    eTaskStart,
+    eTaskStatus,
+    eTaskCMD,
+    eTaskLogFile,
+    eTaskListCol_size
+};
+
 
 SchedulerDlg::SchedulerDlg(QWidget *parent) : QDialog(parent)
 	, mIsDialog( parent ? true : false )
@@ -53,11 +65,11 @@ SchedulerDlg::SchedulerDlg(QWidget *parent) : QDialog(parent)
 
     if (mIsDialog)
     {
-        setWindowTitle( "Brat Scheduler Dialog");
+        setWindowTitle( qBRATSCHEDULER_DIALOG_TITLE );
     }
     else
     {
-        setWindowTitle( "Brat Scheduler");
+        setWindowTitle( qBRATSCHEDULER_APP_TITLE );
         createMenuBar();
 
 		//RCCC (2015/11/14): Eliminate menu items in excess (left here only for "education" 
@@ -80,93 +92,75 @@ SchedulerDlg::SchedulerDlg(QWidget *parent) : QDialog(parent)
         //
         //	For dialogs, including dialog applications, the minimum size should be the
         //  opening one. Use setMinimumSize, or similar.
-
+        //
         //  Disregard the following notes, until we talk (I left them here to serve as
         //      reminders for me)
         //
         //      - generate tasks xml with arguments
 		//
         //      - wxBratTools::wxStringTowxLongLong_t
-
+        //
+        ///// SOME LESSONS:
+        //
+        //    std::vector<int> v;
+        //    const size_t size = v.size();
+        //    for ( size_t i = 0; i < size; ++i)
+        //    {
+        //        auto task = v[i];
+        //
+        //    }
+        //    std::vector<CBratTask*> v2;
+        //    for (std::vector<CBratTask*>::const_iterator it = v2.begin(); it != v2.end(); it++)
+        //    {
+        //        qDebug() << *it;
+        //
+        //        //it->->GetUidAsString();
+        //
+        //        (**it).GetUidAsString();
+        //        (*it)->GetUidAsString();
+        //
+        //    }
+        //      QString s = t2q(std::string("sdjfhgi"));
+        //      std::string s2 = q2t<std::string>(QString("sdjfhgi"));
+        //      auto s3 = n2s<std::string>(890);
+        //      auto n = s2n<double>(std::string("789") );
+        //
+        //      for ( auto &t : data )
+        //      {
+        //          qDebug() << t.first;
+        //          qDebug() << t.second->GetUidAsString().c_str();
+        //      }
+        ///////////////////////////////////////////////////
     }
 
-    //// Enabling sorting in all tables: pending, processing and end tasks.
+    //// RCCC - TODO - Put in right place
+    // Enabling sorting in all tables: pending, processing and end tasks.
     tablePendingTask->setSortingEnabled(true);
     tableProcTask->setSortingEnabled(true);
     tableEndTask->setSortingEnabled(true);
 
+    // Changing selection behaviour to whole row selection
+    tablePendingTask->setSelectionBehavior(QAbstractItemView::SelectRows);
+    tableProcTask->setSelectionBehavior(QAbstractItemView::SelectRows);
+    tableEndTask->setSelectionBehavior(QAbstractItemView::SelectRows);
 
-    // Enum task list columns
-    enum ETaskListCol{
-        eTaskUid,
-        eTaskName,
-        eTaskStart,
-        eTaskStatus,
-        eTaskCMD,
-        eTaskLogFile,
-        eTaskListCol_size
-    };
+    // Setting alternating row colors
+    tablePendingTask->setAlternatingRowColors(true);
+    tableProcTask->setAlternatingRowColors(true);
+    tableEndTask->setAlternatingRowColors(true);
 
-    const CMapBratTask &data = *CTasksProcessor::GetInstance()->GetMapPendingBratTask();
+    //tablePendingTask->setEditTriggers();
 
-//    std::vector<int> v;
-//    const size_t size = v.size();
-//    for ( size_t i = 0; i < size; ++i)
-//    {
-//        auto task = v[i];
+    // Disable grid lines.
+    tablePendingTask->setShowGrid(false);
+    tableProcTask->setShowGrid(false);
+    tableEndTask->setShowGrid(false);
 
-//    }
-//    std::vector<CBratTask*> v2;
-//    for (std::vector<CBratTask*>::const_iterator it = v2.begin(); it != v2.end(); it++)
-//    {
-//        qDebug() << *it;
+    loadTasks(*CTasksProcessor::GetInstance()->GetMapPendingBratTask(),          tablePendingTask);
+    //loadTasks(*CTasksProcessor::GetInstance()->GetMapProcessingBratTask(), tableProcTask);
+    loadTasks(*CTasksProcessor::GetInstance()->GetMapEndedBratTask(),            tableEndTask);
 
-//        //it->->GetUidAsString();
-
-//        (**it).GetUidAsString();
-//        (*it)->GetUidAsString();
-
-//    }
-    tablePendingTask->setRowCount(data.size());
-    size_t index = 0;
-    for (CMapBratTask::const_iterator it = data.begin(); it != data.end(); it++)
-    {
-      CBratTask* bratTask = it->second;
-      //// InsertTask(bratTask);////
-      if (bratTask == NULL)
-      {
-        //return -1;
-      }
-
-      tablePendingTask->setItem(index, eTaskUid, new QTableWidgetItem(bratTask->GetUidAsString().c_str()) );
-      tablePendingTask->setItem(index, eTaskName,new QTableWidgetItem(    bratTask->GetName().c_str()));
-      tablePendingTask->setItem(index, eTaskStart, new QTableWidgetItem(   bratTask->GetAtAsString().c_str()));
-      tablePendingTask->setItem(index, eTaskStatus, new QTableWidgetItem(  bratTask->GetStatusAsString().c_str()));
-      tablePendingTask->setItem(index, eTaskCMD,new QTableWidgetItem(     bratTask->GetCmd().c_str()));
-      tablePendingTask->setItem(index, eTaskLogFile, new QTableWidgetItem( bratTask->GetLogFile().c_str()));
-
-
-      //m_pTableWidget->setItem(0, 1, new QTableWidgetItem("Hello"));
-
-//      QString s = t2q(std::string("sdjfhgi"));
-//      std::string s2 = q2t<std::string>(QString("sdjfhgi"));
-//      auto s3 = n2s<std::string>(890);
-//      auto n = s2n<double>(std::string("789") );
-
-//      for ( auto &t : data )
-//      {
-//          qDebug() << t.first;
-//          qDebug() << t.second->GetUidAsString().c_str();
-
-//      }
-
-      index++;
-      /// END InsertTask(bratTask) ///
-
-    }
-
-    ////////////////////////////////////////////////////////////////////
-
+    ChangeProcessingToPending();
 }
 
 void SchedulerDlg::createMenuBar()
@@ -220,6 +214,56 @@ void SchedulerDlg::createMenuBar()
 
     mVerticalLayout->setMenuBar(menuBar);
 }
+
+void SchedulerDlg::loadTasks(const CMapBratTask &data, QTableWidget* tableTasks)
+{
+    tableTasks->setRowCount(data.size());
+
+    size_t index = 0;
+    for (CMapBratTask::const_iterator it = data.begin(); it != data.end(); it++)
+    {
+      CBratTask* bratTask = it->second;
+      //// InsertTask(bratTask);////
+      if (bratTask == NULL)
+      {
+        //return -1;
+      }
+
+      tableTasks->setItem(index, eTaskUid,     new QTableWidgetItem(bratTask->GetUidAsString().c_str()) );
+      tableTasks->setItem(index, eTaskName,    new QTableWidgetItem(bratTask->GetName().c_str()));
+      tableTasks->setItem(index, eTaskStart,   new QTableWidgetItem(bratTask->GetAtAsString().c_str()));
+      tableTasks->setItem(index, eTaskStatus,  new QTableWidgetItem(bratTask->GetStatusAsString().c_str()));
+      tableTasks->setItem(index, eTaskCMD,     new QTableWidgetItem(bratTask->GetCmd().c_str()));
+      tableTasks->setItem(index, eTaskLogFile, new QTableWidgetItem(bratTask->GetLogFile().c_str()));
+
+      index++;
+    }
+}
+
+
+bool SchedulerDlg::ChangeProcessingToPending()
+{
+    CVectorBratTask vectorTasks(false);
+    bool somethingHasChanged = CTasksProcessor::GetInstance()->ChangeProcessingToPending(vectorTasks);
+    if (!somethingHasChanged)
+    {
+        return somethingHasChanged;
+    }
+
+    for (CVectorBratTask::const_iterator itVector = vectorTasks.begin() ; itVector != vectorTasks.end() ; itVector++)
+    {
+        CBratTask* bratTask = *itVector;
+        if (bratTask == NULL)
+        {
+            continue;
+        }
+    }
+
+    loadTasks(*CTasksProcessor::GetInstance()->GetMapPendingBratTask(),          tablePendingTask);
+
+    return somethingHasChanged;
+}
+
 
 
 void SchedulerDlg::action_ViewConfig_slot()
