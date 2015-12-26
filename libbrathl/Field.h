@@ -131,17 +131,17 @@ public:
   const std::string& GetKey() { return m_key; };
 
   void SetName(const std::string& name) { m_name = name; };
-  const std::string& GetName() { return m_name; };
+  const std::string& GetName() const { return m_name; };
 
   virtual std::string GetFullName();
   virtual std::string GetRecordName();
   virtual std::string GetFullNameWithRecord();
 
   void SetDescription(const std::string& description) { m_description = description; };
-  const std::string& GetDescription() { return m_description; };
+  const std::string& GetDescription() const { return m_description; };
 
   virtual void SetUnit(const std::string& unit) { m_unit = CTools::RemoveCharSurroundingNumber(unit); };
-  const std::string& GetUnit() { return m_unit; };
+  const std::string& GetUnit() const { return m_unit; };
   
   void SetTypeClass(coda_type_class typeClass) { m_typeClass = typeClass; };
   coda_type_class GetTypeClass() { return m_typeClass; };

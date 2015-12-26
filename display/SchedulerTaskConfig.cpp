@@ -17,10 +17,9 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
 #include <cerrno>
 
-#include "SchedulerTaskConfig.h"
+#include "new-gui/brat/stdafx.h"
 
 // For compilers that support precompilation, includes "wx/wx.h".
 #include "wx/wxprec.h"
@@ -33,6 +32,8 @@
 #include "wx/filename.h"
 
 #include "wxBratTools.h"
+
+#include "SchedulerTaskConfig.h"
 
 
 // When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to

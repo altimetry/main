@@ -32,15 +32,13 @@
 
 #include "wx/dnd.h"
 
-#include "Display.h"
-
 #include "List.h"
 #include "Product.h"
 #include "Field.h"
 using namespace brathl;
 
 #include "BratGui_wdr.h"
-#include "Display.h"
+#include "new-gui/brat/Workspaces/Display.h"
 
 const int32_t DICTCOL_NAME = 2;
 const int32_t DICTCOL_RECORD = 1;

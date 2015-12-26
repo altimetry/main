@@ -132,7 +132,7 @@ void CLatLonRect::Reset()
 }
 
 //-------------------------------------------------------------
-void CLatLonRect::GetAsString(CStringArray& array)
+void CLatLonRect::GetAsString(CStringArray& array) const
 {
   array.Insert(CTools::Format(30, FORMAT_FLOAT_LATLON.c_str(), m_lowerLeft.GetLatitude()));
   array.Insert(CTools::Format(30, FORMAT_FLOAT_LATLON.c_str(), m_lowerLeft.GetLongitude()));

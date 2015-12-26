@@ -4,6 +4,10 @@
 
 #include <qtimer.h>
 
+#if QT_VERSION >= 0x050000
+#include <QtConcurrent/QtConcurrent>
+#endif
+
 #include "System/CmdLineProcessor.h"
 #include "GUI/SettingsDlg.h"
 #include "GUI/QbrtMapEditor.h"

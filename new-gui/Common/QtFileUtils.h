@@ -43,7 +43,8 @@ inline std::string GetFilenameFromPath( const std::string &path )
 	return q2t< std::string >( QFileInfo( t2q( path ) ).fileName() );
 }
 
-inline std::string GetDirectoryFromPath( const std::string &path )
+template< typename STRING >
+inline std::string GetDirectoryFromPath( const STRING &path )
 {
 	return q2t< std::string >( QFileInfo( t2q( path ) ).absoluteDir().absolutePath() );
 }
@@ -257,6 +258,7 @@ struct ApplicationDirectories
 	std::string mQgisDir;
 	std::string mQgisPluginsDir;
 
+	std::string mExecutableFileName;
 	std::string mExecutableDir;
 	std::string mInternalDataDir;
 	std::string mExternalDataDir;
@@ -301,7 +303,8 @@ private:
 		, mQgisDir( mBasePath + "/lib/Graphics/QGIS/default/bin/" + mPlatform + "/" + mConfiguration )
 		, mQgisPluginsDir( mQgisDir + "/" + QGIS_PLUGINS_SUBDIR )
 
-		, mExecutableDir( GetDirectoryFromPath( qApp->argv()[ 0 ] ) )
+		, mExecutableFileName( q2a( QCoreApplication::applicationFilePath() ) )
+		, mExecutableDir( GetDirectoryFromPath( mExecutableFileName /*qApp->argv()[ 0 ]*/ ) )
 		, mInternalDataDir( computeInternalDataDirectory( mExecutableDir ) )
 		, mExternalDataDir( mBasePath + "/lib/data" )
 

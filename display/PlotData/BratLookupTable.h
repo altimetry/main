@@ -20,7 +20,19 @@
 #ifndef __BratLookupTable_H__
 #define __BratLookupTable_H__
 
+
+#if defined (__unix__) && defined(__DEPRECATED)
+#define __DEPRECATED_DEFINED __DEPRECATED
+#undef __DEPRECATED
+#endif
+
 #include <vtkLookupTable.h>
+
+#if defined (__unix__) && defined(__DEPRECATED_DEFINED)
+#define __DEPRECATED __DEPRECATED_DEFINED
+#endif
+
+
 
 #include "libbrathl/brathl.h"
 

@@ -66,6 +66,13 @@ inline QString t2q( const std::string s )
 {
     return QString::fromStdString( s );
 }
+//
+// for use in generics
+//
+inline const QString& t2q( const QString &s )
+{
+	return s;
+}
 
 
 

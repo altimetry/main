@@ -37,6 +37,20 @@
 #endif
 
 
+#if defined (__unix__)
+#pragma GCC diagnostic ignored "-Wall"
+#endif
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-register"
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#pragma clang diagnostic ignored "-Wall"
+#endif
+#if defined (WIN32) || defined(_WIN32)
+#pragma warning ( disable: 4100 )           //unreferenced formal parameter
+#endif
+
+
 #include <QTimer>
 
 #if defined (WIN32)
@@ -54,6 +68,13 @@
 #include <QtOpenGL>     //This was added here to include, in debian 32 bit, glext.h, that defines 64 bit types like Gluint64 and so on
 #endif
 
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+#if defined (__unix__)
+#pragma GCC diagnostic warning "-Wall"
+#endif
 
 #define BOOST_LOCALE_LINKED   //required for utf <-> ascii conversions
 

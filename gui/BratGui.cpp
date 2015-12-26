@@ -15,8 +15,8 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
 #include "new-gui/brat/stdafx.h"
+#include "display/wxInterface.h"
 
 // For compilers that support precompilation
 #include "wx/wxprec.h"
@@ -40,6 +40,7 @@
 #include "List.h"
 #include "Tools.h"
 #include "new-gui/Common/tools/Exception.h"
+#include "new-gui/brat/Display/MapTypeDisp.h"
 #include "InternalFilesFactory.h"
 #include "InternalFiles.h"
 #include "InternalFilesYFX.h"
@@ -50,7 +51,6 @@ using namespace brathl;
 
 #include "BratGui.h"
 #include "DirTraverser.h"
-#include "MapTypeDisp.h"
 
 //#ifdef WIN32
 //#include <crtdbg.h>
@@ -108,7 +108,7 @@ CWorkspaceDataset* CBratGuiApp::GetCurrentWorkspaceDataset()
   {
     m_currentTree = &m_tree;
   }
-  return dynamic_cast<CWorkspaceDataset*>(m_currentTree->FindObject((const char *)GetWorkspaceKey(WKS_DATASET_NAME).c_str()));
+  return dynamic_cast<CWorkspaceDataset*>(m_currentTree->FindObject( GetWorkspaceKey( CWorkspaceDataset::NAME ) ) );
 }
 //----------------------------------------
 CWorkspaceOperation* CBratGuiApp::GetCurrentWorkspaceOperation()
@@ -117,7 +117,7 @@ CWorkspaceOperation* CBratGuiApp::GetCurrentWorkspaceOperation()
   {
     m_currentTree = &m_tree;
   }
-  return dynamic_cast<CWorkspaceOperation*>(m_currentTree->FindObject((const char *)GetWorkspaceKey(WKS_OPERATION_NAME).c_str()));
+  return dynamic_cast<CWorkspaceOperation*>(m_currentTree->FindObject( GetWorkspaceKey( CWorkspaceOperation::NAME) ) );
 }
 //----------------------------------------
 CWorkspaceFormula* CBratGuiApp::GetCurrentWorkspaceFormula()
@@ -126,7 +126,7 @@ CWorkspaceFormula* CBratGuiApp::GetCurrentWorkspaceFormula()
   {
     m_currentTree = &m_tree;
   }
-  return dynamic_cast<CWorkspaceFormula*>(m_currentTree->FindObject((const char *)GetWorkspaceKey(WKS_FORMULA_NAME).c_str()));
+  return dynamic_cast<CWorkspaceFormula*>(m_currentTree->FindObject( GetWorkspaceKey( CWorkspaceFormula::NAME) ) );
 }
 //----------------------------------------
 CWorkspaceDisplay* CBratGuiApp::GetCurrentWorkspaceDisplay()
@@ -135,19 +135,18 @@ CWorkspaceDisplay* CBratGuiApp::GetCurrentWorkspaceDisplay()
   {
     m_currentTree = &m_tree;
   }
-  return dynamic_cast<CWorkspaceDisplay*>(m_currentTree->FindObject((const char *)GetWorkspaceKey(WKS_DISPLAY_NAME).c_str()));
+  return dynamic_cast<CWorkspaceDisplay*>(m_currentTree->FindObject( GetWorkspaceKey( CWorkspaceDisplay::NAME ) ) );
 }
 //----------------------------------------
-wxString CBratGuiApp::GetWorkspaceKey(const wxString& subKey)
+std::string CBratGuiApp::GetWorkspaceKey( const std::string& subKey )
 {
-  CWorkspace* wks = GetCurrentWorkspace();
+	CWorkspace* wks = GetCurrentWorkspace();
+	if ( wks == NULL )
+	{
+		return "";
+	}
 
-  if (wks == NULL)
-  {
-    return "";
-  }
-
-  return wks->GetKey() + CWorkspace::m_keyDelimiter + subKey;
+	return wks->GetKey() + CWorkspace::m_keyDelimiter + subKey;
 }
 
 //----------------------------------------
@@ -837,31 +836,27 @@ void CBratGuiApp::CreateTree( CWorkspace* root, CTreeWorkspace& tree )
 	std::string 
 
 	//FIRSTLY - Create "Datasets" branch
-	path = root->GetPath() + "/" + WKS_DATASET_NAME;
-
-	CWorkspaceDataset* wksDataSet = new CWorkspaceDataset( WKS_DATASET_NAME, path );
+	path = root->GetPath() + "/" + CWorkspaceDataset::NAME;
+	CWorkspaceDataset* wksDataSet = new CWorkspaceDataset( CWorkspaceDataset::NAME, path );
 	tree.AddChild( wksDataSet->GetName(), wksDataSet );
 
 	//SECOND Create "Formulas" branch
-	path = root->GetPath() + "/" + WKS_FORMULA_NAME;
-
+	path = root->GetPath() + "/" + CWorkspaceFormula::NAME;
 	std::string errorMsg;
-	CWorkspaceFormula* wksFormula = new CWorkspaceFormula( errorMsg, WKS_FORMULA_NAME, path );
+	CWorkspaceFormula* wksFormula = new CWorkspaceFormula( errorMsg, CWorkspaceFormula::NAME, path );
 	if ( !errorMsg.empty() )
 		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
 
 	tree.AddChild( wksFormula->GetName(), wksFormula );
 
 	//THIRDLY - Create "Operations" branch
-	path = root->GetPath() + "/" + WKS_OPERATION_NAME;
-
-	CWorkspaceOperation* wksOperation = new CWorkspaceOperation( WKS_OPERATION_NAME, path );
+	path = root->GetPath() + "/" + CWorkspaceOperation::NAME;
+	CWorkspaceOperation* wksOperation = new CWorkspaceOperation( CWorkspaceOperation::NAME, path );
 	tree.AddChild( wksOperation->GetName(), wksOperation );
 
 	//FOURTHLY -  Create "Displays" branch
-	path = root->GetPath() + "/" + WKS_DISPLAY_NAME;
-
-	CWorkspaceDisplay* wksDisplay = new CWorkspaceDisplay( WKS_DISPLAY_NAME, path );
+	path = root->GetPath() + "/" + CWorkspaceDisplay::NAME;
+	CWorkspaceDisplay* wksDisplay = new CWorkspaceDisplay( CWorkspaceDisplay::NAME, path );
 	tree.AddChild( wksDisplay->GetName(), wksDisplay );
 }
 
@@ -956,110 +951,6 @@ wxString CBratGuiApp::FindFile(const wxString& fileName )
   }
   return fileNameFound;
 }
-
-//----------------------------------------
-void CBratGuiApp::GetDisplayType(COperation* operation, CUIntArray& displayTypes, CInternalFiles** pf /* = NULL */)
-{
-  displayTypes.RemoveAll();
-
-  if (operation == NULL)
-  {
-    return;
-  }
-/*
-  CInternalFiles *file = NULL;
-  CInternalFilesYFX *yfx = NULL;
-  CInternalFilesZFXY *zfxy = NULL;
-
-  try
-  {
-    file = BuildExistingInternalFileKind(operation->GetOutputName().c_str());
-    file->Open(ReadOnly);
-
-  }
-  catch (CException& e)
-  {
-    e.what();
-    if (file != NULL)
-    {
-      delete file;
-      file = NULL;
-    }
-
-    return -1;
-  }
-
-  switch (operation->GetType())
-  {
-    case CMapTypeOp::typeOpYFX :
-      yfx = dynamic_cast<CInternalFilesYFX*>(file);
-      break;
-    case CMapTypeOp::typeOpZFXY :
-      zfxy = dynamic_cast<CInternalFilesZFXY*>(file);
-      break;
-    default  :
-      break;
-  }
-
-  int32_t ret = -1;
-
-  if ( (yfx != NULL) || (zfxy != NULL) )
-  {
-
-    if (yfx != NULL)
-    {
-      ret = CMapTypeDisp::typeDispYFX;
-    }
-    else if (zfxy != NULL)
-    {
-      if (zfxy->IsGeographic())
-      {
-        ret = CMapTypeDisp::typeDispZFLatLon;
-      }
-      else
-      {
-        ret = CMapTypeDisp::typeDispZFXY;
-      }
-    }
-  }
-
-  if (file != NULL)
-  {
-    file->Close();
-    delete file;
-    file = NULL;
-  }
-*/
-
-  CInternalFiles* f = CInternalFiles::Create((const char *)operation->GetOutputName().c_str(), true, false);
-
-  if (CInternalFiles::IsYFXFile(f))
-  {
-    displayTypes.Insert(CMapTypeDisp::typeDispYFX);
-  }
-
-  if (CInternalFiles::IsZFLatLonFile(f))
-  {
-    displayTypes.Insert(CMapTypeDisp::typeDispZFLatLon);
-  }
-
-  if (CInternalFiles::IsZFXYFile(f))
-  {
-    displayTypes.Insert(CMapTypeDisp::typeDispZFXY);
-  }
-
-  if (pf == NULL)
-  {
-    delete f;
-    f = NULL;
-  }
-  else
-  {
-    *pf = f;
-  }
-
-}
-
 
 //----------------------------------------
 bool CBratGuiApp::IsNewViewEnable()

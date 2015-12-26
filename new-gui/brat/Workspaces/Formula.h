@@ -584,7 +584,9 @@ public:
 public:
 	/// CIntMap ctor
 	CMapFormula( bool withPredefined )
-	{}
+    {
+        UNUSED( withPredefined );
+    }
 
 	CMapFormula( std::string &errorMsg, bool withPredefined )
 	{
@@ -650,9 +652,9 @@ public:
 	//	}
 	//}
 
-	int32_t CountDataFields();
+	size_t CountDataFields();
 
-	bool HasFilters();
+	bool HasFilters() const;
 
 	void Amend( const CStringArray& keys, CProduct* product, const std::string& record );
 

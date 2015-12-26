@@ -19,6 +19,14 @@
 #ifndef __SchedulerTaskConfig_H__
 #define __SchedulerTaskConfig_H__
 
+#if defined (__APPLE__)
+    #if defined (Q_FORWARD_DECLARE_OBJC_CLASS)
+        #undef Q_FORWARD_DECLARE_OBJC_CLASS
+    #endif
+    #define Q_FORWARD_DECLARE_OBJC_CLASS( x )
+    #include <qdebug.h>
+#endif
+
 #include "new-gui/brat/stdafx.h"
 
 #ifndef WX_PRECOMP
@@ -32,8 +40,8 @@
 
 #include "Date.h"
 #include "Tools.h"
-#include "new-gui/scheduler/TaskProcessor.h"
 
+#include "new-gui/scheduler/TaskProcessor.h"
 
 using namespace brathl;
 

@@ -120,14 +120,14 @@ public:
      * Returns the longitude, in degrees.
      * @return the longitude, in degrees
      */
-     double GetLongitude() { return m_lon; };/**
+     double GetLongitude() const { return m_lon; };/**
 
      * Returns the latitude, in degrees.
 
      * @return the latitude, in degrees
 
      */
-  double GetLatitude()  { return m_lat; };
+  double GetLatitude()  const { return m_lat; };
   /**
      * set lat, lon using values of pt
      *

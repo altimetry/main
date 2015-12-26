@@ -38,6 +38,7 @@ private:
 public:
     QSchedulerApplication( int &argc, char **argv, int flags = ApplicationFlags );
 
+#if defined( QT_VERSION) && (QT_VERSION < 050000)
     QSchedulerApplication(int &argc, char **argv, bool GUIenabled, int = ApplicationFlags)
         : base_t(argc, argv, GUIenabled, ApplicationFlags)
     {}
@@ -45,6 +46,7 @@ public:
     QSchedulerApplication(int &argc, char **argv, Type t, int = ApplicationFlags)
         : base_t(argc, argv, t, ApplicationFlags)
     {}
+#endif
 
     virtual ~QSchedulerApplication();
 

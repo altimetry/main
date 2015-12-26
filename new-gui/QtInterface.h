@@ -1,7 +1,14 @@
 #ifndef QT_INTERFACE_H
 #define QT_INTERFACE_H
 
-//#include <cstdint>"
+#if defined(BRAT_V3)
+#include "display/wxInterface.h"
+#include "wx/fileconf.h"		// (wxFileConfig class)
+#define CONFIG wxFileConfig
+#else
+#define CONFIG QSettings
+#endif
+
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -27,15 +34,13 @@ void SaveToFile( CBratLookupTable &lut, const std::string& fileName );
 //											Configurations
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#if defined(BRAT_V3)
-#include "wx/fileconf.h"		// (wxFileConfig class)
-#define CONFIG wxFileConfig
-#else
-#define CONFIG QSettings
-#endif
-
-
 class CDataset;
+class CDisplayData;
+class CWorkspaceDisplay;
+class CWorkspaceOperation;
+class CMapFormula;
+class CWorkspace;
+class CWorkspaceDataset;
 
 
 struct CConfiguration : public CONFIG
@@ -47,6 +52,25 @@ struct CConfiguration : public CONFIG
 	bool SaveConfig( const CDataset *d );
 	bool LoadConfig( CDataset *d );
 
+	bool SaveConfig( CDisplayData &data, const std::string& pathSuff, CWorkspaceDisplay *wksd );
+	bool LoadConfig( CDisplayData &data, const std::string& path, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso );
+
+	bool SaveConfig( const CMapFormula &mapf, bool predefined, const std::string& pathSuff );
+	bool LoadConfig( CMapFormula &mapf, std::string &errorMsg, bool predefined, const std::string& pathSuff );
+
+	bool LoadCommonConfig( CWorkspace &wks );
+	bool SaveCommonConfig( const CWorkspace &wks, bool flush );
+
+	bool SaveConfigDataset( const CWorkspaceDataset &data, std::string &errorMsg );
+	bool LoadConfigDataset( CWorkspaceDataset &data, std::string &errorMsg );
+
+	bool SaveConfigOperation( const CWorkspaceOperation &op, std::string &errorMsg );
+	bool LoadConfigOperation( CWorkspaceOperation &op, std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso );
+
+	bool SaveConfigDisplay( const CWorkspaceDisplay &disp, std::string &errorMsg, CWorkspaceDisplay *wksd );
+	bool LoadConfigDisplay( CWorkspaceDisplay &disp, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso );
+
+	///
 
 	void SetPath( const std::string& strPath );
 
@@ -64,9 +88,13 @@ struct CConfiguration : public CONFIG
 	bool Read( const std::string& str, double *value, double defValue ) const;
 	bool Read( const std::string& str, int32_t *value, double defValue ) const;
 
+	bool Read( const std::string& str, bool *value, bool defValue ) const;
+
 	bool Flush( bool bCurrentOnly = false );
 
 	const std::string GetConfigPath() const;
+
+	virtual bool DeleteAll();
 };
 
 

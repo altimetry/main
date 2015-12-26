@@ -37,11 +37,10 @@ class CRenameOperationEvent;
 class CDeleteOperationEvent;
 class CDeleteDisplaySelFieldEvent;
 
-#include "BratGui_wdr.h"
-#include "GuiPanel.h"
 #include "DisplayDataTreeCtrl.h"
+#include "BratGui_wdr.h"
 #include "Process.h"
-#include "Display.h"
+#include "new-gui/brat/Workspaces/Display.h"
 
 // WDR: class declarations
 

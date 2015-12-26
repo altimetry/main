@@ -447,7 +447,7 @@ bool CTaskListView::RemoveTasks(bool ask /* = true */)
     int32_t selCount = GetSelectedItemCount();
 
     std::vector<long> itemToDelete;
-    std::vector<uid_t> dataKeyToDelete;
+    std::vector<CBratTask::uid_t> dataKeyToDelete;
 
     long item = GetNextItem(-1, wxLIST_NEXT_ALL,
                             wxLIST_STATE_SELECTED);

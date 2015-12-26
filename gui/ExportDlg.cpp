@@ -97,7 +97,7 @@ CExportDlg::CExportDlg( wxWindow *parent, wxWindowID id, const wxString &title,
   }
 
 
-  m_initialName = operation->GetExportAsciiOutputName();
+  m_initialName = operation->GetExportAsciiOutputPath();
   m_currentName = m_initialName;
 
   m_currentName.Normalize();

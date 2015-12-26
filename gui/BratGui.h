@@ -44,8 +44,17 @@ using namespace brathl;
 //#include "BratGui_wdr.h"
 #include "wxGuiInterface.h"		// (to let wxWidgets choose a wxConfig class for your platform)
 #include "new-gui/brat/Workspaces/Workspace.h"
-#include "TreeWorkspace.h"
+#include "new-gui/brat/Workspaces/TreeWorkspace.h"
 #include "GuiFrame.h"
+
+
+
+
+
+
+
+
+
 
 #if defined(_WIN64) || defined(__LP64__) || defined(__x86_64__) 
 	const wxString BRATGUI_TITLE_BASE = "Brat Interface (64 bit)";
@@ -148,7 +157,10 @@ public:
   CWorkspaceFormula* GetCurrentWorkspaceFormula();
   CWorkspaceDisplay* GetCurrentWorkspaceDisplay();
 
-  wxString GetWorkspaceKey(const wxString& subKey);
+private:
+	std::string GetWorkspaceKey( const std::string &subKey );
+
+public:
 
   bool SaveConfig(bool flush = true);
   bool SaveConfigSelectionCriteria(bool flush = true);
@@ -210,8 +222,6 @@ public:
   static void CProductListToWxArray(CProductList& from, wxArrayString& to);
   
   static wxString FindFile(const wxString& fileName );
-
-  static void GetDisplayType(COperation* operation, CUIntArray& displayTypes, CInternalFiles** pf = NULL);
 
   bool IsNewViewEnable();
   bool IsNewDatasetEnable();

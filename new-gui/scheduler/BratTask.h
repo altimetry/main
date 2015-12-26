@@ -58,8 +58,8 @@ public:
 
 	bool operator == ( const CVectorBratTask &o ) const;		//femm: new
 
-	bool GetDelete() { return m_bDelete; };
-	void SetDelete( bool value ) { m_bDelete = value; };
+    bool GetDelete() { return m_bDelete; }
+    void SetDelete( bool value ) { m_bDelete = value; }
 
 	virtual void Insert( CBratTask* ob )
 	{

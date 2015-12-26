@@ -878,10 +878,10 @@ CInt64Array::iterator CInt64Array::InsertAt( CInt64Array::iterator where, const 
 //----------------------------------------
 CInt64Array::iterator CInt64Array::InsertAt( size_t index, const int64_t value )
 {
-	if ( index < 0 )
-	{
-		return this->end();
-	}
+//	if ( index < 0 )            // always false
+//	{
+//		return this->end();
+//	}
 
 	if ( index >= this->size() )
 	{
@@ -1397,10 +1397,10 @@ CUInt64Array::iterator CUInt64Array::InsertAt( CUInt64Array::iterator where, con
 //----------------------------------------
 CUInt64Array::iterator CUInt64Array::InsertAt( size_t index, const uint64_t value )
 {
-	if ( index < 0 )
-	{
-		return this->end();
-	}
+//	if ( index < 0 )    // always false
+//	{
+//		return this->end();
+//	}
 
 	if ( index >= this->size() )
 	{

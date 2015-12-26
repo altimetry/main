@@ -54,7 +54,7 @@ using namespace processes;
 #include "ZFXYPlotFrame.h"
 //#include "BitSet32.h"
 #include "MapColor.h"
-#include "MapTypeDisp.h"
+#include "new-gui/brat/Display/MapTypeDisp.h"
 #include "PlotData/ColorPalleteNames.h"
 #include "PlotData/GeoMap.h"
 
@@ -2414,7 +2414,7 @@ void CBratDisplayApp::GetParameters()
     {
       uint32_t plotType;
       m_params.m_mapParam[kwDISPLAY_PLOT_TYPE]->GetValue(plotType);
-      if (plotType == CMapTypeDisp::typeDispYFX)
+      if (plotType == CMapTypeDisp::eTypeDispYFX)
       {
         m_isZFXY = false;
       }
@@ -2432,7 +2432,7 @@ void CBratDisplayApp::GetParameters()
     {
       uint32_t plotType;
       m_params.m_mapParam[kwDISPLAY_PLOT_TYPE]->GetValue(plotType);
-      if (plotType == CMapTypeDisp::typeDispYFX)
+      if (plotType == CMapTypeDisp::eTypeDispYFX)
       {
         m_isZFLatLon = false;
       }

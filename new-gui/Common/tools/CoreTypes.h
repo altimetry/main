@@ -28,6 +28,7 @@
 #include <math.h>
 
 #include "new-gui/Common/+Utils.h" 
+#include "new-gui/Common/ccore-types.h" 
 #include "new-gui/Common/tools/brathl_error.h" 
 
 

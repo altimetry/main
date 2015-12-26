@@ -10,6 +10,14 @@
     #include <wx/wx.h>
 #endif
 
+#if defined (__APPLE__)
+    #if defined (Q_FORWARD_DECLARE_OBJC_CLASS)
+        #undef Q_FORWARD_DECLARE_OBJC_CLASS
+    #endif
+    #define Q_FORWARD_DECLARE_OBJC_CLASS( x )
+    #include <qdebug.h>
+#endif
+
 #include <wx/colourdata.h>
 
 

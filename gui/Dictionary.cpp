@@ -123,7 +123,7 @@ static int wxCALLBACK DictDisplayListCompareFunction(wxIntPtr item1, wxIntPtr it
     result = wxString(d1->GetOperation()->GetName()).CmpNoCase(d2->GetOperation()->GetName());
     break;
   case DICTDISPCOL_FILENAME :
-    result = wxString(d1->GetOperation()->GetOutputName()).CmpNoCase(d2->GetOperation()->GetOutputName());
+    result = wxString(d1->GetOperation()->GetOutputPath()).CmpNoCase(d2->GetOperation()->GetOutputPath());
     break;
   case DICTDISPCOL_FIELDNAME :
     result = d1->GetField()->GetName().compare(d2->GetField()->GetName());
@@ -902,7 +902,7 @@ long CDictionaryDisplayList::InsertField(CDisplayData* displayData)
 
   //long tmp = InsertItem(index, field->GetName().c_str(),  DICTCOL_NAME);
 
-  SetItem(index, DICTDISPCOL_FILENAME, operation->GetOutputName());
+  SetItem(index, DICTDISPCOL_FILENAME, operation->GetOutputPath());
   SetItem(index, DICTDISPCOL_FIELDNAME, displayData->GetField()->GetName().c_str());
   SetItem(index, DICTDISPCOL_TITLE, displayData->GetField()->GetDescription().c_str());
   SetItem(index, DICTDISPCOL_UNIT, displayData->GetField()->GetUnit().c_str());

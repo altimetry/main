@@ -29,6 +29,8 @@
     #include "wx/wx.h"
 #endif
 
+#include "new-gui/Common/tools/brathl_error.h"
+
 
 
 #define USE_GENERIC_TREECTRL 0

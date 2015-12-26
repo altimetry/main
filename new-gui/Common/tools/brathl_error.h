@@ -19,6 +19,7 @@
 #define BRAT_ERROR_H
 
 #if defined (Q_UNUSED)
+	#undef UNUSED
     #define UNUSED Q_UNUSED
 #else
     #if defined(Q_CC_INTEL) && !defined(Q_OS_WIN) || defined(Q_CC_RVCT)

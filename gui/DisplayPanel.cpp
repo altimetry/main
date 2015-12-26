@@ -43,10 +43,10 @@ using namespace brathl;
 
 #include "BratGui.h"
 #include "new-gui/brat/Workspaces/Workspace.h"
+#include "new-gui/brat/Display/MapTypeDisp.h"
 #include "Process.h"
 
 #include "DisplayPanel.h"
-#include "MapTypeDisp.h"
 #include "PlotData/ColorPalleteNames.h"
 #include "wxGuiInterface.h"
 
@@ -545,8 +545,8 @@ void CDisplayPanel::EnableSpecificXY()
     return;
   }
 
-  bool enable = (m_display->GetType() == CMapTypeDisp::typeDispYFX);
-  bool enableZoomYFX = ((m_display->GetType() == CMapTypeDisp::typeDispZFXY) || (m_display->GetType() == CMapTypeDisp::typeDispYFX));
+  bool enable = (m_display->GetType() == CMapTypeDisp::eTypeDispYFX);
+  bool enableZoomYFX = ((m_display->GetType() == CMapTypeDisp::eTypeDispZFXY) || (m_display->GetType() == CMapTypeDisp::eTypeDispYFX));
   //bool enableFieldSelected = enable && (GetDispDataSel()->GetSelectedItemCount() > 0);
 
   GetDispXmin()->Enable(enableZoomYFX);
@@ -584,8 +584,8 @@ void CDisplayPanel::EnableSpecificZXY()
     return;
   }
 
-  bool enable = ((m_display->GetType() == CMapTypeDisp::typeDispZFXY) || (m_display->GetType() == CMapTypeDisp::typeDispZFLatLon));
-  bool enableZFLatLon =  (m_display->GetType() == CMapTypeDisp::typeDispZFLatLon);
+  bool enable = ((m_display->GetType() == CMapTypeDisp::eTypeDispZFXY) || (m_display->GetType() == CMapTypeDisp::eTypeDispZFLatLon));
+  bool enableZFLatLon =  (m_display->GetType() == CMapTypeDisp::eTypeDispZFLatLon);
   bool enableField = enable && (GetDispDataSel()->GetSelectedItemCount() > 0);
 
   GetDispWithAnimation()->Enable(enable);
@@ -618,63 +618,41 @@ void CDisplayPanel::EnableSpecificZXY()
 //----------------------------------------
 void CDisplayPanel::FillXAxis()
 {
-  GetDispXaxis()->Clear();
+	GetDispXaxis()->Clear();
 
-  if (m_currentData == NULL)
-  {
-    return;
-  }
+	if ( m_currentData == NULL )
+		return;
 
-  bool fill = (m_display->GetType() == CMapTypeDisp::typeDispYFX);
+	bool fill = ( m_display->GetType() == CMapTypeDisp::eTypeDispYFX );
+	if ( ! fill )
+	{
+		return;
+	}
 
-  if ( ! fill )
-  {
-    return;
-  }
+	CStringArray array;
+	m_currentData->GetAvailableAxes( array );
+	wxArrayString axes_names;
+	CBratGuiApp::CStringArrayToWxArray( array, axes_names );
+	GetDispXaxis()->Append( axes_names );
 
+	wxString xAxis = m_currentData->GetXAxis();
 
-
-  wxArrayString axes;
-  m_currentData->GetAvailableAxes(axes);
-  GetDispXaxis()->Append(axes);
-
-
-  wxString xAxis = m_currentData->GetXAxis();
-
-  if (xAxis.IsEmpty())
-  {
-    CStringArray complement;
-    m_currentData->GetXComplement(complement);
-
-    /*
-    wxMessageBox(complement.ToString(",", false).c_str(),
-                  "Warning",
-                  wxOK | wxICON_EXCLAMATION);
-    */
-
-    if (complement.size() >= 1)
-    {
-      xAxis = complement.at(0).c_str();
-    }
-    /*
-    else
-    {
-      xAxis = names.back().c_str();
-    }
-    */
-  }
+	if ( xAxis.IsEmpty() )
+	{
+		CStringArray complement;
+		m_currentData->GetXComplement( complement );
+	}
 
 
-  if (xAxis.IsEmpty())
-  {
-    GetDispXaxis()->SetSelection(-1);
-  }
-  else
-  {
-    GetDispXaxis()->SetStringSelection(xAxis.c_str());
-  }
-  XAxisChanged();
-
+	if ( xAxis.IsEmpty() )
+	{
+		GetDispXaxis()->SetSelection( -1 );
+	}
+	else
+	{
+		GetDispXaxis()->SetStringSelection( xAxis.c_str() );
+	}
+	XAxisChanged();
 }
 
 //----------------------------------------
@@ -712,7 +690,7 @@ bool CDisplayPanel::RefreshSelectedData()
 
   CUIntArray displayTypes;
 
-  CDisplayData* firstNewSelData = NULL;
+  const CDisplayData* firstNewSelData = NULL;
 
   CMapDisplayData::const_iterator itSel;
   for (itSel = selectedData->begin() ; itSel != selectedData->end() ; itSel ++)
@@ -723,7 +701,7 @@ bool CDisplayPanel::RefreshSelectedData()
       continue;
     }
 
-    CDisplayData* dataAvailable = NULL;
+    const CDisplayData* dataAvailable = NULL;
 
     if (firstNewSelData == NULL)
     {
@@ -750,9 +728,10 @@ bool CDisplayPanel::RefreshSelectedData()
       dataAvailable = availableData->GetDisplayData(dataSel->GetDataKey(firstNewSelData->GetType()));
     }
 
+	CWorkspaceOperation *wkso = wxGetApp().GetCurrentWorkspaceOperation();
     if (dataAvailable == NULL)
     {
-      dispSelNotFound.Insert(new CDisplayData(*dataSel));
+      dispSelNotFound.Insert( new CDisplayData( *dataSel, wkso ));
       continue;
     }
 
@@ -762,7 +741,7 @@ bool CDisplayPanel::RefreshSelectedData()
       newDisplayType = dataAvailable->GetType();
     }
 
-    CDisplayData* newDisplayData = new CDisplayData(*dataAvailable);
+    CDisplayData* newDisplayData = new CDisplayData( *dataAvailable, wkso );
     newDisplayData->CopyFieldUserProperties(*dataSel);
 
     dispSelToRefresh.Insert(newDisplayData);
@@ -972,7 +951,7 @@ void CDisplayPanel::GetOperations(int32_t type /*= -1*/)
 
     displayTypes.RemoveAll();
 
-    wxGetApp().GetDisplayType(operation, displayTypes, &file);
+    CDisplay::GetDisplayType(operation, displayTypes, &file);
 
     if (file == NULL)
     {
@@ -1001,8 +980,8 @@ void CDisplayPanel::GetOperations(int32_t type /*= -1*/)
           continue;
         }
 
-        if ( (nbDims != 2) && (    (*itDispType == CMapTypeDisp::typeDispZFXY)
-                                || (*itDispType == CMapTypeDisp::typeDispZFLatLon) ) )
+        if ( (nbDims != 2) && (    (*itDispType == CMapTypeDisp::eTypeDispZFXY)
+                                || (*itDispType == CMapTypeDisp::eTypeDispZFLatLon) ) )
         {
           continue;
         }
@@ -1262,8 +1241,7 @@ bool CDisplayPanel::AddField(CDisplayData* data, bool preserveFieldProperties /*
   }
 
   bool insert = false;
-  wxString dataKey;
-
+  std::string dataKey;
 
   dataKey = data->GetDataKey();
 
@@ -1275,13 +1253,13 @@ bool CDisplayPanel::AddField(CDisplayData* data, bool preserveFieldProperties /*
   }
 
 
-  CDisplayData* newdata = new CDisplayData(*data);
+  CDisplayData* newdata = new CDisplayData( *data, wxGetApp().GetCurrentWorkspaceOperation() );
 
   if (! preserveFieldProperties)
   {
     if (wxGetApp().GetLastColorTable().IsEmpty() == false)
     {
-      newdata->SetColorPalette(wxGetApp().GetLastColorTable());
+      newdata->SetColorPalette(wxGetApp().GetLastColorTable().ToStdString());
     }
     else
     {
@@ -1289,7 +1267,7 @@ bool CDisplayPanel::AddField(CDisplayData* data, bool preserveFieldProperties /*
     }
   }
 
-  insert = m_display->InsertData(GetDataKey(*data), newdata);
+  insert = m_display->InsertData(GetDataKey(*data).ToStdString(), newdata);
 
   long indexInserted = GetDispDataSel()->InsertField(newdata);
 
@@ -1357,7 +1335,7 @@ bool CDisplayPanel::CheckSelectedFields()
     return bOk;
   }
 
-  wxString errorMsg;
+  std::string errorMsg;
   bOk = m_display->GetDataSelected()->CheckFields(errorMsg, m_display);
 
   if ( ! bOk )
@@ -1502,7 +1480,7 @@ void CDisplayPanel::SetXAxisText()
     return;
   }
 
-  m_currentData->SetXAxisText(GetDispXaxis()->GetSelection(), GetDispXaxisText()->GetValue().c_str());
+  m_currentData->SetXAxisText( GetDispXaxis()->GetSelection(), GetDispXaxisText()->GetValue().ToStdString() );
 
   bool isGrouped = GetDispgroupfields()->GetValue();
 
@@ -1510,8 +1488,8 @@ void CDisplayPanel::SetXAxisText()
 
   if ( (index > 0) && (isGrouped) )
   {
-    wxString axisName = GetDispXaxis()->GetStringSelection();
-    wxString axisLabel = m_currentData->GetXAxisText(index);
+    std::string axisName = GetDispXaxis()->GetStringSelection().ToStdString();
+    std::string axisLabel = m_currentData->GetXAxisText(index);
 
     m_display->GetDataSelected()->SetAllAxis(index, axisName, axisLabel);
   }
@@ -1628,7 +1606,7 @@ void CDisplayPanel::SetPaletteName()
   }
 
 
-  m_currentData->SetColorPalette(GetDispPalette()->GetValue());
+  m_currentData->SetColorPalette( GetDispPalette()->GetValue().ToStdString() );
 
 }
 
@@ -1717,7 +1695,8 @@ void CDisplayPanel::InitDisplayOutput()
 {
   if (m_display != NULL)
   {
-    m_display->InitOutput();
+	CWorkspaceDisplay *wksd = wxGetApp().GetCurrentWorkspaceDisplay();
+    m_display->InitOutput( wksd );
   }
 
 }
@@ -1726,7 +1705,7 @@ void CDisplayPanel::GetDisplayOutput()
 {
   if (m_display != NULL)
   {
-    if (m_display->GetOutputName().IsEmpty())
+    if (m_display->GetOutputName().empty())
     {
       InitDisplayOutput();
     }
@@ -1994,13 +1973,7 @@ void CDisplayPanel::OnValueChangeFieldGroup(CValueChangedEvent& event)
 //----------------------------------------
 bool CDisplayPanel::BuildCmdFile()
 {
-  if (m_display == NULL)
-  {
-    return false;
-  }
-
-  return m_display->BuildCmdFile();
-
+	return m_display && m_display->BuildCmdFile();
 }
 
 //----------------------------------------
@@ -2164,7 +2137,7 @@ void CDisplayPanel::SetTitle()
   {
     return;
   }
-  m_display->SetTitle(GetDispTitle()->GetValue());
+  m_display->SetTitle( GetDispTitle()->GetValue().ToStdString() );
 }
 //----------------------------------------
 void CDisplayPanel::DispNameChanged()
@@ -2426,8 +2399,8 @@ void CDisplayPanel::XAxisChanged()
   }
   else
   {
-    wxString axisName = GetDispXaxis()->GetStringSelection();
-    wxString axisLabel = m_currentData->GetXAxisText(index);
+    std::string axisName = GetDispXaxis()->GetStringSelection().ToStdString();
+    std::string axisLabel = m_currentData->GetXAxisText(index);
 
     bool isGrouped = GetDispgroupfields()->GetValue();
 
@@ -2551,11 +2524,9 @@ void CDisplayPanel::OnBrowsePalette( wxCommandEvent &event )
     return;
   }
 
-
-  wxString palette = dlg.GetPath();
+  std::string palette = dlg.GetPath().ToStdString();
 
   GetDispPalette()->SetValue(palette);
-
 
   m_currentData->SetColorPalette(palette);
 }
@@ -2687,15 +2658,12 @@ void CDisplayPanel::OnAddField( wxCommandEvent &event )
 //----------------------------------------
 void CDisplayPanel::OnComboProj( wxCommandEvent &event )
 {
-    UNUSED(event);
+	UNUSED( event );
 
-  if (m_display == NULL)
-  {
-    return;
-  }
+	if ( m_display == NULL )
+		return;
 
-  m_display->SetProjection(GetDispProj()->GetStringSelection());
-
+	m_display->SetProjection( GetDispProj()->GetStringSelection().ToStdString() );
 }
 
 //----------------------------------------
@@ -2833,7 +2801,3 @@ wxDragResult CDisplayDataDropTarget::OnData(wxCoord x, wxCoord y, wxDragResult d
 
   return wxDragCopy;
 }
-
-
-
-

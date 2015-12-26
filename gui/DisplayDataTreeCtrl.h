@@ -25,11 +25,38 @@
 
 class CDisplayDataTreeCtrl;
 
-#include "BratGui.h"
+//#include "BratGui.h"
 #include "BratGui_wdr.h"
 
 #include "TreeCtrl.h"
-#include "Display.h"
+#include "new-gui/brat/Workspaces/Display.h"
+
+
+
+//----------------------------------------------------------------------------
+// CDndDisplayDataObject
+//----------------------------------------------------------------------------
+
+
+static const wxChar* displayDataFormatId = _T("CDndDisplayDataObject");
+
+
+class CDndDisplayDataObject : public wxDataObjectSimple
+{
+	CDndDisplayData* m_dndDisplayData;
+public:
+
+	CDndDisplayDataObject( CDndDisplayData* dndDisplayData = NULL );
+	virtual ~CDndDisplayDataObject() { delete m_dndDisplayData; }
+
+	virtual size_t GetDataSize() const;
+	virtual bool GetDataHere( void* buf ) const;
+	virtual bool SetData( size_t len, const void* buf );
+
+	CDndDisplayData* GetDisplayData() { return m_dndDisplayData; }
+};
+
+
 
 // WDR: class declarations
 //----------------------------------------------------------------------------

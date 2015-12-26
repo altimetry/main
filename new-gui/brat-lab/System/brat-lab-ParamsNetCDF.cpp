@@ -1,4 +1,4 @@
-#include "../stdafx.h"
+#include "new-gui/brat-lab/stdafx.h"
 
 #include "CmdLineProcessor.h"
 

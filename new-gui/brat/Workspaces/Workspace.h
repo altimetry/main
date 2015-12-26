@@ -31,7 +31,7 @@
 using namespace brathl;
 
 
-class CBitSet32;
+struct CBitSet32;
 class COperation;
 class CDisplay;
 
@@ -46,6 +46,7 @@ const int IMPORT_DISPLAY_INDEX = 3;
 
 class CWorkspaceOperation;
 class CWorkspaceDataset;
+class CWorkspaceDisplay;
 
 
 //-------------------------------------------------------------
@@ -54,6 +55,8 @@ class CWorkspaceDataset;
 
 class CWorkspace : public CBratObject
 {
+	friend struct CConfiguration;
+
 	static const std::string m_configName;
 
 public:
@@ -62,8 +65,6 @@ public:
 protected:
 	CConfiguration *m_config = nullptr;
 
-	//wxFileName m_configFileName;
-	//wxFileName m_path;
 	std::string m_configFileName;
 	std::string m_path;
 
@@ -80,12 +81,6 @@ public:
 	// constructors and destructors
 	CWorkspace()
 	{}
-//protected:
-//	CWorkspace( const std::string& name, const wxFileName& path, bool createPath = true )
-//	{
-//		SetName( name );
-//		SetPath( path, createPath );
-//	}
 public:
 	CWorkspace( const std::string& name, const std::string& path, bool createPath = true )
 	{
@@ -131,11 +126,16 @@ public:
 	bool IsConfigFile() const { return IsFile( m_configFileName ); }
 	bool IsRoot() const { return m_level == 1; }
 
-	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, bool flush = true );
-	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso );
-	virtual bool Import( CWorkspace* wks, std::string &errorMsg )
+	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush = true );
+	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso );
+	virtual bool Import( CWorkspace* wks, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
 	{
-		return true;
+        UNUSED( wks );
+        UNUSED( errorMsg );
+        UNUSED( wksd );
+        UNUSED( wkso );
+
+        return true;
 	}
 
 	void SetImportBitSet( CBitSet32* value ) { m_importBitSet = value; }
@@ -160,6 +160,13 @@ protected:
 
 class CWorkspaceDataset : public CWorkspace
 {
+	using base_t = CWorkspace;
+
+	friend struct CConfiguration;
+
+public:
+	static const std::string NAME;
+
 protected:
 	CObMap m_datasets;
 
@@ -187,9 +194,9 @@ public:
 	bool CheckFiles( std::string &errorMsg );			// femm: Apparently not used...
 
 
-	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, bool flush = true ) override;
-	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso ) override;
-	virtual bool Import( CWorkspace* wks, std::string &errorMsg ) override;
+	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush = true ) override;
+	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso ) override;
+	virtual bool Import( CWorkspace* wks, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso ) override;
 
 	bool RenameDataset( CDataset* dataset, const std::string& newName );
 	bool DeleteDataset( CDataset* dataset );
@@ -207,7 +214,7 @@ public:
 
     bool InsertDataset( const std::string& name );
 
-	virtual void Dump( std::ostream& fOut = std::cerr );
+    virtual void Dump( std::ostream& fOut = std::cerr ) override;
 
 protected:
 	bool SaveConfigDataset( std::string &errorMsg );
@@ -221,6 +228,11 @@ protected:
 class CWorkspaceFormula : public CWorkspace
 {
 	using base_t = CWorkspace;
+
+	friend struct CConfiguration;
+
+public:
+	static const std::string NAME;
 
 protected:
 	CMapFormula m_formulas;
@@ -241,9 +253,9 @@ public:
 	virtual ~CWorkspaceFormula()
 	{}
 
-	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, bool flush = true ) override;
-	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso ) override;
-	virtual bool Import( CWorkspace* wks, std::string &errorMsg ) override;
+	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush = true ) override;
+	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso ) override;
+	virtual bool Import( CWorkspace* wks, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso ) override;
 
 	bool AddFormula( CFormula& formula, std::string &errorMsg );
 	void RemoveFormula( const std::string& name );
@@ -270,7 +282,7 @@ public:
 
 	bool SaveConfigPredefinedFormula();
 
-	virtual void Dump( std::ostream& fOut = std::cerr );
+    virtual void Dump( std::ostream& fOut = std::cerr ) override;
 
 protected:
 	bool LoadConfigFormula( std::string &errorMsg );
@@ -283,7 +295,16 @@ protected:
 
 class CWorkspaceOperation : public CWorkspace
 {
+	using base_t = CWorkspace;
+
+	friend struct CConfiguration;
+
+public:
+	static const std::string NAME;
+
+protected:
 	CObMap m_operations;
+
 public:
 	// constructors and destructors
 	CWorkspaceOperation()
@@ -299,13 +320,13 @@ public:
 		m_operations.RemoveAll();
 	}
 
-	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, bool flush = true ) override;
-	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso ) override;
-	virtual bool Import( CWorkspace* wks, std::string &errorMsg ) override;
+	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush = true ) override;
+	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso ) override;
+	virtual bool Import( CWorkspace* wks, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso ) override;
 
 	void GetOperationNames( std::vector< std::string >& array );
 
-	bool HasOperation() { return GetOperationCount() > 0; }
+	bool HasOperation() const { return GetOperationCount() > 0; }
 
 	std::string GetOperationNewName();
 	std::string GetOperationCopyName( const std::string& baseName );
@@ -315,10 +336,7 @@ public:
 	CObMap* GetOperations() { return &m_operations; }
 	const CObMap* GetOperations() const { return &m_operations; }
 
-	size_t GetOperationCount()
-	{
-		return m_operations.size();
-	}
+	size_t GetOperationCount() const { return m_operations.size(); }
 
     bool InsertOperation( const std::string& name );
     bool InsertOperation( const std::string& name, COperation* operationToCopy, CWorkspaceOperation *wkso );
@@ -330,10 +348,10 @@ public:
 	bool DeleteOperation( COperation* operation );
 
 
-	virtual void Dump( std::ostream& fOut = std::cerr );
+    virtual void Dump( std::ostream& fOut = std::cerr ) override;
 
 protected:
-	bool SaveConfigOperation( std::string &errorMsg, CWorkspaceOperation *wkso );
+	bool SaveConfigOperation( std::string &errorMsg );
 	bool LoadConfigOperation( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso  );
 };
 
@@ -343,6 +361,14 @@ protected:
 
 class CWorkspaceDisplay : public CWorkspace
 {
+	using base_t = CWorkspace;
+
+	friend struct CConfiguration;
+
+public:
+	static const std::string NAME;
+
+protected:
 	CObMap m_displays;
 
 public:
@@ -360,9 +386,9 @@ public:
 		m_displays.RemoveAll();
 	}
 
-	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, bool flush = true ) override;
-	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso ) override;
-	virtual bool Import( CWorkspace* wks, std::string &errorMsg ) override;
+	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush = true ) override;
+	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso ) override;
+	virtual bool Import( CWorkspace* wks, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso ) override;
 
 	bool UseOperation( const std::string& name, std::string &errorMsg, CStringArray* displayNames = nullptr );
 
@@ -388,11 +414,11 @@ public:
 
 	bool RenameDisplay( CDisplay* display, const std::string& newName );
 
-	virtual void Dump( std::ostream& fOut = std::cerr );
+    virtual void Dump( std::ostream& fOut = std::cerr ) override;
 
 private:
-	bool SaveConfigDisplay( std::string &errorMsg );
-	bool LoadConfigDisplay( std::string &errorMsg );
+	bool SaveConfigDisplay( std::string &errorMsg, CWorkspaceDisplay *wksd );
+	bool LoadConfigDisplay( std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso );
 };
 
 

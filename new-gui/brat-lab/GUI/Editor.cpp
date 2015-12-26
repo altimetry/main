@@ -1,6 +1,11 @@
 #include "new-gui/brat-lab/stdafx.h"
 
 #include <QtGui>
+#if QT_VERSION >= 0x050000
+    #include <QPrintDialog>
+    #include <QPrintPreviewDialog>
+#endif
+
 
 #include "Editor.h"
 #include "new-gui/brat-lab/System/BackServices.h"

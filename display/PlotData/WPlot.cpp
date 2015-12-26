@@ -90,6 +90,8 @@ void CWPlot::GetInfo()
 //----------------------------------------
 CInternalFiles* CWPlot::GetInternalFiles(CBratObject* ob, bool withExcept /* = true */)
 {
+    UNUSED( withExcept );
+
   return CWPlot::GetInternalFilesZFXY(ob);
 }
 //----------------------------------------

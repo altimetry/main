@@ -3,26 +3,7 @@
 
 #include "QbrtAbstractEditor.h"
 
-#include <qwt_plot.h>
-#include <qwt_plot_spectrogram.h>
-
-
-class Plot2D: public QwtPlot
-{
-    Q_OBJECT
-
-public:
-    Plot2D(QWidget * = NULL);
-
-public slots:
-    void showContour(bool on);
-    void showSpectrogram(bool on);
-    void printPlot();
-
-private:
-    QwtPlotSpectrogram *d_spectrogram;
-};
-
+#include "new-gui/brat/Views/2DPlotWidget.h"
 
 
 /////////////////////////////////////////////////////////////////////////////////
@@ -45,12 +26,12 @@ class Qbrt2DPlotEditor : public QbrtAbstractEditor< QMainWindow >
 
 	QSize m_SizeHint = QSize( 72 * fontMetrics().width( 'x' ), 25 * fontMetrics().lineSpacing() );
 
-
-    Plot2D *d_plot = nullptr;
+    C2DPlotWidget *d_plot = nullptr;
 
 	void Spectogram();
+
 public:
-    Qbrt2DPlotEditor(QWidget *parent = 0);
+    Qbrt2DPlotEditor( QWidget *parent = 0 );
 	virtual ~Qbrt2DPlotEditor();
 
 public slots:

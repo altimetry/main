@@ -97,7 +97,7 @@ void QbrtMainWindow::on_action_New_triggered()
 }
 
 #define WITH_GLOBEn
-#include "Globe/globe_plugin.h"
+//#include "new-gui/brat/Graphics/Globe/Globe.h"
 //#include "Globe/osgEarthQt/ViewerWidget"
 
 void QbrtMainWindow::on_action_New_Map_triggered()

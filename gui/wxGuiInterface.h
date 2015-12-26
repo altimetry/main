@@ -133,4 +133,21 @@ void GetFormulaNames( const COperation &op, wxComboBox& combo );
 
 
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//											CDisplay related
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+class CMapTypeDisp;
+
+void NamesToComboBox( const CMapTypeDisp &disp, wxComboBox& combo );
+
+
+class CMapDisplayData;
+
+void NamesToComboBox( const CMapDisplayData &data, wxComboBox& combo);
+
+
+
+
 #endif		//WX_GUI_INTERFACE_H

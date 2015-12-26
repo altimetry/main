@@ -1,5 +1,5 @@
-#ifndef RUNTIMESPIRIT_H
-#define RUNTIMESPIRIT_H
+#ifndef BRAT_LAB_MAIN_WINDOW_H
+#define BRAT_LAB_MAIN_WINDOW_H
 
 #include "ui_QbrtMainWindow.h"
 #include "GUI/Editor.h"
@@ -196,4 +196,4 @@ private slots:
     void on_mAction_Test_triggered();
 };
 
-#endif // RUNTIMESPIRIT_H
+#endif // BRAT_LAB_MAIN_WINDOW_H

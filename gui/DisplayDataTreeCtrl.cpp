@@ -28,9 +28,99 @@
 #include "wx/tokenzr.h"
 
 #include "DisplayDataTreeCtrl.h"
-#include "MapTypeDisp.h"
+#include "new-gui/brat/Display/MapTypeDisp.h"
 
 #include "MapColor.h"
+#include "BratGui.h"
+
+
+
+
+//----------------------------------------------------------------------------
+// CDndDisplayDataObject
+//----------------------------------------------------------------------------
+
+CDndDisplayDataObject::CDndDisplayDataObject(CDndDisplayData* dndDisplayData)
+{
+  if (dndDisplayData != nullptr)
+  {
+    m_dndDisplayData = new CDndDisplayData(*dndDisplayData);
+  }
+  else
+  {
+    m_dndDisplayData = nullptr;
+  }
+
+  wxDataFormat dataDisplayFormat;
+  dataDisplayFormat.SetId(displayDataFormatId);
+  SetFormat(dataDisplayFormat);
+}
+//----------------------------------------
+
+size_t CDndDisplayDataObject::GetDataSize() const
+{
+  size_t ret = 0;
+  //size_t count = 0;
+
+  if (m_dndDisplayData == nullptr)
+  {
+    return 0;
+  }
+  ret = sizeof(long);
+
+  return ret;
+}
+//----------------------------------------
+
+bool CDndDisplayDataObject::GetDataHere(void* buf) const
+{
+  if (m_dndDisplayData == nullptr)
+  {
+    return false;
+  }
+/*
+  if (m_dndDisplayData->m_displayData == nullptr)
+  {
+    return false;
+  }
+  */
+  if (m_dndDisplayData->m_data.size() <= 0)
+  {
+    return false;
+  }
+
+  long ptr = (long)(&(m_dndDisplayData->m_data));
+  memset(buf, 0, sizeof(long));
+  memcpy(buf, &ptr, sizeof(long));
+
+  return true;
+}
+//----------------------------------------
+
+bool CDndDisplayDataObject::SetData(size_t len, const void* buf)
+{
+    UNUSED(len);
+
+  if (m_dndDisplayData == nullptr)
+  {
+    m_dndDisplayData = new CDndDisplayData();
+  }
+
+  long ptr = 0;
+  memcpy(&ptr, buf, sizeof(long));
+  /*
+  CDisplayData* displayData = (CDisplayData*)(ptr);
+  m_dndDisplayData->m_displayData = displayData;
+  */
+  CObArray* data = (CObArray*)(ptr);
+
+  m_dndDisplayData->Set(*data);
+
+  return true;
+}
+
+
+
 
 // WDR: class implementations
 //----------------------------------------------------------------------------
@@ -77,7 +167,7 @@ void CDisplayDataTreeItemData::SetSplittedFieldDescr()
   {
     return;
   }
-  CField* field = data->GetField();
+  const CField* field = data->GetField();
   if (field == NULL)
   {
     return;

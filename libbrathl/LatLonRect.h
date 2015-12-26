@@ -306,7 +306,7 @@ public:
      */
   bool IsDefaultValue();
 
-  void GetAsString(CStringArray& array);
+  void GetAsString(CStringArray& array) const;
 
   std::string GetAsText(const std::string& delimiter = CLatLonRect::m_delimiter);
 

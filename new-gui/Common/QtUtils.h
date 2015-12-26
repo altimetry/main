@@ -355,19 +355,15 @@ inline QString ElapsedFormat( QElapsedTimer &timer )
 ///////////////////////////////////////////////////////////////////////////
 
 
-//generic
+// generic
 
-inline QWidget* addWidget( QWidget *parent, QWidget *component )	//widget is added to layout
-{
-	parent->layout()->addWidget( component );
-	return parent;
-}
 inline void setObjectName( QObject *w, const std::string &name )
 {
 	static int index = 0;
 
     w->setObjectName( QString::fromUtf8( ( name + n2s< std::string >( ++index ) ).c_str() ) );
 }
+
 
 //layout
 
@@ -377,16 +373,45 @@ inline QLayout* createLayout( QWidget *parent, Qt::Orientation orientation, int 
 	QHBoxLayout *hboxLayout;
 	QLayout *l;
 	if ( orientation == Qt::Vertical ){
-		vboxLayout = new QVBoxLayout( parent );
-		l = vboxLayout;
+		l = vboxLayout = new QVBoxLayout( parent );
 	} else {
-		hboxLayout = new QHBoxLayout( parent );
-		l = hboxLayout;
+		l = hboxLayout = new QHBoxLayout( parent );
 	} 
 	l->setSpacing( spacing );
     setObjectName( l, "boxLayout" );
 	l->setContentsMargins( left, top, right, bottom );
 	return l;
+}
+
+
+// widget
+
+inline QWidget* addWidget( QWidget *parent, QWidget *component )	//widget is added to layout
+{ 
+	QLayout *l = parent->layout();
+	if ( !l )
+		l = createLayout( parent, Qt::Vertical );
+
+	l->addWidget( component );
+	return parent;
+}
+
+inline QWidget* CenterOnRect( QWidget *const w, const QRect &r )
+{
+    w->setGeometry( QStyle::alignedRect( Qt::LeftToRight, Qt::AlignCenter, w->size(), r ) );
+
+    return w;
+}
+
+inline QWidget* CenterOnScreen( QWidget *const w )
+{
+	assert__( qApp );
+
+    //w->setGeometry( QStyle::alignedRect( Qt::LeftToRight, Qt::AlignCenter, w->size(), qApp->desktop()->availableGeometry() ) );
+    //w->move( QApplication::desktop()->screen()->rect().center() - w->rect().center() );
+    return CenterOnRect( w, qApp->desktop()->availableGeometry() )  ;
+
+    //return w;
 }
 
 //splitter
@@ -418,6 +443,7 @@ inline QSplitter* createSplitterIn( QMainWindow *parent, Qt::Orientation orienta
 	parent->setCentralWidget( s );
 	return s;
 }
+
 
 // toolbar
 
@@ -461,10 +487,47 @@ inline void insertToolBar( QMainWindow *w, QToolBar *toolbar, Qt::ToolBarArea ar
 }
 
 
+// actions
+
+inline QAction* createAction( QObject *parent, const QString &text, const QString &tip, const char *iconpath, const char *on_iconpath = nullptr )
+{
+	QAction *a = new QAction( text, parent );
+	std::string objname = q2a( text );
+	a->setObjectName( QString::fromUtf8( replace( objname, " ", "_" ).c_str() ) );
+	a->setToolTip( tip );
+	QIcon icon;
+	icon.addFile( QString::fromUtf8( iconpath ), QSize(), QIcon::Normal, QIcon::Off );
+	if ( on_iconpath )
+	{
+		icon.addFile( QString::fromUtf8( on_iconpath ), QSize(), QIcon::Normal, QIcon::On );
+		a->setCheckable( true );
+	}
+	a->setIcon( icon );
+	return a;
+}
+
+inline QToolButton* CreateMenuButton( QAction **actions, size_t size )
+{
+	QMenu *menu = new QMenu();
+	for ( size_t i = 0; i < size; ++i )
+		if ( actions[ i ] )
+			menu->addAction( actions[ i ] );
+		else
+			menu->addSeparator();
+
+	QToolButton *toolButton = new QToolButton();	//QToolButton* toolButton = (QToolButton*)m_pbar->widgetForAction( parse_ebnf ); maybe try this, changing to QToolButton::DelayedPopup, for the button to also execute a command
+	assert__( toolButton );
+	toolButton->setMenu( menu );
+	toolButton->setIcon( QPixmap( "://images/9.png" ) );
+	toolButton->setPopupMode( QToolButton::InstantPopup );
+
+	return toolButton;
+}
+
 
 //combo box
 
-//NOTE: this is a template only for the compiler not to error use of undefined type in the shitish moc files
+//NOTE: this is a template only for the compiler not to error "use of undefined type" in the poor moc files
 //
 template< typename COMBO >
 inline void fillCombo( COMBO *c, const std::string *names, size_t size, int selected, bool enabled )
@@ -475,6 +538,7 @@ inline void fillCombo( COMBO *c, const std::string *names, size_t size, int sele
 	c->setCurrentIndex( selected );
 	c->setEnabled( enabled );
 }
+
 
 //list widget types
 
@@ -504,6 +568,23 @@ inline QListWidget* fillList( QListWidget *c, const std::string *names, size_t s
 	std::vector< int > v; v.push_back( selected );
 	return fillList_t< QListWidget >( c, names, size, v, enabled );
 }
+
+
+//	Application dimensions 
+
+const int min_main_window_width = 1024;
+const int min_main_window_height = 728;
+
+const int max_main_dock_width = min_main_window_width / 3;
+
+const int max_out_window_height = min_main_window_height / 4;
+
+const int min_globe_widget_width = 400;
+const int min_globe_widget_height = 400;
+
+const int min_map_widget_width = 300;
+const int min_map_widget_height = 200;
+
 
 
 

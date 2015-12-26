@@ -264,7 +264,7 @@ bool CGuiFrame::CreateWorkspace()
 	wxGetApp().CreateTree( wks );
 
 	std::string errorMsg;
-	wxGetApp().m_tree.SaveConfig(errorMsg, wxGetApp().GetCurrentWorkspaceOperation() );
+	wxGetApp().m_tree.SaveConfig(errorMsg, wxGetApp().GetCurrentWorkspaceOperation(), wxGetApp().GetCurrentWorkspaceDisplay() );
 	if ( !errorMsg.empty() )
 		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
 
@@ -388,7 +388,7 @@ bool CGuiFrame::SaveWorkspace()
 	bool bOk = false;
 
 	std::string errorMsg;
-	wxGetApp().m_tree.SaveConfig( errorMsg, wxGetApp().GetCurrentWorkspaceOperation() );		// TODO: save failed but life goes on???
+	wxGetApp().m_tree.SaveConfig( errorMsg, wxGetApp().GetCurrentWorkspaceOperation(), wxGetApp().GetCurrentWorkspaceDisplay() );		// TODO: save failed but life goes on???
 	if ( !errorMsg.empty() )
 		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
 
@@ -402,26 +402,21 @@ bool CGuiFrame::SaveWorkspace()
 //----------------------------------------
 bool CGuiFrame::OpenWorkspace()
 {
-	bool bOk = false;
-
-	bool cancel = AskToSave();
-	if ( cancel )
+	if ( AskToSave() )
 		return true;
 
-	CWorkspaceDlg wksDlg( this, -1, "Open a workspace...",
-	CWorkspaceDlg::wksOpen, wxGetApp().GetCurrentWorkspace(), "." );
-
+	CWorkspaceDlg wksDlg( this, -1, "Open a workspace...",	CWorkspaceDlg::wksOpen, wxGetApp().GetCurrentWorkspace(), "." );
 	int result = wksDlg.ShowModal();
 	if ( result != wxID_OK )
 		return true;
 
 	CWorkspace* wks = new CWorkspace( wksDlg.GetWksName()->GetValue().ToStdString(), wksDlg.GetWksLoc()->GetValue().ToStdString() );
-
 	wxGetApp().CreateTree( wks );
 
 	CWorkspace *failed_wks = nullptr;
 	std::string errorMsg;
-	bOk = wxGetApp().m_tree.LoadConfig( failed_wks, wxGetApp().GetCurrentWorkspaceDataset(), wxGetApp().GetCurrentWorkspaceOperation(), errorMsg );
+	bool bOk = wxGetApp().m_tree.LoadConfig( 
+		failed_wks, wxGetApp().GetCurrentWorkspaceDataset(), wxGetApp().GetCurrentWorkspaceOperation(), wxGetApp().GetCurrentWorkspaceDisplay(), errorMsg );
 	if ( !bOk )
 	{
 		wxMessageBox( errorMsg + "\nUnable to load workspace '" + ( failed_wks ? failed_wks->GetName() : "" ) + "'.",
@@ -458,25 +453,21 @@ bool CGuiFrame::OpenWorkspace( const wxString& path )
 		return true;
 	}
 
-	bool cancel = AskToSave();
-	if ( cancel )
+	if ( AskToSave() )
 		return true;
 
-	CWorkspaceDlg wksDlg( this, -1, "Open a workspace...",
-		CWorkspaceDlg::wksOpen, wxGetApp().GetCurrentWorkspace(), path );
-
+	CWorkspaceDlg wksDlg( this, -1, "Open a workspace...", CWorkspaceDlg::wksOpen, wxGetApp().GetCurrentWorkspace(), path );
 	wksDlg.GetWksLoc()->SetValue( path );
-
 	bool bOk = wksDlg.ValidateData();
 	if ( !bOk )
 		return bOk;
 
 	CWorkspace* wks = new CWorkspace( wksDlg.GetWksName()->GetValue().ToStdString(), wksDlg.GetWksLoc()->GetValue().ToStdString() );
-
 	wxGetApp().CreateTree( wks );
 	CWorkspace *failed_wks = nullptr;
 	std::string errorMsg;
-	bOk = wxGetApp().m_tree.LoadConfig( failed_wks, wxGetApp().GetCurrentWorkspaceDataset(), wxGetApp().GetCurrentWorkspaceOperation(), errorMsg );
+	bOk = wxGetApp().m_tree.LoadConfig( 
+		failed_wks, wxGetApp().GetCurrentWorkspaceDataset(), wxGetApp().GetCurrentWorkspaceOperation(), wxGetApp().GetCurrentWorkspaceDisplay(), errorMsg );
 	if ( !bOk )
 	{
 		wxMessageBox( errorMsg + "\nUnable to load workspace '" + ( failed_wks ? failed_wks->GetName() : "" ) + "'.",
@@ -622,7 +613,7 @@ bool CGuiFrame::ImportWorkspace()
 
 	CWorkspace *failed_wks = nullptr;
 	std::string errorMsg;
-	bOk = wxGetApp().m_treeImport.LoadConfig( failed_wks, wxGetApp().GetCurrentWorkspaceDataset(), wxGetApp().GetCurrentWorkspaceOperation(), errorMsg );
+	bOk = wxGetApp().m_treeImport.LoadConfig( failed_wks, wxGetApp().GetCurrentWorkspaceDataset(), wxGetApp().GetCurrentWorkspaceOperation(), wxGetApp().GetCurrentWorkspaceDisplay(), errorMsg );
 	if ( !bOk )
 	{
 		wxMessageBox( errorMsg + "\nUnable to load workspace '" + ( failed_wks ? failed_wks->GetName() : "" ) + "'.",
@@ -656,7 +647,8 @@ bool CGuiFrame::ImportWorkspace()
 
 	std::string missingKey;
 	errorMsg = "";
-	bOk = wxGetApp().m_tree.GetRootData() && wxGetApp().m_tree.Import( &( wxGetApp().m_treeImport ), missingKey, errorMsg );
+	CWorkspaceDisplay* wksd = wxGetApp().GetCurrentWorkspaceDisplay();
+	bOk = wxGetApp().m_tree.GetRootData() && wxGetApp().m_tree.Import( &( wxGetApp().m_treeImport ), wksd, wksOpImport, missingKey, errorMsg );
 	if ( bOk )
 	{
 		SaveWorkspace();
@@ -735,7 +727,7 @@ bool CGuiFrame::RenameWorkspace()
 	wks->SetName( wksDlg.GetWksName()->GetValue().ToStdString() );
 
 	std::string errorMsg;
-	wks->SaveConfig( errorMsg, wxGetApp().GetCurrentWorkspaceOperation() );
+	wks->SaveConfig( errorMsg, wxGetApp().GetCurrentWorkspaceOperation(), wxGetApp().GetCurrentWorkspaceDisplay() );
 	if ( !errorMsg.empty() )
 		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
 

@@ -39,17 +39,67 @@ const std::string EXPORTGEOTIFF_COMMANDFILE_EXTENSION = "geotiff_export.par";
 const std::string SHOWSTAT_COMMANDFILE_EXTENSION = "stats.par";
 
 
+
+inline std::string& clean_path( std::string &path )
+{
+	return path;
+}
+inline std::string normalize( std::string &path, const std::string &dir )
+{
+	path = NormalizedPath( path, dir );
+	return path;
+}
+
+
+
+
+class CCmdFile : non_copyable
+{
+	fstream mFile;
+
+public:
+	CCmdFile( const std::string &path ) :
+		mFile( path, ios::binary | ios::out | ios::trunc )
+	{}
+
+	virtual ~CCmdFile()
+	{
+		mFile.close();		// just in case
+	}
+
+	bool IsOk() const { return !!mFile; }
+
+	
+	///////////////////////////////////////////////////
+
+	void WriteLn( const std::string& text = "" )
+	{
+		assert__( !!mFile );
+
+		mFile << text << "\n";
+	}
+
+	void Comment( const std::string& text )
+	{
+		assert__( !!mFile );
+
+		WriteLn( "#" + text );
+	}
+};
+
+
+
 class COperation : public CBratObject
 {
 protected:
 
-	CProduct* m_product;
-	CDataset* m_dataset;
-	std::string m_record;	//CFormula* m_formula;
-	CFormula* m_select;
+	CProduct* m_product = nullptr;
+	CDataset* m_dataset = nullptr;
+	std::string m_record;									//CFormula* m_formula;
+	CFormula* m_select = new CFormula(ENTRY_SELECT, false);
 	CMapFormula m_formulas;
-	int32_t m_type;
-	int32_t m_dataMode;
+	int32_t m_type = CMapTypeOp::eTypeOpYFX;
+	int32_t m_dataMode = CMapDataMode::GetInstance().GetDefault();
 
 	std::string m_output;
 	std::string m_exportAsciiOutput;
@@ -75,26 +125,29 @@ public:
 protected:
 	std::string m_logFile;
 
-	bool m_exportAsciiDateAsPeriod;
-	bool m_exportAsciiExpandArray;
-	bool m_exportAsciiNoDataComputation;
-	bool m_executeAgain;
-	//bool m_delayExecution;
+	bool m_exportAsciiDateAsPeriod = false;
+	bool m_exportAsciiExpandArray = false;
+	bool m_exportAsciiNoDataComputation = false;
+	bool m_executeAgain = false;
 
-	int32_t m_exportAsciiNumberPrecision;
+	int32_t m_exportAsciiNumberPrecision = defaultValue<int32_t>();
 
 private:
 	std::string m_name;
 
 public:
-
 	/// Empty COperation ctor
-	COperation( const std::string name );
 
-	COperation( COperation& o, CWorkspaceDataset *wks, CWorkspaceOperation *wkso );
+	COperation( const std::string name ) : m_formulas( false ), m_name( name )
+	{
+		m_select->SetType( CMapTypeField::eTypeOpAsSelect );
+	}
 
 	/// Destructor
-	virtual ~COperation();
+	virtual ~COperation()
+	{
+		delete m_select;
+	}
 
 	static void SetExecNames( const std::string &appPath );
 	static const std::string& GetExecYFXName() { return m_execYFXName; }
@@ -108,16 +161,16 @@ public:
 	std::string GetName() { return m_name; }
 	void SetName( const std::string& value ) { m_name = value; }
 
-	bool HasFormula() { return GetFormulaCount() > 0; }
+	bool HasFormula() const { return GetFormulaCount() > 0; }
 
-	bool HasFilters();
+	bool HasFilters() const { return m_formulas.HasFilters(); }
 
-	int32_t GetFormulaCount() { return m_formulas.size(); }
-	int32_t GetFormulaCountDataFields();
+	size_t GetFormulaCount() const { return m_formulas.size(); }
+	size_t GetFormulaCountDataFields();
 
 	bool RenameFormula( CFormula* formula, const std::string &newName );
 
-	bool SaveConfig( CConfiguration *config, CWorkspaceOperation *wkso );
+	bool SaveConfig( CConfiguration *config );
 	bool LoadConfig( CConfiguration *config, std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso );
 
 	CDataset* FindDataset( const std::string& datasetName, CWorkspaceDataset *wks );
@@ -129,7 +182,7 @@ public:
 	void SetType( int32_t value ) { m_type = value; }
 
 	std::string GetDataModeAsString() { return CMapDataMode::GetInstance().IdToName( m_dataMode ); }
-	int32_t GetDataMode() { return m_dataMode; }
+	int32_t GetDataMode() const { return m_dataMode; }
 	void SetDataMode( int32_t value ) { m_dataMode = value; }
 
 	CDataset* GetDataset() { return m_dataset; }
@@ -157,33 +210,24 @@ public:
 	std::string GetDescFormula( const std::string& name, bool alias = false );
 	//void SetDescFormula(const std::string& name, const std::string& value);
 
-	const std::string& GetOutput() const { return m_output; }
-	std::string GetOutputName() const { return GetFileName( m_output ); }
-	std::string GetOutputNameRelativeToWks( CWorkspaceOperation *wks );
-
+	const std::string& GetOutputPath() const { return m_output; }				//femm: GetOutputName -> GetOutputPath; old body: {return m_output.GetFullPath();};
 	void SetOutput( const std::string& value, CWorkspaceOperation* wks );
 
-	const std::string& GetExportAsciiOutput() const { return m_exportAsciiOutput; }
-	std::string GetExportAsciiOutputName() const { return GetFileName( m_exportAsciiOutput ); }
-	std::string GetExportAsciiOutputNameRelativeToWks( CWorkspaceOperation *wks );
-
+    const std::string& GetExportAsciiOutputPath() const { return m_exportAsciiOutput; }
 	void SetExportAsciiOutput( const std::string& value, CWorkspaceOperation* wks );
 
-	const std::string& GetShowStatsOutput() const { return m_showStatsOutput; }
-	std::string GetShowStatsOutputName() const { return GetFileName( m_showStatsOutput ); }
-	std::string GetShowStatsOutputNameRelativeToWks( CWorkspaceOperation *wks );
-
+	const std::string& GetShowStatsOutputPath() const { return m_showStatsOutput; }
 	void SetShowStatsOutput( const std::string& value, CWorkspaceOperation* wks );
 
-	const std::string& GetTaskName() const;
+	std::string GetTaskName() const;
 	const std::string GetCmdFile() const { return m_cmdFile; }	
 	void SetCmdFile( CWorkspaceOperation* wks );
 
-	const std::string& GetExportAsciiTaskName() const;
+	std::string GetExportAsciiTaskName() const;
 	const std::string& GetExportAsciiCmdFile() const { return m_exportAsciiCmdFile; }
 	void SetExportAsciiCmdFile( CWorkspaceOperation *wks );
 
-	const std::string& GetShowStatsTaskName() const;
+	std::string GetShowStatsTaskName() const;
 	const std::string& GetShowStatsCmdFile() const { return m_showStatsCmdFile; }
 	void SetShowStatsCmdFile( CWorkspaceOperation *wks );
 
@@ -234,52 +278,18 @@ public:
 	bool IsExecuteAgain() { return m_executeAgain; }
 	void SetExecuteAgain( bool value ) { m_executeAgain = value; }
 
-	//bool IsDelayExecution() {return m_delayExecution;}
-	//void SetDelayExecution(bool value) {m_delayExecution = value;}
-
 	bool CtrlLoessCutOff( std::string &msg );
 
 	bool UseDataset( const std::string& name );
 
 	bool RemoveOutput();
-	bool RenameOutput( const std::string& oldName );
+	bool RenameOutput( const std::string& oldPath );
 
 	bool BuildCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &errorMsg );
 	bool BuildShowStatsCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso );
 	bool BuildExportAsciiCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso );
-private:
-	//bool BuildCmdFileHeader();
-	//bool BuildCmdFileGeneralProperties();
-	//bool BuildCmdFileAlias();
-	//bool BuildCmdFileSpecificUnit();
-	//bool BuildCmdFileDataset();
-	//bool BuildCmdFileFromOutputOperation();
-	//bool BuildCmdFileFields();
-	//bool BuildCmdFileFieldsSpecificZFXY( CFormula* value );
-	//bool BuildCmdFileOutput();
-	//bool BuildCmdFileSelect();
-	//bool BuildCmdFileVerbose();
-
-	//bool BuildShowStatsCmdFileHeader();
-	//bool BuildShowStatsCmdFileOutput();
-	//bool BuildShowStatsCmdFileFields();
-
-	//bool BuildExportAsciiCmdFileHeader();
-	//bool BuildExportAsciiCmdFileGeneralProperties();
-	//bool BuildExportAsciiCmdFileAlias();
-	//bool BuildExportAsciiCmdFileDataset();
-	//bool BuildExportAsciiCmdFileFields();
-	//bool BuildExportAsciiCmdFileOutput();
-	//bool BuildExportAsciiCmdFileSelect();
-	//bool BuildExportAsciiCmdFileVerbose();
-
-
-	//bool WriteComment( const std::string& text );
-	//bool WriteLine( const std::string& text );
-	//bool WriteEmptyLine();
 
 public:
-
 	void InitOutput( CWorkspaceOperation *wks );
 	void InitExportAsciiOutput( CWorkspaceOperation *wks );
 	void InitShowStatsOutput( CWorkspaceOperation *wks );
@@ -296,8 +306,6 @@ public:
 
 	bool ControlXYDataFields( std::string &errorMsg, const CStringMap* aliases = NULL );
 
-	void DeleteSelect();
-
 	void ClearLogFile();
 
 	void SetLogFile( const std::string& value );
@@ -305,14 +313,8 @@ public:
 
 	const std::string& GetLogFile() const { return m_logFile; }
 
-	//COperation& operator=( COperation& o );
-
 	///Dump fonction
 	virtual void Dump( std::ostream& fOut = std::cerr );
-
-protected:
-	void Init();
-	void Copy( COperation& o, CWorkspaceDataset *wks, CWorkspaceOperation *wkso );
 };
 
 /** @} */

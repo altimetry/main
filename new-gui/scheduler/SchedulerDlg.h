@@ -1,7 +1,11 @@
 #ifndef SCHEDULER_DLG_H
 #define SCHEDULER_DLG_H
 
+#if defined(QT_VERSION) && (QT_VERSION < 0x050000)
 #include <QtGui/QToolBar>
+#else
+#include <QtWidgets/QToolBar>
+#endif
 
 #include "ui_SchedulerDlg.h"
 #include "TaskProcessor.h"

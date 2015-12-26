@@ -2,7 +2,11 @@
 #define QBRAT_APP_H
 
 
+#if QT_VERSION < 0x050000
 #include <QtGui/QApplication>
+#else
+#include <QtWidgets/QApplication>
+#endif
 
 #include <qgsapplication.h>
 

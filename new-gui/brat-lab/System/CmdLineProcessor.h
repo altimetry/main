@@ -2,7 +2,11 @@
 #define CMD_LINE_PROCESSOR_H
 
 		
+#if QT_VERSION < 0x050000
 #include <QtGui/QApplication>
+#else
+#include <QtWidgets/QApplication>
+#endif
 
 #include "libbrathl/List.h"
 #include "libbrathl/FileParams.h"

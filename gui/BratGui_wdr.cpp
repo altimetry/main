@@ -4,6 +4,7 @@
 //------------------------------------------------------------------------------
 
 #include "new-gui/brat/stdafx.h"
+#include "display/wxInterface.h"
 
 // For compilers that support precompilation
 #include "wx/wxprec.h"

@@ -1,6 +1,5 @@
 #include "stdafx.h"
 
-
 //#include <qgsdecorationgrid.h>
 
 #include "brat-lab.h"
@@ -31,7 +30,7 @@ QbrtApplication::QbrtApplication(int &argc, char **argv, bool GUIenabled, QStrin
 		// Note that this won't work on Mac OS X when you use './BratDisplay' from within the Contents/MacOS directory of
 		// you .app bundle. The problem is that in that case Mac OS X will change the current working directory to the
 		// location of the .app bundle and thus the calculation of absolute paths will break
-		CTools::SetDataDirForExecutable( this->argv()[ 0 ] );
+        CTools::SetDataDirForExecutable( ApplicationDirectories::instance().mExecutableDir.c_str() /*this->argv()[ 0 ]*/ );
 	}
 
 	if ( !CTools::DirectoryExists( CTools::GetDataDir() ) )

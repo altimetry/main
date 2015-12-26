@@ -1,31 +1,9 @@
 #ifndef BRT_PLOT_EDITOR_H
 #define BRT_PLOT_EDITOR_H
 
-#include <qtimer.h>
-#include <qwt3d_surfaceplot.h>
+#include "new-gui/brat/Views/3DPlotWidget.h"
 
 #include "QbrtAbstractEditor.h"
-
-
-typedef Qwt3D::SurfacePlot SurfacePlot; // VC6/moc issue
-
-
-
-class Plot : public Qwt3D::SurfacePlot
-{
-	Q_OBJECT
-
-public:
-    Plot(QWidget* pw, int updateinterval = 0 );
-
-public slots:
-	void rotate();
-};
-
-
-
-class Bar;	//enrichment example
-class Hat2;	//enrichment example
 
 
 class QbrtPlotEditor : public QbrtAbstractEditor< QMainWindow >
@@ -35,7 +13,7 @@ class QbrtPlotEditor : public QbrtAbstractEditor< QMainWindow >
 	typedef QbrtAbstractEditor< QMainWindow > base_t;
 
 
-	std::vector<Plot*> mPlots;
+	std::vector<C3DPlotWidget*> mPlots;
 
     bool m_ToolEditor;
 
@@ -43,26 +21,9 @@ class QbrtPlotEditor : public QbrtAbstractEditor< QMainWindow >
     bool isUntitled;
 
 	QSize m_SizeHint = QSize( 72 * fontMetrics().width( 'x' ), 25 * fontMetrics().lineSpacing() );
-	double level_, width_;			//enrichment example
-	Bar *bar = nullptr;				//enrichment example
-	Hat2* hat = nullptr;			//enrichment example
-	QFrame *frame = nullptr;		//enrichment example
-	QSlider *levelSlider = nullptr;	//enrichment example
-	QSlider *widthSlider = nullptr;	//enrichment example
-	void setupUi();					//enrichment example
-
 public:
     QbrtPlotEditor(QWidget *parent = 0);
 	virtual ~QbrtPlotEditor();
-	void Autoswitching_axes();
-	void Simple_SurfacePlot();
-	void setColor();			//enrichment example
-	void Vertex_Enrichment();	//enrichment example
-
-public slots:
-  void setLevel(int);			//enrichment example
-  void setWidth(int);			//enrichment example
-  void barSlot();				//enrichment example
 
 public:
     const QString& GetFilename() const { return  curFile; }

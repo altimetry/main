@@ -157,28 +157,6 @@ typedef std::strstream stream_t;
 #endif
 */
 
-//#include <vector>
-
-
-
-//////////////////////////////////////////
-//   		Compile-Time assert
-//////////////////////////////////////////
-
-/*
-template<bool> struct CTASSERT;
-template<> struct CTASSERT<true>{ CTASSERT<true>(){} };
-//#define ctassert(x) CTASSERT< (x) != 0 >::CTASSERT< (x) != 0 >();
-//#define ctassert(x) CTASSERT_FUNCTION( CTASSERT< (x) != 0 >() );
-#define ctassert(x) typedef CTASSERT< (x) != 0 > STATIC_ASSERTION_FAILED;
-//#define ctassert_local(x) { CTASSERT< (x) != 0 >(); }
-*/
-template<bool> struct STATIC_ASSERTION_FAILED_T;
-typedef STATIC_ASSERTION_FAILED_T< true > In_fact_a_static_assertion_failed_here_SO_DISREGARD_THE_FOLLOWING_COMPILER_ERROR_MESSAGE;
-#define ctassert(x) typedef STATIC_ASSERTION_FAILED_T< (x) > In_fact_a_static_assertion_failed_here_SO_DISREGARD_THE_FOLLOWING_COMPILER_ERROR_MESSAGE;
-
-
-
 //////////////////////////////////////////
 //
 //////////////////////////////////////////
@@ -1326,6 +1304,22 @@ inline STRING &trim( STRING &s )
 }
 
 
+
+							//////////////////////////////////////////
+							//	  									//
+							//   			Non-copyable
+							//              	         	  		//
+							//////////////////////////////////////////
+
+class non_copyable
+{
+protected:
+	non_copyable() = default;
+	~non_copyable() = default;
+
+	non_copyable( non_copyable const & ) = delete;
+	void operator=( non_copyable const &x ) = delete;
+};
 
 
 

@@ -2,12 +2,7 @@
 #define WORKSPACES_CONSTANTS_H
 
 
-const std::string WKS_DATASET_NAME = "Datasets";
-const std::string WKS_FORMULA_NAME = "Formulas";
 const std::string WKS_EXPRESSION_NAME = "Expression";
-const std::string WKS_OPERATION_NAME = "Operations";
-const std::string WKS_DISPLAY_NAME = "Displays";
-
 
 const std::string GROUP_GENERAL = "General";
 const std::string GROUP_DATASETS = "Datasets";

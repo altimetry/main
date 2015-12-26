@@ -1085,6 +1085,8 @@ bool CFormula::IsUnitCompatible(int32_t dataType, const CUnit& unit)
 //----------------------------------------
 bool CFormula::IsUnitCompatible(int32_t dataType, const std::string& unitText)
 {
+    UNUSED( unitText );
+
   CUnit unit((const char *)GetDefaultUnit(dataType).c_str());
 
   return CFormula::IsUnitCompatible(dataType, unit);
@@ -1251,7 +1253,6 @@ std::string CFormula::GetExportAsciiFieldPrefix()
 //----------------------------------------
 bool CFormula::LoadConfigDesc(CConfiguration *config, const std::string& path)
 {
-  bool bOk = true;
   if (config == nullptr)
   {
     return true;
@@ -1266,7 +1267,6 @@ bool CFormula::LoadConfigDesc(CConfiguration *config, const std::string& path)
 //----------------------------------------
 bool CFormula::LoadConfig( CConfiguration *config, std::string &errorMsg, const std::string& pathSuff )
 {
-	bool bOk = true;
 	std::string valueString;
 
 	if ( config == nullptr )
@@ -1588,8 +1588,6 @@ double CFormula::ConvertToFormulaUnit(double in)
 //----------------------------------------
 bool CFormula::ComputeInterval( std::string &errorMsg )
 {
-	bool bOk = true;
-
 	if ( !IsXYType() )
 	{
 		return true;
@@ -1969,117 +1967,20 @@ bool CMapFormula::ValidName(const char* name)
 }
 
 //----------------------------------------
-bool CMapFormula::LoadConfig( std::string &errorMsg, bool predefined )
+bool CMapFormula::LoadConfig( std::string &errorMsg, bool predefined )	//std::string& pathSuff = ""
 {
-  return LoadConfig( m_config, errorMsg, predefined );
+	return LoadConfig( m_config, errorMsg, predefined );
 }
 //----------------------------------------
 bool CMapFormula::LoadConfig( CConfiguration *config, std::string &errorMsg, bool predefined, const std::string& pathSuff )
 {
-	bool bOk = true;
-
-	if ( config == nullptr )
-	{
-		return false;
-	}
-
-	std::string path = GROUP_FORMULAS;
-	if ( pathSuff.empty() == false )
-	{
-		path += "_" + pathSuff;
-	}
-	config->SetPath( "/" + path );
-
-	//long maxEntries = config->GetNumberOfEntries();
-	std::string entry;
-	std::string valueString;
-	std::string formulaName;
-	long i = 0;
-
-	do
-	{
-		bOk = config->GetNextEntry( entry, i );
-		if ( bOk )
-		{
-			valueString = config->Read( entry );
-
-			if ( !pathSuff.empty() )
-			{
-				//formulaName = valueString.Left(valueString.Length() - pathSuff.Length() - 1);
-				formulaName = valueString.substr( 0, valueString.length() - pathSuff.length() - 1 );
-			}
-			else
-			{
-				formulaName = valueString;
-			}
-			CFormula* value = dynamic_cast<CFormula*>( Exists( (const char *)formulaName.c_str() ) );
-			if ( value != nullptr )
-			{
-				Erase( formulaName );
-			}
-
-			Insert( formulaName, new CFormula( formulaName, predefined ) );
-		}
-	} while ( bOk );
-
-	//int32_t index = 0;
-
-	for ( CMapFormula::iterator it = begin(); it != end(); it++ )
-	{
-		//index++;
-		CFormula* formula = dynamic_cast<CFormula*>( it->second );
-		if ( formula == nullptr )
-		{
-			errorMsg +=
-				"ERROR in  CMapFormula::LoadConfig\ndynamic_cast<CFormula*>(it->second) returns nullptr pointer"
-				"\nList seems to contain objects other than those of the class CFormula.\n";
-
-			//wxMessageBox(,                   "Error",                    wxOK | wxCENTRE | wxICON_ERROR);
-
-			return false;
-		}
-
-		formula->LoadConfig( config, errorMsg, pathSuff );
-	}
-	return true;
+	return config && config->LoadConfig( *this, errorMsg, predefined, pathSuff );
 }
 
 //----------------------------------------
 bool CMapFormula::SaveConfig( CConfiguration *config, bool predefined, const std::string& pathSuff )
 {
-	bool bOk = true;
-	if ( config == nullptr )
-		return false;
-
-	int index = 0;
-	for ( CMapFormula::iterator it = begin(); it != end(); it++ )
-	{
-		std::string path = GROUP_FORMULAS;
-		if ( pathSuff.empty() == false )
-		{
-			path += "_" + pathSuff;
-		}
-		config->SetPath( "/" + path );
-
-		CFormula* formula = dynamic_cast<CFormula*>( it->second );
-		if ( formula != nullptr )
-		{
-			if ( formula->IsPredefined() != predefined )
-				continue;
-
-			index++;
-			std::string formulaName = formula->GetName();
-			if ( pathSuff.empty() == false )
-			{
-				formulaName += "_" + pathSuff;
-			}
-
-			config->Write( ENTRY_FORMULA + n2s<std::string>( index ), formulaName );
-
-			formula->SaveConfig( config, pathSuff );
-		}
-	}
-	return true;
+	return config && config->SaveConfig( *this, predefined, pathSuff );
 }
 //----------------------------------------
 bool CMapFormula::InsertPredefined( std::string &errorMsg )
@@ -2255,63 +2156,57 @@ void CMapFormula::InitFormulaDataMode(int32_t dataMode)
 }
 
 //----------------------------------------
-int32_t CMapFormula::CountDataFields()
+size_t CMapFormula::CountDataFields()
 {
-  CMapFormula::iterator it;
+	size_t count = 0;
+	for ( CMapFormula::iterator it = begin(); it != end(); it++ )
+	{
+		CFormula* value = dynamic_cast<CFormula*>( it->second );
+		if ( value != nullptr )
+		{
+			if ( value->GetType() == CMapTypeField::eTypeOpAsField )
+			{
+				count++;
+			}
+		}
+	}
 
-  int32_t count = 0;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    CFormula* value = dynamic_cast<CFormula*>(it->second);
-    if (value != nullptr)
-    {
-      if (value->GetType() == CMapTypeField::eTypeOpAsField)
-      {
-        count++;
-      }
-    }
-  }
-
-  return count;
-
+	return count;
 }
 //----------------------------------------
 
-bool CMapFormula::HasFilters()
+bool CMapFormula::HasFilters() const
 {
-  CMapFormula::iterator it;
+	bool hasFilter = false;
 
-  bool hasFilter = false;
+	for ( CMapFormula::const_iterator it = begin(); it != end(); it++ )
+	{
+		CFormula* value = dynamic_cast<CFormula*>( it->second );
+		if ( value != nullptr )
+		{
+			if ( value->GetType() == CMapTypeField::eTypeOpAsField )
+			{
+				if ( value->GetFilter() != CMapTypeFilter::eFilterNone )
+				{
+					hasFilter = true;
+					break;
+				}
+			}
+		}
+	}
 
-  for (it = begin() ; it != end() ; it++)
-  {
-    CFormula* value = dynamic_cast<CFormula*>(it->second);
-    if (value != nullptr)
-    {
-      if (value->GetType() == CMapTypeField::eTypeOpAsField)
-      {
-        if (value->GetFilter() != CMapTypeFilter::eFilterNone)
-        {
-          hasFilter = true;
-          break;
-        }
-      }
-    }
-  }
-
-  return hasFilter;
+	return hasFilter;
 }
 //----------------------------------------
 
 void CMapFormula::Amend(const CStringArray& keys, CProduct* product, const std::string& record)
 {
+    UNUSED( record );
+
   if (product == nullptr)
   {
     return;
   }
-
-  bool bOk = true;
 
   CStringArray::const_iterator itKey;
 

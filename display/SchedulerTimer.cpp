@@ -18,7 +18,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "SchedulerTaskConfig.h"
+#include "new-gui/brat/stdafx.h"
 
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
     #pragma implementation "SchedulerTimer.h"
@@ -31,6 +31,7 @@
     #pragma hdrstop
 #endif
 
+#include "SchedulerTaskConfig.h"
 #include "SchedulerTimer.h"
 #include "scheduler/ProcessingPanel.h"
 
