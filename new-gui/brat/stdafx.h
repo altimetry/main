@@ -41,6 +41,9 @@
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////
 
+#if defined (__APPLE__)
+#pragma clang diagnostic ignored "-Wunknown-pragmas"    //do not reenable below
+#endif
 //#if defined (__unix__)
 //#pragma GCC diagnostic ignored "-Wall"
 //#endif

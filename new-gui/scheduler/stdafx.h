@@ -37,10 +37,13 @@
 #endif
 
 
+#if defined (__APPLE__)
+#pragma clang diagnostic ignored "-Wunknown-pragmas"    //do not reenable below
+#endif
 #if defined (__unix__)
 #pragma GCC diagnostic ignored "-Wall"
 #endif
-#if defined (__APPLE__)
+#if defined (__APPLE__)                                 //reenable below
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated-register"
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
