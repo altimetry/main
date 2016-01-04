@@ -19,8 +19,8 @@
 #ifndef COMMON_BITSET32_H
 #define COMMON_BITSET32_H
 
-#include "BratObject.h"
-#include "Tools.h"
+#include "libbrathl/BratObject.h"
+#include "libbrathl/Tools.h"
 
 using namespace brathl;
 

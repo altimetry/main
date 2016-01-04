@@ -217,9 +217,9 @@ void SchedulerDlg::createMenuBar()
 
 void SchedulerDlg::loadTasks(const CMapBratTask &data, QTableWidget* tableTasks)
 {
-    tableTasks->setRowCount(data.size());
+    tableTasks->setRowCount((int)data.size());
 
-    size_t index = 0;
+    int index = 0;
     for (CMapBratTask::const_iterator it = data.begin(); it != data.end(); it++)
     {
       CBratTask* bratTask = it->second;

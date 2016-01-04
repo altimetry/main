@@ -5,10 +5,15 @@
 #include "display/wxInterface.h"
 #include "wx/fileconf.h"		// (wxFileConfig class)
 #define CONFIG wxFileConfig
+#define CWorkspaceSettings CConfiguration
+#define WORKSPACES_WORKSPACE_PERSISTENCE_H
 #else
-#define CONFIG QSettings
+#include "new-gui/brat/Workspaces/WorkspacePersistence.h"
+#define CONFIG CWorkspaceSettings
 #endif
 
+
+#include "brathl_config.h"
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -34,21 +39,38 @@ void SaveToFile( CBratLookupTable &lut, const std::string& fileName );
 //											Configurations
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+// Workspaces related Configuration
+
+
+
 class CDataset;
+class CDisplay;
 class CDisplayData;
+class CMapDisplayData;
 class CWorkspaceDisplay;
 class CWorkspaceOperation;
+class CFormula;
 class CMapFormula;
 class CWorkspace;
 class CWorkspaceDataset;
+class COperation;
 
 
-struct CConfiguration : public CONFIG
+class CConfiguration : public CONFIG
 {
 	typedef CONFIG base_t;
 
+public:
 	CConfiguration( const std::string& localFilename );
 
+	virtual void Sync();
+	virtual void Clear();
+
+	bool LoadCommonConfig( CWorkspace &wks );
+
+	//
+	
 	bool SaveConfig( const CDataset *d );
 	bool LoadConfig( CDataset *d );
 
@@ -58,7 +80,6 @@ struct CConfiguration : public CONFIG
 	bool SaveConfig( const CMapFormula &mapf, bool predefined, const std::string& pathSuff );
 	bool LoadConfig( CMapFormula &mapf, std::string &errorMsg, bool predefined, const std::string& pathSuff );
 
-	bool LoadCommonConfig( CWorkspace &wks );
 	bool SaveCommonConfig( const CWorkspace &wks, bool flush );
 
 	bool SaveConfigDataset( const CWorkspaceDataset &data, std::string &errorMsg );
@@ -70,31 +91,20 @@ struct CConfiguration : public CONFIG
 	bool SaveConfigDisplay( const CWorkspaceDisplay &disp, std::string &errorMsg, CWorkspaceDisplay *wksd );
 	bool LoadConfigDisplay( CWorkspaceDisplay &disp, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso );
 
-	///
+	bool LoadConfig( CFormula &f, std::string &errorMsg, const std::string& pathSuff );
+	bool SaveConfig( const CFormula &f, const std::string& pathSuff );
+	bool LoadConfigDesc( CFormula &f, const std::string& path );
+	bool SaveConfigDesc( const CFormula &f, const std::string& path );
+	bool SaveConfigPredefined( const CFormula &f, const std::string& pathSuff );
 
-	void SetPath( const std::string& strPath );
+	bool SaveConfig( const COperation &op );
+	bool LoadConfig( COperation &op, std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso );
 
-	bool Write( const std::string& key, const std::string& value );
-	bool Write( const std::string& key, const int& value );
+	bool LoadConfig( CMapDisplayData &data, std::string &errorMsg, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso, const std::string& pathSuff );
+	bool SaveConfig( const CMapDisplayData &data, CWorkspaceDisplay *wks, const std::string& pathSuff );
 
-	size_t GetNumberOfEntries();
-	bool GetNextEntry( std::string& str, long& lIndex );
-
-	std::string Read( const std::string& str ) const;
-	bool Read( const std::string& str, std::string *value ) const;
-	std::string Read( const std::string& str, const std::string &value ) const;
-	bool Read( const std::string& str, int *value ) const;
-
-	bool Read( const std::string& str, double *value, double defValue ) const;
-	bool Read( const std::string& str, int32_t *value, double defValue ) const;
-
-	bool Read( const std::string& str, bool *value, bool defValue ) const;
-
-	bool Flush( bool bCurrentOnly = false );
-
-	const std::string GetConfigPath() const;
-
-	virtual bool DeleteAll();
+	bool SaveConfig( const CDisplay &d, CWorkspaceDisplay *wksd );
+	bool LoadConfig( CDisplay &d, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso );
 };
 
 

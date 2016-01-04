@@ -4,7 +4,6 @@
 
 const std::string WKS_EXPRESSION_NAME = "Expression";
 
-const std::string GROUP_GENERAL = "General";
 const std::string GROUP_DATASETS = "Datasets";
 const std::string GROUP_OPERATIONS = "Operations";
 const std::string GROUP_FORMULAS = "Formulas";

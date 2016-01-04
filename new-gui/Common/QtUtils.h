@@ -5,8 +5,6 @@
 #error Wrong QtUtils.h included
 #endif
 
-#include "QtFileUtils.h"	// => QtStringUtils.h => +Utils.h
-
 #if QT_VERSION >= 0x050000
 	#include <QtWidgets/QApplication>
 	#include <QtWidgets/QFileDialog>
@@ -29,6 +27,11 @@
 #include <QSettings>
 #include <QResource>
 #include <QElapsedTimer>
+#include <QDesktopWidget>
+#include <QDebug>
+
+
+#include "QtStringUtils.h"	// => QtStringUtils.h => +Utils.h
 
 
 //Table of Contents
@@ -357,7 +360,7 @@ inline QString ElapsedFormat( QElapsedTimer &timer )
 
 // generic
 
-inline void setObjectName( QObject *w, const std::string &name )
+inline void SetObjectName( QObject *w, const std::string &name )
 {
 	static int index = 0;
 
@@ -367,38 +370,42 @@ inline void setObjectName( QObject *w, const std::string &name )
 
 //layout
 
-inline QLayout* createLayout( QWidget *parent, Qt::Orientation orientation, int spacing = 0, int left = 0, int top = 0, int right = 0, int bottom = 0 )
+template< class LAYOUT >
+inline LAYOUT* FinishLayout( LAYOUT *l, int spacing, int left, int top, int right, int bottom )
+{
+	l->setSpacing( spacing );
+    SetObjectName( l, "boxLayout" );
+	l->setContentsMargins( left, top, right, bottom );
+	return l;
+}
+
+inline QBoxLayout* CreateLayout( QWidget *parent, Qt::Orientation orientation, int spacing = 0, int left = 0, int top = 0, int right = 0, int bottom = 0 )
 {
 	QVBoxLayout *vboxLayout;
 	QHBoxLayout *hboxLayout;
-	QLayout *l;
+	QBoxLayout *l;
 	if ( orientation == Qt::Vertical ){
 		l = vboxLayout = new QVBoxLayout( parent );
 	} else {
 		l = hboxLayout = new QHBoxLayout( parent );
 	} 
-	l->setSpacing( spacing );
-    setObjectName( l, "boxLayout" );
-	l->setContentsMargins( left, top, right, bottom );
-	return l;
+	return FinishLayout< QBoxLayout >( l, spacing, left, top, right, bottom );
 }
 
-
-// widget
-
-inline QWidget* addWidget( QWidget *parent, QWidget *component )	//widget is added to layout
-{ 
-	QLayout *l = parent->layout();
-	if ( !l )
-		l = createLayout( parent, Qt::Vertical );
-
-	l->addWidget( component );
-	return parent;
-}
-
-inline QWidget* CenterOnRect( QWidget *const w, const QRect &r )
+inline QGridLayout* CreateGridLayout( QWidget *parent, int spacing = 0, int left = 0, int top = 0, int right = 0, int bottom = 0 )
 {
-    w->setGeometry( QStyle::alignedRect( Qt::LeftToRight, Qt::AlignCenter, w->size(), r ) );
+	return FinishLayout< QGridLayout >( new QGridLayout( parent ), spacing, left, top, right, bottom );
+}
+
+
+// position
+
+// Calls adjustSize on the widget
+//
+inline QWidget* CenterOnParentCenter( QWidget *const w, QPoint pcenter )
+{
+	w->adjustSize();
+	w->move( pcenter - w->rect().center() );
 
     return w;
 }
@@ -407,19 +414,54 @@ inline QWidget* CenterOnScreen( QWidget *const w )
 {
 	assert__( qApp );
 
-    //w->setGeometry( QStyle::alignedRect( Qt::LeftToRight, Qt::AlignCenter, w->size(), qApp->desktop()->availableGeometry() ) );
-    //w->move( QApplication::desktop()->screen()->rect().center() - w->rect().center() );
-    return CenterOnRect( w, qApp->desktop()->availableGeometry() )  ;
-
-    //return w;
+	return CenterOnParentCenter( w, qApp->desktop()->availableGeometry().center() );
 }
+
+inline QWidget* CenterOnScreen2( QWidget *const w )
+{
+	assert__( qApp );
+
+    w->setGeometry( QStyle::alignedRect( Qt::LeftToRight, Qt::AlignCenter, w->size(), qApp->desktop()->availableGeometry() ) );
+
+    return w;
+}
+
+
+
+// widget
+
+// widget is added to parent's layout, which is created if necessary
+//
+inline QWidget* AddWidget( QWidget *parent, QWidget *component )
+{ 
+	QLayout *l = parent->layout();
+	if ( !l )
+		l = CreateLayout( parent, Qt::Vertical );
+
+	l->addWidget( component );
+	return parent;
+}
+
+
+inline QFrame* WidgetLine( QWidget *parent, Qt::Orientation o, const QRect &geometry = QRect() )
+{
+	QFrame *line = new QFrame( parent );
+	SetObjectName( line, "line" );
+	line->setGeometry( geometry );
+	line->setFrameShape( o == Qt::Horizontal ? QFrame::HLine : QFrame::VLine );
+	line->setFrameShadow( QFrame::Sunken );
+
+	return line;
+}
+
+
 
 //splitter
 
 inline QSplitter* createSplitter( QWidget *parent, Qt::Orientation orientation )
 {
     QSplitter *s = new QSplitter( parent );
-    setObjectName( s, "splitter" );
+    SetObjectName( s, "splitter" );
     s->setOrientation( orientation );
 	return s;
 }
@@ -427,8 +469,8 @@ inline QSplitter* createSplitterIn( QWidget *parent, Qt::Orientation orientation
 {
     QSplitter *s = createSplitter( parent, orientation );
 	if ( !parent->layout() )
-			createLayout( parent, orientation );
-    addWidget( parent, s );
+			CreateLayout( parent, orientation );
+    AddWidget( parent, s );
 	return s;
 }
 inline QSplitter* createSplitterIn( QSplitter *parent, Qt::Orientation orientation )
@@ -477,7 +519,7 @@ inline void insertToolBar( QWidget *w, QToolBar *toolbar, Qt::ToolBarArea area )
     {//(*)
         if ( l )
             delete l;
-        l = createLayout( w, orientation, 1, 1, 1, 1, 1 );	//(*)
+        l = CreateLayout( w, orientation, 1, 1, 1, 1, 1 );	//(*)
     }
     l->addWidget( toolbar );
 }
@@ -489,40 +531,8 @@ inline void insertToolBar( QMainWindow *w, QToolBar *toolbar, Qt::ToolBarArea ar
 
 // actions
 
-inline QAction* createAction( QObject *parent, const QString &text, const QString &tip, const char *iconpath, const char *on_iconpath = nullptr )
-{
-	QAction *a = new QAction( text, parent );
-	std::string objname = q2a( text );
-	a->setObjectName( QString::fromUtf8( replace( objname, " ", "_" ).c_str() ) );
-	a->setToolTip( tip );
-	QIcon icon;
-	icon.addFile( QString::fromUtf8( iconpath ), QSize(), QIcon::Normal, QIcon::Off );
-	if ( on_iconpath )
-	{
-		icon.addFile( QString::fromUtf8( on_iconpath ), QSize(), QIcon::Normal, QIcon::On );
-		a->setCheckable( true );
-	}
-	a->setIcon( icon );
-	return a;
-}
+// see ActionsTable.*
 
-inline QToolButton* CreateMenuButton( QAction **actions, size_t size )
-{
-	QMenu *menu = new QMenu();
-	for ( size_t i = 0; i < size; ++i )
-		if ( actions[ i ] )
-			menu->addAction( actions[ i ] );
-		else
-			menu->addSeparator();
-
-	QToolButton *toolButton = new QToolButton();	//QToolButton* toolButton = (QToolButton*)m_pbar->widgetForAction( parse_ebnf ); maybe try this, changing to QToolButton::DelayedPopup, for the button to also execute a command
-	assert__( toolButton );
-	toolButton->setMenu( menu );
-	toolButton->setIcon( QPixmap( "://images/9.png" ) );
-	toolButton->setPopupMode( QToolButton::InstantPopup );
-
-	return toolButton;
-}
 
 
 //combo box
@@ -570,20 +580,40 @@ inline QListWidget* fillList( QListWidget *c, const std::string *names, size_t s
 }
 
 
+//////////////////////////////////////////////////////////////////
+//						BRAT Specific
+//////////////////////////////////////////////////////////////////
+
 //	Application dimensions 
 
 const int min_main_window_width = 1024;
 const int min_main_window_height = 728;
 
-const int max_main_dock_width = min_main_window_width / 3;
+//const int max_main_dock_width = min_main_window_width / 3;
 
 const int max_out_window_height = min_main_window_height / 4;
 
 const int min_globe_widget_width = 400;
 const int min_globe_widget_height = 400;
 
-const int min_map_widget_width = 300;
-const int min_map_widget_height = 200;
+const int min_widget_width = 300;
+const int min_widget_height = 200;
+
+
+const int min_editor_dock_width = 200;
+const int min_editor_dock_height = 100;
+
+
+
+//	Development only
+
+inline void NotImplemented( const char *msg = nullptr )
+{
+	SimpleMsgBox( std::string( "Not implemented. " ) + ( msg ? msg : "" ) );
+}
+
+#define NOT_IMPLEMENTED  NotImplemented( __func__ );
+#define FNOT_IMPLEMENTED( x )  NotImplemented( std::string( x ).c_str() );
 
 
 

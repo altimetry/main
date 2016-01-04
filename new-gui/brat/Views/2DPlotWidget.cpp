@@ -15,7 +15,10 @@
 
 
 
+#include "new-gui/Common/QtUtils.h"
+
 #include "2DPlotWidget.h"
+
 
 //////////////////////////////////////////////////////////////////
 //		Plot Data
@@ -89,6 +92,8 @@ C2DPlotWidget::C2DPlotWidget( E2DPlotType type, QWidget *parent ) : base_t( pare
 		default:
 			throw "2D error";
 	}
+
+	setMinimumSize( min_widget_width, min_widget_height );
 }
 
 C2DPlotWidget::~C2DPlotWidget()

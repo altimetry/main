@@ -43,6 +43,14 @@ using namespace brathl;
 #include "RichTextFrame.h"
 
 
+
+const wxString DATASET_SELECTION_LOG_FILENAME = "datasetSelection.log";
+
+
+
+
+
+
 //----------------------------------------------------------------------------
 // CDatasetDropTarget
 //----------------------------------------------------------------------------

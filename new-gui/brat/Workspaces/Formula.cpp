@@ -17,15 +17,16 @@
 */
 #include "new-gui/brat/stdafx.h"
 
-#include "brathl.h"
+#include "libbrathl/brathl.h"
+#include "libbrathl/Tools.h"
 
+#include "new-gui/Common/ConfigurationKeywords.h"
 #include "new-gui/Common/tools/Trace.h"
 #include "new-gui/Common/tools/Exception.h"
-#include "Tools.h"
 
 using namespace brathl;
 
-#include "BratProcess.h"
+#include "process/BratProcess.h"
 
 using namespace processes;
 
@@ -39,9 +40,12 @@ using namespace processes;
 
 static const std::string DEFAULT_UNIT_COUNT = "count";
 
-static const std::string DEFAULT_STEP_LATLON_ASSTRING = "1/3";
-static const std::string DEFAULT_STEP_TIME_ASSTRING = "1"; 
-static const std::string DEFAULT_STEP_GENERAL_ASSTRING = "1";
+//static 
+const std::string CFormula::DEFAULT_STEP_LATLON_ASSTRING = "1/3";
+//static 
+const std::string CFormula::DEFAULT_STEP_TIME_ASSTRING = "1"; 
+//static 
+const std::string CFormula::DEFAULT_STEP_GENERAL_ASSTRING = "1";
 
 
 
@@ -992,7 +996,7 @@ bool CFormula::IsLatDataType()
   return (GetDataType() == CMapTypeData::eTypeOpLatitude);
 }
 //----------------------------------------
-bool CFormula::IsTimeDataType()
+bool CFormula::IsTimeDataType() const
 {
   return (GetDataType() == CMapTypeData::eTypeOpT);
 }
@@ -1251,215 +1255,34 @@ std::string CFormula::GetExportAsciiFieldPrefix()
 }
 
 //----------------------------------------
-bool CFormula::LoadConfigDesc(CConfiguration *config, const std::string& path)
+bool CFormula::LoadConfigDesc( CConfiguration *config, const std::string& path )
 {
-  if (config == nullptr)
-  {
-    return true;
-  }
-
-  config->SetPath("/" + path);
-
-  m_description = config->Read(m_name, m_description);
-
-  return true;
+	return !config || config->LoadConfigDesc( *this, path );
 }
 //----------------------------------------
-bool CFormula::LoadConfig( CConfiguration *config, std::string &errorMsg, const std::string& pathSuff )
+bool CFormula::LoadConfig( CWorkspaceSettings *config, std::string &errorMsg, const std::string& pathSuff )
 {
-	std::string valueString;
-
-	if ( config == nullptr )
-	{
-		return true;
-	}
-	std::string path = m_name;
-	if ( pathSuff.empty() == false )
-	{
-		path += "_" + pathSuff;
-	}
-
-	config->SetPath( "/" + path );
-
-	m_description = config->Read( ENTRY_DEFINE, m_description );
-	m_comment = config->Read( ENTRY_COMMENT, m_comment );
-
-	valueString = config->Read( ENTRY_UNIT, m_unit.GetText().c_str() );
-	SetUnit( valueString, errorMsg, "" );
-
-	valueString = config->Read( ENTRY_FIELDTYPE, GetTypeAsString() );
-	if ( valueString.empty() )
-	{
-		m_type = CMapTypeField::eTypeOpAsField;
-	}
-	else
-	{
-		m_type = CMapTypeField::GetInstance().NameToId( valueString );
-	}
-
-	valueString = config->Read( ENTRY_DATATYPE, GetDataTypeAsString() );
-	if ( valueString.empty() )
-	{
-		m_dataType = CMapTypeData::eTypeOpData;
-	}
-	else
-	{
-		m_dataType = CMapTypeData::GetInstance().NameToId( valueString );
-	}
-
-	m_title = config->Read( ENTRY_TITLE, m_title );
-
-	valueString = config->Read( ENTRY_FILTER, GetFilterAsString() );
-	if ( valueString.empty() )
-	{
-		m_filter = CMapTypeFilter::eFilterNone;
-	}
-	else
-	{
-		m_filter = CMapTypeFilter::GetInstance().NameToId( valueString );
-	}
-	if ( IsTimeDataType() )
-	{
-		valueString = config->Read( ENTRY_MINVALUE );
-		SetMinValueFromDateString( valueString );
-
-		valueString = config->Read( ENTRY_MAXVALUE );
-		SetMaxValueFromDateString( valueString );
-	}
-	else
-	{
-		config->Read( ENTRY_MINVALUE, &m_minValue, CTools::m_defaultValueDOUBLE );
-		config->Read( ENTRY_MAXVALUE, &m_maxValue, CTools::m_defaultValueDOUBLE );
-	}
-
-	// 3.3.1 note: wxWidgets asserts if value >= INT_MAX, but CTools::m_defaultValueINT32 is INT_MAX, so,
-	// if value is not read and the default is used, we have a failed assertion. This was not changed, to
-	// avoid unknown implications.
-
-	config->Read( ENTRY_INTERVAL, &m_interval, CTools::m_defaultValueINT32 );
-	m_step = config->Read( ENTRY_STEP, DEFAULT_STEP_GENERAL_ASSTRING );
-	if ( m_step.empty() )
-	{
-		m_step = DEFAULT_STEP_GENERAL_ASSTRING;
-	}
-
-	config->Read( ENTRY_LOESSCUTOFF, &m_loessCutOff, CTools::m_defaultValueINT32 );
-
-	valueString = config->Read( ENTRY_DATA_MODE );
-	if ( valueString.empty() )
-	{
-		m_dataMode = -1;
-	}
-	else
-	{
-		m_dataMode = CMapDataMode::GetInstance().NameToId( valueString );
-	}
-
-	return true;
+	return !config || config->LoadConfig( *this, errorMsg, pathSuff );
 }
 //----------------------------------------
 bool CFormula::SaveConfigDesc( CConfiguration *config, const std::string& path)
 {
-  bool bOk = true;
-  if (config == nullptr)
-  {
-    return true;
-  }
-
-  config->SetPath("/" + path);
-
-  bOk &= config->Write(m_name, GetDescription(true));
-  //bOk &= config->Write(ENTRY_COMMENT, m_comment);
-
-  return true;
+	return !config || config->SaveConfigDesc( *this, path );
 }
 
 //----------------------------------------
 bool CFormula::SaveConfigPredefined( CConfiguration *config, const std::string& pathSuff)
 {
-  bool bOk = true;
-  if (config == nullptr)
-  {
-    return true;
-  }
-  std::string path = m_name;
-  if (pathSuff.empty() == false)
-  {
-    path += "_" + pathSuff;
-  }
-  config->SetPath("/" + path);
-
-  bOk &= config->Write(ENTRY_DEFINE, GetDescription(true));
-  bOk &= config->Write(ENTRY_COMMENT, GetComment(true));
-  bOk &= config->Write(ENTRY_UNIT, m_unit.GetText().c_str());
-
-  return true;
+	return !config || config->SaveConfigPredefined( *this, pathSuff );
 }
 //----------------------------------------
 bool CFormula::SaveConfig( CConfiguration *config, const std::string& pathSuff )
 {
-  if (m_predefined)
-  {
-    return SaveConfigPredefined(config, pathSuff);
-  }
-
-  bool bOk = true;
-  if (config == nullptr)
-  {
-    return true;
-  }
-  std::string path = m_name;
-  if (pathSuff.empty() == false)
-  {
-    path += "_" + pathSuff;
-  }
-  config->SetPath("/" + path);
-
-  bOk &= config->Write(ENTRY_DEFINE, GetDescription(true));
-  bOk &= config->Write(ENTRY_COMMENT, GetComment(true));
-  bOk &= config->Write(ENTRY_UNIT, m_unit.GetText().c_str());
-  bOk &= config->Write(ENTRY_FIELDTYPE, GetTypeAsString());
-  bOk &= config->Write(ENTRY_DATATYPE, GetDataTypeAsString());
-  bOk &= config->Write(ENTRY_TITLE, m_title);
-  bOk &= config->Write(ENTRY_FILTER, GetFilterAsString());
-  if (isDefaultValue(m_minValue) == false)
-  {
-    if (IsTimeDataType())
-    {
-      bOk &= config->Write(ENTRY_MINVALUE, GetMinValueAsDateString());
-    }
-    else
-    {
-      bOk &= config->Write(ENTRY_MINVALUE, CTools::Format("%.15g", m_minValue).c_str());
-    }
-  }
-  if (isDefaultValue(m_maxValue) == false)
-  {
-    if (IsTimeDataType())
-    {
-      bOk &= config->Write(ENTRY_MAXVALUE, GetMaxValueAsDateString());
-    }
-    else
-    {
-      bOk &= config->Write(ENTRY_MAXVALUE, CTools::Format("%.15g", m_maxValue).c_str());
-    }
-  }
-  if (isDefaultValue(m_interval) == false)
-  {
-    bOk &= config->Write(ENTRY_INTERVAL, m_interval);
-  }
-  if (m_step.empty() == false)
-  {
-    bOk &= config->Write(ENTRY_STEP, m_step);
-  }
-  if (isDefaultValue(m_loessCutOff) == false)
-  {
-    bOk &= config->Write(ENTRY_LOESSCUTOFF, m_loessCutOff);
-  }
-  bOk &= config->Write(ENTRY_DATA_MODE,
-                       GetDataModeAsString());
-
-  return true;
+	if ( m_predefined )
+	{
+		return SaveConfigPredefined( config, pathSuff );
+	}
+	return !config || config->SaveConfig( *this, pathSuff );
 }
 //----------------------------------------
 std::string CFormula::GetDescription(bool removeCRLF /* = false */, const CStringMap* formulaAliases /* = nullptr*/, const CStringMap* fieldAliases /* = nullptr*/) const
@@ -1480,7 +1303,7 @@ std::string CFormula::GetDescription(bool removeCRLF /* = false */, const CStrin
   return str;
 }
 //----------------------------------------
-std::string CFormula::GetComment(bool removeCRLF)
+std::string CFormula::GetComment(bool removeCRLF) const
 {
   if (removeCRLF == false)
   {
@@ -1978,7 +1801,7 @@ bool CMapFormula::LoadConfig( CConfiguration *config, std::string &errorMsg, boo
 }
 
 //----------------------------------------
-bool CMapFormula::SaveConfig( CConfiguration *config, bool predefined, const std::string& pathSuff )
+bool CMapFormula::SaveConfig( CConfiguration *config, bool predefined, const std::string& pathSuff ) const
 {
 	return config && config->SaveConfig( *this, predefined, pathSuff );
 }
@@ -2374,8 +2197,8 @@ uint32_t CMapTypeData::NameToId(const std::string& name)
 
 CMapTypeOp::CMapTypeOp()
 {
-  Insert("Y=F(X)", eTypeOpYFX);
-  Insert("Z=F(X,Y)", eTypeOpZFXY);
+	Insert( VALUE_OPERATION_TypeYFX, eTypeOpYFX );
+	Insert( VALUE_OPERATION_TypeZFXY, eTypeOpZFXY );
 }
 
 //----------------------------------------

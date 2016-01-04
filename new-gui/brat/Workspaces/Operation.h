@@ -20,11 +20,11 @@
 
 //#include "new-gui/Common/QtFileUtils.h"
 
-#include "brathl.h"
+#include "libbrathl/brathl.h"
+#include "libbrathl/Product.h" 
 
 #include "new-gui/brat/Workspaces/Dataset.h"
 #include "new-gui/brat/Workspaces/Formula.h"
-#include "Product.h" 
 
 
 class CWorkspaceDataset;
@@ -91,6 +91,7 @@ public:
 
 class COperation : public CBratObject
 {
+	friend class CConfiguration;
 protected:
 
 	CProduct* m_product = nullptr;
@@ -158,7 +159,7 @@ public:
 	static const std::string& GetExecShowStatsName() { return m_execShowStatsName; }
 	static const std::string& GetExecBratSchedulerName() { return m_execBratSchedulerName; }
 
-	std::string GetName() { return m_name; }
+	std::string GetName() const { return m_name; }
 	void SetName( const std::string& value ) { m_name = value; }
 
 	bool HasFormula() const { return GetFormulaCount() > 0; }

@@ -18,15 +18,15 @@
 
 #include "new-gui/brat/stdafx.h"
 
-#include "brathl.h"
+#include "libbrathl/brathl.h"
 
 #include "new-gui/Common/tools/Exception.h"
 #include "new-gui/Common/tools/Trace.h"
 
-#include "Tools.h"
-#include "InternalFilesFactory.h"
-#include "InternalFiles.h"
-#include "BratProcess.h"
+#include "libbrathl/Tools.h"
+#include "libbrathl/InternalFilesFactory.h"
+#include "libbrathl/InternalFiles.h"
+#include "process/BratProcess.h"
 
 #include "Workspace.h"
 #include "Operation.h"
@@ -784,118 +784,13 @@ const CDisplayData* CMapDisplayData::GetDisplayData(const char* name) const
 //----------------------------------------
 bool CMapDisplayData::LoadConfig( CConfiguration* config, std::string &errorMsg, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso, const std::string& pathSuff )
 {
-	bool bOk = true;
-
-	if ( config == nullptr )
-		return false;
-
-	std::string path = GROUP_DISPLAY;
-	if ( pathSuff.empty() == false )
-	{
-		path += "_" + pathSuff;
-	}
-	config->SetPath( "/" + path );
-
-	std::string entry;
-	std::string valueString;
-	std::string displayDataName;
-	long i = 0;
-	do
-	{
-		bOk = config->GetNextEntry( entry, i );
-		if ( bOk )
-		{
-			valueString = config->Read( entry );
-
-			if ( pathSuff.empty() == false )
-			{
-				displayDataName = valueString.substr( 0, valueString.length() - pathSuff.length() - 1 );
-				//displayDataName = valueString.Left( valueString.Length() - pathSuff.Length() - 1 );
-			}
-			else
-			{
-				displayDataName = valueString;
-			}
-
-			CDisplayData* value = dynamic_cast<CDisplayData*>( Exists( (const char *)displayDataName.c_str() ) );
-			if ( value != nullptr )
-			{
-				Erase( (const char *)displayDataName.c_str() );
-			}
-			Insert( (const char *)displayDataName.c_str(), new CDisplayData() );
-		}
-	} while ( bOk );
-
-
-	int32_t index = 0;
-
-	CStringMap renameKeyMap;
-	for ( CMapDisplayData::iterator it = begin(); it != end(); it++ )
-	{
-		index++;
-		CDisplayData* displayData = dynamic_cast<CDisplayData*>( it->second );
-		if ( displayData == nullptr )
-		{
-			errorMsg +=
-				"ERROR in  CMapDisplayData::LoadConfig\ndynamic_cast<CDisplayData*>(it->second) returns nullptr pointer"
-				"\nList seems to contain objects other than those of the class CDisplayData";
-
-				//wxMessageBox( "Error",
-				//wxOK | wxCENTRE | wxICON_ERROR );
-			return false;
-		}
-
-		displayData->LoadConfig( config, it->first + "_" + pathSuff, wks, wkso );
-
-		// To maintain compatibility with Brat v1.x (display name doesn't contain 'display type' in v1.x)
-		std::string displayDataKey = (const char *)displayData->GetDataKey().c_str();
-
-		if ( it->first != displayDataKey )
-		{
-			renameKeyMap.Insert( it->first, displayDataKey );
-		}
-	}
-
-	for ( CStringMap::const_iterator itStringMap = renameKeyMap.begin(); itStringMap != renameKeyMap.end(); itStringMap++ )
-	{
-		RenameKey( itStringMap->first, itStringMap->second );
-	}
-
-	return true;
+	return config && config->LoadConfig( *this, errorMsg, wks, wkso, pathSuff );
 }
 
 //----------------------------------------
-bool CMapDisplayData::SaveConfig( CConfiguration* config, CWorkspaceDisplay *wks, const std::string& pathSuff )
+bool CMapDisplayData::SaveConfig( CConfiguration* config, CWorkspaceDisplay *wks, const std::string& pathSuff ) const
 {
-	if ( config == nullptr )
-		return false;
-
-	int index = 0;
-	for ( CMapDisplayData::iterator it = begin(); it != end(); it++ )
-	{
-		std::string path = GROUP_DISPLAY;
-		if ( pathSuff.empty() == false )
-		{
-			path += "_" + pathSuff;
-		}
-		config->SetPath( "/" + path );
-
-		CDisplayData* displayData = dynamic_cast<CDisplayData*>( it->second );
-		if ( displayData != nullptr )
-		{
-			index++;
-			std::string key = displayData->GetDataKey();
-			if ( pathSuff.empty() == false )
-			{
-				key += "_" + pathSuff;
-			}
-
-			config->Write( ENTRY_DISPLAY_DATA + n2s<std::string>( index ), key);
-
-			displayData->SaveConfig( config, pathSuff, wks );
-		}
-	}
-	return true;
+	return config && config->SaveConfig( *this, wks, pathSuff );
 }
 
 //----------------------------------------
@@ -1249,98 +1144,12 @@ std::string CDisplay::FmtCmdParam( const std::string& name )
 //----------------------------------------
 bool CDisplay::SaveConfig( CConfiguration* config, CWorkspaceDisplay *wksd )
 {
-  bool bOk = true;
-  if (config == nullptr)
-  {
-    return true;
-  }
-
-  config->SetPath("/" + m_name);
-
-  bOk &= config->Write(ENTRY_TYPE,
-                       CMapTypeDisp::GetInstance().IdToName(m_type));
-
-
-  bOk &= config->Write(ENTRY_TITLE, GetTitle());
-  bOk &= config->Write(ENTRY_ANIMATION, GetWithAnimation());
-  bOk &= config->Write(ENTRY_PROJECTION, GetProjection());
-
-  if (isDefaultValue(m_minXValue) == false)
-  {
-    bOk &= config->Write(ENTRY_MINXVALUE, m_minXValue);
-  }
-  if (isDefaultValue(m_maxXValue) == false)
-  {
-    bOk &= config->Write(ENTRY_MAXXVALUE, m_maxXValue);
-  }
-
-  if (isDefaultValue(m_minYValue) == false)
-  {
-    bOk &= config->Write(ENTRY_MINYVALUE, m_minYValue);
-  }
-  if (isDefaultValue(m_maxYValue) == false)
-  {
-    bOk &= config->Write(ENTRY_MAXYVALUE, m_maxYValue);
-  }
-
-  std::string valueString = m_zoom.GetAsText(CDisplay::m_zoomDelimiter).c_str();
-  bOk &= config->Write(ENTRY_ZOOM, valueString);
-
-  // the entry ENTRY_OUTPUT  is not used any more
-  //bOk &= config->Write(ENTRY_OUTPUT, GetOutputName());
-
-
-  // Warning after formulas Load config conig path has changed
-  m_data.SaveConfig(config, wksd, GetName() );
-
-  return bOk;
-
-
+	return !config || config->SaveConfig( *this, wksd );
 }
 //----------------------------------------
 bool CDisplay::LoadConfig( CConfiguration *config, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
 {
-	if ( config == nullptr )
-		return true;
-
-	config->SetPath( "/" + m_name );
-
-	std::string
-	valueString = config->Read( ENTRY_TYPE, CMapTypeDisp::GetInstance().IdToName( m_type ) );
-	if ( valueString.empty() )
-	{
-		m_type = -1;
-	}
-	else
-	{
-		m_type = CMapTypeDisp::GetInstance().NameToId( valueString );
-	}
-
-	m_title = config->Read( ENTRY_TITLE );
-	config->Read( ENTRY_ANIMATION, &m_withAnimation, false );
-	m_projection = config->Read( ENTRY_PROJECTION, "3D" );
-
-	config->Read( ENTRY_MINXVALUE, &m_minXValue, CTools::m_defaultValueDOUBLE );
-	config->Read( ENTRY_MAXXVALUE, &m_maxXValue, CTools::m_defaultValueDOUBLE );
-
-	config->Read( ENTRY_MINYVALUE, &m_minYValue, CTools::m_defaultValueDOUBLE );
-	config->Read( ENTRY_MAXYVALUE, &m_maxYValue, CTools::m_defaultValueDOUBLE );
-
-	valueString = config->Read( ENTRY_ZOOM );
-	m_zoom.Set( (const char *)valueString.c_str(), CDisplay::m_zoomDelimiter );
-
-	// the entry ENTRY_OUTPUT  is not used any more
-	//  valueString = config->Read(ENTRY_OUTPUT);
-	//  if (valueString.empty() == false)
-	//  {
-	//    SetOutput(valueString);
-	//  }
-
-	InitOutput( wksd );
-
-	m_data.LoadConfig( config, errorMsg, wksd, wkso, GetName() );
-
-	return true;
+	return !config || config->LoadConfig( *this, errorMsg, wksd, wkso );
 }
 
 //----------------------------------------

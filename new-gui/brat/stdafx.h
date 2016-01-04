@@ -85,6 +85,9 @@
 #include <qgslayertreemodel.h>
 #include <qgslayertreegroup.h>
 
+#include "qgscollapsiblegroupbox.h"
+
+
 
 #if defined (WIN32) || defined(_WIN32)
 #pragma warning ( default: 4100 )           //unreferenced formal parameter

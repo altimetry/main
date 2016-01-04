@@ -6,6 +6,7 @@
 	#include <QtPrintSupport/QPrintPreviewDialog>
 #endif
 
+#include "new-gui/Common/QtUtilsIO.h"
 #include "TextWidget.h"
 
 

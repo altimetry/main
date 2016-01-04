@@ -20,7 +20,7 @@
 #include "new-gui/Common/tools/Trace.h"
 #include "new-gui/Common/tools/Exception.h"
 
-#include "brathl.h"
+#include "libbrathl/brathl.h"
 #include "new-gui/brat/Display/BitSet32.h"
 
 #include "Operation.h"
@@ -65,11 +65,9 @@ std::string CWorkspace::GetRootKey()
 //----------------------------------------
 bool CWorkspace::DeleteConfigFile()
 {
-	bool bOk = m_config->DeleteAll();
-
+	m_config->Clear();
 	InitConfig();
-
-	return bOk;
+	return true;
 }
 //----------------------------------------
 void CWorkspace::InitConfig()
@@ -92,7 +90,7 @@ bool CWorkspace::SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, C
 	bool bOk = DeleteConfigFile() && SaveCommonConfig();
 
 	if ( flush )
-		m_config->Flush();
+		m_config->Sync();
 
 	return bOk;
 }
@@ -264,7 +262,7 @@ bool CWorkspaceDataset::SaveConfig( std::string &errorMsg, CWorkspaceOperation *
 	bool bOk = DeleteConfigFile() && SaveCommonConfig() && SaveConfigDataset( errorMsg );
 
 	if ( flush )
-		m_config->Flush();
+		m_config->Sync();
 
 	return bOk;
 }
@@ -277,7 +275,7 @@ bool CWorkspaceDataset::SaveConfigDataset( std::string &errorMsg )
 //----------------------------------------
 bool CWorkspaceDataset::LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
 {
-    UNUSED( errorMsg );		     UNUSED( wks );        UNUSED( wksd );          UNUSED( wkso );
+    UNUSED( wks );        UNUSED( wksd );          UNUSED( wkso );
 
 	return m_config && LoadCommonConfig() && LoadConfigDataset( errorMsg );
 }
@@ -559,7 +557,7 @@ bool CWorkspaceFormula::SaveConfig( std::string &errorMsg, CWorkspaceOperation *
 	bool bOk = DeleteConfigFile() && SaveCommonConfig() && SaveConfigFormula();
 
 	if ( flush )
-		m_config->Flush();
+		m_config->Sync();
 
 	return bOk;
 }
@@ -588,7 +586,9 @@ bool CWorkspaceFormula::SaveConfigPredefinedFormula()
 	//CConfiguration config( formulaPath.GetFullPath().ToStdString() );
 	CConfiguration config( CTools::GetDataDir() + "/" + CMapFormula::m_predefFormulaFile );
 
-	return config.DeleteAll() && m_formulas.SaveConfig( &config, true );
+	config.Clear();
+
+	return m_formulas.SaveConfig( &config, true );
 }
 //----------------------------------------
 bool CWorkspaceFormula::LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
@@ -704,7 +704,7 @@ bool CWorkspaceOperation::SaveConfig( std::string &errorMsg, CWorkspaceOperation
 	bool bOk = DeleteConfigFile() && SaveCommonConfig() && SaveConfigOperation( errorMsg );
 
 	if ( flush )
-		m_config->Flush();
+		m_config->Sync();
 
 	return bOk;
 }
@@ -975,7 +975,7 @@ bool CWorkspaceDisplay::SaveConfig( std::string &errorMsg, CWorkspaceOperation *
 	bool bOk = DeleteConfigFile() && SaveCommonConfig() && SaveConfigDisplay( errorMsg, wksd );
 
 	if ( flush )
-		m_config->Flush();
+		m_config->Sync();
 
 	return bOk;
 }

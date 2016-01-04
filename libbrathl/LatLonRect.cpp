@@ -140,7 +140,7 @@ void CLatLonRect::GetAsString(CStringArray& array) const
   array.Insert(CTools::Format(30, FORMAT_FLOAT_LATLON.c_str(), m_upperRight.GetLongitude()));
 }
 //-------------------------------------------------------------
-std::string CLatLonRect::GetAsText(const std::string& delimiter /* = CLatLonRect::m_delimiter*/)
+std::string CLatLonRect::GetAsText(const std::string& delimiter /* = CLatLonRect::m_delimiter*/) const
 {
   std::string format = FORMAT_FLOAT_LATLON;
   format.append(delimiter);

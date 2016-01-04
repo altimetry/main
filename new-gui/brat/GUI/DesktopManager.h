@@ -10,6 +10,7 @@
 #include "new-gui/brat/Views/MapWidget.h"
 #include "new-gui/brat/GUI/DisplayEditor.h"
 
+
 class CTabbedDock;
 
 using desktop_manager_base_t = QWidget;
@@ -33,12 +34,13 @@ protected:
 	//data
 
 	CMapWidget *mMap = nullptr;
+	CTabbedDock *mMapDock = nullptr;
 
 protected:
 
-	//ctors/dtor
+	// construction / destruction
 
-	CAbstractDesktopManager( QMainWindow *const parent = nullptr, Qt::WindowFlags f = 0 )
+	CAbstractDesktopManager( QMainWindow *const parent, Qt::WindowFlags f = 0 )
 		: base_t( parent, f )
 	{
 		setAttribute( Qt::WA_DeleteOnClose );
@@ -66,7 +68,14 @@ public:
 	}
 
 
+	// access
+
 	CMapWidget* Map() { return mMap; }
+
+	CTabbedDock* MapDock() { return mMapDock; }
+
+
+	// operations
 
 public:
 	virtual desktop_child_t* AddSubWindow( QWidget *widget, Qt::WindowFlags flags = 0 ) = 0;
@@ -104,6 +113,16 @@ public:
 		: base_t( parent, f )
 	{
 		setAttribute( Qt::WA_DeleteOnClose );
+
+#if defined (_WIN32) || defined (WIN32)
+		// Show maximize button in windows
+		// If this is set in linux, it will not center the dialog over parent
+		setWindowFlags( ( windowFlags() & ~Qt::Dialog ) | Qt::Window | Qt::WindowMaximizeButtonHint );
+#elif defined (Q_OS_MAC)
+		// Qt::WindowStaysOnTopHint also works (too weel: stays on top of other apps also). Without this, we have the mac MDI mess...
+		setWindowFlags( ( windowFlags() & ~Qt::Dialog ) | Qt::Tool );
+#endif
+
 	}
 
 	virtual ~CSubWindow()
@@ -125,7 +144,7 @@ signals:
 
 
 
-class CDesktopManager : public CAbstractDesktopManager< CSubWindow >
+class CDesktopManagerSDI : public CAbstractDesktopManager< CSubWindow >
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
@@ -149,66 +168,13 @@ protected:
 public:
 	//ctor/dtor
 
-	CDesktopManager( QMainWindow *parent = nullptr )
-		: base_t( parent )
-	{
-        QLayout *l = createLayout( this, Qt::Horizontal, 6, 11, 11, 11, 11 );
-        l->addWidget( mMap );
-	}
+	CDesktopManagerSDI( QMainWindow *parent );
 
-	virtual ~CDesktopManager()
+	virtual ~CDesktopManagerSDI()
 	{}
 
 public:
-    inline QWidget* CenterOnWidget( QWidget *const w, const QWidget *const parent )
-    {
-//        auto r = QStyle::alignedRect( Qt::LeftToRight, Qt::AlignCenter, w->size(), parent->geometry() );
-//        r.moveCenter(parent->geometry().center());
-//        w->setGeometry(r);
-//        return w;
-        //return CenterOnRect( w, qApp->desktop()->availableGeometry(parent) ) ;
-
-        //return CenterOnRect( w, parent->geometry() )  ;
-        //w->move( QApplication::desktop()->screen()->rect().center() - w->rect().center() );
-        //w->move( parent->rect().center() - w->rect().center() );
-
-//        w->move(
-//               parent->mapToGlobal( parent->geometry().topLeft() ) +
-//               parent->mapToGlobal( parent->window()->geometry().center() ) - w->mapToGlobal( w->geometry().center() )
-//            );
-
-    //    auto r = QStyle::alignedRect( Qt::LeftToRight, Qt::AlignCenter, w->size(), parent->rect() );
-    //    w->setGeometry( r );
-        //w->setGeometry( QStyle::alignedRect( Qt::LeftToRight, Qt::AlignCenter, w->size(), parent->geometry() ) );
-
-        return w;
-    }
-
-    virtual desktop_child_t* AddSubWindow( QWidget *widget, Qt::WindowFlags flags = 0 ) override
-	{
-        Q_UNUSED( flags);
-
-        desktop_child_t *child = new desktop_child_t( this );
-        SetChildWindowTitle( child, widget );
-
-#if defined (_WIN32) || defined (WIN32)
-		// Show maximize button in windows
-		// If this is set in linux, it will not center the dialog over parent
-        child->setWindowFlags( child->windowFlags() | Qt::Window );
-#elif defined (Q_OS_MAC)
-        // Qt::WindowStaysOnTopHint also works (too weel: stays on top of other apps also). Without this, we have the mac MDI mess...
-        child->setWindowFlags( child->windowFlags() | Qt::Tool );
-#endif
-
-        addWidget( child, widget );
-        widget->setParent( child );
-        CenterOnWidget( child, mMap );
-        //CenterOnScreen( child );
-
-		connect( child, SIGNAL( closed( QWidget* ) ), this, SLOT( SubWindowClosed( QWidget* ) ) );
-		mSubWindows.push_back( child );
-		return child;
-	}
+	virtual desktop_child_t* AddSubWindow( QWidget *widget, Qt::WindowFlags flags = 0 ) override;
 
 	virtual QList<desktop_child_t*> SubWindowList() override
 	{
@@ -224,7 +190,14 @@ public:
 			child->close();
 	}
 
+protected:
+	QWidget* CenterOnWidget( QWidget *const w, const QWidget *const parent );
+
 protected slots:
+	void closeAllSubWindows()
+	{
+		CloseAllSubWindows();
+	}
 
 	void SubWindowClosed( QWidget *emitter )
 	{
@@ -269,12 +242,11 @@ protected:
 
 private:
 	QMdiArea *mMdiArea = nullptr;
-	CTabbedDock *mMapDock = nullptr;
 
 public:
 	//ctor/dtor
 
-	CDesktopManagerMDI( QMainWindow *parent = nullptr );
+	CDesktopManagerMDI( QMainWindow *parent );
 
 	virtual ~CDesktopManagerMDI()
 	{}
@@ -301,6 +273,20 @@ public:
 
 
 
+
+/////////////////////////////////////////////////////////////////////////////////////
+//					Default Application Desktop Type
+/////////////////////////////////////////////////////////////////////////////////////
+
+
+#define BRAT_COMMON_DESKTOP
+
+
+#if defined(Q_OS_MACX) || defined(BRAT_COMMON_DESKTOP)
+    using desktop_manager_t = CDesktopManagerSDI;
+#else
+    using desktop_manager_t = CDesktopManagerMDI;
+#endif
 
 
 

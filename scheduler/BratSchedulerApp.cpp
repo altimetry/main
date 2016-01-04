@@ -48,6 +48,7 @@
 #include <wx/mimetype.h>
 #include <wx/ffile.h>
 
+#include "new-gui/Common/ConfigurationKeywords.h"
 #include "new-gui/Common/tools/Trace.h"
 #include "List.h"
 #include "Tools.h"
@@ -72,9 +73,9 @@ const std::string BRATHL_ICON_FILENAME = "BratIcon.bmp";
 #endif
 
 const wxString BRATGUI_APPNAME = "BratGui";
-const wxString GROUP_COMMON = "Common";
-const wxString ENTRY_USER_MANUAL = "UserManual";
-const wxString ENTRY_USER_MANUAL_VIEWER = "UserManualViewer";
+//const wxString GROUP_COMMON = "Common";
+//const wxString ENTRY_USER_MANUAL = "UserManual";
+//const wxString ENTRY_USER_MANUAL_VIEWER = "UserManualViewer";
 
 const int32_t CBratSchedulerApp::m_SCHEDULER_TIMER_INTERVAL = 30000;
 const int32_t CBratSchedulerApp::m_CHECK_CONFIGFILE_TIMER_INTERVAL = 5000;

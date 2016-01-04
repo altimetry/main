@@ -5,8 +5,7 @@
 #include <QDesktopWidget>
 
 #include "new-gui/QtInterface.h"
-#include "new-gui/Common/QtUtils.h"
-#include "new-gui/Common/QtFileUtils.h"
+#include "new-gui/Common/QtUtilsIO.h"
 
 #include "Workspaces/Dataset.h"
 #include "BratApplication.h"
@@ -47,28 +46,132 @@
 
 #include "GUI/DisplayEditor.h"
 #include "GUI/DesktopManager.h"
+#include "GUI/norwegianwoodstyle.h"
 
 //#define MAP_WIDGET
 //#define GLOBE_WIDGET
 //#define PLOT_2D_WIDGET
 //#define PLOT_3D_WIDGET
 //#define DISPLAY_EDITORS
-#define DESKTOP_MANAGERS
+//#define DESKTOP_MANAGERS
+
+
+//void printf_( const char* s )
+//{
+//	while ( s && *s ) 
+//	{
+//		if ( *s == '%' && *++s != '%' )	// make sure that there wasn't meant to be more arguments; %% represents plain % in a format string
+//			throw std::runtime_error( "invalid format: missing arguments" );
+//
+//		qDebug() << *s++;
+//	}
+//}
+//
+//template<typename T, typename... Args>				// note the "..."
+//void printf_( const char* s, T value, Args... args )	// note the "..."
+//{
+//	while ( s && *s ) 
+//	{
+//		if ( *s == '%' && *++s != '%' ) 	// a format specifier (ignore which one it is)
+//		{
+//			qDebug() << value;				// use first non-format argument
+//			printf_( ++s, args... ); 		// ``peel off'' first argument
+//			return;
+//		}
+//		qDebug() << *s++;
+//	}
+//	throw std::runtime_error( "extra arguments provided to printf" );
+//}
+//
+//
+//#define kv std::make_pair
+//
+////template< typename... Types >
+////using ttt = std::pair< std::string, Types... >;
+//
+//template< typename T >
+//T t2q( T &a )
+//{
+//	return a;
+//}
+//
+//bool WriteIni( int settings )
+//{
+//	return settings > 0;
+//}
+//template< typename T, typename... Types >
+//bool WriteIni( int settings, const kv_t< T > &first, Types... args )
+//{
+//	//if( sizeof...( args ) == 0 )
+//	//	return settings > 0;
+//
+//	qDebug() << first.first.c_str();
+//	qDebug() << t2q( first.second );
+//	return WriteIni( settings, args... );
+//}
+
+void f( kv_t< bool& > k )
+{
+	k.second = false;
+}
 
 
 int main( int argc, char *argv[] )
 {
-    CBratApplication a(argc, argv, true);
+	//bool is = true;
+	//kv_t< bool& > k = kv_t<bool&>( std::string(""), is );
+	//f( k );
+	//std::cout << k.first << std::endl;
+	//std::cout << k.second << std::endl;
+
+	//return 0;
+
+
+	//auto a1 = kv_t< int >( "1", 14 );
+	//auto a2 = kv_t< char >( "2", '1' );
+	//auto a3 = kv_t< std::string >( "3", "rabbits" );
+
+	//if ( !WriteIni( 
+	//	13, 
+	//	kv( std::string("1"), 14 ),
+	//	kv( std::string("2"), '1' ),
+	//	kv( std::string("3"), "rabbits" )
+	//	) )
+	////if ( !WriteIni< int, std::pair<std::string, int > >( 
+	////	13, 
+	////	{ std::string("picas"), 56 }, 
+	////	{ std::string("pocas"), 9.0 }, 
+	////	{ std::string("pucas"), 'c' }, 
+	////	{ std::string("pacas"), "conch" } 
+	////	) )
+	//	throw std::runtime_error( "WriteIni returned false" );
+
+	//printf_("fesm %d %s %g", 456, "countable", 3.14 );
+
+	//return 0;
+
+	//QCoreApplication::setOrganizationName( "ESA" );
+	////QCoreApplication::setOrganizationDomain( "mysoft.com" );
+	//QCoreApplication::setApplicationName( "brat" );
+	//QSettings::setDefaultFormat( QSettings::IniFormat );
+	//QSettings settings;
+	//qDebug() << settings.format();
+	//qDebug() << settings.fileName();
+	//return 0;
+
+
+    CBratApplication a( argc, argv, true );
+	//QApplication::setStyle(new NorwegianWoodStyle);		//joke
 
 	//CConfiguration* m_config = new CConfiguration( "L:\\project\\workspaces\\W1\\Datasets\\setup.ini" );
 	//CConfiguration* m_config = new CConfiguration( "L:\\project\\workspaces\\S3A\\Datasets\\setup.ini" );
 	//CDataset *data = new CDataset("Datasets_FM_1");
 	//data->LoadConfig( m_config );
 
-    CBratMainWindow w;
+	CBratMainWindow w( a.Settings() );
 
 	//QMainWindow w;
-	QWidget *central = nullptr;
+    //QWidget *central = nullptr;
 	
 #ifdef MAP_WIDGET
 	// Map Widget
@@ -187,19 +290,19 @@ int main( int argc, char *argv[] )
 
 	//typedef CDesktopManagerMDI manager_t;
 
-	CMapWidget *centralMap = w.mManager->Map();			//new CMapWidget( nullptr );
+    //CMapWidget *centralMap = w.mManager->Map();			//new CMapWidget( nullptr );
 	central = w.mManager;		// new manager_t( /*centralMap, */&w );
 
-	CAbstractDisplayEditor *editors[ 4 ] = { 
-		new CMapEditor( nullptr ), 
+	CAbstractDisplayEditor *editors[ 3 ] = { 
 		new CMapEditor( nullptr ), 
 		new CPlotEditor( nullptr ), 
 		new CPlotEditor( nullptr ) 
+		//new CMapEditor( nullptr ), 
 	};
-	editors[ 0 ]->AddView( new CGlobeWidget( editors[ 0 ], ApplicationDirectories::instance().mGlobeDir, centralMap ) );
-	editors[ 1 ]->AddView( new CMapWidget( editors[ 1 ] ) );
-	editors[ 2 ]->AddView( new C2DPlotWidget( ePlotDefault, editors[ 2 ] ) );
-	editors[ 3 ]->AddView( new C3DPlotWidget( editors[ 3 ] ) );
+	editors[ 0 ]->AddView( new CMapWidget( editors[ 0 ] ) );
+	editors[ 1 ]->AddView( new C2DPlotWidget( ePlotDefault, editors[ 1 ] ) );
+	editors[ 2 ]->AddView( new C3DPlotWidget( editors[ 2 ] ) );
+	//editors[ 3 ]->AddView( new CGlobeWidget( editors[ 3 ], ApplicationDirectories::instance().mGlobeDir, centralMap ) );
 	for ( auto ed : editors )
 	{
 		auto subWindow = qobject_cast<decltype( w.mManager )>( central )->AddSubWindow( ed );

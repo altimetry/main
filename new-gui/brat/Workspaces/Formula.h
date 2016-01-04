@@ -20,11 +20,11 @@
 
 #include "new-gui/QtInterface.h"
 
-#include "brathl.h"
+#include "libbrathl/brathl.h"
 
-#include "List.h"
-#include "Unit.h"
-#include "Date.h"
+#include "libbrathl/List.h"
+#include "libbrathl/Unit.h"
+#include "libbrathl/Date.h"
 
 
 using namespace brathl;
@@ -313,6 +313,13 @@ class CWorkspaceFormula;
 
 class CFormula : public CBratObject
 {
+	friend class CConfiguration;
+	friend class CWorkspaceSettings;
+	
+	static const std::string DEFAULT_STEP_LATLON_ASSTRING;
+	static const std::string DEFAULT_STEP_TIME_ASSTRING; 
+	static const std::string DEFAULT_STEP_GENERAL_ASSTRING;
+
 protected:
 
 	std::string m_name;
@@ -389,14 +396,14 @@ public:
 
 	std::string GetAlias();
 
-	std::string GetComment( bool removeCRLF = false );
+	std::string GetComment( bool removeCRLF = false ) const ;
 	void SetComment( const std::string& value ) { m_comment = value; };
 
 	bool IsPredefined() const { return m_predefined; };
 	void SetPredefined( bool value ) { m_predefined = value; };
 
 	bool LoadConfig( CConfiguration *config );
-	bool LoadConfig( CConfiguration *config, std::string &errorMsg, const std::string& pathSuff );
+	bool LoadConfig( CWorkspaceSettings *config, std::string &errorMsg, const std::string& pathSuff );
 	bool LoadConfigDesc( CConfiguration *config, const std::string& path );
 
 	bool SaveConfig( CConfiguration *config );
@@ -406,7 +413,7 @@ public:
 
 	bool SaveConfigPredefined( CConfiguration *config, const std::string& pathSuff );
 
-	std::string GetFilterAsString() { return CMapTypeFilter::GetInstance().IdToName( m_filter ); };
+	std::string GetFilterAsString() const { return CMapTypeFilter::GetInstance().IdToName( m_filter ); };
 	int32_t GetFilter() { return m_filter; };
 	void SetFilter( int32_t value ) { m_filter = value; };
 
@@ -421,8 +428,8 @@ public:
 
 	void SetMinValueDefault() { setDefaultValue( m_minValue ); };
 
-	std::string GetMinValueAsDateString() { return GetAsDateString( m_minValue); }
-	std::string GetMaxValueAsDateString() {  return GetAsDateString( m_maxValue); }
+	std::string GetMinValueAsDateString() const { return GetAsDateString( m_minValue); }
+	std::string GetMaxValueAsDateString() const {  return GetAsDateString( m_maxValue); }
 
 	std::string GetValueAsString( double value );
 	std::string GetFormatString();
@@ -453,12 +460,12 @@ public:
 
 	void SetLoessCutOffDefault() { setDefaultValue( m_loessCutOff ); };
 
-	std::string GetTypeAsString() { return CMapTypeField::GetInstance().IdToName( m_type ); };
+	std::string GetTypeAsString() const { return CMapTypeField::GetInstance().IdToName( m_type ); };
 	int32_t GetType() const { return m_type; };
 	void SetType( int32_t value ) { m_type = value; };
 
-	std::string GetDataTypeAsString() { return CMapTypeData::GetInstance().IdToName( m_dataType ); };
-	int32_t GetDataType() { return m_dataType; };
+	std::string GetDataTypeAsString() const { return CMapTypeData::GetInstance().IdToName( m_dataType ); };
+	int32_t GetDataType() const { return m_dataType; };
 	void SetDataType( int32_t value ) { m_dataType = value; };
 	void SetDataType( int32_t typeField, const CUnit& unit, CProduct* product = NULL );
 
@@ -529,7 +536,7 @@ public:
 	bool IsLatLonDataType();
 
 	bool IsXYLatLon();
-	bool IsTimeDataType();
+	bool IsTimeDataType() const;
 	bool IsXYTime();
 
 	std::string GetFieldPrefix();
@@ -556,7 +563,7 @@ public:
 
 	static std::string GetAsDateString( double seconds );
 
-	std::string GetDataModeAsString() { return CMapDataMode::GetInstance().IdToName( m_dataMode ); };
+	std::string GetDataModeAsString() const { return CMapDataMode::GetInstance().IdToName( m_dataMode ); };
 	int32_t GetDataMode() { return m_dataMode; };
 	void SetDataMode( int32_t value ) { m_dataMode = value; };
 
@@ -667,7 +674,7 @@ public:
 	bool LoadConfig( std::string &errorMsg, bool predefined );
 	bool LoadConfig( CConfiguration *config, std::string &errorMsg, bool predefined, const std::string& pathSuff = "" );
 
-	bool SaveConfig( CConfiguration *config, bool predefined, const std::string& pathSuff = "" );
+	bool SaveConfig( CConfiguration *config, bool predefined, const std::string& pathSuff = "" ) const;
 };
 
 

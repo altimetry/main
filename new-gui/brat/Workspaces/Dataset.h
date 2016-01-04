@@ -25,6 +25,8 @@
 #include "libbrathl/Product.h"
 
 
+
+
 class CDataset : public CBratObject
 {
 protected:
@@ -75,7 +77,7 @@ public:
 //	bool SaveConfigSpecificUnit( CConfiguration* config, const std::string& entry );
 
 public:
-	bool LoadConfig( CConfiguration* config );
+	bool LoadConfig( CWorkspaceSettings *config );
 
 	CProduct* SetProduct( const std::string& fileName );
 	CProduct* SetProduct();

@@ -34,7 +34,10 @@ inline std::string q2a( const QString qs )
 }
 
 template< typename STRING >
-STRING q2t( const QString &str );
+STRING q2t( const QString &str )
+{
+	return str;
+}
 
 template<>
 inline std::string q2t( const QString &str )

@@ -16,6 +16,8 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 #include "new-gui/brat/stdafx.h"
+#include "new-gui/Common/ConfigurationKeywords.h"
+#include "new-gui/brat/ApplicationSettings.h"
 #include "display/wxInterface.h"
 
 // For compilers that support precompilation
@@ -149,6 +151,10 @@ std::string CBratGuiApp::GetWorkspaceKey( const std::string& subKey )
 	return wks->GetKey() + CWorkspace::m_keyDelimiter + subKey;
 }
 
+
+#define NEW_CONFIGURATION_STUFF
+
+
 //----------------------------------------
 bool CBratGuiApp::OnInit()
 {
@@ -229,16 +235,15 @@ bool CBratGuiApp::OnInit()
   CProduct::CodaInit();
   //CProduct::SetCodaReleaseWhenDestroy(false);
 
-  m_config = new wxFileConfig(wxGetApp().GetAppName(), wxEmptyString, wxEmptyString, wxEmptyString, wxCONFIG_USE_LOCAL_FILE);
-
-
   try {
-    LoadConfig();
+	  m_config = new wxFileConfig( wxGetApp().GetAppName(), wxEmptyString, wxEmptyString, wxEmptyString, wxCONFIG_USE_LOCAL_FILE );
+
+	  LoadConfig();
   }
-  catch(CException &e) {
-    wxMessageBox(wxString::Format("An error occured while loading Brat configuration (CBratGui::LoadConfig)\nNavive std::exception: %s", e.what()),
-		 "Warning",
-		 wxOK | wxCENTRE | wxICON_EXCLAMATION);
+  catch ( CException &e ) {
+	  wxMessageBox( wxString::Format( "An error occured while loading Brat configuration (CBratGui::LoadConfig)\nNavive std::exception: %s", e.what() ),
+		  "Warning",
+		  wxOK | wxCENTRE | wxICON_EXCLAMATION );
   }
 
 
@@ -278,19 +283,22 @@ bool CBratGuiApp::OnInit()
 //----------------------------------------
 int CBratGuiApp::OnExit()
 {
+	assert__( m_config == NULL || mAppSettings == NULL );
 
-  if (m_config != NULL)
-  {
-    SaveConfig();
-    delete m_config;
-    m_config = NULL;
-  }
+	if ( m_config != NULL || mAppSettings != NULL )
+	{
+		SaveConfig();
+		delete m_config;
+		delete mAppSettings;
+		m_config = NULL;
+		mAppSettings = NULL;
+	}
 
-  m_tree.DeleteTree();
+	m_tree.DeleteTree();
 
-  CProduct::CodaRelease();
+	CProduct::CodaRelease();
 
-  return 0;
+	return 0;
 }
 //----------------------------------------
 bool CBratGuiApp::RemoveFile(const wxString& name)
@@ -572,27 +580,51 @@ void CBratGuiApp::ViewUserManual()
 
 };
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//	CONFIGURATION
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 //----------------------------------------
-bool CBratGuiApp::SaveConfig(bool flush)
+bool CBratGuiApp::SaveConfig( bool flush )
 {
+
+#if defined( NEW_CONFIGURATION_STUFF)
+
+	assert__( !m_config && mAppSettings );
+
+  //m_lastWksPath.Empty();
+
+	CWorkspace* wks = GetCurrentWorkspace();
+	if ( wks != NULL )
+		m_lastWksPath = wks->GetPath();
+
+	mAppSettings->m_userManual = m_userManual;
+	mAppSettings->m_userManualViewer = m_userManualViewer;
+	mAppSettings->m_lastDataPath = m_lastDataPath;
+	mAppSettings->m_lastPageReached = m_lastPageReached;
+	mAppSettings->m_lastWksPath = m_lastWksPath;
+	mAppSettings->m_lastColorTable = m_lastColorTable;
+
+	bool result = mAppSettings->SaveConfig( wks );
+
+	if (flush)
+		mAppSettings->Sync();
+
+	return result;
+
+#else
+
+	assert__( m_config && !mAppSettings );
+
   bool bOk = true;
-  if (m_config == NULL)
-  {
-    return bOk;
-  }
+  //if (m_config == NULL)
+  //{
+  //  return bOk;
+  //}
 
-  m_lastWksPath.Empty();
-
-  CWorkspace* wks = GetCurrentWorkspace();
-
-  if (wks != NULL)
-  {
-    m_lastWksPath = wks->GetPath();
-  }
-
-  //------------------------------------
+  ////------------------------------------
   m_config->SetPath("/" + GROUP_COMMON);
-  //------------------------------------
+  ////------------------------------------
 
   bOk &= m_config->Write(ENTRY_USER_MANUAL, m_userManual);
   if (!m_userManualViewer.IsEmpty())
@@ -603,9 +635,9 @@ bool CBratGuiApp::SaveConfig(bool flush)
   bOk &= m_config->Write(ENTRY_LAST_PAGE_REACHED, m_lastPageReached);
   
 
-  //------------------------------------
+  ////------------------------------------
   m_config->SetPath("/" + GROUP_WKS);
-  //------------------------------------
+  ////------------------------------------
   bOk &= m_config->Write(ENTRY_LAST, m_lastWksPath);
 
   if (m_lastColorTable.IsEmpty() == false)
@@ -626,25 +658,59 @@ bool CBratGuiApp::SaveConfig(bool flush)
 
   return bOk;
 
+#endif
+}
+
+void CBratGuiApp::SaveFileHistory( const std::vector<std::string> &v )
+{
+#if defined( NEW_CONFIGURATION_STUFF )
+	assert__( !m_config && mAppSettings );
+
+	mAppSettings->SaveRecentFiles( v );
+
+	mAppSettings->Sync();
+
+#else
+	assert__( m_config && !mAppSettings );
+
+	auto brathlFmtEntryRecentWksMacro = []( int index ) ->std::string
+	{
+		return GROUP_WKS_RECENT + "/" + KEY_WKS_RECENT + n2s<std::string>( index );
+	};
+
+	m_config->SetPath( "/" );
+
+	const size_t size = v.size();
+	for ( size_t i = 0; i < size; ++i )
+	{
+		m_config->Write( brathlFmtEntryRecentWksMacro( i ), v[ i ].c_str() );
+	}
+
+	m_config->Flush();
+#endif
+
 }
 
 //----------------------------------------
 bool CBratGuiApp::SaveConfigSelectionCriteria(bool flush)
 {
+	assert__( m_config && !mAppSettings );
+
     UNUSED(flush);
 
   bool bOk = true;
-  if (m_config == NULL)
-  {
-    return bOk;
-  }
+  //if (m_config == NULL)
+  //{
+  //  return bOk;
+  //}
 
+	assert__( m_config );
 
   wxString configPath;
   CMapProduct& mapProductInstance = CMapProduct::GetInstance();
 
   CObMap::iterator it;
-  for (it = mapProductInstance.begin() ; it != mapProductInstance.end() ; it++)
+  for ( it = mapProductInstance.begin(); it != mapProductInstance.end() ; it++ )
   {
     CProduct* product = dynamic_cast<CProduct*>(it->second);
     if (product == NULL)
@@ -656,10 +722,12 @@ bool CBratGuiApp::SaveConfigSelectionCriteria(bool flush)
       continue;
     }
 
-    configPath.Empty();
-    configPath.Append("/");
-    configPath.Append(GROUP_SEL_CRITERIA);
-    configPath.Append(product->GetLabel().c_str());
+    //configPath.Empty();
+    //configPath.Append("/");
+    //configPath.Append(GROUP_SEL_CRITERIA);
+    //configPath.Append(product->GetLabel().c_str());
+
+	configPath = BuildComposedKey( { "/", GROUP_SEL_CRITERIA, product->GetLabel() } ).c_str();
 
     wxString value;
 
@@ -700,41 +768,106 @@ bool CBratGuiApp::SaveConfigSelectionCriteria(bool flush)
 //----------------------------------------
 bool CBratGuiApp::LoadConfig()
 {
-  bool bOk = true;
-  if (m_config == NULL)
+	assert__( m_config && !mAppSettings );
+
+	mAppSettings = new CApplicationSettings( m_config->GetLocalFile( wxGetApp().GetAppName() ).GetFullPath().ToStdString() );
+
+#if defined(NEW_CONFIGURATION_STUFF)
+
+	delete m_config;
+	m_config = nullptr;
+	if ( !mAppSettings->LoadConfig() )
+		throw CException( "Unable to create new configuration type", BRATHL_LOGIC_ERROR );
+
+	m_userManual = mAppSettings->m_userManual;
+	m_userManualViewer = mAppSettings->m_userManualViewer;
+	m_lastDataPath = mAppSettings->m_lastDataPath;
+	m_lastPageReached = mAppSettings->m_lastPageReached;
+
+	m_lastWksPath = mAppSettings->m_lastWksPath;
+
+	m_lastColorTable = mAppSettings->m_lastColorTable;
+
+	return true;
+
+#else
+	delete mAppSettings;
+	mAppSettings = nullptr;
+	if ( !bOk )
+		return false;
+
+	//if ( m_config == NULL )		//???femm
+	//	return bOk;
+
+	assert__( m_config );
+
+	m_config->SetPath( "/" + GROUP_COMMON );
+
+	bOk &= m_config->Read( ENTRY_USER_MANUAL, &m_userManual );
+	bOk &= m_config->Read( ENTRY_USER_MANUAL_VIEWER, &m_userManualViewer );
+	bOk &= m_config->Read( ENTRY_LAST_DATA_PATH, &m_lastDataPath );
+	bOk &= m_config->Read( ENTRY_LAST_PAGE_REACHED, &m_lastPageReached, DATASETS_PAGE_NAME );
+
+	m_config->SetPath( "/" + GROUP_WKS );
+
+	bOk &= m_config->Read( ENTRY_LAST, &m_lastWksPath );
+
+	m_config->SetPath( "/" + GROUP_COLORTABLE );
+
+	bOk &= m_config->Read( ENTRY_LAST, &m_lastColorTable );
+
+	bOk &= LoadConfigSelectionCriteria();
+
+	return bOk;
+#endif
+}
+
+void CBratGuiApp::LoadFileHistory( std::vector<std::string> &v)
+{
+#if defined( NEW_CONFIGURATION_STUFF )
+	assert__( !m_config && mAppSettings );
+
+	mAppSettings->LoadRecentFiles( v );
+
+#else
+	assert__( m_config && !mAppSettings );
+
+  m_config->SetPath("/" + GROUP_WKS_RECENT);
+
+  long maxEntries = m_config->GetNumberOfEntries();
+  bool bOk = false;
+  wxString entry;
+  wxString valueString;
+  long i = 0;
+
+  do
   {
-    return bOk;
+    bOk = m_config->GetNextEntry(entry, i);
+    if (bOk)
+    {
+      valueString = m_config->Read(entry);
+	  v.push_back( valueString.ToStdString() );		// AddWorkspaceToHistory( valueString );
+    }
   }
+  while (bOk);
 
-  m_config->SetPath("/" + GROUP_COMMON);
+  assert__( v.size() == maxEntries );
 
-  bOk &= m_config->Read(ENTRY_USER_MANUAL, &m_userManual);
-  bOk &= m_config->Read(ENTRY_USER_MANUAL_VIEWER, &m_userManualViewer);
-  bOk &= m_config->Read(ENTRY_LAST_DATA_PATH, &m_lastDataPath);
-  bOk &= m_config->Read(ENTRY_LAST_PAGE_REACHED, &m_lastPageReached, DATASETS_PAGE_NAME);
-
-  m_config->SetPath("/" + GROUP_WKS);
-
-  bOk &= m_config->Read(ENTRY_LAST, &m_lastWksPath);
-
-  m_config->SetPath("/" + GROUP_COLORTABLE);
-
-  bOk &= m_config->Read(ENTRY_LAST, &m_lastColorTable);
-
-  bOk &= LoadConfigSelectionCriteria();
-
-  return bOk;
-
+  //m_menuBar->Enable(ID_MENU_FILE_RECENT, maxEntries > 0);
+#endif
 }
 
 //----------------------------------------
 bool CBratGuiApp::LoadConfigSelectionCriteria()
 {
+	assert__( m_config && !mAppSettings );
+
   bool bOk = true;
-  if (m_config == NULL)
-  {
-    return bOk;
-  }
+  //if (m_config == NULL)
+  //{
+  //  return bOk;
+  //}
+	assert__( m_config );
 
 
   try {
@@ -757,10 +890,12 @@ bool CBratGuiApp::LoadConfigSelectionCriteria()
         continue;
       }
 
-      configPath.Empty();
-      configPath.Append("/");
-      configPath.Append(GROUP_SEL_CRITERIA);
-      configPath.Append(product->GetLabel().c_str());
+      //configPath.Empty();
+      //configPath.Append("/");
+      //configPath.Append(GROUP_SEL_CRITERIA);
+      //configPath.Append(product->GetLabel().c_str());
+
+	  configPath = BuildComposedKey( { "/", GROUP_SEL_CRITERIA, product->GetLabel() } ).c_str();
 
       wxString value;
 
@@ -818,6 +953,9 @@ bool CBratGuiApp::LoadConfigSelectionCriteria()
   return bOk;
 
 }
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//	CONFIGURATION - end
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //----------------------------------------
 void CBratGuiApp::CreateTree(CWorkspace* root)
 {

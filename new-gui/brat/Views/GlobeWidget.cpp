@@ -52,12 +52,9 @@ CGlobeWidget::CGlobeWidget( QWidget *parent, const std::string &globeDir, QgsMap
 		//}
 		mGlobeViewerWidget->setFormat( glf );
 	}
-	QHBoxLayout *hl = new QHBoxLayout( this );
-	hl->addWidget( mGlobeViewerWidget );
-	setLayout( hl );
+	AddWidget( this, mGlobeViewerWidget );
 
 	setMinimumSize( min_globe_widget_width, min_globe_widget_height );
-	//setVisible( true );
 }
 
 

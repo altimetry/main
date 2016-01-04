@@ -34,6 +34,19 @@ using namespace brathl;
 #include "FieldsTreeCtrl.h"
 #include "OperationTreeCtrl.h"
 
+
+
+
+
+const wxString INSERT_FIELD_MENU_LABEL = "Insert '%s' f&ield as a new expression";
+const wxString INSERT_FIELD_MENU_LABEL2 = "Insert '%s' f&ield into expression";
+const wxString DELETE_EXPR_MENU_LABEL = "&Delete '%s' expression";
+const wxString RENAME_EXPR_MENU_LABEL = "&Rename '%s' expression";
+
+
+
+
+
 // WDR: class implementations
 
 //----------------------------------------------------------------------------

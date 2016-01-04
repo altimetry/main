@@ -48,6 +48,10 @@
 // Needs to be included after all #include commands
 #include "Win32MemLeaksAccurate.h"
 
+
+const std::string LOG_PAGE_NAME = "Logs";
+
+
 // WDR: class implementations
 
 //----------------------------------------------------------------------------

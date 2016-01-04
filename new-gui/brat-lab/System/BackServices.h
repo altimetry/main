@@ -4,6 +4,7 @@
 #include <QtGui>
 
 #include "new-gui/Common/QtUtils.h"
+#include "new-gui/Common/QtUtilsIO.h"
 
 
 ////////////////////////////////////////////////////////////////

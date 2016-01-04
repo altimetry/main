@@ -30,25 +30,12 @@
    </property>
    <widget class="QMenu" name="menu_File">
     <property name="title">
-     <string>&amp;File</string>
+     <string>Work&amp;space</string>
     </property>
-    <widget class="QMenu" name="menuNew_Plot">
-     <property name="title">
-      <string>New Plot</string>
-     </property>
-     <addaction name="action_Plot_2D"/>
-     <addaction name="action_Plot_3D"/>
-    </widget>
     <addaction name="action_New"/>
-    <addaction name="action_New_Map"/>
-    <addaction name="menuNew_Plot"/>
     <addaction name="action_Open"/>
-    <addaction name="action_Reload"/>
     <addaction name="action_Save"/>
     <addaction name="action_Save_As"/>
-    <addaction name="action_Print"/>
-    <addaction name="action_Print_Preview"/>
-    <addaction name="action_Export_To_PDF"/>
     <addaction name="separator"/>
     <addaction name="action_Exit"/>
    </widget>
@@ -56,13 +43,6 @@
     <property name="title">
      <string>&amp;Edit</string>
     </property>
-    <widget class="QMenu" name="menu_Format">
-     <property name="title">
-      <string>&amp;Format</string>
-     </property>
-     <addaction name="action_Font"/>
-     <addaction name="separator"/>
-    </widget>
     <addaction name="action_Undo"/>
     <addaction name="action_Redo"/>
     <addaction name="separator"/>
@@ -71,11 +51,6 @@
     <addaction name="action_Paste"/>
     <addaction name="action_Delete"/>
     <addaction name="action_Select_All"/>
-    <addaction name="separator"/>
-    <addaction name="menu_Format"/>
-    <addaction name="separator"/>
-    <addaction name="action_Read_Only"/>
-    <addaction name="action_Globe"/>
    </widget>
    <widget class="QMenu" name="menu_Window">
     <property name="title">
@@ -95,18 +70,37 @@
      <string>&amp;Help</string>
     </property>
     <addaction name="action_About"/>
+    <addaction name="separator"/>
+    <addaction name="action_Test"/>
    </widget>
    <widget class="QMenu" name="menu_View">
     <property name="title">
      <string>&amp;View</string>
     </property>
+    <addaction name="action_Zoom_In"/>
+    <addaction name="action_Zom_Out"/>
+    <addaction name="action_Re_center"/>
+    <addaction name="action_Refresh_Map"/>
+    <addaction name="separator"/>
+    <addaction name="action_Graphic_Settings"/>
+    <addaction name="action_Save_Map_Image"/>
+    <addaction name="separator"/>
+    <addaction name="action_Full_Screen"/>
    </widget>
    <widget class="QMenu" name="menu_Tools">
     <property name="title">
      <string>&amp;Tools</string>
     </property>
+    <addaction name="action_One_Click"/>
+    <addaction name="action_Workspace_Tree"/>
+    <addaction name="action_Launch_Scheduler"/>
+    <addaction name="separator"/>
+    <addaction name="action_Dataset"/>
+    <addaction name="action_Filter"/>
+    <addaction name="action_Operations"/>
+    <addaction name="separator"/>
     <addaction name="action_Options"/>
-    <addaction name="mAction_Test"/>
+    <addaction name="separator"/>
    </widget>
    <addaction name="menu_File"/>
    <addaction name="menu_Edit"/>
@@ -132,72 +126,92 @@
     <bool>false</bool>
    </attribute>
    <addaction name="action_New"/>
-   <addaction name="action_New_Map"/>
    <addaction name="action_Open"/>
    <addaction name="action_Save"/>
-   <addaction name="action_Reload"/>
-   <addaction name="action_Close"/>
    <addaction name="separator"/>
-   <addaction name="action_Print"/>
-   <addaction name="action_Print_Preview"/>
-   <addaction name="action_Export_To_PDF"/>
-   <addaction name="separator"/>
-   <addaction name="action_Undo"/>
-   <addaction name="action_Redo"/>
-   <addaction name="action_Cut"/>
-   <addaction name="action_Copy"/>
-   <addaction name="action_Paste"/>
-   <addaction name="action_Delete"/>
+   <addaction name="action_One_Click"/>
+   <addaction name="action_Launch_Scheduler"/>
   </widget>
   <widget class="QStatusBar" name="mMainStatusBar"/>
   <widget class="QToolBar" name="mMainToolsToolBar">
    <property name="windowTitle">
-    <string>Tools Toolbar</string>
+    <string>Map Toolbar</string>
+   </property>
+   <property name="allowedAreas">
+    <set>Qt::LeftToolBarArea|Qt::RightToolBarArea</set>
    </property>
    <property name="iconSize">
     <size>
-     <width>16</width>
-     <height>16</height>
+     <width>32</width>
+     <height>32</height>
     </size>
    </property>
    <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
+    <enum>RightToolBarArea</enum>
    </attribute>
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="action_Zoom_In"/>
+   <addaction name="action_Zom_Out"/>
+   <addaction name="action_Re_center"/>
+   <addaction name="action_Refresh_Map"/>
+   <addaction name="separator"/>
+   <addaction name="action_Graphic_Settings"/>
+   <addaction name="action_Save_Map_Image"/>
+   <addaction name="separator"/>
+   <addaction name="action_Full_Screen"/>
+   <addaction name="separator"/>
    <addaction name="action_Options"/>
+   <addaction name="separator"/>
+   <addaction name="action_Test"/>
   </widget>
   <action name="action_Exit">
+   <property name="icon">
+    <iconset resource="../Common/Resources/brat.qrc">
+     <normaloff>:/images/alpha-numeric/0.png</normaloff>:/images/alpha-numeric/0.png</iconset>
+   </property>
    <property name="text">
     <string>&amp;Exit</string>
+   </property>
+   <property name="toolTip">
+    <string>Exit brat</string>
    </property>
   </action>
   <action name="action_Open">
    <property name="icon">
-    <iconset>
-     <normaloff>:/open.png</normaloff>:/open.png</iconset>
+    <iconset resource="../Common/Resources/brat.qrc">
+     <normaloff>:/images/alpha-numeric/1.png</normaloff>:/images/alpha-numeric/1.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Open...</string>
    </property>
+   <property name="toolTip">
+    <string>Open existing workspace</string>
+   </property>
   </action>
   <action name="action_New">
    <property name="icon">
-    <iconset>
-     <normaloff>:/new.png</normaloff>:/new.png</iconset>
+    <iconset resource="../Common/Resources/brat.qrc">
+     <normaloff>:/images/alpha-numeric/2.png</normaloff>:/images/alpha-numeric/2.png</iconset>
    </property>
    <property name="text">
     <string>&amp;New</string>
    </property>
+   <property name="toolTip">
+    <string>Create a new workspace</string>
+   </property>
   </action>
   <action name="action_Save">
    <property name="icon">
-    <iconset>
-     <normaloff>:/save.png</normaloff>:/save.png</iconset>
+    <iconset resource="../Common/Resources/brat.qrc">
+     <normaloff>:/images/alpha-numeric/3.png</normaloff>:/images/alpha-numeric/3.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Save</string>
+   </property>
+   <property name="toolTip">
+    <string>Save the workspace to disk</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
@@ -210,8 +224,8 @@
   </action>
   <action name="action_About">
    <property name="icon">
-    <iconset>
-     <normaloff>:/butterfly.png</normaloff>:/butterfly.png</iconset>
+    <iconset resource="../Common/Resources/brat.qrc">
+     <normaloff>:/images/BratIcon.png</normaloff>:/images/BratIcon.png</iconset>
    </property>
    <property name="text">
     <string>&amp;About...</string>
@@ -219,8 +233,8 @@
   </action>
   <action name="action_Close">
    <property name="icon">
-    <iconset>
-     <normaloff>:/button-close.png</normaloff>:/button-close.png</iconset>
+    <iconset resource="../Common/Resources/brat.qrc">
+     <normaloff>:/images/alpha-numeric/4.png</normaloff>:/images/alpha-numeric/4.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Close</string>
@@ -241,38 +255,17 @@
     <string>Casca&amp;de</string>
    </property>
   </action>
-  <action name="action_Reload">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/rotateleft.png</normaloff>:/rotateleft.png</iconset>
-   </property>
-   <property name="text">
-    <string>&amp;Reload</string>
-   </property>
-  </action>
   <action name="action_Cut">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/cut.png</normaloff>:/cut.png</iconset>
-   </property>
    <property name="text">
     <string>Cut</string>
    </property>
   </action>
   <action name="action_Copy">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/copy.png</normaloff>:/copy.png</iconset>
-   </property>
    <property name="text">
     <string>&amp;Copy</string>
    </property>
   </action>
   <action name="action_Paste">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/paste.png</normaloff>:/paste.png</iconset>
-   </property>
    <property name="text">
     <string>&amp;Paste</string>
    </property>
@@ -289,26 +282,17 @@
   </action>
   <action name="action_Options">
    <property name="icon">
-    <iconset>
-     <normaloff>:/config.png</normaloff>:/config.png</iconset>
+    <iconset resource="../Common/Resources/brat.qrc">
+     <normaloff>:/images/alpha-numeric/6.png</normaloff>:/images/alpha-numeric/6.png</iconset>
    </property>
    <property name="text">
     <string>&amp;Options...</string>
    </property>
-  </action>
-  <action name="action_Read_Only">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>Read-Only</string>
+   <property name="toolTip">
+    <string>Edit application settings</string>
    </property>
   </action>
   <action name="action_Undo">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/undo.png</normaloff>:/undo.png</iconset>
-   </property>
    <property name="text">
     <string>&amp;Undo</string>
    </property>
@@ -317,10 +301,6 @@
    </property>
   </action>
   <action name="action_Redo">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/redo.png</normaloff>:/redo.png</iconset>
-   </property>
    <property name="text">
     <string>&amp;Redo</string>
    </property>
@@ -328,20 +308,7 @@
     <string>Ctrl+Y</string>
    </property>
   </action>
-  <action name="action_Font">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/fontcombobox.png</normaloff>:/fontcombobox.png</iconset>
-   </property>
-   <property name="text">
-    <string>&amp;Font...</string>
-   </property>
-  </action>
   <action name="action_Delete">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/edit-delete.png</normaloff>:/edit-delete.png</iconset>
-   </property>
    <property name="text">
     <string>&amp;Delete</string>
    </property>
@@ -351,70 +318,166 @@
     <string>Select &amp;All</string>
    </property>
   </action>
-  <action name="action_Print">
-   <property name="text">
-    <string>&amp;Print...</string>
-   </property>
-  </action>
-  <action name="action_Print_Preview">
-   <property name="text">
-    <string>Print Preview...</string>
-   </property>
-  </action>
-  <action name="action_Export_To_PDF">
-   <property name="text">
-    <string>&amp;Export To PDF...</string>
-   </property>
-  </action>
-  <action name="action_New_Map">
+  <action name="action_Test">
    <property name="icon">
-    <iconset>
-     <normaloff>:/map_tools.png</normaloff>:/map_tools.png</iconset>
-   </property>
-   <property name="text">
-    <string>New Map</string>
-   </property>
-  </action>
-  <action name="action_Globe">
-   <property name="icon">
-    <iconset resource="Resources/brat.qrc">
-     <normaloff>:/images/globe.png</normaloff>:/images/globe.png</iconset>
-   </property>
-   <property name="text">
-    <string>&amp;Globe...</string>
-   </property>
-  </action>
-  <action name="action_Plot_2D">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/2.png</normaloff>:/2.png</iconset>
-   </property>
-   <property name="text">
-    <string>2D</string>
-   </property>
-  </action>
-  <action name="action_Plot_3D">
-   <property name="icon">
-    <iconset>
-     <normaloff>:/3.png</normaloff>:/3.png</iconset>
-   </property>
-   <property name="text">
-    <string>3D</string>
-   </property>
-  </action>
-  <action name="mAction_Test">
-   <property name="icon">
-    <iconset resource="Resources/brat.qrc">
+    <iconset resource="../Common/Resources/brat.qrc">
      <normaloff>:/images/test.png</normaloff>:/images/test.png</iconset>
    </property>
    <property name="text">
     <string>Test...</string>
    </property>
   </action>
+  <action name="action_One_Click">
+   <property name="icon">
+    <iconset resource="../Common/Resources/brat.qrc">
+     <normaloff>:/images/alpha-numeric/7.png</normaloff>:/images/alpha-numeric/7.png</iconset>
+   </property>
+   <property name="text">
+    <string>One-&amp;Click...</string>
+   </property>
+   <property name="toolTip">
+    <string>Group actions as a single operation under a single name</string>
+   </property>
+  </action>
+  <action name="action_Launch_Scheduler">
+   <property name="icon">
+    <iconset resource="../Common/Resources/brat.qrc">
+     <normaloff>:/images/alpha-numeric/8.png</normaloff>:/images/alpha-numeric/8.png</iconset>
+   </property>
+   <property name="text">
+    <string>Launch Scheduler</string>
+   </property>
+   <property name="toolTip">
+    <string>Launch Scheduler application</string>
+   </property>
+  </action>
+  <action name="action_Workspace_Tree">
+   <property name="icon">
+    <iconset resource="../Common/Resources/brat.qrc">
+     <normaloff>:/images/alpha-numeric/9.png</normaloff>:/images/alpha-numeric/9.png</iconset>
+   </property>
+   <property name="text">
+    <string>Workspace Tree...</string>
+   </property>
+   <property name="toolTip">
+    <string>See the objects tree of the loaded workspace</string>
+   </property>
+  </action>
+  <action name="action_Save_Map_Image">
+   <property name="icon">
+    <iconset resource="../Common/Resources/brat.qrc">
+     <normaloff>:/images/alpha-numeric/a.png</normaloff>:/images/alpha-numeric/a.png</iconset>
+   </property>
+   <property name="text">
+    <string>Save Map Image...</string>
+   </property>
+   <property name="toolTip">
+    <string>Save map to file</string>
+   </property>
+  </action>
+  <action name="action_Refresh_Map">
+   <property name="icon">
+    <iconset resource="../Common/Resources/brat.qrc">
+     <normaloff>:/images/alpha-numeric/b.png</normaloff>:/images/alpha-numeric/b.png</iconset>
+   </property>
+   <property name="text">
+    <string>Refresh</string>
+   </property>
+   <property name="toolTip">
+    <string>Refresh main map</string>
+   </property>
+  </action>
+  <action name="action_Graphic_Settings">
+   <property name="icon">
+    <iconset resource="../Common/Resources/brat.qrc">
+     <normaloff>:/images/alpha-numeric/c.png</normaloff>:/images/alpha-numeric/c.png</iconset>
+   </property>
+   <property name="text">
+    <string>Graphic Settings...</string>
+   </property>
+   <property name="toolTip">
+    <string>Adjust graphic settings</string>
+   </property>
+  </action>
+  <action name="action_Full_Screen">
+   <property name="icon">
+    <iconset resource="../Common/Resources/brat.qrc">
+     <normaloff>:/images/alpha-numeric/d.png</normaloff>:/images/alpha-numeric/d.png</iconset>
+   </property>
+   <property name="text">
+    <string>Full Screen</string>
+   </property>
+   <property name="toolTip">
+    <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Toggle full screen mode.&lt;/p&gt;&lt;p&gt;Use the &lt;span style=&quot; font-weight:600;&quot;&gt;F11&lt;/span&gt; key to switch modes.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+   </property>
+   <property name="shortcut">
+    <string>F11</string>
+   </property>
+  </action>
+  <action name="action_Re_center">
+   <property name="icon">
+    <iconset resource="../Common/Resources/brat.qrc">
+     <normaloff>:/images/alpha-numeric/e.png</normaloff>:/images/alpha-numeric/e.png</iconset>
+   </property>
+   <property name="text">
+    <string>Re-center</string>
+   </property>
+   <property name="toolTip">
+    <string>Bring map to original position and size</string>
+   </property>
+   <property name="shortcut">
+    <string>Home</string>
+   </property>
+  </action>
+  <action name="action_Zoom_In">
+   <property name="icon">
+    <iconset resource="../Common/Resources/brat.qrc">
+     <normaloff>:/images/alpha-numeric/f.png</normaloff>:/images/alpha-numeric/f.png</iconset>
+   </property>
+   <property name="text">
+    <string>Zoom In</string>
+   </property>
+   <property name="toolTip">
+    <string>Zoom map in</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl++</string>
+   </property>
+  </action>
+  <action name="action_Zom_Out">
+   <property name="icon">
+    <iconset resource="../Common/Resources/brat.qrc">
+     <normaloff>:/images/alpha-numeric/5.png</normaloff>:/images/alpha-numeric/5.png</iconset>
+   </property>
+   <property name="text">
+    <string>Zom Out</string>
+   </property>
+   <property name="toolTip">
+    <string>Zom map out</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+-</string>
+   </property>
+  </action>
+  <action name="action_Operations">
+   <property name="text">
+    <string>&amp;Operations</string>
+   </property>
+  </action>
+  <action name="action_Dataset">
+   <property name="text">
+    <string>&amp;Dataset</string>
+   </property>
+  </action>
+  <action name="action_Filter">
+   <property name="text">
+    <string>&amp;Filter</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="Resources/brat.qrc"/>
+  <include location="../Common/Resources/brat.qrc"/>
  </resources>
  <connections>
   <connection>

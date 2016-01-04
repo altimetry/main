@@ -2,6 +2,7 @@
 
 #include "TabbedDock.h"
 #include "new-gui/brat/Views/TextWidget.h"
+#include "new-gui/brat/ApplicationSettings.h"
 
 
 static int ContentsMargin = 1;		//11
@@ -10,7 +11,9 @@ static int ContentsMargin = 1;		//11
 CTabbedDock::CTabbedDock( const QString &title, QWidget *parent, Qt::WindowFlags f )		//parent = nullptr, Qt::WindowFlags f = 0 
 	: base_t( title, parent, f )
 {
-	setAttribute( Qt::WA_DeleteOnClose );
+	//setAttribute( Qt::WA_DeleteOnClose );
+
+	//note that docks already have layouts and Qt warns about that
 
 	setObjectName( QString::fromUtf8( "mMainOutputDock" ) );
 	setAllowedAreas( Qt::BottomDockWidgetArea | Qt::TopDockWidgetArea );
@@ -29,6 +32,7 @@ CTabbedDock::CTabbedDock( const QString &title, QWidget *parent, Qt::WindowFlags
 
 	setWidget( mDockContents );
 }
+
 
 QWidget* CTabbedDock::AddTab( QWidget *tab_widget, const QString &title )
 {
@@ -53,6 +57,34 @@ QWidget* CTabbedDock::AddTab( QWidget *tab_widget, const QString &title )
 }
 
 
+bool CTabbedDock::ReadSettings( const std::string &group )
+{
+	int index;
+	if ( AppSettingsReadValues< int >( group,
+	{
+		{ KEY_TABBED_DOCK_INDEX, index },
+	}
+	) )
+	{
+		if (index >= 0 )
+			mTabWidget->setCurrentIndex( index );
+	}
+
+	return AppSettingsStatus() == QSettings::NoError;
+}
+
+bool CTabbedDock::WriteSettings( const std::string &group )
+{
+	if (
+		!AppSettingsWriteValues< int >( group,
+		{
+			{ KEY_TABBED_DOCK_INDEX, mTabWidget->currentIndex() },
+		} ) 
+		)
+		std::cout << "Unable to save CTabbedDock index." << std::endl;	// TODO: log this
+
+	return AppSettingsStatus() == QSettings::NoError;
+}
 
 
 

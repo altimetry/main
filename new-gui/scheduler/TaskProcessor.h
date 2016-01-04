@@ -208,19 +208,25 @@ protected:
 protected:
 	virtual bool LockConfigFile( bool lockFile = true )
 	{
+        UNUSED( lockFile );
+
 		// TODO
 
 		return true;
 	}
 	virtual bool LockConfigFile( const std::string& fileName, bool lockFile = true )
 	{
-		// TODO
+        UNUSED( fileName );         UNUSED( lockFile );
+
+        // TODO
 
 		return true;
 	}
 	virtual void UnLockConfigFile( bool unlockFile )
 	{
-		// TODO
+        UNUSED( unlockFile );
+
+        // TODO
 	}
 
 

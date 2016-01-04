@@ -18,12 +18,12 @@
 #if !defined(WORKSPACES_DISPLAY_H)
 #define WORKSPACES_DISPLAY_H
 
-#include "brathl.h"
+#include "libbrathl/brathl.h"
 
-#include "BratObject.h"
-#include "Field.h"
-#include "LatLonRect.h"
-#include "InternalFiles.h"
+#include "libbrathl/BratObject.h"
+#include "libbrathl/Field.h"
+#include "libbrathl/LatLonRect.h"
+#include "libbrathl/InternalFiles.h"
 
 #include "new-gui/brat/Workspaces/Operation.h"
 
@@ -47,7 +47,7 @@ using namespace brathl;
 
 class CDisplayData : public CBratObject
 {
-	friend struct CConfiguration;
+	friend class CConfiguration;
 
 public:
 	static const char* FMT_FLOAT_XY;
@@ -196,6 +196,9 @@ class CDisplay;
 
 class CMapDisplayData : public CObMap
 {
+	friend class CConfiguration;
+
+
 	CMapDisplayData( const CMapDisplayData &o ) = delete;
 	CMapDisplayData& operator = ( const CMapDisplayData &o ) = delete;
 
@@ -237,7 +240,7 @@ public:
 
 	bool LoadConfig( CConfiguration* config, std::string &errorMsg, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso, const std::string& pathSuff = "" );
 
-	bool SaveConfig( CConfiguration* config, CWorkspaceDisplay *wks, const std::string& pathSuff = "" );
+	bool SaveConfig( CConfiguration* config, CWorkspaceDisplay *wks, const std::string& pathSuff = "" ) const;
 
 	bool CheckFields( std::string& errorMsg, CDisplay* display );
 
@@ -253,6 +256,7 @@ public:
 class CDisplay : public CBratObject
 {
 	friend class CDisplayCmdFile;
+	friend class CConfiguration;
 
 public:
 	static void GetDisplayType( const COperation* operation, CUIntArray& displayTypes, CInternalFiles** pf = nullptr );

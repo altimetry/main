@@ -1767,6 +1767,7 @@ void CProductNetCdf::ReadBratFieldRecord(const std::string& key)
 //----------------------------------------
 void CProductNetCdf::ReadBratFieldRecord(CField::CListField::iterator it)
 {
+    UNUSED( it )
 
   CException e("ERROR - CProductNetCdf::ReadBratFieldRecord(CField::CListField::iterator it) - unexpected call - CProductNetCdf::ReadBratFieldRecord(CField::CListField::iterator it) have not to be called ", BRATHL_LOGIC_ERROR);
   throw (e);

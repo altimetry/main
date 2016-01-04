@@ -19,9 +19,9 @@
 #ifndef WORKSPACES_WORKSPACE_H
 #define WORKSPACES_WORKSPACE_H
 
-#include "new-gui/Common/QtFileUtils.h"
+#include "new-gui/Common/QtUtilsIO.h"
 
-#include "BratObject.h"
+#include "libbrathl/BratObject.h"
 
 #include "new-gui/brat/Workspaces/Constants.h"
 #include "new-gui/brat/Workspaces/Dataset.h"
@@ -55,7 +55,8 @@ class CWorkspaceDisplay;
 
 class CWorkspace : public CBratObject
 {
-	friend struct CConfiguration;
+	friend class CConfiguration;
+	friend class CWorkspaceSettings;
 
 	static const std::string m_configName;
 
@@ -105,7 +106,7 @@ public:
 
 	bool Rmdir();
 
-	const std::string& GetPath() { return m_path; }
+	const std::string& GetPath() const { return m_path; }
 	//std::string GetPathName(/* int32_t flags = wxPATH_GET_VOLUME, wxPathFormat format = wxPATH_NATIVE */)
 	//{
 	//	return m_path.GetPath( wxPATH_GET_VOLUME, wxPATH_NATIVE ).ToStdString();
@@ -162,7 +163,8 @@ class CWorkspaceDataset : public CWorkspace
 {
 	using base_t = CWorkspace;
 
-	friend struct CConfiguration;
+	friend class CConfiguration;
+	friend class CWorkspaceSettings;
 
 public:
 	static const std::string NAME;
@@ -229,7 +231,7 @@ class CWorkspaceFormula : public CWorkspace
 {
 	using base_t = CWorkspace;
 
-	friend struct CConfiguration;
+	friend class CConfiguration;
 
 public:
 	static const std::string NAME;
@@ -297,7 +299,7 @@ class CWorkspaceOperation : public CWorkspace
 {
 	using base_t = CWorkspace;
 
-	friend struct CConfiguration;
+	friend class CConfiguration;
 
 public:
 	static const std::string NAME;
@@ -363,7 +365,7 @@ class CWorkspaceDisplay : public CWorkspace
 {
 	using base_t = CWorkspace;
 
-	friend struct CConfiguration;
+	friend class CConfiguration;
 
 public:
 	static const std::string NAME;

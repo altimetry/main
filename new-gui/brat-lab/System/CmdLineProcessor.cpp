@@ -1,6 +1,7 @@
 #include "new-gui/brat-lab/stdafx.h"
 
 #include "new-gui/Common/QtUtils.h"
+#include "new-gui/Common/QtUtilsIO.h"
 
 #include "libbrathl/Tools.h"
 #include "new-gui/Common/tools/Trace.h"
@@ -13,7 +14,7 @@
 #include "process/ParametersDictionary.h"
 #include "process/BratProcess.h"
 
-#include "new-gui/brat-lab/GUI/QMapTypeDisp.h"
+#include "new-gui/brat/Display/MapTypeDisp.h"
 
 #include "display/PlotData/ColorPalleteNames.h"
 #include "display/PlotData/MapProjection.h"
@@ -357,7 +358,7 @@ void CmdLineProcessor::GetParameters()
 		{
 			uint32_t plotType;
 			m_params.m_mapParam[ kwDISPLAY_PLOT_TYPE ]->GetValue( plotType );
-			if ( plotType == QMapTypeDisp::typeDispYFX )
+			if ( plotType == CMapTypeDisp::eTypeDispYFX )
 			{
 				m_isZFXY = false;
 			}
@@ -375,7 +376,7 @@ void CmdLineProcessor::GetParameters()
 		{
 			uint32_t plotType;
 			m_params.m_mapParam[ kwDISPLAY_PLOT_TYPE ]->GetValue( plotType );
-			if ( plotType == QMapTypeDisp::typeDispYFX )
+			if ( plotType == CMapTypeDisp::eTypeDispYFX )
 			{
 				m_isZFLatLon = false;
 			}

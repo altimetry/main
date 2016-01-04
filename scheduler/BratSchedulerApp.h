@@ -62,7 +62,7 @@ const wxString BRAT_DOC_SUBDIR = "doc";
 const wxString PENDING_PAGE_NAME = "Pending Tasks";
 const wxString PROCESSING_PAGE_NAME = "Processing tasks";
 const wxString ENDED_PAGE_NAME = "Ended Task";
-const wxString LOG_PAGE_NAME = "Logs";
+//const wxString LOG_PAGE_NAME = "Logs";
 
 
 // WDR: class declarations

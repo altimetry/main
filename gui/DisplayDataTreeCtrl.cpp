@@ -36,6 +36,10 @@
 
 
 
+const wxString ADD_DISP_TO_SEL_MENU_LABEL = "Add '%s' to selected";
+const wxString ADD_EXPAND_CHILDREN_MENU_LABEL = "Expand all '%s' children";
+
+
 //----------------------------------------------------------------------------
 // CDndDisplayDataObject
 //----------------------------------------------------------------------------

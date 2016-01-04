@@ -3,6 +3,101 @@
 #include "new-gui/brat/GUI/TabbedDock.h"
 #include "DesktopManager.h"
 
+#if defined TESTS
+
+inline QWidget* CenterOnRect( QWidget *const w, const QRect &r )
+{
+    w->setGeometry( QStyle::alignedRect( Qt::LeftToRight, Qt::AlignCenter, w->size(), r ) );
+
+    return w;
+}
+
+inline QWidget* CenterOnScreen( QWidget *const w )
+{
+	assert__( qApp );
+
+    //w->setGeometry( QStyle::alignedRect( Qt::LeftToRight, Qt::AlignCenter, w->size(), qApp->desktop()->availableGeometry() ) );
+    //w->move( QApplication::desktop()->screen()->rect().center() - w->rect().center() );
+    return CenterOnRect( w, qApp->desktop()->availableGeometry() )  ;
+
+    //return w;
+}
+
+inline QWidget* CenterOnScreens( QWidget *const w )
+{
+	w->move( QApplication::desktop()->screen()->rect().center() - w->rect().center() );
+}
+inline QWidget* CenterOn1stScreen( QWidget *const w )
+{
+	assert__( qApp );
+
+	w->adjustSize();
+    w->setGeometry( QStyle::alignedRect( Qt::LeftToRight, Qt::AlignCenter, w->size(), qApp->desktop()->availableGeometry() ) );
+
+    return w;
+}
+#endif
+
+/////////////////////////////////////////////////////////////////////////////////////
+//
+/////////////////////////////////////////////////////////////////////////////////////
+
+QWidget* CDesktopManagerSDI::CenterOnWidget( QWidget *const w, const QWidget *const parent )
+{
+	return CenterOnParentCenter( w, parent->mapToGlobal( parent->rect().center() ) );
+}
+
+//virtual 
+CDesktopManagerSDI::desktop_child_t* CDesktopManagerSDI::AddSubWindow( QWidget *widget, Qt::WindowFlags flags )	//flags = 0 
+{
+	desktop_child_t *child = new desktop_child_t( this, flags );
+    SetChildWindowTitle( child, widget );
+
+    AddWidget( child, widget );
+    widget->setParent( child );
+    CenterOnWidget( child, mMap );
+
+	connect( child, SIGNAL( closed( QWidget* ) ), this, SLOT( SubWindowClosed( QWidget* ) ) );
+
+	mSubWindows.push_back( child );
+	return child;
+}
+
+
+CDesktopManagerSDI::CDesktopManagerSDI( QMainWindow *parent )
+	: base_t( parent )
+{
+	//QWidget *centralWidget = parent->centralWidget();
+	//QGridLayout *centralLayout = new QGridLayout( centralWidget );
+	//centralWidget->setLayout( centralLayout );
+	//centralLayout->setContentsMargins( 0, 0, 0, 0 );
+
+	// "theMapCanvas" used to find this canonical instance later
+	//mMapCanvas = new QgsMapCanvas( centralWidget, "theMapCanvas" );
+	//mMapCanvas->setWhatsThis( tr( "Map canvas. This is where raster and vector "
+	//"layers are displayed when added to the map" ) );
+
+	// set canvas color right away
+	//int myRed = settings.value( "/qgis/default_canvas_color_red", 255 ).toInt();
+	//int myGreen = settings.value( "/qgis/default_canvas_color_green", 255 ).toInt();
+	//int myBlue = settings.value( "/qgis/default_canvas_color_blue", 255 ).toInt();
+	//mMapCanvas->setCanvasColor( QColor( myRed, myGreen, myBlue ) );
+
+	//centralLayout->addWidget( mMap, 0, 0, 2, 1 );
+
+	QLayout *l = CreateLayout( this, Qt::Horizontal, 6, 11, 11, 11, 11 );
+	mMap->setMinimumSize( min_main_window_width / 3 * 2, min_main_window_height / 3 * 2 );
+	l->addWidget( mMap );
+}
+
+
+	
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+//
+/////////////////////////////////////////////////////////////////////////////////////
+
 
 CDesktopManagerMDI::CDesktopManagerMDI( QMainWindow *parent )		//parent = nullptr 
 	: base_t( parent )
@@ -18,10 +113,7 @@ CDesktopManagerMDI::CDesktopManagerMDI( QMainWindow *parent )		//parent = nullpt
     gridLayout->addWidget( mMdiArea, 0, 0, 1, 1 );
 
 	mMapDock = new CTabbedDock( "Main Map", this );
-	mMapDock->setAllowedAreas( Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea );
-	mMapDock->setMaximumWidth( max_main_dock_width );
-	parent->addDockWidget( Qt::LeftDockWidgetArea, mMapDock );
-
+	mMapDock->setAllowedAreas( Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea );	//mMapDock->setMaximumWidth( max_main_dock_width );
 	mMapDock->AddTab( mMap, "Navigator" );
 
 	//QImage newBackground(":/images/world.png");

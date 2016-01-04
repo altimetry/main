@@ -18,8 +18,9 @@
 
 #include "new-gui/brat/stdafx.h"
 
-#include "brathl.h"
+#include "libbrathl/brathl.h"
 
+#include "new-gui/Common/ConfigurationKeywords.h"
 #include "MapTypeDisp.h"
 
 
@@ -29,10 +30,16 @@
 
 CMapTypeDisp::CMapTypeDisp()
 {
-  Insert("Y=F(X)", eTypeDispYFX);
-  Insert("Z=F(Lon,Lat)", eTypeDispZFLatLon);
-  Insert("Z=F(X,Y)", eTypeDispZFXY);
+	Insert( VALUE_OPERATION_TypeYFX, eTypeDispYFX );
+	Insert( VALUE_DISPLAY_eTypeZFLatLon, eTypeDispZFLatLon );
+	Insert( VALUE_OPERATION_TypeZFXY, eTypeDispZFXY );
 }
+//CMapTypeDisp::CMapTypeDisp()
+//{
+//  Insert("Y=F(X)", eTypeDispYFX);
+//  Insert("Z=F(Lon,Lat)", eTypeDispZFLatLon);
+//  Insert("Z=F(X,Y)", eTypeDispZFXY);
+//}
 
 //----------------------------------------
 CMapTypeDisp::~CMapTypeDisp()

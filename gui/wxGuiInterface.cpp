@@ -4,8 +4,9 @@
 #endif
 
 #include "BratGui.h"
-#include "new-gui/QtInterface.h"
 #include "wxGuiInterface.h"
+#include "new-gui/QtInterface.h"
+#include "new-gui/Common/ConfigurationKeywords.h"
 #include "new-gui/brat/Workspaces/Dataset.h"
 #include "new-gui/brat/Display/MapTypeDisp.h"
 
@@ -13,6 +14,7 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 //											Configurations
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 CConfiguration::CConfiguration( 
@@ -25,88 +27,34 @@ CConfiguration::CConfiguration(
 	: base_t( "", "", localFilename, "", wxCONFIG_USE_LOCAL_FILE )
 {}
 
-const std::string CConfiguration::GetConfigPath() const
-{
-	return base_t::GetPath().ToStdString();
-}
-void CConfiguration::SetPath( const std::string& strPath )
-{
-	base_t::SetPath( strPath );
-}
-bool CConfiguration::Write( const std::string& key, const std::string& value )
-{
-	return base_t::Write( key, wxString( value ) );
-}
-bool CConfiguration::Write( const std::string& key, const int& value )
-{
-	return base_t::Write( key, value );
-}
-size_t CConfiguration::GetNumberOfEntries()
-{
-	return base_t::GetNumberOfEntries( false );
-}
-bool CConfiguration::GetNextEntry( std::string& str, long& lIndex )
+
+
+#define GROUP_GENERAL GROUP_GENERAL_WRITE
+
+
+
+bool StdGetNextEntry( CConfiguration *config, std::string& str, long& lIndex )
 {
 	wxString wstr( str );
-	bool result = base_t::GetNextEntry( wstr, lIndex );
+	bool result = config->GetNextEntry( wstr, lIndex );
 	str = wstr.ToStdString();
 	return result;
 }
-std::string CConfiguration::Read( const std::string& str ) const
-{
-	return base_t::Read( str ).ToStdString();
-}
-bool CConfiguration::Read( const std::string& str, std::string *value ) const
+bool StdRead( CConfiguration *config, const std::string& str, std::string *value )
 {
 	wxString wvalue( *value );
-	bool result = base_t::Read( str, &wvalue );
+	bool result = config->Read( str, &wvalue );
 	*value = wvalue.ToStdString();
 	return result;
 }
-std::string CConfiguration::Read( const std::string& str, const std::string &value ) const
+void CConfiguration::Sync()
 {
-	wxString wvalue( value );
-	wxString wstr( str );
-	auto result = base_t::Read( wstr, wvalue );
-	return result.ToStdString();
+	base_t::Flush();
 }
-bool CConfiguration::Read( const std::string& str, int *value ) const
+void CConfiguration::Clear()
 {
-	wxString wstr( str );
-	return base_t::Read( wstr, value );
+	base_t::DeleteAll();
 }
-
-bool CConfiguration::Read( const std::string& str, double *value, double defValue ) const
-{
-	wxString wstr( str );
-	return base_t::Read( wstr, value, defValue );
-}
-
-bool CConfiguration::Read( const std::string& str, int32_t *value, double defValue ) const
-{
-	wxString wstr( str );
-	return base_t::Read( wstr, value, defValue );
-}
-
-bool CConfiguration::Read( const std::string& str, bool *value, bool defValue ) const
-{
-	wxString wstr( str );
-	return base_t::Read( wstr, value, defValue );
-}
-
-bool CConfiguration::Flush( bool bCurrentOnly )		//bCurrentOnly = false
-{
-	return base_t::Flush( bCurrentOnly );
-}
-
-bool CConfiguration::DeleteAll()
-{
-	return base_t::DeleteAll();
-}
-
-
-
-
 
 
 bool CConfiguration::SaveConfig( const CDataset *d )
@@ -160,7 +108,7 @@ bool CConfiguration::LoadConfig( CDataset *d  )
 	long i = 0;
 
 	CStringArray findStrings;
-	while ( GetNextEntry( entry, i ) )
+	while ( StdGetNextEntry( this, entry, i ) )
 	{
 		// Finds ENTRY_FILE entries (dataset files entries)
 		findStrings.RemoveAll();
@@ -194,7 +142,7 @@ bool CConfiguration::LoadConfig( CDisplayData &data, const std::string& path, CW
 {
 	SetPath( "/" + path );
 
-	std::string valueString = Read( ENTRY_TYPE, CMapTypeDisp::GetInstance().IdToName( data.m_type ) );
+    std::string valueString = Read( ENTRY_TYPE, CMapTypeDisp::GetInstance().IdToName( data.m_type ) ).ToStdString();
 	if ( valueString.empty() )
 	{
 		data.m_type = -1;
@@ -264,12 +212,14 @@ bool CConfiguration::LoadConfig( CDisplayData &data, const std::string& path, CW
 	Read( ENTRY_MINVALUE, &data.m_minValue, CTools::m_defaultValueDOUBLE );
 	Read( ENTRY_MAXVALUE, &data.m_maxValue, CTools::m_defaultValueDOUBLE );
 
-	//config->Read(ENTRY_COLOR_PALETTE, &m_colorPalette, PALETTE_AEROSOL);
-	Read( ENTRY_COLOR_PALETTE, &data.m_colorPalette );
+	//Read(ENTRY_COLOR_PALETTE, &m_colorPalette, PALETTE_AEROSOL);
+	//femm Read( ENTRY_COLOR_PALETTE, &data.m_colorPalette );
+	Read( ENTRY_COLOR_PALETTE, data.m_colorPalette );
 
-	Read( ENTRY_X_AXIS, &data.m_xAxis );
+	//femm Read( ENTRY_X_AXIS, &data.m_xAxis );
+	Read( ENTRY_X_AXIS, data.m_xAxis );
 
-	//config->Read(ENTRY_X_AXIS_TEXT, &m_xAxisText);
+	//Read(ENTRY_X_AXIS_TEXT, &m_xAxisText);
 
 	// if color palette is a file (it has an extension)
 	// save path in absolute form, based on workspace Display path
@@ -300,9 +250,7 @@ bool CConfiguration::SaveConfig( CDisplayData &data, const std::string& pathSuff
 	}
 	SetPath( "/" + path );
 
-	bOk &= Write( ENTRY_TYPE,
-		CMapTypeDisp::GetInstance().IdToName( data.m_type ) );
-
+	bOk &= Write( ENTRY_TYPE, CMapTypeDisp::GetInstance().IdToName( data.m_type ).c_str() );
 
 	bOk &= Write( ENTRY_FIELD, data.m_field.GetName().c_str() );
 	bOk &= Write( ENTRY_FIELDNAME, data.m_field.GetDescription().c_str() );
@@ -359,12 +307,12 @@ bool CConfiguration::SaveConfig( CDisplayData &data, const std::string& pathSuff
 			}
 		}
 
-		bOk &= Write( ENTRY_COLOR_PALETTE, paletteToWrite );
+		bOk &= Write( ENTRY_COLOR_PALETTE, paletteToWrite.c_str() );
 	}
 
 	if ( data.m_xAxis.empty() == false )
 	{
-		Write( ENTRY_X_AXIS, data.m_xAxis );
+		Write( ENTRY_X_AXIS, data.m_xAxis.c_str() );
 	}
 
 	return true;
@@ -389,7 +337,7 @@ bool CConfiguration::LoadConfig( CMapFormula &mapf, std::string &errorMsg, bool 
 
 	do
 	{
-		bOk = GetNextEntry( entry, i );
+		bOk = StdGetNextEntry( this, entry, i );
 		if ( bOk )
 		{
 			valueString = Read( entry );
@@ -462,7 +410,7 @@ bool CConfiguration::SaveConfig( const CMapFormula &mapf, bool predefined, const
 				formulaName += "_" + pathSuff;
 			}
 
-			Write( ENTRY_FORMULA + n2s<std::string>( index ), formulaName );
+			Write( ENTRY_FORMULA + n2s<std::string>( index ), formulaName.c_str() );
 
 			formula->SaveConfig( this, pathSuff );
 		}
@@ -478,7 +426,7 @@ bool CConfiguration::SaveCommonConfig( const CWorkspace &wks, bool flush )
 	bool bOk = true;
 
 	SetPath( "/" + GROUP_GENERAL );
-	bOk &= Write( ENTRY_WKSNAME, wks.m_name );
+	bOk &= Write( ENTRY_WKSNAME, wks.m_name.c_str() );
 	SetPath( "/" + GROUP_GENERAL );
 	bOk &= Write( ENTRY_WKSLEVEL, wks.m_level );
 
@@ -497,8 +445,8 @@ bool CConfiguration::LoadCommonConfig( CWorkspace &wks )
 	wks.m_name = "";
 
 	return 
-		Read( ENTRY_WKSNAME, &wks.m_name ) &&
-		Read( ENTRY_WKSLEVEL, &wks.m_level );
+		StdRead( this, ENTRY_WKSNAME, &wks.m_name ) &&
+		Read( ENTRY_WKSLEVEL.c_str(), &wks.m_level );
 }
 
 
@@ -541,7 +489,7 @@ bool CConfiguration::LoadConfigDataset( CWorkspaceDataset &data, std::string &er
 	std::string valueString;
 	long i = 0;
 
-	while ( GetNextEntry( entry, i ) )
+	while ( StdGetNextEntry( this, entry, i ) )
 	{
 		valueString = Read( entry );
 		data.InsertDataset( valueString );
@@ -612,7 +560,7 @@ bool CConfiguration::SaveConfigOperation( const CWorkspaceOperation &op, std::st
 
 		SetPath( "/" + GROUP_OPERATIONS );
 
-		bOk &= Write( ENTRY_OPNAME + n2s< std::string >( index ), operation->GetName() );
+		bOk &= Write( ENTRY_OPNAME + n2s< std::string >( index ), operation->GetName().c_str() );
 
 		operation->SaveConfig( this );
 	}
@@ -634,7 +582,7 @@ bool CConfiguration::LoadConfigOperation( CWorkspaceOperation &op, std::string &
 
 	do
 	{
-		bOk = GetNextEntry( entry, i );
+		bOk = StdGetNextEntry( this, entry, i );
 		if ( bOk )
 		{
 			valueString = Read( entry );
@@ -687,7 +635,7 @@ bool CConfiguration::SaveConfigDisplay( const CWorkspaceDisplay &disp, std::stri
 
 		SetPath( "/" + GROUP_DISPLAY );
 
-		bOk &= Write( ENTRY_DISPLAYNAME + n2s< std::string >( index ), display->GetName() );
+		bOk &= Write( ENTRY_DISPLAYNAME + n2s< std::string >( index ), display->GetName().c_str() );
 
 		display->SaveConfig( this, wksd );
 	}
@@ -708,7 +656,7 @@ bool CConfiguration::LoadConfigDisplay( CWorkspaceDisplay &disp, std::string &er
 	long i = 0;
 	do
 	{
-		bOk = disp.m_config->GetNextEntry( entry, i );
+		bOk = StdGetNextEntry( disp.m_config, entry, i );
 		if ( bOk )
 		{
 			valueString = Read( entry );
@@ -737,8 +685,470 @@ bool CConfiguration::LoadConfigDisplay( CWorkspaceDisplay &disp, std::string &er
 	return true;
 }
 
+bool CConfiguration::LoadConfigDesc( CFormula &f, const std::string& path )
+{
+	SetPath( "/" + path );
+
+	f.m_description = Read( f.m_name, f.m_description );
+
+	return true;
+}
+
+bool CConfiguration::SaveConfigDesc( const CFormula &f, const std::string& path )
+{
+	bool bOk = true;
+
+	SetPath( "/" + path );
+
+	bOk &= Write( f.m_name, f.GetDescription( true ).c_str() );	//bOk &= Write(ENTRY_COMMENT, m_comment);
+
+	return true;
+}
+
+bool CConfiguration::SaveConfigPredefined( const CFormula &f, const std::string& pathSuff )
+{
+	bool bOk = true;
+	std::string path = f.m_name;
+	if ( pathSuff.empty() == false )
+	{
+		path += "_" + pathSuff;
+	}
+	SetPath( "/" + path );
+
+	bOk &= Write( ENTRY_DEFINE, f.GetDescription( true ).c_str() );
+	bOk &= Write( ENTRY_COMMENT, f.GetComment( true ).c_str() );
+	bOk &= Write( ENTRY_UNIT, f.m_unit.GetText().c_str() );
+
+	return true;
+}
+
+bool CConfiguration::LoadConfig( CFormula &f, std::string &errorMsg, const std::string& pathSuff )
+{
+	std::string valueString;
+
+	std::string path = f.m_name;
+	if ( pathSuff.empty() == false )
+	{
+		path += "_" + pathSuff;
+	}
+
+	SetPath( "/" + path );
+
+	f.m_description = Read( ENTRY_DEFINE, f.m_description );
+	f.m_comment = Read( ENTRY_COMMENT, f.m_comment );
+
+	valueString = Read( ENTRY_UNIT, f.m_unit.GetText().c_str() );
+	f.SetUnit( valueString, errorMsg, "" );
+
+	valueString = Read( ENTRY_FIELDTYPE, f.GetTypeAsString() );
+	if ( valueString.empty() )
+	{
+		f.m_type = CMapTypeField::eTypeOpAsField;
+	}
+	else
+	{
+		f.m_type = CMapTypeField::GetInstance().NameToId( valueString );
+	}
+
+	valueString = Read( ENTRY_DATATYPE, f.GetDataTypeAsString() );
+	if ( valueString.empty() )
+	{
+		f.m_dataType = CMapTypeData::eTypeOpData;
+	}
+	else
+	{
+		f.m_dataType = CMapTypeData::GetInstance().NameToId( valueString );
+	}
+
+	f.m_title = Read( ENTRY_TITLE, f.m_title );
+
+	valueString = Read( ENTRY_FILTER, f.GetFilterAsString() );
+	if ( valueString.empty() )
+	{
+		f.m_filter = CMapTypeFilter::eFilterNone;
+	}
+	else
+	{
+		f.m_filter = CMapTypeFilter::GetInstance().NameToId( valueString );
+	}
+	if ( f.IsTimeDataType() )
+	{
+		valueString = Read( ENTRY_MINVALUE );
+		f.SetMinValueFromDateString( valueString );
+
+		valueString = Read( ENTRY_MAXVALUE );
+		f.SetMaxValueFromDateString( valueString );
+	}
+	else
+	{
+		Read( ENTRY_MINVALUE, &f.m_minValue, CTools::m_defaultValueDOUBLE );
+		Read( ENTRY_MAXVALUE, &f.m_maxValue, CTools::m_defaultValueDOUBLE );
+	}
+
+	// 3.3.1 note: wxWidgets asserts if value >= INT_MAX, but CTools::m_defaultValueINT32 is INT_MAX, so,
+	// if value is not read and the default is used, we have a failed assertion. This was not changed, to
+	// avoid unknown implications.
+
+	Read( ENTRY_INTERVAL, &f.m_interval, CTools::m_defaultValueINT32 );
+	f.m_step = Read( ENTRY_STEP, f.DEFAULT_STEP_GENERAL_ASSTRING );
+	if ( f.m_step.empty() )
+	{
+		f.m_step = f.DEFAULT_STEP_GENERAL_ASSTRING;
+	}
+
+	Read( ENTRY_LOESSCUTOFF, &f.m_loessCutOff, CTools::m_defaultValueINT32 );
+
+	valueString = Read( ENTRY_DATA_MODE );
+	if ( valueString.empty() )
+	{
+		f.m_dataMode = -1;
+	}
+	else
+	{
+		f.m_dataMode = CMapDataMode::GetInstance().NameToId( valueString );
+	}
+
+	return true;
+}
+
+bool CConfiguration::SaveConfig( const CFormula &f, const std::string& pathSuff )
+{
+	bool bOk = true;
+	std::string path = f.m_name;
+	if ( pathSuff.empty() == false )
+	{
+		path += "_" + pathSuff;
+	}
+	SetPath( "/" + path );
+
+	bOk &= Write( ENTRY_DEFINE, f.GetDescription( true ).c_str() );
+	bOk &= Write( ENTRY_COMMENT, f.GetComment( true ).c_str() );
+	bOk &= Write( ENTRY_UNIT, f.m_unit.GetText().c_str() );
+	bOk &= Write( ENTRY_FIELDTYPE, f.GetTypeAsString().c_str() );
+	bOk &= Write( ENTRY_DATATYPE, f.GetDataTypeAsString().c_str() );
+	bOk &= Write( ENTRY_TITLE, f.m_title.c_str() );
+	bOk &= Write( ENTRY_FILTER, f.GetFilterAsString().c_str() );
+	if ( isDefaultValue( f.m_minValue ) == false )
+	{
+		if ( f.IsTimeDataType() )
+		{
+			bOk &= Write( ENTRY_MINVALUE, f.GetMinValueAsDateString().c_str() );
+		}
+		else
+		{
+			bOk &= Write( ENTRY_MINVALUE, CTools::Format( "%.15g", f.m_minValue ).c_str() );
+		}
+	}
+	if ( isDefaultValue( f.m_maxValue ) == false )
+	{
+		if ( f.IsTimeDataType() )
+		{
+			bOk &= Write( ENTRY_MAXVALUE, f.GetMaxValueAsDateString().c_str() );
+		}
+		else
+		{
+			bOk &= Write( ENTRY_MAXVALUE, CTools::Format( "%.15g", f.m_maxValue ).c_str() );
+		}
+	}
+	if ( isDefaultValue( f.m_interval ) == false )
+	{
+		bOk &= Write( ENTRY_INTERVAL, f.m_interval );
+	}
+	if ( f.m_step.empty() == false )
+	{
+		bOk &= Write( ENTRY_STEP, f.m_step.c_str() );
+	}
+	if ( isDefaultValue( f.m_loessCutOff ) == false )
+	{
+		bOk &= Write( ENTRY_LOESSCUTOFF, f.m_loessCutOff );
+	}
+	bOk &= Write( ENTRY_DATA_MODE, f.GetDataModeAsString().c_str() );
+
+	return true;
+}
+
+bool CConfiguration::LoadConfig( COperation &op, std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
+{
+	SetPath( "/" + op.m_name );
+
+	std::string valueString;
+	valueString = Read( ENTRY_DSNAME );
+	op.m_dataset = op.FindDataset( valueString, wks );
+
+	valueString = Read( ENTRY_TYPE, CMapTypeOp::GetInstance().IdToName( op.m_type ) );
+	if ( valueString.empty() )
+	{
+		op.m_type = CMapTypeOp::eTypeOpYFX;
+	}
+	else
+	{
+		op.m_type = CMapTypeOp::GetInstance().NameToId( valueString );
+	}
+
+	valueString = Read( ENTRY_DATA_MODE, CMapDataMode::GetInstance().IdToName( op.m_dataMode ) );
+	if ( valueString.empty() )
+	{
+		op.m_dataMode = CMapDataMode::GetInstance().GetDefault();
+	}
+	else
+	{
+		op.m_dataMode = CMapDataMode::GetInstance().NameToId( valueString );
+	}
 
 
+	op.m_record = Read( ENTRY_RECORDNAME );
+	if ( op.m_record.empty() )
+	{
+		op.m_record = CProductNetCdf::m_virtualRecordName.c_str();
+	}
+	valueString = Read( ENTRY_OUTPUT );
+	if ( valueString.empty() == false )
+	{
+		// Old Comment: Note that if the path to the output is in relative form,
+		// SetOutput make it in absolute form based on workspace Operation path.
+		op.SetOutput( valueString, wkso );
+	}
+
+	valueString = Read( ENTRY_EXPORT_ASCII_OUTPUT );
+	if ( valueString.empty() == false )
+	{
+		// Old Comment: Note that if the path to the output is in relative form,
+		// SetOutput make it in absolute form based on workspace Operation path.
+		op.SetExportAsciiOutput( valueString, wkso );
+	}
+	else
+	{
+		op.InitExportAsciiOutput( wkso );
+	}
+
+	op.m_select->LoadConfigDesc( this, base_t::GetPath().ToStdString() );
+
+	// Warning after formulas Load config conig path has changed
+	op.m_formulas.LoadConfig( this, errorMsg, false, op.GetName() );
+
+	op.m_formulas.InitFormulaDataMode( op.m_dataMode );
+
+	return true;
+}
+
+bool CConfiguration::SaveConfig( const COperation &op )
+{
+	SetPath( "/" + op.m_name );
+
+	bool bOk = true;
+	if ( op.m_dataset != nullptr )
+		bOk &= Write( ENTRY_DSNAME, op.m_dataset->GetName().c_str() ) && Write( ENTRY_RECORDNAME, op.GetRecord().c_str() );
+
+	bOk &= Write( ENTRY_TYPE, CMapTypeOp::GetInstance().IdToName( op.m_type ).c_str() );
+
+	// Data mode is no more for a operation, but for each formula (data expression)
+	//bOk &= Write(ENTRY_DATA_MODE,
+	//                     CMapDataMode::GetInstance().IdToName(m_dataMode));
+
+	op.m_select->SaveConfigDesc( this, base_t::GetPath().ToStdString() );
+
+	bOk &= Write( ENTRY_OUTPUT, op.GetOutputPath().c_str() );
+	bOk &= Write( ENTRY_EXPORT_ASCII_OUTPUT, op.GetExportAsciiOutputPath().c_str() );
+
+	// Warning after formulas Load config conig path has changed
+	op.m_formulas.SaveConfig( this, false, op.GetName() );
+
+	return bOk;
+}
+
+bool CConfiguration::LoadConfig( CMapDisplayData &data, std::string &errorMsg, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso, const std::string& pathSuff )
+{
+	bool bOk = true;
+	std::string path = GROUP_DISPLAY;
+	if ( pathSuff.empty() == false )
+	{
+		path += "_" + pathSuff;
+	}
+	SetPath( "/" + path );
+
+	std::string entry;
+	std::string valueString;
+	std::string displayDataName;
+	long i = 0;
+	do
+	{
+		bOk = StdGetNextEntry( this, entry, i );
+		if ( bOk )
+		{
+			valueString = Read( entry );
+
+			if ( pathSuff.empty() == false )
+			{
+				displayDataName = valueString.substr( 0, valueString.length() - pathSuff.length() - 1 );
+				//displayDataName = valueString.Left( valueString.Length() - pathSuff.Length() - 1 );
+			}
+			else
+			{
+				displayDataName = valueString;
+			}
+
+			CDisplayData* value = dynamic_cast<CDisplayData*>( data.Exists( (const char *)displayDataName.c_str() ) );
+			if ( value != nullptr )
+			{
+				data.Erase( (const char *)displayDataName.c_str() );
+			}
+			data.Insert( (const char *)displayDataName.c_str(), new CDisplayData() );
+		}
+	} while ( bOk );
+
+
+	int32_t index = 0;
+
+	CStringMap renameKeyMap;
+	for ( CMapDisplayData::iterator it = data.begin(); it != data.end(); it++ )
+	{
+		index++;
+		CDisplayData* displayData = dynamic_cast<CDisplayData*>( it->second );
+		if ( displayData == nullptr )
+		{
+			errorMsg +=
+				"ERROR in  CMapDisplayData::LoadConfig\ndynamic_cast<CDisplayData*>(it->second) returns nullptr pointer"
+				"\nList seems to contain objects other than those of the class CDisplayData";
+
+			//wxMessageBox( "Error",
+			//wxOK | wxCENTRE | wxICON_ERROR );
+			return false;
+		}
+
+		displayData->LoadConfig( this, it->first + "_" + pathSuff, wks, wkso );
+
+		// To maintain compatibility with Brat v1.x (display name doesn't contain 'display type' in v1.x)
+		std::string displayDataKey = (const char *)displayData->GetDataKey().c_str();
+
+		if ( it->first != displayDataKey )
+		{
+			renameKeyMap.Insert( it->first, displayDataKey );
+		}
+	}
+
+	for ( CStringMap::const_iterator itStringMap = renameKeyMap.begin(); itStringMap != renameKeyMap.end(); itStringMap++ )
+	{
+		data.RenameKey( itStringMap->first, itStringMap->second );
+	}
+
+	return true;
+}
+
+bool CConfiguration::SaveConfig( const CMapDisplayData &data, CWorkspaceDisplay *wks, const std::string& pathSuff )
+{
+	int index = 0;
+	for ( CMapDisplayData::const_iterator it = data.begin(); it != data.end(); it++ )
+	{
+		std::string path = GROUP_DISPLAY;
+		if ( pathSuff.empty() == false )
+		{
+			path += "_" + pathSuff;
+		}
+		SetPath( "/" + path );
+
+		CDisplayData* displayData = dynamic_cast<CDisplayData*>( it->second );
+		if ( displayData != nullptr )
+		{
+			index++;
+			std::string key = displayData->GetDataKey();
+			if ( pathSuff.empty() == false )
+			{
+				key += "_" + pathSuff;
+			}
+
+			Write( ENTRY_DISPLAY_DATA + n2s<std::string>( index ), key.c_str() );
+
+			displayData->SaveConfig( this, pathSuff, wks );
+		}
+	}
+	return true;
+}
+
+bool CConfiguration::LoadConfig( CDisplay &d, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
+{
+	SetPath( "/" + d.m_name );
+
+	std::string
+    valueString = Read( ENTRY_TYPE, CMapTypeDisp::GetInstance().IdToName( d.m_type ) ).ToStdString();
+	if ( valueString.empty() )
+	{
+		d.m_type = -1;
+	}
+	else
+	{
+		d.m_type = CMapTypeDisp::GetInstance().NameToId( valueString );
+	}
+
+	d.m_title = Read( ENTRY_TITLE );
+	Read( ENTRY_ANIMATION, &d.m_withAnimation, false );
+	d.m_projection = Read( ENTRY_PROJECTION, "3D" );
+
+	Read( ENTRY_MINXVALUE, &d.m_minXValue, CTools::m_defaultValueDOUBLE );
+	Read( ENTRY_MAXXVALUE, &d.m_maxXValue, CTools::m_defaultValueDOUBLE );
+
+	Read( ENTRY_MINYVALUE, &d.m_minYValue, CTools::m_defaultValueDOUBLE );
+	Read( ENTRY_MAXYVALUE, &d.m_maxYValue, CTools::m_defaultValueDOUBLE );
+
+	valueString = Read( ENTRY_ZOOM );
+	d.m_zoom.Set( valueString, CDisplay::m_zoomDelimiter );
+
+	// the entry ENTRY_OUTPUT  is not used any more
+	//  valueString = Read(ENTRY_OUTPUT);
+	//  if (valueString.empty() == false)
+	//  {
+	//    SetOutput(valueString);
+	//  }
+
+	d.InitOutput( wksd );
+
+	d.m_data.LoadConfig( this, errorMsg, wksd, wkso, d.GetName() );
+
+	return true;
+}
+
+bool CConfiguration::SaveConfig( const CDisplay &d, CWorkspaceDisplay *wksd )
+{
+	bool bOk = true;
+
+	SetPath( "/" + d.m_name );
+
+	bOk &= Write( ENTRY_TYPE, CMapTypeDisp::GetInstance().IdToName( d.m_type ).c_str() );
+
+
+	bOk &= Write( ENTRY_TITLE, d.GetTitle().c_str() );
+	bOk &= Write( ENTRY_ANIMATION, d.GetWithAnimation() );
+	bOk &= Write( ENTRY_PROJECTION, d.GetProjection().c_str() );
+
+	if ( isDefaultValue( d.m_minXValue ) == false )
+	{
+		bOk &= Write( ENTRY_MINXVALUE, d.m_minXValue );
+	}
+	if ( isDefaultValue( d.m_maxXValue ) == false )
+	{
+		bOk &= Write( ENTRY_MAXXVALUE, d.m_maxXValue );
+	}
+
+	if ( isDefaultValue( d.m_minYValue ) == false )
+	{
+		bOk &= Write( ENTRY_MINYVALUE, d.m_minYValue );
+	}
+	if ( isDefaultValue( d.m_maxYValue ) == false )
+	{
+		bOk &= Write( ENTRY_MAXYVALUE, d.m_maxYValue );
+	}
+
+	std::string valueString = d.m_zoom.GetAsText( CDisplay::m_zoomDelimiter ).c_str();
+	bOk &= Write( ENTRY_ZOOM, valueString.c_str() );
+
+	// the entry ENTRY_OUTPUT  is not used any more
+	//bOk &= Write(ENTRY_OUTPUT, GetOutputName());
+
+
+	// Warning after formulas Load config conig path has changed
+	d.m_data.SaveConfig( this, wksd, d.GetName() );
+
+	return bOk;
+}
 
 
 

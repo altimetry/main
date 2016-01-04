@@ -15,9 +15,8 @@
 #include <qgssinglebandpseudocolorrenderer.h>
 #include <qgsrastershader.h>
 
-#include "new-gui/Common/QtFileUtils.h"
 #include "new-gui/Common/+UtilsIO.h"
-#include "new-gui/Common/QtUtils.h"
+#include "new-gui/Common/QtUtilsIO.h"
 #include "new-gui/Common/tools/Trace.h"
 
 //#include "new-gui/brat-lab/System/BackServices.h"
@@ -107,8 +106,7 @@ CMapWidget::CMapWidget(QWidget *parent) : base_t(parent)
     //// Set the Map Canvas Layer Set
     //setLayerSet(mLayerSet);
 
-	setMinimumSize( min_map_widget_width, min_map_widget_height );
-    //setVisible(true);
+	setMinimumSize( min_widget_width, min_widget_height );    //setVisible(true);
     refresh();
 }
 

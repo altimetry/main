@@ -247,9 +247,9 @@ void QbrtMainWindow::checkIfStuffDone()
 
 		QString message;
 		if ( mDone == mTotal )
-			message = tr( "All %n image(s) converted", "", mDone );
+			message = tr( "All %n image(s) converted", "", (int)mDone );
 		else
-			message = tr( "Converted %n/%1 image(s)", "", mDone )
+			message = tr( "Converted %n/%1 image(s)", "", (int)mDone )
 			.arg( mTotal );
 
 		mMessageButton->setText( message );

@@ -20,10 +20,9 @@
 #include "new-gui/Common/tools/Trace.h"
 #include "new-gui/Common/tools/Exception.h"
 
-#include "brathl.h"
-
-#include "Tools.h"
-#include "BratProcess.h"
+#include "libbrathl/brathl.h"
+#include "libbrathl/Tools.h"
+#include "process/BratProcess.h"
 
 using namespace brathl;
 using namespace processes;
@@ -542,17 +541,26 @@ void COperation::SetExecNames( const std::string &appPath )
 #else
 
 	m_execBratSchedulerName = appPath + "/" + BRATSCHEDULER_EXE;		//m_execBratSchedulerName.MakeAbsolute();
+    assert__(
+        IsFile( m_execYFXName )				&&
+        IsFile( m_execZFXYName )			&&
+        IsFile( m_execDisplayName )			&&
+        IsFile( m_execExportAsciiName )		&&
+        IsFile( m_execExportGeoTiffName )	&&
+        IsFile( m_execShowStatsName )		&&
+        IsFile( m_execBratSchedulerName )
+        );
 #endif
 
-assert__(
-	IsFile( m_execYFXName )				&&
-	IsFile( m_execZFXYName )			&&
-	IsFile( m_execDisplayName )			&&
-	IsFile( m_execExportAsciiName )		&&
-	IsFile( m_execExportGeoTiffName )	&&
-	IsFile( m_execShowStatsName )		&&
-	IsFile( m_execBratSchedulerName )
-	);
+//assert__(
+//	IsFile( m_execYFXName )				&&
+//	IsFile( m_execZFXYName )			&&
+//	IsFile( m_execDisplayName )			&&
+//	IsFile( m_execExportAsciiName )		&&
+//	IsFile( m_execExportGeoTiffName )	&&
+//	IsFile( m_execShowStatsName )		&&
+//	IsFile( m_execBratSchedulerName )
+//	);
 }
 
 
@@ -964,101 +972,12 @@ std::string COperation::GetSelectDescription()
 //----------------------------------------
 bool COperation::SaveConfig( CConfiguration *config )
 {
-
-
-	if ( config == nullptr )
-		return true;
-
-	config->SetPath( "/" + m_name );
-
-	bool bOk = true;
-	if ( m_dataset != nullptr )
-		bOk &= config->Write( ENTRY_DSNAME, m_dataset->GetName().c_str() ) && config->Write( ENTRY_RECORDNAME, GetRecord() );
-
-	bOk &= config->Write( ENTRY_TYPE, CMapTypeOp::GetInstance().IdToName( m_type ) );
-
-	// Data mode is no more for a operation, but for each formula (data expression)
-	//bOk &= config->Write(ENTRY_DATA_MODE,
-	//                     CMapDataMode::GetInstance().IdToName(m_dataMode));
-
-	m_select->SaveConfigDesc( config, config->GetConfigPath() );
-
-	bOk &= config->Write( ENTRY_OUTPUT, GetOutputPath() );
-	bOk &= config->Write( ENTRY_EXPORT_ASCII_OUTPUT, GetExportAsciiOutputPath() );
-
-	// Warning after formulas Load config conig path has changed
-	m_formulas.SaveConfig( config, false, GetName() );
-
-	return bOk;
+	return !config || config->SaveConfig( *this );
 }
 //----------------------------------------
 bool COperation::LoadConfig( CConfiguration *config, std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
 {
-	if ( config == nullptr )
-	{
-		return true;
-	}
-
-	config->SetPath( "/" + m_name );
-
-	std::string valueString;
-	valueString = config->Read( ENTRY_DSNAME );
-	m_dataset = FindDataset( valueString, wks );
-
-	valueString = config->Read( ENTRY_TYPE, CMapTypeOp::GetInstance().IdToName( m_type ) );
-	if ( valueString.empty() )
-	{
-		m_type = CMapTypeOp::eTypeOpYFX;
-	}
-	else
-	{
-		m_type = CMapTypeOp::GetInstance().NameToId( valueString );
-	}
-
-	valueString = config->Read( ENTRY_DATA_MODE, CMapDataMode::GetInstance().IdToName( m_dataMode ) );
-	if ( valueString.empty() )
-	{
-		m_dataMode = CMapDataMode::GetInstance().GetDefault();
-	}
-	else
-	{
-		m_dataMode = CMapDataMode::GetInstance().NameToId( valueString );
-	}
-
-
-	m_record = config->Read( ENTRY_RECORDNAME );
-	if ( m_record.empty() )
-	{
-		m_record = CProductNetCdf::m_virtualRecordName.c_str();
-	}
-	valueString = config->Read( ENTRY_OUTPUT );
-	if ( valueString.empty() == false )
-	{
-		// Old Comment: Note that if the path to the output is in relative form,
-		// SetOutput make it in absolute form based on workspace Operation path.
-		SetOutput( valueString, wkso );
-	}
-
-	valueString = config->Read( ENTRY_EXPORT_ASCII_OUTPUT );
-	if ( valueString.empty() == false )
-	{
-		// Old Comment: Note that if the path to the output is in relative form,
-		// SetOutput make it in absolute form based on workspace Operation path.
-		SetExportAsciiOutput( valueString, wkso );
-	}
-	else
-	{
-		InitExportAsciiOutput( wkso );
-	}
-
-	m_select->LoadConfigDesc( config, config->GetConfigPath() );
-
-	// Warning after formulas Load config conig path has changed
-	m_formulas.LoadConfig( config, errorMsg, false, GetName() );
-
-	m_formulas.InitFormulaDataMode( m_dataMode );
-
-	return true;
+	return !config || config->LoadConfig( *this, errorMsg, wks, wkso );
 }
 
 //----------------------------------------

@@ -193,7 +193,7 @@ template< class EDITOR >
 EDITOR* CBratMainWindow::activeEditor()
 {
     QWidget *pw = QApplication::focusWidget();
-    if ( pw == mOutputTextWidget || pw == mToolTextWidget )
+    if ( pw == mOutputTextWidget )              //|| pw == mToolTextWidget
         return qobject_cast<EDITOR*>( pw );
 
     //default to MDI subWindows
@@ -203,58 +203,60 @@ EDITOR* CBratMainWindow::activeEditor()
 
 
 
-/////////////////////////////////////////////////////////////////////////
-//                          PRINT ACTIONS
-/////////////////////////////////////////////////////////////////////////
-
-
-void CBratMainWindow::setupPrintActions()
-{
-#ifndef QT_NO_PRINTER
-    action_Print->setIcon( QIcon::fromTheme("document-print", QIcon(":/images/fileprint.png") ) );
-    action_Print->setPriority(QAction::LowPriority);
-    action_Print->setShortcut(QKeySequence::Print);
-    connect( action_Print, SIGNAL(triggered()), this, SLOT(filePrint()) );
-
-    action_Print_Preview->setIcon( QIcon::fromTheme("fileprint", QIcon(":/images/fileprint.png") ) );
-    connect( action_Print_Preview, SIGNAL(triggered()), this, SLOT(filePrintPreview()));
-
-    action_Export_To_PDF->setIcon( QIcon::fromTheme("exportpdf", QIcon(":/images/exportpdf.png")) );
-    action_Export_To_PDF->setPriority(QAction::LowPriority);
-    action_Export_To_PDF->setShortcut(Qt::CTRL + Qt::Key_D);
-    connect( action_Export_To_PDF, SIGNAL(triggered()), this, SLOT(filePrintPdf()));
-#endif
-}
-
-void CBratMainWindow::filePrint()
-{
-	NOT_IMPLEMENTED
-    //if ( CTextWidget *pe = activeTextEditor() )
-    //    pe->PrintToPrinter();
-}
-
-
-void CBratMainWindow::filePrintPreview()
-{
-	NOT_IMPLEMENTED
-    //if ( CTextWidget *pe = activeTextEditor() )
-    //    pe->PrintPreview();
-}
-
-
-void CBratMainWindow::filePrintPdf()
-{
-	NOT_IMPLEMENTED
-    //if ( CTextWidget *pe = activeTextEditor() )
-    //    pe->PrintToPdf();
-}
-
-
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 //                                  EDIT ACTIONS
 ///////////////////////////////////////////////////////////////////////////////////////////
+
+
+void CBratMainWindow::on_action_Cut_triggered()
+{
+    NOT_IMPLEMENTED
+    //if ( CTextWidget *pe = activeTextEditor() )
+    //    pe->cut();
+}
+void CBratMainWindow::on_action_Copy_triggered()
+{
+    NOT_IMPLEMENTED
+    //if ( CTextWidget *pe = activeTextEditor() )
+    //    pe->copy();
+}
+void CBratMainWindow::on_action_Paste_triggered()
+{
+    NOT_IMPLEMENTED
+    //if ( CTextWidget *pe = activeTextEditor() )
+    //    pe->paste();
+}
+void CBratMainWindow::on_action_Undo_triggered()
+{
+    NOT_IMPLEMENTED
+    //if ( CTextWidget *pe = activeTextEditor() )
+    //    pe->undo();
+}
+void CBratMainWindow::on_action_Redo_triggered()
+{
+    NOT_IMPLEMENTED
+    //if ( CTextWidget *pe = activeTextEditor() )
+    //    pe->redo();
+}
+void CBratMainWindow::on_action_Delete_triggered()
+{
+    NOT_IMPLEMENTED
+    //if ( CTextWidget *pe = activeTextEditor() )
+    //    pe->textCursor().removeSelectedText();        //from Qt source code
+}
+void CBratMainWindow::on_action_Select_All_triggered()
+{
+    NOT_IMPLEMENTED
+    //if ( CTextWidget *pe = activeTextEditor() )
+    //    pe->selectAll();
+}
+
+
+
+
+
+
+
 
 
 void CBratMainWindow::cursorPositionChanged()
@@ -264,72 +266,10 @@ void CBratMainWindow::cursorPositionChanged()
     //    alignmentChanged( editor->alignment() );
 }
 
-
-
-void CBratMainWindow::on_action_Undo_triggered()
-{
-	NOT_IMPLEMENTED
-    //if ( CTextWidget *pe = activeTextEditor() )
-    //    pe->undo();
-}
-
-void CBratMainWindow::on_action_Redo_triggered()
-{
-	NOT_IMPLEMENTED
-    //if ( CTextWidget *pe = activeTextEditor() )
-    //    pe->redo();
-}
-
-
-void CBratMainWindow::on_action_Cut_triggered()
-{
-	NOT_IMPLEMENTED
-    //if ( CTextWidget *pe = activeTextEditor() )
-    //    pe->cut();
-}
-
-void CBratMainWindow::on_action_Copy_triggered()
-{
-	NOT_IMPLEMENTED
-    //if ( CTextWidget *pe = activeTextEditor() )
-    //    pe->copy();
-}
-
-void CBratMainWindow::on_action_Paste_triggered()
-{
-	NOT_IMPLEMENTED
-    //if ( CTextWidget *pe = activeTextEditor() )
-    //    pe->paste();
-}
-
 void CBratMainWindow::clipboardDataChanged()
 {
 #ifndef QT_NO_CLIPBOARD
     if (const QMimeData *md = QApplication::clipboard()->mimeData())
         action_Paste->setEnabled( md->hasText() );
 #endif
-}
-
-void CBratMainWindow::on_action_Delete_triggered()
-{
-	NOT_IMPLEMENTED
-    //if ( CTextWidget *pe = activeTextEditor() )
-    //    pe->textCursor().removeSelectedText();        //from Qt source code
-}
-
-void CBratMainWindow::on_action_Select_All_triggered()
-{
-	NOT_IMPLEMENTED
-    //if ( CTextWidget *pe = activeTextEditor() )
-    //    pe->selectAll();
-}
-
-void CBratMainWindow::on_action_Read_Only_triggered()
-{
-	NOT_IMPLEMENTED
-    //if ( CTextWidget *pe = activeTextEditor() ) {
-    //    QAction *action = qobject_cast<QAction *>(sender());
-    //    pe->setReadOnly( action->isChecked() );
-    //    action_Paste->setEnabled( !action->isChecked() );
-    //}
 }

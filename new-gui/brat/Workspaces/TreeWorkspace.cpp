@@ -19,11 +19,11 @@
 
 #include <typeinfo>
 
-#include "brathl.h"
+#include "libbrathl/brathl.h"
+#include "libbrathl/Tools.h"
 
 #include "new-gui/Common/tools/Trace.h"
 #include "new-gui/Common/tools/Exception.h"
-#include "Tools.h"
 
 #include "Workspace.h"
 #include "TreeWorkspace.h"

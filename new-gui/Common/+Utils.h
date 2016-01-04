@@ -79,6 +79,18 @@ typedef std::strstream stream_t;
 
 
 
+#undef UNUSED
+#if defined (Q_UNUSED)
+    #define UNUSED Q_UNUSED
+#else
+    #if defined(Q_CC_INTEL) && !defined(Q_OS_WIN) || defined(Q_CC_RVCT)
+    template <typename T>
+    inline void DummyUnused(T &x) { (void)x; }
+    #  define UNUSED(x) DummyUnused(x);
+    #else
+    #  define UNUSED(x) (void)x;
+    #endif
+#endif
 
 
 
@@ -444,11 +456,13 @@ struct string_traits;
 template<>
 struct string_traits< std::string >
 {
-    typedef std::stringstream				str_stream_type;
-    typedef std::ostringstream				ostr_stream_type;
-    typedef std::basic_ostream< char >		ostream_type;
-    typedef std::basic_istream< char >		istream_type;
-	typedef std::streambuf					streambuf_type;
+	using str_stream_type	= std::stringstream;
+	using ostr_stream_type	= std::ostringstream;
+	using ostream_type		= std::basic_ostream< char >;
+	using istream_type		= std::basic_istream< char >;
+	using streambuf_type	= std::streambuf;
+	using ifstream_type		= std::ifstream;
+	using ofstream_type		= std::ofstream;
 
     static inline ostream_type& tcout()
     {
@@ -467,11 +481,13 @@ struct string_traits< std::string >
 template<>
 struct string_traits< std::wstring >
 {
-    typedef std::wstringstream              str_stream_type;
-    typedef std::wostringstream				ostr_stream_type;
-    typedef std::basic_ostream< wchar_t >   ostream_type;
-    typedef std::basic_istream< wchar_t >   istream_type;
-	typedef std::wstreambuf					streambuf_type;
+	using str_stream_type	= std::wstringstream;
+	using ostr_stream_type	= std::wostringstream;
+	using ostream_type		= std::basic_ostream< wchar_t >;
+	using istream_type		= std::basic_istream< wchar_t >;
+	using streambuf_type	= std::wstreambuf;
+	using ifstream_type		= std::wifstream;
+	using ofstream_type		= std::wofstream;
 
     static inline ostream_type& tcout()
     {

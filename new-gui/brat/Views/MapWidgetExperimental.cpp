@@ -29,7 +29,7 @@
 #endif
 
 
-#include "new-gui/Common/QtFileUtils.h"
+#include "new-gui/Common/QtUtilsIO.h"
 #include "new-gui/Common/tools/Trace.h"
 
 #include "new-gui/Common/+UtilsIO.h"

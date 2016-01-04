@@ -33,6 +33,9 @@
 #include "DirTraverser.h"
 #include "WorkspaceDlg.h"
 
+#include "new-gui/Common/ConfigurationKeywords.h"
+
+
 // WDR: class implementations
 
 //------------------------------------------------------------------------------
@@ -287,33 +290,38 @@ bool CGuiFrame::CreateWorkspace()
 //----------------------------------------
 void CGuiFrame::ConfigToFileHistory()
 {
-  if (wxGetApp().GetConfig() == nullptr)
-  {
-    return;
-  }
-  
-  wxFileConfig* config = wxGetApp().GetConfig();
+	std::vector<std::string> v;
+	wxGetApp().LoadFileHistory( v );
+	for ( auto &valueString : v )
+		AddWorkspaceToHistory(valueString);
 
-  config->SetPath("/" + GROUP_WKS_RECENT);
+  //if (wxGetApp().GetConfig() == nullptr)
+  //{
+  //  return;
+  //}
+  //
+  //wxFileConfig* config = wxGetApp().GetConfig();
 
-  long maxEntries = config->GetNumberOfEntries();
-  bool bOk = false;
-  wxString entry;
-  wxString valueString;
-  long i = 0;
+  //config->SetPath("/" + GROUP_WKS_RECENT);
 
-  do
-  {
-    bOk = config->GetNextEntry(entry, i);
-    if (bOk)
-    {
-      valueString = config->Read(entry);
-      AddWorkspaceToHistory(valueString);
-    }
-  }
-  while (bOk);
+  //long maxEntries = config->GetNumberOfEntries();
+  //bool bOk = false;
+  //wxString entry;
+  //wxString valueString;
+  //long i = 0;
 
-  m_menuBar->Enable(ID_MENU_FILE_RECENT, maxEntries > 0);
+  //do
+  //{
+  //  bOk = config->GetNextEntry(entry, i);
+  //  if (bOk)
+  //  {
+  //    valueString = config->Read(entry);
+  //    AddWorkspaceToHistory(valueString);
+  //  }
+  //}
+  //while (bOk);
+
+  m_menuBar->Enable(ID_MENU_FILE_RECENT, v.size() > 0);
 
 }
 //----------------------------------------
@@ -340,7 +348,6 @@ void CGuiFrame::RemoveWorkspaceFromHistory(const wxString& name)
 void CGuiFrame::LoadFromWorkspaceHistory(int32_t fileNum)
 {
   bool bOk = OpenWorkspace(m_wksHistory.GetHistoryFile(fileNum));
-
   if (bOk == false)
   {
     m_wksHistory.RemoveFileFromHistory(fileNum);
@@ -349,29 +356,44 @@ void CGuiFrame::LoadFromWorkspaceHistory(int32_t fileNum)
 //----------------------------------------
 void CGuiFrame::FileHistoryToConfig()
 {
-  if (wxGetApp().GetConfig() == nullptr)
-  {
-    return;
-  }
-  
-  wxFileConfig* config = wxGetApp().GetConfig();
+	if ( !m_menuBar->IsEnabled( ID_MENU_FILE_RECENT ) )
+		return;
 
-  config->SetPath("/");
-  if (m_menuBar->IsEnabled(ID_MENU_FILE_RECENT) == false)
-  {
-    return;
-  }
+	std::vector<std::string> v;
+	for (uint32_t i =0 ; i < m_wksHistory.GetCount() ; i++)
+	{
+	  wxFileName fileName;
+	  fileName.AssignDir(m_wksHistory.GetHistoryFile(i));
+	  fileName.Normalize();
 
-  for (uint32_t i =0 ; i < m_wksHistory.GetCount() ; i++)
-  {
-    wxFileName fileName;
-    fileName.AssignDir(m_wksHistory.GetHistoryFile(i));
-    fileName.Normalize();
+	  v.push_back( fileName.GetPath().ToStdString() );
+	}
 
-    config->Write(brathlFmtEntryRecentWksMacro(i), fileName.GetPath() );
-  }
-  
-  config->Flush();
+	wxGetApp().SaveFileHistory( v );
+
+	//if (wxGetApp().GetConfig() == nullptr)
+	//{
+	//  return;
+	//}
+	//
+	//wxFileConfig* config = wxGetApp().GetConfig();
+
+	//config->SetPath("/");
+	//if (m_menuBar->IsEnabled(ID_MENU_FILE_RECENT) == false)
+	//{
+	//  return;
+	//}
+
+	//for (uint32_t i =0 ; i < m_wksHistory.GetCount() ; i++)
+	//{
+	//  wxFileName fileName;
+	//  fileName.AssignDir(m_wksHistory.GetHistoryFile(i));
+	//  fileName.Normalize();
+
+	//  config->Write(brathlFmtEntryRecentWksMacro(i), fileName.GetPath() );
+	//}
+	//
+	//config->Flush();
 
 }
 //----------------------------------------

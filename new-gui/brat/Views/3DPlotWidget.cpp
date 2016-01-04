@@ -800,7 +800,8 @@ C3DPlotWidget::C3DPlotWidget( QWidget *parent ) : base_t( parent ), m_ToolEditor
 	//    connect( this, SIGNAL( setCurrentFile( const C3DPlotWidget* )), parent, SLOT(setCurrentFile( const C3DPlotWidget* )) );
 	//}
 
-	setVisible( true );
+	setMinimumSize( min_widget_width, min_widget_height );
+	//setVisible( true );
 }
 
 

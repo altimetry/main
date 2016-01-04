@@ -14,7 +14,7 @@
    <string>SchedulerDlg</string>
   </property>
   <property name="windowIcon">
-   <iconset resource="../Common/res/Common.qrc">
+   <iconset>
     <normaloff>:/BratIcon.png</normaloff>:/BratIcon.png</iconset>
   </property>
   <property name="autoFillBackground">
@@ -337,8 +337,6 @@
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources>
-  <include location="../Common/res/Common.qrc"/>
- </resources>
+ <resources/>
  <connections/>
 </ui>

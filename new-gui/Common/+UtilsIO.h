@@ -10,6 +10,7 @@
 #endif
 
 #include <fcntl.h>
+#include <fstream>
 
 #include "+Utils.h"
 
@@ -269,30 +270,59 @@ public:
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//													
+//													READ / WRITE to std strings
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-#if defined(WIN32)
-
-inline bool readFromUnicodeFile( std::wstring &s, const std::wstring &path )
+//inline bool ReadFromUnicodeFile( std::wstring &s, const std::wstring &path )
+//{
+//	std::wifstream f( path, std::ios::binary );
+//	f.imbue( std::locale( f.getloc(), new std::codecvt_utf16< wchar_t, 0x10ffff, std::little_endian>) );
+//	if ( !f )
+//		return false;
+//	std::copy( std::istreambuf_iterator< wchar_t >( f ), std::istreambuf_iterator< wchar_t >(), std::back_inserter( s ) );
+//	return true;
+//}
+inline void PrepareRead2String( string_traits<std::string>::ifstream_type  &inf )
 {
-	std::wifstream f( path, std::ios::binary );
-	f.imbue( std::locale( f.getloc(), new std::codecvt_utf16< wchar_t, 0x10ffff, std::little_endian>) );
-	if ( !f )
+	UNUSED( inf );
+}
+inline void PrepareRead2String( string_traits<std::wstring>::ifstream_type  &inf )
+{
+#if defined(WIN32)
+	inf.imbue( std::locale( inf.getloc(), new std::codecvt_utf16< wchar_t, 0x10ffff, std::little_endian>) );
+#else
+	UNUSED( inf );
+#endif
+}
+
+template< typename STRING >
+inline bool Read2String( STRING &s, const STRING &path )
+{
+    typename string_traits<STRING>::ifstream_type inf( path, std::ios::binary );
+	PrepareRead2String( inf );
+	if ( !inf )
 		return false;
-	std::copy( std::istreambuf_iterator< wchar_t >( f ), std::istreambuf_iterator< wchar_t >(), std::back_inserter( s ) );
+	std::copy( std::istreambuf_iterator< typename STRING::value_type >( inf ), std::istreambuf_iterator< typename STRING::value_type >(), std::back_inserter( s ) );
 	return true;
 }
 
-#endif
+template< typename STRING >
+inline bool Write2File( const STRING &s, const STRING &path )
+{
+    typename string_traits<STRING>::ofstream_type outf( path, std::ios::binary | std::ios::out );
+	if ( !outf )
+		return false;
+
+	return !!outf.write( s.c_str(), s.size() );
+}
 
 
 
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//													
+//													PORTABLE PATHS
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 

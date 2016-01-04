@@ -17,12 +17,13 @@
 */
 
 #include "new-gui/brat/stdafx.h"
-#include "new-gui/Common/QtFileUtils.h"
+#include "new-gui/Common/QtUtilsIO.h"
 #include "new-gui/Common/tools/Trace.h"
 #include "new-gui/Common/tools/Exception.h"
 
 #include "libbrathl/Tools.h"
 
+#include "WorkspacePersistence.h"
 #include "Dataset.h"
 
 
@@ -132,7 +133,7 @@ bool CDataset::SaveConfig( CConfiguration *config )
 //{
 //}
 //----------------------------------------
-bool CDataset::LoadConfig( CConfiguration *config )
+bool CDataset::LoadConfig( CWorkspaceSettings *config )
 {
 	return !config || config->LoadConfig( this );
 

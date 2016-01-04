@@ -4,6 +4,30 @@
 
 #include <QMainWindow>
 
+class CTabbedDock;
+class CControlsPanel;
+class CMapWidget;
+class CGlobeWidget;
+class C2DPlotWidget;
+class C3DPlotWidget;
+class CTextWidget;
+
+enum EActionTag : int;
+
+
+/////////////////////////////////////////////////////////////////
+//	TODO: move to proper place after using real projections
+/////////////////////////////////////////////////////////////////
+
+QActionGroup* ProjectionsActions( QWidget *parent );
+
+
+
+
+/////////////////////////////////////////////////////////////////
+//
+/////////////////////////////////////////////////////////////////
+
 class CAbstractDisplayEditor : public QMainWindow
 {
 #if defined (__APPLE__)
@@ -19,47 +43,58 @@ class CAbstractDisplayEditor : public QMainWindow
 
 	using base_t = QMainWindow;
 
-	QDockWidget *mWorkingDock = nullptr;
-	QWidget *mWorkingDockContent = nullptr;
-	QVBoxLayout *mWorkingDockLayout = nullptr;
-
 	QToolBar *mToolBar = nullptr;
-	QWidget *mGraphic = nullptr;
+	std::vector< QWidget > mGraphics;
 
-	void CreateWorkingDock();
+	CTabbedDock *mWorkingDock = nullptr;
+	QSplitter *mMainSplitter = nullptr;
+	QSplitter *mGraphicsSplitter = nullptr;
+
+protected:
+	QAction *mAction2D = nullptr;
+	QAction *mAction3D = nullptr;
+	QAction *mLogAction = nullptr;
+
+	CTextWidget *mLogText = nullptr;
+
+private:
+	void CreateWorkingDock( CControlsPanel *controls );
 	void CreateGraphicsBar();
 	void CreateStatusBar();
+
 public:
-    CAbstractDisplayEditor( QWidget *parent = nullptr, QWidget *view = nullptr );
+    CAbstractDisplayEditor( CControlsPanel *controls, QWidget *parent = nullptr );
 
 	virtual ~CAbstractDisplayEditor();
 
-public:
-	void AddView( QWidget *view );
-
 protected:
-	QLayout* CreateWorkingLayout( Qt::Orientation orientation );
-	QLayout* AddWorkingWidget( QWidget *w, QLayout *l = nullptr );
-
 	QSize sizeHint() const override
     {
         return QSize(72 * fontMetrics().width('x'),
                      25 * fontMetrics().lineSpacing());
     }
 
+	bool AddView( QWidget *view, bool view3D );
+
+	QAction* AddToolBarAction( QObject *parent, EActionTag tag );
+	QAction* AddToolBarSeparator();
+	QToolButton* AddMenuButton( EActionTag button_tag, const QList<QAction*> &actions );
+
 	virtual void Handle2D( bool checked ) = 0;
 	virtual void Handle3D( bool checked ) = 0;
-	virtual void HandleText( bool checked ) = 0;
 	virtual void HandleLog( bool checked ) = 0;
 
 protected slots:
 	void Handle2D_slot( bool checked );
 	void Handle3D_slot( bool checked );
-	void HandleText_slot( bool checked );
 	void HandleLog_slot( bool checked );
 };
 
 
+
+/////////////////////////////////////////////////////////////////
+//						Map Editor
+/////////////////////////////////////////////////////////////////
 
 class CMapEditor : public CAbstractDisplayEditor
 {
@@ -77,20 +112,47 @@ class CMapEditor : public CAbstractDisplayEditor
 
 	using base_t = CAbstractDisplayEditor;
 
+	CMapWidget *mMap = nullptr;
+	CGlobeWidget *mGlobe = nullptr;
+
+	QAction *mActionMeasureDistance = nullptr;
+	QAction *mActionMeasureArea = nullptr;
+	QAction *mActionStatisticsMean = nullptr;
+	QAction *mActionStatisticsStDev = nullptr;
+	QAction *mActionStatisticsLinearRegression = nullptr;
+	QToolButton *mToolProjection = nullptr;
+
+	QActionGroup *mProjectionsGroup;
+
+	void CreateMapActions();
+	void WireMapActions();
 public:
-    CMapEditor( QWidget *parent = nullptr, QWidget *view = nullptr );
+    CMapEditor( QWidget *parent = nullptr );
 
 	virtual ~CMapEditor();
 
 protected:
 	virtual void Handle2D( bool checked ) override;
 	virtual void Handle3D( bool checked ) override;
-	virtual void HandleText( bool checked ) override;
 	virtual void HandleLog( bool checked ) override;
+
+protected slots:
+	void HandleMeasureDistance();
+	void HandleMeasureArea();
+
+	void HandleStatisticsMean();
+	void StatisticsStDev();
+	void HandleStatisticsLinearRegression();
+
+	void HandleProjection();
 };
 
 
 
+
+/////////////////////////////////////////////////////////////////
+//						Plot Editor
+/////////////////////////////////////////////////////////////////
 
 class CPlotEditor : public CAbstractDisplayEditor
 {
@@ -107,15 +169,17 @@ class CPlotEditor : public CAbstractDisplayEditor
 
 	using base_t = CAbstractDisplayEditor;
 
+	C2DPlotWidget *mPlot2D = nullptr;
+	C3DPlotWidget *mPlot3D = nullptr;
+
 public:
-    CPlotEditor( QWidget *parent = nullptr, QWidget *view = nullptr );
+    CPlotEditor( QWidget *parent = nullptr );
 
 	virtual ~CPlotEditor();
 
 protected:
 	virtual void Handle2D( bool checked ) override;
 	virtual void Handle3D( bool checked ) override;
-	virtual void HandleText( bool checked ) override;
 	virtual void HandleLog( bool checked ) override;
 };
 

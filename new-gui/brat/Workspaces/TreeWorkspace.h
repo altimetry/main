@@ -18,8 +18,8 @@
 #if !defined(WORKSPACES_TREE_WORKSPACE_H)
 #define WORKSPACES_TREE_WORKSPACE_H
 
-#include "List.h"
-#include "ObjectTree.h"
+#include "libbrathl/List.h"
+#include "libbrathl/ObjectTree.h"
 #include "new-gui/brat/Display/BitSet32.h"
 
 

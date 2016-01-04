@@ -13,15 +13,9 @@
 #include "libbrathl/List.h"
 #include "libbrathl/FileParams.h"
 
+#include "new-gui/Common/QtStringUtils.h"
 
-enum EApplicationStyleSheets
-{
-	e_DarkStyle,
-	e_DarkOrangeStyle,
-	e_Dark_2015Style,
-
-	EApplicationStylesSheets_size
-};
+#include "ApplicationSettings.h"
 
 
 ////  - empirical assumption (without this crashes): a forward like this is
@@ -49,6 +43,18 @@ class CWorldPlotProperty;
 class CZFXYPlotProperty;
 class CXYPlotProperty;
 class CWPlot;
+class CWorkspace;
+
+
+
+enum EApplicationStyleSheets
+{
+	e_DarkStyle,
+	e_DarkOrangeStyle,
+	e_Dark_2015Style,
+
+	EApplicationStylesSheets_size
+};
 
 
 
@@ -56,15 +62,30 @@ class CBratApplication : public QgsApplication
 {
 	Q_OBJECT
 
-	//types
+
+	//////////////////////////////////////
+	//	types & friends
+	//////////////////////////////////////
 
 	typedef QgsApplication base_t;
 
+	friend int main( int argc, char *argv[] );
 
-	//data
 
-	//QString m_execName;
-	QSettings *m_config = nullptr;
+	//////////////////////////////////////
+	//	static members
+	//////////////////////////////////////
+
+	static CApplicationSettings& Settings()
+	{
+		static CApplicationSettings settings( "ESA", q2t< std::string >( QgsApplication::applicationName() ) );
+		return settings;
+	}
+
+
+	//////////////////////////////////////
+	//	data
+	//////////////////////////////////////
 
 	bool m_isZFLatLon = false;
 	bool m_isYFX = false;
@@ -89,17 +110,24 @@ class CBratApplication : public QgsApplication
 	CObArray m_wPlotProperties;
 
 
+	//////////////////////////////////////
+	//	construction / destruction 
+	//////////////////////////////////////
+
 public:
-
-	//Public ctor
-
     CBratApplication( int &argc, char ** argv, bool GUIenabled, QString customConfigPath = QString() );
-
-
-	//Destruction
 
 	virtual ~CBratApplication();
 
+
+	//////////////////////////////////////
+	//	access
+	//////////////////////////////////////
+
+
+	//////////////////////////////////////
+	//	operations
+	//////////////////////////////////////
 
 protected:
 	//bool GetCommandLineOptions( int argc, char* argv[] );

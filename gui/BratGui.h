@@ -74,44 +74,15 @@ const wxString BRAT_DOC_SUBDIR = "data";
 const wxString BRAT_DOC_SUBDIR = "doc";
 #endif
 
-const wxString GROUP_COMMON = "Common";
-const wxString GROUP_SEL_CRITERIA = "Selection Criteria";
-const wxString GROUP_WKS = "Workspaces";
-const wxString GROUP_WKS_RECENT = "Recent Workspaces";
 
-const wxString GROUP_COLORTABLE = "Color Table";
-
-#define brathlFmtEntryRecentWksMacro(index) \
-  wxString::Format(GROUP_WKS_RECENT + "/Recent%d", index)
-
-const wxString ENTRY_LAST = "Last";
-const wxString ENTRY_LAST_DATA_PATH = "LastDataPath";
-const wxString ENTRY_LAST_PAGE_REACHED = "LastPage";
-const wxString ENTRY_USER_MANUAL = "UserManual";
-const wxString ENTRY_USER_MANUAL_VIEWER = "UserManualViewer";
-
-const wxString ENTRY_LAT_LON = "LatLon";
-const wxString ENTRY_DATETIME = "DateTime";
-const wxString ENTRY_PASS_STRING = "Pass (String)";
-const wxString ENTRY_PASS_NUMBER = "Pass (Number)";
-const wxString ENTRY_CYCLE = "Cycle";
+const std::string DATASETS_PAGE_NAME = "Datasets";
+const std::string OPERATIONS_PAGE_NAME = "Operations";
+const std::string DISPLAY_PAGE_NAME = "Views";
+const std::string LOG_PAGE_NAME = "Logs";
 
 
-const wxString DATASETS_PAGE_NAME = "Datasets";
-const wxString OPERATIONS_PAGE_NAME = "Operations";
-const wxString DISPLAY_PAGE_NAME = "Views";
-const wxString LOG_PAGE_NAME = "Logs";
+class CApplicationSettings;
 
-
-const wxString INSERT_FIELD_MENU_LABEL = "Insert '%s' f&ield as a new expression";
-const wxString INSERT_FIELD_MENU_LABEL2 = "Insert '%s' f&ield into expression";
-const wxString DELETE_EXPR_MENU_LABEL = "&Delete '%s' expression";
-const wxString RENAME_EXPR_MENU_LABEL = "&Rename '%s' expression";
-
-const wxString ADD_DISP_TO_SEL_MENU_LABEL = "Add '%s' to selected";
-const wxString ADD_EXPAND_CHILDREN_MENU_LABEL = "Expand all '%s' children";
-
-const wxString DATASET_SELECTION_LOG_FILENAME = "datasetSelection.log";
 
 // WDR: class declarations
 
@@ -133,7 +104,19 @@ public:
   wxString GetIconFile();
   wxString GetIconFileName();
 
-  wxFileConfig* GetConfig() {return m_config;}
+private:
+	wxFileConfig* GetConfig() {return m_config;}
+	CApplicationSettings *mAppSettings = nullptr;
+
+  bool SaveConfig(bool flush = true);
+  bool SaveConfigSelectionCriteria(bool flush = true);
+  
+  bool LoadConfig();
+  bool LoadConfigSelectionCriteria();
+
+public:
+  void LoadFileHistory( std::vector<std::string> &v );
+  void SaveFileHistory( const std::vector<std::string> &v );
 
   void CreateTree(CWorkspace* root);
   void CreateTree(CWorkspace* root, CTreeWorkspace& tree);
@@ -161,12 +144,6 @@ private:
 	std::string GetWorkspaceKey( const std::string &subKey );
 
 public:
-
-  bool SaveConfig(bool flush = true);
-  bool SaveConfigSelectionCriteria(bool flush = true);
-  
-  bool LoadConfig();
-  bool LoadConfigSelectionCriteria();
 
   bool CanDeleteDataset(const wxString& name, CStringArray* operationNames = NULL);
   bool CanDeleteOperation(const wxString& name, CStringArray* displayNames = NULL);
@@ -251,9 +228,9 @@ protected:
 
 
 private:
-  CTreeWorkspace* m_currentTree;
+  CTreeWorkspace* m_currentTree = nullptr;
 
-  wxFileConfig* m_config;
+  wxFileConfig* m_config = nullptr;
 
   wxString m_userManualViewer;
   wxString m_userManual;
@@ -262,7 +239,7 @@ private:
   wxString m_lastDataPath;
   wxString m_lastPageReached;
 
-  CGuiFrame* m_frame;
+  CGuiFrame* m_frame = nullptr;
 
   wxFileName m_execName;
 };

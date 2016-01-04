@@ -308,7 +308,7 @@ public:
 
   void GetAsString(CStringArray& array) const;
 
-  std::string GetAsText(const std::string& delimiter = CLatLonRect::m_delimiter);
+  std::string GetAsText(const std::string& delimiter = CLatLonRect::m_delimiter) const;
 
   std::string AsString(const std::string& format = "");
 
