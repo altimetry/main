@@ -1106,6 +1106,49 @@ bool CConfiguration::LoadConfig( CDisplay &d, std::string &errorMsg, CWorkspaceD
 
 
 
+bool CConfiguration::SaveConfig( const CDisplay &d, CWorkspaceDisplay *wksd )
+{
+    bool bOk = true;
+
+    SetPath( "/" + d.m_name );
+
+    bOk &= Write( ENTRY_TYPE, CMapTypeDisp::GetInstance().IdToName( d.m_type ).c_str() );
+
+
+    bOk &= Write( ENTRY_TITLE, d.GetTitle().c_str() );
+    bOk &= Write( ENTRY_ANIMATION, d.GetWithAnimation() );
+    bOk &= Write( ENTRY_PROJECTION, d.GetProjection().c_str() );
+
+    if ( isDefaultValue( d.m_minXValue ) == false )
+    {
+        bOk &= Write( ENTRY_MINXVALUE, d.m_minXValue );
+    }
+    if ( isDefaultValue( d.m_maxXValue ) == false )
+    {
+        bOk &= Write( ENTRY_MAXXVALUE, d.m_maxXValue );
+    }
+
+    if ( isDefaultValue( d.m_minYValue ) == false )
+    {
+        bOk &= Write( ENTRY_MINYVALUE, d.m_minYValue );
+    }
+    if ( isDefaultValue( d.m_maxYValue ) == false )
+    {
+        bOk &= Write( ENTRY_MAXYVALUE, d.m_maxYValue );
+    }
+
+    std::string valueString = d.m_zoom.GetAsText( CDisplay::m_zoomDelimiter ).c_str();
+    bOk &= Write( ENTRY_ZOOM, valueString.c_str() );
+
+    // the entry ENTRY_OUTPUT  is not used any more
+    //bOk &= Write(ENTRY_OUTPUT, GetOutputName());
+
+
+    // Warning after formulas Load config conig path has changed
+    d.m_data.SaveConfig( this, wksd, d.GetName() );
+
+    return bOk;
+}
 
 
 

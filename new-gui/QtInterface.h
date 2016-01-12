@@ -102,7 +102,7 @@ public:
 	bool LoadConfig( CMapDisplayData &data, std::string &errorMsg, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso, const std::string& pathSuff );
 	bool SaveConfig( const CMapDisplayData &data, CWorkspaceDisplay *wks, const std::string& pathSuff );
 
-    //bool SaveConfig( const CDisplay &d, CWorkspaceDisplay *wksd );
+    bool SaveConfig( const CDisplay &d, CWorkspaceDisplay *wksd );
 	bool LoadConfig( CDisplay &d, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso );
 };
 
