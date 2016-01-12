@@ -26,6 +26,9 @@ enum EActionTag : int
 	eAction_New,
 	eAction_Save,
 	eAction_Save_As,
+	eAction_Import_Workspace,
+	eAction_Rename_Workspace,
+	eAction_Delete_Workspace,
 	eAction_About,
 	eAction_Close,
 	eAction_Close_All,
@@ -71,6 +74,10 @@ enum EActionTag : int
 	eAction_Projection1,
 	eAction_Projection2,
 	eAction_Projection3,
+
+	eAction_ApplicationPaths_page,
+	eAction_StartupOptions_page,
+	eAction_ApplicationStyles_page,
 
 
 	//add new items before this line

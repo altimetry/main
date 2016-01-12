@@ -37,7 +37,7 @@ CMapWidget::CMapWidget(QWidget *parent) : base_t(parent)
 {
 	static const ApplicationDirectories &ad = ApplicationDirectories::instance();
 	if ( !ad.valid() )
-		SimpleErrorBox("Some standard application directories or files are not valid.\nIt will continue but more or less serious errors are to be expected.\nUsers like you are a disgrace.");
+		SimpleErrorBox("Some standard application directories or files are not valid.\nSome more or less serious errors are to be expected.");
 
 	//char *argv[] =
 	//{

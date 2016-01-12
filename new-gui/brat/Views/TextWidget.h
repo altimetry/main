@@ -192,6 +192,8 @@ public:
     //
     bool isEmpty() const;
 	virtual void setToolEditor( bool tool );
+	virtual void setHelpEditor( bool help );
+	virtual void setHelpProperties( const QString &text, int spacing, Qt::Alignment alignment = Qt::AlignCenter );
     virtual QSize sizeHint() const;
 	void setSizeHint( int w, int h ){ m_SizeHint = QSize( w, h ); };
 

@@ -11,9 +11,18 @@
 #include "new-gui/brat/GUI/DisplayEditor.h"
 
 
+class CTreeWorkspace;
+
 class CTabbedDock;
 
+
+//#define TABBED_MANAGER
+
+#if defined TABBED_MANAGER
+using desktop_manager_base_t = QTabWidget;
+#else
 using desktop_manager_base_t = QWidget;
+#endif
 
 /////////////////////////////////////////////////////////////////////////////////////
 //
@@ -40,8 +49,13 @@ protected:
 
 	// construction / destruction
 
+#if defined TABBED_MANAGER
+	CAbstractDesktopManager( QMainWindow *const parent )
+		: base_t( parent )
+#else
 	CAbstractDesktopManager( QMainWindow *const parent, Qt::WindowFlags f = 0 )
 		: base_t( parent, f )
+#endif
 	{
 		setAttribute( Qt::WA_DeleteOnClose );
 
@@ -193,6 +207,8 @@ public:
 protected:
 	QWidget* CenterOnWidget( QWidget *const w, const QWidget *const parent );
 
+	QWidget* AddTab( QWidget *tab_widget, const QString &title );
+
 protected slots:
 	void closeAllSubWindows()
 	{
@@ -243,13 +259,19 @@ protected:
 private:
 	QMdiArea *mMdiArea = nullptr;
 
+	//construction / destruction
+
+protected:
+
+	void AddMDIArea( QWidget *parent );
 public:
-	//ctor/dtor
 
 	CDesktopManagerMDI( QMainWindow *parent );
 
 	virtual ~CDesktopManagerMDI()
 	{}
+
+	// access / operations
 
 public:
     desktop_child_t* AddSubWindow( QWidget *widget, Qt::WindowFlags flags = 0 ) override

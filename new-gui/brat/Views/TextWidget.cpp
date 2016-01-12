@@ -47,11 +47,40 @@ void CTextWidget::setToolEditor( bool tool )
 {
 	if ( tool )
 		setStyleSheet( "QTextEdit {background: #242424; color: #ffffff;}" );
+	else
+		setStyleSheet("");
 	//if ( !highLightEnabled() )		//assume console type editor
 	//	return;
 	//setFont( QFont( "Logic Unicode" ) );
 	//setFontFamily( "Logic Unicode" );
 }
+
+//virtual 
+void CTextWidget::setHelpEditor( bool help )
+{
+	if ( help )
+		setStyleSheet( "QTextEdit {background: #DFDFDF; color: #000000;}" );
+	else
+		setStyleSheet("");
+	setReadOnly( help );
+}
+
+//virtual 
+void CTextWidget::setHelpProperties( const QString &text, int spacing, Qt::Alignment alignment )	//alignment = Qt::AlignCenter 
+{
+	setHelpEditor( true );
+	setSizeHint( m_SizeHint.width(), 0 );
+	insertPlainText( text	);
+	selectAll();
+    setAlignment( alignment );
+	ClearSelection();
+	int line, col;
+	getPosition( line, col );
+	setMaximumHeight( line * fontMetrics().height() + 2 * spacing );
+    setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+}
+
 
 
 

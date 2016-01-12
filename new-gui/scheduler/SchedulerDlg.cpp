@@ -45,7 +45,7 @@ const std::string BRATHL_ICON_FILENAME = "BratIcon.bmp";
 //std::string m_userManual;
 
 
-/// RCCC - TODO - Organize or insert in the rigth place ////
+/// RCCC - TODO - Organize or insert in the right place ////
 // Enum task list columns
 enum ETaskListCol{
     eTaskUid,
@@ -58,19 +58,35 @@ enum ETaskListCol{
 };
 
 
-SchedulerDlg::SchedulerDlg(QWidget *parent) : QDialog(parent)
-	, mIsDialog( parent ? true : false )
+CSchedulerDlg::CSchedulerDlg( QWidget *parent ) : base_t( parent )
+, mIsDialog( parent ? true : false )
 {
-    setupUi(this);
+	setupUi( this );
 
-    if (mIsDialog)
-    {
-        setWindowTitle( qBRATSCHEDULER_DIALOG_TITLE );
-    }
-    else
-    {
-        setWindowTitle( qBRATSCHEDULER_APP_TITLE );
-        createMenuBar();
+	//QLayout *l = layout();
+	//auto *w = l->takeAt( 0 );
+	//delete l;
+	//LayoutWidgets( Qt::Vertical, {}, this, 6, 6, 6, 6, 6 );
+
+	//setAttribute( Qt::WA_DeleteOnClose );
+
+#if defined (_WIN32) || defined (WIN32)
+	// Show maximize button in windows
+	// If this is set in linux, it will not center the dialog over parent
+	setWindowFlags( ( windowFlags() & ~Qt::Dialog ) | Qt::Window | Qt::WindowMaximizeButtonHint );
+#elif defined (Q_OS_MAC)
+	// Qt::WindowStaysOnTopHint also works (too weel: stays on top of other apps also). Without this, we have the mac MDI mess...
+	setWindowFlags( ( windowFlags() & ~Qt::Dialog ) | Qt::Tool );
+#endif
+
+	if ( mIsDialog )
+	{
+		setWindowTitle( qBRATSCHEDULER_DIALOG_TITLE );
+	}
+	else
+	{
+		setWindowTitle( qBRATSCHEDULER_APP_TITLE );
+		CreateMenuBar();
 
 		//RCCC (2015/11/14): Eliminate menu items in excess (left here only for "education" 
 		//	purposes) and add the pertinent ones. Create event handlers (slots) for all 
@@ -86,84 +102,125 @@ SchedulerDlg::SchedulerDlg(QWidget *parent) : QDialog(parent)
 		//	"else") of the if. In the "then" branch (mIsDialog is true), create button(s)
 		//	to close the dialog and the respective actions (ok and cancel, or simply close:
 		//	see in BratGui which of them make sense).
-        //
-        //	(2015/11/16)
-        //  Is a maximize button possible? In a dialog? I didn't check, but please see if it is.
-        //
-        //	For dialogs, including dialog applications, the minimum size should be the
-        //  opening one. Use setMinimumSize, or similar.
-        //
-        //  Disregard the following notes, until we talk (I left them here to serve as
-        //      reminders for me)
-        //
-        //      - generate tasks xml with arguments
 		//
-        //      - wxBratTools::wxStringTowxLongLong_t
-        //
-        ///// SOME LESSONS:
-        //
-        //    std::vector<int> v;
-        //    const size_t size = v.size();
-        //    for ( size_t i = 0; i < size; ++i)
-        //    {
-        //        auto task = v[i];
-        //
-        //    }
-        //    std::vector<CBratTask*> v2;
-        //    for (std::vector<CBratTask*>::const_iterator it = v2.begin(); it != v2.end(); it++)
-        //    {
-        //        qDebug() << *it;
-        //
-        //        //it->->GetUidAsString();
-        //
-        //        (**it).GetUidAsString();
-        //        (*it)->GetUidAsString();
-        //
-        //    }
-        //      QString s = t2q(std::string("sdjfhgi"));
-        //      std::string s2 = q2t<std::string>(QString("sdjfhgi"));
-        //      auto s3 = n2s<std::string>(890);
-        //      auto n = s2n<double>(std::string("789") );
-        //
-        //      for ( auto &t : data )
-        //      {
-        //          qDebug() << t.first;
-        //          qDebug() << t.second->GetUidAsString().c_str();
-        //      }
-        ///////////////////////////////////////////////////
-    }
+		//	(2015/11/16)
+		//  Disregard the following notes, until we talk (I left them here to serve as
+		//      reminders for me)
+		//
+		//      - generate tasks xml with arguments
+		//
+		//      - wxBratTools::wxStringTowxLongLong_t
+		//
+		///// SOME LESSONS:
+		//
+		//    std::vector<int> v;
+		//    const size_t size = v.size();
+		//    for ( size_t i = 0; i < size; ++i)
+		//    {
+		//        auto task = v[i];
+		//
+		//    }
+		//    std::vector<CBratTask*> v2;
+		//    for (std::vector<CBratTask*>::const_iterator it = v2.begin(); it != v2.end(); it++)
+		//    {
+		//        qDebug() << *it;
+		//
+		//        //it->->GetUidAsString();
+		//
+		//        (**it).GetUidAsString();
+		//        (*it)->GetUidAsString();
+		//
+		//    }
+		//      QString s = t2q(std::string("sdjfhgi"));
+		//      std::string s2 = q2t<std::string>(QString("sdjfhgi"));
+		//      auto s3 = n2s<std::string>(890);
+		//      auto n = s2n<double>(std::string("789") );
+		//
+		//      for ( auto &t : data )
+		//      {
+		//          qDebug() << t.first;
+		//          qDebug() << t.second->GetUidAsString().c_str();
+		//      }
+		///////////////////////////////////////////////////
+	}
 
-    //// RCCC - TODO - Put in right place
-    // Enabling sorting in all tables: pending, processing and end tasks.
-    tablePendingTask->setSortingEnabled(true);
-    tableProcTask->setSortingEnabled(true);
-    tableEndTask->setSortingEnabled(true);
+	SetupTables();
+	LoadTasks();
 
-    // Changing selection behaviour to whole row selection
-    tablePendingTask->setSelectionBehavior(QAbstractItemView::SelectRows);
-    tableProcTask->setSelectionBehavior(QAbstractItemView::SelectRows);
-    tableEndTask->setSelectionBehavior(QAbstractItemView::SelectRows);
+	mTabWidget->setCurrentIndex( 0 );
 
-    // Setting alternating row colors
-    tablePendingTask->setAlternatingRowColors(true);
-    tableProcTask->setAlternatingRowColors(true);
-    tableEndTask->setAlternatingRowColors(true);
+	//mTabWidget->setGeometry( 0, 0, 0, 0 );
 
-    //tablePendingTask->setEditTriggers();
+	mTabWidget->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding );
 
-    // Disable grid lines.
-    tablePendingTask->setShowGrid(false);
-    tableProcTask->setShowGrid(false);
-    tableEndTask->setShowGrid(false);
+    tablePendingTask->resizeColumnToContents(0);
+    tablePendingTask->resizeColumnToContents(1);
+    tablePendingTask->resizeColumnToContents(2);
+    tablePendingTask->resizeColumnsToContents();
 
-    loadTasks(*CTasksProcessor::GetInstance()->GetMapPendingBratTask(),          tablePendingTask);
-    //loadTasks(*CTasksProcessor::GetInstance()->GetMapProcessingBratTask(), tableProcTask);
-    loadTasks(*CTasksProcessor::GetInstance()->GetMapEndedBratTask(),            tableEndTask);
+	 QRect rect = tablePendingTask->geometry();
+    rect.setWidth(200 + tablePendingTask->verticalHeader()->width() + tablePendingTask->columnWidth(0) + tablePendingTask->columnWidth(1) + tablePendingTask->columnWidth(2));
+    tablePendingTask->setGeometry(rect);
+	tab_PendingTasks->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
+	tab_PendingTasks->setGeometry(rect);
+	tab_PendingTasks->setMinimumWidth(tablePendingTask->width());
+	tab_PendingTasks->adjustSize();
+	tab_PendingTasks->resize( tab_PendingTasks->sizeHint() );
 
-    ChangeProcessingToPending();
+
+	//tablePendingTask->horizontalHeader()->setResizeMode( 0, QHeaderView::Stretch );
+	//tablePendingTask->resizeRowsToContents();
+	//tablePendingTask->resizeRowsToContents();
+
+	tablePendingTask->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding );
+	tableProcTask->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding );
+	tableEndTask->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding );
+
+	setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding );
+
+	adjustSize();
+	//tablePendingTask->resize( tablePendingTask->sizeHint() );
+	//tablePendingTask->set
+
+	//mTabWidget->resize( mTabWidget->sizeHint() );
+	resize( sizeHint() );
+	setMinimumSize( width(), height() );
 }
 
-void SchedulerDlg::createMenuBar()
+void CSchedulerDlg::LoadTasks()
+{
+	LoadTasks( *CTasksProcessor::GetInstance()->GetMapPendingBratTask(), tablePendingTask );
+	//loadTasks(*CTasksProcessor::GetInstance()->GetMapProcessingBratTask(), tableProcTask);
+	LoadTasks( *CTasksProcessor::GetInstance()->GetMapEndedBratTask(), tableEndTask );
+
+	ChangeProcessingToPending();
+}
+void CSchedulerDlg::SetupTables()
+{
+	// Enabling sorting in all tables: pending, processing and end tasks.
+	tablePendingTask->setSortingEnabled( true );
+	tableProcTask->setSortingEnabled( true );
+	tableEndTask->setSortingEnabled( true );
+
+	// Changing selection behavior to whole row selection
+	tablePendingTask->setSelectionBehavior( QAbstractItemView::SelectRows );
+	tableProcTask->setSelectionBehavior( QAbstractItemView::SelectRows );
+	tableEndTask->setSelectionBehavior( QAbstractItemView::SelectRows );
+
+	// Setting alternating row colors
+	tablePendingTask->setAlternatingRowColors( true );
+	tableProcTask->setAlternatingRowColors( true );
+	tableEndTask->setAlternatingRowColors( true );
+
+	//tablePendingTask->setEditTriggers();
+
+	// Disable grid lines.
+	tablePendingTask->setShowGrid( false );
+	tableProcTask->setShowGrid( false );
+	tableEndTask->setShowGrid( false );
+}
+
+void CSchedulerDlg::CreateMenuBar()
 {
     // 1. MenuBar
     QMenuBar *menuBar = new QMenuBar(this);
@@ -212,36 +269,31 @@ void SchedulerDlg::createMenuBar()
     QObject::connect(action_About, SIGNAL(triggered()), this, SLOT(action_About_slot()));
     menu_Help->addAction(action_About);
 
-    mVerticalLayout->setMenuBar(menuBar);
+    layout()->setMenuBar(menuBar);
 }
 
-void SchedulerDlg::loadTasks(const CMapBratTask &data, QTableWidget* tableTasks)
+void CSchedulerDlg::LoadTasks( const CMapBratTask &data, QTableWidget* tableTasks )
 {
-    tableTasks->setRowCount((int)data.size());
+	tableTasks->setRowCount( (int)data.size() );
 
-    int index = 0;
-    for (CMapBratTask::const_iterator it = data.begin(); it != data.end(); it++)
-    {
-      CBratTask* bratTask = it->second;
-      //// InsertTask(bratTask);////
-      if (bratTask == NULL)
-      {
-        //return -1;
-      }
+	int index = 0;
+	for ( CMapBratTask::const_iterator it = data.begin(); it != data.end(); it++ )
+	{
+		CBratTask* bratTask = it->second;		assert__( bratTask != nullptr );
 
-      tableTasks->setItem(index, eTaskUid,     new QTableWidgetItem(bratTask->GetUidAsString().c_str()) );
-      tableTasks->setItem(index, eTaskName,    new QTableWidgetItem(bratTask->GetName().c_str()));
-      tableTasks->setItem(index, eTaskStart,   new QTableWidgetItem(bratTask->GetAtAsString().c_str()));
-      tableTasks->setItem(index, eTaskStatus,  new QTableWidgetItem(bratTask->GetStatusAsString().c_str()));
-      tableTasks->setItem(index, eTaskCMD,     new QTableWidgetItem(bratTask->GetCmd().c_str()));
-      tableTasks->setItem(index, eTaskLogFile, new QTableWidgetItem(bratTask->GetLogFile().c_str()));
+		tableTasks->setItem( index, eTaskUid, new QTableWidgetItem( bratTask->GetUidAsString().c_str() ) );
+		tableTasks->setItem( index, eTaskName, new QTableWidgetItem( bratTask->GetName().c_str() ) );
+		tableTasks->setItem( index, eTaskStart, new QTableWidgetItem( bratTask->GetAtAsString().c_str() ) );
+		tableTasks->setItem( index, eTaskStatus, new QTableWidgetItem( bratTask->GetStatusAsString().c_str() ) );
+		tableTasks->setItem( index, eTaskCMD, new QTableWidgetItem( bratTask->GetCmd().c_str() ) );
+		tableTasks->setItem( index, eTaskLogFile, new QTableWidgetItem( bratTask->GetLogFile().c_str() ) );
 
-      index++;
-    }
+		index++;
+	}
 }
 
 
-bool SchedulerDlg::ChangeProcessingToPending()
+bool CSchedulerDlg::ChangeProcessingToPending()
 {
     CVectorBratTask vectorTasks(false);
     bool somethingHasChanged = CTasksProcessor::GetInstance()->ChangeProcessingToPending(vectorTasks);
@@ -253,30 +305,30 @@ bool SchedulerDlg::ChangeProcessingToPending()
     for (CVectorBratTask::const_iterator itVector = vectorTasks.begin() ; itVector != vectorTasks.end() ; itVector++)
     {
         CBratTask* bratTask = *itVector;
-        if (bratTask == NULL)
+        if (bratTask == nullptr)
         {
             continue;
         }
     }
 
-    loadTasks(*CTasksProcessor::GetInstance()->GetMapPendingBratTask(),          tablePendingTask);
+    LoadTasks( *CTasksProcessor::GetInstance()->GetMapPendingBratTask(), tablePendingTask );
 
     return somethingHasChanged;
 }
 
 
 
-void SchedulerDlg::action_ViewConfig_slot()
+void CSchedulerDlg::action_ViewConfig_slot()
 {
     SimpleMsgBox("This should open Config file.");
 }
 
-void SchedulerDlg::action_UserManual_slot()
+void CSchedulerDlg::action_UserManual_slot()
 {
     SimpleMsgBox("This should open User's manual.");
 }
 
-void SchedulerDlg::action_About_slot()
+void CSchedulerDlg::action_About_slot()
 {
     SimpleMsgBox("This should open About info.");
 }

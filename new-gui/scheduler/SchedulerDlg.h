@@ -29,11 +29,13 @@
 #endif
 
 
-class SchedulerDlg : public QDialog, private Ui::SchedulerDlg
+class CSchedulerDlg : public QDialog, private Ui::CSchedulerDlg
 {
-    Q_OBJECT
+	Q_OBJECT
 
-    // types
+	// types
+
+	using base_t = QDialog;
 
     // static data members
 
@@ -44,14 +46,25 @@ class SchedulerDlg : public QDialog, private Ui::SchedulerDlg
 
     bool mIsDialog = false;
 
+	// construction / destruction
+
+    void CreateMenuBar();
+    void SetupTables();
+    void LoadTasks();
+
 public:
-    explicit SchedulerDlg(QWidget *parent = 0);
+    explicit CSchedulerDlg(QWidget *parent = 0);
 
-    void createMenuBar();
-    void loadTasks(const CMapBratTask &data, QTableWidget* tableTasks);
+	virtual ~CSchedulerDlg()
+	{}
 
-private:
+	// operations
+
+protected:
+    void LoadTasks(const CMapBratTask &data, QTableWidget* tableTasks);
     bool ChangeProcessingToPending();
+
+	// signals / slots
 
 public slots:
     void action_ViewConfig_slot();

@@ -3,6 +3,7 @@
 #include "new-gui/brat/GUI/TabbedDock.h"
 #include "DesktopManager.h"
 
+
 #if defined TESTS
 
 inline QWidget* CenterOnRect( QWidget *const w, const QRect &r )
@@ -85,13 +86,20 @@ CDesktopManagerSDI::CDesktopManagerSDI( QMainWindow *parent )
 
 	//centralLayout->addWidget( mMap, 0, 0, 2, 1 );
 
+	mMap->setMinimumSize( min_main_window_width / 3 * 2, min_main_window_height / 3 * 2 );
+
+#if defined TABBED_MANAGER
+
+	addTab( mMap, "Map" );
+
+#else
+
 	QLayout *l = CreateLayout( this, Qt::Horizontal, 6, 11, 11, 11, 11 );
 	mMap->setMinimumSize( min_main_window_width / 3 * 2, min_main_window_height / 3 * 2 );
 	l->addWidget( mMap );
+#endif
 }
 
-
-	
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -99,10 +107,9 @@ CDesktopManagerSDI::CDesktopManagerSDI( QMainWindow *parent )
 /////////////////////////////////////////////////////////////////////////////////////
 
 
-CDesktopManagerMDI::CDesktopManagerMDI( QMainWindow *parent )		//parent = nullptr 
-	: base_t( parent )
+void CDesktopManagerMDI::AddMDIArea( QWidget *parent )
 {
-    QGridLayout *gridLayout = new QGridLayout( this );
+    QGridLayout *gridLayout = new QGridLayout( parent );
     gridLayout->setSpacing(6);
     gridLayout->setContentsMargins(11, 11, 11, 11);
     gridLayout->setObjectName(QString::fromUtf8("gridLayout"));
@@ -111,10 +118,24 @@ CDesktopManagerMDI::CDesktopManagerMDI( QMainWindow *parent )		//parent = nullpt
     mMdiArea->setMinimumSize(QSize(500, 400));
     mMdiArea->setViewMode( QMdiArea::SubWindowView );
     gridLayout->addWidget( mMdiArea, 0, 0, 1, 1 );
+}
+
+CDesktopManagerMDI::CDesktopManagerMDI( QMainWindow *parent )		//parent = nullptr 
+	: base_t( parent )
+{
+#if defined TABBED_MANAGER
+	QWidget *tab = new QWidget();
+	AddMDIArea( tab );
+	addTab( tab, "MDI" );
+	addTab( mMap, "Map" );
+#else
+	AddMDIArea( this );
 
 	mMapDock = new CTabbedDock( "Main Map", this );
 	mMapDock->setAllowedAreas( Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea );	//mMapDock->setMaximumWidth( max_main_dock_width );
 	mMapDock->AddTab( mMap, "Navigator" );
+
+#endif
 
 	//QImage newBackground(":/images/world.png");
 	//mdiArea->setBackground( newBackground );
@@ -132,6 +153,9 @@ CDesktopManagerMDI::CDesktopManagerMDI( QMainWindow *parent )		//parent = nullpt
 	//connect( menu_Edit, SIGNAL(aboutToShow()), this, SLOT(UpdateEditorsActions()) );
 	//connect( menu_Window, SIGNAL(aboutToShow()), this, SLOT(UpdateFileActions()) );
 }
+
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //

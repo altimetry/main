@@ -208,108 +208,6 @@ inline bool SimpleQuestion( const char *msg )
 
 
 ///////////////////////////////////////////////////////////////////////////
-//                      File System GUI Utilities
-///////////////////////////////////////////////////////////////////////////
-
-
-inline QString BrowseDirectory( QWidget *parent, const char *title, QString InitialDir )
-{
-    static QString lastDir = InitialDir;
-
-    if ( InitialDir.isEmpty() )
-        InitialDir = lastDir;
-    QFileDialog::Options options = QFileDialog::DontResolveSymlinks | QFileDialog::ShowDirsOnly;
-    //if (!native->isChecked())
-    options |= QFileDialog::DontUseNativeDialog;
-    QString dir = QFileDialog::getExistingDirectory( parent, QObject::tr( title ), InitialDir, options );
-    if ( !dir.isEmpty() )
-        lastDir = dir;
-    return dir;
-}
-
-inline QStringList getOpenFileNames( QWidget * parent = 0, const QString & caption = QString(),
-                              const QString & dir = QString(), const QString & filter = QString(),
-                              QString * selectedFilter = 0, QFileDialog::Options options = 0 )
-{
-    return QFileDialog::getOpenFileNames( parent, caption, dir, filter, selectedFilter, options );
-}
-
-inline QStringList getOpenFileName( QWidget * parent = 0, const QString & caption = QString(),
-                             const QString & dir = QString(), const QString & filter = QString(),
-                             QString * selectedFilter = 0, QFileDialog::Options options = 0 )
-{
-    QStringList result;
-    result.append( QFileDialog::getOpenFileName( parent, caption, dir, filter, selectedFilter, options ) );
-    return result;
-}
-
-template< typename F >
-QStringList tBrowseFile( F f, QWidget *parent, const char *title, QString Initial )
-{
-    QFileDialog::Options options;
-    //if (!native->isChecked())
-    //    options |= QFileDialog::DontUseNativeDialog;
-    QString selectedFilter;
-    return f( parent, QObject::tr( title ), Initial, QObject::tr("All Files (*);;Text Files (*.txt)"), &selectedFilter, options);
-}
-
-inline QString BrowseFile( QWidget *parent, const char *title, QString Initial )
-{
-    return tBrowseFile( getOpenFileName, parent, title, Initial )[0];
-}
-
-inline QStringList BrowseFiles( QWidget *parent, const char *title, QString Initial )
-{
-    return tBrowseFile( getOpenFileNames, parent, title, Initial );
-}
-
-
-
-///////////////////////////////////////////////////////////////////////////
-// Resources "file system" utilities
-///////////////////////////////////////////////////////////////////////////
-
-
-inline bool readFileFromResource( const QString &rpath, QString &dest, bool unicode = false )
-{
-    QResource r( rpath );
-    if ( !r.isValid() )
-        return false;
-    QByteArray ba( reinterpret_cast< const char* >( r.data() ), (int)r.size() );
-    QByteArray data;
-    if ( r.isCompressed() )
-        data = qUncompress( ba );
-    else
-        data = ba;
-
-	if ( unicode )
-		dest.setUtf16( (const ushort*)(const char*)data, data.size() / sizeof(ushort) );
-	else
-		dest = data;
-
-    return true;
-}
-
-template< typename STRING >
-inline bool readFileFromResource( const QString &rpath, STRING &dest, bool unicode = false )
-{
-    QString str;
-    if ( !readFileFromResource( rpath, str, unicode ) )
-        return false;
-    dest = q2t< STRING >( str );
-    return true;
-}
-
-inline bool readUnicodeFileFromResource( const QString &rpath, std::wstring &dest )
-{
-	return readFileFromResource( rpath, dest, true );
-}
-
-
-
-
-
-///////////////////////////////////////////////////////////////////////////
 //								Timer
 ///////////////////////////////////////////////////////////////////////////
 
@@ -357,8 +255,9 @@ inline QString ElapsedFormat( QElapsedTimer &timer )
 //						Widget Creation Utilities
 ///////////////////////////////////////////////////////////////////////////
 
-
+//////////
 // generic
+//////////
 
 inline void SetObjectName( QObject *w, const std::string &name )
 {
@@ -368,7 +267,27 @@ inline void SetObjectName( QObject *w, const std::string &name )
 }
 
 
-//layout
+//////////
+// space
+//////////
+
+inline QSpacerItem* CreateSpace( int w = 0, int h = 0, QSizePolicy::Policy hData = QSizePolicy::Expanding, QSizePolicy::Policy vData = QSizePolicy::Expanding )
+{
+	return new QSpacerItem( w, h, hData, vData );
+}
+
+
+//////////
+//layouts
+//////////
+
+const int default_spacing = 6;
+const int default_left = 2;
+const int default_top = 2;
+const int default_right = 2;
+const int default_bottom = 2;
+
+
 
 template< class LAYOUT >
 inline LAYOUT* FinishLayout( LAYOUT *l, int spacing, int left, int top, int right, int bottom )
@@ -378,6 +297,7 @@ inline LAYOUT* FinishLayout( LAYOUT *l, int spacing, int left, int top, int righ
 	l->setContentsMargins( left, top, right, bottom );
 	return l;
 }
+
 
 inline QBoxLayout* CreateLayout( QWidget *parent, Qt::Orientation orientation, int spacing = 0, int left = 0, int top = 0, int right = 0, int bottom = 0 )
 {
@@ -392,13 +312,126 @@ inline QBoxLayout* CreateLayout( QWidget *parent, Qt::Orientation orientation, i
 	return FinishLayout< QBoxLayout >( l, spacing, left, top, right, bottom );
 }
 
+
 inline QGridLayout* CreateGridLayout( QWidget *parent, int spacing = 0, int left = 0, int top = 0, int right = 0, int bottom = 0 )
 {
 	return FinishLayout< QGridLayout >( new QGridLayout( parent ), spacing, left, top, right, bottom );
 }
 
 
+inline QBoxLayout* LayoutWidgets( Qt::Orientation o, const std::vector< QObject* > &v, 
+	QWidget *parent, int spacing, int left, int top, int right, int bottom  )			
+{
+	QBoxLayout *main_l = CreateLayout( parent, o, spacing, left, top, right, bottom );
+	for ( auto ob : v )
+	{
+		if ( !ob )
+		{
+			main_l->addItem( CreateSpace() );
+			continue;
+		}
+
+		auto w = qobject_cast<QWidget*>( ob );
+		auto l = qobject_cast<QLayout*>( ob );		assert__( w || l );
+		if ( w )
+			main_l->addWidget( w );
+		else
+			main_l->addLayout( l );
+	}
+	return main_l;
+}
+
+
+inline QGridLayout* LayoutWidgets( const std::vector< QObject* > &v, 
+	QWidget *parent, int spacing, int left, int top, int right, int bottom )
+{
+	QGridLayout *main_l = CreateGridLayout( parent, spacing, left, top, right, bottom );
+	int line = 0, col = 0;
+	for ( auto ob : v )
+	{
+		if ( !ob )
+		{
+			++line;
+			col = 0;
+		}
+		else
+		{
+			auto w = qobject_cast<QWidget*>( ob );
+			auto l = qobject_cast<QLayout*>( ob );		assert__( w || l );
+			if ( w )
+				main_l->addWidget( w, line, col, 1, 1 );
+			else
+				main_l->addLayout( l, line, col, 1, 1 );
+
+			++col;
+		}
+	}
+	return main_l;
+}
+
+
+////////////////////
+//layout group-box
+////////////////////
+
+
+// For use with CreateGroupBox
+//
+enum class ELayoutType
+{
+	Horizontal = Qt::Horizontal,
+	Vertical = Qt::Vertical,
+	Grid,
+
+	ELayoutType_size
+};
+
+
+//	spacing and coordinates refer to enclosed layout
+//
+template< class GROUP_BOX = QGroupBox >
+GROUP_BOX* CreateGroupBox( ELayoutType o, const std::vector< QObject* > &v, const QString &title = "", QWidget *parent = nullptr,
+	int spacing = default_spacing, int left = default_left, int top = default_top, int right = default_right, int bottom = default_bottom )
+{
+	auto group = new GROUP_BOX( title, parent );
+
+	for ( auto ob : v )
+	{
+		if ( !ob )
+			continue;
+
+		// QObject and QWidget setParent are not polymorphic
+		//
+		auto w = qobject_cast<QWidget*>( ob );
+		auto l = qobject_cast<QLayout*>( ob );		assert__( w || l );
+		if ( w )
+			w->setParent( group );
+		else
+			l->setParent( nullptr );
+	}
+
+	switch ( o )
+	{
+		case ELayoutType::Horizontal:
+		case ELayoutType::Vertical:
+			LayoutWidgets( static_cast< Qt::Orientation >( o ), v, group, spacing, left, top, right, bottom  );
+			break;
+
+		case ELayoutType::Grid:
+			LayoutWidgets( v, group, spacing, left, top, right, bottom  );
+			break;
+
+		default:
+			assert__( false );
+	}
+
+	return group;
+}
+
+
+///////////
 // position
+///////////
 
 // Calls adjustSize on the widget
 //
@@ -428,7 +461,9 @@ inline QWidget* CenterOnScreen2( QWidget *const w )
 
 
 
-// widget
+///////////
+// widgets
+///////////
 
 // widget is added to parent's layout, which is created if necessary
 //
@@ -443,20 +478,23 @@ inline QWidget* AddWidget( QWidget *parent, QWidget *component )
 }
 
 
-inline QFrame* WidgetLine( QWidget *parent, Qt::Orientation o, const QRect &geometry = QRect() )
+inline QFrame* WidgetLine( QWidget *parent, Qt::Orientation o )
 {
-	QFrame *line = new QFrame( parent );
-	SetObjectName( line, "line" );
-	line->setGeometry( geometry );
-	line->setFrameShape( o == Qt::Horizontal ? QFrame::HLine : QFrame::VLine );
-	line->setFrameShadow( QFrame::Sunken );
+    QFrame *line = new QFrame( parent );
+    SetObjectName( line, "line" );
+    line->setSizePolicy(
+        o == Qt::Horizontal ? QSizePolicy::Expanding : QSizePolicy::Minimum,
+        o == Qt::Horizontal ? QSizePolicy::Expanding : QSizePolicy::Minimum );
+    line->setFrameStyle( ( o == Qt::Horizontal ? QFrame::HLine : QFrame::VLine ) | QFrame::Sunken );
 
-	return line;
+    return line;
 }
 
 
 
+///////////
 //splitter
+///////////
 
 inline QSplitter* createSplitter( QWidget *parent, Qt::Orientation orientation )
 {
@@ -487,7 +525,9 @@ inline QSplitter* createSplitterIn( QMainWindow *parent, Qt::Orientation orienta
 }
 
 
-// toolbar
+///////////
+// tool-bar
+///////////
 
 //	Destroys any existing layout, so it must be called before any other
 //	widgets/layouts are inserted in w
@@ -529,13 +569,17 @@ inline void insertToolBar( QMainWindow *w, QToolBar *toolbar, Qt::ToolBarArea ar
 }
 
 
+///////////
 // actions
+///////////
 
 // see ActionsTable.*
 
 
 
+///////////
 //combo box
+///////////
 
 //NOTE: this is a template only for the compiler not to error "use of undefined type" in the poor moc files
 //
@@ -550,34 +594,39 @@ inline void fillCombo( COMBO *c, const std::string *names, size_t size, int sele
 }
 
 
+//////////////////////
 //list widget types
+//////////////////////
 
-template<  typename LIST_TYPE, typename ENUM_VALUE >
-inline LIST_TYPE* fillList_t( LIST_TYPE *c, const std::string *names, size_t size, const std::vector< ENUM_VALUE > &selected, bool enabled )
+template< typename LIST_TYPE, typename CONTAINER, typename ENUM_VALUE >
+inline LIST_TYPE* fillList_t( LIST_TYPE *c, CONTAINER names, std::initializer_list< ENUM_VALUE > selection, bool disable )
 {
-	for ( size_t i = 0; i < size; ++i ) {
-		c->addItem( names[i].c_str() );
+	for ( auto const &name : names ) 
+	{
+		c->addItem( name.c_str() );
 	}
 
-	const size_t sel_size = selected.size();
-	for ( size_t i = 0; i < sel_size; ++i )
-		if ( selected[i] >= 0 )
+	for ( auto selected : selection )
+		if ( selected >= 0 )
 		{
-			c->item( selected[i] )->setSelected( true );
-			c->setCurrentRow( selected[i] );			//yes, it is stupid, but setCurrentRow must be called for all selected items; if called once, deselects all others
+			c->item( selected )->setSelected( true );
+			c->setCurrentRow( selected );			 //setCurrentRow must be called for all selected items; if called once, deselects all others
 		}
 		else
 			c->setCurrentRow( -1 );
 
-	c->setEnabled( enabled );
+	if ( disable )
+		c->setEnabled( false );
+
 	return c;
 }
 
-inline QListWidget* fillList( QListWidget *c, const std::string *names, size_t size, int selected, bool enabled )
+template< typename CONTAINER >
+inline QListWidget* fillList( QListWidget *c, CONTAINER &names, int selection, bool disable )
 {
-	std::vector< int > v; v.push_back( selected );
-	return fillList_t< QListWidget >( c, names, size, v, enabled );
+	return fillList_t< QListWidget, CONTAINER, int >( c, names, { selection }, disable );
 }
+
 
 
 //////////////////////////////////////////////////////////////////

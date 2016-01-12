@@ -6,9 +6,9 @@
 #include "wx/fileconf.h"		// (wxFileConfig class)
 #define CONFIG wxFileConfig
 #define CWorkspaceSettings CConfiguration
-#define WORKSPACES_WORKSPACE_PERSISTENCE_H
+#define WORKSPACES_WORKSPACE_SETTINGS_H
 #else
-#include "new-gui/brat/Workspaces/WorkspacePersistence.h"
+#include "new-gui/brat/Workspaces/WorkspaceSettings.h"
 #define CONFIG CWorkspaceSettings
 #endif
 
@@ -68,6 +68,7 @@ public:
 	virtual void Clear();
 
 	bool LoadCommonConfig( CWorkspace &wks );
+	bool SaveCommonConfig( const CWorkspace &wks, bool flush );
 
 	//
 	
@@ -79,8 +80,6 @@ public:
 
 	bool SaveConfig( const CMapFormula &mapf, bool predefined, const std::string& pathSuff );
 	bool LoadConfig( CMapFormula &mapf, std::string &errorMsg, bool predefined, const std::string& pathSuff );
-
-	bool SaveCommonConfig( const CWorkspace &wks, bool flush );
 
 	bool SaveConfigDataset( const CWorkspaceDataset &data, std::string &errorMsg );
 	bool LoadConfigDataset( CWorkspaceDataset &data, std::string &errorMsg );
@@ -97,13 +96,13 @@ public:
 	bool SaveConfigDesc( const CFormula &f, const std::string& path );
 	bool SaveConfigPredefined( const CFormula &f, const std::string& pathSuff );
 
-	bool SaveConfig( const COperation &op );
+    bool SaveConfig( const COperation &op, const CWorkspaceOperation *wkso );
 	bool LoadConfig( COperation &op, std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso );
 
 	bool LoadConfig( CMapDisplayData &data, std::string &errorMsg, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso, const std::string& pathSuff );
 	bool SaveConfig( const CMapDisplayData &data, CWorkspaceDisplay *wks, const std::string& pathSuff );
 
-	bool SaveConfig( const CDisplay &d, CWorkspaceDisplay *wksd );
+    //bool SaveConfig( const CDisplay &d, CWorkspaceDisplay *wksd );
 	bool LoadConfig( CDisplay &d, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso );
 };
 

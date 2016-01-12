@@ -47,17 +47,6 @@ class CWorkspace;
 
 
 
-enum EApplicationStyleSheets
-{
-	e_DarkStyle,
-	e_DarkOrangeStyle,
-	e_Dark_2015Style,
-
-	EApplicationStylesSheets_size
-};
-
-
-
 class CBratApplication : public QgsApplication
 {
 	Q_OBJECT
@@ -80,6 +69,15 @@ class CBratApplication : public QgsApplication
 	{
 		static CApplicationSettings settings( "ESA", q2t< std::string >( QgsApplication::applicationName() ) );
 		return settings;
+	}
+
+	//	This is accurate only if(when) no style sheet was also assigned.
+	//	External clients should not rely on this, and use the name in options.
+    //	Internal code can only rely on this before assigning a style sheet.
+	// 
+	static QString getCurrentStyleName()
+	{
+		return style()->objectName().toLower();
 	}
 
 
@@ -113,6 +111,8 @@ class CBratApplication : public QgsApplication
 	//////////////////////////////////////
 	//	construction / destruction 
 	//////////////////////////////////////
+
+	QString mDefaultAppStyle;
 
 public:
     CBratApplication( int &argc, char ** argv, bool GUIenabled, QString customConfigPath = QString() );
@@ -171,8 +171,8 @@ protected:
 	//CInternalFiles* Prepare( const std::string& fileName, const std::string& fieldName );
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-private:
-
+public slots:
+	void updateSettings();
 };
 
 

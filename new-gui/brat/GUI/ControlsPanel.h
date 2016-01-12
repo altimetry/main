@@ -13,6 +13,9 @@
 
 
 class QgsCollapsibleGroupBox;
+class CWorkspaceDataset;
+class CWorkspaceOperation;
+class CWorkspaceDisplay;
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -56,9 +59,20 @@ public:
 	virtual ~CStackedWidget()
 	{}
 
+
 	// access
 
-	QAbstractButton* Button( int index ) const
+    int CurrentIndex() const
+    {
+        return currentIndex();
+    }
+
+
+    void SetCurrentIndex( int index );
+
+
+
+    QAbstractButton* Button( int index ) const
 	{
 		return mGroup->buttons().at( index );
 	}
@@ -67,16 +81,13 @@ public:
 	// operations
 
 signals:
+
 	void PageChanged( int i );
+
 
 protected slots:
 
-	void changePage( QAbstractButton *b )
-	{
-		auto index = mGroup->buttons().indexOf( b );
-		setCurrentIndex( index );
-		emit PageChanged( index );
-	}
+    void buttonToggled( bool checked );
 };
 
 
@@ -124,26 +135,15 @@ protected:
 		{}
 	};
 
-	// For use with CreateGroupBox
-	//
-	enum ELayoutType
-	{
-		eHorizontal = Qt::Horizontal,
-		eVertical = Qt::Vertical,
-		eGrid,
-
-		eELayoutType_size
-	};
-
 	////////////////
 	// static data
 	////////////////
 
-	static const int smSpacing = 6;
-	static const int smLeft = 2;
-	static const int smTop = 2;
-	static const int smRight = 2;
-	static const int smBottom = 2;
+	static const int smSpacing = default_spacing;
+	static const int smLeft = default_left;
+	static const int smTop = default_top;
+	static const int smRight = default_right;
+	static const int smBottom = default_bottom;
 
 
 	////////////////
@@ -172,27 +172,38 @@ protected:
 	// operations
 	////////////////////////////
 
-	QBoxLayout* LayoutWidgets( Qt::Orientation o, const std::vector< QObject* > &v, QWidget *parent = nullptr, 
-		int spacing = smSpacing, int left = smLeft, int top = smTop, int right = smRight, int bottom = smBottom );
+	QBoxLayout* LayoutWidgets( Qt::Orientation o, const std::vector< QObject* > &v, QWidget *parent = nullptr,
+		int spacing = smSpacing, int left = smLeft, int top = smTop, int right = smRight, int bottom = smBottom )
+	{
+		assert__( parent != this );
 
-	QGridLayout* LayoutWidgets( const std::vector< QObject* > &v, QWidget *parent = nullptr, 
-		int spacing = smSpacing, int left = smLeft, int top = smTop, int right = smRight, int bottom = smBottom );
+		return ::LayoutWidgets( o, v, parent, spacing, left, top, right, bottom );
+	}
 
-private:
-	template< class GROUP_BOX >
-	GROUP_BOX* CreateGroupBox( ELayoutType o, const std::vector< QObject* > &v, const QString &title = "", QWidget *parent = nullptr,
-		int spacing = smSpacing, int left = smLeft, int top = smTop, int right = smRight, int bottom = smBottom );
+	QGridLayout* LayoutWidgets( const std::vector< QObject* > &v, QWidget *parent = nullptr,
+		int spacing = smSpacing, int left = smLeft, int top = smTop, int right = smRight, int bottom = smBottom )
+	{
+		assert__( parent != this );
 
-protected:
+		return ::LayoutWidgets( v, parent, spacing, left, top, right, bottom );
+	}
+
+	static 
 	QGroupBox* CreateGroupBox( ELayoutType o, const std::vector< QObject* > &v, const QString &title = "", QWidget *parent = nullptr,
-		int spacing = smSpacing, int left = smLeft, int top = smTop, int right = smRight, int bottom = smBottom );
+		int spacing = smSpacing, int left = smLeft, int top = smTop, int right = smRight, int bottom = smBottom )
+	{
+		return ::CreateGroupBox< QGroupBox >( o, v, title, parent, spacing, left, top, right, bottom );
+	}
 
+	static 
 	QgsCollapsibleGroupBox* CreateCollapsibleGroupBox( ELayoutType o, const std::vector< QObject* > &v, const QString &title = "", QWidget *parent = nullptr,
-		int spacing = smSpacing, int left = smLeft, int top = smTop, int right = smRight, int bottom = smBottom );
+		int spacing = smSpacing, int left = smLeft, int top = smTop, int right = smRight, int bottom = smBottom )
+	{
+		return ::CreateGroupBox< QgsCollapsibleGroupBox >( o, v, title, parent, spacing, left, top, right, bottom);
+	}
 
 	static QListWidget* CreateBooleanList( QWidget *parent, std::initializer_list< BooleanListItemInfo > il );
 
-	QSpacerItem* CreateSpace( int w = 0, int h = 0, QSizePolicy::Policy hData = QSizePolicy::Expanding, QSizePolicy::Policy vData = QSizePolicy::Expanding );
 
 
 	QSpacerItem* AddTopSpace( int w, int h, QSizePolicy::Policy hData = QSizePolicy::Minimum, QSizePolicy::Policy vData = QSizePolicy::Minimum );
@@ -268,6 +279,11 @@ class CDatasetBrowserControls : public CDesktopControlsPanel
 	QPushButton *m_BrowseFilesButton = nullptr;
 	QPushButton *m_BrowseRadsButton = nullptr;
 
+	QComboBox *mDatasetsCombo = nullptr;
+
+	CWorkspaceDataset *mWks = nullptr;
+
+
 	//construction / destruction
 
 	void Wire()
@@ -282,6 +298,9 @@ public:
 
 
 	// operations
+
+public slots:
+	void WorkspaceChanged( CWorkspaceDataset *wksd );
 
 protected slots:
 	void PageChanged( int index );
@@ -307,6 +326,8 @@ class CDatasetFilterControls : public CDesktopControlsPanel
 
 	using base_t = CDesktopControlsPanel;
 
+	CWorkspaceDataset *mWks = nullptr;
+
 public:
 	explicit CDatasetFilterControls( desktop_manager_t *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
@@ -318,13 +339,15 @@ public:
 
 	// operations
 
+public slots:
+	void WorkspaceChanged( CWorkspaceDataset *wksd );
 };
 
 
 
 
 /////////////////////////////////////////////////////////////////////////////////////
-//								Quick Operations
+//									Operations
 /////////////////////////////////////////////////////////////////////////////////////
 
 class COperationsControls : public CDesktopControlsPanel
@@ -344,18 +367,33 @@ class COperationsControls : public CDesktopControlsPanel
 
 	using base_t = CDesktopControlsPanel;
 
+public:
+
+    enum EMode
+    {
+        eQuick,
+        eAdvanced
+    };
+
+
+protected:
+
 	// data
 
-	CStackedWidget *mOperationsStakWidget = nullptr;
+    CStackedWidget *mStackWidget = nullptr;
 
 	QPushButton *mQuickMapButton = nullptr;
 	QPushButton *mQuickPlotButton = nullptr;
 
+	CWorkspaceOperation *mWkso = nullptr;
+	CWorkspaceDisplay *mWksd = nullptr;
+
 	// construction / destruction
 
-	void WireQuickOperations();
+    void WireOperations();
 	QWidget* CreateQuickOperationsPage();
 	QWidget* CreateAdancedOperationsPage();
+
 public:
 	explicit COperationsControls( desktop_manager_t *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
@@ -364,8 +402,16 @@ public:
 
 	// access 
 
+    bool AdvancedMode() const;
+
+    void SetAdvancedMode( bool advanced ) const;
+
 
 	// operations
+
+public slots:
+	void WorkspaceChanged( CWorkspaceOperation *wksdo );
+	void WorkspaceChanged( CWorkspaceDisplay *wksd );
 
 protected slots:
 	void QuickMap();

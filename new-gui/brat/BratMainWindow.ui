@@ -37,6 +37,10 @@
     <addaction name="action_Save"/>
     <addaction name="action_Save_As"/>
     <addaction name="separator"/>
+    <addaction name="action_Import_Workspace"/>
+    <addaction name="action_Rename_Workspace"/>
+    <addaction name="action_Delete_Workspace"/>
+    <addaction name="separator"/>
     <addaction name="action_Exit"/>
    </widget>
    <widget class="QMenu" name="menu_Edit">
@@ -131,6 +135,8 @@
    <addaction name="separator"/>
    <addaction name="action_One_Click"/>
    <addaction name="action_Launch_Scheduler"/>
+   <addaction name="separator"/>
+   <addaction name="action_Workspace_Tree"/>
   </widget>
   <widget class="QStatusBar" name="mMainStatusBar"/>
   <widget class="QToolBar" name="mMainToolsToolBar">
@@ -189,6 +195,9 @@
    <property name="toolTip">
     <string>Open existing workspace</string>
    </property>
+   <property name="shortcut">
+    <string>Ctrl+O</string>
+   </property>
   </action>
   <action name="action_New">
    <property name="icon">
@@ -196,10 +205,13 @@
      <normaloff>:/images/alpha-numeric/2.png</normaloff>:/images/alpha-numeric/2.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;New</string>
+    <string>&amp;New...</string>
    </property>
    <property name="toolTip">
     <string>Create a new workspace</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+N</string>
    </property>
   </action>
   <action name="action_Save">
@@ -472,6 +484,31 @@
   <action name="action_Filter">
    <property name="text">
     <string>&amp;Filter</string>
+   </property>
+  </action>
+  <action name="action_Import_Workspace">
+   <property name="text">
+    <string>&amp;Import...</string>
+   </property>
+   <property name="toolTip">
+    <string>Import existing workspace objects</string>
+   </property>
+  </action>
+  <action name="action_Rename_Workspace">
+   <property name="text">
+    <string>&amp;Rename...</string>
+   </property>
+   <property name="toolTip">
+    <string>Rename the loaded workspace
+The workspace directory will not change</string>
+   </property>
+  </action>
+  <action name="action_Delete_Workspace">
+   <property name="text">
+    <string>&amp;Delete...</string>
+   </property>
+   <property name="toolTip">
+    <string>Delete the loaded workspace</string>
    </property>
   </action>
  </widget>

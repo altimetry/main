@@ -1255,34 +1255,48 @@ std::string CFormula::GetExportAsciiFieldPrefix()
 }
 
 //----------------------------------------
-bool CFormula::LoadConfigDesc( CConfiguration *config, const std::string& path )
+bool CFormula::LoadConfigDesc( CWorkspaceSettings *config, const std::string& path )
 {
-	return !config || config->LoadConfigDesc( *this, path );
+	assert__( config );	//v4
+	//return !config || config->LoadConfigDesc( *this, path );
+
+	return config->LoadConfigDesc( *this, path );
 }
 //----------------------------------------
 bool CFormula::LoadConfig( CWorkspaceSettings *config, std::string &errorMsg, const std::string& pathSuff )
 {
-	return !config || config->LoadConfig( *this, errorMsg, pathSuff );
+	assert__( config );	//v4
+	//return !config || config->LoadConfig( *this, errorMsg, pathSuff );
+
+	return config->LoadConfig( *this, errorMsg, pathSuff );
 }
 //----------------------------------------
-bool CFormula::SaveConfigDesc( CConfiguration *config, const std::string& path)
+bool CFormula::SaveConfigDesc( CWorkspaceSettings *config, const std::string& path)
 {
-	return !config || config->SaveConfigDesc( *this, path );
+	assert__( config );	//v4
+	//return !config || config->SaveConfigDesc( *this, path );
+
+	return config->SaveConfigDesc( *this, path );
 }
 
 //----------------------------------------
-bool CFormula::SaveConfigPredefined( CConfiguration *config, const std::string& pathSuff)
+bool CFormula::SaveConfigPredefined( CWorkspaceSettings *config, const std::string& pathSuff) const
 {
-	return !config || config->SaveConfigPredefined( *this, pathSuff );
+	assert__( config );	//v4
+	//return !config || config->SaveConfigPredefined( *this, pathSuff );
+
+	return config->SaveConfigPredefined( *this, pathSuff );
 }
 //----------------------------------------
-bool CFormula::SaveConfig( CConfiguration *config, const std::string& pathSuff )
+bool CFormula::SaveConfig( CWorkspaceSettings *config, const std::string& pathSuff ) const
 {
 	if ( m_predefined )
-	{
 		return SaveConfigPredefined( config, pathSuff );
-	}
-	return !config || config->SaveConfig( *this, pathSuff );
+
+	assert__( config );	//v4
+	//return !config || config->SaveConfig( *this, pathSuff );
+
+	return config->SaveConfig( *this, pathSuff );
 }
 //----------------------------------------
 std::string CFormula::GetDescription(bool removeCRLF /* = false */, const CStringMap* formulaAliases /* = nullptr*/, const CStringMap* fieldAliases /* = nullptr*/) const
@@ -1795,13 +1809,13 @@ bool CMapFormula::LoadConfig( std::string &errorMsg, bool predefined )	//std::st
 	return LoadConfig( m_config, errorMsg, predefined );
 }
 //----------------------------------------
-bool CMapFormula::LoadConfig( CConfiguration *config, std::string &errorMsg, bool predefined, const std::string& pathSuff )
+bool CMapFormula::LoadConfig( CWorkspaceSettings *config, std::string &errorMsg, bool predefined, const std::string& pathSuff )
 {
 	return config && config->LoadConfig( *this, errorMsg, predefined, pathSuff );
 }
 
 //----------------------------------------
-bool CMapFormula::SaveConfig( CConfiguration *config, bool predefined, const std::string& pathSuff ) const
+bool CMapFormula::SaveConfig( CWorkspaceSettings *config, bool predefined, const std::string& pathSuff ) const
 {
 	return config && config->SaveConfig( *this, predefined, pathSuff );
 }
@@ -2421,7 +2435,7 @@ std::string CMapTypeField::IdToName(uint32_t id)
 //----------------------------------------
 uint32_t CMapTypeField::NameToId(const std::string& name)
 {
-  return Exists((const char *)name.c_str());
+  return Exists(name);
 }
 
 //-------------------------------------------------------------

@@ -55,13 +55,33 @@ class CWorkspaceDisplay;
 
 class CWorkspace : public CBratObject
 {
+	// types
+
+	using base_t = CBratObject;
+
 	friend class CConfiguration;
 	friend class CWorkspaceSettings;
+	friend class CTreeWorkspace;
+
+	std::map< std::string, CBratObject* > m_dummy;
+protected:
+	using const_iterator = std::map< std::string, CBratObject* >::const_iterator;
+
+
+	// static members
 
 	static const std::string m_configName;
 
 public:
 	static const std::string m_keyDelimiter;
+
+	// For clients to foresee which path will be used by a new workspace
+	//
+	static std::string MakeNewWorkspacePath( const std::string& name, const std::string& parent_path )
+	{
+		return parent_path + "/" + name;
+	}
+
 
 protected:
 	CConfiguration *m_config = nullptr;
@@ -78,15 +98,25 @@ protected:
 
 	bool m_ctrlDatasetFiles = true;
 
-public:
-	// constructors and destructors
-	CWorkspace()
-	{}
-public:
-	CWorkspace( const std::string& name, const std::string& path, bool createPath = true )
+protected:
+	// construction and destruction
+
+	CWorkspace() = delete;
+
+	//	Create Constructor: to be used only for 1st time creation of new, empty, workspaces
+	//
+	CWorkspace( const std::string& name, const std::string& path )
 	{
 		SetName( name );
-		SetPath( path, createPath );
+		SetPath( MakeNewWorkspacePath( name, path ), true );
+	}
+
+public:
+	//	Load Constructor: to be used only for instantiation of existing workspaces, previously saved in path
+	//
+	CWorkspace( const std::string& path )
+	{
+		SetPath( path, false );
 	}
 
 	virtual ~CWorkspace()
@@ -97,35 +127,30 @@ public:
 	void SetName( const std::string& name ) { m_name = name; }
 	const std::string& GetName() const { return m_name; }
 
-//protected:
-//	bool SetPath( const wxFileName& path, bool createPath = true );
-public:
+protected:
 	bool SetPath( const std::string& path, bool createPath = true );
+
+public:
+	const std::string& GetPath() const { return m_path; }
 
 	void SetLevel( int32_t value ) { m_level = value; }
 
 	bool Rmdir();
-
-	const std::string& GetPath() const { return m_path; }
-	//std::string GetPathName(/* int32_t flags = wxPATH_GET_VOLUME, wxPathFormat format = wxPATH_NATIVE */)
-	//{
-	//	return m_path.GetPath( wxPATH_GET_VOLUME, wxPATH_NATIVE ).ToStdString();
-	//	//return m_path.GetPath( flags, format ).ToStdString();
-	//}
-
-protected:
-	CConfiguration* GetConfig() const { return m_config; }
 
 public:	
 	void SetKey( const std::string& key ) { m_key = key; }
 	const std::string& GetKey() { return m_key; }
 	std::string GetRootKey();
 
-	bool HasName() const { return !m_name.empty(); }
-	bool HasPath() const { return !m_path.empty(); }
-	bool IsPath() const { return IsDir( m_path ); }
+	//bool HasName() const { return !m_name.empty(); }
+	//bool HasPath() const { return !m_path.empty(); }
+	//bool IsPath() const { return IsDir( m_path ); }
 	bool IsConfigFile() const { return IsFile( m_configFileName ); }
 	bool IsRoot() const { return m_level == 1; }
+
+	virtual const_iterator begin() const { return m_dummy.begin(); }
+
+	virtual const_iterator end() const { return m_dummy.end(); }
 
 	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush = true );
 	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso );
@@ -165,6 +190,7 @@ class CWorkspaceDataset : public CWorkspace
 
 	friend class CConfiguration;
 	friend class CWorkspaceSettings;
+	friend class CTreeWorkspace;
 
 public:
 	static const std::string NAME;
@@ -172,16 +198,14 @@ public:
 protected:
 	CObMap m_datasets;
 
+protected:
+	// construction and destruction
+
+	CWorkspaceDataset( const std::string& path )
+		: CWorkspace( NAME, path )
+	{}
+
 public:
-	// constructors and destructors
-	CWorkspaceDataset()
-	{}
-	//CWorkspaceDataset( const std::string& name, const wxFileName& path, bool createPath = true )
-	//	: CWorkspace( name, path, createPath )
-	//{}
-	CWorkspaceDataset( const std::string& name, const std::string& path, bool createPath = true )
-		: CWorkspace( name, path, createPath )
-	{}
 
 	virtual ~CWorkspaceDataset()
 	{
@@ -195,6 +219,10 @@ public:
 
 	bool CheckFiles( std::string &errorMsg );			// femm: Apparently not used...
 
+
+	virtual const_iterator begin() const override { return m_datasets.begin(); }
+
+	virtual const_iterator end() const override { return m_datasets.end(); }
 
 	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush = true ) override;
 	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso ) override;
@@ -232,6 +260,7 @@ class CWorkspaceFormula : public CWorkspace
 	using base_t = CWorkspace;
 
 	friend class CConfiguration;
+	friend class CTreeWorkspace;
 
 public:
 	static const std::string NAME;
@@ -241,19 +270,21 @@ protected:
 
 	std::vector< std::string > m_formulasToImport;
 
+protected:
+	// construction and destruction
+
+	CWorkspaceFormula( std::string &errorMsg, const std::string& path )
+		: base_t( NAME, path ), m_formulas( errorMsg, true )
+	{}
+
 public:
-	// constructors and destructors
-	CWorkspaceFormula( std::string &errorMsg ) : base_t(), m_formulas( errorMsg, true )
-	{}
-	//CWorkspaceFormula( const std::string& name, const wxFileName& path, bool createPath = true )
-	//	: CWorkspace( name, path, createPath )
-	//{}
-	CWorkspaceFormula( std::string &errorMsg, const std::string& name, const std::string& path, bool createPath = true )
-		: base_t( name, path, createPath ), m_formulas( errorMsg, true )
-	{}
 
 	virtual ~CWorkspaceFormula()
 	{}
+
+	virtual const_iterator begin() const override { return m_formulas.begin(); }
+
+	virtual const_iterator end() const override { return m_formulas.end(); }
 
 	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush = true ) override;
 	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso ) override;
@@ -273,7 +304,7 @@ public:
 	const CMapFormula* GetFormulas() const { return &m_formulas; }
 
 	void GetFormulaNames( CStringMap& stringMap, bool getPredefined = true, bool getUser = true );
-	void GetFormulaNames( std::vector< std::string >& array, bool getPredefined = true, bool getUser = true );
+	void GetFormulaNames( std::vector< std::string >& array, bool getPredefined = true, bool getUser = true ) const;
 
 	std::vector< std::string >& GetFormulasToImport() { return m_formulasToImport; }
 	void SetFormulasToImport( const std::vector< std::string >& array );
@@ -300,6 +331,8 @@ class CWorkspaceOperation : public CWorkspace
 	using base_t = CWorkspace;
 
 	friend class CConfiguration;
+	friend class CWorkspaceSettings;
+	friend class CTreeWorkspace;
 
 public:
 	static const std::string NAME;
@@ -307,20 +340,23 @@ public:
 protected:
 	CObMap m_operations;
 
+protected:
+	// construction and destruction
+
+	CWorkspaceOperation( const std::string& path )
+		: CWorkspace( NAME, path )
+	{}
+
 public:
-	// constructors and destructors
-	CWorkspaceOperation()
-	{}
-	//CWorkspaceOperation( const std::string& name, const wxFileName& path, bool createPath = true )
-	//	: CWorkspace( name, path, createPath )
-	//{}
-	CWorkspaceOperation( const std::string& name, const std::string& path, bool createPath = true )
-		: CWorkspace( name, path, createPath )
-	{}
+
 	virtual ~CWorkspaceOperation()
 	{
 		m_operations.RemoveAll();
 	}
+
+	virtual const_iterator begin() const override { return m_operations.begin(); }
+
+	virtual const_iterator end() const override { return m_operations.end(); }
 
 	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush = true ) override;
 	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso ) override;
@@ -366,6 +402,8 @@ class CWorkspaceDisplay : public CWorkspace
 	using base_t = CWorkspace;
 
 	friend class CConfiguration;
+	friend class CWorkspaceSettings;
+	friend class CTreeWorkspace;
 
 public:
 	static const std::string NAME;
@@ -373,20 +411,22 @@ public:
 protected:
 	CObMap m_displays;
 
+protected:
+	// construction and destruction
+
+	CWorkspaceDisplay( const std::string& path )
+		: CWorkspace( NAME, path )
+	{}
+
 public:
-	// constructors and destructors
-	CWorkspaceDisplay()
-	{}
-	//CWorkspaceDisplay( const std::string& name, const wxFileName& path, bool createPath = true )
-	//	: CWorkspace( name, path, createPath )
-	//{}
-	CWorkspaceDisplay( const std::string& name, const std::string& path, bool createPath = true )
-		: CWorkspace( name, path, createPath )
-	{}
 	virtual ~CWorkspaceDisplay()
 	{
 		m_displays.RemoveAll();
 	}
+
+	virtual const_iterator begin() const override { return m_displays.begin(); }
+
+	virtual const_iterator end() const override { return m_displays.end(); }
 
 	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush = true ) override;
 	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso ) override;

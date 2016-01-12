@@ -63,18 +63,6 @@ public:
 
 	std::string IdToName( uint32_t id );
 	uint32_t NameToId( const std::string& name );
-
-	//void NamesToArrayString( wxArrayString& array )
-	//{
-	//	for ( CMapTypeFilter::iterator it = begin(); it != end(); it++ )
-	//	{
-	//		uint32_t value = it->second;
-	//		if ( !isDefaultValue( value ) )
-	//		{
-	//			array.Add( ( it->first ).c_str() );
-	//		}
-	//	}
-	//}
 };
 
 //-------------------------------------------------------------
@@ -110,25 +98,6 @@ public:
 
 	std::string IdToName( uint32_t id );
 	uint32_t NameToId( const std::string& name );
-
-	//void NamesToArrayString( wxArrayString& array, bool noData = false )
-	//{
-	//	CMapTypeData::iterator it;
-
-	//	for ( it = begin(); it != end(); it++ )
-	//	{
-	//		uint32_t value = it->second;
-	//		if ( ( value == eTypeOpData ) && ( noData ) )
-	//		{
-	//			continue;
-	//		}
-	//		if ( !isDefaultValue( value ) )
-	//		{
-	//			array.Add( ( it->first ).c_str() );
-	//		}
-	//	}
-	//}
-
 };
 //-------------------------------------------------------------
 //------------------- CMapTypeOp class --------------------
@@ -157,66 +126,8 @@ public:
 
 	std::string IdToName( uint32_t id );
 	uint32_t NameToId( const std::string& name );
-
-	//void NamesToArrayString( wxArrayString& array )
-	//{
-	//	CMapTypeOp::iterator it;
-
-	//	for ( it = begin(); it != end(); it++ )
-	//	{
-	//		uint32_t value = it->second;
-	//		if ( !isDefaultValue( value ) )
-	//		{
-	//			array.Add( ( it->first ).c_str() );
-	//		}
-	//	}
-	//}
 };
-/*
-//-------------------------------------------------------------
-//------------------- CMapTypeDisp class --------------------
-//-------------------------------------------------------------
 
-class CMapTypeDisp: public CUIntMap
-{
-public:
-  CMapTypeDisp();
-
-  virtual ~CMapTypeDisp();
-
-  static CMapTypeDisp&  GetInstance();
-
-
-  bool ValidName(const char* name);
-  bool ValidName(const std::string& name);
-
-  std::string IdToName(uint32_t id);
-  uint32_t NameToId(const std::string& name);
-
-  void NamesToArrayString(wxArrayString& array);
-  void NamesToComboBox(wxComboBox& combo);
-
-  std::string Enum();
-
-
-protected:
-
-public:
-
-  enum typeDisp
-  {
-    typeDispYFX,
-    typeDispZFXY,
-    typeDispZFLatLon
-  };
-
-
-
-private :
-
-
-};
-*/
 //-------------------------------------------------------------
 //------------------- CMapTypeField class --------------------
 //-------------------------------------------------------------
@@ -244,20 +155,6 @@ public:
 
 	std::string IdToName( uint32_t id );
 	uint32_t NameToId( const std::string& name );
-
-	//void NamesToArrayString( wxArrayString& array )
-	//{
-	//	CMapTypeField::iterator it;
-
-	//	for ( it = begin(); it != end(); it++ )
-	//	{
-	//		uint32_t value = it->second;
-	//		if ( !isDefaultValue( value ) )
-	//		{
-	//			array.Add( ( it->first ).c_str() );
-	//		}
-	//	}
-	//}
 };
 
 //-------------------------------------------------------------
@@ -279,20 +176,6 @@ public:
 
 	std::string IdToName( uint32_t id );
 	uint32_t NameToId( const std::string& name );
-
-	//void NamesToArrayString( wxArrayString& array )
-	//{
-	//	CMapDataMode::iterator it;
-
-	//	for ( it = begin(); it != end(); it++ )
-	//	{
-	//		uint32_t value = it->second;
-	//		if ( !isDefaultValue( value ) )
-	//		{
-	//			array.Add( ( it->first ).c_str() );
-	//		}
-	//	}
-	//}
 
 	uint32_t GetDefault();
 	std::string GetDefaultAsString();
@@ -387,7 +270,7 @@ public:
 	virtual ~CFormula()
 	{}
 
-	std::string GetName() { return m_name; };
+	const std::string& GetName() const { return m_name; };
 	void SetName( const std::string& value ) { m_name = value; };
 
 	std::string GetDescription( bool removeCRLF = false, const CStringMap* formulaAliases = NULL, const CStringMap* fieldAliases = NULL ) const;
@@ -402,16 +285,14 @@ public:
 	bool IsPredefined() const { return m_predefined; };
 	void SetPredefined( bool value ) { m_predefined = value; };
 
-	bool LoadConfig( CConfiguration *config );
+	//bool LoadConfig( CConfiguration *config );
 	bool LoadConfig( CWorkspaceSettings *config, std::string &errorMsg, const std::string& pathSuff );
-	bool LoadConfigDesc( CConfiguration *config, const std::string& path );
+	bool LoadConfigDesc( CWorkspaceSettings *config, const std::string& path );
 
-	bool SaveConfig( CConfiguration *config );
-	bool SaveConfig( CConfiguration *config, const std::string& pathSuff = "" );
-
-	bool SaveConfigDesc( CConfiguration *config, const std::string& path );
-
-	bool SaveConfigPredefined( CConfiguration *config, const std::string& pathSuff );
+	//bool SaveConfig( CConfiguration *config );
+	bool SaveConfig( CWorkspaceSettings *config, const std::string& pathSuff = "" ) const;
+	bool SaveConfigDesc( CWorkspaceSettings *config, const std::string& path );
+	bool SaveConfigPredefined( CWorkspaceSettings *config, const std::string& pathSuff ) const;
 
 	std::string GetFilterAsString() const { return CMapTypeFilter::GetInstance().IdToName( m_filter ); };
 	int32_t GetFilter() { return m_filter; };
@@ -569,10 +450,6 @@ public:
 
 	///Dump fonction
 	virtual void Dump( std::ostream& fOut = std::cerr );
-//
-//protected:
-//	static const char* FMT_FLOAT_XY;
-//	static const char* FMT_FLOAT_LATLON;
 };
 
 
@@ -645,20 +522,6 @@ public:
 	bool ValidName( const char* name );
 	bool ValidName( const std::string& name );
 
-	//void NamesToArrayString( wxArrayString& array )
-	//{
-	//	CMapFormula::iterator it;
-
-	//	for ( it = begin(); it != end(); it++ )
-	//	{
-	//		CFormula* value = dynamic_cast<CFormula*>( it->second );
-	//		if ( value != nullptr )
-	//		{
-	//			array.Add( value->GetName() );
-	//		}
-	//	}
-	//}
-
 	size_t CountDataFields();
 
 	bool HasFilters() const;
@@ -672,9 +535,8 @@ public:
 	bool InsertUserDefined_ReplacePredefinedNotAllowed( CFormula& formula, std::string &errorMsg );
 
 	bool LoadConfig( std::string &errorMsg, bool predefined );
-	bool LoadConfig( CConfiguration *config, std::string &errorMsg, bool predefined, const std::string& pathSuff = "" );
-
-	bool SaveConfig( CConfiguration *config, bool predefined, const std::string& pathSuff = "" ) const;
+	bool LoadConfig( CWorkspaceSettings *config, std::string &errorMsg, bool predefined, const std::string& pathSuff = "" );
+	bool SaveConfig( CWorkspaceSettings *config, bool predefined, const std::string& pathSuff = "" ) const;
 };
 
 

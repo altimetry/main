@@ -34,7 +34,7 @@ inline QString& switchExtension( QString &fullPath, const QString &ext_a, const 
     return fullPath;
 }
 
-inline std::string GetBaeFilenameFromPath( const std::string &path )
+inline std::string GetBaseFilenameFromPath( const std::string &path )
 {
 	return q2t< std::string >( QFileInfo( t2q( path ) ).baseName() );
 }
@@ -44,6 +44,12 @@ inline std::string GetFilenameFromPath( const STRING &path )
 {
 	return q2t< std::string >( QFileInfo( t2q( path ) ).fileName() );
 }
+
+inline std::string GetLastExtensionFromPath( const std::string &path )
+{
+	return q2t< std::string >( QFileInfo( t2q( path ) ).suffix() );
+}
+
 
 template< typename STRING >
 inline std::string GetDirectoryFromPath( const STRING &path )
@@ -65,6 +71,14 @@ inline std::string& NormalizePath( std::string &path )
 {
 	path = NormalizedPath( path );
 	return path;
+}
+
+
+template< typename STRING >
+inline std::string GetRelativePath( const STRING &ref_path, const STRING &path )
+{
+	QDir dir( t2q( ref_path ) );
+	return q2t< STRING >( dir.relativeFilePath( t2q( path ) ) );	
 }
 
 
@@ -246,6 +260,108 @@ inline bool DuplicateDirectory( const QString &sourceFolder, const QString &dest
 
 
 
+
+
+///////////////////////////////////////////////////////////////////////////
+//                      File System GUI Utilities
+///////////////////////////////////////////////////////////////////////////
+
+
+inline QString BrowseDirectory( QWidget *parent, const char *title, QString InitialDir )
+{
+    static QString lastDir = InitialDir;
+
+    if ( InitialDir.isEmpty() )
+        InitialDir = lastDir;
+    QFileDialog::Options options = QFileDialog::DontResolveSymlinks | QFileDialog::ShowDirsOnly;
+    //if (!native->isChecked())
+    options |= QFileDialog::DontUseNativeDialog;
+    QString dir = QFileDialog::getExistingDirectory( parent, QObject::tr( title ), InitialDir, options );
+    if ( !dir.isEmpty() )
+        lastDir = dir;
+    return dir;
+}
+
+inline QStringList getOpenFileNames( QWidget * parent = 0, const QString & caption = QString(),
+                              const QString & dir = QString(), const QString & filter = QString(),
+                              QString * selectedFilter = 0, QFileDialog::Options options = 0 )
+{
+    return QFileDialog::getOpenFileNames( parent, caption, dir, filter, selectedFilter, options );
+}
+
+inline QStringList getOpenFileName( QWidget * parent = 0, const QString & caption = QString(),
+                             const QString & dir = QString(), const QString & filter = QString(),
+                             QString * selectedFilter = 0, QFileDialog::Options options = 0 )
+{
+    QStringList result;
+    result.append( QFileDialog::getOpenFileName( parent, caption, dir, filter, selectedFilter, options ) );
+    return result;
+}
+
+template< typename F >
+QStringList tBrowseFile( F f, QWidget *parent, const char *title, QString Initial )
+{
+    QFileDialog::Options options;
+    //if (!native->isChecked())
+    //    options |= QFileDialog::DontUseNativeDialog;
+    QString selectedFilter;
+    return f( parent, QObject::tr( title ), Initial, QObject::tr("All Files (*);;Text Files (*.txt)"), &selectedFilter, options);
+}
+
+inline QString BrowseFile( QWidget *parent, const char *title, QString Initial )
+{
+    return tBrowseFile( getOpenFileName, parent, title, Initial )[0];
+}
+
+inline QStringList BrowseFiles( QWidget *parent, const char *title, QString Initial )
+{
+    return tBrowseFile( getOpenFileNames, parent, title, Initial );
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////
+// Resources "file system" utilities
+///////////////////////////////////////////////////////////////////////////
+
+
+inline bool readFileFromResource( const QString &rpath, QString &dest, bool unicode = false )
+{
+    QResource r( rpath );
+    if ( !r.isValid() )
+        return false;
+    QByteArray ba( reinterpret_cast< const char* >( r.data() ), (int)r.size() );
+    QByteArray data;
+    if ( r.isCompressed() )
+        data = qUncompress( ba );
+    else
+        data = ba;
+
+	if ( unicode )
+		dest.setUtf16( (const ushort*)(const char*)data, data.size() / sizeof(ushort) );
+	else
+		dest = data;
+
+    return true;
+}
+
+template< typename STRING >
+inline bool readFileFromResource( const QString &rpath, STRING &dest, bool unicode = false )
+{
+    QString str;
+    if ( !readFileFromResource( rpath, str, unicode ) )
+        return false;
+    dest = q2t< STRING >( str );
+    return true;
+}
+
+inline bool readUnicodeFileFromResource( const QString &rpath, std::wstring &dest )
+{
+	return readFileFromResource( rpath, dest, true );
+}
+
+
+
 ///////////////////////////////////////////////////////////////////////////
 //							Standard Paths
 ///////////////////////////////////////////////////////////////////////////
@@ -292,11 +408,23 @@ struct ApplicationDirectories
 	std::string mExecutableDir;
 	std::string mInternalDataDir;
 	std::string mExternalDataDir;
+	std::string mWorkspacesPath;
 
 	std::string mRasterLayerPath;
 	std::string mVectorLayerPath;
 
 	std::string mGlobeDir;
+
+	static std::string DefaultExternalDataSubDir()
+	{
+		static const std::string s = "lib/data";
+		return s;
+	}
+    static std::string DefaultProjectsSubDir()
+	{
+		static const std::string s = "workspaces";
+		return s;
+	}
 
 	static std::string computeBaseDirectory()
 	{
@@ -336,7 +464,8 @@ private:
 		, mExecutableFileName( q2a( QCoreApplication::applicationFilePath() ) )
 		, mExecutableDir( GetDirectoryFromPath( mExecutableFileName /*qApp->argv()[ 0 ]*/ ) )
 		, mInternalDataDir( computeInternalDataDirectory( mExecutableDir ) )
-		, mExternalDataDir( mBasePath + "/lib/data" )
+		, mExternalDataDir( mBasePath + "/" + DefaultExternalDataSubDir() )
+		, mWorkspacesPath( mBasePath + "/" + DefaultProjectsSubDir() )
 
 		, mRasterLayerPath( mExternalDataDir + "/maps/NE1_HR_LC_SR_W_DR/NE1_HR_LC_SR_W_DR.tif" )
 		, mVectorLayerPath( mExternalDataDir + "/maps/ne_10m_coastline/ne_10m_coastline.shp" )

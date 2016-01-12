@@ -334,7 +334,7 @@ wxSizer *WorkspaceDlg( wxWindow *parent, bool call_fit, bool set_sizer )
     wxBoxSizer *item15 = new wxBoxSizer( wxHORIZONTAL );
     glb_FormulaListToImportSizer = item15;
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
 CCheckListBox *item16 = new CCheckListBox(parent, ID_IMPORT_FORMULAS_LIST);
     wxASSERT( item16 );
     item15->Add( item16, 1, wxALIGN_CENTER|wxALL, 0 );
@@ -500,7 +500,7 @@ wxSizer *FormulaOptionDlg( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item16 = new wxBoxSizer( wxVERTICAL );
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
     CLabeledTextCtrl *item17 = new CLabeledTextCtrl(parent, NULL, ID_FORMULAOPT_MIN, "Min.", "", floatValidator, "%-#.5g", wxSize(15*charwidth, -1), wxTE_PROCESS_ENTER);
     wxASSERT( item17 );
     item16->Add( item17, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -1077,7 +1077,7 @@ wxSizer *ResolutionDlg( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item10 = new wxBoxSizer( wxVERTICAL );
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
     CLabeledTextCtrl *item11 = new CLabeledTextCtrl(parent, NULL, ID_FORMULAOPT_XMIN, "Min.", "", floatValidator, "%-#.5g", wxSize(15*charwidth, -1), wxTE_PROCESS_ENTER);
     wxASSERT( item11 );
     item10->Add( item11, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -1150,7 +1150,7 @@ wxSizer *ResolutionDlg( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item27 = new wxBoxSizer( wxVERTICAL );
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
     CLabeledTextCtrl *item28 = new CLabeledTextCtrl(parent, NULL, ID_FORMULAOPT_YMIN, "Min.", "", floatValidator, "%-#.5g", wxSize(15*charwidth, -1), wxTE_PROCESS_ENTER);
     wxASSERT( item28 );
     item27->Add( item28, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -1283,7 +1283,7 @@ wxSizer *ExportDlg( wxWindow *parent, bool call_fit, bool set_sizer )
     wxCheckBox *item13 = new wxCheckBox( parent, ID_EXPORT_NO_DATA_COMPUTATION, _("Only dump expressions (no data computation)"), wxDefaultPosition, wxDefaultSize, 0 );
     item9->Add( item13, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
     CLabeledTextCtrl *item14 = new CLabeledTextCtrl(parent, NULL, ID_EXPORT_ASCII_NUMBER_PRECISION, "Ascii number precision:", "", digitValidator, "", wxSize(4*charwidth, -1), wxTE_PROCESS_ENTER);
     wxASSERT( item14 );
     item9->Add( item14, 0, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -1327,12 +1327,12 @@ wxSizer *ExportDlg( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item22 = new wxBoxSizer( wxHORIZONTAL );
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
     CLabeledTextCtrl *item23 = new CLabeledTextCtrl(parent, NULL, ID_EXPORT_COLORRANGE_MIN, "min:", "", floatValidator, "%-#.5g", wxSize(5*charwidth, -1), wxTE_PROCESS_ENTER);
     wxASSERT( item23 );
     item22->Add( item23, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
     CLabeledTextCtrl *item24 = new CLabeledTextCtrl(parent, NULL, ID_EXPORT_COLORRANGE_MAX, "max:", "", floatValidator, "%-#.5g", wxSize(5*charwidth, -1), wxTE_PROCESS_ENTER);
     wxASSERT( item24 );
     item22->Add( item24, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -1488,7 +1488,7 @@ wxSizer *DisplayInfoPanel( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item22 = new wxBoxSizer( wxVERTICAL );
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
     CLabeledTextCtrl *item23 = new CLabeledTextCtrl(parent, NULL, ID_DISPZOOM_LON_WEST, "West:", "", floatValidator, "%-#.5g", wxSize(8*charwidth, -1), wxTE_PROCESS_ENTER);
     wxASSERT( item23 );
     item22->Add( item23, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -1497,12 +1497,12 @@ wxSizer *DisplayInfoPanel( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item24 = new wxBoxSizer( wxVERTICAL );
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
     CLabeledTextCtrl *item25 = new CLabeledTextCtrl(parent, NULL, ID_DISPZOOM_LAT_NORTH, "North:", "", floatValidator, "%-#.5g", wxSize(8*charwidth, -1), wxTE_PROCESS_ENTER);
     wxASSERT( item25 );
     item24->Add( item25, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
     CLabeledTextCtrl *item26 = new CLabeledTextCtrl(parent, NULL, ID_DISPZOOM_LAT_SOUTH, "South:", "", floatValidator, "%-#.5g", wxSize(8*charwidth, -1), wxTE_PROCESS_ENTER);
     wxASSERT( item26 );
     item24->Add( item26, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -1511,7 +1511,7 @@ wxSizer *DisplayInfoPanel( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item27 = new wxBoxSizer( wxVERTICAL );
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
     CLabeledTextCtrl *item28 = new CLabeledTextCtrl(parent, NULL, ID_DISPZOOM_LON_EAST, "East:", "", floatValidator, "%-#.5g", wxSize(8*charwidth, -1), wxTE_PROCESS_ENTER);
     wxASSERT( item28 );
     item27->Add( item28, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -1526,7 +1526,7 @@ wxSizer *DisplayInfoPanel( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item31 = new wxBoxSizer( wxVERTICAL );
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
     CLabeledTextCtrl *item32 = new CLabeledTextCtrl(parent, NULL, ID_DISP_XMIN, "X Min.", "", floatValidator, "%-#.3g", wxSize(8*charwidth, -1), wxTE_PROCESS_ENTER);
     wxASSERT( item32 );
     item31->Add( item32, 1, wxALIGN_CENTER|wxALL, 5 );
@@ -1899,12 +1899,12 @@ wxSizer *SelectionCriteriaDlg( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBoxSizer *item6 = new wxStaticBoxSizer( item7, wxHORIZONTAL );
     glbCritDateSizer = item6;
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
     CLabeledTextCtrl *item8 = new CLabeledTextCtrl(parent, NULL, ID_CRIT_DATE_MIN, "Min.:", "", dateValidator, "", wxSize(8*charwidth, -1), wxTE_PROCESS_ENTER);
     wxASSERT( item8 );
     item6->Add( item8, 1, wxALIGN_CENTER|wxALL, 5 );
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
     CLabeledTextCtrl *item9 = new CLabeledTextCtrl(parent, NULL, ID_CRIT_DATE_MAX, "Max.:", "", dateValidator, "", wxSize(8*charwidth, -1), wxTE_PROCESS_ENTER);
     wxASSERT( item9 );
     item6->Add( item9, 1, wxALIGN_CENTER|wxALL, 5 );
@@ -1917,7 +1917,7 @@ wxSizer *SelectionCriteriaDlg( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item12 = new wxBoxSizer( wxVERTICAL );
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
     CLabeledTextCtrl *item13 = new CLabeledTextCtrl(parent, NULL, ID_CRIT_LON_WEST, "West:", "", floatValidator, "%-#.5g", wxSize(8*charwidth, -1), wxTE_PROCESS_ENTER);
     wxASSERT( item13 );
     item12->Add( item13, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -1926,12 +1926,12 @@ wxSizer *SelectionCriteriaDlg( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item14 = new wxBoxSizer( wxVERTICAL );
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
     CLabeledTextCtrl *item15 = new CLabeledTextCtrl(parent, NULL, ID_CRIT_LAT_NORTH, "North:", "", floatValidator, "%-#.5g", wxSize(8*charwidth, -1), wxTE_PROCESS_ENTER);
     wxASSERT( item15 );
     item14->Add( item15, 0, wxALIGN_CENTER|wxALL, 5 );
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
     CLabeledTextCtrl *item16 = new CLabeledTextCtrl(parent, NULL, ID_CRIT_LAT_SOUTH, "South:", "", floatValidator, "%-#.5g", wxSize(8*charwidth, -1), wxTE_PROCESS_ENTER);
     wxASSERT( item16 );
     item14->Add( item16, 0, wxALIGN_CENTER|wxALL, 5 );
@@ -1940,7 +1940,7 @@ wxSizer *SelectionCriteriaDlg( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item17 = new wxBoxSizer( wxVERTICAL );
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
     CLabeledTextCtrl *item18 = new CLabeledTextCtrl(parent, NULL, ID_CRIT_LON_EAST, "East:", "", floatValidator, "%-#.5g", wxSize(8*charwidth, -1), wxTE_PROCESS_ENTER);
     wxASSERT( item18 );
     item17->Add( item18, 0, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -1953,12 +1953,12 @@ wxSizer *SelectionCriteriaDlg( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBoxSizer *item19 = new wxStaticBoxSizer( item20, wxHORIZONTAL );
     glbCritCycleFromToSizer = item19;
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
     CLabeledTextCtrl *item21 = new CLabeledTextCtrl(parent, NULL, ID_CRIT_CYCLE_FROM, "From:", "", digitValidator, "", wxSize(8*charwidth, -1), wxTE_PROCESS_ENTER);
     wxASSERT( item21 );
     item19->Add( item21, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
     CLabeledTextCtrl *item22 = new CLabeledTextCtrl(parent, NULL, ID_CRIT_CYCLE_TO, "To:", "", digitValidator, "", wxSize(8*charwidth, -1), wxTE_PROCESS_ENTER);
     wxASSERT( item22 );
     item19->Add( item22, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -1969,12 +1969,12 @@ wxSizer *SelectionCriteriaDlg( wxWindow *parent, bool call_fit, bool set_sizer )
     wxStaticBoxSizer *item23 = new wxStaticBoxSizer( item24, wxHORIZONTAL );
     glbCritPassFromToSizer = item23;
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
     CLabeledTextCtrl *item25 = new CLabeledTextCtrl(parent, NULL, ID_CRIT_PASS_FROM, "From:", "", digitValidator, "", wxSize(8*charwidth, -1), wxTE_PROCESS_ENTER);
     wxASSERT( item25 );
     item23->Add( item25, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
     CLabeledTextCtrl *item26 = new CLabeledTextCtrl(parent, NULL, ID_CRIT_PASS_TO, "To:", "", digitValidator, "", wxSize(8*charwidth, -1), wxTE_PROCESS_ENTER);
     wxASSERT( item26 );
     item23->Add( item26, 1, wxALIGN_CENTER_VERTICAL|wxALL, 5 );
@@ -1987,7 +1987,7 @@ wxSizer *SelectionCriteriaDlg( wxWindow *parent, bool call_fit, bool set_sizer )
 
     wxBoxSizer *item29 = new wxBoxSizer( wxVERTICAL );
 
-    CBratGuiApp::DetermineCharSize(parent, charwidth, charheight);
+    DetermineCharSize(parent, charwidth, charheight);
     CLabeledTextCtrl *item30 = new CLabeledTextCtrl(parent, NULL, ID_CRIT_PASS_LIST, "List of passes:", "", textValidator, "", wxSize(8*charwidth, -1), wxTE_PROCESS_ENTER);
     wxASSERT( item30 );
     item29->Add( item30, 1, wxGROW|wxALIGN_CENTER_VERTICAL|wxALL, 0 );

@@ -80,18 +80,118 @@ void CConfiguration::Clear()
 	base_t::Clear();			//!!! TODO !!! : test equivalence with wxFileConfig DeleteAll
 }
 
+bool CConfiguration::SaveCommonConfig( const CWorkspace &wks, bool flush )
+{
+	return base_t::SaveCommonConfig( wks, flush );
+}
 bool CConfiguration::LoadCommonConfig( CWorkspace &wks )
 {
 	return base_t::LoadCommonConfig( wks );
+}
+
+bool CConfiguration::SaveConfigDataset( const CWorkspaceDataset &data, std::string &errorMsg )
+{
+	return base_t::SaveConfigDataset( data, errorMsg );
 }
 bool CConfiguration::LoadConfigDataset( CWorkspaceDataset &data, std::string &errorMsg )
 {
 	return base_t::LoadConfigDataset( data, errorMsg );
 }
+
+bool CConfiguration::SaveConfig( const CDataset *d )
+{
+	throw;	// return base_t::SaveConfig( d );
+}
 bool CConfiguration::LoadConfig( CDataset *d  )
 {
-	return base_t::LoadConfig( d );
+	throw;
 }
+
+bool CConfiguration::SaveConfig( const CMapFormula &mapf, bool predefined, const std::string& pathSuff )
+{
+	throw;
+}
+bool CConfiguration::LoadConfig( CMapFormula &mapf, std::string &errorMsg, bool predefined, const std::string& pathSuff )	//1	//throw
+{
+	throw;
+}
+
+bool CConfiguration::SaveConfigPredefined( const CFormula &f, const std::string& pathSuff)
+{
+	throw;
+}
+bool CConfiguration::SaveConfig( const CFormula &f, const std::string& pathSuff )
+{
+	throw;
+}
+bool CConfiguration::LoadConfig( CFormula &f, std::string &errorMsg, const std::string& pathSuff )	//2	//throw
+{
+	throw;
+}
+
+bool CConfiguration::SaveConfigOperation( const CWorkspaceOperation &op, std::string &errorMsg )
+{
+	return base_t::SaveConfigOperation( op, errorMsg );
+}
+bool CConfiguration::LoadConfigOperation( CWorkspaceOperation &op, std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
+{
+	return base_t::LoadConfigOperation( op, errorMsg, wks, wkso );
+}
+
+bool CConfiguration::SaveConfig(const COperation &op , const CWorkspaceOperation *wkso)
+{
+	throw;
+}
+bool CConfiguration::LoadConfig( COperation &op, std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
+{
+	throw;
+}
+
+bool CConfiguration::SaveConfigDesc( const CFormula &f, const std::string& path)
+{
+	throw;
+}
+bool CConfiguration::LoadConfigDesc( CFormula &f, const std::string& path )
+{
+	throw;
+}
+
+bool CConfiguration::SaveConfigDisplay( const CWorkspaceDisplay &disp, std::string &errorMsg, CWorkspaceDisplay *wksd )
+{
+	return base_t::SaveConfigDisplay( disp, errorMsg, wksd );
+}
+bool CConfiguration::LoadConfigDisplay( CWorkspaceDisplay &disp, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
+{
+	return base_t::LoadConfigDisplay( disp, errorMsg, wksd, wkso );
+}
+
+//bool CConfiguration::SaveConfig( const CDisplay &d, CWorkspaceDisplay *wksd )
+//{
+//	throw;
+//}
+bool CConfiguration::LoadConfig( CDisplay &d, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
+{
+	throw;
+}
+
+bool CConfiguration::SaveConfig( const CMapDisplayData &data, CWorkspaceDisplay *wks, const std::string& pathSuff )
+{
+	throw;
+}
+bool CConfiguration::LoadConfig( CMapDisplayData &data, std::string &errorMsg, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso, const std::string& pathSuff )
+{
+	throw;
+}
+
+bool CConfiguration::SaveConfig( CDisplayData &data, const std::string& pathSuff, CWorkspaceDisplay *wksd )
+{
+	throw;
+}
+bool CConfiguration::LoadConfig( CDisplayData &data, const std::string& path, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso )
+{
+	throw;
+}
+
 
 
 
@@ -100,98 +200,6 @@ bool CConfiguration::LoadConfig( CDataset *d  )
 #endif
 
 
-
-bool CConfiguration::LoadConfig( CMapFormula &mapf, std::string &errorMsg, bool predefined, const std::string& pathSuff )
-{
-	return base_t::LoadConfig( mapf, errorMsg, predefined, pathSuff );
-}
-bool CConfiguration::LoadConfig( CFormula &f, std::string &errorMsg, const std::string& pathSuff )
-{
-	return base_t::LoadConfig( f, errorMsg, pathSuff );
-}
-
-
-
-bool CConfiguration::SaveConfig( const CDataset *d )
-{
-	return true;
-}
-bool CConfiguration::LoadConfig( CDisplayData &data, const std::string& path, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso )
-{
-	return true;
-}
-bool CConfiguration::SaveConfig( CDisplayData &data, const std::string& pathSuff, CWorkspaceDisplay *wksd )
-{
-	return true;
-}
-bool CConfiguration::SaveConfig( const CMapFormula &mapf, bool predefined, const std::string& pathSuff )
-{
-	return true;
-}
-bool CConfiguration::SaveCommonConfig( const CWorkspace &wks, bool flush )
-{
-	return true;
-}
-bool CConfiguration::SaveConfigDataset( const CWorkspaceDataset &data, std::string &errorMsg )
-{
-	return true;
-}
-bool CConfiguration::LoadConfigOperation( CWorkspaceOperation &op, std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
-{
-	return true;
-}
-bool CConfiguration::SaveConfigOperation( const CWorkspaceOperation &op, std::string &errorMsg )
-{
-	return true;
-}
-bool CConfiguration::SaveConfigDisplay( const CWorkspaceDisplay &disp, std::string &errorMsg, CWorkspaceDisplay *wksd )
-{
-	return true;
-}
-bool CConfiguration::LoadConfigDisplay( CWorkspaceDisplay &disp, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
-{
-	return true;
-}
-bool CConfiguration::LoadConfigDesc( CFormula &f, const std::string& path )
-{
-	return true;
-}
-bool CConfiguration::SaveConfigDesc( const CFormula &f, const std::string& path)
-{
-	return true;
-}
-bool CConfiguration::SaveConfigPredefined( const CFormula &f, const std::string& pathSuff)
-{
-	return true;
-}
-bool CConfiguration::SaveConfig( const CFormula &f, const std::string& pathSuff )
-{
-	return true;
-}
-bool CConfiguration::SaveConfig( const COperation &op )
-{
-	return true;
-}
-bool CConfiguration::LoadConfig( CMapDisplayData &data, std::string &errorMsg, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso, const std::string& pathSuff )
-{
-	return true;
-}
-bool CConfiguration::SaveConfig( const CMapDisplayData &data, CWorkspaceDisplay *wks, const std::string& pathSuff )
-{
-	return true;
-}
-bool CConfiguration::LoadConfig( CDisplay &d, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
-{
-	return true;
-}
-bool CConfiguration::SaveConfig( const CDisplay &d, CWorkspaceDisplay *wksd )
-{
-	return true;
-}
-bool CConfiguration::LoadConfig( COperation &op, std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
-{
-	return true;
-}
 
 
 
@@ -205,7 +213,7 @@ bool CConfiguration::LoadConfig( COperation &op, std::string &errorMsg, CWorkspa
 
 std::string GetFileName( const std::string &path )
 {
-	return GetBaeFilenameFromPath( path );
+	return GetBaseFilenameFromPath( path );
 }
 
 void SetFileExtension( std::string &path, const std::string &extension )

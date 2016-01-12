@@ -243,8 +243,8 @@ bool CWorkspaceDlg::VerifyConfig( bool withMsg )
 	if ( !VerifyPath( withMsg ) )
 		return false;
 
-	CWorkspace wks;
-	wks.SetPath( GetWksLoc()->GetValue().ToStdString(), false );
+	CWorkspace wks( GetWksLoc()->GetValue().ToStdString() );
+	//wks.SetPath( GetWksLoc()->GetValue().ToStdString(), false );
 	bool bOk = wks.IsConfigFile();
 	if ( bOk )
 	{
@@ -316,11 +316,12 @@ void CWorkspaceDlg::FillImportFormulas()
 		return;
 	}
 
-	CWorkspace* wks = new CWorkspace( GetWksName()->GetValue().ToStdString(), m_currentDir.GetFullPath().ToStdString() );
+	//CWorkspace* wks = new CWorkspace(GetWksName()->GetValue(), m_currentDir);
+	std::string errorMsg;	
+	CWorkspace* wks = wxGetApp().m_treeImport.LoadReset( m_currentDir.GetFullPath().ToStdString(), errorMsg );		//wxGetApp().CreateTree( wks, wxGetApp().m_treeImport );
+	if ( !errorMsg.empty() )
+		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );		
 
-	wxGetApp().CreateTree( wks, wxGetApp().m_treeImport );
-
-	std::string errorMsg;
 	CWorkspaceFormula* wksFormula =  wxGetApp().m_treeImport.LoadConfigFormula( 
 		wxGetApp().GetCurrentWorkspaceDataset(), wxGetApp().GetCurrentWorkspaceOperation(), wxGetApp().GetCurrentWorkspaceDisplay(), errorMsg );
 	if ( !errorMsg.empty() )
@@ -335,7 +336,7 @@ void CWorkspaceDlg::FillImportFormulas()
 			m_userFormulas.Add( s );
 	}
 
-	wxGetApp().m_treeImport.DeleteTree();
+	wxGetApp().m_treeImport.Clear();
 
 	GetImportFormulasList()->Append( m_userFormulas );
 	GetImportFormulasList()->CheckAll( GetImportFormulas()->GetValue() );
@@ -603,8 +604,8 @@ void CWorkspaceDlg::OnBrowse( wxCommandEvent &event )
 			bOk &= VerifyConfig();
 			if ( bOk )
 			{
-				CWorkspace wks;
-				wks.SetPath( GetWksLoc()->GetValue().ToStdString() );
+				CWorkspace wks( GetWksLoc()->GetValue().ToStdString() );
+				//wks.SetPath( GetWksLoc()->GetValue().ToStdString() );
 
 				std::string errorMsg;
 				wks.LoadConfig( errorMsg, wxGetApp().GetCurrentWorkspaceDataset(), wxGetApp().GetCurrentWorkspaceDisplay(), wxGetApp().GetCurrentWorkspaceOperation() );

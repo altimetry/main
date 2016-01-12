@@ -616,14 +616,20 @@ void CDisplayData::GetAvailableAxes( CStringArray& names )
 	}
 }
 //----------------------------------------
-bool CDisplayData::LoadConfig( CConfiguration* config, const std::string& path, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso )
+bool CDisplayData::LoadConfig( CWorkspaceSettings *config, const std::string& path, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso )
 {
-	return !config || config->LoadConfig( *this, path, wks, wkso );
+	assert__( config );	//v4
+	//return !config || config->LoadConfig( *this, path, wks, wkso );
+
+	return config->LoadConfig( *this, path, wks, wkso );
 }
 //----------------------------------------
-bool CDisplayData::SaveConfig( CConfiguration* config, const std::string& pathSuff, CWorkspaceDisplay *wksd )
+bool CDisplayData::SaveConfig( CWorkspaceSettings *config, const std::string& pathSuff, CWorkspaceDisplay *wksd )
 {
-	return !config || config->SaveConfig( *this, pathSuff, wksd );
+	assert__( config );	//v4
+	//return !config || config->SaveConfig( *this, pathSuff, wksd );
+
+	return config->SaveConfig( *this, pathSuff, wksd );
 }
 
 //-------------------------------------------------------------
@@ -782,64 +788,17 @@ const CDisplayData* CMapDisplayData::GetDisplayData(const char* name) const
   return dynamic_cast<CDisplayData*>(Exists(name));
 }
 //----------------------------------------
-bool CMapDisplayData::LoadConfig( CConfiguration* config, std::string &errorMsg, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso, const std::string& pathSuff )
+bool CMapDisplayData::LoadConfig( CWorkspaceSettings *config, std::string &errorMsg, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso, const std::string& pathSuff )
 {
 	return config && config->LoadConfig( *this, errorMsg, wks, wkso, pathSuff );
 }
 
 //----------------------------------------
-bool CMapDisplayData::SaveConfig( CConfiguration* config, CWorkspaceDisplay *wks, const std::string& pathSuff ) const
+bool CMapDisplayData::SaveConfig( CWorkspaceSettings *config, CWorkspaceDisplay *wks, const std::string& pathSuff ) const
 {
 	return config && config->SaveConfig( *this, wks, pathSuff );
 }
 
-//----------------------------------------
-//void CMapDisplayData::NamesToArrayString(wxArrayString& array)
-//{
-//  CMapDisplayData::iterator it;
-//
-//  for (it = begin() ; it != end() ; it++)
-//  {
-//    CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
-//    if (value != nullptr)
-//    {
-//      array.Add(value->GetDataKey());
-//    }
-//  }
-//
-//}
-//----------------------------------------
-//void CMapDisplayData::GetFiles(wxArrayString& array)
-//{
-//  CMapDisplayData::iterator it;
-//
-//  for (it = begin() ; it != end() ; it++)
-//  {
-//    CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
-//    if (value != nullptr)
-//    {
-//      array.Add(value->GetOperation()->GetOutputPath().c_str());
-//    }
-//  }
-//}
-//----------------------------------------
-//void CMapDisplayData::GetDistinctFiles(wxArrayString& array)
-//{
-//  CStringMap::iterator it;
-//  CStringMap mapTmp;
-//
-//  GetDistinctFiles(mapTmp);
-//
-//  for (it = mapTmp.begin() ; it != mapTmp.end() ; it++)
-//  {
-//    std::string value = it->second;
-//    if (value.empty() == false)
-//    {
-//      array.Add(value.c_str());
-//    }
-//  }
-//
-//}
 //----------------------------------------
 void CMapDisplayData::GetDistinctFiles(CStringMap& array)
 {
@@ -856,39 +815,6 @@ void CMapDisplayData::GetDistinctFiles(CStringMap& array)
 
 }
 
-//----------------------------------------
-//void CMapDisplayData::GetFields(wxArrayString& array)
-//{
-//  CMapDisplayData::iterator it;
-//
-//  for (it = begin() ; it != end() ; it++)
-//  {
-//    CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
-//    if (value != nullptr)
-//    {
-//      array.Add(value->GetField()->GetName().c_str());
-//    }
-//  }
-//}
-//
-////----------------------------------------
-//void CMapDisplayData::GetDistinctFields(wxArrayString& array)
-//{
-//  CStringMap::iterator it;
-//  CStringMap mapTmp;
-//
-//  GetDistinctFields(mapTmp);
-//
-//  for (it = mapTmp.begin() ; it != mapTmp.end() ; it++)
-//  {
-//    std::string value = it->second;
-//    if (value.empty() == false)
-//    {
-//      array.Add(value.c_str());
-//    }
-//  }
-//
-//}
 //----------------------------------------
 void CMapDisplayData::GetDistinctFields(CStringMap& array)
 {
@@ -1099,7 +1025,7 @@ void CDisplay::Init()
   m_type = -1;
   m_withAnimation = false;
 //  m_projection = CMapProjection::GetInstance()->IdToName(VTK_PROJ2D_3D);
-  m_projection = "3D";
+  m_projection = PROJECTION_3D_VALUE;
 
   setDefaultValue(m_minXValue);
   setDefaultValue(m_maxXValue);
@@ -1142,14 +1068,19 @@ std::string CDisplay::FmtCmdParam( const std::string& name )
 }
 
 //----------------------------------------
-bool CDisplay::SaveConfig( CConfiguration* config, CWorkspaceDisplay *wksd )
+bool CDisplay::SaveConfig( CWorkspaceSettings *config, CWorkspaceDisplay *wksd ) const
 {
-	return !config || config->SaveConfig( *this, wksd );
+	assert__( config );
+
+	return config->SaveConfig( *this, wksd );
 }
 //----------------------------------------
-bool CDisplay::LoadConfig( CConfiguration *config, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
+bool CDisplay::LoadConfig( CWorkspaceSettings *config, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
 {
-	return !config || config->LoadConfig( *this, errorMsg, wksd, wkso );
+	assert__( config );
+	//return !config || config->LoadConfig( *this, errorMsg, wksd, wkso );
+
+	return config->LoadConfig( *this, errorMsg, wksd, wkso );
 }
 
 //----------------------------------------

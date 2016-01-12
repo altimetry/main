@@ -23,7 +23,7 @@
 
 #include "libbrathl/Tools.h"
 
-#include "WorkspacePersistence.h"
+#include "WorkspaceSettings.h"
 #include "Dataset.h"
 
 
@@ -81,100 +81,19 @@ CProduct* CDataset::SetProduct( const std::string& fileName )
 	return product;
 }
 //----------------------------------------
-bool CDataset::SaveConfig( CConfiguration *config )
+bool CDataset::SaveConfig( CWorkspaceSettings *config ) const
 {
-	return !config || config->SaveConfig( this );
+	assert__( config );			// v4 test why this could be null
+	//return !config || config->SaveConfig( this );
 
-	////return
-	////	SaveConfig( config, ENTRY_FILE ) &&
-	////	SaveConfigSpecificUnit( config, ENTRY_UNIT );
-
-	//if ( config == NULL )
-	//	return true;
-
-	//// SaveConfig( CConfiguration *config, const std::string& entry )
-	//{
-	//	const std::string entry( ENTRY_FILE );
-
-	//	config->SetPath( "/" + m_name );
-
-	//	int index = 0;
-	//	bool bOk = true;
-	//	for ( CProductList::iterator it = m_files.begin(); it != m_files.end(); it++ )
-	//	{
-	//		index++;
-	//		bOk &= config->Write( entry + n2s<std::string>( index ), it->c_str() );
-	//	}
-	//	if ( !bOk )
-	//		return false;
-	//}
-
-	////SaveConfigSpecificUnit( CConfiguration *config, const std::string& entry )
-	//{
-	//	const std::string entry( ENTRY_UNIT );
-
-	//	config->SetPath( "/" + m_name );
-
-	//	bool bOk = true;
-	//	for ( CStringMap::iterator itMap = m_fieldSpecificUnit.begin(); itMap != m_fieldSpecificUnit.end(); itMap++ )
-	//	{
-	//		bOk &= config->Write( entry + "_" + itMap->first, ( itMap->second ).c_str() );
-	//	}
-
-	//	return bOk;
-	//}
+	return config->SaveConfig( this );
 }
-////----------------------------------------
-//bool CDataset::SaveConfig( CConfiguration *config, const std::string& entry )
-//{
-//}
-////----------------------------------------
-//bool CDataset::SaveConfigSpecificUnit( CConfiguration *config, const std::string& entry )
-//{
-//}
-//----------------------------------------
 bool CDataset::LoadConfig( CWorkspaceSettings *config )
 {
-	return !config || config->LoadConfig( this );
+	assert__( config );			// v4 test why this could be null
+	//return !config || config->LoadConfig( this );
 
-	//bool bOk = true;
-	//if ( config == NULL )
-	//	return true;
-
-	//config->SetPath( "/" + m_name );
-
-	//config->GetNumberOfEntries();
-	//std::string entry;
-	//std::string valueString;
-	//long i = 0;
-
-	//CStringArray findStrings;
-	//while ( config->GetNextEntry( entry, i ) )
-	//{
-	//	// Finds ENTRY_FILE entries (dataset files entries)
-	//	findStrings.RemoveAll();
-	//	CTools::Find( entry, ENTRY_FILE_REGEX, findStrings );
-
-	//	if ( findStrings.size() > 0 )
-	//	{
-	//		valueString = config->Read( entry );
-	//		m_files.Insert( valueString );
-	//		continue;
-	//	}
-
-	//	// Finds specific unit entries
-	//	findStrings.RemoveAll();
-	//	CTools::Find( entry, ENTRY_UNIT_REGEX, findStrings );
-
-	//	if ( findStrings.size() > 0 )
-	//	{
-	//		valueString = config->Read( entry );
-	//		m_fieldSpecificUnit.Insert( findStrings.at( 0 ), valueString );			//m_fieldSpecificUnit.Dump(*CTrace::GetDumpContext());
-	//		continue;
-	//	}
-	//}
-
-	//return true;
+	return config->LoadConfig( this );
 }
 //----------------------------------------
 void CDataset::Dump( std::ostream& fOut /* = std::cerr */ )

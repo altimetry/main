@@ -31,13 +31,19 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
 	{ eAction_Exit, "&Exit", "Exit brat", ":/images/alpha-numeric/0.png" },
 
-	{ eAction_Open, "&Open...", "Open existing workspace", ":/images/alpha-numeric/1.png" },
+	{ eAction_Open, "&Open...", "Open existing workspace", ":/images/alpha-numeric/1.png", "", "Ctrl+O" },
 
-	{ eAction_New, "&New", "Create a new workspace", ":/images/alpha-numeric/2.png" },
+	{ eAction_New, "&New...", "Create a new workspace", ":/images/alpha-numeric/2.png", "", "Ctrl+N" },
 
 	{ eAction_Save, "&Save","Save the workspace to disk", ":/images/alpha-numeric/3.png", "", "Ctrl+S" },
 
 	{ eAction_Save_As, "Save &As...", "", "" },
+
+	{ eAction_Import_Workspace, "&Import...", "Import existing workspace objects", "" }, 
+
+	{ eAction_Rename_Workspace, "&Rename...", "Rename the loaded workspace\n""The workspace directory will not change", "" }, 
+
+	{ eAction_Delete_Workspace, "&Delete...", "Delete the loaded workspace", "" }, 
 
 	{ eAction_About, "&About...", "", ":/images/BratIcon.png" },
 
@@ -127,6 +133,15 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 	{ eAction_Projection2, "Projection 1", "Projection 1 tool-tip", "://images/alpha-numeric/__l.png", "://images/alpha-numeric/__l.png" },
 
 	{ eAction_Projection3, "Projection 2", "Projection 2 tool-tip", "://images/alpha-numeric/__m.png", "://images/alpha-numeric/__m.png" },
+
+
+	{ eAction_ApplicationPaths_page, "Paths", "Default application paths selection", "://images/alpha-numeric/__n.png", "://images/alpha-numeric/__n.png" },
+
+	{ eAction_StartupOptions_page, "Startup", "Application start-up behavior", "://images/alpha-numeric/__o.png", "://images/alpha-numeric/__o.png" },
+
+	{ eAction_ApplicationStyles_page, "Styles", "Application visual options", "://images/alpha-numeric/__p.png", "://images/alpha-numeric/__p.png" },
+
+	// TODO images __n, __o and __p are used bu settings dialog
 };
 
 
@@ -288,6 +303,7 @@ void CRecentFilesProcessor::UpdateRecentFileActions()
 	{
         if ( j < mRecentFiles.count() ) 
 		{
+			mRecentFiles[ j ] = NormalizedPath( mRecentFiles[ j ] );
 			QString text = QObject::tr( "&%1 %2" ).arg( j + 1 ).arg( GetFilenameFromPath( mRecentFiles[ j ] ).c_str() );
 			mRecentFileActions[j]->setText( text );
 			mRecentFileActions[j]->setData( mRecentFiles[j] );
@@ -340,6 +356,7 @@ bool CRecentFilesProcessor::SaveRecentFilesGeneric( const CONTAINER &paths )
 		//	it we want to keep the ability to read BRAT v3.
 		//
 		CAppSection section( GROUP_WKS_RECENT );
+		AppSettingsClearGroup( section );
 		const size_t size = paths.size();
 		for ( size_t i = 0; i < size; ++i )
 			AppSettingsWriteValue( section, brathlFmtEntryRecentWksMacro( i ), paths[ (typename CONTAINER::size_type) i ] );

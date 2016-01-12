@@ -1,8 +1,9 @@
 #include "new-gui/brat/stdafx.h"
 
-#include "TabbedDock.h"
 #include "new-gui/brat/Views/TextWidget.h"
 #include "new-gui/brat/ApplicationSettings.h"
+
+#include "TabbedDock.h"
 
 
 static int ContentsMargin = 1;		//11
@@ -57,31 +58,23 @@ QWidget* CTabbedDock::AddTab( QWidget *tab_widget, const QString &title )
 }
 
 
+QWidget* CTabbedDock::TabWidget( int index )
+{
+	QWidget *tab = Tab( index );					assert__( tab && tab->layout() );
+	return tab->layout()->itemAt( 0 )->widget();
+}
+
+
 bool CTabbedDock::ReadSettings( const std::string &group )
 {
-	int index;
-	if ( AppSettingsReadValues< int >( group,
-	{
-		{ KEY_TABBED_DOCK_INDEX, index },
-	}
-	) )
-	{
-		if (index >= 0 )
-			mTabWidget->setCurrentIndex( index );
-	}
+    Q_UNUSED( group );
 
-	return AppSettingsStatus() == QSettings::NoError;
+    return AppSettingsStatus() == QSettings::NoError;
 }
 
 bool CTabbedDock::WriteSettings( const std::string &group )
 {
-	if (
-		!AppSettingsWriteValues< int >( group,
-		{
-			{ KEY_TABBED_DOCK_INDEX, mTabWidget->currentIndex() },
-		} ) 
-		)
-		std::cout << "Unable to save CTabbedDock index." << std::endl;	// TODO: log this
+    Q_UNUSED( group );
 
 	return AppSettingsStatus() == QSettings::NoError;
 }

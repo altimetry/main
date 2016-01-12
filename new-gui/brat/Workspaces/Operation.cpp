@@ -970,12 +970,15 @@ std::string COperation::GetSelectDescription()
 	return m_select ? m_select->GetDescription() : "";
 }
 //----------------------------------------
-bool COperation::SaveConfig( CConfiguration *config )
+bool COperation::SaveConfig( CWorkspaceSettings *config, const CWorkspaceOperation *wks ) const
 {
-	return !config || config->SaveConfig( *this );
+	assert__( config );
+	//return !config || config->SaveConfig( *this );
+
+	return config->SaveConfig( *this, wks );
 }
 //----------------------------------------
-bool COperation::LoadConfig( CConfiguration *config, std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
+bool COperation::LoadConfig( CWorkspaceSettings *config, std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
 {
 	return !config || config->LoadConfig( *this, errorMsg, wks, wkso );
 }
@@ -1137,6 +1140,22 @@ void COperation::SetOutput( const std::string& value, CWorkspaceOperation* wks )
 	}
 
 	SetCmdFile( wks );
+}
+//----------------------------------------
+std::string COperation::GetOutputPathRelativeToWks( const CWorkspaceOperation *wks ) const
+{
+	if ( wks == nullptr )
+		return GetOutputPath();
+
+	return GetRelativePath( wks->GetPath(), m_output );
+}
+//----------------------------------------
+std::string COperation::GetExportAsciiOutputPathRelativeToWks( const CWorkspaceOperation *wks ) const
+{
+	if ( wks == nullptr )
+		return GetExportAsciiOutputPath();
+
+	return GetRelativePath( wks->GetPath(), m_exportAsciiOutput );
 }
 //----------------------------------------
 void COperation::SetCmdFile( CWorkspaceOperation* wks )

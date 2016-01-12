@@ -8,8 +8,9 @@
 
 
 class CWorkspace;
+class CBratApplication;
 
-
+enum EApplicationStyleSheets : int;
 
 
 
@@ -66,6 +67,13 @@ inline double qv2type( const QVariant &v )
 {
 	return v.toDouble();
 }
+template<>
+inline EApplicationStyleSheets qv2type( const QVariant &v )
+{
+	return static_cast< EApplicationStyleSheets >( v.toInt() );
+}
+
+
 
 
 // Insert: Type => QVariant
@@ -159,7 +167,7 @@ protected:
 
 
 
-//	CApplicationSettings is at the core of all file persistence
+//	CFileSettings is at the core of all file persistence
 //	of whole application parameters and of the trees of files
 //	that compose a workspace. It provides a uniform interface for
 //	client code to read and write parameters (key-value pairs).
@@ -197,15 +205,13 @@ protected:
 //		committing to/from file/memory the global settings.
 //		
 //
-class CApplicationSettings : public CGlobalApplicationSettings
+class CFileSettings : public CGlobalApplicationSettings
 {
 	//////////////////////////////////////
 	//	types & friends
 	//////////////////////////////////////
 
 	using base_t = CGlobalApplicationSettings;
-
-	friend class CBratApplication;
 
 public:
 
@@ -230,6 +236,11 @@ public:
 		}
 
 		QSettings& Settings()
+		{
+			return mRef;
+		}
+
+		const QSettings& Settings() const
 		{
 			return mRef;
 		}
@@ -299,6 +310,21 @@ public:
 		return settings.status() == QSettings::NoError;
 	}
 
+	template< typename T, typename F >
+    static bool ApplyToWholeSection( QSettings &settings, const std::string &group, const F &f )
+	{
+		CSection section( settings, group );
+		auto const keys = section.Keys();
+		for ( auto const &key : keys )
+		{
+			std::string stdkey = q2a( key );
+			if ( !f( stdkey, ReadValue< T >( section, stdkey ) ) )
+				break;
+		}
+
+		return settings.status() == QSettings::NoError;
+	}
+
 	//... for sections, independently of values types
 	
 	//		- open the respective section (group) with beginGroup before writing and close it afterwards
@@ -322,7 +348,6 @@ public:
 		CSection section( settings, group );
 		return ReadSection( section, kv_pairs... );
 	}
-
 
 protected:
 	static bool WriteSection( CSection &section )
@@ -350,19 +375,9 @@ protected:
 	//////////////////////////////////////
 
 	std::string mFilePath;
-	std::string mOrgName;
-	std::string mExecName;
 
 	QSettings mSettings;
 	std::string mVersion;
-
-public:
-	std::string m_userManual;
-	std::string m_userManualViewer;
-	std::string m_lastDataPath;
-	std::string m_lastPageReached;
-	std::string m_lastWksPath;
-	std::string m_lastColorTable;
 
 
 	//////////////////////////////////////
@@ -370,19 +385,16 @@ public:
 	//////////////////////////////////////
 
 protected:
+
 	virtual bool CheckVersion();
 
-	bool LoadConfigSelectionCriteria();
-	bool SaveConfigSelectionCriteria();
 
 	// Settings of type I - For exclusive use of application-wide settings
 	//
 	// For Application type initialization; static and non-static read/write functions can access (THE) instance type
 
-	CApplicationSettings( const std::string &org_name, const std::string &exec_name, const std::string &domain_name = "" ) :
+    CFileSettings( const std::string &org_name, const std::string &exec_name, const std::string &domain_name = "" ) :
         base_t( org_name, exec_name, domain_name )
-		, mOrgName( org_name )
-		, mExecName( exec_name )
 	{
 		qDebug() << mSettings.format();
 		qDebug() << mSettings.fileName();
@@ -395,14 +407,14 @@ public:
 	//
 	// Module type instance; static read/write functions should not be used with this instance type
 
-	CApplicationSettings( const std::string &path ) :
+    CFileSettings( const std::string &path ) :
 		  mFilePath( path )
 		, mSettings( mFilePath.c_str(), QSettings::IniFormat )
 	{
 		CheckVersion();
 	}
 
-	virtual ~CApplicationSettings()
+    virtual ~CFileSettings()
 	{}
 
 	//////////////////////////////////////
@@ -417,7 +429,18 @@ public:
 		return mSettings.childKeys();
 	}
 
+	std::string Group() const
+	{
+		return q2a( mSettings.group() );
+	}
+
+    std::string FilePath() const
+    {
+        return q2a( mSettings.fileName() );
+    }
+
 protected:
+
 	//////////////////////////////////////
 	//	access - internal class use only
 	//////////////////////////////////////
@@ -450,6 +473,13 @@ protected:
 		return WriteValues< std::string >( group, kv_pairs );
 	}
 
+	//template< typename T >
+ //   bool ApplyToWholeSection( const std::string &group, std::function< bool (const std::string &key, const T &value ) > &f )
+	template< typename T, typename F >
+    bool ApplyToWholeSection( const std::string &group, const F &f )
+	{
+		return ApplyToWholeSection< T >( mSettings, group, f );
+	}
 
 	//... for sections, independently of values types
 	
@@ -460,7 +490,7 @@ protected:
 	}
 
 	template< typename... Types >
-	bool WriteSection( const std::string &group, const Types&... kv_pairs )
+	inline bool WriteSection( const std::string &group, const Types&... kv_pairs )
 	{
 		return WriteSection( mSettings, group, kv_pairs... );
 	}
@@ -471,34 +501,183 @@ public:
 	//	operations
 	//////////////////////////////////////
 
-	void Sync();
+    bool WriteVersionSignature()
+    {
+        return WriteValues( GROUP_SETTINGS_VERSION,
+        {
+            { KEY_SETTINGS_VERSION, VersionValue() }
+        }
+        );
+    };
+
+	void Sync()
+	{
+		mSettings.sync();
+	}
 
 	void Clear()
 	{
 		mSettings.clear();
 	}
 
-	virtual bool LoadConfig();
-	virtual bool SaveConfig( const CWorkspace *wks );
-
-
-	////////////////////////////////////////////////////
-	//	TODO: DELETE: 
-	//		- only for brat v3 support to v4 development
-	////////////////////////////////////////////////////
-
-	template< class CONTAINER >
-	bool LoadRecentFilesGeneric( CONTAINER &paths );
-
-	bool LoadRecentFiles( std::vector<std::string> &paths );
-	bool LoadRecentFiles( QStringList &paths );
-
-	template< class CONTAINER >
-	bool SaveRecentFilesGeneric( const CONTAINER &paths );
-
-	bool SaveRecentFiles( const std::vector<std::string> &paths );
-	bool SaveRecentFiles( const QStringList &paths );
+	void ClearGroup( const std::string &group )
+	{
+		CSection section( mSettings, group );		Q_UNUSED( section );
+		mSettings.remove( QString() );
+	}
 };
+
+
+
+
+
+
+
+enum EApplicationStyleSheets : int
+{
+	e_DarkStyle,
+	e_DarkOrangeStyle,
+	e_Dark_2015Style,
+
+	EApplicationStylesSheets_size
+};
+
+
+class CApplicationSettings : public CFileSettings
+{
+    //////////////////////////////////////
+    //	types & friends
+    //////////////////////////////////////
+
+    using base_t = CFileSettings;
+
+    friend class CBratApplication;
+
+
+    //////////////////////////////////////
+    //		static members
+    //////////////////////////////////////
+
+
+public:
+	
+	static const std::vector< std::string >& getStyles();
+
+	static size_t getStyleIndex( const QString &qname );
+
+	static const std::vector< std::string >& getStyleSheets( bool resources );
+
+	static std::string getNameOfStyle( const QStyle *s );
+
+	static std::string getNameOfStyle( QStyle *s, bool del );
+
+
+protected:
+
+    //////////////////////////////////////
+    //	data
+    //////////////////////////////////////
+
+    std::string mOrgName;
+    std::string mExecName;
+
+public:
+    std::string m_userManual;
+    std::string m_userManualViewer;
+    std::string m_lastDataPath;
+    std::string m_lastPageReached;
+    bool mAdvancedOperations = false;
+    std::string m_lastWksPath;
+    std::string m_lastColorTable;
+
+	bool mLoadLastWorkspaceAtStartUp = true;
+	QString mAppStyle;
+	bool mUseDefaultStyle = false;
+	EApplicationStyleSheets mCustomAppStyleSheet = e_Dark_2015Style;
+	bool mNoStyleSheet = false;
+
+
+    //////////////////////////////////////
+    //	construction / destruction
+    //////////////////////////////////////
+
+protected:
+
+    bool LoadConfigSelectionCriteria();
+    bool SaveConfigSelectionCriteria();
+
+    // Settings of type I - For exclusive use of application-wide settings
+    //
+    // For Application type initialization; static and non-static read/write functions can access (THE) instance type
+
+    CApplicationSettings( const std::string &org_name, const std::string &exec_name, const std::string &domain_name = "" ) :
+        base_t( org_name, exec_name, domain_name )
+        , mOrgName( org_name )
+        , mExecName( exec_name )
+    {
+        qDebug() << mSettings.format();
+        qDebug() << mSettings.fileName();
+			//if ( !IsFile( new_path ) )
+   //     return write_version_signature();
+
+    }
+
+public:
+	// Settings of type II - used by parameter files
+	//
+	// Module type instance; static read/write functions should not be used with this instance type
+
+    CApplicationSettings( const std::string &path ) :
+		base_t( path )
+	{
+	}
+
+
+    virtual ~CApplicationSettings()
+    {}
+
+    //////////////////////////////////////
+    //	access
+    //////////////////////////////////////
+
+
+protected:
+    //////////////////////////////////////
+    //	access - privileged
+    //////////////////////////////////////
+
+	bool setApplicationStyle( CBratApplication &app, QString default_style );
+
+public:
+
+    //////////////////////////////////////
+    //	operations
+    //////////////////////////////////////
+
+    virtual bool LoadConfig();
+    virtual bool SaveConfig();
+
+
+    ////////////////////////////////////////////////////
+    //	TODO: DELETE
+    //		- only for brat v3 support to v4 development
+    ////////////////////////////////////////////////////
+
+    template< class CONTAINER >
+    bool LoadRecentFilesGeneric( CONTAINER &paths );
+
+    bool LoadRecentFiles( std::vector<std::string> &paths );
+    bool LoadRecentFiles( QStringList &paths );
+
+    template< class CONTAINER >
+    bool SaveRecentFilesGeneric( const CONTAINER &paths );
+
+    bool SaveRecentFiles( const std::vector<std::string> &paths );
+    bool SaveRecentFiles( const QStringList &paths );
+};
+
+
+
 
 
 
@@ -509,9 +688,9 @@ public:
 ///////////////////////////////////////////////////
 
 
-class CAppSection : public CApplicationSettings::CSection
+class CAppSection : public CFileSettings::CSection
 {
-	using base_t = CApplicationSettings::CSection;
+    using base_t = CFileSettings::CSection;
 
 	static QSettings& AppSettings()
 	{
@@ -543,6 +722,13 @@ inline void AppSettingsSync()
 }
 
 
+inline void AppSettingsClearGroup( CAppSection &section )
+{
+	section.Settings().remove( QString() );
+}
+
+
+
 // Generic Read / Write functions
 
 //... for single values
@@ -550,14 +736,14 @@ inline void AppSettingsSync()
 template< class VALUE = std::string >
 inline VALUE AppSettingsReadValue( CAppSection &section, const std::string &key )
 {
-	return CApplicationSettings::ReadValue< VALUE >( section, key );
+    return CFileSettings::ReadValue< VALUE >( section, key );
 }
 
 
 template< class VALUE >
 inline void AppSettingsWriteValue( CAppSection &section, const std::string &key, const VALUE &value )
 {
-	return CApplicationSettings::WriteValue( section, key, value );
+    return CFileSettings::WriteValue( section, key, value );
 }
 
 
@@ -568,7 +754,7 @@ template< typename T >
 inline bool AppSettingsReadValues( const std::string &group, std::initializer_list< kv_t< T& > > kv_pairs )
 {
 	QSettings settings;
-	return CApplicationSettings::ReadValues( settings, group, kv_pairs );
+    return CFileSettings::ReadValues( settings, group, kv_pairs );
 }
 
 
@@ -576,9 +762,17 @@ template< typename T >
 inline bool AppSettingsWriteValues( const std::string &group, std::initializer_list< kv_t< T > > kv_pairs )
 {
 	QSettings settings;
-	return CApplicationSettings::WriteValues( settings, group, kv_pairs );
+    return CFileSettings::WriteValues( settings, group, kv_pairs );
 }
 
+//template< typename T >
+//bool AppSettingsApplyToWholeSection( const std::string &group, std::function< bool( const std::string &key, const T &value ) > &f )
+template< typename T, typename F >
+bool AppSettingsApplyToWholeSection( const std::string &group, const F &f )
+{
+	QSettings settings;
+    return CFileSettings::ApplyToWholeSection( settings, group, f );
+}
 
 //... for sections, independently of values types
 //		- assume respective group (section) already open by creating a CAppSection object
@@ -587,7 +781,7 @@ template< typename... Types >
 inline bool AppSettingsReadSection( const std::string &group, Types... kv_pairs )
 {
 	QSettings settings;
-	return CApplicationSettings::ReadSection( settings, group, kv_pairs... );
+    return CFileSettings::ReadSection( settings, group, kv_pairs... );
 }
 
 
@@ -595,7 +789,7 @@ template< typename... Types >
 inline bool AppSettingsWriteSection( const std::string &group, const Types&... kv_pairs )
 {
 	QSettings settings;
-	return CApplicationSettings::WriteSection( settings, group, kv_pairs... );
+    return CFileSettings::WriteSection( settings, group, kv_pairs... );
 }
 
 

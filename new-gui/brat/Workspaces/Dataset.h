@@ -66,15 +66,12 @@ public:
 
 	/// 
 
-	std::string GetName() const { return m_name; }
+	const std::string& GetName() const { return m_name; }
 	void SetName( const std::string& value ) { m_name = value; }
 
 	bool CtrlFiles( std::vector< std::string > &v );
 
-	bool SaveConfig( CConfiguration* config );
-//protected:
-//	bool SaveConfig( CConfiguration* config, const std::string& entry );
-//	bool SaveConfigSpecificUnit( CConfiguration* config, const std::string& entry );
+	bool SaveConfig( CWorkspaceSettings* config ) const;
 
 public:
 	bool LoadConfig( CWorkspaceSettings *config );

@@ -632,7 +632,7 @@ void CDisplayPanel::FillXAxis()
 	CStringArray array;
 	m_currentData->GetAvailableAxes( array );
 	wxArrayString axes_names;
-	CBratGuiApp::CStringArrayToWxArray( array, axes_names );
+	CStringArrayToWxArray( array, axes_names );
 	GetDispXaxis()->Append( axes_names );
 
 	wxString xAxis = m_currentData->GetXAxis();
@@ -2199,7 +2199,7 @@ void CDisplayPanel::DispNameChanged()
 
   InitDisplayOutput();
 
-  CBratGuiApp::RemoveFile(displayOldOutputName);
+  RemoveFile(displayOldOutputName);
 
   GetDisplayOutput();
 

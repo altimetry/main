@@ -28,26 +28,6 @@ QActionGroup* ProjectionsActions( QWidget *parent )
 	};
 
 	return CActionInfo::CreateActionsGroup( parent, ActionTags, true );
-
-	//QActionGroup *group = new QActionGroup( parent );
-	//group->setExclusive( true );
-
-	//const int projections_size = 3;
-	//QAction *menu_actions[ projections_size ] =
-	//{
-	//	new QAction( QPixmap( "://images/alpha-numeric/__i.png" ), "Projection 0", group ),
-	//	new QAction( QPixmap( "://images/alpha-numeric/__j.png" ), "Projection 1", group ),
-	//	new QAction( QPixmap( "://images/alpha-numeric/__k.png" ), "Projection 2", group )
-	//};
-
-	//QList<QAction*> ProjectionsList;
-	//for ( auto a : menu_actions )
-	//{
-	//	a->setCheckable( true );
-	//	ProjectionsList << a;
-	//}
-
-	//return ProjectionsList;
 }
 
 

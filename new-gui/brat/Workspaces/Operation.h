@@ -92,6 +92,11 @@ public:
 class COperation : public CBratObject
 {
 	friend class CConfiguration;
+	friend class CWorkspaceSettings;
+
+public:
+	using const_iterator = std::map< std::string, CBratObject* >::const_iterator;
+
 protected:
 
 	CProduct* m_product = nullptr;
@@ -150,6 +155,10 @@ public:
 		delete m_select;
 	}
 
+	virtual const_iterator begin() const { return m_formulas.begin(); }
+
+	virtual const_iterator end() const { return m_formulas.end(); }
+
 	static void SetExecNames( const std::string &appPath );
 	static const std::string& GetExecYFXName() { return m_execYFXName; }
 	static const std::string& GetExecZFXYName() { return m_execZFXYName; }
@@ -159,7 +168,7 @@ public:
 	static const std::string& GetExecShowStatsName() { return m_execShowStatsName; }
 	static const std::string& GetExecBratSchedulerName() { return m_execBratSchedulerName; }
 
-	std::string GetName() const { return m_name; }
+	const std::string& GetName() const { return m_name; }
 	void SetName( const std::string& value ) { m_name = value; }
 
 	bool HasFormula() const { return GetFormulaCount() > 0; }
@@ -171,8 +180,8 @@ public:
 
 	bool RenameFormula( CFormula* formula, const std::string &newName );
 
-	bool SaveConfig( CConfiguration *config );
-	bool LoadConfig( CConfiguration *config, std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso );
+	bool SaveConfig( CWorkspaceSettings *config, const CWorkspaceOperation *wks ) const;
+	bool LoadConfig( CWorkspaceSettings *config, std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso );
 
 	CDataset* FindDataset( const std::string& datasetName, CWorkspaceDataset *wks );
 
@@ -213,6 +222,9 @@ public:
 
 	const std::string& GetOutputPath() const { return m_output; }				//femm: GetOutputName -> GetOutputPath; old body: {return m_output.GetFullPath();};
 	void SetOutput( const std::string& value, CWorkspaceOperation* wks );
+
+	std::string GetOutputPathRelativeToWks( const CWorkspaceOperation *wks ) const;
+	std::string GetExportAsciiOutputPathRelativeToWks( const CWorkspaceOperation *wks ) const;
 
     const std::string& GetExportAsciiOutputPath() const { return m_exportAsciiOutput; }
 	void SetExportAsciiOutput( const std::string& value, CWorkspaceOperation* wks );

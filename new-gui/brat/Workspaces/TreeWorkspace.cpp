@@ -32,6 +32,160 @@
 using namespace brathl;
 
 
+
+CWorkspace* CTreeWorkspace::Reset( const std::string& base_path, std::string &error_msg, const std::string& root_name )
+{
+	Clear();
+
+	CWorkspace *root= root_name.empty() ? new CWorkspace( base_path ) : new CWorkspace( root_name, base_path );
+    root->InitConfig();
+
+	// Set tree root
+	SetRoot( root->GetName(), root, true );
+
+	//WARNING : the sequence of workspaces object creation is significant, because of the interdependence of them
+
+	std::string path = root->GetPath();
+
+	//FIRST - Create "Datasets" branch
+	CWorkspaceDataset* wksDataSet = new CWorkspaceDataset( path );
+    wksDataSet->InitConfig();
+	AddChild( wksDataSet->GetName(), wksDataSet );
+
+	//SECOND - Create "Formulas" branch
+	CWorkspaceFormula* wksFormula = new CWorkspaceFormula( error_msg, path );
+    wksFormula->InitConfig();
+    AddChild( wksFormula->GetName(), wksFormula );
+
+	//THIRD - Create "Operations" branch
+	CWorkspaceOperation* wksOperation = new CWorkspaceOperation( path );
+    wksOperation->InitConfig();
+    AddChild( wksOperation->GetName(), wksOperation );
+
+	//FOURTH - Create "Displays" branch
+	CWorkspaceDisplay* wksDisplay = new CWorkspaceDisplay( path );
+    wksDisplay->InitConfig();
+    AddChild( wksDisplay->GetName(), wksDisplay );
+
+	return root;
+}
+
+
+
+// Default arguments: 	pe = nullptr, const std::string &name = "" , dest_wks = nullptr 
+//static 
+bool CTreeWorkspace::Validate( EValidationTask task, const std::string &path, EValidationError *pe,	
+	const std::string &name, const CWorkspace *dest_wks )
+{
+	EValidationError e = eNoError;
+
+	// lambdas 
+
+	auto validate_name = [ &e ]( const std::string &name )
+	{
+		if ( name.empty() )
+			e = eError_EmptyName;
+
+		return e == eNoError;
+	};
+
+
+	auto validate_path_name = [ &e ]( const std::string &path )
+	{
+		if ( path.empty() )
+			e = eError_EmptyPathName;
+
+		return e == eNoError;
+	};
+
+
+	auto validate_path = [ &e, &validate_path_name ]( const std::string &path )
+	{
+		if ( validate_path_name( path ) && !IsDir( path ) )
+			e = eError_NotExistingPath;
+
+		return e == eNoError;
+	};
+
+
+	auto validate_workspace_configuration = [ &e, &validate_path ]( const std::string &path )
+	{
+		if ( validate_path( path ) )
+		{
+			CWorkspace wks( path );						//wks.SetPath( path, false );
+			std::string error_msg;
+			if (
+				! wks.IsConfigFile() ||
+				! wks.LoadConfig( error_msg, nullptr, nullptr, nullptr
+					//wxGetApp().GetCurrentWorkspaceDataset(), 
+					//wxGetApp().GetCurrentWorkspaceDisplay(), 
+					//wxGetApp().GetCurrentWorkspaceOperation() 
+				) ||
+				! wks.IsRoot()
+				)
+				e = eError_InvalidConfig;
+		}
+
+		return e == eNoError;
+	};
+
+
+	auto validate_not_workspace_path = [ &e, &validate_workspace_configuration ]( const std::string &name, const std::string &path )
+	{
+		if ( validate_workspace_configuration( CWorkspace::MakeNewWorkspacePath( name, path ) ) )
+			e = eError_WorkspaceAlreadyExists;
+		else
+			e = eNoError;	//clear error set by validate_workspace_configuration, which means success in this case
+
+		return e == eNoError;
+	};
+
+
+	auto validate_not_self_importing = [ &e, &dest_wks ]( const std::string &path )
+	{
+		assert__(dest_wks);
+
+		if ( str_icmp( path, dest_wks->GetPath() ) )	// even in case sensitive systems, forbid 
+			e = eError_SelfImporting;
+
+		return e == eNoError;
+	};
+
+
+	// body
+
+	switch ( task )
+	{
+		case eNew:
+			validate_name( name ) && 
+			validate_path_name( path ) &&
+			validate_not_workspace_path( name, path );
+			break;
+
+		case eImport:
+			if ( !validate_not_self_importing( path ) )
+				break;
+		case eOpen:
+		case eRename:
+			validate_workspace_configuration( path );
+			break;
+
+		case eDelete:
+			validate_path_name( path ) &&
+			validate_workspace_configuration( path );
+			break;
+
+		default:
+			assert__( false );
+	}
+
+	if ( pe )
+		*pe = e;
+
+	return e == eNoError;
+}
+
+
 //----------------------------------------
 void CTreeWorkspace::SetRoot( const std::string& nm, CBratObject* o, bool goCurrent )
 {
@@ -103,10 +257,13 @@ CWorkspace * CTreeWorkspace::GetParentData( bool withExcept )
 }
 
 //----------------------------------------
-CWorkspace* CTreeWorkspace::FindParent( CWorkspace* wks )
+CWorkspace* CTreeWorkspace::FindWorkspace( const std::string key )
 {
-	return dynamic_cast<CWorkspace*>( CObjectTree::FindParentObject( (const char *)wks->GetKey().c_str() ) );
-}
+	std::map< std::string, CObjectTreeNode* >::iterator it = m_nodemap.find( key );
+
+	return dynamic_cast< CWorkspace* >( it->second->GetData() );
+}		
+
 
 //----------------------------------------
 CWorkspace* CTreeWorkspace::GetRootData()
@@ -117,48 +274,20 @@ CWorkspace* CTreeWorkspace::GetRootData()
 	return dynamic_cast<CWorkspace*>( m_pTreeroot->GetData() );
 }
 
-
 //----------------------------------------
-
-CObjectTreeIterator CTreeWorkspace::AddChild (CObjectTreeNode* parent, const std::string& nm, CWorkspace* x, bool goCurrent)
+CObjectTreeIterator CTreeWorkspace::AddChild( const std::string& nm, CWorkspace* x, bool goCurrent )
 {
+	std::string key = m_pTreeroot->GetKey();
+	key += CWorkspace::m_keyDelimiter + nm;
 
-  std::string key = parent->GetKey().c_str();
-  key += CWorkspace::m_keyDelimiter + nm;
+	x->SetKey( key );
+	x->SetLevel( m_pTreeroot->GetLevel() + 1 );
 
-  x->SetKey(key);
-  x->SetLevel(parent->GetLevel() + 1);
-
-  return CObjectTree::AddChild(parent, (const char *)key.c_str(), x, goCurrent);
-
-}
-//----------------------------------------
-
-CObjectTreeIterator CTreeWorkspace::AddChild (CObjectTreeIterator& parent, const std::string& nm, CWorkspace* x, bool goCurrent)
-{
-
-  std::string key = parent.m_Node->second->GetKey().c_str();
-  key += CWorkspace::m_keyDelimiter + nm;
-
-  x->SetKey(key);
-  x->SetLevel(parent.m_Node->second->GetLevel() + 1);
-  return CObjectTree::AddChild(parent, (const char *)key.c_str(), x, goCurrent);
+	return CObjectTree::AddChild( key, x, goCurrent );
 }
 
 //----------------------------------------
-CObjectTreeIterator CTreeWorkspace::AddChild (const std::string& nm, CWorkspace* x, bool goCurrent)
-{
-  std::string key = m_pTreeroot->GetKey().c_str();
-  key += CWorkspace::m_keyDelimiter + nm;
-
-  x->SetKey(key);
-  x->SetLevel(m_pTreeroot->GetLevel() + 1);
-
-  return CObjectTree::AddChild((const char *)key.c_str(), x, goCurrent);
-}
-
-//----------------------------------------
-bool CTreeWorkspace::SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush )		//flush = true
+bool CTreeWorkspace::SaveConfig( std::string &error_msg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush )		//flush = true
 {
 	if ( GetRootData() == nullptr )
 		return true;
@@ -169,14 +298,14 @@ bool CTreeWorkspace::SaveConfig( std::string &errorMsg, CWorkspaceOperation *wks
 
 	do
 	{
-		bOk &= GetCurrentData()->SaveConfig( errorMsg, wkso, wksd, flush );
+		bOk &= GetCurrentData()->SaveConfig( error_msg, wkso, wksd, flush );
 	} while ( this->SubTreeWalkDown() );
 
 	return bOk;
 }
 
 //----------------------------------------
-bool CTreeWorkspace::LoadConfig( CWorkspace *&wks, CWorkspaceDataset *wksds, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, std::string &errorMsg )
+bool CTreeWorkspace::LoadConfig( CWorkspace *&wks, CWorkspaceDataset *wksds, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, std::string &error_msg )
 {
 	if ( GetRootData() == nullptr )
 		return true;
@@ -186,7 +315,7 @@ bool CTreeWorkspace::LoadConfig( CWorkspace *&wks, CWorkspaceDataset *wksds, CWo
 	{
 		wks = GetCurrentData();
 		wks->SetCtrlDatasetFiles( m_ctrlDatasetFiles );
-		if ( !wks->LoadConfig( errorMsg, wksds, wksd, wkso ) )
+		if ( !wks->LoadConfig( error_msg, wksds, wksd, wkso ) )
 			return false;
 
 	} while ( this->SubTreeWalkDown() );
@@ -194,17 +323,17 @@ bool CTreeWorkspace::LoadConfig( CWorkspace *&wks, CWorkspaceDataset *wksds, CWo
 	return true;
 }
 //----------------------------------------
-CWorkspaceFormula* CTreeWorkspace::LoadConfigFormula( CWorkspaceDataset *wksds, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, std::string &errorMsg )
+CWorkspaceFormula* CTreeWorkspace::LoadConfigFormula( CWorkspaceDataset *wksds, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, std::string &error_msg )
 {
 	CWorkspaceFormula* wks = GetWorkspaceFormula();
 	if ( wks != nullptr )
-		wks->LoadConfig( errorMsg, wksds, wksd, wkso );
+		wks->LoadConfig( error_msg, wksds, wksd, wkso );
 
 	return wks;
 }
 
 //----------------------------------------
-bool CTreeWorkspace::Import( CTreeWorkspace* treeSrc, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso, std::string &keyToFind, std::string &errorMsg )
+bool CTreeWorkspace::Import( CTreeWorkspace* treeSrc, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso, std::string &keyToFind, std::string &error_msg )
 {
 	if ( GetRootData() == nullptr )
 		return false;
@@ -237,7 +366,7 @@ bool CTreeWorkspace::Import( CTreeWorkspace* treeSrc, CWorkspaceDisplay *wksd, C
 
 		currentWorkspace->SetImportBitSet( &m_importBitSet );
 
-		bOk = currentWorkspace->Import( wksImport, errorMsg, wksd, wkso );
+		bOk = currentWorkspace->Import( wksImport, error_msg, wksd, wkso );
 		if ( !bOk )
 			break;
 

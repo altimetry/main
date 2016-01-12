@@ -48,11 +48,7 @@ using namespace brathl;
 #include "GuiFrame.h"
 
 
-
-
-
-
-
+class CApplicationSettings;
 
 
 
@@ -80,8 +76,116 @@ const std::string OPERATIONS_PAGE_NAME = "Operations";
 const std::string DISPLAY_PAGE_NAME = "Views";
 const std::string LOG_PAGE_NAME = "Logs";
 
+#ifdef WIN32
+const std::string BRATHL_ICON_FILENAME = "BratIcon.ico";
+//const wxString BRATCREATEYFX_EXE = "BratCreateYFX.exe";
+//const wxString BRATCREATEZFXY_EXE = "BratCreateZFXY.exe";
+//const wxString BRATDISPLAY_EXE = "BratDisplay.exe";
+//const wxString BRATEXPORTASCII_EXE = "BratExportAscii.exe";
+//const wxString BRATEXPORTGEOTIFF_EXE = "BratExportGeoTiff.exe";
+//const wxString BRATSHOWSTATS_EXE = "BratStats.exe";
+//const wxString BRATSCHEDULER_EXE = "BratScheduler.exe";
+#else
+const std::string BRATHL_ICON_FILENAME = "BratIcon.bmp";
+//const wxString BRATCREATEYFX_EXE = "BratCreateYFX";
+//const wxString BRATCREATEZFXY_EXE = "BratCreateZFXY";
+//const wxString BRATDISPLAY_EXE = "BratDisplay";
+//const wxString BRATEXPORTASCII_EXE = "BratExportAscii";
+//const wxString BRATEXPORTGEOTIFF_EXE = "BratExportGeoTiff";
+//const wxString BRATSHOWSTATS_EXE = "BratStats";
+//const wxString BRATSCHEDULER_EXE = "BratScheduler";
+#endif
 
-class CApplicationSettings;
+
+
+inline void DetermineCharSize(wxWindow* wnd, int32_t& width, int32_t& height)
+{
+  wxStaticText w(wnd, -1, "W", wxDefaultPosition, wxSize(-1,-1));
+  w.GetSize(&width, &height);
+//  w.Destroy();
+}
+
+inline bool RemoveFile( const wxString& name )
+{
+	if ( !wxFileExists( name ) )
+		return true;
+	try
+	{
+		return wxRemoveFile( name );
+	}
+	catch ( ... )		//Nothing to do
+	{}
+	return false;
+}
+
+inline bool RenameFile( const wxString& oldName, const wxString& newName )
+{
+	if ( !wxFileExists( oldName ) )
+		return true;
+	try
+	{
+		return wxRenameFile( oldName, newName );
+	}
+	catch ( ... )	//Nothing to do
+	{}
+	return false;
+}
+
+inline void CStringArrayToWxArray( CStringArray& from, wxArrayString& to )
+{
+	for ( CStringArray::iterator it = from.begin(); it != from.end(); it++ )
+		to.Add( ( *it ).c_str() );
+}
+
+inline void CStringListToWxArray( const CStringList& from, wxArrayString& to )
+{
+	for ( CStringList::const_iterator it = from.begin(); it != from.end(); it++ )
+		to.Add( it->c_str() );
+}
+inline void CProductListToWxArray( CProductList& from, wxArrayString& to )
+{
+	for ( CProductList::iterator it = from.begin(); it != from.end(); it++ )
+		to.Add( ( *it ).c_str() );
+}
+  
+wxString FindFile( const wxString& fileName );
+
+inline void GetRecordNames( CStringArray& array, CProduct* product )
+{
+	if ( product == NULL )
+		return;
+
+	product->GetRecords( array );
+}
+
+inline void GetRecordNames( wxArrayString& array, CProduct* product )
+{
+	CStringArray arrayTmp;
+	GetRecordNames( arrayTmp, product );
+	CStringArrayToWxArray( arrayTmp, array );
+}
+
+inline void GetRecordNames( wxComboBox& combo, CProduct* product )
+{
+	CStringArray array;
+	GetRecordNames( array, product );
+	for ( CStringArray::iterator it = array.begin(); it != array.end(); it++ )
+		combo.Append( ( *it ).c_str() );
+}
+
+inline void GetRecordNames( wxListBox& listBox, CProduct* product )
+{
+	CStringArray array;
+	GetRecordNames( array, product );
+	for ( CStringArray::iterator it = array.begin(); it != array.end(); it++ )
+		listBox.Append( ( *it ).c_str() );
+}
+
+
+
+
+
+
 
 
 // WDR: class declarations
@@ -90,160 +194,217 @@ class CApplicationSettings;
 // BratApp
 //----------------------------------------------------------------------------
 
-class CBratGuiApp: public wxApp
+class CBratGuiApp : public wxApp
 {
+
+	/////////////////////////////////////////////////
+	//	data
+	/////////////////////////////////////////////////
 public:
-  CBratGuiApp();
-  
-  virtual bool OnInit();
-  virtual int OnExit();
-
-  static void DetermineCharSize(wxWindow* wnd, int32_t& width, int32_t& height);
-
-  wxBitmapType GetIconType();
-  wxString GetIconFile();
-  wxString GetIconFileName();
+	CTreeWorkspace m_tree;
+	CTreeWorkspace m_treeImport;
 
 private:
-	wxFileConfig* GetConfig() {return m_config;}
-	CApplicationSettings *mAppSettings = nullptr;
+	CTreeWorkspace* m_currentTree = nullptr;
+	wxFileConfig* m_config = nullptr;
 
-  bool SaveConfig(bool flush = true);
-  bool SaveConfigSelectionCriteria(bool flush = true);
-  
-  bool LoadConfig();
-  bool LoadConfigSelectionCriteria();
+	wxString m_userManualViewer;
+	wxString m_userManual;
+	wxString m_lastWksPath;
+	wxString m_lastColorTable;
+	wxString m_lastDataPath;
+	wxString m_lastPageReached;
+
+	CGuiFrame* m_frame = nullptr;
+
+	wxFileName m_execName;
+
+	/////////////////////////////////////////////////
+	//	construction / destruction
+	/////////////////////////////////////////////////
+public:
+	CBratGuiApp() : m_config( nullptr ), m_currentTree( nullptr )
+	{}
+
+	virtual bool OnInit();
+	virtual int OnExit();
+
+	/////////////////////////////////////////////////
+	//	GUI guetters
+	/////////////////////////////////////////////////
+	static wxBitmapType GetIconType()
+	{
+		//return wxBITMAP_TYPE_BMP;
+		//return wxBITMAP_TYPE_JPEG;
+		//return wxBITMAP_TYPE_GIF;
+#ifdef WIN32
+		return wxBITMAP_TYPE_ICO;
+#else
+		return wxBITMAP_TYPE_BMP;
+#endif
+	}
+
+	static wxString GetIconFileName()
+	{
+		return BRATHL_ICON_FILENAME.c_str();
+	}
+	static wxString GetIconFile()
+	{
+		return CTools::FindDataFile( (const char *)GetIconFileName().c_str() ).c_str();
+	}
+
+	wxNotebook* GetMainnotebook()  { return  m_frame->GetMainnotebook(); }
+	CGuiFrame* GetGuiFrame()  { return  m_frame; }
+	CGuiPanel* GetGuiPanel()  { return  m_frame->GetGuiPanel(); }
+	CLogPanel* GetLogPanel()  { return  m_frame->GetGuiPanel()->GetLogPanel(); }
+	//CDisplayPanel* GetDisplayPanel()  { return  m_frame->GetGuiPanel()->GetDisplayPanel(); }
+	CDisplayPanel* GetDisplayPanel()  { return  m_frame->GetGuiPanel()->GetDisplayPanel(); }
+
+	COperationPanel* GetOperationPanel()  { return  m_frame->GetGuiPanel()->GetOperationPanel(); }
+
+	wxMenu* GetMenuFieldsTreeCtrl()  { return  m_frame->GetMenuFieldsTreeCtrl(); }
+	wxMenu* GetMenuOperationTreeCtrl()  { return  m_frame->GetMenuOperationTreeCtrl(); }
+	wxMenu* GetMenuDisplayTreeCtrl() { return m_frame->GetMenuDisplayTreeCtrl(); }
+
+
+	wxFileName* GetExecName() { return &m_execName; }
+
+	wxString GetExecPathName( int32_t flags = wxPATH_GET_VOLUME, wxPathFormat format = wxPATH_NATIVE )
+#ifdef __WXMAC__
+	{return (m_execName.IsRelative() ? 
+	m_execName.GetPath(flags, format) + "/BratGui.app/Contents/MacOS" :
+	m_execName.GetPath(flags, format));}
+#else
+	{return m_execName.GetPath( flags, format ); }
+#endif
+
+
+	/////////////////////////////////////////////////
+	//	configuration
+	/////////////////////////////////////////////////
+private:
+	wxFileConfig* GetConfig() { return m_config; }
+    CApplicationSettings *mAppSettings = nullptr;
+
+	bool SaveConfig( bool flush = true );
+	bool SaveConfigSelectionCriteria( bool flush = true );
+
+	bool LoadConfig();
+	bool LoadConfigSelectionCriteria();
 
 public:
-  void LoadFileHistory( std::vector<std::string> &v );
-  void SaveFileHistory( const std::vector<std::string> &v );
+	void LoadFileHistory( std::vector<std::string> &v );
+	void SaveFileHistory( const std::vector<std::string> &v );
 
-  void CreateTree(CWorkspace* root);
-  void CreateTree(CWorkspace* root, CTreeWorkspace& tree);
+	wxString GetLastColorTable() { return m_lastColorTable; }
+	void SetLastColorTable( const wxString& value ) { m_lastColorTable = value; }
 
-  wxNotebook* GetMainnotebook()  { return  m_frame->GetMainnotebook(); }
-  CGuiFrame* GetGuiFrame()  { return  m_frame; }
-  CGuiPanel* GetGuiPanel()  { return  m_frame->GetGuiPanel(); }
-  CLogPanel* GetLogPanel()  { return  m_frame->GetGuiPanel()->GetLogPanel(); }
-  //CDisplayPanel* GetDisplayPanel()  { return  m_frame->GetGuiPanel()->GetDisplayPanel(); }
-  CDisplayPanel* GetDisplayPanel()  { return  m_frame->GetGuiPanel()->GetDisplayPanel(); }
+	wxString BuildUserManualPath();
+	void ViewUserManual();
 
-  COperationPanel* GetOperationPanel()  { return  m_frame->GetGuiPanel()->GetOperationPanel(); }
+	wxString GetUserManual() { return m_userManual; }
+	void SetUserManual( const wxString& value ) { m_userManual = value; }
 
-  wxMenu* GetMenuFieldsTreeCtrl()  { return  m_frame->GetMenuFieldsTreeCtrl(); }
-  wxMenu* GetMenuOperationTreeCtrl()  { return  m_frame->GetMenuOperationTreeCtrl(); }
-  wxMenu* GetMenuDisplayTreeCtrl() { return m_frame->GetMenuDisplayTreeCtrl(); }
+	wxString GetLastDataPath() { return m_lastDataPath; }
+	void SetLastDataPath( const wxString& value ) { m_lastDataPath = value; }
 
-  CWorkspace* GetCurrentWorkspace();
-  CWorkspaceDataset* GetCurrentWorkspaceDataset();
-  CWorkspaceOperation* GetCurrentWorkspaceOperation();
-  CWorkspaceFormula* GetCurrentWorkspaceFormula();
-  CWorkspaceDisplay* GetCurrentWorkspaceDisplay();
+	wxString GetLastPageReached() { return m_lastPageReached; }
+	void SetLastPageReached( const wxString& value ) { m_lastPageReached = value; }
+
+	/////////////////////////////////////////////////
+	//	workspace
+	/////////////////////////////////////////////////
+
+private:
+	CTreeWorkspace* GetCurrentTree() { return m_currentTree; }
+
+public:
+	void SetCurrentTree( CTreeWorkspace* value ) { m_currentTree = value; }
+
+	CWorkspace* GetCurrentWorkspace();
+	CWorkspaceDataset* GetCurrentWorkspaceDataset();
+	CWorkspaceOperation* GetCurrentWorkspaceOperation();
+	CWorkspaceFormula* GetCurrentWorkspaceFormula();
+	CWorkspaceDisplay* GetCurrentWorkspaceDisplay();
 
 private:
 	std::string GetWorkspaceKey( const std::string &subKey );
 
 public:
 
-  bool CanDeleteDataset(const wxString& name, CStringArray* operationNames = NULL);
-  bool CanDeleteOperation(const wxString& name, CStringArray* displayNames = NULL);
-  bool CanDeleteDisplay(const wxString& name);
+	bool CanDeleteDataset( const wxString& name, CStringArray* operationNames = nullptr );
+	bool CanDeleteOperation( const wxString& name, CStringArray* displayNames = nullptr );
+	bool CanDeleteDisplay( const wxString& name );
 
-  static bool RemoveFile(const wxString& name);
-  static bool RenameFile(const wxString& oldName, const wxString& newName);
+	/////////////////////////////////////////////////
+	//	workspace GUI
+	/////////////////////////////////////////////////
 
-  int32_t GotoLastPageReached();
-  int32_t GotoPage(int32_t pos);
-  int32_t GotoPage(const wxString& name);
-  
-  wxString GetCurrentPageText();
+	int32_t GotoLastPageReached();
+	int32_t GotoPage( int32_t pos );
+	int32_t GotoPage( const wxString& name );
 
-  bool IsCurrentLogPage();
+	wxString GetCurrentPageText();
 
-  int32_t GotoDatasetPage() {return GotoPage(DATASETS_PAGE_NAME);}
-  int32_t GotoOperationPage() {return GotoPage(OPERATIONS_PAGE_NAME);}
-  int32_t GotoDisplayPage() {return GotoPage(DISPLAY_PAGE_NAME);}
-  int32_t GotoLogPage() {return GotoPage(LOG_PAGE_NAME);}
+	bool IsCurrentLogPage()
+	{
+		return GetCurrentPageText().CmpNoCase( LOG_PAGE_NAME ) == 0;
+	}
 
-  wxFileName* GetExecName() {return &m_execName;}
-  
-  wxString GetExecPathName(int32_t flags = wxPATH_GET_VOLUME, wxPathFormat format = wxPATH_NATIVE) 
-#ifdef __WXMAC__
-                        {return (m_execName.IsRelative() ? 
-                                 m_execName.GetPath(flags, format) + "/BratGui.app/Contents/MacOS" :
-                                 m_execName.GetPath(flags, format));}
-#else
-                        {return m_execName.GetPath(flags, format);}
-#endif
+	int32_t GotoDatasetPage() { return GotoPage( DATASETS_PAGE_NAME ); }
+	int32_t GotoOperationPage() { return GotoPage( OPERATIONS_PAGE_NAME ); }
+	int32_t GotoDisplayPage() { return GotoPage( DISPLAY_PAGE_NAME ); }
+	int32_t GotoLogPage() { return GotoPage( LOG_PAGE_NAME ); }
 
-  CTreeWorkspace* GetCurrentTree() {return m_currentTree;}
-  void SetCurrentTree(CTreeWorkspace* value) {m_currentTree = value;}
+	bool IsNewViewEnable()
+	{
+		return 
+			GetCurrentWorkspace() != NULL &&
+			GetCurrentWorkspaceOperation() != NULL &&
+			GetCurrentWorkspaceOperation()->HasOperation();
+	}
+	bool IsNewDatasetEnable()
+	{
+		return GetCurrentWorkspace() != NULL;
+	}
+	bool IsNewOperationEnable()
+	{
+		return 
+			GetCurrentWorkspace() != NULL &&
+			GetCurrentWorkspaceDataset() != NULL &&
+			GetCurrentWorkspaceDataset()->HasDataset();
+	}
 
-  wxString GetLastColorTable() {return m_lastColorTable;}
-  void SetLastColorTable(const wxString& value) {m_lastColorTable = value;}
+	bool IsDeleteViewEnable()
+	{
+		return GetCurrentWorkspace() != NULL && GetGuiPanel()->GetDisplayPanel()->HasDisplay();
+	}
 
-  wxString BuildUserManualPath();
-  void ViewUserManual();
+	bool IsDeleteDatasetEnable()
+	{
+		return GetCurrentWorkspace() != NULL && GetGuiPanel()->GetDatasetPanel()->HasDataset();
+	}
 
-  wxString GetUserManual() {return m_userManual;}
-  void SetUserManual(const wxString& value) {m_userManual = value;}
+	bool IsDeleteOperationEnable()
+	{
+		return GetCurrentWorkspace() != NULL && GetGuiPanel()->GetOperationPanel()->HasOperation();
+	}
 
-  wxString GetLastDataPath() {return m_lastDataPath;}
-  void SetLastDataPath(const wxString& value) {m_lastDataPath = value;}
-  
-  wxString GetLastPageReached() {return m_lastPageReached;}
-  void SetLastPageReached(const wxString& value) {m_lastPageReached = value;}
+	/////////////////////////////////////////////////
+	//	
+	/////////////////////////////////////////////////
 
-  static void CStringArrayToWxArray(CStringArray& from, wxArrayString& to);
-  static void CStringListToWxArray(const CStringList& from, wxArrayString& to);
-  static void CProductListToWxArray(CProductList& from, wxArrayString& to);
-  
-  static wxString FindFile(const wxString& fileName );
-
-  bool IsNewViewEnable();
-  bool IsNewDatasetEnable();
-  bool IsNewOperationEnable();
-  
-  bool IsDeleteViewEnable();
-  bool IsDeleteDatasetEnable();
-  bool IsDeleteOperationEnable();
-
-
-  void GetRecordNames( wxArrayString& array, CProduct* product);
-  void GetRecordNames( CStringArray& array, CProduct* product );
-  void GetRecordNames(wxComboBox& combo, CProduct* product);
-  void GetRecordNames(wxListBox& list, CProduct* product);
-
-  static void EvtFocus(wxWindow& window,  int32_t eventType, const wxFocusEventFunction& method,
-                        wxObject* userData = NULL, wxEvtHandler* eventSink = NULL);
-  static void EvtChar(wxWindow& window,  int32_t eventType, const wxCharEventFunction& method,
-                        wxObject* userData = NULL, wxEvtHandler* eventSink = NULL);
-
-
-public:
-  CTreeWorkspace m_tree;
-  CTreeWorkspace m_treeImport;
-
-protected:
-
-
-private:
-  CTreeWorkspace* m_currentTree = nullptr;
-
-  wxFileConfig* m_config = nullptr;
-
-  wxString m_userManualViewer;
-  wxString m_userManual;
-  wxString m_lastWksPath;
-  wxString m_lastColorTable;
-  wxString m_lastDataPath;
-  wxString m_lastPageReached;
-
-  CGuiFrame* m_frame = nullptr;
-
-  wxFileName m_execName;
+	static void EvtFocus( wxWindow& window, int32_t eventType, const wxFocusEventFunction& method,
+		wxObject* userData = nullptr, wxEvtHandler* eventSink = nullptr );
+	static void EvtChar( wxWindow& window, int32_t eventType, const wxCharEventFunction& method,
+		wxObject* userData = nullptr, wxEvtHandler* eventSink = nullptr );
 };
 
+
+
+
 DECLARE_APP(CBratGuiApp)
+
+
 
 #endif

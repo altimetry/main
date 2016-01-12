@@ -13,7 +13,122 @@ CModel::CModel()
 
 //virtual 
 CModel::~CModel()
-{}	
+{
+	mTree.Clear();
+}	
+
+
+//static 
+CWorkspace* CModel::GetRootWorkspace( CTreeWorkspace &tree )
+{
+	return tree.GetRootData();
+}
+
+CWorkspace* CModel::GetCurrentRootWorkspace()
+{
+	if ( mCurrentTree == nullptr )
+		mCurrentTree = &mTree;
+
+	return GetRootWorkspace( *mCurrentTree );
+}
+
+
+//static 
+template< class WKSPC >
+WKSPC* CModel::GetWorkspace( CTreeWorkspace &tree )
+{
+	CWorkspace* wks = GetRootWorkspace( tree );
+	std::string workspaceKey = !wks ? "" : ( wks->GetKey() + CWorkspace::m_keyDelimiter + WKSPC::NAME );
+
+	return dynamic_cast< WKSPC* >( tree.FindWorkspace( workspaceKey ) );
+}
+
+
+CWorkspace* CModel::CreateWorkspace( const std::string& name, const std::string& path, std::string &error_msg )
+{
+    return mTree.CreateReset( name, path, error_msg );
+}
+
+CWorkspace* CModel::CreateTree( CTreeWorkspace &tree, const std::string& path, std::string &error_msg )
+{
+    return tree.LoadReset( path, error_msg );
+}
+
+
+//static 
+CWorkspace* CModel::LoadWorkspace( CTreeWorkspace &tree, const std::string& path, std::string &error_msg )
+{
+	CWorkspace *wks = CreateTree( tree, path, error_msg );
+	CWorkspace *failed_wks = nullptr;
+	if ( !tree.LoadConfig( 
+		failed_wks,
+		GetWorkspace< CWorkspaceDataset >( tree ),
+		GetWorkspace< CWorkspaceOperation >( tree ),
+		GetWorkspace< CWorkspaceDisplay >( tree ), 
+		error_msg 
+		) )
+	{
+		error_msg += ( "\nUnable to load workspace '" + ( failed_wks ? failed_wks->GetName() : "" ) + "'." );
+		delete wks;
+		wks = nullptr;
+	}
+
+	return wks;
+}
+
+CWorkspace* CModel::LoadWorkspace( const std::string& path, std::string &error_msg )
+{
+	return LoadWorkspace( mTree, path, error_msg );
+}
+
+
+void CModel::Reset()
+{
+	mTree.Clear();
+}
+
+void CModel::ResetImportTree()
+{
+	mImportTree.Clear();
+}
+
+
+
+bool CModel::LoadImportFormulas( const std::string& path, std::vector< std::string > &v, bool predefined, bool user, std::string &error_msg )
+{
+	CTreeWorkspace import_tree;
+	CWorkspace* wks = CreateTree( import_tree, path, error_msg );
+	if ( !wks )
+	{
+		assert__( !error_msg.empty() );
+		return false;
+	}
+
+	const CWorkspaceFormula* wksFormula =  import_tree.LoadConfigFormula(
+		GetWorkspace< CWorkspaceDataset >( import_tree ),
+		GetWorkspace< CWorkspaceOperation >( import_tree ),
+		GetWorkspace< CWorkspaceDisplay >( import_tree ), 
+		error_msg 
+		);
+
+	if ( !wksFormula )
+	{
+		assert__( !error_msg.empty() );
+		return false;
+	}
+
+	wksFormula->GetFormulaNames( v, predefined, user );
+
+	import_tree.Clear();
+
+	return true;
+}
+
+
+
+
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -64,142 +179,6 @@ void CBratMainWindow::ZFXYPlot()
 	*/
 }
 
-
-void CBratMainWindow::CreateTree( CWorkspace* root, CTreeWorkspace& tree )
-{
-	tree.DeleteTree();
-
-	// Set tree root
-	tree.SetRoot( root->GetName(), root, true );
-
-	//WARNING : the sequence of workspaces object creation is significant, because of the interdependence of them
-
-	std::string 
-
-	//FIRSTLY - Create "Datasets" branch
-	path = root->GetPath() + "/" + CWorkspaceDataset::NAME;
-	CWorkspaceDataset* wksDataSet = new CWorkspaceDataset( CWorkspaceDataset::NAME, path );
-	tree.AddChild( wksDataSet->GetName(), wksDataSet );
-
-	//SECOND Create "Formulas" branch
-	path = root->GetPath() + "/" + CWorkspaceFormula::NAME;
-	std::string errorMsg;
-	CWorkspaceFormula* wksFormula = new CWorkspaceFormula( errorMsg, CWorkspaceFormula::NAME, path );
-	if ( !errorMsg.empty() )
-		SimpleWarnBox( errorMsg );
-	tree.AddChild( wksFormula->GetName(), wksFormula );
-
-	//THIRDLY - Create "Operations" branch
-	path = root->GetPath() + "/" + CWorkspaceOperation::NAME;
-	CWorkspaceOperation* wksOperation = new CWorkspaceOperation( CWorkspaceOperation::NAME, path );
-	tree.AddChild( wksOperation->GetName(), wksOperation );
-
-	//FOURTHLY -  Create "Displays" branch
-	path = root->GetPath() + "/" + CWorkspaceDisplay::NAME;
-	CWorkspaceDisplay* wksDisplay = new CWorkspaceDisplay( CWorkspaceDisplay::NAME, path );
-	tree.AddChild( wksDisplay->GetName(), wksDisplay );
-}
-
-template< class WKSPC >
-WKSPC* CBratMainWindow::GetCurrentWorkspace()
-{
-	if ( mCurrentTree == nullptr )
-		mCurrentTree = &mTree;
-
-	CWorkspace* wks = GetCurrentRootWorkspace();
-	std::string workspaceKey = !wks ? "" : ( wks->GetKey() + CWorkspace::m_keyDelimiter + WKSPC::NAME );
-
-	return dynamic_cast< WKSPC* >( mCurrentTree->FindObject( workspaceKey ) );
-}
-
-CWorkspace* CBratMainWindow::GetCurrentRootWorkspace()
-{
-	if ( mCurrentTree == nullptr )
-		mCurrentTree = &mTree;
-
-	return mCurrentTree->GetRootData();
-}
-
-void CBratMainWindow::EnableCtrlWorkspace()
-{
-	//m_guiPanel->GetDatasetPanel()->EnableCtrl();
-	//m_guiPanel->GetOperationPanel()->EnableCtrl();
-	//m_guiPanel->GetDisplayPanel()->EnableCtrl();
-}
-void CBratMainWindow::LoadWorkspace()
-{
-	//m_guiPanel->GetDatasetPanel()->LoadDataset();
-	//m_guiPanel->GetOperationPanel()->LoadOperation();
-	//m_guiPanel->GetDisplayPanel()->LoadDisplay();
-}
-void CBratMainWindow::ResetWorkspace()
-{
-	//m_guiPanel->GetDatasetPanel()->Reset();
-	//m_guiPanel->GetOperationPanel()->Reset();
-	//m_guiPanel->GetDisplayPanel()->Reset();
-
-	//m_guiPanel->GetDatasetPanel()->ClearAll();
-	//m_guiPanel->GetOperationPanel()->ClearAll();
-	//m_guiPanel->GetDisplayPanel()->ClearAll();
-}
-void CBratMainWindow::AddWorkspaceToHistory( const std::string& name )
-{
-    UNUSED( name );
-
-    //m_menuBar->Enable( ID_MENU_FILE_RECENT, true );
-	//m_wksHistory.AddFileToHistory( name );
-}
-
-void CBratMainWindow::SetTitle( CWorkspace *wks )	//= nullptr 
-{
-	if ( !wks )
-		wks = GetCurrentRootWorkspace();
-
-	setWindowTitle( makeWindowTitle( t2q( wks ? wks->GetName() : "" ) ) );
-}
-
-void CBratMainWindow::DoEmptyWorkspace()
-{
-	mTree.DeleteTree();
-	ResetWorkspace();
-	EnableCtrlWorkspace();
-	SetTitle();
-}
-
-bool CBratMainWindow::OpenWorkspace( const QString &qpath )
-{
-	auto path = q2a( qpath );
-	CWorkspace* wks = new CWorkspace( GetFilenameFromPath( path ), path );
-
-	CreateTree( wks );
-	CWorkspace *failed_wks = nullptr;
-	std::string errorMsg;
-	if ( !mTree.LoadConfig( failed_wks, 
-		GetCurrentWorkspace<CWorkspaceDataset>(), 
-		GetCurrentWorkspace<CWorkspaceOperation>(), 
-		GetCurrentWorkspace<CWorkspaceDisplay>(), errorMsg ) )
-	{
-		SimpleWarnBox( errorMsg + "\nUnable to load workspace '" + ( failed_wks ? failed_wks->GetName() : "" ) + "'." );
-		DoEmptyWorkspace();
-		return false;
-	}
-
-	ResetWorkspace();
-
-	LoadWorkspace();
-
-	EnableCtrlWorkspace();
-
-	if ( wks )
-		AddWorkspaceToHistory( wks->GetPath() );
-
-	SetTitle( wks );
-    //CTextWidget *editor = CTextWidget::OpenWorkspace( fileName, this );
-    //if ( editor )
-    //    addEditor( editor );
-
-	return true;
-}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //

@@ -8,8 +8,14 @@
 #include "ApplicationSettings.h"
 
 
+////////////////////////////////////////////////////////////////////////////////////////////
+//
+//									CFileSettings
+//
+////////////////////////////////////////////////////////////////////////////////////////////
 
-bool CApplicationSettings::CheckVersion()
+
+bool CFileSettings::CheckVersion()
 {	
 	// lambdas
 
@@ -72,15 +78,6 @@ bool CApplicationSettings::CheckVersion()
 			VALUE_DISPLAY_eTypeZFLatLon,	"\"" + VALUE_DISPLAY_eTypeZFLatLon + "\"" );
 	};
 
-    auto write_version_signature = [this]() -> bool
-    {
-        return WriteValues( GROUP_SETTINGS_VERSION,
-        {
-            { KEY_SETTINGS_VERSION, VersionValue() }
-        }
-        );
-    };
-
 
 	// -- function body --
 
@@ -91,28 +88,22 @@ bool CApplicationSettings::CheckVersion()
 		else
 			mVersion = ReadValue( section, KEY_SETTINGS_VERSION );
 	}
-
 	if ( mVersion == VersionValue() )							//"our" format, no format check/update necessary
 		return true;
 
-
 	std::string new_path = q2a( mSettings.fileName() );			//the existing path, to save new contents
-
 	if ( !IsFile( new_path ) )
-        return write_version_signature();
-
+        return true;
 
 	std::string s;
 	if ( !Read2String( s, new_path ) )
 		return false;
 
 	std::string new_s = clean_keys( clean_groups( s ) );
-
 	if ( s == new_s )
 		return true;
 
 	std::string old_path = CreateUniqueFileName( new_path );		//new path, to save old contents
-
 	if ( old_path.empty() || !DuplicateFile( new_path, old_path ) )	//save "old" file
 		return false;
 
@@ -126,10 +117,13 @@ bool CApplicationSettings::CheckVersion()
 
 
 
-void CApplicationSettings::Sync()
-{
-	mSettings.sync();
-}
+
+
+////////////////////////////////////////////////////////////////////////////////////////////
+//
+//									CApplicationSettings
+//
+////////////////////////////////////////////////////////////////////////////////////////////
 
 
 bool CApplicationSettings::SaveConfigSelectionCriteria()
@@ -236,18 +230,26 @@ bool CApplicationSettings::LoadConfigSelectionCriteria()
 	return mSettings.status() == QSettings::NoError;
 }
 
-bool CApplicationSettings::SaveConfig( const CWorkspace *wks )
-{
-	m_lastWksPath = wks != nullptr ? wks->GetPath() : "";
 
+
+bool CApplicationSettings::SaveConfig()
+{
 	return
-	WriteValues( GROUP_COMMON, 
-	{ 
-		{ ENTRY_USER_MANUAL, m_userManual },
-		{ ENTRY_USER_MANUAL_VIEWER, m_userManualViewer },
-		{ ENTRY_LAST_DATA_PATH, m_lastDataPath },
-		{ ENTRY_LAST_PAGE_REACHED, m_lastPageReached },
-	} 
+	WriteVersionSignature() &&
+	WriteSection( GROUP_COMMON, 
+	 
+		k_v( ENTRY_USER_MANUAL,				m_userManual ),
+		k_v( ENTRY_USER_MANUAL_VIEWER,		m_userManualViewer ),
+		k_v( ENTRY_LAST_DATA_PATH,			m_lastDataPath ),
+		k_v( ENTRY_LAST_PAGE_REACHED,		m_lastPageReached ),
+		k_v( ENTRY_ADVANCED_OPERATIONS,		mAdvancedOperations ),
+
+		k_v( ENTRY_LOAD_WKSPC_AT_STARTUP,	mLoadLastWorkspaceAtStartUp ),
+		k_v( ENTRY_APP_STYLE,				mAppStyle ),
+		k_v( ENTRY_APPLICATION_STYLESHEETS, mCustomAppStyleSheet ),
+		k_v( ENTRY_USE_DEFAULT_STYLE,		mUseDefaultStyle ),
+		k_v( ENTRY_CUSTOM_STYLESHEET,		mCustomAppStyleSheet ),
+		k_v( ENTRY_NO_STYLESHEET,			mNoStyleSheet )
 	)
 	&&
 	WriteValues( GROUP_WKS, 
@@ -265,18 +267,26 @@ bool CApplicationSettings::SaveConfig( const CWorkspace *wks )
 	SaveConfigSelectionCriteria();
 }
 
+
 bool CApplicationSettings::LoadConfig()
 {
 	return
 	( mSettings.status() == QSettings::NoError )	//just in case check; LoadConfig is typically called only once and before any other settings use
 	&&
-	ReadValues( GROUP_COMMON, 
-	{ 
-		{ ENTRY_USER_MANUAL, m_userManual },
-		{ ENTRY_USER_MANUAL_VIEWER, m_userManualViewer },
-		{ ENTRY_LAST_DATA_PATH, m_lastDataPath },
-		{ ENTRY_LAST_PAGE_REACHED, m_lastPageReached },
-	} 
+	ReadSection( GROUP_COMMON, 
+
+		k_v( ENTRY_USER_MANUAL,				&m_userManual ),
+		k_v( ENTRY_USER_MANUAL_VIEWER,		&m_userManualViewer ),
+		k_v( ENTRY_LAST_DATA_PATH,			&m_lastDataPath ),
+		k_v( ENTRY_LAST_PAGE_REACHED,		&m_lastPageReached ),
+		k_v( ENTRY_ADVANCED_OPERATIONS,		&mAdvancedOperations ),
+
+		k_v( ENTRY_LOAD_WKSPC_AT_STARTUP,	&mLoadLastWorkspaceAtStartUp ),
+		k_v( ENTRY_APP_STYLE,				&mAppStyle ),
+		k_v( ENTRY_APPLICATION_STYLESHEETS, &mCustomAppStyleSheet ),
+		k_v( ENTRY_USE_DEFAULT_STYLE,		&mUseDefaultStyle ),
+		k_v( ENTRY_CUSTOM_STYLESHEET,		&mCustomAppStyleSheet ),
+		k_v( ENTRY_NO_STYLESHEET,			&mNoStyleSheet )
 	)
 	&&
 	ReadValues( GROUP_WKS, 
@@ -293,6 +303,140 @@ bool CApplicationSettings::LoadConfig()
 	&&
 	LoadConfigSelectionCriteria();
 }
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////
+//								Application Styles
+//////////////////////////////////////////////////////////////////////////////////////////
+
+
+//static
+std::string CApplicationSettings::getNameOfStyle( const QStyle *s )
+{
+    return q2t<std::string>( s->objectName().toLower() );
+}
+
+//static
+std::string CApplicationSettings::getNameOfStyle( QStyle *s, bool del )
+{
+    std::string result = getNameOfStyle( s );
+    if ( del )
+        delete s;
+    return result;
+}
+
+
+
+
+static const std::vector< std::string >& buildStyleNamesList()
+{
+	static std::vector< std::string > styles;
+	if ( styles.empty() )
+	{
+		QStringList l = QStyleFactory::keys();
+		for ( int i = 0; i < l.size(); ++i )
+		{
+			const std::string key = q2t<std::string>( QString( l.at( i ) ).toLower() );
+			styles.push_back( key );
+			if ( 0 )
+			{
+                assert__( CApplicationSettings::getNameOfStyle( QStyleFactory::create( key.c_str() ), true ) == key );
+			}
+		}
+	}
+	return styles;
+}
+
+//static 
+const std::vector< std::string >& CApplicationSettings::getStyles()
+{
+	static std::vector< std::string > styles = buildStyleNamesList();
+	return styles;
+}
+
+
+//static 
+size_t CApplicationSettings::getStyleIndex( const QString &qname )
+{
+	const std::vector< std::string > &v = getStyles();
+	const size_t size = v.size();
+	const std::string name = q2t<std::string>( qname );
+	for ( size_t i = 0; i < size; ++i )
+		if ( name == v[i] )
+			return i;
+
+	return (size_t)-1;
+}
+
+
+//static 
+const std::vector< std::string >& CApplicationSettings::getStyleSheets( bool resources )
+{
+	static const std::vector< std::string > style_sheets =
+	{
+		"DarkStyle",
+		"DarkOrangeStyle",
+		"Dark-2015",
+	};
+
+	static const std::vector< std::string > res =
+	{
+		":/StyleSheets/StyleSheets/QTDark.stylesheet",						//with recommended style QCleanlooksStyle
+		":/StyleSheets/StyleSheets/DarkOrange/darkorange.stylesheet",		//with recommended style QPlastiqueStyle
+		":/StyleSheets/StyleSheets/Dark-2015/Dark-2015.stylesheet",		//with recommended style QPlastiqueStyle ?
+	};
+
+	assert__( EApplicationStylesSheets_size == style_sheets.size() );
+	assert__( EApplicationStylesSheets_size == res.size() );
+
+	return resources ? res : style_sheets;
+}
+
+#include "new-gui/brat/BratApplication.h"
+
+bool CApplicationSettings::setApplicationStyle( CBratApplication &app, QString default_style )
+{
+	//validate options
+	 
+	if ( getStyleIndex( mAppStyle ) == (size_t)-1 )
+		mAppStyle = default_style;
+
+	//if ( mCustomAppStyleSheet < 0 || mCustomAppStyleSheet >= getStyleSheets( true ).size() )
+	//	mCustomAppStyleSheet = smDefaultCustomAppStyleSheet;
+
+	//use options
+
+	const QString &name = mUseDefaultStyle ? default_style : mAppStyle;					assert__( !name.isEmpty() );
+	QStyle *style = QStyleFactory::create( name );										assert__( !style->objectName().toLower().compare( name ) );
+	CBratApplication::setStyle( style );												//assert__( !getCurrentStyleName().compare( name ) );
+	mAppStyle = name;					//update options style field with actually used style
+
+	//if ( mNoStyleSheet )
+	//	app.setStyleSheet( nullptr );	//this is necessary because without this the "old" sheet continues to be used and the style assignment above is not enough
+	//else
+	//{
+ //       QString resource = t2q( getStyleSheets( true )[mCustomAppStyleSheet] );
+ //       QFile styleFile( resource );
+ //       if ( !styleFile.open( QFile::ReadOnly ) )
+ //       {
+ //           if ( &options == &getAppOptions() )
+ //           {
+ //               setStyleSheet( nullptr );
+ //               mNoStyleSheet = true;
+ //           }
+ //           else
+ //               mCustomAppStyleSheet = getAppOptions().m_CustomAppStyleSheet;
+ //           return false;
+ //       }
+ //       QString sheet( styleFile.readAll() );
+ //       app.setStyleSheet( sheet );		//apparently this changes the style name for an empty string
+	//}
+	return true;
+}
+
 
 
 

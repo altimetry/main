@@ -38,31 +38,145 @@ class CWorkspaceDisplay;
  \version 1.0
 */
 
-class CTreeWorkspace : public CObjectTree
+class CTreeWorkspace : private CObjectTree
 {
-	typedef CObjectTree base_t;
+	// types 
 
-protected:
-	CBitSet32 m_importBitSet;
-
-	bool m_ctrlDatasetFiles = true;
+	using base_t = CObjectTree;
 
 public:
-	/// Empty CTreeWorkspace ctor
+
+	//using const_iterator = std::vector< CObjectTreeNode* >::const_iterator;
+	using const_iterator = std::map< std::string, CObjectTreeNode* >::const_iterator;
+
+	//struct const_iterator : std::map< std::string, CObjectTreeNode* >::const_iterator
+	//{
+	//	typedef std::map< std::string, CObjectTreeNode* >::const_iterator base_t;
+	//public:
+	//	const_iterator( const const_iterator &o ) :
+	//		base_t( o )
+	//	{}
+	//	const_iterator( const base_t &o ) :
+	//		base_t( o )
+	//	{}
+
+	//	const CWorkspace* operator * ( ) const;
+	//};
+
+
+	enum EValidationTask
+	{
+		eNew,
+		eOpen,
+		eImport,
+		eRename,
+		eDelete,
+
+		EValidationTasks_size
+	};
+
+	enum EValidationError
+	{
+		eNoError,
+		eError_EmptyName,
+		eError_EmptyPathName,
+		eError_NotExistingPath,
+		eError_InvalidConfig,
+		eError_WorkspaceAlreadyExists,
+		eError_SelfImporting,
+
+		EValidationErrors_size
+	};
+
+	// static members
+
+	//v4: new, based on WorkspaceDlg.cpp
+
+	//	- name is only checked for task eNew; it can be passed empty in all other cases
+	//	- path must never be empty, but must NOT contain a workspace if task is eNew
+	//	- in all other cases, path must physically exist and contain valid workspace configuration files
+	//	- if it returns false and "pe" is not null, *pe contains an EValidationError != eNoError
+	//	- dest_wks is the destination of an import task and is only used when task==eImport; it must not 
+	//		be null in that case
+	//
+	static bool Validate( EValidationTask task, const std::string &path, EValidationError *pe = nullptr, 
+		const std::string &name = "", const CWorkspace *dest_wks = nullptr );
+
+
+	// instance data
+
+protected:
+
+	CBitSet32 m_importBitSet;
+	bool m_ctrlDatasetFiles = true;
+
+
+	// construction / destruction
+
+public:
 	CTreeWorkspace()
 	{}
 
-	/// Destructor
 	virtual ~CTreeWorkspace()
 	{}
 
+	//v4: new, based on BratGui.cpp
+
+	CWorkspace* CreateReset( const std::string& root_name, const std::string& path, std::string &errorMsg )
+	{
+		return Reset( path, errorMsg, root_name );
+	}
+
+	CWorkspace* LoadReset( const std::string& root_path, std::string &errorMsg )
+	{
+		return Reset( root_path, errorMsg, "" );
+	}
+
+	//v4: given private inheritance (to prevent any uses of CObjectTree implementation outside this class) provide these accessors
+
+	CWorkspace* FindWorkspace( const std::string key );
+
+	void Clear() { DeleteTree(); }
+
+	const_iterator begin() const
+	{
+		//return GetRoot()->begin();
+		return m_nodemap.begin();
+	}
+
+	const_iterator end() const
+	{
+		//return GetRoot()->end();
+		return m_nodemap.end();
+	}
+
+protected:
+	CWorkspace* Reset( const std::string& path, std::string &errorMsg, const std::string& root_name );
+
+public:
+	// get / set / add
+
+	CWorkspace* GetRootData();
+	
+	const CWorkspace* GetRootData() const { return const_cast<CTreeWorkspace*>(this)->GetRootData(); }
+
+	CBitSet32* GetImportBitSet() { return &m_importBitSet; };
+
+	bool GetCtrlDatasetFiles() { return m_ctrlDatasetFiles; };
+	void SetCtrlDatasetFiles( bool value ) { m_ctrlDatasetFiles = value; };
+
+	CWorkspace * GetCurrentData( bool withExcept = true );
+	CWorkspace * GetParentData( bool withExcept  = true );
+
+	CWorkspaceFormula* GetWorkspaceFormula();
+	static CWorkspaceFormula * GetWorkspaceFormula( CWorkspace *w, bool withExcept  = true );
+
 	virtual void SetRoot( const std::string& nm, CBratObject* x, bool goCurrent = false ) override;
 
-	virtual CObjectTreeIterator AddChild( CObjectTreeNode* parent, const std::string& nm, CWorkspace* x, bool goCurrent = false );
-
-	virtual CObjectTreeIterator AddChild( CObjectTreeIterator& parent, const std::string& nm, CWorkspace* x, bool goCurrent = false );
-
 	virtual CObjectTreeIterator AddChild( const std::string& nm, CWorkspace* x, bool goCurrent = false );
+
+
+	// save /load / import
 
 	bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush = true );
 	bool LoadConfig( CWorkspace *&wks, CWorkspaceDataset *wksds, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, std::string &errorMsg );
@@ -71,22 +185,9 @@ public:
 
 	bool Import( CTreeWorkspace* treeSrc, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso, std::string &keyToFind, std::string &errorMsg );
 
+
 	/// Dump function
     virtual void Dump( std::ostream& fOut = std::cerr ) override;
-
-	CWorkspaceFormula* GetWorkspaceFormula();
-	static CWorkspaceFormula * GetWorkspaceFormula( CWorkspace *w, bool withExcept  = true );
-
-	CWorkspace * GetCurrentData( bool withExcept = true );
-	CWorkspace * GetParentData( bool withExcept  = true );
-
-	CWorkspace* FindParent( CWorkspace* wks );
-
-	CWorkspace* GetRootData();
-	CBitSet32* GetImportBitSet() { return &m_importBitSet; };
-
-	bool GetCtrlDatasetFiles() { return m_ctrlDatasetFiles; };
-	void SetCtrlDatasetFiles( bool value ) { m_ctrlDatasetFiles = value; };
 };
 
 

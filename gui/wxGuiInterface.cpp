@@ -562,7 +562,7 @@ bool CConfiguration::SaveConfigOperation( const CWorkspaceOperation &op, std::st
 
 		bOk &= Write( ENTRY_OPNAME + n2s< std::string >( index ), operation->GetName().c_str() );
 
-		operation->SaveConfig( this );
+        operation->SaveConfig( this, &op );
 	}
 
 	return bOk;
@@ -619,7 +619,6 @@ bool CConfiguration::SaveConfigDisplay( const CWorkspaceDisplay &disp, std::stri
 	bool bOk = true;
 	int32_t index = 0;
 
-	std::string entry;
 	for ( CObMap::const_iterator it = disp.m_displays.begin(); it != disp.m_displays.end(); it++ )
 	{
 		index++;
@@ -931,7 +930,7 @@ bool CConfiguration::LoadConfig( COperation &op, std::string &errorMsg, CWorkspa
 	return true;
 }
 
-bool CConfiguration::SaveConfig( const COperation &op )
+bool CConfiguration::SaveConfig( const COperation &op, const CWorkspaceOperation *wkso )
 {
 	SetPath( "/" + op.m_name );
 
@@ -947,8 +946,8 @@ bool CConfiguration::SaveConfig( const COperation &op )
 
 	op.m_select->SaveConfigDesc( this, base_t::GetPath().ToStdString() );
 
-	bOk &= Write( ENTRY_OUTPUT, op.GetOutputPath().c_str() );
-	bOk &= Write( ENTRY_EXPORT_ASCII_OUTPUT, op.GetExportAsciiOutputPath().c_str() );
+    bOk &= Write( ENTRY_OUTPUT, op.GetOutputPathRelativeToWks( wkso ).c_str() );
+    bOk &= Write( ENTRY_EXPORT_ASCII_OUTPUT, op.GetExportAsciiOutputPathRelativeToWks( wkso ).c_str() );
 
 	// Warning after formulas Load config conig path has changed
 	op.m_formulas.SaveConfig( this, false, op.GetName() );
@@ -987,8 +986,7 @@ bool CConfiguration::LoadConfig( CMapDisplayData &data, std::string &errorMsg, C
 				displayDataName = valueString;
 			}
 
-			CDisplayData* value = dynamic_cast<CDisplayData*>( data.Exists( (const char *)displayDataName.c_str() ) );
-			if ( value != nullptr )
+			if ( dynamic_cast< CDisplayData* >( data.Exists( (const char *)displayDataName.c_str() ) ) != nullptr )
 			{
 				data.Erase( (const char *)displayDataName.c_str() );
 			}
@@ -1106,52 +1104,6 @@ bool CConfiguration::LoadConfig( CDisplay &d, std::string &errorMsg, CWorkspaceD
 	return true;
 }
 
-bool CConfiguration::SaveConfig( const CDisplay &d, CWorkspaceDisplay *wksd )
-{
-	bool bOk = true;
-
-	SetPath( "/" + d.m_name );
-
-	bOk &= Write( ENTRY_TYPE, CMapTypeDisp::GetInstance().IdToName( d.m_type ).c_str() );
-
-
-	bOk &= Write( ENTRY_TITLE, d.GetTitle().c_str() );
-	bOk &= Write( ENTRY_ANIMATION, d.GetWithAnimation() );
-	bOk &= Write( ENTRY_PROJECTION, d.GetProjection().c_str() );
-
-	if ( isDefaultValue( d.m_minXValue ) == false )
-	{
-		bOk &= Write( ENTRY_MINXVALUE, d.m_minXValue );
-	}
-	if ( isDefaultValue( d.m_maxXValue ) == false )
-	{
-		bOk &= Write( ENTRY_MAXXVALUE, d.m_maxXValue );
-	}
-
-	if ( isDefaultValue( d.m_minYValue ) == false )
-	{
-		bOk &= Write( ENTRY_MINYVALUE, d.m_minYValue );
-	}
-	if ( isDefaultValue( d.m_maxYValue ) == false )
-	{
-		bOk &= Write( ENTRY_MAXYVALUE, d.m_maxYValue );
-	}
-
-	std::string valueString = d.m_zoom.GetAsText( CDisplay::m_zoomDelimiter ).c_str();
-	bOk &= Write( ENTRY_ZOOM, valueString.c_str() );
-
-	// the entry ENTRY_OUTPUT  is not used any more
-	//bOk &= Write(ENTRY_OUTPUT, GetOutputName());
-
-
-	// Warning after formulas Load config conig path has changed
-	d.m_data.SaveConfig( this, wksd, d.GetName() );
-
-	return bOk;
-}
-
-
-
 
 
 
@@ -1170,7 +1122,7 @@ bool CConfiguration::SaveConfig( const CDisplay &d, CWorkspaceDisplay *wksd )
 
 void GetFiles( const CDataset &d, wxArrayString& array )
 {
-	CBratGuiApp::CStringListToWxArray( *d.GetProductList(), array );
+	CStringListToWxArray( *d.GetProductList(), array );
 }
 void GetFiles( const CDataset &d, wxListBox& array )
 {

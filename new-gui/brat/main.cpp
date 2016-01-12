@@ -11,34 +11,6 @@
 #include "BratApplication.h"
 #include "BratMainWindow.h"
 
-/*	
-	TODO: unit tests out of this
-
-	std::string dir = "L:\\project\\workspaces\\S3A - Copy";			//l:/P/Q/R/xyz
-	//std::string dir = "l:////P\\\\Q\\\\F//..\\R\\xyz/\\/\\\\//";		//l:/P/Q/R/xyz
-	std::string path = "/A/B";
-
-	//CleanPath( dir );
-	//qDebug() << CannonicalPath( dir ).c_str();
-	//qDebug() << CleanedPath( dir ).c_str();
-	NormalizePath( dir );
-	qDebug() << dir.c_str();
-
-	MakeDirectory( dir + path );
-
-	//NormalizePath( dir );
-	//qDebug() << dir.c_str();
-
-	//QDir d( directory.c_str() );
-	//QDir d;
-    //return d.rmpath( (dir + path).c_str() );
-	DeleteDirectory( dir );
-
-	//DeletePath( dir, path );
-
-	return 0;
-*/
-
 #include "Views/MapWidget.h"
 #include "Views/GlobeWidget.h"
 #include "Views/2DPlotWidget.h"
@@ -169,6 +141,7 @@ int main( int argc, char *argv[] )
 	//data->LoadConfig( m_config );
 
 	CBratMainWindow w( a.Settings() );
+	QObject::connect( &w, SIGNAL( SettingsUpdated() ), &a, SLOT( updateSettings() ) );		//UGGLY
 
 	//QMainWindow w;
     //QWidget *central = nullptr;

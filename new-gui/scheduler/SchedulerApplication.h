@@ -11,7 +11,7 @@ class QSchedulerApplication : public QApplication
 
     // types
 
-    typedef QApplication base_t;
+    using base_t = QApplication;
 
     // static data members
 

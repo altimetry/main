@@ -7,11 +7,17 @@
 #include "new-gui/brat/GUI/AbstractEditor.h"
 #include "new-gui/brat/GUI/DesktopManager.h"
 #include "ApplicationSettings.h"
+#include "Model.h"
 
 
 class CTabbedDock;
 class CTextWidget;
 class CRecentFilesProcessor;
+
+class CDatasetBrowserControls;
+class CDatasetFilterControls;
+class COperationsControls;
+
 
 class CWorkspace;
 
@@ -27,6 +33,17 @@ class CBratMainWindow : public QMainWindow, public non_copyable, private Ui::CBr
 	// Types & Friends
 
 	using base_t = QMainWindow;
+
+
+public:
+	enum ETabName
+	{
+		eDataset,
+		eFilter,
+		eOperations,
+
+		ETabNames_size
+	};
 
 
     // Statics
@@ -74,8 +91,7 @@ private:
 
     // Business logic
     //
-	CTreeWorkspace mTree;
-	CTreeWorkspace *mCurrentTree = nullptr;
+	CModel mModel;
 
 
     // Threading Lab
@@ -109,35 +125,50 @@ public:
 	/////////////////////////////
 
 
+
+	/////////////////////////////
+    //		GUI MANAGEMENT
+    //
+	
+	template< CBratMainWindow::ETabName INDEX >
+	struct ControlsPanelType
+	{
+		using panels_factory_t = std::tuple< CDatasetBrowserControls, CDatasetFilterControls, COperationsControls >;
+
+		using type = typename std::tuple_element< INDEX, panels_factory_t >::type;
+	};
+
+	template< ETabName INDEX >
+	using TabType = typename ControlsPanelType< INDEX >::type;
+
+
+
+
+	template< ETabName INDEX >
+	TabType< INDEX >* WorkingPanel();
+
+	CControlsPanel* MakeWorkingPanel( ETabName tab );
+
+    //
+    //			Access
+	/////////////////////////////
+
+
+
 	/////////////////////////////////////////////////////
 	// Business Logic
 	// ............................ Workspace Management
 
 private:
-	template< class WKSPC >
-	WKSPC* GetCurrentWorkspace();
+	void SetCurrentWorkspace( const CWorkspace *wks );
 
-public:
-	CWorkspace* GetCurrentRootWorkspace();
-	const CWorkspace* GetCurrentRootWorkspace() const
-	{
-		return const_cast< CBratMainWindow* >( this )->GetCurrentRootWorkspace();
-	}
-
-private:
 	void DoEmptyWorkspace();
-	void CreateTree( CWorkspace *root, CTreeWorkspace &tree );
-	void CreateTree( CWorkspace *root )
-	{
-		CreateTree( root, mTree );
-	}
 
 	// GUI Management
-	void AddWorkspaceToHistory( const std::string& name );
-	void SetTitle( CWorkspace *wks = nullptr );
 	void EnableCtrlWorkspace();
 	void LoadWorkspace();
 	void ResetWorkspace();
+    bool SaveWorkspace();
 
     // Business Logic
     //
@@ -153,27 +184,32 @@ private:
 	/////////////////////////////////////////////////////
 
 
+	void EmitWorkspaceChanged();
+	
+signals:
+
+	////////////////////////////////////
+	//			Signals
+	////////////////////////////////////
+
+	void WorkspaceChanged( CModel *model );
+	void WorkspaceChanged( CWorkspaceDataset *wksd );
+	void WorkspaceChanged( CWorkspaceOperation *wkso );
+	void WorkspaceChanged( CWorkspaceDisplay *wksd );
+
+	void SettingsUpdated();
+
 	////////////////////////////////////
 	// Not triggered by Menu / Tool-bars
 	////////////////////////////////////
 
 public slots:
 
-    bool OpenWorkspace( const QString &qpath );
+    bool OpenWorkspace( const std::string &path );
 
 protected:
-	void LoadCmdLineFiles();
-    void clipboardDataChanged();
 
-    // font / format
-    //
-    void cursorPositionChanged();
-
-	// Update Actions
-    //
-	void UpdateWindowMenu();
-
-
+	bool OkToContinue();
     void closeEvent(QCloseEvent *event);
 
     virtual bool ReadSettings( bool &has_gui_settings );
@@ -186,9 +222,23 @@ protected:
     //void addEditor(CTextEditor *editor);
 
 
-    //not slots: manually called
+protected slots:
+
+    void LoadCmdLineFiles();
+    void clipboardDataChanged();
+
+    // font / format
     //
-    void updateRecentFileActions();
+    void cursorPositionChanged();
+
+    // Update Actions
+    //
+    void UpdateWindowMenu();
+
+
+    // do far, not slots: manually called
+    //
+    //void updateRecentFileActions();
     //void connectAutoUpdateEditActions( CTextEditor* pe );
 
 private slots:
@@ -257,6 +307,9 @@ private slots:
     void on_action_About_triggered();
     void on_action_Test_triggered();
 
+    void on_action_Import_Workspace_triggered();
+    void on_action_Rename_Workspace_triggered();
+    void on_action_Delete_Workspace_triggered();
 };
 
 

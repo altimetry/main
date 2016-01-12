@@ -58,25 +58,47 @@ using namespace brathl;
 //#include <crtdbg.h>
 //#endif
 
-#ifdef WIN32
-const std::string BRATHL_ICON_FILENAME = "BratIcon.ico";
-//const wxString BRATCREATEYFX_EXE = "BratCreateYFX.exe";
-//const wxString BRATCREATEZFXY_EXE = "BratCreateZFXY.exe";
-//const wxString BRATDISPLAY_EXE = "BratDisplay.exe";
-//const wxString BRATEXPORTASCII_EXE = "BratExportAscii.exe";
-//const wxString BRATEXPORTGEOTIFF_EXE = "BratExportGeoTiff.exe";
-//const wxString BRATSHOWSTATS_EXE = "BratStats.exe";
-//const wxString BRATSCHEDULER_EXE = "BratScheduler.exe";
-#else
-const std::string BRATHL_ICON_FILENAME = "BratIcon.bmp";
-//const wxString BRATCREATEYFX_EXE = "BratCreateYFX";
-//const wxString BRATCREATEZFXY_EXE = "BratCreateZFXY";
-//const wxString BRATDISPLAY_EXE = "BratDisplay";
-//const wxString BRATEXPORTASCII_EXE = "BratExportAscii";
-//const wxString BRATEXPORTGEOTIFF_EXE = "BratExportGeoTiff";
-//const wxString BRATSHOWSTATS_EXE = "BratStats";
-//const wxString BRATSCHEDULER_EXE = "BratScheduler";
-#endif
+
+
+wxString FindFile( const wxString& fileName )
+{
+	wxString fileNameFound;
+
+	CDirTraverserExistFile traverserExistFile( fileName );
+
+	wxFileName path;
+	if ( wxGetApp().GetExecPathName().IsEmpty() )
+	{
+		wxString fileTmp = wxFileSelector( wxString::Format( "Where is the file %s ?", fileName.c_str() ),
+			wxGetCwd(),
+			fileName );
+		if ( fileTmp.IsEmpty() )
+		{
+			return "";
+		}
+		return fileTmp;
+	}
+
+	path.AssignDir( wxGetApp().GetExecPathName() );
+
+	wxArrayString dirs = path.GetDirs();
+
+	for ( int32_t i = dirs.GetCount() - 1; i > 0; i-- )
+		path.RemoveDir( i );
+
+	wxDir dir;
+
+	dir.Open( path.GetFullPath() );
+	dir.Traverse( traverserExistFile );
+
+	if ( traverserExistFile.m_found )
+	{
+		fileNameFound = traverserExistFile.m_fileName.GetFullPath();
+	}
+	return fileNameFound;
+}
+
+
 
 // WDR: class implementations
 
@@ -87,13 +109,6 @@ const std::string BRATHL_ICON_FILENAME = "BratIcon.bmp";
 
 IMPLEMENT_APP(CBratGuiApp)
 
-CBratGuiApp::CBratGuiApp()
-{
-  m_config = NULL;
-  m_currentTree = NULL;
-  //_CrtSetBreakAlloc(10);
-
-}
 //----------------------------------------
 CWorkspace* CBratGuiApp::GetCurrentWorkspace()
 {
@@ -110,7 +125,7 @@ CWorkspaceDataset* CBratGuiApp::GetCurrentWorkspaceDataset()
   {
     m_currentTree = &m_tree;
   }
-  return dynamic_cast<CWorkspaceDataset*>(m_currentTree->FindObject( GetWorkspaceKey( CWorkspaceDataset::NAME ) ) );
+  return dynamic_cast<CWorkspaceDataset*>(m_currentTree->FindWorkspace( GetWorkspaceKey( CWorkspaceDataset::NAME ) ) );
 }
 //----------------------------------------
 CWorkspaceOperation* CBratGuiApp::GetCurrentWorkspaceOperation()
@@ -119,7 +134,7 @@ CWorkspaceOperation* CBratGuiApp::GetCurrentWorkspaceOperation()
   {
     m_currentTree = &m_tree;
   }
-  return dynamic_cast<CWorkspaceOperation*>(m_currentTree->FindObject( GetWorkspaceKey( CWorkspaceOperation::NAME) ) );
+  return dynamic_cast<CWorkspaceOperation*>(m_currentTree->FindWorkspace( GetWorkspaceKey( CWorkspaceOperation::NAME) ) );
 }
 //----------------------------------------
 CWorkspaceFormula* CBratGuiApp::GetCurrentWorkspaceFormula()
@@ -128,7 +143,7 @@ CWorkspaceFormula* CBratGuiApp::GetCurrentWorkspaceFormula()
   {
     m_currentTree = &m_tree;
   }
-  return dynamic_cast<CWorkspaceFormula*>(m_currentTree->FindObject( GetWorkspaceKey( CWorkspaceFormula::NAME) ) );
+  return dynamic_cast<CWorkspaceFormula*>(m_currentTree->FindWorkspace( GetWorkspaceKey( CWorkspaceFormula::NAME) ) );
 }
 //----------------------------------------
 CWorkspaceDisplay* CBratGuiApp::GetCurrentWorkspaceDisplay()
@@ -137,7 +152,7 @@ CWorkspaceDisplay* CBratGuiApp::GetCurrentWorkspaceDisplay()
   {
     m_currentTree = &m_tree;
   }
-  return dynamic_cast<CWorkspaceDisplay*>(m_currentTree->FindObject( GetWorkspaceKey( CWorkspaceDisplay::NAME ) ) );
+  return dynamic_cast<CWorkspaceDisplay*>(m_currentTree->FindWorkspace( GetWorkspaceKey( CWorkspaceDisplay::NAME ) ) );
 }
 //----------------------------------------
 std::string CBratGuiApp::GetWorkspaceKey( const std::string& subKey )
@@ -294,58 +309,12 @@ int CBratGuiApp::OnExit()
 		mAppSettings = NULL;
 	}
 
-	m_tree.DeleteTree();
+	m_tree.Clear();
 
 	CProduct::CodaRelease();
 
 	return 0;
 }
-//----------------------------------------
-bool CBratGuiApp::RemoveFile(const wxString& name)
-{
-  bool bOk = true;
-
-  bOk = wxFileExists(name);
-  if (bOk == false)
-  {
-    return true;
-  }
-
-  try
-  {
-    bOk = wxRemoveFile(name);
-  }
-  catch (...)
-  {
-    //Nothing to do
-    bOk = false;
-  }
-  return bOk;
-}
-//----------------------------------------
-bool CBratGuiApp::RenameFile(const wxString& oldName, const wxString& newName)
-{
-  bool bOk = true;
-
-  bOk = wxFileExists(oldName);
-  if (bOk == false)
-  {
-    return true;
-  }
-
-  try
-  {
-    bOk = wxRenameFile(oldName, newName);
-  }
-  catch (...)
-  {
-    //Nothing to do
-    bOk = false;
-  }
-
-  return bOk;
-}
-
 //----------------------------------------
 int32_t CBratGuiApp::GotoPage(int32_t pos)
 {
@@ -390,11 +359,6 @@ wxString CBratGuiApp::GetCurrentPageText()
   return GetMainnotebook()->GetPageText(idx);
 }
 //----------------------------------------
-bool CBratGuiApp::IsCurrentLogPage()
-{
-  return (GetCurrentPageText().CmpNoCase(LOG_PAGE_NAME) == 0);
-}
-//----------------------------------------
 bool CBratGuiApp::CanDeleteOperation( const wxString& name, CStringArray* displayNames /*= NULL*/ )
 {
 	bool canDelete = true;
@@ -436,13 +400,6 @@ bool CBratGuiApp::CanDeleteDataset( const wxString& name, CStringArray* operatio
 		wxMessageBox( errorMsg, "Error", wxOK | wxCENTRE | wxICON_ERROR );
 
 	return canDelete;
-}
-//----------------------------------------
-void CBratGuiApp::DetermineCharSize(wxWindow* wnd, int32_t& width, int32_t& height)
-{
-  wxStaticText w(wnd, -1, "W", wxDefaultPosition, wxSize(-1,-1));
-  w.GetSize(&width, &height);
-//  w.Destroy();
 }
 //----------------------------------------
 wxString CBratGuiApp::BuildUserManualPath()
@@ -597,6 +554,7 @@ bool CBratGuiApp::SaveConfig( bool flush )
 	CWorkspace* wks = GetCurrentWorkspace();
 	if ( wks != NULL )
 		m_lastWksPath = wks->GetPath();
+    m_lastWksPath = wks != nullptr ? wks->GetPath() : "";
 
 	mAppSettings->m_userManual = m_userManual;
 	mAppSettings->m_userManualViewer = m_userManualViewer;
@@ -605,7 +563,7 @@ bool CBratGuiApp::SaveConfig( bool flush )
 	mAppSettings->m_lastWksPath = m_lastWksPath;
 	mAppSettings->m_lastColorTable = m_lastColorTable;
 
-	bool result = mAppSettings->SaveConfig( wks );
+    bool result = mAppSettings->SaveConfig();
 
 	if (flush)
 		mAppSettings->Sync();
@@ -770,7 +728,7 @@ bool CBratGuiApp::LoadConfig()
 {
 	assert__( m_config && !mAppSettings );
 
-	mAppSettings = new CApplicationSettings( m_config->GetLocalFile( wxGetApp().GetAppName() ).GetFullPath().ToStdString() );
+    mAppSettings = new CApplicationSettings( m_config->GetLocalFile( wxGetApp().GetAppName() ).GetFullPath().ToStdString() );
 
 #if defined(NEW_CONFIGURATION_STUFF)
 
@@ -957,241 +915,42 @@ bool CBratGuiApp::LoadConfigSelectionCriteria()
 //	CONFIGURATION - end
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //----------------------------------------
-void CBratGuiApp::CreateTree(CWorkspace* root)
-{
-  CreateTree(root, m_tree);
-}
-//----------------------------------------
-void CBratGuiApp::CreateTree( CWorkspace* root, CTreeWorkspace& tree )
-{
-	tree.DeleteTree();
-
-	// Set tree root
-	tree.SetRoot( root->GetName(), root, true );
-
-	//WARNING : the sequence of workspaces object creation is significant, because of the interdependence of them
-
-	std::string 
-
-	//FIRSTLY - Create "Datasets" branch
-	path = root->GetPath() + "/" + CWorkspaceDataset::NAME;
-	CWorkspaceDataset* wksDataSet = new CWorkspaceDataset( CWorkspaceDataset::NAME, path );
-	tree.AddChild( wksDataSet->GetName(), wksDataSet );
-
-	//SECOND Create "Formulas" branch
-	path = root->GetPath() + "/" + CWorkspaceFormula::NAME;
-	std::string errorMsg;
-	CWorkspaceFormula* wksFormula = new CWorkspaceFormula( errorMsg, CWorkspaceFormula::NAME, path );
-	if ( !errorMsg.empty() )
-		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
-
-	tree.AddChild( wksFormula->GetName(), wksFormula );
-
-	//THIRDLY - Create "Operations" branch
-	path = root->GetPath() + "/" + CWorkspaceOperation::NAME;
-	CWorkspaceOperation* wksOperation = new CWorkspaceOperation( CWorkspaceOperation::NAME, path );
-	tree.AddChild( wksOperation->GetName(), wksOperation );
-
-	//FOURTHLY -  Create "Displays" branch
-	path = root->GetPath() + "/" + CWorkspaceDisplay::NAME;
-	CWorkspaceDisplay* wksDisplay = new CWorkspaceDisplay( CWorkspaceDisplay::NAME, path );
-	tree.AddChild( wksDisplay->GetName(), wksDisplay );
-}
-
-//----------------------------------------
-wxBitmapType CBratGuiApp::GetIconType()
-{
-  //return wxBITMAP_TYPE_BMP;
-  //return wxBITMAP_TYPE_JPEG;
-  //return wxBITMAP_TYPE_GIF;
-#ifdef WIN32
-  return wxBITMAP_TYPE_ICO;
-#else
-  return wxBITMAP_TYPE_BMP;
-#endif
-}
-  //----------------------------------------
-wxString CBratGuiApp::GetIconFile()
-{
-  return CTools::FindDataFile((const char *)GetIconFileName().c_str()).c_str();
-}
-//----------------------------------------
-wxString CBratGuiApp::GetIconFileName()
-{
-  return BRATHL_ICON_FILENAME.c_str();
-}
-
-//----------------------------------------
-void CBratGuiApp::CStringArrayToWxArray(CStringArray& from, wxArrayString& to)
-{
-  CStringArray::iterator it;
-  for (it = from.begin() ; it != from.end() ; it++)
-  {
-    to.Add((*it).c_str());
-  }
-}
-//----------------------------------------
-void CBratGuiApp::CStringListToWxArray( const CStringList& from, wxArrayString& to )
-{
-	for ( CStringList::const_iterator it = from.begin(); it != from.end(); it++ )
-	{
-		to.Add( it->c_str() );
-	}
-}
-//----------------------------------------
-void CBratGuiApp::CProductListToWxArray(CProductList& from, wxArrayString& to)
-{
-  CProductList::iterator it;
-  for (it = from.begin() ; it != from.end() ; it++)
-  {
-    to.Add((*it).c_str());
-  }
-}
-//----------------------------------------
-wxString CBratGuiApp::FindFile(const wxString& fileName )
-{
-  wxString fileNameFound;
-
-  CDirTraverserExistFile traverserExistFile(fileName);
-
-  wxFileName path;
-  if (wxGetApp().GetExecPathName().IsEmpty())
-  {
-
-    wxString fileTmp = wxFileSelector(wxString::Format("Where is the file %s ?",  fileName.c_str()),
-                                      wxGetCwd(),
-                                      fileName);
-    if (fileTmp.IsEmpty())
-    {
-      return "";
-    }
-
-    return fileTmp;
-  }
-
-  path.AssignDir(wxGetApp().GetExecPathName());
-
-  wxArrayString dirs = path.GetDirs();
-
-  for (int32_t i = dirs.GetCount() - 1 ; i > 0 ; i--)
-  {
-    path.RemoveDir(i);
-  }
-
-  wxDir dir;
-
-  dir.Open(path.GetFullPath());
-  dir.Traverse(traverserExistFile);
-
-  if (traverserExistFile.m_found)
-  {
-    fileNameFound = traverserExistFile.m_fileName.GetFullPath();
-  }
-  return fileNameFound;
-}
-
-//----------------------------------------
-bool CBratGuiApp::IsNewViewEnable()
-{
-  bool enable = (wxGetApp().GetCurrentWorkspace() != NULL);
-  CWorkspaceOperation* wksOp = wxGetApp().GetCurrentWorkspaceOperation();
-
-  enable &= (wksOp != NULL);
-  if (enable)
-  {
-    enable &= wksOp->HasOperation();
-  }
-
-  return enable;
-}
-//----------------------------------------
-bool CBratGuiApp::IsDeleteViewEnable()
-{
-  return (wxGetApp().GetCurrentWorkspace() != NULL)
-                && (GetGuiPanel()->GetDisplayPanel()->HasDisplay());
-}
-//----------------------------------------
-bool CBratGuiApp::IsNewDatasetEnable()
-{
-  return (wxGetApp().GetCurrentWorkspace() != NULL);
-}
-//----------------------------------------
-bool CBratGuiApp::IsDeleteDatasetEnable()
-{
-  return (wxGetApp().GetCurrentWorkspace() != NULL)
-                && (GetGuiPanel()->GetDatasetPanel()->HasDataset());
-}
-//----------------------------------------
-bool CBratGuiApp::IsNewOperationEnable()
-{
-  bool enable = (wxGetApp().GetCurrentWorkspace() != NULL);
-  CWorkspaceDataset* wksDataset = wxGetApp().GetCurrentWorkspaceDataset();
-
-  enable &= (wksDataset != NULL);
-  if (enable)
-  {
-    enable &= wksDataset->HasDataset();
-  }
-
-  return enable;
-}
-//----------------------------------------
-bool CBratGuiApp::IsDeleteOperationEnable()
-{
-  return (wxGetApp().GetCurrentWorkspace() != NULL)
-                && (GetGuiPanel()->GetOperationPanel()->HasOperation());
-}
-
-//----------------------------------------
-void CBratGuiApp::GetRecordNames( wxArrayString& array, CProduct* product )
-{
-  CStringArray arrayTmp;
-
-  GetRecordNames( arrayTmp, product);
-
-  CBratGuiApp::CStringArrayToWxArray(arrayTmp, array);
-
-}
-//----------------------------------------
-void CBratGuiApp::GetRecordNames( CStringArray& array, CProduct* product )
-{
-  if (product == NULL)
-  {
-    return;
-  }
-
-  product->GetRecords(array);
-
-}
-
-//----------------------------------------
-void CBratGuiApp::GetRecordNames(wxComboBox& combo, CProduct* product)
-{
-  CStringArray array;
-
-  GetRecordNames( array, product );
-
-  CStringArray::iterator it;
-
-  for (it = array.begin() ; it != array.end() ; it++)
-  {
-    combo.Append( (*it).c_str() );
-  }
-}
-//----------------------------------------
-void CBratGuiApp::GetRecordNames(wxListBox& listBox, CProduct* product)
-{
-  CStringArray array;
-
-  GetRecordNames( array, product );
-
-  CStringArray::iterator it;
-
-  for (it = array.begin() ; it != array.end() ; it++)
-  {
-    listBox.Append( (*it).c_str() );
-  }
-}
+////----------------------------------------
+//void CBratGuiApp::CreateTree( CWorkspace* root, CTreeWorkspace& tree )
+//{
+//	tree.DeleteTree();
+//
+//	// Set tree root
+//	tree.SetRoot( root->GetName(), root, true );
+//
+//	//WARNING : the sequence of workspaces object creation is significant, because of the interdependence of them
+//
+//	std::string 
+//
+//	//FIRSTLY - Create "Datasets" branch
+//	path = root->GetPath() + "/" + CWorkspaceDataset::NAME;
+//	CWorkspaceDataset* wksDataSet = new CWorkspaceDataset( CWorkspaceDataset::NAME, path );
+//	tree.AddChild( wksDataSet->GetName(), wksDataSet );
+//
+//	//SECOND Create "Formulas" branch
+//	path = root->GetPath() + "/" + CWorkspaceFormula::NAME;
+//	std::string errorMsg;
+//	CWorkspaceFormula* wksFormula = new CWorkspaceFormula( errorMsg, CWorkspaceFormula::NAME, path );
+//	if ( !errorMsg.empty() )
+//		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
+//
+//	tree.AddChild( wksFormula->GetName(), wksFormula );
+//
+//	//THIRDLY - Create "Operations" branch
+//	path = root->GetPath() + "/" + CWorkspaceOperation::NAME;
+//	CWorkspaceOperation* wksOperation = new CWorkspaceOperation( CWorkspaceOperation::NAME, path );
+//	tree.AddChild( wksOperation->GetName(), wksOperation );
+//
+//	//FOURTHLY -  Create "Displays" branch
+//	path = root->GetPath() + "/" + CWorkspaceDisplay::NAME;
+//	CWorkspaceDisplay* wksDisplay = new CWorkspaceDisplay( CWorkspaceDisplay::NAME, path );
+//	tree.AddChild( wksDisplay->GetName(), wksDisplay );
+//}
 //----------------------------------------
 
 void CBratGuiApp::EvtFocus(wxWindow& window,  int32_t eventType, const wxFocusEventFunction& method,

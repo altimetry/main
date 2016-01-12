@@ -70,7 +70,7 @@ CSelectRecord::CSelectRecord( wxWindow *parent, CProduct* product, wxWindowID id
 
   if (product != NULL)
   {
-    wxGetApp().GetRecordNames(*GetRecordList(), product);
+    GetRecordNames(*GetRecordList(), product);
   }
 
 }

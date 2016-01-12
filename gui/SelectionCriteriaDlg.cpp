@@ -155,7 +155,7 @@ void CSelectionCriteriaDlg::FillProductList()
   CMapProduct::GetInstance().GetProductKeysWithCriteria(array);
 
   wxArrayString labels;
-  CBratGuiApp::CStringArrayToWxArray(array, labels);
+  CStringArrayToWxArray(array, labels);
 
   GetCritProductList()->Clear();
 

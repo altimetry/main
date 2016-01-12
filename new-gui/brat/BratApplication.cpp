@@ -2,6 +2,7 @@
 
 
 #include "new-gui/QtInterface.h"
+#include "new-gui/Common/+Utils.h"
 #include "new-gui/Common/+UtilsIO.h"
 #include "new-gui/Common/QtUtilsIO.h"
 #include "new-gui/brat/Workspaces/Operation.h"
@@ -39,6 +40,12 @@ CBratApplication::CBratApplication(int &argc, char **argv, bool GUIenabled, QStr
 	std::string appPath = ApplicationDirectories::instance().mExecutableDir;
 
 	qDebug() << ApplicationDirectories::instance().mExecutableFileName.c_str(); //// 
+
+	if ( !Settings().LoadConfig() )
+	{
+		CException e( "Error reading the configuration file", BRATHL_ERROR );
+		throw e;
+	}
 
 	if ( getenv( BRATHL_ENVVAR ) == nullptr )
 	{
@@ -84,13 +91,52 @@ CBratApplication::CBratApplication(int &argc, char **argv, bool GUIenabled, QStr
 	CProduct::CodaInit();
 	//CProduct::SetCodaReleaseWhenDestroy(false);
 
+
+    // (*) this can be statically set, but not statically queried before ctor call (issues Qt assertion)
+    //
+#if defined (Q_OS_UNIX)
+	mDefaultAppStyle = t2q( Settings().getNameOfStyle( new QCleanlooksStyle, true ) );	//(*)
+#else
+	mDefaultAppStyle = getCurrentStyleName();											//(*)
+#endif
+
+	Settings().setApplicationStyle( *this, mDefaultAppStyle );
+
 	//femm: remaining initialization in charge of the main window
 }
 
 
 //virtual 
 CBratApplication::~CBratApplication()
-{}
+{
+    CProduct::CodaRelease();
+
+	if ( !Settings().SaveConfig() )
+		std::cout << "Unable to save BRAT the application settings." << std::endl;	// TODO log this
+
+	Settings().Sync();
+}
+
+
+
+void CBratApplication::updateSettings()
+{
+	bool result = true;
+	//const TApplicationOptions &current = getAppOptions();		assert__( current.m_DefaultAppStyle == options.m_DefaultAppStyle );		//this field is set by application ctor and so far there is no reason besides error to request it's change
+	//bool needStyleUpdate = 
+	//	current.m_AppStyle != options.m_AppStyle ||
+	//	current.m_UseDefaultStyle != options.m_UseDefaultStyle ||
+
+	//	current.m_CustomAppStyleSheet != options.m_CustomAppStyleSheet ||
+	//	current.m_NoStyleSheet != options.m_NoStyleSheet;
+
+	if ( /*needStyleUpdate && */!Settings().setApplicationStyle( *this, mDefaultAppStyle /*options */) )	//if necessary (e.g. error) setApplicationStyle corrects options to reflect actually changed settings; so far (08/2014) this only happens if style sheet resource not found
+		result = false;
+
+	// getPrivateAppOptions() = options;
+
+	//return result;
+}
 
 
 

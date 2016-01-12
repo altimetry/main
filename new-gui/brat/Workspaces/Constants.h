@@ -76,5 +76,10 @@ const std::string ENTRY_ZOOM = "Zoom";
 
 
 
+// v4
+
+const std::string PROJECTION_3D_VALUE = "3D";
+
+
 
 #endif      //WORKSPACES_CONSTANTS_H

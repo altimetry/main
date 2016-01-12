@@ -52,12 +52,27 @@ public:
 		return mTabWidget->widget( tab );
 	}
 
+    int SelectedTab() const
+	{
+		return mTabWidget->currentIndex();
+	}
+
+	void SelectTab( int index )
+	{
+		return mTabWidget->setCurrentIndex( index );
+	}
+
+
+
 
 	// operations
 
 	// Sets QWidget parameter ("tab_widget") parent
 	//
 	QWidget* AddTab( QWidget *tab_widget, const QString &title );
+
+	
+	QWidget* TabWidget( int index );
 
 
 	void SetTabToolTip( int index, const QString & tip )

@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -19,6 +17,7 @@
 */
 
 #include <string>
+#include <cassert>
 
 #include "new-gui/Common/tools/Exception.h"
 #include "ObjectTree.h"
@@ -28,10 +27,6 @@ using namespace brathl;
 
 namespace brathl
 {
-
-
-
-
 
 //-------------------------------------------------------------
 //------------------- CObjectTreeNode class --------------------
@@ -69,7 +64,7 @@ CObjectTreeNode::~CObjectTreeNode()
 //----------------------------------------
 void CObjectTreeNode::Delete(const std::string& key)
 {
-  vectorTreeNode::iterator pchild;
+  std::vector<CObjectTreeNode*>::iterator pchild;
   mapTreeNode::iterator itrmap;
   for ( pchild = m_children.begin(); pchild != m_children.end(); pchild++)
   {
@@ -91,7 +86,7 @@ void CObjectTreeNode::Delete(const std::string& key)
 //----------------------------------------
 void CObjectTreeNode::DeleteAllChildren()
 {
-	vectorTreeNode::iterator pchild;
+	std::vector<CObjectTreeNode*>::iterator pchild;
 	while ( m_children.size() )
 	{
 		pchild = m_children.begin();
@@ -108,7 +103,7 @@ void CObjectTreeNode::DeleteAllChildren()
 void CObjectTreeNode::DeleteAllChildren()
 {
 
-  vectorTreeNode::iterator pchild;
+  std::vector<CObjectTreeNode*>::iterator pchild;
   mapTreeNode::iterator itrmap;
   for ( pchild = m_children.begin(); pchild != m_children.end(); )
   {
@@ -174,24 +169,27 @@ void CObjectTree::DeleteAllChildren(CObjectTreeIterator& itr)
   itr.m_Node->second->DeleteAllChildren(); 
 }
 //----------------------------------------
-void CObjectTree::DeleteTree() 
-{ 
+void CObjectTree::DeleteTree()
+{
+	assert( m_nodemap.empty() || m_nodemap.begin()->second == m_pTreeroot );
 
-  if (m_pTreeroot != NULL) 
-  {
-    m_pTreeroot->DeleteAllChildren();
-    delete m_pTreeroot;
-  }
+	if ( m_pTreeroot != NULL )
+	{
+		m_pTreeroot->DeleteAllChildren();
+		delete m_pTreeroot;
+	}
 
-  m_pTreeroot = NULL;
-  m_WalkCurrent = NULL;
-  m_WalkParent = NULL;
-  m_WalkPivot = NULL;
+	m_pTreeroot = NULL;
+	m_WalkCurrent = NULL;
+	m_WalkParent = NULL;
+	m_WalkPivot = NULL;
 
-  //Just clear the map, do not delete CObjectTreeNode objects stored in the map 
-  // because thy are not a copy, but just a reference pointer.
-  m_nodemap.clear();
+	//Just clear the map, do not delete CObjectTreeNode objects stored in the map 
+	// because thy are not a copy, but just a reference pointer.
 
+	assert( m_nodemap.size() <= 1 );	//given the implementation of CObjectTreeNode::DeleteAllChildren...
+
+	m_nodemap.clear();
 }
 
 
@@ -257,19 +255,16 @@ CBratObject* CObjectTree::FindParentObject(const std::string& key)
 
 //----------------------------------------
 
-CObjectTreeNode* CObjectTree::FindNode(const std::string& key) 
-{ 
-  CObjectTree::iterator it;
-  
-  it = find(key);
+CObjectTreeNode* CObjectTree::FindNode( const std::string& key )
+{
+	CObjectTree::iterator it = find( key );
 
-  if (it == this->end())
-  {
-    return NULL;
-  }
+	if ( it == this->end() )
+	{
+		return NULL;
+	}
 
-  return it.m_Node->second;
-
+	return it.m_Node->second;
 }
 
 //----------------------------------------
@@ -371,53 +366,53 @@ CObjectTreeIterator CObjectTree::AddChild (const std::string& nm, CBratObject* x
 
 
 //----------------------------------------
-void CObjectTree::SetPostOrderSubTreePivot(CObjectTreeIterator& it) 
-{
-  m_WalkPivot = it.m_Node->second;
-  m_WalkCurrent = m_WalkPivot;
-  m_WalkCurrent->m_current = m_WalkCurrent->GetChildren().begin();
-
-  while (m_WalkCurrent->GetChildren().size() != 0) 
-  {
-    m_WalkCurrent->m_current = m_WalkCurrent->GetChildren().begin();
-    m_WalkCurrent = *(m_WalkCurrent->GetChildren().begin());
-  }
-
-  if (m_WalkCurrent != m_WalkPivot) 
-  {
-    m_WalkParent = m_WalkCurrent->GetParent();
-  }
-  else 
-  {
-    m_WalkParent = m_WalkCurrent;	//for the case no child in pivot
-  }
-
-}
-
+//void CObjectTree::SetPostOrderSubTreePivot(CObjectTreeIterator& it) 
+//{
+//  m_WalkPivot = it.m_Node->second;
+//  m_WalkCurrent = m_WalkPivot;
+//  m_WalkCurrent->m_current = m_WalkCurrent->GetChildren().begin();
+//
+//  while (m_WalkCurrent->GetChildren().size() != 0) 
+//  {
+//    m_WalkCurrent->m_current = m_WalkCurrent->GetChildren().begin();
+//    m_WalkCurrent = *(m_WalkCurrent->GetChildren().begin());
+//  }
+//
+//  if (m_WalkCurrent != m_WalkPivot) 
+//  {
+//    m_WalkParent = m_WalkCurrent->GetParent();
+//  }
+//  else 
+//  {
+//    m_WalkParent = m_WalkCurrent;	//for the case no child in pivot
+//  }
+//
+//}
+//
 
 //----------------------------------------
-void CObjectTree::SetPostOrderRootPivot() 
-{
-  m_WalkPivot = m_pTreeroot;
-  m_WalkCurrent = m_WalkPivot;
-  m_WalkCurrent->m_current = m_WalkCurrent->GetChildren().begin();
-
-  while (m_WalkCurrent->GetChildren().size() != 0) 
-  {
-    m_WalkCurrent->m_current = m_WalkCurrent->GetChildren().begin();
-    m_WalkCurrent = *(m_WalkCurrent->GetChildren().begin());
-  }
-
-  if (m_WalkCurrent != m_WalkPivot) 
-  {
-    m_WalkParent = m_WalkCurrent->GetParent();
-  }
-  else 
-  {
-    m_WalkParent = m_WalkCurrent;	//for the case no child in pivot
-  }
-
-}
+//void CObjectTree::SetPostOrderRootPivot() 
+//{
+//  m_WalkPivot = m_pTreeroot;
+//  m_WalkCurrent = m_WalkPivot;
+//  m_WalkCurrent->m_current = m_WalkCurrent->GetChildren().begin();
+//
+//  while (m_WalkCurrent->GetChildren().size() != 0) 
+//  {
+//    m_WalkCurrent->m_current = m_WalkCurrent->GetChildren().begin();
+//    m_WalkCurrent = *(m_WalkCurrent->GetChildren().begin());
+//  }
+//
+//  if (m_WalkCurrent != m_WalkPivot) 
+//  {
+//    m_WalkParent = m_WalkCurrent->GetParent();
+//  }
+//  else 
+//  {
+//    m_WalkParent = m_WalkCurrent;	//for the case no child in pivot
+//  }
+//
+//}
 
 //----------------------------------------
 void CObjectTree::SetWalkDownRootPivot()
@@ -431,39 +426,39 @@ void CObjectTree::SetWalkDownRootPivot()
 
 //----------------------------------------
 
-bool CObjectTree::SubTreePostOrderWalk() 
-{
-
-  if (m_WalkCurrent == m_WalkPivot)
-  {
-    return false;
-  }
-
-  //if not the parent's last child, advance one node in paraent's child
-  //if the advanced child contains sub node, go in depth to the leftmost one
-  if (++m_WalkParent->m_current != m_WalkParent->GetChildren().end()) 
-  {
-    m_WalkCurrent = *(m_WalkParent->m_current);
-    while (m_WalkCurrent->GetChildren().size() != 0) 
-    {
-      //go down
-      m_WalkCurrent->m_current = m_WalkCurrent->GetChildren().begin();
-      m_WalkParent = m_WalkCurrent;
-      m_WalkCurrent = *(m_WalkCurrent->m_current);
-    }
-  }
-  else 
-  {
-    //if it's the last child of parent, we go up
-    m_WalkCurrent = m_WalkParent;
-    m_WalkParent = m_WalkCurrent->GetParent();
-  }
-
-  m_WalkParent = m_WalkCurrent->GetParent();
-
-  return true;
-
-}
+//bool CObjectTree::SubTreePostOrderWalk() 
+//{
+//
+//  if (m_WalkCurrent == m_WalkPivot)
+//  {
+//    return false;
+//  }
+//
+//  //if not the parent's last child, advance one node in paraent's child
+//  //if the advanced child contains sub node, go in depth to the leftmost one
+//  if (++m_WalkParent->m_current != m_WalkParent->GetChildren().end()) 
+//  {
+//    m_WalkCurrent = *(m_WalkParent->m_current);
+//    while (m_WalkCurrent->GetChildren().size() != 0) 
+//    {
+//      //go down
+//      m_WalkCurrent->m_current = m_WalkCurrent->GetChildren().begin();
+//      m_WalkParent = m_WalkCurrent;
+//      m_WalkCurrent = *(m_WalkCurrent->m_current);
+//    }
+//  }
+//  else 
+//  {
+//    //if it's the last child of parent, we go up
+//    m_WalkCurrent = m_WalkParent;
+//    m_WalkParent = m_WalkCurrent->GetParent();
+//  }
+//
+//  m_WalkParent = m_WalkCurrent->GetParent();
+//
+//  return true;
+//
+//}
 
 //----------------------------------------
 
@@ -497,38 +492,38 @@ bool CObjectTree::SubTreeWalkDown()
 
 //----------------------------------------
 
-bool CObjectTree::GoLevelDown(bool firstChild /*= true*/) 
-{
-  if (m_WalkCurrent == NULL)
-  {
-    return false;
-  }
-  
-  if (m_WalkCurrent->GetChildren().size() == 0)
-  {
-    return false;
-  }
-
-  if (*(m_WalkCurrent->m_current) == NULL)
-  {
-    return false;
-  }
-
-
-
-  m_WalkParent = m_WalkCurrent;
-  m_WalkPivot = *m_WalkCurrent->GetChildren().begin();
-  m_WalkCurrent = m_WalkPivot;
-  if (firstChild)
-  {
-    m_WalkCurrent->m_current = m_WalkCurrent->GetChildren().begin();
-  }
-
-  return true;
-
-
-}
-
+//bool CObjectTree::GoLevelDown(bool firstChild /*= true*/) 
+//{
+//  if (m_WalkCurrent == NULL)
+//  {
+//    return false;
+//  }
+//  
+//  if (m_WalkCurrent->GetChildren().size() == 0)
+//  {
+//    return false;
+//  }
+//
+//  if (*(m_WalkCurrent->m_current) == NULL)
+//  {
+//    return false;
+//  }
+//
+//
+//
+//  m_WalkParent = m_WalkCurrent;
+//  m_WalkPivot = *m_WalkCurrent->GetChildren().begin();
+//  m_WalkCurrent = m_WalkPivot;
+//  if (firstChild)
+//  {
+//    m_WalkCurrent->m_current = m_WalkCurrent->GetChildren().begin();
+//  }
+//
+//  return true;
+//
+//
+//}
+//
 //----------------------------------------
 bool CObjectTree::GoLevelUp(bool firstChild /*= true*/) 
 {

@@ -66,7 +66,7 @@ CAlgorithmDlg::CAlgorithmDlg( wxWindow *parent, wxWindowID id, const wxString &t
 
 
   int32_t charwidth, charheight;
-  CBratGuiApp::DetermineCharSize(this, charwidth, charheight);
+  DetermineCharSize(this, charwidth, charheight);
 
   GetAlgoInputParamGrid()->CreateGrid(0, NB_COLS );
   //GetAlgoInputParamGrid()->AutoSizeColumns();
@@ -137,7 +137,7 @@ void CAlgorithmDlg::FillInputParametersGrid(CBratAlgorithmBase* algo)
   }
 
   int32_t charwidth, charheight;
-  CBratGuiApp::DetermineCharSize(this, charwidth, charheight);
+  DetermineCharSize(this, charwidth, charheight);
 
   //GetAlgoInputParamGrid()->BeginBatch();
 

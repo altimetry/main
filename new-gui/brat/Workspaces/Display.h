@@ -48,6 +48,7 @@ using namespace brathl;
 class CDisplayData : public CBratObject
 {
 	friend class CConfiguration;
+	friend class CWorkspaceSettings;
 
 public:
 	static const char* FMT_FLOAT_XY;
@@ -181,8 +182,8 @@ public:
 	void SetType( int32_t value ) { m_type = value; }
 
 
-	bool LoadConfig( CConfiguration* config, const std::string& path, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso );
-	bool SaveConfig( CConfiguration* config, const std::string& pathSuff, CWorkspaceDisplay *wks );
+	bool LoadConfig( CWorkspaceSettings* config, const std::string& path, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso );
+	bool SaveConfig( CWorkspaceSettings* config, const std::string& pathSuff, CWorkspaceDisplay *wks );
 
 	void CopyFieldUserProperties( CDisplayData& d );
 };
@@ -238,9 +239,8 @@ public:
 	//void GetDistinctFields( wxArrayString& array );
 	void GetDistinctFields( CStringMap& array );
 
-	bool LoadConfig( CConfiguration* config, std::string &errorMsg, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso, const std::string& pathSuff = "" );
-
-	bool SaveConfig( CConfiguration* config, CWorkspaceDisplay *wks, const std::string& pathSuff = "" ) const;
+	bool LoadConfig( CWorkspaceSettings *config, std::string &errorMsg, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso, const std::string& pathSuff = "" );
+	bool SaveConfig( CWorkspaceSettings *config, CWorkspaceDisplay *wks, const std::string& pathSuff = "" ) const;
 
 	bool CheckFields( std::string& errorMsg, CDisplay* display );
 
@@ -257,6 +257,7 @@ class CDisplay : public CBratObject
 {
 	friend class CDisplayCmdFile;
 	friend class CConfiguration;
+	friend class CWorkspaceSettings;
 
 public:
 	static void GetDisplayType( const COperation* operation, CUIntArray& displayTypes, CInternalFiles** pf = nullptr );
@@ -349,8 +350,8 @@ public:
 	bool HasData() const { return GetDataCount() > 0; }
 	size_t GetDataCount() const { return m_data.size(); }
 
-	bool SaveConfig( CConfiguration* config, CWorkspaceDisplay *wksd );
-	bool LoadConfig( CConfiguration* config, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso );
+	bool SaveConfig( CWorkspaceSettings* config, CWorkspaceDisplay *wksd ) const;
+	bool LoadConfig( CWorkspaceSettings* config, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso );
 
 	bool UseOperation( const std::string& name, std::string& errorMsg );
 

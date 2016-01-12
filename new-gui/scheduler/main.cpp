@@ -12,7 +12,7 @@ int main(int argc, char *argv[])
 	{
 		QSchedulerApplication a( argc, argv );
 		
-		SchedulerDlg w;
+		CSchedulerDlg w;
 
 		w.show();
 
