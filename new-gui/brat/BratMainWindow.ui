@@ -82,7 +82,7 @@
      <string>&amp;View</string>
     </property>
     <addaction name="action_Zoom_In"/>
-    <addaction name="action_Zom_Out"/>
+    <addaction name="action_Zoom_Out"/>
     <addaction name="action_Re_center"/>
     <addaction name="action_Refresh_Map"/>
     <addaction name="separator"/>
@@ -159,7 +159,7 @@
     <bool>false</bool>
    </attribute>
    <addaction name="action_Zoom_In"/>
-   <addaction name="action_Zom_Out"/>
+   <addaction name="action_Zoom_Out"/>
    <addaction name="action_Re_center"/>
    <addaction name="action_Refresh_Map"/>
    <addaction name="separator"/>
@@ -456,16 +456,16 @@
     <string>Ctrl++</string>
    </property>
   </action>
-  <action name="action_Zom_Out">
+  <action name="action_Zoom_Out">
    <property name="icon">
     <iconset resource="../Common/Resources/brat.qrc">
      <normaloff>:/images/alpha-numeric/5.png</normaloff>:/images/alpha-numeric/5.png</iconset>
    </property>
    <property name="text">
-    <string>Zom Out</string>
+    <string>Zoom Out</string>
    </property>
    <property name="toolTip">
-    <string>Zom map out</string>
+    <string>Zoom map out</string>
    </property>
    <property name="shortcut">
     <string>Ctrl+-</string>

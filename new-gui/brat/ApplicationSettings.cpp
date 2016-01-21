@@ -399,6 +399,8 @@ const std::vector< std::string >& CApplicationSettings::getStyleSheets( bool res
 
 bool CApplicationSettings::setApplicationStyle( CBratApplication &app, QString default_style )
 {
+    Q_UNUSED( app );
+
 	//validate options
 	 
 	if ( getStyleIndex( mAppStyle ) == (size_t)-1 )

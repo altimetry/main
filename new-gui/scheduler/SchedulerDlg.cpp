@@ -12,16 +12,7 @@
 #include "TaskProcessor.h"
 
 
-//#include "Trace.h"
-//#include "List.h"
 #include "libbrathl/Tools.h"
-//#include "Exception.h"
-//using namespace brathl;
-
-//#include "BratScheduler.h"
-//#include "SchedulerTaskConfig.h"
-//#include "RichTextFrame.h"
-//#include "DirTraverser.h"
 
 #include "SchedulerDlg.h"
 
@@ -45,180 +36,55 @@ const std::string BRATHL_ICON_FILENAME = "BratIcon.bmp";
 //std::string m_userManual;
 
 
-/// RCCC - TODO - Organize or insert in the right place ////
-// Enum task list columns
-enum ETaskListCol{
-    eTaskUid,
-    eTaskName,
-    eTaskStart,
-    eTaskStatus,
-    eTaskCMD,
-    eTaskLogFile,
-    eTaskListCol_size
+
+/////////////////////////////////////////////////////////////////////////////////
+//							Construction Helpers
+/////////////////////////////////////////////////////////////////////////////////
+
+
+template< typename... Args >
+void CSchedulerDlg::SetupTables( Args... args )
+{
+	// lambdas
+
+    auto resize_columns = []( std::initializer_list< QTableWidget* > tables )
+	{
+        static const ETaskListCol resizable_columns[] = { eTaskUid, eTaskStart, eTaskStatus };
+
+        for ( auto *t : tables )
+		{
+			for ( auto i : resizable_columns )
+				t->resizeColumnToContents( i );
+		}
+	};
+
+
+	// function body
+
+	resize_columns( { tablePendingTask, tableProcTask, tableEndTask } );
+
+	QTableWidget *tables[] { args... }; 
+    for ( QTableWidget *t : tables )
+	{
+		// Enabling sorting in all tables: pending, processing and end tasks.
+		t->setSortingEnabled( true );
+
+		// Changing selection behavior to whole row selection
+		t->setSelectionBehavior( QAbstractItemView::SelectRows );
+
+		// Setting alternating row colors
+		t->setAlternatingRowColors( true );
+
+        // Disable editable table items
+        t->setEditTriggers(QAbstractItemView::NoEditTriggers);
+
+		// Disable grid lines.
+		t->setShowGrid( false );
+
+		t->setMinimumWidth( ComputeTableWidth( t ) );
+	}
 };
 
-
-CSchedulerDlg::CSchedulerDlg( QWidget *parent ) : base_t( parent )
-, mIsDialog( parent ? true : false )
-{
-	setupUi( this );
-
-	//QLayout *l = layout();
-	//auto *w = l->takeAt( 0 );
-	//delete l;
-	//LayoutWidgets( Qt::Vertical, {}, this, 6, 6, 6, 6, 6 );
-
-	//setAttribute( Qt::WA_DeleteOnClose );
-
-#if defined (_WIN32) || defined (WIN32)
-	// Show maximize button in windows
-	// If this is set in linux, it will not center the dialog over parent
-	setWindowFlags( ( windowFlags() & ~Qt::Dialog ) | Qt::Window | Qt::WindowMaximizeButtonHint );
-#elif defined (Q_OS_MAC)
-	// Qt::WindowStaysOnTopHint also works (too weel: stays on top of other apps also). Without this, we have the mac MDI mess...
-	setWindowFlags( ( windowFlags() & ~Qt::Dialog ) | Qt::Tool );
-#endif
-
-	if ( mIsDialog )
-	{
-		setWindowTitle( qBRATSCHEDULER_DIALOG_TITLE );
-	}
-	else
-	{
-		setWindowTitle( qBRATSCHEDULER_APP_TITLE );
-		CreateMenuBar();
-
-		//RCCC (2015/11/14): Eliminate menu items in excess (left here only for "education" 
-		//	purposes) and add the pertinent ones. Create event handlers (slots) for all 
-		//	pertinent items even if they are left with empty bodies that simply display a 
-		//	message (use "Stupid Item..." as reference and note that stupid items are not 
-		//	pertinent. And that we do not want stupid things in our applications).
-		//	Note also, seriously, that menu item names must end with "..." if they possibly 
-		//	trigger a dialog box of any kind (the user is reassured that the action does 
-		//	not take place immediately, there is yet another step that allows canceling).
-		//
-		//	Define the createMenuBar member function and move there all menu creation 
-		//	functionality; the constructor simply invokes that function in this branch (the
-		//	"else") of the if. In the "then" branch (mIsDialog is true), create button(s)
-		//	to close the dialog and the respective actions (ok and cancel, or simply close:
-		//	see in BratGui which of them make sense).
-		//
-		//	(2015/11/16)
-		//  Disregard the following notes, until we talk (I left them here to serve as
-		//      reminders for me)
-		//
-		//      - generate tasks xml with arguments
-		//
-		//      - wxBratTools::wxStringTowxLongLong_t
-		//
-		///// SOME LESSONS:
-		//
-		//    std::vector<int> v;
-		//    const size_t size = v.size();
-		//    for ( size_t i = 0; i < size; ++i)
-		//    {
-		//        auto task = v[i];
-		//
-		//    }
-		//    std::vector<CBratTask*> v2;
-		//    for (std::vector<CBratTask*>::const_iterator it = v2.begin(); it != v2.end(); it++)
-		//    {
-		//        qDebug() << *it;
-		//
-		//        //it->->GetUidAsString();
-		//
-		//        (**it).GetUidAsString();
-		//        (*it)->GetUidAsString();
-		//
-		//    }
-		//      QString s = t2q(std::string("sdjfhgi"));
-		//      std::string s2 = q2t<std::string>(QString("sdjfhgi"));
-		//      auto s3 = n2s<std::string>(890);
-		//      auto n = s2n<double>(std::string("789") );
-		//
-		//      for ( auto &t : data )
-		//      {
-		//          qDebug() << t.first;
-		//          qDebug() << t.second->GetUidAsString().c_str();
-		//      }
-		///////////////////////////////////////////////////
-	}
-
-	SetupTables();
-	LoadTasks();
-
-	mTabWidget->setCurrentIndex( 0 );
-
-	//mTabWidget->setGeometry( 0, 0, 0, 0 );
-
-	mTabWidget->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding );
-
-    tablePendingTask->resizeColumnToContents(0);
-    tablePendingTask->resizeColumnToContents(1);
-    tablePendingTask->resizeColumnToContents(2);
-    tablePendingTask->resizeColumnsToContents();
-
-	 QRect rect = tablePendingTask->geometry();
-    rect.setWidth(200 + tablePendingTask->verticalHeader()->width() + tablePendingTask->columnWidth(0) + tablePendingTask->columnWidth(1) + tablePendingTask->columnWidth(2));
-    tablePendingTask->setGeometry(rect);
-	tab_PendingTasks->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
-	tab_PendingTasks->setGeometry(rect);
-	tab_PendingTasks->setMinimumWidth(tablePendingTask->width());
-	tab_PendingTasks->adjustSize();
-	tab_PendingTasks->resize( tab_PendingTasks->sizeHint() );
-
-
-	//tablePendingTask->horizontalHeader()->setResizeMode( 0, QHeaderView::Stretch );
-	//tablePendingTask->resizeRowsToContents();
-	//tablePendingTask->resizeRowsToContents();
-
-	tablePendingTask->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding );
-	tableProcTask->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding );
-	tableEndTask->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding );
-
-	setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::MinimumExpanding );
-
-	adjustSize();
-	//tablePendingTask->resize( tablePendingTask->sizeHint() );
-	//tablePendingTask->set
-
-	//mTabWidget->resize( mTabWidget->sizeHint() );
-	resize( sizeHint() );
-	setMinimumSize( width(), height() );
-}
-
-void CSchedulerDlg::LoadTasks()
-{
-	LoadTasks( *CTasksProcessor::GetInstance()->GetMapPendingBratTask(), tablePendingTask );
-	//loadTasks(*CTasksProcessor::GetInstance()->GetMapProcessingBratTask(), tableProcTask);
-	LoadTasks( *CTasksProcessor::GetInstance()->GetMapEndedBratTask(), tableEndTask );
-
-	ChangeProcessingToPending();
-}
-void CSchedulerDlg::SetupTables()
-{
-	// Enabling sorting in all tables: pending, processing and end tasks.
-	tablePendingTask->setSortingEnabled( true );
-	tableProcTask->setSortingEnabled( true );
-	tableEndTask->setSortingEnabled( true );
-
-	// Changing selection behavior to whole row selection
-	tablePendingTask->setSelectionBehavior( QAbstractItemView::SelectRows );
-	tableProcTask->setSelectionBehavior( QAbstractItemView::SelectRows );
-	tableEndTask->setSelectionBehavior( QAbstractItemView::SelectRows );
-
-	// Setting alternating row colors
-	tablePendingTask->setAlternatingRowColors( true );
-	tableProcTask->setAlternatingRowColors( true );
-	tableEndTask->setAlternatingRowColors( true );
-
-	//tablePendingTask->setEditTriggers();
-
-	// Disable grid lines.
-	tablePendingTask->setShowGrid( false );
-	tableProcTask->setShowGrid( false );
-	tableEndTask->setShowGrid( false );
-}
 
 void CSchedulerDlg::CreateMenuBar()
 {
@@ -272,6 +138,58 @@ void CSchedulerDlg::CreateMenuBar()
     layout()->setMenuBar(menuBar);
 }
 
+
+void CSchedulerDlg::LoadTasks()
+{
+	LoadTasks( *CTasksProcessor::GetInstance()->GetMapPendingBratTask(), tablePendingTask );
+	//loadTasks(*CTasksProcessor::GetInstance()->GetMapProcessingBratTask(), tableProcTask);
+	LoadTasks( *CTasksProcessor::GetInstance()->GetMapEndedBratTask(), tableEndTask );
+
+	ChangeProcessingToPending();
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////
+//							Constructor
+/////////////////////////////////////////////////////////////////////////////////
+
+
+CSchedulerDlg::CSchedulerDlg( QWidget *parent ) 
+	: base_t( parent )
+	, mIsDialog( parent ? true : false )
+{
+	setupUi( this );
+
+	if ( mIsDialog )
+	{
+		setWindowTitle( qBRATSCHEDULER_DIALOG_TITLE );
+	}
+	else
+	{
+	    setWindowIcon( QIcon("://images/BratIcon.png") );
+		setWindowTitle( qBRATSCHEDULER_APP_TITLE );
+		CreateMenuBar();
+		SetMaximizableDialog( this );
+	}
+
+	LoadTasks();
+
+	SetupTables( tablePendingTask, tableProcTask, tableEndTask );
+
+	mTabWidget->setCurrentIndex( 0 );
+
+	adjustSize();
+	setMinimumSize( width(), height() );
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////
+//
+/////////////////////////////////////////////////////////////////////////////////
+
+
 void CSchedulerDlg::LoadTasks( const CMapBratTask &data, QTableWidget* tableTasks )
 {
 	tableTasks->setRowCount( (int)data.size() );
@@ -320,17 +238,19 @@ bool CSchedulerDlg::ChangeProcessingToPending()
 
 void CSchedulerDlg::action_ViewConfig_slot()
 {
-    SimpleMsgBox("This should open Config file.");
+    FNOT_IMPLEMENTED( "This should open Config file." );
 }
+
 
 void CSchedulerDlg::action_UserManual_slot()
 {
-    SimpleMsgBox("This should open User's manual.");
+    FNOT_IMPLEMENTED( "This should open User's manual." );
 }
+
 
 void CSchedulerDlg::action_About_slot()
 {
-    SimpleMsgBox("This should open About info.");
+    FNOT_IMPLEMENTED( "This should open About info." );
 }
 
 

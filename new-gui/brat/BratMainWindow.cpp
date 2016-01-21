@@ -84,106 +84,8 @@ QString CBratMainWindow::makeWindowTitle( const QString &title )// = QString() /
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//
+//											Construction Helpers
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-CBratMainWindow::CBratMainWindow( CApplicationSettings &settings ) 
-	: QMainWindow( nullptr)
-	, mSettings( settings )
-{
-	assert__( !smInstance );
-
-    setupUi( this );
-    setWindowIcon( QIcon("://images/BratIcon.png") );
-    setWindowTitle( makeWindowTitle( windowTitle() ) );     //set title sensitive to doc (un)modifications
-
-	mManager = new desktop_manager_t( this );
-	CreateDocks();
-	
-#if !defined (DEBUG) && !defined(_DEBUG)
-	action_Test->setVisible( false );
-#endif
-
-
-    // Menu File
-    //
-	connect( action_Close_All, SIGNAL(triggered()), mManager, SLOT(closeAllSubWindows()) );
-
-    // Menu File / Most recent files logic
-    //
-	mRecentFilesSeparatorAction = menu_File->insertSeparator( action_Exit );
-
-	mRecentFilesProcessor = new CRecentFilesProcessor( this, "Recent WorkSpaces", menu_File, action_Exit, GROUP_WKS_RECENT.c_str() );
-	connect( mRecentFilesProcessor, SIGNAL( triggered( QAction* ) ), this, SLOT( openRecentWorkspace_triggered( QAction* ) ) );
-
-	mRecentFilesSeparatorAction = menu_File->insertSeparator( action_Exit );
-
-
-    // Application Settings
-    //
-	bool lastSessionGeometry = false;
-	try {
-		ReadSettings( lastSessionGeometry );
-	}
-	catch ( const CException &e )			// TODO: rather stupid catching the exception here...
-	{
-		SimpleWarnBox( std::string( "An error occurred while loading Brat configuration (CBratGui::LoadConfig)\nNative std::exception: " )
-			+ e.what() );
-	}
-
-    // Menu View / ToolBars
-    //
-	if ( !menu_View->isEmpty() )
-		menu_View->addSeparator();
-    menu_View->addAction( mMainToolBar->toggleViewAction() );
-    menu_View->addAction( mMainToolsToolBar->toggleViewAction() );
-
-    // Menu View / Docks editors (see also the toolbars section in this ctor)
-    //
-    CTextWidget *editors[] = { mOutputTextWidget };
-    QDockWidget *docks[] = { mOutputDock, mMainWorkingDock };
-    size_t size = sizeof(editors) / sizeof(*editors);
-    menu_View->addSeparator();
-    for ( size_t i = 0; i < size; ++i )
-    {
-        editors[i]->setToolEditor( true );
-        //connectAutoUpdateEditActions( editors[i] );
-        menu_View->addAction( docks[i]->toggleViewAction() );
-    }
-
-
-    // Global Wiring
-    //
-    connect( menu_Window, SIGNAL(aboutToShow()), this, SLOT(UpdateWindowMenu()) );
-
-    #ifndef QT_NO_CLIPBOARD
-    connect( QApplication::clipboard(), SIGNAL(dataChanged()), this, SLOT(clipboardDataChanged()) );
-    #endif
-
-
-    // Status Bar
-    //
-	FillStatusBar();
-
-
-    // Position
-    //
-	if ( !lastSessionGeometry )
-	{
-		//mMainWorkingDock->adjustSize();
-		//CenterOnScreen( this );		//calls adjustSize
-		show();
-		adjustSize();
-		CenterOnScreen2( this );
-	}
-
-	smInstance = this;
-
-    // Load CmdLine Files
-    //
-    QTimer::singleShot( 0, this, SLOT( LoadCmdLineFiles() ) );
-}
 
 
 CControlsPanel* CBratMainWindow::MakeWorkingPanel( ETabName tab )
@@ -204,11 +106,6 @@ CControlsPanel* CBratMainWindow::MakeWorkingPanel( ETabName tab )
 	}
 
 	return nullptr;
-}
-template< CBratMainWindow::ETabName INDEX >
-CBratMainWindow::TabType< INDEX >* CBratMainWindow::WorkingPanel()
-{
-    return dynamic_cast< TabType< INDEX >* >( mMainWorkingDock->TabWidget( INDEX ) );
 }
 
 
@@ -289,6 +186,71 @@ void CBratMainWindow::CreateDocks()
 }
 
 
+void CBratMainWindow::ProcessMenu()
+{
+    // Fill Actions Table
+    //
+	const QList< QMenu* > lst = mMainMenuBar->findChildren< QMenu* >();
+	foreach( QMenu *m, lst )
+	{
+		qDebug() << m->title();
+		foreach( QAction *a, m->actions() )
+		{
+			auto tag = CActionInfo::UpdateActionProperties( a );		assert__( tag < EActionTag::EActionTags_size );
+			qDebug() << a->text() << tag;
+		}
+	}
+
+    // Menu File
+    //
+	connect( action_Close_All, SIGNAL(triggered()), mManager, SLOT(closeAllSubWindows()) );
+
+    // Menu File / Most recent files logic
+    //
+	mRecentFilesSeparatorAction = menu_File->insertSeparator( action_Exit );
+
+	mRecentFilesProcessor = new CRecentFilesProcessor( this, "Recent WorkSpaces", menu_File, action_Exit, GROUP_WKS_RECENT.c_str() );
+	connect( mRecentFilesProcessor, SIGNAL( triggered( QAction* ) ), this, SLOT( openRecentWorkspace_triggered( QAction* ) ) );
+
+	mRecentFilesSeparatorAction = menu_File->insertSeparator( action_Exit );
+
+    // Menu View / ToolBars
+    //
+	if ( !menu_View->isEmpty() )
+		menu_View->addSeparator();
+    menu_View->addAction( mMainToolBar->toggleViewAction() );
+    menu_View->addAction( mMainToolsToolBar->toggleViewAction() );
+
+    // Menu View / Docks editors (see also the tool-bars section in this ctor)
+    //
+    CTextWidget *editors[] = { mOutputTextWidget };
+    QDockWidget *docks[] = { mOutputDock, mMainWorkingDock };
+    size_t size = sizeof(editors) / sizeof(*editors);
+    menu_View->addSeparator();
+    for ( size_t i = 0; i < size; ++i )
+    {
+        editors[i]->setToolEditor( true );
+        //connectAutoUpdateEditActions( editors[i] );
+        menu_View->addAction( docks[i]->toggleViewAction() );
+    }
+
+    // Global Wiring
+    //
+    connect( menu_Window, SIGNAL(aboutToShow()), this, SLOT(UpdateWindowMenu()) );
+	connect( this, SIGNAL( WorkspaceChanged( const CModel* ) ), this, SLOT( UpdateWorkspaceUI( const CModel* ) ) );
+
+#ifndef QT_NO_CLIPBOARD
+    connect( QApplication::clipboard(), SIGNAL(dataChanged()), this, SLOT(clipboardDataChanged()) );
+#endif
+
+#if !defined (DEBUG) && !defined(_DEBUG)
+	action_Test->setVisible( false );
+#endif
+
+}
+
+
+
 void CBratMainWindow::FillStatusBar()
 {
 	//remove borders from children under Windows
@@ -319,6 +281,97 @@ void CBratMainWindow::FillStatusBar()
 	connect( mMessageButton, SIGNAL( toggled( bool ) ), mOutputDock, SLOT( setVisible( bool ) ) );
 	connect( mOutputDock, SIGNAL( visibilityChanged( bool ) ), mMessageButton, SLOT( setChecked( bool ) ) );	
 }
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//											Constructor
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+CBratMainWindow::CBratMainWindow( CApplicationSettings &settings ) 
+	: QMainWindow( nullptr)
+	, mSettings( settings )
+{
+	assert__( !smInstance );
+
+    setupUi( this );
+    setWindowIcon( QIcon("://images/BratIcon.png") );
+    setWindowTitle( makeWindowTitle( windowTitle() ) );     //set title sensitive to doc (un)modifications
+    mMainToolBar->setIconSize({icon_size,icon_size});
+    mMainToolsToolBar->setIconSize({icon_size,icon_size});
+
+    // Sub-Windows management
+    //
+	mManager = new desktop_manager_t( this );
+
+
+    // Docked controls
+    //
+	CreateDocks();
+
+
+    // Menu commands
+    //
+	ProcessMenu();
+
+
+    // Settings from persistence
+    //
+	bool lastSessionGeometry = false;
+	try {
+		ReadSettings( lastSessionGeometry );
+	}
+	catch ( const CException &e )			// TODO: rather stupid catching the exception here...
+	{
+		SimpleWarnBox( std::string( "An error occurred while loading Brat configuration (CBratGui::LoadConfig)\nNative std::exception: " )
+			+ e.what() );
+	}
+
+
+    // Status Bar
+    //
+	FillStatusBar();
+
+
+    // Position
+    //
+	if ( !lastSessionGeometry )
+	{
+		//mMainWorkingDock->adjustSize();
+		//CenterOnScreen( this );		//calls adjustSize
+		show();
+		adjustSize();
+		CenterOnScreen2( this );
+	}
+
+
+    // Assign singleton just before triggering load operations and leave
+    //
+	smInstance = this;
+
+
+    // Load command line or user settings referenced files 
+    //
+    QTimer::singleShot( 0, this, SLOT( LoadCmdLineFiles() ) );
+}
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//											Access
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+template< CBratMainWindow::ETabName INDEX >
+CBratMainWindow::TabType< INDEX >* CBratMainWindow::WorkingPanel()
+{
+    return dynamic_cast< TabType< INDEX >* >( mMainWorkingDock->TabWidget( INDEX ) );
+}
+
+
 
 
 
@@ -473,6 +526,9 @@ bool CBratMainWindow::WriteSettings()
 
 bool CBratMainWindow::OkToContinue()
 {
+	if ( mModel.GetCurrentRootWorkspace() == nullptr )
+		return true;
+
 	int r = 
 		QMessageBox::warning( this, base_t::windowTitle(),
 		base_t::tr( "Do you want to save your changes?" ),
@@ -545,6 +601,7 @@ CBratMainWindow::~CBratMainWindow()
 
 void CBratMainWindow::EmitWorkspaceChanged()
 {
+	emit WorkspaceChanged( &mModel );
 	emit WorkspaceChanged( mModel.GetCurrentWorkspace< CWorkspaceDataset >() );
 	emit WorkspaceChanged( mModel.GetCurrentWorkspace< CWorkspaceOperation >() );
 	emit WorkspaceChanged( mModel.GetCurrentWorkspace< CWorkspaceDisplay >() );
@@ -581,13 +638,14 @@ void CBratMainWindow::ResetWorkspace()
 //                      WORKSPACE ACTIONS
 /////////////////////////////////////////////////////////////////////////
 
-void CBratMainWindow::DoEmptyWorkspace()
+bool CBratMainWindow::DoEmptyWorkspace()
 {
 	mModel.Reset();
 	ResetWorkspace();
 	EnableCtrlWorkspace();
 	setWindowTitle( makeWindowTitle( QString() ) );
 	EmitWorkspaceChanged();
+	return true;
 }
 
 void CBratMainWindow::SetCurrentWorkspace( const CWorkspace *wks )
@@ -622,6 +680,8 @@ void CBratMainWindow::SetCurrentWorkspace( const CWorkspace *wks )
 
 bool CBratMainWindow::OpenWorkspace( const std::string &path )
 {
+	//return DoEmptyWorkspace();		// TODO DELLTE THIS AFTER DEBUGGING
+
 	if ( path.empty() )
 	{
 		DoEmptyWorkspace();
@@ -716,11 +776,10 @@ void CBratMainWindow::on_action_Import_Workspace_triggered()
 {
 	static QString last_path = t2q( ApplicationDirectories::instance().mExternalDataDir );
 
-	CWorkspace *wks = mModel.GetCurrentRootWorkspace();
-	if ( wks == nullptr )							   				//TODO: update actions should have prevented this
-		return;
+	CWorkspace *wks = mModel.GetCurrentRootWorkspace();			assert__( wks != nullptr );
 
-	bool bOk = false;
+
+    bool bOk = false;               Q_UNUSED( bOk );
 
 	mModel.ResetImportTree();
 
@@ -737,55 +796,34 @@ void CBratMainWindow::on_action_Import_Workspace_triggered()
 	}
 
 	CWorkspaceDialog dlg( this, CTreeWorkspace::eImport, wks, last_path, mModel );
-	//===============================================================>>>>> wxGetApp().m_tree.GetImportBitSet()->m_bitSet.reset();
+	//wxGetApp().m_tree.GetImportBitSet()->m_bitSet.reset();
 
-	std::string wksPathToImport;
+	if ( dlg.exec() != QDialog::Accepted )
+		return;
+
+	last_path = t2q( dlg.mPath );
+
+
 	std::vector< std::string > formulasToImport;
 
-	//while ( true )
-	//{
-		if ( dlg.exec() != QDialog::Accepted )
-			return;
+	mModel.ResetImportBits();
+	mModel.SetImportBits( 
+	{ 
+        { IMPORT_DATASET_INDEX,	dlg.mDatasets },
+        { IMPORT_FORMULA_INDEX, dlg.mFormulas },
+        { IMPORT_OPERATION_INDEX, dlg.mOperations },
+        { IMPORT_DISPLAY_INDEX, dlg.mViews }
+	} );
 
-		last_path = t2q( dlg.mPath );
 
+    CWorkspace* import_wks = new CWorkspace( dlg.mPath );		//CWorkspace* wks = new CWorkspace( dlg.GetWksName()->GetValue(), dlg.mPath, false );
 
-		NOT_IMPLEMENTED
+    Q_UNUSED( import_wks );
 
-	//	//check this inside the dialog !!!! and remove the loop
+	NOT_IMPLEMENTED
+	return;
 
-	//	wksPathToImport = dlg.mPath;
-	//	wxFileName importWksPath;
-	//	importWksPath.AssignDir( wksPathToImport );
-	//	importWksPath.MakeAbsolute();
-
-	//	if ( currentWksPath.GetPath().CmpNoCase( importWksPath.GetPath() ) == 0 )
-	//	{
-	//		wxMessageBox( "You can't import a workspace from itself.",
-	//			"Warning",
-	//			wxOK | wxCENTRE | wxICON_EXCLAMATION );
-	//		bOk = false;
-	//	}
-	//	else
-	//	{
-	//		bOk = true;
-	//		break;
-	//	}
-	//}
-
-	//if ( !bOk )
-	//{
-	//	return bOk;
-	//}
 	/*
-	wxGetApp().m_tree.GetImportBitSet()->m_bitSet.set( IMPORT_DATASET_INDEX, dlg.GetImportDataset()->GetValue() );
-	wxGetApp().m_tree.GetImportBitSet()->m_bitSet.set( IMPORT_FORMULA_INDEX, dlg.GetImportFormulas()->GetValue() );
-	wxGetApp().m_tree.GetImportBitSet()->m_bitSet.set( IMPORT_OPERATION_INDEX, dlg.GetImportOperations()->GetValue() );
-	wxGetApp().m_tree.GetImportBitSet()->m_bitSet.set( IMPORT_DISPLAY_INDEX, dlg.GetImportViews()->GetValue() );
-
-
-	CWorkspace* wks = new CWorkspace( dlg.GetWksName()->GetValue(), wksPathToImport, false );
-
 	wxGetApp().m_treeImport.SetCtrlDatasetFiles( wxGetApp().m_tree.GetImportBitSet()->m_bitSet.test( IMPORT_DATASET_INDEX ) );
 
 	wxGetApp().CreateTree( wks, wxGetApp().m_treeImport );
@@ -933,7 +971,7 @@ void CBratMainWindow::on_action_Zoom_In_triggered()
 }
 
 
-void CBratMainWindow::on_action_Zom_Out_triggered()
+void CBratMainWindow::on_action_Zoom_Out_triggered()
 {
 	mManager->Map()->zoomOut();
 }
@@ -1074,6 +1112,50 @@ void CBratMainWindow::on_action_Test_triggered()
 #endif
 }
 
+
+
+
+/////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+//							UPDATE STATE
+/////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////
+
+
+void CBratMainWindow::UpdateWorkspaceUI( const CModel *model )
+{
+	Q_UNUSED( model );
+
+	const bool enable = mModel.GetCurrentRootWorkspace() != nullptr;
+
+	CActionInfo::UpdateActionsState( {
+
+		eAction_Save,
+		eAction_Save_As,
+		eAction_Import_Workspace,
+		eAction_Rename_Workspace,
+		eAction_Delete_Workspace,
+
+		eAction_One_Click,
+		eAction_Workspace_Tree,
+		eAction_Operations,
+		eAction_Dataset,
+		eAction_Filter,
+
+		eAction_Cut,
+		eAction_Copy,
+		eAction_Paste,
+		eAction_Undo,
+		eAction_Redo,
+		eAction_Delete,
+		eAction_Select_All,
+
+	}, enable );
+
+
+	mMainWorkingDock->SelectTab( eDataset );
+	mMainWorkingDock->setEnabled( enable );
+}
 
 
 

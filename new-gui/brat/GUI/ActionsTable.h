@@ -7,7 +7,7 @@ class CApplicationSettings;
 
 
 //////////////////////////////////////////////////////////////////////////////////
-//					Application Global QActions
+//					Application Global QAction Tags
 //////////////////////////////////////////////////////////////////////////////////
 
 
@@ -15,11 +15,12 @@ enum EActionTag : int
 {	
 	eAction_Separator,
 
-	eAction_RecentFile1, eFirstRecentFileAction = eAction_RecentFile1,
-	eAction_RecentFile2, eAction_RecentFile3, eAction_RecentFile4, 
-	eAction_RecentFile5, eAction_RecentFile6, eAction_RecentFile7, 
-	eAction_RecentFile8, eAction_RecentFile9, 
-	eAction_RecentFile10, eLastRecentFileAction = eAction_RecentFile10,
+	eAction_RecentFile1, eAction_RecentFile2, eAction_RecentFile3, 
+	eAction_RecentFile4, eAction_RecentFile5, eAction_RecentFile6, 
+	eAction_RecentFile7, eAction_RecentFile8, eAction_RecentFile9, 
+	eAction_RecentFile10,
+	eFirstRecentFileAction = eAction_RecentFile1,
+	eLastRecentFileAction = eAction_RecentFile10,
 
 	eAction_Exit,
 	eAction_Open,
@@ -54,7 +55,7 @@ enum EActionTag : int
 	eAction_Full_Screen,
 	eAction_Re_center,
 	eAction_Zoom_In,
-	eAction_Zom_Out,
+    eAction_Zoom_Out,
 	eAction_Operations,
 	eAction_Dataset,
 	eAction_Filter, eLastAutomaticAction = eAction_Filter,
@@ -87,9 +88,25 @@ enum EActionTag : int
 
 
 
-struct CActionInfo
+
+
+//////////////////////////////////////////////////////////////////////////////////
+//					Actions Table Entry Type - CActionInfo
+//							Actions Table Management
+//////////////////////////////////////////////////////////////////////////////////
+
+
+
+struct CActionInfo : non_copyable
 {
-	EActionTag mActionTag;
+	///////////////////////////
+	// Table Entry Section
+	///////////////////////////
+
+	// instance data
+
+public:
+	EActionTag mTag;
 	std::string mName;
 	std::string mTip;
 	std::string mIconPath;
@@ -97,35 +114,146 @@ struct CActionInfo
 	std::string mShortcut;
 	QList<QAction*> mActions;
 
+
+	// construction / destruction
+
+protected:
+	// For internal processing only
+	//
+	CActionInfo( const QAction *a ) :
+		mTag( EActionTags_size ), mName( q2a( a->text() ) ), mTip( q2a( a->toolTip() ) ), mShortcut( q2a( a->shortcut() ) )
+	{}
+
+public:
 	CActionInfo( EActionTag ActionTag, const std::string &Name, const std::string &Tip, const std::string &IconPath, 
 		const std::string &OnIconPath = "", const std::string &Shortcut = "" ) :
-		mActionTag( ActionTag ), mName( Name ), mTip( Tip ), mIconPath( IconPath ), mOnIconPath( OnIconPath ), mShortcut( Shortcut )
+        mTag( ActionTag ), mName( Name ), mTip( FormatTip( Tip ) ), mIconPath( IconPath ), mOnIconPath( OnIconPath ), mShortcut( Shortcut )
+	{}
+
+	virtual ~CActionInfo()
 	{}
 
 
-	static const CActionInfo& ActionInfo( EActionTag tag );
+	// access - testers
 
-private:
-    static QAction* SetActionProperties( QAction *a, EActionTag tag );
+	bool IsAutomatic() const
+	{
+		return mTag != eAction_Separator && mTag <= eLastAutomaticAction;
+	}
+
+
+	// operators
+
+	// These are the only properties that allow us to 
+	//	identify an action so actions must be unique 
+	//	with respect to them (mName, etc).
+	//
+    bool operator == ( const CActionInfo &o ) const
+	{
+		return
+			mName == o.mName &&
+            //mTip == o.mTip &&
+			mShortcut == o.mShortcut;
+	}
+
+
+    static std::string FormatTip( const std::string &tip )
+    {
+        size_t delimiter = tip.find("\n");
+        size_t split_pos = (delimiter == std::string::npos) ?  0 : delimiter;
+
+        std::string name        = tip.substr(0, split_pos);
+        std::string description = tip.substr( split_pos );
+
+        return "<html><body><p><b>" + name + "</b></p><p>" + description + "</p></body></html>";
+    }
+
+
+	///////////////////////////////////
+	//	Table Management Section
+	//	(all static member functions)
+	///////////////////////////////////
 
 public:
+	// static members: query process hidden Actions Table
+
+
+	// Calls SetActionProperties
+	//
 	static QAction* CreateAction( QObject *parent, EActionTag tag );
+	
+
+	// Groups actions under a new menu button. Besides that, actions are left untouched.
+	//	A menu button is a special kind of action, that nevertheless can figure in the actions 
+	//	table, so the properties of the new action/button are assigned based on the table entry.
+	//	Being (so far) a more limited type of action, SetActionProperties is not used.
+	//
+	static QToolButton* CreateMenuButton( EActionTag button_tag, const QList< QAction* > &actions );
 
 
+	// Calls CreateAction
+	//
+	static QActionGroup* CreateActionsGroup( QWidget *group_parent, const std::vector< EActionTag > &tags, bool exclusive );
+
+
+	// For the Qt dock widgets actions, automatically created to view/hide them
+	// Calls SetActionProperties
+	//
 	static QAction* SetDockActionProperties( QDockWidget *dock, EActionTag tag );
 
 
-	static QToolButton* CreateMenuButton( EActionTag button_tag, const QList<QAction*> &actions );
+	// Intended for automatically created (designer) actions, such as brat's main menu 
+	//	bar. The implementation does not impose any restriction, but there is no reason 
+	//	for "a" to be an action defined in the source code. As in all other cases, the
+	//	entry that matches "a" must exist in the table; see operator == for the	properties 
+	//	used to consider a successful equality match between a table entry and "a".
+	//
+	// RecentFileActions are not considered and return EActionTags_size as failure result.
+	// Separators return the separator tag and are not affected.
+	//
+	static EActionTag UpdateActionProperties( QAction *a );
 
 
-private:	//not used
-	static QToolButton* CreateMenuButton( QObject *parent, EActionTag button_tag, const std::vector<EActionTag> &tags );
+	static void UpdateActionsState( std::initializer_list< EActionTag > tags, bool enable );
+
+private:
+
+	static const CActionInfo& ActionInfo( EActionTag tag );
+
+	
+	// Assigns 
+	//	- tool-top
+	//	- icon
+	//	- checkable property if "on" icon is also specified in table
+	//	- "on" icon, if specified in table
+	//
+	// Updates 
+	//	- ActionsTable entry identified by "tag", adding "a" to its 
+	//	physical actions list (which is not intended for runtime production 
+	//	use)
+	//
+	// Returns
+	//	- the same received action "a"
+	//
+    static QAction* SetActionProperties( QAction *a, EActionTag tag );
 
 
-public:
-	static QActionGroup* CreateActionsGroup( QWidget *group_parent, const std::vector<EActionTag> &tags, bool exclusive );
+	// RecentFileAction not considered. EActionTags_size is returned with "not found" meaning.
+	//
+	static EActionTag FindEntry( const QAction *a );
+
+
+	//not used
+	static QToolButton* CreateMenuButton( QObject *parent, EActionTag button_tag, const std::vector< EActionTag > &tags );
+
+
+	// diagnostic
+
+	static bool ActionsTableIntegrityChecked;
+
+
+	static bool CheckActionsTableIntegrity();
 };
-
 
 
 

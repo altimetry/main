@@ -259,6 +259,8 @@ CWorkspace * CTreeWorkspace::GetParentData( bool withExcept )
 //----------------------------------------
 CWorkspace* CTreeWorkspace::FindWorkspace( const std::string key )
 {
+	assert__( !key.empty() );
+
 	std::map< std::string, CObjectTreeNode* >::iterator it = m_nodemap.find( key );
 
 	return dynamic_cast< CWorkspace* >( it->second->GetData() );

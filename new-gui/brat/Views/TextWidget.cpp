@@ -69,16 +69,20 @@ void CTextWidget::setHelpEditor( bool help )
 void CTextWidget::setHelpProperties( const QString &text, int spacing, Qt::Alignment alignment )	//alignment = Qt::AlignCenter 
 {
 	setHelpEditor( true );
-	setSizeHint( m_SizeHint.width(), 0 );
-	insertPlainText( text	);
-	selectAll();
+    setWrapText( false );
+    setText( text );
+    MoveToTop();
+    MoveToEnd( true );
     setAlignment( alignment );
-	ClearSelection();
 	int line, col;
-	getPosition( line, col );
-	setMaximumHeight( line * fontMetrics().height() + 2 * spacing );
+    getPosition( line, col );
+    int height = line * fontMetrics().height() + 2 * spacing;
+    setSizeHint( col * fontMetrics().width('X') + 2 * spacing, height );
+    setMaximumHeight( height );
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    ClearSelection();
+    MoveToTop();
 }
 
 

@@ -97,5 +97,29 @@
     <file>images/alpha-numeric/x.png</file>
     <file>images/alpha-numeric/y.png</file>
     <file>images/alpha-numeric/z.png</file>
+    <file>images/OSGeo/exit.png</file>
+    <file>images/OSGeo/open.png</file>
+    <file>images/OSGeo/new.png</file>
+    <file>images/OSGeo/save.png</file>
+    <file>images/OSGeo/save-as.png</file>
+    <file>images/OSGeo/import.png</file>
+    <file>images/OSGeo/workspace-delete.png</file>
+    <file>images/OSGeo/quit.png</file>
+    <file>images/OSGeo/page-info.png</file>
+    <file>images/OSGeo/edit-cut.png</file>
+    <file>images/OSGeo/edit-copy.png</file>
+    <file>images/OSGeo/edit-paste.png</file>
+    <file>images/OSGeo/settings.png</file>
+    <file>images/OSGeo/map-export.png</file>
+    <file>images/OSGeo/zoom-refresh.png</file>
+    <file>images/OSGeo/map-settings.png</file>
+    <file>images/OSGeo/zoom-extent.png</file>
+    <file>images/OSGeo/zoom-in.png</file>
+    <file>images/OSGeo/zoom-out.png</file>
+    <file>images/OSGeo/fullscreen.png</file>
+    <file>images/OSGeo/measure-length.png</file>
+    <file>images/OSGeo/measure-area.png</file>
+    <file>images/OSGeo/crs-change.png</file>
+    <file>images/OSGeo/projection.png</file>
   </qresource>
 </RCC>

@@ -14,7 +14,7 @@
 
 
 //////////////////////////////////////////////////////////////////////////////////
-//					Application Global QActions
+//				Application Global QActions - The Actions Table
 //////////////////////////////////////////////////////////////////////////////////
 
 
@@ -29,110 +29,110 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 	{ eAction_RecentFile7, "", "", "", "", "" }, { eAction_RecentFile8, "", "", "", "", "" }, 
 	{ eAction_RecentFile9, "", "", "", "", "" }, { eAction_RecentFile10, "", "", "", "", "" },
 
-	{ eAction_Exit, "&Exit", "Exit brat", ":/images/alpha-numeric/0.png" },
+    { eAction_Exit, "&Exit", "Exit brat", ":/images/OSGeo/exit.png" },
 
-	{ eAction_Open, "&Open...", "Open existing workspace", ":/images/alpha-numeric/1.png", "", "Ctrl+O" },
+    { eAction_Open, "&Open...", "Open\nOpen existing workspace", ":/images/OSGeo/open.png", "", "Ctrl+O" },
 
-	{ eAction_New, "&New...", "Create a new workspace", ":/images/alpha-numeric/2.png", "", "Ctrl+N" },
+    { eAction_New, "&New...", "New\nCreate a new workspace", ":/images/OSGeo/new.png", "", "Ctrl+N" },
 
-	{ eAction_Save, "&Save","Save the workspace to disk", ":/images/alpha-numeric/3.png", "", "Ctrl+S" },
+    { eAction_Save, "&Save","Save\nSave the workspace to disk", ":/images/OSGeo/save.png", "", "Ctrl+S" },
 
-	{ eAction_Save_As, "Save &As...", "", "" },
+    { eAction_Save_As, "Save &As...", "Save As", ":/images/OSGeo/save-as.png" },
 
-	{ eAction_Import_Workspace, "&Import...", "Import existing workspace objects", "" }, 
+    { eAction_Import_Workspace, "&Import...", "Import\nImport existing workspace objects", ":/images/OSGeo/import.png" },
 
-	{ eAction_Rename_Workspace, "&Rename...", "Rename the loaded workspace\n""The workspace directory will not change", "" }, 
+    { eAction_Rename_Workspace, "&Rename...", "Rename\nRename the loaded workspace\n""The workspace directory will not change", "" },
 
-	{ eAction_Delete_Workspace, "&Delete...", "Delete the loaded workspace", "" }, 
+    { eAction_Delete_Workspace, "&Delete...", "Delete\nDelete the loaded workspace", ":/images/OSGeo/workspace-delete.png" },
 
-	{ eAction_About, "&About...", "", ":/images/BratIcon.png" },
+    { eAction_About, "&About...", "About", ":/images/BratIcon.png" },
 
-	{ eAction_Close, "&Close", "Exit brat", ":/images/alpha-numeric/4.png" },
+    { eAction_Close, "&Close", "Close", ":/images/OSGeo/quit.png" },
 
-	{ eAction_Close_All, "Close &All", "", "" },
+	{ eAction_Close_All, "Close &All", "Close All", "" },
 
-	{ eAction_Tile, "&Tile", "", "" },
+	{ eAction_Tile, "&Tile", "Tile", "" },
 
-	{ eAction_Cascade, "Casca&de", "", "" },
+	{ eAction_Cascade, "Casca&de", "Cascade", "" },
 
-	{ eAction_Cut, "Cut", "", "" },
+    { eAction_Cut, "Cut", "Cut", ":/images/OSGeo/edit-cut.png" },
 
-	{ eAction_Copy, "&Copy", "", "" },
+    { eAction_Copy, "&Copy", "Copy", ":/images/OSGeo/edit-copy.png" },
 
-	{ eAction_Paste, "&Paste", "", "" },
+    { eAction_Paste, "&Paste", "Paste", ":/images/OSGeo/edit-paste.png" },
 
-	{ eAction_Next, "&Next", "", "" },
+	{ eAction_Next, "&Next", "Next", "" },
 
-	{ eAction_Previous, "&Previous", "", "" },
+	{ eAction_Previous, "&Previous", "Previous", "" },
 
-	{ eAction_Options, "&Options...", "Edit application settings", ":/images/alpha-numeric/6.png" },		//icon 5.png is below TODO: delete this comment
+    { eAction_Options, "&Options...", "Options\nEdit application settings", ":/images/OSGeo/settings.png" },		//icon 5.png is below TODO: delete this comment
 
-	{ eAction_Undo, "&Undo", "", "", "", "Ctrl+Z" },
+	{ eAction_Undo, "&Undo", "Undo", "", "", "Ctrl+Z" },
 
-	{ eAction_Redo, "&Redo", "", "", "", "Ctrl+Y" },
+	{ eAction_Redo, "&Redo", "Redo", "", "", "Ctrl+Y" },
 
-	{ eAction_Delete, "&Delete", "", "" },
+	{ eAction_Delete, "&Delete", "Delete", "" },
 
-	{ eAction_Select_All, "Select &All", "", "" },
+	{ eAction_Select_All, "Select &All", "Select All", "" },
 
-	{ eAction_Test, "Test...", "", ":/images/test.png" },
+	{ eAction_Test, "Test...", "Test", ":/images/test.png" },
 
-	{ eAction_One_Click, "One-&Click...", "Group actions as a single operation under a single name", ":/images/alpha-numeric/7.png" },
+    { eAction_One_Click, "One-&Click...", "One-Click\nGroup actions as a single operation under a single name", ":/images/alpha-numeric/7.png" },
 
-	{ eAction_Launch_Scheduler, "Launch Scheduler", "Launch Scheduler application", ":/images/alpha-numeric/8.png" },
+    { eAction_Launch_Scheduler, "Launch Scheduler", "Brat Scheduler\nLaunch Scheduler application", ":/images/alpha-numeric/8.png" },
 
-	{ eAction_Workspace_Tree, "Workspace Tree...", "See the objects tree of the loaded workspace", ":/images/alpha-numeric/9.png" },
+    { eAction_Workspace_Tree, "Workspace Tree...", "Workspace Tree\nSee the objects tree of the loaded workspace", ":/images/OSGeo/page-info.png" },
 
-	{ eAction_Save_Map_Image, "Save Map Image...", "Save map to file", ":/images/alpha-numeric/a.png" },
+    { eAction_Save_Map_Image, "Save Map Image...", "Save Map Image\nSave map to file", ":/images/OSGeo/map-export.png" },
 
-	{ eAction_Refresh_Map, "Refresh", "Refresh main map", ":/images/alpha-numeric/b.png" },
+    { eAction_Refresh_Map, "Refresh", "Refresh\nRefresh main map", ":/images/OSGeo/zoom-refresh.png" },
 
-	{ eAction_Graphic_Settings, "Graphic Settings...", "Adjust graphic settings", ":/images/alpha-numeric/c.png" },
+    { eAction_Graphic_Settings, "Graphic Settings...", "Graphic Settings\nAdjust map graphics", ":images/OSGeo/map-settings.png" },
 
-	{ eAction_Full_Screen, "Full Screen", "<html><head/><body><p>Toggle full screen mode.</p><p>Use the <span style=\" font-weight:600;\">F11</span> key to switch modes.</p></body></html>", ":/images/alpha-numeric/d.png", "", "F11" },
+    { eAction_Full_Screen, "Full Screen", "Full Screen\nToggle full screen mode.\nUse the <span style=\" font-weight:600;\">F11</span> key to switch modes.", ":images/OSGeo/fullscreen.png", "", "F11" },
 
-	{ eAction_Re_center, "Re-center", "Bring map to original position and size", ":/images/alpha-numeric/e.png", "", "Home" },
+    { eAction_Re_center, "Re-center", "Re-center\nBring map to original position and size", ":/images/OSGeo/zoom-extent.png", "", "Home" },
 
-	{ eAction_Zoom_In, "Zoom In", "Zoom map in", ":/images/alpha-numeric/5.png", "", "Ctrl++" },
+    { eAction_Zoom_In, "Zoom In", "Zoom In\nZoom map in", ":/images/OSGeo/zoom-in.png", "", "Ctrl++" },
 
-	{ eAction_Zom_Out, "Zom Out", "Zom map out", ":/images/alpha-numeric/f.png", "", "Ctrl+-" },			//last designer icon, so far.  TODO: delete this comment
+    { eAction_Zoom_Out, "Zoom Out", "Zoom Out\nZoom map out", ":/images/OSGeo/zoom-out.png", "", "Ctrl+-" },			//last designer icon, so far.  TODO: delete this comment
 
-	{ eAction_Operations, "&Operations", "", "" },
+	{ eAction_Operations, "&Operations", "Operations", "" },
 
-	{ eAction_Dataset, "&Dataset", "", "" },
+	{ eAction_Dataset, "&Dataset", "Dataset", "" },
 
-	{ eAction_Filter, "&Filter", "", "" },	
+	{ eAction_Filter, "&Filter", "Filter", "" },	
 
 
 	// End of Designer actions list
 
 
-	{ eAction_DisplayEditor2D, "2D", "Display 2D view", "://images/alpha-numeric/__a.png", "://images/alpha-numeric/__a.png" },	
+    { eAction_DisplayEditor2D, "2D", "2D\nDisplay 2D view", "://images/alpha-numeric/__a.png", "://images/alpha-numeric/__a.png" },
 
-	{ eAction_DisplayEditor3D, "3D", "Display 3D view", "://images/alpha-numeric/__b.png", "://images/alpha-numeric/__b.png" },	
+    { eAction_DisplayEditor3D, "3D", "3D\nDisplay 3D view", "://images/alpha-numeric/__b.png", "://images/alpha-numeric/__b.png" },
 
 	{ eAction_DisplayEditorLog, "Text", "Display text", "://images/alpha-numeric/__c.png", "://images/alpha-numeric/__c.png" },
 
 	{ eAction_DisplayEditorDock, "", "Show/Hide the view working panel", "://images/alpha-numeric/__d.png" },
 
-	{ eAction_MapEditorDistance, "Distance", "Measure distance between two points", "://images/alpha-numeric/__e.png" },
+    { eAction_MapEditorDistance, "Distance", "Distance\nMeasure distance (m) between two points", "://images/OSGeo/measure-length.png" },
 
-	{ eAction_MapEditorArea, "Area", "Measure m2 of selected area", "://images/alpha-numeric/__f.png" },
+    { eAction_MapEditorArea, "Area", "Area\nMeasure area (m<sup>2</sup>) of selected region", "://images/OSGeo/measure-area.png" },
 
-	{ eAction_MapEditorMean, "Mean", "Compute mean of plotted variable in selected area", "://images/alpha-numeric/__g.png" },
+    { eAction_MapEditorMean, "Mean", "Mean\nCompute mean of plotted variable in selected region", "://images/alpha-numeric/__g.png" },
 
-	{ eAction_MapEditorStDev, "StDev", "Compute standard deviation of plotted variable in selected area", "://images/alpha-numeric/__h.png" },
+    { eAction_MapEditorStDev, "StDev", "Standard Deviation\nCompute standard deviation of plotted variable in selected region", "://images/alpha-numeric/__h.png" },
 
-	{ eAction_MapEditorLinearRegression, "LG", "Compute linear regression of plotted variable in selected area", "://images/alpha-numeric/__i.png" },
+    { eAction_MapEditorLinearRegression, "LG", "Linear Regression\nCompute linear regression of plotted variable in selected area", "://images/alpha-numeric/__i.png" },
 
 
-	{ eActionGroup_Projections, "Projections", "Projections menu", "://images/alpha-numeric/__j.png" },
+    { eActionGroup_Projections, "Projections", "Projections menu", "://images/OSGeo/crs-change.png" },
 
-	{ eAction_Projection1, "Projection 0", "Projection 0 tool-tip", "://images/alpha-numeric/__k.png", "://images/alpha-numeric/__k.png" },
+    { eAction_Projection1, "Projection 0", "Projection 0 tool-tip", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
 
-	{ eAction_Projection2, "Projection 1", "Projection 1 tool-tip", "://images/alpha-numeric/__l.png", "://images/alpha-numeric/__l.png" },
+    { eAction_Projection2, "Projection 1", "Projection 1 tool-tip", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
 
-	{ eAction_Projection3, "Projection 2", "Projection 2 tool-tip", "://images/alpha-numeric/__m.png", "://images/alpha-numeric/__m.png" },
+    { eAction_Projection3, "Projection 2", "Projection 2 tool-tip", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
 
 
 	{ eAction_ApplicationPaths_page, "Paths", "Default application paths selection", "://images/alpha-numeric/__n.png", "://images/alpha-numeric/__n.png" },
@@ -141,11 +141,59 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
 	{ eAction_ApplicationStyles_page, "Styles", "Application visual options", "://images/alpha-numeric/__p.png", "://images/alpha-numeric/__p.png" },
 
-	// TODO images __n, __o and __p are used bu settings dialog
+    // TODO images __n, __o and __p are used by settings dialog
 };
 
 
 
+
+//////////////////////////////////////////////////////////////////////////////////
+//						CActionInfo Implementation
+//						(Actions Table Management)
+//////////////////////////////////////////////////////////////////////////////////
+
+
+//static 
+bool CActionInfo::CheckActionsTableIntegrity()
+{
+	// nested lambdas section
+
+	auto has_equal_entry = []( const CActionInfo &ai ) -> bool
+	{
+		for ( int i = ai.mTag + 1; i < EActionTags_size; ++i )
+		{
+			EActionTag tag_i = static_cast< EActionTag >( i );
+			const CActionInfo& ai_i = ActionInfo( tag_i );
+			if ( ai_i == ai )
+				return true;
+		}
+		return false;
+	};
+
+
+	// function body
+
+#if defined (DEBUG) || defined (_DEBUG)
+
+	for ( int i = eLastRecentFileAction + 1; i < EActionTags_size; ++i )
+	{
+		EActionTag tag_i = static_cast<EActionTag >( i );
+		const CActionInfo& ai = ActionInfo( tag_i );
+		if ( has_equal_entry( ai ) )
+			return false;
+	}
+
+#endif
+
+	return true;
+}
+
+//static 
+bool CActionInfo::ActionsTableIntegrityChecked = CheckActionsTableIntegrity();
+
+
+
+//static 
 const CActionInfo& CActionInfo::ActionInfo( EActionTag tag )
 {
 	assert__( tag < EActionTags_size );
@@ -154,6 +202,37 @@ const CActionInfo& CActionInfo::ActionInfo( EActionTag tag )
 }
 
 
+//static 
+EActionTag CActionInfo::FindEntry( const QAction *a )
+{
+	if ( a->isSeparator() )
+		return eAction_Separator;
+
+	CActionInfo ai( a );
+	for ( int i = eLastRecentFileAction + 1; i < EActionTags_size; ++i )
+	{
+		EActionTag tag_i = static_cast< EActionTag >( i );
+		const CActionInfo& ai_i = ActionInfo( tag_i );
+		if ( ai_i == ai )
+			return tag_i;
+	}
+	return EActionTags_size;
+}
+
+
+//static 
+EActionTag CActionInfo::UpdateActionProperties( QAction *a )
+{
+	EActionTag tag = FindEntry( a );
+
+	if ( tag != eAction_Separator && tag < EActionTags_size )
+		SetActionProperties( a, tag );
+
+	return tag;
+}
+
+
+//static 
 QAction* CActionInfo::SetActionProperties( QAction *a, EActionTag tag )
 {
 	assert__( tag < EActionTags_size );
@@ -180,6 +259,7 @@ QAction* CActionInfo::SetActionProperties( QAction *a, EActionTag tag )
 }
 
 
+//static 
 QAction* CActionInfo::CreateAction( QObject *parent, EActionTag tag )
 {
 	assert__( tag < EActionTags_size );
@@ -194,12 +274,14 @@ QAction* CActionInfo::CreateAction( QObject *parent, EActionTag tag )
 }
 
 
+//static 
 QAction* CActionInfo::SetDockActionProperties( QDockWidget *dock, EActionTag tag )
 {
 	return SetActionProperties( dock->toggleViewAction(), tag );
 }
 
 
+//static 
 QToolButton* CActionInfo::CreateMenuButton( EActionTag button_tag, const QList<QAction*> &actions )
 {
 	assert__( button_tag < EActionTags_size );
@@ -226,6 +308,7 @@ QToolButton* CActionInfo::CreateMenuButton( EActionTag button_tag, const QList<Q
 }
 
 
+//static 
 QToolButton* CActionInfo::CreateMenuButton( QObject *parent, EActionTag button_tag, const std::vector<EActionTag> &tags )
 {
 	QList<QAction*> ActionsList;
@@ -236,6 +319,7 @@ QToolButton* CActionInfo::CreateMenuButton( QObject *parent, EActionTag button_t
 }
 
 
+//static 
 QActionGroup* CActionInfo::CreateActionsGroup( QWidget *group_parent, const std::vector<EActionTag> &tags, bool exclusive )
 {
 	QActionGroup *group = new QActionGroup( group_parent );
@@ -248,6 +332,18 @@ QActionGroup* CActionInfo::CreateActionsGroup( QWidget *group_parent, const std:
 	return group;
 }
 
+
+
+//static 
+void CActionInfo::UpdateActionsState( std::initializer_list< EActionTag > tags, bool enable )
+{
+	for ( auto &tag : tags )
+	{
+		const CActionInfo& ai = ActionInfo( tag );		assert__( ai.IsAutomatic() && ai.mActions.size() > 0 );
+		for ( auto *a : ai.mActions )
+			a->setEnabled( enable );
+	}
+}
 
 
 

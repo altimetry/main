@@ -195,7 +195,7 @@ public:
 	virtual void setHelpEditor( bool help );
 	virtual void setHelpProperties( const QString &text, int spacing, Qt::Alignment alignment = Qt::AlignCenter );
     virtual QSize sizeHint() const;
-	void setSizeHint( int w, int h ){ m_SizeHint = QSize( w, h ); };
+    void setSizeHint( int w, int h ){ m_SizeHint = QSize( w, h ); }
 
     //selection / position
     //

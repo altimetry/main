@@ -146,7 +146,7 @@ void CWorkspaceDialog::CreateGUI()
 
 	auto help = new CTextWidget;
 	help->setHelpProperties( CreateHelpText(), 6, Qt::AlignCenter );
-    auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
+    auto help_group = CreateGroupBox( ELayoutType::Horizontal, { help }, "", nullptr, 6, 6, 6, 6, 6 );
     help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 
 
@@ -237,9 +237,10 @@ void CWorkspaceDialog::CreateGUI()
     //	Wrap up dimensions
 
     adjustSize();
-	setMinimumWidth( width() );
+    setMinimumWidth( width() );
     if ( mTask != CTreeWorkspace::eImport )
         setMaximumHeight( height() );
+    adjustSize();
 
 
 	assert__( layout() == main_l );				Q_UNUSED( main_l );	//for release builds
@@ -445,11 +446,22 @@ void CWorkspaceDialog::accept()
 	{
 		mPath.clear();
 		mName.clear();
+
+		mFormulas = false;
+		mDatasets = false;
+		mOperations = false;
+		mViews = false;
 	}
 	else
 	{
 		mPath = NormalizePath( path );
 		mName = name;
+
+		mFormulas = mFormulasGroup->isChecked();
+		mDatasets = mDatasetsCheck->isChecked();
+		mOperations = mOperationsCheck->isChecked();
+		mViews = mViewsCheck->isChecked();
+
 		QDialog::accept();
 	}
 }

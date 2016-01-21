@@ -629,6 +629,86 @@ inline QListWidget* fillList( QListWidget *c, CONTAINER &names, int selection, b
 
 
 
+//////////////////////
+//table widget
+//////////////////////
+
+
+// This is not always accurate.	resizeColumnsToContents should be
+//	called if the returned width is used to resize the table and 
+//	all width must be visible; but this is not desirable for big 
+//	data.
+//	To be improved with empiric experience.
+//
+template< class TABLE >
+inline int ComputeTableWidth( TABLE *t )
+{
+	//t->resizeColumnsToContents();
+	t->resize( 1, 1 );
+	auto const vmode = t->verticalScrollMode();
+	auto const hmode = t->horizontalScrollMode();
+	t->setVerticalScrollMode( QAbstractItemView::ScrollPerPixel );		//vertical must be done first...
+	t->setHorizontalScrollMode( QAbstractItemView::ScrollPerPixel );	//...and horizontal must also be done, even if only vertical scrollBar size matters
+
+	int width = t->contentsMargins().left() + t->contentsMargins().right() + t->verticalScrollBar()->width();
+	if ( t->verticalHeader()->isVisible() )
+		width += t->verticalHeader()->width();
+    const int columns = t->columnCount();
+	for ( auto i = 0; i < columns; ++i )
+		width += t->columnWidth( i );
+
+	t->setVerticalScrollMode( vmode );
+	t->setHorizontalScrollMode( hmode );
+	return width;
+}
+
+
+// This was bases on ComputeTableWidth bit is (even more) less tested.
+//	To be improved also with empiric experience.
+//
+template< class TABLE >
+inline int ComputeTableHeight( TABLE *t )
+{
+	//t->resizeRowsToContents();
+	t->resize( 1, 1 );
+	auto const vmode = t->verticalScrollMode();
+	auto const hmode = t->horizontalScrollMode();
+	t->setVerticalScrollMode( QAbstractItemView::ScrollPerPixel );
+	t->setHorizontalScrollMode( QAbstractItemView::ScrollPerPixel );
+
+	int height = t->contentsMargins().top() + t->contentsMargins().bottom() + t->horizontalScrollBar()->height();
+	if ( t->horizontalHeader()->isVisible() )
+		height += t->horizontalHeader()->height();
+    const int rows = t->rowCount();
+	for ( auto i = 0; i < rows; ++i )
+		height += t->rowHeight( i );
+
+	t->setVerticalScrollMode( vmode );
+	t->setHorizontalScrollMode( hmode );
+	return height;
+}
+
+
+
+
+//////////////////////
+//	dialog box
+//////////////////////
+
+inline void SetMaximizableDialog( QDialog *d )
+{
+#if defined (_WIN32) || defined (WIN32)
+	// Show maximize button in windows
+	// If this is set in linux, it will not center the dialog over parent
+	d->setWindowFlags( ( d->windowFlags() & ~Qt::Dialog ) | Qt::Window | Qt::WindowMaximizeButtonHint );
+#elif defined (Q_OS_MAC)
+	// Qt::WindowStaysOnTopHint also works (too weel: stays on top of other apps also). Without this, we have the mac MDI mess...
+	d->setWindowFlags( ( d->windowFlags() & ~Qt::Dialog ) | Qt::Tool );
+#endif
+}
+
+
+
 //////////////////////////////////////////////////////////////////
 //						BRAT Specific
 //////////////////////////////////////////////////////////////////
@@ -651,6 +731,10 @@ const int min_widget_height = 200;
 
 const int min_editor_dock_width = 200;
 const int min_editor_dock_height = 100;
+
+
+const int icon_size = 24;
+
 
 
 

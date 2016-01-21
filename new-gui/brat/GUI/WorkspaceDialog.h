@@ -59,6 +59,10 @@ public:
 	std::string mPath;
 	std::string mName;
 
+	bool mFormulas = false;
+	bool mDatasets = false;
+	bool mOperations = false;
+	bool mViews = false;
 
 	/////////////////////////////
 	//	Construction /Destruction

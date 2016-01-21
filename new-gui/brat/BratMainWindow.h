@@ -108,13 +108,19 @@ private:
 	/////////////////////////////
     // Construction / Destruction
     //
-	void CreateDocks();
+
+	// assume mManager created
+	//
+	CControlsPanel* MakeWorkingPanel( ETabName tab );
 	void CreateWorkingDock();
 	void CreateOutputDock();
+	void CreateDocks();
+
+	// assume docks created
+	//
+	void ProcessMenu();
 	void FillStatusBar();
 	void FillStatusBarExperimental();
-
-	void finishOldInitialization();
 
 public:
     explicit CBratMainWindow( CApplicationSettings &settings );
@@ -147,8 +153,6 @@ public:
 	template< ETabName INDEX >
 	TabType< INDEX >* WorkingPanel();
 
-	CControlsPanel* MakeWorkingPanel( ETabName tab );
-
     //
     //			Access
 	/////////////////////////////
@@ -162,7 +166,7 @@ public:
 private:
 	void SetCurrentWorkspace( const CWorkspace *wks );
 
-	void DoEmptyWorkspace();
+	bool DoEmptyWorkspace();
 
 	// GUI Management
 	void EnableCtrlWorkspace();
@@ -192,13 +196,15 @@ signals:
 	//			Signals
 	////////////////////////////////////
 
-	void WorkspaceChanged( CModel *model );
+	void WorkspaceChanged( const CModel *model );
 	void WorkspaceChanged( CWorkspaceDataset *wksd );
 	void WorkspaceChanged( CWorkspaceOperation *wkso );
 	void WorkspaceChanged( CWorkspaceDisplay *wksd );
 
 	void SettingsUpdated();
 
+	////////////////////////////////////
+	//			Slots
 	////////////////////////////////////
 	// Not triggered by Menu / Tool-bars
 	////////////////////////////////////
@@ -233,6 +239,8 @@ protected slots:
 
     // Update Actions
     //
+    void UpdateWorkspaceUI( const CModel *model );
+
     void UpdateWindowMenu();
 
 
@@ -273,7 +281,7 @@ private slots:
 	//Menu View
 
     void on_action_Zoom_In_triggered();
-    void on_action_Zom_Out_triggered();
+    void on_action_Zoom_Out_triggered();
     void on_action_Re_center_triggered();
     void on_action_Refresh_Map_triggered();
     void on_action_Graphic_Settings_triggered();

@@ -37,6 +37,18 @@ class CSchedulerDlg : public QDialog, private Ui::CSchedulerDlg
 
 	using base_t = QDialog;
 
+	enum ETaskListCol
+	{
+		eTaskUid,
+		eTaskName,
+		eTaskStart,
+		eTaskStatus,
+		eTaskCMD,
+		eTaskLogFile,
+		eTaskListCol_size
+	};
+
+
     // static data members
 
     static const auto smSCHEDULER_TIMER_INTERVAL = 30000;
@@ -49,8 +61,11 @@ class CSchedulerDlg : public QDialog, private Ui::CSchedulerDlg
 	// construction / destruction
 
     void CreateMenuBar();
-    void SetupTables();
-    void LoadTasks();
+	
+	template< typename... Args > 
+	void SetupTables( Args... args );
+    
+	void LoadTasks();
 
 public:
     explicit CSchedulerDlg(QWidget *parent = 0);

@@ -55,6 +55,8 @@ const std::string& GenericName( const VALUE &v )
 template<>
 const std::string& GenericName( const int &v )
 {
+    Q_UNUSED( v );
+
 	static std::string s;
 
 	return s;
@@ -62,12 +64,16 @@ const std::string& GenericName( const int &v )
 template<>
 const std::string& GenericName( const CBratObject &v )
 {
-	return GenericName( 0 );
+    Q_UNUSED( v );
+
+    return GenericName( 0 );
 }
 template<>
 const std::string& GenericName( const CTreeWorkspace &v )
 {
-	static const std::string s = "Workspace Tree";
+    Q_UNUSED( v );
+
+    static const std::string s = "Workspace Tree";
 	return s;
 }
 
@@ -155,7 +161,9 @@ struct WkspcTreeNode : public WkspcTreeNodeBase< VALUE, CAny_iterator, WkspcTree
 
 	virtual const child_node_t child_value( const child_value_t &v ) const
 	{
-		return 0;
+        Q_UNUSED( v );
+
+        return 0;
 	}
 };
 
@@ -187,7 +195,9 @@ bool process( QTreeWidgetItem *item, const CFormula *value )
 
 bool process( QTreeWidgetItem *item, const COperation *value )
 {
-	if ( !value )
+    Q_UNUSED( item );
+
+    if ( !value )
 		return false;
 	return true;
 }
@@ -227,7 +237,9 @@ struct WkspcTreeNode< CBratObject > : public WkspcTreeNodeBase< CBratObject, CBr
 
 	virtual const child_node_t child_value( const child_value_t &pair ) const override
 	{
-		return 0;
+        Q_UNUSED( pair );
+
+        return 0;
 	}
 };
 
@@ -279,7 +291,7 @@ struct WkspcTreeNode< CWorkspace > : public WkspcTreeNodeBase< CWorkspace, CWork
 
 	virtual bool operator()( QTreeWidgetItem *item, const value_t &v ) const
 	{
-		auto wks = dynamic_cast< const CWorkspace* >( &v );							assert__(wks);
+        auto wks = dynamic_cast< const CWorkspace* >( &v );			assert__(wks);              Q_UNUSED( wks );
 
 		auto formula = dynamic_cast< const CWorkspaceFormula* >( &v );
 		auto operation = dynamic_cast< const CWorkspaceOperation* >( &v );
@@ -383,7 +395,7 @@ void CWorkspaceElementsDialog::CreateGUI()
 								help_group,
                                 mButtonBox
 
-                            }, this, 6, 6, 6, 6, 6 );
+                            }, this, 6, 6, 6, 6, 6 );                       Q_UNUSED( main_l );
 
 
     setWindowTitle( "Workspace Elements Tree - " + t2q( mTree.GetRootData()->GetName() ) );
@@ -405,6 +417,8 @@ void CWorkspaceElementsDialog::CreateGUI()
 CWorkspaceElementsDialog::CWorkspaceElementsDialog( QWidget *parent, const CTreeWorkspace &wks )
 	: base_t( parent ), mTree( wks )
 {
+	assert__( mTree.GetRootData() );
+
 	CreateGUI();
 }
 

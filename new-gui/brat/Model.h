@@ -95,6 +95,17 @@ public:
 	void Reset();
 
 	void ResetImportTree();
+
+
+	void ResetImportBits()
+	{
+		mTree.GetImportBitSet()->m_bitSet.reset();
+	}
+    void SetImportBits( std::initializer_list< std::pair< size_t, bool > > pos_values )
+	{
+		for ( auto &pos_value : pos_values )
+			mTree.GetImportBitSet()->m_bitSet.set( pos_value.first, pos_value.second );
+	}
 };
 
 

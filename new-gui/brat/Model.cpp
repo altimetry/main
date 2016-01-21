@@ -37,7 +37,10 @@ CWorkspace* CModel::GetCurrentRootWorkspace()
 template< class WKSPC >
 WKSPC* CModel::GetWorkspace( CTreeWorkspace &tree )
 {
-	CWorkspace* wks = GetRootWorkspace( tree );
+	CWorkspace* wks = GetRootWorkspace( tree );		//admissible when no workspace loaded
+	if ( !wks )
+		return nullptr;
+
 	std::string workspaceKey = !wks ? "" : ( wks->GetKey() + CWorkspace::m_keyDelimiter + WKSPC::NAME );
 
 	return dynamic_cast< WKSPC* >( tree.FindWorkspace( workspaceKey ) );

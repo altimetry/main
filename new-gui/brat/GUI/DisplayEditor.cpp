@@ -64,7 +64,7 @@ void CAbstractDisplayEditor::CreateWorkingDock( CControlsPanel *controls )
 void CAbstractDisplayEditor::CreateGraphicsBar()
 {
     mToolBar = new QToolBar( "View ToolBar", this );
-    mToolBar->setIconSize( QSize( 16, 16 ) );
+    mToolBar->setIconSize({icon_size,icon_size});
 
 	// add button group
 
