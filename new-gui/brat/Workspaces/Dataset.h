@@ -25,6 +25,8 @@
 #include "libbrathl/Product.h"
 
 
+class CWorkspaceSettings;
+
 
 
 class CDataset : public CBratObject

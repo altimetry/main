@@ -17,7 +17,7 @@
 */
 #include "new-gui/brat/stdafx.h"
 #include "new-gui/Common/ConfigurationKeywords.h"
-#include "new-gui/brat/ApplicationSettings.h"
+#include "new-gui/brat/BratSettings.h"
 #include "display/wxInterface.h"
 
 // For compilers that support precompilation
@@ -109,63 +109,6 @@ wxString FindFile( const wxString& fileName )
 
 IMPLEMENT_APP(CBratGuiApp)
 
-//----------------------------------------
-CWorkspace* CBratGuiApp::GetCurrentWorkspace()
-{
-  if (m_currentTree == NULL)
-  {
-    m_currentTree = &m_tree;
-  }
-  return m_currentTree->GetRootData();
-}
-//----------------------------------------
-CWorkspaceDataset* CBratGuiApp::GetCurrentWorkspaceDataset()
-{
-  if (m_currentTree == NULL)
-  {
-    m_currentTree = &m_tree;
-  }
-  return dynamic_cast<CWorkspaceDataset*>(m_currentTree->FindWorkspace( GetWorkspaceKey( CWorkspaceDataset::NAME ) ) );
-}
-//----------------------------------------
-CWorkspaceOperation* CBratGuiApp::GetCurrentWorkspaceOperation()
-{
-  if (m_currentTree == NULL)
-  {
-    m_currentTree = &m_tree;
-  }
-  return dynamic_cast<CWorkspaceOperation*>(m_currentTree->FindWorkspace( GetWorkspaceKey( CWorkspaceOperation::NAME) ) );
-}
-//----------------------------------------
-CWorkspaceFormula* CBratGuiApp::GetCurrentWorkspaceFormula()
-{
-  if (m_currentTree == NULL)
-  {
-    m_currentTree = &m_tree;
-  }
-  return dynamic_cast<CWorkspaceFormula*>(m_currentTree->FindWorkspace( GetWorkspaceKey( CWorkspaceFormula::NAME) ) );
-}
-//----------------------------------------
-CWorkspaceDisplay* CBratGuiApp::GetCurrentWorkspaceDisplay()
-{
-  if (m_currentTree == NULL)
-  {
-    m_currentTree = &m_tree;
-  }
-  return dynamic_cast<CWorkspaceDisplay*>(m_currentTree->FindWorkspace( GetWorkspaceKey( CWorkspaceDisplay::NAME ) ) );
-}
-//----------------------------------------
-std::string CBratGuiApp::GetWorkspaceKey( const std::string& subKey )
-{
-	CWorkspace* wks = GetCurrentWorkspace();
-	if ( wks == NULL )
-	{
-		return "";
-	}
-
-	return wks->GetKey() + CWorkspace::m_keyDelimiter + subKey;
-}
-
 
 #define NEW_CONFIGURATION_STUFF
 
@@ -220,6 +163,7 @@ bool CBratGuiApp::OnInit()
     }
   }
 
+  CTools::SetDataDir( GetDirectoryFromPath( wxGetApp().argv[0] ) + "/data" );
   if (!CTools::DirectoryExists(CTools::GetDataDir()))
   {
       std::cerr << "ERROR: " << CTools::GetDataDir() << " is not a valid directory" << std::endl;
@@ -728,7 +672,8 @@ bool CBratGuiApp::LoadConfig()
 {
 	assert__( m_config && !mAppSettings );
 
-    mAppSettings = new CApplicationSettings( m_config->GetLocalFile( wxGetApp().GetAppName() ).GetFullPath().ToStdString() );
+    static CApplicationPaths brat_paths( wxGetApp().argv[0].ToStdString().c_str() );
+    mAppSettings = new CBratSettings( brat_paths, m_config->GetLocalFile( wxGetApp().GetAppName() ).GetFullPath().ToStdString() );
 
 #if defined(NEW_CONFIGURATION_STUFF)
 

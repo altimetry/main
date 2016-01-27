@@ -326,6 +326,9 @@ class CDatasetFilterControls : public CDesktopControlsPanel
 
 	using base_t = CDesktopControlsPanel;
 
+    QComboBox *mSavedRegionsCombo = nullptr;
+    QComboBox *mOpenFilterCombo   = nullptr;
+
 	CWorkspaceDataset *mWks = nullptr;
 
 public:
@@ -421,113 +424,6 @@ protected slots:
 
 
 
-/////////////////////////////////////////////////////////////////////////////////////
-//								Advanced Operations
-/////////////////////////////////////////////////////////////////////////////////////
-
-//class CAdvancedOperationsControls : public CControlsPanel
-//{
-//#if defined (__APPLE__)
-//#pragma clang diagnostic push
-//#pragma clang diagnostic ignored "-Winconsistent-missing-override"
-//#endif
-//
-//    Q_OBJECT
-//
-//#if defined (__APPLE__)
-//#pragma clang diagnostic pop
-//#endif
-//
-//	using base_t = CControlsPanel;
-//
-//public:
-//	explicit CAdvancedOperationsControls( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
-//
-//	virtual ~CAdvancedOperationsControls()
-//	{}	
-//
-//	// access 
-//
-//
-//	// operations
-//
-//};
-
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////
-//								Graphics Panels
-/////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////
-
-/////////////////////////////////////////////////////////////////////////////////////
-//								Plot View
-/////////////////////////////////////////////////////////////////////////////////////
-
-class CPlotViewControls : public CControlsPanel
-{
-#if defined (__APPLE__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winconsistent-missing-override"
-#endif
-
-    Q_OBJECT
-
-#if defined (__APPLE__)
-#pragma clang diagnostic pop
-#endif
-
-	using base_t = CControlsPanel;
-
-public:
-	explicit CPlotViewControls( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
-
-	virtual ~CPlotViewControls()
-	{}	
-
-	// access 
-
-
-	// operations
-
-};
-
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////
-//								Map View
-/////////////////////////////////////////////////////////////////////////////////////
-
-class CMapViewControls : public CControlsPanel
-{
-#if defined (__APPLE__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winconsistent-missing-override"
-#endif
-
-    Q_OBJECT
-
-#if defined (__APPLE__)
-#pragma clang diagnostic pop
-#endif
-
-	using base_t = CControlsPanel;
-
-public:
-	explicit CMapViewControls( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
-
-	virtual ~CMapViewControls()
-	{}	
-
-	// access 
-
-
-	// operations
-
-};
 
 
 

@@ -2578,6 +2578,7 @@ void COperationPanel::DuplicateOperation()
   bool bOk = true;
 
 
+  CWorkspaceDataset* wksd = wxGetApp().GetCurrentWorkspaceDataset();
   CWorkspaceOperation* wkso = wxGetApp().GetCurrentWorkspaceOperation();
   if (wkso == NULL)
   {
@@ -2599,7 +2600,7 @@ void COperationPanel::DuplicateOperation()
 
   wxString opName = wkso->GetOperationCopyName(m_operation->GetName());
 
-  bOk = wkso->InsertOperation(opName.ToStdString(), m_operation, wkso );
+  bOk = wkso->InsertOperation(opName.ToStdString(), m_operation, wksd, wkso );
 
   if (bOk == false)
   {

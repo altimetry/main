@@ -112,7 +112,9 @@ public:
 	std::string mIconPath;
 	std::string mOnIconPath;
 	std::string mShortcut;
-	QList<QAction*> mActions;
+    std::wstring mWShortcut;
+    QString mQShortcut;
+    QList<QAction*> mActions;
 
 
 	// construction / destruction
@@ -121,13 +123,13 @@ protected:
 	// For internal processing only
 	//
 	CActionInfo( const QAction *a ) :
-		mTag( EActionTags_size ), mName( q2a( a->text() ) ), mTip( q2a( a->toolTip() ) ), mShortcut( q2a( a->shortcut() ) )
+        mTag( EActionTags_size ), mName( q2a( a->text() ) ), mTip( q2a( a->toolTip() ) ), mShortcut( q2a( a->shortcut() ) ), mQShortcut( a->shortcut() ), mWShortcut( q2w( a->toolTip() ) )
 	{}
 
 public:
 	CActionInfo( EActionTag ActionTag, const std::string &Name, const std::string &Tip, const std::string &IconPath, 
 		const std::string &OnIconPath = "", const std::string &Shortcut = "" ) :
-        mTag( ActionTag ), mName( Name ), mTip( FormatTip( Tip ) ), mIconPath( IconPath ), mOnIconPath( OnIconPath ), mShortcut( Shortcut )
+        mTag( ActionTag ), mName( Name ), mTip( Tip ), mIconPath( IconPath ), mOnIconPath( OnIconPath ), mShortcut( Shortcut ), mQShortcut( Shortcut.c_str() ), mWShortcut( q2w( Shortcut.c_str() ) )
 	{}
 
 	virtual ~CActionInfo()
@@ -144,17 +146,7 @@ public:
 
 	// operators
 
-	// These are the only properties that allow us to 
-	//	identify an action so actions must be unique 
-	//	with respect to them (mName, etc).
-	//
-    bool operator == ( const CActionInfo &o ) const
-	{
-		return
-			mName == o.mName &&
-            //mTip == o.mTip &&
-			mShortcut == o.mShortcut;
-	}
+    bool operator == ( const CActionInfo &o ) const;
 
 
     static std::string FormatTip( const std::string &tip )

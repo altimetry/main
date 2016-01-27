@@ -6,7 +6,7 @@
 #include "ui_BratMainWindow.h"
 #include "new-gui/brat/GUI/AbstractEditor.h"
 #include "new-gui/brat/GUI/DesktopManager.h"
-#include "ApplicationSettings.h"
+#include "BratSettings.h"
 #include "Model.h"
 
 
@@ -102,7 +102,7 @@ private:
 
     // Persistence
     //
-	CApplicationSettings &mSettings;
+	CBratSettings &mSettings;
 
 
 	/////////////////////////////
@@ -123,7 +123,7 @@ private:
 	void FillStatusBarExperimental();
 
 public:
-    explicit CBratMainWindow( CApplicationSettings &settings );
+    explicit CBratMainWindow( CBratSettings &settings );
 	
 	virtual ~CBratMainWindow();
     //
@@ -173,13 +173,6 @@ private:
 	void LoadWorkspace();
 	void ResetWorkspace();
     bool SaveWorkspace();
-
-    // Business Logic
-    //
-	//void CreateWPlot( CWPlot* wplot, QSize& size, QPoint& pos );
-	//void WorldPlot();
-	void XYPlot();
-	void ZFXYPlot();
 
 	// .................................................
 	

@@ -30,6 +30,7 @@
 
 #include "Workspace.h"
 #include "Operation.h"
+#include "WorkspaceSettings.h"
 #include "new-gui/brat/Display/MapTypeDisp.h"
 
 using namespace processes;

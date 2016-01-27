@@ -138,6 +138,9 @@ public:
 
 	void Clear() { DeleteTree(); }
 
+	std::string ChildKey( const std::string &name ) const;
+
+
 	const_iterator begin() const
 	{
 		//return GetRoot()->begin();
@@ -160,10 +163,23 @@ public:
 	
 	const CWorkspace* GetRootData() const { return const_cast<CTreeWorkspace*>(this)->GetRootData(); }
 
-	CBitSet32* GetImportBitSet() { return &m_importBitSet; };
+    //CBitSet32* GetImportBitSet() { return &m_importBitSet; }
+	void ResetImportBits()
+	{
+		m_importBitSet.m_bitSet.reset();
+	}
+    void SetImportBits( std::initializer_list< std::pair< size_t, bool > > pos_values )
+    {
+        for ( auto &pos_value : pos_values )
+            m_importBitSet.m_bitSet.set( pos_value.first, pos_value.second );
+    }
+    bool GetImportBit( size_t pos )
+	{
+        return m_importBitSet.m_bitSet.test( pos );
+    }
 
-	bool GetCtrlDatasetFiles() { return m_ctrlDatasetFiles; };
-	void SetCtrlDatasetFiles( bool value ) { m_ctrlDatasetFiles = value; };
+    bool GetCtrlDatasetFiles() { return m_ctrlDatasetFiles; }
+    void SetCtrlDatasetFiles( bool value ) { m_ctrlDatasetFiles = value; }
 
 	CWorkspace * GetCurrentData( bool withExcept = true );
 	CWorkspace * GetParentData( bool withExcept  = true );
@@ -171,7 +187,7 @@ public:
 	CWorkspaceFormula* GetWorkspaceFormula();
 	static CWorkspaceFormula * GetWorkspaceFormula( CWorkspace *w, bool withExcept  = true );
 
-	virtual void SetRoot( const std::string& nm, CBratObject* x, bool goCurrent = false ) override;
+	void SetRoot( CBratObject* x, bool goCurrent = false );
 
 	virtual CObjectTreeIterator AddChild( const std::string& nm, CWorkspace* x, bool goCurrent = false );
 
@@ -183,7 +199,7 @@ public:
 
 	CWorkspaceFormula* LoadConfigFormula( CWorkspaceDataset *wksds, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, std::string &errorMsg );
 
-	bool Import( CTreeWorkspace* treeSrc, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso, std::string &keyToFind, std::string &errorMsg );
+	bool Import( CTreeWorkspace* treeSrc, CWorkspaceDataset *wksds, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso, std::string &keyToFind, std::string &errorMsg );
 
 
 	/// Dump function

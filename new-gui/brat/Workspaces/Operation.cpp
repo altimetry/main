@@ -29,6 +29,7 @@ using namespace processes;
 
 #include "Workspace.h"
 #include "Operation.h"
+#include "WorkspaceSettings.h"
 
 
 
@@ -565,6 +566,61 @@ void COperation::SetExecNames( const std::string &appPath )
 
 
 
+
+//static 
+COperation* COperation::Copy( const COperation &o, CWorkspaceOperation *wkso, CWorkspaceDataset *wksd )
+{
+	COperation *op = new COperation( o.m_name );
+	
+	assert__( op->m_dataset == nullptr );
+
+	if ( o.m_dataset != nullptr )
+		op->m_dataset = op->FindDataset( o.m_dataset->GetName(), wksd );
+
+	op->m_record = o.m_record;
+	op->m_product = o.m_product;		//TODO v4: check this...
+
+	if ( o.m_select != nullptr )
+	{
+		if ( op->m_select != nullptr )
+		{
+			*op->m_select = *o.m_select;
+		}
+		else
+		{
+			op->m_select = new CFormula( *o.m_select );
+		}
+	}
+
+	op->m_formulas = o.m_formulas;
+
+	op->m_type = o.m_type;
+	op->m_dataMode = o.m_dataMode;
+	op->m_exportAsciiDateAsPeriod = o.m_exportAsciiDateAsPeriod;
+
+	op->InitOutput( wkso );					//assigns m_output and m_cmdFile
+	op->SetCmdFile( wkso );					//assigns m_cmdFile
+
+	op->InitExportAsciiOutput( wkso );		//assigns m_exportAsciiOutput and m_exportAsciiCmdFile
+	op->SetExportAsciiCmdFile( wkso );		//assigns m_exportAsciiCmdFile
+
+	return op;
+
+	// TODO not assigned: check why and consequences
+
+	//std::string m_showStatsOutput;
+	//std::string m_showStatsCmdFile;
+
+	//const int32_t m_verbose = 2;
+
+	//std::string m_logFile;
+
+	//bool m_exportAsciiExpandArray = false;
+	//bool m_exportAsciiNoDataComputation = false;
+	//bool m_executeAgain = false;
+
+	//int32_t m_exportAsciiNumberPrecision = defaultValue<int32_t>();
+}
 
 //----------------------------------------
 bool COperation::IsSelect(CFormula* value)
@@ -1215,7 +1271,7 @@ void COperation::InitOutput( CWorkspaceOperation *wks )
 	if ( wks == nullptr )
 		return;
 
-	//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR				!!! femm attention here !!!
+	//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR				!!! TODO attention here !!!
 
 	SetOutput( wks->GetPath() + "/Create" + GetName() + ".nc", wks );
 }

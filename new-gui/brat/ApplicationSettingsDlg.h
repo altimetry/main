@@ -19,13 +19,13 @@ class CApplicationSettingsDlg : public QDialog, private Ui::CApplicationSettings
 #pragma clang diagnostic pop
 #endif
 
-    CApplicationSettings &m_options;
+    CBratSettings &mSettings;
 
 	//ctor helpers
 
 	void createIcons();
 public:
-    explicit CApplicationSettingsDlg( CApplicationSettings &options, QWidget *parent );
+    explicit CApplicationSettingsDlg( CBratSettings &options, QWidget *parent );
 
 protected:
     bool ValidateAndAssign();

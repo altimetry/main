@@ -282,7 +282,7 @@ void CWorkspaceDialog::FillImportFormulas()
 
 	std::string error_msg;
 	std::vector< std::string > v;
-	if ( !mModel.LoadImportFormulas( path, v, true, true, error_msg ) )	// TODO !!! change to "..., false, true" after debugging
+	if ( !mModel.LoadImportFormulas( path, v, false, true, error_msg ) )
 	{
 		SimpleErrorBox( error_msg );
 	}
@@ -451,6 +451,8 @@ void CWorkspaceDialog::accept()
 		mDatasets = false;
 		mOperations = false;
 		mViews = false;
+
+		mImportFormulas.clear();
 	}
 	else
 	{
@@ -461,6 +463,11 @@ void CWorkspaceDialog::accept()
 		mDatasets = mDatasetsCheck->isChecked();
 		mOperations = mOperationsCheck->isChecked();
 		mViews = mViewsCheck->isChecked();
+
+		mImportFormulas.clear();
+		const QList< QListWidgetItem* > items = mFormulasList->selectedItems();
+		for ( auto *item : items )
+			mImportFormulas.push_back( q2a( item->text() ) );
 
 		QDialog::accept();
 	}

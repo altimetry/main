@@ -33,6 +33,7 @@ using namespace processes;
 #include "Workspace.h"
 #include "Constants.h"
 #include "Formula.h"
+#include "WorkspaceSettings.h"
 
 
 
@@ -1782,6 +1783,12 @@ void CFormula::Dump( std::ostream& fOut /* = std::cerr */ )
 
 std::string CMapFormula::m_predefFormulaFile = "Formulas.ini";
 
+
+//virtual 
+CMapFormula::~CMapFormula()
+{
+	delete m_config;
+}
 /*
 //----------------------------------------
 CMapFormula& CMapFormula::GetInstance()
@@ -1828,8 +1835,8 @@ bool CMapFormula::InsertPredefined( std::string &errorMsg )
 	//formulaPath.Normalize();
 
     delete m_config;
-	//m_config = new CConfiguration( wxEmptyString, wxEmptyString, formulaPath.GetFullPath(), wxEmptyString, wxCONFIG_USE_LOCAL_FILE );
-	m_config = new CConfiguration( formulaPath );
+	//m_config = new CWorkspaceSettings( wxEmptyString, wxEmptyString, formulaPath.GetFullPath(), wxEmptyString, wxCONFIG_USE_LOCAL_FILE );
+	m_config = new CWorkspaceSettings( formulaPath );
 
 	return LoadConfig( errorMsg, true );
 }
@@ -1894,13 +1901,13 @@ bool CMapFormula::InsertUserDefined_ReplacePredefinedNotAllowed( CFormula& formu
 //bool CMapFormula::InsertUserDefined( const wxFileName& fileName )
 //{
 //    delete m_config;
-//	m_config = new CConfiguration( fileName.GetFullPath().ToStdString() );
+//	m_config = new CWorkspaceSettings( fileName.GetFullPath().ToStdString() );
 //	//m_config = new wxFileConfig( wxEmptyString, wxEmptyString, fileName.GetFullPath(), wxEmptyString, wxCONFIG_USE_LOCAL_FILE );
 //
 //	return LoadConfig( false );
 //}
 //----------------------------------------
-bool CMapFormula::InsertUserDefined( CConfiguration *config, std::string &errorMsg )
+bool CMapFormula::InsertUserDefined( CWorkspaceSettings *config, std::string &errorMsg )
 {
 	return LoadConfig( config, errorMsg, false );
 }

@@ -220,7 +220,7 @@ struct WkspcTreeNode< CBratObject > : public WkspcTreeNodeBase< CBratObject, CBr
 	WkspcTreeNode( const value_t *pv ) : base_t( pv )
 	{}
 
-	virtual bool operator()( QTreeWidgetItem *item, const value_t &v ) const
+    virtual bool operator()( QTreeWidgetItem *item, const value_t &v ) const override
 	{
 		auto formula = dynamic_cast< const CFormula* >( &v );
 		auto operation = dynamic_cast< const COperation* >( &v );
@@ -289,7 +289,7 @@ struct WkspcTreeNode< CWorkspace > : public WkspcTreeNodeBase< CWorkspace, CWork
 	WkspcTreeNode( const value_t *pv ) : base_t( pv )
 	{}
 
-	virtual bool operator()( QTreeWidgetItem *item, const value_t &v ) const
+    virtual bool operator()( QTreeWidgetItem *item, const value_t &v ) const override
 	{
         auto wks = dynamic_cast< const CWorkspace* >( &v );			assert__(wks);              Q_UNUSED( wks );
 

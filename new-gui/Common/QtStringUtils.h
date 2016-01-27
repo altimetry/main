@@ -76,6 +76,10 @@ inline const QString& t2q( const QString &s )
 {
 	return s;
 }
+inline const QString t2q( const char *s )
+{
+	return s;
+}
 
 
 

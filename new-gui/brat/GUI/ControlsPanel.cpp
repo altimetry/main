@@ -126,7 +126,7 @@ QLayout* CControlsPanel::AddTopLayout( ELayoutType o, const std::vector< QObject
 }
 
 
-//	title = "", parent = nullptr, spacing = smSpacing, left = smLeft, top = smTop, right = smRight, bottom = smBottom
+//	title = "", parent = nullptr, spacing = smSpacing, left = smLeft, top = smTop, right 00000= smRight, bottom = smBottom
 //
 QGroupBox* CControlsPanel::AddTopGroupBox( ELayoutType o, const std::vector< QObject* > &v, const QString &title, 
 	int spacing, int left, int top, int right, int bottom )		 
@@ -183,9 +183,9 @@ CDatasetBrowserControls::CDatasetBrowserControls( desktop_manager_t *manager, QW
 
 	m_BrowseFilesButton = qobject_cast<QPushButton*>( mBrowserStakWidget->Button( 0 ) );
 	m_BrowseRadsButton = qobject_cast<QPushButton*>( mBrowserStakWidget->Button( 1 ) );
-	QBoxLayout *brwose_buttons_hl = LayoutWidgets( Qt::Horizontal, { m_BrowseFilesButton, m_BrowseRadsButton }, nullptr, 0, 2, 2, 2, 2 );
+    QBoxLayout *browse_buttons_hl = LayoutWidgets( Qt::Horizontal, { m_BrowseFilesButton, m_BrowseRadsButton }, nullptr, 0, 2, 2, 2, 2 );
 	
-	AddTopGroupBox( ELayoutType::Vertical, { brwose_buttons_hl, mBrowserStakWidget }, "", 4, 4, 4, 4, 4 );
+    AddTopGroupBox( ELayoutType::Vertical, { browse_buttons_hl, mBrowserStakWidget }, "", 4, 4, 4, 4, 4 );
 
 
 	// II. Variable Description group
@@ -282,10 +282,158 @@ QSpacerItem* CControlsPanel::AddTopSpace( int w, int h, QSizePolicy::Policy hDat
 CDatasetFilterControls::CDatasetFilterControls( desktop_manager_t *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 
 	: base_t( manager, parent, f )
 {
-	QListWidget *areas_list = CreateBooleanList( this, { { "Lake Baikal", true }, { "Black Sea" }, { "User Area 1", true }, { "User Area 2" } } );
-	QGroupBox *where_box = CreateGroupBox( ELayoutType::Vertical, { areas_list }, "Where", this );
 
-	AddTopWidget( where_box );
+    // I. "Where" Description group
+    //
+    //    I.1 List of Areas
+    QListWidget *areas_list = CreateBooleanList( this, { { "Lake Baikal", true }, { "Black Sea" }, { "User Area 1", true }, { "User Area 2" } } );
+    areas_list->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
+    QGroupBox *areas_box = CreateGroupBox( ELayoutType::Horizontal, { areas_list }, "Areas", this );
+
+
+    //    I.2 Buttons for region selection
+    mSavedRegionsCombo = new QComboBox;
+    mSavedRegionsCombo->setToolTip( "List of saved regions" );
+
+    auto mBox     = new QPushButton( "Box" );
+    auto mPolygon = new QPushButton( "Polygon" );
+    auto mKML     = new QPushButton( "KML" );
+    auto mMask    = new QPushButton( "Mask" );
+
+    QBoxLayout *buttons_regions = LayoutWidgets( Qt::Horizontal, { mSavedRegionsCombo, mBox, mPolygon, mKML, mMask } );
+
+    //    I.3 Coordinates (max and min values)
+    auto mMaxLat = new QLineEdit(this);
+    auto mMaxLon = new QLineEdit(this);
+    auto mMinLat = new QLineEdit(this);
+    auto mMinLon = new QLineEdit(this);
+
+    mMaxLat->setText("0.0");
+    mMaxLon->setText("0.0");
+    mMinLat->setText("0.0");
+    mMinLon->setText("0.0");
+
+    QBoxLayout *coord_values_l = LayoutWidgets( Qt::Vertical, {
+                                             LayoutWidgets( Qt::Horizontal, { new QLabel( "Max Lat (deg)" ), mMaxLat } ),
+                                             LayoutWidgets( Qt::Horizontal, { new QLabel( "Min Lat (deg)" ), mMinLat } )
+                                               } );
+
+    QBoxLayout *coord_values_r = LayoutWidgets( Qt::Vertical, {
+                                             LayoutWidgets( Qt::Horizontal, { new QLabel( "Max Lon (deg)" ), mMaxLon } ),
+                                             LayoutWidgets( Qt::Horizontal, { new QLabel( "Min Lon (deg)" ), mMinLon } )
+                                               } );
+
+    QBoxLayout *coord_values = LayoutWidgets( Qt::Horizontal, { coord_values_l, nullptr, coord_values_r }, nullptr );
+
+
+    //    I.4 Adding previous widgets to this...
+    QGroupBox *regions_coord = CreateGroupBox(ELayoutType::Vertical, {buttons_regions, coord_values} );
+    regions_coord->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Fixed );
+    AddTopGroupBox( ELayoutType::Horizontal, { areas_box, regions_coord }, "Where", 4, 4, 4, 4, 4 );
+
+
+    // II. "When" Description group
+    //
+    //    II.1 Dates, Cycles and Pass (start and stop values)
+    auto mStartDate  = new QLineEdit(this);
+    auto mStopDate   = new QLineEdit(this);
+    auto mStartCycle = new QLineEdit(this);
+    auto mStopCycle  = new QLineEdit(this);
+    auto mStartPass  = new QLineEdit(this);
+    auto mStopPass   = new QLineEdit(this);
+
+    mStartDate->setText("yyyy/mm/dd T hh:mm");
+    mStopDate->setText("yyyy/mm/dd T hh:mm");
+    mStartCycle->setText("0");
+    mStopCycle->setText("0");
+    mStartPass->setText("0");
+    mStopPass->setText("0");
+
+    QBoxLayout *dates_box = LayoutWidgets( Qt::Vertical, {
+                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Start Date" ), mStartDate } ),
+                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Stop Date" ),  mStopDate  } )
+                                                } );
+
+    QBoxLayout *cycles_box = LayoutWidgets( Qt::Vertical, {
+                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Start Cycle" ), mStartCycle } ),
+                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Stop Cycle" ),  mStopCycle  } )
+                                                } );
+
+    QBoxLayout *pass_box = LayoutWidgets( Qt::Vertical, {
+                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Start Pass" ), mStartPass } ),
+                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Stop Pass" ),  mStopPass  } )
+                                                } );
+
+    QBoxLayout *dateCyclePassValues_box = LayoutWidgets( Qt::Horizontal, {dates_box, nullptr, cycles_box, nullptr, pass_box});
+
+
+    //   II.2 One-Click Time Filtering
+    QFrame *lineHorizontal = WidgetLine( nullptr, Qt::Horizontal );
+    auto one_click_label  = new QLabel( "One-Click Time Filtering" );
+
+    //    Checkable menu items --> ATTENTION: are exclusive checkable menu items??
+    auto last_month  = new QCheckBox( "Last Month" );
+    auto last_year   = new QCheckBox( "Last Year" );
+    auto last_cycle  = new QCheckBox( "Last Cycle" );
+    QGroupBox *monthYearCycleGroup = CreateGroupBox(ELayoutType::Vertical, {last_month, last_year, last_cycle} );
+
+    QFrame *lineVertical_1 = WidgetLine( nullptr, Qt::Vertical );
+    QFrame *lineVertical_2 = WidgetLine( nullptr, Qt::Vertical );
+
+    auto mRelativeStart  = new QLineEdit(this);
+    auto mRelativeStop   = new QLineEdit(this);
+    mRelativeStart->setText("0");
+    mRelativeStop ->setText("0");
+    QBoxLayout *relative_times = LayoutWidgets( Qt::Vertical, {
+                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Relative Start" ), mRelativeStart } ),
+                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Relative Stop" ),  mRelativeStop  } )
+                                                } );
+
+    auto reference_date       = new QCheckBox( "Reference Date" );
+    auto reference_date_text  = new QLineEdit(this);
+    reference_date_text->setText("yyyy/mm/dd");
+    QBoxLayout *refDateBox = LayoutWidgets( Qt::Vertical, { reference_date, reference_date_text} );
+
+    //    Adding previous widgets to this...
+    AddTopGroupBox( ELayoutType::Vertical, {
+                        dateCyclePassValues_box,
+                        lineHorizontal,
+                        one_click_label,
+                        LayoutWidgets( Qt::Horizontal, {monthYearCycleGroup, lineVertical_1, relative_times, lineVertical_2, refDateBox})
+                                            },"When", 4, 4, 4, 4, 4 );
+
+
+    // III. "Total Nb Records Selected" Description group
+    //
+    auto mTotalRecordsSelected  = new QLineEdit(this);
+    mTotalRecordsSelected->setText("0");
+    mTotalRecordsSelected->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
+    QBoxLayout *TotalRecords_box = LayoutWidgets( Qt::Horizontal, { new QLabel( "Total Nb Records selected" ), mTotalRecordsSelected });
+    TotalRecords_box->setAlignment(Qt::AlignRight);
+
+    //    Adding previous widgets to this...
+    AddTopGroupBox( ELayoutType::Horizontal, { TotalRecords_box});
+
+
+    // IV. Filter name description group
+    //
+    auto mFilterName  = new QLineEdit(this);
+    mFilterName ->setText("Filter Name");
+
+    auto mNewFilter     = new QPushButton( "New Filter" );
+    auto mDeleteFilter  = new QPushButton( "Delete Filter" );
+    auto mSaveFilter    = new QPushButton( "Save Filter" );
+
+    mOpenFilterCombo = new QComboBox;
+    mOpenFilterCombo->setToolTip( "Open a Filter" );
+
+    QBoxLayout *buttons_filter = LayoutWidgets( Qt::Horizontal, {  mFilterName, mNewFilter, mDeleteFilter, mSaveFilter, mOpenFilterCombo } );
+
+    //    Adding previous widgets to this...
+    AddTopGroupBox( ELayoutType::Horizontal, { WidgetLine( nullptr, Qt::Vertical ), buttons_filter });
+
+
+    //AddTopWidget( where_box );
 	//AddTopSpace( 20, 0, QSizePolicy::Minimum, QSizePolicy::Expanding );
 	AddTopSpace( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
 }
@@ -422,7 +570,7 @@ QWidget* COperationsControls::CreateAdancedOperationsPage()
 	auto mExpressionTextWidget = new CTextWidget;
 	auto exp_group = CreateGroupBox( ELayoutType::Horizontal, { mExpressionTextWidget }, "Expression", tab_parent, 0, 2, 2, 2, 2 );
 
-	static const QString SyncGroup("SyncGroup");
+    static const QString SyncGroup("SyncGroup");
 	QgsCollapsibleGroupBox *expression_group = CreateCollapsibleGroupBox( ELayoutType::Vertical, { formulas_group, fields_hl, adv_desc_vl, exp_group }, 
 		"Expression", tab_parent, 0, 2, 2, 2, 2 );
 	//expression_group->setCollapsed( true );
@@ -615,38 +763,6 @@ void COperationsControls::QuickPlot()
 
 
 
-
-/////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////
-//								Graphics Panels
-/////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////////////////////////////////////////
-//								Plot View
-/////////////////////////////////////////////////////////////////////////////////////
-
-//explicit 
-CPlotViewControls::CPlotViewControls( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 
-	: base_t( parent, f )
-{
-
-}
-
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////
-//								Map View
-/////////////////////////////////////////////////////////////////////////////////////
-
-//explicit 
-CMapViewControls::CMapViewControls( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 
-	: base_t( parent, f )
-{
-
-}
 
 
 

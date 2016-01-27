@@ -26,10 +26,10 @@ class CModel : public QObject
 
 	// static members
 
-	static CWorkspace* GetRootWorkspace( CTreeWorkspace &tree );
+	static CWorkspace* RootWorkspace( CTreeWorkspace &tree );
 
 	template< class WKSPC >
-	static WKSPC* GetWorkspace( CTreeWorkspace &tree );
+	static WKSPC* Workspace( CTreeWorkspace &tree );
 
     static CWorkspace* CreateTree( CTreeWorkspace &tree, const std::string& path, std::string &error_msg );
 
@@ -39,8 +39,6 @@ class CModel : public QObject
 	// instance data
 
 	CTreeWorkspace mTree;
-	CTreeWorkspace mImportTree;
-	CTreeWorkspace* mCurrentTree = nullptr;
 
 
 	// construction / destruction
@@ -56,21 +54,16 @@ public:
 	const CTreeWorkspace& Tree() const { return  mTree; }
 
 	template< class WKSPC >
-	WKSPC* GetCurrentWorkspace()
+	WKSPC* Workspace()
 	{
-		if ( mCurrentTree == nullptr )
-			mCurrentTree = &mTree;
-
-		return GetWorkspace< WKSPC >( *mCurrentTree );
+		return Workspace< WKSPC >( mTree );
 	}
 
 
-
-	CWorkspace* GetCurrentRootWorkspace();
-
-	const CWorkspace* GetCurrentRootWorkspace() const
+	CWorkspace* RootWorkspace();
+	const CWorkspace* RootWorkspace() const
 	{
-		return const_cast< CModel* >( this )->GetCurrentRootWorkspace();
+		return const_cast< CModel* >( this )->RootWorkspace();
 	}
 
 
@@ -78,34 +71,79 @@ public:
 
 	static bool LoadImportFormulas( const std::string& path, std::vector< std::string > &v, bool predefined, bool user, std::string &error_msg );
 
-
-
+	
     CWorkspace* CreateWorkspace( const std::string& name, const std::string& path, std::string &error_msg );
 
+
 	CWorkspace* LoadWorkspace( const std::string& path, std::string &error_msg );
+
 
 	bool SaveWorkspace( std::string &error_msg )
 	{
 		return mTree.SaveConfig(
 			error_msg,
-			GetCurrentWorkspace< CWorkspaceOperation >(),
-			GetCurrentWorkspace< CWorkspaceDisplay >() );
+			Workspace< CWorkspaceOperation >(),
+			Workspace< CWorkspaceDisplay >() );
 	}
 
+
+	bool ImportWorkspace( const std::string& path, 
+		bool datasets, bool formulas, bool operations, bool views, const std::vector< std::string > &vformulas, std::string &error_msg );
+
+	
 	void Reset();
 
-	void ResetImportTree();
+
+protected:
+
+	// Big TODO ///////////////////////////////////////////////////////////////////////////
+
+    // Taken from brat-lab main window Business Logic
+    //
+	//void CreateWPlot( CWPlot* wplot, QSize& size, QPoint& pos );
+	//void WorldPlot();
+	void XYPlot();
+	void ZFXYPlot();
+
+	//bool GetCommandLineOptions( int argc, char* argv[] );
+	//void GetParameters();
+
+	//bool GetParametersNetcdf();
+	//bool GetParametersNetcdfZFLatLon( CExternalFilesNetCDF* externalFile );
+	//bool GetParametersNetcdfZFXY( CExternalFilesNetCDF* externalFile );
+	//bool GetParametersNetcdfYFX( CExternalFilesNetCDF* externalFile );
+
+	//void LoadParameters();
+	//void CheckFiles();
 
 
-	void ResetImportBits()
-	{
-		mTree.GetImportBitSet()->m_bitSet.reset();
-	}
-    void SetImportBits( std::initializer_list< std::pair< size_t, bool > > pos_values )
-	{
-		for ( auto &pos_value : pos_values )
-			mTree.GetImportBitSet()->m_bitSet.set( pos_value.first, pos_value.second );
-	}
+	//void GetXYPlotPropertyParams( int32_t nFields );
+	//void GetWPlotPropertyParams( int32_t nFields );
+	//void GetZFXYPlotPropertyParams( int32_t nFields );
+
+	//std::string GetFirstFileName();
+
+	//void CreateWPlot( CWPlot* wplot, QSize& size, QPoint& pos );
+	//void WorldPlot();
+	//void XYPlot();
+	//void ZFXYPlot();
+
+	//bool IsXYPlot();
+	//bool IsWPlot();
+	//bool IsZXYPlot();
+
+	//bool IsYFXType() const;
+	//bool IsZFXYType() const;
+
+	//CWorldPlotProperty* GetWorldPlotProperty( int32_t index );
+	//CZFXYPlotProperty* GetZFXYPlotProperty( int32_t index );
+	//CXYPlotProperty* GetXYPlotProperty( int32_t index );
+
+	//void CheckFieldsData( CInternalFilesYFX* yfx, const std::string& fieldName );
+	//void CheckFieldsData( CInternalFilesZFXY* zfxy, const std::string& fieldName );
+	//void CheckFieldsData( CInternalFiles* f, const std::string& fieldName );
+	//CInternalFiles* Prepare( int32_t indexFile, const std::string& fieldName );
+	//CInternalFiles* Prepare( const std::string& fileName, const std::string& fieldName );
 };
 
 

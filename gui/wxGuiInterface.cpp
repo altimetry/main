@@ -29,7 +29,7 @@ CConfiguration::CConfiguration(
 
 
 
-#define GROUP_GENERAL GROUP_GENERAL_WRITE
+const std::string GROUP_GENERAL = "General";
 
 
 

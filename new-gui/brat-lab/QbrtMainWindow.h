@@ -16,6 +16,8 @@ class Qbrt2DPlotEditor;
 class CmdLineProcessor;
 class CWPlot;
 
+class CBratSettings;
+
 
 class QbrtMainWindow : public QMainWindow, private Ui::QbrtMainWindow
 {
@@ -23,6 +25,7 @@ class QbrtMainWindow : public QMainWindow, private Ui::QbrtMainWindow
 
 	typedef QMainWindow base_t;
 
+	CBratSettings &mSettings;
     TBackServices &m_bs;
     FindDialog *m_FindDialog;
 
@@ -58,7 +61,7 @@ class QbrtMainWindow : public QMainWindow, private Ui::QbrtMainWindow
 	bool event( QEvent *event ) override;
 
 public:
-    explicit QbrtMainWindow(QWidget *parent = 0);
+    explicit QbrtMainWindow( CBratSettings &settings );
 
 	
 	virtual ~QbrtMainWindow();

@@ -539,7 +539,7 @@ bool CGuiFrame::ImportWorkspace()
 
 	CWorkspaceDlg wksDlg( this, -1, "Import a workspace...", CWorkspaceDlg::wksImport, wxGetApp().GetCurrentWorkspace(), "." );
 
-	wxGetApp().m_tree.GetImportBitSet()->m_bitSet.reset();
+	wxGetApp().m_tree.ResetImportBits();
 
 	wxString wksPathToImport;
 	wxArrayString formulasToImport;
@@ -575,12 +575,15 @@ bool CGuiFrame::ImportWorkspace()
 	if ( !bOk )
 		return bOk;
 
-	wxGetApp().m_tree.GetImportBitSet()->m_bitSet.set( IMPORT_DATASET_INDEX, wksDlg.GetImportDataset()->GetValue() );
-	wxGetApp().m_tree.GetImportBitSet()->m_bitSet.set( IMPORT_FORMULA_INDEX, wksDlg.GetImportFormulas()->GetValue() );
-	wxGetApp().m_tree.GetImportBitSet()->m_bitSet.set( IMPORT_OPERATION_INDEX, wksDlg.GetImportOperations()->GetValue() );
-	wxGetApp().m_tree.GetImportBitSet()->m_bitSet.set( IMPORT_DISPLAY_INDEX, wksDlg.GetImportViews()->GetValue() );
+	wxGetApp().m_tree.SetImportBits( 
+	{
+		{ IMPORT_DATASET_INDEX, wksDlg.GetImportDataset()->GetValue() },
+		{ IMPORT_FORMULA_INDEX, wksDlg.GetImportFormulas()->GetValue() },
+		{ IMPORT_OPERATION_INDEX, wksDlg.GetImportOperations()->GetValue() },
+		{ IMPORT_DISPLAY_INDEX, wksDlg.GetImportViews()->GetValue() }
+	} );
 
-	wxGetApp().m_treeImport.SetCtrlDatasetFiles( wxGetApp().m_tree.GetImportBitSet()->m_bitSet.test( IMPORT_DATASET_INDEX ) );
+	wxGetApp().m_treeImport.SetCtrlDatasetFiles( wxGetApp().m_tree.GetImportBit( IMPORT_DATASET_INDEX ) );
 
 	std::string errorMsg;	
 	//CWorkspace* wks = wxGetApp().m_treeImport.Reset( wksDlg.GetWksName()->GetValue().ToStdString(), wksPathToImport.ToStdString(), errorMsg , false );	//wxGetApp().CreateTree( wks, wxGetApp().m_treeImport );
@@ -627,16 +630,17 @@ bool CGuiFrame::ImportWorkspace()
 
 	std::string missingKey;
 	errorMsg = "";
-	CWorkspaceDisplay* wksd = wxGetApp().GetCurrentWorkspaceDisplay();
-	bOk = wxGetApp().m_tree.GetRootData() && wxGetApp().m_tree.Import( &( wxGetApp().m_treeImport ), wksd, wksOpImport, missingKey, errorMsg );
+	CWorkspaceDataset* wks_data = wxGetApp().GetCurrentWorkspaceDataset();
+	CWorkspaceDisplay* wks_disp = wxGetApp().GetCurrentWorkspaceDisplay();
+	CWorkspaceOperation* wks_op = wxGetApp().GetCurrentWorkspaceOperation();
+	bOk = wxGetApp().m_tree.GetRootData() && wxGetApp().m_tree.Import( &wxGetApp().m_treeImport, wks_data, wks_disp, wks_op, missingKey, errorMsg );
 	if ( bOk )
 	{
 		SaveWorkspace();
 
-		CWorkspaceOperation* wksOp = wxGetApp().GetCurrentWorkspaceOperation();
-		if ( ( wksOp != nullptr ) && ( wksOpImport != nullptr ) )
+		if ( ( wks_op != nullptr ) && ( wksOpImport != nullptr ) )
 		{
-			CDirTraverserCopyFile traverserCopyFile( wksOp->GetPath(), "nc" );
+			CDirTraverserCopyFile traverserCopyFile( wks_op->GetPath(), "nc" );
 			//path name given to wxDir is locked until wxDir object is deleted
 			wxDir dir;
 

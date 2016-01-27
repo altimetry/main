@@ -3,11 +3,11 @@
 #include "new-gui/Common/QtUtilsIO.h"
 #include "new-gui/brat/GUI/ActionsTable.h"
 #include "BratApplication.h"
-#include "ApplicationSettings.h"
+#include "BratSettings.h"
 #include "ApplicationSettingsDlg.h"
 
 
-CApplicationSettingsDlg::CApplicationSettingsDlg( CApplicationSettings &options, QWidget *parent ) : QDialog( parent ), m_options( options )
+CApplicationSettingsDlg::CApplicationSettingsDlg( CBratSettings &options, QWidget *parent ) : QDialog( parent ), mSettings( options )
 {
 	setupUi( this );
 	//QIcon icon;
@@ -49,21 +49,21 @@ CApplicationSettingsDlg::CApplicationSettingsDlg( CApplicationSettings &options,
 
 	//	StartupOptions_page
 
-	LoadLastProjectAtAtartup_checkBox->setChecked( m_options.mLoadLastWorkspaceAtStartUp );
+	LoadLastProjectAtAtartup_checkBox->setChecked( mSettings.mLoadLastWorkspaceAtStartUp );
 
 
 	//	ApplicationStyles_page
 
 	Styles_listWidget->setSelectionMode( QAbstractItemView::SingleSelection );
-	const std::vector< std::string > &styles = CApplicationSettings::getStyles();
-	fillList( Styles_listWidget, styles, (int)CApplicationSettings::getStyleIndex( m_options.mAppStyle ), true );
+	const std::vector< std::string > &styles = CBratSettings::getStyles();
+	fillList( Styles_listWidget, styles, (int)CBratSettings::getStyleIndex( mSettings.mAppStyle ), true );
 
 	StyleSheets_listWidget->setSelectionMode( QAbstractItemView::SingleSelection );
-	const std::vector< std::string > &style_sheets = CApplicationSettings::getStyleSheets( false );
-	fillList( StyleSheets_listWidget, style_sheets, m_options.mCustomAppStyleSheet, true );
+	const std::vector< std::string > &style_sheets = CBratSettings::getStyleSheets( false );
+	fillList( StyleSheets_listWidget, style_sheets, mSettings.mCustomAppStyleSheet, true );
 
-    DefaultStyle_checkBox->setChecked( m_options.mUseDefaultStyle );
-	NoStyleSheet_checkBox->setChecked( m_options.mNoStyleSheet );
+    DefaultStyle_checkBox->setChecked( mSettings.mUseDefaultStyle );
+	NoStyleSheet_checkBox->setChecked( mSettings.mNoStyleSheet );
 
 	Styles_listWidget->setDisabled( DefaultStyle_checkBox->isChecked() );
 	StyleSheets_listWidget->setDisabled( NoStyleSheet_checkBox->isChecked() );
@@ -158,8 +158,8 @@ void CApplicationSettingsDlg::UpdateDirectoriesActions(const QString & text)
 {
 	if ( AutoRelativePaths_checkBox->isChecked() )
 	{
-        ExternalDataDirectory_lineEdit->setText( text + t2q( ApplicationDirectories::instance().DefaultExternalDataSubDir() ) );
-        ProjectsDirectory_lineEdit->setText( text + t2q( ApplicationDirectories::instance().DefaultProjectsSubDir() ) );
+        ExternalDataDirectory_lineEdit->setText( text + t2q( mSettings.BratPaths().DefaultExternalDataSubDir() ) );
+        ProjectsDirectory_lineEdit->setText( text + t2q( mSettings.BratPaths().DefaultProjectsSubDir() ) );
 	}
 }
 
@@ -199,8 +199,8 @@ bool CApplicationSettingsDlg::ValidateAndAssign()
 
 	//	ApplicationPaths_page
 
-	std::string saveDataDirectory = ApplicationDirectories::instance().mInternalDataDir;
-	std::string saveLibraryDirectory = ApplicationDirectories::instance().mWorkspacesPath;
+    std::string saveDataDirectory = mSettings.BratPaths().mInternalDataDir;
+    std::string saveLibraryDirectory = mSettings.BratPaths().WorkspacesPath();
 
 	//if ( !m_bs.SetDataPath( DataDirectory_lineEdit->text().toLatin1() ) )
  //   {
@@ -242,15 +242,15 @@ bool CApplicationSettingsDlg::ValidateAndAssign()
 
 	//	2a. StartupOptions_page
 
-	m_options.mLoadLastWorkspaceAtStartUp = LoadLastProjectAtAtartup_checkBox->isChecked();
+	mSettings.mLoadLastWorkspaceAtStartUp = LoadLastProjectAtAtartup_checkBox->isChecked();
 
 	//	2b. ApplicationStyles_page
 
 	if ( Styles_listWidget->currentItem() )
-		m_options.mAppStyle = Styles_listWidget->currentItem()->text();
-    m_options.mUseDefaultStyle = DefaultStyle_checkBox->isChecked();
-	m_options.mCustomAppStyleSheet = (EApplicationStyleSheets)StyleSheets_listWidget->currentRow();
-	m_options.mNoStyleSheet = NoStyleSheet_checkBox->isChecked();
+		mSettings.mAppStyle = Styles_listWidget->currentItem()->text();
+    mSettings.mUseDefaultStyle = DefaultStyle_checkBox->isChecked();
+	mSettings.mCustomAppStyleSheet = (EApplicationStyleSheets)StyleSheets_listWidget->currentRow();
+	mSettings.mNoStyleSheet = NoStyleSheet_checkBox->isChecked();
 
     return true;
 }

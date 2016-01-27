@@ -159,12 +159,10 @@ void QbrtMapEditor::action_View_Globe( bool visible )
 
 void QbrtMapEditor::createGlobe()
 {
-	static const ApplicationDirectories &ad = ApplicationDirectories::instance();
-
 	//if ( !mGlobe /* && mSplitter*/)
 	if ( !mGlobeWidget /* && mSplitter*/)
 	{
-		mGlobeWidget = new CGlobeWidget( this, ad.mGlobeDir, mMapCanvas );
+		mGlobeWidget = new CGlobeWidget( this, QbrtMapCanvas::GlobeDir(), mMapCanvas );
 		//mGlobe = new GlobePlugin( nullptr, mMapCanvas );
 		//mOsgViewer = mGlobe->run( ad.mGlobeDir );						//can return null
 

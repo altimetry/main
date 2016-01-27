@@ -64,6 +64,9 @@ public:
 	bool mOperations = false;
 	bool mViews = false;
 
+	std::vector< std::string > mImportFormulas;
+
+
 	/////////////////////////////
 	//	Construction /Destruction
 	/////////////////////////////

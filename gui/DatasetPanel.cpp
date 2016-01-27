@@ -290,7 +290,7 @@ void CDatasetPanel::EnableCtrl()
   bool enableNew = false;
   bool enableDelete = false;
 
-  CWorkspaceDataset* wks = wxGetApp().GetCurrentWorkspaceDataset();
+  CWorkspaceDataset* wks = wxGetApp().GetCurrentWorkspace() ? wxGetApp().GetCurrentWorkspaceDataset() : nullptr;
   if (wks != NULL)
   {
     enable = wks->HasDataset();

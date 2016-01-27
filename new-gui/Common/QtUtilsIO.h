@@ -5,11 +5,14 @@
 #error Wrong QtFileUtils.h included
 #endif
 
+#include <functional>
+
 #include <QtCore/QFile>
 #include <QtCore/QFileInfo>
 #include <QtCore/QDir>
 #include <QTemporaryFile>
 
+#include "new-gui/Common/ccore-types.h"
 #include "QtUtils.h"	// => QtUtils.h => QtStringUtils.h => +Utils.h
 
 
@@ -108,7 +111,7 @@ inline bool IsFile( const std::string &FileName )
 inline bool IsDir( const std::string &DirName )
 {
     QDir d( DirName.c_str() );
-    return d.exists();
+    return !DirName.empty() && d.exists();
 }
 
 
@@ -242,20 +245,73 @@ inline bool DuplicateDirectory( const QString &sourceFolder, const QString &dest
     QStringList files = sourceDir.entryList( QDir::Files );
     for(int i = 0; i< files.count(); i++)
     {
-        QString srcName = sourceFolder + "/" + files[i];
-        QString destName = destFolder + "/" + files[i];
-        QFile::copy( srcName, destName );
+        QString src_path = sourceFolder + "/" + files[i];
+        QString dest_path = destFolder + "/" + files[i];
+        QFile::copy( src_path, dest_path );
     }
     files.clear();
     files = sourceDir.entryList( QDir::AllDirs | QDir::NoDotAndDotDot );
     for(int i = 0; i< files.count(); i++)
     {
-        QString srcName = sourceFolder + "/" + files[i];
-        QString destName = destFolder + "/" + files[i];
-        if ( !DuplicateDirectory( srcName, destName ) )
+        QString src_path = sourceFolder + "/" + files[i];
+        QString dest_path = destFolder + "/" + files[i];
+        if ( !DuplicateDirectory( src_path, dest_path ) )
             return false;
     }
     return true;
+}
+
+
+inline bool CopyFileProc( const QString &src_path, const QString &dest_path )
+{
+	return QFile::copy( src_path, dest_path );
+
+}
+
+// How to set filters:
+//
+inline bool TraverseDirectory( const QString &sourceFolder, const QString &destFolder, const QStringList &filters, 
+	const std::function< bool( const QString &, const QString & ) > &f = CopyFileProc )
+{
+    QDir sourceDir( sourceFolder );
+    if( !sourceDir.exists() )
+        return false;
+
+    QDir destDir( destFolder );
+    if( !destDir.exists() )
+		destDir.mkdir( destFolder );
+
+	{
+		QStringList files = sourceDir.entryList( filters, QDir::Files );
+		for ( int i = 0; i < files.count(); i++ )
+		{
+			QString src_path = sourceFolder + "/" + files[ i ];
+			QString dest_path = destFolder + "/" + files[ i ];
+			if ( !f( src_path, dest_path ) )
+				return false;
+		}
+	}
+    QStringList dirs;
+    dirs = sourceDir.entryList( QDir::AllDirs | QDir::NoDotAndDotDot );
+    for(int i = 0; i< dirs.count(); i++)
+    {
+        QString src_path = sourceFolder + "/" + dirs[i];
+        QString dest_path = destFolder + "/" + dirs[i];
+        if ( !TraverseDirectory( src_path, dest_path, filters, f ) )
+            return false;
+    }
+    return true;
+}
+
+
+inline bool TraverseDirectory( const QString &sourceFolder, const QString &destFolder, std::initializer_list< QString > filters,
+	const std::function< bool( const QString &, const QString & ) > &f = CopyFileProc )
+{
+	QStringList qfilters;
+	for ( auto const &filter : filters )
+		qfilters << filter;
+
+	return TraverseDirectory( sourceFolder, destFolder, qfilters, f );
 }
 
 
@@ -360,139 +416,6 @@ inline bool readUnicodeFileFromResource( const QString &rpath, std::wstring &des
 	return readFileFromResource( rpath, dest, true );
 }
 
-
-
-///////////////////////////////////////////////////////////////////////////
-//							Standard Paths
-///////////////////////////////////////////////////////////////////////////
-
-
-#if defined(_WIN32)
-	#if defined(_WIN64)
-		#define PLATFORM_SUBDIR "x64"
-	#else defined(_WIN32)
-		#define PLATFORM_SUBDIR "Win32"
-	#endif
-#else
-	#if defined(__LP64__) || defined(__x86_64__)
-		#define PLATFORM_SUBDIR "x86_64"
-	#else
-		#define PLATFORM_SUBDIR "i386"
-	#endif
-#endif
-
-#if defined(_DEBUG) || defined(DEBUG)
-	#define CONFIG_SUBDIR "Debug"
-#else
-	#define CONFIG_SUBDIR "Release"
-#endif
-
-#if defined(_WIN32)
-	#define QGIS_PLUGINS_SUBDIR "plugins"
-#elif defined (__APPLE__)
-    #define QGIS_PLUGINS_SUBDIR "QGIS.app/Contents/PlugIns/qgis"
-#else
-	#define QGIS_PLUGINS_SUBDIR "lib/qgis/plugins"
-#endif
-
-struct ApplicationDirectories
-{
-	std::string mBasePath;
-	std::string mPlatform;
-	std::string mConfiguration;
-
-	std::string mQgisDir;
-	std::string mQgisPluginsDir;
-
-	std::string mExecutableFileName;
-	std::string mExecutableDir;
-	std::string mInternalDataDir;
-	std::string mExternalDataDir;
-	std::string mWorkspacesPath;
-
-	std::string mRasterLayerPath;
-	std::string mVectorLayerPath;
-
-	std::string mGlobeDir;
-
-	static std::string DefaultExternalDataSubDir()
-	{
-		static const std::string s = "lib/data";
-		return s;
-	}
-    static std::string DefaultProjectsSubDir()
-	{
-		static const std::string s = "workspaces";
-		return s;
-	}
-
-	static std::string computeBaseDirectory()
-	{
-		auto s3root = getenv( "S3ALTB_ROOT" );
-		if ( s3root )
-			return s3root;
-
-		return std::string();
-	}
-	static std::string computeInternalDataDirectory( const std::string &ExecutableDir )
-	{
-		std::string InternalDataDir;
-		auto s3data = getenv( "BRAT_DATA_DIR" );
-		if ( s3data )
-			InternalDataDir = s3data;
-        else
-        {
-            InternalDataDir = GetDirectoryFromPath( ExecutableDir );    //strip first parent directory (MacOS in mac)
-        #if defined (__APPLE__)
-            InternalDataDir = GetDirectoryFromPath( InternalDataDir );  //strip Contents
-            InternalDataDir = GetDirectoryFromPath( InternalDataDir );  //strip brat.app
-            InternalDataDir = GetDirectoryFromPath( InternalDataDir );  //strip wherever brat.app is
-        #endif
-            InternalDataDir += "/data";
-        }
-        return InternalDataDir;
-	}
-private:
-	ApplicationDirectories() :
-		  mBasePath( computeBaseDirectory() )
-		, mPlatform( PLATFORM_SUBDIR )
-		, mConfiguration( CONFIG_SUBDIR )
-
-		, mQgisDir( mBasePath + "/lib/Graphics/QGIS/default/bin/" + mPlatform + "/" + mConfiguration )
-		, mQgisPluginsDir( mQgisDir + "/" + QGIS_PLUGINS_SUBDIR )
-
-		, mExecutableFileName( q2a( QCoreApplication::applicationFilePath() ) )
-		, mExecutableDir( GetDirectoryFromPath( mExecutableFileName /*qApp->argv()[ 0 ]*/ ) )
-		, mInternalDataDir( computeInternalDataDirectory( mExecutableDir ) )
-		, mExternalDataDir( mBasePath + "/" + DefaultExternalDataSubDir() )
-		, mWorkspacesPath( mBasePath + "/" + DefaultProjectsSubDir() )
-
-		, mRasterLayerPath( mExternalDataDir + "/maps/NE1_HR_LC_SR_W_DR/NE1_HR_LC_SR_W_DR.tif" )
-		, mVectorLayerPath( mExternalDataDir + "/maps/ne_10m_coastline/ne_10m_coastline.shp" )
-	{
-		//mGlobeDir = QDir::cleanPath( QgsApplication::pkgDataPath() + "/globe/gui" ).toStdString();
-		//if ( QgsApplication::isRunningFromBuildDir() )
-		//{
-		//	mGlobeDir = QDir::cleanPath( QgsApplication::buildSourcePath() + "/src/plugins/globe/images/gui" ).toStdString();
-		//}
-		mGlobeDir = mExternalDataDir + "/globe/gui";
-	}
-
-public:
-	static const ApplicationDirectories& instance()
-	{
-		static const ApplicationDirectories ad;
-		return ad;
-	}
-
-	bool valid() const 
-	{ 
-		return 
-			!mBasePath.empty() && !mInternalDataDir.empty() &&
-			IsDir( mBasePath ) && IsDir( mInternalDataDir ) &&
-			IsFile( mRasterLayerPath) && IsFile( mVectorLayerPath ); 
-	}
-};
 
 
 #endif		//BRAT_QT_UTILS_IO_H

@@ -59,7 +59,6 @@ class CWorkspace : public CBratObject
 
 	using base_t = CBratObject;
 
-	friend class CConfiguration;
 	friend class CWorkspaceSettings;
 	friend class CTreeWorkspace;
 
@@ -84,7 +83,7 @@ public:
 
 
 protected:
-	CConfiguration *m_config = nullptr;
+	CWorkspaceSettings *m_config = nullptr;
 
 	std::string m_configFileName;
 	std::string m_path;
@@ -119,47 +118,47 @@ public:
 		SetPath( path, false );
 	}
 
-	virtual ~CWorkspace()
-	{
-		delete m_config;
-	}
+	virtual ~CWorkspace();
 
-	void SetName( const std::string& name ) { m_name = name; }
 	const std::string& GetName() const { return m_name; }
+
+	const std::string& GetPath() const { return m_path; }
+
+	const std::string& GetKey() { return m_key; }
+
+//protected:		//TODO public only because of old BratGui
+
+	bool IsConfigFile() const { return IsFile( m_configFileName ); }
+	bool IsRoot() const { return m_level == 1; }
+	void SetName( const std::string& name ) { m_name = name; }
 
 protected:
 	bool SetPath( const std::string& path, bool createPath = true );
+	void SetKey( const std::string& key ) { m_key = key; }
+
+	std::string GetRootKey();
 
 public:
-	const std::string& GetPath() const { return m_path; }
 
 	void SetLevel( int32_t value ) { m_level = value; }
 
 	bool Rmdir();
 
+
 public:	
-	void SetKey( const std::string& key ) { m_key = key; }
-	const std::string& GetKey() { return m_key; }
-	std::string GetRootKey();
-
-	//bool HasName() const { return !m_name.empty(); }
-	//bool HasPath() const { return !m_path.empty(); }
-	//bool IsPath() const { return IsDir( m_path ); }
-	bool IsConfigFile() const { return IsFile( m_configFileName ); }
-	bool IsRoot() const { return m_level == 1; }
-
 	virtual const_iterator begin() const { return m_dummy.begin(); }
 
 	virtual const_iterator end() const { return m_dummy.end(); }
 
 	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush = true );
 	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso );
-	virtual bool Import( CWorkspace* wks, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
+	virtual bool Import(CWorkspace* wksi, std::string &errorMsg, CWorkspaceDataset *wks_data, CWorkspaceDisplay *wks_disp, CWorkspaceOperation *wks_op)
 	{
-        UNUSED( wks );
+        UNUSED( wksi );
+        UNUSED( wks_data );
         UNUSED( errorMsg );
-        UNUSED( wksd );
-        UNUSED( wkso );
+        UNUSED( wks_disp );
+        UNUSED( wks_op );
 
         return true;
 	}
@@ -188,7 +187,6 @@ class CWorkspaceDataset : public CWorkspace
 {
 	using base_t = CWorkspace;
 
-	friend class CConfiguration;
 	friend class CWorkspaceSettings;
 	friend class CTreeWorkspace;
 
@@ -226,7 +224,7 @@ public:
 
 	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush = true ) override;
 	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso ) override;
-	virtual bool Import( CWorkspace* wks, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso ) override;
+	virtual bool Import( CWorkspace* wksi, std::string &errorMsg, CWorkspaceDataset *wks_data, CWorkspaceDisplay *wks_disp, CWorkspaceOperation *wks_op ) override;
 
 	bool RenameDataset( CDataset* dataset, const std::string& newName );
 	bool DeleteDataset( CDataset* dataset );
@@ -259,7 +257,7 @@ class CWorkspaceFormula : public CWorkspace
 {
 	using base_t = CWorkspace;
 
-	friend class CConfiguration;
+	friend class CWorkspaceSettings;
 	friend class CTreeWorkspace;
 
 public:
@@ -288,7 +286,7 @@ public:
 
 	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush = true ) override;
 	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso ) override;
-	virtual bool Import( CWorkspace* wks, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso ) override;
+	virtual bool Import(CWorkspace* wksi, std::string &errorMsg, CWorkspaceDataset *wks_data, CWorkspaceDisplay *wks_disp, CWorkspaceOperation *wks_op) override;
 
 	bool AddFormula( CFormula& formula, std::string &errorMsg );
 	void RemoveFormula( const std::string& name );
@@ -306,6 +304,7 @@ public:
 	void GetFormulaNames( CStringMap& stringMap, bool getPredefined = true, bool getUser = true );
 	void GetFormulaNames( std::vector< std::string >& array, bool getPredefined = true, bool getUser = true ) const;
 
+	//TODO GetFormulasToImport exists only becaus eof old BratGui
 	std::vector< std::string >& GetFormulasToImport() { return m_formulasToImport; }
 	void SetFormulasToImport( const std::vector< std::string >& array );
 
@@ -330,7 +329,6 @@ class CWorkspaceOperation : public CWorkspace
 {
 	using base_t = CWorkspace;
 
-	friend class CConfiguration;
 	friend class CWorkspaceSettings;
 	friend class CTreeWorkspace;
 
@@ -360,7 +358,7 @@ public:
 
 	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush = true ) override;
 	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso ) override;
-	virtual bool Import( CWorkspace* wks, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso ) override;
+	virtual bool Import(CWorkspace* wksi, std::string &errorMsg, CWorkspaceDataset *wks_data, CWorkspaceDisplay *wks_disp, CWorkspaceOperation *wks_op) override;
 
 	void GetOperationNames( std::vector< std::string >& array );
 
@@ -377,7 +375,7 @@ public:
 	size_t GetOperationCount() const { return m_operations.size(); }
 
     bool InsertOperation( const std::string& name );
-    bool InsertOperation( const std::string& name, COperation* operationToCopy, CWorkspaceOperation *wkso );
+    bool InsertOperation( const std::string& name, COperation* operationToCopy, CWorkspaceDataset *wksds, CWorkspaceOperation *wkso );
 
 	bool RenameOperation( COperation* operation, const std::string& newName );
 
@@ -401,7 +399,6 @@ class CWorkspaceDisplay : public CWorkspace
 {
 	using base_t = CWorkspace;
 
-	friend class CConfiguration;
 	friend class CWorkspaceSettings;
 	friend class CTreeWorkspace;
 
@@ -430,7 +427,7 @@ public:
 
 	virtual bool SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush = true ) override;
 	virtual bool LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso ) override;
-	virtual bool Import( CWorkspace* wks, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso ) override;
+	virtual bool Import(CWorkspace* wksi, std::string &errorMsg, CWorkspaceDataset *wks_data, CWorkspaceDisplay *wks_disp, CWorkspaceOperation *wks_op) override;
 
 	bool UseOperation( const std::string& name, std::string &errorMsg, CStringArray* displayNames = nullptr );
 

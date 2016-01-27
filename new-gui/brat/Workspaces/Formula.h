@@ -196,7 +196,6 @@ class CWorkspaceFormula;
 
 class CFormula : public CBratObject
 {
-	friend class CConfiguration;
 	friend class CWorkspaceSettings;
 	
 	static const std::string DEFAULT_STEP_LATLON_ASSTRING;
@@ -285,11 +284,11 @@ public:
 	bool IsPredefined() const { return m_predefined; };
 	void SetPredefined( bool value ) { m_predefined = value; };
 
-	//bool LoadConfig( CConfiguration *config );
+	//bool LoadConfig( CWorkspaceSettings *config );
 	bool LoadConfig( CWorkspaceSettings *config, std::string &errorMsg, const std::string& pathSuff );
 	bool LoadConfigDesc( CWorkspaceSettings *config, const std::string& path );
 
-	//bool SaveConfig( CConfiguration *config );
+	//bool SaveConfig( CWorkspaceSettings *config );
 	bool SaveConfig( CWorkspaceSettings *config, const std::string& pathSuff = "" ) const;
 	bool SaveConfigDesc( CWorkspaceSettings *config, const std::string& path );
 	bool SaveConfigPredefined( CWorkspaceSettings *config, const std::string& pathSuff ) const;
@@ -460,17 +459,14 @@ public:
 class CMapFormula : public CObMap
 {
 protected:
-	CConfiguration *m_config = nullptr;
+	CWorkspaceSettings *m_config = nullptr;
 
 public:
 	static std::string m_predefFormulaFile;
 
 public:
-	/// CIntMap ctor
-	CMapFormula( bool withPredefined )
-    {
-        UNUSED( withPredefined );
-    }
+	CMapFormula()
+    {}
 
 	CMapFormula( std::string &errorMsg, bool withPredefined )
 	{
@@ -478,17 +474,17 @@ public:
 			InsertPredefined( errorMsg );
 	}
 
-	CMapFormula( CMapFormula &o )
+	CMapFormula( const CMapFormula &o )
 	{
 		*this = o;
 	}
 
-	CMapFormula& operator = ( CMapFormula &o )
+	CMapFormula& operator = ( const CMapFormula &o )
 	{
 		if ( this != &o )
 		{
 			RemoveAll();
-			for ( CMapFormula::iterator it = o.begin(); it != o.end(); it++ )
+			for ( CMapFormula::const_iterator it = o.begin(); it != o.end(); it++ )
 			{
 				CFormula* value = dynamic_cast<CFormula*>( it->second );
 				if ( value == nullptr )
@@ -501,10 +497,7 @@ public:
 	}
 
 	/// CIntMap dtor
-	virtual ~CMapFormula()
-	{
-		delete m_config;
-	}
+	virtual ~CMapFormula();
 
 
 	//static CMapFormula&  GetInstance();
@@ -530,7 +523,7 @@ public:
 
 	bool InsertPredefined( std::string &errorMsg );
 	//bool InsertUserDefined( const wxFileName& fileName );
-	bool InsertUserDefined( CConfiguration *config, std::string &errorMsg );
+	bool InsertUserDefined( CWorkspaceSettings *config, std::string &errorMsg );
 	bool InsertUserDefined( CFormula* formula, std::string &errorMsg );
 	bool InsertUserDefined_ReplacePredefinedNotAllowed( CFormula& formula, std::string &errorMsg );
 

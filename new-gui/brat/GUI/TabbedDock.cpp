@@ -1,7 +1,7 @@
 #include "new-gui/brat/stdafx.h"
 
 #include "new-gui/brat/Views/TextWidget.h"
-#include "new-gui/brat/ApplicationSettings.h"
+#include "new-gui/Common/ApplicationSettings.h"
 
 #include "TabbedDock.h"
 

@@ -19,12 +19,68 @@
 #include "new-gui/Common/QtUtilsIO.h"
 #include "new-gui/Common/tools/Trace.h"
 
+#include "new-gui/brat/BratSettings.h"
+
 //#include "new-gui/brat-lab/System/BackServices.h"
 //#include "new-gui/brat-lab/System/CmdLineProcessor.h"
 //#include "display/PlotData/GeoMap.h"
 //#include "display/PlotData/WPlot.h"
 
 #include "MapWidget.h"
+
+
+//static 
+std::string CMapWidget::smQgisPluginsDir;
+//static 
+std::string CMapWidget::smVectorLayerPath;
+//static 
+std::string CMapWidget::smRasterLayerPath;
+//static 
+std::string CMapWidget::smGlobeDir;
+
+
+void CMapWidget::SetQGISDirectories( 
+	const std::string &QgisPluginsDir, 
+	const std::string &VectorLayerPath, 
+	const std::string &RasterLayerPath,
+	const std::string &GlobeDir )
+{
+	smQgisPluginsDir = QgisPluginsDir;
+	smVectorLayerPath = VectorLayerPath;
+	smRasterLayerPath = RasterLayerPath;
+	smGlobeDir = GlobeDir;
+}
+
+
+//static 
+const std::string& CMapWidget::QgisPluginsDir()
+{
+	assert__( IsDir( smQgisPluginsDir ) );
+
+	return smQgisPluginsDir;
+}
+//static 
+const std::string& CMapWidget::VectorLayerPath()
+{
+	assert__( IsDir( smVectorLayerPath ) );
+
+	return smVectorLayerPath;
+}
+//static 
+const std::string& CMapWidget::RasterLayerPath()
+{
+	//no assert, not mandatory
+
+	return smRasterLayerPath;
+}
+//static 
+const std::string& CMapWidget::GlobeDir()
+{
+	assert__( IsDir( smGlobeDir ) );
+
+	return smGlobeDir;
+}
+
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -33,12 +89,9 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-CMapWidget::CMapWidget(QWidget *parent) : base_t(parent)
+CMapWidget::CMapWidget( QWidget *parent )	//parent = nullptr
+	: base_t(parent)
 {
-	static const ApplicationDirectories &ad = ApplicationDirectories::instance();
-	if ( !ad.valid() )
-		SimpleErrorBox("Some standard application directories or files are not valid.\nSome more or less serious errors are to be expected.");
-
 	//char *argv[] =
 	//{
 	//	"",
@@ -62,20 +115,24 @@ CMapWidget::CMapWidget(QWidget *parent) : base_t(parent)
     QString myProviderName      = "ogr";
 
     // Instantiate Provider Registry
-    QgsProviderRegistry *preg = QgsProviderRegistry::instance( t2q( ad.mQgisPluginsDir ) );
+    QgsProviderRegistry *preg = QgsProviderRegistry::instance( t2q( smQgisPluginsDir ) );
 	Q_UNUSED( preg );
 
+	assert__( IsFile( smVectorLayerPath ) );
 	//QString source, dest;
 	//if ( !readFileFromResource( ":/maps/ne_10m_coastline/ne_10m_coastline.shp", dest, true ) )
 	//	std::cout << "problem" << std::endl;
 	//else
 	//	qDebug() << dest;
-	
-	mMainLayer = addOGRLayer( t2q( ad.mVectorLayerPath ) );
+		
+	mMainLayer = addOGRLayer( t2q( smVectorLayerPath ) );
 	mMainLayer->rendererV2()->symbols()[ 0 ]->setColor( "black" );
 
-	if (false)
-		mMainRasterLayer = addRasterLayer( t2q( ad.mRasterLayerPath ), "raster", "" );
+	if ( false )
+	{
+		if ( IsFile( smRasterLayerPath ) )
+			mMainRasterLayer = addRasterLayer( t2q( smRasterLayerPath ), "raster", "" );
+	}
 
     //mMainLayer =  new QgsVectorLayer(mVectorLayerPath, myLayerBaseName, myProviderName);
     //QgsSingleSymbolRendererV2 *mypRenderer = new QgsSingleSymbolRendererV2(QgsSymbolV2::defaultSymbol(mMainLayer->geometryType()));
@@ -106,7 +163,7 @@ CMapWidget::CMapWidget(QWidget *parent) : base_t(parent)
     //// Set the Map Canvas Layer Set
     //setLayerSet(mLayerSet);
 
-	setMinimumSize( min_widget_width, min_widget_height );    //setVisible(true);
+    setMinimumSize( min_globe_widget_width, min_globe_widget_height );    //setVisible(true);
     refresh();
 }
 

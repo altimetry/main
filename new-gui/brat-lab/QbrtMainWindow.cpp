@@ -59,15 +59,22 @@ const QString rsrcPath = ":/images/win";
 #include <qgsspatialindex.h>
 
 
-QbrtMainWindow::QbrtMainWindow(QWidget *parent) :
-    QMainWindow(parent) ,
-    m_bs( GetBackServices() ),
-    m_FindDialog( NULL )
+QbrtMainWindow::QbrtMainWindow( CBratSettings &settings ) :
+    QMainWindow( nullptr )
+	, mSettings( settings )
+	, m_bs( GetBackServices() )
+    , m_FindDialog( nullptr )
 {
     setupUi(this);
     //mdiArea->setViewMode(QMdiArea::SubWindowView);
     setWindowIcon( QIcon(":/butterfly.png") );
     setWindowTitle( tr("%1[*] - %2").arg( windowTitle() ).arg( tr("Rich Text") ) );     //set title sensitive to doc (un)modifications
+
+    CMapWidget::SetQGISDirectories(
+                mSettings.BratPaths().mQgisPluginsDir,
+                mSettings.BratPaths().mVectorLayerPath,
+                mSettings.BratPaths().RasterLayerPath(),
+                mSettings.BratPaths().mGlobeDir );
 
 	QImage newBackground(":/images/world.png");
 	mdiArea->setBackground( newBackground );

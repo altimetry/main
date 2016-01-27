@@ -5,7 +5,7 @@
 #include "new-gui/Common/ConfigurationKeywords.h"
 #include "new-gui/Common/QtUtilsIO.h"
 
-#include "new-gui/brat/ApplicationSettings.h"
+#include "new-gui/Common/ApplicationSettings.h"
 
 #include "ui_BratMainWindow.h"
 #include "ActionsTable.h"
@@ -200,6 +200,21 @@ const CActionInfo& CActionInfo::ActionInfo( EActionTag tag )
 
 	return ActionsTable[ tag ];
 }
+
+
+
+// These are the only properties that allow us to
+//	identify an action, so actions must be unique
+//	with respect to them (mName, etc).
+//
+bool CActionInfo::operator == ( const CActionInfo &o ) const
+{
+    return
+        mName == o.mName &&                 //mTip == o.mTip &&
+        //QKeySequence(t2q(mWShortcut)).toString() == QKeySequence(t2q(o.mWShortcut)).toString();
+        QKeySequence(mQShortcut).toString() == QKeySequence(o.mQShortcut).toString();
+}
+
 
 
 //static 

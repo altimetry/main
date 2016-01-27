@@ -8,8 +8,9 @@
 #include "GUI/SettingsDlg.h"
 
 
-QbrtApplication::QbrtApplication(int &argc, char **argv, bool GUIenabled, QString customConfigPath ) :	//customConfigPath = QString()
+QbrtApplication::QbrtApplication(CApplicationPaths &brat_paths, int &argc, char **argv, bool GUIenabled, QString customConfigPath ) :	//customConfigPath = QString()
 	base_t( argc, argv, GUIenabled, customConfigPath )
+  , mSettings( brat_paths, "ESA", q2t< std::string >( QgsApplication::applicationName() ) )
 {
 	GetBackServices();
 
@@ -30,9 +31,10 @@ QbrtApplication::QbrtApplication(int &argc, char **argv, bool GUIenabled, QStrin
 		// Note that this won't work on Mac OS X when you use './BratDisplay' from within the Contents/MacOS directory of
 		// you .app bundle. The problem is that in that case Mac OS X will change the current working directory to the
 		// location of the .app bundle and thus the calculation of absolute paths will break
-        CTools::SetDataDirForExecutable( ApplicationDirectories::instance().mExecutableFileName.c_str() /*this->argv()[ 0 ]*/ );
+        CTools::SetDataDirForExecutable( Settings().BratPaths().mExecutablePath.c_str() /*this->argv()[ 0 ]*/ );
 	}
 
+    CTools::SetDataDir( Settings().BratPaths().mInternalDataDir );	assert__( CTools::DirectoryExists( CTools::GetDataDir() ) );	//keep v3 happy
 	if ( !CTools::DirectoryExists( CTools::GetDataDir() ) )
 	{
 		std::cerr << "WARNING: " << CTools::GetDataDir() << " is not a valid directory" << std::endl;
@@ -52,7 +54,7 @@ QbrtApplication::QbrtApplication(int &argc, char **argv, bool GUIenabled, QStrin
 
 	//femmTODO
 	//
-	m_config = new QSettings( QSettings::IniFormat, QSettings::UserScope, "GetOrgName()", applicationName() );
+	//m_config = &Settings();	// new QSettings( QSettings::IniFormat, QSettings::UserScope, "GetOrgName()", applicationName() );
 
 	/*IN CmdLineProcessor - begin
 	try

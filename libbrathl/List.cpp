@@ -3471,27 +3471,27 @@ CObMap::~CObMap()
 
 //----------------------------------------
 
-CBratObject* CObMap::Insert(const std::string& key, CBratObject* ob, bool withExcept /* = true */)
+CBratObject* CObMap::Insert( const std::string& key, CBratObject* ob, bool withExcept /* = true */ )
 {
-  
-
-  std::pair <CObMap::iterator,bool> pairInsert;
 
 
-  //If 'key' already exists --> pairInsert.second == false and
-  // pairInsert.first then contains an iterator on the existing object
-  // If 'key' does not exist --> pairInsert.second == true and
-  // pairInsert.first then contains a iterator on the inserted object
-  pairInsert = (mapobject::insert(CObMap::value_type(key, ob)));
+	std::pair <CObMap::iterator, bool> pairInsert;
 
-  if( (pairInsert.second == false) && (withExcept))
-  {
-    CException e("ERROR in CObMap::Insert - try to insert an object that already exists and parameter withExcept is true", BRATHL_LOGIC_ERROR);
-    throw(e);
-  }
-  
-  CObMap::iterator it = (pairInsert.first);
-  return (*it).second;;
+
+	//If 'key' already exists --> pairInsert.second == false and
+	// pairInsert.first then contains an iterator on the existing object
+	// If 'key' does not exist --> pairInsert.second == true and
+	// pairInsert.first then contains a iterator on the inserted object
+	pairInsert = mapobject::insert( CObMap::value_type( key, ob ) );
+
+	if ( !pairInsert.second && withExcept )
+	{
+		CException e( "ERROR in CObMap::Insert - try to insert an object that already exists and parameter withExcept is true", BRATHL_LOGIC_ERROR );
+		throw( e );
+	}
+
+	CObMap::iterator it = pairInsert.first;
+	return it->second;;
 
 }
 

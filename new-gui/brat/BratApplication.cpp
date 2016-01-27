@@ -13,12 +13,12 @@
 
 
 
-CBratApplication::CBratApplication(int &argc, char **argv, bool GUIenabled, QString customConfigPath ) :	//customConfigPath = QString()
-	base_t( argc, argv, GUIenabled, customConfigPath )
+CBratApplication::CBratApplication( CApplicationPaths &brat_paths, int &argc, char **argv, bool GUIenabled, QString customConfigPath ) :	//customConfigPath = QString()
+    base_t( argc, argv, GUIenabled, customConfigPath )
+  , mSettings( brat_paths, "ESA", q2t< std::string >( QgsApplication::applicationName() ) )
 {
-	qDebug() << showSettings();
+    qDebug() << showSettings();
 	qDebug() << qgisSettingsDirPath();
-
 
 	//femm
 //#ifdef WIN32
@@ -34,42 +34,30 @@ CBratApplication::CBratApplication(int &argc, char **argv, bool GUIenabled, QStr
 	// or something else)
 	setlocale( LC_NUMERIC, "C" );
 
-	//// m_execName.Assign( wxGetApp().argv[ 0 ] );
-	std::string m_execName = ApplicationDirectories::instance().mExecutableFileName.c_str();
-
-	std::string appPath = ApplicationDirectories::instance().mExecutableDir;
-
-	qDebug() << ApplicationDirectories::instance().mExecutableFileName.c_str(); //// 
-
-	if ( !Settings().LoadConfig() )
+    if ( !mSettings.LoadConfig() )		//TODO reaction when config or directories failed
 	{
 		CException e( "Error reading the configuration file", BRATHL_ERROR );
 		throw e;
 	}
+	//if ( ! )
+	//{
+	//	std::cerr << "WARNING: " << CTools::GetDataDir() << " is not a valid directory" << std::endl;
+	//	////Warning??? or error?
+	//	SimpleWarnBox( QString( "WARNING: " ) + CTools::GetDataDir().c_str() + " is not a valid directory -- BRAT cannot continue. \n\nAre you sure your " + BRATHL_ENVVAR + " environment variable is set correctly?" );
+	//	throw false;  //TODO
+	//}
 
 	if ( getenv( BRATHL_ENVVAR ) == nullptr )
 	{
 		// Note that this won't work on Mac OS X when you use './BratGui' from within the Contents/MacOS directory of
 		// you .app bundle. The problem is that in that case Mac OS X will change the current working directory to the
 		// location of the .app bundle and thus the calculation of absolute paths will break
-        CTools::SetDataDirForExecutable( ApplicationDirectories::instance().mExecutableFileName.c_str() /*this->argv()[ 0 ]*/ );
+        CTools::SetDataDirForExecutable( mSettings.BratPaths().mExecutablePath.c_str() /*this->argv()[ 0 ]*/ );
 	}
 
-	assert__( !appPath.empty() );
-
-	COperation::SetExecNames( appPath );
-	if ( getenv( BRATHL_ENVVAR ) == nullptr )
-	{
-        CTools::SetDataDirForExecutable( ApplicationDirectories::instance().mExecutableFileName.c_str() /*this->argv()[ 0 ]*/ );
-	}
-
-	if ( !CTools::DirectoryExists( CTools::GetDataDir() ) )
-	{
-		std::cerr << "WARNING: " << CTools::GetDataDir() << " is not a valid directory" << std::endl;
-		////Warning??? or error?
-		SimpleWarnBox( QString( "WARNING: " ) + CTools::GetDataDir().c_str() + " is not a valid directory -- BRAT cannot continue. \n\nAre you sure your " + BRATHL_ENVVAR + " environment variable is set correctly?" );
-		throw false;  //TODO
-	}
+    std::string appPath = mSettings.BratPaths().mExecutableDir;	assert__( IsDir( appPath ) );
+	COperation::SetExecNames( appPath );				// TODO change this to settings directories and COperations used settings passed as argument (config)
+    CTools::SetDataDir( mSettings.BratPaths().mInternalDataDir );	assert__( CTools::DirectoryExists( CTools::GetDataDir() ) );	//keep v3 happy
 
 	std::string errorMsg;
 	if ( !CTools::LoadAndCheckUdUnitsSystem( errorMsg ) )
@@ -94,15 +82,15 @@ CBratApplication::CBratApplication(int &argc, char **argv, bool GUIenabled, QStr
 
     // (*) this can be statically set, but not statically queried before ctor call (issues Qt assertion)
     //
-#if defined (Q_OS_UNIX)
-	mDefaultAppStyle = t2q( Settings().getNameOfStyle( new QCleanlooksStyle, true ) );	//(*)
+#if defined (Q_OS_LINUX)
+    mDefaultAppStyle = t2q( mSettings.getNameOfStyle( new QCleanlooksStyle, true ) );	//(*)
 #else
 	mDefaultAppStyle = getCurrentStyleName();											//(*)
 #endif
 
-	Settings().setApplicationStyle( *this, mDefaultAppStyle );
+    mSettings.setApplicationStyle( *this, mDefaultAppStyle );
 
-	//femm: remaining initialization in charge of the main window
+    //v4: remaining initialization in charge of the main window
 }
 
 
@@ -111,10 +99,10 @@ CBratApplication::~CBratApplication()
 {
     CProduct::CodaRelease();
 
-	if ( !Settings().SaveConfig() )
+    if ( !mSettings.SaveConfig() )
 		std::cout << "Unable to save BRAT the application settings." << std::endl;	// TODO log this
 
-	Settings().Sync();
+    mSettings.Sync();
 }
 
 
@@ -130,7 +118,7 @@ void CBratApplication::updateSettings()
 	//	current.m_CustomAppStyleSheet != options.m_CustomAppStyleSheet ||
 	//	current.m_NoStyleSheet != options.m_NoStyleSheet;
 
-	if ( /*needStyleUpdate && */!Settings().setApplicationStyle( *this, mDefaultAppStyle /*options */) )	//if necessary (e.g. error) setApplicationStyle corrects options to reflect actually changed settings; so far (08/2014) this only happens if style sheet resource not found
+    if ( /*needStyleUpdate && */!mSettings.setApplicationStyle( *this, mDefaultAppStyle /*options */) )	//if necessary (e.g. error) setApplicationStyle corrects options to reflect actually changed settings; so far (08/2014) this only happens if style sheet resource not found
 		result = false;
 
 	// getPrivateAppOptions() = options;

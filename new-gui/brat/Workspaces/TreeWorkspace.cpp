@@ -33,6 +33,12 @@ using namespace brathl;
 
 
 
+std::string CTreeWorkspace::ChildKey( const std::string &name ) const 
+{
+	return m_pTreeroot->GetKey() + CWorkspace::m_keyDelimiter + name;
+}
+
+
 CWorkspace* CTreeWorkspace::Reset( const std::string& base_path, std::string &error_msg, const std::string& root_name )
 {
 	Clear();
@@ -41,7 +47,7 @@ CWorkspace* CTreeWorkspace::Reset( const std::string& base_path, std::string &er
     root->InitConfig();
 
 	// Set tree root
-	SetRoot( root->GetName(), root, true );
+	SetRoot( root, true );
 
 	//WARNING : the sequence of workspaces object creation is significant, because of the interdependence of them
 
@@ -187,16 +193,16 @@ bool CTreeWorkspace::Validate( EValidationTask task, const std::string &path, EV
 
 
 //----------------------------------------
-void CTreeWorkspace::SetRoot( const std::string& nm, CBratObject* o, bool goCurrent )
+void CTreeWorkspace::SetRoot( CBratObject* o, bool goCurrent )
 {
 	CWorkspace *x = dynamic_cast<CWorkspace*>( o );		assert__( x );
-	x->SetKey( nm );
-	base_t::SetRoot( nm, x, goCurrent );
+	x->SetKey( x->GetName() );
+	base_t::SetRoot( x->GetName(), x, goCurrent );
 	x->SetLevel( m_pTreeroot->GetLevel() );
 }
 
 //----------------------------------------
-CWorkspaceFormula * CTreeWorkspace::GetWorkspaceFormula()
+CWorkspaceFormula* CTreeWorkspace::GetWorkspaceFormula()
 {
 	CWorkspaceFormula *wks = nullptr;
 
@@ -214,12 +220,12 @@ CWorkspaceFormula * CTreeWorkspace::GetWorkspaceFormula()
 	return wks;
 }
 //----------------------------------------
-CWorkspaceFormula * CTreeWorkspace::GetWorkspaceFormula( CWorkspace *w, bool withExcept )
+CWorkspaceFormula* CTreeWorkspace::GetWorkspaceFormula( CWorkspace *w, bool withExcept )
 {
 	CWorkspaceFormula *wks  = dynamic_cast<CWorkspaceFormula*>( w );
-	if ( withExcept )
+	if ( wks == nullptr )
 	{
-		if ( wks == nullptr )
+		if ( withExcept )
 		{
 			CException e( "ERROR in CTreeWorkspace::GetWorkspaceFormula() - workspace is not a CWorkspaceFormula object", BRATHL_LOGIC_ERROR );
 			throw( e );
@@ -228,12 +234,12 @@ CWorkspaceFormula * CTreeWorkspace::GetWorkspaceFormula( CWorkspace *w, bool wit
 	return wks;
 }
 //----------------------------------------
-CWorkspace * CTreeWorkspace::GetCurrentData( bool withExcept )
+CWorkspace* CTreeWorkspace::GetCurrentData( bool withExcept )
 {
 	CWorkspace *wks  = dynamic_cast<CWorkspace*>( this->GetWalkCurrent()->GetData() );
-	if ( withExcept )
+	if ( wks == nullptr )
 	{
-		if ( wks == nullptr )
+		if ( withExcept )
 		{
 			CException e( "ERROR in CTreeWorkspace::GetCurrentData() - at least one of the tree object is not a CWorkspace object", BRATHL_LOGIC_ERROR );
 			throw( e );
@@ -242,12 +248,12 @@ CWorkspace * CTreeWorkspace::GetCurrentData( bool withExcept )
 	return wks;
 }
 //----------------------------------------
-CWorkspace * CTreeWorkspace::GetParentData( bool withExcept )
+CWorkspace* CTreeWorkspace::GetParentData( bool withExcept )
 {
 	CWorkspace *wks  = dynamic_cast<CWorkspace*>( this->GetWalkParent()->GetData() );
-	if ( withExcept )
+	if ( wks == nullptr )
 	{
-		if ( wks == nullptr )
+		if ( withExcept )
 		{
 			CException e( "ERROR in CTreeWorkspace::GetParentData() - at least one of the tree object is not a CWorkspace object", BRATHL_LOGIC_ERROR );
 			throw( e );
@@ -279,10 +285,10 @@ CWorkspace* CTreeWorkspace::GetRootData()
 //----------------------------------------
 CObjectTreeIterator CTreeWorkspace::AddChild( const std::string& nm, CWorkspace* x, bool goCurrent )
 {
-	std::string key = m_pTreeroot->GetKey();
-	key += CWorkspace::m_keyDelimiter + nm;
+	std::string key = ChildKey( nm );
 
 	x->SetKey( key );
+
 	x->SetLevel( m_pTreeroot->GetLevel() + 1 );
 
 	return CObjectTree::AddChild( key, x, goCurrent );
@@ -335,18 +341,22 @@ CWorkspaceFormula* CTreeWorkspace::LoadConfigFormula( CWorkspaceDataset *wksds, 
 }
 
 //----------------------------------------
-bool CTreeWorkspace::Import( CTreeWorkspace* treeSrc, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso, std::string &keyToFind, std::string &error_msg )
+bool CTreeWorkspace::Import( CTreeWorkspace* treeSrc, CWorkspaceDataset *wksds, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso, std::string &keyToFind, std::string &error_msg )
 {
-	if ( GetRootData() == nullptr )
-		return false;
+	assert__( GetRootData() != nullptr );		//v4: in v3 returned false
+
 
 	bool bOk = true;
 
 	SetWalkDownRootPivot();
 	do
 	{
+		CWorkspace* currentWorkspace = GetCurrentData();
+		if ( currentWorkspace == nullptr )
+			continue;
         //if ( typeid( *GetCurrentData() ) == typeid( CWorkspace ) )
-        if ( dynamic_cast< CWorkspace* >( GetCurrentData() ) )
+        //if ( dynamic_cast< CWorkspace* >( GetCurrentData() ) )
+        if ( currentWorkspace->GetKey() != ChildKey( currentWorkspace->GetName() ) )
         {
 			keyToFind = treeSrc->GetRootData()->GetKey();
 		}
@@ -362,13 +372,13 @@ bool CTreeWorkspace::Import( CTreeWorkspace* treeSrc, CWorkspaceDisplay *wksd, C
 		if ( wksImport == nullptr )
 			return false;
 
-		CWorkspace* currentWorkspace = GetCurrentData();
-		if ( currentWorkspace == nullptr )
-			continue;
+		//CWorkspace* currentWorkspace = GetCurrentData();
+		//if ( currentWorkspace == nullptr )
+		//	continue;
 
 		currentWorkspace->SetImportBitSet( &m_importBitSet );
 
-		bOk = currentWorkspace->Import( wksImport, error_msg, wksd, wkso );
+		bOk = currentWorkspace->Import( wksImport, error_msg, wksds, wksd, wkso );
 		if ( !bOk )
 			break;
 

@@ -45,7 +45,8 @@ inline QWidget* CenterOn1stScreen( QWidget *const w )
 
 QWidget* CDesktopManagerSDI::CenterOnWidget( QWidget *const w, const QWidget *const parent )
 {
-	return CenterOnParentCenter( w, parent->mapToGlobal( parent->rect().center() ) );
+    w->adjustSize();
+    return CenterOnParentCenter( w, parent->mapToGlobal( parent->rect().center() ) );
 }
 
 //virtual 
@@ -94,9 +95,15 @@ CDesktopManagerSDI::CDesktopManagerSDI( QMainWindow *parent )
 
 #else
 
-	QLayout *l = CreateLayout( this, Qt::Horizontal, 6, 11, 11, 11, 11 );
+	const int margin = 11;
+
+	auto frame = new QFrame( parent );
+	LayoutWidgets( { frame }, this, 0, 0, 0, 0, 0 );
+	frame->setFrameStyle( QFrame::Panel );
+	frame->setFrameShadow( QFrame::Sunken );
+	LayoutWidgets( Qt::Horizontal, { mMap }, frame, 0, margin, margin, margin, margin );
 	mMap->setMinimumSize( min_main_window_width / 3 * 2, min_main_window_height / 3 * 2 );
-	l->addWidget( mMap );
+
 #endif
 }
 

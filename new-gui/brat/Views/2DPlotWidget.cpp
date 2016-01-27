@@ -93,7 +93,7 @@ C2DPlotWidget::C2DPlotWidget( E2DPlotType type, QWidget *parent ) : base_t( pare
 			throw "2D error";
 	}
 
-	setMinimumSize( min_widget_width, min_widget_height );
+    setMinimumSize( min_plot_widget_width, min_plot_widget_height );
 }
 
 C2DPlotWidget::~C2DPlotWidget()

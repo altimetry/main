@@ -5,6 +5,7 @@
 #include "new-gui/brat/GUI/ActionsTable.h"
 #include "new-gui/brat/GUI/TabbedDock.h"
 #include "new-gui/brat/GUI/ControlsPanel.h"
+#include "new-gui/brat/GUI/ViewControlsPanel.h"
 #include "new-gui/brat/Views/GlobeWidget.h"
 #include "new-gui/brat/Views/2DPlotWidget.h"
 #include "new-gui/brat/Views/3DPlotWidget.h"
@@ -210,7 +211,7 @@ CMapEditor::CMapEditor( QWidget *parent )		//parent = nullptr
 	CreateMapActions();
 
 	mMap = new CMapWidget( this );
-	mGlobe = new CGlobeWidget( this, ApplicationDirectories::instance().mGlobeDir, mMap );
+	mGlobe = new CGlobeWidget( this, CMapWidget::GlobeDir(), mMap );
 	AddView( mMap, false );
 	AddView( mGlobe, true );
 

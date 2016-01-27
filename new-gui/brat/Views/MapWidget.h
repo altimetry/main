@@ -28,6 +28,8 @@ class QgsRasterLayer;
 //
 
 
+
+
 class CMapWidget : public QgsMapCanvas
 {
 #if defined (__APPLE__)
@@ -41,21 +43,36 @@ class CMapWidget : public QgsMapCanvas
 #pragma clang diagnostic pop
 #endif
 
+    //////////////////////////////////////
+    //	types & friends
+    //////////////////////////////////////
+
     using base_t = QgsMapCanvas;
 
-	QgsVectorLayer *mMainLayer = nullptr;
-	QgsRasterLayer *mMainRasterLayer = nullptr;
-    QList <QgsMapCanvasLayer> mLayerSet;
 
-	void setupDatabase();
-	void setupMapLayers();
-	QgsSymbolV2* createSymbol( double width, const QColor &lineColor, const std::string &arrowColor, 
-		const std::string &status = "", const std::string &direction = "" );
+    //////////////////////////////////////
+    //	static members
+    //////////////////////////////////////
 
-	void setProjection();
-	void drawLines();
-	void addLabelsLayer();
-	void addGrid();
+	static std::string smQgisPluginsDir;
+	static std::string smVectorLayerPath;
+	static std::string smRasterLayerPath;
+	static std::string smGlobeDir;
+
+public:
+
+	static const std::string& QgisPluginsDir();
+	static const std::string& VectorLayerPath();
+	static const std::string& RasterLayerPath();	//not required, used if exists on disk
+	static const std::string& GlobeDir();
+
+	// Must be called at startup, before 1st map creation
+	//
+	static void SetQGISDirectories( 
+		const std::string &QgisPluginsDir, 
+		const std::string &VectorLayerPath, 
+		const std::string &RasterLayerPath,
+		const std::string &GlobeDir );
 
 public:
 	template< class LAYER >
@@ -80,6 +97,49 @@ public:
 
 
 protected:
+    //////////////////////////////////////
+    //	instance data
+    //////////////////////////////////////
+
+	QgsVectorLayer *mMainLayer = nullptr;
+	QgsRasterLayer *mMainRasterLayer = nullptr;
+    QList <QgsMapCanvasLayer> mLayerSet;
+
+
+    //////////////////////////////////////
+    //	construction / destruction
+    //////////////////////////////////////
+
+
+	void setupDatabase();
+	void setupMapLayers();
+	QgsSymbolV2* createSymbol( double width, const QColor &lineColor, const std::string &arrowColor, 
+		const std::string &status = "", const std::string &direction = "" );
+
+	void setProjection();
+	void drawLines();
+	void addLabelsLayer();
+	void addGrid();
+
+public:
+    CMapWidget( QWidget *parent = nullptr );
+
+	virtual ~CMapWidget();
+
+
+    QSize sizeHint() const override
+    {
+        return QSize(72 * fontMetrics().width('x'),
+                     25 * fontMetrics().lineSpacing());
+    }
+
+
+    //////////////////////////////////////
+    //	operations
+    //////////////////////////////////////
+
+
+protected:
 	virtual void keyPressEvent( QKeyEvent * e ) override;
 
 	QgsVectorLayer* addLayer( const QString &layer_path, const QString &base_name, const QString &provider, QgsSymbolV2* symbol = nullptr );
@@ -96,17 +156,6 @@ protected:
 	QgsRubberBand* addRBPoint( double lon, double lat, QColor color, QgsVectorLayer *layer = nullptr );
 	QgsRubberBand* addRBLine( QgsPolyline points, QColor color, QgsVectorLayer *layer = nullptr );
 
-
-public:
-    CMapWidget( QWidget *parent = 0 );
-
-	virtual ~CMapWidget();
-
-    QSize sizeHint() const override
-    {
-        return QSize(72 * fontMetrics().width('x'),
-                     25 * fontMetrics().lineSpacing());
-    }
 
     //void CreateWPlot( const CmdLineProcessor *proc, CWPlot* wplot );
 	//void AddData( CWorldPlotData* data );

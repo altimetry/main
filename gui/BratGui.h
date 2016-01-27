@@ -48,7 +48,7 @@ using namespace brathl;
 #include "GuiFrame.h"
 
 
-class CApplicationSettings;
+class CBratSettings;
 
 
 
@@ -284,7 +284,7 @@ public:
 	/////////////////////////////////////////////////
 private:
 	wxFileConfig* GetConfig() { return m_config; }
-    CApplicationSettings *mAppSettings = nullptr;
+    CBratSettings *mAppSettings = nullptr;
 
 	bool SaveConfig( bool flush = true );
 	bool SaveConfigSelectionCriteria( bool flush = true );
@@ -321,14 +321,30 @@ private:
 public:
 	void SetCurrentTree( CTreeWorkspace* value ) { m_currentTree = value; }
 
-	CWorkspace* GetCurrentWorkspace();
-	CWorkspaceDataset* GetCurrentWorkspaceDataset();
-	CWorkspaceOperation* GetCurrentWorkspaceOperation();
-	CWorkspaceFormula* GetCurrentWorkspaceFormula();
-	CWorkspaceDisplay* GetCurrentWorkspaceDisplay();
+	template< class WKSPC >
+	WKSPC* GetWorkspace()
+	{
+		CWorkspace* wks = GetCurrentWorkspace();
+		if ( !wks )								   	//admissible when no workspace loaded
+			return nullptr;
 
-private:
-	std::string GetWorkspaceKey( const std::string &subKey );
+        std::string workspaceKey = m_currentTree->ChildKey( WKSPC::NAME );
+
+		return dynamic_cast<WKSPC*>( m_currentTree->FindWorkspace( workspaceKey ) );
+	}
+
+	CWorkspace* GetCurrentWorkspace()
+	{
+		if ( m_currentTree == NULL )
+		{
+			m_currentTree = &m_tree;
+		}
+		return m_currentTree->GetRootData();
+	}
+	CWorkspaceDataset* GetCurrentWorkspaceDataset() { return GetWorkspace< CWorkspaceDataset >(); }
+	CWorkspaceOperation* GetCurrentWorkspaceOperation() { return GetWorkspace< CWorkspaceOperation >(); }
+	CWorkspaceFormula* GetCurrentWorkspaceFormula() { return GetWorkspace< CWorkspaceFormula >(); }
+	CWorkspaceDisplay* GetCurrentWorkspaceDisplay() { return GetWorkspace< CWorkspaceDisplay >(); }
 
 public:
 

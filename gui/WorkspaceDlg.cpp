@@ -243,8 +243,7 @@ bool CWorkspaceDlg::VerifyConfig( bool withMsg )
 	if ( !VerifyPath( withMsg ) )
 		return false;
 
-	CWorkspace wks( GetWksLoc()->GetValue().ToStdString() );
-	//wks.SetPath( GetWksLoc()->GetValue().ToStdString(), false );
+	CWorkspace wks( GetWksLoc()->GetValue().ToStdString() );	//wks.SetPath( GetWksLoc()->GetValue().ToStdString(), false );
 	bool bOk = wks.IsConfigFile();
 	if ( bOk )
 	{

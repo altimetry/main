@@ -196,8 +196,9 @@ void CBratMainWindow::ProcessMenu()
 		qDebug() << m->title();
 		foreach( QAction *a, m->actions() )
 		{
-			auto tag = CActionInfo::UpdateActionProperties( a );		assert__( tag < EActionTag::EActionTags_size );
-			qDebug() << a->text() << tag;
+            qDebug() << a->text();
+            auto tag = CActionInfo::UpdateActionProperties( a );		assert__( tag < EActionTag::EActionTags_size );
+            qDebug() << tag;
 		}
 	}
 
@@ -289,11 +290,19 @@ void CBratMainWindow::FillStatusBar()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-CBratMainWindow::CBratMainWindow( CApplicationSettings &settings ) 
+CBratMainWindow::CBratMainWindow( CBratSettings &settings ) 
 	: QMainWindow( nullptr)
 	, mSettings( settings )
 {
 	assert__( !smInstance );
+    assert__( mSettings.BratPaths().valid() );
+
+
+    CMapWidget::SetQGISDirectories(
+                mSettings.BratPaths().mQgisPluginsDir,
+                mSettings.BratPaths().mVectorLayerPath,
+                mSettings.BratPaths().RasterLayerPath(),
+                mSettings.BratPaths().mGlobeDir );
 
     setupUi( this );
     setWindowIcon( QIcon("://images/BratIcon.png") );
@@ -322,7 +331,7 @@ CBratMainWindow::CBratMainWindow( CApplicationSettings &settings )
 	try {
 		ReadSettings( lastSessionGeometry );
 	}
-	catch ( const CException &e )			// TODO: rather stupid catching the exception here...
+    catch ( const CException &e )			// TODO rather stupid catching the exception here...
 	{
 		SimpleWarnBox( std::string( "An error occurred while loading Brat configuration (CBratGui::LoadConfig)\nNative std::exception: " )
 			+ e.what() );
@@ -338,12 +347,12 @@ CBratMainWindow::CBratMainWindow( CApplicationSettings &settings )
     //
 	if ( !lastSessionGeometry )
 	{
-		//mMainWorkingDock->adjustSize();
-		//CenterOnScreen( this );		//calls adjustSize
-		show();
-		adjustSize();
-		CenterOnScreen2( this );
-	}
+        show();
+        QApplication::processEvents();
+        CenterOnScreen( this );
+        //CenterOnScreen2( this );
+        //CenterOnScreen3( this );
+    }
 
 
     // Assign singleton just before triggering load operations and leave
@@ -417,23 +426,28 @@ void CBratMainWindow::LoadCmdLineFiles()
 	//	if ( Load Last Workspace ) then :
 	//////////////////////////////////////
 
-	try {
-		if ( !OpenWorkspace( mSettings.m_lastWksPath.c_str() ) )
-		{
-			SimpleWarnBox( "Unable to load last used workspace located in '" + mSettings.m_lastWksPath + "' " );
-		}
-		else
-		if ( !mSettings.m_lastWksPath.empty() )
-		{
-			//GotoLastPageReached();
-
-			mMainWorkingDock->SelectTab( compute_last_page_reached() );
-			WorkingPanel<eOperations>()->SetAdvancedMode( mSettings.mAdvancedOperations );
-		}
-	}
-	catch ( const CException &e ) 
+	if ( !mSettings.mLoadLastWorkspaceAtStartUp )
+		DoEmptyWorkspace();
+	else
 	{
-		SimpleWarnBox( e.what() );
+		try {
+			if ( !OpenWorkspace( mSettings.m_lastWksPath.c_str() ) )
+			{
+				SimpleWarnBox( "Unable to load last used workspace located in '" + mSettings.m_lastWksPath + "' " );
+			}
+			else
+			if ( !mSettings.m_lastWksPath.empty() )
+			{
+				//GotoLastPageReached();
+
+				mMainWorkingDock->SelectTab( compute_last_page_reached() );
+				WorkingPanel<eOperations>()->SetAdvancedMode( mSettings.mAdvancedOperations );
+			}
+		}
+		catch ( const CException &e )
+		{
+			SimpleWarnBox( e.what() );
+		}
 	}
 
     return;
@@ -501,7 +515,7 @@ bool CBratMainWindow::WriteSettings()
 
     mSettings.m_lastPageReached = n2s< std::string >( mMainWorkingDock->SelectedTab() );
     mSettings.mAdvancedOperations = WorkingPanel< eOperations >()->AdvancedMode();
-    const CWorkspace *wks = mModel.GetCurrentRootWorkspace();
+    const CWorkspace *wks = mModel.RootWorkspace();
     mSettings.m_lastWksPath = wks != nullptr ? wks->GetPath() : "";
 
 	if (
@@ -526,7 +540,7 @@ bool CBratMainWindow::WriteSettings()
 
 bool CBratMainWindow::OkToContinue()
 {
-	if ( mModel.GetCurrentRootWorkspace() == nullptr )
+	if ( mModel.RootWorkspace() == nullptr )
 		return true;
 
 	int r = 
@@ -602,9 +616,9 @@ CBratMainWindow::~CBratMainWindow()
 void CBratMainWindow::EmitWorkspaceChanged()
 {
 	emit WorkspaceChanged( &mModel );
-	emit WorkspaceChanged( mModel.GetCurrentWorkspace< CWorkspaceDataset >() );
-	emit WorkspaceChanged( mModel.GetCurrentWorkspace< CWorkspaceOperation >() );
-	emit WorkspaceChanged( mModel.GetCurrentWorkspace< CWorkspaceDisplay >() );
+	emit WorkspaceChanged( mModel.Workspace< CWorkspaceDataset >() );
+	emit WorkspaceChanged( mModel.Workspace< CWorkspaceOperation >() );
+	emit WorkspaceChanged( mModel.Workspace< CWorkspaceDisplay >() );
 }
 
 
@@ -680,7 +694,7 @@ void CBratMainWindow::SetCurrentWorkspace( const CWorkspace *wks )
 
 bool CBratMainWindow::OpenWorkspace( const std::string &path )
 {
-	//return DoEmptyWorkspace();		// TODO DELLTE THIS AFTER DEBUGGING
+	//return DoEmptyWorkspace();		// TODO DELETE THIS AFTER DEBUGGING
 
 	if ( path.empty() )
 	{
@@ -707,7 +721,7 @@ bool CBratMainWindow::OpenWorkspace( const std::string &path )
 
 void CBratMainWindow::on_action_New_triggered()
 {
-	static QString last_path = t2q( ApplicationDirectories::instance().mExternalDataDir );
+    static QString last_path = t2q( mSettings.BratPaths().WorkspacesPath() );
 
 	CWorkspaceDialog dlg( this, CTreeWorkspace::eNew, nullptr, last_path, mModel );
 	if ( dlg.exec() == QDialog::Accepted )
@@ -729,7 +743,7 @@ void CBratMainWindow::on_action_New_triggered()
 
 void CBratMainWindow::on_action_Open_triggered()
 {
-	static QString last_path = t2q( ApplicationDirectories::instance().mExternalDataDir );
+    static QString last_path = t2q( mSettings.BratPaths().WorkspacesPath() );
 
 	CWorkspaceDialog dlg( this, CTreeWorkspace::eOpen, nullptr, last_path, mModel );
 	if ( dlg.exec() == QDialog::Accepted )
@@ -749,7 +763,7 @@ bool CBratMainWindow::SaveWorkspace()
 		return false;
 	}
 
-    const CWorkspace *wks = mModel.GetCurrentRootWorkspace();
+    const CWorkspace *wks = mModel.RootWorkspace();
 	if ( wks != nullptr )
 	{
 		SetCurrentWorkspace( wks );
@@ -774,131 +788,29 @@ void CBratMainWindow::on_action_Save_As_triggered()		//Save As implies (better, 
 
 void CBratMainWindow::on_action_Import_Workspace_triggered()
 {
-	static QString last_path = t2q( ApplicationDirectories::instance().mExternalDataDir );
+    static QString last_path = t2q( mSettings.BratPaths().WorkspacesPath() );
 
-	CWorkspace *wks = mModel.GetCurrentRootWorkspace();			assert__( wks != nullptr );
-
-
-    bool bOk = false;               Q_UNUSED( bOk );
-
-	mModel.ResetImportTree();
-
-	//std::string wksPath = wxGetApp().GetCurrentWorkspace()->GetPathName();
-	//wxFileName currentWksPath;
-	//currentWksPath.AssignDir( wksPath );
-	//currentWksPath.MakeAbsolute();
-
-	std::string error_msg;
-	if ( !mModel.SaveWorkspace( error_msg ) )	// TODO SaveWorkspace failures not verified in v3
-	{
-		SimpleErrorBox( error_msg );
-		return;
-	}
+	CWorkspace *wks = mModel.RootWorkspace();			assert__( wks != nullptr );
 
 	CWorkspaceDialog dlg( this, CTreeWorkspace::eImport, wks, last_path, mModel );
-	//wxGetApp().m_tree.GetImportBitSet()->m_bitSet.reset();
-
 	if ( dlg.exec() != QDialog::Accepted )
 		return;
 
 	last_path = t2q( dlg.mPath );
 
-
-	std::vector< std::string > formulasToImport;
-
-	mModel.ResetImportBits();
-	mModel.SetImportBits( 
-	{ 
-        { IMPORT_DATASET_INDEX,	dlg.mDatasets },
-        { IMPORT_FORMULA_INDEX, dlg.mFormulas },
-        { IMPORT_OPERATION_INDEX, dlg.mOperations },
-        { IMPORT_DISPLAY_INDEX, dlg.mViews }
-	} );
-
-
-    CWorkspace* import_wks = new CWorkspace( dlg.mPath );		//CWorkspace* wks = new CWorkspace( dlg.GetWksName()->GetValue(), dlg.mPath, false );
-
-    Q_UNUSED( import_wks );
-
-	NOT_IMPLEMENTED
-	return;
-
-	/*
-	wxGetApp().m_treeImport.SetCtrlDatasetFiles( wxGetApp().m_tree.GetImportBitSet()->m_bitSet.test( IMPORT_DATASET_INDEX ) );
-
-	wxGetApp().CreateTree( wks, wxGetApp().m_treeImport );
-
-	//-----------------------------------------
-	wxGetApp().SetCurrentTree( &( wxGetApp().m_treeImport ) );
-	//-----------------------------------------
-
-	bOk = wxGetApp().m_treeImport.LoadConfig();
-
-	if ( bOk == false )
-	{
-		wxGetApp().m_treeImport.DeleteTree();
-		wxGetApp().m_tree.DeleteTree();
-
-		bool oldValue = wxGetApp().m_tree.GetCtrlDatasetFiles();
-		wxGetApp().m_tree.SetCtrlDatasetFiles( false );
-
-		OpenWorkspace( wksPath );
-
-		wxGetApp().m_tree.SetCtrlDatasetFiles( oldValue );
-
-		return bOk;
-	}
-
-	CWorkspaceOperation* wksOpImport = wxGetApp().GetCurrentWorkspaceOperation();
-
-	//-----------------------------------------
-	wxGetApp().SetCurrentTree( &( wxGetApp().m_tree ) );
-	//-----------------------------------------
-
-	// Retrieve formula to Import
-	CWorkspaceFormula* wksFormula = wxGetApp().GetCurrentWorkspaceFormula();
-
-	dlg.GetCheckedFormulas( wksFormula->GetFormulasToImport() );
-
-
-	bOk = wxGetApp().m_tree.Import( &( wxGetApp().m_treeImport ) );
-	if ( bOk )
-	{
-		SaveWorkspace();
-
-		CWorkspaceOperation* wksOp = wxGetApp().GetCurrentWorkspaceOperation();
-		if ( ( wksOp != nullptr ) && ( wksOpImport != nullptr ) )
-		{
-			CDirTraverserCopyFile traverserCopyFile( wksOp->GetPath(), "nc" );
-			//path name given to wxDir is locked until wxDir object is deleted
-			wxDir dir;
-
-			dir.Open( wksOpImport->GetPathName() );
-			dir.Traverse( traverserCopyFile );
-		}
-
-	}
-
-	wxGetApp().m_treeImport.DeleteTree();
-	wxGetApp().m_tree.DeleteTree();
-
-	bool oldValue = wxGetApp().m_tree.GetCtrlDatasetFiles();
-	wxGetApp().m_tree.SetCtrlDatasetFiles( false );
-
-	bOk = OpenWorkspace( wksPath );
-
-	wxGetApp().m_tree.SetCtrlDatasetFiles( oldValue );
-
-	return bOk;
-	  */
+	std::string error_msg;
+	if ( !mModel.ImportWorkspace( dlg.mPath, dlg.mDatasets, dlg.mFormulas, dlg.mOperations, dlg.mViews, dlg.mImportFormulas, error_msg ) )
+		SimpleErrorBox( error_msg );
+	else
+		SetCurrentWorkspace( mModel.RootWorkspace() );	//so far is the same as wks, but implementation must be free to change
 }
 
 
 void CBratMainWindow::on_action_Rename_Workspace_triggered()
 {
-	static QString last_path = t2q( ApplicationDirectories::instance().mExternalDataDir );
+    static QString last_path = t2q( mSettings.BratPaths().WorkspacesPath() );
 
-	CWorkspace *wks = mModel.GetCurrentRootWorkspace();
+	CWorkspace *wks = mModel.RootWorkspace();
 	if ( wks == nullptr )											//TODO: update actions should have prevented this
 	{
 		SimpleWarnBox( "There is no current workspace opened" );		
@@ -917,9 +829,9 @@ void CBratMainWindow::on_action_Rename_Workspace_triggered()
 
 void CBratMainWindow::on_action_Delete_Workspace_triggered()
 {
-	static QString last_path = t2q( ApplicationDirectories::instance().mExternalDataDir );
+    static QString last_path = t2q( mSettings.BratPaths().WorkspacesPath() );
 
-	CWorkspace *wks = mModel.GetCurrentRootWorkspace();
+	CWorkspace *wks = mModel.RootWorkspace();
 	if ( wks == nullptr )											//TODO: update actions should have prevented this
 	{
 		SimpleWarnBox( "There is no current workspace opened" );
@@ -1104,7 +1016,11 @@ void CBratMainWindow::on_action_Test_triggered()
 {
 #if defined (DEBUG) || defined(_DEBUG)
 
-    std::string msg = "Main application settings file: " + mSettings.FilePath();
+    std::string
+    msg = "Main application settings file: " + mSettings.FilePath();
+    msg += "\nCurrent Working Directory: " + q2a( QDir::currentPath() );
+    msg += "\n\n";
+    msg += mSettings.BratPaths().ToString();
     SimpleMsgBox( msg );
 
     // NOT_IMPLEMENTED
@@ -1126,7 +1042,7 @@ void CBratMainWindow::UpdateWorkspaceUI( const CModel *model )
 {
 	Q_UNUSED( model );
 
-	const bool enable = mModel.GetCurrentRootWorkspace() != nullptr;
+	const bool enable = mModel.RootWorkspace() != nullptr;
 
 	CActionInfo::UpdateActionsState( {
 

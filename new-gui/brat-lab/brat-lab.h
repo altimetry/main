@@ -13,15 +13,8 @@
 #include "libbrathl/List.h"
 #include "libbrathl/FileParams.h"
 
+#include "new-gui/brat/BratSettings.h"
 
-enum EApplicationStyleSheets
-{
-	e_DarkStyle,
-	e_DarkOrangeStyle,
-	e_Dark_2015Style,
-
-	EApplicationStylesSheets_size
-};
 
 
 struct TApplicationOptions
@@ -103,15 +96,22 @@ class QbrtApplication : public QgsApplication
 {
 	Q_OBJECT
 
-	//types
+	//types & friends
 
 	typedef QgsApplication base_t;
 
+	friend int main( int argc, char *argv[] );
+
+	//static
+
+public:
 
 	//data
 
+    CBratSettings mSettings;
+
 	//QString m_execName;
-	QSettings *m_config = nullptr;
+	//QSettings *m_config = nullptr;
 
 	bool m_isZFLatLon = false;
 	bool m_isYFX = false;
@@ -140,13 +140,18 @@ public:
 
 	//Public ctor
 
-    QbrtApplication( int &argc, char ** argv, bool GUIenabled, QString customConfigPath = QString() );
+    QbrtApplication( CApplicationPaths &brat_paths, int &argc, char ** argv, bool GUIenabled, QString customConfigPath = QString() );
 
 
 	//Destruction
 
 	virtual ~QbrtApplication();
 
+
+    CBratSettings& Settings()
+    {
+        return mSettings;
+    }
 
 protected:
 	//bool GetCommandLineOptions( int argc, char* argv[] );

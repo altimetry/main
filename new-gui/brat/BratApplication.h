@@ -15,7 +15,7 @@
 
 #include "new-gui/Common/QtStringUtils.h"
 
-#include "ApplicationSettings.h"
+#include "BratSettings.h"
 
 
 ////  - empirical assumption (without this crashes): a forward like this is
@@ -58,18 +58,13 @@ class CBratApplication : public QgsApplication
 
 	typedef QgsApplication base_t;
 
-	friend int main( int argc, char *argv[] );
+    //friend int main( int argc, char *argv[] );    TODO delete; for test purpose only
 
 
 	//////////////////////////////////////
 	//	static members
 	//////////////////////////////////////
 
-	static CApplicationSettings& Settings()
-	{
-		static CApplicationSettings settings( "ESA", q2t< std::string >( QgsApplication::applicationName() ) );
-		return settings;
-	}
 
 	//	This is accurate only if(when) no style sheet was also assigned.
 	//	External clients should not rely on this, and use the name in options.
@@ -82,10 +77,13 @@ class CBratApplication : public QgsApplication
 
 
 	//////////////////////////////////////
-	//	data
+    //	instance data
 	//////////////////////////////////////
 
-	bool m_isZFLatLon = false;
+    CBratSettings mSettings;
+
+
+    bool m_isZFLatLon = false;
 	bool m_isYFX = false;
 	bool m_isZFXY = false;
 
@@ -115,7 +113,7 @@ class CBratApplication : public QgsApplication
 	QString mDefaultAppStyle;
 
 public:
-    CBratApplication( int &argc, char ** argv, bool GUIenabled, QString customConfigPath = QString() );
+    CBratApplication( CApplicationPaths &brat_paths, int &argc, char ** argv, bool GUIenabled, QString customConfigPath = QString() );
 
 	virtual ~CBratApplication();
 
@@ -124,52 +122,21 @@ public:
 	//	access
 	//////////////////////////////////////
 
+    CBratSettings& Settings() { return  mSettings; }
+
+    const CBratSettings& Settings() const { return  mSettings; }
+
+
 
 	//////////////////////////////////////
 	//	operations
 	//////////////////////////////////////
 
-protected:
-	//bool GetCommandLineOptions( int argc, char* argv[] );
-	//void GetParameters();
-
-	//bool GetParametersNetcdf();
-	//bool GetParametersNetcdfZFLatLon( CExternalFilesNetCDF* externalFile );
-	//bool GetParametersNetcdfZFXY( CExternalFilesNetCDF* externalFile );
-	//bool GetParametersNetcdfYFX( CExternalFilesNetCDF* externalFile );
-
-	//void LoadParameters();
-	//void CheckFiles();
-
-
-	//void GetXYPlotPropertyParams( int32_t nFields );
-	//void GetWPlotPropertyParams( int32_t nFields );
-	//void GetZFXYPlotPropertyParams( int32_t nFields );
-
-	//std::string GetFirstFileName();
-
-	//void CreateWPlot( CWPlot* wplot, QSize& size, QPoint& pos );
-	//void WorldPlot();
-	//void XYPlot();
-	//void ZFXYPlot();
-
-	//bool IsXYPlot();
-	//bool IsWPlot();
-	//bool IsZXYPlot();
-
-	//bool IsYFXType() const;
-	//bool IsZFXYType() const;
-
-	//CWorldPlotProperty* GetWorldPlotProperty( int32_t index );
-	//CZFXYPlotProperty* GetZFXYPlotProperty( int32_t index );
-	//CXYPlotProperty* GetXYPlotProperty( int32_t index );
-
-	//void CheckFieldsData( CInternalFilesYFX* yfx, const std::string& fieldName );
-	//void CheckFieldsData( CInternalFilesZFXY* zfxy, const std::string& fieldName );
-	//void CheckFieldsData( CInternalFiles* f, const std::string& fieldName );
-	//CInternalFiles* Prepare( int32_t indexFile, const std::string& fieldName );
-	//CInternalFiles* Prepare( const std::string& fileName, const std::string& fieldName );
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	void Restart()
+	{
+		quit();
+		QProcess::startDetached( arguments()[ 0 ], arguments() );
+	}
 
 public slots:
 	void updateSettings();

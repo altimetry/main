@@ -26,6 +26,7 @@
 #include "Operation.h"
 #include "Display.h"
 #include "Workspace.h"
+#include "WorkspaceSettings.h"
 
 
 #if defined WORKSPACES_TREE_WORKSPACE_H
@@ -52,6 +53,13 @@ const std::string CWorkspace::m_keyDelimiter = ".";
 //-------------------------------------------------------------
 //------------------- CWorkspace class --------------------
 //-------------------------------------------------------------
+
+//virtual 
+CWorkspace::~CWorkspace()
+{
+	delete m_config;
+}
+
 
 //----------------------------------------
 std::string CWorkspace::GetRootKey()
@@ -80,9 +88,9 @@ void CWorkspace::InitConfig()
 	assert__( m_configFileName == NormalizedPath( m_path + "/" + CWorkspace::m_configName ) );
 
 	delete m_config;
-	m_config = new CConfiguration( m_configFileName );
-	//m_config = new CConfiguration( m_configFileName.GetFullPath().ToStdString() );
-	//m_config = new CConfiguration( "", "", m_configFileName.GetFullPath().ToStdString(), "", wxCONFIG_USE_LOCAL_FILE );
+	m_config = new CWorkspaceSettings( m_configFileName );
+	//m_config = new CWorkspaceSettings( m_configFileName.GetFullPath().ToStdString() );
+	//m_config = new CWorkspaceSettings( "", "", m_configFileName.GetFullPath().ToStdString(), "", wxCONFIG_USE_LOCAL_FILE );
 }
 //----------------------------------------
 bool CWorkspace::SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush )
@@ -187,15 +195,15 @@ void CWorkspace::Dump( std::ostream& fOut /* = std::cerr */ )
 //-------------------------------------------------------------
 
 //----------------------------------------
-bool CWorkspaceDataset::Import( CWorkspace* wks, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
+bool CWorkspaceDataset::Import( CWorkspace* wksi, std::string &errorMsg, CWorkspaceDataset *wks_data, CWorkspaceDisplay *wks_disp, CWorkspaceOperation *wks_op )
 {
-	UNUSED( wksd );		UNUSED( wkso );
+	UNUSED( wks_data );		UNUSED( wks_disp );		UNUSED( wks_op );
 
-	if ( wks == nullptr )
+	if ( wksi == nullptr )
 		return true;
 
 
-	CWorkspaceDataset* wksToImport = dynamic_cast<CWorkspaceDataset*>( wks );
+	CWorkspaceDataset* wksToImport = dynamic_cast<CWorkspaceDataset*>( wksi );
 	if ( wksToImport == nullptr )
 		return true;
 
@@ -229,7 +237,7 @@ bool CWorkspaceDataset::Import( CWorkspace* wks, std::string &errorMsg, CWorkspa
 			return false;
 		}
 
-		m_datasets.Insert( (const char *)datasetImport->GetName().c_str(), new CDataset( *datasetImport ) );
+		m_datasets.Insert( datasetImport->GetName(), new CDataset( *datasetImport ) );
 
 	}
 	return true;
@@ -444,14 +452,14 @@ bool CWorkspaceFormula::IsFormulaToImport( const std::string& name )
 	return false;
 }
 //----------------------------------------
-bool CWorkspaceFormula::Import( CWorkspace* wks, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
+bool CWorkspaceFormula::Import( CWorkspace* wksi, std::string &errorMsg, CWorkspaceDataset *wks_data, CWorkspaceDisplay *wks_disp, CWorkspaceOperation *wks_op )
 {
-	UNUSED( wksd );		UNUSED( wkso );
+    UNUSED( wks_data );		UNUSED( wks_op );   UNUSED( wks_disp );
 
-	if ( wks == nullptr )
+	if ( wksi == nullptr )
 		return true;
 
-	CWorkspaceFormula* wksToImport = dynamic_cast<CWorkspaceFormula*>( wks );
+	CWorkspaceFormula* wksToImport = dynamic_cast<CWorkspaceFormula*>( wksi );
 	if ( wksToImport == nullptr )
 		return true;
 
@@ -507,7 +515,7 @@ bool CWorkspaceFormula::Import( CWorkspace* wks, std::string &errorMsg, CWorkspa
 		CFormula* newFormula = new CFormula( *formulaImport );
 		newFormula->SetName( formulaNewName );
 
-		m_formulas.Insert( (const char *)newFormula->GetName().c_str(), newFormula, false );
+		m_formulas.Insert( newFormula->GetName(), newFormula, false );
 	}
 
 	return true;
@@ -615,8 +623,8 @@ bool CWorkspaceFormula::SaveConfigPredefinedFormula()
 
 	//wxFileConfig* config = new wxFileConfig( wxEmptyString, wxEmptyString, formulaPath.GetFullPath(), wxEmptyString, wxCONFIG_USE_LOCAL_FILE );
 	
-	//CConfiguration config( formulaPath.GetFullPath().ToStdString() );
-	CConfiguration config( CTools::GetDataDir() + "/" + CMapFormula::m_predefFormulaFile );
+	//CWorkspaceSettings config( formulaPath.GetFullPath().ToStdString() );
+	CWorkspaceSettings config( CTools::GetDataDir() + "/" + CMapFormula::m_predefFormulaFile );
 
 	config.Clear();
 
@@ -664,16 +672,14 @@ void CWorkspaceFormula::Dump(std::ostream& fOut /* = std::cerr */)
 //------------------- CWorkspaceOperation class --------------------
 //-------------------------------------------------------------
 //----------------------------------------
-bool CWorkspaceOperation::Import( CWorkspace* wks, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
+bool CWorkspaceOperation::Import( CWorkspace* wksi, std::string &errorMsg, CWorkspaceDataset *wks_data, CWorkspaceDisplay *wks_disp, CWorkspaceOperation *wks_op )
 {
-	UNUSED( wksd );		UNUSED( wkso );
+    UNUSED( wks_disp );
 
-	if ( wks == nullptr )
-	{
+	if ( wksi == nullptr )
 		return true;
-	}
 
-	CWorkspaceOperation* wksToImport = dynamic_cast<CWorkspaceOperation*>( wks );
+	CWorkspaceOperation* wksToImport = dynamic_cast<CWorkspaceOperation*>( wksi );
 	if ( wksToImport == nullptr )
 	{
 		return true;
@@ -714,7 +720,7 @@ bool CWorkspaceOperation::Import( CWorkspace* wks, std::string &errorMsg, CWorks
 			return false;
 		}
 
-		m_operations.Insert( operationImport->GetName(), new COperation( *operationImport ) );
+		m_operations.Insert( operationImport->GetName(), COperation::Copy( *operationImport, wks_op, wks_data ) );
 	}
 
 	return true;
@@ -836,7 +842,7 @@ bool CWorkspaceOperation::InsertOperation(const std::string &name)
     return true;
 }
 //----------------------------------------
-bool CWorkspaceOperation::InsertOperation(const std::string &name, COperation* operationToCopy, CWorkspaceOperation *wkso )
+bool CWorkspaceOperation::InsertOperation(const std::string &name, COperation* operationToCopy, CWorkspaceDataset *wksds, CWorkspaceOperation *wkso )
 {
     if (m_operations.Exists(name))
     {
@@ -844,14 +850,14 @@ bool CWorkspaceOperation::InsertOperation(const std::string &name, COperation* o
     }
 
     // Create and copy the operation
-    COperation* newOperation = new COperation(*operationToCopy);
+    COperation* newOperation = COperation::Copy( *operationToCopy, wkso, wksds );
 
     // Set the correct names
     newOperation->SetName(name);
     newOperation->InitOutput( wkso );
     newOperation->InitExportAsciiOutput( wkso );
 
-    m_operations.Insert(name, newOperation);
+    m_operations.Insert( name, newOperation );
     return true;
 }
 //----------------------------------------
@@ -925,16 +931,14 @@ void CWorkspaceOperation::Dump( std::ostream& fOut /* = std::cerr */ )
 //------------------- CWorkspaceDisplay class --------------------
 //-------------------------------------------------------------
 
-bool CWorkspaceDisplay::Import( CWorkspace* wks, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
+bool CWorkspaceDisplay::Import( CWorkspace* wksi, std::string &errorMsg, CWorkspaceDataset *wks_data, CWorkspaceDisplay *wks_disp, CWorkspaceOperation *wks_op )
 {
-	UNUSED( wksd );
+	UNUSED( wks_data );
 
-	if ( wks == nullptr )
-	{
+	if ( wksi == nullptr )
 		return true;
-	}
 
-	CWorkspaceDisplay* wksToImport = dynamic_cast<CWorkspaceDisplay*>( wks );
+	CWorkspaceDisplay* wksToImport = dynamic_cast<CWorkspaceDisplay*>( wksi );
 	if ( wksToImport == nullptr )
 	{
 		return true;
@@ -968,13 +972,13 @@ bool CWorkspaceDisplay::Import( CWorkspace* wks, std::string &errorMsg, CWorkspa
 			errorMsg += 
 				"Operation to import '"
 				+ displayImport->GetName()
-				+ "':\nUnable to process, an operation with the same name already exists\n"
+				+ "':\nUnable to process, a display with the same name already exists\n"
 				+ "Import canceled\n";
 
 			return false;
 		}
 
-		m_displays.Insert( displayImport->GetName(), new CDisplay( *displayImport, wksd, wkso ) );
+		m_displays.Insert( displayImport->GetName(), new CDisplay( *displayImport, wks_disp, wks_op ) );
 	}
 
 	return true;

@@ -19,7 +19,7 @@
 #ifndef WORKSPACES_WORKSPACE_SETTINGS_H
 #define WORKSPACES_WORKSPACE_SETTINGS_H
 
-#include "new-gui/brat/ApplicationSettings.h"
+#include "new-gui/Common/ApplicationSettings.h"
 
 
 class CWorkspace;

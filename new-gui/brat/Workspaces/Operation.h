@@ -89,7 +89,7 @@ public:
 
 
 
-class COperation : public CBratObject
+class COperation : public CBratObject, public non_copyable
 {
 	friend class CConfiguration;
 	friend class CWorkspaceSettings;
@@ -98,6 +98,14 @@ public:
 	using const_iterator = std::map< std::string, CBratObject* >::const_iterator;
 
 protected:
+	static std::string m_execYFXName;
+	static std::string m_execZFXYName;
+	static std::string m_execDisplayName;
+	static std::string m_execExportAsciiName;
+	static std::string m_execExportGeoTiffName;
+	static std::string m_execShowStatsName;
+	static std::string m_execBratSchedulerName;
+
 
 	CProduct* m_product = nullptr;
 	CDataset* m_dataset = nullptr;
@@ -117,14 +125,6 @@ protected:
 
 	//wxFile m_file;
 
-	static std::string m_execYFXName;
-	static std::string m_execZFXYName;
-	static std::string m_execDisplayName;
-	static std::string m_execExportAsciiName;
-	static std::string m_execExportGeoTiffName;
-	static std::string m_execShowStatsName;
-	static std::string m_execBratSchedulerName;
-
 public:
 	const int32_t m_verbose = 2;
 
@@ -142,12 +142,14 @@ private:
 	std::string m_name;
 
 public:
-	/// Empty COperation ctor
 
-	COperation( const std::string name ) : m_formulas( false ), m_name( name )
+	COperation( const std::string name ) : m_name( name )
 	{
 		m_select->SetType( CMapTypeField::eTypeOpAsSelect );
 	}
+
+	static COperation* Copy( const COperation &o, CWorkspaceOperation *wkso, CWorkspaceDataset *wksd );
+
 
 	/// Destructor
 	virtual ~COperation()

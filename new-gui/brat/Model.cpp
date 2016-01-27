@@ -1,9 +1,8 @@
 #include "stdafx.h"
 
+#include "new-gui/Common/QtUtilsIO.h"
 #include "Workspaces/Workspace.h"
 #include "Model.h"
-
-#include "BratMainWindow.h"
 
 
 
@@ -19,29 +18,26 @@ CModel::~CModel()
 
 
 //static 
-CWorkspace* CModel::GetRootWorkspace( CTreeWorkspace &tree )
+CWorkspace* CModel::RootWorkspace( CTreeWorkspace &tree )
 {
 	return tree.GetRootData();
 }
 
-CWorkspace* CModel::GetCurrentRootWorkspace()
+CWorkspace* CModel::RootWorkspace()
 {
-	if ( mCurrentTree == nullptr )
-		mCurrentTree = &mTree;
-
-	return GetRootWorkspace( *mCurrentTree );
+	return RootWorkspace( mTree );
 }
 
 
 //static 
 template< class WKSPC >
-WKSPC* CModel::GetWorkspace( CTreeWorkspace &tree )
+WKSPC* CModel::Workspace( CTreeWorkspace &tree )
 {
-	CWorkspace* wks = GetRootWorkspace( tree );		//admissible when no workspace loaded
-	if ( !wks )
+	CWorkspace* wks = RootWorkspace( tree );
+	if ( !wks )								   	//admissible when no workspace loaded
 		return nullptr;
 
-	std::string workspaceKey = !wks ? "" : ( wks->GetKey() + CWorkspace::m_keyDelimiter + WKSPC::NAME );
+	std::string workspaceKey = tree.ChildKey( WKSPC::NAME );
 
 	return dynamic_cast< WKSPC* >( tree.FindWorkspace( workspaceKey ) );
 }
@@ -65,9 +61,9 @@ CWorkspace* CModel::LoadWorkspace( CTreeWorkspace &tree, const std::string& path
 	CWorkspace *failed_wks = nullptr;
 	if ( !tree.LoadConfig( 
 		failed_wks,
-		GetWorkspace< CWorkspaceDataset >( tree ),
-		GetWorkspace< CWorkspaceOperation >( tree ),
-		GetWorkspace< CWorkspaceDisplay >( tree ), 
+		Workspace< CWorkspaceDataset >( tree ),
+		Workspace< CWorkspaceOperation >( tree ),
+		Workspace< CWorkspaceDisplay >( tree ), 
 		error_msg 
 		) )
 	{
@@ -90,11 +86,6 @@ void CModel::Reset()
 	mTree.Clear();
 }
 
-void CModel::ResetImportTree()
-{
-	mImportTree.Clear();
-}
-
 
 
 bool CModel::LoadImportFormulas( const std::string& path, std::vector< std::string > &v, bool predefined, bool user, std::string &error_msg )
@@ -108,9 +99,9 @@ bool CModel::LoadImportFormulas( const std::string& path, std::vector< std::stri
 	}
 
 	const CWorkspaceFormula* wksFormula =  import_tree.LoadConfigFormula(
-		GetWorkspace< CWorkspaceDataset >( import_tree ),
-		GetWorkspace< CWorkspaceOperation >( import_tree ),
-		GetWorkspace< CWorkspaceDisplay >( import_tree ), 
+		Workspace< CWorkspaceDataset >( import_tree ),
+		Workspace< CWorkspaceOperation >( import_tree ),
+		Workspace< CWorkspaceDisplay >( import_tree ), 
 		error_msg 
 		);
 
@@ -128,6 +119,112 @@ bool CModel::LoadImportFormulas( const std::string& path, std::vector< std::stri
 }
 
 
+bool CModel::ImportWorkspace( const std::string& path, 
+	bool datasets, bool formulas, bool operations, bool views, const std::vector< std::string > &vformulas, std::string &error_msg )
+{
+	bool bOk = false;               Q_UNUSED( bOk );
+
+	CWorkspace *wks = RootWorkspace();			assert__( wks != nullptr );
+
+	//wxGetApp().m_tree.GetImportBitSet()->m_bitSet.reset();
+
+	std::string wks_path = wks->GetPath();	//wxGetApp().GetCurrentWorkspace()->GetPathName();
+	//wxFileName currentWksPath;
+	//currentWksPath.AssignDir( wks_path );
+	//currentWksPath.MakeAbsolute();
+
+	if ( !SaveWorkspace( error_msg ) )	// TODO SaveWorkspace failures not verified in v3
+		return false;
+
+	mTree.ResetImportBits();
+	mTree.SetImportBits(
+	{
+		{ IMPORT_DATASET_INDEX, datasets },
+		{ IMPORT_FORMULA_INDEX, formulas },
+		{ IMPORT_OPERATION_INDEX, operations },
+		{ IMPORT_DISPLAY_INDEX, views }
+	} );
+
+	//CWorkspace* import_wks = new CWorkspace( dlg.mPath );		//CWorkspace* wks = new CWorkspace( dlg.GetWksName()->GetValue(), dlg.mPath, false );
+
+	//wxGetApp().CreateTree( wks, wxGetApp().m_treeImport );
+	CTreeWorkspace import_tree;	 			//import_tree.Clear();		// TODO see if this is necessary on a new tree
+	import_tree.SetCtrlDatasetFiles( mTree.GetImportBit( IMPORT_DATASET_INDEX ) );
+	//wxGetApp().m_treeImport.SetCtrlDatasetFiles( wxGetApp().m_tree.GetImportBitSet()->m_bitSet.test( IMPORT_DATASET_INDEX ) );
+
+	//-----------------------------------------
+	//wxGetApp().SetCurrentTree( &( wxGetApp().m_treeImport ) );
+	//-----------------------------------------
+
+	//bOk = wxGetApp().m_treeImport.LoadConfig();
+	CWorkspace* import_wks = LoadWorkspace( import_tree, path, error_msg );
+
+	if ( !import_wks || !error_msg.empty() )			//TODO TEST THIS ERROR RECOVERY
+	{
+		//wxGetApp().m_treeImport.DeleteTree();
+		mTree.Clear();
+
+		bool oldValue = mTree.GetCtrlDatasetFiles();
+		mTree.SetCtrlDatasetFiles( false );
+
+		LoadWorkspace( wks_path, error_msg );
+
+		mTree.SetCtrlDatasetFiles( oldValue );
+
+		return false;
+	}
+
+	//-----------------------------------------
+	//wxGetApp().SetCurrentTree( &( wxGetApp().m_tree ) );
+	//-----------------------------------------
+
+	// Retrieve formula to Import
+	CWorkspaceFormula* wksFormula = Workspace< CWorkspaceFormula >( mTree );
+	//CWorkspaceFormula* wksFormula = wxGetApp().GetCurrentWorkspaceFormula();
+
+	//dlg.GetCheckedFormulas( wksFormula->GetFormulasToImport() );
+	wksFormula->SetFormulasToImport( vformulas );
+
+	std::string keyToFind;
+	bool result = mTree.Import( 
+		&import_tree, 
+		Workspace< CWorkspaceDataset >( mTree ), 
+		Workspace< CWorkspaceDisplay >( mTree ), 
+		Workspace< CWorkspaceOperation >( mTree ), 
+		keyToFind, 
+		error_msg );
+
+	if ( result )
+	{
+		SaveWorkspace( error_msg );
+
+		CWorkspaceOperation* wksOpImport = Workspace< CWorkspaceOperation >( import_tree );
+		CWorkspaceOperation* wksOp = Workspace< CWorkspaceOperation >( mTree );
+		//CWorkspaceOperation* wksOp = wxGetApp().GetCurrentWorkspaceOperation();
+		if ( wksOp != nullptr && wksOpImport != nullptr )
+		{
+			//CDirTraverserCopyFile traverserCopyFile( wksOp->GetPath(), "nc" );
+			////path name given to wxDir is locked until wxDir object is deleted
+			//wxDir dir;
+			//dir.Open( wksOpImport->GetPathName() );
+			//dir.Traverse( traverserCopyFile );
+			TraverseDirectory( t2q( wksOpImport->GetPath() ), t2q( wksOp->GetPath() ), { "*.nc" } );
+		}
+	}
+
+	//wxGetApp().m_treeImport.DeleteTree();
+	import_tree.Clear();
+	mTree.Clear();
+
+	bool oldValue = mTree.GetCtrlDatasetFiles();
+	mTree.SetCtrlDatasetFiles( false );
+
+	result = LoadWorkspace( wks_path, error_msg );
+
+	mTree.SetCtrlDatasetFiles( oldValue );
+
+	return result;
+}
 
 
 
@@ -137,7 +234,7 @@ bool CModel::LoadImportFormulas( const std::string& path, std::vector< std::stri
 //
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-void CBratMainWindow::XYPlot()
+void CModel::XYPlot()
 {
 	/*
 	CObArray::iterator itGroup;
@@ -159,7 +256,7 @@ void CBratMainWindow::XYPlot()
 	}
 	*/
 }
-void CBratMainWindow::ZFXYPlot()
+void CModel::ZFXYPlot()
 {
 	/*
 	CObArray::iterator itGroup;
@@ -181,6 +278,10 @@ void CBratMainWindow::ZFXYPlot()
 	}
 	*/
 }
+
+
+
+
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
