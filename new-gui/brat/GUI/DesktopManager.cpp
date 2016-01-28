@@ -45,7 +45,8 @@ inline QWidget* CenterOn1stScreen( QWidget *const w )
 
 QWidget* CDesktopManagerSDI::CenterOnWidget( QWidget *const w, const QWidget *const parent )
 {
-    w->adjustSize();
+    w->show();
+    QApplication::processEvents();
     return CenterOnParentCenter( w, parent->mapToGlobal( parent->rect().center() ) );
 }
 
@@ -57,7 +58,10 @@ CDesktopManagerSDI::desktop_child_t* CDesktopManagerSDI::AddSubWindow( QWidget *
 
     AddWidget( child, widget );
     widget->setParent( child );
-    CenterOnWidget( child, mMap );
+    if ( parentWidget()->width() / 3 * 2 > child->width() )
+        CenterOnWidget( child, mMap );
+    else
+        CenterOnWidget( child, parentWidget() );
 
 	connect( child, SIGNAL( closed( QWidget* ) ), this, SLOT( SubWindowClosed( QWidget* ) ) );
 
@@ -102,7 +106,6 @@ CDesktopManagerSDI::CDesktopManagerSDI( QMainWindow *parent )
 	frame->setFrameStyle( QFrame::Panel );
 	frame->setFrameShadow( QFrame::Sunken );
 	LayoutWidgets( Qt::Horizontal, { mMap }, frame, 0, margin, margin, margin, margin );
-	mMap->setMinimumSize( min_main_window_width / 3 * 2, min_main_window_height / 3 * 2 );
 
 #endif
 }

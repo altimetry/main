@@ -172,6 +172,8 @@ if (WIN32)
     set(CURL_LIBRARY "${CMAKE_CURRENT_BINARY_DIR}/curl/lib/lib/${CURL_LIB_PATH_END}" CACHE INTERNAL "")
     set(CURL_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/curl/include" CACHE INTERNAL "")
 
+    set(HAVE_INET_PTON OFF CACHE BOOL "HAVE_INET_PTON" FORCE)   #Windows XP compatibility
+
     add_subdirectory(${PACKAGE_TARGET})
 
 else (WIN32)    # this is a hack to be able to work 32 bit on 64 bit systems; TODO transform in command line option
