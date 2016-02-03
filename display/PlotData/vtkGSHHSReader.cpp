@@ -29,7 +29,7 @@
 =========================================================================*/
 #include <cassert>
 
-#include "brathl_config.h"
+#include "libbrathl/brathl.h"
 #include "libbrathl/Tools.h"
 
 #include "vtkGSHHSReader.h"

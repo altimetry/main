@@ -3,7 +3,6 @@
 
 #include "new-gui/brat/GUI/DesktopManager.h"
 
-
 // File Index:
 //
 //	- Individual Controls 
@@ -238,10 +237,10 @@ class CDesktopControlsPanel : public CControlsPanel
 protected:
 
 protected:
-	desktop_manager_t *mManager = nullptr;
+	CDesktopManagerBase *mManager = nullptr;
 
 public:
-	explicit CDesktopControlsPanel( desktop_manager_t *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 )
+	explicit CDesktopControlsPanel( CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 )
 		: base_t( parent, f ), mManager( manager )
 	{}
 
@@ -279,6 +278,7 @@ class CDatasetBrowserControls : public CDesktopControlsPanel
 	QPushButton *m_BrowseFilesButton = nullptr;
 	QPushButton *m_BrowseRadsButton = nullptr;
 
+    QListWidget *mFilesList = nullptr;
 	QComboBox *mDatasetsCombo = nullptr;
 
 	CWorkspaceDataset *mWks = nullptr;
@@ -286,10 +286,10 @@ class CDatasetBrowserControls : public CDesktopControlsPanel
 
 	//construction / destruction
 
-	void Wire()
-	{}
+    void Wire();
+
 public:
-	explicit CDatasetBrowserControls( desktop_manager_t *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+	explicit CDatasetBrowserControls( CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
 	virtual ~CDatasetBrowserControls()
 	{}
@@ -301,6 +301,7 @@ public:
 
 public slots:
 	void WorkspaceChanged( CWorkspaceDataset *wksd );
+    void DatasetChanged(int currentIndex);
 
 protected slots:
 	void PageChanged( int index );
@@ -332,7 +333,7 @@ class CDatasetFilterControls : public CDesktopControlsPanel
 	CWorkspaceDataset *mWks = nullptr;
 
 public:
-	explicit CDatasetFilterControls( desktop_manager_t *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+	explicit CDatasetFilterControls( CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
 	virtual ~CDatasetFilterControls()
 	{}	
@@ -398,7 +399,7 @@ protected:
 	QWidget* CreateAdancedOperationsPage();
 
 public:
-	explicit COperationsControls( desktop_manager_t *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+	explicit COperationsControls( CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
 	virtual ~COperationsControls()
 	{}	
@@ -414,7 +415,7 @@ public:
 
 public slots:
 	void WorkspaceChanged( CWorkspaceOperation *wksdo );
-	void WorkspaceChanged( CWorkspaceDisplay *wksd );
+    void WorkspaceChanged( CWorkspaceDisplay *wksd );
 
 protected slots:
 	void QuickMap();

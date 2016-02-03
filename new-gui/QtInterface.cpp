@@ -2,7 +2,7 @@
 
 #include "QtInterface.h"
 
-#include "Common/QtUtilsIO.h"
+#include "Common/QtUtils.h"
 
 #include "new-gui/brat/Workspaces/Dataset.h"
 

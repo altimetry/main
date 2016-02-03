@@ -317,7 +317,7 @@ void CWorkspaceDlg::FillImportFormulas()
 
 	//CWorkspace* wks = new CWorkspace(GetWksName()->GetValue(), m_currentDir);
 	std::string errorMsg;	
-	CWorkspace* wks = wxGetApp().m_treeImport.LoadReset( m_currentDir.GetFullPath().ToStdString(), errorMsg );		//wxGetApp().CreateTree( wks, wxGetApp().m_treeImport );
+    CWorkspace* wks = wxGetApp().m_treeImport.LoadReset( wxGetApp().mBratPaths->mInternalDataDir, m_currentDir.GetFullPath().ToStdString(), errorMsg );		//wxGetApp().CreateTree( wks, wxGetApp().m_treeImport );
 	if ( !errorMsg.empty() )
 		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );		
 

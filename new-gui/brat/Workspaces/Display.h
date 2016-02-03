@@ -417,7 +417,7 @@ public:
 	CLatLonRect* GetZoom() { return &m_zoom; }
 	void SetZoom( CLatLonRect& value ) { m_zoom = value; }
 
-	std::string GetFullCmd();
+	//std::string GetFullCmd();
 
 
 	bool BuildCmdFile();

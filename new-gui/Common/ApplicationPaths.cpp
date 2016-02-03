@@ -9,9 +9,10 @@
 
 #include <osgDB/Registry>
 
+#include "+UtilsIO.h"
+#include "QtUtils.h"
 #include "ApplicationPaths.h"
 
-#include "brathl_config.h"
 
 
 
@@ -20,36 +21,6 @@
 //									CApplicationPaths
 //
 ////////////////////////////////////////////////////////////////////////////////////////////
-
-const std::string PLATFORM_SUBDIR =
-
-#if defined(BRAT_ARCHITECTURE_64)
-    #if defined(_WIN32)
-        "x64"
-    #else
-        "x86_64"
-    #endif
-#else
-    #if !defined(BRAT_ARCHITECTURE_32)
-    #error One of BRAT_ARCHITECTURE_32 BRAT_ARCHITECTURE_64 must be defined
-    #endif
-    #if defined(_WIN32)
-        "Win32"
-    #else
-        "i386"
-    #endif
-#endif
-;
-
-
-const std::string CONFIG_SUBDIR =
-
-#if defined(_DEBUG) || defined(DEBUG)
-    "Debug"
-#else
-    "Release"
-#endif
-;
 
 
 const std::string QT_PLUGINS_SUBDIR =
@@ -81,6 +52,15 @@ const std::string osg_paths_SUBDIR = "osgPlugins-3.4.0";
 
 
 
+const std::string BRATSHOWSTATS_EXE		= setExecExtension( "BratStats" );
+const std::string BRATSCHEDULER_EXE		= setExecExtension( "scheduler" );
+const std::string BRATEXPORTGEOTIFF_EXE = setExecExtension( "BratExportGeoTiff" );
+const std::string BRATEXPORTASCII_EXE	= setExecExtension( "BratExportAscii" );
+const std::string BRATCREATEZFXY_EXE	= setExecExtension( "BratCreateZFXY" );
+const std::string BRATCREATEYFX_EXE		= setExecExtension( "BratCreateYFX" );
+
+
+
 
 //static
 std::string CApplicationPaths::ComputeDefaultUserBasePath( const std::string &DeploymentRootDir )
@@ -99,34 +79,13 @@ std::string CApplicationPaths::ComputeDefaultUserBasePath( const std::string &De
 }
 
 
-//static
-std::string CApplicationPaths::ComputeInternalDataDirectory( const std::string &ExecutableDir )
-{
-    std::string InternalDataDir;
-    auto s3data = getenv( BRATHL_ENVVAR );	// TODO dependent of brathl_config.h: get rid of this file
-    if ( s3data )
-        InternalDataDir = s3data;
-    else
-    {
-        InternalDataDir = ExecutableDir;    //stripped from first parent directory (MacOS in mac)
-        InternalDataDir += "/" + DefaultInternalDataSubDir();
-    }
-    return InternalDataDir;
-}
-
 
 CApplicationPaths::CApplicationPaths( const QString &exec_path ) :
 
     // I. NOT user (re)definable paths
 
-      mPlatform( PLATFORM_SUBDIR )
-    , mConfiguration( CONFIG_SUBDIR )
+	base_t( q2a( exec_path ) )
 
-    , mExecutablePath( q2a( exec_path ) )
-    , mExecutableDir( GetDirectoryFromPath( mExecutablePath ) )			// (*)
-    , mDeploymentRootDir( GetDirectoryFromPath( mExecutableDir ) )
-
-    , mInternalDataDir( ComputeInternalDataDirectory( mExecutableDir ) )
     , mVectorLayerPath( mInternalDataDir + "/maps/ne_10m_coastline/ne_10m_coastline.shp" )
 
     , mOsgPluginsDir( mExecutableDir + "/" + osg_paths_SUBDIR )
@@ -134,40 +93,56 @@ CApplicationPaths::CApplicationPaths( const QString &exec_path ) :
     , mQtPluginsDir( mExecutableDir + "/" + QT_PLUGINS_SUBDIR )
     , mQgisPluginsDir( mExecutableDir + "/" + QGIS_PLUGINS_SUBDIR )
     , mGlobeDir( mExecutableDir + "/" + DefaultGlobeSubDir() )
+
+    , m_execYFXName( mExecutableDir + "/" + BRATCREATEYFX_EXE)
+    , m_execZFXYName( mExecutableDir + "/" + BRATCREATEZFXY_EXE )
+    , m_execExportAsciiName( mExecutableDir + "/" + BRATEXPORTASCII_EXE )
+    , m_execExportGeoTiffName( mExecutableDir + "/" + BRATEXPORTGEOTIFF_EXE )
+    , m_execShowStatsName( mExecutableDir + "/" + BRATSHOWSTATS_EXE )
+
+#if defined(__APPLE__)
+    , m_execBratSchedulerName( mExecutableDir + "/../../../scheduler.app/Contents/MacOS/" + BRATSCHEDULER_EXE )
+#else
+    , m_execBratSchedulerName( mExecutableDir + "/" + BRATSCHEDULER_EXE )
+#endif
+
 {
-    assert__( valid() );
+    if ( IsValid() || !ValidatePaths() )
+    {
+        return;
+    }
 
-    // Set Qt plugins
+    // Set Qt plug-ins path
+	//
+	//	- Use QCoreApplication::libraryPaths(); to inspect Qt library (plug-ins) directories
 
-    auto list = QCoreApplication::libraryPaths();
-    for ( auto const&d : list)
-        qDebug() << d;
+        auto list = QCoreApplication::libraryPaths();
+        for ( auto const&d : list)
+            qDebug() << d;
 
-    //qDebug() << QLibraryInfo::location(QLibraryInfo::PluginsPath);
-    //QCoreApplication::addLibraryPath( mQtPluginsDir.c_str() );
+        //qDebug() << QLibraryInfo::location(QLibraryInfo::PluginsPath);
+        //QCoreApplication::addLibraryPath( mQtPluginsDir.c_str() );
     QCoreApplication::setLibraryPaths( QStringList() << mQtPluginsDir.c_str() );
 
-    auto const &list2 = QCoreApplication::libraryPaths();
-    for ( auto const&d : list2)
-        qDebug() << d;
-
+    // Set OSG plug-ins path
+	//
     osgDB::FilePathList &osg_paths = osgDB::Registry::instance()->getLibraryFilePathList();
     osg_paths.push_front( mOsgPluginsDir );
 
-    for ( auto const &s : osg_paths )
-        qDebug() << t2q( s );
+        for ( auto const &s : osg_paths )
+            qDebug() << t2q( s );
 
 
     // II. user (RE)DEFINABLE paths
 
-    validate();
+    SetUserPaths();
 }
-// (*) this achieves the same (but, among other problems, needs
-//	an instance and is not Qt 5 portable): qApp->argv()[ 0 ]
 
 
 bool CApplicationPaths::operator == ( const CApplicationPaths &o ) const
 {
+	//from base class
+
     assert__( mPlatform == o.mPlatform );
     assert__( mConfiguration == o.mConfiguration );
 
@@ -176,12 +151,17 @@ bool CApplicationPaths::operator == ( const CApplicationPaths &o ) const
     assert__( mDeploymentRootDir == o.mDeploymentRootDir );
 
     assert__( mInternalDataDir == o.mInternalDataDir );
+
+	// from this
+
     assert__( mVectorLayerPath == o.mVectorLayerPath );
 
     assert__( mOsgPluginsDir == o.mOsgPluginsDir );
     assert__( mQtPluginsDir == o.mQtPluginsDir );
     assert__( mQgisPluginsDir == o.mQgisPluginsDir );
     assert__( mGlobeDir == o.mGlobeDir );
+
+	//TODO acrescentar asserts para as variaveis novas adicionadas.
 
     return
         // user re-definable
@@ -198,6 +178,9 @@ bool CApplicationPaths::operator == ( const CApplicationPaths &o ) const
 
 std::string CApplicationPaths::ToString() const
 {
+
+	//TODO acrescentar as novas variaveis.
+
     std::string s;
 
     s += ( "\nPlatform == " + mPlatform );
@@ -227,18 +210,28 @@ std::string CApplicationPaths::ToString() const
 }
 
 
+// TODO Change path title (ValidPath parameter #4) to user friendly name, e.g., mVectorLayerPath to "Vector layer path"
 
-bool CApplicationPaths::valid() const
+bool CApplicationPaths::ValidatePaths() const
 {
-    return
-        IsDir( mInternalDataDir ) && IsFile( mVectorLayerPath ) &&
-        IsDir( mOsgPluginsDir ) && IsDir( mQtPluginsDir ) && IsDir( mQgisPluginsDir ) &&
-        IsDir( mGlobeDir );
+	mValid =
+		base_t::ValidatePaths() &&											// tests mInternalDataDir
+		ValidPath( mErrorMsg, mVectorLayerPath, false, "mVectorLayerPath" ) &&
+		ValidPath( mErrorMsg, mOsgPluginsDir, true, "mOsgPluginsDir" ) &&
+		ValidPath( mErrorMsg, mQtPluginsDir, true, "mQtPluginsDir" ) &&
+		ValidPath( mErrorMsg, mQgisPluginsDir, true, "mQgisPluginsDir" ) &&
+		ValidPath( mErrorMsg, mGlobeDir, true, "mGlobeDir" );
+
+    return mValid;
 }
+
 
 
 // If "unique" is true, path must exist
 //
+/*
+to read
+*/
 bool CApplicationPaths::SetUniqueUserBasePath( bool unique, const std::string &path )	//path = ""
 {
     if ( unique == mUniqueUserBasePath )
@@ -303,12 +296,18 @@ bool CApplicationPaths::SetWorkspacesDirectory( const std::string &path )
 }
 
 
-bool CApplicationPaths::validate()
+bool CApplicationPaths::SetUserPaths()
 {
+    /*
+     *brat: (deployment_root_dir)
+     *  +bin
+     *  +data
+     *  +...
+     */
     if ( !IsDir( mUserBasePath ) )
         mUserBasePath = ComputeDefaultUserBasePath( mDeploymentRootDir );
 
-    if ( mUniqueUserBasePath )
+    if ( mUniqueUserBasePath ) //os dados estao em default na data
     {
         mUniqueUserBasePath = false;	//force validation & assignment
         return SetUniqueUserBasePath( true, mUserBasePath );
@@ -329,3 +328,22 @@ bool CApplicationPaths::validate()
 }
 
 
+// mRasterLayerPath setter
+//	- assumes mExternalDataDir correctly assigned
+//	- copies around a distributed raster layer file if the user changes
+//		the external data directory location
+//
+bool CApplicationPaths::CopyRasterLayerFile()
+{
+    const std::string raster_path = mExternalDataDir + "/" + RasterLayerSubPath();
+
+    if ( raster_path == mRasterLayerPath )
+        return true;
+
+    if ( IsFile( raster_path ) || ( IsFile( mRasterLayerPath ) && DuplicateFile( mRasterLayerPath, raster_path ) ) )
+        mRasterLayerPath = raster_path;
+    else
+        return false;	//deserves at most a warning; so far this file exists only to test raster layers
+
+    return true;
+}

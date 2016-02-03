@@ -119,7 +119,7 @@
        <widget class="QWidget" name="StartupOptions_page">
         <layout class="QHBoxLayout" name="horizontalLayout_4">
          <item>
-          <widget class="QGroupBox" name="groupBox">
+          <widget class="QGroupBox" name="mStartupOptions_groupBox">
            <property name="title">
             <string>Startup Options</string>
            </property>

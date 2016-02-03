@@ -122,14 +122,14 @@ public:
 
 	//v4: new, based on BratGui.cpp
 
-	CWorkspace* CreateReset( const std::string& root_name, const std::string& path, std::string &errorMsg )
+	CWorkspace* CreateReset( const std::string &internal_data_path, const std::string& root_name, const std::string& path, std::string &errorMsg )
 	{
-		return Reset( path, errorMsg, root_name );
+		return Reset( internal_data_path, path, errorMsg, root_name );
 	}
 
-	CWorkspace* LoadReset( const std::string& root_path, std::string &errorMsg )
+	CWorkspace* LoadReset( const std::string &internal_data_path, const std::string& root_path, std::string &errorMsg )
 	{
-		return Reset( root_path, errorMsg, "" );
+		return Reset( internal_data_path, root_path, errorMsg, "" );
 	}
 
 	//v4: given private inheritance (to prevent any uses of CObjectTree implementation outside this class) provide these accessors
@@ -154,7 +154,7 @@ public:
 	}
 
 protected:
-	CWorkspace* Reset( const std::string& path, std::string &errorMsg, const std::string& root_name );
+	CWorkspace* Reset( const std::string &internal_data_path, const std::string& path, std::string &errorMsg, const std::string& root_name );
 
 public:
 	// get / set / add

@@ -29,16 +29,13 @@ using desktop_manager_base_t = QWidget;
 /////////////////////////////////////////////////////////////////////////////////////
 
 
-template< class SUB_WINDOW >
-class CAbstractDesktopManager : public desktop_manager_base_t, non_copyable
+class CDesktopManagerBase : public desktop_manager_base_t, non_copyable
 {
 	// types
 
 	using base_t = desktop_manager_base_t;
 
 protected:
-
-	using desktop_child_t = SUB_WINDOW;
 
 	//data
 
@@ -50,10 +47,10 @@ protected:
 	// construction / destruction
 
 #if defined TABBED_MANAGER
-	CAbstractDesktopManager( QMainWindow *const parent )
+	CDesktopManagerBase( QMainWindow *const parent )
 		: base_t( parent )
 #else
-	CAbstractDesktopManager( QMainWindow *const parent, Qt::WindowFlags f = 0 )
+	CDesktopManagerBase( QMainWindow *const parent, Qt::WindowFlags f = 0 )
 		: base_t( parent, f )
 #endif
 	{
@@ -66,7 +63,7 @@ protected:
         parent->setCentralWidget( this );
 	}
 
-	static void SetChildWindowTitle( desktop_child_t *child, const QWidget *widget = nullptr )
+	static void SetChildWindowTitle( QWidget *child, const QWidget *widget = nullptr )
 	{
 		QString title = widget ? widget->windowTitle() : "";
 		if ( title.isEmpty() )
@@ -76,7 +73,7 @@ protected:
 	}
 
 public:
-	virtual ~CAbstractDesktopManager()
+	virtual ~CDesktopManagerBase()
 	{
 		//delete mMap;
 	}
@@ -86,17 +83,51 @@ public:
 
 	CMapWidget* Map() { return mMap; }
 
+
 	CTabbedDock* MapDock() { return mMapDock; }
 
 
-	// operations
+	virtual QList<QWidget*> SubWindowList() = 0;
 
 public:
-	virtual desktop_child_t* AddSubWindow( QWidget *widget, Qt::WindowFlags flags = 0 ) = 0;
-
-	virtual QList<desktop_child_t*> SubWindowList() = 0;
+	virtual QWidget* AddSubWindow( QWidget *widget, Qt::WindowFlags flags = 0 ) = 0;
 
 	virtual void CloseAllSubWindows() = 0;
+};
+
+
+
+
+template< class SUB_WINDOW >
+class CAbstractDesktopManager : public CDesktopManagerBase
+{
+	// types
+
+	using base_t = CDesktopManagerBase;
+
+protected:
+
+	using desktop_child_t = SUB_WINDOW;
+
+	//data
+
+protected:
+
+	// construction / destruction
+
+#if defined TABBED_MANAGER
+	CAbstractDesktopManager( QMainWindow *const parent )
+		: base_t( parent )
+#else
+	CAbstractDesktopManager( QMainWindow *const parent, Qt::WindowFlags f = 0 )
+		: base_t( parent, f )
+#endif
+	{}
+
+
+public:
+	virtual ~CAbstractDesktopManager()
+	{}
 };
 
 
@@ -121,6 +152,8 @@ class CSubWindow : public QDialog
 
 		
 	using base_t = QDialog;
+
+	//data
 
 public:
 	explicit CSubWindow( QWidget *parent = nullptr, Qt::WindowFlags f = 0 )
@@ -177,7 +210,9 @@ protected:
 
 	//data
 
-	QList<desktop_child_t*> mSubWindows;
+	QList<QWidget*> mSubWindows;
+
+protected:
 
 public:
 	//ctor/dtor
@@ -188,12 +223,12 @@ public:
 	{}
 
 public:
-	virtual desktop_child_t* AddSubWindow( QWidget *widget, Qt::WindowFlags flags = 0 ) override;
-
-	virtual QList<desktop_child_t*> SubWindowList() override
+	virtual QList<QWidget*> SubWindowList() override
 	{
 		return mSubWindows;
 	}
+
+	virtual desktop_child_t* AddSubWindow( QWidget *widget, Qt::WindowFlags flags = 0 ) override;
 
 	virtual void CloseAllSubWindows() override
 	{	
@@ -248,9 +283,9 @@ class CDesktopManagerMDI : public CAbstractDesktopManager< QMdiSubWindow >
 #pragma clang diagnostic pop
 #endif
 
-	using base_t = CAbstractDesktopManager;
-
 	using desktop_child_t = QMdiSubWindow;
+
+	using base_t = CAbstractDesktopManager< desktop_child_t >;
 
 protected:
 
@@ -281,9 +316,13 @@ public:
 		return child;
 	}
 
-	virtual QList<desktop_child_t*> SubWindowList() override
+	virtual QList<QWidget*> SubWindowList() override
 	{
-		return mMdiArea->subWindowList();
+		QList<QWidget*> list;
+        auto mdi_list = mMdiArea->subWindowList();
+		for ( auto pchild : mdi_list )
+			list << pchild;
+		return list;
 	}
 
 	virtual void CloseAllSubWindows() override
@@ -295,22 +334,22 @@ public:
 
 
 
-
-/////////////////////////////////////////////////////////////////////////////////////
-//					Default Application Desktop Type
-/////////////////////////////////////////////////////////////////////////////////////
-
-
-#define BRAT_COMMON_DESKTOP
-
-
-#if defined(Q_OS_MACX) || defined(BRAT_COMMON_DESKTOP)
-    using desktop_manager_t = CDesktopManagerSDI;
-#else
-    using desktop_manager_t = CDesktopManagerMDI;
-#endif
-
-
-
+//
+///////////////////////////////////////////////////////////////////////////////////////
+////					Default Application Desktop Type
+///////////////////////////////////////////////////////////////////////////////////////
+//
+//
+////#define BRAT_COMMON_DESKTOP
+//
+//
+//#if defined(Q_OS_MACX) || defined(BRAT_COMMON_DESKTOP)
+//    using desktop_manager_t = CDesktopManagerSDI;
+//#else
+//    using desktop_manager_t = CDesktopManagerMDI;
+//#endif
+//
+//
+//
 
 #endif	//GUI_DESKTOP_MANAGER_H

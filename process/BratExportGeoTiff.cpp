@@ -33,6 +33,7 @@
 #include <string>
 #include "List.h"
 #include "new-gui/Common/tools/Exception.h"
+#include "new-gui/Common/ConsoleApplicationPaths.h"
 #include "FileParams.h"
 
 #include "ProcessCommonTools.h"
@@ -194,77 +195,76 @@ static bool includeTimestamp;
 
 static char timestampUnits[128];
 
-int main (int argc, char *argv[])
+int main( int argc, char *argv[] )
 {
-  std::string commandFile;
-  FlagAndValue<double> minValue;
-  FlagAndValue<double> maxValue;
+	std::string commandFile;
+	FlagAndValue<double> minValue;
+	FlagAndValue<double> maxValue;
 
-  if (getenv(BRATHL_ENVVAR) == NULL)
-  {
-    CTools::SetDataDirForExecutable(argv[0]);
-  }
+	const CConsoleApplicationPaths brat_paths( argv[ 0 ] );
 
-  if (CheckCommandLineOptions(argc, argv,
-			      "This program exports F(X,Y) data to a GeoTIFF file.",
-			      KeywordList,
-			      commandFile))
-    return 2;
+	CTools::SetInternalDataDir( brat_paths.mInternalDataDir );
 
-  try
-  {
-    std::string inputFileName, outputFileName, kmlFileName, colourTableName,
-    		screenLogoUrl, filetypeName, productList;
+	if ( CheckCommandLineOptions( argc, argv,
+		"This program exports F(X,Y) data to a GeoTIFF file.",
+		KeywordList,
+		commandFile ) )
+		return 2;
 
-    if (!GetParameters(commandFile, inputFileName, outputFileName, kmlFileName,
-    		colourTableName, screenLogoUrl, minValue, maxValue,
-    		filetypeName, productList)) {
-      std::cerr << "Parameter File does not contain the required fields." << std::endl;
-      return 2;
-    }
+	try
+	{
+		std::string inputFileName, outputFileName, kmlFileName, colourTableName,
+			screenLogoUrl, filetypeName, productList;
 
-    if (kmlFileName.empty()) {
-      // straight TIFF export
-      if (!ExportNetCdfAsGeoTiff(inputFileName, outputFileName, colourTableName, minValue, maxValue, false, NULL)) {
-        std::cerr << "Failed to export GeoTIFF file." << std::endl;
-        return 2;
-      }
-    }
-    else {
-      // tiff and KML export
-      struct CoordBoundaries cBounds;
+		if ( !GetParameters( commandFile, inputFileName, outputFileName, kmlFileName,
+			colourTableName, screenLogoUrl, minValue, maxValue,
+			filetypeName, productList ) ) {
+			std::cerr << "Parameter File does not contain the required fields." << std::endl;
+			return 2;
+		}
 
-      kmlTrackVector.clear();
+		if ( kmlFileName.empty() ) {
+			// straight TIFF export
+			if ( !ExportNetCdfAsGeoTiff( inputFileName, outputFileName, colourTableName, minValue, maxValue, false, NULL ) ) {
+				std::cerr << "Failed to export GeoTIFF file." << std::endl;
+				return 2;
+			}
+		}
+		else {
+			// tiff and KML export
+			struct CoordBoundaries cBounds;
 
-      if (!ExportNetCdfAsGeoTiff(inputFileName, outputFileName, colourTableName, minValue, maxValue, true, &cBounds)) {
-        std::cerr << "Failed to export GeoTIFF file." << std::endl;
-        return 2;
-      }
-     
-      if (!ExportKml(kmlFileName, outputFileName, screenLogoUrl, &cBounds,
-    		  filetypeName, productList)) {
-        std::cerr << "Failed to export KML file." << std::endl;
-        return 2;
-      }
-    }
+			kmlTrackVector.clear();
 
-    return 0;
-  }
-  catch (CException &e)
-  {
-    std::cerr << "BRAT ERROR: " << e.what() << std::endl;
-    return 1;
-  }
-  catch (std::exception &e)
-  {
-    std::cerr << "BRAT RUNTIME ERROR: " << e.what() << std::endl;
-    return 254;
-  }
-  catch (...)
-  {
-    std::cerr << "BRAT FATAL ERROR: Unexpected error" << std::endl;
-    return 255;
-  }
+			if ( !ExportNetCdfAsGeoTiff( inputFileName, outputFileName, colourTableName, minValue, maxValue, true, &cBounds ) ) {
+				std::cerr << "Failed to export GeoTIFF file." << std::endl;
+				return 2;
+			}
+
+			if ( !ExportKml( kmlFileName, outputFileName, screenLogoUrl, &cBounds,
+				filetypeName, productList ) ) {
+				std::cerr << "Failed to export KML file." << std::endl;
+				return 2;
+			}
+		}
+
+		return 0;
+	}
+	catch ( CException &e )
+	{
+		std::cerr << "BRAT ERROR: " << e.what() << std::endl;
+		return 1;
+	}
+	catch ( std::exception &e )
+	{
+		std::cerr << "BRAT RUNTIME ERROR: " << e.what() << std::endl;
+		return 254;
+	}
+	catch ( ... )
+	{
+		std::cerr << "BRAT FATAL ERROR: Unexpected error" << std::endl;
+		return 255;
+	}
 }
 
 

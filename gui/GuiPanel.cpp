@@ -57,9 +57,9 @@ BEGIN_EVENT_TABLE(CGuiPanel,wxPanel)
 END_EVENT_TABLE()
 
 //----------------------------------------
-CGuiPanel::CGuiPanel( wxWindow *parent, wxWindowID id,
+CGuiPanel::CGuiPanel( const CApplicationPaths &brat_paths, wxWindow *parent, wxWindowID id,
     const wxPoint &position, const wxSize& size, long style ) :
-    wxPanel( parent, id, position, size, style )
+	wxPanel(parent, id, position, size, style), mBratPaths(brat_paths)
 {
   //m_propertyNotebook = new wxNotebook(this, ID_MAINNOTEBOOK);
   //wxSizer *item0 = MainNotebook(this);
@@ -76,7 +76,7 @@ CGuiPanel::CGuiPanel( wxWindow *parent, wxWindowID id,
   //COperationPanel *operationPanel = new COperationPanel( mainNoteBook, ID_OPERATIONPANEL, wxDefaultPosition, wxDefaultSize, 0 );
   //mainNoteBook->AddPage(operationPanel, OPERATIONS_PAGE_NAME);
 
-  COperationPanel *operationPanel = new COperationPanel( mainNoteBook, ID_OPERATIONSPLITTER, wxDefaultPosition, wxDefaultSize, wxSP_LIVE_UPDATE|wxCLIP_CHILDREN  );
+  COperationPanel *operationPanel = new COperationPanel( mBratPaths, mainNoteBook, ID_OPERATIONSPLITTER, wxDefaultPosition, wxDefaultSize, wxSP_LIVE_UPDATE|wxCLIP_CHILDREN  );
   mainNoteBook->AddPage(operationPanel, OPERATIONS_PAGE_NAME);
   
   //CDisplayPanel *displayPanel = new CDisplayPanel( mainNoteBook, ID_DISPLAYPANEL, wxDefaultPosition, wxDefaultSize, 0 );

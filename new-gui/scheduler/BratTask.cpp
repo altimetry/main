@@ -78,7 +78,7 @@ void CBratTaskFunction::Execute()
 	}
 	catch ( CException& e )
 	{
-		std::string msg = "Unable to execute function " + m_name + " - Native error: " + e.GetMessage();
+		std::string msg = "Unable to execute function " + m_name + " - Native error: " + e.Message();
 		throw CException( msg, BRATHL_ERROR );
 	}
 	catch ( std::exception& e )

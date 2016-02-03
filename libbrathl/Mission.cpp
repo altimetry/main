@@ -140,11 +140,10 @@ int32_t CMission::SearchNearestDateRef()
     if (m_printWarnings) 
     {
       printf("\nWARNING - CMission::SearchNearestDateRef - Unabled to open file '%s' "
-	     "\nCheck directory '%s' or set corret env. var. %s"
+         "\nCheck directory '%s'"
 	     "\n Default values will be considered\n",  
 	      CMission::m_refFileName,
-      	      CTools::GetDataDir().c_str(),
-	      BRATHL_ENVVAR);
+              CTools::GetInternalDataDir().c_str());
     }
     return BRATHL_WARNING_OPEN_FILE_REF_FILE;
   }
@@ -447,10 +446,9 @@ int32_t CMission::LoadAliasName(CStringList& aliases)
     if (m_printWarnings) 
     {
       printf("\nWARNING - CMission::LoadAliasName - Unabled to open file '%s' "
-	     "\nCheck directory '%s' or set corret env. var. %s",
+         "\nCheck directory '%s'",
 	      CMission::m_refAliasName,
-      	      CTools::GetDataDir().c_str(),
-	      BRATHL_ENVVAR);
+              CTools::GetInternalDataDir().c_str());
       }
     return BRATHL_WARNING_OPEN_FILE_ALIAS_MISSION;
   }

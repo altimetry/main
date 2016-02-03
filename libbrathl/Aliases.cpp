@@ -69,7 +69,7 @@ void CDefaultRecord::GetRecordByProductType(CObMap& recordByProductType)
       std::string msg = CTools::Format("Error in CDefaultRecord::GetRecordByProductType - A duplicate 'productType' definition '%s' has been found. "
                                   "Native error: '%s'\n"
                                   "Check the Aliases Dictionary as a possibility. ",
-                                  CAliases::m_ALL.c_str(), e.GetMessage().c_str());      
+                                  CAliases::m_ALL.c_str(), e.Message().c_str());      
       throw CException(msg, e.error());
     }
 
@@ -89,7 +89,7 @@ void CDefaultRecord::GetRecordByProductType(CObMap& recordByProductType)
         std::string msg = CTools::Format("Error in CDefaultRecord::GetRecordByProductType - A duplicate 'productType' definition '%s' has been found. "
                                     "Native error: '%s'\n"
                                     "Check the Aliases Dictionary as a possibility. ",
-                                    (*it).c_str(), e.GetMessage().c_str());      
+                                    (*it).c_str(), e.Message().c_str());      
         throw CException(msg, e.error());
       }
 
@@ -207,7 +207,7 @@ void CAliases::AddAlias(CAlias* value)
   catch(CException& e)
   {
     std::string msg = CTools::Format("Error in CAliases::AddAlias - Unable to add alias because the alias '%s' already exists - Native error: '%s'",
-                                name.c_str(), e.GetMessage().c_str());      
+                                name.c_str(), e.Message().c_str());      
     throw CException(msg, e.error());
   }
 
@@ -255,7 +255,7 @@ void CAliases::GetAliasesByProductType(CObMap& aliasesByProductType)
       std::string msg = CTools::Format("Error in CAliases::GetAliasesByProductType - A duplicate 'productType' definition '%s' has been found. "
                                   "Native error: '%s'\n"
                                   "Check the Aliases Dictionary as a possibility. ",
-                                  CAliases::m_ALL.c_str(), e.GetMessage().c_str());      
+                                  CAliases::m_ALL.c_str(), e.Message().c_str());      
       throw CException(msg, e.error());
     }
   }
@@ -270,7 +270,7 @@ void CAliases::GetAliasesByProductType(CObMap& aliasesByProductType)
       std::string msg = CTools::Format("Error in CAliases::GetAliasesByProductType - A duplicate 'productType' definition '%s' has been found. "
                                   "Native error: '%s'\n"
                                   "Check the Aliases Dictionary as a possibility. ",
-                                  m_productType.c_str(), e.GetMessage().c_str());      
+                                  m_productType.c_str(), e.Message().c_str());      
       throw CException(msg, e.error());
     }
 
@@ -467,7 +467,7 @@ void CProductAliases::AddAlias(CAlias* value, const std::string& record)
   catch(CException& e)
   {
     std::string msg = CTools::Format("Error in CProductAliases::AddAlias - Unable to add alias because the alias '%s' already exists - Native error: '%s'",
-                                name.c_str(), e.GetMessage().c_str());      
+                                name.c_str(), e.Message().c_str());      
     throw CException(msg, e.error());
   }
 

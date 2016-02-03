@@ -2567,7 +2567,7 @@ void CProduct::CodaInit()
 
   if (CProduct::m_codaRefCount <= 0)
   {
-    coda_set_definition_path(CTools::GetDataDir().c_str());
+    coda_set_definition_path(CTools::GetInternalDataDir().c_str());
     coda_init();
   }
 

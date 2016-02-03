@@ -53,6 +53,8 @@ namespace osgEarth
 		public:
 			QgsOsgEarthTileSource( QgisInterface* theQgisInterface, const TileSourceOptions& options = TileSourceOptions() );
 			QgsOsgEarthTileSource( QgsMapCanvas* theCanvas, const TileSourceOptions& options = TileSourceOptions() );
+			virtual ~QgsOsgEarthTileSource()
+			{}
 
 			void initialize( const std::string& referenceURI, const Profile* overrideProfile = NULL );
 

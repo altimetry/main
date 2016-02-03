@@ -61,7 +61,6 @@ auto POINT_SIZE  = 0.0004;  // Diameter of a start/end point, in map units.
 
 
 //#undef HAVE_VPRINTF
-//#undef HAVE_SNPRINTF
 //#undef HAVE_DIRECT_H
 //#define Py_CONFIG_H
 //#if !defined MIN

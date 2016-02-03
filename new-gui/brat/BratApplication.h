@@ -58,14 +58,24 @@ class CBratApplication : public QgsApplication
 
 	typedef QgsApplication base_t;
 
-    //friend int main( int argc, char *argv[] );    TODO delete; for test purpose only
-
 
 	//////////////////////////////////////
 	//	static members
 	//////////////////////////////////////
 
 
+	static bool smPrologueCalled;					//initialized in Prologue
+
+	static CApplicationPaths *smApplicationPaths;	//initialized in Prologue
+
+public:
+
+	// Calling this in main is mandatory
+	//	
+	static void Prologue( int argc, char *argv[] );
+
+
+protected:
 	//	This is accurate only if(when) no style sheet was also assigned.
 	//	External clients should not rely on this, and use the name in options.
     //	Internal code can only rely on this before assigning a style sheet.
@@ -113,7 +123,7 @@ class CBratApplication : public QgsApplication
 	QString mDefaultAppStyle;
 
 public:
-    CBratApplication( CApplicationPaths &brat_paths, int &argc, char ** argv, bool GUIenabled, QString customConfigPath = QString() );
+    CBratApplication( int &argc, char **argv, bool GUIenabled, QString customConfigPath = QString() );
 
 	virtual ~CBratApplication();
 
@@ -139,7 +149,7 @@ public:
 	}
 
 public slots:
-	void updateSettings();
+	void UpdateSettings();
 };
 
 

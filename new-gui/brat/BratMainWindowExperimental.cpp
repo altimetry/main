@@ -192,9 +192,7 @@ CEditorBase *CBratMainWindow::activeMDIEditor()
 template< class EDITOR >
 EDITOR* CBratMainWindow::activeEditor()
 {
-    QWidget *pw = QApplication::focusWidget();
-    if ( pw == mOutputTextWidget )              //|| pw == mToolTextWidget
-        return qobject_cast<EDITOR*>( pw );
+    //QWidget *pw = QApplication::focusWidget(); TODO return this only if matches a known window
 
     //default to MDI subWindows
     //

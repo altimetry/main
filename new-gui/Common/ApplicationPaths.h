@@ -2,7 +2,10 @@
 #define COMMON_APPLICATION_PATHS_H
 
 
-#include "QtUtilsIO.h"
+#include <QString>
+
+#include "ConsoleApplicationPaths.h"
+
 
 
 ///////////////////////////////////////////////////////////////////////////
@@ -10,12 +13,14 @@
 ///////////////////////////////////////////////////////////////////////////
 
 
-class CApplicationPaths : public non_copyable
+
+class CApplicationPaths : public CConsoleApplicationPaths
 {
     ////////////////////////////////////////////
     //	types & friends
     ////////////////////////////////////////////
 
+	using base_t = CConsoleApplicationPaths;
 
 
     ////////////////////////////////////////////
@@ -24,11 +29,6 @@ class CApplicationPaths : public non_copyable
 
 public:
 
-    static std::string DefaultInternalDataSubDir()
-    {
-        static const std::string s = "data";
-        return s;
-    }
     static std::string DefaultExternalDataSubDir()
     {
         static const std::string s = "data";
@@ -57,9 +57,6 @@ protected:
     static std::string ComputeDefaultUserBasePath( const std::string &DeploymentRootDir);
 
 
-    static std::string ComputeInternalDataDirectory( const std::string &ExecutableDir );
-
-
 public:
 
     ////////////////////////////////////////////
@@ -71,19 +68,6 @@ public:
     //	and static. So, origin and deployment as
     //	executable products.
 
-    const std::string mPlatform;				//origin: runtime binary
-    const std::string mConfiguration;			//origin: runtime binary
-
-    const std::string mExecutablePath;          //origin: runtime binary
-    const std::string mExecutableDir;			//origin: runtime binary
-    const std::string mDeploymentRootDir;		//origin: runtime binary
-
-    // mInternalDataDir: allowed to change for
-    //	compatibility reasons only. Modifiable
-    //	exclusively through environment variable.
-    //	Requires restart.
-    //
-    const std::string mInternalDataDir;			//origin: version control, deployed to bin as internal resources
     const std::string mVectorLayerPath;			//origin: version control, lives in mInternalDataDir
 
     const std::string mOsgPluginsDir;			//origin: OSG deployable (libraries)
@@ -92,6 +76,14 @@ public:
     const std::string mQgisPluginsDir;			//origin: QGIS deployable (libraries)
     const std::string mGlobeDir;				//origin: QGIS deployable (like libraries)
 
+	//TODO: change these names according to our convention, for instance: m_execYFXName -> mExecYFXName. The same in COperation
+
+    const std::string m_execYFXName;
+    const std::string m_execZFXYName;
+    const std::string m_execExportAsciiName;
+    const std::string m_execExportGeoTiffName;
+    const std::string m_execShowStatsName;
+    const std::string m_execBratSchedulerName;
 
     // NOT rigid (user definable), so, definitions
     //	are based on defaults. Origin: lib/data,
@@ -131,16 +123,6 @@ public:
         return !( *this == o );
     }
 
-    // User changeable paths are not tested, because
-    //	by definition they are not critical
-    // TODO refuse to run if this is false, allowing at most
-    //	a dialog to open and correct the situation until
-    //	this is true; false only if deployment error or user
-    //	messing with installation outputs
-    //
-    bool valid() const;
-
-
     const std::string& UserBasePath() const { return mUserBasePath; }
 
     const std::string& ExternalDataDir() const { return mExternalDataDir; }
@@ -156,6 +138,11 @@ public:
     //	operations
     ////////////////////////////////////////////
 
+
+    virtual bool ValidatePaths() const override;
+
+    bool SetUserPaths();
+
     std::string ToString() const;
 
 public:
@@ -163,7 +150,7 @@ public:
     // Operates only over user changeable paths, trying to
     //	ensure their existence in the expected locations
     //
-    bool validate();
+
 
 
     // if "unique" is true, path must exist
@@ -181,26 +168,9 @@ public:
 
 protected:
 
-    // mRasterLayerPath setter
-    //	- assumes mExternalDataDir correctly assigned
-    //	- copies around a distributed raster layer file if the user changes
-    //		the external data directory location
-    //
-    bool CopyRasterLayerFile()
-    {
-        const std::string raster_path = mExternalDataDir + "/" + RasterLayerSubPath();
-
-        if ( raster_path == mRasterLayerPath )
-            return true;
-
-        if ( IsFile( raster_path ) || ( IsFile( mRasterLayerPath ) && DuplicateFile( mRasterLayerPath, raster_path ) ) )
-            mRasterLayerPath = raster_path;
-        else
-            return false;	//deserves at most a warning; so far this file exists only to test raster layers
-
-        return true;
-    }
+	bool CopyRasterLayerFile();
 };
+
 
 
 

@@ -30,10 +30,9 @@
 #include <QResource>
 #include <QElapsedTimer>
 #include <QDesktopWidget>
-#include <QDebug>
 
 
-#include "QtStringUtils.h"	// => QtStringUtils.h => +Utils.h
+#include "QtUtilsIO.h"	// QtUtilsIO.h => QtStringUtils.h => +Utils.h
 
 
 //Table of Contents
@@ -713,6 +712,106 @@ inline void SetMaximizableDialog( QDialog *d )
 	// Qt::WindowStaysOnTopHint also works (too weel: stays on top of other apps also). Without this, we have the mac MDI mess...
 	d->setWindowFlags( ( d->windowFlags() & ~Qt::Dialog ) | Qt::Tool );
 #endif
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////
+//                      File System GUI Utilities
+///////////////////////////////////////////////////////////////////////////
+
+
+inline QString BrowseDirectory( QWidget *parent, const char *title, QString InitialDir )
+{
+    static QString lastDir = InitialDir;
+
+    if ( InitialDir.isEmpty() )
+        InitialDir = lastDir;
+    QFileDialog::Options options = QFileDialog::DontResolveSymlinks | QFileDialog::ShowDirsOnly;
+    //if (!native->isChecked())
+    options |= QFileDialog::DontUseNativeDialog;
+    QString dir = QFileDialog::getExistingDirectory( parent, QObject::tr( title ), InitialDir, options );
+    if ( !dir.isEmpty() )
+        lastDir = dir;
+    return dir;
+}
+
+inline QStringList getOpenFileNames( QWidget * parent = 0, const QString & caption = QString(),
+                              const QString & dir = QString(), const QString & filter = QString(),
+                              QString * selectedFilter = 0, QFileDialog::Options options = 0 )
+{
+    return QFileDialog::getOpenFileNames( parent, caption, dir, filter, selectedFilter, options );
+}
+
+inline QStringList getOpenFileName( QWidget * parent = 0, const QString & caption = QString(),
+                             const QString & dir = QString(), const QString & filter = QString(),
+                             QString * selectedFilter = 0, QFileDialog::Options options = 0 )
+{
+    QStringList result;
+    result.append( QFileDialog::getOpenFileName( parent, caption, dir, filter, selectedFilter, options ) );
+    return result;
+}
+
+template< typename F >
+QStringList tBrowseFile( F f, QWidget *parent, const char *title, QString Initial )
+{
+    QFileDialog::Options options;
+    //if (!native->isChecked())
+    //    options |= QFileDialog::DontUseNativeDialog;
+    QString selectedFilter;
+    return f( parent, QObject::tr( title ), Initial, QObject::tr("All Files (*);;Text Files (*.txt)"), &selectedFilter, options);
+}
+
+inline QString BrowseFile( QWidget *parent, const char *title, QString Initial )
+{
+    return tBrowseFile( getOpenFileName, parent, title, Initial )[0];
+}
+
+inline QStringList BrowseFiles( QWidget *parent, const char *title, QString Initial )
+{
+    return tBrowseFile( getOpenFileNames, parent, title, Initial );
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////
+// Resources "file system" utilities
+///////////////////////////////////////////////////////////////////////////
+
+
+inline bool readFileFromResource( const QString &rpath, QString &dest, bool unicode = false )
+{
+    QResource r( rpath );
+    if ( !r.isValid() )
+        return false;
+    QByteArray ba( reinterpret_cast< const char* >( r.data() ), (int)r.size() );
+    QByteArray data;
+    if ( r.isCompressed() )
+        data = qUncompress( ba );
+    else
+        data = ba;
+
+    if ( unicode )
+        dest.setUtf16( (const ushort*)(const char*)data, data.size() / sizeof(ushort) );
+    else
+        dest = data;
+
+    return true;
+}
+
+template< typename STRING >
+inline bool readFileFromResource( const QString &rpath, STRING &dest, bool unicode = false )
+{
+    QString str;
+    if ( !readFileFromResource( rpath, str, unicode ) )
+        return false;
+    dest = q2t< STRING >( str );
+    return true;
+}
+
+inline bool readUnicodeFileFromResource( const QString &rpath, std::wstring &dest )
+{
+    return readFileFromResource( rpath, dest, true );
 }
 
 

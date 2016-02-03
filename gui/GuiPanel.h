@@ -354,9 +354,10 @@ typedef void (wxEvtHandler::*CRenameDatasetEventFunction)(CRenameDatasetEvent&);
 
 class CGuiPanel: public wxPanel
 {
+	const CApplicationPaths &mBratPaths;
 public:
   // constructors and destructors
-  CGuiPanel( wxWindow *parent, wxWindowID id = -1,
+  CGuiPanel( const CApplicationPaths &brat_paths, wxWindow *parent, wxWindowID id = -1,
             const wxPoint& pos = wxDefaultPosition,
             const wxSize& size = wxDefaultSize,
             long style = wxTAB_TRAVERSAL | wxNO_BORDER );

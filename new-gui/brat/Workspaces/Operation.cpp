@@ -475,36 +475,11 @@ public:
 
 
 
-inline std::string setExecExtension( const std::string &execPath )
-{
-	static const std::string &ext =
-
-#ifdef WIN32
-		".exe"
-#else
-        ""
-#endif
-        ;
-
-	return execPath + ext;
-}
-
-
-const std::string BRATSHOWSTATS_EXE		= setExecExtension( "BratStats" );
-const std::string BRATSCHEDULER_EXE		= setExecExtension( "BratScheduler" );
-const std::string BRATEXPORTGEOTIFF_EXE = setExecExtension( "BratExportGeoTiff" );
-const std::string BRATEXPORTASCII_EXE	= setExecExtension( "BratExportAscii" );
-const std::string BRATDISPLAY_EXE		= setExecExtension( "BratDisplay" );
-const std::string BRATCREATEZFXY_EXE	= setExecExtension( "BratCreateZFXY" );
-const std::string BRATCREATEYFX_EXE		= setExecExtension( "BratCreateYFX" );
-
 
 //static 
 std::string COperation::m_execYFXName;
 //static 
 std::string COperation::m_execZFXYName;
-//static 
-std::string COperation::m_execDisplayName;
 //static 
 std::string COperation::m_execExportAsciiName;
 //static 
@@ -515,53 +490,29 @@ std::string COperation::m_execShowStatsName;
 std::string COperation::m_execBratSchedulerName;
 
 
-//static 
-void COperation::SetExecNames( const std::string &appPath )
+//static
+void COperation::SetExecNames( const CApplicationPaths &app_path )
 {
-	m_execYFXName = appPath + "/" + BRATCREATEYFX_EXE;					//m_execYFXName.MakeAbsolute();
+    m_execYFXName = app_path.m_execYFXName;
 
-	m_execZFXYName = appPath + "/" + BRATCREATEZFXY_EXE;				//m_execZFXYName.MakeAbsolute();
+    m_execZFXYName = app_path.m_execZFXYName;
 
-	m_execDisplayName = appPath + "/" + BRATDISPLAY_EXE;				//m_execDisplayName.MakeAbsolute();
+    m_execExportAsciiName = app_path.m_execExportAsciiName;
 
-	m_execExportAsciiName = appPath + "/" + BRATEXPORTASCII_EXE;		//m_execExportAsciiName.MakeAbsolute();
+    m_execExportGeoTiffName = app_path.m_execExportGeoTiffName;
 
-	m_execExportGeoTiffName = appPath + "/" + BRATEXPORTGEOTIFF_EXE;	//m_execExportGeoTiffName.MakeAbsolute();
+    m_execShowStatsName = app_path.m_execShowStatsName;
 
-	m_execShowStatsName = appPath + "/" + BRATSHOWSTATS_EXE;			//m_execShowStatsName.MakeAbsolute();
+    m_execBratSchedulerName = app_path.m_execBratSchedulerName;
 
-	m_execBratSchedulerName = appPath + "/" + BRATSCHEDULER_EXE;		//m_execBratSchedulerName.MakeAbsolute();
-
-
-#ifdef __APPLE__
-
-	//m_execName.IsRelative() ? 
-	//m_execName.GetPath(flags, format) + "/BratScheduler.app/Contents/MacOS" :
-	//m_execName.GetPath(flags, format));
-	m_execBratSchedulerName = appPath + "/BratScheduler.app/Contents/MacOS/" + BRATSCHEDULER_EXE;		//m_execBratSchedulerName.MakeAbsolute();
-#else
-
-	m_execBratSchedulerName = appPath + "/" + BRATSCHEDULER_EXE;		//m_execBratSchedulerName.MakeAbsolute();
     assert__(
         IsFile( m_execYFXName )				&&
         IsFile( m_execZFXYName )			&&
-        IsFile( m_execDisplayName )			&&
         IsFile( m_execExportAsciiName )		&&
         IsFile( m_execExportGeoTiffName )	&&
         IsFile( m_execShowStatsName )		&&
         IsFile( m_execBratSchedulerName )
         );
-#endif
-
-//assert__(
-//	IsFile( m_execYFXName )				&&
-//	IsFile( m_execZFXYName )			&&
-//	IsFile( m_execDisplayName )			&&
-//	IsFile( m_execExportAsciiName )		&&
-//	IsFile( m_execExportGeoTiffName )	&&
-//	IsFile( m_execShowStatsName )		&&
-//	IsFile( m_execBratSchedulerName )
-//	);
 }
 
 

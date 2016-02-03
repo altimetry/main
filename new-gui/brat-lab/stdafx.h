@@ -85,7 +85,7 @@
 #if defined HAVE_STAT			 	//Python also defines this
 #define SAVE_HAVE_STAT	HAVE_STAT
 #undef HAVE_STAT
-#include <brathl_config.h>
+#include "libbrathl/brathl.h"
 #if defined HAVE_STAT && ( HAVE_STAT != SAVE_HAVE_STAT )	//Use Python value, which should be the same
 #error HAVE_STAT Python value which should be the same
 #endif

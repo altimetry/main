@@ -1,40 +1,48 @@
 #include "stdafx.h"
 
-#include <cassert>
+#include <osg/Version>
 
-#include <qtimer.h>
-
+#include "new-gui/Common/BratVersion.h"
 #include "new-gui/Common/ccore-types.h"
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/ConfigurationKeywords.h"
 
-#include "BratApplication.h"
-#include "ApplicationSettingsDlg.h"
+#include "new-gui/brat/Workspaces/Workspace.h"
+
 #include "new-gui/brat/Views/TextWidget.h"
+
 #include "new-gui/brat/GUI/TabbedDock.h"
 #include "new-gui/brat/GUI/ControlsPanel.h"
 #include "new-gui/brat/GUI/ActionsTable.h"
-#include "new-gui/brat/Workspaces/Workspace.h"
-
 #include "new-gui/brat/GUI/WorkspaceDialog.h"
 #include "new-gui/brat/GUI/WorkspaceElementsDialog.h"
+
+#include "BratApplication.h"
+#include "ApplicationSettingsDlg.h"
+#include "ApplicationLogger.h"
 
 #include "BratMainWindow.h"
 
 
 
-
 #if defined(BRAT_ARCHITECTURE_64)
+
     static const QString build_platform( " 64-bit" );
-#else
+
+#elif defined(BRAT_ARCHITECTURE_32)
+
 	static const QString build_platform( " 32-bit" );
+#else
+#error One of BRAT_ARCHITECTURE_32 or BRAT_ARCHITECTURE_64 must be defined
 #endif
+
 
 #if defined(_UNICODE) || defined(UNICODE)
     static const QString build_charset( " Un" );
 #else
 	static const QString build_charset( "" );
 #endif
+
 
 #if defined (DEBUG) || defined(_DEBUG)
     static const QString build_configuration = build_platform + " [DEBUG] " + build_charset;
@@ -63,7 +71,7 @@ CBratMainWindow *CBratMainWindow::smInstance = nullptr;
 
 
 
-//    "    The window title must contain a "[*]" placeholder, which
+//    "The window title must contain a "[*]" placeholder, which
 //    indicates where the '*' should appear. Normally, it should appear
 //    right after the file name (e.g., "document1.txt[*] - Text
 //    TextEditor")." Qt doc.
@@ -86,6 +94,56 @@ QString CBratMainWindow::makeWindowTitle( const QString &title )// = QString() /
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //											Construction Helpers
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+bool CBratMainWindow::ReadSettings( bool &has_gui_settings, bool &wasMaximized, QByteArray &geom, QByteArray &state )
+{
+	CAppSection section( GROUP_MAIN_WINDOW );
+	has_gui_settings = !section.Keys().empty();
+
+	if ( has_gui_settings )
+	{
+		if ( !AppSettingsReadSection( GROUP_MAIN_WINDOW,
+
+			k_v( KEY_MAIN_WINDOW_GEOMETRY, &geom ),
+			k_v( KEY_MAIN_WINDOW_STATE, &state ),
+			k_v( KEY_MAIN_WINDOW_MAXIMIZED, &wasMaximized )
+			) )
+
+			return false;
+	}
+
+	return mSettings.Status() == QSettings::NoError;
+}
+
+
+bool CBratMainWindow::WriteSettings()
+{
+	assert__( !destroyed() );
+
+    mSettings.m_lastPageReached = n2s< std::string >( mMainWorkingDock->SelectedTab() );
+    mSettings.mAdvancedOperations = WorkingPanel< eOperations >()->AdvancedMode();
+    const CWorkspace *wks = mModel.RootWorkspace();
+    mSettings.m_lastWksPath = wks != nullptr ? wks->GetPath() : "";
+
+	if (
+		//! mSettings.SaveConfig(  )		TODO this is in charge of the application class but something is wrong here: the window assigns the parameters that the application saves???
+		//||
+		! mRecentFilesProcessor->WriteSettings() 
+		||
+		! AppSettingsWriteSection( GROUP_MAIN_WINDOW,
+		
+			k_v( KEY_MAIN_WINDOW_GEOMETRY, saveGeometry() ),
+			k_v( KEY_MAIN_WINDOW_STATE, saveState() ),
+			k_v( KEY_MAIN_WINDOW_MAXIMIZED, isMaximized() )
+		) 
+		)
+		std::cout << "Unable to save BRAT the main window settings." << std::endl;	// TODO log this
+
+		mSettings.Sync();
+
+	return mSettings.Status() == QSettings::NoError;
+}
 
 
 CControlsPanel* CBratMainWindow::MakeWorkingPanel( ETabName tab )
@@ -111,6 +169,8 @@ CControlsPanel* CBratMainWindow::MakeWorkingPanel( ETabName tab )
 
 void CBratMainWindow::CreateWorkingDock()
 {
+	LOG_TRACE( "Starting working dock (controls panel) construction..." );
+
 	mMainWorkingDock = new CTabbedDock( "Main Working Dock", this );
 	mMainWorkingDock->setAllowedAreas( Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea );	//mMainWorkingDock->setMaximumWidth( max_main_dock_width );
 	addDockWidget( Qt::LeftDockWidgetArea, mMainWorkingDock, Qt::Vertical );
@@ -129,39 +189,54 @@ void CBratMainWindow::CreateWorkingDock()
 	connect( this, SIGNAL( WorkspaceChanged( CWorkspaceOperation* ) ), WorkingPanel< eOperations >(), SLOT( WorkspaceChanged( CWorkspaceOperation* ) ) );
 	connect( this, SIGNAL( WorkspaceChanged( CWorkspaceDisplay* ) ), WorkingPanel< eOperations >(), SLOT( WorkspaceChanged( CWorkspaceDisplay* ) ) );
 
-	mSettings.m_lastPageReached = n2s< std::string >( eDataset );
+	LOG_TRACE( "Finished working dock construction." );
 }
 
 
 void CBratMainWindow::CreateOutputDock()
 {
+	static bool initialized = false;				assert__(!initialized);
+
+	LOG_TRACE( "Starting output dock construction..." );
+
+	initialized = true;
+
 	mOutputDock = new CTabbedDock( "Output", this );
 	mOutputDock->setAllowedAreas( Qt::BottomDockWidgetArea | Qt::TopDockWidgetArea );
-	//mOutputDock->setMaximumHeight( max_out_window_height );
 	addDockWidget( Qt::BottomDockWidgetArea, mOutputDock );
 
-	// sample widgets: to delete
+	mLogFrame = new CLogShell( this );
+	mLogFrame->setObjectName( QString::fromUtf8( "mLogShell" ) );
 
-	mOutputTextWidget = new CTextWidget;
-	mOutputTextWidget->setObjectName( QString::fromUtf8( "mOutputTextWidget" ) );
+	mOutputDock->AddTab( mLogFrame, "Log" );
 
-	QTreeWidget *Output_treeWidget_3 = new QTreeWidget;
-	QTreeWidgetItem *__qtreewidgetitem = new QTreeWidgetItem();
-	__qtreewidgetitem->setText( 0, QString::fromUtf8( "1" ) );
-	Output_treeWidget_3->setHeaderItem( __qtreewidgetitem );
-	Output_treeWidget_3->setObjectName( QString::fromUtf8( "Output_treeWidget_3" ) );
+	// wire to logger
 
-	QFrame *Log_frame_3 = new QFrame;
-	Log_frame_3->setObjectName( QString::fromUtf8( "Log_frame_3" ) );
-	Log_frame_3->setStyleSheet( QString::fromUtf8( "" ) );
-	Log_frame_3->setFrameShape( QFrame::StyledPanel );
-	Log_frame_3->setFrameShadow( QFrame::Raised );
+	connect( 
+		&CApplicationLogger::Instance(), SIGNAL( OsgLogLevelChanged( int ) ), 
+		mLogFrame, SLOT( SetOsgLogLevel( int ) ), Qt::QueuedConnection );
 
-	// sample adding docked tabs content: to delete
+	connect( 
+		&CApplicationLogger::Instance(), SIGNAL( OsgLogMessage( int, QString ) ), 
+		mLogFrame, SLOT( OsgNotifySlot( int, QString ) ), Qt::QueuedConnection );
 
-	mOutputDock->AddTab( mOutputTextWidget, "Main" );
-	mOutputDock->AddTab( Output_treeWidget_3, "Tree" );
-	mOutputDock->AddTab( Log_frame_3, "Log" );
+	connect( 
+		&CApplicationLogger::Instance(), SIGNAL( QgisLogMessage( int, QString  ) ),
+		mLogFrame, SLOT( QtNotifySlot( int, QString ) ), Qt::QueuedConnection );
+
+	//mLogFrame->SetOsgLogLevel( ns );	//also updates the application logger
+	mLogFrame->Deactivate( false );
+
+	LOG_INFO( "OSG initialized in " + qApp->applicationName().toStdString() );
+	LOG_INFO( "OSG version: " + std::string( osgGetVersion() ) + " - " + osgGetSOVersion() + " - " + osgGetLibraryName() );
+	if ( getenv("OSG_FILE_PATH") )
+		LOG_INFO( "OSG_FILE_PATH = " + std::string( getenv("OSG_FILE_PATH") ) );
+	else
+		LOG_INFO( "OSG_FILE_PATH not defined" );
+
+	LOG_INFO( "Initial OSG notification level: " + n2s<std::string>( CApplicationLogger::Instance().OsgNotifyLevel() ) );
+
+	LOG_TRACE( "Finished output dock construction." );
 }
 
 
@@ -188,6 +263,8 @@ void CBratMainWindow::CreateDocks()
 
 void CBratMainWindow::ProcessMenu()
 {
+	LOG_TRACE( "Starting main menu processing..." );
+
     // Fill Actions Table
     //
 	const QList< QMenu* > lst = mMainMenuBar->findChildren< QMenu* >();
@@ -215,6 +292,12 @@ void CBratMainWindow::ProcessMenu()
 
 	mRecentFilesSeparatorAction = menu_File->insertSeparator( action_Exit );
 
+	if ( !mRecentFilesProcessor->ReadSettings() )
+	{
+		CException e( "Error reading the configuration file", BRATHL_ERROR );		// TODO which file
+		throw e;
+	}
+
     // Menu View / ToolBars
     //
 	if ( !menu_View->isEmpty() )
@@ -224,15 +307,11 @@ void CBratMainWindow::ProcessMenu()
 
     // Menu View / Docks editors (see also the tool-bars section in this ctor)
     //
-    CTextWidget *editors[] = { mOutputTextWidget };
     QDockWidget *docks[] = { mOutputDock, mMainWorkingDock };
-    size_t size = sizeof(editors) / sizeof(*editors);
     menu_View->addSeparator();
-    for ( size_t i = 0; i < size; ++i )
+    for ( auto dock : docks )
     {
-        editors[i]->setToolEditor( true );
-        //connectAutoUpdateEditActions( editors[i] );
-        menu_View->addAction( docks[i]->toggleViewAction() );
+        menu_View->addAction( dock->toggleViewAction() );
     }
 
     // Global Wiring
@@ -248,12 +327,14 @@ void CBratMainWindow::ProcessMenu()
 	action_Test->setVisible( false );
 #endif
 
+	LOG_TRACE( "Finished main menu processing." );
 }
-
 
 
 void CBratMainWindow::FillStatusBar()
 {
+	LOG_TRACE( "Starting status-bar construction..." );
+
 	//remove borders from children under Windows
 	//statusBar()->setStyleSheet( "QStatusBar::item {border: none;}" );
 
@@ -265,6 +346,9 @@ void CBratMainWindow::FillStatusBar()
 	//mProgressBar->hide();
 	mProgressBar->setWhatsThis( tr( "Progress bar that displays the status of time-intensive operations" ) );
 	statusBar()->addPermanentWidget( mProgressBar, 1 );
+
+	connect( mManager->Map(), SIGNAL( renderStarting() ), this, SLOT( CanvasRefreshStarted() ) );
+	connect( mManager->Map(), SIGNAL( mapCanvasRefreshed() ), this, SLOT( CanvasRefreshFinished() ) );
 
 	FillStatusBarExperimental();
 
@@ -280,7 +364,9 @@ void CBratMainWindow::FillStatusBar()
 	statusBar()->addPermanentWidget( mMessageButton, 0 );
 
 	connect( mMessageButton, SIGNAL( toggled( bool ) ), mOutputDock, SLOT( setVisible( bool ) ) );
-	connect( mOutputDock, SIGNAL( visibilityChanged( bool ) ), mMessageButton, SLOT( setChecked( bool ) ) );	
+	connect( mOutputDock, SIGNAL( visibilityChanged( bool ) ), mMessageButton, SLOT( setChecked( bool ) ) );
+
+	LOG_TRACE( "Finished status-bar construction." );
 }
 
 
@@ -290,13 +376,21 @@ void CBratMainWindow::FillStatusBar()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-CBratMainWindow::CBratMainWindow( CBratSettings &settings ) 
-	: QMainWindow( nullptr)
-	, mSettings( settings )
-{
-	assert__( !smInstance );
-    assert__( mSettings.BratPaths().valid() );
+CBratMainWindow::CBratMainWindow( CBratApplication &a ) 
 
+	: QMainWindow( nullptr)
+
+	, mSettings( a.Settings() )
+
+	, mModel( CModel::CreateInstance( mSettings.BratPaths() ) )
+
+{
+	LOG_TRACE( "Starting main window construction..." );
+
+	assert__( !smInstance );
+    assert__( mSettings.BratPaths().IsValid()==true );
+
+	connect( this, SIGNAL( SettingsUpdated() ), &a, SLOT( UpdateSettings() ) );
 
     CMapWidget::SetQGISDirectories(
                 mSettings.BratPaths().mQgisPluginsDir,
@@ -310,9 +404,27 @@ CBratMainWindow::CBratMainWindow( CBratSettings &settings )
     mMainToolBar->setIconSize({icon_size,icon_size});
     mMainToolsToolBar->setIconSize({icon_size,icon_size});
 
+    // Settings from persistence
+    //
+	bool lastSessionGeometry = false;
+	bool wasMaximized = false;
+	QByteArray geom, state;
+	try {
+		ReadSettings( lastSessionGeometry, wasMaximized, geom, state );	//TODO use boolean return value, even if only to throw
+	}
+    catch ( const CException &e )			// TODO rather stupid catching the exception here...
+	{
+		SimpleWarnBox( std::string( "An error occurred while loading Brat configuration (CBratGui::LoadConfig)\nNative std::exception: " )
+			+ e.what() );
+	}
+
+
     // Sub-Windows management
     //
-	mManager = new desktop_manager_t( this );
+	if ( mSettings.mDesktopManagerSdi )
+		mManager = new CDesktopManagerSDI( this );
+	else
+		mManager = new CDesktopManagerMDI( this );
 
 
     // Docked controls
@@ -325,27 +437,23 @@ CBratMainWindow::CBratMainWindow( CBratSettings &settings )
 	ProcessMenu();
 
 
-    // Settings from persistence
-    //
-	bool lastSessionGeometry = false;
-	try {
-		ReadSettings( lastSessionGeometry );
-	}
-    catch ( const CException &e )			// TODO rather stupid catching the exception here...
-	{
-		SimpleWarnBox( std::string( "An error occurred while loading Brat configuration (CBratGui::LoadConfig)\nNative std::exception: " )
-			+ e.what() );
-	}
-
-
     // Status Bar
     //
 	FillStatusBar();
 
 
+    // Apply remaining stored settings
+    //
+	if ( lastSessionGeometry )
+	{
+		restoreGeometry( geom );
+		restoreState( state );
+		if ( wasMaximized )
+			setWindowState( windowState() | Qt::WindowMaximized );
+	}
     // Position
     //
-	if ( !lastSessionGeometry )
+	else	//if ( !lastSessionGeometry )
 	{
         show();
         QApplication::processEvents();
@@ -363,6 +471,8 @@ CBratMainWindow::CBratMainWindow( CBratSettings &settings )
     // Load command line or user settings referenced files 
     //
     QTimer::singleShot( 0, this, SLOT( LoadCmdLineFiles() ) );
+
+	LOG_TRACE( "Finished main window construction." );
 }
 
 
@@ -473,71 +583,6 @@ void CBratMainWindow::LoadCmdLineFiles()
 }
 
 
-bool CBratMainWindow::ReadSettings( bool &has_gui_settings )
-{
-	if ( !mRecentFilesProcessor->ReadSettings() )
-	{
-		CException e( "Error reading the configuration file", BRATHL_ERROR );
-		throw e;
-	}
-
-	CAppSection section( GROUP_MAIN_WINDOW );
-	has_gui_settings = !section.Keys().empty();
-
-	if ( has_gui_settings )
-	{
-		bool wasMaximized = false;
-		QByteArray geom, state;
-
-		if ( AppSettingsReadSection( GROUP_MAIN_WINDOW,
-
-			k_v( KEY_MAIN_WINDOW_GEOMETRY, &geom ),
-			k_v( KEY_MAIN_WINDOW_STATE, &state ),
-			k_v( KEY_MAIN_WINDOW_MAXIMIZED, &wasMaximized )
-		) )
-		{
-			restoreGeometry( geom );
-			restoreState( state );
-			if ( wasMaximized )
-				setWindowState( windowState() | Qt::WindowMaximized );
-		}
-	}
-
-	return mSettings.Status() == QSettings::NoError;
-}
-
-
-
-
-bool CBratMainWindow::WriteSettings()
-{
-	assert__( !destroyed() );
-
-    mSettings.m_lastPageReached = n2s< std::string >( mMainWorkingDock->SelectedTab() );
-    mSettings.mAdvancedOperations = WorkingPanel< eOperations >()->AdvancedMode();
-    const CWorkspace *wks = mModel.RootWorkspace();
-    mSettings.m_lastWksPath = wks != nullptr ? wks->GetPath() : "";
-
-	if (
-		//! mSettings.SaveConfig(  )		TODO this is in charge of the application class but something is wrong here: the window assigns the parameters that the application saves???
-		//||
-		! mRecentFilesProcessor->WriteSettings() 
-		||
-		! AppSettingsWriteSection( GROUP_MAIN_WINDOW,
-		
-			k_v( KEY_MAIN_WINDOW_GEOMETRY, saveGeometry() ),
-			k_v( KEY_MAIN_WINDOW_STATE, saveState() ),
-			k_v( KEY_MAIN_WINDOW_MAXIMIZED, isMaximized() )
-		) 
-		)
-		std::cout << "Unable to save BRAT the main window settings." << std::endl;	// TODO log this
-
-		mSettings.Sync();
-
-	return mSettings.Status() == QSettings::NoError;
-}
-
-
 bool CBratMainWindow::OkToContinue()
 {
 	if ( mModel.RootWorkspace() == nullptr )
@@ -560,6 +605,7 @@ bool CBratMainWindow::OkToContinue()
 
 	return true;
 }
+
 
 
 void CBratMainWindow::closeEvent( QCloseEvent *event )
@@ -1008,12 +1054,97 @@ void CBratMainWindow::UpdateWindowMenu()
 
 void CBratMainWindow::on_action_About_triggered()
 {
-    QMessageBox::about(this, tr("About BRAT"), QString( "Welcome to BRAT " ) + BRAT_VERSION + " - " + PROCESSOR_ARCH + "\n(C)opyright CNES/ESA" );
+	if ( getenv("QGIS_LOG_FILE") )
+		SimpleMsgBox( getenv("QGIS_LOG_FILE") );
+	if ( getenv("QGIS_DEBUG") )
+		SimpleMsgBox( getenv("QGIS_DEBUG") );
+
+
+	on_action_Test_triggered();
+
+ //   QMessageBox::about(this, tr("About BRAT"), QString( "Welcome to BRAT " ) + BRAT_VERSION + " - " + PROCESSOR_ARCH + "\n(C)opyright CNES/ESA" );
 }
+
+
+static bool thread_finished = true;
+
+class DebugThread : public QThread
+{
+    //Q_OBJECT
+private:
+	void run()
+	{
+		for ( ;; )
+		{
+			LOG_TRACEstd( "DEBUG hello from worker thread " + n2s<std::string>( thread()->currentThreadId() ) );
+			msleep( 1000 );
+			if ( thread_finished )
+				return;
+		}
+	}
+};
+class LogThread : public QThread
+{
+    //Q_OBJECT
+private:
+	void run()
+	{
+		int i = 0;
+		for ( ;; )
+		{
+			switch ( ++i % 3 )
+			{
+				case 0:
+					LOG_INFO( "LOG hello from worker thread " + n2s<std::string>( thread()->currentThreadId() ) );
+					break;
+				case 1:
+					LOG_WARN( "LOG hello from worker thread " + n2s<std::string>( thread()->currentThreadId() ) );
+					break;
+				case 2:
+					LOG_FATAL( "LOG hello from worker thread " + n2s<std::string>( thread()->currentThreadId() ) );
+					break;
+			}
+			msleep( 10 );
+			if ( thread_finished )
+				return;
+		}
+	}
+};
+
+
+static DebugThread thread_d;
+static LogThread thread_l1, thread_l2;
 
 
 void CBratMainWindow::on_action_Test_triggered()
 {
+	if ( thread_finished )
+	{
+		thread_finished = false;
+		thread_d.start();
+		thread_l1.start();
+		thread_l2.start();
+	}
+	else
+	{
+		thread_finished = true;
+		thread_d.terminate();
+		thread_l1.terminate();
+		thread_l2.terminate();
+
+		thread_d.wait();
+		thread_l1.wait();
+		thread_l2.wait();
+	}
+	//for ( ;; )
+	//{
+	//	qDebug() << "hello from GUI thread " << qApp->thread()->currentThreadId();
+	//	qApp->processEvents();
+	//	//QTest::qSleep( 1000 );
+	//}
+
+	/*
+
 #if defined (DEBUG) || defined(_DEBUG)
 
     std::string
@@ -1026,6 +1157,60 @@ void CBratMainWindow::on_action_Test_triggered()
     // NOT_IMPLEMENTED
 
 #endif
+	*/
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////
+//                      STATUS-BAR ACTIONS
+/////////////////////////////////////////////////////////////////////////
+
+
+void CBratMainWindow::ShowProgress( int theProgress, int theTotalSteps )
+{
+	if ( theProgress == theTotalSteps )
+	{
+		mProgressBar->reset();
+		mProgressBar->hide();
+	}
+	else
+	{
+		//only call show if not already hidden to reduce flicker
+		if ( !mProgressBar->isVisible() )
+		{
+			mProgressBar->show();
+		}
+		mProgressBar->setMaximum( theTotalSteps );
+		mProgressBar->setValue( theProgress );
+
+		if ( mProgressBar->maximum() == 0 )
+		{
+			// for busy indicator (when minimum equals to maximum) the oxygen Qt style (used in KDE)
+			// has some issues and does not start busy indicator animation. This is an ugly fix
+			// that forces creation of a temporary progress bar that somehow resumes the animations.
+			// Caution: looking at the code below may introduce mild pain in stomach.
+			if ( strcmp( QApplication::style()->metaObject()->className(), "Oxygen::Style" ) == 0 )
+			{
+				QProgressBar pb;
+				pb.setAttribute( Qt::WA_DontShowOnScreen ); // no visual annoyance
+				pb.setMaximum( 0 );
+				pb.show();
+				qApp->processEvents();
+			}
+		}
+	}
+}
+
+
+void CBratMainWindow::CanvasRefreshStarted()
+{
+	ShowProgress( -1, 0 ); // trick to make progress bar show busy indicator
+}
+
+void CBratMainWindow::CanvasRefreshFinished()
+{
+	ShowProgress( 0, 0 ); // stop the busy indicator
 }
 
 

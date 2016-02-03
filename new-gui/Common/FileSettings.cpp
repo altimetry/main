@@ -7,7 +7,7 @@
 #endif
 
 #include "new-gui/Common/+UtilsIO.h"
-#include "new-gui/Common/QtUtilsIO.h"
+#include "new-gui/Common/QtUtils.h"
 
 #include "FileSettings.h"
 

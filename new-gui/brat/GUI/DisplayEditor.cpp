@@ -222,7 +222,10 @@ CMapEditor::CMapEditor( QWidget *parent )		//parent = nullptr
 
 //virtual 
 CMapEditor::~CMapEditor()
-{}
+{
+	delete mGlobe;
+	delete mMap;
+}
 
 
 //virtual 

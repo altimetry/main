@@ -40,7 +40,48 @@ extern "C" {
 /*
 ** includes configuration parameters
 */
-#include "brathl_config.h"
+#if defined (WIN32) || defined (_WIN32)
+
+#define PATH_SEPARATOR             "\\"
+#define PATH_SEPARATOR_CHAR        '\\'
+#define PATH_LIST_SEPARATOR        ";"
+#define PATH_LIST_SEPARATOR_CHAR   ';'
+
+#else
+
+#define PATH_SEPARATOR             "/"
+#define PATH_SEPARATOR_CHAR        '/'
+#define PATH_LIST_SEPARATOR        ":"
+#define PATH_LIST_SEPARATOR_CHAR   ':'
+
+#endif
+
+
+#define BRATHL_UNITFILE            "brathl_units.dat"
+
+
+#define HAVE_INTTYPES_H            1
+#define HAVE_STDINT_H              1
+#define HAVE_SYS_TYPES_H           1
+#define HAVE_SYS_STAT_H            1
+#define HAVE_VSNPRINTF             1
+#define HAVE_STAT                  1
+
+
+#if defined (WIN32) || defined (WIN32)
+#define HAVE_USCORE_STRICMP 1
+#define HAVE_USCORE_ISNAN   1
+#define HAVE_FULLPATH       1
+#else
+#define HAVE_STRCASECMP     1
+#define HAVE_ISINF          1
+#define HAVE_ISNAN          1
+#define HAVE_REALPATH       1
+#define HAVE_UNISTD_H       1
+#endif
+
+
+
 
 
 #if defined(GCC_VERSION) && (GCC_VERSION < 40600)				//4.6.0
@@ -53,10 +94,10 @@ extern "C" {
 
 #include <stdint.h>
 
-#include <windows.h>
-#ifdef __WXMSW__
-#   include "wx/msw/winundef.h"
-#endif
+//#include <windows.h>
+//#ifdef __WXMSW__
+//#error    include "wx/msw/winundef.h"
+//#endif
 #include <direct.h>    
 
 /* include sys/stat.h because we are going to override stat */
@@ -96,9 +137,6 @@ extern "C" {
 #  include <sys/stat.h>
 #endif    
 
-#if HAVE_LIBGEN_H
-#  include <libgen.h>  /* for basename and dirname */
-#endif
 
 #ifdef WIN32
 #  define BRATHL_PATH_MAX _MAX_PATH

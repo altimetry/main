@@ -18,6 +18,9 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "SchedulerTaskConfig.h"		//includes stdafx.h; mus be included before any other because of mutex mess in windows
+
+
 // Temporary hack to prevent the inclusion of Windows XML 
 // headers, which collide with xerces
 //
@@ -55,7 +58,6 @@
 #include "new-gui/Common/tools/Exception.h"
 using namespace brathl;
 
-#include "SchedulerTaskConfig.h"
 #include "BratSchedulerApp.h"
 #include "RichTextFrame.h"
 #include "DirTraverser.h"
@@ -123,6 +125,12 @@ CBratSchedulerApp::~CBratSchedulerApp()
 //----------------------------------------
 bool CBratSchedulerApp::OnInit()
 {
+#if wxUSE_UNICODE
+    mBratPaths = new CApplicationPaths( wxGetApp().argv[0].ToStdString().c_str() );
+#else
+    mBratPaths = new CApplicationPaths( wxGetApp().argv[0] );
+#endif
+
 #if defined (RCCC_test)
   /// RCCC test - to delete /////////////////////
   wxString cwxString;
@@ -182,26 +190,13 @@ bool CBratSchedulerApp::OnInit()
 
     //	III. Locate data directory
 
-	if ( getenv( BRATHL_ENVVAR ) == NULL )
-	{
-		// Note that this won't work on Mac OS X when you use './BratGui' from within the Contents/MacOS directory of
-		// you .app bundle. The problem is that in that case Mac OS X will change the current working directory to the
-		// location of the .app bundle and thus the calculation of absolute paths will break
-		CTools::SetDataDirForExecutable( wxGetApp().argv[ 0 ] );
-	}
+    CTools::SetInternalDataDir/*ForExecutable*/(mBratPaths->mInternalDataDir/*wxGetApp().argv[0]*/);
 
-	if ( appPath != "" )
+	if ( !CTools::DirectoryExists( CTools::GetInternalDataDir() ) )
 	{
-		if ( getenv( BRATHL_ENVVAR ) == NULL )
-		{
-			CTools::SetDataDirForExecutable( wxGetApp().argv[ 0 ] );
-		}
-	}
-
-	if ( !CTools::DirectoryExists( CTools::GetDataDir() ) )
-	{
-		std::cerr << "ERROR: " << CTools::GetDataDir() << " is not a valid directory" << std::endl;
-		::wxMessageBox( wxString( CTools::GetDataDir().c_str() ) + " is not a valid directory -- BRAT cannot continue. \n\nAre you sure your " + BRATHL_ENVVAR + " environment variable is set correctly?", "BRAT ERROR" );
+		std::cerr << "ERROR: " << CTools::GetInternalDataDir() << " is not a valid directory" << std::endl;
+        ::wxMessageBox( wxString( CTools::GetInternalDataDir().c_str() ) +
+                        " is not a valid directory -- BRAT cannot continue.", "BRAT ERROR" );
 
 		delete m_checker;	// OnExit() won't be called if we return false
 

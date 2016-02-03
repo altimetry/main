@@ -26,19 +26,12 @@ QbrtApplication::QbrtApplication(CApplicationPaths &brat_paths, int &argc, char 
 	CTrace::GetInstance(traceFileName.GetFullPath().c_str());
 	*/
 
-	if ( getenv( BRATHL_ENVVAR ) == NULL )
+    CTools::SetInternalDataDir( Settings().BratPaths().mInternalDataDir );		assert__( CTools::DirectoryExists( CTools::GetInternalDataDir() ) );	//keep v3 happy
+	if ( !CTools::DirectoryExists( CTools::GetInternalDataDir() ) )
 	{
-		// Note that this won't work on Mac OS X when you use './BratDisplay' from within the Contents/MacOS directory of
-		// you .app bundle. The problem is that in that case Mac OS X will change the current working directory to the
-		// location of the .app bundle and thus the calculation of absolute paths will break
-        CTools::SetDataDirForExecutable( Settings().BratPaths().mExecutablePath.c_str() /*this->argv()[ 0 ]*/ );
-	}
-
-    CTools::SetDataDir( Settings().BratPaths().mInternalDataDir );	assert__( CTools::DirectoryExists( CTools::GetDataDir() ) );	//keep v3 happy
-	if ( !CTools::DirectoryExists( CTools::GetDataDir() ) )
-	{
-		std::cerr << "WARNING: " << CTools::GetDataDir() << " is not a valid directory" << std::endl;
-		SimpleWarnBox( QString( "WARNING: " ) + CTools::GetDataDir().c_str() + " is not a valid directory\n\nAre you sure your " + BRATHL_ENVVAR + " environment variable is set correctly?");
+		std::cerr << "WARNING: " << CTools::GetInternalDataDir() << " is not a valid directory" << std::endl;
+        SimpleWarnBox( QString( "WARNING: " ) + CTools::GetInternalDataDir().c_str() +
+                       " is not a valid directory\n\n");
 		throw false;
 	}
 

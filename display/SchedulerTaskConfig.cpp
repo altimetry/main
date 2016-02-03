@@ -240,7 +240,7 @@ CSchedulerTaskConfig* CSchedulerTaskConfig::GetInstance( const std::string* file
 			catch ( CException& e )
 			{
 				bOk = false;
-				errorMsg = e.GetMessage().c_str();
+				errorMsg = e.Message().c_str();
 			}
 
 			PrepareSmartCleaner();
@@ -961,7 +961,7 @@ wxXmlNode* CSchedulerTaskConfig::CreateTaskNodeAsPending_xml( wxDateTime& at, co
 			}
 			catch ( CException& e )
 			{
-				argTextNode->SetContent( e.GetMessage().c_str() );
+				argTextNode->SetContent( e.Message().c_str() );
 			}
 
 			taskNode->AddChild( argNode );
@@ -1332,7 +1332,7 @@ bool CSchedulerTaskConfig::LoadAllSchedulerTaskConfig( bool quiet /* = false */ 
 			//-----------------------
 
 			loaded = false;
-			std::string msg = e.GetMessage() + "\n Try again ?";
+			std::string msg = e.Message() + "\n Try again ?";
 			cancelled = wxMessageBox( msg, "Warning", wxYES_NO | wxCENTRE | wxICON_EXCLAMATION ) != wxYES;
 		}
 	} while ( !loaded && !cancelled );
@@ -1368,7 +1368,7 @@ bool CSchedulerTaskConfig::SaveSchedulerTaskConfig(bool quiet /* = false */)
         CSchedulerTaskConfig::ForceUnLockConfigFile();
         throw e;
       }
-      std::string msg = e.GetMessage() + "\n Try again ?";
+      std::string msg = e.Message() + "\n Try again ?";
       int32_t result = wxMessageBox(msg,
                      "Warning",
                       wxYES_NO | wxCENTRE | wxICON_EXCLAMATION);

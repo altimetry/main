@@ -429,7 +429,7 @@ void CWorkspaceDataset::Dump(std::ostream& fOut /* = std::cerr */)
 void CWorkspaceFormula::AmendFormulas(const CStringArray& keys, CProduct* product, const std::string& record)
 {
   m_formulas.Amend(keys, product, record);
-  //SaveConfigPredefinedFormula();
+  //SaveConfigPredefinedFormula();			//commented out v3.1.0
   SaveConfigFormula();
 
 }
@@ -613,22 +613,6 @@ bool CWorkspaceFormula::SaveConfigFormula()
 	//return !m_config || m_formulas.SaveConfig( m_config, false );
 
 	return m_formulas.SaveConfig( m_config, false );
-}
-//----------------------------------------
-bool CWorkspaceFormula::SaveConfigPredefinedFormula()
-{
-	//wxFileName formulaPath;
-	//formulaPath.Assign( CTools::GetDataDir().c_str(), CMapFormula::m_predefFormulaFile );
-	//formulaPath.Normalize();
-
-	//wxFileConfig* config = new wxFileConfig( wxEmptyString, wxEmptyString, formulaPath.GetFullPath(), wxEmptyString, wxCONFIG_USE_LOCAL_FILE );
-	
-	//CWorkspaceSettings config( formulaPath.GetFullPath().ToStdString() );
-	CWorkspaceSettings config( CTools::GetDataDir() + "/" + CMapFormula::m_predefFormulaFile );
-
-	config.Clear();
-
-	return m_formulas.SaveConfig( &config, true );
 }
 //----------------------------------------
 bool CWorkspaceFormula::LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )

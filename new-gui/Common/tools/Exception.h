@@ -66,7 +66,10 @@ public:
 	  \param message [in] : error message
 	  \param errcode [in] : error code
 	  */
-	CException( const std::string& message, int errcode );
+	CException( const std::string& message, int errcode = BRATH_V4_ERROR );	// (*)
+	//
+	// (*) Not being a default parameter in v3, and BRATH_V4_ERROR being a new value
+	//	errcode is assumed to always be != of BRATH_V4_ERROR for v3 raised exceptions
 
 	//@}
 
@@ -79,9 +82,9 @@ public:
 
 	virtual const char* TypeOf() const { return "std::exception"; }
 
-	virtual const char *what() const throw( );
+    virtual const char *what() const throw() override;
 	int error() const { return m_errcode; }
-	std::string GetMessage() const { return m_message; }
+	std::string Message() const { return m_message; }
 };
 
 //-------------------------------------------------------------

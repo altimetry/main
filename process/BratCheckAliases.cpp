@@ -21,11 +21,8 @@
 #include <cstdlib>
 #include <string>
 #include "Product.h"
-//#include "List.h"
-//#include "Exception.h"
-//#include "Trace.h"
-//#include "BratProcess.h"
-//#include "BratProcessStats.h"
+
+#include "new-gui/Common/ConsoleApplicationPaths.h"
 
 // When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
@@ -41,66 +38,65 @@ using namespace brathl;
 ** Main program
 **
 */
-int main (int argc, char *argv[])
+int main( int argc, char *argv[] )
 {
 #ifdef WIN32
-  #ifdef _DEBUG
-    _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
-  #endif
+#ifdef _DEBUG
+	_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+#endif
 #endif
 
-  if (argc != 2)
-  {
-    std::cerr << "usage: " << argv[0] << " filename" << std::endl;
-    return 2;
-  }
+	if ( argc != 2 )
+	{
+		std::cerr << "usage: " << argv[ 0 ] << " filename" << std::endl;
+		return 2;
+	}
 
-  int32_t result = BRATHL_SUCCESS;
+	int32_t result = BRATHL_SUCCESS;
 
-  std::string msg;
+	std::string msg;
 
-  bool bOk = true;
+	bool bOk = true;
 
-  if (getenv(BRATHL_ENVVAR) == NULL)
-  {
-    CTools::SetDataDirForExecutable(argv[0]);
-  }
+	const CConsoleApplicationPaths brat_paths( argv[ 0 ] );
 
-  if (!CTools::LoadAndCheckUdUnitsSystem(msg))
-  {
-    std::cerr << msg << std::endl;
-    return BRATHL_ERROR;
-  }
-  try
-  {
+	CTools::SetInternalDataDir( brat_paths.mInternalDataDir );
 
-    std::string fileName = argv[1];
-    CStringArray errors;
-    CProduct::CheckAliases(fileName, errors);
-    CStringArray::const_iterator it;
+	if ( !CTools::LoadAndCheckUdUnitsSystem( msg ) )
+	{
+		std::cerr << msg << std::endl;
+		return BRATHL_ERROR;
+	}
+	try
+	{
 
-    for (it = errors.begin() ; it != errors.end() ; it++)
-    {
-      std::cout << *it << std::endl;
-    }
+		std::string fileName = argv[ 1 ];
+		CStringArray errors;
+		CProduct::CheckAliases( fileName, errors );
+		CStringArray::const_iterator it;
 
-    return result;
-  }
-  catch (CException &e)
-  {
-    std::cerr << "BRAT ERROR: " << e.what() << std::endl;
-    return BRATHL_ERROR;
-  }
-  catch (std::exception &e)
-  {
-    std::cerr << "BRAT RUNTIME ERROR: " << e.what() << std::endl;
-    return 254;
-  }
-  catch (...)
-  {
-    std::cerr << "BRAT FATAL ERROR: Unexpected error" << std::endl;
-    return 255;
-  }
+		for ( it = errors.begin(); it != errors.end(); it++ )
+		{
+			std::cout << *it << std::endl;
+		}
+
+		return result;
+	}
+	catch ( CException &e )
+	{
+		std::cerr << "BRAT ERROR: " << e.what() << std::endl;
+		return BRATHL_ERROR;
+	}
+	catch ( std::exception &e )
+	{
+		std::cerr << "BRAT RUNTIME ERROR: " << e.what() << std::endl;
+		return 254;
+	}
+	catch ( ... )
+	{
+		std::cerr << "BRAT FATAL ERROR: Unexpected error" << std::endl;
+		return 255;
+	}
 }
 
 

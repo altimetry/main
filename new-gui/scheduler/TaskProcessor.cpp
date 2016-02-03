@@ -71,7 +71,7 @@ CTasksProcessor* CTasksProcessor::GetInstance( const std::string* fileName, bool
 			catch ( CException& e )
 			{
 				bOk = false;
-				errorMsg = e.GetMessage().c_str();
+				errorMsg = e.Message().c_str();
 			}
 
 			//PrepareSmartCleaner();										  		//TODO ???
@@ -414,7 +414,7 @@ bool CTasksProcessor::ReloadOnlyNew( /*std::function<CTasksProcessor*(const std:
 	catch ( CException& e )
 	{
 		bOk = false;
-		errorMsg = e.GetMessage().c_str();
+		errorMsg = e.Message().c_str();
 	}
 
 	if ( !bOk )

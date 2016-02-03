@@ -6,6 +6,7 @@
 #include "ui_BratMainWindow.h"
 #include "new-gui/brat/GUI/AbstractEditor.h"
 #include "new-gui/brat/GUI/DesktopManager.h"
+#include "new-gui/brat/GUI/LogShell.h"
 #include "BratSettings.h"
 #include "Model.h"
 
@@ -28,9 +29,18 @@ class CWorkspace;
 
 class CBratMainWindow : public QMainWindow, public non_copyable, private Ui::CBratMainWindow
 {
-	Q_OBJECT
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
 
-	// Types & Friends
+    Q_OBJECT
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
+    // Types & Friends
 
 	using base_t = QMainWindow;
 
@@ -73,7 +83,7 @@ private:
 
     // MDI sub-windows logic
     //
-	desktop_manager_t *mManager = nullptr;
+	CDesktopManagerBase *mManager = nullptr;
 
     // Most recent files logic
     //
@@ -87,11 +97,7 @@ private:
 	CTabbedDock *mMainWorkingDock = nullptr;
 
 	CTabbedDock *mOutputDock = nullptr;
-	CTextWidget *mOutputTextWidget = nullptr;
-
-    // Business logic
-    //
-	CModel mModel;
+    CLogShell *mLogFrame = nullptr;
 
 
     // Threading Lab
@@ -105,9 +111,17 @@ private:
 	CBratSettings &mSettings;
 
 
+    // Business logic
+    //
+	CModel &mModel;
+
+
 	/////////////////////////////
     // Construction / Destruction
     //
+
+    virtual bool ReadSettings( bool &has_gui_settings, bool &wasMaximized, QByteArray &geom, QByteArray &state );
+    virtual bool WriteSettings();
 
 	// assume mManager created
 	//
@@ -123,7 +137,7 @@ private:
 	void FillStatusBarExperimental();
 
 public:
-    explicit CBratMainWindow( CBratSettings &settings );
+    explicit CBratMainWindow( CBratApplication &a );
 	
 	virtual ~CBratMainWindow();
     //
@@ -148,10 +162,13 @@ public:
 	using TabType = typename ControlsPanelType< INDEX >::type;
 
 
-
-
 	template< ETabName INDEX >
 	TabType< INDEX >* WorkingPanel();
+
+	template< class EDITOR >
+	EDITOR* activeEditor();
+
+    CEditorBase *activeMDIEditor();
 
     //
     //			Access
@@ -209,16 +226,9 @@ public slots:
 protected:
 
 	bool OkToContinue();
-    void closeEvent(QCloseEvent *event);
+    virtual void closeEvent( QCloseEvent *event ) override;
 
-    virtual bool ReadSettings( bool &has_gui_settings );
-    virtual bool WriteSettings();
-
-	template< class EDITOR >
-	EDITOR* activeEditor();
-    //CTextEditor *activeTextEditor();
-    CEditorBase *activeMDIEditor();
-    //void addEditor(CTextEditor *editor);
+	void ShowProgress( int theProgress, int theTotalSteps );
 
 
 protected slots:
@@ -311,6 +321,14 @@ private slots:
     void on_action_Import_Workspace_triggered();
     void on_action_Rename_Workspace_triggered();
     void on_action_Delete_Workspace_triggered();
+
+
+	///////////////////////////////
+	// Status-bar slots
+	///////////////////////////////
+
+	void CanvasRefreshStarted();
+	void CanvasRefreshFinished();
 };
 
 

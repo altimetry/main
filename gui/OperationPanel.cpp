@@ -16,6 +16,8 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#include "BratGui.h"		  // includes stdafx.h, must be included before any other
+
 // Temporary hack to prevent the inclusion of Windows XML 
 // headers, which collide with xerces
 //
@@ -27,10 +29,6 @@
 #undef DOMDocument
 #endif
 
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "OperationPanel.h"
-#endif
 
 // For compilers that support precompilation, includes "wx/wx.h".
 //#include "wx/wxprec.h"
@@ -52,7 +50,6 @@ using namespace brathl;
 
 #include "Validators.h"
 #include "MapColor.h"
-#include "BratGui.h"
 #include "new-gui/brat/Workspaces/Workspace.h"
 #include "Function.h"
 #include "Process.h"
@@ -426,9 +423,9 @@ BEGIN_EVENT_TABLE(COperationPanel,wxPanel)
     EVT_BUTTON( ID_OPALIASINFO, COperationPanel::OnShowAliases )
 END_EVENT_TABLE()
 
-COperationPanel::COperationPanel( wxWindow *parent, wxWindowID id,
+COperationPanel::COperationPanel( const CApplicationPaths &brat_paths, wxWindow *parent, wxWindowID id,
     const wxPoint &position, const wxSize& size, long style ) :
-    wxPanel( parent, id, position, size, style )
+	wxPanel(parent, id, position, size, style), mBratPaths(brat_paths)
 {
 
 
@@ -1753,7 +1750,7 @@ void COperationPanel::OnDelay( wxCommandEvent &event )
   }
   catch(CException& e)
   {
-    wxMessageBox(e.GetMessage().c_str(),
+    wxMessageBox(e.Message().c_str(),
                    "Warning",
                     wxOK | wxCENTRE | wxICON_EXCLAMATION);    
   }
@@ -2048,7 +2045,7 @@ void COperationPanel::OnExportOperation( wxCommandEvent &event )
   }
   catch(CException& e)
   {
-    wxMessageBox(e.GetMessage().c_str(),
+    wxMessageBox(e.Message().c_str(),
                    "Warning",
                     wxOK | wxCENTRE | wxICON_EXCLAMATION);    
   }
@@ -3381,7 +3378,7 @@ bool COperationPanel::RemoveTaskFromSchedulerTaskConfig(wxXmlNode* taskNode)
   catch(CException& e)
   {
     bOk = false;
-    wxMessageBox(e.GetMessage().c_str(),
+    wxMessageBox(e.Message().c_str(),
                    "Warning",
                     wxOK | wxCENTRE | wxICON_EXCLAMATION);      
   }
@@ -3704,7 +3701,7 @@ void COperationPanel::DelayExportOperationAsGeoTiff( CExportDlg& exportDlg )
 		file.Write( "\n" );
 		file.Write( kwDISPLAY_LOGO_URL.c_str() );
 		file.Write( "=" );
-		file.Write( CTools::GetDataDir().c_str() );
+		file.Write( mBratPaths.mInternalDataDir.c_str() );
 		file.Write( "/BratLogo.png" );
 		file.Write( "\n" );
 	}
@@ -3988,7 +3985,7 @@ void COperationPanel::ExportGeoTiff(wxFileName inputFile, wxFileName outputFile,
     file.Write("\n");
     file.Write(kwDISPLAY_LOGO_URL.c_str());
     file.Write("=");
-    file.Write(CTools::GetDataDir().c_str());
+    file.Write(mBratPaths.mInternalDataDir.c_str());
     file.Write("/BratLogo.png");
     file.Write("\n");
     file.Write(kwFILETYPE.c_str());

@@ -24,6 +24,7 @@
 #include "FileParams.h"
 #include "Product.h"
 #include "new-gui/Common/tools/Trace.h"
+#include "new-gui/Common/ConsoleApplicationPaths.h"
 #include "InternalFiles.h"
 #include "InternalFilesFactory.h"
 #include "InternalFilesYFX.h"
@@ -31,112 +32,111 @@
 
 using namespace brathl;
 
-int main (int argc, char *argv[])
+int main( int argc, char *argv[] )
 {
-  if (argc != 2)
-  {
-    std::cerr << "usage: " << argv[0] << " filename" << std::endl;
-    return 2;
-  }
+	if ( argc != 2 )
+	{
+		std::cerr << "usage: " << argv[ 0 ] << " filename" << std::endl;
+		return 2;
+	}
 
-  if (getenv(BRATHL_ENVVAR) == NULL)
-  {
-    CTools::SetDataDirForExecutable(argv[0]);
-  }
+	const CConsoleApplicationPaths brat_paths( argv[ 0 ] );
 
-  try
-  {
-//    auto_ptr<CTrace>pTrace(CTrace::GetInstance());
+	CTools::SetInternalDataDir( brat_paths.mInternalDataDir );
 
-    std::vector<std::string>		Names;
-    std::vector<std::string>		DimNames;
-    ExpressionValueDimensions	DimVal;
-    std::vector<std::string>::iterator	is;
-    size_t			Index;
-    CExpressionValue		VarValue;
+	try
+	{
+		//    auto_ptr<CTrace>pTrace(CTrace::GetInstance());
 
-    std::cout << "File name:" << std::endl << "\t" << argv[1] << std::endl;
+		std::vector<std::string>		Names;
+		std::vector<std::string>		DimNames;
+		ExpressionValueDimensions	DimVal;
+		std::vector<std::string>::iterator	is;
+		size_t			Index;
+		CExpressionValue		VarValue;
 
-    CInternalFiles &F	= *BuildExistingInternalFileKind(argv[1]);
+		std::cout << "File name:" << std::endl << "\t" << argv[ 1 ] << std::endl;
 
-    F.Open(ReadOnly);
+		CInternalFiles &F	= *BuildExistingInternalFileKind( argv[ 1 ] );
 
-    std::cout << "Type:" << std::endl << "\t" << F.GetType() << std::endl;
-    std::cout << "Title:" << std::endl << "\t" << F.GetTitle("") << std::endl;
+		F.Open( ReadOnly );
 
-    F.GetVariables(Names);
-    std::cout << "Variables:" << std::endl;
-    for (is=Names.begin(); is != Names.end(); is++)
-    {
-      std::string Title = F.GetTitle(*is);
-      std::cout << "\t" << *is;
-      if (Title != "")
-        std::cout << " (" << Title << ")";
-      std::cout << ". Unit=" << F.GetUnit(*is).GetText() << std::endl;
-    }
+		std::cout << "Type:" << std::endl << "\t" << F.GetType() << std::endl;
+		std::cout << "Title:" << std::endl << "\t" << F.GetTitle( "" ) << std::endl;
 
-    std::cout << std::endl << "Dimensions:" << std::endl;
-    F.GetAxisVars(Names);
-    for (is=Names.begin(); is != Names.end(); is++)
-    {
-      F.GetVarDims(*is, DimNames);
-      F.GetVarDims(*is, DimVal);
-      std::cout << "\t" << *is << "(";
-      for (Index=0; Index < DimNames.size(); Index++)
-      {
-	if (Index != 0) std::cout << ", ";
-	std::cout << DimNames[Index] << ":" << DimVal[Index];
-      }
-      std::cout << "): Type=" << CNetCDFFiles::VarKindToString(F.GetVarKind(*is)) << std::endl;
-    }
+		F.GetVariables( Names );
+		std::cout << "Variables:" << std::endl;
+		for ( is=Names.begin(); is != Names.end(); is++ )
+		{
+			std::string Title = F.GetTitle( *is );
+			std::cout << "\t" << *is;
+			if ( Title != "" )
+				std::cout << " (" << Title << ")";
+			std::cout << ". Unit=" << F.GetUnit( *is ).GetText() << std::endl;
+		}
 
-    for (is=Names.begin(); is != Names.end(); is++)
-    {
-      F.ReadVar(*is, VarValue, CUnit::m_UNIT_SI);
-      F.GetVarDims(*is, DimVal);
-      std::cout << std::endl << std::endl << "\t" << *is << "=" << VarValue.AsString() << std::endl;
-    }
+		std::cout << std::endl << "Dimensions:" << std::endl;
+		F.GetAxisVars( Names );
+		for ( is=Names.begin(); is != Names.end(); is++ )
+		{
+			F.GetVarDims( *is, DimNames );
+			F.GetVarDims( *is, DimVal );
+			std::cout << "\t" << *is << "(";
+			for ( Index=0; Index < DimNames.size(); Index++ )
+			{
+				if ( Index != 0 ) std::cout << ", ";
+				std::cout << DimNames[ Index ] << ":" << DimVal[ Index ];
+			}
+			std::cout << "): Type=" << CNetCDFFiles::VarKindToString( F.GetVarKind( *is ) ) << std::endl;
+		}
 
-    std::cout << std::endl << "Data variables:" << std::endl;
-    F.GetDataVars(Names);
-    for (is=Names.begin(); is != Names.end(); is++)
-    {
-      F.GetVarDims(*is, DimNames);
-      F.GetVarDims(*is, DimVal);
-      std::cout << "\t" << *is << "(";
-      for (Index=0; Index < DimNames.size(); Index++)
-      {
-	if (Index != 0) std::cout << ", ";
-	std::cout << DimNames[Index] << ":" << DimVal[Index];
-      }
-      std::cout << "): Type=" << CNetCDFFiles::VarKindToString(F.GetVarKind(*is)) << std::endl;
-    }
+		for ( is=Names.begin(); is != Names.end(); is++ )
+		{
+			F.ReadVar( *is, VarValue, CUnit::m_UNIT_SI );
+			F.GetVarDims( *is, DimVal );
+			std::cout << std::endl << std::endl << "\t" << *is << "=" << VarValue.AsString() << std::endl;
+		}
 
-    for (is=Names.begin(); is != Names.end(); is++)
-    {
-      F.ReadVar(*is, VarValue, CUnit::m_UNIT_SI);
-      F.GetVarDims(*is, DimVal);
-      std::cout << std::endl << std::endl << "\t" << *is << "=" << VarValue.AsString() << std::endl;
-    }
+		std::cout << std::endl << "Data variables:" << std::endl;
+		F.GetDataVars( Names );
+		for ( is=Names.begin(); is != Names.end(); is++ )
+		{
+			F.GetVarDims( *is, DimNames );
+			F.GetVarDims( *is, DimVal );
+			std::cout << "\t" << *is << "(";
+			for ( Index=0; Index < DimNames.size(); Index++ )
+			{
+				if ( Index != 0 ) std::cout << ", ";
+				std::cout << DimNames[ Index ] << ":" << DimVal[ Index ];
+			}
+			std::cout << "): Type=" << CNetCDFFiles::VarKindToString( F.GetVarKind( *is ) ) << std::endl;
+		}
 
-    std::cout << std::endl << std::endl << std::endl << "You can use ncdump command as well" << std::endl;
-    delete &F;
-    return 0;
-  }
-  catch (CException &e)
-  {
-    std::cerr << "BRAT ERROR: " << e.what() << std::endl;
-    return 1;
-  }
-  catch (std::exception &e)
-  {
-    std::cerr << "BRAT RUNTIME ERROR: " << e.what() << std::endl;
-    return 254;
-  }
-  catch (...)
-  {
-    std::cerr << "BRAT FATAL ERROR: Unexpected error" << std::endl;
-    return 255;
-  }
+		for ( is=Names.begin(); is != Names.end(); is++ )
+		{
+			F.ReadVar( *is, VarValue, CUnit::m_UNIT_SI );
+			F.GetVarDims( *is, DimVal );
+			std::cout << std::endl << std::endl << "\t" << *is << "=" << VarValue.AsString() << std::endl;
+		}
+
+		std::cout << std::endl << std::endl << std::endl << "You can use ncdump command as well" << std::endl;
+		delete &F;
+		return 0;
+	}
+	catch ( CException &e )
+	{
+		std::cerr << "BRAT ERROR: " << e.what() << std::endl;
+		return 1;
+	}
+	catch ( std::exception &e )
+	{
+		std::cerr << "BRAT RUNTIME ERROR: " << e.what() << std::endl;
+		return 254;
+	}
+	catch ( ... )
+	{
+		std::cerr << "BRAT FATAL ERROR: Unexpected error" << std::endl;
+		return 255;
+	}
 }
 

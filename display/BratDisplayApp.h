@@ -60,6 +60,10 @@ using namespace brathl;
 
 
 #include "wxInterface.h"
+#ifdef CursorShape  //collsion Qt X
+#undef CursorShape
+#endif
+#include "new-gui/Common/ApplicationPaths.h"
 
 
 // WDR: class declarations
@@ -106,6 +110,8 @@ private:
 class CBratDisplayApp: public wxApp
 {
 public:
+    CApplicationPaths *mBratPaths = nullptr;;
+
   CBratDisplayApp();
   virtual ~CBratDisplayApp();
 

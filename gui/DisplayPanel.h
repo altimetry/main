@@ -144,6 +144,12 @@ public:
 
   void Execute();
 
+  std::string GetFullCmd();
+  static const std::string& GetExecDisplayName() { return m_execDisplayName; }
+  static std::string m_execDisplayName;
+  static void SetExecDisplayName(const std::string&name) { m_execDisplayName = name; }
+
+
   bool IsYFXType();
   bool IsZYFXType();
   bool IsZLatLonType();

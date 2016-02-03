@@ -149,14 +149,14 @@ void CDatasetBrowserControls::PageChanged( int index )
 
 
 //explicit 
-CDatasetBrowserControls::CDatasetBrowserControls( desktop_manager_t *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 
+CDatasetBrowserControls::CDatasetBrowserControls( CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 
 	: base_t( manager, parent, f )
 {
 	// I. Browse Stack Widget; 2 pages: files and rads
 
 	// - Page Files browser
 	//
-	auto mFilesList = new QListWidget;
+    mFilesList = new QListWidget;
 
 	auto mAddFiles = new QPushButton( "Add Files" );
 	auto mAddDir = new QPushButton( "Add Dir" );
@@ -226,6 +226,14 @@ CDatasetBrowserControls::CDatasetBrowserControls( desktop_manager_t *manager, QW
 	//connect( mBrowserStakWidget, SIGNAL( PageChanged( int ) ), this, SLOT( PageChanged( int ) ) );
 	//
 	// done with Browse Stack Widget
+
+    Wire();
+}
+
+void CDatasetBrowserControls::Wire()
+{
+    connect( mDatasetsCombo, SIGNAL( currentIndexChanged(int) ), this, SLOT( DatasetChanged(int) ) );
+
 }
 
 
@@ -237,7 +245,7 @@ template <
 >
 inline void FillCombo( COMBO *c, const CONTAINER &items, const FUNC &f, int selected = 0, bool enabled = true )
 {
-	for ( auto i : items ) 
+    for ( auto i : items )
 	{
 		c->addItem( f( i ) );
 	}
@@ -249,8 +257,10 @@ void CDatasetBrowserControls::WorkspaceChanged( CWorkspaceDataset *wksd )
 {
 	mWks = wksd;
 
+    // Fill ComboBox with Datasets list
 	mDatasetsCombo->clear();
     if (wksd)
+    {
         FillCombo( mDatasetsCombo, *mWks->GetDatasets(),
 
             []( const CObMap::value_type &i ) -> const char*
@@ -259,7 +269,49 @@ void CDatasetBrowserControls::WorkspaceChanged( CWorkspaceDataset *wksd )
             },
             0, true
         );
+
+        // Change Dataset and perform required changes
+        // TODO: Why is the following line unnecessary??
+        //DatasetChanged();
+    }
 }
+
+
+void CDatasetBrowserControls::DatasetChanged( int currentIndex )
+{
+    // Clear list of files
+    mFilesList->clear();
+
+    // Assert index of selected Dataset
+    assert__( currentIndex == mDatasetsCombo->currentIndex() );
+
+    // If not empty or a Dataset is selected
+    if (currentIndex > -1)
+    {
+        // Get current Dataset
+        const CObMap &rDatasets   = *mWks->GetDatasets();
+        CObMap::const_iterator it = rDatasets.begin();
+        std::advance(it, currentIndex);
+        CDataset *currentDataset  = dynamic_cast< CDataset* >( it->second );   assert__(currentDataset);
+
+        // Fill FileList with files of current Dataset
+        std::vector<std::string> sFilesName;
+        currentDataset->GetFiles(sFilesName);
+
+        QIcon fileIcon = QIcon(":/images/OSGeo/db.png");
+        int index = 0;
+        for (auto it : sFilesName)
+        {
+            QListWidgetItem *file = new QListWidgetItem( QString(it.c_str()) );
+            //file->setToolTip();
+            file->setIcon( fileIcon );
+
+            mFilesList->insertItem(index, file);
+            index++;
+        }
+    }
+}
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -279,7 +331,7 @@ QSpacerItem* CControlsPanel::AddTopSpace( int w, int h, QSizePolicy::Policy hDat
 
 
 //explicit 
-CDatasetFilterControls::CDatasetFilterControls( desktop_manager_t *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 
+CDatasetFilterControls::CDatasetFilterControls( CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 
 	: base_t( manager, parent, f )
 {
 
@@ -690,7 +742,7 @@ QWidget* COperationsControls::CreateAdancedOperationsPage()
 
 
 //explicit 
-COperationsControls::COperationsControls( desktop_manager_t *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 
+COperationsControls::COperationsControls( CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 
 	: base_t( manager, parent, f )
 {
 	QWidget *mQuickOperationsPage = CreateQuickOperationsPage();
@@ -746,6 +798,8 @@ void COperationsControls::WorkspaceChanged( CWorkspaceDisplay *wksd )
 
 void COperationsControls::QuickMap()
 {
+	WaitCursor wait;
+
 	auto ed = new CMapEditor( this );
 	auto subWindow = mManager->AddSubWindow( ed );
 	subWindow->show();
@@ -753,6 +807,8 @@ void COperationsControls::QuickMap()
 
 void COperationsControls::QuickPlot()
 {
+	WaitCursor wait;
+
 	auto ed = new CPlotEditor( this );
 	auto subWindow = mManager->AddSubWindow( ed );
 	subWindow->show();

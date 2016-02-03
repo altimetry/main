@@ -121,5 +121,6 @@
     <file>images/OSGeo/measure-area.png</file>
     <file>images/OSGeo/crs-change.png</file>
     <file>images/OSGeo/projection.png</file>
+    <file>images/OSGeo/db.png</file>
   </qresource>
 </RCC>

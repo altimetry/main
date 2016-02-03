@@ -25,7 +25,7 @@
 
 #include "new-gui/brat/Workspaces/Dataset.h"
 #include "new-gui/brat/Workspaces/Formula.h"
-
+#include "new-gui/Common/ApplicationPaths.h"
 
 class CWorkspaceDataset;
 class CWorkspaceOperation;
@@ -100,7 +100,6 @@ public:
 protected:
 	static std::string m_execYFXName;
 	static std::string m_execZFXYName;
-	static std::string m_execDisplayName;
 	static std::string m_execExportAsciiName;
 	static std::string m_execExportGeoTiffName;
 	static std::string m_execShowStatsName;
@@ -161,10 +160,9 @@ public:
 
 	virtual const_iterator end() const { return m_formulas.end(); }
 
-	static void SetExecNames( const std::string &appPath );
+    static void SetExecNames( const CApplicationPaths &appPath );
 	static const std::string& GetExecYFXName() { return m_execYFXName; }
 	static const std::string& GetExecZFXYName() { return m_execZFXYName; }
-	static const std::string& GetExecDisplayName() { return m_execDisplayName; }
 	static const std::string& GetExecExportAsciiName() { return m_execExportAsciiName; }
 	static const std::string& GetExecExportGeoTiffName() { return m_execExportGeoTiffName; }
 	static const std::string& GetExecShowStatsName() { return m_execShowStatsName; }

@@ -31,6 +31,8 @@
 #include "brathl.h"
 
 
+
+
 namespace brathl
 {
 
@@ -761,26 +763,17 @@ public:
 		(const std::string	&Name);
 
 //----------------------------------------
-  /**Explicitly set the Data Directory based on a relative path to the current executable.
-     The Data Directory will be set to '../data' relative to the location of the executable.
-    \param[in] argv0 : pass argv[0] that you got from main(int argc, char *argv[]).*/
-  static void SetDataDirForExecutable
-		(const char *argv0);
-
-//----------------------------------------
 
   /**Explicitly set the Data Directory.
     \param[in] DataDir : Full path to data directory.*/
-  static void SetDataDir
-		(const std::string &DataDir);
+  static void SetInternalDataDir( const std::string &DataDir );
 
 //----------------------------------------
 
   /**Returns the constant data directory defined at compilation time,
      by environment variable, or set by application.
     \return Returns the path of found file or an empty std::string if not found*/
-  static std::string GetDataDir
-		();
+  static std::string GetInternalDataDir();
 
 //----------------------------------------
 
@@ -887,23 +880,6 @@ public:
    \param[in] filename : file name 
    \return the extension, or empty std::string if none */
   static std::string FileExtension(const std::string& fileName);
-
-  /** Gets a directory name from a std::string
-   \param[in] path : full path
-   \return the directory name, or '.' if path has only one component */
-  static std::string DirName(const std::string& fileName);
-
-  /** Gets a base file name from a std::string
-   \param[in] path : full path
-   \return the base file name (no extension), or empty std::string, or :
-      '.' returns '.',
-      './' returns '.',
-      '/' returns '/',
-      '..' returns '..',
-      '../' returns '..'
-      'abc/def/' returns 'def'
-  */
-  static std::string BaseName(const std::string& fileName);
 
 #if HAVE_SPLITPATH
   /** Breaks a path name into components

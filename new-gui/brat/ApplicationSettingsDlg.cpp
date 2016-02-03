@@ -1,14 +1,18 @@
 #include "new-gui/brat/stdafx.h"
 
-#include "new-gui/Common/QtUtilsIO.h"
+#include "new-gui/Common/QtUtils.h"
 #include "new-gui/brat/GUI/ActionsTable.h"
 #include "BratApplication.h"
 #include "BratSettings.h"
 #include "ApplicationSettingsDlg.h"
 
-
+/*
+Receives a CBratSettings ref, wich includes a CApplicationSettings ref as well.
+mSettings is set by copy from options.
+*/
 CApplicationSettingsDlg::CApplicationSettingsDlg( CBratSettings &options, QWidget *parent ) : QDialog( parent ), mSettings( options )
 {
+    //Add sub widgets and additional contents.
 	setupUi( this );
 	//QIcon icon;
 	//icon.addFile( QString::fromUtf8( ":/settings.png" ), QSize(), QIcon::Normal, QIcon::Off );
@@ -38,7 +42,10 @@ CApplicationSettingsDlg::CApplicationSettingsDlg( CBratSettings &options, QWidge
  //   ExternalDataDirectory_lineEdit->setText( m_bs.GetLibraryPath() );
  //   ProjectsDirectory_lineEdit->setText( m_bs.GetProjectsPath() );
 
-	connect( DataDirectory_lineEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( UpdateDirectoriesActions(const QString&) ) );
+    // Signal and slots:
+    // DataDirectory_lineEdit reacts to signal textChanged with callback
+    // 'UpdateDirectoriesActions'
+    connect( DataDirectory_lineEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( UpdateDirectoriesActions(const QString&) ) );
 
 	//AutoRelativePaths_checkBox->setChecked( 
 	//	( m_bs.GetLibraryPath() == m_bs.GetDataPath() + m_bs.DefaultExternalDataSubDir() ) &&
@@ -51,8 +58,14 @@ CApplicationSettingsDlg::CApplicationSettingsDlg( CBratSettings &options, QWidge
 
 	LoadLastProjectAtAtartup_checkBox->setChecked( mSettings.mLoadLastWorkspaceAtStartUp );
 
+#if defined(DEBUG) || defined(_DEBUG)
+	mDesktopManagerSdiCheckbox = new QCheckBox( "Single Document Interface desktop manager" );
+	mStartupOptions_groupBox->layout()->addWidget( mDesktopManagerSdiCheckbox );
+	mDesktopManagerSdiCheckbox->setChecked( mSettings.mDesktopManagerSdi );
+#endif
 
-	//	ApplicationStyles_page
+
+    //	ApplicationStyles_page - irrelevant for now.
 
 	Styles_listWidget->setSelectionMode( QAbstractItemView::SingleSelection );
 	const std::vector< std::string > &styles = CBratSettings::getStyles();
@@ -73,6 +86,7 @@ CApplicationSettingsDlg::CApplicationSettingsDlg( CBratSettings &options, QWidge
 	StyleSheets_listWidget->item( e_DarkStyle )->setToolTip(" recommended with QCleanlooksStyle " );
 	StyleSheets_listWidget->item( e_DarkOrangeStyle )->setToolTip(" recommended with QPlastiqueStyle " );
 }
+
 
 ///////////////////////////////////////////////////////////////////////////////////
 //
@@ -154,15 +168,21 @@ void CApplicationSettingsDlg::on_Browse_ProjectsPath_pushButton_clicked()
         ProjectsDirectory_lineEdit->setText( dir );
 }
 
+//This is a callback. DataDirectory_LineEdit was updated for some reason.
 void CApplicationSettingsDlg::UpdateDirectoriesActions(const QString & text)
 {
+    // Only do anything if AutoRelativePaths is checked as positive:
+    // Which would make sense since we are only managing the default part.
 	if ( AutoRelativePaths_checkBox->isChecked() )
 	{
+        // The text for ExternalDataDirectory_lineEdit will be text / DefaultExternalDataSubDir()
         ExternalDataDirectory_lineEdit->setText( text + t2q( mSettings.BratPaths().DefaultExternalDataSubDir() ) );
+        // ProjectsDirectory_lineEdit text will be text / DefaultProjectsSubdir()
         ProjectsDirectory_lineEdit->setText( text + t2q( mSettings.BratPaths().DefaultProjectsSubDir() ) );
 	}
 }
 
+// Only enable other boxes if we don't ise AutoRelativePaths
 void CApplicationSettingsDlg::on_AutoRelativePaths_checkBox_clicked( bool checked )
 {
 	if ( checked )
@@ -243,6 +263,12 @@ bool CApplicationSettingsDlg::ValidateAndAssign()
 	//	2a. StartupOptions_page
 
 	mSettings.mLoadLastWorkspaceAtStartUp = LoadLastProjectAtAtartup_checkBox->isChecked();
+
+#if defined(DEBUG) || defined(_DEBUG)
+	assert__( mDesktopManagerSdiCheckbox );
+	mSettings.mDesktopManagerSdi = mDesktopManagerSdiCheckbox->isChecked();
+#endif
+
 
 	//	2b. ApplicationStyles_page
 

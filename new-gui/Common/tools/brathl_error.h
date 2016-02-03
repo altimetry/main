@@ -55,7 +55,7 @@ extern "C" {
 /// warning
 #define BRATHL_WARNING	      	      	      		2
 /// General error
-#define BRATHL_ERROR					-1
+#define BRATHL_ERROR								-1
 /// Syntax error
 #define BRATHL_SYNTAX_ERROR	      	      	      	-2
 /// Unit error
@@ -69,15 +69,17 @@ extern "C" {
 /// I/O error
 #define BRATHL_IO_ERROR		      	      	      	-7
 /// Memory error
-#define BRATHL_MEMORY_ERROR		      	      	-8
+#define BRATHL_MEMORY_ERROR		      	      		-8
 /// System error
 #define BRATHL_SYSTEM_ERROR	      	      	      	-9
 /// Logic error (program error)
 #define BRATHL_LOGIC_ERROR	      	      	      	-10
 /// Inconsistency error
 #define BRATHL_INCONSISTENCY_ERROR	      	      	-11
-/// error for non non implement code
-#define BRATHL_UNIMPLEMENT_ERROR                        -12
+/// error for non implement code
+#define BRATHL_UNIMPLEMENT_ERROR                    -12
+/// error for non implement code
+#define BRATH_V4_ERROR								-13
 
 
 /** \defgroup Date_error_codes Date error codes 

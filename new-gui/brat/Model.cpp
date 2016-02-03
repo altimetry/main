@@ -1,19 +1,39 @@
 #include "stdafx.h"
 
 #include "new-gui/Common/QtUtilsIO.h"
+#include "new-gui/Common/ApplicationPaths.h"
 #include "Workspaces/Workspace.h"
 #include "Model.h"
 
 
+//static 
+CModel* CModel::smInstance = nullptr;
+
+
+
+//static 
+CModel& CModel::CreateInstance( const CApplicationPaths &brat_paths )
+{
+	assert__( !smInstance );
+
+	smInstance = new CModel( brat_paths );
+	return *smInstance;
+}
+
 
 //explicit 
-CModel::CModel()
+CModel::CModel( const CApplicationPaths &brat_paths ) 
+	: mBratPaths( brat_paths )
 {}
 
 //virtual 
 CModel::~CModel()
 {
 	mTree.Clear();
+
+	assert__( smInstance );
+	delete smInstance;
+	smInstance = nullptr;
 }	
 
 
@@ -45,12 +65,12 @@ WKSPC* CModel::Workspace( CTreeWorkspace &tree )
 
 CWorkspace* CModel::CreateWorkspace( const std::string& name, const std::string& path, std::string &error_msg )
 {
-    return mTree.CreateReset( name, path, error_msg );
+    return mTree.CreateReset( mBratPaths.mInternalDataDir, name, path, error_msg );
 }
 
 CWorkspace* CModel::CreateTree( CTreeWorkspace &tree, const std::string& path, std::string &error_msg )
 {
-    return tree.LoadReset( path, error_msg );
+    return tree.LoadReset( smInstance->mBratPaths.mInternalDataDir, path, error_msg );
 }
 
 

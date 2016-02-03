@@ -2362,7 +2362,7 @@ CWorldPlotRenderer::CWorldPlotRenderer( wxWindow *parent, std::string mode ) : m
 	else
 		m_GSHHSFile = "l";  // Low
 
-	m_GSHHSFile   = CTools::GetDataDir() + PATH_SEPARATOR + "gshhs_" + m_GSHHSFile + ".b";
+	m_GSHHSFile   = CTools::GetInternalDataDir() + PATH_SEPARATOR + "gshhs_" + m_GSHHSFile + ".b";
 
 	m_vtkRend = vtkRenderer::New();
 	//KAVOK: added some default values

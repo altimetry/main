@@ -15,9 +15,9 @@ ENDMACRO(DBG_MSG_V)
 
 project(BRAT)
 
-set(BRAT_MAJOR_VERSION "3")
-set(BRAT_MINOR_VERSION "3")
-set(BRAT_REVISION_VERSION "0")
+set(BRAT_MAJOR_VERSION "4")
+set(BRAT_MINOR_VERSION "0")
+set(BRAT_REVISION_VERSION "0-beta")
 set(BRAT_VERSION "${BRAT_MAJOR_VERSION}.${BRAT_MINOR_VERSION}.${BRAT_REVISION_VERSION}")
 
 message(STATUS "System type: ${CMAKE_SYSTEM_NAME}")
@@ -343,55 +343,58 @@ include(TestBigEndian)
 # Check for various functions..
 # ---------------------------------
 
-check_function_exists(snprintf HAVE_SNPRINTF)
-check_function_exists(_snprintf HAVE_USCORE_SNPRINTF)
-check_function_exists(vsnprintf HAVE_VSNPRINTF)
-check_function_exists(_vsnprintf HAVE_USCORE_VSNPRINTF)
-check_function_exists(strcasecmp HAVE_STRCASECMP)
-check_function_exists(_stricmp HAVE_USCORE_STRICMP)
-check_function_exists(isinf HAVE_ISINF)
-check_function_exists(isnan HAVE_ISNAN)
-check_function_exists(_isnan HAVE_USCORE_ISNAN)
-check_function_exists(_fpclass HAVE_FPCLASS)
-check_function_exists(_fullpath HAVE_FULLPATH)
-check_function_exists(realpath HAVE_REALPATH)
-check_function_exists(dirname HAVE_DIRNAME)
-check_function_exists(basename HAVE_BASENAME)
-check_function_exists(_splitpath HAVE_SPLITPATH)
-check_function_exists(stat HAVE_STAT)
+# check_function_exists(snprintf HAVE_SNPRINTF)
+# check_function_exists(_snprintf HAVE_USCORE_SNPRINTF)
+# check_function_exists(vsnprintf HAVE_VSNPRINTF)
+# check_function_exists(_vsnprintf HAVE_USCORE_VSNPRINTF)
+# check_function_exists(strcasecmp HAVE_STRCASECMP)
+# check_function_exists(_stricmp HAVE_USCORE_STRICMP)
+# check_function_exists(isinf HAVE_ISINF)
+# check_function_exists(isnan HAVE_ISNAN)
+# check_function_exists(_isnan HAVE_USCORE_ISNAN)
+# check_function_exists(_fpclass HAVE_FPCLASS)
+# check_function_exists(_fullpath HAVE_FULLPATH)
+# check_function_exists(realpath HAVE_REALPATH)
+# check_function_exists(dirname HAVE_DIRNAME)
+# check_function_exists(basename HAVE_BASENAME)
+# check_function_exists(_splitpath HAVE_SPLITPATH)
+# check_function_exists(stat HAVE_STAT)
 
 # ---------------------------------
 # check for optional include files
 # ---------------------------------
 
-check_include_file("unistd.h" HAVE_UNISTD_H)
-check_include_file("inttypes.h" HAVE_INTTYPES_H)
-check_include_file("stdint.h" HAVE_STDINT_H)
-check_include_file("sys/types.h" HAVE_SYS_TYPES_H)
-check_include_file("sys/stat.h" HAVE_SYS_STAT_H)
-check_include_file("libgen.h" HAVE_LIBGEN_H)
-
-# ---------------------------------
-# check for endiannes
-# ---------------------------------
-
-test_big_endian(WORDS_BIGENDIAN)
+# check_include_file("libgen.h" HAVE_LIBGEN_H)
 
 
+  This file is part of BRAT.
+
+    BRAT is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    BRAT is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with BRAT.  If not, see <http://www.gnu.org/licenses/>.
 
 # ---------------------------------
 # Some system dependant settings
 # ---------------------------------
 
-if(WIN32)
-  set(PATH_SEPARATOR "\\\\")
-  set(PATH_LIST_SEPARATOR ";")
-else(WIN32)
-  set(PATH_SEPARATOR "/")
-  set(PATH_LIST_SEPARATOR ":")
-endif(WIN32)
+#if(WIN32)
+#  set(PATH_SEPARATOR "\\\\")
+#  set(PATH_LIST_SEPARATOR ";")
+#else(WIN32)
+#  set(PATH_SEPARATOR "/")
+#  set(PATH_LIST_SEPARATOR ":")
+#endif(WIN32)
 
-set(BRATHL_ENVVAR "BRAT_DATA_DIR")
+#set(BRATHL_ENVVAR "BRAT_DATA_DIR")
 
 
 
@@ -835,9 +838,9 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     PROPERTIES COMPILE_FLAGS "-Wall")
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
-configure_file(
-  ${BRAT_SOURCE_DIR}/libbrathl/brathl_config.h.in
-  ${BRAT_BINARY_DIR}/libbrathl/brathl_config.h)
+#configure_file(
+#  ${BRAT_SOURCE_DIR}/libbrathl/brathl_config.h.in
+#  ${BRAT_BINARY_DIR}/libbrathl/brathl_config.h)
 
 include_directories(
   ${BRAT_BINARY_DIR})
@@ -2021,9 +2024,9 @@ if(INSTALL_BUILDER_FOUND)
       COPYONLY)
   endforeach(SOURCE)
 
-  configure_file(
-    ${BRAT_BINARY_DIR}/libbrathl/brathl_config.h
-    ${BRAT_BINARY_DIR}/include/brathl_config.h COPYONLY)
+#  configure_file(
+#    ${BRAT_BINARY_DIR}/libbrathl/brathl_config.h
+#    ${BRAT_BINARY_DIR}/include/brathl_config.h COPYONLY)
 
   configure_file(
     ${BRAT_SOURCE_DIR}/libbrathl/brathl_c/brathlc.h

@@ -39,7 +39,7 @@ std::string CTreeWorkspace::ChildKey( const std::string &name ) const
 }
 
 
-CWorkspace* CTreeWorkspace::Reset( const std::string& base_path, std::string &error_msg, const std::string& root_name )
+CWorkspace* CTreeWorkspace::Reset( const std::string &internal_data_path, const std::string& base_path, std::string &error_msg, const std::string& root_name )
 {
 	Clear();
 
@@ -59,7 +59,7 @@ CWorkspace* CTreeWorkspace::Reset( const std::string& base_path, std::string &er
 	AddChild( wksDataSet->GetName(), wksDataSet );
 
 	//SECOND - Create "Formulas" branch
-	CWorkspaceFormula* wksFormula = new CWorkspaceFormula( error_msg, path );
+	CWorkspaceFormula* wksFormula = new CWorkspaceFormula( internal_data_path, error_msg, path );
     wksFormula->InitConfig();
     AddChild( wksFormula->GetName(), wksFormula );
 

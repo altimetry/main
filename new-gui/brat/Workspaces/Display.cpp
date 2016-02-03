@@ -1120,18 +1120,6 @@ bool CDisplay::UseOperation( const std::string& name, std::string& errorMsg )
 }
 
 //----------------------------------------
-std::string CDisplay::GetFullCmd()
-{
-	std::string cmd;
-#ifdef  USE_SYNC_OPTION
-	cmd = "\"" + COperation::GetExecDisplayName() + "\" --sync \"" + m_cmdFile + "\"";
-#else
-	cmd = "\"" + COperation::GetExecDisplayName() + "\" \"" + m_cmdFile + "\"";
-#endif
-	return cmd;
-}
-
-//----------------------------------------
 std::string CDisplay::GetTaskName()
 {
 	if ( m_cmdFile.empty() )

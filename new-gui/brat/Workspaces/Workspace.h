@@ -271,8 +271,8 @@ protected:
 protected:
 	// construction and destruction
 
-	CWorkspaceFormula( std::string &errorMsg, const std::string& path )
-		: base_t( NAME, path ), m_formulas( errorMsg, true )
+	CWorkspaceFormula( const std::string &internal_data_path, std::string &errorMsg, const std::string& path )
+		: base_t( NAME, path ), m_formulas( internal_data_path, errorMsg, true )
 	{}
 
 public:
@@ -311,8 +311,6 @@ public:
 	bool IsFormulaToImport( const std::string& name );
 
 	void AmendFormulas( const CStringArray& key, CProduct* product, const std::string& record );
-
-	bool SaveConfigPredefinedFormula();
 
     virtual void Dump( std::ostream& fOut = std::cerr ) override;
 

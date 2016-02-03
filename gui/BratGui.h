@@ -37,12 +37,14 @@
 #include "dnd_move.xpm"
 #include "dnd_none.xpm"
 
+#include "new-gui/Common/BratVersion.h"
 #include "InternalFiles.h"
 
 using namespace brathl;
 
 //#include "BratGui_wdr.h"
 #include "wxGuiInterface.h"		// (to let wxWidgets choose a wxConfig class for your platform)
+#include "new-gui/Common/ApplicationPaths.h"
 #include "new-gui/brat/Workspaces/Workspace.h"
 #include "new-gui/brat/Workspaces/TreeWorkspace.h"
 #include "GuiFrame.h"
@@ -223,8 +225,9 @@ private:
 	//	construction / destruction
 	/////////////////////////////////////////////////
 public:
-	CBratGuiApp() : m_config( nullptr ), m_currentTree( nullptr )
-	{}
+    CApplicationPaths *mBratPaths = nullptr;
+
+	CBratGuiApp();
 
 	virtual bool OnInit();
 	virtual int OnExit();

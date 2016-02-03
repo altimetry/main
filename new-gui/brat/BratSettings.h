@@ -47,6 +47,7 @@ public:
     std::string m_lastColorTable;
 
 	bool mLoadLastWorkspaceAtStartUp = true;
+	bool mDesktopManagerSdi = true;
 
 
     //////////////////////////////////////

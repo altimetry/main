@@ -16,7 +16,7 @@
 #include <qgsrastershader.h>
 
 #include "new-gui/Common/+UtilsIO.h"
-#include "new-gui/Common/QtUtilsIO.h"
+#include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/tools/Trace.h"
 
 #include "new-gui/brat/BratSettings.h"

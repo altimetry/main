@@ -4,61 +4,116 @@
 #include "new-gui/QtInterface.h"
 #include "new-gui/Common/+Utils.h"
 #include "new-gui/Common/+UtilsIO.h"
-#include "new-gui/Common/QtUtilsIO.h"
+#include "new-gui/Common/QtUtils.h"
 #include "new-gui/brat/Workspaces/Operation.h"
 
+#include "ApplicationLogger.h"
 #include "BratApplication.h"
 
 
+bool CBratApplication::smPrologueCalled = false;
+CApplicationPaths *CBratApplication::smApplicationPaths = nullptr;
 
 
-
-CBratApplication::CBratApplication( CApplicationPaths &brat_paths, int &argc, char **argv, bool GUIenabled, QString customConfigPath ) :	//customConfigPath = QString()
-    base_t( argc, argv, GUIenabled, customConfigPath )
-  , mSettings( brat_paths, "ESA", q2t< std::string >( QgsApplication::applicationName() ) )
+inline void safe_debug_envar_msg( const char *var )
 {
-    qDebug() << showSettings();
-	qDebug() << qgisSettingsDirPath();
+	const char *value = getenv( var );
+	QString msg( var );
+	msg += "=";
+	LOG_TRACE( value ? msg + value : msg );
+}
 
-	//femm
+
+// Static "pre-constructor"
+//
+//	Ensure that Qt only begins after anything we want to do first,
+//	like assigning/checking application paths or statically setting 
+//	application style sheet.
+//
+void CBratApplication::Prologue( int argc, char *argv[] )
+{
+    assert__( !smPrologueCalled );    UNUSED(argc);
+
+	if ( smPrologueCalled )
+		throw CException( "CBratApplication Prologue must be called only once." );
+
+	LOG_TRACE( "prologue tasks.." );
+
+	safe_debug_envar_msg( "QGIS_LOG_FILE" );
+	safe_debug_envar_msg( "QGIS_DEBUG_FILE" );
+	safe_debug_envar_msg( "QGIS_DEBUG" );
+
+    static CApplicationPaths brat_paths( argv[0] );		// (*)
+    if ( !brat_paths.IsValid() )
+		throw CException( "One or more path directories are invalid:\n" + brat_paths.GetErrorMsg() );
+
+	smApplicationPaths = &brat_paths;
+	
+    smPrologueCalled = true;
+
+	LOG_TRACE( "prologue tasks finished." );
+}
+//(*) As a last resort, this would solve the problem of double version loading:
+//
+//      setenv( "QT_PLUGIN_PATH", nullptr, 1 );
+//
+
+
+
+
+CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QString customConfigPath )	//customConfigPath = QString() 
+
+	: base_t( argc, argv, GUIenabled, customConfigPath )
+
+	, mSettings( *smApplicationPaths, "ESA", q2t< std::string >( QgsApplication::applicationName() ) )
+
+{
+	LOG_TRACE( "Starting application instance construction..." );
+
+	LOG_TRACE( showSettings() );
+	LOG_TRACE( qgisSettingsDirPath() );
+
+// v4
 //#ifdef WIN32
 //#ifdef _DEBUG
 //	_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
 //#endif
 //#endif
 
+    assert__( smPrologueCalled );
+	if ( !smPrologueCalled )
+		throw CException( "CBratApplication Prologue must be called before application construction." );
+
 	// Register Brat algorithms
+	//
 	CBratAlgorithmBase::RegisterAlgorithms();
 
-	// To be sure that number have always a decimal point (and not a comma
-	// or something else)
+
+	// To be sure that number have always a decimal point (and not a comma or something else)
+	//
 	setlocale( LC_NUMERIC, "C" );
 
-    if ( !mSettings.LoadConfig() )		//TODO reaction when config or directories failed
-	{
-		CException e( "Error reading the configuration file", BRATHL_ERROR );
-		throw e;
-	}
-	//if ( ! )
-	//{
-	//	std::cerr << "WARNING: " << CTools::GetDataDir() << " is not a valid directory" << std::endl;
-	//	////Warning??? or error?
-	//	SimpleWarnBox( QString( "WARNING: " ) + CTools::GetDataDir().c_str() + " is not a valid directory -- BRAT cannot continue. \n\nAre you sure your " + BRATHL_ENVVAR + " environment variable is set correctly?" );
-	//	throw false;  //TODO
-	//}
 
-	if ( getenv( BRATHL_ENVVAR ) == nullptr )
-	{
-		// Note that this won't work on Mac OS X when you use './BratGui' from within the Contents/MacOS directory of
-		// you .app bundle. The problem is that in that case Mac OS X will change the current working directory to the
-		// location of the .app bundle and thus the calculation of absolute paths will break
-        CTools::SetDataDirForExecutable( mSettings.BratPaths().mExecutablePath.c_str() /*this->argv()[ 0 ]*/ );
+	// Load configuration
+	//
+    if ( !mSettings.LoadConfig() )
+	{		
+		throw CException( "Error reading the configuration file." );
 	}
 
-    std::string appPath = mSettings.BratPaths().mExecutableDir;	assert__( IsDir( appPath ) );
-	COperation::SetExecNames( appPath );				// TODO change this to settings directories and COperations used settings passed as argument (config)
-    CTools::SetDataDir( mSettings.BratPaths().mInternalDataDir );	assert__( CTools::DirectoryExists( CTools::GetDataDir() ) );	//keep v3 happy
 
+	// Keep v3 happy
+	//
+	CTools::SetInternalDataDir( mSettings.BratPaths().mInternalDataDir );	assert__( CTools::DirectoryExists( CTools::GetInternalDataDir() ) );
+
+
+	// Use application paths to initialize COperation internal path references
+	//
+	COperation::SetExecNames( mSettings.BratPaths() );
+
+
+	// Load physical units system
+	//
 	std::string errorMsg;
 	if ( !CTools::LoadAndCheckUdUnitsSystem( errorMsg ) )
 	{
@@ -66,6 +121,7 @@ CBratApplication::CBratApplication( CApplicationPaths &brat_paths, int &argc, ch
 		SimpleErrorBox( errorMsg.c_str() );
 		throw false;
 	}
+
 
 	// Load aliases dictionary
 	//
@@ -76,11 +132,14 @@ CBratApplication::CBratApplication( CApplicationPaths &brat_paths, int &argc, ch
 		SimpleWarnBox( errorMsg );
 	}
 
-	CProduct::CodaInit();
-	//CProduct::SetCodaReleaseWhenDestroy(false);
+	
+	// CODA
+	//
+	CProduct::CodaInit();	//CProduct::SetCodaReleaseWhenDestroy(false);	//v3 commented out 
 
 
-    // (*) this can be statically set, but not statically queried before ctor call (issues Qt assertion)
+    // (*) this can be statically set, but not statically 
+	//	queried before ctor call (issues Qt assertion)
     //
 #if defined (Q_OS_LINUX)
     mDefaultAppStyle = t2q( mSettings.getNameOfStyle( new QCleanlooksStyle, true ) );	//(*)
@@ -91,6 +150,8 @@ CBratApplication::CBratApplication( CApplicationPaths &brat_paths, int &argc, ch
     mSettings.setApplicationStyle( *this, mDefaultAppStyle );
 
     //v4: remaining initialization in charge of the main window
+
+	LOG_TRACE( "Finished application instance construction." );
 }
 
 
@@ -107,7 +168,7 @@ CBratApplication::~CBratApplication()
 
 
 
-void CBratApplication::updateSettings()
+void CBratApplication::UpdateSettings()
 {
 	bool result = true;
 	//const TApplicationOptions &current = getAppOptions();		assert__( current.m_DefaultAppStyle == options.m_DefaultAppStyle );		//this field is set by application ctor and so far there is no reason besides error to request it's change

@@ -110,7 +110,7 @@ public:
   
   static wxString GetFunctionExtraDescr(wxFileConfig* config, const wxString& pathSuff = "");
 
-  static void SaveFunctionDescrTemplate(wxFileConfig* config, bool flush = true);
+  static void SaveFunctionDescrTemplate(const std::string &internal_data_path, wxFileConfig* config, bool flush = true);
 
   virtual void Dump(std::ostream& fOut  = std::cerr); 
   virtual void DumpFmt(std::ostream& fOut  = std::cerr); 

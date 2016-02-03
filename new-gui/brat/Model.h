@@ -6,6 +6,10 @@
 #include "Workspaces/TreeWorkspace.h"
 
 
+class CApplicationPaths;
+
+
+
 class CModel : public QObject
 {
 #if defined (__APPLE__)
@@ -26,6 +30,9 @@ class CModel : public QObject
 
 	// static members
 
+	static CModel *smInstance;
+
+
 	static CWorkspace* RootWorkspace( CTreeWorkspace &tree );
 
 	template< class WKSPC >
@@ -39,12 +46,15 @@ class CModel : public QObject
 	// instance data
 
 	CTreeWorkspace mTree;
+	const CApplicationPaths &mBratPaths;
 
 
 	// construction / destruction
 
+	explicit CModel( const CApplicationPaths &brat_paths );
+
 public:
-	explicit CModel();
+	static CModel& CreateInstance( const CApplicationPaths &brat_paths );
 
 	virtual ~CModel();
 

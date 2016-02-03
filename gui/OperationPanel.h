@@ -20,10 +20,6 @@
 #ifndef __OperationPanel_H__
 #define __OperationPanel_H__
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "OperationPanel.h"
-#endif
-
 #ifndef WX_PRECOMP
     #include "wx/wx.h"
 #endif
@@ -138,9 +134,10 @@ private:
 
 class COperationPanel: public wxPanel
 {
+	const CApplicationPaths &mBratPaths;
 public:
   // constructors and destructors
-  COperationPanel( wxWindow *parent, wxWindowID id = -1,
+  COperationPanel( const CApplicationPaths &brat_paths, wxWindow *parent, wxWindowID id = -1,
       const wxPoint& pos = wxDefaultPosition,
       const wxSize& size = wxDefaultSize,
       long style = wxTAB_TRAVERSAL | wxNO_BORDER );

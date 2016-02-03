@@ -254,6 +254,7 @@ GlobePlugin::GlobePlugin( QgisInterface* theQgisInterface, QgsMapCanvas *theCanv
 //destructor
 GlobePlugin::~GlobePlugin()
 {
+	//delete mTileSource;
 }
 
 struct PanControlHandler : public NavigationControlHandler

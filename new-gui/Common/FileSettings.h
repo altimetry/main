@@ -3,7 +3,7 @@
 
 #include <QSettings>
 
-#include <new-gui/Common/QtStringUtils.h>
+#include "new-gui/Common/QtStringUtils.h"
 #include "new-gui/Common/ConfigurationKeywords.h"
 
 

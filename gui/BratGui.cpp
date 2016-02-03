@@ -17,6 +17,7 @@
 */
 #include "new-gui/brat/stdafx.h"
 #include "new-gui/Common/ConfigurationKeywords.h"
+#include "new-gui/Common/+UtilsIO.h"
 #include "new-gui/brat/BratSettings.h"
 #include "display/wxInterface.h"
 
@@ -113,6 +114,11 @@ IMPLEMENT_APP(CBratGuiApp)
 #define NEW_CONFIGURATION_STUFF
 
 
+CBratGuiApp::CBratGuiApp():
+	  m_config( nullptr )
+	, m_currentTree( nullptr )
+{}
+
 //----------------------------------------
 bool CBratGuiApp::OnInit()
 {
@@ -120,6 +126,12 @@ bool CBratGuiApp::OnInit()
   #ifdef _DEBUG
     _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
   #endif
+#endif
+
+#if wxUSE_UNICODE
+    mBratPaths = new CApplicationPaths( wxGetApp().argv[0].ToStdString().c_str() );
+#else
+    mBratPaths = new CApplicationPaths( wxGetApp().argv[0] );
 #endif
 
   // Register Brat algorithms
@@ -134,15 +146,9 @@ bool CBratGuiApp::OnInit()
 
   m_execName.Assign(wxGetApp().argv[0]);
 
-  wxString appPath = GetExecPathName();
+  //wxString appPath = GetExecPathName();
 
-  if (getenv(BRATHL_ENVVAR) == NULL)
-  {
-      // Note that this won't work on Mac OS X when you use './BratGui' from within the Contents/MacOS directory of
-      // you .app bundle. The problem is that in that case Mac OS X will change the current working directory to the
-      // location of the .app bundle and thus the calculation of absolute paths will break
-      CTools::SetDataDirForExecutable(wxGetApp().argv[0]);
-  }
+  CTools::SetInternalDataDir/*ForExecutable*/(mBratPaths->mInternalDataDir/*wxGetApp().argv[0]*/);
 
 
   //wxFileName traceFileName;
@@ -154,22 +160,18 @@ bool CBratGuiApp::OnInit()
   //auto_ptr<CTrace>pTrace(CTrace::GetInstance(argc, argv));
   //pTrace->SetTraceLevel(5);
 
-  if (appPath != "")
-  {
-	  COperation::SetExecNames( appPath.ToStdString() );
-    if (getenv(BRATHL_ENVVAR) == NULL)
-    {
-      CTools::SetDataDirForExecutable(wxGetApp().argv[0]);
-    }
-  }
+  COperation::SetExecNames( *mBratPaths );
+  CDisplayPanel::SetExecDisplayName( mBratPaths->mExecutableDir + "/" + setExecExtension( "BratDisplay" ) );
 
-  CTools::SetDataDir( GetDirectoryFromPath( wxGetApp().argv[0] ) + "/data" );
-  if (!CTools::DirectoryExists(CTools::GetDataDir()))
-  {
-      std::cerr << "ERROR: " << CTools::GetDataDir() << " is not a valid directory" << std::endl;
-      ::wxMessageBox(wxString(CTools::GetDataDir().c_str()) + " is not a valid directory -- BRAT cannot continue. \n\nAre you sure your " + BRATHL_ENVVAR + " environment variable is set correctly?", "BRAT ERROR");
-      return false;
-  }
+      //CTools::SetInternalDataDir/*ForExecutable*/(mBratPaths.mInternalDataDir/*wxGetApp().argv[0]*/);
+
+  //CTools::SetDataDir( GetDirectoryFromPath( wxGetApp().argv[0] ) + "/data" );
+  //if (!CTools::DirectoryExists(CTools::GetDataDir()))
+  //{
+  //    std::cerr << "ERROR: " << CTools::GetDataDir() << " is not a valid directory" << std::endl;
+  //    ::wxMessageBox(wxString(CTools::GetDataDir().c_str()) + " is not a valid directory -- BRAT cannot continue. \n\nAre you sure your " + BRATHL_ENVVAR + " environment variable is set correctly?", "BRAT ERROR");
+  //    return false;
+  //}
 
 
   std::string errorMsg;
@@ -200,13 +202,13 @@ bool CBratGuiApp::OnInit()
 	  LoadConfig();
   }
   catch ( CException &e ) {
-	  wxMessageBox( wxString::Format( "An error occured while loading Brat configuration (CBratGui::LoadConfig)\nNavive std::exception: %s", e.what() ),
+	  wxMessageBox( wxString::Format( "An error occurred while loading Brat configuration (CBratGui::LoadConfig)\nNative std::exception: %s", e.what() ),
 		  "Warning",
 		  wxOK | wxCENTRE | wxICON_EXCLAMATION );
   }
 
 
-  m_frame = new CGuiFrame( NULL, -1, BRATGUI_TITLE);
+  m_frame = new CGuiFrame( *mBratPaths, NULL, -1, BRATGUI_TITLE );
 
   m_frame->Show( TRUE );
 
@@ -672,7 +674,11 @@ bool CBratGuiApp::LoadConfig()
 {
 	assert__( m_config && !mAppSettings );
 
+#if wxUSE_UNICODE
     static CApplicationPaths brat_paths( wxGetApp().argv[0].ToStdString().c_str() );
+#else
+    static CApplicationPaths brat_paths( wxGetApp().argv[0] );
+#endif
     mAppSettings = new CBratSettings( brat_paths, m_config->GetLocalFile( wxGetApp().GetAppName() ).GetFullPath().ToStdString() );
 
 #if defined(NEW_CONFIGURATION_STUFF)

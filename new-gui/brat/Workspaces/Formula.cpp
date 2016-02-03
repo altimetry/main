@@ -1827,9 +1827,9 @@ bool CMapFormula::SaveConfig( CWorkspaceSettings *config, bool predefined, const
 	return config && config->SaveConfig( *this, predefined, pathSuff );
 }
 //----------------------------------------
-bool CMapFormula::InsertPredefined( std::string &errorMsg )
+bool CMapFormula::InsertPredefined( const std::string &internal_data_path, std::string &errorMsg )
 {
-	std::string formulaPath = CTools::GetDataDir() + "/" + CMapFormula::m_predefFormulaFile;		//TODO check this conversion from wxFileName to std::string
+	std::string formulaPath = internal_data_path + "/" + CMapFormula::m_predefFormulaFile;		//TODO check this conversion from wxFileName to std::string
 	//wxFileName formulaPath;
 	//formulaPath.Assign( CTools::GetDataDir().c_str(), CMapFormula::m_predefFormulaFile );
 	//formulaPath.Normalize();

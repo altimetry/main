@@ -216,7 +216,7 @@ void CBratDisplayFrame::OnUpdateUI( wxUpdateUIEvent &event )
 
 IMPLEMENT_APP(CBratDisplayApp)
 
-CBratDisplayApp::CBratDisplayApp()
+CBratDisplayApp::CBratDisplayApp() 
 {
   //m_centerLongitude = 0;
   //m_centerLatitude = 0;
@@ -242,6 +242,12 @@ bool CBratDisplayApp::OnInit()
   // or something else)
   setlocale(LC_NUMERIC, "C");
 
+#if wxUSE_UNICODE
+    mBratPaths = new CApplicationPaths( wxGetApp().argv[0].ToStdString().c_str() );
+#else
+    mBratPaths = new CApplicationPaths( wxGetApp().argv[0] );
+#endif
+
   /*
 
   wxFileName traceFileName;
@@ -251,18 +257,13 @@ bool CBratDisplayApp::OnInit()
   CTrace::GetInstance(traceFileName.GetFullPath().c_str());
   */
 
-  if (getenv(BRATHL_ENVVAR) == NULL)
-  {
-      // Note that this won't work on Mac OS X when you use './BratDisplay' from within the Contents/MacOS directory of
-      // you .app bundle. The problem is that in that case Mac OS X will change the current working directory to the
-      // location of the .app bundle and thus the calculation of absolute paths will break
-      CTools::SetDataDirForExecutable(wxGetApp().argv[0]);
-  }
+  CTools::SetInternalDataDir( mBratPaths->mInternalDataDir );
 
-  if (!CTools::DirectoryExists(CTools::GetDataDir()))
+  if (!CTools::DirectoryExists(CTools::GetInternalDataDir()))
   {
-      std::cerr << "WARNING: " << CTools::GetDataDir() << " is not a valid directory" << std::endl;
-      ::wxMessageBox(wxString("WARNING: ") + CTools::GetDataDir().c_str() + " is not a valid directory\n\nAre you sure your " + BRATHL_ENVVAR + " environment variable is set correctly?", "BRAT WARNING");
+      std::cerr << "WARNING: " << CTools::GetInternalDataDir() << " is not a valid directory" << std::endl;
+      ::wxMessageBox(wxString("WARNING: ") + CTools::GetInternalDataDir().c_str() +
+                     " is not a valid directory\n\n", "BRAT WARNING");
       return false;
 
   }

@@ -616,15 +616,7 @@ int32_t CTools::snprintf(char* str, size_t size, const char *format, ...)
   va_list args;
   va_start( args, format );
 
-#if HAVE_VSNPRINTF
   result = vsnprintf(str, size, format, args );
-#else
-  #if HAVE_USCORE_VSNPRINTF
-    result = _vsnprintf(str, size, format, args );
-  #else
-    result = vsprintf(str, format, args );
-  #endif
-#endif
 
   va_end( args );
 
@@ -669,15 +661,7 @@ std::string CTools::Format(size_t size, const char *format, va_list args)
 
   try
   {
-#if HAVE_VSNPRINTF
-  vsnprintf(str, size, format, args );
-#else
-  #if HAVE_USCORE_VSNPRINTF
-    _vsnprintf(str, size, format, args );
-  #else
-    vsprintf(str, format, args );
-  #endif
-#endif
+    vsnprintf(str, size, format, args );
     result	= str;
   }
   catch (...)
@@ -1407,85 +1391,82 @@ bool CTools::DirectoryExists
     return stat(dir, &statBuf) == 0 && S_ISDIR(statBuf.st_mode);
 }
 
+////----------------------------------------
+//void CTools::SetDataDirForExecutable(const char *argv0)
+//{
+//  if (argv0 == NULL)
+//  {
+//    return;
+//  }
+//
+//  std::string filepath = MakeCorrectPath(argv0);
+//  if (filepath.empty())
+//  {
+//    return;
+//  }
+//
+//  std::string dirname = DirName(filepath);
+//  if (dirname.empty() || (dirname == "." && argv0[0] != '.'))
+//  {
+//    std::string filename = filepath;
+//    std::string path;
+//    char *pathEnvVar;
+//    
+//    filepath = "";
+//
+//#ifdef WIN32
+//    if (filename.size() <= 4 || StringToLower(filename.substr(filename.size() - 4)) != ".exe")
+//    {
+//       filename += ".exe";
+//    }
+//    path = std::string(".") + PATH_LIST_SEPARATOR_CHAR;
+//#endif
+//    if ((pathEnvVar = getenv("PATH")) != NULL)
+//    {
+//      path += pathEnvVar;
+//    }
+//    
+//    if (!path.empty())
+//    {
+//      filepath = FindFileInPath(filename, path);
+//    }
+//    if (filepath.empty())
+//    {
+//      return;
+//    }
+//  }
+//  
+//  std::string datadir = MakeCorrectPath(AbsolutePath(DirName(filepath) + (PATH_SEPARATOR ".." PATH_SEPARATOR "data")));
+//  if (!datadir.empty())
+//  {
+//    SetDataDir(datadir);
+//  }
+//}
+//
 //----------------------------------------
-void CTools::SetDataDirForExecutable
-        (const char *argv0)
-{
-  if (argv0 == NULL)
-  {
-    return;
-  }
-
-  std::string filepath = MakeCorrectPath(argv0);
-  if (filepath.empty())
-  {
-    return;
-  }
-
-  std::string dirname = DirName(filepath);
-  if (dirname.empty() || (dirname == "." && argv0[0] != '.'))
-  {
-    std::string filename = filepath;
-    std::string path;
-    char *pathEnvVar;
-    
-    filepath = "";
-
-#ifdef WIN32
-    if (filename.size() <= 4 || StringToLower(filename.substr(filename.size() - 4)) != ".exe")
-    {
-       filename += ".exe";
-    }
-    path = std::string(".") + PATH_LIST_SEPARATOR_CHAR;
-#endif
-    if ((pathEnvVar = getenv("PATH")) != NULL)
-    {
-      path += pathEnvVar;
-    }
-    
-    if (!path.empty())
-    {
-      filepath = FindFileInPath(filename, path);
-    }
-    if (filepath.empty())
-    {
-      return;
-    }
-  }
-  
-  std::string datadir = MakeCorrectPath(AbsolutePath(DirName(filepath) + (PATH_SEPARATOR ".." PATH_SEPARATOR "data")));
-  if (!datadir.empty())
-  {
-    SetDataDir(datadir);
-  }
-}
-
-//----------------------------------------
-void CTools::SetDataDir
-        (const std::string &DataDir)
+void CTools::SetInternalDataDir(const std::string &DataDir)
 {
   m_DataDir = DataDir;
 }
 
 
 //----------------------------------------
-std::string CTools::GetDataDir
-		()
+std::string CTools::GetInternalDataDir()
 {
-  // Warning : under Windows, memory leaks when using getenv : see Microsoft Article ID : 815315 
-  // So it's why we do the call only once
-  if (m_DataDir.length() == 0)
-  {
-    char *Path	= getenv(BRATHL_ENVVAR);
-    if (Path == NULL || Path[0] == 0)
-    {
-      m_DataDir	= BRATHL_DEFDATADIR;
-    }
-    else
-    {
-      m_DataDir	= Path;
-    }
-  }
+  //// Warning : under Windows, memory leaks when using getenv : see Microsoft Article ID : 815315 
+  //// So it's why we do the call only once
+  //if (m_DataDir.length() == 0)
+  //{
+  //  char *Path	= getenv(BRATHL_ENVVAR);
+  //  if (Path == NULL || Path[0] == 0)
+  //  {
+  //    m_DataDir	= BRATHL_DEFDATADIR;
+  //  }
+  //  else
+  //  {
+  //    m_DataDir	= Path;
+  //  }
+  //}
 
   return m_DataDir;
 }
@@ -1495,7 +1476,7 @@ std::string CTools::GetDataDir
 std::string CTools::FindDataFile
 		(const std::string	&FileName)
 {
-  std::string result	= GetDataDir() + PATH_SEPARATOR + FileName;
+  std::string result	= GetInternalDataDir() + PATH_SEPARATOR + FileName;
 
   if (! FileExists(result))
   {
@@ -2520,52 +2501,52 @@ std::string CTools::FileExtension(const std::string& fileName)
   
 }
 
+////----------------------------------------
+//std::string CTools::DirName(const std::string& fileName)
+//{
+//#if HAVE_DIRNAME
+//  char buff[BRATHL_PATH_MAX+1];
+//  memset(buff, '\0', BRATHL_PATH_MAX+1);
+//  int32_t len = (fileName.size() < BRATHL_PATH_MAX) ? fileName.size() : BRATHL_PATH_MAX;
+
+//  // make a copy because the function modifies the contents
+//   strncpy(buff, fileName.c_str(), len);
+//   return dirname(buff);
+//#else
+//  #if HAVE_SPLITPATH
+//   std::string drive;
+//   std::string dirName;
+
+//   CTools::SplitPath(fileName, &drive, &dirName);
+//   return drive + dirName;
+//  #else
+//    #error "ERROR Compiling - There is no function to get a dir name from a std::string."
+//  #endif
+//#endif
+//}
+
 //----------------------------------------
-std::string CTools::DirName(const std::string& fileName)
-{
-#if HAVE_DIRNAME
-  char buff[BRATHL_PATH_MAX+1];
-  memset(buff, '\0', BRATHL_PATH_MAX+1);
-  int32_t len = (fileName.size() < BRATHL_PATH_MAX) ? fileName.size() : BRATHL_PATH_MAX;
+//std::string CTools::BaseName(const std::string& fileName)
+//{
+//#if HAVE_BASENAME
+//  char buff[BRATHL_PATH_MAX+1];
+//  memset(buff, '\0', BRATHL_PATH_MAX+1);
+//  int32_t len = (fileName.size() < BRATHL_PATH_MAX) ? fileName.size() : BRATHL_PATH_MAX;
 
-  // make a copy because the function modifies the contents
-   strncpy(buff, fileName.c_str(), len);
-   return dirname(buff);
-#else
-  #if HAVE_SPLITPATH
-   std::string drive;
-   std::string dirName;
+//  // make a copy because the function modifies the contents
+//   strncpy(buff, fileName.c_str(), len);
+//   return basename(buff);
+//#else
+//  #if HAVE_SPLITPATH
+//   std::string fname;
 
-   CTools::SplitPath(fileName, &drive, &dirName);
-   return drive + dirName;
-  #else
-    #error "ERROR Compiling - There is no function to get a dir name from a std::string."
-  #endif
-#endif
-}
-
-//----------------------------------------
-std::string CTools::BaseName(const std::string& fileName)
-{
-#if HAVE_BASENAME
-  char buff[BRATHL_PATH_MAX+1];
-  memset(buff, '\0', BRATHL_PATH_MAX+1);
-  int32_t len = (fileName.size() < BRATHL_PATH_MAX) ? fileName.size() : BRATHL_PATH_MAX;
-
-  // make a copy because the function modifies the contents
-   strncpy(buff, fileName.c_str(), len);
-   return basename(buff);
-#else
-  #if HAVE_SPLITPATH
-   std::string fname;
-
-   CTools::SplitPath(fileName, NULL, NULL, &fname);
-   return fname;
-  #else
-    #error "ERROR Compiling - There is no function to get a base file name from a std::string."
-  #endif
-#endif
-}
+//   CTools::SplitPath(fileName, NULL, NULL, &fname);
+//   return fname;
+//  #else
+//    #error "ERROR Compiling - There is no function to get a base file name from a std::string."
+//  #endif
+//#endif
+//}
 
 //----------------------------------------
 #if HAVE_SPLITPATH

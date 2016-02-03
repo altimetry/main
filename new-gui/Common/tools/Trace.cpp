@@ -17,7 +17,6 @@
 */
 #include "stdafx.h"
 
-//#include "Tools.h"
 #include "Trace.h"
 #include "TraceLog.h"
 
@@ -32,15 +31,15 @@ int	CTrace::m_TraceLevel = 0;
 
 CTrace::CTrace()
 {
-  m_fOut	= &std::cerr;
-  m_bFileLog	= false;
+	m_fOut	= &std::cerr;
+	m_bFileLog	= false;
 }
 //----------------------------------------------------
 
 CTrace::~CTrace()
 {
-  // Set m_instance to NULL when the object is deleted.
-  CTrace::m_instance = NULL;
+	// Set m_instance to NULL when the object is deleted.
+	CTrace::m_instance = NULL;
 }
 //----------------------------------------------------
 
@@ -66,7 +65,6 @@ std::ostream* CTrace::SetDumpContextReal(std::ostream* value)
 
 std::string CTrace::ParseArg(int argc, char *argv[])
 {
-
    std::string szFileLog ="";
 
    std::vector<std::string> vectArgs(argc);

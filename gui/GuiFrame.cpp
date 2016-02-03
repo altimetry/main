@@ -100,9 +100,9 @@ BEGIN_EVENT_TABLE(CGuiFrame,wxFrame)
 END_EVENT_TABLE()
 //----------------------------------------
 
-CGuiFrame::CGuiFrame( wxWindow *parent, wxWindowID id, const wxString &title,
+CGuiFrame::CGuiFrame( const CApplicationPaths &brat_paths, wxWindow *parent, wxWindowID id, const wxString &title,
     const wxPoint &position, const wxSize& size, long style ) :
-    wxFrame( parent, id, title, position, size, style )
+	wxFrame(parent, id, title, position, size, style), mBratPaths( brat_paths )
 {
   m_menuBar = nullptr;
   m_menuWorkspace = nullptr;
@@ -121,7 +121,7 @@ CGuiFrame::CGuiFrame( wxWindow *parent, wxWindowID id, const wxString &title,
   
   CreateStatusBar(1);
     
-  m_guiPanel = new CGuiPanel(this, -1, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER );
+  m_guiPanel = new CGuiPanel( mBratPaths, this, -1, wxDefaultPosition, wxDefaultSize, wxSUNKEN_BORDER );
   wxBoxSizer * sizer = new wxBoxSizer(wxVERTICAL);
 
   sizer->Add(m_guiPanel, 1, wxEXPAND);
@@ -360,7 +360,7 @@ bool CGuiFrame::SaveWorkspace()
 CWorkspace* CGuiFrame::LoadTree( const std::string& path )
 {
 	std::string errorMsg;
-	CWorkspace *root = wxGetApp().m_tree.LoadReset( path , errorMsg );		//CreateTree( root, m_tree );
+	CWorkspace *root = wxGetApp().m_tree.LoadReset( mBratPaths.mInternalDataDir, path , errorMsg );		//CreateTree( root, m_tree );
 	if ( !errorMsg.empty() )
 		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
 
@@ -369,7 +369,7 @@ CWorkspace* CGuiFrame::LoadTree( const std::string& path )
 CWorkspace* CGuiFrame::CreateTree( const std::string& name, const std::string& path )
 {
 	std::string errorMsg;
-	CWorkspace *root = wxGetApp().m_tree.CreateReset( name, path , errorMsg );		//CreateTree( root, m_tree );
+	CWorkspace *root = wxGetApp().m_tree.CreateReset( mBratPaths.mInternalDataDir, name, path , errorMsg );		//CreateTree( root, m_tree );
 	if ( !errorMsg.empty() )
 		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
 
@@ -587,7 +587,7 @@ bool CGuiFrame::ImportWorkspace()
 
 	std::string errorMsg;	
 	//CWorkspace* wks = wxGetApp().m_treeImport.Reset( wksDlg.GetWksName()->GetValue().ToStdString(), wksPathToImport.ToStdString(), errorMsg , false );	//wxGetApp().CreateTree( wks, wxGetApp().m_treeImport );
-	CWorkspace* wks = wxGetApp().m_treeImport.LoadReset( wksPathToImport.ToStdString(), errorMsg );	//wxGetApp().CreateTree( wks, wxGetApp().m_treeImport );
+	CWorkspace* wks = wxGetApp().m_treeImport.LoadReset( mBratPaths.mInternalDataDir, wksPathToImport.ToStdString(), errorMsg );	//wxGetApp().CreateTree( wks, wxGetApp().m_treeImport );
 	if ( !errorMsg.empty() )
 		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );	
 

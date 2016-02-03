@@ -43,7 +43,7 @@ class CGuiFrame : public wxFrame
 {
 public:
 	// constructors and destructors
-	CGuiFrame( wxWindow *parent, wxWindowID id, const wxString &title,
+	CGuiFrame( const CApplicationPaths &brat_paths, wxWindow *parent, wxWindowID id, const wxString &title,
 		const wxPoint& pos = wxDefaultPosition,
 		const wxSize& size = wxSize( 1024, 600 ),
 		long style = wxDEFAULT_FRAME_STYLE );
@@ -115,6 +115,7 @@ private:
 	wxMenu* m_menuOperationTreeCtrl;
 	wxMenu* m_menuDisplayTreeCtrl;
 
+	const CApplicationPaths &mBratPaths;
 
 private:
 	// WDR: handler declarations for CGuiFrame

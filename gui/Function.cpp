@@ -448,11 +448,11 @@ void CMapFunction::SetExtraDescr()
 
 }
 //----------------------------------------
-void CMapFunction::SaveFunctionDescrTemplate(wxFileConfig* config, bool flush)
+void CMapFunction::SaveFunctionDescrTemplate(const std::string &internal_data_path, wxFileConfig* config, bool flush)
 {
   if (config == NULL)
   {
-    std::string filePathName = CTools::GetDataDir();
+    std::string filePathName = internal_data_path;
     filePathName.append(PATH_SEPARATOR);
     filePathName.append(CMapFunction::m_configFilename.c_str());
     config = new wxFileConfig(wxEmptyString, wxEmptyString, filePathName.c_str(), wxEmptyString, wxCONFIG_USE_LOCAL_FILE);

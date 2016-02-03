@@ -1143,6 +1143,21 @@ bool CDisplayPanel::ControlVectorComponents(wxString& msg)
 }
 
 
+//static 
+std::string CDisplayPanel::m_execDisplayName;
+
+
+std::string CDisplayPanel::GetFullCmd()
+{
+	std::string cmd;
+#ifdef  USE_SYNC_OPTION
+	cmd = "\"" + GetExecDisplayName() + "\" --sync \"" + m_display->GetCmdFilePath() + "\"";
+#else
+	cmd = "\"" + GetExecDisplayName() + "\" \"" + m_display->GetCmdFilePath() + "\"";
+#endif
+	return cmd;
+}
+
 //----------------------------------------
 void CDisplayPanel::Execute()
 {
@@ -1175,7 +1190,7 @@ void CDisplayPanel::Execute()
 
   CProcess* process = new CProcess(m_display->GetTaskName(),
                                              wxGetApp().GetLogPanel(),
-                                             m_display->GetFullCmd(),
+                                             GetFullCmd(),
                                              //wxGetApp().GetLogPanel()->GetLogMess(),
                                              NULL);
 

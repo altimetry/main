@@ -508,7 +508,7 @@ bool CTaskListView::RemoveTasks(bool ask /* = true */)
             }
             catch(CException& e)
             {
-                wxMessageBox(e.GetMessage().c_str(),
+                wxMessageBox(e.Message().c_str(),
                              "Warning",
                              wxOK | wxCENTRE | wxICON_EXCLAMATION);
             }
@@ -524,7 +524,7 @@ bool CTaskListView::RemoveTasks(bool ask /* = true */)
     catch(const CException& e)
     {
         //wxGetApp().UnLockConfigFile();
-        wxMessageBox(e.GetMessage().c_str(),
+        wxMessageBox(e.Message().c_str(),
                      "Warning",
                      wxOK | wxCENTRE | wxICON_EXCLAMATION);
 

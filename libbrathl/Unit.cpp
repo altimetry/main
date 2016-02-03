@@ -108,11 +108,10 @@ void CUnit::InitializeUnitSystem()
   if (FileName.empty())
     {
     std::string errorMsg = CTools::Format("Units system file '%s' not found in '%s' directory."
-                                     "Check directory '%s' or set correct environment variable %s",
+                                     "Check directory '%s'",
                                       BRATHL_UNITFILE,
-                                      CTools::GetDataDir().c_str(),
-                                      CTools::GetDataDir().c_str(),
-                                      BRATHL_ENVVAR);
+                                      CTools::GetInternalDataDir().c_str(),
+                                      CTools::GetInternalDataDir().c_str());
 
       throw CFileException(errorMsg, BRATHL_UNIT_ERROR);
     }
@@ -453,7 +452,7 @@ bool CUnit::IsCompatible(const std::string& otherUnit, std::string* errorMsg /* 
     if (errorMsg != NULL)
     {
       errorMsg->append(CTools::Format("Error while checking unit (CUnit::IsCompatible) : %s\n",
-                                  e.GetMessage().c_str()));
+                                  e.Message().c_str()));
     }
     else
     {

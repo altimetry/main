@@ -15,6 +15,7 @@ const std::string ENTRY_EXTERNAL_DATA_DIR =		"external_data_dir";
 const std::string ENTRY_RASTER_LAYER_PATH =		"raster_layer_path";
 const std::string ENTRY_WORKSPACES_DIR =		"workspaces_dir";
 const std::string ENTRY_UNIQUE_USER_BASE_PATH = "unique_user_base_path";
+const std::string ENTRY_DESKTOP_MANAGER_SDI =	"desktop_manager_sdi";
 
 
 
@@ -143,7 +144,7 @@ bool CBratSettings::LoadPaths()
             k_v( ENTRY_UNIQUE_USER_BASE_PATH,	&mBratPaths.mUniqueUserBasePath )
 		)
 		&&
-        mBratPaths.validate();
+        mBratPaths.SetUserPaths();
 }
 
 bool CBratSettings::SavePaths()
@@ -171,7 +172,8 @@ bool CBratSettings::SaveConfig()
 		k_v( ENTRY_LAST_PAGE_REACHED,		m_lastPageReached ),
 		k_v( ENTRY_ADVANCED_OPERATIONS,		mAdvancedOperations ),
 
-		k_v( ENTRY_LOAD_WKSPC_AT_STARTUP,	mLoadLastWorkspaceAtStartUp )
+		k_v( ENTRY_LOAD_WKSPC_AT_STARTUP,	mLoadLastWorkspaceAtStartUp ),
+		k_v( ENTRY_DESKTOP_MANAGER_SDI,		mDesktopManagerSdi )
 	)
 	&&
 	WriteValues( GROUP_WKS, 
@@ -203,7 +205,8 @@ bool CBratSettings::LoadConfig()
 		k_v( ENTRY_LAST_PAGE_REACHED,		&m_lastPageReached ),
 		k_v( ENTRY_ADVANCED_OPERATIONS,		&mAdvancedOperations ),
 
-		k_v( ENTRY_LOAD_WKSPC_AT_STARTUP,	&mLoadLastWorkspaceAtStartUp )
+		k_v( ENTRY_LOAD_WKSPC_AT_STARTUP,	&mLoadLastWorkspaceAtStartUp ),
+		k_v( ENTRY_DESKTOP_MANAGER_SDI,		&mDesktopManagerSdi )
 	)
 	&&
 	ReadValues( GROUP_WKS, 

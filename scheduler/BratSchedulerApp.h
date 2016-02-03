@@ -37,6 +37,7 @@
 
 //#include "wx/msw/regconf.h" // (wxRegConfig class)
 
+#include "new-gui/Common/BratVersion.h"
 #include "List.h"
 
 using namespace brathl;
@@ -44,6 +45,8 @@ using namespace brathl;
 //#include "BratScheduler_wdr.h"
 #include "SchedulerTimer.h"
 #include "SchedulerFrame.h"
+#include "new-gui/Common/ApplicationPaths.h"
+
 
 #if defined(_WIN64) || defined(__LP64__) || defined(__x86_64__) 
 	const wxString BRATSCHEDULER_TITLE_BASE = "Brat Task Scheduler (64 bit)";
@@ -74,6 +77,8 @@ const wxString ENDED_PAGE_NAME = "Ended Task";
 class CBratSchedulerApp: public wxApp
 {
 public:
+    CApplicationPaths *mBratPaths = nullptr;
+
   CBratSchedulerApp();
   virtual ~CBratSchedulerApp();
   

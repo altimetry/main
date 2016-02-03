@@ -30,108 +30,89 @@ class CSmartCleaner;
 class CTrace
 {
 protected:
-   CTrace();
+	CTrace();
 
 public:
 
-   virtual ~CTrace();
+	virtual ~CTrace();
 
-// Methods
+	// Methods
 public:
 
-   static std::string ParseArg(int argc, char *argv[]);
-   static CTrace* CreateObject(const std::string& szFileLog);
-   static CTrace* CreateObject(int argc, char *argv[]);
+	static std::string ParseArg( int argc, char *argv[] );
+	static CTrace* CreateObject( const std::string& szFileLog );
+	static CTrace* CreateObject( int argc, char *argv[] );
 
-   static CTrace* GetInstance(const std::string& szFileLog);
-   static CTrace* GetInstance(int argc, char *argv[]);
-   static CTrace* GetInstance();
-   
-   //static void Release();
-   static std::ostream* SetDumpContext(std::ostream* value);
-   static std::ostream* GetDumpContext();
+	static CTrace* GetInstance( const std::string& szFileLog );
+	static CTrace* GetInstance( int argc, char *argv[] );
+	static CTrace* GetInstance();
 
-   static bool IsTrace
-		(int	Level	= 5);
-   static void Tracer
-		(const char	*message,
-		 ...)
-	__attribute__ ((format(printf, 1, 2)));
-   static void Tracer
-		(const std::string	&message);
-   static void Tracer
-		(int	Level,
-		 const std::string	&message);
-   static void Tracer
-		(int	Level,
-		 const char	*message,
-		 ...)
-	__attribute__ ((format(printf, 2, 3)));
-   static void Print
-		(const char	*message,
-		 ...)
-	__attribute__ ((format(printf, 1, 2)));
-   static void Print
-		(const std::string	&message);
-   static void Print
-		(int	Level,
-		 const std::string	&message);
-   static void Print
-		(int	Level,
-		 const char	*message,
-		 ...)
-	__attribute__ ((format(printf, 2, 3)));
-  /**
-  * Indicates the wanted level of trace:
-  *	0: No trace (default)
-  *	1: Program steps
-  *	2: Running
-  *	3: Inputs
-  *     4: Inputs+outputs
-  *     5: Debug (very verbose for development perpose). Default for
-  *	   trace in a file
-  */
-   static void SetTraceLevel( int Level );
+	//static void Release();
+	static std::ostream* SetDumpContext( std::ostream* value );
+	static std::ostream* GetDumpContext();
 
-   static int GetTraceLevel()
-   {
-	   return m_TraceLevel;
-   }
+	static bool IsTrace( int	Level	= 5 );
+
+	static void Tracer( const char	*message, ... )	__attribute__( ( format( printf, 1, 2 ) ) );
+	static void Tracer( const std::string &message );
+	static void Tracer( int	Level, const std::string &message );
+	static void Tracer( int	Level, const char	*message, ... ) __attribute__( ( format( printf, 2, 3 ) ) );
+
+	static void Print( const char *message,	... ) __attribute__( ( format( printf, 1, 2 ) ) );
+	static void Print( const std::string &message );
+	static void Print( int	Level, const std::string &message );
+	static void Print( int	Level, const char *message, ... ) __attribute__( ( format( printf, 2, 3 ) ) );
+	/**
+	* Indicates the wanted level of trace:
+	*	0: No trace (default)
+	*	1: Program steps
+	*	2: Running
+	*	3: Inputs
+	*     4: Inputs+outputs
+	*     5: Debug (very verbose for development perpose). Default for
+	*	   trace in a file
+	*/
+	static void SetTraceLevel( int Level );
+
+	static int GetTraceLevel()
+	{
+		return m_TraceLevel;
+	}
 
 
 protected:
-   static void PrintText(bool NewLine, const char	*message, va_list args);
-   static void PrintText(bool NewLine, const std::string &message);
+	static void PrintText( bool NewLine, const char	*message, va_list args );
+	static void PrintText( bool NewLine, const std::string &message );
 
 protected:
 
-   virtual std::ostream* SetDumpContextReal(std::ostream* value);
-   virtual std::ostream* GetDumpContextReel();
+	virtual std::ostream* SetDumpContextReal( std::ostream* value );
+	virtual std::ostream* GetDumpContextReel();
 private:
-   static void prepareSmartCleaner(void);
+	static void prepareSmartCleaner( void );
 
-//Attributes
+	//Attributes
 public:
 
 protected:
 
-   /**
-   * unique instance of the class
-   */
-   static CTrace* m_instance;
+	/**
+	* unique instance of the class
+	*/
+	static CTrace* m_instance;
 
-   /**
-   * out stream
-   */
-   std::ostream *m_fOut;
+	/**
+	* out stream
+	*/
+	std::ostream *m_fOut;
 
-  /**
-  * Indicates is there is a file opened (whether log file is opened or closed)
-  */
-  bool  	m_bFileLog ;
+	/**
+	* Indicates is there is a file opened (whether log file is opened or closed)
+	*/
+	bool  	m_bFileLog;
 
-private :
-  static int	m_TraceLevel;
+private:
+	static int	m_TraceLevel;
 
 };
 

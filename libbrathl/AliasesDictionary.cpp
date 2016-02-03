@@ -142,7 +142,7 @@ CAliasesDictionary& CAliasesDictionary::operator=(const CAliasesDictionary& o)
 //----------------------------------------
 std::string CAliasesDictionary::GetAliasesDictFilePath()
 {
-  return CTools::Format("%s/%s", CTools::GetDataDir().c_str(), CAliasesDictionary::m_ALIASES_DICT_FILE_NAME.c_str());
+  return CTools::Format("%s/%s", CTools::GetInternalDataDir().c_str(), CAliasesDictionary::m_ALIASES_DICT_FILE_NAME.c_str());
 }
 
 //----------------------------------------------------
@@ -184,7 +184,7 @@ CAliasesDictionary* CAliasesDictionary::GetInstance(const std::string* fileName,
   catch(CException& e)
   {
     bOk = false;
-    errorMsg = e.GetMessage().c_str();
+    errorMsg = e.Message().c_str();
   }
 
   PrepareSmartCleaner();
@@ -262,7 +262,7 @@ void CAliasesDictionary::Load(const std::string& fileName, const std::string& en
   catch(CXMLParseException& e)
   {
     std::string msg = CTools::Format("Unable to load the aliases dictionary file '%s' - Parsing errors found -  Native error: '%s'",
-                                fileName.c_str(), e.GetMessage().c_str());
+                                fileName.c_str(), e.Message().c_str());
       
     DeleteRootNode();
 
@@ -271,7 +271,7 @@ void CAliasesDictionary::Load(const std::string& fileName, const std::string& en
   catch(CXMLException& e)
   {
     std::string msg = CTools::Format("Unable to load the aliases dictionary file '%s' - Native error: '%s'",
-                                fileName.c_str(), e.GetMessage().c_str());
+                                fileName.c_str(), e.Message().c_str());
       
     DeleteRootNode();
 

@@ -45,6 +45,7 @@
 #include <qgsmaprenderer.h>
 #else
 #include <qgsmaprendererjob.h>
+#include <qgsmaprenderersequentialjob.h>
 #endif
 
 
@@ -111,99 +112,99 @@ void QgsOsgEarthTileSource::initialize( const std::string& referenceURI, const P
 
 osg::Image* QgsOsgEarthTileSource::createImage( const TileKey& key, ProgressCallback* progress )
 {
-  QString kname = key.str().c_str();
-  kname.replace( '/', '_' );
+	QString kname = key.str().c_str();
+	kname.replace( '/', '_' );
 
-  Q_UNUSED( progress );
+	Q_UNUSED( progress );
 
-  //Get the extents of the tile
-  int tileSize = getPixelsPerTile();
-  if ( tileSize <= 0 )
-  {
-    QgsDebugMsg( "Tile size too small." );
-    return ImageUtils::createEmptyImage();
-  }
+	//Get the extents of the tile
+	int tileSize = getPixelsPerTile();
+	if ( tileSize <= 0 )
+	{
+		QgsDebugMsg( "Tile size too small." );
+		return ImageUtils::createEmptyImage();
+	}
 
-  QgsRectangle viewExtent = mCanvas->fullExtent();
-  if ( mCoordTransform )
-  {
-    QgsDebugMsg( QString( "vext0:%1" ).arg( viewExtent.toString( 5 ) ) );
-    viewExtent = mCoordTransform->transformBoundingBox( viewExtent );
-  }
+	QgsRectangle viewExtent = mCanvas->fullExtent();
+	if ( mCoordTransform )
+	{
+		QgsDebugMsg( QString( "vext0:%1" ).arg( viewExtent.toString( 5 ) ) );
+		viewExtent = mCoordTransform->transformBoundingBox( viewExtent );
+	}
 
-  QgsDebugMsg( QString( "vext1:%1" ).arg( viewExtent.toString( 5 ) ) );
+	QgsDebugMsg( QString( "vext1:%1" ).arg( viewExtent.toString( 5 ) ) );
 
-  double xmin, ymin, xmax, ymax;
-  key.getExtent().getBounds( xmin, ymin, xmax, ymax );
-  QgsRectangle tileExtent( xmin, ymin, xmax, ymax );
+	double xmin, ymin, xmax, ymax;
+	key.getExtent().getBounds( xmin, ymin, xmax, ymax );
+	QgsRectangle tileExtent( xmin, ymin, xmax, ymax );
 
-  QgsDebugMsg( QString( "text0:%1" ).arg( tileExtent.toString( 5 ) ) );
-  if ( !viewExtent.intersects( tileExtent ) )
-  {
-    QgsDebugMsg( QString( "earth tile key:%1 ext:%2: NO INTERSECT" ).arg( kname ).arg( tileExtent.toString( 5 ) ) );
-    return ImageUtils::createEmptyImage();
-  }
+	QgsDebugMsg( QString( "text0:%1" ).arg( tileExtent.toString( 5 ) ) );
+	if ( !viewExtent.intersects( tileExtent ) )
+	{
+		QgsDebugMsg( QString( "earth tile key:%1 ext:%2: NO INTERSECT" ).arg( kname ).arg( tileExtent.toString( 5 ) ) );
+		return ImageUtils::createEmptyImage();
+	}
 
 #ifdef USE_RENDERER
-  QImage *qImage = createQImage( tileSize, tileSize );
-  if ( !qImage )
-  {
-    QgsDebugMsg( QString( "earth tile key:%1 ext:%2: EMPTY IMAGE" ).arg( kname ).arg( tileExtent.toString( 5 ) ) );
-    return ImageUtils::createEmptyImage();
-  }
+	QImage *qImage = createQImage( tileSize, tileSize );
+	if ( !qImage )
+	{
+		QgsDebugMsg( QString( "earth tile key:%1 ext:%2: EMPTY IMAGE" ).arg( kname ).arg( tileExtent.toString( 5 ) ) );
+		return ImageUtils::createEmptyImage();
+	}
 
-  mMapRenderer->setLayerSet( mCanvas->mapRenderer()->layerSet() );
-  mMapRenderer->setOutputSize( QSize( tileSize, tileSize ), qImage->logicalDpiX() );
-  mMapRenderer->setExtent( tileExtent );
+	mMapRenderer->setLayerSet( mCanvas->mapRenderer()->layerSet() );
+	mMapRenderer->setOutputSize( QSize( tileSize, tileSize ), qImage->logicalDpiX() );
+	mMapRenderer->setExtent( tileExtent );
 
-  QPainter thePainter( qImage );
-  mMapRenderer->render( &thePainter );
+	QPainter thePainter( qImage );
+	mMapRenderer->render( &thePainter );
 #else
-  mMapSettings.setLayers( canvas()->mapSettings().layers() );
-  mMapSettings.setOutputSize( QSize( tileSize, tileSize ) );
-  mMapSettings.setOutputDpi( QgsApplication::desktop()->logicalDpiX() );
-  mMapSettings.setExtent( tileExtent );
-  mMapSettings.setBackgroundColor( QColor( 0, 0, 0, 0 ) );
+	mMapSettings.setLayers( mCanvas->mapSettings().layers() );
+	mMapSettings.setOutputSize( QSize( tileSize, tileSize ) );
+	mMapSettings.setOutputDpi( QgsApplication::desktop()->logicalDpiX() );
+	mMapSettings.setExtent( tileExtent );
+	mMapSettings.setBackgroundColor( QColor( 0, 0, 0, 0 ) );
 
-  QgsMapRendererSequentialJob job( mMapSettings );
-  job.start();
-  job.waitForFinished();
+	QgsMapRendererSequentialJob job( mMapSettings );
+	job.start();
+	job.waitForFinished();
 
-  QImage *qImage = new QImage( job.renderedImage() );
-  if ( !qImage )
-  {
-    QgsDebugMsg( QString( "earth tile key:%1 ext:%2: EMPTY IMAGE" ).arg( kname ).arg( tileExtent.toString( 5 ) ) );
-    return ImageUtils::createEmptyImage();
-  }
+	QImage *qImage = new QImage( job.renderedImage() );
+	if ( !qImage )
+	{
+		QgsDebugMsg( QString( "earth tile key:%1 ext:%2: EMPTY IMAGE" ).arg( kname ).arg( tileExtent.toString( 5 ) ) );
+		return ImageUtils::createEmptyImage();
+	}
 
-  Q_ASSERT( qImage->logicalDpiX() == QgsApplication::desktop()->logicalDpiX() );
-  Q_ASSERT( qImage->format() == QImage::Format_ARGB32_Premultiplied );
+	Q_ASSERT( qImage->logicalDpiX() == QgsApplication::desktop()->logicalDpiX() );
+	Q_ASSERT( qImage->format() == QImage::Format_ARGB32_Premultiplied );
 #endif
 
-  QgsDebugMsg( QString( "earth tile key:%1 ext:%2" ).arg( kname ).arg( tileExtent.toString( 5 ) ) );
+	QgsDebugMsg( QString( "earth tile key:%1 ext:%2" ).arg( kname ).arg( tileExtent.toString( 5 ) ) );
 #if 0
-  qImage->save( QString( "/tmp/tile-%1.png" ).arg( kname ) );
+	qImage->save( QString( "/tmp/tile-%1.png" ).arg( kname ) );
 #endif
 
-  osg::ref_ptr<osg::Image> image = new osg::Image;
+	osg::ref_ptr<osg::Image> image = new osg::Image;
 
-  //The pixel format is always RGBA to support transparency
-  image->setImage( tileSize, tileSize, 1, 4, // width, height, depth, pixelFormat?
-                   GL_BGRA, GL_UNSIGNED_BYTE, //Why not GL_RGBA - Qt bug?
-                   qImage->bits(),
-                   osg::Image::NO_DELETE, 1 );
+	//The pixel format is always RGBA to support transparency
+	image->setImage( tileSize, tileSize, 1, 4, // width, height, depth, pixelFormat?
+		GL_BGRA, GL_UNSIGNED_BYTE, //Why not GL_RGBA - Qt bug?
+		qImage->bits(),
+		osg::Image::NO_DELETE, 1 );
 
-  image->flipVertical();
+	image->flipVertical();
 
-  //Create a transparent image if we don't have an image
-  if ( !image.valid() )
-  {
-    QgsDebugMsg( "image is invalid" );
-    return ImageUtils::createEmptyImage();
-  }
+	//Create a transparent image if we don't have an image
+	if ( !image.valid() )
+	{
+		QgsDebugMsg( "image is invalid" );
+		return ImageUtils::createEmptyImage();
+	}
 
-  QgsDebugMsg( "returning image" );
-  return image.release();
+	QgsDebugMsg( "returning image" );
+	return image.release();
 }
 
 QImage* QgsOsgEarthTileSource::createQImage( int width, int height ) const

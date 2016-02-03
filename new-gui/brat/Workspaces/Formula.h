@@ -468,10 +468,10 @@ public:
 	CMapFormula()
     {}
 
-	CMapFormula( std::string &errorMsg, bool withPredefined )
+	CMapFormula( const std::string &internal_data_path, std::string &errorMsg, bool withPredefined )
 	{
 		if ( withPredefined )
-			InsertPredefined( errorMsg );
+			InsertPredefined( internal_data_path, errorMsg );
 	}
 
 	CMapFormula( const CMapFormula &o )
@@ -521,7 +521,7 @@ public:
 
 	void Amend( const CStringArray& keys, CProduct* product, const std::string& record );
 
-	bool InsertPredefined( std::string &errorMsg );
+	bool InsertPredefined( const std::string &internal_data_path, std::string &errorMsg );
 	//bool InsertUserDefined( const wxFileName& fileName );
 	bool InsertUserDefined( CWorkspaceSettings *config, std::string &errorMsg );
 	bool InsertUserDefined( CFormula* formula, std::string &errorMsg );

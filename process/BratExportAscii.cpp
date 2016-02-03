@@ -24,6 +24,7 @@
 #include "FileParams.h"
 #include "Product.h"
 #include "new-gui/Common/tools/Trace.h"
+#include "new-gui/Common/ConsoleApplicationPaths.h"
 #include "BratProcess.h"
 #include "BratProcessExportAscii.h"
 
@@ -37,89 +38,88 @@ using namespace processes;
 
 
 
-int main (int argc, char *argv[])
+int main( int argc, char *argv[] )
 {
 #ifdef WIN32
-  #ifdef _DEBUG
-    _CrtSetDbgFlag ( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
-  #endif
+#ifdef _DEBUG
+	_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
+#endif
 #endif
 
-  int32_t result = BRATHL_SUCCESS;
+	int32_t result = BRATHL_SUCCESS;
 
-  std::string msg;
+	std::string msg;
 
-  bool bOk = true;
+	bool bOk = true;
 
-  if (getenv(BRATHL_ENVVAR) == NULL)
-  {
-    CTools::SetDataDirForExecutable(argv[0]);
-  }
+	const CConsoleApplicationPaths brat_paths( argv[ 0 ] );
 
-  if (!CTools::LoadAndCheckUdUnitsSystem(msg))
-  {
-    std::cerr << msg << std::endl;
-    return BRATHL_ERROR;
-  }
+	CTools::SetInternalDataDir( brat_paths.mInternalDataDir );
 
-  CBratProcessExportAscii*  bratProcess = new CBratProcessExportAscii();
+	if ( !CTools::LoadAndCheckUdUnitsSystem( msg ) )
+	{
+		std::cerr << msg << std::endl;
+		return BRATHL_ERROR;
+	}
 
-  if (bratProcess->CheckCommandLineOptions(argc, argv))
-  {
-    return BRATHL_ERROR;
-  }
+	CBratProcessExportAscii*  bratProcess = new CBratProcessExportAscii();
 
-  try
-  {
-//    auto_ptr<CTrace>pTrace(CTrace::GetInstance());
-  //CTrace::GetInstance("c:\\dump.log");
+	if ( bratProcess->CheckCommandLineOptions( argc, argv ) )
+	{
+		return BRATHL_ERROR;
+	}
 
-  //auto_ptr<CTrace>pTrace(CTrace::GetInstance(argc, argv));
-  //pTrace->SetTraceLevel(5);
-    
-    bOk = bratProcess->Initialize(msg);
-    if (!bOk)
-    {
-      CTrace::Tracer(1, msg);
-      delete bratProcess;
-      bratProcess = NULL;
-      return BRATHL_ERROR;
-    }
+	try
+	{
+		//    auto_ptr<CTrace>pTrace(CTrace::GetInstance());
+		//CTrace::GetInstance("c:\\dump.log");
 
-    result = bratProcess->Execute(msg);
+		//auto_ptr<CTrace>pTrace(CTrace::GetInstance(argc, argv));
+		//pTrace->SetTraceLevel(5);
 
-    if (result != BRATHL_SUCCESS)
-    {
-      CTrace::Tracer(1, msg);
-    }
+		bOk = bratProcess->Initialize( msg );
+		if ( !bOk )
+		{
+			CTrace::Tracer( 1, msg );
+			delete bratProcess;
+			bratProcess = NULL;
+			return BRATHL_ERROR;
+		}
+
+		result = bratProcess->Execute( msg );
+
+		if ( result != BRATHL_SUCCESS )
+		{
+			CTrace::Tracer( 1, msg );
+		}
 
 
-    delete bratProcess;
-    bratProcess = NULL;
+		delete bratProcess;
+		bratProcess = NULL;
 
-    return result;
-  }
-  catch (CException &e)
-  {
-    std::cerr << "BRAT ERROR: " << e.what() << std::endl;
-    delete bratProcess;
-    bratProcess = NULL;
-    return BRATHL_ERROR;
-  }
-  catch (std::exception &e)
-  {
-    std::cerr << "BRAT RUNTIME ERROR: " << e.what() << std::endl;
-    delete bratProcess;
-    bratProcess = NULL;
-    return 254;
-  }
-  catch (...)
-  {
-    std::cerr << "BRAT FATAL ERROR: Unexpected error" << std::endl;
-    delete bratProcess;
-    bratProcess = NULL;
-    return 255;
-  }
+		return result;
+	}
+	catch ( CException &e )
+	{
+		std::cerr << "BRAT ERROR: " << e.what() << std::endl;
+		delete bratProcess;
+		bratProcess = NULL;
+		return BRATHL_ERROR;
+	}
+	catch ( std::exception &e )
+	{
+		std::cerr << "BRAT RUNTIME ERROR: " << e.what() << std::endl;
+		delete bratProcess;
+		bratProcess = NULL;
+		return 254;
+	}
+	catch ( ... )
+	{
+		std::cerr << "BRAT FATAL ERROR: Unexpected error" << std::endl;
+		delete bratProcess;
+		bratProcess = NULL;
+		return 255;
+	}
 
 
 

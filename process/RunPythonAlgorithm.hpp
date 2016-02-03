@@ -145,7 +145,7 @@ dir_from_filepath( std::string const& path )
 #undef _POSIX_C_SOURCE
 #endif
 
-#if defined (HAVE_STAT)				// HAVE_STAT is defined by brathl_config.h
+#if defined (HAVE_STAT)				// HAVE_STAT is defined by brathl.h
 #define SAVE_HAVE_STAT HAVE_STAT
 #undef HAVE_STAT				
 #endif
