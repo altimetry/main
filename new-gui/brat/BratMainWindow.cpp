@@ -1054,15 +1054,7 @@ void CBratMainWindow::UpdateWindowMenu()
 
 void CBratMainWindow::on_action_About_triggered()
 {
-	if ( getenv("QGIS_LOG_FILE") )
-		SimpleMsgBox( getenv("QGIS_LOG_FILE") );
-	if ( getenv("QGIS_DEBUG") )
-		SimpleMsgBox( getenv("QGIS_DEBUG") );
-
-
-	on_action_Test_triggered();
-
- //   QMessageBox::about(this, tr("About BRAT"), QString( "Welcome to BRAT " ) + BRAT_VERSION + " - " + PROCESSOR_ARCH + "\n(C)opyright CNES/ESA" );
+	QMessageBox::about(this, tr("About BRAT"), QString( "Welcome to BRAT " ) + BRAT_VERSION + " - " + PROCESSOR_ARCH + "\n(C)opyright CNES/ESA" );
 }
 
 
