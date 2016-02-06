@@ -493,17 +493,17 @@ std::string COperation::m_execBratSchedulerName;
 //static
 void COperation::SetExecNames( const CApplicationPaths &app_path )
 {
-    m_execYFXName = app_path.m_execYFXName;
+    m_execYFXName = app_path.mExecYFXName;
 
-    m_execZFXYName = app_path.m_execZFXYName;
+    m_execZFXYName = app_path.mExecZFXYName;
 
-    m_execExportAsciiName = app_path.m_execExportAsciiName;
+    m_execExportAsciiName = app_path.mExecExportAsciiName;
 
-    m_execExportGeoTiffName = app_path.m_execExportGeoTiffName;
+    m_execExportGeoTiffName = app_path.mExecExportGeoTiffName;
 
-    m_execShowStatsName = app_path.m_execShowStatsName;
+    m_execShowStatsName = app_path.mExecShowStatsName;
 
-    m_execBratSchedulerName = app_path.m_execBratSchedulerName;
+    m_execBratSchedulerName = app_path.mExecBratSchedulerName;
 
     assert__(
         IsFile( m_execYFXName )				&&

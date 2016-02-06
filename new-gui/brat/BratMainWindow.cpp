@@ -1110,32 +1110,32 @@ static LogThread thread_l1, thread_l2;
 
 void CBratMainWindow::on_action_Test_triggered()
 {
-	if ( thread_finished )
-	{
-		thread_finished = false;
-		thread_d.start();
-		thread_l1.start();
-		thread_l2.start();
-	}
-	else
-	{
-		thread_finished = true;
-		thread_d.terminate();
-		thread_l1.terminate();
-		thread_l2.terminate();
+//	if ( thread_finished )
+//	{
+//		thread_finished = false;
+//		thread_d.start();
+//		thread_l1.start();
+//		thread_l2.start();
+//	}
+//	else
+//	{
+//		thread_finished = true;
+//		thread_d.terminate();
+//		thread_l1.terminate();
+//		thread_l2.terminate();
 
-		thread_d.wait();
-		thread_l1.wait();
-		thread_l2.wait();
-	}
-	//for ( ;; )
-	//{
-	//	qDebug() << "hello from GUI thread " << qApp->thread()->currentThreadId();
-	//	qApp->processEvents();
-	//	//QTest::qSleep( 1000 );
-	//}
+//		thread_d.wait();
+//		thread_l1.wait();
+//		thread_l2.wait();
+//	}
+//	//for ( ;; )
+//	//{
+//	//	qDebug() << "hello from GUI thread " << qApp->thread()->currentThreadId();
+//	//	qApp->processEvents();
+//	//	//QTest::qSleep( 1000 );
+//	//}
 
-	/*
+//	/*
 
 #if defined (DEBUG) || defined(_DEBUG)
 
@@ -1149,7 +1149,7 @@ void CBratMainWindow::on_action_Test_triggered()
     // NOT_IMPLEMENTED
 
 #endif
-	*/
+    //*/
 }
 
 

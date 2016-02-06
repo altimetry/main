@@ -94,20 +94,21 @@ CApplicationPaths::CApplicationPaths( const QString &exec_path ) :
     , mQgisPluginsDir( mExecutableDir + "/" + QGIS_PLUGINS_SUBDIR )
     , mGlobeDir( mExecutableDir + "/" + DefaultGlobeSubDir() )
 
-    , m_execYFXName( mExecutableDir + "/" + BRATCREATEYFX_EXE)
-    , m_execZFXYName( mExecutableDir + "/" + BRATCREATEZFXY_EXE )
-    , m_execExportAsciiName( mExecutableDir + "/" + BRATEXPORTASCII_EXE )
-    , m_execExportGeoTiffName( mExecutableDir + "/" + BRATEXPORTGEOTIFF_EXE )
-    , m_execShowStatsName( mExecutableDir + "/" + BRATSHOWSTATS_EXE )
+    , mExecYFXName( mExecutableDir + "/" + BRATCREATEYFX_EXE)
+    , mExecZFXYName( mExecutableDir + "/" + BRATCREATEZFXY_EXE )
+    , mExecExportAsciiName( mExecutableDir + "/" + BRATEXPORTASCII_EXE )
+    , mExecExportGeoTiffName( mExecutableDir + "/" + BRATEXPORTGEOTIFF_EXE )
+    , mExecShowStatsName( mExecutableDir + "/" + BRATSHOWSTATS_EXE )
 
 #if defined(__APPLE__)
-    , m_execBratSchedulerName( mExecutableDir + "/../../../scheduler.app/Contents/MacOS/" + BRATSCHEDULER_EXE )
+    , mExecBratSchedulerName( mExecutableDir + "/../../../scheduler.app/Contents/MacOS/" + BRATSCHEDULER_EXE )
 #else
-    , m_execBratSchedulerName( mExecutableDir + "/" + BRATSCHEDULER_EXE )
+    , mExecBratSchedulerName( mExecutableDir + "/" + BRATSCHEDULER_EXE )
 #endif
 
 {
-    if ( IsValid() || !ValidatePaths() )
+    //fixed (return if parent class dirs are not valid or subclass path are not valid as well)
+    if ( !IsValid() || !ValidatePaths() )
     {
         return;
     }
@@ -116,12 +117,6 @@ CApplicationPaths::CApplicationPaths( const QString &exec_path ) :
 	//
 	//	- Use QCoreApplication::libraryPaths(); to inspect Qt library (plug-ins) directories
 
-        auto list = QCoreApplication::libraryPaths();
-        for ( auto const&d : list)
-            qDebug() << d;
-
-        //qDebug() << QLibraryInfo::location(QLibraryInfo::PluginsPath);
-        //QCoreApplication::addLibraryPath( mQtPluginsDir.c_str() );
     QCoreApplication::setLibraryPaths( QStringList() << mQtPluginsDir.c_str() );
 
     // Set OSG plug-ins path
@@ -129,8 +124,11 @@ CApplicationPaths::CApplicationPaths( const QString &exec_path ) :
     osgDB::FilePathList &osg_paths = osgDB::Registry::instance()->getLibraryFilePathList();
     osg_paths.push_front( mOsgPluginsDir );
 
-        for ( auto const &s : osg_paths )
-            qDebug() << t2q( s );
+
+#if defined (_DEBUG) || defined (DEBUG)
+	for ( auto const &s : osg_paths )
+        qDebug() << t2q( s );
+#endif
 
 
     // II. user (RE)DEFINABLE paths
@@ -161,7 +159,12 @@ bool CApplicationPaths::operator == ( const CApplicationPaths &o ) const
     assert__( mQgisPluginsDir == o.mQgisPluginsDir );
     assert__( mGlobeDir == o.mGlobeDir );
 
-	//TODO acrescentar asserts para as variaveis novas adicionadas.
+    assert__(mExecYFXName == o.mExecYFXName);
+    assert__(mExecZFXYName == o.mExecZFXYName);
+    assert__(mExecExportAsciiName == o.mExecExportAsciiName);
+    assert__(mExecExportGeoTiffName == o.mExecExportGeoTiffName);
+    assert__(mExecShowStatsName == o.mExecShowStatsName);
+    assert__(mExecBratSchedulerName == o.mExecBratSchedulerName);
 
     return
         // user re-definable
@@ -178,9 +181,6 @@ bool CApplicationPaths::operator == ( const CApplicationPaths &o ) const
 
 std::string CApplicationPaths::ToString() const
 {
-
-	//TODO acrescentar as novas variaveis.
-
     std::string s;
 
     s += ( "\nPlatform == " + mPlatform );
@@ -189,6 +189,13 @@ std::string CApplicationPaths::ToString() const
     s += ( "\nExecutable Path == " + mExecutablePath );
     s += ( "\nExecutable Dir == " + mExecutableDir );
     s += ( "\nDeploymentRoot Dir == " + mDeploymentRootDir );
+
+    s += ("\nmExecYFXName == " + mExecYFXName);
+    s += ("\nmExecZFXYName == " + mExecZFXYName);
+    s += ("\nmExecExportAsciiName == " + mExecExportAsciiName);
+    s += ("\nmExecExportGeoTiffName == " + mExecExportGeoTiffName);
+    s += ("\nmExecShowStatsName == " + mExecShowStatsName);
+    s += ("\nmExecBratSchedulerName == " + mExecBratSchedulerName);
 
     s += ( "\nInternalData Dir == " + mInternalDataDir );
     s += ( "\nVectorLayer Path == " + mVectorLayerPath );
@@ -210,17 +217,15 @@ std::string CApplicationPaths::ToString() const
 }
 
 
-// TODO Change path title (ValidPath parameter #4) to user friendly name, e.g., mVectorLayerPath to "Vector layer path"
-
 bool CApplicationPaths::ValidatePaths() const
 {
 	mValid =
 		base_t::ValidatePaths() &&											// tests mInternalDataDir
-		ValidPath( mErrorMsg, mVectorLayerPath, false, "mVectorLayerPath" ) &&
-		ValidPath( mErrorMsg, mOsgPluginsDir, true, "mOsgPluginsDir" ) &&
-		ValidPath( mErrorMsg, mQtPluginsDir, true, "mQtPluginsDir" ) &&
-		ValidPath( mErrorMsg, mQgisPluginsDir, true, "mQgisPluginsDir" ) &&
-		ValidPath( mErrorMsg, mGlobeDir, true, "mGlobeDir" );
+        ValidPath( mErrorMsg, mVectorLayerPath, true, "Vector Layer path" ) &&
+        ValidPath( mErrorMsg, mOsgPluginsDir, false, "OSG Plugins diretory" ) &&
+        ValidPath( mErrorMsg, mQtPluginsDir, false, "Qt Plugins directory" ) &&
+        ValidPath( mErrorMsg, mQgisPluginsDir, false, "Qgis Plugins directory" ) &&
+        ValidPath( mErrorMsg, mGlobeDir, false, "Globe files directory" );
 
     return mValid;
 }
@@ -229,17 +234,12 @@ bool CApplicationPaths::ValidatePaths() const
 
 // If "unique" is true, path must exist
 //
-/*
-to read
-*/
-bool CApplicationPaths::SetUniqueUserBasePath( bool unique, const std::string &path )	//path = ""
+bool CApplicationPaths::SetUserBasePath( bool unique, const std::string &path )	//path = ""
 {
-    if ( unique == mUniqueUserBasePath )
-        return true;
-
     if ( !unique )
     {
         mUniqueUserBasePath = false;
+        mUserBasePath = path;
         return true;
     }
     else
@@ -298,19 +298,18 @@ bool CApplicationPaths::SetWorkspacesDirectory( const std::string &path )
 
 bool CApplicationPaths::SetUserPaths()
 {
-    /*
-     *brat: (deployment_root_dir)
-     *  +bin
-     *  +data
-     *  +...
-     */
+    //
+    // brat: (deployment_root_dir)
+    //   +bin
+    //   +data
+    //   +...
+    //
     if ( !IsDir( mUserBasePath ) )
         mUserBasePath = ComputeDefaultUserBasePath( mDeploymentRootDir );
 
-    if ( mUniqueUserBasePath ) //os dados estao em default na data
+    if ( mUniqueUserBasePath ) //portable?
     {
-        mUniqueUserBasePath = false;	//force validation & assignment
-        return SetUniqueUserBasePath( true, mUserBasePath );
+        return SetUserBasePath( true, mUserBasePath );
     }
     else
     {

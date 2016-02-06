@@ -78,12 +78,12 @@ public:
 
 	//TODO: change these names according to our convention, for instance: m_execYFXName -> mExecYFXName. The same in COperation
 
-    const std::string m_execYFXName;
-    const std::string m_execZFXYName;
-    const std::string m_execExportAsciiName;
-    const std::string m_execExportGeoTiffName;
-    const std::string m_execShowStatsName;
-    const std::string m_execBratSchedulerName;
+    const std::string mExecYFXName;
+    const std::string mExecZFXYName;
+    const std::string mExecExportAsciiName;
+    const std::string mExecExportGeoTiffName;
+    const std::string mExecShowStatsName;
+    const std::string mExecBratSchedulerName;
 
     // NOT rigid (user definable), so, definitions
     //	are based on defaults. Origin: lib/data,
@@ -155,7 +155,8 @@ public:
 
     // if "unique" is true, path must exist
     //
-    bool SetUniqueUserBasePath( bool unique, const std::string &path = "" );
+
+    bool SetUserBasePath( bool unique, const std::string &path = "" );
 
     // When mUniqueUserBasePath is true, SetUniqueUserBasePath
     //	is the only setter accepted. Otherwise, these 2 setters

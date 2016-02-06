@@ -88,6 +88,20 @@ public:
     const CApplicationPaths& BratPaths() const { return mBratPaths; }
 
 
+	bool SetUserBasePath( bool unique, const std::string &path )
+	{
+		return mBratPaths.SetUserBasePath( unique, path );
+	}
+	bool SetWorkspacesDirectory( const std::string &path )
+	{
+		return mBratPaths.SetWorkspacesDirectory( path );
+	}
+	bool SetExternalDataDirectory( const std::string &path )
+	{
+		return mBratPaths.SetExternalDataDirectory( path );
+	}
+
+
 public:
 
     //////////////////////////////////////

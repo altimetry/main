@@ -21,6 +21,7 @@ CApplicationSettingsDlg::CApplicationSettingsDlg( CBratSettings &options, QWidge
 	// *** Page Selector ***
 
 	static const size_t iwidth = 48, iheight = iwidth, spacing = 12;
+    const CApplicationPaths* settings_paths = &mSettings.BratPaths();
 
 	Contents_ListWidget->setViewMode( QListView::IconMode );
 	Contents_ListWidget->setIconSize( QSize( iwidth, iheight ) );
@@ -38,19 +39,17 @@ CApplicationSettingsDlg::CApplicationSettingsDlg( CBratSettings &options, QWidge
 
 	//	ApplicationPaths_page
 
-	//DataDirectory_lineEdit->setText( m_bs.GetDataPath() );
- //   ExternalDataDirectory_lineEdit->setText( m_bs.GetLibraryPath() );
- //   ProjectsDirectory_lineEdit->setText( m_bs.GetProjectsPath() );
+    DataDirectory_lineEdit->setText( settings_paths->mUserBasePath.c_str() );
+    ExternalDataDirectory_lineEdit->setText( settings_paths->mExternalDataDir.c_str() );
+    ProjectsDirectory_lineEdit->setText( settings_paths->mWorkspacesDir.c_str() );
+
+    AutoRelativePaths_checkBox->setChecked( settings_paths->UniqueUserBasePath() );
 
     // Signal and slots:
     // DataDirectory_lineEdit reacts to signal textChanged with callback
     // 'UpdateDirectoriesActions'
     connect( DataDirectory_lineEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( UpdateDirectoriesActions(const QString&) ) );
 
-	//AutoRelativePaths_checkBox->setChecked( 
-	//	( m_bs.GetLibraryPath() == m_bs.GetDataPath() + m_bs.DefaultExternalDataSubDir() ) &&
-	//	m_bs.GetProjectsPath() == m_bs.GetDataPath() + m_bs.DefaultProjectsSubDir()
-	//);
 	on_AutoRelativePaths_checkBox_clicked( AutoRelativePaths_checkBox->isChecked() );
 
 
@@ -149,7 +148,7 @@ void CApplicationSettingsDlg::changePage( QListWidgetItem *current, QListWidgetI
 
 void CApplicationSettingsDlg::on_BrowseParseDataDirectory_pushButton_clicked()
 {
-    QString dir = BrowseDirectory( this, "Select BRAT Data Directory", DataDirectory_lineEdit->text() );
+    QString dir = BrowseDirectory( this, "Select BRAT Working Directory", DataDirectory_lineEdit->text() );
     if ( !dir.isEmpty() )
         DataDirectory_lineEdit->setText( dir );
 }
@@ -176,9 +175,9 @@ void CApplicationSettingsDlg::UpdateDirectoriesActions(const QString & text)
 	if ( AutoRelativePaths_checkBox->isChecked() )
 	{
         // The text for ExternalDataDirectory_lineEdit will be text / DefaultExternalDataSubDir()
-        ExternalDataDirectory_lineEdit->setText( text + t2q( mSettings.BratPaths().DefaultExternalDataSubDir() ) );
+        ExternalDataDirectory_lineEdit->setText( text + "/" + t2q( mSettings.BratPaths().DefaultExternalDataSubDir() ) );
         // ProjectsDirectory_lineEdit text will be text / DefaultProjectsSubdir()
-        ProjectsDirectory_lineEdit->setText( text + t2q( mSettings.BratPaths().DefaultProjectsSubDir() ) );
+        ProjectsDirectory_lineEdit->setText( text + "/" + t2q( mSettings.BratPaths().DefaultProjectsSubDir() ) );
 	}
 }
 
@@ -192,8 +191,9 @@ void CApplicationSettingsDlg::on_AutoRelativePaths_checkBox_clicked( bool checke
     ProjectsDirectory_lineEdit->setEnabled( !checked );
     Browse_ExternalDataPath_pushButton->setEnabled( !checked );
     Browse_ProjectsPath_pushButton->setEnabled( !checked );
+    DataDirectory_lineEdit->setEnabled( checked );
+    BrowseParseDataDirectory_pushButton->setEnabled( checked );
 }
-
 
 //	StartupOptions_page
 //	ApplicationStyles_page
@@ -210,52 +210,66 @@ void CApplicationSettingsDlg::on_AutoRelativePaths_checkBox_clicked( bool checke
 
 bool CApplicationSettingsDlg::ValidateAndAssign()
 {
-	//	1. Back Services Directories (the dialog does actual changes in application state, but tries to reset them on error)
+	// lambda
 
-	//	SetDataPath, SetLibraryPath	 and SetProjectsPath only make changes if input is different from 
-	//	current values, so these assignments don't make unnecessary changes and work as validations.
-	//	If there is an error with an assignment, it is assumed that no changes are made by m_bs, and
-	//	we try to reset the previous directories if the user cancels.
+	auto ask_create_dir = []( const std::string &dir_name, const std::string &dir ) -> bool
+	{
+        QMessageBox msg_userdir;
+        msg_userdir.setText( t2q( dir_name + " does not exist." ) );
+        msg_userdir.setInformativeText( t2q( "Would you like to create '" + dir + "' ?" ) );
+        msg_userdir.setStandardButtons(QMessageBox::Ok |  QMessageBox::Cancel);
+        msg_userdir.setDefaultButton(QMessageBox::Ok);
+        int user_option = msg_userdir.exec();
+        if (user_option != QMessageBox::Ok)
+        {
+            return false;
+        }
+        if (!MakeDirectory(dir))
+        {
+            SimpleErrorBox( "Could not create path " + dir );
+			return false;
+        }
+		return true;
+	};
 
-	//	ApplicationPaths_page
 
-    std::string saveDataDirectory = mSettings.BratPaths().mInternalDataDir;
-    std::string saveLibraryDirectory = mSettings.BratPaths().WorkspacesPath();
+	// main function body
 
-	//if ( !m_bs.SetDataPath( DataDirectory_lineEdit->text().toLatin1() ) )
- //   {
- //       QMessageBox::StandardButton b =
- //               QMessageBox::critical(this, tr("Data Path Error"),
- //                                     "Error assigning the data default directory.",
- //                                     QMessageBox::Ok | QMessageBox::Cancel );
- //       if ( b == QMessageBox::Ok )
- //           return false;
- //   }
- //   if ( !m_bs.SetLibraryPath( ExternalDataDirectory_lineEdit->text().toLatin1() ) )
- //   {
- //       QMessageBox::StandardButton b =
- //               QMessageBox::critical(this, tr("Library Path Error"),
- //                                     "Error assigning the Library default directory.",
- //                                     QMessageBox::Ok | QMessageBox::Cancel );
- //       if ( b == QMessageBox::Ok )
- //           return false;
-	//	else
-	//		m_bs.SetDataPath( saveDataDirectory.c_str() );
- //   }
- //   if ( !m_bs.SetProjectsPath( ProjectsDirectory_lineEdit->text().toLatin1() ) )
- //   {
- //       QMessageBox::StandardButton b =
- //               QMessageBox::critical(this, tr("Projects Path Error"),
- //                                     "Error assigning the Projects default directory.",
- //                                     QMessageBox::Ok | QMessageBox::Cancel );
- //       if ( b == QMessageBox::Ok )
- //           return false;
-	//	else
-	//	{
-	//		m_bs.SetDataPath( saveDataDirectory.c_str() );
-	//		m_bs.SetLibraryPath( saveLibraryDirectory.c_str() );
-	//	}
- //   }
+	//	1. ApplicationPaths_page: 
+
+    bool isPathUnique =  AutoRelativePaths_checkBox->isChecked();
+    const CApplicationPaths &rPaths =  mSettings.BratPaths();
+
+    std::string user_dir = q2a(DataDirectory_lineEdit->text());
+    std::string workspace_dir = q2a(ProjectsDirectory_lineEdit->text());
+    std::string external_data_dir = q2a(ExternalDataDirectory_lineEdit->text());
+
+    if (isPathUnique)
+    {
+        if (! IsDir( user_dir ) && !ask_create_dir( "BRAT working directory", user_dir ) )
+        {
+			return false;
+        }
+    }
+    else
+    {
+        if ( !IsDir(workspace_dir) && !ask_create_dir( "Workspaces directory.", workspace_dir ) )
+        {
+			return false;
+        }
+        if ( !IsDir(external_data_dir) && !ask_create_dir( "External data directory.", external_data_dir ) )
+        {
+			return false;
+        }
+    }
+
+	// TODO Pass most validation logic to CApplicationPaths; the intelligence should be centralized there, the dialog is only a fancy input device.
+	//	Anyway, the boolean return values of CApplicationPaths have a meaning, namely if it refuses to make an assignment, so they must be inspected.
+
+    //Its safe now to apply these procedures
+    mSettings.SetUserBasePath( isPathUnique, user_dir );
+    mSettings.SetWorkspacesDirectory( workspace_dir );
+    mSettings.SetExternalDataDirectory( external_data_dir );
 
 
 	//	2. Application Options (the dialog acts over an options object copy, not changing the application state)

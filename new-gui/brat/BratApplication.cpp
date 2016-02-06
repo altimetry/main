@@ -15,12 +15,21 @@ bool CBratApplication::smPrologueCalled = false;
 CApplicationPaths *CBratApplication::smApplicationPaths = nullptr;
 
 
-inline void safe_debug_envar_msg( const char *var )
+// Tries to create a QApplication on-the-fly to able to use the
+//	 GUI, since the only place we will call this is in main, where 
+//	everything else has failed.
+//
+int CBratApplication::OffGuiErrorDialog( int error_type, char const *error_msg )
 {
-	const char *value = getenv( var );
-	QString msg( var );
-	msg += "=";
-	LOG_TRACE( value ? msg + value : msg );
+	int argc = 0;
+    QApplication a( argc, nullptr );
+    QMessageBox msg_abort;
+    msg_abort.setText( QString("A fatal error as ocurred.") );
+    msg_abort.setInformativeText( error_msg );
+    msg_abort.setStandardButtons( QMessageBox::Abort );
+    msg_abort.setIcon( QMessageBox::Critical );
+    msg_abort.exec();
+    return error_type;
 }
 
 
@@ -32,6 +41,18 @@ inline void safe_debug_envar_msg( const char *var )
 //
 void CBratApplication::Prologue( int argc, char *argv[] )
 {
+	// lambda
+
+	auto safe_debug_envar_msg = []( const char *var )
+	{
+		const char *value = getenv( var );
+		QString msg( var );
+		msg += "=";
+		LOG_TRACE( value ? msg + value : msg );
+	};
+
+	// function body
+
     assert__( !smPrologueCalled );    UNUSED(argc);
 
 	if ( smPrologueCalled )

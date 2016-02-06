@@ -75,6 +75,9 @@ public:
 	static void Prologue( int argc, char *argv[] );
 
 
+    static int OffGuiErrorDialog( int error_type, char const *error_msg );
+
+
 protected:
 	//	This is accurate only if(when) no style sheet was also assigned.
 	//	External clients should not rely on this, and use the name in options.

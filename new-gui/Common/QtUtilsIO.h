@@ -151,6 +151,8 @@ inline bool DuplicateFile( const std::string &SourcePath, const std::string &Des
     return QFile::copy( SourcePath.c_str(), DestinationPath.c_str() );
 }
 
+
+
 inline bool RemoveFile( const QString &Path )													//CAUTION: There is a DeleteFile in windows
 {
     return QFile::remove( Path );
@@ -231,7 +233,7 @@ inline bool DeleteDirectory( const std::string &path )
 
 
 //not tested
-//
+//AKA copy root: this is exactly the same thing we implemented in our python script.
 inline bool DuplicateDirectory( const QString &sourceFolder, const QString &destFolder )
 {
     QDir sourceDir( sourceFolder );
@@ -316,7 +318,28 @@ inline bool TraverseDirectory( const QString &sourceFolder, const QString &destF
 
 
 
+/*
+ * Attempts to safely copy one file from one path to another: If the destination path directory does not exist
+ * it will attempt to create it (if it fails will return false). If the source path does not contain a valid
+ * file, it will return false. If nothing of this fails then we return DuplicateFile.
+ */
+inline bool SafeDuplicateFile( const std::string &SourcePath, const std::string &DestinationPath )
+{
+    std::string dest_dir = GetDirectoryFromPath(DestinationPath);
+    if (!IsFile(SourcePath))
+    {
+        return false;
+    }
+    if (!IsDir(dest_dir))
+    {
+        if (!MakeDirectory(dest_dir))
+        {
+            return false;
+        }
+    }
 
+    return DuplicateFile(SourcePath, DestinationPath);
+}
 
 
 

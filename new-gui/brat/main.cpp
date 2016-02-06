@@ -51,18 +51,7 @@ try {
 catch ( const CException &e )
 {
 	LOG_FATAL( e.Message() );
-	//TODO: Pass to CBratApplication static method, enveloped in try catch, receiving message and exit error code and returning this same code
-	//	int CBratApplication::DesperateErrorDialog( int error_code, const char *msg );
-	//	so, here:
-	//	return CBratApplication::DesperateErrorDialog( -1, e.Message().c_str() );
-	QApplication a( argc, argv );
-    QMessageBox msg_abort;
-    msg_abort.setText( QString("<replace by generic desperate message text>") );
-    msg_abort.setInformativeText( e.Message().c_str() );
-    msg_abort.setStandardButtons( QMessageBox::Abort );
-    msg_abort.setIcon( QMessageBox::Critical );
-    msg_abort.exec();
-	return -1;
+    return CBratApplication::OffGuiErrorDialog( -1, e.Message().c_str() );
 }
 catch ( const std::exception &e )
 {	

@@ -28,7 +28,7 @@
      <item>
       <widget class="QStackedWidget" name="Pages_StackedWidget">
        <property name="currentIndex">
-        <number>1</number>
+        <number>0</number>
        </property>
        <widget class="QWidget" name="ApplicationPaths_page">
         <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -107,7 +107,7 @@
             <item>
              <widget class="QCheckBox" name="AutoRelativePaths_checkBox">
               <property name="text">
-               <string>Set all directories relative to data directory</string>
+               <string>Define common working path</string>
               </property>
              </widget>
             </item>
@@ -127,7 +127,7 @@
             <item>
              <widget class="QCheckBox" name="LoadLastProjectAtAtartup_checkBox">
               <property name="text">
-               <string>Load last workspace of previous session</string>
+               <string>Define common working path</string>
               </property>
              </widget>
             </item>
