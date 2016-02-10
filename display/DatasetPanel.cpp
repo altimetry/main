@@ -33,9 +33,10 @@
 
 #include "BratDisplayApp.h"
 #include "XYPlotPanel.h"
-#include "XYPlotData.h"
-#include "MapColor.h"
+#include "PlotData/XYPlotData.h"
+#include "PlotData/MapColor.h"
 #include "DatasetPanel.h"
+#include "wxInterface.h"
 
 // WDR: class implementations
 
@@ -180,9 +181,11 @@ bool CAttributeListPanel::CreateControls()
   m_drawPoints = new wxCheckBox(this, -1, "Draw");
   m_drawPoints->SetValue(props->GetPoints());
 
+  std::vector<std::string> v;
+  CMapStipplePattern::GetInstance().NamesToArrayString(v);
   wxArrayString array;
-
-  CMapStipplePattern::GetInstance().NamesToArrayString(array);
+  for ( auto &s : v )
+	  array.Add( s.c_str() );
   m_stipplePatternChoice = new wxChoice(this, -1,
                                        wxDefaultPosition, 
                                        wxDefaultSize,
@@ -210,9 +213,11 @@ bool CAttributeListPanel::CreateControls()
   m_lineWidthCtrl->Enable(props->GetLines());
 
 
+  v.clear();
   array.Clear();
-  CMapPointGlyph::GetInstance().NamesToArrayString(array);
-
+  CMapPointGlyph::GetInstance().NamesToArrayString(v);
+  for ( auto &s : v )
+	  array.Add( s.c_str() );
   m_glyphChoice = new wxChoice(this, -1,
                                wxDefaultPosition, 
                                wxDefaultSize,
@@ -442,7 +447,7 @@ void CAttributeListPanel::Update()
 
 
   wxString strSelect = m_stipplePatternChoice->GetStringSelection();
-  StipplePattern stipple = CMapStipplePattern::GetInstance().NameToStipple(strSelect);
+  StipplePattern stipple = CMapStipplePattern::GetInstance().NameToStipple(strSelect.ToStdString());
   props->SetLineStipple(stipple);
 
   double lineWidth;
@@ -450,7 +455,7 @@ void CAttributeListPanel::Update()
   props->SetLineWidth(lineWidth * props->GetLineWidthFactor());
 
   strSelect = m_glyphChoice->GetStringSelection();
-  PointGlyph glyph = CMapPointGlyph::GetInstance().NameToGlyph(strSelect);
+  PointGlyph glyph = CMapPointGlyph::GetInstance().NameToGlyph(strSelect.ToStdString());
   props->SetPointGlyph(glyph);
 
   
@@ -466,8 +471,8 @@ void CAttributeListPanel::OnColor(wxCommandEvent& event)
 {
   CXYPlotProperty* props = m_plotData->GetPlotProperty();
 
-  wxColourData colorData = CMapColor::GetInstance().ChooseColor(props->GetColor(), this);
-  props->SetColor(colorData);
+  wxColourData colorData = CMapColor::GetInstance().ChooseColor(color_cast(props->GetColor()), this);
+  SetColor( *props, colorData );
 
   //props->Update();
 
@@ -768,8 +773,11 @@ void CDatasetListPanel::Reset()
     return;
   }
 
+  std::vector<std::string> v;
   wxArrayString names;
-  m_plotDataCollection->GetNames(names);
+  m_plotDataCollection->GetNames(v);
+  for ( auto &s : v )
+	  names.Add( s );
 
 
   if (names.IsEmpty() == false)

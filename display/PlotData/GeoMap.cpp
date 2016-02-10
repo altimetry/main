@@ -6,6 +6,10 @@
 #include "libbrathl/LatLonPoint.h"
 using namespace brathl;
 
+#if defined (__DEPRECATED)          //avoid linux warning in vtk include
+#undef __DEPRECATED
+#endif
+
 #include "vtkProperty.h"
 #include "vtkProperty2D.h"
 #include "vtkDoubleArray.h"
@@ -35,6 +39,7 @@ using namespace brathl;
 #include "vtkPolyDataNormals.h"
 #include "vtkConnectivityFilter.h"
 #include "vtkEarthSource.h"
+
 
 #include "GeoMap.h"
 
@@ -87,7 +92,7 @@ void CGeoMap::Create( CObArray* data, const std::string& fieldName )
 
 	m_finished = false;
 	m_currentMap = 0;
-	m_nrMaps = data->size();
+	m_nrMaps = (uint32_t)data->size();
 
 	//femm TODO - begin
 	//wxProgressDialog pd( "Calculating Geomap Data", "", m_nrMaps, parent, wxPD_CAN_ABORT | wxPD_REMAINING_TIME | wxPD_SMOOTH | wxPD_APP_MODAL );
@@ -190,7 +195,7 @@ void CGeoMap::Create( CObArray* data, const std::string& fieldName )
 		for ( int32_t iY = 0; iY < maxY; iY++ )
 		{
 			latitudes->InsertNextValue( varLat.GetValues()[ iY ] );
-			lats.push_back( varLat.GetValues()[ iY ] );
+			v4_lats.push_back( varLat.GetValues()[ iY ] );
 
 			for ( int32_t iX = 0; iX < maxX; iX++ )
 			{
@@ -202,20 +207,20 @@ void CGeoMap::Create( CObArray* data, const std::string& fieldName )
 
 				int16_t validLatitude = ( CTools::AreValidMercatorLatitude( varLat.GetValues()[ iY ] ) ? 1 : 0 );
 				validMercatorLatitudes->InsertNextValue( validLatitude );
-				valids.push_back( validLatitude != 0 );
+				v4_valids.push_back( validLatitude != 0 );
 
 				double v = varValue.GetValues()[ iTemp ];
 				if ( ( CTools::IsNan( v ) != 0 ) || isDefaultValue( v ) )
 				{
 					values->InsertNextValue( 0 );
 					bitarray->InsertNextValue( 0 );					//bitarray->InsertNextValue(1);
-					bits.push_back( false );
-					vals.push_back( 0.0 );
+					v4_bits.push_back( false );
+					v4_vals.push_back( 0.0 );
 				}
 				else
 				{	//???if self.property.value_conversion: v = self.property.value_conversion(v)
-					bits.push_back( true );
-					vals.push_back( v );
+					v4_bits.push_back( true );
+					v4_vals.push_back( v );
 
 					values->InsertNextValue( v );
 					bitarray->InsertNextValue( 1 );
@@ -246,7 +251,7 @@ void CGeoMap::Create( CObArray* data, const std::string& fieldName )
 
 		for ( int32_t iX = 0; iX < maxX; iX++ ){
 			longitudes->InsertNextValue( CTools::NormalizeLongitude( -180.0, varLon.GetValues()[ iX ] ) ); //longitudes->InsertNextValue(varLon.GetValues()[iX]);
-			lons.push_back(CTools::NormalizeLongitude( -180.0, varLon.GetValues()[ iX ] ));
+			v4_lons.push_back(CTools::NormalizeLongitude( -180.0, varLon.GetValues()[ iX ] ));
 		}
 
 		//geoMapFilter = NULL;	//vtkVelocityGlyphFilter* geoMapFilter = NULL;
@@ -1121,7 +1126,7 @@ void CGeoMap::SetContourLabels2DPosition()
   //femm TODO wxSetCursor(*wxHOURGLASS_CURSOR);
 
   int32_t nLabels = m_plotProperty.m_numContourLabel;
-  int32_t nContours =  m_labelPts.size();
+  int32_t nContours =  (uint32_t)m_labelPts.size();
 
   m_vtkLabelContourPositions->Reset();
   vtkPoints* labelPoints = m_vtkLabelContourPositions->GetPoints();
@@ -1304,7 +1309,7 @@ void CGeoVelocityMap::Create(CObArray* northData, CObArray* eastData, const std:
   m_currentMap = 0;
 
   // check both are of the same size
-  m_nrMaps = northData->size();
+  m_nrMaps = (uint32_t)northData->size();
   if ( northData->size() != eastData->size() )
   {
       CException e("CGeoVelocityMap - North and East data of different size!",

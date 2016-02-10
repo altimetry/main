@@ -113,4 +113,35 @@ inline CVtkColor color_cast( const wxColourData &colorData, int32_t indexCustomC
 
 
 
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//										CXYPlotProperty
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#include "PlotData/XYPlotData.h"
+
+
+
+
+inline void SetColor( CXYPlotProperty &p, const wxColour& color)
+{
+	p.SetColor( color_cast(color) );
+}
+
+
+inline void SetColor( CXYPlotProperty &p, wxColourData& colorData, int32_t indexCustomColor = -1 )
+{
+	if ( indexCustomColor < 0 )
+	{
+		SetColor( p, colorData.GetColour() );
+	}
+	else
+	{
+		SetColor( p, colorData.GetCustomColour( indexCustomColor ) );
+	}
+}
+
+
+
 #endif		//WX_DISPLAY_INTERFACE_H

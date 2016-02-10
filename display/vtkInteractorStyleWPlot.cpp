@@ -49,7 +49,189 @@
 #include "new-gui/Common/tools/Exception.h"
 using namespace brathl;
 
+
 #include "vtkInteractorStyleWPlot.h"
+
+
+
+
+
+//-------------------------------------------------------------
+//------------------- vtkObMap class --------------------
+//-------------------------------------------------------------
+
+vtkObMap::vtkObMap(bool bDelete /*= true*/)
+{
+  m_bDelete = bDelete;
+
+}
+
+
+//----------------------------------------
+vtkObMap::~vtkObMap()
+{
+   RemoveAll();
+
+}
+
+//----------------------------------------
+
+vtkObject* vtkObMap::Insert(const std::string& key, vtkObject* ob, bool withExcept /* = true */)
+{
+
+
+  std::pair <vtkObMap::iterator,bool> pairInsert;
+
+
+  //If 'key' already exists --> pairInsert.second == false and
+  // pairInsert.first then contains an iterator on the existing object
+  // If 'key' does not exist --> pairInsert.second == true and
+  // pairInsert.first then contains a iterator on the inserted object
+  pairInsert = (mapvtkobject::insert(vtkObMap::value_type(key, ob)));
+
+  if( (pairInsert.second == false) && (withExcept))
+  {
+    CException e("ERROR in vtkObMap::Insert - try to insert an object that already exists and parameter withExcept is true", BRATHL_LOGIC_ERROR);
+    throw(e);
+  }
+
+  vtkObMap::iterator it = (pairInsert.first);
+  return (*it).second;;
+
+}
+//----------------------------------------
+/*
+void vtkObMap::Insert(const vtkObMap& obMap, bool withExcept )
+{
+
+  vtkObMap::const_iterator it;
+
+  for (it = obMap.begin() ; it != obMap.end() ; it++)
+  {
+    this->Insert((*it).first, (*it).second, withExcept);
+  }
+
+}
+*/
+//----------------------------------------
+
+vtkObject* vtkObMap::Exists(const std::string& key)
+{
+  vtkObMap::iterator it = mapvtkobject::find(key);
+  if (it == end())
+  {
+    return NULL;
+  }
+  else
+  {
+    return (*it).second;
+  }
+
+}
+//----------------------------------------
+
+void vtkObMap::RemoveAll()
+{
+
+  vtkObMap::iterator it;
+
+  if (m_bDelete)
+  {
+    for (it = begin() ; it != end() ; it++)
+    {
+      vtkObject* ob = it->second;
+      if (ob != NULL)
+      {
+        ob->Delete();
+      }
+    }
+  }
+
+  mapvtkobject::clear();
+
+}
+//----------------------------------------
+
+
+bool vtkObMap::Erase(vtkObMap::iterator it)
+{
+
+  if (it == end())
+  {
+    return false;
+  }
+
+  bool bOk = false;
+
+   vtkObject *ob = it->second;
+   if (ob != NULL)
+   {
+     bOk = true;
+     mapvtkobject::erase(it);
+     if (m_bDelete)
+     {
+      ob->Delete();
+     }
+   }
+
+   return bOk;
+
+}
+//----------------------------------------
+
+
+bool vtkObMap::Erase(const std::string& key)
+{
+
+  vtkObMap::iterator it;
+
+  it = mapvtkobject::find(key);
+
+  return Erase(it);
+
+}
+
+//----------------------------------------
+
+vtkObject* vtkObMap::operator[](const std::string& key)
+{
+
+  vtkObject *ob = mapvtkobject::operator[](key);
+//   if (ob == NULL)
+//   {
+//     logic_error e("key not found");
+//     throw e;
+//   }
+
+return  ob;
+}
+
+//----------------------------------------
+
+
+void vtkObMap::Dump(std::ostream& fOut /* = std::cerr */)
+{
+
+   if (CTrace::IsTrace() == false)
+   {
+      return;
+   }
+
+   fOut << "==> Dump a vtkObMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
+
+   vtkObMap::iterator it;
+
+   for (it = this->begin() ; it != this->end() ; it++)
+   {
+      vtkObject *ob = it->second;
+      fOut << "vtkObMap Key is = " << (*it).first << std::endl;
+      fOut << "vtkObMap Value at " << ob << std::endl;
+      //ob->Dump(fOut);
+   }
+
+   fOut << "==> END Dump a vtkObMap Object at "<< this << " with " <<  size() << " elements" << std::endl;
+
+}
 
 
 

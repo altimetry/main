@@ -46,8 +46,12 @@
 
 #include "vtkCallbackCommand.h"
 #include "vtkLookupTable.h"
-#include "vtkZFXYPlotFilter.h"
+#include "PlotData/vtkZFXYPlotFilter.h"
 
+#include "wxInterface.h"
+#ifdef CursorShape  //collsion Qt X
+#undef CursorShape
+#endif
 #include "ZFXYPlotPropertyPanel.h"
 #include "ZFXYPlotPanel.h"
 

@@ -42,30 +42,10 @@ using namespace brathl;
 //------------------- CPlotBase class --------------------
 //-------------------------------------------------------------
 
-CPlotBase::CPlotBase(uint32_t groupNumber)
-{
-  m_groupNumber = groupNumber;
-  Init();
-
-}
-
-//----------------------------------------
-CPlotBase::~CPlotBase()
-{
-
-}
-//----------------------------------------
-void CPlotBase::Init()
-{
-  m_unitXConv = false;
-  m_unitYConv = false;
-
-}
-
 //----------------------------------------
 CPlotField* CPlotBase::GetPlotField(int32_t index)
 {
-  int32_t nCount = m_fields.size();
+  int32_t nCount = (int32_t)m_fields.size();
 
   if ( (index < 0) || (index >= nCount))
   {

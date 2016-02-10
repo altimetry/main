@@ -2,9 +2,7 @@
 
 
 #include <qprinter.h>					//spectogram
-#if QT_VERSION >= 0x040000
 #include <qprintdialog.h>				//spectogram
-#endif
 #include <qwt_color_map.h>				//spectogram
 #include <qwt_plot_spectrogram.h>		//spectogram
 #include <qwt_scale_widget.h>			//spectogram
@@ -14,21 +12,29 @@
 #include <qwt_plot_layout.h>			//spectogram
 
 
+#include <qwt_data.h>           //simple
+#include <qwt_legend.h>         //simple
+#include <qwt_plot_curve.h>     //simple
+#include <qwt_plot_marker.h>    //simple
+
 
 #include "new-gui/Common/QtUtils.h"
 
 #include "2DPlotWidget.h"
 
 
-//////////////////////////////////////////////////////////////////
-//		Plot Data
-//////////////////////////////////////////////////////////////////
+// TODO delete this macro; if active, no operation is expected to work besides the simple example display
+// #define TEST_2D_EXAMPLES
 
 
-class MyZoomer : public QwtPlotZoomer
+//////////////////////////////////////////////////////////////////
+//						Custom Zoomer
+//////////////////////////////////////////////////////////////////
+
+class CZoomer : public QwtPlotZoomer
 {
 public:
-	MyZoomer( QwtPlotCanvas *canvas ) :
+	CZoomer( QwtPlotCanvas *canvas ) :
 		QwtPlotZoomer( canvas )
 	{
 		setTrackerMode( AlwaysOn );
@@ -37,56 +43,39 @@ public:
 	virtual QwtText trackerText( const QwtDoublePoint &pos ) const
 	{
 		QColor bg( Qt::white );
-#if QT_VERSION >= 0x040300
 		bg.setAlpha( 200 );
-#endif
-
 		QwtText text = QwtPlotZoomer::trackerText( pos );
 		text.setBackgroundBrush( QBrush( bg ) );
 		return text;
 	}
 };
 
-class SpectrogramData : public QwtRasterData
-{
-public:
-	SpectrogramData() :
-		QwtRasterData( QwtDoubleRect( -1.5, -1.5, 3.0, 3.0 ) )
-	{
-	}
-
-	virtual QwtRasterData *copy() const
-	{
-		return new SpectrogramData();
-	}
-
-	virtual QwtDoubleInterval range() const
-	{
-		return QwtDoubleInterval( 0.0, 10.0 );
-	}
-
-	virtual double value( double x, double y ) const
-	{
-		const double c = 0.842;
-
-		const double v1 = x * x + ( y - c ) * ( y + c );
-		const double v2 = x * ( y + c ) + x * ( y + c );
-
-		return 1.0 / ( v1 * v1 + v2 * v2 );
-	}
-};
 
 
 //////////////////////////////////////////////////////////////////
 //		The Class
 //////////////////////////////////////////////////////////////////
 
-C2DPlotWidget::C2DPlotWidget( E2DPlotType type, QWidget *parent ) : base_t( parent )
+C2DPlotWidget::C2DPlotWidget( QWidget *parent ) 
+	: base_t( parent )
 {
+	setWindowIcon( QPixmap( ":/2.png" ) );
+	setWindowTitle( "[*]" );
+	setAttribute( Qt::WA_DeleteOnClose );
+
+	setCanvasBackground( Qt::white );
+
+    setMinimumSize( min_plot_widget_width, min_plot_widget_height );
+
+#if defined (TEST_2D_EXAMPLES)
+
+	E2DPlotType type = eSpectogram;
+
 	switch ( type )
 	{
 		case eSpectogram:
-			Spectogram( parent );
+
+            Spectogram( parent );
 			break;
 
 		default:
@@ -94,128 +83,97 @@ C2DPlotWidget::C2DPlotWidget( E2DPlotType type, QWidget *parent ) : base_t( pare
 	}
 
     setMinimumSize( min_plot_widget_width, min_plot_widget_height );
+#endif
+
 }
+
 
 C2DPlotWidget::~C2DPlotWidget()
 {}
 
 
-void C2DPlotWidget::Spectogram( QWidget *parent )
+
+
+
+QwtPlotCurve* C2DPlotWidget::AddCurve( const std::string &title, QColor color, const QwtData *data )	//data = nullptr 
 {
-	mSpectrogram = new QwtPlotSpectrogram();
+    QwtPlotCurve *c = new QwtPlotCurve( title.c_str() );
+    c->setRenderHint(QwtPlotItem::RenderAntialiased);
+    c->setPen( QPen( color ) );
+    c->attach( this );
+	if ( data )
+	    c->setData( *data );
+	return c;
+}
 
-	QwtLinearColorMap colorMap( Qt::darkCyan, Qt::red );
-	colorMap.addColorStop( 0.1, Qt::cyan );
-	colorMap.addColorStop( 0.6, Qt::green );
-	colorMap.addColorStop( 0.95, Qt::yellow );
+void C2DPlotWidget::SetAxisTitle( Axis axis, const std::string &title )
+{
+    setAxisTitle( axis, title.c_str() );
+}
 
-	mSpectrogram->setColorMap( colorMap );
+QwtPlotMarker* C2DPlotWidget::AddMarker( const std::string &label, Qt::Alignment label_alignment, Qt::Orientation label_orientation, 
+	QwtPlotMarker::LineStyle st, double value )
+{
+    QwtPlotMarker *m = new QwtPlotMarker();
+	m->setLabel( QString::fromLatin1( label.c_str() ) );
+    m->setLabelAlignment( label_alignment );
+    m->setLabelOrientation( label_orientation );
+    m->setLineStyle( st );
+	if ( st == QwtPlotMarker::VLine )
+	{
+		m->setXValue( value );
+	}
+	else {
+		m->setYValue( value );
+	}
+    m->attach(this);
 
-	mSpectrogram->setData( SpectrogramData() );
-	mSpectrogram->attach( this );
+	return m;
+}
+QwtPlotMarker* C2DPlotWidget::AddMarker( const std::string &label, QwtPlotMarker::LineStyle st, double value )
+{
+	if ( st == QwtPlotMarker::HLine )
+		return AddMarker( label, Qt::AlignRight | Qt::AlignTop, Qt::Horizontal, st, value );
+	else
+		return AddMarker( label, Qt::AlignLeft | Qt::AlignBottom, Qt::Vertical, st, value );
 
-	QwtValueList contourLevels;
-	for ( double level = 0.5; level < 10.0; level += 1.0 )
-		contourLevels += level;
-	mSpectrogram->setContourLevels( contourLevels );
+	return nullptr;
+}
 
-	// A color bar on the right axis
-	QwtScaleWidget *rightAxis = axisWidget( QwtPlot::yRight );
-	rightAxis->setTitle( "Intensity" );
-	rightAxis->setColorBarEnabled( true );
-	rightAxis->setColorMap( mSpectrogram->data().range(),
-		mSpectrogram->colorMap() );
-
-	setAxisScale( QwtPlot::yRight,
-		mSpectrogram->data().range().minValue(),
-		mSpectrogram->data().range().maxValue() );
-	enableAxis( QwtPlot::yRight );
-
-	plotLayout()->setAlignCanvasToScales( true );
-	replot();
-
+QwtPlotZoomer* C2DPlotWidget::AddZoomer( QColor color )
+{
 	// LeftButton for the zooming
-	// MidButton for the panning
 	// RightButton: zoom out by 1
 	// Ctrl+RighButton: zoom out to full size
 
-	QwtPlotZoomer* zoomer = new MyZoomer( canvas() );
-#if QT_VERSION < 0x040000
-	zoomer->setMousePattern(QwtEventPattern::MouseSelect2,
-		Qt::RightButton, Qt::ControlButton);
-#else
-	zoomer->setMousePattern( QwtEventPattern::MouseSelect2,
-		Qt::RightButton, Qt::ControlModifier );
-#endif
-	zoomer->setMousePattern( QwtEventPattern::MouseSelect3,
-		Qt::RightButton );
+	QwtPlotZoomer* zoomer = new CZoomer( canvas() );
+	zoomer->setMousePattern( QwtEventPattern::MouseSelect2,	Qt::RightButton, Qt::ControlModifier );
+	zoomer->setMousePattern( QwtEventPattern::MouseSelect3,	Qt::RightButton );
 
+	const QColor c( color );
+	zoomer->setRubberBandPen( c );
+	zoomer->setTrackerPen( c );
+
+	return zoomer;
+}
+
+QwtPlotPanner* C2DPlotWidget::AddPanner()
+{
+	// MidButton for the panning
 	QwtPlotPanner *panner = new QwtPlotPanner( canvas() );
 	panner->setAxisEnabled( QwtPlot::yRight, false );
 	panner->setMouseButton( Qt::MidButton );
 
-	// Avoid jumping when labels with more/less digits
-	// appear/disappear when scrolling vertically
-
-	const QFontMetrics fm( axisWidget( QwtPlot::yLeft )->font() );
-	QwtScaleDraw *sd = axisScaleDraw( QwtPlot::yLeft );
-	sd->setMinimumExtent( fm.width( "100.00" ) );
-
-	const QColor c( Qt::darkBlue );
-	zoomer->setRubberBandPen( c );
-	zoomer->setTrackerPen( c );
-
-
-	// parent
-
-	QMainWindow *m = dynamic_cast<QMainWindow *>( parent );
-
-	QToolBar *toolBar = new QToolBar( m );
-
-	QToolButton *btnSpectrogram = new QToolButton( toolBar );
-	QToolButton *btnContour = new QToolButton( toolBar );
-	QToolButton *btnPrint = new QToolButton( toolBar );
-
-	btnSpectrogram->setText( "Spectrogram" );
-	//btnSpectrogram->setIcon(QIcon());
-	btnSpectrogram->setCheckable( true );
-	btnSpectrogram->setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
-	toolBar->addWidget( btnSpectrogram );
-
-	btnContour->setText( "Contour" );
-	//btnContour->setIcon(QIcon());
-	btnContour->setCheckable( true );
-	btnContour->setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
-	toolBar->addWidget( btnContour );
-
-	btnPrint->setText( "Print" );
-	btnPrint->setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
-	toolBar->addWidget( btnPrint );
-
-	m->addToolBar( toolBar );
-
-	connect( btnSpectrogram, SIGNAL( toggled( bool ) ), this, SLOT( showSpectrogram( bool ) ) );
-	connect( btnContour, SIGNAL( toggled( bool ) ), this, SLOT( showContour( bool ) ) );
-	connect( btnPrint, SIGNAL( clicked() ), this, SLOT( printPlot() ) );
-
-
-	btnSpectrogram->setChecked( true );
-	btnContour->setChecked( false );
+	return panner;
 }
 
-
-void C2DPlotWidget::showContour( bool on )
+QwtLegend* C2DPlotWidget::AddLegend( LegendPosition pos )
 {
-	mSpectrogram->setDisplayMode( QwtPlotSpectrogram::ContourMode, on );
-	replot();
+	QwtLegend *legend = new QwtLegend;
+    insertLegend( legend, pos );
+	return legend;
 }
 
-void C2DPlotWidget::showSpectrogram( bool on )
-{
-	mSpectrogram->setDisplayMode( QwtPlotSpectrogram::ImageMode, on );
-	mSpectrogram->setDefaultContourPen( on ? QPen() : QPen( Qt::NoPen ) );
-	replot();
-}
 
 void C2DPlotWidget::printPlot()
 {
@@ -240,24 +198,9 @@ void C2DPlotWidget::printPlot()
 }
 
 
-
-
-//C2DPlotWidget::C2DPlotWidget( QWidget *parent ) : base_t( parent )
-//{
-//
-//	setWindowIcon( QPixmap( ":/2.png" ) );
-//	setWindowTitle( "[*]" );
-//	setAttribute( Qt::WA_DeleteOnClose );
-//
-//	setVisible( true );
-//}
-
-
 QSize C2DPlotWidget::sizeHint() const
 {
 	return m_SizeHint;
-	//return QSize(72 * fontMetrics().width('x'),
-	//             25 * fontMetrics().lineSpacing());
 }
 
 

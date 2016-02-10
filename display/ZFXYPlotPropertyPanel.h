@@ -36,12 +36,12 @@
 
 #include "wxVTKRenderWindowInteractor.h"
 
-#include "vtkZFXYPlotActor.h"
+#include "PlotData/vtkZFXYPlotActor.h"
 #include "vtkCommand.h"
 
 #include "BratDisplay_wdr.h"
 
-#include "ZFXYPlotData.h"
+#include "PlotData/ZFXYPlotData.h"
 #include "PlotData/MapProjection.h"
 #include "LabeledTextCtrl.h"
 #include "LUTPanel.h"

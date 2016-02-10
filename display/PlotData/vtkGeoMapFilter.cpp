@@ -33,6 +33,9 @@
 #include "new-gui/Common/tools/Exception.h"
 using namespace brathl;
 
+#if defined (__DEPRECATED)          //avoid linux warning in vtk include
+#undef __DEPRECATED
+#endif
 #include "vtkProj2DFilter.h"
 #include "vtkGeoMapFilter.h"
 

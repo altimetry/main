@@ -63,11 +63,11 @@
 class CGeoMap : public CWorldPlotData
 {
 public:
-		std::vector<bool> valids;
-		std::vector<double> vals;
-		std::vector<bool> bits;
-		std::vector<double> lons;
-		std::vector<double> lats;
+		std::vector<bool> v4_valids;
+		std::vector<double> v4_vals;
+		std::vector<bool> v4_bits;
+		std::vector<double> v4_lons;
+		std::vector<double> v4_lats;
 
 	CGeoMap( CPlotField* field );
 	CGeoMap( CObArray* data, const std::string& fieldName, CWorldPlotProperty* plotProperty = NULL );

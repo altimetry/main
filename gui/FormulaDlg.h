@@ -25,7 +25,7 @@
 
 #include "BratGui_wdr.h"
 
-#include "new-gui/brat/Workspaces/Formula.h"
+#include "new-gui/brat/DataModels/Workspaces/Formula.h"
 
 // WDR: class declarations
 

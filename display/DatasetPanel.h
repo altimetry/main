@@ -37,7 +37,7 @@
 
 #include "BratDisplay_wdr.h"
 
-#include "XYPlotData.h"
+#include "PlotData/XYPlotData.h"
 //-------------------------------------------------------------
 //------------------- CDatasetSelectedEvent class --------------------
 //-------------------------------------------------------------

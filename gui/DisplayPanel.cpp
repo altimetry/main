@@ -42,7 +42,7 @@ using namespace brathl;
 #include "Validators.h"
 
 #include "BratGui.h"
-#include "new-gui/brat/Workspaces/Workspace.h"
+#include "new-gui/brat/DataModels/Workspaces/Workspace.h"
 #include "new-gui/brat/Display/MapTypeDisp.h"
 #include "Process.h"
 

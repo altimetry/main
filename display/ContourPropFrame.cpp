@@ -31,7 +31,7 @@
 
 #include "BratDisplayApp.h"
 #include "ContourPropFrame.h"
-#include "MapColor.h"
+#include "PlotData/MapColor.h"
 #include "wxInterface.h"
 #include "PlotData/GeoMap.h"
 
@@ -238,7 +238,7 @@ void CContourPropPanel::OnSameColor( wxCommandEvent &event )
 //----------------------------------------
 void CContourPropPanel::OnLabelColor( wxCommandEvent &event )
 {
-  wxColourData colorData = CMapColor::GetInstance().ChooseColor(m_geoMap->m_plotProperty.m_contourLabelColor, this);
+  wxColourData colorData = CMapColor::GetInstance().ChooseColor(color_cast(m_geoMap->m_plotProperty.m_contourLabelColor), this);
   m_labelColor = color_cast(colorData);
 
   GetContourLabelColor()->SetBackgroundColour(color_cast(m_labelColor));
@@ -253,7 +253,7 @@ void CContourPropPanel::OnLabelColor( wxCommandEvent &event )
 //----------------------------------------
 void CContourPropPanel::OnLineColor( wxCommandEvent &event )
 {
-  wxColourData colorData = CMapColor::GetInstance().ChooseColor(m_geoMap->m_plotProperty.m_contourLineColor, this);
+  wxColourData colorData = CMapColor::GetInstance().ChooseColor(color_cast(m_geoMap->m_plotProperty.m_contourLineColor), this);
   m_lineColor = color_cast(colorData);
 
   GetContourLineColor()->SetBackgroundColour(color_cast(m_lineColor));

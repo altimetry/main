@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
@@ -17,14 +15,6 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "WPlot.h"
-#endif
-
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
 
 #include "new-gui/Common/tools/Trace.h"
 #include "libbrathl/Tools.h"

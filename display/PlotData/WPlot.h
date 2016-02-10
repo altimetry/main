@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -21,12 +19,7 @@
 #ifndef __WPlot_H__
 #define __WPlot_H__
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "WPlot.h"
-#endif
-
 #include "libbrathl/brathl.h"
-using namespace brathl;
 
 
 namespace brathl{
@@ -40,6 +33,8 @@ namespace brathl{
 //#include "BitSet32.h"
 
 
+using namespace brathl;
+
 
 //-------------------------------------------------------------
 //------------------- CWPlot class --------------------
@@ -52,21 +47,25 @@ namespace brathl{
 class CWPlot : public CPlotBase
 {
 public:
-  CWPlot(uint32_t groupNumber = 0);
-  virtual ~CWPlot();
+	CWPlot( uint32_t groupNumber = 0 );
+	virtual ~CWPlot();
 
-  virtual CInternalFiles* GetInternalFiles(CBratObject* ob, bool withExcept = true);    
+    virtual CInternalFiles* GetInternalFiles( CBratObject* ob, bool withExcept = true ) override;
 
-  static CInternalFilesZFXY* GetInternalFilesZFXY(CBratObject* ob, bool withExcept = true);
+	static CInternalFilesZFXY* GetInternalFilesZFXY( CBratObject* ob, bool withExcept = true );
 
 public:
 
-  virtual void GetInfo();
+	virtual const std::string& BaseTitle() const override
+	{
+		static const std::string s = "BRAT World Plot";
+		return s;
+	}
+
+    virtual void GetInfo() override;
 
 protected:
-  void Init();
-
-  
+	void Init();
 };
 
 

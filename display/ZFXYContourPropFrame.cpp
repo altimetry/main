@@ -32,7 +32,7 @@
 
 #include "BratDisplayApp.h"
 #include "ZFXYContourPropFrame.h"
-#include "MapColor.h"
+#include "PlotData/MapColor.h"
 
 DEFINE_EVENT_TYPE(wxEVT_ZFXY_CONTOUR_PROP_CHANGED)
 DEFINE_EVENT_TYPE(wxEVT_ZFXY_CONTOUR_PROP_CLOSE)
@@ -236,7 +236,7 @@ void CZFXYContourPropPanel::OnSameColor( wxCommandEvent &event )
 //----------------------------------------
 void CZFXYContourPropPanel::OnLabelColor( wxCommandEvent &event )
 {
-  wxColourData colorData = CMapColor::GetInstance().ChooseColor(m_geoMap->m_plotProperty.m_contourLabelColor, this);
+  wxColourData colorData = CMapColor::GetInstance().ChooseColor(color_cast(m_geoMap->m_plotProperty.m_contourLabelColor), this);
   m_labelColor = color_cast(colorData);
 
   GetContourLabelColor()->SetBackgroundColour(color_cast(m_labelColor));
@@ -251,7 +251,7 @@ void CZFXYContourPropPanel::OnLabelColor( wxCommandEvent &event )
 //----------------------------------------
 void CZFXYContourPropPanel::OnLineColor( wxCommandEvent &event )
 {
-  wxColourData colorData = CMapColor::GetInstance().ChooseColor(m_geoMap->m_plotProperty.m_contourLineColor, this);
+  wxColourData colorData = CMapColor::GetInstance().ChooseColor(color_cast(m_geoMap->m_plotProperty.m_contourLineColor), this);
   m_lineColor = color_cast(colorData);
 
   GetContourLineColor()->SetBackgroundColour(color_cast(m_lineColor));

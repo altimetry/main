@@ -107,11 +107,15 @@ bool CFileSettings::CheckVersion()
 	if ( s == new_s )
 		return true;
 
-	std::string old_path = CreateUniqueFileName( new_path );		//new path, to save old contents
-	if ( old_path.empty() || !DuplicateFile( new_path, old_path ) )	//save "old" file
+	std::string old_path = CreateUniqueFileName( new_path );			//new path, to save old contents
+	if ( old_path.empty() || !DuplicateFile( new_path, old_path ) )		//save "old" file
 		return false;
 
-	if ( !Write2File( new_s, new_path ) )						   	//save "new" file
+	// Having changed the content, we must not only save to "new" file but also 
+	//	WriteVersionSignature, otherwise we risk to damage the content next time,
+	//	by "blindly" making the same replacements over replacements already done.
+	//
+	if ( !Write2File( new_s, new_path ) || !WriteVersionSignature() )	//save "new" file
 		return false;
 
 	Sync();

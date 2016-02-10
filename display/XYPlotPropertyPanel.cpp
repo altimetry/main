@@ -33,7 +33,7 @@
 #include "BratDisplayApp.h"
 
 #include "AxisPropertyPanel.h"
-#include "XYPlotData.h"
+#include "PlotData/XYPlotData.h"
 
 #include "XYPlotPropertyPanel.h"
 

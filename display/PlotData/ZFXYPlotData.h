@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -20,34 +18,37 @@
 #ifndef __ZFXYPlotData_H__
 #define __ZFXYPlotData_H__
 
+//#include "wx/progdlg.h"
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "ZFXYPlotData.h"
-#endif
+#include "libbrathl/brathl.h"
 
-#ifndef WX_PRECOMP
-    #include <wx/wx.h>
-#endif
-
-#include "wx/progdlg.h"
-
-#include "brathl.h"
-
-#include "BratObject.h"
-#include "Tools.h"
-#include "List.h"
-#include "Date.h"
+#include "libbrathl/BratObject.h"
+#include "libbrathl/Tools.h"
+#include "libbrathl/List.h"
+#include "libbrathl/Date.h"
 #include "new-gui/Common/tools/Exception.h"
-#include "Unit.h"
+#include "libbrathl/Unit.h"
 
-#include "InternalFiles.h"
-#include "InternalFilesZFXY.h"
+#include "libbrathl/InternalFiles.h"
+#include "libbrathl/InternalFilesZFXY.h"
 
 using namespace brathl;
+
 
 class CZFXYPlotData;
 
 
+#if defined (__unix__)
+#if defined (__DEPRECATED)          //avoid linux warning in vtk include
+#undef __DEPRECATED
+#endif
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+#endif	// __unix__
 #include "vtkActor.h"
 #include "vtkActor2D.h"
 #include "vtkPolyDataMapper.h"
@@ -66,18 +67,20 @@ class CZFXYPlotData;
 #include "vtkRenderer.h"
 #include "vtkScalarBarActor.h"
 
-#include "PlotData/vtkProj2DFilter.h"
-#include "PlotData/vtkGeoGridSource.h"
-#include "PlotData/vtkGSHHSReader.h"
-#include "PlotData/vtkList.h"
+#include "vtkProj2DFilter.h"
+#include "vtkGeoGridSource.h"
+#include "vtkGSHHSReader.h"
+#include "vtkList.h"
 
 #include "vtkSmoothPolyDataFilter.h"
 
 #include "vtkZFXYPlotActor.h"
 
-#include "PlotData/ZFXYPlot.h"
-#include "PlotData/PlotField.h"
-#include "PlotData/BratLookupTable.h"
+#include "new-gui/brat/DataModels/PlotData/PlotValues.h"
+#include "ZFXYPlot.h"
+#include "PlotField.h"
+#include "BratLookupTable.h"
+
 
 //-------------------------------------------------------------
 //------------------- CLUTRenderer class --------------------
@@ -149,10 +152,10 @@ public:
 
   const CZFXYPlotProperty& operator=(const CZFXYPlotProperty& p);
 
-  wxString m_title;
-  wxString m_name;
-  wxString m_xLabel;
-  wxString m_yLabel;
+  std::string m_title;
+  std::string m_name;
+  std::string m_xLabel;
+  std::string m_yLabel;
 
   CBratLookupTable* m_LUT;
   double m_opacity;
@@ -192,7 +195,7 @@ public:
   CVtkColor m_contourLineColor;
   CVtkColor m_contourLabelColor;
   
-  wxString m_contourLabelFormat;
+  std::string m_contourLabelFormat;
 
   bool m_solidColor;
 
@@ -212,18 +215,20 @@ private:
 //------------------- CZFXYPlotData class --------------------
 //-------------------------------------------------------------
 
-
 class CZFXYPlotData : public CBratObject
 {
+	C3DPlotInfo mMaps;
 
 public:
-
-  CZFXYPlotData(wxWindow* parent, CZFXYPlot* plot, CPlotField* field);
+  CZFXYPlotData(CZFXYPlot* plot, CPlotField* field);
 
   virtual ~CZFXYPlotData();
 
 
-  void Create(wxWindow* parent, CObArray* data, const std::string& fieldName, CZFXYPlot* plot);
+  const C3DPlotInfo& Maps() const { return mMaps; }
+
+
+  void Create(CObArray* data, const std::string& fieldName, CZFXYPlot* plot);
 
   
   void SetInput(vtkPolyData* output);
@@ -232,29 +237,29 @@ public:
   virtual void OnKeyframeChanged(uint32_t i);
   virtual void Close();
   
-  const CUnit& GetXUnit(){return m_unitX;};
-  const CUnit& GetYUnit(){return m_unitY;};
+  const CUnit& GetXUnit(){return m_unitX;}
+  const CUnit& GetYUnit(){return m_unitY;}
 
-  uint32_t GetCurrentMap() {return m_currentMap;};
+  uint32_t GetCurrentMap() {return m_currentMap;}
 
   vtkZFXYPlotFilter* GetCurrentPlotData();
   vtkZFXYPlotFilter* GetPlotData(int32_t i);
 
-  virtual std::string GetDataTitle() {return GetDataTitle(m_currentMap);};
-  virtual std::string GetDataTitle(uint32_t index) {return m_dataTitles[index];};
+  virtual std::string GetDataTitle() {return GetDataTitle(m_currentMap);}
+  virtual std::string GetDataTitle(uint32_t index) {return m_dataTitles[index];}
 
-  virtual std::string GetDataName() {return (const char *)(m_plotProperty.m_name);};
+  virtual std::string GetDataName() {return m_plotProperty.m_name;}
 
 
   vtkActor2D* GetVtkActor2D() {return m_vtkActor2D;};
 
-  vtkActor2D* GetVtkContourActor2D() {return m_vtkContourActor2D;};
+  vtkActor2D* GetVtkContourActor2D() {return m_vtkContourActor2D;}
 
-  vtkActor2D* GetVtkContourLabelActor() {return m_vtkContourLabelActor;};
+  vtkActor2D* GetVtkContourLabelActor() {return m_vtkContourLabelActor;}
 
-  CLUTZFXYRenderer* GetColorBarRenderer() {return m_colorBarRenderer;};
+  CLUTZFXYRenderer* GetColorBarRenderer() {return m_colorBarRenderer;}
 
-  CBratLookupTable* GetLUT() {return m_LUT;};
+  CBratLookupTable* GetLUT() {return m_LUT;}
 
   void SetLUT(CBratLookupTable* lut);
 
@@ -267,15 +272,15 @@ public:
       return m_LUT->GetLookupTable();
     };
 
-  vtkPolyDataMapper2D* GetVtkMapper2D() {return m_vtkMapper2D;};
+  vtkPolyDataMapper2D* GetVtkMapper2D() {return m_vtkMapper2D;}
 
-  vtkPolyDataMapper2D* GetVtkContourMapper2D() {return m_vtkContourMapper2D;};
+  vtkPolyDataMapper2D* GetVtkContourMapper2D() {return m_vtkContourMapper2D;}
 
-  vtkProgrammableFilter* GetVtkVisibleSpherePointsFilter() {return m_vtkVisibleSpherePointsFilter;};
-  vtkPoints* GetVtkVisibleSpherePoints() {return m_vtkVisibleSpherePoints;};
-  vtkDoubleArray* GetVtkVisibleSpherePointsData() {return m_vtkVisibleSpherePointsData;};
+  vtkProgrammableFilter* GetVtkVisibleSpherePointsFilter() {return m_vtkVisibleSpherePointsFilter;}
+  vtkPoints* GetVtkVisibleSpherePoints() {return m_vtkVisibleSpherePoints;}
+  vtkDoubleArray* GetVtkVisibleSpherePointsData() {return m_vtkVisibleSpherePointsData;}
 
-  vtkRenderer* GetVtkRenderer() {return m_vtkRend;};
+  vtkRenderer* GetVtkRenderer() {return m_vtkRend;}
 
   bool HasActor2D();
 
@@ -288,13 +293,13 @@ public:
   void SetContour2DProperties();
 
 
-  bool GetContour() {return m_plotProperty.m_withContour;};
-  void SetContour(bool value) {m_plotProperty.m_withContour = value;};
+  bool GetContour() {return m_plotProperty.m_withContour;}
+  void SetContour(bool value) {m_plotProperty.m_withContour = value;}
   
-  bool GetSolidColor() {return m_plotProperty.m_solidColor;};
-  void SetSolidColor(bool value) {m_plotProperty.m_solidColor = value;};
+  bool GetSolidColor() {return m_plotProperty.m_solidColor;}
+  void SetSolidColor(bool value) {m_plotProperty.m_solidColor = value;}
 
-  void SetRenderer(vtkRenderer* vtkRend) {m_vtkRend = vtkRend;};
+  void SetRenderer(vtkRenderer* vtkRend) {m_vtkRend = vtkRend;}
 
   static void FindVisiblePlanePoints(void* arg);
 
@@ -303,36 +308,36 @@ public:
   virtual void CreateContourLabels2D();
   virtual void UpdateContourLabels2D();
 
-  void GetComputedRange(double& min, double& max) {min = m_minhv; max = m_maxhv;};
-  double GetComputedRangeMin() {return m_minhv;};
-  double GetComputedRangeMax() {return m_maxhv;};
+  void GetComputedRange(double& min, double& max) {min = m_minhv; max = m_maxhv;}
+  double GetComputedRangeMin() {return m_minhv;}
+  double GetComputedRangeMax() {return m_maxhv;}
 
   void GetXRange(double& min, double& max, uint32_t frame);
-  void GetXRange(double& min, double& max) {min = m_xMin; max = m_xMax;};
-  double GetXRangeMin() {return m_xMin;};
-  double GetXRangeMax() {return m_xMax;};
+  void GetXRange(double& min, double& max) {min = m_xMin; max = m_xMax;}
+  double GetXRangeMin() {return m_xMin;}
+  double GetXRangeMax() {return m_xMax;}
 
   void GetYRange(double& min, double& max, uint32_t frame);
-  void GetYRange(double& min, double& max) {min = m_yMin; max = m_yMax;};
-  double GetYRangeMin() {return m_yMin;};
-  double GetYRangeMax() {return m_yMax;};
+  void GetYRange(double& min, double& max) {min = m_yMin; max = m_yMax;}
+  double GetYRangeMin() {return m_yMin;}
+  double GetYRangeMax() {return m_yMax;}
 
-  vtkObArray* GetZFXYPlotFilterList() {return &m_zfxyPlotFilterList;};
+  vtkObArray* GetZFXYPlotFilterList() {return &m_zfxyPlotFilterList;}
   
-  int32_t GetNrMaps() {return m_nrMaps;};
+  int32_t GetNrMaps() {return m_nrMaps;}
 
-  CZFXYPlotProperty* GetPlotProperty() {return &m_plotProperty;};
+  CZFXYPlotProperty* GetPlotProperty() {return &m_plotProperty;}
 
-  bool GetContourLabelNeedUpdateOnWindow() {return m_contourLabelNeedUpdateOnWindow;};
-  void SetContourLabelNeedUpdateOnWindow(bool value ) {m_contourLabelNeedUpdateOnWindow = value;};
+  bool GetContourLabelNeedUpdateOnWindow() {return m_contourLabelNeedUpdateOnWindow;}
+  void SetContourLabelNeedUpdateOnWindow(bool value ) {m_contourLabelNeedUpdateOnWindow = value;}
 
-  bool GetContourLabelNeedUpdatePositionOnContour() {return m_contourLabelNeedUpdatePositionOnContour;};
-  void SetContourLabelNeedUpdatePositionOnContour(bool value) {m_contourLabelNeedUpdatePositionOnContour = value;};
+  bool GetContourLabelNeedUpdatePositionOnContour() {return m_contourLabelNeedUpdatePositionOnContour;}
+  void SetContourLabelNeedUpdatePositionOnContour(bool value) {m_contourLabelNeedUpdatePositionOnContour = value;}
 
-  std::string GetDataDateString() {return GetDataDateString(m_currentMap);};
+  std::string GetDataDateString() {return GetDataDateString(m_currentMap);}
   std::string GetDataDateString(uint32_t index);
 
-  std::string GetDataUnitString() {return GetDataUnitString(m_currentMap);};
+  std::string GetDataUnitString() {return GetDataUnitString(m_currentMap);}
   std::string GetDataUnitString(uint32_t index);
 
 

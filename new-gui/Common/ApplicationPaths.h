@@ -4,6 +4,7 @@
 
 #include <QString>
 
+#include "+UtilsIO.h"
 #include "ConsoleApplicationPaths.h"
 
 
@@ -132,6 +133,22 @@ public:
     const std::string& WorkspacesPath() const { return mWorkspacesDir; }
 
     bool UniqueUserBasePath() const { return mUniqueUserBasePath; }
+
+
+	std::string Absolute2PortableDataPath( const std::string &path ) const
+	{
+		if ( mUniqueUserBasePath )
+			return ::Absolute2PortableDataPath( path, mUserBasePath );
+
+		return path;
+	}
+
+
+	std::string PortableData2AbsolutePath( const std::string &path ) const
+	{
+		return ::PortableData2AbsolutePath( path, mUserBasePath );
+	}
+
 
 
     ////////////////////////////////////////////

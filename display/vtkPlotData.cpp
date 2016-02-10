@@ -29,7 +29,7 @@
 
 =========================================================================*/
 
-#include "vtkTools.h"
+#include "PlotData/vtkTools.h"
 #include "vtkPlotData.h"
 
 #include "vtkAppendPolyData.h"

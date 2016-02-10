@@ -1,10 +1,11 @@
-#include "new-gui/brat-lab/stdafx.h"
+#include "new-gui/brat/stdafx.h"
 
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/QtUtilsIO.h"
 
 #include "libbrathl/Tools.h"
 #include "new-gui/Common/tools/Trace.h"
+#include "new-gui/brat/ApplicationLogger.h"
 #include "libbrathl/InternalFilesFactory.h"
 #include "libbrathl/InternalFilesZFXY.h"
 #include "libbrathl/InternalFilesYFX.h"
@@ -23,6 +24,8 @@
 #include "display/PlotData/Plot.h"
 #include "display/PlotData/WPlot.h"
 #include "display/PlotData/ZFXYPlot.h"
+#include "display/PlotData/ZFXYPlotData.h"
+#include "display/PlotData/XYPlotData.h"
 
 
 #include "CmdLineProcessor.h"
@@ -127,8 +130,8 @@ bool CmdLineProcessor::GetCommandLineOptions( int argc, const char* argv[] )
 	{
 		/* NULL entries were detected, some allocations must have failed */
 		CException e( "CBratDisplayApp::GetCommandLineOptions - insufficient memory", BRATHL_UNIMPLEMENT_ERROR );
-		CTrace::Tracer( "%s", e.what() );
-		throw ( e );
+		LOG_TRACE( e.what() );
+		throw e;
 	}
 
 	/* Parse the command line as defined by argtable[] */
@@ -153,7 +156,7 @@ bool CmdLineProcessor::GetCommandLineOptions( int argc, const char* argv[] )
 		return false;
 	}
 
-	if ( ( keywords->count > 0 ) && ( keywordList != NULL ) )
+    if ( keywords->count > 0 )
 	{
 		CBratProcess::PrintParameterHelp( std::cout, keywordList );
 
@@ -212,7 +215,6 @@ void CmdLineProcessor::LoadParameters()
 	{
 		m_params.Load( m_paramFile );
 	}
-
 }
 
 void CmdLineProcessor::CheckFiles()
@@ -533,7 +535,7 @@ void CmdLineProcessor::GetParameters()
 		// ------------------------------
 		// -------------- ZFXY plot
 		// ------------------------------
-/*	femmTODO 
+
 		if ( m_isZFXY )
 		{
 			// Add field to ZFXY plot group
@@ -607,16 +609,12 @@ void CmdLineProcessor::GetParameters()
 		}
 
 		m_fields[ index ] = expr;
-	femmTODO */
 	}
 }
 
 
 void CmdLineProcessor::GetXYPlotPropertyParams( int32_t nFields )
 {
-	Q_UNUSED(nFields)
-
-	/*femmTODO
 	int32_t i = 0;
 	bool boolValue = false;
 	double doubleValue = 0.0;
@@ -780,7 +778,7 @@ void CmdLineProcessor::GetXYPlotPropertyParams( int32_t nFields )
 		}
 
 		m_params.m_mapParam[ kwDISPLAY_OPACITY ]->GetValue( doubleValue, i, 0.6 );
-		if ( CTools::IsDefaultValue( doubleValue ) == false )
+		if ( isDefaultValue( doubleValue ) == false )
 		{
 			props->SetOpacity( doubleValue );
 		}
@@ -870,7 +868,6 @@ void CmdLineProcessor::GetXYPlotPropertyParams( int32_t nFields )
 		StipplePattern stipplePatternValue = CMapStipplePattern::GetInstance().GetStipplePattern( m_params, i );
 		props->SetLineStipple( stipplePatternValue );
 	}
-	femmTODO*/
 }
 
 
@@ -1211,9 +1208,6 @@ void CmdLineProcessor::GetWPlotPropertyParams( int32_t nFields )
 
 void CmdLineProcessor::GetZFXYPlotPropertyParams( int32_t nFields )
 {
-	Q_UNUSED(nFields)
-
-	/*femmTODO
 	int32_t i = 0;
 	bool boolValue;
 	double doubleValue;
@@ -1381,7 +1375,7 @@ void CmdLineProcessor::GetZFXYPlotPropertyParams( int32_t nFields )
 	{
 		CZFXYPlotProperty* props = GetZFXYPlotProperty( i );
 		m_params.m_mapParam[ kwDISPLAY_COLORCURVE ]->GetValue( stringValue, i );
-		string stringValueOk = zfxyPlotProperty.m_LUT->CurveToLabeledCurve( stringValue );
+		std::string stringValueOk = zfxyPlotProperty.m_LUT->CurveToLabeledCurve( stringValue );
 		if ( stringValueOk.empty() )
 		{
 			throw  CParameterException( CTools::Format( "Unknown color curve name value '%s' for  parameter '%s'",
@@ -1399,15 +1393,13 @@ void CmdLineProcessor::GetZFXYPlotPropertyParams( int32_t nFields )
 	{
 		CZFXYPlotProperty* props = GetZFXYPlotProperty( i );
 		m_params.m_mapParam[ kwDISPLAY_COLORTABLE ]->GetValue( stringValue, i, PALETTE_AEROSOL );
-		string stringValueOk = zfxyPlotProperty.m_LUT->MethodToLabeledMethod( stringValue );
+		std::string stringValueOk = zfxyPlotProperty.m_LUT->MethodToLabeledMethod( stringValue );
 
 		if ( stringValueOk.empty() )
 		{
-			wxFileName fileName;
-			fileName.Assign( stringValue.c_str() );
-			fileName.Normalize();
+			std::string fileName = stringValue;		//			fileName.Normalize();
 
-			if ( wxFileName::FileExists( fileName.GetFullPath() ) == false )
+			if ( !IsFile( fileName ) )
 			{
 				throw  CParameterException( CTools::Format( "Unknown color table name value or color file name '%s' for  parameter '%s'",
 					stringValue.c_str(),
@@ -1419,17 +1411,15 @@ void CmdLineProcessor::GetZFXYPlotPropertyParams( int32_t nFields )
 				// load the color table file definition
 				try
 				{
-					props->m_LUT->LoadFromFile( fileName.GetFullPath() );
+					props->m_LUT->LoadFromFile( fileName );		//fileName.GetFullPath() 
 				}
 				catch ( CException& e )
 				{
-					::wxMessageBox( e.what(), "Load error" );
+					SimpleWarnBox( e.what() );
 				}
 				catch ( ... )
 				{
-					::wxMessageBox( QString::Format( "Can't load %s",
-						fileName.GetFullPath().c_str() ),
-						"Load error" );
+					SimpleWarnBox( "Can't load " + fileName );
 				}
 			}
 		}
@@ -1513,8 +1503,6 @@ void CmdLineProcessor::GetZFXYPlotPropertyParams( int32_t nFields )
 		m_params.m_mapParam[ kwDISPLAY_NAME ]->GetValue( stringValue, i );
 		props->m_name = stringValue.c_str();
 	}
-
-	femmTODO */
 }
 
 
@@ -1523,48 +1511,41 @@ void CmdLineProcessor::GetZFXYPlotPropertyParams( int32_t nFields )
 
 CXYPlotProperty* CmdLineProcessor::GetXYPlotProperty( int32_t index )
 {
-	SimpleWarnBox("CXYPlotProperty* CmdLineProcessor::GetXYPlotProperty( int32_t index ) was called and will crash");
-
-	Q_UNUSED( index );
-
-	/* femmTODO 
 	if ( ( index < 0 ) || ( static_cast<uint32_t>( index ) >= m_xyPlotProperties.size() ) )
 	{
-		std::string msg = CTools::Format( "ERROR in  CBratDisplayApp::GetXYPlotProperty : index %d out-of-range "
-			"Valid range is [0, %ld]",
-			index,
-			(long)m_xyPlotProperties.size() );
+		std::string msg = "ERROR in  CBratDisplayApp::GetXYPlotProperty : index "
+			+ n2s<std::string>(index) 
+			+ " out-of-range "
+			+ "Valid range is [0, "
+			+ n2s<std::string>( m_xyPlotProperties.size() )
+			+ "]";
+
 		throw CException( msg, BRATHL_LOGIC_ERROR );
 	}
-	femmTODO */
 
-	CXYPlotProperty* props = nullptr;		//dynamic_cast<CXYPlotProperty*>( m_xyPlotProperties.at( index ) );
+	CXYPlotProperty* props = dynamic_cast<CXYPlotProperty*>( m_xyPlotProperties.at( index ) );
 	if ( props == NULL )
 	{
-		// throw CException("ERROR in  CBratDisplayApp::GetXYPlotProperty : dynamic_cast<CXYPlotProperty*>(m_xyPlotProperties->at(index)); returns NULL pointer - "
-		//              "XY Plot Property array seems to contain objects other than those of the class CXYPlotProperty or derived class", BRATHL_LOGIC_ERROR);
+		 throw CException("ERROR in  CBratDisplayApp::GetXYPlotProperty : dynamic_cast<CXYPlotProperty*>(m_xyPlotProperties->at(index)); returns NULL pointer - "
+		              "XY Plot Property array seems to contain objects other than those of the class CXYPlotProperty or derived class", BRATHL_LOGIC_ERROR);
 	}
 	return props;
 }
-CZFXYPlotProperty* CmdLineProcessor::GetZFXYPlotProperty( int32_t index )
+CZFXYPlotProperty* CmdLineProcessor::GetZFXYPlotProperty( int32_t index ) const
 {
-	SimpleWarnBox("CZFXYPlotProperty* CmdLineProcessor::GetZFXYPlotProperty( int32_t index ) was called and will crash");
-
-	Q_UNUSED( index );
-
-	/* femmTODO 
 	if ( ( index < 0 ) || ( static_cast<uint32_t>( index ) >= m_zfxyPlotProperties.size() ) )
 	{
-		std::string msg = CTools::Format( "ERROR in  CBratDisplayApp::GetZFXYPlotProperty : index %d out-of-range "
-			"Valid range is [0, %ld]",
-			index,
-			(long)m_zfxyPlotProperties.size() );
+		std::string msg = "ERROR in  CBratDisplayApp::GetZFXYPlotProperty : index "
+			+ n2s<std::string>(index) 
+			+ " out-of-range "
+			+ "Valid range is [0, "
+			+ n2s<std::string>( m_zfxyPlotProperties.size() )
+			+ "]";
+
 		throw CException( msg, BRATHL_LOGIC_ERROR );
-
 	}
-	femmTODO */
 
-	CZFXYPlotProperty* props = nullptr;		//dynamic_cast<CZFXYPlotProperty*>( m_zfxyPlotProperties.at( index ) );
+	CZFXYPlotProperty* props = dynamic_cast<CZFXYPlotProperty*>( m_zfxyPlotProperties.at( index ) );
 	if ( props == NULL )
 	{
 		throw CException( "ERROR in  CBratDisplayApp::GetZFXYPlotProperty : dynamic_cast<CZFXYPlotProperty*>(m_zfxyPlotProperties->at(index)); returns NULL pointer - "
@@ -1579,7 +1560,8 @@ CWorldPlotProperty* CmdLineProcessor::GetWorldPlotProperty( int32_t index ) cons
 		std::string msg = "ERROR in  CBratDisplayApp::CWorldPlotProperty : index " 
 			+ n2s<std::string>(index) 
 			+ " out-of-range.\nValid range is [0, " 
-			+ n2s<std::string>( m_wPlotProperties.size() );
+			+ n2s<std::string>( m_wPlotProperties.size() )
+			+ "]";
 
 		throw CException( msg, BRATHL_LOGIC_ERROR );
 	}

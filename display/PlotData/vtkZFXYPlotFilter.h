@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -25,7 +23,7 @@
 #include "vtkGlyph3D.h"
 #include "vtkAppendPolyData.h"
 
-#include "brathl.h"
+#include "libbrathl/brathl.h"
 
 class vtkCellArray;
 class vtkDoubleArray;

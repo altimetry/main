@@ -5,7 +5,7 @@
 #include "new-gui/Common/+Utils.h"
 #include "new-gui/Common/+UtilsIO.h"
 #include "new-gui/Common/QtUtils.h"
-#include "new-gui/brat/Workspaces/Operation.h"
+#include "DataModels/Workspaces/Operation.h"
 
 #include "ApplicationLogger.h"
 #include "BratApplication.h"

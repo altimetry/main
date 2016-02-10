@@ -19,6 +19,10 @@
 */
 
 
+#if defined (__DEPRECATED)          //avoid linux warning in vtk includes
+#undef __DEPRECATED
+#endif
+
 #include "vtkBratArrowSource.h"
 
 #include "vtkCellArray.h"

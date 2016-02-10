@@ -29,6 +29,17 @@
     #include "wx/wx.h"
 #endif
 
+#if defined (__unix__)
+#if defined (__DEPRECATED)          //avoid linux warning in vtk include
+#undef __DEPRECATED
+#endif
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+#endif	// __unix__
 #include "vtkTransformCollection.h"
 #include "vtkTextProperty.h"
 #include "vtkTextActor.h"
@@ -49,7 +60,7 @@ using namespace brathl;
 
 //#include "BratDisplay_wdr.h"
 #include "AnimationToolbar.h"
-#include "XYPlotData.h"
+#include "PlotData/XYPlotData.h"
 #include "XYPlotPropertyPanel.h"
 #include "DatasetPanel.h"
 
@@ -135,6 +146,7 @@ public:
     
 public:
   bool m_finished;
+private:
   bool m_multiFrame;
 
 private:

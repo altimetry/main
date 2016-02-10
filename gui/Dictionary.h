@@ -38,7 +38,7 @@
 using namespace brathl;
 
 #include "BratGui_wdr.h"
-#include "new-gui/brat/Workspaces/Display.h"
+#include "new-gui/brat/DataModels/Workspaces/Display.h"
 
 const int32_t DICTCOL_NAME = 2;
 const int32_t DICTCOL_RECORD = 1;

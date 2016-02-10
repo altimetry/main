@@ -29,14 +29,14 @@
 =========================================================================*/
 #include "vtkInteractorStyleZFXYPlot.h"
 
-#include "vtkTools.h"
+#include "PlotData/vtkTools.h"
 #include "vtkActor2D.h"
 #include "vtkCommand.h"
 #include "vtkIndent.h"
 #include "vtkMath.h"
 #include "vtkObjectFactory.h"
 #include "vtkOutlineSource.h"
-#include "vtkZFXYPlotFilter.h"
+#include "PlotData/vtkZFXYPlotFilter.h"
 #include "vtkPolyDataMapper2D.h"
 #include "vtkPropCollection.h"
 #include "vtkProperty2D.h"

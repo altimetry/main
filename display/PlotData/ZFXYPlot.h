@@ -53,38 +53,36 @@ namespace brathl {
 */
 class CZFXYPlot : public CPlotBase
 {
+public:
+
+	CZFXYPlot( uint32_t groupNumber = 0 );
+	virtual ~CZFXYPlot();
+
+	void GetPlotWidthHeight( CInternalFiles* zfxy,
+		const std::string& fieldName,
+		int32_t& width, int32_t& height,
+		CExpressionValue& varY, CExpressionValue& varX,
+		uint32_t& dimRangeX, uint32_t& dimRangeY,
+		std::string& varXName, std::string& varYName );
+
+    virtual CInternalFiles* GetInternalFiles( CBratObject* ob, bool withExcept = true ) override;
+
+	static CInternalFilesZFXY* GetInternalFilesZFXY( CBratObject* ob, bool withExcept = true );
+
+	static CInternalFilesYFX* GetInternalFilesYFX( CBratObject* ob, bool withExcept = true );
 
 public:
 
-  CZFXYPlot(uint32_t groupNumber = 0);
-  virtual ~CZFXYPlot();
+	virtual const std::string& BaseTitle() const override
+	{
+		static const std::string s = "BRAT Z=F(X,Y) Plot";
+		return s;
+	}
 
-  void GetPlotWidthHeight(CInternalFiles* zfxy, 
-                           const std::string& fieldName,
-                           int32_t& width, int32_t& height,
-                           CExpressionValue& varY, CExpressionValue& varX,
-                           uint32_t& dimRangeX, uint32_t& dimRangeY,
-                           std::string& varXName, std::string& varYName);
-
-  virtual CInternalFiles* GetInternalFiles(CBratObject* ob, bool withExcept = true);    
-
-  static CInternalFilesZFXY* GetInternalFilesZFXY(CBratObject* ob, bool withExcept = true);
-  
-  static CInternalFilesYFX* GetInternalFilesYFX(CBratObject* ob, bool withExcept = true);
-
-public:
-
-  virtual void GetInfo();
-
-public:
-  
+    virtual void GetInfo() override;
 
 protected:
-  void Init();
-
-
-
-  
+	void Init();
 };
 
 

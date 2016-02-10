@@ -34,7 +34,7 @@
 #include "vtkInteractorStyle.h"
 #include "vtkCommand.h"
 
-#include "vtkZFXYPlotActor.h"
+#include "PlotData/vtkZFXYPlotActor.h"
 
 
 class vtkActor2D;

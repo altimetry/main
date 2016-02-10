@@ -238,7 +238,6 @@ bool CApplicationSettingsDlg::ValidateAndAssign()
 	//	1. ApplicationPaths_page: 
 
     bool isPathUnique =  AutoRelativePaths_checkBox->isChecked();
-    const CApplicationPaths &rPaths =  mSettings.BratPaths();
 
     std::string user_dir = q2a(DataDirectory_lineEdit->text());
     std::string workspace_dir = q2a(ProjectsDirectory_lineEdit->text());
@@ -246,7 +245,7 @@ bool CApplicationSettingsDlg::ValidateAndAssign()
 
     if (isPathUnique)
     {
-        if (! IsDir( user_dir ) && !ask_create_dir( "BRAT working directory", user_dir ) )
+        if ( !IsDir( user_dir ) && !ask_create_dir( "BRAT working directory", user_dir ) )
         {
 			return false;
         }

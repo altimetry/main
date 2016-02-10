@@ -31,6 +31,18 @@
 #ifndef __vtkInteractorStyleXYPlot_h
 #define __vtkInteractorStyleXYPlot_h
 
+#if defined (__unix__)
+#if defined (__DEPRECATED)          //avoid linux warning in vtk include
+#undef __DEPRECATED
+#endif
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+#endif	// __unix__
+
 #include "vtkInteractorStyle.h"
 
 class vtkActor2D;

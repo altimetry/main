@@ -43,6 +43,12 @@ CWorkspace* CTreeWorkspace::Reset( const std::string &internal_data_path, const 
 {
 	Clear();
 
+	if ( root_name.empty() && !IsDir( base_path ) )
+	{
+		error_msg += "The required workspace does not exist.";
+		return nullptr;
+	}
+
 	CWorkspace *root= root_name.empty() ? new CWorkspace( base_path ) : new CWorkspace( root_name, base_path );
     root->InitConfig();
 

@@ -32,6 +32,10 @@
 #include "new-gui/Common/tools/Trace.h"
 
 
+#include "wxInterface.h"
+#ifdef CursorShape  //collsion Qt X
+#undef CursorShape
+#endif
 #include "XYPlotPanel.h"
 #include "vtkCallbackCommand.h"
 

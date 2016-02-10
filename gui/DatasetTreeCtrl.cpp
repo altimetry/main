@@ -26,7 +26,7 @@
 #endif
 
 #include "BratGui.h"
-#include "new-gui/brat/Workspaces/Workspace.h"
+#include "new-gui/brat/DataModels/Workspaces/Workspace.h"
 
 #include "DatasetTreeCtrl.h"
 

@@ -32,7 +32,7 @@
 
 #include "BratDisplay_wdr.h"
 #include "LabeledTextCtrl.h"
-#include "ZFXYPlotData.h"
+#include "PlotData/ZFXYPlotData.h"
 
 BEGIN_DECLARE_EVENT_TYPES()
     DECLARE_EVENT_TYPE(wxEVT_ZFXY_CONTOUR_PROP_CHANGED, 7777) // 7777 is ignored, just for compatibility with v2.2

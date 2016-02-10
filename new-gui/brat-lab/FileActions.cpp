@@ -2,7 +2,7 @@
 
 #include "new-gui/Common/tools/Trace.h"
 
-#include "System/CmdLineProcessor.h"
+#include "new-gui/brat/DataModels/CmdLineProcessor.h"
 #include "display/PlotData/WPlot.h"
 
 #include "QbrtMainWindow.h"
@@ -197,6 +197,8 @@ namespace {
 const int OneSecond = 1000;
 const QString ZeroTime(" 0:00");
 }
+
+//L:\project\workspaces\newWP\Displays\DisplayDisplays_New.par
 
 void QbrtMainWindow::openFile( const QString &fileName )
 {

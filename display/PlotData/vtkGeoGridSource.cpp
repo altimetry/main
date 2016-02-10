@@ -28,6 +28,9 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 =========================================================================*/
+#if defined (__DEPRECATED)          //avoid linux warning in vtk includes
+#undef __DEPRECATED
+#endif
 #include "vtkGeoGridSource.h"
 
 #include <sys/types.h>
@@ -268,7 +271,7 @@ void vtkGeoGridSource::Execute()
             point = points->InsertNextPoint(longitude, *it, 0.0);
             cells->InsertCellPoint(point);
         }
-        cells->UpdateCellCount(latitudes.size());
+        cells->UpdateCellCount((int)latitudes.size());
     }
 
 
@@ -324,7 +327,7 @@ void vtkGeoGridSource::Execute()
             point = points->InsertNextPoint(*it, latitude, 0.0);
             cells->InsertCellPoint(point);
         }
-        cells->UpdateCellCount(longitudes.size());
+        cells->UpdateCellCount((int)longitudes.size());
 
     }
 }

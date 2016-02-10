@@ -18,14 +18,6 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "Plot.h"
-#endif
-
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
-
 #include "new-gui/Common/tools//Trace.h"
 #include "libbrathl/Tools.h"
 #include "new-gui/Common/tools/Exception.h"
@@ -80,10 +72,10 @@ void CPlot::GetInfo()
 
 
   GetAllInternalFiles(allInternalFiles);
-  int32_t nrFiles = allInternalFiles.size();
+  int32_t nrFiles = (int32_t)allInternalFiles.size();
 
   //int32_t iField = 0;
-  int32_t nrFields = m_fields.size();
+  int32_t nrFields = (int32_t)m_fields.size();
   CObArray::iterator itField;
   CObArray::iterator itFile;
 

@@ -129,7 +129,7 @@
 #include <qgslayertreemodel.h>
 #include <qgslayertreegroup.h>
 
-#include "qgscollapsiblegroupbox.h"
+#include <qgscollapsiblegroupbox.h>
 
 
 

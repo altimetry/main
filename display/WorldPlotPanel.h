@@ -69,6 +69,7 @@ using namespace brathl;
 #include "wx/utils.h"
 #include "wx/splitter.h"
 #include "wx/panel.h"
+#include "wx/progdlg.h"
 #include "BratDisplay_wdr.h"
 
 #include "AnimationToolbar.h"

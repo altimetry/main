@@ -127,7 +127,7 @@
             <item>
              <widget class="QCheckBox" name="LoadLastProjectAtAtartup_checkBox">
               <property name="text">
-               <string>Define common working path</string>
+               <string>Load last workspace of previous session</string>
               </property>
              </widget>
             </item>

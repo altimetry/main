@@ -8,6 +8,19 @@
 
 #include <osgEarthQt/ViewerWidget>
 
+#if defined (GL_LINES_ADJACENCY_EXT)
+#undef GL_LINES_ADJACENCY_EXT
+#endif
+#if defined (GL_LINE_STRIP_ADJACENCY_EXT)
+#undef GL_LINE_STRIP_ADJACENCY_EXT
+#endif
+#if defined (GL_TRIANGLES_ADJACENCY_EXT)
+#undef GL_TRIANGLES_ADJACENCY_EXT
+#endif
+#if defined (GL_TRIANGLE_STRIP_ADJACENCY_EXT)
+#undef GL_TRIANGLE_STRIP_ADJACENCY_EXT
+#endif
+
 #include <qgsproviderregistry.h>
 #include <qgsvectordataprovider.h>
 #include <qgsmaplayerregistry.h>
@@ -34,7 +47,7 @@
 #include "new-gui/Common/tools/Trace.h"
 
 #include "new-gui/brat-lab/System/BackServices.h"
-#include "new-gui/brat-lab/System/CmdLineProcessor.h"
+#include "new-gui/brat/DataModels/CmdLineProcessor.h"
 #include "display/PlotData/GeoMap.h"
 #include "display/PlotData/WPlot.h"
 
@@ -60,10 +73,6 @@ void addLabelsLayer( QbrtMapEditor *mpMapCanvas );
 //template<>
 //QgsMapLayerRegistry* QgsSingleton<QgsMapLayerRegistry>::sInstance;
 
-QbrtMapCanvas::QbrtMapCanvas(QWidget *parent) : base_t(parent)
-{
-}
-
 #include <osgViewer/Viewer>
 //#include "new-gui/brat/Graphics/Globe/Globe.h"
 
@@ -77,7 +86,7 @@ QbrtMapEditor::QbrtMapEditor(QWidget *parent) : base_t(parent), m_ToolEditor( fa
 
     //createLayerTreeView();
 	mSplitter = new QSplitter( Qt::Vertical, this );
-	mMapCanvas = new QbrtMapCanvas( mSplitter );
+    mMapCanvas = new CBratMapWidget( mSplitter );
 	setCentralWidget( mSplitter );
 
 	createToolBar();
@@ -162,7 +171,7 @@ void QbrtMapEditor::createGlobe()
 	//if ( !mGlobe /* && mSplitter*/)
 	if ( !mGlobeWidget /* && mSplitter*/)
 	{
-		mGlobeWidget = new CGlobeWidget( this, QbrtMapCanvas::GlobeDir(), mMapCanvas );
+        mGlobeWidget = new CGlobeWidget( this, CBratMapWidget::GlobeDir(), mMapCanvas );
 		//mGlobe = new GlobePlugin( nullptr, mMapCanvas );
 		//mOsgViewer = mGlobe->run( ad.mGlobeDir );						//can return null
 
@@ -197,7 +206,7 @@ void QbrtMapEditor::createGlobe()
 }
 void QbrtMapEditor::CreateWPlot( const CmdLineProcessor *proc, CWPlot* wplot )
 {
-	mMapCanvas->CreateWPlot( proc, wplot );
+    mMapCanvas->CreatePlot( proc, wplot );
 	createGlobe();
 }
 
@@ -438,13 +447,6 @@ void QbrtMapEditor::removeLayer()
 	mMapCanvas->refresh();
 }
 
-//virtual
-QbrtMapCanvas::~QbrtMapCanvas()
-{
-	assert( !isDrawing() );
-}
-
-
 void QbrtMapEditor::globeSettings()
 {
 	//assert__( mGlobe );
@@ -453,56 +455,56 @@ void QbrtMapEditor::globeSettings()
 	mGlobeWidget->settings();
 }
 
-void QbrtMapCanvas::CreateWPlot( const CmdLineProcessor *proc, CWPlot* wplot )
-{
-	QSize size;
-	QPoint pos;
+//void QbrtMapCanvas::CreateWPlot( const CmdLineProcessor *proc, CWPlot* wplot )
+//{
+//	QSize size;
+//	QPoint pos;
 
-	wplot->GetInfo();
+//	wplot->GetInfo();
 
-	CWorldPlotProperty* wPlotProperty = proc->GetWorldPlotProperty( 0 );
-	UNUSED( wPlotProperty );
+//	CWorldPlotProperty* wPlotProperty = proc->GetWorldPlotProperty( 0 );
+//	UNUSED( wPlotProperty );
 
-	//TODO CWorldPlotFrame* frame = new CWorldPlotFrame( NULL, -1, title, wPlotProperty, pos, size );
+//	//TODO CWorldPlotFrame* frame = new CWorldPlotFrame( NULL, -1, title, wPlotProperty, pos, size );
 
-	// for geostrophic velocity
-	CPlotField * northField =NULL;
-	CPlotField * eastField =NULL;
-	for ( CObArray::iterator itField = wplot->m_fields.begin(); itField != wplot->m_fields.end(); itField++ )
-	{
-		CPlotField* field = CPlotField::GetPlotField( *itField );
+//	// for geostrophic velocity
+//	CPlotField * northField =NULL;
+//	CPlotField * eastField =NULL;
+//	for ( CObArray::iterator itField = wplot->m_fields.begin(); itField != wplot->m_fields.end(); itField++ )
+//	{
+//		CPlotField* field = CPlotField::GetPlotField( *itField );
 
-		if ( field->m_internalFiles.empty() )
-			continue;
+//		if ( field->m_internalFiles.empty() )
+//			continue;
 
-		if ( field->m_worldProps->m_northComponent && northField == NULL ) {
-			northField = field;
-			continue;
-		}
-		else
-		if ( field->m_worldProps->m_eastComponent && eastField == NULL ) {
-			eastField = field;
-			continue;
-		}
+//		if ( field->m_worldProps->m_northComponent && northField == NULL ) {
+//			northField = field;
+//			continue;
+//		}
+//		else
+//		if ( field->m_worldProps->m_eastComponent && eastField == NULL ) {
+//			eastField = field;
+//			continue;
+//		}
 
-		// otherwise just add it as regular data
-		CGeoMap *geoMap = new CGeoMap( field );
-		AddData( geoMap );
-	}
+//		// otherwise just add it as regular data
+//		CGeoMap *geoMap = new CGeoMap( field );
+//		AddData( geoMap );
+//	}
 
-	// we have a Vector Plot!
-	if ( northField != NULL && eastField != NULL ) {
+//	// we have a Vector Plot!
+//	if ( northField != NULL && eastField != NULL ) {
 
-		CGeoVelocityMap *gvelocityMap = new CGeoVelocityMap( northField, eastField );
-		gvelocityMap->SetIsGlyph( true );
-		AddData( gvelocityMap );
-	}
-	else if ( northField != eastField ) {
-		CException e( "CBratDisplayApp::CreateWPlot - incomplete std::vector plot components", BRATHL_INCONSISTENCY_ERROR );
-		CTrace::Tracer( "%s", e.what() );
-		throw ( e );
-	}
-}
+//		CGeoVelocityMap *gvelocityMap = new CGeoVelocityMap( northField, eastField );
+//		gvelocityMap->SetIsGlyph( true );
+//		AddData( gvelocityMap );
+//	}
+//	else if ( northField != eastField ) {
+//		CException e( "CBratDisplayApp::CreateWPlot - incomplete std::vector plot components", BRATHL_INCONSISTENCY_ERROR );
+//		CTrace::Tracer( "%s", e.what() );
+//		throw ( e );
+//	}
+//}
 //void CWorldPlotRenderer::AddData( CWorldPlotData* pdata )
 //{
 //	pdata->SetRenderer( m_vtkRend );
@@ -534,104 +536,104 @@ void QbrtMapCanvas::CreateWPlot( const CmdLineProcessor *proc, CWPlot* wplot )
 //			3) cannot color the values over a line (unless with another layer, a point layer, but then, why the line layer?)
 //(***) Using features and not rubberbands because these are not projected in the globe
 //
-void QbrtMapCanvas::AddData( CWorldPlotData* pdata )
-{
-	CGeoMap* geoMap = dynamic_cast<CGeoMap*>( pdata );
+//void QbrtMapCanvas::AddData( CWorldPlotData* pdata )
+//{
+//	CGeoMap* geoMap = dynamic_cast<CGeoMap*>( pdata );
 
-	auto IsValidPoint = [&geoMap]( int32_t i )
-	{
-		bool bOk = geoMap->bits[ i ];
+//	auto IsValidPoint = [&geoMap]( int32_t i )
+//	{
+//		bool bOk = geoMap->bits[ i ];
 
-		//	  if (Projection == VTK_PROJ2D_MERCATOR)
-		//	  {
-		bOk &= geoMap->valids[ i ];
-		//	  }
-		//
-		return bOk;
-	};
-
-
-	auto const size = geoMap->vals.size();
-	QgsFeatureList flist;
-
-#if defined (USE_POINTS)	//(**)
-
-	for ( auto i = 0u; i < size; ++ i )
-	{
-		if ( !IsValidPoint( i ) )
-			continue;
-
-		auto x = i % geoMap->lons.size(); // ( x * geoMap->lats.size() ) + i;
-		auto y = i / geoMap->lons.size(); // ( x * geoMap->lats.size() ) + i;
-
-#if defined (USE_FEATURES) //(***)
-		createPointFeature( flist, geoMap->lons.at( x ), geoMap->lats.at( y ), geoMap->vals[ i ] );
-		//createPointFeature( flist, geoMap->lons.at( x ), geoMap->lats.at( y ), QColor( 0, (unsigned char)(geoMap->vals[ i ]), 0 ) );
-#else
-		addRBPoint( geoMap->lons.at( x ), geoMap->lats.at( y ), QColor( (long)(geoMap->vals[ i ]) ), mMainLayer );
-#endif
-	}
-
-#if defined (USE_FEATURES)
-	auto memL = addMemoryLayer( createPointSymbol( 0.5, Qt::red ) );	//(*)	//note that you can use strings like "red" instead!!!
-	memL->dataProvider()->addFeatures( flist );
-	//memL->updateExtents();
-	//refresh();
-#endif
-
-	return;
-
-#else		//(**)
-
-	QgsPolyline points;
-	for ( auto i = 0; i < size; ++ i ) 
-	{
-		if ( !IsValidPoint(i) )
-			continue;
-
-		auto x = i % geoMap->lons.size();
-		auto y = i / geoMap->lons.size();
-
-		points.append( QgsPoint( geoMap->lons.at( x ), geoMap->lats.at( y ) ) );
-	}
-#if !defined (USE_FEATURES) //(***)
-	auto memL = addMemoryLayer( createLineSymbol( 0.5, Qt::red ) );	//(*)	//note that you can use strings like "red" instead!!!
-	createLineFeature( flist, points );						
-	memL->dataProvider()->addFeatures( flist );				
-	//memL->updateExtents();
-	//refresh();
-#else
-	addRBLine( points, QColor( 0, 255, 0 ), mMainLayer );	
-#endif
-
-	return;
-
-#endif
-
-	//femm: This is CWorldPlotPanel::AddData
-
-	//femm: the important part
-	//if ( pdata->GetColorBarRenderer() != NULL )
-	//	m_vtkWidget->GetRenderWindow()->AddRenderer( pdata->GetColorBarRenderer()->GetVtkRenderer() );
-	//m_plotRenderer->AddData( pdata );
+//		//	  if (Projection == VTK_PROJ2D_MERCATOR)
+//		//	  {
+//		bOk &= geoMap->valids[ i ];
+//		//	  }
+//		//
+//		return bOk;
+//	};
 
 
-	//femm: the less important part
-	//CGeoMap* geoMap = dynamic_cast<CGeoMap*>( pdata );
-	//if ( geoMap != NULL )
-	//{
-	//	wxString textLayer = wxString::Format( "%s", geoMap->GetDataName().c_str() );
+//	auto const size = geoMap->vals.size();
+//	QgsFeatureList flist;
 
-	//	m_plotPropertyTab->GetLayerChoice()->Append( textLayer, static_cast<void*>( geoMap ) );
-	//	m_plotPropertyTab->SetCurrentLayer( 0 );
-	//}
+//#if defined (USE_POINTS)	//(**)
 
-	//int32_t nFrames = 1;
-	//if ( geoMap != NULL )
-	//	nFrames = geoMap->GetNrMaps();
+//	for ( auto i = 0u; i < size; ++ i )
+//	{
+//		if ( !IsValidPoint( i ) )
+//			continue;
 
-	//m_animationToolbar->SetMaxFrame( nFrames );
-}
+//		auto x = i % geoMap->lons.size(); // ( x * geoMap->lats.size() ) + i;
+//		auto y = i / geoMap->lons.size(); // ( x * geoMap->lats.size() ) + i;
+
+//#if defined (USE_FEATURES) //(***)
+//		createPointFeature( flist, geoMap->lons.at( x ), geoMap->lats.at( y ), geoMap->vals[ i ] );
+//		//createPointFeature( flist, geoMap->lons.at( x ), geoMap->lats.at( y ), QColor( 0, (unsigned char)(geoMap->vals[ i ]), 0 ) );
+//#else
+//		addRBPoint( geoMap->lons.at( x ), geoMap->lats.at( y ), QColor( (long)(geoMap->vals[ i ]) ), mMainLayer );
+//#endif
+//	}
+
+//#if defined (USE_FEATURES)
+//	auto memL = addMemoryLayer( createPointSymbol( 0.5, Qt::red ) );	//(*)	//note that you can use strings like "red" instead!!!
+//	memL->dataProvider()->addFeatures( flist );
+//	//memL->updateExtents();
+//	//refresh();
+//#endif
+
+//	return;
+
+//#else		//(**)
+
+//	QgsPolyline points;
+//	for ( auto i = 0; i < size; ++ i )
+//	{
+//		if ( !IsValidPoint(i) )
+//			continue;
+
+//		auto x = i % geoMap->lons.size();
+//		auto y = i / geoMap->lons.size();
+
+//		points.append( QgsPoint( geoMap->lons.at( x ), geoMap->lats.at( y ) ) );
+//	}
+//#if !defined (USE_FEATURES) //(***)
+//	auto memL = addMemoryLayer( createLineSymbol( 0.5, Qt::red ) );	//(*)	//note that you can use strings like "red" instead!!!
+//	createLineFeature( flist, points );
+//	memL->dataProvider()->addFeatures( flist );
+//	//memL->updateExtents();
+//	//refresh();
+//#else
+//	addRBLine( points, QColor( 0, 255, 0 ), mMainLayer );
+//#endif
+
+//	return;
+
+//#endif
+
+//	//femm: This is CWorldPlotPanel::AddData
+
+//	//femm: the important part
+//	//if ( pdata->GetColorBarRenderer() != NULL )
+//	//	m_vtkWidget->GetRenderWindow()->AddRenderer( pdata->GetColorBarRenderer()->GetVtkRenderer() );
+//	//m_plotRenderer->AddData( pdata );
+
+
+//	//femm: the less important part
+//	//CGeoMap* geoMap = dynamic_cast<CGeoMap*>( pdata );
+//	//if ( geoMap != NULL )
+//	//{
+//	//	wxString textLayer = wxString::Format( "%s", geoMap->GetDataName().c_str() );
+
+//	//	m_plotPropertyTab->GetLayerChoice()->Append( textLayer, static_cast<void*>( geoMap ) );
+//	//	m_plotPropertyTab->SetCurrentLayer( 0 );
+//	//}
+
+//	//int32_t nFrames = 1;
+//	//if ( geoMap != NULL )
+//	//	nFrames = geoMap->GetNrMaps();
+
+//	//m_animationToolbar->SetMaxFrame( nFrames );
+//}
 
 
 

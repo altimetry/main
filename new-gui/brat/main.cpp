@@ -56,10 +56,11 @@ catch ( const CException &e )
 catch ( const std::exception &e )
 {	
 	LOG_FATAL( e.what() );
-	return -2;
+    return CBratApplication::OffGuiErrorDialog( -2, e.what() );
 }
 catch ( ... )
 {
-	LOG_FATAL( "Unknown exception caught in main. Not possible to retrieve error information." );
-	return -3;
+	static const std::string msg( "Unknown exception caught in main. Not possible to retrieve error information." );
+	LOG_FATAL( msg );
+    return CBratApplication::OffGuiErrorDialog( -3, msg.c_str() );
 }

@@ -80,6 +80,8 @@ public:
 
 	//Access
 
+	const std::string& ParamFile() const { return m_paramFile;  }
+
 	bool isZFLatLon() const { return m_isZFLatLon; }
 	bool isYFX() const { return m_isYFX; }
 	bool isZFXY() const { return m_isZFXY; }
@@ -87,11 +89,20 @@ public:
 	const CObArray& plots() const { return m_plots; }
 
 	CWorldPlotProperty* GetWorldPlotProperty( int32_t index ) const;
+	CZFXYPlotProperty* GetZFXYPlotProperty( int32_t index ) const;
 
 	//Operation
 
 	bool Process( int argc, const char **argv );
 
+	bool Process( const std::string &file_path )
+	{
+		const char *argv[] = { "", file_path.c_str() };
+		return Process( 2, argv );
+	}
+
+	
+	std::string GetFirstFileName();
 
 protected:
 	bool GetCommandLineOptions( int argc, const char* argv[] );
@@ -110,8 +121,6 @@ protected:
 	void GetWPlotPropertyParams( int32_t nFields );
 	void GetZFXYPlotPropertyParams( int32_t nFields );
 
-	std::string GetFirstFileName();
-
 	bool IsXYPlot();
 	bool IsWPlot();
 	bool IsZXYPlot();
@@ -119,7 +128,6 @@ protected:
 	bool IsYFXType() const;
 	bool IsZFXYType() const;
 
-	CZFXYPlotProperty* GetZFXYPlotProperty( int32_t index );
 	CXYPlotProperty* GetXYPlotProperty( int32_t index );
 
 	void CheckFieldsData( CInternalFilesYFX* yfx, const std::string& fieldName );

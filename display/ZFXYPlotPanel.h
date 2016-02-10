@@ -59,16 +59,17 @@ using namespace brathl;
 #include "wx/utils.h"
 #include "wx/splitter.h"
 #include "wx/panel.h"
+#include "wx/progdlg.h"
 #include "BratDisplay_wdr.h"
 
 
-#include "vtkZFXYPlotActor.h"
+#include "PlotData/vtkZFXYPlotActor.h"
 #include "vtkRenderer.h"
 #include "vtkInteractorStyleZFXYPlot.h"
 #include "vtkPolyDataMapper2D.h"
 
 #include "AnimationToolbar.h"
-#include "ZFXYPlotData.h"
+#include "PlotData/ZFXYPlotData.h"
 #include "ZFXYPlotPropertyPanel.h"
 #include "LUTPanel.h"
 #include "ZFXYContourPropFrame.h"

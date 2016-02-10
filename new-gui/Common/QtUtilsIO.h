@@ -61,6 +61,12 @@ inline std::string GetDirectoryFromPath( const STRING &path )
 }
 
 
+// Path normalization:
+//
+//	- converts to path with "/" separators
+//	- eliminates duplicated directory separators (of any kind)
+//	- resolves (eliminating) "." and ".." directories
+//
 inline QString NormalizedPath( const QString &path )
 {
 	QDir d( path );
@@ -69,6 +75,10 @@ inline QString NormalizedPath( const QString &path )
 inline std::string NormalizedPath( const std::string &path )
 {
 	return q2t< std::string >( NormalizedPath( t2q( path ) ) );
+}
+inline QString NormalizedPath( const char *path )
+{
+	return NormalizedPath( QString( path ) );
 }
 inline std::string& NormalizePath( std::string &path )
 {

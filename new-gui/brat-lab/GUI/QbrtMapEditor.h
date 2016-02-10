@@ -8,7 +8,7 @@
 #include <qgsmapcanvas.h>
 #include <qgssinglesymbolrendererv2.h>
 
-#include "new-gui/brat/Views/MapWidget.h"
+#include "new-gui/brat/Views/BratWidgets.h"
 
 #include "QbrtAbstractEditor.h"
 
@@ -29,7 +29,7 @@ class GlobePlugin;
 namespace osgEarth { namespace QtGui { class ViewerWidget; } }
 namespace osgViewer { class Viewer; } 
 
-class CMapWidget;
+class CBratMapWidget;
 class CGlobeWidget;
 
 
@@ -46,23 +46,6 @@ class CWPlot;
 // http://plplot.sourceforge.net/index.php
 // http://www.qcustomplot.com/
 //
-
-class QbrtMapCanvas : public CMapWidget
-{
-	Q_OBJECT
-
-	typedef CMapWidget base_t;
-
-public:
-    QbrtMapCanvas( QWidget *parent = 0 );
-
-	virtual ~QbrtMapCanvas();
-
-    void CreateWPlot( const CmdLineProcessor *proc, CWPlot* wplot );
-	void AddData( CWorldPlotData* data );
-};
-
-
 
 
 
@@ -82,7 +65,7 @@ class QbrtMapEditor : public QbrtAbstractEditor< maps_base_t >
     bool isUntitled;
 
 	QSplitter *mSplitter = nullptr;
-	QbrtMapCanvas *mMapCanvas = nullptr;
+    CBratMapWidget *mMapCanvas = nullptr;
 	//osgEarth::QtGui::ViewerWidget* mGlobeViewerWidget = nullptr;
 	//osgViewer::Viewer* mOsgViewer = nullptr;
 	//GlobePlugin *mGlobe = nullptr;
@@ -107,7 +90,7 @@ public:
 
 	void CreateWPlot( const CmdLineProcessor *proc, CWPlot* wplot );
 	void createGlobe();
-	QbrtMapCanvas *canvas(){
+    CBratMapWidget *canvas(){
 		return mMapCanvas;
 	}
 	void globeSettings();

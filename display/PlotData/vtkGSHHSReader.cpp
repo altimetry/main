@@ -32,6 +32,9 @@
 #include "libbrathl/brathl.h"
 #include "libbrathl/Tools.h"
 
+#if defined (__DEPRECATED)          //avoid linux warning in vtk include
+#undef __DEPRECATED
+#endif
 #include "vtkGSHHSReader.h"
 
 

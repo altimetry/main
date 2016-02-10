@@ -49,8 +49,8 @@
 using namespace brathl;
 
 #include "Validators.h"
-#include "MapColor.h"
-#include "new-gui/brat/Workspaces/Workspace.h"
+#include "PlotData/MapColor.h"
+#include "new-gui/brat/DataModels/Workspaces/Workspace.h"
 #include "Function.h"
 #include "Process.h"
 #include "ResolutionDlg.h"

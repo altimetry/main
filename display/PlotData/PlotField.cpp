@@ -80,7 +80,7 @@ CPlotField* CPlotField::GetPlotField(CBratObject* ob)
 //----------------------------------------
 CInternalFiles* CPlotField::GetInternalFiles(int32_t index)
 {
-  int32_t nCount = m_internalFiles.size();
+  int32_t nCount = (int32_t)m_internalFiles.size();
 
   if ( (index < 0) || (index >= nCount))
   {
@@ -111,7 +111,7 @@ CInternalFiles* CPlotField::GetInternalFiles(int32_t index)
 //----------------------------------------
 CInternalFilesYFX* CPlotField::GetInternalFilesYFX(int32_t index)
 {
-  int32_t nCount = m_internalFiles.size();
+  int32_t nCount = (int32_t)m_internalFiles.size();
 
   CInternalFilesYFX* yfx = dynamic_cast<CInternalFilesYFX*>(GetInternalFiles(index));
   if (yfx == NULL)

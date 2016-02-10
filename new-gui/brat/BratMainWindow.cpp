@@ -7,15 +7,15 @@
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/ConfigurationKeywords.h"
 
-#include "new-gui/brat/Workspaces/Workspace.h"
+#include "DataModels/Workspaces/Workspace.h"
 
-#include "new-gui/brat/Views/TextWidget.h"
+#include "Views/TextWidget.h"
 
-#include "new-gui/brat/GUI/TabbedDock.h"
-#include "new-gui/brat/GUI/ControlsPanel.h"
-#include "new-gui/brat/GUI/ActionsTable.h"
-#include "new-gui/brat/GUI/WorkspaceDialog.h"
-#include "new-gui/brat/GUI/WorkspaceElementsDialog.h"
+#include "GUI/TabbedDock.h"
+#include "GUI/ControlsPanel.h"
+#include "GUI/ActionsTable.h"
+#include "GUI/WorkspaceDialog.h"
+#include "GUI/WorkspaceElementsDialog.h"
 
 #include "BratApplication.h"
 #include "ApplicationSettingsDlg.h"
@@ -398,6 +398,8 @@ CBratMainWindow::CBratMainWindow( CBratApplication &a )
                 mSettings.BratPaths().RasterLayerPath(),
                 mSettings.BratPaths().mGlobeDir );
 
+	CWorkspaceSettings::SetApplicationPaths( mSettings.BratPaths() );
+
     setupUi( this );
     setWindowIcon( QIcon("://images/BratIcon.png") );
     setWindowTitle( makeWindowTitle( windowTitle() ) );     //set title sensitive to doc (un)modifications
@@ -422,9 +424,9 @@ CBratMainWindow::CBratMainWindow( CBratApplication &a )
     // Sub-Windows management
     //
 	if ( mSettings.mDesktopManagerSdi )
-		mManager = new CDesktopManagerSDI( this );
+		mManager = new CDesktopManagerSDI( mSettings.BratPaths(), this );
 	else
-		mManager = new CDesktopManagerMDI( this );
+		mManager = new CDesktopManagerMDI( mSettings.BratPaths(), this );
 
 
     // Docked controls

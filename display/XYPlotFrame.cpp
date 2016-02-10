@@ -34,6 +34,18 @@
 #include "new-gui/Common/tools/Exception.h"
 using namespace brathl;
 
+#if defined (__unix__)
+#if defined (__DEPRECATED)          //avoid linux warning in vtk include
+#undef __DEPRECATED
+#endif
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+#endif	// __unix__
+
 #include "vtkWindowToImageFilter.h"
 
 #include "BratDisplayApp.h"

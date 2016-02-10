@@ -1,4 +1,4 @@
-#include "stdafx.h"
+#include "new-gui/brat/stdafx.h"
 
 #include "new-gui/Common/QtUtilsIO.h"
 #include "new-gui/Common/ApplicationPaths.h"
@@ -78,20 +78,22 @@ CWorkspace* CModel::CreateTree( CTreeWorkspace &tree, const std::string& path, s
 CWorkspace* CModel::LoadWorkspace( CTreeWorkspace &tree, const std::string& path, std::string &error_msg )
 {
 	CWorkspace *wks = CreateTree( tree, path, error_msg );
-	CWorkspace *failed_wks = nullptr;
-	if ( !tree.LoadConfig( 
-		failed_wks,
-		Workspace< CWorkspaceDataset >( tree ),
-		Workspace< CWorkspaceOperation >( tree ),
-		Workspace< CWorkspaceDisplay >( tree ), 
-		error_msg 
-		) )
+	if ( wks )
 	{
-		error_msg += ( "\nUnable to load workspace '" + ( failed_wks ? failed_wks->GetName() : "" ) + "'." );
-		delete wks;
-		wks = nullptr;
+		CWorkspace *failed_wks = nullptr;
+		if ( !tree.LoadConfig(
+			failed_wks,
+			Workspace< CWorkspaceDataset >( tree ),
+			Workspace< CWorkspaceOperation >( tree ),
+			Workspace< CWorkspaceDisplay >( tree ),
+			error_msg
+			) )
+		{
+			error_msg += ( "\nUnable to load workspace '" + ( failed_wks ? failed_wks->GetName() : "" ) + "'." );
+			delete wks;
+			wks = nullptr;
+		}
 	}
-
 	return wks;
 }
 

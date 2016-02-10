@@ -1,4 +1,4 @@
-#include "new-gui/brat-lab/stdafx.h"
+#include "new-gui/brat/stdafx.h"
 
 #include "CmdLineProcessor.h"
 
@@ -24,7 +24,7 @@ bool CmdLineProcessor::GetParametersNetcdfYFX( CExternalFilesNetCDF* externalFil
 
 	m_plots.resize( groupNumber + 1 );
 
-	int32_t nFields = m_paramVars.size();
+	int32_t nFields = (int32_t )m_paramVars.size();
 
 	if ( nFields == 0 )
 	{
@@ -58,7 +58,7 @@ bool CmdLineProcessor::GetParametersNetcdfYFX( CExternalFilesNetCDF* externalFil
 			}
 
 			m_paramVars.Insert( ( *it ) );
-			nFields = m_paramVars.size();
+			nFields = (int32_t)m_paramVars.size();
 			break;
 
 		}
@@ -195,7 +195,7 @@ bool CmdLineProcessor::GetParametersNetcdfZFXY( CExternalFilesNetCDF* externalFi
 
 	m_plots.resize( groupNumber + 1 );
 
-	int32_t nFields = m_paramVars.size();
+	int32_t nFields = (int32_t)m_paramVars.size();
 
 	CFieldNetCdf* fieldX = NULL;
 	CFieldNetCdf* fieldY = NULL;
@@ -239,7 +239,7 @@ bool CmdLineProcessor::GetParametersNetcdfZFXY( CExternalFilesNetCDF* externalFi
 			}
 
 			m_paramVars.Insert( ( *it ) );
-			nFields = m_paramVars.size();
+			nFields = (int32_t)m_paramVars.size();
 			break;
 
 		}
@@ -384,7 +384,7 @@ bool CmdLineProcessor::GetParametersNetcdfZFLatLon( CExternalFilesNetCDF* extern
 
 	m_plots.resize( groupNumber + 1 );
 
-	int32_t nFields = m_paramVars.size();
+	int32_t nFields = (int32_t)m_paramVars.size();
 
 	CFieldNetCdf* fieldLat = externalFile->FindLatField();
 	CFieldNetCdf* fieldLon = externalFile->FindLonField();
@@ -458,7 +458,7 @@ bool CmdLineProcessor::GetParametersNetcdfZFLatLon( CExternalFilesNetCDF* extern
 			}
 
 			m_paramVars.Insert( ( *it ) );
-			nFields = m_paramVars.size();
+			nFields = (int32_t)m_paramVars.size();
 			break;
 
 		}

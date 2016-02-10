@@ -531,7 +531,7 @@ public:
 	virtual void RemoveAll()
 	{
 		if ( m_bDelete )
-			destroyPointersAndContainer( *this );
+            DestroyPointersAndContainer( *this );
 		else
 			clear();
 	}

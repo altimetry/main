@@ -33,7 +33,7 @@ using namespace brathl;
 
 #include "Dnd.h"
 #include "TreeCtrl.h"
-#include "new-gui/brat/Workspaces/Formula.h"
+#include "new-gui/brat/DataModels/Workspaces/Formula.h"
 
 class COperationTreeCtrl;
 

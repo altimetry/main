@@ -23,8 +23,8 @@
 #include "libbrathl/brathl.h"
 #include "libbrathl/Product.h" 
 
-#include "new-gui/brat/Workspaces/Dataset.h"
-#include "new-gui/brat/Workspaces/Formula.h"
+#include "Dataset.h"
+#include "Formula.h"
 #include "new-gui/Common/ApplicationPaths.h"
 
 class CWorkspaceDataset;

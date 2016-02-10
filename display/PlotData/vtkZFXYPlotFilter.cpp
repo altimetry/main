@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -18,11 +16,23 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "Tools.h"
+#include "libbrathl/Tools.h"
 #include "new-gui/Common/tools/Trace.h"
 #include "new-gui/Common/tools/Exception.h"
 using namespace brathl;
 
+
+#if defined (__unix__)
+#if defined (__DEPRECATED)          //avoid linux warning in vtk include
+#undef __DEPRECATED
+#endif
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+#endif	// __unix__
 
 #include "vtkTools.h"
 #include "vtkZFXYPlotFilter.h"
@@ -639,11 +649,14 @@ void vtkZFXYPlotFilter::Execute()
 }  
 
 //----------------------------------------------------------------------------
-void vtkZFXYPlotFilter::ComputePlotPolysPoints(vtkPoints *points, vtkShortArray*  innerPlotPoint, double dataBounds[6], 
+void vtkZFXYPlotFilter::ComputePlotPolysPoints(vtkPoints *points, vtkShortArray *innerPlotPoint, double dataBounds[6],
                                                int viewportMappingNeeded, 
                                                int dataClippingNeeded,
                                                vtkPoints *mappedPoints)
 {
+    UNUSED( dataClippingNeeded );
+    UNUSED( innerPlotPoint );
+
   vtkIdType ptId = -1;
 
   int numberOfDataPoints = points->GetNumberOfPoints();

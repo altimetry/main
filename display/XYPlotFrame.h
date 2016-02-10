@@ -34,7 +34,7 @@
 #include "BratDisplay_wdr.h"
 
 #include "XYPlotPanel.h"
-#include "XYPlotData.h"
+#include "PlotData/XYPlotData.h"
 #include "WindowHandler.h"
 
 // WDR: class declarations

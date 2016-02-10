@@ -1,6 +1,8 @@
 #include "new-gui/brat/stdafx.h"
 
-#include "new-gui/brat/Workspaces/Workspace.h"
+#include "new-gui/brat/ApplicationLogger.h"
+
+#include "new-gui/brat/DataModels/Workspaces/Workspace.h"
 
 #include "new-gui/brat/Views/TextWidget.h"
 #include "new-gui/brat/Views/2DPlotWidget.h"
@@ -233,7 +235,6 @@ CDatasetBrowserControls::CDatasetBrowserControls( CDesktopManagerBase *manager, 
 void CDatasetBrowserControls::Wire()
 {
     connect( mDatasetsCombo, SIGNAL( currentIndexChanged(int) ), this, SLOT( DatasetChanged(int) ) );
-
 }
 
 
@@ -800,18 +801,22 @@ void COperationsControls::QuickMap()
 {
 	WaitCursor wait;
 
-	auto ed = new CMapEditor( this );
+	auto ed = new CMapEditor( mWksd, this );
 	auto subWindow = mManager->AddSubWindow( ed );
 	subWindow->show();
+
+	//openTestFile( t2q( mManager->mPaths.mWorkspacesDir + R"(/newWP/Displays/DisplayDisplays_New.par)" ) );
 }
 
 void COperationsControls::QuickPlot()
 {
 	WaitCursor wait;
 
-	auto ed = new CPlotEditor( this );
-	auto subWindow = mManager->AddSubWindow( ed );
-	subWindow->show();
+    auto ed = new CPlotEditor( mWksd, nullptr, (CPlot*)nullptr, this );
+    auto subWindow = mManager->AddSubWindow( ed );
+    subWindow->show();
+
+    //openTestFile( t2q( mManager->mPaths.mWorkspacesDir + R"(/newWP/Displays/DisplayDisplays_2.par)" ) );
 }
 
 
@@ -819,7 +824,90 @@ void COperationsControls::QuickPlot()
 
 
 
+//HAMMER SECTION
+#include "new-gui/brat/DataModels/CmdLineProcessor.h"
+#include "display/PlotData/WPlot.h"
+#include "display/PlotData/Plot.h"
+#include "display/PlotData/ZFXYPlot.h"
 
+
+//L:\project\workspaces\newWP\Displays\DisplayDisplays_New.par
+
+void COperationsControls::openTestFile( const QString &fileName )
+{
+	delete mCmdLineProcessor;
+	mCmdLineProcessor = new CmdLineProcessor;
+
+	const std::string s = q2a( fileName );
+	const char *argv[] = { "", s.c_str() };
+	try
+	{
+		if ( mCmdLineProcessor->Process( 2, argv ) )
+		{
+			if ( mCmdLineProcessor->isZFLatLon() )		// =================================== WorldPlot
+			{
+				for ( CObArray::const_iterator itGroup = mCmdLineProcessor->plots().begin(); itGroup != mCmdLineProcessor->plots().end(); itGroup++ )
+				{
+					CWPlot* wplot = dynamic_cast<CWPlot*>( *itGroup );
+					if ( wplot == NULL )
+						continue;
+
+					auto ed = new CMapEditor( mCmdLineProcessor, wplot, this );
+					auto subWindow = mManager->AddSubWindow( ed );
+					subWindow->show();
+				}
+			}
+			else if ( mCmdLineProcessor->isYFX() )		// =================================== XYPlot();
+			{
+				for ( CObArray::const_iterator itGroup = mCmdLineProcessor->plots().begin(); itGroup != mCmdLineProcessor->plots().end(); itGroup++ )
+				{
+					CPlot* plot = dynamic_cast<CPlot*>( *itGroup );
+					if ( plot == NULL )
+						continue;
+
+					auto ed = new CPlotEditor( mWksd, mCmdLineProcessor, plot, this );
+					auto subWindow = mManager->AddSubWindow( ed );
+					subWindow->show();
+				}
+			}
+			else if ( mCmdLineProcessor->isZFXY() )		// =================================== ZFXYPlot();
+			{
+				for ( CObArray::const_iterator itGroup = mCmdLineProcessor->plots().begin(); itGroup != mCmdLineProcessor->plots().end(); itGroup++ )
+				{
+					CZFXYPlot* zfxyplot = dynamic_cast<CZFXYPlot*>( *itGroup );
+					if ( zfxyplot == NULL )
+						continue;
+
+					auto ed = new CPlotEditor( mWksd, mCmdLineProcessor, zfxyplot, this );
+					auto subWindow = mManager->AddSubWindow( ed );
+					subWindow->show();
+				}
+			}
+			else
+			{
+				CException e( "CBratDisplayApp::OnInit - Only World Plot Data, XY Plot Data and ZFXY Plot Data are implemented", BRATHL_UNIMPLEMENT_ERROR );
+				LOG_TRACE( e.what() );
+				throw e;
+			}
+		}
+	}
+	catch ( CException &e )
+	{
+		SimpleErrorBox( e.what() );
+		throw;
+	}
+	catch ( std::exception &e )
+	{
+		SimpleErrorBox( e.what() );
+		throw;
+	}
+	catch ( ... )
+	{
+		SimpleErrorBox( "Unexpected error encountered" );
+		throw;
+	}
+}
+//HAMMER SECTION
 
 
 

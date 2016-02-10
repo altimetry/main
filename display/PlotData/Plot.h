@@ -21,10 +21,6 @@
 #ifndef __Plot_H__
 #define __Plot_H__
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma interface "Plot.h"
-#endif
-
 #include "libbrathl/brathl.h"
 
 #include "libbrathl/List.h"
@@ -55,18 +51,22 @@ public:
   virtual ~CPlot();
 
   
-  virtual void GetInfo();
+  virtual void GetInfo() override;
   
   void GetAxisX(CInternalFiles* yfx, 
                  ExpressionValueDimensions* dimVal,
                  CExpressionValue* varX,
                  std::string* varXName);
 
-  virtual CInternalFiles* GetInternalFiles(CBratObject* ob, bool withExcept = true);    
+  virtual CInternalFiles* GetInternalFiles(CBratObject* ob, bool withExcept = true) override;
   static CInternalFilesYFX* GetInternalFilesYFX(CBratObject* ob);
 
 public:
-  
+	virtual const std::string& BaseTitle() const override
+	{
+		static const std::string s = "BRAT Y=F(X) Plot";
+		return s;
+	}
 
 protected:
   void Init();

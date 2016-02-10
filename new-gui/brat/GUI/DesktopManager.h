@@ -7,8 +7,9 @@
 #include <QGridLayout>
 
 #include "new-gui/Common/QtUtils.h"
+#include "new-gui/Common/ApplicationPaths.h"
 #include "new-gui/brat/Views/MapWidget.h"
-#include "new-gui/brat/GUI/DisplayEditor.h"
+#include "new-gui/brat/GUI/ViewEditor.h"
 
 
 class CTreeWorkspace;
@@ -39,6 +40,10 @@ protected:
 
 	//data
 
+public:
+	const CApplicationPaths &mPaths;
+
+protected:
 	CMapWidget *mMap = nullptr;
 	CTabbedDock *mMapDock = nullptr;
 
@@ -47,12 +52,13 @@ protected:
 	// construction / destruction
 
 #if defined TABBED_MANAGER
-	CDesktopManagerBase( QMainWindow *const parent )
+	CDesktopManagerBase( const CApplicationPaths &paths, QMainWindow *const parent )
 		: base_t( parent )
 #else
-	CDesktopManagerBase( QMainWindow *const parent, Qt::WindowFlags f = 0 )
+	CDesktopManagerBase( const CApplicationPaths &paths, QMainWindow *const parent, Qt::WindowFlags f = 0 )
 		: base_t( parent, f )
 #endif
+		, mPaths( paths )
 	{
 		setAttribute( Qt::WA_DeleteOnClose );
 
@@ -116,11 +122,11 @@ protected:
 	// construction / destruction
 
 #if defined TABBED_MANAGER
-	CAbstractDesktopManager( QMainWindow *const parent )
-		: base_t( parent )
+	CAbstractDesktopManager( const CApplicationPaths &paths, QMainWindow *const parent )
+		: base_t( paths, parent )
 #else
-	CAbstractDesktopManager( QMainWindow *const parent, Qt::WindowFlags f = 0 )
-		: base_t( parent, f )
+	CAbstractDesktopManager( const CApplicationPaths &paths, QMainWindow *const parent, Qt::WindowFlags f = 0 )
+		: base_t( paths, parent, f )
 #endif
 	{}
 
@@ -175,11 +181,16 @@ public:
 	virtual ~CSubWindow()
 	{}
 
+protected:
+
 	virtual void closeEvent( QCloseEvent *event ) override
 	{
 		  emit closed( this );
 		  event->accept();
 	}
+
+	virtual void reject() override
+	{}
 
 signals:
 
@@ -217,7 +228,7 @@ protected:
 public:
 	//ctor/dtor
 
-	CDesktopManagerSDI( QMainWindow *parent );
+	CDesktopManagerSDI( const CApplicationPaths &paths, QMainWindow *parent );
 
 	virtual ~CDesktopManagerSDI()
 	{}
@@ -301,7 +312,7 @@ protected:
 	void AddMDIArea( QWidget *parent );
 public:
 
-	CDesktopManagerMDI( QMainWindow *parent );
+	CDesktopManagerMDI( const CApplicationPaths &paths, QMainWindow *parent );
 
 	virtual ~CDesktopManagerMDI()
 	{}

@@ -340,9 +340,8 @@ QActionGroup* CActionInfo::CreateActionsGroup( QWidget *group_parent, const std:
 	QActionGroup *group = new QActionGroup( group_parent );
 	group->setExclusive( exclusive );
 
-	QList<QAction*> ActionsList;
 	for ( auto tag : tags )
-		ActionsList << CreateAction( group, tag );
+		CreateAction( group, tag );
 
 	return group;
 }

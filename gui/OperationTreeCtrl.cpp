@@ -30,7 +30,7 @@ using namespace brathl;
 
 #include "BratGui.h"
 #include "Validators.h"
-#include "new-gui/brat/Workspaces/Formula.h"
+#include "new-gui/brat/DataModels/Workspaces/Formula.h"
 #include "FieldsTreeCtrl.h"
 #include "OperationTreeCtrl.h"
 

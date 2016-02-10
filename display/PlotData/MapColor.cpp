@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -18,31 +16,17 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
-    #pragma implementation "MapColor.h"
-#endif
+#include "vtkProj2DFilter.h"
 
-// For compilers that support precompilation, includes "wx/wx.h".
-#include "wx/wxprec.h"
-
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
-
-#include "wx/colordlg.h"
-
-#include "PlotData/vtkProj2DFilter.h" 
-
-#include "Tools.h" 
+#include "libbrathl/Tools.h" 
 using namespace brathl;
 
 #include "MapColor.h" 
-#include "wxInterface.h" 
 
 //-------------------------------------------------------------
 //------------------- CPointGlyph class --------------------
 //-------------------------------------------------------------
-CPointGlyph::CPointGlyph(PointGlyph id, const wxString name)
+CPointGlyph::CPointGlyph(PointGlyph id, const std::string name)
 {
   m_name = name;
   m_id = id;
@@ -89,18 +73,13 @@ CMapPointGlyph& CMapPointGlyph::GetInstance()
 }
 //----------------------------------------
 bool CMapPointGlyph::ValidName(const std::string& name)
-{   
-  return ValidName(wxString(name.c_str()));
-}
-//----------------------------------------
-bool CMapPointGlyph::ValidName(const wxString& name)
 { 
-  wxString nameUpper = name.Upper();
-  CPointGlyph* value = dynamic_cast<CPointGlyph*>(Exists((const char *)(nameUpper)));
+  std::string nameUpper = ToUpperCopy( name );
+  CPointGlyph* value = dynamic_cast<CPointGlyph*>(Exists(nameUpper));
   return (value != NULL);
 }
 //----------------------------------------
-wxString CMapPointGlyph::GlyphToName(PointGlyph id)
+std::string CMapPointGlyph::GlyphToName(PointGlyph id)
 {
   CMapPointGlyph::iterator it;
 
@@ -123,7 +102,7 @@ wxString CMapPointGlyph::GlyphToName(PointGlyph id)
 
 }
 //----------------------------------------
-wxString CMapPointGlyph::GlyphToKey(PointGlyph id)
+std::string CMapPointGlyph::GlyphToKey(PointGlyph id)
 {
   CMapPointGlyph::iterator it;
 
@@ -148,12 +127,6 @@ wxString CMapPointGlyph::GlyphToKey(PointGlyph id)
 //----------------------------------------
 PointGlyph CMapPointGlyph::NameToGlyph(const std::string& name)
 {
-  return NameToGlyph(wxString(name.c_str()));
-
-}
-//----------------------------------------
-PointGlyph CMapPointGlyph::NameToGlyph(const wxString& name)
-{
   CMapPointGlyph::iterator it;
 
   for (it = begin() ; it != end() ; it++)
@@ -177,14 +150,8 @@ PointGlyph CMapPointGlyph::NameToGlyph(const wxString& name)
 //----------------------------------------
 PointGlyph CMapPointGlyph::KeyToGlyph(const std::string& key)
 {
-  return KeyToGlyph(wxString(key.c_str()));
-
-}
-//----------------------------------------
-PointGlyph CMapPointGlyph::KeyToGlyph(const wxString& key)
-{
-  wxString keyUpper = key.Upper();
-  CPointGlyph* value = dynamic_cast<CPointGlyph*>(Exists((const char *)(keyUpper)));
+  std::string keyUpper = ToUpperCopy( key );
+  CPointGlyph* value = dynamic_cast<CPointGlyph*>(Exists(keyUpper));
   if (value != NULL)
   {
     return value->m_id;
@@ -193,18 +160,11 @@ PointGlyph CMapPointGlyph::KeyToGlyph(const wxString& key)
   return displayCIRCLE_GLYPH;
 
 }
-
 //----------------------------------------
-wxString CMapPointGlyph::KeyToName(const std::string& key)
+std::string CMapPointGlyph::KeyToName(const std::string& key)
 {
-  return KeyToName(wxString(key.c_str()));
-
-}
-//----------------------------------------
-wxString CMapPointGlyph::KeyToName(const wxString& key)
-{
-  wxString keyUpper = key.Upper();
-  CPointGlyph* value = dynamic_cast<CPointGlyph*>(Exists((const char *)(keyUpper)));
+  std::string keyUpper = ToUpperCopy( key );
+  CPointGlyph* value = dynamic_cast<CPointGlyph*>(Exists(keyUpper));
   if (value != NULL)
   {
     return value->m_name;
@@ -215,21 +175,16 @@ wxString CMapPointGlyph::KeyToName(const wxString& key)
 }
 
 //----------------------------------------
-void CMapPointGlyph::NamesToArrayString(wxArrayString& array)
+void CMapPointGlyph::NamesToArrayString( std::vector<std::string>& v )
 {
-
-  CMapPointGlyph::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    CPointGlyph* value = dynamic_cast<CPointGlyph*>(it->second);
-    if (value != NULL)
-    {
-      array.Add(value->m_name.c_str());
-    }
-  }
-
-
+	for ( CMapPointGlyph::iterator it = begin(); it != end(); it++ )
+	{
+		CPointGlyph* value = dynamic_cast<CPointGlyph*>( it->second );
+		if ( value != NULL )
+		{
+			v.push_back( value->m_name );
+		}
+	}
 }
 //----------------------------------------
 void CMapPointGlyph::NamesToMapString(CStringMap& strMap)
@@ -241,7 +196,7 @@ void CMapPointGlyph::NamesToMapString(CStringMap& strMap)
     CPointGlyph* value = dynamic_cast<CPointGlyph*>(it->second);
     if (value != NULL)
     {
-      strMap.Insert(it->first, (const char *)(value->m_name));
+      strMap.Insert(it->first, value->m_name);
     }
   }
 
@@ -293,7 +248,7 @@ PointGlyph CMapPointGlyph::GetPointGlyph(CFileParams& params,
 //-------------------------------------------------------------
 //------------------- CStipplePattern class --------------------
 //-------------------------------------------------------------
-CStipplePattern::CStipplePattern(StipplePattern id, const wxString name)
+CStipplePattern::CStipplePattern(StipplePattern id, const std::string name)
 {
   m_name = name;
   m_id = id;
@@ -333,18 +288,13 @@ CMapStipplePattern& CMapStipplePattern::GetInstance()
 }
 //----------------------------------------
 bool CMapStipplePattern::ValidName(const std::string& name)
-{   
-  return ValidName(wxString(name.c_str()));
-}
-//----------------------------------------
-bool CMapStipplePattern::ValidName(const wxString& name)
 { 
-  wxString nameUpper = name.Upper();
-  CStipplePattern* value = dynamic_cast<CStipplePattern*>(Exists((const char *)(nameUpper)));
+  std::string nameUpper = ToUpperCopy( name );
+  CStipplePattern* value = dynamic_cast<CStipplePattern*>(Exists(nameUpper));
   return (value != NULL);
 }
 //----------------------------------------
-wxString CMapStipplePattern::StippleToKey(StipplePattern id)
+std::string CMapStipplePattern::StippleToKey(StipplePattern id)
 {
   CMapStipplePattern::iterator it;
 
@@ -367,7 +317,7 @@ wxString CMapStipplePattern::StippleToKey(StipplePattern id)
 
 }
 //----------------------------------------
-wxString CMapStipplePattern::StippleToName(StipplePattern id)
+std::string CMapStipplePattern::StippleToName(StipplePattern id)
 {
   CMapStipplePattern::iterator it;
 
@@ -392,12 +342,6 @@ wxString CMapStipplePattern::StippleToName(StipplePattern id)
 //----------------------------------------
 StipplePattern CMapStipplePattern::NameToStipple(const std::string& name)
 {
-  return NameToStipple(wxString(name.c_str()));
-
-}
-//----------------------------------------
-StipplePattern CMapStipplePattern::NameToStipple(const wxString& name)
-{
   CMapStipplePattern::iterator it;
 
   for (it = begin() ; it != end() ; it++)
@@ -421,14 +365,8 @@ StipplePattern CMapStipplePattern::NameToStipple(const wxString& name)
 //----------------------------------------
 StipplePattern CMapStipplePattern::KeyToStipple(const std::string& key)
 {
-  return KeyToStipple(wxString(key.c_str()));
-
-}
-//----------------------------------------
-StipplePattern CMapStipplePattern::KeyToStipple(const wxString& key)
-{
-  wxString keyUpper = key.Upper();
-  CStipplePattern* value = dynamic_cast<CStipplePattern*>(Exists((const char *)(keyUpper)));
+  std::string keyUpper = ToUpperCopy( key );
+  CStipplePattern* value = dynamic_cast<CStipplePattern*>(Exists(keyUpper));
   if (value != NULL)
   {
     return value->m_id;
@@ -439,16 +377,10 @@ StipplePattern CMapStipplePattern::KeyToStipple(const wxString& key)
 }
 
 //----------------------------------------
-wxString CMapStipplePattern::KeyToName(const std::string& key)
+std::string CMapStipplePattern::KeyToName(const std::string& key)
 {
-  return KeyToName(wxString(key.c_str()));
-
-}
-//----------------------------------------
-wxString CMapStipplePattern::KeyToName(const wxString& key)
-{
-  wxString keyUpper = key.Upper();
-  CStipplePattern* value = dynamic_cast<CStipplePattern*>(Exists((const char *)(keyUpper)));
+  std::string keyUpper = ToUpperCopy( key );
+  CStipplePattern* value = dynamic_cast<CStipplePattern*>(Exists(keyUpper));
   if (value != NULL)
   {
     return value->m_name;
@@ -459,21 +391,16 @@ wxString CMapStipplePattern::KeyToName(const wxString& key)
 }
 
 //----------------------------------------
-void CMapStipplePattern::NamesToArrayString(wxArrayString& array)
+void CMapStipplePattern::NamesToArrayString( std::vector<std::string>& v )
 {
-
-  CMapStipplePattern::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    CStipplePattern* value = dynamic_cast<CStipplePattern*>(it->second);
-    if (value != NULL)
-    {
-      array.Add(value->m_name.c_str());
-    }
-  }
-
-
+	for ( CMapStipplePattern::iterator it = begin(); it != end(); it++ )
+	{
+		CStipplePattern* value = dynamic_cast<CStipplePattern*>( it->second );
+		if ( value != NULL )
+		{
+			v.push_back( value->m_name );
+		}
+	}
 }
 //----------------------------------------
 void CMapStipplePattern::NamesToMapString(CStringMap& strMap)
@@ -485,10 +412,9 @@ void CMapStipplePattern::NamesToMapString(CStringMap& strMap)
     CStipplePattern* value = dynamic_cast<CStipplePattern*>(it->second);
     if (value != NULL)
     {
-      strMap.Insert(it->first, (const char *)(value->m_name));
+      strMap.Insert(it->first, value->m_name);
     }
   }
-
 }
 //----------------------------------------
 void CMapStipplePattern::StippleToMap(CUIntMap& uintMap)
@@ -532,306 +458,188 @@ StipplePattern CMapStipplePattern::GetStipplePattern(CFileParams& params,
   return static_cast<StipplePattern>(valueStipple);
 }
 
+
 //-------------------------------------------------------------
 //------------------- CMapColor class --------------------
 //-------------------------------------------------------------
 
-/* --- Listr of color's name 
-
-  AQUAMARINE,
-  BLACK, 
-  BLUE,
-  BLUE VIOLET,
-  BROWN,
-  CADET BLUE,
-  CORAL,
-  CORNFLOWER BLUE,
-  CYAN, 
-  DARK GREY,
-  DARK GREEN, 
-  DARK OLIVE GREEN,
-  DARK ORCHID,
-  DARK SLATE BLUE,
-  DARK SLATE GREY, 
-  DARK TURQUOISE,
-  DIM GREY, 
-  FIREBRICK,
-  FOREST GREEN, 
-  GOLD,
-  GOLDENROD,
-  GREY,
-  GREEN,
-  GREEN YELLOW, 
-  INDIAN RED,
-  KHAKI,
-  LIGHT BLUE,
-  LIGHT GREY,
-  LIGHT STEEL BLUE,
-  LIME GREEN,
-  MAGENTA,
-  MAROON,
-  MEDIUM AQUAMARINE,
-  MEDIUM BLUE,
-  MEDIUM FOREST GREEN,
-  MEDIUM GOLDENROD,
-  MEDIUM ORCHID,
-  MEDIUM SEA GREEN,
-  MEDIUM SLATE BLUE,
-  MEDIUM SPRING GREEN,
-  MEDIUM TURQUOISE,
-  MEDIUM VIOLET RED,
-  MIDNIGHT BLUE,
-  NAVY,
-  ORANGE,
-  ORANGE RED, 
-  ORCHID,
-  PALE GREEN,
-  PINK,
-  PLUM,
-  PURPLE,
-  RED,
-  SALMON,
-  SEA GREEN,
-  SIENNA,
-  SKY BLUE,
-  SLATE BLUE, 
-  SPRING GREEN,
-  STEEL BLUE, 
-  TAN,
-  THISTLE,
-  TURQUOISE, 
-  VIOLET,
-  VIOLET RED, 
-  WHEAT,
-  WHITE, 
-  YELLOW,
-  YELLOW GREEN.
-*/
-
-
-CMapColor::CMapColor()
+void CMapColor::NamesToArrayString( std::vector<std::string>& v )
 {
-  m_primaryColors.Insert("RED");
-  m_primaryColors.Insert("GREEN");
-  m_primaryColors.Insert("BLUE");
-  m_primaryColors.Insert("MAGENTA");
-  m_primaryColors.Insert("ORANGE");
-  m_primaryColors.Insert("BROWN");
-  m_primaryColors.Insert("DARK OLIVE GREEN");
-  m_primaryColors.Insert("CYAN");
-  m_primaryColors.Insert("VIOLET");
-  m_primaryColors.Insert("NAVY");
-  m_primaryColors.Insert("LIGHT BLUE");
-
-  m_nextPrimaryColor = 0;
+	v =
+	{
+		"AQUAMARINE",
+		"BLACK",
+		"BLUE",
+		"BLUE VIOLET",
+		"BROWN",
+		"CADET BLUE",
+		"CORAL",
+		"CORNFLOWER BLUE",
+		"CYAN",
+		"DARK GREY",
+		"DARK GREEN",
+		"DARK OLIVE GREEN",
+		"DARK ORCHID",
+		"DARK SLATE BLUE",
+		"DARK SLATE GREY",
+		"DARK TURQUOISE",
+		"DIM GREY",
+		"FIREBRICK",
+		"FOREST GREEN",
+		"GOLD",
+		"GOLDENROD",
+		"GREY",
+		"GREEN",
+		"GREEN YELLOW",
+		"INDIAN RED",
+		"KHAKI",
+		"LIGHT BLUE",
+		"LIGHT GREY",
+		"LIGHT STEEL BLUE",
+		"LIME GREEN",
+		"MAGENTA",
+		"MAROON",
+		"MEDIUM AQUAMARINE",
+		"MEDIUM BLUE",
+		"MEDIUM FOREST GREEN",
+		"MEDIUM GOLDENROD",
+		"MEDIUM ORCHID",
+		"MEDIUM SEA GREEN",
+		"MEDIUM SLATE BLUE",
+		"MEDIUM SPRING GREEN",
+		"MEDIUM TURQUOISE",
+		"MEDIUM VIOLET RED",
+		"MIDNIGHT BLUE",
+		"NAVY",
+		"ORANGE",
+		"ORANGE RED",
+		"ORCHID",
+		"PALE GREEN",
+		"PINK",
+		"PLUM",
+		"PURPLE",
+		"RED",
+		"SALMON",
+		"SEA GREEN",
+		"SIENNA",
+		"SKY BLUE",
+		"SLATE BLUE",
+		"SPRING GREEN",
+		"STEEL BLUE",
+		"TAN",
+		"THISTLE",
+		"TURQUOISE",
+		"VIOLET",
+		"VIOLET RED",
+		"WHEAT",
+		"WHITE",
+		"YELLOW",
+		"YELLOW GREEN"
+	};
 }
 
 
-//----------------------------------------
-CMapColor::~CMapColor()
+
+static const struct ColourDesc
 {
-
+	const char *name;
+	unsigned char r, g, b;
 }
-
-//----------------------------------------
-CMapColor& CMapColor::GetInstance()
+ColourTable[] =
 {
- static CMapColor instance;
+	{ "AQUAMARINE", 112, 219, 147 },
+	{ "BLACK", 0, 0, 0 },
+	{ "BLUE", 0, 0, 255 },
+	{ "BLUE VIOLET", 159, 95, 159 },
+	{ "BROWN", 165, 42, 42 },
+	{ "CADET BLUE", 95, 159, 159 },
+	{ "CORAL", 255, 127, 0 },
+	{ "CORNFLOWER BLUE", 66, 66, 111 },
+	{ "CYAN", 0, 255, 255 },
+	{ "DARK GREY", 47, 47, 47 },   // ?
 
- return instance;
-}
-//----------------------------------------
-CVtkColor CMapColor::NextPrimaryColors()
-{ 
-  CVtkColor value = PrimaryColors(m_nextPrimaryColor);
-  m_nextPrimaryColor++;
+	{ "DARK GREEN", 47, 79, 47 },
+	{ "DARK OLIVE GREEN", 79, 79, 47 },
+	{ "DARK ORCHID", 153, 50, 204 },
+	{ "DARK SLATE BLUE", 107, 35, 142 },
+	{ "DARK SLATE GREY", 47, 79, 79 },
+	{ "DARK TURQUOISE", 112, 147, 219 },
+	{ "DIM GREY", 84, 84, 84 },
+	{ "FIREBRICK", 142, 35, 35 },
+	{ "FOREST GREEN", 35, 142, 35 },
+	{ "GOLD", 204, 127, 50 },
+	{ "GOLDENROD", 219, 219, 112 },
+	{ "GREY", 128, 128, 128 },
+	{ "GREEN", 0, 255, 0 },
+	{ "GREEN YELLOW", 147, 219, 112 },
+	{ "INDIAN RED", 79, 47, 47 },
+	{ "KHAKI", 159, 159, 95 },
+	{ "LIGHT BLUE", 191, 216, 216 },
+	{ "LIGHT GREY", 192, 192, 192 },
+	{ "LIGHT STEEL BLUE", 143, 143, 188 },
+	{ "LIME GREEN", 50, 204, 50 },
+	{ "LIGHT MAGENTA", 255, 119, 255 },
+	{ "MAGENTA", 255, 0, 255 },
+	{ "MAROON", 142, 35, 107 },
+	{ "MEDIUM AQUAMARINE", 50, 204, 153 },
+	{ "MEDIUM GREY", 100, 100, 100 },
+	{ "MEDIUM BLUE", 50, 50, 204 },
+	{ "MEDIUM FOREST GREEN", 107, 142, 35 },
+	{ "MEDIUM GOLDENROD", 234, 234, 173 },
+	{ "MEDIUM ORCHID", 147, 112, 219 },
+	{ "MEDIUM SEA GREEN", 66, 111, 66 },
+	{ "MEDIUM SLATE BLUE", 127, 0, 255 },
+	{ "MEDIUM SPRING GREEN", 127, 255, 0 },
+	{ "MEDIUM TURQUOISE", 112, 219, 219 },
+	{ "MEDIUM VIOLET RED", 219, 112, 147 },
+	{ "MIDNIGHT BLUE", 47, 47, 79 },
+	{ "NAVY", 35, 35, 142 },
+	{ "ORANGE", 204, 50, 50 },
+	{ "ORANGE RED", 255, 0, 127 },
+	{ "ORCHID", 219, 112, 219 },
+	{ "PALE GREEN", 143, 188, 143 },
+	{ "PINK", 255, 192, 203 },
+	{ "PLUM", 234, 173, 234 },
+	{ "PURPLE", 176, 0, 255 },
+	{ "RED", 255, 0, 0 },
+	{ "SALMON", 111, 66, 66 },
+	{ "SEA GREEN", 35, 142, 107 },
+	{ "SIENNA", 142, 107, 35 },
+	{ "SKY BLUE", 50, 153, 204 },
+	{ "SLATE BLUE", 0, 127, 255 },
+	{ "SPRING GREEN", 0, 255, 127 },
+	{ "STEEL BLUE", 35, 107, 142 },
+	{ "TAN", 219, 147, 112 },
+	{ "THISTLE", 216, 191, 216 },
+	{ "TURQUOISE", 173, 234, 234 },
+	{ "VIOLET", 79, 47, 79 },
+	{ "VIOLET RED", 204, 50, 153 },
+	{ "WHEAT", 216, 216, 191 },
+	{ "WHITE", 255, 255, 255 },
+	{ "YELLOW", 255, 255, 0 },
+	{ "YELLOW GREEN", 153, 204, 50 }
+};
 
-  return value;
-}
-//----------------------------------------
-CVtkColor CMapColor::PrimaryColors(uint32_t i)
-{ 
-  if (i >= m_primaryColors.size())
-  {
-    i = 0;
-  }
-
-  return NameToVtkColor(m_primaryColors[i]);
-}
-//----------------------------------------
-bool CMapColor::ValidName(const std::string& name)
-{   
-  return ValidName(wxString(name.c_str()));
-}
-//----------------------------------------
-bool CMapColor::ValidName(const wxString& name)
-{ 
-  wxString nameUpper = name.Upper();
-  wxColour colour = m_colourDatabase.Find(nameUpper);
-  if (colour.Ok())
-  {
-    return true;
-  }
-
-  return false;
-}
-//----------------------------------------
-wxString CMapColor::ColorToName(const wxColour& id)
+static const ColourDesc* FindColor( const std::string &name )
 {
-  return m_colourDatabase.FindName(id);
+    // make the comparison case insensitive and also match both grey and gray
 
+    std::string colName = ToUpperCopy( name );
+    std::string colNameAlt = colName;
+	replace( colNameAlt, "GRAY", "GREY" );
+
+	for ( auto &desc : ColourTable )
+		if ( desc.name == colNameAlt )
+			return &desc;
+
+    return nullptr;
 }
-//----------------------------------------
-wxString CMapColor::ColorToName(const CVtkColor& id)
+
+CVtkColor CMapColor::NameToVtkColor( const std::string& name )
 {
-  return ColorToName(color_cast(id));
+	const ColourDesc *desc =  FindColor( name );
+	if ( !desc )
+		return CVtkColor();
+
+	return CVtkColor( desc->r, desc->g, desc->b );
 }
-
-//----------------------------------------
-CVtkColor CMapColor::NameToVtkColor(const char* name)
-{
-  return NameToVtkColor(wxString(name));
-
-}
-//----------------------------------------
-CVtkColor CMapColor::NameToVtkColor(const std::string& name)
-{
-  return NameToVtkColor(wxString(name.c_str()));
-
-}
-//----------------------------------------
-CVtkColor CMapColor::NameToVtkColor(const wxString& name)
-{
-  wxColour colour = NameToColour(name);
-  if (colour.Ok() == false)
-  {
-    return CVtkColor();
-  }
-
-  return CVtkColor(colour.Red(), colour.Green(), colour.Blue());
-}
-//----------------------------------------
-wxColour CMapColor::NameToColour(const char* name)
-{
-  return  NameToColour(wxString(name));
-
-}
-//----------------------------------------
-wxColour CMapColor::NameToColour(const std::string& name)
-{
-  return  NameToColour(wxString(name.c_str()));
-
-}
-//----------------------------------------
-wxColour CMapColor::NameToColour(const wxString& name)
-{
-  wxString nameUpper = name.Upper();
-  return  m_colourDatabase.Find(nameUpper);
-
-}
-
-//----------------------------------------
-wxColourData CMapColor::ChooseColor(const CVtkColor& color, wxWindow* parent)
-{
-  return ChooseColor(color_cast(color), parent);
-}
-//----------------------------------------
-wxColourData CMapColor::ChooseColor(const wxColour& color, wxWindow* parent)
-{
-  m_clrData.SetColour(color);
-
-  wxColourDialog dialog(parent, &m_clrData);
-  dialog.SetTitle(_T("Choose color"));
-  if (dialog.ShowModal() == wxID_OK)
-  {
-      m_clrData = dialog.GetColourData();
-  }
-
-  return m_clrData;
-}
-//----------------------------------------
-void CMapColor::NamesToArrayString(wxArrayString& array)
-{
-
-  static wxString wxColourNames[] = 
-  {
-  "AQUAMARINE",
-  "BLACK", 
-  "BLUE",
-  "BLUE VIOLET",
-  "BROWN",
-  "CADET BLUE",
-  "CORAL",
-  "CORNFLOWER BLUE",
-  "CYAN",
-  "DARK GREY",
-  "DARK GREEN", 
-  "DARK OLIVE GREEN",
-  "DARK ORCHID",
-  "DARK SLATE BLUE",
-  "DARK SLATE GREY",
-  "DARK TURQUOISE",
-  "DIM GREY",
-  "FIREBRICK",
-  "FOREST GREEN", 
-  "GOLD",
-  "GOLDENROD",
-  "GREY",
-  "GREEN",
-  "GREEN YELLOW", 
-  "INDIAN RED",
-  "KHAKI",
-  "LIGHT BLUE",
-  "LIGHT GREY",
-  "LIGHT STEEL BLUE",
-  "LIME GREEN",
-  "MAGENTA",
-  "MAROON",
-  "MEDIUM AQUAMARINE",
-  "MEDIUM BLUE",
-  "MEDIUM FOREST GREEN",
-  "MEDIUM GOLDENROD",
-  "MEDIUM ORCHID",
-  "MEDIUM SEA GREEN",
-  "MEDIUM SLATE BLUE",
-  "MEDIUM SPRING GREEN",
-  "MEDIUM TURQUOISE",
-  "MEDIUM VIOLET RED",
-  "MIDNIGHT BLUE",
-  "NAVY",
-  "ORANGE",
-  "ORANGE RED", 
-  "ORCHID",
-  "PALE GREEN",
-  "PINK",
-  "PLUM",
-  "PURPLE",
-  "RED",
-  "SALMON",
-  "SEA GREEN",
-  "SIENNA",
-  "SKY BLUE",
-  "SLATE BLUE", 
-  "SPRING GREEN",
-  "STEEL BLUE", 
-  "TAN",
-  "THISTLE",
-  "TURQUOISE", 
-  "VIOLET",
-  "VIOLET RED", 
-  "WHEAT",
-  "WHITE", 
-  "YELLOW",
-  "YELLOW GREEN"
-  };
-
-  size_t n;
-
-  for ( n = 0; n < WXSIZEOF(wxColourNames); n++ )
-  {
-    array.Add(wxColourNames[n]);
-  }
-
-}
-
-

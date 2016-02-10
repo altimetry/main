@@ -27,7 +27,7 @@
 #include "TreeCtrl.h"
 
 #include "Product.h"
-#include "new-gui/brat/Workspaces/Dataset.h"
+#include "new-gui/brat/DataModels/Workspaces/Dataset.h"
 
 // WDR: class declarations
 

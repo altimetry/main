@@ -28,6 +28,22 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 =========================================================================*/
+#if defined (__unix__)
+#if defined (__DEPRECATED)          //avoid linux warning in vtk include
+#undef __DEPRECATED
+#endif
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wwrite-strings"
+#endif	// __unix__
+
+#if defined (_WIN32) || defined (WIN32) //avoid collisions with QGIS projPJ
+#define projPJ projPJ2
+#endif
+
 #include "vtkProj2DFilter.h"
 
 #include <cmath>
@@ -1425,7 +1441,7 @@ void vtkProj2DFilter::PerformAzimuthalProjection()
     cuttingLongitude -= 360.0;
     }
 
-  static char *parameters[] = {
+  static const char *parameters[] = {
     "",
     "",
     "",
@@ -1459,7 +1475,7 @@ void vtkProj2DFilter::PerformAzimuthalProjection()
   parameters[1] = centerLatitudeParam;
   parameters[2] = centerLongitudeParam;
 
-  projRef = pj_init(sizeof(parameters)/sizeof(char *), parameters);
+  projRef = pj_init(sizeof(parameters)/sizeof(char *), const_cast<char**>( parameters) );
   if (projRef == 0)
     {
     vtkErrorMacro(<<"Could not initialize PROJ library ("
@@ -1897,7 +1913,7 @@ void vtkProj2DFilter::PerformCylindricalProjection()
     cuttingLongitude -= 360.0;
     }
 
-  static char *parameters[] = {
+  static const char *parameters[] = {
     "",
     "",
     "",
@@ -1935,7 +1951,7 @@ void vtkProj2DFilter::PerformCylindricalProjection()
   sprintf(centerLongitudeParam, "lon_0=%7.3f", this->CenterLongitude);
   parameters[1] = centerLongitudeParam;
 
-  projRef = pj_init(sizeof(parameters)/sizeof(char *), parameters);
+  projRef = pj_init(sizeof(parameters)/sizeof(char *), const_cast<char**>( parameters) );
   if (projRef == 0)
     {
     vtkErrorMacro(<<"Could not initialize PROJ library ("
@@ -2670,7 +2686,7 @@ void vtkProj2DFilter::PerformSemiProjection()
     cuttingLongitude -= 360.0;
     }
 
-  static char *parameters[] = {
+  static const char *parameters[] = {
     "",
     "",
     "",
@@ -2702,7 +2718,7 @@ void vtkProj2DFilter::PerformSemiProjection()
   parameters[1] = centerLatitudeParam;
   parameters[2] = centerLongitudeParam;
 
-  projRef = pj_init(sizeof(parameters)/sizeof(char *), parameters);
+  projRef = pj_init(sizeof(parameters)/sizeof(char *), const_cast<char**>( parameters) );
   if (projRef == 0)
     {
     vtkErrorMacro(<<"Could not initialize PROJ library ("
@@ -3294,7 +3310,7 @@ void vtkProj2DFilter::normalizedDeprojection2D(int projection, double centerLat,
     char centerLatitudeParam[100];
     char centerLongitudeParam[100];
 
-    static char *parameters[] = {
+    static const char *parameters[] = {
       "",
       "",
       "",
@@ -3355,7 +3371,7 @@ void vtkProj2DFilter::normalizedDeprojection2D(int projection, double centerLat,
     parameters[2] = centerLongitudeParam;
 
     // initialize the projection library
-    projRef = pj_init(sizeof(parameters)/sizeof(char *), parameters);
+    projRef = pj_init(sizeof(parameters)/sizeof(char *), const_cast<char**>( parameters) );
     if (projRef == 0)
     {
         return;
@@ -3388,7 +3404,7 @@ void vtkProj2DFilter::normalizedProjection2D(int projection, double centerLat, d
     char centerLatitudeParam[100];
     char centerLongitudeParam[100];
 
-    static char *parameters[] = {
+    static const char *parameters[] = {
       "",
       "",
       "",
@@ -3450,7 +3466,7 @@ void vtkProj2DFilter::normalizedProjection2D(int projection, double centerLat, d
     parameters[2] = centerLongitudeParam;
 
     // initialize the projection library
-    projRef = pj_init(sizeof(parameters)/sizeof(char *), parameters);
+    projRef = pj_init(sizeof(parameters)/sizeof(char *), const_cast<char**>( parameters) );
     if (projRef == 0)
     {
         return;
@@ -3613,7 +3629,7 @@ void vtkSimpleVectorProjFilter::PerformSimple2D()
     cuttingLongitude -= 360.0;
     }
 
-  static char *parameters[] = {
+  static const char *parameters[] = {
     "",
     "",
     "",
@@ -3670,7 +3686,7 @@ void vtkSimpleVectorProjFilter::PerformSimple2D()
   parameters[1] = centerLatitudeParam;
   parameters[2] = centerLongitudeParam;
 
-  projRef = pj_init(sizeof(parameters)/sizeof(char *), parameters);
+  projRef = pj_init(sizeof(parameters)/sizeof(char *), const_cast<char**>( parameters) );
   if (projRef == 0)
     {
     vtkErrorMacro(<<"Could not initialize PROJ library ("

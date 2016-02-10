@@ -33,7 +33,7 @@
 
 #include "LabeledTextCtrl.h"
 
-#include "new-gui/brat/Workspaces/Operation.h"
+#include "new-gui/brat/DataModels/Workspaces/Operation.h"
 
 // WDR: class declarations
 

@@ -1,14 +1,9 @@
 #if !defined GUI_VIEW_CONTROLS_PANEL_H
 #define GUI_VIEW_CONTROLS_PANEL_H
 
+
 #include "ControlsPanel.h"
 
-
-/////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////
-//								Graphics Panels
-/////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////
 
 
 ////////////////////////////////////////////////////////////////
@@ -31,37 +26,118 @@ class CAxisTab : public QWidget
 
     using base_t = QWidget;
 
-    // static members
-
-
     // instance data members
 
-    QPushButton *mAxisColorButton = nullptr;
-    QColor      mAxisColor = QColor();
+	QCheckBox *mLogScaleCheck = nullptr;
+	QPushButton *mAxisColorButton = nullptr;
+    QColor      mAxisColor;
 
+	//construction / destruction
+
+	void Wire();
 
 public:
-    explicit CAxisTab( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+    CAxisTab( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
     virtual ~CAxisTab()
     {}
 
-    // access
+    //
 
+signals:
+	void LogarithmicScale( bool log );
 
-    // operations
-    protected slots:
+protected slots:
+
     void SetAxisColor();
-
 };
 
 
 
 /////////////////////////////////////////////////////////////////////////////////////
-//								Plot View
+/////////////////////////////////////////////////////////////////////////////////////
+//							View Common Tabs
+/////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
 
-class CPlotViewControls : public CControlsPanel
+struct CViewControlsPanelGeneral : public CControlsPanel
+{
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+    Q_OBJECT
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
+    // types
+
+    using base_t = CControlsPanel;
+
+    // instance data members
+
+public:
+	QComboBox *mSelectDataset   = nullptr;
+    QComboBox *mApplyFilter     = nullptr;
+    QComboBox *mSelectOperation = nullptr;
+
+    QComboBox *mOpenAplot  = nullptr;
+
+public:
+    CViewControlsPanelGeneral( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+
+	virtual ~CViewControlsPanelGeneral()
+	{}
+};
+
+
+
+
+struct CViewControlsPanelPlots : public CControlsPanel
+{
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+    Q_OBJECT
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
+    // types
+
+    using base_t = CControlsPanel;
+
+    // instance data members
+
+public:
+	QTableWidget *mPlotInfoTable = nullptr;
+
+public:
+    CViewControlsPanelPlots( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+
+	virtual ~CViewControlsPanelPlots()
+	{}
+};
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+//								Plot View Tabs
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+
+
+struct CPlotControlsPanelEdit : public CControlsPanel
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
@@ -82,11 +158,6 @@ class CPlotViewControls : public CControlsPanel
 
     // instance data members
 
-    QComboBox *mSelectDataset   = nullptr;
-    QComboBox *mApplyFilter     = nullptr;
-    QComboBox *mSelectOperation = nullptr;
-
-    QComboBox *mOpenAplot  = nullptr;
     QComboBox *mSelectplot = nullptr;
     QComboBox *mvarX       = nullptr;
     QComboBox *mvarY       = nullptr;
@@ -95,43 +166,16 @@ class CPlotViewControls : public CControlsPanel
 
     QComboBox *mLinkToPlot = nullptr;
 
-    QPushButton *mLineColorButton = nullptr;
-    QColor      mLineColor = QColor();
-
-    QPushButton *mPointColorButton = nullptr;
-    QColor      mPointColor = QColor();
-
-    QComboBox *mStipplePattern = nullptr;
-    QComboBox *mPointGlyph     = nullptr;
-
-    QTabWidget *axisOptionsTabs = nullptr;
-
-
 public:
-    explicit CPlotViewControls( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+    CPlotControlsPanelEdit( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
-    virtual ~CPlotViewControls()
+    virtual ~CPlotControlsPanelEdit()
     {}
-
-    // access
-
-
-    // operations
-    protected slots:
-    void SetLineColor();
-    void SetPointColor();
-
-
 };
 
 
 
-
-/////////////////////////////////////////////////////////////////////////////////////
-//								Map View
-/////////////////////////////////////////////////////////////////////////////////////
-
-class CMapViewControls : public CControlsPanel
+struct CPlotControlsPanelCurveOptions : public CControlsPanel
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
@@ -152,33 +196,142 @@ class CMapViewControls : public CControlsPanel
 
     // instance data members
 
-    QComboBox *mSelectDataset   = nullptr;
-    QComboBox *mApplyFilter     = nullptr;
-    QComboBox *mSelectOperation = nullptr;
+    QPushButton *mLineColorButton = nullptr;
+    QColor      mLineColor;
 
-    QComboBox *mOpenAplot  = nullptr;
-    QComboBox *mAddData    = nullptr;
+    QPushButton *mPointColorButton = nullptr;
+    QColor      mPointColor;
 
-    QComboBox *mDataLayer  = nullptr;
+    QComboBox *mStipplePattern = nullptr;
+    QComboBox *mPointGlyph     = nullptr;
 
-    QTabWidget *ViewOptionsTabs = nullptr;
+	//construction / destruction
 
+	void Wire();
 public:
-    explicit CMapViewControls( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+    CPlotControlsPanelCurveOptions( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
-    virtual ~CMapViewControls()
+    virtual ~CPlotControlsPanelCurveOptions()
     {}
 
     // access
 
 
     // operations
+protected slots:
 
+    void SetLineColor();
+    void SetPointColor();
+};
+
+
+struct CPlotControlsPanelAxisOptions : public CControlsPanel
+{
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+    Q_OBJECT
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
+    // types
+
+    using base_t = CControlsPanel;
+
+    // static members
+
+    // instance data members
+
+	CAxisTab *mX_axis = nullptr;
+	CAxisTab *mY_axis = nullptr;
+	CAxisTab *mZ_axis = nullptr;
+
+    QTabWidget *mAxisOptionsTabs = nullptr;
+
+	void Wire();
+public:
+    CPlotControlsPanelAxisOptions( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+
+    virtual ~CPlotControlsPanelAxisOptions()
+    {}
+
+signals:
+	void LogarithmicScaleX( bool log );
+	void LogarithmicScaleY( bool log );
+	void LogarithmicScaleZ( bool log );
 };
 
 
 
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+//								Map View Tabs
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
 
+
+struct CMapControlsPanelEdit : public CControlsPanel
+{
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+    Q_OBJECT
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
+    // types
+
+    using base_t = CControlsPanel;
+
+    // instance data members
+
+    QWidget *mAddData    = nullptr;
+    QComboBox *mDataLayer  = nullptr;
+
+public:
+    CMapControlsPanelEdit( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+
+	virtual ~CMapControlsPanelEdit()
+	{}
+};
+
+
+
+struct CMapControlsPanelOptions : public CControlsPanel
+{
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+    Q_OBJECT
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
+    // types
+
+    using base_t = CControlsPanel;
+
+    // instance data members
+
+    QTabWidget *ViewOptionsTabs = nullptr;
+
+public:
+    CMapControlsPanelOptions( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+
+	virtual ~CMapControlsPanelOptions()
+	{}
+};
 
 
 

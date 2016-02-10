@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -20,228 +18,83 @@
 #if !defined(_vtkList_h_)
 #define _vtkList_h_
 
-#include <list>
-#include <string>
-
-
 #include "libbrathl/brathl.h"
 
 #include "vtkObject.h"
 
 
-/*! Creates a type name for vtkObject std::list */ 
-typedef std::list<vtkObject*> listvtkobject; 
-
-/*! Creates a type name for vtkObject array */ 
-typedef std::vector<vtkObject*> arrayvtkobject; 
- 
-/*! Creates a type name for std::map vtkObject base class */ 
-typedef std::map<std::string, vtkObject*> mapvtkobject; 
-
-
-
-
-//-------------------------------------------------------------
-//------------------- vtkObList class --------------------
-//-------------------------------------------------------------
-
-/** 
-  A std::list of vtkObject management class.
-
-
- \version 1.0
-*/
-
-
-class vtkObList : public listvtkobject
+class vtkObArray : public std::vector<vtkObject*>
 {
+	using base_t = std::vector<vtkObject*>;
 
 public:
-    
-  /// Empty vtkObList ctor
-  vtkObList(bool bDelete = true);
-    
-//  /** Creates new vtkObList object from another CStringList
-//    \param std::list [in] : std::list to be copied */
-//  vtkObList(const vtkObList& std::list);
 
-  /// Destructor
-  virtual ~vtkObList();
+	vtkObArray() : base_t()
+	{}
 
-  //virtual void Insert(const vtkObList& std::list, bool bEnd = true);
+	virtual ~vtkObArray()
+	{
+		RemoveAll();
+	}
 
-  virtual void Insert(vtkObject* ob, bool bEnd = true);
+	//
 
-  /** Remove all elements and clear the std::list*/
-  virtual void RemoveAll();
+//protected:
+	virtual void Insert( vtkObject* ob )
+	{
+		push_back( ob );
+	}
 
-  /** Delete an element referenced by iteratorMnemo
-  * \return true if no error, otherwise false */
-  virtual bool Erase(vtkObList::iterator it);
+	virtual vtkObArray::iterator ReplaceAt( vtkObArray::iterator where, vtkObject* ob )
+	{
+		Erase( where );
+		return InsertAt( where, ob );
+	}
 
-  virtual bool PopBack();
+	// Remove all elements and clear
+	//
+	virtual void RemoveAll()
+	{
+		for ( auto *ptr : *this )
+			if ( ptr != nullptr )
+				ptr->Delete();
 
-  /** Copy a new CStringList to the object */
-  //const vtkObList& operator= (const vtkObList& lst);
+		clear();
+	}
 
-  bool GetDelete() {return m_bDelete;};
-  void SetDelete(bool value) {m_bDelete = value;};
+private:
+#if defined (BRAT_V3)
+public:
+#endif
 
-  ///Dump fonction
-  virtual void Dump(std::ostream& fOut = std::cerr);
+	// Delete an element referenced by it
+	//	return true if no error, otherwise false
+	//
+	virtual bool Erase( vtkObArray::iterator it )
+	{
+		if ( it == end() )
+			return false;
 
-  
-protected:
+		vtkObject *ob = *it;
+		if ( ob == nullptr )
+			return false;
 
-  bool m_bDelete;
+		erase( it );
+		ob->Delete();
 
+		return true;
+	}
+
+private:
+
+	virtual vtkObArray::iterator InsertAt( vtkObArray::iterator where, vtkObject* ob )
+	{
+		return insert( where, ob );
+	}
+
+	///Dump function
+	virtual void Dump( std::ostream& fOut = std::cerr );
 };
-
-
-
-//-------------------------------------------------------------
-//------------------- vtkObArray class --------------------
-//-------------------------------------------------------------
-
-/** 
-  An array (std::vector) of vtkObject management class.
-
-
- \version 1.0
-*/
-
-
-class vtkObArray : public arrayvtkobject
-{
-
-public:
-    
-  /// Empty vtkObArray ctor
-  vtkObArray(bool bDelete = true);
-    
-//  /** Creates new vtkObArray object from another vtkObArray
-//    \param std::list [in] : std::list to be copied */
-//  vtkObArray(const vtkObArray& std::list);
-
-  /// Destructor
-  virtual ~vtkObArray();
-
-  //virtual void Insert(const vtkObArray& vect);
-
-  virtual void Insert(vtkObject* ob);
-
-   /** Remove all elements and clear the std::list*/
-   virtual void RemoveAll();
-
-  virtual vtkObArray::iterator InsertAt(vtkObArray::iterator where, vtkObject* ob);
-
-  virtual vtkObArray::iterator ReplaceAt(vtkObArray::iterator where, vtkObject* ob);
-
-
-  /** Delete an element referenced by it
-  * \return true if no error, otherwise false */
-  virtual bool Erase(vtkObArray::iterator it);
-
-  /** Delete an element referenced by it
-  * \return true if no error, otherwise false */
-  virtual bool Erase(int32_t index);
-
-  virtual bool PopBack();
-
-  /** Copy a new vtkObArray to the object */
-  //virtual const vtkObArray& operator= (const vtkObArray& lst);
-
-  bool GetDelete() {return m_bDelete;};
-  void SetDelete(bool value) {m_bDelete = value;};
-
-  ///Dump fonction
-  virtual void Dump(std::ostream& fOut = std::cerr);
-
-protected:
-
-  bool m_bDelete;
-
-
-  
-};
-
-
-
-
-//-------------------------------------------------------------
-//------------------- vtkObMap class --------------------
-//-------------------------------------------------------------
-/** 
-  a set of object management classes.
-
- 
- \version 1.0
-*/
-
-
-class vtkObMap : public mapvtkobject
-{
-public:
-   /// vtkObMap ctor
-   vtkObMap(bool bDelete = true);
-  
-   /// vtkObMap dtor
-   virtual ~vtkObMap();
-
-/////////////
-// Methods
-/////////////
-public:
-
-   
-   /** Inserts a vtkObject object
-   * \param key : vtkObject name (std::map key)
-   * \param ob : vtkObject value 
-   * \param withExcept : true for std::exception handling, flse otherwise
-   * \return vtkObject object or NULL if error */
-   vtkObject* Insert(const std::string& key, vtkObject* ob, bool withExcept = true);
-
-   /** Inserts a vtkObMap 
-   * \param obMap : vtkObMap to insert
-   * \param withExcept : true for std::exception handling, flse otherwise
-    */
-   //void Insert(const vtkObMap& obMap, bool withExcept = true);
-
-   
-   /** Tests if an element identify by 'key' already exists
-   * \return a vtkObject pointer if exists, otherwise NULL */
-   vtkObject* Exists(const std::string& key);
-
-   /** Delete an element referenced by it
-   * \return true if no error, otherwise false */
-   bool Erase(vtkObMap::iterator it);
-   
-   /** Delete an element by its key
-   * \return true if no error, otherwise false */
-   bool Erase(const std::string& key);
-
-   /** Remove all elements and clear the std::map*/
-   void RemoveAll();
-
-   /** operator[] redefinition. Searches a vtkObject object identifiy by 'key'.
-     \param key : vtkObject keyword 
-     \return a pointer to the vtkObject object if found, NULL  if not found */
-   vtkObject* operator[](const std::string& key);
-
-   bool GetDelete() {return m_bDelete;};
-   void SetDelete(bool value) {m_bDelete = value;};
-
-  /// Dump fonction
-   virtual void Dump(std::ostream& fOut = std::cerr);
-
-
-protected:
-
-  bool m_bDelete;
-
- 
-};
-
 
 
 

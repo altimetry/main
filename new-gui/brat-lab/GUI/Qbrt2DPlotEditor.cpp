@@ -16,7 +16,7 @@ Qbrt2DPlotEditor::Qbrt2DPlotEditor( QWidget *parent ) : base_t( parent ), m_Tool
 	switch ( ++ex )
 	{
 		case eSpectogram:
-			d_plot = new C2DPlotWidget( eSpectogram, this );
+            d_plot = new C2DPlotWidget( this );
 			setCentralWidget( d_plot );
 			break;
 

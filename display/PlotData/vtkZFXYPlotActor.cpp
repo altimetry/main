@@ -304,9 +304,9 @@ void vtkZFXYPlotActor::SetPlotProperties(CZFXYPlotProperty* props)
   SetLogX(props->m_xLog);
   SetLogY(props->m_yLog);
 
-  SetTitle(props->m_title);
-  SetXTitle(props->m_xLabel);
-  SetYTitle(props->m_yLabel);
+  SetTitle(props->m_title.c_str());
+  SetXTitle(props->m_xLabel.c_str());
+  SetYTitle(props->m_yLabel.c_str());
 
   ZoomToXRange(xrMin, xrMax);
   ZoomToYRange(yrMin, yrMax);

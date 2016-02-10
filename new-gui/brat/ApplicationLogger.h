@@ -1,9 +1,14 @@
 #if !defined APPLICATION_LOGGER_H
 #define APPLICATION_LOGGER_H
 
+#include <QMutex>
 
 #include <osg/Notify>
+
 #include <qgsmessagelog.h>
+#include <qgslogger.h>
+
+#include "new-gui/Common/+Utils.h"
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////

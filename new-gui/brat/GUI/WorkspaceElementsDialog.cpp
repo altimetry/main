@@ -2,10 +2,10 @@
 
 #include "new-gui/Common/QtUtils.h"
 
-#include "new-gui/brat/Workspaces/Operation.h"
-#include "new-gui/brat/Workspaces/Display.h"
-#include "new-gui/brat/Workspaces/Workspace.h"
-#include "new-gui/brat/Workspaces/TreeWorkspace.h"
+#include "new-gui/brat/DataModels/Workspaces/Operation.h"
+#include "new-gui/brat/DataModels/Workspaces/Display.h"
+#include "new-gui/brat/DataModels/Workspaces/Workspace.h"
+#include "new-gui/brat/DataModels/Workspaces/TreeWorkspace.h"
 #include "new-gui/brat/Views/TextWidget.h"
 
 #include "WorkspaceElementsDialog.h"

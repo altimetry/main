@@ -354,8 +354,18 @@ public slots:
 //									Operations
 /////////////////////////////////////////////////////////////////////////////////////
 
+//HAMMER SECTION
+class CmdLineProcessor;
+//HAMMER SECTION
+
+
 class COperationsControls : public CDesktopControlsPanel
 {
+	//HAMMER SECTION
+	CmdLineProcessor *mCmdLineProcessor = nullptr;
+	void openTestFile( const QString &fileName );
+	//HAMMER SECTION
+
 #if defined (__APPLE__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"

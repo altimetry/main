@@ -40,7 +40,7 @@ class CDeleteDisplaySelFieldEvent;
 #include "DisplayDataTreeCtrl.h"
 #include "BratGui_wdr.h"
 #include "Process.h"
-#include "new-gui/brat/Workspaces/Display.h"
+#include "new-gui/brat/DataModels/Workspaces/Display.h"
 
 // WDR: class declarations
 

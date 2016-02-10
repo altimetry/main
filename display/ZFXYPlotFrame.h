@@ -34,7 +34,7 @@
 //#include "BratDisplay_wdr.h"
 
 #include "ZFXYPlotPanel.h"
-#include "ZFXYPlotData.h"
+#include "PlotData/ZFXYPlotData.h"
 #include "LUTFrame.h"
 #include "ZFXYContourPropFrame.h"
 #include "WindowHandler.h"

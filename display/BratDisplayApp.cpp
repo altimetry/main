@@ -49,11 +49,15 @@ using namespace processes;
 
 // Include private headers
 #include "WindowHandler.h"
+#include "wxInterface.h"
+#ifdef CursorShape  //collsion Qt X
+#undef CursorShape
+#endif
 #include "WorldPlotFrame.h"
 #include "XYPlotFrame.h"
 #include "ZFXYPlotFrame.h"
 //#include "BitSet32.h"
-#include "MapColor.h"
+#include "PlotData/MapColor.h"
 #include "new-gui/brat/Display/MapTypeDisp.h"
 #include "PlotData/ColorPalleteNames.h"
 #include "PlotData/GeoMap.h"
@@ -227,6 +231,7 @@ CBratDisplayApp::CBratDisplayApp()
   m_isZFLatLon = false;
   m_isZFXY = false;
 
+          wxColourDialog dlg;
 }
 //----------------------------------------
 
@@ -3256,7 +3261,7 @@ void CBratDisplayApp::CreateZFXYPlot(CZFXYPlot* zfxyplot, wxSize& size, wxPoint&
       continue;
     }
 
-    CZFXYPlotData *geoMap = new CZFXYPlotData(frame, zfxyplot, field);
+    CZFXYPlotData *geoMap = new CZFXYPlotData(/*frame, */zfxyplot, field);
 
     m_zfxyMaps.Insert(geoMap);
 
@@ -3391,7 +3396,7 @@ void CBratDisplayApp::CreateXYPlot(CPlot* plot, wxSize& size, wxPoint& pos)
   {
     CPlotField* field = plot->GetPlotField(iField);
     CInternalFiles* yfx = field->GetInternalFiles(0);
-    CXYPlotDataMulti* plotData = new CXYPlotDataMulti("", field->m_xyProps);
+    CXYPlotData* plotData = new CXYPlotData("", field->m_xyProps);
 
     plotData->Create(yfx, plot, iField);
 

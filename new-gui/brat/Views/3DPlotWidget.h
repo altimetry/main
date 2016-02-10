@@ -5,20 +5,23 @@
 #include <qwt3d_surfaceplot.h>
 
 
+class CmdLineProcessor;
+class CZFXYPlot;
+class CZFXYPlotData;
+
+struct C3DPlotInfo;
+struct C3DPlotValues;
+
+struct CBrat3DFunction;
+
+
 typedef Qwt3D::SurfacePlot SurfacePlot; // VC6/moc issue
 
 
 
-class Plot : public Qwt3D::SurfacePlot
-{
-	Q_OBJECT
-
-public:
-    Plot(QWidget* pw, int updateinterval = 0 );
-
-public slots:
-	void rotate();
-};
+////////////////////////////////////////////////////////////
+// TODO delete;		Examples related declarations
+////////////////////////////////////////////////////////////
 
 
 
@@ -26,32 +29,143 @@ class Bar;	//enrichment example
 class Hat2;	//enrichment example
 
 
-class C3DPlotWidget : public QWidget
+
+enum Plot3dExample
+{
+	e_Autoswitching_axes, e_Plot3dExample_first = e_Autoswitching_axes,
+	e_Simple_SurfacePlot,
+	e_Vertex_Enrichment,
+
+	e_Plot3dExample_size
+};
+
+inline Plot3dExample& operator ++( Plot3dExample &ex )
+{
+	int exi = static_cast<int>( ex ) + 1;
+
+	if ( exi >= e_Plot3dExample_size )
+		ex = e_Plot3dExample_first;
+	else
+		ex = static_cast<Plot3dExample>( exi );
+
+	return ex;// static_cast<Plot3dExample>( static_cast<int>(ex)+ 1 );
+}
+
+
+class Plot : public Qwt3D::SurfacePlot
+{
+	Q_OBJECT
+
+public:
+    Plot( QWidget* pw, int updateinterval = 0 );
+
+public slots:
+	void rotate();
+};
+
+
+
+////////////////////////////////////////////////////////////
+//			Internal Qwt3D function 
+////////////////////////////////////////////////////////////
+
+
+class CBrat3DPlot : public Qwt3D::SurfacePlot
+{
+	Q_OBJECT
+
+	// types
+
+	using base_t = Qwt3D::SurfacePlot;
+
+	//instance data
+
+	CBrat3DFunction *mFunction = nullptr;
+
+	QActionGroup *mStyleGroup = nullptr;
+    QActionGroup *mCoordinateStyleGroup = nullptr;
+	QAction *mAnimateAction = nullptr;
+    QAction *mStandardColorAction = nullptr;
+    QAction *mHomeAction = nullptr;
+
+	QTimer mTimer;
+
+	//construction / destruction
+
+	void CreateContextMenu();
+
+public:
+	CBrat3DPlot( QWidget *pw );
+
+	virtual ~CBrat3DPlot();
+
+	// 
+
+	void SetLogarithmicScale( Qwt3D::AXIS axis, bool log );
+
+	void SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle )
+	{
+		SetAxisTitle( Qwt3D::X1, xtitle );
+		SetAxisTitle( Qwt3D::Y1, ytitle );
+		SetAxisTitle( Qwt3D::Z1, ztitle );		
+	}
+
+	// 
+
+	void AddSurface( const C3DPlotValues &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax );
+
+	void SetPlotStyle( Qwt3D::PLOTSTYLE style = Qwt3D::FILLEDMESH );
+
+	void SetCoordinateStyle( Qwt3D::COORDSTYLE style = Qwt3D::FRAME );
+
+protected:
+	void SetAxisTitle( Qwt3D::AXIS axis, const std::string &title );
+
+protected slots:
+
+	void rotate();
+
+	void Animate( int updateinterval = 200 );
+	void Reset();
+	void StandardColor( bool standard );
+	void PlotStyle();
+	void CoordinateStyle();
+};
+
+
+
+
+
+
+////////////////////////////////////////////////////////////
+//					3D Plot Class
+////////////////////////////////////////////////////////////
+
+
+class C3DPlotWidget : public QFrame
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
 #endif
 
-    Q_OBJECT
+	Q_OBJECT
 
 #if defined (__APPLE__)
 #pragma clang diagnostic pop
 #endif
 
-	using base_t = QWidget;
+	// types
 
-	void setCentralWidget( QWidget *w );
+	using base_t = QFrame;
 
 
-	std::vector<Plot*> mPlots;
+	// instance data
 
-    bool m_ToolEditor;
+	std::vector<Qwt3D::SurfacePlot*> mPlots;
 
-    QString curFile;
-    bool isUntitled;
+	QSize m_SizeHint;
 
-	QSize m_SizeHint = QSize( 72 * fontMetrics().width( 'x' ), 25 * fontMetrics().lineSpacing() );
 	double level_, width_;			//enrichment example
 	Bar *bar = nullptr;				//enrichment example
 	Hat2* hat = nullptr;			//enrichment example
@@ -60,78 +174,103 @@ class C3DPlotWidget : public QWidget
 	QSlider *widthSlider = nullptr;	//enrichment example
 	void setupUi();					//enrichment example
 
-public:
-    C3DPlotWidget(QWidget *parent = 0);
-	virtual ~C3DPlotWidget();
-	void Autoswitching_axes();
-	void Simple_SurfacePlot();
+	//construction /destruction
+
+	void Autoswitching_axes();	//auto-switching example
+	void Simple_SurfacePlot();	//surface example
 	void setColor();			//enrichment example
 	void Vertex_Enrichment();	//enrichment example
 
-public slots:
-  void setLevel(int);			//enrichment example
-  void setWidth(int);			//enrichment example
-  void barSlot();				//enrichment example
-
 public:
-    const QString& GetFilename() const { return  curFile; }
-    bool IsUntitled() const { return  isUntitled; }
-    void newFile();
-    bool save();
-    bool saveAs();
-    bool reOpen();
-    QSize sizeHint() const override;
+	C3DPlotWidget( QWidget *parent = 0 );
 
-    static C3DPlotWidget *open(QWidget *parent = nullptr );
-    static C3DPlotWidget *openFile(const QString &fileName, QWidget *parent = nullptr );
-    bool okToContinue();
-    bool isEmpty() const;
-    bool isMDIChild() const;        //not implemented
-    void ToolEditor( bool tool );
-    bool isToolEditor() const { return m_ToolEditor; }
-    QString getSelectedText();
+	virtual ~C3DPlotWidget();
 
-    //bool selectFont();
-    //bool selectColor();
-    //void toBold( bool bold );
-    //void toItalic( bool italic );
-    //void toUnderline( bool underline );
-    //void toFontFamily( const QString &f );
-    //void toFontSize( const QString &p );
-    //void toListStyle( QTextListFormat::Style style = QTextListFormat::ListDisc );
+	// access
 
-    //void PrintToPdf();
-    //void PrintToPrinter();
-    //void PrintPreview();
+	void SetPlotTitle( const std::string &title )
+	{
+		assert__( mPlots.size() );
+
+		mPlots[ 0 ]->setTitle( title.c_str() );
+	}
+
+	void SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle );
 
 
-    static QString strippedName(const QString &fullFileName);
+	void AddSurface( const C3DPlotValues &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax );
 
-    void connectSaveAvailableAction( QAction *pa );
-    void connectCutAvailableAction( QAction *pa );
-    void connectCopyAvailableAction( QAction *pa );
-    void connectUndoAvailableAction( QAction *pa );
-    void connectRedoAvailableAction( QAction *pa );
-    void connectDeleteSelAvailableAction( QAction *pa );
+	void SetXLogarithmicScale( bool log )
+	{
+		SetLogarithmicScale( Qwt3D::X1, log );
+	}
+	void SetYLogarithmicScale( bool log )
+	{
+		SetLogarithmicScale( Qwt3D::Y1, log );
+	}
+	void SetZLogarithmicScale( bool log )
+	{
+		SetLogarithmicScale( Qwt3D::Z1, log );
+	}
+	void SetLogarithmicScale( bool log )
+	{
+		SetXLogarithmicScale( log );
+		SetYLogarithmicScale( log );
+		SetZLogarithmicScale( log );
+	}
+
+
+	// protected operations
 
 protected:
-    void closeEvent(QCloseEvent *event) override;            //virtual void contextMenuEvent(QContextMenuEvent *e);
-    void  focusInEvent ( QFocusEvent * event ) override;
+	QSize sizeHint() const override;
 
-private slots:
-    void documentWasModified();
+	void SetCentralWidget( QWidget *w );
 
-signals:
-	void setCurrentFile( const C3DPlotWidget *peditor );
-    void toolWindowActivated( C3DPlotWidget *peditor );
+	void SetLogarithmicScale( Qwt3D::AXIS axis, bool log );
 
-private:
-    bool saveFile(const QString &fileName);
-    void setCurrentFile( const QString &fileName );
-    bool readFile(const QString &fileName);
-    bool writeFile(const QString &fileName);
+
+public slots:
+	void setLevel( int );		//enrichment example
+	void setWidth( int );		//enrichment example
+	void barSlot();				//enrichment example
 };
 
+
+
+// qwtplot3d original comments: 
+//
+//	- Mouse
+//
+//	key/mousebutton combination for data/coordinatesystem moves inside the widget - default behavior:
+//
+//	rotate around x axis: Qt::LeftButton 
+//	rotate around y axis: Qt::LeftButton | Qt::ShiftButton
+//	rotate around z axis: Qt::LeftButton 
+//	scale x:              Qt::LeftButton | Qt::AltButton 
+//	scale y:              Qt::LeftButton | Qt::AltButton 
+//	scale z:              Qt::LeftButton | Qt::AltButton | Qt::ShiftButton
+//	zoom:                 Qt::LeftButton | Qt::AltButton | Qt::ControlButton
+//	shifting along x:     Qt::LeftButton | Qt::ControlButton 
+//	shifting along y:     Qt::LeftButton | Qt::ControlButton
+//
+//	mouseMoveEvent() evaluates this function - if overridden, their usefulness becomes somehow limited
+//
+//
+//	- Keyboard
+//
+//	//keybutton combination for data/coordinatesystem moves inside the widget - default behavior:
+//
+//	//rotate around x axis: [Key_Down, Key_Up] 
+//	//rotate around y axis: SHIFT+[Key_Right, Key_Left]
+//	//rotate around z axis: [Key_Right, Key_Left] 
+//	//scale x:              ALT+[Key_Right, Key_Left] 
+//	//scale y:              ALT+[Key_Up, Key_Down] 
+//	//scale z:              ALT+SHIFT[Key_Down, Key_Up] 
+//	//zoom:                 ALT+CTRL+[Key_Down, Key_Up]
+//	//shifting along x:     CTRL+[Key_Right, Key_Left] 
+//	//shifting along z:     CTRL+[Key_Down, Key_Up]
+//
 
 
 #endif			// GRAPHICS_3D_PLOT_WIDGET_H

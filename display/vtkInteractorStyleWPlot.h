@@ -33,10 +33,14 @@
 #define __vtkInteractorStyleWPlot_h
 
 #include "vtkInteractorStyle.h"
+#include "PlotData/vtkList.h"
 
 #include "brathl.h"
 
-#include "PlotData/vtkList.h"
+ 
+/*! Creates a type name for std::map vtkObject base class */ 
+typedef std::map<std::string, vtkObject*> mapvtkobject; 
+
 
 class vtkIndent;
 class vtkOutlineSource;
@@ -121,6 +125,84 @@ protected:
 
 // Define our own VTKIS types
 #define VTKIS_OUTLINEZOOM        100
+
+
+
+
+//-------------------------------------------------------------
+//------------------- vtkObMap class --------------------
+//-------------------------------------------------------------
+/** 
+  a set of object management classes.
+
+ 
+ \version 1.0
+*/
+
+
+class vtkObMap : public mapvtkobject
+{
+public:
+   /// vtkObMap ctor
+   vtkObMap(bool bDelete = true);
+  
+   /// vtkObMap dtor
+   virtual ~vtkObMap();
+
+/////////////
+// Methods
+/////////////
+public:
+
+   
+   /** Inserts a vtkObject object
+   * \param key : vtkObject name (std::map key)
+   * \param ob : vtkObject value 
+   * \param withExcept : true for std::exception handling, flse otherwise
+   * \return vtkObject object or NULL if error */
+   vtkObject* Insert(const std::string& key, vtkObject* ob, bool withExcept = true);
+
+   /** Inserts a vtkObMap 
+   * \param obMap : vtkObMap to insert
+   * \param withExcept : true for std::exception handling, flse otherwise
+    */
+   //void Insert(const vtkObMap& obMap, bool withExcept = true);
+
+   
+   /** Tests if an element identify by 'key' already exists
+   * \return a vtkObject pointer if exists, otherwise NULL */
+   vtkObject* Exists(const std::string& key);
+
+   /** Delete an element referenced by it
+   * \return true if no error, otherwise false */
+   bool Erase(vtkObMap::iterator it);
+   
+   /** Delete an element by its key
+   * \return true if no error, otherwise false */
+   bool Erase(const std::string& key);
+
+   /** Remove all elements and clear the std::map*/
+   void RemoveAll();
+
+   /** operator[] redefinition. Searches a vtkObject object identifiy by 'key'.
+     \param key : vtkObject keyword 
+     \return a pointer to the vtkObject object if found, NULL  if not found */
+   vtkObject* operator[](const std::string& key);
+
+   bool GetDelete() {return m_bDelete;};
+   void SetDelete(bool value) {m_bDelete = value;};
+
+  /// Dump fonction
+   virtual void Dump(std::ostream& fOut = std::cerr);
+
+
+protected:
+
+  bool m_bDelete;
+
+ 
+};
+
 
 class VTK_EXPORT vtkInteractorStyleWPlot : public vtkInteractorStyle
 {

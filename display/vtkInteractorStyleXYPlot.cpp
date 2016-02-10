@@ -29,7 +29,7 @@
 =========================================================================*/
 #include "vtkInteractorStyleXYPlot.h"
 
-#include "vtkTools.h"
+#include "PlotData/vtkTools.h"
 #include "vtkActor2D.h"
 #include "vtkCommand.h"
 #include "vtkIndent.h"

@@ -831,12 +831,12 @@ inline std::vector< T >& operator += (std::vector< T > &vDest, const std::vector
 
 
 template< typename T >
-inline void	destroyPointersAndContainer( std::vector< T* > &c )
+inline void	DestroyPointersAndContainer( std::vector< T* > &c )
 {
 	while ( !c.empty() ) delete c.back(), c.pop_back();
 }
 template< typename K, typename T >
-inline void	destroyPointersAndContainer( std::map< K, T* > &c )			//check better this function
+inline void	DestroyPointersAndContainer( std::map< K, T* > &c )			//check better this function
 {
 	while ( !c.empty() ) delete c.begin()->second, c.erase( c.begin()->first );
 }
@@ -1057,126 +1057,6 @@ inline T s2n( CHAR *s )
     typedef typename char_traits< CHAR >::string_type string_type;
 
 	return s2n< T >( string_type( s ) );
-}
-
-
-
-
-//////////////////////////////////////////////
-//	  										//
-//   	Template functions to t_Bufs:
-//		Tstrlen, Tstrcmp,
-//		Tinsert, Tdelete, Tinvert
-//              	         	  			//
-//////////////////////////////////////////////
-
-
-//
-// returns char before Sep or last char (e)
-//
-template< typename I, typename L >
-inline I
-EndItem(L far* Bf, I b, I e, L far* Sep)
-{
-    I i = Tscan(b, Bf, e, (const L*)Sep, (I)1);   //cast only to force the creation of source Tscan from the template
-    return IsNull(i) ? e : i-1;
-}
-
-template< typename L >			//cannot have typename I because it doesn't have I parameters
-inline std::size_t
-Tstrlen(const L far* Bf)
-{
-    std::size_t count;
-    for (count = 0; *Bf++; count++);
-    return count;
-}
-//
-//	- it is expected that, like strlen, strcmp supports strings untill size_t, in spite of returning int (this obs. only makes sense in win16)
-//	- it returns int because the original returns int and because in the return value we only care about the relation with 0 (>, < ou ==)
-//
-template< typename L >
-inline int
-Tstrcmp(const L far* Bf1, const L far* Bf2)
-{
-    return strcmp((char far*)Bf1, (char far*)Bf2);    //return _tcscmp((TCHAR*)Bf1, (TCHAR*)Bf2);
-}
-template< typename I, typename L >
-inline L far*
-Tinvert(L far* Bf, I BfLen)
-{
-    L tmp;
-    for (I i = 0, j = BfLen - 1; i < j; i++, j--){
-        tmp	  = Bf[i];
-        Bf[i] = Bf[j];
-        Bf[j] = tmp;
-    }
-    return Bf;
-}
-//
-//	- void *memmove( void *dest, const void *src, size_t count );
-//	move to 1st position of the del string the 1st position after the cut the
-//	final size - number before the cut (= 1st position of the cut)
-//
-template < typename I, typename L >
-void
-Tdelete(L far* const Bf, I &BfLen, I Where, I Count)
-{
-    assert(BfLen >= 0 && Where >= 0 && Count >= 0 && (BfLen - Where >= Count));
-
-    BfLen -= Count;
-    memmove(&Bf[Where], &Bf[Where + Count], (size_t)(BfLen - Where)*sizeof(L));
-}
-//
-//	- unlike Tdelete, it can return false: lack of space is not considered error
-//	- Where can be == BfLen for insertion at the end
-//
-template< typename I, typename L >
-bool
-Tinsert(const L far* Source, I SizeS, L far* const Bf, I far &BfLen, I TotalLen, I Where)
-{
-    assert(SizeS >= 0  && BfLen >= 0 && TotalLen >= 0 && Where >= 0 && Where <= BfLen);
-
-    if (SizeS > TotalLen - BfLen)
-        return false;
-
-    memmove((void *)&Bf[Where+SizeS], &Bf[Where], (size_t)(BfLen-Where)*sizeof(L));
-    memmove((void *)&Bf[Where], Source, (size_t)SizeS*sizeof(L));
-
-    BfLen += SizeS;
-    return true;
-}
-//
-//	- accepts Till - From + 1 == 0 (i.e. insertion len == 0)
-//	- in Pascal: procedure Move(var Source, Dest; Count: Word);
-//	- see Tinsert for other comments
-//
-template< typename I, typename L >
-bool
-TselfInsert(I From, I Till, L far* const Bf, I far &BfLen, I TotalLen, I Where)
-{
-    assert(From >= 0  && Till >= 0  && BfLen >= 0 && TotalLen >= 0 && Where >= 0);
-    assert(Where <= BfLen && From < BfLen && Till < BfLen);
-
-    I SizeS = Till - From + 1;
-    if (Where > Till)
-        return Tinsert(&Bf[From], SizeS, Bf, BfLen, TotalLen, Where);
-
-    if (SizeS > TotalLen - BfLen)
-        return false;
-
-    memmove((void *)&Bf[Where+SizeS], &Bf[Where], (size_t)(BfLen-Where)*sizeof(L));		//move de where (inc) em diante, size bytes
-    I Size1;
-    if (Where > From)
-        Size1 = Where - From;		//1st Source block to be moved: previous move cut Source in where
-    else {
-        From += SizeS;
-        Size1 = SizeS; 				//1st Source block to be moved is Size if previous didn't break Source
-    }
-    memmove((void *)&Bf[Where], &Bf[From], (size_t)Size1*sizeof(L));						//move 1st block
-    memmove((void *)&Bf[Where+Size1], &Bf[Where+SizeS], (size_t)(SizeS-Size1)*sizeof(L));	//move 2nd block, from the position where it was placed in the 1st move
-
-    BfLen += SizeS;
-    return true;
 }
 
 

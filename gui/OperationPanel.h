@@ -43,7 +43,7 @@ class CDatasetFilesChangeEvent;
 #include "OperationTreeCtrl.h"
 
 #include "Dictionary.h"
-#include "new-gui/brat/Workspaces/Operation.h"
+#include "new-gui/brat/DataModels/Workspaces/Operation.h"
 #include "Process.h"
 #include "DelayDlg.h"
 #include "ExportDlg.h"

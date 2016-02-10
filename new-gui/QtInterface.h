@@ -8,7 +8,7 @@
 #define CWorkspaceSettings CConfiguration
 #define WORKSPACES_WORKSPACE_SETTINGS_H
 #else
-#include "new-gui/brat/Workspaces/WorkspaceSettings.h"
+#include "new-gui/brat/DataModels/Workspaces/WorkspaceSettings.h"
 #define CONFIG CWorkspaceSettings
 #endif
 

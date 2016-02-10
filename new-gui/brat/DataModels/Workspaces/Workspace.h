@@ -23,9 +23,9 @@
 
 #include "libbrathl/BratObject.h"
 
-#include "new-gui/brat/Workspaces/Constants.h"
-#include "new-gui/brat/Workspaces/Dataset.h"
-#include "new-gui/brat/Workspaces/Formula.h"
+#include "Constants.h"
+#include "Dataset.h"
+#include "Formula.h"
 
 
 using namespace brathl;

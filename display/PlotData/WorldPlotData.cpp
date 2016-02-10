@@ -36,6 +36,9 @@
 #include "libbrathl/LatLonPoint.h"
 using namespace brathl;
 
+#if defined (__DEPRECATED)          //avoid linux warning in vtk include
+#undef __DEPRECATED
+#endif
 #include "vtkProperty.h"
 #include "vtkProperty2D.h"
 #include "vtkDoubleArray.h"

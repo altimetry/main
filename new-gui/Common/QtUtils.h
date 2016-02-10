@@ -817,34 +817,40 @@ inline bool readUnicodeFileFromResource( const QString &rpath, std::wstring &des
 
 
 //////////////////////////////////////////////////////////////////
-//						BRAT Specific
+//					Dimensions - BRAT Specific
 //////////////////////////////////////////////////////////////////
 
-//	Application dimensions 
-
-const int min_main_window_width = 1024;
-const int min_main_window_height = 640;
-
-//const int max_main_dock_width = min_main_window_width / 3;
-//const int max_out_window_height = min_main_window_height / 4;
-
-const int min_globe_widget_width = 400;
-const int min_globe_widget_height = 400;
-//
-const int min_plot_widget_width = 300;
-const int min_plot_widget_height = 200;
-//
-//
-const int min_editor_dock_width = 200;
-const int min_editor_dock_height = 10;
+inline QSize DefaultSizeHint( const QWidget *w )
+{
+	return QSize( 72 * w->fontMetrics().width( 'x' ), 25 * w->fontMetrics().lineSpacing() );
+}
 
 
 const int icon_size = 24;
 
 
+const int min_main_window_width = 1024;
+const int min_main_window_height = 640;
+
+const auto child_ratio = 1. / 3.;
+
+const int min_globe_widget_width =  min_main_window_width * child_ratio;
+const int min_globe_widget_height = min_globe_widget_width / 2 * 3;
+
+const int min_plot_widget_width = min_globe_widget_width;
+const int min_plot_widget_height = min_globe_widget_height;
 
 
+const int min_editor_dock_width = 200;
+const int min_editor_dock_height = 10;
+
+
+
+
+
+//////////////////////////////////////////////////////////////////
 //	Development only
+//////////////////////////////////////////////////////////////////
 
 inline void NotImplemented( const char *msg = nullptr )
 {

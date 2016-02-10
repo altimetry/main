@@ -70,8 +70,8 @@ CDesktopManagerSDI::desktop_child_t* CDesktopManagerSDI::AddSubWindow( QWidget *
 }
 
 
-CDesktopManagerSDI::CDesktopManagerSDI( QMainWindow *parent )
-	: base_t( parent )
+CDesktopManagerSDI::CDesktopManagerSDI( const CApplicationPaths &paths, QMainWindow *parent )
+	: base_t( paths, parent )
 {
 	//QWidget *centralWidget = parent->centralWidget();
 	//QGridLayout *centralLayout = new QGridLayout( centralWidget );
@@ -130,8 +130,8 @@ void CDesktopManagerMDI::AddMDIArea( QWidget *parent )
     gridLayout->addWidget( mMdiArea, 0, 0, 1, 1 );
 }
 
-CDesktopManagerMDI::CDesktopManagerMDI( QMainWindow *parent )		//parent = nullptr 
-	: base_t( parent )
+CDesktopManagerMDI::CDesktopManagerMDI( const CApplicationPaths &paths, QMainWindow *parent )		//parent = nullptr 
+	: base_t( paths, parent )
 {
 #if defined TABBED_MANAGER
 	QWidget *tab = new QWidget();

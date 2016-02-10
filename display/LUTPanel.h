@@ -30,6 +30,13 @@
     #include "wx/wx.h"
 #endif
 
+#if defined (__DEPRECATED)          //avoid linux warning in vtk include
+#undef __DEPRECATED
+#endif
+#if defined (__unix__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 #include "vtkScalarBarActor.h"
 #include "vtkRenderer.h"
 

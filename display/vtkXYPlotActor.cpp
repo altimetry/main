@@ -22,7 +22,7 @@
 
 #include "vtkActor2DCollection.h"
 #include "vtkAppendPolyData.h"
-#include "vtkNewAxisActor2D.h"
+#include "PlotData/vtkNewAxisActor2D.h"
 #include "vtkDataObjectCollection.h"
 #include "vtkDataSetCollection.h"
 #include "vtkFloatArray.h"
@@ -44,7 +44,7 @@
 #include "vtkViewport.h"
 
 
-#include "vtkPointLocatorBrat.h"
+#include "PlotData/vtkPointLocatorBrat.h"
 
 #ifndef vtkFloatingPointType
 #define vtkFloatingPointType vtkFloatingPointType

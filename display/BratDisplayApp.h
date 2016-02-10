@@ -55,8 +55,8 @@ using namespace brathl;
 #include "PlotData/ZFXYPlot.h"
 
 #include "PlotData/WorldPlotData.h"
-#include "XYPlotData.h"
-#include "ZFXYPlotData.h"
+#include "PlotData/XYPlotData.h"
+#include "PlotData/ZFXYPlotData.h"
 
 
 #include "wxInterface.h"

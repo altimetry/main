@@ -443,7 +443,7 @@ void CZFXYPlot::GetPlotWidthHeight(CInternalFiles* zfxy,
       throw (e);
     }
 
-    uint32_t nDims = coordinateAxis->GetDims()->size();
+    uint32_t nDims = (uint32_t)coordinateAxis->GetDims()->size();
 
     if (nDims != 1)
     {

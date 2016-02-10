@@ -27,7 +27,7 @@
 
 #include "BratGui.h"
 #include "Validators.h"
-#include "new-gui/brat/Workspaces/Workspace.h"
+#include "new-gui/brat/DataModels/Workspaces/Workspace.h"
 #include "FormulaDlg.h"
 #include "wxGuiInterface.h"
 

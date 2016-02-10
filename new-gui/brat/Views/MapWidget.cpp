@@ -1,7 +1,6 @@
 #include "new-gui/brat/stdafx.h"
 
 #include <qgsproviderregistry.h>
-//#include <qgsvectordataprovider.h>
 #include <qgsmaplayerregistry.h>
 #include <qgsvectorlayer.h>
 
@@ -20,11 +19,6 @@
 #include "new-gui/Common/tools/Trace.h"
 
 #include "new-gui/brat/BratSettings.h"
-
-//#include "new-gui/brat-lab/System/BackServices.h"
-//#include "new-gui/brat-lab/System/CmdLineProcessor.h"
-//#include "display/PlotData/GeoMap.h"
-//#include "display/PlotData/WPlot.h"
 
 #include "MapWidget.h"
 
@@ -384,186 +378,6 @@ void CMapWidget::keyPressEvent( QKeyEvent * e ) //override
 			base_t::keyPressEvent( e );
 	}
 }
-
-//void CMapWidget::CreateWPlot( const CmdLineProcessor *proc, CWPlot* wplot )
-//{
-//	QSize size;
-//	QPoint pos;
-//
-//	wplot->GetInfo();
-//
-//	CWorldPlotProperty* wPlotProperty = proc->GetWorldPlotProperty( 0 );
-//	UNUSED( wPlotProperty );
-//
-//	//TODO CWorldPlotFrame* frame = new CWorldPlotFrame( NULL, -1, title, wPlotProperty, pos, size );
-//
-//	// for geostrophic velocity
-//	CPlotField * northField =NULL;
-//	CPlotField * eastField =NULL;
-//	for ( CObArray::iterator itField = wplot->m_fields.begin(); itField != wplot->m_fields.end(); itField++ )
-//	{
-//		CPlotField* field = CPlotField::GetPlotField( *itField );
-//
-//		if ( field->m_internalFiles.empty() )
-//			continue;
-//
-//		if ( field->m_worldProps->m_northComponent && northField == NULL ) {
-//			northField = field;
-//			continue;
-//		}
-//		else
-//		if ( field->m_worldProps->m_eastComponent && eastField == NULL ) {
-//			eastField = field;
-//			continue;
-//		}
-//
-//		// otherwise just add it as regular data
-//		CGeoMap *geoMap = new CGeoMap( field );
-//		AddData( geoMap );
-//	}
-//
-//	// we have a Vector Plot!
-//	if ( northField != NULL && eastField != NULL ) {
-//
-//		CGeoVelocityMap *gvelocityMap = new CGeoVelocityMap( northField, eastField );
-//		gvelocityMap->SetIsGlyph( true );
-//		AddData( gvelocityMap );
-//	}
-//	else if ( northField != eastField ) {
-//		CException e( "CBratDisplayApp::CreateWPlot - incomplete std::vector plot components", BRATHL_INCONSISTENCY_ERROR );
-//		CTrace::Tracer( "%s", e.what() );
-//		throw ( e );
-//	}
-//}
-////void CWorldPlotRenderer::AddData( CWorldPlotData* pdata )
-////{
-////	pdata->SetRenderer( m_vtkRend );
-////
-////	m_actors.Insert( pdata );
-////	m_transformations->AddItem( pdata->GetTransform() );
-////	pdata->GetVtkTransform()->SetTransform( pdata->GetTransform() );
-////
-////	ResetTextActor();
-////}
-
-#define USE_POINTS		//(**)
-#define USE_FEATURES	//(***)
-/*
-230 108	120 2
-
-	89	 86
-	18	 19
-		 15
-		  2
-   107	122
-	 1
-*/  
-//
-//(*)	Using memory layer because: "OGR error creating feature 0: CreateFeature : unsupported operation on a read-only datasource."
-//(**)	Using point and not line features because: 
-//			1) (If using main layer and "this" shapefile) "Feature creation error (OGR error: Attempt to write non-linestring (POINT) geometry to ARC type shapefile.)"
-//			2) There is no algorithm to "bezier" the points collection to an spline
-//			3) cannot color the values over a line (unless with another layer, a point layer, but then, why the line layer?)
-//(***) Using features and not rubberbands because these are not projected in the globe
-//
-//void CMapWidget::AddData( CWorldPlotData* pdata )
-//{
-//	CGeoMap* geoMap = dynamic_cast<CGeoMap*>( pdata );
-//
-//	auto IsValidPoint = [&geoMap]( int32_t i )
-//	{
-//		bool bOk = geoMap->bits[ i ];
-//
-//		//	  if (Projection == VTK_PROJ2D_MERCATOR)
-//		//	  {
-//		bOk &= geoMap->valids[ i ];
-//		//	  }
-//		//
-//		return bOk;
-//	};
-//
-//
-//	auto const size = geoMap->vals.size();
-//	QgsFeatureList flist;
-//
-//#if defined (USE_POINTS)	//(**)
-//
-//	for ( auto i = 0u; i < size; ++ i )
-//	{
-//		if ( !IsValidPoint( i ) )
-//			continue;
-//
-//		auto x = i % geoMap->lons.size(); // ( x * geoMap->lats.size() ) + i;
-//		auto y = i / geoMap->lons.size(); // ( x * geoMap->lats.size() ) + i;
-//
-//#if defined (USE_FEATURES) //(***)
-//		createPointFeature( flist, geoMap->lons.at( x ), geoMap->lats.at( y ), geoMap->vals[ i ] );
-//		//createPointFeature( flist, geoMap->lons.at( x ), geoMap->lats.at( y ), QColor( 0, (unsigned char)(geoMap->vals[ i ]), 0 ) );
-//#else
-//		addRBPoint( geoMap->lons.at( x ), geoMap->lats.at( y ), QColor( (long)(geoMap->vals[ i ]) ), mMainLayer );
-//#endif
-//	}
-//
-//#if defined (USE_FEATURES)
-//	auto memL = addMemoryLayer( createPointSymbol( 0.5, Qt::red ) );	//(*)	//note that you can use strings like "red" instead!!!
-//	memL->dataProvider()->addFeatures( flist );
-//	//memL->updateExtents();
-//	//refresh();
-//#endif
-//
-//	return;
-//
-//#else		//(**)
-//
-//	QgsPolyline points;
-//	for ( auto i = 0; i < size; ++ i ) 
-//	{
-//		if ( !IsValidPoint(i) )
-//			continue;
-//
-//		auto x = i % geoMap->lons.size();
-//		auto y = i / geoMap->lons.size();
-//
-//		points.append( QgsPoint( geoMap->lons.at( x ), geoMap->lats.at( y ) ) );
-//	}
-//#if !defined (USE_FEATURES) //(***)
-//	auto memL = addMemoryLayer( createLineSymbol( 0.5, Qt::red ) );	//(*)	//note that you can use strings like "red" instead!!!
-//	createLineFeature( flist, points );						
-//	memL->dataProvider()->addFeatures( flist );				
-//	//memL->updateExtents();
-//	//refresh();
-//#else
-//	addRBLine( points, QColor( 0, 255, 0 ), mMainLayer );	
-//#endif
-//
-//	return;
-//
-//#endif
-//
-//	//femm: This is CWorldPlotPanel::AddData
-//
-//	//femm: the important part
-//	//if ( pdata->GetColorBarRenderer() != NULL )
-//	//	m_vtkWidget->GetRenderWindow()->AddRenderer( pdata->GetColorBarRenderer()->GetVtkRenderer() );
-//	//m_plotRenderer->AddData( pdata );
-//
-//
-//	//femm: the less important part
-//	//CGeoMap* geoMap = dynamic_cast<CGeoMap*>( pdata );
-//	//if ( geoMap != NULL )
-//	//{
-//	//	wxString textLayer = wxString::Format( "%s", geoMap->GetDataName().c_str() );
-//
-//	//	m_plotPropertyTab->GetLayerChoice()->Append( textLayer, static_cast<void*>( geoMap ) );
-//	//	m_plotPropertyTab->SetCurrentLayer( 0 );
-//	//}
-//
-//	//int32_t nFrames = 1;
-//	//if ( geoMap != NULL )
-//	//	nFrames = geoMap->GetNrMaps();
-//
-//	//m_animationToolbar->SetMaxFrame( nFrames );
-//}
 
 
 

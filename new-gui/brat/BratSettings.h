@@ -92,10 +92,14 @@ public:
 	{
 		return mBratPaths.SetUserBasePath( unique, path );
 	}
+
+
 	bool SetWorkspacesDirectory( const std::string &path )
 	{
 		return mBratPaths.SetWorkspacesDirectory( path );
 	}
+
+
 	bool SetExternalDataDirectory( const std::string &path )
 	{
 		return mBratPaths.SetExternalDataDirectory( path );

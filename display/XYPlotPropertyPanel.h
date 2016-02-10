@@ -37,7 +37,7 @@
 #include "wxVTKRenderWindowInteractor.h"
 #include "vtkXYPlotActor.h"
 
-#include "XYPlotData.h"
+#include "PlotData/XYPlotData.h"
 #include "AxisPropertyPanel.h"
 
 #include "LabeledTextCtrl.h"

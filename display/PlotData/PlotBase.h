@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -38,8 +36,6 @@ namespace brathl {
 class CPlotField;
 
 
-//#include "BitSet32.h"
-
 //-------------------------------------------------------------
 //------------------- CPlotBase class --------------------
 //-------------------------------------------------------------
@@ -51,65 +47,73 @@ class CPlotField;
 class CPlotBase : public CBratObject
 {
 public:
+	uint32_t m_groupNumber;
 
-  CPlotBase(uint32_t groupNumber = 0);
-  virtual ~CPlotBase();
+	std::string m_title;
 
-  CPlotField* GetPlotField(int32_t index);
+	// a map that contains CPlotField object
+	CObArray m_fields;
+	CStringArray m_nonPlotFieldNames;
 
-  CPlotField* FindPlotField(const std::string& fieldName, bool* withContour = NULL, bool* withSolidColor = NULL);
-  //CPlotField* FindPlotField(const std::string& fieldName, bool withContour);
+	std::string m_titleX;
+	std::string m_titleY;
 
-  void GetAllInternalFiles(CObArray& allInternalFiles);
+	CUnit m_unitX;
+	CUnit m_unitY;
 
-  virtual CInternalFiles* GetInternalFiles(CBratObject* ob, bool withExcept = true) = 0;
-  virtual void GetInfo() = 0;
+	bool m_unitXConv;
+	bool m_unitYConv;
 
-  void SetForcedVarXname(const std::string& value) { m_forcedVarXName = value; };
-  std::string GetForcedVarXname() { return m_forcedVarXName; };
 
-  void SetForcedVarYname(const std::string& value) { m_forcedVarYName = value; };
-  std::string GetForcedVarYname() { return m_forcedVarYName; };
+	std::string m_forcedVarXName;
+	std::string m_forcedVarYName;
 
-  virtual void GetVar(const std::string& varName, CInternalFiles* file, ExpressionValueDimensions* dimVal, CExpressionValue* var);
-
-  virtual void GetForcedAxisX(CInternalFiles* file, ExpressionValueDimensions* dimVal, CExpressionValue* varX);
-  virtual void GetForcedAxisY(CInternalFiles* file, ExpressionValueDimensions* dimVal, CExpressionValue* varY);
-
+	std::string m_unitXLabel;
+	std::string m_unitYLabel;
 
 public:
+	CPlotBase( uint32_t groupNumber = 0 )
 
-  uint32_t m_groupNumber;
+		: m_groupNumber( groupNumber )
+		, m_unitXConv( false )
+		, m_unitYConv( false )
+	{}
 
-  std::string m_title;
+	virtual ~CPlotBase()
+	{}
 
-  // a map that contains CPlotField object
-  CObArray m_fields;
-  CStringArray m_nonPlotFieldNames;
+	CPlotField* GetPlotField( int32_t index );
 
-  std::string m_titleX;
-  std::string m_titleY;
+	CPlotField* FindPlotField( const std::string& fieldName, bool* withContour = NULL, bool* withSolidColor = NULL );
+	//CPlotField* FindPlotField(const std::string& fieldName, bool withContour);
 
-  CUnit m_unitX;
-  CUnit m_unitY;
+	void GetAllInternalFiles( CObArray& allInternalFiles );
 
-  bool m_unitXConv;
-  bool m_unitYConv;
+	virtual CInternalFiles* GetInternalFiles( CBratObject* ob, bool withExcept = true ) = 0;
+	virtual void GetInfo() = 0;
+	virtual const std::string& BaseTitle() const = 0;
 
-  
-  std::string m_forcedVarXName;
-  std::string m_forcedVarYName;
+	virtual std::string MakeTitle()
+	{
+		std::string titleTmp = m_title;
+		titleTmp = CTools::SlashesDecode( titleTmp );
 
-  std::string m_unitXLabel;
-  std::string m_unitYLabel;
+		replace( titleTmp, "\n", "-" );
+		replace( titleTmp, "\t", " " );
 
-protected:
+		return BaseTitle() + " - " + titleTmp + n2s< std::string >( m_groupNumber );
+	}
 
+	void SetForcedVarXname( const std::string& value ) { m_forcedVarXName = value; };
+	std::string GetForcedVarXname() { return m_forcedVarXName; };
 
-private:
+	void SetForcedVarYname( const std::string& value ) { m_forcedVarYName = value; };
+	std::string GetForcedVarYname() { return m_forcedVarYName; };
 
-  void Init();
+	virtual void GetVar( const std::string& varName, CInternalFiles* file, ExpressionValueDimensions* dimVal, CExpressionValue* var );
 
+	virtual void GetForcedAxisX( CInternalFiles* file, ExpressionValueDimensions* dimVal, CExpressionValue* varX );
+	virtual void GetForcedAxisY( CInternalFiles* file, ExpressionValueDimensions* dimVal, CExpressionValue* varY );
 };
 
 #endif

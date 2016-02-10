@@ -30,7 +30,7 @@
 #include "DisplayDataTreeCtrl.h"
 #include "new-gui/brat/Display/MapTypeDisp.h"
 
-#include "MapColor.h"
+#include "PlotData/MapColor.h"
 #include "BratGui.h"
 
 

@@ -1,14 +1,14 @@
 #ifndef BRAT_MAIN_WINDOW_H
 #define BRAT_MAIN_WINDOW_H
 
-#include "Workspaces/TreeWorkspace.h"
+#include "DataModels/Workspaces/TreeWorkspace.h"
 
 #include "ui_BratMainWindow.h"
-#include "new-gui/brat/GUI/AbstractEditor.h"
-#include "new-gui/brat/GUI/DesktopManager.h"
-#include "new-gui/brat/GUI/LogShell.h"
+#include "GUI/AbstractEditor.h"
+#include "GUI/DesktopManager.h"
+#include "GUI/LogShell.h"
 #include "BratSettings.h"
-#include "Model.h"
+#include "DataModels/Model.h"
 
 
 class CTabbedDock;

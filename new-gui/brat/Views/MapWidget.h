@@ -9,8 +9,6 @@
 #include <qgssinglesymbolrendererv2.h>
 
 
-//class CmdLineProcessor;
-//class CWorldPlotData;
 typedef QList<QgsFeature> QgsFeatureList;
 typedef QVector<QgsPoint> QgsPolyline;
 class QgsRubberBand;
@@ -138,7 +136,6 @@ public:
     //	operations
     //////////////////////////////////////
 
-
 protected:
 	virtual void keyPressEvent( QKeyEvent * e ) override;
 
@@ -155,11 +152,9 @@ protected:
 
 	QgsRubberBand* addRBPoint( double lon, double lat, QColor color, QgsVectorLayer *layer = nullptr );
 	QgsRubberBand* addRBLine( QgsPolyline points, QColor color, QgsVectorLayer *layer = nullptr );
-
-
-    //void CreateWPlot( const CmdLineProcessor *proc, CWPlot* wplot );
-	//void AddData( CWorldPlotData* data );
 };
+
+
 
 
 

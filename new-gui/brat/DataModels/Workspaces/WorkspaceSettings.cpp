@@ -28,6 +28,27 @@
 
 
 
+//static 
+const CApplicationPaths *CWorkspaceSettings::smBratPaths = nullptr;
+
+
+std::string CWorkspaceSettings::Absolute2PortableDataPath( const std::string &path ) const
+{
+	return smBratPaths ?
+		smBratPaths->Absolute2PortableDataPath( path ) :
+		path;
+}
+
+
+std::string CWorkspaceSettings::PortableData2AbsolutePath( const std::string &path ) const
+{
+	return smBratPaths ?
+		smBratPaths->PortableData2AbsolutePath( path ) :
+		path;
+}
+
+
+
 bool CWorkspaceSettings::SaveCommonConfig( const CWorkspace &wks, bool flush )
 {
 	assert__( this == wks.m_config );
@@ -159,7 +180,7 @@ bool CWorkspaceSettings::SaveConfig( const CDataset *d )
 		for ( CProductList::const_iterator it = d->GetProductList()->begin(); it != d->GetProductList()->end(); it++ )
 		{
 			index++;
-			WriteValue( section, ENTRY_FILE + n2s<std::string>( index ), *it );
+			WriteValue( section, ENTRY_FILE + n2s<std::string>( index ), *it );		//v4 Absolute2PortableDataPath( *it )
 		}
 
 		//SaveConfigSpecificUnit( CConfiguration *config, const std::string& entry )
@@ -180,14 +201,15 @@ bool CWorkspaceSettings::LoadConfig( CDataset *d )
 		for ( auto const &key : keys )
 		{
 			std::string entry = q2a( key );
-			std::string valueString = ReadValue( section, entry );
+			std::string value_string = ReadValue( section, entry );			
+			//v4 value_string = PortableData2AbsolutePath( value_string );
 
 			// Find ENTRY_FILE entries (dataset files entries)
 			findStrings.RemoveAll();
 			CTools::Find( entry, ENTRY_FILE_REGEX, findStrings );
 			if ( findStrings.size() > 0 )
 			{
-				d->GetProductList()->Insert( valueString );
+				d->GetProductList()->Insert( value_string );
 				continue;
 			}
 
@@ -196,7 +218,7 @@ bool CWorkspaceSettings::LoadConfig( CDataset *d )
 			CTools::Find( entry, ENTRY_UNIT_REGEX, findStrings );
 			if ( findStrings.size() > 0 )
 			{
-				d->GetFieldSpecificUnits()->Insert( findStrings.at( 0 ), valueString );			//m_fieldSpecificUnit.Dump(*CTrace::GetDumpContext());
+				d->GetFieldSpecificUnits()->Insert( findStrings.at( 0 ), value_string );			//m_fieldSpecificUnit.Dump(*CTrace::GetDumpContext());
 				continue;
 			}
 		}
@@ -251,11 +273,11 @@ bool CWorkspaceSettings::LoadConfig( CMapFormula &mapf, std::string &errorMsg, b
 		auto const keys = section.Keys();
 		for ( auto const &key : keys )
 		{
-			std::string valueString = ReadValue( section, q2t< std::string >( key ) );
+			std::string value_string = ReadValue( section, q2t< std::string >( key ) );
 			std::string formulaName = 
 				pathSuff.empty() ? 
-				valueString :
-				valueString.substr( 0, valueString.length() - pathSuff.length() - 1 );	//formulaName = valueString.Left(valueString.Length() - pathSuff.Length() - 1);
+				value_string :
+				value_string.substr( 0, value_string.length() - pathSuff.length() - 1 );	//formulaName = value_string.Left(value_string.Length() - pathSuff.Length() - 1);
 
 			CFormula* value = dynamic_cast< CFormula* >( mapf.Exists( formulaName ) );
 			if ( value != nullptr )
@@ -404,7 +426,7 @@ bool CWorkspaceSettings::LoadConfig( CFormula &f, std::string &errorMsg, const s
 	//f.m_step = Read( ENTRY_STEP, f.DEFAULT_STEP_GENERAL_ASSTRING );
 	//Read( ENTRY_LOESSCUTOFF, &f.m_loessCutOff, defaultValue< int32_t >() );
 
-	//valueString = Read( ENTRY_DATA_MODE );
+	//value_string = Read( ENTRY_DATA_MODE );
 
 	// 3.3.1 note: wxWidgets asserts if value >= INT_MAX, but CTools::m_defaultValueINT32 is INT_MAX, so,
 	// if value is not read and the default is used, we have a failed assertion. This was not changed, to
@@ -522,6 +544,8 @@ bool CWorkspaceSettings::SaveConfig( const COperation &op, const CWorkspaceOpera
 
 	WriteSection( group,
 
+		//v4 k_v( ENTRY_OUTPUT,				Absolute2PortableDataPath( op.m_output ) ),					//op.GetOutputPathRelativeToWks( wks )
+		//v4 k_v( ENTRY_EXPORT_ASCII_OUTPUT, Absolute2PortableDataPath( op.m_exportAsciiOutput ) )		//op.GetExportAsciiOutputPathRelativeToWks( wks )	)
 		k_v( ENTRY_OUTPUT,				op.GetOutputPathRelativeToWks( wks ) ),
 		k_v( ENTRY_EXPORT_ASCII_OUTPUT, op.GetExportAsciiOutputPathRelativeToWks( wks )	)
 	);
@@ -553,14 +577,14 @@ bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &errorMsg, CWor
 	if ( !output.empty() )
 	{
 		// Old Comment: Note that if the path to the output is in relative form,
-		// SetOutput make it in absolute form based on workspace Operation path.
-		op.SetOutput( output, wkso );
+		// SetOutput make it in absolute form based on workspace Operation path.		
+		op.SetOutput( output, wkso );							//v4 op.SetOutput( PortableData2AbsolutePath( output ), wkso );
 	}
 	if ( !ascii_export_output.empty() )
 	{
 		// Old Comment: Note that if the path to the output is in relative form,
 		// SetOutput make it in absolute form based on workspace Operation path.
-		op.SetExportAsciiOutput( ascii_export_output, wkso );
+		op.SetExportAsciiOutput( ascii_export_output, wkso );	//v4 op.SetExportAsciiOutput( PortableData2AbsolutePath( ascii_export_output ), wkso );
 	}
 	else
 	{
@@ -733,10 +757,10 @@ bool CWorkspaceSettings::LoadConfig( CDisplay &d, std::string &errorMsg, CWorksp
 	d.m_zoom.Set( zoom, CDisplay::m_zoomDelimiter );
 
 	// the entry ENTRY_OUTPUT  is not used any more
-	//  valueString = Read(ENTRY_OUTPUT);
-	//  if (valueString.empty() == false)
+	//  value_string = Read(ENTRY_OUTPUT);
+	//  if (value_string.empty() == false)
 	//  {
-	//    SetOutput(valueString);
+	//    SetOutput(value_string);
 	//  }
 
 	d.InitOutput( wksd );

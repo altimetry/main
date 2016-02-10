@@ -29,7 +29,7 @@ class CDisplayDataTreeCtrl;
 #include "BratGui_wdr.h"
 
 #include "TreeCtrl.h"
-#include "new-gui/brat/Workspaces/Display.h"
+#include "new-gui/brat/DataModels/Workspaces/Display.h"
 
 
 

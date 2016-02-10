@@ -21,7 +21,7 @@
 #ifndef __vtkZFXYPlotActor_h
 #define __vtkZFXYPlotActor_h
 
-#include "List.h"
+#include "libbrathl/List.h"
 using namespace brathl;
 
 #include "vtkActor2D.h"

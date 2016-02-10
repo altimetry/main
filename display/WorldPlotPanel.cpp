@@ -52,6 +52,10 @@
 #include "vtkLookupTable.h"
 #include "PlotData/vtkGeoMapFilter.h"
 
+#include "wxInterface.h"
+#ifdef CursorShape  //collsion Qt X
+#undef CursorShape
+#endif
 #include "WPlotPropertyPanel.h"
 #include "WorldPlotPanel.h"
 

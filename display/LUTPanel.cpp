@@ -34,6 +34,10 @@
 
 #include "wx/tooltip.h"
 
+#include "wxInterface.h"
+#ifdef CursorShape  //collsion Qt X
+#undef CursorShape
+#endif
 #include "LUTPanel.h"
 #include "BratDisplayApp.h"
 

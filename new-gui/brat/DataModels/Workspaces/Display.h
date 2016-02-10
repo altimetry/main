@@ -25,7 +25,7 @@
 #include "libbrathl/LatLonRect.h"
 #include "libbrathl/InternalFiles.h"
 
-#include "new-gui/brat/Workspaces/Operation.h"
+#include "Operation.h"
 
 namespace brathl 
 {

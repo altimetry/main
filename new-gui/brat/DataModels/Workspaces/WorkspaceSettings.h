@@ -34,16 +34,29 @@ class CDisplay;
 class CMapDisplayData;
 class CDisplayData;
 
+class CApplicationPaths;
+
 
 
 class CWorkspaceSettings : public CFileSettings
 {
     using base_t = CFileSettings;
 
+	static const CApplicationPaths *smBratPaths;
+
+public:
+
+	static void SetApplicationPaths( const CApplicationPaths &paths )
+	{
+		smBratPaths = &paths;
+	}
+
 public:
 	CWorkspaceSettings( const std::string &path ) :
-		base_t( path )
-	{}
+		base_t(path)
+	{
+		assert__( smBratPaths );
+	}
 
 	virtual ~CWorkspaceSettings()
 	{}
@@ -80,6 +93,11 @@ public:
 	bool SaveConfig( CDisplayData &data, const std::string& pathSuff, CWorkspaceDisplay *wksd );
 	bool LoadConfig( CDisplayData &data, const std::string& path, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso );
 
+protected:
+
+	std::string Absolute2PortableDataPath( const std::string &path ) const;
+
+	std::string PortableData2AbsolutePath( const std::string &path ) const;
 };
 
 
