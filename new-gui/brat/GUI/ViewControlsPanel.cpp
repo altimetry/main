@@ -4,6 +4,42 @@
 
 
 ////////////////////////////////////////////////////////////////
+//	 Color Button (Builds a button for selecting a color)
+////////////////////////////////////////////////////////////////
+//Definition of Static Variables
+const QString CColorButton::smInitColor = "white";
+const QString CColorButton::smStyleSheet_colorButton = "border-style: outset; \
+                                                        border-width: 1px; \
+                                                        border-color: black; \
+                                                        background-color: ";
+
+//TODO: delete this: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 1 #dadbde, stop: 1 ";
+
+
+//explicit
+CColorButton::CColorButton( QWidget *parent )
+    : base_t( parent)
+{
+    mCurrentColor = QColor(smInitColor);
+    setStyleSheet(smStyleSheet_colorButton + mCurrentColor.name());
+    setFixedSize(20, 20);
+}
+
+void CColorButton::SetColor()
+{
+    QColor color = QColorDialog::getColor(mCurrentColor, nullptr);
+
+    if (color.isValid())
+    {
+        mCurrentColor = color;
+        setStyleSheet(smStyleSheet_colorButton + mCurrentColor.name());
+        //mPointColorButton->setPalette(QPalette(mPointColor));
+    }
+}
+
+
+
+////////////////////////////////////////////////////////////////
 //	 Axis Tab (used to build the tab page with axis options)
 ////////////////////////////////////////////////////////////////
 CAxisTab::CAxisTab( QWidget *parent, Qt::WindowFlags f )
@@ -50,8 +86,7 @@ CAxisTab::CAxisTab( QWidget *parent, Qt::WindowFlags f )
 												}, "Fallback Range");
 
     // 4. Axis Color Options
-    mAxisColorButton = new QPushButton();
-    mAxisColorButton->setFixedSize(20, 20);
+    mAxisColorButton = new CColorButton();
 
     auto mAxisOpacityValue   = new QLineEdit(this);
     mAxisOpacityValue->setText("0.1");
@@ -99,22 +134,11 @@ CAxisTab::CAxisTab( QWidget *parent, Qt::WindowFlags f )
 
 void CAxisTab::Wire()
 {
-    connect( mAxisColorButton, SIGNAL( clicked() ), this, SLOT( SetAxisColor() ) );
+    connect( mAxisColorButton, SIGNAL( clicked() ), mAxisColorButton, SLOT( SetColor() ) );
 
 	connect( mLogScaleCheck, SIGNAL( toggled( bool ) ), this, SIGNAL( LogarithmicScale( bool ) ), Qt::QueuedConnection );
 }
 
-
-void CAxisTab::SetAxisColor()
-{
-    QColor color = QColorDialog::getColor(mAxisColor, this);
-
-    if (color.isValid())
-    {
-        mAxisColor = color;
-        mAxisColorButton->setPalette(QPalette(mAxisColor));
-    }
-}
 
 
 
@@ -249,8 +273,7 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
 {
     // III. Line Options
     //
-    mLineColorButton = new QPushButton();
-    mLineColorButton->setFixedSize(20, 20);
+    mLineColorButton = new CColorButton();
 
     auto mOpacityValue   = new QLineEdit(this);
     mOpacityValue->setText("0.1");
@@ -279,8 +302,7 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
 
     // IV. Point Options
     //
-    mPointColorButton = new QPushButton();
-    mPointColorButton->setFixedSize(20, 20);
+    mPointColorButton = new CColorButton();
 
     auto mFillPointCheck   = new QCheckBox(this);
 
@@ -311,33 +333,11 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
 
 void CPlotControlsPanelCurveOptions::Wire()
 {
-    connect( mLineColorButton, SIGNAL( clicked() ), this, SLOT( SetLineColor() ) );
-    connect( mPointColorButton, SIGNAL( clicked() ), this, SLOT( SetPointColor() ) );
+    connect( mLineColorButton, SIGNAL( clicked() ), mLineColorButton, SLOT( SetColor() ) );
+    connect( mPointColorButton, SIGNAL( clicked() ), mPointColorButton, SLOT( SetColor() ) );
 }
 
 
-void CPlotControlsPanelCurveOptions::SetLineColor()
-{
-    QColor color = QColorDialog::getColor(mLineColor, this);
-
-    if (color.isValid())
-    {
-        mLineColor = color;
-        mLineColorButton->setPalette(QPalette(mLineColor));
-    }
-}
-
-
-void CPlotControlsPanelCurveOptions::SetPointColor()
-{
-    QColor color = QColorDialog::getColor(mPointColor, this);
-
-    if (color.isValid())
-    {
-        mPointColor = color;
-        mPointColorButton->setPalette(QPalette(mPointColor));
-    }
-}
 
 
 CPlotControlsPanelAxisOptions::CPlotControlsPanelAxisOptions( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0

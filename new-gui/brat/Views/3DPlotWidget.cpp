@@ -182,12 +182,12 @@ struct CBrat3DFunction : public Qwt3D::Function
 
 	double operator()( double x, double y )
 	{
-		//auto xindex = std::find( mv4_xaxis->begin(), mv4_xaxis->end(), x );
-		//if ( xindex == mv4_xaxis->end() )
-		//	return std::numeric_limits<double>::quiet_NaN();
-		//auto yindex = std::find( mv4_yaxis->begin(), mv4_yaxis->end(), x );
-		//if ( yindex == mv4_yaxis->end() )
-		//	return std::numeric_limits<double>::quiet_NaN();
+//        auto xindex = std::find( mPlotValues->mXaxis->begin(), mPlotValues->mXaxis->end(), x );
+//        if ( xindex == mPlotValues->mXaxis->end() )
+//            return std::numeric_limits<double>::quiet_NaN();
+//        auto yindex = std::find( mPlotValues->mYaxis->begin(), mPlotValues->mYaxis->end(), x );
+//        if ( yindex == mPlotValues->mYaxis->end() )
+//            return std::numeric_limits<double>::quiet_NaN();
 
 		auto index = x * y;
 		if ( index >= mPlotValues->mBits.size() || !mPlotValues->mBits.at( index ) )

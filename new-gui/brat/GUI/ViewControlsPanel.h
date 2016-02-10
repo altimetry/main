@@ -5,6 +5,49 @@
 #include "ControlsPanel.h"
 
 
+////////////////////////////////////////////////////////////////
+//	 Color Button (Builds a button for selecting a color)
+////////////////////////////////////////////////////////////////
+class CColorButton : public QPushButton
+{
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+    Q_OBJECT
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
+    // types
+    using base_t = QPushButton;
+
+    // static members
+    static const QString smStyleSheet_colorButton;
+    static const QString smInitColor;
+
+    // instance data members
+    QColor      mCurrentColor = QColor();
+
+
+public:
+    explicit CColorButton(QWidget *parent = nullptr);
+
+    virtual ~CColorButton()
+    {}
+
+    // access
+
+
+    // operations
+    public slots:
+    void SetColor();
+
+};
+
+
 
 ////////////////////////////////////////////////////////////////
 //	 Axis Tab (used to build the tab page with axis options)
@@ -28,9 +71,8 @@ class CAxisTab : public QWidget
 
     // instance data members
 
-	QCheckBox *mLogScaleCheck = nullptr;
-	QPushButton *mAxisColorButton = nullptr;
-    QColor      mAxisColor;
+    QCheckBox    *mLogScaleCheck = nullptr;
+    CColorButton *mAxisColorButton = nullptr;
 
 	//construction / destruction
 
@@ -49,7 +91,6 @@ signals:
 
 protected slots:
 
-    void SetAxisColor();
 };
 
 
@@ -196,11 +237,8 @@ struct CPlotControlsPanelCurveOptions : public CControlsPanel
 
     // instance data members
 
-    QPushButton *mLineColorButton = nullptr;
-    QColor      mLineColor;
-
-    QPushButton *mPointColorButton = nullptr;
-    QColor      mPointColor;
+    CColorButton *mLineColorButton  = nullptr;
+    CColorButton *mPointColorButton = nullptr;
 
     QComboBox *mStipplePattern = nullptr;
     QComboBox *mPointGlyph     = nullptr;
@@ -220,9 +258,8 @@ public:
     // operations
 protected slots:
 
-    void SetLineColor();
-    void SetPointColor();
 };
+
 
 
 struct CPlotControlsPanelAxisOptions : public CControlsPanel
