@@ -459,7 +459,7 @@ coda_array_ordering  CProduct::m_arrayOrdering = coda_array_ordering_c;
 
 const std::string CProduct::m_treeRootName = "Root";
 
-int32_t CProduct::m_codaRefCount = 0;
+int_t CProduct::m_codaRefCount = 0;
 
 
 CProduct::CProduct()

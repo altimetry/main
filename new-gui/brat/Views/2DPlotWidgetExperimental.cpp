@@ -118,8 +118,8 @@ void C2DPlotWidget::SimplePlot()
 
     // Insert new curves
     const int nPoints = 100;
-	QwtPlotCurve *cSin = AddCurve( "y = sin(x)", Qt::red, SimpleData( ::sin, nPoints ) );
-	QwtPlotCurve *cCos = AddCurve( "y = cos(x)", Qt::blue, SimpleData( ::cos, nPoints ) );
+	QwtPlotCurve *cSin = AddCurve( SimpleData( ::sin, nPoints ), "y = sin(x)", Qt::red );
+	QwtPlotCurve *cCos = AddCurve( SimpleData( ::cos, nPoints ), "y = cos(x)", Qt::blue );
 
     // Markers
     //  ...a horizontal line at y = 0...

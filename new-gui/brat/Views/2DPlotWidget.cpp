@@ -1,24 +1,25 @@
 #include "new-gui/brat/stdafx.h"
 
 
-#include <qprinter.h>					//spectogram
-#include <qprintdialog.h>				//spectogram
-#include <qwt_color_map.h>				//spectogram
-#include <qwt_plot_spectrogram.h>		//spectogram
-#include <qwt_scale_widget.h>			//spectogram
-#include <qwt_scale_draw.h>				//spectogram
-#include <qwt_plot_zoomer.h>			//spectogram
-#include <qwt_plot_panner.h>			//spectogram
-#include <qwt_plot_layout.h>			//spectogram
+//#include <qprinter.h>					//spectogram
+//#include <qprintdialog.h>				//spectogram
+//#include <qwt_color_map.h>				//spectogram
+//#include <qwt_plot_spectrogram.h>		//spectogram
+//#include <qwt_scale_widget.h>			//spectogram
+//#include <qwt_scale_draw.h>				//spectogram
+#include <qwt_plot_zoomer.h>			
+#include <qwt_plot_panner.h>
+//#include <qwt_plot_layout.h>			//spectogram
+
+#include <qwt_plot_magnifier.h>
 
 
-#include <qwt_data.h>           //simple
-#include <qwt_legend.h>         //simple
-#include <qwt_plot_curve.h>     //simple
-#include <qwt_plot_marker.h>    //simple
+//#include <qwt_data.h>           //simple
+#include <qwt_legend.h>
 
 
 #include "new-gui/Common/QtUtils.h"
+#include "new-gui/brat/PlotValues.h"
 
 #include "2DPlotWidget.h"
 
@@ -51,9 +52,164 @@ public:
 };
 
 
+//////////////////////////////////////////////////////////////////
+//						Custom Curve
+//////////////////////////////////////////////////////////////////
+
+void CGeneralizedCurve::CommonConstruct()
+{
+	if ( mData )
+		setData( *mData );
+
+	connect( &mTimer, SIGNAL( timeout() ), this, SLOT( ChangeFrame() ) );
+}
+
+
+CGeneralizedCurve::CGeneralizedCurve( const CQwtArrayPlotData *data )
+	: QwtPlotCurve()
+	, mData( data )
+{
+	CommonConstruct();
+}
+CGeneralizedCurve::CGeneralizedCurve( const CQwtArrayPlotData *data, const QwtText &title )
+	: QwtPlotCurve( title )
+	, mData( data )
+{
+	CommonConstruct();
+}
+CGeneralizedCurve::CGeneralizedCurve( const CQwtArrayPlotData *data, const QString &title )
+	: QwtPlotCurve( title )
+	, mData( data )
+{
+	CommonConstruct();
+}
+
+
+// access
+
+void CGeneralizedCurve::SetRanges( double xMin, double xMax, double yMin, double yMax )
+{
+	mMinXValue = xMin;
+	mMaxXValue = xMax;
+
+	mMinYValue = yMin;
+	mMaxYValue = yMax;
+
+	mRangeComputed = true;
+}
+
+
+void CGeneralizedCurve::Animate( int updateinterval )		//updateinterval = 500 
+{
+	if ( updateinterval == 0 )
+	{
+		mTimer.stop();
+	}
+	else
+	{
+		mTimer.start( updateinterval );
+	}
+}
+
+void CGeneralizedCurve::ChangeFrame()
+{
+	assert__( mData );
+
+	mData->SetNextFrame();
+	mRangeComputed = false;		//TODO really needed? 
+	setData( *mData );
+	emit FrameChanged();
+}
+
+
+
+// QWT interface
+
+
+// This overload is needed when using auto-scale
+//
+//virtual 
+QwtDoubleRect CGeneralizedCurve::boundingRect() const
+{
+	if ( dataSize() <= 0 )
+		return QwtDoubleRect( 1.0, 1.0, -2.0, -2.0 ); // Empty data.
+
+	int first = 0;
+	while ( first < dataSize() && ( isNaN( x( first ) ) || isNaN( y( first ) ) ) )
+		++first;
+
+	if ( first == dataSize() )
+		return QwtDoubleRect( 1.0, 1.0, -2.0, -2.0 ); // Empty data.
+
+	const_cast<CGeneralizedCurve*>( this )->ComputeRange();
+
+	return QwtDoubleRect( mMinXValue, mMinYValue, mMaxXValue - mMinXValue, mMaxYValue - mMinYValue );
+}
+
+
+// This is a slow implementation: it might be worth to cache valid data ranges.
+//
+//virtual 
+void CGeneralizedCurve::draw( QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &yMap, int from, int to ) const
+{
+	if ( to < 0 )
+		to = dataSize() - 1;
+
+	int first, last = from;
+	while ( last <= to )
+	{
+		first = last;
+		while ( first <= to && ( isNaN( x( first ) ) || isNaN( y( first ) ) ) )
+			++first;
+		last = first;
+		while ( last <= to && !isNaN( x( last ) ) && !isNaN( y( last ) ) )
+			++last;
+		if ( first <= to )
+			QwtPlotCurve::draw( painter, xMap, yMap, first, last - 1 );
+	}
+}
+
+
+// internal processing
+
+void CGeneralizedCurve::ComputeRange()
+{
+	if ( mRangeComputed )
+		return;
+
+	int first = 0;
+	double minX, maxX, minY, maxY;
+	minX = maxX = x( first );
+	minY = maxY = y( first );
+	for ( int i = first + 1; i < dataSize(); ++i )
+	{
+		const double xv = x( i );
+		if ( xv < minX )
+			minX = xv;
+		if ( xv > maxX )
+			maxX = xv;
+		const double yv = y( i );
+		if ( yv < minY )
+			minY = yv;
+		if ( yv > maxY )
+			maxY = yv;
+	}
+
+	mMinXValue = minX;
+	mMaxXValue = maxX;
+
+	mMinYValue = minY;
+	mMaxYValue = maxY;
+
+	mRangeComputed = true;
+}
+
+
 
 //////////////////////////////////////////////////////////////////
-//		The Class
+//////////////////////////////////////////////////////////////////
+//						The Class
+//////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
 
 C2DPlotWidget::C2DPlotWidget( QWidget *parent ) 
@@ -92,24 +248,86 @@ C2DPlotWidget::~C2DPlotWidget()
 {}
 
 
-
-
-
-QwtPlotCurve* C2DPlotWidget::AddCurve( const std::string &title, QColor color, const QwtData *data )	//data = nullptr 
+void C2DPlotWidget::Clear()
 {
-    QwtPlotCurve *c = new QwtPlotCurve( title.c_str() );
-    c->setRenderHint(QwtPlotItem::RenderAntialiased);
-    c->setPen( QPen( color ) );
-    c->attach( this );
-	if ( data )
-	    c->setData( *data );
-	return c;
+	//clear();
+
+ //   detachItems(QwtPlotItem::Rtti_PlotCurve);
+ //   detachItems(QwtPlotItem::Rtti_PlotMarker);
+
+    detachItems();
+    // deleteAxesData();		private
+
+	while ( mCurves.begin() != mCurves.end() )
+		mCurves.erase( mCurves.begin() );
+
+	//DestroyPointersAndContainer( mCurves );
+
+	replot();
 }
+
 
 void C2DPlotWidget::SetAxisTitle( Axis axis, const std::string &title )
 {
     setAxisTitle( axis, title.c_str() );
 }
+
+
+void C2DPlotWidget::SetAxisScales( double xMin, double xMax, double yMin, double yMax )
+{
+	for ( auto *c : mCurves )
+		c->SetRanges( xMin, xMax, yMin, yMax );
+
+	setAxisScale( xBottom, xMin, xMax  );
+	setAxisScale( yLeft, yMin, yMax  );
+}
+
+
+
+QwtPlotCurve* C2DPlotWidget::AddCurve( const std::string &title, QColor color, const CQwtArrayPlotData *data )	//data = nullptr 
+{
+    CGeneralizedCurve *c = new CGeneralizedCurve( data, title.c_str() );
+	mCurves.push_back( c );
+	connect( c, SIGNAL( FrameChanged() ), this, SLOT( HandleFrameChanged() ) );
+    c->setRenderHint( QwtPlotItem::RenderAntialiased );
+    c->setPen( QPen( color ) );
+    c->attach( this );
+
+	// TODO this needs a lot more work, including GUI to control animation and animation settings, and above all check if 
+	//	axis and everything else besides the curve needs change; but for now, good for testing values 
+	//
+	if ( data->GetNumberOfFrames() > 1 )
+		c->Animate();
+	//
+	return c;
+}
+QwtPlotCurve* C2DPlotWidget::AddCurve( const QwtData &data, const std::string &title, QColor color )	//for experimental samples
+{
+    QwtPlotCurve *c = new QwtPlotCurve( title.c_str() );
+    c->setRenderHint(QwtPlotItem::RenderAntialiased);
+    c->setPen( QPen( color ) );
+    c->attach( this );
+    c->setData( data );
+	return c;
+}
+
+
+void C2DPlotWidget::HandleFrameChanged()
+{
+	replot();
+}
+
+
+
+void C2DPlotWidget::SetCurvesStyle( QwtPlotCurve::CurveStyle style )
+{
+	for ( auto *c : mCurves )
+		c->setStyle( style );
+
+	replot();
+}
+
+
 
 QwtPlotMarker* C2DPlotWidget::AddMarker( const std::string &label, Qt::Alignment label_alignment, Qt::Orientation label_orientation, 
 	QwtPlotMarker::LineStyle st, double value )
@@ -140,6 +358,10 @@ QwtPlotMarker* C2DPlotWidget::AddMarker( const std::string &label, QwtPlotMarker
 	return nullptr;
 }
 
+QwtPlotMagnifier* C2DPlotWidget::AddMagnifier()
+{
+	return new QwtPlotMagnifier( canvas() );
+}
 QwtPlotZoomer* C2DPlotWidget::AddZoomer( QColor color )
 {
 	// LeftButton for the zooming
@@ -173,6 +395,7 @@ QwtLegend* C2DPlotWidget::AddLegend( LegendPosition pos )
     insertLegend( legend, pos );
 	return legend;
 }
+
 
 
 void C2DPlotWidget::printPlot()

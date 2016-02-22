@@ -40,8 +40,8 @@
 
 #include "BratDisplay_wdr.h"
 
-#include "PlotData/WorldPlotData.h"
-#include "PlotData/MapProjection.h"
+#include "PlotData/WorldPlotData_vtk.h"
+#include "new-gui/brat/DataModels/PlotData/MapProjection.h"
 #include "LabeledTextCtrl.h"
 #include "LUTPanel.h"
 
@@ -524,7 +524,7 @@ public:
     // constructors and destructors
     CWPlotPropertyPanel();
 
-    CWPlotPropertyPanel( wxWindow *parent, vtkActor2D* plotter, CWorldPlotData* plotData, wxVTKRenderWindowInteractor* vtkWidget,
+    CWPlotPropertyPanel( wxWindow *parent, vtkActor2D* plotter, VTK_CWorldPlotCommonData* plotData, wxVTKRenderWindowInteractor* vtkWidget,
         wxWindowID id = -1,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize,
@@ -532,7 +532,7 @@ public:
 
     virtual ~CWPlotPropertyPanel();
 
-    bool Create( wxWindow *parent, vtkActor2D* plotter, CWorldPlotData* plotData, wxVTKRenderWindowInteractor* vtkWidget,
+    bool Create( wxWindow *parent, vtkActor2D* plotter, VTK_CWorldPlotCommonData* plotData, wxVTKRenderWindowInteractor* vtkWidget,
         wxWindowID id = -1,
         const wxPoint& pos = wxDefaultPosition,
         const wxSize& size = wxDefaultSize,
@@ -544,10 +544,10 @@ public:
 
     wxChoice* GetLayerChoice() {return &m_layerChoice;}
 
-    CGeoMap* GetCurrentLayer();
+    VTK_CWorldPlotData* GetCurrentLayer();
 
     void SetCurrentLayer(int32_t index);
-    void SetCurrentLayer(CGeoMap* geoMap);
+    void SetCurrentLayer(VTK_CWorldPlotData* geoMap);
     void SetCenterPoint(double lat, double lon);
 
     void UpdateValues();
@@ -597,7 +597,7 @@ private:
   wxVTKRenderWindowInteractor* m_vtkWidget;
   vtkActor2D* m_plotter;
 
-  CWorldPlotData* m_plotData;
+  VTK_CWorldPlotCommonData* m_plotData;
   //CMapProjection m_projections;
 
   wxStaticText m_projectionLabel;

@@ -31,7 +31,7 @@
 
 
 
-#include "PlotData/ColorPalleteNames.h"
+#include "new-gui/brat/DataModels/PlotData/ColorPalleteNames.h"
 #include "ColorPalette.h"
 
 

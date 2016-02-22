@@ -33,8 +33,8 @@
 
 #include "BratDisplayApp.h"
 #include "XYPlotPanel.h"
-#include "PlotData/XYPlotData.h"
-#include "PlotData/MapColor.h"
+#include "new-gui/brat/DataModels/PlotData/XYPlotData.h"
+#include "new-gui/brat/DataModels/PlotData/MapColor.h"
 #include "DatasetPanel.h"
 #include "wxInterface.h"
 
@@ -153,7 +153,7 @@ bool CAttributeListPanel::CreateControls()
   m_box2 = new wxStaticBox(this, -1, "Points attributes");
   m_box3 = new wxStaticBox(this, -1, "Plot");
 
-  CXYPlotProperty* props = m_plotData->GetPlotProperty();
+  CXYPlotProperties* props = m_plotData->GetPlotProperties();
 
   m_hidePlot = new wxCheckBox(this, -1, "Hide");
   m_hidePlot->SetValue(props->GetHide());
@@ -256,7 +256,7 @@ bool CAttributeListPanel::CreateControls()
 void CAttributeListPanel::CreateLayout()
 {
 
-  CXYPlotProperty* props = m_plotData->GetPlotProperty();
+  CXYPlotProperties* props = m_plotData->GetPlotProperties();
 
   m_mainSizer = new wxBoxSizer(wxVERTICAL);
 
@@ -399,7 +399,7 @@ void CAttributeListPanel::OnValueChange(CValueChangedEvent& event)
 //----------------------------------------
 void CAttributeListPanel::OnHide(wxCommandEvent& event)
 {
-  CXYPlotProperty* props = m_plotData->GetPlotProperty();
+  CXYPlotProperties* props = m_plotData->GetPlotProperties();
   
   
   bool hide = m_hidePlot->GetValue();
@@ -420,7 +420,7 @@ void CAttributeListPanel::OnUpdate(wxCommandEvent& event)
 //----------------------------------------
 void CAttributeListPanel::Update()
 {
-  CXYPlotProperty* props = m_plotData->GetPlotProperty();
+  CXYPlotProperties* props = m_plotData->GetPlotProperties();
 
   
   m_stipplePatternChoice->Enable(m_drawLines->GetValue());
@@ -469,7 +469,7 @@ void CAttributeListPanel::Update()
 //----------------------------------------
 void CAttributeListPanel::OnColor(wxCommandEvent& event) 
 {
-  CXYPlotProperty* props = m_plotData->GetPlotProperty();
+  CXYPlotProperties* props = m_plotData->GetPlotProperties();
 
   wxColourData colorData = CMapColor::GetInstance().ChooseColor(color_cast(props->GetColor()), this);
   SetColor( *props, colorData );
@@ -732,7 +732,7 @@ void CDatasetListPanel::SelectDataset(int32_t index, bool select)
   Freeze();
 
   CXYPlotData* data = m_plotDataCollection->Get(index);
-  data->GetPlotProperty()->SetFocus(select);
+  data->GetPlotProperties()->SetFocus(select);
 
 
   if (select)

@@ -62,7 +62,7 @@ END_DECLARE_EVENT_TYPES()
 class CColorChangedEvent : public wxCommandEvent
 {
 public:
-  CColorChangedEvent(wxWindowID id, const CVtkColor& vtkColor)
+  CColorChangedEvent(wxWindowID id, const CPlotColor& vtkColor)
     : wxCommandEvent(wxEVT_COLOR_PICKER_CHANGED, id)
   {
     m_vtkColor = vtkColor;
@@ -82,7 +82,7 @@ public:
     };
 
   wxWindowID m_id;
-  CVtkColor m_vtkColor;
+  CPlotColor m_vtkColor;
 };
 typedef void (wxEvtHandler::*CColorChangedEventFunction)(CColorChangedEvent&);
 
@@ -163,10 +163,10 @@ public:
                 const wxSize& size = wxDefaultSize,
                 long style = wxTAB_TRAVERSAL | wxNO_BORDER );
 
-    const CVtkColor* GetVtkColor() {return &m_vtkColor;};
+    const CPlotColor* GetVtkColor() {return &m_vtkColor;};
     wxColour GetColor() {return color_cast(m_vtkColor);}
 
-    void SetColor(const CVtkColor& vtkColor);
+    void SetColor(const CPlotColor& vtkColor);
     
     void Reset();
 
@@ -188,7 +188,7 @@ private:
     wxBoxSizer* m_hSizer;
     wxBoxSizer* m_sizer;
 
-    CVtkColor m_vtkColor;
+    CPlotColor m_vtkColor;
 
     // WDR: member variable declarations for CColorPicker
     

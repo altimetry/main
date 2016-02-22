@@ -15,7 +15,7 @@
 //											CMapProjection
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "display/PlotData/MapProjection.h"
+#include "new-gui/brat/DataModels/PlotData/MapProjection.h"
 
 // old CMapProjection member functions
 

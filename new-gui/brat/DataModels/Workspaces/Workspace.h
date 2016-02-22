@@ -235,7 +235,19 @@ public:
 	{
 		return m_datasets.size();
 	}
+
 	CDataset* GetDataset( const std::string& name );
+
+	CDataset* GetDataset( size_t index )	//this is disgusting
+	{
+		assert__( index <= GetDatasetCount() );
+
+		auto d = std::next( m_datasets.begin(), index )->second;		assert__( dynamic_cast< CDataset* >( d ) );
+
+		return static_cast< CDataset* >( d );
+	}
+
+
 	const CObMap* GetDatasets() const { return &m_datasets; }
 
 	void GetDatasetNames( std::vector< std::string >& array ) const;

@@ -129,7 +129,7 @@ CZFXYPlotFrame::CZFXYPlotFrame()
 }
 
 //----------------------------------------
-CZFXYPlotFrame::CZFXYPlotFrame(wxWindow *parent, wxWindowID id, const wxString &title, CZFXYPlotProperty* plotProperty,
+CZFXYPlotFrame::CZFXYPlotFrame(wxWindow *parent, wxWindowID id, const wxString &title, CZFXYPlotProperties* plotProperty,
                                  const wxPoint &position, const wxSize& size, long style )
     //: wxFrame(parent, id, title, position, size, style), --> called in Create
 {
@@ -185,7 +185,7 @@ void CZFXYPlotFrame::Init()
 }
 
 //----------------------------------------
-bool CZFXYPlotFrame::Create(wxWindow *parent, wxWindowID id, const wxString &title, CZFXYPlotProperty* plotProperty,
+bool CZFXYPlotFrame::Create(wxWindow *parent, wxWindowID id, const wxString &title, CZFXYPlotProperties* plotProperty,
                                  const wxPoint &position, const wxSize& size, long style )
 
 {
@@ -449,7 +449,7 @@ void CZFXYPlotFrame::OnShowContourProps( wxCommandEvent &event )
 
     return;
   }
-  CZFXYPlotData* geoMap = m_plotPanel->GetCurrentLayer();
+  VTK_CZFXYPlotData* geoMap = m_plotPanel->GetCurrentLayer();
   if (geoMap == NULL)
   {
     CException e("CZFXYPlotFrame::OnShowContourProps - m_plotPanel->GetCurrentLayer() == NULL",
@@ -503,7 +503,7 @@ void CZFXYPlotFrame::OnShowColorTableEditor( wxCommandEvent &event )
 
     return;
   }
-  CZFXYPlotData* geoMap = m_plotPanel->GetCurrentLayer();
+  VTK_CZFXYPlotData* geoMap = m_plotPanel->GetCurrentLayer();
   if (geoMap == NULL)
   {
     CException e("CZFXYPlotFrame::OnShowColorTableEditor - m_plotPanel->GetCurrentLayer() == NULL",
@@ -636,7 +636,7 @@ void CZFXYPlotFrame::ShowAnimationToolbar(bool showIt)
 
 }
 //----------------------------------------
-void CZFXYPlotFrame::AddData(CZFXYPlotData* pdata)
+void CZFXYPlotFrame::AddData(VTK_CZFXYPlotData* pdata)
 {
   if (pdata == NULL)
   {

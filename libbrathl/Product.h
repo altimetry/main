@@ -155,6 +155,9 @@ const long DEFAULT_DIM[] = {1};
 
 class CProduct : public CBratObject
 {
+public:
+    
+  static int_t GetRefCount() { return m_codaRefCount; }  
 
 public:
     
@@ -815,7 +818,7 @@ protected:
 
 private:
   
-  static int32_t m_codaRefCount;
+  static int_t m_codaRefCount;
 
   int32_t m_performConversions;
   int32_t m_performBoundaryChecks;

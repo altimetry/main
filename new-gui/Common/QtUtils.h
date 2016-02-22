@@ -491,7 +491,7 @@ inline QFrame* WidgetLine( QWidget *parent, Qt::Orientation o )
     SetObjectName( line, "line" );
     line->setSizePolicy(
         o == Qt::Horizontal ? QSizePolicy::Expanding : QSizePolicy::Minimum,
-        o == Qt::Horizontal ? QSizePolicy::Expanding : QSizePolicy::Minimum );
+        o == Qt::Horizontal ? QSizePolicy::Minimum : QSizePolicy::Expanding );
     line->setFrameStyle( ( o == Qt::Horizontal ? QFrame::HLine : QFrame::VLine ) | QFrame::Sunken );
 
     return line;

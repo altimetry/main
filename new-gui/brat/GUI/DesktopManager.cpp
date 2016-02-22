@@ -58,9 +58,9 @@ CDesktopManagerSDI::desktop_child_t* CDesktopManagerSDI::AddSubWindow( QWidget *
 
     AddWidget( child, widget );
     widget->setParent( child );
-    if ( parentWidget()->width() / 3 * 2 > child->width() )
-        CenterOnWidget( child, mMap );
-    else
+    //if ( parentWidget()->width() / 3 * 2 > child->width() )	//TODO this risks showing too high: consider on the right of main working dock
+    //    CenterOnWidget( child, mMap );
+    //else
         CenterOnWidget( child, parentWidget() );
 
 	connect( child, SIGNAL( closed( QWidget* ) ), this, SLOT( SubWindowClosed( QWidget* ) ) );

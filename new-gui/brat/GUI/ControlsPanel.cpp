@@ -10,6 +10,8 @@
 
 #include "ControlsPanel.h"
 
+#include "libbrathl/TreeField.h"
+#include "libbrathl/Field.h"
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -139,364 +141,12 @@ QGroupBox* CControlsPanel::AddTopGroupBox( ELayoutType o, const std::vector< QOb
 }
 
 
-
-/////////////////////////////////////////////////////////////////////////////////////
-//								Dataset Browser 
-/////////////////////////////////////////////////////////////////////////////////////
-
-void CDatasetBrowserControls::PageChanged( int index )
-{
-	qDebug() << index;
-}
-
-
-//explicit 
-CDatasetBrowserControls::CDatasetBrowserControls( CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 
-	: base_t( manager, parent, f )
-{
-	// I. Browse Stack Widget; 2 pages: files and rads
-
-	// - Page Files browser
-	//
-    mFilesList = new QListWidget;
-
-	auto mAddFiles = new QPushButton( "Add Files" );
-	auto mAddDir = new QPushButton( "Add Dir" );
-	auto mUp = new QPushButton( "Up" );
-	auto mDown = new QPushButton( "Down" );			//QPushButton *mSort = new QPushButton( "Sort", page_1 );	by QListWidget ?
-	auto mRemove = new QPushButton( "Remove" );
-	auto mClear = new QPushButton( "Clear" );
-	QBoxLayout *buttons_vl = LayoutWidgets( Qt::Vertical, { mAddFiles, mAddDir, mUp, mDown, /*mSort, */mRemove, mClear } );
-
-	QGroupBox *page_1 = CreateGroupBox( ELayoutType::Horizontal, { mFilesList, buttons_vl }, "", nullptr, 0, 2, 2, 2, 2 );
-
-	// - Page RADS browser
-	//
-	auto rads_label = new QLabel( "Missions" );
-	QListWidget *mRadsList = CreateBooleanList( nullptr, { { "ERS1", true }, { "Jason1" }, { "CryoSat" } } );	//TODO, obviously
-    //QBoxLayout *rads_vl =	
-    LayoutWidgets( Qt::Vertical, { rads_label, mRadsList }, nullptr, 0, 2, 2, 2, 2 );
-
-	QGroupBox *page_2 = CreateGroupBox( ELayoutType::Vertical, { rads_label, mRadsList }, "", nullptr, 0, 2, 2, 2, 2 );
-
-	// Group Stack Widget Buttons & add Stack Widget itself
-	//
-	mBrowserStakWidget = new CStackedWidget( nullptr, { { page_1, "Files" }, { page_2, "RADS" } } );
-
-	m_BrowseFilesButton = qobject_cast<QPushButton*>( mBrowserStakWidget->Button( 0 ) );
-	m_BrowseRadsButton = qobject_cast<QPushButton*>( mBrowserStakWidget->Button( 1 ) );
-    QBoxLayout *browse_buttons_hl = LayoutWidgets( Qt::Horizontal, { m_BrowseFilesButton, m_BrowseRadsButton }, nullptr, 0, 2, 2, 2, 2 );
-	
-    AddTopGroupBox( ELayoutType::Vertical, { browse_buttons_hl, mBrowserStakWidget }, "", 4, 4, 4, 4, 4 );
-
-
-	// II. Variable Description group
-	//
-	auto mVarList = new QListWidget;		//mVarList->setMaximumWidth( 120 );
-	auto mVarTable = new QTableWidget;		//mVarTable->setMaximumWidth( 120 );
-	mVarTable->setColumnCount( 4 );
-	QBoxLayout *vars_hl = LayoutWidgets( Qt::Horizontal, { mVarList, mVarTable }, nullptr );
-
-	auto mVarText = new CTextWidget;
-	mVarText->setPlainText("bla bla bla with the full....");
-
-	AddTopGroupBox( ELayoutType::Vertical, { vars_hl, mVarText }, "Variable Description", 4, 4, 4, 4, 4 );
-
-
-	// III. Dataset name and buttons group
-	//
-	mDatasetsCombo = new QComboBox;
-	mDatasetsCombo->setToolTip( "List of current workspace datasets" );
-	auto mNewDataset = new QPushButton( "New" );
-	auto mDeleteDataset = new QPushButton( "Delete" );
-	auto mSaveDataset = new QPushButton( "Save" );
-
-	auto mOpenDataset = new QPushButton( "Open..." );
-	auto mDefineSelectionCriteria = new QPushButton( "Sel. Criteria..." );
-	auto mCheckFiles = new QPushButton( "Check Files" );
-	auto mShowSelectionReport = new QPushButton( "Sel. Report..." );
-
-	AddTopGroupBox(  
-		ELayoutType::Grid, {
-			mDatasetsCombo, mNewDataset, mDeleteDataset, mSaveDataset, nullptr,
-			mOpenDataset, mDefineSelectionCriteria, mCheckFiles, mShowSelectionReport 
-		}, 
-		"", 0, 0, 0, 0, 0 
-		);
-
-
-	//connect( mBrowserStakWidget, SIGNAL( PageChanged( int ) ), this, SLOT( PageChanged( int ) ) );
-	//
-	// done with Browse Stack Widget
-
-    Wire();
-}
-
-void CDatasetBrowserControls::Wire()
-{
-    connect( mDatasetsCombo, SIGNAL( currentIndexChanged(int) ), this, SLOT( DatasetChanged(int) ) );
-}
-
-
-
-const QString& qidentity( const QString &s ){  return s; }
-
-template < 
-    typename COMBO, typename CONTAINER, typename FUNC = decltype( qidentity )
->
-inline void FillCombo( COMBO *c, const CONTAINER &items, const FUNC &f, int selected = 0, bool enabled = true )
-{
-    for ( auto i : items )
-	{
-		c->addItem( f( i ) );
-	}
-	c->setCurrentIndex( selected );
-	c->setEnabled( enabled );
-}
-
-void CDatasetBrowserControls::WorkspaceChanged( CWorkspaceDataset *wksd )
-{
-	mWks = wksd;
-
-    // Fill ComboBox with Datasets list
-	mDatasetsCombo->clear();
-    if (wksd)
-    {
-        FillCombo( mDatasetsCombo, *mWks->GetDatasets(),
-
-            []( const CObMap::value_type &i ) -> const char*
-            {
-                return i.first.c_str();
-            },
-            0, true
-        );
-
-        // Change Dataset and perform required changes
-        // TODO: Why is the following line unnecessary??
-        //DatasetChanged();
-    }
-}
-
-
-void CDatasetBrowserControls::DatasetChanged( int currentIndex )
-{
-    // Clear list of files
-    mFilesList->clear();
-
-    // Assert index of selected Dataset
-    assert__( currentIndex == mDatasetsCombo->currentIndex() );
-
-    // If not empty or a Dataset is selected
-    if (currentIndex > -1)
-    {
-        // Get current Dataset
-        const CObMap &rDatasets   = *mWks->GetDatasets();
-        CObMap::const_iterator it = rDatasets.begin();
-        std::advance(it, currentIndex);
-        CDataset *currentDataset  = dynamic_cast< CDataset* >( it->second );   assert__(currentDataset);
-
-        // Fill FileList with files of current Dataset
-        std::vector<std::string> sFilesName;
-        currentDataset->GetFiles(sFilesName);
-
-        QIcon fileIcon = QIcon(":/images/OSGeo/db.png");
-        int index = 0;
-        for (auto it : sFilesName)
-        {
-            QListWidgetItem *file = new QListWidgetItem( QString(it.c_str()) );
-            //file->setToolTip();
-            file->setIcon( fileIcon );
-
-            mFilesList->insertItem(index, file);
-            index++;
-        }
-    }
-}
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////
-//								Dataset Filter
-/////////////////////////////////////////////////////////////////////////////////////
-
-
-//hData = QSizePolicy::Minimum, QSizePolicy::Policy vData = QSizePolicy::Minimum
-//
 QSpacerItem* CControlsPanel::AddTopSpace( int w, int h, QSizePolicy::Policy hData, QSizePolicy::Policy vData )
 {
-	auto spacer = CreateSpace( w, h, hData, vData );
-	mMainLayout->addItem( spacer );
-	return spacer;
+    auto spacer = CreateSpace( w, h, hData, vData );
+    mMainLayout->addItem( spacer );
+    return spacer;
 }
-
-
-
-//explicit 
-CDatasetFilterControls::CDatasetFilterControls( CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 
-	: base_t( manager, parent, f )
-{
-
-    // I. "Where" Description group
-    //
-    //    I.1 List of Areas
-    QListWidget *areas_list = CreateBooleanList( this, { { "Lake Baikal", true }, { "Black Sea" }, { "User Area 1", true }, { "User Area 2" } } );
-    areas_list->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
-    QGroupBox *areas_box = CreateGroupBox( ELayoutType::Horizontal, { areas_list }, "Areas", this );
-
-
-    //    I.2 Buttons for region selection
-    mSavedRegionsCombo = new QComboBox;
-    mSavedRegionsCombo->setToolTip( "List of saved regions" );
-
-    auto mBox     = new QPushButton( "Box" );
-    auto mPolygon = new QPushButton( "Polygon" );
-    auto mKML     = new QPushButton( "KML" );
-    auto mMask    = new QPushButton( "Mask" );
-
-    QBoxLayout *buttons_regions = LayoutWidgets( Qt::Horizontal, { mSavedRegionsCombo, mBox, mPolygon, mKML, mMask } );
-
-    //    I.3 Coordinates (max and min values)
-    auto mMaxLat = new QLineEdit(this);
-    auto mMaxLon = new QLineEdit(this);
-    auto mMinLat = new QLineEdit(this);
-    auto mMinLon = new QLineEdit(this);
-
-    mMaxLat->setText("0.0");
-    mMaxLon->setText("0.0");
-    mMinLat->setText("0.0");
-    mMinLon->setText("0.0");
-
-    QBoxLayout *coord_values_l = LayoutWidgets( Qt::Vertical, {
-                                             LayoutWidgets( Qt::Horizontal, { new QLabel( "Max Lat (deg)" ), mMaxLat } ),
-                                             LayoutWidgets( Qt::Horizontal, { new QLabel( "Min Lat (deg)" ), mMinLat } )
-                                               } );
-
-    QBoxLayout *coord_values_r = LayoutWidgets( Qt::Vertical, {
-                                             LayoutWidgets( Qt::Horizontal, { new QLabel( "Max Lon (deg)" ), mMaxLon } ),
-                                             LayoutWidgets( Qt::Horizontal, { new QLabel( "Min Lon (deg)" ), mMinLon } )
-                                               } );
-
-    QBoxLayout *coord_values = LayoutWidgets( Qt::Horizontal, { coord_values_l, nullptr, coord_values_r }, nullptr );
-
-
-    //    I.4 Adding previous widgets to this...
-    QGroupBox *regions_coord = CreateGroupBox(ELayoutType::Vertical, {buttons_regions, coord_values} );
-    regions_coord->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Fixed );
-    AddTopGroupBox( ELayoutType::Horizontal, { areas_box, regions_coord }, "Where", 4, 4, 4, 4, 4 );
-
-
-    // II. "When" Description group
-    //
-    //    II.1 Dates, Cycles and Pass (start and stop values)
-    auto mStartDate  = new QLineEdit(this);
-    auto mStopDate   = new QLineEdit(this);
-    auto mStartCycle = new QLineEdit(this);
-    auto mStopCycle  = new QLineEdit(this);
-    auto mStartPass  = new QLineEdit(this);
-    auto mStopPass   = new QLineEdit(this);
-
-    mStartDate->setText("yyyy/mm/dd T hh:mm");
-    mStopDate->setText("yyyy/mm/dd T hh:mm");
-    mStartCycle->setText("0");
-    mStopCycle->setText("0");
-    mStartPass->setText("0");
-    mStopPass->setText("0");
-
-    QBoxLayout *dates_box = LayoutWidgets( Qt::Vertical, {
-                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Start Date" ), mStartDate } ),
-                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Stop Date" ),  mStopDate  } )
-                                                } );
-
-    QBoxLayout *cycles_box = LayoutWidgets( Qt::Vertical, {
-                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Start Cycle" ), mStartCycle } ),
-                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Stop Cycle" ),  mStopCycle  } )
-                                                } );
-
-    QBoxLayout *pass_box = LayoutWidgets( Qt::Vertical, {
-                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Start Pass" ), mStartPass } ),
-                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Stop Pass" ),  mStopPass  } )
-                                                } );
-
-    QBoxLayout *dateCyclePassValues_box = LayoutWidgets( Qt::Horizontal, {dates_box, nullptr, cycles_box, nullptr, pass_box});
-
-
-    //   II.2 One-Click Time Filtering
-    QFrame *lineHorizontal = WidgetLine( nullptr, Qt::Horizontal );
-    auto one_click_label  = new QLabel( "One-Click Time Filtering" );
-
-    //    Checkable menu items --> ATTENTION: are exclusive checkable menu items??
-    auto last_month  = new QCheckBox( "Last Month" );
-    auto last_year   = new QCheckBox( "Last Year" );
-    auto last_cycle  = new QCheckBox( "Last Cycle" );
-    QGroupBox *monthYearCycleGroup = CreateGroupBox(ELayoutType::Vertical, {last_month, last_year, last_cycle} );
-
-    QFrame *lineVertical_1 = WidgetLine( nullptr, Qt::Vertical );
-    QFrame *lineVertical_2 = WidgetLine( nullptr, Qt::Vertical );
-
-    auto mRelativeStart  = new QLineEdit(this);
-    auto mRelativeStop   = new QLineEdit(this);
-    mRelativeStart->setText("0");
-    mRelativeStop ->setText("0");
-    QBoxLayout *relative_times = LayoutWidgets( Qt::Vertical, {
-                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Relative Start" ), mRelativeStart } ),
-                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Relative Stop" ),  mRelativeStop  } )
-                                                } );
-
-    auto reference_date       = new QCheckBox( "Reference Date" );
-    auto reference_date_text  = new QLineEdit(this);
-    reference_date_text->setText("yyyy/mm/dd");
-    QBoxLayout *refDateBox = LayoutWidgets( Qt::Vertical, { reference_date, reference_date_text} );
-
-    //    Adding previous widgets to this...
-    AddTopGroupBox( ELayoutType::Vertical, {
-                        dateCyclePassValues_box,
-                        lineHorizontal,
-                        one_click_label,
-                        LayoutWidgets( Qt::Horizontal, {monthYearCycleGroup, lineVertical_1, relative_times, lineVertical_2, refDateBox})
-                                            },"When", 4, 4, 4, 4, 4 );
-
-
-    // III. "Total Nb Records Selected" Description group
-    //
-    auto mTotalRecordsSelected  = new QLineEdit(this);
-    mTotalRecordsSelected->setText("0");
-    mTotalRecordsSelected->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
-    QBoxLayout *TotalRecords_box = LayoutWidgets( Qt::Horizontal, { new QLabel( "Total Nb Records selected" ), mTotalRecordsSelected });
-    TotalRecords_box->setAlignment(Qt::AlignRight);
-
-    //    Adding previous widgets to this...
-    AddTopGroupBox( ELayoutType::Horizontal, { TotalRecords_box});
-
-
-    // IV. Filter name description group
-    //
-    auto mFilterName  = new QLineEdit(this);
-    mFilterName ->setText("Filter Name");
-
-    auto mNewFilter     = new QPushButton( "New Filter" );
-    auto mDeleteFilter  = new QPushButton( "Delete Filter" );
-    auto mSaveFilter    = new QPushButton( "Save Filter" );
-
-    mOpenFilterCombo = new QComboBox;
-    mOpenFilterCombo->setToolTip( "Open a Filter" );
-
-    QBoxLayout *buttons_filter = LayoutWidgets( Qt::Horizontal, {  mFilterName, mNewFilter, mDeleteFilter, mSaveFilter, mOpenFilterCombo } );
-
-    //    Adding previous widgets to this...
-    AddTopGroupBox( ELayoutType::Horizontal, { WidgetLine( nullptr, Qt::Vertical ), buttons_filter });
-
-
-    //AddTopWidget( where_box );
-	//AddTopSpace( 20, 0, QSizePolicy::Minimum, QSizePolicy::Expanding );
-	AddTopSpace( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
-}
-
-//public slots:
-void CDatasetFilterControls::WorkspaceChanged( CWorkspaceDataset *wksd )
-{
-	mWks = wksd;
-}
-
 
 
 
@@ -539,7 +189,7 @@ QWidget* COperationsControls::CreateQuickOperationsPage()
 	QGroupBox *views_group = CreateGroupBox( ELayoutType::Horizontal, { mQuickMapButton, mQuickPlotButton, mSplitPlots }, "Views" , mQuickOperationsPage, 6, 2, 2, 2, 2 );
 
 
-	// III. Dataset & Filter & Operation Group
+	/* III. Dataset & Filter & Operation Group
 
 	auto mQuickDatasets = new QComboBox;
 	auto mQuickFilters = new QComboBox;
@@ -556,19 +206,20 @@ QWidget* COperationsControls::CreateQuickOperationsPage()
 		mDeleteQuickOperation, mSaveQuickOperation, mOpenQuickOperation }, nullptr, 2, 2, 2, 2, 2 );
 
 	QGroupBox *all_group = CreateGroupBox( ELayoutType::Vertical, { all_grid_l, mQuickOperationNname, quick_op_hl }, "", mQuickOperationsPage, 2, 2, 2, 2, 2 );
-
+	  */
 	// IV. Assemble all groups in quick operations page
 
 	LayoutWidgets( Qt::Vertical, 
 	{ 
 		vars_group, 
 		views_group, 
-		all_group 
+		//all_group 
 	}, 
 	mQuickOperationsPage, 0, 2, 2, 2, 2 );
 
 	return mQuickOperationsPage;
 }
+
 
 
 QWidget* COperationsControls::CreateAdancedOperationsPage()
@@ -636,7 +287,7 @@ QWidget* COperationsControls::CreateAdancedOperationsPage()
 	auto mDataComputation = new QComboBox( tab_parent );
 	auto mCheckSyntax = new QPushButton( "Check Syntax", tab_parent );
 	auto mShowInfo = new QPushButton( "Show Info", tab_parent );
-	auto mShowAliases = new QPushButton( "Show Aliases", tab_parent );
+	mShowAliases = new QPushButton( "Show Aliases", tab_parent );
 	QGroupBox *data_compute_group = CreateGroupBox( ELayoutType::Horizontal, { mDataComputation, mCheckSyntax, mShowInfo, mShowAliases }, 
 		"Data Computation", tab_parent, 2, 2, 2, 2, 2 );
 
@@ -647,6 +298,7 @@ QWidget* COperationsControls::CreateAdancedOperationsPage()
 	auto mAdvFilter = new QComboBox;
 	QBoxLayout *adv_filter_vl = LayoutWidgets( Qt::Vertical, { adv_filter_label, mAdvFilter }, nullptr, 0, 2, 2, 2, 2 );
 	QFrame *line = WidgetLine( nullptr, Qt::Vertical );
+	line->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
     auto step_label = new QLabel( "Step" );                         step_label->setAlignment(Qt::AlignCenter);
     auto cut_label = new QLabel( "Cut-Off" );                       cut_label->setAlignment(Qt::AlignCenter);
     auto intervals_label = new QLabel( "Number of Intervals" );     intervals_label->setAlignment(Qt::AlignCenter);
@@ -685,7 +337,7 @@ QWidget* COperationsControls::CreateAdancedOperationsPage()
 	QGroupBox *views_group = CreateGroupBox( ELayoutType::Horizontal, { mQuickMap, mSplitPlots }, "Views" , tab_parent, 6, 2, 2, 2, 2 );
 
 
-	// IX. Dataset & Filter Group
+	/* IX. Dataset & Filter Group
 
 	auto mAdvDatasets = new QComboBox;
 	auto mAdvFilters = new QComboBox;
@@ -702,43 +354,50 @@ QWidget* COperationsControls::CreateAdancedOperationsPage()
 		mDeleteQuickOperation, mSaveQuickOperation, mOpenQuickOperation }, nullptr, 2, 2, 2, 2, 2 );
 
 	QGroupBox *all_group = CreateGroupBox( ELayoutType::Vertical, { all_grid_l, mQuickOperationNname, adv_op_hl }, "", tab_parent, 2, 2, 2, 2, 2 );
-
+	  */
     LayoutWidgets( Qt::Vertical,
 	{ 
-		expression_group, //= CreateCollapsibleGroupBox( ELayoutType::Vertical, { formulas_group, fields_hl, adv_desc_vl, exp_group }, 
+		expression_group,
 
-		//formulas_group, 
-		//fields_hl, 
-		//adv_desc_vl, 
-		//exp_group, 
 		data_compute_group,
 		//nullptr,
 		sampling_group,
 		adv_other_hl,
 		views_group,
-		all_group,
+		//all_group,
 		nullptr
 	}, 
 	tab_parent, 0, 2, 2, 2, 2 );
-	/*
-	QScrollArea *scrollA = new QScrollArea( mAdvancedOperationsPage );
-	//QVBoxLayout *toplay = new QVBoxLayout( mAdvancedOperationsPage );
-    //toplay->addWidget( scrollA );
 
-	AddWidget( mAdvancedOperationsPage, scrollA );
-	mAdvancedOperationsPage->layout()->setSpacing( 0 );
-	mAdvancedOperationsPage->layout()->setContentsMargins( 0,0,0,0 );
-
-    scrollA->setWidgetResizable(true);
-    scrollA->setWidget( tab_parent );
-	scrollA->setFrameShape(QFrame::NoFrame);
-
-	//scrollA->resize( scrollA->sizeHint() );
-	  */
-	//AddWidget( mAdvancedOperationsPage, tab_parent );
 	return mAdvancedOperationsPage;
 }
 
+QWidget* COperationsControls::CreateCommonWidgets()
+{
+	const int m = 6;
+	const int s = 4;
+
+	auto mOperationsCombo = new QComboBox;		
+	mOperationsCombo->setToolTip( "List of current workspace operations" );
+	auto mNewOperation = new QPushButton( "New..." );
+	auto mDeleteOperation = new QPushButton( "Delete..." );
+    auto mRenameOperation = new QPushButton( "Rename..." );
+
+	auto mSaveOperation = new QPushButton( "Save..." );	// TODO confirm that save will only be done in the scope of whole workspace
+	
+	QFrame *frame = new QFrame;
+	frame->setWindowTitle( "QFrame::Box" );
+	frame->setFrameStyle( QFrame::Panel );
+	frame->setFrameShadow( QFrame::Sunken );
+	frame->setObjectName("OperationsFrame");
+	frame->setStyleSheet("#OperationsFrame { border: 2px solid black; }");
+	LayoutWidgets( { 
+		mOperationsCombo, mNewOperation, mDeleteOperation, mRenameOperation, nullptr,
+		mSaveOperation
+	}, frame, s, m, m, m, m );
+
+	return frame;
+}
 
 
 
@@ -746,6 +405,9 @@ QWidget* COperationsControls::CreateAdancedOperationsPage()
 COperationsControls::COperationsControls( CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 
 	: base_t( manager, parent, f )
 {
+	mCommonGroup = CreateCommonWidgets();
+
+
 	QWidget *mQuickOperationsPage = CreateQuickOperationsPage();
 	QWidget *mAdvancedOperationsPage = CreateAdancedOperationsPage();
 
@@ -755,6 +417,8 @@ COperationsControls::COperationsControls( CDesktopManagerBase *manager, QWidget 
 	
     QPushButton *m_QuickButton = qobject_cast<QPushButton*>( mStackWidget->Button( 0 ) );
     QPushButton *m_AdvancedButton = qobject_cast<QPushButton*>( mStackWidget->Button( 1 ) );
+
+    AddTopWidget( mCommonGroup );
 
 	AddTopLayout( ELayoutType::Horizontal, { m_QuickButton, m_AdvancedButton }, 0, 2, 2, 2, 2 );
 
@@ -767,6 +431,8 @@ void COperationsControls::WireOperations()
 {
 	connect( mQuickMapButton, SIGNAL( clicked() ), this, SLOT( QuickMap() ) );
 	connect( mQuickPlotButton, SIGNAL( clicked() ), this, SLOT( QuickPlot() ) );
+
+	connect( mShowAliases, SIGNAL( clicked() ), this, SLOT( ShowAliases() ) );
 
 	//connect( mOperationsStakWidget, SIGNAL( PageChanged( int ) ), this, SLOT( PageChanged( int ) ) );
 	//
@@ -801,7 +467,7 @@ void COperationsControls::QuickMap()
 {
 	WaitCursor wait;
 
-	auto ed = new CMapEditor( mWksd, this );
+	auto ed = new CMapEditor( mWksd, mManager->parentWidget() );
 	auto subWindow = mManager->AddSubWindow( ed );
 	subWindow->show();
 
@@ -812,7 +478,7 @@ void COperationsControls::QuickPlot()
 {
 	WaitCursor wait;
 
-    auto ed = new CPlotEditor( mWksd, nullptr, (CPlot*)nullptr, this );
+    auto ed = new CPlotEditor( mWksd, nullptr, (CPlot*)nullptr, mManager->parentWidget() );
     auto subWindow = mManager->AddSubWindow( ed );
     subWindow->show();
 
@@ -820,15 +486,56 @@ void COperationsControls::QuickPlot()
 }
 
 
+void COperationsControls::ShowAliases()
+{
+	//if ( m_operation == NULL || m_product == NULL )
+	//	return;
+
+	//std::string title = "Show '" + m_product->GetProductClassType() + "' aliases...";
+
+	//CFormula* formula = GetOperationtreectrl()->GetCurrentFormula();
+	//bool hasOpFieldSelected = formula != NULL;
+
+	//CAliasInfoDlg dlg( this, -1, title, m_operation, formula );
+
+	//dlg.ShowModal();
+
+	//if ( hasOpFieldSelected )
+	//{
+	//	wxGrid* aliasesGrid = dlg.GetAliasinfoGrid();
+	//	std::string text;
+	//	int32_t numRows = aliasesGrid->GetNumberRows();
+
+	//	bool hasSelectedItems = false;
+
+	//	for ( int32_t i = 0; i < numRows; i++ )
+	//	{
+	//		std::string isSeleted = aliasesGrid->GetCellValue( i, CAliasInfoDlg::USE_COL );
+	//		if ( isSeleted.compare( "1" ) == 0 )
+	//		{
+	//			hasSelectedItems = true;
+	//			text.Append( aliasesGrid->GetCellValue( i, CAliasInfoDlg::SYNTAX_COL ) );
+	//			text.Append( " " );
+	//		}
+
+	//	}
+	//	if ( hasSelectedItems )
+	//	{
+	//		GetOptextform()->WriteText( text );
+	//		SetTextFormula();
+	//	}
+	//}
+}
+
 
 
 
 
 //HAMMER SECTION
-#include "new-gui/brat/DataModels/CmdLineProcessor.h"
-#include "display/PlotData/WPlot.h"
-#include "display/PlotData/Plot.h"
-#include "display/PlotData/ZFXYPlot.h"
+#include "new-gui/brat/DataModels/DisplayFilesProcessor.h"
+#include "new-gui/brat/DataModels/PlotData/ZFXYPlot.h"
+#include "new-gui/brat/DataModels/PlotData/XYPlot.h"
+#include "new-gui/brat/DataModels/PlotData/WorldPlot.h"
 
 
 //L:\project\workspaces\newWP\Displays\DisplayDisplays_New.par
@@ -836,7 +543,7 @@ void COperationsControls::QuickPlot()
 void COperationsControls::openTestFile( const QString &fileName )
 {
 	delete mCmdLineProcessor;
-	mCmdLineProcessor = new CmdLineProcessor;
+	mCmdLineProcessor = new DisplayFilesProcessor;
 
 	const std::string s = q2a( fileName );
 	const char *argv[] = { "", s.c_str() };
@@ -844,12 +551,13 @@ void COperationsControls::openTestFile( const QString &fileName )
 	{
 		if ( mCmdLineProcessor->Process( 2, argv ) )
 		{
+			auto &plots = mCmdLineProcessor->plots();
 			if ( mCmdLineProcessor->isZFLatLon() )		// =================================== WorldPlot
 			{
-				for ( CObArray::const_iterator itGroup = mCmdLineProcessor->plots().begin(); itGroup != mCmdLineProcessor->plots().end(); itGroup++ )
+				for ( auto &plot : plots )
 				{
-					CWPlot* wplot = dynamic_cast<CWPlot*>( *itGroup );
-					if ( wplot == NULL )
+					CWPlot* wplot = dynamic_cast<CWPlot*>( plot );
+					if ( wplot == nullptr )
 						continue;
 
 					auto ed = new CMapEditor( mCmdLineProcessor, wplot, this );
@@ -859,23 +567,23 @@ void COperationsControls::openTestFile( const QString &fileName )
 			}
 			else if ( mCmdLineProcessor->isYFX() )		// =================================== XYPlot();
 			{
-				for ( CObArray::const_iterator itGroup = mCmdLineProcessor->plots().begin(); itGroup != mCmdLineProcessor->plots().end(); itGroup++ )
+				for ( auto &plot : plots )
 				{
-					CPlot* plot = dynamic_cast<CPlot*>( *itGroup );
-					if ( plot == NULL )
+					CPlot* yfxplot = dynamic_cast<CPlot*>( plot );
+					if ( yfxplot == nullptr )
 						continue;
 
-					auto ed = new CPlotEditor( mWksd, mCmdLineProcessor, plot, this );
+					auto ed = new CPlotEditor( mWksd, mCmdLineProcessor, yfxplot, this );
 					auto subWindow = mManager->AddSubWindow( ed );
 					subWindow->show();
 				}
 			}
 			else if ( mCmdLineProcessor->isZFXY() )		// =================================== ZFXYPlot();
 			{
-				for ( CObArray::const_iterator itGroup = mCmdLineProcessor->plots().begin(); itGroup != mCmdLineProcessor->plots().end(); itGroup++ )
+				for ( auto &plot : plots )
 				{
-					CZFXYPlot* zfxyplot = dynamic_cast<CZFXYPlot*>( *itGroup );
-					if ( zfxyplot == NULL )
+					CZFXYPlot* zfxyplot = dynamic_cast<CZFXYPlot*>( plot );
+					if ( zfxyplot == nullptr )
 						continue;
 
 					auto ed = new CPlotEditor( mWksd, mCmdLineProcessor, zfxyplot, this );

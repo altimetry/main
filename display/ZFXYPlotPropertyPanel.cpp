@@ -91,7 +91,7 @@ CZFXYPlotPropertyPanel::CZFXYPlotPropertyPanel()
 }
 
 //----------------------------------------
-CZFXYPlotPropertyPanel::CZFXYPlotPropertyPanel(wxWindow *parent, vtkZFXYPlotActor* plotter, CZFXYPlotData* plotData, wxVTKRenderWindowInteractor* vtkWidget,
+CZFXYPlotPropertyPanel::CZFXYPlotPropertyPanel(wxWindow *parent, vtkZFXYPlotActor* plotter, VTK_CZFXYPlotData* plotData, wxVTKRenderWindowInteractor* vtkWidget,
                                          wxWindowID id,
                                          const wxPoint& pos,
                                          const wxSize& size ,
@@ -160,7 +160,7 @@ void CZFXYPlotPropertyPanel::Init()
 }
 
 //----------------------------------------
-bool CZFXYPlotPropertyPanel::Create(wxWindow *parent, vtkZFXYPlotActor* plotter, CZFXYPlotData* plotData, wxVTKRenderWindowInteractor* vtkWidget,
+bool CZFXYPlotPropertyPanel::Create(wxWindow *parent, vtkZFXYPlotActor* plotter, VTK_CZFXYPlotData* plotData, wxVTKRenderWindowInteractor* vtkWidget,
                                          wxWindowID id,
                                          const wxPoint& pos,
                                          const wxSize& size ,
@@ -885,7 +885,7 @@ void CZFXYPlotPropertyPanel::OnTitle(CValueChangedEvent& event)
 //----------------------------------------
 void CZFXYPlotPropertyPanel::OnSolidColor(wxCommandEvent& event)
 {
-  CZFXYPlotData* pdata = GetCurrentLayer();
+  VTK_CZFXYPlotData* pdata = GetCurrentLayer();
   if (pdata == NULL)
   {
     return;
@@ -919,7 +919,7 @@ void CZFXYPlotPropertyPanel::ContourPropChanged( CZFXYContourPropChangedEvent &e
   
   bool contourNeedGenerateValues = false;
 
-  CZFXYPlotData* pdata = GetCurrentLayer();
+  VTK_CZFXYPlotData* pdata = GetCurrentLayer();
   if (pdata == NULL)
   {
     return;
@@ -998,7 +998,7 @@ void CZFXYPlotPropertyPanel::ContourPropChanged( CZFXYContourPropChangedEvent &e
 void CZFXYPlotPropertyPanel::OnContour(wxCommandEvent& event)
 {
 
-  CZFXYPlotData* pdata = GetCurrentLayer();
+  VTK_CZFXYPlotData* pdata = GetCurrentLayer();
   if (pdata == NULL)
   {
     return;
@@ -1232,14 +1232,14 @@ void CZFXYPlotPropertyPanel::OnXReset( wxCommandEvent &event )
 }
 
 //----------------------------------------
-CZFXYPlotData* CZFXYPlotPropertyPanel::GetCurrentLayer()
+VTK_CZFXYPlotData* CZFXYPlotPropertyPanel::GetCurrentLayer()
 {
   int32_t n = GetZfxylayerchoice()->GetSelection();
   if (n < 0)
   {
     return NULL;
   }
-  return static_cast<CZFXYPlotData*>(GetZfxylayerchoice()->GetClientData(n));
+  return static_cast<VTK_CZFXYPlotData*>(GetZfxylayerchoice()->GetClientData(n));
 }
 //----------------------------------------
 void CZFXYPlotPropertyPanel::SetCurrentLayer(int32_t index)
@@ -1251,16 +1251,16 @@ void CZFXYPlotPropertyPanel::SetCurrentLayer(int32_t index)
 
   GetZfxylayerchoice()->SetSelection(index);
 
-  CZFXYPlotData* geoMap =  static_cast<CZFXYPlotData*>(GetZfxylayerchoice()->GetClientData(index));
+  VTK_CZFXYPlotData* geoMap =  static_cast<VTK_CZFXYPlotData*>(GetZfxylayerchoice()->GetClientData(index));
   SetCurrentLayer(geoMap);
 
 }
 //----------------------------------------
-void CZFXYPlotPropertyPanel::SetCurrentLayer( CZFXYPlotData* geoMap )
+void CZFXYPlotPropertyPanel::SetCurrentLayer( VTK_CZFXYPlotData* geoMap )
 {
   if (geoMap == NULL)
   {
-      throw CException("ERROR in  CZFXYPlotPropertyPanel::SetCurrentLayer : static_cast<CZFXYPlotData*>(event.GetClientData()) returns NULL pointer - ",
+      throw CException("ERROR in  CZFXYPlotPropertyPanel::SetCurrentLayer : static_cast<VTK_CZFXYPlotData*>(event.GetClientData()) returns NULL pointer - ",
                        BRATHL_LOGIC_ERROR);
   }
 
@@ -1297,10 +1297,10 @@ void CZFXYPlotPropertyPanel::OnLayerChoice( wxCommandEvent &event )
   CZFXYContourPropFrameCloseEvent evtContour(GetId());
   wxPostEvent(GetParent(), evtContour);
 
-  CZFXYPlotData* geoMap = static_cast<CZFXYPlotData*>(event.GetClientData());
+  VTK_CZFXYPlotData* geoMap = static_cast<VTK_CZFXYPlotData*>(event.GetClientData());
   if (geoMap == NULL)
   {
-      throw CException("ERROR in  CZFXYPlotPropertyPanel::OnLayerChoice : static_cast<CZFXYPlotData*>(event.GetClientData()) returns NULL pointer - ",
+      throw CException("ERROR in  CZFXYPlotPropertyPanel::OnLayerChoice : static_cast<VTK_CZFXYPlotData*>(event.GetClientData()) returns NULL pointer - ",
                        BRATHL_LOGIC_ERROR);
   }
 

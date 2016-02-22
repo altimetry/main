@@ -130,6 +130,7 @@
 #include <qgslayertreegroup.h>
 
 #include <qgscollapsiblegroupbox.h>
+#include <qgsmaptool.h>
 
 
 

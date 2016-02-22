@@ -32,7 +32,7 @@
 
 #include "BratDisplay_wdr.h"
 #include "LabeledTextCtrl.h"
-#include "PlotData/WorldPlotData.h"
+#include "new-gui/brat/DataModels/PlotData/WorldPlotData.h"
 
 BEGIN_DECLARE_EVENT_TYPES()
     DECLARE_EVENT_TYPE(wxEVT_CONTOUR_PROP_CHANGED, 7777) // 7777 is ignored, just for compatibility with v2.2
@@ -47,7 +47,7 @@ END_DECLARE_EVENT_TYPES()
 class CContourPropChangedEvent : public wxCommandEvent
 {
 public:
-  CContourPropChangedEvent(wxWindowID id, CWorldPlotProperty& plotProperty)
+  CContourPropChangedEvent(wxWindowID id, CWorldPlotProperties& plotProperty)
     : wxCommandEvent(wxEVT_CONTOUR_PROP_CHANGED, id)
   {
     m_id = id;
@@ -67,7 +67,7 @@ public:
     };
 
   wxWindowID m_id;
-  CWorldPlotProperty m_plotProperty;
+  CWorldPlotProperties m_plotProperty;
 };
 typedef void (wxEvtHandler::*CContourPropChangedEventFunction)(CContourPropChangedEvent&);
 
@@ -112,14 +112,14 @@ public:
   // constructors and destructors
   CContourPropPanel();
   
-  CContourPropPanel( wxWindow *parent, CGeoMap* geoMap, wxWindowID id = -1,
+  CContourPropPanel( wxWindow *parent, CWorldPlotData* geoMap, wxWindowID id = -1,
       const wxPoint& pos = wxDefaultPosition,
       const wxSize& size = wxDefaultSize,
       long style = wxTAB_TRAVERSAL | wxNO_BORDER );
   
   virtual ~CContourPropPanel();
 
-  bool Create( wxWindow *parent, CGeoMap* geoMap, wxWindowID id = -1,
+  bool Create( wxWindow *parent, CWorldPlotData* geoMap, wxWindowID id = -1,
       const wxPoint& pos = wxDefaultPosition,
       const wxSize& size = wxDefaultSize,
       long style = wxTAB_TRAVERSAL | wxNO_BORDER );
@@ -145,12 +145,12 @@ public:
                                           wxObject* userData = NULL, wxEvtHandler* eventSink = NULL);
   
 private:
-  CGeoMap* m_geoMap;
+  CWorldPlotData* m_geoMap;
 
-  CWorldPlotProperty m_plotProperty;
+  CWorldPlotProperties m_plotProperty;
 
-  CVtkColor m_lineColor;
-  CVtkColor m_labelColor;
+  CPlotColor m_lineColor;
+  CPlotColor m_labelColor;
 
     
 private:
@@ -185,7 +185,7 @@ public:
   // constructors and destructors
   CContourPropFrame();
 
-  CContourPropFrame( wxWindow *parent, CGeoMap* geoMap, wxWindowID id = -1, 
+  CContourPropFrame( wxWindow *parent, CWorldPlotData* geoMap, wxWindowID id = -1, 
       const wxString &title = "",
       const wxPoint& pos = wxDefaultPosition,
       const wxSize& size = wxDefaultSize,
@@ -193,7 +193,7 @@ public:
 
   virtual ~CContourPropFrame();
 
-  bool Create( wxWindow *parent, CGeoMap* geoMap, wxWindowID id = -1, 
+  bool Create( wxWindow *parent, CWorldPlotData* geoMap, wxWindowID id = -1, 
       const wxString &title = "",
       const wxPoint& pos = wxDefaultPosition,
       const wxSize& size = wxDefaultSize,

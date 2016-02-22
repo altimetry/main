@@ -2,8 +2,8 @@
 
 #include "new-gui/Common/tools/Trace.h"
 
-#include "new-gui/brat/DataModels/CmdLineProcessor.h"
-#include "display/PlotData/WPlot.h"
+#include "new-gui/brat/DataModels/DisplayFilesProcessor.h"
+#include "new-gui/brat/DataModels/PlotData/WorldPlot.h"
 
 #include "QbrtMainWindow.h"
 #include "GUI/QbrtMapEditor.h"
@@ -207,7 +207,7 @@ void QbrtMainWindow::openFile( const QString &fileName )
         addEditor( editor );
 
 	delete mCmdLineProcessor;
-	mCmdLineProcessor = new CmdLineProcessor();
+    mCmdLineProcessor = new DisplayFilesProcessor();
 
 	const std::string s = q2a( fileName );
 	const char *argv[] = { "", s.c_str() };
@@ -215,11 +215,12 @@ void QbrtMainWindow::openFile( const QString &fileName )
 	{
 		if ( mCmdLineProcessor->Process( 2, argv ) )
 		{
-			if ( mCmdLineProcessor->isZFLatLon() )		//WorldPlot
+            auto &plots = mCmdLineProcessor->plots();
+            if ( mCmdLineProcessor->isZFLatLon() )		//WorldPlot
 			{
-				for ( CObArray::const_iterator itGroup = mCmdLineProcessor->plots().begin(); itGroup != mCmdLineProcessor->plots().end(); itGroup++ )
-				{
-					CWPlot* wplot = dynamic_cast<CWPlot*>( *itGroup );
+                for ( auto &plot : plots )
+                {
+                    CWPlot* wplot = dynamic_cast<CWPlot*>( plot );
 					if ( wplot == NULL )
 						continue;
 

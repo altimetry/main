@@ -21,7 +21,7 @@
 #include "new-gui/Common/tools/Exception.h"
 
 #include "libbrathl/brathl.h"
-#include "new-gui/brat/Display/BitSet32.h"
+#include "BitSet32.h"
 
 #include "Operation.h"
 #include "Display.h"

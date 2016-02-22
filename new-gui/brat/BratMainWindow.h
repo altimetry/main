@@ -11,10 +11,11 @@
 #include "DataModels/Model.h"
 
 
-class CTabbedDock;
+class CWorkspaceTabbedDock;
 class CTextWidget;
 class CRecentFilesProcessor;
 
+class CControlsPanel;
 class CDatasetBrowserControls;
 class CDatasetFilterControls;
 class COperationsControls;
@@ -57,7 +58,6 @@ public:
 
 
     // Statics
-    //
 
 	static CBratMainWindow *smInstance;
 
@@ -81,6 +81,14 @@ private:
 	//
 	static QString makeWindowTitle( const QString &title = QString() );
 
+
+	// instance data
+
+	CBratApplication &mApp;
+
+	bool mOperatingInDisplayMode = false;
+
+
     // MDI sub-windows logic
     //
 	CDesktopManagerBase *mManager = nullptr;
@@ -94,7 +102,7 @@ private:
 	//
 
 	//Main Working Dock
-	CTabbedDock *mMainWorkingDock = nullptr;
+	CWorkspaceTabbedDock *mMainWorkingDock = nullptr;
 
 	CTabbedDock *mOutputDock = nullptr;
     CLogShell *mLogFrame = nullptr;
@@ -111,7 +119,7 @@ private:
 	CBratSettings &mSettings;
 
 
-    // Business logic
+    // Domain
     //
 	CModel &mModel;
 
@@ -125,7 +133,7 @@ private:
 
 	// assume mManager created
 	//
-	CControlsPanel* MakeWorkingPanel( ETabName tab );
+	CControlsPanel *MakeWorkingPanel( ETabName tab );
 	void CreateWorkingDock();
 	void CreateOutputDock();
 	void CreateDocks();
@@ -135,6 +143,10 @@ private:
 	void ProcessMenu();
 	void FillStatusBar();
 	void FillStatusBarExperimental();
+
+	// Operate in display only mode
+	//
+	bool StartDisplayMode();
 
 public:
     explicit CBratMainWindow( CBratApplication &a );
@@ -166,9 +178,9 @@ public:
 	TabType< INDEX >* WorkingPanel();
 
 	template< class EDITOR >
-	EDITOR* activeEditor();
+	EDITOR* ActiveEditor();
 
-    CEditorBase *activeMDIEditor();
+    CEditorBase *ActiveMDIEditor();
 
     //
     //			Access
@@ -183,7 +195,7 @@ public:
 private:
 	void SetCurrentWorkspace( const CWorkspace *wks );
 
-	bool DoEmptyWorkspace();
+	bool DoNoWorkspace();
 
 	// GUI Management
 	void EnableCtrlWorkspace();
@@ -228,8 +240,6 @@ protected:
 	bool OkToContinue();
     virtual void closeEvent( QCloseEvent *event ) override;
 
-	void ShowProgress( int theProgress, int theTotalSteps );
-
 
 protected slots:
 
@@ -242,7 +252,7 @@ protected slots:
 
     // Update Actions
     //
-    void UpdateWorkspaceUI( const CModel *model );
+    void WorkspaceChangedUpdateUI( const CModel *model );
 
     void UpdateWindowMenu();
 
@@ -327,8 +337,14 @@ private slots:
 	// Status-bar slots
 	///////////////////////////////
 
-	void CanvasRefreshStarted();
-	void CanvasRefreshFinished();
+
+
+	///////////////////////////////
+	// Display Mode slots
+	///////////////////////////////
+
+	void StopDisplayMode();
+    void on_action_Close_Workspace_triggered();
 };
 
 

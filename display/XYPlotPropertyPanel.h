@@ -37,7 +37,7 @@
 #include "wxVTKRenderWindowInteractor.h"
 #include "vtkXYPlotActor.h"
 
-#include "PlotData/XYPlotData.h"
+#include "new-gui/brat/DataModels/PlotData/XYPlotData.h"
 #include "AxisPropertyPanel.h"
 
 #include "LabeledTextCtrl.h"

@@ -8,8 +8,8 @@
 
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/ApplicationPaths.h"
-#include "new-gui/brat/Views/MapWidget.h"
-#include "new-gui/brat/GUI/ViewEditor.h"
+#include "new-gui/brat/Views/BratViews.h"
+#include "new-gui/brat/GUI/ViewEditors.h"
 
 
 class CTreeWorkspace;
@@ -25,13 +25,27 @@ using desktop_manager_base_t = QTabWidget;
 using desktop_manager_base_t = QWidget;
 #endif
 
+
 /////////////////////////////////////////////////////////////////////////////////////
-//
+/////////////////////////////////////////////////////////////////////////////////////
+//						Desktop Managers Base Classes
+/////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
 
 
 class CDesktopManagerBase : public desktop_manager_base_t, non_copyable
 {
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+    Q_OBJECT
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+	
 	// types
 
 	using base_t = desktop_manager_base_t;
@@ -44,7 +58,7 @@ public:
 	const CApplicationPaths &mPaths;
 
 protected:
-	CMapWidget *mMap = nullptr;
+	CBratMapView *mMap = nullptr;
 	CTabbedDock *mMapDock = nullptr;
 
 protected:
@@ -64,7 +78,7 @@ protected:
 
         setObjectName(QString::fromUtf8("centralWidget"));
 
-		mMap = new CMapWidget( this );
+		mMap = new CBratMapView( this );
 
         parent->setCentralWidget( this );
 	}
@@ -87,18 +101,29 @@ public:
 
 	// access
 
-	CMapWidget* Map() { return mMap; }
+	CBratMapView* Map() { return mMap; }
 
 
 	CTabbedDock* MapDock() { return mMapDock; }
 
+
+	// abstract interface
 
 	virtual QList<QWidget*> SubWindowList() = 0;
 
 public:
 	virtual QWidget* AddSubWindow( QWidget *widget, Qt::WindowFlags flags = 0 ) = 0;
 
+
+	virtual void SubWindowClosed( QWidget *emitter ) = 0;
+
+	//emit AllSubWindowsClosed only if there was something to close
+	//
 	virtual void CloseAllSubWindows() = 0;
+
+signals:
+
+	void AllSubWindowsClosed();
 };
 
 
@@ -140,7 +165,14 @@ public:
 
 
 /////////////////////////////////////////////////////////////////////////////////////
-//
+/////////////////////////////////////////////////////////////////////////////////////
+//								SDI Desktop Manager
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+//									SDI SubWindow
 /////////////////////////////////////////////////////////////////////////////////////
 
 class CSubWindow : public QDialog
@@ -155,7 +187,6 @@ class CSubWindow : public QDialog
 #if defined (__APPLE__)
 #pragma clang diagnostic pop
 #endif
-
 		
 	using base_t = QDialog;
 
@@ -201,6 +232,9 @@ signals:
 
 
 
+/////////////////////////////////////////////////////////////////////////////////////
+//									Manager
+/////////////////////////////////////////////////////////////////////////////////////
 
 class CDesktopManagerSDI : public CAbstractDesktopManager< CSubWindow >
 {
@@ -241,13 +275,21 @@ public:
 
 	virtual desktop_child_t* AddSubWindow( QWidget *widget, Qt::WindowFlags flags = 0 ) override;
 
+	// see base class comment
+	//
 	virtual void CloseAllSubWindows() override
 	{	
-		//this also works on windows at least
-		//for ( auto child : mSubWindows )
-		//	child->close();
-		foreach ( auto child, mSubWindows )
-			child->close();
+		if ( !mSubWindows.empty() )
+		{
+			//this also works on windows at least
+			//for ( auto child : mSubWindows )
+			//	child->close();
+			foreach( auto child, mSubWindows )
+				child->close();
+
+			if ( mSubWindows.isEmpty() )
+				emit AllSubWindowsClosed();
+		}
 	}
 
 protected:
@@ -256,16 +298,19 @@ protected:
 	QWidget* AddTab( QWidget *tab_widget, const QString &title );
 
 protected slots:
+
 	void closeAllSubWindows()
 	{
 		CloseAllSubWindows();
 	}
 
-	void SubWindowClosed( QWidget *emitter )
+    void SubWindowClosed( QWidget *emitter ) override
 	{
 		desktop_child_t *child = qobject_cast< desktop_child_t* >( emitter );
 
 		mSubWindows.removeOne( child );
+		if (mSubWindows.isEmpty())
+			emit AllSubWindowsClosed();
 	}
 };
 
@@ -274,8 +319,12 @@ protected slots:
 
 
 /////////////////////////////////////////////////////////////////////////////////////
-//
 /////////////////////////////////////////////////////////////////////////////////////
+//								MDI Desktop Manager
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+
+
 
 
 //using desktop_manager_base_t = QMdiArea;
@@ -324,6 +373,9 @@ public:
 	{
         desktop_child_t *child = mMdiArea->addSubWindow( widget, flags );
         SetChildWindowTitle( child, widget );
+
+		connect( child, SIGNAL( closed( QWidget* ) ), this, SLOT( SubWindowClosed( QWidget* ) ) );
+
 		return child;
 	}
 
@@ -336,31 +388,29 @@ public:
 		return list;
 	}
 
+	// see base class comment
+	//
 	virtual void CloseAllSubWindows() override
 	{
-		return mMdiArea->closeAllSubWindows();
+		if ( !mMdiArea->subWindowList().isEmpty() )
+		{
+			mMdiArea->closeAllSubWindows();
+			if ( mMdiArea->subWindowList().isEmpty() )
+				emit AllSubWindowsClosed();
+		}
+	}
+
+protected slots:
+    void SubWindowClosed( QWidget *emitter ) override
+	{
+        Q_UNUSED( emitter );
+
+		if (mMdiArea->subWindowList().isEmpty())
+			emit AllSubWindowsClosed();
 	}
 };
 
 
 
-
-//
-///////////////////////////////////////////////////////////////////////////////////////
-////					Default Application Desktop Type
-///////////////////////////////////////////////////////////////////////////////////////
-//
-//
-////#define BRAT_COMMON_DESKTOP
-//
-//
-//#if defined(Q_OS_MACX) || defined(BRAT_COMMON_DESKTOP)
-//    using desktop_manager_t = CDesktopManagerSDI;
-//#else
-//    using desktop_manager_t = CDesktopManagerMDI;
-//#endif
-//
-//
-//
 
 #endif	//GUI_DESKTOP_MANAGER_H

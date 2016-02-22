@@ -32,7 +32,7 @@
 
 #include "BratDisplay_wdr.h"
 #include "LabeledTextCtrl.h"
-#include "PlotData/ZFXYPlotData.h"
+#include "new-gui/brat/DataModels/PlotData/ZFXYPlotData.h"
 
 BEGIN_DECLARE_EVENT_TYPES()
     DECLARE_EVENT_TYPE(wxEVT_ZFXY_CONTOUR_PROP_CHANGED, 7777) // 7777 is ignored, just for compatibility with v2.2
@@ -47,7 +47,7 @@ END_DECLARE_EVENT_TYPES()
 class CZFXYContourPropChangedEvent : public wxCommandEvent
 {
 public:
-  CZFXYContourPropChangedEvent(wxWindowID id, CZFXYPlotProperty& plotProperty)
+  CZFXYContourPropChangedEvent(wxWindowID id, CZFXYPlotProperties& plotProperty)
     : wxCommandEvent(wxEVT_ZFXY_CONTOUR_PROP_CHANGED, id)
   {
     m_id = id;
@@ -67,7 +67,7 @@ public:
     };
 
   wxWindowID m_id;
-  CZFXYPlotProperty m_plotProperty;
+  CZFXYPlotProperties m_plotProperty;
 };
 typedef void (wxEvtHandler::*CZFXYContourPropChangedEventFunction)(CZFXYContourPropChangedEvent&);
 
@@ -147,10 +147,10 @@ public:
 private:
   CZFXYPlotData* m_geoMap;
 
-  CZFXYPlotProperty m_plotProperty;
+  CZFXYPlotProperties m_plotProperty;
 
-  CVtkColor m_lineColor;
-  CVtkColor m_labelColor;
+  CPlotColor m_lineColor;
+  CPlotColor m_labelColor;
 
     
 private:

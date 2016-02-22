@@ -4,6 +4,51 @@
 #include "new-gui/Common/+Utils.h"
 
 
+//////////////////////////////////////////////////////////////////////////
+//						Expandable TabWidget
+//////////////////////////////////////////////////////////////////////////
+
+
+class CExpandableTabWidget : public QTabWidget
+{
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+	Q_OBJECT;
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
+	Q_PROPERTY( bool expanding_tabs READ Expanding WRITE SetExpanding );
+
+public:
+	CExpandableTabWidget( QWidget *parent = NULL ) : QTabWidget( parent )
+	{
+		tabBar()->setExpanding( true );
+	}
+
+	bool Expanding() const
+	{
+		return tabBar()->expanding();
+	}
+
+	void SetExpanding( bool expanding = true )
+	{
+		tabBar()->setExpanding( expanding );
+	}
+};
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//							Tabbed Dock
+//////////////////////////////////////////////////////////////////////////
+
+
 class CTabbedDock : public QDockWidget
 {
 #if defined (__APPLE__)
@@ -25,13 +70,21 @@ class CTabbedDock : public QDockWidget
 	// data
 		
 	QWidget *mDockContents = nullptr;
-	QTabWidget *mTabWidget = nullptr;
+	CExpandableTabWidget *mTabWidget = nullptr;
 
 
 	// construction / destruction
 
+	void CreateContents( QWidget *top_widget = nullptr );
+
+protected:
+
+	//...for derived classes
+	
+	CTabbedDock( QWidget *top_widget, const QString &title, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+
 public:
-	explicit CTabbedDock( const QString &title, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+	CTabbedDock( const QString &title, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
 	virtual ~CTabbedDock()
 	{}	
@@ -87,6 +140,41 @@ public:
 	{
 		SetTabToolTip( TabIndex( tab ), tip );
 	}
+};
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//						Workspace Tabbed Dock
+//////////////////////////////////////////////////////////////////////////
+
+
+class CWorkspaceTabbedDock : public CTabbedDock
+{
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+    Q_OBJECT
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
+	// types
+		
+	using base_t = CTabbedDock;
+
+	// construction / destruction
+
+	QWidget* CreateTopFrame();
+
+public:
+	CWorkspaceTabbedDock( const QString &title, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+
+	virtual ~CWorkspaceTabbedDock()
+	{}	
 };
 
 

@@ -211,7 +211,7 @@ public:
   void GetDimAsVector(CUIntArray& dim);
   virtual std::string GetDimAsString();
 
-  bool IsFixedSize() {return m_isFixedSize;};
+  bool IsFixedSize() const {return m_isFixedSize;};
   void SetFixedSize(bool isFixedSize) {m_isFixedSize = isFixedSize;};
 
   int32_t GetCurrentPos() {return m_currentPos;};
@@ -253,7 +253,7 @@ public:
 
   virtual bool IsHidden() {return GetHidden();};
   
-  virtual bool IsVirtual() {return m_virtualField;};
+  virtual bool IsVirtual() const {return m_virtualField;};
   virtual void SetVirtual(bool value) {m_virtualField = value;};
 
   virtual bool IsDimTransposed() {return m_dimsTransposed;};
@@ -432,24 +432,24 @@ public:
   //virtual void ReadParent(CDoubleArray& vect, CFieldRecord* parentField);
   //virtual void ReadParent(CDoubleArray& vect, CObList* parentFieldList);
 
-  virtual void Read(CDoubleArray& vect, bool skip = false);
-  virtual void Read(double* data, bool skip = false);
+  virtual void Read(CDoubleArray& vect, bool skip = false) override;
+  virtual void Read(double* data, bool skip = false) override;
 
-  virtual int32_t GetVirtualNbDims();
-  virtual uint32_t GetOffsetDim();
+  virtual int32_t GetVirtualNbDims() override;
+  virtual uint32_t GetOffsetDim() override;
 
   void CreateFieldIndexes(CObArray& vect);
 
-  virtual void PushPos();
+  virtual void PushPos() override;
   virtual void PushPos(int32_t iDim);
-  virtual void PopCursor();
+  virtual void PopCursor() override;
 
-  virtual CFieldSet* CreateFieldSet(const CField::CListField& listFields);
+  virtual CFieldSet* CreateFieldSet(const CField::CListField& listFields) override;
 
-  virtual void DumpFieldDictionary(std::ostream& fOut = std::cout);
+  virtual void DumpFieldDictionary(std::ostream& fOut = std::cout) override;
 
   ///Dump fonction
-  virtual void Dump(std::ostream& fOut = std::cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr) override;
 
 
 public:

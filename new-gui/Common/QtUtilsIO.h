@@ -103,25 +103,33 @@ inline std::string GetRelativePath( const STRING &ref_path, const STRING &path )
 
 
 
-inline bool IsFile( const QString &FileName )
+inline bool IsFile( QString path )
 {
-    return QFile::exists( FileName );
+	QFileInfo file_info( path );
+
+    return file_info.exists() && file_info.isFile();
+}
+inline bool IsFile( const char *path )
+{
+    return IsFile( QString( path ) );
+}
+inline bool IsFile( const std::string &path )
+{
+    return IsFile( path.c_str() );
 }
 
-inline bool IsFile( const char *FileName )
+inline bool IsDir( const QString &dir_path )
 {
-    return QFile::exists( FileName );
+    QDir d( dir_path );
+    return !dir_path.isEmpty() && d.exists();
 }
-
-inline bool IsFile( const std::string &FileName )
+inline bool IsDir( const std::string &dir_path )
 {
-    return IsFile( FileName.c_str() );
+    return IsDir( t2q( dir_path ) );
 }
-
-inline bool IsDir( const std::string &DirName )
+inline bool IsDir( const char *dir_path )
 {
-    QDir d( DirName.c_str() );
-    return !DirName.empty() && d.exists();
+    return IsDir( QString( dir_path ) );
 }
 
 

@@ -42,7 +42,7 @@ using namespace brathl;
 #include "vtkCommand.h"
 
 
-#include "PlotData/XYPlotData.h"
+#include "new-gui/brat/DataModels/PlotData/XYPlotData.h"
 
 #include "LabeledTextCtrl.h"
 

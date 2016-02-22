@@ -245,7 +245,7 @@ vtkZFXYPlotActor::~vtkZFXYPlotActor()
 } 
 
 //----------------------------------------
-void vtkZFXYPlotActor::SetPlotProperties(CZFXYPlotProperty* props)
+void vtkZFXYPlotActor::SetPlotProperties(CZFXYPlotProperties* props)
 {
   if (props == NULL)
   {
@@ -336,7 +336,7 @@ void vtkZFXYPlotActor::Update()
   CObArray::iterator it;
   for (it = ZFXYData.begin() ; it != ZFXYData.end() ; it++)
   {
-    CZFXYPlotData* pdata = dynamic_cast<CZFXYPlotData*>(*it);
+    VTK_CZFXYPlotData* pdata = dynamic_cast<VTK_CZFXYPlotData*>(*it);
     if (pdata == NULL)
     {
       continue;
@@ -348,7 +348,7 @@ void vtkZFXYPlotActor::Update()
 }
 
 //----------------------------------------
-void vtkZFXYPlotActor::AddInput(CZFXYPlotData* pdata)
+void vtkZFXYPlotActor::AddInput(VTK_CZFXYPlotData* pdata)
 {
   
   if (pdata == NULL)
@@ -362,7 +362,7 @@ void vtkZFXYPlotActor::AddInput(CZFXYPlotData* pdata)
   AddActors();
 
 
-  CZFXYPlotProperty* props = pdata->GetPlotProperty();
+  CZFXYPlotProperties* props = pdata->GetPlotProperty();
 
   SetPlotProperties(props);
 
@@ -415,7 +415,7 @@ void vtkZFXYPlotActor::ReplaceInput(uint32_t newIndex)
 
   for (it = ZFXYData.begin() ; it != ZFXYData.end() ; it++)
   {
-    CZFXYPlotData* pdata = dynamic_cast<CZFXYPlotData*>(*it);
+    VTK_CZFXYPlotData* pdata = dynamic_cast<VTK_CZFXYPlotData*>(*it);
     if (pdata == NULL)
     {
       continue;
@@ -457,7 +457,7 @@ void vtkZFXYPlotActor::ReplaceInput(uint32_t newIndex)
 
     for (it = ZFXYData.begin() ; it != ZFXYData.end() ; it++)
     {
-      CZFXYPlotData* pdata = dynamic_cast<CZFXYPlotData*>(*it);
+      VTK_CZFXYPlotData* pdata = dynamic_cast<VTK_CZFXYPlotData*>(*it);
       if (pdata == NULL)
       {
         continue;
@@ -489,7 +489,7 @@ void vtkZFXYPlotActor::RemoveInput()
   CObArray::iterator it;
   for (it = ZFXYData.begin() ; it != ZFXYData.end() ; it++)
   {
-    CZFXYPlotData* pdata = dynamic_cast<CZFXYPlotData*>(*it);
+    VTK_CZFXYPlotData* pdata = dynamic_cast<VTK_CZFXYPlotData*>(*it);
     if (pdata == NULL)
     {
       continue;
@@ -500,7 +500,7 @@ void vtkZFXYPlotActor::RemoveInput()
 }
 
 //----------------------------------------
-void vtkZFXYPlotActor::RemoveInput(CZFXYPlotData* pdata)
+void vtkZFXYPlotActor::RemoveInput(VTK_CZFXYPlotData* pdata)
 {
   
   if (pdata == NULL)
@@ -538,7 +538,7 @@ void vtkZFXYPlotActor::RemoveActors()
   CObArray::iterator it;
   for (it = ZFXYData.begin() ; it != ZFXYData.end() ; it++)
   {
-    CZFXYPlotData* pdata = dynamic_cast<CZFXYPlotData*>(*it);
+    VTK_CZFXYPlotData* pdata = dynamic_cast<VTK_CZFXYPlotData*>(*it);
     if (pdata == NULL)
     {
       continue;
@@ -549,25 +549,25 @@ void vtkZFXYPlotActor::RemoveActors()
 }
 
 //----------------------------------------
-void vtkZFXYPlotActor::RemoveActors(CZFXYPlotData* pdata)
+void vtkZFXYPlotActor::RemoveActors(VTK_CZFXYPlotData* pdata)
 {
   RemoveActorsSolidColor(pdata);
   RemoveActorsContour(pdata);
 }
 //----------------------------------------
-void vtkZFXYPlotActor::RemoveActorsSolidColor(CZFXYPlotData* pdata)
+void vtkZFXYPlotActor::RemoveActorsSolidColor(VTK_CZFXYPlotData* pdata)
 {
   RemoveActor(pdata->GetVtkActor2D());
 }
 //----------------------------------------
-void vtkZFXYPlotActor::RemoveActorsContour(CZFXYPlotData* pdata)
+void vtkZFXYPlotActor::RemoveActorsContour(VTK_CZFXYPlotData* pdata)
 {
   RemoveActor(pdata->GetVtkContourActor2D());
   RemoveActorsContourLabel(pdata);
 }
 
 //----------------------------------------
-void vtkZFXYPlotActor::RemoveActorsContourLabel(CZFXYPlotData* pdata)
+void vtkZFXYPlotActor::RemoveActorsContourLabel(VTK_CZFXYPlotData* pdata)
 {
   RemoveActor(pdata->GetVtkContourLabelActor());
 }
@@ -588,7 +588,7 @@ void vtkZFXYPlotActor::AddActorsContour()
   CObArray::iterator it;
   for (it = ZFXYData.begin() ; it != ZFXYData.end() ; it++)
   {
-    CZFXYPlotData* pdata = dynamic_cast<CZFXYPlotData*>(*it);
+    VTK_CZFXYPlotData* pdata = dynamic_cast<VTK_CZFXYPlotData*>(*it);
     if (pdata == NULL)
     {
       continue;
@@ -607,7 +607,7 @@ void vtkZFXYPlotActor::AddActorsSolidColor()
   CObArray::iterator it;
   for (it = ZFXYData.begin() ; it != ZFXYData.end() ; it++)
   {
-    CZFXYPlotData* pdata = dynamic_cast<CZFXYPlotData*>(*it);
+    VTK_CZFXYPlotData* pdata = dynamic_cast<VTK_CZFXYPlotData*>(*it);
     if (pdata == NULL)
     {
       continue;
@@ -620,19 +620,19 @@ void vtkZFXYPlotActor::AddActorsSolidColor()
 }
 
 //----------------------------------------
-void vtkZFXYPlotActor::AddActors(CZFXYPlotData* pdata)
+void vtkZFXYPlotActor::AddActors(VTK_CZFXYPlotData* pdata)
 {
   AddActorsSolidColor(pdata);
   AddActorsContour(pdata);
 }
 //----------------------------------------
-void vtkZFXYPlotActor::AddActorsContour(CZFXYPlotData* pdata)
+void vtkZFXYPlotActor::AddActorsContour(VTK_CZFXYPlotData* pdata)
 {
   AddActor(pdata->GetVtkContourActor2D());
   AddActorsContourLabel(pdata);
 }
 //----------------------------------------
-void vtkZFXYPlotActor::AddActorsContourLabel(CZFXYPlotData* pdata)
+void vtkZFXYPlotActor::AddActorsContourLabel(VTK_CZFXYPlotData* pdata)
 {
 
   if (pdata->GetPlotProperty()->m_withContourLabel)
@@ -642,7 +642,7 @@ void vtkZFXYPlotActor::AddActorsContourLabel(CZFXYPlotData* pdata)
 }
 
 //----------------------------------------
-void vtkZFXYPlotActor::AddActorsSolidColor(CZFXYPlotData* pdata)
+void vtkZFXYPlotActor::AddActorsSolidColor(VTK_CZFXYPlotData* pdata)
 {
   AddActor(pdata->GetVtkActor2D());
 }
@@ -717,7 +717,7 @@ void vtkZFXYPlotActor::GetXPlotDataRange(double& min, double& max, uint32_t fram
 
   for (it = ZFXYData.begin(); it != ZFXYData.end() ; it++)
   {
-    CZFXYPlotData* pdata = dynamic_cast<CZFXYPlotData*>(*it);
+    VTK_CZFXYPlotData* pdata = dynamic_cast<VTK_CZFXYPlotData*>(*it);
     if (pdata == NULL)
     {
       continue;
@@ -757,7 +757,7 @@ void vtkZFXYPlotActor::GetXPlotDataRange(double& min, double& max)
 
   for (it = ZFXYData.begin(); it != ZFXYData.end() ; it++)
   {
-    CZFXYPlotData* pdata = dynamic_cast<CZFXYPlotData*>(*it);
+    VTK_CZFXYPlotData* pdata = dynamic_cast<VTK_CZFXYPlotData*>(*it);
     if (pdata == NULL)
     {
       continue;
@@ -765,7 +765,7 @@ void vtkZFXYPlotActor::GetXPlotDataRange(double& min, double& max)
     double l = 0;
     double h = 0;
 
-    CZFXYPlotProperty* props = pdata->GetPlotProperty();
+    CZFXYPlotProperties* props = pdata->GetPlotProperty();
 
     pdata->GetXRange(l, h);
 
@@ -809,7 +809,7 @@ void vtkZFXYPlotActor::GetYPlotDataRange(double& min, double& max, uint32_t fram
 
   for (it = ZFXYData.begin(); it != ZFXYData.end() ; it++)
   {
-    CZFXYPlotData* pdata = dynamic_cast<CZFXYPlotData*>(*it);
+    VTK_CZFXYPlotData* pdata = dynamic_cast<VTK_CZFXYPlotData*>(*it);
     if (pdata == NULL)
     {
       continue;
@@ -849,7 +849,7 @@ void vtkZFXYPlotActor::GetYPlotDataRange(double& min, double& max)
 
   for (it = ZFXYData.begin(); it != ZFXYData.end() ; it++)
   {
-    CZFXYPlotData* pdata = dynamic_cast<CZFXYPlotData*>(*it);
+    VTK_CZFXYPlotData* pdata = dynamic_cast<VTK_CZFXYPlotData*>(*it);
     if (pdata == NULL)
     {
       continue;
@@ -858,7 +858,7 @@ void vtkZFXYPlotActor::GetYPlotDataRange(double& min, double& max)
     double l = 0;
     double h = 0;
 
-    CZFXYPlotProperty* props = pdata->GetPlotProperty();
+    CZFXYPlotProperties* props = pdata->GetPlotProperty();
 
     pdata->GetYRange(l, h);
 

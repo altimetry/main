@@ -87,7 +87,7 @@ public:
 
   CField* FindFieldFullNames(const wxString fieldName);
 
-  void InsertProduct(CProduct* product, wxArrayString* records = NULL);
+  void InsertProduct(CProduct* product/*, wxArrayString* records = NULL*/);
 
   int32_t GetSortedCol() {return m_sortedCol;};
   bool GetSortAsc() {return m_sortAsc;};

@@ -38,16 +38,16 @@
 using namespace brathl;
 
 #include "ColorPalette.h"
-#include "PlotData/MapProjection.h"
+#include "new-gui/brat/DataModels/PlotData/MapProjection.h"
 #include "Validators.h"
 
 #include "BratGui.h"
 #include "new-gui/brat/DataModels/Workspaces/Workspace.h"
-#include "new-gui/brat/Display/MapTypeDisp.h"
+#include "new-gui/brat/DataModels/MapTypeDisp.h"
 #include "Process.h"
 
 #include "DisplayPanel.h"
-#include "PlotData/ColorPalleteNames.h"
+#include "new-gui/brat/DataModels/PlotData/ColorPalleteNames.h"
 #include "wxGuiInterface.h"
 
 

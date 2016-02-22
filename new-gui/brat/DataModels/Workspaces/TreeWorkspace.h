@@ -20,7 +20,7 @@
 
 #include "libbrathl/List.h"
 #include "libbrathl/ObjectTree.h"
-#include "new-gui/brat/Display/BitSet32.h"
+#include "BitSet32.h"
 
 
 class CWorkspace;

@@ -32,7 +32,7 @@
 
 #include "BratDisplayApp.h"
 #include "ZFXYContourPropFrame.h"
-#include "PlotData/MapColor.h"
+#include "new-gui/brat/DataModels/PlotData/MapColor.h"
 
 DEFINE_EVENT_TYPE(wxEVT_ZFXY_CONTOUR_PROP_CHANGED)
 DEFINE_EVENT_TYPE(wxEVT_ZFXY_CONTOUR_PROP_CLOSE)

@@ -35,6 +35,8 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_New, "&New...", "New\nCreate a new workspace", ":/images/OSGeo/new.png", "", "Ctrl+N" },
 
+	{ eAction_CloseWorkspace, "&Close", "Close and unload the workspace", "://images/alpha-numeric/__q.png" },
+
     { eAction_Save, "&Save","Save\nSave the workspace to disk", ":/images/OSGeo/save.png", "", "Ctrl+S" },
 
     { eAction_Save_As, "Save &As...", "Save As", ":/images/OSGeo/save-as.png" },
@@ -115,9 +117,9 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
 	{ eAction_DisplayEditorDock, "", "Show/Hide the view working panel", "://images/alpha-numeric/__d.png" },
 
-    { eAction_MapEditorDistance, "Distance", "Distance\nMeasure distance (m) between two points", "://images/OSGeo/measure-length.png" },
+	{ eAction_MeasureLine, "Distance", "Distance\nMeasure distance (m) between two points", "://images/OSGeo/measure-length.png", "://images/OSGeo/measure-length.png" },
 
-    { eAction_MapEditorArea, "Area", "Area\nMeasure area (m<sup>2</sup>) of selected region", "://images/OSGeo/measure-area.png" },
+	{ eAction_MeasureArea, "Area", "Area\nMeasure area (m<sup>2</sup>) of selected region", "://images/OSGeo/measure-area.png", "://images/OSGeo/measure-area.png" },
 
     { eAction_MapEditorMean, "Mean", "Mean\nCompute mean of plotted variable in selected region", "://images/alpha-numeric/__g.png" },
 
@@ -140,6 +142,16 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 	{ eAction_StartupOptions_page, "Startup", "Application start-up behavior", "://images/alpha-numeric/__o.png", "://images/alpha-numeric/__o.png" },
 
 	{ eAction_ApplicationStyles_page, "Styles", "Application visual options", "://images/alpha-numeric/__p.png", "://images/alpha-numeric/__p.png" },
+
+
+	{ eAction_SelectFeatures, "Rectangular Selection", "Select Features by area or single click", ":/images/themes/default/mActionSelectRectangle.svg", ":/images/themes/default/mActionSelectRectangle.svg" },
+
+	{ eAction_SelectPolygon, "Polygon Selection", "Select Features by Polygon", ":/images/themes/default/mActionSelectPolygon.svg", ":/images/themes/default/mActionSelectPolygon.svg" },
+
+	{ eAction_DeselectAll, "Deselect All ", "Deselect Features from All Layers", ":/images/themes/default/mActionDeselectAll.svg" },
+
+	{ eAction_DecorationGrid, "Grid", "Creates a scale bar that is displayed on the map canvas", ":/images/themes/default/transformed.png", ":/images/themes/default/transformed.png" },
+
 
     // TODO images __n, __o and __p are used by settings dialog
 };
@@ -353,11 +365,23 @@ void CActionInfo::UpdateActionsState( std::initializer_list< EActionTag > tags, 
 {
 	for ( auto &tag : tags )
 	{
-		const CActionInfo& ai = ActionInfo( tag );		assert__( ai.IsAutomatic() && ai.mActions.size() > 0 );
+		const CActionInfo& ai = ActionInfo( tag );	assert__( ai.IsAutomatic() && ai.mActions.size() > 0 );
 		for ( auto *a : ai.mActions )
 			a->setEnabled( enable );
 	}
 }
+
+
+//static 
+void CActionInfo::TriggerAction( EActionTag tag )
+{
+	const CActionInfo& ai = ActionInfo( tag );		assert__( ai.IsAutomatic() && ai.mActions.size() > 0 );
+	for ( auto *a : ai.mActions )
+		a->trigger();
+}
+
+
+
 
 
 

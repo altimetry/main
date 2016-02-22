@@ -1,0 +1,84 @@
+/*
+* This file is part of BRAT 
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
+
+#ifndef DATA_MODELS_PLOT_DATA_VTKCOLOR_H
+#define DATA_MODELS_PLOT_DATA_VTKCOLOR_H
+
+#include "libbrathl/brathl.h"
+#include "libbrathl/BratObject.h"
+#include "libbrathl/Tools.h"
+using namespace brathl;
+
+//-------------------------------------------------------------
+//------------------- CPlotColor class --------------------
+//-------------------------------------------------------------
+
+class CPlotColor : public CBratObject
+{
+public:
+	CPlotColor();
+
+	CPlotColor( double r, double g, double b, double a = 1 );
+	CPlotColor( int32_t r, int32_t g, int32_t b, int32_t a = 255 );
+	CPlotColor( const CPlotColor& vtkColor );
+	//femmTODO  CPlotColor(const wxColour& color);
+
+	~CPlotColor();
+
+	const CPlotColor& operator =( const CPlotColor& vtkColor );
+	//femmTODO	const CPlotColor& operator =(const wxColour& color);
+	//femmTODO	  const CPlotColor& operator =(wxColourData& color);
+
+	bool operator ==( const CPlotColor& color );
+
+	void Get( double& r, double& g, double& b, double& a ) const;
+	void Get( uint8_t& r, uint8_t& g, uint8_t& b, uint8_t& a ) const;
+	void Get( uint32_t& r, uint32_t& g, uint32_t& b, uint32_t& a ) const;
+	void Get( int32_t& r, int32_t& g, int32_t& b, int32_t& a ) const;
+	//femmTODO  void Get(wxColour& color) const;
+
+	void Set( double r, double g, double b, double a = 1 );
+	void Set( uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255 );
+	void Set( uint32_t r, uint32_t g, uint32_t b, uint32_t a = 255 );
+	void Set( int32_t r, int32_t g, int32_t b, int32_t a = 255 );
+	void Set( const CPlotColor& vtkColor );
+	//femmTODO  void Set(const wxColour& color);
+	//femmTODO  void Set(wxColourData& colorData, int32_t indexCustomColor = -1);
+
+	bool Ok() const { return m_isInit; }
+	void Reset();
+
+	//femmTODO  wxColour GetWXColor() const;
+
+	double Red() const { return m_r; }
+	double Green() const { return m_g; }
+	double Blue() const { return m_b; }
+	double Alpha() const { return m_a; }
+
+private:
+	double m_r;
+	double m_g;
+	double m_b;
+	double m_a;
+
+	bool m_isInit;
+};
+
+
+
+#endif			//DATA_MODELS_PLOT_DATA_VTKCOLOR_H

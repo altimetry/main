@@ -19,7 +19,7 @@
 //
 CTextWidget::CTextWidget( QWidget *parent ) :		//QWidget *parent = nullptr
 	base_t( parent ), 
-	m_SizeHint( 72 * fontMetrics().width('x'), 25 * fontMetrics().lineSpacing() )
+	m_SizeHint( 60 * fontMetrics().width('x'), 10 * fontMetrics().lineSpacing() )
 {
 	auto sheet = styleSheet();
 	setStyleSheet( "selection-color: white; selection-background-color: black; " + sheet );								//(*) //this is the only way of seeing the selection without focus (important in find dialog, for instance)

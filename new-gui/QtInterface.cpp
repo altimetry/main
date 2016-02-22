@@ -21,14 +21,14 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-bool LoadFromFile( CBratLookupTable &lut, const std::string& fileName )
-{
-	Q_UNUSED(lut);
-	Q_UNUSED(fileName);
+//bool LoadFromFile( CBratLookupTable &lut, const std::string& fileName )
+//{
+//	Q_UNUSED(lut);
+//	Q_UNUSED(fileName);
 
-	SimpleWarnBox("Development message: LoadFromFile( CBratLookupTable &lut, const std::string& fileName ) called");
-	return true;
-}
+//	SimpleWarnBox("Development message: LoadFromFile( CBratLookupTable &lut, const std::string& fileName ) called");
+//	return true;
+//}
 
 
 
@@ -37,13 +37,13 @@ bool LoadFromFile( CBratLookupTable &lut, const std::string& fileName )
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void SaveToFile( CBratLookupTable &lut, const std::string& fileName )
-{
-	Q_UNUSED(lut);
-	Q_UNUSED(fileName);
+//void SaveToFile( CBratLookupTable &lut, const std::string& fileName )
+//{
+//	Q_UNUSED(lut);
+//	Q_UNUSED(fileName);
 
-	SimpleWarnBox("Development message: SaveToFile( CBratLookupTable &lut, const std::string& fileName ) called");
-}
+//	SimpleWarnBox("Development message: SaveToFile( CBratLookupTable &lut, const std::string& fileName ) called");
+//}
 
 
 

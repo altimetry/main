@@ -31,12 +31,12 @@
 #include "Workspace.h"
 #include "Operation.h"
 #include "WorkspaceSettings.h"
-#include "new-gui/brat/Display/MapTypeDisp.h"
+#include "new-gui/brat/DataModels/MapTypeDisp.h"
 
 using namespace processes;
 using namespace brathl;
 
-#include "display/PlotData/MapProjection.h"
+#include "new-gui/brat/DataModels/PlotData/MapProjection.h"
 
 #include "Display.h"
 

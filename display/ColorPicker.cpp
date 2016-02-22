@@ -343,7 +343,7 @@ void CColorPicker::Reset()
 }
 
 //----------------------------------------
-void CColorPicker::SetColor(const CVtkColor& vtkColor)
+void CColorPicker::SetColor(const CPlotColor& vtkColor)
 {
   int32_t r, g, b, a;
   

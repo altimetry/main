@@ -57,10 +57,10 @@ using namespace processes;
 #include "XYPlotFrame.h"
 #include "ZFXYPlotFrame.h"
 //#include "BitSet32.h"
-#include "PlotData/MapColor.h"
-#include "new-gui/brat/Display/MapTypeDisp.h"
-#include "PlotData/ColorPalleteNames.h"
-#include "PlotData/GeoMap.h"
+#include "new-gui/brat/DataModels/PlotData/MapColor.h"
+#include "new-gui/brat/DataModels/MapTypeDisp.h"
+#include "new-gui/brat/DataModels/PlotData/ColorPalleteNames.h"
+#include "new-gui/brat/DataModels/PlotData/WorldPlotData.h"
 
 #include "BratDisplayApp.h"
 
@@ -144,94 +144,23 @@ static const KeywordHelp keywordList[]	= {
 // WDR: class implementations
 
 //------------------------------------------------------------------------------
-// BratDisplayFrame
-//------------------------------------------------------------------------------
-
-// WDR: event table for BratDisplayFrame
-/*
-BEGIN_EVENT_TABLE(CBratDisplayFrame,wxFrame)
-    EVT_MENU(wxID_ABOUT, CBratDisplayFrame::OnAbout)
-    EVT_MENU(wxID_EXIT, CBratDisplayFrame::OnQuit)
-    EVT_CLOSE(CBratDisplayFrame::OnCloseWindow)
-    EVT_SIZE(CBratDisplayFrame::OnSize)
-    EVT_UPDATE_UI(-1,CBratDisplayFrame::OnUpdateUI)
-END_EVENT_TABLE()
-
-CBratDisplayFrame::CBratDisplayFrame( wxWindow *parent, wxWindowID id, const wxString &title,
-    const wxPoint &position, const wxSize& size, long style ) :
-    wxFrame( parent, id, title, position, size, style )
-{
-    CreateMyMenuBar();
-
-    CreateMyToolBar();
-
-    CreateStatusBar(1);
-    SetStatusText( wxT("Welcome!") );
-
-     // insert main window here
-}
-
-void CBratDisplayFrame::CreateMyMenuBar()
-{
-    SetMenuBar( BratDisplayMenuBarFunc() );
-}
-
-void CBratDisplayFrame::CreateMyToolBar()
-{
-    wxToolBar *tb = CreateToolBar( wxTB_HORIZONTAL|wxNO_BORDER ); //|wxTB_FLAT
-
-    MyToolBarFunc( tb );
-}
-
-// WDR: handler implementations for BratDisplayFrame
-
-void CBratDisplayFrame::OnAbout( wxCommandEvent &event )
-{
-    wxMessageDialog dialog( this, wxT("Welcome to SuperApp 1.0\n(C)opyright Joe Hacker"),
-        wxT("About SuperApp"), wxOK|wxICON_INFORMATION );
-    dialog.ShowModal();
-}
-
-void CBratDisplayFrame::OnQuit( wxCommandEvent &event )
-{
-     Close(true);
-}
-
-void CBratDisplayFrame::OnCloseWindow( wxCloseEvent &event )
-{
-    // if ! saved changes -> return
-
-    Destroy();
-}
-
-void CBratDisplayFrame::OnSize( wxSizeEvent &event )
-{
-    event.Skip( TRUE );
-}
-
-void CBratDisplayFrame::OnUpdateUI( wxUpdateUIEvent &event )
-{
-    event.Skip( TRUE );
-}
-*/
-//------------------------------------------------------------------------------
 // BratDisplayApp
 //------------------------------------------------------------------------------
 
 IMPLEMENT_APP(CBratDisplayApp)
 
-CBratDisplayApp::CBratDisplayApp() 
+CBratDisplayApp::CBratDisplayApp()
 {
-  //m_centerLongitude = 0;
-  //m_centerLatitude = 0;
-  m_config = NULL;
-  //m_indexProp = 0;
+	//m_centerLongitude = 0;
+	//m_centerLatitude = 0;
+	m_config = NULL;
+	//m_indexProp = 0;
 
-  m_isYFX = false;
-  m_isZFLatLon = false;
-  m_isZFXY = false;
+	m_isYFX = false;
+	m_isZFLatLon = false;
+	m_isZFXY = false;
 
-          wxColourDialog dlg;
+	wxColourDialog dlg;
 }
 //----------------------------------------
 
@@ -243,184 +172,103 @@ CBratDisplayApp::~CBratDisplayApp()
 
 bool CBratDisplayApp::OnInit()
 {
-  // To be sure that number have always a decimal point (and not a comma
-  // or something else)
-  setlocale(LC_NUMERIC, "C");
+	// To be sure that number have always a decimal point (and not a comma
+	// or something else)
+	setlocale( LC_NUMERIC, "C" );
 
 #if wxUSE_UNICODE
-    mBratPaths = new CApplicationPaths( wxGetApp().argv[0].ToStdString().c_str() );
+	mBratPaths = new CApplicationPaths( wxGetApp().argv[ 0 ].ToStdString().c_str() );
 #else
-    mBratPaths = new CApplicationPaths( wxGetApp().argv[0] );
+	mBratPaths = new CApplicationPaths( wxGetApp().argv[0] );
 #endif
 
-  /*
+	CTools::SetInternalDataDir( mBratPaths->mInternalDataDir );
 
-  wxFileName traceFileName;
-  traceFileName.AssignDir(wxGetApp().GetExecPathName());
-  traceFileName.SetFullName("BratDisplay.log");
-  traceFileName.Normalize();
-  CTrace::GetInstance(traceFileName.GetFullPath().c_str());
-  */
+	if ( !CTools::DirectoryExists( CTools::GetInternalDataDir() ) )
+	{
+		std::cerr << "WARNING: " << CTools::GetInternalDataDir() << " is not a valid directory" << std::endl;
+		::wxMessageBox( wxString( "WARNING: " ) + CTools::GetInternalDataDir().c_str() +
+			" is not a valid directory\n\n", "BRAT WARNING" );
+		return false;
 
-  CTools::SetInternalDataDir( mBratPaths->mInternalDataDir );
+	}
 
-  if (!CTools::DirectoryExists(CTools::GetInternalDataDir()))
-  {
-      std::cerr << "WARNING: " << CTools::GetInternalDataDir() << " is not a valid directory" << std::endl;
-      ::wxMessageBox(wxString("WARNING: ") + CTools::GetInternalDataDir().c_str() +
-                     " is not a valid directory\n\n", "BRAT WARNING");
-      return false;
+	std::string errorMsg;
+	if ( !CTools::LoadAndCheckUdUnitsSystem( errorMsg ) )
+	{
+		std::cerr << errorMsg << std::endl;
+		::wxMessageBox( errorMsg.c_str(), "BRAT ERROR" );
+		return false;
+	}
 
-  }
+	m_config = new wxFileConfig( wxGetApp().GetAppName(), wxEmptyString, wxEmptyString, wxEmptyString, wxCONFIG_USE_LOCAL_FILE );
 
-  std::string errorMsg;
-  if (!CTools::LoadAndCheckUdUnitsSystem(errorMsg))
-  {
-      std::cerr << errorMsg << std::endl;
-      ::wxMessageBox(errorMsg.c_str(), "BRAT ERROR");
-      return false;
-  }
-
-  //vtkOutputWindow::GetInstance()->PromptUserOn();
-
-  m_config = new wxFileConfig(wxGetApp().GetAppName(), wxEmptyString, wxEmptyString, wxEmptyString, wxCONFIG_USE_LOCAL_FILE);
-
-
-  try
-  {
-    if (!GetCommandLineOptions(CBratDisplayApp::argc, CBratDisplayApp::argv))
-    {
-      return false;
-    }
-
-    /*
-    if (CheckCommandLineOptions(CBratDisplayApp::argc, CBratDisplayApp::argv,
-				"BratDisplay - An application to display BRAT netCDF data",
-				keywordList,
-				m_paramFile))
-    {
-      return false;
-    }
-    */
-
-    GetParameters();
-
-    //Prepare();
-
-#if !defined(WIN32) && !defined(_WIN32)
-
-    //Progess dialogs displayed while plotting need this
-    wxEventLoop *tmpEventLoop = new wxEventLoop();
-    wxEventLoopBase::SetActive( tmpEventLoop );
-#endif
-
-    if (m_isZFLatLon)
-    {
-      WorldPlot();
-    }
-    else if (m_isYFX)
-    {
-      XYPlot();
-    }
-    else if (m_isZFXY)
-    {
-      ZFXYPlot();
-    }
-    else
-    {
-      CException e("CBratDisplayApp::OnInit - Only World Plot Data, XY Plot Data and ZFXY Plot Data are implemented", BRATHL_UNIMPLEMENT_ERROR);
-      CTrace::Tracer("%s", e.what());
-      throw (e);
-    }
+	try
+	{
+		if ( GetCommandLineOptions( CBratDisplayApp::argc, CBratDisplayApp::argv ) )
+		{
+			GetParameters();
+		}
+		else
+			return false;
 
 
 #if !defined(WIN32) && !defined(_WIN32)
 
-    wxEventLoopBase::SetActive( NULL );
-    delete tmpEventLoop;
+		//Progess dialogs displayed while plotting need this
+		wxEventLoop *tmpEventLoop = new wxEventLoop();
+		wxEventLoopBase::SetActive( tmpEventLoop );
 #endif
 
-//femm    m_internalData.RemoveAll();
+		if ( m_isZFLatLon )
+		{
+			WorldPlot();
+		}
+		else if ( m_isYFX )
+		{
+			XYPlot();
+		}
+		else if ( m_isZFXY )
+		{
+			ZFXYPlot();
+		}
+		else
+		{
+			CException e( "CBratDisplayApp::OnInit - Only World Plot Data, XY Plot Data and ZFXY Plot Data are implemented", BRATHL_UNIMPLEMENT_ERROR );
+			CTrace::Tracer( "%s", e.what() );
+			throw ( e );
+		}
 
+#if !defined(WIN32) && !defined(_WIN32)
 
-    /*
-    for ( itData = m_internalData.begin(); itData != m_internalData.end(); itData++ )
-    {
-      CInternalFilesZFXY* zfxy = dynamic_cast<CInternalFilesZFXY*>(*it);
-      if (zfxy == NULL)
-      {
-        CException e("CBratDisplayApp::OnInit - Non-geographical data are not yet implemented", BRATHL_ERROR);
-        CTrace::Tracer("%s", e.what());
-        throw (e);
+		wxEventLoopBase::SetActive( NULL );
+		delete tmpEventLoop;
+#endif
 
-      }
-      if (zfxy->IsGeographic() == false)
-      {
-        CException e("CBratDisplayApp::OnInit - Non-geographical data are not yet implemented", BRATHL_ERROR);
-        CTrace::Tracer("%s", e.what());
-        throw (e);
-
-      }
-
-      CreateWPlot(zfxy);
-    }
-    */
-
-
-/*
-    wxSize size;
-    wxPoint pos;
-    CWindowHandler::GetSizeAndPosition(size, pos);
-
-    //CBratDisplayFrame *frame = new CBratDisplayFrame( NULL, -1, wxT("SuperApp"), wxPoint(20,20), wxSize(500,340) );
-    CWorldPlotFrame* frame = new CWorldPlotFrame( NULL, -1, wxT("BRAT World Plot"), pos, size);
-
-
-    //--- ????????
-    m_dataForTestOnly = NULL;
-    m_dataForTestOnly = new CGeoMap(frame);
-    //m_dataForTestOnly->m_plotProperty.m_projection = CMapProjection::GetInstance()->IdToName(VTK_PROJ2D_MOLLWEIDE);
-    frame->AddData(m_dataForTestOnly);
-      //--- ????????
-
-
-    frame->SetCenterLongitude(m_centerLongitude);
-    frame->SetCenterLatitude(m_centerLatitude);
-    wxPostEvent(frame->GetPlotPlanel()->GetPlotPropertyTab(),
-                CCenterPointChangedEvent(wxEVT_CENTER_POINT_CHANGED,
-                                         m_centerLongitude,
-                                         m_centerLatitude));
-
-    frame->Raise();
-
-
-    frame->Show( TRUE );
-
-*/
-  }
-  catch (CException &e)
-  {
-    ::wxMessageBox(e.what(), "BRAT ERROR");
-    return FALSE;
-  }
-  catch (std::exception &e)
-  {
-    ::wxMessageBox(e.what(), "BRAT RUNTIME ERROR");
-    return FALSE;
-  }
-  catch (...)
-  {
-    ::wxMessageBox(" Unexpected error encountered", "BRAT FATAL ERROR");
-    return FALSE;
-  }
+	}
+	catch ( CException &e )
+	{
+		::wxMessageBox( e.what(), "BRAT ERROR" );
+		return FALSE;
+	}
+	catch ( std::exception &e )
+	{
+		::wxMessageBox( e.what(), "BRAT RUNTIME ERROR" );
+		return FALSE;
+	}
+	catch ( ... )
+	{
+		::wxMessageBox( " Unexpected error encountered", "BRAT FATAL ERROR" );
+		return FALSE;
+	}
 
 #ifdef __WXMAC__
-  // Make sure we become the foreground application
-  // for when we have been spawned from another application (such as BratGui)
-  MakeApplicationActive();
+	// Make sure we become the foreground application
+	// for when we have been spawned from another application (such as BratGui)
+	MakeApplicationActive();
 #endif
 
-  return TRUE;
+	return TRUE;
 }
 //----------------------------------------
 
@@ -543,7 +391,7 @@ void CBratDisplayApp::GetXYPlotPropertyParams(int32_t nFields)
   std::string stringValue;
   int32_t uintValue = 0;
 
-  CXYPlotProperty xyPlotProperty;
+  CXYPlotProperties xyPlotProperty;
   CMapColor::GetInstance().ResetPrimaryColors();
 
   if (nFields <= 0)
@@ -640,10 +488,10 @@ void CBratDisplayApp::GetXYPlotPropertyParams(int32_t nFields)
   CMapColor::GetInstance().ResetPrimaryColors();
   for (i = 0 ; i < nFields ; i++)
   {
-    CXYPlotProperty* props = new CXYPlotProperty(xyPlotProperty);
+    CXYPlotProperties* props = new CXYPlotProperties(xyPlotProperty);
 
     m_xyPlotProperties.Insert(props);
-    CVtkColor vtkColor = CMapColor::GetInstance().NextPrimaryColors();
+    CPlotColor vtkColor = CMapColor::GetInstance().NextPrimaryColors();
     if (vtkColor.Ok())
     {
       props->SetColor(vtkColor);
@@ -657,7 +505,7 @@ void CBratDisplayApp::GetXYPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < name ; i++)
   {
-    CXYPlotProperty* props = GetXYPlotProperty(i);
+    CXYPlotProperties* props = GetXYPlotProperty(i);
     if (props == NULL)
     {
       continue;
@@ -675,14 +523,14 @@ void CBratDisplayApp::GetXYPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < color ; i++)
   {
-    CXYPlotProperty* props = GetXYPlotProperty(i);
+    CXYPlotProperties* props = GetXYPlotProperty(i);
     if (props == NULL)
     {
       continue;
     }
 
     m_params.m_mapParam[kwDISPLAY_COLOR]->GetValue(stringValue, i);
-    CVtkColor vtkColor = CMapColor::GetInstance().NameToVtkColor(stringValue);
+    CPlotColor vtkColor = CMapColor::GetInstance().NameToPlotColor(stringValue);
 
     if (vtkColor.Ok() == false)
     {
@@ -696,7 +544,7 @@ void CBratDisplayApp::GetXYPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < opacity ; i++)
   {
-    CXYPlotProperty* props = GetXYPlotProperty(i);
+    CXYPlotProperties* props = GetXYPlotProperty(i);
     if (props == NULL)
     {
       continue;
@@ -717,7 +565,7 @@ void CBratDisplayApp::GetXYPlotPropertyParams(int32_t nFields)
   int32_t indexPointFilled = 0;
   for (i = 0 ; i < points ; i++)
   {
-    CXYPlotProperty* props = GetXYPlotProperty(i);
+    CXYPlotProperties* props = GetXYPlotProperty(i);
     if (props == NULL)
     {
       continue;
@@ -755,7 +603,7 @@ void CBratDisplayApp::GetXYPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < lines ; i++)
   {
-    CXYPlotProperty* props = GetXYPlotProperty(i);
+    CXYPlotProperties* props = GetXYPlotProperty(i);
     if (props == NULL)
     {
       continue;
@@ -770,7 +618,7 @@ void CBratDisplayApp::GetXYPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < lineWidth ; i++)
   {
-    CXYPlotProperty* props = GetXYPlotProperty(i);
+    CXYPlotProperties* props = GetXYPlotProperty(i);
     if (props == NULL)
     {
       continue;
@@ -784,7 +632,7 @@ void CBratDisplayApp::GetXYPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < stipplePattern ; i++)
   {
-    CXYPlotProperty* props = GetXYPlotProperty(i);
+    CXYPlotProperties* props = GetXYPlotProperty(i);
     if (props == NULL)
     {
       continue;
@@ -795,7 +643,7 @@ void CBratDisplayApp::GetXYPlotPropertyParams(int32_t nFields)
   }
 }
 //----------------------------------------
-CZFXYPlotProperty* CBratDisplayApp::GetZFXYPlotProperty(int32_t index)
+CZFXYPlotProperties* CBratDisplayApp::GetZFXYPlotProperty(int32_t index)
 {
   if ( (index < 0) || (static_cast<uint32_t>(index) >= m_zfxyPlotProperties.size()) )
   {
@@ -807,21 +655,21 @@ CZFXYPlotProperty* CBratDisplayApp::GetZFXYPlotProperty(int32_t index)
 
   }
 
-  CZFXYPlotProperty* props = dynamic_cast<CZFXYPlotProperty*>(m_zfxyPlotProperties.at(index));
+  CZFXYPlotProperties* props = dynamic_cast<CZFXYPlotProperties*>(m_zfxyPlotProperties.at(index));
   if (props == NULL)
   {
-    throw CException("ERROR in  CBratDisplayApp::GetZFXYPlotProperty : dynamic_cast<CZFXYPlotProperty*>(m_zfxyPlotProperties->at(index)); returns NULL pointer - "
-                 "zFxy Plot Property array seems to contain objects other than those of the class CZFXYPlotProperty or derived class", BRATHL_LOGIC_ERROR);
+    throw CException("ERROR in  CBratDisplayApp::GetZFXYPlotProperty : dynamic_cast<CZFXYPlotProperties*>(m_zfxyPlotProperties->at(index)); returns NULL pointer - "
+                 "zFxy Plot Property array seems to contain objects other than those of the class CZFXYPlotProperties or derived class", BRATHL_LOGIC_ERROR);
   }
   return props;
 
 }
 //----------------------------------------
-CWorldPlotProperty* CBratDisplayApp::GetWorldPlotProperty(int32_t index)
+CWorldPlotProperties* CBratDisplayApp::GetWorldPlotProperty(int32_t index)
 {
   if ( (index < 0) || (static_cast<uint32_t>(index) >= m_wPlotProperties.size()) )
   {
-    std::string msg = CTools::Format("ERROR in  CBratDisplayApp::CWorldPlotProperty : index %d out-of-range "
+    std::string msg = CTools::Format("ERROR in  CBratDisplayApp::CWorldPlotProperties : index %d out-of-range "
                                 "Valid range is [0, %ld]",
                                 index,
                                 (long)m_wPlotProperties.size());
@@ -829,18 +677,18 @@ CWorldPlotProperty* CBratDisplayApp::GetWorldPlotProperty(int32_t index)
 
   }
 
-  CWorldPlotProperty* props = dynamic_cast<CWorldPlotProperty*>(m_wPlotProperties.at(index));
+  CWorldPlotProperties* props = dynamic_cast<CWorldPlotProperties*>(m_wPlotProperties.at(index));
   if (props == NULL)
   {
-    throw CException("ERROR in  CBratDisplayApp::GetWorldPlotProperty : dynamic_cast<CWorldPlotProperty*>(m_wPlotProperties->at(index)); returns NULL pointer - "
-                 "world Plot Property array seems to contain objects other than those of the class CWorldPlotProperty or derived class", BRATHL_LOGIC_ERROR);
+    throw CException("ERROR in  CBratDisplayApp::GetWorldPlotProperty : dynamic_cast<CWorldPlotProperties*>(m_wPlotProperties->at(index)); returns NULL pointer - "
+                 "world Plot Property array seems to contain objects other than those of the class CWorldPlotProperties or derived class", BRATHL_LOGIC_ERROR);
   }
   return props;
 
 }
 
 //----------------------------------------
-CXYPlotProperty* CBratDisplayApp::GetXYPlotProperty(int32_t index)
+CXYPlotProperties* CBratDisplayApp::GetXYPlotProperty(int32_t index)
 {
   if ( (index < 0) || (static_cast<uint32_t>(index) >= m_xyPlotProperties.size()) )
   {
@@ -852,11 +700,11 @@ CXYPlotProperty* CBratDisplayApp::GetXYPlotProperty(int32_t index)
 
   }
 
-  CXYPlotProperty* props = dynamic_cast<CXYPlotProperty*>(m_xyPlotProperties.at(index));
+  CXYPlotProperties* props = dynamic_cast<CXYPlotProperties*>(m_xyPlotProperties.at(index));
   if (props == NULL)
   {
-   // throw CException("ERROR in  CBratDisplayApp::GetXYPlotProperty : dynamic_cast<CXYPlotProperty*>(m_xyPlotProperties->at(index)); returns NULL pointer - "
-   //              "XY Plot Property array seems to contain objects other than those of the class CXYPlotProperty or derived class", BRATHL_LOGIC_ERROR);
+   // throw CException("ERROR in  CBratDisplayApp::GetXYPlotProperty : dynamic_cast<CXYPlotProperties*>(m_xyPlotProperties->at(index)); returns NULL pointer - "
+   //              "XY Plot Property array seems to contain objects other than those of the class CXYPlotProperties or derived class", BRATHL_LOGIC_ERROR);
   }
   return props;
 
@@ -871,7 +719,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
   std::string stringValue;
   int32_t intValue;
 
-  CWorldPlotProperty wPlotProperty;
+  CWorldPlotProperties wPlotProperty;
   //CMapColor::GetInstance().ResetPrimaryColors();
 
   if (nFields <= 0)
@@ -1000,7 +848,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
 
   for (i = 0 ; i < nFields ; i++)
   {
-    m_wPlotProperties.Insert(new CWorldPlotProperty(wPlotProperty));
+    m_wPlotProperties.Insert(new CWorldPlotProperties(wPlotProperty));
   }
 
   //------------------------------------------
@@ -1008,7 +856,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < maxHeigth ; i++)
   {
-    CWorldPlotProperty* props = GetWorldPlotProperty(i);
+    CWorldPlotProperties* props = GetWorldPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_MAXVALUE]->GetValue(doubleValue, i);
     props->m_maxHeightValue = doubleValue;
   }
@@ -1017,7 +865,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < minHeigth ; i++)
   {
-    CWorldPlotProperty* props = GetWorldPlotProperty(i);
+    CWorldPlotProperties* props = GetWorldPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_MINVALUE]->GetValue(doubleValue, i);
     props->m_minHeightValue = doubleValue;
   }
@@ -1026,7 +874,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < opacity ; i++)
   {
-    CWorldPlotProperty* props = GetWorldPlotProperty(i);
+    CWorldPlotProperties* props = GetWorldPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_OPACITY]->GetValue(doubleValue, i);
     props->m_opacity = doubleValue;
   }
@@ -1035,7 +883,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < numColorLabels ; i++)
   {
-    CWorldPlotProperty* props = GetWorldPlotProperty(i);
+    CWorldPlotProperties* props = GetWorldPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_NUMCOLORLABELS]->GetValue(intValue, i);
     props->m_numColorLabels = intValue;
   }
@@ -1044,7 +892,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < colorCurve ; i++)
   {
-    CWorldPlotProperty* props = GetWorldPlotProperty(i);
+    CWorldPlotProperties* props = GetWorldPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_COLORCURVE]->GetValue(stringValue, i);
     std::string stringValueOk = wPlotProperty.m_LUT->CurveToLabeledCurve(stringValue);
     if (stringValueOk.empty())
@@ -1062,7 +910,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < colorTable ; i++)
   {
-    CWorldPlotProperty* props = GetWorldPlotProperty(i);
+    CWorldPlotProperties* props = GetWorldPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_COLORTABLE]->GetValue(stringValue, i, PALETTE_AEROSOL);
     std::string stringValueOk = wPlotProperty.m_LUT->MethodToLabeledMethod(stringValue);
 
@@ -1108,7 +956,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < contour ; i++)
   {
-    CWorldPlotProperty* props = GetWorldPlotProperty(i);
+    CWorldPlotProperties* props = GetWorldPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_CONTOUR]->GetValue(boolValue, i);
     props->m_withContour = boolValue;
   }
@@ -1117,7 +965,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < contourNum ; i++)
   {
-    CWorldPlotProperty* props = GetWorldPlotProperty(i);
+    CWorldPlotProperties* props = GetWorldPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_CONTOUR_NUMBER]->GetValue(intValue, i);
     props->m_numContour = intValue;
   }
@@ -1126,7 +974,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < contourLabel ; i++)
   {
-    CWorldPlotProperty* props = GetWorldPlotProperty(i);
+    CWorldPlotProperties* props = GetWorldPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_CONTOUR_LABEL]->GetValue(boolValue, i);
     props->m_withContourLabel = boolValue;
   }
@@ -1135,7 +983,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < contourLabelNumber ; i++)
   {
-    CWorldPlotProperty* props = GetWorldPlotProperty(i);
+    CWorldPlotProperties* props = GetWorldPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_CONTOUR_LABEL_NUMBER]->GetValue(intValue, i);
     props->m_numContourLabel = intValue;
   }
@@ -1144,7 +992,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < contourMinValue ; i++)
   {
-    CWorldPlotProperty* props = GetWorldPlotProperty(i);
+    CWorldPlotProperties* props = GetWorldPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_CONTOUR_MINVALUE]->GetValue(doubleValue, i);
     props->m_minContourValue = doubleValue;
   }
@@ -1153,7 +1001,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < contourMaxValue ; i++)
   {
-    CWorldPlotProperty* props = GetWorldPlotProperty(i);
+    CWorldPlotProperties* props = GetWorldPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_CONTOUR_MAXVALUE]->GetValue(doubleValue, i);
     props->m_maxContourValue = doubleValue;
   }
@@ -1162,7 +1010,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < solidColor ; i++)
   {
-    CWorldPlotProperty* props = GetWorldPlotProperty(i);
+    CWorldPlotProperties* props = GetWorldPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_SOLID_COLOR]->GetValue(boolValue, i);
     props->m_solidColor = boolValue;
   }
@@ -1173,7 +1021,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
   //-------------------------------------------------------------
   for (i = 0 ; i < eastComponent ; i++)
   {
-    CWorldPlotProperty* props = GetWorldPlotProperty(i);
+    CWorldPlotProperties* props = GetWorldPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_EAST_COMPONENT]->GetValue(boolValue, i);
     props->m_eastComponent = boolValue;
     /*if ( boolValue )
@@ -1182,7 +1030,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
 
   for (i = 0 ; i < northComponent ; i++)
   {
-    CWorldPlotProperty* props = GetWorldPlotProperty(i);
+    CWorldPlotProperties* props = GetWorldPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_NORTH_COMPONENT]->GetValue(boolValue, i);
     props->m_northComponent = boolValue;
     /*if ( boolValue )
@@ -1195,7 +1043,7 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < name ; i++)
   {
-    CWorldPlotProperty* props = GetWorldPlotProperty(i);
+    CWorldPlotProperties* props = GetWorldPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_NAME]->GetValue(stringValue, i);
     props->m_name = stringValue.c_str();
   }
@@ -1213,7 +1061,7 @@ void CBratDisplayApp::GetZFXYPlotPropertyParams(int32_t nFields)
   int32_t intValue;
   uint32_t uintValue;
 
-  CZFXYPlotProperty zfxyPlotProperty;
+  CZFXYPlotProperties zfxyPlotProperty;
   //CMapColor::GetInstance().ResetPrimaryColors();
 
   if (nFields <= 0)
@@ -1327,7 +1175,7 @@ void CBratDisplayApp::GetZFXYPlotPropertyParams(int32_t nFields)
 
   for (i = 0 ; i < nFields ; i++)
   {
-    m_zfxyPlotProperties.Insert(new CZFXYPlotProperty(zfxyPlotProperty));
+    m_zfxyPlotProperties.Insert(new CZFXYPlotProperties(zfxyPlotProperty));
   }
 
   //------------------------------------------
@@ -1335,7 +1183,7 @@ void CBratDisplayApp::GetZFXYPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < maxHeigth ; i++)
   {
-    CZFXYPlotProperty* props = GetZFXYPlotProperty(i);
+    CZFXYPlotProperties* props = GetZFXYPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_MAXVALUE]->GetValue(doubleValue, i);
     props->m_maxHeightValue = doubleValue;
   }
@@ -1344,7 +1192,7 @@ void CBratDisplayApp::GetZFXYPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < minHeigth ; i++)
   {
-    CZFXYPlotProperty* props = GetZFXYPlotProperty(i);
+    CZFXYPlotProperties* props = GetZFXYPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_MINVALUE]->GetValue(doubleValue, i);
     props->m_minHeightValue = doubleValue;
   }
@@ -1353,7 +1201,7 @@ void CBratDisplayApp::GetZFXYPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < opacity ; i++)
   {
-    CZFXYPlotProperty* props = GetZFXYPlotProperty(i);
+    CZFXYPlotProperties* props = GetZFXYPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_OPACITY]->GetValue(doubleValue, i);
     props->m_opacity = doubleValue;
   }
@@ -1362,7 +1210,7 @@ void CBratDisplayApp::GetZFXYPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < numColorLabels ; i++)
   {
-    CZFXYPlotProperty* props = GetZFXYPlotProperty(i);
+    CZFXYPlotProperties* props = GetZFXYPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_NUMCOLORLABELS]->GetValue(intValue, i);
     props->m_numColorLabels = intValue;
   }
@@ -1371,7 +1219,7 @@ void CBratDisplayApp::GetZFXYPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < colorCurve ; i++)
   {
-    CZFXYPlotProperty* props = GetZFXYPlotProperty(i);
+    CZFXYPlotProperties* props = GetZFXYPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_COLORCURVE]->GetValue(stringValue, i);
     std::string stringValueOk = zfxyPlotProperty.m_LUT->CurveToLabeledCurve(stringValue);
     if (stringValueOk.empty())
@@ -1389,7 +1237,7 @@ void CBratDisplayApp::GetZFXYPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < colorTable ; i++)
   {
-    CZFXYPlotProperty* props = GetZFXYPlotProperty(i);
+    CZFXYPlotProperties* props = GetZFXYPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_COLORTABLE]->GetValue(stringValue, i, PALETTE_AEROSOL);
     std::string stringValueOk = zfxyPlotProperty.m_LUT->MethodToLabeledMethod(stringValue);
 
@@ -1435,7 +1283,7 @@ void CBratDisplayApp::GetZFXYPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < contour ; i++)
   {
-    CZFXYPlotProperty* props = GetZFXYPlotProperty(i);
+    CZFXYPlotProperties* props = GetZFXYPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_CONTOUR]->GetValue(boolValue, i);
     props->m_withContour = boolValue;
   }
@@ -1444,7 +1292,7 @@ void CBratDisplayApp::GetZFXYPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < contourNum ; i++)
   {
-    CZFXYPlotProperty* props = GetZFXYPlotProperty(i);
+    CZFXYPlotProperties* props = GetZFXYPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_CONTOUR_NUMBER]->GetValue(intValue, i);
     props->m_numContour = intValue;
   }
@@ -1453,7 +1301,7 @@ void CBratDisplayApp::GetZFXYPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < contourLabel ; i++)
   {
-    CZFXYPlotProperty* props = GetZFXYPlotProperty(i);
+    CZFXYPlotProperties* props = GetZFXYPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_CONTOUR_LABEL]->GetValue(boolValue, i);
     props->m_withContourLabel = boolValue;
   }
@@ -1462,7 +1310,7 @@ void CBratDisplayApp::GetZFXYPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < contourLabelNumber ; i++)
   {
-    CZFXYPlotProperty* props = GetZFXYPlotProperty(i);
+    CZFXYPlotProperties* props = GetZFXYPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_CONTOUR_LABEL_NUMBER]->GetValue(intValue, i);
     props->m_numContourLabel = intValue;
   }
@@ -1471,7 +1319,7 @@ void CBratDisplayApp::GetZFXYPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < contourMinValue ; i++)
   {
-    CZFXYPlotProperty* props = GetZFXYPlotProperty(i);
+    CZFXYPlotProperties* props = GetZFXYPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_CONTOUR_MINVALUE]->GetValue(doubleValue, i);
     props->m_minContourValue = doubleValue;
   }
@@ -1480,7 +1328,7 @@ void CBratDisplayApp::GetZFXYPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < contourMaxValue ; i++)
   {
-    CZFXYPlotProperty* props = GetZFXYPlotProperty(i);
+    CZFXYPlotProperties* props = GetZFXYPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_CONTOUR_MAXVALUE]->GetValue(doubleValue, i);
     props->m_maxContourValue = doubleValue;
   }
@@ -1489,7 +1337,7 @@ void CBratDisplayApp::GetZFXYPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < solidColor ; i++)
   {
-    CZFXYPlotProperty* props = GetZFXYPlotProperty(i);
+    CZFXYPlotProperties* props = GetZFXYPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_SOLID_COLOR]->GetValue(boolValue, i);
     props->m_solidColor = boolValue;
   }
@@ -1501,7 +1349,7 @@ void CBratDisplayApp::GetZFXYPlotPropertyParams(int32_t nFields)
   //------------------------------------------
   for (i = 0 ; i < name ; i++)
   {
-    CZFXYPlotProperty* props = GetZFXYPlotProperty(i);
+    CZFXYPlotProperties* props = GetZFXYPlotProperty(i);
     m_params.m_mapParam[kwDISPLAY_NAME]->GetValue(stringValue, i);
     props->m_name = stringValue.c_str();
   }
@@ -1510,7 +1358,7 @@ void CBratDisplayApp::GetZFXYPlotPropertyParams(int32_t nFields)
 }
 /*
 //----------------------------------------
-void CBratDisplayApp::GetWPlotPropertyParams(CWorldPlotProperty& wPlotProperty)
+void CBratDisplayApp::GetWPlotPropertyParams(CWorldPlotProperties& wPlotProperty)
 {
   bool boolValue;
   double doubleValue;
@@ -2564,7 +2412,7 @@ void CBratDisplayApp::GetParameters()
         m_plots[groupNumber] = wplot;
       }
 
-      CWorldPlotProperty* worldProps = GetWorldPlotProperty(index);
+      CWorldPlotProperties* worldProps = GetWorldPlotProperty(index);
 
       if ((! worldProps->m_withContour)  && (! worldProps->m_solidColor))
       {
@@ -2611,7 +2459,7 @@ void CBratDisplayApp::GetParameters()
         m_plots[groupNumber] = zfxyplot;
       }
 
-      CZFXYPlotProperty* zfxyProps = GetZFXYPlotProperty(index);
+      CZFXYPlotProperties* zfxyProps = GetZFXYPlotProperty(index);
 
       if ((! zfxyProps->m_withContour)  && (! zfxyProps->m_solidColor))
       {
@@ -3160,7 +3008,7 @@ void CBratDisplayApp::CreateWPlot( CWPlot* wplot, wxSize& size, wxPoint& pos )
 {
 	wplot->GetInfo();
 
-	CWorldPlotProperty* wPlotProperty = GetWorldPlotProperty( 0 );
+    CWorldPlotProperties* wPlotProperty = GetWorldPlotProperty( 0 );
 
 	wxString titleTmp = wplot->m_title;
 	titleTmp = CTools::SlashesDecode( (const char *)( titleTmp ) ).c_str();
@@ -3190,7 +3038,7 @@ void CBratDisplayApp::CreateWPlot( CWPlot* wplot, wxSize& size, wxPoint& pos )
 		}
 
 		// otherwise just add it as regular data
-		CGeoMap *geoMap = new CGeoMap( field );
+		VTK_CWorldPlotData *geoMap = new VTK_CWorldPlotData( field );		//v4: note VTK_CWorldPlotData ctor is only invoked here
 		//femm m_geoMaps.Insert( geoMap );
 		frame->AddData( geoMap );
 	}
@@ -3198,7 +3046,7 @@ void CBratDisplayApp::CreateWPlot( CWPlot* wplot, wxSize& size, wxPoint& pos )
 	// we have a Vector Plot!
 	if ( northField != NULL && eastField != NULL ) {
 
-		CGeoVelocityMap *gvelocityMap = new CGeoVelocityMap( northField, eastField );
+		VTK_CWorldPlotVelocityData *gvelocityMap = new VTK_CWorldPlotVelocityData( northField, eastField );			//v4 note: VTK_CWorldPlotVelocityData ctor is only invoked here
 		gvelocityMap->SetIsGlyph( true );
 		//femm m_geoMaps.Insert( gvelocityMap );
 		frame->AddData( gvelocityMap );
@@ -3230,12 +3078,13 @@ void CBratDisplayApp::CreateWPlot( CWPlot* wplot, wxSize& size, wxPoint& pos )
 	///frame->GetPlotPlanel()->Layout();
 #endif
 }
+//L:\project\workspaces\S3A\Displays\DisplayDisplays_MW_1_MWR____2004.par
 //----------------------------------------
 void CBratDisplayApp::CreateZFXYPlot(CZFXYPlot* zfxyplot, wxSize& size, wxPoint& pos)
 {
   zfxyplot->GetInfo();
 
-  CZFXYPlotProperty* zfxyPlotProperty = GetZFXYPlotProperty(0);
+  CZFXYPlotProperties* zfxyPlotProperty = GetZFXYPlotProperty(0);
 
   wxString titleTmp = zfxyplot->m_title;
 
@@ -3261,9 +3110,7 @@ void CBratDisplayApp::CreateZFXYPlot(CZFXYPlot* zfxyplot, wxSize& size, wxPoint&
       continue;
     }
 
-    CZFXYPlotData *geoMap = new CZFXYPlotData(/*frame, */zfxyplot, field);
-
-    m_zfxyMaps.Insert(geoMap);
+    VTK_CZFXYPlotData *geoMap = new VTK_CZFXYPlotData(/*frame, */zfxyplot, field);		// v4 note: VTK_CZFXYPlotData ctor only invoked here
 
     frame->AddData(geoMap);
   }
@@ -3295,7 +3142,7 @@ void CBratDisplayApp::CreateWPlot(CWPlot* wplot, CObArray& internalData, wxSize&
 {
   wplot->GetInfo(&internalData);
 
-  CWorldPlotProperty* wPlotProperty = GetWorldPlotProperty(0);
+  CWorldPlotProperties* wPlotProperty = GetWorldPlotProperty(0);
 
   wxString titleTmp = wPlotProperty->m_title;
   if (titleTmp.IsEmpty())
@@ -3348,9 +3195,9 @@ void CBratDisplayApp::CreateWPlot(CWPlot* wplot, CObArray& internalData, wxSize&
       continue;
     }
 
-    CWorldPlotProperty* props = GetWorldPlotProperty(iField);
+    CWorldPlotProperties* props = GetWorldPlotProperty(iField);
 
-    CGeoMap *geoMap = new CGeoMap(frame, &internalDataGeoMap, wplot->m_fieldsName[iField], props);
+    VTK_CWorldPlotData *geoMap = new VTK_CWorldPlotData(frame, &internalDataGeoMap, wplot->m_fieldsName[iField], props);
 
     m_geoMaps.Insert(geoMap);
 
@@ -3374,42 +3221,37 @@ void CBratDisplayApp::CreateWPlot(CWPlot* wplot, CObArray& internalData, wxSize&
 }
 */
 //----------------------------------------
-void CBratDisplayApp::CreateXYPlot(CPlot* plot, wxSize& size, wxPoint& pos)
+void CBratDisplayApp::CreateXYPlot( CPlot* plot, wxSize& size, wxPoint& pos )
 {
 
-  //CInternalFilesYFX* yfx = plot->GetInternalFilesYFX(m_internalData.at(0));
-  plot->GetInfo();
+	//CInternalFilesYFX* yfx = plot->GetInternalFilesYFX(m_internalData.at(0));
+	plot->GetInfo();
 
-  std::string strTempTitle = CTools::StringReplace(plot->m_title, "\\n", "-");
-  strTempTitle = CTools::StringReplace(strTempTitle, "\\t", " ");
+	std::string strTempTitle = CTools::StringReplace( plot->m_title, "\\n", "-" );
+	strTempTitle = CTools::StringReplace( strTempTitle, "\\t", " " );
 
-  wxString title = CTools::Format("BRAT Y=F(X) Plot - %s #%d",
-                                   strTempTitle.c_str(),
-                                   plot->m_groupNumber).c_str();
+	wxString title = CTools::Format( "BRAT Y=F(X) Plot - %s #%d",
+		strTempTitle.c_str(),
+		plot->m_groupNumber ).c_str();
 
-  CXYPlotFrame* frame = new CXYPlotFrame( NULL, -1, title, pos, size);
+	CXYPlotFrame* frame = new CXYPlotFrame( NULL, -1, title, pos, size );
 
-  int32_t nrFields = plot->m_fields.size();
-//  int32_t nrFiles = m_internalData.size();
+	int32_t nrFields = plot->m_fields.size();
+	//  int32_t nrFiles = m_internalData.size();
 
-  for (int32_t iField = 0 ; iField < nrFields ; iField++)
-  {
-    CPlotField* field = plot->GetPlotField(iField);
-    CInternalFiles* yfx = field->GetInternalFiles(0);
-    CXYPlotData* plotData = new CXYPlotData("", field->m_xyProps);
-
-    plotData->Create(yfx, plot, iField);
-
-    frame->AddData(plotData);
-  }
+	for ( int32_t iField = 0; iField < nrFields; iField++ )
+	{
+		VTK_CXYPlotData* plotData = new VTK_CXYPlotData( plot, iField );	//v4: VTK_CXYPlotData ctor only invoked here
+		frame->AddData( plotData );
+	}
 
 
-  frame->Raise();
+	frame->Raise();
 
-  frame->ShowPropertyPanel();
-  frame->Show( TRUE );
+	frame->ShowPropertyPanel();
+	frame->Show( TRUE );
 
-  pos = frame->GetPosition();
+	pos = frame->GetPosition();
 }
 
 /*
@@ -3446,7 +3288,7 @@ void CBratDisplayApp::CreateXYPlot(CPlot* plot, wxSize& size, wxPoint& pos)
       if (isFieldInFile)
       {
         int32_t indexProp = HowManyFieldsXYInBitSetBefore(iFile) + posField;
-        CXYPlotProperty* props = GetXYPlotProperty( indexProp );
+        CXYPlotProperties* props = GetXYPlotProperty( indexProp );
         CXYPlotDataMulti* plotData = new CXYPlotDataMulti("", props);
 
         /////plotData->Create(&m_internalData, plot, iField);

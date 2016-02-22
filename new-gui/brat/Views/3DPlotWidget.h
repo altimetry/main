@@ -5,12 +5,11 @@
 #include <qwt3d_surfaceplot.h>
 
 
-class CmdLineProcessor;
+class DisplayFilesProcessor;
 class CZFXYPlot;
 class CZFXYPlotData;
 
-struct C3DPlotInfo;
-struct C3DPlotValues;
+struct C3DPlotParameters;
 
 struct CBrat3DFunction;
 
@@ -112,7 +111,7 @@ public:
 
 	// 
 
-	void AddSurface( const C3DPlotValues &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax );
+	void AddSurface( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax );
 
 	void SetPlotStyle( Qwt3D::PLOTSTYLE style = Qwt3D::FILLEDMESH );
 
@@ -198,7 +197,7 @@ public:
 	void SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle );
 
 
-	void AddSurface( const C3DPlotValues &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax );
+	void AddSurface( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax );
 
 	void SetXLogarithmicScale( bool log )
 	{

@@ -62,9 +62,9 @@ CProduct* CDataset::SetProduct( const std::string& fileName )
 	CProduct* product = NULL;
 	try
 	{
-		product = CProduct::Construct( (const char *)fileName.c_str() );
-		product->SetFieldSpecificUnits( m_fieldSpecificUnit );
-		product->Open( (const char *)fileName.c_str() );
+		product = CProduct::Construct( fileName );
+        product->SetFieldSpecificUnits( m_fieldSpecificUnit );
+        product->Open( fileName );
 	}
 	catch ( const CException& e )
 	{

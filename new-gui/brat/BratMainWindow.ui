@@ -34,6 +34,7 @@
     </property>
     <addaction name="action_New"/>
     <addaction name="action_Open"/>
+    <addaction name="action_Close_Workspace"/>
     <addaction name="action_Save"/>
     <addaction name="action_Save_As"/>
     <addaction name="separator"/>
@@ -332,7 +333,7 @@
   </action>
   <action name="action_Test">
    <property name="icon">
-    <iconset resource="../Common/Resources/brat.qrc">
+    <iconset resource="../brat-lab/res/brat-lab.qrc">
      <normaloff>:/images/test.png</normaloff>:/images/test.png</iconset>
    </property>
    <property name="text">
@@ -511,9 +512,23 @@ The workspace directory will not change</string>
     <string>Delete the loaded workspace</string>
    </property>
   </action>
+  <action name="action_Close_Workspace">
+   <property name="icon">
+    <iconset resource="../Common/Resources/brat.qrc">
+     <normaloff>:/images/alpha-numeric/__q.png</normaloff>:/images/alpha-numeric/__q.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Close</string>
+   </property>
+   <property name="toolTip">
+    <string>Close and unload the workspace</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
+  <include location="../brat-lab/res/brat-lab.qrc"/>
+  <include location="../Common/Resources/brat.qrc"/>
   <include location="../Common/Resources/brat.qrc"/>
  </resources>
  <connections>

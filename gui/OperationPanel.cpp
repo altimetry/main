@@ -49,7 +49,7 @@
 using namespace brathl;
 
 #include "Validators.h"
-#include "PlotData/MapColor.h"
+#include "new-gui/brat/DataModels/PlotData/MapColor.h"
 #include "new-gui/brat/DataModels/Workspaces/Workspace.h"
 #include "Function.h"
 #include "Process.h"

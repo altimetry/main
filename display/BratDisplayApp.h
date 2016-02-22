@@ -50,13 +50,13 @@ using namespace brathl;
 
 
 //#include "BratDisplay_wdr.h"
-#include "PlotData/Plot.h"
-#include "PlotData/WPlot.h"
-#include "PlotData/ZFXYPlot.h"
+#include "new-gui/brat/DataModels/PlotData/XYPlot.h"
+#include "new-gui/brat/DataModels/PlotData/XYPlotData.h"
+#include "new-gui/brat/DataModels/PlotData/ZFXYPlot.h"
+#include "new-gui/brat/DataModels/PlotData/WorldPlot.h"
 
-#include "PlotData/WorldPlotData.h"
-#include "PlotData/XYPlotData.h"
-#include "PlotData/ZFXYPlotData.h"
+#include "new-gui/brat/DataModels/PlotData/WorldPlotData.h"
+#include "PlotData/ZFXYPlotData_vtk.h"
 
 
 #include "wxInterface.h"
@@ -196,14 +196,14 @@ private:
   bool IsXYPlot();
   void CreateXYPlot(CPlot* plot, wxSize& size, wxPoint& pos);
 
-  //void GetWPlotPropertyParams(CWorldPlotProperty& wPlotProperty);
+  //void GetWPlotPropertyParams(CWorldPlotProperties& wPlotProperty);
   void GetWPlotPropertyParams(int32_t nFields);
   void GetXYPlotPropertyParams(int32_t nFields);
   void GetZFXYPlotPropertyParams(int32_t nFields);
 
-  CZFXYPlotProperty* GetZFXYPlotProperty(int32_t index);
-  CXYPlotProperty* GetXYPlotProperty(int32_t index);
-  CWorldPlotProperty* GetWorldPlotProperty(int32_t index);
+  CZFXYPlotProperties* GetZFXYPlotProperty(int32_t index);
+  CXYPlotProperties* GetXYPlotProperty(int32_t index);
+  CWorldPlotProperties* GetWorldPlotProperty(int32_t index);
 
   //int32_t GetNumberOfPlots();
   //int32_t GetNumberOfWPlots();
@@ -227,15 +227,9 @@ private:
 
   std::string m_inputFileType;
 
-  //femm CObArray m_internalData;
-
-  //CObArray m_geoMaps;
-  CObArray m_zfxyMaps;
-
-
-  CWorldPlotProperty m_wPlotProperty;
-  CXYPlotProperty m_xyPlotProperty;
-  CZFXYPlotProperty m_zfxyPlotProperty;
+  CWorldPlotProperties m_wPlotProperty;
+  CXYPlotProperties m_xyPlotProperty;
+  CZFXYPlotProperties m_zfxyPlotProperty;
 
   CObArray m_zfxyPlotProperties;
   CObArray m_xyPlotProperties;

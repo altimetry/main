@@ -408,8 +408,8 @@ void CCustomModifyPanel::Reset()
 void CCustomModifyPanel::ResetCust()
 {
 
-  CCustomColor *c1 = new CCustomColor(CVtkColor(0, 0, 0, 255), 0);
-  CCustomColor *c2 = new CCustomColor(CVtkColor(0, 0, 0, 255), m_LUT->GetLookupTable()->GetNumberOfTableValues());
+  CCustomColor *c1 = new CCustomColor(CPlotColor(0, 0, 0, 255), 0);
+  CCustomColor *c2 = new CCustomColor(CPlotColor(0, 0, 0, 255), m_LUT->GetLookupTable()->GetNumberOfTableValues());
 
   m_cust.RemoveAll();
   m_cust.Insert(c1);
@@ -479,7 +479,7 @@ int32_t CCustomModifyPanel::InsertGReverse(int32_t gValue)
   CObArray::iterator it(revit.base());
 
 
-  CCustomColor* cInserted = new CCustomColor(CVtkColor( *(m_colorPicker->GetVtkColor()) ), value );
+  CCustomColor* cInserted = new CCustomColor(CPlotColor( *(m_colorPicker->GetVtkColor()) ), value );
 
   CObArray::iterator itInserted = m_cust.InsertAt(it, cInserted);
 
@@ -540,7 +540,7 @@ int32_t CCustomModifyPanel::InsertG(int32_t gValue)
   }
 
 
-  CCustomColor* cInserted = new CCustomColor(CVtkColor( *(m_colorPicker->GetVtkColor()) ), value );
+  CCustomColor* cInserted = new CCustomColor(CPlotColor( *(m_colorPicker->GetVtkColor()) ), value );
 
   CObArray::iterator itInserted = m_cust.InsertAt(it, cInserted);
 
@@ -716,7 +716,7 @@ void CCustomModifyPanel::OnGChange(wxCommandEvent& event)
   {
     /*
     double* color = m_LUT->GetLookupTable()->GetTableValue(m_slider->GetValue());
-    CVtkColor vtkColor(color[0],
+    CPlotColor vtkColor(color[0],
                        color[1],
                        color[2], 
                        color[3]); 
@@ -780,7 +780,7 @@ void CCustomModifyPanel::OnGSelect2()
   
   /*
   double* color = m_LUT->GetLookupTable()->GetTableValue(m_slider->GetValue());
-  CVtkColor vtkColor(color[0],
+  CPlotColor vtkColor(color[0],
                      color[1],
                      color[2], 
                     color[3]); 
@@ -913,8 +913,8 @@ void CGradientModifyPanel::SetColor()
     
   if ( m_LUT->GetGrad()->size() >= 2 )  
   {
-    CVtkColor* c1 = dynamic_cast<CVtkColor*>(m_LUT->GetGrad()->at(0));
-    CVtkColor* c2 = dynamic_cast<CVtkColor*>(m_LUT->GetGrad()->at(1));
+    CPlotColor* c1 = dynamic_cast<CPlotColor*>(m_LUT->GetGrad()->at(0));
+    CPlotColor* c2 = dynamic_cast<CPlotColor*>(m_LUT->GetGrad()->at(1));
     if ( (c1 != NULL) && (c2!= NULL) )
     {
       m_leftColorPicker->SetColor(*c1);
@@ -938,8 +938,8 @@ void CGradientModifyPanel::SetLUT(CBratLookupTable* lut, bool updateParent)
     
   if ( m_LUT->GetGrad()->size() >= 2 )  
   {
-    CVtkColor* c1 = dynamic_cast<CVtkColor*>(m_LUT->GetGrad()->at(0));
-    CVtkColor* c2 = dynamic_cast<CVtkColor*>(m_LUT->GetGrad()->at(1));
+    CPlotColor* c1 = dynamic_cast<CPlotColor*>(m_LUT->GetGrad()->at(0));
+    CPlotColor* c2 = dynamic_cast<CPlotColor*>(m_LUT->GetGrad()->at(1));
     if ( (c1 != NULL) && (c2!= NULL) )
     {
       m_leftColorPicker->SetColor(*c1);

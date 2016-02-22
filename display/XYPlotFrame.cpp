@@ -220,7 +220,7 @@ void CXYPlotFrame::DeInstallEventListeners()
 
 }
 //----------------------------------------
-CXYPlotProperty* CXYPlotFrame::GetPlotProperty(int32_t index)
+CXYPlotProperties *CXYPlotFrame::GetPlotProperty(int32_t index)
 {
   return m_plotPanel->GetPlotProperty(index);
 }
@@ -377,7 +377,7 @@ void CXYPlotFrame::ShowAnimationToolbar(bool showIt)
 
 }
 //----------------------------------------
-void CXYPlotFrame::AddData(CXYPlotData* data)
+void CXYPlotFrame::AddData(VTK_CXYPlotData* data)
 {
 /*
         uniquified_name = self.usg.uniquify(data.GetName())
@@ -392,7 +392,7 @@ void CXYPlotFrame::AddData(CXYPlotData* data)
     int32_t nFrames = data->GetNumberOfFrames();
     if (nFrames > 1)
     {
-      //CXYPlotProperty* props = data->GetPlotProperty();
+      //CXYPlotProperties* props = data->GetPlotProperty();
       m_multiFrame = true;
       m_menuBar->Enable(ID_MENU_VIEW_SLIDER, true);
       //ShowAnimationToolbar(props->GetShowAnimationToolbar());

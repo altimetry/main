@@ -221,8 +221,6 @@ bool CBratSettings::LoadConfig()
 	}
 	)
 	&&
-	LoadConfigSelectionCriteria()
-	&&
 	LoadPaths();
 }
 

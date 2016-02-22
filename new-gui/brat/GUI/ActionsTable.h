@@ -5,6 +5,9 @@
 class CApplicationSettings;
 
 
+//	1. Add an identifier in EActionTag; prefix the identifier with "eAction_": eAction_MyAction
+//	2. Add an entry in ActionsTable array, file ActionsTable.cpp; 
+//	3. Create the action with CActionInfo::CreateAction( this, eAction_MyAction );
 
 //////////////////////////////////////////////////////////////////////////////////
 //					Application Global QAction Tags
@@ -25,6 +28,7 @@ enum EActionTag : int
 	eAction_Exit,
 	eAction_Open,
 	eAction_New,
+	eAction_CloseWorkspace,
 	eAction_Save,
 	eAction_Save_As,
 	eAction_Import_Workspace,
@@ -65,8 +69,8 @@ enum EActionTag : int
 	eAction_DisplayEditorLog,
 	eAction_DisplayEditorDock,
 
-	eAction_MapEditorDistance,
-	eAction_MapEditorArea,
+	eAction_MeasureLine,
+	eAction_MeasureArea,
 	eAction_MapEditorMean,
 	eAction_MapEditorStDev,
 	eAction_MapEditorLinearRegression,
@@ -79,6 +83,12 @@ enum EActionTag : int
 	eAction_ApplicationPaths_page,
 	eAction_StartupOptions_page,
 	eAction_ApplicationStyles_page,
+
+	eAction_SelectFeatures,
+	eAction_SelectPolygon,
+	eAction_DeselectAll,
+
+	eAction_DecorationGrid,
 
 
 	//add new items before this line
@@ -207,6 +217,8 @@ public:
 
 
 	static void UpdateActionsState( std::initializer_list< EActionTag > tags, bool enable );
+
+	static void TriggerAction( EActionTag tag );
 
 private:
 

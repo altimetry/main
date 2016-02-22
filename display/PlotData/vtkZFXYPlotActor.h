@@ -29,7 +29,7 @@ using namespace brathl;
 
 #include "vtkZFXYPlotFilter.h"
 
-#include "ZFXYPlotData.h"
+#include "display/PlotData/ZFXYPlotData_vtk.h"
 
 
 class vtkActor2DCollection;
@@ -47,7 +47,7 @@ class vtkPolyDataMapper2D;
 class vtkTextMapper;
 class vtkTextProperty;
 
-class CZFXYPlotProperty;
+struct CZFXYPlotProperties;
 
 class VTK_EXPORT vtkZFXYPlotActor : public vtkActor2D
 {
@@ -65,7 +65,7 @@ public:
   //--------------------------------------------------------------------------
   // Description:
   // Add a plotdata object to the std::list of plotdata.
-  void AddInput(CZFXYPlotData* pdata);
+  void AddInput(VTK_CZFXYPlotData* pdata);
   
   void AddInput(vtkZFXYPlotFilter* plotData);
 
@@ -74,7 +74,7 @@ public:
   // This will automatically remove the corresponding Mapper2D and Actor2D.
   void RemoveInput(vtkZFXYPlotFilter *plotData);
 
-  void RemoveInput(CZFXYPlotData* pdata);
+  void RemoveInput(VTK_CZFXYPlotData* pdata);
   void RemoveInput();
 
   // Description:
@@ -327,21 +327,21 @@ public:
   void Update();
 
   void RemoveActors();
-  void RemoveActors(CZFXYPlotData* pdata);
-  void RemoveActorsSolidColor(CZFXYPlotData* pdata);
-  void RemoveActorsContour(CZFXYPlotData* pdata);
-  void RemoveActorsContourLabel(CZFXYPlotData* pdata);
+  void RemoveActors(VTK_CZFXYPlotData* pdata);
+  void RemoveActorsSolidColor(VTK_CZFXYPlotData* pdata);
+  void RemoveActorsContour(VTK_CZFXYPlotData* pdata);
+  void RemoveActorsContourLabel(VTK_CZFXYPlotData* pdata);
 
   void AddActors();
 
   void AddActorsSolidColor();
   void AddActorsContour();
 
-  void AddActors(CZFXYPlotData* pdata);
+  void AddActors(VTK_CZFXYPlotData* pdata);
 
-  void AddActorsContour(CZFXYPlotData* pdata);
-  void AddActorsContourLabel(CZFXYPlotData* pdata);
-  void AddActorsSolidColor(CZFXYPlotData* pdata);
+  void AddActorsContour(VTK_CZFXYPlotData* pdata);
+  void AddActorsContourLabel(VTK_CZFXYPlotData* pdata);
+  void AddActorsSolidColor(VTK_CZFXYPlotData* pdata);
 
   void GetXPlotDataRange(double range[2],uint32_t frame);
   void GetXPlotDataRange(double& min, double& max, uint32_t frame);
@@ -369,7 +369,7 @@ protected:
   void CalculateBaseXRange(double xrange[2]);
   void CalculateBaseYRange(double yrange[2]);
 
-  void SetPlotProperties(CZFXYPlotProperty* props);
+  void SetPlotProperties(CZFXYPlotProperties* props);
 
 
 protected:

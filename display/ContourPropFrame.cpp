@@ -31,9 +31,9 @@
 
 #include "BratDisplayApp.h"
 #include "ContourPropFrame.h"
-#include "PlotData/MapColor.h"
+#include "new-gui/brat/DataModels/PlotData/MapColor.h"
 #include "wxInterface.h"
-#include "PlotData/GeoMap.h"
+#include "new-gui/brat/DataModels/PlotData/WorldPlotData.h"
 
 
 DEFINE_EVENT_TYPE(wxEVT_CONTOUR_PROP_CHANGED)
@@ -63,7 +63,7 @@ CContourPropPanel::CContourPropPanel()
 }
 
 //----------------------------------------
-CContourPropPanel::CContourPropPanel( wxWindow *parent, CGeoMap* geoMap, wxWindowID id,
+CContourPropPanel::CContourPropPanel( wxWindow *parent, CWorldPlotData* geoMap, wxWindowID id,
     const wxPoint &position, const wxSize& size, long style ) 
     //: wxPanel( parent, id, position, size, style )
 {
@@ -81,7 +81,7 @@ CContourPropPanel::~CContourPropPanel()
 {
 }
 //----------------------------------------
-bool CContourPropPanel::Create( wxWindow *parent, CGeoMap* geoMap, wxWindowID id,
+bool CContourPropPanel::Create( wxWindow *parent, CWorldPlotData* geoMap, wxWindowID id,
                 const wxPoint &position, const wxSize& size, long style ) 
 {
 
@@ -290,7 +290,7 @@ CContourPropFrame::CContourPropFrame()
 }
 
 //----------------------------------------
-CContourPropFrame::CContourPropFrame( wxWindow *parent, CGeoMap* geoMap, wxWindowID id, const wxString &title,
+CContourPropFrame::CContourPropFrame( wxWindow *parent, CWorldPlotData* geoMap, wxWindowID id, const wxString &title,
     const wxPoint &position, const wxSize& size, long style ) 
     ///: wxFrame( parent, id, title, position, size, style )
 {
@@ -309,7 +309,7 @@ CContourPropFrame::~CContourPropFrame()
 }
 
 //----------------------------------------
-bool CContourPropFrame::Create( wxWindow *parent, CGeoMap* geoMap, wxWindowID id, const wxString &title,
+bool CContourPropFrame::Create( wxWindow *parent, CWorldPlotData* geoMap, wxWindowID id, const wxString &title,
                 const wxPoint &position, const wxSize& size, long style ) 
 {
 

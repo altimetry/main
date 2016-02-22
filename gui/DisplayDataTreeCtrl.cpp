@@ -28,9 +28,9 @@
 #include "wx/tokenzr.h"
 
 #include "DisplayDataTreeCtrl.h"
-#include "new-gui/brat/Display/MapTypeDisp.h"
+#include "new-gui/brat/DataModels/MapTypeDisp.h"
 
-#include "PlotData/MapColor.h"
+#include "new-gui/brat/DataModels/PlotData/MapColor.h"
 #include "BratGui.h"
 
 

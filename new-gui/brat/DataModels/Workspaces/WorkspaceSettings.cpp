@@ -24,7 +24,7 @@
 #include "Operation.h"
 #include "WorkspaceSettings.h"
 #include "Display.h"
-#include "new-gui/brat/Display/MapTypeDisp.h"
+#include "new-gui/brat/DataModels/MapTypeDisp.h"
 
 
 

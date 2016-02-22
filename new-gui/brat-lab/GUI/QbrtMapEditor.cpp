@@ -47,9 +47,9 @@
 #include "new-gui/Common/tools/Trace.h"
 
 #include "new-gui/brat-lab/System/BackServices.h"
-#include "new-gui/brat/DataModels/CmdLineProcessor.h"
-#include "display/PlotData/GeoMap.h"
-#include "display/PlotData/WPlot.h"
+#include "new-gui/brat/DataModels/DisplayFilesProcessor.h"
+#include "new-gui/brat/DataModels/PlotData/WorldPlotData.h"
+#include "new-gui/brat/DataModels/PlotData/WorldPlot.h"
 
 
 #include "new-gui/brat/Views/GlobeWidget.h"
@@ -86,7 +86,7 @@ QbrtMapEditor::QbrtMapEditor(QWidget *parent) : base_t(parent), m_ToolEditor( fa
 
     //createLayerTreeView();
 	mSplitter = new QSplitter( Qt::Vertical, this );
-    mMapCanvas = new CBratMapWidget( mSplitter );
+    mMapCanvas = new CBratMapView( mSplitter );
 	setCentralWidget( mSplitter );
 
 	createToolBar();
@@ -171,7 +171,7 @@ void QbrtMapEditor::createGlobe()
 	//if ( !mGlobe /* && mSplitter*/)
 	if ( !mGlobeWidget /* && mSplitter*/)
 	{
-        mGlobeWidget = new CGlobeWidget( this, CBratMapWidget::GlobeDir(), mMapCanvas );
+        mGlobeWidget = new CGlobeWidget( this, CBratMapView::GlobeDir(), mMapCanvas );
 		//mGlobe = new GlobePlugin( nullptr, mMapCanvas );
 		//mOsgViewer = mGlobe->run( ad.mGlobeDir );						//can return null
 
@@ -204,9 +204,9 @@ void QbrtMapEditor::createGlobe()
 			mAction_View_Globe->setEnabled( true );
 	}
 }
-void QbrtMapEditor::CreateWPlot( const CmdLineProcessor *proc, CWPlot* wplot )
+void QbrtMapEditor::CreateWPlot( const DisplayFilesProcessor *proc, CWPlot* wplot )
 {
-    mMapCanvas->CreatePlot( proc, wplot );
+    mMapCanvas->CreatePlot( proc->GetWorldPlotProperties(0), wplot );
 	createGlobe();
 }
 
@@ -455,7 +455,7 @@ void QbrtMapEditor::globeSettings()
 	mGlobeWidget->settings();
 }
 
-//void QbrtMapCanvas::CreateWPlot( const CmdLineProcessor *proc, CWPlot* wplot )
+//void QbrtMapCanvas::CreateWPlot( const DisplayFilesProcessor *proc, CWPlot* wplot )
 //{
 //	QSize size;
 //	QPoint pos;

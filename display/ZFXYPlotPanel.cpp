@@ -80,7 +80,7 @@ CZFXYPlotPanel::CZFXYPlotPanel()
 }
 
 //----------------------------------------
-CZFXYPlotPanel::CZFXYPlotPanel( wxWindow *parent, wxWindowID id, CZFXYPlotProperty* plotProperty,
+CZFXYPlotPanel::CZFXYPlotPanel( wxWindow *parent, wxWindowID id, CZFXYPlotProperties* plotProperty,
                                   const wxPoint &position, const wxSize& size, long style )
                         //: wxPanel( parent, id, position, size, style ), --> called in Create
 {
@@ -178,7 +178,7 @@ void CZFXYPlotPanel::Init()
 }
 
 //----------------------------------------
-bool CZFXYPlotPanel::Create( wxWindow *parent, wxWindowID id, CZFXYPlotProperty* plotProperty,
+bool CZFXYPlotPanel::Create( wxWindow *parent, wxWindowID id, CZFXYPlotProperties* plotProperty,
                               const wxPoint &position, const wxSize& size, long style )
 {
   bool bOk = true;
@@ -338,7 +338,7 @@ int32_t CZFXYPlotPanel::CountColorBarRender()
 
   for (it = m_zfxyPlotData.begin() ; it != m_zfxyPlotData.end() ; it++)
   {
-    CZFXYPlotData* pdata = dynamic_cast<CZFXYPlotData*>(*it);
+    VTK_CZFXYPlotData* pdata = dynamic_cast<VTK_CZFXYPlotData*>(*it);
     if (pdata == NULL)
     {
       continue;
@@ -372,7 +372,7 @@ void CZFXYPlotPanel::UpdateColorBarRender(bool show)
 
   for (it = m_zfxyPlotData.rbegin() ; it != m_zfxyPlotData.rend() ; it++)
   {
-    CZFXYPlotData* pdata = dynamic_cast<CZFXYPlotData*>(*it);
+    VTK_CZFXYPlotData* pdata = dynamic_cast<VTK_CZFXYPlotData*>(*it);
     if (pdata == NULL)
     {
       continue;
@@ -430,7 +430,7 @@ void CZFXYPlotPanel::Update2D()
 }
 
 //----------------------------------------
-void CZFXYPlotPanel::AddData(CZFXYPlotData* pdata, wxProgressDialog* dlg)
+void CZFXYPlotPanel::AddData(VTK_CZFXYPlotData* pdata, wxProgressDialog* dlg)
 {
   
   if (pdata == NULL)
@@ -493,14 +493,14 @@ void CZFXYPlotPanel::AddData(CZFXYPlotData* pdata, wxProgressDialog* dlg)
 }
 
 //----------------------------------------
-CZFXYPlotData* CZFXYPlotPanel::GetCurrentLayer()
+VTK_CZFXYPlotData* CZFXYPlotPanel::GetCurrentLayer()
 {
   return m_plotPropertyTab->GetCurrentLayer();
 }
 //----------------------------------------
 bool CZFXYPlotPanel::IsNumberOfMapsEquals(int32_t* numberOfMaps)
 {
-  CZFXYPlotData* pdata = NULL;
+  VTK_CZFXYPlotData* pdata = NULL;
   CObList::iterator it;
   if (numberOfMaps != NULL)
   {
@@ -516,7 +516,7 @@ bool CZFXYPlotPanel::IsNumberOfMapsEquals(int32_t* numberOfMaps)
 
   for (it = m_zfxyPlotData.begin() ; it != m_zfxyPlotData.end() ; it++)
   {
-    pdata = dynamic_cast<CZFXYPlotData*>(*it);
+    pdata = dynamic_cast<VTK_CZFXYPlotData*>(*it);
     if (pdata != NULL)
     {
       if (nMaps < 0)
@@ -802,7 +802,7 @@ void CZFXYPlotPanel::SetFocusVtkWidget(vtkObject* obj, unsigned long, void*, voi
 void CZFXYPlotPanel::UpdateValues()
 {
 
-  CZFXYPlotData* pdata = GetCurrentLayer();
+  VTK_CZFXYPlotData* pdata = GetCurrentLayer();
   if (pdata == NULL)
   {
     return;

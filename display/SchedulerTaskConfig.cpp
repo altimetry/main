@@ -636,7 +636,7 @@ bool CSchedulerTaskConfig::AddNewTasksFromSibling( CTasksProcessor* tp )
 	auto new_tasks_map = *GetMapNewBratTask();
 	for ( CMapBratTask::const_iterator it = new_tasks_map.begin(); it != new_tasks_map.end(); it++ )
 	{
-		wxLongLong_t id = it->first;
+        wxLongLong_t id = it->first;                UNUSED( id );
 		CBratTask* bratTaskNew = it->second;		assert__( bratTaskNew );
 
 		//CBratTask* bratTask = m_mapBratTask.Find( id );
@@ -987,6 +987,7 @@ std::string CSchedulerTaskConfig::GetTaskIdAsString(wxXmlNode* node)
   wxString value;
   bool bOk = node->GetPropVal(CSchedulerTaskConfig::m_TASK_ID_ATTR, &value);
   UNUSED( value );
+  UNUSED( bOk );
 
   return value.ToStdString();
 }

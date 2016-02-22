@@ -86,4 +86,19 @@ inline const QString t2q( const char *s )
 
 
 
+
+//////////////////////////////////////////////////////////////////
+//				Convert numbers to q-strings
+//////////////////////////////////////////////////////////////////
+
+template< typename T >
+QString n2q( T n )
+{
+    return QString::number( n );
+}
+
+
+
+
+
 #endif		//BRAT_QT_STRING_UTILS_H

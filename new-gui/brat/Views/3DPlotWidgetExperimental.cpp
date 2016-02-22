@@ -8,7 +8,7 @@
 
 #include "new-gui/Common/QtUtils.h"
 
-#include "new-gui/brat/DataModels/PlotData/PlotValues.h"
+#include "new-gui/brat/PlotValues.h"
 
 #include "3DPlotWidget.h"
 

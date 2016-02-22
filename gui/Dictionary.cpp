@@ -270,7 +270,7 @@ void CDictionaryList::ResetColumnImage()
 
 }
 //----------------------------------------
-void CDictionaryList::InsertProduct(CProduct* product, wxArrayString* records)
+void CDictionaryList::InsertProduct(CProduct* product)
 {
   m_sortedCol = -1;
   m_sortAsc = true;
@@ -310,10 +310,10 @@ void CDictionaryList::InsertProduct(CProduct* product, wxArrayString* records)
     }
 
     showRow = true;
-    if (records != NULL)
-    {
-      showRow = (records->Index(field->GetRecordName().c_str()) == -1) ? false : true;
-    }
+//    if (records != NULL)
+//    {
+//      showRow = (records->Index(field->GetRecordName().c_str()) == -1) ? false : true;
+//    }
 
     if (showRow)
     {

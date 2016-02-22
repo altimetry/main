@@ -7,6 +7,7 @@
 #define CONFIG wxFileConfig
 #define CWorkspaceSettings CConfiguration
 #define WORKSPACES_WORKSPACE_SETTINGS_H
+#include "display/PlotData/BratLookupTable.h"
 #else
 #include "new-gui/brat/DataModels/Workspaces/WorkspaceSettings.h"
 #define CONFIG CWorkspaceSettings
@@ -19,7 +20,6 @@
 // Common declarations (interfaces) implemented differently in QtInterface.cpp and wxInterface.cpp / wxGuiInterface.cpp
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "display/PlotData/BratLookupTable.h"
 
 
 //
@@ -28,9 +28,9 @@
 //	CWPlot		=> CPlotBase
 //	CZFXYPlot	=> CPlotBase
 //
-bool LoadFromFile( CBratLookupTable &lut, const std::string& fileName );
+//bool LoadFromFile( CBratLookupTable &lut, const std::string& fileName );
 
-void SaveToFile( CBratLookupTable &lut, const std::string& fileName );
+//void SaveToFile( CBratLookupTable &lut, const std::string& fileName );
 
 
 

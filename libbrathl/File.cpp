@@ -304,7 +304,7 @@ int32_t CFile::ReadLineData(char *lineRead, uint32_t size )
     // replace tab and newline characters by spaces
     for (current = lineRead; *current ; current++)
     {
-      if (isspace(*current) || (*current == '\n'))
+      if (isspace((unsigned char)*current) || (*current == '\n'))
       {
 	*current = ' ';
       }

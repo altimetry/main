@@ -13,7 +13,7 @@ extern const QString rsrcPath;
 class QbrtMapEditor;
 class QbrtPlotEditor;
 class Qbrt2DPlotEditor;
-class CmdLineProcessor;
+class DisplayFilesProcessor;
 class CWPlot;
 
 class CBratSettings;
@@ -43,7 +43,7 @@ class QbrtMainWindow : public QMainWindow, private Ui::QbrtMainWindow
 
     // Business logic
     //
-	CmdLineProcessor *mCmdLineProcessor = nullptr;
+    DisplayFilesProcessor *mCmdLineProcessor = nullptr;
 
     // Threading Lab
     //

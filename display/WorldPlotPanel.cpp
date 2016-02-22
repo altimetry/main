@@ -84,7 +84,7 @@ CWorldPlotPanel::CWorldPlotPanel()
 }
 
 //----------------------------------------
-CWorldPlotPanel::CWorldPlotPanel( wxWindow *parent, wxWindowID id, CWorldPlotProperty* plotProperty,
+CWorldPlotPanel::CWorldPlotPanel( wxWindow *parent, wxWindowID id, CWorldPlotProperties* plotProperty,
 	const wxPoint &position, const wxSize& size, long style )
 	//: wxPanel( parent, id, position, size, style ), --> called in Create
 {
@@ -174,8 +174,8 @@ void CWorldPlotPanel::Init()
 }
 
 //----------------------------------------
-bool CWorldPlotPanel::Create( wxWindow *parent, wxWindowID id, CWorldPlotProperty* plotProperty,
-	const wxPoint &position, const wxSize& size, long style )
+bool CWorldPlotPanel::Create(wxWindow *parent, wxWindowID id, CWorldPlotProperties *plotProperty,
+    const wxPoint &position, const wxSize& size, long style )
 {
 	if ( plotProperty != NULL )
 		m_plotProperty = *plotProperty;
@@ -404,7 +404,7 @@ void CWorldPlotPanel::Update2D()
 }
 
 //----------------------------------------
-void CWorldPlotPanel::AddData(CWorldPlotData* pdata, wxProgressDialog* dlg)
+void CWorldPlotPanel::AddData(VTK_CWorldPlotCommonData* pdata, wxProgressDialog* dlg)
 {
   wxString szMsg = wxString::Format("Displaying data: %s ...", pdata->GetDataTitle().c_str());
   if (dlg != NULL)
@@ -420,7 +420,7 @@ void CWorldPlotPanel::AddData(CWorldPlotData* pdata, wxProgressDialog* dlg)
   m_plotRenderer->AddData(pdata);
 
 
-  CGeoMap* geoMap = dynamic_cast<CGeoMap*>(pdata);
+  VTK_CWorldPlotData* geoMap = dynamic_cast<VTK_CWorldPlotData*>(pdata);
   if (geoMap != NULL)
   {
     wxString textLayer = wxString::Format("%s",
@@ -446,7 +446,7 @@ void CWorldPlotPanel::AddData(CWorldPlotData* pdata, wxProgressDialog* dlg)
   }
 
   m_animationToolbar->SetMaxFrame(nFrames);
-  m_animationToolbar->SetBackgroundColour( wxColor( 0, 0, 0 ) );
+  //m_animationToolbar->SetBackgroundColour( wxColor( 0, 0, 0 ) );
 
   if (dlg != NULL)
   {
@@ -462,7 +462,7 @@ void CWorldPlotPanel::AddData(CWorldPlotData* pdata, wxProgressDialog* dlg)
 }
 
 //----------------------------------------
-CGeoMap* CWorldPlotPanel::GetCurrentLayer()
+VTK_CWorldPlotData* CWorldPlotPanel::GetCurrentLayer()
 {
   return m_plotPropertyTab->GetCurrentLayer();
 }
@@ -492,7 +492,7 @@ void CWorldPlotPanel::SetProjectionByName(const std::string& projName)
 //----------------------------------------
 void CWorldPlotPanel::SetViewParams()
 {
-  CGeoMap* geoMap = GetCurrentLayer();
+  VTK_CWorldPlotData* geoMap = GetCurrentLayer();
   if (geoMap == NULL)
   {
     return;
@@ -533,7 +533,7 @@ void CWorldPlotPanel::SetViewParams()
 //----------------------------------------
 void CWorldPlotPanel::SetProjection()
 {
-  CGeoMap* geoMap = GetCurrentLayer();
+  VTK_CWorldPlotData* geoMap = GetCurrentLayer();
   if (geoMap == NULL)
   {
     return;
@@ -1203,7 +1203,7 @@ void CWorldPlotPanel::OnContourPropChanged( CContourPropChangedEvent &event )
 {
   bool contourNeedGenerateValues = false;
 
-  CGeoMap* geoMap = GetCurrentLayer();
+  VTK_CWorldPlotData* geoMap = GetCurrentLayer();
   if (geoMap == NULL)
   {
     return;
@@ -1315,7 +1315,7 @@ void CWorldPlotPanel::SetFocusVtkWidget(vtkObject* obj, unsigned long, void*, vo
 void CWorldPlotPanel::UpdateValues()
 {
 
-  CGeoMap* geoMap = GetCurrentLayer();
+  VTK_CWorldPlotData* geoMap = GetCurrentLayer();
   if (geoMap == NULL)
   {
     return;
@@ -1358,7 +1358,7 @@ void CWorldPlotPanel::UpdateFactor(int32_t factorPercent)
 //----------------------------------------
 void CWorldPlotPanel::UpdateRadius(double radius)
 {
-  CGeoMap* geoMap = GetCurrentLayer();
+  VTK_CWorldPlotData* geoMap = GetCurrentLayer();
   if (geoMap == NULL)
   {
     return;
@@ -1380,7 +1380,7 @@ void CWorldPlotPanel::UpdateRadius(double radius)
 //----------------------------------------
 void CWorldPlotPanel::UpdateFactor(double factor)
 {
-  CGeoMap* geoMap = GetCurrentLayer();
+  VTK_CWorldPlotData* geoMap = GetCurrentLayer();
   if (geoMap == NULL)
   {
     return;
@@ -1411,7 +1411,7 @@ void CWorldPlotPanel::OnKeyframeChanged(CKeyframeEvent& event)
 //----------------------------------------
 void CWorldPlotPanel::DisplayContour(bool show)
 {
-  CGeoMap* geoMap = GetCurrentLayer();
+  VTK_CWorldPlotData* geoMap = GetCurrentLayer();
   if (geoMap == NULL)
   {
     return;
@@ -1473,7 +1473,7 @@ void CWorldPlotPanel::DisplayGridLabels(bool show)
 //----------------------------------------
 void CWorldPlotPanel::DisplaySolidColor(bool show)
 {
-  CGeoMap* geoMap = GetCurrentLayer();
+  VTK_CWorldPlotData* geoMap = GetCurrentLayer();
   if (geoMap == NULL)
   {
     return;
@@ -1550,7 +1550,7 @@ void CWorldPlotPanel::OnDisplayVectorScale(CVectorScaleChangedEvent& event)
 {
   this->SetCursor(*wxHOURGLASS_CURSOR);
 
-  CGeoVelocityMap * vmap = dynamic_cast<CGeoVelocityMap *> (GetCurrentLayer());
+  VTK_CWorldPlotVelocityData * vmap = dynamic_cast<VTK_CWorldPlotVelocityData *> (GetCurrentLayer());
   if ( vmap != NULL ) {
 
       /*vtkVelocityGlyphFilter *gFilter = vmap->GetGlyphFilter();
@@ -2457,7 +2457,7 @@ void CWorldPlotRenderer::Init()
 //----------------------------------------
 bool CWorldPlotRenderer::IsNumberOfMapsEquals(int32_t* numberOfMaps)
 {
-  CGeoMap* geoMap = NULL;
+  VTK_CWorldPlotData* geoMap = NULL;
   CObList::iterator it;
   if (numberOfMaps != NULL)
   {
@@ -2473,7 +2473,7 @@ bool CWorldPlotRenderer::IsNumberOfMapsEquals(int32_t* numberOfMaps)
 
   for (it = m_actors.begin() ; it != m_actors.end() ; it++)
   {
-    geoMap = dynamic_cast<CGeoMap*>(*it);
+    geoMap = dynamic_cast<VTK_CWorldPlotData*>(*it);
     if (geoMap != NULL)
     {
       if (nMaps < 0)
@@ -2626,7 +2626,7 @@ void CWorldPlotRenderer::SetTextActor()
 }
 
 //----------------------------------------
-void CWorldPlotRenderer::AddData( CWorldPlotData* pdata )
+void CWorldPlotRenderer::AddData( VTK_CWorldPlotCommonData* pdata )
 {
 	pdata->SetRenderer( m_vtkRend );
 
@@ -2640,13 +2640,13 @@ void CWorldPlotRenderer::AddData( CWorldPlotData* pdata )
 void CWorldPlotRenderer::ResetTextActor()
 {
 
-  CGeoMap* geoMap = NULL;
+  VTK_CWorldPlotData* geoMap = NULL;
   std::string text;
   CObList::iterator it;
 
   for (it = m_actors.begin() ; it != m_actors.end() ; it++)
   {
-    geoMap = dynamic_cast<CGeoMap*>(*it);
+    geoMap = dynamic_cast<VTK_CWorldPlotData*>(*it);
     if (geoMap != NULL)
     {
       text = geoMap->m_plotProperty.m_title;
@@ -2675,7 +2675,7 @@ int32_t CWorldPlotRenderer::CountColorBarRender()
 
   for (it = m_actors.begin() ; it != m_actors.end() ; it++)
   {
-    CWorldPlotData* pdata = dynamic_cast<CWorldPlotData*>(*it);
+    VTK_CWorldPlotCommonData* pdata = dynamic_cast<VTK_CWorldPlotCommonData*>(*it);
     if (pdata == NULL)
     {
       continue;
@@ -2711,7 +2711,7 @@ void CWorldPlotRenderer::UpdateColorBarRender(bool show)
   for (it = m_actors.rbegin() ; it != m_actors.rend() ; it++)
   //for (it = m_actors.begin() ; it != m_actors.end() ; it++)
   {
-    CGeoMap* geoMap = dynamic_cast<CGeoMap*>(*it);
+    VTK_CWorldPlotData* geoMap = dynamic_cast<VTK_CWorldPlotData*>(*it);
     if (geoMap == NULL)
     {
       continue;
@@ -2743,13 +2743,13 @@ void CWorldPlotRenderer::UpdateColorBarRender(bool show)
 //----------------------------------------
 void CWorldPlotRenderer::Update2D()
 {
-  CGeoMap* geoMap = NULL;
+  VTK_CWorldPlotData* geoMap = NULL;
 
   CObList::iterator it;
 
   for (it = m_actors.begin() ; it != m_actors.end() ; it++)
   {
-    geoMap = dynamic_cast<CGeoMap*>(*it);
+    geoMap = dynamic_cast<VTK_CWorldPlotData*>(*it);
     if (geoMap != NULL)
     {
       if (geoMap->Is2D())
@@ -2763,13 +2763,13 @@ void CWorldPlotRenderer::Update2D()
 void CWorldPlotRenderer::UpdateLOD(double midlat, double midlon, double minlat, double maxlat,
                                                 double minlon, double maxlon, double zoom)
 {
-  CGeoVelocityMap* geoMap = NULL;
+  VTK_CWorldPlotVelocityData* geoMap = NULL;
 
   CObList::iterator it;
 
   for (it = m_actors.begin() ; it != m_actors.end() ; it++)
   {
-    geoMap = dynamic_cast<CGeoVelocityMap*>(*it);
+    geoMap = dynamic_cast<VTK_CWorldPlotVelocityData*>(*it);
     if (geoMap != NULL)
     {
         double lod = 5 - log(zoom);
@@ -2805,15 +2805,15 @@ void CWorldPlotRenderer::UpdateLatLonLabels(double xmpoint, double ympoint, doub
 }
 
 //----------------------------------------
-CGeoMap* CWorldPlotRenderer::GetGeoMap()
+VTK_CWorldPlotData* CWorldPlotRenderer::GetGeoMap()
 {
-  CGeoMap* geoMap = NULL;
+  VTK_CWorldPlotData* geoMap = NULL;
 
   CObList::iterator it;
 
   for (it = m_actors.begin() ; it != m_actors.end() ; it++)
   {
-    geoMap = dynamic_cast<CGeoMap*>(*it);
+    geoMap = dynamic_cast<VTK_CWorldPlotData*>(*it);
     if (geoMap != NULL)
     {
       break;
@@ -2832,14 +2832,14 @@ void CWorldPlotRenderer::OnKeyframeChanged(CKeyframeEvent& event)
   for (it = m_actors.begin() ; it != m_actors.end() ; it++)
   {
     /*
-    CWorldPlotData* pdata = dynamic_cast<CWorldPlotData*>(*it);
+    VTK_CWorldPlotData* pdata = dynamic_cast<VTK_CWorldPlotData*>(*it);
     if (pdata == NULL)
     {
-      throw CException("ERROR in  CWorldPlotRenderer::OnKeyframeChanged : dynamic_cast<CWorldPlotData*>(*it) returns NULL pointer - "
-                   "actors std::list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
+      throw CException("ERROR in  CWorldPlotRenderer::OnKeyframeChanged : dynamic_cast<VTK_CWorldPlotData*>(*it) returns NULL pointer - "
+                   "actors std::list seems to contain objects other than those of the class VTK_CWorldPlotData", BRATHL_LOGIC_ERROR);
     }
     */
-    CGeoMap* pdata = dynamic_cast<CGeoMap*>(*it);
+    VTK_CWorldPlotData* pdata = dynamic_cast<VTK_CWorldPlotData*>(*it);
     if (pdata == NULL)
     {
       continue;
@@ -2865,24 +2865,24 @@ void CWorldPlotRenderer::SetCenterLatitude(double c)
 
   for (it = m_actors.begin() ; it != m_actors.end() ; it++)
   {
-    CWorldPlotData* pdata = dynamic_cast<CWorldPlotData*>(*it);
+    VTK_CWorldPlotCommonData* pdata = dynamic_cast<VTK_CWorldPlotCommonData*>(*it);
     if (pdata == NULL)
     {
-      throw CException("ERROR in  CWorldPlotRenderer::SetCenterLatitude : dynamic_cast<CWorldPlotData*>(pdata) returns NULL pointer - "
-                   "actors std::list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
+      throw CException("ERROR in  CWorldPlotRenderer::SetCenterLatitude : dynamic_cast<VTK_CWorldPlotData*>(pdata) returns NULL pointer - "
+                   "actors std::list seems to contain objects other than those of the class VTK_CWorldPlotData", BRATHL_LOGIC_ERROR);
     }
     pdata->SetCenterLatitude(m_cLati);
   }
 
 }
 //----------------------------------------
-void CWorldPlotRenderer::RemoveActors(CWorldPlotData* pdata)
+void CWorldPlotRenderer::RemoveActors(VTK_CWorldPlotCommonData* pdata)
 {
   RemoveActorsSolidColor(pdata);
   RemoveActorsContour(pdata);
 }
 //----------------------------------------
-void CWorldPlotRenderer::RemoveActorsSolidColor(CWorldPlotData* pdata)
+void CWorldPlotRenderer::RemoveActorsSolidColor(VTK_CWorldPlotCommonData* pdata)
 {
   if (pdata->GetVtkActor() != NULL)
   {
@@ -2890,7 +2890,7 @@ void CWorldPlotRenderer::RemoveActorsSolidColor(CWorldPlotData* pdata)
   }
 }
 //----------------------------------------
-void CWorldPlotRenderer::RemoveActorsContour(CWorldPlotData* pdata)
+void CWorldPlotRenderer::RemoveActorsContour(VTK_CWorldPlotCommonData* pdata)
 {
   if (pdata->GetVtkContourActor() != NULL)
   {
@@ -2902,7 +2902,7 @@ void CWorldPlotRenderer::RemoveActorsContour(CWorldPlotData* pdata)
   }
 }
 //----------------------------------------
-void CWorldPlotRenderer::RemoveActorsContourLabel(CWorldPlotData* pdata)
+void CWorldPlotRenderer::RemoveActorsContourLabel(VTK_CWorldPlotCommonData* pdata)
 {
   if (pdata->GetVtkContourLabelActor() != NULL)
   {
@@ -2911,14 +2911,14 @@ void CWorldPlotRenderer::RemoveActorsContourLabel(CWorldPlotData* pdata)
 
 }
 //----------------------------------------
-void CWorldPlotRenderer::AddActors(CWorldPlotData* pdata)
+void CWorldPlotRenderer::AddActors(VTK_CWorldPlotCommonData* pdata)
 {
   AddActorsSolidColor(pdata);
   AddActorsContour(pdata);
 
 }
 //----------------------------------------
-void CWorldPlotRenderer::AddActorsContour(CWorldPlotData* pdata)
+void CWorldPlotRenderer::AddActorsContour(VTK_CWorldPlotCommonData* pdata)
 {
   if (pdata->GetVtkContourActor() != NULL)
   {
@@ -2932,7 +2932,7 @@ void CWorldPlotRenderer::AddActorsContour(CWorldPlotData* pdata)
 
 }
 //----------------------------------------
-void CWorldPlotRenderer::AddActorsContourLabel(CWorldPlotData* pdata)
+void CWorldPlotRenderer::AddActorsContourLabel(VTK_CWorldPlotCommonData* pdata)
 {
   if (pdata->GetVtkContourLabelActor() != NULL)
   {
@@ -2941,7 +2941,7 @@ void CWorldPlotRenderer::AddActorsContourLabel(CWorldPlotData* pdata)
 
 }
 //----------------------------------------
-void CWorldPlotRenderer::AddActorsSolidColor(CWorldPlotData* pdata)
+void CWorldPlotRenderer::AddActorsSolidColor(VTK_CWorldPlotCommonData* pdata)
 {
   if (pdata->GetVtkActor() != NULL)
   {
@@ -2950,13 +2950,13 @@ void CWorldPlotRenderer::AddActorsSolidColor(CWorldPlotData* pdata)
 
 }
 //----------------------------------------
-void CWorldPlotRenderer::RemoveActors2D(CWorldPlotData* pdata)
+void CWorldPlotRenderer::RemoveActors2D(VTK_CWorldPlotCommonData* pdata)
 {
   RemoveActors2DSolidColor(pdata);
   RemoveActors2DContour(pdata);
 }
 //----------------------------------------
-void CWorldPlotRenderer::RemoveActors2DSolidColor(CWorldPlotData* pdata)
+void CWorldPlotRenderer::RemoveActors2DSolidColor(VTK_CWorldPlotCommonData* pdata)
 {
   if (pdata->GetVtkActor2D() != NULL)
   {
@@ -2965,7 +2965,7 @@ void CWorldPlotRenderer::RemoveActors2DSolidColor(CWorldPlotData* pdata)
 
 }
 //----------------------------------------
-void CWorldPlotRenderer::RemoveActors2DContour(CWorldPlotData* pdata)
+void CWorldPlotRenderer::RemoveActors2DContour(VTK_CWorldPlotCommonData* pdata)
 {
   if (pdata->GetVtkContourActor2D() != NULL)
   {
@@ -2978,13 +2978,13 @@ void CWorldPlotRenderer::RemoveActors2DContour(CWorldPlotData* pdata)
 
 }
 //----------------------------------------
-void CWorldPlotRenderer::AddActors2D(CWorldPlotData* pdata)
+void CWorldPlotRenderer::AddActors2D(VTK_CWorldPlotCommonData* pdata)
 {
   AddActors2DSolidColor(pdata);
   AddActors2DContour(pdata);
 }
 //----------------------------------------
-void CWorldPlotRenderer::AddActors2DContour(CWorldPlotData* pdata)
+void CWorldPlotRenderer::AddActors2DContour(VTK_CWorldPlotCommonData* pdata)
 {
   if (pdata->GetVtkContourActor2D() != NULL)
   {
@@ -2998,7 +2998,7 @@ void CWorldPlotRenderer::AddActors2DContour(CWorldPlotData* pdata)
 
 }
 //----------------------------------------
-void CWorldPlotRenderer::AddActors2DSolidColor(CWorldPlotData* pdata)
+void CWorldPlotRenderer::AddActors2DSolidColor(VTK_CWorldPlotCommonData* pdata)
 {
   if (pdata->GetVtkActor2D() != NULL)
   {
@@ -3022,11 +3022,11 @@ void CWorldPlotRenderer::SetCenterLongitude(double c)
 
   for (it = m_actors.begin() ; it != m_actors.end() ; it++)
   {
-    CWorldPlotData* pdata = dynamic_cast<CWorldPlotData*>(*it);
+    VTK_CWorldPlotCommonData* pdata = dynamic_cast<VTK_CWorldPlotCommonData*>(*it);
     if (pdata == NULL)
     {
-      throw CException("ERROR in  CWorldPlotRenderer::SetCenterLongitude : dynamic_cast<CWorldPlotData*>(pdata) returns NULL pointer - "
-                   "actors std::list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
+      throw CException("ERROR in  CWorldPlotRenderer::SetCenterLongitude : dynamic_cast<VTK_CWorldPlotCommonData*>(pdata) returns NULL pointer - "
+                   "actors std::list seems to contain objects other than those of the class VTK_CWorldPlotCommonData", BRATHL_LOGIC_ERROR);
     }
     pdata->SetCenterLongitude(m_cLong);
   }
@@ -3070,7 +3070,7 @@ void CWorldPlotRenderer::SetGlyphs(bool val)
   // Set Projection for all data
   for (it = m_actors.begin() ; it != m_actors.end() ; it++)
   {
-    CGeoVelocityMap* pdata = dynamic_cast<CGeoVelocityMap*>(*it);
+    VTK_CWorldPlotVelocityData* pdata = dynamic_cast<VTK_CWorldPlotVelocityData*>(*it);
     if (pdata != NULL)
     {
         pdata->SetIsGlyph(val);
@@ -3145,11 +3145,11 @@ void CWorldPlotRenderer::SetProjection(int32_t proj)
   // Set Projection for all data
   for (it = m_actors.begin() ; it != m_actors.end() ; it++)
   {
-    CWorldPlotData* pdata = dynamic_cast<CWorldPlotData*>(*it);
+    VTK_CWorldPlotCommonData* pdata = dynamic_cast<VTK_CWorldPlotCommonData*>(*it);
     if (pdata == NULL)
     {
-      throw CException("ERROR when std::set projection in CWorldPlotRenderer::SetProjection : dynamic_cast<CWorldPlotData*>(pdata) returns NULL pointer - "
-                   "actors std::list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
+      throw CException("ERROR when std::set projection in CWorldPlotRenderer::SetProjection : dynamic_cast<VTK_CWorldPlotCommonData*>(pdata) returns NULL pointer - "
+                   "actors std::list seems to contain objects other than those of the class VTK_CWorldPlotCommonData", BRATHL_LOGIC_ERROR);
     }
     pdata->SetProjection(proj);
   }
@@ -3229,14 +3229,14 @@ void CWorldPlotRenderer::AddActorsBackgroundToRenderer()
   CObList::iterator it;
   for (it = m_actors.begin() ; it != m_actors.end() ; it++)
   {
-    CWorldPlotData* pdata = dynamic_cast<CWorldPlotData*>(*it);
+    VTK_CWorldPlotCommonData* pdata = dynamic_cast<VTK_CWorldPlotCommonData*>(*it);
     if (pdata == NULL)
     {
-      throw CException("ERROR in CWorldPlotRenderer::AddActorsBackgroundToRenderer : dynamic_cast<CWorldPlotData*>(*it) returns NULL pointer - "
-                   "actors std::list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
+      throw CException("ERROR in CWorldPlotRenderer::AddActorsBackgroundToRenderer : dynamic_cast<VTK_CWorldPlotCommonData*>(*it) returns NULL pointer - "
+                   "actors std::list seems to contain objects other than those of the class VTK_CWorldPlotCommonData", BRATHL_LOGIC_ERROR);
     }
 
-    CGeoMap* geoMap = dynamic_cast<CGeoMap*>(pdata);
+    VTK_CWorldPlotData* geoMap = dynamic_cast<VTK_CWorldPlotData*>(pdata);
     if (geoMap == NULL)
     {
       AddActorsSolidColor(pdata);
@@ -3249,7 +3249,7 @@ void CWorldPlotRenderer::AddActorsSolidColorToRenderer()
   CObList::iterator it;
   for (it = m_actors.begin() ; it != m_actors.end() ; it++)
   {
-    CGeoMap* geoMap = dynamic_cast<CGeoMap*>(*it);
+    VTK_CWorldPlotData* geoMap = dynamic_cast<VTK_CWorldPlotData*>(*it);
     if (geoMap == NULL)
     {
       continue;
@@ -3265,7 +3265,7 @@ void CWorldPlotRenderer::AddActorsContourToRenderer()
   CObList::iterator it;
   for (it = m_actors.begin() ; it != m_actors.end() ; it++)
   {
-    CGeoMap* geoMap = dynamic_cast<CGeoMap*>(*it);
+    VTK_CWorldPlotData* geoMap = dynamic_cast<VTK_CWorldPlotData*>(*it);
     if (geoMap == NULL)
     {
       continue;
@@ -3283,11 +3283,11 @@ void CWorldPlotRenderer::RemoveActorsFromRenderer()
   CObList::iterator it;
   for (it = m_actors.begin() ; it != m_actors.end() ; it++)
   {
-    CWorldPlotData* pdata = dynamic_cast<CWorldPlotData*>(*it);
+    VTK_CWorldPlotCommonData* pdata = dynamic_cast<VTK_CWorldPlotCommonData*>(*it);
     if (pdata == NULL)
     {
-      throw CException("ERROR when cleaning in CWorldPlotRenderer::RemoveActorsFromRenderer : dynamic_cast<CWorldPlotData*>(pdata) returns NULL pointer - "
-                   "actors std::list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
+      throw CException("ERROR when cleaning in CWorldPlotRenderer::RemoveActorsFromRenderer : dynamic_cast<VTK_CWorldPlotCommonData*>(pdata) returns NULL pointer - "
+                   "actors std::list seems to contain objects other than those of the class VTK_CWorldPlotCommonData", BRATHL_LOGIC_ERROR);
     }
     RemoveActors(pdata);
   }
@@ -3312,14 +3312,14 @@ void CWorldPlotRenderer::AddActorsBackground2DToRenderer()
   CObList::iterator it;
   for (it = m_actors.begin() ; it != m_actors.end() ; it++)
   {
-    CWorldPlotData* pdata = dynamic_cast<CWorldPlotData*>(*it);
+    VTK_CWorldPlotCommonData* pdata = dynamic_cast<VTK_CWorldPlotCommonData*>(*it);
     if (pdata == NULL)
     {
-      throw CException("ERROR in CWorldPlotRenderer::AddActors2DToRenderer : dynamic_cast<CWorldPlotData*>(*it) returns NULL pointer - "
-                   "actors std::list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
+      throw CException("ERROR in CWorldPlotRenderer::AddActors2DToRenderer : dynamic_cast<VTK_CWorldPlotCommonData*>(*it) returns NULL pointer - "
+                   "actors std::list seems to contain objects other than those of the class VTK_CWorldPlotCommonData", BRATHL_LOGIC_ERROR);
     }
 
-    CGeoMap* geoMap = dynamic_cast<CGeoMap*>(pdata);
+    VTK_CWorldPlotData* geoMap = dynamic_cast<VTK_CWorldPlotData*>(pdata);
     if (geoMap == NULL)
     {
       AddActors2DSolidColor(pdata);
@@ -3332,7 +3332,7 @@ void CWorldPlotRenderer::AddActorsSolidColor2DToRenderer()
   CObList::iterator it;
   for (it = m_actors.begin() ; it != m_actors.end() ; it++)
   {
-    CGeoMap* geoMap = dynamic_cast<CGeoMap*>(*it);
+    VTK_CWorldPlotData* geoMap = dynamic_cast<VTK_CWorldPlotData*>(*it);
     if (geoMap == NULL)
     {
       continue;
@@ -3349,7 +3349,7 @@ void CWorldPlotRenderer::AddActorsContour2DToRenderer()
   CObList::iterator it;
   for (it = m_actors.begin() ; it != m_actors.end() ; it++)
   {
-    CGeoMap* geoMap = dynamic_cast<CGeoMap*>(*it);
+    VTK_CWorldPlotData* geoMap = dynamic_cast<VTK_CWorldPlotData*>(*it);
     if (geoMap == NULL)
     {
       continue;
@@ -3367,11 +3367,11 @@ void CWorldPlotRenderer::RemoveActors2DFromRenderer()
   CObList::iterator it;
   for (it = m_actors.begin() ; it != m_actors.end() ; it++)
   {
-    CWorldPlotData* pdata = dynamic_cast<CWorldPlotData*>(*it);
+    VTK_CWorldPlotCommonData* pdata = dynamic_cast<VTK_CWorldPlotCommonData*>(*it);
     if (pdata == NULL)
     {
-      throw CException("ERROR when cleaning in CWorldPlotRenderer::RemoveActors2DFromRenderer : dynamic_cast<CWorldPlotData*>(pdata) returns NULL pointer - "
-                   "actors std::list seems to contain objects other than those of the class CWorldPlotData", BRATHL_LOGIC_ERROR);
+      throw CException("ERROR when cleaning in CWorldPlotRenderer::RemoveActors2DFromRenderer : dynamic_cast<VTK_CWorldPlotCommonData*>(pdata) returns NULL pointer - "
+                   "actors std::list seems to contain objects other than those of the class VTK_CWorldPlotCommonData", BRATHL_LOGIC_ERROR);
     }
     RemoveActors2D(pdata);
   }

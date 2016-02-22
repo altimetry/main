@@ -34,7 +34,7 @@
 //#include "BratDisplay_wdr.h"
 
 #include "WorldPlotPanel.h"
-#include "PlotData/WorldPlotData.h"
+#include "new-gui/brat/DataModels/PlotData/WorldPlotData.h"
 #include "LUTFrame.h"
 #include "ContourPropFrame.h"
 #include "WindowHandler.h"
@@ -87,7 +87,7 @@ public:
   CWorldPlotFrame();
   CWorldPlotFrame( wxWindow *parent, wxWindowID id, 
                    const wxString &title = "",
-                   CWorldPlotProperty* plotProperty = NULL,
+                   CWorldPlotProperties* plotProperty = NULL,
                    const wxPoint& pos = wxDefaultPosition,
                    const wxSize& size = CWindowHandler::GetDefaultSize(),
                    long style = wxDEFAULT_FRAME_STYLE );
@@ -96,7 +96,7 @@ public:
    
   bool Create( wxWindow *parent, wxWindowID id, 
                    const wxString &title = "",
-                   CWorldPlotProperty* plotProperty = NULL,
+                   CWorldPlotProperties* plotProperty = NULL,
                    const wxPoint& pos = wxDefaultPosition,
                    const wxSize& size = CWindowHandler::GetDefaultSize(),
                    long style = wxDEFAULT_FRAME_STYLE );
@@ -104,7 +104,7 @@ public:
  
   CWorldPlotPanel* GetPlotPlanel() {return m_plotPanel;};
 
-  void AddData(CWorldPlotData* data);
+  void AddData(VTK_CWorldPlotCommonData* data);
 
   void SetCenterLatitude(double c);
   void SetCenterLongitude(double c);
@@ -120,7 +120,7 @@ public:
 private:
 
   CWorldPlotPanel* m_plotPanel;
-  CWorldPlotProperty m_plotProperty;
+  CWorldPlotProperties m_plotProperty;
   
   bool m_multiFrame;
   bool m_hasClut;

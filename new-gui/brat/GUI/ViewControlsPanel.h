@@ -30,6 +30,7 @@ class CColorButton : public QPushButton
 
     // instance data members
     QColor      mCurrentColor = QColor();
+    QWidget     *mColorDisplay = nullptr;
 
 
 public:
@@ -72,7 +73,6 @@ class CAxisTab : public QWidget
     // instance data members
 
     QCheckBox    *mLogScaleCheck = nullptr;
-    CColorButton *mAxisColorButton = nullptr;
 
 	//construction / destruction
 
@@ -101,6 +101,11 @@ protected slots:
 /////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
 
+
+////////////////////////////////////////
+//			General Tab					
+////////////////////////////////////////
+
 struct CViewControlsPanelGeneral : public CControlsPanel
 {
 #if defined (__APPLE__)
@@ -120,21 +125,39 @@ struct CViewControlsPanelGeneral : public CControlsPanel
 
     // instance data members
 
-public:
-	QComboBox *mSelectDataset   = nullptr;
-    QComboBox *mApplyFilter     = nullptr;
-    QComboBox *mSelectOperation = nullptr;
+protected:
+	const std::vector< DisplayFilesProcessor* >	&mCmdLineProcessors;
 
-    QComboBox *mOpenAplot  = nullptr;
+//		QComboBox *mSelectDataset   = nullptr;
+//		QComboBox *mApplyFilter     = nullptr;
+//		QComboBox *mSelectOperation = nullptr;
 
+	QPushButton *mNewPlot = nullptr;
+
+	QPushButton *mRunPlot = nullptr;
+    QComboBox *mOpenAplot = nullptr;
+
+	void Wire();
 public:
-    CViewControlsPanelGeneral( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+    CViewControlsPanelGeneral( const std::vector< DisplayFilesProcessor* > &cmd_line_processors, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
 	virtual ~CViewControlsPanelGeneral()
 	{}
+
+signals:
+	void NewButtonClicked();
+	void CurrentDisplayIndexChanged( int index );
+	void RunButtonClicked( int index );
+
+public slots:
+	void RunButtonClicked();
 };
 
 
+
+////////////////////////////////////////
+//			Plots Tab					
+////////////////////////////////////////
 
 
 struct CViewControlsPanelPlots : public CControlsPanel
@@ -178,6 +201,11 @@ public:
 /////////////////////////////////////////////////////////////////////////////////////
 
 
+////////////////////////////////////////
+//			Curve Edit/Data Tab					
+////////////////////////////////////////
+
+
 struct CPlotControlsPanelEdit : public CControlsPanel
 {
 #if defined (__APPLE__)
@@ -216,6 +244,11 @@ public:
 
 
 
+
+////////////////////////////////////////
+//		Curve Options Tab					
+////////////////////////////////////////
+
 struct CPlotControlsPanelCurveOptions : public CControlsPanel
 {
 #if defined (__APPLE__)
@@ -241,7 +274,10 @@ struct CPlotControlsPanelCurveOptions : public CControlsPanel
     CColorButton *mPointColorButton = nullptr;
 
     QComboBox *mStipplePattern = nullptr;
-    QComboBox *mPointGlyph     = nullptr;
+    QComboBox *mPointGlyph = nullptr;
+
+	QGroupBox *mLineOptions = nullptr;
+	QGroupBox *mPointOptions = nullptr;
 
 	//construction / destruction
 
@@ -256,11 +292,22 @@ public:
 
 
     // operations
-protected slots:
 
+signals:
+	void LineOptionsChecked( bool checked );
+	void PointOptionsChecked( bool checked );
+
+
+protected slots:
+	void HandleLineOptionsChecked( bool checked );
+	void HandlePointOptionsChecked( bool checked );
 };
 
 
+
+////////////////////////////////////////
+//		Axis Options Tab					
+////////////////////////////////////////
 
 struct CPlotControlsPanelAxisOptions : public CControlsPanel
 {
@@ -311,6 +358,11 @@ signals:
 /////////////////////////////////////////////////////////////////////////////////////
 
 
+////////////////////////////////////////
+//			Map Edit Tab					
+////////////////////////////////////////
+
+
 struct CMapControlsPanelEdit : public CControlsPanel
 {
 #if defined (__APPLE__)
@@ -340,6 +392,11 @@ public:
 	{}
 };
 
+
+
+////////////////////////////////////////
+//		Map Options Tab
+////////////////////////////////////////
 
 
 struct CMapControlsPanelOptions : public CControlsPanel

@@ -28,7 +28,7 @@
   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 =========================================================================*/
-#include "PlotData/MapProjection.h"
+#include "new-gui/brat/DataModels/PlotData/MapProjection.h"
 
 
 #include "vtkActor2D.h"

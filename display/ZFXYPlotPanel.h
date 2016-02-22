@@ -69,7 +69,7 @@ using namespace brathl;
 #include "vtkPolyDataMapper2D.h"
 
 #include "AnimationToolbar.h"
-#include "PlotData/ZFXYPlotData.h"
+#include "new-gui/brat/DataModels/PlotData/ZFXYPlotData.h"
 #include "ZFXYPlotPropertyPanel.h"
 #include "LUTPanel.h"
 #include "ZFXYContourPropFrame.h"
@@ -100,7 +100,7 @@ public:
   // constructors and destructors
   CZFXYPlotPanel();
   CZFXYPlotPanel(wxWindow *parent, wxWindowID id = -1,
-                  CZFXYPlotProperty* plotProperty = NULL,
+                  CZFXYPlotProperties* plotProperty = NULL,
                   const wxPoint& pos = wxDefaultPosition,
                   const wxSize& size = wxDefaultSize,
                   long style = wxTAB_TRAVERSAL | wxNO_BORDER );
@@ -129,14 +129,14 @@ public:
 
 
   bool Create(wxWindow *parent, wxWindowID id = -1,
-              CZFXYPlotProperty* plotProperty = NULL,
+              CZFXYPlotProperties* plotProperty = NULL,
               const wxPoint& pos = wxDefaultPosition,
               const wxSize& size = wxDefaultSize,
               long style = wxTAB_TRAVERSAL | wxNO_BORDER );
 
   virtual bool Destroy();
 
-  CZFXYPlotData* GetCurrentLayer();
+  VTK_CZFXYPlotData* GetCurrentLayer();
   bool IsNumberOfMapsEquals(int32_t* numberOfMaps = NULL);
 
 
@@ -171,7 +171,7 @@ public:
   //void SetCenterLatitude(double c);
   //void SetCenterLongitude(double c);
 
-  void AddData(CZFXYPlotData* pdata, wxProgressDialog* dlg = NULL);
+  void AddData(VTK_CZFXYPlotData* pdata, wxProgressDialog* dlg = NULL);
 
   void LutChanged( CLutChangedEvent &event );
   void OnContourPropChanged( CZFXYContourPropChangedEvent &event );
@@ -260,7 +260,7 @@ public:
 
   CObList m_zfxyPlotData;
 
-  CZFXYPlotProperty m_plotProperty;
+  CZFXYPlotProperties m_plotProperty;
 
   static double m_percentSizeScalarBar;
 
@@ -289,7 +289,7 @@ private:
 
   //CZFXYPlotRenderer* m_plotRenderer;
 
-  CZFXYPlotData* m_plotData;
+  VTK_CZFXYPlotData* m_plotData;
 
   //vtkInteractorStyleZFXYPlot* m_style2D;
   //vtkInteractorStyle* m_style2D;

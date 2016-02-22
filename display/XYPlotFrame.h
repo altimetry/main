@@ -34,7 +34,7 @@
 #include "BratDisplay_wdr.h"
 
 #include "XYPlotPanel.h"
-#include "PlotData/XYPlotData.h"
+#include "PlotData/XYPlotData_vtk.h"
 #include "WindowHandler.h"
 
 // WDR: class declarations
@@ -64,10 +64,10 @@ public:
                    long style = wxDEFAULT_FRAME_STYLE );
   bool Destroy();
 
-  void AddData(CXYPlotData* data);
+  void AddData(VTK_CXYPlotData* data);
 
   CXYPlotPanel* GetPlotPlanel() {return m_plotPanel;};
-  CXYPlotProperty* GetPlotProperty(int32_t index = 0);
+  CXYPlotProperties* GetPlotProperty(int32_t index = 0);
 
   void ShowPropertyPanel();
   void ShowPropertyPanel(bool showIt);

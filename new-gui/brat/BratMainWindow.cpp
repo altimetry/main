@@ -8,11 +8,14 @@
 #include "new-gui/Common/ConfigurationKeywords.h"
 
 #include "DataModels/Workspaces/Workspace.h"
+#include "DataModels/DisplayFilesProcessor.h"
 
 #include "Views/TextWidget.h"
 
 #include "GUI/TabbedDock.h"
 #include "GUI/ControlsPanel.h"
+#include "GUI/DatasetBrowserControls.h"
+#include "GUI/DatasetFilterControls.h"
 #include "GUI/ActionsTable.h"
 #include "GUI/WorkspaceDialog.h"
 #include "GUI/WorkspaceElementsDialog.h"
@@ -171,7 +174,7 @@ void CBratMainWindow::CreateWorkingDock()
 {
 	LOG_TRACE( "Starting working dock (controls panel) construction..." );
 
-	mMainWorkingDock = new CTabbedDock( "Main Working Dock", this );
+	mMainWorkingDock = new CWorkspaceTabbedDock( "Main Working Dock", this );
 	mMainWorkingDock->setAllowedAreas( Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea );	//mMainWorkingDock->setMaximumWidth( max_main_dock_width );
 	addDockWidget( Qt::LeftDockWidgetArea, mMainWorkingDock, Qt::Vertical );
 
@@ -184,10 +187,12 @@ void CBratMainWindow::CreateWorkingDock()
 	mMainWorkingDock->SetTabToolTip( tab, "Dataset filter" );
 	connect( this, SIGNAL( WorkspaceChanged( CWorkspaceDataset* ) ), WorkingPanel< eFilter >(), SLOT( WorkspaceChanged( CWorkspaceDataset* ) ) );
 
-	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eOperations ), "Operations" );	assert( mMainWorkingDock->TabIndex( tab ) == eOperations );
+	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eOperations ), "Operation" );	assert( mMainWorkingDock->TabIndex( tab ) == eOperations );
 	mMainWorkingDock->SetTabToolTip( tab, "Quick or advanced operations"  );
 	connect( this, SIGNAL( WorkspaceChanged( CWorkspaceOperation* ) ), WorkingPanel< eOperations >(), SLOT( WorkspaceChanged( CWorkspaceOperation* ) ) );
 	connect( this, SIGNAL( WorkspaceChanged( CWorkspaceDisplay* ) ), WorkingPanel< eOperations >(), SLOT( WorkspaceChanged( CWorkspaceDisplay* ) ) );
+
+	connect( WorkingPanel< eDataset >(), SIGNAL( FileChanged( QString ) ), WorkingPanel< eFilter >(), SLOT( FileChanged( const QString& ) ) );
 
 	LOG_TRACE( "Finished working dock construction." );
 }
@@ -298,6 +303,13 @@ void CBratMainWindow::ProcessMenu()
 		throw e;
 	}
 
+
+    // mMainToolsToolBar: Map actions
+    //
+	mManager->Map()->InsertMapSelectionActions( mMainToolsToolBar, action_Graphic_Settings, true );
+	mManager->Map()->InsertGridActions( mMainToolsToolBar, action_Graphic_Settings, false );
+
+
     // Menu View / ToolBars
     //
 	if ( !menu_View->isEmpty() )
@@ -317,7 +329,7 @@ void CBratMainWindow::ProcessMenu()
     // Global Wiring
     //
     connect( menu_Window, SIGNAL(aboutToShow()), this, SLOT(UpdateWindowMenu()) );
-	connect( this, SIGNAL( WorkspaceChanged( const CModel* ) ), this, SLOT( UpdateWorkspaceUI( const CModel* ) ) );
+	connect( this, SIGNAL( WorkspaceChanged( const CModel* ) ), this, SLOT( WorkspaceChangedUpdateUI( const CModel* ) ) );
 
 #ifndef QT_NO_CLIPBOARD
     connect( QApplication::clipboard(), SIGNAL(dataChanged()), this, SLOT(clipboardDataChanged()) );
@@ -340,15 +352,8 @@ void CBratMainWindow::FillStatusBar()
 
 	// Add a panel to the status bar for the scale, coords and progress
 	// And also rendering suppression checkbox
-	mProgressBar = new QProgressBar( statusBar() );
-	mProgressBar->setObjectName( "mProgressBar" );
-	mProgressBar->setMaximumWidth( 100 );
-	//mProgressBar->hide();
-	mProgressBar->setWhatsThis( tr( "Progress bar that displays the status of time-intensive operations" ) );
-	statusBar()->addPermanentWidget( mProgressBar, 1 );
-
-	connect( mManager->Map(), SIGNAL( renderStarting() ), this, SLOT( CanvasRefreshStarted() ) );
-	connect( mManager->Map(), SIGNAL( mapCanvasRefreshed() ), this, SLOT( CanvasRefreshFinished() ) );
+	//
+	mManager->Map()->InsertStatusBarMapWidgets( statusBar(), 0 );
 
 	FillStatusBarExperimental();
 
@@ -376,11 +381,13 @@ void CBratMainWindow::FillStatusBar()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-CBratMainWindow::CBratMainWindow( CBratApplication &a ) 
+CBratMainWindow::CBratMainWindow( CBratApplication &app ) 
 
 	: QMainWindow( nullptr)
 
-	, mSettings( a.Settings() )
+	, mApp( app )
+
+	, mSettings( mApp.Settings() )
 
 	, mModel( CModel::CreateInstance( mSettings.BratPaths() ) )
 
@@ -390,7 +397,7 @@ CBratMainWindow::CBratMainWindow( CBratApplication &a )
 	assert__( !smInstance );
     assert__( mSettings.BratPaths().IsValid()==true );
 
-	connect( this, SIGNAL( SettingsUpdated() ), &a, SLOT( UpdateSettings() ) );
+	connect( this, SIGNAL( SettingsUpdated() ), &mApp, SLOT( UpdateSettings() ) );
 
     CMapWidget::SetQGISDirectories(
                 mSettings.BratPaths().mQgisPluginsDir,
@@ -405,6 +412,7 @@ CBratMainWindow::CBratMainWindow( CBratApplication &a )
     setWindowTitle( makeWindowTitle( windowTitle() ) );     //set title sensitive to doc (un)modifications
     mMainToolBar->setIconSize({icon_size,icon_size});
     mMainToolsToolBar->setIconSize({icon_size,icon_size});
+
 
     // Settings from persistence
     //
@@ -472,7 +480,12 @@ CBratMainWindow::CBratMainWindow( CBratApplication &a )
 
     // Load command line or user settings referenced files 
     //
-    QTimer::singleShot( 0, this, SLOT( LoadCmdLineFiles() ) );
+	// Let any exceptions occurred while initializing leak to main and terminate,
+	//	unless locally decided otherwise;
+	// LeakExceptions is set to false by LoadCmdLineFiles
+	//
+	mApp.LeakExceptions( true );	
+    QTimer::singleShot( 0, this, SLOT( LoadCmdLineFiles() ) );		//TODO with a splash screen, initializing with single shot becomes unnecessary and the flicker of main window opening and closing would be avoided
 
 	LOG_TRACE( "Finished main window construction." );
 }
@@ -495,9 +508,10 @@ CBratMainWindow::TabType< INDEX >* CBratMainWindow::WorkingPanel()
 
 
 
-
 void CBratMainWindow::LoadCmdLineFiles()
 {
+	//lambdas
+
     auto compute_last_page_reached = [this]() -> ETabName
     {
         //  from BratGui.h
@@ -531,57 +545,147 @@ void CBratMainWindow::LoadCmdLineFiles()
         return tab;
     };
 
-	// TODO decide here if (when to) process the command line or the 
-	//	last saved workspace
 
-	//////////////////////////////////////
-	//	if ( Load Last Workspace ) then :
-	//////////////////////////////////////
+	// function body
 
-	if ( !mSettings.mLoadLastWorkspaceAtStartUp )
-		DoEmptyWorkspace();
+	LOG_TRACE( "Starting command line arguments parse." );			assert__( !mOperatingInDisplayMode );
+	
+	mApp.LeakExceptions( false );	//reset to normal behavior; if initialization crashes this has no effect anyway
+
+    QStringList args = QCoreApplication::arguments();
+    args.removeFirst();
+	QString wkspc_dir;
+	if ( !args.empty() )
+	{
+		wkspc_dir = args[ 0 ];
+		mOperatingInDisplayMode = !IsDir( wkspc_dir );	//no workspace, but there are command line arguments: let the old BratDisplay ghost take the command
+	}
+
+	if ( mOperatingInDisplayMode )
+	{
+		LOG_TRACE( "Starting in simple display mode." );
+
+		if ( StartDisplayMode() )
+			LOG_TRACE( "Successfully started in simple display mode." );
+	}
 	else
 	{
-		try {
-			if ( !OpenWorkspace( mSettings.m_lastWksPath.c_str() ) )
+		// try to find out which workspace to load
+		//	- if one was passed in the command line, it takes precedence over the mLoadLastWorkspaceAtStartUp option
+		//	- if none was passed and LoadLastWorkspaceAtStartUp is false, invalidate the workspace string
+		//
+		if ( wkspc_dir.isEmpty() )
+		{
+			if ( mSettings.mLoadLastWorkspaceAtStartUp )
 			{
-				SimpleWarnBox( "Unable to load last used workspace located in '" + mSettings.m_lastWksPath + "' " );
+				wkspc_dir = mSettings.m_lastWksPath.c_str();
 			}
 			else
-			if ( !mSettings.m_lastWksPath.empty() )
+				wkspc_dir.clear();
+		}
+
+		if ( wkspc_dir.isEmpty() )
+		{
+			LOG_TRACE( "No workspace required, starting without one." );
+
+			DoNoWorkspace();	//no workspace given and the user does not want to LoadLastWorkspaceAtStartUp
+		}
+		else
+		{
+			// let any exceptions leak to main
+			//	- on failure other than exception, OpenWorkspace makes DoNoWorkspace
+
+			if ( !OpenWorkspace( q2a( wkspc_dir ) ) )
 			{
-				//GotoLastPageReached();
+				SimpleWarnBox( "Unable to load the required workspace located in '" + wkspc_dir + "' " );
+			}
+			else
+			{
+				//v3: GotoLastPageReached();
 
 				mMainWorkingDock->SelectTab( compute_last_page_reached() );
 				WorkingPanel<eOperations>()->SetAdvancedMode( mSettings.mAdvancedOperations );
 			}
 		}
-		catch ( const CException &e )
-		{
-			SimpleWarnBox( e.what() );
-		}
 	}
 
-    return;
+	LOG_TRACE( "Finished command line arguments processing." );
+}
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+#include "new-gui/brat/DataModels/DisplayFilesProcessor.h"
+#include "new-gui/brat/DataModels/PlotData/ZFXYPlot.h"
+#include "new-gui/brat/DataModels/PlotData/XYPlot.h"
+#include "new-gui/brat/DataModels/PlotData/WorldPlot.h"
 
+void CBratMainWindow::StopDisplayMode()
+{
+	assert__( mOperatingInDisplayMode );
 
+	CActionInfo::TriggerAction( eAction_Exit );
+}
+
+bool CBratMainWindow::StartDisplayMode()
+{
     QStringList args = QCoreApplication::arguments();
-    args.removeFirst();
-    if ( !args.empty() && args[0] == "m" )
-        args.removeFirst();
-	//femmTODO: uncomment or review appropriate actions with cmd line passed files
-	if ( args.isEmpty() )
+	DoNoWorkspace();
+	setVisible( false );
+	DisplayFilesProcessor p;
+	if ( p.Process( args ) )
 	{
-		on_action_New_triggered();
-		//mdiArea->activateNextSubWindow();
-	}
-    else
-        foreach (QString arg, args)
-            OpenWorkspace( q2a( arg ) );
+		std::vector< CAbstractViewEditor* > editors;
 
-    //InitialUpdateActions();
+		connect( mManager, SIGNAL( AllSubWindowsClosed() ), this, SLOT( StopDisplayMode() ) );
+
+		auto &plots = p.plots();
+		if ( p.isZFLatLon() )		// =================================== WorldPlot()
+		{
+			for ( auto &plot : plots )
+			{
+				CWPlot* wplot = dynamic_cast<CWPlot*>( plot );
+				if ( wplot == nullptr )
+					continue;
+
+				editors.push_back( new CMapEditor( &p, wplot, this ) );
+			}
+		}
+		else if ( p.isYFX() )		// =================================== XYPlot();
+		{
+			for ( auto &plot : plots )
+			{
+				CPlot* yfxplot = dynamic_cast<CPlot*>( plot );
+				if ( yfxplot == nullptr )
+					continue;
+
+				editors.push_back( new CPlotEditor( nullptr, &p, yfxplot, this ) );
+			}
+		}
+		else if ( p.isZFXY() )		// =================================== ZFXYPlot();
+		{
+			for ( auto &plot : plots )
+			{
+				CZFXYPlot* zfxyplot = dynamic_cast<CZFXYPlot*>( plot );
+				if ( zfxyplot == nullptr )
+					continue;
+
+				editors.push_back( new CPlotEditor( nullptr, &p, zfxyplot, this ) );
+			}
+		}
+		else
+		{
+			CException e( "CBratDisplayApp::OnInit - Only World Plot Data, XY Plot Data and ZFXY Plot Data are implemented", BRATHL_UNIMPLEMENT_ERROR );
+			LOG_TRACE( e.what() );
+			throw e;
+		}
+
+		for ( auto *editor : editors )
+		{
+			auto subWindow = mManager->AddSubWindow( editor );
+			subWindow->show();
+		}
+		return true;
+	}
+
+	return false;
 }
 
 
@@ -647,9 +751,6 @@ CBratMainWindow::~CBratMainWindow()
 	assert__( smInstance );
 
 	smInstance = nullptr;
-
-	delete mMainWorkingDock;
-	delete mOutputDock;
 }
 
 
@@ -700,11 +801,12 @@ void CBratMainWindow::ResetWorkspace()
 //                      WORKSPACE ACTIONS
 /////////////////////////////////////////////////////////////////////////
 
-bool CBratMainWindow::DoEmptyWorkspace()
+bool CBratMainWindow::DoNoWorkspace()
 {
 	mModel.Reset();
 	ResetWorkspace();
 	EnableCtrlWorkspace();
+	mManager->CloseAllSubWindows();
 	setWindowTitle( makeWindowTitle( QString() ) );
 	EmitWorkspaceChanged();
 	return true;
@@ -742,11 +844,11 @@ void CBratMainWindow::SetCurrentWorkspace( const CWorkspace *wks )
 
 bool CBratMainWindow::OpenWorkspace( const std::string &path )
 {
-	//return DoEmptyWorkspace();		// TODO DELETE THIS AFTER DEBUGGING
+	//return DoNoWorkspace();		// TODO DELETE THIS AFTER DEBUGGING
 
 	if ( path.empty() )
 	{
-		DoEmptyWorkspace();
+		DoNoWorkspace();
 	}
 	else
 	{
@@ -757,7 +859,7 @@ bool CBratMainWindow::OpenWorkspace( const std::string &path )
 			assert__( !wks );
 
 			SimpleWarnBox( error_msg );
-			DoEmptyWorkspace();
+			DoNoWorkspace();
 			return false;
 		}
 
@@ -799,6 +901,13 @@ void CBratMainWindow::on_action_Open_triggered()
 		last_path = t2q( dlg.mPath );
 		OpenWorkspace( dlg.mPath );
 	}
+}
+
+
+
+void CBratMainWindow::on_action_Close_Workspace_triggered()
+{
+	DoNoWorkspace();
 }
 
 
@@ -1161,52 +1270,6 @@ void CBratMainWindow::on_action_Test_triggered()
 /////////////////////////////////////////////////////////////////////////
 
 
-void CBratMainWindow::ShowProgress( int theProgress, int theTotalSteps )
-{
-	if ( theProgress == theTotalSteps )
-	{
-		mProgressBar->reset();
-		mProgressBar->hide();
-	}
-	else
-	{
-		//only call show if not already hidden to reduce flicker
-		if ( !mProgressBar->isVisible() )
-		{
-			mProgressBar->show();
-		}
-		mProgressBar->setMaximum( theTotalSteps );
-		mProgressBar->setValue( theProgress );
-
-		if ( mProgressBar->maximum() == 0 )
-		{
-			// for busy indicator (when minimum equals to maximum) the oxygen Qt style (used in KDE)
-			// has some issues and does not start busy indicator animation. This is an ugly fix
-			// that forces creation of a temporary progress bar that somehow resumes the animations.
-			// Caution: looking at the code below may introduce mild pain in stomach.
-			if ( strcmp( QApplication::style()->metaObject()->className(), "Oxygen::Style" ) == 0 )
-			{
-				QProgressBar pb;
-				pb.setAttribute( Qt::WA_DontShowOnScreen ); // no visual annoyance
-				pb.setMaximum( 0 );
-				pb.show();
-				qApp->processEvents();
-			}
-		}
-	}
-}
-
-
-void CBratMainWindow::CanvasRefreshStarted()
-{
-	ShowProgress( -1, 0 ); // trick to make progress bar show busy indicator
-}
-
-void CBratMainWindow::CanvasRefreshFinished()
-{
-	ShowProgress( 0, 0 ); // stop the busy indicator
-}
-
 
 
 
@@ -1217,7 +1280,7 @@ void CBratMainWindow::CanvasRefreshFinished()
 /////////////////////////////////////////////////////////////////////////
 
 
-void CBratMainWindow::UpdateWorkspaceUI( const CModel *model )
+void CBratMainWindow::WorkspaceChangedUpdateUI( const CModel *model )
 {
 	Q_UNUSED( model );
 

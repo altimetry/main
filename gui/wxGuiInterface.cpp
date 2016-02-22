@@ -8,7 +8,7 @@
 #include "new-gui/QtInterface.h"
 #include "new-gui/Common/ConfigurationKeywords.h"
 #include "new-gui/brat/DataModels/Workspaces/Dataset.h"
-#include "new-gui/brat/Display/MapTypeDisp.h"
+#include "new-gui/brat/DataModels/MapTypeDisp.h"
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////

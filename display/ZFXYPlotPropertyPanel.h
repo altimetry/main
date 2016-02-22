@@ -41,8 +41,8 @@
 
 #include "BratDisplay_wdr.h"
 
-#include "PlotData/ZFXYPlotData.h"
-#include "PlotData/MapProjection.h"
+#include "new-gui/brat/DataModels/PlotData/ZFXYPlotData.h"
+#include "new-gui/brat/DataModels/PlotData/MapProjection.h"
 #include "LabeledTextCtrl.h"
 #include "LUTPanel.h"
 #include "ZFXYContourPropFrame.h"
@@ -458,7 +458,7 @@ public:
   // constructors and destructors
   CZFXYPlotPropertyPanel();
   
-  CZFXYPlotPropertyPanel( wxWindow *parent, vtkZFXYPlotActor* plotter, CZFXYPlotData* plotData, wxVTKRenderWindowInteractor* vtkWidget,
+  CZFXYPlotPropertyPanel( wxWindow *parent, vtkZFXYPlotActor* plotter, VTK_CZFXYPlotData* plotData, wxVTKRenderWindowInteractor* vtkWidget,
       wxWindowID id = -1,
       const wxPoint& pos = wxDefaultPosition,
       const wxSize& size = wxDefaultSize,
@@ -466,7 +466,7 @@ public:
   
   virtual ~CZFXYPlotPropertyPanel();
 
-  bool Create( wxWindow *parent, vtkZFXYPlotActor* plotter, CZFXYPlotData* plotData, wxVTKRenderWindowInteractor* vtkWidget,
+  bool Create( wxWindow *parent, vtkZFXYPlotActor* plotter, VTK_CZFXYPlotData* plotData, wxVTKRenderWindowInteractor* vtkWidget,
       wxWindowID id = -1,
       const wxPoint& pos = wxDefaultPosition,
       const wxSize& size = wxDefaultSize,
@@ -478,10 +478,10 @@ public:
 
 //    wxChoice* GetLayerChoice() {return &m_layerChoice;};
   
-  CZFXYPlotData* GetCurrentLayer();
+  VTK_CZFXYPlotData* GetCurrentLayer();
   
   void SetCurrentLayer(int32_t index);
-  void SetCurrentLayer(CZFXYPlotData* geoMap);
+  void SetCurrentLayer(VTK_CZFXYPlotData* geoMap);
 
   void UpdateValues();
   
@@ -589,7 +589,7 @@ private:
   wxVTKRenderWindowInteractor* m_vtkWidget;
   vtkZFXYPlotActor* m_plotter;
 
-  CZFXYPlotData* m_plotData;
+  VTK_CZFXYPlotData* m_plotData;
 
   double m_min;
   double m_max;

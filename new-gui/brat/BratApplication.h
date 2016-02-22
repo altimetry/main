@@ -18,38 +18,22 @@
 #include "BratSettings.h"
 
 
-////  - empirical assumption (without this crashes): a forward like this is
-////  necessary not to crash on delete because we have a data member of this
-////  type in our Q_OBJECT class (and it seems it will be automatically
-////  deleted)
-////
-QT_BEGIN_NAMESPACE
-//class QString;
-class QSettings;
-QT_END_NAMESPACE
-
-
 using namespace brathl;
-
-namespace brathl {
-
-	class CInternalFiles;
-	class CExternalFilesNetCDF;
-	class CInternalFilesYFX;
-	class CInternalFilesZFXY;
-}
-
-class CWorldPlotProperty;
-class CZFXYPlotProperty;
-class CXYPlotProperty;
-class CWPlot;
-class CWorkspace;
 
 
 
 class CBratApplication : public QgsApplication
 {
-	Q_OBJECT
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+    Q_OBJECT;
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
 
 
 	//////////////////////////////////////
@@ -67,6 +51,9 @@ class CBratApplication : public QgsApplication
 	static bool smPrologueCalled;					//initialized in Prologue
 
 	static CApplicationPaths *smApplicationPaths;	//initialized in Prologue
+
+
+	static void CheckOpenGL( bool extended = false );
 
 public:
 
@@ -94,6 +81,8 @@ protected:
 	//////////////////////////////////////
 
     CBratSettings mSettings;
+
+	bool mLeakExceptions = false;
 
 
     bool m_isZFLatLon = false;
@@ -139,12 +128,28 @@ public:
 
     const CBratSettings& Settings() const { return  mSettings; }
 
+	void LeakExceptions( bool leak )
+	{
+		mLeakExceptions = leak;
+	}
 
 
 	//////////////////////////////////////
 	//	operations
 	//////////////////////////////////////
 
+	virtual bool notify( QObject * receiver, QEvent * event ) override
+	{
+		if ( mLeakExceptions )
+		{
+			return QApplication::notify( receiver, event );
+		}
+		return base_t::notify( receiver, event );
+	}
+
+
+	//not tested enough
+	//
 	void Restart()
 	{
 		quit();

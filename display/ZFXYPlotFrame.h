@@ -34,7 +34,7 @@
 //#include "BratDisplay_wdr.h"
 
 #include "ZFXYPlotPanel.h"
-#include "PlotData/ZFXYPlotData.h"
+#include "PlotData/ZFXYPlotData_vtk.h"
 #include "LUTFrame.h"
 #include "ZFXYContourPropFrame.h"
 #include "WindowHandler.h"
@@ -87,7 +87,7 @@ public:
   CZFXYPlotFrame();
   CZFXYPlotFrame( wxWindow *parent, wxWindowID id, 
                    const wxString &title = "",
-                   CZFXYPlotProperty* plotProperty = NULL,
+                   CZFXYPlotProperties* plotProperty = NULL,
                    const wxPoint& pos = wxDefaultPosition,
                    const wxSize& size = CWindowHandler::GetDefaultSize(),
                    long style = wxDEFAULT_FRAME_STYLE );
@@ -96,7 +96,7 @@ public:
    
   bool Create( wxWindow *parent, wxWindowID id, 
                    const wxString &title = "",
-                   CZFXYPlotProperty* plotProperty = NULL,
+                   CZFXYPlotProperties* plotProperty = NULL,
                    const wxPoint& pos = wxDefaultPosition,
                    const wxSize& size = CWindowHandler::GetDefaultSize(),
                    long style = wxDEFAULT_FRAME_STYLE );
@@ -104,7 +104,7 @@ public:
  
   CZFXYPlotPanel* GetPlotPlanel() {return m_plotPanel;};
 
-  void AddData(CZFXYPlotData* pdata);
+  void AddData(VTK_CZFXYPlotData* pdata);
 
   void UpdateView();
 
@@ -117,7 +117,7 @@ public:
 private:
 
   CZFXYPlotPanel* m_plotPanel;
-  CZFXYPlotProperty m_plotProperty;
+  CZFXYPlotProperties m_plotProperty;
   
   bool m_multiFrame;
   bool m_hasClut;

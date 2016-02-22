@@ -396,16 +396,16 @@ void CXYPlotPanel::SetFPS(int32_t value)
 }
 
 //----------------------------------------
-CXYPlotProperty* CXYPlotPanel::GetPlotProperty(int32_t index)
+CXYPlotProperties *CXYPlotPanel::GetPlotProperty(int32_t index)
 {
   if (m_plotDataCollection == NULL)
   {
     return NULL;
   }
-  return m_plotDataCollection->GetPlotProperty(index);
+  return m_plotDataCollection->GetPlotProperties(index);
 }
 //----------------------------------------
-void CXYPlotPanel::AddData(CXYPlotData* pdata)
+void CXYPlotPanel::AddData(VTK_CXYPlotData* pdata)
 {
   
   if (m_plotDataCollection == NULL)
@@ -413,7 +413,7 @@ void CXYPlotPanel::AddData(CXYPlotData* pdata)
     return;
   }
 
-  CXYPlotProperty* props = pdata->GetPlotProperty();
+  CXYPlotProperties* props = pdata->GetPlotProperties();
 
   m_plotDataCollection->Insert(pdata);
 
@@ -425,6 +425,7 @@ void CXYPlotPanel::AddData(CXYPlotData* pdata)
   double yrMin = 0;
   double yrMax = 0;
 
+  //xmin or xmac from properties == default
   if ( (isDefaultValue(props->GetXMin())) ||
        (isDefaultValue(props->GetXMax())) )
   {
@@ -523,7 +524,7 @@ void CXYPlotPanel::SetAnimationDescr(uint32_t indexValue)
   for (uint32_t i = 0 ; i < nData ; i++)
   {
 
-    CXYPlotData* data = m_plotDataCollection->Get(i);
+    VTK_CXYPlotData* data = m_plotDataCollection->Get(i);
 
     if (data->GetVarComplement().GetNbValues() <= 0)
     {

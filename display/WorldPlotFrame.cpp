@@ -128,7 +128,7 @@ CWorldPlotFrame::CWorldPlotFrame()
 }
 
 //----------------------------------------
-CWorldPlotFrame::CWorldPlotFrame( wxWindow *parent, wxWindowID id, const wxString &title, CWorldPlotProperty* plotProperty,
+CWorldPlotFrame::CWorldPlotFrame( wxWindow *parent, wxWindowID id, const wxString &title, CWorldPlotProperties* plotProperty,
 	const wxPoint &position, const wxSize& size, long style )
 	//: wxFrame(parent, id, title, position, size, style), --> called in Create
 {
@@ -179,7 +179,7 @@ void CWorldPlotFrame::Init()
 }
 
 //----------------------------------------
-bool CWorldPlotFrame::Create( wxWindow *parent, wxWindowID id, const wxString &title, CWorldPlotProperty* plotProperty,
+bool CWorldPlotFrame::Create( wxWindow *parent, wxWindowID id, const wxString &title, CWorldPlotProperties* plotProperty,
 	const wxPoint &position, const wxSize& size, long style )
 
 {
@@ -459,7 +459,7 @@ void CWorldPlotFrame::OnShowContourProps( wxCommandEvent &event )
 
     return;
   }
-  CGeoMap* geoMap = m_plotPanel->GetCurrentLayer();
+  VTK_CWorldPlotData* geoMap = m_plotPanel->GetCurrentLayer();
   if (geoMap == NULL)
   {
     CException e("CWorldPlotFrame::OnShowContourProps - m_plotPanel->GetCurrentLayer() == NULL",
@@ -513,7 +513,7 @@ void CWorldPlotFrame::OnShowColorTableEditor( wxCommandEvent &event )
 
     return;
   }
-  CGeoMap* geoMap = m_plotPanel->GetCurrentLayer();
+  VTK_CWorldPlotData* geoMap = m_plotPanel->GetCurrentLayer();
   if (geoMap == NULL)
   {
     CException e("CWorldPlotFrame::OnShowColorTableEditor - m_plotPanel->GetCurrentLayer() == NULL",
@@ -676,7 +676,7 @@ void CWorldPlotFrame::ShowAnimationToolbar(bool showIt)
 
 }
 //----------------------------------------
-void CWorldPlotFrame::AddData(CWorldPlotData* data)
+void CWorldPlotFrame::AddData(VTK_CWorldPlotCommonData* data)
 {
   wxString szMsg = wxString::Format("Rendering %s ...", this->GetTitle().c_str());
   int32_t maxProgbar = 4;
@@ -687,7 +687,7 @@ void CWorldPlotFrame::AddData(CWorldPlotData* data)
   dlg->SetSize(-1,-1, 350, -1);
   int32_t nFrames = 1;
 
-  CGeoMap* geoMap = dynamic_cast<CGeoMap*>(data);
+  VTK_CWorldPlotData* geoMap = dynamic_cast<VTK_CWorldPlotData*>(data);
   if (geoMap != NULL)
   {
     nFrames = geoMap->GetNrMaps();

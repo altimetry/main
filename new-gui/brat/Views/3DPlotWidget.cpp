@@ -8,7 +8,7 @@
 
 #include "new-gui/Common/QtUtils.h"
 
-#include "new-gui/brat/DataModels/PlotData/PlotValues.h"
+#include "new-gui/brat/PlotValues.h"
 
 #include "new-gui/brat/GUI/ActionsTable.h"
 
@@ -107,7 +107,7 @@ public:
 
 struct CBrat3DFunction : public Qwt3D::Function
 {
-	const C3DPlotValues *mPlotValues = nullptr;
+	const C3DPlotParameters *mPlotValues = nullptr;
 
 	double mxmin;
 	double mxmax;
@@ -133,7 +133,7 @@ struct CBrat3DFunction : public Qwt3D::Function
 	}
 
 
-	void AddSurface( const C3DPlotValues &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax )
+	void AddSurface( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax )
 	{
 		assert__( values.mValues.size() == values.mBits.size() );
 		assert__( values.mValues.size() == values.mXaxis.size() * values.mYaxis.size() );
@@ -306,7 +306,7 @@ void CBrat3DPlot::SetAxisTitle( Qwt3D::AXIS axis, const std::string &title )
 }
 
 
-void CBrat3DPlot::AddSurface( const C3DPlotValues &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax )
+void CBrat3DPlot::AddSurface( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax )
 {
 	mFunction = new CBrat3DFunction( *this );
 	mFunction->AddSurface( values, xmin, xmax, ymin, ymax, zmin, zmax );
@@ -468,7 +468,7 @@ C3DPlotWidget::~C3DPlotWidget()
 }
 
 
-void C3DPlotWidget::AddSurface( const C3DPlotValues &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax )
+void C3DPlotWidget::AddSurface( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax )
 {
 	CBrat3DPlot *plot = nullptr;
 	if ( mPlots.size() > 0 )

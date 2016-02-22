@@ -73,11 +73,10 @@ using namespace brathl;
 #include "BratDisplay_wdr.h"
 
 #include "AnimationToolbar.h"
-#include "PlotData/WorldPlotData.h"
+#include "new-gui/brat/DataModels/PlotData/WorldPlotData.h"
 #include "WPlotPropertyPanel.h"
 #include "LUTPanel.h"
 #include "ContourPropFrame.h"
-#include "PlotData/GeoMap.h"
 
 #include "proj_api.h"
 
@@ -106,7 +105,7 @@ public:
   // constructors and destructors
   CWorldPlotPanel();
   CWorldPlotPanel(wxWindow *parent, wxWindowID id = -1,
-                  CWorldPlotProperty* plotProperty = NULL,
+                  CWorldPlotProperties* plotProperty = NULL,
                   const wxPoint& pos = wxDefaultPosition,
                   const wxSize& size = wxDefaultSize,
                   long style = wxTAB_TRAVERSAL | wxNO_BORDER );
@@ -114,14 +113,14 @@ public:
   virtual ~CWorldPlotPanel();
 
   bool Create(wxWindow *parent, wxWindowID id = -1,
-              CWorldPlotProperty* plotProperty = NULL,
+              CWorldPlotProperties* plotProperty = NULL,
               const wxPoint& pos = wxDefaultPosition,
               const wxSize& size = wxDefaultSize,
               long style = wxTAB_TRAVERSAL | wxNO_BORDER );
 
   virtual bool Destroy();
 
-  CGeoMap* GetCurrentLayer();
+  VTK_CWorldPlotData* GetCurrentLayer();
   bool IsNumberOfMapsEquals(int32_t* numberOfMaps = NULL);
 
 
@@ -156,7 +155,7 @@ public:
   void SetCenterLatitude(double c);
   void SetCenterLongitude(double c);
 
-  void AddData(CWorldPlotData* pdata, wxProgressDialog* dlg = NULL);
+  void AddData(VTK_CWorldPlotCommonData* pdata, wxProgressDialog* dlg = NULL);
 
   void LutChanged( CLutChangedEvent &event );
   void OnContourPropChanged( CContourPropChangedEvent &event );
@@ -250,7 +249,7 @@ public:
   bool m_colorBarShowing;
   bool m_is3D;
 
-  CWorldPlotProperty m_plotProperty;
+  CWorldPlotProperties m_plotProperty;
 
   static double m_percentSizeScalarBar;
 
@@ -293,7 +292,7 @@ private:
 
   wxVTKRenderWindowInteractor* m_vtkWidget;
 
-  CWorldPlotData* m_plotData;
+  VTK_CWorldPlotCommonData* m_plotData;
 
   CVtkCharEventCallback* m_vtkCharEventCallback;
 
@@ -366,7 +365,7 @@ public:
 
   vtkTransformCollection* GetVtkTransformCollection(){return m_transformations;}
   CGeoGrid* GetGeoGrid() { return m_geoGrid; }
-  CGeoMap* GetGeoMap();
+  VTK_CWorldPlotData* GetGeoMap();
 
   void UpdateColorBarRender(bool show);
   int32_t CountColorBarRender();
@@ -382,7 +381,7 @@ public:
   void SetTextActor();
   void ResetTextActor();
 
-  void AddData(CWorldPlotData* pdata);
+  void AddData(VTK_CWorldPlotCommonData* pdata);
 
   void SetCenterLatitude(double c);
   double GetCenterLatitude();
@@ -420,24 +419,24 @@ public:
   void AddActorsSolidColor2DToRenderer();
   void RemoveActors2DFromRenderer();
 
-  void AddActors(CWorldPlotData* pdata);
-  void AddActorsContour(CWorldPlotData* pdata);
-  void AddActorsSolidColor(CWorldPlotData* pdata);
+  void AddActors(VTK_CWorldPlotCommonData* pdata);
+  void AddActorsContour(VTK_CWorldPlotCommonData* pdata);
+  void AddActorsSolidColor(VTK_CWorldPlotCommonData* pdata);
 
-  void AddActors2D(CWorldPlotData* pdata);
-  void AddActors2DContour(CWorldPlotData* pdata);
-  void AddActors2DSolidColor(CWorldPlotData* pdata);
+  void AddActors2D(VTK_CWorldPlotCommonData* pdata);
+  void AddActors2DContour(VTK_CWorldPlotCommonData* pdata);
+  void AddActors2DSolidColor(VTK_CWorldPlotCommonData* pdata);
 
-  void RemoveActors(CWorldPlotData* pdata);
-  void RemoveActorsSolidColor(CWorldPlotData* pdata);
-  void RemoveActorsContour(CWorldPlotData* pdata);
+  void RemoveActors(VTK_CWorldPlotCommonData* pdata);
+  void RemoveActorsSolidColor(VTK_CWorldPlotCommonData* pdata);
+  void RemoveActorsContour(VTK_CWorldPlotCommonData* pdata);
 
-  void RemoveActors2D(CWorldPlotData* pdata);
-  void RemoveActors2DSolidColor(CWorldPlotData* pdata);
-  void RemoveActors2DContour(CWorldPlotData* pdata);
+  void RemoveActors2D(VTK_CWorldPlotCommonData* pdata);
+  void RemoveActors2DSolidColor(VTK_CWorldPlotCommonData* pdata);
+  void RemoveActors2DContour(VTK_CWorldPlotCommonData* pdata);
 
-  void AddActorsContourLabel(CWorldPlotData* pdata);
-  void RemoveActorsContourLabel(CWorldPlotData* pdata);
+  void AddActorsContourLabel(VTK_CWorldPlotCommonData* pdata);
+  void RemoveActorsContourLabel(VTK_CWorldPlotCommonData* pdata);
 
   void ResetActors();
 
@@ -457,7 +456,7 @@ protected:
 
   vtkCameraState* GetState(int32_t index);
 
-protected:
+private:
   CObList m_actors;
 
   wxWindow* m_parent;

@@ -43,7 +43,7 @@
 #include "List.h"
 #include "Tools.h"
 #include "new-gui/Common/tools/Exception.h"
-#include "new-gui/brat/Display/MapTypeDisp.h"
+#include "new-gui/brat/DataModels/MapTypeDisp.h"
 #include "InternalFilesFactory.h"
 #include "InternalFiles.h"
 #include "InternalFilesYFX.h"

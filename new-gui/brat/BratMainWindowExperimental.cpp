@@ -181,7 +181,7 @@ void CBratMainWindow::FillStatusBarExperimental()
 }
 
 
-CEditorBase *CBratMainWindow::activeMDIEditor()
+CEditorBase *CBratMainWindow::ActiveMDIEditor()
 {
     //QMdiSubWindow *subWindow = mdiArea->activeSubWindow();
     //if (subWindow)
@@ -190,13 +190,13 @@ CEditorBase *CBratMainWindow::activeMDIEditor()
 }
 
 template< class EDITOR >
-EDITOR* CBratMainWindow::activeEditor()
+EDITOR* CBratMainWindow::ActiveEditor()
 {
     //QWidget *pw = QApplication::focusWidget(); TODO return this only if matches a known window
 
     //default to MDI subWindows
     //
-    return dynamic_cast< EDITOR* >( activeMDIEditor() );
+    return dynamic_cast< EDITOR* >( ActiveMDIEditor() );
 }
 
 

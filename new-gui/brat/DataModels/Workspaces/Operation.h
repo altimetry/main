@@ -18,7 +18,7 @@
 #if !defined(WORKSPACES_OPERATION_H)
 #define WORKSPACES_OPERATION_H
 
-//#include "new-gui/Common/QtFileUtils.h"
+#include <fstream>
 
 #include "libbrathl/brathl.h"
 #include "libbrathl/Product.h" 
@@ -55,11 +55,11 @@ inline std::string normalize( std::string &path, const std::string &dir )
 
 class CCmdFile : non_copyable
 {
-	fstream mFile;
+	std::fstream mFile;
 
 public:
 	CCmdFile( const std::string &path ) :
-		mFile( path, ios::binary | ios::out | ios::trunc )
+		mFile( path, std::ios::binary | std::ios::out | std::ios::trunc )
 	{}
 
 	virtual ~CCmdFile()

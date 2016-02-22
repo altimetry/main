@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
@@ -17,6 +15,27 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
+#if defined (__unix__) && defined(__DEPRECATED)
+#define __DEPRECATED_DEFINED __DEPRECATED
+#undef __DEPRECATED
+#endif
+
+#include <vtkLookupTable.h>
+
+
+
+#include "wx/arrstr.h"
+#include "wx/config.h"  // (to let wxWidgets choose a wxConfig class for your platform)
+#include "wx/confbase.h"  // (base config class)
+#include "wx/fileconf.h" // (wxFileConfig class)
+
+
+#include "display/BratDisplayApp.h"
+
+#if defined (__unix__) && defined(__DEPRECATED_DEFINED)
+#define __DEPRECATED __DEPRECATED_DEFINED
+#endif
+
 
 
 #include "new-gui/Common/tools/Trace.h"
@@ -25,9 +44,15 @@
 using namespace brathl;
 
 #include "BratLookupTable.h"
-#include "ColorPalleteNames.h"
+#include "new-gui/brat/DataModels/PlotData/ColorPalleteNames.h"
 
 //#include "ColorPalette.h"
+
+
+
+
+#define brathlFmtEntryColorMacro(entry, index)	wxString::Format(wxString(CBratLookupTable::GROUP_COLOR()) + "%d/" + entry, index)
+
 
 
 
@@ -48,7 +73,7 @@ CCustomColor::CCustomColor(const CCustomColor& customColor)
 }
 
 //----------------------------------------
-CCustomColor::CCustomColor(const CVtkColor& vtkColor, int32_t xValue)
+CCustomColor::CCustomColor(const CPlotColor& vtkColor, int32_t xValue)
 {
   Init();
 
@@ -181,9 +206,9 @@ void CBratLookupTable::Init()
 
   m_currentFunction = m_resetFunction;
 
-  m_curveNames.Insert(CURVE_LINEAR());
-  m_curveNames.Insert(CURVE_SQRT());
-  m_curveNames.Insert(CURVE_COSINUS());
+  m_curveNames.Insert((const char*)CURVE_LINEAR());
+  m_curveNames.Insert((const char*)CURVE_SQRT());
+  m_curveNames.Insert((const char*)CURVE_COSINUS());
 
   //m_std = m_resetFunction;
 
@@ -944,12 +969,12 @@ void CBratLookupTable::Update()
   ExecMethod(m_currentFunction);
 }
 //----------------------------------------
-void CBratLookupTable::Gradient(const CVtkColor& c1, const CVtkColor& c2)
+void CBratLookupTable::Gradient(const CPlotColor& c1, const CPlotColor& c2)
 {
   m_cust.RemoveAll();
   m_grad.RemoveAll();
-  m_grad.Insert(new CVtkColor(c1));
-  m_grad.Insert(new CVtkColor(c2));
+  m_grad.Insert(new CPlotColor(c1));
+  m_grad.Insert(new CPlotColor(c2));
 
   Gradient();
 }
@@ -966,11 +991,11 @@ void CBratLookupTable::Gradient()
     CException e(msg, BRATHL_LOGIC_ERROR);
     throw(e);
   }
-  CVtkColor* c1 = dynamic_cast<CVtkColor*>(m_grad.at(0));
-  CVtkColor* c2 = dynamic_cast<CVtkColor*>(m_grad.at(1));
+  CPlotColor* c1 = dynamic_cast<CPlotColor*>(m_grad.at(0));
+  CPlotColor* c2 = dynamic_cast<CPlotColor*>(m_grad.at(1));
   if ( (c1 == NULL) || (c2 == NULL))
   {
-    CException e("ERROR in CBratLookupTable::Gradient() - at least one of the color object is not a CVtkColor object", BRATHL_LOGIC_ERROR);
+    CException e("ERROR in CBratLookupTable::Gradient() - at least one of the color object is not a CPlotColor object", BRATHL_LOGIC_ERROR);
     throw(e);
   }
 
@@ -1052,7 +1077,7 @@ void CBratLookupTable::Custom()
 
 //----------------------------------------
 
-void CBratLookupTable::DrawGradient(const CVtkColor& c1, const CVtkColor& c2, int32_t i1, int32_t i2)
+void CBratLookupTable::DrawGradient(const CPlotColor& c1, const CPlotColor& c2, int32_t i1, int32_t i2)
 {
   double d1 = static_cast<double>(i1);
   double d2 = static_cast<double>(i2);
@@ -1111,12 +1136,11 @@ void CBratLookupTable::DupGradMap(const CObArray& grad)
 
   for (it = grad.begin() ; it != grad.end() ; it++)
   {
-    CVtkColor* vtkColor = dynamic_cast<CVtkColor*>(*it);
-    m_grad.Insert(new CVtkColor(*vtkColor));
+    CPlotColor* vtkColor = dynamic_cast<CPlotColor*>(*it);
+    m_grad.Insert(new CPlotColor(*vtkColor));
   }
 
 }
-/*femmTODO - moved to wxInterface - begin
 //----------------------------------------
 void CBratLookupTable::SaveToFile(const std::string& fileName)
 {
@@ -1141,8 +1165,7 @@ void CBratLookupTable::SaveToFile(const std::string& fileName)
   //bOk &= file.Write(ENTRY_STD, m_std.c_str());
   if (bOk == false)
   {
-    CException e(CTools::Format("ERROR in CBratLookupTable::SaveToFile - Can't write file %s",
-                                (const char *)(m_fileName)),
+    CException e(CTools::Format("ERROR in CBratLookupTable::SaveToFile - Can't write file %s", m_fileName.c_str()),
                  BRATHL_LOGIC_ERROR);
     throw(e);
   }
@@ -1181,10 +1204,10 @@ void CBratLookupTable::SaveCustToFile(wxFileConfig& file)
       throw(e);
     }
 
-    CVtkColor* vtkColor = customColor->GetVtkColor();
+    CPlotColor* vtkColor = customColor->GetVtkColor();
     if (vtkColor == NULL)
     {
-      CException e("ERROR in CBratLookupTable::SaveCustToFile - In Custom Color object there isn't a CVtkColor object", BRATHL_LOGIC_ERROR);
+      CException e("ERROR in CBratLookupTable::SaveCustToFile - In Custom Color object there isn't a CPlotColor object", BRATHL_LOGIC_ERROR);
       throw(e);
     }
 
@@ -1199,7 +1222,7 @@ void CBratLookupTable::SaveCustToFile(wxFileConfig& file)
   if (bOk == false)
   {
     CException e(CTools::Format("ERROR in CBratLookupTable::SaveToFile - Can't write file %s",
-                                (const char *)(m_fileName)),
+                                m_fileName.c_str()),
                  BRATHL_LOGIC_ERROR);
     throw(e);
   }
@@ -1222,11 +1245,11 @@ void CBratLookupTable::SaveGradToFile(wxFileConfig& file)
     throw(e);
   }
 
-  CVtkColor* c1 = dynamic_cast<CVtkColor*>(m_grad.at(0));
-  CVtkColor* c2 = dynamic_cast<CVtkColor*>(m_grad.at(1));
+  CPlotColor* c1 = dynamic_cast<CPlotColor*>(m_grad.at(0));
+  CPlotColor* c2 = dynamic_cast<CPlotColor*>(m_grad.at(1));
   if ( (c1 == NULL) || (c2 == NULL))
   {
-    CException e("ERROR in CBratLookupTable::SaveGradToFile() - at least one of the color object is not a CVtkColor object", BRATHL_LOGIC_ERROR);
+    CException e("ERROR in CBratLookupTable::SaveGradToFile() - at least one of the color object is not a CPlotColor object", BRATHL_LOGIC_ERROR);
     throw(e);
   }
 
@@ -1245,7 +1268,7 @@ void CBratLookupTable::SaveGradToFile(wxFileConfig& file)
   if (bOk == false)
   {
     CException e(CTools::Format("ERROR in CBratLookupTable::SaveToFile - Can't write file %s",
-                                (const char *)(m_fileName)),
+                                m_fileName.c_str()),
                  BRATHL_LOGIC_ERROR);
     throw(e);
   }
@@ -1255,7 +1278,8 @@ void CBratLookupTable::HandleLoadError(bool bOk, const std::string& entry)
 {
   if (bOk == false)
   {
-    CException e(CTools::Format("ERROR in CBratLookupTable::LoadFromFile - Can't read '%s' from file %s", entry, m_fileName),
+    CException e(CTools::Format("ERROR in CBratLookupTable::LoadFromFile - Can't read '%s' from file %s",
+                                entry.c_str(), m_fileName.c_str()),
                  BRATHL_LOGIC_ERROR);
     throw(e);
 
@@ -1269,7 +1293,7 @@ void CBratLookupTable::HandleLoadColorError(bool bOk, const std::string& entry, 
 
   if (color < 0.0)
   {
-    ::wxMessageBox(std::string::Format("Invalid value %f for '%s'\n Value will bet set to 0", color, entry.c_str()),
+    ::wxMessageBox(CTools::Format("Invalid value %f for '%s'\n Value will bet set to 0", color, entry.c_str()),
                    "Warning",
                     wxOK | wxCENTRE | wxICON_EXCLAMATION);
     color = 0.0;
@@ -1277,7 +1301,7 @@ void CBratLookupTable::HandleLoadColorError(bool bOk, const std::string& entry, 
 
   if (color > 1.0)
   {
-    ::wxMessageBox(std::string::Format("Invalid value %f for '%s'\n Value will bet set to 1", color, entry.c_str()),
+    ::wxMessageBox(CTools::Format("Invalid value %f for '%s'\n Value will bet set to 1", color, entry.c_str()),
                    "Warning",
                     wxOK | wxCENTRE | wxICON_EXCLAMATION);
     color = 1.0;
@@ -1295,10 +1319,10 @@ bool CBratLookupTable::LoadFromFile(const std::string& fileName)
   wxFileConfig file(wxGetApp().GetAppName(), wxEmptyString, m_fileName, wxEmptyString, wxCONFIG_USE_LOCAL_FILE);
 
   int32_t valueLong;
-  std::string valueString;
+  wxString valueString;
 
   bOk = file.Read(ENTRY_NUMCOLORS(), &valueLong);
-  HandleLoadError(bOk, ENTRY_NUMCOLORS());
+  HandleLoadError(bOk, (const char*)ENTRY_NUMCOLORS());
   valueLong = (valueLong > 65536) ? 65536 : valueLong;
   m_vtkLookupTable->SetNumberOfTableValues(valueLong);
 
@@ -1307,14 +1331,14 @@ bool CBratLookupTable::LoadFromFile(const std::string& fileName)
   //m_std = valueString.c_str();
 
   bOk = file.Read(ENTRY_CURVE(), &valueString);
-  HandleLoadError(bOk, ENTRY_CURVE());
+  HandleLoadError(bOk, (const char*)ENTRY_CURVE());
   m_curve = valueString.c_str();
 
   //if ( (m_curve != CURVE_LINEAR()) || (m_curve != CURVE_SQRT()) || (m_curve != CURVE_COSINUS()) )
   if ( IsValidCurve(m_curve) == false )
   {
-    ::wxMessageBox(std::string::Format("Unknown entry value '%s' for '%s' in file '%s'\n Linear value will be set",
-                                    m_curve.c_str(), ENTRY_CURVE().c_str(), m_fileName.c_str()),
+    ::wxMessageBox(CTools::Format("Unknown entry value '%s' for '%s' in file '%s'\n Linear value will be set",
+                                    m_curve.c_str(), (const char*)ENTRY_CURVE(), m_fileName.c_str()),
                    "Warning",
                     wxOK | wxCENTRE | wxICON_EXCLAMATION);
 
@@ -1323,7 +1347,7 @@ bool CBratLookupTable::LoadFromFile(const std::string& fileName)
   }
 
   bOk = file.Read(ENTRY_CURRENTFCT(), &valueString);
-  HandleLoadError(bOk, ENTRY_CURRENTFCT());
+  HandleLoadError(bOk, (const char*)ENTRY_CURRENTFCT());
   m_currentFunction = valueString.c_str();
 
 
@@ -1337,8 +1361,8 @@ bool CBratLookupTable::LoadFromFile(const std::string& fileName)
   }
   else
   {
-    ::wxMessageBox(std::string::Format("Unknown entry value '%s' for '%s' in file '%s'\n Color table will not be loaded",
-                                    m_currentFunction.c_str(), ENTRY_CURRENTFCT().c_str(), m_fileName.c_str()),
+    ::wxMessageBox(CTools::Format("Unknown entry value '%s' for '%s' in file '%s'\n Color table will not be loaded",
+                                    m_currentFunction.c_str(), (const char*)ENTRY_CURRENTFCT(), m_fileName.c_str()),
                    "Warning",
                     wxOK | wxCENTRE | wxICON_EXCLAMATION);
     bOk = false;
@@ -1366,7 +1390,7 @@ bool CBratLookupTable::LoadGradFromFile(wxFileConfig& file)
   m_grad.RemoveAll();
   m_cust.RemoveAll();
 
-  std::string group;
+  wxString group;
   long dummy;
   file.SetPath("/");
 
@@ -1386,20 +1410,20 @@ bool CBratLookupTable::LoadGradFromFile(wxFileConfig& file)
     {
       bool bOkEntry = true;
       bOkEntry = file.Read(group + "/R", &r);
-      HandleLoadColorError(bOkEntry, group, r);
+      HandleLoadColorError(bOkEntry, (const char*)group, r);
       bOkEntry = file.Read(group + "/G", &g);
-      HandleLoadColorError(bOkEntry, group, g);
+      HandleLoadColorError(bOkEntry, (const char*)group, g);
       bOkEntry = file.Read(group + "/B", &b);
-      HandleLoadColorError(bOkEntry, group, b);
+      HandleLoadColorError(bOkEntry, (const char*)group, b);
       bOkEntry = file.Read(group + "/A", &a);
-      HandleLoadColorError(bOkEntry, group, a);
+      HandleLoadColorError(bOkEntry, (const char*)group, a);
       bOkEntry = file.Read(group + "/Value", &xValue);
-      HandleLoadError(bOkEntry, group);
+      HandleLoadError(bOkEntry, (const char*)group);
       if ( (xValue != 0 ) && (xValue != m_vtkLookupTable->GetNumberOfTableValues() ))
       {
-        std::string msg = std::string::Format("Invalid value %d for '%s/Value' \n Color table will not be loaded",
+        std::string msg = CTools::Format("Invalid value %d for '%s/Value' \n Color table will not be loaded",
                                         xValue,
-                                        group.c_str());
+                                        (const char*)group);
         ::wxMessageBox(msg,
                        "Warning",
                         wxOK | wxCENTRE | wxICON_EXCLAMATION);
@@ -1410,7 +1434,7 @@ bool CBratLookupTable::LoadGradFromFile(wxFileConfig& file)
       }
 
 
-      CVtkColor* vtkColor = new CVtkColor(r, g, b, a);
+      CPlotColor* vtkColor = new CPlotColor(r, g, b, a);
       if (xValue == 0)
       {
         m_grad.InsertAt(m_grad.begin(), vtkColor);
@@ -1438,7 +1462,7 @@ bool CBratLookupTable::LoadGradFromFile(wxFileConfig& file)
 
   if (m_grad.size() != 2)
   {
-    ::wxMessageBox(std::string::Format("There are %ld color definitions in file '%s'\n File must contains only 2 (min/max)\n"
+    ::wxMessageBox(CTools::Format("There are %ld color definitions in file '%s'\n File must contains only 2 (min/max)\n"
                                     "Color table will not be loaded", (long)m_grad.size(), m_fileName.c_str()),
                "Warning",
                 wxOK | wxCENTRE | wxICON_EXCLAMATION);
@@ -1456,7 +1480,7 @@ bool CBratLookupTable::LoadCustFromFile(wxFileConfig& file)
   m_grad.RemoveAll();
   m_cust.RemoveAll();
 
-  std::string group;
+  wxString group;
   long dummy;
   file.SetPath("/");
 
@@ -1476,21 +1500,21 @@ bool CBratLookupTable::LoadCustFromFile(wxFileConfig& file)
     {
       bool bOkEntry = true;
       bOkEntry = file.Read(group + "/R", &r);
-      HandleLoadColorError(bOkEntry, group, r);
+      HandleLoadColorError(bOkEntry, (const char*)group, r);
       bOkEntry = file.Read(group + "/G", &g);
-      HandleLoadColorError(bOkEntry, group, g);
+      HandleLoadColorError(bOkEntry, (const char*)group, g);
       bOkEntry = file.Read(group + "/B", &b);
-      HandleLoadColorError(bOkEntry, group, b);
+      HandleLoadColorError(bOkEntry, (const char*)group, b);
       bOkEntry = file.Read(group + "/A", &a);
-      HandleLoadColorError(bOkEntry, group, a);
+      HandleLoadColorError(bOkEntry, (const char*)group, a);
       bOkEntry = file.Read(group + "/Value", &xValue);
-      HandleLoadError(bOkEntry, group);
+      HandleLoadError(bOkEntry, (const char*)group);
       if ( (xValue < 0 ) || (xValue > m_vtkLookupTable->GetNumberOfTableValues() ))
       {
-        ::wxMessageBox(std::string::Format("Invalid value %d for '%s'\n"
+        ::wxMessageBox(CTools::Format("Invalid value %d for '%s'\n"
                                         "Correct range is [%d,%d]\n"
                                         "Color table will not be loaded",
-                                         xValue, group.c_str(), 0, static_cast<int>(m_vtkLookupTable->GetNumberOfTableValues()) ),
+                                         xValue, (const char*)group, 0, static_cast<int>(m_vtkLookupTable->GetNumberOfTableValues()) ),
                        "Warning",
                         wxOK | wxCENTRE | wxICON_EXCLAMATION);
         bError = true;
@@ -1500,9 +1524,10 @@ bool CBratLookupTable::LoadCustFromFile(wxFileConfig& file)
       }
 
 
-      CCustomColor* c = new CCustomColor(CVtkColor(r, g, b, a), xValue);
+      CCustomColor* c = new CCustomColor(CPlotColor(r, g, b, a), xValue);
 
-      InsertCustomColor(c);
+        std::string warning;
+        InsertCustomColor(c, warning);
     }
 
     bOk = file.GetNextGroup(group, dummy);
@@ -1521,7 +1546,7 @@ bool CBratLookupTable::LoadCustFromFile(wxFileConfig& file)
 
   if (m_cust.size() < 2)
   {
-    ::wxMessageBox(std::string::Format("There are %ld color definitions in file '%s'\n File must contains at least 2\n"
+    ::wxMessageBox(CTools::Format("There are %ld color definitions in file '%s'\n File must contains at least 2\n"
                                     "Color table will not be loaded", (long)m_cust.size(), m_fileName.c_str()),
                "Warning",
                 wxOK | wxCENTRE | wxICON_EXCLAMATION);
@@ -1531,7 +1556,6 @@ bool CBratLookupTable::LoadCustFromFile(wxFileConfig& file)
   return (bError == false);
 
 }
-femmTODO moved to wxInterface*/
 
 //----------------------------------------
 int32_t CBratLookupTable::InsertCustomColor(CCustomColor *color, std::string &warning )

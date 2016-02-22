@@ -98,7 +98,7 @@ public:
   void RestoreState(vtkInteractorStyleWPlot*, int32_t index);
   void ClearStates();
   bool HasState() {return CountState() > 0;};
-  uint32_t CountState() {return this->States.size();};
+  uint32_t CountState() {return (uint32_t)this->States.size();};
 
   vtkWPlotState* GetState(int32_t index);
 

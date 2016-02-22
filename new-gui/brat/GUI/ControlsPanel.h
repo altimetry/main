@@ -3,6 +3,10 @@
 
 #include "new-gui/brat/GUI/DesktopManager.h"
 
+
+#include "libbrathl/Product.h"
+
+
 // File Index:
 //
 //	- Individual Controls 
@@ -18,9 +22,7 @@ class CWorkspaceDisplay;
 
 
 /////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////
-//									Controls
-/////////////////////////////////////////////////////////////////////////////////////
+//								Specialized Widgets
 /////////////////////////////////////////////////////////////////////////////////////
 
 struct CStackedWidget : public QStackedWidget
@@ -253,116 +255,19 @@ public:
 };
 
 
-
-
-/////////////////////////////////////////////////////////////////////////////////////
-//								Dataset Browser 
-/////////////////////////////////////////////////////////////////////////////////////
-
-class CDatasetBrowserControls : public CDesktopControlsPanel
-{
-#if defined (__APPLE__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winconsistent-missing-override"
-#endif
-
-    Q_OBJECT
-
-#if defined (__APPLE__)
-#pragma clang diagnostic pop
-#endif
-
-	using base_t = CDesktopControlsPanel;
-
-	CStackedWidget *mBrowserStakWidget = nullptr;
-	QPushButton *m_BrowseFilesButton = nullptr;
-	QPushButton *m_BrowseRadsButton = nullptr;
-
-    QListWidget *mFilesList = nullptr;
-	QComboBox *mDatasetsCombo = nullptr;
-
-	CWorkspaceDataset *mWks = nullptr;
-
-
-	//construction / destruction
-
-    void Wire();
-
-public:
-	explicit CDatasetBrowserControls( CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
-
-	virtual ~CDatasetBrowserControls()
-	{}
-
-	// access 
-
-
-	// operations
-
-public slots:
-	void WorkspaceChanged( CWorkspaceDataset *wksd );
-    void DatasetChanged(int currentIndex);
-
-protected slots:
-	void PageChanged( int index );
-};
-
-
-/////////////////////////////////////////////////////////////////////////////////////
-//								Dataset Filter
-/////////////////////////////////////////////////////////////////////////////////////
-
-class CDatasetFilterControls : public CDesktopControlsPanel
-{
-#if defined (__APPLE__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winconsistent-missing-override"
-#endif
-
-    Q_OBJECT
-
-#if defined (__APPLE__)
-#pragma clang diagnostic pop
-#endif
-
-	using base_t = CDesktopControlsPanel;
-
-    QComboBox *mSavedRegionsCombo = nullptr;
-    QComboBox *mOpenFilterCombo   = nullptr;
-
-	CWorkspaceDataset *mWks = nullptr;
-
-public:
-	explicit CDatasetFilterControls( CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
-
-	virtual ~CDatasetFilterControls()
-	{}	
-
-	// access 
-
-
-	// operations
-
-public slots:
-	void WorkspaceChanged( CWorkspaceDataset *wksd );
-};
-
-
-
-
 /////////////////////////////////////////////////////////////////////////////////////
 //									Operations
 /////////////////////////////////////////////////////////////////////////////////////
 
 //HAMMER SECTION
-class CmdLineProcessor;
+class DisplayFilesProcessor;
 //HAMMER SECTION
 
 
 class COperationsControls : public CDesktopControlsPanel
 {
 	//HAMMER SECTION
-	CmdLineProcessor *mCmdLineProcessor = nullptr;
+	DisplayFilesProcessor *mCmdLineProcessor = nullptr;
 	void openTestFile( const QString &fileName );
 	//HAMMER SECTION
 
@@ -392,12 +297,18 @@ public:
 
 protected:
 
-	// data
+	// instance variables
 
     CStackedWidget *mStackWidget = nullptr;
 
 	QPushButton *mQuickMapButton = nullptr;
 	QPushButton *mQuickPlotButton = nullptr;
+
+	QPushButton *mShowAliases = nullptr;
+	QWidget *mCommonGroup = nullptr;
+
+
+	//...domain variables
 
 	CWorkspaceOperation *mWkso = nullptr;
 	CWorkspaceDisplay *mWksd = nullptr;
@@ -405,6 +316,7 @@ protected:
 	// construction / destruction
 
     void WireOperations();
+	QWidget* CreateCommonWidgets();
 	QWidget* CreateQuickOperationsPage();
 	QWidget* CreateAdancedOperationsPage();
 
@@ -428,6 +340,8 @@ public slots:
     void WorkspaceChanged( CWorkspaceDisplay *wksd );
 
 protected slots:
+	void ShowAliases();
+
 	void QuickMap();
 	void QuickPlot();
 };

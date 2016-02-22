@@ -8,7 +8,7 @@
 #include <QtConcurrent/QtConcurrent>
 #endif
 
-#include "new-gui/brat/DataModels/CmdLineProcessor.h"
+#include "new-gui/brat/DataModels/DisplayFilesProcessor.h"
 #include "GUI/SettingsDlg.h"
 #include "GUI/QbrtMapEditor.h"
 

@@ -24,6 +24,8 @@
 
 #include "gui/wxGuiInterface.h"
 
+#include "new-gui/brat/DataModels/PlotData/XYPlotData.h"
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 //										CBratLookupTable	
@@ -32,7 +34,7 @@
 #include "PlotData/BratLookupTable.h"
 
 
-//void CVtkColor::Get(wxColour& color) const
+//void CPlotColor::Get(wxColour& color) const
 //{
 //  if (Ok() == false)
 //  {
@@ -45,13 +47,13 @@
 //  Get(r, g, b, a);
 //  color.Set(r,g,b);
 //}
-//wxColour CVtkColor::GetWXColor() const
+//wxColour CPlotColor::GetWXColor() const
 //{
 //  wxColour color;
 //  Get(color);
 //  return color;
 //}
-inline wxColour color_cast( const CVtkColor &c )
+inline wxColour color_cast( const CPlotColor &c )
 {
 	wxColour color;
 	if ( c.Ok() )
@@ -66,23 +68,23 @@ inline wxColour color_cast( const CVtkColor &c )
 	return color;
 }
 
-//void CVtkColor::Set(const wxColour& color)
+//void CPlotColor::Set(const wxColour& color)
 //{
 //  Set(color.Red(), color.Green(), color.Blue());
 //}
-//CVtkColor::CVtkColor(const wxColour& color)
+//CPlotColor::CPlotColor(const wxColour& color)
 //{
 //  Set(color);
 //}
-inline CVtkColor color_cast( const wxColour &color )
+inline CPlotColor color_cast( const wxColour &color )
 {
-	CVtkColor c;
+	CPlotColor c;
 	c.Set(color.Red(), color.Green(), color.Blue());
 	return c;
 }
 
 
-//void CVtkColor::Set(wxColourData& colorData, int32_t indexCustomColor)
+//void CPlotColor::Set(wxColourData& colorData, int32_t indexCustomColor)
 //{
 //  if (indexCustomColor < 0)
 //  {
@@ -93,12 +95,12 @@ inline CVtkColor color_cast( const wxColour &color )
 //    Set(colorData.GetCustomColour(indexCustomColor));
 //  }
 //}
-//const CVtkColor& CVtkColor::operator =(wxColourData& color)
+//const CPlotColor& CPlotColor::operator =(wxColourData& color)
 //{
 //  Set(color);
 //  return *this;
 //}
-inline CVtkColor color_cast( const wxColourData &colorData, int32_t indexCustomColor = -1 )
+inline CPlotColor color_cast( const wxColourData &colorData, int32_t indexCustomColor = -1 )
 {
 	if ( indexCustomColor < 0 )
 	{
@@ -116,21 +118,20 @@ inline CVtkColor color_cast( const wxColourData &colorData, int32_t indexCustomC
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-//										CXYPlotProperty
+//										CXYPlotProperties
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-#include "PlotData/XYPlotData.h"
 
 
 
 
-inline void SetColor( CXYPlotProperty &p, const wxColour& color)
+inline void SetColor( CXYPlotProperties &p, const wxColour& color)
 {
 	p.SetColor( color_cast(color) );
 }
 
 
-inline void SetColor( CXYPlotProperty &p, wxColourData& colorData, int32_t indexCustomColor = -1 )
+inline void SetColor( CXYPlotProperties &p, wxColourData& colorData, int32_t indexCustomColor = -1 )
 {
 	if ( indexCustomColor < 0 )
 	{

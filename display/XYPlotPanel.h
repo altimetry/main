@@ -60,7 +60,7 @@ using namespace brathl;
 
 //#include "BratDisplay_wdr.h"
 #include "AnimationToolbar.h"
-#include "PlotData/XYPlotData.h"
+#include "PlotData/XYPlotData_vtk.h"
 #include "XYPlotPropertyPanel.h"
 #include "DatasetPanel.h"
 
@@ -127,9 +127,9 @@ public:
 
   void SetAnimationDescr(uint32_t indexValue);
 
-  void AddData(CXYPlotData* pdata);
+  void AddData(VTK_CXYPlotData* pdata);
 
-  CXYPlotProperty* GetPlotProperty(int32_t index);
+  CXYPlotProperties* GetPlotProperty(int32_t index);
 
   CXYPlotDataCollection* GetPlotDataCollection() {return m_plotDataCollection;};
 

@@ -1,5 +1,7 @@
 #include "new-gui/brat/stdafx.h"
 
+#include "new-gui/brat/DataModels/DisplayFilesProcessor.h"
+
 #include "ViewControlsPanel.h"
 
 
@@ -8,12 +10,13 @@
 ////////////////////////////////////////////////////////////////
 //Definition of Static Variables
 const QString CColorButton::smInitColor = "white";
-const QString CColorButton::smStyleSheet_colorButton = "border-style: outset; \
-                                                        border-width: 1px; \
-                                                        border-color: black; \
-                                                        background-color: ";
+const QString CColorButton::smStyleSheet_colorButton = "background-color: ";
 
-//TODO: delete this: qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 1 #dadbde, stop: 1 ";
+//TODO: delete this:
+//                                                        border-style: outset; \
+//                                                        border-width: 1px; \
+//                                                        border-color: black; \
+//        qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 1 #dadbde, stop: 1 ";
 
 
 //explicit
@@ -21,8 +24,15 @@ CColorButton::CColorButton( QWidget *parent )
     : base_t( parent)
 {
     mCurrentColor = QColor(smInitColor);
-    setStyleSheet(smStyleSheet_colorButton + mCurrentColor.name());
-    setFixedSize(20, 20);
+    setFixedSize(24, 24);
+
+    QIcon colorIcon = QIcon(":/images/OSGeo/paint.png");
+    setIcon(colorIcon);
+
+    mColorDisplay = new QWidget(this);
+    mColorDisplay->setStyleSheet(smStyleSheet_colorButton + mCurrentColor.name());
+    mColorDisplay->setFixedSize(18, 4);
+    mColorDisplay->move(QPoint(3,17));
 }
 
 void CColorButton::SetColor()
@@ -32,8 +42,8 @@ void CColorButton::SetColor()
     if (color.isValid())
     {
         mCurrentColor = color;
-        setStyleSheet(smStyleSheet_colorButton + mCurrentColor.name());
-        //mPointColorButton->setPalette(QPalette(mPointColor));
+        mColorDisplay->setStyleSheet(smStyleSheet_colorButton + mCurrentColor.name());
+        //mColorDisplay->setPalette(QPalette(mCurrentColor));
     }
 }
 
@@ -85,32 +95,7 @@ CAxisTab::CAxisTab( QWidget *parent, Qt::WindowFlags f )
                                                 Ranges2_layout
 												}, "Fallback Range");
 
-    // 4. Axis Color Options
-    mAxisColorButton = new CColorButton();
-
-    auto mAxisOpacityValue   = new QLineEdit(this);
-    mAxisOpacityValue->setText("0.1");
-
-    QComboBox *mAxisStipplePattern = new QComboBox;
-    mAxisStipplePattern->setToolTip("Stipple pattern");
-
-    auto mAxisWidthValue = new QLineEdit(this);
-    mAxisWidthValue->setText("0.5");
-
-    QGroupBox *AxisColorOptions = CreateGroupBox( ELayoutType::Horizontal, { new QLabel( "Plot Color" ),
-                                                                       mAxisColorButton,
-                                                                       nullptr,
-                                                                       new QLabel( "Opacity" ),
-                                                                       mAxisOpacityValue,
-                                                                       nullptr,
-                                                                       new QLabel( "Stipple pattern"),
-                                                                       mAxisStipplePattern,
-                                                                       nullptr,
-                                                                       new QLabel( "Width" ),
-                                                                       mAxisWidthValue
-                                                                      }, "", nullptr, 4, 4, vm, 4, vm );
-
-    // 5. Creating Tab Group
+    // 4. Creating Tab Group
     QGroupBox *TabGroup = CreateGroupBox( ELayoutType::Vertical, 
 	{
 		::LayoutWidgets( Qt::Horizontal, {
@@ -122,7 +107,6 @@ CAxisTab::CAxisTab( QWidget *parent, Qt::WindowFlags f )
 		}, nullptr, 2, 2, vm, 2, vm ),
 
 		FallBackRange_group,
-		AxisColorOptions
 
 	}, "", nullptr, 4, 4, vm, 4, vm );
 
@@ -134,8 +118,6 @@ CAxisTab::CAxisTab( QWidget *parent, Qt::WindowFlags f )
 
 void CAxisTab::Wire()
 {
-    connect( mAxisColorButton, SIGNAL( clicked() ), mAxisColorButton, SLOT( SetColor() ) );
-
 	connect( mLogScaleCheck, SIGNAL( toggled( bool ) ), this, SIGNAL( LogarithmicScale( bool ) ), Qt::QueuedConnection );
 }
 
@@ -149,39 +131,48 @@ void CAxisTab::Wire()
 /////////////////////////////////////////////////////////////////////////////////////
 
 
-CViewControlsPanelGeneral::CViewControlsPanelGeneral( QWidget *parent, Qt::WindowFlags f )		//parent = nullptr, f = 0
+////////////////////////////////////////
+//			General Tab					
+////////////////////////////////////////
+
+
+CViewControlsPanelGeneral::CViewControlsPanelGeneral( const std::vector< DisplayFilesProcessor* > &cmd_line_processors, QWidget *parent, Qt::WindowFlags f )		//parent = nullptr, f = 0
     : base_t( parent, f )
+	, mCmdLineProcessors( cmd_line_processors )
 {
     // I. Information about Dataset, Filter and Operation and OneClick
     //
     //    I.1 Info
-    mSelectDataset   = new QComboBox;
-    mApplyFilter     = new QComboBox;
-    mSelectOperation = new QComboBox;
+    //mSelectDataset   = new QComboBox;
+    //mApplyFilter     = new QComboBox;
+    //mSelectOperation = new QComboBox;
 
-    mSelectDataset  ->setToolTip( "Select a Dataset" );
-    mApplyFilter    ->setToolTip( "Apply a Filter" );
-    mSelectOperation->setToolTip( "Select a Operation" );
+    //mSelectDataset  ->setToolTip( "Select a Dataset" );
+    //mApplyFilter    ->setToolTip( "Apply a Filter" );
+    //mSelectOperation->setToolTip( "Select a Operation" );
 
-    auto mDatasetName   = new QLineEdit(this);
-    auto mFilterName    = new QLineEdit(this);
-    auto mOperationName = new QLineEdit(this);
+    //auto mDatasetName   = new QLineEdit(this);
+    //auto mFilterName    = new QLineEdit(this);
+    //auto mOperationName = new QLineEdit(this);
 
-    mDatasetName  ->setText("Dataset name");
-    mFilterName   ->setText("Filter name");
-    mOperationName->setText("Operation name");
+    //mDatasetName  ->setText("Dataset name");
+    //mFilterName   ->setText("Filter name");
+    //mOperationName->setText("Operation name");
 
-    QGridLayout *dataFilterOp_layout = LayoutWidgets( {
-                                            mSelectDataset, mApplyFilter, mSelectOperation, nullptr,
-                                            mDatasetName,   mFilterName,  mOperationName,
-                                                      } );
+    //QGridLayout *dataFilterOp_layout = LayoutWidgets( {
+    //                                        mSelectDataset, mApplyFilter, mSelectOperation, nullptr,
+    //                                        mDatasetName,   mFilterName,  mOperationName,
+    //                                                  } );
+
+
     //    I.2 Save One Click button
     auto mSaveOneClick            = new QPushButton( "Save One Click" );
     QGroupBox *SaveOneClick_group = CreateGroupBox(ELayoutType::Horizontal, {mSaveOneClick});
     SaveOneClick_group->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum);
 
     //    Adding previous widgets to this...
-    AddTopGroupBox( ELayoutType::Horizontal, { dataFilterOp_layout, SaveOneClick_group }, "", 4, 4, 4, 4, 4 );
+    //AddTopGroupBox( ELayoutType::Horizontal, { dataFilterOp_layout, SaveOneClick_group }, "", 4, 4, 4, 4, 4 );
+    AddTopGroupBox( ELayoutType::Horizontal, { /*dataFilterOp_layout, */SaveOneClick_group }, "", 4, 4, 4, 4, 4 );
 
 
     // II. Plot selection buttons and info
@@ -190,10 +181,10 @@ CViewControlsPanelGeneral::CViewControlsPanelGeneral( QWidget *parent, Qt::Windo
     auto mPlotName   = new QLineEdit(this);
     mPlotName->setText("Plot name");
 
-    auto mNewPlot    = new QPushButton( "New" );
+    mNewPlot		 = new QPushButton( "New" );
     auto mSavePlot   = new QPushButton( "Save" );
     auto mDeletePlot = new QPushButton( "Delete" );
-    auto mRunPlot    = new QPushButton( "Run" );
+    mRunPlot		 = new QPushButton( "Run" );
 
     mOpenAplot  = new QComboBox;
 
@@ -203,7 +194,39 @@ CViewControlsPanelGeneral::CViewControlsPanelGeneral( QWidget *parent, Qt::Windo
     AddTopGroupBox( ELayoutType::Vertical, {
                                  LayoutWidgets( Qt::Horizontal, { mPlotName, mNewPlot, mSavePlot, mDeletePlot, mRunPlot, mOpenAplot } ),
                                             }, "", 4, 4, 4, 4, 4 );
+	Wire();
 }
+
+
+void CViewControlsPanelGeneral::Wire()
+{
+	// TODO replace this by appropriate plot list filling in Plots tab
+	//
+	for ( auto *cmd : mCmdLineProcessors )
+	{
+		mOpenAplot->addItem( t2q( cmd->ParamFile() ) );
+	}
+	mOpenAplot->setCurrentIndex( 0 );
+
+	connect( mRunPlot, SIGNAL( clicked() ), this, SLOT( RunButtonClicked() ), Qt::QueuedConnection );
+	connect( mOpenAplot, SIGNAL( currentIndexChanged(int) ), this, SIGNAL( CurrentDisplayIndexChanged(int) ), Qt::QueuedConnection );
+	connect( mNewPlot, SIGNAL( clicked() ), this, SIGNAL( NewButtonClicked() ), Qt::QueuedConnection );
+}
+
+
+void CViewControlsPanelGeneral::RunButtonClicked()
+{
+	int index = mOpenAplot->currentIndex();
+	if ( index >= 0 )
+		emit RunButtonClicked( index );
+}
+
+
+
+
+////////////////////////////////////////
+//			Plots Tab					
+////////////////////////////////////////
 
 
 CViewControlsPanelPlots::CViewControlsPanelPlots( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 );
@@ -231,6 +254,11 @@ CViewControlsPanelPlots::CViewControlsPanelPlots( QWidget *parent, Qt::WindowFla
 //								Plot View Tabs
 /////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
+
+
+////////////////////////////////////////
+//		Curve Edit/Data Tab					
+////////////////////////////////////////
 
 CPlotControlsPanelEdit::CPlotControlsPanelEdit( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
     : base_t( parent, f )
@@ -268,6 +296,10 @@ CPlotControlsPanelEdit::CPlotControlsPanelEdit( QWidget *parent, Qt::WindowFlags
 
 
 
+////////////////////////////////////////
+//		Curve Options Tab					
+////////////////////////////////////////
+
 CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
     : base_t( parent, f )
 {
@@ -284,7 +316,7 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
     auto mWidthValue = new QLineEdit(this);
     mWidthValue->setText("0.5");
 
-    QGroupBox *LineOptions = AddTopGroupBox( ELayoutType::Horizontal, { new QLabel( "Plot Color" ),
+    mLineOptions = AddTopGroupBox( ELayoutType::Horizontal, { new QLabel( "Plot Color" ),
                                                                        mLineColorButton,
                                                                        nullptr,
                                                                        new QLabel( "Opacity" ),
@@ -296,8 +328,8 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
                                                                        new QLabel( "Width" ),
                                                                        mWidthValue
                                                                       }, "Line", 4, 4, 4, 4, 4 );
-
-    LineOptions->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
+	mLineOptions->setCheckable( true );
+    mLineOptions->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
 
     // IV. Point Options
@@ -312,7 +344,7 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
     auto mSizeValue = new QLineEdit(this);
     mSizeValue->setText("0.5");
 
-    QGroupBox *PointOptions = AddTopGroupBox( ELayoutType::Horizontal, { new QLabel( "Plot Color" ),
+    mPointOptions = AddTopGroupBox( ELayoutType::Horizontal, { new QLabel( "Plot Color" ),
                                                                          mPointColorButton,
                                                                          nullptr,
                                                                          mFillPointCheck,
@@ -325,7 +357,8 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
                                                                          mSizeValue
                                                                       }, "Point", 4, 4, 4, 4, 4 );
 
-    PointOptions->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
+	mPointOptions->setCheckable( true );
+    mPointOptions->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
 	Wire();
 }
@@ -335,10 +368,34 @@ void CPlotControlsPanelCurveOptions::Wire()
 {
     connect( mLineColorButton, SIGNAL( clicked() ), mLineColorButton, SLOT( SetColor() ) );
     connect( mPointColorButton, SIGNAL( clicked() ), mPointColorButton, SLOT( SetColor() ) );
+
+	connect( mPointOptions, SIGNAL( toggled( bool ) ), this, SLOT( HandlePointOptionsChecked( bool ) ) );
+	connect( mLineOptions, SIGNAL( toggled( bool ) ), this, SLOT( HandleLineOptionsChecked( bool ) ) );
+
+	mLineOptions->setChecked( true );
+	mPointOptions->setChecked( false );
+}
+
+
+void CPlotControlsPanelCurveOptions::HandleLineOptionsChecked( bool checked )
+{
+	mPointOptions->setChecked( !checked );
+	emit LineOptionsChecked( checked );
+}
+
+void CPlotControlsPanelCurveOptions::HandlePointOptionsChecked( bool checked )
+{
+	mLineOptions->setChecked( !checked );
+	emit PointOptionsChecked( checked );
 }
 
 
 
+
+
+////////////////////////////////////////
+//		Axis Options Tab					
+////////////////////////////////////////
 
 CPlotControlsPanelAxisOptions::CPlotControlsPanelAxisOptions( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
     : base_t( parent, f )
@@ -380,6 +437,11 @@ void CPlotControlsPanelAxisOptions::Wire()
 /////////////////////////////////////////////////////////////////////////////////////
 
 
+
+////////////////////////////////////////
+//			Map Edit Tab					
+////////////////////////////////////////
+
 CMapControlsPanelEdit::CMapControlsPanelEdit( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 );
     : base_t( parent, f )
 {
@@ -418,6 +480,11 @@ CMapControlsPanelEdit::CMapControlsPanelEdit( QWidget *parent, Qt::WindowFlags f
     DataLayersOptions_group->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 }
 
+
+
+////////////////////////////////////////
+//			Map Options Tab
+////////////////////////////////////////
 
 CMapControlsPanelOptions::CMapControlsPanelOptions( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
     : base_t( parent, f )

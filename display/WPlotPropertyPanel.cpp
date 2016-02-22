@@ -38,7 +38,7 @@
 #include "Validators.h"
 #include "WPlotPropertyPanel.h"
 #include "ContourPropFrame.h"
-#include "PlotData/GeoMap.h"
+#include "new-gui/brat/DataModels/PlotData/WorldPlotData.h"
 
 
 long ID_WPLOTPROP_PROJECTION;
@@ -100,7 +100,7 @@ CWPlotPropertyPanel::CWPlotPropertyPanel()
 }
 
 //----------------------------------------
-CWPlotPropertyPanel::CWPlotPropertyPanel(wxWindow *parent, vtkActor2D* plotter, CWorldPlotData* plotData, wxVTKRenderWindowInteractor* vtkWidget,
+CWPlotPropertyPanel::CWPlotPropertyPanel(wxWindow *parent, vtkActor2D* plotter, VTK_CWorldPlotCommonData* plotData, wxVTKRenderWindowInteractor* vtkWidget,
                                          wxWindowID id,
                                          const wxPoint& pos,
                                          const wxSize& size ,
@@ -165,7 +165,7 @@ void CWPlotPropertyPanel::CreateBoxSizers()
 }
 
 //----------------------------------------
-bool CWPlotPropertyPanel::Create(wxWindow *parent, vtkActor2D* plotter, CWorldPlotData* plotData, wxVTKRenderWindowInteractor* vtkWidget,
+bool CWPlotPropertyPanel::Create(wxWindow *parent, vtkActor2D* plotter, VTK_CWorldPlotCommonData* plotData, wxVTKRenderWindowInteractor* vtkWidget,
                                          wxWindowID id,
                                          const wxPoint& pos,
                                          const wxSize& size ,
@@ -856,7 +856,7 @@ void CWPlotPropertyPanel::OnMinRange(CValueChangedEvent& event)
     return;
   }
 
-  CGeoVelocityMap *gMap = dynamic_cast<CGeoVelocityMap *>(GetCurrentLayer());
+  VTK_CWorldPlotVelocityData *gMap = dynamic_cast<VTK_CWorldPlotVelocityData *>(GetCurrentLayer());
   if ( gMap )
   {
     m_minRangeCtrl.SetValue(0);
@@ -910,7 +910,7 @@ void CWPlotPropertyPanel::OnMaxRange(CValueChangedEvent& event)
     return;
   }
 
-    CGeoVelocityMap *gMap = dynamic_cast<CGeoVelocityMap *>(GetCurrentLayer());
+    VTK_CWorldPlotVelocityData *gMap = dynamic_cast<VTK_CWorldPlotVelocityData *>(GetCurrentLayer());
     if ( gMap )
     {
       if ( nmax < 0  )
@@ -1014,7 +1014,7 @@ void CWPlotPropertyPanel::OnVScale(CValueChangedEvent& event)
   {
     m_vScale = vScale;
 
-    CGeoVelocityMap *vmap = dynamic_cast<CGeoVelocityMap *> (GetCurrentLayer());
+    VTK_CWorldPlotVelocityData *vmap = dynamic_cast<VTK_CWorldPlotVelocityData *> (GetCurrentLayer());
     if ( vmap != NULL ) {
 
             vtkVelocityGlyphFilter *vFilter = vmap->GetGlyphFilter();
@@ -1170,14 +1170,14 @@ void CWPlotPropertyPanel::ViewChanged()
   wxPostEvent(GetParent(), ev);
 }
 //----------------------------------------
-CGeoMap* CWPlotPropertyPanel::GetCurrentLayer()
+VTK_CWorldPlotData* CWPlotPropertyPanel::GetCurrentLayer()
 {
   int32_t n = m_layerChoice.GetSelection();
   if (n < 0)
   {
     return NULL;
   }
-  return static_cast<CGeoMap*>(m_layerChoice.GetClientData(n));
+  return static_cast<VTK_CWorldPlotData*>(m_layerChoice.GetClientData(n));
 }
 //----------------------------------------
 void CWPlotPropertyPanel::SetCurrentLayer(int32_t index)
@@ -1189,20 +1189,20 @@ void CWPlotPropertyPanel::SetCurrentLayer(int32_t index)
 
   m_layerChoice.SetSelection(index);
 
-  CGeoMap* geoMap =  static_cast<CGeoMap*>(m_layerChoice.GetClientData(index));
+  VTK_CWorldPlotData* geoMap =  static_cast<VTK_CWorldPlotData*>(m_layerChoice.GetClientData(index));
   SetCurrentLayer(geoMap);
 
 }
 //----------------------------------------
-void CWPlotPropertyPanel::SetCurrentLayer( CGeoMap* geoMap )
+void CWPlotPropertyPanel::SetCurrentLayer( VTK_CWorldPlotData* geoMap )
 {
   if (geoMap == NULL)
   {
-      throw CException("ERROR in  CWPlotPropertyPanel::SetCurrentLayer : static_cast<CGeoMap*>(event.GetClientData()) returns NULL pointer - ",
+      throw CException("ERROR in  CWPlotPropertyPanel::SetCurrentLayer : static_cast<VTK_CWorldPlotData*>(event.GetClientData()) returns NULL pointer - ",
                        BRATHL_LOGIC_ERROR);
   }
 
-   CGeoVelocityMap *vMap = dynamic_cast<CGeoVelocityMap*>(geoMap);
+   VTK_CWorldPlotVelocityData *vMap = dynamic_cast<VTK_CWorldPlotVelocityData*>(geoMap);
    if ( vMap == NULL ) {
         m_numVScaleCtrl.Enable(false);
    }
@@ -1253,10 +1253,10 @@ void CWPlotPropertyPanel::OnLayerChoice( wxCommandEvent &event )
   CContourPropFrameCloseEvent evtContour(GetId());
   wxPostEvent(GetParent(), evtContour);
 
-  CGeoMap* geoMap = static_cast<CGeoMap*>(event.GetClientData());
+  VTK_CWorldPlotData* geoMap = static_cast<VTK_CWorldPlotData*>(event.GetClientData());
   if (geoMap == NULL)
   {
-      throw CException("ERROR in  CWPlotPropertyPanel::OnLayerChoice : static_cast<CGeoMap*>(event.GetClientData()) returns NULL pointer - ",
+      throw CException("ERROR in  CWPlotPropertyPanel::OnLayerChoice : static_cast<VTK_CWorldPlotData*>(event.GetClientData()) returns NULL pointer - ",
                        BRATHL_LOGIC_ERROR);
   }
 
@@ -1315,7 +1315,7 @@ void CWPlotPropertyPanel::OnRangeChanged(CRangeChangedEvent& event)
   m_maxRangeCtrl.SetValue(m_max);
   m_minRangeCtrl.SetValue(m_min);
 
-  CGeoVelocityMap *gMap = dynamic_cast<CGeoVelocityMap *>(GetCurrentLayer());
+  VTK_CWorldPlotVelocityData *gMap = dynamic_cast<VTK_CWorldPlotVelocityData *>(GetCurrentLayer());
   if ( gMap )
   {
 

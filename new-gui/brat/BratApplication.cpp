@@ -1,5 +1,6 @@
 #include "stdafx.h"
 
+#include <QtOpenGL>
 
 #include "new-gui/QtInterface.h"
 #include "new-gui/Common/+Utils.h"
@@ -19,6 +20,7 @@ CApplicationPaths *CBratApplication::smApplicationPaths = nullptr;
 //	 GUI, since the only place we will call this is in main, where 
 //	everything else has failed.
 //
+//static 
 int CBratApplication::OffGuiErrorDialog( int error_type, char const *error_msg )
 {
 	int argc = 0;
@@ -59,7 +61,7 @@ void CBratApplication::Prologue( int argc, char *argv[] )
 		throw CException( "CBratApplication Prologue must be called only once." );
 
 	LOG_TRACE( "prologue tasks.." );
-
+	
 	safe_debug_envar_msg( "QGIS_LOG_FILE" );
 	safe_debug_envar_msg( "QGIS_DEBUG_FILE" );
 	safe_debug_envar_msg( "QGIS_DEBUG" );
@@ -81,6 +83,70 @@ void CBratApplication::Prologue( int argc, char *argv[] )
 
 
 
+// Adaptation from boxes Qt demo
+//
+//static 
+void CBratApplication::CheckOpenGL( bool extended )		//extended = false 
+{
+	//	lambdas
+
+	auto matchString = [](const char *extensionString, const char *subString) -> bool 
+	{
+		int subStringLength = strlen(subString);
+		return (strncmp(extensionString, subString, subStringLength) == 0)
+			&& ((extensionString[subStringLength] == ' ') || (extensionString[subStringLength] == '\0'));
+	};
+
+
+	//	function body
+
+	if ( ( QGLFormat::openGLVersionFlags() & QGLFormat::OpenGL_Version_1_5 ) == 0 ) 
+	{
+		throw CException(
+			"OpenGL version 1.5 or higher is required to run brat.\n"
+			"The program will now exit." );
+	}
+
+	if ( extended )
+	{
+		QGLFormat f( QGL::SampleBuffers );
+		QGLWidget widget( f );
+		widget.makeCurrent();
+
+		const char *extensionString = reinterpret_cast<const char *>( glGetString( GL_EXTENSIONS ) );
+		const char *p = extensionString;
+
+		const int GL_EXT_FBO = 1;
+		const int GL_ARB_VS = 2;
+		const int GL_ARB_FS = 4;
+		const int GL_ARB_SO = 8;
+		const int GL_ALL = GL_EXT_FBO | GL_ARB_VS | GL_ARB_FS | GL_ARB_SO;
+		int extensions = 0;
+
+		while ( *p ) {
+			if ( matchString( p, "GL_EXT_framebuffer_object" ) )
+				extensions |= GL_EXT_FBO;
+			else if ( matchString( p, "GL_ARB_vertex_shader" ) )
+				extensions |= GL_ARB_VS;
+			else if ( matchString( p, "GL_ARB_fragment_shader" ) )
+				extensions |= GL_ARB_FS;
+			else if ( matchString( p, "GL_ARB_shader_objects" ) )
+				extensions |= GL_ARB_SO;
+			while ( ( *p != ' ' ) && ( *p != '\0' ) )
+				++p;
+			if ( *p == ' ' )
+				++p;
+		}
+
+		if ( extensions != GL_ALL ) 
+		{
+			throw CException(
+				"The OpenGL extensions required to run brat are missing.\n"
+				"The program will now exit." );
+		}
+	}
+}
+
 
 CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QString customConfigPath )	//customConfigPath = QString() 
 
@@ -90,6 +156,9 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 
 {
 	LOG_TRACE( "Starting application instance construction..." );
+
+	CheckOpenGL();							//throws on failure
+	LOG_TRACE( "OpenGL check successful." );
 
 	LOG_TRACE( showSettings() );
 	LOG_TRACE( qgisSettingsDirPath() );
@@ -115,7 +184,7 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 	setlocale( LC_NUMERIC, "C" );
 
 
-	// Load configuration
+	// Load configuration - I
 	//
     if ( !mSettings.LoadConfig() )
 	{		
@@ -154,9 +223,19 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 	}
 
 	
-	// CODA
+	// CODA - can only be done after SetInternalDataDir
 	//
-	CProduct::CodaInit();	//CProduct::SetCodaReleaseWhenDestroy(false);	//v3 commented out 
+	assert__( CProduct::GetRefCount() <= 0 );
+	//
+	CProduct::CodaInit();
+
+
+	// Load configuration - II - can only be done after CodaInit
+	//
+    if ( !mSettings.LoadConfigSelectionCriteria() )
+	{		
+		throw CException( "Error reading the configuration file." );
+	}
 
 
     // (*) this can be statically set, but not statically 
