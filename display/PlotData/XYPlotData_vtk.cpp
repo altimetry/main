@@ -1130,44 +1130,43 @@ void VTK_CXYPlotData::SetRawData( CPlotArray* x, CPlotArray* y )
 	Update();
 }
 //----------------------------------------
-CPlotArray* VTK_CXYPlotData::GetRawData(int32_t i)
+CPlotArray* VTK_CXYPlotData::GetRawData( int32_t i )
 {
-  CPlotArray* data = dynamic_cast<CPlotArray*>(m_rawData.at(i));
-  if (data == nullptr)
-  {
-    throw CException("ERROR in  VTK_CXYPlotData::GetRawData : dynamic_cast<CPlotArray*>m_rawData.at(i);; returns nullptr pointer - "
-                 "XYPlotData  seems to contain objects other than those of the class CPlotArray or derived class", BRATHL_LOGIC_ERROR);
-  }
+	CPlotArray* data = dynamic_cast<CPlotArray*>( m_rawData.at( i ) );
+	if ( data == nullptr )
+	{
+		throw CException( "ERROR in  VTK_CXYPlotData::GetRawData : dynamic_cast<CPlotArray*>m_rawData.at(i);; returns nullptr pointer - "
+			"XYPlotData  seems to contain objects other than those of the class CPlotArray or derived class", BRATHL_LOGIC_ERROR );
+	}
+#if ( defined (DEBUG) || defined(_DEBUG) ) && defined(DUMP_VALUES)
 
-  vtkDoubleArrayBrathl* tmp_ptr = data->GetFrameData( 0 );
-  vtkIdType capacity = tmp_ptr->Capacity();
+	vtkDoubleArrayBrathl* tmp_ptr = data->GetFrameData( 0 );
+	vtkIdType capacity = tmp_ptr->Capacity();
 
-  if (i==1)
-  {
-    ofstream myfile ("C:/example.txt");
+	{
+		ofstream myfile ("C:/example.txt");
 
-  if (!myfile.is_open())
-  {
-      return NULL;
-  }
+		if (!myfile.is_open())
+		{
+			return NULL;
+		}
 
-      myfile << "these are y values:\n";
+		myfile << "these are y values:\n";
 
-  for(int j=0;j<capacity;j++)
-  {
+		for(int j=0;j<capacity;j++)
+		{
 
-      double s= tmp_ptr->GetComponent(j,0);
-      s=s+s-s;
-      myfile << "double number " << j << " has the value of: " << s << "\n";
+			double s= tmp_ptr->GetComponent(j,0);
+			s=s+s-s;
+			myfile << "double number " << j << " has the value of: " << s << "\n";
 
-  }
+		}
+		//s = this->GetComponent( i, comp );
+	}
 
+#endif
 
-  //s = this->GetComponent( i, comp );
-    myfile.close();
-  }
-  return data;
-
+	return data;
 }
 
 //----------------------------------------
