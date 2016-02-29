@@ -38,7 +38,9 @@ void CDataset::SetFieldSpecificUnit( const std::string& key, const std::string& 
 	m_fieldSpecificUnit.Erase( key );
 	m_fieldSpecificUnit.Insert( key, value, false );
 }
-//----------------------------------------
+
+//v4 Returns list of files in error (not found) for client code to display
+//
 bool CDataset::CtrlFiles( std::vector< std::string > &v )
 {
 	for ( CProductList::iterator it = m_files.begin(); it != m_files.end(); it++ )
@@ -48,18 +50,19 @@ bool CDataset::CtrlFiles( std::vector< std::string > &v )
 	}
 	return v.empty();
 }
+
 //----------------------------------------
 CProduct* CDataset::SetProduct()
 {
 	if ( m_files.size() <= 0 )
-		return NULL;
+		return nullptr;
 
-	return SetProduct( m_files.begin()->c_str() );
+	return SetProduct( *m_files.begin() );
 }
 //----------------------------------------
 CProduct* CDataset::SetProduct( const std::string& fileName )
 {
-	CProduct* product = NULL;
+	CProduct* product = nullptr;
 	try
 	{
 		product = CProduct::Construct( fileName );
@@ -70,10 +73,10 @@ CProduct* CDataset::SetProduct( const std::string& fileName )
 	{
 		UNUSED( e );
 
-		if ( product != NULL )
+		if ( product != nullptr )
 		{
 			delete product;
-			product = NULL;
+			product = nullptr;
 		}
 		throw;
 	}

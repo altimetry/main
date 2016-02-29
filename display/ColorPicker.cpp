@@ -32,7 +32,7 @@
 
 #include "new-gui/Common/tools/Exception.h"
 
-
+#include "display/PlotData/BratLookupTable.h"
 #include "Validators.h"
 #include "ColorPicker.h"
 

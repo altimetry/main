@@ -572,7 +572,7 @@ bool CFormula::CheckFieldNames(const CExpression& expr, const std::string& recor
     return true;
   }
 
-  return product->CheckFieldNames(expr, (const char *)record.c_str(), fieldNamesNotFound);
+  return product->CheckFieldNames(expr, record, fieldNamesNotFound);
 }
 
 //----------------------------------------
@@ -630,7 +630,7 @@ bool CFormula::CheckFieldNames(const CExpression& expr, const std::string& recor
 
   //Add record name to field names
   std::string errorString;
-  bool recordNameAdded = product->AddRecordNameToField(expr, (const char *)record.c_str(), exprOut, errorString);
+  bool recordNameAdded = product->AddRecordNameToField(expr, record, exprOut, errorString);
 
   if (!recordNameAdded)
   {
@@ -702,7 +702,7 @@ bool CFormula::CheckExpression( CWorkspaceFormula *wks, const std::string& value
 
 
   bool bOk = true;
-  std::string str = (const char *)value.c_str();
+  std::string str = value;
   uint32_t numberVarsExpanded = 0;
 
   // Group fields aliases and formulas aliases in a single map.
@@ -721,7 +721,7 @@ bool CFormula::CheckExpression( CWorkspaceFormula *wks, const std::string& value
 
     try
     {
-      CTools::FindAliases((const char *)value.c_str(), aliasesFound, true, "%", true, aliases, fieldAliases, true);
+      CTools::FindAliases(value, aliasesFound, true, "%", true, aliases, fieldAliases, true);
     }
     catch(CException& e)
     {
@@ -741,7 +741,7 @@ bool CFormula::CheckExpression( CWorkspaceFormula *wks, const std::string& value
 
     // Expand fields aliases and formulas aliases
     std::string errorString;
-    str = CTools::ExpandVariables((const char *)value.c_str(), aliases, fieldAliases, true, '%', &numberVarsExpanded, false, &errorString);
+    str = CTools::ExpandVariables(value, aliases, fieldAliases, true, '%', &numberVarsExpanded, false, &errorString);
     if (!errorString.empty())
     {
       errorMsg += ( std::string("Unable to expand aliases (formulas and fields) from:\n" ) + value + "\n.\nReason\n'" + errorString + "'" );    
@@ -755,7 +755,7 @@ bool CFormula::CheckExpression( CWorkspaceFormula *wks, const std::string& value
 
   //CExpression exprOut;
   std::string expStrOut;
-  bOk &= CFormula::CheckFieldNames(str.c_str(), record, product, expStrOut, errorMsg);
+  bOk &= CFormula::CheckFieldNames(str, record, product, expStrOut, errorMsg);
 
   if (bOk)
   {
@@ -769,12 +769,12 @@ bool CFormula::CheckExpression( CWorkspaceFormula *wks, const std::string& value
       {
         //Try to correct lower/upper case error in field names.
         std::string out;
-        product->ReplaceNamesCaseSensitive((const char *)value.c_str(), out);
+        product->ReplaceNamesCaseSensitive(value, out);
 
         //Add record name to field names
         std::string out2 = out;
         std::string errorString;
-        product->AddRecordNameToField(out2, (const char *)record.c_str(), out, errorString);
+        product->AddRecordNameToField(out2, record, out, errorString);
 
 
         *valueOut = out.c_str();
@@ -805,7 +805,7 @@ bool CFormula::SetExpression( const std::string& value, CExpression& expr, std::
 
 	try
 	{
-		expr.SetExpression( (const char *)value.c_str() );
+		expr.SetExpression( value );
 	}
 	catch ( CException& e )
 	{
@@ -816,19 +816,17 @@ bool CFormula::SetExpression( const std::string& value, CExpression& expr, std::
 	return bOk;
 }
 //----------------------------------------
-bool CFormula::GetFields(CStringArray& fields, std::string& errorMsg, const CStringMap* aliases /* = nullptr*/, const CStringMap* fieldAliases /*= nullptr*/)
+bool CFormula::GetFields( CStringArray& fields, std::string& errorMsg, const CStringMap* aliases, const CStringMap* fieldAliases ) const	//aliases = nullptr, const CStringMap* fieldAliases = nullptr
 {
-  CExpression expr;
+	CExpression expr;
 
-  bool bOk = CFormula::SetExpression(GetDescription(true, aliases, fieldAliases), expr, errorMsg);
-  if (!bOk)
-  {
-    return bOk;
-  }
-  // Copy fields names contained in expression
-  fields = *(expr.GetFieldNames());
+	if ( !CFormula::SetExpression( GetDescription( true, aliases, fieldAliases ), expr, errorMsg ) )
+		return false;
 
-  return bOk;
+	// Copy fields names contained in expression
+	fields = *( expr.GetFieldNames() );
+
+	return true;
 }
 
 //----------------------------------------
@@ -846,7 +844,7 @@ bool CFormula::CheckExpression(CWorkspaceFormula *wks, std::string& errorMsg, co
 
   std::string str;
   std::string valueOutTemp;
-  std::string strUnit = m_unit.AsString(false).c_str();
+  std::string strUnit = m_unit.AsString(false);
 
   bool bOk = CFormula::CheckExpression(wks, stringExpr, record, str, &strUnit, aliases, product, &valueOutTemp);
 
@@ -871,26 +869,24 @@ bool CFormula::CheckExpression(CWorkspaceFormula *wks, std::string& errorMsg, co
 }
 
 //----------------------------------------
-double CFormula::LonNormal360(double value)
+double CFormula::LonNormal360( double value ) const
 {
+	CUnit unit( GetDefaultUnit( CMapTypeData::eTypeOpLongitude ) );
+	unit.SetConversionFrom( m_unit );
 
-  CUnit unit((const char *)GetDefaultUnit(CMapTypeData::eTypeOpLongitude).c_str());
-  unit.SetConversionFrom(m_unit);
+	value = unit.Convert( value );
+	value = CLatLonPoint::LonNormal360( value );
 
-  value = unit.Convert(value);
-  value = CLatLonPoint::LonNormal360(value);
+	unit = m_unit.BaseUnit();
+	unit.SetConversionTo( m_unit );
 
-  unit	= m_unit.BaseUnit();
-  unit.SetConversionTo(m_unit);
+	value	= unit.Convert( value );
 
-  value	= unit.Convert(value);
-
-  return value;
-
+	return value;
 }
 //----------------------------------------
 
-bool CFormula::ControlResolution( std::string& errorMsg )
+bool CFormula::ControlResolution( std::string& errorMsg ) const
 {
 	bool bOk = true;
 
@@ -929,87 +925,85 @@ bool CFormula::ControlResolution( std::string& errorMsg )
 	return bOk;
 }
 //----------------------------------------
-bool CFormula::CtrlMinMaxValue(std::string& errorMsg)
+bool CFormula::CtrlMinMaxValue( std::string& errorMsg ) const
 {
-  bool bOk = true;
-  double min = m_minValue;
-  double max = m_maxValue;
+	bool bOk = true;
+	double min = m_minValue;
+	double max = m_maxValue;
 
-  if (IsLonDataType())
-  {
-    if (min >= max)
-    {
-      max = LonNormal360(max);
-      //formula.SetMaxValue(max);
-      //ctrlMax->SetValue(max);
-    }
-  }
-  if (min >= max)
-  {
-    errorMsg += "\n\tMinimun value must be strictly less than Maximum value.",
-    bOk = false;
-  }
+	if ( IsLonDataType() )
+	{
+		if ( min >= max )
+		{
+			max = LonNormal360( max );
+			//formula.SetMaxValue(max);
+			//ctrlMax->SetValue(max);
+		}
+	}
+	if ( min >= max )
+	{
+		errorMsg += "\n\tMinimun value must be strictly less than Maximum value.",
+			bOk = false;
+	}
 
-  return bOk;
+	return bOk;
 }
 
 
 //----------------------------------------
-bool CFormula::IsFieldType()
+bool CFormula::IsFieldType() const
 {
-  return (GetType() == CMapTypeField::eTypeOpAsField);
+	return GetType() == CMapTypeField::eTypeOpAsField;
 }
 //----------------------------------------
-bool CFormula::IsXType()
+bool CFormula::IsXType() const
 {
-  return (GetType() == CMapTypeField::eTypeOpAsX);
+	return GetType() == CMapTypeField::eTypeOpAsX;
 }
 //----------------------------------------
-bool CFormula::IsYType()
+bool CFormula::IsYType() const
 {
-  return (GetType() == CMapTypeField::eTypeOpAsY);
+	return GetType() == CMapTypeField::eTypeOpAsY;
 }
 //----------------------------------------
-bool CFormula::IsXYType()
+bool CFormula::IsXYType() const
 {
-  return ( IsXType() ||
-           IsYType() );
+	return IsXType() || IsYType();
 }
 //----------------------------------------
-bool CFormula::IsDataTypeSet()
+bool CFormula::IsDataTypeSet() const
 {
-  return (GetDataType() >= 0);
+  return GetDataType() >= 0;
 }
 //----------------------------------------
-bool CFormula::IsLatLonDataType()
+bool CFormula::IsLatLonDataType() const
 {
-  return ( IsLonDataType() ||
-           IsLatDataType() );
+  return IsLonDataType() || IsLatDataType();
 }
 //----------------------------------------
-bool CFormula::IsLonDataType()
+bool CFormula::IsLonDataType() const
 {
-  return (GetDataType() == CMapTypeData::eTypeOpLongitude);
+	return GetDataType() == CMapTypeData::eTypeOpLongitude;
 }
 //----------------------------------------
-bool CFormula::IsLatDataType()
+bool CFormula::IsLatDataType() const
 {
-  return (GetDataType() == CMapTypeData::eTypeOpLatitude);
+	return GetDataType() == CMapTypeData::eTypeOpLatitude;
 }
 //----------------------------------------
 bool CFormula::IsTimeDataType() const
 {
-  return (GetDataType() == CMapTypeData::eTypeOpT);
+	return GetDataType() == CMapTypeData::eTypeOpT;
 }
 //----------------------------------------
-bool CFormula::IsXYLatLon()
+bool CFormula::IsXYLatLon() const
 {
-  return IsXYType() && IsLatLonDataType();
+	return IsXYType() && IsLatLonDataType();
 }
 //----------------------------------------
-bool CFormula::IsXYTime()
+bool CFormula::IsXYTime() const
 {
-  return IsXYType() && IsTimeDataType();
+	return IsXYType() && IsTimeDataType();
 }
 //----------------------------------------
 bool CFormula::ControlUnitConsistency(std::string& errorMsg)
@@ -1921,20 +1915,6 @@ std::string CMapFormula::GetDescFormula( const std::string& name, bool alias )
 	std::string text = alias ? value->GetAlias() : value->GetDescription();
 	return text;
 }
-/*
-//----------------------------------------
-bool CMapFormula::SetDescFormula(const std::string& name, const std::string& description)
-{
-  CFormula* value = dynamic_cast<CFormula*>(Exists(name.c_str()));
-  if (value == nullptr)
-  {
-    return false;
-  }
-
-  value->SetDescription(description);
-  return true;
-}
-*/
 //----------------------------------------
 std::string CMapFormula::GetCommentFormula( const std::string& name ) const
 {
@@ -1958,25 +1938,19 @@ bool CMapFormula::SetCommentFormula(const std::string& name, const std::string& 
 }
 
 //----------------------------------------
-CFormula* CMapFormula::GetFormula(int32_t type)
+CFormula* CMapFormula::GetFormula( int32_t type )
 {
-  CMapFormula::iterator it;
+	for ( CMapFormula::iterator it = begin(); it != end(); it++ )
+	{
+		CFormula* value = dynamic_cast<CFormula*>( it->second );
+		if ( value == nullptr )
+			continue;
 
-  for (it = begin() ; it != end() ; it++)
-  {
-    CFormula* value = dynamic_cast<CFormula*>(it->second);
-    if (value == nullptr)
-    {
-      continue;
-    }
+		if ( value->GetType() == type )
+			return value;
+	}
 
-    if (value->GetType() == type)
-    {
-      return value;
-    }
-  }
-
-  return nullptr;
+	return nullptr;
 }
 //----------------------------------------
 void CMapFormula::InitFormulaDataMode(int32_t dataMode)

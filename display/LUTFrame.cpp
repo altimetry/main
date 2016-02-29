@@ -30,6 +30,7 @@
 #endif
 
 #include <wx/numdlg.h>
+#include "PlotData/BratLookupTable.h"
 #include "BratDisplayApp.h"
 #include "LUTFrame.h"
 #include "new-gui/Common/tools/Trace.h"

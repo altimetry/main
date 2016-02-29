@@ -18,7 +18,7 @@
 #include "new-gui/brat/stdafx.h"
 
 #include "new-gui/Common/tools/Exception.h"
-#include "new-gui/brat/ApplicationLogger.h"
+#include "ApplicationLogger.h"
 #include "libbrathl/Tools.h"
 #include "libbrathl/InternalFiles.h"
 #include "libbrathl/InternalFilesZFXY.h"

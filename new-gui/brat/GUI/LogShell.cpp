@@ -6,8 +6,9 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 
-#include "new-gui/brat/Views/TextWidget.h"
-#include "new-gui/brat/ApplicationLogger.h"
+#include "ApplicationLogger.h"
+
+#include "DisplayWidgets/TextWidget.h"
 #include "LogShell.h"
 
 
@@ -60,7 +61,7 @@ QGroupBox* CLogShell::CreateDebugWidgets( const std::string *names, size_t names
     set_button->setFocusPolicy( Qt::NoFocus );
 
 	mLogLevelCombo = new QComboBox( this );
-	fillCombo( mLogLevelCombo, names, names_size, osg::getNotifyLevel(), true );
+	FillCombo( mLogLevelCombo, names, names_size, osg::getNotifyLevel(), true );
     mLogLevelCombo->setFocusPolicy( Qt::NoFocus );
 
 	// wire & layout
@@ -247,7 +248,7 @@ void CLogShell::OsgNotifySlot( int severity, QString message )
 	Append( 
 		mSeverityToPromptTable[ (osg::NotifySeverity)severity ] + message, 
 		mSeverityToColorTable[ (osg::NotifySeverity)severity ], 
-		true );
+		false );
 }
 
 

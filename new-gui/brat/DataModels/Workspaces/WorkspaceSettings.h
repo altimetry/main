@@ -97,7 +97,7 @@ protected:
 
 	std::string Absolute2PortableDataPath( const std::string &path ) const;
 
-	std::string PortableData2AbsolutePath( const std::string &path ) const;
+	std::string Portable2AbsoluteDataPath( const std::string &path ) const;
 };
 
 

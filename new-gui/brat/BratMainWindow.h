@@ -4,22 +4,22 @@
 #include "DataModels/Workspaces/TreeWorkspace.h"
 
 #include "ui_BratMainWindow.h"
-#include "GUI/AbstractEditor.h"
 #include "GUI/DesktopManager.h"
 #include "GUI/LogShell.h"
 #include "BratSettings.h"
 #include "DataModels/Model.h"
 
 
-class CWorkspaceTabbedDock;
+class CTabbedDock;
 class CTextWidget;
 class CRecentFilesProcessor;
 
-class CControlsPanel;
+class CControlPanel;
 class CDatasetBrowserControls;
 class CDatasetFilterControls;
-class COperationsControls;
-
+class COperationControls;
+class CProcessesTable;
+class CAbstractDisplayEditor;
 
 class CWorkspace;
 
@@ -91,7 +91,7 @@ private:
 
     // MDI sub-windows logic
     //
-	CDesktopManagerBase *mManager = nullptr;
+	CDesktopManagerBase *mDesktopManager = nullptr;
 
     // Most recent files logic
     //
@@ -101,16 +101,25 @@ private:
     // Widgets
 	//
 
-	//Main Working Dock
-	CWorkspaceTabbedDock *mMainWorkingDock = nullptr;
+	// Main Working Dock
+	CTabbedDock *mMainWorkingDock = nullptr;
 
 	CTabbedDock *mOutputDock = nullptr;
     CLogShell *mLogFrame = nullptr;
+	int mLogFrameIndex = -1;
+	CProcessesTable *mProcessesTable = nullptr;
+	int mProcessesTableIndex = -1;
 
+	// map related actions/widgets
+	QProgressBar *mProgressBar = nullptr;
+	QCheckBox *mRenderSuppressionCBox = nullptr;
+	QAction *mActionDecorationGrid = nullptr;
+	QAction *mActionSelectFeatures = nullptr;
+	QAction *mActionSelectPolygon = nullptr;
+	QAction *mActionDeselectAll = nullptr;
+	QToolButton *mSelectionButton = nullptr;
 
     // Threading Lab
-    //
-	QProgressBar *mProgressBar = nullptr;
 	QToolButton *mMessageButton = nullptr;
 	QToolButton *mThreadsButton = nullptr;
 
@@ -133,7 +142,7 @@ private:
 
 	// assume mManager created
 	//
-	CControlsPanel *MakeWorkingPanel( ETabName tab );
+	CControlPanel *MakeWorkingPanel( ETabName tab );
 	void CreateWorkingDock();
 	void CreateOutputDock();
 	void CreateDocks();
@@ -165,7 +174,7 @@ public:
 	template< CBratMainWindow::ETabName INDEX >
 	struct ControlsPanelType
 	{
-		using panels_factory_t = std::tuple< CDatasetBrowserControls, CDatasetFilterControls, COperationsControls >;
+		using panels_factory_t = std::tuple< CDatasetBrowserControls, CDatasetFilterControls, COperationControls >;
 
 		using type = typename std::tuple_element< INDEX, panels_factory_t >::type;
 	};
@@ -180,7 +189,7 @@ public:
 	template< class EDITOR >
 	EDITOR* ActiveEditor();
 
-    CEditorBase *ActiveMDIEditor();
+    CAbstractDisplayEditor *ActiveMDIEditor();
 
     //
     //			Access
@@ -194,13 +203,7 @@ public:
 
 private:
 	void SetCurrentWorkspace( const CWorkspace *wks );
-
 	bool DoNoWorkspace();
-
-	// GUI Management
-	void EnableCtrlWorkspace();
-	void LoadWorkspace();
-	void ResetWorkspace();
     bool SaveWorkspace();
 
 	// .................................................
@@ -218,7 +221,7 @@ signals:
 	//			Signals
 	////////////////////////////////////
 
-	void WorkspaceChanged( const CModel *model );
+	void WorkspaceChanged( CModel *model );
 	void WorkspaceChanged( CWorkspaceDataset *wksd );
 	void WorkspaceChanged( CWorkspaceOperation *wkso );
 	void WorkspaceChanged( CWorkspaceDisplay *wksd );
@@ -250,17 +253,14 @@ protected slots:
     //
     void cursorPositionChanged();
 
-    // Update Actions
+    // Update State
     //
-    void WorkspaceChangedUpdateUI( const CModel *model );
+    void WorkspaceChangedUpdateUI( CModel *model );
+	void HandleSyncProcessExecution( bool executing );
+	void EnableMapSelectionActions( bool enable );		//more a slot helper than a slot
 
     void UpdateWindowMenu();
 
-
-    // do far, not slots: manually called
-    //
-    //void updateRecentFileActions();
-    //void connectAutoUpdateEditActions( CTextEditor* pe );
 
 private slots:
 

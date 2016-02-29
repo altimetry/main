@@ -1,7 +1,7 @@
 #include "new-gui/brat/stdafx.h"
 
 #include "new-gui/Common/QtUtils.h"
-#include "new-gui/brat/GUI/ActionsTable.h"
+#include "GUI/ActionsTable.h"
 #include "BratApplication.h"
 #include "BratSettings.h"
 #include "ApplicationSettingsDlg.h"

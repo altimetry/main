@@ -81,8 +81,38 @@ public:
 	CProduct* SetProduct( const std::string& fileName );
 	CProduct* SetProduct();
 
-	const CProductList* GetProductList() const { return &m_files; }
+	const CProductList* GetProductList() const { return &m_files; }		
 	CProductList* GetProductList() { return &m_files; }
+	void InsertProduct( const std::string &file ) 
+	{ 
+		return m_files.Insert( file ); 
+	}
+
+	void InsertUniqueProducts( const CStringList &files )
+	{
+		m_files.InsertUnique( files );
+	}
+
+	void InsertProducts( const CStringList &files )
+	{
+		m_files.InsertUnique( files );
+	}
+
+	void EraseProduct( const std::string &file )
+	{
+		m_files.Erase( file );
+	}
+
+	bool CheckFiles( bool onlyFirstFile = false )
+	{
+		return m_files.CheckFiles( onlyFirstFile );
+	}
+
+	void ClearProductList()
+	{
+		m_files.clear();
+	}
+
 
 	CStringMap* GetFieldSpecificUnits() { return &m_fieldSpecificUnit; }
 	const CStringMap* GetFieldSpecificUnits() const { return &m_fieldSpecificUnit; }

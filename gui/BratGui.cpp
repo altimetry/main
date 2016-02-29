@@ -669,6 +669,12 @@ bool CBratGuiApp::SaveConfigSelectionCriteria(bool flush)
   return bOk;
 
 }
+
+wxString CBratGuiApp::GetConfigPath() const 
+{ 
+	return mAppSettings->FilePath(); 
+}		//v4 to display in about dialog
+
 //----------------------------------------
 bool CBratGuiApp::LoadConfig()
 {

@@ -35,6 +35,7 @@
 
 #include "vtkInteractorObserver.h"
 
+#include "PlotData/BratLookupTable.h"
 #include "BratDisplayApp.h"
 #include "LabeledTextCtrl.h"
 #include "Validators.h"

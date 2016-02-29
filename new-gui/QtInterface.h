@@ -115,7 +115,7 @@ std::string GetFileName( const std::string &path );
 
 void SetFileExtension( std::string &path, const std::string &extension );
 
-std::string NormalizedPath( const std::string &path, const std::string &dir );
+std::string NormalizedAbsolutePath( const std::string &path, const std::string &dir );
 
 
 

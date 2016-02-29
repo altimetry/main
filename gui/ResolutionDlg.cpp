@@ -123,15 +123,11 @@ void CResolutionDlg::Init()
 
 
 
-	GetFormulaoptXmin()->SetToolTip( wxString::Format( "Minimun value for '%s' field.",
-		m_x->GetName().c_str() ) );
-	GetFormulaoptXmax()->SetToolTip( wxString::Format( "Maximum value for '%s' field.",
-		m_x->GetName().c_str() ) );
+	GetFormulaoptXmin()->SetToolTip( wxString::Format( "Minimun value for '%s' field.", m_x->GetName().c_str() ) );
+	GetFormulaoptXmax()->SetToolTip( wxString::Format( "Maximum value for '%s' field.",	m_x->GetName().c_str() ) );
 
-	GetFormulaoptYmin()->SetToolTip( wxString::Format( "Minimun value for '%s' field.",
-		m_y->GetName().c_str() ) );
-	GetFormulaoptYmax()->SetToolTip( wxString::Format( "Maximum value for '%s' field.",
-		m_y->GetName().c_str() ) );
+	GetFormulaoptYmin()->SetToolTip( wxString::Format( "Minimun value for '%s' field.",	m_y->GetName().c_str() ) );
+	GetFormulaoptYmax()->SetToolTip( wxString::Format( "Maximum value for '%s' field.",	m_y->GetName().c_str() ) );
 
 	GetFormulaoptXstep()->SetToolTip( wxString::Format( "Step between min. an max value for '%s' field.\n"
 		"'Step' is correlate with 'Number of intervals',",

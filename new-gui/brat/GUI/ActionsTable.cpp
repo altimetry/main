@@ -7,6 +7,9 @@
 
 #include "new-gui/Common/ApplicationSettings.h"
 
+
+#include "DataModels/PlotData/MapProjection.h"
+
 #include "ui_BratMainWindow.h"
 #include "ActionsTable.h"
 
@@ -130,11 +133,29 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eActionGroup_Projections, "Projections", "Projections menu", "://images/OSGeo/crs-change.png" },
 
-    { eAction_Projection1, "Projection 0", "Projection 0 tool-tip", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
+	{ eAction_Projection_LAMBERT_CYLINDRICAL, CMapProjection::GetInstance()->IdToName( PROJ2D_LAMBERT_CYLINDRICAL ), "Projection Lambert Cylindrical", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
 
-    { eAction_Projection2, "Projection 1", "Projection 1 tool-tip", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
+	{ eAction_Projection_PLATE_CAREE, CMapProjection::GetInstance()->IdToName( PROJ2D_PLATE_CAREE ), "Projection Plate Caree", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
 
-    { eAction_Projection3, "Projection 2", "Projection 2 tool-tip", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
+	{ eAction_Projection_MOLLWEIDE, CMapProjection::GetInstance()->IdToName( PROJ2D_MOLLWEIDE ), "Projection Mollweide", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
+
+	{ eAction_Projection_ROBINSON, CMapProjection::GetInstance()->IdToName( PROJ2D_ROBINSON ), "Projection Robinson", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
+
+	{ eAction_Projection_LAMBERT_AZIMUTHAL, CMapProjection::GetInstance()->IdToName( PROJ2D_LAMBERT_AZIMUTHAL ), "Projection Lambert Azimuthal", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
+
+	{ eAction_Projection_AZIMUTHAL_EQUIDISTANT, CMapProjection::GetInstance()->IdToName( PROJ2D_AZIMUTHAL_EQUIDISTANT ), "Projection Azimuthal Equidistant", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
+
+	{ eAction_Projection_MERCATOR, CMapProjection::GetInstance()->IdToName( PROJ2D_MERCATOR ), "Projection Mercator", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
+
+	{ eAction_Projection_ORTHO, CMapProjection::GetInstance()->IdToName( PROJ2D_ORTHO ), "Projection Ortho", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
+
+	{ eAction_Projection_NEAR_SIGHTED, CMapProjection::GetInstance()->IdToName( PROJ2D_NEAR_SIGHTED ), "Projection Near Sighted", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
+
+	{ eAction_Projection_STEREOGRAPHIC, CMapProjection::GetInstance()->IdToName( PROJ2D_STEREOGRAPHIC ), "Projection Stereographic", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
+
+	// { eAction_Projection_TMERCATOR, CMapProjection::GetInstance()->IdToName( PROJ2D_LAMBERT_CYLINDRICAL ), "Projection 0 tool-tip", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
+
+	{ eAction_Projection_Default, "Default", "Original projection", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
 
 
 	{ eAction_ApplicationPaths_page, "Paths", "Default application paths selection", "://images/alpha-numeric/__n.png", "://images/alpha-numeric/__n.png" },
@@ -421,6 +442,12 @@ CRecentFilesProcessor::CRecentFilesProcessor( QMainWindow *parent, QMenu *Recent
 	QObject( parent ), mRecentFilesMenu( RecentFiles_menu ), mSettingsSectionName( SettingsSectionName )
 {
 	SetupMenu( parent, ActionAfter );
+}
+
+
+void CRecentFilesProcessor::SetEnabled( bool enable )
+{
+	mRecentFilesMenu->setEnabled( enable );
 }
 
 

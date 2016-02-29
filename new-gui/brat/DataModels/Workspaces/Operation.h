@@ -46,7 +46,7 @@ inline std::string& clean_path( std::string &path )
 }
 inline std::string normalize( std::string &path, const std::string &dir )
 {
-	path = NormalizedPath( path, dir );
+	path = NormalizedAbsolutePath( path, dir );
 	return path;
 }
 
@@ -206,13 +206,17 @@ public:
 	const CMapFormula* GetFormulas() const { return &m_formulas; }
 	CMapFormula* GetFormulas() { return &m_formulas; }
 
-	CFormula* GetFormula( const std::string& name );
+	CFormula* GetFormula( const std::string& name ) const;
 	CFormula* GetFormula( int32_t type );
+	const CFormula* GetFormula( int32_t type ) const
+	{
+		return const_cast<COperation*>( this )->GetFormula( type );
+	}
 	CFormula* GetFormula( CMapFormula::iterator it );
-	const CFormula* GetFormula( CMapFormula::const_iterator it );
+	const CFormula* GetFormula( CMapFormula::const_iterator it ) const;
 
-	CFormula* NewUserFormula( std::string &errorMsg, CField* field, int32_t typeField, bool addToMap = true, CProduct* product = NULL );
-	CFormula* NewUserFormula( std::string &errorMsg, const std::string& name = "", int32_t typeField = CMapTypeField::eTypeOpAsField, const std::string& strUnit = "", bool addToMap = true, CProduct* product = NULL );
+	CFormula* NewUserFormula( std::string &errorMsg, CField* field, int32_t typeField, bool addToMap = true, CProduct* product = nullptr );
+	CFormula* NewUserFormula( std::string &errorMsg, const std::string& name = "", int32_t typeField = CMapTypeField::eTypeOpAsField, const std::string& strUnit = "", bool addToMap = true, CProduct* product = nullptr );
 
 	bool AddFormula( CFormula& value, std::string &errorMsg );
 	bool DeleteFormula( const std::string& name );
@@ -220,17 +224,22 @@ public:
 	std::string GetDescFormula( const std::string& name, bool alias = false );
 	//void SetDescFormula(const std::string& name, const std::string& value);
 
+	// output paths ///////////////////////////////////////////////////////////////////////
+	//
 	const std::string& GetOutputPath() const { return m_output; }				//femm: GetOutputName -> GetOutputPath; old body: {return m_output.GetFullPath();};
 	void SetOutput( const std::string& value, CWorkspaceOperation* wks );
-
 	std::string GetOutputPathRelativeToWks( const CWorkspaceOperation *wks ) const;
-	std::string GetExportAsciiOutputPathRelativeToWks( const CWorkspaceOperation *wks ) const;
 
     const std::string& GetExportAsciiOutputPath() const { return m_exportAsciiOutput; }
 	void SetExportAsciiOutput( const std::string& value, CWorkspaceOperation* wks );
+	std::string GetExportAsciiOutputPathRelativeToWks( const CWorkspaceOperation *wks ) const;
 
 	const std::string& GetShowStatsOutputPath() const { return m_showStatsOutput; }
 	void SetShowStatsOutput( const std::string& value, CWorkspaceOperation* wks );
+	std::string GetShowStatsOutputPathRelativeToWks( const CWorkspaceOperation *wks ) const;
+	//
+	///////////////////////////////////////////////////////////////////////////////////////
+
 
 	std::string GetTaskName() const;
 	const std::string GetCmdFile() const { return m_cmdFile; }	
@@ -252,19 +261,22 @@ public:
 	CFormula* GetSelect() { return m_select; }
 	void SetSelect( CFormula* value );
 
-	bool IsYFX();
-	bool IsZFXY();
-	bool IsMap();
+	bool IsYFX() const;
+	bool IsZFXY() const;
+	bool IsMap() const;
 
-	bool IsSelect( CFormula* value );
-	static bool IsSelect( const std::string& name );
+	bool IsSelect( CFormula* value ) const;
+	static bool IsSelect( const std::string& name )
+	{
+		return str_icmp( name, ENTRY_SELECT );
+	}
 
-	std::string GetSelectName();
-	std::string GetSelectDescription();
+	std::string GetSelectName() const;
+	std::string GetSelectDescription() const;
 	//  void SetSelectDesc(const std::string& value);
 
-	std::string GetFormulaNewName();
-	std::string GetFormulaNewName( const std::string& prefix );
+	std::string GetFormulaNewName() const;
+	std::string GetFormulaNewName( const std::string& prefix ) const;
 
 	const std::string& GetSystemCommand() const;
 	std::string GetFullCmd();
@@ -288,7 +300,7 @@ public:
 	int32_t GetExportAsciiNumberPrecision() const { return m_exportAsciiNumberPrecision; }
 	void SetExportAsciiNumberPrecision( int32_t value ) { m_exportAsciiNumberPrecision = value; }
 
-	bool IsExecuteAgain() { return m_executeAgain; }
+	bool IsExecuteAgain() const { return m_executeAgain; }
 	void SetExecuteAgain( bool value ) { m_executeAgain = value; }
 
 	bool CtrlLoessCutOff( std::string &msg );
@@ -310,14 +322,14 @@ public:
 	bool ComputeInterval( const std::string& formulaName, std::string &errorMsg );
 	bool ComputeInterval( CFormula* f, std::string &errorMsg );
 
-	bool ControlDimensions( CFormula* formula, std::string &errorMsg, const CStringMap* aliases = NULL );
+	bool ControlDimensions( CFormula* formula, std::string &errorMsg, const CStringMap* aliases = nullptr );
 	bool ControlResolution( std::string &errorMsg );
-	bool Control( CWorkspaceFormula *wks, std::string& msg, bool basicControl = false, const CStringMap* aliases = NULL );
+	bool Control( CWorkspaceFormula *wks, std::string& msg, bool basicControl = false, const CStringMap* aliases = nullptr );
 
-	bool GetXExpression( CExpression& expr, std::string& errorMsg, const CStringMap* aliases = NULL );
-	bool GetYExpression( CExpression& expr, std::string& errorMsg, const CStringMap* aliases = NULL );
+	bool GetXExpression( CExpression& expr, std::string& errorMsg, const CStringMap* aliases = nullptr ) const;
+	bool GetYExpression( CExpression& expr, std::string& errorMsg, const CStringMap* aliases = nullptr ) const;
 
-	bool ControlXYDataFields( std::string &errorMsg, const CStringMap* aliases = NULL );
+	bool ControlXYDataFields( std::string &errorMsg, const CStringMap* aliases = nullptr );
 
 	void ClearLogFile();
 

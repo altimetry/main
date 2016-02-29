@@ -30,6 +30,7 @@
 #include "wx/fileconf.h" // (wxFileConfig class)
 
 
+#include "PlotData/BratLookupTable.h"
 #include "display/BratDisplayApp.h"
 
 #if defined (__unix__) && defined(__DEPRECATED_DEFINED)
@@ -43,7 +44,6 @@
 #include "new-gui/Common/tools/Exception.h"
 using namespace brathl;
 
-#include "BratLookupTable.h"
 #include "new-gui/brat/DataModels/PlotData/ColorPalleteNames.h"
 
 //#include "ColorPalette.h"

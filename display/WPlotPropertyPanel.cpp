@@ -33,6 +33,7 @@
 #include "new-gui/Common/tools/Exception.h"
 
 
+#include "PlotData/BratLookupTable.h"
 #include "BratDisplayApp.h"
 #include "LabeledTextCtrl.h"
 #include "Validators.h"

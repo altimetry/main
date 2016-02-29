@@ -1,9 +1,10 @@
 #include "new-gui/brat/stdafx.h"
 
 #include "new-gui/Common/QtUtilsIO.h"
-#include "new-gui/brat/DataModels/Workspaces/Workspace.h"
-#include "new-gui/brat/Views/TextWidget.h"
-#include "new-gui/brat/DataModels/Model.h"
+
+#include "DataModels/Workspaces/Workspace.h"
+#include "DisplayWidgets/TextWidget.h"
+#include "DataModels/Model.h"
 
 #include "WorkspaceDialog.h"
 

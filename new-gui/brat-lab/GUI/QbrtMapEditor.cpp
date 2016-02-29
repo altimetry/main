@@ -52,7 +52,7 @@
 #include "new-gui/brat/DataModels/PlotData/WorldPlot.h"
 
 
-#include "new-gui/brat/Views/GlobeWidget.h"
+#include "new-gui/brat/GUI/DisplayWidgets/GlobeWidget.h"
 
 
 #include "QbrtMapEditor.h"
@@ -171,7 +171,7 @@ void QbrtMapEditor::createGlobe()
 	//if ( !mGlobe /* && mSplitter*/)
 	if ( !mGlobeWidget /* && mSplitter*/)
 	{
-        mGlobeWidget = new CGlobeWidget( this, CBratMapView::GlobeDir(), mMapCanvas );
+        mGlobeWidget = new CGlobeWidget( this, mMapCanvas, statusBar() );
 		//mGlobe = new GlobePlugin( nullptr, mMapCanvas );
 		//mOsgViewer = mGlobe->run( ad.mGlobeDir );						//can return null
 
@@ -204,7 +204,7 @@ void QbrtMapEditor::createGlobe()
 			mAction_View_Globe->setEnabled( true );
 	}
 }
-void QbrtMapEditor::CreateWPlot( const DisplayFilesProcessor *proc, CWPlot* wplot )
+void QbrtMapEditor::CreateWPlot( const CDisplayFilesProcessor *proc, CWPlot* wplot )
 {
     mMapCanvas->CreatePlot( proc->GetWorldPlotProperties(0), wplot );
 	createGlobe();
@@ -452,10 +452,10 @@ void QbrtMapEditor::globeSettings()
 	//assert__( mGlobe );
 	assert__( mGlobeWidget );
 
-	mGlobeWidget->settings();
+	mGlobeWidget->HandleSettings();
 }
 
-//void QbrtMapCanvas::CreateWPlot( const DisplayFilesProcessor *proc, CWPlot* wplot )
+//void QbrtMapCanvas::CreateWPlot( const CDisplayFilesProcessor *proc, CWPlot* wplot )
 //{
 //	QSize size;
 //	QPoint pos;

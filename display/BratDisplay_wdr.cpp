@@ -34,6 +34,7 @@
 
 // Custom source
 #include "brathl.h"
+#include "PlotData/BratLookupTable.h"
 #include "BratDisplayApp.h"
 #include "Validators.h"
 #include "LabeledTextCtrl.h"

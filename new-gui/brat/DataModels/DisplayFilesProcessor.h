@@ -40,7 +40,7 @@ class CPlotBase;
 
 
 
-class DisplayFilesProcessor
+class CDisplayFilesProcessor
 {
 	//data
 
@@ -69,12 +69,17 @@ public:
 
 	//Public ctor
 
-	DisplayFilesProcessor()
+	CDisplayFilesProcessor()
 	{}
+
+	CDisplayFilesProcessor( const std::string &display_cmd_file )
+	{
+		Process( display_cmd_file );
+	}
 
 	//Destruction
 
-	virtual ~DisplayFilesProcessor()
+	virtual ~CDisplayFilesProcessor()
 	{}
 
 

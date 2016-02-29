@@ -4,7 +4,7 @@
 
 #include <QDialog>
 
-#include "new-gui/brat/DataModels/Workspaces/TreeWorkspace.h"
+#include "DataModels/Workspaces/TreeWorkspace.h"
 
 class CModel;
 

@@ -3,7 +3,7 @@
 #include "BratApplication.h"
 #include "BratMainWindow.h"
 
-#include "new-gui/brat/Views/TextWidget.h"
+#include "GUI/DisplayWidgets/TextWidget.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -181,7 +181,7 @@ void CBratMainWindow::FillStatusBarExperimental()
 }
 
 
-CEditorBase *CBratMainWindow::ActiveMDIEditor()
+CAbstractDisplayEditor *CBratMainWindow::ActiveMDIEditor()
 {
     //QMdiSubWindow *subWindow = mdiArea->activeSubWindow();
     //if (subWindow)

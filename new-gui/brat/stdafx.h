@@ -162,6 +162,8 @@
 #endif
 
 
+//#define TESTING_GLOBE
+
 
 
 #endif      //STDAFX_H

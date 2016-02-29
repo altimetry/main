@@ -76,9 +76,17 @@ enum EActionTag : int
 	eAction_MapEditorLinearRegression,
 
 	eActionGroup_Projections,
-	eAction_Projection1,
-	eAction_Projection2,
-	eAction_Projection3,
+	eAction_Projection_LAMBERT_CYLINDRICAL, eAction_first_Projection = eAction_Projection_LAMBERT_CYLINDRICAL,
+	eAction_Projection_PLATE_CAREE,
+	eAction_Projection_MOLLWEIDE,
+	eAction_Projection_ROBINSON,
+	eAction_Projection_LAMBERT_AZIMUTHAL,
+	eAction_Projection_AZIMUTHAL_EQUIDISTANT,
+	eAction_Projection_MERCATOR,
+	eAction_Projection_ORTHO,
+	eAction_Projection_NEAR_SIGHTED,
+	eAction_Projection_STEREOGRAPHIC,		eAction_last_Projection = eAction_Projection_STEREOGRAPHIC,
+	eAction_Projection_Default,
 
 	eAction_ApplicationPaths_page,
 	eAction_StartupOptions_page,
@@ -178,6 +186,11 @@ public:
 
 public:
 	// static members: query process hidden Actions Table
+
+	static std::string IconPath( EActionTag tag )
+	{
+		return ActionInfo( tag ).mIconPath;
+	}
 
 
 	// Calls SetActionProperties
@@ -295,16 +308,19 @@ public:
 
 	// ACCESS
 
-	size_t size() const							//can be used by LoadLastFileAtStartUp logic
+	size_t Size() const							//can be used by LoadLastFileAtStartUp logic
 	{
 		return (size_t)mRecentFiles.size();
 	}
-	QString path( const size_t i ) const		//can be used by LoadLastFileAtStartUp logic
+	QString Path( const size_t i ) const		//can be used by LoadLastFileAtStartUp logic
 	{
-		assert__( i < size() );
+		assert__( i < Size() );
 
 		return mRecentFileActions[ i ]->data().toString();
 	}
+
+
+	void SetEnabled( bool enable );
 
 
 	// UPDATE: to be called when file is successfully opened

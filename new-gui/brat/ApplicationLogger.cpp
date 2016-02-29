@@ -1,5 +1,7 @@
 #include "stdafx.h"
 
+#include <osgEarth/Notify>
+
 #include "new-gui/Common/+Utils.h"
 #include "ApplicationLogger.h"
 
@@ -93,6 +95,8 @@ void CApplicationLogger::SetOsgStandardNotifier( bool standard )
 void CApplicationLogger::SetOsgNotifyLevel( osg::NotifySeverity ns )
 { 
 	osg::setNotifyLevel( ns );
+	osgEarth::setNotifyLevel( ns );
+
 	emit OsgLogLevelChanged( ns );
 }
 

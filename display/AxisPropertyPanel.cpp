@@ -30,6 +30,7 @@
     #pragma hdrstop
 #endif
 
+#include "PlotData/BratLookupTable.h"
 #include "BratDisplayApp.h"
 #include "Validators.h"
 #include "XYPlotPanel.h"

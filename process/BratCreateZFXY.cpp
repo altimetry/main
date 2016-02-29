@@ -79,7 +79,6 @@ int main( int argc, char *argv[] )
 		//    auto_ptr<CTrace>pTrace(CTrace::GetInstance());
 
 		bOk = bratProcess->Initialize( msg );
-			CTrace::Tracer( 1, "foda-se" );
 		if ( !bOk )
 		{
 			CTrace::Tracer( 1, msg );

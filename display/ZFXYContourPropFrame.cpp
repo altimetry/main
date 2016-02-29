@@ -30,6 +30,7 @@
     #pragma hdrstop
 #endif
 
+#include "PlotData/BratLookupTable.h"
 #include "BratDisplayApp.h"
 #include "ZFXYContourPropFrame.h"
 #include "new-gui/brat/DataModels/PlotData/MapColor.h"

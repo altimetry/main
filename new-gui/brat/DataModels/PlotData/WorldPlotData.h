@@ -21,7 +21,7 @@
 
 #include "libbrathl/brathl.h"
 
-#include "new-gui/brat/PlotValues.h"
+#include "PlotValues.h"
 #include "WorldPlotCommonData.h"
 
 

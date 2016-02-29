@@ -264,7 +264,7 @@ bool CWorkspaceDataset::CheckFiles( std::string &errorMsg )
 
 		try
 		{
-			dataset->GetProductList()->CheckFiles();
+			dataset->CheckFiles();
 		}
 		catch ( CException& e )
 		{

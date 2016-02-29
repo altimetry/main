@@ -8,8 +8,8 @@
 
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/ApplicationPaths.h"
-#include "new-gui/brat/Views/BratViews.h"
-#include "new-gui/brat/GUI/ViewEditors.h"
+
+#include "DisplayWidgets/BratViews.h"
 
 
 class CTreeWorkspace;

@@ -207,7 +207,7 @@ void QbrtMainWindow::openFile( const QString &fileName )
         addEditor( editor );
 
 	delete mCmdLineProcessor;
-    mCmdLineProcessor = new DisplayFilesProcessor();
+    mCmdLineProcessor = new CDisplayFilesProcessor();
 
 	const std::string s = q2a( fileName );
 	const char *argv[] = { "", s.c_str() };

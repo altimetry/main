@@ -4,6 +4,7 @@
 #include "new-gui/Common/+Utils.h"
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //						Expandable TabWidget
 //////////////////////////////////////////////////////////////////////////
@@ -56,7 +57,7 @@ class CTabbedDock : public QDockWidget
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
 #endif
 
-    Q_OBJECT
+	Q_OBJECT;
 
 #if defined (__APPLE__)
 #pragma clang diagnostic pop
@@ -77,21 +78,14 @@ class CTabbedDock : public QDockWidget
 
 	void CreateContents( QWidget *top_widget = nullptr );
 
-protected:
-
-	//...for derived classes
-	
+public:
 	CTabbedDock( QWidget *top_widget, const QString &title, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
-public:
 	CTabbedDock( const QString &title, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
 	virtual ~CTabbedDock()
 	{}	
 
-    virtual bool ReadSettings( const std::string &group );
-
-    virtual bool WriteSettings( const std::string &group );
 
 	// access 
 
@@ -114,8 +108,6 @@ public:
 	{
 		return mTabWidget->setCurrentIndex( index );
 	}
-
-
 
 
 	// operations
@@ -141,42 +133,5 @@ public:
 		SetTabToolTip( TabIndex( tab ), tip );
 	}
 };
-
-
-
-//////////////////////////////////////////////////////////////////////////
-//						Workspace Tabbed Dock
-//////////////////////////////////////////////////////////////////////////
-
-
-class CWorkspaceTabbedDock : public CTabbedDock
-{
-#if defined (__APPLE__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winconsistent-missing-override"
-#endif
-
-    Q_OBJECT
-
-#if defined (__APPLE__)
-#pragma clang diagnostic pop
-#endif
-
-	// types
-		
-	using base_t = CTabbedDock;
-
-	// construction / destruction
-
-	QWidget* CreateTopFrame();
-
-public:
-	CWorkspaceTabbedDock( const QString &title, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
-
-	virtual ~CWorkspaceTabbedDock()
-	{}	
-};
-
-
 
 #endif	//GUI_TABBED_DOCK_H

@@ -321,7 +321,7 @@ inline QGridLayout* CreateGridLayout( QWidget *parent, int spacing = 0, int left
 
 
 inline QBoxLayout* LayoutWidgets( Qt::Orientation o, const std::vector< QObject* > &v, 
-	QWidget *parent, int spacing, int left, int top, int right, int bottom  )			
+	QWidget *parent, int spacing, int left, int top, int right, int bottom )			
 {
 	QBoxLayout *main_l = CreateLayout( parent, o, spacing, left, top, right, bottom );
 	for ( auto ob : v )
@@ -344,7 +344,8 @@ inline QBoxLayout* LayoutWidgets( Qt::Orientation o, const std::vector< QObject*
 
 
 inline QGridLayout* LayoutWidgets( const std::vector< QObject* > &v, 
-	QWidget *parent, int spacing, int left, int top, int right, int bottom )
+	QWidget *parent, int spacing, int left, int top, int right, int bottom,
+	int row_span = 1, int col_span = 1 )
 {
 	QGridLayout *main_l = CreateGridLayout( parent, spacing, left, top, right, bottom );
 	int line = 0, col = 0;
@@ -360,9 +361,9 @@ inline QGridLayout* LayoutWidgets( const std::vector< QObject* > &v,
 			auto w = qobject_cast<QWidget*>( ob );
 			auto l = qobject_cast<QLayout*>( ob );		assert__( w || l );
 			if ( w )
-				main_l->addWidget( w, line, col, 1, 1 );
+				main_l->addWidget( w, line, col, row_span, col_span );
 			else
-				main_l->addLayout( l, line, col, 1, 1 );
+				main_l->addLayout( l, line, col, row_span, col_span );
 
 			++col;
 		}
@@ -395,6 +396,7 @@ GROUP_BOX* CreateGroupBox( ELayoutType o, const std::vector< QObject* > &v, cons
 	int spacing = default_spacing, int left = default_left, int top = default_top, int right = default_right, int bottom = default_bottom )
 {
 	auto group = new GROUP_BOX( title, parent );
+	SetObjectName( group, parent ? q2a( parent->objectName() ) : "group_box" );
 
 	for ( auto ob : v )
 	{
@@ -588,17 +590,38 @@ inline void insertToolBar( QMainWindow *w, QToolBar *toolbar, Qt::ToolBarArea ar
 //combo box
 ///////////
 
+inline const QString& qidentity( const QString &s ){  return s; }
+
+
+template <
+    typename COMBO, typename CONTAINER, typename FUNC = decltype( qidentity )
+>
+inline void FillCombo( COMBO *c, const CONTAINER &items, const FUNC &f, int selected = 0, bool enabled = true )
+{
+    for ( auto i : items )
+    {
+        c->addItem( f( i ) );
+    }
+    c->setCurrentIndex( selected );
+    c->setEnabled( enabled );
+}
+
+
 //NOTE: this is a template only for the compiler not to error "use of undefined type" in the poor moc files
 //
 template< typename COMBO >
-inline void fillCombo( COMBO *c, const std::string *names, size_t size, int selected, bool enabled )
+inline void FillCombo( COMBO *c, const std::string *names, size_t size, int selected, bool enabled )
 {
-	for ( size_t i = 0; i < size; ++i ) {
-		c->addItem( names[i].c_str() );
-	}
-	c->setCurrentIndex( selected );
-	c->setEnabled( enabled );
+	FillCombo( c, std::vector< std::string >( &names[0], &names[size] ), 
+
+		[]( const std::string &s ) -> const char*
+        {
+			return s.c_str();
+		},
+		
+		selected, enabled );
 }
+
 
 
 //////////////////////

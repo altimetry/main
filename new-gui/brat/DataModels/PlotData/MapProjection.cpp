@@ -17,191 +17,287 @@
 */
 #include "new-gui/brat/stdafx.h"
 
+#if !defined( BRAT_V3)
+#include <qgscoordinatereferencesystem.h>
+#endif
+
+
 #include "libbrathl/Tools.h"
 #include "new-gui/Common/tools/Exception.h"
 using namespace brathl;
 
-#if defined (__DEPRECATED)      //avoid linux warning in vtk include
-#undef __DEPRECATED
-#endif
-//#include "vtkProj2DFilter.h"	//VISAN
+
 #include "MapProjection.h"
-#include "new-gui/brat/DataModels/PlotData/WorldPlotCommonData.h"
+#include "DataModels/PlotData/WorldPlotCommonData.h"
 
-/*
-// Defines for vtkProjections (values must be > 0) ===> projection constants are declared in vtkProj2DFilter.h
-uint32_t CMapProjection::VTK_PROJ2D_LAMBERT_CYLINDRICAL      = 1;
-uint32_t CMapProjection::VTK_PROJ2D_PLATE_CAREE              = 2;
-uint32_t CMapProjection::VTK_PROJ2D_MOLLWEIDE                = 3;
-uint32_t CMapProjection::VTK_PROJ2D_ROBINSON                 = 4;
-uint32_t CMapProjection::VTK_PROJ2D_LAMBERT_AZIMUTHAL        = 5;
-uint32_t CMapProjection::VTK_PROJ2D_AZIMUTHAL_EQUIDISTANT    = 6;
-uint32_t CMapProjection::VTK_PROJ2D_3D                       = 7;
-*/
 
-CMapProjection* CMapProjection::m_instance = NULL;
+///////////////////////////
+//	v3 singleton technique
+///////////////////////////
+
+class CSmartCleanerMapProj
+{
+public:
+	CSmartCleanerMapProj( CMapProjection * pObject = nullptr ) : m_pObject( pObject ) { }
+	virtual ~CSmartCleanerMapProj()
+	{
+		if ( m_pObject != nullptr )
+		{
+			delete m_pObject;
+		}
+	}
+	void SetObject( CMapProjection * pObject )
+	{
+		m_pObject = pObject;
+	}
+	CMapProjection * GetObject()
+	{
+		return m_pObject;
+	}
+private:
+	CMapProjection * m_pObject;
+};
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//	Coordinate Reference Systems
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+#if !defined( BRAT_V3)
+
+using crs_entry_t = std::pair< unsigned, QgsCoordinateReferenceSystem >;
+using crs_map_t = const std::vector< crs_entry_t >;
+
+
+
+crs_entry_t MakeCRSEntryFromId( unsigned id )
+{
+	QgsCoordinateReferenceSystem invalid;
+
+	switch ( id )
+	{
+		case PROJ2D_LAMBERT_CYLINDRICAL:
+			return { id, { 4326, QgsCoordinateReferenceSystem::PostgisCrsId } };
+			break;
+
+		case PROJ2D_PLATE_CAREE:
+			return { id, { 53026, QgsCoordinateReferenceSystem::EpsgCrsId } };
+			break;
+
+		case PROJ2D_MOLLWEIDE:
+			return { id, { 54003, QgsCoordinateReferenceSystem::EpsgCrsId } };
+			break;
+
+		case PROJ2D_ROBINSON:
+			return { id, { 53009, QgsCoordinateReferenceSystem::EpsgCrsId } };
+			break;
+
+		case PROJ2D_LAMBERT_AZIMUTHAL:
+			return { id, { 53009, QgsCoordinateReferenceSystem::EpsgCrsId } };
+			break;
+
+		case PROJ2D_AZIMUTHAL_EQUIDISTANT:
+			return { id, { 53009, QgsCoordinateReferenceSystem::EpsgCrsId } };
+			break;
+
+		case PROJ2D_3D:			//invalid CRS, not 2D
+			break;
+
+		case PROJ2D_MERCATOR:
+			return { id, { 53009, QgsCoordinateReferenceSystem::EpsgCrsId } };
+			break;
+
+		case PROJ2D_ORTHO:
+			return { id, { 53009, QgsCoordinateReferenceSystem::EpsgCrsId } };
+			break;
+
+		case PROJ2D_NEAR_SIGHTED:
+			return { id, { 53009, QgsCoordinateReferenceSystem::EpsgCrsId } };
+			break;
+
+		case PROJ2D_STEREOGRAPHIC:
+			return { id, { 53009, QgsCoordinateReferenceSystem::EpsgCrsId } };
+			break;
+
+		case PROJ2D_TMERCATOR:	//not used
+			break;
+
+		default:
+			assert__( false );
+	}
+
+	return crs_entry_t( id, invalid );
+}
+
+#endif
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//	CMapProjection class
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+CMapProjection* CMapProjection::m_instance = nullptr;
 CSmartCleanerMapProj	CMapProjection::m_SmartCleaner;
 
+CMapProjection* CMapProjection::GetInstance()
+{
+	if ( m_instance == nullptr )
+		m_instance = new CMapProjection;
 
+	return m_instance;
+}
+
+
+
+//originally based on vtkProj2DFilter.h from VISAN
+//
 CMapProjection::CMapProjection()
 {
-  //projection constants are declared in vtkProj2DFilter.h
-  Insert("Plate Caree", PROJ2D_PLATE_CAREE);
-  Insert("Robinson", PROJ2D_ROBINSON);
-  Insert("Mollweide", PROJ2D_MOLLWEIDE);
-  Insert("Lambert Cylindrical", PROJ2D_LAMBERT_CYLINDRICAL);
-  Insert("Lambert Azimuthal", PROJ2D_LAMBERT_AZIMUTHAL);
-  Insert("Azimuthal Equidistant", PROJ2D_AZIMUTHAL_EQUIDISTANT);
-  Insert("Mercator", PROJ2D_MERCATOR);
-  Insert("Orthographic", PROJ2D_ORTHO);
-  Insert("Near-Sided Perspective", PROJ2D_NEAR_SIGHTED);
-  Insert("Stereographic", PROJ2D_STEREOGRAPHIC);
-  //Insert("Transverse Mercator", VTK_PROJ2D_TMERCATOR);  // this projection is weird..
-  Insert("3D", PROJ2D_3D);
+	//projection constants are declared in vtkProj2DFilter.h
+	Insert( "Plate Caree", PROJ2D_PLATE_CAREE );
+	Insert( "Robinson", PROJ2D_ROBINSON );
+	Insert( "Mollweide", PROJ2D_MOLLWEIDE );
+	Insert( "Lambert Cylindrical", PROJ2D_LAMBERT_CYLINDRICAL );
+	Insert( "Lambert Azimuthal", PROJ2D_LAMBERT_AZIMUTHAL );
+	Insert( "Azimuthal Equidistant", PROJ2D_AZIMUTHAL_EQUIDISTANT );
+	Insert( "Mercator", PROJ2D_MERCATOR );
+	Insert( "Orthographic", PROJ2D_ORTHO );
+	Insert( "Near-Sided Perspective", PROJ2D_NEAR_SIGHTED );
+	Insert( "Stereographic", PROJ2D_STEREOGRAPHIC );
+	//Insert("Transverse Mercator", VTK_PROJ2D_TMERCATOR);  // this projection is weird..
+	Insert( "3D", PROJ2D_3D );
 
-  m_SmartCleaner.SetObject( this );
-
-
+	m_SmartCleaner.SetObject( this );
 }
 
 
-//----------------------------------------
 CMapProjection::~CMapProjection()
 {
+	// Step 1 - Set m_instance to nullptr when the object is deleted
 
-  // Step 1 - Set m_instance to NULL when the object is deleted
-  CMapProjection::m_instance = NULL;
-  // Step 2 - Set NULL pointer to smart cleaner
-  m_SmartCleaner.SetObject( NULL );
+	CMapProjection::m_instance = nullptr;
+
+	// Step 2 - Set nullptr pointer to smart cleaner
+
+	m_SmartCleaner.SetObject( nullptr );
 }
 
 
-//----------------------------------------
-CMapProjection* CMapProjection::GetInstance()
- {
-   if ( CMapProjection::m_instance == NULL)
-   {
-     CMapProjection::m_instance = new CMapProjection;
-   }
-   return CMapProjection::m_instance;
- }
-
-//----------------------------------------
-
-bool CMapProjection::ValidName(const std::string& name)
+#if !defined( BRAT_V3)
+const QgsCoordinateReferenceSystem& CMapProjection::IdToCRS( unsigned id )
 {
-  return ValidName(name.c_str());
-}
+	// lambda
+
+	auto validate_projections = []( const crs_map_t &m ) -> bool 
+	{
+		for ( auto const &crs : m )
+			if ( crs.first != PROJ2D_3D && !crs.second.isValid() )
+				return false;
+
+		return true;
+	};
 
 
-//----------------------------------------
-bool CMapProjection::ValidName(const char* name)
+	// function body
+
+	static const crs_entry_t invalid;
+	static const crs_map_t m =
+	{
+		MakeCRSEntryFromId( PROJ2D_LAMBERT_CYLINDRICAL ),
+		MakeCRSEntryFromId( PROJ2D_PLATE_CAREE ),
+		MakeCRSEntryFromId( PROJ2D_MOLLWEIDE ),
+		MakeCRSEntryFromId( PROJ2D_ROBINSON ),
+		MakeCRSEntryFromId( PROJ2D_LAMBERT_AZIMUTHAL ),
+		MakeCRSEntryFromId( PROJ2D_AZIMUTHAL_EQUIDISTANT ),
+		MakeCRSEntryFromId( PROJ2D_3D ),
+		MakeCRSEntryFromId( PROJ2D_MERCATOR ),
+		MakeCRSEntryFromId( PROJ2D_ORTHO ),
+		MakeCRSEntryFromId( PROJ2D_NEAR_SIGHTED ),
+		MakeCRSEntryFromId( PROJ2D_STEREOGRAPHIC ),
+		//MakeCRSEntryFromId( PROJ2D_TMERCATOR ),
+	};
+
+	static const bool valid_projections = validate_projections( m );		assert__( valid_projections && ( m.size() == CMapProjection::GetInstance()->size() ) );
+
+	for ( auto &crs : m )
+		if ( crs.first == id )
+			return crs.second;
+
+	return invalid.second;
+};
+#endif
+
+
+
+bool CMapProjection::ValidName( const std::string& name ) const
 {
-  uint32_t value = Exists(name);
-  return (!isDefaultValue(value));
+	return ValidName( name.c_str() );
 }
 
-//----------------------------------------
-std::string CMapProjection::NameToLabeledName(const std::string& name)
+
+bool CMapProjection::ValidName( const char* name ) const
 {
-  CMapProjection::iterator it;
-  std::string nameTmp = CTools::StringToLower(name);
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    std::string lowerName = CTools::StringToLower(it->first);
-    if (nameTmp == lowerName)
-    {
-      return it->first;
-    }
-  }
-
-  return "";
+	return ( !isDefaultValue( Exists( name ) ) );
 }
 
-//----------------------------------------
 
-std::string CMapProjection::IdToName(uint32_t id)
+std::string CMapProjection::NameToLabeledName( const std::string& name ) const
 {
-  CMapProjection::iterator it;
+	std::string nameTmp = CTools::StringToLower( name );
 
-  for (it = begin() ; it != end() ; it++)
-  {
-    uint32_t value = it->second;
-    if (value == id)
-    {
-      return it->first;
-    }
-  }
+	for ( CMapProjection::const_iterator it = begin(); it != end(); it++ )
+	{
+		std::string lowerName = CTools::StringToLower( it->first );
+		if ( nameTmp == lowerName )
+		{
+			return it->first;
+		}
+	}
 
-  return "";
+	return "";
 }
 
-//----------------------------------------
-uint32_t CMapProjection::NameToId(const char* name)
+
+std::string CMapProjection::IdToName( unsigned id ) const
 {
-  return Exists(name);
+	for ( CMapProjection::const_iterator it = begin(); it != end(); it++ )
+	{
+		if ( it->second == id )
+		{
+			return it->first;
+		}
+	}
+
+	return "";
 }
 
-//----------------------------------------
-uint32_t CMapProjection::NameToId(const std::string& name)
+
+unsigned CMapProjection::NameToId( const char* name ) const
 {
-  return Exists(name);
+	return Exists( name );
 }
 
-//----------------------------------------
-/*femmTODO - as inline function in wcGuiInterface
-void CMapProjection::NamesToArrayString(wxArrayString& array)
+
+unsigned CMapProjection::NameToId( const std::string& name ) const
 {
-  CMapProjection::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    uint32_t value = it->second;
-    if (!isDefaultValue(value))
-    {
-      array.Add( (it->first).c_str());
-    }
-  }
-
+	return Exists( name );
 }
-//----------------------------------------
-void CMapProjection::NamesToComboBox(wxComboBox& combo)
+
+
+unsigned CMapProjection::Exists( const std::string& key ) const
 {
-  CMapProjection::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    uint32_t value = it->second;
-    if (!isDefaultValue(value))
-    {
-      combo.Append((it->first).c_str());
-    }
-  }
-
+	return  CUIntMap::Exists( key );
 }
-femmTODO */
 
-//----------------------------------------
 
-uint32_t CMapProjection::Exists(const std::string& key)
-{
-  uint32_t value = CUIntMap::Exists(key);
-
-  /*
-  if (isDefaultValue(value))
-  {
-    CException e(CTools::Format("ERROR in CMapProjection::Exists - Invalid projection name '%s' - id %d",
-                                key.c_str(), value),
-                 BRATHL_LOGIC_ERROR);
-    throw(e);
-  }
-*/
-  return value;
-}
-//----------------------------------------
-
-uint32_t CMapProjection::operator[](const std::string& key)
+unsigned CMapProjection::operator[](const std::string& key) const
 {
    return Exists(key);
 }

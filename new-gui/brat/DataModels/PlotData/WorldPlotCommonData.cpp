@@ -58,6 +58,7 @@ using namespace brathl;
 //#include "vtkEarthSource.h"
 //#include "vtkLookupTable.h"
 
+#include "MapProjection.h"
 #include "WorldPlotCommonData.h"
 
 //-------------------------------------------------------------

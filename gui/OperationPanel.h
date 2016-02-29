@@ -313,7 +313,7 @@ private:
   void SetTextFormula();
   void OnFormulaChanged(CFormula* formula);
 
-  void DatasetSelChanged( const wxTreeItemId& id );
+  //void DatasetSelChanged( const wxTreeItemId& id ); v4 out
   
   TaskRet Delay();
   TaskRet Delay(CDelayDlg& delayDlg);

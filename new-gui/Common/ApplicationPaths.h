@@ -144,9 +144,13 @@ public:
 	}
 
 
-	std::string PortableData2AbsolutePath( const std::string &path ) const
+	std::string Portable2AbsoluteDataPath( const std::string &path ) const
 	{
-		return ::PortableData2AbsolutePath( path, mUserBasePath );
+		// Portable2AbsoluteDataPath does not change an already absolute path,
+		//	but a portable path always needs to be converted to an absolute 
+		//	path even if mUniqueUserBasePath is false
+		//
+		return ::Portable2AbsoluteDataPath( path, mUserBasePath );
 	}
 
 

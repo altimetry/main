@@ -33,7 +33,7 @@
 
 using namespace brathl;
 
-#include "new-gui/brat/PlotValues.h"
+#include "PlotValues.h"
 #include "PlotColor.h"
 #include "ZFXYPlot.h"
 

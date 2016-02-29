@@ -7,22 +7,30 @@
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/ConfigurationKeywords.h"
 
-#include "DataModels/Workspaces/Workspace.h"
-#include "DataModels/DisplayFilesProcessor.h"
-
-#include "Views/TextWidget.h"
-
-#include "GUI/TabbedDock.h"
-#include "GUI/ControlsPanel.h"
-#include "GUI/DatasetBrowserControls.h"
-#include "GUI/DatasetFilterControls.h"
-#include "GUI/ActionsTable.h"
-#include "GUI/WorkspaceDialog.h"
-#include "GUI/WorkspaceElementsDialog.h"
-
 #include "BratApplication.h"
 #include "ApplicationSettingsDlg.h"
 #include "ApplicationLogger.h"
+
+#include "DataModels/DisplayFilesProcessor.h"
+#include "DataModels/Workspaces/Workspace.h"
+#include "DataModels/PlotData/ZFXYPlot.h"
+#include "DataModels/PlotData/XYPlot.h"
+#include "DataModels/PlotData/WorldPlot.h"
+
+
+#include "GUI/ActionsTable.h"
+#include "GUI/WorkspaceDialog.h"
+#include "GUI/WorkspaceElementsDialog.h"
+#include "GUI/TabbedDock.h"
+#include "GUI/ControlPanels/ControlPanel.h"
+#include "GUI/ControlPanels/DatasetBrowserControls.h"
+#include "GUI/ControlPanels/DatasetFilterControls.h"
+#include "GUI/ControlPanels/OperationControls.h"
+#include "GUI/ControlPanels/ProcessesTable.h"
+#include "GUI/DisplayWidgets/TextWidget.h"
+#include "GUI/DisplayWidgets/GlobeWidget.h"
+#include "GUI/DisplayEditors/MapEditor.h"
+#include "GUI/DisplayEditors/PlotEditor.h"
 
 #include "BratMainWindow.h"
 
@@ -149,18 +157,20 @@ bool CBratMainWindow::WriteSettings()
 }
 
 
-CControlsPanel* CBratMainWindow::MakeWorkingPanel( ETabName tab )
+CControlPanel* CBratMainWindow::MakeWorkingPanel( ETabName tab )
 {
+	assert__( mProcessesTable && mDesktopManager );
+
 	switch ( tab )
 	{
 		case eDataset:
-			return new ControlsPanelType< eDataset >::type( mManager );
+			return new ControlsPanelType< eDataset >::type( mDesktopManager );
 			break;
 		case eFilter:
-			return new ControlsPanelType< eFilter >::type( mManager );
+			return new ControlsPanelType< eFilter >::type( mDesktopManager );
 			break;
 		case eOperations:
-			return new ControlsPanelType< eOperations >::type( mManager );
+			return new ControlsPanelType< eOperations >::type( mProcessesTable, mDesktopManager );
 			break;
 		default:
 			assert__( false );
@@ -174,7 +184,8 @@ void CBratMainWindow::CreateWorkingDock()
 {
 	LOG_TRACE( "Starting working dock (controls panel) construction..." );
 
-	mMainWorkingDock = new CWorkspaceTabbedDock( "Main Working Dock", this );
+	mMainWorkingDock = new CTabbedDock( "Main Working Dock", this );
+	mMainWorkingDock->setObjectName("mMainWorkingDock");
 	mMainWorkingDock->setAllowedAreas( Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea );	//mMainWorkingDock->setMaximumWidth( max_main_dock_width );
 	addDockWidget( Qt::LeftDockWidgetArea, mMainWorkingDock, Qt::Vertical );
 
@@ -187,10 +198,10 @@ void CBratMainWindow::CreateWorkingDock()
 	mMainWorkingDock->SetTabToolTip( tab, "Dataset filter" );
 	connect( this, SIGNAL( WorkspaceChanged( CWorkspaceDataset* ) ), WorkingPanel< eFilter >(), SLOT( WorkspaceChanged( CWorkspaceDataset* ) ) );
 
-	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eOperations ), "Operation" );	assert( mMainWorkingDock->TabIndex( tab ) == eOperations );
+	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eOperations ), "Operation" );		assert( mMainWorkingDock->TabIndex( tab ) == eOperations );
 	mMainWorkingDock->SetTabToolTip( tab, "Quick or advanced operations"  );
-	connect( this, SIGNAL( WorkspaceChanged( CWorkspaceOperation* ) ), WorkingPanel< eOperations >(), SLOT( WorkspaceChanged( CWorkspaceOperation* ) ) );
-	connect( this, SIGNAL( WorkspaceChanged( CWorkspaceDisplay* ) ), WorkingPanel< eOperations >(), SLOT( WorkspaceChanged( CWorkspaceDisplay* ) ) );
+	connect( this, SIGNAL( WorkspaceChanged( CModel* ) ), WorkingPanel< eOperations >(), SLOT( HandleSelectedWorkspaceChanged( CModel* ) ) );
+	connect( WorkingPanel< eOperations >(), SIGNAL( SyncProcessExecution( bool ) ), this, SLOT( HandleSyncProcessExecution( bool ) ) );
 
 	connect( WorkingPanel< eDataset >(), SIGNAL( FileChanged( QString ) ), WorkingPanel< eFilter >(), SLOT( FileChanged( const QString& ) ) );
 
@@ -207,13 +218,15 @@ void CBratMainWindow::CreateOutputDock()
 	initialized = true;
 
 	mOutputDock = new CTabbedDock( "Output", this );
+	mOutputDock->setObjectName("mOutputDock");
 	mOutputDock->setAllowedAreas( Qt::BottomDockWidgetArea | Qt::TopDockWidgetArea );
 	addDockWidget( Qt::BottomDockWidgetArea, mOutputDock );
 
+	//Log Tab
+
 	mLogFrame = new CLogShell( this );
 	mLogFrame->setObjectName( QString::fromUtf8( "mLogShell" ) );
-
-	mOutputDock->AddTab( mLogFrame, "Log" );
+	mLogFrameIndex = mOutputDock->TabIndex( mOutputDock->AddTab( mLogFrame, "Log" ) );
 
 	// wire to logger
 
@@ -241,13 +254,21 @@ void CBratMainWindow::CreateOutputDock()
 
 	LOG_INFO( "Initial OSG notification level: " + n2s<std::string>( CApplicationLogger::Instance().OsgNotifyLevel() ) );
 
+
+	//Processes Tab
+
+	mProcessesTable = new CProcessesTable( this );
+	mProcessesTable->setObjectName( QString::fromUtf8( "mProcessesTable" ) );
+	mProcessesTableIndex = mOutputDock->TabIndex( mOutputDock->AddTab( mProcessesTable, "Processes" ) );
+
+
 	LOG_TRACE( "Finished output dock construction." );
 }
 
 
 void CBratMainWindow::CreateDocks()
 {
-	assert__( mManager );
+	assert__( mDesktopManager );
 
     // Docks (see also the Docks editors section in this ctor)
     //
@@ -258,11 +279,11 @@ void CBratMainWindow::CreateDocks()
     setCorner( Qt::BottomRightCorner, Qt::RightDockWidgetArea );
     setCorner( Qt::BottomLeftCorner, Qt::LeftDockWidgetArea );		//Qt::BottomDockWidgetArea
 
+	CreateOutputDock();		//must be called before CreateWorkingDock
 	CreateWorkingDock();
-	CreateOutputDock();
 
-	if ( mManager->MapDock() )
-		addDockWidget( Qt::LeftDockWidgetArea, mManager->MapDock() );
+	if ( mDesktopManager->MapDock() )
+		addDockWidget( Qt::LeftDockWidgetArea, mDesktopManager->MapDock() );
 }
 
 
@@ -286,7 +307,7 @@ void CBratMainWindow::ProcessMenu()
 
     // Menu File
     //
-	connect( action_Close_All, SIGNAL(triggered()), mManager, SLOT(closeAllSubWindows()) );
+	connect( action_Close_All, SIGNAL(triggered()), mDesktopManager, SLOT(closeAllSubWindows()) );
 
     // Menu File / Most recent files logic
     //
@@ -306,8 +327,16 @@ void CBratMainWindow::ProcessMenu()
 
     // mMainToolsToolBar: Map actions
     //
-	mManager->Map()->InsertMapSelectionActions( mMainToolsToolBar, action_Graphic_Settings, true );
-	mManager->Map()->InsertGridActions( mMainToolsToolBar, action_Graphic_Settings, false );
+	mSelectionButton = CMapWidget::CreateMapSelectionActions( mMainToolsToolBar, mActionSelectFeatures, mActionSelectPolygon, mActionDeselectAll );
+	QAction *a = CActionInfo::CreateAction( mMainToolsToolBar, eAction_Separator );
+	mMainToolsToolBar->insertAction( action_Graphic_Settings, a );
+	mMainToolsToolBar->insertAction( a, mActionDeselectAll );
+	mMainToolsToolBar->insertWidget( mActionDeselectAll, mSelectionButton );
+	mDesktopManager->Map()->ConnectParentSelectionActions( mSelectionButton, mActionSelectFeatures, mActionSelectPolygon, mActionDeselectAll );
+
+	mActionDecorationGrid = CMapWidget::CreateGridAction( mMainToolsToolBar );
+	mMainToolsToolBar->insertAction( action_Graphic_Settings, mActionDecorationGrid );
+	mDesktopManager->Map()->ConnectParentGridAction( mActionDecorationGrid );
 
 
     // Menu View / ToolBars
@@ -329,7 +358,7 @@ void CBratMainWindow::ProcessMenu()
     // Global Wiring
     //
     connect( menu_Window, SIGNAL(aboutToShow()), this, SLOT(UpdateWindowMenu()) );
-	connect( this, SIGNAL( WorkspaceChanged( const CModel* ) ), this, SLOT( WorkspaceChangedUpdateUI( const CModel* ) ) );
+	connect( this, SIGNAL( WorkspaceChanged( CModel* ) ), this, SLOT( WorkspaceChangedUpdateUI( CModel* ) ) );
 
 #ifndef QT_NO_CLIPBOARD
     connect( QApplication::clipboard(), SIGNAL(dataChanged()), this, SLOT(clipboardDataChanged()) );
@@ -343,6 +372,7 @@ void CBratMainWindow::ProcessMenu()
 }
 
 
+
 void CBratMainWindow::FillStatusBar()
 {
 	LOG_TRACE( "Starting status-bar construction..." );
@@ -353,7 +383,14 @@ void CBratMainWindow::FillStatusBar()
 	// Add a panel to the status bar for the scale, coords and progress
 	// And also rendering suppression checkbox
 	//
-	mManager->Map()->InsertStatusBarMapWidgets( statusBar(), 0 );
+	const int index = 0;
+
+	CMapWidget::CreateRenderWidgets( statusBar(), mProgressBar, mRenderSuppressionCBox );
+	statusBar()->insertPermanentWidget( index, mRenderSuppressionCBox, 0 );
+	statusBar()->insertPermanentWidget( index, mProgressBar, 1 );
+
+	mDesktopManager->Map()->ConnectParentRenderWidgets( mProgressBar, mRenderSuppressionCBox );
+
 
 	FillStatusBarExperimental();
 
@@ -399,11 +436,12 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
 
 	connect( this, SIGNAL( SettingsUpdated() ), &mApp, SLOT( UpdateSettings() ) );
 
-    CMapWidget::SetQGISDirectories(
-                mSettings.BratPaths().mQgisPluginsDir,
-                mSettings.BratPaths().mVectorLayerPath,
-                mSettings.BratPaths().RasterLayerPath(),
-                mSettings.BratPaths().mGlobeDir );
+	CMapWidget::SetQGISDirectories(
+		mSettings.BratPaths().mQgisPluginsDir,
+		mSettings.BratPaths().mVectorLayerPath,
+		mSettings.BratPaths().RasterLayerPath() );
+
+	CGlobeWidget::SetOSGDirectories( mSettings.BratPaths().mGlobeDir );
 
 	CWorkspaceSettings::SetApplicationPaths( mSettings.BratPaths() );
 
@@ -432,9 +470,9 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
     // Sub-Windows management
     //
 	if ( mSettings.mDesktopManagerSdi )
-		mManager = new CDesktopManagerSDI( mSettings.BratPaths(), this );
+		mDesktopManager = new CDesktopManagerSDI( mSettings.BratPaths(), this );
 	else
-		mManager = new CDesktopManagerMDI( mSettings.BratPaths(), this );
+		mDesktopManager = new CDesktopManagerMDI( mSettings.BratPaths(), this );
 
 
     // Docked controls
@@ -550,7 +588,7 @@ void CBratMainWindow::LoadCmdLineFiles()
 
 	LOG_TRACE( "Starting command line arguments parse." );			assert__( !mOperatingInDisplayMode );
 	
-	mApp.LeakExceptions( false );	//reset to normal behavior; if initialization crashes this has no effect anyway
+	mApp.LeakExceptions( false );	//resetting to normal behavior; if initialization crashes this has no effect anyway
 
     QStringList args = QCoreApplication::arguments();
     args.removeFirst();
@@ -612,10 +650,6 @@ void CBratMainWindow::LoadCmdLineFiles()
 	LOG_TRACE( "Finished command line arguments processing." );
 }
 
-#include "new-gui/brat/DataModels/DisplayFilesProcessor.h"
-#include "new-gui/brat/DataModels/PlotData/ZFXYPlot.h"
-#include "new-gui/brat/DataModels/PlotData/XYPlot.h"
-#include "new-gui/brat/DataModels/PlotData/WorldPlot.h"
 
 void CBratMainWindow::StopDisplayMode()
 {
@@ -629,12 +663,12 @@ bool CBratMainWindow::StartDisplayMode()
     QStringList args = QCoreApplication::arguments();
 	DoNoWorkspace();
 	setVisible( false );
-	DisplayFilesProcessor p;
+	CDisplayFilesProcessor p;
 	if ( p.Process( args ) )
 	{
-		std::vector< CAbstractViewEditor* > editors;
+		std::vector< CAbstractDisplayEditor* > editors;
 
-		connect( mManager, SIGNAL( AllSubWindowsClosed() ), this, SLOT( StopDisplayMode() ) );
+		connect( mDesktopManager, SIGNAL( AllSubWindowsClosed() ), this, SLOT( StopDisplayMode() ) );
 
 		auto &plots = p.plots();
 		if ( p.isZFLatLon() )		// =================================== WorldPlot()
@@ -656,7 +690,7 @@ bool CBratMainWindow::StartDisplayMode()
 				if ( yfxplot == nullptr )
 					continue;
 
-				editors.push_back( new CPlotEditor( nullptr, &p, yfxplot, this ) );
+				editors.push_back( new CPlotEditor( &p, yfxplot, this ) );
 			}
 		}
 		else if ( p.isZFXY() )		// =================================== ZFXYPlot();
@@ -667,7 +701,7 @@ bool CBratMainWindow::StartDisplayMode()
 				if ( zfxyplot == nullptr )
 					continue;
 
-				editors.push_back( new CPlotEditor( nullptr, &p, zfxyplot, this ) );
+				editors.push_back( new CPlotEditor( &p, zfxyplot, this ) );
 			}
 		}
 		else
@@ -679,7 +713,7 @@ bool CBratMainWindow::StartDisplayMode()
 
 		for ( auto *editor : editors )
 		{
-			auto subWindow = mManager->AddSubWindow( editor );
+			auto subWindow = mDesktopManager->AddSubWindow( editor );
 			subWindow->show();
 		}
 		return true;
@@ -716,6 +750,17 @@ bool CBratMainWindow::OkToContinue()
 
 void CBratMainWindow::closeEvent( QCloseEvent *event )
 {
+	static const std::string processes_question =
+		"There are processes launched by BRAT still running.\n"
+		"If you exit they will be terminated now without finishing and information can be lost.\n"
+		"Do you still want to exit?";
+
+	if ( !mProcessesTable->Empty() && !SimpleQuestion( processes_question ) )
+	{
+		event->ignore();
+		return;
+	}
+
 	//auto list = mdiArea->subWindowList();
 	//auto const size = list.size();
 	//for ( int j = 0; j < size; j++ )
@@ -733,8 +778,8 @@ void CBratMainWindow::closeEvent( QCloseEvent *event )
 	////if ( QThreadPool::globalInstance()->activeThreadCount() )
 	////	QThreadPool::globalInstance()->waitForDone();
 
-	mManager->CloseAllSubWindows();
-	if ( !mManager->SubWindowList().isEmpty() ) 
+	mDesktopManager->CloseAllSubWindows();
+	if ( !mDesktopManager->SubWindowList().isEmpty() ) 
 	{
 		event->ignore();
 	}
@@ -772,31 +817,6 @@ void CBratMainWindow::EmitWorkspaceChanged()
 
 
 
-void CBratMainWindow::EnableCtrlWorkspace()
-{
-	//m_guiPanel->GetDatasetPanel()->EnableCtrl();
-	//m_guiPanel->GetOperationPanel()->EnableCtrl();
-	//m_guiPanel->GetDisplayPanel()->EnableCtrl();
-}
-void CBratMainWindow::LoadWorkspace()
-{
-	//m_guiPanel->GetDatasetPanel()->LoadDataset();
-	//m_guiPanel->GetOperationPanel()->LoadOperation();
-	//m_guiPanel->GetDisplayPanel()->LoadDisplay();
-}
-void CBratMainWindow::ResetWorkspace()
-{
-	//m_guiPanel->GetDatasetPanel()->Reset();
-	//m_guiPanel->GetOperationPanel()->Reset();
-	//m_guiPanel->GetDisplayPanel()->Reset();
-
-	//m_guiPanel->GetDatasetPanel()->ClearAll();
-	//m_guiPanel->GetOperationPanel()->ClearAll();
-	//m_guiPanel->GetDisplayPanel()->ClearAll();
-}
-
-
-
 /////////////////////////////////////////////////////////////////////////
 //                      WORKSPACE ACTIONS
 /////////////////////////////////////////////////////////////////////////
@@ -804,9 +824,7 @@ void CBratMainWindow::ResetWorkspace()
 bool CBratMainWindow::DoNoWorkspace()
 {
 	mModel.Reset();
-	ResetWorkspace();
-	EnableCtrlWorkspace();
-	mManager->CloseAllSubWindows();
+	mDesktopManager->CloseAllSubWindows();
 	setWindowTitle( makeWindowTitle( QString() ) );
 	EmitWorkspaceChanged();
 	return true;
@@ -816,11 +834,7 @@ void CBratMainWindow::SetCurrentWorkspace( const CWorkspace *wks )
 {
 	assert__( wks );
 
-	ResetWorkspace();
-	LoadWorkspace();
-	EnableCtrlWorkspace();
-
-
+	mDesktopManager->CloseAllSubWindows();
     mMainWorkingDock->SelectTab( ETabName::eDataset );
     EmitWorkspaceChanged();
 
@@ -914,19 +928,20 @@ void CBratMainWindow::on_action_Close_Workspace_triggered()
 bool CBratMainWindow::SaveWorkspace()
 {
 	std::string error_msg;
-	if ( !mModel.SaveWorkspace( error_msg ) )						// TODO save failed but life goes on???
+	bool result = mModel.SaveWorkspace( error_msg );
+    const CWorkspace *wks = mModel.RootWorkspace();
+	if ( result )
+	{
+		LOG_TRACEstd( wks->GetName() + " saved." );
+	}
+	else
 	{
 		SimpleWarnBox( error_msg );
+		LOG_TRACEstd( wks->GetName() + " save failed: " + error_msg );
 		return false;
 	}
 
-    const CWorkspace *wks = mModel.RootWorkspace();
-	if ( wks != nullptr )
-	{
-		SetCurrentWorkspace( wks );
-		std::cout << wks->GetName() + " saved." << std::endl;		// TODO log this
-	}
-	return true;
+	return result;
 }
 
 void CBratMainWindow::on_action_Save_triggered()
@@ -1036,25 +1051,25 @@ void CBratMainWindow::openRecentWorkspace_triggered( QAction *action )
 
 void CBratMainWindow::on_action_Zoom_In_triggered()
 {
-	mManager->Map()->zoomIn();
+	mDesktopManager->Map()->zoomIn();
 }
 
 
 void CBratMainWindow::on_action_Zoom_Out_triggered()
 {
-	mManager->Map()->zoomOut();
+	mDesktopManager->Map()->zoomOut();
 }
 
 
 void CBratMainWindow::on_action_Re_center_triggered()
 {
-	mManager->Map()->zoomToFullExtent();
+	mDesktopManager->Map()->zoomToFullExtent();
 }
 
 
 void CBratMainWindow::on_action_Refresh_Map_triggered()
 {
-	mManager->Map()->refresh();
+	mDesktopManager->Map()->refresh();
 }
 
 
@@ -1153,7 +1168,7 @@ void CBratMainWindow::on_action_Previous_triggered()
 
 void CBratMainWindow::UpdateWindowMenu()
 {
-	action_Close_All->setEnabled( !mManager->SubWindowList().empty() );
+	action_Close_All->setEnabled( !mDesktopManager->SubWindowList().empty() );
 }
 
 
@@ -1280,7 +1295,7 @@ void CBratMainWindow::on_action_Test_triggered()
 /////////////////////////////////////////////////////////////////////////
 
 
-void CBratMainWindow::WorkspaceChangedUpdateUI( const CModel *model )
+void CBratMainWindow::WorkspaceChangedUpdateUI( CModel *model )
 {
 	Q_UNUSED( model );
 
@@ -1315,6 +1330,58 @@ void CBratMainWindow::WorkspaceChangedUpdateUI( const CModel *model )
 	mMainWorkingDock->setEnabled( enable );
 }
 
+
+void CBratMainWindow::EnableMapSelectionActions( bool enable )
+{
+	if ( mSelectionButton )
+	{
+		mSelectionButton->setEnabled( enable );
+		mActionDeselectAll->setEnabled( enable );
+	}
+}
+
+
+void CBratMainWindow::HandleSyncProcessExecution( bool executing )
+{
+	CActionInfo::UpdateActionsState( {
+
+		eAction_Open,
+		eAction_New,
+		eAction_CloseWorkspace,
+		eAction_Save,
+		eAction_Save_As,
+		eAction_Import_Workspace,
+		eAction_Rename_Workspace,
+		eAction_Delete_Workspace,
+
+		eAction_Options,
+
+		eAction_One_Click,
+		eAction_Workspace_Tree,
+		eAction_Operations,
+		eAction_Dataset,
+		eAction_Filter,
+
+		eAction_Cut,
+		eAction_Copy,
+		eAction_Paste,
+		eAction_Undo,
+		eAction_Redo,
+		eAction_Delete,
+		eAction_Select_All,
+
+	}, !executing );
+
+
+	mRecentFilesProcessor->SetEnabled( !executing );
+	EnableMapSelectionActions( !executing );
+	//mDesktopManager->Map()->EnableMapMeasureActions( !executing );
+	mMainWorkingDock->setEnabled( !executing );
+	mDesktopManager->setEnabled( !executing );
+
+	if ( executing )
+		mOutputDock->SelectTab( mLogFrameIndex );
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

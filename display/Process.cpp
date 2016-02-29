@@ -222,25 +222,19 @@ void CProcess::DisconnectEvtProcessTermCommand(wxEvtHandler& evtHandler)
 //-------------------------------------------------------------
 //------------------- CPipedProcess class --------------------
 //-------------------------------------------------------------
-CPipedProcess::CPipedProcess(const wxString& name, wxWindow *parent, const wxString& cmd, wxTextCtrl* logCtrl, const std::string *output, int32_t type)
-      : CProcess(name, parent, cmd, output, type)
+CPipedProcess::CPipedProcess( const wxString& name, wxWindow *parent, const wxString& cmd, wxTextCtrl* logCtrl, const std::string *output, int32_t type )
+	: CProcess( name, parent, cmd, output, type )
 {
-  Init();
-  m_logCtrl = logCtrl;
-  Redirect();
+	m_logCtrl = logCtrl;
+	m_logFile = NULL;
+	m_logFileName = NULL;
+	Redirect();
 }
 
 //----------------------------------------
 CPipedProcess::~CPipedProcess()
 {
   DeleteLogFile();
-}
-//----------------------------------------
-void CPipedProcess::Init()
-{
-  m_logCtrl = NULL;
-  m_logFile = NULL;
-  m_logFileName = NULL;
 }
 //----------------------------------------
 void CPipedProcess::DeleteLogFile()

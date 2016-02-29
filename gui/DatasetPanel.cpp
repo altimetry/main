@@ -659,7 +659,7 @@ void CDatasetPanel::OnFileClear( wxCommandEvent &event )
   ClearDict();
 
   //m_dataset->GetProductList()->RemoveAll();
-  m_dataset->GetProductList()->clear();
+  m_dataset->ClearProductList();
 
   PostDatasetFilesChangeEvent();
 
@@ -965,7 +965,7 @@ void CDatasetPanel::AddDir( wxString& dirName )
     fileList.Insert(filesOut);
   }
 
-  m_dataset->GetProductList()->InsertUnique(fileList);
+  m_dataset->InsertUniqueProducts(fileList);
 
   GetDsfilelist()->Clear();
 
@@ -1014,7 +1014,7 @@ void CDatasetPanel::AddFiles( wxArrayString& paths )
   }
 
 
-  m_dataset->GetProductList()->InsertUnique(fileList);
+  m_dataset->InsertUniqueProducts(fileList);
 
   GetDsfilelist()->Clear();
 
@@ -1281,7 +1281,7 @@ bool CDatasetPanel::CheckFiles()
   wxString oldProductClass = m_dataset->GetProductList()->m_productClass.c_str();
   wxString oldProductType = m_dataset->GetProductList()->m_productType.c_str();
 
-  m_dataset->GetProductList()->clear();
+  m_dataset->ClearProductList();
 
   GetFiles(array);
 
@@ -1290,11 +1290,11 @@ bool CDatasetPanel::CheckFiles()
     return true;
   }
 
-  m_dataset->GetProductList()->Insert(array);
+  m_dataset->InsertProducts(array);
 
   try
   {
-    m_dataset->GetProductList()->CheckFiles();
+    m_dataset->CheckFiles();
     wxString msg = m_dataset->GetProductList()->GetMessage().c_str();
     if (!(msg.IsEmpty()))
     {

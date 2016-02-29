@@ -124,7 +124,7 @@ CExportDlg::~CExportDlg()
 
 void CExportDlg::CalculateColorValueRange( void )
 {
-  CFormula *formula = m_operation->GetFormula(CMapTypeField::eTypeOpAsField);
+  const CFormula *formula = m_operation->GetFormula(CMapTypeField::eTypeOpAsField);
 
   CProduct* productTmp = CProduct::Construct(*(m_operation->GetDataset()->GetProductList()));
 
@@ -141,7 +141,7 @@ void CExportDlg::CalculateColorValueRange( void )
 
   }
 
-  productTmp->GetValueMinMax(expr, (const char *)m_operation->GetRecord().c_str(), m_colorRangeMin, m_colorRangeMax, *(formula->GetUnit()));
+  productTmp->GetValueMinMax(expr, m_operation->GetRecord(), m_colorRangeMin, m_colorRangeMax, *(formula->GetUnit()));
 
   GetColorRangeMin()->SetValue(m_colorRangeMin);
   GetColorRangeMax()->SetValue(m_colorRangeMax);

@@ -296,6 +296,8 @@ private:
 	bool LoadConfigSelectionCriteria();
 
 public:
+	wxString GetConfigPath() const; //v4 to display in about dialog
+
 	void LoadFileHistory( std::vector<std::string> &v );
 	void SaveFileHistory( const std::vector<std::string> &v );
 

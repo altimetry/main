@@ -15,7 +15,6 @@
 bool CBratApplication::smPrologueCalled = false;
 CApplicationPaths *CBratApplication::smApplicationPaths = nullptr;
 
-
 // Tries to create a QApplication on-the-fly to able to use the
 //	 GUI, since the only place we will call this is in main, where 
 //	everything else has failed.
@@ -150,18 +149,12 @@ void CBratApplication::CheckOpenGL( bool extended )		//extended = false
 
 CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QString customConfigPath )	//customConfigPath = QString() 
 
-	: base_t( argc, argv, GUIenabled, customConfigPath )
+	: base_t( argc, argv, GUIenabled, customConfigPath.isEmpty() ? smApplicationPaths->mInternalDataDir.c_str() : customConfigPath )
 
 	, mSettings( *smApplicationPaths, "ESA", q2t< std::string >( QgsApplication::applicationName() ) )
 
 {
 	LOG_TRACE( "Starting application instance construction..." );
-
-	CheckOpenGL();							//throws on failure
-	LOG_TRACE( "OpenGL check successful." );
-
-	LOG_TRACE( showSettings() );
-	LOG_TRACE( qgisSettingsDirPath() );
 
 // v4
 //#ifdef WIN32
@@ -173,6 +166,22 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
     assert__( smPrologueCalled );
 	if ( !smPrologueCalled )
 		throw CException( "CBratApplication Prologue must be called before application construction." );
+
+
+	// OpenGL
+	//
+	CheckOpenGL();							//throws on failure
+	LOG_TRACE( "OpenGL check successful." );
+
+
+	// QGIS paths
+	//
+	setPkgDataPath( mSettings.BratPaths().mInternalDataDir.c_str() ); // returned by QgsApplication::srsDbFilePath();	variable: mPkgDataPath
+	LOG_TRACE( "srsDbFilePath==" + srsDbFilePath() );
+	LOG_TRACE( "showSettings==" + showSettings() );
+	LOG_TRACE( "qgisSettingsDirPath==" + qgisSettingsDirPath() );
+	LOG_TRACE( "qgisUserDbFilePath==" + qgisUserDbFilePath() );		//variable mConfigPath
+
 
 	// Register Brat algorithms
 	//

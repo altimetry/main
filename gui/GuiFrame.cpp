@@ -1167,7 +1167,14 @@ void CGuiFrame::OnImportWorkspace( wxCommandEvent &event )
 
 void CGuiFrame::OnAbout( wxCommandEvent &event )
 {
-    wxMessageDialog dialog( this, wxT("Welcome to BRAT ") wxT(BRAT_VERSION)  wxT(" - ") PROCESSOR_ARCH wxT("\n(C)opyright CNES/ESA"),
+	wxString wkspcpath;
+	if ( wxGetApp().GetCurrentWorkspace() )
+		wkspcpath = wxGetApp().GetCurrentWorkspace()->GetPath();
+
+    wxMessageDialog dialog( this, wxT("Welcome to BRAT ") wxT(BRAT_VERSION)  wxT(" - ") PROCESSOR_ARCH wxT("\n(C)opyright CNES/ESA\n") 
+		+ wxString( "Configuration path: " ) + wxGetApp().GetConfigPath()
+		+ "\n"
+		+ wxString( "Workspace path: " ) + wkspcpath,
         wxT("About BRAT"), wxOK|wxICON_INFORMATION );
     dialog.ShowModal();
 }

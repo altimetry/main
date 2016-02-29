@@ -31,12 +31,12 @@
 #include "Workspace.h"
 #include "Operation.h"
 #include "WorkspaceSettings.h"
-#include "new-gui/brat/DataModels/MapTypeDisp.h"
+#include "DataModels/MapTypeDisp.h"
 
 using namespace processes;
 using namespace brathl;
 
-#include "new-gui/brat/DataModels/PlotData/MapProjection.h"
+#include "DataModels/PlotData/MapProjection.h"
 
 #include "Display.h"
 
@@ -367,18 +367,16 @@ public:
 	////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-	static bool BuildCmdFile( const std::string &path, const CDisplay &Disp, CWorkspaceFormula *wks, std::string &errorMsg )
+	static bool BuildCmdFile( const std::string &path, const CDisplay &Disp, std::string &errorMsg )
 	{
-        UNUSED( wks );
-
         CDisplayCmdFile f( path, Disp );
 
 		return 
-			f.IsOk()							&&
-			f.BuildCmdFileHeader()				&&
-			f.BuildCmdFileVerbose()				&&
-			f.BuildCmdFileGeneralProperties()	&&
-			f.BuildCmdFileFields( errorMsg )	&&
+			f.IsOk()								&&
+			f.BuildCmdFileHeader()					&&
+			f.BuildCmdFileVerbose()					&&
+			f.BuildCmdFileGeneralProperties()		&&
+			f.BuildCmdFileFields( errorMsg )		&&
 			f.IsOk();
 	}
 };
@@ -810,7 +808,7 @@ void CMapDisplayData::GetDistinctFiles(CStringMap& array)
     CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
     if (value != nullptr)
     {
-      array.Insert((const char *)value->GetOperation()->GetName().c_str(), (const char *)value->GetOperation()->GetOutputPath().c_str(), false);
+      array.Insert(value->GetOperation()->GetName(), value->GetOperation()->GetOutputPath(), false);
     }
   }
 
@@ -826,7 +824,7 @@ void CMapDisplayData::GetDistinctFields(CStringMap& array)
     CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
     if (value != nullptr)
     {
-      array.Insert(value->GetField()->GetName().c_str(), it->first, false);
+      array.Insert(value->GetField()->GetName(), it->first, false);
     }
   }
 
@@ -1036,17 +1034,17 @@ void CDisplay::Init()
 
 }
 //----------------------------------------
-bool CDisplay::IsYFXType()
+bool CDisplay::IsYFXType() const
 {
 	return m_type == CMapTypeDisp::eTypeDispYFX;
 }
 //----------------------------------------
-bool CDisplay::IsZYFXType()
+bool CDisplay::IsZYFXType() const
 {
 	return m_type == CMapTypeDisp::eTypeDispZFXY;
 }
 //----------------------------------------
-bool CDisplay::IsZLatLonType()
+bool CDisplay::IsZLatLonType() const
 {
 	return m_type == CMapTypeDisp::eTypeDispZFLatLon;
 }
@@ -1129,12 +1127,11 @@ std::string CDisplay::GetTaskName()
 }
 
 //----------------------------------------
-bool CDisplay::BuildCmdFile()
+bool CDisplay::BuildCmdFile( std::string &error_msg )
 {
 #ifndef OLD_CREATE_FILES
 
-	std::string errorMsg;
-	return CDisplayCmdFile::BuildCmdFile( m_cmdFile, *this, nullptr, errorMsg );
+	return CDisplayCmdFile::BuildCmdFile( m_cmdFile, *this, error_msg );
 
 #else
 	m_cmdFile.Normalize();

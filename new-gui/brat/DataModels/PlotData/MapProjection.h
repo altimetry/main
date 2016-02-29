@@ -23,84 +23,124 @@
 #include "libbrathl/List.h"
 using namespace brathl;
 
+
 class CSmartCleanerMapProj;
 
-class CMapProjection: public CUIntMap
+
+
+#if defined (BRAT_V3)
+#include "display/PlotData/BratLookupTable.h"
+#include "display/PlotData/vtkProj2DFilter.h"
+// (Pseudo) Cylindrical projections:
+// - Lambert Cylindrical Equal Area
+#define PROJ2D_LAMBERT_CYLINDRICAL      VTK_PROJ2D_LAMBERT_CYLINDRICAL
+// - Plate Caree
+#define PROJ2D_PLATE_CAREE              VTK_PROJ2D_PLATE_CAREE
+// - Mollweide
+#define PROJ2D_MOLLWEIDE                VTK_PROJ2D_MOLLWEIDE
+// - Robinson
+#define PROJ2D_ROBINSON                 VTK_PROJ2D_ROBINSON
+
+// Azimuthal projections:
+// - Lambert Azimuthal
+#define PROJ2D_LAMBERT_AZIMUTHAL        VTK_PROJ2D_LAMBERT_AZIMUTHAL
+// - Azimuthal Equidistant
+#define PROJ2D_AZIMUTHAL_EQUIDISTANT    VTK_PROJ2D_AZIMUTHAL_EQUIDISTANT
+
+// 3D projections
+#define PROJ2D_3D                       VTK_PROJ2D_3D
+
+// Mercator projections
+#define PROJ2D_MERCATOR                 VTK_PROJ2D_MERCATOR
+
+// Apian Globular
+#define PROJ2D_ORTHO                    VTK_PROJ2D_ORTHO
+
+// Near-Sighted Perspective
+#define PROJ2D_NEAR_SIGHTED             VTK_PROJ2D_NEAR_SIGHTED
+
+// Gnomonic Projection also called central or azimuthal centrographic
+#define PROJ2D_STEREOGRAPHIC            VTK_PROJ2D_STEREOGRAPHIC
+
+// transverse mercator
+#define PROJ2D_TMERCATOR				VTK_PROJ2D_TMERCATOR
+#else
+
+// (Pseudo) Cylindrical projections:
+// - Lambert Cylindrical Equal Area
+#define PROJ2D_LAMBERT_CYLINDRICAL      1
+// - Plate Caree
+#define PROJ2D_PLATE_CAREE              2
+// - Mollweide
+#define PROJ2D_MOLLWEIDE                3
+// - Robinson
+#define PROJ2D_ROBINSON                 4
+
+// Azimuthal projections:
+// - Lambert Azimuthal
+#define PROJ2D_LAMBERT_AZIMUTHAL        5
+// - Azimuthal Equidistant
+#define PROJ2D_AZIMUTHAL_EQUIDISTANT    6
+
+// 3D projections
+#define PROJ2D_3D                       7
+
+// Mercator projections
+#define PROJ2D_MERCATOR                 8
+
+// Apian Globular
+#define PROJ2D_ORTHO                    9
+
+// Near-Sighted Perspective
+#define PROJ2D_NEAR_SIGHTED             10
+
+// Gnomonic Projection also called central or azimuthal centrographic
+#define PROJ2D_STEREOGRAPHIC            11
+
+// transverse mercator
+#define PROJ2D_TMERCATOR				12
+
+#endif
+
+
+
+
+class CMapProjection : public CUIntMap
 {
-public:
-  /// CIntMap ctor
-  CMapProjection();
+	/**
+	* unique instance of the class
+	*/
+	static CMapProjection *m_instance;
 
-  /// CIntMap dtor
-  virtual ~CMapProjection();
-
-  static CMapProjection* GetInstance();
-
-  bool ValidName(const char* name);
-  bool ValidName(const std::string& name);
-  
-  std::string IdToName(uint32_t id);
-
-  uint32_t NameToId(const char* name);
-  uint32_t NameToId(const std::string& name);
-
-  //femm void NamesToArrayString(wxArrayString& array);
-  //fem void NamesToComboBox(wxComboBox& combo);
-
-  std::string NameToLabeledName(const std::string& name);
-
-  virtual uint32_t Exists(const std::string& key);
-  virtual uint32_t operator[](const std::string& key);
-
-protected:
+	static CSmartCleanerMapProj	m_SmartCleaner;
 
 public:
+	static CMapProjection* GetInstance();
 
+public:
+	// CIntMap ctor
 
-   /**
-   * unique instance of the class
-   */
-   static CMapProjection* m_instance;
+	CMapProjection();
 
-//  CStringArray m_idToName;
-/*
-  static uint32_t VTK_PROJ2D_LAMBERT_CYLINDRICAL;
-  static uint32_t VTK_PROJ2D_PLATE_CAREE;
-  static uint32_t VTK_PROJ2D_MOLLWEIDE;
-  static uint32_t VTK_PROJ2D_ROBINSON;
-  static uint32_t VTK_PROJ2D_LAMBERT_AZIMUTHAL;
-  static uint32_t VTK_PROJ2D_AZIMUTHAL_EQUIDISTANT;
-  static uint32_t VTK_PROJ2D_3D;
+	// CIntMap dtor
 
-*/
+	virtual ~CMapProjection();
 
-private :
-  static CSmartCleanerMapProj	m_SmartCleaner;
+	bool ValidName( const char* name ) const;
+	bool ValidName( const std::string& name )  const;
 
+	std::string IdToName( unsigned id )  const;
+#if !defined (BRAT_V3)
+	const QgsCoordinateReferenceSystem& IdToCRS( unsigned id );
+#endif
 
-};
+	unsigned NameToId( const char* name )  const;
+	unsigned NameToId( const std::string& name )  const;
 
-class CSmartCleanerMapProj
-{
-    public :
-        CSmartCleanerMapProj( CMapProjection * pObject = NULL ) : m_pObject( pObject ) { }
-        virtual ~CSmartCleanerMapProj()
-        {
-            if( m_pObject != NULL )
-            {
-                delete m_pObject;
-            }
-        }
-        void SetObject( CMapProjection * pObject )
-        {
-            m_pObject = pObject;
-        }
-        CMapProjection * GetObject()
-        {
-            return m_pObject;
-        }
-    private :
-        CMapProjection * m_pObject;
+	std::string NameToLabeledName( const std::string& name )  const;
+
+	virtual unsigned Exists( const std::string& key )  const;
+	virtual unsigned operator[]( const std::string& key )  const;
 };
 
 

@@ -31,10 +31,12 @@
 
 #include "Validators.h"
 
+#include "PlotData/BratLookupTable.h"
 #include "BratDisplayApp.h"
 #include "XYPlotPanel.h"
 #include "new-gui/brat/DataModels/PlotData/XYPlotData.h"
 #include "new-gui/brat/DataModels/PlotData/MapColor.h"
+#include "PlotData/BratLookupTable.h"
 #include "DatasetPanel.h"
 #include "wxInterface.h"
 

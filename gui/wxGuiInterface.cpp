@@ -117,7 +117,7 @@ bool CConfiguration::LoadConfig( CDataset *d  )
 		if ( findStrings.size() > 0 )
 		{
 			valueString = Read( entry );
-			d->GetProductList()->Insert( valueString );
+			d->InsertProduct( valueString );
 			continue;
 		}
 
@@ -524,7 +524,7 @@ bool CConfiguration::LoadConfigDataset( CWorkspaceDataset &data, std::string &er
 				try
 				{
 					//Just to initialize 'product class' and 'product type'
-					dataset->GetProductList()->CheckFiles( true );
+					dataset->CheckFiles( true );
 				}
 				catch ( CException& e )
 				{
@@ -1364,7 +1364,7 @@ void SetFileExtension( std::string &path, const std::string &extension )
 	path = file.GetFullPath().ToStdString();
 }
 
-std::string NormalizedPath( const std::string &path, const std::string &dir )	//1. simply adding path to dir; 2. adding file from path (absolute or relative) to dir
+std::string NormalizedAbsolutePath( const std::string &path, const std::string &dir )	//1. simply adding path to dir; 2. adding file from path (absolute or relative) to dir
 {
 	wxFileName file( path );
 	file.Normalize( wxPATH_NORM_ALL, dir );

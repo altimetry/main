@@ -8,11 +8,11 @@
 #include <qgsmapcanvas.h>
 #include <qgssinglesymbolrendererv2.h>
 
-#include "new-gui/brat/Views/BratViews.h"
+#include "new-gui/brat/GUI/DisplayWidgets/BratViews.h"
 
 #include "QbrtAbstractEditor.h"
 
-class DisplayFilesProcessor;
+class CDisplayFilesProcessor;
 class CWorldPlotData;
 class QgsMapCanvasLayer;
 class QgsSymbolV2;
@@ -88,7 +88,7 @@ public:
 
 	virtual ~QbrtMapEditor();
 
-    void CreateWPlot(const DisplayFilesProcessor *proc, CWPlot* wplot );
+    void CreateWPlot(const CDisplayFilesProcessor *proc, CWPlot* wplot );
 	void createGlobe();
     CBratMapView *canvas(){
 		return mMapCanvas;

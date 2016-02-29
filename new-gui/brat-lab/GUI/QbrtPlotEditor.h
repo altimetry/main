@@ -1,7 +1,7 @@
 #ifndef BRT_PLOT_EDITOR_H
 #define BRT_PLOT_EDITOR_H
 
-#include "new-gui/brat/Views/3DPlotWidget.h"
+#include "new-gui/brat/GUI/DisplayWidgets/3DPlotWidget.h"
 
 #include "QbrtAbstractEditor.h"
 

@@ -1017,8 +1017,8 @@ void COperationPanel::ShowResolutionAndFilterSizer(bool showIt)
     return;
   }
 
-  CFormula* xFormula = m_operation->GetFormula(CMapTypeField::eTypeOpAsX);
-  CFormula* yFormula = m_operation->GetFormula(CMapTypeField::eTypeOpAsY);
+  const CFormula* xFormula = m_operation->GetFormula(CMapTypeField::eTypeOpAsX);
+  const CFormula* yFormula = m_operation->GetFormula(CMapTypeField::eTypeOpAsY);
 
   if (xFormula != NULL)
   {
@@ -1481,100 +1481,25 @@ void COperationPanel::DeleteProduct()
 
 }
 //----------------------------------------
-void COperationPanel::DatasetSelChanged( const wxTreeItemId& id )
+bool COperationPanel::CtrlOperation( CWorkspaceFormula *wks, std::string& msg, bool basicControl /* = false */, const CStringMap* aliases /* = NULL*/ )
 {
-  ClearFieldsInfo();
+	bool bOk = m_operation && m_operation->Control( wks, msg, basicControl, aliases );
+	if ( bOk )
+	{
+		if ( m_userFormula != nullptr )
+		{
+			GetOptextform()->SetValue( m_userFormula->GetDescription() );
+		}
+	}
 
-  CDataset* dataset = GetDatasettreectrl()->GetDataset(id);
-  if (dataset == NULL)
-  {
-    return;
-  }
-
-  try
-  {
-    m_product = dataset->SetProduct();
-
-    if (m_product != NULL)
-    {
-      m_productClass = m_product->GetProductClass().c_str();
-      m_productType = m_product->GetProductType().c_str();
-    }
-
-  }
-  catch (CException& e)
-  {
-    wxMessageBox(wxString::Format("Unable to process files.\nReason:\n%s",
-                                  e.what()),
-                "Warning",
-                wxOK | wxICON_EXCLAMATION);
-
-    m_product = NULL;
-
-  }
-
-  if (m_product == NULL)
-  {
-    wxMessageBox("Unable to set Product\nPerhaps dataset file list is empty or or product file doesn't exist()",
-                "Warning",
-                wxOK | wxICON_EXCLAMATION);
-
-    DeleteProduct();
-
-    this->SetCursor(wxNullCursor);
-    return;
-  }
-
-
-  GetFieldstreectrl()->InsertProduct(m_product);
-
-  wxTreeItemId rootIdFields = GetFieldstreectrl()->GetRootItem();
-
-
-  int32_t nRecords = (rootIdFields.IsOk()) ? GetFieldstreectrl()->GetChildrenCount(rootIdFields, false) : 0;
-
-  if ( (nRecords > 0) && (nRecords <= 2))
-  {
-    wxTreeItemIdValue cookie;
-    wxTreeItemId idChild = GetFieldstreectrl()->GetFirstChild(rootIdFields, cookie);
-    if (nRecords == 2)
-    {
-      idChild = GetFieldstreectrl()->GetNextChild(rootIdFields, cookie);
-    }
-    GetFieldstreectrl()->Expand(idChild);
-  }
-
-
-}
-//----------------------------------------
-bool COperationPanel::CtrlOperation(CWorkspaceFormula *wks, std::string& msg, bool basicControl /* = false */, const CStringMap* aliases /* = NULL*/)
-{
-  if (m_operation == NULL)
-  {
-    return false;
-  }
-
-  bool bOk = m_operation->Control(wks, msg, basicControl, aliases);
-
-  if (bOk)
-  {
-    if (m_userFormula != NULL)
-    {
-      GetOptextform()->SetValue(m_userFormula->GetDescription());
-    }
-  }
-
-  return bOk;
-
+	return bOk;
 }
 
 //----------------------------------------
 bool COperationPanel::BuildCmdFile()
 {
-	if ( m_operation == NULL )
-	{
+	if ( m_operation == nullptr )
 		return false;
-	}
 
 	std::string errorMsg;
 	bool result = m_operation->BuildCmdFile( wxGetApp().GetCurrentWorkspaceFormula(), wxGetApp().GetCurrentWorkspaceOperation(), errorMsg );
@@ -2084,105 +2009,105 @@ void COperationPanel::OnFieldSelChanged( wxTreeEvent &event )
 //----------------------------------------
 void COperationPanel::OnDatasetSelChanging( wxTreeEvent &event )
 {
-  wxTreeItemId id = event.GetItem();
+	wxTreeItemId id = event.GetItem();
 
-  if (!id)
-  {
-    event.Veto();
-    return;
-  }
-  // Apparently some versions of the MS common controls does not send the events
-  // when a tree item is selected programatically, so wxWidgets sends it.  Other
-  // versions of the common controls do send the events and so you get it twice.
-  if (m_currentDataset == id)
-  {
-    if (GetFieldstreectrl()->GetRecordCount() > 0)
-    {
-      SetCurrentDataset();
-      event.Veto();
-      return;
-    }
-  }
+	if ( !id )
+	{
+		event.Veto();
+		return;
+	}
+	// Apparently some versions of the MS common controls does not send the events
+	// when a tree item is selected programatically, so wxWidgets sends it.  Other
+	// versions of the common controls do send the events and so you get it twice.
+	if ( m_currentDataset == id )
+	{
+		if ( GetFieldstreectrl()->GetRecordCount() > 0 )
+		{
+			SetCurrentDataset();
+			event.Veto();
+			return;
+		}
+	}
 
-  if (m_operation == NULL)
-  {
-    event.Veto();
-    return;
-  }
+	if ( m_operation == NULL )
+	{
+		event.Veto();
+		return;
+	}
 
-  CDataset* dataset = GetDatasettreectrl()->GetDataset(id);
-  if (dataset == NULL)
-  {
-    event.Veto();
-    return;
-  }
+	CDataset* dataset = GetDatasettreectrl()->GetDataset( id );
+	if ( dataset == NULL )
+	{
+		event.Veto();
+		return;
+	}
 
 
-  wxString datasetNameOperation =  m_operation->GetDatasetName();
-  wxString datasetName = dataset->GetName();
-  bool resetDataExpression = m_operation->HasFormula() && (datasetNameOperation.CmpNoCase(datasetName) != 0);
+	wxString datasetNameOperation =  m_operation->GetDatasetName();
+	wxString datasetName = dataset->GetName();
+	bool resetDataExpression = m_operation->HasFormula() && ( datasetNameOperation.CmpNoCase( datasetName ) != 0 );
 
-  if (resetDataExpression)
-  {
-    int32_t result =  wxMessageBox(wxString::Format("Some data expressions are built from '%s' dataset.\n"
-                                              "If you want to use another dataset, make sure that field names in data expressions are the same, or don't forget to change them.\n"
-                                              "Change to '%s' dataset ?",
-                                                    m_operation->GetDatasetName().c_str(),
-                                                    GetDatasettreectrl()->GetItemText(id).c_str()),
-                                 "Changing operation dataset",
-                                  wxYES_NO | wxCENTRE | wxICON_QUESTION);
+	if ( resetDataExpression )
+	{
+		int32_t result =  wxMessageBox( wxString::Format( "Some data expressions are built from '%s' dataset.\n"
+			"If you want to use another dataset, make sure that field names in data expressions are the same, or don't forget to change them.\n"
+			"Change to '%s' dataset ?",
+			m_operation->GetDatasetName().c_str(),
+			GetDatasettreectrl()->GetItemText( id ).c_str() ),
+			"Changing operation dataset",
+			wxYES_NO | wxCENTRE | wxICON_QUESTION );
 
-    if (result != wxYES)
-    {
-      event.Veto();
-      return;
-    }
+		if ( result != wxYES )
+		{
+			event.Veto();
+			return;
+		}
 
-    m_operation->SetRecord("");
+		m_operation->SetRecord( "" );
 
-    CProduct* product = NULL;
+		CProduct* product = NULL;
 
-    try
-    {
-      product = dataset->SetProduct();
-    }
-    catch (CException& e)
-    {
-      wxMessageBox(wxString::Format("Unable to process files.\nReason:\n%s",
-                                    e.what()),
-                  "Warning",
-                  wxOK | wxICON_EXCLAMATION);
+		try
+		{
+			product = dataset->SetProduct();
+		}
+		catch ( CException& e )
+		{
+			wxMessageBox( wxString::Format( "Unable to process files.\nReason:\n%s",
+				e.what() ),
+				"Warning",
+				wxOK | wxICON_EXCLAMATION );
 
-      product = NULL;
-    }
+			product = NULL;
+		}
 
-    if (product == NULL)
-    {
-      wxMessageBox("Unable to set Product\nPerhaps dataset file list is empty or or product file doesn't exist()",
-                  "Warning",
-                  wxOK | wxICON_EXCLAMATION);
+		if ( product == NULL )
+		{
+			wxMessageBox( "Unable to set Product\nPerhaps dataset file list is empty or or product file doesn't exist()",
+				"Warning",
+				wxOK | wxICON_EXCLAMATION );
 
-      event.Veto();
-      return;
-    }
+			event.Veto();
+			return;
+		}
 
-    bool bOk = GetOperationtreectrl()->SelectRecord(product);
+		bool bOk = GetOperationtreectrl()->SelectRecord( product );
 
-    delete product;
-    product = NULL;
+		delete product;
+		product = NULL;
 
-    if (!bOk)
-    {
-      wxMessageBox("You have not selected a record name.\n"
-                   "Dataset has not been changed.\n",
-                   "Changing operation dataset is cancelled",
-                    wxOK | wxCENTRE | wxICON_WARNING);
+		if ( !bOk )
+		{
+			wxMessageBox( "You have not selected a record name.\n"
+				"Dataset has not been changed.\n",
+				"Changing operation dataset is cancelled",
+				wxOK | wxCENTRE | wxICON_WARNING );
 
-      event.Veto();
-      return;
-    }
+			event.Veto();
+			return;
+		}
 
-  }
+	}
 
 }
 
@@ -2190,32 +2115,96 @@ void COperationPanel::OnDatasetSelChanging( wxTreeEvent &event )
 void COperationPanel::OnDatasetSelChanged( wxTreeEvent &event )
 {
 
-  wxTreeItemId id = event.GetItem();
+	wxTreeItemId id = event.GetItem();
 
-  // Apparently some versions of the MS common controls does not send the events
-  // when a tree item is selected programatically, so wxWidgets sends it.  Other
-  // versions of the common controls do send the events and so you get it twice.
-  //if (m_currentDataset == id)
-  //{
-  //  return;
-  //}
+	//v3 original comment
+	// Apparently some versions of the MS common controls does not send the events
+	// when a tree item is selected programatically, so wxWidgets sends it.  Other
+	// versions of the common controls do send the events and so you get it twice.
+	//if (m_currentDataset == id)
+	//{
+	//  return;
+	//}
+
+	/////////////////////////////////////////////////////////////////////////////////////DatasetSelChanged(id);
+	{
+		ClearFieldsInfo();
+
+		CDataset* dataset = GetDatasettreectrl()->GetDataset( id );
+		if ( dataset == NULL )
+		{
+			return;
+		}
+
+		try
+		{
+			m_product = dataset->SetProduct();
+
+			if ( m_product != NULL )
+			{
+				m_productClass = m_product->GetProductClass().c_str();
+				m_productType = m_product->GetProductType().c_str();
+			}
+
+		}
+		catch ( CException& e )
+		{
+			wxMessageBox( wxString::Format( "Unable to process files.\nReason:\n%s",
+				e.what() ),
+				"Warning",
+				wxOK | wxICON_EXCLAMATION );
+
+			m_product = NULL;
+
+		}
+
+		if ( m_product == NULL )
+		{
+			wxMessageBox( "Unable to set Product\nPerhaps dataset file list is empty or or product file doesn't exist()",
+				"Warning",
+				wxOK | wxICON_EXCLAMATION );
+
+			DeleteProduct();
+
+			this->SetCursor( wxNullCursor );
+			return;
+		}
+
+
+		GetFieldstreectrl()->InsertProduct( m_product );
+
+		wxTreeItemId rootIdFields = GetFieldstreectrl()->GetRootItem();
+
+
+		int32_t nRecords = ( rootIdFields.IsOk() ) ? GetFieldstreectrl()->GetChildrenCount( rootIdFields, false ) : 0;
+
+		if ( ( nRecords > 0 ) && ( nRecords <= 2 ) )
+		{
+			wxTreeItemIdValue cookie;
+			wxTreeItemId idChild = GetFieldstreectrl()->GetFirstChild( rootIdFields, cookie );
+			if ( nRecords == 2 )
+			{
+				idChild = GetFieldstreectrl()->GetNextChild( rootIdFields, cookie );
+			}
+			GetFieldstreectrl()->Expand( idChild );
+		}
+	}
+	//////////////////////////////////////////////////////////////////////////////////////
 
 
 
-  DatasetSelChanged(id);
 
-  m_currentDataset = id;
-  SetCurrentDataset();
+	m_currentDataset = id;
+	SetCurrentDataset();
 
-  // If there is only one record in the dataset ==> select it
-  GetOperationRecord();
-  SetCurrentRecord();
+	// If there is only one record in the dataset ==> select it
+	GetOperationRecord();
+	SetCurrentRecord();
 
-  SetDataSetAndRecordLabel();
+	SetDataSetAndRecordLabel();
 
 
-  EnableCtrl();
-
+	EnableCtrl();
 }
 
 
@@ -2280,15 +2269,6 @@ bool COperationPanel::SetCurrentRecord()
 
 	m_operation->SetRecord( GetFieldstreectrl()->GetCurrentRecord().ToStdString() );
 
-	/*
-	InitDefaultFormulaValue("longitude", CMapTypeField::typeOpAsX);
-	InitDefaultFormulaValue("lon_tra", CMapTypeField::typeOpAsX);
-	InitDefaultFormulaValue("lon", CMapTypeField::typeOpAsX);
-
-	InitDefaultFormulaValue("latitude", CMapTypeField::typeOpAsY);
-	InitDefaultFormulaValue("lat_tra", CMapTypeField::typeOpAsY);
-	InitDefaultFormulaValue("lat", CMapTypeField::typeOpAsY);
-	*/
 	EnableCtrl();
 
 	return !m_operation->GetRecord().empty();
@@ -3091,20 +3071,11 @@ bool COperationPanel::CheckExpression( const std::string &value, std::string *st
 //----------------------------------------
 void COperationPanel::FillFormulaList()
 {
-  bool bOk = true;
+	CWorkspaceFormula* wks = wxGetApp().GetCurrentWorkspaceFormula();
+	if ( wks == nullptr || wks->GetFormulaCount() <= 0 )
+		return;
 
-  CWorkspaceFormula* wks = wxGetApp().GetCurrentWorkspaceFormula();
-  if (wks == NULL)
-  {
-    return;
-  }
-
-  if (wks->GetFormulaCount() <= 0)
-  {
-    return;
-  }
-
-  wks->GetFormulaNames(m_mapFormulaString);
+	wks->GetFormulaNames( m_mapFormulaString );
 }
 /*
 //----------------------------------------
@@ -3334,7 +3305,7 @@ void COperationPanel::Execute(bool wait /*= false*/)
                                            wxGetApp().GetLogPanel(),
                                            m_operation->GetFullCmd(),
                                            wxGetApp().GetLogPanel()->GetLogMess(),
-                                           &m_operation->GetOutputPath(),				//used in remove file, myst be complete path
+                                           &m_operation->GetOutputPath(),				//v4: used in remove file, must be complete path
                                            m_operation->GetType());
 
 

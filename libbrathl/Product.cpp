@@ -181,9 +181,9 @@ bool CProductList::IsHdfOrNetcdfCodaFormat()
 }
 
 //----------------------------------------
-bool CProductList::IsJason2()
+bool CProductList::IsJason2() const
 {
-  if (IsNetCdfCFProduct() == false)
+  if (!IsNetCdfCFProduct())
   {
     return false;
   }
@@ -195,7 +195,7 @@ bool CProductList::IsJason2()
 }
 
 //----------------------------------------
-bool CProductList::IsATP()
+bool CProductList::IsATP() const
 {
   if (IsNetCdfProduct() == false)
   {
@@ -218,7 +218,7 @@ bool CProductList::IsYFX()
   return (CTools::StringToLower(m_productType).compare(CTools::StringToLower(YFX_NETCDF_TYPE)) == 0);
 }
 //----------------------------------------
-bool CProductList::IsGenericNetCdf()
+bool CProductList::IsGenericNetCdf() const
 {
   return (CTools::StringToLower(m_productType).compare(CTools::StringToLower(GENERIC_NETCDF_TYPE)) == 0);
 }
@@ -1711,7 +1711,7 @@ CProduct* CProduct::Construct(const std::string& fileName)
 
 //----------------------------------------
 
-CProduct* CProduct::Construct(CProductList& fileNameList)
+CProduct* CProduct::Construct( CProductList& fileNameList )
 {
   CProduct* product = NULL;
 

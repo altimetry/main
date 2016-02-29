@@ -71,8 +71,7 @@ public:
 
   static CUnit ToUnit(const std::string& unitStr);
 
-  CUnit BaseUnit
-		();
+  CUnit BaseUnit() const;
 
   //void Set(const char* text);
   void Set(const std::string& text);
@@ -135,10 +134,8 @@ public:
 private:
   static void InitializeUnitSystem();
 
-  void Compile
-		();
-  void FindBaseUnit
-		(utUnit		&CompiledUnit);
+  void Compile();
+  void FindBaseUnit( utUnit	&CompiledUnit ) const;
 
 
 public:

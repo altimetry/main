@@ -358,8 +358,8 @@ public:
 	std::string GetTitle() { return m_title; };
 	void SetTitle( const std::string& value ) { m_title = value; };
 
-	CUnit* GetUnit() { return &m_unit; };
-	std::string GetUnitAsText() { return m_unit.GetText().c_str(); };
+	const CUnit* GetUnit() const { return &m_unit; };
+	std::string GetUnitAsText() const { return m_unit.GetText(); };
 	void SetUnit( const std::string& value, std::string &errorMsg, const std::string& defaultValue, bool convertMinMax = false );
 	void SetUnit( const CUnit& value, std::string &errorMsg, const std::string& defaultValue, bool convertMinMax = false );
 
@@ -394,30 +394,29 @@ public:
 
 	static bool CheckExpressionUnits( const std::string& exprStr, const std::string& record, const std::string& strUnitExpr, CProduct* product, std::string& errorMsg );
 
-	bool GetFields( CStringArray& fields, std::string& errorMsg, const CStringMap* aliases = NULL, const CStringMap* fieldAliases = NULL );
+	bool GetFields( CStringArray& fields, std::string& errorMsg, const CStringMap* aliases = NULL, const CStringMap* fieldAliases = NULL ) const;
 
 	static bool SetExpression( const std::string& value, CExpression& expr, std::string& errorMsg );
 	static bool SetExpression( const char* value, CExpression& expr, std::string& errorMsg );
 
-	double LonNormal360( double lon );
+	double LonNormal360( double lon ) const;
 
-	bool ControlResolution( std::string& errorMsg );
+	bool ControlResolution( std::string& errorMsg ) const;
+	bool CtrlMinMaxValue( std::string& errorMsg ) const;
 
-	bool CtrlMinMaxValue( std::string& errorMsg );
+	bool IsFieldType() const;
+	bool IsXType() const;
+	bool IsYType() const;
+	bool IsXYType() const;
 
-	bool IsFieldType();
-	bool IsXType();
-	bool IsYType();
-	bool IsXYType();
+	bool IsDataTypeSet() const;
+	bool IsLonDataType() const;
+	bool IsLatDataType() const;
+	bool IsLatLonDataType() const;
 
-	bool IsDataTypeSet();
-	bool IsLonDataType();
-	bool IsLatDataType();
-	bool IsLatLonDataType();
-
-	bool IsXYLatLon();
+	bool IsXYLatLon() const;
 	bool IsTimeDataType() const;
-	bool IsXYTime();
+	bool IsXYTime() const;
 
 	std::string GetFieldPrefix();
 	std::string GetFieldPrefix( int32_t type );
@@ -505,7 +504,11 @@ public:
 	std::string GetDescFormula( const std::string& name, bool alias = false );
 	//  bool SetDescFormula(const std::string& name, const std::string& description);
 
-	CFormula*  GetFormula( int32_t type );
+	CFormula* GetFormula( int32_t type );
+	const CFormula* GetFormula( int32_t type ) const
+	{
+		return const_cast<CMapFormula*>( this )->GetFormula( type );
+	}
 
 	void InitFormulaDataMode( int32_t dataMode );
 

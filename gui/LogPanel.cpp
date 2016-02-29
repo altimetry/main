@@ -106,93 +106,88 @@ wxString CLogPanel::GetProcessNewName(const wxString& baseName)
 
 
 //----------------------------------------
-bool CLogPanel::AddProcess(CProcess *process, bool allowMultiple /* = false */)
+bool CLogPanel::AddProcess( CProcess *process, bool allowMultiple /* = false */ )
 {
-  wxString msg;
+	if ( process == nullptr )
+		return false;
 
-  if (process == NULL)
-  {
-    return false;
-  }
+	wxString msg;
+	bool bOk = true;
+	if ( !HasProcess() )
+	{
+		// we want to start getting the timer events to ensure that a steady stream of idle events comes in -- otherwise we wouldn't be able to poll the child process input
+		//
+		m_timerIdleWakeUp.Start( 100 );
+	}
+	//else: the timer is already running
 
-  bool bOk = true;
-  if ( HasProcess() == false )
-  {
-    // we want to start getting the timer events to ensure that a
-    // steady stream of idle events comes in -- otherwise we
-    // wouldn't be able to poll the child process input
-    m_timerIdleWakeUp.Start(100);
-  }
-  //else: the timer is already running
+	wxString processName = process->GetName();
 
-  wxString processName = process->GetName();
+	try
+	{
+		if ( m_processes.Exists( (const char *)process->GetName().c_str() ) != NULL )
+		{
+			if ( allowMultiple )
+			{
+				processName = GetProcessNewName( processName );
+				process->SetName( processName );
+			}
+			else
+			{
+				bOk = false;
+				msg = wxString::Format( "\n==> Unable to process task '%s'. A similar task is already running.<===\n",
+					process->GetName().c_str() );
+				GetLogMess()->AppendText( msg );
+				wxMessageBox( msg,
+					"Warning",
+					wxOK | wxICON_EXCLAMATION );
+				return bOk;
+			}
+		}
 
-  try
-  {
-    if (m_processes.Exists((const char *)process->GetName().c_str()) != NULL)
-    {
-      if (allowMultiple)
-      {
-        processName = GetProcessNewName(processName);
-        process->SetName(processName);
-      }
-      else
-      {
-        bOk = false;
-        msg = wxString::Format("\n==> Unable to process task '%s'. A similar task is already running.<===\n",
-                                process->GetName().c_str());
-        GetLogMess()->AppendText(msg);
-        wxMessageBox(msg,
-                    "Warning",
-                    wxOK | wxICON_EXCLAMATION);
-        return bOk;
-      }
-    }
+		m_processes.Insert( (const char *)processName.c_str(), process );
 
-    m_processes.Insert((const char *)processName.c_str(), process);
+		bool isSync = ( ( process->GetExecuteFlags() & wxEXEC_SYNC ) == wxEXEC_SYNC );
+		if ( isSync )
+		{
+			msg = wxString::Format( "\n\n===> Synchronous Task '%s' started with command line below:<===\n'%s'\n\n"
+				"\n ==========> Please wait.... A report will display at the end of the task <==========\n\n",
+				process->GetName().c_str(),
+				process->GetCmd().c_str() );
+			GetLogMess()->AppendText( msg );
+			GetTasklist()->InsertProcess( process );
+		}
 
-    bool isSync = ((process->GetExecuteFlags() & wxEXEC_SYNC) == wxEXEC_SYNC);
-    if (isSync)
-    {
-      msg = wxString::Format("\n\n===> Synchronous Task '%s' started with command line below:<===\n'%s'\n\n"
-                             "\n ==========> Please wait.... A report will display at the end of the task <==========\n\n",
-                                process->GetName().c_str(),
-                                process->GetCmd().c_str());
-      GetLogMess()->AppendText(msg);
-      GetTasklist()->InsertProcess(process);
-    }
+		//----------------
+		process->Execute();
+		//----------------
 
-    //----------------
-    process->Execute();
-    //----------------
+		if ( !isSync )
+		{
 
-    if (!isSync)
-    {
-
-      msg = wxString::Format("\n\n===> Asynchronous Task '%s' (pid %d) started with command line below:<===\n'%s'\n\n",
-                                process->GetName().c_str(),
-                                process->GetPid(),
-                                process->GetCmd().c_str());
-      GetLogMess()->AppendText(msg);
-      GetTasklist()->InsertProcess(process);
-    }
+			msg = wxString::Format( "\n\n===> Asynchronous Task '%s' (pid %d) started with command line below:<===\n'%s'\n\n",
+				process->GetName().c_str(),
+				process->GetPid(),
+				process->GetCmd().c_str() );
+			GetLogMess()->AppendText( msg );
+			GetTasklist()->InsertProcess( process );
+		}
 
 
-  }
-  catch (CException& e)
-  {
-    bOk = false;
-    msg = wxString::Format("\n==> Unable to process task '%s'\na similar task is already running\n\nReason:\n'%s' <===\n",
-                            process->GetName().c_str(),
-                            e.what());
-    GetLogMess()->AppendText(msg);
-    wxMessageBox(msg,
-                "Warning",
-                wxOK | wxICON_EXCLAMATION);
-  }
+	}
+	catch ( CException& e )
+	{
+		bOk = false;
+		msg = wxString::Format( "\n==> Unable to process task '%s'\na similar task is already running\n\nReason:\n'%s' <===\n",
+			process->GetName().c_str(),
+			e.what() );
+		GetLogMess()->AppendText( msg );
+		wxMessageBox( msg,
+			"Warning",
+			wxOK | wxICON_EXCLAMATION );
+	}
 
-  return bOk;
-
+	return bOk;
 }
 //----------------------------------------
 void CLogPanel::KillSelectedProcess()

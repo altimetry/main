@@ -34,7 +34,7 @@ using namespace brathl;
 
 
 #define register        //avoid clang error in qt header
-#include "new-gui/brat/ApplicationLogger.h"
+#include "ApplicationLogger.h"
 
 
 #include "XYPlotData.h"

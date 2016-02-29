@@ -103,73 +103,67 @@ typedef void (wxEvtHandler::*CProcessTermEventFunction)(CProcessTermEvent&);
 
 class CProcess : public wxProcess
 {
+
+protected:
+	wxString m_name;
+	wxWindow *m_parent;
+	wxString m_cmd;
+
+	int32_t m_running;
+	bool m_killed;
+	std::string m_output;
+	int32_t m_type;
+
+	int32_t m_executeFlags;
+
+	long m_currentPid;
+
+
 public:
-  CProcess(const wxString& name, wxWindow *parent, const wxString& cmd, const std::string *output = NULL, int32_t type = -1);
+	CProcess( const wxString& name, wxWindow *parent, const wxString& cmd, const std::string *output = NULL, int32_t type = -1 );
 
-  virtual ~CProcess();
-
-  virtual wxWindow* GetParent() {return m_parent;};
-  virtual void SetParent(wxWindow* value) {m_parent = value;};
-  
-  virtual wxString GetCmd() {return m_cmd;};
-  virtual void SetCmd(const wxString& value) {m_cmd = value;};
-  
-  virtual int32_t Execute();
-  virtual int32_t Kill(wxSignal sig = wxSIGTERM);
-
-  virtual wxString GetName() {return m_name;};
-  virtual void SetName(const wxString& value) {m_name = value;};
-
-
-/*
-  wxMutex* GetMutext() { return m_mutex; };
-  void SetMutext(wxMutex* value) { m_mutex = value; };
-
-  wxCondition* GetCondition() { return m_condition; };
-  void SetCondition(wxCondition* value) { m_condition = value; };
-*/
-  int32_t GetExecuteFlags() { return m_executeFlags; };
-  void SetExecuteFlags(int32_t value) { m_executeFlags = value; };
-
-  // instead of overriding this virtual function we might as well process the
-  // event from it in the frame class - this might be more convenient in some
-  // cases
-  virtual void OnTerminate(int pid, int status);
-
-  virtual void OnTerminate(int status);
-
-  virtual bool HasInput() {return false;};
-  
-  bool IsRunning() {return m_running > 0;};
-  bool IsEnded() {return m_running < 0;};
-  bool IsReady() {return m_running == 0;};
-  bool IsKilled() {return m_killed;};
-
-  int32_t AskForPid();
-
-  static void EvtProcessTermCommand(wxEvtHandler& evtHandler, const CProcessTermEventFunction& method,
-                        wxObject* userData = NULL, wxEvtHandler* eventSink = NULL);
-
-  static void DisconnectEvtProcessTermCommand(wxEvtHandler& evtHandler);
+	virtual ~CProcess();
 
 protected:
-  wxString m_name;
-  wxWindow *m_parent;
-  wxString m_cmd;
 
-  int32_t m_running;
-  bool m_killed;
-  std::string m_output;
-  int32_t m_type;
+	virtual void SetCmd( const wxString& value ) { m_cmd = value; };
+public:
 
-  int32_t m_executeFlags;
+	virtual wxString GetName() { return m_name; };
+	virtual void SetName( const wxString& value ) { m_name = value; };
 
-  long m_currentPid;
+	int32_t GetExecuteFlags() { return m_executeFlags; };
+	void SetExecuteFlags( int32_t value ) { m_executeFlags = value; };
 
+	virtual wxString GetCmd() { return m_cmd; };
+
+	virtual int32_t Execute();
+	virtual int32_t Kill( wxSignal sig = wxSIGTERM );
+
+	// instead of overriding this virtual function we might as well process the
+	// event from it in the frame class - this might be more convenient in some
+	// cases
+	virtual void OnTerminate( int pid, int status );
+
+	virtual void OnTerminate( int status );
+
+	virtual bool HasInput() { return false; };
+
+	bool IsRunning() { return m_running > 0; };
+	bool IsEnded() { return m_running < 0; };
+	bool IsReady() { return m_running == 0; };
+	bool IsKilled() { return m_killed; };
+
+	int32_t AskForPid();
+
+	static void EvtProcessTermCommand( wxEvtHandler& evtHandler, const CProcessTermEventFunction& method,
+		wxObject* userData = NULL, wxEvtHandler* eventSink = NULL );
+
+	static void DisconnectEvtProcessTermCommand( wxEvtHandler& evtHandler );
 
 protected:
-  virtual int32_t ExecuteSync();
-  virtual int32_t ExecuteAsync();
+	virtual int32_t ExecuteSync();
+	virtual int32_t ExecuteAsync();
 
 };
 
@@ -180,34 +174,33 @@ protected:
 // A specialization of CProcess for redirecting the output
 class CPipedProcess : public CProcess
 {
+protected:
+
+	wxTextCtrl *m_logCtrl = nullptr;
+	wxFile *m_logFile = nullptr;
+	wxFileName *m_logFileName = nullptr;
+
 public:
-  CPipedProcess(const wxString& name, wxWindow *parent, const wxString& cmd, wxTextCtrl* logCtrl = NULL, const std::string *output = NULL, int32_t type = -1);
+	CPipedProcess( const wxString& name, wxWindow *parent, const wxString& cmd, wxTextCtrl* logCtrl = NULL, const std::string *output = NULL, int32_t type = -1 );
 
-  virtual ~CPipedProcess();
+	virtual ~CPipedProcess();
 
-  virtual void OnTerminate(int pid);
-  virtual void OnTerminate(int pid, int status);
+	virtual void OnTerminate( int pid ) override;
+	virtual void OnTerminate( int pid, int status ) override;
 
-  virtual bool HasInput();
+	virtual bool HasInput() override;
 
-  void SetLogFile(const wxString& value);
-  void SetLogFile(const wxFileName& value);
-  void SetLogFile(wxFileName* value);
-  
-  wxFile* GetLogFile() {return m_logFile;};
-  
-  wxFileName* GetLogFileName() {return m_logFileName;};
+	void SetLogFile( const wxString& value );
+	void SetLogFile( const wxFileName& value );
+	void SetLogFile( wxFileName* value );
 
-protected:
-  
-  wxTextCtrl* m_logCtrl;
-  wxFile* m_logFile;
-  wxFileName* m_logFileName;
+	wxFile* GetLogFile() { return m_logFile; };
+
+	wxFileName* GetLogFileName() { return m_logFileName; };
 
 protected:
-  void Init();
-  void DeleteLogFile();
-  void WriteToLogFile(const wxString& msg);
+	void DeleteLogFile();
+	void WriteToLogFile( const wxString& msg );
 };
 
 
@@ -222,20 +215,20 @@ public:
 
   virtual ~CBratTaskProcess();
 
-  virtual int32_t Execute();
+  virtual int32_t Execute() override;
 
-  virtual void OnTerminate(int pid);
-  virtual void OnTerminate(int pid, int status);
+  virtual void OnTerminate(int pid) override;
+  virtual void OnTerminate(int pid, int status) override;
   
-  virtual bool HasInput();
+  virtual bool HasInput() override;
   
   CBratTask* GetBratTask() { return m_bratTask; };
 
 
 protected:
 
-  virtual int32_t ExecuteSync();
-  virtual int32_t ExecuteAsync();
+  virtual int32_t ExecuteSync() override;
+  virtual int32_t ExecuteAsync() override;
   
   virtual int32_t ExecuteFunction(CBratTask* bratTask);
   

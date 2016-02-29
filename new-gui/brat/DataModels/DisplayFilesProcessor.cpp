@@ -5,7 +5,7 @@
 
 #include "libbrathl/Tools.h"
 
-#include "new-gui/brat/ApplicationLogger.h"
+#include "ApplicationLogger.h"
 #include "libbrathl/InternalFilesFactory.h"
 #include "libbrathl/InternalFilesZFXY.h"
 #include "libbrathl/InternalFilesYFX.h"
@@ -22,8 +22,8 @@
 #include "PlotData/WorldPlot.h"
 #include "PlotData/WorldPlotData.h"
 
-#include "new-gui/brat/DataModels/PlotData/ColorPalleteNames.h"
-#include "new-gui/brat/DataModels/PlotData/MapProjection.h"
+#include "DataModels/PlotData/ColorPalleteNames.h"
+#include "DataModels/PlotData/MapProjection.h"
 #if defined (BRAT_V3)
 #include "display/PlotData/BratLookupTable.h"
 #endif
@@ -99,7 +99,7 @@ static const KeywordHelp keywordList[]	= {
 
 
 
-bool DisplayFilesProcessor::Process( const std::vector< std::string > &args )
+bool CDisplayFilesProcessor::Process( const std::vector< std::string > &args )
 {
 	if ( !GetCommandLineOptions( args ) )
 		return false;
@@ -110,7 +110,7 @@ bool DisplayFilesProcessor::Process( const std::vector< std::string > &args )
 }
 
 
-bool DisplayFilesProcessor::Process( const QStringList &args )
+bool CDisplayFilesProcessor::Process( const QStringList &args )
 {
 	std::vector< std::string > v;
 	for ( auto &arg : args )
@@ -120,7 +120,7 @@ bool DisplayFilesProcessor::Process( const QStringList &args )
 }
 
 
-bool DisplayFilesProcessor::GetCommandLineOptions( const std::vector< std::string > &args )
+bool CDisplayFilesProcessor::GetCommandLineOptions( const std::vector< std::string > &args )
 {
 	struct arg_file *infiles = arg_file1( NULL, NULL, NULL, "parameter file or netcdf file" );
 	struct arg_str  *xAxis    = arg_str0( "xX", NULL, NULL, "specifies the x axis (only with netcdf file)" );
@@ -141,7 +141,7 @@ bool DisplayFilesProcessor::GetCommandLineOptions( const std::vector< std::strin
 	if ( arg_nullcheck( argtable ) != 0 )
 	{
 		/* NULL entries were detected, some allocations must have failed */
-		CException e( "DisplayFilesProcessor::GetCommandLineOptions - insufficient memory", BRATHL_UNIMPLEMENT_ERROR );
+		CException e( "CDisplayFilesProcessor::GetCommandLineOptions - insufficient memory", BRATHL_UNIMPLEMENT_ERROR );
 		LOG_TRACE( e.what() );
 		throw e;
 	}
@@ -220,7 +220,7 @@ bool DisplayFilesProcessor::GetCommandLineOptions( const std::vector< std::strin
 
 
 
-void DisplayFilesProcessor::LoadParameters()
+void CDisplayFilesProcessor::LoadParameters()
 {
 	if ( !m_params.IsLoaded() )
 	{
@@ -228,7 +228,7 @@ void DisplayFilesProcessor::LoadParameters()
 	}
 }
 
-void DisplayFilesProcessor::CheckFiles()
+void CDisplayFilesProcessor::CheckFiles()
 {
 
 	CStringArray::iterator it;
@@ -236,7 +236,7 @@ void DisplayFilesProcessor::CheckFiles()
 
 	if ( m_inputFiles.empty() )
 	{
-		CException e( "DisplayFilesProcessor::CheckFiles - input data file list is empty()", BRATHL_COUNT_ERROR );
+		CException e( "CDisplayFilesProcessor::CheckFiles - input data file list is empty()", BRATHL_COUNT_ERROR );
 		LOG_TRACE( e.what() );
 		throw ( e );
 	}
@@ -261,7 +261,7 @@ void DisplayFilesProcessor::CheckFiles()
 		{
 			if ( m_inputFileType.compare( inputFileTypeRead ) != 0 )
 			{
-				std::string msg = CTools::Format( "DisplayFilesProcessor::CheckFiles - Files are not in the same way - Expected type '%s' and found '%s' for file '%s'",
+				std::string msg = CTools::Format( "CDisplayFilesProcessor::CheckFiles - Files are not in the same way - Expected type '%s' and found '%s' for file '%s'",
 					m_inputFileType.c_str(), inputFileTypeRead.c_str(), ( *it ).c_str() );
 				CException e( msg, BRATHL_INCONSISTENCY_ERROR );
 				LOG_TRACE( e.what() );
@@ -274,7 +274,7 @@ void DisplayFilesProcessor::CheckFiles()
 
 }
 
-std::string DisplayFilesProcessor::GetFirstFileName()
+std::string CDisplayFilesProcessor::GetFirstFileName()
 {
 	LoadParameters();
 
@@ -282,20 +282,20 @@ std::string DisplayFilesProcessor::GetFirstFileName()
 
 }
 
-bool DisplayFilesProcessor::IsXYPlot()
+bool CDisplayFilesProcessor::IsXYPlot()
 {
 	std::string name = GetFirstFileName();
 
 	return CInternalFiles::IsYFXFile( name );
 }
 
-bool DisplayFilesProcessor::IsWPlot()
+bool CDisplayFilesProcessor::IsWPlot()
 {
 	std::string name = GetFirstFileName();
 
 	return CInternalFiles::IsZFLatLonFile( name );
 }
-bool DisplayFilesProcessor::IsZXYPlot()
+bool CDisplayFilesProcessor::IsZXYPlot()
 {
 	LoadParameters();
 
@@ -309,7 +309,7 @@ bool DisplayFilesProcessor::IsZXYPlot()
 }
 
 
-void DisplayFilesProcessor::GetParameters()
+void CDisplayFilesProcessor::GetParameters()
 {
 	//--------------------------------------------
 	// Init parameters with a netcdf input file
@@ -442,7 +442,7 @@ void DisplayFilesProcessor::GetParameters()
 
 		if ( expr.GetFieldNames()->size() != 1 )
 		{
-			std::string msg = CTools::Format( "DisplayFilesProcessor::GetParameters - Expression '%s' has incorrect number of fields '%ld' (correct is 1)",
+			std::string msg = CTools::Format( "CDisplayFilesProcessor::GetParameters - Expression '%s' has incorrect number of fields '%ld' (correct is 1)",
 				expr.AsString().c_str(), (long)expr.GetFieldNames()->size() );
 			CException e( msg, BRATHL_INCONSISTENCY_ERROR );
 			LOG_TRACE( e.what() );
@@ -624,7 +624,7 @@ void DisplayFilesProcessor::GetParameters()
 }
 
 
-void DisplayFilesProcessor::GetXYPlotPropertyParams( int32_t nFields )
+void CDisplayFilesProcessor::GetXYPlotPropertyParams( int32_t nFields )
 {
 	int32_t i = 0;
 	bool boolValue = false;
@@ -636,7 +636,7 @@ void DisplayFilesProcessor::GetXYPlotPropertyParams( int32_t nFields )
 	CMapColor::GetInstance().ResetPrimaryColors();
 
 	if ( nFields <= 0 )
-		throw  CParameterException( "DisplayFilesProcessor::GetXYPlotPropertyParams - There is no field to plot", BRATHL_INCONSISTENCY_ERROR );
+		throw  CParameterException( "CDisplayFilesProcessor::GetXYPlotPropertyParams - There is no field to plot", BRATHL_INCONSISTENCY_ERROR );
 
 	int32_t showProp = m_params.CheckCount( kwDISPLAY_PROPERTIES, 0, 1 );
 	int32_t xMin = m_params.CheckCount( kwDISPLAY_XMINVALUE, 0, 1 );
@@ -890,7 +890,7 @@ void DisplayFilesProcessor::GetXYPlotPropertyParams( int32_t nFields )
 
 
 
-void DisplayFilesProcessor::GetWPlotPropertyParams( int32_t nFields )
+void CDisplayFilesProcessor::GetWPlotPropertyParams( int32_t nFields )
 {
 	int32_t i = 0;
 	bool boolValue;
@@ -903,7 +903,7 @@ void DisplayFilesProcessor::GetWPlotPropertyParams( int32_t nFields )
 
 	if ( nFields <= 0 )
 	{
-		throw  CParameterException( "DisplayFilesProcessor::GetWPlotPropertyParams - There is no field to plot",
+		throw  CParameterException( "CDisplayFilesProcessor::GetWPlotPropertyParams - There is no field to plot",
 			BRATHL_INCONSISTENCY_ERROR );
 	}
 
@@ -1231,7 +1231,7 @@ void DisplayFilesProcessor::GetWPlotPropertyParams( int32_t nFields )
 }
 
 
-void DisplayFilesProcessor::GetZFXYPlotPropertyParams( int32_t nFields )
+void CDisplayFilesProcessor::GetZFXYPlotPropertyParams( int32_t nFields )
 {
 	int32_t i = 0;
 	bool boolValue;
@@ -1245,7 +1245,7 @@ void DisplayFilesProcessor::GetZFXYPlotPropertyParams( int32_t nFields )
 
 	if ( nFields <= 0 )
 	{
-		throw  CParameterException( "DisplayFilesProcessor::GetZFXYPlotPropertyParams - There is no field to plot",
+		throw  CParameterException( "CDisplayFilesProcessor::GetZFXYPlotPropertyParams - There is no field to plot",
 			BRATHL_INCONSISTENCY_ERROR );
 	}
 
@@ -1542,11 +1542,11 @@ void DisplayFilesProcessor::GetZFXYPlotPropertyParams( int32_t nFields )
 
 
 
-CXYPlotProperties* DisplayFilesProcessor::GetXYPlotProperties( int32_t index ) const
+CXYPlotProperties* CDisplayFilesProcessor::GetXYPlotProperties( int32_t index ) const
 {
 	if ( ( index < 0 ) || ( static_cast<uint32_t>( index ) >= m_xyPlotProperties.size() ) )
 	{
-		std::string msg = "ERROR in  DisplayFilesProcessor::GetXYPlotProperties : index "
+		std::string msg = "ERROR in  CDisplayFilesProcessor::GetXYPlotProperties : index "
 			+ n2s<std::string>(index) 
 			+ " out-of-range "
 			+ "Valid range is [0, "
@@ -1559,16 +1559,16 @@ CXYPlotProperties* DisplayFilesProcessor::GetXYPlotProperties( int32_t index ) c
 	CXYPlotProperties* props = dynamic_cast<CXYPlotProperties*>( m_xyPlotProperties.at( index ) );
 	if ( props == NULL )
 	{
-		 throw CException("ERROR in  DisplayFilesProcessor::GetXYPlotProperties : dynamic_cast<CXYPlotProperties*>(m_xyPlotProperties->at(index)); returns NULL pointer - "
+		 throw CException("ERROR in  CDisplayFilesProcessor::GetXYPlotProperties : dynamic_cast<CXYPlotProperties*>(m_xyPlotProperties->at(index)); returns NULL pointer - "
 		              "XY Plot Property array seems to contain objects other than those of the class CXYPlotProperties or derived class", BRATHL_LOGIC_ERROR);
 	}
 	return props;
 }
-CZFXYPlotProperties* DisplayFilesProcessor::GetZFXYPlotProperties( int32_t index ) const
+CZFXYPlotProperties* CDisplayFilesProcessor::GetZFXYPlotProperties( int32_t index ) const
 {
 	if ( ( index < 0 ) || ( static_cast<uint32_t>( index ) >= m_zfxyPlotProperties.size() ) )
 	{
-		std::string msg = "ERROR in  DisplayFilesProcessor::GetZFXYPlotProperties : index "
+		std::string msg = "ERROR in  CDisplayFilesProcessor::GetZFXYPlotProperties : index "
 			+ n2s<std::string>(index) 
 			+ " out-of-range "
 			+ "Valid range is [0, "
@@ -1581,16 +1581,16 @@ CZFXYPlotProperties* DisplayFilesProcessor::GetZFXYPlotProperties( int32_t index
 	CZFXYPlotProperties* props = dynamic_cast<CZFXYPlotProperties*>( m_zfxyPlotProperties.at( index ) );
 	if ( props == NULL )
 	{
-		throw CException( "ERROR in  DisplayFilesProcessor::GetZFXYPlotProperties : dynamic_cast<CZFXYPlotProperties*>(m_zfxyPlotProperties->at(index)); returns NULL pointer - "
+		throw CException( "ERROR in  CDisplayFilesProcessor::GetZFXYPlotProperties : dynamic_cast<CZFXYPlotProperties*>(m_zfxyPlotProperties->at(index)); returns NULL pointer - "
 			"zFxy Plot Property array seems to contain objects other than those of the class CZFXYPlotProperties or derived class", BRATHL_LOGIC_ERROR );
 	}
 	return props;
 }
-CWorldPlotProperties* DisplayFilesProcessor::GetWorldPlotProperties( int32_t index ) const 
+CWorldPlotProperties* CDisplayFilesProcessor::GetWorldPlotProperties( int32_t index ) const 
 {
 	if ( ( index < 0 ) || ( static_cast<uint32_t>( index ) >= m_wPlotProperties.size() ) )
 	{
-		std::string msg = "ERROR in  DisplayFilesProcessor::CWorldPlotProperties : index " 
+		std::string msg = "ERROR in  CDisplayFilesProcessor::CWorldPlotProperties : index " 
 			+ n2s<std::string>(index) 
 			+ " out-of-range.\nValid range is [0, " 
 			+ n2s<std::string>( m_wPlotProperties.size() )
@@ -1602,7 +1602,7 @@ CWorldPlotProperties* DisplayFilesProcessor::GetWorldPlotProperties( int32_t ind
 	CWorldPlotProperties* props = dynamic_cast<CWorldPlotProperties*>( m_wPlotProperties.at( index ) );
 	if ( props == NULL )
 	{
-		throw CException( "ERROR in  DisplayFilesProcessor::GetWorldPlotProperties : dynamic_cast<CWorldPlotProperties*>(m_wPlotProperties->at(index)); returns NULL pointer - "
+		throw CException( "ERROR in  CDisplayFilesProcessor::GetWorldPlotProperties : dynamic_cast<CWorldPlotProperties*>(m_wPlotProperties->at(index)); returns NULL pointer - "
 			"world Plot Property array seems to contain objects other than those of the class CWorldPlotProperties or derived class", BRATHL_LOGIC_ERROR );
 	}
 	return props;
@@ -1610,22 +1610,22 @@ CWorldPlotProperties* DisplayFilesProcessor::GetWorldPlotProperties( int32_t ind
 
 
 
-bool DisplayFilesProcessor::IsYFXType() const
+bool CDisplayFilesProcessor::IsYFXType() const
 {
 	if ( m_inputFileType.empty() )
 	{
-		CException e( "DisplayFilesProcessor::isYFX - input file type is empty", BRATHL_LOGIC_ERROR );
+		CException e( "CDisplayFilesProcessor::isYFX - input file type is empty", BRATHL_LOGIC_ERROR );
 		LOG_TRACE( e.what() );
 		throw ( e );
 	}
 
 	return m_inputFileType.compare( CInternalFilesYFX::TypeOf() ) == 0;
 }
-bool DisplayFilesProcessor::IsZFXYType() const
+bool CDisplayFilesProcessor::IsZFXYType() const
 {
 	if ( m_inputFileType.empty() )
 	{
-		CException e( "DisplayFilesProcessor::IsZFXYType - input file type is empty", BRATHL_LOGIC_ERROR );
+		CException e( "CDisplayFilesProcessor::IsZFXYType - input file type is empty", BRATHL_LOGIC_ERROR );
 		LOG_TRACE( e.what() );
 		throw ( e );
 	}
@@ -1635,7 +1635,7 @@ bool DisplayFilesProcessor::IsZFXYType() const
 
 
 
-void DisplayFilesProcessor::CheckFieldsData( CInternalFilesYFX* yfx, const std::string& fieldName )
+void CDisplayFilesProcessor::CheckFieldsData( CInternalFilesYFX* yfx, const std::string& fieldName )
 {
 	if ( yfx == NULL )
 		return;
@@ -1646,7 +1646,7 @@ void DisplayFilesProcessor::CheckFieldsData( CInternalFilesYFX* yfx, const std::
 
 	if ( names.Exists( fieldName ) == false )
 	{
-		std::string msg = CTools::Format( "DisplayFilesProcessor::CheckFieldsData - Field '%s' in command file doesn't exist in intput file '%s'",
+		std::string msg = CTools::Format( "CDisplayFilesProcessor::CheckFieldsData - Field '%s' in command file doesn't exist in intput file '%s'",
 			fieldName.c_str(), yfx->GetName().c_str() );
 		CException e( msg, BRATHL_INCONSISTENCY_ERROR );
 		LOG_TRACE( e.what() );
@@ -1654,7 +1654,7 @@ void DisplayFilesProcessor::CheckFieldsData( CInternalFilesYFX* yfx, const std::
 	}
 
 }
-void DisplayFilesProcessor::CheckFieldsData( CInternalFilesZFXY* zfxy, const std::string& fieldName )
+void CDisplayFilesProcessor::CheckFieldsData( CInternalFilesZFXY* zfxy, const std::string& fieldName )
 {
 	if ( zfxy == NULL )
 		return;
@@ -1665,7 +1665,7 @@ void DisplayFilesProcessor::CheckFieldsData( CInternalFilesZFXY* zfxy, const std
 
 	if ( names.Exists( fieldName ) == false )
 	{
-		std::string msg = CTools::Format( "DisplayFilesProcessor::CheckFieldsData - Field '%s' in command file doesn't exist in intput file '%s'",
+		std::string msg = CTools::Format( "CDisplayFilesProcessor::CheckFieldsData - Field '%s' in command file doesn't exist in intput file '%s'",
 			fieldName.c_str(), zfxy->GetName().c_str() );
 		CException e( msg, BRATHL_INCONSISTENCY_ERROR );
 		LOG_TRACE( e.what() );
@@ -1673,7 +1673,7 @@ void DisplayFilesProcessor::CheckFieldsData( CInternalFilesZFXY* zfxy, const std
 	}
 
 }
-void DisplayFilesProcessor::CheckFieldsData( CInternalFiles* f, const std::string& fieldName )
+void CDisplayFilesProcessor::CheckFieldsData( CInternalFiles* f, const std::string& fieldName )
 {
 	CInternalFilesZFXY* zfxy = dynamic_cast<CInternalFilesZFXY*>( f );
 	CInternalFilesYFX* yfx = dynamic_cast<CInternalFilesYFX*>( f );
@@ -1686,7 +1686,7 @@ void DisplayFilesProcessor::CheckFieldsData( CInternalFiles* f, const std::strin
 		CheckFieldsData( yfx, fieldName );
 	}
 }
-CInternalFiles* DisplayFilesProcessor::Prepare( int32_t indexFile, const std::string& fieldName )
+CInternalFiles* CDisplayFilesProcessor::Prepare( int32_t indexFile, const std::string& fieldName )
 {
 	CInternalFiles* f = BuildExistingInternalFileKind( m_inputFiles.at( indexFile ).c_str() );
 
@@ -1708,7 +1708,7 @@ CInternalFiles* DisplayFilesProcessor::Prepare( int32_t indexFile, const std::st
 	return f;
 }
 
-CInternalFiles* DisplayFilesProcessor::Prepare( const std::string& fileName )
+CInternalFiles* CDisplayFilesProcessor::Prepare( const std::string& fileName )
 {
 	CInternalFiles* f = NULL;
 
@@ -1722,7 +1722,7 @@ CInternalFiles* DisplayFilesProcessor::Prepare( const std::string& fileName )
 	}
 	else
 	{
-        CException e( std::string( "DisplayFilesProcessor::Prepare -  unknown input file type: " + fileName ),
+        CException e( std::string( "CDisplayFilesProcessor::Prepare -  unknown input file type: " + fileName ),
 			BRATHL_LOGIC_ERROR );
 		LOG_TRACE( e.what() );
 		throw ( e );

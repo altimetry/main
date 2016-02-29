@@ -98,15 +98,15 @@ CDisplayPanel::CDisplayPanel( wxWindow *parent, wxWindowID id,
     // WDR: dialog function DisplayInfoPanel2 for CDisplayPanel
   Reset();
 
-  wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
+//  wxBoxSizer *item0 = new wxBoxSizer( wxVERTICAL );
 
   //----------------------------
   DisplayInfoPanel(this, false, true);
   //----------------------------
 
-  item0->Add( this, 0, wxGROW|wxALL, 5 );
+  //item0->Add( this, 0, wxGROW|wxALL, 5 );
 
-  parent->SetSizer( item0 );
+  //parent->SetSizer( item0 );
 
   GetDispDataSel()->SetDropTarget(new CDisplayDataDropTarget(this));
 
@@ -664,175 +664,169 @@ void CDisplayPanel::ClearAvailableDataList()
 //----------------------------------------
 bool CDisplayPanel::RefreshSelectedData()
 {
+	if ( m_display == NULL )
+	{
+		return false;
+	}
 
-  if (m_display == NULL)
-  {
-    return false;
-  }
+	bool forceThaw = false;
 
-  bool forceThaw = false;
+	if ( !IsFrozen() )
+	{
+		Freeze();
+		forceThaw = true;
+	}
 
-  if (!IsFrozen())
-  {
-    Freeze();
-    forceThaw = true;
-  }
+	CMapDisplayData* availableData = GetDispavailtreectrl()->GetMapDisplayData();
+	CMapDisplayData* selectedData =  m_display->GetDataSelected();
 
-  CMapDisplayData* availableData = GetDispavailtreectrl()->GetMapDisplayData();
-  CMapDisplayData* selectedData =  m_display->GetDataSelected();
+	CObArray dispSelNotFound;
 
-  CObArray dispSelNotFound;
+	CObArray dispSelToRefresh;
 
-  CObArray dispSelToRefresh;
+	int32_t oldDisplayType = m_display->GetType();
+	int32_t newDisplayType = -1;
 
-  int32_t oldDisplayType = m_display->GetType();
-  int32_t newDisplayType = -1;
+	CUIntArray displayTypes;
 
-  CUIntArray displayTypes;
+	const CDisplayData* firstNewSelData = nullptr;
 
-  const CDisplayData* firstNewSelData = NULL;
+	for ( CMapDisplayData::const_iterator itSel = selectedData->begin(); itSel != selectedData->end(); itSel ++ )
+	{
+		CDisplayData* dataSel = selectedData->GetDisplayData( itSel );
+		if ( dataSel == nullptr )
+		{
+			continue;
+		}
 
-  CMapDisplayData::const_iterator itSel;
-  for (itSel = selectedData->begin() ; itSel != selectedData->end() ; itSel ++)
-  {
-    CDisplayData* dataSel = selectedData->GetDisplayData(itSel);
-    if (dataSel == NULL)
-    {
-      continue;
-    }
+		const CDisplayData* dataAvailable = nullptr;
 
-    const CDisplayData* dataAvailable = NULL;
+		if ( firstNewSelData == nullptr )
+		{
+			dataAvailable = availableData->GetDisplayData( dataSel->GetDataKey() );
 
-    if (firstNewSelData == NULL)
-    {
-      dataAvailable = availableData->GetDisplayData(dataSel->GetDataKey());
+			if ( dataAvailable == nullptr )
+			{
+				dataSel->GetAvailableDisplayTypes( displayTypes );
 
-      if (dataAvailable == NULL)
-      {
-        dataSel->GetAvailableDisplayTypes(displayTypes);
+				CUIntArray::iterator itDispType;
 
-        CUIntArray::iterator itDispType;
+				for ( itDispType = displayTypes.begin(); itDispType != displayTypes.end(); itDispType++ )
+				{
+					dataAvailable = availableData->GetDisplayData( dataSel->GetDataKey( *itDispType ) );
+					if ( dataAvailable != nullptr )
+					{
+						break;
+					}
+				}
+			}
+		}
+		else
+		{
+			dataAvailable = availableData->GetDisplayData( dataSel->GetDataKey( firstNewSelData->GetType() ) );
+		}
 
-        for (itDispType = displayTypes.begin(); itDispType != displayTypes.end(); itDispType++)
-        {
-          dataAvailable = availableData->GetDisplayData(dataSel->GetDataKey(*itDispType));
-          if (dataAvailable != NULL)
-          {
-            break;
-          }
-        }
-      }
-    }
-    else
-    {
-      dataAvailable = availableData->GetDisplayData(dataSel->GetDataKey(firstNewSelData->GetType()));
-    }
+		CWorkspaceOperation *wkso = wxGetApp().GetCurrentWorkspaceOperation();
+		if ( dataAvailable == nullptr )
+		{
+			dispSelNotFound.Insert( new CDisplayData( *dataSel, wkso ) );
+			continue;
+		}
 
-	CWorkspaceOperation *wkso = wxGetApp().GetCurrentWorkspaceOperation();
-    if (dataAvailable == NULL)
-    {
-      dispSelNotFound.Insert( new CDisplayData( *dataSel, wkso ));
-      continue;
-    }
+		if ( firstNewSelData == nullptr )
+		{
+			firstNewSelData = dataAvailable;
+			newDisplayType = dataAvailable->GetType();
+		}
 
-    if (firstNewSelData == NULL)
-    {
-      firstNewSelData = dataAvailable;
-      newDisplayType = dataAvailable->GetType();
-    }
+		CDisplayData* newDisplayData = new CDisplayData( *dataAvailable, wkso );
+		newDisplayData->CopyFieldUserProperties( *dataSel );
 
-    CDisplayData* newDisplayData = new CDisplayData( *dataAvailable, wkso );
-    newDisplayData->CopyFieldUserProperties(*dataSel);
+		dispSelToRefresh.Insert( newDisplayData );
+	}
 
-    dispSelToRefresh.Insert(newDisplayData);
-  }
+	GetDispDataSel()->DeselectAll();
+	m_currentData = nullptr;
 
-  GetDispDataSel()->DeselectAll();
-  m_currentData = NULL;
+	wxString msg;
+	msg.Append( wxString::Format( "Warnings about view '%s':\n\n", m_display->GetName().c_str() ) );
 
-  wxString msg;
-  msg.Append(wxString::Format("Warnings about view '%s':\n\n", m_display->GetName().c_str()));
+	bool bOk = true;
+	for ( CObArray::const_iterator it = dispSelNotFound.begin(); it != dispSelNotFound.end(); it ++ )
+	{
+		CDisplayData* data = dynamic_cast<CDisplayData*>( *it );
 
-  CObArray::const_iterator it;
+		if ( newDisplayType >= 0 )
+		{
+			data->SetType( newDisplayType );
+		}
+		else
+		{
+			data->SetType( oldDisplayType );
+		}
 
-  bool bOk = true;
+		bOk = false;
 
-  for (it = dispSelNotFound.begin() ; it != dispSelNotFound.end() ; it ++)
-  {
-    CDisplayData* data = dynamic_cast<CDisplayData*>(*it);
-
-    if (newDisplayType >= 0)
-    {
-      data->SetType(newDisplayType);
-    }
-    else
-    {
-      data->SetType(oldDisplayType);
-    }
-
-    bOk = false;
-
-    msg.Append(wxString::Format("In operation '%s', field's name '%s' doesn't exist anymore.\n",
-                                      data->GetOperation()->GetName().c_str(),
-                                      data->GetField()->GetName().c_str()
-                                      ));
-  }
+		msg.Append( wxString::Format( "In operation '%s', field's name '%s' doesn't exist anymore.\n",
+			data->GetOperation()->GetName().c_str(),
+			data->GetField()->GetName().c_str()
+			) );
+	}
 
 
-  selectedData->RemoveAll();
-  GetDispDataSel()->InsertDisplay(NULL);
-  GetDispDataSel()->SetDisplay(m_display);
+	selectedData->RemoveAll();
+	GetDispDataSel()->InsertDisplay( NULL );
+	GetDispDataSel()->SetDisplay( m_display );
 
-  if (newDisplayType >= 0)
-  {
-    m_display->SetType(newDisplayType);
-  }
+	if ( newDisplayType >= 0 )
+	{
+		m_display->SetType( newDisplayType );
+	}
 
-  bOk &= AddField(dispSelToRefresh, true);
-  bOk &= AddField(dispSelNotFound, true);
+	bOk &= AddField( dispSelToRefresh, true );
+	bOk &= AddField( dispSelNotFound, true );
 
-  //GetDispDataSel()->InsertDisplay(m_display);
+	//GetDispDataSel()->InsertDisplay(m_display);
 
-  if (dispSelToRefresh.size() <= 0)
-  {
-    msg.Append("\nAll the expressions to display don't exist anymore.\n");
+	if ( dispSelToRefresh.size() <= 0 )
+	{
+		msg.Append( "\nAll the expressions to display don't exist anymore.\n" );
 
-  }
+	}
 
-  if ( (newDisplayType > 0) && (oldDisplayType != newDisplayType) )
-  {
-    bOk = false;
-    msg.Append(wxString::Format("\nView type has changed from '%s' to '%s'\n\n",
-                                CMapTypeDisp::GetInstance().IdToName(oldDisplayType).c_str(),
-                                CMapTypeDisp::GetInstance().IdToName(newDisplayType).c_str()
-                                ));
-  }
+	if ( ( newDisplayType > 0 ) && ( oldDisplayType != newDisplayType ) )
+	{
+		bOk = false;
+		msg.Append( wxString::Format( "\nView type has changed from '%s' to '%s'\n\n",
+			CMapTypeDisp::GetInstance().IdToName( oldDisplayType ).c_str(),
+			CMapTypeDisp::GetInstance().IdToName( newDisplayType ).c_str()
+			) );
+	}
 
 
-  ShowFieldProperties();
+	ShowFieldProperties();
 
-  EnableCtrl();
+	EnableCtrl();
 
-  if (!bOk)
-  {
-    if (IsFrozen())
-    {
-      Thaw();
-    }
+	if ( !bOk )
+	{
+		if ( IsFrozen() )
+		{
+			Thaw();
+		}
 
-    wxMessageBox(msg, "Warning", wxOK | wxICON_EXCLAMATION);
-  }
+		wxMessageBox( msg, "Warning", wxOK | wxICON_EXCLAMATION );
+	}
 
-  if (forceThaw)
-  {
-    if (IsFrozen())
-    {
-      Thaw();
-    }
-  }
+	if ( forceThaw )
+	{
+		if ( IsFrozen() )
+		{
+			Thaw();
+		}
+	}
 
-  return bOk;
-
+	return bOk;
 }
 //----------------------------------------
 void CDisplayPanel::LoadAvailableData()
@@ -1064,82 +1058,69 @@ bool CDisplayPanel::Control(wxString& msg)
   return bOk;
 }
 //----------------------------------------
-bool CDisplayPanel::ControlSolidColor(wxString& msg)
+bool CDisplayPanel::ControlSolidColor( wxString& msg )
 {
-    UNUSED(msg);
+	UNUSED( msg );
 
-  if (m_display == NULL)
-  {
-    return false;
-  }
+	if ( m_display == nullptr )
+		return false;
 
-  CMapDisplayData* selectedData =  m_display->GetDataSelected();
+	CMapDisplayData* selectedData =  m_display->GetDataSelected();
 
+	for ( CMapDisplayData::const_iterator itSel = selectedData->begin(); itSel != selectedData->end(); itSel ++ )
+	{
+		CDisplayData* dataSel = selectedData->GetDisplayData( itSel );
+		if ( dataSel == nullptr )
+			continue;
 
-  CMapDisplayData::const_iterator itSel;
-  for (itSel = selectedData->begin() ; itSel != selectedData->end() ; itSel ++)
-  {
-    CDisplayData* dataSel = selectedData->GetDisplayData(itSel);
-    if (dataSel == NULL)
-    {
-      continue;
-    }
+		if ( !dataSel->IsSolidColor() && !dataSel->IsContour() )
+			dataSel->SetSolidColor( true );
+	}
 
-    if (( ! dataSel->IsSolidColor() ) && ( ! dataSel->IsContour() ))
-    {
-      dataSel->SetSolidColor(true);
-    }
-  }
-
-  return true;
-
+	return true;
 }
 
-bool CDisplayPanel::ControlVectorComponents(wxString& msg)
+bool CDisplayPanel::ControlVectorComponents( wxString& msg )
 {
-  bool xcomponent = false;
-  bool ycomponent = false;
+	bool xcomponent = false;
+	bool ycomponent = false;
 
-  if (m_display == NULL)
-  {
-    return false;
-  }
+	if ( m_display == NULL )
+	{
+		return false;
+	}
 
-  CMapDisplayData* selectedData =  m_display->GetDataSelected();
+	CMapDisplayData* selectedData =  m_display->GetDataSelected();
 
+	for ( CMapDisplayData::const_iterator itSel = selectedData->begin(); itSel != selectedData->end(); itSel ++ )
+	{
+		CDisplayData* dataSel = selectedData->GetDisplayData( itSel );
+		if ( dataSel == nullptr )
+			continue;
 
-  CMapDisplayData::const_iterator itSel;
-  for (itSel = selectedData->begin() ; itSel != selectedData->end() ; itSel ++)
-  {
-    CDisplayData* dataSel = selectedData->GetDisplayData(itSel);
-    if (dataSel == NULL)
-    {
-      continue;
-    }
+		if ( dataSel->IsEastComponent() ) {
+			if ( xcomponent ) {
+				msg.Printf( "%s", _( "More than one field selected as East Component!" ) );
+				return false;
+			}
+			xcomponent = true;
+		}
 
-    if ( dataSel->IsEastComponent() ) {
-        if ( xcomponent ) {
-            msg.Printf("%s",_("More than one field selected as East Component!"));
-            return false;
-        }
-        xcomponent = true;
-    }
+		if ( dataSel->IsNorthComponent() ) {
+			if ( ycomponent ) {
+				msg.Printf( "%s", _( "More than one field selected as North Component!" ) );
+				return false;
+			}
+			ycomponent = true;
+		}
+	}
 
-    if ( dataSel->IsNorthComponent() ) {
-        if ( ycomponent ) {
-            msg.Printf("%s",_("More than one field selected as North Component!"));
-            return false;
-        }
-        ycomponent = true;
-    }
-  }
-
-  if ( xcomponent == ycomponent )
-    return true;
-  else {
-    msg.Printf("%s",_("Both East and North fields must be selected for a Vector Plot!"));
-    return false;
-  }
+	if ( xcomponent == ycomponent )
+		return true;
+	else {
+		msg.Printf( "%s", _( "Both East and North fields must be selected for a Vector Plot!" ) );
+		return false;
+	}
 }
 
 
@@ -1161,47 +1142,46 @@ std::string CDisplayPanel::GetFullCmd()
 //----------------------------------------
 void CDisplayPanel::Execute()
 {
-  if (m_display == NULL)
-  {
-    return;
-  }
+	if ( m_display == NULL )
+	{
+		return;
+	}
 
-  wxString msg;
+	wxString msg;
 
-  bool bOk = Control(msg);
+	bool bOk = Control( msg );
 
-  if (!bOk)
-  {
-    wxMessageBox(msg, "Warning", wxOK | wxICON_EXCLAMATION);
-    return;
-  }
+	if ( !bOk )
+	{
+		wxMessageBox( msg, "Warning", wxOK | wxICON_EXCLAMATION );
+		return;
+	}
 
-  bOk = RefreshSelectedData();
+	bOk = RefreshSelectedData();
 
-  if (!bOk)
-  {
-    return;
-  }
+	if ( !bOk )
+	{
+		return;
+	}
 
-  BuildCmdFile();
+	BuildCmdFile();
 
-  wxGetApp().GotoLogPage();
+	wxGetApp().GotoLogPage();
 
 
-  CProcess* process = new CProcess(m_display->GetTaskName(),
-                                             wxGetApp().GetLogPanel(),
-                                             GetFullCmd(),
-                                             //wxGetApp().GetLogPanel()->GetLogMess(),
-                                             NULL);
+	CProcess* process = new CProcess( m_display->GetTaskName(),
+		wxGetApp().GetLogPanel(),
+		GetFullCmd(),
+		//wxGetApp().GetLogPanel()->GetLogMess(),
+		NULL );
 
-  bOk = wxGetApp().GetLogPanel()->AddProcess(process, true);
+	bOk = wxGetApp().GetLogPanel()->AddProcess( process, true );
 
-  if (bOk == false)
-  {
-    delete process;
-    process = NULL;
-  }
-
+	if ( bOk == false )
+	{
+		delete process;
+		process = NULL;
+	}
 }
 
 //----------------------------------------
@@ -1988,7 +1968,8 @@ void CDisplayPanel::OnValueChangeFieldGroup(CValueChangedEvent& event)
 //----------------------------------------
 bool CDisplayPanel::BuildCmdFile()
 {
-	return m_display && m_display->BuildCmdFile();
+    std::string error_msg;
+    return m_display && m_display->BuildCmdFile(error_msg);
 }
 
 //----------------------------------------

@@ -3,7 +3,7 @@
 
 #include "QbrtAbstractEditor.h"
 
-#include "new-gui/brat/Views/2DPlotWidget.h"
+#include "new-gui/brat/GUI/DisplayWidgets/2DPlotWidget.h"
 
 
 /////////////////////////////////////////////////////////////////////////////////

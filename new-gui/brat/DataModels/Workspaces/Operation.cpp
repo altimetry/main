@@ -95,8 +95,8 @@ public:
 			CFormula* value = dynamic_cast<CFormula*>( it->second );
 			if ( value == nullptr )
 				continue;
-			WriteLn( std::string( kwALIAS_NAME.c_str() ) + std::string( "=" ) + std::string( value->GetName().c_str() ) );
-			WriteLn( std::string( kwALIAS_VALUE.c_str() ) + std::string( "=" ) + std::string( value->GetDescription( true ) ) );
+			WriteLn( kwALIAS_NAME  + "=" + value->GetName() );
+			WriteLn( kwALIAS_VALUE + "=" + value->GetDescription( true ) );
 		}
 
 		return true;
@@ -433,7 +433,7 @@ public:
 			f.BuildCmdFileVerbose()																					&&
 			f.BuildExportAsciiCmdFileGeneralProperties()															&&
 			f.BuildCmdFileAlias( wks )																				&&
-			( Op.IsExportAsciiNoDataComputation() ? f.BuildCmdFileDataset() : f.BuildCmdFileFromOutputOperation() ) &&
+			( Op.IsExportAsciiNoDataComputation() ? f.BuildCmdFileDataset() : f.BuildCmdFileFromOutputOperation() )	&&
 			f.BuildCmdFileSpecificUnit()																			&&
 			f.BuildExportAsciiCmdFileFields()																		&&
 			// If Export ascii is done from the output operation file, 
@@ -574,47 +574,41 @@ COperation* COperation::Copy( const COperation &o, CWorkspaceOperation *wkso, CW
 }
 
 //----------------------------------------
-bool COperation::IsSelect(CFormula* value)
+bool COperation::IsSelect( CFormula* value ) const
 {
-  // if same pointer --> return
-  return (m_select == value);
+	// if same pointer --> return
+	return m_select == value;
 }
 //----------------------------------------
-bool COperation::IsZFXY()
+bool COperation::IsZFXY() const
 {
-  return (m_type == CMapTypeOp::eTypeOpZFXY);
+	return ( m_type == CMapTypeOp::eTypeOpZFXY );
 }
 //----------------------------------------
-bool COperation::IsYFX()
+bool COperation::IsYFX() const
 {
-  return (m_type == CMapTypeOp::eTypeOpYFX);
+	return ( m_type == CMapTypeOp::eTypeOpYFX );
 }
 //----------------------------------------
-bool COperation::IsMap()
+bool COperation::IsMap() const
 {
-  if (!IsZFXY())
-  {
-    return false;
-  }
+	if ( !IsZFXY() )
+	{
+		return false;
+	}
 
-  CFormula* xFormula = GetFormula(CMapTypeField::eTypeOpAsX);
-  CFormula* yFormula = GetFormula(CMapTypeField::eTypeOpAsY);
+	const CFormula* xFormula = GetFormula( CMapTypeField::eTypeOpAsX );
+	const CFormula* yFormula = GetFormula( CMapTypeField::eTypeOpAsY );
 
-  if ((xFormula == nullptr)  || (yFormula == nullptr))
-  {
-    return false;
-  }
+	if ( ( xFormula == nullptr ) || ( yFormula == nullptr ) )
+	{
+		return false;
+	}
 
-  bool isMap = (xFormula->IsLonDataType() && yFormula->IsLatDataType()) ||
-               (xFormula->IsLatDataType() && yFormula->IsLonDataType());
+	bool isMap = ( xFormula->IsLonDataType() && yFormula->IsLatDataType() ) ||
+		( xFormula->IsLatDataType() && yFormula->IsLonDataType() );
 
-  return isMap;
-}
-
-//----------------------------------------
-bool COperation::IsSelect( const std::string& name )
-{
-	  return str_icmp( name, ENTRY_SELECT );
+	return isMap;
 }
 
 //----------------------------------------
@@ -769,22 +763,21 @@ bool COperation::UseDataset( const std::string& name )
 }
 
 //----------------------------------------
-std::string COperation::GetFormulaNewName()
+std::string COperation::GetFormulaNewName() const
 {
-
 	size_t i = m_formulas.size();
 	std::string key;
-
 	do
 	{
 		key = WKS_EXPRESSION_NAME + "_" + n2s<std::string>( i + 1 );
 		i++;
-	} while ( m_formulas.Exists( (const char *)key.c_str() ) != nullptr );
+	} 
+	while ( m_formulas.Exists( key ) != nullptr );
 
 	return key;
 }
 //----------------------------------------
-std::string COperation::GetFormulaNewName( const std::string& prefix )
+std::string COperation::GetFormulaNewName( const std::string& prefix ) const
 {
 	if ( m_formulas.Exists( prefix ) == nullptr )
 		return prefix;
@@ -795,7 +788,8 @@ std::string COperation::GetFormulaNewName( const std::string& prefix )
 	{
 		key = prefix + "_" + n2s<std::string>( i );
 		i++;
-	} while ( m_formulas.Exists( key ) != nullptr );
+	} 
+	while ( m_formulas.Exists( key ) != nullptr );
 
 	return key;
 }
@@ -804,7 +798,7 @@ std::string COperation::GetFormulaNewName( const std::string& prefix )
 //----------------------------------------
 bool COperation::RenameFormula(CFormula* formula, const std::string &newName)
 {
- bool bOk = m_formulas.RenameKey((const char *)formula->GetName().c_str(), (const char *)newName.c_str());
+ bool bOk = m_formulas.RenameKey(formula->GetName(), newName);
  if (bOk == false)
  {
    return false;
@@ -834,7 +828,7 @@ CFormula* COperation::NewUserFormula( std::string &errorMsg, CField* field, int3
 
   }
 
-  CFormula* formula =  NewUserFormula( errorMsg, field->GetName().c_str(), typeField, field->GetUnit().c_str(), addToMap, product);
+  CFormula* formula =  NewUserFormula( errorMsg, field->GetName(), typeField, field->GetUnit(), addToMap, product);
 
   //formula->SetUnit(field->GetUnit().c_str());
   if (m_record.compare(field->GetRecordName().c_str()) != 0)
@@ -861,7 +855,7 @@ CFormula* COperation::NewUserFormula( std::string &errorMsg, const std::string& 
 	formula.SetType( typeField );
 	formula.SetUnit( strUnit, errorMsg, "", false );
 
-	CUnit* unit = formula.GetUnit();
+	const CUnit* unit = formula.GetUnit();
 
 	formula.SetDataType( typeField, *unit, product );
 
@@ -887,7 +881,7 @@ CFormula* COperation::NewUserFormula( std::string &errorMsg, const std::string& 
 //----------------------------------------
 bool COperation::AddFormula( CFormula& formula, std::string &errorMsg )
 {
-	CFormula* value = dynamic_cast<CFormula*>( m_formulas.Exists( (const char *)formula.GetName().c_str() ) );
+	CFormula* value = dynamic_cast<CFormula*>( m_formulas.Exists( formula.GetName() ) );
 	if ( value != nullptr )
 	{
 		return false;
@@ -942,21 +936,21 @@ std::string COperation::GetDescFormula( const std::string& name, bool alias )
 	return m_formulas.GetDescFormula( name, alias );
 }
 //----------------------------------------
-CFormula* COperation::GetFormula(const std::string& name)
+CFormula* COperation::GetFormula( const std::string& name ) const
 {
-  return dynamic_cast<CFormula*>(m_formulas.Exists((const char *)name.c_str()));
+	return dynamic_cast<CFormula*>( m_formulas.Exists( name ) );
 }
 //----------------------------------------
-CFormula* COperation::GetFormula(int32_t type)
+CFormula* COperation::GetFormula( int32_t type )
 {
-  return m_formulas.GetFormula(type);
+	return m_formulas.GetFormula( type );
 }
 //----------------------------------------
 CFormula* COperation::GetFormula(CMapFormula::iterator it)
 {
   return dynamic_cast<CFormula*>(it->second);
 }
-const CFormula* COperation::GetFormula(CMapFormula::const_iterator it)
+const CFormula* COperation::GetFormula( CMapFormula::const_iterator it ) const
 {
   return dynamic_cast<const CFormula*>(it->second);
 }
@@ -967,12 +961,12 @@ size_t COperation::GetFormulaCountDataFields()
 	return m_formulas.CountDataFields();
 }
 //----------------------------------------
-std::string COperation::GetSelectName()
+std::string COperation::GetSelectName() const
 {
 	return m_select ? m_select->GetName() : "";
 }
 //----------------------------------------
-std::string COperation::GetSelectDescription()
+std::string COperation::GetSelectDescription() const
 {
 	return m_select ? m_select->GetDescription() : "";
 }
@@ -1164,6 +1158,14 @@ std::string COperation::GetExportAsciiOutputPathRelativeToWks( const CWorkspaceO
 
 	return GetRelativePath( wks->GetPath(), m_exportAsciiOutput );
 }
+std::string COperation::GetShowStatsOutputPathRelativeToWks( const CWorkspaceOperation *wks ) const
+{
+	if ( wks == nullptr )
+		return GetShowStatsOutputPath();
+
+	return GetRelativePath( wks->GetPath(), m_showStatsOutput );
+}
+
 //----------------------------------------
 void COperation::SetCmdFile( CWorkspaceOperation* wks )
 {
@@ -1289,47 +1291,42 @@ bool COperation::ComputeInterval( CFormula* f, std::string &errorMsg )
 }
 
 //----------------------------------------
-bool COperation::GetXExpression(CExpression& expr, std::string& errorMsg, const CStringMap* aliases /* = nullptr*/)
+bool COperation::GetXExpression( CExpression& expr, std::string& errorMsg, const CStringMap* aliases ) const		//aliases = nullptr
 {
-  bool bOk = true;
+	const CFormula* formula = GetFormula( CMapTypeField::eTypeOpAsX );
+	if ( formula != nullptr )
+	{
+		const CStringMap* fieldAliases = nullptr;
+		if ( m_product != nullptr )
+		{
+			fieldAliases = m_product->GetAliasesAsString();
+		}
 
-  CFormula* formula = GetFormula(CMapTypeField::eTypeOpAsX);
+		if ( !CFormula::SetExpression( formula->GetDescription( true, aliases, fieldAliases ), expr, errorMsg ) )
+			return false;
+	}
 
-  if (formula != nullptr)
-  {
-    const CStringMap* fieldAliases = nullptr;
-    if (m_product != nullptr)
-    {
-      fieldAliases = m_product->GetAliasesAsString();
-    }
-
-    bOk &= CFormula::SetExpression(formula->GetDescription(true, aliases, fieldAliases), expr, errorMsg);
-  }
-
-  return bOk;
-
+	return true;
 }
 
 //----------------------------------------
-bool COperation::GetYExpression(CExpression& expr, std::string& errorMsg, const CStringMap* aliases /* = nullptr*/)
+bool COperation::GetYExpression( CExpression& expr, std::string& errorMsg, const CStringMap* aliases ) const		//aliases = nullptr
 {
-  bool bOk = true;
+	const CFormula* formula = GetFormula( CMapTypeField::eTypeOpAsY );
 
-  CFormula* formula = GetFormula(CMapTypeField::eTypeOpAsY);
+	if ( formula != nullptr )
+	{
+		const CStringMap* fieldAliases = nullptr;
+		if ( m_product != nullptr )
+		{
+			fieldAliases = m_product->GetAliasesAsString();
+		}
 
-  if (formula != nullptr)
-  {
-    const CStringMap* fieldAliases = nullptr;
-    if (m_product != nullptr)
-    {
-      fieldAliases = m_product->GetAliasesAsString();
-    }
+		if ( !CFormula::SetExpression( formula->GetDescription( true, aliases, fieldAliases ), expr, errorMsg ) )
+			return false;
+	}
 
-    bOk &= CFormula::SetExpression(formula->GetDescription(true, aliases, fieldAliases), expr, errorMsg);
-  }
-
-  return bOk;
-
+	return true;
 }
 
 //----------------------------------------
@@ -1419,127 +1416,117 @@ bool COperation::ControlXYDataFields(std::string &errorMsg, const CStringMap* al
   return bOk;
 }
 //----------------------------------------
-bool COperation::ControlResolution( std::string& errorMsg)
+bool COperation::ControlResolution( std::string& errorMsg )
 {
-  bool bOk = true;
+	bool bOk = true;
 
-  if (this->GetType() != CMapTypeOp::eTypeOpZFXY)
-  {
-    return bOk;
-  }
+	if ( this->GetType() != CMapTypeOp::eTypeOpZFXY )
+	{
+		return bOk;
+	}
 
 
-  CFormula* xFormula = GetFormula(CMapTypeField::eTypeOpAsX);
+	const CFormula* xFormula = GetFormula( CMapTypeField::eTypeOpAsX );
 
-  if (xFormula != nullptr)
-  {
-    bOk &= xFormula->ControlResolution(errorMsg);
-  }
+	if ( xFormula != nullptr )
+	{
+		bOk &= xFormula->ControlResolution( errorMsg );
+	}
 
-  CFormula* yFormula = GetFormula(CMapTypeField::eTypeOpAsY);
+	const CFormula* yFormula = GetFormula( CMapTypeField::eTypeOpAsY );
 
-  if (yFormula != nullptr)
-  {
-    bOk &= yFormula->ControlResolution(errorMsg);
-  }
+	if ( yFormula != nullptr )
+	{
+		bOk &= yFormula->ControlResolution( errorMsg );
+	}
 
-  return bOk;
+	return bOk;
 }
 //----------------------------------------
-bool COperation::ControlDimensions(CFormula* formula, std::string &errorMsg,  const CStringMap* aliases /* = nullptr*/)
+bool COperation::ControlDimensions( CFormula* formula, std::string &errorMsg, const CStringMap* aliases /* = nullptr*/ )
 {
-  if (formula == nullptr)
-  {
-    return true;
-  }
+	if ( formula == nullptr )
+		return true;
 
-  /*
-  if ((!formula->IsXType()) && (!formula->IsYType()))
-  {
-    return true;
-  }
-*/
-  if (m_product == nullptr)
-  {
-    return true;
-  }
+	if ( m_product == nullptr )
+		return true;
 
-  std::string msg;
+	std::string msg;
 
-  std::string stringExpr = formula->GetDescription(true, aliases, m_product->GetAliasesAsString());
+	std::string stringExpr = formula->GetDescription( true, aliases, m_product->GetAliasesAsString() );
 
-  if (stringExpr.empty())
-  {
-    return true;
-  }
+	if ( stringExpr.empty() )
+	{
+		return true;
+	}
 
 
-  CUIntArray commonDimensions;
-  bool bOk = m_product->HasCompatibleDims( (const char *)stringExpr.c_str(), (const char *)m_record.c_str(), msg, true, &commonDimensions);
+	CUIntArray commonDimensions;
+	bool bOk = m_product->HasCompatibleDims( (const char *)stringExpr.c_str(), (const char *)m_record.c_str(), msg, true, &commonDimensions );
 
-  errorMsg += msg;
+	errorMsg += msg;
 
-  return bOk;
+	return bOk;
 
-  if (formula->GetType() != CMapTypeField::eTypeOpAsSelect)
-  {
-    return bOk;
-  }
+	if ( formula->GetType() != CMapTypeField::eTypeOpAsSelect )
+	{
+		return bOk;
+	}
 
-  if (commonDimensions.size() <= 0)
-  {
-    return bOk;
-  }
+	if ( commonDimensions.size() <= 0 )
+	{
+		return bOk;
+	}
 
-  CStringArray axesFields;
+	CStringArray axesFields;
 
-  CStringArray fields;
+	CStringArray fields;
 
-  CFormula* xFormula = GetFormula(CMapTypeField::eTypeOpAsX);
+	const CFormula* xFormula = GetFormula( CMapTypeField::eTypeOpAsX );
 
-  if (xFormula != nullptr)
-  {
-    fields.RemoveAll();
+	if ( xFormula != nullptr )
+	{
+		fields.RemoveAll();
 
-    bOk &= xFormula->GetFields(fields, errorMsg, aliases, m_product->GetAliasesAsString());
+		bOk &= xFormula->GetFields( fields, errorMsg, aliases, m_product->GetAliasesAsString() );
 
-    axesFields.Insert(fields);
-  }
+		axesFields.Insert( fields );
+	}
 
-  CFormula* yFormula = GetFormula(CMapTypeField::eTypeOpAsY);
+	const CFormula* yFormula = GetFormula( CMapTypeField::eTypeOpAsY );
 
-  if (yFormula != nullptr)
-  {
-    fields.RemoveAll();
+	if ( yFormula != nullptr )
+	{
+		fields.RemoveAll();
 
-    bOk &= yFormula->GetFields(fields, errorMsg, aliases, m_product->GetAliasesAsString());
+		bOk &= yFormula->GetFields( fields, errorMsg, aliases, m_product->GetAliasesAsString() );
 
-    axesFields.Insert(fields);
-  }
+		axesFields.Insert( fields );
+	}
 
 
-  fields.RemoveAll();
+	fields.RemoveAll();
 
-  bOk &= formula->GetFields(fields, errorMsg, aliases, m_product->GetAliasesAsString());
+	bOk &= formula->GetFields( fields, errorMsg, aliases, m_product->GetAliasesAsString() );
 
-  CStringArray complement;
+	CStringArray complement;
 
-  axesFields.Complement(fields, complement);
+	axesFields.Complement( fields, complement );
 
-  if (complement.size() <= 0)
-  {
-    return bOk;
-  }
+	if ( complement.size() <= 0 )
+	{
+		return bOk;
+	}
 
-  errorMsg += (
-	  std::string("\nFields as array are not allowed in selection criteria expression unless they are present in X and/or Y axes.\nWrong field(s) is (are):\n" )
-	  + complement.ToString("\n", false)
-	  + "\n"
-	  );
+	errorMsg += (
+		std::string( "\nFields as array are not allowed in selection criteria expression unless they are present in X and/or Y axes.\nWrong field(s) is (are):\n" )
+		+ complement.ToString( "\n", false )
+		+ "\n"
+		);
 
-  bOk = false;
+	bOk = false;
 
-  return bOk;
+	return bOk;
 
 }
 

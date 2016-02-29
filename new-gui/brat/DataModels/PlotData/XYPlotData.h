@@ -46,9 +46,9 @@
 #include "libbrathl/InternalFilesYFX.h"
 using namespace brathl;
 
-#include "new-gui/brat/PlotValues.h"
-#include "new-gui/brat/DataModels/PlotData/MapColor.h"
-#include "new-gui/brat/DataModels/PlotData/XYPlot.h"
+#include "PlotValues.h"
+#include "DataModels/PlotData/MapColor.h"
+#include "DataModels/PlotData/XYPlot.h"
 
 
 class CXYPlotData;

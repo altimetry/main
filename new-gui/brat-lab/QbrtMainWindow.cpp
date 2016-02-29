@@ -14,7 +14,7 @@
 
 #include "brat-lab.h"
 #include "QbrtMainWindow.h"
-
+#include "new-gui/brat/GUI/DisplayWidgets/GlobeWidget.h"
 
 
 #ifdef Q_WS_MAC
@@ -70,11 +70,12 @@ QbrtMainWindow::QbrtMainWindow( CBratSettings &settings ) :
     setWindowIcon( QIcon(":/butterfly.png") );
     setWindowTitle( tr("%1[*] - %2").arg( windowTitle() ).arg( tr("Rich Text") ) );     //set title sensitive to doc (un)modifications
 
-    CMapWidget::SetQGISDirectories(
-                mSettings.BratPaths().mQgisPluginsDir,
-                mSettings.BratPaths().mVectorLayerPath,
-                mSettings.BratPaths().RasterLayerPath(),
-                mSettings.BratPaths().mGlobeDir );
+	CMapWidget::SetQGISDirectories(
+		mSettings.BratPaths().mQgisPluginsDir,
+		mSettings.BratPaths().mVectorLayerPath,
+		mSettings.BratPaths().RasterLayerPath() );
+
+	CGlobeWidget::SetOSGDirectories( mSettings.BratPaths().mGlobeDir );
 
 	QImage newBackground(":/images/world.png");
 	mdiArea->setBackground( newBackground );
@@ -308,7 +309,7 @@ void QbrtMainWindow::doThreadedStuff()
 	int chunks = mTotal / chunk;
 	size_t remaining = mTotal % chunk;
 
-	for ( size_t i = 0; i < chunks; ++i ) 
+    for ( size_t i = 0; i < (size_t)chunks; ++i )
 	{
 		size_t from = i*chunk;
 		size_t to = from + chunk;

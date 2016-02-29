@@ -136,7 +136,7 @@ inline std::string Absolute2PortableDataPath( const std::string &path, const std
 //	path, and if not, is the user responsibility) and 2) can eliminate the 1st char of "prefix" ('/'),
 //	which then will not be found.
 //
-inline std::string PortableData2AbsolutePath( const std::string &path, const std::string &standard_path )
+inline std::string Portable2AbsoluteDataPath( const std::string &path, const std::string &standard_path )
 {
 	const std::string data_path = normalizedPath( standard_path );
 	const std::string new_path = path;								//(*)

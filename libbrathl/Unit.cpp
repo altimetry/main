@@ -257,14 +257,13 @@ CUnit CUnit::ToUnit(const std::string& unitStr)
 
 //----------------------------------------
 
-CUnit CUnit::BaseUnit
-		()
+CUnit CUnit::BaseUnit() const
 {
-  CUnit	Result;
-  Result.m_Compiled		= m_Compiled;
-  FindBaseUnit(Result.m_Compiled);
-  Result.m_Text			= Result.AsString();
-  return Result;
+	CUnit	Result;
+	Result.m_Compiled		= m_Compiled;
+	FindBaseUnit( Result.m_Compiled );
+	Result.m_Text			= Result.AsString();
+	return Result;
 }
 
 //----------------------------------------
@@ -795,11 +794,10 @@ void CUnit::CheckUdunits
 //----------------------------------------
 
 
-void CUnit::FindBaseUnit
-		(utUnit	&Base)
+void CUnit::FindBaseUnit( utUnit &Base ) const
 {
-  Base.factor		= 1.0;
-  Base.origin		= 0.0;
+	Base.factor		= 1.0;
+	Base.origin		= 0.0;
 }
 
 

@@ -96,7 +96,7 @@ public:
     \param p [in] : productList object to be connected */
   void Set(const CProductList& lst);
 
-  const std::string GetMessage() {return m_message;}
+  const std::string& GetMessage() const {return m_message;}
 
   /// Destructor
   virtual ~CProductList();
@@ -110,14 +110,14 @@ public:
   bool IsYFX();
   bool IsZFXY();
 
-  bool IsGenericNetCdf();
+  bool IsGenericNetCdf() const ;
   
-  bool IsJason2();
-  bool IsATP();
+  bool IsJason2() const;
+  bool IsATP() const;
 
-  bool IsNetCdfProduct() {return (m_productClass.compare(NETCDF_PRODUCT_CLASS) == 0); }
-  bool IsNetCdfCFProduct() {return (m_productClass.compare(NETCDF_CF_PRODUCT_CLASS) == 0); }
-  bool IsNetCdfOrNetCdfCFProduct() {return (IsNetCdfCFProduct() || IsNetCdfProduct()); }
+  bool IsNetCdfProduct() const {return (m_productClass.compare(NETCDF_PRODUCT_CLASS) == 0); }
+  bool IsNetCdfCFProduct() const {return (m_productClass.compare(NETCDF_CF_PRODUCT_CLASS) == 0); }
+  bool IsNetCdfOrNetCdfCFProduct() const {return (IsNetCdfCFProduct() || IsNetCdfProduct()); }
 
   bool IsSameProduct(const std::string& productClass, const std::string& productType);
 
@@ -288,7 +288,7 @@ public:
   
   static CProduct* Construct(const CStringArray& fileNameArray);
   static CProduct* Construct(CStringList& fileNameList);
-  static CProduct* Construct(CProductList& fileNameList);
+  static CProduct* Construct( CProductList& fileNameList );
   static CProduct* Construct(const std::string& fileName);
 
   bool IsNetCdf();

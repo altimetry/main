@@ -420,7 +420,7 @@ public:
 	//std::string GetFullCmd();
 
 
-	bool BuildCmdFile();
+	bool BuildCmdFile( std::string &error_msg );
 private:
 	//bool BuildCmdFileHeader();
 	//bool BuildCmdFileGeneralProperties();
@@ -443,9 +443,9 @@ private:
 public:
 	void InitOutput( CWorkspaceDisplay *wks );
 
-	bool IsYFXType();
-	bool IsZYFXType();
-	bool IsZLatLonType();
+	bool IsYFXType() const;
+	bool IsZYFXType() const;
+	bool IsZLatLonType() const;
 
 	///Dump fonction
 	virtual void Dump( std::ostream& fOut = std::cerr );

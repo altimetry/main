@@ -24,7 +24,7 @@
 #include "Operation.h"
 #include "WorkspaceSettings.h"
 #include "Display.h"
-#include "new-gui/brat/DataModels/MapTypeDisp.h"
+#include "DataModels/MapTypeDisp.h"
 
 
 
@@ -40,10 +40,10 @@ std::string CWorkspaceSettings::Absolute2PortableDataPath( const std::string &pa
 }
 
 
-std::string CWorkspaceSettings::PortableData2AbsolutePath( const std::string &path ) const
+std::string CWorkspaceSettings::Portable2AbsoluteDataPath( const std::string &path ) const
 {
 	return smBratPaths ?
-		smBratPaths->PortableData2AbsolutePath( path ) :
+		smBratPaths->Portable2AbsoluteDataPath( path ) :
 		path;
 }
 
@@ -155,7 +155,7 @@ bool CWorkspaceSettings::LoadConfigDataset( CWorkspaceDataset &data, std::string
 			else {
 				try
 				{
-					dataset->GetProductList()->CheckFiles( true );	//Just to initialize 'product class' and 'product type'
+					dataset->CheckFiles( true );	//Just to initialize 'product class' and 'product type'
 				}
 				catch ( CException& e )
 				{
@@ -180,7 +180,7 @@ bool CWorkspaceSettings::SaveConfig( const CDataset *d )
 		for ( CProductList::const_iterator it = d->GetProductList()->begin(); it != d->GetProductList()->end(); it++ )
 		{
 			index++;
-			WriteValue( section, ENTRY_FILE + n2s<std::string>( index ), *it );		//v4 Absolute2PortableDataPath( *it )
+			WriteValue( section, ENTRY_FILE + n2s<std::string>( index ), Absolute2PortableDataPath( *it ) );		//v4 Absolute2PortableDataPath( *it )
 		}
 
 		//SaveConfigSpecificUnit( CConfiguration *config, const std::string& entry )
@@ -202,14 +202,14 @@ bool CWorkspaceSettings::LoadConfig( CDataset *d )
 		{
 			std::string entry = q2a( key );
 			std::string value_string = ReadValue( section, entry );			
-			//v4 value_string = PortableData2AbsolutePath( value_string );
+			value_string = Portable2AbsoluteDataPath( value_string );
 
 			// Find ENTRY_FILE entries (dataset files entries)
 			findStrings.RemoveAll();
 			CTools::Find( entry, ENTRY_FILE_REGEX, findStrings );
 			if ( findStrings.size() > 0 )
 			{
-				d->GetProductList()->Insert( value_string );
+				d->InsertProduct( value_string );
 				continue;
 			}
 
@@ -1041,7 +1041,7 @@ bool CWorkspaceSettings::LoadConfig( CDisplayData &data, const std::string& path
 	if ( !GetLastExtensionFromPath( data.m_colorPalette ).empty() )
 	{
 		if ( wks != nullptr )
-			data.m_colorPalette = NormalizedPath( data.m_colorPalette, wks->GetPath() );		// TODO !!! test !!! this
+			data.m_colorPalette = NormalizedAbsolutePath( data.m_colorPalette, wks->GetPath() );		// TODO !!! test !!! this
 	}
 
 	return true;

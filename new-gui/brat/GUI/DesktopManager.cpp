@@ -1,6 +1,6 @@
 #include "new-gui/brat/stdafx.h"
 
-#include "new-gui/brat/GUI/TabbedDock.h"
+#include "GUI/TabbedDock.h"
 #include "DesktopManager.h"
 
 
