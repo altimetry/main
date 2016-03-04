@@ -79,7 +79,7 @@ private:
 public:
 	explicit CWorkspaceDialog( QWidget *parent, EValidationTask task, const CWorkspace *wks, const QString &initial_dir, const CModel &model );
 
-    ~CWorkspaceDialog();
+    virtual ~CWorkspaceDialog();
 
     
 	/////////////////////////////

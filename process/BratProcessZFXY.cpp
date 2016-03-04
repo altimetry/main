@@ -1118,82 +1118,82 @@ CMatrixDouble* CBratProcessZFXY::GetMatrixDouble(CBratObject* ob, bool withExcep
 
 
 //----------------------------------------
-int32_t CBratProcessZFXY::Execute(std::string& msg)
-{ 
-    UNUSED(msg);
+int32_t CBratProcessZFXY::Execute( std::string& msg )
+{
+	UNUSED( msg );
 
-  int32_t result = BRATHL_SUCCESS;
+	int32_t result = BRATHL_SUCCESS;
 
-  CDate startExec;
-  startExec.SetDateNow();
+	CDate startExec;
+	startExec.SetDateNow();
 
-  if (m_product == NULL)
-  {
-	  throw CException("PROGRAM ERROR: product is NULL (CBratProcessZFXY::Execute) - Perhaps, initialization has not been called",
-			   BRATHL_LOGIC_ERROR);
-  }
+	if ( m_product == NULL )
+	{
+		throw CException( "PROGRAM ERROR: product is NULL (CBratProcessZFXY::Execute) - Perhaps, initialization has not been called",
+			BRATHL_LOGIC_ERROR );
+	}
 
-  InitGrids();
+	InitGrids();
 
-  size_t nbFiles = m_inputFiles.size();
-  size_t cptFile = 0;
+	size_t nbFiles = m_inputFiles.size();
+	size_t cptFile = 0;
 
-  CStringArray::iterator itFile;
+	CStringArray::iterator itFile;
 
-  for (itFile = m_inputFiles.begin() ; itFile != m_inputFiles.end() ; itFile++)
-  {
-    cptFile++;
+	for ( itFile = m_inputFiles.begin(); itFile != m_inputFiles.end(); itFile++ )
+	{
+		cptFile++;
 
-    CTrace::Tracer(1,"File %d/%d - Reading record data from %s ... and registering data ...",
-                   cptFile, nbFiles, (*itFile).c_str());
+		CTrace::Tracer( 1, "File %d/%d - Reading record data from %s ... and registering data ...",
+			cptFile, nbFiles, ( *itFile ).c_str() );
 
-    // open file an set record name and list of field to read
-    m_product->SetFieldSpecificUnits(m_fieldSpecificUnit);
-    m_product->Open(*itFile, m_recordName);
+		// open file an set record name and list of field to read
+		m_product->SetFieldSpecificUnits( m_fieldSpecificUnit );
+		m_product->Open( *itFile, m_recordName );
 
-    NetCdfProductInitialization();
-    
-    SetExpandArray(m_xField, true); 
-    SetExpandArray(m_yField, true);
+		NetCdfProductInitialization();
 
-
-    ReplaceAxisDefinition();
-
-    ReplaceFieldDefinition();
-
-    m_product->SetListFieldToRead(m_listFieldsToRead, false);
-
-    // Get the number of record for the default record name (set in Open method of CProduct above)
-    int32_t nRecords = m_product->GetNumberOfRecords();
-
-    for (int32_t iRecord = 0 ; iRecord < nRecords ; iRecord++)
-    {
-      //Read fields for the record name  (listof field and record name are set in Open method of CProduct above)
-      m_product->ReadBratRecord(iRecord);
-      RegisterData();
-    }
-
-    m_product->Close();
-  }
-
-  if (m_product->GetSkippedRecordCount() > 0)
-  {
-    CTrace::Tracer(1, CTools::Format("WARNING - %d input data records have been skipped due to inconsistency between two measures",
-                                     m_product->GetSkippedRecordCount()));
-  }
+		SetExpandArray( m_xField, true );
+		SetExpandArray( m_yField, true );
 
 
-  result = WriteData();
+		ReplaceAxisDefinition();
 
-  CDate endExec;
-  endExec.SetDateNow();
-  
-  CTrace::Tracer(1, CTools::Format("Processing time: %.3f seconds (%.2f minutes)\n", 
-                                  (endExec - startExec),
-                                  (endExec - startExec) / 60.0));
+		ReplaceFieldDefinition();
 
- 
-  return result;
+		m_product->SetListFieldToRead( m_listFieldsToRead, false );
+
+		// Get the number of record for the default record name (set in Open method of CProduct above)
+		int32_t nRecords = m_product->GetNumberOfRecords();
+
+		for ( int32_t iRecord = 0; iRecord < nRecords; iRecord++ )
+		{
+			//Read fields for the record name  (listof field and record name are set in Open method of CProduct above)
+			m_product->ReadBratRecord( iRecord );
+			RegisterData();
+		}
+
+		m_product->Close();
+	}
+
+	if ( m_product->GetSkippedRecordCount() > 0 )
+	{
+		CTrace::Tracer( 1, CTools::Format( "WARNING - %d input data records have been skipped due to inconsistency between two measures",
+			m_product->GetSkippedRecordCount() ) );
+	}
+
+
+	result = WriteData();
+
+	CDate endExec;
+	endExec.SetDateNow();
+
+	CTrace::Tracer( 1, CTools::Format( "Processing time: %.3f seconds (%.2f minutes)\n",
+		( endExec - startExec ),
+		( endExec - startExec ) / 60.0 ) );
+
+
+	return result;
 }
 
 //----------------------------------------

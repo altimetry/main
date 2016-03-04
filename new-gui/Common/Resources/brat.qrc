@@ -123,5 +123,48 @@
         <file>images/OSGeo/projection.png</file>
         <file>images/OSGeo/db.png</file>
         <file>images/OSGeo/paint.png</file>
+        <file>images/InstallSplashScreen.png</file>
+        <file>images/Create.jpg</file>
+        <file>images/12-final.png</file>
+        <file>images/OSGeo/check.png</file>
+        <file>images/OSGeo/edit.png</file>
+        <file>images/OSGeo/execute.png</file>
+        <file>images/OSGeo/export.png</file>
+        <file>images/OSGeo/expression.png</file>
+        <file>images/OSGeo/expression-builder.png</file>
+        <file>images/OSGeo/expression-filter.png</file>
+        <file>images/OSGeo/expression-preview.png</file>
+        <file>images/OSGeo/expression-select.png</file>
+        <file>images/OSGeo/file-merge.png</file>
+        <file>images/OSGeo/filter.png</file>
+        <file>images/OSGeo/graticule.png</file>
+        <file>images/OSGeo/help.png</file>
+        <file>images/OSGeo/layer_to_preview_add.png</file>
+        <file>images/OSGeo/layer-ows.png</file>
+        <file>images/OSGeo/layer-raster-analyze.png</file>
+        <file>images/OSGeo/layer-raster-histogram.png</file>
+        <file>images/OSGeo/layer-raster-profile.png</file>
+        <file>images/OSGeo/layer-raster-scatterplot.png</file>
+        <file>images/OSGeo/map-add.png</file>
+        <file>images/OSGeo/map-import.png</file>
+        <file>images/OSGeo/mapserver-export.png</file>
+        <file>images/OSGeo/measure.png</file>
+        <file>images/OSGeo/new1.png</file>
+        <file>images/OSGeo/ows.png</file>
+        <file>images/OSGeo/page-settings.png</file>
+        <file>images/OSGeo/pan.png</file>
+        <file>images/OSGeo/pan-selection.png</file>
+        <file>images/OSGeo/print.png</file>
+        <file>images/OSGeo/processing.png</file>
+        <file>images/OSGeo/projection-add.png</file>
+        <file>images/OSGeo/projection-export.png</file>
+        <file>images/OSGeo/redraw.png</file>
+        <file>images/OSGeo/regression.png</file>
+        <file>images/OSGeo/reload.png</file>
+        <file>images/OSGeo/save2.png</file>
+        <file>images/OSGeo/save-as2.png</file>
+        <file>images/OSGeo/search.png</file>
+        <file>images/OSGeo/stats.png</file>
+        <file>images/OSGeo/tools.png</file>
     </qresource>
 </RCC>

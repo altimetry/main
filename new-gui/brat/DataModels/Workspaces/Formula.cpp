@@ -527,7 +527,7 @@ bool CFormula::CheckExpressionUnits(const std::string& exprStr, const std::strin
 
   try
   {
-    unitExpr = (const char *)strUnitExpr.c_str();
+    unitExpr = strUnitExpr;
   }
   catch (CException& e)
   {
@@ -1550,166 +1550,6 @@ bool CFormula::ComputeInterval( std::string &errorMsg )
 
 	return areEqual( interval, intervalTmp );
 }
-/*
-//----------------------------------------
-bool CFormula::ComputeIntervalAsDouble(bool showMsg)
-{
-  setDefaultValue(m_interval);
-
-  if (!IsXYType())
-  {
-    return true;
-  }
-  if (isDefaultValue(m_minValue) && isDefaultValue(m_maxValue))
-  {
-    return true;
-  }
-
-  double interval = 0.0;
-  double intervalTmp = 0.0;
-  double step = GetStepAsDouble();
-
-  if (isDefaultValue(step))
-  {
-    return true;
-  }
-
-  double minValueDefault =  0.0;
-  double maxValueDefault =  0.0;
-
-  if (IsLonDataType())
-  {
-    minValueDefault = -180 : -90;
-    maxValueDefault = 180 : 90;
-  }
-  else if (IsLatDataType())
-  {
-    minValueDefault = -90;
-    maxValueDefault = 90;
-  }
-
-  if (isDefaultValue(m_minValue))
-  {
-    m_minValue = minValueDefault;
-  }
-  if (isDefaultValue(m_maxValue))
-  {
-    m_maxValue = maxValueDefault;
-  }
-
-  if (step < 0)
-  {
-    step = -(step);
-    m_step.Replace("-", "");
-  }
-
-  if (isZero(step))
-  {
-    SetStepToDefault();
-
-    step = CFormula::GetStepAsDouble(m_step);
-  }
-
-  intervalTmp = (m_maxValue - m_minValue) / step;
-  interval = CTools::Round( (m_maxValue - m_minValue) / step );
-
-  m_interval = static_cast<int32_t>( CTools::Int(interval) );
-
-  if (m_interval <= 0)
-  {
-    m_interval = 1;
-  }
-
-  if ( (showMsg) && (areEqual( interval, intervalTmp ) == false) )
-  {
-    wxMessageBox(std::string::Format("Formula '%s':\nInterval was round up or down to the nearest integer value.",
-                                  m_name.c_str()),
-                 "Information",
-                  wxOK | wxCENTRE | wxICON_INFORMATION);
-  }
-
-  return areEqual( interval, intervalTmp );
-}
-*/
-/*
-//----------------------------------------
-bool CFormula::ComputeIntervalAsDate(bool showMsg)
-{
-  setDefaultValue(m_interval);
-
-  if (!IsXYType())
-  {
-    return true;
-  }
-
-  if (isDefaultValue(m_minValue) && isDefaultValue(m_maxValue))
-  {
-    return true;
-  }
-
-  double interval = 0.0;
-  double intervalTmp = 0.0;
-  double step = GetStepAsDouble();
-
-  if (isDefaultValue(step))
-  {
-    return true;
-  }
-
-  double minValueDefault =  0.0;
-  double maxValueDefault =  CDate::m_secInDay;
-
-  if (isDefaultValue(m_minValue))
-  {
-    m_minValue = minValueDefault;
-  }
-  if (isDefaultValue(m_maxValue))
-  {
-    m_maxValue = maxValueDefault;
-  }
-
-  if (step < 0)
-  {
-    step = -(step);
-    m_step.Replace("-", "");
-  }
-
-  if (isZero(step))
-  {
-    SetStepToDefault();
-
-    step = CFormula::GetStepAsDouble(m_step);
-  }
-
-
-  CUnit	unit	= m_unit.BaseUnit();
-  unit.SetConversionTo(m_unit);
-  double minValue	= unit.Convert(m_minValue);
-  double maxValue	= unit.Convert(m_maxValue);
-
-  //intervalTmp = ((m_maxValue - m_minValue) / step) / CDate::m_secInDay;
-  intervalTmp = ((maxValue - minValue) / step);
-  //interval = CTools::Round( ((m_maxValue - m_minValue) / step) / CDate::m_secInDay);
-  interval = CTools::Round( ((maxValue - minValue) / step));
-
-  m_interval = static_cast<int32_t>( CTools::Int(interval) );
-
-  if (m_interval <= 0)
-  {
-    m_interval = 1;
-  }
-
-  if ( (showMsg) && (areEqual( interval, intervalTmp ) == false) )
-  {
-    wxMessageBox(std::string::Format("Formula '%s':\nInterval was round up or down to the nearest integer value.",
-                                  m_name.c_str()),
-                 "Information",
-                  wxOK | wxCENTRE | wxICON_INFORMATION);
-  }
-
-  return areEqual( interval, intervalTmp );
-}
-*/
 //----------------------------------------
 void CFormula::SetStepToDefaultAsNecessary()
 {
@@ -2469,7 +2309,7 @@ std::string CMapDataMode::IdToName(uint32_t id)
     uint32_t value = it->second;
     if (value == id)
     {
-      return (it->first).c_str();
+      return it->first;
     }
   }
 
@@ -2480,7 +2320,7 @@ std::string CMapDataMode::IdToName(uint32_t id)
 //----------------------------------------
 uint32_t CMapDataMode::NameToId(const std::string& name)
 {
-  return Exists((const char *)name.c_str());
+  return Exists(name);
 }
 
 //----------------------------------------

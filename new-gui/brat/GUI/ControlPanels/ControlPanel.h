@@ -243,6 +243,8 @@ class CDesktopControlsPanel : public CControlPanel
 	using base_t = CControlPanel;
 
 protected:
+	const int m = 2;	//layout contents margins
+	const int s = 2;	//layout contents spacing
 
 protected:
 	CDesktopManagerBase *mManager = nullptr;

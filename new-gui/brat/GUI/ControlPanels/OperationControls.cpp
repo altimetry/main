@@ -9,6 +9,7 @@
 #include "DataModels/Model.h"
 #include "DataModels/Workspaces/Workspace.h"
 #include "DataModels/Workspaces/Operation.h"
+#include "GUI/ActionsTable.h"
 #include "GUI/DisplayWidgets/TextWidget.h"
 #include "GUI/DisplayEditors/MapEditor.h"
 #include "GUI/DisplayEditors/PlotEditor.h"
@@ -17,148 +18,228 @@
 #include "OperationControls.h"
 
 
+Q_DECLARE_METATYPE( CMapTypeField::ETypeField )
+
+
+
+CDataExpressionsTree::CDataExpressionsTree( QWidget *parent, QWidget *drag_source )
+	: base_t( parent )
+	, mDragSource( drag_source )
+{
+	SetObjectName( this, "DataExpressionsTree" );
+
+    QStringList labels;
+    labels << tr("Data Expressions");
+    setHeaderLabels(labels);
+
+    mGroupIcon.addPixmap( style()->standardPixmap( QStyle::SP_DirClosedIcon ), QIcon::Normal, QIcon::Off );
+    mGroupIcon.addPixmap( style()->standardPixmap( QStyle::SP_DirOpenIcon ), QIcon::Normal, QIcon::On );
+    mKeyIcon.addPixmap( style()->standardPixmap( QStyle::SP_FileIcon ) );
+
+	QTreeWidgetItem *
+	child = new QTreeWidgetItem( this );
+	setItemWidget( child, 0, new QLabel("<b>X</b>", this ) );
+	child->setData( 0, Qt::UserRole, QVariant::fromValue( CMapTypeField::eTypeOpAsX ) );
+	child->setIcon( 0, mGroupIcon );
+
+
+	child = new QTreeWidgetItem( this );
+	setItemWidget( child, 0, new QLabel("<b>Y (optional)</b>", this ) );
+	child->setData( 0, Qt::UserRole, QVariant::fromValue( CMapTypeField::eTypeOpAsY ) );
+	child->setIcon( 0, mGroupIcon );
+
+	child = new QTreeWidgetItem( this );
+	setItemWidget( child, 0, new QLabel("<b>Data</b>", this ) );
+	child->setData( 0, Qt::UserRole, QVariant::fromValue( CMapTypeField::eTypeOpAsField ) );
+	child->setIcon( 0, mGroupIcon );
+
+	child = new QTreeWidgetItem( this );
+	child->setText( 0, "Selection criteria (optional)" );
+	child->setData( 0, Qt::UserRole, QVariant::fromValue( CMapTypeField::eTypeOpAsSelect ) );
+	child->setIcon( 0, mGroupIcon );
+
+	viewport()->setAcceptDrops(true);
+	setDropIndicatorShown(true);
+
+	auto *root_item = invisibleRootItem();
+    root_item->setFlags( root_item->flags() & ~Qt::ItemIsDropEnabled );
+}
+
+
+void CDataExpressionsTree::dragEnterEvent( QDragEnterEvent *event )
+{
+	if ( mDragSource == event->source() )
+	{
+		auto *item = itemAt( event->pos() );
+		QModelIndex dropIndex = indexAt( event->pos() );
+		if ( item && ( itemAt( dropIndex.row(), 0 ) == item ) /*&& !item->parent() && ( item->childCount() == 0 ) && item != invisibleRootItem()*/ )
+		{
+			event->acceptProposedAction();
+			qDebug() << "dragEnterEvent " << item;
+		}
+	}
+}
+
+void CDataExpressionsTree::dropEvent( QDropEvent *event )
+{
+	if ( mDragSource == event->source() && event->dropAction() == Qt::CopyAction )
+	{
+		auto *item = itemAt( event->pos() );
+
+		qDebug() << "dropEvent " << item;		// items are different !!!!
+
+		if ( item && item != invisibleRootItem() && !item->parent() && item->childCount() == 0 && item != invisibleRootItem() )
+		{
+			//TODO if childCount == 1, replace 
+
+			QString field = event->mimeData()->text();
+			QTreeView::dropEvent( event );
+			event->acceptProposedAction();
+			return;
+		}
+	}
+
+	event->ignore();
+	return;
+}
+
+
+
+
+static const std::string ButtonDisplayTextNoOp = "View...";
+static const std::string ButtonDisplayTextIsMap = "Map...";
+static const std::string ButtonDisplayTextIsPlot = "Plot...";
+
+
+//static 
+QList<QAction*> COperationControls::CreateDataComputationActions( QObject *parent )
+{
+	QList<QAction*> actions;
+	auto map = CMapDataMode::GetInstance();
+	for ( CMapDataMode::const_iterator it = map.begin(); it != map.end(); it++ )
+	{
+		if ( !isDefaultValue( it->second ) )
+		{
+			actions << new QAction( it->first.c_str(), parent );
+		}
+	}
+	return actions;
+}
+
+
+
+
+CDataExpressionsTree* COperationControls::CreateDataExpressionsTree( QWidget *parent, QWidget *drag_source )
+{
+	return new CDataExpressionsTree( parent, drag_source );
+}
+
+
+
+
+
+
 QWidget* COperationControls::CreateQuickOperationsPage()
 {
 	auto mQuickOperationsPage = new QWidget( this );
 
 	// I. Saved Variables Group
 
-	QListWidget *mSavedVariablesList = CreateBooleanList( nullptr, { { "SSH", true }, { "SWH" }, { "Winds" }, { "Sigma0", true } } );	//TODO, obviously
+	mQuickVariablesList = CreateBooleanList( nullptr, { { "SSH", true }, { "SWH" }, { "Winds" }, { "Sigma0", true } } );
 
 	auto mAddVariable = new QPushButton( "Add Variable" );
 	auto mClear = new QPushButton( "Clear" );
-	auto mExport = new QPushButton( "Export" );
-	auto mEditAsciiExport = new QPushButton( "Ascii Export..." );	//QPushButton *mSort = new QPushButton( "Sort", page_1 );	by qlistwidget ?
-	auto mStatistics = new QPushButton( "Statistics..." );
-	QBoxLayout *buttons_vl = LayoutWidgets( Qt::Vertical, { mAddVariable, mClear, mExport, mEditAsciiExport, mStatistics } );
+	QBoxLayout *buttons_vl = LayoutWidgets( Qt::Vertical, { mAddVariable, mClear } );
 
-	QBoxLayout *variables_hl = LayoutWidgets( Qt::Horizontal, { mSavedVariablesList, buttons_vl }, nullptr, 0, 2, 2, 2, 2 );
+	QBoxLayout *variables_hl = LayoutWidgets( Qt::Horizontal, { mQuickVariablesList, buttons_vl }, nullptr, 0, m, m, m, m );
 
 	auto desc_label = new QLabel( "Variable Description" );
 	auto mVarTable = new QTableWidget;
 	mVarTable->setColumnCount( 4 );
-	QBoxLayout *desc_vl = LayoutWidgets( Qt::Vertical, { desc_label, mVarTable }, nullptr, 0, 2, 2, 2, 2 );
+	QBoxLayout *desc_vl = LayoutWidgets( Qt::Vertical, { desc_label, mVarTable }, nullptr, 0, m, m, m, m );
 
-	QGroupBox *vars_group = CreateGroupBox( ELayoutType::Vertical, { variables_hl, desc_vl }, "Saved Variables" , mQuickOperationsPage, 0, 2, 2, 2, 2 );
+	QGroupBox *vars_group = CreateGroupBox( ELayoutType::Vertical, { variables_hl, desc_vl }, "Saved Variables" , mQuickOperationsPage, 0, m, m, m, m );
 
-
-	// II. Views Group
-
-	mQuickMapButton = new QPushButton( "Quick Map" );
-	mQuickPlotButton = new QPushButton( "Quick Plot" );
-	auto mSplitPlots = new QCheckBox( "Split Plots" );
-
-	QGroupBox *views_group = CreateGroupBox( ELayoutType::Horizontal, { mQuickMapButton, mQuickPlotButton, mSplitPlots }, "Views" , mQuickOperationsPage, 6, 2, 2, 2, 2 );
-
-
-	/* III. Dataset & Filter & Operation Group
-
-	auto mQuickDatasets = new QComboBox;
-	auto mQuickFilters = new QComboBox;
-	auto mSelectedDatasetName = new QLineEdit;
-	auto mSelectedFilterName = new QLineEdit;
-	QGridLayout *all_grid_l = LayoutWidgets( { mQuickDatasets, mQuickFilters, nullptr, mSelectedDatasetName, mSelectedFilterName }, nullptr, 6, 2, 2, 2, 2 );
-
-	auto mQuickOperationNname = new QLineEdit;
-	auto mNewQuickOperation = new QPushButton( "New" );
-	auto mDeleteQuickOperation = new QPushButton( "Delete" );
-	auto mSaveQuickOperation = new QPushButton( "Save" );
-	auto mOpenQuickOperation = new QComboBox;
-	QBoxLayout *quick_op_hl = LayoutWidgets( Qt::Horizontal, { mNewQuickOperation,
-		mDeleteQuickOperation, mSaveQuickOperation, mOpenQuickOperation }, nullptr, 2, 2, 2, 2, 2 );
-
-	QGroupBox *all_group = CreateGroupBox( ELayoutType::Vertical, { all_grid_l, mQuickOperationNname, quick_op_hl }, "", mQuickOperationsPage, 2, 2, 2, 2, 2 );
-	  */
 	// IV. Assemble all groups in quick operations page
 
 	LayoutWidgets( Qt::Vertical, 
 	{ 
 		vars_group, 
-		views_group, 
-		//all_group 
 	}, 
-	mQuickOperationsPage, 0, 2, 2, 2, 2 );
+	mQuickOperationsPage, 0, m, m, m, m );
 
 	return mQuickOperationsPage;
 }
 
 
-
 QWidget* COperationControls::CreateAdancedOperationsPage()
 {
 	QWidget *mAdvancedOperationsPage = new QWidget( this );
-	QWidget *tab_parent = mAdvancedOperationsPage;	// new QWidget( mAdvancedOperationsPage );	// mAdvancedOperationsPage;
+	QWidget *tab_parent = mAdvancedOperationsPage;			// new QWidget( mAdvancedOperationsPage );	// mAdvancedOperationsPage;
 
-	// I. Formulas Group
+	// I. Buttons row
 
-	auto mInsertFunction = new QPushButton( "Function" );
-	auto mInsertAlgorithm = new QPushButton( "Algorithm" );
-	auto mInsertFormula = new QPushButton( "Formula" );
-	auto mSaveAsFormula = new QPushButton( "Save As Formula" );
+	mInsertFunction = CreateToolButton( "", ":/images/alpha-numeric/1.png", "Insert function" );
+	mInsertAlgorithm = CreateToolButton( "", ":/images/alpha-numeric/2.png", "Insert algorithm" );
+	mInsertFormula = CreateToolButton( "", ":/images/alpha-numeric/3.png", "Insert formula" );
+	mSaveAsFormula = CreateToolButton( "", ":/images/alpha-numeric/4.png", "Save as formula" );
 
-	QGroupBox *formulas_group = CreateGroupBox( ELayoutType::Horizontal, 
+    mShowAliasesButton = CreateToolButton( "", ":/images/alpha-numeric/__e.png", "Show aliases" );
+	mCheckSyntaxButton = CreateToolButton( "", ":/images/OSGeo/check.png", "Check syntax" );
+	mShowInfoButton = CreateToolButton( "", ":/images/OSGeo/page-info.png", "Show information" );
+
+	mDataComputationGroup = CreateActionGroup( this, CreateDataComputationActions( this ), true );
+	mDataComputation = CreateMenuButton(  "", ":/images/alpha-numeric/b.png", "Set how data are stored/computed", mDataComputationGroup->actions() );
+
+	auto *formulas_l = LayoutWidgets( Qt::Horizontal, 
 	{ 
-		mInsertFunction, mInsertAlgorithm, mInsertFormula, mSaveAsFormula 
+		mInsertFunction, mInsertAlgorithm, mInsertFormula, mSaveAsFormula, mDataComputation,
+		nullptr, mCheckSyntaxButton, mShowInfoButton, mShowAliasesButton
 	}, 
-	"", tab_parent, 2, 2, 2, 2, 2 );
+	nullptr, s, m, m, m, m );
 
 
-	// II. Fields Layout
+	// II. Fields Layout & Variable Description
 
 	// - fields
 	auto adv_fields_label = new QLabel( "Fields", tab_parent );
-	auto mAdvancedFields = new QListWidget( tab_parent );
-	QBoxLayout *adv_fields_vl = LayoutWidgets( Qt::Vertical, { adv_fields_label, mAdvancedFields }, nullptr, 2, 2, 2, 2, 2 );
-
-	// - data expressions
-	auto data_expressions_label = new QLabel( "Data Expressions", tab_parent );
-	auto mAdvancedDataExpressions = new QTreeWidget( tab_parent );
-	auto qtreewidgetitem = new QTreeWidgetItem();
-	qtreewidgetitem->setText( 0, QString::fromUtf8( "1" ) );
-	mAdvancedDataExpressions->setHeaderItem( qtreewidgetitem );
-	SetObjectName( mAdvancedDataExpressions, "treeWidget" );
-	QBoxLayout *adv_expressions_vl = LayoutWidgets( Qt::Vertical, { data_expressions_label, mAdvancedDataExpressions }, nullptr, 2, 2, 2, 2, 2 );
-
-	QBoxLayout *fields_hl = LayoutWidgets( Qt::Horizontal, { adv_fields_vl, adv_expressions_vl }, nullptr, 2, 2, 2, 2, 2 );
-	
-
-	// III. Variable Description Layout
+	mAdvancedFieldList = new QListWidget( tab_parent );
+	mAdvancedFieldList->setDragEnabled( true );
+	QBoxLayout *adv_fields_vl = LayoutWidgets( Qt::Vertical, { adv_fields_label, mAdvancedFieldList }, nullptr, s, m, m, m, m );
 
 	auto adv_desc_label = new QLabel( "Variable Description", tab_parent );
 	auto mAdvVarTable = new QTableWidget( tab_parent );
 	mAdvVarTable->setColumnCount( 4 );
-	QBoxLayout *adv_desc_vl = LayoutWidgets( Qt::Vertical, { adv_desc_label, mAdvVarTable }, nullptr, 0, 2, 2, 2, 2 );
+	QBoxLayout *adv_desc_vl = LayoutWidgets( Qt::Vertical, { adv_desc_label, mAdvVarTable }, nullptr, 0, m, m, m, m );
+
+	QBoxLayout *fields_hl = LayoutWidgets( Qt::Horizontal, { adv_fields_vl, adv_desc_vl }, nullptr, s, m, m, m, m );
+	
+
+	// III. Data Expressions Layout
+
+	mDataExpressionsTree = CreateDataExpressionsTree( tab_parent, mAdvancedFieldList );
+	//QBoxLayout *adv_expressions_vl = LayoutWidgets( Qt::Vertical, { mDataExpressionsTree }, nullptr, s, m, m, m, m );
 
 
 	// IV. Expression Group
 
 	// expressions
 	mExpressionTextWidget = new CTextWidget;
-	auto exp_group = CreateGroupBox( ELayoutType::Horizontal, { mExpressionTextWidget }, "Expression", tab_parent, 0, 2, 2, 2, 2 );
+	auto exp_group = CreateGroupBox( ELayoutType::Horizontal, { mExpressionTextWidget }, "Expression", tab_parent, 0, m, m, m, m );
 
     static const QString SyncGroup("SyncGroup");
-	QgsCollapsibleGroupBox *expression_group = CreateCollapsibleGroupBox( ELayoutType::Vertical, { formulas_group, fields_hl, adv_desc_vl, exp_group }, 
-		"Expression", tab_parent, 0, 2, 2, 2, 2 );
+	QgsCollapsibleGroupBox *expression_group = CreateCollapsibleGroupBox( ELayoutType::Vertical, { formulas_l, fields_hl, mDataExpressionsTree, exp_group }, 
+		"Expression", tab_parent, 0, m, m, m, m );
 	//expression_group->setCollapsed( true );
 	expression_group->setSyncGroup( SyncGroup );
 	//expression_group->setCheckable( true );
 
 
-	// V. Data Computation Layout
-
-	auto mDataComputation = new QComboBox( tab_parent );
-	auto mCheckSyntax = new QPushButton( "Check Syntax", tab_parent );
-	auto mShowInfo = new QPushButton( "Show Info", tab_parent );
-	mShowAliases = new QPushButton( "Show Aliases", tab_parent );
-	QGroupBox *data_compute_group = CreateGroupBox( ELayoutType::Horizontal, { mDataComputation, mCheckSyntax, mShowInfo, mShowAliases }, 
-		"Data Computation", tab_parent, 2, 2, 2, 2, 2 );
-
-
-	// VI. Sampling Group
+	// V. Sampling Group
 
 	auto adv_filter_label = new QLabel( "Filter" );
 	auto mAdvFilter = new QComboBox;
-	QBoxLayout *adv_filter_vl = LayoutWidgets( Qt::Vertical, { adv_filter_label, mAdvFilter }, nullptr, 0, 2, 2, 2, 2 );
+	QBoxLayout *adv_filter_vl = LayoutWidgets( Qt::Vertical, { adv_filter_label, mAdvFilter }, nullptr, 0, m, m, m, m );
 	QFrame *line = WidgetLine( nullptr, Qt::Vertical );
 	line->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
     auto step_label = new QLabel( "Step" );                         step_label->setAlignment(Qt::AlignCenter);
@@ -181,104 +262,143 @@ QWidget* COperationControls::CreateAdancedOperationsPage()
 	sampling_group->setSyncGroup( SyncGroup );
 
 
-	// VII. Other Advanced Layout
-
-	auto mAdvComputeStatistics = new QPushButton( "Statistics", tab_parent );
-	auto mDelayExecution = new QPushButton( "Delay Execution", tab_parent );
-	auto mScheduler = new QPushButton( "Scheduler", tab_parent );
-	auto mAdvExport = new QPushButton( "Export", tab_parent );
-	auto mAdvEditAsciiExport = new QPushButton( "Edit ASCII Export", tab_parent );
-	auto adv_other_hl = LayoutWidgets( { mAdvComputeStatistics, mDelayExecution, mScheduler, nullptr, mAdvExport, mAdvEditAsciiExport }, 
-		nullptr, 0, 2, 2, 2, 2 );
-
-
-	// VIII. Views Group
-
-	mAvancedDisplayButton = new QPushButton( "View" );
-	auto mSplitPlots = new QCheckBox ( "Split Plots" );
-	QGroupBox *views_group = CreateGroupBox( ELayoutType::Horizontal, { mAvancedDisplayButton, mSplitPlots }, "Views" , tab_parent, 6, 2, 2, 2, 2 );
-
-
-	/* IX. Dataset & Filter Group
-
-	auto mAdvDatasets = new QComboBox;
-	auto mAdvFilters = new QComboBox;
-	auto mSelectedDatasetName = new QLineEdit;
-	auto mSelectedFilterName = new QLineEdit;
-	QGridLayout *all_grid_l = LayoutWidgets( { mAdvDatasets, mAdvFilters, nullptr, mSelectedDatasetName, mSelectedFilterName }, nullptr, 6, 2, 2, 2, 2 );
-
-	auto mQuickOperationNname = new QLineEdit( tab_parent );
-	auto mNewQuickOperation = new QPushButton( "New", tab_parent );
-	auto mDeleteQuickOperation = new QPushButton( "Delete", tab_parent );
-	auto mSaveQuickOperation = new QPushButton( "Save", tab_parent );
-	auto mOpenQuickOperation = new QComboBox( tab_parent );
-	QBoxLayout *adv_op_hl = LayoutWidgets( Qt::Horizontal, { mNewQuickOperation, 
-		mDeleteQuickOperation, mSaveQuickOperation, mOpenQuickOperation }, nullptr, 2, 2, 2, 2, 2 );
-
-	QGroupBox *all_group = CreateGroupBox( ELayoutType::Vertical, { all_grid_l, mQuickOperationNname, adv_op_hl }, "", tab_parent, 2, 2, 2, 2, 2 );
-	  */
     LayoutWidgets( Qt::Vertical,
 	{ 
 		expression_group,
-
-		data_compute_group,
-		//nullptr,
 		sampling_group,
-		adv_other_hl,
-		views_group,
-		//all_group,
 		nullptr
 	}, 
-	tab_parent, 0, 2, 2, 2, 2 );
+	tab_parent, 0, m, m, m, m );
 
 	return mAdvancedOperationsPage;
 }
 
+
+//	QUESTIONS: 
+//	save workspace, not individual things...
+//	quick can only be quick if an auto/default operation is created
+//	view: determined by operation: distinction quick/advanced does not seem to stand
+
 QWidget* COperationControls::CreateCommonWidgets()
 {
-	const int m = 6;
-	const int s = 4;
+	//buttons row
 
-	mOperationsCombo = new QComboBox;		
-	mOperationsCombo->setToolTip( "List of current workspace operations" );
-	auto mNewOperation = new QPushButton( "New..." );
-	auto mDeleteOperation = new QPushButton( "Delete..." );
-    auto mRenameOperation = new QPushButton( "Rename..." );
-	auto dlabel = new QLabel("Operation Dataset");
-	mDatasetsCombo = new QComboBox;
-	mDatasetsCombo->setToolTip( "Operation dataset" );
+	mNewOperationButton = CreateToolButton( "", ":/images/OSGeo/new.png", "Create a new operation" );
+    mRenameOperationButton = CreateToolButton( "", ":/images/OSGeo/edit.png", "Rename the selected operation" );
+	// TODO confirm that save will only be done in the scope of whole workspace
+	mDeleteOperationButton = CreateToolButton( "", ":/images/OSGeo/workspace-delete.png", "Delete the selected operation" );
+	auto mSaveOperationButton = CreateToolButton( "", ":/images/OSGeo/save2.png", "Save the selected operation???????????????????????????????" );
+	mSaveOperationButton->setEnabled( false );
+	mSaveOperationButton->setVisible( false );
 
-	auto mSaveOperation = new QPushButton( "Save..." );	// TODO confirm that save will only be done in the scope of whole workspace
-	
+	mOperationFilterGroup = CreateActionGroup( this, { new QAction( "Filter 1", this ), new QAction( "Filter 2", this ), new QAction( "Filter 3", this ) }, true );
+	mOperationFilterButton = CActionInfo::CreateMenuButton( eActionGroup_Filters, mOperationFilterGroup->actions() );
+
+	mExportOperationAction = new QAction( "Export...", this );
+	mEditExportAsciiAction = new QAction( "Edit ASCII Export", this );
+	mOperationExportButton = CreateMenuButton( "", ":/images/OSGeo/export.png", "Export operation", { mExportOperationAction, mEditExportAsciiAction } );
+
+	mOperationStatisticsButton = CreateToolButton( "", ":/images/OSGeo/stats.png", "Generate statistics and show results saved in file" );
+
+	mExecuteButton = CreateToolButton( "Execute...", ":/images/OSGeo/execute.png", "Invoke the tool that executes the operation" );
+	mExecuteButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
+	mExecuteButton->setPopupMode( QToolButton::MenuButtonPopup );
+	mDelayExecutionAction = new QAction( "Delay Execution", this );
+	mLaunchSchedulerAction = CActionInfo::CreateAction( this, eAction_Launch_Scheduler );
+	mExecuteButton->addAction( mDelayExecutionAction );
+	mExecuteButton->addAction( mLaunchSchedulerAction );
+
+	mDisplayButton = CreateToolButton( ButtonDisplayTextNoOp, ":/images/themes/default/propertyicons/display.svg", "View and edit operation plots" );
+	mDisplayButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
+	mDisplayButton->setPopupMode( QToolButton::MenuButtonPopup );
+	mSplitPlotsAction = new QAction( "Split Plots", this );
+	mSplitPlotsAction->setCheckable( true );
+	mDisplayButton->addAction( mSplitPlotsAction );
+
+	auto *buttons_l = LayoutWidgets( Qt::Horizontal
+		, { mNewOperationButton, mRenameOperationButton, mDeleteOperationButton, mSaveOperationButton, 
+		mOperationFilterButton, mOperationExportButton, mOperationStatisticsButton,
+		nullptr, mDisplayButton, mExecuteButton }, 
+		nullptr, s, m, m, m, m );
+
+
+	//operation and dataset lists
+
+	mDatasetsList = new QListWidget;
+	mDatasetsList->setToolTip( "Selected operation dataset" );
+	auto *data_l = LayoutWidgets( Qt::Vertical, { new QLabel("Operation Dataset"), mDatasetsList }, nullptr, 0, m, m, m, m );
+	//mDatasetsList->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Minimum );
+
+	mOperationsList = new QListWidget;		
+	mOperationsList->setToolTip( "List of current workspace operations" );
+	//mOperationsList->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Minimum );
+
+	auto *lists_l = LayoutWidgets( Qt::Horizontal, { mOperationsList }, nullptr, s, m, m, m, m );
+
+
+	//frame and wrap all
+
 	QFrame *frame = new QFrame;
 	frame->setWindowTitle( "QFrame::Box" );
 	frame->setFrameStyle( QFrame::Panel );
 	frame->setFrameShadow( QFrame::Sunken );
 	frame->setObjectName("OperationsFrame");
-	frame->setStyleSheet("#OperationsFrame { border: 2px solid black; }");
-	auto *grid_l = LayoutWidgets( { 
-		mOperationsCombo, mNewOperation, mDeleteOperation, nullptr,
-		mRenameOperation, dlabel, mDatasetsCombo, nullptr, 
-		mSaveOperation
-	}, nullptr, s, m, m, m, m );
+	frame->setStyleSheet("#OperationsFrame { border: 1px solid black; }");
+	//frame->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Minimum );
 
-	mExecuteButton = new QToolButton;
-	mExecuteButton->setText( "Execute..." );
-	QPixmap pix(":/images/alpha-numeric/0.png");
-	QIcon icon(pix);	
-	mExecuteButton->setIcon(icon);
-	mExecuteButton->setIconSize(QSize(icon_size, icon_size));
-	mExecuteButton->setToolButtonStyle(Qt::ToolButtonTextUnderIcon);
-	mExecuteButton->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
-
-    LayoutWidgets( Qt::Horizontal, { grid_l, mExecuteButton	}, frame, s, m, m, m, m );
+    auto *ops_l = LayoutWidgets( Qt::Horizontal, { lists_l, data_l }, nullptr, s, m, m, m, m );
+	LayoutWidgets( Qt::Vertical, { buttons_l, ops_l }, frame, s, m, m, m, m );
 
 	return frame;
 }
 
 
+void COperationControls::Wire()
+{
+	//common
 
-//explicit 
+	connect( mOperationsList, SIGNAL( currentRowChanged( int ) ), this, SLOT( HandleSelectedOperationChanged( int ) ) );
+	connect( mDatasetsList, SIGNAL( currentRowChanged( int ) ), this, SLOT( HandleSelectedDatasetChanged( int ) ) );
+
+	connect( mNewOperationButton, SIGNAL( clicked() ), this, SLOT( HandleNewOperation() ) );
+    connect( mRenameOperationButton, SIGNAL( clicked() ), this, SLOT( HandleRenameOperation() ) );
+	connect( mDeleteOperationButton, SIGNAL( clicked() ), this, SLOT( HandleDeleteOperation() ) );
+	for ( auto *a : mOperationFilterGroup->actions() )
+		connect( a, SIGNAL( triggered() ), this, SLOT( HandleOperationFilter() ) );
+	connect( mExportOperationAction, SIGNAL( triggered() ), this, SLOT( HandleExportOperation() ) );
+	connect( mEditExportAsciiAction, SIGNAL( triggered() ), this, SLOT( HandleEditExportAscii() ) );
+	connect( mOperationStatisticsButton, SIGNAL( clicked() ), this, SLOT( HandleOperationStatistics() ) );
+
+	connect( mDisplayButton, SIGNAL( clicked() ), this, SLOT( HandleLaunchDisplay() ) );
+
+	connect( mExecuteButton, SIGNAL( clicked() ), this, SLOT( HandleExecute() ) );
+	connect( mDelayExecutionAction, SIGNAL( triggered() ), this, SLOT( HandleDelayExecution() ) );
+	connect( mLaunchSchedulerAction, SIGNAL( triggered() ), this, SLOT( HandleLaunchScheduler() ) );
+
+	//remaining
+
+	//...advanced
+	connect( mInsertFunction, SIGNAL( clicked() ), this, SLOT( HandleInsertFunction() ) );
+	connect( mInsertAlgorithm, SIGNAL( clicked() ), this, SLOT( HandleInsertAlgorithm() ) );
+	connect( mInsertFormula, SIGNAL( clicked() ), this, SLOT( HandleInsertFormula() ) );
+	connect( mSaveAsFormula, SIGNAL( clicked() ), this, SLOT( HandleSaveAsFormula() ) );
+
+	connect( mShowAliasesButton, SIGNAL( clicked() ), this, SLOT( HandleShowAliases() ) );
+	connect( mCheckSyntaxButton, SIGNAL( clicked() ), this, SLOT( HandleCheckSyntax() ) );
+	connect( mShowInfoButton, SIGNAL( clicked() ), this, SLOT( HandleShowInfo() ) );
+
+	for ( auto *a : mDataComputationGroup->actions() )
+	{
+		connect( a, SIGNAL( triggered() ), this, SLOT( HandleDataComputation() ) );
+	}
+
+	//connect( mOperationsStakWidget, SIGNAL( PageChanged( int ) ), this, SLOT( PageChanged( int ) ) );
+
+	//connect( &mTimer, SIGNAL( timeout() ), this, SLOT( HandleExecute() ) );
+	//mTimer.start( 10000 );
+}
+
+
 COperationControls::COperationControls( CProcessesTable *processes_table, CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 
 	: base_t( manager, parent, f )
 	, mProcessesTable( processes_table )
@@ -295,31 +415,22 @@ COperationControls::COperationControls( CProcessesTable *processes_table, CDeskt
     QPushButton *m_QuickButton = qobject_cast<QPushButton*>( mStackWidget->Button( 0 ) );
     QPushButton *m_AdvancedButton = qobject_cast<QPushButton*>( mStackWidget->Button( 1 ) );
 
-    AddTopWidget( mCommonGroup );
+	AddTopLayout( ELayoutType::Vertical, {
+		mCommonGroup,
+		LayoutWidgets( Qt::Horizontal, { m_QuickButton, m_AdvancedButton }, nullptr, s, m, m, m, m ),
+		mStackWidget,
+		nullptr
+	},
+	s, m, m, m, m
+	);
 
-	AddTopLayout( ELayoutType::Horizontal, { m_QuickButton, m_AdvancedButton }, 0, 2, 2, 2, 2 );
+ //   AddTopWidget( mCommonGroup );
 
-    AddTopWidget( mStackWidget );
+	//AddTopLayout( ELayoutType::Horizontal, { m_QuickButton, m_AdvancedButton }, 0, 2, 2, 2, 2 );
+
+ //   AddTopWidget( mStackWidget );
 
     Wire();
-}
-
-void COperationControls::Wire()
-{
-	connect( mQuickMapButton, SIGNAL( clicked() ), this, SLOT( HandleQuickMap() ) );
-	connect( mQuickPlotButton, SIGNAL( clicked() ), this, SLOT( HandleQuickPlot() ) );
-
-	connect( mShowAliases, SIGNAL( clicked() ), this, SLOT( HandleShowAliases() ) );
-
-	connect( mOperationsCombo, SIGNAL( currentIndexChanged( int ) ), this, SLOT( HandleSelectedOperationChanged( int ) ) );
-	connect( mDatasetsCombo, SIGNAL( currentIndexChanged( int ) ), this, SLOT( HandleSelectedDatasetChanged( int ) ) );
-	connect( mExecuteButton, SIGNAL( clicked() ), this, SLOT( HandleExecute() ) );
-
-	connect( mAvancedDisplayButton, SIGNAL( clicked() ), this, SLOT( HandleDisplay() ) );
-	//connect( mOperationsStakWidget, SIGNAL( PageChanged( int ) ), this, SLOT( PageChanged( int ) ) );
-
-	//connect( &mTimer, SIGNAL( timeout() ), this, SLOT( HandleExecute() ) );
-	//mTimer.start( 10000 );
 }
 
 
@@ -336,7 +447,6 @@ void COperationControls::SetAdvancedMode( bool advanced ) const
 
 
 
-
 ///////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
 
@@ -344,8 +454,8 @@ void COperationControls::HandleSelectedWorkspaceChanged( CModel *model )
 {
 	mModel = model;
 
-	mOperationsCombo->clear();
-	mDatasetsCombo->clear();
+	mOperationsList->clear();
+	mDatasetsList->clear();
 
     mWRoot = mModel ? mModel->RootWorkspace() : nullptr;
     if ( !mModel || !mWRoot )
@@ -368,26 +478,29 @@ void COperationControls::HandleSelectedWorkspaceChanged( CModel *model )
 	mWFormula->GetFormulaNames( mMapFormulaString );
 
 
-	mDatasetsCombo->blockSignals( true );
-    FillCombo( mDatasetsCombo, *mWDataset->GetDatasets(),
+	mDatasetsList->blockSignals( true );
+    FillList( mDatasetsList, *mWDataset->GetDatasets(),
+
+        -1, true,											//TODO default to last opened
 
         []( const CObMap::value_type &i ) -> const char*
         {
             return i.first.c_str();
-        },
-        -1, true
+        }
     );
-	mDatasetsCombo->blockSignals( false );
+	mDatasetsList->blockSignals( false );
 
 
-    FillCombo( mOperationsCombo, *mWOperation->GetOperations(),
+    FillList( mOperationsList, *mWOperation->GetOperations(),
+
+        0, true,											//TODO default to last opened
 
         []( const CObMap::value_type &i ) -> const char*
         {
             return i.first.c_str();
-        },
-        0, true
+        }
     );
+
 
 
 #if defined (TESTING_GLOBE)
@@ -399,193 +512,33 @@ void COperationControls::HandleSelectedWorkspaceChanged( CModel *model )
 
 }
 
-void COperationControls::HandleDisplay()
-{
-	assert__( mOperation );
+#if defined ItemText
+#undef ItemText
+#endif
 
-	if ( mOperation->IsMap() )
-		HandleQuickMap();
-	else
-	if ( mOperation->IsZFXY() )
-		HandleQuickPlot();
-	else
-	if ( mOperation->IsYFX() )
-		HandleQuickPlot();
-	else
-		assert__( false );
+inline int ItemRow( QListWidgetItem *item )
+{
+	return item->listWidget()->row( item );
 }
-
-
-void COperationControls::HandleQuickMap()
+inline int FindText( QListWidget *list, const char *text  )
 {
-	WaitCursor wait;				assert__( mModel );
-
-	auto ed = new CMapEditor( mModel, mOperation, mManager->parentWidget() );
-	auto subWindow = mManager->AddSubWindow( ed );
-	subWindow->show();
-
-	//openTestFile( t2q( mManager->mPaths.mWorkspacesDir + R"(/newWP/Displays/DisplayDisplays_New.par)" ) );
+    auto items = list->findItems( text, Qt::MatchExactly );			assert__( items.size() == 1 );
+	return ItemRow( items[ 0 ] );
 }
-
-void COperationControls::HandleQuickPlot()
+inline QString ItemText( QListWidget *list, int index  )
 {
-	WaitCursor wait;				assert__( mModel );
-
-    auto ed = new CPlotEditor( mModel, mOperation, mManager->parentWidget() );
-    auto subWindow = mManager->AddSubWindow( ed );
-    subWindow->show();
-
-    //openTestFile( t2q( mManager->mPaths.mWorkspacesDir + R"(/newWP/Displays/DisplayDisplays_2.par)" ) );
-}
-
-
-
-
-void COperationControls::HandleExecute()
-{
-    //static int n = 0;
-
-	// ProcessesTable will display user messages for us, no need to report on false return
-	//
-	//emit SyncProcessExecution( true );
-	//mProcessesTable->Add( true, true, "brat-lab", "brat-lab", { "20", "ARG_0", "arg_1", "A_R_G" } );
-	//emit SyncProcessExecution( false );
-	//return;
-
-	assert__( mOperation );
-
-	auto CtrlOperation = [this]( CWorkspaceFormula *wks, std::string& msg, bool basicControl, const CStringMap* aliases )
-	{
-		if ( mOperation && mOperation->Control( wks, msg, basicControl, aliases ) )
-		{
-			if ( mUserFormula != nullptr )
-			{
-				mExpressionTextWidget->setText( mUserFormula->GetDescription().c_str() );		//mExpressionTextWidget is v3 GetOptextform()
-			}
-			return true;
-		}
-
-		return false;
-	};
-
-
-	std::string msg;
-	bool operationOk = CtrlOperation( mWFormula, msg, false, &mMapFormulaString );
-	if ( !operationOk )
-	{
-		SimpleWarnBox( 
-			"Operation '"
-			+ mOperation->GetName()
-			+ "' has some errors and can't be executed"
-			+ ( msg.empty() ? "." : ":\n" )
-			+ msg );
-
-		return;
-	}
-
-	//wxGetApp().GotoLogPage();
-
-	const bool wait = false;			//TODO replace by function parameter
-
-	if ( wait )
-	{
-		mOperation->SetLogFile( mWOperation );
-	}
-	else
-	{
-		mOperation->ClearLogFile();
-	}
-
-	//BuildCmdFile(); == following 
-	std::string error_msg;
-	if ( !mOperation->BuildCmdFile( mWFormula, mWOperation, error_msg ) )	//v3 didn't seem to care if this fails
-	{
-		assert__( !error_msg.empty() );
-
-		SimpleWarnBox( error_msg );
-		return;
-	}
-
-	/*
-	CPipedProcess* process = new CPipedProcess( 
-
-		mOperation->GetTaskName(),
-		wxGetApp().GetLogPanel(),
-		mOperation->GetFullCmd(),
-		wxGetApp().GetLogPanel()->GetLogMess(),
-		&mOperation->GetOutputPath(),				//used in remove file, must be complete path
-		mOperation->GetType() 
-
-		);
-
-
-	if ( wait )
-	{
-		process->SetExecuteFlags( wxEXEC_SYNC | wxEXEC_NODISABLE );
-	}
-
-	bool bOk = wxGetApp().GetLogPanel()->AddProcess( process );
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		bool isSync = ( ( process->GetExecuteFlags() & wxEXEC_SYNC ) == wxEXEC_SYNC );
-		if ( isSync )
-		{
-			msg = wxString::Format( "\n\n===> Synchronous Task '%s' started with command line below:<===\n'%s'\n\n"
-				"\n ==========> Please wait.... A report will display at the end of the task <==========\n\n",
-				process->GetName().c_str(),
-				process->GetCmd().c_str() );
-			GetLogMess()->AppendText( msg );
-			GetTasklist()->InsertProcess( process );
-		}
-
-		*/
-
-	// ProcessesTable will display user messages for us, no need to report on false return
-	//
-	emit SyncProcessExecution( true );
-	mProcessesTable->Add( false, false, mOperation->GetTaskName(), mOperation->GetFullCmd() );
-	emit SyncProcessExecution( false );
-
-	/*
-		//----------------
-		process->Execute();
-		//----------------
-
-		if ( !isSync )
-		{
-
-			msg = wxString::Format( "\n\n===> Asynchronous Task '%s' (pid %d) started with command line below:<===\n'%s'\n\n",
-				process->GetName().c_str(),
-				process->GetPid(),
-				process->GetCmd().c_str() );
-			GetLogMess()->AppendText( msg );
-			GetTasklist()->InsertProcess( process );
-		}
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	if ( bOk == false )
-	{
-		delete process;
-		process = nullptr;
-	}
-
-	if ( wait )
-	{
-		wxGetApp().GetLogPanel()->LogFile( wxFileName( mOperation->GetLogFile() ) );
-	}
-
-
-	NOT_IMPLEMENTED
-	*/
+	auto *item = list->item( index );
+	return item->text();
 }
 
 
 void COperationControls::HandleSelectedOperationChanged( int operation_index )
 {
 	mExecuteButton->setEnabled( operation_index >= 0 );				// TODO also update state of all other...
-	mDatasetsCombo->setEnabled( operation_index >= 0 );
-	mAvancedDisplayButton->setEnabled( operation_index >= 0 );
+	mDatasetsList->setEnabled( operation_index >= 0 );
+	mDisplayButton->setEnabled( operation_index >= 0 );
 
-	mQuickMapButton->setEnabled( false );			//must be corrected after operation set, if any
-	mQuickPlotButton->setEnabled( false );
+	mDisplayButton->setText( ButtonDisplayTextNoOp.c_str() );
 
 	if ( operation_index < 0 )
 	{
@@ -593,12 +546,11 @@ void COperationControls::HandleSelectedOperationChanged( int operation_index )
 		return;
 	}
 
-	mOperation = mWOperation->GetOperation( q2a( mOperationsCombo->itemText( operation_index ) ) );			assert__( mOperation );
-	int dataset_index = mDatasetsCombo->findText( mOperation->GetDatasetName().c_str() );
-	mDatasetsCombo->setCurrentIndex( dataset_index );	//trigger signal
+	mOperation = mWOperation->GetOperation( q2a( mOperationsList->item( operation_index )->text() ) );			assert__( mOperation );
+	//auto &items = mDatasetsList->findItems( mOperation->GetDatasetName().c_str(), Qt::MatchExactly );			assert__( items.size() == 1 );
+	mDatasetsList->setCurrentRow( FindText( mDatasetsList, mOperation->GetDatasetName().c_str() ) );	//trigger signal
 
-	mQuickMapButton->setEnabled( mOperation->IsMap() );
-	mQuickPlotButton->setEnabled( !mOperation->IsMap() );
+	mDisplayButton->setText( mOperation->IsMap() ? ButtonDisplayTextIsMap.c_str() : ButtonDisplayTextIsPlot.c_str() );
 
 	CDataset *dataset = nullptr;
 	//DatasetSelChanged(id);//////////////////////////////////////////////////////////////
@@ -635,7 +587,10 @@ void COperationControls::HandleSelectedOperationChanged( int operation_index )
 			//DeleteProduct();
 			return;
 		}
-		//	GetFieldstreectrl()->InsertProduct( mProduct );		TODO display fields
+
+		FillFieldList();	//TODO THIS IS WRONG: IT IS A TREE
+
+		//	GetFieldstreectrl()->InsertProduct( mProduct );
 		//wxTreeItemId rootIdFields = GetFieldstreectrl()->GetRootItem();
 		//int32_t nRecords = rootIdFields.IsOk() ? GetFieldstreectrl()->GetChildrenCount( rootIdFields, false ) : 0;
 		//if ( nRecords > 0 && nRecords <= 2 )
@@ -743,7 +698,7 @@ void COperationControls::HandleSelectedDatasetChanged( int dataset_index )
 		return;
 	}
 
-	auto new_datset_name = q2a( mDatasetsCombo->itemText( dataset_index ) );
+	auto new_datset_name = q2a( ItemText( mDatasetsList, dataset_index ) );
 	if ( new_datset_name != mOperation->GetDatasetName() )
 	{
 		std::string question =
@@ -755,7 +710,7 @@ void COperationControls::HandleSelectedDatasetChanged( int dataset_index )
 
 		if ( !SimpleQuestion( question ) )
 		{
-			mDatasetsCombo->setCurrentIndex( mDatasetsCombo->findText( mOperation->GetDatasetName().c_str() ) );
+			mDatasetsList->setCurrentRow( FindText( mDatasetsList, mOperation->GetDatasetName().c_str() ) );
 			return;
 		}
 
@@ -868,14 +823,176 @@ void COperationControls::HandleSelectedDatasetChanged( int dataset_index )
 }
 
 
+void COperationControls::FillFieldList()
+{
+    if ( mDatasetsList->currentRow() < 0 )
+        return;
+
+	CDataset *current_dataset = mOperation->GetDataset();		assert__( current_dataset->GetName() == q2a( ItemText( mDatasetsList, mDatasetsList->currentRow() ) ) );
+
+    Q_UNUSED( current_dataset );
+
+	assert__( mProduct );
+    try
+    {
+        // GetDictlist()->InsertProduct(m_product); //////////////////////////////////////////////
+        CTreeField* tree = mProduct->GetTreeField();
+
+        for ( auto const *object : *tree )
+        {
+            const CField *field  = static_cast< const CField* >( object );			assert__( dynamic_cast< const CField*>( object ) != nullptr );
+
+            // InsertField(field); ===========================================
+            auto const &type_id = typeid( *field );
+
+            if ( type_id == typeid( CFieldIndex )
+                ||  type_id == typeid( CFieldRecord )
+                || ( ( type_id == typeid( CFieldArray ) ) && ( field->IsFixedSize() == false ) )
+                || field->IsVirtual() )
+            {
+                continue;
+            }
+
+            QListWidgetItem *item = new QListWidgetItem;
+
+            item->setData(Qt::AccessibleTextRole,        field->GetName().c_str());
+            item->setData(Qt::AccessibleDescriptionRole, field->GetDescription().c_str());
+            item->setText( const_cast<CField*>( field )->GetFullName().c_str() );
+
+            mAdvancedFieldList->addItem( item );
+            // =================================================================
+
+			//if ( startsWith( const_cast<CField*>( field )->GetFullName(), std::string( "lat" ) ) )
+			//{
+			//	CFieldNetCdf *f = dynamic_cast<CFieldNetCdf*>( const_cast<CField*>( field ) );
+			//	if ( f && f->IsFixedSize() )
+			//		if ( f->IsFixedSize() )
+			//		{
+			//			double *data = f->GetValuesAsArray();
+			//		}
+			//}
+        }
+        // ////////////////////////////////////////////////////////////////////////////////////
+
+        //if ( product != nullptr )
+        //{
+        //    mFileDescGroup->setEnabled(product->IsNetCdf());
+
+        //    mFileDesc->setEnabled( product->IsNetCdf() );
+        //    mFileDesc->setText( QString("Product : ") +
+        //                        product->GetProductClass().c_str() +
+        //                        QString(" / ") +
+        //                        product->GetProductType().c_str() +
+        //                        QString("\n------------------------------------------------------\n") +
+        //                        product->GetDescription().c_str() );
+        //}
+    }
+    catch ( CException& e )
+    {
+        //UNUSED( e );
+        SimpleErrorBox(e.Message());
+        //wxMessageBox(wxString::Format("Unable to process files.\nReason:\n%s",
+        //                              e.what()),  "Warning",  wxOK | wxICON_EXCLAMATION);
+        //this->SetCursor(wxNullCursor);
+    }
+}
 
 
 
 
+void COperationControls::HandleNewOperation()
+{
+	NOT_IMPLEMENTED;
+}
+void COperationControls::HandleDeleteOperation()
+{
+	NOT_IMPLEMENTED;
+}
+void COperationControls::HandleRenameOperation()
+{
+	NOT_IMPLEMENTED;
+}
+void COperationControls::HandleOperationFilter()
+{
+	auto a = qobject_cast<QAction*>( sender() );	assert__( a );
+
+	MSG_NOT_IMPLEMENTED( q2a( a->text() ) );
+}
+void COperationControls::HandleExportOperation()
+{
+	NOT_IMPLEMENTED;
+}
+void COperationControls::HandleEditExportAscii()
+{
+	NOT_IMPLEMENTED;
+}
+void COperationControls::HandleOperationStatistics()
+{
+	NOT_IMPLEMENTED;
+}
+void COperationControls::HandleDelayExecution()
+{
+	NOT_IMPLEMENTED;
+}
+void COperationControls::HandleLaunchScheduler()
+{
+	NOT_IMPLEMENTED;
+}
+
+void COperationControls::HandleInsertFunction()
+{
+	NOT_IMPLEMENTED;
+}
+void COperationControls::HandleInsertAlgorithm()
+{
+	NOT_IMPLEMENTED;
+}
+void COperationControls::HandleInsertFormula()
+{
+	NOT_IMPLEMENTED;
+}
+void COperationControls::HandleSaveAsFormula()
+{
+	NOT_IMPLEMENTED;
+}
+void COperationControls::HandleDataComputation()
+{
+	assert__( mOperation != nullptr );
+
+	auto a = qobject_cast<QAction*>( sender() );	assert__( a );
+
+	MSG_NOT_IMPLEMENTED( q2a( a->text() ) );
+	return;
+
+	CFormula *formula = nullptr;	// TODO DODODODODODODODODODODODODO GetCurrentFormula();
+	if ( formula == nullptr )
+	{
+		return;
+	}
+
+	// if same pointer
+	if ( mOperation->GetSelect() == formula )	//== IsCriteriaSelection( formula ) in old OperationPanel
+	{
+		return;
+	}
+
+	auto id   = CMapDataMode::GetInstance().NameToId( q2a( a->text() ) );
+	formula->SetDataMode( id );
+}
+void COperationControls::HandleCheckSyntax()
+{
+	NOT_IMPLEMENTED;
+}
+void COperationControls::HandleShowInfo()
+{
+	NOT_IMPLEMENTED;
+}
 
 void COperationControls::HandleShowAliases()
 {
-	//if ( mOperation == nullptr || mProduct == nullptr )
+    NOT_IMPLEMENTED
+
+    //if ( mOperation == nullptr || mProduct == nullptr )
 	//	return;
 
 	//std::string title = "Show '" + mProduct->GetProductClassType() + "' aliases...";
@@ -912,6 +1029,210 @@ void COperationControls::HandleShowAliases()
 	//		SetTextFormula();
 	//	}
 	//}
+	NOT_IMPLEMENTED;
+}
+
+
+
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////
+//						Launch Display Actions
+/////////////////////////////////////////////////////////////////////////////////
+
+
+void COperationControls::HandleLaunchDisplay()
+{
+	assert__( mOperation );
+
+	if ( mOperation->IsMap() )
+		HandleQuickMap();
+	else
+	if ( mOperation->IsZFXY() )
+		HandleQuickPlot();
+	else
+	if ( mOperation->IsYFX() )
+		HandleQuickPlot();
+	else
+		assert__( false );
+}
+
+
+void COperationControls::HandleQuickMap()
+{
+	WaitCursor wait;				assert__( mModel );
+
+	auto ed = new CMapEditor( mModel, mOperation, mManager->parentWidget() );
+	auto subWindow = mManager->AddSubWindow( ed );
+	subWindow->show();
+
+	//openTestFile( t2q( mManager->mPaths.mWorkspacesDir + R"(/newWP/Displays/DisplayDisplays_New.par)" ) );
+}
+
+void COperationControls::HandleQuickPlot()
+{
+	WaitCursor wait;				assert__( mModel );
+
+    auto ed = new CPlotEditor( mModel, mOperation, mManager->parentWidget() );
+    auto subWindow = mManager->AddSubWindow( ed );
+    subWindow->show();
+
+    //openTestFile( t2q( mManager->mPaths.mWorkspacesDir + R"(/newWP/Displays/DisplayDisplays_2.par)" ) );
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////
+//								Execute
+/////////////////////////////////////////////////////////////////////////////////
+
+
+
+void COperationControls::HandleExecute()
+{
+    //static int n = 0;
+
+	// ProcessesTable will display user messages for us, no need to report on false return
+	//
+	//emit SyncProcessExecution( true );
+	//mProcessesTable->Add( true, true, "brat-lab", "brat-lab", { "20", "ARG_0", "arg_1", "A_R_G" } );
+	//emit SyncProcessExecution( false );
+	//return;
+
+	assert__( mOperation );
+
+	auto CtrlOperation = [this]( CWorkspaceFormula *wks, std::string& msg, bool basicControl, const CStringMap* aliases )
+	{
+		if ( mOperation && mOperation->Control( wks, msg, basicControl, aliases ) )
+		{
+			if ( mUserFormula != nullptr )
+			{
+				mExpressionTextWidget->setText( mUserFormula->GetDescription().c_str() );		//mExpressionTextWidget is v3 GetOptextform()
+			}
+			return true;
+		}
+
+		return false;
+	};
+
+
+	std::string msg;
+	bool operationOk = CtrlOperation( mWFormula, msg, false, &mMapFormulaString );
+	if ( !operationOk )
+	{
+		SimpleWarnBox( 
+			"Operation '"
+			+ mOperation->GetName()
+			+ "' has some errors and can't be executed"
+			+ ( msg.empty() ? "." : ":\n" )
+			+ msg );
+
+		return;
+	}
+
+	//wxGetApp().GotoLogPage();
+
+	const bool wait = false;			//TODO replace by function parameter
+
+	if ( wait )
+	{
+		mOperation->SetLogFile( mWOperation );
+	}
+	else
+	{
+		mOperation->ClearLogFile();
+	}
+
+	//BuildCmdFile(); == following 
+	std::string error_msg;
+	if ( !mOperation->BuildCmdFile( mWFormula, mWOperation, error_msg ) )	//v3 didn't seem to care if this fails
+	{
+		assert__( !error_msg.empty() );
+
+		SimpleWarnBox( error_msg );
+		return;
+	}
+
+	/*
+	CPipedProcess* process = new CPipedProcess( 
+
+		mOperation->GetTaskName(),
+		wxGetApp().GetLogPanel(),
+		mOperation->GetFullCmd(),
+		wxGetApp().GetLogPanel()->GetLogMess(),
+		&mOperation->GetOutputPath(),				//used in remove file, must be complete path
+		mOperation->GetType() 
+
+		);
+
+
+	if ( wait )
+	{
+		process->SetExecuteFlags( wxEXEC_SYNC | wxEXEC_NODISABLE );
+	}
+
+	bool bOk = wxGetApp().GetLogPanel()->AddProcess( process );
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+		bool isSync = ( ( process->GetExecuteFlags() & wxEXEC_SYNC ) == wxEXEC_SYNC );
+		if ( isSync )
+		{
+			msg = wxString::Format( "\n\n===> Synchronous Task '%s' started with command line below:<===\n'%s'\n\n"
+				"\n ==========> Please wait.... A report will display at the end of the task <==========\n\n",
+				process->GetName().c_str(),
+				process->GetCmd().c_str() );
+			GetLogMess()->AppendText( msg );
+			GetTasklist()->InsertProcess( process );
+		}
+
+		*/
+
+	if ( !SimpleQuestion(
+		"Operation '"
+		+ mOperation->GetName()
+		+ "' will be executed with the following command line\n\n"
+		+ mOperation->GetFullCmd()
+		+ "\n\nDo you want to proceed?" ) 
+		)
+		return;
+
+	// ProcessesTable will display user messages for us, no need to report on false return
+	//
+	emit SyncProcessExecution( true );
+	mProcessesTable->Add( false, false, mOperation->GetTaskName(), mOperation->GetFullCmd() );
+	emit SyncProcessExecution( false );
+
+	/*
+		//----------------
+		process->Execute();
+		//----------------
+
+		if ( !isSync )
+		{
+
+			msg = wxString::Format( "\n\n===> Asynchronous Task '%s' (pid %d) started with command line below:<===\n'%s'\n\n",
+				process->GetName().c_str(),
+				process->GetPid(),
+				process->GetCmd().c_str() );
+			GetLogMess()->AppendText( msg );
+			GetTasklist()->InsertProcess( process );
+		}
+	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	if ( bOk == false )
+	{
+		delete process;
+		process = nullptr;
+	}
+
+	if ( wait )
+	{
+		wxGetApp().GetLogPanel()->LogFile( wxFileName( mOperation->GetLogFile() ) );
+	}
+
+
+	NOT_IMPLEMENTED
+	*/
 }
 
 

@@ -289,7 +289,7 @@ void CWorkspaceDialog::FillImportFormulas()
 	}
 	else
 	{
-		fillList( mFormulasList, v, -1, false );
+		FillList( mFormulasList, v, -1, true );
 		if ( mFormulasGroup->isChecked() )
 			on_button_select_all_clicked();
 		else

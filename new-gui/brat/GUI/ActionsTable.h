@@ -98,6 +98,7 @@ enum EActionTag : int
 
 	eAction_DecorationGrid,
 
+	eActionGroup_Filters,
 
 	//add new items before this line
 
@@ -208,7 +209,7 @@ public:
 
 	// Calls CreateAction
 	//
-	static QActionGroup* CreateActionsGroup( QWidget *group_parent, const std::vector< EActionTag > &tags, bool exclusive );
+	static QActionGroup* CreateActionGroup( QWidget *group_parent, const std::vector< EActionTag > &tags, bool exclusive );
 
 
 	// For the Qt dock widgets actions, automatically created to view/hide them

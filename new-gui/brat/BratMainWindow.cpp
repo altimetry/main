@@ -190,20 +190,20 @@ void CBratMainWindow::CreateWorkingDock()
 	addDockWidget( Qt::LeftDockWidgetArea, mMainWorkingDock, Qt::Vertical );
 
 	auto 
-	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eDataset ), "Dataset" );			assert( mMainWorkingDock->TabIndex( tab ) == eDataset );
+	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eDataset ), "Datasets" );			assert( mMainWorkingDock->TabIndex( tab ) == eDataset );
 	mMainWorkingDock->SetTabToolTip( tab, "Dataset browser" );
-	connect( this, SIGNAL( WorkspaceChanged( CWorkspaceDataset* ) ), WorkingPanel< eDataset >(), SLOT( WorkspaceChanged( CWorkspaceDataset* ) ) );
+    connect( this, SIGNAL( WorkspaceChanged( CWorkspaceDataset* ) ), WorkingPanel< eDataset >(), SLOT( HandleWorkspaceChanged( CWorkspaceDataset* ) ) );
 
-	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eFilter ), "Filter" );	 		assert( mMainWorkingDock->TabIndex( tab ) == eFilter );
+	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eFilter ), "Filters" );	 		assert( mMainWorkingDock->TabIndex( tab ) == eFilter );
 	mMainWorkingDock->SetTabToolTip( tab, "Dataset filter" );
-	connect( this, SIGNAL( WorkspaceChanged( CWorkspaceDataset* ) ), WorkingPanel< eFilter >(), SLOT( WorkspaceChanged( CWorkspaceDataset* ) ) );
+	connect( this, SIGNAL( WorkspaceChanged( CWorkspaceDataset* ) ), WorkingPanel< eFilter >(), SLOT( HandleWorkspaceChanged( CWorkspaceDataset* ) ) );
 
-	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eOperations ), "Operation" );		assert( mMainWorkingDock->TabIndex( tab ) == eOperations );
+	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eOperations ), "Operations" );		assert( mMainWorkingDock->TabIndex( tab ) == eOperations );
 	mMainWorkingDock->SetTabToolTip( tab, "Quick or advanced operations"  );
 	connect( this, SIGNAL( WorkspaceChanged( CModel* ) ), WorkingPanel< eOperations >(), SLOT( HandleSelectedWorkspaceChanged( CModel* ) ) );
 	connect( WorkingPanel< eOperations >(), SIGNAL( SyncProcessExecution( bool ) ), this, SLOT( HandleSyncProcessExecution( bool ) ) );
 
-	connect( WorkingPanel< eDataset >(), SIGNAL( FileChanged( QString ) ), WorkingPanel< eFilter >(), SLOT( FileChanged( const QString& ) ) );
+	connect( WorkingPanel< eDataset >(), SIGNAL( CurrentDatasetChanged(CDataset*) ), WorkingPanel< eFilter >(), SLOT( HandleDatasetChanged(CDataset*) ) );
 
 	LOG_TRACE( "Finished working dock construction." );
 }
@@ -434,6 +434,8 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
 	assert__( !smInstance );
     assert__( mSettings.BratPaths().IsValid()==true );
 
+	mApp.ShowSplash( "Creating main window..." );
+
 	connect( this, SIGNAL( SettingsUpdated() ), &mApp, SLOT( UpdateSettings() ) );
 
 	CMapWidget::SetQGISDirectories(
@@ -490,6 +492,8 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
 	FillStatusBar();
 
 
+	mApp.ShowSplash( "Restoring layout..." );
+
     // Apply remaining stored settings
     //
 	if ( lastSessionGeometry )
@@ -516,6 +520,9 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
 	smInstance = this;
 
 
+	mApp.ShowSplash( "Loading display or workspace..." );
+
+
     // Load command line or user settings referenced files 
     //
 	// Let any exceptions occurred while initializing leak to main and terminate,
@@ -523,7 +530,12 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
 	// LeakExceptions is set to false by LoadCmdLineFiles
 	//
 	mApp.LeakExceptions( true );	
-    QTimer::singleShot( 0, this, SLOT( LoadCmdLineFiles() ) );		//TODO with a splash screen, initializing with single shot becomes unnecessary and the flicker of main window opening and closing would be avoided
+	if ( !mApp.SplashAvailable() )
+		QTimer::singleShot( 0, this, SLOT( LoadCmdLineFiles() ) );
+	else
+		LoadCmdLineFiles();
+
+	mApp.EndSplash( this );
 
 	LOG_TRACE( "Finished main window construction." );
 }
@@ -586,20 +598,11 @@ void CBratMainWindow::LoadCmdLineFiles()
 
 	// function body
 
-	LOG_TRACE( "Starting command line arguments parse." );			assert__( !mOperatingInDisplayMode );
+	LOG_TRACE( "Starting command line arguments parse." );
 	
 	mApp.LeakExceptions( false );	//resetting to normal behavior; if initialization crashes this has no effect anyway
 
-    QStringList args = QCoreApplication::arguments();
-    args.removeFirst();
-	QString wkspc_dir;
-	if ( !args.empty() )
-	{
-		wkspc_dir = args[ 0 ];
-		mOperatingInDisplayMode = !IsDir( wkspc_dir );	//no workspace, but there are command line arguments: let the old BratDisplay ghost take the command
-	}
-
-	if ( mOperatingInDisplayMode )
+	if ( mApp.OperatingInDisplayMode() )
 	{
 		LOG_TRACE( "Starting in simple display mode." );
 
@@ -608,6 +611,12 @@ void CBratMainWindow::LoadCmdLineFiles()
 	}
 	else
 	{
+		QStringList args = QCoreApplication::arguments();
+		args.removeFirst();
+		QString wkspc_dir;
+		if ( !args.empty() )
+			wkspc_dir = args[ 0 ];
+
 		// try to find out which workspace to load
 		//	- if one was passed in the command line, it takes precedence over the mLoadLastWorkspaceAtStartUp option
 		//	- if none was passed and LoadLastWorkspaceAtStartUp is false, invalidate the workspace string
@@ -653,7 +662,7 @@ void CBratMainWindow::LoadCmdLineFiles()
 
 void CBratMainWindow::StopDisplayMode()
 {
-	assert__( mOperatingInDisplayMode );
+	assert__( mApp.OperatingInDisplayMode() );
 
 	CActionInfo::TriggerAction( eAction_Exit );
 }
@@ -826,7 +835,7 @@ bool CBratMainWindow::DoNoWorkspace()
 	mModel.Reset();
 	mDesktopManager->CloseAllSubWindows();
 	setWindowTitle( makeWindowTitle( QString() ) );
-	EmitWorkspaceChanged();
+    EmitWorkspaceChanged();
 	return true;
 }
 

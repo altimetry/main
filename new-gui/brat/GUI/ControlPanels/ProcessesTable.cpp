@@ -178,8 +178,10 @@ void CProcessesTable::FillList()
 	int index = 0;
 	for ( auto *process : mProcesses )
 	{
+		auto *cmd_item = new QTableWidgetItem( process->GetCmd().c_str() );
+		cmd_item->setToolTip( cmd_item->text() );							//for long command lines
 		mProcessesList->setItem( index, eProcessName, new QTableWidgetItem( process->GetName().c_str() ) );
-		mProcessesList->setItem( index, eProcessCmdLine, new QTableWidgetItem( process->GetCmd().c_str() ) );
+		mProcessesList->setItem( index, eProcessCmdLine, cmd_item );
 
 		SetItemProcessData( index, process );
 		index++;

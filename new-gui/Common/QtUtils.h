@@ -15,6 +15,9 @@
 	#include <QtWidgets/QMainWindow>
 	#include <QtWidgets/QListWidget>
     #include <QtWidgets/QGroupBox>
+	#include <QtWidgets/QToolButton>
+	#include <QtWidgets/QActionGroup>
+	#include <QMenu/QActionGroup>
 #else
 	#include <QtGui/QApplication>
 	#include <QtGui/QFileDialog>
@@ -25,6 +28,9 @@
 	#include <QMainWindow>
 	#include <QListWidget>
     #include <QGroupBox>
+	#include <QToolButton>
+	#include <QActionGroup>
+	#include <QMenu>
 #endif
 #include <QSettings>
 #include <QResource>
@@ -255,6 +261,11 @@ inline QString ElapsedFormat( QElapsedTimer &timer )
 ///////////////////////////////////////////////////////////////////////////
 //						Widget Creation Utilities
 ///////////////////////////////////////////////////////////////////////////
+
+
+const int icon_size = 24;
+const int tool_icon_size = 22;
+
 
 //////////
 // generic
@@ -505,30 +516,30 @@ inline QFrame* WidgetLine( QWidget *parent, Qt::Orientation o )
 //splitter
 ///////////
 
-inline QSplitter* createSplitter( QWidget *parent, Qt::Orientation orientation )
+inline QSplitter* CreateSplitter( QWidget *parent, Qt::Orientation orientation )
 {
     QSplitter *s = new QSplitter( parent );
     SetObjectName( s, "splitter" );
     s->setOrientation( orientation );
 	return s;
 }
-inline QSplitter* createSplitterIn( QWidget *parent, Qt::Orientation orientation )
+inline QSplitter* CreateSplitterIn( QWidget *parent, Qt::Orientation orientation )
 {
-    QSplitter *s = createSplitter( parent, orientation );
+    QSplitter *s = CreateSplitter( parent, orientation );
 	if ( !parent->layout() )
 			CreateLayout( parent, orientation );
     AddWidget( parent, s );
 	return s;
 }
-inline QSplitter* createSplitterIn( QSplitter *parent, Qt::Orientation orientation )
+inline QSplitter* CreateSplitterIn( QSplitter *parent, Qt::Orientation orientation )
 {
-    QSplitter *s = createSplitter( parent, orientation );
+    QSplitter *s = CreateSplitter( parent, orientation );
     parent->addWidget( s );
 	return s;
 }
-inline QSplitter* createSplitterIn( QMainWindow *parent, Qt::Orientation orientation )
+inline QSplitter* CreateSplitterIn( QMainWindow *parent, Qt::Orientation orientation )
 {
-	QSplitter *s = createSplitter( parent, orientation );
+	QSplitter *s = CreateSplitter( parent, orientation );
 	parent->setCentralWidget( s );
 	return s;
 }
@@ -578,11 +589,86 @@ inline void insertToolBar( QMainWindow *w, QToolBar *toolbar, Qt::ToolBarArea ar
 }
 
 
-///////////
-// actions
-///////////
+////////////////////
+// actions / buttons
+////////////////////
 
-// see ActionsTable.*
+// see also ActionsTable.*
+
+
+inline QToolButton* CreateToolButton( const std::string &name, const std::string &pix_path, const std::string &tip  = "" )
+{
+	QToolButton *button = new QToolButton;
+	if ( !name.empty() )
+	{
+		button->setText( name.c_str() );
+		button->setToolButtonStyle( Qt::ToolButtonTextUnderIcon );
+	}
+	if (!tip.empty() )
+		button->setToolTip( tip.c_str() );
+	QPixmap pix( pix_path.c_str() );
+	QIcon icon(pix);	
+	button->setIcon(icon);
+	button->setIconSize(QSize(tool_icon_size, tool_icon_size));
+
+	return button;
+}
+
+
+inline QActionGroup* CreateActionGroup( QObject *parent, bool exclusive )
+{
+	QActionGroup *group = new QActionGroup( parent );
+	group->setExclusive( exclusive );
+	return group;
+}
+
+
+inline QActionGroup* CreateActionGroup( QObject *parent, const QList<QAction*> &actions, bool exclusive )
+{
+	QActionGroup *group = CreateActionGroup( parent, exclusive );
+	for ( auto *action : actions )
+	{
+		group->addAction( action );
+		action->setCheckable( exclusive );
+	}
+	return group;
+}
+
+
+inline QActionGroup* CreateActionGroup( QObject *parent, std::initializer_list<QAction*> actions, bool exclusive )
+{
+	QList<QAction*> list;
+	for ( auto *a : actions )
+		list << a;
+	return CreateActionGroup( parent, list, exclusive );
+}
+
+
+inline QToolButton* CreateMenuButton( const std::string &name, const std::string &pix_path, const std::string &tip, const QList<QAction*> &actions )
+{
+	QMenu *menu = new QMenu();
+	for ( auto a : actions )
+		menu->addAction( a );
+
+	QToolButton *toolButton = CreateToolButton( name, pix_path, tip ); 		assert__( toolButton );
+	toolButton->setMenu( menu );
+	toolButton->setPopupMode( QToolButton::InstantPopup );
+
+	return toolButton;
+}
+
+
+inline QToolButton* CreateMenuButton( const std::string &name, const std::string &pix_path, const std::string &tip, 
+	std::initializer_list<QAction*> actions )
+{
+	QList<QAction*> list;
+	for ( auto *a : actions )
+		list << a;
+	return CreateMenuButton( name, pix_path, tip, list );
+}
+
+
+
 
 
 
@@ -596,7 +682,7 @@ inline const QString& qidentity( const QString &s ){  return s; }
 template <
     typename COMBO, typename CONTAINER, typename FUNC = decltype( qidentity )
 >
-inline void FillCombo( COMBO *c, const CONTAINER &items, const FUNC &f, int selected = 0, bool enabled = true )
+inline void FillCombo( COMBO *c, const CONTAINER &items, int selected = 0, bool enabled = true, const FUNC &f = qidentity )
 {
     for ( auto i : items )
     {
@@ -612,14 +698,14 @@ inline void FillCombo( COMBO *c, const CONTAINER &items, const FUNC &f, int sele
 template< typename COMBO >
 inline void FillCombo( COMBO *c, const std::string *names, size_t size, int selected, bool enabled )
 {
-	FillCombo( c, std::vector< std::string >( &names[0], &names[size] ), 
+	FillCombo( c, std::vector< std::string >( &names[0], &names[size] ),  selected, enabled,
 
 		[]( const std::string &s ) -> const char*
         {
 			return s.c_str();
-		},
-		
-		selected, enabled );
+		}
+
+		);
 }
 
 
@@ -628,12 +714,14 @@ inline void FillCombo( COMBO *c, const std::string *names, size_t size, int sele
 //list widget types
 //////////////////////
 
-template< typename LIST_TYPE, typename CONTAINER, typename ENUM_VALUE >
-inline LIST_TYPE* fillList_t( LIST_TYPE *c, CONTAINER names, std::initializer_list< ENUM_VALUE > selection, bool disable )
+template <
+    typename LIST_TYPE, typename CONTAINER, typename ENUM_VALUE, typename FUNC = decltype( qidentity )
+>
+inline LIST_TYPE* FillAnyList( LIST_TYPE *c, const CONTAINER &items, std::initializer_list< ENUM_VALUE > selection, bool enable, const FUNC &f = qidentity )
 {
-	for ( auto const &name : names ) 
+	for ( auto const &item : items ) 
 	{
-		c->addItem( name.c_str() );
+		c->addItem( f( item ) );
 	}
 
 	for ( auto selected : selection )
@@ -645,17 +733,32 @@ inline LIST_TYPE* fillList_t( LIST_TYPE *c, CONTAINER names, std::initializer_li
 		else
 			c->setCurrentRow( -1 );
 
-	if ( disable )
-		c->setEnabled( false );
+	c->setEnabled( enable );
 
 	return c;
 }
 
-template< typename CONTAINER >
-inline QListWidget* fillList( QListWidget *c, CONTAINER &names, int selection, bool disable )
+
+template< typename LIST_TYPE, typename CONTAINER, typename FUNC = decltype( qidentity ) >
+inline LIST_TYPE* FillList( LIST_TYPE *c, const CONTAINER &items, int selection, bool enable, const FUNC &f = qidentity )
 {
-	return fillList_t< QListWidget, CONTAINER, int >( c, names, { selection }, disable );
+	return FillAnyList< LIST_TYPE, CONTAINER, int >( c, items, { selection }, enable, f );
 }
+
+
+template < typename LIST_TYPE >
+inline QListWidget* FillList( LIST_TYPE *c, const std::vector<std::string> &items, int selection, bool enable )
+{
+	return FillAnyList< LIST_TYPE, std::vector<std::string>, int >( c, items, { selection }, enable, 
+
+		[]( const std::string &s ) -> const char*
+        {
+			return s.c_str();
+		}
+
+		);
+}
+
 
 
 
@@ -849,8 +952,6 @@ inline QSize DefaultSizeHint( const QWidget *w )
 }
 
 
-const int icon_size = 24;
-
 
 const int min_main_window_width = 1024;
 const int min_main_window_height = 640;
@@ -881,7 +982,7 @@ inline void NotImplemented( const char *msg = nullptr )
 }
 
 #define NOT_IMPLEMENTED  NotImplemented( __func__ );
-#define FNOT_IMPLEMENTED( x )  NotImplemented( std::string( x ).c_str() );
+#define MSG_NOT_IMPLEMENTED( x )  NotImplemented( std::string( x ).c_str() );
 
 
 

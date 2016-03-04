@@ -120,6 +120,34 @@
 #include <QtOpenGL>     //This was added here to include, in debian 32 bit, glext.h, that defines 64 bit types like Gluint64 and so on
 #endif
 
+#if QT_VERSION >= 0x050000
+	#include <QtWidgets/QApplication>
+	#include <QtWidgets/QFileDialog>
+	#include <QtWidgets/QMessageBox>
+	#include <QtWidgets/QLayout>
+	#include <QtWidgets/QSplitter>
+	#include <QtWidgets/QToolBar>
+	#include <QtWidgets/QMainWindow>
+	#include <QtWidgets/QListWidget>
+    #include <QtWidgets/QGroupBox>
+	#include <QtWidgets/QToolButton>
+	#include <QtWidgets/QActionGroup>
+	#include <QMenu/QActionGroup>
+#else
+	#include <QtGui/QApplication>
+	#include <QtGui/QFileDialog>
+	#include <QMessageBox>
+	#include <QLayout>
+	#include <QSplitter>
+	#include <QToolBar>
+	#include <QMainWindow>
+	#include <QListWidget>
+    #include <QGroupBox>
+	#include <QToolButton>
+	#include <QActionGroup>
+	#include <QMenu>
+#endif
+
 
 #include <qgsapplication.h>
 #include <qgsmapcanvas.h>

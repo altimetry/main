@@ -213,7 +213,7 @@ public:
   int32_t GetPerformBoundaryChecks() {return m_performBoundaryChecks;}
   
 
-  std::string GetProductClass() {return m_fileList.m_productClass;}
+  const std::string& GetProductClass() const {return m_fileList.m_productClass;}
   std::string GetProductType() {return m_fileList.m_productType;}
 
   bool IsNetCdfProduct() {return (m_fileList.m_productClass.compare(NETCDF_PRODUCT_CLASS) == 0); }

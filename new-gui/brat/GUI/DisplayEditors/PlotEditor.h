@@ -29,13 +29,18 @@ class CPlotEditor : public CAbstractDisplayEditor
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
 #endif
 
-    Q_OBJECT
+	Q_OBJECT;
 
 #if defined (__APPLE__)
 #pragma clang diagnostic pop
 #endif
 
+	// types
+
 	using base_t = CAbstractDisplayEditor;
+
+
+	// instance data
 
 	CBrat2DPlotView *mPlot2DView = nullptr;
 	CBrat3DPlotView *mPlot3DView = nullptr;
@@ -45,6 +50,7 @@ class CPlotEditor : public CAbstractDisplayEditor
 	CPlotControlsPanelCurveOptions *mTabCurveOptions = nullptr;	
 	CPlotControlsPanelAxisOptions *mTabAxisOptions = nullptr;	
 	CViewControlsPanelPlots *mTabPlots = nullptr;
+
 
 	// construction /destruction
 
@@ -59,7 +65,8 @@ public:
 
 	virtual ~CPlotEditor();
 
-	//
+
+	// remaining operations
 
 protected:
 	virtual void ResetViews() override;

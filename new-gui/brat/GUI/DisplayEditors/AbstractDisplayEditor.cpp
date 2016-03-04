@@ -81,7 +81,7 @@ void CAbstractDisplayEditor::CreateGraphicsBar()
 
 	// add button group
 
-	QActionGroup *group = CActionInfo::CreateActionsGroup( this, { eAction_DisplayEditor2D, eAction_DisplayEditor3D, eAction_DisplayEditorLog }, false );
+	QActionGroup *group = CActionInfo::CreateActionGroup( this, { eAction_DisplayEditor2D, eAction_DisplayEditor3D, eAction_DisplayEditorLog }, false );
 
 	m2DAction = group->actions()[0];	assert__( m2DAction->isCheckable() );
 	m3DAction = group->actions()[1];	assert__( m3DAction->isCheckable() );
@@ -110,9 +110,9 @@ void CAbstractDisplayEditor::CreateWidgets()
 	CreateGraphicsBar();
 	CreateStatusBar();
 
-	mMainSplitter = createSplitterIn( this, Qt::Vertical );
+	mMainSplitter = CreateSplitterIn( this, Qt::Vertical );
 	setCentralWidget( mMainSplitter );
-	mGraphicsSplitter = createSplitterIn( mMainSplitter, Qt::Horizontal );
+	mGraphicsSplitter = CreateSplitterIn( mMainSplitter, Qt::Horizontal );
 	mLogText = new CTextWidget( this );
 	mMainSplitter->addWidget( mLogText );
 	mLogText->hide();

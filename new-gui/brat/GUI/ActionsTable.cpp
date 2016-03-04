@@ -3,10 +3,9 @@
 #include <QAction>
 
 #include "new-gui/Common/ConfigurationKeywords.h"
-#include "new-gui/Common/QtUtilsIO.h"
+#include "new-gui/Common/QtUtils.h"
 
 #include "new-gui/Common/ApplicationSettings.h"
-
 
 #include "DataModels/PlotData/MapProjection.h"
 
@@ -174,6 +173,9 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 	{ eAction_DecorationGrid, "Grid", "Creates a scale bar that is displayed on the map canvas", ":/images/themes/default/transformed.png", ":/images/themes/default/transformed.png" },
 
 
+	{ eActionGroup_Filters, "", "Select a filter", "://images/OSGeo/filter.png" },
+
+
     // TODO images __n, __o and __p are used by settings dialog
 };
 
@@ -336,23 +338,7 @@ QToolButton* CActionInfo::CreateMenuButton( EActionTag button_tag, const QList<Q
 
 	CActionInfo  &button_ai = ActionsTable[ button_tag ];
 
-	QMenu *menu = new QMenu();
-	for ( auto a : actions )
-		menu->addAction( a );
-
-	QToolButton *toolButton = new QToolButton(); 	assert__( toolButton );
-	toolButton->setMenu( menu );
-
-	if ( !button_ai.mName.empty() )
-		toolButton->setText( button_ai.mName.c_str() );
-	if ( !button_ai.mTip.empty() )
-		toolButton->setToolTip( button_ai.mTip.c_str() );
-	if ( !button_ai.mIconPath.empty() )
-		toolButton->setIcon( QPixmap( button_ai.mIconPath.c_str() ) );
-
-	toolButton->setPopupMode( QToolButton::InstantPopup );
-
-	return toolButton;
+	return ::CreateMenuButton( button_ai.mName, button_ai.mIconPath, button_ai.mTip, actions );
 }
 
 
@@ -368,11 +354,9 @@ QToolButton* CActionInfo::CreateMenuButton( QObject *parent, EActionTag button_t
 
 
 //static 
-QActionGroup* CActionInfo::CreateActionsGroup( QWidget *group_parent, const std::vector<EActionTag> &tags, bool exclusive )
+QActionGroup* CActionInfo::CreateActionGroup( QWidget *group_parent, const std::vector<EActionTag> &tags, bool exclusive )
 {
-	QActionGroup *group = new QActionGroup( group_parent );
-	group->setExclusive( exclusive );
-
+	QActionGroup *group = ::CreateActionGroup( group_parent, exclusive );
 	for ( auto tag : tags )
 		CreateAction( group, tag );
 

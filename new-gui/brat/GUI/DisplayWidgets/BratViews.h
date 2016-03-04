@@ -114,6 +114,12 @@ public:
 
 	void Plot( const CWorldPlotInfo &maps );
 
+    void PlotTrack( const double *x, const double *y, size_t size, QColor color = Qt::red );
+
+	void PlotTrack( const std::vector<double> &x, const std::vector<double> &y, QColor color = Qt::red )
+	{
+		PlotTrack( &x[0], &y[0], x.size(), color );
+	}
 
 	// CBratView interface
 

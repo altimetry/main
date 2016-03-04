@@ -86,8 +86,6 @@ private:
 
 	CBratApplication &mApp;
 
-	bool mOperatingInDisplayMode = false;
-
 
     // MDI sub-windows logic
     //

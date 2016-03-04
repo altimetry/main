@@ -34,14 +34,12 @@ class CDatasetBrowserControls : public CDesktopControlsPanel
     QPushButton *m_BrowseFilesButton = nullptr;
     QPushButton *m_BrowseRadsButton = nullptr;
 
-    QListWidget *mFilesList = nullptr;
+    QTreeWidget *mDatasetTree = nullptr;
 
     QPushButton *mAddDir = nullptr;
     QPushButton *mAddFiles = nullptr;
     QPushButton *mRemove = nullptr;
     QPushButton *mClear = nullptr;
-
-    QComboBox *mDatasetsCombo = nullptr;
 
     CTextWidget *mFileDesc = nullptr;
     QGroupBox   *mFileDescGroup = nullptr;
@@ -52,7 +50,7 @@ class CDatasetBrowserControls : public CDesktopControlsPanel
     QPushButton *mDeleteDataset = nullptr;
     QPushButton *mRenameDataset = nullptr;
 
-    CWorkspaceDataset *mWks = nullptr;
+    CWorkspaceDataset *mWDataset = nullptr;
 
 
 
@@ -69,33 +67,36 @@ public:
     // access
 
     // operations
-	//    void DeleteDataset();
-
     void AddFiles(QStringList &paths_list);
-    void FillFileList();
     void CheckFiles();
 
-    void FillFieldList();
+    void DatasetChanged(QTreeWidgetItem *tree_item );
+    void FileChanged(QTreeWidgetItem *file_item );
+
+    void AddDatasetToTree(const QString &dataset_name);
+    void FillFileTree(QTreeWidgetItem *current_dataset_item);
+    void FillFieldList(QTreeWidgetItem *current_file_item);
     void ClearFieldList();
 
-
 signals:
-    void FileChanged( QString path );
+    void CurrentDatasetChanged( CDataset* );
 
 public slots:
-    void WorkspaceChanged( CWorkspaceDataset *wksd );
-    void DatasetChanged( int dataset_index );
-    void FileChanged( int file_index );
-    void FieldChanged();
-    void OnNewDataset();
-    void OnDeleteDataset();
-    void OnAddFiles();
-    void OnAddDir();
-    void OnRemoveFile();
-    void OnClearFiles();
+    void HandleWorkspaceChanged( CWorkspaceDataset *wksd );
+
+    void HandleFieldChanged();
+    void HandleNewDataset();
+    void HandleDeleteDataset();
+    void HandleAddFiles();
+    void HandleAddDir();
+    void HandleRemoveFile();
+    void HandleClearFiles();
+    void HandleTreeItemChanged();
 
 protected slots:
-    void PageChanged( int index );
+    void HandlePageChanged( int index );
+    void HandleDatasetExpanded(); // Resizes DatasetTree when datasets are expanded
+    void HandleRenameDataset(QTreeWidgetItem *dataset_item, int col);
 };
 
 

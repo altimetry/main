@@ -71,12 +71,6 @@ int main( int argc, char *argv[] )
 
 	try
 	{
-		//    auto_ptr<CTrace>pTrace(CTrace::GetInstance());
-		//CTrace::GetInstance("c:\\dump.log");
-
-		//auto_ptr<CTrace>pTrace(CTrace::GetInstance(argc, argv));
-		//pTrace->SetTraceLevel(5);
-
 		bOk = bratProcess->Initialize( msg );
 		if ( !bOk )
 		{

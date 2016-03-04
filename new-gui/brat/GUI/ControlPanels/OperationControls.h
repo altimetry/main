@@ -16,6 +16,55 @@ class CDisplayFilesProcessor;
 //HAMMER SECTION
 
 
+class CDataExpressionsTree : public QTreeWidget
+{
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+	Q_OBJECT;
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
+	// types
+
+	using base_t = QTreeWidget;
+
+
+	// instance variables
+
+    QIcon mGroupIcon;
+    QIcon mKeyIcon;
+
+	QWidget *mDragSource = nullptr;
+
+	//construction / destruction
+
+public:
+
+	CDataExpressionsTree( QWidget *parent, QWidget *drag_source );
+
+	virtual ~CDataExpressionsTree()
+	{}
+
+protected:
+
+	virtual void dragEnterEvent( QDragEnterEvent *event ) override;
+	virtual void dropEvent( QDropEvent *event ) override;
+
+};
+
+
+
+
+
+
+
+
+
 class COperationControls : public CDesktopControlsPanel
 {
 	//HAMMER SECTION
@@ -47,27 +96,63 @@ public:
     };
 
 
+	//static members
+
+	//...fill helpers
+
+	static QList<QAction*> CreateDataComputationActions( QObject *parent );
+
+
 protected:
 
 	// instance variables
 
     CStackedWidget *mStackWidget = nullptr;
 
-	QPushButton *mQuickMapButton = nullptr;
-	QPushButton *mQuickPlotButton = nullptr;
-	QPushButton *mAvancedDisplayButton = nullptr;
-
-	QPushButton *mShowAliases = nullptr;
 	QWidget *mCommonGroup = nullptr;
 
-	QComboBox *mOperationsCombo = nullptr;
-	QComboBox *mDatasetsCombo = nullptr;
+	QListWidget *mOperationsList = nullptr;
+	QListWidget *mDatasetsList = nullptr;
 	CTextWidget *mExpressionTextWidget = nullptr;
+	QToolButton *mNewOperationButton = nullptr;
+	QToolButton *mDeleteOperationButton = nullptr;
+    QToolButton *mRenameOperationButton = nullptr;
+	QToolButton *mOperationFilterButton = nullptr;
+	QActionGroup *mOperationFilterGroup = nullptr;
+	QToolButton *mOperationExportButton = nullptr;
+	QAction *mExportOperationAction = nullptr;
+	QAction *mEditExportAsciiAction = nullptr;
+	QToolButton *mOperationStatisticsButton = nullptr;
+
+	QToolButton *mDisplayButton = nullptr;
+	QAction *mSplitPlotsAction = nullptr;
 
 	QToolButton *mExecuteButton = nullptr;
+	QAction *mDelayExecutionAction = nullptr;
+	QAction *mLaunchSchedulerAction = nullptr;
 	CProcessesTable *mProcessesTable = nullptr;
 	QTimer mTimer;
 
+	//...advanced
+
+	QToolButton *mInsertFunction = nullptr;
+	QToolButton *mInsertAlgorithm = nullptr;
+	QToolButton *mInsertFormula = nullptr;
+	QToolButton *mSaveAsFormula = nullptr;
+
+	QToolButton *mShowAliasesButton = nullptr;
+	QToolButton *mCheckSyntaxButton = nullptr;
+	QToolButton *mShowInfoButton = nullptr;
+
+	QToolButton *mDataComputation = nullptr;
+	QActionGroup *mDataComputationGroup = nullptr;
+
+	QListWidget *mAdvancedFieldList = nullptr;
+	CDataExpressionsTree *mDataExpressionsTree = nullptr;
+
+	//...quick
+
+	QListWidget *mQuickVariablesList = nullptr;
 
 	//...domain variables
 
@@ -88,6 +173,7 @@ protected:
 	// construction / destruction
 
     void Wire();
+	CDataExpressionsTree* CreateDataExpressionsTree( QWidget *parent, QWidget *drag_source );
 	QWidget* CreateCommonWidgets();
 	QWidget* CreateQuickOperationsPage();
 	QWidget* CreateAdancedOperationsPage();
@@ -107,6 +193,9 @@ public:
 
 	// remaining operations
 
+protected:
+	void FillFieldList();
+
 signals:
 	void SyncProcessExecution( bool executing );
 
@@ -116,23 +205,37 @@ public slots:
 
 protected slots:
 
-	void HandleExecute();
 	void HandleSelectedOperationChanged( int operation_index );
 	void HandleSelectedDatasetChanged( int dataset_index );
 
+	void HandleNewOperation();
+	void HandleDeleteOperation();
+    void HandleRenameOperation();
+	void HandleOperationFilter();
+	void HandleExportOperation();
+	void HandleEditExportAscii();
+	void HandleOperationStatistics();
+
+	void HandleExecute();
+	void HandleDelayExecution();
+	void HandleLaunchScheduler();
+
+
+	void HandleInsertFunction();
+	void HandleInsertAlgorithm();
+	void HandleInsertFormula();
+	void HandleSaveAsFormula();
+	void HandleDataComputation();
+
 	void HandleShowAliases();
+	void HandleCheckSyntax();
+	void HandleShowInfo();
 
 	void HandleQuickMap();
 	void HandleQuickPlot();
 
-	void HandleDisplay();
+	void HandleLaunchDisplay();
 };
-
-
-
-
-
-
 
 
 

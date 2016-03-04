@@ -48,6 +48,7 @@ class CDatasetFilterControls : public CDesktopControlsPanel
 	//...domain data
 
 	CWorkspaceDataset *mWks = nullptr;
+    CDataset *mDataset = nullptr;
 
 
 	//construction / destruction
@@ -65,11 +66,10 @@ public:
 	// operations
 
 public slots:
-	void WorkspaceChanged( CWorkspaceDataset *wksd );
-	void DatasetChanged( CDataset *dataset );
-	void FileChanged( const QString &path );
+	void HandleWorkspaceChanged( CWorkspaceDataset *wksd );
+    void HandleDatasetChanged( CDataset *dataset );
 
-	void CurrentLayerSelectionChanged();
+	void HandleCurrentLayerSelectionChanged();
 };
 
 

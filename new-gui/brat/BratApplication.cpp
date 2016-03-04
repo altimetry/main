@@ -147,6 +147,17 @@ void CBratApplication::CheckOpenGL( bool extended )		//extended = false
 }
 
 
+void CBratApplication::CheckRunMode()
+{
+	LOG_TRACE( "Operating mode check..." );			assert__( !mOperatingInDisplayMode );
+	
+    QStringList args = arguments();
+    args.removeFirst();
+	QString wkspc_dir;
+	mOperatingInDisplayMode = !args.empty() && !IsDir( args[ 0 ] );	//no workspace, but there are command line arguments: let the old BratDisplay ghost take the command
+}
+
+
 CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QString customConfigPath )	//customConfigPath = QString() 
 
 	: base_t( argc, argv, GUIenabled, customConfigPath.isEmpty() ? smApplicationPaths->mInternalDataDir.c_str() : customConfigPath )
@@ -167,9 +178,16 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 	if ( !smPrologueCalled )
 		throw CException( "CBratApplication Prologue must be called before application construction." );
 
+	
+	CheckRunMode();
+
+	
+	CreateSplash();
+
 
 	// OpenGL
 	//
+	ShowSplash( "Checking OpenGL..." );
 	CheckOpenGL();							//throws on failure
 	LOG_TRACE( "OpenGL check successful." );
 
@@ -192,6 +210,8 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 	//
 	setlocale( LC_NUMERIC, "C" );
 
+
+	ShowSplash( "Loading application settings..." );
 
 	// Load configuration - I
 	//
@@ -275,6 +295,57 @@ CBratApplication::~CBratApplication()
     mSettings.Sync();
 }
 
+
+
+void CBratApplication::EndSplash( QWidget *w )
+{
+	assert__( mSplash );
+
+	mSplash->finish( w );
+	delete mSplash;
+	mSplash = nullptr;
+}
+void CBratApplication::ShowSplash( const std::string &msg, bool disable_events ) const		//disable_events = false 
+{
+	class I : public QThread
+	{
+	public:
+		static void sleep( unsigned long secs ) 
+		{
+			QThread::sleep( secs );
+		}
+
+		static void msleep( unsigned long msecs ) 
+		{
+			QThread::msleep( msecs );
+		}
+
+		static void usleep( unsigned long usecs ) 
+		{
+			QThread::usleep( usecs );
+		}
+	};
+
+
+	assert__( mSplash );
+
+	mSplash->showMessage( msg.c_str(), Qt::AlignHCenter | Qt::AlignBottom, Qt::white );
+	if ( !disable_events )
+		processEvents();
+
+	//I::sleep( 1 );
+}
+void CBratApplication::CreateSplash()
+{
+	assert__( !mSplash );
+
+	QPixmap myPixmap( "://images/InstallSplashScreen.png" );		//://images/Create.jpg		://images/12-final.jpg
+	if ( myPixmap.isNull() )
+		LOG_TRACE( "Null splash image" );
+	mSplash = new QSplashScreen( myPixmap );
+    mSplash->setMask( myPixmap.mask() );
+    mSplash->show();
+}
 
 
 void CBratApplication::UpdateSettings()

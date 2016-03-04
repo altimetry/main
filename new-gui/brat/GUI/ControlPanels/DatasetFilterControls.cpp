@@ -1,5 +1,9 @@
 #include "new-gui/brat/stdafx.h"
 
+#include "DataModels/Workspaces/Dataset.h"
+
+#include "ApplicationLogger.h"
+
 #include "DatasetFilterControls.h"
 
 
@@ -183,11 +187,11 @@ CDatasetFilterControls::CDatasetFilterControls( CDesktopManagerBase *manager, QW
 
 void CDatasetFilterControls::Wire()
 {
-	connect( mMap, SIGNAL( CurrentLayerSelectionChanged() ), this, SLOT( CurrentLayerSelectionChanged() ) );
+	connect( mMap, SIGNAL( CurrentLayerSelectionChanged() ), this, SLOT( HandleCurrentLayerSelectionChanged() ) );
 }
 
 
-void CDatasetFilterControls::CurrentLayerSelectionChanged()
+void CDatasetFilterControls::HandleCurrentLayerSelectionChanged()
 {
 	QgsRectangle box = mMap->CurrentLayerSelectedBox();
 
@@ -200,91 +204,252 @@ void CDatasetFilterControls::CurrentLayerSelectionChanged()
 
 
 
-#include "DataModels/DisplayFilesProcessor.h"
-#include "libbrathl/InternalFilesZFXY.h"
-#include "DataModels/PlotData/WorldPlot.h"
-#include "DataModels/PlotData/WorldPlotData.h"
-
 
 //public slots:
-void CDatasetFilterControls::WorkspaceChanged( CWorkspaceDataset *wksd )
+void CDatasetFilterControls::HandleWorkspaceChanged( CWorkspaceDataset *wksd )
 {
     mWks = wksd;
 }
 
 
-void CDatasetFilterControls::DatasetChanged( CDataset *dataset )
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////
+//		Satellite Tracks Processing TODO change place???
+//////////////////////////////////////////////////////////////////////////////////////////////
+
+//CAliasesDictionary* GetAliasesDictionary()
+//{
+//	try
+//	{
+//		return CAliasesDictionary::GetInstance();
+//	}
+//	catch ( CException& e )
+//	{
+//		LOG_WARN( "The aliases dictionary can't be loaded properly - Native Error is " + std::string( e.what() ) );
+//	}
+//	return nullptr;
+//}
+//
+//std::string FindDefaultRecord( const CProduct *product )
+//{
+//	static CAliasesDictionary *ad = GetAliasesDictionary();
+//	static const std::string default_record = "data";
+//
+//	assert__( product );
+//
+//	if ( ad )
+//	{
+//		CXmlNode* node = ad->FindProductNode( product->GetProductClass(), false );
+//		if ( node != nullptr )
+//		{
+//			CObArray defaultRecordsArray;
+//			ad->GetDefaultRecords( node, defaultRecordsArray );
+//			for ( CObArray::const_iterator it = defaultRecordsArray.begin(); it != defaultRecordsArray.end(); it++ )
+//			{
+//				CDefaultRecord* dr = dynamic_cast<CDefaultRecord*>( *it );
+//				if ( dr && ! dr->GetName().empty() )
+//					return dr->GetName();
+//			}
+//		}
+//	}
+//
+//	return default_record;
+//}
+
+
+
+// Here is an expression using the  alias 'swh': %{sig_wave_height} -->  'swh' field in tha aliases dictionary (Jason-1)
+//Expressions[1]	= "%{sig_wave_height}";
+//Units[1]		= "count";
+//
+// Here is an expression calling the 'BratAlgoFilterMedianAtp' algorithm
+//Expressions[1] = "exec(\"BratAlgoFilterMedianAtp\", %{sig_wave_height}, 7, 1, 0)";
+//Units[1]		= "count";
+//
+int ReadTrack( const std::string &path, const std::string &record, double *&x, size_t &sizex, double *&y, size_t &sizey )
 {
-    Q_UNUSED( dataset );
+    static const char *Expressions[] = { "lon", "lat" };
+    static const char *Units[] = { "count", "count" };
+
+	char *Names[] = { const_cast<char*>( path.c_str() ) };
+
+    double	*Data[ 2 ]	= { nullptr, nullptr };
+    int32_t	Sizes[ 2 ]	= { -1, -1 };
+
+    size_t	ActualSize;
+
+
+    int ReturnCode = CProduct::ReadData(
+                1, Names,
+                record.c_str(),		//"data",                
+                nullptr,			//"latitude > 20 && latitude < 30",
+                2,
+                const_cast< char** >( Expressions ),
+                const_cast< char** >( Units ),
+                Data,
+                Sizes,
+                &ActualSize,
+                0,
+                0,
+                defaultValue< double >()
+                );
+
+    LOG_TRACEstd( "Return code          : " + n2s<std::string>( ReturnCode ) );
+    LOG_TRACEstd( "Actual number of data: " + n2s<std::string>( ActualSize ) );
+
+    x = Data[ 0 ];
+    y = Data[ 1 ];
+
+    sizex = sizey = ActualSize;
+
+    return ReturnCode;
 }
 
-void CDatasetFilterControls::FileChanged( const QString &path )
-{
-    return;
 
-	mMap->RemoveLayers();
-	if ( !path.isEmpty() )
-	try 
+
+
+void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
+{    
+    //statics
+
+    static const std::string lon_alias = "lon";
+    static const std::string lat_alias = "lat";
+
+    //lambdas
+
+    auto debug_log = []( const std::string &msg )
+    {
+        LOG_INFO( msg  );
+        qApp->processEvents();
+    };
+
+
+    //function body
+
+    if ( !dataset || mDataset != dataset )
+    {
+        mMap->RemoveLayers();
+
+        if ( mDataset == dataset )
+            return;
+
+        mDataset = dataset;
+        if ( !mDataset )
+            return;
+    }
+
+	std::string error_msg;
+
+    std::vector< std::string > paths;    mDataset->GetFiles( paths );
+	for ( auto &path : paths )
 	{
-		CDisplayFilesProcessor proc;
-		proc.Process( q2t<std::string>( path ) );
-		auto &plots = proc.plots();
-		for ( auto *plot : plots )
+		WaitCursor wait;
+		try
 		{
-			CWPlot* wplot = dynamic_cast< CWPlot* >( plot );
-			if ( wplot == nullptr )
-				continue;
-
-			mMap->CreatePlot( proc.GetWorldPlotProperties( 0 ), wplot );
-		}
-		/*
-		CInternalFilesZFXY* zfxy = dynamic_cast< CInternalFilesZFXY* >( proc.Prepare( q2a( path ) ) );
-		CExpressionValue varLat, varLon;
-		CWorldPlotInfo maps;
-		maps.AddMap();
-		CWorldPlotData::GetMapLatLon( zfxy, maps().mPlotWidth, maps().mPlotHeight, varLat, varLon );
-
-		bool firstDimIsLat = false;
-		CStringArray varDimNames;
-		zfxy->GetVarDims( "SLA", varDimNames );
-		if ( ( zfxy->GetVarKind( varDimNames.at( 0 ) ) == Latitude ) &&
-			( zfxy->GetVarKind( varDimNames.at( 1 ) ) == Longitude ) )
-		{
-			firstDimIsLat = true;
-		}
-		else if ( ( zfxy->GetVarKind( varDimNames.at( 0 ) ) == Longitude ) &&
-			( zfxy->GetVarKind( varDimNames.at( 1 ) ) == Latitude ) )
-		{
-			firstDimIsLat = false;
-		}
-
-		for ( int32_t iY = 0; iY < maps().mPlotHeight; iY++ )
-		{
-			auto lat = varLat.GetValues()[ iY ];
-			maps.AddY( lat );
-			for ( int32_t iX = 0; iX < maps().mPlotWidth; iX++ )
+			CProduct *product = mDataset->SetProduct( path );
+			bool skip_iteration = !product || !product->HasAliases();
+			if ( skip_iteration )
 			{
-				maps.AddmValidMercatorLatitude( CTools::AreValidMercatorLatitude( lat ) );
-				maps.AddBit( true );
-				maps.AddValue( iY );
+				LOG_WARN( "Aliases not supported reading file " + path );
 			}
+			const bool is_netcdf = product->IsNetCdfOrNetCdfCFProduct();
+
+			std::string field_error_msg;
+			CField *lon = product->FindFieldByName( lon_alias, false, &field_error_msg );	//true: throw on failure
+			CField *lat = product->FindFieldByName( lat_alias, false, &field_error_msg );
+			if ( !lon || !lat )
+			{
+				skip_iteration = true;
+				LOG_WARN( field_error_msg + " - File " + path );
+			}
+
+			auto expected_lon_dim = lon ? lon->GetDim()[ 0 ] : 0;
+			auto expected_lat_dim = lat ? lat->GetDim()[ 0 ] : 0;
+			if ( expected_lon_dim != expected_lat_dim )
+			{
+				skip_iteration = true;
+				LOG_WARN( "Different latitude/longitude dimensions in file " + path );
+			}
+
+			std::string record;
+			if ( !is_netcdf )
+			{
+				auto *aliases = product->GetAliases();
+				if ( aliases )
+					record = aliases->GetRecord();
+			}
+
+			delete product;
+			if ( skip_iteration )
+			{
+				continue;
+			}
+
+			/*
+			p->Open( q2a( path ), "data" );
+			CStringList FieldsToRead;
+			FieldsToRead.push_back("lat");
+			FieldsToRead.push_back("lon");
+			p->SetListFieldToRead( FieldsToRead, false );
+			// Get the number of record for the default record name (set in Open method of CProduct above)
+			int32_t nRecords = p->GetNumberOfRecords();
+
+			for ( int32_t iRecord = 0; iRecord < nRecords; iRecord++ )
+			{
+			//Read fields for the record name  (list of field and record name are set in Open method of CProduct above)
+			p->ReadBratRecord( iRecord );
+			}
+			*/
+
+			size_t lon_dim = 0;
+			size_t lat_dim = 0;
+			double *lonv = nullptr;
+			double *latv = nullptr;
+
+			debug_log( "About to read variables from file " + path );
+
+			int ReturnCode = ReadTrack( path, record, lonv, lon_dim, latv, lat_dim );
+			if ( ReturnCode == BRATHL_SUCCESS )
+			{
+				assert__( lon_dim == lat_dim );				
+				assert__( !is_netcdf || ( lon_dim == expected_lon_dim && lat_dim == expected_lat_dim ) );
+
+				debug_log( "Normalizing longitudes..." );
+
+				for ( size_t i = 0; i < lon_dim; ++i )
+					lonv[ i ] = CTools::NormalizeLongitude( -180.0, lonv[ i ] );
+
+				debug_log( "About to plot..." );
+
+				mMap->PlotTrack( lonv, latv, lon_dim, QColor( 255, std::abs( (long)lonv[ 0 ] ) % 255, std::abs( (long)latv[ 0 ] ) % 255 ) );
+
+				debug_log( "Finished plotting..." );
+			}
+			else
+				error_msg += ( "\n\nError reading " + path + ".\nReturn code: " + n2s<std::string>( ReturnCode ) );
+
+			free( lonv );
+			free( latv );
 		}
-		for ( int32_t iX = 0; iX < maps().mPlotWidth; iX++ )
+		catch ( const CException &e )
 		{
-			maps.AddX( CTools::NormalizeLongitude( -180.0, varLon.GetValues()[ iX ] ) );
+			error_msg += ( "\n\n" + path + " caused error: " + e.Message() );
 		}
-		mMap->Plot( maps );
-		*/
+		catch ( ... )
+		{
+			error_msg += ( "\n\nUnknown error reading file " + path );
+		}
 	}
-	catch ( const CException &e )
+
+	if ( !error_msg.empty() )
 	{
-		SimpleErrorBox( e.Message() );
-	}
-	catch ( ... )
-	{
-		SimpleErrorBox( "Unknown error" );
+		SimpleErrorBox( mDataset ? 
+			( "Problems reading satellite tracks from " + mDataset->GetName() + ":\n" + error_msg )
+			: error_msg );
 	}
 }
+
 
 
 

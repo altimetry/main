@@ -15,6 +15,7 @@
 class CTreeWorkspace;
 
 class CTabbedDock;
+class CGlobeWidget;
 
 
 //#define TABBED_MANAGER
@@ -255,6 +256,8 @@ protected:
 
 	//data
 
+	QSplitter *mSplitter = nullptr;
+	CGlobeWidget *mGlobeView = nullptr;
 	QList<QWidget*> mSubWindows;
 
 protected:

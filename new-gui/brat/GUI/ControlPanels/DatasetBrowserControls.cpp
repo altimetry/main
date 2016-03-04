@@ -12,7 +12,7 @@
 //								Dataset Browser
 /////////////////////////////////////////////////////////////////////////////////////
 
-void CDatasetBrowserControls::PageChanged( int index )
+void CDatasetBrowserControls::HandlePageChanged( int index )
 {
     qDebug() << index;
 }
@@ -26,12 +26,14 @@ CDatasetBrowserControls::CDatasetBrowserControls( CDesktopManagerBase *manager, 
 
     // - Page Files browser
     //
-    mFilesList = new QListWidget;
+    mDatasetTree = new QTreeWidget();
+    mDatasetTree->setToolTip("Tree of current workspace datasets");
+    mDatasetTree->setHeaderHidden(true);
 
     mAddFiles = new QPushButton( "Add Files..." );
     mAddDir = new QPushButton( "Add Dir..." );
-    mRemove = new QPushButton( "Remove" );
-    mClear = new QPushButton( "Clear" );
+    mRemove = new QPushButton( "Remove..." );
+    mClear = new QPushButton( "Clear..." );
 
     auto mUp = new QPushButton( "Up" );
     auto mDown = new QPushButton( "Down" );			//QPushButton *mSort = new QPushButton( "Sort", page_1 );	by QListWidget ?
@@ -41,9 +43,39 @@ CDatasetBrowserControls::CDatasetBrowserControls( CDesktopManagerBase *manager, 
     mDown->setDisabled(true);
     mCheckFiles->setDisabled(true);
 
-    QBoxLayout *buttons_vl = LayoutWidgets( Qt::Vertical, { mAddFiles, mAddDir, mUp, mDown, /*mSort, */mRemove, mClear, mCheckFiles } );
+    // - Dataset name and buttons group
+    //
+    mNewDataset = new QPushButton( "New..." );
+    mDeleteDataset = new QPushButton( "Delete..." );
+    mRenameDataset = new QPushButton( "Rename..." );
+    auto mSaveDataset = new QPushButton( "Save..." );	// TODO confirm that save will only be done in the scope of whole workspace
 
-    QGroupBox *page_1 = CreateGroupBox( ELayoutType::Horizontal, { mFilesList, buttons_vl }, "", nullptr, 0, 2, 2, 2, 2 );
+    mRenameDataset->setDisabled(true);
+    mSaveDataset->setDisabled(true);
+
+//    AddTopGroupBox(
+//        ELayoutType::Grid, {
+//            mDatasetsCombo, mNewDataset, mDeleteDataset, mRenameDataset, nullptr,
+//			mSaveDataset
+//        },
+//        "", 0, 0, 0, 0, 0
+//        );
+
+    QBoxLayout *buttons_vl = LayoutWidgets( Qt::Vertical, { mAddFiles,
+                                                            mAddDir,
+                                                            /*mSort, */
+                                                            mRemove,
+                                                            mClear,
+                                                            mUp,
+                                                            mDown,
+                                                            mCheckFiles,
+                                                            mNewDataset,
+                                                            mDeleteDataset,
+                                                            mRenameDataset,
+                                                            mSaveDataset  } );
+
+    QGroupBox *page_1 = CreateGroupBox( ELayoutType::Horizontal, { mDatasetTree, buttons_vl }, "", nullptr, 0, 2, 2, 2, 2 );
+
 
     // - Page RADS browser
     //
@@ -80,28 +112,8 @@ CDatasetBrowserControls::CDatasetBrowserControls( CDesktopManagerBase *manager, 
 
     AddTopGroupBox( ELayoutType::Horizontal, { mFieldList, mFieldDesc }, "Field Description", 4, 4, 4, 4, 4 );
 
-
-    // III. Dataset name and buttons group
+    // IV. Making connections
     //
-    mDatasetsCombo = new QComboBox;
-    mDatasetsCombo->setToolTip( "List of current workspace datasets" );
-    mNewDataset = new QPushButton( "New..." );
-    mDeleteDataset = new QPushButton( "Delete..." );
-    mRenameDataset = new QPushButton( "Rename..." );
-    auto mSaveDataset = new QPushButton( "Save..." );	// TODO confirm that save will only be done in the scope of whole workspace
-
-    mRenameDataset->setDisabled(true);
-    mSaveDataset->setDisabled(true);
-
-    AddTopGroupBox(
-        ELayoutType::Grid, {
-            mDatasetsCombo, mNewDataset, mDeleteDataset, mRenameDataset, nullptr, 
-			mSaveDataset
-        },
-        "", 0, 0, 0, 0, 0
-        );
-
-
     Wire();
 }
 
@@ -109,92 +121,152 @@ CDatasetBrowserControls::CDatasetBrowserControls( CDesktopManagerBase *manager, 
 
 void CDatasetBrowserControls::Wire()
 {
-	connect( mDatasetsCombo, SIGNAL( currentIndexChanged( int ) ), this, SLOT( DatasetChanged( int ) ) );
-	connect( mFilesList, SIGNAL( currentRowChanged( int ) ), this, SLOT( FileChanged( int ) ) );
+    connect( mDatasetTree, SIGNAL( itemSelectionChanged() ), this, SLOT( HandleTreeItemChanged() ) );
+    connect( mDatasetTree, SIGNAL( itemExpanded(QTreeWidgetItem*) ), this, SLOT( ResizeDatasetTree() ) );
+	//RCCC line above triggers the following message in application log window : WARN] 2016-03-04T02:23:58	2	Object::connect: No such slot CDatasetBrowserControls::ResizeDatasetTree() in ..\..\..\..\source\new-gui\brat\GUI\ControlPanels\DatasetBrowserControls.cpp:125
+    connect( mDatasetTree, SIGNAL( itemChanged(QTreeWidgetItem*,int) ), this, SLOT( HandleRenameDataset(QTreeWidgetItem*,int) ) );
 
+    connect( mNewDataset, SIGNAL( clicked(bool) ), this, SLOT (HandleNewDataset()) );
+    connect( mDeleteDataset, SIGNAL( clicked(bool) ), this, SLOT (HandleDeleteDataset()) );
 
-    connect( mAddFiles, SIGNAL( clicked(bool) ), this, SLOT( OnAddFiles() ) );
-    connect( mAddDir, SIGNAL( clicked(bool) ), this, SLOT( OnAddDir() ) );
-    connect( mRemove, SIGNAL( clicked(bool) ), this, SLOT( OnRemoveFile() ) );
-    connect( mClear, SIGNAL( clicked(bool) ), this, SLOT( OnClearFiles() ) );
+    connect( mAddFiles, SIGNAL( clicked(bool) ), this, SLOT( HandleAddFiles() ) );
+    connect( mAddDir, SIGNAL( clicked(bool) ), this, SLOT( HandleAddDir() ) );
+    connect( mRemove, SIGNAL( clicked(bool) ), this, SLOT( HandleRemoveFile() ) );
+    connect( mClear, SIGNAL( clicked(bool) ), this, SLOT( HandleClearFiles() ) );
 
-    connect( mFieldList, SIGNAL( itemSelectionChanged() ), this, SLOT( FieldChanged() ) );
-
-    connect( mNewDataset, SIGNAL( clicked(bool) ), this, SLOT (OnNewDataset()) );
-    connect( mDeleteDataset, SIGNAL( clicked(bool) ), this, SLOT (OnDeleteDataset()) );
+    connect( mFieldList, SIGNAL( itemSelectionChanged() ), this, SLOT( HandleFieldChanged() ) );
 }
 
 
 
-void CDatasetBrowserControls::WorkspaceChanged( CWorkspaceDataset *wksd )
+void CDatasetBrowserControls::HandleDatasetExpanded()
 {
-    mWks = wksd;
+    mDatasetTree->resizeColumnToContents(0);
+}
 
-    // Fill ComboBox with Datasets list
-    mDatasetsCombo->clear();
-    if (wksd)
+
+
+void CDatasetBrowserControls::HandleRenameDataset(QTreeWidgetItem *dataset_item, int col)
+{
+    Q_UNUSED( col );
+
+    static QRegExp re("[_a-zA-Z0-9]+"); // only alphanumeric letters
+
+    // ToolTip contains the old name of the dataset
+    QString old_name( dataset_item->toolTip(0) );
+    QString new_name( dataset_item->text(0) );
+
+    if (re.exactMatch( new_name ) ) // Has a Valid Name
     {
-        FillCombo( mDatasetsCombo, *mWks->GetDatasets(),
+        CDataset *current_dataset = mWDataset->GetDataset( old_name.toStdString() );
 
-            []( const CObMap::value_type &i ) -> const char*
-            {
-                return i.first.c_str();
-            },
-            0, true
-        );
+        if( mWDataset->RenameDataset(current_dataset, new_name.toStdString() ) == true )
+        {
+            dataset_item->setToolTip(0, new_name );
+            return;
+        }
+        else // Repeated name
+        {
+            SimpleWarnBox( QString( "Unable to rename dataset '%1' by '%2'.\nPerhaps dataset already exists.").arg(
+                                    old_name, new_name) );
+        }
+    }
+    else // Invalid name inserted
+    {
+        SimpleWarnBox( QString( "Unable to rename dataset '%1' by '%2'.\nPlease enter only alphanumeric letters, 'A-Z' or '_a-z' or '0-9'.").arg(
+                                old_name, new_name) );
+    }
 
+    // Setting old name (if new name is repeated or invalid)
+    dataset_item->setText(0, old_name );
+}
+
+
+
+void CDatasetBrowserControls::HandleTreeItemChanged( )
+{
+    QTreeWidgetItem *tree_item = mDatasetTree->currentItem();
+
+    if ( tree_item == nullptr )
+    {
+        return;
+    }
+
+    // top-level item has no parent() = NULL -> is a dataset
+    if (tree_item->parent() == nullptr )
+    {
+        DatasetChanged( tree_item );
+
+		// notify the world
+		CDataset *current_dataset = mWDataset->GetDataset( tree_item->text(0).toStdString() );
+		emit CurrentDatasetChanged( current_dataset );
+    }
+    else // is a file
+    {
+        FileChanged( tree_item );
     }
 }
 
 
-void CDatasetBrowserControls::DatasetChanged( int current_index )
+
+void CDatasetBrowserControls::HandleWorkspaceChanged( CWorkspaceDataset *wksd )
 {
-    // Assert index of selected Dataset
-    assert__( current_index == mDatasetsCombo->currentIndex() );
+    mWDataset = wksd;
+
+    // Fill DatasetTree with Datasets items
+    mDatasetTree->clear();
+
+    if (wksd)
+    {
+        for( auto const it : *mWDataset->GetDatasets() )
+        {
+            AddDatasetToTree( t2q( it.first ) );
+        }
+    }
+}
+
+
+
+void CDatasetBrowserControls::AddDatasetToTree( const QString &dataset_name )
+{
+    QIcon dataset_icon = QIcon(":/images/OSGeo/db.png");
+
+    QTreeWidgetItem *dataset_item = new QTreeWidgetItem();
+    dataset_item->setText(0, dataset_name );
+    dataset_item->setToolTip(0, dataset_name );
+    dataset_item->setIcon(0, dataset_icon);
+    dataset_item->setFlags( dataset_item->flags() | Qt::ItemIsEditable );
+    mDatasetTree->addTopLevelItem( dataset_item );
+
+    FillFileTree( dataset_item );
+}
+
+
+
+void CDatasetBrowserControls::DatasetChanged( QTreeWidgetItem *tree_item )
+{
+    Q_UNUSED( tree_item );
 
     WaitCursor wait;
 
-    // Clear list of files
-    mFilesList->clear();
-
-    // If not empty or a Dataset is selected
-    if ( current_index < 0 || !mWks->HasDataset() )
-    {
-        ClearFieldList();
-    }
-    else
-    {
-        FillFileList();
-    }
+    ClearFieldList();
 }
 
 
 
-void CDatasetBrowserControls::FileChanged( int file_index )
+void CDatasetBrowserControls::FileChanged( QTreeWidgetItem *file_item )
 {
-    // Assert index of selected file
-    assert__( file_index == mFilesList->currentRow() );
-
     WaitCursor wait;
 
     // Clear field list and descriptions
     ClearFieldList();
 
-    if ( file_index >= 0 )
-    {
-        FillFieldList();
-    }
-
-	QString path;
-	if ( file_index >= 0 )
-		path = mFilesList->currentItem()->text();
-
-	emit FileChanged( path );
+    FillFieldList( file_item );
 }
 
 
 
-void CDatasetBrowserControls::FieldChanged()
+void CDatasetBrowserControls::HandleFieldChanged()
 {
     WaitCursor wait;
 
@@ -214,27 +286,23 @@ void CDatasetBrowserControls::FieldChanged()
 
 
 
-void CDatasetBrowserControls::OnNewDataset()
+void CDatasetBrowserControls::HandleNewDataset()
 {
-    if( mWks == nullptr )
+    if( mWDataset == nullptr )
     {
         return;
     }
 
     WaitCursor wait;
 
-    mDatasetsCombo->setEnabled(true);
-
     // Get name for the new dataset
-    QString dataset_name ( mWks->GetDatasetNewName().c_str() );
+    QString dataset_name ( mWDataset->GetDatasetNewName().c_str() );
 
-    // Insert dataset in workspace and into DatasetCombo
-    mWks->InsertDataset( dataset_name.toStdString() );
+    // Insert dataset in workspace and into DatasetTree
+    mWDataset->InsertDataset( dataset_name.toStdString() );
+    AddDatasetToTree( dataset_name );
 
-    mDatasetsCombo->addItem( dataset_name );
-    mDatasetsCombo->setCurrentIndex( mDatasetsCombo->findText( dataset_name ) );
-
-    // -TODO(Delete)-- Old Brat code - mWks->GetDatasetNewName() ensures that new dataset does not exists ------
+    // -TODO(Delete)-- Old Brat code - mWDataset->GetDatasetNewName() ensures that new dataset does not exists ------
     //else
     //{
     //    SimpleWarnBox( QString("Dataset '%s' already exists.").sprintf( dataset_name.toStdString().c_str() ));
@@ -242,7 +310,6 @@ void CDatasetBrowserControls::OnNewDataset()
     // ----------------------------------------------------------------------------------------------------------
 
     // Clear list of files and fields list
-    mFilesList->clear();
     ClearFieldList();
 
     // -TODO -- Old Brat code ----------------------
@@ -251,19 +318,27 @@ void CDatasetBrowserControls::OnNewDataset()
     //CNewDatasetEvent ev(GetId(), dsName);
     //wxPostEvent(GetParent(), ev);
     // ---------------------------------------------
+
+	emit CurrentDatasetChanged( mWDataset->GetDataset( q2a( dataset_name ) ) );
 }
 
 
 
-void CDatasetBrowserControls::OnDeleteDataset()
+void CDatasetBrowserControls::HandleDeleteDataset()
 {
-    if( mWks == nullptr || mDatasetsCombo->currentIndex() < 0 )
+    // Get selected dataset item
+    QTreeWidgetItem *current_dataset_item = mDatasetTree->currentItem();
+
+    if( current_dataset_item->parent() ) //check if selected item has parent (is a file)
+        current_dataset_item = current_dataset_item->parent();
+
+    if( mWDataset == nullptr || current_dataset_item == nullptr )
     {
         return;
     }
 
     // Get current dataset
-    CDataset *current_dataset = mWks->GetDataset( mDatasetsCombo->currentText().toStdString() );
+    CDataset *current_dataset = mWDataset->GetDataset( current_dataset_item->text(0).toStdString() );
 
     if ( !SimpleQuestion( QString("Are you sure to delete dataset '%1'?").arg(current_dataset->GetName().c_str()) ) )
     {
@@ -286,15 +361,15 @@ void CDatasetBrowserControls::OnDeleteDataset()
     //}
     // --------------------------------------------------------------------
 
-    if( !mWks->DeleteDataset( current_dataset ) )
+    if( !mWDataset->DeleteDataset( current_dataset ) )
     {
-        SimpleWarnBox( QString( "Unable to delete dataset '%s1").arg(
+        SimpleWarnBox( QString( "Unable to delete dataset '%1").arg(
                                 current_dataset->GetName().c_str()  ) );
         return;
     }
 
-    mDatasetsCombo->removeItem( mDatasetsCombo->currentIndex() );
-    mDatasetsCombo->setCurrentIndex( mDatasetsCombo->count() - 1 );
+    delete current_dataset_item;
+    ClearFieldList();
 
     // -TODO -- Old Brat code ----------------------
     //EnableCtrl();
@@ -302,36 +377,50 @@ void CDatasetBrowserControls::OnDeleteDataset()
     //CNewDatasetEvent ev(GetId(), dsName);
     //wxPostEvent(GetParent(), ev);
     // ---------------------------------------------
+
+	emit CurrentDatasetChanged( nullptr );
 }
 
 
 
-void CDatasetBrowserControls::OnAddFiles()
+void CDatasetBrowserControls::HandleAddFiles()
 {
+    // Get selected dataset item
+    QTreeWidgetItem *current_dataset_item = mDatasetTree->currentItem();
+
+    if( current_dataset_item->parent() ) //check if selected item has parent (is a file)
+        current_dataset_item = current_dataset_item->parent();
+
     // If empty or no Dataset is selected
-    if ( mDatasetsCombo->currentIndex() < 0 || !mWks->HasDataset() )
+    if ( current_dataset_item == nullptr  || !mWDataset->HasDataset() )
     {
         return;
     }
 
-    // TODO: Change mWks->GetPath() by the last data path ??
-    QStringList paths_list = BrowseFiles( this, "Select files...", mWks->GetPath().c_str() );
+    // TODO: Change mWDataset->GetPath() by the last data path ??
+    QStringList paths_list = BrowseFiles( this, "Select files...", mWDataset->GetPath().c_str() );
 
     AddFiles(paths_list);
 }
 
 
-void CDatasetBrowserControls::OnAddDir()
+void CDatasetBrowserControls::HandleAddDir()
 {
+    // Get selected dataset item
+    QTreeWidgetItem *current_dataset_item = mDatasetTree->currentItem();
+
+    if( current_dataset_item->parent() ) //check if selected item has parent (is a file)
+        current_dataset_item = current_dataset_item->parent();
+
     // If empty or no Dataset is selected
-    if ( mDatasetsCombo->currentIndex() < 0 || !mWks->HasDataset() )
+    if ( current_dataset_item == nullptr  || !mWDataset->HasDataset() )
     {
         return;
     }
 
-    // TODO: Change mWks->GetPath() by the last data path ??
-    QString dir_path = BrowseDirectory( this, "Select a directory...", mWks->GetPath().c_str() );
-	if ( dir_path.isEmpty() )			//TODO RCCC - add if necessary what to do if the user cancels
+    // TODO: Change mWDataset->GetPath() by the last data path ??
+    QString dir_path = BrowseDirectory( this, "Select a directory...", mWDataset->GetPath().c_str() );
+    if ( dir_path.isEmpty() )
 	{
 		return;
 	}
@@ -353,32 +442,59 @@ void CDatasetBrowserControls::OnAddDir()
 
 
 
-void CDatasetBrowserControls::OnRemoveFile()
+void CDatasetBrowserControls::HandleRemoveFile()
 {
-    if ( mDatasetsCombo->currentIndex() < 0 || mFilesList->currentRow() < 0 )
+    // Get selected dataset item
+    QTreeWidgetItem *current_dataset_item = nullptr;
+    QTreeWidgetItem *current_file_item = mDatasetTree->currentItem();
+
+    if( current_file_item->parent() ) //check if selected item has parent (is a file)
+    {
+        current_dataset_item = current_file_item->parent();
+    }
+    else
+    {
+        return;
+    }
+
+    if ( !mWDataset->HasDataset() )
+    {
+        return;
+    }
+
+
+    if ( !SimpleQuestion( "Are you sure to remove the selected file?" ) )
     {
         return;
     }
 
     // Delete product from current dataset
-    CDataset *current_dataset = mWks->GetDataset( q2a( mDatasetsCombo->currentText() ) );
-    current_dataset->EraseProduct( q2a( mFilesList->currentItem()->text() ) );
+    CDataset *current_dataset = mWDataset->GetDataset( q2a( current_dataset_item->text(0) ) );
+    current_dataset->EraseProduct( q2a( current_file_item->text(0) ) );
 
-    // Delete product in Files list
-    qDeleteAll ( mFilesList->selectedItems() );
+    // Delete product from tree
+    delete current_file_item;
 
-    mFilesList->setCurrentRow( -1 );
     ClearFieldList();
+
+	emit CurrentDatasetChanged( current_dataset );
 }
 
 
 
-void CDatasetBrowserControls::OnClearFiles()
+void CDatasetBrowserControls::HandleClearFiles()
 {
-    if ( mDatasetsCombo->currentIndex() < 0 || mFilesList->count() == 0 )
+    // Get selected dataset item
+    QTreeWidgetItem *current_dataset_item = mDatasetTree->currentItem();
+
+    if( current_dataset_item->parent() ) //check if selected item has parent (is a file)
     {
-        return;
+        current_dataset_item = current_dataset_item->parent();
     }
+
+    if( current_dataset_item->childCount() == 0 )
+        return;
+
 
     if ( !SimpleQuestion("Are you sure to remove all files of the current dataset?") )
     {
@@ -386,13 +502,15 @@ void CDatasetBrowserControls::OnClearFiles()
     }
 
     // Delete all products from current dataset
-    CDataset *current_dataset = mWks->GetDataset( q2a( mDatasetsCombo->currentText() ) );
+    CDataset *current_dataset = mWDataset->GetDataset( q2a( current_dataset_item->text(0) ) );
     current_dataset->ClearProductList();
 
-    // Delete all products in Files list
-    mFilesList->clear();
+    // Delete all products in current dataset
+    current_dataset_item->takeChildren();
 
     ClearFieldList();
+
+	emit CurrentDatasetChanged( current_dataset );
 }
 
 
@@ -405,6 +523,15 @@ void CDatasetBrowserControls::AddFiles(QStringList &paths_list)
 
     paths_list.sort();
 
+    // Get selected dataset item
+    QTreeWidgetItem *current_dataset_item = mDatasetTree->currentItem();
+
+    if( current_dataset_item->parent() ) //check if selected item has parent (is a file)
+    {
+        current_dataset_item = current_dataset_item->parent();
+    }
+
+
 // -TODO-- Old Brat code for saving last data path -----
 //    wxFileName currentDir;
 
@@ -413,11 +540,14 @@ void CDatasetBrowserControls::AddFiles(QStringList &paths_list)
 //    wxGetApp().SetLastDataPath(currentDir.GetPath());
 // ----------------------------------------------------
 
-    CStringList file_list;
-    foreach(QString path, paths_list)
-    {
-        file_list.InsertUnique( path.toStdString() );
-    }
+
+// -TODO (delete) - Changed in order to add only valid product files ////
+//    CStringList file_list;
+//    foreach(QString path, paths_list)
+//    {
+//        file_list.InsertUnique( path.toStdString() );
+//    }
+//  //////////////////////////////////////////////////////////////////////
 
 // -TODO-- Old Brat code for applying select criteria -----
 //    bool applySelectionCriteria = GetDsapplycrit()->GetValue();
@@ -432,36 +562,62 @@ void CDatasetBrowserControls::AddFiles(QStringList &paths_list)
 //    }
 // --------------------------------------------------------
 
-    // Insert file_list into current Dataset
-    CDataset *current_dataset = mWks->GetDataset( mDatasetsCombo->currentText().toStdString() );
-    current_dataset->InsertUniqueProducts(file_list);
+// -TODO (delete) - Changed in order to add only valid product files /////
+//    // Insert file_list into current Dataset
+//    CDataset *current_dataset = mWDataset->GetDataset( current_dataset_item->text(0).toStdString() );
+//    current_dataset->InsertUniqueProducts(file_list);
 
-    // Clear list of files and fill with new list
-    mFilesList->clear();
-    FillFileList();
+//    // Clear all files and fill with new list
+//    current_dataset_item->takeChildren();
+//    FillFileTree( current_dataset_item );
 
-    CheckFiles();
+//    CheckFiles();
+//  //////////////////////////////////////////////////////////////////////
+
+    CDataset *current_dataset = mWDataset->GetDataset( current_dataset_item->text(0).toStdString() );
+
+    foreach(QString file_path, paths_list)
+    {
+        try
+        {
+            // Insert file path into current Dataset
+            current_dataset->GetProductList()->InsertUnique( q2a( file_path ) );
+
+            // Check each file (as they are added to current dataset)
+            current_dataset->CheckFiles();
+        }
+        catch (CException& e)
+        {
+            SimpleWarnBox( QString( "Unable to process files. Please apply correction.\n\nReason:\n%1").arg(
+                                    e.what()) );
+
+            // Delete product from dataset
+            current_dataset->EraseProduct( q2a( file_path ) );
+        }
+    }
+
+    // Clear all files and fill with new list
+    current_dataset_item->takeChildren();
+    FillFileTree( current_dataset_item );
+
+	emit CurrentDatasetChanged( current_dataset );
 }
 
 
 
-void CDatasetBrowserControls::FillFileList()
+void CDatasetBrowserControls::FillFileTree( QTreeWidgetItem *current_dataset_item )
 {
     // Get current Dataset            (do not use this before ensuring "there are" datasets)
-    CDataset *current_dataset  = mWks->GetDataset( mDatasetsCombo->currentText().toStdString() );
-
-    // Fill FileList with files of current Dataset
-    QIcon fileIcon = QIcon(":/images/OSGeo/db.png");
+    CDataset *current_dataset  = mWDataset->GetDataset( current_dataset_item->text(0).toStdString() );
 
     for ( auto const it : *current_dataset->GetProductList() )
     {
-        QListWidgetItem *file = new QListWidgetItem( it.c_str() );
-        file->setToolTip( it.c_str() );			//see complete path when it exceeds list width
-        file->setIcon( fileIcon );
+        QTreeWidgetItem *file = new QTreeWidgetItem();
+        file->setText(0, it.c_str());
+        file->setToolTip(0, it.c_str() );	//see complete path when it exceeds list width
 
-        mFilesList->addItem( file );
+        current_dataset_item->addChild(file);
     }
-    mFilesList->setCurrentRow( 0 );
 }
 
 
@@ -487,10 +643,18 @@ void CDatasetBrowserControls::CheckFiles()
 //    m_dataset->GetProductList()->Insert(array);
 // ------------------------------------------------------------------------------------------------------
 
+    // Get selected dataset item
+    QTreeWidgetItem *current_dataset_item = mDatasetTree->currentItem();
+
+    if( current_dataset_item->parent() ) //check if selected item has parent (is a file)
+    {
+        current_dataset_item = current_dataset_item->parent();
+    }
+
     try
     {
         // Get current Dataset
-        CDataset *current_dataset = mWks->GetDataset( mDatasetsCombo->currentText().toStdString() );
+        CDataset *current_dataset = mWDataset->GetDataset( current_dataset_item->text(0).toStdString() );
         current_dataset->CheckFiles();
 
         // -TODO (Delete)-- Old Brat code - Does not make sense because msg is always empty!! -------------
@@ -553,17 +717,15 @@ void CDatasetBrowserControls::ClearFieldList()  // the old method was: ClearDict
 
 
 
-void CDatasetBrowserControls::FillFieldList()
+void CDatasetBrowserControls::FillFieldList( QTreeWidgetItem *current_file_item )
 {
-    if ( mDatasetsCombo->currentIndex() < 0 || !mWks->HasDataset() )
-        return;
-
-    CDataset *current_dataset  = mWks->GetDataset( mDatasetsCombo->currentText().toStdString() );	//do not use this before ensuring "there are" datasets
+    //do not use this before ensuring "there are" datasets
+    CDataset *current_dataset  = mWDataset->GetDataset( current_file_item->parent()->text(0).toStdString() );
 
     CProduct *product = nullptr;
     try
     {
-        product = current_dataset->SetProduct( q2t<std::string>( mFilesList->currentItem()->text() ) );
+        product = current_dataset->SetProduct( q2t<std::string>( current_file_item->text(0) ) );
 
         // GetDictlist()->InsertProduct(m_product); //////////////////////////////////////////////
         CTreeField* tree = product->GetTreeField();

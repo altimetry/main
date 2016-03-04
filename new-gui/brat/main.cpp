@@ -36,7 +36,6 @@ try {
 
 	LOG_INFO( "brat is starting..." );
 
-
     CBratApplication a( argc, argv, true );    //QApplication::setStyle(new NorwegianWoodStyle);		//joke
 	CBratMainWindow w( a );
 	w.show();

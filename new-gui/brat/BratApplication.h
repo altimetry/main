@@ -84,28 +84,10 @@ protected:
 
 	bool mLeakExceptions = false;
 
+	bool mOperatingInDisplayMode = false;
 
-    bool m_isZFLatLon = false;
-	bool m_isYFX = false;
-	bool m_isZFXY = false;
+	QSplashScreen *mSplash = nullptr;
 
-	CObArray m_internalData;
-
-	std::string m_paramFile;
-	std::string m_paramXAxis;
-	std::string m_paramYAxis;
-
-	CStringList m_paramVars;
-	CFileParams m_params;
-	CStringArray m_inputFiles;
-	std::string m_inputFileType;
-
-	CObArray m_plots;
-	std::vector<CExpression> m_fields;
-
-	CObArray m_zfxyPlotProperties;
-	CObArray m_xyPlotProperties;
-	CObArray m_wPlotProperties;
 
 
 	//////////////////////////////////////
@@ -114,6 +96,8 @@ protected:
 
 	QString mDefaultAppStyle;
 
+	void CheckRunMode();
+	void CreateSplash();
 public:
     CBratApplication( int &argc, char **argv, bool GUIenabled, QString customConfigPath = QString() );
 
@@ -128,10 +112,18 @@ public:
 
     const CBratSettings& Settings() const { return  mSettings; }
 
+
 	void LeakExceptions( bool leak )
 	{
 		mLeakExceptions = leak;
 	}
+
+
+	bool OperatingInDisplayMode() const { return mOperatingInDisplayMode; }
+
+	void ShowSplash( const std::string &msg, bool disable_events = false ) const;
+	void EndSplash( QWidget *w );
+	bool SplashAvailable() const { return mSplash != nullptr; }
 
 
 	//////////////////////////////////////

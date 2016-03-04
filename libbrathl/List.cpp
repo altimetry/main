@@ -430,18 +430,18 @@ void CStringList::ExtractStrings( const std::string& str, const char delim, bool
 
 	std::string sequence = str;
 
-	size_t pos = sequence.find( delim );
+	auto pos = sequence.find( delim );
 
-	size_t nLg;
+	long nLg;		//v4: looking at the algorithm below, must be signed
 
 	while ( sequence.empty() == false )
 	{
 
-		if ( pos > 0 )
+		if ( pos != std::string::npos )
 		{
 			this->Insert( sequence.substr( 0, pos ) );
 		}
-		if ( pos < 0 )
+		else
 		{
 			this->Insert( sequence );
 			sequence = "";
@@ -474,17 +474,17 @@ void CStringList::ExtractStrings( const std::string& str, const std::string& del
 
 	std::string sequence = str;
 
-	size_t pos = sequence.find( delim );
+	auto pos = sequence.find( delim );
 
-	size_t nLg;
+	long nLg;				//v4: looking at the algorithm below, must be signed
 
 	while ( sequence.empty() == false )
 	{
-		if ( pos > 0 )
+		if ( pos != std::string::npos )
 		{
 			this->Insert( sequence.substr( 0, pos ) );
 		}
-		if ( pos < 0 )
+		else
 		{
 			this->Insert( sequence );
 			sequence = "";
@@ -564,17 +564,17 @@ void CStringList::ExtractKeys( const std::string& str, const std::string& delim,
 
 	std::string sequence = str;
 
-	size_t pos = sequence.find( delim, 0 );
+	auto pos = sequence.find( delim, 0 );
 
-	size_t beginSearch = 0;
+	size_t beginSearch = 0;		
 
 	while ( true )
 	{
-		if ( pos > 0 )
+		if ( pos != std::string::npos )
 		{
 			this->Insert( sequence.substr( 0, pos ) );
 		}
-		if ( pos < 0 )
+		else
 		{
 			this->Insert( sequence );
 			break;
@@ -588,7 +588,7 @@ void CStringList::ExtractKeys( const std::string& str, const std::string& delim,
 		}
 		else
 		{
-			pos = -1;
+			pos = std::string::npos;
 		}
 	}
 }

@@ -68,11 +68,11 @@ CApplicationSettingsDlg::CApplicationSettingsDlg( CBratSettings &options, QWidge
 
 	Styles_listWidget->setSelectionMode( QAbstractItemView::SingleSelection );
 	const std::vector< std::string > &styles = CBratSettings::getStyles();
-	fillList( Styles_listWidget, styles, (int)CBratSettings::getStyleIndex( mSettings.mAppStyle ), true );
+	FillList( Styles_listWidget, styles, (int)CBratSettings::getStyleIndex( mSettings.mAppStyle ), true );
 
 	StyleSheets_listWidget->setSelectionMode( QAbstractItemView::SingleSelection );
 	const std::vector< std::string > &style_sheets = CBratSettings::getStyleSheets( false );
-	fillList( StyleSheets_listWidget, style_sheets, mSettings.mCustomAppStyleSheet, true );
+	FillList( StyleSheets_listWidget, style_sheets, mSettings.mCustomAppStyleSheet, true );
 
     DefaultStyle_checkBox->setChecked( mSettings.mUseDefaultStyle );
 	NoStyleSheet_checkBox->setChecked( mSettings.mNoStyleSheet );

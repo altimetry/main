@@ -1,7 +1,9 @@
 #include "new-gui/brat/stdafx.h"
 
 #include "GUI/TabbedDock.h"
+#include "GUI/DisplayWidgets/GlobeWidget.h"
 #include "DesktopManager.h"
+
 
 
 #if defined TESTS
@@ -40,7 +42,7 @@ inline QWidget* CenterOn1stScreen( QWidget *const w )
 #endif
 
 /////////////////////////////////////////////////////////////////////////////////////
-//
+//									SDI
 /////////////////////////////////////////////////////////////////////////////////////
 
 QWidget* CDesktopManagerSDI::CenterOnWidget( QWidget *const w, const QWidget *const parent )
@@ -73,39 +75,27 @@ CDesktopManagerSDI::desktop_child_t* CDesktopManagerSDI::AddSubWindow( QWidget *
 CDesktopManagerSDI::CDesktopManagerSDI( const CApplicationPaths &paths, QMainWindow *parent )
 	: base_t( paths, parent )
 {
-	//QWidget *centralWidget = parent->centralWidget();
-	//QGridLayout *centralLayout = new QGridLayout( centralWidget );
-	//centralWidget->setLayout( centralLayout );
-	//centralLayout->setContentsMargins( 0, 0, 0, 0 );
-
-	// "theMapCanvas" used to find this canonical instance later
-	//mMapCanvas = new QgsMapCanvas( centralWidget, "theMapCanvas" );
-	//mMapCanvas->setWhatsThis( tr( "Map canvas. This is where raster and vector "
-	//"layers are displayed when added to the map" ) );
-
-	// set canvas color right away
-	//int myRed = settings.value( "/qgis/default_canvas_color_red", 255 ).toInt();
-	//int myGreen = settings.value( "/qgis/default_canvas_color_green", 255 ).toInt();
-	//int myBlue = settings.value( "/qgis/default_canvas_color_blue", 255 ).toInt();
-	//mMapCanvas->setCanvasColor( QColor( myRed, myGreen, myBlue ) );
-
-	//centralLayout->addWidget( mMap, 0, 0, 2, 1 );
-
-	mMap->setMinimumSize( min_main_window_width / 3 * 2, min_main_window_height / 3 * 2 );
 
 #if defined TABBED_MANAGER
 
+	mMap->setMinimumSize( min_main_window_width / 3 * 2, min_main_window_height / 3 * 2 );
 	addTab( mMap, "Map" );
 
 #else
 
-	const int margin = 11;
+	mSplitter = CreateSplitterIn( this, Qt::Horizontal );
+	mSplitter->setFrameStyle( QFrame::Panel );
+	mSplitter->setFrameShadow( QFrame::Sunken );
+	mSplitter->setMinimumSize( min_main_window_width / 3 * 2, min_main_window_height / 3 * 2 );
+	mSplitter->addWidget( mMap );
+	mGlobeView = new CGlobeWidget( this, mMap, parent->statusBar() );
+	mSplitter->addWidget( mGlobeView );
 
-	auto frame = new QFrame( parent );
-	LayoutWidgets( { frame }, this, 0, 0, 0, 0, 0 );
-	frame->setFrameStyle( QFrame::Panel );
-	frame->setFrameShadow( QFrame::Sunken );
-	LayoutWidgets( Qt::Horizontal, { mMap }, frame, 0, margin, margin, margin, margin );
+	QList<int> sizes;
+	sizes.append( min_main_window_width );
+	sizes.append( 0 );
+
+	mSplitter->setSizes( sizes );
 
 #endif
 }
@@ -113,7 +103,7 @@ CDesktopManagerSDI::CDesktopManagerSDI( const CApplicationPaths &paths, QMainWin
 
 
 /////////////////////////////////////////////////////////////////////////////////////
-//
+//									MDI
 /////////////////////////////////////////////////////////////////////////////////////
 
 

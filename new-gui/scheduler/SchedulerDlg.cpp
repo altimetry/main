@@ -238,19 +238,19 @@ bool CSchedulerDlg::ChangeProcessingToPending()
 
 void CSchedulerDlg::action_ViewConfig_slot()
 {
-    FNOT_IMPLEMENTED( "This should open Config file." );
+    MSG_NOT_IMPLEMENTED( "This should open Config file." );
 }
 
 
 void CSchedulerDlg::action_UserManual_slot()
 {
-    FNOT_IMPLEMENTED( "This should open User's manual." );
+    MSG_NOT_IMPLEMENTED( "This should open User's manual." );
 }
 
 
 void CSchedulerDlg::action_About_slot()
 {
-    FNOT_IMPLEMENTED( "This should open About info." );
+    MSG_NOT_IMPLEMENTED( "This should open About info." );
 }
 
 

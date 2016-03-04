@@ -94,6 +94,28 @@ void CBratMapView::CreatePlot( const CWorldPlotProperties *props, CWPlot* wplot 
 //			3) cannot color the values over a line (unless with another layer, a point layer, but then, why the line layer?)
 //(***) Using features and not rubberbands because these are not projected in the globe
 //
+void CBratMapView::PlotTrack( const double *x, const double *y, size_t size, QColor color )		//color = Qt::red 
+{
+    QgsFeatureList flist;
+
+    for ( auto i = 0u; i < size; ++ i )
+    {
+
+#if defined (USE_FEATURES) //(***)
+        createPointFeature( flist, x[ i ], y[ i ], color.red() );		//use color.red() as value: not relevant
+#else
+        addRBPoint( x[ i ], y[ i ], QColor( (long)v[ i ] ), mMainLayer );
+#endif
+    }
+
+#if defined (USE_FEATURES)
+    auto memL = AddMemoryLayer( createPointSymbol( 1, color ) );	//(*)	//note that you can use strings like "red" instead!!!
+    memL->dataProvider()->addFeatures( flist );
+    //memL->updateExtents();
+    //refresh();
+#endif
+}
+
 void CBratMapView::AddData( CWorldPlotData* pdata )
 {
 	CWorldPlotData* geoMap = dynamic_cast<CWorldPlotData*>( pdata );
@@ -134,7 +156,7 @@ void CBratMapView::Plot( const CWorldPlotInfo &maps )
 		//createPointFeature( flist, geoMap->lons.at( x ), geoMap->lats.at( y ), QColor( 0, (unsigned char)(geoMap->vals[ i ]), 0 ) );
 #else
 		addRBPoint( geoMap->lons.at( x ), geoMap->lats.at( y ), QColor( (long)(geoMap->vals[ i ]) ), mMainLayer );
-#endif
+#endif  //USE_FEATURES
 	}
 
 #if defined (USE_FEATURES)
@@ -142,7 +164,7 @@ void CBratMapView::Plot( const CWorldPlotInfo &maps )
 	memL->dataProvider()->addFeatures( flist );
 	//memL->updateExtents();
 	//refresh();
-#endif
+#endif  //USE_FEATURES
 
 	return;
 

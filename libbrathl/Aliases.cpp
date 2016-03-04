@@ -325,34 +325,6 @@ void CAliases::Dump(std::ostream& fOut /* = std::cerr */)
 //------------------- CProductAlias class --------------------
 //-------------------------------------------------------------
 
-CProductAlias::CProductAlias()
-{
-  Init();
-}
-//----------------------------------------
-CProductAlias::CProductAlias(const CAlias& alias)
-{
-  Init();
-  Set(alias);
-}
-//----------------------------------------
-CProductAlias::~CProductAlias()
-{
-}
-
-//----------------------------------------
-void CProductAlias::Init()
-{
-}
-//----------------------------------------
-void CProductAlias::Set(const CAlias& alias)
-{
-  m_name = alias.GetName();
-  m_value = alias.GetValue();
-  m_description = alias.GetDescription();
-
-}
-//----------------------------------------
 
 //----------------------------------------
 void CProductAlias::Dump(std::ostream& fOut /* = std::cerr */)

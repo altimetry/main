@@ -282,7 +282,7 @@ QActionGroup* ProjectionsActions( QWidget *parent )
 	};
 
 
-	QActionGroup *g = CActionInfo::CreateActionsGroup( parent, ActionTags, true );
+	QActionGroup *g = CActionInfo::CreateActionGroup( parent, ActionTags, true );
 	auto actions = g->actions();
 
 	// CMapProjection::3D is not in ActionTags, default_projection_id and separator are not in CMapProjection
