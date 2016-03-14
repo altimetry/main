@@ -121,7 +121,14 @@
         <file>images/OSGeo/measure-area.png</file>
         <file>images/OSGeo/crs-change.png</file>
         <file>images/OSGeo/projection.png</file>
-        <file>images/OSGeo/db.png</file>
+        <file>images/OSGeo/dataset.png</file>
+        <file>images/OSGeo/dataset_new.png</file>
+        <file>images/OSGeo/dataset_remove.png</file>
+        <file>images/OSGeo/file.png</file>
+        <file>images/OSGeo/add_dir_dataset.png</file>
+        <file>images/OSGeo/add_files_dataset.png</file>
+        <file>images/OSGeo/file_remove.png</file>
+        <file>images/OSGeo/file_delete.png</file>
         <file>images/OSGeo/paint.png</file>
         <file>images/InstallSplashScreen.png</file>
         <file>images/Create.jpg</file>
@@ -166,5 +173,6 @@
         <file>images/OSGeo/search.png</file>
         <file>images/OSGeo/stats.png</file>
         <file>images/OSGeo/tools.png</file>
+        <file>images/rads.gif</file>
     </qresource>
 </RCC>

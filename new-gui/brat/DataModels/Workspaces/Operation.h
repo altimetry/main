@@ -111,7 +111,7 @@ protected:
 	std::string m_record;									//CFormula* m_formula;
 	CFormula* m_select = new CFormula(ENTRY_SELECT, false);
 	CMapFormula m_formulas;
-	int32_t m_type = CMapTypeOp::eTypeOpYFX;
+	CMapTypeOp::ETypeOp m_type = CMapTypeOp::eTypeOpYFX;
 	int32_t m_dataMode = CMapDataMode::GetInstance().GetDefault();
 
 	std::string m_output;
@@ -181,7 +181,7 @@ public:
 	bool RenameFormula( CFormula* formula, const std::string &newName );
 
 	bool SaveConfig( CWorkspaceSettings *config, const CWorkspaceOperation *wks ) const;
-	bool LoadConfig( CWorkspaceSettings *config, std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso );
+	bool LoadConfig( CWorkspaceSettings *config, std::string &error_msg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso );
 
 	CDataset* FindDataset( const std::string& datasetName, CWorkspaceDataset *wks );
 
@@ -189,7 +189,8 @@ public:
 	void SetRecord( const std::string& value ) { m_record = value; }
 
 	int32_t GetType() const { return m_type; }
-	void SetType( int32_t value ) { m_type = value; }
+	void SetType( int32_t value ) { SetType( (CMapTypeOp::ETypeOp)value ); }
+	void SetType( CMapTypeOp::ETypeOp value ) { m_type = value; }
 
 	std::string GetDataModeAsString() { return CMapDataMode::GetInstance().IdToName( m_dataMode ); }
 	int32_t GetDataMode() const { return m_dataMode; }
@@ -215,10 +216,11 @@ public:
 	CFormula* GetFormula( CMapFormula::iterator it );
 	const CFormula* GetFormula( CMapFormula::const_iterator it ) const;
 
-	CFormula* NewUserFormula( std::string &errorMsg, CField* field, int32_t typeField, bool addToMap = true, CProduct* product = nullptr );
-	CFormula* NewUserFormula( std::string &errorMsg, const std::string& name = "", int32_t typeField = CMapTypeField::eTypeOpAsField, const std::string& strUnit = "", bool addToMap = true, CProduct* product = nullptr );
+	CFormula* NewUserFormula( std::string &error_msg, CField* field, int32_t typeField, bool addToMap = true, const CProduct *product = nullptr );
+	CFormula* NewUserFormula( std::string &error_msg, const std::string& name = "", int32_t typeField = CMapTypeField::eTypeOpAsField, 
+		const std::string& strUnit = "", bool addToMap = true, const CProduct *product = nullptr );
 
-	bool AddFormula( CFormula& value, std::string &errorMsg );
+	bool AddFormula( CFormula& value, std::string &error_msg );
 	bool DeleteFormula( const std::string& name );
 
 	std::string GetDescFormula( const std::string& name, bool alias = false );
@@ -242,7 +244,7 @@ public:
 
 
 	std::string GetTaskName() const;
-	const std::string GetCmdFile() const { return m_cmdFile; }	
+	const std::string& GetCmdFile() const { return m_cmdFile; }	
 	void SetCmdFile( CWorkspaceOperation* wks );
 
 	std::string GetExportAsciiTaskName() const;
@@ -279,7 +281,7 @@ public:
 	std::string GetFormulaNewName( const std::string& prefix ) const;
 
 	const std::string& GetSystemCommand() const;
-	std::string GetFullCmd();
+	std::string GetFullCmd() const;
 
 	const std::string& GetExportAsciiSystemCommand() const;
 	std::string GetExportAsciiFullCmd();
@@ -310,7 +312,7 @@ public:
 	bool RemoveOutput();
 	bool RenameOutput( const std::string& oldPath );
 
-	bool BuildCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &errorMsg );
+	bool BuildCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg );
 	bool BuildShowStatsCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso );
 	bool BuildExportAsciiCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso );
 
@@ -319,17 +321,18 @@ public:
 	void InitExportAsciiOutput( CWorkspaceOperation *wks );
 	void InitShowStatsOutput( CWorkspaceOperation *wks );
 
-	bool ComputeInterval( const std::string& formulaName, std::string &errorMsg );
-	bool ComputeInterval( CFormula* f, std::string &errorMsg );
+	//bool ComputeInterval( const std::string& formulaName, std::string &error_msg );
+	bool ComputeInterval( std::string &error_msg );
+	bool ComputeInterval( CFormula* f, std::string &error_msg );
 
-	bool ControlDimensions( CFormula* formula, std::string &errorMsg, const CStringMap* aliases = nullptr );
-	bool ControlResolution( std::string &errorMsg );
+	bool ControlDimensions( CFormula* formula, std::string &error_msg, const CStringMap* aliases = nullptr );
+	bool ControlResolution( std::string &error_msg );
 	bool Control( CWorkspaceFormula *wks, std::string& msg, bool basicControl = false, const CStringMap* aliases = nullptr );
 
-	bool GetXExpression( CExpression& expr, std::string& errorMsg, const CStringMap* aliases = nullptr ) const;
-	bool GetYExpression( CExpression& expr, std::string& errorMsg, const CStringMap* aliases = nullptr ) const;
+	bool GetXExpression( CExpression& expr, std::string& error_msg, const CStringMap* aliases = nullptr ) const;
+	bool GetYExpression( CExpression& expr, std::string& error_msg, const CStringMap* aliases = nullptr ) const;
 
-	bool ControlXYDataFields( std::string &errorMsg, const CStringMap* aliases = nullptr );
+	bool ControlXYDataFields( std::string &error_msg, const CStringMap* aliases = nullptr );
 
 	void ClearLogFile();
 

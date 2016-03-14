@@ -32,6 +32,48 @@ class CDisplayDataTreeCtrl;
 #include "new-gui/brat/DataModels/Workspaces/Display.h"
 
 
+//----------------------------------------------------------------------------
+// CDndDisplayData
+//----------------------------------------------------------------------------
+
+struct CDndDisplayData
+{
+	CObArray m_data;
+
+	CDndDisplayData() : m_data( false ) 
+	{}
+	CDndDisplayData( CDisplayData* displayData ) { m_data.Insert( displayData ); }
+	CDndDisplayData( const CObArray& data ) { Set( data ); }
+	CDndDisplayData( const CObArray* data ) { Set( data ); }
+
+	CDndDisplayData( CDndDisplayData& dndDisplayData )
+		: m_data( false )
+	{
+		Set( dndDisplayData );
+	}
+
+	virtual ~CDndDisplayData()
+	{}
+
+	void Set( CDndDisplayData& dndDisplayData )
+	{
+		Set( dndDisplayData.m_data );
+	}
+
+	void Set( const CObArray& data )
+	{
+		m_data.RemoveAll();
+		for ( CObArray::const_iterator it = data.begin(); it != data.end(); it++ )
+			m_data.Insert( *it );
+	}
+
+	void Set( const CObArray* data )
+	{
+		Set( *data );
+	}
+};
+
+
 
 //----------------------------------------------------------------------------
 // CDndDisplayDataObject

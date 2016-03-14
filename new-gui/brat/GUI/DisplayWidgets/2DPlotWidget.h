@@ -7,6 +7,7 @@
 #include <qwt_plot_spectrogram.h>
 #include <qwt_plot_marker.h>
 #include <qwt_plot_curve.h>
+#include <qwt_symbol.h>
 
 
 class QwtPlotCurve;
@@ -224,6 +225,221 @@ public:
 	}
 
 
+        void SetTargetCurveStyleLine(int index)
+        {
+            CGeneralizedCurve * pcurve = this->mCurves[index];
+
+            pcurve->setStyle(QwtPlotCurve::Lines);
+        }
+
+        void SetTargetCurveStyleDots(int index)
+        {
+            CGeneralizedCurve * pcurve = this->mCurves[index];
+
+            pcurve->setStyle(QwtPlotCurve::Dots);
+        }
+
+        bool IsTargetCurveStyleLine(int index) const
+        {
+            CGeneralizedCurve * pcurve = this->mCurves[index];
+            return pcurve->style() == QwtPlotCurve::Lines;
+        }
+
+        bool IsTargetCurveStyleDots(int index) const
+        {
+            CGeneralizedCurve * pcurve = this->mCurves[index];
+            return pcurve->style() == QwtPlotCurve::Dots;
+        }
+
+
+
+        QColor GetTargetCurvePenColor(int index) const
+        {
+            CGeneralizedCurve * pcurve = this->mCurves[index];
+
+
+          //  return pcurve->pen().brush().color();
+            return pcurve->pen().color();
+        }
+
+        void SetTargetCurvePenColor(int index,QColor new_color) const
+        {
+            CGeneralizedCurve * pcurve = this->mCurves[index];
+            QPen new_pen (new_color);
+
+            pcurve->setPen(new_pen);
+        }
+
+
+        int GetTargetCurvePenAlpha(int index) const
+        {
+            CGeneralizedCurve * pcurve = this->mCurves[index];
+
+
+          //  return pcurve->pen().brush().color();
+            return pcurve->pen().color().alpha();
+        }
+
+        void SetTargetCurvePenAlpha(int index,int new_alpha) const
+        {
+            CGeneralizedCurve * pcurve = this->mCurves[index];
+            QPen new_pen = pcurve->pen();
+            QColor old_color = new_pen.color();
+            old_color.setAlpha(new_alpha);
+            new_pen.setColor(old_color);
+
+
+            pcurve->setPen(new_pen);
+        }
+
+        int GetTargetCurvePenWidth(int index) const
+        {
+            CGeneralizedCurve * pcurve = this->mCurves[index];
+
+            //  return pcurve->pen().brush().color();
+            return pcurve->pen().width();
+        }
+
+
+        void SetTargetCurvePenWidth(int index, int pixels) const
+        {
+            CGeneralizedCurve * pcurve = this->mCurves[index];
+
+            QPen old_pen = pcurve->pen();
+
+            //  return pcurve->pen().brush().color();
+            old_pen.setWidth(pixels);
+
+            pcurve->setPen(old_pen);
+        }
+
+
+
+        int GetTargetCurveLinePattern(int index) const
+        {
+            CGeneralizedCurve * pcurve = this->mCurves[index];
+
+            QPen curr_pen = pcurve->pen();
+
+            return curr_pen.style();
+
+          //  QwtSymbol c_symbol = pcurve->symbol();
+
+          //  return c_symbol.style();
+        }
+
+        void SetTargetCurveLinePattern(int index, int pat)
+        {
+            CGeneralizedCurve * pcurve = this->mCurves[index];
+            QPen old_pen = pcurve->pen();
+
+            switch (pat)
+            {
+            case 0:
+                old_pen.setStyle(Qt::NoPen);
+                break;
+            case 1:
+                old_pen.setStyle(Qt::SolidLine);
+                break;
+            case 2:
+                old_pen.setStyle(Qt::DashLine);
+                break;
+            case 3:
+                old_pen.setStyle(Qt::DotLine);
+                break;
+            case 4:
+                old_pen.setStyle(Qt::DashDotLine);
+                break;
+            case 5:
+                old_pen.setStyle(Qt::DashDotDotLine);
+                break;
+            default:
+               // old_pen.setStyle(Qt::SolidLine);
+                break;
+            }
+            pcurve->setPen(old_pen);
+        }
+
+
+        int GetTargetCurvePointSymbol(int index) const
+        {
+
+            CGeneralizedCurve * pcurve = this->mCurves[index];
+
+            QwtSymbol c_symbol = pcurve->symbol();
+
+
+            return (c_symbol.style()+1);
+        }
+
+        void SetTargetCurvePointSymbol(int index, int val_symbol)
+        {
+            CGeneralizedCurve * pcurve = this->mCurves[index];
+
+            QwtSymbol c_symbol = pcurve->symbol();
+
+            c_symbol.setStyle((QwtSymbol::Style)(val_symbol-1));
+
+            pcurve->setSymbol(c_symbol);
+        }
+
+        void SetTargetCurveGlyphColor(int index, QColor new_color)
+        {
+            CGeneralizedCurve * pcurve = this->mCurves[index];
+            QwtSymbol c_symbol = pcurve->symbol();
+            QPen old_pen = c_symbol.pen();
+            old_pen.setColor(new_color);
+            c_symbol.setPen(old_pen);
+            pcurve->setSymbol(c_symbol);
+            pcurve->setPen(Qt::NoPen);
+        }
+
+        QColor GetTargetCurveGlyphColor(int index ) const
+        {
+            CGeneralizedCurve * pcurve = this->mCurves[index];
+            QwtSymbol c_symbol = pcurve->symbol();
+            QPen curr_pen = c_symbol.pen();
+            return curr_pen.color();
+        }
+
+        void SetInteriorBrush(bool flag, int index)
+        {
+            CGeneralizedCurve * pcurve = this->mCurves[index];
+            QwtSymbol c_symbol = pcurve->symbol();
+            QBrush curr_brush = c_symbol.brush();
+
+            if (!flag)
+            {
+                curr_brush = Qt::NoBrush;
+            }
+            else
+            {
+                curr_brush.setColor(pcurve->symbol().pen().color());
+            }
+            c_symbol.setBrush(curr_brush);
+            pcurve->setSymbol(c_symbol);
+        }
+
+        int GetTargetCurvePointSize(int index) const
+        {
+            CGeneralizedCurve * pcurve = this->mCurves[index];
+
+            const QSize glyph_sz = pcurve->symbol().size();
+            //  return pcurve->pen().brush().color();
+            return glyph_sz.height();
+        }
+
+
+        void SetTargetCurvePointSize(int index, int pixels)
+        {
+            CGeneralizedCurve * pcurve = this->mCurves[index];
+            QSize new_size(pixels, pixels);
+            QwtSymbol c_symbol = pcurve->symbol();
+
+            c_symbol.setSize(new_size);
+
+            pcurve->setSymbol(c_symbol);
+        }
 
 	// markers
 

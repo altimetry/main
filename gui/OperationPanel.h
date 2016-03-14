@@ -179,7 +179,7 @@ public:
   CFieldsTreeCtrl* GetFieldstreectrl()  { return (CFieldsTreeCtrl*) FindWindow( ID_FIELDSTREECTRL ); }
   CDatasetTreeCtrl* GetDatasettreectrl()  { return (CDatasetTreeCtrl*) FindWindow( ID_DATASETTREECTRL ); }
 
-  bool HasOperation() {return m_currentOperation >= 0;};
+  bool HasOperation() {return m_currentOperationIndex >= 0;};
 
   bool CtrlOperation(CWorkspaceFormula *wks, std::string &msg, bool basicControl = false, const CStringMap* aliases = NULL);
   bool BuildCmdFile();
@@ -211,7 +211,9 @@ public:
   bool IsFormulaDataField();
   bool IsFormulaSelectField();
   
-  void FillDataTypeList();
+private:
+	void FillDataTypeList();
+public:
   void FillDataModeList();
 
   void GetDataMode();
@@ -259,7 +261,7 @@ private:
   bool m_opNameDirty;
 
 
-  int32_t m_currentOperation;
+  int32_t m_currentOperationIndex;
   wxTreeItemId m_currentDataset;
   wxTreeItemId m_currentRecord;
 
@@ -336,8 +338,8 @@ private:
 
   void Resolution( );
 
-  void ComputeInterval(const wxString& formulaName);
-  void ComputeInterval(CFormula* formula);
+  //void ComputeInterval(const wxString& formulaName);
+  //void ComputeInterval(CFormula* formula);
   void ComputeInterval();
 
 private:

@@ -306,6 +306,22 @@ protected:
 
 };
 
+class CExternalFilesSentinel3A : public CExternalFilesNetCDFCF
+{
+	using base_t = CExternalFilesNetCDFCF;
+
+public:
+	CExternalFilesSentinel3A( const std::string	&name = "" )
+		: base_t( name )
+	{}
+
+	virtual ~CExternalFilesSentinel3A()
+	{}
+
+	static std::string TypeOf() { return "Sentinel 3A"; };
+	virtual std::string GetType() { return TypeOf(); };
+};
+
 //-------------------------------------------------------------
 //------------------- CExternalFilesYFX class -----
 //-------------------------------------------------------------

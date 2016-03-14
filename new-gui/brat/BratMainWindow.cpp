@@ -13,6 +13,7 @@
 
 #include "DataModels/DisplayFilesProcessor.h"
 #include "DataModels/Workspaces/Workspace.h"
+#include "DataModels/Filters/BratFilters.h"
 #include "DataModels/PlotData/ZFXYPlot.h"
 #include "DataModels/PlotData/XYPlot.h"
 #include "DataModels/PlotData/WorldPlot.h"
@@ -21,6 +22,7 @@
 #include "GUI/ActionsTable.h"
 #include "GUI/WorkspaceDialog.h"
 #include "GUI/WorkspaceElementsDialog.h"
+#include "GUI/WorkspaceViewsDialog.h"
 #include "GUI/TabbedDock.h"
 #include "GUI/ControlPanels/ControlPanel.h"
 #include "GUI/ControlPanels/DatasetBrowserControls.h"
@@ -167,7 +169,7 @@ CControlPanel* CBratMainWindow::MakeWorkingPanel( ETabName tab )
 			return new ControlsPanelType< eDataset >::type( mDesktopManager );
 			break;
 		case eFilter:
-			return new ControlsPanelType< eFilter >::type( mDesktopManager );
+			return new ControlsPanelType< eFilter >::type( mDesktopManager, mBratFilters );
 			break;
 		case eOperations:
 			return new ControlsPanelType< eOperations >::type( mProcessesTable, mDesktopManager );
@@ -184,7 +186,7 @@ void CBratMainWindow::CreateWorkingDock()
 {
 	LOG_TRACE( "Starting working dock (controls panel) construction..." );
 
-	mMainWorkingDock = new CTabbedDock( "Main Working Dock", this );
+	mMainWorkingDock = new CTabbedDock( "", this );
 	mMainWorkingDock->setObjectName("mMainWorkingDock");
 	mMainWorkingDock->setAllowedAreas( Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea );	//mMainWorkingDock->setMaximumWidth( max_main_dock_width );
 	addDockWidget( Qt::LeftDockWidgetArea, mMainWorkingDock, Qt::Vertical );
@@ -203,7 +205,10 @@ void CBratMainWindow::CreateWorkingDock()
 	connect( this, SIGNAL( WorkspaceChanged( CModel* ) ), WorkingPanel< eOperations >(), SLOT( HandleSelectedWorkspaceChanged( CModel* ) ) );
 	connect( WorkingPanel< eOperations >(), SIGNAL( SyncProcessExecution( bool ) ), this, SLOT( HandleSyncProcessExecution( bool ) ) );
 
+	action_Satellite_Tracks->setChecked( WorkingPanel< eFilter >()->AutoSatelliteTrack() );
 	connect( WorkingPanel< eDataset >(), SIGNAL( CurrentDatasetChanged(CDataset*) ), WorkingPanel< eFilter >(), SLOT( HandleDatasetChanged(CDataset*) ) );
+	connect( WorkingPanel< eDataset >(), SIGNAL( DatasetsChanged() ), WorkingPanel< eOperations >(), SLOT( HandleDatasetsChanged_Quick() ) );
+	connect( WorkingPanel< eDataset >(), SIGNAL( DatasetsChanged() ), WorkingPanel< eOperations >(), SLOT( HandleDatasetsChanged_Advanced() ) );
 
 	LOG_TRACE( "Finished working dock construction." );
 }
@@ -408,6 +413,7 @@ void CBratMainWindow::FillStatusBar()
 	connect( mMessageButton, SIGNAL( toggled( bool ) ), mOutputDock, SLOT( setVisible( bool ) ) );
 	connect( mOutputDock, SIGNAL( visibilityChanged( bool ) ), mMessageButton, SLOT( setChecked( bool ) ) );
 
+
 	LOG_TRACE( "Finished status-bar construction." );
 }
 
@@ -428,11 +434,13 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
 
 	, mModel( CModel::CreateInstance( mSettings.BratPaths() ) )
 
+	, mBratFilters( mSettings.BratPaths().mInternalDataDir )
+
 {
 	LOG_TRACE( "Starting main window construction..." );
 
 	assert__( !smInstance );
-    assert__( mSettings.BratPaths().IsValid()==true );
+    assert__( mSettings.BratPaths().IsValid() );
 
 	mApp.ShowSplash( "Creating main window..." );
 
@@ -1087,6 +1095,10 @@ void CBratMainWindow::on_action_Graphic_Settings_triggered()
 	NOT_IMPLEMENTED
 }
 
+void CBratMainWindow::on_action_Satellite_Tracks_toggled( bool checked )
+{
+	WorkingPanel< eFilter >()->SetAutoSatelliteTrack( checked );
+}
 
 void CBratMainWindow::on_action_Save_Map_Image_triggered()
 {
@@ -1141,39 +1153,37 @@ void CBratMainWindow::on_action_Options_triggered()
 /////////////////////////////////////////////////////////////////////////
 
 
-void CBratMainWindow::on_action_Close_triggered()
+
+void CBratMainWindow::on_action_Views_List_triggered()
 {
-	NOT_IMPLEMENTED
+	CWorkspaceViewsDialog dlg( this, mModel );
+
+	if ( dlg.exec() == QDialog::Accepted )
+	{
+		auto *display = dlg.SelectedDisplay();		assert__( display );
+		auto v = display->GetOperations();			assert__( v.size() > 0 );
+		CAbstractDisplayEditor *ed = nullptr;
+
+		if ( v[ 0 ]->IsMap() )
+		{
+			ed = new CMapEditor( &mModel, v[ 0 ], display->GetName(), this );
+		}
+		else
+		if ( v[ 0 ]->IsZFXY() || v[ 0 ]->IsYFX() )
+		{
+			ed = new CPlotEditor( &mModel, v[ 0 ], display->GetName(), this );
+		}
+		else
+			assert__( false );
+
+		auto subWindow = mDesktopManager->AddSubWindow( ed );
+		subWindow->show();
+	}
 }
 
 //////////////////////////////////////////
 //NOTE: Close All connected in constructor
 //////////////////////////////////////////
-
-void CBratMainWindow::on_action_Tile_triggered()
-{
-	NOT_IMPLEMENTED
-}
-
-
-void CBratMainWindow::on_action_Cascade_triggered()
-{
-	NOT_IMPLEMENTED
-}
-
-
-void CBratMainWindow::on_action_Next_triggered()
-{
-	NOT_IMPLEMENTED
-}
-
-
-void CBratMainWindow::on_action_Previous_triggered()
-
-{
-	NOT_IMPLEMENTED
-}
-
 
 void CBratMainWindow::UpdateWindowMenu()
 {
@@ -1323,6 +1333,9 @@ void CBratMainWindow::WorkspaceChangedUpdateUI( CModel *model )
 		eAction_Operations,
 		eAction_Dataset,
 		eAction_Filter,
+
+		eAction_Views_List,
+		eAction_Close_All,
 
 		eAction_Cut,
 		eAction_Copy,

@@ -460,11 +460,11 @@ CProductAlias* CProductAliases::GetAlias(const std::string& key)
 }
 
 //----------------------------------------
-std::string CProductAliases::GetAliasValue(const std::string& key)
-{
-  CProductAlias* alias = GetAlias(key);
-  return alias->GetValue();
-}
+//std::string CProductAliases::GetAliasValue(const std::string& key)
+//{
+//  CProductAlias* alias = GetAlias(key);
+//  return alias->GetValue();
+//}
 //----------------------------------------
 bool CProductAliases::AddRecordNameToField(CStringMap& mapAliasesString, CProduct* product, std::string& errorMsg)
 {

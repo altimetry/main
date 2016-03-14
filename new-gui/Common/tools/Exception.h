@@ -52,6 +52,10 @@
 
 class CException : public std::exception
 {
+	//types
+	using base_t = std::exception;
+
+	//data
 protected:
 	int m_errcode;
 	std::string m_message;
@@ -67,6 +71,16 @@ public:
 	  \param errcode [in] : error code
 	  */
 	CException( const std::string& message, int errcode = BRATH_V4_ERROR );	// (*)
+
+	CException( const CException &o )
+	{
+		if ( this != &o )
+		{
+			static_cast< std::exception& >( *this ) = o;
+			m_errcode = o.m_errcode;
+			m_message = o.m_message;
+		}
+	}
 	//
 	// (*) Not being a default parameter in v3, and BRATH_V4_ERROR being a new value
 	//	errcode is assumed to always be != of BRATH_V4_ERROR for v3 raised exceptions
@@ -77,7 +91,7 @@ public:
 	/// Destructor
 	virtual ~CException() throw( );
 
-	///Dump fonction
+	///Dump function
 	virtual void Dump( std::ostream& fOut = std::cerr );
 
 	virtual const char* TypeOf() const { return "std::exception"; }

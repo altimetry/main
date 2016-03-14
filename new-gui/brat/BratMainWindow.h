@@ -8,6 +8,7 @@
 #include "GUI/LogShell.h"
 #include "BratSettings.h"
 #include "DataModels/Model.h"
+#include "DataModels/Filters/BratFilters.h"
 
 
 class CTabbedDock;
@@ -22,7 +23,7 @@ class CProcessesTable;
 class CAbstractDisplayEditor;
 
 class CWorkspace;
-
+class CBratFilters;
 
 
 //net stop uxsms
@@ -129,6 +130,7 @@ private:
     // Domain
     //
 	CModel &mModel;
+	CBratFilters mBratFilters;
 
 
 	/////////////////////////////
@@ -296,6 +298,7 @@ private slots:
     void on_action_Re_center_triggered();
     void on_action_Refresh_Map_triggered();
     void on_action_Graphic_Settings_triggered();
+	void on_action_Satellite_Tracks_toggled( bool checked );
     void on_action_Save_Map_Image_triggered();
     void on_action_Full_Screen_triggered();
 
@@ -312,12 +315,7 @@ private slots:
 	////////////////
 	//Menu Window
 
-    void on_action_Close_triggered();
-	//
-    void on_action_Tile_triggered();
-    void on_action_Cascade_triggered();
-    void on_action_Next_triggered();
-    void on_action_Previous_triggered();
+    void on_action_Views_List_triggered();
 
 
 	////////////////

@@ -51,23 +51,15 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_About, "&About...", "About", ":/images/BratIcon.png" },
 
-    { eAction_Close, "&Close", "Close", ":/images/OSGeo/quit.png" },
+    { eAction_Views_List, "&List...", "Select a view from the list of all workspace views", ":/images/themes/default/propertyicons/diagram.png" },
 
 	{ eAction_Close_All, "Close &All", "Close All", "" },
-
-	{ eAction_Tile, "&Tile", "Tile", "" },
-
-	{ eAction_Cascade, "Casca&de", "Cascade", "" },
 
     { eAction_Cut, "Cut", "Cut", ":/images/OSGeo/edit-cut.png" },
 
     { eAction_Copy, "&Copy", "Copy", ":/images/OSGeo/edit-copy.png" },
 
     { eAction_Paste, "&Paste", "Paste", ":/images/OSGeo/edit-paste.png" },
-
-	{ eAction_Next, "&Next", "Next", "" },
-
-	{ eAction_Previous, "&Previous", "Previous", "" },
 
     { eAction_Options, "&Options...", "Options\nEdit application settings", ":/images/OSGeo/settings.png" },		//icon 5.png is below TODO: delete this comment
 
@@ -92,6 +84,8 @@ CActionInfo ActionsTable[ EActionTags_size ] =
     { eAction_Refresh_Map, "Refresh", "Refresh\nRefresh main map", ":/images/OSGeo/zoom-refresh.png" },
 
     { eAction_Graphic_Settings, "Graphic Settings...", "Graphic Settings\nAdjust map graphics", ":images/OSGeo/map-settings.png" },
+
+	{ action_Satellite_Tracks, "Satellite Tracks", "Enable automatic satellite track drawing when selected dataset changes", ":/images/alpha-numeric/r.png", ":/images/alpha-numeric/r.png" },
 
     { eAction_Full_Screen, "Full Screen", "Full Screen\nToggle full screen mode.\nUse the <span style=\" font-weight:600;\">F11</span> key to switch modes.", ":images/OSGeo/fullscreen.png", "", "F11" },
 
@@ -130,7 +124,7 @@ CActionInfo ActionsTable[ EActionTags_size ] =
     { eAction_MapEditorLinearRegression, "LG", "Linear Regression\nCompute linear regression of plotted variable in selected area", "://images/alpha-numeric/__i.png" },
 
 
-    { eActionGroup_Projections, "Projections", "Projections menu", "://images/OSGeo/crs-change.png" },
+    { eActionGroup_Projections, "", "Projections menu", "://images/OSGeo/crs-change.png" },
 
 	{ eAction_Projection_LAMBERT_CYLINDRICAL, CMapProjection::GetInstance()->IdToName( PROJ2D_LAMBERT_CYLINDRICAL ), "Projection Lambert Cylindrical", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
 
@@ -168,7 +162,7 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
 	{ eAction_SelectPolygon, "Polygon Selection", "Select Features by Polygon", ":/images/themes/default/mActionSelectPolygon.svg", ":/images/themes/default/mActionSelectPolygon.svg" },
 
-	{ eAction_DeselectAll, "Deselect All ", "Deselect Features from All Layers", ":/images/themes/default/mActionDeselectAll.svg" },
+	{ eAction_DeselectAll, "Deselect All", "Deselect Features from All Layers", ":/images/themes/default/mActionDeselectAll.svg" },
 
 	{ eAction_DecorationGrid, "Grid", "Creates a scale bar that is displayed on the map canvas", ":/images/themes/default/transformed.png", ":/images/themes/default/transformed.png" },
 

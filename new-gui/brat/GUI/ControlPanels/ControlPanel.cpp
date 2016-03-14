@@ -30,7 +30,16 @@ CStackedWidget::CStackedWidget( QWidget *parent, const std::vector< PageInfo > &
 	for ( auto &w : widgets )
 	{
 		addWidget( w.mWidget );
-		QAbstractButton *b = new QPushButton( w.mName.c_str(), parent );
+		QAbstractButton *b = nullptr;
+		if ( w.mUseToolButtons )
+		{
+			b = CreateToolButton( w.mName, w.mIconPath, w.mTip );
+		}
+		else
+		{
+			b = CreatePushButton( w.mName, w.mIconPath, w.mTip );
+		}
+		b->setParent( parent );
 		b->setCheckable( true );
         connect( b, SIGNAL( toggled( bool ) ), this, SLOT( buttonToggled( bool ) ) );
 		mGroup->addButton( b );
@@ -146,6 +155,13 @@ QSpacerItem* CControlPanel::AddTopSpace( int w, int h, QSizePolicy::Policy hData
     return spacer;
 }
 
+
+QSplitter* CControlPanel::AddTopSplitter( Qt::Orientation o, const std::vector< QWidget* > &v, bool collapsible, const QList< int > sizes )	//collapsible = false, const QList< int > sizes 
+{
+	QSplitter *splitter = CreateSplitter( this, o, v, collapsible, sizes );
+	AddTopWidget( splitter );
+	return splitter;
+}
 
 
 

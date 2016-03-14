@@ -198,7 +198,7 @@ bool CConfiguration::LoadConfig( CDisplayData &data, const std::string& path, CW
 	data.m_z.SetUnit( (const char *)valueString.c_str() );
 
 	valueString = Read( ENTRY_OPNAME );
-	data.m_operation = CDisplay::FindOperation( valueString, wkso );
+	data.m_operation = wkso->GetOperation( valueString );
 
 	Read( ENTRY_GROUP, &data.m_group, 1 );
 	Read( ENTRY_CONTOUR, &data.m_withContour, false );

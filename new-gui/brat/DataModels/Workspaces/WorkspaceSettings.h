@@ -40,9 +40,15 @@ class CApplicationPaths;
 
 class CWorkspaceSettings : public CFileSettings
 {
+	//types
+
     using base_t = CFileSettings;
 
+	//static members
+
 	static const CApplicationPaths *smBratPaths;
+
+	//construction / destruction
 
 public:
 
@@ -60,6 +66,9 @@ public:
 
 	virtual ~CWorkspaceSettings()
 	{}
+
+
+	// Load/Save methods
 
 	bool SaveCommonConfig( const CWorkspace &wks, bool flush );
 	bool LoadCommonConfig( CWorkspace &wks );

@@ -307,11 +307,6 @@ void CFieldsTreeCtrl::InsertProduct(CProduct* product)
   do
   {
     parentId = InsertField(parentId, tree->GetWalkCurrent());
-/*    if (tree->IsLastChild() )
-    {
-      parentId = GetItemParent(parentId);
-    }
-*/
   }
   while (tree->SubTreeWalkDown());
 
@@ -321,24 +316,8 @@ void CFieldsTreeCtrl::InsertProduct(CProduct* product)
                  (wxTreeEventFunction)&CFieldsTreeCtrl::OnGetToolTip,
                  NULL,
                  this);
-
-/*
-
-  int32_t index = GetItemCount();
-
-  wxString buf;
-  buf.Printf(_T("This is item %d"), index);
-  long tmp = InsertItem(index, buf, -1);
-  SetItemData(tmp, GetItemCount());
-
-  buf.Printf(_T("Col 1, item %d"), index);
-  SetItem(index, 1, buf);
-
-  buf.Printf(_T("Item %d in column 2"), index);
-  SetItem(index, 2, buf);
-  */
-
 }
+
 //----------------------------------------
 wxTreeItemId CFieldsTreeCtrl::InsertField(const wxTreeItemId& parentId, CObjectTreeNode* node)
 {

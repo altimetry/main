@@ -35,9 +35,9 @@ bool CBratSettings::SaveConfigSelectionCriteria()
 		if ( product == nullptr || !product->HasCriteriaInfo() )
 			continue;
 
-		std::string configPath = BuildComposedKey( { GROUP_SEL_CRITERIA, product->GetLabel() } );		
+		std::string config_path = BuildComposedKey( { GROUP_SEL_CRITERIA, product->GetLabel() } );		
 		{
-			CSection section( mSettings, configPath );
+			CSection section( mSettings, config_path );
 			if ( product->IsSetLatLonCriteria() )
 				WriteValue( section, ENTRY_LAT_LON, product->GetLatLonCriteria()->GetAsText() );
 
@@ -79,12 +79,12 @@ bool CBratSettings::LoadConfigSelectionCriteria()
 			if ( product == nullptr || !product->HasCriteriaInfo() )
 				continue;
 
-            std::string configPath = BuildComposedKey( { GROUP_SEL_CRITERIA, product->GetLabel() } );
+            std::string config_path = BuildComposedKey( { GROUP_SEL_CRITERIA, product->GetLabel() } );
 			{
-				CSection section( mSettings, configPath );
+				CSection section( mSettings, config_path );
 				QStringList keys = mSettings.childKeys();
 				if ( keys.empty() )
-					continue;			qDebug() << keys;
+					continue;
 
 				std::string val;
 				if ( product->HasLatLonCriteria() )
@@ -122,7 +122,7 @@ bool CBratSettings::LoadConfigSelectionCriteria()
 	}
 	catch ( const CException &e ) 
 	{
-		std::string msg( "An error occured while loading criteria selection configuration (CBratGuiApp::LoadConfigSelectionCriteria)\nNative exception: " );
+		std::string msg( "An error occurred while loading criteria selection configuration (CBratGuiApp::LoadConfigSelectionCriteria)\nNative exception: " );
 		msg += e.what();
 		throw CException( msg, e.error() );
 	}

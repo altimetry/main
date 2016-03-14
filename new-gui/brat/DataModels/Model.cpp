@@ -3,6 +3,7 @@
 #include "new-gui/Common/QtUtilsIO.h"
 #include "new-gui/Common/ApplicationPaths.h"
 #include "Workspaces/Workspace.h"
+#include "Workspaces/Display.h"
 #include "Model.h"
 
 
@@ -60,6 +61,12 @@ WKSPC* CModel::Workspace( CTreeWorkspace &tree )
 	std::string workspaceKey = tree.ChildKey( WKSPC::NAME );
 
 	return dynamic_cast< WKSPC* >( tree.FindWorkspace( workspaceKey ) );
+}
+
+template< class WKSPC >
+const WKSPC* CModel::Workspace( const CTreeWorkspace &tree )
+{
+	return Workspace< WKSPC >( const_cast< CTreeWorkspace& >( tree ) );
 }
 
 
@@ -250,59 +257,23 @@ bool CModel::ImportWorkspace( const std::string& path,
 
 
 
-
-
 ///////////////////////////////////////////////////////////////////////////////////////////
 //
 ///////////////////////////////////////////////////////////////////////////////////////////
-
-void CModel::XYPlot()
+std::vector<const CDisplay*> CModel::OperationDisplays( const std::string &name ) const
 {
-	/*
-	CObArray::iterator itGroup;
-
-	wxSize size = wxDefaultSize;
-	wxPoint pos = wxDefaultPosition;
-
-	for ( itGroup = m_plots.begin(); itGroup != m_plots.end(); itGroup++ )
+	std::vector<const CDisplay*> v;
+	const CWorkspaceDisplay *wkspcd = Workspace< CWorkspaceDisplay >( mTree );
+	auto const *displays = wkspcd->GetDisplays();
+	for ( auto &pair : *displays )
 	{
-		CPlot* plot = dynamic_cast<CPlot*>( *itGroup );
-		if ( plot == nullptr )
-		{
-			continue;
-		}
-
-		CWindowHandler::GetSizeAndPosition( size, pos );
-
-		CreateXYPlot( plot, size, pos );
+		auto const *display = dynamic_cast< const CDisplay* >( pair.second );		assert__( display );
+		if ( display->UsesOperation( name ) )
+			v.push_back( display );
 	}
-	*/
+
+	return v;
 }
-void CModel::ZFXYPlot()
-{
-	/*
-	CObArray::iterator itGroup;
-
-	wxSize size = wxDefaultSize;
-	wxPoint pos = wxDefaultPosition;
-
-	for ( itGroup = m_plots.begin(); itGroup != m_plots.end(); itGroup++ )
-	{
-		CZFXYPlot* zfxyplot = dynamic_cast<CZFXYPlot*>( *itGroup );
-		if ( zfxyplot == nullptr )
-		{
-			continue;
-		}
-
-		CWindowHandler::GetSizeAndPosition( size, pos );
-
-		CreateZFXYPlot( zfxyplot, size, pos );
-	}
-	*/
-}
-
-
-
 
 
 

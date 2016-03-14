@@ -791,6 +791,12 @@ COperation* CWorkspaceOperation::GetOperation( const std::string& name )
 {
 	return dynamic_cast<COperation*>( m_operations.Exists( name ) );
 }
+const COperation* CWorkspaceOperation::GetOperation( const std::string& name ) const
+{
+	return const_cast<CWorkspaceOperation*>( this )->GetOperation( name );
+}
+
+
 //----------------------------------------
 std::string CWorkspaceOperation::GetOperationCopyName( const std::string& baseName )
 {
@@ -985,7 +991,7 @@ bool CWorkspaceDisplay::UseOperation( const std::string& name, std::string &erro
 			return false;
 		}
 
-		bool useIt = display->UseOperation( name, errorMsg );
+		bool useIt = display->UsesOperation( name );
 		useOperation |= useIt;
 
 		if ( displayNames != nullptr )

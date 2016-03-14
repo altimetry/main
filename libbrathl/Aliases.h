@@ -233,7 +233,7 @@ public:
   void AddAlias(CObMap* value, const std::string& record);
   void AddAlias(CAlias* value, const std::string& record);
   CProductAlias* GetAlias(const std::string& key);
-  std::string GetAliasValue(const std::string& key);
+  //std::string GetAliasValue(const std::string& key);
 
   //const CObMap* GetAliases() {return &m_aliases; }
 

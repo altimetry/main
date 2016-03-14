@@ -8,7 +8,7 @@
 #include "DataModels/PlotData/WorldPlot.h"
 
 #include "GUI/ActionsTable.h"
-#include "GUI/ControlPanels/ViewControlPanels.h"
+#include "GUI/ControlPanels/Views/ViewControlPanels.h"
 #include "GUI/DisplayWidgets/BratViews.h"
 #include "GUI/DisplayWidgets/GlobeWidget.h"
 
@@ -34,6 +34,7 @@ void CMapEditor::CreateAndWireNewMap()
 {
 	if ( mMapView )
 	{
+		mMapView->setRenderFlag( false );
 		QWidget *p = mMapView;
 		mMapView = nullptr;
 		RemoveView( p, false );
@@ -50,13 +51,15 @@ void CMapEditor::CreateAndWireNewMap()
 
 void CMapEditor::CreateWidgets()
 {
+	base_t::CreateWidgets<CViewControlsPanelGeneralMaps>();
+
     //    Specialized Tabs
-	mTabData = new CMapControlsPanelEdit( this );
-	mTabView = new CMapControlsPanelOptions( this );
+	mTabDataLayers = new CMapControlsPanelDataLayers( this );
+	mTabView = new CMapControlsPanelView( this );
 	mTabPlots = new CViewControlsPanelPlots( this );
 
-	AddTab( mTabData, "Edit" );
-	AddTab( mTabView, "Options" );
+	AddTab( mTabDataLayers, "Data Layers" );
+	AddTab( mTabView, "View" );
 	AddTab( mTabPlots, "Plots" );
 
     //    Set Header Label Texts
@@ -105,10 +108,12 @@ void CMapEditor::Wire()
 	}
 }
 
-CMapEditor::CMapEditor( CModel *model, COperation *operation, QWidget *parent )		//parent = nullptr
-	: base_t( model, operation, parent )
+CMapEditor::CMapEditor( CModel *model, const COperation *op, const std::string &display_name, QWidget *parent )		//display_name = "" parent = nullptr
+	: base_t( model, op, display_name, parent )
 {
 	CreateWidgets();
+
+	Start( display_name );
 
 #if defined (TESTING_GLOBE)
 
@@ -156,7 +161,7 @@ void CMapEditor::Show3D( bool checked )
 
 //virtual 
 void CMapEditor::ResetViews()
-{											 //TODO	TODO	TODO	TODO	TODO	CHECK/UNCHECK TOOLBAR
+{								 //TODO	TODO	TODO	TODO	TODO	CHECK/UNCHECK TOOLBAR
 	if ( mGlobeView )
 	{
 		QWidget *p = mGlobeView;
@@ -167,17 +172,36 @@ void CMapEditor::ResetViews()
 }
 
 
+#include <QProgressDialog>
+void f()
+{
+	const int numFiles = 10000;
+	QWidget *parent = nullptr;
+	QProgressDialog progress( "Copying files...", "Abort Copy", 0, numFiles, parent );
+	progress.setWindowModality( Qt::WindowModal );
+	progress.show();
+	int i = 0;
+	for ( ; i < numFiles; i++ )
+	{
+		progress.setValue( i );
+
+		if ( progress.wasCanceled() )
+			break;
+		qDebug() << "... copy one file";
+	}
+	progress.setValue( numFiles );
+	qDebug() << "copied files==" << i;
+}
+
+
 //virtual 
 void CMapEditor::NewButtonClicked()
 {
 	NOT_IMPLEMENTED
 }
 
-void CMapEditor::PlotChanged( int index )
+bool CMapEditor::Refresh()
 {
-	if ( index < 0 )
-		return;
-
 	WaitCursor wait;
 
 	try
@@ -197,24 +221,22 @@ void CMapEditor::PlotChanged( int index )
 
 		mMapView->setVisible( true );
 
-		return;
+		return true;
 	}
 	catch ( CException &e )
 	{
 		SimpleErrorBox( e.what() );
-		throw;
 	}
 	catch ( std::exception &e )
 	{
 		SimpleErrorBox( e.what() );
-		throw;
 	}
 	catch ( ... )
 	{
 		SimpleErrorBox( "Unexpected error trying to create a map plot." );
 	}
 
-	throw;
+	return false;
 }
 
 
@@ -327,14 +349,14 @@ void CMapEditor::HandleProjection()
 
 
 //virtual 
-void CMapEditor::DatasetsIndexChanged( int index )
+void CMapEditor::OperationChanged( int index )
 {
     Q_UNUSED(index);
 
-	NOT_IMPLEMENTED
+	//This will automatically trigger a display change, so we don't need to take additional measures (so far)
 }
 //virtual 
-void CMapEditor::FiltersIndexChanged( int index )
+void CMapEditor::FilterChanged( int index )
 {
     Q_UNUSED(index);
 

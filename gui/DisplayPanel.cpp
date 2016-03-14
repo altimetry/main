@@ -321,54 +321,54 @@ void CDisplayPanel::DeleteDisplay()
 //----------------------------------------
 void CDisplayPanel::NewDisplay()
 {
-  bool bOk = true;
+	bool bOk = true;
 
-  CWorkspaceDisplay* wks = wxGetApp().GetCurrentWorkspaceDisplay();
-  if (wks == NULL)
-  {
-    return;
-  }
-  FillProjList();
-  FillPaletteList();
+	CWorkspaceDisplay* wks = wxGetApp().GetCurrentWorkspaceDisplay();
+	if ( wks == nullptr )
+	{
+		return;
+	}
+	FillProjList();
+	FillPaletteList();
 
-  GetDispNames()->Enable(true);
+	GetDispNames()->Enable( true );
 
-  wxString dispName = wks->GetDisplayNewName();
+	wxString dispName = wks->GetDisplayNewName();
 
-  bOk = wks->InsertDisplay(dispName.ToStdString());
+	bOk = wks->InsertDisplay( dispName.ToStdString() );
 
-  if (bOk == false)
-  {
-    wxMessageBox(wxString::Format("Display '%s' already exists", dispName.c_str()),
-                "Warning",
-                wxOK | wxICON_EXCLAMATION);
+	if ( bOk == false )
+	{
+		wxMessageBox( wxString::Format( "Display '%s' already exists", dispName.c_str() ),
+			"Warning",
+			wxOK | wxICON_EXCLAMATION );
 
-    GetDispNames()->SetStringSelection(dispName);
-    m_currentDisplay = GetDispNames()->GetSelection();
-  }
-  else
-  {
-    m_currentDisplay = GetDispNames()->Append(dispName);
-    GetDispNames()->SetSelection(m_currentDisplay);
-  }
+		GetDispNames()->SetStringSelection( dispName );
+		m_currentDisplay = GetDispNames()->GetSelection();
+	}
+	else
+	{
+		m_currentDisplay = GetDispNames()->Append( dispName );
+		GetDispNames()->SetSelection( m_currentDisplay );
+	}
 
-  SetCurrentDisplay();
+	SetCurrentDisplay();		//assigns m_display using m_currentDisplay
 
-  InitDisplayOutput();
-  GetDisplayOutput();
+	InitDisplayOutput();		//makes m_display->InitOutput( wksd );
+	GetDisplayOutput();			//oddly, makes InitOutput( wksd ); in case output is empty
 
-  GetDispTitle()->Clear();
+	GetDispTitle()->Clear();
 
-  ClearSelectedDataList();
+	ClearSelectedDataList();
 
-  ShowGeneralProperties();
-  ShowFieldProperties();
+	ShowGeneralProperties();
+	ShowFieldProperties();
 
-  LoadAvailableData();
+	LoadAvailableData();		//makes GetOperations();
 
-  GetDispDataSel()->SetDisplay(m_display);
+	GetDispDataSel()->SetDisplay( m_display );
 
-  EnableCtrl();
+	EnableCtrl();
 
 }
 //----------------------------------------
@@ -678,7 +678,7 @@ bool CDisplayPanel::RefreshSelectedData()
 	}
 
 	CMapDisplayData* availableData = GetDispavailtreectrl()->GetMapDisplayData();
-	CMapDisplayData* selectedData =  m_display->GetDataSelected();
+	CMapDisplayData* selectedData =  m_display->GetData();
 
 	CObArray dispSelNotFound;
 
@@ -849,202 +849,202 @@ void CDisplayPanel::LoadAvailableData()
 }
 
 //----------------------------------------
-void CDisplayPanel::GetOperations(int32_t type /*= -1*/)
+void CDisplayPanel::GetOperations( int32_t type /*= -1*/ )
 {
-    UNUSED(type);
+	UNUSED( type );
 
-  m_dataList.RemoveAll();
+	m_dataList.RemoveAll();
 
-  CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-  if (wks == NULL)
-  {
-    return;
-  }
+	CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+	if ( wks == NULL )
+	{
+		return;
+	}
 
-  CObMap* operations = wks->GetOperations();
-  if (operations == NULL)
-  {
-    return;
-  }
-
-
-  CInternalFiles *file = NULL;
-  /*
-  CInternalFilesYFX *yfx = NULL;
-  CInternalFilesZFXY *zfxy = NULL;
-  */
-  CUIntArray displayTypes;
-
-  CStringArray names;
-
-  CObMap::iterator it;
-
-  for (it = operations->begin() ; it != operations->end() ; it++)
-  {
-
-    COperation* operation = dynamic_cast<COperation*>(it->second);
-    if (operation == NULL)
-    {
-      continue;
-    }
-
-    /*
-
-    yfx = NULL;
-    zfxy = NULL;
-
-    COperation* operation = dynamic_cast<COperation*>(it->second);
-    if (operation == NULL)
-    {
-      continue;
-    }
-
-    if (type >= 0)
-    {
-      if (operation->GetType() != type)
-      {
-        continue;
-      }
-    }
-
-    try
-    {
-      file = BuildExistingInternalFileKind(operation->GetOutputName().c_str());
-      file->Open(ReadOnly);
-
-    }
-    catch (CException& e)
-    {
-      e.what();
-      if (file != NULL)
-      {
-        delete file;
-        file = NULL;
-      }
-
-      continue;
-    }
-
-    switch (operation->GetType())
-    {
-      case CMapTypeOp::typeOpYFX :
-        yfx = dynamic_cast<CInternalFilesYFX*>(file);
-        break;
-      case CMapTypeOp::typeOpZFXY :
-        zfxy = dynamic_cast<CInternalFilesZFXY*>(file);
-        break;
-      default  :
-        break;
-    }
-
-    if ( (yfx == NULL) && (zfxy == NULL) )
-    {
-      continue;
-    }
-    */
-
-    displayTypes.RemoveAll();
-
-    CDisplay::GetDisplayType(operation, displayTypes, &file);
-
-    if (file == NULL)
-    {
-      continue;
-    }
-
-    names.RemoveAll();
-
-    file->GetDataVars(names);
-
-    CUIntArray::iterator itDispType;
-    CStringArray::iterator itField;
-    CDisplayData* displayData;
-
-    for (itDispType = displayTypes.begin(); itDispType != displayTypes.end(); itDispType++)
-    {
-      for (itField = names.begin(); itField != names.end(); itField++)
-      {
-        CStringArray varDimensions;
-        file->GetVarDims(*itField,varDimensions);
-
-        uint32_t nbDims = varDimensions.size();
-
-        if (nbDims > 2)
-        {
-          continue;
-        }
-
-        if ( (nbDims != 2) && (    (*itDispType == CMapTypeDisp::eTypeDispZFXY)
-                                || (*itDispType == CMapTypeDisp::eTypeDispZFLatLon) ) )
-        {
-          continue;
-        }
-
-        displayData = new CDisplayData(operation);
-
-        displayData->SetType(*itDispType);
-
-        displayData->GetField()->SetName(*itField);
-
-        std::string unit = file->GetUnit(*itField).GetText();
-        displayData->GetField()->SetUnit(unit);
-
-        wxString comment = file->GetComment(*itField).c_str();
-
-        wxString description = file->GetTitle(*itField).c_str();
-
-        if (!comment.IsEmpty())
-        {
-          description += "." + comment;
-        }
-
-        displayData->GetField()->SetDescription((const char *)description.c_str());
-
-        if (nbDims >= 1)
-        {
-          std::string dimName = varDimensions.at(0);
-          displayData->GetX()->SetName(varDimensions.at(0));
-
-          std::string unit = file->GetUnit(dimName).GetText();
-          displayData->GetX()->SetUnit(unit);
-
-          displayData->GetX()->SetDescription(file->GetTitle(dimName));
-        }
-
-        if (nbDims >= 2)
-        {
-          std::string dimName = varDimensions.at(1);
-          displayData->GetY()->SetName(varDimensions.at(1));
-
-          std::string unit = file->GetUnit(dimName).GetText();
-          displayData->GetY()->SetUnit(unit);
-
-          displayData->GetY()->SetDescription(file->GetTitle(dimName));
-        }
-
-        if (nbDims >= 3)
-        {
-          std::string dimName = varDimensions.at(2);
-          displayData->GetZ()->SetName(varDimensions.at(2));
-
-          std::string unit = file->GetUnit(dimName).GetText();
-          displayData->GetZ()->SetUnit(unit);
-
-          displayData->GetZ()->SetDescription(file->GetTitle(dimName));
-        }
-
-        m_dataList.Insert((const char *)GetDataKey(*displayData).c_str(), displayData, false);
-      }
-
-    }
-
-    delete file;
-    file = NULL;
-  }
+	CObMap* operations = wks->GetOperations();
+	if ( operations == NULL )
+	{
+		return;
+	}
 
 
-  delete file;
-  file = NULL;
+	CInternalFiles *file = NULL;
+	/*
+	CInternalFilesYFX *yfx = NULL;
+	CInternalFilesZFXY *zfxy = NULL;
+	*/
+	CUIntArray displayTypes;
+
+	CStringArray names;
+
+	CObMap::iterator it;
+
+	for ( it = operations->begin(); it != operations->end(); it++ )
+	{
+
+		COperation* operation = dynamic_cast<COperation*>( it->second );
+		if ( operation == NULL )
+		{
+			continue;
+		}
+
+		/*
+
+		yfx = NULL;
+		zfxy = NULL;
+
+		COperation* operation = dynamic_cast<COperation*>(it->second);
+		if (operation == NULL)
+		{
+		continue;
+		}
+
+		if (type >= 0)
+		{
+		if (operation->GetType() != type)
+		{
+		continue;
+		}
+		}
+
+		try
+		{
+		file = BuildExistingInternalFileKind(operation->GetOutputName().c_str());
+		file->Open(ReadOnly);
+
+		}
+		catch (CException& e)
+		{
+		e.what();
+		if (file != NULL)
+		{
+		delete file;
+		file = NULL;
+		}
+
+		continue;
+		}
+
+		switch (operation->GetType())
+		{
+		case CMapTypeOp::typeOpYFX :
+		yfx = dynamic_cast<CInternalFilesYFX*>(file);
+		break;
+		case CMapTypeOp::typeOpZFXY :
+		zfxy = dynamic_cast<CInternalFilesZFXY*>(file);
+		break;
+		default  :
+		break;
+		}
+
+		if ( (yfx == NULL) && (zfxy == NULL) )
+		{
+		continue;
+		}
+		*/
+
+		displayTypes.RemoveAll();
+
+		CDisplay::GetDisplayType( operation, displayTypes, &file );
+
+		if ( file == NULL )
+		{
+			continue;
+		}
+
+		names.RemoveAll();
+
+		file->GetDataVars( names );
+
+		CUIntArray::iterator itDispType;
+		CStringArray::iterator itField;
+		CDisplayData* displayData;
+
+		for ( itDispType = displayTypes.begin(); itDispType != displayTypes.end(); itDispType++ )
+		{
+			for ( itField = names.begin(); itField != names.end(); itField++ )
+			{
+				CStringArray varDimensions;
+				file->GetVarDims( *itField, varDimensions );
+
+				uint32_t nbDims = varDimensions.size();
+
+				if ( nbDims > 2 )
+				{
+					continue;
+				}
+
+				if ( ( nbDims != 2 ) && ( ( *itDispType == CMapTypeDisp::eTypeDispZFXY )
+					|| ( *itDispType == CMapTypeDisp::eTypeDispZFLatLon ) ) )
+				{
+					continue;
+				}
+
+				displayData = new CDisplayData( operation );
+
+				displayData->SetType( *itDispType );
+
+				displayData->GetField()->SetName( *itField );
+
+				std::string unit = file->GetUnit( *itField ).GetText();
+				displayData->GetField()->SetUnit( unit );
+
+				wxString comment = file->GetComment( *itField ).c_str();
+
+				wxString description = file->GetTitle( *itField ).c_str();
+
+				if ( !comment.IsEmpty() )
+				{
+					description += "." + comment;
+				}
+
+				displayData->GetField()->SetDescription( (const char *)description.c_str() );
+
+				if ( nbDims >= 1 )
+				{
+					std::string dimName = varDimensions.at( 0 );
+					displayData->GetX()->SetName( varDimensions.at( 0 ) );
+
+					std::string unit = file->GetUnit( dimName ).GetText();
+					displayData->GetX()->SetUnit( unit );
+
+					displayData->GetX()->SetDescription( file->GetTitle( dimName ) );
+				}
+
+				if ( nbDims >= 2 )
+				{
+					std::string dimName = varDimensions.at( 1 );
+					displayData->GetY()->SetName( varDimensions.at( 1 ) );
+
+					std::string unit = file->GetUnit( dimName ).GetText();
+					displayData->GetY()->SetUnit( unit );
+
+					displayData->GetY()->SetDescription( file->GetTitle( dimName ) );
+				}
+
+				if ( nbDims >= 3 )
+				{
+					std::string dimName = varDimensions.at( 2 );
+					displayData->GetZ()->SetName( varDimensions.at( 2 ) );
+
+					std::string unit = file->GetUnit( dimName ).GetText();
+					displayData->GetZ()->SetUnit( unit );
+
+					displayData->GetZ()->SetDescription( file->GetTitle( dimName ) );
+				}
+
+				m_dataList.Insert( (const char *)GetDataKey( *displayData ).c_str(), displayData, false );
+			}
+
+		}
+
+		delete file;
+		file = NULL;
+	}
+
+
+	delete file;
+	file = NULL;
 
 
 
@@ -1065,7 +1065,7 @@ bool CDisplayPanel::ControlSolidColor( wxString& msg )
 	if ( m_display == nullptr )
 		return false;
 
-	CMapDisplayData* selectedData =  m_display->GetDataSelected();
+	CMapDisplayData* selectedData =  m_display->GetData();
 
 	for ( CMapDisplayData::const_iterator itSel = selectedData->begin(); itSel != selectedData->end(); itSel ++ )
 	{
@@ -1090,7 +1090,7 @@ bool CDisplayPanel::ControlVectorComponents( wxString& msg )
 		return false;
 	}
 
-	CMapDisplayData* selectedData =  m_display->GetDataSelected();
+	CMapDisplayData* selectedData =  m_display->GetData();
 
 	for ( CMapDisplayData::const_iterator itSel = selectedData->begin(); itSel != selectedData->end(); itSel ++ )
 	{
@@ -1208,78 +1208,78 @@ bool CDisplayPanel::AddField(const CObArray& data, bool preserveFieldProperties 
   return bOk;
 }
 //----------------------------------------
-bool CDisplayPanel::AddField(CDisplayData* data, bool preserveFieldProperties /* = false */)
+bool CDisplayPanel::AddField( CDisplayData* data, bool preserveFieldProperties /* = false */ )
 {
-  if (data == NULL)
-  {
-    return false;
-  }
-  if (m_display == NULL)
-  {
-    return false;
-  }
+	if ( data == NULL )
+	{
+		return false;
+	}
+	if ( m_display == NULL )
+	{
+		return false;
+	}
 
-  int32_t typeDisplay = m_display->GetType();
-  int32_t typeDataToAdd = data->GetType();
+	int32_t typeDisplay = m_display->GetType();
+	int32_t typeDataToAdd = data->GetType();
 
-  if (typeDisplay >= 0)
-  {
-    if (typeDataToAdd != typeDisplay)
-    {
-      wxMessageBox(wxString::Format("The actual view type is '%s'. You can't add a '%s' data type,",
-                                    CMapTypeDisp::GetInstance().IdToName(typeDisplay).c_str(),
-                                    CMapTypeDisp::GetInstance().IdToName(typeDataToAdd).c_str()),
-                  "Warning",
-                  wxOK | wxICON_HAND);
-      return false;
-    }
-  }
+	if ( typeDisplay >= 0 )
+	{
+		if ( typeDataToAdd != typeDisplay )
+		{
+			wxMessageBox( wxString::Format( "The actual view type is '%s'. You can't add a '%s' data type,",
+				CMapTypeDisp::GetInstance().IdToName( typeDisplay ).c_str(),
+				CMapTypeDisp::GetInstance().IdToName( typeDataToAdd ).c_str() ),
+				"Warning",
+				wxOK | wxICON_HAND );
+			return false;
+		}
+	}
 
-  bool insert = false;
-  std::string dataKey;
+	bool insert = false;
+	std::string dataKey;
 
-  dataKey = data->GetDataKey();
-
-
-  if (m_display->ExistData(dataKey) == true)
-  {
-    EnableCtrl();
-    return true;
-  }
+	dataKey = data->GetDataKey();
 
 
-  CDisplayData* newdata = new CDisplayData( *data, wxGetApp().GetCurrentWorkspaceOperation() );
+	if ( m_display->ExistData( dataKey ) == true )
+	{
+		EnableCtrl();
+		return true;
+	}
 
-  if (! preserveFieldProperties)
-  {
-    if (wxGetApp().GetLastColorTable().IsEmpty() == false)
-    {
-      newdata->SetColorPalette(wxGetApp().GetLastColorTable().ToStdString());
-    }
-    else
-    {
-      newdata->SetColorPalette(PALETTE_AEROSOL.c_str());
-    }
-  }
 
-  insert = m_display->InsertData(GetDataKey(*data).ToStdString(), newdata);
+	CDisplayData* newdata = new CDisplayData( *data, wxGetApp().GetCurrentWorkspaceOperation() );
 
-  long indexInserted = GetDispDataSel()->InsertField(newdata);
+	if ( ! preserveFieldProperties )
+	{
+		if ( wxGetApp().GetLastColorTable().IsEmpty() == false )
+		{
+			newdata->SetColorPalette( wxGetApp().GetLastColorTable().ToStdString() );
+		}
+		else
+		{
+			newdata->SetColorPalette( PALETTE_AEROSOL.c_str() );
+		}
+	}
 
-  GetDispType()->SetLabel(CMapTypeDisp::GetInstance().IdToName(m_display->GetType()).c_str());
+	insert = m_display->InsertData( GetDataKey( *data ).ToStdString(), newdata );
 
-  CheckSelectedFields();
+	long indexInserted = GetDispDataSel()->InsertField( newdata );
 
-  SetValueFieldGroup();
+	GetDispType()->SetLabel( CMapTypeDisp::GetInstance().IdToName( m_display->GetType() ).c_str() );
 
-  GetDispDataSel()->DeselectAll();
-  GetDispDataSel()->Select(indexInserted);
+	CheckSelectedFields();
 
-  //FillXAxis();
+	SetValueFieldGroup();
 
-  EnableCtrl();
+	GetDispDataSel()->DeselectAll();
+	GetDispDataSel()->Select( indexInserted );
 
-  return true;
+	//FillXAxis();
+
+	EnableCtrl();
+
+	return true;
 }
 
 //----------------------------------------
@@ -1331,7 +1331,7 @@ bool CDisplayPanel::CheckSelectedFields()
   }
 
   std::string errorMsg;
-  bOk = m_display->GetDataSelected()->CheckFields(errorMsg, m_display);
+  bOk = m_display->GetData()->CheckFields(errorMsg, m_display);
 
   if ( ! bOk )
   {
@@ -1486,7 +1486,7 @@ void CDisplayPanel::SetXAxisText()
     std::string axisName = GetDispXaxis()->GetStringSelection().ToStdString();
     std::string axisLabel = m_currentData->GetXAxisText(index);
 
-    m_display->GetDataSelected()->SetAllAxis(index, axisName, axisLabel);
+    m_display->GetData()->SetAllAxis(index, axisName, axisLabel);
   }
 
 }
@@ -1513,7 +1513,7 @@ void CDisplayPanel::SetInvertXYAxes()
 
   if ( (isGrouped) )
   {
-    m_display->GetDataSelected()->SetAllInvertXYAxes(value);
+    m_display->GetData()->SetAllInvertXYAxes(value);
   }
 
 }
@@ -2402,7 +2402,7 @@ void CDisplayPanel::XAxisChanged()
 
     if (isGrouped)
     {
-      m_display->GetDataSelected()->SetAllAxis(index, axisName, axisLabel);
+      m_display->GetData()->SetAllAxis(index, axisName, axisLabel);
     }
     else
     {

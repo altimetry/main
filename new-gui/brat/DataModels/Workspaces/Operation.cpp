@@ -137,7 +137,7 @@ public:
 		return true;
 	}
 
-	bool BuildCmdFileFieldsSpecificZFXY( CFormula* value, std::string &errorMsg )
+	bool BuildCmdFileFieldsSpecificZFXY( CFormula* value, std::string &error_msg )
 	{
 		// if operation is not X/Y as Lat/Lon or Lon/Lat, force to default value
 		/*
@@ -163,7 +163,7 @@ public:
 
 		if ( value->IsXYType() )
 		{
-			value->ComputeInterval( errorMsg );
+			value->ComputeInterval( error_msg );
 
 			if ( value->IsTimeDataType() )
 			{
@@ -192,7 +192,7 @@ public:
 		return true;
 	}
 
-	bool BuildCmdFileFields( std::string &errorMsg )
+	bool BuildCmdFileFields( std::string &error_msg )
 	{
 		WriteLn();
 		Comment( "----- FIELDS -----" );
@@ -221,7 +221,7 @@ public:
 			valueString = ( value->GetComment().empty() ) ? "DV" : value->GetComment();
 			WriteLn( value->GetFieldPrefix() + "_COMMENT=" + valueString );
 
-			BuildCmdFileFieldsSpecificZFXY( value, errorMsg );
+			BuildCmdFileFieldsSpecificZFXY( value, error_msg );
 		}
 
 		return true;
@@ -400,7 +400,7 @@ public:
 
 public:
 
-	static bool BuildCmdFile( const std::string &path, const COperation &Op, CWorkspaceFormula *wks, std::string &errorMsg )
+	static bool BuildCmdFile( const std::string &path, const COperation &Op, CWorkspaceFormula *wks, std::string &error_msg )
 	{
 		COperationCmdFile f( path, Op );
 		//m_cmdFile.Normalize();
@@ -414,7 +414,7 @@ public:
 			f.BuildCmdFileAlias( wks )			&&
 			f.BuildCmdFileDataset()				&&
 			f.BuildCmdFileSpecificUnit()		&&
-			f.BuildCmdFileFields( errorMsg )	&&
+			f.BuildCmdFileFields( error_msg )	&&
 			f.BuildCmdFileSelect()				&&
 			f.BuildCmdFileOutput()				&&
 			f.IsOk();
@@ -820,7 +820,7 @@ std::string COperation::GetDatasetName()
 }
 
 //----------------------------------------
-CFormula* COperation::NewUserFormula( std::string &errorMsg, CField* field, int32_t typeField, bool addToMap, CProduct* product )
+CFormula* COperation::NewUserFormula( std::string &error_msg, CField* field, int32_t typeField, bool addToMap, const CProduct* product )
 {
   if (field == nullptr)
   {
@@ -828,7 +828,7 @@ CFormula* COperation::NewUserFormula( std::string &errorMsg, CField* field, int3
 
   }
 
-  CFormula* formula =  NewUserFormula( errorMsg, field->GetName(), typeField, field->GetUnit(), addToMap, product);
+  CFormula* formula =  NewUserFormula( error_msg, field->GetName(), typeField, field->GetUnit(), addToMap, product);
 
   //formula->SetUnit(field->GetUnit().c_str());
   if (m_record.compare(field->GetRecordName().c_str()) != 0)
@@ -843,7 +843,7 @@ CFormula* COperation::NewUserFormula( std::string &errorMsg, CField* field, int3
   return formula;
 }
 //----------------------------------------
-CFormula* COperation::NewUserFormula( std::string &errorMsg, const std::string& name, int32_t typeField, const std::string& strUnit, bool addToMap, CProduct* product )
+CFormula* COperation::NewUserFormula( std::string &error_msg, const std::string& name, int32_t typeField, const std::string& strUnit, bool addToMap, const CProduct* product )
 {
 	bool bOk = true;
 
@@ -853,7 +853,7 @@ CFormula* COperation::NewUserFormula( std::string &errorMsg, const std::string& 
 
 	CFormula formula( formulaName, false );
 	formula.SetType( typeField );
-	formula.SetUnit( strUnit, errorMsg, "", false );
+	formula.SetUnit( strUnit, error_msg, "", false );
 
 	const CUnit* unit = formula.GetUnit();
 
@@ -868,7 +868,7 @@ CFormula* COperation::NewUserFormula( std::string &errorMsg, const std::string& 
 
 	if ( addToMap )
 	{
-		bOk = AddFormula( formula, errorMsg );
+		bOk = AddFormula( formula, error_msg );
 		formulaToReturn = GetFormula( formulaName );
 	}
 	else
@@ -879,7 +879,7 @@ CFormula* COperation::NewUserFormula( std::string &errorMsg, const std::string& 
 	return formulaToReturn;
 }
 //----------------------------------------
-bool COperation::AddFormula( CFormula& formula, std::string &errorMsg )
+bool COperation::AddFormula( CFormula& formula, std::string &error_msg )
 {
 	CFormula* value = dynamic_cast<CFormula*>( m_formulas.Exists( formula.GetName() ) );
 	if ( value != nullptr )
@@ -887,7 +887,7 @@ bool COperation::AddFormula( CFormula& formula, std::string &errorMsg )
 		return false;
 	}
 
-	m_formulas.InsertUserDefined_ReplacePredefinedNotAllowed( formula, errorMsg );
+	m_formulas.InsertUserDefined_ReplacePredefinedNotAllowed( formula, error_msg );
 
 	return true;
 }
@@ -979,9 +979,9 @@ bool COperation::SaveConfig( CWorkspaceSettings *config, const CWorkspaceOperati
 	return config->SaveConfig( *this, wks );
 }
 //----------------------------------------
-bool COperation::LoadConfig( CWorkspaceSettings *config, std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
+bool COperation::LoadConfig( CWorkspaceSettings *config, std::string &error_msg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
 {
-	return !config || config->LoadConfig( *this, errorMsg, wks, wkso );
+	return !config || config->LoadConfig( *this, error_msg, wks, wkso );
 }
 
 //----------------------------------------
@@ -1022,7 +1022,7 @@ const std::string& COperation::GetExportAsciiSystemCommand() const
   return GetExecExportAsciiName();
 }
 //----------------------------------------
-std::string COperation::GetFullCmd()
+std::string COperation::GetFullCmd() const
 {
 	return "\"" + GetSystemCommand() + "\" \"" + GetCmdFile() + "\"";
 }
@@ -1059,12 +1059,12 @@ std::string COperation::GetShowStatsTaskName() const
 }
 
 //----------------------------------------
-bool COperation::BuildCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &errorMsg )
+bool COperation::BuildCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg )
 {
 	if ( m_output.empty() )
 		InitOutput( wkso );
 	
-	return COperationCmdFile::BuildCmdFile( m_cmdFile, *this, wks, errorMsg );
+	return COperationCmdFile::BuildCmdFile( m_cmdFile, *this, wks, error_msg );
 }
 //----------------------------------------
 bool COperation::BuildExportAsciiCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso )
@@ -1272,14 +1272,33 @@ bool COperation::RenameOutput( const std::string& oldPath )
 }
 
 //----------------------------------------
-bool COperation::ComputeInterval( const std::string& formulaName, std::string &errorMsg )
-{
-	CFormula* f = dynamic_cast<CFormula*>( m_formulas.Exists( (const char *)formulaName.c_str() ) );
-
-	return ComputeInterval( f, errorMsg );
-}
+//bool COperation::ComputeInterval( const std::string& formulaName, std::string &error_msg )
+//{
+//	CFormula* f = dynamic_cast<CFormula*>( m_formulas.Exists( (const char *)formulaName.c_str() ) );
+//
+//	return ComputeInterval( f, error_msg );
+//}
 //----------------------------------------
-bool COperation::ComputeInterval( CFormula* f, std::string &errorMsg )
+bool COperation::ComputeInterval( std::string &error_msg )
+{
+	if ( !IsZFXY() )
+	{
+		return true;
+	}
+
+	bool result = true;
+	std::vector< CFormula* > v = { GetFormula( CMapTypeField::eTypeOpAsX ), GetFormula( CMapTypeField::eTypeOpAsY ) };
+	for ( auto *formula : v )
+	{
+		if ( !formula )
+			continue;
+
+		if ( !ComputeInterval( formula, error_msg ) )
+			result = false;
+	}
+	return result;
+}
+bool COperation::ComputeInterval( CFormula* f, std::string &error_msg )
 {
 	if ( f == nullptr )
 		return false;
@@ -1287,11 +1306,11 @@ bool COperation::ComputeInterval( CFormula* f, std::string &errorMsg )
 	if ( !IsZFXY() || !f->IsXYType() )
 		return true;
 
-	return f->ComputeInterval( errorMsg );
+	return f->ComputeInterval( error_msg );
 }
 
 //----------------------------------------
-bool COperation::GetXExpression( CExpression& expr, std::string& errorMsg, const CStringMap* aliases ) const		//aliases = nullptr
+bool COperation::GetXExpression( CExpression& expr, std::string& error_msg, const CStringMap* aliases ) const		//aliases = nullptr
 {
 	const CFormula* formula = GetFormula( CMapTypeField::eTypeOpAsX );
 	if ( formula != nullptr )
@@ -1302,7 +1321,7 @@ bool COperation::GetXExpression( CExpression& expr, std::string& errorMsg, const
 			fieldAliases = m_product->GetAliasesAsString();
 		}
 
-		if ( !CFormula::SetExpression( formula->GetDescription( true, aliases, fieldAliases ), expr, errorMsg ) )
+		if ( !CFormula::SetExpression( formula->GetDescription( true, aliases, fieldAliases ), expr, error_msg ) )
 			return false;
 	}
 
@@ -1310,7 +1329,7 @@ bool COperation::GetXExpression( CExpression& expr, std::string& errorMsg, const
 }
 
 //----------------------------------------
-bool COperation::GetYExpression( CExpression& expr, std::string& errorMsg, const CStringMap* aliases ) const		//aliases = nullptr
+bool COperation::GetYExpression( CExpression& expr, std::string& error_msg, const CStringMap* aliases ) const		//aliases = nullptr
 {
 	const CFormula* formula = GetFormula( CMapTypeField::eTypeOpAsY );
 
@@ -1322,7 +1341,7 @@ bool COperation::GetYExpression( CExpression& expr, std::string& errorMsg, const
 			fieldAliases = m_product->GetAliasesAsString();
 		}
 
-		if ( !CFormula::SetExpression( formula->GetDescription( true, aliases, fieldAliases ), expr, errorMsg ) )
+		if ( !CFormula::SetExpression( formula->GetDescription( true, aliases, fieldAliases ), expr, error_msg ) )
 			return false;
 	}
 
@@ -1330,7 +1349,7 @@ bool COperation::GetYExpression( CExpression& expr, std::string& errorMsg, const
 }
 
 //----------------------------------------
-bool COperation::ControlXYDataFields(std::string &errorMsg, const CStringMap* aliases /* = nullptr*/)
+bool COperation::ControlXYDataFields(std::string &error_msg, const CStringMap* aliases /* = nullptr*/)
 {
   bool bOk = true;
 
@@ -1343,14 +1362,14 @@ bool COperation::ControlXYDataFields(std::string &errorMsg, const CStringMap* al
 
   if (xFormula != nullptr)
   {
-    bOk &= CFormula::SetExpression(xFormula->GetDescription(true, aliases), xExpr, errorMsg);
+    bOk &= CFormula::SetExpression(xFormula->GetDescription(true, aliases), xExpr, error_msg);
   }
 
   CFormula* yFormula = GetFormula(CMapTypeField::typeOpAsY);
 
   if (yFormula != nullptr)
   {
-    bOk &= CFormula::SetExpression(yFormula->GetDescription(true, aliases), yExpr, errorMsg);
+    bOk &= CFormula::SetExpression(yFormula->GetDescription(true, aliases), yExpr, error_msg);
   }
   */
   const CStringMap* fieldAliases = nullptr;
@@ -1359,8 +1378,8 @@ bool COperation::ControlXYDataFields(std::string &errorMsg, const CStringMap* al
     fieldAliases = m_product->GetAliasesAsString();
   }
 
-  bOk &= GetXExpression(xExpr, errorMsg, aliases);
-  bOk &= GetYExpression(yExpr, errorMsg, aliases);
+  bOk &= GetXExpression(xExpr, error_msg, aliases);
+  bOk &= GetYExpression(yExpr, error_msg, aliases);
 
   CMapFormula::iterator it;
 
@@ -1384,7 +1403,7 @@ bool COperation::ControlXYDataFields(std::string &errorMsg, const CStringMap* al
     //-----------------------------
     case CMapTypeField::eTypeOpAsField:
     //-----------------------------
-      bOk &= CFormula::SetExpression(value->GetDescription(true, aliases, fieldAliases), dataExpr, errorMsg);
+      bOk &= CFormula::SetExpression(value->GetDescription(true, aliases, fieldAliases), dataExpr, error_msg);
 
       CStringArray intersect;
 
@@ -1392,8 +1411,8 @@ bool COperation::ControlXYDataFields(std::string &errorMsg, const CStringMap* al
 
       if (bIntersect)
       {
-        errorMsg.append("\nCommon fields between X expression and data expressions are not allowed : common field(s) is (are) :\n");
-        errorMsg.append(intersect.ToString("\n", false).c_str());
+        error_msg.append("\nCommon fields between X expression and data expressions are not allowed : common field(s) is (are) :\n");
+        error_msg.append(intersect.ToString("\n", false).c_str());
         bOk = false;
       }
 
@@ -1403,8 +1422,8 @@ bool COperation::ControlXYDataFields(std::string &errorMsg, const CStringMap* al
 
       if (bIntersect)
       {
-        errorMsg.append("\nCommon fields between Y expression and data expressions are not allowed : common field(s) is (are) :\n");
-        errorMsg.append(intersect.ToString("\n", false).c_str());
+        error_msg.append("\nCommon fields between Y expression and data expressions are not allowed : common field(s) is (are) :\n");
+        error_msg.append(intersect.ToString("\n", false).c_str());
         bOk = false;
       }
 
@@ -1416,7 +1435,7 @@ bool COperation::ControlXYDataFields(std::string &errorMsg, const CStringMap* al
   return bOk;
 }
 //----------------------------------------
-bool COperation::ControlResolution( std::string& errorMsg )
+bool COperation::ControlResolution( std::string& error_msg )
 {
 	bool bOk = true;
 
@@ -1430,20 +1449,20 @@ bool COperation::ControlResolution( std::string& errorMsg )
 
 	if ( xFormula != nullptr )
 	{
-		bOk &= xFormula->ControlResolution( errorMsg );
+		bOk &= xFormula->ControlResolution( error_msg );
 	}
 
 	const CFormula* yFormula = GetFormula( CMapTypeField::eTypeOpAsY );
 
 	if ( yFormula != nullptr )
 	{
-		bOk &= yFormula->ControlResolution( errorMsg );
+		bOk &= yFormula->ControlResolution( error_msg );
 	}
 
 	return bOk;
 }
 //----------------------------------------
-bool COperation::ControlDimensions( CFormula* formula, std::string &errorMsg, const CStringMap* aliases /* = nullptr*/ )
+bool COperation::ControlDimensions( CFormula* formula, std::string &error_msg, const CStringMap* aliases /* = nullptr*/ )
 {
 	if ( formula == nullptr )
 		return true;
@@ -1462,9 +1481,9 @@ bool COperation::ControlDimensions( CFormula* formula, std::string &errorMsg, co
 
 
 	CUIntArray commonDimensions;
-	bool bOk = m_product->HasCompatibleDims( (const char *)stringExpr.c_str(), (const char *)m_record.c_str(), msg, true, &commonDimensions );
+	bool bOk = m_product->HasCompatibleDims( stringExpr, m_record, msg, true, &commonDimensions );
 
-	errorMsg += msg;
+	error_msg += msg;
 
 	return bOk;
 
@@ -1488,7 +1507,7 @@ bool COperation::ControlDimensions( CFormula* formula, std::string &errorMsg, co
 	{
 		fields.RemoveAll();
 
-		bOk &= xFormula->GetFields( fields, errorMsg, aliases, m_product->GetAliasesAsString() );
+		bOk &= xFormula->GetFields( fields, error_msg, aliases, m_product->GetAliasesAsString() );
 
 		axesFields.Insert( fields );
 	}
@@ -1499,7 +1518,7 @@ bool COperation::ControlDimensions( CFormula* formula, std::string &errorMsg, co
 	{
 		fields.RemoveAll();
 
-		bOk &= yFormula->GetFields( fields, errorMsg, aliases, m_product->GetAliasesAsString() );
+		bOk &= yFormula->GetFields( fields, error_msg, aliases, m_product->GetAliasesAsString() );
 
 		axesFields.Insert( fields );
 	}
@@ -1507,26 +1526,22 @@ bool COperation::ControlDimensions( CFormula* formula, std::string &errorMsg, co
 
 	fields.RemoveAll();
 
-	bOk &= formula->GetFields( fields, errorMsg, aliases, m_product->GetAliasesAsString() );
+	bOk &= formula->GetFields( fields, error_msg, aliases, m_product->GetAliasesAsString() );
 
 	CStringArray complement;
-
 	axesFields.Complement( fields, complement );
-
 	if ( complement.size() <= 0 )
 	{
 		return bOk;
 	}
 
-	errorMsg += (
+	error_msg += (
 		std::string( "\nFields as array are not allowed in selection criteria expression unless they are present in X and/or Y axes.\nWrong field(s) is (are):\n" )
 		+ complement.ToString( "\n", false )
 		+ "\n"
 		);
 
-	bOk = false;
-
-	return bOk;
+	return false;
 
 }
 

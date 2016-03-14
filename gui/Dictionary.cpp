@@ -829,7 +829,7 @@ void CDictionaryDisplayList::InsertDisplay(CDisplay* display)
   }
   else
   {
-    InsertData(m_display->GetDataSelected());
+    InsertData(m_display->GetData());
   }
 }
 //----------------------------------------

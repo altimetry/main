@@ -6,6 +6,14 @@
 #include "ViewControlPanels.h"
 
 
+
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+//							Specialized Widgets
+/////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////
+
+
 ////////////////////////////////////////////////////////////////
 //	 Color Button (Builds a button for selecting a color)
 ////////////////////////////////////////////////////////////////
@@ -127,157 +135,9 @@ void CAxisTab::Wire()
 
 /////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
-//							View Common Tabs
-/////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////
-
-
-////////////////////////////////////////
-//			General Tab					
-////////////////////////////////////////
-
-
-void CViewControlsPanelGeneral::Wire()
-{
-	if ( mCmdLineProcessor )
-	{
-		mOpenAplot->addItem( t2q( mCmdLineProcessor->ParamFile() ) );
-	}
-	else
-	for ( auto *display : mDisplays )
-	{
-		mOpenAplot->addItem( t2q( display->GetName() ) );
-	}
-	mOpenAplot->setCurrentIndex( 0 );
-
-	connect( mRunPlot, SIGNAL( clicked() ), this, SLOT( RunButtonClicked() ), Qt::QueuedConnection );
-	connect( mOpenAplot, SIGNAL( currentIndexChanged(int) ), this, SIGNAL( CurrentDisplayIndexChanged(int) ), Qt::QueuedConnection );
-	connect( mNewPlot, SIGNAL( clicked() ), this, SIGNAL( NewButtonClicked() ), Qt::QueuedConnection );
-}
-
-void CViewControlsPanelGeneral::CreateWidgets()
-{
-    // I. Plot selection buttons and info
-    //
-    //    I.1 Selection buttons
-    auto mPlotName   = new QLineEdit(this);
-    mPlotName->setText("Plot name");
-
-    mNewPlot		 = new QPushButton( "New" );
-    auto mSavePlot   = new QPushButton( "Save" );
-    auto mDeletePlot = new QPushButton( "Delete" );
-    mRunPlot		 = new QPushButton( "Run" );
-
-    mOpenAplot  = new QComboBox;
-
-    mOpenAplot ->setToolTip( "Open a plot" );
-
-    //    Adding previous widgets to this...
-    AddTopGroupBox( ELayoutType::Vertical, {
-                                 LayoutWidgets( Qt::Horizontal, { mPlotName, mNewPlot, mSavePlot, mDeletePlot, mRunPlot, mOpenAplot } ),
-                                            }, "", 4, 4, 4, 4, 4 );
-	Wire();
-}
-
-
-CViewControlsPanelGeneral::CViewControlsPanelGeneral( const CDisplayFilesProcessor *cmd_line_processor, QWidget *parent, Qt::WindowFlags f )		//parent = nullptr, f = 0
-    : base_t( parent, f )
-	, mCmdLineProcessor( cmd_line_processor )
-{
-	CreateWidgets();
-}
-
-
-CViewControlsPanelGeneral::CViewControlsPanelGeneral( const std::vector< const CDisplay* > &displays, QWidget *parent, Qt::WindowFlags f )		//parent = nullptr, f = 0
-    : base_t( parent, f )
-	, mCmdLineProcessor( nullptr )
-	, mDisplays( displays )
-{
-	CreateWidgets();
-}
-
-
-
-void CViewControlsPanelGeneral::RunButtonClicked()
-{
-	int index = mOpenAplot->currentIndex();
-	if ( index >= 0 )
-		emit RunButtonClicked( index );
-}
-
-
-
-
-////////////////////////////////////////
-//			Plots Tab					
-////////////////////////////////////////
-
-
-CViewControlsPanelPlots::CViewControlsPanelPlots( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 );
-    : base_t( parent, f )
-{
-    //    II.2 Table with map plot information
-    mPlotInfoTable = new QTableWidget;
-    mPlotInfoTable->setSortingEnabled( true );                             // Enabling sorting
-    mPlotInfoTable->setAlternatingRowColors( true );                       // Alternating row colors
-    mPlotInfoTable->setEditTriggers(QAbstractItemView::NoEditTriggers);    // Disable editable table items
-    //mPlotInfoTable->setSelectionBehavior( QAbstractItemView::SelectRows ); // Whole row selection
-    //mPlotInfoTable->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
-    mPlotInfoTable->setMinimumWidth( ComputeTableWidth( mPlotInfoTable ) );  // Setting minimum width
-
-    //    Adding previous widgets to this...
-    AddTopGroupBox( ELayoutType::Vertical, {
-                                 mPlotInfoTable,
-                                            }, "", 4, 4, 4, 4, 4 );
-}
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////
 //								Plot View Tabs
 /////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
-
-
-////////////////////////////////////////
-//		Curve Edit/Data Tab					
-////////////////////////////////////////
-
-CPlotControlsPanelEdit::CPlotControlsPanelEdit( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
-    : base_t( parent, f )
-{
-    // II. Plot selection buttons and info
-    //
-    //    II.1 Selection buttons
-
-    mSelectplot = new QComboBox;
-    mvarX       = new QComboBox;
-    mvarY       = new QComboBox;
-    mvarY2      = new QComboBox;
-    mvarZ       = new QComboBox;
-
-    mSelectplot->setToolTip( "Select a plot type");
-    mvarX      ->setToolTip( "X" );
-    mvarY      ->setToolTip( "Y");
-    mvarY2     ->setToolTip( "Y2");
-    mvarZ      ->setToolTip( "Z" );
-
-    //    II.3 Link to Plot
-    auto mPlotTitle   = new QLineEdit(this);
-    mPlotTitle->setText("Plot title");
-
-    mLinkToPlot  = new QComboBox;
-    mLinkToPlot->setToolTip("Link to Plot");
-
-
-    //    Adding previous widgets to this...
-    AddTopGroupBox( ELayoutType::Vertical, {
-                                 LayoutWidgets( Qt::Horizontal, { mSelectplot, new QLabel( "Add data:" ), mvarX, mvarY, mvarY2, mvarZ } ),
-                                 LayoutWidgets( Qt::Horizontal, { mPlotTitle, mLinkToPlot } )
-                                            }, "", 4, 4, 4, 4, 4 );
-}
-
 
 
 ////////////////////////////////////////
@@ -287,48 +147,52 @@ CPlotControlsPanelEdit::CPlotControlsPanelEdit( QWidget *parent, Qt::WindowFlags
 CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
     : base_t( parent, f )
 {
-    // III. Line Options
+    // I. Plot List
+    //
+    mPlotList = new QListWidget();
+
+    // II. Line Options
     //
     mLineColorButton = new CColorButton();
 
-    auto mOpacityValue   = new QLineEdit(this);
-    mOpacityValue->setText("0.1");
+    mLineOpacityValue   = new QLineEdit(this);
+    mLineOpacityValue->setText("0.1");
 
     mStipplePattern = new QComboBox;
     mStipplePattern->setToolTip("Stipple pattern");
 
-    auto mWidthValue = new QLineEdit(this);
-    mWidthValue->setText("0.5");
+    mLineWidthValue = new QLineEdit(this);
+    mLineWidthValue->setText("0.5");
 
-    mLineOptions = AddTopGroupBox( ELayoutType::Horizontal, { new QLabel( "Plot Color" ),
+    mLineOptions = CreateGroupBox( ELayoutType::Horizontal, { new QLabel( "Plot Color" ),
                                                                        mLineColorButton,
                                                                        nullptr,
                                                                        new QLabel( "Opacity" ),
-                                                                       mOpacityValue,
+                                                                       mLineOpacityValue,
                                                                        nullptr,
                                                                        new QLabel( "Stipple pattern"),
                                                                        mStipplePattern,
                                                                        nullptr,
                                                                        new QLabel( "Width" ),
-                                                                       mWidthValue
-                                                                      }, "Line", 4, 4, 4, 4, 4 );
-	mLineOptions->setCheckable( true );
+                                                                       mLineWidthValue
+                                                                      }, "Line", nullptr, 4, 4, 4, 4, 4 );
+    mLineOptions->setCheckable( true );
     mLineOptions->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
 
-    // IV. Point Options
+    // III. Point Options
     //
     mPointColorButton = new CColorButton();
 
-    auto mFillPointCheck   = new QCheckBox(this);
+    mFillPointCheck   = new QCheckBox(this);
 
     mPointGlyph = new QComboBox;
     mPointGlyph->setToolTip("Point Glyph");
 
-    auto mSizeValue = new QLineEdit(this);
-    mSizeValue->setText("0.5");
+    mPointSizeValue = new QLineEdit(this);
+    mPointSizeValue->setText("0.5");
 
-    mPointOptions = AddTopGroupBox( ELayoutType::Horizontal, { new QLabel( "Plot Color" ),
+    mPointOptions = CreateGroupBox( ELayoutType::Horizontal, { new QLabel( "Plot Color" ),
                                                                          mPointColorButton,
                                                                          nullptr,
                                                                          mFillPointCheck,
@@ -338,45 +202,234 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
                                                                          mPointGlyph,
                                                                          nullptr,
                                                                          new QLabel( "Size" ),
-                                                                         mSizeValue
-                                                                      }, "Point", 4, 4, 4, 4, 4 );
+                                                                         mPointSizeValue
+                                                                      }, "Point", nullptr, 4, 4, 4, 4, 4 );
 
-	mPointOptions->setCheckable( true );
+    mPointOptions->setCheckable( true );
     mPointOptions->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
-	Wire();
+    // IV. Grouping all widgets
+     AddTopGroupBox( ELayoutType::Horizontal, { mPlotList,
+                                                LayoutWidgets( Qt::Vertical, {mLineOptions, mPointOptions } )
+                                                }, "", 4, 4, 4, 4, 4);
+
+     /*
+                old_pen.setStyle(Qt::NoPen);
+                break;
+            case 1:
+                old_pen.setStyle(Qt::SolidLine);
+                break;
+            case 2:
+                old_pen.setStyle(Qt::DashLine);
+            case 3:
+                old_pen.setStyle(Qt::DotLine);
+                break;
+            case 4:
+                old_pen.setStyle(Qt::DashDotLine);
+                break;
+            case 5:
+                old_pen.setStyle(Qt::DashDotDotLine);
+*/
+
+     /*
+
+        NoSymbol = -1,
+
+        Ellipse,
+        Rect,
+        Diamond,
+        Triangle,
+        DTriangle,
+        UTriangle,
+        LTriangle,
+        RTriangle,
+        Cross,
+        XCross,
+        HLine,
+        VLine,
+        Star1,
+        Star2,
+        Hexagon,
+*/
+     this->mStipplePattern->addItem("No Line");
+     this->mStipplePattern->addItem("Solid Line");
+     this->mStipplePattern->addItem("Dash Line");
+     this->mStipplePattern->addItem("Dot Line");
+     this->mStipplePattern->addItem("Dash-Dot Line");
+     this->mStipplePattern->addItem("Dash-Dot-Dot Line");
+
+     this->mPointGlyph->addItem("No Symbol");
+     this->mPointGlyph->addItem("Ellipse");
+     this->mPointGlyph->addItem("Rect");
+     this->mPointGlyph->addItem("Diamond");
+     this->mPointGlyph->addItem("Triangle");
+     this->mPointGlyph->addItem("DTriangle");
+     this->mPointGlyph->addItem("UTriangle");
+     this->mPointGlyph->addItem("LTriangle");
+     this->mPointGlyph->addItem("RTriangle");
+     this->mPointGlyph->addItem("Cross");
+     this->mPointGlyph->addItem("XCross");
+     this->mPointGlyph->addItem("HLine");
+     this->mPointGlyph->addItem("VLine");
+     this->mPointGlyph->addItem("Star1");
+     this->mPointGlyph->addItem("Star2");
+     this->mPointGlyph->addItem("Hexagon");
+
+
+
+     Wire();
 }
 
+void CPlotControlsPanelCurveOptions::AddNewPlot2DName(QString plot_name)
+{
+    assert(false);
+    assert(mPlotList);
+    mPlotList->addItem(plot_name);
+    //to garantee that at least a single item is selected
+    //execute signal OnCurrentPlotChanged
+    mLineOptions->setEnabled( false );
+    mPointOptions->setEnabled( false );
+
+}
 
 void CPlotControlsPanelCurveOptions::Wire()
 {
     connect( mLineColorButton, SIGNAL( clicked() ), mLineColorButton, SLOT( SetColor() ) );
     connect( mPointColorButton, SIGNAL( clicked() ), mPointColorButton, SLOT( SetColor() ) );
 
-	connect( mPointOptions, SIGNAL( toggled( bool ) ), this, SLOT( HandlePointOptionsChecked( bool ) ) );
-	connect( mLineOptions, SIGNAL( toggled( bool ) ), this, SLOT( HandleLineOptionsChecked( bool ) ) );
+    connect( mPointOptions, SIGNAL( toggled( bool ) ), this, SLOT( HandlePointOptionsChecked( bool ) ) );
+    connect( mPointOptions, SIGNAL( toggled( bool )), this, SLOT( HandleCurvePointColorSelected()));
 
-	mLineOptions->setChecked( true );
-	mPointOptions->setChecked( false );
+    connect( mLineOptions, SIGNAL( toggled( bool ) ), this, SLOT( HandleLineOptionsChecked( bool ) ) );
+    connect( mLineOptions, SIGNAL( toggled( bool ) ), this, SLOT( HandleCurveLineColorSelected() ) );
+
+    connect(mLineColorButton, SIGNAL(clicked( bool )), this, SLOT(HandleCurveLineColorSelected()));
+    connect(mPointColorButton, SIGNAL(clicked( bool )), this, SLOT(HandleCurvePointColorSelected()));
+
+    connect(mPlotList, SIGNAL(currentRowChanged(int)), this, SLOT(HandleCurrCurveChanged(int)));
+
+    connect(mLineOpacityValue, SIGNAL (returnPressed()), this, SLOT (HandleCurveLineOpacityEntered()));
+    connect(mLineWidthValue, SIGNAL (returnPressed()), this, SLOT (HandleCurveLineWidthEntered()));
+
+    connect( mStipplePattern, SIGNAL (currentIndexChanged(int)), this, SLOT (HandleStipplePatternChanged(int)));
+
+    connect( mPointGlyph, SIGNAL (currentIndexChanged(int)), this, SLOT (HandleGlyphPatternChanged(int)));
+
+    connect(mPointSizeValue, SIGNAL (returnPressed()), this, SLOT (HandleCurveGlyphWidthEntered()));
+
+    connect(mFillPointCheck, SIGNAL (toggled(bool)), this, SLOT( HandleFillGlyphInterior(bool)));
+
+    mLineOptions->setChecked( true );
+    mPointOptions->setChecked( false );
 }
 
 
 void CPlotControlsPanelCurveOptions::HandleLineOptionsChecked( bool checked )
 {
 	mPointOptions->setChecked( !checked );
-	emit LineOptionsChecked( checked );
+    emit LineOptionsChecked( checked, mPlotList->currentRow() );
 }
 
 void CPlotControlsPanelCurveOptions::HandlePointOptionsChecked( bool checked )
 {
 	mLineOptions->setChecked( !checked );
-	emit PointOptionsChecked( checked );
+    emit PointOptionsChecked( checked, mPlotList->currentRow() );
 }
 
 
 
+void CPlotControlsPanelCurveOptions::HandleCurveLineColorSelected()
+{
+    emit CurveLineColorSelected(this->mLineColorButton->GetColor(), mPlotList->currentRow());
+}
+
+void CPlotControlsPanelCurveOptions::HandleCurvePointColorSelected()
+{
+    emit CurvePointColorSelected(this->mPointColorButton->GetColor(), mPlotList->currentRow());
+}
+
+void CPlotControlsPanelCurveOptions::HandleCurveLineOpacityEntered()
+{
+    bool is_converted=false;
+    int opacity_value;
+    const QString opacity = this->mLineOpacityValue->text();
+    opacity_value = opacity.toInt(&is_converted, 10);
+
+    if (!is_converted)
+    {
+        return;
+    }
+
+    emit CurveLineOpacityEntered(opacity_value, mPlotList->currentRow());
+}
+
+void CPlotControlsPanelCurveOptions::HandleCurveLineWidthEntered()
+{
+    bool is_converted=false;
+    int width_value;
+    const QString width = this->mLineWidthValue->text();
+    width_value = width.toInt(&is_converted, 10);
+
+    if (!is_converted)
+    {
+        return;
+    }
+
+    emit CurveLineWidthEntered(width_value, mPlotList->currentRow());
+}
 
 
+void CPlotControlsPanelCurveOptions::HandleNewPlot(const CDisplayFilesProcessor* curr_proc)
+{
+    //clears previously installed information
+    mPlotList->clear();
+    size_t sz = curr_proc->GetXYPlotPropertiesSize();
+
+    for (int i =0;i<sz;i++ )
+    {
+        CXYPlotProperties* ptr_curr_plot = curr_proc->GetXYPlotProperties(i);
+        assert(ptr_curr_plot);
+        mPlotList->addItem(t2q(ptr_curr_plot->GetName()));
+    }
+}
+
+void CPlotControlsPanelCurveOptions::HandleCurrCurveChanged(int index)
+{
+    this->mPointOptions->setEnabled( true );
+    this->mLineOptions->setEnabled( true );
+    emit CurrCurveChanged(index);
+}
+
+void CPlotControlsPanelCurveOptions::HandleStipplePatternChanged(int pattern)
+{
+    emit StipplePatternChanged(pattern, mPlotList->currentRow());
+}
+
+void CPlotControlsPanelCurveOptions::HandleGlyphPatternChanged(int pattern)
+{
+    emit GlyphPatternChanged(pattern, mPlotList->currentRow());
+}
+
+void CPlotControlsPanelCurveOptions::HandleFillGlyphInterior(bool checked)
+{
+    emit FillGlyphInterior(checked, mPlotList->currentRow());
+}
+
+void CPlotControlsPanelCurveOptions::HandleCurveGlyphWidthEntered()
+{
+    bool is_converted=false;
+    int w_value;
+    const QString pointw = this->mPointSizeValue->text();
+    w_value = pointw.toInt(&is_converted, 10);
+
+    if (!is_converted)
+    {
+        return;
+    }
+
+    emit CurveGlyphWidthEntered(w_value, mPlotList->currentRow());
+
+}
 ////////////////////////////////////////
 //		Axis Options Tab					
 ////////////////////////////////////////
@@ -426,14 +479,9 @@ void CPlotControlsPanelAxisOptions::Wire()
 //			Map Edit Tab					
 ////////////////////////////////////////
 
-CMapControlsPanelEdit::CMapControlsPanelEdit( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 );
+CMapControlsPanelDataLayers::CMapControlsPanelDataLayers( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 );
     : base_t( parent, f )
 {
-    mAddData = new QComboBox;
-    mAddData->setToolTip( "Add Data");
-
-	AddTopWidget( mAddData );
-
     // III. Data Layers
     //
     mDataLayer = new QComboBox;
@@ -454,14 +502,16 @@ CMapControlsPanelEdit::CMapControlsPanelEdit( QWidget *parent, Qt::WindowFlags f
     mMaxRange->setText("0");
     auto mReset = new QPushButton("Reset");
 
-    QGroupBox *DataLayersOptions_group = AddTopGroupBox( ELayoutType::Vertical, {
-                                                   LayoutWidgets( Qt::Horizontal, { mDataLayer, nullptr, new QLabel( "Number of Labels (Color Bar)" ), mNbLabels } ),
-                                                   LayoutWidgets( Qt::Horizontal, { mShowSolidColorCheck, new QLabel( "Show Solid Color" ), mSolidColorEdit, nullptr, mShowContourCheck, new QLabel( "Show Contour" ), mContourEdit } ),
-                                                   lineHorizontal,
-                                                   LayoutWidgets( Qt::Horizontal, { new QLabel( "Range:" ), nullptr, new QLabel( "Min." ), mMinRange, nullptr, new QLabel( "Max." ), mMaxRange, nullptr, mReset } ),
-                                                                                  }, "Data Layers", 4, 4, 4, 4, 4 );
+    QLayout *DataLayersOptions_group = AddTopLayout( ELayoutType::Vertical, {
+        LayoutWidgets( Qt::Horizontal, { mDataLayer, nullptr, new QLabel( "Number of Labels (Color Bar)" ), mNbLabels } ),
+        LayoutWidgets( Qt::Horizontal, { mShowSolidColorCheck, new QLabel( "Show Solid Color" ), mSolidColorEdit, nullptr, mShowContourCheck, new QLabel( "Show Contour" ), mContourEdit } ),
+        lineHorizontal,
+        LayoutWidgets( Qt::Horizontal, { new QLabel( "Range:" ), nullptr, new QLabel( "Min." ), mMinRange, nullptr, new QLabel( "Max." ), mMaxRange, nullptr, mReset } ),
+                                        }, s, m, m, m, m );
 
-    DataLayersOptions_group->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
+    Q_UNUSED( DataLayersOptions_group );
+
+    //DataLayersOptions_group->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 }
 
 
@@ -470,7 +520,7 @@ CMapControlsPanelEdit::CMapControlsPanelEdit( QWidget *parent, Qt::WindowFlags f
 //			Map Options Tab
 ////////////////////////////////////////
 
-CMapControlsPanelOptions::CMapControlsPanelOptions( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
+CMapControlsPanelView::CMapControlsPanelView( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
     : base_t( parent, f )
 {
     // IV. View Options

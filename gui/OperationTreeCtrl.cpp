@@ -38,10 +38,10 @@ using namespace brathl;
 
 
 
-const wxString INSERT_FIELD_MENU_LABEL = "Insert '%s' f&ield as a new expression";
-const wxString INSERT_FIELD_MENU_LABEL2 = "Insert '%s' f&ield into expression";
-const wxString DELETE_EXPR_MENU_LABEL = "&Delete '%s' expression";
-const wxString RENAME_EXPR_MENU_LABEL = "&Rename '%s' expression";
+static const wxString INSERT_FIELD_MENU_LABEL = "Insert '%s' f&ield as a new expression";
+static const wxString INSERT_FIELD_MENU_LABEL2 = "Insert '%s' f&ield into expression";
+static const wxString DELETE_EXPR_MENU_LABEL = "&Delete '%s' expression";
+static const wxString RENAME_EXPR_MENU_LABEL = "&Rename '%s' expression";
 
 
 
@@ -390,7 +390,7 @@ wxTreeItemId COperationTreeCtrl::FindParentRootTypeItem(const wxTreeItemId& from
   wxString test = GetItemText(id);
   parentId = GetItemParent(id);
 
-  FindParentRootTypeItem(parentId);
+  FindParentRootTypeItem(parentId);		//v4 ???
 
   return parentId;
   
@@ -802,63 +802,8 @@ void COperationTreeCtrl::Add( const wxTreeItemId& parentId, CField* field )
 		return;
 
 	wxTreeItemId theParentId = FindParentRootTypeItem( parentId );
-
-	//int32_t nbVirtualDims = field->GetVirtualNbDims();
-	/*
-	  if (nbVirtualDims > 1)
-	  {
-	  wxMessageBox(wxString::Format("Field '%s' is a %d-dimensional field.\n"
-	  "It is no allowed as '%s' expression.\n",
-	  field->GetName().c_str(),
-	  nbVirtualDims,
-	  GetItemText(theParentId).c_str()),
-	  "Warning",
-	  wxOK | wxICON_HAND);
-	  return;
-
-	  }
-	  */
-	/*
-	if (theParentId != GetDataRootId())
-	{
-	if (field->HasVirtualNbDims() && !field->IsHighResolution())
-	{
-	wxMessageBox(wxString::Format("Field '%s' is neither a scalar (dimension: '%s') nor a 'high resolution' field.\n"
-	"It is no allowed as '%s' expression.\n",
-	field->GetName().c_str(),
-	field->GetDimAsString().c_str(),
-	GetItemText(theParentId).c_str()),
-	"Warning",
-	wxOK | wxICON_HAND);
-	return;
-
-	}
-	}
-	*/
 	wxString operationRecord = m_operation->GetRecord();
 	std::string fieldRecord = field->GetRecordName().c_str();
-
-	/*
-	if (m_operation->HasFormula())
-	{
-	if (operationRecord.CmpNoCase(fieldRecord) != 0)
-	{
-	wxMessageBox(wxString::Format("Data expression must have the same record.\n"
-	"The current record of the operation is: '%s'\n"
-	"and you are currently going to add a field from record: '%s' \n",
-	operationRecord.c_str(),
-	fieldRecord.c_str()),
-	"Warning",
-	wxOK | wxICON_HAND);
-	return;
-
-	}
-	}
-	else
-	{
-	m_operation->SetRecord(fieldRecord);
-	}
-	*/
 
 	if ( !m_operation->HasFormula() )
 	{
@@ -1342,155 +1287,137 @@ void COperationTreeCtrl::OnGetToolTip( wxTreeEvent &event )
 #endif
 
 //----------------------------------------
-void COperationTreeCtrl::ShowMenu(wxTreeItemId id, const wxPoint& pt)
+void COperationTreeCtrl::ShowMenu( wxTreeItemId id, const wxPoint& pt )
 {
-  COperationTreeItemData* itemData = id.IsOk() ? dynamic_cast<COperationTreeItemData*>(GetItemData(id))
-                                       : NULL;
-  if (itemData == NULL)
-  {
-    return;
-  }
+	COperationTreeItemData* itemData = id.IsOk() ? dynamic_cast<COperationTreeItemData*>( GetItemData( id ) )
+		: NULL;
+	if ( itemData == NULL )
+	{
+		return;
+	}
 
-  wxTreeItemId idFieldTreeCtrl = GetFieldstreectrl()->GetSelection();
-  CFieldsTreeItemData* itemDataField = idFieldTreeCtrl.IsOk() ? dynamic_cast<CFieldsTreeItemData*>(GetItemData(idFieldTreeCtrl))
-                                       : NULL;
-  CField* fieldF = NULL;
-  if (itemDataField != NULL)
-  {
-    fieldF = (!GetFieldstreectrl()->ItemHasChildren(idFieldTreeCtrl)) ? itemDataField->GetField() : NULL;
-  }
+	wxTreeItemId idFieldTreeCtrl = GetFieldstreectrl()->GetSelection();
+	CFieldsTreeItemData* itemDataField = idFieldTreeCtrl.IsOk() ? dynamic_cast<CFieldsTreeItemData*>( GetItemData( idFieldTreeCtrl ) )
+		: NULL;
+	CField* fieldF = NULL;
+	if ( itemDataField != NULL )
+	{
+		fieldF = ( !GetFieldstreectrl()->ItemHasChildren( idFieldTreeCtrl ) ) ? itemDataField->GetField() : NULL;
+	}
 
-  wxString name;
-  wxString title;
-  CFormula* formula = itemData->GetFormula();
-  if (formula == NULL)
-  {
-    name = GetItemText(id);
-  }
-  else
-  {
-    name = formula->GetName().c_str();
-  }
-
-
-  title.Printf(wxT("Menu for %s"), name.c_str());
-
-  wxMenu* menu = wxGetApp().GetMenuOperationTreeCtrl();
-  if (menu == NULL)
-  {
-    return;
-  }
+	wxString name;
+	wxString title;
+	CFormula* formula = itemData->GetFormula();
+	if ( formula == NULL )
+	{
+		name = GetItemText( id );
+	}
+	else
+	{
+		name = formula->GetName().c_str();
+	}
 
 
-  menu->SetTitle(title);
-  wxMenuItem* menuItem = menu->FindItem(ID_INSERTFIELDMENU);
-  if (menuItem != NULL)
-  {
-    if (fieldF != NULL)
-    {
-      wxString text;
-      if (formula == NULL)
-      {
-        
-        text.Printf(INSERT_FIELD_MENU_LABEL, fieldF->GetName().c_str());
-        menuItem->SetText(text);
-        menuItem->Enable(true);
-      }
-      else
-      {
-        text.Printf(INSERT_FIELD_MENU_LABEL2, fieldF->GetName().c_str());
-        menuItem->SetText(text);
-        menuItem->Enable(true);
-      }
-    }
-    else
-    {
-      menuItem->SetText("Insert f&ield");
-      menuItem->Enable(false);
-    }
-  }
+	title.Printf( wxT( "Menu for %s" ), name.c_str() );
 
-  menuItem = menu->FindItem(ID_DELETEEXPRMENU);
-  if (menuItem != NULL)
-  {
-    if (formula != NULL)
-    {
-      wxString text;      
-      text.Printf(DELETE_EXPR_MENU_LABEL, GetItemText(id).c_str());
-      menuItem->SetText(text);
-      menuItem->Enable(true);
-    }
-    else
-    {
-      menuItem->SetText("&Delete expression");
-      menuItem->Enable(false);
-    }
-  }
+	wxMenu* menu = wxGetApp().GetMenuOperationTreeCtrl();
+	if ( menu == NULL )
+	{
+		return;
+	}
 
-  menuItem = menu->FindItem(ID_RENAMEEXPRMENU);
-  if (menuItem != NULL)
-  {
-    menuItem->SetText("&Rename expression");
-    menuItem->Enable(false);
 
-    if (formula != NULL)
-    {
-      if (!COperation::IsSelect(formula->GetName()))
-      {
-        wxString text;      
-        text.Printf(RENAME_EXPR_MENU_LABEL, GetItemText(id).c_str());
-        menuItem->SetText(text);
-        menuItem->Enable(true);
-      }
-    }
-  }
+	menu->SetTitle( title );
+	wxMenuItem* menuItem = menu->FindItem( ID_INSERTFIELDMENU );
+	if ( menuItem != NULL )
+	{
+		if ( fieldF != NULL )
+		{
+			wxString text;
+			if ( formula == NULL )
+			{
 
-  menuItem = menu->FindItem(ID_SAVEASFORMULAMENU);
-  if (menuItem != NULL)
-  {
-    bool enable = false;
+				text.Printf( INSERT_FIELD_MENU_LABEL, fieldF->GetName().c_str() );
+				menuItem->SetText( text );
+				menuItem->Enable( true );
+			}
+			else
+			{
+				text.Printf( INSERT_FIELD_MENU_LABEL2, fieldF->GetName().c_str() );
+				menuItem->SetText( text );
+				menuItem->Enable( true );
+			}
+		}
+		else
+		{
+			menuItem->SetText( "Insert f&ield" );
+			menuItem->Enable( false );
+		}
+	}
 
-    if (formula != NULL)
-    {
-      if (!formula->GetDescription().empty())
-      {
-        enable = true;
-      }
-    }
-    menuItem->Enable(enable);
-  }
+	menuItem = menu->FindItem( ID_DELETEEXPRMENU );
+	if ( menuItem != NULL )
+	{
+		if ( formula != NULL )
+		{
+			wxString text;
+			text.Printf( DELETE_EXPR_MENU_LABEL, GetItemText( id ).c_str() );
+			menuItem->SetText( text );
+			menuItem->Enable( true );
+		}
+		else
+		{
+			menuItem->SetText( "&Delete expression" );
+			menuItem->Enable( false );
+		}
+	}
 
-  menuItem = menu->FindItem(ID_INSERTFCTMENU);
-  if (menuItem != NULL)
-  {
-    menuItem->Enable((formula != NULL));
-  }
+	menuItem = menu->FindItem( ID_RENAMEEXPRMENU );
+	if ( menuItem != NULL )
+	{
+		menuItem->SetText( "&Rename expression" );
+		menuItem->Enable( false );
 
-  menuItem = menu->FindItem(ID_INSERTFORMULAMENU);
-  if (menuItem != NULL)
-  {
-    menuItem->Enable((formula != NULL));
-  }
+		if ( formula != NULL )
+		{
+			if ( !COperation::IsSelect( formula->GetName() ) )
+			{
+				wxString text;
+				text.Printf( RENAME_EXPR_MENU_LABEL, GetItemText( id ).c_str() );
+				menuItem->SetText( text );
+				menuItem->Enable( true );
+			}
+		}
+	}
 
-  PopupMenu(menu, pt);
+	menuItem = menu->FindItem( ID_SAVEASFORMULAMENU );
+	if ( menuItem != NULL )
+	{
+		bool enable = false;
 
-/*
-#if wxUSE_MENUS
-    wxMenu menu(title);
-    menu.Append(-1, wxT("Insert empty expression..."));
-    menu.Append(-1, wxT("Insert selected field..."));
-    menu.Append(-1, wxT("Insert function..."));
-    menu.Append(-1, wxT("Insert formula..."));
-    menu.AppendSeparator();
-    menu.Append(-1, wxT("Save as formula..."));
-    menu.AppendSeparator();
-    menu.Append(-1, wxT("Delete expression..."));
-    menu.AppendSeparator();
-    menu.Append(-1, wxT("&Set resolution/filter..."));
+		if ( formula != NULL )
+		{
+			if ( !formula->GetDescription().empty() )
+			{
+				enable = true;
+			}
+		}
+		menuItem->Enable( enable );
+	}
 
-    PopupMenu(&menu, pt);
-#endif // wxUSE_MENUS
-    */
+	menuItem = menu->FindItem( ID_INSERTFCTMENU );
+	if ( menuItem != NULL )
+	{
+		menuItem->Enable( ( formula != NULL ) );
+	}
+
+	menuItem = menu->FindItem( ID_INSERTFORMULAMENU );
+	if ( menuItem != NULL )
+	{
+		menuItem->Enable( ( formula != NULL ) );
+	}
+
+	PopupMenu( menu, pt );
 }
 
 #if defined(_MSC_VER)

@@ -109,7 +109,28 @@ void CBratMapView::PlotTrack( const double *x, const double *y, size_t size, QCo
     }
 
 #if defined (USE_FEATURES)
-    auto memL = AddMemoryLayer( createPointSymbol( 1, color ) );	//(*)	//note that you can use strings like "red" instead!!!
+    auto memL = AddMemoryLayer( createPointSymbol( 0.7, color ) );	//(*)	//note that you can use strings like "red" instead!!!
+    memL->dataProvider()->addFeatures( flist );
+    //memL->updateExtents();
+    //refresh();
+#endif
+}
+void CBratMapView::PlotTrack( const double *x, const double *y, const double *z, size_t size, QColor color )		//color = Qt::red 
+{
+    QgsFeatureList flist;
+
+    for ( auto i = 0u; i < size; ++ i )
+    {
+
+#if defined (USE_FEATURES) //(***)
+		createPointFeature( flist, x[ i ], y[ i ], z[ i ] );
+#else
+        addRBPoint( x[ i ], y[ i ], QColor( (long)v[ i ] ), mMainLayer );
+#endif
+    }
+
+#if defined (USE_FEATURES)
+    auto memL = AddMemoryLayer( createPointSymbol( 0.7, color ) );	//(*)	//note that you can use strings like "red" instead!!!
     memL->dataProvider()->addFeatures( flist );
     //memL->updateExtents();
     //refresh();
@@ -131,7 +152,7 @@ void CBratMapView::Plot( const CWorldPlotInfo &maps )
 
 		//	  if (Projection == VTK_PROJ2D_MERCATOR)
 		//	  {
-		bOk &= maps(0).mValidMercatorLatitudes[ i ];
+		//bOk &= maps(0).mValidMercatorLatitudes[ i ];
 		//	  }
 		//
 		return bOk;

@@ -7,7 +7,7 @@
 #include "ApplicationSettingsDlg.h"
 
 /*
-Receives a CBratSettings ref, wich includes a CApplicationSettings ref as well.
+Receives a CBratSettings ref, which includes a CApplicationSettings ref as well.
 mSettings is set by copy from options.
 */
 CApplicationSettingsDlg::CApplicationSettingsDlg( CBratSettings &options, QWidget *parent ) : QDialog( parent ), mSettings( options )

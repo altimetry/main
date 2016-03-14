@@ -113,6 +113,7 @@ public:
 
 
 	COperation* GetOperation() { return m_operation; }
+	const COperation* GetOperation() const { return const_cast<CDisplayData*>( this )->GetOperation(); }
 	void SetOperation( COperation* value ) { m_operation = value; }
 
 	std::string GetGroupAsText() const { return n2s< std::string >( m_group ); }
@@ -262,8 +263,6 @@ class CDisplay : public CBratObject
 public:
 	static void GetDisplayType( const COperation* operation, CUIntArray& displayTypes, CInternalFiles** pf = nullptr );
 
-	static COperation* FindOperation( const std::string& name, CWorkspaceOperation *wkso );
-
 protected:
 	static const std::string m_zoomDelimiter;
 
@@ -321,23 +320,8 @@ public:
 		InitOutput( wks );
 	}
 
-	//CDisplay( CDisplay& d );
-//----------------------------------------
-//CDisplay::CDisplay(CDisplay& d)
-//{
-//  Init();
-//  Copy(d);
-//}
-	//CDisplay& operator=( CDisplay& d );
-//CDisplay& CDisplay::operator=(CDisplay& d)
-//{
-//  Copy(d);
-//  return *this;
-//}
-//
-
 protected:
-	//void Copy( CDisplay& d );
+
 	void Init();
 
 public:
@@ -353,15 +337,17 @@ public:
 	bool SaveConfig( CWorkspaceSettings* config, CWorkspaceDisplay *wksd ) const;
 	bool LoadConfig( CWorkspaceSettings* config, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso );
 
-	bool UseOperation( const std::string& name, std::string& errorMsg );
+	bool UsesOperation( const std::string& name ) const;
+	std::vector< const COperation* > GetOperations() const;
+
 
 	int32_t GetType() const { return m_type; }
 	void SetType( int32_t value ) { m_type = value; }
 
 	std::string GetTypeAsString() const { return n2s< std::string >( m_type ); }
 
-	CMapDisplayData* GetDataSelected() { return &m_data; }
-	const CMapDisplayData& GetDataSelected() const { return m_data; }
+	CMapDisplayData* GetData() { return &m_data; }
+	const CMapDisplayData& GetData() const { return m_data; }
 	std::string FmtCmdParam( const std::string& name );
 
 	bool ExistData( const std::string& key );
@@ -421,24 +407,6 @@ public:
 
 
 	bool BuildCmdFile( std::string &error_msg );
-private:
-	//bool BuildCmdFileHeader();
-	//bool BuildCmdFileGeneralProperties();
-	//bool BuildCmdFileGeneralPropertiesXY();
-	//bool BuildCmdFileGeneralPropertiesZXY();
-	//bool BuildCmdFileGeneralPropertiesZLatLon();
-	//bool BuildCmdFileFields();
-	//bool BuildCmdFileFieldsZFXY();
-	//bool BuildCmdFileFieldsYFX();
-	//bool BuildCmdFileFieldProperties( const std::string& dataKey );
-	//bool BuildCmdFileFieldPropertiesXY( const CDisplayData* value );
-	//bool BuildCmdFileFieldPropertiesZXY( const CDisplayData* value );
-
-	//bool BuildCmdFileVerbose();
-
-	//bool WriteComment( const std::string& text );
-	//bool WriteLine( const std::string& text );
-	//bool WriteEmptyLine();
 
 public:
 	void InitOutput( CWorkspaceDisplay *wks );
@@ -450,48 +418,6 @@ public:
 	///Dump fonction
 	virtual void Dump( std::ostream& fOut = std::cerr );
 };
-
-//----------------------------------------------------------------------------
-// CDndDisplayData
-//----------------------------------------------------------------------------
-
-struct CDndDisplayData
-{
-	CObArray m_data;
-
-	CDndDisplayData() : m_data( false ) 
-	{}
-	CDndDisplayData( CDisplayData* displayData ) { m_data.Insert( displayData ); }
-	CDndDisplayData( const CObArray& data ) { Set( data ); }
-	CDndDisplayData( const CObArray* data ) { Set( data ); }
-
-	CDndDisplayData( CDndDisplayData& dndDisplayData )
-		: m_data( false )
-	{
-		Set( dndDisplayData );
-	}
-
-	virtual ~CDndDisplayData()
-	{}
-
-	void Set( CDndDisplayData& dndDisplayData )
-	{
-		Set( dndDisplayData.m_data );
-	}
-
-	void Set( const CObArray& data )
-	{
-		m_data.RemoveAll();
-		for ( CObArray::const_iterator it = data.begin(); it != data.end(); it++ )
-			m_data.Insert( *it );
-	}
-
-	void Set( const CObArray* data )
-	{
-		Set( *data );
-	}
-};
-
 
 /** @} */
 

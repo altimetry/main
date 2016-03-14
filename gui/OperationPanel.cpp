@@ -701,7 +701,7 @@ void COperationPanel::OpNameChanged()
     return;
   }
 
-  if (m_currentOperation < 0)
+  if (m_currentOperationIndex < 0)
   {
     return;
   }
@@ -747,14 +747,14 @@ void COperationPanel::OpNameChanged()
                                   opName.c_str()),
                 "Warning",
                 wxOK | wxICON_EXCLAMATION);
-    GetOpnames()->SetSelection(m_currentOperation);
+    GetOpnames()->SetSelection(m_currentOperationIndex);
     return;
   }
 
-  GetOpnames()->Delete(m_currentOperation);
+  GetOpnames()->Delete(m_currentOperationIndex);
 
-  m_currentOperation = GetOpnames()->Append(opName);
-  GetOpnames()->SetSelection(m_currentOperation);
+  m_currentOperationIndex = GetOpnames()->Append(opName);
+  GetOpnames()->SetSelection(m_currentOperationIndex);
 
   CRenameOperationEvent ev(GetId(), operationOldName, opName);
   wxPostEvent(GetParent(), ev);
@@ -1160,14 +1160,14 @@ CDataset* COperationPanel::GetCurrentDataset()
 //----------------------------------------
 void COperationPanel::FillDataTypeList()
 {
-  GetOptype()->Clear();
-  NamesToComboBox(CMapTypeData::GetInstance(), *GetOptype(), true);
+	GetOptype()->Clear();
+	NamesToComboBox( CMapTypeData::GetInstance(), *GetOptype(), true );
 }
 //----------------------------------------
 void COperationPanel::FillDataModeList()
 {
-  GetOpDataMode()->Clear();
-  NamesToComboBox(CMapDataMode::GetInstance(), *GetOpDataMode());
+	GetOpDataMode()->Clear();
+	NamesToComboBox( CMapDataMode::GetInstance(), *GetOpDataMode() );
 }
 
 //----------------------------------------
@@ -1199,8 +1199,8 @@ void COperationPanel::LoadOperation()
 
   GetOperationNames( *wks, *GetOpnames() );
 
-  m_currentOperation = 0;
-  GetOpnames()->SetSelection(m_currentOperation);
+  m_currentOperationIndex = 0;
+  GetOpnames()->SetSelection(m_currentOperationIndex);
 
   SetCurrentOperation();
 
@@ -1217,8 +1217,6 @@ void COperationPanel::LoadOperation()
   EnableCtrl();
 
   this->SetCursor(wxNullCursor);
-
-
 }
 //----------------------------------------
 CFormula* COperationPanel::GetCurrentFormula()
@@ -1231,15 +1229,15 @@ CFormula* COperationPanel::GetCurrentFormula()
   return GetOperationtreectrl()->GetCurrentFormula();
 }
 //----------------------------------------
-bool COperationPanel::SetCurrentFormula()
+bool COperationPanel::SetCurrentFormula() //all comments are v4
 {
   m_userFormula = GetCurrentFormula();
-  GetUserFormulaText();
-  GetOperationUnit();
-  GetOperationDataType();
-  GetDataMode();
+  GetUserFormulaText();					//sets the "Expression" text field; so, it does not GET anything
+  GetOperationUnit();					//sets the "Unit" list selection; so, it does not GET anything
+  GetOperationDataType();				//sets the GetOptype combo selection; so, it does not GET anything
+  GetDataMode();						//sets the GetOpDataMode list selection; so, it does not GET anything
 
-  SetResolutionLabels();
+  SetResolutionLabels();				//sets labels below "Expression" text box
 
   return (m_userFormula != NULL);
 }
@@ -1247,55 +1245,54 @@ bool COperationPanel::SetCurrentFormula()
 //----------------------------------------
 void COperationPanel::SetResolutionLabels()
 {
-  if (m_operation == NULL)
-  {
-    return;
-  }
+	if ( m_operation == NULL )
+	{
+		return;
+	}
 
-  if (m_operation->IsZFXY())
-  {
-    CFormula* xFormula = m_operation->GetFormula(CMapTypeField::eTypeOpAsX);
-    CFormula* yFormula = m_operation->GetFormula(CMapTypeField::eTypeOpAsY);
-
-
-    if (m_userFormula != NULL)
-    {
-      if (IsFormulaDataField() && !IsFormulaSelectField())
-      {
-        GetOpFilterlabel()->SetLabel(m_userFormula->GetFilterAsLabel());
-      }
-      else
-      {
-        GetOpFilterlabel()->SetLabel("");
-      }
-    }
-    else
-    {
-      GetOpFilterlabel()->SetLabel("");
-    }
+	if ( m_operation->IsZFXY() )
+	{
+		CFormula* xFormula = m_operation->GetFormula( CMapTypeField::eTypeOpAsX );
+		CFormula* yFormula = m_operation->GetFormula( CMapTypeField::eTypeOpAsY );
 
 
-    bool hasFilter = m_operation->HasFilters();
+		if ( m_userFormula != NULL )
+		{
+			if ( IsFormulaDataField() && !IsFormulaSelectField() )
+			{
+				GetOpFilterlabel()->SetLabel( m_userFormula->GetFilterAsLabel() );
+			}
+			else
+			{
+				GetOpFilterlabel()->SetLabel( "" );
+			}
+		}
+		else
+		{
+			GetOpFilterlabel()->SetLabel( "" );
+		}
 
-    if (xFormula != NULL)
-    {
-      GetOpXresolutionlabel()->SetLabel(xFormula->GetResolutionAsLabel(hasFilter));
-    }
-    else
-    {
-      GetOpXresolutionlabel()->SetLabel("");
-    }
 
-    if (yFormula != NULL)
-    {
-      GetOpYresolutionlabel()->SetLabel(yFormula->GetResolutionAsLabel(hasFilter).c_str());
-    }
-    else
-    {
-      GetOpYresolutionlabel()->SetLabel("");
-    }
-  }
+		bool hasFilter = m_operation->HasFilters();
 
+		if ( xFormula != NULL )
+		{
+			GetOpXresolutionlabel()->SetLabel( xFormula->GetResolutionAsLabel( hasFilter ) );
+		}
+		else
+		{
+			GetOpXresolutionlabel()->SetLabel( "" );
+		}
+
+		if ( yFormula != NULL )
+		{
+			GetOpYresolutionlabel()->SetLabel( yFormula->GetResolutionAsLabel( hasFilter ).c_str() );
+		}
+		else
+		{
+			GetOpYresolutionlabel()->SetLabel( "" );
+		}
+	}
 }
 //----------------------------------------
 void COperationPanel::GetUserFormulaText()
@@ -1431,7 +1428,7 @@ COperation* COperationPanel::GetCurrentOperation()
     return NULL;
   }
 
-  return wks->GetOperation(GetOpnames()->GetString(m_currentOperation).ToStdString());
+  return wks->GetOperation(GetOpnames()->GetString(m_currentOperationIndex).ToStdString());
 }
 //----------------------------------------
 bool COperationPanel::SetCurrentOperation()
@@ -1456,7 +1453,7 @@ void COperationPanel::Reset()
     m_currentRecord.Unset();
   }
 
-  m_currentOperation = -1;
+  m_currentOperationIndex = -1;
 //  m_currentUserForm = -1;
   DeleteProduct();
   m_operation = NULL;  // must be after DeleteProduct
@@ -1831,7 +1828,7 @@ void COperationPanel::OnComboOperation( wxCommandEvent &event )
 //----------------------------------------
 void COperationPanel::ComboOperation( int32_t currentOperation )
 {
-  m_currentOperation = currentOperation;
+  m_currentOperationIndex = currentOperation;
   ComboOperation();
 }
 
@@ -2211,20 +2208,12 @@ void COperationPanel::OnDatasetSelChanged( wxTreeEvent &event )
 //----------------------------------------
 void COperationPanel::SetDataSetAndRecordLabel()
 {
-  if (m_product == NULL)
+  if (m_product == NULL || m_operation == NULL )
   {
     GetOperationtreectrllabel()->SetLabel("");
     GetOpchangerecord()->Enable(false);
     return;
   }
-
-  if (m_operation == NULL)
-  {
-    GetOperationtreectrllabel()->SetLabel("");
-    GetOpchangerecord()->Enable(false);
-    return;
-  }
-
 
   wxString strFormat = "Product: %s/%s\nDataset: %s\nDefault record: %s";
 
@@ -2275,32 +2264,31 @@ bool COperationPanel::SetCurrentRecord()
 }
 
 //----------------------------------------
-wxTreeItemId COperationPanel::GetOperationRecord(bool select)
+wxTreeItemId COperationPanel::GetOperationRecord( bool select )	//select = true
 {
-  wxTreeItemId id;
+	wxTreeItemId id;
 
-  if (m_operation == NULL)
-  {
-    return id;
-  }
-  id = GetFieldstreectrl()->FindItem(m_operation->GetRecord());
+	if ( m_operation == NULL )
+	{
+		return id;
+	}
+	id = GetFieldstreectrl()->FindItem( m_operation->GetRecord() );
 
 
-  if (select)
-  {
-    m_currentRecord = id;
-    // if no selection (current record < 0) and only one record in the list, select it
-    if ( (!m_currentRecord) && (GetFieldstreectrl()->GetRecordCount() == 1) )
-    {
-      m_currentRecord = GetFieldstreectrl()->GetFirstRecordId() ;
-    }
+	if ( select )
+	{
+		m_currentRecord = id;
+		// if no selection (current record < 0) and only one record in the list, select it
+		if ( ( !m_currentRecord ) && ( GetFieldstreectrl()->GetRecordCount() == 1 ) )
+		{
+			m_currentRecord = GetFieldstreectrl()->GetFirstRecordId();
+		}
 
-    GetFieldstreectrl()->SelectItem(m_currentRecord);
-    GetFieldstreectrl()->Expand(m_currentRecord);
-  }
+		GetFieldstreectrl()->SelectItem( m_currentRecord );
+		GetFieldstreectrl()->Expand( m_currentRecord );
+	}
 
-  return id;
-
+	return id;
 }
 
 //----------------------------------------
@@ -2339,87 +2327,8 @@ void COperationPanel::Resolution()
   {
     return;
   }
-  /*
-  if (m_userFormula != NULL)
-  {
-    m_userFormula->SetFilter(dlg.GetFormulaoptFilter()->GetSelection());
-  }
 
-
-  CFormula* xFormula = m_operation->GetFormula(CMapTypeField::typeOpAsX);
-
-  if (xFormula != NULL)
-  {
-    double doubleValue;
-    int32_t intValue;
-    wxString stringValue;
-
-    if (xFormula->IsTimeDataType())
-    {
-      dlg.GetFormulaoptXmin()->GetValueAsDate(doubleValue, 0.0, 0.0);
-      xFormula->SetMinValue(doubleValue);
-
-      dlg.GetFormulaoptXmax()->GetValueAsDate(doubleValue, CDate::m_secInDay);
-      xFormula->SetMaxValue(doubleValue);
-    }
-    else
-    {
-      dlg.GetFormulaoptXmin()->GetValue(doubleValue, CTools::m_defaultValueDOUBLE);
-      xFormula->SetMinValue(doubleValue);
-
-      dlg.GetFormulaoptXmax()->GetValue(doubleValue, CTools::m_defaultValueDOUBLE);
-      xFormula->SetMaxValue(doubleValue);
-    }
-
-    dlg.GetFormulaoptXstep()->GetValue(stringValue, xFormula->GetDefaultStep());
-    xFormula->SetStep(stringValue);
-
-    dlg.GetFormulaoptXinterval()->GetValue(intValue, CTools::m_defaultValueINT32);
-    xFormula->SetInterval(intValue);
-
-    dlg.GetFormulaoptXloesscut()->GetValue(intValue, CTools::m_defaultValueINT32);
-    xFormula->SetLoessCutOff(intValue);
-
-  }
-
-  CFormula* yFormula = m_operation->GetFormula(CMapTypeField::typeOpAsY);
-
-  if (yFormula != NULL)
-  {
-    double doubleValue;
-    int32_t intValue;
-    wxString stringValue;
-
-    if (yFormula->IsTimeDataType())
-    {
-      dlg.GetFormulaoptYmin()->GetValueAsDate(doubleValue, 0.0, 0.0);
-      yFormula->SetMinValue(doubleValue);
-
-      dlg.GetFormulaoptYmax()->GetValueAsDate(doubleValue, CDate::m_secInDay);
-      yFormula->SetMaxValue(doubleValue);
-    }
-    else
-    {
-      dlg.GetFormulaoptYmin()->GetValue(doubleValue, CTools::m_defaultValueDOUBLE);
-      yFormula->SetMinValue(doubleValue);
-
-      dlg.GetFormulaoptYmax()->GetValue(doubleValue, CTools::m_defaultValueDOUBLE);
-      yFormula->SetMaxValue(doubleValue);
-    }
-
-    dlg.GetFormulaoptYstep()->GetValue(stringValue, yFormula->GetDefaultStep());
-    yFormula->SetStep(stringValue);
-
-    dlg.GetFormulaoptYinterval()->GetValue(intValue, CTools::m_defaultValueINT32);
-    yFormula->SetInterval(intValue);
-
-    dlg.GetFormulaoptYloesscut()->GetValue(intValue, CTools::m_defaultValueINT32);
-    yFormula->SetLoessCutOff(intValue);
-
-  }
-*/
   SetResolutionLabels();
-
 }
 
 //----------------------------------------
@@ -2478,74 +2387,64 @@ void COperationPanel::OnFormulaChanged(CFormula* formula)
   GetOperationtreectrl()->OnFormulaChanged( formula );
 }
 //----------------------------------------
-void COperationPanel::NewOperation()
+void COperationPanel::NewOperation()		//v4 Except where noted all comments in this function are v4
 {
+	CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+	if ( wks == nullptr )
+	{
+		return;
+	}
+	this->SetCursor( *wxHOURGLASS_CURSOR );
 
-  bool bOk = true;
+	FillFormulaList();			//fills m_mapFormulaString (a CStringMap) with GetCurrentWorkspaceFormula()->GetFormulaNames(  );
+	FillDataTypeList();			//fills combo box "Type" (GetOptype) with CMapTypeData values (not in v4)
+	FillDataModeList();			//fills combo box "Data Computation" (GetOpDataMode) with CMapDataMode values (IN v4)
 
-  CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-  if (wks == NULL)
-  {
-    return;
-  }
-  this->SetCursor(*wxHOURGLASS_CURSOR);
+	GetOpnames()->Enable( true );
 
-  FillFormulaList();
+	//create and insert operation
 
-  FillDataTypeList();
-  FillDataModeList();
+	wxString opName = wks->GetOperationNewName();
 
-  GetOpnames()->Enable(true);
+	if ( !wks->InsertOperation( opName.ToStdString() ) )		//v4 this is weired: call to GetOperationNewName ensures not existing name
+	{
+		wxMessageBox( wxString::Format( "Operation '%s' already exists", opName.c_str() ), "Warning", wxOK | wxICON_EXCLAMATION );
 
-  wxString opName = wks->GetOperationNewName();
+		GetOpnames()->SetStringSelection( opName );
+		m_currentOperationIndex = GetOpnames()->GetSelection();
+	}
+	else
+	{
+		m_currentOperationIndex = GetOpnames()->Append( opName );
+		GetOpnames()->SetSelection( m_currentOperationIndex );
+	}
 
-  bOk = wks->InsertOperation(opName.ToStdString());
+	SetCurrentOperation();		//assigns   m_operation, makes GetOperationtreectrl()->Insert(m_operation);
 
-  if (bOk == false)
-  {
-    wxMessageBox(wxString::Format("Operation '%s' already exists", opName.c_str()),
-                "Warning",
-                wxOK | wxICON_EXCLAMATION);
+	GetDataMode();				//select value in GetOpDataMode combo
 
-    GetOpnames()->SetStringSelection(opName);
-    m_currentOperation = GetOpnames()->GetSelection();
-  }
-  else
-  {
-    m_currentOperation = GetOpnames()->Append(opName);
-    GetOpnames()->SetSelection(m_currentOperation);
-  }
+	InitOperationOutputs();		//makes m_operation->InitOutput and m_operation->InitExportAsciiOutput
+	GetOperationOutputs();		//repeats calls above in case m_operation output strings are empty (but WHY? if the repetition fills them the same way??)
 
-  SetCurrentOperation();
+	GetOperationDataset();		//selects in datasets widget the operation dataset, if any
 
-  GetDataMode();
+	GetOperationtreectrl()->SelectItem( GetOperationtreectrl()->GetXRootId() );		//selects the X root in the "Data expressions" tree widget
 
-  InitOperationOutputs();
-  GetOperationOutputs();
+	SetCurrentFormula();		//fills formula related fields: "Expression", "Unit" list, GetOptype combo, GetOpDataMode list, labels below "Expression" (SetResolutionLabels); see SetCurrentFormula
 
-  GetOperationDataset();
+	SetCurrentDataset();		//sets the (real) operation dataset and formula
 
-  GetOperationtreectrl()->SelectItem(GetOperationtreectrl()->GetXRootId());
+	// v3 note: If there is only one record in the dataset ==> select it
+	GetOperationRecord();			//sets GetFieldstreectrl ("Fields" tree) with m_operation->GetRecord();
+	SetCurrentRecord();				//m_operation->SetRecord( GetFieldstreectrl()->GetCurrentRecord().ToStdString() );
 
-  SetCurrentFormula();
+	SetDataSetAndRecordLabel();		//sets blue labels: 
 
-  SetCurrentDataset();
+	EnableCtrl();
 
-  // If there is only one record in the dataset ==> select it
-  GetOperationRecord();
-  SetCurrentRecord();
+	wxGetApp().GetDisplayPanel()->EnableCtrl();		//update display tab
 
-  SetDataSetAndRecordLabel();
-
-  EnableCtrl();
-
-  wxGetApp().GetDisplayPanel()->EnableCtrl();
-
-  //CNewOperationEvent ev(GetId(), opName);
-  //wxPostEvent(GetParent(), ev);
-  this->SetCursor(wxNullCursor);
-
-
+	this->SetCursor( wxNullCursor );
 }
 
 //----------------------------------------
@@ -2562,7 +2461,7 @@ void COperationPanel::DuplicateOperation()
     return;
   }
 
-  if (m_currentOperation < 0)
+  if (m_currentOperationIndex < 0)
   {
     return;
   }
@@ -2586,12 +2485,12 @@ void COperationPanel::DuplicateOperation()
                 wxOK | wxICON_EXCLAMATION);
 
     GetOpnames()->SetStringSelection(m_operation->GetName());
-    m_currentOperation = GetOpnames()->GetSelection();
+    m_currentOperationIndex = GetOpnames()->GetSelection();
   }
   else
   {
-    m_currentOperation = GetOpnames()->Append(opName);
-    GetOpnames()->SetSelection(m_currentOperation);
+    m_currentOperationIndex = GetOpnames()->Append(opName);
+    GetOpnames()->SetSelection(m_currentOperationIndex);
   }
 
   ComboOperation();
@@ -2610,7 +2509,7 @@ void COperationPanel::DeleteOperation()
     return;
   }
 
-  if (m_currentOperation < 0)
+  if (m_currentOperationIndex < 0)
   {
     return;
   }
@@ -2665,11 +2564,11 @@ void COperationPanel::DeleteOperation()
   m_userFormula = NULL;
 
 
-  GetOpnames()->Delete(m_currentOperation);
+  GetOpnames()->Delete(m_currentOperationIndex);
 
-  m_currentOperation = (GetOpnames()->GetCount() > 0) ? 0 : -1;
+  m_currentOperationIndex = (GetOpnames()->GetCount() > 0) ? 0 : -1;
 
-  GetOpnames()->SetSelection(m_currentOperation);
+  GetOpnames()->SetSelection(m_currentOperationIndex);
 
   SetCurrentOperation();
 
@@ -2703,48 +2602,57 @@ void COperationPanel::DeleteOperation()
 //----------------------------------------
 void COperationPanel::ComputeInterval()
 {
-  if (!m_operation->IsZFXY())
-  {
-    return;
-  }
-
-  CFormula* xFormula = m_operation->GetFormula(CMapTypeField::eTypeOpAsX);
-  CFormula* yFormula = m_operation->GetFormula(CMapTypeField::eTypeOpAsY);
-
-  ComputeInterval(xFormula);
-  ComputeInterval(yFormula);
-
-}
-//----------------------------------------
-void COperationPanel::ComputeInterval( CFormula* formula )
-{
 	if ( !m_operation->IsZFXY() )
 	{
 		return;
 	}
 
-	std::string errorMsg;
-	m_operation->ComputeInterval( formula, errorMsg );
-	if ( !errorMsg.empty() )
-		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
+	CFormula* xFormula = m_operation->GetFormula( CMapTypeField::eTypeOpAsX );
+	CFormula* yFormula = m_operation->GetFormula( CMapTypeField::eTypeOpAsY );
 
-	SetResolutionLabels();
+	std::vector< CFormula* > v = { xFormula, yFormula };
+	for ( auto *formula : v )
+	{
+		std::string errorMsg;
+		m_operation->ComputeInterval( formula, errorMsg );
+		if ( !errorMsg.empty() )
+			wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
+
+		SetResolutionLabels();
+	}
+	//ComputeInterval( xFormula );
+	//ComputeInterval( yFormula );
 }
 //----------------------------------------
-void COperationPanel::ComputeInterval( const wxString& formulaName )
-{
-	if ( !m_operation->IsZFXY() )
-	{
-		return;
-	}
-
-	std::string errorMsg;
-	m_operation->ComputeInterval( formulaName.ToStdString(), errorMsg );
-	if ( !errorMsg.empty() )
-		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
-
-	SetResolutionLabels();
-}
+//void COperationPanel::ComputeInterval( CFormula* formula )
+//{
+//	if ( !m_operation->IsZFXY() )
+//	{
+//		return;
+//	}
+//
+//	std::string errorMsg;
+//	m_operation->ComputeInterval( formula, errorMsg );
+//	if ( !errorMsg.empty() )
+//		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
+//
+//	SetResolutionLabels();
+//}
+//----------------------------------------
+//void COperationPanel::ComputeInterval( const wxString& formulaName )
+//{
+//	if ( !m_operation->IsZFXY() )
+//	{
+//		return;
+//	}
+//
+//	std::string errorMsg;
+//	m_operation->ComputeInterval( formulaName.ToStdString(), errorMsg );
+//	if ( !errorMsg.empty() )
+//		wxMessageBox( errorMsg, "Warning", wxOK | wxCENTRE | wxICON_INFORMATION );
+//
+//	SetResolutionLabels();
+//}
 
 //----------------------------------------
 void COperationPanel::OnDatasetFilesChanged(CDatasetFilesChangeEvent& event)

@@ -8,6 +8,8 @@
 
 
 class CProcessesTable;
+class CDataExpressionsTree;
+class CFieldsTree;
 
 
 
@@ -16,52 +18,8 @@ class CDisplayFilesProcessor;
 //HAMMER SECTION
 
 
-class CDataExpressionsTree : public QTreeWidget
-{
-#if defined (__APPLE__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winconsistent-missing-override"
-#endif
 
-	Q_OBJECT;
-
-#if defined (__APPLE__)
-#pragma clang diagnostic pop
-#endif
-
-	// types
-
-	using base_t = QTreeWidget;
-
-
-	// instance variables
-
-    QIcon mGroupIcon;
-    QIcon mKeyIcon;
-
-	QWidget *mDragSource = nullptr;
-
-	//construction / destruction
-
-public:
-
-	CDataExpressionsTree( QWidget *parent, QWidget *drag_source );
-
-	virtual ~CDataExpressionsTree()
-	{}
-
-protected:
-
-	virtual void dragEnterEvent( QDragEnterEvent *event ) override;
-	virtual void dropEvent( QDropEvent *event ) override;
-
-};
-
-
-
-
-
-
+//#define USE_2_EXPRESSION_TREES
 
 
 
@@ -95,8 +53,37 @@ public:
         eAdvanced
     };
 
+	enum EPredefinedVariables
+	{
+		eSSH,
+		eSWH,
+		eWinds,
+		eSigma0,
+
+		EPredefinedVariables_size
+	};
+
+
+#if defined(USE_2_EXPRESSION_TREES)
+	enum EExpressionTrees
+	{
+		eExpressionTreeMap,
+		eExpressionTreePlot,
+
+		EExpressionTrees_size
+	};
+#endif
+
 
 	//static members
+
+    static const std::vector<std::string> smPredefinedVariables;
+
+
+	//domain
+
+	static bool CreateDisplayData( COperation *operation, CMapDisplayData &m_dataList );
+
 
 	//...fill helpers
 
@@ -111,12 +98,6 @@ protected:
 
 	QWidget *mCommonGroup = nullptr;
 
-	QListWidget *mOperationsList = nullptr;
-	QListWidget *mDatasetsList = nullptr;
-	CTextWidget *mExpressionTextWidget = nullptr;
-	QToolButton *mNewOperationButton = nullptr;
-	QToolButton *mDeleteOperationButton = nullptr;
-    QToolButton *mRenameOperationButton = nullptr;
 	QToolButton *mOperationFilterButton = nullptr;
 	QActionGroup *mOperationFilterGroup = nullptr;
 	QToolButton *mOperationExportButton = nullptr;
@@ -124,16 +105,26 @@ protected:
 	QAction *mEditExportAsciiAction = nullptr;
 	QToolButton *mOperationStatisticsButton = nullptr;
 
-	QToolButton *mDisplayButton = nullptr;
-	QAction *mSplitPlotsAction = nullptr;
+	QToolButton *mSplitPlotsButton = nullptr;
 
-	QToolButton *mExecuteButton = nullptr;
+	//...advanced
+
+	QComboBox *mOperationsCombo = nullptr;
+	QComboBox *mAdvancedDatasetsCombo = nullptr;
+	CTextWidget *mExpressionTextWidget = nullptr;
+	QToolButton *mNewOperationButton = nullptr;
+	QToolButton *mDeleteOperationButton = nullptr;
+    QToolButton *mRenameOperationButton = nullptr;
+
+	QToolButton *mAdvancedDisplayButton = nullptr;
 	QAction *mDelayExecutionAction = nullptr;
 	QAction *mLaunchSchedulerAction = nullptr;
 	CProcessesTable *mProcessesTable = nullptr;
+
+	QgsCollapsibleGroupBox *mExpressionGroup = nullptr;
+
 	QTimer mTimer;
 
-	//...advanced
 
 	QToolButton *mInsertFunction = nullptr;
 	QToolButton *mInsertAlgorithm = nullptr;
@@ -147,12 +138,25 @@ protected:
 	QToolButton *mDataComputation = nullptr;
 	QActionGroup *mDataComputationGroup = nullptr;
 
-	QListWidget *mAdvancedFieldList = nullptr;
+	CFieldsTree *mAdvancedFieldsTree = nullptr;
+
+#if defined(USE_2_EXPRESSION_TREES)
+	CStackedWidget *mDataExpressionsStack = nullptr;
+	CDataExpressionsTree *mDataExpressionsTrees[ EExpressionTrees_size ];
+#endif
+	QToolButton *mSwitchToMapButton = nullptr;
+	QToolButton *mSwitchToPlotButton = nullptr;
 	CDataExpressionsTree *mDataExpressionsTree = nullptr;
 
 	//...quick
 
+	QComboBox *mQuickDatasetsCombo = nullptr;
+	QToolButton *mAddVariable = nullptr;
+	QToolButton *mClearVariables = nullptr;
 	QListWidget *mQuickVariablesList = nullptr;
+	QToolButton *mDisplayMapButton = nullptr;
+	QToolButton *mDisplayPlotButton = nullptr;
+
 
 	//...domain variables
 
@@ -173,8 +177,7 @@ protected:
 	// construction / destruction
 
     void Wire();
-	CDataExpressionsTree* CreateDataExpressionsTree( QWidget *parent, QWidget *drag_source );
-	QWidget* CreateCommonWidgets();
+	QWidget* CreateCommonWidgets( QAbstractButton *b1, QAbstractButton *b2 );
 	QWidget* CreateQuickOperationsPage();
 	QWidget* CreateAdancedOperationsPage();
 
@@ -194,7 +197,13 @@ public:
 	// remaining operations
 
 protected:
-	void FillFieldList();
+
+	CDataset* QuickDataset();
+
+	bool Execute( bool sync );
+
+	void SelectDataComputationMode();
+
 
 signals:
 	void SyncProcessExecution( bool executing );
@@ -205,8 +214,31 @@ public slots:
 
 protected slots:
 
+	//quick
+
+	void HandleSelectedDatasetChanged_Quick( int dataset_index );
+	void HandleSelectedVariableChanged_Quick( int variable_index );
+	void HandleVariableStateChanged_Quick( QListWidgetItem *item );
+	void HandleDatasetsChanged_Quick();
+
+	void HandleQuickMap();
+	void HandleQuickPlot();
+
+	//remaining
+
 	void HandleSelectedOperationChanged( int operation_index );
-	void HandleSelectedDatasetChanged( int dataset_index );
+	void HandleSelectedDatasetChanged_Advanced( int dataset_index );
+	void HandleDatasetsChanged_Advanced();
+
+#if defined(USE_2_EXPRESSION_TREES)
+
+	void HandleExpressionsTreePageChanged( int index );
+#else
+
+	void HandleSwitchExpressionType();
+#endif
+
+	void HandleFormulaInserted( CFormula *formula );
 
 	void HandleNewOperation();
 	void HandleDeleteOperation();
@@ -216,7 +248,8 @@ protected slots:
 	void HandleEditExportAscii();
 	void HandleOperationStatistics();
 
-	void HandleExecute();
+	bool HandleExecute();
+	void HandleProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation );
 	void HandleDelayExecution();
 	void HandleLaunchScheduler();
 
@@ -231,10 +264,7 @@ protected slots:
 	void HandleCheckSyntax();
 	void HandleShowInfo();
 
-	void HandleQuickMap();
-	void HandleQuickPlot();
-
-	void HandleLaunchDisplay();
+	void LaunchDisplay();
 };
 
 

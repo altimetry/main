@@ -260,9 +260,8 @@ void CLogShell::QtNotifySlot( int severity, QString message )
 	QString 
 		msg = message, 
 
-		prefix = QString( "%1\t%2\t" )
-		.arg( QDateTime::currentDateTime().toString( Qt::ISODate ) )
-		.arg( severity );
+		prefix = QString( "%1\t" )
+		.arg( QDateTime::currentDateTime().toString( Qt::ISODate ) );
 
 	OsgNotifySlot( severity, msg.prepend( prefix ).replace( "\n", "\n\t\t\t" ) );
 }

@@ -355,8 +355,8 @@ public:
   virtual std::string GetLongitudeFieldName() { return m_longitudeFieldName; }
   virtual std::string GetLatitudeFieldName() { return m_latitudeFieldName; }
   
-  virtual bool IsLongitudeFieldName(const std::string& name) { return (m_longitudeFieldName.compare(name) == 0); }
-  virtual bool IsLatitudeFieldName(const std::string& name) { return (m_latitudeFieldName.compare(name) == 0); }
+  virtual bool IsLongitudeFieldName(const std::string& name) const { return (m_longitudeFieldName.compare(name) == 0); }
+  virtual bool IsLatitudeFieldName(const std::string& name) const { return (m_latitudeFieldName.compare(name) == 0); }
 
   virtual std::string GetLabel() { return m_label; }
   virtual void SetLabel(const std::string& value) { m_label = value; }
@@ -865,36 +865,27 @@ public:
 
 
 
-class CMapProduct: public CObMap
+class CMapProduct : public CObMap
 {
 public:
-  /// CIntMap ctor
-  CMapProduct();
+	/// CIntMap ctor
+	CMapProduct();
 
-  /// CIntMap dtor
-  virtual ~CMapProduct();
+	/// CIntMap dtor
+	virtual ~CMapProduct();
 
-  static CMapProduct&  GetInstance();
+	static CMapProduct&  GetInstance();
 
-  void GetProductKeysWithCriteria(CStringArray& keys);
+	void GetProductKeysWithCriteria( CStringArray& keys );
 
-  void AddCriteriaToProducts();
-  void RemoveCriteriaFromProducts();
+	void AddCriteriaToProducts();
+	void RemoveCriteriaFromProducts();
 
-  virtual void Dump(std::ostream& fOut  = std::cerr); 
-
-
+	virtual void Dump( std::ostream& fOut  = std::cerr );
 
 protected:
 
-
-
-protected:
-
-  void Init();
-
-
-
+	void Init();
 };
 
 /** @} */

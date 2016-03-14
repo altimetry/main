@@ -74,6 +74,7 @@ CExternalFiles* BuildExistingExternalFileKind
 
   // Generic Netcdf roducts
   CHECK_TYPE(CExternalFilesNetCDFCFGeneric);
+  CHECK_TYPE(CExternalFilesSentinel3A);
 
   return NULL;
 }

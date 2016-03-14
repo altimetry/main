@@ -1019,7 +1019,7 @@ bool CWorkspaceSettings::LoadConfig( CDisplayData &data, const std::string& path
 	data.m_z.SetDescription( entry_z_desc );
 	data.m_z.SetUnit( entry_z_unit );
 	
-	data.m_operation = CDisplay::FindOperation( op_name, wkso );
+	data.m_operation = wkso->GetOperation( op_name );
 
 	// if color palette is a file (it has an extension)
 	// save path in absolute form, based on workspace Display path

@@ -11,8 +11,8 @@ class CGlobeWidget;
 
 struct CViewControlsPanelPlots;
 
-struct CMapControlsPanelEdit;
-struct CMapControlsPanelOptions;
+struct CMapControlsPanelDataLayers;
+struct CMapControlsPanelView;
 
 
 
@@ -77,8 +77,8 @@ class CMapEditor : public CAbstractDisplayEditor
 	QActionGroup *mProjectionsGroup;
 
 	//...tabs
-	CMapControlsPanelEdit *mTabData = nullptr;
-	CMapControlsPanelOptions *mTabView = nullptr;
+	CMapControlsPanelDataLayers *mTabDataLayers = nullptr;
+	CMapControlsPanelView *mTabView = nullptr;
 	CViewControlsPanelPlots *mTabPlots = nullptr;
 
 
@@ -92,7 +92,7 @@ private:
 	void Wire();
 
 public:
-    CMapEditor( CModel *model, COperation *operation, QWidget *parent = nullptr );
+    CMapEditor( CModel *model, const COperation *op, const std::string &display_name = "", QWidget *parent = nullptr );
     CMapEditor( CDisplayFilesProcessor *proc, CWPlot* wplot, QWidget *parent = nullptr );
 
 	virtual ~CMapEditor();
@@ -106,11 +106,11 @@ protected:
 	virtual void Show2D( bool checked ) override;
 	virtual void Show3D( bool checked ) override;
 
-	virtual void PlotChanged( int index ) override;
+	virtual bool Refresh() override;
 	virtual void NewButtonClicked() override;
 
-	virtual void DatasetsIndexChanged( int index ) override;
-	virtual void FiltersIndexChanged( int index ) override;
+	virtual void OperationChanged( int index ) override;
+	virtual void FilterChanged( int index ) override;
 
 	virtual void OneClick() override;
 

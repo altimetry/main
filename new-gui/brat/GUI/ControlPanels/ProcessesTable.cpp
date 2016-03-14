@@ -4,6 +4,8 @@
 #include "new-gui/Common/QtUtils.h"
 #include "ApplicationLogger.h"
 
+#include "DataModels/Workspaces/Operation.h"
+
 #include "ProcessesTable.h"
 
 
@@ -13,13 +15,14 @@
 
 
 
-COsProcess::COsProcess( bool sync, const std::string& name, QWidget *parent, const std::string& cmd, const std::string *output, int type )		//output = nullptr, int type = -1 
+COsProcess::COsProcess( const COperation *operation, bool sync, const std::string& name, QWidget *parent, const std::string& cmd, const std::string *output, int type )		//output = nullptr, int type = -1 
 	: QProcess( parent )
 	, mSync( sync )
 	, mName( name )
 	, mCmdLine( cmd )
 	, mOutput( output ? *output : "" )
 	, mType( type )
+	, mOperation( operation )
 {}
 
 
@@ -251,7 +254,12 @@ std::string CProcessesTable::MakeProcessNewName( const std::string &original_nam
 }
 
 
-bool CProcessesTable::Add( bool sync, bool allow_multiple, const std::string &original_name, const std::string &cmd )
+bool CProcessesTable::Add( bool sync, bool allow_multiple, const COperation *operation )
+{
+	return Add( sync, allow_multiple, operation->GetTaskName(), operation->GetFullCmd(), operation );
+}
+
+bool CProcessesTable::Add( bool sync, bool allow_multiple, const std::string &original_name, const std::string &cmd, const COperation *operation )		//operation==nullptr
 {
 	std::string name = original_name;
 
@@ -276,7 +284,7 @@ bool CProcessesTable::Add( bool sync, bool allow_multiple, const std::string &or
 	}
 
 
-	COsProcess *process = new COsProcess( sync, name, this, cmd );
+	COsProcess *process = new COsProcess( operation, sync, name, this, cmd );
 	mProcesses.push_back( process );
 	FillList();
 
@@ -386,6 +394,8 @@ void CProcessesTable::ProcessFinished( int exit_code, QProcess::ExitStatus exitS
 	{
         LOG_INFO( FormatFinishedMessage( process, "success" ) );
     }
+
+	emit ProcessFinished( exit_code, exitStatus, process->Operation() );
 
 	Remove( process );
 }

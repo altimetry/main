@@ -31,24 +31,23 @@ class CDatasetBrowserControls : public CDesktopControlsPanel
     using base_t = CDesktopControlsPanel;
 
     CStackedWidget *mBrowserStakWidget = nullptr;
-    QPushButton *m_BrowseFilesButton = nullptr;
-    QPushButton *m_BrowseRadsButton = nullptr;
+    QAbstractButton *m_BrowseFilesButton = nullptr;
+    QAbstractButton *m_BrowseRadsButton = nullptr;
 
     QTreeWidget *mDatasetTree = nullptr;
 
-    QPushButton *mAddDir = nullptr;
-    QPushButton *mAddFiles = nullptr;
-    QPushButton *mRemove = nullptr;
-    QPushButton *mClear = nullptr;
+    QToolButton *mNewDataset = nullptr;
+    QToolButton *mRemoveDataset = nullptr;
+    QToolButton *mAddDir = nullptr;
+    QToolButton *mAddFiles = nullptr;
+    QToolButton *mRemove = nullptr;
+    QToolButton *mClear = nullptr;
 
     CTextWidget *mFileDesc = nullptr;
     QGroupBox   *mFileDescGroup = nullptr;
     QListWidget *mFieldList = nullptr;
     CTextWidget *mFieldDesc = nullptr;
 
-    QPushButton *mNewDataset = nullptr;
-    QPushButton *mDeleteDataset = nullptr;
-    QPushButton *mRenameDataset = nullptr;
 
     CWorkspaceDataset *mWDataset = nullptr;
 
@@ -73,13 +72,15 @@ public:
     void DatasetChanged(QTreeWidgetItem *tree_item );
     void FileChanged(QTreeWidgetItem *file_item );
 
-    void AddDatasetToTree(const QString &dataset_name);
+    QTreeWidgetItem *AddDatasetToTree(const QString &dataset_name);
     void FillFileTree(QTreeWidgetItem *current_dataset_item);
     void FillFieldList(QTreeWidgetItem *current_file_item);
     void ClearFieldList();
 
 signals:
+    void DatasetsChanged();
     void CurrentDatasetChanged( CDataset* );
+    void DatasetsChanged( CDataset* );
 
 public slots:
     void HandleWorkspaceChanged( CWorkspaceDataset *wksd );
@@ -94,7 +95,7 @@ public slots:
     void HandleTreeItemChanged();
 
 protected slots:
-    void HandlePageChanged( int index );
+
     void HandleDatasetExpanded(); // Resizes DatasetTree when datasets are expanded
     void HandleRenameDataset(QTreeWidgetItem *dataset_item, int col);
 };

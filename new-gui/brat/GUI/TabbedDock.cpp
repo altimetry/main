@@ -23,7 +23,7 @@ void CTabbedDock::CreateContents( QWidget *top_widget )	//top_widget = nullptr
 
 	mTabWidget = new CExpandableTabWidget( mDockContents );
 	mTabWidget->setObjectName( QString::fromUtf8( "mTabWidget" ) );
-	mTabWidget->setMovable( true );
+	mTabWidget->setMovable( false );
 
 	std::vector< QObject* > v;
 	if ( top_widget )

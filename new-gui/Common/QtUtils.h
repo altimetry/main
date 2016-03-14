@@ -16,8 +16,10 @@
 	#include <QtWidgets/QListWidget>
     #include <QtWidgets/QGroupBox>
 	#include <QtWidgets/QToolButton>
+	#include <QtWidgets/QPushButton>
 	#include <QtWidgets/QActionGroup>
 	#include <QMenu/QActionGroup>
+	#include <QInputDialog>
 #else
 	#include <QtGui/QApplication>
 	#include <QtGui/QFileDialog>
@@ -29,8 +31,10 @@
 	#include <QListWidget>
     #include <QGroupBox>
 	#include <QToolButton>
+	#include <QPushButton>
 	#include <QActionGroup>
 	#include <QMenu>
+	#include <QInputDialog>
 #endif
 #include <QSettings>
 #include <QResource>
@@ -116,9 +120,15 @@ public:
     {
         QApplication::setOverrideCursor( Qt::WaitCursor );
     }
+
+	void Restore()
+	{
+        QApplication::restoreOverrideCursor();
+	}
+
     ~WaitCursor()
     {
-        QApplication::restoreOverrideCursor();
+		Restore();
     }
 };
 
@@ -213,6 +223,79 @@ inline bool SimpleQuestion( const char *msg )
 
 
 
+///////////////////////////////////////////////////////////////////
+//                  Simple Input Boxes
+///////////////////////////////////////////////////////////////////
+
+
+inline std::pair< bool, QString > SimpleInputString( const QString &input_name, const QString &init_value, const QString &dialog_title = "" )
+{
+	std::pair< bool, QString > result( { false, init_value } );
+
+	QString text = QInputDialog::getText( qApp->activeWindow(), 
+		dialog_title, 
+		input_name, 
+		QLineEdit::Normal, 
+		result.second,
+		&result.first );
+
+    if ( result.first )
+        result.second = text;
+
+	return result;
+}
+
+inline std::pair< bool, std::string > SimpleInputString( const std::string &input_name, const std::string &init_value, const std::string &dialog_title = "" )
+{
+	std::pair< bool, QString > qresult = SimpleInputString( t2q( input_name ), t2q( init_value ), t2q( dialog_title ) );
+
+	return std::pair< bool, std::string >( { qresult.first, q2a( qresult.second ) } );
+}
+
+
+template< typename VALUE > 
+struct input_number_traits;
+
+template<> 
+struct input_number_traits< int >
+{
+	static decltype( &QInputDialog::getInt ) function()
+	{
+		return QInputDialog::getInt;
+	}
+};
+
+template<> 
+struct input_number_traits< double >
+{
+	static decltype( &QInputDialog::getDouble ) function()
+	{
+		return QInputDialog::getDouble;
+	}
+};
+
+
+template< typename VALUE >
+inline std::pair< bool, VALUE > SimpleInputNumber( const QString &input_name, const VALUE &init_value, const QString &dialog_title )
+{
+	std::pair< bool, VALUE > result( { false, init_value } );
+
+	VALUE value = (*input_number_traits<VALUE>::function())( qApp->activeWindow(), 
+		dialog_title, 
+		input_name, 
+		result.second,
+		std::numeric_limits< VALUE >::min(),
+		std::numeric_limits< VALUE >::max(),
+		(VALUE)1,
+		&result.first,
+		(Qt::WindowFlags)0 );
+
+    if ( result.first )
+        result.second = value;
+
+	return result;
+}
+
 
 ///////////////////////////////////////////////////////////////////////////
 //								Timer
@@ -293,7 +376,7 @@ inline QSpacerItem* CreateSpace( int w = 0, int h = 0, QSizePolicy::Policy hData
 //layouts
 //////////
 
-const int default_spacing = 6;
+const int default_spacing = 2;
 const int default_left = 2;
 const int default_top = 2;
 const int default_right = 2;
@@ -518,9 +601,8 @@ inline QFrame* WidgetLine( QWidget *parent, Qt::Orientation o )
 
 inline QSplitter* CreateSplitter( QWidget *parent, Qt::Orientation orientation )
 {
-    QSplitter *s = new QSplitter( parent );
+    QSplitter *s = new QSplitter( orientation, parent );
     SetObjectName( s, "splitter" );
-    s->setOrientation( orientation );
 	return s;
 }
 inline QSplitter* CreateSplitterIn( QWidget *parent, Qt::Orientation orientation )
@@ -543,6 +625,25 @@ inline QSplitter* CreateSplitterIn( QMainWindow *parent, Qt::Orientation orienta
 	parent->setCentralWidget( s );
 	return s;
 }
+inline QSplitter* CreateSplitter( QWidget *parent, Qt::Orientation o, const std::vector< QWidget* > &v, 
+	bool collapsible = false, const QList< int > sizes = QList< int >() )
+{
+	QSplitter *splitter = CreateSplitter( parent, o );
+	int index = 0;
+	for ( auto *w : v )
+	{
+		splitter->addWidget( w );
+		splitter->setCollapsible( index++, collapsible );
+	}
+	if ( !sizes.isEmpty() )
+		splitter->setSizes( sizes );
+
+	return splitter;
+}
+
+
+
+
 
 
 ///////////
@@ -596,9 +697,10 @@ inline void insertToolBar( QMainWindow *w, QToolBar *toolbar, Qt::ToolBarArea ar
 // see also ActionsTable.*
 
 
-inline QToolButton* CreateToolButton( const std::string &name, const std::string &pix_path, const std::string &tip  = "" )
+inline QToolButton* CreateToolButton( const std::string &name, const std::string &pix_path, const std::string &tip  = "", bool auto_raise = true )
 {
 	QToolButton *button = new QToolButton;
+	button->setAutoRaise( auto_raise );
 	if ( !name.empty() )
 	{
 		button->setText( name.c_str() );
@@ -611,6 +713,26 @@ inline QToolButton* CreateToolButton( const std::string &name, const std::string
 	button->setIcon(icon);
 	button->setIconSize(QSize(tool_icon_size, tool_icon_size));
 
+	return button;
+}
+
+
+inline QPushButton* CreatePushButton( const std::string &name, const std::string &pix_path, const std::string &tip  = "" )
+{
+	QPushButton *button = new QPushButton;
+	if ( !name.empty() )
+	{
+		button->setText( name.c_str() );
+	}
+	if (!tip.empty() )
+		button->setToolTip( tip.c_str() );
+	if ( !pix_path.empty() )
+	{
+		QPixmap pix( pix_path.c_str() );
+		QIcon icon( pix );
+		button->setIcon( icon );
+		button->setIconSize( QSize( tool_icon_size, tool_icon_size ) );
+	}
 	return button;
 }
 
@@ -668,6 +790,28 @@ inline QToolButton* CreateMenuButton( const std::string &name, const std::string
 }
 
 
+inline QWidget* CreateButtonRow( bool exclusive, Qt::Orientation o, const std::vector< QObject* > &v, int spacing = 2, int margins = 2 )
+{
+	QWidget *buttons_row = new QWidget;
+	if ( exclusive )
+	{
+		for ( auto *o : v )
+		{
+			auto *button = qobject_cast< QAbstractButton* >( o );
+			if ( !o )
+				continue;
+
+			button->setCheckable( true );
+			button->setAutoExclusive( true );
+		}
+	}
+	LayoutWidgets( o, v, buttons_row, spacing, margins, margins, margins, margins );
+	buttons_row->setSizePolicy( 
+		o == Qt::Horizontal ? QSizePolicy::Expanding : QSizePolicy::Maximum,
+		o == Qt::Horizontal ? QSizePolicy::Maximum : QSizePolicy::Expanding );
+	return buttons_row;
+}
+
 
 
 
@@ -684,6 +828,7 @@ template <
 >
 inline void FillCombo( COMBO *c, const CONTAINER &items, int selected = 0, bool enabled = true, const FUNC &f = qidentity )
 {
+	c->clear();
     for ( auto i : items )
     {
         c->addItem( f( i ) );
@@ -956,10 +1101,10 @@ inline QSize DefaultSizeHint( const QWidget *w )
 const int min_main_window_width = 1024;
 const int min_main_window_height = 640;
 
-const auto child_ratio = 1. / 3.;
+const auto child_ratio = 1. / 2.;
 
 const int min_globe_widget_width =  min_main_window_width * child_ratio;
-const int min_globe_widget_height = min_globe_widget_width / 2 * 3;
+const int min_globe_widget_height = min_globe_widget_width / 3 * 2;
 
 const int min_plot_widget_width = min_globe_widget_width;
 const int min_plot_widget_height = min_globe_widget_height;

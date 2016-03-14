@@ -43,10 +43,15 @@ struct CStackedWidget : public QStackedWidget
 	using base_t = QStackedWidget;
 public:
 
+	using stack_button_type = QToolButton;
+
 	struct PageInfo
 	{
 		QWidget *mWidget;
 		std::string mName;
+		std::string mTip;
+		std::string mIconPath;
+		bool mUseToolButtons;
 	};
 
 	// data
@@ -124,6 +129,11 @@ class CControlPanel : public controls_panel_base_t
 	using base_t = controls_panel_base_t;
 
 protected:
+
+	using stack_button_type = CStackedWidget::stack_button_type;
+
+
+protected:
 	// For use with CreateBooleanList
 	//
 	struct BooleanListItemInfo
@@ -151,6 +161,10 @@ protected:
 	// instance data
 	////////////////
 
+protected:
+	const int m = smLeft;
+	const int s = smSpacing;
+
 private:
 	QVBoxLayout *mMainLayout = nullptr;
 
@@ -166,11 +180,7 @@ public:
 
 protected:
 	////////////////////////////
-	// access 
-	////////////////////////////
-
-	////////////////////////////
-	// operations
+	// GUI
 	////////////////////////////
 
 	QBoxLayout* LayoutWidgets( Qt::Orientation o, const std::vector< QObject* > &v, QWidget *parent = nullptr,
@@ -207,7 +217,7 @@ protected:
 
 
 
-	QSpacerItem* AddTopSpace( int w, int h, QSizePolicy::Policy hData = QSizePolicy::Minimum, QSizePolicy::Policy vData = QSizePolicy::Minimum );
+	QSpacerItem* AddTopSpace( int w = 0, int h = 0, QSizePolicy::Policy hData = QSizePolicy::Minimum, QSizePolicy::Policy vData = QSizePolicy::Minimum );
 
 	QObject* AddTopWidget( QObject *ob );
 
@@ -216,6 +226,18 @@ protected:
 
 	QGroupBox* AddTopGroupBox( ELayoutType o, const std::vector< QObject* > &v, const QString &title = "",
 		int spacing = smSpacing, int left = smLeft, int top = smTop, int right = smRight, int bottom = smBottom );
+
+	QSplitter* AddTopSplitter( Qt::Orientation o, const std::vector< QWidget* > &v, bool collapsible = false, const QList< int > sizes = QList<int>() );
+
+
+	////////////////////////////
+	// domain
+	////////////////////////////
+
+	CField* FindField( CProduct *product, const std::string &name, bool &alias_used, std::string &field_error_msg );
+
+	std::pair<CField*, CField*> FindLonLatFields( CProduct *product, bool &alias_used, std::string &field_error_msg );
+	CField* FindTimeField( CProduct *product, bool &alias_used, std::string &field_error_msg );
 };
 
 
@@ -241,10 +263,6 @@ class CDesktopControlsPanel : public CControlPanel
 #endif
 
 	using base_t = CControlPanel;
-
-protected:
-	const int m = 2;	//layout contents margins
-	const int s = 2;	//layout contents spacing
 
 protected:
 	CDesktopManagerBase *mManager = nullptr;

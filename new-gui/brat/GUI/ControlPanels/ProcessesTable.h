@@ -6,6 +6,8 @@
 
 
 
+class COperation;
+
 
 /////////////////////////////////////////////////////////////////////////////////
 //							Brat Process Class
@@ -47,12 +49,17 @@ protected:
 
 	long mCurrentPid;
 
+	const COperation *mOperation = nullptr;
+
 public:
-	COsProcess( bool sync, const std::string& name, QWidget *parent, const std::string& cmd, const std::string *output = nullptr, int type = -1 );
+	COsProcess( const COperation *operation, bool sync, const std::string& name, QWidget *parent, const std::string& cmd, const std::string *output = nullptr, int type = -1 );
 
 	virtual ~COsProcess();
 
 	const std::string& GetCmd() const { return mCmdLine; };
+
+	const COperation* Operation() const { return mOperation; }
+
 
 	virtual void Kill();
 
@@ -173,7 +180,8 @@ public:
 
 	// Add is called by the client...
 
-	bool Add( bool sync, bool allow_multiple, const std::string &original_name, const std::string &cmd );
+	bool Add( bool sync, bool allow_multiple, const std::string &original_name, const std::string &cmd, const COperation *operation = nullptr );
+	bool Add( bool sync, bool allow_multiple, const COperation *operation );
 	bool Add( bool sync, bool allow_multiple, const std::string &original_name, const std::string &executable, const std::vector< std::string > &args )
 	{
 		std::string cmd = executable + " ";
@@ -223,6 +231,10 @@ protected:
 	{
 		return msg.isEmpty() ? QString() : ( process->GetName().c_str() + smSeparator + "Process execution finished reporting " + msg );
 	}
+
+
+signals:
+	void ProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation );
 
 
 private slots :

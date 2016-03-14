@@ -61,14 +61,8 @@
     <property name="title">
      <string>&amp;Window</string>
     </property>
-    <addaction name="action_Close"/>
+    <addaction name="action_Views_List"/>
     <addaction name="action_Close_All"/>
-    <addaction name="separator"/>
-    <addaction name="action_Tile"/>
-    <addaction name="action_Cascade"/>
-    <addaction name="separator"/>
-    <addaction name="action_Next"/>
-    <addaction name="action_Previous"/>
    </widget>
    <widget class="QMenu" name="menu_Help">
     <property name="title">
@@ -88,6 +82,7 @@
     <addaction name="action_Refresh_Map"/>
     <addaction name="separator"/>
     <addaction name="action_Graphic_Settings"/>
+    <addaction name="action_Satellite_Tracks"/>
     <addaction name="action_Save_Map_Image"/>
     <addaction name="separator"/>
     <addaction name="action_Full_Screen"/>
@@ -165,6 +160,7 @@
    <addaction name="action_Refresh_Map"/>
    <addaction name="separator"/>
    <addaction name="action_Graphic_Settings"/>
+   <addaction name="action_Satellite_Tracks"/>
    <addaction name="action_Save_Map_Image"/>
    <addaction name="separator"/>
    <addaction name="action_Full_Screen"/>
@@ -244,28 +240,9 @@
     <string>&amp;About...</string>
    </property>
   </action>
-  <action name="action_Close">
-   <property name="icon">
-    <iconset resource="../Common/Resources/brat.qrc">
-     <normaloff>:/images/alpha-numeric/4.png</normaloff>:/images/alpha-numeric/4.png</iconset>
-   </property>
-   <property name="text">
-    <string>&amp;Close</string>
-   </property>
-  </action>
   <action name="action_Close_All">
    <property name="text">
     <string>Close &amp;All</string>
-   </property>
-  </action>
-  <action name="action_Tile">
-   <property name="text">
-    <string>&amp;Tile</string>
-   </property>
-  </action>
-  <action name="action_Cascade">
-   <property name="text">
-    <string>Casca&amp;de</string>
    </property>
   </action>
   <action name="action_Cut">
@@ -281,16 +258,6 @@
   <action name="action_Paste">
    <property name="text">
     <string>&amp;Paste</string>
-   </property>
-  </action>
-  <action name="action_Next">
-   <property name="text">
-    <string>&amp;Next</string>
-   </property>
-  </action>
-  <action name="action_Previous">
-   <property name="text">
-    <string>&amp;Previous</string>
    </property>
   </action>
   <action name="action_Options">
@@ -524,11 +491,39 @@ The workspace directory will not change</string>
     <string>Close and unload the workspace</string>
    </property>
   </action>
+  <action name="action_Satellite_Tracks">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../Common/Resources/brat.qrc">
+     <normaloff>:/images/alpha-numeric/r.png</normaloff>:/images/alpha-numeric/r.png</iconset>
+   </property>
+   <property name="text">
+    <string>Satellite Tracks</string>
+   </property>
+   <property name="toolTip">
+    <string>Enable automatic satellite track drawing when selected dataset changes</string>
+   </property>
+  </action>
+  <action name="action_Views_List">
+   <property name="icon">
+    <iconset resource="Resources/images/qgis-themes-2.qrc">
+     <normaloff>:/images/themes/default/propertyicons/diagram.png</normaloff>:/images/themes/default/propertyicons/diagram.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;List...</string>
+   </property>
+   <property name="toolTip">
+    <string>Select a view from the list of all workspace views</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
   <include location="../brat-lab/res/brat-lab.qrc"/>
   <include location="../Common/Resources/brat.qrc"/>
+  <include location="Resources/images/qgis-themes-2.qrc"/>
   <include location="../Common/Resources/brat.qrc"/>
  </resources>
  <connections>

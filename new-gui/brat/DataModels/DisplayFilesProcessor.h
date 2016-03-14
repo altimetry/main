@@ -97,6 +97,8 @@ public:
 	CZFXYPlotProperties* GetZFXYPlotProperties( int32_t index ) const;
 	CXYPlotProperties* GetXYPlotProperties( int32_t index ) const;
 
+    size_t GetXYPlotPropertiesSize() const { return m_xyPlotProperties.size(); }
+
 	std::string GetFirstFileName();
 
 

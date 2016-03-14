@@ -4365,6 +4365,9 @@ std::string CNetCDFFiles::IdentifyExistingFile
     int foundDataSetAttr = GetAtt(NC_GLOBAL, DATA_SET_ATTR, dataSetAttrValue, false, attrNotFound);
     int foundTitleAttr = GetAtt(NC_GLOBAL, TITLE_ATTR, titleAttrValue, false, attrNotFound);
 
+	if ( foundMissionNameAttr == NC_NOERR && missionNameAttrValue == CExternalFilesSentinel3A::TypeOf() )
+		return CExternalFilesSentinel3A::TypeOf();
+
     int32_t pos = -1;
 
     if (foundDataSetAttr != NC_NOERR)

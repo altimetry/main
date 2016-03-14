@@ -45,6 +45,36 @@ inline QWidget* CenterOn1stScreen( QWidget *const w )
 //									SDI
 /////////////////////////////////////////////////////////////////////////////////////
 
+//////////////////////
+//		SDI Sub-Window
+//////////////////////
+
+
+CSubWindow::CSubWindow( QWidget *widget, QWidget *parent, Qt::WindowFlags f )		//parent = nullptr, Qt::WindowFlags f = 0 
+	: base_t( parent, f )
+	, mWidget( widget )
+{
+	setAttribute( Qt::WA_DeleteOnClose );
+
+#if defined (_WIN32) || defined (WIN32)
+	// Show maximize button in windows
+	// If this is set in linux, it will not center the dialog over parent
+	setWindowFlags( ( windowFlags() & ~Qt::Dialog ) | Qt::Window | Qt::WindowMaximizeButtonHint );
+#elif defined (Q_OS_MAC)
+	// Qt::WindowStaysOnTopHint also works (too weel: stays on top of other apps also). Without this, we have the mac MDI mess...
+	setWindowFlags( ( windowFlags() & ~Qt::Dialog ) | Qt::Tool );
+#endif
+
+    AddWidget( this, mWidget );
+    mWidget->setParent( this );
+}
+
+
+
+///////////////
+//	SDI Manager
+///////////////
+
 QWidget* CDesktopManagerSDI::CenterOnWidget( QWidget *const w, const QWidget *const parent )
 {
     w->show();
@@ -55,11 +85,9 @@ QWidget* CDesktopManagerSDI::CenterOnWidget( QWidget *const w, const QWidget *co
 //virtual 
 CDesktopManagerSDI::desktop_child_t* CDesktopManagerSDI::AddSubWindow( QWidget *widget, Qt::WindowFlags flags )	//flags = 0 
 {
-	desktop_child_t *child = new desktop_child_t( this, flags );
+	desktop_child_t *child = new desktop_child_t( widget, this, flags );
     SetChildWindowTitle( child, widget );
 
-    AddWidget( child, widget );
-    widget->setParent( child );
     //if ( parentWidget()->width() / 3 * 2 > child->width() )	//TODO this risks showing too high: consider on the right of main working dock
     //    CenterOnWidget( child, mMap );
     //else
@@ -88,14 +116,15 @@ CDesktopManagerSDI::CDesktopManagerSDI( const CApplicationPaths &paths, QMainWin
 	mSplitter->setFrameShadow( QFrame::Sunken );
 	mSplitter->setMinimumSize( min_main_window_width / 3 * 2, min_main_window_height / 3 * 2 );
 	mSplitter->addWidget( mMap );
-	mGlobeView = new CGlobeWidget( this, mMap, parent->statusBar() );
-	mSplitter->addWidget( mGlobeView );
+	//mGlobeView = new CGlobeWidget( this, mMap, parent->statusBar() );
+	//mSplitter->addWidget( mGlobeView );
 
-	QList<int> sizes;
-	sizes.append( min_main_window_width );
-	sizes.append( 0 );
+	//QList<int> sizes;
+	//sizes.append( min_main_window_width );
+	//sizes.append( 0 );
 
-	mSplitter->setSizes( sizes );
+	//mSplitter->setSizes( sizes );
+	layout()->setContentsMargins( 4, 4, 4, 4 );
 
 #endif
 }

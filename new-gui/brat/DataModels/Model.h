@@ -1,5 +1,5 @@
-#if !defined MODEL_H
-#define MODEL_H
+#if !defined DATA_MODELS_MODEL_H
+#define DATA_MODELS_MODEL_H
 
 #include <QtCore>
 
@@ -7,7 +7,7 @@
 
 
 class CApplicationPaths;
-
+class CDisplay;
 
 
 class CModel : public QObject
@@ -37,6 +37,9 @@ class CModel : public QObject
 
 	template< class WKSPC >
 	static WKSPC* Workspace( CTreeWorkspace &tree );
+
+	template< class WKSPC >
+	static const WKSPC* Workspace( const CTreeWorkspace &tree );
 
     static CWorkspace* CreateTree( CTreeWorkspace &tree, const std::string& path, std::string &error_msg );
 
@@ -104,58 +107,12 @@ public:
 	void Reset();
 
 
-protected:
+	//
 
-	// Big TODO ///////////////////////////////////////////////////////////////////////////
+	std::vector<const CDisplay*> OperationDisplays( const std::string &name ) const;
 
-    // Taken from brat-lab main window Business Logic
-    //
-	//void CreateWPlot( CWPlot* wplot, QSize& size, QPoint& pos );
-	//void WorldPlot();
-	void XYPlot();
-	void ZFXYPlot();
-
-	//bool GetCommandLineOptions( int argc, char* argv[] );
-	//void GetParameters();
-
-	//bool GetParametersNetcdf();
-	//bool GetParametersNetcdfZFLatLon( CExternalFilesNetCDF* externalFile );
-	//bool GetParametersNetcdfZFXY( CExternalFilesNetCDF* externalFile );
-	//bool GetParametersNetcdfYFX( CExternalFilesNetCDF* externalFile );
-
-	//void LoadParameters();
-	//void CheckFiles();
-
-
-	//void GetXYPlotPropertyParams( int32_t nFields );
-	//void GetWPlotPropertyParams( int32_t nFields );
-	//void GetZFXYPlotPropertyParams( int32_t nFields );
-
-	//std::string GetFirstFileName();
-
-	//void CreateWPlot( CWPlot* wplot, QSize& size, QPoint& pos );
-	//void WorldPlot();
-	//void XYPlot();
-	//void ZFXYPlot();
-
-	//bool IsXYPlot();
-	//bool IsWPlot();
-	//bool IsZXYPlot();
-
-	//bool IsYFXType() const;
-	//bool IsZFXYType() const;
-
-	//CWorldPlotProperty* GetWorldPlotProperty( int32_t index );
-	//CZFXYPlotProperty* GetZFXYPlotProperty( int32_t index );
-	//CXYPlotProperty* GetXYPlotProperty( int32_t index );
-
-	//void CheckFieldsData( CInternalFilesYFX* yfx, const std::string& fieldName );
-	//void CheckFieldsData( CInternalFilesZFXY* zfxy, const std::string& fieldName );
-	//void CheckFieldsData( CInternalFiles* f, const std::string& fieldName );
-	//CInternalFiles* Prepare( int32_t indexFile, const std::string& fieldName );
-	//CInternalFiles* Prepare( const std::string& fileName, const std::string& fieldName );
 };
 
 
 
-#endif	//MODEL_H
+#endif	//DATA_MODELS_MODEL_H

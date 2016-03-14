@@ -975,39 +975,37 @@ void CProduct::AddCriteria(CProduct* product)
 
 }
 //----------------------------------------
-void CProduct::AddCriteria(bool force /* = false */)
+void CProduct::AddCriteria( bool force /* = false */ )
 {
+	RemoveCriteria();
 
-  RemoveCriteria();
+	force &= HasCriteriaInfo();
 
-  force &= HasCriteriaInfo();
+	if ( HasLatLonCriteriaInfo() || force )
+	{
+		AddCriteria( new CCriteriaLatLon() );
+	}
 
-  if (HasLatLonCriteriaInfo() || force)
-  {
-   AddCriteria(new CCriteriaLatLon());
-  }
+	if ( HasDatetimeCriteriaInfo() || force )
+	{
+		AddCriteria( new CCriteriaDatetime() );
+	}
 
-  if (HasDatetimeCriteriaInfo() || force)
-  {
-   AddCriteria(new CCriteriaDatetime());
-  }
+	if ( HasPassStringCriteriaInfo() || force )
+	{
+		AddCriteria( new CCriteriaPassString() );
+	}
 
-  if (HasPassStringCriteriaInfo() || force)
-  {
-   AddCriteria(new CCriteriaPassString());
-  }
+	// Set always pass criteria as integer after pass criteria as std::string
+	if ( HasPassIntCriteriaInfo() || force )
+	{
+		AddCriteria( new CCriteriaPassInt() );
+	}
 
-  // Set always pass criteria as integer after pass citeria as std::string
-  if (HasPassIntCriteriaInfo() || force)
-  {
-   AddCriteria(new CCriteriaPassInt());
-  }
-
-  if (HasCycleCriteriaInfo() || force)
-  {
-   AddCriteria(new CCriteriaCycle());
-  }
-
+	if ( HasCycleCriteriaInfo() || force )
+	{
+		AddCriteria( new CCriteriaCycle() );
+	}
 }
 //----------------------------------------
 void CProduct::LogSelectionResult(const std::string& fileName, bool result)
@@ -6784,30 +6782,27 @@ void CMapProduct::Init()
 //----------------------------------------
 void CMapProduct::AddCriteriaToProducts()
 {
+	for ( CObMap::iterator it = begin(); it != end(); it++ )
+	{
+		CProduct* product = dynamic_cast<CProduct*>( it->second );
+		if ( product == NULL )
+		{
+			continue;
+		}
 
-  CObMap::iterator it;
-  for (it = begin() ; it != end() ; it++)
-  {
-    CProduct* product = dynamic_cast<CProduct*>(it->second);
-    if (product == NULL)
-    {
-      continue;
-    }
+		bool force = false;
 
-    bool force = false;
+		CProductNetCdf* productNetCdf = dynamic_cast<CProductNetCdf*>( it->second );
+		if ( productNetCdf != NULL )
+		{
+			if ( typeid( *productNetCdf ) != typeid( CProductJason2 ) )
+			{
+				force = true;
+			}
+		}
 
-    CProductNetCdf* productNetCdf = dynamic_cast<CProductNetCdf*>(it->second);
-    if (productNetCdf != NULL)
-    {
-      if (typeid(*productNetCdf) != typeid(CProductJason2))
-      {
-        force = true;
-      }
-    }
-
-    product->AddCriteria(force);
-
-  }
+		product->AddCriteria( force );
+	}
 }
 
 //----------------------------------------

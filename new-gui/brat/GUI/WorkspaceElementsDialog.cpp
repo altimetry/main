@@ -348,7 +348,7 @@ struct WkspcTreeNode< CTreeWorkspace > :
 
 
 
-void CWorkspaceElementsDialog::CreateGUI()
+void CWorkspaceElementsDialog::CreateWidgets()
 {
 	static const QStringList header_labels = QStringList() << tr( "Name" ) << tr( "Type" ) << tr( "Value" );
 
@@ -356,19 +356,10 @@ void CWorkspaceElementsDialog::CreateGUI()
 
 	//	... Tree
 
-	QTreeWidget *mTreeWidget = new QTreeWidget( this );
+	mTreeWidget = new QTreeWidget( this );
     mTreeWidget->setColumnCount( header_labels.size() );
     mTreeWidget->setHeaderLabels( header_labels );
     mTreeWidget->header()->setStretchLastSection( true );
-
-	QTreeWidgetItem	*parent = mTreeWidget->invisibleRootItem();
-    parent->setText( 0, "Root" );
-	FillTree_rec( parent, WkspcTreeNode< CTreeWorkspace >( &mTree ) );		// TODO see TODO at top of file
-
-    mTreeWidget->expandAll();
-    mTreeWidget->resizeColumnToContents(0);
-    mTreeWidget->resizeColumnToContents(1);
-    mTreeWidget->resizeColumnToContents(2);
 
 
 	//	... Help
@@ -400,17 +391,30 @@ void CWorkspaceElementsDialog::CreateGUI()
 
     setWindowTitle( "Workspace Elements Tree - " + t2q( mTree.GetRootData()->GetName() ) );
 
-
-    //	Wire things
-
-	connect( mButtonBox, SIGNAL( accepted() ), this, SLOT( accept() ) );
-	connect( mButtonBox, SIGNAL( rejected() ), this, SLOT( reject() ) );
-
-
     //	Wrap up dimensions
 
     adjustSize();
 	setMinimumWidth( width() );
+
+	Wire();
+}
+
+void CWorkspaceElementsDialog::Wire()
+{
+    //	Setup things
+
+	connect( mButtonBox, SIGNAL( accepted() ), this, SLOT( accept() ) );
+	connect( mButtonBox, SIGNAL( rejected() ), this, SLOT( reject() ) );
+
+	//
+
+	QTreeWidgetItem	*parent = mTreeWidget->invisibleRootItem();
+    parent->setText( 0, "Root" );
+	FillTree_rec( parent, WkspcTreeNode< CTreeWorkspace >( &mTree ) );		// TODO see TODO at top of file
+    mTreeWidget->expandAll();
+    mTreeWidget->resizeColumnToContents(0);
+    mTreeWidget->resizeColumnToContents(1);
+    mTreeWidget->resizeColumnToContents(2);
 }
 
 
@@ -419,7 +423,7 @@ CWorkspaceElementsDialog::CWorkspaceElementsDialog( QWidget *parent, const CTree
 {
 	assert__( mTree.GetRootData() );
 
-	CreateGUI();
+	CreateWidgets();
 }
 
 

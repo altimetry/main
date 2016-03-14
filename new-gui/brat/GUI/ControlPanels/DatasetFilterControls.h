@@ -30,22 +30,59 @@ class CDatasetFilterControls : public CDesktopControlsPanel
 #pragma clang diagnostic pop
 #endif
 
+	// types
+
 	using base_t = CDesktopControlsPanel;
 
 	//instance data
 
-    QComboBox *mSavedRegionsCombo = nullptr;
-    QComboBox *mOpenFilterCombo = nullptr;
+	//...buttons row
 
-    QLineEdit *mMaxLat = nullptr;
-    QLineEdit *mMaxLon = nullptr;
-    QLineEdit *mMinLat = nullptr;
-    QLineEdit *mMinLon = nullptr;
+    QToolButton *mNewFilter = nullptr;
+    QToolButton *mRenameFilter = nullptr;
+    QToolButton *mDeleteFilter = nullptr;
+    QToolButton *mSaveFilters = nullptr;
+
+	//where
+
+    QToolButton *mClearWhere = nullptr;
+    QComboBox *mSavedRegionsCombo = nullptr;
+    QComboBox *mFiltersCombo = nullptr;
+
+    QLineEdit *mMaxLatEdit = nullptr;
+    QLineEdit *mMaxLonEdit = nullptr;
+    QLineEdit *mMinLatEdit = nullptr;
+    QLineEdit *mMinLonEdit = nullptr;
+
+	QLayout *mWhereBox = nullptr;
+
+	//when
+
+    QToolButton *mClearWhen = nullptr;
+    QDateTimeEdit *mStartTimeEdit = nullptr;
+    QDateTimeEdit *mStopTimeEdit = nullptr;
+
+    QLineEdit *mStartCycleEdit = nullptr;
+    QLineEdit *mStopCycleEdit = nullptr;
+    QLineEdit *mStartPassEdit = nullptr;
+    QLineEdit *mStopPassEdit = nullptr;
+
+	QLayout *mWhenBox = nullptr;
+
+	//
+
+	QLineEdit *mTotalRecordsSelectedEdit = nullptr;
 
 
     CBratMapView *mMap = nullptr;
 
+	bool mAutoSatelliteTrack = true;
+
+
 	//...domain data
+
+	CBratFilters &mBratFilters;
+	CBratFilter *mFilter = nullptr;
 
 	CWorkspaceDataset *mWks = nullptr;
     CDataset *mDataset = nullptr;
@@ -53,19 +90,48 @@ class CDatasetFilterControls : public CDesktopControlsPanel
 
 	//construction / destruction
 
+	void CreateWidgets();
 	void Wire();
 public:
-	explicit CDatasetFilterControls( CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+	explicit CDatasetFilterControls( CDesktopManagerBase *manager, CBratFilters &brat_filters, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
 	virtual ~CDatasetFilterControls()
 	{}	
 
+
 	// access 
+
+	bool AutoSatelliteTrack() const
+	{
+		return mAutoSatelliteTrack;
+	}
+
+
+	void SetAutoSatelliteTrack( bool track )
+	{
+		mAutoSatelliteTrack = track;
+		HandleDatasetChanged( mDataset );
+	}
 
 
 	// operations
 
+protected:
+
+	bool ReloadFilters();
+	void FillFiltersCombo();
+
 public slots:
+	void HandleNewFilter();
+	void HandleRenameFilter();
+	void HandleDeleteFilter();
+	void HandleSaveFilters();
+
+	void HandleFiltersCurrentIndexChanged( int index );
+	void HandleClearWhere();
+	void HandleClearWhen();
+
+
 	void HandleWorkspaceChanged( CWorkspaceDataset *wksd );
     void HandleDatasetChanged( CDataset *dataset );
 

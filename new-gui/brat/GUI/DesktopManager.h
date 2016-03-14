@@ -87,10 +87,8 @@ protected:
 	static void SetChildWindowTitle( QWidget *child, const QWidget *widget = nullptr )
 	{
 		QString title = widget ? widget->windowTitle() : "";
-		if ( title.isEmpty() )
-			title = "untitled";
-
-        child->setWindowTitle( title + "[*]" );
+		if ( !title.isEmpty() )
+			child->setWindowTitle( title + "[*]" );
 	}
 
 public:
@@ -193,25 +191,19 @@ class CSubWindow : public QDialog
 
 	//data
 
+	QWidget *mWidget = nullptr;
+
 public:
-	explicit CSubWindow( QWidget *parent = nullptr, Qt::WindowFlags f = 0 )
-		: base_t( parent, f )
-	{
-		setAttribute( Qt::WA_DeleteOnClose );
-
-#if defined (_WIN32) || defined (WIN32)
-		// Show maximize button in windows
-		// If this is set in linux, it will not center the dialog over parent
-		setWindowFlags( ( windowFlags() & ~Qt::Dialog ) | Qt::Window | Qt::WindowMaximizeButtonHint );
-#elif defined (Q_OS_MAC)
-		// Qt::WindowStaysOnTopHint also works (too weel: stays on top of other apps also). Without this, we have the mac MDI mess...
-		setWindowFlags( ( windowFlags() & ~Qt::Dialog ) | Qt::Tool );
-#endif
-
-	}
+	//explicit 
+	CSubWindow( QWidget *widget, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
 	virtual ~CSubWindow()
 	{}
+
+
+	//access
+
+	QWidget* widget() { return mWidget;	}
 
 protected:
 

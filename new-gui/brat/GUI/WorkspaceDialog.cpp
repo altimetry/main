@@ -156,7 +156,7 @@ void CWorkspaceDialog::CreateGUI()
 	mButtonBox = new QDialogButtonBox( this );
 	mButtonBox->setObjectName( QString::fromUtf8( "mButtonBox" ) );
 	mButtonBox->setOrientation( Qt::Horizontal );
-	mButtonBox->setStandardButtons( QDialogButtonBox::Cancel | QDialogButtonBox::Ok );	//| QDialogButtonBox::Reset 
+	mButtonBox->setStandardButtons( QDialogButtonBox::Ok | QDialogButtonBox::Cancel );	//| QDialogButtonBox::Reset 
     mButtonBox->button( QDialogButtonBox::Ok )->setDefault( true );
 
 

@@ -143,7 +143,7 @@ std::string CFormula::GetValueAsString( double value )
 	return CTools::TrailingZeroesTrim( SprintfFormat( GetFormatString(), value ) );
 }
 //----------------------------------------
-void CFormula::SetDataType(int32_t typeField, const CUnit& unit, CProduct* product)
+void CFormula::SetDataType(int32_t typeField, const CUnit& unit, const CProduct *product)
 {
 
   switch (typeField)
@@ -2081,9 +2081,11 @@ std::string CMapTypeOp::IdToName(uint32_t id)
 
 
 //----------------------------------------
-uint32_t CMapTypeOp::NameToId(const std::string& name)
+CMapTypeOp::ETypeOp CMapTypeOp::NameToId( const std::string& name )
 {
-  return Exists((const char *)name.c_str());
+	auto result = Exists( name );		assert__( result >= 0 && result < ETypeOp_size );
+
+	return (CMapTypeOp::ETypeOp) result;
 }
 
 /*

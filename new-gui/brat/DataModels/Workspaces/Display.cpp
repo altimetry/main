@@ -142,7 +142,7 @@ public:
 
 		Comment( "----- X AXIS -----" );
 
-		auto &data = mDisp.GetDataSelected();
+		auto &data = mDisp.GetData();
 		for ( CObMap::const_iterator it = data.begin(); it != data.end(); it++ )
 		{
 			CDisplayData* value = dynamic_cast<CDisplayData*>( it->second );
@@ -195,7 +195,7 @@ public:
 		std::string xAxisName;
 		std::string yAxisName;
 
-		auto &data = mDisp.GetDataSelected();
+		auto &data = mDisp.GetData();
 		for ( CObMap::const_iterator it = data.begin(); it != data.end(); it++ )
 		{
 			CDisplayData* value = dynamic_cast<CDisplayData*>( it->second );
@@ -411,7 +411,7 @@ CDisplayData::CDisplayData( const CDisplayData &o, CWorkspaceOperation *wkso )
 
 	m_operation = nullptr;
 	if ( o.m_operation != nullptr )
-		m_operation = CDisplay::FindOperation( o.m_operation->GetName(), wkso );
+		m_operation = wkso->GetOperation( o.m_operation->GetName() );
 
 	m_group = o.m_group;
 	m_withContour = o.m_withContour;
@@ -1081,40 +1081,43 @@ bool CDisplay::LoadConfig( CWorkspaceSettings *config, std::string &errorMsg, CW
 
 	return config->LoadConfig( *this, errorMsg, wksd, wkso );
 }
-
 //----------------------------------------
-COperation* CDisplay::FindOperation( const std::string& name, CWorkspaceOperation *wkso )
+std::vector<const COperation*> CDisplay::GetOperations() const
 {
-	//CWorkspaceOperation *wks = wxGetApp().GetCurrentWorkspaceOperation();
-	return wkso ? wkso->GetOperation( name ) : nullptr;
-}
-//----------------------------------------
-bool CDisplay::UseOperation( const std::string& name, std::string& errorMsg )
-{
-	CMapDisplayData::iterator it;
-	bool useOperation = false;
-
-	for ( it = m_data.begin(); it != m_data.end(); it++ )
+	std::vector< const COperation* > v;
+	for ( CMapDisplayData::const_iterator it = m_data.begin(); it != m_data.end(); it++ )
 	{
-		CDisplayData* data = dynamic_cast<CDisplayData*>( it->second );
+		const CDisplayData* data = dynamic_cast<const CDisplayData*>( it->second );			assert__( data != nullptr && data->GetOperation() != nullptr );
+		auto *op = data->GetOperation();
+		if ( std::find( v.begin(), v.end(), op ) == v.end() )
+			v.push_back( data->GetOperation() );
+	}
+
+	return v;
+}
+
+bool CDisplay::UsesOperation( const std::string& name ) const
+{
+	bool uses = false;
+	for ( CMapDisplayData::const_iterator it = m_data.begin(); it != m_data.end(); it++ )
+	{
+		const CDisplayData* data = dynamic_cast<const CDisplayData*>( it->second );
 		if ( data == nullptr )
 		{
-			errorMsg = "ERROR in  CDisplay::UseOperation\ndynamic_cast<CDisplay*>(it->second) returns nullptr pointer"
+			const std::string errorMsg = "ERROR in  CDisplay::UseOperation\ndynamic_cast<CDisplay*>(it->second) returns nullptr pointer"
 				"\nList seems to contain objects other than those of the class CDisplayData";
 
-				//wxMessageBox( "Error",
-				//wxOK | wxCENTRE | wxICON_ERROR );
-			return false;
+			throw CException( errorMsg );
 		}
 
 		if ( str_icmp( data->GetOperation()->GetName(), name ) )
 		{
-			useOperation = true;
+			uses = true;
 			break;
 		}
 	}
 
-	return useOperation;
+	return uses;
 }
 
 //----------------------------------------
@@ -1511,7 +1514,7 @@ bool CDisplay::InsertData(const std::string& key, CDisplayData* data)
   {
     return false;
   }
-  m_data.Insert((const char *)key.c_str(), data, false);
+  m_data.Insert(key, data, false);
 
   m_type = data->GetType();
 

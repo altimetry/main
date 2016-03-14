@@ -48,7 +48,8 @@ public:
 
 private:
 
-	void CreateGUI();
+	void CreateWidgets();
+	void Wire();
 
 public:
 	explicit CWorkspaceElementsDialog( QWidget *parent, const CTreeWorkspace &wks );
