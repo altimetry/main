@@ -34,9 +34,6 @@ static const std::string DATASET_SELECTION_LOG_FILENAME = "DatasetSelection.log"
 
 
 
-//static 
-std::vector< CRegion > CBratFilter::mRegions;
-
 
 
 
@@ -192,7 +189,7 @@ bool CBratFilters::Load()
 		it->second.StopTime() = QDateTime::fromString( etime.c_str(), t2q( date_time_format ) );
 	}
 
-	return mSettings.status() == QSettings::NoError;
+	return mSettings.status() == QSettings::NoError && Areas().Load() && Regions().Load();
 }
 
 
@@ -245,3 +242,5 @@ bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, 
 	delete p;
 	return result;
 }
+
+

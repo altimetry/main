@@ -383,6 +383,7 @@ struct CMapControlsPanelDataLayers : public CControlPanel
 
     using base_t = CControlPanel;
 
+public:
     // instance data members
 
     QComboBox *mDataLayer  = nullptr;

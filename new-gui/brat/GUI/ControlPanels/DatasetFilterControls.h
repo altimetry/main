@@ -46,8 +46,9 @@ class CDatasetFilterControls : public CDesktopControlsPanel
 	//where
 
     QToolButton *mClearWhere = nullptr;
-    QComboBox *mSavedRegionsCombo = nullptr;
     QComboBox *mFiltersCombo = nullptr;
+	QListWidget *mAreasListWidget = nullptr;
+    QComboBox *mRegionsCombo = nullptr;
 
     QLineEdit *mMaxLatEdit = nullptr;
     QLineEdit *mMaxLonEdit = nullptr;
@@ -82,6 +83,8 @@ class CDatasetFilterControls : public CDesktopControlsPanel
 	//...domain data
 
 	CBratFilters &mBratFilters;
+	CBratAreas &mBratAreas;
+	CBratRegions &mBratRegions;
 	CBratFilter *mFilter = nullptr;
 
 	CWorkspaceDataset *mWks = nullptr;

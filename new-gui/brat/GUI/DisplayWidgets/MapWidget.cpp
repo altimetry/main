@@ -14,6 +14,11 @@
 #include <qgssinglebandpseudocolorrenderer.h>
 #include <qgsrastershader.h>
 
+/// RCCC Added this
+#include <qgsvectorcolorrampv2.h>
+
+
+
 // for selection tools
 #include <qgscursors.h>
 #include "QGISapp/MapToolSelectUtils.h"
@@ -579,6 +584,33 @@ QgsSymbolV2* CMapWidget::createPointSymbol( double width, const QColor &color )
 	return s;
 }
 
+
+
+QgsSymbolV2* CMapWidget::createPointSymbol2( double width, const QColor &color )
+{
+    auto qsm = []( const char *s1, const std::string &s2 )
+    {
+        QgsStringMap m;
+        m.insert( s1, s2.c_str() );
+        return m;
+    };
+
+    QgsSymbolV2 *s = QgsMarkerSymbolV2::createSimple( qsm( "","" ) );
+    s->deleteSymbolLayer( 0 );		// Remove default symbol layer.
+
+    auto symbolLayer = new QgsSimpleMarkerSymbolLayerV2;
+    symbolLayer->setColor( color );
+    symbolLayer->setName("square");
+    symbolLayer->setSizeUnit( QgsSymbolV2::MapUnit );
+    symbolLayer->setSize( width );
+    symbolLayer->setOutlineStyle( Qt::NoPen );
+    s->appendSymbolLayer( symbolLayer );
+
+    return s;
+}
+
+
+
 //	Note that you can use strings like "red" instead of Qt::red !!!
 //
 //static 
@@ -722,6 +754,117 @@ QgsVectorLayer* CMapWidget::AddMemoryLayer( QgsSymbolV2* symbol )		//symbol = nu
 }
 
 
+// RCCC added this: ///////////////////////////////////////////////////////
+QgsVectorLayer* CMapWidget::AddMemoryLayer2( double width )		//symbol = nullptr
+{
+
+    const QString layer_path = QString ("Point?crs=EPSG:4326&field=height:double&field=name:string(255)&index=yes");
+    const QString base_name = QString ("mem");
+    const QString provider  = QString ("memory");
+
+    static const std::string index_symbol = "#";
+    static size_t index = 0;
+
+    std::string name = ( q2a( base_name ) + index_symbol + n2s<std::string>(index++) );
+
+    auto l = new QgsVectorLayer( layer_path, name.c_str(), provider );
+
+    //\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\//
+    // Defining render
+    //\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\//
+    QString myTargetField = QString("height");
+    auto myRangeList = new QgsRangeList;
+    auto myOpacity = 1;
+
+    // Make our first symbol and range...
+    auto myMin = -0.2;
+    auto myMax = 0.1;
+    auto myLabel = "Group 1";
+    auto myColour = QColor( "blue" );
+    auto mySymbol1 = createPointSymbol2 ( width, myColour );
+    mySymbol1->setAlpha( myOpacity );
+    auto myRange1 = new QgsRendererRangeV2( myMin, myMax, mySymbol1, myLabel );
+    myRangeList->append( *myRange1 );
+
+    //now make another symbol and range...
+    myMin = 0.11;
+    myMax = 0.30;
+    myLabel = "Group 2";
+    myColour = QColor( "cyan" );
+    auto mySymbol2 = createPointSymbol2 ( width, myColour );
+    mySymbol2->setAlpha( myOpacity );
+    auto myRange2 = new QgsRendererRangeV2( myMin, myMax, mySymbol2, myLabel );
+    myRangeList->append( *myRange2 );
+
+    // 3rd symbol and range...
+    myMin = 0.31;
+    myMax = 0.6;
+    myLabel = "Group 3";
+    myColour = QColor( "green" );
+    auto mySymbol3 = createPointSymbol2 ( width, myColour );
+    mySymbol3->setAlpha( myOpacity );
+    auto myRange3 = new QgsRendererRangeV2( myMin, myMax, mySymbol3, myLabel );
+    myRangeList->append( *myRange3 );
+
+    // 4rd symbol and range...
+    myMin = 0.61;
+    myMax = 0.8;
+    myLabel = "Group 4";
+    myColour = QColor( "yellow" );
+    auto mySymbol4 = createPointSymbol2 ( width, myColour );
+    mySymbol4->setAlpha( myOpacity );
+    auto myRange4 = new QgsRendererRangeV2( myMin, myMax, mySymbol4, myLabel );
+    myRangeList->append( *myRange4 );
+
+    auto myRenderer = new QgsGraduatedSymbolRendererV2( myTargetField, *myRangeList );
+    myRenderer->setMode( QgsGraduatedSymbolRendererV2::EqualInterval );
+
+
+    ///// ATTENTION: delete #include <qgsvectorcolorrampv2.h> //////////////
+//    QgsVectorColorRampV2 *myColorRamp = nullptr;
+//    myColorRamp = QgsVectorGradientColorRampV2::create();
+
+//    myRenderer = QgsGraduatedSymbolRendererV2::createRenderer(
+//      qobject_cast<QgsVectorLayer *>(l), // QgsVectorLayer* vlayer,
+//      myTargetField,                     // QString attrName,
+//      10,                                // int classes,
+//      QgsGraduatedSymbolRendererV2::EqualInterval, //Mode mode,
+//      mySymbol4,        // QgsSymbolV2* symbol,
+//      myColorRamp       // QgsVectorColorRampV2* ramp,)
+//      //bool inverted = false,
+//      //QgsRendererRangeV2LabelFormat legendFormat = QgsRendererRangeV2LabelFormat()
+//      );
+
+    ///////////////////
+
+
+    l->setRendererV2( myRenderer );
+    /////////////////////////////////////////////////////////////////////////
+
+
+    if ( l->isValid() ) {
+                            qDebug( "Layer is valid" );
+
+        // Add the Vector Layer to the Layer Registry
+        QgsMapLayerRegistry::instance()->addMapLayer(l, TRUE);
+
+        // Add the Layer to the Layer Set
+        mLayerSet.append(QgsMapCanvasLayer(l, TRUE));
+
+        // Set the Map Canvas Layer Set			//TODO: check if we need to setLayerSet every time
+        setLayerSet(mLayerSet);
+
+        SetCurrentLayer( l );
+
+        return l;
+    }
+                            qDebug( "Layer is NOT valid" );
+    delete l;
+    return nullptr;
+
+}
+
+
 QgsVectorLayer* CMapWidget::AddVectorLayer( const QString &layer_path, const QString &base_name, const QString &provider, QgsSymbolV2* symbol )	//symbol = nullptr 
 {
 	static const std::string index_symbol = "#";
@@ -799,10 +942,12 @@ void CMapWidget::keyPressEvent( QKeyEvent * e ) //override
 void CMapWidget::EnableRectangularSelection( bool enable )
 {
 	enable ? setMapTool( mSelectFeatures ) : unsetMapTool( mSelectFeatures );
+	setContextMenuPolicy( enable ? Qt::PreventContextMenu : Qt::ActionsContextMenu );
 }																		 	
 void CMapWidget::EnablePolygonalSelection( bool enable )
 {
 	enable ? setMapTool( mSelectPolygon ) : unsetMapTool( mSelectPolygon );
+	setContextMenuPolicy( enable ? Qt::PreventContextMenu : Qt::ActionsContextMenu );
 }
 void CMapWidget::DeselectAll()
 {
@@ -887,11 +1032,13 @@ QToolButton* CMapWidget::CreateMapSelectionActions( QToolBar *tb, QAction *&acti
 void CMapWidget::MeasureDistance( bool enable )
 {
 	enable ? setMapTool( mMeasureDistance ) : unsetMapTool( mMeasureDistance );
+	setContextMenuPolicy( enable ? Qt::PreventContextMenu : Qt::ActionsContextMenu );
 }
 
 void CMapWidget::MeasureArea( bool enable )
 {
 	enable ? setMapTool( mMeasureArea ) : unsetMapTool( mMeasureArea );
+	setContextMenuPolicy( enable ? Qt::PreventContextMenu : Qt::ActionsContextMenu );
 }
 
 

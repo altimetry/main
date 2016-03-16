@@ -14,6 +14,8 @@
 #include "GUI/DisplayEditors/MapEditor.h"
 #include "GUI/DisplayEditors/PlotEditor.h"
 
+#include "GUI/ControlPanels/Dialogs/DelayExecutionDialog.h"
+
 #include "DataExpressionsTree.h"
 #include "ProcessesTable.h"
 #include "OperationControls.h"
@@ -161,7 +163,7 @@ QWidget* COperationControls::CreateAdancedOperationsPage()
 
 	mAdvancedDisplayButton = CreateToolButton( "", ":/images/OSGeo/execute.png", "Execute the operation and edit resulting view" );	//ButtonDisplayIconNoOpPath
 	mAdvancedDisplayButton->setPopupMode( QToolButton::MenuButtonPopup );
-	mDelayExecutionAction = new QAction( "Delay Execution", this );
+    mDelayExecutionAction = new QAction( "Delay Execution...", this );
 	mLaunchSchedulerAction = CActionInfo::CreateAction( this, eAction_Launch_Scheduler );
 	mAdvancedDisplayButton->addAction( mDelayExecutionAction );
 	mAdvancedDisplayButton->addAction( mLaunchSchedulerAction );
@@ -571,15 +573,16 @@ void COperationControls::HandleExpressionsTreePageChanged( int index )
 
 void COperationControls::HandleSwitchExpressionType()
 {
-    QAbstractButton *b = qobject_cast< QAbstractButton* >( sender() );      Q_UNUSED( b );
+    QAbstractButton *b = qobject_cast< QAbstractButton* >( sender() );
 
-	//std::string error_msg;
-	//if ( !mDataExpressionsTree->CanSwitchType( error_msg ) )
-	//{
-	//	SimpleErrorBox( error_msg );
-	//}
-	//else
-	//	mDataExpressionsTree->SwitchType();
+	std::string error_msg;
+	if ( !mDataExpressionsTree->CanSwitchType( error_msg ) )
+	{
+		SimpleErrorBox( error_msg );
+		b->setChecked( false );
+	}
+	else
+		mDataExpressionsTree->SwitchType();
 }
 
 
@@ -1031,7 +1034,11 @@ void COperationControls::HandleOperationStatistics()
 }
 void COperationControls::HandleDelayExecution()
 {
-	NOT_IMPLEMENTED;
+    CDelayExecutionDialog dlg( this );
+    if ( dlg.exec() == QDialog::Accepted )
+    {
+        NOT_IMPLEMENTED
+    }
 }
 void COperationControls::HandleLaunchScheduler()
 {

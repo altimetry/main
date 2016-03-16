@@ -91,7 +91,7 @@ void CWorkspaceViewsDialog::Wire()
 		}
 		if ( !operation_names.empty() )
 		{
-			tip += ( "\nRelated operations:" + operation_names );
+			tip += ( "\nOperation:" + operation_names );
 		}
 		item->setToolTip( tip.c_str() );
 	}

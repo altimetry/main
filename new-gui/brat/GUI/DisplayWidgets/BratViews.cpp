@@ -181,7 +181,8 @@ void CBratMapView::Plot( const CWorldPlotInfo &maps )
 	}
 
 #if defined (USE_FEATURES)
-	auto memL = AddMemoryLayer( createPointSymbol( 0.5, Qt::cyan ) );	//(*)	//note that you can use strings like "red" instead!!!
+    //auto memL = AddMemoryLayer( createPointSymbol( 0.5, Qt::cyan ) );	//(*)	//note that you can use strings like "red" instead!!!
+    auto memL = AddMemoryLayer2( 0.333 );	// RCCC
 	memL->dataProvider()->addFeatures( flist );
 	//memL->updateExtents();
 	//refresh();

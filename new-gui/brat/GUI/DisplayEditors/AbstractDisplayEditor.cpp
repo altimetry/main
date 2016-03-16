@@ -317,6 +317,7 @@ QAction* CAbstractDisplayEditor::AddToolBarSeparator()
 	return mToolBar->addSeparator();
 }
 
+
 QToolButton* CAbstractDisplayEditor::AddMenuButton( EActionTag button_tag, const QList<QAction*> &actions )
 {
 	QToolButton *b = CActionInfo::CreateMenuButton( button_tag, actions );

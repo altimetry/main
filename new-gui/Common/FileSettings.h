@@ -37,6 +37,11 @@ inline QString qv2type( const QVariant &v )
 	return qv2string< QString >( v );
 }
 template<>
+inline QStringList qv2type( const QVariant &v )
+{
+	return v.toStringList();
+}
+template<>
 inline std::string qv2type( const QVariant &v )
 {
 	return qv2string< std::string >( v );

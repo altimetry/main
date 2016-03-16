@@ -79,6 +79,7 @@ class CMapEditor : public CAbstractDisplayEditor
 	//...tabs
 	CMapControlsPanelDataLayers *mTabDataLayers = nullptr;
 	CMapControlsPanelView *mTabView = nullptr;
+	QComboBox *mDataLayer = nullptr;
 	CViewControlsPanelPlots *mTabPlots = nullptr;
 
 

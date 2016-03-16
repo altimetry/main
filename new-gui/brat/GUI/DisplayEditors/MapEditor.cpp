@@ -55,6 +55,7 @@ void CMapEditor::CreateWidgets()
 
     //    Specialized Tabs
 	mTabDataLayers = new CMapControlsPanelDataLayers( this );
+	mDataLayer = mTabDataLayers->mDataLayer;
 	mTabView = new CMapControlsPanelView( this );
 	mTabPlots = new CViewControlsPanelPlots( this );
 
@@ -353,7 +354,31 @@ void CMapEditor::OperationChanged( int index )
 {
     Q_UNUSED(index);
 
-	//This will automatically trigger a display change, so we don't need to take additional measures (so far)
+	//This will automatically trigger a display change so
+	//we don't need to take additional measures about that
+
+	mDataLayer->clear();
+	if ( !mOperation )
+		return;
+
+	const CMapFormula* formulas = mOperation->GetFormulas();
+	for ( CMapFormula::const_iterator it = formulas->cbegin(); it != formulas->cend(); it++ )
+	{
+		const CFormula* formula = mOperation->GetFormula( it );
+		if ( formula == nullptr )
+			continue;
+
+		switch ( formula->GetType() )
+		{
+			case CMapTypeField::eTypeOpAsX:
+				break;
+			case CMapTypeField::eTypeOpAsY:
+				break;
+			case CMapTypeField::eTypeOpAsField:
+				mDataLayer->addItem( formula->GetName().c_str() );
+				break;
+		}
+	}
 }
 //virtual 
 void CMapEditor::FilterChanged( int index )

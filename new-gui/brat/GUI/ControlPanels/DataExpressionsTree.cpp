@@ -394,8 +394,14 @@ bool CDataExpressionsTree::CanSwitchType( std::string &error_msg ) const
 	const CFormula* xFormula = mOperation->GetFormula( CMapTypeField::eTypeOpAsX );
 	const CFormula* yFormula = mOperation->GetFormula( CMapTypeField::eTypeOpAsY );
 
-	bool can_be_map = ( xFormula->IsLonDataType() && yFormula->IsLatDataType() ) ||
-		( xFormula->IsLatDataType() && yFormula->IsLonDataType() );
+	bool xIsLon = !xFormula || xFormula->IsLonDataType();
+	bool xIsLat = !xFormula || xFormula->IsLatDataType();
+	bool yIsLon = !yFormula || yFormula->IsLonDataType();
+	bool yIsLat = !yFormula || yFormula->IsLatDataType();
+
+	bool can_be_map = 
+		( xIsLon && yIsLat ) ||
+		( xIsLat && yIsLon );
 
 	if ( !can_be_map )
 		error_msg += "X and Y expressions must be cleared or replaced by longitude/latitude or latitude/longitude fields";
@@ -412,8 +418,8 @@ bool CDataExpressionsTree::SwitchType()
 
 	mIsMap = !mIsMap;
 
-	mItemX = MakeRootItem( mIsMap ? "Lon" : "X", CMapTypeField::eTypeOpAsX );
-	mItemY = MakeRootItem( mIsMap ? "Lat" : "Y (optional)", CMapTypeField::eTypeOpAsY );
+	mItemX->setText( 0, mIsMap ? "Lon" : "X" );
+	mItemY->setText( 0, mIsMap ? "Lat" : "Y (optional)" );
 
 	mOperation->SetType( GetOperationType() );
 

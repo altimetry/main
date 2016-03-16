@@ -22,17 +22,16 @@ CDatasetBrowserControls::CDatasetBrowserControls( CDesktopManagerBase *manager, 
     // - Page Files browser
     //
 
-    // Datasets and files buttons group
-
-    mNewDataset = CreateToolButton(  "", ":/images/OSGeo/dataset_new.png", "<b>New Dataset...</b><br>Insert a new Dataset in current workspace." );
+    // Datasets files buttons group
+	mNewDataset = CreateToolButton( "", ":/images/OSGeo/dataset_new.png", "<b>New Dataset</b><br>Insert a new Dataset in current workspace." );
 	mRemoveDataset = CreateToolButton( "", ":/images/OSGeo/dataset_remove.png", "<b>Delete...</b><br>Delete selected Dataset." );
     mAddFiles = CreateToolButton( "", ":/images/OSGeo/add_files_dataset.png", "<b>Add Files...</b><br>Add files to selected dataset.");
-	mAddDir = CreateToolButton( "", ":/images/OSGeo/add_dir_dataset.png", "<b>Add Dir...</b><br>Add directory contents to selected dataset.");
-	mRemove = CreateToolButton( "",  ":/images/OSGeo/file_remove.png", "<b>Remove...</b><br>Remove selected file.");
-    mClear = CreateToolButton( "",  ":/images/OSGeo/file_delete.png", "<b>Clear...</b><br>Clear all files of selected dataset.");
+    mAddDir = CreateToolButton( "", ":/images/OSGeo/add_dir_dataset.png", "<b>Add Dir...</b><br>Add directory contents to selected dataset.");
+    mRemove = CreateToolButton( "", ":/images/OSGeo/file_remove.png", "<b>Remove...</b><br>Remove selected file." );
+    mClear = CreateToolButton( "", ":/images/OSGeo/file_delete.png", "<b>Clear...</b><br>Clear all files of selected dataset.");
 
-	QWidget *buttons_row = CreateButtonRow( false, Qt::Horizontal, {
-		mNewDataset, mRemoveDataset, nullptr, mAddFiles, mAddDir, mRemove, mClear } );
+    QWidget *buttons_row = CreateButtonRow( false, Qt::Horizontal, {
+        mNewDataset, mRemoveDataset, nullptr, mAddFiles, mAddDir, mRemove, mClear } );
 
 	AddTopWidget( buttons_row );
 
@@ -43,6 +42,7 @@ CDatasetBrowserControls::CDatasetBrowserControls( CDesktopManagerBase *manager, 
     mDatasetTree->setHeaderHidden(true);
 
     QGroupBox *page_1 = CreateGroupBox( ELayoutType::Vertical, { mDatasetTree }, "File Datasets", nullptr, s, m, m, m, m );
+
 
 
     // - Page RADS browser
@@ -61,7 +61,7 @@ CDatasetBrowserControls::CDatasetBrowserControls( CDesktopManagerBase *manager, 
 
     m_BrowseFilesButton = qobject_cast<stack_button_type*>( mBrowserStakWidget->Button( 0 ) );
     m_BrowseRadsButton = qobject_cast<stack_button_type*>( mBrowserStakWidget->Button( 1 ) );
-	auto *browse_buttons = CreateButtonRow( false, Qt::Vertical, { m_BrowseFilesButton, m_BrowseRadsButton } );
+    auto *browse_buttons = CreateButtonRow( false, Qt::Vertical, { m_BrowseFilesButton, m_BrowseRadsButton } );
 
     auto *browse_group = CreateGroupBox( ELayoutType::Horizontal, { mBrowserStakWidget, browse_buttons }, "", nullptr, s, 4, 4, 4, 4 );
 
@@ -84,8 +84,8 @@ CDatasetBrowserControls::CDatasetBrowserControls( CDesktopManagerBase *manager, 
 	auto *fields_desc_group = CreateGroupBox( ELayoutType::Horizontal, 
 	{ 
 		CreateSplitter( nullptr, Qt::Horizontal, { mFieldList, mFieldDesc }, false )
-	}, "Field Description", nullptr, s, 4, 4, 4, 4 );
-	
+    }, "Field Description", nullptr, s, 4, 4, 4, 4 );
+
 	AddTopSplitter( Qt::Vertical, { browse_group, mFileDescGroup, fields_desc_group } );
 
 

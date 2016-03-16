@@ -111,6 +111,7 @@ public:
 	}
 	
 	static QgsSymbolV2* createPointSymbol( double width, const QColor &color );
+    static QgsSymbolV2* createPointSymbol2( double width, const QColor &color ); // RCCC
 
 	static QgsSymbolV2* createLineSymbol( double width, const QColor &color );
 
@@ -235,6 +236,7 @@ protected:
 	QgsVectorLayer* AddVectorLayer( const QString &layer_path, const QString &base_name, const QString &provider, QgsSymbolV2* symbol = nullptr );
 
 	QgsVectorLayer* AddMemoryLayer( QgsSymbolV2* symbol = nullptr );
+    QgsVectorLayer* AddMemoryLayer2( double width ); // RCCC
 
 	QgsVectorLayer* AddOGRVectorLayer( const QString &layer_path, QgsSymbolV2* symbol = nullptr )
 	{

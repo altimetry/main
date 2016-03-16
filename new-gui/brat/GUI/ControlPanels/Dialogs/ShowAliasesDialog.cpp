@@ -1,0 +1,22 @@
+#include "new-gui/brat/stdafx.h"
+
+#include "ShowAliasesDialog.h"
+
+
+
+
+CShowAliasesDialog::CShowAliasesDialog( QWidget *parent )
+{
+    Q_UNUSED( parent );
+
+}
+
+CShowAliasesDialog::~CShowAliasesDialog()
+{}
+
+
+///////////////////////////////////////////////////////////////////////////////////////////
+//
+///////////////////////////////////////////////////////////////////////////////////////////
+
+#include "moc_ShowAliasesDialog.cpp"

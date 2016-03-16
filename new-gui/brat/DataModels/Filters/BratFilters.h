@@ -1,37 +1,17 @@
-#if !defined DATA_MODELS_FILTERS_MODEL_H
-#define DATA_MODELS_FILTERS_MODEL_H
+#if !defined DATA_MODELS_FILTERS_BRAT_FILTERS_H
+#define DATA_MODELS_FILTERS_BRAT_FILTERS_H
 
 #include <QDate>
 
 #include "new-gui/Common/ApplicationSettings.h"
+
+#include "BratAreas.h"
 
 
 namespace brathl
 {
 	class CStringList;
 }
-
-
-
-
-struct CArea
-{
-	std::string mName;
-	double mMinLon = 0;
-	double mMaxLon = 0;
-	double mMinLat = 0;
-	double mMaxLat = 0;
-};
-
-
-
-struct CRegion
-{
-	std::string mName;
-	std::vector< CArea > mAreas;
-};
-
-
 
 
 
@@ -43,9 +23,6 @@ class CBratFilter
 protected:
 
 	//static data
-
-	static std::vector< CRegion > mRegions;
-
 
 	// instance data
 
@@ -127,6 +104,7 @@ class CBratFilters : public CFileSettings
 
     using base_t = CFileSettings;
 
+
 protected:
 	// instance data
 
@@ -149,14 +127,27 @@ public:
 
 	// persistence
 
-	bool Load();
+
+    CBratAreas& Areas()
+    {
+        static CBratAreas a( mInternalDataPath + "/UserAreas.ini" );
+        return a;
+    }
+    CBratRegions& Regions()
+    {
+        static CBratRegions r( mInternalDataPath + "/UserRegions.ini" );
+        return r;
+    }
+
+
+    bool Load();
 
 	bool Save();
 
 
 	// access
 
-	const std::map< std::string, CBratFilter >& FiltersMap() const { return mFiltersMap; };
+    const std::map< std::string, CBratFilter >& FiltersMap() const { return mFiltersMap; }
 
 	CBratFilter* Find( const std::string &name );
 
@@ -248,4 +239,4 @@ public:
 //
 //}
 
-#endif	//DATA_MODELS_FILTERS_MODEL_H
+#endif	//DATA_MODELS_FILTERS_BRAT_FILTERS_H

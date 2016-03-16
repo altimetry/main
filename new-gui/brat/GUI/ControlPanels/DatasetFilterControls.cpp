@@ -44,24 +44,30 @@ void CDatasetFilterControls::CreateWidgets()
 	AddTopLayout( ELayoutType::Horizontal, { WidgetLine( nullptr, Qt::Horizontal ), where_l, WidgetLine( nullptr, Qt::Horizontal ), mClearWhere }, s, m, m, m, m );
 
     //    II.1 List of Areas
-    QListWidget *areas_list = CreateBooleanList( this, { { "Lake Baikal", true }, { "Black Sea" }, { "User Area 1", true }, { "User Area 2" } } );
-    areas_list->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
-    QGroupBox *areas_box = CreateGroupBox( ELayoutType::Horizontal, { areas_list }, "Areas", this );
+    mAreasListWidget = new QListWidget( this );
+    mAreasListWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
+    QGroupBox *areas_box = CreateGroupBox( ELayoutType::Horizontal, { mAreasListWidget }, "Areas", this );
 
     //    II.2 Buttons for region selection
-    mSavedRegionsCombo = new QComboBox;
-    mSavedRegionsCombo->setToolTip( "List of saved regions" );
+    mRegionsCombo = new QComboBox;
+    mRegionsCombo->setToolTip( "List of saved regions" );
 
     auto mKML     = new QPushButton( "KML" );
     auto mMask    = new QPushButton( "Mask" );
 
-    QBoxLayout *buttons_regions = LayoutWidgets( Qt::Horizontal, { mSavedRegionsCombo, mKML, mMask } );
+    QBoxLayout *buttons_regions = LayoutWidgets( Qt::Horizontal, { mRegionsCombo, mKML, mMask } );
 
     //    II.3 Coordinates (max and min values)
+
     mMaxLatEdit = new QLineEdit(this);
     mMaxLonEdit = new QLineEdit(this);
     mMinLatEdit = new QLineEdit(this);
     mMinLonEdit = new QLineEdit(this);
+
+    mMaxLatEdit->setReadOnly( true );
+    mMaxLonEdit->setReadOnly( true );
+    mMinLatEdit->setReadOnly( true );
+    mMinLonEdit->setReadOnly( true );
 
     QBoxLayout *coord_values_l = LayoutWidgets( Qt::Vertical, {
                                              LayoutWidgets( Qt::Horizontal, { new QLabel( "Max Lat (deg)" ), mMaxLatEdit } ),
@@ -208,13 +214,15 @@ CDatasetFilterControls::CDatasetFilterControls( CDesktopManagerBase *manager, CB
     : base_t( manager, parent, f )
 	, mMap( manager->Map() )
 	, mBratFilters( brat_filters )
+	, mBratAreas( mBratFilters.Areas() )
+	, mBratRegions( mBratFilters.Regions() )
 {
 	CreateWidgets();
 
 	if ( !ReloadFilters() )
 	{
 		setEnabled( false );
-		LOG_WARN( "Brat filters cold not be loaded. Please check the filters configuration file " + mBratFilters.FilePath() );
+		LOG_WARN( "Brat filters cold not be loaded. Please check the filter configuration files." );
 	}
 }
 
@@ -225,7 +233,38 @@ bool CDatasetFilterControls::ReloadFilters()
 	{
 		return false;
 	}
+
+	//CArea area1( "Lake Baikal", { { 24.3938, 57.7512 }, { -9.49747, 36.0065 } } );
+	//CArea area2( "Loch Ness", { { 4.8543, 79.7512 }, { -19.723452, -12.98705 } } );
+	//mBratAreas.AddArea( area1 );		//this is a boolean function; deal with error if it fails
+	//mBratAreas.AddArea( area2 );		//this is a boolean, deal with error if fails
+	//mBratAreas.Save();				//this is a boolean, deal with error if fails
+
+	//CRegion r1( "Grande Lisboa", { area1.Name(), area2.Name() } );
+	//CRegion r2( "Lakes", { area2.Name(), area1.Name() } );
+	//mBratRegions.AddRegion( r1 );	//this is a boolean, can fail
+	//mBratRegions.AddRegion( r2 );	//this is a boolean, can fail
+	//mBratRegions.Save();			//this is a boolean, can fail
+
 	FillFiltersCombo();
+
+	mAreasListWidget->clear();
+	auto &amap = mBratAreas.AreasMap();
+	for ( auto &area_entry : amap )
+	{
+		auto &area = area_entry.second;
+		QListWidgetItem* item = new QListWidgetItem( t2q( area.Name() ), mAreasListWidget );
+		item->setFlags( item->flags() | Qt::ItemIsUserCheckable );		
+		item->setCheckState( area.IsPredefined() ? Qt::Checked : Qt::Unchecked );
+	}
+
+	mRegionsCombo->clear();
+	auto &rmap = mBratRegions.RegionsMap();
+	for ( auto &region_entry : rmap )
+	{
+		mRegionsCombo->addItem( region_entry.first.c_str() );
+	}
+
 	return true;
 }
 
@@ -570,7 +609,7 @@ void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
 
     //function body
 
-	mMap->RemoveLayers();
+    mMap->RemoveLayers();
 	mTotalRecordsSelectedEdit->setText( "" );
 
     if ( !mAutoSatelliteTrack || !dataset || mDataset != dataset )

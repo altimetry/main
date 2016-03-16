@@ -576,7 +576,7 @@ CMapControlsPanelView::CMapControlsPanelView( QWidget *parent, Qt::WindowFlags f
 
     ViewOptionsTabs->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
-    AddTopGroupBox( ELayoutType::Horizontal, { ViewOptionsTabs }, "View");
+    AddTopWidget( ViewOptionsTabs );
 }
 
 
