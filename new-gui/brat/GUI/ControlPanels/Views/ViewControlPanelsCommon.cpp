@@ -85,10 +85,6 @@ void CViewControlsPanelGeneral::RunButtonClicked()
 
 void CViewControlsPanelGeneralPlots::Wire()
 {
-	for ( int t = 0; t < CPlotEditor::EPlotTypes_size; ++t )
-	{
-		mSelectPlotCombo->addItem( CPlotEditor::PlotTypeName( (CPlotEditor::EPlotType)t ).c_str() );
-	}
 }
 
 void CViewControlsPanelGeneralPlots::CreateWidgets()
@@ -163,38 +159,6 @@ CViewControlsPanelGeneralMaps::CViewControlsPanelGeneralMaps( QWidget *parent, Q
 {
 	CreateWidgets();
 }
-
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////
-//						Plots Table Tab					
-/////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////
-
-
-CViewControlsPanelPlots::CViewControlsPanelPlots( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 );
-    : base_t( parent, f )
-{
-    //    II.2 Table with map plot information
-    mPlotInfoTable = new QTableWidget;
-    mPlotInfoTable->setSortingEnabled( true );                             // Enabling sorting
-    mPlotInfoTable->setAlternatingRowColors( true );                       // Alternating row colors
-    mPlotInfoTable->setEditTriggers(QAbstractItemView::NoEditTriggers);    // Disable editable table items
-    //mPlotInfoTable->setSelectionBehavior( QAbstractItemView::SelectRows ); // Whole row selection
-    //mPlotInfoTable->setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding);
-    mPlotInfoTable->setMinimumWidth( ComputeTableWidth( mPlotInfoTable ) );  // Setting minimum width
-
-    //    Adding previous widgets to this...
-    AddTopGroupBox( ELayoutType::Vertical, {
-                                 mPlotInfoTable,
-                                            }, "", 4, 4, 4, 4, 4 );
-}
-
-
-
-
 
 
 

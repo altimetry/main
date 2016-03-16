@@ -14,7 +14,6 @@ class CBrat3DPlotView;
 struct CViewControlsPanelGeneralPlots;
 struct CPlotControlsPanelCurveOptions;
 struct CPlotControlsPanelAxisOptions;
-struct CViewControlsPanelPlots;
 
 
 
@@ -78,10 +77,13 @@ private:
 	CBrat2DPlotView *mPlot2DView = nullptr;
 	CBrat3DPlotView *mPlot3DView = nullptr;
 
-	CViewControlsPanelGeneralPlots *mTabGeneral = nullptr;
+    QComboBox *mSelectPlotCombo = nullptr;
+    QComboBox *mvarX       = nullptr;
+    QComboBox *mvarY       = nullptr;
+    QComboBox *mvarY2      = nullptr;
+    QComboBox *mvarZ       = nullptr;
 	CPlotControlsPanelCurveOptions *mTabCurveOptions = nullptr;	
 	CPlotControlsPanelAxisOptions *mTabAxisOptions = nullptr;	
-	CViewControlsPanelPlots *mTabPlots = nullptr;
 
 
 	// construction /destruction
@@ -110,7 +112,6 @@ protected:
 	virtual void NewButtonClicked() override;
 
 	virtual void OperationChanged( int index ) override;
-	virtual void FilterChanged( int index ) override;
 
 	virtual void OneClick() override;
 
@@ -120,7 +121,7 @@ protected slots:
 	void HandleLogarithmicScaleZ( bool log );
 
     void HandleLineOptionsChecked( bool checked, int index );
-    void HandlePointOptionsChecked( bool checked, int index );
+    //void HandlePointOptionsChecked( bool checked, int index );
     void HandleCurveLineColorSelected( QColor new_color, int index );
     void HandleCurvePointColorSelected( QColor new_color, int index );
     void HandleOpacityChanged(int new_value, int index);
@@ -135,7 +136,7 @@ protected slots:
     void HandleFillGlyphInteriorChanged(bool checked, int index);
 
     //
-    void OnUpdateCurveOptions( int index );
+    //void OnUpdateCurveOptions( int index );
 
 
 

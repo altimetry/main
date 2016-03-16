@@ -57,11 +57,10 @@ class CAbstractDisplayEditor : public QMainWindow
 	CTabbedDock *mWorkingDock = nullptr;
 	//QFrame *mTopFrame = nullptr;
 	QComboBox *mOperationsCombo = nullptr;
-	QComboBox *mFiltersCombo = nullptr;
+	QLineEdit *mFilterLineEdit = nullptr;
 	QLineEdit *mDatasetName = nullptr;
 
-	CViewControlsPanelGeneral *mTabGeneral = nullptr;
-	//tab general
+	//tab general - private
 	QComboBox *mDisplaysCombo = nullptr;
 	
 
@@ -70,6 +69,9 @@ class CAbstractDisplayEditor : public QMainWindow
 	//... tool-bar
 protected:
 	QToolBar *mToolBar = nullptr;
+
+	//tab general - protected
+	CViewControlsPanelGeneral *mTabGeneral = nullptr;
 private:
 	QAction *m2DAction = nullptr;
 	QAction *m3DAction = nullptr;
@@ -163,7 +165,6 @@ protected:
 	virtual void NewButtonClicked() = 0;
 
 	virtual void OperationChanged( int index ) = 0;
-	virtual void FilterChanged( int index ) = 0;
 
 	virtual void OneClick() = 0;
 
@@ -204,11 +205,6 @@ private slots:
 	}
 	
 	void HandleOperationsIndexChanged( int index );
-
-	void HandleFiltersIndexChanged( int index )
-	{
-		FilterChanged( index );
-	}
 };
 
 

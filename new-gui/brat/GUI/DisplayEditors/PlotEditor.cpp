@@ -12,21 +12,19 @@
 void CPlotEditor::CreateWidgets() 	//parent = nullptr
 {
 	base_t::CreateWidgets<CViewControlsPanelGeneralPlots>();
+	CViewControlsPanelGeneralPlots *tab_general = dynamic_cast<CViewControlsPanelGeneralPlots*>( mTabGeneral );			assert__( tab_general );
+
+    mSelectPlotCombo = tab_general->mSelectPlotCombo;
+	mvarX = tab_general->mvarX;
+    mvarY = tab_general->mvarY;
+    mvarY2 = tab_general->mvarY2;
+    mvarZ = tab_general->mvarZ;
 
 	mTabCurveOptions = new CPlotControlsPanelCurveOptions( this );
 	mTabAxisOptions = new CPlotControlsPanelAxisOptions( this );
-	mTabPlots = new CViewControlsPanelPlots( this );
-
 
 	AddTab( mTabCurveOptions, "Curve Options" );
 	AddTab( mTabAxisOptions, "Axis Options" );
-	AddTab( mTabPlots, "Plots" );
-
-    //    Set Header Label Texts
-    mTabPlots->mPlotInfoTable->setRowCount(1);
-    mTabPlots->mPlotInfoTable->setColumnCount(8);
-    mTabPlots->mPlotInfoTable->setHorizontalHeaderLabels(
-                QString("Plot name;Expression name;View type;Unit;dim.1;dim.2;Operation name;Dataset").split(";"));
 
 	mPlot2DView = new CBrat2DPlotView( this );
 	mPlot3DView = new CBrat3DPlotView( this );
@@ -39,13 +37,18 @@ void CPlotEditor::CreateWidgets() 	//parent = nullptr
 
 void CPlotEditor::Wire()
 {
+	for ( int t = 0; t < CPlotEditor::EPlotTypes_size; ++t )
+	{
+		mSelectPlotCombo->addItem( CPlotEditor::PlotTypeName( (CPlotEditor::EPlotType)t ).c_str() );
+	}
+
     connect( mTabAxisOptions, SIGNAL( LogarithmicScaleX( bool ) ), this, SLOT( HandleLogarithmicScaleX( bool ) ) );
     connect( mTabAxisOptions, SIGNAL( LogarithmicScaleY( bool ) ), this, SLOT( HandleLogarithmicScaleY( bool ) ) );
     connect( mTabAxisOptions, SIGNAL( LogarithmicScaleZ( bool ) ), this, SLOT( HandleLogarithmicScaleZ( bool ) ) );
 
     connect( mTabCurveOptions, SIGNAL( LineOptionsChecked( bool, int ) ), this, SLOT( HandleLineOptionsChecked( bool, int ) ) );
-    connect( mTabCurveOptions, SIGNAL( PointOptionsChecked( bool, int ) ), this, SLOT( HandlePointOptionsChecked( bool, int ) ) );
-    connect( mTabCurveOptions, SIGNAL( CurrCurveChanged( int ) ), this, SLOT( OnUpdateCurveOptions( int ) ) );
+    //connect( mTabCurveOptions, SIGNAL( PointOptionsChecked( bool, int ) ), this, SLOT( HandlePointOptionsChecked( bool, int ) ) );
+    //connect( mTabCurveOptions, SIGNAL( CurrCurveChanged( int ) ), this, SLOT( OnUpdateCurveOptions( int ) ) );
 
     connect( mTabCurveOptions, SIGNAL( CurveLineColorSelected(QColor, int) ), this, SLOT( HandleCurveLineColorSelected(QColor, int)));
     connect( mTabCurveOptions, SIGNAL( CurvePointColorSelected(QColor, int) ), this, SLOT( HandleCurvePointColorSelected(QColor, int)));
@@ -228,14 +231,43 @@ void CPlotEditor::OperationChanged( int index )
     Q_UNUSED(index);
 
 	//This will automatically trigger a display change, so we don't need to take additional measures (so far)
-}
-//virtual 
-void CPlotEditor::FilterChanged( int index )
-{
-    Q_UNUSED(index);
 
-    NOT_IMPLEMENTED
+	mvarX->clear();
+	mvarY->clear();
+    mvarY2->clear();
+    mvarZ->clear();
+
+	if ( !mOperation )
+		return;
+
+	const CMapFormula* formulas = mOperation->GetFormulas();
+	for ( CMapFormula::const_iterator it = formulas->cbegin(); it != formulas->cend(); it++ )
+	{
+		const CFormula* formula = mOperation->GetFormula( it );
+		if ( formula == nullptr )
+			continue;
+
+		switch ( formula->GetType() )
+		{
+			case CMapTypeField::eTypeOpAsX:
+
+				mvarX->addItem( formula->GetName().c_str() );
+				break;
+			case CMapTypeField::eTypeOpAsY:
+
+				mvarY->addItem( formula->GetName().c_str() );
+				break;
+
+			case CMapTypeField::eTypeOpAsField:
+				mvarY2->addItem( formula->GetName().c_str() );
+				mvarZ->addItem( formula->GetName().c_str() );
+				break;
+		}
+	}
+
 }
+
+
 //virtual 
 void CPlotEditor::OneClick()
 {
@@ -278,20 +310,26 @@ void CPlotEditor::HandleLineOptionsChecked( bool checked, int index )
 {
 	if ( mPlot2DView && checked )
 	{
-        mPlot2DView->SetTargetCurveStyleLine(index);
+        mPlot2DView->EnableTargetCurveStyleLine(index);
 	}
+
+    else if ( mPlot2DView && (!checked) )
+    {
+        mPlot2DView->DisableTargetCurveStyleLine(index);
+    }
+    else
+    {
+        return;
+    }
 	// TODO 3D
 
 }
-void CPlotEditor::HandlePointOptionsChecked( bool checked, int index )
-{
-	if ( mPlot2DView && checked )
-	{
-        mPlot2DView->SetTargetCurveStyleDots(index);
-	}
-	// TODO 3D
+//void CPlotEditor::HandlePointOptionsChecked( bool checked, int index )
+//{
+//    return;
+//	// TODO 3D
 
-}
+//}
 
 
 void CPlotEditor::HandleCurveLineColorSelected( QColor new_color, int index )
@@ -361,68 +399,6 @@ void CPlotEditor::HandleFillGlyphInteriorChanged(bool checked, int index)
     }
 }
 
-//A new curve was selected by user:
-//the model queries information about the curve!
-//and updates the tab accordingly
-void CPlotEditor::OnUpdateCurveOptions( int index )
-{
-    int alpha, pattern, lwidth;
-    QColor cPenColor;
-
-    if (index < 0)
-    {
-        return;
-    }
-    if (this->mPlot2DView->IsTargetCurveStyleLine(index))
-    {
-        this->mTabCurveOptions->SetPlotTypeLine();
-
-        // fetch current curve brush color
-        cPenColor = this->mPlot2DView->GetTargetCurvePenColor(index);
-
-        this->mTabCurveOptions->SetLineColor(cPenColor);
-
-        // Opacity
-        alpha = this->mPlot2DView->GetTargetCurvePenAlpha(index);
-
-        this->mTabCurveOptions->SetLineOpacity(QString::number(alpha));
-
-        //sttiple pattern
-
-        pattern = this->mPlot2DView->GetTargetCurveLinePattern(index);
-
-        this->mTabCurveOptions->SetStipplePattern(pattern);
-
-        //width
-        lwidth = this->mPlot2DView->GetTargetCurvePenWidth(index);
-        this->mTabCurveOptions->SetLineWidth(lwidth);
-
-
-    }
-    else if (this->mPlot2DView->IsTargetCurveStyleDots(index))
-    {
-        this->mTabCurveOptions->SetPlotTypeDot();
-
-        cPenColor = this->mPlot2DView->GetTargetCurvePenColor(index);
-
-        this->mTabCurveOptions->SetPointColor(cPenColor);
-
-        // glyph pattern update
-
-        int gly_patt = this->mPlot2DView->GetTargetCurvePointSymbol(index);
-
-        this->mTabCurveOptions->SetGlyphPattern(gly_patt);
-
-        int gly_size = this->mPlot2DView->GetTargetCurvePointSize(index);
-
-        this->mTabCurveOptions->SetGlyphSize(QString::number(gly_size));
-
-    }
-    else
-    {
-        return;
-    }
-}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

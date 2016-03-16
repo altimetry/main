@@ -418,6 +418,7 @@ void COperationControls::Wire()
 
 	connect( mSwitchToMapButton, SIGNAL( clicked() ), this, SLOT( HandleSwitchExpressionType() ) );
 	connect( mSwitchToPlotButton, SIGNAL( clicked() ), this, SLOT( HandleSwitchExpressionType() ) );
+	connect( mDataExpressionsTree, SIGNAL( FormulaInserted( CFormula * ) ), this, SLOT( HandleFormulaInserted( CFormula * ) ) );
 
 	mSwitchToMapButton->setChecked( true );
 

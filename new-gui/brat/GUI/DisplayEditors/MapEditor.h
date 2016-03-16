@@ -111,7 +111,6 @@ protected:
 	virtual void NewButtonClicked() override;
 
 	virtual void OperationChanged( int index ) override;
-	virtual void FilterChanged( int index ) override;
 
 	virtual void OneClick() override;
 

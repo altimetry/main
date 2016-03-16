@@ -86,6 +86,7 @@ struct CViewControlsPanelGeneralPlots : public CViewControlsPanelGeneral
 
     using base_t = CViewControlsPanelGeneral;
 
+public:
     // instance data members
 
     QComboBox *mSelectPlotCombo = nullptr;
@@ -93,6 +94,8 @@ struct CViewControlsPanelGeneralPlots : public CViewControlsPanelGeneral
     QComboBox *mvarY       = nullptr;
     QComboBox *mvarY2      = nullptr;
     QComboBox *mvarZ       = nullptr;
+
+protected:
 
     QComboBox *mLinkToPlot = nullptr;
 
@@ -144,50 +147,6 @@ public:
 	virtual ~CViewControlsPanelGeneralMaps()
 	{}
 };
-
-
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////
-//								Plots Table Tab					
-/////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////
-
-
-struct CViewControlsPanelPlots : public CControlPanel
-{
-#if defined (__APPLE__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winconsistent-missing-override"
-#endif
-
-    Q_OBJECT
-
-#if defined (__APPLE__)
-#pragma clang diagnostic pop
-#endif
-
-    // types
-
-    using base_t = CControlPanel;
-
-    // instance data members
-
-public:
-	QTableWidget *mPlotInfoTable = nullptr;
-
-public:
-    CViewControlsPanelPlots( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
-
-	virtual ~CViewControlsPanelPlots()
-	{}
-};
-
-
-
-
 
 
 

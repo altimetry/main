@@ -57,16 +57,9 @@ void CMapEditor::CreateWidgets()
 	mTabDataLayers = new CMapControlsPanelDataLayers( this );
 	mDataLayer = mTabDataLayers->mDataLayer;
 	mTabView = new CMapControlsPanelView( this );
-	mTabPlots = new CViewControlsPanelPlots( this );
 
 	AddTab( mTabDataLayers, "Data Layers" );
 	AddTab( mTabView, "View" );
-	AddTab( mTabPlots, "Plots" );
-
-    //    Set Header Label Texts
-    mTabPlots->mPlotInfoTable->setRowCount(1);
-    mTabPlots->mPlotInfoTable->setColumnCount(5);
-    mTabPlots->mPlotInfoTable->setHorizontalHeaderLabels( QString("Plot name;Expression name;Unit;Operation name;Dataset").split(";") );
 
 	// map widget managed
 
@@ -372,21 +365,18 @@ void CMapEditor::OperationChanged( int index )
 		{
 			case CMapTypeField::eTypeOpAsX:
 				break;
+
 			case CMapTypeField::eTypeOpAsY:
 				break;
+
 			case CMapTypeField::eTypeOpAsField:
 				mDataLayer->addItem( formula->GetName().c_str() );
 				break;
 		}
 	}
 }
-//virtual 
-void CMapEditor::FilterChanged( int index )
-{
-    Q_UNUSED(index);
 
-    NOT_IMPLEMENTED
-}
+
 //virtual 
 void CMapEditor::OneClick()
 {

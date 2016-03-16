@@ -326,32 +326,89 @@ void CPlotControlsPanelCurveOptions::Wire()
 
 void CPlotControlsPanelCurveOptions::HandleLineOptionsChecked( bool checked )
 {
-	mPointOptions->setChecked( !checked );
-    emit LineOptionsChecked( checked, mPlotList->currentRow() );
+    size_t n_curves = CurveStates.size();
+    int curr_curve = 0;
+
+    if (!n_curves)
+    {
+        return;
+    }
+
+    curr_curve = mPlotList->currentRow();
+    CurveStates.at(curr_curve).IsLine = checked;
+
+    emit LineOptionsChecked(checked, curr_curve);
+    emit StipplePatternChanged(CurveStates.at(curr_curve).LineConf, curr_curve);
 }
 
 void CPlotControlsPanelCurveOptions::HandlePointOptionsChecked( bool checked )
 {
-	mLineOptions->setChecked( !checked );
-    emit PointOptionsChecked( checked, mPlotList->currentRow() );
-}
+    size_t n_curves = CurveStates.size();
+    int curr_curve = 0;
 
+    if (!n_curves)
+    {
+        return;
+    }
+
+    curr_curve = mPlotList->currentRow();
+    CurveStates.at(curr_curve).IsDot = checked;
+
+    if (!checked)
+    {
+        emit GlyphPatternChanged(-1, curr_curve);
+    }
+    else
+    {
+        emit GlyphPatternChanged(CurveStates.at(curr_curve).GlyphConf, curr_curve);
+        HandleCurvePointColorSelected();
+        HandleFillGlyphInterior(CurveStates.at(curr_curve).FillGlyph);
+    }
+}
 
 
 void CPlotControlsPanelCurveOptions::HandleCurveLineColorSelected()
 {
-    emit CurveLineColorSelected(this->mLineColorButton->GetColor(), mPlotList->currentRow());
+    QColor selected_color;
+    size_t n_curves = CurveStates.size();
+    int curr_curve = 0;
+
+    if (!n_curves)
+    {
+        return;
+    }
+
+    curr_curve = mPlotList->currentRow();
+    selected_color = mLineColorButton->GetColor();
+    CurveStates.at(curr_curve).LineColor = selected_color;
+
+    emit CurveLineColorSelected(selected_color, curr_curve);
 }
 
 void CPlotControlsPanelCurveOptions::HandleCurvePointColorSelected()
 {
-    emit CurvePointColorSelected(this->mPointColorButton->GetColor(), mPlotList->currentRow());
+    QColor selected_color;
+    size_t n_curves = CurveStates.size();
+    int curr_curve = 0;
+
+    if (!n_curves)
+    {
+        return;
+    }
+
+    curr_curve = mPlotList->currentRow();
+    selected_color = mPointColorButton->GetColor();
+    CurveStates.at(curr_curve).GlyphColor = selected_color;
+
+    emit CurvePointColorSelected(selected_color, curr_curve);
 }
 
 void CPlotControlsPanelCurveOptions::HandleCurveLineOpacityEntered()
 {
     bool is_converted=false;
+    int curr_curve = 0;
     int opacity_value;
+    size_t n_curves = CurveStates.size();
     const QString opacity = this->mLineOpacityValue->text();
     opacity_value = opacity.toInt(&is_converted, 10);
 
@@ -360,13 +417,23 @@ void CPlotControlsPanelCurveOptions::HandleCurveLineOpacityEntered()
         return;
     }
 
-    emit CurveLineOpacityEntered(opacity_value, mPlotList->currentRow());
+    if (!n_curves)
+    {
+        return;
+    }
+
+    curr_curve = mPlotList->currentRow();
+
+    emit CurveLineOpacityEntered(opacity_value, curr_curve);
 }
 
 void CPlotControlsPanelCurveOptions::HandleCurveLineWidthEntered()
 {
     bool is_converted=false;
+    int curr_curve = 0;
     int width_value;
+    size_t n_curves = CurveStates.size();
+
     const QString width = this->mLineWidthValue->text();
     width_value = width.toInt(&is_converted, 10);
 
@@ -375,7 +442,14 @@ void CPlotControlsPanelCurveOptions::HandleCurveLineWidthEntered()
         return;
     }
 
-    emit CurveLineWidthEntered(width_value, mPlotList->currentRow());
+    if (!n_curves)
+    {
+        return;
+    }
+
+    curr_curve = mPlotList->currentRow();
+
+    emit CurveLineWidthEntered(width_value, curr_curve);
 }
 
 
@@ -383,40 +457,160 @@ void CPlotControlsPanelCurveOptions::HandleNewPlot(const CDisplayFilesProcessor*
 {
     //clears previously installed information
     mPlotList->clear();
+    CurveStates.clear();
+
     size_t sz = curr_proc->GetXYPlotPropertiesSize();
+
+    //QColor ctl_black(0x00,0x00,0x00,0xff);
+    unsigned char r,g,b,a;
 
     for (int i =0;i<sz;i++ )
     {
+        CurveState cs;
         CXYPlotProperties* ptr_curr_plot = curr_proc->GetXYPlotProperties(i);
         assert(ptr_curr_plot);
         mPlotList->addItem(t2q(ptr_curr_plot->GetName()));
+
+        //Color Conversion triple percent (R,G,B,A) -> byte (R,G,B,A)
+        b = (ptr_curr_plot->GetColor().Blue()*255);
+        r = (ptr_curr_plot->GetColor().Red()*255);
+        g = (ptr_curr_plot->GetColor().Green()*255);
+        a = (ptr_curr_plot->GetColor().Alpha()*255);
+        QColor curr_clr(r,g,b,a);
+
+        //set defaults:
+        cs.CurveName = ptr_curr_plot->GetName();
+        cs.FillGlyph = false;
+        cs.GlyphColor = curr_clr;
+        cs.GlyphSize = 2;
+        cs.IsDot = false;
+        cs.IsLine = true;
+        cs.LineColor = curr_clr;
+        cs.LineOpacity = 0xFF;
+        cs.LineW = 2;
+        cs.GlyphConf = glyph_type::Ellipse;
+        cs.LineConf = line_type::SolidLine;
+
+        CurveStates.push_back(cs);
     }
 }
 
 void CPlotControlsPanelCurveOptions::HandleCurrCurveChanged(int index)
 {
-    this->mPointOptions->setEnabled( true );
-    this->mLineOptions->setEnabled( true );
-    emit CurrCurveChanged(index);
+
+    int alpha, pattern, lwidth;
+    QColor cLineColor, cDotColor;
+    size_t n_curves = CurveStates.size();
+    int curr_curve = 0;
+
+    //when calling clear method on qwtlistwidget this will get triggered too,
+    //so we need to garantee that the index we are attempting to get fits in well
+    if ((!n_curves)|| (index >= n_curves) )
+    {
+        return;
+    }
+
+    curr_curve = index;
+
+    if (CurveStates.at(curr_curve).IsLine)
+    {
+        SetPlotTypeLine(true);
+
+        // fetch current curve brush color
+        cLineColor = CurveStates.at(curr_curve).LineColor;
+        SetLineColor(cLineColor);
+
+        // Opacity
+        alpha = CurveStates.at(curr_curve).LineOpacity;
+        SetLineOpacity(QString::number(alpha));
+
+        //sttiple pattern
+        pattern = CurveStates.at(curr_curve).LineConf;
+        SetStipplePattern(pattern);
+
+        //width
+        lwidth = CurveStates.at(curr_curve).LineW;
+        SetLineWidth(lwidth);
+
+    }
+    else
+    {
+        SetPlotTypeLine(false);
+    }
+
+    cDotColor = CurveStates.at(curr_curve).GlyphColor;
+    SetPointColor(cDotColor);
+
+    if (CurveStates.at(curr_curve).IsDot)
+    {
+        SetPlotTypeDot(true);
+
+        // glyph pattern update
+
+        int gly_patt = CurveStates.at(curr_curve).GlyphConf;
+        SetGlyphPattern(gly_patt);
+        int gly_size = CurveStates.at(curr_curve).GlyphSize;
+
+        SetGlyphSize(QString::number(gly_size));
+    }
+    else
+    {
+        SetPlotTypeDot(false);
+    }
+
+
 }
 
 void CPlotControlsPanelCurveOptions::HandleStipplePatternChanged(int pattern)
 {
-    emit StipplePatternChanged(pattern, mPlotList->currentRow());
+    size_t n_curves = CurveStates.size();
+    int curr_curve = 0;
+
+    if (!n_curves)
+    {
+        return;
+    }
+
+    curr_curve = mPlotList->currentRow();
+    CurveStates.at(curr_curve).LineConf = (line_type)pattern;
+    emit StipplePatternChanged(pattern, curr_curve);
 }
 
 void CPlotControlsPanelCurveOptions::HandleGlyphPatternChanged(int pattern)
 {
+    size_t n_curves = CurveStates.size();
+    int curr_curve = 0;
+
+    if (!n_curves)
+    {
+        return;
+    }
+
+    curr_curve = mPlotList->currentRow();
+    CurveStates.at(curr_curve).GlyphConf = (glyph_type)pattern;
     emit GlyphPatternChanged(pattern, mPlotList->currentRow());
 }
 
 void CPlotControlsPanelCurveOptions::HandleFillGlyphInterior(bool checked)
 {
-    emit FillGlyphInterior(checked, mPlotList->currentRow());
+    size_t n_curves = CurveStates.size();
+    int curr_curve = 0;
+
+    if (!n_curves)
+    {
+        return;
+    }
+
+    curr_curve = mPlotList->currentRow();
+    CurveStates.at(curr_curve).FillGlyph = checked;
+
+    emit FillGlyphInterior(checked, curr_curve);
 }
 
 void CPlotControlsPanelCurveOptions::HandleCurveGlyphWidthEntered()
 {
+    size_t n_curves = CurveStates.size();
+    int curr_curve = 0;
     bool is_converted=false;
     int w_value;
     const QString pointw = this->mPointSizeValue->text();
@@ -427,7 +621,14 @@ void CPlotControlsPanelCurveOptions::HandleCurveGlyphWidthEntered()
         return;
     }
 
-    emit CurveGlyphWidthEntered(w_value, mPlotList->currentRow());
+    if (!n_curves)
+    {
+        return;
+    }
+
+    curr_curve = mPlotList->currentRow();
+    CurveStates.at(curr_curve).GlyphSize = w_value;
+    emit CurveGlyphWidthEntered(w_value, curr_curve);
 
 }
 ////////////////////////////////////////

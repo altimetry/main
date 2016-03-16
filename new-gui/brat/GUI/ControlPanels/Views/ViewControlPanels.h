@@ -140,7 +140,24 @@ struct CPlotControlsPanelCurveOptions : public CControlPanel
 #pragma clang diagnostic pop
 #endif
 
-    // types
+    typedef enum {SolidLine, DashLine, DotLine, DashDotLine, DashDotDotLine} line_type;
+    typedef enum {Ellipse, Rect, Diamond, Triangle, DTriangle, UTriangle, LTriangle, RTriangle, Cross, XCross, Hline, VLine, Star1, Star2, Hexagon} glyph_type;
+
+    typedef struct
+    {
+        bool IsLine;
+        bool IsDot;
+        bool FillGlyph;
+        line_type LineConf;
+        glyph_type GlyphConf;
+        QColor LineColor;
+        QColor GlyphColor;
+        int LineW;
+        unsigned char LineOpacity; //byte
+        int GlyphSize;
+        std::string CurveName; //optional
+    } CurveState;
+
 
     using base_t = CControlPanel;
 
@@ -167,6 +184,8 @@ struct CPlotControlsPanelCurveOptions : public CControlPanel
 
     QCheckBox * mFillPointCheck = nullptr;
 
+    std::vector<CurveState> CurveStates;
+
 	//construction / destruction
 
 	void Wire();
@@ -183,16 +202,14 @@ public:
 
     void AddNewPlot2DName(const QString plot_name);
 
-    void SetPlotTypeLine()
+    void SetPlotTypeLine(bool checked)
     {
-        mLineOptions->setChecked(true);
-        mPointOptions->setChecked(false);
+        mLineOptions->setChecked(checked);
     }
 
-    void SetPlotTypeDot()
+    void SetPlotTypeDot(bool checked)
     {
-        mPointOptions->setChecked(true);
-        mLineOptions->setChecked(false);
+        mPointOptions->setChecked(checked);
     }
 
     void SetLineColor(const QColor new_color)
@@ -229,7 +246,7 @@ public:
     void SetStipplePattern(int pattern)
     {
         int c_sz = mStipplePattern->count();
-        if (pattern < 0)
+        if ((pattern < 0) || (pattern > c_sz))
         {
             mStipplePattern->setCurrentIndex(c_sz-1);
             return;
@@ -241,7 +258,7 @@ public:
     void SetGlyphPattern(int pattern)
     {
         int c_sz = this->mPointGlyph->count();
-        if (pattern < 0)
+        if ((pattern < 0) || (pattern > c_sz))
         {
             mPointGlyph->setCurrentIndex(c_sz-1);
             return;

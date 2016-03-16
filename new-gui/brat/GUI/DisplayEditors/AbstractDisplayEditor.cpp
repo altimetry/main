@@ -59,12 +59,14 @@ void CAbstractDisplayEditor::CreateWorkingDock()
 		auto lfilters = new QLabel( "Filter" );
 		auto ldataset = new QLabel( "Dataset" );
 		mOperationsCombo = new QComboBox;
-		mFiltersCombo = new QComboBox;
+		mFilterLineEdit = new QLineEdit;		mFilterLineEdit->setReadOnly( true );		mFilterLineEdit->setAlignment( Qt::AlignHCenter );		
+		mFilterLineEdit ->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
+		mFilterLineEdit->setText( "Filter" );	// TODO delete this line
 		mDatasetName = new QLineEdit;
 		mDatasetName->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
 
 		mOperationsCombo->setToolTip( "Operation" );
-		mFiltersCombo->setToolTip( "Filter" );
+		mFilterLineEdit->setToolTip( "Filter" );
 		mDatasetName->setToolTip( "Dataset" );
 
 		mSaveOneClickButton = new QPushButton( "One Click" );
@@ -74,7 +76,7 @@ void CAbstractDisplayEditor::CreateWorkingDock()
 
 		addToolBar( AddWidgets( toptoolbar,
 		{ 
-			loperations, mOperationsCombo, nullptr, lfilters, mFiltersCombo, nullptr, ldataset, mDatasetName, nullptr, mSaveOneClickButton
+			loperations, mOperationsCombo, nullptr, lfilters, mFilterLineEdit, nullptr, ldataset, mDatasetName, nullptr, mSaveOneClickButton
 		} 
 		) );
 	}
@@ -163,7 +165,6 @@ void CAbstractDisplayEditor::Wire()
 	connect( mTabGeneral, SIGNAL( NewButtonClicked() ), this, SLOT( HandleNewButtonClicked() ) );
 
 	connect( mOperationsCombo, SIGNAL( currentIndexChanged( int ) ), this, SLOT( HandleOperationsIndexChanged( int ) ) );
-	connect( mFiltersCombo, SIGNAL( currentIndexChanged( int ) ), this, SLOT( HandleFiltersIndexChanged( int ) ) );
 	connect( mSaveOneClickButton, SIGNAL( clicked() ), this, SLOT( HandleOneClickClicked() ) );
 
 	mDatasetName->setReadOnly( true );
