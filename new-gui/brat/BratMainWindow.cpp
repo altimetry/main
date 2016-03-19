@@ -13,6 +13,7 @@
 
 #include "DataModels/DisplayFilesProcessor.h"
 #include "DataModels/Workspaces/Workspace.h"
+#include "DataModels/Workspaces/WorkspaceSettings.h"
 #include "DataModels/Filters/BratFilters.h"
 #include "DataModels/PlotData/ZFXYPlot.h"
 #include "DataModels/PlotData/XYPlot.h"
@@ -172,7 +173,7 @@ CControlPanel* CBratMainWindow::MakeWorkingPanel( ETabName tab )
 			return new ControlsPanelType< eFilter >::type( mDesktopManager, mBratFilters );
 			break;
 		case eOperations:
-			return new ControlsPanelType< eOperations >::type( mProcessesTable, mDesktopManager );
+			return new ControlsPanelType< eOperations >::type( mBratFilters, mProcessesTable, mDesktopManager );
 			break;
 		default:
 			assert__( false );
@@ -207,8 +208,8 @@ void CBratMainWindow::CreateWorkingDock()
 
 	action_Satellite_Tracks->setChecked( WorkingPanel< eFilter >()->AutoSatelliteTrack() );
 	connect( WorkingPanel< eDataset >(), SIGNAL( CurrentDatasetChanged(CDataset*) ), WorkingPanel< eFilter >(), SLOT( HandleDatasetChanged(CDataset*) ) );
-	connect( WorkingPanel< eDataset >(), SIGNAL( DatasetsChanged() ), WorkingPanel< eOperations >(), SLOT( HandleDatasetsChanged_Quick() ) );
-	connect( WorkingPanel< eDataset >(), SIGNAL( DatasetsChanged() ), WorkingPanel< eOperations >(), SLOT( HandleDatasetsChanged_Advanced() ) );
+    connect( WorkingPanel< eDataset >(), SIGNAL( DatasetsChanged(CDataset*) ), WorkingPanel< eOperations >(), SLOT( HandleDatasetsChanged_Quick(CDataset*) ) );
+    connect( WorkingPanel< eDataset >(), SIGNAL( DatasetsChanged(CDataset*) ), WorkingPanel< eOperations >(), SLOT( HandleDatasetsChanged_Advanced(CDataset*) ) );
 
 	LOG_TRACE( "Finished working dock construction." );
 }

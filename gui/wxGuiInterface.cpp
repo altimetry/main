@@ -5,10 +5,71 @@
 
 #include "BratGui.h"
 #include "wxGuiInterface.h"
-#include "new-gui/QtInterface.h"
+#include "new-gui/v4Interface.h"
 #include "new-gui/Common/ConfigurationKeywords.h"
 #include "new-gui/brat/DataModels/Workspaces/Dataset.h"
 #include "new-gui/brat/DataModels/MapTypeDisp.h"
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+//											CMapFunction
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+#include "new-gui/brat/DataModels/Workspaces/Function.h"
+
+
+void NamesToArrayString( const CMapFunction &mfunction, wxArrayString& array )
+{
+	for ( CMapFunction::const_iterator it = mfunction.begin(); it != mfunction.end(); it++ )
+	{
+		CFunction* value = dynamic_cast<CFunction*>( it->second );
+		if ( value != NULL )
+		{
+			array.Add( value->GetName() );
+		}
+	}
+}
+void NamesToComboBox( const CMapFunction &mfunction, wxComboBox& combo )
+{
+	for ( CMapFunction::const_iterator it = mfunction.begin(); it != mfunction.end(); it++ )
+	{
+		CFunction* value = dynamic_cast<CFunction*>( it->second );
+		if ( value != NULL )
+		{
+			combo.Append( value->GetName() );
+		}
+	}
+
+}
+void NamesToListBox( const CMapFunction &mfunction, wxListBox& listBox, int32_t category )		//category = -1 
+{
+	for ( CMapFunction::const_iterator it = mfunction.begin(); it != mfunction.end(); it++ )
+	{
+		CFunction* value = dynamic_cast<CFunction*>( it->second );
+		if ( value != NULL )
+		{
+			if ( category != -1 )
+			{
+				if ( value->GetCategory() != category )
+				{
+					continue;
+				}
+			}
+			listBox.Append( value->GetName() );
+		}
+	}
+}
+void GetCategory( const CMapFunction &mfunction, wxChoice& choice )
+{
+	choice.Append( "All", new int32_t( -1 ) );
+
+	for ( int32_t category = MathTrigo; category <= Geographical; category++ )
+	{
+		choice.Append( CFunction::GetCategoryAsString( category ), new int32_t( category ) );
+	}
+}
+
+
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1149,6 +1210,62 @@ bool CConfiguration::SaveConfig( const CDisplay &d, CWorkspaceDisplay *wksd )
 
     return bOk;
 }
+
+
+void CConfiguration::SaveFunctionDescrTemplate( const std::string &internal_data_path, bool flush )
+{
+	//if ( config == nullptr )
+	//{
+	//	std::string filePathName = internal_data_path;
+	//	filePathName.append( PATH_SEPARATOR );
+	//	filePathName.append( CMapFunction::m_configFilename.c_str() );
+	//	//config = new wxFileConfig( wxEmptyString, wxEmptyString, filePathName.c_str(), wxEmptyString, wxCONFIG_USE_LOCAL_FILE );
+	//	config = new CWorkspaceSettings( filePathName );
+	//}
+
+	for ( CMapFunction::iterator it = CMapFunction::GetInstance().begin(); it != CMapFunction::GetInstance().end(); it++ )
+	{
+		CFunction* value = dynamic_cast<CFunction*>( it->second );
+		if ( value == nullptr )
+		{
+			continue;
+		}
+
+		SetPath( "/" + value->GetName() );
+
+		std::string str;
+		for ( int32_t i = 0; i < value->GetNbparams(); i++ )
+		{
+			str += ( "param" + n2s<std::string>( i + 1 ) + ": \n" );
+		}
+
+		Write( ENTRY_COMMENT, str.c_str() );
+	}
+
+	if ( flush )
+	{
+		Flush();
+	}
+}
+
+std::string CConfiguration::GetFunctionExtraDescr( const std::string& pathSuff )
+{
+	bool bOk = true;
+
+	//if ( config == nullptr )
+	//{
+	//	return "";
+	//}
+	SetPath( "/" + pathSuff );
+
+	std::string valueString;
+
+	valueString = Read( ENTRY_COMMENT );
+
+	return valueString;
+}
+
+
 
 
 

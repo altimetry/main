@@ -337,6 +337,18 @@ QToolButton* CActionInfo::CreateMenuButton( EActionTag button_tag, const QList<Q
 
 
 //static 
+QToolButton* CActionInfo::CreatePopupButton( EActionTag button_tag, const QList<QAction*> &actions, QAction *default_action )		//default_action = nullptr 
+{
+	assert__( button_tag < EActionTags_size );
+
+	CActionInfo  &button_ai = ActionsTable[ button_tag ];
+
+	return ::CreatePopupButton( button_ai.mName, button_ai.mIconPath, button_ai.mTip, actions, default_action );
+}
+
+
+
+//static 
 QToolButton* CActionInfo::CreateMenuButton( QObject *parent, EActionTag button_tag, const std::vector<EActionTag> &tags )
 {
 	QList<QAction*> ActionsList;

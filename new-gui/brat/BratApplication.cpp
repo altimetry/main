@@ -2,7 +2,6 @@
 
 #include <QtOpenGL>
 
-#include "new-gui/QtInterface.h"
 #include "new-gui/Common/+Utils.h"
 #include "new-gui/Common/+UtilsIO.h"
 #include "new-gui/Common/QtUtils.h"
@@ -188,7 +187,7 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 	// OpenGL
 	//
 	ShowSplash( "Checking OpenGL..." );
-	CheckOpenGL();							//throws on failure
+    //CheckOpenGL();							//throws on failure
 	LOG_TRACE( "OpenGL check successful." );
 
 

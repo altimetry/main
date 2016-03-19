@@ -50,6 +50,18 @@ class CDatasetFilterControls : public CDesktopControlsPanel
 	QListWidget *mAreasListWidget = nullptr;
     QComboBox *mRegionsCombo = nullptr;
 
+    QToolButton *mNewRegion = nullptr;
+    QToolButton *mRenameRegion = nullptr;
+    QToolButton *mDeleteRegion = nullptr;
+    QToolButton *mSaveRegion = nullptr;
+
+    QToolButton *mNewArea = nullptr;
+    QToolButton *mAddKML = nullptr;
+    QToolButton *mAddMask = nullptr;
+    QToolButton *mRenameArea = nullptr;
+    QToolButton *mDeleteArea = nullptr;
+    QToolButton *mSaveArea = nullptr;
+
     QLineEdit *mMaxLatEdit = nullptr;
     QLineEdit *mMaxLonEdit = nullptr;
     QLineEdit *mMinLatEdit = nullptr;
@@ -123,6 +135,8 @@ protected:
 
 	bool ReloadFilters();
 	void FillFiltersCombo();
+    void FillRegionsCombo();
+    void FillAreasList();
 
 public slots:
 	void HandleNewFilter();
@@ -131,9 +145,22 @@ public slots:
 	void HandleSaveFilters();
 
 	void HandleFiltersCurrentIndexChanged( int index );
+    void HandleRegionsCurrentIndexChanged( int index );
+    void HandleAreasSelectionChanged();
 	void HandleClearWhere();
 	void HandleClearWhen();
 
+    void HandleNewRegion();
+    void HandleRenameRegion();
+    void HandleDeleteRegion();
+    void HandleSaveRegion();
+
+    void HandleNewArea();
+    void HandleAddKML();
+    void HandleAddMask();
+    void HandleRenameArea();
+    void HandleDeleteArea();
+    void HandleSaveArea();
 
 	void HandleWorkspaceChanged( CWorkspaceDataset *wksd );
     void HandleDatasetChanged( CDataset *dataset );

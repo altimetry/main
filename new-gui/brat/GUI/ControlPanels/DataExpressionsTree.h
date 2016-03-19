@@ -2,11 +2,6 @@
 #define GUI_CONTROL_PANELS_DATA_EXPRESSIONS_TREE_H
 
 
-//#include "libbrathl/Product.h"
-//
-//#include "ControlPanel.h"
-
-
 
 class CAbstractTree : public QTreeWidget
 {
@@ -24,6 +19,12 @@ class CAbstractTree : public QTreeWidget
 	// types
 
 	using base_t = QTreeWidget;
+
+protected:
+
+	// static members
+
+	static QTreeWidgetItem* SetItemBold( QTreeWidgetItem *item, bool bold );	
 
 
 	// instance variables
@@ -61,6 +62,10 @@ public:
 	//remaining methods for bases classes
 
 protected:
+
+	template< typename FUNCTION >
+	QTreeWidgetItem* FindItem( FUNCTION &f );
+
 
 	template< typename DATA >
 	QTreeWidgetItem* MakeRootItem( const std::string &name, DATA data = nullptr, bool bold = true );
@@ -116,7 +121,7 @@ protected slots:
 
 
 
-class CFieldsTree : public CAbstractTree
+class CFieldsTreeWidget : public CAbstractTree
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
@@ -144,9 +149,9 @@ class CFieldsTree : public CAbstractTree
 
 	QTreeWidgetItem* SetRootItem( CField *field );
 public:
-	CFieldsTree( QWidget *parent );
+	CFieldsTreeWidget( QWidget *parent );
 
-	virtual ~CFieldsTree()
+	virtual ~CFieldsTreeWidget()
 	{}
 
 	//
@@ -155,17 +160,24 @@ public:
 
 	void InsertProduct( CProduct *product );
 
-	
-	CField* ItemField( QTreeWidgetItem *item );
 
-	void SetItemField( QTreeWidgetItem *item, CField *field );
+	const CField* ItemField( QTreeWidgetItem *item ) const
+	{
+		return const_cast<CFieldsTreeWidget*>( this )->ItemField( item ) ;
+	}
 
-	QTreeWidgetItem *GetFirstRecordItem();
 
 	void SelectRecord( const std::string &record );		//see COperationPanel::GetOperationRecord
 
 
 protected:
+
+	CField* ItemField( QTreeWidgetItem *item );
+	
+	void SetItemField( QTreeWidgetItem *item, CField *field );
+
+	QTreeWidgetItem* GetFirstRecordItem();
+
 	virtual void CustomContextMenu( QTreeWidgetItem *item ) override
     {
         Q_UNUSED( item );
@@ -181,7 +193,7 @@ protected:
 
 
 
-class CDataExpressionsTree : public CAbstractTree
+class CDataExpressionsTreeWidget : public CAbstractTree
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
@@ -201,7 +213,7 @@ class CDataExpressionsTree : public CAbstractTree
 
 	// instance variables
 
-	CFieldsTree *mDragSource = nullptr;
+	CFieldsTreeWidget *mDragSource = nullptr;
 
 	QTreeWidgetItem *mItemX = nullptr;
 	QTreeWidgetItem *mItemY = nullptr;
@@ -221,16 +233,16 @@ class CDataExpressionsTree : public CAbstractTree
 
 	//...domain
 
-	COperation *mOperation = nullptr;
+	COperation *mCurrentOperation = nullptr;
 	bool mIsMap = true;
 
 	//construction / destruction
 
 	void MakeRootItems();
 public:
-	CDataExpressionsTree( bool is_map, QWidget *parent, CFieldsTree *drag_source );
+	CDataExpressionsTreeWidget( bool is_map, QWidget *parent, CFieldsTreeWidget *drag_source );
 
-	virtual ~CDataExpressionsTree()
+	virtual ~CDataExpressionsTreeWidget()
 	{}
 
 	//
@@ -241,6 +253,7 @@ public:
 
 	void InsertOperation( COperation *operation );
 
+	bool SelectRecord( CProduct *product );
 
 	void SelectX();
 
@@ -251,12 +264,25 @@ public:
 	}
 
 
+	std::string ParentItemTitle( const CFormula *formula );
+
+
+	void FormulaChanged( const CFormula *formula );
+
+
 protected:
 	virtual void CustomContextMenu( QTreeWidgetItem *item ) override;
 
 	CMapTypeField::ETypeField ItemType( QTreeWidgetItem *item );
 
+
 	CFormula* ItemFormula( QTreeWidgetItem *item );
+
+	const CFormula* ItemFormula( const QTreeWidgetItem *item ) const
+	{
+		return const_cast<CDataExpressionsTreeWidget*>( this )->ItemFormula( const_cast<QTreeWidgetItem*>( item ) );
+	}
+
 
 	void SetItemType( QTreeWidgetItem *item, CMapTypeField::ETypeField type );
 
@@ -265,6 +291,8 @@ protected:
 
 	CMapTypeOp::ETypeOp GetOperationType();
 
+
+	QTreeWidgetItem* FindParentItem( const CFormula *formula );
 
 	QTreeWidgetItem* FindParentRootTypeItem( QTreeWidgetItem *from );
 	void DeleteFormula( QTreeWidgetItem *item );
@@ -281,8 +309,10 @@ protected:
 
 signals:
 	void FormulaInserted( CFormula *formula );
+	void SelectedFormulaChanged( CFormula *formula );
 
 protected slots:
+	void HandleSelectionChanged();
 
     void HandlemInsertExpr();
     void HandleInsertField();
@@ -294,8 +324,6 @@ protected slots:
     void HandleSortAscending();
     void HandleSortDescending();
 };
-
-
 
 
 

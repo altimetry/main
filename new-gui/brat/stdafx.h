@@ -91,7 +91,7 @@
 //////////////////////////////////////////////////////////
 
 #if defined (BRAT_V3)
-#include "new-gui/QtInterface.h"
+#include "new-gui/v4Interface.h"
 #endif
 
 #include <QTimer>

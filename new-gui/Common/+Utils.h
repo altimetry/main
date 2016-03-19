@@ -1069,7 +1069,7 @@ inline T s2n( CHAR *s )
 
 
 template< typename STRING >
-inline bool startsWith( const STRING &s, const STRING &substr )
+inline bool StartsWith( const STRING &s, const STRING &substr )
 {
    size_t pos = s.find( substr, 0 );
    return pos != STRING::npos && ( s.substr( 0, substr.length() ) == substr );
@@ -1077,7 +1077,7 @@ inline bool startsWith( const STRING &s, const STRING &substr )
 
 
 template< typename STRING >
-inline bool endsWith( const STRING &s, const STRING &substr )
+inline bool EndsWith( const STRING &s, const STRING &substr )
 {
 	std::size_t found = s.find( substr );
 	return ( found != STRING::npos ) && found == ( s.length() - substr.length() );	//condition found != STRING::npos is critical (if its value is -1, it can issue a false positive)

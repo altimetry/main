@@ -8,9 +8,9 @@
 #define CWorkspaceSettings CConfiguration
 #define WORKSPACES_WORKSPACE_SETTINGS_H
 #include "display/PlotData/BratLookupTable.h"
-#else
-#include "new-gui/brat/DataModels/Workspaces/WorkspaceSettings.h"
-#define CONFIG CWorkspaceSettings
+//#else
+//#include "new-gui/brat/DataModels/Workspaces/WorkspaceSettings.h"
+//#define CONFIG CWorkspaceSettings
 #endif
 
 
@@ -54,6 +54,8 @@ class CMapFormula;
 class CWorkspace;
 class CWorkspaceDataset;
 class COperation;
+
+class CMapFunction;
 
 
 class CConfiguration : public CONFIG
@@ -103,6 +105,9 @@ public:
 
     bool SaveConfig( const CDisplay &d, CWorkspaceDisplay *wksd );
 	bool LoadConfig( CDisplay &d, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso );
+
+	void SaveFunctionDescrTemplate( const std::string &internal_data_path, bool flush );
+	std::string GetFunctionExtraDescr( const std::string& pathSuff );
 };
 
 

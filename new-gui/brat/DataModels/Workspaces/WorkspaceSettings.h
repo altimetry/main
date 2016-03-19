@@ -34,6 +34,8 @@ class CDisplay;
 class CMapDisplayData;
 class CDisplayData;
 
+class CMapFunction;
+
 class CApplicationPaths;
 
 
@@ -47,6 +49,7 @@ class CWorkspaceSettings : public CFileSettings
 	//static members
 
 	static const CApplicationPaths *smBratPaths;
+
 
 	//construction / destruction
 
@@ -101,6 +104,11 @@ public:
 	bool LoadConfig( CMapDisplayData &data, std::string &errorMsg, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso, const std::string& pathSuff );
 	bool SaveConfig( CDisplayData &data, const std::string& pathSuff, CWorkspaceDisplay *wksd );
 	bool LoadConfig( CDisplayData &data, const std::string& path, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso );
+
+
+	void SaveFunctionDescrTemplate( const std::string &internal_data_path, bool flush );
+	std::string GetFunctionExtraDescr( const std::string& path );
+
 
 protected:
 

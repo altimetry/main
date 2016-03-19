@@ -190,7 +190,7 @@ public:
   void LoadDataset();
   void LoadOperation();
   void NewOperation();
-  void DeleteOperation();
+  void DeleteOperation();       //cannot be private, used by frame
   void DuplicateOperation();
 
   void GetOperationOutput();

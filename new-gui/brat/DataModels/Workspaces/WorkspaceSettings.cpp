@@ -22,6 +22,7 @@
 #include "Workspace.h"
 #include "Dataset.h"
 #include "Operation.h"
+#include "Function.h"
 #include "WorkspaceSettings.h"
 #include "Display.h"
 #include "DataModels/MapTypeDisp.h"
@@ -538,7 +539,7 @@ bool CWorkspaceSettings::SaveConfig( const COperation &op, const CWorkspaceOpera
 	if (
 		!op.m_select->SaveConfigDesc( this, group )
 		||
-		!op.m_formulas.SaveConfig( this, false, op.GetName() )	//v3 note: // Warning after formulas Load config conig path has changed
+		!op.m_formulas.SaveConfig( this, false, op.GetName() )	//v3 note:  Warning after formulas Load config conig path has changed
 		)
 		return false;
 
@@ -547,7 +548,8 @@ bool CWorkspaceSettings::SaveConfig( const COperation &op, const CWorkspaceOpera
 		//v4 k_v( ENTRY_OUTPUT,				Absolute2PortableDataPath( op.m_output ) ),					//op.GetOutputPathRelativeToWks( wks )
 		//v4 k_v( ENTRY_EXPORT_ASCII_OUTPUT, Absolute2PortableDataPath( op.m_exportAsciiOutput ) )		//op.GetExportAsciiOutputPathRelativeToWks( wks )	)
 		k_v( ENTRY_OUTPUT,				op.GetOutputPathRelativeToWks( wks ) ),
-		k_v( ENTRY_EXPORT_ASCII_OUTPUT, op.GetExportAsciiOutputPathRelativeToWks( wks )	)
+		k_v( ENTRY_EXPORT_ASCII_OUTPUT, op.GetExportAsciiOutputPathRelativeToWks( wks )	),
+		k_v( ENTRY_OPERATION_FILTER,	op.FilterName() )
 	);
 
 	return Status() == QSettings::NoError;
@@ -555,7 +557,7 @@ bool CWorkspaceSettings::SaveConfig( const COperation &op, const CWorkspaceOpera
 bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
 {
 	std::string group = op.m_name;
-	std::string dsname, type, data_mode, output, ascii_export_output;
+	std::string dsname, type, data_mode, output, ascii_export_output, v4filter;
 
 	ReadSection( group,
 
@@ -564,7 +566,9 @@ bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &errorMsg, CWor
 		k_v( ENTRY_DATA_MODE,			&data_mode,				CMapDataMode::GetInstance().IdToName( op.m_dataMode ) ),
 		k_v( ENTRY_RECORDNAME,			&op.m_record			),
 		k_v( ENTRY_OUTPUT,				&output					),
-		k_v( ENTRY_EXPORT_ASCII_OUTPUT,	&ascii_export_output	)
+		k_v( ENTRY_EXPORT_ASCII_OUTPUT,	&ascii_export_output	),
+		k_v( ENTRY_OPERATION_FILTER,	&v4filter				)
+
 	);
 
 	op.m_dataset = op.FindDataset( dsname, wks );
@@ -590,6 +594,8 @@ bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &errorMsg, CWor
 	{
 		op.InitExportAsciiOutput( wkso );
 	}
+
+	op.SetFilterName( v4filter );
 
 	// We don't use Group(), like v3 with the equivalent GetPath(), because, 
 	//	given the open/close policy of QSttings, the current group is indeed 
@@ -1045,4 +1051,68 @@ bool CWorkspaceSettings::LoadConfig( CDisplayData &data, const std::string& path
 	}
 
 	return true;
+}
+
+
+
+
+void CWorkspaceSettings::SaveFunctionDescrTemplate( const std::string &internal_data_path, bool flush )
+{
+    Q_UNUSED( internal_data_path );
+
+	//if ( config == nullptr )
+	//{
+	//	std::string filePathName = internal_data_path;
+	//	filePathName.append( PATH_SEPARATOR );
+	//	filePathName.append( CMapFunction::m_configFilename.c_str() );
+	//	//config = new wxFileConfig( wxEmptyString, wxEmptyString, filePathName.c_str(), wxEmptyString, wxCONFIG_USE_LOCAL_FILE );
+	//	config = new CWorkspaceSettings( filePathName );
+	//}
+
+	for ( CMapFunction::iterator it = CMapFunction::GetInstance().begin(); it != CMapFunction::GetInstance().end(); it++ )
+	{
+		CFunction* value = dynamic_cast<CFunction*>( it->second );
+		if ( value == nullptr )
+		{
+			continue;
+		}
+
+		//TODO translate all the following commented out lines to Qt settings 
+
+		//SetPath( "/" + value->GetName() );
+
+		//std::string str;
+		//for ( int32_t i = 0; i < value->GetNbparams(); i++ )
+		//{
+		//	str += ( "param" + n2s<std::string>( i + 1 ) + ": \n" );
+		//}
+
+		//Write( ENTRY_COMMENT, str.c_str() );
+	}
+
+	if ( flush )
+	{
+		Sync();
+	}
+}
+std::string CWorkspaceSettings::GetFunctionExtraDescr( const std::string& path )
+{
+	//if ( config == nullptr )
+	//{
+	//	return "";
+	//}
+
+	std::string value;
+
+	ReadSection( path,
+
+		k_v( ENTRY_COMMENT, &value )
+
+		);
+
+	//SetPath( "/" + pathSuff );
+	//std::string valueString;
+	//valueString = Read( ENTRY_COMMENT );
+
+	return value;
 }

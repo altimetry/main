@@ -8,8 +8,10 @@
 
 
 class CProcessesTable;
-class CDataExpressionsTree;
-class CFieldsTree;
+class CDataExpressionsTreeWidget;
+class CFieldsTreeWidget;
+class CMapDisplayData;
+class CBratFilters;
 
 
 
@@ -99,7 +101,7 @@ protected:
 	QWidget *mCommonGroup = nullptr;
 
 	QToolButton *mOperationFilterButton = nullptr;
-	QActionGroup *mOperationFilterGroup = nullptr;
+	//QActionGroup *mOperationFilterGroup = nullptr;
 	QToolButton *mOperationExportButton = nullptr;
 	QAction *mExportOperationAction = nullptr;
 	QAction *mEditExportAsciiAction = nullptr;
@@ -115,38 +117,39 @@ protected:
 	QToolButton *mNewOperationButton = nullptr;
 	QToolButton *mDeleteOperationButton = nullptr;
     QToolButton *mRenameOperationButton = nullptr;
+    QToolButton *mDuplicateOperationButton = nullptr;
 
 	QToolButton *mAdvancedDisplayButton = nullptr;
 	QAction *mDelayExecutionAction = nullptr;
 	QAction *mLaunchSchedulerAction = nullptr;
 	CProcessesTable *mProcessesTable = nullptr;
 
-	QgsCollapsibleGroupBox *mExpressionGroup = nullptr;
+	QgsCollapsibleGroupBox *mOperationExpressionsGroup = nullptr;
 
 	QTimer mTimer;
 
+	QToolButton *mShowAliasesButton = nullptr;
 
 	QToolButton *mInsertFunction = nullptr;
 	QToolButton *mInsertAlgorithm = nullptr;
 	QToolButton *mInsertFormula = nullptr;
 	QToolButton *mSaveAsFormula = nullptr;
-
-	QToolButton *mShowAliasesButton = nullptr;
 	QToolButton *mCheckSyntaxButton = nullptr;
 	QToolButton *mShowInfoButton = nullptr;
+	QGroupBox *mExpressionGroup = nullptr;
 
 	QToolButton *mDataComputation = nullptr;
 	QActionGroup *mDataComputationGroup = nullptr;
 
-	CFieldsTree *mAdvancedFieldsTree = nullptr;
+	CFieldsTreeWidget *mAdvancedFieldsTree = nullptr;
 
 #if defined(USE_2_EXPRESSION_TREES)
 	CStackedWidget *mDataExpressionsStack = nullptr;
-	CDataExpressionsTree *mDataExpressionsTrees[ EExpressionTrees_size ];
+	CDataExpressionsTreeWidget *mDataExpressionsTrees[ EExpressionTrees_size ];
 #endif
 	QToolButton *mSwitchToMapButton = nullptr;
 	QToolButton *mSwitchToPlotButton = nullptr;
-	CDataExpressionsTree *mDataExpressionsTree = nullptr;
+	CDataExpressionsTreeWidget *mDataExpressionsTree = nullptr;
 
 	//...quick
 
@@ -167,7 +170,10 @@ protected:
 	CWorkspaceFormula *mWFormula = nullptr;
 	CWorkspaceDisplay *mWDisplay = nullptr;
 
-	COperation *mOperation = nullptr;
+	const CBratFilters &mBratFilters;
+
+	COperation *mCurrentOperation = nullptr;
+	CDataset *mDataset = nullptr;
 	CProduct *mProduct = nullptr;
 	CFormula *mUserFormula = nullptr;
 
@@ -182,7 +188,7 @@ protected:
 	QWidget* CreateAdancedOperationsPage();
 
 public:
-	COperationControls( CProcessesTable *processes_table, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+	COperationControls( const CBratFilters &filters, CProcessesTable *processes_table, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
 	virtual ~COperationControls()
 	{}	
@@ -204,9 +210,20 @@ protected:
 
 	void SelectDataComputationMode();
 
+    bool IsMap() const;
+
+	bool CheckSyntax();
+
+	std::string GetOpunit();		//TODO how to deal/assign with field units
+
+    void ResetFilterActions();
+    void ResetSelectedFilter();
+
+	bool TryDatasetChange( int index );
 
 signals:
 	void SyncProcessExecution( bool executing );
+    void OperationModified( const COperation *operation );
 
 
 public slots:
@@ -219,7 +236,7 @@ protected slots:
 	void HandleSelectedDatasetChanged_Quick( int dataset_index );
 	void HandleSelectedVariableChanged_Quick( int variable_index );
 	void HandleVariableStateChanged_Quick( QListWidgetItem *item );
-	void HandleDatasetsChanged_Quick();
+    void HandleDatasetsChanged_Quick(CDataset*);
 
 	void HandleQuickMap();
 	void HandleQuickPlot();
@@ -228,7 +245,7 @@ protected slots:
 
 	void HandleSelectedOperationChanged( int operation_index );
 	void HandleSelectedDatasetChanged_Advanced( int dataset_index );
-	void HandleDatasetsChanged_Advanced();
+    void HandleDatasetsChanged_Advanced(CDataset*);
 
 #if defined(USE_2_EXPRESSION_TREES)
 
@@ -239,11 +256,15 @@ protected slots:
 #endif
 
 	void HandleFormulaInserted( CFormula *formula );
+	void HandleSelectedFormulaChanged( CFormula *formula );
 
 	void HandleNewOperation();
 	void HandleDeleteOperation();
     void HandleRenameOperation();
-	void HandleOperationFilter();
+    void HandleDuplicateOperation();
+    void HandleOperationFilter();
+	void HandleOperationFilterButton( QAction *a );
+	void HandleOperationFilterButtonToggled( bool );
 	void HandleExportOperation();
 	void HandleEditExportAscii();
 	void HandleOperationStatistics();

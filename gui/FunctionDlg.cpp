@@ -27,7 +27,7 @@
 
 #include "BratGui.h"
 
-#include "Function.h"
+#include "new-gui/brat/DataModels/Workspaces/Function.h"
 
 #include "FunctionDlg.h"
 
@@ -70,7 +70,7 @@ CFunctionsDlg::~CFunctionsDlg()
 void CFunctionsDlg::FillCategoryList()
 {
   GetFunctionCat()->Clear();
-  CMapFunction::GetInstance().GetCategory(*GetFunctionCat());
+  GetCategory(CMapFunction::GetInstance(), *GetFunctionCat());
 
   int32_t sel = 0;
   GetFunctionCat()->SetSelection(0);
@@ -81,7 +81,7 @@ void CFunctionsDlg::FillCategoryList()
 void CFunctionsDlg::FillFunctionList(int32_t category)
 {
   GetFunctionList()->Clear();
-  CMapFunction::GetInstance().NamesToListBox(*GetFunctionList(), category);
+  NamesToListBox(CMapFunction::GetInstance(), *GetFunctionList(), category);
 
   int32_t sel = 0;
   GetFunctionList()->SetSelection(sel);
@@ -109,7 +109,7 @@ void CFunctionsDlg::FunctionList(int32_t sel)
   }
 
   wxString funcName = GetFunctionList()->GetString(sel);
-  GetFunctionComment()->SetValue(CMapFunction::GetInstance().GetDescFunc(funcName));
+  GetFunctionComment()->SetValue(CMapFunction::GetInstance().GetDescFunc(funcName.ToStdString()));
 }
 //----------------------------------------
 

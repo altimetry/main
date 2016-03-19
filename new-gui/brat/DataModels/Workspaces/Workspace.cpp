@@ -832,7 +832,7 @@ bool CWorkspaceOperation::InsertOperation(const std::string &name)
     return true;
 }
 //----------------------------------------
-bool CWorkspaceOperation::InsertOperation(const std::string &name, COperation* operationToCopy, CWorkspaceDataset *wksds, CWorkspaceOperation *wkso )
+bool CWorkspaceOperation::InsertOperation(const std::string &name, COperation* operationToCopy, CWorkspaceDataset *wksds)
 {
     if (m_operations.Exists(name))
     {
@@ -840,12 +840,12 @@ bool CWorkspaceOperation::InsertOperation(const std::string &name, COperation* o
     }
 
     // Create and copy the operation
-    COperation* newOperation = COperation::Copy( *operationToCopy, wkso, wksds );
+    COperation* newOperation = COperation::Copy( *operationToCopy, this, wksds );
 
     // Set the correct names
     newOperation->SetName(name);
-    newOperation->InitOutput( wkso );
-    newOperation->InitExportAsciiOutput( wkso );
+    newOperation->InitOutput( this );
+    newOperation->InitExportAsciiOutput( this );
 
     m_operations.Insert( name, newOperation );
     return true;
@@ -976,10 +976,9 @@ bool CWorkspaceDisplay::Import( CWorkspace* wksi, std::string &errorMsg, CWorksp
 //----------------------------------------
 bool CWorkspaceDisplay::UseOperation( const std::string& name, std::string &errorMsg, CStringArray* displayNames /*= nullptr*/ )
 {
-	CObMap::iterator it;
 	bool useOperation = false;
 
-	for ( it = m_displays.begin(); it != m_displays.end(); it++ )
+    for ( CObMap::iterator it = m_displays.begin(); it != m_displays.end(); it++ )
 	{
 		CDisplay* display = dynamic_cast<CDisplay*>( it->second );
 		if ( display == nullptr )
@@ -998,7 +997,7 @@ bool CWorkspaceDisplay::UseOperation( const std::string& name, std::string &erro
 		{
 			if ( useIt )
 			{
-				displayNames->Insert( (const char *)display->GetName().c_str() );
+                displayNames->Insert( display->GetName() );
 			}
 		}
 		else

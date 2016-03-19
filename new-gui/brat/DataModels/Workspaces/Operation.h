@@ -39,6 +39,35 @@ const std::string EXPORTGEOTIFF_COMMANDFILE_EXTENSION = "geotiff_export.par";
 const std::string SHOWSTAT_COMMANDFILE_EXTENSION = "stats.par";
 
 
+#if !defined(BRAT_V3)
+
+#include "new-gui/Common/QtUtilsIO.h"
+
+inline std::string GetFileName( const std::string &path )
+{
+	return GetBaseFilenameFromPath( path );
+}
+
+inline void SetFileExtension( std::string &path, const std::string &extension )
+{
+	std::string dir = GetDirectoryFromPath( path );
+	std::string name = GetFileName( path );
+	path = dir + "/" + name + "." + extension;
+}
+
+inline std::string NormalizedAbsolutePath( const std::string &path, const std::string &dir )
+{
+	std::string d = NormalizedPath( dir );
+	std::string f = NormalizedPath( path );
+	if ( QDir::isAbsolutePath( t2q( f ) ) )
+		return f;
+	else
+		return dir + "/" + path;
+}
+
+#endif
+
+
 
 inline std::string& clean_path( std::string &path )
 {
@@ -91,7 +120,6 @@ public:
 
 class COperation : public CBratObject, public non_copyable
 {
-	friend class CConfiguration;
 	friend class CWorkspaceSettings;
 
 public:
@@ -122,7 +150,7 @@ protected:
 	std::string m_exportAsciiCmdFile;
 	std::string m_showStatsCmdFile;
 
-	//wxFile m_file;
+	std::string mFilterName;
 
 public:
 	const int32_t m_verbose = 2;
@@ -171,8 +199,10 @@ public:
 	const std::string& GetName() const { return m_name; }
 	void SetName( const std::string& value ) { m_name = value; }
 
-	bool HasFormula() const { return GetFormulaCount() > 0; }
+	const std::string& FilterName() const { return mFilterName; }
+	void SetFilterName( const std::string &filter_name ) { mFilterName = filter_name; }
 
+	bool HasFormula() const { return GetFormulaCount() > 0; }
 	bool HasFilters() const { return m_formulas.HasFilters(); }
 
 	size_t GetFormulaCount() const { return m_formulas.size(); }
@@ -267,7 +297,7 @@ public:
 	bool IsZFXY() const;
 	bool IsMap() const;
 
-	bool IsSelect( CFormula* value ) const;
+	bool IsSelect( const CFormula* value ) const;
 	static bool IsSelect( const std::string& name )
 	{
 		return str_icmp( name, ENTRY_SELECT );

@@ -78,7 +78,6 @@ public:
     void ClearFieldList();
 
 signals:
-    void DatasetsChanged();
     void CurrentDatasetChanged( CDataset* );
     void DatasetsChanged( CDataset* );
 

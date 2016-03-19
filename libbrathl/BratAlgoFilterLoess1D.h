@@ -58,13 +58,13 @@ public:
 
   virtual std::string GetName() const override { return "BratAlgoFilterLoessAtp"; };
   
-  virtual std::string GetDescription() { return "Loess filter (smoothing filter) for one-dimensional data (e.g. along-track data) as input data source. "
+  virtual std::string GetDescription() const override { return "Loess filter (smoothing filter) for one-dimensional data (e.g. along-track data) as input data source. "
                                            "Description to be completed... . "
                                            "The output value unit depends on the variable (data) filtered" ; };
   
-  virtual uint32_t GetNumInputParam() { return CBratAlgoFilterLoess1D::m_INPUT_PARAMS; };
+  virtual uint32_t GetNumInputParam() const override { return CBratAlgoFilterLoess1D::m_INPUT_PARAMS; };
   
-  virtual std::string GetInputParamDesc(uint32_t indexParam)  {
+  virtual std::string GetInputParamDesc(uint32_t indexParam) const override {
         std::string value = "";
         switch (indexParam) 
         {
@@ -80,7 +80,7 @@ public:
         }
         return value;
   };
-  virtual CBratAlgorithmParam::bratAlgoParamTypeVal GetInputParamFormat(uint32_t indexParam) {        
+  virtual CBratAlgorithmParam::bratAlgoParamTypeVal GetInputParamFormat(uint32_t indexParam) const override {        
         CBratAlgorithmParam::bratAlgoParamTypeVal value = CBratAlgorithmParam::T_UNDEF;
         switch (indexParam) 
         {
@@ -98,7 +98,7 @@ public:
   /** Gets the unit of an input parameter :
    \param indexParam [in] : parameter index.
    */
-  virtual std::string GetInputParamUnit(uint32_t indexParam) {
+  virtual std::string GetInputParamUnit(uint32_t indexParam) const override {
         std::string value = "";
         switch (indexParam) 
         {
@@ -118,13 +118,13 @@ public:
   /** Gets the unit of an output value returned by the 'Run' function.
    \param indexParam [in] : parameter index.
    */
-  virtual std::string GetOutputUnit() { return "this unit depends on the input data (variable or Brat expression), but it is always a SI unit"; };
+  virtual std::string GetOutputUnit() const override { return "this unit depends on the input data (variable or Brat expression), but it is always a SI unit"; };
 
   virtual double Run(CVectorBratAlgorithmParam& args);
 
   virtual void CheckInputParams(CVectorBratAlgorithmParam& args);
   virtual void SetParamValues(CVectorBratAlgorithmParam& args);
-  virtual std::string GetParamName(uint32_t indexParam) {
+  virtual std::string GetParamName(uint32_t indexParam) const override {
         std::string value = "";
         switch (indexParam) 
         {
@@ -140,7 +140,7 @@ public:
         return value;
   };
 
-  virtual double GetParamDefaultValue(uint32_t indexParam) {
+  virtual double GetParamDefaultValue(uint32_t indexParam) const override {
         double value;
         setDefaultValue(value);
         switch (indexParam) 

@@ -574,7 +574,7 @@ COperation* COperation::Copy( const COperation &o, CWorkspaceOperation *wkso, CW
 }
 
 //----------------------------------------
-bool COperation::IsSelect( CFormula* value ) const
+bool COperation::IsSelect( const CFormula* value ) const
 {
 	// if same pointer --> return
 	return m_select == value;

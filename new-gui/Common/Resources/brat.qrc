@@ -173,6 +173,8 @@
         <file>images/OSGeo/search.png</file>
         <file>images/OSGeo/stats.png</file>
         <file>images/OSGeo/tools.png</file>
+        <file>images/OSGeo/add.png</file>
+        <file>images/OSGeo/north-arrow.png</file>
         <file>images/rads.gif</file>
     </qresource>
 </RCC>

@@ -1321,7 +1321,7 @@ CBratAlgorithmBase* CBratAlgorithmBase::GetNew(const char* algorithName)
 }
 
 //----------------------------------------
-std::string CBratAlgorithmBase::GetSyntax()
+std::string CBratAlgorithmBase::GetSyntax() const
 {
   std::string syntax;
   const std::string paramSeparator = ", ";

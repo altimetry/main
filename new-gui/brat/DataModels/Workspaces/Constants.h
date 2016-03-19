@@ -29,6 +29,7 @@ const std::string ENTRY_SELECT = "Select";
 const std::string ENTRY_DEFINE = "Define";
 const std::string ENTRY_COMMENT = "Comment";
 const std::string ENTRY_TYPE = "Type";
+const std::string ENTRY_OPERATION_FILTER = "v4Filter";
 const std::string ENTRY_DATA_MODE = "DataMode";
 const std::string ENTRY_FIELD = "Field";
 const std::string ENTRY_FIELDNAME = "FieldName";

@@ -58,11 +58,11 @@ public:
 
   virtual std::string GetName() const override { return "BratAlgoGeosVelAtp"; };
   
-  virtual std::string GetDescription() { return "Geostrophic velocity computation for along-track data; result is the value of the geostrophic velocity component perpendicular to the track."; };
+  virtual std::string GetDescription() const override { return "Geostrophic velocity computation for along-track data; result is the value of the geostrophic velocity component perpendicular to the track."; };
   
-  virtual uint32_t GetNumInputParam() { return CBratAlgorithmGeosVelAtp::m_INPUT_PARAMS; };
+  virtual uint32_t GetNumInputParam() const override { return CBratAlgorithmGeosVelAtp::m_INPUT_PARAMS; };
   
-  virtual std::string GetInputParamDesc(uint32_t indexParam)  {
+  virtual std::string GetInputParamDesc(uint32_t indexParam) const override {
         std::string value = "";
         switch (indexParam) 
         {
@@ -77,7 +77,7 @@ public:
         }
         return value;
   };
-  virtual CBratAlgorithmParam::bratAlgoParamTypeVal GetInputParamFormat(uint32_t indexParam) {        
+  virtual CBratAlgorithmParam::bratAlgoParamTypeVal GetInputParamFormat(uint32_t indexParam) const override {        
         CBratAlgorithmParam::bratAlgoParamTypeVal value = CBratAlgorithmParam::T_UNDEF;
         switch (indexParam) 
         {
@@ -93,7 +93,7 @@ public:
   /** Gets the unit of an input parameter :
    \param indexParam [in] : parameter index.
    */
-  virtual std::string GetInputParamUnit(uint32_t indexParam) {
+  virtual std::string GetInputParamUnit(uint32_t indexParam) const override {
         std::string value = "";
         switch (indexParam) 
         {
@@ -111,7 +111,7 @@ public:
   /** Gets the unit of an output value returned by the 'Run' function.
    \param indexParam [in] : parameter index.
    */
-  virtual std::string GetOutputUnit() { return "m/s"; };
+  virtual std::string GetOutputUnit() const override { return "m/s"; };
 
   virtual double Run(CVectorBratAlgorithmParam& args);
 

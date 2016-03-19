@@ -4,7 +4,6 @@
 
 #include <QDialog>
 
-//class BBBB;
 
 
 class CShowInfoDialog : public QDialog
@@ -34,9 +33,17 @@ class CShowInfoDialog : public QDialog
     // instance data
     /////////////////////////////
 
+    QDialogButtonBox *mButtonBox = nullptr;
+
+
     /////////////////////////////
-    //construction / destructuion
+    //construction / destruction
     /////////////////////////////
+private:
+
+    void CreateWidgets();
+    void Wire();
+
 
 public:
     CShowInfoDialog( QWidget *parent );
@@ -48,8 +55,11 @@ public:
     /////////////////////////////
 
     /////////////////////////////
-    // remaining methods
+    // Operations
     /////////////////////////////
+
+protected:
+    virtual void accept() override;
 
 };
 

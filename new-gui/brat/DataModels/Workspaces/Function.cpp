@@ -15,28 +15,23 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
-
 #include "new-gui/brat/stdafx.h"
 
-// For compilers that support precompilation, includes "wx/wx.h".
-#include "wx/wxprec.h"
-
-#ifdef __BORLANDC__
-    #pragma hdrstop
-#endif
-
-#include "brathl.h"
-
 #include "new-gui/Common/tools/Trace.h"
-#include "Tools.h"
 #include "new-gui/Common/tools/Exception.h"
-#include "Expression.h"
+
+#include "libbrathl/brathl.h"
+#include "libbrathl/Tools.h"
+#include "libbrathl/Expression.h"
+
 using namespace brathl;
 
-#include "BratGui.h"
+#include "Constants.h"
+#include "WorkspaceSettings.h"
 
 #include "Function.h"
+
+
 
 const std::string LOGICAL_AND = "&&";
 const std::string LOGICAL_AND_DESC = "The logical AND operator (&&) returns the boolean value true if both operands are true and returns false otherwise."
@@ -147,19 +142,10 @@ const std::string BITWISE_NOT_DESC = "Then the ~ operator looks at the binary re
 
 //----------------------------------------
 
-CFunction::CFunction(const wxString& name, const wxString& description, int32_t category, int32_t nbParams)
+CFunction::CFunction(const std::string& name, const std::string& description, int32_t category, int32_t nbParams)
 {
   m_name = name;
   m_description = description;
-  m_nbParams = nbParams;
-  m_category = category;
-}
-
-//----------------------------------------
-CFunction::CFunction(const std::string& name, const std::string& description, int32_t category, int32_t nbParams)
-{
-  m_name = name.c_str();
-  m_description = description.c_str();
   m_nbParams = nbParams;
   m_category = category;
 }
@@ -170,15 +156,15 @@ CFunction::~CFunction()
 {
 }
 //----------------------------------------
-wxString CFunction::GetCategoryAsString()
+std::string CFunction::GetCategoryAsString()
 {
   return GetCategoryAsString(m_category);
 }
 //----------------------------------------
-wxString CFunction::GetCategoryAsString(int32_t category)
+std::string CFunction::GetCategoryAsString(int32_t category)
 {
 
-  wxString label;
+  std::string label;
 
   switch (category)
   {
@@ -232,24 +218,25 @@ wxString CFunction::GetCategoryAsString(int32_t category)
   return label;
 }
 //----------------------------------------
-wxString CFunction::GetSyntax()
+std::string CFunction::GetSyntax() const
 {
-  wxString params;
-  if (m_nbParams < 0) // constants
-  {
-    return m_name;
-  }
+	std::string params;
+	if ( m_nbParams < 0 ) // constants
+	{
+		return m_name;
+	}
 
-  for (int32_t i = 0 ; i < m_nbParams ; i++)
-  {
-    params += wxString::Format("param%d,", i + 1);
-  }
-  if (params.IsEmpty() == false)
-  {
-    params.RemoveLast();
-  }
+	for ( int32_t i = 0; i < m_nbParams; i++ )
+	{
+		params += ( "param" + n2s<std::string>( i + 1 ) + "," );
+	}
 
-  return wxString::Format("%s(%s)", m_name.c_str(), params.c_str());
+	if ( !params.empty() )
+	{
+		params = params.substr( 0, params.size() - 1 );
+	}
+
+	return m_name + "(" + params + ")";
 }
 
 //----------------------------------------
@@ -292,7 +279,7 @@ void CFunction::DumpFmt(std::ostream& fOut /* = std::cerr */)
 //-------------------------------------------------------------
 //------------------- CMapFunction class --------------------
 //-------------------------------------------------------------
-const wxString CMapFunction::m_configFilename = "function_descr.txt";
+const std::string CMapFunction::m_configFilename = "function_descr.txt";
 
 CMapFunction::CMapFunction()
 {
@@ -375,129 +362,112 @@ CMapFunction& CMapFunction::GetInstance()
 //----------------------------------------
 void CMapFunction::Init()
 {
-  m_config = NULL;
+	m_config = nullptr;
 
-  wxString filePathName = CTools::FindDataFile((const char *)CMapFunction::m_configFilename.c_str()).c_str();
-  if (!filePathName.IsEmpty())
-  {
-    m_config = new wxFileConfig(wxEmptyString, wxEmptyString, filePathName, wxEmptyString, wxCONFIG_USE_LOCAL_FILE);
-  }
-
+	std::string filePathName = CTools::FindDataFile( CMapFunction::m_configFilename );
+	if ( !filePathName.empty() )
+	{
+		//m_config = new wxFileConfig( wxEmptyString, wxEmptyString, filePathName, wxEmptyString, wxCONFIG_USE_LOCAL_FILE );
+		m_config = new CWorkspaceSettings( filePathName );
+	}
 }
 //----------------------------------------
 void CMapFunction::DeleteConfig()
 {
-  if (m_config != NULL)
-  {
-    delete m_config;
-    m_config = NULL;
-  }
-
+	if ( m_config != nullptr )
+	{
+		delete m_config;
+		m_config = nullptr;
+	}
 }
 //----------------------------------------
-wxString CMapFunction::GetFunctionExtraDescr(const wxString& pathSuff)
+std::string CMapFunction::GetFunctionExtraDescr(const std::string& pathSuff)
 {
   return GetFunctionExtraDescr(m_config, pathSuff);
 }
 //----------------------------------------
-wxString CMapFunction::GetFunctionExtraDescr(wxFileConfig* config, const wxString& pathSuff)
+std::string CMapFunction::GetFunctionExtraDescr( CWorkspaceSettings *config, const std::string& pathSuff )
 {
-  bool bOk = true;
+	if ( config == nullptr )
+	{
+		return "";
+	}
+	return config->GetFunctionExtraDescr( pathSuff );
 
-  if (config == NULL)
-  {
-    return "";
-  }
-  config->SetPath("/" + pathSuff);
+		//config->SetPath("/" + pathSuff);
 
-  wxString valueString;
+		//std::string valueString;
 
-  valueString = config->Read(ENTRY_COMMENT);
+		//valueString = config->Read(ENTRY_COMMENT);
 
 
-  return valueString;
+		//return valueString;
 
 }
 //----------------------------------------
 void CMapFunction::SetExtraDescr()
 {
-  if (m_config == NULL)
-  {
-    return;
-  }
+	if ( m_config == nullptr )
+	{
+		return;
+	}
 
-  CMapFunction::iterator it;
+	CMapFunction::iterator it;
 
-  for (it = begin() ; it != end() ; it++)
-  {
-    CFunction* value = dynamic_cast<CFunction*>(it->second);
-    if (value == NULL)
-    {
-      continue;
-    }
+	for ( it = begin(); it != end(); it++ )
+	{
+		CFunction* value = dynamic_cast<CFunction*>( it->second );
+		if ( value == nullptr )
+		{
+			continue;
+		}
 
-    wxString str = GetFunctionExtraDescr(value->GetName());
-    if (str.IsEmpty())
-    {
-      continue;
-    }
-    value->SetDescription(wxString::Format("%s\n\n%s", value->GetDescription().c_str(), str.c_str()));
-
-  }
-
-
+		std::string str = GetFunctionExtraDescr( value->GetName() );
+		if ( str.empty() )
+		{
+			continue;
+		}
+		value->SetDescription( value->GetDescription() + "\n\n" + str );
+	}
 }
 //----------------------------------------
-void CMapFunction::SaveFunctionDescrTemplate(const std::string &internal_data_path, wxFileConfig* config, bool flush)
+void CMapFunction::SaveFunctionDescrTemplate( const std::string &internal_data_path, CWorkspaceSettings *config, bool flush )
 {
-  if (config == NULL)
-  {
-    std::string filePathName = internal_data_path;
-    filePathName.append(PATH_SEPARATOR);
-    filePathName.append(CMapFunction::m_configFilename.c_str());
-    config = new wxFileConfig(wxEmptyString, wxEmptyString, filePathName.c_str(), wxEmptyString, wxCONFIG_USE_LOCAL_FILE);
-  }
+	if ( config == nullptr )
+	{
+		std::string filePathName = internal_data_path;
+		filePathName.append( PATH_SEPARATOR );
+		filePathName.append( CMapFunction::m_configFilename.c_str() );
+		//config = new wxFileConfig( wxEmptyString, wxEmptyString, filePathName.c_str(), wxEmptyString, wxCONFIG_USE_LOCAL_FILE );
+		config = new CWorkspaceSettings( filePathName );
+	}
+	config->SaveFunctionDescrTemplate( internal_data_path, flush );
 
-  CMapFunction::iterator it;
+	//for ( CMapFunction::iterator it = CMapFunction::GetInstance().begin(); it != CMapFunction::GetInstance().end(); it++ )
+	//{
+	//	CFunction* value = dynamic_cast<CFunction*>( it->second );
+	//	if ( value == nullptr )
+	//	{
+	//		continue;
+	//	}
 
-  for (it = CMapFunction::GetInstance().begin() ; it != CMapFunction::GetInstance().end() ; it++)
-  {
-    CFunction* value = dynamic_cast<CFunction*>(it->second);
-    if (value == NULL)
-    {
-      continue;
-    }
+	//	config->SetPath( "/" + value->GetName() );
 
-    config->SetPath("/" + value->GetName());
+	//	std::string str;
+	//	for ( int32_t i = 0; i < value->GetNbparams(); i++ )
+	//	{
+	//		str += ( "param" + n2s<std::string>( i + 1 ) + ": \n" );
+	//	}
 
-    wxString str;
-    for (int32_t i = 0 ; i < value->GetNbparams() ; i++)
-    {
-      str += wxString::Format("param%d: \n", i+1);
-    }
+	//	config->Write( ENTRY_COMMENT, str );
+	//}
 
-    config->Write(ENTRY_COMMENT, str);
-
-  }
-
-  if (flush)
-  {
-    config->Flush();
-  }
-
-
+	//if ( flush )
+	//{
+	//	config->Flush();
+	//}
 }
 
-//----------------------------------------
-void CMapFunction::GetCategory(wxChoice& choice)
-{
-  choice.Append("All", new int32_t(-1));
-
-  for (int32_t category = MathTrigo; category <= Geographical; category++)
-  {
-    choice.Append(CFunction::GetCategoryAsString(category), new int32_t(category));
-  }
-}
 //----------------------------------------
 bool CMapFunction::ValidName(const std::string& name)
 {
@@ -507,13 +477,13 @@ bool CMapFunction::ValidName(const std::string& name)
 bool CMapFunction::ValidName(const char* name)
 {
   CFunction* value = dynamic_cast<CFunction*>(Exists(name));
-  return (value != NULL);
+  return (value != nullptr);
 }
 //----------------------------------------
-wxString CMapFunction::GetDescFunc(const wxString& name)
+std::string CMapFunction::GetDescFunc(const std::string& name)
 {
   CFunction* value = dynamic_cast<CFunction*>(Exists((const char *)name.c_str()));
-  if (value == NULL)
+  if (value == nullptr)
   {
     return "";
   }
@@ -522,71 +492,16 @@ wxString CMapFunction::GetDescFunc(const wxString& name)
 }
 
 //----------------------------------------
-wxString CMapFunction::GetSyntaxFunc(const wxString& name)
+std::string CMapFunction::GetSyntaxFunc(const std::string& name)
 {
   CFunction* value = dynamic_cast<CFunction*>(Exists((const char *)name.c_str()));
-  if (value == NULL)
+  if (value == nullptr)
   {
     return "";
   }
 
   return value->GetSyntax();
 }
-
-//----------------------------------------
-void CMapFunction::NamesToArrayString(wxArrayString& array)
-{
-  CMapFunction::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    CFunction* value = dynamic_cast<CFunction*>(it->second);
-    if (value != NULL)
-    {
-      array.Add(value->GetName());
-    }
-  }
-
-}
-//----------------------------------------
-void CMapFunction::NamesToComboBox(wxComboBox& combo)
-{
-  CMapFunction::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    CFunction* value = dynamic_cast<CFunction*>(it->second);
-    if (value != NULL)
-    {
-      combo.Append(value->GetName());
-    }
-  }
-
-}
-
-//----------------------------------------
-void CMapFunction::NamesToListBox(wxListBox& listBox, int32_t category /*= -1*/)
-{
-  CMapFunction::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    CFunction* value = dynamic_cast<CFunction*>(it->second);
-    if (value != NULL)
-    {
-      if (category != -1)
-      {
-        if (value->GetCategory() != category)
-        {
-          continue;
-        }
-      }
-      listBox.Append(value->GetName());
-    }
-  }
-
-}
-
 
 //----------------------------------------
 void CMapFunction::Dump(std::ostream& fOut /* = std::cerr */)
@@ -599,9 +514,7 @@ void CMapFunction::Dump(std::ostream& fOut /* = std::cerr */)
 
    fOut << "==> Dump a CMapFunction Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
-   CMapFunction::iterator it;
-
-   for (it = this->begin() ; it != this->end() ; it++)
+   for (CMapFunction::iterator it = this->begin() ; it != this->end() ; it++)
    {
       CBratObject *ob = it->second;
       fOut << "CMapFunction Key is = " << (*it).first << std::endl;
@@ -636,7 +549,7 @@ void CMapFunction::DumpFmt(std::ostream& fOut /* = std::cerr */)
    for (it = this->begin() ; it != this->end() ; it++)
    {
       CFunction *ob = dynamic_cast<CFunction*>(it->second);
-      if (ob == NULL)
+      if (ob == nullptr)
       {
         continue;
       }

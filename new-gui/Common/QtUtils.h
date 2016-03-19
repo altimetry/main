@@ -237,7 +237,16 @@ inline std::pair< bool, QString > SimpleInputString( const QString &input_name, 
 		input_name, 
 		QLineEdit::Normal, 
 		result.second,
-		&result.first );
+        &result.first );
+
+    // Check if text has only alphanumeric letters
+    static QRegExp re("[_a-zA-Z0-9]+"); // alphanumeric letters
+    if ( !re.exactMatch( text ) && result.first ) // Has an Invalid Name
+    {
+        SimpleWarnBox( QString( "Unable to rename '%1' by '%2'.\nPlease enter only alphanumeric letters, 'A-Z' or '_a-z' or '0-9'.").arg(
+                                result.second, text ) );
+        result.first = false;
+    }
 
     if ( result.first )
         result.second = text;
@@ -787,6 +796,20 @@ inline QToolButton* CreateMenuButton( const std::string &name, const std::string
 	for ( auto *a : actions )
 		list << a;
 	return CreateMenuButton( name, pix_path, tip, list );
+}
+
+
+inline QToolButton* CreatePopupButton( const std::string &name, const std::string &pix_path, const std::string &tip, const QList<QAction*> &actions, QAction *default_action = nullptr )
+{
+
+	QToolButton *tool_button = CreateToolButton( name, pix_path, tip, false ); 		assert__( tool_button );
+	for ( auto a : actions )
+		tool_button->addAction( a );
+	tool_button->setPopupMode( QToolButton::MenuButtonPopup );
+	if ( default_action )
+		tool_button->setDefaultAction( default_action );
+
+	return tool_button;
 }
 
 

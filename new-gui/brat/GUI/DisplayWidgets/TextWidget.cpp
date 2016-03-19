@@ -66,10 +66,10 @@ void CTextWidget::setHelpEditor( bool help )
 }
 
 //virtual 
-void CTextWidget::setHelpProperties( const QString &text, int spacing, Qt::Alignment alignment )	//alignment = Qt::AlignCenter 
+void CTextWidget::setHelpProperties( const QString &text, int spacing, Qt::Alignment alignment, bool wrap )	//alignment = Qt::AlignCenter , bool wrap = false
 {
 	setHelpEditor( true );
-    setWrapText( false );
+    setWrapText( wrap );
     setText( text );
     MoveToTop();
     MoveToEnd( true );

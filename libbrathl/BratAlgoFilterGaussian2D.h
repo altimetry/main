@@ -58,7 +58,7 @@ public:
 
   virtual std::string GetName() const override { return "BratAlgoFilterGaussianGrid"; };
 
-  virtual std::string GetDescription() { return "Gaussian filter for two-dimensional data (e.g. gridded data) as input data source. "
+  virtual std::string GetDescription() const override { return "Gaussian filter for two-dimensional data (e.g. gridded data) as input data source. "
                                            "Gaussian filter is windowed filter of linear class, by its nature is weighted mean. "
                                            "Gaussian filter is a type of data-smoothing filter that uses a Gaussian function (normal distribution) for calculating the transformation to apply to each data. "
                                            "The output value unit depends on the variable (data) filtered" ; };

@@ -17,6 +17,7 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
+#include "new-gui/v4Interface.h"
 
 #if defined(__GNUG__) && !defined(NO_GCC_PRAGMA)
     #pragma implementation "ResolutionDlg.h"

@@ -12,6 +12,7 @@
 #include "DataModels/MapTypeDisp.h"
 
 #include "GUI/ActionsTable.h"
+#include "Dialogs/SelectRecordDialog.h"
 
 #include "DataExpressionsTree.h"
 
@@ -68,17 +69,22 @@ CAbstractTree::CAbstractTree( QWidget *parent )
 }
 
 
+QTreeWidgetItem* CAbstractTree::SetItemBold( QTreeWidgetItem *item, bool bold )
+{
+	QFont font = item->font( 0 );
+	font.setBold( bold );
+	item->setFont( 0, font );
+	return item;
+}
+
+
 template< typename PARENT, typename DATA >
 QTreeWidgetItem* CAbstractTree::MakeItem( PARENT *parent, const std::string &name, DATA data, bool bold, bool folder )		//data = nullptr, bold = false, bool folder = false )
 {
 	QTreeWidgetItem *item = new QTreeWidgetItem( parent );
 	item->setText( 0, name.c_str() );
 	if ( bold )
-	{
-		QFont font = item->font( 0 );
-		font.setBold( true );
-		item->setFont( 0, font );
-	}
+		SetItemBold( item, bold );
 	SetItemData( item, &data );
 	item->setIcon( 0, folder ? mGroupIcon : mKeyIcon );
 	item->setExpanded( folder );
@@ -93,15 +99,30 @@ QTreeWidgetItem* CAbstractTree::MakeRootItem( const std::string &name, DATA data
 }
 
 
+template< typename FUNCTION >
+QTreeWidgetItem* CAbstractTree::FindItem( FUNCTION &f )
+{
+	//TODO code for a future templated find item with predicate
+
+	QTreeWidgetItemIterator it( this );
+	while ( *it )
+	{
+		if ( f( *it ) )
+			return *it;
+		++it;
+	}
+
+	return nullptr;
+}
 
 
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//						CFieldsTree
+//						CFieldsTreeWidget
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-CFieldsTree::CFieldsTree( QWidget *parent )
+CFieldsTreeWidget::CFieldsTreeWidget( QWidget *parent )
 	: base_t( parent )
 {
     QStringList labels;
@@ -132,19 +153,19 @@ CFieldsTree::CFieldsTree( QWidget *parent )
 
 
 
-CField* CFieldsTree::ItemField( QTreeWidgetItem *item )
+CField* CFieldsTreeWidget::ItemField( QTreeWidgetItem *item )
 {
 	return ItemData< CField* >( item );
 }
 
 
-void CFieldsTree::SetItemField( QTreeWidgetItem *item, CField *field )
+void CFieldsTreeWidget::SetItemField( QTreeWidgetItem *item, CField *field )
 {
 	SetItemData( item, &field );
 }
 
 
-void CFieldsTree::InsertProduct( CProduct *product )
+void CFieldsTreeWidget::InsertProduct( CProduct *product )
 {
 	mProduct = product;
 
@@ -167,7 +188,7 @@ void CFieldsTree::InsertProduct( CProduct *product )
 }
 
 
-QTreeWidgetItem* CFieldsTree::SetRootItem( CField *field )
+QTreeWidgetItem* CFieldsTreeWidget::SetRootItem( CField *field )
 {
 	auto *item = invisibleRootItem();
 	SetItemField( item, field );
@@ -176,13 +197,13 @@ QTreeWidgetItem* CFieldsTree::SetRootItem( CField *field )
 }
 
 
-QTreeWidgetItem* CFieldsTree::GetFirstRecordItem()
+QTreeWidgetItem* CFieldsTreeWidget::GetFirstRecordItem()
 {
 	auto *root = invisibleRootItem();
 	return root->childCount() > 0 ? root->child( 0 ) : nullptr;
 }
 
-void CFieldsTree::SelectRecord( const std::string &record )		//see COperationPanel::GetOperationRecord
+void CFieldsTreeWidget::SelectRecord( const std::string &record )		//see COperationPanel::GetOperationRecord
 {
 	auto items = findItems( record.c_str(), Qt::MatchExactly );
 	QTreeWidgetItem *item = items.size() > 0 ? items[ 0 ] : nullptr;
@@ -198,7 +219,7 @@ void CFieldsTree::SelectRecord( const std::string &record )		//see COperationPan
 }
 
 
-QTreeWidgetItem* CFieldsTree::InsertField( QTreeWidgetItem *parent, CObjectTreeNode *node )
+QTreeWidgetItem* CFieldsTreeWidget::InsertField( QTreeWidgetItem *parent, CObjectTreeNode *node )
 {
 	CField *field = dynamic_cast<CField*>( node->GetData() );			assert__( field );
 
@@ -263,11 +284,11 @@ QTreeWidgetItem* CFieldsTree::InsertField( QTreeWidgetItem *parent, CObjectTreeN
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//						CDataExpressionsTree
+//						CDataExpressionsTreeWidget
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void CDataExpressionsTree::MakeRootItems()
+void CDataExpressionsTreeWidget::MakeRootItems()
 {
 	mItemX = MakeRootItem( mIsMap ? "Lon" : "X", CMapTypeField::eTypeOpAsX );
 	mItemY = MakeRootItem( mIsMap ? "Lat" : "Y (optional)", CMapTypeField::eTypeOpAsY );
@@ -290,7 +311,7 @@ QAction* CAbstractTree::AddMenuSeparator()
 }
 
 
-CDataExpressionsTree::CDataExpressionsTree( bool is_map, QWidget *parent, CFieldsTree *drag_source )
+CDataExpressionsTreeWidget::CDataExpressionsTreeWidget( bool is_map, QWidget *parent, CFieldsTreeWidget *drag_source )
 	: base_t( parent )
 	, mDragSource( drag_source )
 	, mIsMap( is_map )
@@ -308,6 +329,7 @@ CDataExpressionsTree::CDataExpressionsTree( bool is_map, QWidget *parent, CField
 	auto *root_item = invisibleRootItem();
     root_item->setFlags( root_item->flags() & ~Qt::ItemIsDropEnabled );
 
+	connect( this, SIGNAL( itemSelectionChanged() ), this, SLOT( HandleSelectionChanged() ) );
 
 	//Tree context menu
 
@@ -338,30 +360,44 @@ CDataExpressionsTree::CDataExpressionsTree( bool is_map, QWidget *parent, CField
 }
 
 
-CMapTypeField::ETypeField CDataExpressionsTree::ItemType( QTreeWidgetItem *item )
+CMapTypeField::ETypeField CDataExpressionsTreeWidget::ItemType( QTreeWidgetItem *item )
 {
 	return item->data( 0, Qt::UserRole ).value< CMapTypeField::ETypeField >();
 }
-void CDataExpressionsTree::SetItemType( QTreeWidgetItem *item, CMapTypeField::ETypeField type )
+void CDataExpressionsTreeWidget::SetItemType( QTreeWidgetItem *item, CMapTypeField::ETypeField type )
 {
 	item->setData( 0, Qt::UserRole, QVariant::fromValue( type ) );
 }
 
 
-CFormula* CDataExpressionsTree::ItemFormula( QTreeWidgetItem *item )
+CFormula* CDataExpressionsTreeWidget::ItemFormula( QTreeWidgetItem *item )
 {
 	return item->data( 0, Qt::UserRole ).value< CFormula* >();
 }
-void CDataExpressionsTree::SetItemFormula( QTreeWidgetItem *item, CFormula *formula )
+void CDataExpressionsTreeWidget::SetItemFormula( QTreeWidgetItem *item, CFormula *formula )
 {
 	item->setData( 0, Qt::UserRole, QVariant::fromValue( formula ) );
 }
 
 
-void CDataExpressionsTree::SelectX()
+void CDataExpressionsTreeWidget::SelectX()
 {
 	setCurrentItem( mItemX );
 }
+
+
+void CDataExpressionsTreeWidget::FormulaChanged( const CFormula *formula )
+{
+	assert__( mCurrentOperation && formula );
+
+	if ( mCurrentOperation->IsSelect( formula ) )
+	{
+		std::string value = formula->GetDescription( true );
+		SetItemBold( mItemSelectionCriteria, !value.empty() );		//mItemSelectionCriteria == GetSelectRootId
+	}
+}
+
+
 
 
 // There are 2 possible types:
@@ -372,7 +408,7 @@ void CDataExpressionsTree::SelectX()
 //	If, besides being eTypeOpZFXY, x is lon(lat) and y is lat(lon)
 //	the operation IsMap
 //
-CMapTypeOp::ETypeOp CDataExpressionsTree::GetOperationType()
+CMapTypeOp::ETypeOp CDataExpressionsTreeWidget::GetOperationType()
 {
 	assert__( mItemX && mItemY );
 
@@ -386,13 +422,13 @@ CMapTypeOp::ETypeOp CDataExpressionsTree::GetOperationType()
 // If IsPlot(==!IsMap) can only change if x/y are empty or lon/lat or lat/lon
 // If IsMap, it can always change
 //
-bool CDataExpressionsTree::CanSwitchType( std::string &error_msg ) const
+bool CDataExpressionsTreeWidget::CanSwitchType( std::string &error_msg ) const
 {
-	if ( !mOperation || mIsMap )
+	if ( !mCurrentOperation || mIsMap )
 		return true;
 
-	const CFormula* xFormula = mOperation->GetFormula( CMapTypeField::eTypeOpAsX );
-	const CFormula* yFormula = mOperation->GetFormula( CMapTypeField::eTypeOpAsY );
+	const CFormula* xFormula = mCurrentOperation->GetFormula( CMapTypeField::eTypeOpAsX );
+	const CFormula* yFormula = mCurrentOperation->GetFormula( CMapTypeField::eTypeOpAsY );
 
 	bool xIsLon = !xFormula || xFormula->IsLonDataType();
 	bool xIsLat = !xFormula || xFormula->IsLatDataType();
@@ -410,7 +446,7 @@ bool CDataExpressionsTree::CanSwitchType( std::string &error_msg ) const
 }
 
 
-bool CDataExpressionsTree::SwitchType()
+bool CDataExpressionsTreeWidget::SwitchType()
 {
 	std::string error_msg;
 	if ( !CanSwitchType(error_msg) )
@@ -421,28 +457,32 @@ bool CDataExpressionsTree::SwitchType()
 	mItemX->setText( 0, mIsMap ? "Lon" : "X" );
 	mItemY->setText( 0, mIsMap ? "Lat" : "Y (optional)" );
 
-	mOperation->SetType( GetOperationType() );
+	mCurrentOperation->SetType( GetOperationType() );
 
-	assert__( !mIsMap || mOperation->IsMap() );
+	//assert__( !mIsMap || mCurrentOperation->IsMap() );
 
 	return true;
 }
 
 
-void CDataExpressionsTree::InsertOperation( COperation *operation )
+void CDataExpressionsTreeWidget::InsertOperation( COperation *operation )
 {
-	mOperation = operation;
+	mCurrentOperation = operation;
 
 	clear();
 	MakeRootItems();
+	//HandleSelectionChanged();
 
-	if ( mOperation == nullptr )
+	if ( mCurrentOperation == nullptr )
+	{
+		emit SelectedFormulaChanged( nullptr );
 		return;
+	}
 
-	CMapFormula* formulas = mOperation->GetFormulas();
+	CMapFormula* formulas = mCurrentOperation->GetFormulas();
 	for ( CMapFormula::iterator it = formulas->begin(); it != formulas->end(); it++ )
 	{
-		CFormula* formula = mOperation->GetFormula( it );
+		CFormula* formula = mCurrentOperation->GetFormula( it );
 		if ( formula == nullptr )
 			continue;
 
@@ -460,11 +500,42 @@ void CDataExpressionsTree::InsertOperation( COperation *operation )
 		}
 	}
 
-	InsertFormula( mItemSelectionCriteria, mOperation->GetSelect() );
+	InsertFormula( mItemSelectionCriteria, mCurrentOperation->GetSelect() );
 }
 
 
-QTreeWidgetItem* CDataExpressionsTree::FindParentRootTypeItem( QTreeWidgetItem *from )
+void CDataExpressionsTreeWidget::HandleSelectionChanged()
+{
+	QTreeWidgetItem *item = SelectedItem();		//cannot assert__( item );
+	CFormula *formula = nullptr;
+	if ( item )
+		formula = ItemFormula( item );
+
+	emit SelectedFormulaChanged( formula );
+}
+
+
+bool CDataExpressionsTreeWidget::SelectRecord( CProduct *product )
+{
+	assert__( mCurrentOperation );
+
+	if ( product == nullptr )
+	{
+		return false;
+	}
+
+	CSelectRecordDialog dlg( this, product );
+	if ( dlg.exec() == QDialog::Accepted )
+	{
+		mCurrentOperation->SetRecord( dlg.SelectedRecord() );
+		return true;
+	}
+	return false;
+}
+
+
+
+QTreeWidgetItem* CDataExpressionsTreeWidget::FindParentRootTypeItem( QTreeWidgetItem *from )
 {
 	if ( !from || from == mItemX || from == mItemY || from == mItemData || from == mItemSelectionCriteria )
 		return from;
@@ -480,7 +551,35 @@ QTreeWidgetItem* CDataExpressionsTree::FindParentRootTypeItem( QTreeWidgetItem *
 }
 
 
-void CDataExpressionsTree::DeleteFormula( QTreeWidgetItem *item )
+QTreeWidgetItem* CDataExpressionsTreeWidget::FindParentItem( const CFormula *formula )
+{
+	QTreeWidgetItem *item = FindItem(
+		[ this, &formula ]( const QTreeWidgetItem *item )
+		{
+			return ItemFormula( item ) == formula;
+		} 
+	);
+
+	if ( !item )
+		return nullptr;
+
+	return FindParentRootTypeItem( item );
+}
+
+
+std::string CDataExpressionsTreeWidget::ParentItemTitle( const CFormula *formula )
+{
+	std::string s;
+	QTreeWidgetItem *item = FindParentItem( formula );
+	if ( item )
+		s = q2a( item->text( 0 ) );
+	return s;
+}
+
+
+
+
+void CDataExpressionsTreeWidget::DeleteFormula( QTreeWidgetItem *item )
 {
 	assert__( item );
 
@@ -492,7 +591,7 @@ void CDataExpressionsTree::DeleteFormula( QTreeWidgetItem *item )
 		{
 			SetItemFormula( item, nullptr );
 		}
-		mOperation->DeleteFormula( formula->GetName() );
+		mCurrentOperation->DeleteFormula( formula->GetName() );
 	}
 
 	//CDeleteDataExprEvent ev( GetId(), name );
@@ -507,9 +606,9 @@ void CDataExpressionsTree::DeleteFormula( QTreeWidgetItem *item )
 
 // false return means not inserted, not necessarily because of an error
 //
-bool CDataExpressionsTree::InsertFormula( QTreeWidgetItem *parent, CFormula *formula )		//based on Add(const wxTreeItemId& parentId, CFormula* formula)
+bool CDataExpressionsTreeWidget::InsertFormula( QTreeWidgetItem *parent, CFormula *formula )		//based on Add(const wxTreeItemId& parentId, CFormula* formula)
 {
-	assert__( formula && mOperation && parent );
+	assert__( formula && mCurrentOperation && parent );
 
 	QTreeWidgetItem *the_parent = FindParentRootTypeItem( parent );
 	if ( !the_parent )
@@ -537,15 +636,15 @@ bool CDataExpressionsTree::InsertFormula( QTreeWidgetItem *parent, CFormula *for
 
 	if ( the_parent == mItemSelectionCriteria )
 	{
-		mOperation->SetSelect( formula );
-		SetItemFormula( mItemSelectionCriteria, mOperation->GetSelect() );
+		mCurrentOperation->SetSelect( formula );
+		SetItemFormula( mItemSelectionCriteria, mCurrentOperation->GetSelect() );
 		setCurrentItem( mItemSelectionCriteria );
 	}
 	else
 	{
 		QTreeWidgetItem *inserted = MakeItem( the_parent, formula->GetName(), formula );
 		the_parent->setExpanded( true );
-		mOperation->SetType( GetOperationType() );
+		mCurrentOperation->SetType( GetOperationType() );
 		setCurrentItem( inserted );
 	}
 
@@ -570,17 +669,17 @@ bool CDataExpressionsTree::InsertFormula( QTreeWidgetItem *parent, CFormula *for
 }
 
 
-void CDataExpressionsTree::AddField( QTreeWidgetItem *parent, CField *field )
+void CDataExpressionsTreeWidget::AddField( QTreeWidgetItem *parent, CField *field )
 {
-	assert__( field && mOperation && parent );
+	assert__( field && mCurrentOperation && parent );
 
 	QTreeWidgetItem *the_parent = FindParentRootTypeItem( parent );
-	std::string operationRecord = mOperation->GetRecord();
+	std::string operationRecord = mCurrentOperation->GetRecord();
 	std::string fieldRecord = field->GetRecordName();
 
-	if ( !mOperation->HasFormula() )
+	if ( !mCurrentOperation->HasFormula() )
 	{
-		mOperation->SetRecord( fieldRecord );
+		mCurrentOperation->SetRecord( fieldRecord );
 	}
 
 	//DeInstallEventListeners();
@@ -591,20 +690,28 @@ void CDataExpressionsTree::AddField( QTreeWidgetItem *parent, CField *field )
 	auto type = ItemType( the_parent );
 	//if ( type != nullptr )
 	//{
-		std::string error_msg;
-		CFormula *formula = mOperation->NewUserFormula( error_msg, field, type, the_parent != mItemSelectionCriteria, mDragSource->Product() );
-		if ( !error_msg.empty() )
-			SimpleWarnBox( error_msg );
+	std::string error_msg;
+	CFormula *formula = mCurrentOperation->NewUserFormula( error_msg, field, type, the_parent != mItemSelectionCriteria, mDragSource->Product() );
+	if ( !error_msg.empty() )
+		SimpleWarnBox( error_msg );
 
-		if ( InsertFormula( the_parent, formula ) )
-			emit FormulaInserted( formula );
+	if ( InsertFormula( the_parent, formula ) )
+	{
+		std::string	error_msg;
+		mCurrentOperation->ComputeInterval( error_msg );
+
+		if ( !error_msg.empty() )
+			SimpleErrorBox( error_msg );
+
+		emit FormulaInserted( formula );
+	}
 	//}
 
 	//ConnectToolTipEvent();
 }
 
 
-void CDataExpressionsTree::dragEnterEvent( QDragEnterEvent *event )
+void CDataExpressionsTreeWidget::dragEnterEvent( QDragEnterEvent *event )
 {
 	if ( mDragSource == event->source() )
 	{
@@ -619,7 +726,7 @@ void CDataExpressionsTree::dragEnterEvent( QDragEnterEvent *event )
 }
 
 
-void CDataExpressionsTree::dropEvent( QDropEvent *event )
+void CDataExpressionsTreeWidget::dropEvent( QDropEvent *event )
 {
 	if ( mDragSource == event->source() && event->dropAction() == Qt::CopyAction )
 	{
@@ -659,15 +766,15 @@ void CDataExpressionsTree::dropEvent( QDropEvent *event )
 
 
 //virtual 
-void CDataExpressionsTree::CustomContextMenu( QTreeWidgetItem *item )
+void CDataExpressionsTreeWidget::CustomContextMenu( QTreeWidgetItem *item )
 {
 	// Leaf field selected in fields tree
 	//
 	QTreeWidgetItem *fields_tree_item = mDragSource->SelectedItem();
-	CField* field = nullptr;
+	const CField* field = nullptr;
 	if ( fields_tree_item && fields_tree_item->childCount() == 0 )
 	{
-		field = mDragSource->ItemField( fields_tree_item );
+		field = ((const CFieldsTreeWidget*)mDragSource)->ItemField( fields_tree_item );
 	}
 
 	// Menu title
@@ -761,44 +868,44 @@ void CDataExpressionsTree::CustomContextMenu( QTreeWidgetItem *item )
 }
 
 
-void CDataExpressionsTree::HandlemInsertExpr()
+void CDataExpressionsTreeWidget::HandlemInsertExpr()
 {
 	NOT_IMPLEMENTED;
 }
-void CDataExpressionsTree::HandleInsertField()
+void CDataExpressionsTreeWidget::HandleInsertField()
 {
 	NOT_IMPLEMENTED;
 }
-void CDataExpressionsTree::HandleInsertFunction()
+void CDataExpressionsTreeWidget::HandleInsertFunction()
 {
 	NOT_IMPLEMENTED;
 }
-void CDataExpressionsTree::HandleInsertFormula()
+void CDataExpressionsTreeWidget::HandleInsertFormula()
 {
 	NOT_IMPLEMENTED;
 }
-void CDataExpressionsTree::HandlemSaveasFormula()
+void CDataExpressionsTreeWidget::HandlemSaveasFormula()
 {
 	NOT_IMPLEMENTED;
 }
-void CDataExpressionsTree::HandleDeleteExpr()		//DeleteCurrentFormula()
+void CDataExpressionsTreeWidget::HandleDeleteExpr()		//DeleteCurrentFormula()
 {
 	auto *item = SelectedItem();
 	DeleteFormula( item );
 	if ( item != mItemSelectionCriteria )
 		delete item;
 
-	mOperation->SetType( GetOperationType() );
+	mCurrentOperation->SetType( GetOperationType() );
 }
-void CDataExpressionsTree::HandleRenameExpr()
+void CDataExpressionsTreeWidget::HandleRenameExpr()
 {
 	NOT_IMPLEMENTED;
 }
-void CDataExpressionsTree::HandleSortAscending()
+void CDataExpressionsTreeWidget::HandleSortAscending()
 {
 	NOT_IMPLEMENTED;
 }
-void CDataExpressionsTree::HandleSortDescending()
+void CDataExpressionsTreeWidget::HandleSortDescending()
 {
 	NOT_IMPLEMENTED;
 }

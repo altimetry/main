@@ -58,7 +58,7 @@ public:
 
   virtual std::string GetName() const override { return "BratAlgoFilterLanczosAtp"; };
   
-  virtual std::string GetDescription() { return "Lanczos filter for one-dimensional data (e.g. along-track data) as input data source. "
+  virtual std::string GetDescription() const override { return "Lanczos filter for one-dimensional data (e.g. along-track data) as input data source. "
                                            "Lanczos filter is low-pass windowed filter. The Lanczos window is the central lobe of a horizontally-stretched sinc, sinc(X/a) for -a <= X <= a, with (2 x a) = window length."
                                            "Thus the Lanczos filter, on its interval, is a product of two sinc functions. The resulting function is then used as a convolution kernel to resample the input field. "
                                            "The output value unit depends on the variable (data) filtered" ; };

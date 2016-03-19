@@ -38,7 +38,7 @@ class CDelayExecutionDialog : public QDialog
 
 
     /////////////////////////////
-    //construction / destructuion
+    //construction / destruction
     /////////////////////////////
 private:
 

@@ -53,7 +53,7 @@ CDataset* COperationControls::QuickDataset()
 	return mWDataset->GetDataset( q2a( mQuickDatasetsCombo->itemText( dataset_index ) ) );
 }
 
-void COperationControls::HandleDatasetsChanged_Quick()
+void COperationControls::HandleDatasetsChanged_Quick(CDataset *)
 {
 	int selected = mQuickDatasetsCombo->currentIndex();
 
@@ -532,16 +532,16 @@ void COperationControls::HandleQuickMap()
 		return;
 	}
 
-	mOperation = mWOperation->GetOperation( opname );
-	mOperation->InitOutput( mWOperation );
-	mOperation->InitExportAsciiOutput( mWOperation );
-	mOperation->SetType( CMapTypeOp::eTypeOpZFXY );
+	mCurrentOperation = mWOperation->GetOperation( opname );
+	mCurrentOperation->InitOutput( mWOperation );
+	mCurrentOperation->InitExportAsciiOutput( mWOperation );
+	mCurrentOperation->SetType( CMapTypeOp::eTypeOpZFXY );
 
-	mOperation->SetDataset( QuickDataset() );
-	mProduct = mOperation->GetDataset()->SetProduct();
-	mOperation->SetProduct( mProduct );
+	mCurrentOperation->SetDataset( QuickDataset() );
+	mProduct = mCurrentOperation->GetDataset()->SetProduct();
+	mCurrentOperation->SetProduct( mProduct );
 
-	std::string operation_record = mOperation->GetRecord();
+	std::string operation_record = mCurrentOperation->GetRecord();
 
 	std::vector< CField*> fields;
 	bool alias_used;
@@ -549,18 +549,18 @@ void COperationControls::HandleQuickMap()
 	std::pair<CField*, CField*> lon_lat_fields = FindLonLatFields( mProduct, alias_used, field_error_msg );		assert__( lon_lat_fields.first && lon_lat_fields.second );
 
 	std::string error_msg;
-	if ( !mOperation->HasFormula() )
+	if ( !mCurrentOperation->HasFormula() )
 	{
 		std::string field_record = lon_lat_fields.first->GetRecordName();
-		mOperation->SetRecord( field_record );
-		if ( mOperation->GetRecord().empty() && mProduct->IsNetCdf() )
-			mOperation->SetRecord( CProductNetCdf::m_virtualRecordName );
+		mCurrentOperation->SetRecord( field_record );
+		if ( mCurrentOperation->GetRecord().empty() && mProduct->IsNetCdf() )
+			mCurrentOperation->SetRecord( CProductNetCdf::m_virtualRecordName );
 	}
-	CFormula* formula = mOperation->NewUserFormula( error_msg, lon_lat_fields.first, CMapTypeField::eTypeOpAsX, true, mProduct );
-	mOperation->ComputeInterval( formula, error_msg );
+	CFormula* formula = mCurrentOperation->NewUserFormula( error_msg, lon_lat_fields.first, CMapTypeField::eTypeOpAsX, true, mProduct );
+	mCurrentOperation->ComputeInterval( formula, error_msg );
 
-	formula = mOperation->NewUserFormula( error_msg, lon_lat_fields.second, CMapTypeField::eTypeOpAsY, true, mProduct );
-	mOperation->ComputeInterval( formula, error_msg );
+	formula = mCurrentOperation->NewUserFormula( error_msg, lon_lat_fields.second, CMapTypeField::eTypeOpAsY, true, mProduct );
+	mCurrentOperation->ComputeInterval( formula, error_msg );
 
   //Insert("asField", eTypeOpAsField);
   //Insert("asX", eTypeOpAsX);
@@ -588,13 +588,13 @@ void COperationControls::HandleQuickMap()
 	for ( auto *field : fields )
 	{
 		std::string field_record = field->GetRecordName();
-		//if ( !mOperation->HasFormula() )
+		//if ( !mCurrentOperation->HasFormula() )
 		//{
-		//	mOperation->SetRecord( field_record );
-		//	if ( mOperation->GetRecord().empty() && mProduct->IsNetCdf() )
-		//		mOperation->SetRecord( CProductNetCdf::m_virtualRecordName );
+		//	mCurrentOperation->SetRecord( field_record );
+		//	if ( mCurrentOperation->GetRecord().empty() && mProduct->IsNetCdf() )
+		//		mCurrentOperation->SetRecord( CProductNetCdf::m_virtualRecordName );
 		//}
-		CFormula* formula = mOperation->NewUserFormula( error_msg, field, CMapTypeField::eTypeOpAsField, true, mProduct );
+		CFormula* formula = mCurrentOperation->NewUserFormula( error_msg, field, CMapTypeField::eTypeOpAsField, true, mProduct );
 		if ( !error_msg.empty() )
 			SimpleErrorBox( error_msg );
 		//Add( theParentId, formula );
@@ -602,7 +602,7 @@ void COperationControls::HandleQuickMap()
         Q_UNUSED( formula)
 	}
 
-	assert__( mOperation->IsMap() );
+	assert__( mCurrentOperation->IsMap() );
 
 	if ( !Execute( true ) )
 		return;
@@ -618,7 +618,7 @@ void COperationControls::HandleQuickPlot()
 	NOT_IMPLEMENTED;
 	return;
 
-	auto ed = new CPlotEditor( mModel, mOperation, "", mManager->parentWidget() );
+	auto ed = new CPlotEditor( mModel, mCurrentOperation, "", mManager->parentWidget() );
     auto subWindow = mManager->AddSubWindow( ed );
     subWindow->show();
 

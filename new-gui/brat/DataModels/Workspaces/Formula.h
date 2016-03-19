@@ -18,8 +18,6 @@
 #if !defined(WORKSPACES_FORMULA_H)
 #define WORKSPACES_FORMULA_H
 
-#include "new-gui/QtInterface.h"
-
 #include "libbrathl/brathl.h"
 
 #include "libbrathl/List.h"
@@ -36,6 +34,8 @@ namespace brathl
 
 using namespace brathl;
 
+
+class CWorkspaceSettings;
 
 
 //-------------------------------------------------------------
@@ -306,8 +306,8 @@ public:
 	void SetName( const std::string& value ) { m_name = value; }
 
 	std::string GetDescription( bool removeCRLF = false, const CStringMap* formulaAliases = nullptr, const CStringMap* fieldAliases = nullptr ) const;
-	void SetDescription( const std::string& value ) { m_description = value; }
-	void SetDescription( const char* value ) { m_description = value; }
+	void SetDescription( const std::string& value ) { m_description = rtrim( ltrim( value ) ); }
+	void SetDescription( const char* value ) { m_description = rtrim( ltrim( std::string( value ) ) ); }
 
 	std::string GetAlias();
 

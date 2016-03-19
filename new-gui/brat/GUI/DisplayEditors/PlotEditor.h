@@ -46,7 +46,6 @@ public:
 		eXY, 
 		eXYY,
 		eXYZ,
-		eXYZ3D,
 		eHistogram,
 
 		EPlotTypes_size
@@ -60,7 +59,6 @@ public:
 			"XY", 
 			"XYY",
 			"XYZ",
-			"XYZ3D",
 			"Histogram"
 		};
 
@@ -78,10 +76,10 @@ private:
 	CBrat3DPlotView *mPlot3DView = nullptr;
 
     QComboBox *mSelectPlotCombo = nullptr;
-    QComboBox *mvarX       = nullptr;
-    QComboBox *mvarY       = nullptr;
-    QComboBox *mvarY2      = nullptr;
-    QComboBox *mvarZ       = nullptr;
+    QComboBox *mvarX = nullptr;
+    QComboBox *mvarY = nullptr;
+    QComboBox *mvarY2 = nullptr;
+    QComboBox *mvarZ = nullptr;
 	CPlotControlsPanelCurveOptions *mTabCurveOptions = nullptr;	
 	CPlotControlsPanelAxisOptions *mTabAxisOptions = nullptr;	
 

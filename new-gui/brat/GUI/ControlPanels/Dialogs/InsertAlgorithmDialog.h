@@ -34,9 +34,25 @@ class CInsertAlgorithmDialog : public QDialog
     // instance data
     /////////////////////////////
 
+	QListWidget *mAlgorithmsList = nullptr;
+	CTextWidget *mDescriptionTextWidget = nullptr;
+	QTableWidget *mParametersTable = nullptr;
+	QLineEdit *mOutputUnitTextWidget = nullptr;
+
+    QDialogButtonBox *mButtonBox = nullptr;
+
+	//...domain data
+
+	CBratAlgorithmBase *mCurrentAlgorithm = nullptr;
+
+
     /////////////////////////////
-    //construction / destructuion
+    //construction / destruction
     /////////////////////////////
+private:
+
+    void CreateWidgets();
+    void Wire();
 
 public:
     CInsertAlgorithmDialog( QWidget *parent );
@@ -47,10 +63,22 @@ public:
     // getters / setters / testers
     /////////////////////////////
 
+	const CBratAlgorithmBase *CurrentAlgorithm() const { return mCurrentAlgorithm; }
+
+
     /////////////////////////////
-    // remaining methods
+    // Operations
     /////////////////////////////
 
+protected:
+	void FillAlgorithmsList();
+
+    virtual void accept() override;
+
+
+protected slots:
+
+	void HandleAlgorithmsListSelection( int index );
 };
 
 

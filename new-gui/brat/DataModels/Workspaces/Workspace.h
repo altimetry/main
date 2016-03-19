@@ -376,7 +376,7 @@ public:
 	size_t GetOperationCount() const { return m_operations.size(); }
 
     bool InsertOperation( const std::string& name );
-    bool InsertOperation( const std::string& name, COperation* operationToCopy, CWorkspaceDataset *wksds, CWorkspaceOperation *wkso );
+    bool InsertOperation( const std::string& name, COperation* operationToCopy, CWorkspaceDataset *wksds );
 
 	bool RenameOperation( COperation* operation, const std::string& newName );
 

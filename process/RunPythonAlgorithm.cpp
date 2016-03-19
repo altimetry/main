@@ -350,38 +350,38 @@ public:
         return processCall( PyObject_CallMethod( m_instance, "GetName", nullptr ), result );
     }
 
-    virtual std::string GetDescription() override
+    virtual std::string GetDescription() const override
     {
         std::string result;
         return processCall( PyObject_CallMethod( m_instance, "GetDescription", nullptr ), result );
     }
 
-    virtual uint32_t GetNumInputParam() override
+    virtual uint32_t GetNumInputParam() const override
     {
         uint32_t result;
         return processCall( PyObject_CallMethod( m_instance, "GetNumInputParam", nullptr ), result );
     }
 
-    virtual std::string GetInputParamDesc(uint32_t indexParam) override
+    virtual std::string GetInputParamDesc(uint32_t indexParam) const override
     {
         std::string result;
         return processCall( PyObject_CallMethod( m_instance, "GetInputParamDesc", "(i)", indexParam ), result );
     }
 
-    virtual CBratAlgorithmParam::bratAlgoParamTypeVal GetInputParamFormat(uint32_t indexParam) override
+    virtual CBratAlgorithmParam::bratAlgoParamTypeVal GetInputParamFormat(uint32_t indexParam) const override
     {
         uint32_t result;
         return (CBratAlgorithmParam::bratAlgoParamTypeVal)
                 processCall( PyObject_CallMethod( m_instance, "GetInputParamFormat", "(i)", indexParam ), result );
     }
 
-    virtual std::string GetInputParamUnit(uint32_t indexParam) override
+    virtual std::string GetInputParamUnit(uint32_t indexParam) const override
     {
         std::string result;
         return processCall( PyObject_CallMethod( m_instance, "GetInputParamUnit", "(i)", indexParam ), result );
     }
 
-    virtual std::string GetOutputUnit() override
+    virtual std::string GetOutputUnit() const override
     {
         std::string result;
         return processCall( PyObject_CallMethod( m_instance, "GetOutputUnit", nullptr ), result );

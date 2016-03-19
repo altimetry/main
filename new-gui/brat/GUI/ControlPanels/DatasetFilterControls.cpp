@@ -28,7 +28,7 @@ void CDatasetFilterControls::CreateWidgets()
     mFiltersCombo = new QComboBox;
     mFiltersCombo->setToolTip( "Select Filter" );
 
-	QWidget *buttons_row = CreateButtonRow( false, Qt::Horizontal, { mNewFilter, mDeleteFilter, mSaveFilters, nullptr, new QLabel( "Selected Filter"), mFiltersCombo } );
+    QWidget *buttons_row = CreateButtonRow( false, Qt::Horizontal, { mNewFilter, mDeleteFilter, mRenameFilter, mSaveFilters, nullptr, new QLabel( "Selected Filter"), mFiltersCombo } );
 
 	AddTopWidget( buttons_row );
 	AddTopSpace( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
@@ -43,22 +43,19 @@ void CDatasetFilterControls::CreateWidgets()
 	where_l->setFont( font );
 	AddTopLayout( ELayoutType::Horizontal, { WidgetLine( nullptr, Qt::Horizontal ), where_l, WidgetLine( nullptr, Qt::Horizontal ), mClearWhere }, s, m, m, m, m );
 
-    //    II.1 List of Areas
-    mAreasListWidget = new QListWidget( this );
-    mAreasListWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
-    QGroupBox *areas_box = CreateGroupBox( ELayoutType::Horizontal, { mAreasListWidget }, "Areas", this );
-
-    //    II.2 Buttons for region selection
+    //    II.1 Buttons for region selection
     mRegionsCombo = new QComboBox;
     mRegionsCombo->setToolTip( "List of saved regions" );
 
-    auto mKML     = new QPushButton( "KML" );
-    auto mMask    = new QPushButton( "Mask" );
+    mNewRegion = CreateToolButton( "", ":/images/OSGeo/new.png", "Create a new region" );
+    mRenameRegion = CreateToolButton( "", ":/images/OSGeo/edit.png", "Rename the selected region" );
+    mDeleteRegion = CreateToolButton( "", ":/images/OSGeo/workspace-delete.png", "Delete the selected region" );
+    mSaveRegion = CreateToolButton( "", ":/images/OSGeo/save.png", "Save values in selected region" );
 
-    QBoxLayout *buttons_regions = LayoutWidgets( Qt::Horizontal, { mRegionsCombo, mKML, mMask } );
+    QWidget *buttons_regions = CreateButtonRow( false, Qt::Horizontal, { mNewRegion, mRenameRegion, mDeleteRegion, mSaveRegion } );
+    QBoxLayout *regions_layout = LayoutWidgets( Qt::Horizontal, { buttons_regions, nullptr, new QLabel( "Selected Region"), mRegionsCombo });
 
-    //    II.3 Coordinates (max and min values)
-
+    //    II.2 Coordinates (max and min values)
     mMaxLatEdit = new QLineEdit(this);
     mMaxLonEdit = new QLineEdit(this);
     mMinLatEdit = new QLineEdit(this);
@@ -69,26 +66,56 @@ void CDatasetFilterControls::CreateWidgets()
     mMinLatEdit->setReadOnly( true );
     mMinLonEdit->setReadOnly( true );
 
-    QBoxLayout *coord_values_l = LayoutWidgets( Qt::Vertical, {
-                                             LayoutWidgets( Qt::Horizontal, { new QLabel( "Max Lat (deg)" ), mMaxLatEdit } ),
-                                             LayoutWidgets( Qt::Horizontal, { new QLabel( "Min Lat (deg)" ), mMinLatEdit } )
+//    QBoxLayout *coord_values_l = LayoutWidgets( Qt::Vertical, {
+//                                             LayoutWidgets( Qt::Horizontal, { new QLabel( "Max Lat (deg)" ), mMaxLatEdit } ),
+//                                             LayoutWidgets( Qt::Horizontal, { new QLabel( "Min Lat (deg)" ), mMinLatEdit } )
+//                                               } );
+
+//    QBoxLayout *coord_values_r = LayoutWidgets( Qt::Vertical, {
+//                                             LayoutWidgets( Qt::Horizontal, { new QLabel( "Max Lon (deg)" ), mMaxLonEdit } ),
+//                                             LayoutWidgets( Qt::Horizontal, { new QLabel( "Min Lon (deg)" ), mMinLonEdit } )
+//                                               } );
+
+//    QBoxLayout *coord_values = LayoutWidgets( Qt::Horizontal, { coord_values_l, nullptr, coord_values_r }, nullptr );
+
+//    QPushButton *icon_north = new QPushButton( QIcon(":/images/OSGeo/north-arrow.png"), "" );
+//    icon_north->setStyleSheet(" ");
+
+    QLabel *icon_north = new QLabel();
+    icon_north->setPixmap( QPixmap(":/images/OSGeo/north-arrow.png") );
+
+    QBoxLayout *coord_values = LayoutWidgets( Qt::Vertical, {
+                                             LayoutWidgets( Qt::Horizontal, { nullptr, new QLabel( "Max Lat (deg)" ), nullptr } ),
+                                             LayoutWidgets( Qt::Horizontal, { nullptr, mMaxLatEdit, nullptr } ),
+                                             LayoutWidgets( Qt::Horizontal, { new QLabel( "Min Lon (deg)" ), nullptr, new QLabel( "Max Lon (deg)" ) } ),
+                                             LayoutWidgets( Qt::Horizontal, { mMinLonEdit, icon_north, mMaxLonEdit } ),
+                                             LayoutWidgets( Qt::Horizontal, { nullptr, new QLabel( "Min Lat (deg)" ), nullptr } ),
+                                             LayoutWidgets( Qt::Horizontal, { nullptr, mMinLatEdit, nullptr } )
                                                } );
 
-    QBoxLayout *coord_values_r = LayoutWidgets( Qt::Vertical, {
-                                             LayoutWidgets( Qt::Horizontal, { new QLabel( "Max Lon (deg)" ), mMaxLonEdit } ),
-                                             LayoutWidgets( Qt::Horizontal, { new QLabel( "Min Lon (deg)" ), mMinLonEdit } )
-                                               } );
+    //    II.3 List of Areas
+    mAreasListWidget = new QListWidget( this );
+    mAreasListWidget->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
-    QBoxLayout *coord_values = LayoutWidgets( Qt::Horizontal, { coord_values_l, nullptr, coord_values_r }, nullptr );
+    mNewArea = CreateToolButton( "", ":/images/OSGeo/new.png", "Create a new area" );
+    mAddKML  = CreateToolButton( "", ":/images/OSGeo/add.png", "Add area KML" );
+    mAddMask = CreateToolButton( "", ":/images/OSGeo/add.png", "Add area Mask" );
+    mRenameArea = CreateToolButton( "", ":/images/OSGeo/edit.png", "Rename the selected area" );
+    mDeleteArea = CreateToolButton( "", ":/images/OSGeo/workspace-delete.png", "Delete the selected area" );
+    mSaveArea = CreateToolButton( "", ":/images/OSGeo/save.png", "Save values in selected area" );
+
+    QWidget *buttons_col = CreateButtonRow( false, Qt::Vertical, { mNewArea, mAddKML, mAddMask, mDeleteArea, mRenameArea, mSaveArea } );
+    QGroupBox *areas_box = CreateGroupBox( ELayoutType::Horizontal, { buttons_col, mAreasListWidget }, "Areas", this );
 
 
     //    II.4 Adding previous widgets to this...
 
-    QGroupBox *regions_coord = CreateGroupBox(ELayoutType::Vertical, {buttons_regions, coord_values} );
-    regions_coord->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Fixed );
+    QBoxLayout *areas_coord = LayoutWidgets( Qt::Horizontal, { areas_box, coord_values});
 
-    mWhereBox = AddTopLayout( ELayoutType::Horizontal, { areas_box, regions_coord }, s, m, m, m, m );
+    QGroupBox *regions_box = CreateGroupBox(ELayoutType::Vertical, { regions_layout, areas_coord } );
+    regions_box->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Fixed );
 
+    mWhereBox = AddTopLayout( ELayoutType::Horizontal, { regions_box }, s, m, m, m, m );
 	AddTopSpace( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
 
 
@@ -201,8 +228,23 @@ void CDatasetFilterControls::Wire()
 	connect( mSaveFilters, SIGNAL( clicked() ), this, SLOT( HandleSaveFilters() ) );
 
 	connect( mFiltersCombo, SIGNAL( currentIndexChanged(int) ), this, SLOT( HandleFiltersCurrentIndexChanged(int) ) );
+    connect( mRegionsCombo, SIGNAL( currentIndexChanged(int) ), this, SLOT( HandleRegionsCurrentIndexChanged(int) ) );
+    connect( mAreasListWidget, SIGNAL( itemSelectionChanged() ), this, SLOT( HandleAreasSelectionChanged() ) );
 
 	connect( mClearWhere, SIGNAL( clicked() ), this, SLOT( HandleClearWhere() ) );
+
+    connect( mNewRegion, SIGNAL( clicked() ), this, SLOT( HandleNewRegion() ) );
+    connect( mRenameRegion, SIGNAL( clicked() ), this, SLOT( HandleRenameRegion() ) );
+    connect( mDeleteRegion, SIGNAL( clicked() ), this, SLOT( HandleDeleteRegion() ) );
+    connect( mSaveRegion, SIGNAL( clicked() ), this, SLOT( HandleSaveRegion() ) );
+
+    connect( mNewArea, SIGNAL( clicked() ), this, SLOT( HandleNewArea() ) );
+    connect( mAddKML, SIGNAL( clicked() ), this, SLOT( HandleAddKML() ) );
+    connect( mAddMask, SIGNAL( clicked() ), this, SLOT( HandleAddMask() ) );
+    connect( mRenameArea, SIGNAL( clicked() ), this, SLOT( HandleRenameArea() ) );
+    connect( mDeleteArea, SIGNAL( clicked() ), this, SLOT( HandleDeleteArea() ) );
+    connect( mSaveArea, SIGNAL( clicked() ), this, SLOT( HandleSaveArea() ) );
+
 	connect( mClearWhen, SIGNAL( clicked() ), this, SLOT( HandleClearWhen() ) );
 
 	connect( mMap, SIGNAL( CurrentLayerSelectionChanged() ), this, SLOT( HandleCurrentLayerSelectionChanged() ) );
@@ -248,22 +290,9 @@ bool CDatasetFilterControls::ReloadFilters()
 
 	FillFiltersCombo();
 
-	mAreasListWidget->clear();
-	auto &amap = mBratAreas.AreasMap();
-	for ( auto &area_entry : amap )
-	{
-		auto &area = area_entry.second;
-		QListWidgetItem* item = new QListWidgetItem( t2q( area.Name() ), mAreasListWidget );
-		item->setFlags( item->flags() | Qt::ItemIsUserCheckable );		
-		item->setCheckState( area.IsPredefined() ? Qt::Checked : Qt::Unchecked );
-	}
+    FillAreasList();
 
-	mRegionsCombo->clear();
-	auto &rmap = mBratRegions.RegionsMap();
-	for ( auto &region_entry : rmap )
-	{
-		mRegionsCombo->addItem( region_entry.first.c_str() );
-	}
+    FillRegionsCombo();
 
 	return true;
 }
@@ -276,6 +305,33 @@ void CDatasetFilterControls::FillFiltersCombo()
 	auto const &filters = mBratFilters.FiltersMap();
 	for ( auto const &filter : filters )
 		mFiltersCombo->addItem( filter.first.c_str() );
+}
+
+void CDatasetFilterControls::FillRegionsCombo()
+{
+    mRegionsCombo->clear();
+
+    mRegionsCombo->clear();
+    auto &rmap = mBratRegions.RegionsMap();
+    for ( auto &region_entry : rmap )
+    {
+        mRegionsCombo->addItem( region_entry.first.c_str() );
+    }
+}
+
+void CDatasetFilterControls::FillAreasList()
+{
+    mAreasListWidget->clear();
+    HandleAreasSelectionChanged(); // for updating buttons status
+
+    auto &amap = mBratAreas.AreasMap();
+    for ( auto &area_entry : amap )
+    {
+        auto &area = area_entry.second;
+        QListWidgetItem* item = new QListWidgetItem( t2q( area.Name() ), mAreasListWidget );
+        item->setFlags( item->flags() | Qt::ItemIsUserCheckable );
+        item->setCheckState( area.IsPredefined() ? Qt::Checked : Qt::Unchecked );
+    }
 }
 
 
@@ -304,7 +360,7 @@ void CDatasetFilterControls::HandleWorkspaceChanged( CWorkspaceDataset *wksd )
 
 void CDatasetFilterControls::HandleNewFilter()
 {
-	auto result = SimpleInputString( "Filter Name", mBratFilters.MakeNewName(), "New Filter" );
+    auto result = SimpleInputString( "Filter Name", mBratFilters.MakeNewName(), "New Filter..." );
 	if ( !result.first )
 		return;
 
@@ -318,11 +374,12 @@ void CDatasetFilterControls::HandleNewFilter()
 		// TODO Refresh all other pertinent widgets
 	}
 }
+
 void CDatasetFilterControls::HandleRenameFilter()
 {
 	assert__( mFilter );
 
-	auto result = SimpleInputString( "Filter Name", mFilter->Name(), "Rename Filter" );
+    auto result = SimpleInputString( "Filter Name", mFilter->Name(), "Rename Filter..." );
 	if ( !result.first )
 		return;
 
@@ -336,6 +393,7 @@ void CDatasetFilterControls::HandleRenameFilter()
 		// TODO Refresh all other pertinent widgets
 	}
 }
+
 void CDatasetFilterControls::HandleDeleteFilter()
 {
 	assert__( mFilter );
@@ -351,6 +409,7 @@ void CDatasetFilterControls::HandleDeleteFilter()
 		}
 	}
 }
+
 void CDatasetFilterControls::HandleSaveFilters()
 {
 	assert__( mFilter );
@@ -410,6 +469,44 @@ void CDatasetFilterControls::HandleFiltersCurrentIndexChanged( int filter_index 
     mStopPassEdit->setText( n2s< std::string >( mFilter->StopPass() ).c_str() );
 }
 
+void CDatasetFilterControls::HandleRegionsCurrentIndexChanged( int region_index )
+{
+    mRenameRegion->setEnabled( region_index >= 0 );
+    mDeleteRegion->setEnabled( region_index >= 0 );
+    mSaveRegion->setEnabled( region_index >= 0 );
+
+    if ( region_index < 0 )
+    {
+        return;
+    }
+
+    std::string name = q2a( mRegionsCombo->itemText( region_index ) );
+    CRegion *region = mBratRegions.Find( name );
+
+    //TODO - Set checked areas...
+}
+
+void CDatasetFilterControls::HandleAreasSelectionChanged()
+{
+    QListWidgetItem *item = mAreasListWidget->currentItem();
+
+    mRenameArea->setEnabled( item != nullptr );
+    mDeleteArea->setEnabled( item != nullptr );
+    mSaveArea->setEnabled( item != nullptr );
+
+    if ( item == nullptr )
+    {
+        return;
+    }
+
+    //TODO - Fill mMinLonEdit, mMinLatEdit...???
+//  std::string name = q2a( item->text() );
+//	CArea *area = mBratAreas.Find( name );
+
+//  mMinLonEdit->setText( n2s< std::string >( area  ->MinLon() ).c_str() );
+
+}
+
 
 void CDatasetFilterControls::HandleClearWhere()
 {
@@ -422,7 +519,147 @@ void CDatasetFilterControls::HandleClearWhen()
 	NOT_IMPLEMENTED;
 }
 
+void CDatasetFilterControls::HandleNewRegion()
+{
+    auto result = SimpleInputString( "Region Name", mBratRegions.MakeNewName(), "New Region..." );
+    if ( !result.first )
+        return;
 
+    if ( !mBratRegions.AddRegion( CRegion(result.second) ) )
+        SimpleMsgBox( "A area with same name already exists." );
+    else
+    {
+        FillRegionsCombo();
+        mRegionsCombo->setCurrentIndex( mRegionsCombo->findText( result.second.c_str() ) );
+
+        // TODO Refresh all other pertinent widgets
+    }
+}
+
+void CDatasetFilterControls::HandleRenameRegion()
+{
+    std::string region_name = mRegionsCombo->currentText().toStdString();
+
+    auto result = SimpleInputString( "Region Name", region_name, "Rename Region..." );
+    if ( !result.first )
+        return;
+
+    if ( !mBratRegions.RenameRegion( region_name, result.second ) )
+        SimpleMsgBox( "A region with same name already exists." );
+    else
+    {
+        FillRegionsCombo();
+        mFiltersCombo->setCurrentIndex( mRegionsCombo->findText( result.second.c_str() ));
+
+        // TODO Refresh all other pertinent widgets
+    }
+}
+
+
+void CDatasetFilterControls::HandleDeleteRegion()
+{
+    std::string region_name = mRegionsCombo->currentText().toStdString();
+
+    if ( SimpleQuestion( "Are you sure you want to delete region '" + region_name + "' ?" ) )
+    {
+        if ( !mBratRegions.DeleteRegion( region_name ) )
+            SimpleErrorBox( "Region '" + region_name + "' was not found!" );
+        else
+        {
+            FillRegionsCombo();
+            mRegionsCombo->setCurrentIndex( 0 );
+        }
+    }
+}
+
+void CDatasetFilterControls::HandleSaveRegion()
+{
+    std::string region_name = mRegionsCombo->currentText().toStdString();
+
+    CRegion *region = mBratRegions.Find( region_name );
+
+    // TODO
+    // Add selected areas to region
+
+    if ( !mBratRegions.Save() )
+        SimpleWarnBox( "There was a problem saving region to '" + mBratRegions.FilePath() + "'. Some information could be lost or damaged." );
+}
+
+void CDatasetFilterControls::HandleNewArea()
+{
+    auto result = SimpleInputString( "Area Name", mBratAreas.MakeNewName(), "New Area..." );
+    if ( !result.first )
+        return;
+
+    if ( !mBratAreas.AddArea( result.second ) )
+        SimpleMsgBox( "A area with same name already exists." );
+    else
+    {
+        FillAreasList();
+        mAreasListWidget->setCurrentItem( mAreasListWidget->findItems( result.second.c_str(), Qt::MatchExactly ).first() );
+
+        // TODO Refresh all other pertinent widgets
+    }
+}
+
+void CDatasetFilterControls::HandleAddKML()
+{
+    NOT_IMPLEMENTED;
+}
+
+void CDatasetFilterControls::HandleAddMask()
+{
+    NOT_IMPLEMENTED;
+}
+
+void CDatasetFilterControls::HandleRenameArea()
+{
+    std::string area_name = mAreasListWidget->currentItem()->text().toStdString();
+
+    auto result = SimpleInputString( "Area Name", area_name, "Rename Area..." );
+    if ( !result.first )
+        return;
+
+    if ( !mBratAreas.RenameArea( area_name, result.second ) )
+        SimpleMsgBox( "A area with same name already exists." );
+    else
+    {
+        FillAreasList();
+        mAreasListWidget->setCurrentItem( mAreasListWidget->findItems( result.second.c_str(), Qt::MatchExactly ).first() );
+
+        // TODO Refresh all other pertinent widgets
+    }
+}
+
+void CDatasetFilterControls::HandleDeleteArea()
+{
+    std::string area_name = mAreasListWidget->currentItem()->text().toStdString();
+
+    if ( SimpleQuestion( "Are you sure you want to delete area '" + area_name + "' ?" ) )
+    {
+        if ( !mBratAreas.DeleteArea( area_name ) )
+            SimpleErrorBox( "Area '" + area_name + "' was not found!" );
+        else
+        {
+            FillAreasList();
+            mAreasListWidget->setCurrentRow(0);
+        }
+    }
+}
+
+void CDatasetFilterControls::HandleSaveArea()
+{
+    std::string area_name = mAreasListWidget->currentItem()->text().toStdString();
+
+    CArea *area = mBratAreas.Find( area_name );
+
+    // TODO validation
+    // Add all vertex of selected area
+    //area->AddVertex( lon, lat );
+
+    if ( !mBratAreas.Save() )
+        SimpleWarnBox( "There was a problem saving areas to '" + mBratAreas.FilePath() + "'. Some information could be lost or damaged." );
+}
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -633,7 +870,7 @@ void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
 		try
 		{
 			CProduct *product = mDataset->SetProduct( path );
-			total_records += product->GetNumberOfRecords();
+            //total_records += product->GetNumberOfRecords();
 			bool skip_iteration = !product || !product->HasAliases();
 			if ( skip_iteration )
 			{
@@ -663,7 +900,7 @@ void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
 			}
 			CField *time = FindTimeField( product, alias_used, field_error_msg );
 
-			auto expected_lon_dim = lon ? lon->GetDim()[ 0 ] : 0;
+            auto expected_lon_dim = lon ? lon->GetDim()[ 0 ] : 0;
 			auto expected_lat_dim = lat ? lat->GetDim()[ 0 ] : 0;
             auto expected_time_dim = time ? time->GetDim()[ 0 ] : 0;                Q_UNUSED( expected_time_dim );
 			if ( expected_lon_dim != expected_lat_dim )
@@ -672,29 +909,33 @@ void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
 				LOG_WARN( "Different latitude/longitude dimensions in file " + path );
 			}
 
-			delete product;
-			if ( skip_iteration )
-			{
-				continue;
-			}
+            LOG_WARN( "lat==" + ( lat ? lat->GetName() : "" ) +
+                      " lon==" + ( lon ? lon->GetName() : "" ) +
+                      " time==" + ( time ? time->GetName() : "") );
 
-			/*
-			p->Open( q2a( path ), "data" );
+            delete product;
+            if ( skip_iteration )
+            {
+                continue;
+            }
+
+            /*
+            p->Open( q2a( path ), "data" );
 			CStringList FieldsToRead;
 			FieldsToRead.push_back("lat");
 			FieldsToRead.push_back("lon");
-			p->SetListFieldToRead( FieldsToRead, false );
-			// Get the number of record for the default record name (set in Open method of CProduct above)
+            p->SetListFieldToRead( FieldsToRead, false );
+            // Get the number of record for the default record name (set in Open method of CProduct above)
 			int32_t nRecords = p->GetNumberOfRecords();
 
 			for ( int32_t iRecord = 0; iRecord < nRecords; iRecord++ )
-			{
+            {
 			//Read fields for the record name  (list of field and record name are set in Open method of CProduct above)
 			p->ReadBratRecord( iRecord );
 			}
 			*/
 
-			size_t lon_dim = 0;
+            size_t lon_dim = 0;
 			size_t lat_dim = 0;
 			size_t time_dim = 0;
 			double *lonv = nullptr;
@@ -747,8 +988,6 @@ void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
 			: error_msg );
 	}
 }
-
-
 
 
 

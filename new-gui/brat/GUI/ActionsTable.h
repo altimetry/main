@@ -204,6 +204,9 @@ public:
 	static QToolButton* CreateMenuButton( EActionTag button_tag, const QList< QAction* > &actions );
 
 
+	static QToolButton* CreatePopupButton( EActionTag button_tag, const QList<QAction*> &actions, QAction *default_action = nullptr );
+
+
 	// Calls CreateAction
 	//
 	static QActionGroup* CreateActionGroup( QWidget *group_parent, const std::vector< EActionTag > &tags, bool exclusive );

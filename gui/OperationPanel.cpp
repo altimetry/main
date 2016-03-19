@@ -51,7 +51,7 @@ using namespace brathl;
 #include "Validators.h"
 #include "new-gui/brat/DataModels/PlotData/MapColor.h"
 #include "new-gui/brat/DataModels/Workspaces/Workspace.h"
-#include "Function.h"
+#include "new-gui/brat/DataModels/Workspaces/Function.h"
 #include "Process.h"
 #include "ResolutionDlg.h"
 #include "FormulaDlg.h"
@@ -696,34 +696,11 @@ void COperationPanel::OnComboOperationKillFocus( wxFocusEvent &event )
 //----------------------------------------
 void COperationPanel::OpNameChanged()
 {
-  if (m_opNameDirty == false)
+    CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+  if ( !m_opNameDirty || m_currentOperationIndex < 0 || wks == NULL || m_operation == NULL )
   {
     return;
   }
-
-  if (m_currentOperationIndex < 0)
-  {
-    return;
-  }
-
-  CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-  if (wks == NULL)
-  {
-    return;
-  }
-
-  //COperation* operation = GetCurrentOperation();
-
-  //if (operation == NULL)
-  //{
-  //  return;
-  //}
-
-  if (m_operation == NULL)
-  {
-    return;
-  }
-
 
   wxString opName = GetOpnames()->GetValue();
 
@@ -827,23 +804,17 @@ void COperationPanel::GetOperationExportAsciiOutput()
 //----------------------------------------
 void COperationPanel::RemoveOutput()
 {
-  if (m_operation == NULL)
+  if ( m_operation == NULL || !wxFileExists(m_operation->GetOutputPath()) )
   {
     return;
   }
 
-  bool bOk = wxFileExists(m_operation->GetOutputPath());
-  if (bOk == false)
-  {
-    return;
-  }
-
+  bool bOk = true;
 
   int32_t result = wxMessageBox(wxString::Format("Do you want to delete output file\n'%s'\nlinked to this operation ?",
                                                   m_operation->GetOutputPath().c_str()),
                                "Warning",
                                 wxYES_NO | wxCENTRE | wxICON_QUESTION);
-
   if (result != wxYES)
   {
     return;
@@ -857,7 +828,6 @@ void COperationPanel::RemoveOutput()
                 "Warning",
                 wxOK | wxICON_EXCLAMATION);
   }
-
 }
 
 //----------------------------------------
@@ -2020,7 +1990,7 @@ void COperationPanel::OnDatasetSelChanging( wxTreeEvent &event )
 	{
 		if ( GetFieldstreectrl()->GetRecordCount() > 0 )
 		{
-			SetCurrentDataset();
+			SetCurrentDataset();		//v4 assigns dataset and product to operation
 			event.Veto();
 			return;
 		}
@@ -2125,7 +2095,7 @@ void COperationPanel::OnDatasetSelChanged( wxTreeEvent &event )
 
 	/////////////////////////////////////////////////////////////////////////////////////DatasetSelChanged(id);
 	{
-		ClearFieldsInfo();
+		ClearFieldsInfo();		//deletes product, inserts nullptr in GetFieldstreectrl
 
 		CDataset* dataset = GetDatasettreectrl()->GetDataset( id );
 		if ( dataset == NULL )
@@ -2450,35 +2420,16 @@ void COperationPanel::NewOperation()		//v4 Except where noted all comments in th
 //----------------------------------------
 void COperationPanel::DuplicateOperation()
 {
-
-  bool bOk = true;
-
-
   CWorkspaceDataset* wksd = wxGetApp().GetCurrentWorkspaceDataset();
   CWorkspaceOperation* wkso = wxGetApp().GetCurrentWorkspaceOperation();
-  if (wkso == NULL)
+  if (wkso == NULL || m_currentOperationIndex < 0 || m_operation == NULL)
   {
     return;
   }
-
-  if (m_currentOperationIndex < 0)
-  {
-    return;
-  }
-
- // COperation* operation = GetCurrentOperation();
-
-  if (m_operation == NULL)
-  {
-    return;
-  }
-
 
   wxString opName = wkso->GetOperationCopyName(m_operation->GetName());
 
-  bOk = wkso->InsertOperation(opName.ToStdString(), m_operation, wksd, wkso );
-
-  if (bOk == false)
+  if ( !wkso->InsertOperation(opName.ToStdString(), m_operation, wksd ) )
   {
     wxMessageBox(wxString::Format("Operation '%s' already exists", opName.c_str()),
                 "Warning",
@@ -2494,29 +2445,12 @@ void COperationPanel::DuplicateOperation()
   }
 
   ComboOperation();
-
 }
 //----------------------------------------
 void COperationPanel::DeleteOperation()
 {
-
-  bool bOk = true;
-
-
   CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-  if (wks == NULL)
-  {
-    return;
-  }
-
-  if (m_currentOperationIndex < 0)
-  {
-    return;
-  }
-
- // COperation* operation = GetCurrentOperation();
-
-  if (m_operation == NULL)
+  if ( wks == NULL ||m_currentOperationIndex < 0 || m_operation == NULL )
   {
     return;
   }
@@ -2532,8 +2466,7 @@ void COperationPanel::DeleteOperation()
   }
 
   CStringArray displayNames;
-  bOk = wxGetApp().CanDeleteOperation(m_operation->GetName(), &displayNames);
-
+  bool bOk = wxGetApp().CanDeleteOperation(m_operation->GetName(), &displayNames);
   if (bOk == false)
   {
     std::string str = displayNames.ToString("\n", false);
@@ -2985,109 +2918,46 @@ void COperationPanel::FillFormulaList()
 
 	wks->GetFormulaNames( m_mapFormulaString );
 }
-/*
+
 //----------------------------------------
-void COperationPanel::InitDefaultFormulaValue(const wxString& fieldName, int32_t type)
+wxString COperationPanel::GetAlgorithmSyntax( wxTextCtrl* textCtrl, wxTextCtrl* unitCtrl )
 {
-  if (m_operation == NULL)
-  {
-    return;
-  }
+	CAlgorithmDlg dlg( this, -1, "Insert an algorithm ..." );
+	dlg.CentreOnParent();
+	int32_t result = dlg.ShowModal();
+	if ( result != wxID_OK || dlg.m_algo == NULL )
+	{
+		return  "";
+	}
 
-  CFormula* formula = m_operation->GetFormula(type);
+	wxString syntax = dlg.m_algo->GetSyntax().c_str();
 
-  if (formula == NULL)
-  {
-    return;
-  }
+	if ( textCtrl != NULL )
+	{
+		textCtrl->WriteText( syntax );
+	}
+	if ( unitCtrl != NULL )
+	{
+		try
+		{
+			// Algo. unit can be a descriptive label and not necessary a unit label, 
+			// e.g on algo. whose unit depends on algo. input param/expression .
+			// So, don't erase the current unit if the algo. has no specified unit.
+			CUnit algoUnit = dlg.m_algo->GetOutputUnit();
+			if ( !algoUnit.HasNoUnit() )
+			{
+				unitCtrl->SetValue( dlg.m_algo->GetOutputUnit().c_str() );
+			}
+		}
+		catch ( CException& e )
+		{
+			// Do nothing
+			e.what(); // To avoid compiler complaint
+		}
 
-  wxString text = formula->GetDescription(true).Trim();
+	}
 
-  if (text.IsEmpty() == false)
-  {
-    return;
-  }
-
-
-  //long index = GetOpfieldlist()->FindItem(-1, fieldName);
-
-  //if (index < 0)
-  //{
-  //  return;
-  //}
-
-
-  wxTreeItemId id = GetFieldstreectrl()->FindItem(fieldName, false, false);
-  if (!id)
-  {
-    return;
-  }
-
-  CField* field = GetFieldstreectrl()->GetField(id);
-
-  if (field == NULL)
-  {
-    return;
-  }
-
-  formula->SetDescription(field->GetName().c_str());
-}
-
-*/
-//----------------------------------------
-wxString COperationPanel::GetAlgorithmSyntax(wxTextCtrl* textCtrl, wxTextCtrl* unitCtrl)
-{
-
- wxString title = "Insert an algorithm ...";
-
-  CAlgorithmDlg dlg (this, -1, title);
-  
-  dlg.CentreOnParent();
-
-  int32_t result = dlg.ShowModal();
-  if (result != wxID_OK)
-  {
-    return "";
-  }
-
-  if (dlg.m_algo == NULL)
-  {
-    return  "";
-  }
-
-  //wxString name = dlg.GetAlgoList()->GetStringSelection();
-  //CMapBratAlgorithm* algorithms = CBratAlgorithmBaseRegistry::GetAlgorithms();
-
-  //wxString syntax = algorithms->GetSyntaxAlgo(name.c_str()).c_str();
-  
-  wxString syntax = dlg.m_algo->GetSyntax().c_str();
-
-  if (textCtrl != NULL)
-  {
-    textCtrl->WriteText(syntax);
-  }
-  if (unitCtrl != NULL)
-  {
-    try 
-    {
-      // Algo. unit can be a descriptive label and not necessary a unit label, 
-      // e.g on algo. whose unit depends on algo. input param/expression .
-      // So, don't erase the current unit if the algo. has no specified unit.
-      CUnit algoUnit = dlg.m_algo->GetOutputUnit();
-      if (!algoUnit.HasNoUnit())
-      {
-        unitCtrl->SetValue(dlg.m_algo->GetOutputUnit().c_str());
-      }
-    }
-    catch (CException& e)
-    {
-      // Do nothing
-      e.what(); // To avoid compiler complaint
-    }
-
-  }
-
-  return syntax;
+	return syntax;
 }
 //----------------------------------------
 wxString COperationPanel::GetFormulaSyntax(wxTextCtrl* textCtrl, wxTextCtrl* unitCtrl)
@@ -3138,7 +3008,7 @@ wxString COperationPanel::GetFunctionSyntax()
     return "";
   }
   wxString name = dlg.GetFunctionList()->GetStringSelection();
-  return CMapFunction::GetInstance().GetSyntaxFunc(name);
+  return CMapFunction::GetInstance().GetSyntaxFunc(name.ToStdString());
 
 }
 

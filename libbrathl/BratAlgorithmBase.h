@@ -88,13 +88,13 @@ class CFieldNetCdf;
 //  std::string GetValue() const;
 //
 //  double GetValueAsDouble() const {return m_valDouble; };
-//  int32_t GetValueAsInt() const {return m_valInt;};
-//  int64_t GetValueAsLong() const {return m_valLong;};
-//  float GetValueAsFloat() const {return m_valFloat;};
-//  std::string GetValueAsString() const {return m_valString;};
-//  unsigned char GetValueAsChar() const {return m_valChar;};
-//  const CDoubleArray* GetValueAsVectDouble() const {return &m_vectValDouble;};
-//  CDoubleArray* GetValueAsVectDouble() {return &m_vectValDouble;};
+//  int32_t GetValueAsInt() const {return m_valInt; }
+//  int64_t GetValueAsLong() const {return m_valLong; }
+//  float GetValueAsFloat() const {return m_valFloat; }
+//  std::string GetValueAsString() const {return m_valString; }
+//  unsigned char GetValueAsChar() const {return m_valChar; }
+//  const CDoubleArray* GetValueAsVectDouble() const {return &m_vectValDouble; }
+//  CDoubleArray* GetValueAsVectDouble() {return &m_vectValDouble; }
 //
 //  void SetValue(double value);
 //  void SetValue(float value);
@@ -218,13 +218,13 @@ public:
   /** Gets the name of the algorithm */
   virtual std::string GetName() const = 0;
   /** Gets the description of the algorithm */
-  virtual std::string GetDescription() = 0;
+  virtual std::string GetDescription() const = 0;
   /** Gets the number of input parameters to pass to the 'Run' function */
-  virtual uint32_t GetNumInputParam() = 0;
+  virtual uint32_t GetNumInputParam() const = 0;
   /** Gets the description of an input parameter.
    \param indexParam [in] : parameter index. First parameter index is 0, last one is 'number of parameters - 1'.
    */
-  virtual std::string GetInputParamDesc(uint32_t indexParam) = 0;
+  virtual std::string GetInputParamDesc(uint32_t indexParam) const = 0;
   /** Gets the format of an input parameter :
       CBratAlgorithmParam::T_DOUBLE for double
       CBratAlgorithmParam::T_FLOAT for float
@@ -234,18 +234,18 @@ public:
       CBratAlgorithmParam::T_CHAR for a character
    \param indexParam [in] : parameter index. First parameter index is 0, last one is 'number of parameters - 1'.
    */
-  virtual CBratAlgorithmParam::bratAlgoParamTypeVal GetInputParamFormat(uint32_t indexParam) = 0;
+  virtual CBratAlgorithmParam::bratAlgoParamTypeVal GetInputParamFormat(uint32_t indexParam) const = 0;
   /** Gets the unit of an input parameter :
    \param indexParam [in] : parameter index. First parameter index is 0, last one is 'number of parameters - 1'.
    */
-  virtual std::string GetInputParamUnit(uint32_t indexParam) = 0;
+  virtual std::string GetInputParamUnit(uint32_t indexParam) const = 0;
   /** Gets the unit of an output value returned by the 'Run' function.
    */
-  virtual std::string GetOutputUnit() = 0;
+  virtual std::string GetOutputUnit() const = 0;
   
   //virtual std::string GetParamFormats();
-  virtual std::string GetParamName(uint32_t /*indexParam*/) {return "";};
-  virtual double GetParamDefaultValue(uint32_t /*indexParam*/) {return CTools::m_defaultValueDOUBLE;};
+  virtual std::string GetParamName(uint32_t /*indexParam*/) const {return ""; }
+  virtual double GetParamDefaultValue(uint32_t /*indexParam*/) const {return CTools::m_defaultValueDOUBLE; }
   
   void GetParamDefValue(uint32_t indexParam, double& value);
   void GetParamDefValue(uint32_t indexParam, float& value);
@@ -280,7 +280,7 @@ public:
 
   CProductNetCdf* GetProductNetCdf(CProduct* product);
 
-  std::string GetSyntax();
+  std::string GetSyntax() const;
 
   void CheckConstantParam(uint32_t indexParam);
 
@@ -418,8 +418,8 @@ public:
 
   virtual CBratAlgorithmBase* Find(const std::string& algoName) const;
 
-  bool GetDelete() {return m_bDelete;};
-  void SetDelete(bool value) {m_bDelete = value;};
+  bool GetDelete() {return m_bDelete; }
+  void SetDelete(bool value) {m_bDelete = value; }
 
   std::string GetSyntaxAlgo(const std::string& name);
 
@@ -453,8 +453,8 @@ public:
 
   virtual void Dump(std::ostream& fOut  = std::cerr); 
 
-  bool GetDelete() {return m_bDelete;};
-  void SetDelete(bool value) {m_bDelete = value;};
+  bool GetDelete() {return m_bDelete; }
+  void SetDelete(bool value) {m_bDelete = value; }
 
 protected:
 
@@ -544,15 +544,15 @@ public:
   {
       return "example1";
   }
-  virtual std::string GetDescription() override
+  virtual std::string GetDescription() const override
   {
       return "example 1 of algorithm - return (parameter 2 + parameter 4)";
   }
-  virtual uint32_t GetNumInputParam() override
+  virtual uint32_t GetNumInputParam() const override
   {
       return 4;
   }
-  virtual std::string GetInputParamDesc(uint32_t indexParam) override
+  virtual std::string GetInputParamDesc(uint32_t indexParam) const override
   {
         std::string value = "";
         switch (indexParam) 
@@ -568,7 +568,7 @@ public:
         }
         return value;
   };
-  virtual CBratAlgorithmParam::bratAlgoParamTypeVal  GetInputParamFormat(uint32_t indexParam) override
+  virtual CBratAlgorithmParam::bratAlgoParamTypeVal  GetInputParamFormat(uint32_t indexParam) const override
   {
         CBratAlgorithmParam::bratAlgoParamTypeVal value = CBratAlgorithmParam::T_UNDEF;
         switch (indexParam) 
@@ -593,7 +593,7 @@ public:
   /** Gets the unit of an input parameter :
    \param indexParam [in] : parameter index.
    */
-  virtual std::string GetInputParamUnit(uint32_t indexParam) override
+  virtual std::string GetInputParamUnit(uint32_t indexParam) const override
   {
         std::string value = "";
         switch (indexParam) 
@@ -613,7 +613,7 @@ public:
   /** Gets the unit of an output value returned by the 'Run' function.
    \param indexParam [in] : parameter index.
    */
-  virtual std::string GetOutputUnit() override
+  virtual std::string GetOutputUnit() const override
   {
       return "m";
   }

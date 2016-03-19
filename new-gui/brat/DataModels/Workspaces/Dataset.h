@@ -18,7 +18,6 @@
 #if !defined(WORKSPACES_DATASET_H)
 #define WORKSPACES_DATASET_H
 
-#include "new-gui/QtInterface.h"
 #include "Constants.h"
 
 #include "libbrathl/brathl.h"
