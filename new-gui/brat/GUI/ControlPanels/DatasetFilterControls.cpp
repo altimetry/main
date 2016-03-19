@@ -483,6 +483,8 @@ void CDatasetFilterControls::HandleRegionsCurrentIndexChanged( int region_index 
     std::string name = q2a( mRegionsCombo->itemText( region_index ) );
     CRegion *region = mBratRegions.Find( name );
 
+    Q_UNUSED( region );
+
     //TODO - Set checked areas...
 }
 
@@ -578,6 +580,8 @@ void CDatasetFilterControls::HandleSaveRegion()
 
     CRegion *region = mBratRegions.Find( region_name );
 
+    Q_UNUSED( region );
+
     // TODO
     // Add selected areas to region
 
@@ -652,6 +656,8 @@ void CDatasetFilterControls::HandleSaveArea()
     std::string area_name = mAreasListWidget->currentItem()->text().toStdString();
 
     CArea *area = mBratAreas.Find( area_name );
+
+    Q_UNUSED( area );
 
     // TODO validation
     // Add all vertex of selected area

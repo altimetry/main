@@ -64,7 +64,7 @@ public:
 protected:
 
 	template< typename FUNCTION >
-	QTreeWidgetItem* FindItem( FUNCTION &f );
+    QTreeWidgetItem* FindItem( FUNCTION f );
 
 
 	template< typename DATA >

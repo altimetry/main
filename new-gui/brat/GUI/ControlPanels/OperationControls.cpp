@@ -555,9 +555,9 @@ void COperationControls::HandleSelectedWorkspaceChanged( CModel *model )
 
 	mQuickDatasetsCombo->clear();			 //TODO handle quick
 
-	if ( mModel )
+    mWRoot = mModel ? mModel->RootWorkspace() : nullptr;
+    if ( mModel && mWRoot )
 	{
-	    mWRoot = mModel->RootWorkspace();
 		mWDataset = mModel->Workspace< CWorkspaceDataset >();
 		mWOperation = mModel->Workspace< CWorkspaceOperation >();
 		mWDisplay = mModel->Workspace< CWorkspaceDisplay >();
@@ -565,14 +565,13 @@ void COperationControls::HandleSelectedWorkspaceChanged( CModel *model )
 	}
 	else
 	{
-	    mWRoot = nullptr;
 		mWDataset = nullptr;
 		mWOperation = nullptr;
 		mWDisplay = nullptr;
 		mWFormula = nullptr;
 	}
 
-	setEnabled( mModel && mWDataset->GetDatasetCount() > 0 );
+    setEnabled( mModel && mWDataset && mWDataset->GetDatasetCount() > 0 );
 
 	if ( !mModel || !mWRoot )
 	{

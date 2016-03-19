@@ -100,7 +100,7 @@ QTreeWidgetItem* CAbstractTree::MakeRootItem( const std::string &name, DATA data
 
 
 template< typename FUNCTION >
-QTreeWidgetItem* CAbstractTree::FindItem( FUNCTION &f )
+QTreeWidgetItem* CAbstractTree::FindItem( FUNCTION f )
 {
 	//TODO code for a future templated find item with predicate
 
