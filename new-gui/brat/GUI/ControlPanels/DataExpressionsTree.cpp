@@ -4,15 +4,22 @@
 
 
 #include "libbrathl/Product.h"
+#include "libbrathl/ProductNetCdf.h"
 
 #include "new-gui/Common/QtUtils.h"
 
+#include "DataModels/Workspaces/Workspace.h"
+#include "DataModels/Workspaces/Function.h"
 #include "DataModels/Workspaces/Formula.h"
 #include "DataModels/Workspaces/Operation.h"
 #include "DataModels/MapTypeDisp.h"
 
 #include "GUI/ActionsTable.h"
+#include "GUI/DisplayWidgets/TextWidget.h"
+#include "Dialogs/InsertFunctionDialog.h"
+#include "Dialogs/InsertAlgorithmDialog.h"
 #include "Dialogs/SelectRecordDialog.h"
+#include "Dialogs/FormulaDialog.h"
 
 #include "DataExpressionsTree.h"
 
@@ -210,13 +217,39 @@ void CFieldsTreeWidget::SelectRecord( const std::string &record )		//see COperat
 	if ( !item )
 	{
 		item = GetFirstRecordItem();
-	}
-
-	assert__( item );
+	}									assert__( item );
 
 	setCurrentItem( item );
-	item->setExpanded( true );
+	if ( item )
+		item->setExpanded( true );
 }
+
+
+std::string	CFieldsTreeWidget::GetCurrentRecord() //CFieldsTreeCtrl::GetCurrentRecord()
+{
+	std::string record_name;			assert__( mProduct );
+	if ( mProduct )
+	{
+		QTreeWidgetItem *item = SelectedItem();
+		if ( !item )
+		{
+			item = GetFirstRecordItem();
+		}
+
+		CField* field = ItemField( item );
+		if ( field != nullptr )
+		{
+			record_name = field->GetRecordName();	  //method cannot be const because of this call
+		}
+
+		if ( record_name.empty() && mProduct->IsNetCdf() )
+		{
+			record_name = CProductNetCdf::m_virtualRecordName.c_str();
+		}
+	}
+	return record_name;
+}
+
 
 
 QTreeWidgetItem* CFieldsTreeWidget::InsertField( QTreeWidgetItem *parent, CObjectTreeNode *node )
@@ -311,10 +344,13 @@ QAction* CAbstractTree::AddMenuSeparator()
 }
 
 
-CDataExpressionsTreeWidget::CDataExpressionsTreeWidget( bool is_map, QWidget *parent, CFieldsTreeWidget *drag_source )
+CDataExpressionsTreeWidget::CDataExpressionsTreeWidget( CWorkspaceFormula *&wkspc, CStringMap &map_formula, bool is_map, QWidget *parent, CFieldsTreeWidget *drag_source )
 	: base_t( parent )
 	, mDragSource( drag_source )
+	, mWFormula( wkspc )
+	, mMapFormulaString( map_formula )
 	, mIsMap( is_map )
+	, mExpressionTextWidget( new CTextWidget )
 {
     QStringList labels;
     labels << tr("Data Expressions");
@@ -386,13 +422,13 @@ void CDataExpressionsTreeWidget::SelectX()
 }
 
 
-void CDataExpressionsTreeWidget::FormulaChanged( const CFormula *formula )
+void CDataExpressionsTreeWidget::FormulaChanged()
 {
-	assert__( mCurrentOperation && formula );
+	assert__( mCurrentOperation && mCurrentFormula );
 
-	if ( mCurrentOperation->IsSelect( formula ) )
+	if ( mCurrentOperation->IsSelect( mCurrentFormula ) )
 	{
-		std::string value = formula->GetDescription( true );
+		std::string value = mCurrentFormula->GetDescription( true );
 		SetItemBold( mItemSelectionCriteria, !value.empty() );		//mItemSelectionCriteria == GetSelectRootId
 	}
 }
@@ -471,7 +507,6 @@ void CDataExpressionsTreeWidget::InsertOperation( COperation *operation )
 
 	clear();
 	MakeRootItems();
-	//HandleSelectionChanged();
 
 	if ( mCurrentOperation == nullptr )
 	{
@@ -501,17 +536,22 @@ void CDataExpressionsTreeWidget::InsertOperation( COperation *operation )
 	}
 
 	InsertFormula( mItemSelectionCriteria, mCurrentOperation->GetSelect() );
+
+	mCurrentFormula = SelectedFormula();
+	mExpressionTextWidget->setText( mCurrentFormula ? mCurrentFormula->GetDescription().c_str() : "" );
 }
 
 
 void CDataExpressionsTreeWidget::HandleSelectionChanged()
 {
 	QTreeWidgetItem *item = SelectedItem();		//cannot assert__( item );
-	CFormula *formula = nullptr;
+	mCurrentFormula = nullptr;
 	if ( item )
-		formula = ItemFormula( item );
+		mCurrentFormula = ItemFormula( item );
 
-	emit SelectedFormulaChanged( formula );
+	mExpressionTextWidget->setText( mCurrentFormula ? mCurrentFormula->GetDescription().c_str() : "" );
+
+	emit SelectedFormulaChanged( mCurrentFormula );
 }
 
 
@@ -836,13 +876,10 @@ void CDataExpressionsTreeWidget::CustomContextMenu( QTreeWidgetItem *item )
 
 	//mRenameExprAction
 	//
-	if ( formula != nullptr )
+	if ( formula != nullptr && !COperation::IsSelect( formula->GetName() ) )
 	{
-		if ( !COperation::IsSelect( formula->GetName() ) )
-		{
-			text = "&Rename '" + q2a( item->text(0) ) + "' expression";
-			enable = true;
-		}
+		text = "&Rename '" + q2a( item->text(0) ) + "' expression";
+		enable = true;
 	}
 	else
 	{
@@ -876,18 +913,118 @@ void CDataExpressionsTreeWidget::HandleInsertField()
 {
 	NOT_IMPLEMENTED;
 }
+
+
+bool CDataExpressionsTreeWidget::CheckSyntax( CProduct *product )
+{
+	assert__( mCurrentOperation );
+
+	std::string value = q2a( mExpressionTextWidget->toPlainText() );
+	std::string value_out;
+	bool result = false;
+	std::string msg;
+
+	if ( mCurrentOperation->IsSelect( mCurrentFormula ) )
+	{
+		result = CFormula::CheckExpression( mWFormula, value.c_str(), mCurrentOperation->GetRecord(), msg, nullptr, &mMapFormulaString, product, &value_out );
+		if ( !result )
+			SimpleWarnBox( msg );
+	}
+	else
+	{
+		std::string unit;// = GetOpunit()->GetValue();	//TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	
+		result = CFormula::CheckExpression( mWFormula, value.c_str(), mCurrentOperation->GetRecord(), msg, &unit, &mMapFormulaString, product, &value_out );
+	}
+
+	if ( ! value_out.empty() )
+	{
+		if ( value != value_out )
+		{
+			mExpressionTextWidget->setPlainText( value_out.c_str() );
+		}
+	}
+
+	if ( !result )
+	{
+		mExpressionTextWidget->setFocus();
+	}
+
+	return result;
+}
+
+
+void CDataExpressionsTreeWidget::InsertAlgorithm()
+{
+	assert__( mCurrentOperation );
+
+	CInsertAlgorithmDialog dlg( this );
+	if ( dlg.exec() == QDialog::Accepted )
+	{
+		mExpressionTextWidget->insertPlainText( dlg.CurrentAlgorithm()->GetSyntax().c_str() );
+		mCurrentFormula->SetDescription( q2a( mExpressionTextWidget->toPlainText() ) );				////SetTextFormula();
+
+		//TODO how to deal/assign with field units		
+		//SetUnitText();
+	}
+}
+void CDataExpressionsTreeWidget::InsertFunction()
+{
+	assert__( mCurrentFormula );
+
+	CInsertFunctionDialog dlg( this );
+	if ( dlg.exec() == QDialog::Accepted )
+	{
+		std::string name = dlg.ResultFunction();
+		std::string function_syntax = CMapFunction::GetInstance().GetSyntaxFunc( name );
+		
+		mExpressionTextWidget->insertPlainText( function_syntax.c_str() );
+		mCurrentFormula->SetDescription( q2a( mExpressionTextWidget->toPlainText() ) );
+		FormulaChanged();
+	}
+}
 void CDataExpressionsTreeWidget::HandleInsertFunction()
 {
-	NOT_IMPLEMENTED;
+	InsertFunction();
+}
+
+
+void CDataExpressionsTreeWidget::InsertFormula()
+{
+	CFormulaDialog dlg( mWFormula, this );
+	if ( dlg.exec() == QDialog::Accepted )
+	{
+		//GetFormulaSyntax( GetOptextform(), GetOpunit() );
+		std::string name = dlg.CurrentFormula()->GetName();
+		std::string syntax = mWFormula->GetDescFormula( name, dlg.AsAlias() );
+		mExpressionTextWidget->insertPlainText( syntax.c_str() );
+		//TODO how to deal/assign with field units		
+		//	unitCtrl->SetValue( dlg.m_formula->GetUnitAsText() );
+		mCurrentFormula->SetDescription( q2a( mExpressionTextWidget->toPlainText() ) );				////SetTextFormula();
+
+		//TODO how to deal/assign with field units		
+		//SetUnitText();
+	}
 }
 void CDataExpressionsTreeWidget::HandleInsertFormula()
 {
-	NOT_IMPLEMENTED;
+	InsertFormula();
+}
+
+
+void CDataExpressionsTreeWidget::SaveAsFormula()
+{
+    CSaveAsFormula dlg( this );
+    if ( dlg.exec() == QDialog::Accepted )
+    {
+        NOT_IMPLEMENTED;
+    }
 }
 void CDataExpressionsTreeWidget::HandlemSaveasFormula()
 {
 	NOT_IMPLEMENTED;
 }
+
+
 void CDataExpressionsTreeWidget::HandleDeleteExpr()		//DeleteCurrentFormula()
 {
 	auto *item = SelectedItem();

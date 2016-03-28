@@ -362,7 +362,7 @@ void vtkZFXYPlotActor::AddInput(VTK_CZFXYPlotData* pdata)
   AddActors();
 
 
-  CZFXYPlotProperties* props = pdata->GetPlotProperty();
+  CZFXYPlotProperties* props = pdata->GetPlotProperties();
 
   SetPlotProperties(props);
 
@@ -421,7 +421,7 @@ void vtkZFXYPlotActor::ReplaceInput(uint32_t newIndex)
       continue;
     }
     
-    hasSomeContours |= pdata->m_plotProperty.m_withContour;
+    hasSomeContours |= pdata->m_plotProperties.m_withContour;
 
     uint32_t currentIndex = pdata->GetCurrentMap();
     if (newIndex == currentIndex)
@@ -463,7 +463,7 @@ void vtkZFXYPlotActor::ReplaceInput(uint32_t newIndex)
         continue;
       }
 
-      if (pdata->m_plotProperty.m_withContour)
+      if (pdata->m_plotProperties.m_withContour)
       {
         if (pdata->GetContourLabelNeedUpdateOnWindow())
         {
@@ -593,7 +593,7 @@ void vtkZFXYPlotActor::AddActorsContour()
     {
       continue;
     }
-    if (pdata->m_plotProperty.m_withContour)
+    if (pdata->m_plotProperties.m_withContour)
     {
       AddActorsContour(pdata);
     }
@@ -612,7 +612,7 @@ void vtkZFXYPlotActor::AddActorsSolidColor()
     {
       continue;
     }
-    if (pdata->m_plotProperty.m_solidColor)
+    if (pdata->m_plotProperties.m_solidColor)
     {
       AddActorsSolidColor(pdata);
     }
@@ -635,7 +635,7 @@ void vtkZFXYPlotActor::AddActorsContour(VTK_CZFXYPlotData* pdata)
 void vtkZFXYPlotActor::AddActorsContourLabel(VTK_CZFXYPlotData* pdata)
 {
 
-  if (pdata->GetPlotProperty()->m_withContourLabel)
+  if (pdata->GetPlotProperties()->m_withContourLabel)
   {
     AddActor(pdata->GetVtkContourLabelActor());
   }
@@ -765,7 +765,7 @@ void vtkZFXYPlotActor::GetXPlotDataRange(double& min, double& max)
     double l = 0;
     double h = 0;
 
-    CZFXYPlotProperties* props = pdata->GetPlotProperty();
+    CZFXYPlotProperties* props = pdata->GetPlotProperties();
 
     pdata->GetXRange(l, h);
 
@@ -858,7 +858,7 @@ void vtkZFXYPlotActor::GetYPlotDataRange(double& min, double& max)
     double l = 0;
     double h = 0;
 
-    CZFXYPlotProperties* props = pdata->GetPlotProperty();
+    CZFXYPlotProperties* props = pdata->GetPlotProperties();
 
     pdata->GetYRange(l, h);
 

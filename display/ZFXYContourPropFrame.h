@@ -51,14 +51,14 @@ public:
     : wxCommandEvent(wxEVT_ZFXY_CONTOUR_PROP_CHANGED, id)
   {
     m_id = id;
-    m_plotProperty = plotProperty;
+    m_plotProperties = plotProperty;
   };
 
   CZFXYContourPropChangedEvent(const CZFXYContourPropChangedEvent& event)
     : wxCommandEvent(wxEVT_ZFXY_CONTOUR_PROP_CHANGED, event.m_id)
   {
     m_id = event.m_id;
-    m_plotProperty = event.m_plotProperty;
+    m_plotProperties = event.m_plotProperties;
   };
   
   virtual wxEvent *Clone() const 
@@ -67,7 +67,7 @@ public:
     };
 
   wxWindowID m_id;
-  CZFXYPlotProperties m_plotProperty;
+  CZFXYPlotProperties m_plotProperties;
 };
 typedef void (wxEvtHandler::*CZFXYContourPropChangedEventFunction)(CZFXYContourPropChangedEvent&);
 
@@ -147,7 +147,7 @@ public:
 private:
   CZFXYPlotData* m_geoMap;
 
-  CZFXYPlotProperties m_plotProperty;
+  CZFXYPlotProperties m_plotProperties;
 
   CPlotColor m_lineColor;
   CPlotColor m_labelColor;

@@ -22,38 +22,81 @@ using namespace brathl;
 
 #include "MapColor.h" 
 
-//-------------------------------------------------------------
-//------------------- CPointGlyph class --------------------
-//-------------------------------------------------------------
-CPointGlyph::CPointGlyph(PointGlyph id, const std::string name)
-{
-  m_name = name;
-  m_id = id;
-}
-//----------------------------------------
-CPointGlyph::~CPointGlyph()
-{
-
-}
-
 
 //-------------------------------------------------------------
 //------------------- CMapPointGlyph class --------------------
 //-------------------------------------------------------------
+
+
+const std::string* BuildPointGlyphNames()
+{
+	static std::string names[ EPointGlyph_size ];
+
+	names[ eEllipse ]	= "Ellipse";
+	names[ eRect ]		= "Rect";
+	names[ eDiamond ]	= "Diamond";
+	names[ eTriangle ]	= "Triangle";
+	names[ eDTriangle ] = "DTriangle";
+	names[ eUTriangle ] = "UTriangle";
+	names[ eLTriangle ] = "LTriangle";
+	names[ eRTriangle ] = "RTriangle";
+	names[ eCross ]		= "Cross";
+	names[ eXCross ]	= "XCross";
+	names[ eHLine ]		= "HLine";
+	names[ eVLine ]		= "VLine";
+	names[ eStar1 ]		= "Star1";
+	names[ eStar2 ]		= "Star2";
+	names[ eHexagon ]	= "Hexagon";
+
+	return names;
+}
+
+
+const std::vector<std::string>& CMapPointGlyph::Names()
+{
+	static const std::string *names = BuildPointGlyphNames();
+	static std::vector<std::string> v( &names[ 0 ], &names[EPointGlyph_size] );
+
+	assert__( v.size() == EPointGlyph_size );
+
+	return v;
+}
+
+
+const std::string& CMapPointGlyph::Name( EPointGlyph e )
+{
+	static const std::vector<std::string> &names = Names();
+
+	assert__( e < EPointGlyph_size );
+
+	return names[ e ];
+}
+
+
+
 CMapPointGlyph::CMapPointGlyph()
 {
-  //Insert("NO", 		        new CPointGlyph(displayNO_GLYPH, "No glyph"));
-  //Insert("VERTEX", 		new CPointGlyph(displayVERTEX_GLYPH, "Vertex"));
-  Insert("DASH", 		new CPointGlyph(displayDASH_GLYPH, "Dash"));
-  Insert("CROSS", 		new CPointGlyph(displayCROSS_GLYPH, "Cross"));
-  Insert("THICKCROSS", 		new CPointGlyph(displayTHICKCROSS_GLYPH, "Thick cross"));
-  Insert("TRIANGLE", 		new CPointGlyph(displayTRIANGLE_GLYPH, "Triangle"));
-  Insert("SQUARE", 		new CPointGlyph(displaySQUARE_GLYPH, "Square"));
-  Insert("CIRCLE", 		new CPointGlyph(displayCIRCLE_GLYPH, "Circle"));
-  Insert("DIAMOND", 		new CPointGlyph(displayDIAMOND_GLYPH, "Diamond"));
-  Insert("ARROW", 		new CPointGlyph(displayARROW_GLYPH, "Arrow"));
-  Insert("THICKARROW", 		new CPointGlyph(displayTHICKARROW_GLYPH, "Thick arrow"));
-  Insert("HOOKEDARROW", 	new CPointGlyph(displayHOOKEDARROW_GLYPH, "Hooked arrow"));
+	//Insert("NO", 		        new CPointGlyph(displayNO_GLYPH, "No glyph"));
+	//Insert("VERTEX", 		new CPointGlyph(displayVERTEX_GLYPH, "Vertex"));
+	Insert( "DASH", new CPointGlyph( displayDASH_GLYPH, "Dash" ) );
+	Insert( "CROSS", new CPointGlyph( displayCROSS_GLYPH, "Cross" ) );
+	Insert( "THICKCROSS", new CPointGlyph( displayTHICKCROSS_GLYPH, "Thick cross" ) );
+	Insert( "TRIANGLE", new CPointGlyph( displayTRIANGLE_GLYPH, "Triangle" ) );
+	Insert( "SQUARE", new CPointGlyph( displaySQUARE_GLYPH, "Square" ) );
+	Insert( "CIRCLE", new CPointGlyph( displayCIRCLE_GLYPH, "Circle" ) );
+	Insert( "DIAMOND", new CPointGlyph( displayDIAMOND_GLYPH, "Diamond" ) );
+	Insert( "ARROW", new CPointGlyph( displayARROW_GLYPH, "Arrow" ) );
+	Insert( "THICKARROW", new CPointGlyph( displayTHICKARROW_GLYPH, "Thick arrow" ) );
+	Insert( "HOOKEDARROW", new CPointGlyph( displayHOOKEDARROW_GLYPH, "Hooked arrow" ) );
+
+	//insert remaining for consistency with v4
+
+	Insert( "EHEXAGON", new CPointGlyph( eHexagon, "eHexagon" ) );
+	Insert( "EVLINE", new CPointGlyph( eVLine, "eVLine" ) );
+	Insert( "ERTRIANGLE", new CPointGlyph( eRTriangle, "eRTriangle" ) );
+	Insert( "ELTRIANGLE", new CPointGlyph( eLTriangle, "eLTriangle" ) );
+
+	assert__( size() == Names().size() );
 }
 
 
@@ -78,7 +121,7 @@ bool CMapPointGlyph::ValidName(const std::string& name)
   return (value != NULL);
 }
 //----------------------------------------
-std::string CMapPointGlyph::GlyphToName(PointGlyph id)
+std::string CMapPointGlyph::GlyphToName(EPointGlyph id)
 {
   CMapPointGlyph::iterator it;
 
@@ -101,7 +144,7 @@ std::string CMapPointGlyph::GlyphToName(PointGlyph id)
 
 }
 //----------------------------------------
-std::string CMapPointGlyph::GlyphToKey(PointGlyph id)
+std::string CMapPointGlyph::GlyphToKey(EPointGlyph id)
 {
   CMapPointGlyph::iterator it;
 
@@ -124,7 +167,7 @@ std::string CMapPointGlyph::GlyphToKey(PointGlyph id)
 
 }
 //----------------------------------------
-PointGlyph CMapPointGlyph::NameToGlyph(const std::string& name)
+EPointGlyph CMapPointGlyph::NameToGlyph(const std::string& name)
 {
   CMapPointGlyph::iterator it;
 
@@ -147,7 +190,7 @@ PointGlyph CMapPointGlyph::NameToGlyph(const std::string& name)
 
 }
 //----------------------------------------
-PointGlyph CMapPointGlyph::KeyToGlyph(const std::string& key)
+EPointGlyph CMapPointGlyph::KeyToGlyph(const std::string& key)
 {
   std::string keyUpper = ToUpperCopy( key );
   CPointGlyph* value = dynamic_cast<CPointGlyph*>(Exists(keyUpper));
@@ -217,29 +260,29 @@ void CMapPointGlyph::GlyphToMap(CUIntMap& uintMap)
 }
 
 //----------------------------------------
-PointGlyph CMapPointGlyph::GetPointGlyph(CFileParams& params,
-		                                     int32_t index /*= 0*/,
-		                                     const std::string& keyword /*= "DISPLAY_PointGlyph"*/,
-		                                     PointGlyph defaultValue  /*= displayFULL*/)
+EPointGlyph CMapPointGlyph::GetPointGlyph( CFileParams& params,
+	int32_t index /*= 0*/,
+	const std::string& keyword /*= "DISPLAY_PointGlyph"*/,
+	EPointGlyph defaultValue  /*= displayCIRCLE_GLYPH*/ )
 {
-  CUIntMap glyphs;
-  GlyphToMap(glyphs);
+	CUIntMap glyphs;
+	GlyphToMap( glyphs );
 
-  std::string	valueName;
-  uint32_t	valueGlyph;
-  CParameter* p = params.m_mapParam.Exists(keyword);
-  if (p == NULL)
-  {
-    return defaultValue;
-  }
+	std::string	valueName;
+	uint32_t	valueGlyph;
+	CParameter* p = params.m_mapParam.Exists( keyword );
+	if ( p == NULL )
+	{
+		return defaultValue;
+	}
 
-  p->GetValue(valueGlyph,
-              valueName,
-	      glyphs,
-	      index,
-	      defaultValue);
-  
-  return static_cast<PointGlyph>(valueGlyph);
+	p->GetValue( valueGlyph,
+		valueName,
+		glyphs,
+		index,
+		defaultValue );
+
+	return static_cast<EPointGlyph>( valueGlyph );
 }
 
 
@@ -247,7 +290,7 @@ PointGlyph CMapPointGlyph::GetPointGlyph(CFileParams& params,
 //-------------------------------------------------------------
 //------------------- CStipplePattern class --------------------
 //-------------------------------------------------------------
-CStipplePattern::CStipplePattern(StipplePattern id, const std::string name)
+CStipplePattern::CStipplePattern(EStipplePattern id, const std::string name)
 {
   m_name = name;
   m_id = id;
@@ -262,6 +305,47 @@ CStipplePattern::~CStipplePattern()
 //-------------------------------------------------------------
 //------------------- CMapStipplePattern class --------------------
 //-------------------------------------------------------------
+
+const std::string* BuildStipplePatternNames()
+{
+	static std::string names[ EStipplePattern_size ];
+
+#if !defined(BRAT_V3)
+    names[ eSolidLine ] 		= "Solid Line";
+	names[ eDashLine ] 			= "Dash Line";
+	names[ eDotLine ] 			= "Dot Line";
+	names[ eDashDotLine ]		= "Dash-Dot Line";
+	names[ eDashDotDotLine ]	= "Dash-Dot-Dot Line";
+#endif
+
+	return names;
+}
+
+
+//static 
+const std::vector<std::string>& CMapStipplePattern::Names()
+{
+	static const std::string *names = BuildStipplePatternNames();
+	static std::vector<std::string> v( &names[ 0 ], &names[EStipplePattern_size] );
+
+	assert__( v.size() == EStipplePattern_size );
+
+	return v;
+}
+
+//static 
+const std::string& CMapStipplePattern::Name( EStipplePattern e )
+{
+	static const std::vector<std::string> &names = Names();
+
+	assert__( e < EStipplePattern_size );
+
+	return names[ e ];
+}
+
+
+
+
 CMapStipplePattern::CMapStipplePattern()
 {
   Insert("DOT", 		new CStipplePattern(displayDOT, "Dot"));
@@ -293,7 +377,7 @@ bool CMapStipplePattern::ValidName(const std::string& name)
   return (value != NULL);
 }
 //----------------------------------------
-std::string CMapStipplePattern::StippleToKey(StipplePattern id)
+std::string CMapStipplePattern::StippleToKey(EStipplePattern id)
 {
   CMapStipplePattern::iterator it;
 
@@ -316,7 +400,7 @@ std::string CMapStipplePattern::StippleToKey(StipplePattern id)
 
 }
 //----------------------------------------
-std::string CMapStipplePattern::StippleToName(StipplePattern id)
+std::string CMapStipplePattern::StippleToName(EStipplePattern id)
 {
   CMapStipplePattern::iterator it;
 
@@ -339,7 +423,7 @@ std::string CMapStipplePattern::StippleToName(StipplePattern id)
 
 }
 //----------------------------------------
-StipplePattern CMapStipplePattern::NameToStipple(const std::string& name)
+EStipplePattern CMapStipplePattern::NameToStipple(const std::string& name)
 {
   CMapStipplePattern::iterator it;
 
@@ -362,7 +446,7 @@ StipplePattern CMapStipplePattern::NameToStipple(const std::string& name)
 
 }
 //----------------------------------------
-StipplePattern CMapStipplePattern::KeyToStipple(const std::string& key)
+EStipplePattern CMapStipplePattern::KeyToStipple(const std::string& key)
 {
   std::string keyUpper = ToUpperCopy( key );
   CStipplePattern* value = dynamic_cast<CStipplePattern*>(Exists(keyUpper));
@@ -432,29 +516,38 @@ void CMapStipplePattern::StippleToMap(CUIntMap& uintMap)
 }
 
 //----------------------------------------
-StipplePattern CMapStipplePattern::GetStipplePattern(CFileParams& params,
-		                                     int32_t index /*= 0*/,
-		                                     const std::string& keyword /*= "DISPLAY_STIPPLEPATTERN"*/,
-		                                     StipplePattern defaultValue  /*= displayFULL*/)
+EStipplePattern CMapStipplePattern::GetStipplePattern( CFileParams& params,
+	int32_t index /*= 0*/,
+	const std::string& keyword /*= "DISPLAY_STIPPLEPATTERN"*/,
+	EStipplePattern defaultValue  /*= displayFULL*/ )
 {
-  CUIntMap stipples;
-  StippleToMap(stipples);
+#if defined(BRAT_V3)
 
-  std::string	valueName;
-  uint32_t	valueStipple;
-  CParameter* p = params.m_mapParam.Exists(keyword);
-  if (p == NULL)
-  {
-    return defaultValue;
-  }
+	CUIntMap stipples;
+	StippleToMap( stipples );
 
-  p->GetValue(valueStipple,
-              valueName,
-	      stipples,
-	      index,
-	      defaultValue);
-  
-  return static_cast<StipplePattern>(valueStipple);
+	std::string	valueName;
+	uint32_t	valueStipple;
+	CParameter* p = params.m_mapParam.Exists( keyword );
+	if ( p == NULL )
+	{
+		return defaultValue;
+	}
+
+	p->GetValue( valueStipple,
+		valueName,
+		stipples,
+		index,
+		defaultValue );
+
+	return static_cast<EStipplePattern>( valueStipple );
+
+#else
+	UNUSED( params );	UNUSED( index );	UNUSED( keyword );
+
+	return defaultValue;
+
+#endif
 }
 
 

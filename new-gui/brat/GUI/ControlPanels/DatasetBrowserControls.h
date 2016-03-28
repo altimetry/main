@@ -22,13 +22,18 @@ class CDatasetBrowserControls : public CDesktopControlsPanel
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
 #endif
 
-    Q_OBJECT
+	Q_OBJECT;
 
 #if defined (__APPLE__)
 #pragma clang diagnostic pop
 #endif
 
+	//types
+
     using base_t = CDesktopControlsPanel;
+
+
+	//instance data
 
     CStackedWidget *mBrowserStakWidget = nullptr;
     QAbstractButton *m_BrowseFilesButton = nullptr;
@@ -49,8 +54,10 @@ class CDatasetBrowserControls : public CDesktopControlsPanel
     CTextWidget *mFieldDesc = nullptr;
 
 
-    CWorkspaceDataset *mWDataset = nullptr;
+	//...doamin data
 
+	const CApplicationPaths &mBratPaths;
+    CWorkspaceDataset *mWDataset = nullptr;
 
 
     //construction / destruction
@@ -58,7 +65,7 @@ class CDatasetBrowserControls : public CDesktopControlsPanel
     void Wire();
 
 public:
-    explicit CDatasetBrowserControls( CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+    explicit CDatasetBrowserControls( CModel &model, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
     virtual ~CDatasetBrowserControls()
     {}
@@ -67,7 +74,6 @@ public:
 
     // operations
     void AddFiles(QStringList &paths_list);
-    void CheckFiles();
 
     void DatasetChanged(QTreeWidgetItem *tree_item );
     void FileChanged(QTreeWidgetItem *file_item );

@@ -37,7 +37,7 @@ void CMapEditor::CreateAndWireNewMap()
 		mMapView->setRenderFlag( false );
 		QWidget *p = mMapView;
 		mMapView = nullptr;
-		RemoveView( p, false );
+		RemoveView( p, false, false );
 	}
 	mMapView = new CBratMapView( this );
 	mMapView->ConnectParentRenderWidgets( mProgressBar, mRenderSuppressionCBox );
@@ -55,7 +55,6 @@ void CMapEditor::CreateWidgets()
 
     //    Specialized Tabs
 	mTabDataLayers = new CMapControlsPanelDataLayers( this );
-	mDataLayer = mTabDataLayers->mDataLayer;
 	mTabView = new CMapControlsPanelView( this );
 
 	AddTab( mTabDataLayers, "Data Layers" );
@@ -68,15 +67,15 @@ void CMapEditor::CreateWidgets()
 	statusBar()->insertPermanentWidget( index, mRenderSuppressionCBox, 0 );
 	statusBar()->insertPermanentWidget( index, mProgressBar, 1 );
 
-	mMeasureButton = CMapWidget::CreateMapMeasureActions( mToolBar, mActionMeasure, mActionMeasureArea );
-	mToolBar->addAction( CActionInfo::CreateAction( mToolBar, eAction_Separator ) );
-	mToolBar->addWidget( mMeasureButton );
+	mMeasureButton = CMapWidget::CreateMapMeasureActions( mGraphicsToolBar, mActionMeasure, mActionMeasureArea );
+	mGraphicsToolBar->addAction( CActionInfo::CreateAction( mGraphicsToolBar, eAction_Separator ) );
+	mGraphicsToolBar->addWidget( mMeasureButton );
 
-	mActionDecorationGrid = CMapWidget::CreateGridAction( mToolBar );
-	mToolBar->addAction( mActionDecorationGrid );
+	mActionDecorationGrid = CMapWidget::CreateGridAction( mGraphicsToolBar );
+	mGraphicsToolBar->addAction( mActionDecorationGrid );
 
     //    Map
-	ResetViews();				//creates map and connects map actions; hides it
+	ResetViews( true, false );		//creates map and connects map actions; hides it
 	mMapView->setVisible( true );
 
 	// Tool-bar actions
@@ -88,10 +87,6 @@ void CMapEditor::CreateWidgets()
 
 void CMapEditor::Wire()
 {
-	connect( mActionStatisticsMean, SIGNAL( triggered() ), this, SLOT( HandleStatisticsMean() ) );
-	connect( mActionStatisticsStDev, SIGNAL( triggered() ), this, SLOT( HandleStatisticsStDev() ) );
-	connect( mActionStatisticsLinearRegression, SIGNAL( triggered() ), this, SLOT( HandleStatisticsLinearRegression() ) );
-
 	for ( auto a : mProjectionsGroup->actions() )
 	{
 		if ( a->isSeparator() )
@@ -100,10 +95,24 @@ void CMapEditor::Wire()
 		assert__( a->isCheckable() );
 		connect( a, SIGNAL( triggered() ), this, SLOT( HandleProjection() ) );
 	}
+
+	connect( mActionStatisticsMean, SIGNAL( triggered() ), this, SLOT( HandleStatisticsMean() ) );
+	connect( mActionStatisticsStDev, SIGNAL( triggered() ), this, SLOT( HandleStatisticsStDev() ) );
+	connect( mActionStatisticsLinearRegression, SIGNAL( triggered() ), this, SLOT( HandleStatisticsLinearRegression() ) );
+
+	// layers
+
+	//...select layers
+
+	connect( mTabDataLayers->mFieldsList, SIGNAL( currentRowChanged( int ) ), this, SLOT( HandleCurrentFieldChanged( int ) ) );
+
+
+	//...show/hide layers
+	connect( mTabDataLayers->mShowSolidColorCheck, SIGNAL( toggled( bool ) ), this, SLOT( HandleShowSolidColor( bool ) ) );
 }
 
 CMapEditor::CMapEditor( CModel *model, const COperation *op, const std::string &display_name, QWidget *parent )		//display_name = "" parent = nullptr
-	: base_t( model, op, display_name, parent )
+	: base_t( true, model, op, display_name, parent )
 {
 	CreateWidgets();
 
@@ -135,6 +144,36 @@ CMapEditor::~CMapEditor()
 
 
 //virtual 
+void CMapEditor::closeEvent( QCloseEvent *event )
+{
+	if ( 
+		( !mGlobeView || mGlobeView->close() ) &&
+		( !mMapView || mMapView->close() ) 
+		)
+		event->accept();
+	else
+		event->ignore();
+}
+
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//						General Processing
+//
+//	- editor setup for operation/display/map type changes
+//	- all other editable properties rely on a correct/consistent setup here
+//
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+
+CViewControlsPanelGeneralMaps* CMapEditor::TabGeneral() 
+{ 
+	return dynamic_cast<CViewControlsPanelGeneralMaps*>( mTabGeneral ); 
+}
+
+
+//virtual 
 void CMapEditor::Show2D( bool checked )
 {
 	mMapView->setVisible( checked );
@@ -154,16 +193,24 @@ void CMapEditor::Show3D( bool checked )
 
 
 //virtual 
-void CMapEditor::ResetViews()
-{								 //TODO	TODO	TODO	TODO	TODO	CHECK/UNCHECK TOOLBAR
+bool CMapEditor::ResetViews( bool enable_2d, bool enable_3d )
+{
+	assert__( enable_2d );		Q_UNUSED( enable_2d );		Q_UNUSED( enable_3d );
+
 	if ( mGlobeView )
 	{
 		QWidget *p = mGlobeView;
 		mGlobeView = nullptr;
-		RemoveView( p, true );
+		if ( !RemoveView( p, true, false ) )
+			return false;
 	}
-	CreateAndWireNewMap();
+	if ( enable_2d )
+	{
+		CreateAndWireNewMap();
+	}
+	return true;
 }
+
 
 
 #include <QProgressDialog>
@@ -193,24 +240,99 @@ void CMapEditor::NewButtonClicked()
 {
 	NOT_IMPLEMENTED
 }
+//virtual 
+void CMapEditor::RenameButtonClicked()
+{
+	NOT_IMPLEMENTED
+}
+//virtual 
+void CMapEditor::DeleteButtonClicked()
+{
+	NOT_IMPLEMENTED
+}
+//virtual 
+void CMapEditor::OneClick()
+{
+	NOT_IMPLEMENTED
+}
 
-bool CMapEditor::Refresh()
+
+void CMapEditor::HandleStatisticsMean()
+{
+	NOT_IMPLEMENTED
+}
+
+
+void CMapEditor::HandleStatisticsStDev()
+{
+	NOT_IMPLEMENTED
+}
+
+
+void CMapEditor::HandleStatisticsLinearRegression()
+{
+	NOT_IMPLEMENTED
+}
+
+
+
+
+
+//virtual 
+void CMapEditor::OperationChanged( int index )
+{
+    Q_UNUSED(index);
+
+	TabGeneral()->mVarZ->clear();
+	if ( !mOperation )
+		return;
+
+	const CMapFormula* formulas = mOperation->GetFormulas();
+	for ( CMapFormula::const_iterator it = formulas->cbegin(); it != formulas->cend(); it++ )
+	{
+		const CFormula* formula = mOperation->GetFormula( it );
+		if ( formula == nullptr )
+			continue;
+
+		switch ( formula->GetType() )
+		{
+			case CMapTypeField::eTypeOpAsX:
+				break;
+
+			case CMapTypeField::eTypeOpAsY:
+				break;
+
+			case CMapTypeField::eTypeOpAsField:
+				TabGeneral()->mVarZ->addItem( formula->GetName().c_str() );
+				break;
+		}
+	}
+}
+
+
+
+bool CMapEditor::ViewChanged()
 {
 	WaitCursor wait;
 
 	try
 	{
-		ResetViews();
-
 		std::vector< CWPlot* > wplots;
 		if ( mDisplay->IsZLatLonType() )
 			wplots = GetDisplayPlots< CWPlot >( mDisplay );			assert__( wplots.size() && mCurrentDisplayFilesProcessor );
 
+
+		if ( !ResetViews( wplots.size() > 0, false ) )
+			throw CException( "A previous map is still processing. Please try again later." );
+		SelectTab( mTabGeneral->parentWidget() );
+
+
+		int map_index = 0;						assert__( wplots.size() <= 1 );		//forces redesign if false
 		for ( auto *wplot : wplots )
 		{
 			assert__( wplot != nullptr );
 
-			mMapView->CreatePlot( mCurrentDisplayFilesProcessor->GetWorldPlotProperties( 0 ), wplot );
+			ResetProperties( mCurrentDisplayFilesProcessor->GetWorldPlotProperties( map_index++ ), wplot );	//v3 always used hard coded map_index == 0
 		}
 
 		mMapView->setVisible( true );
@@ -236,22 +358,112 @@ bool CMapEditor::Refresh()
 
 
 
-void CMapEditor::HandleStatisticsMean()
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//						Properties Processing
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+
+
+///////////////////////////
+//	From properties to plot
+///////////////////////////
+
+
+void CMapEditor::ResetProperties( const CWorldPlotProperties *props, CWPlot *wplot )
 {
-	NOT_IMPLEMENTED
+	assert__( mMapView && mCurrentDisplayFilesProcessor );
+
+	mMapView->CreatePlot( props, wplot );
+
+	mDataArrayMap = mMapView->MapDataCollection();									assert__( mDataArrayMap );
+
+	mTabDataLayers->mFieldsList->clear();
+	const size_t size = mDataArrayMap->size();										assert__( size == mCurrentDisplayFilesProcessor->GetWorldPlotPropertiesSize() );
+	for ( size_t i = 0; i < size; ++i )
+	{
+		mPropertiesMap = &mDataArrayMap->at( i )->m_plotProperty;					assert__( mPropertiesMap );
+		mTabDataLayers->mFieldsList->addItem( t2q( mPropertiesMap->m_name ) );
+
+		//mMapView->SetCurveLineColor( i, mPropertiesMap->GetColor() );
+		//mMapView->SetCurveLineOpacity( i, mPropertiesMap->GetOpacity() );
+		//mMapView->SetCurveLinePattern( i, mPropertiesMap->GetStipplePattern() );
+		//mMapView->SetCurveLineWidth( i, mPropertiesMap->GetLineWidth() );
+
+		//mMapView->SetCurvePointColor( i, mPropertiesMap->GetPointColor() );
+		//mMapView->SetCurvePointFilled( i, mPropertiesMap->GetFilledPoint() );
+		//mMapView->SetCurvePointGlyph( i, mPropertiesMap->GetPointGlyph() );
+		//mMapView->SetCurvePointSize( i, mPropertiesMap->GetPointSize() );
+	}
+
+	mTabDataLayers->mFieldsList->setCurrentRow( 0 );
 }
 
 
-void CMapEditor::HandleStatisticsStDev()
+///////////////////////////
+//	From plot to widgets
+///////////////////////////
+
+
+void CMapEditor::HandleCurrentFieldChanged( int field_index )
 {
-	NOT_IMPLEMENTED
+	assert__( mMapView );
+
+	mTabDataLayers->mShowSolidColorCheck->setEnabled( field_index >= 0 && mDataArrayMap );
+
+	mPropertiesMap = nullptr;
+
+	if ( field_index < 0 )
+		return;
+
+	assert__( field_index < mDataArrayMap->size() );
+
+	mPropertiesMap = &mDataArrayMap->at( field_index )->m_plotProperty;	  			assert__( mPropertiesMap );
+
+	mTabDataLayers->mShowSolidColorCheck->setChecked( mMapView->IsLayerVisible( field_index ) );
+	//mTabDataLayers->mLineColorButton->SetColor( mPlot2DView->CurveLineColor( index ) );
+	//mTabDataLayers->mLineOpacityValue->setText( n2s<std::string>( mPlot2DView->CurveLineOpacity( index ) ).c_str() );
+	//mTabDataLayers->mStipplePattern->setCurrentIndex( mPlot2DView->CurveLinePattern( index ) );
+	//mTabDataLayers->mLineWidthValue->setText( n2s<std::string>( mPlot2DView->CurveLineWidth( index ) ).c_str() );
+
+
+	//mTabDataLayers->mPointColorButton->SetColor( mPlot2DView->CurvePointColor( index ) );
+	//mTabDataLayers->mFillPointCheck->setChecked( mPlot2DView->IsCurvePointFilled( index ) );
+	//mTabDataLayers->mPointGlyph->setCurrentIndex( mPlot2DView->CurvePointGlyph( index ) );
+	//mTabDataLayers->mPointSizeValue->setText( n2s<std::string>( mPlot2DView->CurvePointSize( index ) ).c_str() );
+
+	//mTabDataLayers->mLineOptions->setChecked( mPlotType != eHistogram && mPropertiesMap->GetLines() );
+	//mTabDataLayers->mPointOptions->setChecked( mPropertiesMap->GetPoints() );
 }
 
 
-void CMapEditor::HandleStatisticsLinearRegression()
+
+///////////////////////////////////////////////////////
+//	From widgets to properties, from properties to plot
+///////////////////////////////////////////////////////
+
+
+void CMapEditor::HandleShowSolidColor( bool checked )
 {
-	NOT_IMPLEMENTED
+	assert__( mMapView && mDataArrayMap && mPropertiesMap );
+
+    mPropertiesMap->m_solidColor = checked;
+
+
+	//if (mGlobeView)
+	//	mGlobeView->RemoveLayers();
+	mMapView->SetLayerVisible( mTabDataLayers->mFieldsList->currentRow(), mPropertiesMap->m_solidColor );
 }
+
+
+
+
+
+
 
 
 ///////////////////
@@ -340,49 +552,6 @@ void CMapEditor::HandleProjection()
 	else
 		mMapView->SetProjection( proj_id );
 }
-
-
-//virtual 
-void CMapEditor::OperationChanged( int index )
-{
-    Q_UNUSED(index);
-
-	//This will automatically trigger a display change so
-	//we don't need to take additional measures about that
-
-	mDataLayer->clear();
-	if ( !mOperation )
-		return;
-
-	const CMapFormula* formulas = mOperation->GetFormulas();
-	for ( CMapFormula::const_iterator it = formulas->cbegin(); it != formulas->cend(); it++ )
-	{
-		const CFormula* formula = mOperation->GetFormula( it );
-		if ( formula == nullptr )
-			continue;
-
-		switch ( formula->GetType() )
-		{
-			case CMapTypeField::eTypeOpAsX:
-				break;
-
-			case CMapTypeField::eTypeOpAsY:
-				break;
-
-			case CMapTypeField::eTypeOpAsField:
-				mDataLayer->addItem( formula->GetName().c_str() );
-				break;
-		}
-	}
-}
-
-
-//virtual 
-void CMapEditor::OneClick()
-{
-	NOT_IMPLEMENTED
-}
-
 
 
 

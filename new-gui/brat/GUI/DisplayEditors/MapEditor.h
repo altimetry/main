@@ -8,9 +8,9 @@
 class CWPlot;
 class CBratMapView;
 class CGlobeWidget;
+class CWorldPlotData;
 
-struct CViewControlsPanelPlots;
-
+struct CViewControlsPanelGeneralMaps;
 struct CMapControlsPanelDataLayers;
 struct CMapControlsPanelView;
 
@@ -79,8 +79,13 @@ class CMapEditor : public CAbstractDisplayEditor
 	//...tabs
 	CMapControlsPanelDataLayers *mTabDataLayers = nullptr;
 	CMapControlsPanelView *mTabView = nullptr;
-	QComboBox *mDataLayer = nullptr;
-	CViewControlsPanelPlots *mTabPlots = nullptr;
+
+
+	//...domain data
+
+	std::vector< CWorldPlotData* > *mDataArrayMap;
+
+	CWorldPlotProperties *mPropertiesMap = nullptr;
 
 
 	// construction /destruction
@@ -101,24 +106,46 @@ public:
 	// 
 
 protected:
-	virtual void ResetViews() override;
 
+    virtual void closeEvent( QCloseEvent *event ) override;
+
+	CViewControlsPanelGeneralMaps* TabGeneral();
+
+	void ResetProperties( const CWorldPlotProperties *props, CWPlot *wplot );
+
+	///////////////////////////////////////////////////////////
+	// Virtual interface implementations
+	///////////////////////////////////////////////////////////
+
+	virtual bool IsMapEditor() const { return true; }
+
+	virtual bool ResetViews( bool enable_2d, bool enable_3d ) override;
 
 	virtual void Show2D( bool checked ) override;
 	virtual void Show3D( bool checked ) override;
 
-	virtual bool Refresh() override;
+	virtual bool ViewChanged() override;
 	virtual void NewButtonClicked() override;
+	virtual void RenameButtonClicked() override;
+	virtual void DeleteButtonClicked() override;
 
 	virtual void OperationChanged( int index ) override;
 
 	virtual void OneClick() override;
+
+	///////////////////////////////////////////////////////////
+	// Handlers
+	///////////////////////////////////////////////////////////
 
 protected slots:
 
 	void HandleStatisticsMean();
 	void HandleStatisticsStDev();
 	void HandleStatisticsLinearRegression();
+
+	void HandleCurrentFieldChanged( int field_index );
+
+	void HandleShowSolidColor( bool checked );
 
 	void HandleProjection();
 };

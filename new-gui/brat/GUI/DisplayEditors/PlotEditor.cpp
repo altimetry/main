@@ -1,5 +1,6 @@
 #include "new-gui/brat/stdafx.h"
 
+#include "DataModels/MapTypeDisp.h"
 #include "DataModels/Workspaces/Display.h"
 #include "DataModels/DisplayFilesProcessor.h"
 
@@ -12,13 +13,6 @@
 void CPlotEditor::CreateWidgets() 	//parent = nullptr
 {
 	base_t::CreateWidgets<CViewControlsPanelGeneralPlots>();
-	CViewControlsPanelGeneralPlots *tab_general = dynamic_cast<CViewControlsPanelGeneralPlots*>( mTabGeneral );			assert__( tab_general );
-
-    mSelectPlotCombo = tab_general->mSelectPlotCombo;
-	mvarX = tab_general->mvarX;
-    mvarY = tab_general->mvarY;
-    mvarY2 = tab_general->mvarY2;
-    mvarZ = tab_general->mvarZ;
 
 	mTabCurveOptions = new CPlotControlsPanelCurveOptions( this );
 	mTabAxisOptions = new CPlotControlsPanelAxisOptions( this );
@@ -26,6 +20,9 @@ void CPlotEditor::CreateWidgets() 	//parent = nullptr
 	AddTab( mTabCurveOptions, "Curve Options" );
 	AddTab( mTabAxisOptions, "Axis Options" );
 
+	//Even if ResetViews destroys them before first use, 
+	//	it is important to start with valid views
+	//
 	mPlot2DView = new CBrat2DPlotView( this );
 	mPlot3DView = new CBrat3DPlotView( this );
 	AddView( mPlot2DView, false );
@@ -37,45 +34,78 @@ void CPlotEditor::CreateWidgets() 	//parent = nullptr
 
 void CPlotEditor::Wire()
 {
+	//fill before connecting
+
 	for ( int t = 0; t < CPlotEditor::EPlotTypes_size; ++t )
 	{
-		mSelectPlotCombo->addItem( CPlotEditor::PlotTypeName( (CPlotEditor::EPlotType)t ).c_str() );
+		QListWidgetItem *item = new QListWidgetItem( CPlotEditor::PlotTypeName( ( CPlotEditor::EPlotType )t ).c_str() );
+		TabGeneral()->mPlotTypesList->addItem( item );
 	}
+	TabGeneral()->mPlotTypesList->setMaximumWidth( TabGeneral()->mPlotTypesList->sizeHintForColumn( 0 ) + 10 );
+	TabGeneral()->mPlotTypesList->adjustSize();
 
-    connect( mTabAxisOptions, SIGNAL( LogarithmicScaleX( bool ) ), this, SLOT( HandleLogarithmicScaleX( bool ) ) );
-    connect( mTabAxisOptions, SIGNAL( LogarithmicScaleY( bool ) ), this, SLOT( HandleLogarithmicScaleY( bool ) ) );
-    connect( mTabAxisOptions, SIGNAL( LogarithmicScaleZ( bool ) ), this, SLOT( HandleLogarithmicScaleZ( bool ) ) );
 
-    connect( mTabCurveOptions, SIGNAL( LineOptionsChecked( bool, int ) ), this, SLOT( HandleLineOptionsChecked( bool, int ) ) );
-    //connect( mTabCurveOptions, SIGNAL( PointOptionsChecked( bool, int ) ), this, SLOT( HandlePointOptionsChecked( bool, int ) ) );
-    //connect( mTabCurveOptions, SIGNAL( CurrCurveChanged( int ) ), this, SLOT( OnUpdateCurveOptions( int ) ) );
+	auto const &names = CMapStipplePattern::Names();
+	for ( auto const &s : names )
+		mTabCurveOptions->mStipplePattern->addItem( s.c_str() );
 
-    connect( mTabCurveOptions, SIGNAL( CurveLineColorSelected(QColor, int) ), this, SLOT( HandleCurveLineColorSelected(QColor, int)));
-    connect( mTabCurveOptions, SIGNAL( CurvePointColorSelected(QColor, int) ), this, SLOT( HandleCurvePointColorSelected(QColor, int)));
-    //opacity line changed
-    connect( mTabCurveOptions, SIGNAL( CurveLineOpacityEntered(int, int) ), this , SLOT ( HandleOpacityChanged(int, int)));
+	auto const &v = CMapPointGlyph::Names();
+	for ( auto const &s : v )
+		mTabCurveOptions->mPointGlyph->addItem( s.c_str() );
 
-    connect( mTabCurveOptions, SIGNAL( CurveLineWidthEntered(int, int) ), this , SLOT ( HandleWidthChanged(int, int)));
 
-    //stipplepattern
-    connect( mTabCurveOptions, SIGNAL( StipplePatternChanged(int, int) ), this , SLOT(HandleStipplePatternChanged(int, int)));
+	//connect
 
-    connect( mTabCurveOptions, SIGNAL( GlyphPatternChanged(int, int) ), this , SLOT(HandleGlyphPatternChanged(int, int)));
+	connect( TabGeneral()->mPlotTypesList, SIGNAL( currentRowChanged( int ) ), this, SLOT( HandlePlotTypeChanged( int ) ) );
 
-    connect( mTabCurveOptions, SIGNAL( CurveGlyphWidthEntered(int, int) ), this , SLOT ( HandleGlyphSizeChanged(int, int)));
+	// axis
 
-    connect( mTabCurveOptions, SIGNAL( FillGlyphInterior(bool, int)), this, SLOT ( HandleFillGlyphInteriorChanged(bool,int)));
+	connect( mTabAxisOptions, SIGNAL( LogarithmicScaleX( bool ) ), this, SLOT( HandleLogarithmicScaleX( bool ) ) );
+	connect( mTabAxisOptions, SIGNAL( LogarithmicScaleY( bool ) ), this, SLOT( HandleLogarithmicScaleY( bool ) ) );
+	connect( mTabAxisOptions, SIGNAL( LogarithmicScaleZ( bool ) ), this, SLOT( HandleLogarithmicScaleZ( bool ) ) );
 
-    connect( this, SIGNAL(UpdatedCurrPlot(const CDisplayFilesProcessor*)), mTabCurveOptions, SLOT( HandleNewPlot(const CDisplayFilesProcessor*)));
+
+	// spectrogram
+
+	connect( mTabCurveOptions->mShowContour, SIGNAL( toggled( bool ) ), this, SLOT( HandleShowContourChecked( bool ) ) );
+	connect( mTabCurveOptions->mShowSolidColor, SIGNAL( toggled( bool ) ), this, SLOT( HandleShowSolidColorChecked( bool ) ) );
+
+
+	// curves
+
+	//...select curve
+	connect( mTabCurveOptions->mFieldsList, SIGNAL( currentRowChanged( int ) ), this, SLOT( HandleCurrentFieldChanged( int ) ) );
+
+	//...enable/disable line/points
+	connect( mTabCurveOptions->mPointOptions, SIGNAL( toggled( bool ) ), this, SLOT( HandlePointOptionsChecked( bool ) ) );
+	connect( mTabCurveOptions->mLineOptions, SIGNAL( toggled( bool ) ), this, SLOT( HandleLineOptionsChecked( bool ) ) );
+
+	//...color
+	connect( mTabCurveOptions->mLineColorButton, SIGNAL( ColorChanged() ), this, SLOT( HandleCurveLineColorSelected() ) );
+	connect( mTabCurveOptions->mPointColorButton, SIGNAL( ColorChanged() ), this, SLOT( HandleCurvePointColorSelected() ) );
+
+	//...pattern/glyph
+	connect( mTabCurveOptions->mStipplePattern, SIGNAL( currentIndexChanged( int ) ), this, SLOT( HandleStipplePatternChanged( int ) ) );
+	connect( mTabCurveOptions->mPointGlyph, SIGNAL( currentIndexChanged( int ) ), this, SLOT( HandleGlyphPatternChanged( int ) ) );
+
+	//...opacity/fill point
+	connect( mTabCurveOptions->mFillPointCheck, SIGNAL( toggled( bool ) ), this, SLOT( HandleFillGlyphInterior( bool ) ) );
+	connect( mTabCurveOptions->mLineOpacityValue, SIGNAL( returnPressed() ), this, SLOT( HandleCurveLineOpacityEntered() ) );
+	//
+	//DO NOT delete - alternatives to returnPressed
+	//connect( mTabCurveOptions->mLineOpacityValue, SIGNAL( textChanged(const QString &) ), this, SLOT( HandleCurveLineOpacityEntered() ) );
+	//connect( mTabCurveOptions->mLineOpacityValue, SIGNAL( editingFinished() ), this, SLOT( HandleCurveLineOpacityEntered() ) );
+
+	//...width/size
+	connect( mTabCurveOptions->mLineWidthValue, SIGNAL( returnPressed() ), this, SLOT( HandleCurveLineWidthEntered() ) );
+	connect( mTabCurveOptions->mPointSizeValue, SIGNAL( returnPressed() ), this, SLOT( HandleCurveGlyphWidthEntered() ) );
 }
 
 
 
 CPlotEditor::CPlotEditor( CModel *model, const COperation *op, const std::string &display_name, QWidget *parent ) 	//display_name = "" parent = nullptr
-	: base_t( model, op, display_name, parent )
+	: base_t( false, model, op, display_name, parent )
 {
-	assert__( !mOperation->IsMap() );
-
     CreateWidgets();
 
 	Start( display_name );
@@ -85,7 +115,7 @@ CPlotEditor::CPlotEditor( CModel *model, const COperation *op, const std::string
 CPlotEditor::CPlotEditor( const CDisplayFilesProcessor *proc, CPlot* plot, QWidget *parent ) 	//parent = nullptr
 	: base_t( false, proc, parent )
 {
-    Q_UNUSED(proc);     Q_UNUSED(plot);         //mPlot2DView->CreatePlot( proc, plot );
+    Q_UNUSED(proc);     Q_UNUSED(plot);
 
     CreateWidgets();
 }
@@ -95,7 +125,7 @@ CPlotEditor::CPlotEditor( const CDisplayFilesProcessor *proc, CZFXYPlot* plot, Q
 {
     CreateWidgets();
 
-    Q_UNUSED(proc);     Q_UNUSED(plot);     //mPlot3DView->CreatePlot( proc, plot );
+    Q_UNUSED(proc);     Q_UNUSED(plot);
 }
 
 
@@ -104,6 +134,28 @@ CPlotEditor::CPlotEditor( const CDisplayFilesProcessor *proc, CZFXYPlot* plot, Q
 //virtual 
 CPlotEditor::~CPlotEditor()
 {}
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//						General Processing
+//
+//	- editor setup for operation/display/plot-type changes
+//	- all other editable properties rely on a correct/consistent setup here
+//
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+
+
+CViewControlsPanelGeneralPlots* CPlotEditor::TabGeneral() 
+{ 
+	return dynamic_cast<CViewControlsPanelGeneralPlots*>( mTabGeneral ); 
+}
+
+
 
 //virtual 
 void CPlotEditor::Show2D( bool checked )
@@ -122,30 +174,36 @@ void CPlotEditor::Show3D( bool checked )
 
 
 //virtual 
-void CPlotEditor::ResetViews()
+bool CPlotEditor::ResetViews( bool enable_2d, bool enable_3d )
 {
-	// TODO delete this after testing 2D plots clear method
-	//if ( mPlot2DView )
-	//	mPlot2DView->Clear();
+	assert__( enable_2d );		//2d displays all types
+
 	if ( mPlot2DView )
 	{
 		auto *p = mPlot2DView;
 		mPlot2DView = nullptr;
-		RemoveView( p, false );
+		if ( !RemoveView( p, false, true ) )
+			return false;
 	}
-	mPlot2DView = new CBrat2DPlotView( this );
-	AddView( mPlot2DView, false );
-	mPlot2DView->setVisible( false );
+	if ( enable_2d )
+	{
+		mPlot2DView = new CBrat2DPlotView( this );
+		AddView( mPlot2DView, false );
+	}
 
 	if ( mPlot3DView )
 	{
 		auto *p = mPlot3DView;
 		mPlot3DView = nullptr;
-		RemoveView( p, false );
+		if ( !RemoveView( p, true, true ) )
+			return false;
 	}
-	mPlot3DView = new CBrat3DPlotView( this );
-	AddView( mPlot3DView, true );
-	mPlot3DView->setVisible( false );
+	if ( enable_3d )
+	{
+		mPlot3DView = new CBrat3DPlotView( this );
+		AddView( mPlot3DView, true );
+	}
+	return true;
 }
 
 
@@ -154,56 +212,203 @@ void CPlotEditor::NewButtonClicked()
 {
 	NOT_IMPLEMENTED
 }
+//virtual 
+void CPlotEditor::RenameButtonClicked()
+{
+	NOT_IMPLEMENTED
+}
+//virtual 
+void CPlotEditor::DeleteButtonClicked()
+{
+	NOT_IMPLEMENTED
+}
+//virtual 
+void CPlotEditor::OneClick()
+{
+	NOT_IMPLEMENTED
+}
+
+
+void CPlotEditor::HandlePlotTypeChanged( int index )
+{
+	assert__( index >= 0 );
+
+	EPlotType type = (EPlotType)index;			assert__( type < EPlotTypes_size );
+
+	Refresh( type );
+}
+
+
+void CPlotEditor::UpdatePlotType( EPlotType plot_type, bool select )
+{
+	assert__( mDisplay );
+
+	for ( int i = 0; i < TabGeneral()->mPlotTypesList->count(); ++i )
+	{
+		auto *item = TabGeneral()->mPlotTypesList->item( i );
+		item->setFlags( item->flags() | Qt::ItemIsEnabled );
+	}
+
+	//CMapTypeDisp::ETypeDisp: eTypeDispYFX, eTypeDispZFXY, eTypeDispZFLatLon
+
+	CMapTypeDisp::ETypeDisp type = mDisplay->GetType();
+
+	//EPlotType: eXY, eXYY, eXYZ, eHistogram,
+
+	if ( type == CMapTypeDisp::eTypeDispYFX )
+	{
+		auto *itemXYZ = TabGeneral()->mPlotTypesList->item( eXYZ );
+		itemXYZ->setFlags( itemXYZ->flags() & ~Qt::ItemIsEnabled );
+	}
+	else
+	if ( type == CMapTypeDisp::eTypeDispZFXY || type == CMapTypeDisp::eTypeDispZFLatLon )
+	{
+		auto *itemXY = TabGeneral()->mPlotTypesList->item( eXY );
+		itemXY->setFlags( itemXY->flags() & ~Qt::ItemIsEnabled );
+
+		auto *itemXYY = TabGeneral()->mPlotTypesList->item( eXYY );
+		itemXYY->setFlags( itemXYY->flags() & ~Qt::ItemIsEnabled );
+
+		auto *itemHisto = TabGeneral()->mPlotTypesList->item( eHistogram );
+		itemHisto->setFlags( itemHisto->flags() & ~Qt::ItemIsEnabled );
+	}
+	else
+		assert__( false );
+
+	if ( !select )
+		TabGeneral()->mPlotTypesList->blockSignals( true );
+	TabGeneral()->mPlotTypesList->setCurrentItem( TabGeneral()->mPlotTypesList->item( plot_type ) );
+	if ( !select )
+		TabGeneral()->mPlotTypesList->blockSignals( false );
+
+	//DO NOT delete: example of selecting without triggering signal; disadvantage: triggers on 1st activation without user intervention
+	//
+	//TabGeneral()->mPlotTypesList->setItemSelected( TabGeneral()->mPlotTypesList->item( plot_type ), true );
+}
 
 
 //virtual 
-bool CPlotEditor::Refresh()
+void CPlotEditor::OperationChanged( int index )
+{
+    Q_UNUSED(index);
+
+	TabGeneral()->mVarX->clear();
+	TabGeneral()->mVarY->clear();
+    TabGeneral()->mVarY2->clear();
+    TabGeneral()->mVarZ->clear();
+
+	TabGeneral()->mPlotTypesList->setEnabled( mOperation );
+
+	if ( !mOperation )
+		return;
+
+
+	const CMapFormula* formulas = mOperation->GetFormulas();
+	const CMapTypeOp::ETypeOp type = mOperation->GetType();		//ETypeOp: eTypeOpYFX, eTypeOpZFXY
+
+
+    TabGeneral()->mVarY2->setEnabled( type == CMapTypeOp::eTypeOpYFX );
+    TabGeneral()->mVarZ->setEnabled( type == CMapTypeOp::eTypeOpZFXY );
+
+	for ( CMapFormula::const_iterator it = formulas->cbegin(); it != formulas->cend(); it++ )
+	{
+		const CFormula* formula = mOperation->GetFormula( it );
+		if ( formula == nullptr )
+			continue;
+
+		switch ( formula->GetType() )
+		{
+			case CMapTypeField::eTypeOpAsX:
+
+				TabGeneral()->mVarX->addItem( formula->GetName().c_str() );
+				break;
+
+			case CMapTypeField::eTypeOpAsY:
+
+				assert__( type != CMapTypeOp::eTypeOpYFX );
+
+				TabGeneral()->mVarY->addItem( formula->GetName().c_str() );
+				break;
+
+			case CMapTypeField::eTypeOpAsField:
+
+				if ( type == CMapTypeOp::eTypeOpZFXY )
+					TabGeneral()->mVarZ->addItem( formula->GetName().c_str() );
+				else
+				{
+					TabGeneral()->mVarY->addItem( formula->GetName().c_str() );
+					TabGeneral()->mVarY2->addItem( formula->GetName().c_str() );
+				}
+				break;
+		}
+	}
+}
+
+
+
+//virtual 
+bool CPlotEditor::ViewChanged()
+{
+	EPlotType type = mDisplay->IsYFXType() ? eXY : eXYZ;
+	UpdatePlotType( type, false );
+	return Refresh( type );
+}
+
+bool CPlotEditor::Refresh( EPlotType type )
 {
 	WaitCursor wait;
 
 	try
 	{
-		ResetViews();
-
+		mPlotType = type;
 		std::vector< CPlot* > yfx_plots;
 		std::vector< CZFXYPlot* > zfxy_plots;
+		mDataArrayXY = nullptr;
+		mPropertiesXY = nullptr;
+		mDataArrayZFXY = nullptr;
+		mPropertiesZFXY = nullptr;
+
 
 		if ( mDisplay->IsYFXType() )
         {
             yfx_plots = GetDisplayPlots< CPlot >( mDisplay );
-
-            //shall not be null!!
-            assert(mCurrentDisplayFilesProcessor!=nullptr);
-            emit UpdatedCurrPlot(mCurrentDisplayFilesProcessor);
         }
         else
-		if ( mDisplay->IsZYFXType() )
+		if ( mDisplay->IsZYFXType() || mDisplay->IsZLatLonType() )
+		{
 			zfxy_plots = GetDisplayPlots< CZFXYPlot >( mDisplay );
+		}
 		else
-			assert__( false );								assert__( ( yfx_plots.size() || zfxy_plots.size() ) && mCurrentDisplayFilesProcessor );
+			assert__( false );					assert__( ( yfx_plots.size() || zfxy_plots.size() ) && mCurrentDisplayFilesProcessor );
 
 
+		if ( !ResetViews( true, zfxy_plots.size() > 0 ) )
+			throw CException( "A previous plot is still processing. Please try again later." );
+
+		SelectTab( TabGeneral()->parentWidget() );
+
+		int yfx_index = 0;						assert__( yfx_plots.size() <= 1 );		//forces redesign if false
 		for ( auto *yfxplot : yfx_plots )
 		{
 			assert__( yfxplot != nullptr );
 
-            mPlot2DView->CreatePlot( mCurrentDisplayFilesProcessor->GetXYPlotProperties( 0 ), yfxplot );
-			mPlot2DView->setVisible( true );
+			Reset2DProperties( mCurrentDisplayFilesProcessor->GetXYPlotProperties( yfx_index++ ), yfxplot );
+
+			yfx_index++;
 		}
 
+		
+		int zfxy_index = 0;						assert__( zfxy_plots.size() <= 1 );		//forces redesign if false
 		for ( auto *zfxyplot : zfxy_plots )
 		{
 			assert__( zfxyplot != nullptr );
+			assert__( mPlotType == eXYZ );
 
-			mPlot3DView->CreatePlot( mCurrentDisplayFilesProcessor->GetZFXYPlotProperties( 0 ), zfxyplot );
-			mPlot3DView->setVisible( true );
+			auto *props = mCurrentDisplayFilesProcessor->GetZFXYPlotProperties( zfxy_index++ );
+
+			mPlot3DView->CreatePlot( props, zfxyplot );
+			//Reset2DProperties( props, zfxyplot );
 		}
-
-		if ( !mDisplay->IsZYFXType() )
-			mPlot3DView->setVisible( false );
-
-		if ( !mDisplay->IsYFXType() )
-			mPlot2DView->setVisible( false );
 
 		return true;
 
@@ -221,184 +426,332 @@ bool CPlotEditor::Refresh()
 		SimpleErrorBox( "Unexpected error encountered" );
 	}
 
+	
+	ResetViews( true, false );
+
 	return false;
 }
 
 
-//virtual 
-void CPlotEditor::OperationChanged( int index )
-{
-    Q_UNUSED(index);
 
-	//This will automatically trigger a display change, so we don't need to take additional measures (so far)
-
-	mvarX->clear();
-	mvarY->clear();
-    mvarY2->clear();
-    mvarZ->clear();
-
-	if ( !mOperation )
-		return;
-
-	const CMapFormula* formulas = mOperation->GetFormulas();
-	for ( CMapFormula::const_iterator it = formulas->cbegin(); it != formulas->cend(); it++ )
-	{
-		const CFormula* formula = mOperation->GetFormula( it );
-		if ( formula == nullptr )
-			continue;
-
-		switch ( formula->GetType() )
-		{
-			case CMapTypeField::eTypeOpAsX:
-
-				mvarX->addItem( formula->GetName().c_str() );
-				break;
-			case CMapTypeField::eTypeOpAsY:
-
-				mvarY->addItem( formula->GetName().c_str() );
-				break;
-
-			case CMapTypeField::eTypeOpAsField:
-				mvarY2->addItem( formula->GetName().c_str() );
-				mvarZ->addItem( formula->GetName().c_str() );
-				break;
-		}
-	}
-
-}
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
+//						Properties Processing
+//////////////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 
 
-//virtual 
-void CPlotEditor::OneClick()
-{
-	NOT_IMPLEMENTED
-}
 
+
+//////////////////////////////////////////////////////////////////////////
+//						Axis Processing
+//////////////////////////////////////////////////////////////////////////
 
 
 
 
 void CPlotEditor::HandleLogarithmicScaleX( bool log )
 {
-	assert__( mPlot3DView );
-
 	WaitCursor wait;
 
-	mPlot3DView->SetXLogarithmicScale( log );
+	if ( mPlot3DView )
+		mPlot3DView->SetLogarithmicScale( log );		//TODO or eliminate
 }
 
 void CPlotEditor::HandleLogarithmicScaleY( bool log )
 {
-	assert__( mPlot3DView );
-
 	WaitCursor wait;
 
-	mPlot3DView->SetYLogarithmicScale( log );
+	if ( mPlot3DView )
+		mPlot3DView->SetLogarithmicScale( log );		//TODO or eliminate
 }
 
 void CPlotEditor::HandleLogarithmicScaleZ( bool log )
 {
-	assert__( mPlot3DView );
-
 	WaitCursor wait;
 
-	mPlot3DView->SetZLogarithmicScale( log );
+	if ( mPlot3DView )
+		mPlot3DView->SetLogarithmicScaleZ( log );
 }
 
 
-void CPlotEditor::HandleLineOptionsChecked( bool checked, int index )
+
+
+
+
+//////////////////////////////////////////////////////////////////////////
+//						Curves Processing
+//////////////////////////////////////////////////////////////////////////
+
+
+
+
+///////////////////////////
+//	From properties to plot
+///////////////////////////
+
+void CPlotEditor::Reset2DProperties( const CZFXYPlotProperties *props, CZFXYPlot *zfxyplot )
 {
-	if ( mPlot2DView && checked )
+	assert__( mPlot2DView && mCurrentDisplayFilesProcessor );
+
+	mPlot2DView->CreatePlot( props, zfxyplot );
+	mDataArrayZFXY = mPlot2DView->ZfxyPlotData();									assert__( mDataArrayZFXY );
+
+	mTabCurveOptions->mFieldsList->clear();
+	const size_t size = mDataArrayZFXY->size();										assert__( size == mCurrentDisplayFilesProcessor->GetZFXYPlotPropertiesSize() );
+	for ( size_t i = 0; i < size; ++i )
 	{
-        mPlot2DView->EnableTargetCurveStyleLine(index);
+		mPropertiesZFXY = dynamic_cast<CZFXYPlotData*>( mDataArrayZFXY->at( i ) )->GetPlotProperties();				assert__( mPropertiesZFXY );
+		mTabCurveOptions->mFieldsList->addItem( t2q( mPropertiesZFXY->m_name ) );
+
+		mPlot2DView->ShowContour( i, mPropertiesZFXY->m_withContour );
+		mPlot2DView->ShowSolidColor( i, mPropertiesZFXY->m_solidColor );
+	}
+	mTabCurveOptions->mFieldsList->setCurrentRow( 0 );
+}
+
+
+void CPlotEditor::Reset2DProperties( const CXYPlotProperties *props, CPlot *plot )
+{
+	assert__( mPlot2DView && mCurrentDisplayFilesProcessor );
+
+	QwtPlotMagnifier *mag = mPlot2DView->AddMagnifier();			Q_UNUSED( mag );
+	QwtPlotPanner *panner = mPlot2DView->AddPanner();				Q_UNUSED( panner );
+
+	if ( mPlotType == eHistogram || mPlotType == eXY )
+	{
+		mPlot2DView->CreatePlot( props, plot, mPlotType == eHistogram );
+	}
+	else
+	if ( mPlotType == eXYY )
+	{
+		// TODO display second curve in other units...........
+
+		MSG_NOT_IMPLEMENTED( n2s<std::string>( eXYY ) );
+	}
+	else
+		assert__( false );
+
+	mPlot2DView->EnableAxisY2( mPlotType == eXYY );
+
+	mDataArrayXY = mPlot2DView->PlotDataCollection();								assert__( mDataArrayXY );
+
+	mTabCurveOptions->mFieldsList->clear();
+	const size_t size = mDataArrayXY->size();										assert__( mPlotType != eXYY || size == mCurrentDisplayFilesProcessor->GetXYPlotPropertiesSize() );
+	for ( size_t i = 0; i < size; ++i )
+	{
+		mPropertiesXY = mDataArrayXY->Get( i )->GetPlotProperties();				assert__( mPropertiesXY );
+		mTabCurveOptions->mFieldsList->addItem( t2q( mPropertiesXY->GetName() ) );
+
+		if ( mPlotType != eHistogram )
+		{
+			mPlot2DView->SetCurveLineColor( i, mPropertiesXY->GetColor() );
+			mPlot2DView->SetCurveLineOpacity( i, mPropertiesXY->GetOpacity() );
+			mPlot2DView->SetCurveLinePattern( i, mPropertiesXY->GetStipplePattern() );
+			mPlot2DView->SetCurveLineWidth( i, mPropertiesXY->GetLineWidth() );
+
+			mPlot2DView->SetCurvePointColor( i, mPropertiesXY->GetPointColor() );
+			mPlot2DView->SetCurvePointFilled( i, mPropertiesXY->GetFilledPoint() );
+			mPlot2DView->SetCurvePointGlyph( i, mPropertiesXY->GetPointGlyph() );
+			mPlot2DView->SetCurvePointSize( i, mPropertiesXY->GetPointSize() );
+		}
 	}
 
-    else if ( mPlot2DView && (!checked) )
-    {
-        mPlot2DView->DisableTargetCurveStyleLine(index);
-    }
-    else
-    {
-        return;
-    }
-	// TODO 3D
-
+	mTabCurveOptions->mFieldsList->setCurrentRow( 0 );
 }
-//void CPlotEditor::HandlePointOptionsChecked( bool checked, int index )
-//{
-//    return;
-//	// TODO 3D
-
-//}
 
 
-void CPlotEditor::HandleCurveLineColorSelected( QColor new_color, int index )
+
+///////////////////////////
+//	From plot to widgets
+///////////////////////////
+
+void CPlotEditor::HandleCurrentFieldChanged( int index )
 {
-    if ( mPlot2DView )
-    {
-        mPlot2DView->SetTargetCurvePenColor(index, new_color);
-    }
+	assert__( mPlot2DView );
+
+	mTabCurveOptions->mLineOptions->setEnabled( index >= 0 && !mDataArrayZFXY && mPlotType != eHistogram );
+	mTabCurveOptions->mPointOptions->setEnabled( index >= 0 && !mDataArrayZFXY && mPlotType != eHistogram );
+	mTabCurveOptions->mSpectrogramOptions->setEnabled( index >= 0 && mDataArrayZFXY );
+
+	mPropertiesXY = nullptr;
+	mPropertiesZFXY = nullptr;
+
+	if ( index < 0 )
+		return;
+
+	if ( mDataArrayZFXY )
+	{
+		assert__( index < mDataArrayZFXY->size() );
+
+		mPropertiesZFXY = dynamic_cast<CZFXYPlotData*>( mDataArrayZFXY->at( index ) )->GetPlotProperties();				assert__( mPropertiesZFXY );
+
+		mTabCurveOptions->mShowContour->setChecked( mPlot2DView->HasContour( index ) );
+		mTabCurveOptions->mShowSolidColor->setChecked( mPlot2DView->HasSolidColor( index ) );
+
+		return;
+	}
+
+	assert__( index < mDataArrayXY->size() );
+
+	mPropertiesXY = mDataArrayXY->Get( index )->GetPlotProperties();									   				assert__( mPropertiesXY );
+
+	if ( mPlotType == eHistogram )
+	{
+		return;
+	}
+
+	mTabCurveOptions->mLineColorButton->SetColor( mPlot2DView->CurveLineColor( index ) );
+	mTabCurveOptions->mLineOpacityValue->setText( n2s<std::string>( mPlot2DView->CurveLineOpacity( index ) ).c_str() );
+	mTabCurveOptions->mStipplePattern->setCurrentIndex( mPlot2DView->CurveLinePattern( index ) );
+	mTabCurveOptions->mLineWidthValue->setText( n2s<std::string>( mPlot2DView->CurveLineWidth( index ) ).c_str() );
+
+
+	mTabCurveOptions->mPointColorButton->SetColor( mPlot2DView->CurvePointColor( index ) );
+	mTabCurveOptions->mFillPointCheck->setChecked( mPlot2DView->IsCurvePointFilled( index ) );
+	mTabCurveOptions->mPointGlyph->setCurrentIndex( mPlot2DView->CurvePointGlyph( index ) );
+	mTabCurveOptions->mPointSizeValue->setText( n2s<std::string>( mPlot2DView->CurvePointSize( index ) ).c_str() );
+
+	mTabCurveOptions->mLineOptions->setChecked( mPlotType != eHistogram && mPropertiesXY->GetLines() );
+	mTabCurveOptions->mPointOptions->setChecked( mPropertiesXY->GetPoints() );
 }
 
-void CPlotEditor::HandleCurvePointColorSelected( QColor new_color, int index )
+
+
+
+///////////////////////////////////////////////////////
+//	From widgets to properties, from properties to plot
+///////////////////////////////////////////////////////
+
+
+//spectrogram  properties
+
+void CPlotEditor::HandleShowContourChecked( bool checked )
 {
-    if ( mPlot2DView )
-    {
-        mPlot2DView->SetTargetCurveGlyphColor(index, new_color);
-    }
+	assert__( mPlot2DView && mPlot3DView && mDataArrayZFXY && mPropertiesZFXY );
+
+    mPropertiesZFXY->m_withContour = checked;
+
+	mPlot2DView->ShowContour( mTabCurveOptions->mFieldsList->currentRow(), mPropertiesZFXY->m_withContour );
+	mPlot3DView->ShowContour( mPropertiesZFXY->m_withContour );
 }
 
-void CPlotEditor::HandleOpacityChanged(int new_value, int index)
+void CPlotEditor::HandleShowSolidColorChecked( bool checked )
 {
-    if ( mPlot2DView )
-    {
-        mPlot2DView->SetTargetCurvePenAlpha(index, new_value);
+	assert__( mPlot2DView && mPlot3DView && mDataArrayZFXY && mPropertiesZFXY );
 
-    }
+    mPropertiesZFXY->m_solidColor = checked;
+
+	mPlot2DView->ShowSolidColor( mTabCurveOptions->mFieldsList->currentRow(), mPropertiesZFXY->m_solidColor );
+	mPlot3DView->ShowSolidColor( mPropertiesZFXY->m_solidColor );
 }
 
-void CPlotEditor::HandleWidthChanged(int new_value, int index)
+
+
+//line properties
+
+void CPlotEditor::HandleCurveLineColorSelected()
 {
-    if ( mPlot2DView )
-    {
-        mPlot2DView->SetTargetCurvePenWidth(index, new_value);
+	assert__( mPlot2DView && mPropertiesXY );
 
-    }
+    QColor selected_color = mTabCurveOptions->mLineColorButton->GetColor();
+
+    mPropertiesXY->SetColor( selected_color );
+
+	mPlot2DView->SetCurveLineColor( mTabCurveOptions->mFieldsList->currentRow(), color_cast< QColor >( mPropertiesXY->GetColor() ) );
 }
 
-
-void CPlotEditor::HandleStipplePatternChanged(int pattern, int index)
+void CPlotEditor::HandleCurveLineOpacityEntered()
 {
-    if ( mPlot2DView )
-    {
-        mPlot2DView->SetTargetCurveLinePattern(index, pattern);
-    }
+	assert__( mPlot2DView && mPropertiesXY );
+
+    bool is_converted=false;
+    const QString opacity = mTabCurveOptions->mLineOpacityValue->text();
+    mPropertiesXY->SetOpacity( opacity.toInt(&is_converted, 10) );			//TODO VALIDATE
+
+	mPlot2DView->SetCurveLineOpacity( mTabCurveOptions->mFieldsList->currentRow(), mPropertiesXY->GetOpacity() );
 }
 
-void CPlotEditor::HandleGlyphPatternChanged(int pattern, int index)
+void CPlotEditor::HandleStipplePatternChanged( int pattern )
 {
-    if ( mPlot2DView )
-    {
-        mPlot2DView->SetTargetCurvePointSymbol(index, pattern);
-    }
+	assert__( pattern >= eFirstStipplePattern && pattern < EStipplePattern_size );
+
+    mPropertiesXY->SetStipplePattern( (EStipplePattern)pattern );
+	mPlot2DView->SetCurveLinePattern( mTabCurveOptions->mFieldsList->currentRow(), mPropertiesXY->GetStipplePattern() );
 }
 
-void CPlotEditor::HandleGlyphSizeChanged(int new_value, int index)
+void CPlotEditor::HandleCurveLineWidthEntered()
 {
-    if ( mPlot2DView )
-    {
-        mPlot2DView->SetTargetCurvePointSize(index, new_value);
-    }
+	assert__( mPlot2DView && mPropertiesXY );
+
+    bool is_converted=false;
+    const QString width = mTabCurveOptions->mLineWidthValue->text();
+	mPropertiesXY->SetLineWidth( width.toInt( &is_converted, 10 ) );			//TODO VALIDATE
+	mPlot2DView->SetCurveLineWidth( mTabCurveOptions->mFieldsList->currentRow(), mPropertiesXY->GetLineWidth() );
 }
 
-void CPlotEditor::HandleFillGlyphInteriorChanged(bool checked, int index)
+
+//curve properties
+
+void CPlotEditor::HandleCurvePointColorSelected()
 {
-    if ( mPlot2DView )
-    {
-        mPlot2DView->SetInteriorBrush(checked, index);
-    }
+	assert__( mPlot2DView && mPropertiesXY );
+
+    QColor selected_color = mTabCurveOptions->mPointColorButton->GetColor();
+    mPropertiesXY->SetPointColor( selected_color );
+	mPlot2DView->SetCurvePointColor( mTabCurveOptions->mFieldsList->currentRow(), mPropertiesXY->GetPointColor() );
 }
 
+void CPlotEditor::HandleFillGlyphInterior( bool checked )
+{
+	assert__( mPlot2DView && mPropertiesXY );
+
+    mPropertiesXY->SetFilledPoint( checked );
+
+	mPlot2DView->SetCurvePointFilled( mTabCurveOptions->mFieldsList->currentRow(), mPropertiesXY->GetFilledPoint() );
+}
+
+void CPlotEditor::HandleGlyphPatternChanged( int pattern )
+{
+	assert__( mPlot2DView && mPropertiesXY && pattern >= eFirstPointGlyph && pattern < EPointGlyph_size );
+
+    mPropertiesXY->SetPointGlyph( (EPointGlyph)pattern );
+
+	mPlot2DView->SetCurvePointGlyph( mTabCurveOptions->mFieldsList->currentRow(), mPropertiesXY->GetPointGlyph() );
+}
+
+void CPlotEditor::HandleCurveGlyphWidthEntered()
+{
+	assert__( mPlot2DView && mPropertiesXY );
+
+    bool is_converted=false;
+    const QString pointw = mTabCurveOptions->mPointSizeValue->text();		//TODO validate
+    int w_value = pointw.toInt(&is_converted, 10);
+
+    mPropertiesXY->SetPointSize( w_value );
+	mPlot2DView->SetCurvePointSize( mTabCurveOptions->mFieldsList->currentRow(), mPropertiesXY->GetPointSize() );
+}
+
+
+
+//enable/disable line/curve properties
+
+void CPlotEditor::HandleLineOptionsChecked( bool checked )
+{
+	assert__( mPlot2DView  && mPropertiesXY );
+
+    mPropertiesXY->SetLines( checked );
+	mPlot2DView->EnableCurveLine( mTabCurveOptions->mFieldsList->currentRow(), mPropertiesXY->GetLines() );
+}
+
+void CPlotEditor::HandlePointOptionsChecked( bool checked )
+{
+	assert__( mPlot2DView && mPropertiesXY );
+
+    mPropertiesXY->SetPoints( checked );
+
+	mPlot2DView->EnableCurvePoints( mTabCurveOptions->mFieldsList->currentRow(), mPropertiesXY->GetPoints(), mPropertiesXY->GetPointGlyph() );
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

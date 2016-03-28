@@ -1304,7 +1304,7 @@ CBratAlgorithmBase* CBratAlgorithmBase::GetNew(const char* algorithName)
 
   for(CBratAlgorithmBaseRegistry::iterator it = registry.Begin(); it != registry.End(); ++it)
   {
-    base_creator func = *it;
+    base_creator func = **it;
     algorithm = func();
     std::string nameToSearch = algorithName;
 
@@ -1923,11 +1923,11 @@ CBratAlgorithmBaseRegistry& CBratAlgorithmBaseRegistry::GetInstance()
 }
 //----------------------------------------
 
-void CBratAlgorithmBaseRegistry::Add(base_creator creator)
+void CBratAlgorithmBaseRegistry::Add(base_creator *creator)
 {
     m_bases.push_back(creator);
   
-    CBratAlgorithmBase* algorithm = creator();
+    CBratAlgorithmBase* algorithm = (*creator)();
 
     std::string algorithmName = algorithm->GetName();
 
@@ -2017,7 +2017,7 @@ void CBratAlgorithmBaseRegistry::FillAlgorithmsSortedArray()
 //------------------- CBratAlgorithmBaseRegistration class --------------------
 //-------------------------------------------------------------
 
-CBratAlgorithmBaseRegistration::CBratAlgorithmBaseRegistration(base_creator creator)
+CBratAlgorithmBaseRegistration::CBratAlgorithmBaseRegistration(base_creator *creator)
 {
     CBratAlgorithmBaseRegistry::GetInstance().Add(creator);
 }

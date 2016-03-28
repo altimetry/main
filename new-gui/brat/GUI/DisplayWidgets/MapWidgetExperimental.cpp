@@ -60,8 +60,11 @@ auto TRAIL_WIDTH = 0.00003; // Width of a trail, in map units.
 auto POINT_SIZE  = 0.0004;  // Diameter of a start/end point, in map units.
 
 
-//#undef HAVE_VPRINTF
-//#undef HAVE_DIRECT_H
+//qgsvectorfilewriter.h inclusion requires the following undefs
+//
+#undef HAVE_VPRINTF
+#undef HAVE_DIRECT_H
+#undef HAVE_SNPRINTF
 //#define Py_CONFIG_H
 //#if !defined MIN
 //#define MIN std::min

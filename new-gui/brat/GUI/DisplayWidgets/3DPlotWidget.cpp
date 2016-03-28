@@ -16,7 +16,7 @@
 
 
 // TODO delete this macro; if active, no operation is expected to work besides the simple example display
-// #define TEST_EXAMPLES
+//#define TEST_EXAMPLES
 
 
 //////////////////////////////////////////
@@ -182,16 +182,12 @@ struct CBrat3DFunction : public Qwt3D::Function
 
 	double operator()( double x, double y )
 	{
-//        auto xindex = std::find( mPlotValues->mXaxis->begin(), mPlotValues->mXaxis->end(), x );
-//        if ( xindex == mPlotValues->mXaxis->end() )
-//            return std::numeric_limits<double>::quiet_NaN();
-//        auto yindex = std::find( mPlotValues->mYaxis->begin(), mPlotValues->mYaxis->end(), x );
-//        if ( yindex == mPlotValues->mYaxis->end() )
-//            return std::numeric_limits<double>::quiet_NaN();
-
-		auto index = x * y;
+		//auto index = ( x - mxmin ) * ( y - mymin );												assert__( index < mPlotValues->mBits.size() );
+		x -= mxmin;
+		y -= mymin;
+		auto index = mPlotValues->mXaxis.size() * y + x;											assert__( index < mPlotValues->mBits.size() );
 		if ( index >= mPlotValues->mBits.size() || !mPlotValues->mBits.at( index ) )
-			return std::numeric_limits<double>::quiet_NaN();
+			return std::numeric_limits< double >::quiet_NaN();
 
 		return CorrectedValue( mPlotValues->mValues.at( index ) );
 	}
@@ -283,7 +279,8 @@ CBrat3DPlot::CBrat3DPlot( QWidget *pw )
 	setSmoothMesh( true );
 	enableLighting( false );
 
-	coordinates()->setNumberFont( "Courier", 8 );
+	coordinates()->setNumberFont( t2q( C3DPlotWidget::smFontName ), C3DPlotWidget::smAxisFontSize );
+	coordinates()->setLabelFont( t2q( C3DPlotWidget::smFontName ), C3DPlotWidget::smAxisFontSize );
 
 	const size_t size = coordinates()->axes.size();
 	for ( unsigned i = 0; i != size; ++i )
@@ -302,7 +299,10 @@ CBrat3DPlot::~CBrat3DPlot()
 
 void CBrat3DPlot::SetAxisTitle( Qwt3D::AXIS axis, const std::string &title )
 {
-	coordinates()->axes[ axis ].setLabelString( title.c_str() );
+	std::string clean_title = replace( title, "\n", " - " );
+	clean_title = replace( clean_title, "\t", "" );
+
+	coordinates()->axes[ axis ].setLabelString( clean_title.c_str() );
 }
 
 
@@ -312,21 +312,33 @@ void CBrat3DPlot::AddSurface( const C3DPlotParameters &values, double xmin, doub
 	mFunction->AddSurface( values, xmin, xmax, ymin, ymax, zmin, zmax );
 }
 
-
-void CBrat3DPlot::SetLogarithmicScale( Qwt3D::AXIS axis, bool log )
+void CBrat3DPlot::SetLogarithmicScale( bool onlyz, bool log )
 {
-	assert__( mFunction );
+	static const auto xaxis = { Qwt3D::AXIS::X1, Qwt3D::AXIS::X2, Qwt3D::AXIS::X3, Qwt3D::AXIS::X4 };
+	static const auto yaxis = { Qwt3D::AXIS::Y1, Qwt3D::AXIS::Y2, Qwt3D::AXIS::Y3, Qwt3D::AXIS::Y4 };
+	static const auto zaxis = { Qwt3D::AXIS::Z1, Qwt3D::AXIS::Z2, Qwt3D::AXIS::Z3, Qwt3D::AXIS::Z4 };
 
-	if ( axis != Qwt3D::AXIS::Z1 )		// TODO: do we support x,y logarithmic axis ?
-		return;
+	assert__( mFunction );	// TODO: do we support x,y logarithmic axis ?
 
 	mFunction->SetLogarithmic( log );
 
 	auto scale = log ? Qwt3D::LOG10SCALE : Qwt3D::LINEARSCALE;
-	coordinates()->axes[ axis ].setScale( scale );
+
+	for ( auto axis : zaxis )
+		coordinates()->axes[ axis ].setScale( scale );
+
+	if ( !onlyz )
+	{
+		for ( auto axis : xaxis )
+			coordinates()->axes[ axis ].setScale( scale );
+		for ( auto axis : yaxis )
+			coordinates()->axes[ axis ].setScale( scale );
+	}
+
 	//updateData();
 	updateGL();
 }
+
 
 
 void CBrat3DPlot::Animate( int updateinterval )		//updateinterval = 200 
@@ -377,6 +389,7 @@ void CBrat3DPlot::SetPlotStyle( Qwt3D::PLOTSTYLE style )		//style = Qwt3D::FILLE
 {
 	setPlotStyle( style );
 	updateData();
+	updateGL();
 }
 
 void CBrat3DPlot::PlotStyle()
@@ -409,11 +422,18 @@ void CBrat3DPlot::CoordinateStyle()
 
 
 
-//////////////////////////////////////////
-//
-//				The View
-//
-//////////////////////////////////////////
+
+//////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
+//						Main Class
+//////////////////////////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////
+
+
+
+//static 
+const std::string C3DPlotWidget::smFontName = "Arial";
+
 
 
 C3DPlotWidget::C3DPlotWidget( QWidget *parent ) 
@@ -470,6 +490,10 @@ C3DPlotWidget::~C3DPlotWidget()
 
 void C3DPlotWidget::AddSurface( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax )
 {
+#if defined (TEST_EXAMPLES)
+	return;
+#endif
+
 	CBrat3DPlot *plot = nullptr;
 	if ( mPlots.size() > 0 )
 		DestroyPointersAndContainer(  mPlots );
@@ -482,21 +506,107 @@ void C3DPlotWidget::AddSurface( const C3DPlotParameters &values, double xmin, do
 }
 
 
-void C3DPlotWidget::SetLogarithmicScale( Qwt3D::AXIS axis, bool log )
+//title
+
+void C3DPlotWidget::SetPlotTitle( const std::string &title )
 {
-	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mPlots[0] );
+	assert__( mPlots.size() );
 
-	assert__( p );
+	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mPlots[0] );		assert__( p );
 
-	p->SetLogarithmicScale( axis, log );
+
+	p->setTitleFont( t2q( smFontName ), smTitleFontSize, QFont::Bold );
+
+	p->setTitle( title.c_str() );
 }
 
 
+
+
+//style
+
+void C3DPlotWidget::SetStyle()
+{
+	assert__( mPlots.size() );
+
+	Qwt3D::PLOTSTYLE style = Qwt3D::WIREFRAME;
+
+	if ( mShowContour )
+	{
+		if ( mShowMesh )
+			style = Qwt3D::FILLEDMESH;
+		else
+			style = Qwt3D::HIDDENLINE;
+	}
+	else
+	{
+		if ( mShowMesh )
+			style = Qwt3D::FILLED;
+		else
+			style = Qwt3D::NOPLOT;
+	}
+
+	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mPlots[0] );		assert__( p );
+
+	p->SetPlotStyle( style );
+}
+
+bool C3DPlotWidget::HasContour() const
+{
+	return mShowContour;
+}
+void C3DPlotWidget::ShowContour( bool show )
+{
+	mShowContour = show;
+	SetStyle();
+}
+
+bool C3DPlotWidget::HasSolidColor() const
+{
+	return mShowMesh;
+}
+void C3DPlotWidget::ShowSolidColor( bool show )
+{
+	mShowMesh = show;
+	SetStyle();
+}
+
+
+
+
+//axis
+
+void C3DPlotWidget::SetLogarithmicScaleZ( bool log )
+{
+	assert__( mPlots.size() );
+
+	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mPlots[0] );		assert__( p );
+
+	p->SetLogarithmicScale( true, log );
+}
+
+void C3DPlotWidget::SetLogarithmicScale( bool log )
+{
+	assert__( mPlots.size() );
+
+	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mPlots[0] );		assert__( p );
+
+	p->SetLogarithmicScale( false, log );
+}
+
+
+
+//plot general
+
 void C3DPlotWidget::SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle )
 {
-	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mPlots[0] );
+	assert__( mPlots.size() );
 
-	assert__( p );
+#if defined (TEST_EXAMPLES)
+	return;
+#endif
+
+	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mPlots[0] );		assert__( p );
 
 	p->SetAxisTitles( xtitle, ytitle, ztitle );
 }

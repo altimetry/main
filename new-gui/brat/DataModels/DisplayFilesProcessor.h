@@ -64,15 +64,18 @@ class CDisplayFilesProcessor
 	CObArray m_xyPlotProperties;
 	CObArray m_wPlotProperties;
 
+	bool mMapsAsPlots = false;
 
 public:
 
 	//Public ctor
 
-	CDisplayFilesProcessor()
+	CDisplayFilesProcessor( bool maps_as_plots )
+		: mMapsAsPlots( maps_as_plots )
 	{}
 
-	CDisplayFilesProcessor( const std::string &display_cmd_file )
+	CDisplayFilesProcessor( bool maps_as_plots, const std::string &display_cmd_file )
+		: mMapsAsPlots( maps_as_plots )
 	{
 		Process( display_cmd_file );
 	}
@@ -98,6 +101,9 @@ public:
 	CXYPlotProperties* GetXYPlotProperties( int32_t index ) const;
 
     size_t GetXYPlotPropertiesSize() const { return m_xyPlotProperties.size(); }
+    size_t GetZFXYPlotPropertiesSize() const { return m_zfxyPlotProperties.size(); }
+    size_t GetWorldPlotPropertiesSize() const { return m_wPlotProperties.size(); }
+
 
 	std::string GetFirstFileName();
 

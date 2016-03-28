@@ -25,6 +25,7 @@ CModel& CModel::CreateInstance( const CApplicationPaths &brat_paths )
 //explicit 
 CModel::CModel( const CApplicationPaths &brat_paths ) 
 	: mBratPaths( brat_paths )
+	, mBratFilters( BratPaths().mInternalDataDir )
 {}
 
 //virtual 

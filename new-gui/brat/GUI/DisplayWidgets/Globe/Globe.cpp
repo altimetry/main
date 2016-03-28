@@ -351,7 +351,7 @@ void CGlobePlugin::setupMap()
 	// Add layers to the map
 	if ( mCanvas )			//femm
 	{
-		imageLayersChanged();
+		ImageLayersChanged();
 		elevationLayersChanged();
 	}
 
@@ -410,6 +410,25 @@ public:
 
 
 
+class GlobeViewer : public osgViewer::Viewer
+{
+	using base_t = osgViewer::Viewer;
+
+public:
+
+	GlobeViewer()
+		: base_t()
+	{
+		//connect( &m_timer, SIGNAL( timeout() ), this, SLOT( update() ) );
+		//m_timer.start( m_gps.TimerInterval() );
+	}
+
+	virtual int run()
+	{
+		return base_t::run();
+	}
+};
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 //	Globe constructor / destruction
@@ -465,7 +484,7 @@ CGlobePlugin::CGlobePlugin( QgsMapCanvas *the_canvas, QStatusBar *sb, QWidget *d
 
 	//ex-run() member function
 
-	mOsgViewer = new osgViewer::Viewer();
+	mOsgViewer = new GlobeViewer();	// osgViewer::Viewer();
 	mOsgViewer->setThreadingModel( osgViewer::Viewer::SingleThreaded );
 
 	// install the programmable manipulator.
@@ -481,6 +500,9 @@ CGlobePlugin::CGlobePlugin( QgsMapCanvas *the_canvas, QStatusBar *sb, QWidget *d
 	//
 	mControlCanvas = ControlCanvas::get( mOsgViewer );		//OSGEARTH_VERSION_GREATER_OR_EQUAL( 2, 1, 1 )
 	mRootNode->addChild( mControlCanvas );
+
+	mRootUpdateCallback = new CRootUpdateCallback( this );
+	mRootNode->setUpdateCallback( mRootUpdateCallback );
 
 	//	Root node
 	//
@@ -527,9 +549,6 @@ CGlobePlugin::CGlobePlugin( QgsMapCanvas *the_canvas, QStatusBar *sb, QWidget *d
 		);
 #endif
 
-	mRootUpdateCallback = new CRootUpdateCallback( this );
-	mRootNode->setUpdateCallback( mRootUpdateCallback );
-
 	mControls = new CGlobeControls( this );
 
 	//// Connect actions
@@ -546,7 +565,8 @@ CGlobePlugin::CGlobePlugin( QgsMapCanvas *the_canvas, QStatusBar *sb, QWidget *d
 	//mQGisIface->addPluginToMenu( tr( "&Globe" ), mQActionUnload );
 
 	connect( mCanvas, SIGNAL( extentsChanged() ),			this, SLOT( extentsChanged() ) );
-	connect( mCanvas, SIGNAL( layersChanged() ),			this, SLOT( imageLayersChanged() ) );
+	//connect( mCanvas, SIGNAL( layersChanged() ),			this, SLOT( imageLayersChanged() ) );
+
 	//connect( mSettingsDialog, SIGNAL( elevationDatasourcesChanged() ),	this, SLOT( elevationLayersChanged() ) );
 	//connect( mQGisIface->mainWindow(), SIGNAL( projectRead() ),			this, SLOT( projectReady() ) );
 	//connect( mQGisIface, SIGNAL( newProjectCreated() ),					this, SLOT( blankProjectReady() ) );
@@ -559,6 +579,7 @@ CGlobePlugin::CGlobePlugin( QgsMapCanvas *the_canvas, QStatusBar *sb, QWidget *d
 	//mOsgViewer->getCamera()->setClearColor(osg::Vec4(0.,0.,0.,0.));
 	
 }
+
 
 
 //destructor
@@ -741,13 +762,31 @@ void CGlobePlugin::extentsChanged()
 	QgsDebugMsg( "extentsChanged: " + mCanvas->extent().toString() );
 }
 
-void CGlobePlugin::imageLayersChanged()
+
+void CGlobePlugin::RemoveLayers()
+{
+	osg::ref_ptr<Map> map = mMapNode->getMap();
+	if ( map->getNumImageLayers() > 1 )
+	{
+		mOsgViewer->getDatabasePager()->clear();
+	}
+
+	//remove QGIS layer
+	if ( mQgisMapLayer )
+	{
+		QgsDebugMsg( "removeMapLayer" );
+		map->removeImageLayer( mQgisMapLayer );
+	}
+}
+
+
+void CGlobePlugin::ImageLayersChanged()
 {
 	assert__( mCanvas );
 
 	QgsDebugMsg( "imageLayersChanged: Globe Running, executing" );
-	osg::ref_ptr<Map> map = mMapNode->getMap();
 
+	osg::ref_ptr<Map> map = mMapNode->getMap();
 	if ( map->getNumImageLayers() > 1 )
 	{
 		mOsgViewer->getDatabasePager()->clear();
@@ -773,11 +812,46 @@ void CGlobePlugin::imageLayersChanged()
 }
 
 
+void CGlobePlugin::imageLayersChanged()
+{
+	ImageLayersChanged();		//mRootUpdateCallback->AssignImageLayersChanged();
+
+
+	//assert__( mCanvas );
+
+	//QgsDebugMsg( "imageLayersChanged: Globe Running, executing" );
+
+	//osg::ref_ptr<Map> map = mMapNode->getMap();
+	//if ( map->getNumImageLayers() > 1 )
+	//{
+	//	mOsgViewer->getDatabasePager()->clear();
+	//}
+
+	////remove QGIS layer
+	//if ( mQgisMapLayer )
+	//{
+	//	QgsDebugMsg( "removeMapLayer" );
+	//	map->removeImageLayer( mQgisMapLayer );
+	//}
+
+	////add QGIS layer
+	//QgsDebugMsg( "addMapLayer" );
+	//mTileSource = new QgsOsgEarthTileSource( mCanvas );
+	//mTileSource->initialize( "", 0 );
+	//ImageLayerOptions options( "QGIS" );
+
+	//options.cachePolicy() = CachePolicy::NO_CACHE;				//OSGEARTH_VERSION_GREATER_OR_EQUAL( 2, 2, 0 )
+
+	//mQgisMapLayer = new ImageLayer( options, mTileSource );
+	//map->addImageLayer( mQgisMapLayer );
+}
+
+
 void CGlobePlugin::elevationLayersChanged()
 {
 	QgsDebugMsg( "elevationLayersChanged: Globe Running, executing" );
-	osg::ref_ptr<Map> map = mMapNode->getMap();
 
+	osg::ref_ptr<Map> map = mMapNode->getMap();
 	if ( map->getNumElevationLayers() > 1 )
 	{
 		mOsgViewer->getDatabasePager()->clear();

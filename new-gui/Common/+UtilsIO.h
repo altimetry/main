@@ -24,6 +24,71 @@
 //													Generic
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+inline bool IsFile( const char *name )
+{
+    if (FILE *file = fopen(name, "r")) {
+        fclose(file);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+inline bool IsFile( const std::string &name )
+{
+	return IsFile( name.c_str() );
+}
+
+
+
+
+struct MatchPathSeparator
+{
+    bool operator()( char ch ) const
+    {
+#if defined (WIN32) || defined (_WIN32)
+        return ch == '\\' || ch == '/';
+#else
+        return ch == '/';
+#endif
+    }
+};
+
+inline std::string
+removeExtension( std::string const& filename )
+{
+    std::string::const_reverse_iterator pivot =
+            std::find( filename.rbegin(), filename.rend(), '.' );
+    return pivot == filename.rend()
+        ? filename
+        : std::string( filename.begin(), pivot.base() - 1 );
+}
+
+inline std::string
+filename_from_path( std::string const& path )
+{
+    return std::string(
+        std::find_if( path.rbegin(), path.rend(),
+                      MatchPathSeparator() ).base(),
+        path.end() );
+}
+
+inline std::string
+basename_from_path( std::string const& path )
+{
+    return removeExtension( filename_from_path( path ) );
+}
+
+inline std::string
+dir_from_filepath( std::string const& path )
+{
+    std::string filename = filename_from_path( path );
+
+    return path.substr( 0, path.find( filename ) );
+}
+
+
 inline std::string setExecExtension( const std::string &execPath )
 {
     static const std::string &ext =

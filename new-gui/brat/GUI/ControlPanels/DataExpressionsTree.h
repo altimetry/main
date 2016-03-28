@@ -3,6 +3,10 @@
 
 
 
+class CTextWidget;
+
+
+
 class CAbstractTree : public QTreeWidget
 {
 #if defined (__APPLE__)
@@ -56,6 +60,11 @@ public:
 			return items[ 0 ];
 
 		return nullptr;
+	}
+
+	const QTreeWidgetItem* SelectedItem() const
+	{
+		return const_cast<CAbstractTree*>( this )->SelectedItem();
 	}
 
 
@@ -161,13 +170,15 @@ public:
 	void InsertProduct( CProduct *product );
 
 
-	const CField* ItemField( QTreeWidgetItem *item ) const
+	const CField* ItemField( const QTreeWidgetItem *item ) const
 	{
-		return const_cast<CFieldsTreeWidget*>( this )->ItemField( item ) ;
+		return const_cast<CFieldsTreeWidget*>( this )->ItemField( const_cast<QTreeWidgetItem*>( item ) );
 	}
 
 
 	void SelectRecord( const std::string &record );		//see COperationPanel::GetOperationRecord
+
+	std::string	GetCurrentRecord();						//cannot be const	//CFieldsTreeCtrl::GetCurrentRecord()
 
 
 protected:
@@ -176,7 +187,14 @@ protected:
 	
 	void SetItemField( QTreeWidgetItem *item, CField *field );
 
+
 	QTreeWidgetItem* GetFirstRecordItem();
+
+	const QTreeWidgetItem* GetFirstRecordItem() const
+	{
+		return const_cast<CFieldsTreeWidget*>( this )->GetFirstRecordItem();
+	}
+
 
 	virtual void CustomContextMenu( QTreeWidgetItem *item ) override
     {
@@ -230,24 +248,46 @@ class CDataExpressionsTreeWidget : public CAbstractTree
 	QAction *mSortAscending = nullptr;
 	QAction *mSortDescending = nullptr;
 
+	CTextWidget *mExpressionTextWidget = nullptr;
+
 
 	//...domain
 
+	CWorkspaceFormula *&mWFormula;
+	CStringMap &mMapFormulaString;
 	COperation *mCurrentOperation = nullptr;
+	CFormula *mCurrentFormula = nullptr;		//mUserFormula
 	bool mIsMap = true;
+
 
 	//construction / destruction
 
 	void MakeRootItems();
 public:
-	CDataExpressionsTreeWidget( bool is_map, QWidget *parent, CFieldsTreeWidget *drag_source );
+	CDataExpressionsTreeWidget( CWorkspaceFormula *&wkspc, CStringMap &map_formula, bool is_map, QWidget *parent, CFieldsTreeWidget *drag_source );
 
 	virtual ~CDataExpressionsTreeWidget()
 	{}
 
-	//
+	//access
 
 	bool IsMap() const { return mIsMap; }
+
+	
+	CTextWidget *ExpressionTextWidget() { return mExpressionTextWidget; }
+
+	
+	CFormula* SelectedFormula()			//from COperationTreeCtrl::GetCurrentFormula()
+	{
+		return SelectedItem() ? ItemFormula( SelectedItem() ) : nullptr;
+	}
+
+
+	std::string ParentItemTitle( const CFormula *formula );
+
+
+	//operations
+
 	bool CanSwitchType( std::string &error_msg ) const;
 	bool SwitchType();
 
@@ -258,16 +298,14 @@ public:
 	void SelectX();
 
 
-	CFormula* SelectedFormula()			//from COperationTreeCtrl::GetCurrentFormula()
-	{
-		return SelectedItem() ? ItemFormula( SelectedItem() ) : nullptr;
-	}
+	//menu/button operations
 
+	void InsertFunction();
+	void InsertAlgorithm();
+	void InsertFormula();
+	void SaveAsFormula();
 
-	std::string ParentItemTitle( const CFormula *formula );
-
-
-	void FormulaChanged( const CFormula *formula );
+	bool CheckSyntax( CProduct *product );
 
 
 protected:
@@ -298,6 +336,9 @@ protected:
 	void DeleteFormula( QTreeWidgetItem *item );
 
 	bool InsertFormula( QTreeWidgetItem *parent, CFormula *formula );
+
+	void FormulaChanged();
+
 
 	void AddField( QTreeWidgetItem *parent, CField *field );
 

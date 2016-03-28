@@ -3,10 +3,12 @@
 
 
 #include "AbstractDisplayEditor.h"
+#include "DataModels/PlotData/MapColor.h"
 
 
 class CPlot;
 class CZFXYPlot;
+class CXYPlotDataCollection;
 
 class CBrat2DPlotView;
 class CBrat3DPlotView;
@@ -75,13 +77,20 @@ private:
 	CBrat2DPlotView *mPlot2DView = nullptr;
 	CBrat3DPlotView *mPlot3DView = nullptr;
 
-    QComboBox *mSelectPlotCombo = nullptr;
-    QComboBox *mvarX = nullptr;
-    QComboBox *mvarY = nullptr;
-    QComboBox *mvarY2 = nullptr;
-    QComboBox *mvarZ = nullptr;
 	CPlotControlsPanelCurveOptions *mTabCurveOptions = nullptr;	
 	CPlotControlsPanelAxisOptions *mTabAxisOptions = nullptr;	
+
+	EPlotType mPlotType = EPlotTypes_size;		//start with invalid value
+
+
+	//...domain data
+
+	CXYPlotDataCollection *mDataArrayXY = nullptr;
+	CXYPlotProperties *mPropertiesXY = nullptr;
+
+	CObArray *mDataArrayZFXY = nullptr;
+	CZFXYPlotProperties *mPropertiesZFXY = nullptr;
+
 
 
 	// construction /destruction
@@ -101,46 +110,82 @@ public:
 	// remaining operations
 
 protected:
-	virtual void ResetViews() override;
+	
+	bool Refresh( EPlotType type );
+
+	CViewControlsPanelGeneralPlots* TabGeneral();
+	void UpdatePlotType( EPlotType type, bool select );
+
+	void Reset2DProperties( const CXYPlotProperties *props, CPlot *plot );
+	void Reset2DProperties( const CZFXYPlotProperties *props, CZFXYPlot *zfxyplot );
+
+
+
+	///////////////////////////////////////////////////////////
+	// Virtual interface implementations
+	///////////////////////////////////////////////////////////
+
+	virtual bool IsMapEditor() const { return false; }
+
+	virtual bool ResetViews( bool enable_2d, bool enable_3d ) override;
 
 	virtual void Show2D( bool checked ) override;
 	virtual void Show3D( bool checked ) override;
 
-	virtual bool Refresh() override;
+	virtual bool ViewChanged() override;
 	virtual void NewButtonClicked() override;
+	virtual void RenameButtonClicked() override;
+	virtual void DeleteButtonClicked() override;
 
 	virtual void OperationChanged( int index ) override;
 
 	virtual void OneClick() override;
 
+	///////////////////////////////////////////////////////////
+	// Handlers
+	///////////////////////////////////////////////////////////
+
 protected slots:
+
+	void HandlePlotTypeChanged( int );
+
+	//axis handlers ///////////////////////////////////////////
+
 	void HandleLogarithmicScaleX( bool log );
 	void HandleLogarithmicScaleY( bool log );
 	void HandleLogarithmicScaleZ( bool log );
 
-    void HandleLineOptionsChecked( bool checked, int index );
-    //void HandlePointOptionsChecked( bool checked, int index );
-    void HandleCurveLineColorSelected( QColor new_color, int index );
-    void HandleCurvePointColorSelected( QColor new_color, int index );
-    void HandleOpacityChanged(int new_value, int index);
-    void HandleWidthChanged(int new_value, int index);
+	//curve handlers //////////////////////////////////////////
 
-    void HandleStipplePatternChanged(int pattern, int index);
+	//...select field
+	void HandleCurrentFieldChanged( int index );
 
-    void HandleGlyphPatternChanged(int pattern, int index);
+	//...spectrogram //////////////////////////////////////////
 
-    void HandleGlyphSizeChanged(int new_value, int index);
+	void HandleShowContourChecked( bool checked );
+	void HandleShowSolidColorChecked( bool checked );
 
-    void HandleFillGlyphInteriorChanged(bool checked, int index);
+	//...line/points //////////////////////////////////////////
 
-    //
-    //void OnUpdateCurveOptions( int index );
+	//...enable/disable line/points
+    void HandleLineOptionsChecked( bool checked );
+    void HandlePointOptionsChecked( bool checked );
 
+	//...color
+	void HandleCurveLineColorSelected();
+	void HandleCurvePointColorSelected();
 
+	//...pattern/glyph
+	void HandleStipplePatternChanged( int pattern );
+	void HandleGlyphPatternChanged( int pattern );
 
-signals:
+	//...opacity/fill point
+	void HandleCurveLineOpacityEntered();
+	void HandleFillGlyphInterior( bool checked );
 
-   void UpdatedCurrPlot(const CDisplayFilesProcessor*);
+	//...width/size
+	void HandleCurveLineWidthEntered();
+	void HandleCurveGlyphWidthEntered();
 };
 
 

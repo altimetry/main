@@ -209,8 +209,13 @@ protected:
 
 	virtual void closeEvent( QCloseEvent *event ) override
 	{
-		  emit closed( this );
-		  event->accept();
+		if ( mWidget->close() )
+		{
+			emit closed( this );
+			event->accept();
+		}
+		else
+			event->ignore();
 	}
 
 	virtual void reject() override

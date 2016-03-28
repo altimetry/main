@@ -2,6 +2,7 @@
 
 #include "libbrathl/ProductNetCdf.h"
 
+#include "DataModels/Model.h"
 #include "DataModels/Filters/BratFilters.h"
 #include "DataModels/Workspaces/Dataset.h"
 
@@ -252,10 +253,10 @@ void CDatasetFilterControls::Wire()
 
 
 //explicit
-CDatasetFilterControls::CDatasetFilterControls( CDesktopManagerBase *manager, CBratFilters &brat_filters, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
-    : base_t( manager, parent, f )
+CDatasetFilterControls::CDatasetFilterControls( CModel &model, CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
+    : base_t( model, manager, parent, f )
 	, mMap( manager->Map() )
-	, mBratFilters( brat_filters )
+	, mBratFilters( mModel.BratFilters() )
 	, mBratAreas( mBratFilters.Areas() )
 	, mBratRegions( mBratFilters.Regions() )
 {

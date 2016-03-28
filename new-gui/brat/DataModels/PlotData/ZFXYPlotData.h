@@ -156,7 +156,7 @@ protected:
 	C3DPlotInfo mMaps;
 
 public:
-	CZFXYPlotProperties m_plotProperty;
+	CZFXYPlotProperties m_plotProperties;
 
 	//construction / destruction
 
@@ -178,13 +178,13 @@ public:
 	virtual const std::string& GetDataTitle() const { return GetDataTitle( m_currentMap ); }
 	virtual const std::string& GetDataTitle( uint32_t index ) const { return m_dataTitles[ index ]; }
 
-	virtual const std::string& GetDataName() const { return m_plotProperty.m_name; }
+	virtual const std::string& GetDataName() const { return m_plotProperties.m_name; }
 
-	bool GetContour() const { return m_plotProperty.m_withContour; }
-	void SetContour( bool value ) { m_plotProperty.m_withContour = value; }
+	bool GetContour() const { return m_plotProperties.m_withContour; }
+	void SetContour( bool value ) { m_plotProperties.m_withContour = value; }
 
-	bool GetSolidColor() const { return m_plotProperty.m_solidColor; }
-	void SetSolidColor( bool value ) { m_plotProperty.m_solidColor = value; }
+	bool GetSolidColor() const { return m_plotProperties.m_solidColor; }
+	void SetSolidColor( bool value ) { m_plotProperties.m_solidColor = value; }
 
 	void GetComputedRange( double& min, double& max ) { min = m_minhv; max = m_maxhv; }
 	double GetComputedRangeMin() { return m_minhv; }
@@ -203,7 +203,7 @@ public:
 
 	int32_t GetNrMaps() const { return m_nrMaps; }
 
-	CZFXYPlotProperties* GetPlotProperty() { return &m_plotProperty; }
+	CZFXYPlotProperties* GetPlotProperties() { return &m_plotProperties; }
 
 
 	std::string GetDataDateString() const { return GetDataDateString( m_currentMap ); }

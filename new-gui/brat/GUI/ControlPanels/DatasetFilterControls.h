@@ -108,7 +108,7 @@ class CDatasetFilterControls : public CDesktopControlsPanel
 	void CreateWidgets();
 	void Wire();
 public:
-	explicit CDatasetFilterControls( CDesktopManagerBase *manager, CBratFilters &brat_filters, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+	explicit CDatasetFilterControls( CModel &model, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
 	virtual ~CDatasetFilterControls()
 	{}	

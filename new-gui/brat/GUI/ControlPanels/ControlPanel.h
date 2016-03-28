@@ -19,6 +19,7 @@ class QgsCollapsibleGroupBox;
 class CWorkspaceDataset;
 class CWorkspaceOperation;
 class CWorkspaceDisplay;
+class CModel;
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -265,12 +266,11 @@ class CDesktopControlsPanel : public CControlPanel
 	using base_t = CControlPanel;
 
 protected:
-	CDesktopManagerBase *mManager = nullptr;
+	CModel &mModel;
+	CDesktopManagerBase *mDesktopManager = nullptr;
 
 public:
-	explicit CDesktopControlsPanel( CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 )
-		: base_t( parent, f ), mManager( manager )
-	{}
+	explicit CDesktopControlsPanel( CModel &model, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
 	virtual ~CDesktopControlsPanel()
 	{}	

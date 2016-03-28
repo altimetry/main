@@ -759,7 +759,7 @@ bool CWorkspaceSettings::LoadConfig( CDisplay &d, std::string &errorMsg, CWorksp
 		k_v( ENTRY_ZOOM,		&zoom				)
 	);
 
-	d.m_type = type.empty() ? -1 : CMapTypeDisp::GetInstance().NameToId( type );
+	d.m_type = type.empty() ? CMapTypeDisp::Invalid() : CMapTypeDisp::GetInstance().NameToId( type );
 	d.m_zoom.Set( zoom, CDisplay::m_zoomDelimiter );
 
 	// the entry ENTRY_OUTPUT  is not used any more
@@ -998,7 +998,7 @@ bool CWorkspaceSettings::LoadConfig( CDisplayData &data, const std::string& path
 	);
 
 	if ( type.empty() )	{
-		data.m_type = -1;
+		data.m_type = CMapTypeDisp::Invalid();
 	}
 	else {
 		// Because Z=F(Lat,Lon) have been changed to Z=F(Lon,Lat)	(v3.3.0 note)

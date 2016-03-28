@@ -40,6 +40,8 @@
 #include "DataModels/PlotData/MapProjection.h"
 #include "GUI/ActionsTable.h"
 
+#include "DataModels/PlotData/MapColor.h"
+
 #include "MapWidget.h"
 
 
@@ -522,12 +524,31 @@ void CMapWidget::HandleRemoveLayers()
 //virtual
 CMapWidget::~CMapWidget()
 {
+	freeze( true );
+	QList<QgsMapCanvasLayer> emptyList;
+	setLayerSet( emptyList );
+	clearCache();
+	//  QgsMapLayerRegistry::instance()->removeAllMapLayers();
+
 	assert( !isDrawing() );
 
 	delete mSelectFeatures;
 	delete mSelectPolygon;
 	delete mMeasureDistance;
 	delete mMeasureArea;
+}
+
+
+
+void CMapWidget::closeEvent( QCloseEvent *event )
+{
+	if ( isDrawing() ) 
+	{
+		event->ignore();
+	}
+	else {
+		event->accept();
+	}
 }
 
 
@@ -558,35 +579,10 @@ QgsRubberBand* CMapWidget::AddRBLine( QgsPolyline points, QColor color, QgsVecto
 	return r;
 }
 
-//	Note that you can use strings like "red" instead of Qt::red !!!
-//
+
+
 //static 
-QgsSymbolV2* CMapWidget::createPointSymbol( double width, const QColor &color )
-{
-	auto qsm = []( const char *s1, const std::string &s2 )
-	{
-		QgsStringMap m;
-		m.insert( s1, s2.c_str() );
-		return m;
-	};
-
-	QgsSymbolV2 *s = QgsMarkerSymbolV2::createSimple( qsm( "","" ) );
-	s->deleteSymbolLayer( 0 );		// Remove default symbol layer.
-	//s->setColor( lineColor );
-	//s->setMapUnitScale()
-
-	auto symbolLayer = new QgsSimpleMarkerSymbolLayerV2;
-	symbolLayer->setColor( color );
-	symbolLayer->setSize( width );
-	symbolLayer->setOutlineStyle( Qt::NoPen );
-	s->appendSymbolLayer( symbolLayer );
-
-	return s;
-}
-
-
-
-QgsSymbolV2* CMapWidget::createPointSymbol2( double width, const QColor &color )
+QgsSymbolV2* CMapWidget::CreatePointSymbol( double width, const QColor &color )
 {
     auto qsm = []( const char *s1, const std::string &s2 )
     {
@@ -597,11 +593,13 @@ QgsSymbolV2* CMapWidget::createPointSymbol2( double width, const QColor &color )
 
     QgsSymbolV2 *s = QgsMarkerSymbolV2::createSimple( qsm( "","" ) );
     s->deleteSymbolLayer( 0 );		// Remove default symbol layer.
+	//s->setColor( lineColor );
+	//s->setMapUnitScale()
 
     auto symbolLayer = new QgsSimpleMarkerSymbolLayerV2;
     symbolLayer->setColor( color );
-    symbolLayer->setName("square");
-    symbolLayer->setSizeUnit( QgsSymbolV2::MapUnit );
+    symbolLayer->setName("square");							//
+    symbolLayer->setSizeUnit( QgsSymbolV2::MapUnit );		//
     symbolLayer->setSize( width );
     symbolLayer->setOutlineStyle( Qt::NoPen );
     s->appendSymbolLayer( symbolLayer );
@@ -667,6 +665,90 @@ QgsFeatureList& CMapWidget::createLineFeature( QgsFeatureList &list, QgsPolyline
 //		Layers
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+QgsMapCanvasLayer* CMapWidget::FindCanvasLayer( size_t index )
+{
+	index++;				//leave out main layer
+	assert__( index < mLayerSet.size() );
+
+	return &mLayerSet[ index ];
+}
+QgsMapCanvasLayer* CMapWidget::FindCanvasLayer( const std::string &name )
+{
+	for ( auto &l : mLayerSet )
+	{
+		if ( name.c_str() == l.layer()->name() )
+			return &l;
+	}
+	return nullptr;
+}
+
+
+QgsMapLayer* CMapWidget::FindLayer( const std::string &name )
+{
+	QgsMapCanvasLayer *l = FindCanvasLayer( name );
+	if ( l )
+		return l->layer();
+
+	return nullptr;
+}
+
+
+bool CMapWidget::IsLayerVisible( size_t index ) const
+{
+	const QgsMapCanvasLayer *l = FindCanvasLayer( index );
+	if ( l )
+		return l->isVisible();
+	return false;
+}
+bool CMapWidget::SetLayerVisible( size_t index, bool show )
+{
+	QgsMapCanvasLayer *l = FindCanvasLayer( index );
+	if ( !l )
+		return false;
+
+	if ( show != IsLayerVisible( index ) )
+	{
+		l->setVisible( show );
+		setLayerSet( mLayerSet );
+		SetCurrentLayer( l->layer() );
+		refresh();
+	}
+
+	return true;
+}
+
+
+void CMapWidget::RemoveLayers()
+{
+	const int count = mLayerSet.size();
+
+	while( mLayerSet.size() > 1 )
+		mLayerSet.removeLast();
+
+	if ( count > 1 )
+	{
+		setLayerSet( mLayerSet );
+		SetCurrentLayer( mLayerSet.begin()->layer() );
+		refresh();
+	}
+}
+
+
+std::string CMapWidget::CurrentLayer() const
+{
+	auto *l = const_cast<CMapWidget*>( this )->currentLayer();
+	if ( l == mMainLayer )
+		return "";
+
+	return q2a( l->name() );
+}
+void CMapWidget::SetCurrentLayer( const std::string &name )
+{
+	auto *l = FindLayer( name );
+	if ( l )
+		SetCurrentLayer( l );
+}
+
 
 void CMapWidget::SetCurrentLayer( QgsMapLayer *l )
 {
@@ -717,162 +799,22 @@ QgsRasterLayer* CMapWidget::AddRasterLayer( const QString &layer_path, const QSt
 }
 
 
-QgsVectorLayer* CMapWidget::AddMemoryLayer( QgsSymbolV2* symbol )		//symbol = nullptr 
+QgsVectorLayer* CMapWidget::AddVectorLayer( const std::string &name, const QString &layer_path, const QString &provider, QgsFeatureRendererV2 *renderer )	//renderer = nullptr 
 {
-	return AddVectorLayer( "Point?crs=EPSG:4326&field=height:double&field=name:string(255)&index=yes", "mem", "memory", symbol );
-
-	auto ml = AddVectorLayer( "Point?crs=EPSG:4326&field=height:double&field=name:string(255)&index=yes", "mem", "memory" );	// , symbol );
-
-	auto myTargetField = "height";
-	auto myRangeList = new QgsRangeList;
-	auto myOpacity = 1;
-	// Make our first symbol and range...
-	auto myMin = 1491.0;
-	auto myMax = 1491.5;
-	auto myLabel = "Group 1";
-	auto myColour = QColor( "#ffee00" );
-	auto mySymbol1 = createPointSymbol( 0.5, myColour );
-	mySymbol1->setAlpha( myOpacity );
-	auto myRange1 = new QgsRendererRangeV2( myMin, myMax, mySymbol1, myLabel );
-	myRangeList->append( *myRange1 );
-	//now make another symbol and range...
-	myMin = 1491.6;
-	myMax = 1492.0;
-	myLabel = "Group 2";
-	myColour = QColor( "#00eeff" );
-	auto mySymbol2 = createPointSymbol( 0.5, myColour );
-	mySymbol2->setAlpha( myOpacity );
-	auto myRange2 = new QgsRendererRangeV2( myMin, myMax, mySymbol2, myLabel );
-	myRangeList->append( *myRange2 );
-	auto myRenderer = new QgsGraduatedSymbolRendererV2( "", *myRangeList );
-	myRenderer->setMode( QgsGraduatedSymbolRendererV2::Jenks );
-	myRenderer->setClassAttribute( myTargetField );
-
-	ml->setRendererV2( myRenderer );
-
-	return ml;
-}
-
-
-// RCCC added this: ///////////////////////////////////////////////////////
-QgsVectorLayer* CMapWidget::AddMemoryLayer2( double width )		//symbol = nullptr
-{
-
-    const QString layer_path = QString ("Point?crs=EPSG:4326&field=height:double&field=name:string(255)&index=yes");
-    const QString base_name = QString ("mem");
-    const QString provider  = QString ("memory");
-
-    static const std::string index_symbol = "#";
-    static size_t index = 0;
-
-    std::string name = ( q2a( base_name ) + index_symbol + n2s<std::string>(index++) );
-
-    auto l = new QgsVectorLayer( layer_path, name.c_str(), provider );
-
-    //\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\//
-    // Defining render
-    //\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\//
-    QString myTargetField = QString("height");
-    auto myRangeList = new QgsRangeList;
-    auto myOpacity = 1;
-
-    // Make our first symbol and range...
-    auto myMin = -0.2;
-    auto myMax = 0.1;
-    auto myLabel = "Group 1";
-    auto myColour = QColor( "blue" );
-    auto mySymbol1 = createPointSymbol2 ( width, myColour );
-    mySymbol1->setAlpha( myOpacity );
-    auto myRange1 = new QgsRendererRangeV2( myMin, myMax, mySymbol1, myLabel );
-    myRangeList->append( *myRange1 );
-
-    //now make another symbol and range...
-    myMin = 0.11;
-    myMax = 0.30;
-    myLabel = "Group 2";
-    myColour = QColor( "cyan" );
-    auto mySymbol2 = createPointSymbol2 ( width, myColour );
-    mySymbol2->setAlpha( myOpacity );
-    auto myRange2 = new QgsRendererRangeV2( myMin, myMax, mySymbol2, myLabel );
-    myRangeList->append( *myRange2 );
-
-    // 3rd symbol and range...
-    myMin = 0.31;
-    myMax = 0.6;
-    myLabel = "Group 3";
-    myColour = QColor( "green" );
-    auto mySymbol3 = createPointSymbol2 ( width, myColour );
-    mySymbol3->setAlpha( myOpacity );
-    auto myRange3 = new QgsRendererRangeV2( myMin, myMax, mySymbol3, myLabel );
-    myRangeList->append( *myRange3 );
-
-    // 4rd symbol and range...
-    myMin = 0.61;
-    myMax = 0.8;
-    myLabel = "Group 4";
-    myColour = QColor( "yellow" );
-    auto mySymbol4 = createPointSymbol2 ( width, myColour );
-    mySymbol4->setAlpha( myOpacity );
-    auto myRange4 = new QgsRendererRangeV2( myMin, myMax, mySymbol4, myLabel );
-    myRangeList->append( *myRange4 );
-
-    auto myRenderer = new QgsGraduatedSymbolRendererV2( myTargetField, *myRangeList );
-    myRenderer->setMode( QgsGraduatedSymbolRendererV2::EqualInterval );
-
-
-    ///// ATTENTION: delete #include <qgsvectorcolorrampv2.h> //////////////
-//    QgsVectorColorRampV2 *myColorRamp = nullptr;
-//    myColorRamp = QgsVectorGradientColorRampV2::create();
-
-//    myRenderer = QgsGraduatedSymbolRendererV2::createRenderer(
-//      qobject_cast<QgsVectorLayer *>(l), // QgsVectorLayer* vlayer,
-//      myTargetField,                     // QString attrName,
-//      10,                                // int classes,
-//      QgsGraduatedSymbolRendererV2::EqualInterval, //Mode mode,
-//      mySymbol4,        // QgsSymbolV2* symbol,
-//      myColorRamp       // QgsVectorColorRampV2* ramp,)
-//      //bool inverted = false,
-//      //QgsRendererRangeV2LabelFormat legendFormat = QgsRendererRangeV2LabelFormat()
-//      );
-
-    ///////////////////
-
-
-    l->setRendererV2( myRenderer );
-    /////////////////////////////////////////////////////////////////////////
-
-
-    if ( l->isValid() ) {
-                            qDebug( "Layer is valid" );
-
-        // Add the Vector Layer to the Layer Registry
-        QgsMapLayerRegistry::instance()->addMapLayer(l, TRUE);
-
-        // Add the Layer to the Layer Set
-        mLayerSet.append(QgsMapCanvasLayer(l, TRUE));
-
-        // Set the Map Canvas Layer Set			//TODO: check if we need to setLayerSet every time
-        setLayerSet(mLayerSet);
-
-        SetCurrentLayer( l );
-
-        return l;
-    }
-                            qDebug( "Layer is NOT valid" );
-    delete l;
-    return nullptr;
-
-}
-
-
-QgsVectorLayer* CMapWidget::AddVectorLayer( const QString &layer_path, const QString &base_name, const QString &provider, QgsSymbolV2* symbol )	//symbol = nullptr 
-{
+	static const QString base_name = "vlayer";
 	static const std::string index_symbol = "#";
 	static size_t index = 0;
 
-	std::string name = q2a( base_name ) + index_symbol + n2s<std::string>(index++);
-	auto l = new QgsVectorLayer( layer_path, name.c_str(), provider );
-	addRenderer( l, symbol );
+	std::string layer_name = name;
+	if ( layer_name.empty() )
+		layer_name = q2a( base_name ) + index_symbol + n2s<std::string>(index++);
+
+	auto l = new QgsVectorLayer( layer_path, layer_name.c_str(), provider );
+
+	if ( !renderer )
+		renderer = CreateRenderer( l );
+	l->setRendererV2( renderer );
+	//l->setLayerName( layer_name.c_str() );
 
 	if ( l->isValid() ) {
 							qDebug( "Layer is valid" );
@@ -896,20 +838,137 @@ QgsVectorLayer* CMapWidget::AddVectorLayer( const QString &layer_path, const QSt
 }
 
 
-void CMapWidget::RemoveLayers()
+QgsVectorLayer* CMapWidget::AddMemoryLayer( const std::string &name, QgsFeatureRendererV2 *renderer, const QString &target_field )
 {
-	const int count = mLayerSet.size();
+	static const QString base_name = "mem";
+    static const QString provider = "memory";
+    
+	const QString layer_path = "Point?crs=EPSG:4326&field=" + target_field + ":double&field=name:string(255)&index=yes";
 
-	while( mLayerSet.size() > 1 )
-		mLayerSet.removeLast();
-
-	if ( count > 1 )
-	{
-		setLayerSet( mLayerSet );
-		SetCurrentLayer( mLayerSet.begin()->layer() );
-		refresh();
-	}
+	return AddVectorLayer( name, layer_path, provider, renderer );
 }
+
+
+QgsVectorLayer* CMapWidget::AddMemoryLayer( const std::string &name, QgsSymbolV2* symbol )		//name = "", symbol = nullptr 
+{
+	static const QString target_field = QString( "height" );
+
+	return AddMemoryLayer( name, CreateRenderer( symbol ), target_field );
+
+	//auto ml = AddVectorLayer( "Point?crs=EPSG:4326&field=height:double&field=name:string(255)&index=yes", "mem", "memory" );	// , symbol );
+
+	//auto target_field = "height";
+	//auto range_list = new QgsRangeList;
+	//auto opacity = 1;
+	//// Make our first symbol and range...
+	//auto myMin = 1491.0;
+	//auto myMax = 1491.5;
+	//auto myLabel = "Group 1";
+	//auto myColour = QColor( "#ffee00" );
+	//auto mySymbol1 = CreatePointSymbol( 0.5, myColour );
+	//mySymbol1->setAlpha( opacity );
+	//auto myRange1 = new QgsRendererRangeV2( myMin, myMax, mySymbol1, myLabel );
+	//range_list->append( *myRange1 );
+	////now make another symbol and range...
+	//myMin = 1491.6;
+	//myMax = 1492.0;
+	//myLabel = "Group 2";
+	//myColour = QColor( "#00eeff" );
+	//auto mySymbol2 = CreatePointSymbol( 0.5, myColour );
+	//mySymbol2->setAlpha( opacity );
+	//auto myRange2 = new QgsRendererRangeV2( myMin, myMax, mySymbol2, myLabel );
+	//range_list->append( *myRange2 );
+	//auto renderer = new QgsGraduatedSymbolRendererV2( "", *range_list );
+	//renderer->setMode( QgsGraduatedSymbolRendererV2::Jenks );
+	//renderer->setClassAttribute( target_field );
+
+	//ml->setRendererV2( renderer );
+
+	//return ml;
+}
+
+//static 
+QgsGraduatedSymbolRendererV2* CMapWidget::CreateRenderer( const QString &target_field, double width, double m, double M, size_t contours )
+{
+    static const auto opacity = 1;
+	static const QColor color_map[] =
+	{
+		QColor( "blue" ),
+		QColor( "cyan" ),
+		QColor( "green" ),
+		QColor( "yellow" )
+	};
+    static const DEFINE_ARRAY_SIZE( color_map );        Q_UNUSED(color_map_size);
+	static CMapColor &mc = CMapColor::GetInstance();
+
+	auto create_range = [&width]( double m, double M, int index )
+	{
+		//int color_index = index;
+		//if ( color_index >= color_map_size )
+		//	color_index = 0;
+
+		auto label = "Group " + n2s<std::string>( index + 1 );
+		//auto symbol = CreatePointSymbol( width, color_map[ color_index ] );
+		auto symbol = CreatePointSymbol( width, color_cast<QColor>( mc.NextPrimaryColors() ) );
+		symbol->setAlpha( opacity );
+		return new QgsRendererRangeV2( m, M, symbol, label.c_str() );
+	};
+
+	//function body
+
+    auto range_list = new QgsRangeList;
+
+	const double range = M - m;
+	const double step = range / contours;	// color_map_size;
+
+	mc.ResetPrimaryColors();
+	double v = m;
+	for ( int i = 0; i < contours; ++i )
+	{
+	    range_list->append( *create_range( v, v + step, i ) );
+		v += step;
+	}
+
+    auto renderer = new QgsGraduatedSymbolRendererV2( target_field, *range_list );
+    renderer->setMode( QgsGraduatedSymbolRendererV2::EqualInterval );
+	return renderer;
+}
+
+
+QgsVectorLayer* CMapWidget::AddMemoryLayer( const std::string &name, double width, double m, double M, size_t contours )
+{
+	static const QString target_field = QString( "height" );
+
+	return AddMemoryLayer( name, CreateRenderer( target_field, width, m, M, contours ), target_field );
+
+    ///// ATTENTION: delete #include <qgsvectorcolorrampv2.h> //////////////
+//    QgsVectorColorRampV2 *myColorRamp = nullptr;
+//    myColorRamp = QgsVectorGradientColorRampV2::create();
+
+//    renderer = QgsGraduatedSymbolRendererV2::createRenderer(
+//      qobject_cast<QgsVectorLayer *>(l), // QgsVectorLayer* vlayer,
+//      target_field,                     // QString attrName,
+//      10,                                // int classes,
+//      QgsGraduatedSymbolRendererV2::EqualInterval, //Mode mode,
+//      mySymbol4,        // QgsSymbolV2* symbol,
+//      myColorRamp       // QgsVectorColorRampV2* ramp,)
+//      //bool inverted = false,
+//      //QgsRendererRangeV2LabelFormat legendFormat = QgsRendererRangeV2LabelFormat()
+//      );
+
+    ///////////////////
+}
+
+
+QgsVectorLayer* CMapWidget::AddOGRVectorLayer( const QString &layer_path, QgsSymbolV2* symbol )		//symbol = nullptr 
+{
+	static const QString base_name = "ogr";
+	static int index = 0;
+
+	return AddVectorLayer( q2a( base_name ) + n2s<std::string>(index++), layer_path, "ogr", symbol ? CreateRenderer( symbol ) : nullptr );
+}
+
+
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////

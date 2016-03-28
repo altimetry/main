@@ -18,10 +18,12 @@
 #ifndef DATA_MODELS_PLOT_DATA_MAPCOLOR_H
 #define DATA_MODELS_PLOT_DATA_MAPCOLOR_H
 
-
 #if defined ChooseColor
 #undef ChooseColor
 #endif
+
+#include <qwt_symbol.h>
+
 
 #include "libbrathl/brathl.h"
 
@@ -39,112 +41,170 @@ using namespace brathl;
 #endif
 #include "PlotColor.h"
 
-/*
-enum PointGlyph{
-        displayNO_GLYPH = VTK_NO_GLYPH,
-        displayVERTEX_GLYPH = VTK_VERTEX_GLYPH,
-        displayDASH_GLYPH = VTK_DASH_GLYPH,
-        displayCROSS_GLYPH = VTK_CROSS_GLYPH,
-        displayTHICKCROSS_GLYPH = VTK_THICKCROSS_GLYPH,
-        displayTRIANGLE_GLYPH = VTK_TRIANGLE_GLYPH,
-        displaySQUARE_GLYPH = VTK_SQUARE_GLYPH,
-        displayCIRCLE_GLYPH = VTK_CIRCLE_GLYPH,
-        displayDIAMOND_GLYPH = VTK_DIAMOND_GLYPH,
-        displayARROW_GLYPH = VTK_ARROW_GLYPH,
-        displayTHICKARROW_GLYPH = VTK_THICKARROW_GLYPH,
-        displayHOOKEDARROW_GLYPH = VTK_HOOKEDARROW_GLYPH
-};
-*/
-enum PointGlyph{
-        displayNO_GLYPH = 0,
-        displayVERTEX_GLYPH = 1,
-        displayDASH_GLYPH = 2,
-        displayCROSS_GLYPH = 3,
-        displayTHICKCROSS_GLYPH = 4,
-        displayTRIANGLE_GLYPH = 5,
-        displaySQUARE_GLYPH = 6,
-        displayCIRCLE_GLYPH = 7,
-        displayDIAMOND_GLYPH = 8,
-        displayARROW_GLYPH = 9,
-        displayTHICKARROW_GLYPH = 10,
-        displayHOOKEDARROW_GLYPH = 11
+
+enum EPointGlyph 
+{ 
+	//eNoSymbol = QwtSymbol::NoSymbol, eFirstPointGlyph = eNoSymbol,
+	eEllipse = QwtSymbol::Ellipse, eFirstPointGlyph = eEllipse,
+	eRect = QwtSymbol::Rect, 
+	eDiamond = QwtSymbol::Diamond, 
+	eTriangle = QwtSymbol::Triangle, 
+	eDTriangle = QwtSymbol::DTriangle, 
+	eUTriangle = QwtSymbol::UTriangle, 
+	eLTriangle = QwtSymbol::LTriangle, 
+	eRTriangle = QwtSymbol::RTriangle, 
+	eCross = QwtSymbol::Cross, 
+	eXCross = QwtSymbol::XCross, 
+	eHLine = QwtSymbol::HLine, 
+	eVLine = QwtSymbol::VLine, 
+	eStar1 = QwtSymbol::Star1, 
+	eStar2 = QwtSymbol::Star2, 
+	eHexagon = QwtSymbol::Hexagon, 
+
+	EPointGlyph_size
 };
 
-enum StipplePattern{
-	displayDOT = 0x8888U,
-	displayDASH_TINY = 0xF0F0U,
-	displayDASH = 0xFF00U,
-	displayDASH_DOT = 0xFF3CU,
-        displayFULL = 0xFFFFU
-};
+
+//v3 compatibility
+
+const EPointGlyph displayNO_GLYPH = EPointGlyph_size;
+const EPointGlyph displayVERTEX_GLYPH = eDTriangle;
+const EPointGlyph displayDASH_GLYPH = eHLine;
+const EPointGlyph displayCROSS_GLYPH = eCross;
+const EPointGlyph displayTHICKCROSS_GLYPH = eXCross;
+const EPointGlyph displayTRIANGLE_GLYPH = eTriangle;
+const EPointGlyph displaySQUARE_GLYPH = eRect;
+const EPointGlyph displayCIRCLE_GLYPH = eEllipse;
+const EPointGlyph displayDIAMOND_GLYPH = eDiamond;
+const EPointGlyph displayARROW_GLYPH = eUTriangle;
+const EPointGlyph displayTHICKARROW_GLYPH = eStar1;
+const EPointGlyph displayHOOKEDARROW_GLYPH = eStar2;
+
 
 
 //-------------------------------------------------------------
 //------------------- CPointGlyph class --------------------
 //-------------------------------------------------------------
 
-class CPointGlyph: public CBratObject
+//v3 compatibility
+//
+class CPointGlyph : public CBratObject
 {
 public:
-  /// CPointGlyph ctor
-  CPointGlyph(PointGlyph id, const std::string name);
-  /// CPointGlyph dtor
-  virtual ~CPointGlyph();
-  
-  std::string m_name;
-  PointGlyph m_id;
+	std::string m_name;
+	EPointGlyph m_id;
+
+	CPointGlyph( EPointGlyph id, const std::string name )
+	{
+		m_name = name;
+		m_id = id;
+	}
+
+	virtual ~CPointGlyph()
+	{}
 };
 
 //-------------------------------------------------------------
 //------------------- CMapPointGlyph class --------------------
 //-------------------------------------------------------------
 
-class CMapPointGlyph: public CObMap
+class CMapPointGlyph : public CObMap
 {
 public:
-  CMapPointGlyph();
 
-  virtual ~CMapPointGlyph();
+	//v4 must use only these functions; all remaining 
+	//class code id for v3 compatibility
 
-  static CMapPointGlyph& GetInstance();
+	static const std::string& Name( EPointGlyph e );
+	static const std::vector<std::string>& Names();
 
-  bool ValidName(const char* name);
-  bool ValidName(const std::string& name);
+public:
+	//v3 compatibility
 
-  std::string GlyphToName(PointGlyph id);
-  std::string GlyphToKey(PointGlyph id);
+	CMapPointGlyph();
+
+	virtual ~CMapPointGlyph();
+
+	static CMapPointGlyph& GetInstance();
+
+	bool ValidName( const char* name );
+	bool ValidName( const std::string& name );
+
+	std::string GlyphToName( EPointGlyph id );
+	std::string GlyphToKey( EPointGlyph id );
 
 
-  PointGlyph NameToGlyph(const std::string& name);
-  PointGlyph KeyToGlyph(const std::string& name);
-  std::string KeyToName(const std::string& name);
+	EPointGlyph NameToGlyph( const std::string& name );
+	EPointGlyph KeyToGlyph( const std::string& name );
+	std::string KeyToName( const std::string& name );
 
-  void NamesToArrayString(std::vector<std::string>& v);
-  void NamesToMapString(CStringMap& strMap);
-  
-  void GlyphToMap(CUIntMap& uintMap);
+	void NamesToArrayString( std::vector<std::string>& v );
+	void NamesToMapString( CStringMap& strMap );
 
-  PointGlyph GetPointGlyph(CFileParams& params,
-		                   int32_t index = 0,
-		                   const std::string& keyword = "DISPLAY_POINTGLYPH",
-		                   PointGlyph defaultValue = displayCIRCLE_GLYPH);
+	void GlyphToMap( CUIntMap& uintMap );
+
+	EPointGlyph GetPointGlyph( CFileParams& params,
+		int32_t index = 0,
+		const std::string& keyword = "DISPLAY_PointGlyph",
+		EPointGlyph defaultValue = displayCIRCLE_GLYPH );
 };
+
+
+
 
 
 //-------------------------------------------------------------
 //------------------- CStipplePattern class --------------------
 //-------------------------------------------------------------
 
-class CStipplePattern: public CBratObject
+
+#if defined(BRAT_V3)
+
+enum EStipplePattern
+{
+	displayDOT = 0x8888U,
+	displayDASH_TINY = 0xF0F0U,
+	displayDASH = 0xFF00U,
+	displayDASH_DOT = 0xFF3CU,
+    displayFULL = 0xFFFFU,
+
+    EStipplePattern_size
+};
+
+#else
+
+enum EStipplePattern
+{
+	//eNoPen = Qt::PenStyle::NoPen, eFirstStipplePattern = eNoPen,
+	eSolidLine = Qt::PenStyle::SolidLine - 1, eFirstStipplePattern = eSolidLine,
+	eDashLine = Qt::PenStyle::DashLine - 1,
+	eDotLine = Qt::PenStyle::DotLine - 1,
+	eDashDotLine = Qt::PenStyle::DashDotLine -1, 
+	eDashDotDotLine = Qt::PenStyle::DashDotDotLine -1,
+
+	EStipplePattern_size
+};
+
+
+const EStipplePattern displayDOT = eDotLine;
+const EStipplePattern displayDASH_TINY = eDashDotDotLine;
+const EStipplePattern displayDASH = eDashLine;
+const EStipplePattern displayDASH_DOT = eDashDotLine;
+const EStipplePattern displayFULL = eSolidLine;
+
+#endif
+
+
+class CStipplePattern : public CBratObject
 {
 public:
-  /// CStipplePattern ctor
-  CStipplePattern(StipplePattern id, const std::string name);
-  /// CStipplePattern dtor
-  virtual ~CStipplePattern();
-  
-  std::string m_name;
-  StipplePattern m_id;
+
+	CStipplePattern( EStipplePattern id, const std::string name );
+
+	virtual ~CStipplePattern();
+
+	std::string m_name;
+	EStipplePattern m_id;
 };
 
 
@@ -152,35 +212,48 @@ public:
 //------------------- CMapStipplePattern class --------------------
 //-------------------------------------------------------------
 
-class CMapStipplePattern: public CObMap
+class CMapStipplePattern : public CObMap
 {
 public:
-  CMapStipplePattern();
+	//v4 must use only these functions; all remaining 
+	//class code id for v3 compatibility
 
-  virtual ~CMapStipplePattern();
+	static const std::string& Name( EStipplePattern e );
+	static const std::vector<std::string>& Names();
 
-  static CMapStipplePattern& GetInstance();
+public:
+	//v3 compatibility
 
-  bool ValidName(const char* name);
-  bool ValidName(const std::string& name);
+	CMapStipplePattern();
 
-  std::string StippleToName(StipplePattern id);
-  std::string StippleToKey(StipplePattern id);
+	virtual ~CMapStipplePattern();
 
-  StipplePattern NameToStipple(const std::string& name);
-  StipplePattern KeyToStipple(const std::string& name);
-  std::string KeyToName(const std::string& name);
+	static CMapStipplePattern& GetInstance();
 
-  void NamesToArrayString(std::vector<std::string>&);
-  void NamesToMapString(CStringMap& strMap);
-  
-  void StippleToMap(CUIntMap& uintMap);
+	bool ValidName( const char* name );
+	bool ValidName( const std::string& name );
 
-  StipplePattern GetStipplePattern(CFileParams& params,
-		                   int32_t index = 0,
-		                   const std::string& keyword = "DISPLAY_STIPPLEPATTERN",
-		                   StipplePattern defaultValue = displayFULL);
+	std::string StippleToName( EStipplePattern id );
+	std::string StippleToKey( EStipplePattern id );
+
+	EStipplePattern NameToStipple( const std::string& name );
+	EStipplePattern KeyToStipple( const std::string& name );
+	std::string KeyToName( const std::string& name );
+
+	void NamesToArrayString( std::vector<std::string>& );
+	void NamesToMapString( CStringMap& strMap );
+
+	void StippleToMap( CUIntMap& uintMap );
+
+	EStipplePattern GetStipplePattern( CFileParams& params,
+		int32_t index = 0,
+		const std::string& keyword = "DISPLAY_STIPPLEPATTERN",
+		EStipplePattern defaultValue = displayFULL );
 };
+
+
+
+
 
 //-------------------------------------------------------------
 //------------------- CMapColor class --------------------
@@ -231,7 +304,7 @@ public:
 	{ 
 		if (i >= m_primaryColors.size())
 		{
-			i = 0;
+			i = i % m_primaryColors.size();		//v3 i = 0;
 		}
 
 		return NameToPlotColor(m_primaryColors[i]);

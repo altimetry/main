@@ -3,6 +3,7 @@
 
 
 #include <qwt_data.h>
+#include <qwt_raster_data.h>
 
 #include "new-gui/Common/tools/CoreTypes.h"
 
@@ -22,13 +23,6 @@ static_assert( std::numeric_limits<float>::has_quiet_NaN, "Value nan of type flo
 class CQwtArrayPlotData : public QwtData
 {
 	//types
-
-	// The x values depend on its index and the y values
-	// can be calculated from the corresponding x value.
-	// So we don't need to store the values.
-	// Such an implementation is slower because every point
-	// has to be recalculated for every replot, but it demonstrates how
-	// QwtData can be used.
 
 	struct CCurve
 	{
@@ -373,7 +367,7 @@ struct CWorldPlotParameters : public C3DPlotParameters
 
 
 template< class PARAMS >
-struct CGeneric3DPlotInfo : public std::vector< PARAMS >
+struct CGeneric3DPlotInfo : public std::vector< PARAMS >, public QwtRasterData
 {
 	//types
 
@@ -384,18 +378,62 @@ struct CGeneric3DPlotInfo : public std::vector< PARAMS >
     using base_t::back;
     using base_t::at;
     using base_t::push_back;
+    using base_t::size;
 
+
+	//instance data
+
+	mutable size_t mCurrentMap = 0;
 
 
 	// construction / destruction
 
-	CGeneric3DPlotInfo()
+	CGeneric3DPlotInfo() 
+		: base_t()
+		, QwtRasterData()
 	{}
 	virtual ~CGeneric3DPlotInfo()
 	{}
 
 
-	// operations
+	//QwtRasterData interface
+
+    virtual QwtRasterData *copy() const override
+    {
+        return new CGeneric3DPlotInfo< parameters_t >( *this );
+    }
+
+    virtual QwtDoubleInterval range() const override
+    {
+		const parameters_t& map = at( mCurrentMap );
+		return QwtDoubleInterval( map.mMinHeightValue, map.mMaxHeightValue );
+    }
+
+    virtual double value( double x, double y ) const override
+    {
+		const parameters_t& map = ( *this )[ mCurrentMap ];
+		x -= map.mMinX;
+		y -= map.mMinY;
+		x = std::max( 0., x );
+		y = std::max( 0., y );
+		auto index = map.mXaxis.size() * y + x;										assert__( index >= 0 && index < map.mBits.size() );
+		if ( index < 0 || index >= map.mBits.size() || !map.mBits.at( index ) )
+			return 0;		//rasters do not seem to support NANs std::numeric_limits<double>::quiet_NaN();
+
+		return map.mValues.at( index );
+    }
+
+
+	// assignment
+
+
+	void SetNextMap() const
+	{
+		mCurrentMap++;
+		if ( mCurrentMap >= size() )
+			mCurrentMap = 0;
+	}
+
 
 	inline void AddMap()
 	{

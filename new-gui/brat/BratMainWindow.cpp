@@ -152,7 +152,7 @@ bool CBratMainWindow::WriteSettings()
 			k_v( KEY_MAIN_WINDOW_MAXIMIZED, isMaximized() )
 		) 
 		)
-		std::cout << "Unable to save BRAT the main window settings." << std::endl;	// TODO log this
+		LOG_INFO( "Unable to save BRAT the main window settings." );	// TODO log this
 
 		mSettings.Sync();
 
@@ -167,13 +167,13 @@ CControlPanel* CBratMainWindow::MakeWorkingPanel( ETabName tab )
 	switch ( tab )
 	{
 		case eDataset:
-			return new ControlsPanelType< eDataset >::type( mDesktopManager );
+			return new ControlsPanelType< eDataset >::type( mModel, mDesktopManager );
 			break;
 		case eFilter:
-			return new ControlsPanelType< eFilter >::type( mDesktopManager, mBratFilters );
+			return new ControlsPanelType< eFilter >::type( mModel, mDesktopManager );
 			break;
 		case eOperations:
-			return new ControlsPanelType< eOperations >::type( mBratFilters, mProcessesTable, mDesktopManager );
+			return new ControlsPanelType< eOperations >::type( mProcessesTable, mModel, mDesktopManager );
 			break;
 		default:
 			assert__( false );
@@ -203,8 +203,9 @@ void CBratMainWindow::CreateWorkingDock()
 
 	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eOperations ), "Operations" );		assert( mMainWorkingDock->TabIndex( tab ) == eOperations );
 	mMainWorkingDock->SetTabToolTip( tab, "Quick or advanced operations"  );
-	connect( this, SIGNAL( WorkspaceChanged( CModel* ) ), WorkingPanel< eOperations >(), SLOT( HandleSelectedWorkspaceChanged( CModel* ) ) );
+	connect( this, SIGNAL( WorkspaceChanged() ), WorkingPanel< eOperations >(), SLOT( HandleWorkspaceChanged() ) );
 	connect( WorkingPanel< eOperations >(), SIGNAL( SyncProcessExecution( bool ) ), this, SLOT( HandleSyncProcessExecution( bool ) ) );
+
 
 	action_Satellite_Tracks->setChecked( WorkingPanel< eFilter >()->AutoSatelliteTrack() );
 	connect( WorkingPanel< eDataset >(), SIGNAL( CurrentDatasetChanged(CDataset*) ), WorkingPanel< eFilter >(), SLOT( HandleDatasetChanged(CDataset*) ) );
@@ -364,7 +365,7 @@ void CBratMainWindow::ProcessMenu()
     // Global Wiring
     //
     connect( menu_Window, SIGNAL(aboutToShow()), this, SLOT(UpdateWindowMenu()) );
-	connect( this, SIGNAL( WorkspaceChanged( CModel* ) ), this, SLOT( WorkspaceChangedUpdateUI( CModel* ) ) );
+	connect( this, SIGNAL( WorkspaceChanged() ), this, SLOT( WorkspaceChangedUpdateUI() ) );
 
 #ifndef QT_NO_CLIPBOARD
     connect( QApplication::clipboard(), SIGNAL(dataChanged()), this, SLOT(clipboardDataChanged()) );
@@ -434,8 +435,6 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
 	, mSettings( mApp.Settings() )
 
 	, mModel( CModel::CreateInstance( mSettings.BratPaths() ) )
-
-	, mBratFilters( mSettings.BratPaths().mInternalDataDir )
 
 {
 	LOG_TRACE( "Starting main window construction..." );
@@ -681,7 +680,7 @@ bool CBratMainWindow::StartDisplayMode()
     QStringList args = QCoreApplication::arguments();
 	DoNoWorkspace();
 	setVisible( false );
-	CDisplayFilesProcessor p;
+	CDisplayFilesProcessor p( false );
 	if ( p.Process( args ) )
 	{
 		std::vector< CAbstractDisplayEditor* > editors;
@@ -827,7 +826,7 @@ CBratMainWindow::~CBratMainWindow()
 
 void CBratMainWindow::EmitWorkspaceChanged()
 {
-	emit WorkspaceChanged( &mModel );
+	emit WorkspaceChanged();
 	emit WorkspaceChanged( mModel.Workspace< CWorkspaceDataset >() );
 	emit WorkspaceChanged( mModel.Workspace< CWorkspaceOperation >() );
 	emit WorkspaceChanged( mModel.Workspace< CWorkspaceDisplay >() );
@@ -876,7 +875,7 @@ void CBratMainWindow::SetCurrentWorkspace( const CWorkspace *wks )
 
 bool CBratMainWindow::OpenWorkspace( const std::string &path )
 {
-	//return DoNoWorkspace();		// TODO DELETE THIS AFTER DEBUGGING
+	WaitCursor wait;
 
 	if ( path.empty() )
 	{
@@ -1161,11 +1160,12 @@ void CBratMainWindow::on_action_Views_List_triggered()
 
 	if ( dlg.exec() == QDialog::Accepted )
 	{
-		auto *display = dlg.SelectedDisplay();		assert__( display );
-		auto v = display->GetOperations();			assert__( v.size() > 0 );
+		auto *display = dlg.SelectedDisplay();				assert__( display );
+		const bool maps_as_plots = dlg.DisplayMapsAsPlots();
+		auto v = display->GetOperations();					assert__( v.size() > 0 );
 		CAbstractDisplayEditor *ed = nullptr;
 
-		if ( v[ 0 ]->IsMap() )
+		if ( v[ 0 ]->IsMap() && !maps_as_plots )
 		{
 			ed = new CMapEditor( &mModel, v[ 0 ], display->GetName(), this );
 		}
@@ -1256,6 +1256,77 @@ static LogThread thread_l1, thread_l2;
 
 void CBratMainWindow::on_action_Test_triggered()
 {
+    static const char *argstr = "L:\\project\\dev\\source\\process\\python\\BratAlgorithmExample1.py PyAlgoExample1 10 20 abc 30 40";   Q_UNUSED(argstr);
+	static const char *argv1 = "L:\\project\\dev\\source\\process\\python\\BratAlgorithmExample1.py";
+	static const char *argv2 = "PyAlgoExample1";
+    static const char *argv[] =
+	{
+		"10", "20", "abc", "30", "40"
+	};
+	static const DEFINE_ARRAY_SIZE( argv );
+
+
+
+    EMessageCode error_code = e_OK;
+    try {
+
+        // I. create algorithm object
+
+		PyAlgo algo( argv1, argv2 );
+
+        // II. output algorithm properties
+
+        LOG_INFO( "------------------------------------------------" );
+        LOG_INFO( "Algorithm Name:        " + algo.GetName()        );
+        LOG_INFO( "------------------------------------------------" );
+
+        LOG_INFO( "Algorithm Description: " + algo.GetDescription() );
+        LOG_INFO( "------------------------------------------------" );
+
+        int size = algo.GetNumInputParam();
+        LOG_INFO( "Nb. Input Parameters:  " + n2s<std::string>( size )                  );
+
+        for ( int i = 0; i < size; ++i )
+        {
+            LOG_INFO( "  " +  n2s<std::string>( i+1 ) + ":" );;
+            LOG_INFO( "    Description: " +            algo.GetInputParamDesc(i)     );
+			LOG_INFO( "    Format:      " + std::string( typeName( algo.GetInputParamFormat( i ) ) ) );
+            LOG_INFO( "    Unit:        " +            algo.GetInputParamUnit(i)     );
+        }
+        LOG_INFO( "------------------------------------------------" );
+
+        LOG_INFO( "Algorithm Output Unit: " + algo.GetOutputUnit()  );
+        LOG_INFO( "------------------------------------------------" );
+
+        // III. use algorithm to compute something
+
+        CVectorBratAlgorithmParam args;
+        algo.CreateAlgorithmParamVector( args, (char**)argv, argv_size );
+
+        LOG_INFO( "Running Algorithm... "                        );
+        double result = algo.Run( args );
+        LOG_INFO( "The result is: " + n2s<std::string>( result ) );
+        LOG_INFO( "------------------------------------------------" );
+    }
+    catch( EMessageCode msg )
+    {
+        error_code = msg;
+    }
+    catch( ... )
+    {
+        error_code = e_unspecified_error;
+    }
+
+    if ( error_code != e_OK )
+    {
+        LOG_INFO( py_error_message( error_code ) );
+        return;
+    }
+
+
+	return;
+
+
 //	if ( thread_finished )
 //	{
 //		thread_finished = false;
@@ -1315,10 +1386,8 @@ void CBratMainWindow::on_action_Test_triggered()
 /////////////////////////////////////////////////////////////////////////
 
 
-void CBratMainWindow::WorkspaceChangedUpdateUI( CModel *model )
+void CBratMainWindow::WorkspaceChangedUpdateUI()
 {
-	Q_UNUSED( model );
-
 	const bool enable = mModel.RootWorkspace() != nullptr;
 
 	CActionInfo::UpdateActionsState( {
@@ -1403,7 +1472,10 @@ void CBratMainWindow::HandleSyncProcessExecution( bool executing )
 	mDesktopManager->setEnabled( !executing );
 
 	if ( executing )
+	{
 		mOutputDock->SelectTab( mLogFrameIndex );
+		mOutputDock->setVisible( true );
+	}
 }
 
 

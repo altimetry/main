@@ -44,6 +44,14 @@ bool CRootUpdateCallback::AssignNodeToDelete( osg::Node *node_to_delete )
 {
     return AssignData( node_to_delete, m_node_to_delete );
 }
+bool CRootUpdateCallback::AssignImageLayersChanged()
+{
+	if ( mImageLayersChanged )
+		return false;
+
+    return AssignData( true, mImageLayersChanged );
+}
+
 
 
 //virtually called by base from OSG (update) thread
@@ -77,6 +85,12 @@ bool CRootUpdateCallback::pre_update( osg::Node* node, osg::NodeVisitor* nv )
 
 			m_node_to_delete = nullptr;
 		}
+
+		//if ( mImageLayersChanged )
+		//{
+		//	mGlobeIn.ImageLayersChanged();
+		//	mImageLayersChanged = false;
+		//}
 	}
 	catch ( ... )
 	{

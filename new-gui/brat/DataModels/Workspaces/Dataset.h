@@ -70,6 +70,8 @@ public:
 	const std::string& GetName() const { return m_name; }
 	void SetName( const std::string& value ) { m_name = value; }
 
+	bool IsEmpty() const { return m_files.empty(); }
+
 	bool CtrlFiles( std::vector< std::string > &v );
 
 	bool SaveConfig( CWorkspaceSettings* config ) const;

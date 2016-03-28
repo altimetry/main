@@ -57,27 +57,33 @@ void COperationControls::HandleDatasetsChanged_Quick(CDataset *)
 {
 	int selected = mQuickDatasetsCombo->currentIndex();
 
-	mQuickDatasetsCombo->blockSignals( true );
-    FillCombo( mQuickDatasetsCombo, *mWDataset->GetDatasets(),
+	mQuickDatasetsCombo->clear();
+	if ( mWDataset )
+	{
+		mQuickDatasetsCombo->blockSignals( true );
+		FillCombo( mQuickDatasetsCombo, *mWDataset->GetDatasets(),
 
-        -1, true,
+			-1, true,
 
-        []( const CObMap::value_type &i ) -> const char*
-        {
-            return i.first.c_str();
-        }
-    );
-	mQuickDatasetsCombo->blockSignals( false );
+			[]( const CObMap::value_type &i ) -> const char*
+		{
+			return i.first.c_str();
+		}
+		);
+		mQuickDatasetsCombo->blockSignals( false );
+	}
 
 	mQuickDatasetsCombo->setCurrentIndex( selected < 0 ? 0 : selected );
 }
 
 void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 {
-	if ( dataset_index < 0 )
-		return;
+    if ( dataset_index < 0 )
+        return;
 
-	WaitCursor wait;
+    return;
+
+    WaitCursor wait;
 
 	const int size = mQuickVariablesList->count();
 	for ( int i = 0; i < size; ++i )
@@ -522,7 +528,7 @@ bool COperationControls::CreateDisplayData( COperation *operation, CMapDisplayDa
 
 void COperationControls::HandleQuickMap()
 {
-	WaitCursor wait;				assert__( mModel );
+	WaitCursor wait;				assert__( mWRoot );
 
 	std::string opname = mWOperation->GetOperationNewName();
 
@@ -607,22 +613,22 @@ void COperationControls::HandleQuickMap()
 	if ( !Execute( true ) )
 		return;
 
-	//openTestFile( t2q( mManager->mPaths.mWorkspacesDir + R"(/newWP/Displays/DisplayDisplays_New.par)" ) );
+	//openTestFile( t2q( mDesktopManager->mPaths.mWorkspacesDir + R"(/newWP/Displays/DisplayDisplays_New.par)" ) );
 }
 
 
 void COperationControls::HandleQuickPlot()
 {
-	WaitCursor wait;				assert__( mModel );
+	WaitCursor wait;				assert__( mWRoot );
 
 	NOT_IMPLEMENTED;
 	return;
 
-	auto ed = new CPlotEditor( mModel, mCurrentOperation, "", mManager->parentWidget() );
-    auto subWindow = mManager->AddSubWindow( ed );
+	auto ed = new CPlotEditor( &mModel, mCurrentOperation, "", mDesktopManager->parentWidget() );
+    auto subWindow = mDesktopManager->AddSubWindow( ed );
     subWindow->show();
 
-    //openTestFile( t2q( mManager->mPaths.mWorkspacesDir + R"(/newWP/Displays/DisplayDisplays_2.par)" ) );
+    //openTestFile( t2q( mDesktopManager->mPaths.mWorkspacesDir + R"(/newWP/Displays/DisplayDisplays_2.par)" ) );
 }
 
 
@@ -632,7 +638,7 @@ void COperationControls::HandleQuickPlot()
 void COperationControls::openTestFile( const QString &fileName )
 {
 	delete mCmdLineProcessor;
-	mCmdLineProcessor = new CDisplayFilesProcessor;
+	mCmdLineProcessor = new CDisplayFilesProcessor( false );
 
 	const std::string s = q2a( fileName );
 	const char *argv[] = { "", s.c_str() };
@@ -650,7 +656,7 @@ void COperationControls::openTestFile( const QString &fileName )
 						continue;
 
 					auto ed = new CMapEditor( mCmdLineProcessor, wplot, this );
-					auto subWindow = mManager->AddSubWindow( ed );
+					auto subWindow = mDesktopManager->AddSubWindow( ed );
 					subWindow->show();
 				}
 			}
@@ -663,7 +669,7 @@ void COperationControls::openTestFile( const QString &fileName )
 						continue;
 
 					auto ed = new CPlotEditor( mCmdLineProcessor, yfxplot, this );
-					auto subWindow = mManager->AddSubWindow( ed );
+					auto subWindow = mDesktopManager->AddSubWindow( ed );
 					subWindow->show();
 				}
 			}
@@ -676,7 +682,7 @@ void COperationControls::openTestFile( const QString &fileName )
 						continue;
 
 					auto ed = new CPlotEditor( mCmdLineProcessor, zfxyplot, this );
-					auto subWindow = mManager->AddSubWindow( ed );
+					auto subWindow = mDesktopManager->AddSubWindow( ed );
 					subWindow->show();
 				}
 			}

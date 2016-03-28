@@ -356,7 +356,7 @@ inline QString ElapsedFormat( QElapsedTimer &timer )
 
 
 const int icon_size = 24;
-const int tool_icon_size = 22;
+const int tool_icon_size = 20;
 
 
 //////////
@@ -706,7 +706,7 @@ inline void insertToolBar( QMainWindow *w, QToolBar *toolbar, Qt::ToolBarArea ar
 // see also ActionsTable.*
 
 
-inline QToolButton* CreateToolButton( const std::string &name, const std::string &pix_path, const std::string &tip  = "", bool auto_raise = true )
+inline QToolButton* CreateToolButton( const std::string &name, const std::string &pix_path, const std::string &tip  = "", bool auto_raise = false )
 {
 	QToolButton *button = new QToolButton;
 	button->setAutoRaise( auto_raise );
@@ -816,22 +816,31 @@ inline QToolButton* CreatePopupButton( const std::string &name, const std::strin
 inline QWidget* CreateButtonRow( bool exclusive, Qt::Orientation o, const std::vector< QObject* > &v, int spacing = 2, int margins = 2 )
 {
 	QWidget *buttons_row = new QWidget;
-	if ( exclusive )
-	{
-		for ( auto *o : v )
-		{
-			auto *button = qobject_cast< QAbstractButton* >( o );
-			if ( !o )
-				continue;
 
+	for ( auto *obj : v )
+	{
+		auto *button = qobject_cast<QAbstractButton*>( obj );
+		if ( !button )
+			continue;
+
+		if ( exclusive )
+		{
 			button->setCheckable( true );
 			button->setAutoExclusive( true );
 		}
+
+		//compensate any button width/height differences
+
+		button->setSizePolicy(
+			o == Qt::Vertical ? QSizePolicy::Expanding : QSizePolicy::Maximum,
+			o == Qt::Vertical ? QSizePolicy::Maximum : QSizePolicy::Expanding );
 	}
+
 	LayoutWidgets( o, v, buttons_row, spacing, margins, margins, margins, margins );
-	buttons_row->setSizePolicy( 
+	buttons_row->setSizePolicy(
 		o == Qt::Horizontal ? QSizePolicy::Expanding : QSizePolicy::Maximum,
 		o == Qt::Horizontal ? QSizePolicy::Maximum : QSizePolicy::Expanding );
+
 	return buttons_row;
 }
 
@@ -851,12 +860,20 @@ template <
 >
 inline void FillCombo( COMBO *c, const CONTAINER &items, int selected = 0, bool enabled = true, const FUNC &f = qidentity )
 {
-	c->clear();
+	c->clear();				assert__( c->currentIndex() == -1 );
+	if ( selected > 0 )
+		c->blockSignals( true );
+
     for ( auto i : items )
     {
         c->addItem( f( i ) );
     }
-    c->setCurrentIndex( selected );
+
+	if ( selected > 0 )
+	{
+		c->blockSignals( false );
+		c->setCurrentIndex( selected );
+	}
     c->setEnabled( enabled );
 }
 

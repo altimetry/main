@@ -218,7 +218,7 @@ public:
 	std::string GetRecord() const { return m_record; }
 	void SetRecord( const std::string& value ) { m_record = value; }
 
-	int32_t GetType() const { return m_type; }
+	CMapTypeOp::ETypeOp GetType() const { return (CMapTypeOp::ETypeOp)m_type; }
 	void SetType( int32_t value ) { SetType( (CMapTypeOp::ETypeOp)value ); }
 	void SetType( CMapTypeOp::ETypeOp value ) { m_type = value; }
 

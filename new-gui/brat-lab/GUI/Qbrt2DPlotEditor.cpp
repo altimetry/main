@@ -7,22 +7,12 @@
 
 Qbrt2DPlotEditor::Qbrt2DPlotEditor( QWidget *parent ) : base_t( parent ), m_ToolEditor( false )
 {
-    static E2DPlotType ex = e2DPlotType_size;
-
 	setWindowIcon( QPixmap( ":/2.png" ) );
 	setWindowTitle( "[*]" );
 	setAttribute( Qt::WA_DeleteOnClose );
 
-	switch ( ++ex )
-	{
-		case eSpectogram:
-            d_plot = new C2DPlotWidget( this );
-			setCentralWidget( d_plot );
-			break;
-
-		default:
-			throw "2D error";
-	}
+	d_plot = new C2DPlotWidget( this );
+	setCentralWidget( d_plot );
 
 	isUntitled = true;
 }

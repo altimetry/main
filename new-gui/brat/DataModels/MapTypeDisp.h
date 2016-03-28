@@ -36,6 +36,8 @@ public:
 		eTypeDispZFLatLon
 	};
 
+	static ETypeDisp Invalid() { return (ETypeDisp)-1; }
+
 public:
 	CMapTypeDisp();
 
@@ -48,7 +50,7 @@ public:
 	bool ValidName( const std::string& name );
 
 	std::string IdToName( uint32_t id );
-	uint32_t NameToId( const std::string& name );
+	ETypeDisp NameToId( const std::string& name );
 
 	//void NamesToArrayString( wxArrayString& array );
 

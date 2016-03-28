@@ -52,6 +52,9 @@ namespace osgEarth
 		{
 			QgsMapCanvas *mCanvas = nullptr;
 			QgsCoordinateTransform *mCoordTransform = nullptr;
+			QgsRectangle mViewExtent;
+			QStringList mLayerSet;
+
 #ifndef USE_RENDERER
 			QgsMapSettings mMapSettings;
 #else

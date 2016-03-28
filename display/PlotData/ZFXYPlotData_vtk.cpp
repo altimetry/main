@@ -149,7 +149,7 @@ CLUTZFXYRenderer::~CLUTZFXYRenderer()
 void CLUTZFXYRenderer::ResetTextActor(VTK_CZFXYPlotData* zfxyPlotData)
 {
   std::string text = zfxyPlotData->GetDataTitle();
-  text += "\t\t(" + zfxyPlotData->m_plotProperty.m_name;
+  text += "\t\t(" + zfxyPlotData->m_plotProperties.m_name;
   text += ")\t\t-\t\tUnit:\t" +  zfxyPlotData->GetDataUnitString();
   text += "\t" + zfxyPlotData->GetDataDateString();
 
@@ -280,7 +280,7 @@ VTK_CZFXYPlotData::VTK_CZFXYPlotData( CZFXYPlot* plot, CPlotField* field )
 
 	m_colorBarRenderer = new CLUTZFXYRenderer();
 	m_colorBarRenderer->GetVtkRenderer()->InteractiveOff();
-	m_colorBarRenderer->SetNumberOfLabels( m_plotProperty.m_numColorLabels );
+	m_colorBarRenderer->SetNumberOfLabels( m_plotProperties.m_numColorLabels );
 
 	m_finished = false;
 
@@ -337,9 +337,9 @@ VTK_CZFXYPlotData::VTK_CZFXYPlotData( CZFXYPlot* plot, CPlotField* field )
 		zfxyPlotFilter->SetMaxMappedValue( mMaps( iMap ).mMaxHeightValue );
 	}
 
-	SetLUT( m_plotProperty.m_LUT );
+	SetLUT( m_plotProperties.m_LUT );
 
-	m_LUT->GetLookupTable()->SetTableRange( m_plotProperty.m_minContourValue, m_plotProperty.m_maxContourValue );
+	m_LUT->GetLookupTable()->SetTableRange( m_plotProperties.m_minContourValue, m_plotProperties.m_maxContourValue );
 
 	m_colorBarRenderer->SetLUT( m_LUT );
 
@@ -580,37 +580,37 @@ void VTK_CZFXYPlotData::Create( CObArray* data, const std::string& fieldName, CZ
 	m_contourLabelNeedUpdatePositionOnContour = false;
 
 
-	if ( m_plotProperty.m_name.empty() )
+	if ( m_plotProperties.m_name.empty() )
 	{
-		m_plotProperty.m_name = fieldName.c_str();
+		m_plotProperties.m_name = fieldName.c_str();
 	}
 
-	if ( m_plotProperty.m_title.empty() )
+	if ( m_plotProperties.m_title.empty() )
 	{
-		m_plotProperty.m_title = plot->m_title;
+		m_plotProperties.m_title = plot->m_title;
 	}
 
 
-	if ( m_plotProperty.m_xLabel.empty() )
+	if ( m_plotProperties.m_xLabel.empty() )
 	{
-		m_plotProperty.m_xLabel = plot->m_titleX;
+		m_plotProperties.m_xLabel = plot->m_titleX;
 	}
 	else
 	{
-		std::string titleX = m_plotProperty.m_xLabel;
+		std::string titleX = m_plotProperties.m_xLabel;
 		titleX += plot->m_unitXLabel;
-		m_plotProperty.m_xLabel = titleX;
+		m_plotProperties.m_xLabel = titleX;
 	}
 
-	if ( m_plotProperty.m_yLabel.empty() )
+	if ( m_plotProperties.m_yLabel.empty() )
 	{
-		m_plotProperty.m_yLabel = plot->m_titleY;
+		m_plotProperties.m_yLabel = plot->m_titleY;
 	}
 	else
 	{
-		std::string titleY = m_plotProperty.m_yLabel;
+		std::string titleY = m_plotProperties.m_yLabel;
 		titleY += plot->m_unitYLabel;
-		m_plotProperty.m_yLabel = titleY;
+		m_plotProperties.m_yLabel = titleY;
 	}
 
 	m_unitX = plot->m_unitX;
@@ -619,7 +619,7 @@ void VTK_CZFXYPlotData::Create( CObArray* data, const std::string& fieldName, CZ
 	m_colorBarRenderer = new CLUTZFXYRenderer();
 	m_colorBarRenderer->GetVtkRenderer()->InteractiveOff();
 
-	m_colorBarRenderer->SetNumberOfLabels( m_plotProperty.m_numColorLabels );
+	m_colorBarRenderer->SetNumberOfLabels( m_plotProperties.m_numColorLabels );
 
 
 	m_finished = false;
@@ -659,8 +659,8 @@ void VTK_CZFXYPlotData::Create( CObArray* data, const std::string& fieldName, CZ
 		setDefaultValue( minYDataMapValue );
 		setDefaultValue( maxYDataMapValue );
 
-		minHeightValue = m_plotProperty.m_minHeightValue;
-		maxHeightValue = m_plotProperty.m_maxHeightValue;
+		minHeightValue = m_plotProperties.m_minHeightValue;
+		maxHeightValue = m_plotProperties.m_maxHeightValue;
 
 		CExpressionValue varX;
 		CExpressionValue varY;
@@ -738,7 +738,7 @@ void VTK_CZFXYPlotData::Create( CObArray* data, const std::string& fieldName, CZ
 		std::string dataTitle = zfxy->GetTitle( fieldName );
 		if ( dataTitle.empty() )
 		{
-			dataTitle = m_plotProperty.m_name;
+			dataTitle = m_plotProperties.m_name;
 		}
 
 		m_dataTitles.Insert( dataTitle );
@@ -938,14 +938,14 @@ void VTK_CZFXYPlotData::Create( CObArray* data, const std::string& fieldName, CZ
 	}
 
 
-	if ( isDefaultValue( m_plotProperty.m_minContourValue ) )
+	if ( isDefaultValue( m_plotProperties.m_minContourValue ) )
 	{
-		m_plotProperty.m_minContourValue = minHeightValue;
+		m_plotProperties.m_minContourValue = minHeightValue;
 	}
 
-	if ( isDefaultValue( m_plotProperty.m_maxContourValue ) )
+	if ( isDefaultValue( m_plotProperties.m_maxContourValue ) )
 	{
-		m_plotProperty.m_maxContourValue = maxHeightValue;
+		m_plotProperties.m_maxContourValue = maxHeightValue;
 	}
 
 #if defined(BRAT_V3)		// TODO replace by callback device to display progress
@@ -964,7 +964,7 @@ void VTK_CZFXYPlotData::Create( CObArray* data, const std::string& fieldName, CZ
 		zfxyPlotFilter->SetMaxMappedValue( maxHeightValue );
 	}
 
-	SetLUT( m_plotProperty.m_LUT );
+	SetLUT( m_plotProperties.m_LUT );
 
 	m_LUT->GetLookupTable()->SetTableRange( minHeightValue, maxHeightValue );
 
@@ -1030,7 +1030,7 @@ void VTK_CZFXYPlotData::SetContour2D()
 {
   DeleteContour2D();
 
-  if (m_plotProperty.m_withContour == false)
+  if (m_plotProperties.m_withContour == false)
   {
     return;
   }
@@ -1078,16 +1078,16 @@ void VTK_CZFXYPlotData::SetContourLabelProperties()
   vtkTextProperty* text = m_vtkContourLabelMapper->GetLabelTextProperty();
 
   text->SetFontFamilyToArial();
-  text->SetFontSize(m_plotProperty.m_contourLabelSize);
+  text->SetFontSize(m_plotProperties.m_contourLabelSize);
   text->ShadowOff();
   text->ItalicOff();
   text->SetJustificationToCentered();
-  text->SetColor(m_plotProperty.m_contourLabelColor.Red(),
-                 m_plotProperty.m_contourLabelColor.Green(),
-                 m_plotProperty.m_contourLabelColor.Blue()
+  text->SetColor(m_plotProperties.m_contourLabelColor.Red(),
+                 m_plotProperties.m_contourLabelColor.Green(),
+                 m_plotProperties.m_contourLabelColor.Blue()
                  );
 
-  m_vtkContourLabelMapper->SetLabelFormat(m_plotProperty.m_contourLabelFormat.c_str());
+  m_vtkContourLabelMapper->SetLabelFormat(m_plotProperties.m_contourLabelFormat.c_str());
   m_vtkContourLabelMapper->SetLabelModeToLabelScalars();
 
 }
@@ -1100,9 +1100,9 @@ void VTK_CZFXYPlotData::ContourGenerateValues()
     return;
   }
 
-  m_vtkContourFilter->GenerateValues(m_plotProperty.m_numContour,
-                                     m_plotProperty.m_minContourValue,
-                                     m_plotProperty.m_maxContourValue
+  m_vtkContourFilter->GenerateValues(m_plotProperties.m_numContour,
+                                     m_plotProperties.m_minContourValue,
+                                     m_plotProperties.m_maxContourValue
                                      );
   m_contourLabelNeedUpdateOnWindow = true;
 
@@ -1115,12 +1115,12 @@ void VTK_CZFXYPlotData::SetContour2DProperties()
     return;
   }
 
-  m_vtkContourActor2D->GetProperty()->SetColor(m_plotProperty.m_contourLineColor.Red(),
-                                             m_plotProperty.m_contourLineColor.Green(),
-                                             m_plotProperty.m_contourLineColor.Blue()
+  m_vtkContourActor2D->GetProperty()->SetColor(m_plotProperties.m_contourLineColor.Red(),
+                                             m_plotProperties.m_contourLineColor.Green(),
+                                             m_plotProperties.m_contourLineColor.Blue()
                                              );
 
-  m_vtkContourActor2D->GetProperty()->SetLineWidth(m_plotProperty.m_contourLineWidth);
+  m_vtkContourActor2D->GetProperty()->SetLineWidth(m_plotProperties.m_contourLineWidth);
 
 }
 
@@ -1165,7 +1165,7 @@ void VTK_CZFXYPlotData::FindVisiblePlanePoints(void* arg)
 //----------------------------------------
 void VTK_CZFXYPlotData::CreateContourLabels2D()
 {
-  if (m_plotProperty.m_withContour == false)
+  if (m_plotProperties.m_withContour == false)
   {
     return;
   }
@@ -1214,12 +1214,12 @@ void VTK_CZFXYPlotData::CreateContourLabels2D()
 //----------------------------------------
 void VTK_CZFXYPlotData::UpdateContourLabels2D()
 {
-  if (m_plotProperty.m_withContour == false)
+  if (m_plotProperties.m_withContour == false)
   {
     return;
   }
 
-  if (m_plotProperty.m_withContourLabel == false)
+  if (m_plotProperties.m_withContourLabel == false)
   {
     return;
   }
@@ -1238,7 +1238,7 @@ void VTK_CZFXYPlotData::UpdateContourLabels2D()
   m_vtkConnectivity->Update();
   int32_t nContours = m_vtkConnectivity->GetNumberOfExtractedRegions();
 
-  int32_t nLabels = m_plotProperty.m_numContourLabel;
+  int32_t nLabels = m_plotProperties.m_numContourLabel;
 
 
   m_vtkLabelContourPositions->Reset();
@@ -1351,12 +1351,12 @@ void VTK_CZFXYPlotData::UpdateContourLabels2D()
 //----------------------------------------
 void VTK_CZFXYPlotData::SetContourLabels2DPosition()
 {
-  if (m_plotProperty.m_withContour == false)
+  if (m_plotProperties.m_withContour == false)
   {
     return;
   }
 
-  if (m_plotProperty.m_withContourLabel == false)
+  if (m_plotProperties.m_withContourLabel == false)
   {
     return;
   }
@@ -1368,7 +1368,7 @@ void VTK_CZFXYPlotData::SetContourLabels2DPosition()
 
   wxSetCursor(*wxHOURGLASS_CURSOR);
 
-  int32_t nLabels = m_plotProperty.m_numContourLabel;
+  int32_t nLabels = m_plotProperties.m_numContourLabel;
   int32_t nContours =  m_labelPts.size();
 
   m_vtkLabelContourPositions->Reset();

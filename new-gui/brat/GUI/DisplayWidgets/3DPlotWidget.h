@@ -100,7 +100,7 @@ public:
 
 	// 
 
-	void SetLogarithmicScale( Qwt3D::AXIS axis, bool log );
+	void SetLogarithmicScale( bool onlyz, bool log );
 
 	void SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle )
 	{
@@ -159,11 +159,25 @@ class C3DPlotWidget : public QFrame
 	using base_t = QFrame;
 
 
+	//static data
+
+public:
+
+	static const std::string smFontName;
+	static const int smAxisFontSize = 8;
+	static const int smTitleFontSize = 10;
+
+
+protected:
+
 	// instance data
 
 	std::vector<Qwt3D::SurfacePlot*> mPlots;
 
 	QSize m_SizeHint;
+
+	bool mShowContour = true;
+	bool mShowMesh = true;
 
 	double level_, width_;			//enrichment example
 	Bar *bar = nullptr;				//enrichment example
@@ -181,42 +195,38 @@ class C3DPlotWidget : public QFrame
 	void Vertex_Enrichment();	//enrichment example
 
 public:
-	C3DPlotWidget( QWidget *parent = 0 );
+	C3DPlotWidget( QWidget *parent = nullptr );
 
 	virtual ~C3DPlotWidget();
 
-	// access
+	// access/assignment
 
-	void SetPlotTitle( const std::string &title )
-	{
-		assert__( mPlots.size() );
-
-		mPlots[ 0 ]->setTitle( title.c_str() );
-	}
-
-	void SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle );
-
+	//...create plot
 
 	void AddSurface( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax );
 
-	void SetXLogarithmicScale( bool log )
-	{
-		SetLogarithmicScale( Qwt3D::X1, log );
-	}
-	void SetYLogarithmicScale( bool log )
-	{
-		SetLogarithmicScale( Qwt3D::Y1, log );
-	}
-	void SetZLogarithmicScale( bool log )
-	{
-		SetLogarithmicScale( Qwt3D::Z1, log );
-	}
-	void SetLogarithmicScale( bool log )
-	{
-		SetXLogarithmicScale( log );
-		SetYLogarithmicScale( log );
-		SetZLogarithmicScale( log );
-	}
+
+	//...title
+
+	void SetPlotTitle( const std::string &title );
+
+
+	//style
+
+    bool HasContour() const;
+    void ShowContour( bool show );
+
+    bool HasSolidColor() const;
+    void ShowSolidColor( bool show );
+
+
+	//axis
+
+	void SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle );
+
+	void SetLogarithmicScaleZ( bool log );
+
+	void SetLogarithmicScale( bool log );
 
 
 	// protected operations
@@ -226,8 +236,7 @@ protected:
 
 	void SetCentralWidget( QWidget *w );
 
-	void SetLogarithmicScale( Qwt3D::AXIS axis, bool log );
-
+	void SetStyle();
 
 public slots:
 	void setLevel( int );		//enrichment example
@@ -236,7 +245,8 @@ public slots:
 };
 
 
-
+// DO NOT delete
+//
 // qwtplot3d original comments: 
 //
 //	- Mouse

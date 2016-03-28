@@ -1,5 +1,6 @@
 #include "new-gui/brat/stdafx.h"
 
+#include "DataModels/Model.h"
 #include "DataModels/Workspaces/Workspace.h"
 #include "GUI/DisplayWidgets/TextWidget.h"
 #include "GUI/ControlPanels/DatasetBrowserControls.h"
@@ -14,8 +15,9 @@
 
 
 //explicit
-CDatasetBrowserControls::CDatasetBrowserControls( CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
-    : base_t( manager, parent, f )
+CDatasetBrowserControls::CDatasetBrowserControls( CModel &model, CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
+    : base_t( model, manager, parent, f )
+	, mBratPaths( mModel.BratPaths() )
 {
     // I. Browse Stack Widget; 2 pages: files and rads
 
@@ -181,7 +183,7 @@ void CDatasetBrowserControls::HandleTreeItemChanged( )
     }
 
     // Item is a Dataset -----------------------------------------------------------
-    if (tree_item->parent() == nullptr ) // top level item has no parent() = NULL
+    if (tree_item->parent() == nullptr ) // top level item has no parent() = nullptr
     {
         dataset_name = tree_item->text(0);
         DatasetChanged( tree_item );
@@ -302,25 +304,22 @@ void CDatasetBrowserControls::HandleFieldChanged()
 
 void CDatasetBrowserControls::HandleNewDataset()
 {
-    if( mWDataset == nullptr )
-    {
-        return;
-    }
+	assert__( mWDataset != nullptr );
 
     WaitCursor wait;
 
     // Get name for the new dataset
-    QString dataset_name ( mWDataset->GetDatasetNewName().c_str() );
+    std::string dataset_name = mWDataset->GetDatasetNewName();
 
     // Insert dataset in workspace and into DatasetTree
-    mWDataset->InsertDataset( dataset_name.toStdString() );
-    QTreeWidgetItem *dataset_item = AddDatasetToTree( dataset_name );
+    mWDataset->InsertDataset( dataset_name );
+    QTreeWidgetItem *dataset_item = AddDatasetToTree( dataset_name.c_str() );
 
     // Selects new dataset
     mDatasetTree->setCurrentItem( dataset_item );
 
     // Notify about the change (new dataset)
-    emit DatasetsChanged( mWDataset->GetDataset( dataset_name.toStdString() ) );
+    emit DatasetsChanged( mWDataset->GetDataset( dataset_name ) );
 
     // -TODO(Delete)-- Old Brat code - mWDataset->GetDatasetNewName() ensures that new dataset does not exists ------
     //else
@@ -347,72 +346,74 @@ void CDatasetBrowserControls::HandleNewDataset()
 
 void CDatasetBrowserControls::HandleDeleteDataset()
 {
-    // Get selected dataset item
-    QTreeWidgetItem *current_dataset_item = mDatasetTree->currentItem();
+	// Get selected dataset item
+	QTreeWidgetItem *current_dataset_item = mDatasetTree->currentItem();
 
-    if( mWDataset == nullptr || current_dataset_item == nullptr )
-    {
-        return;
-    }
+	if ( mWDataset == nullptr || current_dataset_item == nullptr )
+	{
+		return;
+	}
 
-    if( current_dataset_item->parent() ) //check if selected item has parent (is a file)
-        current_dataset_item = current_dataset_item->parent();
+	if ( current_dataset_item->parent() ) //check if selected item has parent (is a file)
+		current_dataset_item = current_dataset_item->parent();
 
-    // Get current dataset
-    CDataset *current_dataset = mWDataset->GetDataset( current_dataset_item->text(0).toStdString() );
+	// Get current dataset
+	CDataset *current_dataset = mWDataset->GetDataset( current_dataset_item->text( 0 ).toStdString() );
 
-    if ( !SimpleQuestion( QString("Are you sure to delete dataset '%1'?").arg(current_dataset->GetName().c_str()) ) )
-    {
-        return;
-    }
+	CWorkspaceOperation *wks = mModel.Workspace<CWorkspaceOperation>();			assert__( wks != nullptr );
+	std::string error_msg;
+	CStringArray operation_names;
+	if ( wks->UseDataset( current_dataset->GetName(), error_msg, &operation_names ) )
+	{
+		std::string str = operation_names.ToString( "\n", false );
+		SimpleErrorBox(
+			"Unable to delete dataset '"
+			+ current_dataset->GetName()
+			+ "'.\nIt is used by the operations below:\n"
+			+ str
+			);
 
-    // -TODO -- Old Brat code ----------------------------------------------------
-    //CStringArray operationNames;
-    //bOk = wxGetApp().CanDeleteDataset(m_dataset->GetName(), &operationNames);
+		return;
+	}
 
-    //if (bOk == false)
-    //{
-    //  std::string str = operationNames.ToString("\n", false);
-    //  wxMessageBox(wxString::Format("Unable to delete dataset '%s'.\nIt is used by the operations below:\n%s\n",
-    //                                m_dataset->GetName().c_str(),
-    //                                str.c_str()),
-    //              "Warning",
-    //              wxOK | wxICON_EXCLAMATION);
-    //  return;
-    //}
-    // --------------------------------------------------------------------
+	if ( !SimpleQuestion( QString( "Are you sure to delete dataset '%1'?" ).arg( current_dataset->GetName().c_str() ) ) )
+	{
+		return;
+	}
 
-    if( !mWDataset->DeleteDataset( current_dataset ) )
-    {
-        SimpleWarnBox( QString( "Unable to delete dataset '%1'").arg(
-                                current_dataset->GetName().c_str()  ) );
-        return;
-    }
+	if ( !mWDataset->DeleteDataset( current_dataset ) )
+	{
+		SimpleWarnBox( QString( "Unable to delete dataset '%1'" ).arg(
+			current_dataset->GetName().c_str() ) );
+		return;
+	}
 
-    // Select dataset, this ensures automatic selection of other dataset after deletion
-    mDatasetTree->setCurrentItem( current_dataset_item );
+	// Select dataset, this ensures automatic selection of other dataset after deletion
+	mDatasetTree->setCurrentItem( current_dataset_item );
 
-    // Delete dataset item (including children => file items)
-    delete current_dataset_item;
+	// Delete dataset item (including children => file items)
+	delete current_dataset_item;
 
-    // Notify about the change (dataset deleted)
-    emit DatasetsChanged( current_dataset );
+	// Notify about the change (dataset deleted)
+	emit DatasetsChanged( current_dataset );
 
-    // -TODO -- Old Brat code ----------------------
-    //EnableCtrl();
-    //
-    //CNewDatasetEvent ev(GetId(), dsName);
-    //wxPostEvent(GetParent(), ev);
-    // ---------------------------------------------
+	// -TODO -- Old Brat code ----------------------
+	//EnableCtrl();
+	//
+	//CNewDatasetEvent ev(GetId(), dsName);
+	//wxPostEvent(GetParent(), ev);
+	// ---------------------------------------------
 
-    // // FEMM (TBC) - Signal emission is not required. Previous dataset is automatically selected and catched by HandleTreeItemChanged()
-    //emit CurrentDatasetChanged( nullptr );
+	// // FEMM (TBC) - Signal emission is not required. Previous dataset is automatically selected and catched by HandleTreeItemChanged()
+	//emit CurrentDatasetChanged( nullptr );
 }
 
 
 
 void CDatasetBrowserControls::HandleAddFiles()
 {
+	static std::string last_path = mBratPaths.mExternalDataDir;
+
     // Get selected dataset item
     QTreeWidgetItem *current_dataset_item = mDatasetTree->currentItem();
 
@@ -426,7 +427,9 @@ void CDatasetBrowserControls::HandleAddFiles()
     }
 
     // TODO: Change mWDataset->GetPath() by the last data path ??
-    QStringList paths_list = BrowseFiles( this, "Select files...", mWDataset->GetPath().c_str() );
+    QStringList paths_list = BrowseFiles( this, "Select files...", last_path.c_str() );
+	if ( !paths_list.empty() )
+		last_path = GetDirectoryFromPath( q2a( paths_list[ 0 ] ) );
 
     AddFiles( paths_list );
 }
@@ -434,6 +437,8 @@ void CDatasetBrowserControls::HandleAddFiles()
 
 void CDatasetBrowserControls::HandleAddDir()
 {
+	static std::string last_path = mBratPaths.mExternalDataDir;
+
     // Get selected dataset item
     QTreeWidgetItem *current_dataset_item = mDatasetTree->currentItem();
 
@@ -447,11 +452,11 @@ void CDatasetBrowserControls::HandleAddDir()
     }
 
     // TODO: Change mWDataset->GetPath() by the last data path ??
-    QString dir_path = BrowseDirectory( this, "Select a directory...", mWDataset->GetPath().c_str() );
+    QString dir_path = BrowseDirectory( this, "Select a directory...", last_path.c_str() );
     if ( dir_path.isEmpty() )
-	{
 		return;
-	}
+
+	last_path = q2a( dir_path );
 
     // Create list containing all directory files
     QStringList paths_list;
@@ -551,97 +556,101 @@ void CDatasetBrowserControls::HandleClearFiles()
 }
 
 
-void CDatasetBrowserControls::AddFiles(QStringList &paths_list)
+void CDatasetBrowserControls::AddFiles( QStringList &paths_list )
 {
-    if (paths_list.empty())
-    {
-        return;
-    }
+	if ( paths_list.empty() )
+	{
+		return;
+	}
+	paths_list.sort();
 
-    paths_list.sort();
+	// Get selected dataset item
+	QTreeWidgetItem *current_dataset_item = mDatasetTree->currentItem();
+	if ( current_dataset_item->parent() ) //check if selected item has parent (is a file)
+	{
+		current_dataset_item = current_dataset_item->parent();
+	}
+	CDataset *current_dataset = mWDataset->GetDataset( current_dataset_item->text( 0 ).toStdString() );
 
-    // Get selected dataset item
-    QTreeWidgetItem *current_dataset_item = mDatasetTree->currentItem();
+	// Get current files class and type
+	std::string old_product_class = current_dataset->GetProductList()->m_productClass;
+	std::string old_product_type = current_dataset->GetProductList()->m_productType;
 
-    if( current_dataset_item->parent() ) //check if selected item has parent (is a file)
-    {
-        current_dataset_item = current_dataset_item->parent();
-    }
+	// -TODO-- Old Brat code for applying select criteria -----
+	//    bool applySelectionCriteria = GetDsapplycrit()->GetValue();
 
+	//    if (applySelectionCriteria)
+	//    {
+	//      CStringList filesOut;
+	//      ApplySelectionCriteria(fileList, filesOut);
 
-// -TODO-- Old Brat code for saving last data path -----
-//    wxFileName currentDir;
+	//      fileList.clear();
+	//      fileList.Insert(filesOut);
+	//    }
 
-//    currentDir.Assign(paths[0]);
-//    currentDir.Normalize();
-//    wxGetApp().SetLastDataPath(currentDir.GetPath());
-// ----------------------------------------------------
+	foreach( QString file_path, paths_list )
+	{
+		std::string normalized_path = NormalizedPath( q2a( file_path ) );
+		try
+		{
+			// Insert file path into current Dataset
+			current_dataset->GetProductList()->InsertUnique( normalized_path );
 
+			// Check each file (as they are added to current dataset)
+			current_dataset->CheckFiles();
+			std::string msg = current_dataset->GetProductList()->GetMessage();
+			if ( !msg.empty() )
+			{
+				SimpleWarnBox( msg );
+			}
+		}
+		catch ( CException& e )
+		{
+			SimpleWarnBox( QString( "Unable to process files. Please apply correction.\n\nReason:\n%1" ).arg( e.what() ) );
 
-// -TODO (delete) - Changed in order to add only valid product files ////
-//    CStringList file_list;
-//    foreach(QString path, paths_list)
-//    {
-//        file_list.InsertUnique( path.toStdString() );
-//    }
-//  //////////////////////////////////////////////////////////////////////
+			// Delete product from dataset
+			current_dataset->EraseProduct( normalized_path );	//use the exact same path string, otherwise it is not recognized
+		}
+	}
 
-// -TODO-- Old Brat code for applying select criteria -----
-//    bool applySelectionCriteria = GetDsapplycrit()->GetValue();
+	// Check new files class and type
+	const bool is_same_product_class_type = 
+		str_icmp( old_product_class, current_dataset->GetProductList()->m_productClass ) &&
+		str_icmp( old_product_type, current_dataset->GetProductList()->m_productType );
 
-//    if (applySelectionCriteria)
-//    {
-//      CStringList filesOut;
-//      ApplySelectionCriteria(fileList, filesOut);
+	CWorkspaceOperation *wks = mModel.Workspace<CWorkspaceOperation>();		assert__( wks != nullptr );
+	std::string error_msg;
+	CStringArray operation_names;
+	bool used_by_operations = wks->UseDataset( current_dataset->GetName(), error_msg, &operation_names );
+	if ( !is_same_product_class_type && used_by_operations )
+	{
+		std::string str = operation_names.ToString( "\n", false );
+		SimpleWarnBox( 
+			"Warning: Files contained in the dataset '"
+			+ current_dataset->GetName()
+			+ "' have been changed from '"
+			+ old_product_class
+			+ "/"
+			+ old_product_type
+			+ "' to '"
+			+ current_dataset->GetProductList()->m_productClass
+			+ "/"
+			+ current_dataset->GetProductList()->m_productType
+			+ "' product class/type.\n\nThis dataset is used by the operations below:\n"
+			+ str
+			+ "\n\nBe sure field's names used in these operations match the fields of the dataset files"
+			);
+	}
 
-//      fileList.clear();
-//      fileList.Insert(filesOut);
-//    }
-// --------------------------------------------------------
+	// Clear all files and fill with new list
+	qDeleteAll( current_dataset_item->takeChildren() );
+	FillFileTree( current_dataset_item );
 
-// -TODO (delete) - Changed in order to add only valid product files /////
-//    // Insert file_list into current Dataset
-//    CDataset *current_dataset = mWDataset->GetDataset( current_dataset_item->text(0).toStdString() );
-//    current_dataset->InsertUniqueProducts(file_list);
-
-//    // Clear all files and fill with new list
-//    current_dataset_item->takeChildren();
-//    FillFileTree( current_dataset_item );
-
-//    CheckFiles();
-//  //////////////////////////////////////////////////////////////////////
-
-    CDataset *current_dataset = mWDataset->GetDataset( current_dataset_item->text(0).toStdString() );
-
-    foreach(QString file_path, paths_list)
-    {
-        try
-        {
-            // Insert file path into current Dataset
-            current_dataset->GetProductList()->InsertUnique( NormalizedPath(file_path).toStdString() );
-
-            // Check each file (as they are added to current dataset)
-            current_dataset->CheckFiles();
-        }
-        catch (CException& e)
-        {
-            SimpleWarnBox( QString( "Unable to process files. Please apply correction.\n\nReason:\n%1").arg(
-                                    e.what()) );
-
-            // Delete product from dataset
-            current_dataset->EraseProduct( q2a( file_path ) );
-        }
-    }
-
-    // Clear all files and fill with new list
-    qDeleteAll( current_dataset_item->takeChildren() );
-    FillFileTree( current_dataset_item );
-
-    // Notify to redraw tracks. Item selection may not change, thus, is not catched by HandleTreeItemChanged()
+	// Notify to redraw tracks. Item selection may not change, thus, is not catched by HandleTreeItemChanged()
 	emit CurrentDatasetChanged( current_dataset );
 
-    // Notify about the change (files added) TODO: try to merge with previous signal??
-    emit DatasetsChanged( current_dataset );
+	// Notify about the change (files added) TODO: try to merge with previous signal??
+	emit DatasetsChanged( current_dataset );
 }
 
 
@@ -662,89 +671,6 @@ void CDatasetBrowserControls::FillFileTree( QTreeWidgetItem *current_dataset_ite
 
         current_dataset_item->addChild(file);
     }
-}
-
-
-
-void CDatasetBrowserControls::CheckFiles()
-{
-
-// -TODO (Delete)-- Old Brat code - Clear product list & insert list of files in mFilesList -------------
-//    CStringArray array;
-
-//    wxString oldProductClass = m_dataset->GetProductList()->m_productClass.c_str();
-//    wxString oldProductType = m_dataset->GetProductList()->m_productType.c_str();
-
-//    m_dataset->GetProductList()->clear();
-
-//    GetFiles(array);
-
-//    if (array.size() <= 0)
-//    {
-//      return true;
-//    }
-
-//    m_dataset->GetProductList()->Insert(array);
-// ------------------------------------------------------------------------------------------------------
-
-    // Get selected dataset item
-    QTreeWidgetItem *current_dataset_item = mDatasetTree->currentItem();
-
-    if( current_dataset_item->parent() ) //check if selected item has parent (is a file)
-    {
-        current_dataset_item = current_dataset_item->parent();
-    }
-
-    try
-    {
-        // Get current Dataset
-        CDataset *current_dataset = mWDataset->GetDataset( current_dataset_item->text(0).toStdString() );
-        current_dataset->CheckFiles();
-
-        // -TODO (Delete)-- Old Brat code - Does not make sense because msg is always empty!! -------------
-        //wxString msg = m_dataset->GetProductList()->GetMessage().c_str();
-        //if (!(msg.IsEmpty()))
-        //{
-        //  wxMessageBox(msg,
-        //            "Warning",
-        //            wxOK | wxICON_INFORMATION);
-        //}
-        // ----------------------------------------------------------------------------------------------
-    }
-    catch (CException& e)
-    {
-        SimpleWarnBox( QString( "Unable to process files. Please apply correction.\n\nReason:\n%1").arg(
-                                e.what()) );
-        return;
-    }
-
-
-// -TODO-- Old Brat code - Check if product class&type has been changed and if it is used in any operation  ---
-//    if (bOk)
-//    {
-//      bool isSameProductClassType = ( oldProductClass.CmpNoCase(m_dataset->GetProductList()->m_productClass.c_str()) == 0 );
-//      isSameProductClassType &= ( oldProductType.CmpNoCase(m_dataset->GetProductList()->m_productType.c_str()) == 0 );
-
-//      CStringArray operationNames;
-
-//      bool usedByOperation = !(wxGetApp().CanDeleteDataset(m_dataset->GetName(), &operationNames));
-
-//      if ((!isSameProductClassType) && (usedByOperation))
-//      {
-//        std::string str = operationNames.ToString("\n", false);
-//        wxMessageBox(wxString::Format("Warning: Files contained in the dataset '%s' have been changed from '%s/%s' to '%s/%s' product class/type.\n"
-//                                      "\nThis dataset is used by the operations below:\n%s\n"
-//                                      "\nBe sure field's names used in these operations match the fields of the dataset files",
-//                                      m_dataset->GetName().c_str(),
-//                                      oldProductClass.c_str(), oldProductType.c_str(),
-//                                      m_dataset->GetProductList()->m_productClass.c_str(), m_dataset->GetProductList()->m_productType.c_str(),
-//                                      str.c_str()),
-//                    "Warning",
-//                    wxOK | wxICON_EXCLAMATION);
-//      }
-//    }
-// -----------------------------------------------------------------------------------------------------------
-
 }
 
 
@@ -830,7 +756,7 @@ void CDatasetBrowserControls::FillFieldList( QTreeWidgetItem *current_file_item 
     {
         //UNUSED( e );
         SimpleErrorBox(e.Message());
-        //wxMessageBox(wxString::Format("Unable to process files.\nReason:\n%s",
+        //wxMessageBox(std::string::Format("Unable to process files.\nReason:\n%s",
         //                              e.what()),  "Warning",  wxOK | wxICON_EXCLAMATION);
         //this->SetCursor(wxNullCursor);
     }

@@ -109,8 +109,6 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_DisplayEditor3D, "3D", "3D\nDisplay 3D view", "://images/alpha-numeric/__b.png", "://images/alpha-numeric/__b.png" },
 
-	{ eAction_DisplayEditorLog, "Text", "Display text", "://images/alpha-numeric/__c.png", "://images/alpha-numeric/__c.png" },
-
 	{ eAction_DisplayEditorDock, "", "Show/Hide the view working panel", "://images/alpha-numeric/__d.png" },
 
 	{ eAction_MeasureLine, "Distance", "Distance\nMeasure distance (m) between two points", "://images/OSGeo/measure-length.png", "://images/OSGeo/measure-length.png" },

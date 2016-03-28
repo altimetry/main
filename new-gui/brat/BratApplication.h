@@ -148,6 +148,11 @@ public:
 		QProcess::startDetached( arguments()[ 0 ], arguments() );
 	}
 
+protected:
+
+	void RegisterAlgorithms();
+
+
 public slots:
 	void UpdateSettings();
 };

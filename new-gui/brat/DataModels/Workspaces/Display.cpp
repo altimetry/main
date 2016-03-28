@@ -31,7 +31,6 @@
 #include "Workspace.h"
 #include "Operation.h"
 #include "WorkspaceSettings.h"
-#include "DataModels/MapTypeDisp.h"
 
 using namespace processes;
 using namespace brathl;
@@ -44,7 +43,7 @@ using namespace brathl;
 
 
 const char* CDisplayData::FMT_FLOAT_XY = "%-#.5g";
-//const uint32_t CDisplayData::NB_DIMS = 3;
+//const unsigned int CDisplayData::NB_DIMS = 3;
 
 
 
@@ -85,7 +84,7 @@ public:
 		return true;
 	}
 
-	bool BuildCmdFileGeneralProperties()
+	bool BuildCmdFileGeneralProperties( bool map_as_3dplot )
 	{
 		WriteLn();
 		Comment( "----- GENERAL PROPERTIES -----" );
@@ -111,7 +110,7 @@ public:
 				BuildCmdFileGeneralPropertiesZXY();
 				break;
 			case CMapTypeDisp::eTypeDispZFLatLon:
-				BuildCmdFileGeneralPropertiesZLatLon();
+				map_as_3dplot ?	BuildCmdFileGeneralPropertiesZXY() : BuildCmdFileGeneralPropertiesZLatLon();
 				break;
 			default:
 				break;
@@ -367,16 +366,16 @@ public:
 	////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-	static bool BuildCmdFile( const std::string &path, const CDisplay &Disp, std::string &errorMsg )
+	static bool BuildCmdFile( const std::string &path, bool map_as_3dplot, const CDisplay &Disp, std::string &errorMsg )
 	{
         CDisplayCmdFile f( path, Disp );
 
 		return 
-			f.IsOk()								&&
-			f.BuildCmdFileHeader()					&&
-			f.BuildCmdFileVerbose()					&&
-			f.BuildCmdFileGeneralProperties()		&&
-			f.BuildCmdFileFields( errorMsg )		&&
+			f.IsOk()										&&
+			f.BuildCmdFileHeader()							&&
+			f.BuildCmdFileVerbose()							&&
+			f.BuildCmdFileGeneralProperties(map_as_3dplot)	&&
+			f.BuildCmdFileFields( errorMsg )				&&
 			f.IsOk();
 	}
 };
@@ -512,7 +511,7 @@ std::string CDisplayData::GetXAxisText(const std::string& name)
 
   std::string str = name;
 
-  for (uint32_t index = 0 ; index < m_dimFields.size() ; index++)
+  for (unsigned int index = 0 ; index < m_dimFields.size() ; index++)
   {
     CField* dim = dynamic_cast<CField*>(m_dimFields.at(index));
 
@@ -532,7 +531,7 @@ std::string CDisplayData::GetXAxisText(const std::string& name)
 
 }
 //----------------------------------------
-std::string CDisplayData::GetXAxisText(uint32_t index)
+std::string CDisplayData::GetXAxisText(unsigned int index)
 {
   if (index >= m_dimFields.size())
   {
@@ -550,7 +549,7 @@ std::string CDisplayData::GetXAxisText(uint32_t index)
 
 }
 //----------------------------------------
-void CDisplayData::SetXAxisText(uint32_t index, const std::string& value)
+void CDisplayData::SetXAxisText(unsigned int index, const std::string& value)
 {
   if (index >= m_dimFields.size())
   {
@@ -594,7 +593,7 @@ void CDisplayData::GetAvailableAxes( CStringArray& names )
 {
 	size_t nbDims = m_dimFields.size();
 
-	for ( uint32_t i = 0; i < nbDims; i++ )
+	for ( unsigned int i = 0; i < nbDims; i++ )
 	{
 		CField* dim = dynamic_cast<CField*>( m_dimFields.at( i ) );
 
@@ -733,7 +732,7 @@ bool CMapDisplayData::ValidName(const char* name)
   return (value != nullptr);
 }
 //----------------------------------------
-void CMapDisplayData::SetAllAxis(uint32_t index, const std::string& axisName, const std::string& axisLabel)
+void CMapDisplayData::SetAllAxis(unsigned int index, const std::string& axisName, const std::string& axisLabel)
 {
   CMapDisplayData::iterator it;
 
@@ -848,7 +847,7 @@ bool CMapDisplayData::CheckFields( std::string& errorMsg, CDisplay* display )
 		if ( value == nullptr )
 			continue;
 
-		COperation* operation = value->GetOperation();
+		const COperation* operation = value->GetOperation();
 		if ( operation == nullptr )
 			continue;
 
@@ -889,7 +888,7 @@ bool CMapDisplayData::CheckFields( std::string& errorMsg, CDisplay* display )
 		if ( value == nullptr )
 			continue;
 
-		COperation* operation = value->GetOperation();
+		const COperation* operation = value->GetOperation();
 		if ( operation == nullptr )
 			continue;
 
@@ -1021,7 +1020,7 @@ CDisplay::~CDisplay()
 void CDisplay::Init()
 {
   //m_type = CMapTypeDisp::typeOpYFX;
-  m_type = -1;
+  m_type = CMapTypeDisp::Invalid();
   m_withAnimation = false;
 //  m_projection = CMapProjection::GetInstance()->IdToName(VTK_PROJ2D_3D);
   m_projection = PROJECTION_3D_VALUE;
@@ -1033,6 +1032,119 @@ void CDisplay::Init()
   setDefaultValue(m_maxYValue);
 
 }
+
+// After executing an operation, the following call were made (in views tab)
+//
+//	CDisplayPanel::GetOperations(); - inserted all operations data in member m_dataList
+//	which then was loaded in available data tree widget:
+//
+//	CDisplayPanel::GetDispavailtreectrl()->InsertData( &m_dataList );
+//
+//  When a field was dragged from this tree to the selected data list
+//	 a succession of calls CDisplayPanel::AddField resulted in
+//
+//		m_display->InsertData( GetDataKey( *data ).ToStdString(), newdata );
+//
+//	This function is based on all that.
+//
+bool CDisplay::AssignOperation( const COperation *operation )
+{
+	CInternalFiles *file = nullptr;
+	CUIntArray displayTypes;
+	CDisplay::GetDisplayType( operation, displayTypes, &file );
+	if ( file == nullptr )
+	{
+		return false;
+	}
+
+	CMapDisplayData *m_dataList = new CMapDisplayData;
+
+	CStringArray names;
+	names.RemoveAll();
+	file->GetDataVars( names );
+
+	for ( CUIntArray::iterator itDispType = displayTypes.begin(); itDispType != displayTypes.end(); itDispType++ )
+	{
+		for ( CStringArray::iterator itField = names.begin(); itField != names.end(); itField++ )
+		{
+			CStringArray varDimensions;
+			file->GetVarDims( *itField, varDimensions );
+
+			size_t nbDims = varDimensions.size();
+			if ( nbDims > 2 )
+			{
+				continue;
+			}
+			if ( ( nbDims != 2 ) && ( *itDispType == CMapTypeDisp::eTypeDispZFXY || *itDispType == CMapTypeDisp::eTypeDispZFLatLon ) )
+			{
+				continue;
+			}
+
+			CDisplayData* displayData = new CDisplayData( operation );
+
+			displayData->SetType( *itDispType );
+
+			displayData->GetField()->SetName( *itField );
+
+			std::string unit = file->GetUnit( *itField ).GetText();
+			displayData->GetField()->SetUnit( unit );
+
+			std::string comment = file->GetComment( *itField );
+			std::string description = file->GetTitle( *itField );
+
+			if ( !comment.empty() )
+			{
+				description += "." + comment;
+			}
+
+			displayData->GetField()->SetDescription( (const char *)description.c_str() );
+
+			if ( nbDims >= 1 )
+			{
+				std::string dimName = varDimensions.at( 0 );
+				displayData->GetX()->SetName( varDimensions.at( 0 ) );
+
+				std::string unit = file->GetUnit( dimName ).GetText();
+				displayData->GetX()->SetUnit( unit );
+
+				displayData->GetX()->SetDescription( file->GetTitle( dimName ) );
+			}
+
+			if ( nbDims >= 2 )
+			{
+				std::string dimName = varDimensions.at( 1 );
+				displayData->GetY()->SetName( varDimensions.at( 1 ) );
+
+				std::string unit = file->GetUnit( dimName ).GetText();
+				displayData->GetY()->SetUnit( unit );
+
+				displayData->GetY()->SetDescription( file->GetTitle( dimName ) );
+			}
+
+			if ( nbDims >= 3 )
+			{
+				std::string dimName = varDimensions.at( 2 );
+				displayData->GetZ()->SetName( varDimensions.at( 2 ) );
+
+				std::string unit = file->GetUnit( dimName ).GetText();
+				displayData->GetZ()->SetUnit( unit );
+
+				displayData->GetZ()->SetDescription( file->GetTitle( dimName ) );
+			}
+
+			m_dataList->Insert( displayData->GetDataKey(), displayData, false );
+		}
+	}
+
+	for ( auto &data : *m_dataList )
+		InsertData( data.first, dynamic_cast<CDisplayData*>( data.second ) );
+
+	return true;
+}
+
+
+
+
 //----------------------------------------
 bool CDisplay::IsYFXType() const
 {
@@ -1089,7 +1201,7 @@ std::vector<const COperation*> CDisplay::GetOperations() const
 	{
 		const CDisplayData* data = dynamic_cast<const CDisplayData*>( it->second );			assert__( data != nullptr && data->GetOperation() != nullptr );
 		auto *op = data->GetOperation();
-		if ( std::find( v.begin(), v.end(), op ) == v.end() )
+		if ( std::find( v.begin(), v.end(), op ) == v.end() )		//check repeated
 			v.push_back( data->GetOperation() );
 	}
 
@@ -1130,11 +1242,14 @@ std::string CDisplay::GetTaskName()
 }
 
 //----------------------------------------
-bool CDisplay::BuildCmdFile( std::string &error_msg )
+bool CDisplay::BuildCmdFile( std::string &error_msg, bool map_as_3dplot )	//map_as_3dplot = false 
 {
 #ifndef OLD_CREATE_FILES
 
-	return CDisplayCmdFile::BuildCmdFile( m_cmdFile, *this, error_msg );
+	if ( map_as_3dplot && IsZLatLonType() )
+		m_type = CMapTypeDisp::eTypeDispZFXY;	// BUMBA!!!
+
+	return CDisplayCmdFile::BuildCmdFile( m_cmdFile, map_as_3dplot, *this, error_msg );
 
 #else
 	m_cmdFile.Normalize();
@@ -1150,345 +1265,6 @@ bool CDisplay::BuildCmdFile( std::string &error_msg )
 
 #endif
 }
-/*
-bool CDisplay::BuildCmdFileHeader()
-{
-	//WriteComment("!/usr/bin/env " + wxGetApp().GetExecDisplayName()->GetName());
-	WriteComment( "Type:" + CMapTypeDisp::GetInstance().IdToName( m_type ) );
-	return true;
-}
-//----------------------------------------
-bool CDisplay::BuildCmdFileGeneralProperties()
-{
-	WriteEmptyLine();
-	WriteComment( "----- GENERAL PROPERTIES -----" );
-	WriteEmptyLine();
-
-	if ( !m_title.empty() )
-		WriteLine( FmtCmdParam( kwDISPLAY_TITLE ) + m_title );
-
-	WriteEmptyLine();
-	WriteComment( "Display Type:" + CMapTypeDisp::GetInstance().Enum() );
-	WriteEmptyLine();
-
-	WriteLine( FmtCmdParam( kwDISPLAY_PLOT_TYPE ) + GetTypeAsString() );
-
-	WriteEmptyLine();
-
-	switch ( m_type )
-	{
-		case CMapTypeDisp::eTypeDispYFX:
-			BuildCmdFileGeneralPropertiesXY();
-			break;
-		case CMapTypeDisp::eTypeDispZFXY:
-			BuildCmdFileGeneralPropertiesZXY();
-			break;
-		case CMapTypeDisp::eTypeDispZFLatLon:
-			BuildCmdFileGeneralPropertiesZLatLon();
-			break;
-		default:
-			break;
-	}
-
-	return true;
-}
-//----------------------------------------
-bool CDisplay::BuildCmdFileGeneralPropertiesXY()
-{
-	std::string
-	valueString = ( isDefaultValue( GetMinXValue() ) ) ? "DV" : GetMinXValueAsText();
-	WriteLine( FmtCmdParam( kwDISPLAY_XMINVALUE ) + valueString );
-
-	valueString = ( isDefaultValue( GetMaxXValue() ) ) ? "DV" : GetMaxXValueAsText();
-	WriteLine( FmtCmdParam( kwDISPLAY_XMAXVALUE ) + valueString );
-
-	valueString = ( isDefaultValue( GetMinYValue() ) ) ? "DV" : GetMinYValueAsText();
-	WriteLine( FmtCmdParam( kwDISPLAY_YMINVALUE ) + valueString );
-
-	valueString = ( isDefaultValue( GetMaxYValue() ) ) ? "DV" : GetMaxYValueAsText();
-	WriteLine( FmtCmdParam( kwDISPLAY_YMAXVALUE ) + valueString );
-
-	WriteEmptyLine();
-
-	std::string axisName;
-	std::string axisLabel;
-
-	WriteComment( "----- X AXIS -----" );
-
-	CObMap::iterator it;
-	for ( it = m_data.begin(); it != m_data.end(); it++ )
-	{
-		CDisplayData* value = dynamic_cast<CDisplayData*>( it->second );
-
-		if ( value == nullptr )
-		{
-			continue;
-		}
-
-
-		if ( value->GetXAxis().empty() )
-		{
-			axisName = value->GetX()->GetName().c_str();
-			axisLabel = value->GetX()->GetDescription().c_str();
-		}
-		else
-		{
-			axisName = value->GetXAxis();
-			axisLabel = value->GetXAxisText( (const char *)value->GetXAxis().c_str() );
-		}
-
-		WriteEmptyLine();
-		WriteLine( FmtCmdParam( kwDISPLAY_XAXIS ) + axisName );
-		WriteLine( FmtCmdParam( kwDISPLAY_XLABEL ) + axisLabel );
-
-		if ( AreFieldsGrouped() )
-		{
-			break;
-		}
-	}
-
-	return true;
-}
-//----------------------------------------
-bool CDisplay::BuildCmdFileGeneralPropertiesZXY()
-{
-	std::string valueString;
-
-	WriteLine( FmtCmdParam( kwDISPLAY_ANIMATION ) + GetWithAnimationAsText() );
-
-	valueString = ( isDefaultValue( GetMinXValue() ) ) ? "DV" : GetMinXValueAsText();
-	WriteLine( FmtCmdParam( kwDISPLAY_XMINVALUE ) + valueString );
-
-	valueString = ( isDefaultValue( GetMaxXValue() ) ) ? "DV" : GetMaxXValueAsText();
-	WriteLine( FmtCmdParam( kwDISPLAY_XMAXVALUE ) + valueString );
-
-	valueString = ( isDefaultValue( GetMinYValue() ) ) ? "DV" : GetMinYValueAsText();
-	WriteLine( FmtCmdParam( kwDISPLAY_YMINVALUE ) + valueString );
-
-	valueString = ( isDefaultValue( GetMaxYValue() ) ) ? "DV" : GetMaxYValueAsText();
-	WriteLine( FmtCmdParam( kwDISPLAY_YMAXVALUE ) + valueString );
-
-	WriteEmptyLine();
-
-	WriteComment( "----- X/Y AXES -----" );
-
-	std::string xAxisName;
-	std::string yAxisName;
-
-	CObMap::iterator it;
-	for ( it = m_data.begin(); it != m_data.end(); it++ )
-	{
-		CDisplayData* value = dynamic_cast<CDisplayData*>( it->second );
-
-		if ( value == nullptr )
-		{
-			continue;
-		}
-
-		if ( value->IsInvertXYAxes() )
-		{
-			xAxisName = value->GetY()->GetName().c_str();
-			yAxisName = value->GetX()->GetName().c_str();
-		}
-		else
-		{
-			xAxisName = value->GetX()->GetName().c_str();
-			yAxisName = value->GetY()->GetName().c_str();
-		}
-
-		WriteEmptyLine();
-		WriteLine( FmtCmdParam( kwDISPLAY_XAXIS ) + xAxisName );
-		WriteLine( FmtCmdParam( kwDISPLAY_YAXIS ) + yAxisName );
-
-		if ( AreFieldsGrouped() )
-		{
-			break;
-		}
-	}
-
-	return true;
-}
-//----------------------------------------
-bool CDisplay::BuildCmdFileGeneralPropertiesZLatLon()
-{
-	WriteLine( FmtCmdParam( kwDISPLAY_ANIMATION ) + GetWithAnimationAsText() );
-
-	WriteLine( FmtCmdParam( kwDISPLAY_PROJECTION ) + m_projection );
-
-	CStringArray array;
-
-	m_zoom.GetAsString( array );
-
-	if ( array.size() == 4 )
-	{
-		WriteLine( FmtCmdParam( kwDISPLAY_ZOOM_LAT1 ) + array.at( 0 ).c_str() );
-		WriteLine( FmtCmdParam( kwDISPLAY_ZOOM_LON1 ) + array.at( 1 ).c_str() );
-		WriteLine( FmtCmdParam( kwDISPLAY_ZOOM_LAT2 ) + array.at( 2 ).c_str() );
-		WriteLine( FmtCmdParam( kwDISPLAY_ZOOM_LON2 ) + array.at( 3 ).c_str() );
-	}
-
-	return true;
-}
-//----------------------------------------
-bool CDisplay::BuildCmdFileFields()
-{
-	return m_type == CMapTypeDisp::eTypeDispYFX ? BuildCmdFileFieldsYFX() : BuildCmdFileFieldsZFXY();
-}
-//----------------------------------------
-bool CDisplay::BuildCmdFileFieldsZFXY()
-{
-	for ( CMapDisplayData::const_iterator it = m_data.begin(); it != m_data.end(); it++ )
-	{
-		CDisplayData* value = dynamic_cast<CDisplayData*>( it->second );
-		if ( value == nullptr )
-			continue;
-
-		WriteEmptyLine();
-		WriteComment( "----- " + value->GetField()->GetName() +" FIELD -----" );
-		WriteEmptyLine();
-		WriteLine( kwFIELD + "=" + value->GetField()->GetName() );
-		WriteLine( kwFILE + "=" + value->GetOperation()->GetOutputPath() );
-		BuildCmdFileFieldProperties( ( it->first ).c_str() );
-	}
-
-	return true;
-}
-//----------------------------------------
-bool CDisplay::BuildCmdFileFieldsYFX()
-{
-	for ( CMapDisplayData::const_iterator it = m_data.begin(); it != m_data.end(); it++ )
-	{
-		CDisplayData* value = dynamic_cast<CDisplayData*>( it->second );
-
-		if ( value == nullptr )
-			continue;
-
-		WriteEmptyLine();
-		WriteComment( "----- " + value->GetField()->GetName() + " FIELD -----" );
-		WriteEmptyLine();
-		WriteLine( kwFIELD + "=" + value->GetField()->GetName() );
-		WriteLine( kwFILE + "=" + value->GetOperation()->GetOutputPath() );
-		BuildCmdFileFieldProperties( ( it->first ).c_str() );
-	}
-
-	return true;
-}
-//----------------------------------------
-bool CDisplay::BuildCmdFileFieldProperties( const std::string& dataKey )
-{
-	const CDisplayData* data = m_data.GetDisplayData( dataKey );
-	assert__( data != nullptr );
-	//{
-	//	wxMessageBox( "ERROR in  CDisplay::BuildCmdFileFieldProperties\ndynamic_cast<CDisplay*>(it->second) returns nullptr pointer"
-	//		"\nList seems to contain objects other than those of the class CDisplayData",
-
-	//		"Error",
-	//		wxOK | wxCENTRE | wxICON_ERROR );
-	//	return false;
-	//}
-	WriteEmptyLine();
-	WriteComment( "----- " + data->GetField()->GetName() + " FIELDS PROPERTIES -----" );
-	WriteEmptyLine();
-
-	std::string displayName = data->GetField()->GetDescription().c_str();
-	if ( displayName.empty() == false )
-	{
-		WriteLine( FmtCmdParam( kwDISPLAY_NAME ) + displayName );
-	}
-	else
-	{
-		WriteLine( FmtCmdParam( kwDISPLAY_NAME ) + data->GetField()->GetName().c_str() );
-	}
-
-
-	WriteLine( FmtCmdParam( kwFIELD_GROUP ) + data->GetGroupAsText() );
-
-	switch ( m_type )
-	{
-		case CMapTypeDisp::eTypeDispYFX:
-			BuildCmdFileFieldPropertiesXY( data );
-			break;
-		case CMapTypeDisp::eTypeDispZFXY:
-		case CMapTypeDisp::eTypeDispZFLatLon:
-			BuildCmdFileFieldPropertiesZXY( data );
-			break;
-		default:
-			break;
-	}
-
-	return true;
-}
-
-//----------------------------------------
-bool CDisplay::BuildCmdFileFieldPropertiesXY( const CDisplayData* value )
-{
-	return value != nullptr;
-}
-
-//----------------------------------------
-bool CDisplay::BuildCmdFileFieldPropertiesZXY( const CDisplayData* value )
-{
-	if ( value == nullptr )
-		return false;
-
-	std::string 
-	valueString = ( isDefaultValue( value->GetMinValue() ) ) ? "DV" : value->GetMinValueAsText();
-	WriteLine( FmtCmdParam( kwDISPLAY_MINVALUE ) + valueString );
-
-	valueString = ( isDefaultValue( value->GetMaxValue() ) ) ? "DV" : value->GetMaxValueAsText();
-	WriteLine( FmtCmdParam( kwDISPLAY_MAXVALUE ) + valueString );
-
-	WriteLine( FmtCmdParam( kwDISPLAY_CONTOUR ) + value->GetContourAsText() );
-	WriteLine( FmtCmdParam( kwDISPLAY_SOLID_COLOR ) + value->GetSolidColorAsText() );
-
-	valueString = ( value->GetColorPalette().empty() ) ? "DV" : value->GetColorPalette();
-	WriteLine( FmtCmdParam( kwDISPLAY_COLORTABLE ) + valueString );
-
-	WriteLine( FmtCmdParam( kwDISPLAY_EAST_COMPONENT ) + ( value->IsEastComponent() ? "Y" : "N" ) );
-
-	WriteLine( FmtCmdParam( kwDISPLAY_NORTH_COMPONENT ) + ( value->IsNorthComponent() ? "Y" : "N" ) );
-
-	return true;
-}
-
-//----------------------------------------
-bool CDisplay::BuildCmdFileVerbose()
-{
-	WriteEmptyLine();
-	WriteComment( "----- LOG -----" );
-	WriteEmptyLine();
-	WriteLine( kwVERBOSE + "=" + n2s<std::string>( m_verbose ) );
-
-	return true;
-}
-
-//----------------------------------------
-bool CDisplay::WriteComment(const std::string& text)
-{
-  WriteLine("#" + text);
-  return true;
-}
-//----------------------------------------
-bool CDisplay::WriteLine( const std::string& text )
-{
-	if ( m_file.IsOpened() == false )
-	{
-		return false;
-	}
-	m_file.Write( text + "\n" );
-	return true;
-}
-//----------------------------------------
-bool CDisplay::WriteEmptyLine()
-{
-  if (m_file.IsOpened() == false)
-  {
-    return false;
-  }
-  m_file.Write("\n");
-  return true;
-}
-*/
 //----------------------------------------
 void CDisplay::InitOutput( CWorkspaceDisplay *wks )
 {
@@ -1527,7 +1303,7 @@ bool CDisplay::RemoveData(const std::string& key)
 
   if (m_data.size() <= 0)
   {
-    m_type = -1;
+    m_type = CMapTypeDisp::Invalid();
   }
 
   return bOk;

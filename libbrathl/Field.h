@@ -134,7 +134,7 @@ public:
   const std::string& GetName() const { return m_name; };
 
   virtual std::string GetFullName();
-  virtual std::string GetRecordName();
+  virtual std::string GetRecordName();			//v4 note: cannot be const; changes field state
   virtual std::string GetFullNameWithRecord();
 
   void SetDescription(const std::string& description) { m_description = description; };

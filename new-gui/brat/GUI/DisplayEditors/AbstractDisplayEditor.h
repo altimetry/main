@@ -48,42 +48,43 @@ class CAbstractDisplayEditor : public QMainWindow
 #pragma clang diagnostic pop
 #endif
 
+	///////////////////////////////////////////////////////////
+	// types
+	///////////////////////////////////////////////////////////
+
 	using base_t = QMainWindow;
 
 
+	///////////////////////////////////////////////////////////
 	// instance data
+	///////////////////////////////////////////////////////////
 
 	//... working dock
 	CTabbedDock *mWorkingDock = nullptr;
-	//QFrame *mTopFrame = nullptr;
+
+	//... main tool-bar
 	QComboBox *mOperationsCombo = nullptr;
 	QLineEdit *mFilterLineEdit = nullptr;
 	QLineEdit *mDatasetName = nullptr;
-
-	//tab general - private
-	QComboBox *mDisplaysCombo = nullptr;
-	
-
 	QPushButton *mSaveOneClickButton = nullptr;
 
-	//... tool-bar
-protected:
-	QToolBar *mToolBar = nullptr;
 
-	//tab general - protected
+	//... graphics tool-bar
+protected:
+	QToolBar *mGraphicsToolBar = nullptr;
+
+	//tab general
 	CViewControlsPanelGeneral *mTabGeneral = nullptr;
+
 private:
 	QAction *m2DAction = nullptr;
 	QAction *m3DAction = nullptr;
-	QAction *mLogAction = nullptr;
 
 	//... status-bar
     QStatusBar *mStatusBar = nullptr;
 
 	//... views related
 	QSplitter *mMainSplitter = nullptr;
-	QSplitter *mGraphicsSplitter = nullptr;
-	CTextWidget *mLogText = nullptr;
 
 
 private:
@@ -106,11 +107,14 @@ protected:
 
 	const CDisplayFilesProcessor *mCurrentDisplayFilesProcessor = nullptr;
 	const bool mDisplayOnlyMode;
+	const bool mIsMapEditor;
 
-
+	///////////////////////////////////////////////////////////
 	//construction / destruction
+	///////////////////////////////////////////////////////////
 
 private:
+	void CreateMainToolbar();
 	void CreateWorkingDock();
 	void CreateGraphicsBar();
 	void CreateStatusBar();
@@ -121,7 +125,7 @@ protected:
 	void CreateWidgets();
 
 protected:
-	CAbstractDisplayEditor( CModel *model, const COperation *op, const std::string &display_name = "", QWidget *parent = nullptr );
+	CAbstractDisplayEditor( bool map_editor, CModel *model, const COperation *op, const std::string &display_name = "", QWidget *parent = nullptr );
 	CAbstractDisplayEditor( bool map_editor, const CDisplayFilesProcessor *proc, QWidget *parent = nullptr );
 
 public:
@@ -129,12 +133,23 @@ public:
 
 protected:
 
+	///////////////////////////////////////////////////////////
+	//access
+	///////////////////////////////////////////////////////////
+
+	bool IsMapEditor() const { return mIsMapEditor; }
+
+	void SelectTab( QWidget *tab );
+
+
+	///////////////////////////////////////////////////////////
 	// GUI creation/management helpers
+	///////////////////////////////////////////////////////////
 
 	QWidget* AddTab( QWidget *tab, const QString title = "" );
 
 	bool AddView( QWidget *view, bool view3D );
-	bool RemoveView( QWidget *view, bool view3D );
+	bool RemoveView( QWidget *view, bool view3D, bool disable_action );
 
 	QAction* AddToolBarAction( QObject *parent, EActionTag tag );
 	QAction* AddToolBarSeparator();
@@ -149,12 +164,14 @@ protected:
 	bool Start( const std::string &display_name );
 
 
-	// Virtual interface to enforce some uniformity of behavior
+	///////////////////////////////////////////////////////////
+	// Virtual interface (enforce some uniformity of behavior)
+	///////////////////////////////////////////////////////////
 
 	// Delete existing view widgets and replace by newly created ones
 	//	typically preparing for new display
 	//
-	virtual void ResetViews() = 0;
+	virtual bool ResetViews( bool enable_2d, bool enable_3d ) = 0;
 
 
 	// Virtual interface for slot handling, require implementation by specialized classes
@@ -163,18 +180,24 @@ protected:
 	virtual void Show3D( bool display ) = 0;
 
 	virtual void NewButtonClicked() = 0;
+	virtual void RenameButtonClicked() = 0;
+	virtual void DeleteButtonClicked() = 0;
 
 	virtual void OperationChanged( int index ) = 0;
 
 	virtual void OneClick() = 0;
 
-	virtual bool Refresh() = 0;
+	virtual bool ViewChanged() = 0;
 
 
+	///////////////////////////////////////////////////////////
 	// domain management helpers
+	///////////////////////////////////////////////////////////
+
+	bool RefreshDisplayData();
 
 	void FilterDisplays();
-	void FilterOperations( bool with_maps );
+	void FilterOperations();
 
 	template< typename PLOT >
 	std::vector< PLOT* > GetDisplayPlots( CDisplay *display );
@@ -183,28 +206,31 @@ protected:
 	bool ControlSolidColor();
 	bool ControlVectorComponents( std::string& msg );
 
+
+	///////////////////////////////////////////////////////////
+	//					Handlers
+	///////////////////////////////////////////////////////////
+
 private:
 	void UpdateDisplaysCombo( int index );
 
 private slots:
 
-	void HandleNewButtonClicked()
-	{
-		NewButtonClicked();
-	}
-
 	void Handle2D( bool checked );
 	void Handle3D( bool checked );
-	void HandleLog( bool checked );
 
-	void HandleViewChanged( int index );
-
+	void HandleOperationsIndexChanged( int index );
 	void HandleOneClickClicked()
 	{
 		OneClick();
 	}
-	
-	void HandleOperationsIndexChanged( int index );
+
+	void RunButtonClicked();
+	void HandleViewChanged( int index );
+
+	void HandleNewButtonClicked();
+	void HandleRenameButtonClicked();
+	void HandleDeleteButtonClicked();
 };
 
 
@@ -220,7 +246,7 @@ std::vector< PLOT* > CAbstractDisplayEditor::GetDisplayPlots( CDisplay *display 
 	delete mCurrentDisplayFilesProcessor;
 	try
 	{
-		mCurrentDisplayFilesProcessor = new CDisplayFilesProcessor( display->GetCmdFilePath() );
+		mCurrentDisplayFilesProcessor = new CDisplayFilesProcessor( !IsMapEditor(), display->GetCmdFilePath() );
 
 		auto &plots = mCurrentDisplayFilesProcessor->plots();
 		for ( auto *plot : plots )

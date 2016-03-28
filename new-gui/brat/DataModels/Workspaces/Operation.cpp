@@ -893,32 +893,30 @@ bool COperation::AddFormula( CFormula& formula, std::string &error_msg )
 }
 
 //----------------------------------------
-bool COperation::DeleteFormula(const std::string& name)
+bool COperation::DeleteFormula( const std::string& name )
 {
+	bool bOk = false;
 
-  bool bOk = false;
+	CFormula* formula = GetFormula( name );
+	if ( formula != nullptr )
+	{
+		if ( IsSelect( formula ) )
+		{
+			formula->SetDescription( "" );
+			bOk = true;
+		}
+		else
+		{
+			bOk = m_formulas.Erase( name );
+		}
+	}
+	else if ( COperation::IsSelect( name ) )
+	{
+		m_select->SetDescription( "" );
+		bOk = true;
+	}
 
-  CFormula* formula = GetFormula(name);
-
-  if (formula != nullptr)
-  {
-    if (IsSelect(formula))
-    {
-      formula->SetDescription("");
-      bOk = true;
-    }
-    else
-    {
-      bOk = m_formulas.Erase((const char *)name.c_str());
-    }
-  }
-  else if (COperation::IsSelect(name))
-  {
-    m_select->SetDescription("");
-    bOk = true;
-  }
-
- return bOk;
+	return bOk;
 }
 //----------------------------------------
 std::string COperation::GetCommentFormula(const std::string& name) const 

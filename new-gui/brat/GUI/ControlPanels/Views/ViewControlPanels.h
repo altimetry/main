@@ -17,33 +17,34 @@ class CDisplay;
 ////////////////////////////////////////////////////////////////
 //	 Color Button (Builds a button for selecting a color)
 ////////////////////////////////////////////////////////////////
-class CColorButton : public QPushButton
+
+class CColorButton : public QToolButton
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
 #endif
 
-    Q_OBJECT
+    Q_OBJECT;
 
 #if defined (__APPLE__)
 #pragma clang diagnostic pop
 #endif
 
     // types
-    using base_t = QPushButton;
+    using base_t = QToolButton;
 
     // static members
     static const QString smStyleSheet_colorButton;
     static const QString smInitColor;
 
     // instance data members
-    QColor mCurrentColor = QColor();
+    QColor mCurrentColor;
     QWidget *mColorDisplay = nullptr;
 
 
 public:
-    explicit CColorButton(QWidget *parent = nullptr);
+    CColorButton( QWidget *parent = nullptr );
 
     virtual ~CColorButton()
     {}
@@ -58,15 +59,28 @@ public:
         return mCurrentColor;
     }
 
-    public slots:
-    void SetColor();
 
-    void SetInternalColor(QColor new_color)
+signals:
+
+	void ColorChanged();
+
+
+public slots:
+
+    void InputColor()
+	{
+		SetColor( QColorDialog::getColor( mCurrentColor, parentWidget() ) );
+	}
+
+    void SetColor( QColor color )
     {
-        mCurrentColor = new_color;
-        mColorDisplay->setStyleSheet(smStyleSheet_colorButton + mCurrentColor.name());
-    }
+		if ( !color.isValid() )
+			return;
 
+        mCurrentColor = color;
+        mColorDisplay->setStyleSheet( smStyleSheet_colorButton + mCurrentColor.name() );
+		emit ColorChanged();
+    }
 };
 
 
@@ -81,7 +95,7 @@ class CAxisTab : public QWidget
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
 #endif
 
-    Q_OBJECT
+    Q_OBJECT;
 
 #if defined (__APPLE__)
 #pragma clang diagnostic pop
@@ -134,38 +148,28 @@ struct CPlotControlsPanelCurveOptions : public CControlPanel
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
 #endif
 
-    Q_OBJECT
+    Q_OBJECT;
 
 #if defined (__APPLE__)
 #pragma clang diagnostic pop
 #endif
 
-    typedef enum {SolidLine, DashLine, DotLine, DashDotLine, DashDotDotLine} line_type;
-    typedef enum {Ellipse, Rect, Diamond, Triangle, DTriangle, UTriangle, LTriangle, RTriangle, Cross, XCross, Hline, VLine, Star1, Star2, Hexagon} glyph_type;
-
-    typedef struct
-    {
-        bool IsLine;
-        bool IsDot;
-        bool FillGlyph;
-        line_type LineConf;
-        glyph_type GlyphConf;
-        QColor LineColor;
-        QColor GlyphColor;
-        int LineW;
-        unsigned char LineOpacity; //byte
-        int GlyphSize;
-        std::string CurveName; //optional
-    } CurveState;
-
+	//types
 
     using base_t = CControlPanel;
+
 
     // static members
 
     // instance data members
 
-    QListWidget *mPlotList = nullptr;
+public:
+
+    QListWidget *mFieldsList = nullptr;
+
+    QGroupBox *mLineOptions = nullptr;
+    QGroupBox *mPointOptions = nullptr;
+    QGroupBox *mSpectrogramOptions = nullptr;
 
     CColorButton *mLineColorButton  = nullptr;
     CColorButton *mPointColorButton = nullptr;
@@ -173,155 +177,26 @@ struct CPlotControlsPanelCurveOptions : public CControlPanel
     QComboBox *mStipplePattern = nullptr;
     QComboBox *mPointGlyph = nullptr;
 
-    QGroupBox *mLineOptions = nullptr;
-    QGroupBox *mPointOptions = nullptr;
-
     QLineEdit *mLineOpacityValue = nullptr;
-    QLineEdit *mLineWidthValue = nullptr;
-
-
-    QLineEdit * mPointSizeValue = nullptr;
-
     QCheckBox * mFillPointCheck = nullptr;
 
-    std::vector<CurveState> CurveStates;
+    QLineEdit *mLineWidthValue = nullptr;
+    QLineEdit * mPointSizeValue = nullptr;
+
+	QCheckBox *mShowContour = nullptr;
+	QCheckBox *mShowSolidColor = nullptr;
+
 
 	//construction / destruction
 
-	void Wire();
 public:
     CPlotControlsPanelCurveOptions( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
     virtual ~CPlotControlsPanelCurveOptions()
     {}
-
-    // access
-
-
-    // operations
-
-    void AddNewPlot2DName(const QString plot_name);
-
-    void SetPlotTypeLine(bool checked)
-    {
-        mLineOptions->setChecked(checked);
-    }
-
-    void SetPlotTypeDot(bool checked)
-    {
-        mPointOptions->setChecked(checked);
-    }
-
-    void SetLineColor(const QColor new_color)
-    {
-        mLineColorButton->SetInternalColor(new_color);
-    }
-
-    void SetPointColor(const QColor new_color)
-    {
-        mPointColorButton->SetInternalColor(new_color);
-    }
-
-    void SetLineOpacity(const QString new_opacity)
-    {
-        mLineOpacityValue->setText(new_opacity);
-    }
-
-    void SetLineWidth(int new_width)
-    {
-
-        mLineWidthValue->setText(QString::number(new_width));
-    }
-
-    void SetPointSize(const QString new_size)
-    {
-        mPointSizeValue->setText(new_size);
-    }
-
-    void SetFillPointCheck(const bool query)
-    {
-        mFillPointCheck->setChecked(query);
-    }
-
-    void SetStipplePattern(int pattern)
-    {
-        int c_sz = mStipplePattern->count();
-        if ((pattern < 0) || (pattern > c_sz))
-        {
-            mStipplePattern->setCurrentIndex(c_sz-1);
-            return;
-        }
-
-        mStipplePattern->setCurrentIndex(pattern);
-    }
-
-    void SetGlyphPattern(int pattern)
-    {
-        int c_sz = this->mPointGlyph->count();
-        if ((pattern < 0) || (pattern > c_sz))
-        {
-            mPointGlyph->setCurrentIndex(c_sz-1);
-            return;
-        }
-
-        mPointGlyph->setCurrentIndex(pattern);
-    }
-
-    void SetGlyphSize(QString pattern_size)
-    {
-        mPointSizeValue->setText(pattern_size);
-    }
-
-    // access
-
-
-    // operations
-
-signals:
-    void LineOptionsChecked( bool checked, int index );
-    void PointOptionsChecked( bool checked, int index );
-
-    void CurveLineColorSelected( QColor new_color, int index );
-    void CurvePointColorSelected( QColor new_color, int index );
-
-    void CurrCurveChanged(int index);
-
-    //emit changed opacity
-    void CurveLineOpacityEntered(int opacity, int index);
-    //width value
-    void CurveLineWidthEntered(int width, int index);
-
-    void StipplePatternChanged(int pattern, int index);
-
-    void GlyphPatternChanged(int pattern, int index);
-
-
-    void CurveGlyphWidthEntered(int pixels, int index);
-
-    void FillGlyphInterior(bool checked, int index);
-
-protected slots:
-    void HandleLineOptionsChecked( bool checked );
-    void HandlePointOptionsChecked( bool checked );
-    //User selected a new curve color:
-    void HandleCurveLineColorSelected();
-    void HandleCurvePointColorSelected();
-    // changed opacity
-    void HandleCurveLineOpacityEntered();
-    //changed line width
-    void HandleCurveLineWidthEntered();
-
-    void HandleNewPlot( const CDisplayFilesProcessor* curr_proc);
-    void HandleCurrCurveChanged(int index);
-    // changed plot glyph
-    void HandleStipplePatternChanged(int pattern);
-
-    void HandleGlyphPatternChanged(int pattern);
-
-    void HandleCurveGlyphWidthEntered();
-
-    void HandleFillGlyphInterior(bool checked);
 };
+
+
 
 
 
@@ -336,7 +211,7 @@ struct CPlotControlsPanelAxisOptions : public CControlPanel
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
 #endif
 
-    Q_OBJECT
+    Q_OBJECT;
 
 #if defined (__APPLE__)
 #pragma clang diagnostic pop
@@ -390,7 +265,7 @@ struct CMapControlsPanelDataLayers : public CControlPanel
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
 #endif
 
-    Q_OBJECT
+    Q_OBJECT;
 
 #if defined (__APPLE__)
 #pragma clang diagnostic pop
@@ -403,7 +278,9 @@ struct CMapControlsPanelDataLayers : public CControlPanel
 public:
     // instance data members
 
-    QComboBox *mDataLayer  = nullptr;
+    QListWidget *mFieldsList = nullptr;
+    QCheckBox *mShowSolidColorCheck = nullptr;
+
 
 public:
     CMapControlsPanelDataLayers( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
@@ -426,7 +303,7 @@ struct CMapControlsPanelView : public CControlPanel
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
 #endif
 
-    Q_OBJECT
+    Q_OBJECT;
 
 #if defined (__APPLE__)
 #pragma clang diagnostic pop

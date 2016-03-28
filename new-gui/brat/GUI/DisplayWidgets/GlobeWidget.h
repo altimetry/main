@@ -3,6 +3,7 @@
 
 class QgsMapCanvas;
 class CGlobePlugin;
+class CGlobeViewerWidget;
 
 namespace osgViewer { class Viewer; } 
 namespace osgEarth { namespace QtGui { class ViewerWidget; } }
@@ -37,9 +38,10 @@ protected:
 
 	//instance data
 
-	osgEarth::QtGui::ViewerWidget *mGlobeViewerWidget = nullptr;
+	CGlobeViewerWidget *mGlobeViewerWidget = nullptr;
 	osgViewer::Viewer *mOsgViewer = nullptr;
 	CGlobePlugin *mGlobe = nullptr;
+	bool mLayersChanging = false;
 
 	//...context menu
 	//
@@ -57,6 +59,9 @@ public:
 
 	//remaining
 
+	void RemoveLayers();
+
+
     QSize sizeHint() const override
     {
         return QSize(72 * fontMetrics().width('x'),
@@ -66,6 +71,11 @@ public:
 public slots:
 
 	void HandleSettings();
+
+	void CanvasStarted();
+	void CanvasFinished();
+	void ImageLayersChanged();
+
 
 protected slots:
 

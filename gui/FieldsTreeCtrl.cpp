@@ -504,19 +504,17 @@ CField* CFieldsTreeCtrl::GetCurrentField()
 //----------------------------------------
 wxString CFieldsTreeCtrl::GetCurrentRecord()
 {
-  wxTreeItemId id = GetSelection();
-  if (!id)
-  {
-    wxTreeItemIdValue cookie;
-    wxTreeItemId rootId = GetRootItem();
-    if (rootId.IsOk())
-    {
-      id = GetFirstChild(rootId, cookie);
-    }
-  }
-
-  return GetRecord(id);
-
+	wxTreeItemId id = GetSelection();
+	if ( !id )
+	{
+		wxTreeItemIdValue cookie;
+		wxTreeItemId rootId = GetRootItem();
+		if ( rootId.IsOk() )
+		{
+			id = GetFirstChild( rootId, cookie );
+		}
+	}
+	return GetRecord( id );
 }
 //----------------------------------------
 int32_t CFieldsTreeCtrl::GetRecordCount()

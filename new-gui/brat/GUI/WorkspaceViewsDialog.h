@@ -38,6 +38,7 @@ class CWorkspaceViewsDialog : public QDialog
 
 	QListWidget *mViewsListWidget = nullptr;
 	QDialogButtonBox *mButtonBox = nullptr;
+	QCheckBox *mMapsAsPlotsCheckBox = nullptr;
 
 	CDisplay *mSelectedDisplay = nullptr;
 
@@ -61,6 +62,8 @@ public:
 
 
 	CDisplay* SelectedDisplay() { return mSelectedDisplay; }
+
+	bool DisplayMapsAsPlots() const { return mMapsAsPlotsCheckBox->isChecked(); }
 
 
 protected:

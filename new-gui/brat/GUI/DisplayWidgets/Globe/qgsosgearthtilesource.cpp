@@ -110,8 +110,18 @@ void QgsOsgEarthTileSource::initialize( const std::string& referenceURI, const P
 #endif
 }
 
+//called from another thread
+//
 osg::Image* QgsOsgEarthTileSource::createImage( const TileKey& key, ProgressCallback* progress )
 {
+	//if ( mCanvas->isDrawing() )
+	//	return ImageUtils::createEmptyImage();
+	//else
+	//{
+	//	mViewExtent = mCanvas->fullExtent();
+	//	mLayerSet = mCanvas->mapRenderer()->layerSet();
+	//}
+
 	QString kname = key.str().c_str();
 	kname.replace( '/', '_' );
 

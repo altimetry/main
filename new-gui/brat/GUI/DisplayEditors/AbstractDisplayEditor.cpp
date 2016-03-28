@@ -19,14 +19,6 @@
 
 
 
-
-///////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////
-//	Display Editors Base Class
-///////////////////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////////////////
-
-
 inline QToolBar* AddWidgets( QToolBar *toolbar, const std::vector< QObject* > &v )
 {
 	for ( auto ob : v )
@@ -44,46 +36,53 @@ inline QToolBar* AddWidgets( QToolBar *toolbar, const std::vector< QObject* > &v
 	return toolbar;
 }
 
+void CAbstractDisplayEditor::CreateMainToolbar()
+{
+	QToolBar *toptoolbar = new QToolBar( "View ToolBar", this );
+	//toptoolbar->setIconSize( { tool_icon_size, tool_icon_size } );
+	toptoolbar->setAllowedAreas( Qt::TopToolBarArea );
+	toptoolbar->setMovable( false );
+	toptoolbar->layout()->setSpacing( 2 );
+
+	auto loperations = new QLabel( "Operation" );
+	QFont font = loperations->font();
+	font.setBold( true );
+	loperations->setFont( font );
+	auto lfilters = new QLabel( "Filter" );
+	auto ldataset = new QLabel( "Dataset" );
+	mOperationsCombo = new QComboBox;
+	mFilterLineEdit = new QLineEdit;		mFilterLineEdit->setReadOnly( true );		mFilterLineEdit->setAlignment( Qt::AlignHCenter );
+	mFilterLineEdit->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
+
+	mDatasetName = new QLineEdit;
+	mDatasetName->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
+
+	mOperationsCombo->setToolTip( "Operation" );
+	mFilterLineEdit->setToolTip( "Filter" );
+	mDatasetName->setToolTip( "Dataset" );
+
+	mSaveOneClickButton = new QPushButton( "One Click" );
+	QPixmap pix( t2q( CActionInfo::IconPath( eAction_One_Click ) ) );
+	QIcon icon( pix );
+	mSaveOneClickButton->setIcon( icon );
+	mSaveOneClickButton->setDefault( false );
+	mSaveOneClickButton->setAutoDefault( false );
+
+	addToolBar( AddWidgets( toptoolbar,
+	{
+		loperations, mOperationsCombo, nullptr, lfilters, mFilterLineEdit, nullptr, ldataset, mDatasetName, nullptr, mSaveOneClickButton
+	}
+	) );
+}
+
+
 void CAbstractDisplayEditor::CreateWorkingDock()
 {
 	setDockOptions( dockOptions() & ~AnimatedDocks );	//TODO DELETE AFTER CHECKING WINDOWS BLUE SCREENS
 
-	if ( !mDisplayOnlyMode )
-	{
-		QToolBar *toptoolbar = new QToolBar( "View ToolBar", this );
-		toptoolbar->setIconSize({tool_icon_size,tool_icon_size});
-		toptoolbar->setAllowedAreas( Qt::TopToolBarArea );
-		toptoolbar->setMovable( false );
-
-		auto loperations = new QLabel( "Operation" );
-		auto lfilters = new QLabel( "Filter" );
-		auto ldataset = new QLabel( "Dataset" );
-		mOperationsCombo = new QComboBox;
-		mFilterLineEdit = new QLineEdit;		mFilterLineEdit->setReadOnly( true );		mFilterLineEdit->setAlignment( Qt::AlignHCenter );		
-		mFilterLineEdit ->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
-		mFilterLineEdit->setText( "Filter" );	// TODO delete this line
-		mDatasetName = new QLineEdit;
-		mDatasetName->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
-
-		mOperationsCombo->setToolTip( "Operation" );
-		mFilterLineEdit->setToolTip( "Filter" );
-		mDatasetName->setToolTip( "Dataset" );
-
-		mSaveOneClickButton = new QPushButton( "One Click" );
-		QPixmap pix( t2q( CActionInfo::IconPath( eAction_One_Click ) ) );
-		QIcon icon( pix );
-		mSaveOneClickButton->setIcon( icon );
-
-		addToolBar( AddWidgets( toptoolbar,
-		{ 
-			loperations, mOperationsCombo, nullptr, lfilters, mFilterLineEdit, nullptr, ldataset, mDatasetName, nullptr, mSaveOneClickButton
-		} 
-		) );
-	}
-
 	//dock
 	assert__( mOperation );
-	mWorkingDock = new CTabbedDock( mOperation->IsMap()? "Map Views" : "Plot Views", this );
+	mWorkingDock = new CTabbedDock( "Display Properties", this );
 
 	mWorkingDock->setMinimumSize( min_editor_dock_width, min_editor_dock_height );
 	auto PreventActions = QDockWidget::DockWidgetClosable;								//QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetMovable | 
@@ -97,24 +96,24 @@ void CAbstractDisplayEditor::CreateWorkingDock()
 
 void CAbstractDisplayEditor::CreateGraphicsBar()
 {
-    mToolBar = new QToolBar( "View ToolBar", this );
-    mToolBar->setIconSize({tool_icon_size,tool_icon_size});
+    mGraphicsToolBar = new QToolBar( "View ToolBar", this );
+    mGraphicsToolBar->setIconSize({tool_icon_size,tool_icon_size});
 
 	// add button group
 
-	QActionGroup *group = CActionInfo::CreateActionGroup( this, { eAction_DisplayEditor2D, eAction_DisplayEditor3D, eAction_DisplayEditorLog }, false );
+	QActionGroup *group = CActionInfo::CreateActionGroup( this, { eAction_DisplayEditor2D, eAction_DisplayEditor3D }, false );
 
 	m2DAction = group->actions()[0];	assert__( m2DAction->isCheckable() );
 	m3DAction = group->actions()[1];	assert__( m3DAction->isCheckable() );
-	mLogAction = group->actions()[2];	assert__( mLogAction->isCheckable() );
 
-	mToolBar->addActions( group->actions() );
+	mGraphicsToolBar->addActions( group->actions() );
 
 	// add the bar
 
-	mToolBar->setAllowedAreas( Qt::RightToolBarArea );
-    addToolBar( Qt::RightToolBarArea, mToolBar );
+	mGraphicsToolBar->setAllowedAreas( Qt::RightToolBarArea );
+    addToolBar( Qt::RightToolBarArea, mGraphicsToolBar );
 }
+
 
 void CAbstractDisplayEditor::CreateStatusBar()
 {
@@ -123,25 +122,27 @@ void CAbstractDisplayEditor::CreateStatusBar()
     setStatusBar(mStatusBar);
 }
 
+
 template< class GENERAL_TAB >
 void CAbstractDisplayEditor::CreateWidgets()
 {
 	setAttribute( Qt::WA_DeleteOnClose );
 
+	if ( !mDisplayOnlyMode )
+	{
+		CreateMainToolbar();
+	}
 	CreateWorkingDock();
 	CreateGraphicsBar();
 	CreateStatusBar();
 
-	mMainSplitter = CreateSplitterIn( this, Qt::Vertical );
+	mMainSplitter = CreateSplitterIn( this, Qt::Horizontal );
+	mMainSplitter->setChildrenCollapsible( false );
 	setCentralWidget( mMainSplitter );
-	mGraphicsSplitter = CreateSplitterIn( mMainSplitter, Qt::Horizontal );
-	mLogText = new CTextWidget( this );
-	mMainSplitter->addWidget( mLogText );
-	mLogText->hide();
 
 	mTabGeneral = new GENERAL_TAB( this );
 	AddTab( mTabGeneral, "General" );
-	mDisplaysCombo = mTabGeneral->mDisplaysCombo;
+
 
 	Wire();
 }
@@ -155,14 +156,21 @@ template void CAbstractDisplayEditor::CreateWidgets< CViewControlsPanelGeneralPl
 
 void CAbstractDisplayEditor::Wire()
 {
+	//graphics tool-bar
+
 	connect( m2DAction, SIGNAL( toggled( bool ) ), this, SLOT( Handle2D( bool ) ) );
 	connect( m3DAction, SIGNAL( toggled( bool ) ), this, SLOT( Handle3D( bool ) ) );
-	connect( mLogAction, SIGNAL( toggled( bool ) ), this, SLOT( HandleLog( bool ) ) );
 
-	connect( mTabGeneral, SIGNAL( CurrentDisplayIndexChanged(int) ), this, SLOT( HandleViewChanged(int) ) );
-    connect( mTabGeneral, SIGNAL( RunButtonClicked(int) ), this, SLOT( HandleViewChanged(int) ) );
 
-	connect( mTabGeneral, SIGNAL( NewButtonClicked() ), this, SLOT( HandleNewButtonClicked() ) );
+	//tab general
+
+	connect( mTabGeneral->mDisplaysCombo, SIGNAL( currentIndexChanged(int) ), this, SLOT( HandleViewChanged(int) ) );
+	connect( mTabGeneral->mNewDisplayButton, SIGNAL( clicked() ), this, SLOT( HandleNewButtonClicked() ) );
+	connect( mTabGeneral->mRenameDisplayButton, SIGNAL( clicked() ), this, SLOT( HandleRenameButtonClicked() ) );
+	connect( mTabGeneral->mDeleteDisplayButton, SIGNAL( clicked() ), this, SLOT( HandleDeleteButtonClicked() ) );
+    connect( mTabGeneral->mExecuteDisplay, SIGNAL( clicked() ), this, SLOT( RunButtonClicked() ) );
+
+	//main tool-bar
 
 	connect( mOperationsCombo, SIGNAL( currentIndexChanged( int ) ), this, SLOT( HandleOperationsIndexChanged( int ) ) );
 	connect( mSaveOneClickButton, SIGNAL( clicked() ), this, SLOT( HandleOneClickClicked() ) );
@@ -183,7 +191,7 @@ void CAbstractDisplayEditor::Wire()
 }
 
 
-CAbstractDisplayEditor::CAbstractDisplayEditor( CModel *model, const COperation *op, const std::string &display_name, QWidget *parent )		//display_name = "", parent = nullptr ) 
+CAbstractDisplayEditor::CAbstractDisplayEditor( bool map_editor, CModel *model, const COperation *op, const std::string &display_name, QWidget *parent )		//display_name = "", parent = nullptr ) 
 	: base_t( parent )
 	, mModel( model )
 	, mWDataset( model->Workspace< CWorkspaceDataset >() )
@@ -192,10 +200,11 @@ CAbstractDisplayEditor::CAbstractDisplayEditor( CModel *model, const COperation 
 	, mWFormula( model->Workspace< CWorkspaceFormula >() )
 	, mOperation( op )
 	, mDisplayOnlyMode( false )
+	, mIsMapEditor( map_editor )
 {
     assert__( mOperation && mWDataset && mWOperation && mWDisplay && mWFormula );       Q_UNUSED( display_name );
 
-	FilterOperations( mOperation->IsMap() );
+	FilterOperations();
 	if ( !mOperation )
 	{
 		throw CException( "The requested operation " + op->GetName() + " has no associated displays. Please run the operation again" );
@@ -205,16 +214,19 @@ CAbstractDisplayEditor::CAbstractDisplayEditor( CModel *model, const COperation 
 }
 
 
+// Constructor for brat display one mode
+//
 CAbstractDisplayEditor::CAbstractDisplayEditor( bool map_editor, const CDisplayFilesProcessor *proc, QWidget *parent )	//QWidget *parent = nullptr ) 
 	: base_t( parent )
 	, mCurrentDisplayFilesProcessor( proc )
 	, mDisplayOnlyMode( true )
+	, mIsMapEditor( map_editor )
 {
     assert__( !map_editor || proc->isZFLatLon() );                  Q_UNUSED(map_editor);   //for release builds
 	assert__( map_editor || proc->isYFX() || proc->isZFXY() );
 
-	mDisplaysCombo->addItem( t2q( mCurrentDisplayFilesProcessor->ParamFile() ) );
-	mDisplaysCombo->setEnabled( false );
+	mTabGeneral->mDisplaysCombo->addItem( t2q( mCurrentDisplayFilesProcessor->ParamFile() ) );
+	mTabGeneral->mDisplaysCombo->setEnabled( false );
 }
 
 
@@ -254,49 +266,63 @@ int CAbstractDisplayEditor::OperationIndex( const COperation *op ) const
 
 
 
-QWidget* CAbstractDisplayEditor::AddTab( QWidget *tab , const QString title )		// title = "" 
+QWidget* CAbstractDisplayEditor::AddTab( QWidget *tab, const QString title )		// title = "" 
 {
 	return mWorkingDock->AddTab( tab, title );
 }
 
 
+void CAbstractDisplayEditor::SelectTab( QWidget *tab )
+{
+	mWorkingDock->SelectTab( mWorkingDock->TabIndex( tab ) );
+}
+
+
 bool CAbstractDisplayEditor::AddView( QWidget *view, bool view3D )
 {
-	if ( mGraphicsSplitter->count() == 2 )
+	assert__( mMainSplitter->count() < 2 );
+
+	if ( mMainSplitter->count() == 2 )
 		return false;
 
 	if ( view3D )
 	{
+		m3DAction->setEnabled( true );
 		m3DAction->setChecked( true );
-		mGraphicsSplitter->insertWidget( 1, view );
+		mMainSplitter->insertWidget( 1, view );
 	}
 	else
 	{
+		m2DAction->setEnabled( true );
 		m2DAction->setChecked( true );
-		mGraphicsSplitter->insertWidget( 0, view );
+		mMainSplitter->insertWidget( 0, view );
 	}
 
 	return true;
 }
 
-bool CAbstractDisplayEditor::RemoveView( QWidget *view, bool view3D )
+bool CAbstractDisplayEditor::RemoveView( QWidget *view, bool view3D, bool disable_action )
 {
-	const int count = mGraphicsSplitter->count();
+	const int count = mMainSplitter->count();
 	if ( count == 0 )
 		return false;
 
-	delete view;				assert__( mGraphicsSplitter->count() == count - 1 );
+	if ( !view->close() )
+		return false;
+	delete view;			assert__( mMainSplitter->count() == count - 1 );
 
 	if ( view3D )
 	{
 		m3DAction->blockSignals( true );
 		m3DAction->setChecked( false );
+		m3DAction->setDisabled( disable_action );
 		m3DAction->blockSignals( false );
 	}
 	else
 	{
 		m2DAction->blockSignals( true );
 		m2DAction->setChecked( false );
+		m2DAction->setDisabled( disable_action );
 		m2DAction->blockSignals( false );
 	}
 
@@ -308,32 +334,35 @@ bool CAbstractDisplayEditor::RemoveView( QWidget *view, bool view3D )
 QAction* CAbstractDisplayEditor::AddToolBarAction( QObject *parent, EActionTag tag )
 {
 	QAction *a = CActionInfo::CreateAction( parent, tag );
-	mToolBar->addAction( a );
+	mGraphicsToolBar->addAction( a );
 	return a;
 }
 
 
 QAction* CAbstractDisplayEditor::AddToolBarSeparator()
 {
-	return mToolBar->addSeparator();
+	return mGraphicsToolBar->addSeparator();
 }
 
 
 QToolButton* CAbstractDisplayEditor::AddMenuButton( EActionTag button_tag, const QList<QAction*> &actions )
 {
 	QToolButton *b = CActionInfo::CreateMenuButton( button_tag, actions );
-	mToolBar->addWidget( b );
+	mGraphicsToolBar->addWidget( b );
 	return b;
 }
 
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+/////////////////////////////
+//	Handlers
+/////////////////////////////
+
 
 void CAbstractDisplayEditor::UpdateDisplaysCombo( int index )
 {
-	mDisplaysCombo->clear();
-
-	FillCombo( mDisplaysCombo, mFilteredDisplays,
+	FillCombo( mTabGeneral->mDisplaysCombo, mFilteredDisplays,
 
 		index, true,
 
@@ -350,6 +379,7 @@ void CAbstractDisplayEditor::HandleOperationsIndexChanged( int index )
 	if ( index < 0 )
 	{
 		mDatasetName->clear();
+		mFilterLineEdit->clear();
 	}
 	else
 	{
@@ -361,6 +391,7 @@ void CAbstractDisplayEditor::HandleOperationsIndexChanged( int index )
 		mOperation = op;
 		const CDataset *dataset = mOperation->GetDataset();
 		mDatasetName->setText( t2q( dataset->GetName() ) );
+		mFilterLineEdit->setText( t2q( mOperation->FilterName() ) );
 	}
 	
 	FilterDisplays();
@@ -372,6 +403,7 @@ void CAbstractDisplayEditor::HandleOperationsIndexChanged( int index )
 
 bool CAbstractDisplayEditor::Start( const std::string &display_name )
 {
+	FilterDisplays();
 	mRequestedDisplayIndex = 0;
 	if ( !display_name.empty() )
 	{
@@ -379,9 +411,21 @@ bool CAbstractDisplayEditor::Start( const std::string &display_name )
 		mRequestedDisplayIndex = DisplayIndex( display );		  		assert__( mRequestedDisplayIndex >= 0 );
 	}
 	int index = OperationIndex( mOperation );
-    int save_mRequestedDisplayIndex = mRequestedDisplayIndex;           Q_UNUSED( save_mRequestedDisplayIndex );    //release builds
-	mOperationsCombo->setCurrentIndex( index );							assert__( mDisplaysCombo->currentIndex() == mRequestedDisplayIndex );
+
+	if ( mOperationsCombo->currentIndex() == index )
+		HandleOperationsIndexChanged( index );
+	else
+		mOperationsCombo->setCurrentIndex( index );
+
 	return index >= 0;
+}
+
+
+void CAbstractDisplayEditor::RunButtonClicked()
+{
+	int index = mTabGeneral->mDisplaysCombo->currentIndex();
+	if ( index >= 0 )
+		HandleViewChanged( index );
 }
 
 
@@ -391,8 +435,8 @@ void CAbstractDisplayEditor::HandleViewChanged( int index )
 	delete mCurrentDisplayFilesProcessor;
 	mCurrentDisplayFilesProcessor = nullptr;
 	
-	if ( display == mDisplay )
-		return;
+	//if ( display == mDisplay )
+	//	return;
 
 	mDisplay = display;
 
@@ -402,9 +446,10 @@ void CAbstractDisplayEditor::HandleViewChanged( int index )
 	assert__( mDisplay );
 
 	setWindowTitle( mDisplay->GetName().c_str() );
+	mTabGeneral->mPlotTitle->setText( mDisplay->GetTitle().c_str() );
 
 	std::string msg;
-	if ( !ControlSolidColor() || !ControlVectorComponents( msg ) )
+	if ( !ControlSolidColor() || !ControlVectorComponents( msg ) )	//== CDisplayPanel::Control(std::string& msg)
 	{
 		SimpleErrorBox( msg );
 
@@ -416,15 +461,12 @@ void CAbstractDisplayEditor::HandleViewChanged( int index )
 	}
 	else
 	{
-		// TODO for a complete re-implementation of CDisplayPanel::Execute() here
-		//	is missing (after really checking) a call to a gigantic CDisplayPanel::RefreshSelectedData();
-		//
-		//if ( !RefreshSelectedData() )
-		//{
-		//	return;
-		//}
+		if ( !RefreshDisplayData() )
+		{
+			return;
+		}
 
-		if ( !mDisplay->BuildCmdFile( msg) )
+		if ( !mDisplay->BuildCmdFile( msg, !IsMapEditor() ) )
 		{
 			assert__( !msg.empty() );
 
@@ -436,26 +478,212 @@ void CAbstractDisplayEditor::HandleViewChanged( int index )
 		}
 	}
 
-	Refresh();
+	ViewChanged();
 }
 
 
 void CAbstractDisplayEditor::Handle2D( bool checked )
 {
-	Show2D( checked );
+	if ( checked || m3DAction->isChecked() )
+		Show2D( checked );
+	else
+		m2DAction->setChecked( true );
 }
 
 
 void CAbstractDisplayEditor::Handle3D( bool checked )
 {
-	Show3D( checked );
+	if ( checked || m2DAction->isChecked() )
+		Show3D( checked );
+	else
+		m3DAction->setChecked( true );
 }
 
 
-void CAbstractDisplayEditor::HandleLog( bool checked )
+
+/////////////////////////////
+//	Display Objects Edition
+/////////////////////////////
+
+
+void CAbstractDisplayEditor::HandleNewButtonClicked()
 {
-	mLogText->setVisible( checked );
+	assert__( mOperation && mWDisplay );
+	
+    /*int current_display = */mTabGeneral->mDisplaysCombo->currentIndex();
+
+	//FillProjList();
+	//FillPaletteList();
+	//GetDispNames()->Enable( true );
+
+	CDisplay *new_display = nullptr;
+
+	std::string display_name = mWDisplay->GetDisplayNewName();
+	if ( !mWDisplay->InsertDisplay( display_name ) )
+	{
+		SimpleErrorBox( "Display '" + display_name + "' already exists" );		//TODO After call to GetDisplayNewName(), this is stupid and should be an assert
+		return;
+	}
+	else
+	{
+		//new_display = GetDispNames()->Append( display_name );
+		//GetDispNames()->SetSelection( m_currentDisplay );
+	}
+
+	//SetCurrentDisplay();		//assigns mDisplay using m_currentDisplay
+
+	//InitDisplayOutput();		//makes mDisplay->InitOutput( wksd );
+	//GetDisplayOutput();			//oddly, makes InitOutput( wksd ); in case output is empty
+
+	new_display = mWDisplay->GetDisplay( display_name );
+	new_display->InitOutput( mWDisplay );
+
+	if ( !new_display->AssignOperation( mOperation ) )
+	////display panel -> GetOperations();
+	////display panel -> GetDispavailtreectrl()->InsertData( &m_dataList );
+	//CMapDisplayData *m_dataList = new CMapDisplayData;
+	//m_dataList->clear();
+	//if ( !CreateDisplayData( mCurrentOperation, *m_dataList ) )	//CDisplay::GetDisplayType failed
+	{
+		SimpleErrorBox( "Could not retrieve operation output." );
+		mWDisplay->DeleteDisplay( new_display );
+		return;	
+	}
+
+	//GetDispTitle()->Clear();
+
+	//ClearSelectedDataList();
+
+	//ShowGeneralProperties();
+	//ShowFieldProperties();
+
+	//LoadAvailableData();		//makes GetOperations();
+
+	//GetDispDataSel()->SetDisplay( mDisplay );
+
+	//EnableCtrl();
+
+	Start( display_name );
+
+	NewButtonClicked();		//for derived classes notification
 }
+
+
+void CAbstractDisplayEditor::HandleRenameButtonClicked()
+{
+    assert__( mDisplay );
+
+    auto result = SimpleInputString( "View Name", mDisplay->GetName(), "Rename View" );
+	if ( !result.first )
+		return;
+
+    if ( !mWDisplay->RenameDisplay( mDisplay, result.second.c_str() ) )
+    {
+        SimpleMsgBox( "Unable to rename view '"
+                        + mDisplay->GetName()
+                        + "' by '"
+                        + result.second
+                        + "'\nPerhaps view already exists, " );
+    }
+    else
+    {
+        mTabGeneral->mDisplaysCombo->setItemText( mTabGeneral->mDisplaysCombo->currentIndex(), mDisplay->GetName().c_str() );
+
+        std::string old_output = mDisplay->GetOutputFilename();
+        const bool output_exists = IsFile( old_output );
+        mDisplay->InitOutput( mWDisplay );
+        if ( output_exists )
+        {
+			RemoveFile( old_output );
+        }
+
+		RunButtonClicked();
+
+        //TODO a big one: emit DisplayModified( mDisplay );
+
+		RenameButtonClicked();	//for derived classes notification
+    }
+}
+
+
+void CAbstractDisplayEditor::HandleDeleteButtonClicked()
+{
+	assert__( mOperation && mDisplay && mWDisplay );
+
+    if ( !SimpleQuestion( "Are you sure to delete view '" + mDisplay->GetName() + "' ?" ) )
+         return;
+
+	std::string display_name = mDisplay->GetName();
+	if ( !mWDisplay->DeleteDisplay( mDisplay ) )
+	{
+		SimpleErrorBox( "Unable to delete display '" + mDisplay->GetName() + "'" );
+		return;
+	}
+
+	const COperation *to_select = nullptr;
+	std::string new_display;
+	auto displays = mModel->OperationDisplays( mOperation->GetName() );
+	if ( displays.size() > 0 )
+	{
+		to_select = mOperation;
+		new_display = displays[ 0 ]->GetName();
+	}
+
+	if ( to_select == nullptr )
+	{
+		for ( auto *op : mFilteredOperations )
+		{
+			displays = mModel->OperationDisplays( op->GetName() );
+			if ( displays.size() > 0 )
+			{
+				to_select = op;
+				new_display = displays[ 0 ]->GetName();
+				break;
+			}
+		}
+	}
+
+	if ( to_select == nullptr )
+	{
+		SimpleMsgBox( "There are no views to display." );
+		close();
+		return;
+	}
+
+	mOperation = to_select;
+
+	Start( new_display );
+
+
+	//mDisplay = NULL;
+	//m_currentData = NULL;
+
+	//GetDispNames()->Delete( m_currentDisplay );
+
+	//m_currentDisplay = ( GetDispNames()->GetCount() > 0 ) ? 0 : -1;
+
+	//GetDispNames()->SetSelection( m_currentDisplay );
+
+	//SetCurrentDisplay();
+
+	//LoadAvailableData();
+	//LoadSelectedData();
+
+	//ShowGeneralProperties();
+	//ShowFieldProperties();
+
+	//GetDisplayOutput();
+
+
+	//EnableCtrl();
+
+
+	DeleteButtonClicked();	//for derived classes notification
+}
+
+
+
+
 
 
 
@@ -463,13 +691,148 @@ void CAbstractDisplayEditor::HandleLog( bool checked )
 //	Domain Processing Helpers
 /////////////////////////////
 
+// TODO This seems to make sense only in old views tab; the question remains: how to 
+//	keep functionality there
+// 
+bool CAbstractDisplayEditor::RefreshDisplayData()			//CDisplayPanel::RefreshSelectedData()
+{
+	assert__( mDisplay );
+
+	//CMapDisplayData* availableData = GetDispavailtreectrl()->GetMapDisplayData();
+	//CMapDisplayData* selectedData = mDisplay->GetData();
+
+	//CObArray dispSelNotFound, dispSelToRefresh;
+
+	//int oldDisplayType = mDisplay->GetType();
+	//int newDisplayType = -1;
+
+	//CUIntArray displayTypes;
+
+	//const CDisplayData* firstNewSelData = nullptr;
+
+	//for ( CMapDisplayData::const_iterator itSel = selectedData->begin(); itSel != selectedData->end(); itSel ++ )
+	//{
+	//	CDisplayData* dataSel = selectedData->GetDisplayData( itSel );
+	//	if ( dataSel == nullptr )
+	//	{
+	//		continue;
+	//	}
+
+	//	const CDisplayData* dataAvailable = nullptr;
+
+	//	if ( firstNewSelData == nullptr )
+	//	{
+	//		dataAvailable = availableData->GetDisplayData( dataSel->GetDataKey() );
+
+	//		if ( dataAvailable == nullptr )
+	//		{
+	//			dataSel->GetAvailableDisplayTypes( displayTypes );
+
+	//			for ( CUIntArray::iterator itDispType = displayTypes.begin(); itDispType != displayTypes.end(); itDispType++ )
+	//			{
+	//				dataAvailable = availableData->GetDisplayData( dataSel->GetDataKey( *itDispType ) );
+	//				if ( dataAvailable != nullptr )
+	//				{
+	//					break;
+	//				}
+	//			}
+	//		}
+	//	}
+	//	else
+	//	{
+	//		dataAvailable = availableData->GetDisplayData( dataSel->GetDataKey( firstNewSelData->GetType() ) );
+	//	}
+
+	//	if ( dataAvailable == nullptr )
+	//	{
+	//		dispSelNotFound.Insert( new CDisplayData( *dataSel, mWOperation ) );
+	//		continue;
+	//	}
+
+	//	if ( firstNewSelData == nullptr )
+	//	{
+	//		firstNewSelData = dataAvailable;
+	//		newDisplayType = dataAvailable->GetType();
+	//	}
+
+	//	CDisplayData* newDisplayData = new CDisplayData( *dataAvailable, mWOperation );
+	//	newDisplayData->CopyFieldUserProperties( *dataSel );
+
+	//	dispSelToRefresh.Insert( newDisplayData );
+	//}
+
+	//GetDispDataSel()->DeselectAll();
+	//m_currentData = nullptr;
+
+	//std::string msg = "Warnings about view '" + mDisplay->GetName() + "':\n\n";
+
+	bool bOk = true;
+	//for ( CObArray::const_iterator it = dispSelNotFound.begin(); it != dispSelNotFound.end(); it ++ )
+	//{
+	//	CDisplayData* data = dynamic_cast<CDisplayData*>( *it );
+
+	//	if ( newDisplayType >= 0 )
+	//	{
+	//		data->SetType( newDisplayType );
+	//	}
+	//	else
+	//	{
+	//		data->SetType( oldDisplayType );
+	//	}
+
+	//	bOk = false;
+
+	//	msg += "In operation '" + data->GetOperation()->GetName() + "', field's name '" + data->GetField()->GetName() + "' doesn't exist anymore.\n";
+	//}
+
+
+	//selectedData->RemoveAll();
+	//GetDispDataSel()->InsertDisplay( nullptr );
+	//GetDispDataSel()->SetDisplay( mDisplay );
+
+	//if ( newDisplayType >= 0 )
+	//{
+	//	mDisplay->SetType( newDisplayType );
+	//}
+
+	//bOk &= AddField( dispSelToRefresh, true );
+	//bOk &= AddField( dispSelNotFound, true );
+
+	////GetDispDataSel()->InsertDisplay(mDisplay);
+
+	//if ( dispSelToRefresh.size() <= 0 )
+	//{
+	//	msg += "\nAll the expressions to display don't exist anymore.\n";
+
+	//}
+
+	//if ( newDisplayType > 0 && ( oldDisplayType != newDisplayType ) )
+	//{
+	//	bOk = false;
+	//	msg +=  "\nView type has changed from '"
+	//		+ CMapTypeDisp::GetInstance().IdToName( oldDisplayType )
+	//		+ "' to '"
+	//		+ CMapTypeDisp::GetInstance().IdToName( newDisplayType )
+	//		+ "'\n\n";
+	//}
+
+
+	//ShowFieldProperties();
+
+	//if ( !bOk )
+	//{
+	//	SimpleErrorBox( msg );
+	//}
+
+	return bOk;
+}
+
+
 void CAbstractDisplayEditor::FilterDisplays()
 {
 	assert__( mOperation );
 
 	mFilteredDisplays.clear();
-
-	const bool with_maps = mOperation->IsMap();
 
 	auto displays = mModel->OperationDisplays( mOperation->GetName() );
 	std::string errors;
@@ -477,7 +840,7 @@ void CAbstractDisplayEditor::FilterDisplays()
 	{
 		try
 		{
-			if ( with_maps ? display->IsZLatLonType() : !display->IsZLatLonType() )
+			if ( !mIsMapEditor || display->IsZLatLonType() )
 			{
 				auto v = display->GetOperations();
 				if ( v.size() == 0 )
@@ -500,7 +863,7 @@ void CAbstractDisplayEditor::FilterDisplays()
 //	- can cancel mOperation assignment if it does not have associated views
 //	- 
 //
-void CAbstractDisplayEditor::FilterOperations( bool with_maps )
+void CAbstractDisplayEditor::FilterOperations()
 {
 	assert__( mFilteredOperations.empty() );	// to be called by constructor
 
@@ -511,7 +874,7 @@ void CAbstractDisplayEditor::FilterOperations( bool with_maps )
 		const COperation *operation = dynamic_cast<COperation *>( operation_entry.second );		assert__( operation );
 		try
 		{
-			if ( with_maps ? operation->IsMap() : !operation->IsMap() )
+			if ( !mIsMapEditor || operation->IsMap() )
 			{
 				auto v = mModel->OperationDisplays( operation->GetName() );
 				if ( v.size() == 0 )

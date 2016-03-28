@@ -44,23 +44,17 @@ public:
 	QToolButton *mExecuteDisplay = nullptr;
     QComboBox *mDisplaysCombo = nullptr;
 
+	QLineEdit *mPlotTitle = nullptr;
+
+
 	//construction / destruction
 
 	void CreateWidgets();
-	void Wire();
 public:
     CViewControlsPanelGeneral( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
 	virtual ~CViewControlsPanelGeneral()
 	{}
-
-signals:
-	void NewButtonClicked();
-	void CurrentDisplayIndexChanged( int index );
-	void RunButtonClicked( int index );
-
-public slots:
-	void RunButtonClicked();
 };
 
 
@@ -89,20 +83,17 @@ struct CViewControlsPanelGeneralPlots : public CViewControlsPanelGeneral
 public:
     // instance data members
 
-    QComboBox *mSelectPlotCombo = nullptr;
-    QComboBox *mvarX       = nullptr;
-    QComboBox *mvarY       = nullptr;
-    QComboBox *mvarY2      = nullptr;
-    QComboBox *mvarZ       = nullptr;
+    QListWidget *mPlotTypesList = nullptr;
+    QComboBox *mVarX       = nullptr;
+    QComboBox *mVarY       = nullptr;
+    QComboBox *mVarY2      = nullptr;
+    QComboBox *mVarZ       = nullptr;
 
-protected:
-
-    QComboBox *mLinkToPlot = nullptr;
+	QComboBox *mLinkToPlot = nullptr;
 
 protected:
 
 	void CreateWidgets();
-	void Wire();
 public:
     CViewControlsPanelGeneralPlots( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
@@ -135,12 +126,13 @@ struct CViewControlsPanelGeneralMaps : public CViewControlsPanelGeneral
 
     // instance data members
 
-    QComboBox *mData = nullptr;
+public:
+
+    QComboBox *mVarZ = nullptr;
 
 protected:
 
 	void CreateWidgets();
-	void Wire();
 public:
     CViewControlsPanelGeneralMaps( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 

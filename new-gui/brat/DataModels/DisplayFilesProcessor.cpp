@@ -293,7 +293,7 @@ bool CDisplayFilesProcessor::IsWPlot()
 {
 	std::string name = GetFirstFileName();
 
-	return CInternalFiles::IsZFLatLonFile( name );
+	return !mMapsAsPlots && CInternalFiles::IsZFLatLonFile( name );
 }
 bool CDisplayFilesProcessor::IsZXYPlot()
 {
@@ -305,7 +305,7 @@ bool CDisplayFilesProcessor::IsZXYPlot()
 
 	std::string name = GetFirstFileName();
 
-	return CInternalFiles::IsZFXYFile( name, &fieldNames );
+	return ( mMapsAsPlots && CInternalFiles::IsZFLatLonFile( name ) ) || CInternalFiles::IsZFXYFile( name, &fieldNames );
 }
 
 
@@ -824,7 +824,7 @@ void CDisplayFilesProcessor::GetXYPlotPropertyParams( int32_t nFields )
 			}
 			if ( indexPointGlyph < pointGlyph )
 			{
-				PointGlyph pointGlyph = CMapPointGlyph::GetInstance().GetPointGlyph( m_params, indexPointGlyph );
+				EPointGlyph pointGlyph = CMapPointGlyph::GetInstance().GetPointGlyph( m_params, indexPointGlyph );
 				props->SetPointGlyph( pointGlyph );
 				indexPointGlyph++;
 			}
@@ -876,13 +876,12 @@ void CDisplayFilesProcessor::GetXYPlotPropertyParams( int32_t nFields )
 			continue;
 		}
 
-		StipplePattern stipplePatternValue = CMapStipplePattern::GetInstance().GetStipplePattern( m_params, i );
-
-        UNUSED( stipplePatternValue );
-
+		EStipplePattern stipplePatternValue = CMapStipplePattern::GetInstance().GetStipplePattern( m_params, i );	//v4 always returns default value
 
 #if defined(BRAT_V3)
 		props->SetLineStipple( stipplePatternValue );
+#else
+		props->SetStipplePattern( stipplePatternValue );
 #endif
 	}
 }

@@ -550,7 +550,7 @@ void CDisplayDataTreeCtrl::InsertField(CDisplayData* displayData, CMapDisplayDat
     return;
   }
 
-  COperation* operation = displayData->GetOperation();
+  const COperation* operation = displayData->GetOperation();
 
   if (operation == NULL)
   {

@@ -15,6 +15,8 @@ typedef QVector<QgsPoint> QgsPolyline;
 class QgsRubberBand;
 class QgsRasterLayer;
 class CDecorationGrid;
+class QgsGraduatedSymbolRendererV2;
+
 
 
 //
@@ -99,19 +101,21 @@ public:
 
 public:
 	template< class LAYER >
-	static QgsSingleSymbolRendererV2* addRenderer( LAYER *layer, QgsSymbolV2* symbol = nullptr )
+	static QgsSingleSymbolRendererV2* CreateRenderer( LAYER *layer )
 	{
-		QgsSingleSymbolRendererV2 *renderer = new QgsSingleSymbolRendererV2( 
-			symbol ?
-			symbol : QgsSymbolV2::defaultSymbol(layer->geometryType() ) );
-
-		layer->setRendererV2( renderer );
-
-		return renderer;
+		return new QgsSingleSymbolRendererV2( QgsSymbolV2::defaultSymbol( layer->geometryType() ) );
 	}
 	
-	static QgsSymbolV2* createPointSymbol( double width, const QColor &color );
-    static QgsSymbolV2* createPointSymbol2( double width, const QColor &color ); // RCCC
+	static QgsSingleSymbolRendererV2* CreateRenderer( QgsSymbolV2* symbol )
+	{
+		return new QgsSingleSymbolRendererV2( symbol );
+	}
+
+	static QgsGraduatedSymbolRendererV2* CreateRenderer( const QString &target_field, double width, double m, double M, size_t contours );
+
+
+	
+    static QgsSymbolV2* CreatePointSymbol( double width, const QColor &color );
 
 	static QgsSymbolV2* createLineSymbol( double width, const QColor &color );
 
@@ -198,13 +202,17 @@ public:
 
 
     //////////////////////////////////////
-    //	operations
+    //	public operations
     //////////////////////////////////////
+
+
+	bool IsLayerVisible( size_t index ) const;
+	bool SetLayerVisible( size_t index, bool show );
+
 
 	QgsRectangle CurrentLayerSelectedBox() const;
 
 	void RemoveLayers();
-
 	
 	void SetDefaultProjection();
 
@@ -231,26 +239,46 @@ protected:
 
 	void SetCurrentLayer( QgsMapLayer *l );	
 
+	QgsMapLayer* FindLayer( const std::string &name );	
+	QgsMapCanvasLayer* FindCanvasLayer( size_t index );	
+	const QgsMapCanvasLayer* FindCanvasLayer( size_t index ) const
+	{
+        return const_cast<CMapWidget*>( this )->FindCanvasLayer( index );
+	}
+	QgsMapCanvasLayer* FindCanvasLayer( const std::string &name );	
+	const QgsMapCanvasLayer* FindCanvasLayer( const std::string &name ) const
+	{
+        return const_cast<CMapWidget*>( this )->FindCanvasLayer( name );
+	}
+	
+	std::string CurrentLayer() const;	   				//not used
+	void SetCurrentLayer( const std::string &name );	//not used
+
 	void SetProjection( const QgsCoordinateReferenceSystem &proj );
 
-	QgsVectorLayer* AddVectorLayer( const QString &layer_path, const QString &base_name, const QString &provider, QgsSymbolV2* symbol = nullptr );
+	QgsVectorLayer* AddVectorLayer( const std::string &name, const QString &layer_path, const QString &provider, QgsFeatureRendererV2 *renderer = nullptr );
 
-	QgsVectorLayer* AddMemoryLayer( QgsSymbolV2* symbol = nullptr );
-    QgsVectorLayer* AddMemoryLayer2( double width ); // RCCC
+	QgsVectorLayer* AddMemoryLayer( const std::string &name, QgsFeatureRendererV2 *renderer, const QString &target_field );
+	QgsVectorLayer* AddMemoryLayer( const std::string &name = "", QgsSymbolV2* symbol = nullptr );
+    QgsVectorLayer* AddMemoryLayer( const std::string &name, double width, double m, double M, size_t contours );
 
-	QgsVectorLayer* AddOGRVectorLayer( const QString &layer_path, QgsSymbolV2* symbol = nullptr )
-	{
-		return AddVectorLayer( layer_path, "ogr", "ogr", symbol );
-	}
+	QgsVectorLayer* AddOGRVectorLayer( const QString &layer_path, QgsSymbolV2* symbol = nullptr );
+
+
 	QgsRasterLayer* AddRasterLayer( const QString &layer_path, const QString &base_name, const QString &provider, QgsSymbolV2* symbol = nullptr );
 
 
 	QgsRubberBand* AddRBPoint( double lon, double lat, QColor color, QgsVectorLayer *layer = nullptr );
 	QgsRubberBand* AddRBLine( QgsPolyline points, QColor color, QgsVectorLayer *layer = nullptr );
 
+protected:
+
+    virtual void closeEvent( QCloseEvent *event ) override;
+
 signals:
 	void CurrentLayerSelectionChanged();
 	void GridEnabled( bool enabled );
+
 
 public slots:
 

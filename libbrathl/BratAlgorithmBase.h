@@ -58,128 +58,6 @@ class CProduct;
 class CProductNetCdf;
 class CFieldNetCdf;
 
-//-------------------------------------------------------------
-//------------------- CBratAlgorithmParam class --------------------
-//-------------------------------------------------------------
-//class CBratAlgorithmParam
-//{
-//public:
-//    typedef enum {
-//    T_UNDEF = 0, 
-//    T_INT,
-//    T_LONG,
-//    T_FLOAT,
-//    T_DOUBLE,
-//    T_CHAR,
-//    T_STRING,
-//    T_VECTOR_DOUBLE,
-//  } bratAlgoParamTypeVal;
-//
-//public:
-//  CBratAlgorithmParam();
-//  
-//  CBratAlgorithmParam(const CBratAlgorithmParam &o);
-//  
-//  virtual ~CBratAlgorithmParam();
-//
-//  bratAlgoParamTypeVal GetTypeVal() {return m_typeVal; };
-//  std::string GetTypeValAsString() {return TypeValAsString(m_typeVal); };
-//
-//  std::string GetValue() const;
-//
-//  double GetValueAsDouble() const {return m_valDouble; };
-//  int32_t GetValueAsInt() const {return m_valInt; }
-//  int64_t GetValueAsLong() const {return m_valLong; }
-//  float GetValueAsFloat() const {return m_valFloat; }
-//  std::string GetValueAsString() const {return m_valString; }
-//  unsigned char GetValueAsChar() const {return m_valChar; }
-//  const CDoubleArray* GetValueAsVectDouble() const {return &m_vectValDouble; }
-//  CDoubleArray* GetValueAsVectDouble() {return &m_vectValDouble; }
-//
-//  void SetValue(double value);
-//  void SetValue(float value);
-//  void SetValue(int32_t value);
-//  void SetValue(int64_t value);
-//  void SetValue(const std::string& value);
-//  void SetValue(unsigned char value);
-//  void SetValue(const CDoubleArray& value);
-//  void SetValue(double* value, int32_t nbValues);
-//
-//  void SetValue(double value, CBratAlgorithmParam::bratAlgoParamTypeVal type);
-//  void SetValue(const std::string& value, CBratAlgorithmParam::bratAlgoParamTypeVal type);
-//
-//  void SetValueAsDoubleArray(const std::string& value, const std::string& delim = ","); 
-//
-//  bratAlgoParamTypeVal TypeVal(bratAlgoParamTypeVal type) { return type; };
-//
-//  static std::string TypeValAsString(bratAlgoParamTypeVal type);
-//
-//  virtual void Dump(std::ostream& fOut = std::cerr);
-//
-//  const CBratAlgorithmParam& operator=(const CBratAlgorithmParam &o);
-//  //virtual bool operator==(const CBratAlgorithmParam& o) { return true; };
-//
-//
-//protected:
-//  void Set(const CBratAlgorithmParam &o);
-//  void Init();
-//  void Copy(const CDoubleArray& value);
-//
-//protected:
-//  
-//  bratAlgoParamTypeVal m_typeVal;
-//
-//  double m_valDouble;
-//  float m_valFloat;
-//  int32_t m_valInt;
-//  int64_t m_valLong;
-//  std::string m_valString;
-//  unsigned char m_valChar;
-//  CDoubleArray m_vectValDouble;
-//    
-//
-//};
-//
-//typedef std::vector<CBratAlgorithmParam> vectorbratalgorithmparam; 
-//
-////-------------------------------------------------------------
-////------------------- CVectorBratAlgorithmParam class --------------------
-////-------------------------------------------------------------
-//
-//
-//class CVectorBratAlgorithmParam : public vectorbratalgorithmparam
-//{
-//public:
-//  CVectorBratAlgorithmParam();  
-//  virtual ~CVectorBratAlgorithmParam();
-//
-//  virtual void Insert(const CBratAlgorithmParam& o);
-//  virtual void RemoveAll();
-//
-//  void Insert(double value);
-//  void Insert(float value);
-//  void Insert(int32_t value);
-//  void Insert(const std::string& value);
-//  void Insert(unsigned char value);
-//  void Insert(const CDoubleArray& value);
-//  void Insert(double* value, int32_t nbValues);
-//
-//  void Insert(double value, CBratAlgorithmParam::bratAlgoParamTypeVal type);
-//  void Insert(const std::string& value, CBratAlgorithmParam::bratAlgoParamTypeVal type);
-//  
-//  std::string ToString(const std::string& delim = ",", bool useBracket = true) const;
-//  
-//  virtual void Dump(std::ostream& fOut = std::cerr); 
-//
-//
-//protected:
-//
-//  void Init();
-//
-//protected:
-//
-//
-//};
 
 //-------------------------------------------------------------
 //------------------- CBratAlgorithmBase class --------------------
@@ -473,10 +351,30 @@ protected:
 
 template<class T> CBratAlgorithmBase* base_factory()
 {
-  return new T;
+	return new T;
 }
 
-typedef CBratAlgorithmBase* (*base_creator)(void);
+
+//typedef CBratAlgorithmBase* (*base_creator)(void);
+struct base_creator
+{
+	typedef CBratAlgorithmBase* (*base_creator_t)(void);
+
+	base_creator_t mF = nullptr;
+
+	base_creator( base_creator_t f )
+		: mF( f )
+	{}
+
+	virtual ~base_creator()
+	{}
+
+	virtual CBratAlgorithmBase* operator()( void )
+	{
+		return mF();
+	}
+};
+
 
 class CBratAlgorithmBaseRegistry
 {
@@ -488,15 +386,15 @@ private:
   void FillAlgorithmsSortedArray();
 
 private:
-  std::vector<base_creator> m_bases;
+  std::vector<base_creator*> m_bases;
   
   CMapBratAlgorithm m_mapBratAlgo;
   CVectorBratAlgorithm m_sortedArrayBratAlgo;
 
 public:
-  typedef std::vector<base_creator>::iterator iterator;
+  typedef std::vector<base_creator*>::iterator iterator;
   
-  void Add(base_creator);
+  void Add(base_creator*);
   
   iterator Begin();
   
@@ -520,11 +418,11 @@ public:
 class CBratAlgorithmBaseRegistration
 {
 public:
-  CBratAlgorithmBaseRegistration(base_creator);
+  CBratAlgorithmBaseRegistration(base_creator*);
 };
 
 #define AUTO_REGISTER_BASE(base) \
-    CBratAlgorithmBaseRegistration _base_registration_ ## base(&base_factory<base>);
+    CBratAlgorithmBaseRegistration _base_registration_ ## base(new base_creator(&base_factory<base>));
 
 
 

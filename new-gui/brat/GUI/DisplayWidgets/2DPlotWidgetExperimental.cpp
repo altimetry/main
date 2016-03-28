@@ -23,6 +23,7 @@
 #include "2DPlotWidget.h"
 
 
+class SpectrogramData;
 
 //////////////////////////////////////////////////////////////////
 //				SimplePlot sample Data
@@ -78,91 +79,70 @@ private:
 
 static_assert( QT_VERSION >= 0x040300, "" );
 
-class SpectrogramData : public QwtRasterData
+
+class SpectrogramData: public QwtRasterData
 {
 public:
-	SpectrogramData() :
-		QwtRasterData( QwtDoubleRect( -1.5, -1.5, 3.0, 3.0 ) )
-	{
-	}
+    SpectrogramData():
+        QwtRasterData(QwtDoubleRect(-1.5, -1.5, 3.0, 3.0))
+    {
+    }
 
-	virtual QwtRasterData *copy() const
-	{
-		return new SpectrogramData();
-	}
+    virtual QwtRasterData *copy() const
+    {
+        return new SpectrogramData();
+    }
 
-	virtual QwtDoubleInterval range() const
-	{
-		return QwtDoubleInterval( 0.0, 10.0 );
-	}
+    virtual QwtDoubleInterval range() const
+    {
+        return QwtDoubleInterval(0.0, 10.0);
+    }
 
-	virtual double value( double x, double y ) const
-	{
-		const double c = 0.842;
+    virtual double value(double x, double y) const
+    {
+        const double c = 0.842;
 
-		const double v1 = x * x + ( y - c ) * ( y + c );
-		const double v2 = x * ( y + c ) + x * ( y + c );
+        const double v1 = x * x + (y-c) * (y+c);
+        const double v2 = x * (y+c) + x * (y+c);
 
-		return 1.0 / ( v1 * v1 + v2 * v2 );
-	}
+        return 1.0 / (v1 * v1 + v2 * v2);
+    }
 };
 
 
-void C2DPlotWidget::SimplePlot()
-{
-    setTitle("A Simple QwtPlot Demonstration");
-	QwtLegend *legend = AddLegend( RightLegend );
-
-    // Set axis titles
-    SetAxisTitles( "x -->", "y -->" );
-
-    // Insert new curves
-    const int nPoints = 100;
-	QwtPlotCurve *cSin = AddCurve( SimpleData( ::sin, nPoints ), "y = sin(x)", Qt::red );
-	QwtPlotCurve *cCos = AddCurve( SimpleData( ::cos, nPoints ), "y = cos(x)", Qt::blue );
-
-    // Markers
-    //  ...a horizontal line at y = 0...
-    //  ...a vertical line at x = 2 * pi
-	//
-    QwtPlotMarker *mY = AddMarker( "y = 0", QwtPlotMarker::HLine, 0.0 );
-    QwtPlotMarker *mX = AddMarker( "x = 2 pi", QwtPlotMarker::VLine, 2.0 * M_PI );
-    mX->setLinePen( QPen( Qt::black, 0, Qt::DashDotLine ) );
-
-	QwtPlotZoomer *zoomer = AddZoomer( Qt::darkBlue );
-	QwtPlotPanner *panner = AddPanner();
-
-	Q_UNUSED( cSin );		Q_UNUSED( cCos );		Q_UNUSED( mY );		Q_UNUSED( zoomer );		Q_UNUSED( panner );		Q_UNUSED( legend );
-}
-
 void C2DPlotWidget::Spectogram( QWidget *parent )
 {
-	mSpectrogram = new QwtPlotSpectrogram();
+    //create an instance of a QwtPlotSpectogram
+    mSpectrograms.push_back( new QwtPlotSpectrogram );
+	QwtPlotSpectrogram *spectogram = mSpectrograms.back();
+    spectogram = new QwtPlotSpectrogram();
 
+    // color map for the raster
 	QwtLinearColorMap colorMap( Qt::darkCyan, Qt::red );
 	colorMap.addColorStop( 0.1, Qt::cyan );
 	colorMap.addColorStop( 0.6, Qt::green );
 	colorMap.addColorStop( 0.95, Qt::yellow );
 
-	mSpectrogram->setColorMap( colorMap );
+    // sets color map
+	spectogram->setColorMap( colorMap );
 
-	mSpectrogram->setData( SpectrogramData() );
-	mSpectrogram->attach( this );
+    spectogram->setData( SpectrogramData()/* *mSpectogramData */);
+	spectogram->attach( this );
 
 	QwtValueList contourLevels;
 	for ( double level = 0.5; level < 10.0; level += 1.0 )
 		contourLevels += level;
-	mSpectrogram->setContourLevels( contourLevels );
+	spectogram->setContourLevels( contourLevels );
 
 	// A color bar on the right axis
 	QwtScaleWidget *rightAxis = axisWidget( QwtPlot::yRight );
 	rightAxis->setTitle( "Intensity" );
 	rightAxis->setColorBarEnabled( true );
-	rightAxis->setColorMap( mSpectrogram->data().range(), mSpectrogram->colorMap() );
+	rightAxis->setColorMap( spectogram->data().range(), spectogram->colorMap() );
 
 	setAxisScale( QwtPlot::yRight,
-		mSpectrogram->data().range().minValue(),
-		mSpectrogram->data().range().maxValue() );
+		spectogram->data().range().minValue(),
+		spectogram->data().range().maxValue() );
 	enableAxis( QwtPlot::yRight );
 
 	plotLayout()->setAlignCanvasToScales( true );
@@ -213,18 +193,4 @@ void C2DPlotWidget::Spectogram( QWidget *parent )
 
 	btnSpectrogram->setChecked( true );
 	btnContour->setChecked( false );
-}
-
-
-void C2DPlotWidget::showContour( bool on )
-{
-	mSpectrogram->setDisplayMode( QwtPlotSpectrogram::ContourMode, on );
-	replot();
-}
-
-void C2DPlotWidget::showSpectrogram( bool on )
-{
-	mSpectrogram->setDisplayMode( QwtPlotSpectrogram::ImageMode, on );
-	mSpectrogram->setDefaultContourPen( on ? QPen() : QPen( Qt::NoPen ) );
-	replot();
 }

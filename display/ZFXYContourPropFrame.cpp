@@ -85,7 +85,7 @@ bool CZFXYContourPropPanel::Create( wxWindow *parent, CZFXYPlotData* geoMap, wxW
 {
 
   m_geoMap = geoMap;
-  m_plotProperty = m_geoMap->m_plotProperty;
+  m_plotProperties = m_geoMap->m_plotProperties;
 
   wxPanel::Create(parent, id, position, size, style);
 
@@ -128,24 +128,24 @@ void CZFXYContourPropPanel::InstallToolTips()
 //----------------------------------------
 void CZFXYContourPropPanel::FillProperties()
 {
-  GetContourMin()->SetValue(m_plotProperty.m_minContourValue, 0.0);
-  GetContourMax()->SetValue(m_plotProperty.m_maxContourValue, 0.0);
-  GetContourNumber()->SetValue(m_plotProperty.m_numContour, 5, 1);
+  GetContourMin()->SetValue(m_plotProperties.m_minContourValue, 0.0);
+  GetContourMax()->SetValue(m_plotProperties.m_maxContourValue, 0.0);
+  GetContourNumber()->SetValue(m_plotProperties.m_numContour, 5, 1);
 
-  m_lineColor = m_plotProperty.m_contourLineColor;
+  m_lineColor = m_plotProperties.m_contourLineColor;
   GetContourLineColor()->SetBackgroundColour(color_cast(m_lineColor));
-  GetContourLineWidth()->SetValue(m_plotProperty.m_contourLineWidth, 1.0, 0.5);
+  GetContourLineWidth()->SetValue(m_plotProperties.m_contourLineWidth, 1.0, 0.5);
 
-  GetContourLabel()->SetValue(m_plotProperty.m_withContourLabel);
-  GetContourLabelNumber()->SetValue(m_plotProperty.m_numContourLabel, 1, 1);
+  GetContourLabel()->SetValue(m_plotProperties.m_withContourLabel);
+  GetContourLabelNumber()->SetValue(m_plotProperties.m_numContourLabel, 1, 1);
 
-  m_labelColor = m_plotProperty.m_contourLabelColor;
+  m_labelColor = m_plotProperties.m_contourLabelColor;
   GetContourLabelColor()->SetBackgroundColour(color_cast(m_labelColor));
   
   GetContourLabelColorSame()->SetValue( m_labelColor == m_lineColor );
  
-  GetContourLabelSize()->SetValue(m_plotProperty.m_contourLabelSize, 10, 1);
-  GetContourLabelFormat()->SetValue(m_plotProperty.m_contourLabelFormat, "%-#.3g");
+  GetContourLabelSize()->SetValue(m_plotProperties.m_contourLabelSize, 10, 1);
+  GetContourLabelFormat()->SetValue(m_plotProperties.m_contourLabelFormat, "%-#.3g");
 
 }
 
@@ -198,27 +198,27 @@ void CZFXYContourPropPanel::OnApply( wxCommandEvent &event )
   }
 
   
-  CZFXYContourPropChangedEvent  ev(GetId(), m_plotProperty);
+  CZFXYContourPropChangedEvent  ev(GetId(), m_plotProperties);
   wxPostEvent(GetParent()->GetParent(), ev);
     
 }
 //----------------------------------------
 void CZFXYContourPropPanel::GetProperties()
 {
-  GetContourMin()->GetValue(m_plotProperty.m_minContourValue, 0.0);
-  GetContourMax()->GetValue(m_plotProperty.m_maxContourValue, 0.0);
-  GetContourNumber()->GetValue(m_plotProperty.m_numContour, 5, 1);
+  GetContourMin()->GetValue(m_plotProperties.m_minContourValue, 0.0);
+  GetContourMax()->GetValue(m_plotProperties.m_maxContourValue, 0.0);
+  GetContourNumber()->GetValue(m_plotProperties.m_numContour, 5, 1);
 
-  m_plotProperty.m_contourLineColor = m_lineColor;
-  GetContourLineWidth()->GetValue(m_plotProperty.m_contourLineWidth, 1.0, 0.5);
+  m_plotProperties.m_contourLineColor = m_lineColor;
+  GetContourLineWidth()->GetValue(m_plotProperties.m_contourLineWidth, 1.0, 0.5);
 
-  m_plotProperty.m_withContourLabel = GetContourLabel()->GetValue();
-  GetContourLabelNumber()->GetValue(m_plotProperty.m_numContourLabel, 1, 1);
+  m_plotProperties.m_withContourLabel = GetContourLabel()->GetValue();
+  GetContourLabelNumber()->GetValue(m_plotProperties.m_numContourLabel, 1, 1);
 
-  m_plotProperty.m_contourLabelColor = m_labelColor;
+  m_plotProperties.m_contourLabelColor = m_labelColor;
  
-  GetContourLabelSize()->GetValue(m_plotProperty.m_contourLabelSize, 10, 1);
-  GetContourLabelFormat()->GetValue(m_plotProperty.m_contourLabelFormat, "%-#.3g");
+  GetContourLabelSize()->GetValue(m_plotProperties.m_contourLabelSize, 10, 1);
+  GetContourLabelFormat()->GetValue(m_plotProperties.m_contourLabelFormat, "%-#.3g");
 
 }
 
@@ -237,7 +237,7 @@ void CZFXYContourPropPanel::OnSameColor( wxCommandEvent &event )
 //----------------------------------------
 void CZFXYContourPropPanel::OnLabelColor( wxCommandEvent &event )
 {
-  wxColourData colorData = CMapColor::GetInstance().ChooseColor(color_cast(m_geoMap->m_plotProperty.m_contourLabelColor), this);
+  wxColourData colorData = CMapColor::GetInstance().ChooseColor(color_cast(m_geoMap->m_plotProperties.m_contourLabelColor), this);
   m_labelColor = color_cast(colorData);
 
   GetContourLabelColor()->SetBackgroundColour(color_cast(m_labelColor));
@@ -252,7 +252,7 @@ void CZFXYContourPropPanel::OnLabelColor( wxCommandEvent &event )
 //----------------------------------------
 void CZFXYContourPropPanel::OnLineColor( wxCommandEvent &event )
 {
-  wxColourData colorData = CMapColor::GetInstance().ChooseColor(color_cast(m_geoMap->m_plotProperty.m_contourLineColor), this);
+  wxColourData colorData = CMapColor::GetInstance().ChooseColor(color_cast(m_geoMap->m_plotProperties.m_contourLineColor), this);
   m_lineColor = color_cast(colorData);
 
   GetContourLineColor()->SetBackgroundColour(color_cast(m_lineColor));

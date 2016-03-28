@@ -1,15 +1,18 @@
 #ifndef GUI_DISPLAY_WIDGETS_BRAT_VIEWS_H
 #define GUI_DISPLAY_WIDGETS_BRAT_VIEWS_H
 
+#include "new-gui/Common/QtStringUtils.h"
+
 #include "DataModels/PlotData/ZFXYPlotData.h"
 #include "DataModels/PlotData/XYPlotData.h"
 #include "DataModels/PlotData/WorldPlotData.h"
-
+#include "DataModels/PlotData/WorldPlot.h"
 
 #include "MapWidget.h"
 #include "3DPlotWidget.h"
 #include "2DPlotWidget.h"
 
+#include "ApplicationLogger.h"
 
 
 
@@ -25,20 +28,52 @@ template< class PLOT >
 struct plot_traits;
 
 
+// traits for map view specialization
+//
+template<>
+struct plot_traits< CWPlot >
+{
+	using properties_type = CWorldPlotProperties;
+	using data_type = CWorldPlotData;
+};
 
 
-template< class PLOT >
-class CBratView : public plot_traits< PLOT >::widget_type
+// traits for 3D view specialization
+//
+template<>
+struct plot_traits< CZFXYPlot >
+{
+	using properties_type = CZFXYPlotProperties;
+	using data_type = CZFXYPlotData;
+};
+
+
+// traits for 2D view specialization
+//
+template<>
+struct plot_traits< CPlot >
+{
+	using properties_type = CXYPlotProperties;
+	using data_type = CXYPlotData;
+};
+
+
+
+
+
+
+
+template< class WIDGET >
+class CBratView : public WIDGET
 {
 	//types
 
-	using base_t = typename plot_traits< PLOT >::widget_type;
+	using base_t = WIDGET;
+
+    using base_t::setWindowTitle;
+
 
 protected:
-
-	//instance data
-
-	typename plot_traits< PLOT >::properties_type mPlotProperties;
 
 	//construction / destruction
 
@@ -52,12 +87,172 @@ public:
 
 	//instance member functions
 
-	virtual void CreatePlot( const typename plot_traits< PLOT >::properties_type *props, PLOT *plot ) = 0;
+	virtual void CreatePlot( const CWorldPlotProperties *props, CWPlot *plot );
+	virtual void CreatePlot( const CZFXYPlotProperties *props, CZFXYPlot* zfxyplot );
+	virtual void CreatePlot( const CXYPlotProperties *props, CPlot *plot, bool histogram );
 
 protected:
 
-	virtual void AddData( typename plot_traits< PLOT >::data_type *pdata ) = 0;
+	virtual void AddData( CWorldPlotData *pdata, size_t index ) = 0;
+	virtual void AddData( CZFXYPlotData* pdata, size_t index ) = 0;
+	virtual void AddData( CXYPlotData* pdata, size_t index, bool histogram ) = 0;
 };
+
+
+
+
+
+template< class WIDGET >
+void CBratView< WIDGET >::CreatePlot( const CWorldPlotProperties *props, CWPlot* wplot )
+{
+	//wplot->GetInfo();		 assumed done by caller
+
+    Q_UNUSED( props );  //mPlotPropertiesMap = *props;	// *proc->GetWorldPlotProperties( 0 );
+	this->setWindowTitle( t2q( wplot->MakeTitle() ) );
+
+	// for Geo-strophic velocity
+	//
+	CPlotField * northField =nullptr;
+	CPlotField * eastField =nullptr;
+
+	size_t index = 0;
+	for ( auto &itField : wplot->m_fields )
+	{
+		CPlotField* field = CPlotField::GetPlotField( itField );
+
+#if defined(Q_OS_WIN)
+		if ( field->m_worldProps != props )
+			LOG_WARN( "field->m_worldProps != props" );
+#endif
+
+		if ( field->m_internalFiles.empty() )
+			continue;
+
+		if ( field->m_worldProps->m_northComponent && northField == nullptr ) 
+		{
+			northField = field;
+			continue;
+		}
+		else
+		if ( field->m_worldProps->m_eastComponent && eastField == nullptr ) 
+		{
+			eastField = field;
+			continue;
+		}
+
+		// otherwise just add it as regular data
+		AddData( new CWorldPlotData( field ), index++ );					   		//v4 note: CWorldPlotData ctor is only invoked here
+	}
+
+	// we have a Vector Plot!
+	if ( northField != nullptr && eastField != nullptr ) 
+	{
+		AddData( new CWorldPlotVelocityData( northField, eastField ), 0 );	//v4 note: CWorldPlotVelocityData ctor is only invoked here
+	}
+	else if ( northField != eastField ) 
+	{
+		CException e( "CBratDisplayApp::CreateWPlot - incomplete std::vector plot components", BRATHL_INCONSISTENCY_ERROR );
+		LOG_TRACE( e.what() );
+		throw e;
+	}
+}
+
+
+
+template< class WIDGET >
+void CBratView< WIDGET >::CreatePlot( const CZFXYPlotProperties *props, CZFXYPlot *zfxyplot )
+{
+	//zfxyplot->GetInfo();	 assumed done by caller
+
+    Q_UNUSED( props );  //mPlotProperties3D = *props;	// *proc->GetZFXYPlotProperties( 0 );
+	this->setWindowTitle( t2q( zfxyplot->MakeTitle() ) );
+
+	//CZFXYPlotFrame* frame = new CZFXYPlotFrame( nullptr, -1, title, zfxyPlotProperty, pos, size );
+
+	size_t index = 0;
+	for ( auto &itField : zfxyplot->m_fields )
+	{
+		CPlotField* field = CPlotField::GetPlotField( itField );
+
+		assert__(field->m_zfxyProps == props );
+
+		if ( field->m_internalFiles.empty() )
+			continue;
+
+		//frame->AddData( geoMap );
+		AddData( new CZFXYPlotData( zfxyplot, field ), index++ );	// v4 note: CZFXYPlotData ctor only invoked here
+	}
+
+	//frame->UpdateView();
+	//frame->Raise();
+	//frame->Show( TRUE );
+
+	// ---- Fix for bug on Linux to resize correctly VTK widget.
+	//wxSize sizefFrame = frame->GetSize();
+	//sizefFrame += wxSize( 1, 1 );
+	//frame->SetSize( sizefFrame );
+	// ----
+
+	//pos = frame->GetPosition();
+}
+
+
+
+//
+//	CXYPlotData		is a	CBratObject							
+//					has a	vtkDataArrayPlotData
+//								has a vtkDoubleArrayBrathl *XDataArray;
+//								has a vtkDoubleArrayBrathl *YDataArray;						
+//								has a vtkDoubleArrayBrathl *ZDataArray;						
+//										
+//	CPlotArray	has a 	vtkObArray (array of frames)
+//
+//
+//	CXYPlotData		=> Create	=> SetData( 
+//	(has a vtkDataArrayPlotData)			double* xArray, const CUIntArray& xDims, 
+//											double* yArray, const CUIntArray& yDims,
+//											const CUIntArray& xCommonDimIndex,
+//											const CUIntArray& yCommonDimIndex ) => ...
+//
+//	... => CPlotArray::SetFrameData for each frame, 
+//		and at the end:
+//	... => SetRawData( CPlotArray* x, CPlotArray* y ) => Update() => m_vtkDataArrayPlotData::SetDataArrays( vtkDoubleArrayBrathl, vtkDoubleArrayBrathl )
+//
+template< class WIDGET >
+void CBratView< WIDGET >::CreatePlot( const CXYPlotProperties *props, CPlot *plot, bool histogram )
+{
+	//clear();		// TODO: currently the editor deletes the widget; decide which action to take on new plot
+
+	// v4 taken from CBratDisplayApp::CreateXYPlot(CPlot* plot, wxSize& size, wxPoint& pos) and callees
+
+    //plot->GetInfo(); 	 assumed done by caller
+
+    Q_UNUSED( props );  //mPlotProperties2D = *props;		// *proc->GetXYPlotProperty( 0 );		v4: nothing similar to this, similar to zfxy and lat - lon, was done here
+
+	setWindowTitle( t2q( plot->MakeTitle() ) );
+
+	//CXYPlotFrame* frame = new CXYPlotFrame( nullptr, -1, title, pos, size );
+
+	int nrFields = (int)plot->m_fields.size();
+
+	for ( int iField = 0; iField < nrFields; iField++ )
+	{
+		//auto field = plot->GetPlotField(iField);
+		//assert__(field->m_xyProps == props );
+
+		//frame->AddData( plotData );
+		AddData( new CXYPlotData( plot, iField ), iField, histogram );		//v4 note: CXYPlotData ctor only invoked here
+	}
+
+	//frame->Raise();
+
+	//frame->ShowPropertyPanel();
+	//frame->Show( TRUE );
+
+	//pos = frame->GetPosition();
+
+}
+
 
 
 
@@ -74,33 +269,30 @@ protected:
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// traits for map view specialization
-//
-template<>
-struct plot_traits< CWPlot >
-{
-	using widget_type = CMapWidget;
-	using properties_type = CWorldPlotProperties;
-	using data_type = CWorldPlotData;
-};
-
-
-
-
-class CBratMapView : public CBratView< CWPlot >
+class CBratMapView : public CBratView< CMapWidget >
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
 #endif
 
-    Q_OBJECT
+    Q_OBJECT;
 
 #if defined (__APPLE__)
 #pragma clang diagnostic pop
 #endif
 
-    using base_t = CBratView< CWPlot >;
+	//types
+
+    using base_t = CBratView< CMapWidget >;
+
+
+	// instance data
+
+	std::vector< CWorldPlotData* > mMapDataCollection;
+
+
+	// construction /destruction
 
 public:
     CBratMapView( QWidget *parent = nullptr ) 
@@ -110,9 +302,13 @@ public:
 	virtual ~CBratMapView()
 	{}
 
-	//operations
 
-	void Plot( const CWorldPlotInfo &maps );
+	//access
+
+	std::vector< CWorldPlotData* >* MapDataCollection() { return &mMapDataCollection; }
+
+
+	//operations
 
     void PlotTrack( const double *x, const double *y, const double *z, size_t size, QColor color = Qt::red );
 
@@ -125,11 +321,26 @@ public:
 
 	// CBratView interface
 
-	virtual void CreatePlot( const CWorldPlotProperties *props, CWPlot *wplot ) override;
+	//virtual void CreatePlot( const CWorldPlotProperties *props, CWPlot *wplot ) override;
 
 protected:
+	void Plot( const CWorldPlotInfo &maps, CWorldPlotProperties *props );
 
-	virtual void AddData( CWorldPlotData *pdata ) override;
+	virtual void AddData( CWorldPlotData *pdata, size_t index ) override;
+
+    virtual void AddData( CZFXYPlotData *pdata, size_t index ) override
+	{
+        UNUSED( pdata );	UNUSED( index );
+
+		throw CException( "Wrong plot type requested." );
+	}
+
+	virtual void AddData( CXYPlotData* pdata, size_t index, bool histogram ) override
+	{
+        UNUSED( pdata );	UNUSED( index );	UNUSED( histogram );
+
+        throw CException( "Wrong plot type requested." );
+	}
 };
 
 
@@ -145,34 +356,20 @@ protected:
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// traits for 3D view specialization
-//
-template<>
-struct plot_traits< CZFXYPlot >
-{
-	using widget_type = C3DPlotWidget;
-	using properties_type = CZFXYPlotProperties;
-	using data_type = CZFXYPlotData;
-};
-
-
-
-
-
-class CBrat3DPlotView : public CBratView< CZFXYPlot >
+class CBrat3DPlotView : public CBratView< C3DPlotWidget >
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
 #endif
 
-    Q_OBJECT
+    Q_OBJECT;
 
 #if defined (__APPLE__)
 #pragma clang diagnostic pop
 #endif
 
-    using base_t = CBratView< CZFXYPlot >;
+    using base_t = CBratView< C3DPlotWidget >;
 
 
 	bool mMultiFrame = false;
@@ -192,11 +389,25 @@ public:
 
 	// CBratView interface
 
-	virtual void CreatePlot( const CZFXYPlotProperties *props, CZFXYPlot* zfxyplot ) override;
+	//virtual void CreatePlot( const CZFXYPlotProperties *props, CZFXYPlot* zfxyplot ) override;
 
 protected:
 
-	virtual void AddData( CZFXYPlotData* pdata ) override;
+	virtual void AddData( CWorldPlotData *pdata, size_t index ) override
+	{
+        UNUSED( pdata );	UNUSED( index );
+
+        throw CException( "Wrong plot type requested." );
+	}
+
+    virtual void AddData( CZFXYPlotData *pdata, size_t index ) override;
+
+    virtual void AddData( CXYPlotData *pdata, size_t index, bool histogram ) override
+	{
+        UNUSED( pdata );	UNUSED( index );		UNUSED( histogram );
+
+        throw CException( "Wrong plot type requested." );
+	}
 };
 
 
@@ -212,36 +423,24 @@ protected:
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-// traits for 2D view specialization
-//
-template<>
-struct plot_traits< CPlot >
-{
-	using widget_type = C2DPlotWidget;
-	using properties_type = CXYPlotProperties;
-	using data_type = CXYPlotData;
-};
-
-
-
-
-
-class CBrat2DPlotView : public CBratView< CPlot >
+class CBrat2DPlotView : public CBratView< C2DPlotWidget >
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
 #endif
 
-    Q_OBJECT
+    Q_OBJECT;
 
 #if defined (__APPLE__)
 #pragma clang diagnostic pop
 #endif
 
-    using base_t = CBratView< CPlot >;
+    using base_t = CBratView< C2DPlotWidget >;
 
 	CXYPlotDataCollection *mPlotDataCollection = nullptr;
+	CObArray *mZfxyPlotData = nullptr;						//see L:\project\archive\master-A\source\display\ZFXYPlotPanel.cpp for uses of this, AS LIST
+
 	bool mMultiFrame = false;
 	bool mPanelMultiFrame = false;	//2 variables in v3: one in the window, the other in the panel
 
@@ -251,16 +450,30 @@ public:
 	virtual ~CBrat2DPlotView()
 	{
 		delete mPlotDataCollection;
+		delete mZfxyPlotData;
 	}
+
+
+	//access
+
+	CXYPlotDataCollection* PlotDataCollection() { return mPlotDataCollection; }
+	CObArray* ZfxyPlotData() { return mZfxyPlotData; }
 
 
 	// CBratView interface
 
-	virtual void CreatePlot( const CXYPlotProperties *props, CPlot *plot ) override;
-
 protected:
 
-	virtual void AddData( CXYPlotData* pdata ) override;
+	virtual void AddData( CWorldPlotData *pdata, size_t index ) override
+	{
+        UNUSED( pdata );	UNUSED( index );
+
+        throw CException( "Wrong plot type requested." );
+	}
+
+	virtual void AddData( CZFXYPlotData* pdata, size_t index ) override;
+
+	virtual void AddData( CXYPlotData* pdata, size_t index, bool histogram ) override;
 };
 
 

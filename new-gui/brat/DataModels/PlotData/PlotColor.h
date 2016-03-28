@@ -19,6 +19,8 @@
 #ifndef DATA_MODELS_PLOT_DATA_VTKCOLOR_H
 #define DATA_MODELS_PLOT_DATA_VTKCOLOR_H
 
+#include <QColor>
+
 #include "libbrathl/brathl.h"
 #include "libbrathl/BratObject.h"
 #include "libbrathl/Tools.h"
@@ -34,36 +36,49 @@ public:
 	CPlotColor();
 
 	CPlotColor( double r, double g, double b, double a = 1 );
-	CPlotColor( int32_t r, int32_t g, int32_t b, int32_t a = 255 );
-	CPlotColor( const CPlotColor& vtkColor );
-	//femmTODO  CPlotColor(const wxColour& color);
+	CPlotColor( int r, int g, int b, int a = 255 )
+	{
+		Set( r, g, b, a );
+	}
+	CPlotColor( const CPlotColor &color );
+	CPlotColor( const QColor &c )
+	{
+		*this = c;
+	}
 
 	~CPlotColor();
 
-	const CPlotColor& operator =( const CPlotColor& vtkColor );
-	//femmTODO	const CPlotColor& operator =(const wxColour& color);
-	//femmTODO	  const CPlotColor& operator =(wxColourData& color);
+	const CPlotColor& operator = ( const CPlotColor& color );
+
+	CPlotColor& operator = ( const QColor &c )
+	{
+		Set( c.red(), c.green(), c.blue(), c.alpha() );
+		return *this;
+	}
+	
 
 	bool operator ==( const CPlotColor& color );
 
 	void Get( double& r, double& g, double& b, double& a ) const;
 	void Get( uint8_t& r, uint8_t& g, uint8_t& b, uint8_t& a ) const;
 	void Get( uint32_t& r, uint32_t& g, uint32_t& b, uint32_t& a ) const;
-	void Get( int32_t& r, int32_t& g, int32_t& b, int32_t& a ) const;
-	//femmTODO  void Get(wxColour& color) const;
+	void Get( int& r, int& g, int& b, int& a ) const;
 
 	void Set( double r, double g, double b, double a = 1 );
 	void Set( uint8_t r, uint8_t g, uint8_t b, uint8_t a = 255 );
 	void Set( uint32_t r, uint32_t g, uint32_t b, uint32_t a = 255 );
-	void Set( int32_t r, int32_t g, int32_t b, int32_t a = 255 );
-	void Set( const CPlotColor& vtkColor );
-	//femmTODO  void Set(const wxColour& color);
-	//femmTODO  void Set(wxColourData& colorData, int32_t indexCustomColor = -1);
+	void Set( int r, int g, int b, int a = 255 );
+	void Set( const CPlotColor& color );
 
 	bool Ok() const { return m_isInit; }
 	void Reset();
 
-	//femmTODO  wxColour GetWXColor() const;
+	QColor GetQColor() const 
+	{ 
+		int r, g, b, a;
+		Get( r, g, b, a );
+		return QColor( r, g, b, a );
+	}
 
 	double Red() const { return m_r; }
 	double Green() const { return m_g; }
@@ -78,6 +93,29 @@ private:
 
 	bool m_isInit;
 };
+
+
+
+// QColor <=> CPlotColor ///////////////////////////
+
+
+
+template< typename COLOR_TO, typename COLOR_FROM >
+COLOR_TO color_cast( COLOR_FROM s );
+
+
+template<>
+inline QColor color_cast< QColor >( CPlotColor c )
+{
+	return c.GetQColor();
+}
+
+template<>
+inline CPlotColor color_cast< CPlotColor >( QColor qc )
+{
+	return CPlotColor( qc );
+}
+
 
 
 

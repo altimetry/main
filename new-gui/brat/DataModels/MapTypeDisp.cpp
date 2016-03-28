@@ -86,9 +86,9 @@ std::string CMapTypeDisp::IdToName(uint32_t id)
 }
 
 //----------------------------------------
-uint32_t CMapTypeDisp::NameToId( const std::string& name )
+CMapTypeDisp::ETypeDisp CMapTypeDisp::NameToId( const std::string& name )
 {
-	return Exists( name );
+	return (ETypeDisp)Exists( name );
 }
 //----------------------------------------
 //void CMapTypeDisp::NamesToArrayString(wxArrayString& array)

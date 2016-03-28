@@ -113,7 +113,6 @@ protected:
 
 	QComboBox *mOperationsCombo = nullptr;
 	QComboBox *mAdvancedDatasetsCombo = nullptr;
-	CTextWidget *mExpressionTextWidget = nullptr;
 	QToolButton *mNewOperationButton = nullptr;
 	QToolButton *mDeleteOperationButton = nullptr;
     QToolButton *mRenameOperationButton = nullptr;
@@ -125,6 +124,8 @@ protected:
 	CProcessesTable *mProcessesTable = nullptr;
 
 	QgsCollapsibleGroupBox *mOperationExpressionsGroup = nullptr;
+	QgsCollapsibleGroupBox *mSamplingGroup = nullptr;
+
 
 	QTimer mTimer;
 
@@ -163,7 +164,6 @@ protected:
 
 	//...domain variables
 
-	CModel *mModel = nullptr;
     CWorkspace *mWRoot = nullptr;
     CWorkspaceDataset *mWDataset = nullptr;
 	CWorkspaceOperation *mWOperation = nullptr;
@@ -188,7 +188,7 @@ protected:
 	QWidget* CreateAdancedOperationsPage();
 
 public:
-	COperationControls( const CBratFilters &filters, CProcessesTable *processes_table, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
+	COperationControls( CProcessesTable *processes_table, CModel &model, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
 	virtual ~COperationControls()
 	{}	
@@ -210,9 +210,7 @@ protected:
 
 	void SelectDataComputationMode();
 
-    bool IsMap() const;
-
-	bool CheckSyntax();
+    bool MapRequested() const;
 
 	std::string GetOpunit();		//TODO how to deal/assign with field units
 
@@ -221,13 +219,15 @@ protected:
 
 	bool TryDatasetChange( int index );
 
+	void LaunchDisplay( const std::string &display_name );
+
 signals:
 	void SyncProcessExecution( bool executing );
     void OperationModified( const COperation *operation );
 
 
 public slots:
-	void HandleSelectedWorkspaceChanged( CModel *model );
+	void HandleWorkspaceChanged();
 
 protected slots:
 
@@ -245,7 +245,7 @@ protected slots:
 
 	void HandleSelectedOperationChanged( int operation_index );
 	void HandleSelectedDatasetChanged_Advanced( int dataset_index );
-    void HandleDatasetsChanged_Advanced(CDataset*);
+    void HandleDatasetsChanged_Advanced( CDataset *dataset );
 
 #if defined(USE_2_EXPRESSION_TREES)
 
@@ -284,8 +284,6 @@ protected slots:
 	void HandleShowAliases();
 	void HandleCheckSyntax();
 	void HandleShowInfo();
-
-	void LaunchDisplay();
 };
 
 

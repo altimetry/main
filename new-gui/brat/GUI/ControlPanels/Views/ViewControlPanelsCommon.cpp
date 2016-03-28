@@ -8,24 +8,11 @@
 #include "ViewControlPanelsCommon.h"
 
 
-/////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////
-//								General Tab
-/////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////
-
 
 ////////////////////////////////////////
-//			General Tab					
+//		Common General Tab					
 ////////////////////////////////////////
 
-
-void CViewControlsPanelGeneral::Wire()
-{
-	connect( mExecuteDisplay, SIGNAL( clicked() ), this, SLOT( RunButtonClicked() ), Qt::QueuedConnection );
-	connect( mDisplaysCombo, SIGNAL( currentIndexChanged(int) ), this, SIGNAL( CurrentDisplayIndexChanged(int) ), Qt::QueuedConnection );
-	connect( mNewDisplayButton, SIGNAL( clicked() ), this, SIGNAL( NewButtonClicked() ), Qt::QueuedConnection );
-}
 
 void CViewControlsPanelGeneral::CreateWidgets()
 {
@@ -34,29 +21,37 @@ void CViewControlsPanelGeneral::CreateWidgets()
 	mNewDisplayButton = CreateToolButton( "", ":/images/OSGeo/new.png", "Create a new view" );
     mRenameDisplayButton = CreateToolButton( "", ":/images/OSGeo/edit.png", "Rename the selected view" );
 	mDeleteDisplayButton = CreateToolButton( "", ":/images/OSGeo/workspace-delete.png", "Delete the selected view" );
-	mExecuteDisplay = CreateToolButton( "", ":/images/OSGeo/execute.png", "Plot the view" );
+	mExecuteDisplay = CreateToolButton( "Refresh", ":/images/OSGeo/execute.png", "Plot the view" );
+	mExecuteDisplay->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
+
 
 	QWidget *top_buttons_row = CreateButtonRow( false, Qt::Horizontal, 
 	{ 
 		mNewDisplayButton, mRenameDisplayButton, mDeleteDisplayButton, nullptr, mExecuteDisplay
 	} );
 
+	// II. Left Layout
+
     mDisplaysCombo = new QComboBox;
     mDisplaysCombo->setToolTip( "Open a view" );
+	mDisplaysCombo->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 
-    //    Adding previous widgets to this...
+    mPlotTitle = new QLineEdit(this);
+
 	auto *plots_group = CreateGroupBox( ELayoutType::Horizontal, 
 	{ 
-		LayoutWidgets( Qt::Vertical, { mDisplaysCombo }, nullptr, s, m, m, m, m )
+		LayoutWidgets( Qt::Vertical, { mDisplaysCombo }, nullptr, s, m, m, m, m ),
 	}, 
-	"Views", nullptr, s, m, m, m, m );
+	"Operation Views", nullptr, s, m, m, m, m );
 
-    auto *plots_l = LayoutWidgets( Qt::Vertical, { top_buttons_row, plots_group, nullptr }, nullptr, 4, 4, 4, 4, 4 );
+    auto *plots_l = LayoutWidgets( Qt::Vertical, 
+	{ 
+		top_buttons_row, plots_group, CreateGroupBox( ELayoutType::Horizontal, { new QLabel("Title"), mPlotTitle }, "", nullptr ), nullptr
+	}, 
+	nullptr, 4, 4, 4, 4, 4 );
 
-	mViewsLayout = AddTopLayout( ELayoutType::Horizontal, { plots_l, nullptr }, 4, 4, 4, 4, 4 );
 
-
-	Wire();
+	mViewsLayout = LayoutWidgets( Qt::Horizontal, { plots_l }, nullptr, s, m, m, m, m );
 }
 
 
@@ -68,57 +63,63 @@ CViewControlsPanelGeneral::CViewControlsPanelGeneral( QWidget *parent, Qt::Windo
 
 
 
-void CViewControlsPanelGeneral::RunButtonClicked()
-{
-	int index = mDisplaysCombo->currentIndex();
-	if ( index >= 0 )
-		emit RunButtonClicked( index );
-}
-
-
-
 
 ////////////////////////////////////////
 //			Plots General Tab
 ////////////////////////////////////////
 
 
-void CViewControlsPanelGeneralPlots::Wire()
-{
-}
 
 void CViewControlsPanelGeneralPlots::CreateWidgets()
 {
-    mSelectPlotCombo = new QComboBox;
-    mvarX       = new QComboBox;
-    mvarY       = new QComboBox;
-    mvarY2      = new QComboBox;
-    mvarZ       = new QComboBox;
-
-    mSelectPlotCombo->setToolTip( "Select a plot type" );
-    mvarX      ->setToolTip( "X" );
-    mvarY      ->setToolTip( "Y" );
-    mvarY2     ->setToolTip( "Y2" );
-    mvarZ      ->setToolTip( "Z" );
-
-    //    II.3 Link to Plot
-    auto mPlotTitle   = new QLineEdit(this);
-    mPlotTitle->setText("Plot title");
-
-    mLinkToPlot  = new QComboBox;
-    mLinkToPlot->setToolTip("Link to Plot");
-
-    //    Adding previous widgets to this...
-    auto *group = CreateGroupBox( ELayoutType::Vertical, {
-                                 LayoutWidgets( Qt::Horizontal, { mSelectPlotCombo, nullptr, new QLabel( "Data Expression" ), mvarX, mvarY, mvarY2, mvarZ } ),
-                                 LayoutWidgets( Qt::Horizontal, { mPlotTitle, nullptr, mLinkToPlot } )
-                                            }, "Data Expression", nullptr, s, m, m, m, m );
-
 	layout()->removeItem(mViewsLayout);
 
-	AddTopLayout( ELayoutType::Horizontal, { mViewsLayout, group }, s, m, m, m, m );
+    mPlotTypesList = new QListWidget;
+    mPlotTypesList->setToolTip( "Select a plot type" );
+	mPlotTypesList->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
 
-	Wire();
+    auto *types_group = CreateGroupBox( ELayoutType::Vertical, { mPlotTypesList }, "2D Plot Type", nullptr, s, m, m, m, m );
+	types_group->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
+
+    auto *views_group = CreateGroupBox( ELayoutType::Horizontal, { mViewsLayout, types_group }, "Operation Display", nullptr, s, m, m, m, m );
+
+
+    mVarX = new QComboBox;
+    mVarY = new QComboBox;
+    mVarY2 = new QComboBox;
+    mVarZ = new QComboBox;
+
+    mVarX->setToolTip( "X" );
+    mVarY->setToolTip( "Y" );
+    mVarY2->setToolTip( "Y2" );
+    mVarZ->setToolTip( "Z" );
+	
+    auto *data_group = CreateGroupBox( ELayoutType::Vertical, 
+	{ 
+		nullptr,
+		LayoutWidgets( Qt::Horizontal, {
+			CreateGroupBox( ELayoutType::Vertical, { mVarX }, "X", nullptr ),
+			CreateGroupBox( ELayoutType::Vertical, { mVarY }, "Y", nullptr ),
+			CreateGroupBox( ELayoutType::Vertical, { mVarY2 }, "Y2", nullptr ),
+			CreateGroupBox( ELayoutType::Vertical, { mVarZ }, "Z", nullptr )
+			}, nullptr ),
+		nullptr
+	}, 
+	"Operation Data", nullptr, s, m, m, m, m );
+	data_group->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Maximum );
+
+
+    mLinkToPlot = new QComboBox;
+    auto *link_group = CreateGroupBox( ELayoutType::Vertical, { mLinkToPlot }, "Link to Plot", nullptr, s, m, m, m, m );
+	link_group->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Maximum );
+
+
+	AddTopLayout( ELayoutType::Horizontal, 
+	{ 
+		views_group, LayoutWidgets( Qt::Vertical, { data_group, link_group, nullptr }, nullptr )
+	}, 
+	s, m, m, m, m );
+
 }
 
 
@@ -135,22 +136,16 @@ CViewControlsPanelGeneralPlots::CViewControlsPanelGeneralPlots( QWidget *parent,
 ////////////////////////////////////////
 
 
-void CViewControlsPanelGeneralMaps::Wire()
-{
-}
-
 void CViewControlsPanelGeneralMaps::CreateWidgets()
 {
-    mData = new QComboBox;
-    mData->setToolTip( "Data");
+    mVarZ = new QComboBox;
+    mVarZ->setToolTip( "Data");
 
-    auto *group = CreateGroupBox( ELayoutType::Vertical, { mData }, "Data Expression", nullptr, s, m, m, m, m );
+    auto *group = CreateGroupBox( ELayoutType::Vertical, { mVarZ }, "Data Expression", nullptr, s, m, m, m, m );
 
 	layout()->removeItem( mViewsLayout );
 
-	AddTopLayout( ELayoutType::Horizontal, { mViewsLayout, group }, s, m, m, m, m );
-
-	Wire();
+	AddTopLayout( ELayoutType::Horizontal, { mViewsLayout, nullptr, group }, s, m, m, m, m );
 }
 
 

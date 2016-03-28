@@ -26,6 +26,8 @@
 #include "libbrathl/InternalFiles.h"
 
 #include "Operation.h"
+#include "DataModels/MapTypeDisp.h"
+
 
 namespace brathl 
 {
@@ -54,13 +56,13 @@ public:
 	static const char* FMT_FLOAT_XY;
 
 private:
-	int m_type = -1;
+	CMapTypeDisp::ETypeDisp m_type = CMapTypeDisp::Invalid();
 
 	CFieldBasic m_field;
 	CFieldBasic m_x;
 	CFieldBasic m_y;
 	CFieldBasic m_z;
-	COperation* m_operation = nullptr;
+	const COperation* m_operation = nullptr;
 	int m_group = 1;
 	bool m_withContour = false;
 	bool m_withSolidColor = true;
@@ -100,7 +102,7 @@ public:
 		Init();
 	}
 	
-	CDisplayData( COperation* operation )
+	CDisplayData( const COperation* operation )
 	{
 		Init();
 		m_operation = operation;
@@ -112,7 +114,7 @@ public:
 	{}
 
 
-	COperation* GetOperation() { return m_operation; }
+	const COperation* GetOperation() { return m_operation; }
 	const COperation* GetOperation() const { return const_cast<CDisplayData*>( this )->GetOperation(); }
 	void SetOperation( COperation* value ) { m_operation = value; }
 
@@ -179,8 +181,9 @@ public:
 	std::string GetDataKey();
 	std::string GetDataKey( int32_t type );
 
-	int32_t GetType() const { return m_type; }
-	void SetType( int32_t value ) { m_type = value; }
+	CMapTypeDisp::ETypeDisp GetType() const { return m_type; }
+	void SetType( CMapTypeDisp::ETypeDisp value ) { m_type = value; }
+	void SetType( int32_t value ) { SetType( (CMapTypeDisp::ETypeDisp)value ); }
 
 
 	bool LoadConfig( CWorkspaceSettings* config, const std::string& path, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso );
@@ -270,9 +273,8 @@ public:
 	const int32_t m_verbose = 2;
 
 protected:
-	int32_t m_type;
+	CMapTypeDisp::ETypeDisp m_type;
 	std::string m_cmdFile;
-	//wxFile m_file;
 
 	CMapDisplayData m_data;
 	std::string m_title;
@@ -320,6 +322,12 @@ public:
 		InitOutput( wks );
 	}
 
+
+	//v4 new; see comments in function definition
+
+	bool AssignOperation( const COperation *operation );
+
+
 protected:
 
 	void Init();
@@ -341,8 +349,9 @@ public:
 	std::vector< const COperation* > GetOperations() const;
 
 
-	int32_t GetType() const { return m_type; }
-	void SetType( int32_t value ) { m_type = value; }
+	CMapTypeDisp::ETypeDisp GetType() const { return m_type; }
+	void SetType( CMapTypeDisp::ETypeDisp value ) { m_type = value; }
+	void SetType( int32_t value ) { SetType( (CMapTypeDisp::ETypeDisp)value ); }
 
 	std::string GetTypeAsString() const { return n2s< std::string >( m_type ); }
 
@@ -406,7 +415,7 @@ public:
 	//std::string GetFullCmd();
 
 
-	bool BuildCmdFile( std::string &error_msg );
+	bool BuildCmdFile( std::string &error_msg, bool map_as_3dplot = false );
 
 public:
 	void InitOutput( CWorkspaceDisplay *wks );

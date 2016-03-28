@@ -180,6 +180,7 @@ class CRootUpdateCallback : public CNodeUpdateCallback
     osg::Node *m_node_to_add = nullptr;
     osg::Node *m_node_to_delete = nullptr;
 
+	bool mImageLayersChanged = false;
 
 
 public:
@@ -193,6 +194,7 @@ public:
 public:
     bool AssignNodeToDelete( osg::Node *node_to_delete );
     bool AssignNodeToAdd( osg::Node *node_to_add );
+    bool AssignImageLayersChanged();
 
 protected:
     virtual bool pre_update( osg::Node* node, osg::NodeVisitor* nv ) override;

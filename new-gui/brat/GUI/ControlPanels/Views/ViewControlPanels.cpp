@@ -17,6 +17,8 @@
 ////////////////////////////////////////////////////////////////
 //	 Color Button (Builds a button for selecting a color)
 ////////////////////////////////////////////////////////////////
+
+
 //Definition of Static Variables
 const QString CColorButton::smInitColor = "white";
 const QString CColorButton::smStyleSheet_colorButton = "background-color: ";
@@ -31,30 +33,23 @@ const QString CColorButton::smStyleSheet_colorButton = "background-color: ";
 //explicit
 CColorButton::CColorButton( QWidget *parent )
     : base_t( parent)
+    , mCurrentColor( smInitColor )
 {
-    mCurrentColor = QColor(smInitColor);
-    setFixedSize(24, 24);
+    //setFixedSize(24, 24);
 
     QIcon colorIcon = QIcon(":/images/OSGeo/paint.png");
-    setIcon(colorIcon);
+    setIcon( colorIcon );
+	setIconSize( QSize( tool_icon_size, tool_icon_size ) );
 
     mColorDisplay = new QWidget(this);
-    mColorDisplay->setStyleSheet(smStyleSheet_colorButton + mCurrentColor.name());
-    mColorDisplay->setFixedSize(18, 4);
-    mColorDisplay->move(QPoint(3,17));
+    mColorDisplay->setStyleSheet( smStyleSheet_colorButton + mCurrentColor.name() );
+    mColorDisplay->setFixedSize( 18, 4 );
+    mColorDisplay->move( QPoint( 3, 17 ) );
+
+	connect( this, SIGNAL( clicked() ), this, SLOT( InputColor() ) );
 }
 
-void CColorButton::SetColor()
-{
-    QColor color = QColorDialog::getColor(mCurrentColor, nullptr);
 
-    if (color.isValid())
-    {
-        mCurrentColor = color;
-        mColorDisplay->setStyleSheet(smStyleSheet_colorButton + mCurrentColor.name());
-        //mColorDisplay->setPalette(QPalette(mCurrentColor));
-    }
-}
 
 
 
@@ -149,33 +144,35 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
 {
     // I. Plot List
     //
-    mPlotList = new QListWidget();
+    mFieldsList = new QListWidget;
+	auto *fields_group = CreateGroupBox( ELayoutType::Horizontal, { mFieldsList }, "Fields", nullptr );
+	fields_group->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
 
-    // II. Line Options
+
+    // II. Spectrogram Options
+
+	mShowSolidColor = new QCheckBox( "Solid Color");
+	mShowContour = new QCheckBox( "Contour");
+	mSpectrogramOptions = CreateGroupBox( ELayoutType::Vertical, { mShowSolidColor, mShowContour }, "Style", nullptr );
+
+
+    //
+    // III. Line Options
     //
     mLineColorButton = new CColorButton();
-
-    mLineOpacityValue   = new QLineEdit(this);
-    mLineOpacityValue->setText("0.1");
-
+    mLineOpacityValue = new QLineEdit(this);
+	mLineOpacityValue->setToolTip( "Press <enter> to assign value" );
     mStipplePattern = new QComboBox;
     mStipplePattern->setToolTip("Stipple pattern");
-
     mLineWidthValue = new QLineEdit(this);
-    mLineWidthValue->setText("0.5");
+	mLineWidthValue->setToolTip( "Press <enter> to assign value" );
 
-    mLineOptions = CreateGroupBox( ELayoutType::Horizontal, { new QLabel( "Plot Color" ),
-                                                                       mLineColorButton,
-                                                                       nullptr,
-                                                                       new QLabel( "Opacity" ),
-                                                                       mLineOpacityValue,
-                                                                       nullptr,
-                                                                       new QLabel( "Stipple pattern"),
-                                                                       mStipplePattern,
-                                                                       nullptr,
-                                                                       new QLabel( "Width" ),
-                                                                       mLineWidthValue
-                                                                      }, "Line", nullptr, 4, 4, 4, 4, 4 );
+    mLineOptions = CreateGroupBox( ELayoutType::Horizontal, 
+	{
+		new QLabel( "Plot Color" ), mLineColorButton, nullptr, new QLabel( "Opacity" ), mLineOpacityValue, nullptr,
+		new QLabel( "Stipple pattern"), mStipplePattern, nullptr, new QLabel( "Width" ), mLineWidthValue
+    }, 
+	"Line", nullptr, s, m, m, m, m );
     mLineOptions->setCheckable( true );
     mLineOptions->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
@@ -183,454 +180,35 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
     // III. Point Options
     //
     mPointColorButton = new CColorButton();
-
     mFillPointCheck   = new QCheckBox(this);
-
     mPointGlyph = new QComboBox;
     mPointGlyph->setToolTip("Point Glyph");
-
     mPointSizeValue = new QLineEdit(this);
-    mPointSizeValue->setText("0.5");
+	mPointSizeValue->setToolTip( "Press <enter> to assign value" );
 
-    mPointOptions = CreateGroupBox( ELayoutType::Horizontal, { new QLabel( "Plot Color" ),
-                                                                         mPointColorButton,
-                                                                         nullptr,
-                                                                         mFillPointCheck,
-                                                                         new QLabel( "Fill point" ),
-                                                                         nullptr,
-                                                                         new QLabel( "Point Glyph"),
-                                                                         mPointGlyph,
-                                                                         nullptr,
-                                                                         new QLabel( "Size" ),
-                                                                         mPointSizeValue
-                                                                      }, "Point", nullptr, 4, 4, 4, 4, 4 );
-
+    mPointOptions = CreateGroupBox( ELayoutType::Horizontal, 
+	{ 
+		new QLabel( "Plot Color" ), mPointColorButton, nullptr, mFillPointCheck, new QLabel( "Fill point" ), nullptr,
+		new QLabel( "Point Glyph"), mPointGlyph, nullptr, new QLabel( "Size" ), mPointSizeValue
+	}, 
+	"Point", nullptr, s, m, m, m, m );
     mPointOptions->setCheckable( true );
     mPointOptions->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
     // IV. Grouping all widgets
-     AddTopGroupBox( ELayoutType::Horizontal, { mPlotList,
-                                                LayoutWidgets( Qt::Vertical, {mLineOptions, mPointOptions } )
-                                                }, "", 4, 4, 4, 4, 4);
-
-     /*
-                old_pen.setStyle(Qt::NoPen);
-                break;
-            case 1:
-                old_pen.setStyle(Qt::SolidLine);
-                break;
-            case 2:
-                old_pen.setStyle(Qt::DashLine);
-            case 3:
-                old_pen.setStyle(Qt::DotLine);
-                break;
-            case 4:
-                old_pen.setStyle(Qt::DashDotLine);
-                break;
-            case 5:
-                old_pen.setStyle(Qt::DashDotDotLine);
-*/
-
-     /*
-
-        NoSymbol = -1,
-
-        Ellipse,
-        Rect,
-        Diamond,
-        Triangle,
-        DTriangle,
-        UTriangle,
-        LTriangle,
-        RTriangle,
-        Cross,
-        XCross,
-        HLine,
-        VLine,
-        Star1,
-        Star2,
-        Hexagon,
-*/
-     this->mStipplePattern->addItem("No Line");
-     this->mStipplePattern->addItem("Solid Line");
-     this->mStipplePattern->addItem("Dash Line");
-     this->mStipplePattern->addItem("Dot Line");
-     this->mStipplePattern->addItem("Dash-Dot Line");
-     this->mStipplePattern->addItem("Dash-Dot-Dot Line");
-
-     this->mPointGlyph->addItem("No Symbol");
-     this->mPointGlyph->addItem("Ellipse");
-     this->mPointGlyph->addItem("Rect");
-     this->mPointGlyph->addItem("Diamond");
-     this->mPointGlyph->addItem("Triangle");
-     this->mPointGlyph->addItem("DTriangle");
-     this->mPointGlyph->addItem("UTriangle");
-     this->mPointGlyph->addItem("LTriangle");
-     this->mPointGlyph->addItem("RTriangle");
-     this->mPointGlyph->addItem("Cross");
-     this->mPointGlyph->addItem("XCross");
-     this->mPointGlyph->addItem("HLine");
-     this->mPointGlyph->addItem("VLine");
-     this->mPointGlyph->addItem("Star1");
-     this->mPointGlyph->addItem("Star2");
-     this->mPointGlyph->addItem("Hexagon");
-
-
-
-     Wire();
-}
-
-void CPlotControlsPanelCurveOptions::AddNewPlot2DName(QString plot_name)
-{
-    assert(false);
-    assert(mPlotList);
-    mPlotList->addItem(plot_name);
-    //to garantee that at least a single item is selected
-    //execute signal OnCurrentPlotChanged
-    mLineOptions->setEnabled( false );
-    mPointOptions->setEnabled( false );
-
-}
-
-void CPlotControlsPanelCurveOptions::Wire()
-{
-    connect( mLineColorButton, SIGNAL( clicked() ), mLineColorButton, SLOT( SetColor() ) );
-    connect( mPointColorButton, SIGNAL( clicked() ), mPointColorButton, SLOT( SetColor() ) );
-
-    connect( mPointOptions, SIGNAL( toggled( bool ) ), this, SLOT( HandlePointOptionsChecked( bool ) ) );
-    connect( mPointOptions, SIGNAL( toggled( bool )), this, SLOT( HandleCurvePointColorSelected()));
-
-    connect( mLineOptions, SIGNAL( toggled( bool ) ), this, SLOT( HandleLineOptionsChecked( bool ) ) );
-    connect( mLineOptions, SIGNAL( toggled( bool ) ), this, SLOT( HandleCurveLineColorSelected() ) );
-
-    connect(mLineColorButton, SIGNAL(clicked( bool )), this, SLOT(HandleCurveLineColorSelected()));
-    connect(mPointColorButton, SIGNAL(clicked( bool )), this, SLOT(HandleCurvePointColorSelected()));
-
-    connect(mPlotList, SIGNAL(currentRowChanged(int)), this, SLOT(HandleCurrCurveChanged(int)));
-
-    connect(mLineOpacityValue, SIGNAL (returnPressed()), this, SLOT (HandleCurveLineOpacityEntered()));
-    connect(mLineWidthValue, SIGNAL (returnPressed()), this, SLOT (HandleCurveLineWidthEntered()));
-
-    connect( mStipplePattern, SIGNAL (currentIndexChanged(int)), this, SLOT (HandleStipplePatternChanged(int)));
-
-    connect( mPointGlyph, SIGNAL (currentIndexChanged(int)), this, SLOT (HandleGlyphPatternChanged(int)));
-
-    connect(mPointSizeValue, SIGNAL (returnPressed()), this, SLOT (HandleCurveGlyphWidthEntered()));
-
-    connect(mFillPointCheck, SIGNAL (toggled(bool)), this, SLOT( HandleFillGlyphInterior(bool)));
-
-    mLineOptions->setChecked( true );
-    mPointOptions->setChecked( false );
+     AddTopGroupBox( ELayoutType::Horizontal, 
+	 { 
+		 fields_group,
+		 nullptr,
+		 LayoutWidgets( Qt::Vertical, { mSpectrogramOptions, nullptr } ),
+		 LayoutWidgets( Qt::Vertical, { mLineOptions, mPointOptions, nullptr } )
+	}, 
+	"", s, m, m, m, m );
 }
 
 
-void CPlotControlsPanelCurveOptions::HandleLineOptionsChecked( bool checked )
-{
-    size_t n_curves = CurveStates.size();
-    int curr_curve = 0;
 
-    if (!n_curves)
-    {
-        return;
-    }
 
-    curr_curve = mPlotList->currentRow();
-    CurveStates.at(curr_curve).IsLine = checked;
-
-    emit LineOptionsChecked(checked, curr_curve);
-    emit StipplePatternChanged(CurveStates.at(curr_curve).LineConf, curr_curve);
-}
-
-void CPlotControlsPanelCurveOptions::HandlePointOptionsChecked( bool checked )
-{
-    size_t n_curves = CurveStates.size();
-    int curr_curve = 0;
-
-    if (!n_curves)
-    {
-        return;
-    }
-
-    curr_curve = mPlotList->currentRow();
-    CurveStates.at(curr_curve).IsDot = checked;
-
-    if (!checked)
-    {
-        emit GlyphPatternChanged(-1, curr_curve);
-    }
-    else
-    {
-        emit GlyphPatternChanged(CurveStates.at(curr_curve).GlyphConf, curr_curve);
-        HandleCurvePointColorSelected();
-        HandleFillGlyphInterior(CurveStates.at(curr_curve).FillGlyph);
-    }
-}
-
-
-void CPlotControlsPanelCurveOptions::HandleCurveLineColorSelected()
-{
-    QColor selected_color;
-    size_t n_curves = CurveStates.size();
-    int curr_curve = 0;
-
-    if (!n_curves)
-    {
-        return;
-    }
-
-    curr_curve = mPlotList->currentRow();
-    selected_color = mLineColorButton->GetColor();
-    CurveStates.at(curr_curve).LineColor = selected_color;
-
-    emit CurveLineColorSelected(selected_color, curr_curve);
-}
-
-void CPlotControlsPanelCurveOptions::HandleCurvePointColorSelected()
-{
-    QColor selected_color;
-    size_t n_curves = CurveStates.size();
-    int curr_curve = 0;
-
-    if (!n_curves)
-    {
-        return;
-    }
-
-    curr_curve = mPlotList->currentRow();
-    selected_color = mPointColorButton->GetColor();
-    CurveStates.at(curr_curve).GlyphColor = selected_color;
-
-    emit CurvePointColorSelected(selected_color, curr_curve);
-}
-
-void CPlotControlsPanelCurveOptions::HandleCurveLineOpacityEntered()
-{
-    bool is_converted=false;
-    int curr_curve = 0;
-    int opacity_value;
-    size_t n_curves = CurveStates.size();
-    const QString opacity = this->mLineOpacityValue->text();
-    opacity_value = opacity.toInt(&is_converted, 10);
-
-    if (!is_converted)
-    {
-        return;
-    }
-
-    if (!n_curves)
-    {
-        return;
-    }
-
-    curr_curve = mPlotList->currentRow();
-
-    emit CurveLineOpacityEntered(opacity_value, curr_curve);
-}
-
-void CPlotControlsPanelCurveOptions::HandleCurveLineWidthEntered()
-{
-    bool is_converted=false;
-    int curr_curve = 0;
-    int width_value;
-    size_t n_curves = CurveStates.size();
-
-    const QString width = this->mLineWidthValue->text();
-    width_value = width.toInt(&is_converted, 10);
-
-    if (!is_converted)
-    {
-        return;
-    }
-
-    if (!n_curves)
-    {
-        return;
-    }
-
-    curr_curve = mPlotList->currentRow();
-
-    emit CurveLineWidthEntered(width_value, curr_curve);
-}
-
-
-void CPlotControlsPanelCurveOptions::HandleNewPlot(const CDisplayFilesProcessor* curr_proc)
-{
-    //clears previously installed information
-    mPlotList->clear();
-    CurveStates.clear();
-
-    size_t sz = curr_proc->GetXYPlotPropertiesSize();
-
-    //QColor ctl_black(0x00,0x00,0x00,0xff);
-    unsigned char r,g,b,a;
-
-    for (int i =0;i<sz;i++ )
-    {
-        CurveState cs;
-        CXYPlotProperties* ptr_curr_plot = curr_proc->GetXYPlotProperties(i);
-        assert(ptr_curr_plot);
-        mPlotList->addItem(t2q(ptr_curr_plot->GetName()));
-
-        //Color Conversion triple percent (R,G,B,A) -> byte (R,G,B,A)
-        b = (ptr_curr_plot->GetColor().Blue()*255);
-        r = (ptr_curr_plot->GetColor().Red()*255);
-        g = (ptr_curr_plot->GetColor().Green()*255);
-        a = (ptr_curr_plot->GetColor().Alpha()*255);
-        QColor curr_clr(r,g,b,a);
-
-        //set defaults:
-        cs.CurveName = ptr_curr_plot->GetName();
-        cs.FillGlyph = false;
-        cs.GlyphColor = curr_clr;
-        cs.GlyphSize = 2;
-        cs.IsDot = false;
-        cs.IsLine = true;
-        cs.LineColor = curr_clr;
-        cs.LineOpacity = 0xFF;
-        cs.LineW = 2;
-        cs.GlyphConf = glyph_type::Ellipse;
-        cs.LineConf = line_type::SolidLine;
-
-        CurveStates.push_back(cs);
-    }
-}
-
-void CPlotControlsPanelCurveOptions::HandleCurrCurveChanged(int index)
-{
-
-    int alpha, pattern, lwidth;
-    QColor cLineColor, cDotColor;
-    size_t n_curves = CurveStates.size();
-    int curr_curve = 0;
-
-    //when calling clear method on qwtlistwidget this will get triggered too,
-    //so we need to garantee that the index we are attempting to get fits in well
-    if ((!n_curves)|| (index >= n_curves) )
-    {
-        return;
-    }
-
-    curr_curve = index;
-
-    if (CurveStates.at(curr_curve).IsLine)
-    {
-        SetPlotTypeLine(true);
-
-        // fetch current curve brush color
-        cLineColor = CurveStates.at(curr_curve).LineColor;
-        SetLineColor(cLineColor);
-
-        // Opacity
-        alpha = CurveStates.at(curr_curve).LineOpacity;
-        SetLineOpacity(QString::number(alpha));
-
-        //sttiple pattern
-        pattern = CurveStates.at(curr_curve).LineConf;
-        SetStipplePattern(pattern);
-
-        //width
-        lwidth = CurveStates.at(curr_curve).LineW;
-        SetLineWidth(lwidth);
-
-    }
-    else
-    {
-        SetPlotTypeLine(false);
-    }
-
-    cDotColor = CurveStates.at(curr_curve).GlyphColor;
-    SetPointColor(cDotColor);
-
-    if (CurveStates.at(curr_curve).IsDot)
-    {
-        SetPlotTypeDot(true);
-
-        // glyph pattern update
-
-        int gly_patt = CurveStates.at(curr_curve).GlyphConf;
-        SetGlyphPattern(gly_patt);
-        int gly_size = CurveStates.at(curr_curve).GlyphSize;
-
-        SetGlyphSize(QString::number(gly_size));
-    }
-    else
-    {
-        SetPlotTypeDot(false);
-    }
-
-
-}
-
-void CPlotControlsPanelCurveOptions::HandleStipplePatternChanged(int pattern)
-{
-    size_t n_curves = CurveStates.size();
-    int curr_curve = 0;
-
-    if (!n_curves)
-    {
-        return;
-    }
-
-    curr_curve = mPlotList->currentRow();
-    CurveStates.at(curr_curve).LineConf = (line_type)pattern;
-    emit StipplePatternChanged(pattern, curr_curve);
-}
-
-void CPlotControlsPanelCurveOptions::HandleGlyphPatternChanged(int pattern)
-{
-    size_t n_curves = CurveStates.size();
-    int curr_curve = 0;
-
-    if (!n_curves)
-    {
-        return;
-    }
-
-    curr_curve = mPlotList->currentRow();
-    CurveStates.at(curr_curve).GlyphConf = (glyph_type)pattern;
-    emit GlyphPatternChanged(pattern, mPlotList->currentRow());
-}
-
-void CPlotControlsPanelCurveOptions::HandleFillGlyphInterior(bool checked)
-{
-    size_t n_curves = CurveStates.size();
-    int curr_curve = 0;
-
-    if (!n_curves)
-    {
-        return;
-    }
-
-    curr_curve = mPlotList->currentRow();
-    CurveStates.at(curr_curve).FillGlyph = checked;
-
-    emit FillGlyphInterior(checked, curr_curve);
-}
-
-void CPlotControlsPanelCurveOptions::HandleCurveGlyphWidthEntered()
-{
-    size_t n_curves = CurveStates.size();
-    int curr_curve = 0;
-    bool is_converted=false;
-    int w_value;
-    const QString pointw = this->mPointSizeValue->text();
-    w_value = pointw.toInt(&is_converted, 10);
-
-    if (!is_converted)
-    {
-        return;
-    }
-
-    if (!n_curves)
-    {
-        return;
-    }
-
-    curr_curve = mPlotList->currentRow();
-    CurveStates.at(curr_curve).GlyphSize = w_value;
-    emit CurveGlyphWidthEntered(w_value, curr_curve);
-
-}
 ////////////////////////////////////////
 //		Axis Options Tab					
 ////////////////////////////////////////
@@ -649,7 +227,7 @@ CPlotControlsPanelAxisOptions::CPlotControlsPanelAxisOptions( QWidget *parent, Q
 
     mAxisOptionsTabs->addTab( mX_axis, "X" );
     mAxisOptionsTabs->addTab( mY_axis, "Y" );
-    mAxisOptionsTabs->addTab( mZ_axis, "Y2" );
+    mAxisOptionsTabs->addTab( mZ_axis, "Z/Y2" );
 
     mAxisOptionsTabs->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
@@ -685,12 +263,12 @@ CMapControlsPanelDataLayers::CMapControlsPanelDataLayers( QWidget *parent, Qt::W
 {
     // III. Data Layers
     //
-    mDataLayer = new QComboBox;
-    mDataLayer->setToolTip("Data Layer");
+    mFieldsList = new QListWidget;
+    mFieldsList->setToolTip("Data Layer");
     auto mNbLabels = new QLineEdit(this);
     mNbLabels->setText("0");
 
-    auto mShowSolidColorCheck = new QCheckBox(this);
+    mShowSolidColorCheck = new QCheckBox(this);
     auto mSolidColorEdit      = new QPushButton("Edit");
     auto mShowContourCheck    = new QCheckBox(this);
     auto mContourEdit         = new QPushButton("Edit");
@@ -704,7 +282,7 @@ CMapControlsPanelDataLayers::CMapControlsPanelDataLayers( QWidget *parent, Qt::W
     auto mReset = new QPushButton("Reset");
 
     QLayout *DataLayersOptions_group = AddTopLayout( ELayoutType::Vertical, {
-        LayoutWidgets( Qt::Horizontal, { mDataLayer, nullptr, new QLabel( "Number of Labels (Color Bar)" ), mNbLabels } ),
+        LayoutWidgets( Qt::Horizontal, { mFieldsList, nullptr, new QLabel( "Number of Labels (Color Bar)" ), mNbLabels } ),
         LayoutWidgets( Qt::Horizontal, { mShowSolidColorCheck, new QLabel( "Show Solid Color" ), mSolidColorEdit, nullptr, mShowContourCheck, new QLabel( "Show Contour" ), mContourEdit } ),
         lineHorizontal,
         LayoutWidgets( Qt::Horizontal, { new QLabel( "Range:" ), nullptr, new QLabel( "Min." ), mMinRange, nullptr, new QLabel( "Max." ), mMaxRange, nullptr, mReset } ),

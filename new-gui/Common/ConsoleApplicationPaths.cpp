@@ -7,6 +7,7 @@
 #endif
 
 
+#include "+UtilsIO.h"
 #include "QtUtilsIO.h"
 #include "ConsoleApplicationPaths.h"
 

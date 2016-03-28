@@ -206,7 +206,7 @@ bool CConfiguration::LoadConfig( CDisplayData &data, const std::string& path, CW
     std::string valueString = Read( ENTRY_TYPE, CMapTypeDisp::GetInstance().IdToName( data.m_type ) ).ToStdString();
 	if ( valueString.empty() )
 	{
-		data.m_type = -1;
+        data.m_type = CMapTypeDisp::Invalid();
 	}
 	else
 	{
@@ -1131,7 +1131,7 @@ bool CConfiguration::LoadConfig( CDisplay &d, std::string &errorMsg, CWorkspaceD
     valueString = Read( ENTRY_TYPE, CMapTypeDisp::GetInstance().IdToName( d.m_type ) ).ToStdString();
 	if ( valueString.empty() )
 	{
-		d.m_type = -1;
+        d.m_type = CMapTypeDisp::Invalid();
 	}
 	else
 	{

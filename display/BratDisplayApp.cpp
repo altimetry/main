@@ -586,7 +586,7 @@ void CBratDisplayApp::GetXYPlotPropertyParams(int32_t nFields)
       }
       if (indexPointGlyph < pointGlyph)
       {
-        PointGlyph pointGlyph = CMapPointGlyph::GetInstance().GetPointGlyph(m_params, indexPointGlyph);
+        EPointGlyph pointGlyph = CMapPointGlyph::GetInstance().GetPointGlyph(m_params, indexPointGlyph);
         props->SetPointGlyph(pointGlyph);
         indexPointGlyph++;
       }
@@ -638,7 +638,7 @@ void CBratDisplayApp::GetXYPlotPropertyParams(int32_t nFields)
       continue;
     }
 
-    StipplePattern stipplePatternValue = CMapStipplePattern::GetInstance().GetStipplePattern(m_params, i);
+    EStipplePattern stipplePatternValue = CMapStipplePattern::GetInstance().GetStipplePattern(m_params, i);
     props->SetLineStipple(stipplePatternValue);
   }
 }

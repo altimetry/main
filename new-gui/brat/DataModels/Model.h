@@ -4,6 +4,7 @@
 #include <QtCore>
 
 #include "Workspaces/TreeWorkspace.h"
+#include "Filters/BratFilters.h"
 
 
 class CApplicationPaths;
@@ -28,7 +29,9 @@ class CModel : public QObject
 	using base_t = QObject;
 
 
+	/////////////////
 	// static members
+	/////////////////
 
 	static CModel *smInstance;
 
@@ -46,13 +49,18 @@ class CModel : public QObject
 	static CWorkspace* LoadWorkspace( CTreeWorkspace &tree, const std::string& path, std::string &error_msg );
 
 
+	/////////////////
 	// instance data
+	/////////////////
 
 	CTreeWorkspace mTree;
 	const CApplicationPaths &mBratPaths;
+	CBratFilters mBratFilters;
 
 
+	/////////////////////////////
 	// construction / destruction
+	/////////////////////////////
 
 	explicit CModel( const CApplicationPaths &brat_paths );
 
@@ -62,7 +70,12 @@ public:
 	virtual ~CModel();
 
 
+
+	/////////////
 	// access 
+	/////////////
+
+	//...workspaces
 
 	const CTreeWorkspace& Tree() const { return  mTree; }
 
@@ -80,7 +93,28 @@ public:
 	}
 
 
+	//...paths
+
+	const CApplicationPaths& BratPaths() const { return mBratPaths; }
+
+
+	//...filters
+
+	CBratFilters& BratFilters() { return mBratFilters; }
+
+	const CBratFilters& BratFilters() const
+	{ 
+		return const_cast<CModel*>( this )->BratFilters(); 
+	}
+
+
+
+	/////////////
 	// operations
+	/////////////
+
+
+	//...workspaces
 
 	static bool LoadImportFormulas( const std::string& path, std::vector< std::string > &v, bool predefined, bool user, std::string &error_msg );
 

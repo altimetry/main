@@ -109,13 +109,13 @@ inline bool IsFile( QString path )
 
     return file_info.exists() && file_info.isFile();
 }
-inline bool IsFile( const char *path )
+inline bool QIsFile( const char *path )
 {
     return IsFile( QString( path ) );
 }
-inline bool IsFile( const std::string &path )
+inline bool QIsFile( const std::string &path )
 {
-    return IsFile( path.c_str() );
+    return QIsFile( path.c_str() );
 }
 
 inline bool IsDir( const QString &dir_path )
@@ -344,7 +344,7 @@ inline bool TraverseDirectory( const QString &sourceFolder, const QString &destF
 inline bool SafeDuplicateFile( const std::string &SourcePath, const std::string &DestinationPath )
 {
     std::string dest_dir = GetDirectoryFromPath(DestinationPath);
-    if (!IsFile(SourcePath))
+    if (!QIsFile(SourcePath))
     {
         return false;
     }

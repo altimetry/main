@@ -889,7 +889,7 @@ long CDictionaryDisplayList::InsertField(CDisplayData* displayData)
     return -1;
   }
 
-  COperation* operation = displayData->GetOperation();
+  const COperation* operation = displayData->GetOperation();
 
   wxListItem itemRow;
   itemRow.SetText(operation->GetName());

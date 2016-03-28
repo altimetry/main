@@ -19,6 +19,9 @@
 #ifndef DATA_MODELS_PLOT_DATA_XYPLOTDATA_H
 #define DATA_MODELS_PLOT_DATA_XYPLOTDATA_H
 
+#include <cmath>
+
+
 #if defined(BRAT_V3)
 	#include <vtkProperty2D.h>
 
@@ -198,6 +201,14 @@ class CXYPlotProperties : public CBratObject
 	CXYPlotData* m_parent;
 
 	CPlotColor mColor;
+	CPlotColor mPointColor = CPlotColor(0.,0.,0.);
+	int mOpacity = 0xFF;
+	double mLineWidth = 2.;
+
+#if !defined(BRAT_V3)
+
+	EStipplePattern mStipplePattern = EStipplePattern::eSolidLine;
+#endif
 
 	bool m_lines;
 	bool m_points;
@@ -235,7 +246,7 @@ class CXYPlotProperties : public CBratObject
 	uint32_t m_yNumTicks;
 
 
-	PointGlyph m_glyphType;
+	EPointGlyph m_glyphType;
 	bool m_filledPoint;
 
 	double m_lineWidthFactor;
@@ -265,15 +276,26 @@ public:
 	double GetLineWidth() const { return m_vtkProperty2D->GetLineWidth(); }
 	double GetOpacity() const { return m_vtkProperty2D->GetOpacity(); }
 
-	StipplePattern GetLineStipple() const { return static_cast<StipplePattern>( m_vtkProperty2D->GetLineStipplePattern() ); }
-	void SetLineStipple( StipplePattern value ) { m_vtkProperty2D->SetLineStipplePattern( value ); }
+	EStipplePattern GetLineStipple() const { return static_cast<EStipplePattern>( m_vtkProperty2D->GetLineStipplePattern() ); }
+	void SetLineStipple( EStipplePattern value ) { m_vtkProperty2D->SetLineStipplePattern( value ); }
 
 	void GetColor( double* value ) const { m_vtkProperty2D->GetColor( value ); }
 	void SetColor( double* value ) { m_vtkProperty2D->SetColor( value ); }
 
 	void SetColor( double r, double g, double b ) { m_vtkProperty2D->SetColor( r, g, b ); }
 
+#else
+	int GetOpacity() const { return mOpacity; }
+
+	int GetLineWidth() const { return std::round( mLineWidth ); }
+
+	EStipplePattern GetStipplePattern() { return mStipplePattern; }
+	void SetStipplePattern( EStipplePattern e ) { mStipplePattern = e; }
+
 #endif
+	void SetOpacity( int op ) { mOpacity = op; }
+	void SetLineWidth( double value );
+
 
 	CXYPlotData* GetParent() const { return m_parent; }
 	void SetParent( CXYPlotData* parent ) { m_parent = parent; }
@@ -289,8 +311,6 @@ public:
 	bool GetLines() const { return m_lines; }
 	void SetLines();
 	void SetLines( bool value );
-
-	void SetLineWidth( double value );
 
 
 	std::string GetName() const { return m_name; }
@@ -364,14 +384,15 @@ public:
 	void SetNormalizeX( int32_t value );
 	void SetNormalizeY( int32_t value );
 
-	CPlotColor GetColor() const ;
-	void GetColor( CPlotColor& vtkColor ) const ;
-	void SetColor( const CPlotColor& vtkColor );
-	// TODO v4 void SetColor(const wxColour& color);										   replaced by global in wxInterface.h
-	// TODO v4 void SetColor(wxColourData& colorData, int32_t indexCustomColor = -1);  	   replaced by global in wxInterface.h
+	CPlotColor GetColor() const;
+	void GetColor( CPlotColor& color ) const ;
+	void SetColor( const CPlotColor& color );
 
-	PointGlyph GetPointGlyph() const { return m_glyphType; }
-	void SetPointGlyph( PointGlyph value );
+	const CPlotColor& GetPointColor() const { return mPointColor; }
+	void SetPointColor( const CPlotColor &color ) { mPointColor = color; }
+
+	EPointGlyph GetPointGlyph() const { return m_glyphType; }
+	void SetPointGlyph( EPointGlyph value );
 	void SetPointGlyph();
 
 	bool GetFilledPoint() const { return m_filledPoint; }

@@ -518,9 +518,9 @@ CXYPlotProperties::CXYPlotProperties( CXYPlotData* parent )
 	SetOpacityFactor( 1 / GetOpacity() );
 #endif
 
+	SetLineWidthFactor( 1.5 );
 
 	SetLineWidth( 0.8 );
-
 
 	SetLines( true );
 	SetPoints( false );
@@ -570,6 +570,7 @@ CXYPlotProperties::CXYPlotProperties( CXYPlotData* parent )
 	SetLineWidthFactor( 1.5 );
 
 	SetHide( false );
+
 }
 
 //----------------------------------------
@@ -610,7 +611,6 @@ void CXYPlotProperties::Copy( const CXYPlotProperties& p )
 	SetOpacity( p.GetOpacity() );
 
 #endif
-
 
 	SetLineWidthFactor( p.GetLineWidthFactor() );
 	m_focus = p.GetFocus();
@@ -659,6 +659,17 @@ void CXYPlotProperties::Copy( const CXYPlotProperties& p )
 	SetOpacityFactor( p.GetOpacityFactor() );
 
 	SetHide( p.GetHide() );
+
+	mColor = p.mColor;
+	mPointColor = p.mPointColor;
+	mOpacity = p.mOpacity;
+	mLineWidth = p.mLineWidth ;
+
+#if !defined(BRAT_V3)
+
+	mStipplePattern = p.mStipplePattern;
+#endif
+
 }
 //----------------------------------------
 void CXYPlotProperties::Update()
@@ -723,11 +734,13 @@ void CXYPlotProperties::SetHide()
 //----------------------------------------
 void CXYPlotProperties::SetLineWidth( double value )
 {
+	mLineWidth = value < 1.0 ? value*m_lineWidthFactor : value;		//v3 compatibility
+
+#if defined(BRAT_V3)
 	if ( value <= 0.0 )
 	{
 		value = 0.8;
 	}
-#if defined(BRAT_V3)
 	m_vtkProperty2D->SetLineWidth( value );
 #endif
 }
@@ -834,7 +847,7 @@ void CXYPlotProperties::SetPointGlyph()
 #endif
 }
 //----------------------------------------
-void CXYPlotProperties::SetPointGlyph( PointGlyph value )
+void CXYPlotProperties::SetPointGlyph( EPointGlyph value )
 {
 	m_glyphType = value;
 

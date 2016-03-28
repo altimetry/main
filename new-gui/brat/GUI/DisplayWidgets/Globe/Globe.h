@@ -216,6 +216,9 @@ public:
 
 	osgViewer::Viewer* osgViewer() { return mOsgViewer; }
 
+
+	void RemoveLayers();
+
 public slots:
 	//!  Setup map controls
 	void SetupControls( bool set );
@@ -277,6 +280,8 @@ public slots:
 private:
 	//!  Setup map
 	void setupMap();
+
+	void ImageLayersChanged();
 
 signals:
 	//! emits current mouse position

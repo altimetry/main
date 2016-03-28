@@ -18,13 +18,10 @@
 #include "GUI/DisplayEditors/MapEditor.h"
 #include "GUI/DisplayEditors/PlotEditor.h"
 
-#include "GUI/ControlPanels/Dialogs/DelayExecutionDialog.h"
-#include "GUI/ControlPanels/Dialogs/ExportDialog.h"
-#include "GUI/ControlPanels/Dialogs/FormulaDialog.h"
-#include "GUI/ControlPanels/Dialogs/InsertAlgorithmDialog.h"
-#include "GUI/ControlPanels/Dialogs/InsertFunctionDialog.h"
-#include "GUI/ControlPanels/Dialogs/ShowAliasesDialog.h"
-#include "GUI/ControlPanels/Dialogs/ShowInfoDialog.h"
+#include "Dialogs/DelayExecutionDialog.h"
+#include "Dialogs/ExportDialog.h"
+#include "Dialogs/ShowAliasesDialog.h"
+#include "Dialogs/ShowInfoDialog.h"
 
 #include "DataExpressionsTree.h"
 #include "ProcessesTable.h"
@@ -192,12 +189,13 @@ QWidget* COperationControls::CreateAdancedOperationsPage()
 	mAdvancedDatasetsCombo = new QComboBox;
 	mAdvancedDatasetsCombo->setToolTip( "Selected operation dataset" );
 
-	auto *ops_group = CreateGroupBox( ELayoutType::Horizontal, 
+	//auto *ops_group = CreateGroupBox( ELayoutType::Horizontal, 
+	auto *ops_group = LayoutWidgets( Qt::Horizontal, 
 	{ 
 		LayoutWidgets( Qt::Vertical, { new QLabel("Operation"), mOperationsCombo }, nullptr, s, m, m, m, m ), 
 		LayoutWidgets( Qt::Vertical, { new QLabel("Dataset"), mAdvancedDatasetsCombo }, nullptr, s, m, m, m, m )
 	}, 
-	"", nullptr, s, m, m, m, m );
+	nullptr, s, m, m, m, m );
 
 
 	// III. Expression Group
@@ -212,7 +210,7 @@ QWidget* COperationControls::CreateAdancedOperationsPage()
 	auto adv_desc_label = new QLabel( "Variable Description", mAdvancedOperationsPage );
 	auto mAdvVarTable = new QTableWidget( mAdvancedOperationsPage );
 	mAdvVarTable->setColumnCount( 4 );
-	QBoxLayout *adv_desc_vl = LayoutWidgets( Qt::Vertical, { adv_desc_label, mAdvVarTable }, nullptr, 0, m, m, m, m );
+	QBoxLayout *adv_desc_vl = LayoutWidgets( Qt::Vertical, { adv_desc_label, mAdvVarTable }, nullptr, s, m, m, m, m );
 
 	QGroupBox *fields_group = CreateGroupBox( ELayoutType::Horizontal, { adv_fields_vl, adv_desc_vl }, "", nullptr, s, m, m, m, m );
 
@@ -245,7 +243,7 @@ QWidget* COperationControls::CreateAdancedOperationsPage()
     auto *data_expressions_group = CreateGroupBox( ELayoutType::Horizontal, { data_expressions_buttons, mDataExpressionsStack }, "", nullptr, s, m, m, m, m );
 
 #else
-	mDataExpressionsTree = new CDataExpressionsTreeWidget( true, mAdvancedOperationsPage, mAdvancedFieldsTree );
+	mDataExpressionsTree = new CDataExpressionsTreeWidget( mWFormula, mMapFormulaString, true, mAdvancedOperationsPage, mAdvancedFieldsTree );
 
 	mSwitchToMapButton = CreateToolButton( "Map", ":/images/themes/default/propertyicons/map_tools.png", "Click to change the type of the expression output" );
 	mSwitchToPlotButton = CreateToolButton( "Plot", ":/images/themes/default/histogram.png", "Click to change the type of the expression output" );
@@ -280,8 +278,7 @@ QWidget* COperationControls::CreateAdancedOperationsPage()
 		mInsertFunction, mInsertFormula, mSaveAsFormula, mInsertAlgorithm, mDataComputation, nullptr, mShowInfoButton, mShowAliasesButton, mCheckSyntaxButton
 	} );
 
-	mExpressionTextWidget = new CTextWidget;
-	mExpressionGroup = CreateGroupBox( ELayoutType::Vertical, { expression_buttons, mExpressionTextWidget }, "Expression", mAdvancedOperationsPage, 0, m, m, m, m );
+	mExpressionGroup = CreateGroupBox( ELayoutType::Vertical, { expression_buttons, mDataExpressionsTree->ExpressionTextWidget() }, "Expression", mAdvancedOperationsPage, 0, m, m, m, m );
 
 	//....Split in Group
 
@@ -316,11 +313,11 @@ QWidget* COperationControls::CreateAdancedOperationsPage()
         new QLabel( "Longitude" ),	new QLineEdit,	new QLineEdit,	mLonIntervalsLabel,     nullptr,
 	},
     nullptr, 2, 4, 4, 4, 4 );
-	QgsCollapsibleGroupBox *sampling_group = CreateCollapsibleGroupBox( ELayoutType::Horizontal, { adv_filter_vl, line, sampling_gridl }, 
+	mSamplingGroup = CreateCollapsibleGroupBox( ELayoutType::Horizontal, { adv_filter_vl, line, sampling_gridl }, 
         "Sampling", mAdvancedOperationsPage, s, 4, 4, 4, 4 );
-	sampling_group->setCollapsed( true );
-	sampling_group->setCheckable( true );
-	sampling_group->setSyncGroup( SyncGroup );
+	mSamplingGroup->setCollapsed( true );
+	mSamplingGroup->setCheckable( true );
+	mSamplingGroup->setSyncGroup( SyncGroup );
 
 
     LayoutWidgets( Qt::Vertical,
@@ -328,7 +325,7 @@ QWidget* COperationControls::CreateAdancedOperationsPage()
 		top_buttons_row, 
 		ops_group,
 		mOperationExpressionsGroup,
-		sampling_group,
+		mSamplingGroup,
 		nullptr
 	}, 
 	mAdvancedOperationsPage, 0, m, m, m, m );
@@ -490,10 +487,10 @@ void COperationControls::Wire()
 }
 
 
-COperationControls::COperationControls( const CBratFilters &filters, CProcessesTable *processes_table, CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 
-	: base_t( manager, parent, f )
+COperationControls::COperationControls( CProcessesTable *processes_table, CModel &model, CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 
+	: base_t( model, manager, parent, f )
 	, mProcessesTable( processes_table )
-	, mBratFilters( filters )
+	, mBratFilters( mModel.BratFilters() )
 {
 	QWidget *mQuickOperationsPage = CreateQuickOperationsPage();
 	QWidget *mAdvancedOperationsPage = CreateAdancedOperationsPage();
@@ -539,29 +536,20 @@ void COperationControls::SetAdvancedMode( bool advanced ) const
 ///////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////
 
-void COperationControls::HandleSelectedWorkspaceChanged( CModel *model )
+void COperationControls::HandleWorkspaceChanged()
 {
-	mModel = model;
-
 	int index = mOperationsCombo->currentIndex();
 	mOperationsCombo->clear();					//can trigger
 	if ( index < 0 )
 		HandleSelectedOperationChanged( -1 );
 
-	index = mAdvancedDatasetsCombo->currentIndex();
-	mAdvancedDatasetsCombo->clear();
-	if ( index < 0 )
-		HandleSelectedDatasetChanged_Advanced( -1 );
-
-	mQuickDatasetsCombo->clear();			 //TODO handle quick
-
-    mWRoot = mModel ? mModel->RootWorkspace() : nullptr;
-    if ( mModel && mWRoot )
+    mWRoot = mModel.RootWorkspace();
+    if ( mWRoot )
 	{
-		mWDataset = mModel->Workspace< CWorkspaceDataset >();
-		mWOperation = mModel->Workspace< CWorkspaceOperation >();
-		mWDisplay = mModel->Workspace< CWorkspaceDisplay >();
-		mWFormula = mModel->Workspace< CWorkspaceFormula >();		assert__( mWDataset && mWOperation && mWDisplay && mWFormula );
+		mWDataset = mModel.Workspace< CWorkspaceDataset >();
+		mWOperation = mModel.Workspace< CWorkspaceOperation >();
+		mWDisplay = mModel.Workspace< CWorkspaceDisplay >();
+		mWFormula = mModel.Workspace< CWorkspaceFormula >();		assert__( mWDataset && mWOperation && mWDisplay && mWFormula );
 	}
 	else
 	{
@@ -571,9 +559,12 @@ void COperationControls::HandleSelectedWorkspaceChanged( CModel *model )
 		mWFormula = nullptr;
 	}
 
-    setEnabled( mModel && mWDataset && mWDataset->GetDatasetCount() > 0 );
+    setEnabled( mWRoot != nullptr );
 
-	if ( !mModel || !mWRoot )
+	HandleDatasetsChanged_Advanced( nullptr );			//disables tab if !mWDataset || !mWDataset->GetDatasetCount() > 0 
+    HandleDatasetsChanged_Quick( nullptr );
+
+	if ( !mWRoot )
 	{
 		return;
 	}
@@ -582,29 +573,11 @@ void COperationControls::HandleSelectedWorkspaceChanged( CModel *model )
 	mWFormula->GetFormulaNames( mMapFormulaString );
 
 
-	//fill both datasets combos
-
-	mAdvancedDatasetsCombo->blockSignals( true );
-    FillCombo( mAdvancedDatasetsCombo, *mWDataset->GetDatasets(),
-
-        -1, true,											//TODO default to last opened
-
-        []( const CObMap::value_type &i ) -> const char*
-        {
-            return i.first.c_str();
-        }
-    );
-	mAdvancedDatasetsCombo->blockSignals( false );
-
-
-    HandleDatasetsChanged_Quick(nullptr);
-
-
 	//fill (advanced) operation combo
 
     FillCombo( mOperationsCombo, *mWOperation->GetOperations(),
 
-        0, true,											//TODO default to last opened
+        0, true,
 
         []( const CObMap::value_type &i ) -> const char*
         {
@@ -614,11 +587,42 @@ void COperationControls::HandleSelectedWorkspaceChanged( CModel *model )
 }
 
 
-
-
-void COperationControls::HandleDatasetsChanged_Advanced(CDataset *)
+//
+//
+void COperationControls::HandleDatasetsChanged_Advanced( CDataset *dataset )
 {
-	LOG_WARN("HandleDatasetsChanged_Advanced");
+    Q_UNUSED( dataset );
+
+	mAdvancedDatasetsCombo->blockSignals( true );
+
+	mAdvancedDatasetsCombo->clear();
+	if ( mWDataset )
+	{
+		auto const &datasets = *mWDataset->GetDatasets();
+		for ( auto dataset_entry : datasets )
+		{
+			const CDataset *dataset = dynamic_cast<CDataset*>( dataset_entry.second );		assert__( dataset );
+			if ( !dataset->IsEmpty() )
+				mAdvancedDatasetsCombo->addItem( dataset_entry.first.c_str() );
+		}
+	}
+	int index = -1;
+	mAdvancedDatasetsCombo->setCurrentIndex( -1 );
+	const bool has_datasets = mAdvancedDatasetsCombo->count() > 0;
+	if ( has_datasets )
+	{
+		index = mCurrentOperation ? mAdvancedDatasetsCombo->findText( mCurrentOperation->GetDatasetName().c_str() ) : 0;
+		mAdvancedDatasetsCombo->setCurrentIndex( index );
+	}
+
+	mAdvancedDatasetsCombo->blockSignals( false );
+
+	HandleSelectedDatasetChanged_Advanced( index );		//if -1, clear mDataset, mProduct and fields tree
+	if ( mCurrentOperation )
+	{
+		HandleSelectedOperationChanged( mOperationsCombo->currentIndex() );		//TODO does not seem to be necessary
+	}
+	setEnabled( has_datasets );
 }
 
 
@@ -632,7 +636,6 @@ bool COperationControls::TryDatasetChange( int index )
 
 void COperationControls::HandleSelectedOperationChanged( int operation_index )	//ComboOperation( int32_t currentOperation )
 {
-	mAdvancedDatasetsCombo->setEnabled( operation_index >= 0 );		// TODO also update state of all other...
 	mAdvancedDisplayButton->setEnabled( operation_index >= 0 );
 	mSplitPlotsButton->setEnabled( operation_index >= 0 );
 
@@ -644,17 +647,23 @@ void COperationControls::HandleSelectedOperationChanged( int operation_index )	/
 	mDuplicateOperationButton->setEnabled( operation_index >= 0 );
 	mDeleteOperationButton->setEnabled( operation_index >= 0 );
 
+	mSwitchToMapButton->setEnabled( operation_index >= 0 );
+	mSwitchToPlotButton->setEnabled( operation_index >= 0 );
+	mDataExpressionsTree->setEnabled( operation_index >= 0 );
+	mSamplingGroup->setEnabled( operation_index >= 0 );
+
 	if ( operation_index < 0 )
 	{
 		mCurrentOperation = nullptr;
-		//mDataset = nullptr;
-		//mProduct = nullptr;
-		//mUserFormula = nullptr;
 	}
 	else
 	{
-		mCurrentOperation = mWOperation->GetOperation( q2a( mOperationsCombo->itemText( operation_index ) ) )	;						assert__( mCurrentOperation );
-		mAdvancedDatasetsCombo->setCurrentIndex( mAdvancedDatasetsCombo->findText( mCurrentOperation->GetDatasetName().c_str() ) );	//trigger signal
+		mCurrentOperation = mWOperation->GetOperation( q2a( mOperationsCombo->itemText( operation_index ) ) )	;					assert__( mCurrentOperation );
+		int dataset_index = mAdvancedDatasetsCombo->findText( mCurrentOperation->GetDatasetName().c_str() );
+		if ( mAdvancedDatasetsCombo->currentIndex() != dataset_index )
+			mAdvancedDatasetsCombo->setCurrentIndex( dataset_index );	//trigger signal
+		else
+			HandleSelectedDatasetChanged_Advanced( dataset_index );
 	}
 
 	mDataExpressionsTree->InsertOperation( mCurrentOperation );
@@ -665,6 +674,9 @@ void COperationControls::HandleSelectedOperationChanged( int operation_index )	/
 	{
 		return;
 	}
+
+	return;	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 	CDataset *dataset = nullptr;
 	//DatasetSelChanged(id);//////////////////////////////////////////////////////////////
@@ -809,47 +821,59 @@ void COperationControls::HandleSelectedDatasetChanged_Advanced( int dataset_inde
 
 	auto cancel_dataset_change = [this]()
 	{
-		mAdvancedDatasetsCombo->setCurrentIndex( mAdvancedDatasetsCombo->findText( mCurrentOperation->GetDatasetName().c_str() ) );
+		if ( mCurrentOperation )
+			mAdvancedDatasetsCombo->setCurrentIndex( mAdvancedDatasetsCombo->findText( mCurrentOperation->GetDatasetName().c_str() ) );
 	};
 
 
 	//function body 
 
-	if ( dataset_index < 0 )
+	CDataset *new_dataset = nullptr;
+	CProduct* new_product = nullptr;
+	if ( dataset_index >= 0 )
 	{
-		return;
-	}
-
-	auto new_datset_name = q2a( mAdvancedDatasetsCombo->itemText( dataset_index ) );
-	CDataset *new_dataset = mWDataset->GetDataset( new_datset_name );
-	CProduct* product = nullptr;
-	if ( new_datset_name != mCurrentOperation->GetDatasetName() )
-	{
-		std::string question =
-			"Some data expressions are built from '"
-			+ mCurrentOperation->GetDatasetName()
-			+ "' dataset.\nIf you want to use another dataset, make sure that field names in data expressions are the same, or don't forget to change them.\nChange to '"
-			+ new_datset_name
-			+ "' dataset ?";
-
-		if ( !SimpleQuestion( question ) )
+		auto new_dataset_name = q2a( mAdvancedDatasetsCombo->itemText( dataset_index ) );
+		bool changing_used_dataset = false;
+		if ( mCurrentOperation )
 		{
-			cancel_dataset_change();
-			return;
+			std::string current_dataset_name = mCurrentOperation->GetDatasetName();			assert__( !mCurrentOperation->HasFormula() || !current_dataset_name.empty() );
+			changing_used_dataset = mCurrentOperation->HasFormula() && new_dataset_name != current_dataset_name;
+		}
+		if ( changing_used_dataset )
+		{
+			std::string question =
+				"Some data expressions are built from '"
+				+ mCurrentOperation->GetDatasetName()
+				+ "' dataset.\nIf you want to use another dataset, make sure that field names in data expressions are the same, or don't forget to change them.\nChange to '"
+				+ new_dataset_name
+				+ "' dataset ?";
+
+			if ( !SimpleQuestion( question ) )
+			{
+				cancel_dataset_change();
+				return;
+			}
+
+			mCurrentOperation->SetRecord( "" );
+			// v4
+			while ( mCurrentOperation->GetFormulaCount() > 0 )
+				mCurrentOperation->DeleteFormula( dynamic_cast<CFormula*>( mCurrentOperation->GetFormulas()->at(0) )->GetName() );
+			mDataExpressionsTree->InsertOperation( mCurrentOperation );
 		}
 
-		//mCurrentOperation->SetRecord( "" );
+		new_dataset = mWDataset->GetDataset( new_dataset_name );	//do not return if dataset is the same: content may have changed
+
 		std::string error_msg;
 		try
 		{
-			product = new_dataset->SetProduct();
+			new_product = new_dataset->SetProduct();
 		}
 		catch ( CException& e )
 		{
 			error_msg = std::string( "Unable to process files.\nReason:\n" ) + e.what(),
-			product = nullptr;
+			new_product = nullptr;
 		}
-		if ( product == nullptr )
+		if ( new_product == nullptr )
 		{
 			if ( !error_msg.empty() )
 				SimpleErrorBox( error_msg );
@@ -860,128 +884,22 @@ void COperationControls::HandleSelectedDatasetChanged_Advanced( int dataset_inde
 			return;
 		}
 
-		if ( !mDataExpressionsTree->SelectRecord( product ) )
+		if ( changing_used_dataset && !mDataExpressionsTree->SelectRecord( new_product ) )
 		{
 			SimpleErrorBox( "You have not selected a record name.\nDataset has not been changed.\nChanging operation dataset is canceled." );
 			cancel_dataset_change();
-			delete product;
+			delete new_product;
 			return;
 		}
 	}
 
-	return;
-
 	mDataset = new_dataset;
 
-	//OnDatasetSelChanging( wxTreeEvent &event )
-
-	//wxTreeItemId id = event.GetItem();
-
-	//if (!id)
-	//{
-	//  event.Veto();
-	//  return;
-	//}
-	//// Apparently some versions of the MS common controls does not send the events
-	//// when a tree item is selected programatically, so wxWidgets sends it.  Other
-	//// versions of the common controls do send the events and so you get it twice.
-	//if (m_currentDataset == id)
-	//{
-	//  if (GetFieldstreectrl()->GetRecordCount() > 0)
-	//  {
-	//    SetCurrentDataset();
-	//    event.Veto();
-	//    return;
-	//  }
-	//}
-
-	//if (mCurrentOperation == nullptr)
-	//{
-	//  event.Veto();
-	//  return;
-	//}
-
-	//CDataset* dataset = GetDatasettreectrl()->GetDataset(id);
-	//if (dataset == nullptr)
-	//{
-	//  event.Veto();
-	//  return;
-	//}
-
-
-	//std::string datasetNameOperation =  mCurrentOperation->GetDatasetName();
-	//std::string datasetName = dataset->GetName();
-	//bool resetDataExpression = mCurrentOperation->HasFormula() && (datasetNameOperation.CmpNoCase(datasetName) != 0);
-
-	//if (resetDataExpression)
-	//{
-	//  int32_t result =  wxMessageBox(std::string::Format("Some data expressions are built from '%s' dataset.\n"
-	//                                            "If you want to use another dataset, make sure that field names in data expressions are the same, or don't forget to change them.\n"
-	//                                            "Change to '%s' dataset ?",
-	//                                                  mCurrentOperation->GetDatasetName().c_str(),
-	//                                                  GetDatasettreectrl()->GetItemText(id).c_str()),
-	//                               "Changing operation dataset",
-	//                                wxYES_NO | wxCENTRE | wxICON_QUESTION);
-
-	//  if (result != wxYES)
-	//  {
-	//    event.Veto();
-	//    return;
-	//  }
-
-	//  mCurrentOperation->SetRecord("");
-
-	//  CProduct* product = nullptr;
-
-	//  try
-	//  {
-	//    product = dataset->SetProduct();
-	//  }
-	//  catch (CException& e)
-	//  {
-	//    wxMessageBox(std::string::Format("Unable to process files.\nReason:\n%s",
-	//                                  e.what()),
-	//                "Warning",
-	//                wxOK | wxICON_EXCLAMATION);
-
-	//    product = nullptr;
-	//  }
-
-	//  if (product == nullptr)
-	//  {
-	//    wxMessageBox("Unable to set Product\nPerhaps dataset file list is empty or or product file doesn't exist()",
-	//                "Warning",
-	//                wxOK | wxICON_EXCLAMATION);
-
-	//    event.Veto();
-	//    return;
-	//  }
-
-	//  bool bOk = GetOperationtreectrl()->SelectRecord(product);
-
-	//  delete product;
-	//  product = nullptr;
-
-	//  if (!bOk)
-	//  {
-	//    wxMessageBox("You have not selected a record name.\n"
-	//                 "Dataset has not been changed.\n",
-	//                 "Changing operation dataset is cancelled",
-	//                  wxOK | wxCENTRE | wxICON_WARNING);
-
-	//    event.Veto();
-	//    return;
-	//  }
-
-	//}
-
-	//////////////////////////////////////////////////////////////////void COperationPanel::OnDatasetSelChanged( wxTreeEvent &event )
-
-	//DatasetSelChanged( id );
-	/////////////////////////////////////////////////////////////////////////////////////DatasetSelChanged(id);
+	//////////////////////////////////////////////////////////////////void COperationPanel::OnDatasetSelChanged( wxTreeEvent &event ) - begin
+	//DatasetSelChanged( id );////////////////////////////////////////void COperationPanel::DatasetSelChanged(id);
 
 	delete mProduct;		//deletes product, inserts nullptr in GetFieldstreectrl
-	mProduct = product;
+	mProduct = new_product;
 	if ( mProduct != nullptr )
 	{
 		//TODO
@@ -990,13 +908,13 @@ void COperationControls::HandleSelectedDatasetChanged_Advanced( int dataset_inde
 	}
 
 	mAdvancedFieldsTree->InsertProduct( mProduct );
+	if ( !mCurrentOperation )
+		return;
 
-	//TODO uncomment ans translate all the following lines
+	//TODO what is the meaning of the following lines ???
 	//
 	//wxTreeItemId rootIdFields = GetFieldstreectrl()->GetRootItem();
-
 	//int32_t nRecords = ( rootIdFields.IsOk() ) ? GetFieldstreectrl()->GetChildrenCount( rootIdFields, false ) : 0;
-
 	//if ( ( nRecords > 0 ) && ( nRecords <= 2 ) )
 	//{
 	//	wxTreeItemIdValue cookie;
@@ -1007,34 +925,25 @@ void COperationControls::HandleSelectedDatasetChanged_Advanced( int dataset_inde
 	//	}
 	//	GetFieldstreectrl()->Expand( idChild );
 	//}
-	//////////////////////////////////////////////////////////////////////////////////////
-
-
+	//////////////////////////////////////////////////////////////////DatasetSelChanged(id); end
 	//m_currentDataset = id;
 	//SetCurrentDataset();
+	//////////////////////////////////////////////////////////////////SetCurrentDataset(); begin
+	mCurrentOperation->SetDataset( mDataset );
+	mCurrentOperation->SetProduct( mProduct );
+	//////////////////////////////////////////////////////////////////SetCurrentDataset(); end
 
-	//// If there is only one record in the dataset ==> select it
-	//GetOperationRecord();
+	//// v3 note If there is only one record in the dataset ==> select it
+	//GetOperationRecord();		sets GetFieldstreectrl ("Fields" tree) with mCurrentOperation->GetRecord();
+	mAdvancedFieldsTree->SelectRecord( mCurrentOperation->GetRecord() );
 	//SetCurrentRecord();
+	mCurrentOperation->SetRecord( mAdvancedFieldsTree->GetCurrentRecord() );	
 
 	//SetDataSetAndRecordLabel();
-
 
 	//EnableCtrl();
 }
 
-
-//std::string COperationControls::FindOperation1stDisplayName() const
-//{
-//	std::string name;
-//	if ( mCurrentOperation )
-//	{
-//		auto displays = mModel->OperationDisplays( mCurrentOperation->GetName() );
-//		if ( displays.size() > 0 )
-//			name = displays[ 0 ]->GetName();
-//	}
-//	return name;
-//}
 
 
 void COperationControls::SelectDataComputationMode()		//from COperationPanel::GetDataMode()
@@ -1066,7 +975,7 @@ void COperationControls::SelectDataComputationMode()		//from COperationPanel::Ge
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-//		Data Expressions Tree
+//				Data Expressions Operations
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -1118,6 +1027,7 @@ void COperationControls::HandleFormulaInserted( CFormula *formula )
 {
     Q_UNUSED( formula );
 
+	LOG_INFO( "Inserted formula " + ( formula ? formula->GetName() : "null" ) );
 	//std::string	error_msg;
 	//mCurrentOperation->ComputeInterval( error_msg );
 
@@ -1128,18 +1038,7 @@ void COperationControls::HandleFormulaInserted( CFormula *formula )
 
 void COperationControls::HandleInsertFunction()
 {
-	assert__( mUserFormula );
-
-	CInsertFunctionDialog dlg( this );
-	if ( dlg.exec() == QDialog::Accepted )
-	{
-		std::string name = dlg.ResultFunction();
-		std::string function_syntax = CMapFunction::GetInstance().GetSyntaxFunc( name );
-		
-		mExpressionTextWidget->insertPlainText( function_syntax.c_str() );
-		mUserFormula->SetDescription( q2a( mExpressionTextWidget->toPlainText() ) );
-		mDataExpressionsTree->FormulaChanged( mUserFormula );
-	}
+	mDataExpressionsTree->InsertFunction();
 }
 
 
@@ -1150,60 +1049,34 @@ std::string COperationControls::GetOpunit()		//TODO how to deal/assign with fiel
 	return mUserFormula->GetUnitAsText();
 }
 
-
 void COperationControls::HandleInsertAlgorithm()
 {
 	assert__( mCurrentOperation );
 
-	CInsertAlgorithmDialog dlg( this );
-	if ( dlg.exec() == QDialog::Accepted )
-	{
-		mExpressionTextWidget->insertPlainText( dlg.CurrentAlgorithm()->GetSyntax().c_str() );
-		mUserFormula->SetDescription( q2a( mExpressionTextWidget->toPlainText() ) );				////SetTextFormula();
+	mDataExpressionsTree->InsertAlgorithm();
 
-		//TODO how to deal/assign with field units		
-		//SetUnitText();
-	}
+	//TODO how to deal/assign with field units		
+	//SetUnitText();
 }
-
 
 void COperationControls::HandleInsertFormula()
 {
-	CFormulaDialog dlg( mWFormula, this );
-	if ( dlg.exec() == QDialog::Accepted )
-	{
-		//GetFormulaSyntax( GetOptextform(), GetOpunit() );
-		std::string name = dlg.CurrentFormula()->GetName();
-		std::string syntax = mWFormula->GetDescFormula( name, dlg.AsAlias() );
-		mExpressionTextWidget->insertPlainText( syntax.c_str() );
-		//TODO how to deal/assign with field units		
-		//	unitCtrl->SetValue( dlg.m_formula->GetUnitAsText() );
-		mUserFormula->SetDescription( q2a( mExpressionTextWidget->toPlainText() ) );				////SetTextFormula();
-
-		//TODO how to deal/assign with field units		
-		//SetUnitText();
-	}
+	mDataExpressionsTree->InsertFormula();
 }
-
 
 void COperationControls::HandleSaveAsFormula()
 {
-    CSaveAsFormula dlg( this );
-    if ( dlg.exec() == QDialog::Accepted )
-    {
-        NOT_IMPLEMENTED;
-    }
+	mDataExpressionsTree->SaveAsFormula();
 }
+
+
 void COperationControls::HandleDataComputation()
 {
-	assert__( mCurrentOperation != nullptr );
+	assert__( mCurrentOperation && mUserFormula && mUserFormula == mDataExpressionsTree->SelectedFormula() );
 
 	auto a = qobject_cast<QAction*>( sender() );	assert__( a );
 
-	MSG_NOT_IMPLEMENTED( q2a( a->text() ) );
-	return;
-
-	CFormula *formula = nullptr;	// TODO DODODODODODODODODODODODODO GetCurrentFormula();
+	CFormula *formula = mUserFormula;	// TODO DODODODODODODODODODODODODO GetCurrentFormula();
 	if ( formula == nullptr )
 	{
 		return;
@@ -1220,47 +1093,11 @@ void COperationControls::HandleDataComputation()
 }
 
 
-bool COperationControls::CheckSyntax()
-{
-	assert__( mCurrentOperation );
-
-	std::string value = q2a( mExpressionTextWidget->toPlainText() );
-	std::string value_out;
-	bool result = false;
-	std::string msg;
-
-	if ( mCurrentOperation->IsSelect( mUserFormula ) )
-	{
-		result = CFormula::CheckExpression( mWFormula, value.c_str(), mCurrentOperation->GetRecord(), msg, nullptr, &mMapFormulaString, mProduct, &value_out );
-		if ( !result )
-			SimpleWarnBox( msg );
-	}
-	else
-	{
-		std::string unit;// = GetOpunit()->GetValue();	//TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	
-		result = CFormula::CheckExpression( mWFormula, value.c_str(), mCurrentOperation->GetRecord(), msg, &unit, &mMapFormulaString, mProduct, &value_out );
-	}
-
-	if ( ! value_out.empty() )
-	{
-		if ( value != value_out )
-		{
-			mExpressionTextWidget->setPlainText( value_out.c_str() );
-		}
-	}
-
-	if ( !result )
-	{
-		mExpressionTextWidget->setFocus();
-	}
-
-	return result;
-}
-
-
 void COperationControls::HandleCheckSyntax()
 {
-	CheckSyntax();
+	assert__( mProduct );
+
+	mDataExpressionsTree->CheckSyntax( mProduct );
 }
 
 
@@ -1335,6 +1172,18 @@ void COperationControls::HandleNewOperation()
 {
 	assert__( mWOperation );
 
+	int dataset_index = mAdvancedDatasetsCombo->currentIndex();
+	CDataset *dataset = nullptr;
+	if ( dataset_index >= 0 )
+	{
+		dataset = mWDataset->GetDataset( q2a( mAdvancedDatasetsCombo->itemText( dataset_index ) ) );		assert__( dataset );
+	}
+	if ( dataset_index < 0 || dataset->IsEmpty() )
+	{
+		SimpleErrorBox( "Cannot create an operation without a dataset or with an empty one.\nPlease, select a valid dataset first." );
+		return;
+	}
+
 	WaitCursor wait;
 
 	//FillFormulaList();			//fills m_mapFormulaString (a CStringMap) with GetCurrentWorkspaceFormula()->GetFormulaNames(  );
@@ -1363,7 +1212,7 @@ void COperationControls::HandleNewOperation()
 	mCurrentOperation = mWOperation->GetOperation( op_name );
 	mCurrentOperation->InitOutput( mWOperation );
 	mCurrentOperation->InitExportAsciiOutput( mWOperation );
-	mDataExpressionsTree->InsertOperation( mCurrentOperation );
+	mDataExpressionsTree->InsertOperation( mCurrentOperation );		//makes mExpressionTextWidget->setText( formula ? formula->GetDescription().c_str() : "" );
 
 	//GetDataMode();				//select value in GetOpDataMode combo
 	SelectDataComputationMode();
@@ -1379,12 +1228,10 @@ void COperationControls::HandleNewOperation()
 	mDataExpressionsTree->SelectX();
 
 	//SetCurrentFormula();		//fills formula related fields: "Expression", "Unit" list, GetOptype combo, GetOpDataMode list, labels below "Expression" (SetResolutionLabels); see SetCurrentFormula
-	auto *formula = mDataExpressionsTree->SelectedFormula();
-	mExpressionTextWidget->setText( formula ? formula->GetDescription().c_str() : "" );
+	//auto *formula = mDataExpressionsTree->SelectedFormula();
+	//mExpressionTextWidget->setText( formula ? formula->GetDescription().c_str() : "" );	see above
 
 	//SetCurrentDataset();		//sets the (real) operation dataset and formula
-	int index = mAdvancedDatasetsCombo->currentIndex();
-	auto *dataset = index >= 0 ? mWDataset->GetDataset( q2a( mAdvancedDatasetsCombo->itemText( index ) ) ) : nullptr;
 	mCurrentOperation->SetDataset( dataset );
 	mCurrentOperation->SetProduct( mProduct );
 
@@ -1392,12 +1239,9 @@ void COperationControls::HandleNewOperation()
 																					mOperationsCombo->setCurrentIndex( mOperationsCombo->findText( op_name.c_str() ) );
 
 	// v3 note: If there is only one record in the dataset ==> select it
-	//GetOperationRecord();			//sets GetFieldstreectrl ("Fields" tree) with mCurrentOperation->GetRecord();
-	mAdvancedFieldsTree->SelectRecord( mCurrentOperation->GetRecord() );
-
-	//SetCurrentRecord();				//mCurrentOperation->SetRecord( GetFieldstreectrl()->GetCurrentRecord().ToStdString() );
-	//mCurrentOperation->SetRecord( mAdvancedFieldsTree->GetCurrentRecord() );		//isn't this stupid???
-
+	
+	mAdvancedFieldsTree->SelectRecord( mCurrentOperation->GetRecord() );		//GetOperationRecord();		sets GetFieldstreectrl ("Fields" tree) with mCurrentOperation->GetRecord();
+	mCurrentOperation->SetRecord( mAdvancedFieldsTree->GetCurrentRecord() );	//SetCurrentRecord();	//doesn't this return the record just assigned ???	
 
 	/*
 	SetDataSetAndRecordLabel();		//sets blue labels: 
@@ -1587,7 +1431,7 @@ void COperationControls::HandleRenameOperation()
             if ( output_exists ) // old file has been renamed, so we have to save ALL workspaces to keep consistency
             {
                 std::string error_msg;
-                if ( !mModel->SaveWorkspace( error_msg ) )
+                if ( !mModel.SaveWorkspace( error_msg ) )
                 {
                     assert__( !error_msg.empty() );
 
@@ -1718,44 +1562,27 @@ void COperationControls::HandleLaunchScheduler()
 /////////////////////////////////////////////////////////////////////////////////
 
 
-void COperationControls::LaunchDisplay()
+void COperationControls::LaunchDisplay( const std::string &display_name )
 {
 	assert__( mCurrentOperation );
 
-//	if ( mCurrentOperation->IsMap() )
-//	{
-//		auto ed = new CMapEditor( mModel, mCurrentOperation, "", mManager->parentWidget() );
-//		auto subWindow = mManager->AddSubWindow( ed );
-//		subWindow->show();
-//	}
-//	else
-//	if ( mCurrentOperation->IsZFXY() || mCurrentOperation->IsYFX() )
-//	{
-//		auto ed = new CPlotEditor( mModel, mCurrentOperation, "", mManager->parentWidget() );
-//		auto subWindow = mManager->AddSubWindow( ed );
-//		subWindow->show();
-//	}
-//	else
-//		assert__( false );
-
-
-    if ( IsMap() )
+    if ( MapRequested() )
     {
-        assert__( mCurrentOperation->IsMap() || mCurrentOperation->IsZFXY() );
+        assert__( mCurrentOperation->IsMap() );
 
-        auto ed = new CMapEditor( mModel, mCurrentOperation, "", mManager->parentWidget() );
-        auto subWindow = mManager->AddSubWindow( ed );
+        auto ed = new CMapEditor( &mModel, mCurrentOperation, display_name, mDesktopManager->parentWidget() );
+        auto subWindow = mDesktopManager->AddSubWindow( ed );
         subWindow->show();
     }
     else
-    if ( mCurrentOperation->IsZFXY() || mCurrentOperation->IsYFX() )
+    //if ( mCurrentOperation->IsZFXY() || mCurrentOperation->IsYFX() )
     {
-        auto ed = new CPlotEditor( mModel, mCurrentOperation, "", mManager->parentWidget() );
-        auto subWindow = mManager->AddSubWindow( ed );
+        auto ed = new CPlotEditor( &mModel, mCurrentOperation, display_name, mDesktopManager->parentWidget() );
+        auto subWindow = mDesktopManager->AddSubWindow( ed );
         subWindow->show();
     }
-    else
-        assert__( false );
+    //else
+    //    assert__( false );
 }
 
 
@@ -1763,7 +1590,7 @@ void COperationControls::LaunchDisplay()
 //								Execute
 /////////////////////////////////////////////////////////////////////////////////
 
-bool COperationControls::IsMap() const
+bool COperationControls::MapRequested() const
 {
     return mSwitchToMapButton->isChecked();
 }
@@ -1781,25 +1608,25 @@ void COperationControls::HandleProcessFinished( int exit_code, QProcess::ExitSta
 		return;			
 
 
-	std::string dname = mWDisplay->GetDisplayNewName();
-	mWDisplay->InsertDisplay( dname );
-	CDisplay *display = mWDisplay->GetDisplay( dname );
+	std::string display_name = mWDisplay->GetDisplayNewName();
+	mWDisplay->InsertDisplay( display_name );
+	CDisplay *display = mWDisplay->GetDisplay( display_name );
 	display->InitOutput( mWDisplay );
-
-	//display panel -> GetOperations();
-	//display panel -> GetDispavailtreectrl()->InsertData( &m_dataList );
-	CMapDisplayData *m_dataList = new CMapDisplayData;
-	m_dataList->clear();
-	if ( !CreateDisplayData( mCurrentOperation, *m_dataList ) )	//CDisplay::GetDisplayType failed
+	if (!display->AssignOperation( mCurrentOperation ) )
+	////display panel -> GetOperations();
+	////display panel -> GetDispavailtreectrl()->InsertData( &m_dataList );
+	//CMapDisplayData *m_dataList = new CMapDisplayData;
+	//m_dataList->clear();
+	//if ( !CreateDisplayData( mCurrentOperation, *m_dataList ) )	//CDisplay::GetDisplayType failed
 	{
 		SimpleErrorBox( "Could not retrieve operation output." );
 		return;
 	
 	}
-	for ( auto &data : *m_dataList )
-		display->InsertData( data.first, dynamic_cast<CDisplayData*>( data.second ) );
+	//for ( auto &data : *m_dataList )
+	//	display->InsertData( data.first, dynamic_cast<CDisplayData*>( data.second ) );
 
-	LaunchDisplay();
+	LaunchDisplay( display_name );
 }
 
 bool COperationControls::HandleExecute()
@@ -1838,13 +1665,28 @@ bool COperationControls::Execute( bool sync )
 
 	assert__( mCurrentOperation );
 
+	//v4 checks 
+
+    if ( MapRequested() )
+    {
+		if ( !mCurrentOperation->IsMap() )
+		{
+			SimpleErrorBox( "A map view was requested but the operation expressions are not suitable for a map.\n"
+				"Map views require longitude, latitude and data fields." );
+			return false;
+		}
+    }
+
+
+	//v3 checks 
+
 	auto CtrlOperation = [this]( CWorkspaceFormula *wks, std::string& msg, bool basicControl, const CStringMap* aliases )
 	{
 		if ( mCurrentOperation && mCurrentOperation->Control( wks, msg, basicControl, aliases ) )
 		{
 			if ( mUserFormula != nullptr )
 			{
-				mExpressionTextWidget->setText( mUserFormula->GetDescription().c_str() );		//mExpressionTextWidget is v3 GetOptextform()
+				mDataExpressionsTree->ExpressionTextWidget()->setText( mUserFormula->GetDescription().c_str() );		//mExpressionTextWidget is v3 GetOptextform()
 			}
 			return true;
 		}

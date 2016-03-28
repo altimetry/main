@@ -449,7 +449,7 @@ void CAttributeListPanel::Update()
 
 
   wxString strSelect = m_stipplePatternChoice->GetStringSelection();
-  StipplePattern stipple = CMapStipplePattern::GetInstance().NameToStipple(strSelect.ToStdString());
+  EStipplePattern stipple = CMapStipplePattern::GetInstance().NameToStipple(strSelect.ToStdString());
   props->SetLineStipple(stipple);
 
   double lineWidth;
@@ -457,7 +457,7 @@ void CAttributeListPanel::Update()
   props->SetLineWidth(lineWidth * props->GetLineWidthFactor());
 
   strSelect = m_glyphChoice->GetStringSelection();
-  PointGlyph glyph = CMapPointGlyph::GetInstance().NameToGlyph(strSelect.ToStdString());
+  EPointGlyph glyph = CMapPointGlyph::GetInstance().NameToGlyph(strSelect.ToStdString());
   props->SetPointGlyph(glyph);
 
   

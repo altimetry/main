@@ -202,7 +202,7 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 
 	// Register Brat algorithms
 	//
-	CBratAlgorithmBase::RegisterAlgorithms();
+	RegisterAlgorithms();
 
 
 	// To be sure that number have always a decimal point (and not a comma or something else)
@@ -347,6 +347,7 @@ void CBratApplication::CreateSplash()
 }
 
 
+
 void CBratApplication::UpdateSettings()
 {
 	bool result = true;
@@ -365,6 +366,88 @@ void CBratApplication::UpdateSettings()
 
 	//return result;
 }
+
+
+
+void CBratApplication::RegisterAlgorithms()
+{
+	static const std::string file_prefix = "BratAlgorithm-";
+	static const std::string file_suffix = ".py";
+
+	//types
+
+	struct python_base_creator : public base_creator
+	{
+		using base_t = base_creator;
+
+		const std::string mFilePath;
+		const std::string mClassName;
+
+		python_base_creator( const std::string file_path, const std::string &class_name ) 
+			: base_t( nullptr )
+			, mFilePath( file_path )
+			, mClassName( class_name )
+		{}
+
+		virtual ~python_base_creator()
+		{}
+
+		virtual CBratAlgorithmBase* operator()( void )
+		{
+			return new PyAlgo( mFilePath, mClassName );
+		}
+	};
+
+
+	//function body
+
+	//load C++ algorithms
+
+	CBratAlgorithmBase::RegisterAlgorithms();
+
+	//load python algorithms
+
+	const std::string python_algorithms_path = mSettings.BratPaths().mExternalDataDir + "/python";
+	try
+	{
+		QDir sourceDir( python_algorithms_path.c_str() );
+		QStringList files = sourceDir.entryList( QDir::Files );
+		auto &registry = CBratAlgorithmBaseRegistry::GetInstance();
+		for ( int i = 0; i < files.count(); i++ )
+		{
+			auto file_name = q2a( files[ i ] );
+			if ( StartsWith( file_name, file_prefix ) && EndsWith( file_name, file_suffix ) )
+			{
+				auto path = python_algorithms_path + "/" + file_name;
+				auto class_name = file_name.substr( file_prefix.length() );
+				class_name = class_name.substr( 0, class_name.length() - file_suffix.length() );				//qDebug() << files[ i ];
+				registry.Add( new python_base_creator( path, class_name ) );
+			}
+		}
+	}
+	catch ( const CException &e )
+	{
+		LOG_WARN( e.Message() );
+		SimpleErrorBox( e.Message() );
+	}
+	catch ( ... )
+	{
+		static const std::string msg(
+			"Unknown exception caught loading python algorithm.\nPlease make sure that the python file name matches the pattern "
+			+ file_prefix + "<python-class-name>" + file_suffix );
+		LOG_WARN( msg );
+		SimpleErrorBox( msg );
+	}
+}
+
+
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+//			PythonEngine Singleton
+////////////////////////////////////////////////
+////////////////////////////////////////////////
+
+const PythonEngine& PyAlgo::sm_pe = PythonEngine::Instance();
 
 
 

@@ -198,7 +198,7 @@ CZFXYPlotData::CZFXYPlotData( CZFXYPlot* plot, CPlotField* field )
 
 	if ( field->m_zfxyProps != nullptr )
 	{
-		m_plotProperty = *field->m_zfxyProps;
+		m_plotProperties = *field->m_zfxyProps;
 	}
 
 	m_currentMap = 0;
@@ -256,37 +256,37 @@ std::string CZFXYPlotData::GetDataUnitString( size_t index ) const
 //----------------------------------------
 void CZFXYPlotData::Create( CObArray* data, const std::string& fieldName, CZFXYPlot* plot )
 {
-	if ( m_plotProperty.m_name.empty() )
+	if ( m_plotProperties.m_name.empty() )
 	{
-		m_plotProperty.m_name = fieldName.c_str();
+		m_plotProperties.m_name = fieldName.c_str();
 	}
 
-	if ( m_plotProperty.m_title.empty() )
+	if ( m_plotProperties.m_title.empty() )
 	{
-		m_plotProperty.m_title = plot->m_title;
+		m_plotProperties.m_title = plot->m_title;
 	}
 
 
-	if ( m_plotProperty.m_xLabel.empty() )
+	if ( m_plotProperties.m_xLabel.empty() )
 	{
-		m_plotProperty.m_xLabel = plot->m_titleX;
+		m_plotProperties.m_xLabel = plot->m_titleX;
 	}
 	else
 	{
-		std::string titleX = m_plotProperty.m_xLabel;
+		std::string titleX = m_plotProperties.m_xLabel;
 		titleX += plot->m_unitXLabel;
-		m_plotProperty.m_xLabel = titleX;
+		m_plotProperties.m_xLabel = titleX;
 	}
 
-	if ( m_plotProperty.m_yLabel.empty() )
+	if ( m_plotProperties.m_yLabel.empty() )
 	{
-		m_plotProperty.m_yLabel = plot->m_titleY;
+		m_plotProperties.m_yLabel = plot->m_titleY;
 	}
 	else
 	{
-		std::string titleY = m_plotProperty.m_yLabel;
+		std::string titleY = m_plotProperties.m_yLabel;
 		titleY += plot->m_unitYLabel;
-		m_plotProperty.m_yLabel = titleY;
+		m_plotProperties.m_yLabel = titleY;
 	}
 
 	m_unitX = plot->m_unitX;
@@ -316,13 +316,13 @@ void CZFXYPlotData::Create( CObArray* data, const std::string& fieldName, CZFXYP
 		setDefaultValue( mMaps().mMaxY );
 
 		//	v4 note:
-		//	These assignments and the assignments below to m_plotProperty.m_xxxContourValue 
+		//	These assignments and the assignments below to m_plotProperties.m_xxxContourValue 
 		//	show that it was implicitly assumed that m_nrMaps was always 1, otherwise these 
-		//	values wouldn't be set to m_plotProperty.m_xxxHeightValue (which never changes 
+		//	values wouldn't be set to m_plotProperties.m_xxxHeightValue (which never changes 
 		//	in the loop) in each iteration. Or, this is a bug.
 		//
-		mMaps().mMinHeightValue = m_plotProperty.m_minHeightValue;
-		mMaps().mMaxHeightValue = m_plotProperty.m_maxHeightValue;
+		mMaps().mMinHeightValue = m_plotProperties.m_minHeightValue;
+		mMaps().mMaxHeightValue = m_plotProperties.m_maxHeightValue;
 
 		CExpressionValue varX;
 		CExpressionValue varY;
@@ -338,13 +338,13 @@ void CZFXYPlotData::Create( CObArray* data, const std::string& fieldName, CZFXYP
 			throw ( e );
 
 		}
-		if ( zfxy->IsGeographic() )
-		{
-			CException e( "CZFXYPlotData ctor - Geographical data found - zfxy->IsGeographic() is true", BRATHL_LOGIC_ERROR );
-			CTrace::Tracer( "%s", e.what() );
-			throw ( e );
+		//if ( zfxy->IsGeographic() )
+		//{
+		//	CException e( "CZFXYPlotData ctor - Geographical data found - zfxy->IsGeographic() is true", BRATHL_LOGIC_ERROR );
+		//	CTrace::Tracer( "%s", e.what() );
+		//	throw ( e );
 
-		}
+		//}
 
 
 #if defined(BRAT_V3)		// TODO replace by callback device to display progress
@@ -395,7 +395,7 @@ void CZFXYPlotData::Create( CObArray* data, const std::string& fieldName, CZFXYP
 		std::string dataTitle = zfxy->GetTitle( fieldName );
 		if ( dataTitle.empty() )
 		{
-			dataTitle = m_plotProperty.m_name;
+			dataTitle = m_plotProperties.m_name;
 		}
 
 		m_dataTitles.Insert( dataTitle );
@@ -558,14 +558,14 @@ void CZFXYPlotData::Create( CObArray* data, const std::string& fieldName, CZFXYP
 	}
 
 
-	if ( isDefaultValue( m_plotProperty.m_minContourValue ) )
+	if ( isDefaultValue( m_plotProperties.m_minContourValue ) )
 	{
-		m_plotProperty.m_minContourValue = mMaps().mMinHeightValue;
+		m_plotProperties.m_minContourValue = mMaps().mMinHeightValue;
 	}
 
-	if ( isDefaultValue( m_plotProperty.m_maxContourValue ) )
+	if ( isDefaultValue( m_plotProperties.m_maxContourValue ) )
 	{
-		m_plotProperty.m_maxContourValue = mMaps().mMaxHeightValue;
+		m_plotProperties.m_maxContourValue = mMaps().mMaxHeightValue;
 	}
 
 #if defined(BRAT_V3)		// TODO replace by callback device to display progress

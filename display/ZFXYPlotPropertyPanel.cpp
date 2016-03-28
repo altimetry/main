@@ -893,7 +893,7 @@ void CZFXYPlotPropertyPanel::OnSolidColor(wxCommandEvent& event)
   }
 
   bool show = GetZfxyshowsolidcolor()->GetValue();
-  pdata->m_plotProperty.m_solidColor = show;
+  pdata->m_plotProperties.m_solidColor = show;
 
   m_plotter->RemoveActors();
   m_plotter->AddActors();
@@ -926,35 +926,35 @@ void CZFXYPlotPropertyPanel::ContourPropChanged( CZFXYContourPropChangedEvent &e
     return;
   }
 
-  if ((event.m_plotProperty.m_numContour != pdata->m_plotProperty.m_numContour) ||
-      (event.m_plotProperty.m_minContourValue != pdata->m_plotProperty.m_minContourValue) ||
-      (event.m_plotProperty.m_maxContourValue != pdata->m_plotProperty.m_maxContourValue))
+  if ((event.m_plotProperties.m_numContour != pdata->m_plotProperties.m_numContour) ||
+      (event.m_plotProperties.m_minContourValue != pdata->m_plotProperties.m_minContourValue) ||
+      (event.m_plotProperties.m_maxContourValue != pdata->m_plotProperties.m_maxContourValue))
   {
     contourNeedGenerateValues = true;
   }
 
-  if ((event.m_plotProperty.m_numContourLabel != pdata->m_plotProperty.m_numContourLabel))
+  if ((event.m_plotProperties.m_numContourLabel != pdata->m_plotProperties.m_numContourLabel))
   {
     pdata->SetContourLabelNeedUpdatePositionOnContour(true);
   }
   
 
   //---------------------------
-  /////////////pdata->m_plotProperty = event.m_plotProperty;
-  pdata->m_plotProperty.m_numContour = event.m_plotProperty.m_numContour;
-  pdata->m_plotProperty.m_minContourValue = event.m_plotProperty.m_minContourValue;
-  pdata->m_plotProperty.m_maxContourValue = event.m_plotProperty.m_maxContourValue;
+  /////////////pdata->m_plotProperties = event.m_plotProperties;
+  pdata->m_plotProperties.m_numContour = event.m_plotProperties.m_numContour;
+  pdata->m_plotProperties.m_minContourValue = event.m_plotProperties.m_minContourValue;
+  pdata->m_plotProperties.m_maxContourValue = event.m_plotProperties.m_maxContourValue;
 
-  pdata->m_plotProperty.m_contourLineColor = event.m_plotProperty.m_contourLineColor;
-  pdata->m_plotProperty.m_contourLineWidth = event.m_plotProperty.m_contourLineWidth;
+  pdata->m_plotProperties.m_contourLineColor = event.m_plotProperties.m_contourLineColor;
+  pdata->m_plotProperties.m_contourLineWidth = event.m_plotProperties.m_contourLineWidth;
 
-  pdata->m_plotProperty.m_withContourLabel = event.m_plotProperty.m_withContourLabel;
-  pdata->m_plotProperty.m_numContourLabel = event.m_plotProperty.m_numContourLabel;
+  pdata->m_plotProperties.m_withContourLabel = event.m_plotProperties.m_withContourLabel;
+  pdata->m_plotProperties.m_numContourLabel = event.m_plotProperties.m_numContourLabel;
 
-  pdata->m_plotProperty.m_contourLabelColor = event.m_plotProperty.m_contourLabelColor;
+  pdata->m_plotProperties.m_contourLabelColor = event.m_plotProperties.m_contourLabelColor;
 
-  pdata->m_plotProperty.m_contourLabelSize = event.m_plotProperty.m_contourLabelSize;
-  pdata->m_plotProperty.m_contourLabelFormat = event.m_plotProperty.m_contourLabelFormat;
+  pdata->m_plotProperties.m_contourLabelSize = event.m_plotProperties.m_contourLabelSize;
+  pdata->m_plotProperties.m_contourLabelFormat = event.m_plotProperties.m_contourLabelFormat;
   //---------------------------
 
   if (contourNeedGenerateValues)
@@ -966,7 +966,7 @@ void CZFXYPlotPropertyPanel::ContourPropChanged( CZFXYContourPropChangedEvent &e
   pdata->SetContourLabelProperties();
 
 
-  if (pdata->m_plotProperty.m_withContourLabel)
+  if (pdata->m_plotProperties.m_withContourLabel)
   {
     /*
     if (pdata->GetContourLabelNeedUpdateOnWindow())
@@ -1006,7 +1006,7 @@ void CZFXYPlotPropertyPanel::OnContour(wxCommandEvent& event)
   }
 
   bool show = GetZfxyshowcontour()->GetValue();
-  pdata->m_plotProperty.m_withContour = show;
+  pdata->m_plotProperties.m_withContour = show;
   
   m_plotter->RemoveActors();
 
@@ -1282,8 +1282,8 @@ void CZFXYPlotPropertyPanel::SetCurrentLayer( VTK_CZFXYPlotData* geoMap )
   GetZfxyrangemin()->SetValue(m_min);
   GetZfxyrangemax()->SetValue(m_max);
 
-  GetZfxyshowsolidcolor()->SetValue(GetCurrentLayer()->m_plotProperty.m_solidColor);
-  GetZfxyshowcontour()->SetValue(GetCurrentLayer()->m_plotProperty.m_withContour);
+  GetZfxyshowsolidcolor()->SetValue(GetCurrentLayer()->m_plotProperties.m_solidColor);
+  GetZfxyshowcontour()->SetValue(GetCurrentLayer()->m_plotProperties.m_withContour);
 
 }
 //----------------------------------------

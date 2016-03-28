@@ -32,15 +32,9 @@ CPlotColor::CPlotColor(double r, double g, double b, double a )
 }
 
 //----------------------------------------
-CPlotColor::CPlotColor(int32_t r, int32_t g, int32_t b, int32_t a)
+CPlotColor::CPlotColor(const CPlotColor& color)
 {
-  Set(r, g, b, a);
-}
-
-//----------------------------------------
-CPlotColor::CPlotColor(const CPlotColor& vtkColor)
-{
-  Set(vtkColor);
+  Set(color);
 }
 
 //----------------------------------------
@@ -58,9 +52,9 @@ CPlotColor::~CPlotColor()
 }
 
 //----------------------------------------
-const CPlotColor& CPlotColor::operator =(const CPlotColor& vtkColor)
+const CPlotColor& CPlotColor::operator =(const CPlotColor& color)
 {
-  Set(vtkColor);
+  Set(color);
   return *this;
 }
 
@@ -79,14 +73,14 @@ const CPlotColor& CPlotColor::operator =(wxColourData& color)
 }
 femmTODO */
 //----------------------------------------
-bool CPlotColor::operator ==(const CPlotColor& vtkColor)
+bool CPlotColor::operator ==(const CPlotColor& color)
 {
   bool bEqual = true;
-  bEqual &= (this->Red() == vtkColor.Red());
-  bEqual &= (this->Green() == vtkColor.Green());
-  bEqual &= (this->Blue() == vtkColor.Blue());
-  bEqual &= (this->Alpha() == vtkColor.Alpha());
-  bEqual &= (this->Ok() == vtkColor.Ok());
+  bEqual &= (this->Red() == color.Red());
+  bEqual &= (this->Green() == color.Green());
+  bEqual &= (this->Blue() == color.Blue());
+  bEqual &= (this->Alpha() == color.Alpha());
+  bEqual &= (this->Ok() == color.Ok());
 
   return bEqual;
 }
@@ -120,12 +114,12 @@ void CPlotColor::Get(uint32_t& r, uint32_t& g, uint32_t& b, uint32_t& a) const
 }
 
 //----------------------------------------
-void CPlotColor::Get(int32_t& r, int32_t& g, int32_t& b, int32_t& a) const
+void CPlotColor::Get(int& r, int& g, int& b, int& a) const
 {
-  r = static_cast<int32_t>(m_r * 255);
-  g = static_cast<int32_t>(m_g * 255);
-  b = static_cast<int32_t>(m_b * 255);
-  a = static_cast<int32_t>(m_a * 255);
+  r = static_cast<int>(m_r * 255);
+  g = static_cast<int>(m_g * 255);
+  b = static_cast<int>(m_b * 255);
+  a = static_cast<int>(m_a * 255);
 }
 
 //----------------------------------------
@@ -177,7 +171,7 @@ void CPlotColor::Set(uint32_t r, uint32_t g, uint32_t b, uint32_t a)
 }
 
 //----------------------------------------
-void CPlotColor::Set(int32_t r, int32_t g, int32_t b, int32_t a)
+void CPlotColor::Set(int r, int g, int b, int a)
 {
   r = r < 0 ? 0 : r;
   g = g < 0 ? 0 : g;
@@ -192,12 +186,12 @@ void CPlotColor::Set(int32_t r, int32_t g, int32_t b, int32_t a)
 }
 
 //----------------------------------------
-void CPlotColor::Set(const CPlotColor& vtkColor)
+void CPlotColor::Set(const CPlotColor& color)
 {
-  m_r = vtkColor.m_r;
-  m_g = vtkColor.m_g;
-  m_b = vtkColor.m_b;
-  m_a = vtkColor.m_a;
+  m_r = color.m_r;
+  m_g = color.m_g;
+  m_b = color.m_b;
+  m_a = color.m_a;
   m_isInit = true;
 
 }
@@ -209,7 +203,7 @@ void CPlotColor::Set(const wxColour& color)
   Set(color.Red(), color.Green(), color.Blue());
 }
 //----------------------------------------
-void CPlotColor::Set(wxColourData& colorData, int32_t indexCustomColor)
+void CPlotColor::Set(wxColourData& colorData, int indexCustomColor)
 {
   if (indexCustomColor < 0)
   {

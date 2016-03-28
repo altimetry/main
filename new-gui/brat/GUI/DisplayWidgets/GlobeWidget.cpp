@@ -30,6 +30,66 @@ void CGlobeWidget::SetOSGDirectories( const std::string &GlobeDir )
 
 
 
+class CGlobeViewerWidget : public osgEarth::QtGui::ViewerWidget
+{
+	using base_t = osgEarth::QtGui::ViewerWidget;
+
+public:
+	CGlobeViewerWidget( osgViewer::ViewerBase *viewer )
+		: base_t( viewer )
+	{}
+	
+	virtual ~CGlobeViewerWidget()
+	{
+		Pause();
+	}
+
+
+	void Pause()
+	{
+		_timer.stop();
+	}
+
+	void Resume()
+	{
+		_timer.start(20);
+	}
+
+	bool IsPaused() const
+	{
+		return !_timer.isActive();
+	}
+};
+
+
+void CGlobeWidget::CanvasStarted()
+{
+	mGlobeViewerWidget->Pause();
+}
+void CGlobeWidget::CanvasFinished()
+{
+	if ( mLayersChanging )
+	{
+		mGlobe->imageLayersChanged();
+		mLayersChanging = false;
+	}
+	mGlobeViewerWidget->Resume();
+	mLayersChanging = true;
+}
+void CGlobeWidget::ImageLayersChanged()
+{
+	mLayersChanging = true;
+	bool paused = mGlobeViewerWidget->IsPaused();
+	if (!paused)
+		mGlobeViewerWidget->Pause();
+	//if (!paused)
+	//	mGlobeViewerWidget->Resume();
+	//mLayersChanging = false;
+}
+
+
+
+
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //		Globe Construction
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -40,7 +100,7 @@ CGlobeWidget::CGlobeWidget( QWidget *parent, QgsMapCanvas *the_canvas, QStatusBa
 {
 	mGlobe = new CGlobePlugin( the_canvas, sb );
 	mOsgViewer = mGlobe->osgViewer();										assert__( mOsgViewer );
-	mGlobeViewerWidget = new osgEarth::QtGui::ViewerWidget( mOsgViewer );	
+	mGlobeViewerWidget = new CGlobeViewerWidget( mOsgViewer );	
 
 	osg::Camera* camera = mOsgViewer->getCamera();
 	osgQt::GraphicsWindowQt *gw = dynamic_cast< osgQt::GraphicsWindowQt* >( camera->getGraphicsContext() );
@@ -65,6 +125,13 @@ CGlobeWidget::CGlobeWidget( QWidget *parent, QgsMapCanvas *the_canvas, QStatusBa
 	AddWidget( this, mGlobeViewerWidget );
 
 	setMinimumSize( min_globe_widget_width, min_globe_widget_height );
+
+
+
+	connect( the_canvas, SIGNAL( renderStarting() ), this, SLOT( CanvasStarted() ) );
+	connect( the_canvas, SIGNAL( mapCanvasRefreshed() ), this, SLOT( CanvasFinished() ) );
+	connect( the_canvas, SIGNAL( layersChanged() ), this, SLOT( ImageLayersChanged() ) );
+
 
 	//context menu
 
@@ -99,8 +166,14 @@ CGlobeWidget::~CGlobeWidget()
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//		Globe Construction
+//		
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void CGlobeWidget::RemoveLayers()
+{
+	mGlobe->RemoveLayers();
+}
 
 
 void CGlobeWidget::HandleSettings()

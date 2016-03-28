@@ -273,7 +273,7 @@ void CDisplayPanel::DeleteDisplay()
     return;
   }
 
-  bOk = wxGetApp().CanDeleteDisplay(m_display->GetName());
+  bOk = wxGetApp().CanDeleteDisplay(m_display->GetName());	//v4 note always returns true
 
   if (bOk == false)
   {
@@ -1148,18 +1148,13 @@ void CDisplayPanel::Execute()
 	}
 
 	wxString msg;
-
-	bool bOk = Control( msg );
-
-	if ( !bOk )
+	if ( !Control( msg ) )
 	{
 		wxMessageBox( msg, "Warning", wxOK | wxICON_EXCLAMATION );
 		return;
 	}
 
-	bOk = RefreshSelectedData();
-
-	if ( !bOk )
+	if ( !RefreshSelectedData() )
 	{
 		return;
 	}
@@ -1175,9 +1170,7 @@ void CDisplayPanel::Execute()
 		//wxGetApp().GetLogPanel()->GetLogMess(),
 		NULL );
 
-	bOk = wxGetApp().GetLogPanel()->AddProcess( process, true );
-
-	if ( bOk == false )
+	if ( !wxGetApp().GetLogPanel()->AddProcess( process, true ) )
 	{
 		delete process;
 		process = NULL;

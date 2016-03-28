@@ -130,7 +130,6 @@ private:
     // Domain
     //
 	CModel &mModel;
-	CBratFilters mBratFilters;
 
 
 	/////////////////////////////
@@ -221,7 +220,7 @@ signals:
 	//			Signals
 	////////////////////////////////////
 
-	void WorkspaceChanged( CModel *model );
+	void WorkspaceChanged();
 	void WorkspaceChanged( CWorkspaceDataset *wksd );
 	void WorkspaceChanged( CWorkspaceOperation *wkso );
 	void WorkspaceChanged( CWorkspaceDisplay *wksd );
@@ -255,7 +254,7 @@ protected slots:
 
     // Update State
     //
-    void WorkspaceChangedUpdateUI( CModel *model );
+    void WorkspaceChangedUpdateUI();
 	void HandleSyncProcessExecution( bool executing );
 	void EnableMapSelectionActions( bool enable );		//more a slot helper than a slot
 

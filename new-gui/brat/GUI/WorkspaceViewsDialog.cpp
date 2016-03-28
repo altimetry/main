@@ -28,6 +28,8 @@ void CWorkspaceViewsDialog::CreateWidgets()
 	mViewsListWidget->setSelectionMode( QAbstractItemView::SingleSelection );
 	mViewsListWidget->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::MinimumExpanding );
 
+	mMapsAsPlotsCheckBox = new QCheckBox( "Display maps as 3D plots" );
+
 
 	//	... Help
 
@@ -50,6 +52,7 @@ void CWorkspaceViewsDialog::CreateWidgets()
             LayoutWidgets( Qt::Vertical,
                             {
                                 mViewsListWidget,
+								mMapsAsPlotsCheckBox,
 								help_group,
                                 mButtonBox
 

@@ -63,7 +63,6 @@ enum EActionTag : int
 
 	eAction_DisplayEditor2D,
 	eAction_DisplayEditor3D,
-	eAction_DisplayEditorLog,
 	eAction_DisplayEditorDock,
 
 	eAction_MeasureLine,

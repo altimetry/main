@@ -6,6 +6,7 @@
 #include "new-gui/Common/QtStringUtils.h"
 #include "ApplicationLogger.h"
 
+#include "PlotValues.h"
 #include "DataModels/DisplayFilesProcessor.h"
 
 #include "DataModels/PlotData/WorldPlot.h"
@@ -22,57 +23,6 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void CBratMapView::CreatePlot( const CWorldPlotProperties *props, CWPlot* wplot )
-{
-	//wplot->GetInfo();		 assumed done by caller
-
-	mPlotProperties = *props;	// *proc->GetWorldPlotProperties( 0 );
-	this->setWindowTitle( t2q( wplot->MakeTitle() ) );
-
-	// for Geo-strophic velocity
-	//
-	CPlotField * northField =nullptr;
-	CPlotField * eastField =nullptr;
-
-	for ( auto &itField : wplot->m_fields )
-	{
-		CPlotField* field = CPlotField::GetPlotField( itField );
-
-#if defined(Q_OS_WIN)
-        assert__(field->m_worldProps == props );
-#endif
-
-		if ( field->m_internalFiles.empty() )
-			continue;
-
-		if ( field->m_worldProps->m_northComponent && northField == nullptr ) 
-		{
-			northField = field;
-			continue;
-		}
-		else
-		if ( field->m_worldProps->m_eastComponent && eastField == nullptr ) 
-		{
-			eastField = field;
-			continue;
-		}
-
-		// otherwise just add it as regular data
-		AddData( new CWorldPlotData( field ) );					   		//v4 note: CWorldPlotData ctor is only invoked here
-	}
-
-	// we have a Vector Plot!
-	if ( northField != nullptr && eastField != nullptr ) 
-	{
-		AddData( new CWorldPlotVelocityData( northField, eastField ) );	//v4 note: CWorldPlotVelocityData ctor is only invoked here
-	}
-	else if ( northField != eastField ) 
-	{
-		CException e( "CBratDisplayApp::CreateWPlot - incomplete std::vector plot components", BRATHL_INCONSISTENCY_ERROR );
-		LOG_TRACE( e.what() );
-		throw e;
-	}
-}
 //void CWorldPlotRenderer::AddData( CWorldPlotData* pdata )
 //{
 //	pdata->SetRenderer( m_vtkRend );
@@ -109,7 +59,7 @@ void CBratMapView::PlotTrack( const double *x, const double *y, size_t size, QCo
     }
 
 #if defined (USE_FEATURES)
-    auto memL = AddMemoryLayer( createPointSymbol( 0.7, color ) );	//(*)	//note that you can use strings like "red" instead!!!
+    auto memL = AddMemoryLayer( "", CreatePointSymbol( 0.7, color ) );	//(*)	//note that you can use strings like "red" instead!!!
     memL->dataProvider()->addFeatures( flist );
     //memL->updateExtents();
     //refresh();
@@ -130,25 +80,30 @@ void CBratMapView::PlotTrack( const double *x, const double *y, const double *z,
     }
 
 #if defined (USE_FEATURES)
-    auto memL = AddMemoryLayer( createPointSymbol( 0.7, color ) );	//(*)	//note that you can use strings like "red" instead!!!
+    auto memL = AddMemoryLayer( "", CreatePointSymbol( 0.7, color ) );	//(*)	//note that you can use strings like "red" instead!!!
     memL->dataProvider()->addFeatures( flist );
     //memL->updateExtents();
     //refresh();
 #endif
 }
 
-void CBratMapView::AddData( CWorldPlotData* pdata )
-{
-	CWorldPlotData* geoMap = dynamic_cast<CWorldPlotData*>( pdata );
-	const CWorldPlotInfo &maps = geoMap->PlotInfo();					assert__( maps.size() == 1 );	//simply to check if ever...
-	Plot( maps );
-}
-void CBratMapView::Plot( const CWorldPlotInfo &maps )
-{
 
-	auto IsValidPoint = [&maps]( int32_t i )
+
+
+void CBratMapView::AddData( CWorldPlotData *pdata, size_t index )
+{
+    Q_UNUSED( index );					   	//index is NOT the index in maps
+
+	CWorldPlotData* geo_map = pdata;
+	const CWorldPlotInfo &maps = geo_map->PlotInfo();					assert__( maps.size() == 1 );	//simply to check if ever...	
+	mMapDataCollection.push_back( geo_map );
+	Plot( maps, &geo_map->m_plotProperty );
+}
+void CBratMapView::Plot( const CWorldPlotInfo &maps, CWorldPlotProperties *props )
+{
+	auto IsValidPoint = []( const CWorldPlotParameters &map, int32_t i )
 	{
-		bool bOk = maps(0).mBits[ i ];
+		bool bOk = map.mBits[ i ];
 
 		//	  if (Projection == VTK_PROJ2D_MERCATOR)
 		//	  {
@@ -159,30 +114,29 @@ void CBratMapView::Plot( const CWorldPlotInfo &maps )
 	};
 
 
-	auto const size = maps(0).mValues.size();
+	auto const size = maps( 0 ).mValues.size();
+	const CWorldPlotParameters &map = maps( 0 );
 	QgsFeatureList flist;
 
 #if defined (USE_POINTS)	//(**)
 
 	for ( auto i = 0u; i < size; ++ i )
 	{
-		if ( !IsValidPoint( i ) )
+		if ( !IsValidPoint( map, i ) )
 			continue;
 
-		auto x = i % maps(0).mXaxis.size(); // ( x * geoMap->lats.size() ) + i;
-		auto y = i / maps(0).mXaxis.size(); // ( x * geoMap->lats.size() ) + i;
+		auto x = i % map.mXaxis.size(); // ( x * geo_map->lats.size() ) + i;
+		auto y = i / map.mXaxis.size(); // ( x * geo_map->lats.size() ) + i;
 
 #if defined (USE_FEATURES) //(***)
-		createPointFeature( flist, maps(0).mXaxis.at( x ), maps(0).mYaxis.at( y ), maps(0).mValues[ i ] );
-		//createPointFeature( flist, geoMap->lons.at( x ), geoMap->lats.at( y ), QColor( 0, (unsigned char)(geoMap->vals[ i ]), 0 ) );
+		createPointFeature( flist, map.mXaxis.at( x ), map.mYaxis.at( y ), map.mValues[ i ] );
 #else
-		addRBPoint( geoMap->lons.at( x ), geoMap->lats.at( y ), QColor( (long)(geoMap->vals[ i ]) ), mMainLayer );
+		addRBPoint( geo_map->lons.at( x ), geo_map->lats.at( y ), QColor( (long)(geo_map->vals[ i ]) ), mMainLayer );
 #endif  //USE_FEATURES
 	}
 
 #if defined (USE_FEATURES)
-    //auto memL = AddMemoryLayer( createPointSymbol( 0.5, Qt::cyan ) );	//(*)	//note that you can use strings like "red" instead!!!
-    auto memL = AddMemoryLayer2( 0.333 );	// RCCC
+    auto memL = AddMemoryLayer( props->m_name, 0.333, map.mMinHeightValue, map.mMaxHeightValue, props->m_numContour );
 	memL->dataProvider()->addFeatures( flist );
 	//memL->updateExtents();
 	//refresh();
@@ -198,10 +152,10 @@ void CBratMapView::Plot( const CWorldPlotInfo &maps )
 		if ( !IsValidPoint(i) )
 			continue;
 
-		auto x = i % geoMap->lons.size();
-		auto y = i / geoMap->lons.size();
+		auto x = i % geo_map->lons.size();
+		auto y = i / geo_map->lons.size();
 
-		points.append( QgsPoint( geoMap->lons.at( x ), geoMap->lats.at( y ) ) );
+		points.append( QgsPoint( geo_map->lons.at( x ), geo_map->lats.at( y ) ) );
 	}
 #if !defined (USE_FEATURES) //(***)
 	auto memL = addMemoryLayer( createLineSymbol( 0.5, Qt::red ) );	//(*)	//note that you can use strings like "red" instead!!!
@@ -225,19 +179,18 @@ void CBratMapView::Plot( const CWorldPlotInfo &maps )
 	//m_plotRenderer->AddData( pdata );
 
 
-	//femm: the less important part
-	//CWorldPlotData* geoMap = dynamic_cast<CWorldPlotData*>( pdata );
-	//if ( geoMap != nullptr )
+	//CWorldPlotData* geo_map = dynamic_cast<CWorldPlotData*>( pdata );
+	//if ( geo_map != nullptr )
 	//{
-	//	wxString textLayer = wxString::Format( "%s", geoMap->GetDataName().c_str() );
+	//	wxString textLayer = wxString::Format( "%s", geo_map->GetDataName().c_str() );
 
-	//	m_plotPropertyTab->GetLayerChoice()->Append( textLayer, static_cast<void*>( geoMap ) );
+	//	m_plotPropertyTab->GetLayerChoice()->Append( textLayer, static_cast<void*>( geo_map ) );
 	//	m_plotPropertyTab->SetCurrentLayer( 0 );
 	//}
 
 	//int32_t nFrames = 1;
-	//if ( geoMap != nullptr )
-	//	nFrames = geoMap->GetNrMaps();
+	//if ( geo_map != nullptr )
+	//	nFrames = geo_map->GetNrMaps();
 
 	//m_animationToolbar->SetMaxFrame( nFrames );
 }
@@ -253,49 +206,14 @@ void CBratMapView::Plot( const CWorldPlotInfo &maps )
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-
-
-void CBrat3DPlotView::CreatePlot( const CZFXYPlotProperties *props, CZFXYPlot *zfxyplot )
+void CBrat3DPlotView::AddData( CZFXYPlotData* pdata, size_t index )
 {
-	//zfxyplot->GetInfo();	 assumed done by caller
+    Q_UNUSED( index );
 
-	mPlotProperties = *props;	// *proc->GetZFXYPlotProperties( 0 );
-	this->setWindowTitle( t2q( zfxyplot->MakeTitle() ) );
-
-	//CZFXYPlotFrame* frame = new CZFXYPlotFrame( nullptr, -1, title, zfxyPlotProperty, pos, size );
-
-	for ( auto &itField : zfxyplot->m_fields )
-	{
-		CPlotField* field = CPlotField::GetPlotField( itField );
-
-		assert__(field->m_zfxyProps == props );
-
-		if ( field->m_internalFiles.empty() )
-			continue;
-
-		//frame->AddData( geoMap );
-		AddData( new CZFXYPlotData( zfxyplot, field ) );	// v4 note: CZFXYPlotData ctor only invoked here
-	}
-
-	//frame->UpdateView();
-	//frame->Raise();
-	//frame->Show( TRUE );
-
-	// ---- Fix for bug on Linux to resize correctly VTK widget.
-	//wxSize sizefFrame = frame->GetSize();
-	//sizefFrame += wxSize( 1, 1 );
-	//frame->SetSize( sizefFrame );
-	// ----
-
-	//pos = frame->GetPosition();
-}
-
-void CBrat3DPlotView::AddData( CZFXYPlotData* pdata )
-{
 	assert__( pdata != nullptr );
 
 #if defined(BRAT_V3)		// TODO replace by callback device to inform progress
-	std::string szMsg = std::string::Format( "Rendering %s ...", this->GetTitle().c_str() );
+	std::string szMsg = std::string::Format( "Rendering %s ...", GetTitle().c_str() );
 	int32_t maxProgbar = 4;
 	wxProgressDialog* dlg = new wxProgressDialog( szMsg,
 		"Adding data to plot...",
@@ -353,7 +271,8 @@ void CBrat3DPlotView::AddData( CZFXYPlotData* pdata )
 
     SetPlotTitle( q2a( windowTitle() ) );
 
-	SetAxisTitles( mPlotProperties.m_xLabel, mPlotProperties.m_yLabel, mPlotProperties.m_name );		//TODO check proper name for z axis, or none
+    CZFXYPlotProperties *props = pdata->GetPlotProperties();
+	SetAxisTitles( props->m_xLabel, props->m_yLabel, props->m_name );		//TODO check proper name for z axis, or none
 
 	//v4 m_plotActor->AddInput( pdata );
 
@@ -405,70 +324,16 @@ void CBrat3DPlotView::AddData( CZFXYPlotData* pdata )
 CBrat2DPlotView::CBrat2DPlotView( QWidget *parent )	//parent = nullptr 
 	: base_t( parent )
 	, mPlotDataCollection( new CXYPlotDataCollection )
+	, mZfxyPlotData( new CObArray )
 {
 	QwtLegend *legend = AddLegend( RightLegend );		Q_UNUSED( legend );
-
-	QwtPlotMagnifier *mag = AddMagnifier();				Q_UNUSED( mag );	//QwtPlotZoomer *zoomer = AddZoomer( Qt::darkBlue );		Q_UNUSED( zoomer );
-
-	QwtPlotPanner *panner = AddPanner();				Q_UNUSED( panner );
 }
 
 
-//
-//	CXYPlotData		is a	CBratObject							
-//					has a	vtkDataArrayPlotData
-//								has a vtkDoubleArrayBrathl *XDataArray;
-//								has a vtkDoubleArrayBrathl *YDataArray;						
-//								has a vtkDoubleArrayBrathl *ZDataArray;						
-//										
-//	CPlotArray	has a 	vtkObArray (array of frames)
-//
-//
-//	CXYPlotData		=> Create	=> SetData( 
-//	(has a vtkDataArrayPlotData)			double* xArray, const CUIntArray& xDims, 
-//											double* yArray, const CUIntArray& yDims,
-//											const CUIntArray& xCommonDimIndex,
-//											const CUIntArray& yCommonDimIndex ) => ...
-//
-//	... => CPlotArray::SetFrameData for each frame, 
-//		and at the end:
-//	... => SetRawData( CPlotArray* x, CPlotArray* y ) => Update() => m_vtkDataArrayPlotData::SetDataArrays( vtkDoubleArrayBrathl, vtkDoubleArrayBrathl )
-//
-void CBrat2DPlotView::CreatePlot( const CXYPlotProperties *props, CPlot *plot )
+void CBrat2DPlotView::AddData( CXYPlotData *pdata, size_t index, bool histogram )
 {
-	//clear();		// TODO: currently the editor deletes the widget; decide which action to take on new plot
+    Q_UNUSED( index );
 
-	// v4 taken from CBratDisplayApp::CreateXYPlot(CPlot* plot, wxSize& size, wxPoint& pos) and callees
-
-    //plot->GetInfo(); 	 assumed done by caller
-
-	mPlotProperties = *props;		// *proc->GetXYPlotProperty( 0 );		v4: nothing similar to this, similar to zfxy and lat - lon, was done here
-
-	this->setWindowTitle( t2q( plot->MakeTitle() ) );
-
-	//CXYPlotFrame* frame = new CXYPlotFrame( nullptr, -1, title, pos, size );
-
-	int32_t nrFields = (int32_t)plot->m_fields.size();
-
-	for ( int32_t iField = 0; iField < nrFields; iField++ )
-	{
-		//auto field = plot->GetPlotField(iField);
-		//assert__(field->m_xyProps == props );
-
-		//frame->AddData( plotData );
-		AddData( new CXYPlotData( plot, iField ) );		//v4 note: CXYPlotData ctor only invoked here
-	}
-
-	//frame->Raise();
-
-	//frame->ShowPropertyPanel();
-	//frame->Show( TRUE );
-
-	//pos = frame->GetPosition();
-
-}
-void CBrat2DPlotView::AddData( CXYPlotData *pdata )
-{
 	//v4 taken from CXYPlotFrame::AddData(CXYPlotData* data)
 
             //v3 comment
@@ -574,22 +439,26 @@ void CBrat2DPlotView::AddData( CXYPlotData *pdata )
     SetAxisTitles( props->GetXLabel(), props->GetYLabel() );
 
     // Insert new curves
-	auto const vtk_color = props->GetColor();
-	QwtPlotCurve *curve = AddCurve( props->GetTitle(), QColor(vtk_color.Red()*255, vtk_color.Green()*255, vtk_color.Blue()*255), pdata->GetQwtArrayPlotData() );
+	QwtPlotCurve *curve = nullptr;
+	CHistogram *histo = nullptr;
+	if ( histogram )
+		histo = AddHistogram( props->GetName(), color_cast< QColor >( props->GetColor() ), pdata->GetQwtArrayPlotData() );
+	else
+		curve = AddCurve( props->GetName(), color_cast< QColor >( props->GetColor() ), pdata->GetQwtArrayPlotData() );
 
-    // Markers
+    // Markers example
     //  ...a horizontal line at y = 0...
     //  ...a vertical line at x = 2 * pi
 	//
-    QwtPlotMarker *mY = AddMarker( "y = 0", QwtPlotMarker::HLine, 0.0 );
-    QwtPlotMarker *mX = AddMarker( "x = 2 pi", QwtPlotMarker::VLine, 2.0 * M_PI );
-    mX->setLinePen( QPen( Qt::black, 0, Qt::DashDotLine ) );
+    //QwtPlotMarker *mY = AddMarker( "y = 0", QwtPlotMarker::HLine, 0.0 );
+    //QwtPlotMarker *mX = AddMarker( "x = 2 pi", QwtPlotMarker::VLine, 2.0 * M_PI );
+    //mX->setLinePen( QPen( Qt::black, 0, Qt::DashDotLine ) );								Q_UNUSED( mY );
 
 	SetAxisScales( xrMin, xrMax, yrMin, yrMax );
 
 	replot();
 
-	Q_UNUSED( curve );		Q_UNUSED( mY );
+	Q_UNUSED( curve );		Q_UNUSED( histo );
 }
 
 //(*)
@@ -611,9 +480,9 @@ void CBrat2DPlotView::AddData( CXYPlotData *pdata )
 //    }
 //
 //  // Check if plotdata is not already in the list
-//  if (this->PlotData->IsItemPresent(plotData) == 0)
+//  if (PlotData->IsItemPresent(plotData) == 0)
 //    {
-//    this->PlotData->AddItem(plotData);
+//    PlotData->AddItem(plotData);
 //    vtkPolyDataMapper2D* plotMapper = vtkPolyDataMapper2D::New();
 //    plotMapper->SetInput(plotData->GetOutput());
 //    vtkActor2D* plotActor = vtkActor2D::New();
@@ -624,17 +493,118 @@ void CBrat2DPlotView::AddData( CXYPlotData *pdata )
 //      {
 //      plotActor->SetProperty(property);
 //      }
-//    this->PlotActors->AddItem(plotActor);
+//    PlotActors->AddItem(plotActor);
 //    plotActor->Delete();
-//    this->Modified();
+//    Modified();
 //    }
 //}
 
 
 
 
+void CBrat2DPlotView::AddData( CZFXYPlotData* pdata, size_t index )
+{
+    assert__( pdata != nullptr );
+
+#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
+    std::string szMsg = std::string::Format( "Rendering %s ...", GetTitle().c_str() );
+    int32_t maxProgbar = 4;
+    wxProgressDialog* dlg = new wxProgressDialog( szMsg,
+        "Adding data to plot...",
+        maxProgbar, this, wxPD_SMOOTH | wxPD_APP_MODAL | wxPD_AUTO_HIDE );
+
+    dlg->SetSize( -1, -1, 350, -1 );
+#endif
+
+    int32_t nFrames = pdata->GetNrMaps();
+
+    // v3 note
+    // Only pop-up the animation toolbar if this is the first
+    // multi-frame dataset and the user has not specified any
+    // explicit option so far.
+    if ( ( !mMultiFrame ) && ( nFrames > 1 ) )	//v4: this variable was private and assigned only here
+    {
+        mMultiFrame = true;
+        // TODO translate this to v4
+        //m_menuBar->Enable( ID_MENU_VIEW_SLIDER, true );
+        //ShowAnimationToolbar( true );
+
+    }
+#if defined (BRAT_V3)									  //TODO this file is never executed in v3, but remains here as a remark for something whose port is missing
+    if ( !mHasClut && pdata->GetLookupTable() != nullptr )
+#else
+//    if ( !mHasClut )
+#endif
+//    {
+//        mHasClut = true;
+//        // TODO translate this to v4
+//        //m_menuBar->Enable( ID_MENU_VIEW_COLORBAR, m_hasClut );
+//        //m_menuBar->Enable( ID_MENU_VIEW_CLUTEDIT, m_hasClut );
+//        //v3 commented out ShowColorBar(data->m_plotProperty.m_showColorBar);
+//    }
+
+    // TODO m_plotPanel->AddData( pdata, dlg );
+    // TODO taken from void CZFXYPlotPanel::AddData( CZFXYPlotData* pdata, wxProgressDialog* dlg )
+
+#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
+    std::string szMsg = std::string::Format( "Displaying data: %s ...", pdata->GetDataTitle().c_str() );
+    if ( dlg != nullptr )
+        dlg->Update( 0, szMsg );
+#endif
+
+    //v4 pdata->SetRenderer( m_vtkRend );
+    mZfxyPlotData->Insert( pdata );
+
+    // v4
+    const C3DPlotInfo *maps = dynamic_cast<const C3DPlotInfo*>( &pdata->Maps() );		assert__( maps->size() == 1 );	//simply to check if ever...
+	CZFXYPlotProperties *props = pdata->GetPlotProperties();							assert( pdata->GetDataName() == props->m_name );
+
+    //mSpectogramData = new SpectrogramData();
+    //mSpectogramData->InjectData( values.mXaxis, values.mYaxis, values.mBits, values.mValues );
+    //Spectogram( parentWidget() );
+
+	CreateSurface( pdata->GetPlotProperties()->m_name, *maps, props->m_minContourValue, props->m_maxContourValue, props->m_numContour, index );
+
+    SetPlotTitle( q2a( windowTitle() ) );
+
+    SetAxisTitles( pdata->GetPlotProperties()->m_xLabel, pdata->GetPlotProperties()->m_yLabel, pdata->GetPlotProperties()->m_name );
+
+    //v4 m_plotActor->AddInput( pdata );
 
 
+#if defined (BRAT_V3)									  //TODO this file is never executed in v3, but remains here as a remark for something whose port is missing
+    if ( pdata->GetColorBarRenderer() != nullptr )
+    {
+        //v4 m_vtkWidget->GetRenderWindow()->AddRenderer( pdata->GetColorBarRenderer()->GetVtkRenderer() );
+    }
+#endif
+
+    std::string textLayer = pdata->GetDataName();
+
+    //v4 GetZfxylayerchoice()->Append( textLayer, static_cast<void*>( pdata ) );
+    //v4 m_plotPropertyTab->SetCurrentLayer( 0 );
+
+
+#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
+    if ( dlg != nullptr )
+        dlg->Update( 1 );
+#endif
+
+    //v4 m_animationToolbar->SetMaxFrame( nFrames );
+
+
+#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
+    if ( dlg != nullptr )
+        dlg->Update( 3 );
+#endif
+
+    //v4 m_plotPropertyTab->UpdateTitleControls();
+    //v4 UpdateRender();
+
+#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
+    dlg->Destroy();
+#endif
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //

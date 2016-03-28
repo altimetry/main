@@ -1114,7 +1114,7 @@ void CWorkspaceDisplay::GetDisplayNames( std::vector< std::string >& array )
 //----------------------------------------
 bool CWorkspaceDisplay::DeleteDisplay( CDisplay* display )
 {
-	return m_displays.Erase( (const char *)display->GetName().c_str() );
+	return m_displays.Erase( display->GetName() );
 }
 
 
