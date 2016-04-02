@@ -1,8 +1,34 @@
 #include "new-gui/brat/stdafx.h"
 
-#include "GUI/TabbedDock.h"
 #include "GUI/DisplayWidgets/GlobeWidget.h"
+#include "DisplayWidgets/BratViews.h"
+#include "GUI/TabbedDock.h"
 #include "DesktopManager.h"
+
+
+/////////////////////////////////////////////////////////////////////////////////////
+//						Desktop Managers Base
+/////////////////////////////////////////////////////////////////////////////////////
+
+#if defined TABBED_MANAGER
+CDesktopManagerBase::CDesktopManagerBase( const CApplicationPaths &paths, QMainWindow *const parent )
+	: base_t( parent )
+#else
+CDesktopManagerBase::CDesktopManagerBase( const CApplicationPaths &paths, QMainWindow *const parent, Qt::WindowFlags f )	//f = 0 
+	: base_t( parent, f )
+#endif
+	, mPaths( paths )
+{
+	setAttribute( Qt::WA_DeleteOnClose );
+
+	setObjectName( QString::fromUtf8( "centralWidget" ) );
+
+	mMap = new CBratMapView( this );
+
+	parent->setCentralWidget( this );
+}
+
+
 
 
 

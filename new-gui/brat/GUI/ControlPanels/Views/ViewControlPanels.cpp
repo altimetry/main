@@ -299,6 +299,11 @@ CMapControlsPanelDataLayers::CMapControlsPanelDataLayers( QWidget *parent, Qt::W
 //			Map Options Tab
 ////////////////////////////////////////
 
+void CMapControlsPanelView::CreateWidgets()
+{
+
+}
+
 CMapControlsPanelView::CMapControlsPanelView( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
     : base_t( parent, f )
 {

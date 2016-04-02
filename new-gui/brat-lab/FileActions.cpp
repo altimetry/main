@@ -305,7 +305,6 @@ void QbrtMainWindow::on_action_Globe_triggered()
 	QbrtMapEditor *map_editor = activeMapEditor();
 	if ( map_editor )
 	{
-		map_editor->globeSettings();
 	//	GlobePlugin* p = new GlobePlugin( nullptr, map_editor->canvas() );
 	//	p->run();
 	//	QWidget *globe = dynamic_cast<QWidget*>( p->earthViewerWidget() );

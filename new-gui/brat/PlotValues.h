@@ -374,6 +374,7 @@ struct CGeneric3DPlotInfo : public std::vector< PARAMS >, public QwtRasterData
 	using parameters_t = PARAMS;
 
 	using base_t = std::vector<parameters_t>;
+    using qwt_base_t = QwtRasterData;
 
     using base_t::back;
     using base_t::at;
@@ -390,7 +391,7 @@ struct CGeneric3DPlotInfo : public std::vector< PARAMS >, public QwtRasterData
 
 	CGeneric3DPlotInfo() 
 		: base_t()
-		, QwtRasterData()
+        , qwt_base_t()
 	{}
 	virtual ~CGeneric3DPlotInfo()
 	{}

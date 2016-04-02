@@ -447,14 +447,6 @@ void QbrtMapEditor::removeLayer()
 	mMapCanvas->refresh();
 }
 
-void QbrtMapEditor::globeSettings()
-{
-	//assert__( mGlobe );
-	assert__( mGlobeWidget );
-
-	mGlobeWidget->HandleSettings();
-}
-
 //void QbrtMapCanvas::CreateWPlot( const CDisplayFilesProcessor *proc, CWPlot* wplot )
 //{
 //	QSize size;

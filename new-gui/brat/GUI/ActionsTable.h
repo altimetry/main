@@ -37,6 +37,7 @@ enum EActionTag : int
 	eAction_About,
 	eAction_Close_All,
 	eAction_Views_List,
+	eAction_Open_View,
 	eAction_Cut,
 	eAction_Copy,
 	eAction_Paste,

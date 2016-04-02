@@ -26,7 +26,7 @@
 #include <osgEarth/Common>
 #include <osgEarth/TileSource>
 
-#define USE_RENDERER
+//#define USE_RENDERER
 
 #ifndef USE_RENDERER
 #include "qgsmapsettings.h"
@@ -52,8 +52,6 @@ namespace osgEarth
 		{
 			QgsMapCanvas *mCanvas = nullptr;
 			QgsCoordinateTransform *mCoordTransform = nullptr;
-			QgsRectangle mViewExtent;
-			QStringList mLayerSet;
 
 #ifndef USE_RENDERER
 			QgsMapSettings mMapSettings;
@@ -61,6 +59,10 @@ namespace osgEarth
 			QgsMapRenderer *mMapRenderer = nullptr;
 #endif
 		public:
+
+			bool mStop = false;
+			bool mRendering = false;	//TODO turn this into a synchronizable variable
+
 			QgsOsgEarthTileSource( const TileSourceOptions& options = TileSourceOptions() );
 
 			QgsOsgEarthTileSource( QgsMapCanvas *the_canvas, const TileSourceOptions& options = TileSourceOptions() );
@@ -69,9 +71,8 @@ namespace osgEarth
 			{}
 
 
-			void initialize( const std::string& referenceURI, const Profile* overrideProfile = NULL );
+			virtual osg::Image* createImage( const TileKey& key, ProgressCallback* progress ) override;
 
-			osg::Image* createImage( const TileKey& key, ProgressCallback* progress ) override;
 
 			virtual osg::HeightField* createHeightField( const TileKey &key, ProgressCallback* progress ) override
 			{
@@ -93,8 +94,14 @@ namespace osgEarth
 				return false;
 			}
 
+
+#ifdef USE_RENDERER
+
 		private:
+
 			QImage* createQImage( int width, int height ) const;
+#endif
+
 		};
 	}
 } // namespace osgEarth::Drivers

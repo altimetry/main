@@ -267,7 +267,7 @@ CWorkspaceDialog::~CWorkspaceDialog()
 
 void CWorkspaceDialog::reset()
 {
-    NOT_IMPLEMENTED		//and not used: reset not inserted
+    BRAT_NOT_IMPLEMENTED		//and not used: reset not inserted
 }
 
 

@@ -50,24 +50,21 @@ class CDatasetFilterControls : public CDesktopControlsPanel
 	QListWidget *mAreasListWidget = nullptr;
     QComboBox *mRegionsCombo = nullptr;
 
-    QToolButton *mNewRegion = nullptr;
-    QToolButton *mRenameRegion = nullptr;
-    QToolButton *mDeleteRegion = nullptr;
-    QToolButton *mSaveRegion = nullptr;
+    QToolButton *mShowAllAreas = nullptr;
+    QToolButton *mRegionSettings = nullptr;
 
     QToolButton *mNewArea = nullptr;
     QToolButton *mAddKML = nullptr;
     QToolButton *mAddMask = nullptr;
     QToolButton *mRenameArea = nullptr;
     QToolButton *mDeleteArea = nullptr;
-    QToolButton *mSaveArea = nullptr;
 
     QLineEdit *mMaxLatEdit = nullptr;
     QLineEdit *mMaxLonEdit = nullptr;
     QLineEdit *mMinLatEdit = nullptr;
     QLineEdit *mMinLonEdit = nullptr;
 
-	QLayout *mWhereBox = nullptr;
+    QWidget *mWhereBox = nullptr;
 
 	//when
 
@@ -80,12 +77,10 @@ class CDatasetFilterControls : public CDesktopControlsPanel
     QLineEdit *mStartPassEdit = nullptr;
     QLineEdit *mStopPassEdit = nullptr;
 
-	QLayout *mWhenBox = nullptr;
+    QWidget *mWhenBox = nullptr;
 
 	//
-
 	QLineEdit *mTotalRecordsSelectedEdit = nullptr;
-
 
     CBratMapView *mMap = nullptr;
 
@@ -137,6 +132,8 @@ protected:
 	void FillFiltersCombo();
     void FillRegionsCombo();
     void FillAreasList();
+    void ShowOnlyAreasInRegion(int region_index);
+    void SaveAllAreas();
 
 public slots:
 	void HandleNewFilter();
@@ -150,17 +147,15 @@ public slots:
 	void HandleClearWhere();
 	void HandleClearWhen();
 
-    void HandleNewRegion();
-    void HandleRenameRegion();
-    void HandleDeleteRegion();
-    void HandleSaveRegion();
+    void HandleShowAllAreas();
+    void HandleRegionSettings();
 
     void HandleNewArea();
     void HandleAddKML();
     void HandleAddMask();
     void HandleRenameArea();
     void HandleDeleteArea();
-    void HandleSaveArea();
+    void HandleAreaChecked(QListWidgetItem*area_item);
 
 	void HandleWorkspaceChanged( CWorkspaceDataset *wksd );
     void HandleDatasetChanged( CDataset *dataset );

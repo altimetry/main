@@ -7,6 +7,7 @@
 
 
 
+
 CExportDialog::CExportDialog( QWidget *parent )
     : base_t( parent )
 {
@@ -22,8 +23,22 @@ void  CExportDialog::CreateWidgets()
 {
     //	Create
 
-    //	... Help
+    // I. Output file
+    //
+    QLineEdit *OutputPath = new QLineEdit();
+    QToolButton *BrowseButton = CreateToolButton( "Browse...", "", "<b>Browse...</b><br>Select a output file." );
 
+    QBoxLayout *lOutputFile = LayoutWidgets( Qt::Horizontal, { new QLabel( "Output File: "), OutputPath, BrowseButton }, nullptr, 6, 6, 6, 6, 6 );
+
+    // II. Export format
+    //
+
+    // III. Export options
+    //
+
+
+    // IV. Help
+    //
     auto help = new CTextWidget;
     help->setHelpProperties(
                 "The user can choose the name and location of the exported operation file. "
@@ -38,18 +53,21 @@ void  CExportDialog::CreateWidgets()
     help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 
 
-    //	... Buttons
-
-    mButtonBox = new QDialogButtonBox( this );
+    //	V. Buttons (Execute, Delay Execution, Cancel)
+    //
+    mButtonBox = new QDialogButtonBox();
     mButtonBox->setObjectName( QString::fromUtf8( "mButtonBox" ) );
     mButtonBox->setOrientation( Qt::Horizontal );
-    mButtonBox->setStandardButtons( QDialogButtonBox::Ok | QDialogButtonBox::Cancel );
-    mButtonBox->button( QDialogButtonBox::Ok )->setDefault( true );
+    mButtonBox->setStandardButtons( QDialogButtonBox::Ok | QDialogButtonBox::Apply | QDialogButtonBox::Cancel );
+    //mButtonBox->button( QDialogButtonBox::Ok )->setDefault( true );
+    mButtonBox->button( QDialogButtonBox::Ok )->setText( "Delay execution..." );
+    mButtonBox->button( QDialogButtonBox::Apply )->setText( "Execute" );
 
 
     QBoxLayout *main_l =
             LayoutWidgets( Qt::Vertical,
                             {
+                                lOutputFile,
                                 help_group,
                                 mButtonBox
 

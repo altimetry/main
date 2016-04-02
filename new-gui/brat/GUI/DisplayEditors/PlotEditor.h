@@ -88,8 +88,10 @@ private:
 	CXYPlotDataCollection *mDataArrayXY = nullptr;
 	CXYPlotProperties *mPropertiesXY = nullptr;
 
-	CObArray *mDataArrayZFXY = nullptr;
-	CZFXYPlotProperties *mPropertiesZFXY = nullptr;
+	CObArray *mDataArrayZFXY_2D = nullptr;
+	CZFXYPlotProperties *mPropertiesZFXY_2D = nullptr;
+	CObArray *mDataArrayZFXY_3D = nullptr;
+	CZFXYPlotProperties *mPropertiesZFXY_3D = nullptr;
 
 
 

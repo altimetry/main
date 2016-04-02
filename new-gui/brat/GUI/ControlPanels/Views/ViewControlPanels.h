@@ -317,6 +317,7 @@ struct CMapControlsPanelView : public CControlPanel
 
     QTabWidget *ViewOptionsTabs = nullptr;
 
+	void CreateWidgets();
 public:
     CMapControlsPanelView( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 

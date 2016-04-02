@@ -19,6 +19,8 @@
 #ifndef __SchedulerTaskConfig_H__
 #define __SchedulerTaskConfig_H__
 
+#include "new-gui/brat/stdafx.h"
+
 #if defined (__APPLE__)
     #if defined (Q_FORWARD_DECLARE_OBJC_CLASS)
         #undef Q_FORWARD_DECLARE_OBJC_CLASS
@@ -26,8 +28,6 @@
     #define Q_FORWARD_DECLARE_OBJC_CLASS( x )
     #include <qdebug.h>
 #endif
-
-#include "new-gui/brat/stdafx.h"
 
 #ifndef WX_PRECOMP
     #include "wx/wx.h"

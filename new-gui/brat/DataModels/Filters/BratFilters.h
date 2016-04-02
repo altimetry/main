@@ -10,7 +10,7 @@
 
 namespace brathl
 {
-	class CStringList;
+    class CStringList;
 }
 
 
@@ -18,79 +18,87 @@ namespace brathl
 
 class CBratFilter
 {
-	//types
+    //types
+
+    friend class CBratFilters;
 
 protected:
 
-	//static data
+    //static data
 
-	// instance data
+    // instance data
 
-	std::string mName;
+    std::string mName;
 
-	double mMinLon = 0;
-	double mMaxLon = 0;
-	double mMinLat = 0;
-	double mMaxLat = 0;
+    std::vector< std::string > mAreaNames;
 
-	QDateTime mStartTime;
-	QDateTime mStopTime;
+    QDateTime mStartTime;
+    QDateTime mStopTime;
 
-	int mStartCycle = 0;
-	int mStopCycle = 0;
-	int mStartPass = 0;
-	int mStopPass = 0;
+    int mStartCycle = 0;
+    int mStopCycle = 0;
+    int mStartPass = 0;
+    int mStopPass = 0;
 
 
-	// construction / destruction
+    // construction / destruction
 
 public:
-	CBratFilter( const std::string &name ) :
-		mName( name )
-	{}
+    CBratFilter( const std::string &name ) :
+        mName( name )
+    {}
 
-	CBratFilter( const CBratFilter &o )
-	{
-		*this = o;
-	}
+    CBratFilter( const CBratFilter &o )
+    {
+        *this = o;
+    }
 
-	CBratFilter& operator = ( const CBratFilter &o );
+    CBratFilter& operator = ( const CBratFilter &o );
 
-	virtual ~CBratFilter()
-	{}
-
-
-	// access 
-
-	const std::string& Name() const { return mName; }
-	std::string& Name() { return mName; }
-
-	double MinLon() const { return mMinLon; }
-	double MaxLon() const { return mMaxLon; }
-	double MinLat() const { return mMinLat; }
-	double MaxLat() const { return mMaxLat; }
-
-	QDateTime StartTime() const { return mStartTime; }
-	QDateTime StopTime() const { return mStopTime; }
-
-	int StartCycle() const { return mStartCycle; }
-	int StopCycle() const { return mStopCycle; }
-	int StartPass() const { return mStartPass; }
-	int StopPass() const { return mStopPass; }
+    virtual ~CBratFilter()
+    {}
 
 
-	double & MinLon() { return mMinLon; }
-	double & MaxLon() { return mMaxLon; }
-	double & MinLat() { return mMinLat; }
-	double & MaxLat() { return mMaxLat; }
+    // access
 
-	QDateTime& StartTime() { return mStartTime; }
-	QDateTime& StopTime() { return mStopTime; }
+    const std::string& Name() const { return mName; }
+    std::string& Name() { return mName; }
 
-	int& StartCycle() { return mStartCycle; }
-	int& StopCycle() { return mStopCycle; }
-	int& StartPass() { return mStartPass; }
-	int& StopPass() { return mStopPass; }
+
+    //space
+
+    const std::vector< std::string >& AreaNames() const
+    {
+        return mAreaNames;
+    }
+
+
+    bool FindArea( const std::string &name ) const;
+
+    bool AddArea( const std::string &name );
+
+    bool RemoveArea( const std::string &name );
+
+
+
+    //time
+
+    QDateTime StartTime() const { return mStartTime; }
+    QDateTime StopTime() const { return mStopTime; }
+
+    int StartCycle() const { return mStartCycle; }
+    int StopCycle() const { return mStopCycle; }
+    int StartPass() const { return mStartPass; }
+    int StopPass() const { return mStopPass; }
+
+
+    QDateTime& StartTime() { return mStartTime; }
+    QDateTime& StopTime() { return mStopTime; }
+
+    int& StartCycle() { return mStartCycle; }
+    int& StopCycle() { return mStopCycle; }
+    int& StartPass() { return mStartPass; }
+    int& StopPass() { return mStopPass; }
 };
 
 
@@ -100,32 +108,32 @@ public:
 
 class CBratFilters : public CFileSettings
 {
-	//types
+    //types
 
     using base_t = CFileSettings;
 
 
 protected:
-	// instance data
+    // instance data
 
-	std::string mInternalDataPath;
+    std::string mInternalDataPath;
 
-	std::map< std::string, CBratFilter > mFiltersMap;
+    std::map< std::string, CBratFilter > mFiltersMap;
 
 
-	// construction / destruction
+    // construction / destruction
 
 public:
-	CBratFilters( const std::string &internal_data_dir ) 
-		: base_t( internal_data_dir + "/Filters.ini" )
-		, mInternalDataPath( internal_data_dir )
-	{}
+    CBratFilters( const std::string &internal_data_dir )
+        : base_t( internal_data_dir + "/Filters.ini" )
+        , mInternalDataPath( internal_data_dir )
+    {}
 
-	virtual ~CBratFilters()
-	{}
+    virtual ~CBratFilters()
+    {}
 
 
-	// persistence
+    // persistence
 
 
     CBratAreas& Areas()
@@ -142,32 +150,32 @@ public:
 
     bool Load();
 
-	bool Save();
+    bool Save();
 
 
-	// access
+    // access
 
     const std::map< std::string, CBratFilter >& FiltersMap() const { return mFiltersMap; }
 
-	CBratFilter* Find( const std::string &name );
+    CBratFilter* Find( const std::string &name );
 
-	const CBratFilter* Find( const std::string &name ) const
-	{
-		return const_cast< CBratFilters* >( this )->Find( name );
-	}
+    const CBratFilter* Find( const std::string &name ) const
+    {
+        return const_cast< CBratFilters* >( this )->Find( name );
+    }
 
-	std::string MakeNewName() const;
+    std::string MakeNewName() const;
 
 
-	// operations
+    // operations
 
-	bool AddFilter( const std::string &name );
+    bool AddFilter( const std::string &name );
 
-	bool RenameFilter( const std::string &name, const std::string &new_name );
+    bool RenameFilter( const std::string &name, const std::string &new_name );
 
-	bool DeleteFilter( const std::string &name );
+    bool DeleteFilter( const std::string &name );
 
-	bool Apply( const std::string &name, const CStringList& files_in, CStringList& files_out );
+    bool Apply( const std::string &name, const CStringList& files_in, CStringList& files_out );
 };
 
 

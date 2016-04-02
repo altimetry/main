@@ -118,7 +118,8 @@ struct CBrat3DFunction : public Qwt3D::Function
 
 	bool mLogarithmic = false;
 
-	CBrat3DFunction( SurfacePlot& pw ) : Qwt3D::Function( pw )
+	CBrat3DFunction( SurfacePlot& pw ) 
+		: Qwt3D::Function( pw )
 	{}
 	virtual ~CBrat3DFunction()
 	{}
@@ -293,7 +294,7 @@ CBrat3DPlot::CBrat3DPlot( QWidget *pw )
 //virtual 
 CBrat3DPlot::~CBrat3DPlot()
 {
-	delete mFunction;
+	DestroyPointersAndContainer( mFunctions );
 }
 
 
@@ -308,19 +309,23 @@ void CBrat3DPlot::SetAxisTitle( Qwt3D::AXIS axis, const std::string &title )
 
 void CBrat3DPlot::AddSurface( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax )
 {
-	mFunction = new CBrat3DFunction( *this );
-	mFunction->AddSurface( values, xmin, xmax, ymin, ymax, zmin, zmax );
+	mFunctions.push_back( new CBrat3DFunction( *this ) );
+	mFunctions.back()->AddSurface( values, xmin, xmax, ymin, ymax, zmin, zmax );
 }
 
 void CBrat3DPlot::SetLogarithmicScale( bool onlyz, bool log )
 {
+
 	static const auto xaxis = { Qwt3D::AXIS::X1, Qwt3D::AXIS::X2, Qwt3D::AXIS::X3, Qwt3D::AXIS::X4 };
 	static const auto yaxis = { Qwt3D::AXIS::Y1, Qwt3D::AXIS::Y2, Qwt3D::AXIS::Y3, Qwt3D::AXIS::Y4 };
 	static const auto zaxis = { Qwt3D::AXIS::Z1, Qwt3D::AXIS::Z2, Qwt3D::AXIS::Z3, Qwt3D::AXIS::Z4 };
 
-	assert__( mFunction );	// TODO: do we support x,y logarithmic axis ?
+	for ( auto *f : mFunctions )
+	{
+		assert__( f );	// TODO: do we support x,y logarithmic axis ?
 
-	mFunction->SetLogarithmic( log );
+		f->SetLogarithmic( log );
+	}
 
 	auto scale = log ? Qwt3D::LOG10SCALE : Qwt3D::LINEARSCALE;
 
@@ -496,11 +501,13 @@ void C3DPlotWidget::AddSurface( const C3DPlotParameters &values, double xmin, do
 
 	CBrat3DPlot *plot = nullptr;
 	if ( mPlots.size() > 0 )
-		DestroyPointersAndContainer(  mPlots );
-
-	plot = new CBrat3DPlot( this );
-	mPlots.push_back( plot );
-	SetCentralWidget( mPlots[ 0 ] );
+		plot = dynamic_cast<CBrat3DPlot*>( mPlots[ 0 ] );
+	else
+	{
+		plot = new CBrat3DPlot( this );
+		mPlots.push_back( plot );
+		SetCentralWidget( mPlots[ 0 ] );
+	}
 
 	plot->AddSurface( values, xmin, xmax, ymin, ymax, zmin, zmax );
 }

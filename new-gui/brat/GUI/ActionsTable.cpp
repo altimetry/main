@@ -51,9 +51,11 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_About, "&About...", "About", ":/images/BratIcon.png" },
 
-    { eAction_Views_List, "&List...", "Select a view from the list of all workspace views", ":/images/themes/default/propertyicons/diagram.png" },
+    { eAction_Views_List, "&List...", "List all open windows and select or close views", ":/images/themes/default/propertyicons/diagram.png" },
 
 	{ eAction_Close_All, "Close &All", "Close All", "" },
+
+	{ eAction_Open_View, "&Open...", "Select a view from the list of all workspace views", ":/images/OSGeo/open.png" },
 
     { eAction_Cut, "Cut", "Cut", ":/images/OSGeo/edit-cut.png" },
 
@@ -85,7 +87,7 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_Graphic_Settings, "Graphic Settings...", "Graphic Settings\nAdjust map graphics", ":images/OSGeo/map-settings.png" },
 
-	{ action_Satellite_Tracks, "Satellite Tracks", "Enable automatic satellite track drawing when selected dataset changes", ":/images/alpha-numeric/r.png", ":/images/alpha-numeric/r.png" },
+    { action_Satellite_Tracks, "Satellite Tracks", "<b>Satellite track</b><br>Enable/Disable automatic satellite track drawing when selected dataset changes", ":images/OSGeo/satellite_tracks.png", ":images/OSGeo/satellite_tracks.png" },
 
     { eAction_Full_Screen, "Full Screen", "Full Screen\nToggle full screen mode.\nUse the <span style=\" font-weight:600;\">F11</span> key to switch modes.", ":images/OSGeo/fullscreen.png", "", "F11" },
 

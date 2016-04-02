@@ -32,7 +32,7 @@ using namespace osgEarth::Util;
 
 #include "new-gui/Common/QtUtils.h"
 
-#include "Globe.h"
+#include "../GlobeWidget.h"
 #include "GlobeControls.h"
 
 
@@ -440,13 +440,13 @@ private:
 
 struct RefreshControlHandler : public ControlEventHandler
 {
-	RefreshControlHandler( CGlobePlugin* globe ) : mGlobe( globe ) { }
+	RefreshControlHandler( CGlobeWidget* globe ) : mGlobe( globe ) { }
 	virtual void onClick( Control* /*control*/, int /*mouseButtonMask*/ ) override
 	{
 		mGlobe->imageLayersChanged();
 	}
 private:
-	CGlobePlugin* mGlobe;
+	CGlobeWidget* mGlobe;
 };
 
 
@@ -457,13 +457,13 @@ private:
 
 struct SyncExtentControlHandler : public ControlEventHandler
 {
-	SyncExtentControlHandler( CGlobePlugin* globe ) : mGlobe( globe ) { }
+	SyncExtentControlHandler( CGlobeWidget* globe ) : mGlobe( globe ) { }
 	virtual void onClick( Control* /*control*/, int /*mouseButtonMask*/ ) override
 	{
 		mGlobe->syncExtent();
 	}
 private:
-	CGlobePlugin* mGlobe;
+	CGlobeWidget* mGlobe;
 };
 
 
@@ -759,7 +759,7 @@ void CGlobeControls::AddControls()
 }
 
 
-CGlobeControls::CGlobeControls( CGlobePlugin *globe ) 
+CGlobeControls::CGlobeControls( CGlobeWidget *globe ) 
 	: mGlobe( globe )
 	, mOsgViewer( globe->osgViewer() )
 	, mControlCanvas( ControlCanvas::get( mOsgViewer ) )		//OSGEARTH_VERSION_GREATER_OR_EQUAL( 2, 1, 1 )

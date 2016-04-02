@@ -84,11 +84,6 @@ public:
     // instance data members
 
     QListWidget *mPlotTypesList = nullptr;
-    QComboBox *mVarX       = nullptr;
-    QComboBox *mVarY       = nullptr;
-    QComboBox *mVarY2      = nullptr;
-    QComboBox *mVarZ       = nullptr;
-
 	QComboBox *mLinkToPlot = nullptr;
 
 protected:
@@ -127,8 +122,6 @@ struct CViewControlsPanelGeneralMaps : public CViewControlsPanelGeneral
     // instance data members
 
 public:
-
-    QComboBox *mVarZ = nullptr;
 
 protected:
 

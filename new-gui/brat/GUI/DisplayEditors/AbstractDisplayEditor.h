@@ -76,7 +76,7 @@ protected:
 	//tab general
 	CViewControlsPanelGeneral *mTabGeneral = nullptr;
 
-private:
+//private:
 	QAction *m2DAction = nullptr;
 	QAction *m3DAction = nullptr;
 

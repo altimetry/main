@@ -208,43 +208,43 @@ EDITOR* CBratMainWindow::ActiveEditor()
 
 void CBratMainWindow::on_action_Cut_triggered()
 {
-    NOT_IMPLEMENTED
+    BRAT_NOT_IMPLEMENTED
     //if ( CTextWidget *pe = activeTextEditor() )
     //    pe->cut();
 }
 void CBratMainWindow::on_action_Copy_triggered()
 {
-    NOT_IMPLEMENTED
+    BRAT_NOT_IMPLEMENTED
     //if ( CTextWidget *pe = activeTextEditor() )
     //    pe->copy();
 }
 void CBratMainWindow::on_action_Paste_triggered()
 {
-    NOT_IMPLEMENTED
+    BRAT_NOT_IMPLEMENTED
     //if ( CTextWidget *pe = activeTextEditor() )
     //    pe->paste();
 }
 void CBratMainWindow::on_action_Undo_triggered()
 {
-    NOT_IMPLEMENTED
+    BRAT_NOT_IMPLEMENTED
     //if ( CTextWidget *pe = activeTextEditor() )
     //    pe->undo();
 }
 void CBratMainWindow::on_action_Redo_triggered()
 {
-    NOT_IMPLEMENTED
+    BRAT_NOT_IMPLEMENTED
     //if ( CTextWidget *pe = activeTextEditor() )
     //    pe->redo();
 }
 void CBratMainWindow::on_action_Delete_triggered()
 {
-    NOT_IMPLEMENTED
+    BRAT_NOT_IMPLEMENTED
     //if ( CTextWidget *pe = activeTextEditor() )
     //    pe->textCursor().removeSelectedText();        //from Qt source code
 }
 void CBratMainWindow::on_action_Select_All_triggered()
 {
-    NOT_IMPLEMENTED
+    BRAT_NOT_IMPLEMENTED
     //if ( CTextWidget *pe = activeTextEditor() )
     //    pe->selectAll();
 }
@@ -259,7 +259,7 @@ void CBratMainWindow::on_action_Select_All_triggered()
 
 void CBratMainWindow::cursorPositionChanged()
 {
-	NOT_IMPLEMENTED
+	BRAT_NOT_IMPLEMENTED
     //if ( CTextWidget *editor = activeTextEditor() )
     //    alignmentChanged( editor->alignment() );
 }

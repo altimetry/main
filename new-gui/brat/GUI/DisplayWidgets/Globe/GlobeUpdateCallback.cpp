@@ -2,7 +2,7 @@
 
 #include <osg/Group>
 
-#include "Globe.h"
+#include "../GlobeWidget.h"
 
 #include "GlobeUpdateCallback.h"
 

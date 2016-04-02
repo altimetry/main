@@ -9,13 +9,13 @@
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/ApplicationPaths.h"
 
-#include "DisplayWidgets/BratViews.h"
 
 
 class CTreeWorkspace;
 
 class CTabbedDock;
 class CGlobeWidget;
+class CBratMapView;
 
 
 //#define TABBED_MANAGER
@@ -67,22 +67,10 @@ protected:
 	// construction / destruction
 
 #if defined TABBED_MANAGER
-	CDesktopManagerBase( const CApplicationPaths &paths, QMainWindow *const parent )
-		: base_t( parent )
+	CDesktopManagerBase( const CApplicationPaths &paths, QMainWindow *const parent );
 #else
-	CDesktopManagerBase( const CApplicationPaths &paths, QMainWindow *const parent, Qt::WindowFlags f = 0 )
-		: base_t( parent, f )
+	CDesktopManagerBase( const CApplicationPaths &paths, QMainWindow *const parent, Qt::WindowFlags f = 0 );
 #endif
-		, mPaths( paths )
-	{
-		setAttribute( Qt::WA_DeleteOnClose );
-
-        setObjectName(QString::fromUtf8("centralWidget"));
-
-		mMap = new CBratMapView( this );
-
-        parent->setCentralWidget( this );
-	}
 
 	static void SetChildWindowTitle( QWidget *child, const QWidget *widget = nullptr )
 	{
@@ -121,6 +109,8 @@ public:
 	virtual void CloseAllSubWindows() = 0;
 
 signals:
+
+	void subWindowActivated( QWidget *window );
 
 	void AllSubWindowsClosed();
 };

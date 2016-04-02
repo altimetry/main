@@ -339,15 +339,18 @@ void C2DPlotWidget::SetAxisScales( double xMin, double xMax, double yMin, double
 
 QwtPlotSpectrogram* C2DPlotWidget::CreateSurface( const std::string &title, const C3DPlotInfo &maps, int min_contour, int max_contour, size_t ncontours, size_t index )
 {
-	assert__( mCurves.size() == 0 );
+    assert__( mCurves.size() == 0 );            Q_UNUSED( index );
 
     mSpectrograms.push_back( new QwtPlotSpectrogram );
 	QwtPlotSpectrogram *spectogram = mSpectrograms.back();
 
-	const C3DPlotInfo::value_type &map = maps[ index ];
+	const C3DPlotInfo::value_type &map = maps[ 0 ];	//the index parameter is the index of recently created spectrogram, not the maps index
     spectogram->setData( maps );
 	spectogram->attach( this );
-	//const_cast< C3DPlotInfo& >( maps ).setBoundingRect( QwtDoubleRect( 0, 0, map.mMaxX - map.mMinX, map.mMaxY - map.mMinY ) );
+    QVector<double> vmatrix;
+    //for ( double d : map.mValues )
+    //    vmatrix.append(d);
+    //const_cast<C3DPlotInfo&>( maps ).setValueMatrix( vmatrix, 1 );
 
 	EnableAxisY2();
 	SetAxisScales( map.mMinX, map.mMaxX, map.mMinY, map.mMaxY, spectogram->data().range().minValue(), spectogram->data().range().maxValue() );
@@ -370,11 +373,14 @@ QwtPlotSpectrogram* C2DPlotWidget::CreateSurface( const std::string &title, cons
 
 	// Contour levels
 
-	QwtValueList contourLevels;
-	size_t step = ( max_contour - min_contour ) / ncontours;
-	for ( double level = map.mMinHeightValue; level < max_contour; level += step )
-		contourLevels += level;
-	spectogram->setContourLevels( contourLevels );
+	if ( !isDefaultValue( min_contour ) && !isDefaultValue( max_contour ) && !isDefaultValue( ncontours ) )
+	{
+		QwtValueList contour_levels;
+		size_t step = ( max_contour - min_contour ) / ncontours;
+		for ( double level = map.mMinHeightValue; level < max_contour; level += step )
+			contour_levels += level;
+		spectogram->setContourLevels( contour_levels );
+	}
 
 	plotLayout()->setAlignCanvasToScales( true );
 	replot();

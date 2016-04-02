@@ -334,6 +334,12 @@ class CWorkspaceOperation : public CWorkspace
 
 public:
 	static const std::string NAME;
+	
+	static const std::string& QuickOperationName()
+	{
+		static const std::string s =  "QuickOperation";
+		return s;
+	}
 
 protected:
 	CObMap m_operations;

@@ -907,11 +907,11 @@ void CDataExpressionsTreeWidget::CustomContextMenu( QTreeWidgetItem *item )
 
 void CDataExpressionsTreeWidget::HandlemInsertExpr()
 {
-	NOT_IMPLEMENTED;
+	BRAT_NOT_IMPLEMENTED;
 }
 void CDataExpressionsTreeWidget::HandleInsertField()
 {
-	NOT_IMPLEMENTED;
+	BRAT_NOT_IMPLEMENTED;
 }
 
 
@@ -1016,12 +1016,12 @@ void CDataExpressionsTreeWidget::SaveAsFormula()
     CSaveAsFormula dlg( this );
     if ( dlg.exec() == QDialog::Accepted )
     {
-        NOT_IMPLEMENTED;
+        BRAT_NOT_IMPLEMENTED;
     }
 }
 void CDataExpressionsTreeWidget::HandlemSaveasFormula()
 {
-	NOT_IMPLEMENTED;
+	BRAT_NOT_IMPLEMENTED;
 }
 
 
@@ -1036,15 +1036,15 @@ void CDataExpressionsTreeWidget::HandleDeleteExpr()		//DeleteCurrentFormula()
 }
 void CDataExpressionsTreeWidget::HandleRenameExpr()
 {
-	NOT_IMPLEMENTED;
+	BRAT_NOT_IMPLEMENTED;
 }
 void CDataExpressionsTreeWidget::HandleSortAscending()
 {
-	NOT_IMPLEMENTED;
+	BRAT_NOT_IMPLEMENTED;
 }
 void CDataExpressionsTreeWidget::HandleSortDescending()
 {
-	NOT_IMPLEMENTED;
+	BRAT_NOT_IMPLEMENTED;
 }
 
 

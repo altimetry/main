@@ -4,90 +4,321 @@
 #pragma warning ( disable: 4100 )           //unreferenced formal parameter
 #endif
 
+
+#include <osgGA/StateSetManipulator>
 #include <osgViewer/Viewer>
+#include <osgViewer/ViewerEventHandlers>
+
 #include <osgEarthQt/ViewerWidget>
+
+#include <osgEarthUtil/GeodeticGraticule>
+#include <osgEarthUtil/MGRSFormatter>
+#include <osgEarthUtil/MGRSGraticule>
+#include <osgEarthUtil/UTMGraticule>
+
+#include <osgEarthUtil/MouseCoordsTool>
+#include <osgEarthUtil/EarthManipulator>
+#include <osgEarthUtil/VerticalScale>
+#include <osgEarthUtil/Sky>						//femm	SkyNode => Sky
+#include <osgEarthUtil/AutoClipPlaneHandler>
+
+#include <osgEarthDrivers/tms/TMSOptions>
+#include <osgEarthDrivers/cache_filesystem/FileSystemCache>
+
+using namespace osgEarth::Drivers;
+using namespace osgEarth::Util;
+
+#include <osgEarthUtil/Controls>
+using namespace osgEarth::Util::Controls;
+
+#include "Globe/qgsosgearthtilesource.h"
+
 
 #if defined (WIN32) || defined(_WIN32)
 #pragma warning ( default: 4100 )           //unreferenced formal parameter
 #endif
 
 
+
+#include "Globe/GlobeUpdateCallback.h"
+#include "Globe/GlobeControls.h"
+
 #include "new-gui/Common/QtUtils.h"
-#include "GUI/DisplayWidgets/Globe/Globe.h"
 
 #include "GlobeWidget.h"
 
 
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+//	Globe
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
 //		Globe statics
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 
 
 void CGlobeWidget::SetOSGDirectories( const std::string &GlobeDir )
 {
-	CGlobePlugin::SetOSGDirectories( GlobeDir );
+	CGlobeControls::SetControlsDirectory( GlobeDir );
 }
 
 
 
-class CGlobeViewerWidget : public osgEarth::QtGui::ViewerWidget
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+//	Globe construction - I. Graticule
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+struct ToggleGraticuleHandler : public ControlEventHandler
 {
-	using base_t = osgEarth::QtGui::ViewerWidget;
+    ToggleGraticuleHandler( GraticuleNode* graticule ) : _graticule( graticule ) { }
+
+    void onValueChanged( Control* control, bool value )
+    {
+        _graticule->setVisible( value );
+    }
+
+    GraticuleNode* _graticule;
+};
+
+struct OffsetGraticuleHandler : public ControlEventHandler
+{
+    OffsetGraticuleHandler( GraticuleNode* graticule, const osg::Vec2f& offset ) :
+        _graticule( graticule ),
+        _offset(offset)
+    {
+        //nop
+    }
+
+    void onClick( Control* control, const osg::Vec2f& pos, int mouseButtonMask )
+    {
+        _graticule->setCenterOffset( _graticule->getCenterOffset() + _offset );
+    }
+
+    osg::Vec2f _offset;
+    GraticuleNode* _graticule;
+};
+
+void CGlobeWidget::ToggleGridEnabled( bool toggle )
+{
+	assert__( mGraticuleNode.get() );
+
+	mGraticuleNode->setVisible( toggle );
+}
+
+
+GraticuleNode* CGlobeWidget::CreateGraticule()
+{
+    Formatter* formatter = 0L;
+	
+	bool isUTM = false;
+	bool isMGRS = false;
+	bool isGeodetic = false;
+
+	GraticuleNode *gn = nullptr;
+
+    if ( isUTM )
+    {
+        UTMGraticule* gr = new UTMGraticule( mMapNode );
+        mRootNode->addChild( gr );
+        formatter = new MGRSFormatter();
+    }
+    else if ( isMGRS )
+    {
+        MGRSGraticule* gr = new MGRSGraticule( mMapNode );
+        mRootNode->addChild( gr );
+        formatter = new MGRSFormatter();
+    }
+    else if ( isGeodetic )
+    {
+        GeodeticGraticule* gr = new GeodeticGraticule( mMapNode );
+        GeodeticGraticuleOptions o = gr->getOptions();
+        o.lineStyle()->getOrCreate<LineSymbol>()->stroke()->color().set(1,0,0,0);
+        o.textStyle()->getOrCreate<TextSymbol>()->halo()->color().set(0,0,0,1);
+        //o.textStyle()->getOrCreate<CharSymbol>()->font()->color().set(1,1,1,1);
+		//const_cast< std::vector<GeodeticGraticuleOptions::Level>& >( o.levels() ).clear();
+		//o.addLevel( 0.9, 0.1, -1 );
+		//o.addLevel( 0.0, 0.0, -1 );
+        gr->setOptions( o );
+        mRootNode->addChild( gr );
+        formatter = new LatLongFormatter();
+    }
+    else
+    {
+        GraticuleOptions o;
+        o.color() = Color(0.7,0.7,0.7,1);
+        o.labelColor() = Color(0,0,0,1);
+		o.lineWidth() = 2.;
+		o.gridLines() = 10;
+		o.resolutions() = "10 5 2.5 1.25 1. 0.5 0.25 0.125 0.1 0.05 0.025 0.01 0.001";
+        mGraticuleNode = new GraticuleNode( mMapNode, o );
+        mRootNode->addChild( mGraticuleNode );
+		mGraticuleNode->setVisible( false );
+    }
+
+	return gn;
+
+    //VBox* vbox = new VBox();
+    //ControlCanvas::get( mOsgViewer )->addControl( vbox );
+    //LabelControl* readout = new LabelControl();
+    //vbox->addControl( readout );
+
+    //if (graticuleNode)
+    //{
+    //    HBox* toggleBox = vbox->addControl( new HBox() );
+    //    toggleBox->setChildSpacing( 5 );
+    //    CheckBoxControl* toggleCheckBox = new CheckBoxControl( true );
+    //    toggleCheckBox->addEventHandler( new ToggleGraticuleHandler( graticuleNode ) );
+    //    toggleBox->addControl( toggleCheckBox );
+    //    LabelControl* labelControl = new LabelControl( "Show Graticule" );
+    //    labelControl->setFontSize( 24.0f );
+    //    toggleBox->addControl( labelControl  );
+
+    //    HBox* offsetBox = vbox->addControl( new HBox() );
+    //    offsetBox->setChildSpacing( 5 );
+    //    osg::Vec4 activeColor(1,.3,.3,1);
+
+    //    offsetBox->addControl(new LabelControl("Adjust Labels"));
+
+    //    double adj = 10.0;
+    //    LabelControl* left = new LabelControl("Left");
+    //    left->addEventHandler(new OffsetGraticuleHandler(graticuleNode, osg::Vec2f(-adj, 0.0)) );
+    //    offsetBox->addControl(left);
+    //    left->setActiveColor(activeColor);
+
+    //    LabelControl* right = new LabelControl("Right");
+    //    right->addEventHandler(new OffsetGraticuleHandler(graticuleNode, osg::Vec2f(adj, 0.0)) );
+    //    offsetBox->addControl(right);
+    //    right->setActiveColor(activeColor);
+
+    //    LabelControl* down = new LabelControl("Down");
+    //    down->addEventHandler(new OffsetGraticuleHandler(graticuleNode, osg::Vec2f(0.0, -adj)) );
+    //    offsetBox->addControl(down);
+    //    down->setActiveColor(activeColor);
+
+    //    LabelControl* up = new LabelControl("Up");
+    //    up->addEventHandler(new OffsetGraticuleHandler(graticuleNode, osg::Vec2f(0.0, adj)) );
+    //    offsetBox->addControl(up);
+    //    up->setActiveColor(activeColor);
+
+
+    //}
+    //MouseCoordsTool* tool = new MouseCoordsTool( mMapNode );
+    //tool->addCallback( new MouseCoordsLabelCallback(readout, formatter) );
+    //mOsgViewer->addEventHandler( tool );
+}
+
+void CGlobeWidget::setBaseMap( QString url )
+{
+	if ( mMapNode )
+	{
+		mMapNode->getMap()->removeImageLayer( mBaseLayer );
+		if ( url.isNull() )
+		{
+			mBaseLayer = 0;
+		}
+		else
+		{
+			TMSOptions imagery;
+			imagery.url() = url.toStdString();
+			mBaseLayer = new ImageLayer( "Imagery", imagery );
+			mMapNode->getMap()->insertImageLayer( mBaseLayer, 0 );
+		}
+	}
+}
+
+void CGlobeWidget::SetupMap()
+{
+	QString cacheDirectory = QgsApplication::qgisSettingsDirPath() + "cache";
+	FileSystemCacheOptions cacheOptions;
+	cacheOptions.rootPath() = cacheDirectory.toStdString();
+
+	MapOptions mapOptions;
+	mapOptions.cache() = cacheOptions;
+	osgEarth::Map *map = new osgEarth::Map( mapOptions );
+
+	MapNodeOptions nodeOptions;
+	TerrainOptions terrainOptions;
+	nodeOptions.setTerrainOptions( terrainOptions );
+
+	// The MapNode will render the Map object in the scene graph.
+	mMapNode = new osgEarth::MapNode( map, nodeOptions );
+
+	const bool enable_base_map = false;	//don't load; besides, it needs renderer in tile source
+	if ( enable_base_map )
+	{
+		setBaseMap( "http://readymap.org/readymap/tiles/1.0.0/7/" );
+	}
+
+	mRootNode->addChild( mMapNode );
+
+	mGraticuleNode = CreateGraticule();
+	mRootNode->addChild( mGraticuleNode );
+
+	// Add layers to the map
+
+	imageLayersChanged();
+
+	// And what remains of elevationLayersChanged()
+
+	assert__( mMapNode->getMap()->getNumElevationLayers() == 0 );
+
+	ElevationLayerVector list;
+	map->getElevationLayers( list );
+	assert__( list.size() == 0 );
+
+	double scale = 1;
+	setVerticalScale( scale );
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+//	Globe construction - II. structures created by the constructor
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+struct PrintCoordsToStatusBar : public osgEarth::Util::MouseCoordsTool::Callback
+{
+	QStatusBar* mStatusBar = nullptr;
 
 public:
-	CGlobeViewerWidget( osgViewer::ViewerBase *viewer )
-		: base_t( viewer )
-	{}
-	
-	virtual ~CGlobeViewerWidget()
+	PrintCoordsToStatusBar( QStatusBar *sb ) : mStatusBar( sb ) { }
+
+	void set( const GeoPoint& p, osg::View* view, MapNode* mapNode )
 	{
-		Pause();
+		std::string str = osgEarth::Stringify() << p.y() << ", " << p.x();
+		mStatusBar->showMessage( QString( str.c_str() ) );
 	}
 
-
-	void Pause()
+	void reset( osg::View* view, MapNode* mapNode )
 	{
-		_timer.stop();
-	}
-
-	void Resume()
-	{
-		_timer.start(20);
-	}
-
-	bool IsPaused() const
-	{
-		return !_timer.isActive();
+		mStatusBar->showMessage( QString( "out of range" ) );
 	}
 };
 
 
-void CGlobeWidget::CanvasStarted()
+
+class GlobeViewer : public osgViewer::Viewer
 {
-	mGlobeViewerWidget->Pause();
-}
-void CGlobeWidget::CanvasFinished()
-{
-	if ( mLayersChanging )
+	using base_t = osgViewer::Viewer;
+
+public:
+
+	GlobeViewer()
+		: base_t()
+	{}
+
+	virtual int run()
 	{
-		mGlobe->imageLayersChanged();
-		mLayersChanging = false;
+		return base_t::run();
 	}
-	mGlobeViewerWidget->Resume();
-	mLayersChanging = true;
-}
-void CGlobeWidget::ImageLayersChanged()
-{
-	mLayersChanging = true;
-	bool paused = mGlobeViewerWidget->IsPaused();
-	if (!paused)
-		mGlobeViewerWidget->Pause();
-	//if (!paused)
-	//	mGlobeViewerWidget->Resume();
-	//mLayersChanging = false;
-}
-
-
+};
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -95,31 +326,296 @@ void CGlobeWidget::ImageLayersChanged()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+class CGlobeViewerWidget : public osgEarth::QtGui::ViewerWidget
+{
+	using base_t = osgEarth::QtGui::ViewerWidget;
+
+	QgsMapCanvas *mCanvas = nullptr;
+
+public:
+	CGlobeViewerWidget( QgsMapCanvas *the_canvas, osgViewer::ViewerBase *viewer )
+		: base_t( viewer )
+		, mCanvas( the_canvas )
+	{
+		assert__( Viewer() == viewer );
+	}
+	
+	virtual ~CGlobeViewerWidget()
+	{
+		Stop();
+	}
+
+
+	void Stop()
+	{
+		mPaused = true;
+		_timer.stop();
+		Viewer()->getDatabasePager()->cancel();
+		_viewer->setDone( true );
+	}
+
+	bool mPainting = false;
+
+	void Pause()
+	{
+		mPaused = true;
+		_timer.stop();
+		PausePager();
+	}
+
+	void Resume()
+	{
+		mPaused = false;
+		_timer.start(20);
+		ResumePager();
+	}
+
+protected:
+	void PausePager()
+	{
+		Viewer()->getDatabasePager()->setDatabasePagerThreadPause( true );
+	}
+	void ResumePager()
+	{
+		Viewer()->getDatabasePager()->setDatabasePagerThreadPause( false );
+	}
+
+	osgViewer::Viewer* Viewer()
+	{
+		return dynamic_cast< osgViewer::Viewer* >( _viewer.get() );
+	}
+
+	bool IsPaused() const
+	{
+		assert__( ( mPaused && !_timer.isActive() || !mPaused && _timer.isActive() ) );
+
+		return mPaused;
+	}
+
+	bool mPaused = false;
+
+	virtual void paintEvent( QPaintEvent *event ) override
+	{
+		mPainting = true;
+
+		//	qDebug() << Viewer()->getDatabasePager()->isRunning(); alway reports true
+
+		PausePager();
+
+		if ( mPaused )
+		{
+			return;
+		}
+
+		if ( mCanvas->isDrawing() )
+		{
+			return;
+		}
+		else
+		{
+			mCanvas->stopRendering();
+			mCanvas->freeze( true );
+			ResumePager();
+		}
+
+		base_t::paintEvent( event );
+
+		PausePager();
+		mCanvas->freeze( false );
+
+		mPainting = false;
+	}
+};
+
+
+void CGlobeWidget::CanvasStarted()
+{
+	//class CSleep : public QThread
+	//{
+	//public:
+	//	static void sleep( unsigned long secs ) 
+	//	{
+	//		QThread::sleep( secs );
+	//	}
+
+	//	static void msleep( unsigned long msecs ) 
+	//	{
+	//		QThread::msleep( msecs );
+	//	}
+
+	//	static void usleep( unsigned long usecs ) 
+	//	{
+	//		QThread::usleep( usecs );
+	//	}
+	//};
+
+	//mGlobeViewerWidget->Pause();
+	//CSleep::sleep( 4 );
+	//while ( mCanvas->isDrawing() )
+	//	qApp->processEvents();
+}
+void CGlobeWidget::CanvasFinished()
+{
+	//while ( mCanvas->isDrawing() )
+	//	qApp->processEvents();
+	//CSleep::sleep( 4 );
+	//mGlobeViewerWidget->Resume();
+}
+
+
+bool CGlobeWidget::ScheduleClose()
+{
+	mTileSource->mStop = true;
+	mGlobeViewerWidget->Stop();
+	//mLayersChanging = true;
+	QTimer::singleShot( 1, this, SLOT( close() ) );
+	return !mGlobeViewerWidget->mPainting;
+}
+
+
+
+//virtual 
+CGlobeWidget::~CGlobeWidget()
+{
+//	Unwire();
+
+	//RemoveLayers();
+
+	//mGlobeViewerWidget->Pause();
+	//delete mGlobeViewerWidget;
+	//mGlobeViewerWidget = nullptr;
+
+										//delete mControls;
+	//delete mTileSource;
+}
+
+
 CGlobeWidget::CGlobeWidget( QWidget *parent, QgsMapCanvas *the_canvas, QStatusBar *sb )		//sb = nullptr 
 	: base_t( parent )
+	, mCanvas( the_canvas )
 {
-	mGlobe = new CGlobePlugin( the_canvas, sb );
-	mOsgViewer = mGlobe->osgViewer();										assert__( mOsgViewer );
-	mGlobeViewerWidget = new CGlobeViewerWidget( mOsgViewer );	
+	assert__( !mOsgViewer );
+	assert__( !mRootNode );
+	assert__( !mMapNode );
+	assert__( !mBaseLayer );
+	assert__( !mQgisMapLayer );
+	assert__( !mTileSource );
+	assert__( !mControlCanvas );
+	assert__( !mSelectedLat );
+	assert__( !mSelectedLon );
+	assert__( !mSelectedElevation );
+
+	// update path to OSG plug-ins on Mac OS X
+	//
+#ifdef Q_OS_MACX
+	if ( !getenv( "OSG_LIBRARY_PATH" ) )
+	{
+		// OSG_PLUGINS_PATH value set by CMake option
+		QString ogsPlugins( OSG_PLUGINS_PATH );
+		QString bundlePlugins = QgsApplication::pluginPath() + "/../osgPlugins";
+		if ( QFile::exists( bundlePlugins ) )
+		{
+			// add internal osg plugin path if bundled osg
+			ogsPlugins = bundlePlugins;
+		}
+		if ( QFile::exists( ogsPlugins ) )
+		{
+			osgDB::Registry::instance()->setLibraryFilePathList( QDir::cleanPath( ogsPlugins ).toStdString() );
+		}
+	}
+#endif
+
+	mRootNode = new osg::Group();		//from setupMap
+
+	mOsgViewer = new GlobeViewer();	// osgViewer::Viewer();
+	mOsgViewer->setThreadingModel( osgViewer::Viewer::SingleThreaded );
+
+	// install the programmable manipulator.
+	//
+	osgEarth::Util::EarthManipulator* manip = new osgEarth::Util::EarthManipulator();
+	mOsgViewer->setCameraManipulator( manip );
+
+	SetupMap();		//creates and attaches the map node, graticule, layers...
+
+
+	// v4 setSkyParameters was called here
+
+	// create a surface to house the controls
+	//
+	mControlCanvas = ControlCanvas::get( mOsgViewer );		//OSGEARTH_VERSION_GREATER_OR_EQUAL( 2, 1, 1 )
+	mRootNode->addChild( mControlCanvas );
+
+	mRootUpdateCallback = new CRootUpdateCallback( this );
+	mRootNode->setUpdateCallback( mRootUpdateCallback );
+
+	//	Root node
+	//
+	mOsgViewer->setSceneData( mRootNode );
+
+	mOsgViewer->addEventHandler( new osgViewer::StatsHandler() );
+	mOsgViewer->addEventHandler( new osgViewer::WindowSizeHandler() );
+	mOsgViewer->addEventHandler( new osgViewer::ThreadingHandler() );
+	mOsgViewer->addEventHandler( new osgViewer::LODScaleHandler() );
+	mOsgViewer->addEventHandler( new osgGA::StateSetManipulator( mOsgViewer->getCamera()->getOrCreateStateSet() ) );
+
+	mOsgViewer->getCamera()->addCullCallback( new AutoClipPlaneCullCallback( mMapNode ) );	//NOT OSGEARTH_VERSION_LESS_THAN( 2, 2, 0 )
+
+	// osgEarth benefits from pre-compilation of GL objects in the pager. In newer versions of
+	// OSG, this activates OSG's IncrementalCompileOpeartion in order to avoid frame breaks.
+	//
+	mOsgViewer->getDatabasePager()->setDoPreCompile( true );				//ATTENTION: original is "true"
+	qDebug() << mOsgViewer->getDatabasePager()->getNumDatabaseThreads();	//2
+	//mOsgViewer->getDatabasePager()->setUpThreads( 0, 0 );					//leaves 1 thread
+
+	// Set a home viewpoint
+	manip->setHomeViewpoint( osgEarth::Util::Viewpoint( nullptr, -90, 0, 0, 0.0, -90.0, 2e7 ), 1.0 );	//changed from the original: osgEarth::Util::Viewpoint( osg::Vec3d( -90, 0, 0 ), 0.0, -90.0, 2e7 )
+
+	// add our handlers
+	mOsgViewer->addEventHandler( new FlyToExtentHandler( this ) );
+	mOsgViewer->addEventHandler( new KeyboardControlHandler( manip ) );
+
+	if ( sb )
+	{
+		MouseCoordsTool* tool = new MouseCoordsTool( mMapNode );
+		tool->addCallback( new PrintCoordsToStatusBar( sb ) );
+		mOsgViewer->addEventHandler( tool );
+	}
+
+
+	mControls = new CGlobeControls( this );
+
+	//// Connect actions
+
+	//see below
+	//connect( mCanvas, SIGNAL( extentsChanged() ),			this, SLOT( extentsChanged() ) );
+	//connect( mCanvas, SIGNAL( layersChanged() ),			this, SLOT( imageLayersChanged() ) );
+
+	//connect( this, SIGNAL( xyCoordinates( const QgsPoint & ) ),			mCanvas, SIGNAL( xyCoordinates( const QgsPoint & ) ) );
+	//connect( mCanvas, SIGNAL( GridEnabled( bool ) ),	this, SLOT( ToggleGridEnabled( bool ) ) ); 
+
+
+	//mOsgViewer->getCamera()->setClearColor( osg::Vec4( 1.0, 1.0, 0xD8/255.0, 0.5 ) );
+
+
+    //mOsgViewer->getCamera()->setClearMask( mOsgViewer->getCamera()->getClearMask() | GL_COLOR_BUFFER_BIT );
+	//mOsgViewer->getCamera()->setClearColor(osg::Vec4(0.,0.,0.,0.));
+	
+
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////
+
+	mGlobeViewerWidget = new CGlobeViewerWidget( mCanvas, mOsgViewer );	
 
 	osg::Camera* camera = mOsgViewer->getCamera();
 	osgQt::GraphicsWindowQt *gw = dynamic_cast< osgQt::GraphicsWindowQt* >( camera->getGraphicsContext() );
 	gw->getGLWidget()->setMinimumSize( 10, 10 );	//CRITICAL: prevent image from disappearing forever when height is 0
 
-	QSettings settings;
-
-	if ( settings.value( "/Plugin-Globe/anti-aliasing", true ).toBool() )
+	//anti-aliasing
 	{
 		QGLFormat glf = QGLFormat::defaultFormat();
 		glf.setSampleBuffers( true );
-		//bool aaLevelIsInt;
-		//int aaLevel;
-		//QString aaLevelStr = settings.value( "/Plugin-Globe/anti-aliasing-level", "" ).toString();
-		//aaLevel = aaLevelStr.toInt( &aaLevelIsInt );
-		//if ( aaLevelIsInt )
-		//{
-		//	glf.setSamples( aaLevel );
-		//}
 		mGlobeViewerWidget->setFormat( glf );
 	}
 	AddWidget( this, mGlobeViewerWidget );
@@ -127,62 +623,307 @@ CGlobeWidget::CGlobeWidget( QWidget *parent, QgsMapCanvas *the_canvas, QStatusBa
 	setMinimumSize( min_globe_widget_width, min_globe_widget_height );
 
 
-
-	connect( the_canvas, SIGNAL( renderStarting() ), this, SLOT( CanvasStarted() ) );
-	connect( the_canvas, SIGNAL( mapCanvasRefreshed() ), this, SLOT( CanvasFinished() ) );
-	connect( the_canvas, SIGNAL( layersChanged() ), this, SLOT( ImageLayersChanged() ) );
-
-
 	//context menu
 
-	setContextMenuPolicy( Qt::ActionsContextMenu );
+	//setContextMenuPolicy( Qt::ActionsContextMenu );
 
-	mActionSettingsDialog = new QAction( "Settings Dialog...", this );
-	connect( mActionSettingsDialog, SIGNAL( triggered() ), mGlobe, SLOT( settings() ) );
-	addAction( mActionSettingsDialog );
+	//mActionSettingsDialog = new QAction( "Settings Dialog...", this );
+	//connect( mActionSettingsDialog, SIGNAL( triggered() ), this, SLOT( settings() ) );
+	//addAction( mActionSettingsDialog );
 
-	mActionSky = new QAction( "Sky", this );
-	connect( mActionSky, SIGNAL( toggled( bool ) ), mGlobe, SLOT( SetSkyParameters( bool ) ) );
-	mActionSky->setCheckable( true );
-	mActionSky->setChecked( false );
-	addAction( mActionSky );	
+	//mActionSky = new QAction( "Sky", this );
+	//connect( mActionSky, SIGNAL( toggled( bool ) ), this, SLOT( SetSkyParameters( bool ) ) );
+	//mActionSky->setCheckable( true );
+	//mActionSky->setChecked( false );
+	//addAction( mActionSky );	
 
-	mActionSetupControls = new QAction( "Globe Controls", this );
-	connect( mActionSetupControls, SIGNAL( toggled( bool ) ), mGlobe, SLOT( SetupControls( bool ) ) );
-	mActionSetupControls->setCheckable( true );
-	mActionSetupControls->setChecked( false );
-	addAction( mActionSetupControls );	
+	//mActionSetupControls = new QAction( "Globe Controls", this );
+	//connect( mActionSetupControls, SIGNAL( toggled( bool ) ), this, SLOT( SetupControls( bool ) ) );
+	//mActionSetupControls->setCheckable( true );
+	//mActionSetupControls->setChecked( false );
+	//addAction( mActionSetupControls );
+
+	Wire();
 }
 
 
-//virtual 
-CGlobeWidget::~CGlobeWidget()
+void CGlobeWidget::Unwire()
 {
-	delete mGlobeViewerWidget;
-	mGlobeViewerWidget = nullptr;
-	delete mGlobe;
-	mGlobe = nullptr;
+	disconnect( this, SIGNAL( xyCoordinates( const QgsPoint & ) ),	mCanvas, SIGNAL( xyCoordinates( const QgsPoint & ) ) );
+	disconnect( mCanvas, SIGNAL( GridEnabled( bool ) ),			this, SLOT( ToggleGridEnabled( bool ) ) ); 
+
+	disconnect( mCanvas, SIGNAL( extentsChanged() ),				this, SLOT( extentsChanged() ) );
+
+	disconnect( mCanvas, SIGNAL( layersChanged() ),				this, SLOT( imageLayersChanged() ) );
+
+	connect( mCanvas, SIGNAL( renderStarting() ), this, SLOT( CanvasStarted() ) );
+	connect( mCanvas, SIGNAL( mapCanvasRefreshed() ), this, SLOT( CanvasFinished() ) );
 }
 
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//		
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-void CGlobeWidget::RemoveLayers()
+void CGlobeWidget::Wire()
 {
-	mGlobe->RemoveLayers();
+	connect( this, SIGNAL( xyCoordinates( const QgsPoint & ) ),	mCanvas, SIGNAL( xyCoordinates( const QgsPoint & ) ) );
+	connect( mCanvas, SIGNAL( GridEnabled( bool ) ),			this, SLOT( ToggleGridEnabled( bool ) ) ); 
+
+	connect( mCanvas, SIGNAL( extentsChanged() ),				this, SLOT( extentsChanged() ) );
+	connect( mCanvas, SIGNAL( layersChanged() ),				this, SLOT( imageLayersChanged() ) );
+
+	connect( mCanvas, SIGNAL( renderStarting() ), this, SLOT( CanvasStarted() ) );
+	connect( mCanvas, SIGNAL( mapCanvasRefreshed() ), this, SLOT( CanvasFinished() ) );
 }
 
 
-void CGlobeWidget::HandleSettings()
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+//	Slots
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+void CGlobeWidget::extentsChanged()
 {
-	mGlobe->settings();
+	assert__( mCanvas );
+
+	QgsDebugMsg( "extentsChanged: " + mCanvas->extent().toString() );
 }
+
+
+void CGlobeWidget::ChangeImageLayers()
+{
+	if ( mTileSource && mTileSource->mRendering )
+	{
+		imageLayersChanged();
+		return;
+	}
+
+	QgsDebugMsg( "imageLayersChanged: Globe Running, executing" );
+
+	osg::ref_ptr<Map> map = mMapNode->getMap();
+	if ( map->getNumImageLayers() > 1 )
+	{
+		mOsgViewer->getDatabasePager()->clear();
+	}
+
+	//remove QGIS layer
+	if ( mQgisMapLayer )
+	{
+		QgsDebugMsg( "removeMapLayer" );
+		map->removeImageLayer( mQgisMapLayer );
+	}
+
+	//add QGIS layer
+	QgsDebugMsg( "addMapLayer" );
+	mTileSource = new QgsOsgEarthTileSource( mCanvas );
+
+	ImageLayerOptions options( "QGIS" );
+	options.cachePolicy() = CachePolicy::NO_CACHE;
+	mQgisMapLayer = new ImageLayer( options, mTileSource );
+
+	map->addImageLayer( mQgisMapLayer );
+
+	mCanvas->freeze( false );
+}
+
+void CGlobeWidget::imageLayersChanged()
+{
+	mCanvas->stopRendering();
+	mCanvas->freeze( true );
+
+	if ( mTileSource )
+	{
+		mTileSource->mStop = true;
+		QTimer::singleShot( 1, this, SLOT( ChangeImageLayers() ) );
+	}
+	else
+		ChangeImageLayers();
+}
+
+
 void CGlobeWidget::HandleSky( bool toggled )
 {
-	mGlobe->SetSkyParameters( toggled );
+	SetSkyParameters( toggled );
+}
+
+void CGlobeWidget::SetSkyParameters( bool sky )
+{
+	setSkyParameters( sky, QDateTime(), true );
+}
+
+
+void CGlobeWidget::SetupControls( bool set )
+{
+	assert__( mControls );
+
+	set ? mControls->AddControls() : mControls->RemoveControls();
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+//
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+void CGlobeWidget::showCurrentCoordinates( double lon, double lat )
+{
+  // show x y on status bar
+  //OE_NOTICE << "lon: " << lon << " lat: " << lat <<std::endl;
+  QgsPoint coord = QgsPoint( lon, lat );
+  emit xyCoordinates( coord );
+}
+
+void CGlobeWidget::setSelectedCoordinates( osg::Vec3d coords )
+{
+  mSelectedLon = coords.x();
+  mSelectedLat = coords.y();
+  mSelectedElevation = coords.z();
+  QgsPoint coord = QgsPoint( mSelectedLon, mSelectedLat );
+  emit newCoordinatesSelected( coord );
+}
+
+osg::Vec3d CGlobeWidget::getSelectedCoordinates()
+{
+  osg::Vec3d coords = osg::Vec3d( mSelectedLon, mSelectedLat, mSelectedElevation );
+  return coords;
+}
+
+void CGlobeWidget::showSelectedCoordinates()
+{
+  QString lon, lat, elevation;
+  lon.setNum( mSelectedLon );
+  lat.setNum( mSelectedLat );
+  elevation.setNum( mSelectedElevation );
+  QMessageBox m;
+  m.setText( "selected coordinates are:\nlon: " + lon + "\nlat: " + lat + "\nelevation: " + elevation );
+  m.exec();
+}
+
+double CGlobeWidget::getSelectedLon()
+{
+  return mSelectedLon;
+}
+
+double CGlobeWidget::getSelectedLat()
+{
+  return mSelectedLat;
+}
+
+double CGlobeWidget::getSelectedElevation()
+{
+  return mSelectedElevation;
+}
+
+void CGlobeWidget::syncExtent()
+{
+	assert__( mCanvas );
+
+	const QgsMapSettings &mapSettings = mCanvas->mapSettings();
+	QgsRectangle extent = mCanvas->extent();
+
+	long epsgGlobe = 4326;
+	QgsCoordinateReferenceSystem globeCrs;
+	globeCrs.createFromOgcWmsCrs( QString( "EPSG:%1" ).arg( epsgGlobe ) );
+
+	// transform extent to WGS84
+	if ( mapSettings.destinationCrs().authid().compare( QString( "EPSG:%1" ).arg( epsgGlobe ), Qt::CaseInsensitive ) != 0 )
+	{
+		QgsCoordinateReferenceSystem srcCRS( mapSettings.destinationCrs() );
+		QgsCoordinateTransform* coordTransform = new QgsCoordinateTransform( srcCRS, globeCrs );
+		extent = coordTransform->transformBoundingBox( extent );
+		delete coordTransform;
+	}
+
+	osgEarth::Util::EarthManipulator* manip = dynamic_cast<osgEarth::Util::EarthManipulator*>( mOsgViewer->getCameraManipulator() );
+	//rotate earth to north and perpendicular to camera
+	manip->setRotation( osg::Quat() );
+
+	QgsDistanceArea dist;
+
+	dist.setSourceCrs( globeCrs );
+	dist.setEllipsoidalMode( true );
+	dist.setEllipsoid( "WGS84" );
+
+	QgsPoint ll = QgsPoint( extent.xMinimum(), extent.yMinimum() );
+	QgsPoint ul = QgsPoint( extent.xMinimum(), extent.yMaximum() );
+	double height = dist.measureLine( ll, ul );
+
+	//camera viewing angle
+	double viewAngle = 30;
+	//camera distance
+	double distance = height / tan( viewAngle * osg::PI / 180 ); //c = b*cotan(B(rad))
+
+	OE_NOTICE << "map extent: " << height << " camera distance: " << distance << std::endl;
+
+	osgEarth::Util::Viewpoint viewpoint( nullptr, extent.center().x(), extent.center().y(), 0.0, 0.0, -90.0, distance );
+	//osgEarth::Util::Viewpoint viewpoint( osg::Vec3d( extent.center().x(), extent.center().y(), 0.0 ), 0.0, -90.0, distance ); //femm
+	manip->setViewpoint( viewpoint, 4.0 );
+}
+
+
+void CGlobeWidget::setVerticalScale( double value )		//OSGEARTH_VERSION_GREATER_OR_EQUAL( 2, 5, 0 )
+{
+  if ( mMapNode )
+  {
+    if ( !mVerticalScale.get() || mVerticalScale->getScale() != value )
+    {
+      mMapNode->getTerrainEngine()->removeEffect( mVerticalScale );
+      mVerticalScale = new osgEarth::Util::VerticalScale();
+      mVerticalScale->setScale( value );
+      mMapNode->getTerrainEngine()->addEffect( mVerticalScale );
+    }
+  }
+}
+
+
+
+
+
+void CGlobeWidget::setSkyParameters( bool sky, const QDateTime& date_time, bool auto_ambience )
+{
+	assert__( mRootNode );
+	if ( sky )
+	{
+		// Create if not yet done
+		if ( !mSkyNode.get() )
+		{
+			SkyOptions options;
+			options.ambient() = auto_ambience ? 1.0 : 0.0;
+			mSkyNode = SkyNode::create( options, mMapNode );
+		}
+
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL( 2, 4, 0 )
+		//mSkyNode->setAutoAmbience( autoAmbience );	//femm
+#else
+		Q_UNUSED( autoAmbience );
+#endif
+		mSkyNode->setDateTime( osgEarth::DateTime( 
+			date_time.date().year()
+			, date_time.date().month()
+			, date_time.date().day()
+			, date_time.time().hour() + date_time.time().minute() / 60.0 ) 
+			);
+
+		//mSkyNode->setSunPosition( osg::Vec3(0,-1,0) );
+
+		bool fancy = false;
+
+		mSkyNode->setMoonVisible( fancy );
+		mSkyNode->setStarsVisible( fancy );
+		mSkyNode->setSunVisible( fancy );
+
+		//mSkyNode->setLighting( osg::StateAttribute::OFF );
+		//mSkyNode->getSunLight()->setSpecular(osg::Vec4(1.,1.,1.,1.));
+		//mSkyNode->getSunLight()->setAmbient(osg::Vec4(1.,1.,1.,1.));
+		//mSkyNode->setNodeMask(0);
+
+		mSkyNode->attach( mOsgViewer );
+			
+		mRootUpdateCallback->AssignNodeToAdd( mSkyNode );		//mRootNode->addChild( mSkyNode );
+	}
+	else
+	{
+		mRootUpdateCallback->AssignNodeToDelete( mSkyNode );	// mRootNode->removeChild( mSkyNode );
+	}
 }
 
 

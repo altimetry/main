@@ -113,13 +113,15 @@ protected:
 
 	void ResetProperties( const CWorldPlotProperties *props, CWPlot *wplot );
 
+	void KillGlobe();
+
 	///////////////////////////////////////////////////////////
 	// Virtual interface implementations
 	///////////////////////////////////////////////////////////
 
 	virtual bool IsMapEditor() const { return true; }
 
-	virtual bool ResetViews( bool enable_2d, bool enable_3d ) override;
+	virtual bool ResetViews( bool reset_2d, bool reset_3d ) override;
 
 	virtual void Show2D( bool checked ) override;
 	virtual void Show3D( bool checked ) override;

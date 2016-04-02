@@ -148,7 +148,7 @@ void CFormulaDialog::HandleRemoveButtonClicked()
 {
 	assert__( mCurrentFormula );
 
-	NOT_IMPLEMENTED;
+	BRAT_NOT_IMPLEMENTED;
 
 	//CWorkspaceFormula* wks = wxGetApp().GetCurrentWorkspaceFormula();
 	//if ( wks == NULL )

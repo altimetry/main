@@ -310,6 +310,7 @@ private slots:
     void on_action_Launch_Scheduler_triggered();
     void on_action_Options_triggered();
 
+	void SchedulerProcessError( QProcess::ProcessError );
 
 	////////////////
 	//Menu Window
@@ -340,6 +341,7 @@ private slots:
 
 	void StopDisplayMode();
     void on_action_Close_Workspace_triggered();
+    void on_action_Open_View_triggered();
 };
 
 

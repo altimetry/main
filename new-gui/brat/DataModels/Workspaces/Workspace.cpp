@@ -329,18 +329,18 @@ bool CWorkspaceDataset::LoadConfigDataset( std::string &errorMsg )
 	return m_config->LoadConfigDataset( *this, errorMsg );
 }
 //----------------------------------------
-bool CWorkspaceDataset::RenameDataset(CDataset* dataset, const std::string& newName)
+bool CWorkspaceDataset::RenameDataset(CDataset* dataset, const std::string& new_name)
 {
-  if ( str_cmp( dataset->GetName(), newName) )
+  if ( str_cmp( dataset->GetName(), new_name) )
     return true;
 
-  bool bOk = m_datasets.RenameKey((const char *)dataset->GetName().c_str(), (const char *)newName.c_str());
+  bool bOk = m_datasets.RenameKey((const char *)dataset->GetName().c_str(), (const char *)new_name.c_str());
   if (bOk == false)
   {
    return false;
   }
 
-  dataset->SetName(newName);
+  dataset->SetName(new_name);
 
   return true;
 }
@@ -711,15 +711,18 @@ bool CWorkspaceOperation::Import( CWorkspace* wksi, std::string &errorMsg, CWork
 }
 
 //----------------------------------------
-bool CWorkspaceOperation::RenameOperation( COperation* operation, const std::string& newName )
+bool CWorkspaceOperation::RenameOperation( COperation* operation, const std::string& new_name )
 {
-	if ( str_cmp( operation->GetName(), newName ) )
-		return true;
-
-	if ( !m_operations.RenameKey( operation->GetName(), newName ) )
+	if ( str_cmp( QuickOperationName(), new_name ) )
 		return false;
 
-	operation->SetName( newName );
+	if ( str_cmp( operation->GetName(), new_name ) )
+		return true;
+
+	if ( !m_operations.RenameKey( operation->GetName(), new_name ) )
+		return false;
+
+	operation->SetName( new_name );
 
 	return true;
 }
@@ -780,7 +783,7 @@ std::string CWorkspaceOperation::GetOperationNewName()
 
 	do
 	{
-		key = NAME + "_" + n2s< std::string >( i + 1 );
+		key = NAME + "_" + n2s< std::string >( i + 1 );		//the suffix ensures also that the name does not clash with QuickOperationName()
 		i++;
 	} while ( m_operations.Exists( key ) != nullptr );
 
@@ -1059,15 +1062,15 @@ bool CWorkspaceDisplay::LoadConfigDisplay( std::string &errorMsg, CWorkspaceDisp
 	return m_config->LoadConfigDisplay( *this, errorMsg, wksd, wkso );
 }
 //----------------------------------------
-bool CWorkspaceDisplay::RenameDisplay( CDisplay* display, const std::string& newName )
+bool CWorkspaceDisplay::RenameDisplay( CDisplay* display, const std::string& new_name )
 {
-	if ( str_cmp( display->GetName(), newName ) )
+	if ( str_cmp( display->GetName(), new_name ) )
 		return true;
 
-	if ( !m_displays.RenameKey( (const char *)display->GetName().c_str(), (const char *)newName.c_str() ) )
+	if ( !m_displays.RenameKey( (const char *)display->GetName().c_str(), (const char *)new_name.c_str() ) )
 		return false;
 
-	display->SetName( newName );
+	display->SetName( new_name );
 
 	return true;
 }

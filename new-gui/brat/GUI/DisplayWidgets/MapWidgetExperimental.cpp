@@ -20,6 +20,7 @@
 #include <qgslinesymbollayerv2.h>
 #include <qgsmarkersymbollayerv2.h>
 //#include <qgsvectorfieldsymbollayer.h>
+#include <qgssinglesymbolrendererv2.h>
 
 #include <qgslayertreenode.h>
 #include <qgslayertreeviewdefaultactions.h>

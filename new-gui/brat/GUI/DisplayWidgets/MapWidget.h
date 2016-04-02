@@ -5,8 +5,11 @@
 
 #include <QMessageBox>
 
+#if defined(OSG_GLDEFINES)	//avoid collisions of OPENGL macro definitions by OSG and QGIS
+#define QGLSHADERPROGRAM_H
+#endif
+
 #include <qgsmapcanvas.h>
-#include <qgssinglesymbolrendererv2.h>
 
 
 
@@ -101,15 +104,9 @@ public:
 
 public:
 	template< class LAYER >
-	static QgsSingleSymbolRendererV2* CreateRenderer( LAYER *layer )
-	{
-		return new QgsSingleSymbolRendererV2( QgsSymbolV2::defaultSymbol( layer->geometryType() ) );
-	}
+	static QgsSingleSymbolRendererV2* CreateRenderer( LAYER *layer );
 	
-	static QgsSingleSymbolRendererV2* CreateRenderer( QgsSymbolV2* symbol )
-	{
-		return new QgsSingleSymbolRendererV2( symbol );
-	}
+	static QgsSingleSymbolRendererV2* CreateRenderer( QgsSymbolV2* symbol );
 
 	static QgsGraduatedSymbolRendererV2* CreateRenderer( const QString &target_field, double width, double m, double M, size_t contours );
 
@@ -239,21 +236,16 @@ protected:
 
 	void SetCurrentLayer( QgsMapLayer *l );	
 
-	QgsMapLayer* FindLayer( const std::string &name );	
 	QgsMapCanvasLayer* FindCanvasLayer( size_t index );	
 	const QgsMapCanvasLayer* FindCanvasLayer( size_t index ) const
 	{
         return const_cast<CMapWidget*>( this )->FindCanvasLayer( index );
 	}
-	QgsMapCanvasLayer* FindCanvasLayer( const std::string &name );	
 	const QgsMapCanvasLayer* FindCanvasLayer( const std::string &name ) const
 	{
         return const_cast<CMapWidget*>( this )->FindCanvasLayer( name );
 	}
 	
-	std::string CurrentLayer() const;	   				//not used
-	void SetCurrentLayer( const std::string &name );	//not used
-
 	void SetProjection( const QgsCoordinateReferenceSystem &proj );
 
 	QgsVectorLayer* AddVectorLayer( const std::string &name, const QString &layer_path, const QString &provider, QgsFeatureRendererV2 *renderer = nullptr );

@@ -1,52 +1,30 @@
-/***************************************************************************
-    qgsosgearthtilesource.cpp
-    ---------------------
-    begin                : August 2010
-    copyright            : (C) 2010 by Pirmin Kalberer
-    email                : pka at sourcepole dot ch
- ***************************************************************************
- *                                                                         *
- *   This program is free software; you can redistribute it and/or modify  *
- *   it under the terms of the GNU General Public License as published by  *
- *   the Free Software Foundation; either version 2 of the License, or     *
- *   (at your option) any later version.                                   *
- *                                                                         *
- ***************************************************************************/
-
 #include "new-gui/brat/stdafx.h"
-
-#include <QFile>
-#include <QImage>
-#include <QDesktopWidget>
 
 #if defined (WIN32) || defined(_WIN32)
 #pragma warning ( disable: 4100 )           //unreferenced formal parameter
 #endif
 
-#include <osg/Notify>
-#include <osgDB/FileNameUtils>
-#include <osgDB/FileUtils>
-#include <osgDB/Registry>
-#include <osgDB/ReadFile>
-#include <osgDB/WriteFile>
-
 #include <osgEarth/TileSource>
 #include <osgEarth/Registry>
 #include <osgEarth/ImageUtils>
 
-#include <qgsapplication.h>
-#include <qgslogger.h>
-#include <qgisinterface.h>
-#include <qgsmapcanvas.h>
-
-#include "qgsosgearthtilesource.h"
+#include "qgsosgearthtilesource.h"		//must come before the ifdef just below
 
 #ifdef USE_RENDERER
-#include <qgsmaprenderer.h>
 #else
-#include <qgsmaprendererjob.h>
-#include <qgsmaprenderersequentialjob.h>
+
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
 #endif
+
+#include <qgsmaprenderersequentialjob.h>
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
+#endif  // USE_RENDERER
 
 
 #if defined (WIN32) || defined(_WIN32)
@@ -65,62 +43,54 @@ using namespace osgEarth::Drivers;
 
 
 QgsOsgEarthTileSource::QgsOsgEarthTileSource( QgsMapCanvas* theCanvas, const TileSourceOptions& options )	//options = TileSourceOptions()
-    : TileSource( options )
+	: TileSource( options )
 	, mCanvas( theCanvas )
-    , mCoordTransform( 0 )
+	, mCoordTransform( 0 )
 #ifdef USE_RENDERER
-    , mMapRenderer( 0 )
+	, mMapRenderer( 0 )
 #endif
 {
+	setProfile( osgEarth::Registry::instance()->getGlobalGeodeticProfile() );
 
-}
+	QgsCoordinateReferenceSystem destCRS;
+	destCRS.createFromOgcWmsCrs( GEO_EPSG_CRS_AUTHID );
 
-void QgsOsgEarthTileSource::initialize( const std::string& referenceURI, const Profile* overrideProfile )
-{
-  Q_UNUSED( referenceURI );
-  Q_UNUSED( overrideProfile );
-
-  setProfile( osgEarth::Registry::instance()->getGlobalGeodeticProfile() );
-
-  QgsCoordinateReferenceSystem destCRS;
-  destCRS.createFromOgcWmsCrs( GEO_EPSG_CRS_AUTHID );
-
-  if ( mCanvas->mapSettings().destinationCrs().authid().compare( GEO_EPSG_CRS_AUTHID, Qt::CaseInsensitive ) != 0 )
-  {
-    // FIXME: crs from canvas or first layer?
-    QgsCoordinateReferenceSystem srcCRS( mCanvas->mapSettings().destinationCrs() );
-    QgsDebugMsg( QString( "transforming from %1 to %2" ).arg( srcCRS.authid() ).arg( destCRS.authid() ) );
-    mCoordTransform = new QgsCoordinateTransform( srcCRS, destCRS );
-  }
-  else
-  {
-    mCoordTransform = 0;
-  }
+	if ( mCanvas->mapSettings().destinationCrs().authid().compare( GEO_EPSG_CRS_AUTHID, Qt::CaseInsensitive ) != 0 )
+	{
+		// FIXME: crs from canvas or first layer?
+		QgsCoordinateReferenceSystem srcCRS( mCanvas->mapSettings().destinationCrs() );
+		QgsDebugMsg( QString( "transforming from %1 to %2" ).arg( srcCRS.authid() ).arg( destCRS.authid() ) );
+		mCoordTransform = new QgsCoordinateTransform( srcCRS, destCRS );
+	}
+	else
+	{
+		mCoordTransform = 0;
+	}
 
 #ifdef USE_RENDERER
-  mMapRenderer = new QgsMapRenderer();
-  mMapRenderer->setDestinationCrs( destCRS );
-  mMapRenderer->setProjectionsEnabled( true );
-  mMapRenderer->setOutputUnits( mCanvas->mapRenderer()->outputUnits() );
-  mMapRenderer->setMapUnits( QGis::Degrees );
+	mMapRenderer = new QgsMapRenderer();
+	mMapRenderer->setDestinationCrs( destCRS );
+	mMapRenderer->setProjectionsEnabled( true );
+	mMapRenderer->setOutputUnits( mCanvas->mapRenderer()->outputUnits() );
+	mMapRenderer->setMapUnits( QGis::Degrees );
 #else
-  mMapSettings.setDestinationCrs( destCRS );
-  mMapSettings.setCrsTransformEnabled( true );
-  mMapSettings.setMapUnits( QGis::Degrees );
+	mMapSettings.setDestinationCrs( destCRS );
+	mMapSettings.setCrsTransformEnabled( true );
+	mMapSettings.setMapUnits( QGis::Degrees );
 #endif
 }
 
-//called from another thread
+
+
+//can be called from another thread
 //
 osg::Image* QgsOsgEarthTileSource::createImage( const TileKey& key, ProgressCallback* progress )
 {
-	//if ( mCanvas->isDrawing() )
-	//	return ImageUtils::createEmptyImage();
-	//else
-	//{
-	//	mViewExtent = mCanvas->fullExtent();
-	//	mLayerSet = mCanvas->mapRenderer()->layerSet();
-	//}
+	//while ( mCanvas->isDrawing() )
+	//	qApp->processEvents();
+
+	if ( mStop || mCanvas->isDrawing() )
+		return nullptr;
 
 	QString kname = key.str().c_str();
 	kname.replace( '/', '_' );
@@ -134,6 +104,8 @@ osg::Image* QgsOsgEarthTileSource::createImage( const TileKey& key, ProgressCall
 		QgsDebugMsg( "Tile size too small." );
 		return ImageUtils::createEmptyImage();
 	}
+
+	mRendering = true;
 
 	QgsRectangle viewExtent = mCanvas->fullExtent();
 	if ( mCoordTransform )
@@ -152,14 +124,17 @@ osg::Image* QgsOsgEarthTileSource::createImage( const TileKey& key, ProgressCall
 	if ( !viewExtent.intersects( tileExtent ) )
 	{
 		QgsDebugMsg( QString( "earth tile key:%1 ext:%2: NO INTERSECT" ).arg( kname ).arg( tileExtent.toString( 5 ) ) );
+		mRendering = false;
 		return ImageUtils::createEmptyImage();
 	}
 
 #ifdef USE_RENDERER
+
 	QImage *qImage = createQImage( tileSize, tileSize );
 	if ( !qImage )
 	{
 		QgsDebugMsg( QString( "earth tile key:%1 ext:%2: EMPTY IMAGE" ).arg( kname ).arg( tileExtent.toString( 5 ) ) );
+		mRendering = false;
 		return ImageUtils::createEmptyImage();
 	}
 
@@ -169,12 +144,14 @@ osg::Image* QgsOsgEarthTileSource::createImage( const TileKey& key, ProgressCall
 
 	QPainter thePainter( qImage );
 	mMapRenderer->render( &thePainter );
+
 #else
+
 	mMapSettings.setLayers( mCanvas->mapSettings().layers() );
 	mMapSettings.setOutputSize( QSize( tileSize, tileSize ) );
 	mMapSettings.setOutputDpi( QgsApplication::desktop()->logicalDpiX() );
 	mMapSettings.setExtent( tileExtent );
-	mMapSettings.setBackgroundColor( QColor( 0, 0, 0, 0 ) );
+	//mMapSettings.setBackgroundColor( QColor( 0, 0, 0, 0 ) );		//femm commented out, and it seems correct
 
 	QgsMapRendererSequentialJob job( mMapSettings );
 	job.start();
@@ -184,12 +161,14 @@ osg::Image* QgsOsgEarthTileSource::createImage( const TileKey& key, ProgressCall
 	if ( !qImage )
 	{
 		QgsDebugMsg( QString( "earth tile key:%1 ext:%2: EMPTY IMAGE" ).arg( kname ).arg( tileExtent.toString( 5 ) ) );
+		mRendering = false;
 		return ImageUtils::createEmptyImage();
 	}
 
 	Q_ASSERT( qImage->logicalDpiX() == QgsApplication::desktop()->logicalDpiX() );
 	Q_ASSERT( qImage->format() == QImage::Format_ARGB32_Premultiplied );
-#endif
+
+#endif		//USE_RENDERER
 
 	QgsDebugMsg( QString( "earth tile key:%1 ext:%2" ).arg( kname ).arg( tileExtent.toString( 5 ) ) );
 #if 0
@@ -206,6 +185,8 @@ osg::Image* QgsOsgEarthTileSource::createImage( const TileKey& key, ProgressCall
 
 	image->flipVertical();
 
+	mRendering = false;
+
 	//Create a transparent image if we don't have an image
 	if ( !image.valid() )
 	{
@@ -217,38 +198,44 @@ osg::Image* QgsOsgEarthTileSource::createImage( const TileKey& key, ProgressCall
 	return image.release();
 }
 
+
+
+#ifdef USE_RENDERER
+
 QImage* QgsOsgEarthTileSource::createQImage( int width, int height ) const
 {
-  if ( width < 0 || height < 0 )
-    return 0;
+	if ( width < 0 || height < 0 )
+		return 0;
 
-  QImage *qImage = 0;
+	QImage *qImage = 0;
 
-  //is format jpeg?
-  bool jpeg = false;
-  //transparent parameter
-  bool transparent = true;
+	//is format jpeg?
+	bool jpeg = false;
+	//transparent parameter
+	bool transparent = true;
 
-  //use alpha channel only if necessary because it slows down performance
-  if ( transparent && !jpeg )
-  {
-    qImage = new QImage( width, height, QImage::Format_ARGB32_Premultiplied );
-    qImage->fill( 0 );
-  }
-  else
-  {
-    qImage = new QImage( width, height, QImage::Format_RGB32 );
-    qImage->fill( qRgb( 255, 255, 255 ) );
-  }
+	//use alpha channel only if necessary because it slows down performance
+	if ( transparent && !jpeg )
+	{
+		qImage = new QImage( width, height, QImage::Format_ARGB32_Premultiplied );
+		qImage->fill( 0 );
+	}
+	else
+	{
+		qImage = new QImage( width, height, QImage::Format_RGB32 );
+		qImage->fill( qRgb( 255, 255, 255 ) );
+	}
 
-  if ( !qImage )
-    return 0;
+	if ( !qImage )
+		return 0;
 
-  //apply DPI parameter if present.
+	//apply DPI parameter if present.
 #if 0
-  int dpm = dpi / 0.0254;
-  qImage->setDotsPerMeterX( dpm );
-  qImage->setDotsPerMeterY( dpm );
+	int dpm = dpi / 0.0254;
+	qImage->setDotsPerMeterX( dpm );
+	qImage->setDotsPerMeterY( dpm );
 #endif
-  return qImage;
+	return qImage;
 }
+
+#endif		//USE_RENDERER

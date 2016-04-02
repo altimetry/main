@@ -34,9 +34,9 @@ namespace osgEarth {
 
 class FlyToExtentHandler : public osgGA::GUIEventHandler
 {
-	CGlobePlugin *mGlobe = nullptr;
+	CGlobeWidget *mGlobe = nullptr;
 public:
-	FlyToExtentHandler( CGlobePlugin* globe ) : mGlobe( globe ) { }
+	FlyToExtentHandler( CGlobeWidget* globe ) : mGlobe( globe ) { }
 
 	bool handle( const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa ) override;
 };
@@ -67,7 +67,7 @@ public:
 class QueryCoordinatesHandler : public osgGA::GUIEventHandler
 {
 public:
-	QueryCoordinatesHandler( CGlobePlugin* globe, osgEarth::Util::ElevationManager* elevMan,
+	QueryCoordinatesHandler( CGlobeWidget* globe, osgEarth::Util::ElevationManager* elevMan,
 		const osgEarth::SpatialReference* mapSRS )
 		:  mGlobe( globe ), _mapSRS( mapSRS ), _elevMan( elevMan ) { }
 
@@ -76,7 +76,7 @@ public:
 	virtual osg::Vec3d getCoords( float x, float y, osgViewer::View* view, bool getElevation = false );
 
 private:
-	CGlobePlugin* mGlobe;
+	CGlobeWidget* mGlobe;
 	osg::ref_ptr<const SpatialReference> _mapSRS;
 	osg::ref_ptr<osgEarth::Util::ElevationManager> _elevMan;
 };
@@ -110,7 +110,7 @@ public:
 	//instance data
 protected:
 
-	CGlobePlugin *mGlobe = nullptr;
+	CGlobeWidget *mGlobe = nullptr;
 	osgViewer::Viewer *mOsgViewer = nullptr;
 	osgEarth::Util::Controls::ControlCanvas *mControlCanvas = nullptr;
 
@@ -138,7 +138,7 @@ protected:
 	//construction / destruction
 	
 public:
-	CGlobeControls( CGlobePlugin *globe );
+	CGlobeControls( CGlobeWidget *globe );
 
 	virtual ~CGlobeControls()
 	{}	

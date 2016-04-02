@@ -61,6 +61,7 @@
     <property name="title">
      <string>&amp;Window</string>
     </property>
+    <addaction name="action_Open_View"/>
     <addaction name="action_Views_List"/>
     <addaction name="action_Close_All"/>
    </widget>
@@ -513,6 +514,18 @@ The workspace directory will not change</string>
    </property>
    <property name="text">
     <string>&amp;List...</string>
+   </property>
+   <property name="toolTip">
+    <string>List all open windows and select or close views</string>
+   </property>
+  </action>
+  <action name="action_Open_View">
+   <property name="icon">
+    <iconset resource="../Common/Resources/brat.qrc">
+     <normaloff>:/images/OSGeo/open.png</normaloff>:/images/OSGeo/open.png</iconset>
+   </property>
+   <property name="text">
+    <string>&amp;Open...</string>
    </property>
    <property name="toolTip">
     <string>Select a view from the list of all workspace views</string>

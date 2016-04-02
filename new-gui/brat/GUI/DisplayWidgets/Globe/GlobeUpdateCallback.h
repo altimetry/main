@@ -5,7 +5,7 @@
 
 #include "new-gui/Common/QtUtils.h"
 
-class CGlobePlugin;
+class CGlobeWidget;
 
 
 
@@ -175,7 +175,7 @@ class CRootUpdateCallback : public CNodeUpdateCallback
 
 	//instance data
 
-	CGlobePlugin &mGlobeIn;
+	CGlobeWidget &mGlobeIn;
 
     osg::Node *m_node_to_add = nullptr;
     osg::Node *m_node_to_delete = nullptr;
@@ -184,7 +184,7 @@ class CRootUpdateCallback : public CNodeUpdateCallback
 
 
 public:
-	CRootUpdateCallback( CGlobePlugin *globe ) 
+	CRootUpdateCallback( CGlobeWidget *globe ) 
 		: base_t()
 		, mGlobeIn( *globe )
     {}

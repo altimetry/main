@@ -573,6 +573,40 @@ COperation* COperation::Copy( const COperation &o, CWorkspaceOperation *wkso, CW
 	//int32_t m_exportAsciiNumberPrecision = defaultValue<int32_t>();
 }
 
+
+void COperation::Clear()
+{
+	m_product = nullptr;
+	m_dataset = nullptr;
+	m_record.clear();
+	delete m_select;
+	m_select = new CFormula( ENTRY_SELECT, false );
+	m_select->SetType( CMapTypeField::eTypeOpAsSelect );
+	m_formulas.clear();
+	m_type = CMapTypeOp::eTypeOpYFX;
+	m_dataMode = CMapDataMode::GetInstance().GetDefault();
+
+	m_output.clear();
+	m_exportAsciiOutput.clear();;
+	m_showStatsOutput.clear();;
+
+	m_cmdFile.clear();;
+	m_exportAsciiCmdFile.clear();;
+	m_showStatsCmdFile.clear();;
+
+	mFilterName.clear();;
+
+	m_logFile.clear();;
+
+	m_exportAsciiDateAsPeriod = false;
+	m_exportAsciiExpandArray = false;
+	m_exportAsciiNoDataComputation = false;
+	m_executeAgain = false;
+
+	m_exportAsciiNumberPrecision = defaultValue<int32_t>();
+}
+
+
 //----------------------------------------
 bool COperation::IsSelect( const CFormula* value ) const
 {

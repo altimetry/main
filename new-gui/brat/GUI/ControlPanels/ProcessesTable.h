@@ -77,8 +77,6 @@ public:
 
 	std::string PidString() const {	return n2s<std::string>( Pid() ); }
 
-
-
 	//
 
 	virtual void SetCmd( const std::string& value ) { mCmdLine = value; };
@@ -157,6 +155,12 @@ class CProcessesTable : public CControlPanel
 
 	static const QString smSeparator;
 
+public:
+
+	static const QString& ProcessErrorMessage( QProcess::ProcessError error );
+
+
+protected:
 
 	// instance data
 

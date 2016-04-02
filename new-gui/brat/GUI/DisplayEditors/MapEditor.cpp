@@ -9,8 +9,8 @@
 
 #include "GUI/ActionsTable.h"
 #include "GUI/ControlPanels/Views/ViewControlPanels.h"
+#include "GUI/DisplayWidgets/GlobeWidget.h"				//include map before globe to avoid macro definition collisions
 #include "GUI/DisplayWidgets/BratViews.h"
-#include "GUI/DisplayWidgets/GlobeWidget.h"
 
 #include "MapEditor.h"
 
@@ -146,6 +146,7 @@ CMapEditor::~CMapEditor()
 //virtual 
 void CMapEditor::closeEvent( QCloseEvent *event )
 {
+	KillGlobe();
 	if ( 
 		( !mGlobeView || mGlobeView->close() ) &&
 		( !mMapView || mMapView->close() ) 
@@ -181,6 +182,7 @@ void CMapEditor::Show2D( bool checked )
 //virtual 
 void CMapEditor::Show3D( bool checked )
 {
+	mMapView->freeze( true );
 	if ( checked && !mGlobeView )
 	{
 		WaitCursor wait;
@@ -189,22 +191,15 @@ void CMapEditor::Show3D( bool checked )
 		AddView( mGlobeView, true );
 	}
 	mGlobeView->setVisible( checked );
+	mMapView->freeze( false );
 }
 
 
 //virtual 
-bool CMapEditor::ResetViews( bool enable_2d, bool enable_3d )
+bool CMapEditor::ResetViews( bool reset_2d, bool reset_3d )
 {
-	assert__( enable_2d );		Q_UNUSED( enable_2d );		Q_UNUSED( enable_3d );
-
-	if ( mGlobeView )
-	{
-		QWidget *p = mGlobeView;
-		mGlobeView = nullptr;
-		if ( !RemoveView( p, true, false ) )
-			return false;
-	}
-	if ( enable_2d )
+	KillGlobe();
+	if ( reset_2d )
 	{
 		CreateAndWireNewMap();
 	}
@@ -238,40 +233,40 @@ void f()
 //virtual 
 void CMapEditor::NewButtonClicked()
 {
-	NOT_IMPLEMENTED
+	BRAT_NOT_IMPLEMENTED
 }
 //virtual 
 void CMapEditor::RenameButtonClicked()
 {
-	NOT_IMPLEMENTED
+	BRAT_NOT_IMPLEMENTED
 }
 //virtual 
 void CMapEditor::DeleteButtonClicked()
 {
-	NOT_IMPLEMENTED
+	BRAT_NOT_IMPLEMENTED
 }
 //virtual 
 void CMapEditor::OneClick()
 {
-	NOT_IMPLEMENTED
+	BRAT_NOT_IMPLEMENTED
 }
 
 
 void CMapEditor::HandleStatisticsMean()
 {
-	NOT_IMPLEMENTED
+	BRAT_NOT_IMPLEMENTED
 }
 
 
 void CMapEditor::HandleStatisticsStDev()
 {
-	NOT_IMPLEMENTED
+	BRAT_NOT_IMPLEMENTED
 }
 
 
 void CMapEditor::HandleStatisticsLinearRegression()
 {
-	NOT_IMPLEMENTED
+	BRAT_NOT_IMPLEMENTED
 }
 
 
@@ -283,30 +278,28 @@ void CMapEditor::OperationChanged( int index )
 {
     Q_UNUSED(index);
 
-	TabGeneral()->mVarZ->clear();
-	if ( !mOperation )
-		return;
+	//if ( !mOperation )
+	//	return;
 
-	const CMapFormula* formulas = mOperation->GetFormulas();
-	for ( CMapFormula::const_iterator it = formulas->cbegin(); it != formulas->cend(); it++ )
-	{
-		const CFormula* formula = mOperation->GetFormula( it );
-		if ( formula == nullptr )
-			continue;
+	//const CMapFormula* formulas = mOperation->GetFormulas();
+	//for ( CMapFormula::const_iterator it = formulas->cbegin(); it != formulas->cend(); it++ )
+	//{
+	//	const CFormula* formula = mOperation->GetFormula( it );
+	//	if ( formula == nullptr )
+	//		continue;
 
-		switch ( formula->GetType() )
-		{
-			case CMapTypeField::eTypeOpAsX:
-				break;
+	//	switch ( formula->GetType() )
+	//	{
+	//		case CMapTypeField::eTypeOpAsX:
+	//			break;
 
-			case CMapTypeField::eTypeOpAsY:
-				break;
+	//		case CMapTypeField::eTypeOpAsY:
+	//			break;
 
-			case CMapTypeField::eTypeOpAsField:
-				TabGeneral()->mVarZ->addItem( formula->GetName().c_str() );
-				break;
-		}
-	}
+	//		case CMapTypeField::eTypeOpAsField:
+	//			break;
+	//	}
+	//}
 }
 
 
@@ -447,15 +440,38 @@ void CMapEditor::HandleCurrentFieldChanged( int field_index )
 ///////////////////////////////////////////////////////
 
 
+void CMapEditor::KillGlobe()
+{
+	if ( mGlobeView )
+	{
+		mGlobeView->ScheduleClose();
+		mGlobeView->setParent( nullptr );
+		mGlobeView = nullptr;
+		m3DAction->blockSignals( true );
+		m3DAction->setChecked( false );
+		m3DAction->setDisabled( false );
+		m3DAction->blockSignals( false );
+		qApp->processEvents();
+	}
+}
+
+
 void CMapEditor::HandleShowSolidColor( bool checked )
 {
 	assert__( mMapView && mDataArrayMap && mPropertiesMap );
 
+	WaitCursor wait;
+
+	if ( mGlobeView )
+	{
+		//KillGlobe();
+		//mTabDataLayers->mShowSolidColorCheck->blockSignals( true );
+		//mTabDataLayers->mShowSolidColorCheck->setChecked( !checked );
+		//mTabDataLayers->mShowSolidColorCheck->blockSignals( false );
+		//return;
+	}
     mPropertiesMap->m_solidColor = checked;
 
-
-	//if (mGlobeView)
-	//	mGlobeView->RemoveLayers();
 	mMapView->SetLayerVisible( mTabDataLayers->mFieldsList->currentRow(), mPropertiesMap->m_solidColor );
 }
 

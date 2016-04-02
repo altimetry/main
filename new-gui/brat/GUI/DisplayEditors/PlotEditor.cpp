@@ -210,22 +210,22 @@ bool CPlotEditor::ResetViews( bool enable_2d, bool enable_3d )
 //virtual 
 void CPlotEditor::NewButtonClicked()
 {
-	NOT_IMPLEMENTED
+	BRAT_NOT_IMPLEMENTED
 }
 //virtual 
 void CPlotEditor::RenameButtonClicked()
 {
-	NOT_IMPLEMENTED
+	BRAT_NOT_IMPLEMENTED
 }
 //virtual 
 void CPlotEditor::DeleteButtonClicked()
 {
-	NOT_IMPLEMENTED
+	BRAT_NOT_IMPLEMENTED
 }
 //virtual 
 void CPlotEditor::OneClick()
 {
-	NOT_IMPLEMENTED
+	BRAT_NOT_IMPLEMENTED
 }
 
 
@@ -292,56 +292,42 @@ void CPlotEditor::OperationChanged( int index )
 {
     Q_UNUSED(index);
 
-	TabGeneral()->mVarX->clear();
-	TabGeneral()->mVarY->clear();
-    TabGeneral()->mVarY2->clear();
-    TabGeneral()->mVarZ->clear();
-
 	TabGeneral()->mPlotTypesList->setEnabled( mOperation );
 
-	if ( !mOperation )
-		return;
+	//if ( !mOperation )
+	//	return;
 
+	//const CMapFormula* formulas = mOperation->GetFormulas();
+	//const CMapTypeOp::ETypeOp type = mOperation->GetType();		//ETypeOp: eTypeOpYFX, eTypeOpZFXY
 
-	const CMapFormula* formulas = mOperation->GetFormulas();
-	const CMapTypeOp::ETypeOp type = mOperation->GetType();		//ETypeOp: eTypeOpYFX, eTypeOpZFXY
+	//for ( CMapFormula::const_iterator it = formulas->cbegin(); it != formulas->cend(); it++ )
+	//{
+	//	const CFormula* formula = mOperation->GetFormula( it );
+	//	if ( formula == nullptr )
+	//		continue;
 
+	//	switch ( formula->GetType() )
+	//	{
+	//		case CMapTypeField::eTypeOpAsX:
 
-    TabGeneral()->mVarY2->setEnabled( type == CMapTypeOp::eTypeOpYFX );
-    TabGeneral()->mVarZ->setEnabled( type == CMapTypeOp::eTypeOpZFXY );
+	//			break;
 
-	for ( CMapFormula::const_iterator it = formulas->cbegin(); it != formulas->cend(); it++ )
-	{
-		const CFormula* formula = mOperation->GetFormula( it );
-		if ( formula == nullptr )
-			continue;
+	//		case CMapTypeField::eTypeOpAsY:
 
-		switch ( formula->GetType() )
-		{
-			case CMapTypeField::eTypeOpAsX:
+	//			assert__( type != CMapTypeOp::eTypeOpYFX );
 
-				TabGeneral()->mVarX->addItem( formula->GetName().c_str() );
-				break;
+	//			break;
 
-			case CMapTypeField::eTypeOpAsY:
+	//		case CMapTypeField::eTypeOpAsField:
 
-				assert__( type != CMapTypeOp::eTypeOpYFX );
-
-				TabGeneral()->mVarY->addItem( formula->GetName().c_str() );
-				break;
-
-			case CMapTypeField::eTypeOpAsField:
-
-				if ( type == CMapTypeOp::eTypeOpZFXY )
-					TabGeneral()->mVarZ->addItem( formula->GetName().c_str() );
-				else
-				{
-					TabGeneral()->mVarY->addItem( formula->GetName().c_str() );
-					TabGeneral()->mVarY2->addItem( formula->GetName().c_str() );
-				}
-				break;
-		}
-	}
+	//			if ( type == CMapTypeOp::eTypeOpZFXY )
+	//				;
+	//			else
+	//			{
+	//			}
+	//			break;
+	//	}
+	//}
 }
 
 
@@ -365,8 +351,10 @@ bool CPlotEditor::Refresh( EPlotType type )
 		std::vector< CZFXYPlot* > zfxy_plots;
 		mDataArrayXY = nullptr;
 		mPropertiesXY = nullptr;
-		mDataArrayZFXY = nullptr;
-		mPropertiesZFXY = nullptr;
+		mDataArrayZFXY_2D = nullptr;
+		mPropertiesZFXY_2D = nullptr;
+		mDataArrayZFXY_3D = nullptr;
+		mPropertiesZFXY_3D = nullptr;
 
 
 		if ( mDisplay->IsYFXType() )
@@ -406,8 +394,7 @@ bool CPlotEditor::Refresh( EPlotType type )
 
 			auto *props = mCurrentDisplayFilesProcessor->GetZFXYPlotProperties( zfxy_index++ );
 
-			mPlot3DView->CreatePlot( props, zfxyplot );
-			//Reset2DProperties( props, zfxyplot );
+			Reset2DProperties( props, zfxyplot );
 		}
 
 		return true;
@@ -495,19 +482,39 @@ void CPlotEditor::Reset2DProperties( const CZFXYPlotProperties *props, CZFXYPlot
 	assert__( mPlot2DView && mCurrentDisplayFilesProcessor );
 
 	mPlot2DView->CreatePlot( props, zfxyplot );
-	mDataArrayZFXY = mPlot2DView->ZfxyPlotData();									assert__( mDataArrayZFXY );
+	mPlot3DView->CreatePlot( props, zfxyplot );
+
+	mDataArrayZFXY_2D = mPlot2DView->ZfxyPlotData();			assert__( mDataArrayZFXY_2D );
+	mDataArrayZFXY_3D = mPlot3DView->ZfxyPlotData();			assert__( mDataArrayZFXY_3D );
 
 	mTabCurveOptions->mFieldsList->clear();
-	const size_t size = mDataArrayZFXY->size();										assert__( size == mCurrentDisplayFilesProcessor->GetZFXYPlotPropertiesSize() );
+	mTabCurveOptions->mFieldsList->setSelectionMode( mTabCurveOptions->mFieldsList->NoSelection );
+	const size_t size = mDataArrayZFXY_2D->size();				assert__( size == mCurrentDisplayFilesProcessor->GetZFXYPlotPropertiesSize()  && size == mDataArrayZFXY_3D->size() );
 	for ( size_t i = 0; i < size; ++i )
 	{
-		mPropertiesZFXY = dynamic_cast<CZFXYPlotData*>( mDataArrayZFXY->at( i ) )->GetPlotProperties();				assert__( mPropertiesZFXY );
-		mTabCurveOptions->mFieldsList->addItem( t2q( mPropertiesZFXY->m_name ) );
+		mPropertiesZFXY_2D = dynamic_cast<CZFXYPlotData*>( mDataArrayZFXY_2D->at( i ) )->GetPlotProperties();	assert__( mPropertiesZFXY_2D );
+		mPropertiesZFXY_3D = dynamic_cast<CZFXYPlotData*>( mDataArrayZFXY_3D->at( i ) )->GetPlotProperties();	assert__( mPropertiesZFXY_3D );
 
-		mPlot2DView->ShowContour( i, mPropertiesZFXY->m_withContour );
-		mPlot2DView->ShowSolidColor( i, mPropertiesZFXY->m_solidColor );
+		mTabCurveOptions->mFieldsList->addItem( t2q( mPropertiesZFXY_2D->m_name ) );							assert__( mPropertiesZFXY_2D->m_name == mPropertiesZFXY_3D->m_name );			
+
+		mPlot2DView->ShowContour( i, mPropertiesZFXY_2D->m_withContour );		assert__( mPropertiesZFXY_2D->m_withContour == mPropertiesZFXY_3D->m_withContour );
+		mPlot2DView->ShowSolidColor( i, mPropertiesZFXY_2D->m_solidColor );		assert__( mPropertiesZFXY_2D->m_solidColor == mPropertiesZFXY_3D->m_solidColor );
+
+		mPlot3DView->ShowContour( mPropertiesZFXY_3D->m_withContour );		//in fact, in qwtplot3d this affects the axis (all fields) not only the current iteration one
+		mPlot3DView->ShowSolidColor( mPropertiesZFXY_3D->m_solidColor );	//idem
 	}
-	mTabCurveOptions->mFieldsList->setCurrentRow( 0 );
+	
+	//NOTE 1. assign property values from plots to widgets here, because no single field selection is allowed, so the respective handler won't be called for 3D
+	//NOTE 2. assuming mPlot2DView was assigned in the loop the same values as mPlot3DView
+
+	mTabCurveOptions->mShowContour->setChecked( mPlot2DView->HasContour( 0 ) );
+	mTabCurveOptions->mShowSolidColor->setChecked( mPlot2DView->HasSolidColor( 0 ) );
+
+	mTabCurveOptions->mLineOptions->setEnabled( false );
+	mTabCurveOptions->mPointOptions->setEnabled( false );
+	mTabCurveOptions->mSpectrogramOptions->setEnabled( true );
+
+	mTabCurveOptions->mFieldsList->setCurrentRow( -1 );		//no selection allowed
 }
 
 
@@ -527,7 +534,7 @@ void CPlotEditor::Reset2DProperties( const CXYPlotProperties *props, CPlot *plot
 	{
 		// TODO display second curve in other units...........
 
-		MSG_NOT_IMPLEMENTED( n2s<std::string>( eXYY ) );
+		BRAT_MSG_NOT_IMPLEMENTED( n2s<std::string>( eXYY ) );
 	}
 	else
 		assert__( false );
@@ -537,6 +544,7 @@ void CPlotEditor::Reset2DProperties( const CXYPlotProperties *props, CPlot *plot
 	mDataArrayXY = mPlot2DView->PlotDataCollection();								assert__( mDataArrayXY );
 
 	mTabCurveOptions->mFieldsList->clear();
+	mTabCurveOptions->mFieldsList->setSelectionMode( mTabCurveOptions->mFieldsList->SingleSelection );
 	const size_t size = mDataArrayXY->size();										assert__( mPlotType != eXYY || size == mCurrentDisplayFilesProcessor->GetXYPlotPropertiesSize() );
 	for ( size_t i = 0; i < size; ++i )
 	{
@@ -568,23 +576,25 @@ void CPlotEditor::Reset2DProperties( const CXYPlotProperties *props, CPlot *plot
 
 void CPlotEditor::HandleCurrentFieldChanged( int index )
 {
-	assert__( mPlot2DView );
+	assert__( mPlot2DView /*&& !mDataArrayZFXY_2D && !mDataArrayZFXY_3D */);
 
-	mTabCurveOptions->mLineOptions->setEnabled( index >= 0 && !mDataArrayZFXY && mPlotType != eHistogram );
-	mTabCurveOptions->mPointOptions->setEnabled( index >= 0 && !mDataArrayZFXY && mPlotType != eHistogram );
-	mTabCurveOptions->mSpectrogramOptions->setEnabled( index >= 0 && mDataArrayZFXY );
+	mTabCurveOptions->mLineOptions->setEnabled( index >= 0 && !mDataArrayZFXY_2D && !mDataArrayZFXY_3D && mPlotType != eHistogram );
+	mTabCurveOptions->mPointOptions->setEnabled( index >= 0 && !mDataArrayZFXY_2D && !mDataArrayZFXY_3D && mPlotType != eHistogram );
+	mTabCurveOptions->mSpectrogramOptions->setEnabled( index >= 0 && mDataArrayZFXY_2D && mDataArrayZFXY_3D );
 
 	mPropertiesXY = nullptr;
-	mPropertiesZFXY = nullptr;
+	mPropertiesZFXY_2D = nullptr;
+	mPropertiesZFXY_3D = nullptr;
 
 	if ( index < 0 )
 		return;
 
-	if ( mDataArrayZFXY )
+	if ( mDataArrayZFXY_2D )
 	{
-		assert__( index < mDataArrayZFXY->size() );
+		assert__( mDataArrayZFXY_3D && index < mDataArrayZFXY_2D->size() && mDataArrayZFXY_2D->size() == mDataArrayZFXY_3D->size() );
 
-		mPropertiesZFXY = dynamic_cast<CZFXYPlotData*>( mDataArrayZFXY->at( index ) )->GetPlotProperties();				assert__( mPropertiesZFXY );
+		mPropertiesZFXY_2D = dynamic_cast<CZFXYPlotData*>( mDataArrayZFXY_2D->at( index ) )->GetPlotProperties();				assert__( mPropertiesZFXY_2D );
+		mPropertiesZFXY_3D = dynamic_cast<CZFXYPlotData*>( mDataArrayZFXY_3D->at( index ) )->GetPlotProperties();				assert__( mPropertiesZFXY_3D );
 
 		mTabCurveOptions->mShowContour->setChecked( mPlot2DView->HasContour( index ) );
 		mTabCurveOptions->mShowSolidColor->setChecked( mPlot2DView->HasSolidColor( index ) );
@@ -628,22 +638,44 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
 
 void CPlotEditor::HandleShowContourChecked( bool checked )
 {
-	assert__( mPlot2DView && mPlot3DView && mDataArrayZFXY && mPropertiesZFXY );
+	assert__( mPlot2DView && mPlot3DView && mDataArrayZFXY_2D && mPropertiesZFXY_3D && mDataArrayZFXY_2D && mPropertiesZFXY_3D );
 
-    mPropertiesZFXY->m_withContour = checked;
+	//mPropertiesZFXY_2D->m_withContour = checked;	this is done in loop below, for all mPropertiesZFXY_2D (if more than one will be supported)
+	//mPropertiesZFXY_3D->m_withContour = checked;	idem
 
-	mPlot2DView->ShowContour( mTabCurveOptions->mFieldsList->currentRow(), mPropertiesZFXY->m_withContour );
-	mPlot3DView->ShowContour( mPropertiesZFXY->m_withContour );
+	const size_t size = mDataArrayZFXY_2D->size();		assert__( size == mCurrentDisplayFilesProcessor->GetZFXYPlotPropertiesSize() && size == mDataArrayZFXY_3D->size() );
+	for ( size_t i = 0; i < size; ++i )
+	{
+		auto *current_properties_2D = dynamic_cast<CZFXYPlotData*>( mDataArrayZFXY_2D->at( i ) )->GetPlotProperties();			assert__( mPropertiesZFXY_2D );
+		auto *current_properties_3D = dynamic_cast<CZFXYPlotData*>( mDataArrayZFXY_3D->at( i ) )->GetPlotProperties();			assert__( mPropertiesZFXY_3D );
+
+		current_properties_2D->m_withContour = checked;
+		current_properties_3D->m_withContour = checked;
+
+		mPlot2DView->ShowContour( i, current_properties_2D->m_withContour );
+		mPlot3DView->ShowContour( current_properties_3D->m_withContour );	//in fact, in qwtplot3d this affects the axis (all fields) not only the current iteration one
+	}
 }
 
 void CPlotEditor::HandleShowSolidColorChecked( bool checked )
 {
-	assert__( mPlot2DView && mPlot3DView && mDataArrayZFXY && mPropertiesZFXY );
+	assert__( mPlot2DView && mPlot3DView && mDataArrayZFXY_2D && mPropertiesZFXY_3D && mDataArrayZFXY_2D && mPropertiesZFXY_3D );
 
-    mPropertiesZFXY->m_solidColor = checked;
+	//mPropertiesZFXY_2D->m_solidColor = checked;	this is done in loop below, for all mPropertiesZFXY_2D (if more than one will be supported)
+	//mPropertiesZFXY_3D->m_solidColor = checked;	idem
 
-	mPlot2DView->ShowSolidColor( mTabCurveOptions->mFieldsList->currentRow(), mPropertiesZFXY->m_solidColor );
-	mPlot3DView->ShowSolidColor( mPropertiesZFXY->m_solidColor );
+	const size_t size = mDataArrayZFXY_2D->size();		assert__( size == mCurrentDisplayFilesProcessor->GetZFXYPlotPropertiesSize() && size == mDataArrayZFXY_3D->size() );
+	for ( size_t i = 0; i < size; ++i )
+	{
+		auto *current_properties_2D = dynamic_cast<CZFXYPlotData*>( mDataArrayZFXY_2D->at( i ) )->GetPlotProperties();			assert__( mPropertiesZFXY_2D );
+		auto *current_properties_3D = dynamic_cast<CZFXYPlotData*>( mDataArrayZFXY_3D->at( i ) )->GetPlotProperties();			assert__( mPropertiesZFXY_3D );
+
+		current_properties_2D->m_solidColor = checked;
+		current_properties_3D->m_solidColor = checked;
+
+		mPlot2DView->ShowSolidColor( i, current_properties_2D->m_solidColor );	//in fact, in qwtplot3d this affects the axis (all fields) not only the current iteration one
+		mPlot3DView->ShowSolidColor( current_properties_3D->m_solidColor );		//idem
+	}
 }
 
 

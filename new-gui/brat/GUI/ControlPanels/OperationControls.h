@@ -82,11 +82,6 @@ public:
     static const std::vector<std::string> smPredefinedVariables;
 
 
-	//domain
-
-	static bool CreateDisplayData( COperation *operation, CMapDisplayData &m_dataList );
-
-
 	//...fill helpers
 
 	static QList<QAction*> CreateDataComputationActions( QObject *parent );
@@ -97,6 +92,9 @@ protected:
 	// instance variables
 
     CStackedWidget *mStackWidget = nullptr;
+	QWidget *mQuickOperationsPage = nullptr;
+	QWidget *mAdvancedOperationsPage = nullptr;
+
 
 	QWidget *mCommonGroup = nullptr;
 
@@ -217,9 +215,11 @@ protected:
     void ResetFilterActions();
     void ResetSelectedFilter();
 
-	bool TryDatasetChange( int index );
-
 	void LaunchDisplay( const std::string &display_name );
+
+	COperation* CreateQuickOperation( CMapTypeOp::ETypeOp type );
+	void SelectOperation( const std::string &name, bool select_map );
+
 
 signals:
 	void SyncProcessExecution( bool executing );

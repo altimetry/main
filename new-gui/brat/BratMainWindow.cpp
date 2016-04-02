@@ -24,6 +24,7 @@
 #include "GUI/WorkspaceDialog.h"
 #include "GUI/WorkspaceElementsDialog.h"
 #include "GUI/WorkspaceViewsDialog.h"
+#include "GUI/ActiveViewsDialog.h"
 #include "GUI/TabbedDock.h"
 #include "GUI/ControlPanels/ControlPanel.h"
 #include "GUI/ControlPanels/DatasetBrowserControls.h"
@@ -32,6 +33,8 @@
 #include "GUI/ControlPanels/ProcessesTable.h"
 #include "GUI/DisplayWidgets/TextWidget.h"
 #include "GUI/DisplayWidgets/GlobeWidget.h"
+#include "GUI/DisplayWidgets/BratViews.h"
+
 #include "GUI/DisplayEditors/MapEditor.h"
 #include "GUI/DisplayEditors/PlotEditor.h"
 
@@ -969,7 +972,7 @@ void CBratMainWindow::on_action_Save_triggered()
 
 void CBratMainWindow::on_action_Save_As_triggered()		//Save As implies (better, would imply) moving a directory...
 {
-    NOT_IMPLEMENTED
+    BRAT_NOT_IMPLEMENTED
     //if (activeTextEditor())
     //    activeTextEditor()->saveAs();
 }
@@ -1011,7 +1014,7 @@ void CBratMainWindow::on_action_Rename_Workspace_triggered()
 	{
 		last_path = t2q( dlg.mPath );
 
-		NOT_IMPLEMENTED
+		BRAT_NOT_IMPLEMENTED
 	}
 }
 
@@ -1032,7 +1035,7 @@ void CBratMainWindow::on_action_Delete_Workspace_triggered()
 	{
 		last_path = t2q( dlg.mPath );
 
-		NOT_IMPLEMENTED
+		BRAT_NOT_IMPLEMENTED
 	}
 }
 
@@ -1092,7 +1095,7 @@ void CBratMainWindow::on_action_Refresh_Map_triggered()
 
 void CBratMainWindow::on_action_Graphic_Settings_triggered()
 {
-	NOT_IMPLEMENTED
+	BRAT_NOT_IMPLEMENTED
 }
 
 void CBratMainWindow::on_action_Satellite_Tracks_toggled( bool checked )
@@ -1102,7 +1105,7 @@ void CBratMainWindow::on_action_Satellite_Tracks_toggled( bool checked )
 
 void CBratMainWindow::on_action_Save_Map_Image_triggered()
 {
-	NOT_IMPLEMENTED
+	BRAT_NOT_IMPLEMENTED
 }
 
 
@@ -1121,7 +1124,7 @@ void CBratMainWindow::on_action_Full_Screen_triggered()
 
 void CBratMainWindow::on_action_One_Click_triggered()
 {
-	NOT_IMPLEMENTED
+	BRAT_NOT_IMPLEMENTED
 }
 
 
@@ -1132,9 +1135,19 @@ void CBratMainWindow::on_action_Workspace_Tree_triggered()
 }
 
 
+void CBratMainWindow::SchedulerProcessError( QProcess::ProcessError error )
+{
+	auto message = "An error occurred launching scheduler application: " + CProcessesTable::ProcessErrorMessage( error );
+	SimpleErrorBox( message );
+	LOG_WARN( message );
+}
+
+
 void CBratMainWindow::on_action_Launch_Scheduler_triggered()
 {
-	NOT_IMPLEMENTED
+	COsProcess *process = new COsProcess( nullptr, false, "", this, mSettings.BratPaths().mExecBratSchedulerName );
+    connect( process, SIGNAL( error( QProcess::ProcessError ) ), this, SLOT( SchedulerProcessError( QProcess::ProcessError ) ) );
+	process->Execute();
 }
 
 
@@ -1144,7 +1157,7 @@ void CBratMainWindow::on_action_Options_triggered()
 	if ( dlg.exec() == QDialog::Accepted )
 		emit SettingsUpdated();
 
-	NOT_IMPLEMENTED
+	BRAT_NOT_IMPLEMENTED
 }
 
 
@@ -1155,6 +1168,13 @@ void CBratMainWindow::on_action_Options_triggered()
 
 
 void CBratMainWindow::on_action_Views_List_triggered()
+{
+	CActiveViewsDialog dlg( this, mDesktopManager );
+	dlg.exec();
+}
+
+
+void CBratMainWindow::on_action_Open_View_triggered()
 {
 	CWorkspaceViewsDialog dlg( this, mModel );
 
@@ -1182,13 +1202,16 @@ void CBratMainWindow::on_action_Views_List_triggered()
 	}
 }
 
+
 //////////////////////////////////////////
 //NOTE: Close All connected in constructor
 //////////////////////////////////////////
 
 void CBratMainWindow::UpdateWindowMenu()
 {
-	action_Close_All->setEnabled( !mDesktopManager->SubWindowList().empty() );
+	bool has_sub_windows = !mDesktopManager->SubWindowList().empty();
+	action_Close_All->setEnabled( has_sub_windows );
+	action_Views_List->setEnabled( has_sub_windows );
 }
 
 
@@ -1363,7 +1386,7 @@ void CBratMainWindow::on_action_Test_triggered()
     msg += mSettings.BratPaths().ToString();
     SimpleMsgBox( msg );
 
-    // NOT_IMPLEMENTED
+    // BRAT_NOT_IMPLEMENTED
 
 #endif
     //*/

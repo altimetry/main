@@ -1166,8 +1166,8 @@ inline void NotImplemented( const char *msg = nullptr )
 	SimpleMsgBox( std::string( "Not implemented. " ) + ( msg ? msg : "" ) );
 }
 
-#define NOT_IMPLEMENTED  NotImplemented( __func__ );
-#define MSG_NOT_IMPLEMENTED( x )  NotImplemented( std::string( x ).c_str() );
+#define BRAT_NOT_IMPLEMENTED  NotImplemented( __func__ );
+#define BRAT_MSG_NOT_IMPLEMENTED( x )  NotImplemented( std::string( x ).c_str() );
 
 
 

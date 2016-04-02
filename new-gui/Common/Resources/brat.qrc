@@ -175,6 +175,24 @@
         <file>images/OSGeo/tools.png</file>
         <file>images/OSGeo/add.png</file>
         <file>images/OSGeo/north-arrow.png</file>
+        <file>images/OSGeo/region.png</file>
+        <file>images/OSGeo/region_settings.png</file>
+        <file>images/OSGeo/region_new.png</file>
+        <file>images/OSGeo/region_add.png</file>
+        <file>images/OSGeo/region_edit.png</file>
+        <file>images/OSGeo/region_delete.png</file>
+        <file>images/OSGeo/region_save.png</file>
+        <file>images/OSGeo/area_new.png</file>
+        <file>images/OSGeo/area_kml_add.png</file>
+        <file>images/OSGeo/area_mask_add.png</file>
+        <file>images/OSGeo/area_remove.png</file>
+        <file>images/OSGeo/area_edit.png</file>
+        <file>images/OSGeo/area_save.png</file>
+        <file>images/OSGeo/filter_new.png</file>
+        <file>images/OSGeo/filter_edit.png</file>
+        <file>images/OSGeo/filter_delete.png</file>
+        <file>images/OSGeo/filter_save.png</file>
+        <file>images/OSGeo/satellite_tracks.png</file>
         <file>images/rads.gif</file>
     </qresource>
 </RCC>

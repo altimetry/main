@@ -492,8 +492,8 @@ COperationControls::COperationControls( CProcessesTable *processes_table, CModel
 	, mProcessesTable( processes_table )
 	, mBratFilters( mModel.BratFilters() )
 {
-	QWidget *mQuickOperationsPage = CreateQuickOperationsPage();
-	QWidget *mAdvancedOperationsPage = CreateAdancedOperationsPage();
+	mQuickOperationsPage = CreateQuickOperationsPage();
+	mAdvancedOperationsPage = CreateAdancedOperationsPage();
 
     mStackWidget = new CStackedWidget( this, { 
 		{ mQuickOperationsPage, "Quick", "", "", true }, 
@@ -562,7 +562,8 @@ void COperationControls::HandleWorkspaceChanged()
     setEnabled( mWRoot != nullptr );
 
 	HandleDatasetsChanged_Advanced( nullptr );			//disables tab if !mWDataset || !mWDataset->GetDatasetCount() > 0 
-    HandleDatasetsChanged_Quick( nullptr );
+	HandleDatasetsChanged_Quick( nullptr );
+
 
 	if ( !mWRoot )
 	{
@@ -623,13 +624,6 @@ void COperationControls::HandleDatasetsChanged_Advanced( CDataset *dataset )
 		HandleSelectedOperationChanged( mOperationsCombo->currentIndex() );		//TODO does not seem to be necessary
 	}
 	setEnabled( has_datasets );
-}
-
-
-bool COperationControls::TryDatasetChange( int index )
-{
-	Q_UNUSED( index );
-	return true;
 }
 
 
@@ -1106,7 +1100,7 @@ void COperationControls::HandleShowInfo()
     CShowInfoDialog dlg( this );
     if ( dlg.exec() == QDialog::Accepted )
     {
-        NOT_IMPLEMENTED;
+        BRAT_NOT_IMPLEMENTED;
     }
 }
 
@@ -1115,7 +1109,7 @@ void COperationControls::HandleShowAliases()
     CShowAliasesDialog dlg( this );
     if ( dlg.exec() == QDialog::Accepted )
     {
-        NOT_IMPLEMENTED;
+        BRAT_NOT_IMPLEMENTED;
     }
 
     //if ( mCurrentOperation == nullptr || mProduct == nullptr )
@@ -1525,7 +1519,7 @@ void COperationControls::HandleExportOperation()
     CExportDialog dlg( this );
     if ( dlg.exec() == QDialog::Accepted )
     {
-        NOT_IMPLEMENTED;
+        BRAT_NOT_IMPLEMENTED;
     }
 }
 void COperationControls::HandleEditExportAscii()
@@ -1533,24 +1527,24 @@ void COperationControls::HandleEditExportAscii()
     CEditExportAsciiDialog dlg( this );
     if ( dlg.exec() == QDialog::Accepted )
     {
-        NOT_IMPLEMENTED;
+        BRAT_NOT_IMPLEMENTED;
     }
 }
 void COperationControls::HandleOperationStatistics()
 {
-	NOT_IMPLEMENTED;
+	BRAT_NOT_IMPLEMENTED;
 }
 void COperationControls::HandleDelayExecution()
 {
     CDelayExecutionDialog dlg( this );
     if ( dlg.exec() == QDialog::Accepted )
     {
-        NOT_IMPLEMENTED;
+        BRAT_NOT_IMPLEMENTED;
     }
 }
 void COperationControls::HandleLaunchScheduler()
 {
-	NOT_IMPLEMENTED;
+	BRAT_NOT_IMPLEMENTED;
 }
 
 
@@ -1806,7 +1800,7 @@ bool COperationControls::Execute( bool sync )
 	}
 
 
-	NOT_IMPLEMENTED
+	BRAT_NOT_IMPLEMENTED
 	*/
 
 	return result;

@@ -177,6 +177,8 @@ public:
 
 	static COperation* Copy( const COperation &o, CWorkspaceOperation *wkso, CWorkspaceDataset *wksd );
 
+	void Clear();
+
 
 	/// Destructor
 	virtual ~COperation()

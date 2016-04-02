@@ -79,7 +79,7 @@ class CBrat3DPlot : public Qwt3D::SurfacePlot
 
 	//instance data
 
-	CBrat3DFunction *mFunction = nullptr;
+	std::vector<CBrat3DFunction*>mFunctions;
 
 	QActionGroup *mStyleGroup = nullptr;
     QActionGroup *mCoordinateStyleGroup = nullptr;

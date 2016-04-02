@@ -8,6 +8,7 @@
 
 #include <qgslinesymbollayerv2.h>
 #include <qgsmarkersymbollayerv2.h>
+#include <qgssinglesymbolrendererv2.h>
 
 // for addMemoryLayer
 #include <qgsgraduatedsymbolrendererv2.h>
@@ -291,6 +292,7 @@ CMapWidget::CMapWidget( QWidget *parent )	//parent = nullptr
     //setLayerSet(mLayerSet);
 
     setMinimumSize( min_globe_widget_width, min_globe_widget_height );    //setVisible(true);
+	setParallelRenderingEnabled( false );
     refresh();
 
 	
@@ -672,25 +674,25 @@ QgsMapCanvasLayer* CMapWidget::FindCanvasLayer( size_t index )
 
 	return &mLayerSet[ index ];
 }
-QgsMapCanvasLayer* CMapWidget::FindCanvasLayer( const std::string &name )
-{
-	for ( auto &l : mLayerSet )
-	{
-		if ( name.c_str() == l.layer()->name() )
-			return &l;
-	}
-	return nullptr;
-}
+//QgsMapCanvasLayer* CMapWidget::FindCanvasLayer( const std::string &name )
+//{
+//	for ( auto &l : mLayerSet )
+//	{
+//		if ( name.c_str() == l.layer()->name() )
+//			return &l;
+//	}
+//	return nullptr;
+//}
 
 
-QgsMapLayer* CMapWidget::FindLayer( const std::string &name )
-{
-	QgsMapCanvasLayer *l = FindCanvasLayer( name );
-	if ( l )
-		return l->layer();
-
-	return nullptr;
-}
+//QgsMapLayer* CMapWidget::FindLayer( const std::string &name )
+//{
+//	QgsMapCanvasLayer *l = FindCanvasLayer( name );
+//	if ( l )
+//		return l->layer();
+//
+//	return nullptr;
+//}
 
 
 bool CMapWidget::IsLayerVisible( size_t index ) const
@@ -731,22 +733,6 @@ void CMapWidget::RemoveLayers()
 		SetCurrentLayer( mLayerSet.begin()->layer() );
 		refresh();
 	}
-}
-
-
-std::string CMapWidget::CurrentLayer() const
-{
-	auto *l = const_cast<CMapWidget*>( this )->currentLayer();
-	if ( l == mMainLayer )
-		return "";
-
-	return q2a( l->name() );
-}
-void CMapWidget::SetCurrentLayer( const std::string &name )
-{
-	auto *l = FindLayer( name );
-	if ( l )
-		SetCurrentLayer( l );
 }
 
 
@@ -801,13 +787,15 @@ QgsRasterLayer* CMapWidget::AddRasterLayer( const QString &layer_path, const QSt
 
 QgsVectorLayer* CMapWidget::AddVectorLayer( const std::string &name, const QString &layer_path, const QString &provider, QgsFeatureRendererV2 *renderer )	//renderer = nullptr 
 {
-	static const QString base_name = "vlayer";
+	static const std::string base_name = "vlayer";
 	static const std::string index_symbol = "#";
 	static size_t index = 0;
 
 	std::string layer_name = name;
 	if ( layer_name.empty() )
-		layer_name = q2a( base_name ) + index_symbol + n2s<std::string>(index++);
+		layer_name = base_name;
+
+	layer_name += ( index_symbol + n2s<std::string>(index++) );
 
 	auto l = new QgsVectorLayer( layer_path, layer_name.c_str(), provider );
 
@@ -885,6 +873,19 @@ QgsVectorLayer* CMapWidget::AddMemoryLayer( const std::string &name, QgsSymbolV2
 	//ml->setRendererV2( renderer );
 
 	//return ml;
+}
+
+template< class LAYER >
+//static 
+QgsSingleSymbolRendererV2* CMapWidget::CreateRenderer( LAYER *layer )
+{
+	return new QgsSingleSymbolRendererV2( QgsSymbolV2::defaultSymbol( layer->geometryType() ) );
+}
+	
+//static 
+QgsSingleSymbolRendererV2* CMapWidget::CreateRenderer( QgsSymbolV2* symbol )
+{
+	return new QgsSingleSymbolRendererV2( symbol );
 }
 
 //static 

@@ -21,26 +21,49 @@
 
 #include "OperationControls.h"
 
+//
+//
+//inline int ItemRow( QListWidgetItem *item )
+//{
+//	return item->listWidget()->row( item );
+//}
+//inline int FindText( QListWidget *list, const char *text  )
+//{
+//    auto items = list->findItems( text, Qt::MatchExactly );			assert__( items.size() == 1 );
+//	return ItemRow( items[ 0 ] );
+//}
+//inline QString ItemText( QListWidget *list, int index  )
+//{
+//	auto *item = list->item( index );
+//	return item->text();
+//}
+//
 
 
-inline int ItemRow( QListWidgetItem *item )
+std::string PseudoAlias( const std::string &name )
 {
-	return item->listWidget()->row( item );
+	static std::map<std::string, std::string> alias_map =
+	{
+		{ COperationControls::smPredefinedVariables[ COperationControls::eSSH ], "ssha" },
+		{ COperationControls::smPredefinedVariables[ COperationControls::eSWH ], "swh_ku" },
+		{ COperationControls::smPredefinedVariables[ COperationControls::eSigma0 ], "sig0_ku" },
+		{ COperationControls::smPredefinedVariables[ COperationControls::eWinds ], "wind_speed_alt" }
+	};
+
+	return alias_map[ name ];
 }
-inline int FindText( QListWidget *list, const char *text  )
-{
-    auto items = list->findItems( text, Qt::MatchExactly );			assert__( items.size() == 1 );
-	return ItemRow( items[ 0 ] );
-}
-inline QString ItemText( QListWidget *list, int index  )
-{
-	auto *item = list->item( index );
-	return item->text();
-}
+//lon
+//lat
+//time
+//ssha (isto é para o SSH)
+//swh_ku (isto é para o SWH)
+//sig0_ku (isto é para o sigma0)
+//wind_speed_alt (isto é para Winds)
+//range_ku (isto é para Tracker range)
 
 
 /////////////////////////////////////////////////////////////////////////////////
-//						Launch Display Actions
+//						
 /////////////////////////////////////////////////////////////////////////////////
 
 
@@ -53,7 +76,7 @@ CDataset* COperationControls::QuickDataset()
 	return mWDataset->GetDataset( q2a( mQuickDatasetsCombo->itemText( dataset_index ) ) );
 }
 
-void COperationControls::HandleDatasetsChanged_Quick(CDataset *)
+void COperationControls::HandleDatasetsChanged_Quick( CDataset * )
 {
 	int selected = mQuickDatasetsCombo->currentIndex();
 
@@ -73,15 +96,21 @@ void COperationControls::HandleDatasetsChanged_Quick(CDataset *)
 		mQuickDatasetsCombo->blockSignals( false );
 	}
 
-	mQuickDatasetsCombo->setCurrentIndex( selected < 0 ? 0 : selected );
+	if ( selected >= mQuickDatasetsCombo->count() )
+		selected = 0;
+
+	if ( mQuickDatasetsCombo->currentIndex() == selected )
+		HandleSelectedDatasetChanged_Quick( selected );
+	else
+		mQuickDatasetsCombo->setCurrentIndex( selected );
 }
 
 void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 {
+	mQuickVariablesList->setEnabled( dataset_index >= 0 );
+
     if ( dataset_index < 0 )
         return;
-
-    return;
 
     WaitCursor wait;
 
@@ -132,7 +161,7 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 
 			bool alias_used;
 			std::string field_error_msg;
-			CField *field = FindField( product, smPredefinedVariables[ i ], alias_used, field_error_msg );
+			CField *field = FindField( product, PseudoAlias( smPredefinedVariables[ i ] ), alias_used, field_error_msg );
 			delete product;
 			if ( field )
 			{
@@ -171,100 +200,6 @@ void COperationControls::HandleSelectedVariableChanged_Quick( int )
 	LOG_WARN("HandleSelectedVariableChanged_Quick");
 }
 
-
-///////////////////////////////////////////////////////////////////////////////////////////
-bool COperationControls::CreateDisplayData( COperation *operation, CMapDisplayData &m_dataList )
-{
-	CInternalFiles *file = nullptr;
-	CUIntArray displayTypes;
-	CDisplay::GetDisplayType( operation, displayTypes, &file );
-	if ( file == nullptr )
-	{
-		return false;
-	}
-
-	CStringArray names;
-	names.RemoveAll();
-	file->GetDataVars( names );
-
-	for ( CUIntArray::iterator itDispType = displayTypes.begin(); itDispType != displayTypes.end(); itDispType++ )
-	{
-		for ( CStringArray::iterator itField = names.begin(); itField != names.end(); itField++ )
-		{
-			CStringArray varDimensions;
-			file->GetVarDims( *itField, varDimensions );
-
-			uint32_t nbDims = varDimensions.size();
-
-			if ( nbDims > 2 )
-			{
-				continue;
-			}
-
-			if ( ( nbDims != 2 ) && ( ( *itDispType == CMapTypeDisp::eTypeDispZFXY )
-				|| ( *itDispType == CMapTypeDisp::eTypeDispZFLatLon ) ) )
-			{
-				continue;
-			}
-
-			CDisplayData* displayData = new CDisplayData( operation );
-
-			displayData->SetType( *itDispType );
-
-			displayData->GetField()->SetName( *itField );
-
-			std::string unit = file->GetUnit( *itField ).GetText();
-			displayData->GetField()->SetUnit( unit );
-
-			std::string comment = file->GetComment( *itField );
-			std::string description = file->GetTitle( *itField );
-
-			if ( !comment.empty() )
-			{
-				description += "." + comment;
-			}
-
-			displayData->GetField()->SetDescription( (const char *)description.c_str() );
-
-			if ( nbDims >= 1 )
-			{
-				std::string dimName = varDimensions.at( 0 );
-				displayData->GetX()->SetName( varDimensions.at( 0 ) );
-
-				std::string unit = file->GetUnit( dimName ).GetText();
-				displayData->GetX()->SetUnit( unit );
-
-				displayData->GetX()->SetDescription( file->GetTitle( dimName ) );
-			}
-
-			if ( nbDims >= 2 )
-			{
-				std::string dimName = varDimensions.at( 1 );
-				displayData->GetY()->SetName( varDimensions.at( 1 ) );
-
-				std::string unit = file->GetUnit( dimName ).GetText();
-				displayData->GetY()->SetUnit( unit );
-
-				displayData->GetY()->SetDescription( file->GetTitle( dimName ) );
-			}
-
-			if ( nbDims >= 3 )
-			{
-				std::string dimName = varDimensions.at( 2 );
-				displayData->GetZ()->SetName( varDimensions.at( 2 ) );
-
-				std::string unit = file->GetUnit( dimName ).GetText();
-				displayData->GetZ()->SetUnit( unit );
-
-				displayData->GetZ()->SetDescription( file->GetTitle( dimName ) );
-			}
-
-			m_dataList.Insert( displayData->GetDataKey(), displayData, false );
-		}
-	}
-	return true;
-}
-///////////////////////////////////////////////////////////////////////////////////////////
 
 //void CDisplayPanel::GetOperations( int32_t type /*= -1*/ )
 //{
@@ -482,110 +417,74 @@ bool COperationControls::CreateDisplayData( COperation *operation, CMapDisplayDa
 //}
 
 
-//void CDisplayPanel::Execute()
-//{
-//	if ( m_display == nullptr )
-//	{
-//		return;
-//	}
+// Valid types
+//		eTypeOpYFX,
+//		eTypeOpZFXY
 //
-//	wxString msg;
-//
-//	bool bOk = Control( msg );
-//
-//	if ( !bOk )
-//	{
-//		wxMessageBox( msg, "Warning", wxOK | wxICON_EXCLAMATION );
-//		return;
-//	}
-//
-//	bOk = RefreshSelectedData();
-//
-//	if ( !bOk )
-//	{
-//		return;
-//	}
-//
-//	BuildCmdFile();
-//
-//	wxGetApp().GotoLogPage();
-//
-//
-//	CProcess* process = new CProcess( m_display->GetTaskName(),
-//		wxGetApp().GetLogPanel(),
-//		GetFullCmd(),
-//		nullptr );
-//
-//	bOk = wxGetApp().GetLogPanel()->AddProcess( process, true );
-//
-//	if ( bOk == false )
-//	{
-//		delete process;
-//		process = nullptr;
-//	}
-//}
-
-
-void COperationControls::HandleQuickMap()
+COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 {
+	static const std::string opname = CWorkspaceOperation::QuickOperationName();
+
 	WaitCursor wait;				assert__( mWRoot );
 
-	std::string opname = mWOperation->GetOperationNewName();
-
+	COperation *operation = mWOperation->GetOperation( opname );
+	if ( operation )
+	{
+		int current_index = mOperationsCombo->currentIndex();
+		int op_index = mOperationsCombo->findText( opname.c_str() );
+		if ( op_index == current_index )
+			mOperationsCombo->setCurrentIndex( -1 );
+		operation->Clear();
+	}
+	else
 	if ( !mWOperation->InsertOperation( opname ) )		//v4 this is weired: call to GetOperationNewName ensures not existing name
 	{
 		LOG_FATAL( "Unexpected v3 error...." );
-		return;
+		return nullptr;
 	}
+	operation = mWOperation->GetOperation( opname );		assert__( operation );
 
-	mCurrentOperation = mWOperation->GetOperation( opname );
-	mCurrentOperation->InitOutput( mWOperation );
-	mCurrentOperation->InitExportAsciiOutput( mWOperation );
-	mCurrentOperation->SetType( CMapTypeOp::eTypeOpZFXY );
+	operation->InitOutput( mWOperation );
+	operation->InitExportAsciiOutput( mWOperation );
+	operation->SetType( type );
 
-	mCurrentOperation->SetDataset( QuickDataset() );
-	mProduct = mCurrentOperation->GetDataset()->SetProduct();
-	mCurrentOperation->SetProduct( mProduct );
+	operation->SetDataset( QuickDataset() );
+	CProduct *product = operation->GetDataset()->SetProduct();
+	operation->SetProduct( product );
 
-	std::string operation_record = mCurrentOperation->GetRecord();
+	std::string operation_record = operation->GetRecord();
 
 	std::vector< CField*> fields;
 	bool alias_used;
 	std::string field_error_msg;
-	std::pair<CField*, CField*> lon_lat_fields = FindLonLatFields( mProduct, alias_used, field_error_msg );		assert__( lon_lat_fields.first && lon_lat_fields.second );
+	std::pair<CField*, CField*> lon_lat_fields = FindLonLatFields( product, alias_used, field_error_msg );		assert__( lon_lat_fields.first && lon_lat_fields.second );
 
 	std::string error_msg;
-	if ( !mCurrentOperation->HasFormula() )
+	if ( !operation->HasFormula() )
 	{
 		std::string field_record = lon_lat_fields.first->GetRecordName();
-		mCurrentOperation->SetRecord( field_record );
-		if ( mCurrentOperation->GetRecord().empty() && mProduct->IsNetCdf() )
-			mCurrentOperation->SetRecord( CProductNetCdf::m_virtualRecordName );
+		operation->SetRecord( field_record );
+		if ( operation->GetRecord().empty() && product->IsNetCdf() )
+			operation->SetRecord( CProductNetCdf::m_virtualRecordName );
 	}
-	CFormula* formula = mCurrentOperation->NewUserFormula( error_msg, lon_lat_fields.first, CMapTypeField::eTypeOpAsX, true, mProduct );
-	mCurrentOperation->ComputeInterval( formula, error_msg );
+	CFormula* formula = operation->NewUserFormula( error_msg, lon_lat_fields.first, CMapTypeField::eTypeOpAsX, true, product );
+	operation->ComputeInterval( formula, error_msg );
 
-	formula = mCurrentOperation->NewUserFormula( error_msg, lon_lat_fields.second, CMapTypeField::eTypeOpAsY, true, mProduct );
-	mCurrentOperation->ComputeInterval( formula, error_msg );
+	formula = operation->NewUserFormula( error_msg, lon_lat_fields.second, CMapTypeField::eTypeOpAsY, true, product );
+	operation->ComputeInterval( formula, error_msg );
 
   //Insert("asField", eTypeOpAsField);
   //Insert("asX", eTypeOpAsX);
   //Insert("asY", eTypeOpAsY);
 
 	CField *field = nullptr;
-	//for ( int i = 0; i < EPredefinedVariables_size; ++i )	//TODO this should be corrected to open products only once, not once per iteration
-	//{
-	//	field = FindField( mProduct, smPredefinedVariables[ i ], alias_used, field_error_msg );
-	//	if ( field )
-	//		fields.push_back( field );
-	//}
 	const int size = mQuickVariablesList->count();
 	for ( int i = 0; i < size; ++i )
 	{
 		auto *item = mQuickVariablesList->item( i );
 		if ( item->checkState() ==  Qt::Checked  )
 		{
-			field = FindField( mProduct, smPredefinedVariables[ i ], alias_used, field_error_msg );
+			field = FindField( product, PseudoAlias( smPredefinedVariables[ i ] ), alias_used, field_error_msg );
 			if ( field )
 				fields.push_back( field );
 		}
@@ -594,13 +493,13 @@ void COperationControls::HandleQuickMap()
 	for ( auto *field : fields )
 	{
 		std::string field_record = field->GetRecordName();
-		//if ( !mCurrentOperation->HasFormula() )
-		//{
-		//	mCurrentOperation->SetRecord( field_record );
-		//	if ( mCurrentOperation->GetRecord().empty() && mProduct->IsNetCdf() )
-		//		mCurrentOperation->SetRecord( CProductNetCdf::m_virtualRecordName );
-		//}
-		CFormula* formula = mCurrentOperation->NewUserFormula( error_msg, field, CMapTypeField::eTypeOpAsField, true, mProduct );
+		if ( !operation->HasFormula() )
+		{
+		//	operation->SetRecord( field_record );
+		//	if ( operation->GetRecord().empty() && product->IsNetCdf() )
+		//		operation->SetRecord( CProductNetCdf::m_virtualRecordName );
+		}
+		CFormula* formula = operation->NewUserFormula( error_msg, field, CMapTypeField::eTypeOpAsField, true, product );
 		if ( !error_msg.empty() )
 			SimpleErrorBox( error_msg );
 		//Add( theParentId, formula );
@@ -608,7 +507,46 @@ void COperationControls::HandleQuickMap()
         Q_UNUSED( formula)
 	}
 
-	assert__( mCurrentOperation->IsMap() );
+	return operation;
+}
+
+
+void COperationControls::SelectOperation( const std::string &name, bool select_map )
+{
+	COperation *operation = mWOperation->GetOperation( name );			Q_UNUSED( operation );		//release builds
+
+	int new_index = mOperationsCombo->findText( name.c_str() );
+	if ( new_index == -1 )
+	{
+		mOperationsCombo->addItem( name.c_str() );
+		int current_index = mOperationsCombo->currentIndex();
+		new_index = mOperationsCombo->findText( name.c_str() );
+		if ( current_index == new_index )
+			mOperationsCombo->setCurrentIndex( -1 );
+	}
+	mOperationsCombo->setCurrentIndex( new_index );
+
+	assert__( mCurrentOperation == operation && mDataset == operation->GetDataset() );
+
+	if ( select_map )
+		mSwitchToMapButton->setChecked( true );
+	else
+		mSwitchToPlotButton->setChecked( true );
+}
+
+
+void COperationControls::HandleQuickMap()
+{
+	WaitCursor wait;				assert__( mWRoot );
+
+	COperation *operation = CreateQuickOperation( CMapTypeOp::eTypeOpZFXY );
+	if ( !operation )
+	{
+		return;
+	}
+	assert__( operation->IsMap() );
+
+	SelectOperation( operation->GetName(), true );
 
 	if ( !Execute( true ) )
 		return;
@@ -621,14 +559,19 @@ void COperationControls::HandleQuickPlot()
 {
 	WaitCursor wait;				assert__( mWRoot );
 
-	NOT_IMPLEMENTED;
-	return;
+	COperation *operation = CreateQuickOperation( CMapTypeOp::eTypeOpZFXY );
+	if ( !operation )
+	{
+		return;
+	}
+	assert__( operation->IsMap() );
 
-	auto ed = new CPlotEditor( &mModel, mCurrentOperation, "", mDesktopManager->parentWidget() );
-    auto subWindow = mDesktopManager->AddSubWindow( ed );
-    subWindow->show();
+	SelectOperation( operation->GetName(), false );
 
-    //openTestFile( t2q( mDesktopManager->mPaths.mWorkspacesDir + R"(/newWP/Displays/DisplayDisplays_2.par)" ) );
+	if ( !Execute( true ) )
+		return;
+
+	//openTestFile( t2q( mDesktopManager->mPaths.mWorkspacesDir + R"(/newWP/Displays/DisplayDisplays_New.par)" ) );
 }
 
 

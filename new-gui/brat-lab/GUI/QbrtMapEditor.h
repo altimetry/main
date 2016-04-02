@@ -93,7 +93,6 @@ public:
     CBratMapView *canvas(){
 		return mMapCanvas;
 	}
-	void globeSettings();
 
     const QString& GetFilename() const { return  curFile; }
     bool IsUntitled() const { return  isUntitled; }

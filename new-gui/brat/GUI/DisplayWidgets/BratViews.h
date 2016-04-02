@@ -120,10 +120,8 @@ void CBratView< WIDGET >::CreatePlot( const CWorldPlotProperties *props, CWPlot*
 	{
 		CPlotField* field = CPlotField::GetPlotField( itField );
 
-#if defined(Q_OS_WIN)
 		if ( field->m_worldProps != props )
 			LOG_WARN( "field->m_worldProps != props" );
-#endif
 
 		if ( field->m_internalFiles.empty() )
 			continue;
@@ -174,7 +172,8 @@ void CBratView< WIDGET >::CreatePlot( const CZFXYPlotProperties *props, CZFXYPlo
 	{
 		CPlotField* field = CPlotField::GetPlotField( itField );
 
-		assert__(field->m_zfxyProps == props );
+		if( field->m_zfxyProps != props ) 
+			LOG_WARN( "field->m_worldProps != props" );
 
 		if ( field->m_internalFiles.empty() )
 			continue;
@@ -374,22 +373,20 @@ class CBrat3DPlotView : public CBratView< C3DPlotWidget >
 
 	bool mMultiFrame = false;
 	bool mHasClut = false;
-	CObList mZfxyPlotData;		//see L:\project\archive\master-A\source\display\ZFXYPlotPanel.cpp for uses of this
+	CObArray *mZfxyPlotData = nullptr;		//see L:\project\archive\master-A\source\display\ZFXYPlotPanel.cpp for uses of this
 
 public:
-    CBrat3DPlotView( QWidget *parent = nullptr ) 
-		: base_t( parent )
-	{
-		mZfxyPlotData.SetDelete(false);
-	}
+	CBrat3DPlotView( QWidget *parent = nullptr );
 
 	virtual ~CBrat3DPlotView()
-	{}
+	{
+		delete mZfxyPlotData;
+	}
 
+
+	CObArray* ZfxyPlotData() { return mZfxyPlotData; }
 
 	// CBratView interface
-
-	//virtual void CreatePlot( const CZFXYPlotProperties *props, CZFXYPlot* zfxyplot ) override;
 
 protected:
 

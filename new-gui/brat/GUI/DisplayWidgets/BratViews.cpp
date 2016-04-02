@@ -206,6 +206,15 @@ void CBratMapView::Plot( const CWorldPlotInfo &maps, CWorldPlotProperties *props
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
+CBrat3DPlotView::CBrat3DPlotView( QWidget *parent )		//parent = nullptr 
+	: base_t( parent )
+	, mZfxyPlotData( new CObArray )
+{
+	mZfxyPlotData->SetDelete(false);
+}
+
+
+
 void CBrat3DPlotView::AddData( CZFXYPlotData* pdata, size_t index )
 {
     Q_UNUSED( index );
@@ -259,7 +268,7 @@ void CBrat3DPlotView::AddData( CZFXYPlotData* pdata, size_t index )
 #endif
 
 	//v4 pdata->SetRenderer( m_vtkRend );
-	mZfxyPlotData.Insert( pdata );
+	mZfxyPlotData->Insert( pdata );
 
 	// v4
 	const C3DPlotInfo &maps = pdata->Maps();	assert__( maps.size() == 1 );	//simply to check if ever...
@@ -326,6 +335,8 @@ CBrat2DPlotView::CBrat2DPlotView( QWidget *parent )	//parent = nullptr
 	, mPlotDataCollection( new CXYPlotDataCollection )
 	, mZfxyPlotData( new CObArray )
 {
+	mZfxyPlotData->SetDelete(false);
+
 	QwtLegend *legend = AddLegend( RightLegend );		Q_UNUSED( legend );
 }
 

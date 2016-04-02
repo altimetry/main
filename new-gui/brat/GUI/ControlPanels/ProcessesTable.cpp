@@ -401,7 +401,8 @@ void CProcessesTable::ProcessFinished( int exit_code, QProcess::ExitStatus exitS
 }
 
 
-void CProcessesTable::ProcessError( QProcess::ProcessError error )
+//static 
+const QString& CProcessesTable::ProcessErrorMessage( QProcess::ProcessError error )
 {
 	static const QString msgs[] =
 	{
@@ -416,10 +417,18 @@ void CProcessesTable::ProcessError( QProcess::ProcessError error )
 
 	static_assert( ( QProcess::ProcessError::UnknownError + 1 ) == msgs_size, "ProcessError enumerated values differ in size from their respective messages array." );
 
-	
+	assert__( error < msgs_size );
+
+	return msgs[ error ];
+}
+
+
+
+void CProcessesTable::ProcessError( QProcess::ProcessError error )
+{
 	COsProcess *process = qobject_cast<COsProcess*>( sender() );			assert__( process );
 
-	LOG_WARN( FormatErrorMessage( process, msgs[ error ] ) );
+	LOG_WARN( FormatErrorMessage( process, ProcessErrorMessage( error ) ) );
 }
 
 
