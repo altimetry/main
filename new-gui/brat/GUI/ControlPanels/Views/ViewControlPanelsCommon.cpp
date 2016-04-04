@@ -36,7 +36,11 @@ void CViewControlsPanelGeneral::CreateWidgets()
     mDisplaysCombo->setToolTip( "Open a view" );
 	mDisplaysCombo->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 
+	auto title_label = new QLabel( "Title" );
+	title_label->setToolTip( "Press enter to assign new title" );
     mPlotTitle = new QLineEdit(this);
+    mPlotType = new QLineEdit(this);
+	SetReadOnlyEditor( mPlotType, true );
 
 	auto *plots_group = CreateGroupBox( ELayoutType::Horizontal, 
 	{ 
@@ -46,7 +50,13 @@ void CViewControlsPanelGeneral::CreateWidgets()
 
     auto *plots_l = LayoutWidgets( Qt::Vertical, 
 	{ 
-		top_buttons_row, plots_group, CreateGroupBox( ELayoutType::Horizontal, { new QLabel("Title"), mPlotTitle }, "", nullptr ), nullptr
+		top_buttons_row, 
+		plots_group, 
+		CreateGroupBox( ELayoutType::Horizontal, 
+		{ 
+			title_label, mPlotTitle, nullptr, new QLabel("Type"), mPlotType
+		}
+		, "", nullptr ), nullptr
 	}, 
 	nullptr, 4, 4, 4, 4, 4 );
 
@@ -79,21 +89,21 @@ void CViewControlsPanelGeneralPlots::CreateWidgets()
 	mPlotTypesList->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
 
     auto *types_group = CreateGroupBox( ELayoutType::Vertical, { mPlotTypesList }, "2D Plot Type", nullptr, s, m, m, m, m );
-	types_group->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
+	//types_group->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
 
     auto *views_group = CreateGroupBox( ELayoutType::Horizontal, { mViewsLayout, types_group }, "Operation Display", nullptr, s, m, m, m, m );
 
     mLinkToPlot = new QComboBox;
     auto *link_group = CreateGroupBox( ELayoutType::Vertical, { mLinkToPlot }, "Link to Plot", nullptr, s, m, m, m, m );
-	link_group->setSizePolicy( QSizePolicy::Preferred, QSizePolicy::Maximum );
-
+	link_group->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
 
 	AddTopLayout( ELayoutType::Horizontal, 
 	{ 
-		views_group, LayoutWidgets( Qt::Vertical, { link_group, nullptr }, nullptr )
+		views_group, nullptr, LayoutWidgets( Qt::Vertical, { link_group }, nullptr )
 	}, 
 	s, m, m, m, m );
 
+	link_group->setEnabled( false );		//TODO	delete when implemented
 }
 
 

@@ -40,7 +40,7 @@ void  CExportDialog::CreateWidgets()
     // IV. Help
     //
     auto help = new CTextWidget;
-    help->setHelpProperties(
+    help->SetHelpProperties(
                 "The user can choose the name and location of the exported operation file. "
                 "Several formats are vailable:\n"
                 " - NetCDF (default format, it can be used as source data in a new dataset,\n"
@@ -48,7 +48,7 @@ void  CExportDialog::CreateWidgets()
                 " - Ascii (once saved, can be seen through a built-in text viewer 'Edit Ascii Export')\n"
                 " - GeoTiff (only available if the axis of the operation are longitude and latitude,"
                 " also provides a Google Earth KML export format)"
-         , 6, Qt::AlignJustify );
+         ,0 , 6, Qt::AlignJustify );
     auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
     help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 
@@ -124,9 +124,9 @@ void  CEditExportAsciiDialog::CreateWidgets()
     //	... Help
 
     auto help = new CTextWidget;
-    help->setHelpProperties(
+    help->SetHelpProperties(
                 "It can be used to visualize and edit the exported Ascii files."
-         , 6, Qt::AlignCenter );
+         ,0 , 6, Qt::AlignCenter );
     auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
     help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 

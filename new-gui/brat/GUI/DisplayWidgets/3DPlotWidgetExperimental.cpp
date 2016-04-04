@@ -396,7 +396,7 @@ void Bar::draw( Qwt3D::Triple const& pos )
 void C3DPlotWidget::Autoswitching_axes()
 {
 	QSplitter* spl = new QSplitter(Qt::Horizontal, this);
-	SetCentralWidget( spl );
+	AddWidget( spl );
 
 	Plot* plot1 = new Plot( spl, 30 );
 	plot1->setFloorStyle( Qwt3D::FLOORISO );
@@ -409,7 +409,7 @@ void C3DPlotWidget::Autoswitching_axes()
 	plot1->updateData();
 	plot1->updateGL();
 
-	mPlots.push_back( plot1 );
+	mSurfacePlots.push_back( plot1 );
 
 	Plot* plot2 = new Plot( spl, 80 );
 	plot2->setZoom( 0.8 );
@@ -423,13 +423,13 @@ void C3DPlotWidget::Autoswitching_axes()
 	plot2->updateData();
 	plot2->updateGL();
 
-	mPlots.push_back( plot2 );
+	mSurfacePlots.push_back( plot2 );
 }
 void C3DPlotWidget::Simple_SurfacePlot()
 {
 	Plot* plot = new Plot( this, 1000 );
-	mPlots.push_back( plot );
-	SetCentralWidget( plot );
+	mSurfacePlots.push_back( plot );
+	AddWidget( plot );
 
     SetPlotTitle("A Simple SurfacePlot Demonstration");
     
@@ -582,7 +582,7 @@ void C3DPlotWidget::setupUi()		//Vertex_Enrichment()
 
 	gridLayout->addLayout( vboxLayout, 0, 0, 1, 1 );
 
-	SetCentralWidget( centralWidget );
+	AddWidget( centralWidget );
 
     setWindowTitle( QApplication::translate( "", "", 0
 #if QT_VERSION < 0x050000
@@ -619,7 +619,7 @@ void C3DPlotWidget::Vertex_Enrichment()
 #endif
 
 	Plot *plot = new Plot( frame );
-	mPlots.push_back( plot );
+	mSurfacePlots.push_back( plot );
 	grid->addWidget( plot, 0, 0 );
 
 	plot->setTitle( "Bar Style (Vertex Enrichment)" );
@@ -690,10 +690,10 @@ void C3DPlotWidget::setColor()
 			step=4;
 		}
 	}
-	Qwt3D::StandardColor* col = new Qwt3D::StandardColor( mPlots[0] );
+	Qwt3D::StandardColor* col = new Qwt3D::StandardColor( mSurfacePlots[0] );
     col->setColorVector( static_cast<Qwt3D::ColorVector const&>( cv ) );
 
-	mPlots[0]->setDataColor( col );
+	mSurfacePlots[0]->setDataColor( col );
 }
 
 
@@ -701,22 +701,22 @@ void C3DPlotWidget::setLevel( int i )
 {
 	level_ = 1 - i / 100.;
 	bar->configure( width_, level_ );
-	mPlots[0]->updateData();
-	mPlots[0]->updateGL();
+	mSurfacePlots[0]->updateData();
+	mSurfacePlots[0]->updateGL();
 }
 
 void C3DPlotWidget::setWidth( int i )
 {
 	width_ = i / 20000.;
 	bar->configure( width_, level_ );
-	mPlots[0]->updateData();
-	mPlots[0]->updateGL();
+	mSurfacePlots[0]->updateData();
+	mSurfacePlots[0]->updateGL();
 }
 
 void C3DPlotWidget::barSlot()
 {
 	Bar b( width_, level_ );
-	bar = (Bar*)mPlots[0]->setPlotStyle( b );
-	mPlots[0]->updateData();
-	mPlots[0]->updateGL();
+	bar = (Bar*)mSurfacePlots[0]->setPlotStyle( b );
+	mSurfacePlots[0]->updateData();
+	mSurfacePlots[0]->updateGL();
 }

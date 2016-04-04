@@ -27,10 +27,10 @@ void  CShowAliasesDialog::CreateWidgets()
     //	... Help
 
     auto help = new CTextWidget;
-    help->setHelpProperties(
+    help->SetHelpProperties(
         "Provides information about the aliases available for the chosen dataset. Aliases are\n"
         " equivalents that you can use instead of the fields name."
-         , 6, Qt::AlignJustify );
+         ,0 , 6, Qt::AlignJustify );
     auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
     help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 

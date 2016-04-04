@@ -8,8 +8,8 @@
 
 #include "GUI/norwegianwoodstyle.h"
 
-
 #include "DataModels/Filters/BratFilters.h"
+
 
 
 int main( int argc, char *argv[] )

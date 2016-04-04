@@ -155,7 +155,16 @@ enum EFileType {
 
 class CTextWidget : public QTextEdit
 {
-	Q_OBJECT
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+    Q_OBJECT;
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
 
 public:
 	typedef QTextEdit base_t;
@@ -163,7 +172,7 @@ public:
 	friend class TextEditor;
 
 protected:
-	QSize m_SizeHint;
+	QSize mSizeHint;
 
 public:
     CTextWidget( QWidget *parent = nullptr );
@@ -192,10 +201,10 @@ public:
     //
     bool isEmpty() const;
 	virtual void setToolEditor( bool tool );
-	virtual void setHelpEditor( bool help );
-	virtual void setHelpProperties( const QString &text, int spacing, Qt::Alignment alignment = Qt::AlignCenter, bool wrap = false );
-    virtual QSize sizeHint() const;
-    void setSizeHint( int w, int h ){ m_SizeHint = QSize( w, h ); }
+	virtual void SetReadOnlyEditor( bool ro );
+	virtual void SetHelpProperties( const QString &text, int empty_lines, int spacing, Qt::Alignment alignment = Qt::AlignCenter, bool wrap = false );
+    virtual QSize sizeHint() const override;
+    void SetSizeHint( int w, int h ){ mSizeHint = QSize( w, h ); }
 
     //selection / position
     //
@@ -219,7 +228,7 @@ public:
 	void MoveTo( long long position, bool select, QColor c = Qt::black );	//black: match the style sheet in ctor
 	void MoveToEnd( bool select );
     int  getPosition() const { return textCursor().position(); }
-    void getPosition( int &line, int &col ) const;
+    void getPosition( int &line, int &col ) const;							//line & col are 1-based
     void getPosition( LineCol &lc ) const {	getPosition( lc.line, lc.col ); }
 	int position() const { return textCursor().position(); }
 
@@ -267,7 +276,7 @@ public:
     void connectDeleteSelAvailableAction( QAction *pa );
 
 protected:
-	virtual void contextMenuEvent( QContextMenuEvent *event );
+    virtual void contextMenuEvent( QContextMenuEvent *event ) override;
 
 protected slots:
 	void slotModificationChanged ( bool changed ){ emit modificationChanged ( changed ); }			  //to relay document() signal as common editors signal

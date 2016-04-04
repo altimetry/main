@@ -365,7 +365,7 @@ void CWorkspaceElementsDialog::CreateWidgets()
 	//	... Help
 
 	auto help = new CTextWidget;
-	help->setHelpProperties( "Tree of elements composing the workspace " + t2q( mTree.GetRootData()->GetName() ), 6, Qt::AlignCenter );
+	help->SetHelpProperties( "Tree of elements composing the workspace " + t2q( mTree.GetRootData()->GetName() ), 0, 6, Qt::AlignCenter );
     auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
     help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 

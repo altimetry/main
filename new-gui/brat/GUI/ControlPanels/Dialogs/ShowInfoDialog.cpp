@@ -28,10 +28,10 @@ void  CShowInfoDialog::CreateWidgets()
     //	... Help
 
     auto help = new CTextWidget;
-    help->setHelpProperties(
+    help->SetHelpProperties(
         "Provides information about the original units (the ones defined in the data products) and the\n"
         " units used during computation or selection."
-         , 6, Qt::AlignJustify );
+         ,0 , 6, Qt::AlignJustify );
     auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
     help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 

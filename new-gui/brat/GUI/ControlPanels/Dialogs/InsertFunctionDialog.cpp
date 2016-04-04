@@ -148,7 +148,7 @@ void CInsertFunctionDialog::HandleFunctionListRowChanged( int index )
 	std::string func_desc = CMapFunction::GetInstance().GetDescFunc( func_name );
 	//if ( !EndsWith( func_desc, std::string( "\n" ) ) )
 	//	func_desc += "\n";
-    mHelpText->setHelpProperties( func_desc.c_str(), 6, Qt::AlignCenter, true );
+    mHelpText->SetHelpProperties( func_desc.c_str(), 0, 6, Qt::AlignCenter, true );
     //mHelpText->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 }
 

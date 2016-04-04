@@ -381,7 +381,7 @@ void CWorkspaceDataset::Close()
 //----------------------------------------
 CDataset* CWorkspaceDataset::GetDataset(const std::string& name)
 {
-  return dynamic_cast<CDataset*>(m_datasets.Exists((const char *)name.c_str()));
+  return dynamic_cast<CDataset*>( m_datasets.Exists( name ) );
 }
 //----------------------------------------
 void CWorkspaceDataset::GetDatasetNames( std::vector< std::string >& array ) const

@@ -1291,15 +1291,20 @@ bool COperation::RemoveOutput()
 	return bOk;
 }
 //----------------------------------------
-bool COperation::RenameOutput( const std::string& oldPath )
+bool COperation::RenameOutput( const std::string &old_path )
 {
-	bool bOk = RenameFile( oldPath, GetOutputPath() );
+	const bool is_old_file = IsFile( old_path );
+	bool bOk = !is_old_file || RenameFile( old_path, GetOutputPath() );
 
-	std::string oldCmdFile = oldPath;
-	SetFileExtension( oldCmdFile, COMMANDFILE_EXTENSION );
+	if ( is_old_file )
+	{
+		std::string oldCmdFile = old_path;
+		SetFileExtension( oldCmdFile, COMMANDFILE_EXTENSION );
 
-	//RenameFile(oldCmdFile.GetFullPath(), GetCmdFile());
-	RemoveFile( oldCmdFile );
+		//RenameFile(oldCmdFile.GetFullPath(), GetCmdFile());
+		RemoveFile( oldCmdFile );
+	}
+
 	return bOk;
 }
 

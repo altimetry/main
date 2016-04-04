@@ -493,23 +493,27 @@ C3DPlotWidget::~C3DPlotWidget()
 }
 
 
-void C3DPlotWidget::AddSurface( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax )
+void C3DPlotWidget::AddPlot( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax )
 {
 #if defined (TEST_EXAMPLES)
 	return;
 #endif
 
-	CBrat3DPlot *plot = nullptr;
-	if ( mPlots.size() > 0 )
-		plot = dynamic_cast<CBrat3DPlot*>( mPlots[ 0 ] );
-	else
-	{
-		plot = new CBrat3DPlot( this );
-		mPlots.push_back( plot );
-		SetCentralWidget( mPlots[ 0 ] );
-	}
+	mCurrentPlot = new CBrat3DPlot( this );
+	mSurfacePlots.push_back( mCurrentPlot );
+	AddWidget( mCurrentPlot );
 
-	plot->AddSurface( values, xmin, xmax, ymin, ymax, zmin, zmax );
+	mCurrentPlot->AddSurface( values, xmin, xmax, ymin, ymax, zmin, zmax );
+}
+
+
+void C3DPlotWidget::SetCurrentPlot( int index )
+{
+	assert__( index < mSurfacePlots.size() );
+
+	mCurrentPlot = dynamic_cast<CBrat3DPlot*>( mSurfacePlots[ index ] );
+
+	mStackedLayout->setCurrentIndex( index );								assert__( mCurrentPlot == mStackedLayout->currentWidget() );
 }
 
 
@@ -517,9 +521,9 @@ void C3DPlotWidget::AddSurface( const C3DPlotParameters &values, double xmin, do
 
 void C3DPlotWidget::SetPlotTitle( const std::string &title )
 {
-	assert__( mPlots.size() );
+	assert__( mSurfacePlots.size() );
 
-	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mPlots[0] );		assert__( p );
+	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mCurrentPlot );		assert__( p );
 
 
 	p->setTitleFont( t2q( smFontName ), smTitleFontSize, QFont::Bold );
@@ -532,50 +536,78 @@ void C3DPlotWidget::SetPlotTitle( const std::string &title )
 
 //style
 
-void C3DPlotWidget::SetStyle()
+void C3DPlotWidget::SetStyle( bool show_contour, bool show_mesh )
 {
-	assert__( mPlots.size() );
+	assert__( mCurrentPlot );
 
 	Qwt3D::PLOTSTYLE style = Qwt3D::WIREFRAME;
 
-	if ( mShowContour )
+	if ( show_contour )
 	{
-		if ( mShowMesh )
+		if ( show_mesh )
 			style = Qwt3D::FILLEDMESH;
 		else
 			style = Qwt3D::HIDDENLINE;
 	}
 	else
 	{
-		if ( mShowMesh )
+		if ( show_mesh )
 			style = Qwt3D::FILLED;
 		else
 			style = Qwt3D::NOPLOT;
 	}
 
-	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mPlots[0] );		assert__( p );
-
-	p->SetPlotStyle( style );
+	mCurrentPlot->SetPlotStyle( style );
 }
 
 bool C3DPlotWidget::HasContour() const
 {
-	return mShowContour;
+	assert__( mCurrentPlot );
+
+	auto style = mCurrentPlot->plotStyle();
+
+	return style == Qwt3D::FILLEDMESH || style == Qwt3D::HIDDENLINE;
 }
+
 void C3DPlotWidget::ShowContour( bool show )
 {
-	mShowContour = show;
-	SetStyle();
+	SetStyle( show, HasSolidColor() );
 }
+
 
 bool C3DPlotWidget::HasSolidColor() const
 {
-	return mShowMesh;
+	assert__( mCurrentPlot );
+
+	auto style = mCurrentPlot->plotStyle();
+
+	return style == Qwt3D::FILLEDMESH || style == Qwt3D::FILLED;
 }
+
 void C3DPlotWidget::ShowSolidColor( bool show )
 {
-	mShowMesh = show;
-	SetStyle();
+	SetStyle( HasContour(), show );
+}
+
+
+void C3DPlotWidget::ShowContour( int index, bool show )
+{
+	assert__( index < mSurfacePlots.size() );
+
+	auto save = mCurrentPlot;
+	mCurrentPlot = dynamic_cast<CBrat3DPlot*>( mSurfacePlots[ index ] );
+	ShowContour( show );
+	mCurrentPlot = save;
+}
+
+void C3DPlotWidget::ShowSolidColor( int index, bool show )
+{
+	assert__( index < mSurfacePlots.size() );
+
+	auto save = mCurrentPlot;
+	mCurrentPlot = dynamic_cast<CBrat3DPlot*>( mSurfacePlots[ index ] );
+	ShowSolidColor( show );
+	mCurrentPlot = save;
 }
 
 
@@ -585,18 +617,18 @@ void C3DPlotWidget::ShowSolidColor( bool show )
 
 void C3DPlotWidget::SetLogarithmicScaleZ( bool log )
 {
-	assert__( mPlots.size() );
+	assert__( mSurfacePlots.size() );
 
-	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mPlots[0] );		assert__( p );
+	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mCurrentPlot );		assert__( p );
 
 	p->SetLogarithmicScale( true, log );
 }
 
 void C3DPlotWidget::SetLogarithmicScale( bool log )
 {
-	assert__( mPlots.size() );
+	assert__( mSurfacePlots.size() );
 
-	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mPlots[0] );		assert__( p );
+	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mCurrentPlot );		assert__( p );
 
 	p->SetLogarithmicScale( false, log );
 }
@@ -607,13 +639,13 @@ void C3DPlotWidget::SetLogarithmicScale( bool log )
 
 void C3DPlotWidget::SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle )
 {
-	assert__( mPlots.size() );
+	assert__( mSurfacePlots.size() );
 
 #if defined (TEST_EXAMPLES)
 	return;
 #endif
 
-	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mPlots[0] );		assert__( p );
+	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mCurrentPlot );		assert__( p );
 
 	p->SetAxisTitles( xtitle, ytitle, ztitle );
 }
@@ -625,14 +657,16 @@ void C3DPlotWidget::SetAxisTitles( const std::string &xtitle, const std::string 
 //////////////////////////////////////////////////////////////////////////
 
 
-void C3DPlotWidget::SetCentralWidget( QWidget *w )
+void C3DPlotWidget::AddWidget( QWidget *w )
 {
-	QHBoxLayout *hl = dynamic_cast< QHBoxLayout* >( layout() );
-	if ( hl )
-		delete hl;
-	hl = new QHBoxLayout( this );
-	hl->addWidget( w );
-	setLayout( hl );
+	mStackedLayout = dynamic_cast< QStackedLayout* >( layout() );
+	if ( !mStackedLayout )
+	{
+		mStackedLayout = new QStackedLayout( this );
+		setLayout( mStackedLayout );
+	}
+	mStackedLayout->addWidget( w );
+	mStackedLayout->setCurrentWidget( w );
 }
 
 

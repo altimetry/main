@@ -44,19 +44,6 @@
     <addaction name="separator"/>
     <addaction name="action_Exit"/>
    </widget>
-   <widget class="QMenu" name="menu_Edit">
-    <property name="title">
-     <string>&amp;Edit</string>
-    </property>
-    <addaction name="action_Undo"/>
-    <addaction name="action_Redo"/>
-    <addaction name="separator"/>
-    <addaction name="action_Cut"/>
-    <addaction name="action_Copy"/>
-    <addaction name="action_Paste"/>
-    <addaction name="action_Delete"/>
-    <addaction name="action_Select_All"/>
-   </widget>
    <widget class="QMenu" name="menu_Window">
     <property name="title">
      <string>&amp;Window</string>
@@ -104,7 +91,6 @@
     <addaction name="separator"/>
    </widget>
    <addaction name="menu_File"/>
-   <addaction name="menu_Edit"/>
    <addaction name="menu_View"/>
    <addaction name="menu_Tools"/>
    <addaction name="menu_Window"/>
@@ -246,21 +232,6 @@
     <string>Close &amp;All</string>
    </property>
   </action>
-  <action name="action_Cut">
-   <property name="text">
-    <string>Cut</string>
-   </property>
-  </action>
-  <action name="action_Copy">
-   <property name="text">
-    <string>&amp;Copy</string>
-   </property>
-  </action>
-  <action name="action_Paste">
-   <property name="text">
-    <string>&amp;Paste</string>
-   </property>
-  </action>
   <action name="action_Options">
    <property name="icon">
     <iconset resource="../Common/Resources/brat.qrc">
@@ -271,32 +242,6 @@
    </property>
    <property name="toolTip">
     <string>Edit application settings</string>
-   </property>
-  </action>
-  <action name="action_Undo">
-   <property name="text">
-    <string>&amp;Undo</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Z</string>
-   </property>
-  </action>
-  <action name="action_Redo">
-   <property name="text">
-    <string>&amp;Redo</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+Y</string>
-   </property>
-  </action>
-  <action name="action_Delete">
-   <property name="text">
-    <string>&amp;Delete</string>
-   </property>
-  </action>
-  <action name="action_Select_All">
-   <property name="text">
-    <string>Select &amp;All</string>
    </property>
   </action>
   <action name="action_Test">

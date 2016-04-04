@@ -325,7 +325,7 @@ public:
 
 	//v4 new; see comments in function definition
 
-	bool AssignOperation( const COperation *operation );
+	bool AssignOperation( const COperation *operation, bool update = false );
 
 
 protected:
@@ -349,11 +349,23 @@ public:
 	std::vector< const COperation* > GetOperations() const;
 
 
+	CMapTypeDisp::ETypeDisp GetPlotType( bool map_as_3dplot ) const 
+	{ 
+		CMapTypeDisp::ETypeDisp type = m_type;
+		if ( map_as_3dplot && type == CMapTypeDisp::eTypeDispZFLatLon )
+			type = CMapTypeDisp::eTypeDispZFXY;
+
+		return type; 
+	}
+
 	CMapTypeDisp::ETypeDisp GetType() const { return m_type; }
 	void SetType( CMapTypeDisp::ETypeDisp value ) { m_type = value; }
 	void SetType( int32_t value ) { SetType( (CMapTypeDisp::ETypeDisp)value ); }
 
-	std::string GetTypeAsString() const { return n2s< std::string >( m_type ); }
+	std::string GetTypeAsString( bool map_as_3dplot ) const 
+	{ 
+		return n2s< std::string >( GetPlotType( map_as_3dplot ) ); 
+	}
 
 	CMapDisplayData* GetData() { return &m_data; }
 	const CMapDisplayData& GetData() const { return m_data; }

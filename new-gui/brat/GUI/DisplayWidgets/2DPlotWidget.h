@@ -274,6 +274,7 @@ class C2DPlotWidget : public QwtPlot
 	//instance data
 
     std::vector< QwtPlotSpectrogram* > mSpectrograms;
+	QwtPlotSpectrogram *mCurrentSpectrogram = nullptr;
 	std::vector< CHistogram* > mHistograms;
 	std::vector< CGeneralizedCurve* > mCurves;
 
@@ -334,12 +335,19 @@ public:
 	// raster
 	///////////
 
-	QwtPlotSpectrogram* CreateSurface( const std::string &title, const C3DPlotInfo &maps, int min_contour, int max_contour, size_t ncontours, size_t index );
+	QwtPlotSpectrogram* AddRaster( const std::string &title, const C3DPlotInfo &maps, double min_contour, double max_contour, size_t ncontours, size_t index );
 
-    bool HasContour( int index ) const;
+	//switch plot
+
+	void SetCurrentRaster( int index );
+
+    bool HasContour() const;
+    void ShowContour( bool show );
+
+    bool HasSolidColor() const;
+    void ShowSolidColor( bool show );
+
     void ShowContour( int index, bool show );
-
-    bool HasSolidColor( int index ) const;
     void ShowSolidColor( int index, bool show );
 
 

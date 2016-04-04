@@ -246,11 +246,6 @@ protected:
 protected slots:
 
     void LoadCmdLineFiles();
-    void clipboardDataChanged();
-
-    // font / format
-    //
-    void cursorPositionChanged();
 
     // Update State
     //
@@ -278,18 +273,6 @@ private slots:
 
 
 	////////////////
-	//Menu Edit			(experimental)
-
-    void on_action_Undo_triggered();
-    void on_action_Redo_triggered();
-    void on_action_Cut_triggered();
-    void on_action_Copy_triggered();
-    void on_action_Paste_triggered();
-    void on_action_Delete_triggered();
-    void on_action_Select_All_triggered();
-
-
-	////////////////
 	//Menu View
 
     void on_action_Zoom_In_triggered();
@@ -309,8 +292,6 @@ private slots:
     void on_action_Workspace_Tree_triggered();
     void on_action_Launch_Scheduler_triggered();
     void on_action_Options_triggered();
-
-	void SchedulerProcessError( QProcess::ProcessError );
 
 	////////////////
 	//Menu Window

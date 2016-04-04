@@ -8,6 +8,7 @@
 #include "DataModels/Workspaces/Workspace.h"
 #include "DataModels/MapTypeDisp.h"
 
+#include "GUI/DisplayWidgets/TextWidget.h"
 #include "GUI/DisplayEditors/MapEditor.h"
 #include "GUI/DisplayEditors/PlotEditor.h"
 
@@ -66,16 +67,21 @@ std::string PseudoAlias( const std::string &name )
 //						
 /////////////////////////////////////////////////////////////////////////////////
 
-
-CDataset* COperationControls::QuickDataset()
+void COperationControls::HandleWorkspaceChanged_Quick()
 {
-	const int dataset_index = mQuickDatasetsCombo->currentIndex();
-	if ( dataset_index < 0 )
-		return nullptr;
+	HandleDatasetsChanged_Quick( nullptr );		//fill quick datasets combo
 
-	return mWDataset->GetDataset( q2a( mQuickDatasetsCombo->itemText( dataset_index ) ) );
+	// TODO check fields if quick operation exists
+				//	if ( !item_to_check )
+				//{
+				//	item_to_check = item;
+				//	item->setCheckState( Qt::Checked );
+				//}
 }
 
+
+// NOTE connected by main window to datasets panel
+//
 void COperationControls::HandleDatasetsChanged_Quick( CDataset * )
 {
 	int selected = mQuickDatasetsCombo->currentIndex();
@@ -96,7 +102,9 @@ void COperationControls::HandleDatasetsChanged_Quick( CDataset * )
 		mQuickDatasetsCombo->blockSignals( false );
 	}
 
-	if ( selected >= mQuickDatasetsCombo->count() )
+	if (  selected >= mQuickDatasetsCombo->count() ||
+		( selected < 0 && mQuickDatasetsCombo->count() > 0 )
+		)
 		selected = 0;
 
 	if ( mQuickDatasetsCombo->currentIndex() == selected )
@@ -105,9 +113,21 @@ void COperationControls::HandleDatasetsChanged_Quick( CDataset * )
 		mQuickDatasetsCombo->setCurrentIndex( selected );
 }
 
+
+CDataset* COperationControls::QuickDataset()
+{
+	const int dataset_index = mQuickDatasetsCombo->currentIndex();
+	if ( dataset_index < 0 )
+		return nullptr;
+
+	return mWDataset->GetDataset( q2a( mQuickDatasetsCombo->itemText( dataset_index ) ) );
+}
+
+
 void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 {
 	mQuickVariablesList->setEnabled( dataset_index >= 0 );
+	mQuickFieldDesc->clear();
 
     if ( dataset_index < 0 )
         return;
@@ -125,11 +145,11 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 	mDisplayPlotButton->setEnabled( false );
 
 	CDataset *dataset = QuickDataset();			assert__( dataset );
-	std::vector<std::string> paths;
-	dataset->GetFiles( paths );
+	std::vector<std::string> dataset_files;
+	dataset->GetFiles( dataset_files );
 
 	bool has_lon_lat_fields = false;
-	for ( auto const &path : paths )
+	for ( auto const &path : dataset_files )
 	{
 		CProduct *product = dataset->SetProduct( path );
 		if ( !product )
@@ -150,10 +170,10 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 
 
 	bool has_fields = false;
-	for ( int i = 0; i < EPredefinedVariables_size; ++i )	//TODO this should be corrected to open products only once, not once per iteration
+	for ( int i = 0; i < EPredefinedVariables_size; ++i )	//TODO maybe this should be corrected to open products only once, not once per iteration
 	{
 		auto *item = mQuickVariablesList->item( i );
-		for ( auto const &path : paths )
+		for ( auto const &path : dataset_files )
 		{
 			CProduct *product = dataset->SetProduct( path );
 			if ( !product )
@@ -162,18 +182,21 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 			bool alias_used;
 			std::string field_error_msg;
 			CField *field = FindField( product, PseudoAlias( smPredefinedVariables[ i ] ), alias_used, field_error_msg );
-			delete product;
 			if ( field )
 			{
 				item->setFlags( item->flags() | Qt::ItemIsEnabled );
-				item->setCheckState( Qt::Checked );
 				has_fields = true;
-				break;
+				item->setData( Qt::UserRole, t2q( field->GetDescription() ) );
 			}
+			delete product;
+			if ( field )
+				break;
 		}
 	}
 	mDisplayMapButton->setEnabled( has_fields );
 	mDisplayPlotButton->setEnabled( has_fields );
+
+	HandleVariableStateChanged_Quick( nullptr );	//update actions state
 }
 
 
@@ -195,148 +218,15 @@ void COperationControls::HandleVariableStateChanged_Quick( QListWidgetItem * )
 	mDisplayPlotButton->setEnabled( enable );
 }
 
-void COperationControls::HandleSelectedVariableChanged_Quick( int )
+void COperationControls::HandleSelectedFieldChanged_Quick( int variable_index )
 {
-	LOG_WARN("HandleSelectedVariableChanged_Quick");
+	mQuickFieldDesc->clear();
+	if ( variable_index < 0 )
+		return;
+
+	auto *item = mQuickVariablesList->item( variable_index );
+	mQuickFieldDesc->setText( item->data( Qt::UserRole ).toString() );
 }
-
-
-//void CDisplayPanel::GetOperations( int32_t type /*= -1*/ )
-//{
-//	UNUSED( type );
-//
-//	m_dataList.RemoveAll();
-//
-//	CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
-//	if ( wks == nullptr )
-//	{
-//		return;
-//	}
-//
-//	CObMap* operations = wks->GetOperations();
-//	if ( operations == nullptr )
-//	{
-//		return;
-//	}
-//
-//
-//	CInternalFiles *file = nullptr;
-//	CUIntArray displayTypes;
-//
-//	CStringArray names;
-//
-//	CObMap::iterator it;
-//
-//	for ( it = operations->begin(); it != operations->end(); it++ )
-//	{
-//
-//		COperation* operation = dynamic_cast<COperation*>( it->second );
-//		if ( operation == nullptr )
-//		{
-//			continue;
-//		}
-//
-//		displayTypes.RemoveAll();
-//
-//		CDisplay::GetDisplayType( operation, displayTypes, &file );
-//
-//		if ( file == nullptr )
-//		{
-//			continue;
-//		}
-//
-//		names.RemoveAll();
-//
-//		file->GetDataVars( names );
-//
-//		CUIntArray::iterator itDispType;
-//		CStringArray::iterator itField;
-//		CDisplayData* displayData;
-//
-//		for ( itDispType = displayTypes.begin(); itDispType != displayTypes.end(); itDispType++ )
-//		{
-//			for ( itField = names.begin(); itField != names.end(); itField++ )
-//			{
-//				CStringArray varDimensions;
-//				file->GetVarDims( *itField, varDimensions );
-//
-//				uint32_t nbDims = varDimensions.size();
-//
-//				if ( nbDims > 2 )
-//				{
-//					continue;
-//				}
-//
-//				if ( ( nbDims != 2 ) && ( ( *itDispType == CMapTypeDisp::eTypeDispZFXY )
-//					|| ( *itDispType == CMapTypeDisp::eTypeDispZFLatLon ) ) )
-//				{
-//					continue;
-//				}
-//
-//				displayData = new CDisplayData( operation );
-//
-//				displayData->SetType( *itDispType );
-//
-//				displayData->GetField()->SetName( *itField );
-//
-//				std::string unit = file->GetUnit( *itField ).GetText();
-//				displayData->GetField()->SetUnit( unit );
-//
-//				wxString comment = file->GetComment( *itField ).c_str();
-//
-//				wxString description = file->GetTitle( *itField ).c_str();
-//
-//				if ( !comment.IsEmpty() )
-//				{
-//					description += "." + comment;
-//				}
-//
-//				displayData->GetField()->SetDescription( (const char *)description.c_str() );
-//
-//				if ( nbDims >= 1 )
-//				{
-//					std::string dimName = varDimensions.at( 0 );
-//					displayData->GetX()->SetName( varDimensions.at( 0 ) );
-//
-//					std::string unit = file->GetUnit( dimName ).GetText();
-//					displayData->GetX()->SetUnit( unit );
-//
-//					displayData->GetX()->SetDescription( file->GetTitle( dimName ) );
-//				}
-//
-//				if ( nbDims >= 2 )
-//				{
-//					std::string dimName = varDimensions.at( 1 );
-//					displayData->GetY()->SetName( varDimensions.at( 1 ) );
-//
-//					std::string unit = file->GetUnit( dimName ).GetText();
-//					displayData->GetY()->SetUnit( unit );
-//
-//					displayData->GetY()->SetDescription( file->GetTitle( dimName ) );
-//				}
-//
-//				if ( nbDims >= 3 )
-//				{
-//					std::string dimName = varDimensions.at( 2 );
-//					displayData->GetZ()->SetName( varDimensions.at( 2 ) );
-//
-//					std::string unit = file->GetUnit( dimName ).GetText();
-//					displayData->GetZ()->SetUnit( unit );
-//
-//					displayData->GetZ()->SetDescription( file->GetTitle( dimName ) );
-//				}
-//
-//				m_dataList.Insert( (const char *)GetDataKey( *displayData ).c_str(), displayData, false );
-//			}
-//
-//		}
-//
-//		delete file;
-//		file = nullptr;
-//	}
-//	delete file;
-//	file = nullptr;
-//}
 
 
   //Insert("asField", eTypeOpAsField);
@@ -425,7 +315,7 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 {
 	static const std::string opname = CWorkspaceOperation::QuickOperationName();
 
-	WaitCursor wait;				assert__( mWRoot );
+	WaitCursor wait;				assert__( mWRoot && QuickDataset() );
 
 	COperation *operation = mWOperation->GetOperation( opname );
 	if ( operation )
@@ -598,7 +488,7 @@ void COperationControls::openTestFile( const QString &fileName )
 					if ( wplot == nullptr )
 						continue;
 
-					auto ed = new CMapEditor( mCmdLineProcessor, wplot, this );
+					auto ed = new CMapEditor( mCmdLineProcessor, wplot );
 					auto subWindow = mDesktopManager->AddSubWindow( ed );
 					subWindow->show();
 				}
@@ -611,7 +501,7 @@ void COperationControls::openTestFile( const QString &fileName )
 					if ( yfxplot == nullptr )
 						continue;
 
-					auto ed = new CPlotEditor( mCmdLineProcessor, yfxplot, this );
+					auto ed = new CPlotEditor( mCmdLineProcessor, yfxplot );
 					auto subWindow = mDesktopManager->AddSubWindow( ed );
 					subWindow->show();
 				}
@@ -624,7 +514,7 @@ void COperationControls::openTestFile( const QString &fileName )
 					if ( zfxyplot == nullptr )
 						continue;
 
-					auto ed = new CPlotEditor( mCmdLineProcessor, zfxyplot, this );
+					auto ed = new CPlotEditor( mCmdLineProcessor, zfxyplot );
 					auto subWindow = mDesktopManager->AddSubWindow( ed );
 					subWindow->show();
 				}

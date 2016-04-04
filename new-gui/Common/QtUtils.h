@@ -9,6 +9,7 @@
 	#include <QtWidgets/QApplication>
 	#include <QtWidgets/QFileDialog>
 	#include <QtWidgets/QMessageBox>
+	#include <QtWidgets/QTextEdit>
 	#include <QtWidgets/QLayout>
 	#include <QtWidgets/QSplitter>
 	#include <QtWidgets/QToolBar>
@@ -23,6 +24,7 @@
 #else
 	#include <QtGui/QApplication>
 	#include <QtGui/QFileDialog>
+	#include <QTextEdit>
 	#include <QMessageBox>
 	#include <QLayout>
 	#include <QSplitter>
@@ -604,6 +606,35 @@ inline QFrame* WidgetLine( QWidget *parent, Qt::Orientation o )
 
 
 
+
+///////////
+//text
+///////////
+
+inline const QString& TextType2String( const QTextEdit * )
+{
+	static const QString s = "QTextEdit";
+	return s;
+}
+inline const QString& TextType2String( const QLineEdit * )
+{
+	static const QString s = "QLineEdit";
+	return s;
+}
+
+
+template< typename TEXT_EDITOR >
+inline void SetReadOnlyEditor( TEXT_EDITOR *ed, bool ro )
+{
+	if ( ro )
+		ed->setStyleSheet( TextType2String( ed ) + " {background: #DFDFDF; color: #000000;}" );
+	else
+		ed->setStyleSheet("");
+	ed->setReadOnly( ro );
+}
+
+
+
 ///////////
 //splitter
 ///////////
@@ -1144,7 +1175,7 @@ const int min_main_window_height = 640;
 const auto child_ratio = 1. / 2.;
 
 const int min_globe_widget_width =  min_main_window_width * child_ratio;
-const int min_globe_widget_height = min_globe_widget_width / 3 * 2;
+const int min_globe_widget_height = min_globe_widget_width / 4 * 3;
 
 const int min_plot_widget_width = min_globe_widget_width;
 const int min_plot_widget_height = min_globe_widget_height;

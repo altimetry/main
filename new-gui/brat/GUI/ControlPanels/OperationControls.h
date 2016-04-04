@@ -141,6 +141,7 @@ protected:
 	QActionGroup *mDataComputationGroup = nullptr;
 
 	CFieldsTreeWidget *mAdvancedFieldsTree = nullptr;
+    CTextWidget *mAdvancedFieldDesc = nullptr;
 
 #if defined(USE_2_EXPRESSION_TREES)
 	CStackedWidget *mDataExpressionsStack = nullptr;
@@ -155,9 +156,10 @@ protected:
 	QComboBox *mQuickDatasetsCombo = nullptr;
 	QToolButton *mAddVariable = nullptr;
 	QToolButton *mClearVariables = nullptr;
-	QListWidget *mQuickVariablesList = nullptr;
 	QToolButton *mDisplayMapButton = nullptr;
 	QToolButton *mDisplayPlotButton = nullptr;
+	QListWidget *mQuickVariablesList = nullptr;
+    CTextWidget *mQuickFieldDesc = nullptr;
 
 
 	//...domain variables
@@ -182,8 +184,8 @@ protected:
 
     void Wire();
 	QWidget* CreateCommonWidgets( QAbstractButton *b1, QAbstractButton *b2 );
-	QWidget* CreateQuickOperationsPage();
-	QWidget* CreateAdancedOperationsPage();
+	void CreateQuickOperationsPage();
+	void CreateAdancedOperationsPage();
 
 public:
 	COperationControls( CProcessesTable *processes_table, CModel &model, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
@@ -226,15 +228,18 @@ signals:
     void OperationModified( const COperation *operation );
 
 
+
 public slots:
-	void HandleWorkspaceChanged();
+	void HandleLaunchScheduler();
 
 protected slots:
 
 	//quick
 
+	void HandleWorkspaceChanged_Quick();		//not really a slot; called by advanced
+
 	void HandleSelectedDatasetChanged_Quick( int dataset_index );
-	void HandleSelectedVariableChanged_Quick( int variable_index );
+	void HandleSelectedFieldChanged_Quick( int variable_index );
 	void HandleVariableStateChanged_Quick( QListWidgetItem *item );
     void HandleDatasetsChanged_Quick(CDataset*);
 
@@ -243,7 +248,10 @@ protected slots:
 
 	//remaining
 
+	void HandleWorkspaceChanged();
+
 	void HandleSelectedOperationChanged( int operation_index );
+	void HandleSelectedFieldChanged_Advanced();
 	void HandleSelectedDatasetChanged_Advanced( int dataset_index );
     void HandleDatasetsChanged_Advanced( CDataset *dataset );
 
@@ -272,8 +280,7 @@ protected slots:
 	bool HandleExecute();
 	void HandleProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation );
 	void HandleDelayExecution();
-	void HandleLaunchScheduler();
-
+	void SchedulerProcessError( QProcess::ProcessError );
 
 	void HandleInsertFunction();
 	void HandleInsertAlgorithm();

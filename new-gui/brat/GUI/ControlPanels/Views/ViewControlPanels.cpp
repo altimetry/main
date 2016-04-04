@@ -3,6 +3,8 @@
 #include "DataModels/DisplayFilesProcessor.h"
 #include "DataModels/Workspaces/Display.h"
 
+#include "GUI/DisplayWidgets/TextWidget.h"
+
 #include "ViewControlPanels.h"
 
 
@@ -59,62 +61,89 @@ CColorButton::CColorButton( QWidget *parent )
 CAxisTab::CAxisTab( QWidget *parent, Qt::WindowFlags f )
     : base_t( parent, f)
 {
+	auto short_line_edit = [this]()
+	{
+		auto *line = new QLineEdit(this);
+		line->setMaximumWidth( 60 );
+		return line;
+	};
+
 	const int vm = 0;	//vertical margins
 
     // 1. Axis label and Scale
-    auto mAxisLabel = new QLineEdit();
-    mAxisLabel->setText("Axis label text");
+    auto mAxisLabel = new QLineEdit(this);
     mAxisLabel->setToolTip("Axis label");
 
-    mLogScaleCheck = new QCheckBox();
+    mLogScaleCheck = new QCheckBox("Logarithmic Scale");
 
     // 2. Nb. Ticks, Base and Digits
-    auto mNbTicks  = new QLineEdit();
-    auto mBase     = new QLineEdit();
-    auto mNbDigits = new QLineEdit();
-
-    mNbTicks ->setText("0");
-    mBase    ->setText("0");
-    mNbDigits->setText("0");
+    auto mNbTicks  = short_line_edit();
+    auto mBase     = short_line_edit();
+    auto mNbDigits = short_line_edit();
 
     // 3. Fallback Range
-    auto mFromDataCheck = new QCheckBox();
-    auto mFromUserCheck = new QCheckBox();
+    auto mFromDataCheck = new QCheckBox("From Data");
+    auto mFromUserCheck = new QCheckBox("From User");
 
-    auto mCurrent1 = new QLineEdit();
-    auto mCurrent2 = new QLineEdit();
-    auto mRange1   = new QLineEdit();
-    auto mRange2   = new QLineEdit();
+    auto mCurrent1 = short_line_edit();
+    auto mCurrent2 = short_line_edit();
+    auto mRange1   = short_line_edit();
+    auto mRange2   = short_line_edit();
 
     QBoxLayout *Ranges1_layout = ::LayoutWidgets( Qt::Vertical, { mCurrent1, mRange1 }, nullptr, 2, 2, vm, 2, vm );
     QBoxLayout *Ranges2_layout = ::LayoutWidgets( Qt::Vertical, { mCurrent2, mRange2 }, nullptr, 2, 2, vm, 2, vm );
     QBoxLayout *Range_labels   = ::LayoutWidgets( Qt::Vertical, { new QLabel( "Current" ), new QLabel( "Range" ) }, nullptr, 2, 2, vm, 2, vm );
 
-
-    QGroupBox *FallBackRange_group = CreateGroupBox(ELayoutType::Horizontal, {
-                                                mFromDataCheck, new QLabel( "From Data" ), nullptr, mFromUserCheck, new QLabel( "From User" ),
-                                                Ranges1_layout,
-                                                nullptr,
-                                                Range_labels,
-                                                Ranges2_layout
-												}, "Fallback Range");
+    QGroupBox *FallBackRange_group = CreateGroupBox(ELayoutType::Horizontal, 
+	{
+		mFromDataCheck, mFromUserCheck,	Ranges1_layout, Range_labels,Ranges2_layout
+	}, 
+	"Fallback Range");
 
     // 4. Creating Tab Group
-    QGroupBox *TabGroup = CreateGroupBox( ELayoutType::Vertical, 
+    QGroupBox *tab_group = CreateGroupBox( ELayoutType::Vertical, 
 	{
-		::LayoutWidgets( Qt::Horizontal, {
-			mAxisLabel, nullptr, mLogScaleCheck, new QLabel( "Logarithmic Scale" )
-		}, nullptr, 2, 2, vm, 2, vm ),
+		::LayoutWidgets( Qt::Horizontal, 
+		{
+			new QLabel("Axis Label"), mAxisLabel, nullptr, mLogScaleCheck
+		}, 
+		nullptr, 2, 2, vm, 2, vm ),
 
-		::LayoutWidgets( Qt::Horizontal, {
-			new QLabel( "Nb of Ticks:" ), mNbTicks, nullptr, new QLabel( "Base:" ), mBase, nullptr, new QLabel( "Nb of Digits:" ), mNbDigits
-		}, nullptr, 2, 2, vm, 2, vm ),
+		::LayoutWidgets( Qt::Horizontal, 
+		{
+			new QLabel( "Ticks" ), mNbTicks, nullptr, new QLabel( "Base" ), mBase, nullptr, new QLabel( "Digits" ), mNbDigits
+		}, 
+		nullptr, 2, 2, vm, 2, vm ),
 
 		FallBackRange_group,
 
 	}, "", nullptr, 4, 4, vm, 4, vm );
+    tab_group->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
 
-    AddWidget( this, TabGroup );
+
+	// 5. help text
+	auto help = new CTextWidget;	//use spaces and/or try to have lines without very dissimilar lengths
+	help->SetHelpProperties( 
+		"Y=F(X) plots:\n"
+		"Use mouse middle button to pan and mouse left or wheel buttons to zoom.\n"
+		"\nZ=F(X,Y) plots:\n"
+		"In 2D, use mouse left and right buttons to respectively zoom in and out.\n"
+		"In 3D, use Alt (x,y) or Alt+Shift (z) with the mouse left button to \n"
+		"zoom a particular axis."
+		, 3, 6, Qt::AlignCenter );
+    auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
+    help->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::Maximum );
+    help_group->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Maximum );
+
+
+	//TODO delete remaining lines when axis are implemented
+	mAxisLabel->setEnabled( false );
+    mNbTicks->setEnabled( false );
+    mBase->setEnabled( false );
+    mNbDigits->setEnabled( false );
+	FallBackRange_group->setEnabled( false );
+
+	LayoutWidgets( Qt::Horizontal, { tab_group, help_group }, this, 2,2,2,2,2 );
 
 	Wire();
 }
@@ -142,22 +171,22 @@ void CAxisTab::Wire()
 CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
     : base_t( parent, f )
 {
-    // I. Plot List
+    // 1. Plot List
     //
     mFieldsList = new QListWidget;
 	auto *fields_group = CreateGroupBox( ELayoutType::Horizontal, { mFieldsList }, "Fields", nullptr );
-	fields_group->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
+	fields_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 
 
-    // II. Spectrogram Options
+    // 2. Spectrogram Options
 
 	mShowSolidColor = new QCheckBox( "Solid Color");
 	mShowContour = new QCheckBox( "Contour");
-	mSpectrogramOptions = CreateGroupBox( ELayoutType::Vertical, { mShowSolidColor, mShowContour }, "Style", nullptr );
+	mSpectrogramOptions = CreateGroupBox( ELayoutType::Vertical, { mShowSolidColor, mShowContour }, "", nullptr );
 
 
     //
-    // III. Line Options
+    // 3. Line Options
     //
     mLineColorButton = new CColorButton();
     mLineOpacityValue = new QLineEdit(this);
@@ -177,7 +206,7 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
     mLineOptions->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
 
-    // III. Point Options
+    // 4. Point Options
     //
     mPointColorButton = new CColorButton();
     mFillPointCheck   = new QCheckBox(this);
@@ -195,13 +224,28 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
     mPointOptions->setCheckable( true );
     mPointOptions->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
-    // IV. Grouping all widgets
+	//2D
+	auto *box2d = CreateGroupBox( ELayoutType::Vertical, { mLineOptions, mPointOptions }, "2D", nullptr );
+
+	//3D
+	auto *box3d = CreateGroupBox( ELayoutType::Vertical, { nullptr, mSpectrogramOptions, nullptr }, "3D", nullptr );
+
+
+	// 5. help text
+	auto help = new CTextWidget;
+	help->SetHelpProperties( "Press enter to \n assign values \n entered with \n the keyboard.", 0, 6, Qt::AlignCenter );
+    auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
+    help->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Maximum );
+    //help_group->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Maximum );
+
+    // 6. Grouping all widgets
      AddTopGroupBox( ELayoutType::Horizontal, 
 	 { 
 		 fields_group,
 		 nullptr,
-		 LayoutWidgets( Qt::Vertical, { mSpectrogramOptions, nullptr } ),
-		 LayoutWidgets( Qt::Vertical, { mLineOptions, mPointOptions, nullptr } )
+		 box3d,
+		 box2d,
+		 help_group
 	}, 
 	"", s, m, m, m, m );
 }
@@ -218,20 +262,18 @@ CPlotControlsPanelAxisOptions::CPlotControlsPanelAxisOptions( QWidget *parent, Q
 {
     // V. Axes Options
     //
-    mAxisOptionsTabs = new QTabWidget();
+    mAxisOptionsTabs = new QTabWidget;
 	mAxisOptionsTabs->setTabPosition( QTabWidget::West );
 
-	mX_axis = new CAxisTab();
-	mY_axis = new CAxisTab();
-	mZ_axis = new CAxisTab();
+	mX_axis = new CAxisTab;
+	mY_axis = new CAxisTab;
+	mZ_axis = new CAxisTab;
 
     mAxisOptionsTabs->addTab( mX_axis, "X" );
     mAxisOptionsTabs->addTab( mY_axis, "Y" );
     mAxisOptionsTabs->addTab( mZ_axis, "Z/Y2" );
 
-    mAxisOptionsTabs->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
-
-    AddTopGroupBox( ELayoutType::Horizontal, { mAxisOptionsTabs });
+    AddTopGroupBox( ELayoutType::Horizontal, { mAxisOptionsTabs } );
 
 	Wire();
 }
@@ -266,12 +308,11 @@ CMapControlsPanelDataLayers::CMapControlsPanelDataLayers( QWidget *parent, Qt::W
     mFieldsList = new QListWidget;
     mFieldsList->setToolTip("Data Layer");
     auto mNbLabels = new QLineEdit(this);
-    mNbLabels->setText("0");
 
-    mShowSolidColorCheck = new QCheckBox(this);
-    auto mSolidColorEdit      = new QPushButton("Edit");
-    auto mShowContourCheck    = new QCheckBox(this);
-    auto mContourEdit         = new QPushButton("Edit");
+    mShowSolidColorCheck = new QCheckBox( "Show Solid Color", this );
+    auto mSolidColorEdit = new QPushButton("Edit");
+    auto mShowContourCheck = new QCheckBox( "Show Contour", this );
+    auto mContourEdit = new QPushButton("Edit");
 
     QFrame *lineHorizontal = WidgetLine( nullptr, Qt::Horizontal );
 
@@ -281,16 +322,34 @@ CMapControlsPanelDataLayers::CMapControlsPanelDataLayers( QWidget *parent, Qt::W
     mMaxRange->setText("0");
     auto mReset = new QPushButton("Reset");
 
-    QLayout *DataLayersOptions_group = AddTopLayout( ELayoutType::Vertical, {
-        LayoutWidgets( Qt::Horizontal, { mFieldsList, nullptr, new QLabel( "Number of Labels (Color Bar)" ), mNbLabels } ),
-        LayoutWidgets( Qt::Horizontal, { mShowSolidColorCheck, new QLabel( "Show Solid Color" ), mSolidColorEdit, nullptr, mShowContourCheck, new QLabel( "Show Contour" ), mContourEdit } ),
+    QLayout *group = LayoutWidgets( Qt::Vertical, 
+		{
+			LayoutWidgets( Qt::Horizontal, { new QLabel( "Number of Labels (Color Bar)" ), mNbLabels } ),
+			LayoutWidgets( Qt::Horizontal, { mShowSolidColorCheck, mSolidColorEdit } ),
+			LayoutWidgets( Qt::Horizontal, { mShowContourCheck, mContourEdit } ),
+		}, 
+		nullptr, 2, m, m, m, m );
+
+    AddTopLayout( ELayoutType::Vertical, 
+	{
+		LayoutWidgets( Qt::Horizontal, { mFieldsList, group }, nullptr, s, m, m, m, m ),
         lineHorizontal,
-        LayoutWidgets( Qt::Horizontal, { new QLabel( "Range:" ), nullptr, new QLabel( "Min." ), mMinRange, nullptr, new QLabel( "Max." ), mMaxRange, nullptr, mReset } ),
-                                        }, s, m, m, m, m );
+        LayoutWidgets( Qt::Horizontal, 
+		{ 
+			new QLabel( "Range:" ), nullptr, new QLabel( "Min." ), mMinRange, nullptr, new QLabel( "Max." ), mMaxRange, nullptr, mReset 
+		} )
+	}, 
+	s, m, m, m, m );
 
-    Q_UNUSED( DataLayersOptions_group );
 
-    //DataLayersOptions_group->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
+	//TODO delete remaining lines after implementation
+	mShowContourCheck->setEnabled( false );
+	mSolidColorEdit->setEnabled( false );
+	mContourEdit->setEnabled( false );
+	mNbLabels->setEnabled( false );
+    mMinRange->setEnabled( false );
+    mMaxRange->setEnabled( false );
+    mReset->setEnabled( false );
 }
 
 

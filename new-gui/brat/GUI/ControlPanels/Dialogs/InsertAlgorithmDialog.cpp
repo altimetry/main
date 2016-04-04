@@ -84,7 +84,7 @@ void  CInsertAlgorithmDialog::CreateWidgets()
     //	... Help
 
     auto help = new CTextWidget;
-	help->setHelpProperties(
+	help->SetHelpProperties(
 		//"Algorithms provide means of computing complex operations. They are pre-defined and compiled within BRAT. They\n"
 		//" include an algorithm name and a number of input parameters (depending on the algorithm) to be filled in by the user.\n"
 		//" Note that, as in the all of BRAT, computations are done in SI units. If the field(s) you are using have a unit\n"
@@ -93,8 +93,8 @@ void  CInsertAlgorithmDialog::CreateWidgets()
 		"As in whole BRAT, computations are done using SI units.\n"
 		"Conversions are possible when the unit is defined (basically, in the data fields, e.g. cm can be converted in m).\n"
 		"Note that, however, they are not possible when using expressions where the unit might be different from SI\n"
-		"(e.g. cm instead of m), while not formally defined.\n"
-		, 6 );
+		"(e.g. cm instead of m), while not formally defined."
+		, 0, 6 );
 	auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
 	help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 

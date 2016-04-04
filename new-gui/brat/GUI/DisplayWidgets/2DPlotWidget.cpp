@@ -324,7 +324,7 @@ void C2DPlotWidget::SetAxisScales( double xMin, double xMax, double yMin, double
 	for ( auto *c : mCurves )
 		c->SetRanges( xMin, xMax, yMin, yMax );
 
-	setAxisScale( xBottom, xMin, xMax  );
+	setAxisScale( xBottom, xMin, xMax );
 	setAxisScale( yLeft, yMin, yMax  );
 	if ( !isDefaultValue( y2Min ) && !isDefaultValue( y2Max ) )
 		setAxisScale( yRight, y2Min, y2Max  );
@@ -337,23 +337,24 @@ void C2DPlotWidget::SetAxisScales( double xMin, double xMax, double yMin, double
 //									Spectrogram
 /////////////////////////////////////////////////////////////////////////////////////////
 
-QwtPlotSpectrogram* C2DPlotWidget::CreateSurface( const std::string &title, const C3DPlotInfo &maps, int min_contour, int max_contour, size_t ncontours, size_t index )
+QwtPlotSpectrogram* C2DPlotWidget::AddRaster( const std::string &title, const C3DPlotInfo &maps, double min_contour, double max_contour, size_t ncontours, size_t index )
 {
     assert__( mCurves.size() == 0 );            Q_UNUSED( index );
 
     mSpectrograms.push_back( new QwtPlotSpectrogram );
-	QwtPlotSpectrogram *spectogram = mSpectrograms.back();
+	mCurrentSpectrogram = mSpectrograms.back();
 
 	const C3DPlotInfo::value_type &map = maps[ 0 ];	//the index parameter is the index of recently created spectrogram, not the maps index
-    spectogram->setData( maps );
-	spectogram->attach( this );
-    QVector<double> vmatrix;
+    mCurrentSpectrogram->setData( maps );
+	mCurrentSpectrogram->attach( this );
+    //QVector<double> vmatrix;
     //for ( double d : map.mValues )
     //    vmatrix.append(d);
     //const_cast<C3DPlotInfo&>( maps ).setValueMatrix( vmatrix, 1 );
+	//const_cast<C3DPlotInfo&>( maps ).setBoundingRect( QwtDoubleRect( 0, 0, 10*(map.mMaxX - map.mMinX), 10*(map.mMaxY - map.mMinY )) );
 
 	EnableAxisY2();
-	SetAxisScales( map.mMinX, map.mMaxX, map.mMinY, map.mMaxY, spectogram->data().range().minValue(), spectogram->data().range().maxValue() );
+	SetAxisScales( map.mMinX, map.mMaxX, map.mMinY, map.mMaxY, mCurrentSpectrogram->data().range().minValue(), mCurrentSpectrogram->data().range().maxValue() );
 
     // Color map
 
@@ -361,7 +362,7 @@ QwtPlotSpectrogram* C2DPlotWidget::CreateSurface( const std::string &title, cons
 	color_map.addColorStop( 0.1, Qt::cyan );
 	color_map.addColorStop( 0.4, Qt::green );
 	color_map.addColorStop( 0.90, Qt::yellow );
-	spectogram->setColorMap( color_map );
+	mCurrentSpectrogram->setColorMap( color_map );
 	//color_map.setMode( color_map.ScaledColors );
 	//color_map.setMode( color_map.FixedColors );
 
@@ -369,17 +370,23 @@ QwtPlotSpectrogram* C2DPlotWidget::CreateSurface( const std::string &title, cons
 	QwtScaleWidget *rightAxis = axisWidget( QwtPlot::yRight );
     rightAxis->setTitle( title.c_str() );
 	rightAxis->setColorBarEnabled( true );
-	rightAxis->setColorMap( spectogram->data().range(), spectogram->colorMap() );
+	rightAxis->setColorMap( mCurrentSpectrogram->data().range(), mCurrentSpectrogram->colorMap() );
 
 	// Contour levels
 
-	if ( !isDefaultValue( min_contour ) && !isDefaultValue( max_contour ) && !isDefaultValue( ncontours ) )
+	if ( ncontours > 0 && !isDefaultValue( ncontours ) )
 	{
-		QwtValueList contour_levels;
-		size_t step = ( max_contour - min_contour ) / ncontours;
-		for ( double level = map.mMinHeightValue; level < max_contour; level += step )
-			contour_levels += level;
-		spectogram->setContourLevels( contour_levels );
+		if ( !isDefaultValue( min_contour ) && !isDefaultValue( max_contour ) )
+		{
+			QwtValueList contour_levels;
+			double step = ( max_contour - min_contour ) / ncontours;						assert__( step > 0 );
+			if ( step > 0 )
+				for ( double level = map.mMinHeightValue; level < max_contour; level += step )
+				{
+					contour_levels += level;
+				}
+			mCurrentSpectrogram->setContourLevels( contour_levels );
+		}
 	}
 
 	plotLayout()->setAlignCanvasToScales( true );
@@ -401,42 +408,68 @@ QwtPlotSpectrogram* C2DPlotWidget::CreateSurface( const std::string &title, cons
     QwtScaleDraw *sd = axisScaleDraw( QwtPlot::yLeft );
 	sd->setMinimumExtent( fm.width( "100.00" ) );
 
-	return spectogram;
+	return mCurrentSpectrogram;
 }
 
 
-bool C2DPlotWidget::HasContour( int index ) const
+void C2DPlotWidget::SetCurrentRaster( int index )
 {
 	assert__( index < mSpectrograms.size() );
 
-	return mSpectrograms[ index ]->testDisplayMode( QwtPlotSpectrogram::ContourMode );
+	mCurrentSpectrogram->detach();
+	mCurrentSpectrogram = mSpectrograms[ index ];
+	mCurrentSpectrogram->attach( this );
+	replot();
 }
+
+
+
+bool C2DPlotWidget::HasContour() const
+{
+	assert__( mCurrentSpectrogram );
+
+	return mCurrentSpectrogram->testDisplayMode( QwtPlotSpectrogram::ContourMode );
+}
+
+void C2DPlotWidget::ShowContour( bool show )
+{
+	assert__( mCurrentSpectrogram );
+
+	mCurrentSpectrogram->setDisplayMode( QwtPlotSpectrogram::ContourMode, show );
+	replot();
+}
+
+
+bool C2DPlotWidget::HasSolidColor() const
+{
+	assert__( mCurrentSpectrogram );
+
+	return mCurrentSpectrogram->testDisplayMode( QwtPlotSpectrogram::ImageMode );
+}
+
+void C2DPlotWidget::ShowSolidColor( bool show )
+{
+	assert__( mCurrentSpectrogram );
+
+	mCurrentSpectrogram->setDisplayMode( QwtPlotSpectrogram::ImageMode, show );
+	mCurrentSpectrogram->setDefaultContourPen( show ? QPen() : QPen( Qt::NoPen ) );
+	replot();
+}
+
 
 void C2DPlotWidget::ShowContour( int index, bool show )
 {
 	assert__( index < mSpectrograms.size() );
 
-	mSpectrograms[ index ]->setDisplayMode( QwtPlotSpectrogram::ContourMode, show );
-	replot();
+	mSpectrograms[index]->setDisplayMode( QwtPlotSpectrogram::ContourMode, show );
 }
-
-
-bool C2DPlotWidget::HasSolidColor( int index ) const
-{
-	assert__( index < mSpectrograms.size() );
-
-	return mSpectrograms[ index ]->testDisplayMode( QwtPlotSpectrogram::ImageMode );
-}
-
 void C2DPlotWidget::ShowSolidColor( int index, bool show )
 {
 	assert__( index < mSpectrograms.size() );
 
-	mSpectrograms[ index ]->setDisplayMode( QwtPlotSpectrogram::ImageMode, show );
-	mSpectrograms[ index ]->setDefaultContourPen( show ? QPen() : QPen( Qt::NoPen ) );
-	replot();
+	mSpectrograms[index]->setDisplayMode( QwtPlotSpectrogram::ImageMode, show );
+	mSpectrograms[index]->setDefaultContourPen( show ? QPen() : QPen( Qt::NoPen ) );
 }
-
 
 
 

@@ -146,7 +146,7 @@ void CWorkspaceDialog::CreateGUI()
 	//	... Help
 
 	auto help = new CTextWidget;
-	help->setHelpProperties( CreateHelpText(), 6, Qt::AlignCenter );
+	help->SetHelpProperties( CreateHelpText(), 0, 6, Qt::AlignCenter );
     auto help_group = CreateGroupBox( ELayoutType::Horizontal, { help }, "", nullptr, 6, 6, 6, 6, 6 );
     help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 

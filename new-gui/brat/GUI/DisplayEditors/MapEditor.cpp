@@ -60,10 +60,18 @@ void CMapEditor::CreateWidgets()
 	AddTab( mTabDataLayers, "Data Layers" );
 	AddTab( mTabView, "View" );
 
+	mTabView->setEnabled( false );			//TODO delete after implementation
+
 	// map widget managed
 
 	const int index = 0;
 	CMapWidget::CreateRenderWidgets( statusBar(), mProgressBar, mRenderSuppressionCBox );
+
+#if !defined(_DEBUG) && !defined(DEBUG)
+	mRenderSuppressionCBox->setVisible( false );
+	mRenderSuppressionCBox->setEnabled( false );
+#endif
+
 	statusBar()->insertPermanentWidget( index, mRenderSuppressionCBox, 0 );
 	statusBar()->insertPermanentWidget( index, mProgressBar, 1 );
 
@@ -111,8 +119,8 @@ void CMapEditor::Wire()
 	connect( mTabDataLayers->mShowSolidColorCheck, SIGNAL( toggled( bool ) ), this, SLOT( HandleShowSolidColor( bool ) ) );
 }
 
-CMapEditor::CMapEditor( CModel *model, const COperation *op, const std::string &display_name, QWidget *parent )		//display_name = "" parent = nullptr
-	: base_t( true, model, op, display_name, parent )
+CMapEditor::CMapEditor( CModel *model, const COperation *op, const std::string &display_name )		//display_name = ""
+	: base_t( true, model, op, display_name )
 {
 	CreateWidgets();
 
@@ -126,8 +134,8 @@ CMapEditor::CMapEditor( CModel *model, const COperation *op, const std::string &
 }
 
 
-CMapEditor::CMapEditor( CDisplayFilesProcessor *proc, CWPlot* wplot, QWidget *parent )		//parent = nullptr
-	: base_t( true, proc, parent )
+CMapEditor::CMapEditor( CDisplayFilesProcessor *proc, CWPlot* wplot )
+	: base_t( true, proc )
 {
 	CreateWidgets();
 
@@ -238,12 +246,12 @@ void CMapEditor::NewButtonClicked()
 //virtual 
 void CMapEditor::RenameButtonClicked()
 {
-	BRAT_NOT_IMPLEMENTED
+	//BRAT_NOT_IMPLEMENTED
 }
 //virtual 
 void CMapEditor::DeleteButtonClicked()
 {
-	BRAT_NOT_IMPLEMENTED
+	//BRAT_NOT_IMPLEMENTED
 }
 //virtual 
 void CMapEditor::OneClick()
@@ -451,7 +459,7 @@ void CMapEditor::KillGlobe()
 		m3DAction->setChecked( false );
 		m3DAction->setDisabled( false );
 		m3DAction->blockSignals( false );
-		qApp->processEvents();
+		//qApp->processEvents();
 	}
 }
 
@@ -559,6 +567,9 @@ void CMapEditor::HandleProjection()
 	auto a = qobject_cast<QAction*>( sender() );				assert__( a && mProjectionsGroup->actions().indexOf( a ) >= 0 );
 
 	unsigned proj_id = a->data().toUInt();
+
+	BRAT_MSG_NOT_IMPLEMENTED( n2s<std::string>( proj_id ) );
+	return;
 
 	if ( proj_id == PROJ2D_3D )
 		Show3D( true );

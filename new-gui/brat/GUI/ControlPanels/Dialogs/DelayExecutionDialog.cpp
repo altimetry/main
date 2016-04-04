@@ -26,12 +26,12 @@ void  CDelayExecutionDialog::CreateWidgets()
     //	... Help
 
     auto help = new CTextWidget;
-    help->setHelpProperties(
+    help->SetHelpProperties(
     "The 'Delay execution' schedules the active operation at a time given by the user.\n"
     "Note that 'scheduler' has to be running in order to have the tasks executed.\n"
     "Date and time for the execution, as well as an optional name for the operation can be defined.\n"
     "Once scheduled, such an operation can be viewed or removed within BRAT scheduler interface."
-         , 6, Qt::AlignJustify );
+         , 0, 6, Qt::AlignJustify );
     auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
     help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 

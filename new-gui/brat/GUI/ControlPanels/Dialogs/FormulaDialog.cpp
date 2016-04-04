@@ -46,11 +46,11 @@ void  CFormulaDialog::CreateWidgets()
     //	... Help
 
     auto help = new CTextWidget;
-    help->setHelpProperties(
+    help->SetHelpProperties(
         "List of pre-defined formulas (Sea Surface Height and Sea Level Anomaly formulas from\n"
         " the different satellites GDR fields, and also 'Ocean editing' formulas, to use as\n"
         " selection criteria to select only valid data over ocean)."
-         , 6, Qt::AlignCenter );
+         ,0 , 6, Qt::AlignCenter );
     auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
     help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 
@@ -239,7 +239,7 @@ void  CSaveAsFormula::CreateWidgets()
 	auto *name_l = LayoutWidgets( Qt::Vertical, { new QLabel( "Name" ), mNameLineEdit }, nullptr, 2, 2, 2, 2, 2 );
 
 	CTextWidget *mValueLineEdit = new CTextWidget;
-	mValueLineEdit->setSizeHint( 60 * mValueLineEdit->fontMetrics().width('x'), 5 * mValueLineEdit->fontMetrics().lineSpacing() );
+	mValueLineEdit->SetSizeHint( 60 * mValueLineEdit->fontMetrics().width('x'), 5 * mValueLineEdit->fontMetrics().lineSpacing() );
 	auto *value_l = LayoutWidgets( Qt::Vertical, { new QLabel( "Value" ), mValueLineEdit }, nullptr, 2, 2, 2, 2, 2 );
 
 	QLineEdit *mUnitLineEdit = new QLineEdit;
@@ -249,7 +249,7 @@ void  CSaveAsFormula::CreateWidgets()
 	auto *title_l = LayoutWidgets( Qt::Vertical, { new QLabel( "Title" ), mTitleLineEdit }, nullptr, 2, 2, 2, 2, 2 );
 
 	CTextWidget *mCommentLineEdit = new CTextWidget;
-	mCommentLineEdit->setSizeHint( 60 * mValueLineEdit->fontMetrics().width('x'), 5 * mValueLineEdit->fontMetrics().lineSpacing() );
+	mCommentLineEdit->SetSizeHint( 60 * mValueLineEdit->fontMetrics().width('x'), 5 * mValueLineEdit->fontMetrics().lineSpacing() );
 	auto *comment_l = LayoutWidgets( Qt::Vertical, { new QLabel( "Comment" ), mCommentLineEdit }, nullptr, 2, 2, 2, 2, 2 );
 
 
@@ -281,11 +281,11 @@ void  CSaveAsFormula::CreateWidgets()
 	//	... Help
 
     auto help = new CTextWidget;
-    help->setHelpProperties(
+    help->SetHelpProperties(
         " Any expression, i.e. valid combination of data fields and functions can be saved as\n"
         " formula. You can insert a developed formula and modify it, or use a formula as part\n"
         " of an expression."
-         , 6, Qt::AlignCenter );
+         ,0 , 6, Qt::AlignCenter );
     auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
     help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 

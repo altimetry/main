@@ -109,6 +109,7 @@ protected:
 	osgViewer::Viewer *mOsgViewer = nullptr;
 	CGlobeViewerWidget *mGlobeViewerWidget = nullptr;
 	QgsMapCanvas *mCanvas = nullptr;
+	bool mCloseScheduled = false;
 
 	CRootUpdateCallback *mRootUpdateCallback = nullptr;
 

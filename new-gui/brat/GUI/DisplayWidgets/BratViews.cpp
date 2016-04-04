@@ -273,15 +273,16 @@ void CBrat3DPlotView::AddData( CZFXYPlotData* pdata, size_t index )
 	// v4
 	const C3DPlotInfo &maps = pdata->Maps();	assert__( maps.size() == 1 );	//simply to check if ever...
 	const C3DPlotParameters &values = maps[0];
-	AddSurface( values,
+	AddPlot( values,
 		pdata->GetXRangeMin(), pdata->GetXRangeMax(), pdata->GetYRangeMin(), pdata->GetYRangeMax(), 
 		pdata->GetComputedRangeMin(),
 		pdata->GetComputedRangeMax());
 
     SetPlotTitle( q2a( windowTitle() ) );
 
-    CZFXYPlotProperties *props = pdata->GetPlotProperties();
-	SetAxisTitles( props->m_xLabel, props->m_yLabel, props->m_name );		//TODO check proper name for z axis, or none
+	//axis titles assigned per plot switch
+    //CZFXYPlotProperties *props = pdata->GetPlotProperties();
+	//SetAxisTitles( props->m_xLabel, props->m_yLabel, props->m_name );
 
 	//v4 m_plotActor->AddInput( pdata );
 
@@ -568,17 +569,18 @@ void CBrat2DPlotView::AddData( CZFXYPlotData* pdata, size_t index )
 
     // v4
     const C3DPlotInfo *maps = dynamic_cast<const C3DPlotInfo*>( &pdata->Maps() );		assert__( maps->size() == 1 );	//simply to check if ever...
-	CZFXYPlotProperties *props = pdata->GetPlotProperties();							assert( pdata->GetDataName() == props->m_name );
+	CZFXYPlotProperties *props = pdata->GetPlotProperties();							assert__( pdata->GetDataName() == props->m_name );
 
     //mSpectogramData = new SpectrogramData();
     //mSpectogramData->InjectData( values.mXaxis, values.mYaxis, values.mBits, values.mValues );
     //Spectogram( parentWidget() );
 
-	CreateSurface( pdata->GetPlotProperties()->m_name, *maps, props->m_minContourValue, props->m_maxContourValue, props->m_numContour, index );
+	AddRaster( pdata->GetPlotProperties()->m_name, *maps, props->m_minContourValue, props->m_maxContourValue, props->m_numContour, index );
 
     SetPlotTitle( q2a( windowTitle() ) );
 
-    SetAxisTitles( pdata->GetPlotProperties()->m_xLabel, pdata->GetPlotProperties()->m_yLabel, pdata->GetPlotProperties()->m_name );
+	//plot axis titles must be assigned per raster switch
+    //SetAxisTitles__( pdata->GetPlotProperties()->m_xLabel, pdata->GetPlotProperties()->m_yLabel, pdata->GetPlotProperties()->m_name );
 
     //v4 m_plotActor->AddInput( pdata );
 

@@ -876,7 +876,7 @@ void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
 
     auto debug_log = []( const std::string &msg )
     {
-        LOG_INFO( msg  );
+        LOG_TRACEstd( msg  );
         qApp->processEvents();
     };
 

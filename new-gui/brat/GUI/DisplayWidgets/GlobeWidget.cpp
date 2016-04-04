@@ -465,6 +465,7 @@ void CGlobeWidget::CanvasFinished()
 
 bool CGlobeWidget::ScheduleClose()
 {
+	mCloseScheduled = true;
 	mTileSource->mStop = true;
 	mGlobeViewerWidget->Stop();
 	//mLayersChanging = true;
@@ -690,6 +691,9 @@ void CGlobeWidget::extentsChanged()
 
 void CGlobeWidget::ChangeImageLayers()
 {
+	if ( mCloseScheduled )
+		return;
+
 	if ( mTileSource && mTileSource->mRendering )
 	{
 		imageLayersChanged();
@@ -720,14 +724,12 @@ void CGlobeWidget::ChangeImageLayers()
 	mQgisMapLayer = new ImageLayer( options, mTileSource );
 
 	map->addImageLayer( mQgisMapLayer );
-
-	mCanvas->freeze( false );
 }
 
 void CGlobeWidget::imageLayersChanged()
 {
-	mCanvas->stopRendering();
-	mCanvas->freeze( true );
+	if ( mCloseScheduled )
+		return;
 
 	if ( mTileSource )
 	{

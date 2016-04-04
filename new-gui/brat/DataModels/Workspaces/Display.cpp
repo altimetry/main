@@ -69,9 +69,9 @@ public:
 
 	///////////////////////////////////////////////////
 
-	bool BuildCmdFileHeader()
+	bool BuildCmdFileHeader( bool map_as_3dplot )
 	{
-		Comment( "Type:" + CMapTypeDisp::GetInstance().IdToName( mDisp.GetType() ) );
+		Comment( "Type:" + CMapTypeDisp::GetInstance().IdToName( mDisp.GetPlotType( map_as_3dplot ) ) );
 		return true;
 	}
 	bool BuildCmdFileVerbose()
@@ -97,11 +97,11 @@ public:
 		Comment( "Display Type:" + CMapTypeDisp::GetInstance().Enum() );
 		WriteLn();
 
-		WriteLn( FmtCmdParam( kwDISPLAY_PLOT_TYPE ) + mDisp.GetTypeAsString() );
+		WriteLn( FmtCmdParam( kwDISPLAY_PLOT_TYPE ) + mDisp.GetTypeAsString( map_as_3dplot ) );
 
 		WriteLn();
 
-		switch ( mDisp.GetType() )
+		switch ( mDisp.GetPlotType( map_as_3dplot ) )
 		{
 			case CMapTypeDisp::eTypeDispYFX:
 				BuildCmdFileGeneralPropertiesXY();
@@ -110,7 +110,7 @@ public:
 				BuildCmdFileGeneralPropertiesZXY();
 				break;
 			case CMapTypeDisp::eTypeDispZFLatLon:
-				map_as_3dplot ?	BuildCmdFileGeneralPropertiesZXY() : BuildCmdFileGeneralPropertiesZLatLon();
+				BuildCmdFileGeneralPropertiesZLatLon();
 				break;
 			default:
 				break;
@@ -371,11 +371,11 @@ public:
         CDisplayCmdFile f( path, Disp );
 
 		return 
-			f.IsOk()										&&
-			f.BuildCmdFileHeader()							&&
-			f.BuildCmdFileVerbose()							&&
-			f.BuildCmdFileGeneralProperties(map_as_3dplot)	&&
-			f.BuildCmdFileFields( errorMsg )				&&
+			f.IsOk()											&&
+			f.BuildCmdFileHeader( map_as_3dplot )				&&
+			f.BuildCmdFileVerbose()								&&
+			f.BuildCmdFileGeneralProperties( map_as_3dplot )	&&
+			f.BuildCmdFileFields( errorMsg )					&&
 			f.IsOk();
 	}
 };
@@ -1014,6 +1014,8 @@ CDisplay::CDisplay(std::string name)
 
 CDisplay::~CDisplay()
 {
+	if ( IsFile( m_cmdFile ) )
+		RemoveFile( m_cmdFile );
 }
 
 //----------------------------------------
@@ -1047,7 +1049,11 @@ void CDisplay::Init()
 //
 //	This function is based on all that.
 //
-bool CDisplay::AssignOperation( const COperation *operation )
+//	The parameter update is an attempt to maintain display consistency when the 
+//	associated operation is executed again: if update is true, existing fields 
+//	not in operation are removed
+//
+bool CDisplay::AssignOperation( const COperation *operation, bool update )	//bool update = false 
 {
 	CInternalFiles *file = nullptr;
 	CUIntArray displayTypes;
@@ -1057,7 +1063,7 @@ bool CDisplay::AssignOperation( const COperation *operation )
 		return false;
 	}
 
-	CMapDisplayData *m_dataList = new CMapDisplayData;
+	CMapDisplayData *dataList = new CMapDisplayData;		//v3: dataList, data member
 
 	CStringArray names;
 	names.RemoveAll();
@@ -1132,11 +1138,22 @@ bool CDisplay::AssignOperation( const COperation *operation )
 				displayData->GetZ()->SetDescription( file->GetTitle( dimName ) );
 			}
 
-			m_dataList->Insert( displayData->GetDataKey(), displayData, false );
+			dataList->Insert( displayData->GetDataKey(), displayData, false );
 		}
 	}
 
-	for ( auto &data : *m_dataList )
+	if ( update )
+	{
+		while ( m_data.size() > 0 )
+		{
+            auto const &data = m_data.begin();
+			CDisplayData* dataTmp = dynamic_cast<CDisplayData*>( dataList->Exists( data->first ) );
+			if ( dataTmp != nullptr )
+				RemoveData( data->first );
+		}
+	}
+
+	for ( auto &data : *dataList )
 		InsertData( data.first, dynamic_cast<CDisplayData*>( data.second ) );
 
 	return true;
@@ -1245,9 +1262,6 @@ std::string CDisplay::GetTaskName()
 bool CDisplay::BuildCmdFile( std::string &error_msg, bool map_as_3dplot )	//map_as_3dplot = false 
 {
 #ifndef OLD_CREATE_FILES
-
-	if ( map_as_3dplot && IsZLatLonType() )
-		m_type = CMapTypeDisp::eTypeDispZFXY;	// BUMBA!!!
 
 	return CDisplayCmdFile::BuildCmdFile( m_cmdFile, map_as_3dplot, *this, error_msg );
 

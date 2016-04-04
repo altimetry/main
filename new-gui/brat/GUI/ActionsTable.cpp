@@ -57,21 +57,7 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
 	{ eAction_Open_View, "&Open...", "Select a view from the list of all workspace views", ":/images/OSGeo/open.png" },
 
-    { eAction_Cut, "Cut", "Cut", ":/images/OSGeo/edit-cut.png" },
-
-    { eAction_Copy, "&Copy", "Copy", ":/images/OSGeo/edit-copy.png" },
-
-    { eAction_Paste, "&Paste", "Paste", ":/images/OSGeo/edit-paste.png" },
-
     { eAction_Options, "&Options...", "Options\nEdit application settings", ":/images/OSGeo/settings.png" },		//icon 5.png is below TODO: delete this comment
-
-	{ eAction_Undo, "&Undo", "Undo", "", "", "Ctrl+Z" },
-
-	{ eAction_Redo, "&Redo", "Redo", "", "", "Ctrl+Y" },
-
-	{ eAction_Delete, "&Delete", "Delete", "" },
-
-	{ eAction_Select_All, "Select &All", "Select All", "" },
 
 	{ eAction_Test, "Test...", "Test", ":/images/test.png" },
 

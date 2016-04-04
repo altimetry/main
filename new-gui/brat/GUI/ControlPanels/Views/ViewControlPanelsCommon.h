@@ -45,6 +45,7 @@ public:
     QComboBox *mDisplaysCombo = nullptr;
 
 	QLineEdit *mPlotTitle = nullptr;
+	QLineEdit *mPlotType = nullptr;
 
 
 	//construction / destruction

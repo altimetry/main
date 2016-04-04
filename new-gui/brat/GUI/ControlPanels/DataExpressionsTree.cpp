@@ -172,6 +172,22 @@ void CFieldsTreeWidget::SetItemField( QTreeWidgetItem *item, CField *field )
 }
 
 
+std::string	CFieldsTreeWidget::GetCurrentFieldDescription() const
+{
+	std::string desc;
+
+	auto *item = SelectedItem();	// can return null
+	if ( item )
+	{
+		auto *field = ItemField( item );
+		if ( field )
+			desc = field->GetDescription();
+	}
+
+	return desc;
+}
+
+
 void CFieldsTreeWidget::InsertProduct( CProduct *product )
 {
 	mProduct = product;
@@ -353,7 +369,7 @@ CDataExpressionsTreeWidget::CDataExpressionsTreeWidget( CWorkspaceFormula *&wksp
 	, mExpressionTextWidget( new CTextWidget )
 {
     QStringList labels;
-    labels << tr("Data Expressions");
+    labels << tr("Data Expressions") << tr("Units");
     setHeaderLabels(labels);
 
 	MakeRootItems();
@@ -539,6 +555,10 @@ void CDataExpressionsTreeWidget::InsertOperation( COperation *operation )
 
 	mCurrentFormula = SelectedFormula();
 	mExpressionTextWidget->setText( mCurrentFormula ? mCurrentFormula->GetDescription().c_str() : "" );
+
+    resizeColumnToContents(0);
+    resizeColumnToContents(1);
+	SelectX();
 }
 
 
@@ -678,11 +698,13 @@ bool CDataExpressionsTreeWidget::InsertFormula( QTreeWidgetItem *parent, CFormul
 	{
 		mCurrentOperation->SetSelect( formula );
 		SetItemFormula( mItemSelectionCriteria, mCurrentOperation->GetSelect() );
+		mItemSelectionCriteria->setText( 1, formula->GetUnitAsText().c_str() );		//TODO check this
 		setCurrentItem( mItemSelectionCriteria );
 	}
 	else
 	{
 		QTreeWidgetItem *inserted = MakeItem( the_parent, formula->GetName(), formula );
+		inserted->setText( 1, formula->GetUnitAsText().c_str() );
 		the_parent->setExpanded( true );
 		mCurrentOperation->SetType( GetOperationType() );
 		setCurrentItem( inserted );

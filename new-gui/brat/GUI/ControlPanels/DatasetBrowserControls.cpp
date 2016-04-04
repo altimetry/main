@@ -71,7 +71,7 @@ CDatasetBrowserControls::CDatasetBrowserControls( CModel &model, CDesktopManager
     // II. File Description group
     //
     mFileDesc = new CTextWidget;
-    mFileDesc->setReadOnly(true);
+    mFileDesc->SetReadOnlyEditor(true);
     mFileDescGroup = CreateGroupBox( ELayoutType::Horizontal, { mFileDesc }, "File Description", nullptr, s, 4, 4, 4, 4 );
 
 
@@ -81,12 +81,11 @@ CDatasetBrowserControls::CDatasetBrowserControls( CModel &model, CDesktopManager
     mFieldList->setSelectionMode(QAbstractItemView::ExtendedSelection); // Multiple items can be selected
 
     mFieldDesc = new CTextWidget;
-    mFieldDesc->setReadOnly(true);
-
+    mFieldDesc->SetReadOnlyEditor(true);
 	auto *fields_desc_group = CreateGroupBox( ELayoutType::Horizontal, 
 	{ 
 		CreateSplitter( nullptr, Qt::Horizontal, { mFieldList, mFieldDesc }, false )
-    }, "Field Description", nullptr, s, 4, 4, 4, 4 );
+    }, "Fields Description", nullptr, s, 4, 4, 4, 4 );
 
 	AddTopSplitter( Qt::Vertical, { browse_group, mFileDescGroup, fields_desc_group } );
 
@@ -229,10 +228,18 @@ void CDatasetBrowserControls::HandleWorkspaceChanged( CWorkspaceDataset *wksd )
 
     if (wksd)
     {
-        for( auto const it : *mWDataset->GetDatasets() )
+		auto *datasets = mWDataset->GetDatasets();
+        for( auto const it : *datasets )
         {
             AddDatasetToTree( t2q( it.first ) );
         }
+
+		//if ( !datasets->empty() )
+		//{
+		//	QTreeWidgetItemIterator it( mDatasetTree );
+		//	if ( *it  )
+		//		mDatasetTree->setCurrentItem( *it );
+		//}
     }
 }
 
@@ -512,9 +519,7 @@ void CDatasetBrowserControls::HandleRemoveFile()
 
     // Notify about the change (file removed)
     emit DatasetsChanged( current_dataset );
-
-    //FEMM (TBC) - Signal emission is not required. Other item is automatically selected and catched by HandleTreeItemChanged()
-    //emit CurrentDatasetChanged( current_dataset );
+    emit CurrentDatasetChanged( current_dataset );
 }
 
 

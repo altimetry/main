@@ -99,6 +99,15 @@ static const KeywordHelp keywordList[]	= {
 
 
 
+
+//virtual 
+CDisplayFilesProcessor::~CDisplayFilesProcessor()
+{
+	for ( auto *f : m_OpenFiles )
+		f->Close();
+}
+
+
 bool CDisplayFilesProcessor::Process( const std::vector< std::string > &args )
 {
 	if ( !GetCommandLineOptions( args ) )
@@ -1690,6 +1699,7 @@ CInternalFiles* CDisplayFilesProcessor::Prepare( int32_t indexFile, const std::s
 	CInternalFiles* f = BuildExistingInternalFileKind( m_inputFiles.at( indexFile ).c_str() );
 
 	f->Open( ReadOnly );
+	m_OpenFiles.push_back( f );
 
 	CInternalFilesZFXY* zfxy = dynamic_cast<CInternalFilesZFXY*>( f );
 	CInternalFilesYFX* yfx = dynamic_cast<CInternalFilesYFX*>( f );
@@ -1728,6 +1738,7 @@ CInternalFiles* CDisplayFilesProcessor::Prepare( const std::string& fileName )
 	}
 
 	f->Open( ReadOnly );
+	m_OpenFiles.push_back( f );
 
 	/*
 		CInternalFilesZFXY* zfxy = dynamic_cast<CInternalFilesZFXY*>(f);

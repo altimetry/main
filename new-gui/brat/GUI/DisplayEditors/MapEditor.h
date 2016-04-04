@@ -98,8 +98,8 @@ private:
 	void Wire();
 
 public:
-    CMapEditor( CModel *model, const COperation *op, const std::string &display_name = "", QWidget *parent = nullptr );
-    CMapEditor( CDisplayFilesProcessor *proc, CWPlot* wplot, QWidget *parent = nullptr );
+    CMapEditor( CModel *model, const COperation *op, const std::string &display_name = "" );
+    CMapEditor( CDisplayFilesProcessor *proc, CWPlot* wplot );
 
 	virtual ~CMapEditor();
 

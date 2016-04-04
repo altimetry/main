@@ -87,6 +87,7 @@ void CAbstractDisplayEditor::CreateWorkingDock()
 	mWorkingDock->setMinimumSize( min_editor_dock_width, min_editor_dock_height );
 	auto PreventActions = QDockWidget::DockWidgetClosable;								//QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetMovable | 
 	mWorkingDock->setFeatures( mWorkingDock->features() & ~PreventActions );
+	mWorkingDock->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::Preferred );
 
 	addDockWidget( Qt::DockWidgetArea::BottomDockWidgetArea, mWorkingDock );
 
@@ -170,6 +171,9 @@ void CAbstractDisplayEditor::Wire()
 	connect( mTabGeneral->mDeleteDisplayButton, SIGNAL( clicked() ), this, SLOT( HandleDeleteButtonClicked() ) );
     connect( mTabGeneral->mExecuteDisplay, SIGNAL( clicked() ), this, SLOT( RunButtonClicked() ) );
 
+	connect( mTabGeneral->mPlotTitle, SIGNAL( returnPressed() ), this, SLOT( HandlePlotTitleEntered() ) );
+
+
 	//main tool-bar
 
 	connect( mOperationsCombo, SIGNAL( currentIndexChanged( int ) ), this, SLOT( HandleOperationsIndexChanged( int ) ) );
@@ -177,22 +181,13 @@ void CAbstractDisplayEditor::Wire()
 
 	mDatasetName->setReadOnly( true );
 
-	mOperationsCombo->blockSignals( true );
-	FillCombo( mOperationsCombo, mFilteredOperations,
-
-		-1, true,
-
-		[]( const COperation *po ) -> const char*
-		{
-			return po->GetName().c_str();
-		}
-	);
-	mOperationsCombo->blockSignals( false );
+	UpdateOperationsCombo();
 }
 
 
-CAbstractDisplayEditor::CAbstractDisplayEditor( bool map_editor, CModel *model, const COperation *op, const std::string &display_name, QWidget *parent )		//display_name = "", parent = nullptr ) 
-	: base_t( parent )
+CAbstractDisplayEditor::CAbstractDisplayEditor( bool map_editor, CModel *model, const COperation *op, const std::string &display_name )
+
+	: base_t( nullptr )		//will be re-parented by desktop sub-window parent
 	, mModel( model )
 	, mWDataset( model->Workspace< CWorkspaceDataset >() )
 	, mWOperation( model->Workspace< CWorkspaceOperation >() )
@@ -216,8 +211,9 @@ CAbstractDisplayEditor::CAbstractDisplayEditor( bool map_editor, CModel *model, 
 
 // Constructor for brat display one mode
 //
-CAbstractDisplayEditor::CAbstractDisplayEditor( bool map_editor, const CDisplayFilesProcessor *proc, QWidget *parent )	//QWidget *parent = nullptr ) 
-	: base_t( parent )
+CAbstractDisplayEditor::CAbstractDisplayEditor( bool map_editor, const CDisplayFilesProcessor *proc )
+
+	: base_t( nullptr )						//will be re-parented by desktop sub-window parent
 	, mCurrentDisplayFilesProcessor( proc )
 	, mDisplayOnlyMode( true )
 	, mIsMapEditor( map_editor )
@@ -360,6 +356,24 @@ QToolButton* CAbstractDisplayEditor::AddMenuButton( EActionTag button_tag, const
 /////////////////////////////
 
 
+// Assuming Start is called after this
+//
+void CAbstractDisplayEditor::UpdateOperationsCombo()
+{
+	mOperationsCombo->blockSignals( true );
+	FillCombo( mOperationsCombo, mFilteredOperations,
+
+		-1, true,
+
+		[]( const COperation *po ) -> const char*
+		{
+			return po->GetName().c_str();
+		}
+	);
+	mOperationsCombo->blockSignals( false );
+}
+
+
 void CAbstractDisplayEditor::UpdateDisplaysCombo( int index )
 {
 	FillCombo( mTabGeneral->mDisplaysCombo, mFilteredDisplays,
@@ -429,6 +443,31 @@ void CAbstractDisplayEditor::RunButtonClicked()
 }
 
 
+void CAbstractDisplayEditor::HandlePlotTitleEntered()
+{
+	if ( !mDisplay )
+		return;
+
+	mDisplay->SetTitle( q2a( mTabGeneral->mPlotTitle->text() ) );
+	SetWindowTitle();
+}
+
+
+void CAbstractDisplayEditor::SetWindowTitle()
+{
+	assert__( mDisplay );
+
+	QWidget *parent = parentWidget();
+	if ( !parent )						//editor is being created
+		parent = this;					//when re-parented by the desktop sub-window, this one uses the child title
+
+	if ( !mDisplay->GetTitle().empty() )
+		parent->setWindowTitle( ( mDisplay->GetTitle() + " [" + mOperation->GetName() + "]" ).c_str() );
+	else
+		parent->setWindowTitle( ( mDisplay->GetName() + " [" + mOperation->GetName() + "]"  ).c_str() );
+}
+
+
 void CAbstractDisplayEditor::HandleViewChanged( int index )
 {
 	CDisplay *display = index < 0 ? nullptr : mFilteredDisplays[ index ];
@@ -436,7 +475,7 @@ void CAbstractDisplayEditor::HandleViewChanged( int index )
 	mCurrentDisplayFilesProcessor = nullptr;
 	
 	//if ( display == mDisplay )
-	//	return;
+	//	return;					the display is the same but the properties could have changed
 
 	mDisplay = display;
 
@@ -445,8 +484,10 @@ void CAbstractDisplayEditor::HandleViewChanged( int index )
 
 	assert__( mDisplay );
 
-	setWindowTitle( mDisplay->GetName().c_str() );
+	SetWindowTitle();
 	mTabGeneral->mPlotTitle->setText( mDisplay->GetTitle().c_str() );
+	CMapTypeDisp::ETypeDisp type = mDisplay->GetType();
+	mTabGeneral->mPlotType->setText( CMapTypeDisp::GetInstance().IdToName( type ).c_str() );
 
 	std::string msg;
 	if ( !ControlSolidColor() || !ControlVectorComponents( msg ) )	//== CDisplayPanel::Control(std::string& msg)
@@ -597,7 +638,7 @@ void CAbstractDisplayEditor::HandleRenameButtonClicked()
 			RemoveFile( old_output );
         }
 
-		RunButtonClicked();
+		//RunButtonClicked(); why???
 
         //TODO a big one: emit DisplayModified( mDisplay );
 
@@ -620,39 +661,46 @@ void CAbstractDisplayEditor::HandleDeleteButtonClicked()
 		return;
 	}
 
+	//check if there are any displays left for the selected operation
+
 	const COperation *to_select = nullptr;
-	std::string new_display;
-	auto displays = mModel->OperationDisplays( mOperation->GetName() );
+	std::string new_display_name;
+	auto displays = FilterDisplays( mOperation );
 	if ( displays.size() > 0 )
 	{
 		to_select = mOperation;
-		new_display = displays[ 0 ]->GetName();
+		new_display_name = displays[ 0 ]->GetName();
 	}
+
+	//... if there are no more displays, look for another operation with valid displays
 
 	if ( to_select == nullptr )
 	{
+		mFilteredOperations.erase( std::find( mFilteredOperations.begin(), mFilteredOperations.end(), mOperation ) );
+		mOperation = nullptr;
+		UpdateOperationsCombo();
 		for ( auto *op : mFilteredOperations )
 		{
-			displays = mModel->OperationDisplays( op->GetName() );
+			displays = FilterDisplays( op );
 			if ( displays.size() > 0 )
 			{
 				to_select = op;
-				new_display = displays[ 0 ]->GetName();
+				new_display_name = displays[ 0 ]->GetName();
 				break;
 			}
 		}
 	}
 
 	if ( to_select == nullptr )
-	{
-		SimpleMsgBox( "There are no views to display." );
-		close();
+	{		
+		SimpleMsgBox( "There are no suitable views to display in this editor. Closing..." );		assert__( new_display_name.empty() );
+		QTimer::singleShot( 1000, parentWidget(), SLOT( close() ) );
 		return;
 	}
 
 	mOperation = to_select;
 
-	Start( new_display );
+	Start( new_display_name );
 
 
 	//mDisplay = NULL;
@@ -832,9 +880,15 @@ void CAbstractDisplayEditor::FilterDisplays()
 {
 	assert__( mOperation );
 
-	mFilteredDisplays.clear();
+	mFilteredDisplays = FilterDisplays( mOperation );
+}
 
-	auto displays = mModel->OperationDisplays( mOperation->GetName() );
+
+std::vector< CDisplay* >  CAbstractDisplayEditor::FilterDisplays( const COperation *operation )
+{
+	std::vector< CDisplay* > filtered_displays;
+
+	auto displays = mModel->OperationDisplays( operation->GetName() );
 	std::string errors;
 	for ( auto display : displays )
 	{
@@ -846,7 +900,7 @@ void CAbstractDisplayEditor::FilterDisplays()
 				if ( v.size() == 0 )
 					LOG_WARN( "View " + display->GetName() + " does not reference any operation." );
 				else
-					mFilteredDisplays.push_back( mWDisplay->GetDisplay( display->GetName() ) );
+					filtered_displays.push_back( mWDisplay->GetDisplay( display->GetName() ) );
 			}
 		}
 		catch ( const CException &e )
@@ -857,15 +911,17 @@ void CAbstractDisplayEditor::FilterDisplays()
 
 	if ( !errors.empty() )
 		SimpleWarnBox( errors );
+
+	return filtered_displays;
 }
 
-//  - called by constructor
+//  - called by constructor and delete display
 //	- can cancel mOperation assignment if it does not have associated views
 //	- 
 //
 void CAbstractDisplayEditor::FilterOperations()
 {
-	assert__( mFilteredOperations.empty() );	// to be called by constructor
+	mFilteredOperations.clear();
 
 	auto const &operations = *mWOperation->GetOperations();
 	std::string errors;

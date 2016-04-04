@@ -29,7 +29,7 @@ void CActiveViewsDialog::CreateWidgets()
 	//	... Help
 
 	auto help = new CTextWidget;
-	help->setHelpProperties( "Select a view from all view windows currently opened", 6, Qt::AlignCenter );
+	help->SetHelpProperties( "Select a view from all view windows currently opened", 0, 6, Qt::AlignCenter );
     auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
     help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 

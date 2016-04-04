@@ -86,9 +86,9 @@ QList<QAction*> COperationControls::CreateDataComputationActions( QObject *paren
 
 
 
-QWidget* COperationControls::CreateQuickOperationsPage()
+void COperationControls::CreateQuickOperationsPage()
 {
-	auto mQuickOperationsPage = new QWidget( this );
+	mQuickOperationsPage = new QWidget( this );
 
 	// I. Buttons row
 
@@ -132,11 +132,11 @@ QWidget* COperationControls::CreateQuickOperationsPage()
 		{ smPredefinedVariables[ eSigma0 ] }
 	} );
 	mQuickVariablesList->setSelectionMode( QAbstractItemView::NoSelection );
-	QGroupBox *vars_group = CreateGroupBox( ELayoutType::Vertical, { mQuickVariablesList}, "Variables" , nullptr, 0, m, m, m, m );
+	QGroupBox *vars_group = CreateGroupBox( ELayoutType::Vertical, { mQuickVariablesList }, "Fields" , nullptr, 0, m, m, m, m );
 
-	auto mVarTable = new QTableWidget;
-	mVarTable->setColumnCount( 4 );
-	QGroupBox *desc_group = CreateGroupBox( ELayoutType::Vertical, { mVarTable }, "Variable Description" , nullptr, 0, m, m, m, m );
+	mQuickFieldDesc = new CTextWidget;
+	mQuickFieldDesc->SetReadOnlyEditor( true );
+	QGroupBox *desc_group = CreateGroupBox( ELayoutType::Vertical, { mQuickFieldDesc }, "Field Description" , nullptr, 0, m, m, m, m );
 
 
 	// Assemble in quick operations page
@@ -145,19 +145,17 @@ QWidget* COperationControls::CreateQuickOperationsPage()
 	{ 
 		buttons_row,
 		data_group,
-		CreateSplitter( nullptr, Qt::Vertical, { vars_group, desc_group } )
+		CreateSplitter( nullptr, Qt::Vertical, { vars_group, desc_group } ) 
 	}, 
 	mQuickOperationsPage, 0, m, m, m, m );
-
-	return mQuickOperationsPage;
 }
 
 
 
 
-QWidget* COperationControls::CreateAdancedOperationsPage()
+void COperationControls::CreateAdancedOperationsPage()
 {
-	QWidget *mAdvancedOperationsPage = new QWidget( this );
+	mAdvancedOperationsPage = new QWidget( this );
 
 	// I. Top Buttons Row
 
@@ -203,16 +201,15 @@ QWidget* COperationControls::CreateAdancedOperationsPage()
 	// ...1. Fields & Field Description Group
 
 	// - fields
-	auto adv_fields_label = new QLabel( "Fields", mAdvancedOperationsPage );
 	mAdvancedFieldsTree = new CFieldsTreeWidget( mAdvancedOperationsPage );
-	QBoxLayout *adv_fields_vl = LayoutWidgets( Qt::Vertical, { adv_fields_label, mAdvancedFieldsTree }, nullptr, s, m, m, m, m );
+	mAdvancedFieldDesc = new CTextWidget;
+	mAdvancedFieldDesc->SetReadOnlyEditor( true );
 
-	auto adv_desc_label = new QLabel( "Variable Description", mAdvancedOperationsPage );
-	auto mAdvVarTable = new QTableWidget( mAdvancedOperationsPage );
-	mAdvVarTable->setColumnCount( 4 );
-	QBoxLayout *adv_desc_vl = LayoutWidgets( Qt::Vertical, { adv_desc_label, mAdvVarTable }, nullptr, s, m, m, m, m );
-
-	QGroupBox *fields_group = CreateGroupBox( ELayoutType::Horizontal, { adv_fields_vl, adv_desc_vl }, "", nullptr, s, m, m, m, m );
+	QGroupBox *fields_group = CreateGroupBox( ELayoutType::Horizontal, 
+	{ 
+		CreateSplitter( nullptr, Qt::Horizontal, { mAdvancedFieldsTree, mAdvancedFieldDesc } )
+	}
+	, "", nullptr, s, m, m, m, m );
 
 
 	// ...2. Expressions Tree(s)
@@ -287,7 +284,7 @@ QWidget* COperationControls::CreateAdancedOperationsPage()
 		ELayoutType::Vertical, { 
 			CreateSplitter( nullptr, Qt::Vertical, { fields_group, data_expressions_group, mExpressionGroup } )
 		}, 
-		"Expressions", mAdvancedOperationsPage, s, 4, 4, 4, 4 );
+		"Define Operation", mAdvancedOperationsPage, s, 4, 4, 4, 4 );
 	mOperationExpressionsGroup->setCollapsed( false );
 	mOperationExpressionsGroup->setSyncGroup( SyncGroup );
 	//expression_group->setCheckable( true );
@@ -316,7 +313,7 @@ QWidget* COperationControls::CreateAdancedOperationsPage()
 	mSamplingGroup = CreateCollapsibleGroupBox( ELayoutType::Horizontal, { adv_filter_vl, line, sampling_gridl }, 
         "Sampling", mAdvancedOperationsPage, s, 4, 4, 4, 4 );
 	mSamplingGroup->setCollapsed( true );
-	mSamplingGroup->setCheckable( true );
+	//mSamplingGroup->setCheckable( true );
 	mSamplingGroup->setSyncGroup( SyncGroup );
 
 
@@ -330,7 +327,6 @@ QWidget* COperationControls::CreateAdancedOperationsPage()
 	}, 
 	mAdvancedOperationsPage, 0, m, m, m, m );
 
-	return mAdvancedOperationsPage;
 }
 
 
@@ -361,7 +357,8 @@ QWidget* COperationControls::CreateCommonWidgets( QAbstractButton *b1, QAbstract
 
 	auto *buttons = CreateButtonRow( false, Qt::Horizontal, 
 	{ 
-		b1, b2, nullptr,
+		b1, b2, 
+		nullptr,
 		mOperationFilterButton, mOperationExportButton, mOperationStatisticsButton, mSplitPlotsButton,		
 	} );
 
@@ -405,8 +402,8 @@ void COperationControls::ResetFilterActions()
 		connect( a, SIGNAL( triggered() ), this, SLOT( HandleOperationFilter() ) );
 	}
 	CreateActionGroup( mOperationFilterButton, mOperationFilterButton->actions(), true );
-	connect( mOperationFilterButton, SIGNAL( triggered( QAction * ) ), this, SLOT( HandleOperationFilterButton( QAction * ) ) );
-	connect( mOperationFilterButton, SIGNAL( toggled( bool ) ), this, SLOT( HandleOperationFilterButtonToggled( bool ) ) );
+	//connect( mOperationFilterButton, SIGNAL( triggered( QAction * ) ), this, SLOT( HandleOperationFilterButton( QAction * ) ) );	TODO re-enable and test only when filters ready
+	//connect( mOperationFilterButton, SIGNAL( toggled( bool ) ), this, SLOT( HandleOperationFilterButtonToggled( bool ) ) );		TODO re-enable and test only when filters ready
 	ResetSelectedFilter();
 }
 
@@ -423,7 +420,7 @@ void COperationControls::Wire()
 	//...quick mQuickVariablesList
 
 	connect( mQuickDatasetsCombo, SIGNAL( currentIndexChanged( int ) ), this, SLOT( HandleSelectedDatasetChanged_Quick( int ) ) );
-	connect( mQuickVariablesList, SIGNAL( currentRowChanged( int ) ), this, SLOT( HandleSelectedVariableChanged_Quick( int ) ) );
+	connect( mQuickVariablesList, SIGNAL( currentRowChanged( int ) ), this, SLOT( HandleSelectedFieldChanged_Quick( int ) ) );
 	connect( mQuickVariablesList, SIGNAL( itemChanged(QListWidgetItem*) ), this, SLOT( HandleVariableStateChanged_Quick(QListWidgetItem*) ) );
 
 	connect( mDisplayMapButton, SIGNAL( clicked() ), this, SLOT( HandleQuickMap() ) );
@@ -443,6 +440,7 @@ void COperationControls::Wire()
 
 	connect( mOperationsCombo, SIGNAL( currentIndexChanged( int ) ), this, SLOT( HandleSelectedOperationChanged( int ) ) );
 	connect( mAdvancedDatasetsCombo, SIGNAL( currentIndexChanged( int ) ), this, SLOT( HandleSelectedDatasetChanged_Advanced( int ) ) );
+	connect( mAdvancedFieldsTree, SIGNAL( itemSelectionChanged() ), this, SLOT( HandleSelectedFieldChanged_Advanced() ) );
 
 	connect( mInsertFunction, SIGNAL( clicked() ), this, SLOT( HandleInsertFunction() ) );
 	connect( mInsertAlgorithm, SIGNAL( clicked() ), this, SLOT( HandleInsertAlgorithm() ) );
@@ -492,8 +490,8 @@ COperationControls::COperationControls( CProcessesTable *processes_table, CModel
 	, mProcessesTable( processes_table )
 	, mBratFilters( mModel.BratFilters() )
 {
-	mQuickOperationsPage = CreateQuickOperationsPage();
-	mAdvancedOperationsPage = CreateAdancedOperationsPage();
+	CreateQuickOperationsPage();		assert__( mQuickOperationsPage );
+	CreateAdancedOperationsPage();		assert__( mAdvancedOperationsPage );
 
     mStackWidget = new CStackedWidget( this, { 
 		{ mQuickOperationsPage, "Quick", "", "", true }, 
@@ -509,12 +507,15 @@ COperationControls::COperationControls( CProcessesTable *processes_table, CModel
 
 	AddTopLayout( ELayoutType::Vertical, {
 		mCommonGroup,
+		WidgetLine( nullptr, Qt::Horizontal ),
 		mStackWidget,
 		nullptr
 	},
 	s, m, m, m, m
 	);
 
+
+	mSamplingGroup->setEnabled( false );		//TODO delete when implemented
 
     Wire();
 }
@@ -561,8 +562,10 @@ void COperationControls::HandleWorkspaceChanged()
 
     setEnabled( mWRoot != nullptr );
 
+	mOperationFilterButton->setEnabled( false );		//TODO enable only when filters ready
 	HandleDatasetsChanged_Advanced( nullptr );			//disables tab if !mWDataset || !mWDataset->GetDatasetCount() > 0 
-	HandleDatasetsChanged_Quick( nullptr );
+
+	HandleWorkspaceChanged_Quick();
 
 
 	if ( !mWRoot )
@@ -588,7 +591,7 @@ void COperationControls::HandleWorkspaceChanged()
 }
 
 
-//
+// NOTE connected by main window to datasets panel
 //
 void COperationControls::HandleDatasetsChanged_Advanced( CDataset *dataset )
 {
@@ -634,7 +637,7 @@ void COperationControls::HandleSelectedOperationChanged( int operation_index )	/
 	mSplitPlotsButton->setEnabled( operation_index >= 0 );
 
 	mOperationExportButton->setEnabled( operation_index >= 0 );
-	mOperationFilterButton->setEnabled( operation_index >= 0 );
+	//mOperationFilterButton->setEnabled( operation_index >= 0 );
 	mOperationStatisticsButton->setEnabled( operation_index >= 0 );
 
 	mRenameOperationButton->setEnabled( operation_index >= 0 );
@@ -1265,6 +1268,8 @@ void COperationControls::HandleNewOperation()
 //    return canDelete;
 //}
 
+
+
 void COperationControls::HandleDeleteOperation()
 {
     assert__( mCurrentOperation );
@@ -1542,9 +1547,19 @@ void COperationControls::HandleDelayExecution()
         BRAT_NOT_IMPLEMENTED;
     }
 }
+
+
+void COperationControls::SchedulerProcessError( QProcess::ProcessError error )
+{
+	auto message = "An error occurred launching scheduler application: " + CProcessesTable::ProcessErrorMessage( error );
+	SimpleErrorBox( message );
+	LOG_WARN( message );
+}
 void COperationControls::HandleLaunchScheduler()
 {
-	BRAT_NOT_IMPLEMENTED;
+	COsProcess *process = new COsProcess( nullptr, false, "", this, mModel.BratPaths().mExecBratSchedulerName );
+    connect( process, SIGNAL( error( QProcess::ProcessError ) ), this, SLOT( SchedulerProcessError( QProcess::ProcessError ) ) );
+	process->Execute();
 }
 
 
@@ -1564,14 +1579,14 @@ void COperationControls::LaunchDisplay( const std::string &display_name )
     {
         assert__( mCurrentOperation->IsMap() );
 
-        auto ed = new CMapEditor( &mModel, mCurrentOperation, display_name, mDesktopManager->parentWidget() );
+        auto ed = new CMapEditor( &mModel, mCurrentOperation, display_name );
         auto subWindow = mDesktopManager->AddSubWindow( ed );
         subWindow->show();
     }
     else
     //if ( mCurrentOperation->IsZFXY() || mCurrentOperation->IsYFX() )
     {
-        auto ed = new CPlotEditor( &mModel, mCurrentOperation, display_name, mDesktopManager->parentWidget() );
+        auto ed = new CPlotEditor( &mModel, mCurrentOperation, display_name );
         auto subWindow = mDesktopManager->AddSubWindow( ed );
         subWindow->show();
     }
@@ -1589,6 +1604,14 @@ bool COperationControls::MapRequested() const
     return mSwitchToMapButton->isChecked();
 }
 
+//	Operation::Execute generates 
+//		operation.par 
+//		operation.nc
+//
+//	Display::Execute generates 
+//		display.par
+//
+//
 void COperationControls::HandleProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation )
 {
 	const bool success = 
@@ -1614,8 +1637,16 @@ void COperationControls::HandleProcessFinished( int exit_code, QProcess::ExitSta
 	//if ( !CreateDisplayData( mCurrentOperation, *m_dataList ) )	//CDisplay::GetDisplayType failed
 	{
 		SimpleErrorBox( "Could not retrieve operation output." );
-		return;
-	
+		return;	
+	}
+	auto displays = mModel.OperationDisplays( operation->GetName() );
+	for ( auto *display : displays )
+	{
+		if ( !display->AssignOperation( mCurrentOperation, true ) )
+		{
+			SimpleErrorBox( "Could not retrieve operation output." );
+			return;
+		}
 	}
 	//for ( auto &data : *m_dataList )
 	//	display->InsertData( data.first, dynamic_cast<CDisplayData*>( data.second ) );
@@ -1714,6 +1745,20 @@ bool COperationControls::Execute( bool sync )
 		mCurrentOperation->ClearLogFile();
 	}
 
+	//v4
+	if ( IsFile( mCurrentOperation->GetOutputPath() ) )         //COperationPanel::RemoveOutput()
+	{
+		if ( !mCurrentOperation->RemoveOutput() )
+		{
+			SimpleWarnBox(
+				"Unable to delete file '"
+				+ mCurrentOperation->GetOutputPath()
+				+ "' \nYou have to delete it by yourself" );
+
+			return false;
+		}
+	}
+
 	//BuildCmdFile(); == following 
 	std::string error_msg;
 	if ( !mCurrentOperation->BuildCmdFile( mWFormula, mWOperation, error_msg ) )	//v3 didn't seem to care if this fails
@@ -1806,6 +1851,12 @@ bool COperationControls::Execute( bool sync )
 	return result;
 }
 
+
+
+void COperationControls::HandleSelectedFieldChanged_Advanced()
+{
+	mAdvancedFieldDesc->setText( mAdvancedFieldsTree->GetCurrentFieldDescription().c_str() );
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //

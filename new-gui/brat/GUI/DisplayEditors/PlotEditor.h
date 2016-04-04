@@ -102,9 +102,9 @@ private:
     void Wire();
 
 public:
-    CPlotEditor( CModel *model, const COperation *op, const std::string &display_name = "", QWidget *parent = nullptr );
-    CPlotEditor( const CDisplayFilesProcessor *proc, CPlot* plot, QWidget *parent = nullptr );
-    CPlotEditor( const CDisplayFilesProcessor *proc, CZFXYPlot* plot, QWidget *parent = nullptr );
+    CPlotEditor( CModel *model, const COperation *op, const std::string &display_name = "" );
+    CPlotEditor( const CDisplayFilesProcessor *proc, CPlot* plot );
+    CPlotEditor( const CDisplayFilesProcessor *proc, CZFXYPlot* plot );
 
 	virtual ~CPlotEditor();
 

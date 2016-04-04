@@ -12,7 +12,7 @@ class CZFXYPlotData;
 struct C3DPlotParameters;
 
 struct CBrat3DFunction;
-
+class CBrat3DPlot;
 
 typedef Qwt3D::SurfacePlot SurfacePlot; // VC6/moc issue
 
@@ -79,7 +79,7 @@ class CBrat3DPlot : public Qwt3D::SurfacePlot
 
 	//instance data
 
-	std::vector<CBrat3DFunction*>mFunctions;
+	std::vector<CBrat3DFunction*> mFunctions;		//TODO is this (multiple functions) really supported?
 
 	QActionGroup *mStyleGroup = nullptr;
     QActionGroup *mCoordinateStyleGroup = nullptr;
@@ -172,12 +172,12 @@ protected:
 
 	// instance data
 
-	std::vector<Qwt3D::SurfacePlot*> mPlots;
+	QStackedLayout *mStackedLayout = nullptr;
+
+	std::vector< Qwt3D::SurfacePlot* > mSurfacePlots;
+	CBrat3DPlot *mCurrentPlot = nullptr;
 
 	QSize m_SizeHint;
-
-	bool mShowContour = true;
-	bool mShowMesh = true;
 
 	double level_, width_;			//enrichment example
 	Bar *bar = nullptr;				//enrichment example
@@ -203,7 +203,12 @@ public:
 
 	//...create plot
 
-	void AddSurface( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax );
+	void AddPlot( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax );
+
+
+	//switch plot
+
+	void SetCurrentPlot( int index );
 
 
 	//...title
@@ -218,6 +223,9 @@ public:
 
     bool HasSolidColor() const;
     void ShowSolidColor( bool show );
+
+    void ShowContour( int index, bool show );
+    void ShowSolidColor( int index, bool show );
 
 
 	//axis
@@ -234,9 +242,9 @@ public:
 protected:
 	QSize sizeHint() const override;
 
-	void SetCentralWidget( QWidget *w );
+	void AddWidget( QWidget *w );
 
-	void SetStyle();
+	void SetStyle( bool show_contour, bool show_mesh );
 
 public slots:
 	void setLevel( int );		//enrichment example

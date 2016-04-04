@@ -223,6 +223,8 @@ struct CPlotControlsPanelAxisOptions : public CControlPanel
 
     // static members
 
+public:
+
     // instance data members
 
 	CAxisTab *mX_axis = nullptr;

@@ -120,8 +120,10 @@ void CBratView< WIDGET >::CreatePlot( const CWorldPlotProperties *props, CWPlot*
 	{
 		CPlotField* field = CPlotField::GetPlotField( itField );
 
+#if defined(_DEBUG) || defined(DEBUG) 
 		if ( field->m_worldProps != props )
 			LOG_WARN( "field->m_worldProps != props" );
+#endif
 
 		if ( field->m_internalFiles.empty() )
 			continue;
@@ -172,8 +174,10 @@ void CBratView< WIDGET >::CreatePlot( const CZFXYPlotProperties *props, CZFXYPlo
 	{
 		CPlotField* field = CPlotField::GetPlotField( itField );
 
+#if defined(_DEBUG) || defined(DEBUG) 
 		if( field->m_zfxyProps != props ) 
 			LOG_WARN( "field->m_worldProps != props" );
+#endif
 
 		if ( field->m_internalFiles.empty() )
 			continue;

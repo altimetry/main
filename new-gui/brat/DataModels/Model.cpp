@@ -261,20 +261,34 @@ bool CModel::ImportWorkspace( const std::string& path,
 ///////////////////////////////////////////////////////////////////////////////////////////
 //
 ///////////////////////////////////////////////////////////////////////////////////////////
-std::vector<const CDisplay*> CModel::OperationDisplays( const std::string &name ) const
+
+template< class DISPLAY >
+std::vector< DISPLAY* > CModel::OperationDisplays( const std::string &name )
 {
-	std::vector<const CDisplay*> v;
+	std::vector<DISPLAY*> v;
 	const CWorkspaceDisplay *wkspcd = Workspace< CWorkspaceDisplay >( mTree );
 	auto const *displays = wkspcd->GetDisplays();
 	for ( auto &pair : *displays )
 	{
-		auto const *display = dynamic_cast< const CDisplay* >( pair.second );		assert__( display );
+		auto *display = dynamic_cast< DISPLAY* >( pair.second );		assert__( display );
 		if ( display->UsesOperation( name ) )
 			v.push_back( display );
 	}
 
 	return v;
 }
+
+std::vector<const CDisplay*> CModel::OperationDisplays( const std::string &name ) const
+{
+	return const_cast<CModel*>( this )->OperationDisplays< const CDisplay >( name );
+}
+
+
+std::vector<CDisplay*> CModel::OperationDisplays( const std::string &name )
+{
+	return OperationDisplays< CDisplay >( name );
+}
+
 
 
 

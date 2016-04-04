@@ -19,7 +19,7 @@
 //
 CTextWidget::CTextWidget( QWidget *parent ) :		//QWidget *parent = nullptr
 	base_t( parent ), 
-	m_SizeHint( 60 * fontMetrics().width('x'), 10 * fontMetrics().lineSpacing() )
+	mSizeHint( 60 * fontMetrics().width('x'), 10 * fontMetrics().lineSpacing() )
 {
 	auto sheet = styleSheet();
 	setStyleSheet( "selection-color: white; selection-background-color: black; " + sheet );								//(*) //this is the only way of seeing the selection without focus (important in find dialog, for instance)
@@ -56,19 +56,15 @@ void CTextWidget::setToolEditor( bool tool )
 }
 
 //virtual 
-void CTextWidget::setHelpEditor( bool help )
+void CTextWidget::SetReadOnlyEditor( bool ro )
 {
-	if ( help )
-		setStyleSheet( "QTextEdit {background: #DFDFDF; color: #000000;}" );
-	else
-		setStyleSheet("");
-	setReadOnly( help );
+	::SetReadOnlyEditor( this, ro );
 }
 
 //virtual 
-void CTextWidget::setHelpProperties( const QString &text, int spacing, Qt::Alignment alignment, bool wrap )	//alignment = Qt::AlignCenter , bool wrap = false
+void CTextWidget::SetHelpProperties( const QString &text, int empty_lines, int spacing, Qt::Alignment alignment, bool wrap )	//alignment = Qt::AlignCenter , bool wrap = false
 {
-	setHelpEditor( true );
+	SetReadOnlyEditor( true );
     setWrapText( wrap );
     setText( text );
     MoveToTop();
@@ -76,8 +72,9 @@ void CTextWidget::setHelpProperties( const QString &text, int spacing, Qt::Align
     setAlignment( alignment );
 	int line, col;
     getPosition( line, col );
-    int height = line * fontMetrics().height() + 2 * spacing;
-    setSizeHint( col * fontMetrics().width('X') + 2 * spacing, height );
+	const int average_line_length = text.length() / line + empty_lines;
+    const int height = line * fontMetrics().height() + 2 * spacing;
+    SetSizeHint( average_line_length * fontMetrics().width('X') + 2 * spacing , height );
     setMaximumHeight( height );
     setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
@@ -584,7 +581,7 @@ bool CTextWidget::writeToFile( const QString &fileName )
 //virtual 
 QSize CTextWidget::sizeHint() const
 {
-    return m_SizeHint;
+    return mSizeHint;
 }
 
 

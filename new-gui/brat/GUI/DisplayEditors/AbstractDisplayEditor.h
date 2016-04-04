@@ -35,6 +35,13 @@ enum EActionTag : int;
 // IMPORTANT note: the derived classes must call the base
 //	CreateWidgets, specializing for the type of the general tab
 //
+// IMPORTANT note 2: it is assumed that an editor is child of 
+//	a desktop sub-window (MDI or not). This is critical because
+//	the editor can auto-close itself and this can only be done
+//	by invoking the parent close event. If design changes, and 
+//	parent window is null or the main window, the auto-closing
+//	spots in this class must be inspected.
+//
 class CAbstractDisplayEditor : public QMainWindow
 {
 #if defined (__APPLE__)
@@ -53,6 +60,12 @@ class CAbstractDisplayEditor : public QMainWindow
 	///////////////////////////////////////////////////////////
 
 	using base_t = QMainWindow;
+
+
+	///////////////////////////////////////////////////////////
+	// static members
+	///////////////////////////////////////////////////////////
+
 
 
 	///////////////////////////////////////////////////////////
@@ -125,8 +138,8 @@ protected:
 	void CreateWidgets();
 
 protected:
-	CAbstractDisplayEditor( bool map_editor, CModel *model, const COperation *op, const std::string &display_name = "", QWidget *parent = nullptr );
-	CAbstractDisplayEditor( bool map_editor, const CDisplayFilesProcessor *proc, QWidget *parent = nullptr );
+	CAbstractDisplayEditor( bool map_editor, CModel *model, const COperation *op, const std::string &display_name );
+	CAbstractDisplayEditor( bool map_editor, const CDisplayFilesProcessor *proc );
 
 public:
 	virtual ~CAbstractDisplayEditor();
@@ -163,6 +176,8 @@ protected:
 	int OperationIndex( const COperation *op ) const;
 	bool Start( const std::string &display_name );
 
+	void SetWindowTitle();
+
 
 	///////////////////////////////////////////////////////////
 	// Virtual interface (enforce some uniformity of behavior)
@@ -196,6 +211,7 @@ protected:
 
 	bool RefreshDisplayData();
 
+	std::vector< CDisplay* > FilterDisplays( const COperation *operation );
 	void FilterDisplays();
 	void FilterOperations();
 
@@ -213,6 +229,7 @@ protected:
 
 private:
 	void UpdateDisplaysCombo( int index );
+	void UpdateOperationsCombo();
 
 private slots:
 
@@ -231,9 +248,14 @@ private slots:
 	void HandleNewButtonClicked();
 	void HandleRenameButtonClicked();
 	void HandleDeleteButtonClicked();
+
+	void HandlePlotTitleEntered();
 };
 
 
+
+
+//////////////////////////////////////////////////////////////////////////////////////
 
 
 

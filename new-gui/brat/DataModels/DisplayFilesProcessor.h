@@ -66,6 +66,8 @@ class CDisplayFilesProcessor
 
 	bool mMapsAsPlots = false;
 
+	std::vector<CInternalFiles*> m_OpenFiles;
+
 public:
 
 	//Public ctor
@@ -82,8 +84,7 @@ public:
 
 	//Destruction
 
-	virtual ~CDisplayFilesProcessor()
-	{}
+	virtual ~CDisplayFilesProcessor();
 
 
 	//Access

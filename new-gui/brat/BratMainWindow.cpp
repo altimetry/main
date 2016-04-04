@@ -190,7 +190,7 @@ void CBratMainWindow::CreateWorkingDock()
 {
 	LOG_TRACE( "Starting working dock (controls panel) construction..." );
 
-	mMainWorkingDock = new CTabbedDock( "", this );
+	mMainWorkingDock = new CTabbedDock( "Workspace Elements", this );
 	mMainWorkingDock->setObjectName("mMainWorkingDock");
 	mMainWorkingDock->setAllowedAreas( Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea );	//mMainWorkingDock->setMaximumWidth( max_main_dock_width );
 	addDockWidget( Qt::LeftDockWidgetArea, mMainWorkingDock, Qt::Vertical );
@@ -204,7 +204,7 @@ void CBratMainWindow::CreateWorkingDock()
 	mMainWorkingDock->SetTabToolTip( tab, "Dataset filter" );
 	connect( this, SIGNAL( WorkspaceChanged( CWorkspaceDataset* ) ), WorkingPanel< eFilter >(), SLOT( HandleWorkspaceChanged( CWorkspaceDataset* ) ) );
 
-	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eOperations ), "Operations" );		assert( mMainWorkingDock->TabIndex( tab ) == eOperations );
+	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eOperations ), "Operations" );	assert( mMainWorkingDock->TabIndex( tab ) == eOperations );
 	mMainWorkingDock->SetTabToolTip( tab, "Quick or advanced operations"  );
 	connect( this, SIGNAL( WorkspaceChanged() ), WorkingPanel< eOperations >(), SLOT( HandleWorkspaceChanged() ) );
 	connect( WorkingPanel< eOperations >(), SIGNAL( SyncProcessExecution( bool ) ), this, SLOT( HandleSyncProcessExecution( bool ) ) );
@@ -370,10 +370,6 @@ void CBratMainWindow::ProcessMenu()
     connect( menu_Window, SIGNAL(aboutToShow()), this, SLOT(UpdateWindowMenu()) );
 	connect( this, SIGNAL( WorkspaceChanged() ), this, SLOT( WorkspaceChangedUpdateUI() ) );
 
-#ifndef QT_NO_CLIPBOARD
-    connect( QApplication::clipboard(), SIGNAL(dataChanged()), this, SLOT(clipboardDataChanged()) );
-#endif
-
 #if !defined (DEBUG) && !defined(_DEBUG)
 	action_Test->setVisible( false );
 #endif
@@ -398,6 +394,11 @@ void CBratMainWindow::FillStatusBar()
 	CMapWidget::CreateRenderWidgets( statusBar(), mProgressBar, mRenderSuppressionCBox );
 	statusBar()->insertPermanentWidget( index, mRenderSuppressionCBox, 0 );
 	statusBar()->insertPermanentWidget( index, mProgressBar, 1 );
+
+#if !defined(_DEBUG) && !defined(DEBUG)
+	mRenderSuppressionCBox->setVisible( false );
+	mRenderSuppressionCBox->setEnabled( false );
+#endif
 
 	mDesktopManager->Map()->ConnectParentRenderWidgets( mProgressBar, mRenderSuppressionCBox );
 
@@ -699,7 +700,7 @@ bool CBratMainWindow::StartDisplayMode()
 				if ( wplot == nullptr )
 					continue;
 
-				editors.push_back( new CMapEditor( &p, wplot, this ) );
+				editors.push_back( new CMapEditor( &p, wplot ) );
 			}
 		}
 		else if ( p.isYFX() )		// =================================== XYPlot();
@@ -710,7 +711,7 @@ bool CBratMainWindow::StartDisplayMode()
 				if ( yfxplot == nullptr )
 					continue;
 
-				editors.push_back( new CPlotEditor( &p, yfxplot, this ) );
+				editors.push_back( new CPlotEditor( &p, yfxplot ) );
 			}
 		}
 		else if ( p.isZFXY() )		// =================================== ZFXYPlot();
@@ -721,7 +722,7 @@ bool CBratMainWindow::StartDisplayMode()
 				if ( zfxyplot == nullptr )
 					continue;
 
-				editors.push_back( new CPlotEditor( &p, zfxyplot, this ) );
+				editors.push_back( new CPlotEditor( &p, zfxyplot ) );
 			}
 		}
 		else
@@ -1135,19 +1136,9 @@ void CBratMainWindow::on_action_Workspace_Tree_triggered()
 }
 
 
-void CBratMainWindow::SchedulerProcessError( QProcess::ProcessError error )
-{
-	auto message = "An error occurred launching scheduler application: " + CProcessesTable::ProcessErrorMessage( error );
-	SimpleErrorBox( message );
-	LOG_WARN( message );
-}
-
-
 void CBratMainWindow::on_action_Launch_Scheduler_triggered()
 {
-	COsProcess *process = new COsProcess( nullptr, false, "", this, mSettings.BratPaths().mExecBratSchedulerName );
-    connect( process, SIGNAL( error( QProcess::ProcessError ) ), this, SLOT( SchedulerProcessError( QProcess::ProcessError ) ) );
-	process->Execute();
+	WorkingPanel<eOperations>()->HandleLaunchScheduler();
 }
 
 
@@ -1185,17 +1176,16 @@ void CBratMainWindow::on_action_Open_View_triggered()
 		auto v = display->GetOperations();					assert__( v.size() > 0 );
 		CAbstractDisplayEditor *ed = nullptr;
 
-		if ( v[ 0 ]->IsMap() && !maps_as_plots )
+		if ( maps_as_plots || !display->IsZLatLonType() )
 		{
-			ed = new CMapEditor( &mModel, v[ 0 ], display->GetName(), this );
+			ed = new CPlotEditor( &mModel, v[ 0 ], display->GetName() );
 		}
 		else
-		if ( v[ 0 ]->IsZFXY() || v[ 0 ]->IsYFX() )
 		{
-			ed = new CPlotEditor( &mModel, v[ 0 ], display->GetName(), this );
+			ed = new CMapEditor( &mModel, v[ 0 ], display->GetName() );
 		}
-		else
-			assert__( false );
+
+		assert__( ed != nullptr );
 
 		auto subWindow = mDesktopManager->AddSubWindow( ed );
 		subWindow->show();
@@ -1430,14 +1420,6 @@ void CBratMainWindow::WorkspaceChangedUpdateUI()
 		eAction_Views_List,
 		eAction_Close_All,
 
-		eAction_Cut,
-		eAction_Copy,
-		eAction_Paste,
-		eAction_Undo,
-		eAction_Redo,
-		eAction_Delete,
-		eAction_Select_All,
-
 	}, enable );
 
 
@@ -1476,14 +1458,6 @@ void CBratMainWindow::HandleSyncProcessExecution( bool executing )
 		eAction_Operations,
 		eAction_Dataset,
 		eAction_Filter,
-
-		eAction_Cut,
-		eAction_Copy,
-		eAction_Paste,
-		eAction_Undo,
-		eAction_Redo,
-		eAction_Delete,
-		eAction_Select_All,
 
 	}, !executing );
 

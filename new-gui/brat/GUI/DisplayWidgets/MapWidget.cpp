@@ -738,7 +738,7 @@ void CMapWidget::RemoveLayers()
 
 void CMapWidget::SetCurrentLayer( QgsMapLayer *l )
 {
-	LOG_INFO( "Layer CRS = " + n2s<std::string>( l->crs().srsid() ) );
+	LOG_TRACEstd( "Layer CRS = " + n2s<std::string>( l->crs().srsid() ) );
 	setCurrentLayer( l );
 	QgsVectorLayer *vl = qobject_cast< QgsVectorLayer* >( l );
 	if ( vl )

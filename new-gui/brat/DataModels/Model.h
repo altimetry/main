@@ -143,8 +143,12 @@ public:
 
 	//
 
+	template< class DISPLAY >
+	std::vector< DISPLAY* > OperationDisplays( const std::string &name );
+
 	std::vector<const CDisplay*> OperationDisplays( const std::string &name ) const;
 
+	std::vector<CDisplay*> OperationDisplays( const std::string &name );
 };
 
 

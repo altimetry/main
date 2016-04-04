@@ -42,10 +42,10 @@ void  CRegionSettingsDialog::CreateWidgets()
     // III. Help
     //
     auto help = new CTextWidget;
-    help->setHelpProperties(
+    help->SetHelpProperties(
                 "The user can create, edit, delete and save regions.\n"
                 "The list of areas can be used to select which of them are included on each region."
-         , 6, Qt::AlignJustify );
+         ,0 , 6, Qt::AlignJustify );
     auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
     help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 

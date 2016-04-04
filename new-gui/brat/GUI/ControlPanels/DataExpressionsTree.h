@@ -62,6 +62,8 @@ public:
 		return nullptr;
 	}
 
+	// can return null
+	//
 	const QTreeWidgetItem* SelectedItem() const
 	{
 		return const_cast<CAbstractTree*>( this )->SelectedItem();
@@ -179,6 +181,8 @@ public:
 	void SelectRecord( const std::string &record );		//see COperationPanel::GetOperationRecord
 
 	std::string	GetCurrentRecord();						//cannot be const	//CFieldsTreeCtrl::GetCurrentRecord()
+
+	std::string	GetCurrentFieldDescription() const;
 
 
 protected:

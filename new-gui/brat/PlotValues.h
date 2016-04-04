@@ -1,6 +1,7 @@
 #ifndef DATAMODELS_PLOTDATA_PLOT_VALUES_H
 #define DATAMODELS_PLOTDATA_PLOT_VALUES_H
 
+#include <set>
 
 #include <qwt_data.h>
 #include <qwt_raster_data.h>
@@ -341,6 +342,9 @@ struct C3DPlotParameters
 	std::vector<double>	mXaxis;
 	std::vector<double>	mYaxis;
 
+	std::set< double > mXmap;
+	std::set< double > mYmap;
+
 	int mPlotWidth = 0;
 	int mPlotHeight = 0;
 
@@ -384,7 +388,7 @@ struct CGeneric3DPlotInfo : public std::vector< PARAMS >, public QwtRasterData
 
 	//instance data
 
-	mutable size_t mCurrentMap = 0;
+	mutable size_t mCurrentFrame = 0;
 
 
 	// construction / destruction
@@ -406,33 +410,58 @@ struct CGeneric3DPlotInfo : public std::vector< PARAMS >, public QwtRasterData
 
     virtual QwtDoubleInterval range() const override
     {
-		const parameters_t& map = at( mCurrentMap );
-		return QwtDoubleInterval( map.mMinHeightValue, map.mMaxHeightValue );
+		const parameters_t &frame = ( *this )[ mCurrentFrame ];
+		return QwtDoubleInterval( frame.mMinHeightValue, frame.mMaxHeightValue );
     }
 
-    virtual double value( double x, double y ) const override
+
+protected:
+	static double nearest( double raster_x, const std::set<double> &nearest_map, double m, double M )
+	{
+		auto pair = nearest_map.equal_range( raster_x );		UNUSED( M );
+
+		if ( pair.first == nearest_map.end() )
+			return m;
+
+		return *pair.first;
+	}
+	double nearest_x( double raster_x ) const
+	{
+		const parameters_t &frame = ( *this )[ mCurrentFrame ];
+		return nearest( raster_x, frame.mXmap, frame.mMinX, frame.mMaxX );
+	}
+	double nearest_y( double raster_y ) const
+	{
+		const parameters_t &frame = ( *this )[ mCurrentFrame ];
+		return nearest( raster_y, frame.mYmap, frame.mMinY, frame.mMaxY  );
+	}
+
+
+public:
+
+	virtual double value( double x, double y ) const override
     {
-		const parameters_t& map = ( *this )[ mCurrentMap ];
-		x -= map.mMinX;
-		y -= map.mMinY;
-		x = std::max( 0., x );
-		y = std::max( 0., y );
-		auto index = map.mXaxis.size() * y + x;										assert__( index >= 0 && index < map.mBits.size() );
-		if ( index < 0 || index >= map.mBits.size() || !map.mBits.at( index ) )
+		const parameters_t &frame = ( *this )[ mCurrentFrame ];
+
+		x = nearest_x( x ) - frame.mMinX;
+		y = nearest_y( y ) - frame.mMinY;
+
+		auto index = y * frame.mXaxis.size() + x;										assert__( index >= 0 && index < frame.mBits.size() );
+		if ( index < 0 || index >= frame.mBits.size() || !frame.mBits.at( index ) )
 			return 0;		//rasters do not seem to support NANs std::numeric_limits<double>::quiet_NaN();
 
-		return map.mValues.at( index );
+		return frame.mValues.at( index );
     }
 
 
 	// assignment
 
 
-	void SetNextMap() const
+	void SetNextFrame() const
 	{
-		mCurrentMap++;
-		if ( mCurrentMap >= size() )
-			mCurrentMap = 0;
+		mCurrentFrame++;
+		if ( mCurrentFrame >= size() )
+			mCurrentFrame = 0;
 	}
 
 
@@ -457,12 +486,14 @@ struct CGeneric3DPlotInfo : public std::vector< PARAMS >, public QwtRasterData
 	inline void AddX( double value )
 	{
 		back().mXaxis.push_back( value );
+		back().mXmap.insert( value );
 	}
 
 
 	inline void AddY( double value )
 	{
 		back().mYaxis.push_back( value );
+		back().mYmap.insert( value );
 	}
 
 
