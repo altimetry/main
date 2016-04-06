@@ -165,6 +165,8 @@ bool CBratFilters::DeleteFilter( const std::string &name )
 
 bool CBratFilters::Save()
 {
+	Clear();
+
     for ( auto it = mFiltersMap.cbegin(); it != mFiltersMap.cend(); it++ )
     {
         auto const &filter = it->second;

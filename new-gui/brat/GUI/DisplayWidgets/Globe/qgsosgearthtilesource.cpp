@@ -86,9 +86,6 @@ QgsOsgEarthTileSource::QgsOsgEarthTileSource( QgsMapCanvas* theCanvas, const Til
 //
 osg::Image* QgsOsgEarthTileSource::createImage( const TileKey& key, ProgressCallback* progress )
 {
-	//while ( mCanvas->isDrawing() )
-	//	qApp->processEvents();
-
 	if ( mStop || mCanvas->isDrawing() )
 		return nullptr;
 
@@ -105,7 +102,9 @@ osg::Image* QgsOsgEarthTileSource::createImage( const TileKey& key, ProgressCall
 		return ImageUtils::createEmptyImage();
 	}
 
+	//////////////////
 	mRendering = true;
+	//////////////////
 
 	QgsRectangle viewExtent = mCanvas->fullExtent();
 	if ( mCoordTransform )
@@ -124,7 +123,9 @@ osg::Image* QgsOsgEarthTileSource::createImage( const TileKey& key, ProgressCall
 	if ( !viewExtent.intersects( tileExtent ) )
 	{
 		QgsDebugMsg( QString( "earth tile key:%1 ext:%2: NO INTERSECT" ).arg( kname ).arg( tileExtent.toString( 5 ) ) );
+		///////////////////
 		mRendering = false;
+		///////////////////
 		return ImageUtils::createEmptyImage();
 	}
 
@@ -134,7 +135,9 @@ osg::Image* QgsOsgEarthTileSource::createImage( const TileKey& key, ProgressCall
 	if ( !qImage )
 	{
 		QgsDebugMsg( QString( "earth tile key:%1 ext:%2: EMPTY IMAGE" ).arg( kname ).arg( tileExtent.toString( 5 ) ) );
+		///////////////////
 		mRendering = false;
+		///////////////////
 		return ImageUtils::createEmptyImage();
 	}
 
@@ -161,7 +164,9 @@ osg::Image* QgsOsgEarthTileSource::createImage( const TileKey& key, ProgressCall
 	if ( !qImage )
 	{
 		QgsDebugMsg( QString( "earth tile key:%1 ext:%2: EMPTY IMAGE" ).arg( kname ).arg( tileExtent.toString( 5 ) ) );
+		///////////////////
 		mRendering = false;
+		///////////////////
 		return ImageUtils::createEmptyImage();
 	}
 
@@ -185,7 +190,9 @@ osg::Image* QgsOsgEarthTileSource::createImage( const TileKey& key, ProgressCall
 
 	image->flipVertical();
 
+	///////////////////
 	mRendering = false;
+	///////////////////
 
 	//Create a transparent image if we don't have an image
 	if ( !image.valid() )

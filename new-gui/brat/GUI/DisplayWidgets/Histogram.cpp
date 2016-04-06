@@ -48,6 +48,27 @@ void CHistogram::init()
     setZ(20.0);
 }
 
+
+void CHistogram::Ranges( double &xMin, double &xMax, double &yMin, double &yMax )
+{
+	xMin = mMinXValue;
+	xMax = mMaxXValue;
+
+	yMin = mMinYValue;
+	yMax = mMaxYValue;
+}
+
+
+void CHistogram::SetRanges( double xMin, double xMax, double yMin, double yMax )
+{
+	mMinXValue = xMin;
+	mMaxXValue = xMax;
+
+	mMinYValue = yMin;
+	mMaxYValue = yMax;
+}
+
+
 void CHistogram::setBaseline(double reference)
 {
     if ( d_data->reference != reference )

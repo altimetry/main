@@ -356,7 +356,52 @@ struct C3DPlotParameters
 
 	double mMinHeightValue = 0.;
 	double mMaxHeightValue = 0.;
+
+
+protected:
+    static size_t nearest( double raster_x, const std::set<double> &nearest_map, const std::vector<double> &axis )
+    {
+        auto pair = nearest_map.equal_range( raster_x );
+
+        if ( pair.first == nearest_map.end() )
+            //return m;
+            return 0;
+
+        size_t index = std::distance( nearest_map.begin(), pair.first );
+        if ( index == 0)
+            return index;
+
+        if ( *pair.first - raster_x < raster_x - axis[ index - 1] )
+            return index;
+
+        return index - 1;
+    }
+    size_t nearest_x( double raster_x ) const
+    {
+        return nearest( raster_x, mXmap, mXaxis );
+    }
+    size_t nearest_y( double raster_y ) const
+    {
+        return nearest( raster_y, mYmap, mYaxis  );
+    }
+
+public:
+
+    double value( double x, double y ) const
+    {
+        x = nearest_x( x );
+        y = nearest_y( y );
+
+        auto index = y * mXaxis.size() + x;								assert__( index >= 0 && index < mBits.size() );
+        if ( index < 0 || index >= mBits.size() || !mBits.at( index ) )
+            return 0;		//rasters do not seem to support NANs std::numeric_limits<double>::quiet_NaN();
+
+        return mValues.at( index );
+    }
 };
+
+
+
 
 
 struct CWorldPlotParameters : public C3DPlotParameters
@@ -415,42 +460,10 @@ struct CGeneric3DPlotInfo : public std::vector< PARAMS >, public QwtRasterData
     }
 
 
-protected:
-	static double nearest( double raster_x, const std::set<double> &nearest_map, double m, double M )
-	{
-		auto pair = nearest_map.equal_range( raster_x );		UNUSED( M );
-
-		if ( pair.first == nearest_map.end() )
-			return m;
-
-		return *pair.first;
-	}
-	double nearest_x( double raster_x ) const
-	{
-		const parameters_t &frame = ( *this )[ mCurrentFrame ];
-		return nearest( raster_x, frame.mXmap, frame.mMinX, frame.mMaxX );
-	}
-	double nearest_y( double raster_y ) const
-	{
-		const parameters_t &frame = ( *this )[ mCurrentFrame ];
-		return nearest( raster_y, frame.mYmap, frame.mMinY, frame.mMaxY  );
-	}
-
-
-public:
-
 	virtual double value( double x, double y ) const override
     {
 		const parameters_t &frame = ( *this )[ mCurrentFrame ];
-
-		x = nearest_x( x ) - frame.mMinX;
-		y = nearest_y( y ) - frame.mMinY;
-
-		auto index = y * frame.mXaxis.size() + x;										assert__( index >= 0 && index < frame.mBits.size() );
-		if ( index < 0 || index >= frame.mBits.size() || !frame.mBits.at( index ) )
-			return 0;		//rasters do not seem to support NANs std::numeric_limits<double>::quiet_NaN();
-
-		return frame.mValues.at( index );
+        return frame.value( x, y );
     }
 
 

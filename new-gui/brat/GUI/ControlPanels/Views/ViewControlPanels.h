@@ -107,13 +107,24 @@ class CAxisTab : public QWidget
 
     // instance data members
 
-    QCheckBox    *mLogScaleCheck = nullptr;
+
 
 	//construction / destruction
 
-	void Wire();
+    //void Wire();
 
 public:
+
+    QCheckBox *mLogScaleCheck = nullptr;
+    QLineEdit *mAxisLabel = nullptr;
+    QLineEdit *mNbTicks  = nullptr;
+    QLineEdit *mBase     = nullptr;
+    QLineEdit *mNbDigits = nullptr;
+
+    QLineEdit *mAxisMax = nullptr;
+    QLineEdit *mAxisMin = nullptr;
+    QPushButton *mReset = nullptr;
+
     CAxisTab( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
     virtual ~CAxisTab()
@@ -233,7 +244,7 @@ public:
 
     QTabWidget *mAxisOptionsTabs = nullptr;
 
-	void Wire();
+    //void Wire();
 public:
     CPlotControlsPanelAxisOptions( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 

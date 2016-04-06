@@ -181,17 +181,18 @@ struct CBrat3DFunction : public Qwt3D::Function
 	}
 
 
-	double operator()( double x, double y )
-	{
-		//auto index = ( x - mxmin ) * ( y - mymin );												assert__( index < mPlotValues->mBits.size() );
-		x -= mxmin;
-		y -= mymin;
-		auto index = mPlotValues->mXaxis.size() * y + x;											assert__( index < mPlotValues->mBits.size() );
-		if ( index >= mPlotValues->mBits.size() || !mPlotValues->mBits.at( index ) )
-			return std::numeric_limits< double >::quiet_NaN();
+    double operator()( double x, double y )
+    {
+//        x -= mxmin;
+//        y -= mymin;
+//        auto index = mPlotValues->mXaxis.size() * y + x;											assert__( index < mPlotValues->mBits.size() );
+//        if ( index >= mPlotValues->mBits.size() || !mPlotValues->mBits.at( index ) )
+//            return std::numeric_limits< double >::quiet_NaN();
 
-		return CorrectedValue( mPlotValues->mValues.at( index ) );
-	}
+        return CorrectedValue( mPlotValues->value( x, y ) );
+
+        //return CorrectedValue( mPlotValues->mValues.at( index ) );
+    }
 };
 
 
@@ -265,7 +266,6 @@ void CBrat3DPlot::CreateContextMenu()
     connect( mStandardColorAction,	SIGNAL(toggled(bool)),	this, SLOT( StandardColor(bool) ) );
     connect( mHomeAction,			SIGNAL(triggered()),	this, SLOT( Reset() ) );
 }
-
 
 
 CBrat3DPlot::CBrat3DPlot( QWidget *pw ) 
@@ -634,9 +634,6 @@ void C3DPlotWidget::SetLogarithmicScale( bool log )
 }
 
 
-
-//plot general
-
 void C3DPlotWidget::SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle )
 {
 	assert__( mSurfacePlots.size() );
@@ -650,6 +647,17 @@ void C3DPlotWidget::SetAxisTitles( const std::string &xtitle, const std::string 
 	p->SetAxisTitles( xtitle, ytitle, ztitle );
 }
 
+
+//interaction
+
+void C3DPlotWidget::Home()
+{
+	assert__( mSurfacePlots.size() );
+
+	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mCurrentPlot );		assert__( p );
+
+	p->Reset();
+}
 
 
 //////////////////////////////////////////////////////////////////////////

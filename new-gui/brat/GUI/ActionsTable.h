@@ -85,8 +85,8 @@ enum EActionTag : int
 	eAction_SelectFeatures,
 	eAction_SelectPolygon,
 	eAction_DeselectAll,
-
 	eAction_DecorationGrid,
+	eAction_MouseTrackingeCoordinatesFormat,
 
 	eActionGroup_Filters,
 

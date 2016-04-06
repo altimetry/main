@@ -14,57 +14,22 @@
 #include "2DPlotWidget.h"
 
 
-
-//////////////////////////////////////////////////////////////////
-//						Custom Zoomers
-//////////////////////////////////////////////////////////////////
-
-class CZoomer : public QwtPlotZoomer
+CBratScaleDraw::CBratScaleDraw()
 {
-public:
-	CZoomer( QwtPlotCanvas *canvas ) :
-		QwtPlotZoomer( canvas )
-	{
-		setTrackerMode( AlwaysOn );
-	}
-
-	virtual QwtText trackerText( const QwtDoublePoint &pos ) const
-	{
-		QColor bg( Qt::white );
-		bg.setAlpha( 200 );
-		QwtText text = QwtPlotZoomer::trackerText( pos );
-		text.setBackgroundBrush( QBrush( bg ) );
-		return text;
-	}
-};
+    mantissa_digits = 2 % MAX_MANTISSA;
+}
 
 
-class CSpectrogramZoomer: public QwtPlotZoomer
+CBratScaleDraw::CBratScaleDraw(int _mantissa)
 {
-public:
-    CSpectrogramZoomer( QwtPlotCanvas *canvas )
-		: QwtPlotZoomer( canvas )
-    {
-        setTrackerMode(AlwaysOn);
-		setMousePattern( QwtEventPattern::MouseSelect2, Qt::RightButton, Qt::ControlModifier );
-		setMousePattern( QwtEventPattern::MouseSelect3, Qt::RightButton );
-		const QColor c(Qt::darkBlue);
-		setRubberBandPen(c);
-		setTrackerPen(c);
-    }
+    mantissa_digits = _mantissa % MAX_MANTISSA;
+}
 
-    virtual QwtText trackerText(const QwtDoublePoint &pos) const
-    {
-        QColor bg(Qt::white);
-        bg.setAlpha(200);
-        QwtText text = QwtPlotZoomer::trackerText(pos);
-        text.setBackgroundBrush( QBrush( bg ));
-        return text;
-    }
-};
-
-
-
+QwtText CBratScaleDraw::label(double value) const
+{
+    //return QLocale::system().toString(value);
+    return QString::number(value, 'f', mantissa_digits);
+}
 
 //////////////////////////////////////////////////////////////////
 //						Custom Curve
@@ -100,6 +65,15 @@ CGeneralizedCurve::CGeneralizedCurve( const CQwtArrayPlotData *data, const QStri
 
 
 // access
+
+void CGeneralizedCurve::Ranges( double &xMin, double &xMax, double &yMin, double &yMax )
+{
+	xMin = mMinXValue;
+	xMax = mMaxXValue;
+
+	yMin = mMinYValue;
+	yMax = mMaxYValue;
+}
 
 void CGeneralizedCurve::SetRanges( double xMin, double xMax, double yMin, double yMax )
 {
@@ -242,6 +216,20 @@ C2DPlotWidget::C2DPlotWidget( QWidget *parent )
 
 	setCanvasBackground( Qt::white );
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+    mXScaler = new CBratScaleDraw;
+    mYScaler = new CBratScaleDraw;
+    //xAXiS
+
+//    logScaler = new QwtLog10ScaleEngine();
+//    linScaler = new QwtLinearScaleEngine();
+
+    mIsLog = false;
+
+    setAxisScaleDraw(QwtPlot::xBottom, mXScaler);
+    setAxisScaleDraw(QwtPlot::yLeft, mYScaler);
+///////////////////////////////////////////////////////////////////////////////////////////////////////
+
 #if defined (TEST_2D_EXAMPLES)
 
 //	Spectogram( parent );
@@ -284,7 +272,26 @@ void C2DPlotWidget::HandleFrameChanged()
 	replot();
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+void C2DPlotWidget::SetLogScale(int axisId, bool _isLog)
+{
+    // setAxisScaleEngine deletes the previously set pointer for a
+    // QwtScaleEngine object
 
+    mIsLog=_isLog;
+    if (mIsLog)
+    {
+        setAxisScaleEngine(axisId, new QwtLog10ScaleEngine());
+    }
+    else
+    {
+        setAxisScaleEngine(axisId, new QwtLinearScaleEngine());
+        //setAxisAutoScale(axisId);
+    }
+
+    replot();
+}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -323,6 +330,9 @@ void C2DPlotWidget::SetAxisScales( double xMin, double xMax, double yMin, double
 {
 	for ( auto *c : mCurves )
 		c->SetRanges( xMin, xMax, yMin, yMax );
+
+	for ( auto *h : mHistograms )
+		h->SetRanges( xMin, xMax, yMin, yMax );
 
 	setAxisScale( xBottom, xMin, xMax );
 	setAxisScale( yLeft, yMin, yMax  );
@@ -392,16 +402,6 @@ QwtPlotSpectrogram* C2DPlotWidget::AddRaster( const std::string &title, const C3
 	plotLayout()->setAlignCanvasToScales( true );
 	replot();
 	
-	// Interaction
-
-    // LeftButton for the zooming
-    // MidButton for the panning
-    // RightButton: zoom out by 1
-    // Ctrl+RighButton: zoom out to full size
-
-    QwtPlotZoomer* zoomer = new CSpectrogramZoomer( canvas() );     Q_UNUSED( zoomer );
-    QwtPlotPanner *panner = AddPanner();                            Q_UNUSED( panner );
-
     // Avoid jumping when labels with more/less digits appear/disappear when scrolling vertically
 
 	const QFontMetrics fm( axisWidget( QwtPlot::yLeft )->font() );
@@ -844,46 +844,104 @@ QwtPlotMarker* C2DPlotWidget::AddMarker( const std::string &label, QwtPlotMarker
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
-//								Magnifiers and Zoomers
+//						Magnifiers and Zoomers and Panners
 /////////////////////////////////////////////////////////////////////////////////////////
+
+////////////////////
+//	Custom Zoomers	
+////////////////////
+
+class C2DZoomer : public QwtPlotZoomer
+{
+	using base_t = QwtPlotZoomer;
+
+public:
+	C2DZoomer( QwtPlotCanvas *canvas ) :
+		QwtPlotZoomer( canvas )
+	{
+		setTrackerMode( AlwaysOn );
+		setMousePattern( QwtEventPattern::MouseSelect3, Qt::RightButton );
+		setMousePattern( QwtEventPattern::MouseSelect2, Qt::RightButton, Qt::ControlModifier );
+		const QColor c(Qt::darkBlue);
+		setRubberBandPen(c);
+		setTrackerPen(c);
+	}
+
+	virtual QwtText trackerText( const QwtDoublePoint &pos ) const
+	{
+		QColor bg( Qt::white );
+		bg.setAlpha( 200 );
+		QwtText text = QwtPlotZoomer::trackerText( pos );
+		text.setBackgroundBrush( QBrush( bg ) );
+		return text;
+	}
+
+	void Home()
+	{
+		zoom( 0 );
+	}
+};
+
+
+void C2DPlotWidget::Home()
+{
+	if ( mZoomer )			//null for curves
+	{
+		mZoomer->Home();
+	}
+
+	double xMin, xMax, yMin, yMax;
+	if ( mCurves.size() > 0 )
+	{
+		CGeneralizedCurve *pcurve = mCurves[ 0 ];
+		pcurve->Ranges( xMin, xMax, yMin, yMax );
+	}
+	else
+	if ( mHistograms.size() > 0 )
+	{						//mHistograms
+		auto *phisto = mHistograms[ 0 ];
+		phisto->Ranges( xMin, xMax, yMin, yMax );
+	}
+	else
+		return;
+
+	SetAxisScales( xMin, xMax, yMin, yMax );
+	replot();
+}
 
 
 QwtPlotMagnifier* C2DPlotWidget::AddMagnifier()
 {
-	return new QwtPlotMagnifier( canvas() );
+	assert__( !mMagnifier );
+
+	mMagnifier = new QwtPlotMagnifier( canvas() );
+	return mMagnifier;
 }
-QwtPlotZoomer* C2DPlotWidget::AddZoomer( QColor color )
+
+
+QwtPlotZoomer* C2DPlotWidget::AddZoomer()
 {
 	// LeftButton for the zooming
 	// RightButton: zoom out by 1
 	// Ctrl+RighButton: zoom out to full size
 
-	QwtPlotZoomer* zoomer = new CZoomer( canvas() );
-	zoomer->setMousePattern( QwtEventPattern::MouseSelect2,	Qt::RightButton, Qt::ControlModifier );
-	zoomer->setMousePattern( QwtEventPattern::MouseSelect3,	Qt::RightButton );
+	assert__( !mZoomer );
 
-	const QColor c( color );
-	zoomer->setRubberBandPen( c );
-	zoomer->setTrackerPen( c );
-
-	return zoomer;
+	mZoomer = new C2DZoomer( canvas() );
+	return mZoomer;
 }
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-//									Panners
-/////////////////////////////////////////////////////////////////////////////////////////
 
 
 QwtPlotPanner* C2DPlotWidget::AddPanner()
 {
-	// MidButton for the panning
-	QwtPlotPanner *panner = new QwtPlotPanner( canvas() );
-	panner->setAxisEnabled( QwtPlot::yRight, false );
-	panner->setMouseButton( Qt::MidButton );
+	assert__( !mPanner );
 
-	return panner;
+	// MidButton for the panning
+	mPanner = new QwtPlotPanner( canvas() );
+	mPanner->setAxisEnabled( QwtPlot::yRight, false );
+	mPanner->setMouseButton( Qt::MidButton );
+
+	return mPanner;
 }
 
 

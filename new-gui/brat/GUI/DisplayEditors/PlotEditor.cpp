@@ -20,10 +20,6 @@ void CPlotEditor::CreateWidgets() 	//parent = nullptr
 	AddTab( mTabCurveOptions, "Data Options" );
 	AddTab( mTabAxisOptions, "Axis Options" );
 
-	mTabAxisOptions->mX_axis->setEnabled( false );			//TODO delete when implemented
-	mTabAxisOptions->mY_axis->setEnabled( false );			//TODO delete when implemented
-	mTabAxisOptions->mAxisOptionsTabs->setCurrentIndex( 2 );
-
 	//Even if ResetViews destroys them before first use, 
 	//	it is important to start with valid views
 	//
@@ -64,12 +60,26 @@ void CPlotEditor::Wire()
 
 	// axis
 
-	connect( mTabAxisOptions, SIGNAL( LogarithmicScaleX( bool ) ), this, SLOT( HandleLogarithmicScaleX( bool ) ) );
-	connect( mTabAxisOptions, SIGNAL( LogarithmicScaleY( bool ) ), this, SLOT( HandleLogarithmicScaleY( bool ) ) );
-	connect( mTabAxisOptions, SIGNAL( LogarithmicScaleZ( bool ) ), this, SLOT( HandleLogarithmicScaleZ( bool ) ) );
+    connect( mTabAxisOptions->mX_axis->mLogScaleCheck, SIGNAL( toggled( bool ) ), this, SLOT( HandleLogarithmicScaleX( bool ) ) );
+    connect( mTabAxisOptions->mY_axis->mLogScaleCheck, SIGNAL( toggled( bool ) ), this, SLOT( HandleLogarithmicScaleY( bool ) ) );
+    connect( mTabAxisOptions->mZ_axis->mLogScaleCheck, SIGNAL( toggled( bool ) ), this, SLOT( HandleLogarithmicScaleZ( bool ) ) );
 
+    connect( mTabAxisOptions->mX_axis->mReset, SIGNAL( clicked( bool ) ), this, SLOT( HandleResetAxis(  ) ) );
+    connect( mTabAxisOptions->mY_axis->mReset, SIGNAL( clicked( bool ) ), this, SLOT( HandleResetAxis(  ) ) );
 
-	// spectrogram
+    connect( mTabAxisOptions->mX_axis->mAxisMax, SIGNAL( returnPressed() ), this, SLOT( HandleXAxisMaxScaleChanged(  ) ) );
+    connect( mTabAxisOptions->mX_axis->mAxisMin, SIGNAL( returnPressed() ), this, SLOT( HandleXAxisMinScaleChanged(  ) ) );
+    connect( mTabAxisOptions->mY_axis->mAxisMax, SIGNAL( returnPressed() ), this, SLOT( HandleYAxisMaxScaleChanged(  ) ) );
+    connect( mTabAxisOptions->mY_axis->mAxisMin, SIGNAL( returnPressed() ), this, SLOT( HandleYAxisMinScaleChanged(  ) ) );
+
+    //SetNbTicks:
+
+    connect( mTabAxisOptions->mX_axis->mNbTicks, SIGNAL( returnPressed() ), this, SLOT( HandleXNbTicksChanged( ) ) );
+    connect( mTabAxisOptions->mY_axis->mNbTicks, SIGNAL( returnPressed() ), this, SLOT( HandleYNbTicksChanged( ) ) );
+
+    //connect( mPlot2DView->axisWidget(QwtPlot::xBottom), SIGNAL( scaleDivChanged() ), this, SLOT( RespondUpdateAxis() ));
+
+    // spectrogram
 
 	connect( mTabCurveOptions->mShowContour, SIGNAL( toggled( bool ) ), this, SLOT( HandleShowContourChecked( bool ) ) );
 	connect( mTabCurveOptions->mShowSolidColor, SIGNAL( toggled( bool ) ), this, SLOT( HandleShowSolidColorChecked( bool ) ) );
@@ -176,6 +186,14 @@ void CPlotEditor::Show3D( bool checked )
 	mPlot3DView->setVisible( checked );
 }
 
+//virtual 
+void CPlotEditor::Recenter()
+{
+	mPlot2DView->Home();
+	if ( mPlot3DView )
+		mPlot3DView->Home();
+}
+
 
 //virtual 
 bool CPlotEditor::ResetViews( bool enable_2d, bool enable_3d )
@@ -218,19 +236,41 @@ void CPlotEditor::NewButtonClicked()
 }
 //virtual 
 void CPlotEditor::RenameButtonClicked()
-{
-	//BRAT_NOT_IMPLEMENTED
-}
+{}
 //virtual 
 void CPlotEditor::DeleteButtonClicked()
-{
-	//BRAT_NOT_IMPLEMENTED
-}
+{}
 //virtual 
 void CPlotEditor::OneClick()
 {
 	BRAT_NOT_IMPLEMENTED
 }
+
+//JOFF
+void CPlotEditor::mousePressEvent(QMouseEvent * mouse_event)
+{
+    Q_UNUSED(mouse_event);
+    RespondUpdateAxis();
+}
+void CPlotEditor::mouseReleaseEvent(QMouseEvent * mouse_event)
+{
+    Q_UNUSED(mouse_event);
+    RespondUpdateAxis();
+}
+void CPlotEditor::mouseMoveEvent(QMouseEvent * mouse_event)
+{
+    Q_UNUSED(mouse_event);
+    RespondUpdateAxis();
+}
+void CPlotEditor::wheelEvent(QWheelEvent * event)
+{
+    RespondUpdateAxis();
+    event->accept();
+}
+
+
+
+
 
 
 void CPlotEditor::HandlePlotTypeChanged( int index )
@@ -447,15 +487,30 @@ void CPlotEditor::HandleLogarithmicScaleX( bool log )
 	WaitCursor wait;
 
 	if ( mPlot3DView )
-		mPlot3DView->SetLogarithmicScale( log );		//TODO or eliminate
+    {
+        mPlot3DView->SetLogarithmicScale( log );		//TODO or eliminate}
+    }
+
+    if (mPlot2DView)
+    {
+        mPlot2DView->SetLogScale(QwtPlot::xBottom, log);
+        mPropertiesXY->SetXLog(log);
+    }
 }
 
 void CPlotEditor::HandleLogarithmicScaleY( bool log )
 {
 	WaitCursor wait;
 
-	if ( mPlot3DView )
-		mPlot3DView->SetLogarithmicScale( log );		//TODO or eliminate
+    if ( mPlot3DView )
+    {
+        mPlot3DView->SetLogarithmicScale( log );		//TODO or eliminate
+    }
+    if (mPlot2DView)
+    {
+        mPlot2DView->SetLogScale(QwtPlot::yLeft, log);
+        mPropertiesXY->SetYLog(log);
+    }
 }
 
 void CPlotEditor::HandleLogarithmicScaleZ( bool log )
@@ -464,11 +519,161 @@ void CPlotEditor::HandleLogarithmicScaleZ( bool log )
 
 	if ( mPlot3DView )
 		mPlot3DView->SetLogarithmicScaleZ( log );
+
+    if (mPlot2DView)
+    {
+        mPlot2DView->SetLogScale(QwtPlot::yRight, log);
+    }
 }
 
+//reset scales
+void CPlotEditor::HandleResetAxis()
+{
+    double xMin_or, xMax_or, yMin_or, yMax_or;
 
+    xMin_or = mPropertiesXY->GetXMin();
+    xMax_or = mPropertiesXY->GetXMax();
+    yMin_or = mPropertiesXY->GetYMin();
+    yMax_or = mPropertiesXY->GetYMax();
 
+    mPropertiesXY->SetCurrXMin(xMin_or);
+    mPropertiesXY->SetCurrXMax(xMax_or);
+    mPropertiesXY->SetCurrYMin(yMin_or);
+    mPropertiesXY->SetCurrYMax(yMax_or);
 
+    mPlot2DView->SetAxisScales(xMin_or, xMax_or, yMin_or, yMax_or);
+    RespondUpdateAxis();
+}
+
+void CPlotEditor::HandleXAxisMinScaleChanged()
+{
+    bool ok_conv=false;
+    double x_max = mPropertiesXY->GetCurrXMax();
+    QString new_xmin_str = mTabAxisOptions->mX_axis->mAxisMin->text();
+    double new_xmin = new_xmin_str.toDouble(&ok_conv);
+
+    if ((!ok_conv) || (new_xmin > x_max))
+    {
+        RespondUpdateAxis();
+        return;
+    }
+
+    mPropertiesXY->SetCurrXMin(new_xmin);
+    ScaleFromPropertiesTo2DPlot();
+}
+
+void CPlotEditor::HandleXAxisMaxScaleChanged()
+{
+    bool ok_conv=false;
+    double x_min = mPropertiesXY->GetCurrXMin();
+    QString new_xmax_str = mTabAxisOptions->mX_axis->mAxisMax->text();
+    double new_xmax = new_xmax_str.toDouble(&ok_conv);
+
+    if ((!ok_conv) || (new_xmax < x_min))
+    {
+        RespondUpdateAxis();
+        return;
+    }
+
+    mPropertiesXY->SetCurrXMax(new_xmax);
+    ScaleFromPropertiesTo2DPlot();
+}
+
+void CPlotEditor::HandleYAxisMinScaleChanged()
+{
+    bool ok_conv=false;
+    double y_max = mPropertiesXY->GetCurrYMax();
+    QString new_ymin_str = mTabAxisOptions->mY_axis->mAxisMin->text();
+    double new_ymin = new_ymin_str.toDouble(&ok_conv);
+
+    if ((!ok_conv) || (new_ymin > y_max))
+    {
+        RespondUpdateAxis();
+        return;
+    }
+
+    mPropertiesXY->SetCurrYMin(new_ymin);
+    ScaleFromPropertiesTo2DPlot();
+}
+void CPlotEditor::HandleXNbTicksChanged()
+{
+    bool ok_conv=false;
+    QString new_nb_ticks = mTabAxisOptions->mX_axis->mNbTicks->text();
+    int new_nb = new_nb_ticks.toInt(&ok_conv);
+
+    if ((!ok_conv) || (new_nb <= 0))
+    {
+        mTabAxisOptions->mX_axis->mNbTicks->setText(QString::number(mPropertiesXY->GetXNumTicks()));
+        return;
+    }
+
+    double curr_min = mPropertiesXY->GetCurrXMin();
+    double curr_max = mPropertiesXY->GetCurrXMax();
+    double delta = (curr_max-curr_min)/(double)new_nb;
+    mPropertiesXY->SetXNumTicks(new_nb);
+    mPlot2DView->GenScaleX(curr_min, curr_max, delta);
+}
+
+void CPlotEditor::HandleYNbTicksChanged()
+{
+    bool ok_conv=false;
+    QString new_nb_ticks = mTabAxisOptions->mY_axis->mNbTicks->text();
+    int new_nb = new_nb_ticks.toInt(&ok_conv);
+
+    if ((!ok_conv) || (new_nb <= 0))
+    {
+        mTabAxisOptions->mY_axis->mNbTicks->setText(QString::number(mPropertiesXY->GetYNumTicks()));
+        return;
+    }
+
+    double curr_min = mPropertiesXY->GetCurrYMin();
+    double curr_max = mPropertiesXY->GetCurrYMax();
+    double delta = (curr_max-curr_min)/(double)new_nb;
+    mPropertiesXY->SetYNumTicks(new_nb);
+    mPlot2DView->GenScaleY(curr_min, curr_max, delta);
+}
+
+void CPlotEditor::HandleYAxisMaxScaleChanged()
+{
+    bool ok_conv=false;
+    double y_min = mPropertiesXY->GetCurrYMin();
+    QString new_ymax_str = mTabAxisOptions->mY_axis->mAxisMax->text();
+    double new_ymax = new_ymax_str.toDouble(&ok_conv);
+
+    if ((!ok_conv) || (new_ymax < y_min))
+    {
+        RespondUpdateAxis();
+        return;
+    }
+
+    mPropertiesXY->SetCurrYMax(new_ymax);
+    ScaleFromPropertiesTo2DPlot();
+}
+
+void CPlotEditor::ScaleFromPropertiesTo2DPlot()
+{
+    double xMin_or, xMax_or, yMin_or, yMax_or;
+
+    xMin_or = mPropertiesXY->GetCurrXMin();
+    xMax_or = mPropertiesXY->GetCurrXMax();
+    yMin_or = mPropertiesXY->GetCurrYMin();
+    yMax_or = mPropertiesXY->GetCurrYMax();
+    mPlot2DView->SetAxisScales(xMin_or, xMax_or, yMin_or, yMax_or);
+}
+
+//from plot to widge,properties
+void CPlotEditor::RespondUpdateAxis()
+{    
+    mPropertiesXY->SetCurrXMin(mPlot2DView->GetXMin());
+    mPropertiesXY->SetCurrXMax(mPlot2DView->GetXMax());
+    mPropertiesXY->SetCurrYMin(mPlot2DView->GetYMin());
+    mPropertiesXY->SetCurrYMax(mPlot2DView->GetYMax());
+
+    mTabAxisOptions->mY_axis->mAxisMin->setText(QString::number(mPropertiesXY->GetCurrYMin()));
+    mTabAxisOptions->mY_axis->mAxisMax->setText(QString::number(mPropertiesXY->GetCurrYMax()));
+    mTabAxisOptions->mX_axis->mAxisMin->setText(QString::number(mPropertiesXY->GetCurrXMin()));
+    mTabAxisOptions->mX_axis->mAxisMax->setText(QString::number(mPropertiesXY->GetCurrXMax()));
+}
 
 
 //////////////////////////////////////////////////////////////////////////
@@ -508,6 +713,18 @@ void CPlotEditor::Reset2DProperties( const CZFXYPlotProperties *props, CZFXYPlot
 		mPlot3DView->ShowSolidColor( i, mPropertiesZFXY_3D->m_solidColor );		//idem
 	}
 	
+	// 2D Raster Interaction
+	//
+    // LeftButton for the zooming
+    // MidButton for the panning
+    // RightButton: zoom out by 1
+    // Ctrl+RighButton: zoom out to full size
+	//
+    mPlot2DView->AddZoomer();
+    mPlot2DView->AddPanner();
+
+	//
+
 	mTabCurveOptions->mLineOptions->setEnabled( false );
 	mTabCurveOptions->mPointOptions->setEnabled( false );
 	mTabCurveOptions->mSpectrogramOptions->setEnabled( true );
@@ -522,9 +739,6 @@ void CPlotEditor::Reset2DProperties( const CXYPlotProperties *props, CPlot *plot
 {
 	assert__( mPlot2DView && mCurrentDisplayFilesProcessor );
 
-	QwtPlotMagnifier *mag = mPlot2DView->AddMagnifier();			Q_UNUSED( mag );
-	QwtPlotPanner *panner = mPlot2DView->AddPanner();				Q_UNUSED( panner );
-
 	if ( mPlotType == eHistogram || mPlotType == eXY )
 	{
 		mPlot2DView->CreatePlot( props, plot, mPlotType == eHistogram );
@@ -538,6 +752,11 @@ void CPlotEditor::Reset2DProperties( const CXYPlotProperties *props, CPlot *plot
 	}
 	else
 		assert__( false );
+
+	//Create these only after invoking CreatePlot
+	//
+	mPlot2DView->AddMagnifier();
+	mPlot2DView->AddPanner();
 
 	mPlot2DView->EnableAxisY2( mPlotType == eXYY );
 	mTabAxisOptions->mZ_axis->setEnabled( mPlotType == eXYY );
@@ -554,6 +773,26 @@ void CPlotEditor::Reset2DProperties( const CXYPlotProperties *props, CPlot *plot
 
 		if ( mPlotType != eHistogram )
 		{
+            //Fills the minimum vs maximum
+            mPropertiesXY->SetXMin(mPlot2DView->GetXMin());
+            mPropertiesXY->SetXMax(mPlot2DView->GetXMax());
+            mPropertiesXY->SetYMin(mPlot2DView->GetYMin());
+            mPropertiesXY->SetYMax(mPlot2DView->GetYMax());
+
+            //Fills nb Ticks structure
+            mPropertiesXY->SetXNumTicks(5);
+            mPropertiesXY->SetYNumTicks(5);
+
+            //Fills nb of digits
+            mPropertiesXY->SetXNbDigits(mPlot2DView->GetXAxisMantissa());
+            mPropertiesXY->SetYNbDigits(mPlot2DView->GetYAxisMantissa());
+
+            //Fills CurrRange
+            mPropertiesXY->SetCurrXMin(mPropertiesXY->GetXMin());
+            mPropertiesXY->SetCurrXMax(mPropertiesXY->GetXMax());
+            mPropertiesXY->SetCurrYMin(mPropertiesXY->GetYMin());
+            mPropertiesXY->SetCurrYMax(mPropertiesXY->GetYMax());
+
 			mPlot2DView->SetCurveLineColor( i, mPropertiesXY->GetColor() );
 			mPlot2DView->SetCurveLineOpacity( i, mPropertiesXY->GetOpacity() );
 			mPlot2DView->SetCurveLinePattern( i, mPropertiesXY->GetStipplePattern() );
@@ -563,6 +802,16 @@ void CPlotEditor::Reset2DProperties( const CXYPlotProperties *props, CPlot *plot
 			mPlot2DView->SetCurvePointFilled( i, mPropertiesXY->GetFilledPoint() );
 			mPlot2DView->SetCurvePointGlyph( i, mPropertiesXY->GetPointGlyph() );
 			mPlot2DView->SetCurvePointSize( i, mPropertiesXY->GetPointSize() );
+
+            double x_min = mPropertiesXY->GetCurrXMin();
+            double x_max = mPropertiesXY->GetCurrXMax();
+
+            double y_min = mPropertiesXY->GetCurrYMin();
+            double y_max = mPropertiesXY->GetCurrYMax();
+
+            mPlot2DView->GenScaleX(x_min, x_max, (x_max-x_min)/5);
+            mPlot2DView->GenScaleY(y_min, y_max, (y_max-y_min)/5);
+
 		}
 	}
 
@@ -577,7 +826,8 @@ void CPlotEditor::Reset2DProperties( const CXYPlotProperties *props, CPlot *plot
 
 void CPlotEditor::HandleCurrentFieldChanged( int index )
 {
-	assert__( mPlot2DView /*&& !mDataArrayZFXY_2D && !mDataArrayZFXY_3D */);
+    int nb_ticks=0;
+	assert__( mPlot2DView );
 
 	mTabCurveOptions->mLineOptions->setEnabled( index >= 0 && !mDataArrayZFXY_2D && !mDataArrayZFXY_3D && mPlotType != eHistogram );
 	mTabCurveOptions->mPointOptions->setEnabled( index >= 0 && !mDataArrayZFXY_2D && !mDataArrayZFXY_3D && mPlotType != eHistogram );
@@ -632,6 +882,47 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
 
 	mTabCurveOptions->mLineOptions->setChecked( mPlotType != eHistogram && mPropertiesXY->GetLines() );
 	mTabCurveOptions->mPointOptions->setChecked( mPropertiesXY->GetPoints() );
+
+    assert__( mTabAxisOptions->mX_axis );
+    mTabAxisOptions->mX_axis->mAxisLabel->setText(t2q(mPropertiesXY->GetXLabel()));
+    mTabAxisOptions->mX_axis->mBase->setText(QString::number(mPropertiesXY->GetXBase()));
+    nb_ticks = mPropertiesXY->GetXNumTicks();
+    if (nb_ticks < 0)
+    {
+        mTabAxisOptions->mX_axis->mNbTicks->setText("No ticks");
+    }
+    else
+    {
+        mTabAxisOptions->mX_axis->mNbTicks->setText(QString::number(mPropertiesXY->GetXNumTicks()));
+    }
+    mTabAxisOptions->mX_axis->mLogScaleCheck->setChecked(mPropertiesXY->GetXLog());
+    mTabAxisOptions->mX_axis->mNbDigits->setText(QString::number(mPropertiesXY->GetXNbDigits()));
+
+    //Curve's max and min
+    mTabAxisOptions->mX_axis->mAxisMin->setText(QString::number(mPropertiesXY->GetXMin()));
+    mTabAxisOptions->mX_axis->mAxisMax->setText(QString::number(mPropertiesXY->GetXMax()));
+
+    assert__( mTabAxisOptions->mY_axis );
+    mTabAxisOptions->mY_axis->mAxisLabel->setText(t2q(mPropertiesXY->GetYLabel()));
+    mTabAxisOptions->mY_axis->mBase->setText(QString::number(mPropertiesXY->GetYBase()));
+    nb_ticks = mPropertiesXY->GetYNumTicks();
+    if (nb_ticks < 0)
+    {
+        mTabAxisOptions->mY_axis->mNbTicks->setText("No ticks");
+    }
+    else
+    {
+        mTabAxisOptions->mY_axis->mNbTicks->setText(QString::number(mPropertiesXY->GetYNumTicks()));
+    }
+    mTabAxisOptions->mY_axis->mLogScaleCheck->setChecked(mPropertiesXY->GetYLog());
+    mTabAxisOptions->mY_axis->mNbDigits->setText(QString::number(mPropertiesXY->GetYNbDigits()));
+
+    //Curve's max and min
+    mTabAxisOptions->mY_axis->mAxisMin->setText(QString::number(mPropertiesXY->GetYMin()));
+    mTabAxisOptions->mY_axis->mAxisMax->setText(QString::number(mPropertiesXY->GetYMax()));
+
+
+
 }
 
 

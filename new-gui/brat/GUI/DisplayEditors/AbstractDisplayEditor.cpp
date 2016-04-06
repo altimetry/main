@@ -102,12 +102,15 @@ void CAbstractDisplayEditor::CreateGraphicsBar()
 
 	// add button group
 
-	QActionGroup *group = CActionInfo::CreateActionGroup( this, { eAction_DisplayEditor2D, eAction_DisplayEditor3D }, false );
+	QActionGroup *group = CActionInfo::CreateActionGroup( this, { eAction_DisplayEditor2D, eAction_DisplayEditor3D }, mIsMapEditor );
 
 	m2DAction = group->actions()[0];	assert__( m2DAction->isCheckable() );
 	m3DAction = group->actions()[1];	assert__( m3DAction->isCheckable() );
+	mRecenterAction = CActionInfo::CreateAction( this, eAction_Re_center );
 
 	mGraphicsToolBar->addActions( group->actions() );
+	mGraphicsToolBar->addAction( mRecenterAction );
+
 
 	// add the bar
 
@@ -161,6 +164,8 @@ void CAbstractDisplayEditor::Wire()
 
 	connect( m2DAction, SIGNAL( toggled( bool ) ), this, SLOT( Handle2D( bool ) ) );
 	connect( m3DAction, SIGNAL( toggled( bool ) ), this, SLOT( Handle3D( bool ) ) );
+
+	connect( mRecenterAction, SIGNAL( triggered() ), this, SLOT( HandleRecenter() ) );
 
 
 	//tab general
@@ -538,6 +543,12 @@ void CAbstractDisplayEditor::Handle3D( bool checked )
 		Show3D( checked );
 	else
 		m3DAction->setChecked( true );
+}
+
+
+void CAbstractDisplayEditor::HandleRecenter()
+{
+	Recenter();
 }
 
 

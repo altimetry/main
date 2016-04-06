@@ -226,6 +226,11 @@ class CXYPlotProperties : public CBratObject
 	double m_xMin;
 	double m_yMin;
 
+    double m_xMinCurr;
+    double m_yMinCurr;
+    double m_xMaxCurr;
+    double m_yMaxCurr;
+
 	double m_xBase;
 	double m_yBase;
 
@@ -244,6 +249,9 @@ class CXYPlotProperties : public CBratObject
 
 	uint32_t m_xNumTicks;
 	uint32_t m_yNumTicks;
+
+    uint32_t m_xNbDigits;
+    uint32_t m_yNbDigits;
 
 
 	EPointGlyph m_glyphType;
@@ -340,6 +348,16 @@ public:
 	void SetYMin( double value ) { m_yMin = value; }
 	void SetYMax( double value ) { m_yMax = value; }
 
+    double GetCurrXMin() const { return m_xMinCurr; }
+    double GetCurrXMax() const { return m_xMaxCurr; }
+    void SetCurrXMin( double value ) { m_xMinCurr = value; }
+    void SetCurrXMax( double value ) { m_xMaxCurr = value; }
+
+    double GetCurrYMin() const { return m_yMinCurr; }
+    double GetCurrYMax() const { return m_yMaxCurr; }
+    void SetCurrYMin( double value ) { m_yMinCurr = value; }
+    void SetCurrYMax( double value ) { m_yMaxCurr = value; }
+
 	double GetXBase() const { return m_xBase; }
 	double GetYBase() const { return m_yBase; }
 	void SetXBase( double value ) { m_xBase = value; }
@@ -376,6 +394,11 @@ public:
 	uint32_t GetYNumTicks() const { return m_yNumTicks; }
 	void SetXNumTicks( uint32_t value ) { m_xNumTicks = value; }
 	void SetYNumTicks( uint32_t value ) { m_yNumTicks = value; }
+
+    uint32_t GetXNbDigits() const { return m_xNbDigits; }
+    uint32_t GetYNbDigits() const { return m_yNbDigits; }
+    void SetXNbDigits( uint32_t value ) { m_xNbDigits = value; }
+    void SetYNbDigits( uint32_t value ) { m_yNbDigits = value; }
 
 	int32_t GetNormalizeX() const { return m_normalizeX; }
 	int32_t GetNormalizeY() const { return m_normalizeY; }

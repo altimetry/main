@@ -554,6 +554,11 @@ CXYPlotProperties::CXYPlotProperties( CXYPlotData* parent )
 	SetXBase( 10.0 );
 	SetYBase( 10.0 );
 
+    if (parent)
+    {
+        parent->GetXRange(m_xMin, m_xMax);
+    }
+
 	CPlotColor color = CMapColor::GetInstance().NextPrimaryColors();
 	if ( color.Ok() )
 	{

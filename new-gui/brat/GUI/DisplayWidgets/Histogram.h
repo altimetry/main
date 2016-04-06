@@ -22,6 +22,12 @@ class QString;
 
 class CHistogram: public QwtPlotItem
 {
+	//This is only a trick, taken from curves, to preserve original plot zoom
+	double mMinXValue = 0.;
+	double mMaxXValue = 0.;
+	double mMinYValue = 0.;
+	double mMaxYValue = 0.;
+
 public:
     explicit CHistogram(const QString &title = QString::null);
     explicit CHistogram(const QwtText &title);
@@ -29,6 +35,10 @@ public:
 
     void setData(const QwtIntervalData &data);
     const QwtIntervalData &data() const;
+
+	//This is only a trick, taken from curves, to preserve original plot zoom
+	void Ranges( double &xMin, double &xMax, double &yMin, double &yMax );
+	void SetRanges( double xMin, double xMax, double yMin, double yMax );
 
     void setColor(const QColor &);
     QColor color() const;

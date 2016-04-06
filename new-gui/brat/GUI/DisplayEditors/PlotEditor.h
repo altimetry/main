@@ -121,7 +121,9 @@ protected:
 	void Reset2DProperties( const CXYPlotProperties *props, CPlot *plot );
 	void Reset2DProperties( const CZFXYPlotProperties *props, CZFXYPlot *zfxyplot );
 
+    void RespondUpdateAxis();		//JOFF
 
+    void ScaleFromPropertiesTo2DPlot();		//JOFF
 
 	///////////////////////////////////////////////////////////
 	// Virtual interface implementations
@@ -133,6 +135,7 @@ protected:
 
 	virtual void Show2D( bool checked ) override;
 	virtual void Show3D( bool checked ) override;
+	virtual void Recenter() override;
 
 	virtual bool ViewChanged() override;
 	virtual void NewButtonClicked() override;
@@ -143,11 +146,21 @@ protected:
 
 	virtual void OneClick() override;
 
+	//JOFF
+    virtual void mousePressEvent(QMouseEvent * mouse_event) override;
+    virtual void mouseReleaseEvent(QMouseEvent * mouse_event) override;
+    virtual void mouseMoveEvent(QMouseEvent* mouse_event) override;
+    virtual void wheelEvent(QWheelEvent * event) override;
+
 	///////////////////////////////////////////////////////////
 	// Handlers
 	///////////////////////////////////////////////////////////
 
 protected slots:
+
+    // nb Ticks Slots:
+    void HandleXNbTicksChanged();
+    void HandleYNbTicksChanged();
 
 	void HandlePlotTypeChanged( int );
 
@@ -156,6 +169,12 @@ protected slots:
 	void HandleLogarithmicScaleX( bool log );
 	void HandleLogarithmicScaleY( bool log );
 	void HandleLogarithmicScaleZ( bool log );
+	//JOFF
+    void HandleResetAxis();
+    void HandleXAxisMinScaleChanged();
+    void HandleXAxisMaxScaleChanged();
+    void HandleYAxisMinScaleChanged();
+    void HandleYAxisMaxScaleChanged();
 
 	//curve handlers //////////////////////////////////////////
 

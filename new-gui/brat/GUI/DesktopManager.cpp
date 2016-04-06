@@ -85,7 +85,7 @@ CSubWindow::CSubWindow( QWidget *widget, QWidget *parent, Qt::WindowFlags f )		/
 #if defined (_WIN32) || defined (WIN32)
 	// Show maximize button in windows
 	// If this is set in linux, it will not center the dialog over parent
-	setWindowFlags( ( windowFlags() & ~Qt::Dialog ) | Qt::Window | Qt::WindowMaximizeButtonHint );
+	setWindowFlags( ( windowFlags() & ~Qt::Dialog ) | Qt::Window | Qt::WindowMaximizeButtonHint | Qt::WindowMinimizeButtonHint );
 #elif defined (Q_OS_MAC)
 	// Qt::WindowStaysOnTopHint also works (too weel: stays on top of other apps also). Without this, we have the mac MDI mess...
 	setWindowFlags( ( windowFlags() & ~Qt::Dialog ) | Qt::Tool );

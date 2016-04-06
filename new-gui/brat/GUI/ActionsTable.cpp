@@ -77,7 +77,7 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_Full_Screen, "Full Screen", "Full Screen\nToggle full screen mode.\nUse the <span style=\" font-weight:600;\">F11</span> key to switch modes.", ":images/OSGeo/fullscreen.png", "", "F11" },
 
-    { eAction_Re_center, "Re-center", "Re-center\nBring map to original position and size", ":/images/OSGeo/zoom-extent.png", "", "Home" },
+    { eAction_Re_center, "Re-center", "Re-center\nBring view to original position and size", ":/images/OSGeo/zoom-extent.png", "", "Home" },
 
     { eAction_Zoom_In, "Zoom In", "Zoom In\nZoom map in", ":/images/OSGeo/zoom-in.png", "", "Ctrl++" },
 
@@ -151,6 +151,8 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 	{ eAction_DeselectAll, "Deselect All", "Deselect Features from All Layers", ":/images/themes/default/mActionDeselectAll.svg" },
 
 	{ eAction_DecorationGrid, "Grid", "Creates a scale bar that is displayed on the map canvas", ":/images/themes/default/transformed.png", ":/images/themes/default/transformed.png" },
+
+	{ eAction_MouseTrackingeCoordinatesFormat, "Format", "Coordinates format", ":/images/themes/default/tracking.png" },
 
 
 	{ eActionGroup_Filters, "", "Select a filter", "://images/OSGeo/filter.png" },

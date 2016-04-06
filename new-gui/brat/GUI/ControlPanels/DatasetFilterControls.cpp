@@ -543,11 +543,26 @@ void CDatasetFilterControls::HandleAreasSelectionChanged()
         return;
     }
 
-    //TODO - Fill mMinLonEdit, mMinLatEdit...???
-//  std::string name = q2a( item->text() );
-//	CArea *area = mBratAreas.Find( name );
+    // Fill Min, Max values of Lon and lat
+    CArea *area = mBratAreas.Find( item->text().toStdString() );
 
-//  mMinLonEdit->setText( n2s< std::string >( area  ->MinLon() ).c_str() );
+    //   Note: the Max values are initialized with Min values and vice-versa.
+    //   TODO: add this to CArea methods???
+    double lat_min = 90;     double lat_max = -90;
+    double lon_min = 180;    double lon_max = -180;
+
+    for ( auto vertex : *area )
+    {
+        if (vertex.first > lon_max){   lon_max = vertex.first;   }
+        if (vertex.first < lon_min){   lon_min = vertex.first;   }
+        if (vertex.second > lat_max){  lat_max = vertex.second;  }
+        if (vertex.second < lat_min){  lat_min = vertex.second;  }
+    }
+
+    mMinLonEdit->setText( n2q( lon_min ) );
+    mMaxLonEdit->setText( n2q( lon_max ) );
+    mMinLatEdit->setText( n2q( lat_min ) );
+    mMaxLatEdit->setText( n2q( lat_max ) );
 
 }
 
@@ -603,7 +618,7 @@ void CDatasetFilterControls::HandleNewArea()
         item->setFlags( item->flags() | Qt::ItemIsUserCheckable );
         item->setCheckState( Qt::Unchecked );
         mAreasListWidget->addItem( item );
-        mAreasListWidget->setCurrentItem( mAreasListWidget->findItems( result.second.c_str(), Qt::MatchExactly ).first() );
+        mAreasListWidget->setCurrentItem( item ); //mAreasListWidget->findItems( result.second.c_str(), Qt::MatchExactly ).first() );
 
         // TODO Refresh all other pertinent widgets
 
@@ -642,6 +657,16 @@ void CDatasetFilterControls::HandleRenameArea()
 {
     std::string area_name = mAreasListWidget->currentItem()->text().toStdString();
 
+    // Check if area is used by any filter
+    auto const &filters = mBratFilters.FiltersMap();
+    for ( auto const &filter : filters )
+        if ( filter.second.FindArea( area_name ) )
+        {
+            SimpleWarnBox( "Cannot rename area '" + area_name +  "', it is used by filter '" + filter.first + "'." );
+            return;
+        }
+
+    // Rename area
     auto result = SimpleInputString( "Area Name", area_name, "Rename Area..." );
     if ( !result.first )
         return;
@@ -657,6 +682,10 @@ void CDatasetFilterControls::HandleRenameArea()
         SaveAllAreas();
 
         // TODO Refresh all other pertinent widgets
+        //   LOST CODE:
+        //    QWidget *w = lista->widgetItem( item );
+        //    QCheckBox *cb = qobject_cast<QCheckBox*>( w );
+        //    connect( cb, toggled, this, slot);
     }
 }
 
@@ -664,8 +693,19 @@ void CDatasetFilterControls::HandleDeleteArea()
 {
     std::string area_name = mAreasListWidget->currentItem()->text().toStdString();
 
+
     if ( SimpleQuestion( "Are you sure you want to delete area '" + area_name + "' ?" ) )
     {
+        // Check if area is used by any filter
+        auto const &filters = mBratFilters.FiltersMap();
+        for ( auto const &filter : filters )
+            if ( filter.second.FindArea( area_name ) )
+            {
+                SimpleWarnBox( "Cannot delete area '" + area_name +  "', it is used by filter '" + filter.first + "'." );
+                return;
+            }
+
+        // Delete area
         if ( !mBratAreas.DeleteArea( area_name ) )
             SimpleErrorBox( "Area '" + area_name + "' was not found!" );
         else
@@ -682,7 +722,14 @@ void CDatasetFilterControls::HandleDeleteArea()
 
 void CDatasetFilterControls::HandleAreaChecked(QListWidgetItem *area_item)
 {
-    mFilter->AddArea( area_item->text().toStdString()  );
+    if ( area_item->checkState() == Qt::Checked )
+    {
+        mFilter->AddArea( area_item->text().toStdString()  );
+    }
+    else
+    {
+        mFilter->RemoveArea( area_item->text().toStdString() );
+    }
 }
 
 
@@ -883,7 +930,7 @@ void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
 
     //function body
 
-    mMap->RemoveLayers();
+	mMap->RemoveTracksLayer();
 	mTotalRecordsSelectedEdit->setText( "" );
 
     if ( !mAutoSatelliteTrack || !dataset || mDataset != dataset )

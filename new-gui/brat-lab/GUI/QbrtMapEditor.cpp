@@ -171,7 +171,7 @@ void QbrtMapEditor::createGlobe()
 	//if ( !mGlobe /* && mSplitter*/)
 	if ( !mGlobeWidget /* && mSplitter*/)
 	{
-        mGlobeWidget = new CGlobeWidget( this, mMapCanvas, statusBar() );
+        mGlobeWidget = new CGlobeWidget( this, mMapCanvas );
 		//mGlobe = new GlobePlugin( nullptr, mMapCanvas );
 		//mOsgViewer = mGlobe->run( ad.mGlobeDir );						//can return null
 

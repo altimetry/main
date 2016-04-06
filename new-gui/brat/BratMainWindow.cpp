@@ -378,7 +378,6 @@ void CBratMainWindow::ProcessMenu()
 }
 
 
-
 void CBratMainWindow::FillStatusBar()
 {
 	LOG_TRACE( "Starting status-bar construction..." );
@@ -402,6 +401,12 @@ void CBratMainWindow::FillStatusBar()
 
 	mDesktopManager->Map()->ConnectParentRenderWidgets( mProgressBar, mRenderSuppressionCBox );
 
+	//coords status bar widget
+	CMapWidget::CreateCoordinatesWidget( statusBar(), mCoordsEdit, mCoordinatesFormat );
+	statusBar()->addPermanentWidget( mCoordinatesFormat, 0 );
+	statusBar()->addPermanentWidget( mCoordsEdit, 0 );
+	mDesktopManager->Map()->ConnectCoordinatesWidget( mCoordsEdit, mCoordinatesFormat, "DMS" );
+
 
 	FillStatusBarExperimental();
 
@@ -412,7 +417,6 @@ void CBratMainWindow::FillStatusBar()
 	mMessageButton->setWhatsThis( tr( "Messages" ) );
 	mMessageButton->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
 	mMessageButton->setObjectName( "mMessageButton" );
-	//mMessageButton->setMaximumHeight( mScaleLabel->height() );
 	mMessageButton->setCheckable( true );
 	statusBar()->addPermanentWidget( mMessageButton, 0 );
 

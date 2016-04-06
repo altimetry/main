@@ -18,7 +18,7 @@
 #include <qwt_plot_zoomer.h>			//spectogram
 #include <qwt_plot_panner.h>			//spectogram
 #include <qwt_plot_layout.h>			//spectogram
-
+#include <qwt_scale_engine.h> 			//2D Scaling objects
 
 #include "DataModels/PlotData/MapColor.h"
 
@@ -28,6 +28,7 @@ class QwtPlotZoomer;
 class QwtPlotMagnifier;
 class QwtPlotPanner;
 class CHistogram;
+class C2DZoomer;
 
 
 class CQwtArrayPlotData;
@@ -150,7 +151,46 @@ public:
 
 ///////////////////////////////////////////////////////////////////////////
 
+//JOFF
+//////////////////////////////////////////////////////////////////
+//						Custom Scale Draw
+//////////////////////////////////////////////////////////////////
 
+//choice of MAX_MANTISSA as 15 because
+//the compiler generated code is lighter (and value, 0xF)
+#define MAX_MANTISSA 15
+
+class CBratScaleDraw : public QwtScaleDraw
+{
+private:
+    int mantissa_digits;
+public:
+    CBratScaleDraw();
+    CBratScaleDraw(int _mantissa);
+
+    //our overloads
+
+    QwtText label(double) const;
+
+    int GetMantissa() const
+    {
+        return mantissa_digits;
+    }
+
+    int SetMantissa(int _mantissa)
+    {
+        mantissa_digits = _mantissa;
+    }
+
+//    QwtText QwtAbstractScaleDraw::label(double value) const
+//    {
+//        //return QLocale::system().toString(value);
+//        return "derp";
+//    }
+
+    //its virtual
+   // void drawLabel(QPainter* painter, double value) const;
+};
 
 
 
@@ -201,6 +241,8 @@ public:
 
 	
 	// access / assignment
+
+	void Ranges( double &xMin, double &xMax, double &yMin, double &yMax );
 
 	void SetRanges( double xMin, double xMax, double yMin, double yMax );
 
@@ -272,17 +314,31 @@ class C2DPlotWidget : public QwtPlot
 
 
 	//instance data
+	
+    // Scaling Objects
+//    QwtLog10ScaleEngine* logScaler = nullptr;
+//    QwtLinearScaleEngine* linScaler = nullptr;
+    bool mIsLog = false;
+
+
+	QwtPlotMagnifier *mMagnifier = nullptr;
+	QwtPlotPanner *mPanner = nullptr;
+	C2DZoomer *mZoomer = nullptr; 
 
     std::vector< QwtPlotSpectrogram* > mSpectrograms;
 	QwtPlotSpectrogram *mCurrentSpectrogram = nullptr;
 	std::vector< CHistogram* > mHistograms;
 	std::vector< CGeneralizedCurve* > mCurves;
 
+    CBratScaleDraw* mXScaler = nullptr;
+    CBratScaleDraw* mYScaler = nullptr;
 
 	QSize mSizeHint = QSize( 72 * fontMetrics().width( 'x' ), 25 * fontMetrics().lineSpacing() );
 
 
+	/////////////////////////////
 	// construction / destruction
+	/////////////////////////////
 
 public:
 
@@ -305,6 +361,26 @@ public:
 	// axis
 	///////////
 
+    int GetXAxisMantissa() const
+    {
+       return mXScaler->GetMantissa();
+    }
+
+    int GetYAxisMantissa() const
+    {
+       return mYScaler->GetMantissa();
+    }
+
+    void SetXAxisMantissa(int new_mantissa)
+    {
+       mXScaler->SetMantissa(new_mantissa);
+    }
+
+    void SetYAxisMantissa(int new_mantissa)
+    {
+       mYScaler->SetMantissa(new_mantissa);
+    }
+
 	void SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &y2title = "" )
 	{
 		SetAxisTitle( xBottom, xtitle );
@@ -322,6 +398,44 @@ public:
 		enableAxis( QwtPlot::yRight, enable );
 	}
 
+    //Range
+    double GetXMin()
+    {
+        return axisScaleDiv(QwtPlot::xBottom)->interval().minValue();
+    }
+
+    double GetXMax()
+    {
+        return axisScaleDiv(QwtPlot::xBottom)->interval().maxValue();
+    }
+
+    double GetYMin()
+    {
+        return axisScaleDiv(QwtPlot::yLeft)->interval().minValue();
+    }
+
+    double GetYMax()
+    {
+        return axisScaleDiv(QwtPlot::yLeft)->interval().maxValue();
+    }
+
+
+    void SetXAxisBounds(double x_min, double x_max)
+    {
+        setAxisScale(QwtPlot::xBottom, x_min, x_max);
+        replot();
+    }
+
+    void SetYAxisBounds(double y_min, double y_max)
+    {
+        setAxisScale(QwtPlot::yLeft, y_min, y_max);
+        replot();
+    }
+
+
+    //Scaling
+
+    void SetLogScale(int axisId, bool _isLog);
 
 
 	///////////
@@ -370,6 +484,59 @@ public:
 	}
 	QwtPlotCurve* AddCurve( const QwtData &data, const std::string &title, QColor color );	//for experimental samples
 
+
+    // Get/Set nb of ticks
+#define MAX_MAJOR_STEPS 50
+#define MAX_MINOR_STEPS 20
+
+    void GenScaleX(double x_min, double x_max, double delta_x)
+    {
+        QwtScaleEngine *curr_engine = axisScaleEngine(QwtPlot::xBottom);
+        QwtScaleDiv new_div = curr_engine->divideScale(x_min,x_max,
+                                                       MAX_MAJOR_STEPS,MAX_MINOR_STEPS,
+                                                       delta_x);
+        setAxisScaleDiv(QwtPlot::xBottom,new_div);
+        replot();
+
+    }
+
+    void GenScaleY(double y_min, double y_max, double delta_y)
+    {
+        QwtScaleEngine *curr_engine = axisScaleEngine(QwtPlot::yLeft);
+        QwtScaleDiv new_div = curr_engine->divideScale(y_min,y_max,
+                                                       MAX_MAJOR_STEPS,MAX_MINOR_STEPS,
+                                                       delta_y);
+        setAxisScaleDiv(QwtPlot::yLeft,new_div);
+        replot();
+
+    }
+
+    void SetXnbTicks(int new_value)
+    {
+        Q_UNUSED(new_value);
+        //setAxisMinMinor(QwtPlot::xBottom, new_value);
+        QwtScaleEngine *curr_engine = axisScaleEngine(QwtPlot::xBottom);
+        QwtScaleDiv new_div = curr_engine->divideScale(0,60,20,20,5);
+        setAxisScaleDiv(QwtPlot::xBottom,new_div);
+        replot();
+    }
+
+    void SetYnbTicks(int new_value)
+    {
+        setAxisMaxMinor(QwtPlot::yLeft, new_value);
+        replot();
+    }
+
+
+    int GetXnbTicks() const
+    {
+        return axisMaxMinor(QwtPlot::xBottom);
+    }
+
+    int GetYnbTicks() const
+    {
+        return axisMaxMinor(QwtPlot::yLeft);
+    }
 
 	// curve line
 
@@ -426,12 +593,13 @@ public:
 
 	// interaction
 
-	QwtPlotZoomer* AddZoomer( QColor color );
+	QwtPlotZoomer* AddZoomer();
 
 	QwtPlotMagnifier* AddMagnifier();
 
-
 	QwtPlotPanner* AddPanner();
+
+	void Home();
 
 
 protected:

@@ -111,6 +111,8 @@ private:
 
 	// map related actions/widgets
 	QProgressBar *mProgressBar = nullptr;
+	QToolButton *mCoordinatesFormat = nullptr;
+	QLineEdit *mCoordsEdit = nullptr;
 	QCheckBox *mRenderSuppressionCBox = nullptr;
 	QAction *mActionDecorationGrid = nullptr;
 	QAction *mActionSelectFeatures = nullptr;
@@ -270,6 +272,7 @@ private slots:
     void on_action_Save_triggered();
     void on_action_Save_As_triggered();
 	void openRecentWorkspace_triggered( QAction *action );
+    void on_action_Close_Workspace_triggered();
 
 
 	////////////////
@@ -297,6 +300,7 @@ private slots:
 	//Menu Window
 
     void on_action_Views_List_triggered();
+    void on_action_Open_View_triggered();
 
 
 	////////////////
@@ -315,14 +319,11 @@ private slots:
 	///////////////////////////////
 
 
-
 	///////////////////////////////
 	// Display Mode slots
 	///////////////////////////////
 
 	void StopDisplayMode();
-    void on_action_Close_Workspace_triggered();
-    void on_action_Open_View_triggered();
 };
 
 

@@ -148,7 +148,7 @@ void C2DPlotWidget::Spectogram( QWidget *parent )
 	plotLayout()->setAlignCanvasToScales( true );
 	replot();
 
-	AddZoomer( Qt::darkBlue );
+	AddZoomer();
 	AddPanner();
 
 	// Avoid jumping when labels with more/less digits

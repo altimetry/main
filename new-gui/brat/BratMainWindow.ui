@@ -349,7 +349,7 @@
     <string>Re-center</string>
    </property>
    <property name="toolTip">
-    <string>Bring map to original position and size</string>
+    <string>Bring view to original position and size</string>
    </property>
    <property name="shortcut">
     <string>Home</string>

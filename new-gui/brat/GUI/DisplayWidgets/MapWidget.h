@@ -127,6 +127,7 @@ protected:
     //////////////////////////////////////
 
 	QgsVectorLayer *mMainLayer = nullptr;
+	QgsVectorLayer *mTracksLayer = nullptr;
 	QgsRasterLayer *mMainRasterLayer = nullptr;
     QList <QgsMapCanvasLayer> mLayerSet;
 
@@ -142,6 +143,10 @@ protected:
 	//
 	QProgressBar *mProgressBar = nullptr;
 	QCheckBox *mRenderSuppressionCBox = nullptr;
+	QLineEdit *mCoordsEdit = nullptr;
+	unsigned int mMousePrecisionDecimalPlaces = 0;
+	QToolButton *mCoordinatesFormatButton = nullptr;
+	QString mCoordinatesFormat;
 
 
 	//...context menu
@@ -196,6 +201,13 @@ public:
 	static void CreateRenderWidgets( QStatusBar *bar, QProgressBar *&progress, QCheckBox *&box );
 	void ConnectParentRenderWidgets( QProgressBar *bar, QCheckBox *box );
 
+	// Coordinates format possible values: "DM", "DMS", "Decimal"
+	//
+	static void CreateCoordinatesWidget( QStatusBar *bar, QLineEdit *&coords, QToolButton *&format_button );
+	void ConnectCoordinatesWidget( QLineEdit *&coords, QToolButton *format_button, const QString &format = "Decimal" );
+
+
+	const QString& CoordinatesFormat() const { return mCoordinatesFormat; }
 
 
     //////////////////////////////////////
@@ -209,11 +221,17 @@ public:
 
 	QgsRectangle CurrentLayerSelectedBox() const;
 
-	void RemoveLayers();
+	void RemoveLayers( bool render = false );
+	
+	void RemoveLayer( QgsMapLayer *layer, bool render = false );
+
+	void RemoveTracksLayer();
 	
 	void SetDefaultProjection();
 
 	void SetProjection( unsigned id );
+
+    void PlotTrack( const double *x, const double *y, const double *z, size_t size, QColor color = Qt::red );
 
 
 protected:
@@ -235,6 +253,8 @@ protected:
     //////////////////////////////////////
 
 	void SetCurrentLayer( QgsMapLayer *l );	
+
+	QgsMapCanvasLayer* FindCanvasLayer( QgsVectorLayer *layer );	
 
 	QgsMapCanvasLayer* FindCanvasLayer( size_t index );	
 	const QgsMapCanvasLayer* FindCanvasLayer( size_t index ) const
@@ -274,6 +294,8 @@ signals:
 
 public slots:
 
+	void ShowMouseCoordinate( const QgsPoint & p, bool erase = false );
+
 protected slots:
 
 	void EnableRectangularSelection( bool enable );
@@ -287,9 +309,15 @@ protected slots:
 
 	void ToggleGridEnabled( bool toggle );
 
+	//parent's status-bar
+
 	void ShowProgress( int theProgress, int theTotalSteps );
 	void RefreshStarted();
 	void RefreshFinished();
+
+	//void ShowMouseCoordinate( const QgsPoint & p );		see above
+	void UpdateMouseCoordinatePrecision();
+	void CoordinatesFormatChanged();
 
 	//context menu
 

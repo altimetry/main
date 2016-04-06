@@ -35,6 +35,7 @@ void CMapEditor::CreateAndWireNewMap()
 	if ( mMapView )
 	{
 		mMapView->setRenderFlag( false );
+		mCoordinatesFormat = mMapView->CoordinatesFormat();
 		QWidget *p = mMapView;
 		mMapView = nullptr;
 		RemoveView( p, false, false );
@@ -43,6 +44,7 @@ void CMapEditor::CreateAndWireNewMap()
 	mMapView->ConnectParentRenderWidgets( mProgressBar, mRenderSuppressionCBox );
 	mMapView->ConnectParentMeasureActions( mMeasureButton, mActionMeasure, mActionMeasureArea );
 	mMapView->ConnectParentGridAction( mActionDecorationGrid );
+	mMapView->ConnectCoordinatesWidget( mCoordsEdit, mCoordinatesFormatButton, mCoordinatesFormat );
 	AddView( mMapView, false );
 	mMapView->setVisible( false );
 }
@@ -75,6 +77,12 @@ void CMapEditor::CreateWidgets()
 	statusBar()->insertPermanentWidget( index, mRenderSuppressionCBox, 0 );
 	statusBar()->insertPermanentWidget( index, mProgressBar, 1 );
 
+	//coords status bar widget
+	CMapWidget::CreateCoordinatesWidget( statusBar(), mCoordsEdit, mCoordinatesFormatButton );
+	statusBar()->addPermanentWidget( mCoordinatesFormatButton, 0 );
+	statusBar()->addPermanentWidget( mCoordsEdit, 0 );
+
+	//graphics bar
 	mMeasureButton = CMapWidget::CreateMapMeasureActions( mGraphicsToolBar, mActionMeasure, mActionMeasureArea );
 	mGraphicsToolBar->addAction( CActionInfo::CreateAction( mGraphicsToolBar, eAction_Separator ) );
 	mGraphicsToolBar->addWidget( mMeasureButton );
@@ -165,6 +173,7 @@ void CMapEditor::closeEvent( QCloseEvent *event )
 }
 
 
+
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 //						General Processing
@@ -185,21 +194,59 @@ CViewControlsPanelGeneralMaps* CMapEditor::TabGeneral()
 //virtual 
 void CMapEditor::Show2D( bool checked )
 {
+	if ( checked )
+		mMapView->freeze( false );
+
 	mMapView->setVisible( checked );
+
+	mMeasureButton->setEnabled( checked );
+	mActionDecorationGrid->setEnabled( checked );
+	if( mToolProjection )
+		mToolProjection->setEnabled( checked );
 }
 //virtual 
 void CMapEditor::Show3D( bool checked )
 {
-	mMapView->freeze( true );
-	if ( checked && !mGlobeView )
+	if ( checked )
 	{
-		WaitCursor wait;
+		while ( mMapView->isDrawing() )
+			qApp->processEvents();
+		mMapView->freeze( true );
 
-		mGlobeView = new CGlobeWidget( this, mMapView, statusBar() );
-		AddView( mGlobeView, true );
+		if ( !mGlobeView )
+		{
+			WaitCursor wait;
+
+            mGlobeView = new CGlobeWidget( this, mMapView );
+			AddView( mGlobeView, true );
+		}
 	}
+
 	mGlobeView->setVisible( checked );
-	mMapView->freeze( false );
+}
+
+
+//virtual 
+void CMapEditor::Recenter()
+{
+	mMapView->zoomToFullExtent();
+	if ( mGlobeView )
+		mGlobeView->Home();
+}
+
+
+void CMapEditor::KillGlobe()
+{
+	if ( mGlobeView )
+	{
+		mGlobeView->ScheduleClose();
+		mGlobeView->setParent( nullptr );
+		mGlobeView = nullptr;
+		m3DAction->blockSignals( true );
+		m3DAction->setChecked( false );
+		m3DAction->setDisabled( false );
+		m3DAction->blockSignals( false );
+	}
 }
 
 
@@ -245,14 +292,10 @@ void CMapEditor::NewButtonClicked()
 }
 //virtual 
 void CMapEditor::RenameButtonClicked()
-{
-	//BRAT_NOT_IMPLEMENTED
-}
+{}
 //virtual 
 void CMapEditor::DeleteButtonClicked()
-{
-	//BRAT_NOT_IMPLEMENTED
-}
+{}
 //virtual 
 void CMapEditor::OneClick()
 {
@@ -448,36 +491,12 @@ void CMapEditor::HandleCurrentFieldChanged( int field_index )
 ///////////////////////////////////////////////////////
 
 
-void CMapEditor::KillGlobe()
-{
-	if ( mGlobeView )
-	{
-		mGlobeView->ScheduleClose();
-		mGlobeView->setParent( nullptr );
-		mGlobeView = nullptr;
-		m3DAction->blockSignals( true );
-		m3DAction->setChecked( false );
-		m3DAction->setDisabled( false );
-		m3DAction->blockSignals( false );
-		//qApp->processEvents();
-	}
-}
-
-
 void CMapEditor::HandleShowSolidColor( bool checked )
 {
 	assert__( mMapView && mDataArrayMap && mPropertiesMap );
 
 	WaitCursor wait;
 
-	if ( mGlobeView )
-	{
-		//KillGlobe();
-		//mTabDataLayers->mShowSolidColorCheck->blockSignals( true );
-		//mTabDataLayers->mShowSolidColorCheck->setChecked( !checked );
-		//mTabDataLayers->mShowSolidColorCheck->blockSignals( false );
-		//return;
-	}
     mPropertiesMap->m_solidColor = checked;
 
 	mMapView->SetLayerVisible( mTabDataLayers->mFieldsList->currentRow(), mPropertiesMap->m_solidColor );
@@ -564,12 +583,11 @@ void CMapEditor::HandleProjection()
 {
 	assert__( mMapView );
 
+	Show2D( true );
+
 	auto a = qobject_cast<QAction*>( sender() );				assert__( a && mProjectionsGroup->actions().indexOf( a ) >= 0 );
 
 	unsigned proj_id = a->data().toUInt();
-
-	BRAT_MSG_NOT_IMPLEMENTED( n2s<std::string>( proj_id ) );
-	return;
 
 	if ( proj_id == PROJ2D_3D )
 		Show3D( true );

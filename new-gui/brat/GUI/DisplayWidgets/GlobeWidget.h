@@ -19,7 +19,7 @@ static_assert( OSGEARTH_VERSION_GREATER_OR_EQUAL( 2, 5, 0 ), "osgEarth version n
 
 
 
-class QgsMapCanvas;
+class CMapWidget;
 class CGlobeViewerWidget;
 
 
@@ -108,7 +108,7 @@ protected:
 
 	osgViewer::Viewer *mOsgViewer = nullptr;
 	CGlobeViewerWidget *mGlobeViewerWidget = nullptr;
-	QgsMapCanvas *mCanvas = nullptr;
+	CMapWidget *mCanvas = nullptr;
 	bool mCloseScheduled = false;
 
 	CRootUpdateCallback *mRootUpdateCallback = nullptr;
@@ -173,16 +173,27 @@ protected:
 	void Wire();
 	void Unwire();
 public:
-	CGlobeWidget( QWidget *parent, QgsMapCanvas *the_canvas, QStatusBar *sb = nullptr );
+	CGlobeWidget( QWidget *parent, CMapWidget *the_canvas );
 
 	virtual ~CGlobeWidget();
 
 	bool ScheduleClose();
 
+	////////////////////////////
+	//	public interface
+	////////////////////////////
+
 	//access
 
 	osgViewer::Viewer* osgViewer() { return mOsgViewer; }
 
+
+
+	void Pause();
+
+	void Resume();
+
+	void Home();
 
 signals:
 	//! emits current mouse position
@@ -251,9 +262,6 @@ protected slots:
 	void ToggleGridEnabled( bool toggle );
 
     void HandleSky( bool toggled );
-
-	void CanvasStarted();
-	void CanvasFinished();
 
 	void ChangeImageLayers();
 

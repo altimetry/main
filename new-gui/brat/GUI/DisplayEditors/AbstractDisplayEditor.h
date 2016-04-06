@@ -92,6 +92,7 @@ protected:
 //private:
 	QAction *m2DAction = nullptr;
 	QAction *m3DAction = nullptr;
+	QAction *mRecenterAction = nullptr;
 
 	//... status-bar
     QStatusBar *mStatusBar = nullptr;
@@ -193,6 +194,7 @@ protected:
 
 	virtual void Show2D( bool display ) = 0;
 	virtual void Show3D( bool display ) = 0;
+	virtual void Recenter() = 0;
 
 	virtual void NewButtonClicked() = 0;
 	virtual void RenameButtonClicked() = 0;
@@ -235,6 +237,7 @@ private slots:
 
 	void Handle2D( bool checked );
 	void Handle3D( bool checked );
+	void HandleRecenter();
 
 	void HandleOperationsIndexChanged( int index );
 	void HandleOneClickClicked()

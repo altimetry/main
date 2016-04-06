@@ -61,6 +61,9 @@ class CMapEditor : public CAbstractDisplayEditor
 	//...map/globe managed widgets/actions
 	QProgressBar *mProgressBar = nullptr;
 	QCheckBox *mRenderSuppressionCBox = nullptr;
+	QToolButton *mCoordinatesFormatButton = nullptr;
+	QString mCoordinatesFormat;
+	QLineEdit *mCoordsEdit = nullptr;
 
 	QAction *mActionMeasure = nullptr;
 	QAction *mActionMeasureArea = nullptr;
@@ -125,6 +128,7 @@ protected:
 
 	virtual void Show2D( bool checked ) override;
 	virtual void Show3D( bool checked ) override;
+	virtual void Recenter() override;
 
 	virtual bool ViewChanged() override;
 	virtual void NewButtonClicked() override;

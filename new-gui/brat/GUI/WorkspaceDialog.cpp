@@ -70,7 +70,7 @@ QString CWorkspaceDialog::CreateHelpText()
 			break;
 		case CTreeWorkspace::eDelete:
 			help_text =	
-				"The workspace will deleted as well as "
+				"The workspace will be deleted as well as "
 				"all data in its directory on disk.";				// override text
 			break;
 		default:

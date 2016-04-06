@@ -71,34 +71,32 @@ CAxisTab::CAxisTab( QWidget *parent, Qt::WindowFlags f )
 	const int vm = 0;	//vertical margins
 
     // 1. Axis label and Scale
-    auto mAxisLabel = new QLineEdit(this);
-    mAxisLabel->setToolTip("Axis label");
+	//
+    mAxisLabel = new QLineEdit;
+	mAxisLabel->setToolTip("Axis label");
 
-    mLogScaleCheck = new QCheckBox("Logarithmic Scale");
+    mLogScaleCheck = new QCheckBox( "Logarithmic Scale" );
 
     // 2. Nb. Ticks, Base and Digits
-    auto mNbTicks  = short_line_edit();
-    auto mBase     = short_line_edit();
-    auto mNbDigits = short_line_edit();
+	//
+    mNbTicks = short_line_edit();
+    mBase = short_line_edit();
+    mNbDigits = short_line_edit();
 
-    // 3. Fallback Range
-    auto mFromDataCheck = new QCheckBox("From Data");
-    auto mFromUserCheck = new QCheckBox("From User");
+    // 3. Range
+	//
+    mReset = new QPushButton("Reset");
+    mReset->setAutoDefault(false);
+    mAxisMax = short_line_edit();
+    mAxisMin = short_line_edit();
 
-    auto mCurrent1 = short_line_edit();
-    auto mCurrent2 = short_line_edit();
-    auto mRange1   = short_line_edit();
-    auto mRange2   = short_line_edit();
 
-    QBoxLayout *Ranges1_layout = ::LayoutWidgets( Qt::Vertical, { mCurrent1, mRange1 }, nullptr, 2, 2, vm, 2, vm );
-    QBoxLayout *Ranges2_layout = ::LayoutWidgets( Qt::Vertical, { mCurrent2, mRange2 }, nullptr, 2, 2, vm, 2, vm );
-    QBoxLayout *Range_labels   = ::LayoutWidgets( Qt::Vertical, { new QLabel( "Current" ), new QLabel( "Range" ) }, nullptr, 2, 2, vm, 2, vm );
-
-    QGroupBox *FallBackRange_group = CreateGroupBox(ELayoutType::Horizontal, 
+    QGroupBox *range_group = CreateGroupBox( ELayoutType::Horizontal, 
 	{
-		mFromDataCheck, mFromUserCheck,	Ranges1_layout, Range_labels,Ranges2_layout
+		mReset, nullptr, new QLabel("Min"), mAxisMin, nullptr, new QLabel("Max"), mAxisMax,
 	}, 
-	"Fallback Range");
+	"Range");
+
 
     // 4. Creating Tab Group
     QGroupBox *tab_group = CreateGroupBox( ELayoutType::Vertical, 
@@ -115,13 +113,15 @@ CAxisTab::CAxisTab( QWidget *parent, Qt::WindowFlags f )
 		}, 
 		nullptr, 2, 2, vm, 2, vm ),
 
-		FallBackRange_group,
+		range_group,
 
 	}, "", nullptr, 4, 4, vm, 4, vm );
-    tab_group->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
+    //tab_group->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
 
 
 	// 5. help text
+	QPushButton *b = new QPushButton( "Help" );
+	b->setCheckable( true );
 	auto help = new CTextWidget;	//use spaces and/or try to have lines without very dissimilar lengths
 	help->SetHelpProperties( 
 		"Y=F(X) plots:\n"
@@ -134,26 +134,11 @@ CAxisTab::CAxisTab( QWidget *parent, Qt::WindowFlags f )
     auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
     help->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::Maximum );
     help_group->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Maximum );
+	connect( b, SIGNAL( toggled( bool ) ), help_group, SLOT( setVisible(bool) ) );
+	help_group->setVisible( false );
 
-
-	//TODO delete remaining lines when axis are implemented
-	mAxisLabel->setEnabled( false );
-    mNbTicks->setEnabled( false );
-    mBase->setEnabled( false );
-    mNbDigits->setEnabled( false );
-	FallBackRange_group->setEnabled( false );
-
-	LayoutWidgets( Qt::Horizontal, { tab_group, help_group }, this, 2,2,2,2,2 );
-
-	Wire();
+	LayoutWidgets( Qt::Horizontal, { tab_group, b, help_group }, this, 2,2,2,2,2 );
 }
-
-
-void CAxisTab::Wire()
-{
-	connect( mLogScaleCheck, SIGNAL( toggled( bool ) ), this, SIGNAL( LogarithmicScale( bool ) ), Qt::QueuedConnection );
-}
-
 
 
 
@@ -274,16 +259,6 @@ CPlotControlsPanelAxisOptions::CPlotControlsPanelAxisOptions( QWidget *parent, Q
     mAxisOptionsTabs->addTab( mZ_axis, "Z/Y2" );
 
     AddTopGroupBox( ELayoutType::Horizontal, { mAxisOptionsTabs } );
-
-	Wire();
-}
-
-
-void CPlotControlsPanelAxisOptions::Wire()
-{
-	connect( mX_axis, SIGNAL( LogarithmicScale( bool ) ), this, SIGNAL( LogarithmicScaleX( bool ) ), Qt::QueuedConnection );
-	connect( mY_axis, SIGNAL( LogarithmicScale( bool ) ), this, SIGNAL( LogarithmicScaleY( bool ) ), Qt::QueuedConnection );
-	connect( mZ_axis, SIGNAL( LogarithmicScale( bool ) ), this, SIGNAL( LogarithmicScaleZ( bool ) ), Qt::QueuedConnection );
 }
 
 

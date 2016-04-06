@@ -65,29 +65,6 @@ void CBratMapView::PlotTrack( const double *x, const double *y, size_t size, QCo
     //refresh();
 #endif
 }
-void CBratMapView::PlotTrack( const double *x, const double *y, const double *z, size_t size, QColor color )		//color = Qt::red 
-{
-    QgsFeatureList flist;
-
-    for ( auto i = 0u; i < size; ++ i )
-    {
-
-#if defined (USE_FEATURES) //(***)
-		createPointFeature( flist, x[ i ], y[ i ], z[ i ] );
-#else
-        addRBPoint( x[ i ], y[ i ], QColor( (long)v[ i ] ), mMainLayer );
-#endif
-    }
-
-#if defined (USE_FEATURES)
-    auto memL = AddMemoryLayer( "", CreatePointSymbol( 0.7, color ) );	//(*)	//note that you can use strings like "red" instead!!!
-    memL->dataProvider()->addFeatures( flist );
-    //memL->updateExtents();
-    //refresh();
-#endif
-}
-
-
 
 
 void CBratMapView::AddData( CWorldPlotData *pdata, size_t index )

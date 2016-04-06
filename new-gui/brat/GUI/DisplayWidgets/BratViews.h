@@ -313,7 +313,7 @@ public:
 
 	//operations
 
-    void PlotTrack( const double *x, const double *y, const double *z, size_t size, QColor color = Qt::red );
+	using base_t::PlotTrack;
 
     void PlotTrack( const double *x, const double *y, size_t size, QColor color = Qt::red );
 

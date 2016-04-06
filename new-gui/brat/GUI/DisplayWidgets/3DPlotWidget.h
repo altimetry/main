@@ -117,6 +117,8 @@ public:
 
 	void SetCoordinateStyle( Qwt3D::COORDSTYLE style = Qwt3D::FRAME );
 
+	void Reset();
+
 protected:
 	void SetAxisTitle( Qwt3D::AXIS axis, const std::string &title );
 
@@ -125,7 +127,6 @@ protected slots:
 	void rotate();
 
 	void Animate( int updateinterval = 200 );
-	void Reset();
 	void StandardColor( bool standard );
 	void PlotStyle();
 	void CoordinateStyle();
@@ -235,6 +236,11 @@ public:
 	void SetLogarithmicScaleZ( bool log );
 
 	void SetLogarithmicScale( bool log );
+
+
+	//interaction
+
+	void Home();
 
 
 	// protected operations

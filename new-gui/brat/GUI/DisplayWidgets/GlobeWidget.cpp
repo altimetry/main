@@ -45,6 +45,7 @@ using namespace osgEarth::Util::Controls;
 
 #include "new-gui/Common/QtUtils.h"
 
+#include "MapWidget.h"
 #include "GlobeWidget.h"
 
 
@@ -157,9 +158,8 @@ GraticuleNode* CGlobeWidget::CreateGraticule()
 		o.lineWidth() = 2.;
 		o.gridLines() = 10;
 		o.resolutions() = "10 5 2.5 1.25 1. 0.5 0.25 0.125 0.1 0.05 0.025 0.01 0.001";
-        mGraticuleNode = new GraticuleNode( mMapNode, o );
-        mRootNode->addChild( mGraticuleNode );
-		mGraticuleNode->setVisible( false );
+        gn = new GraticuleNode( mMapNode, o );
+		gn->setVisible( false );
     }
 
 	return gn;
@@ -285,20 +285,28 @@ void CGlobeWidget::SetupMap()
 
 struct PrintCoordsToStatusBar : public osgEarth::Util::MouseCoordsTool::Callback
 {
-	QStatusBar* mStatusBar = nullptr;
+	using base_t = osgEarth::Util::MouseCoordsTool::Callback;
+
+	CMapWidget *mCanvas = nullptr;
 
 public:
-	PrintCoordsToStatusBar( QStatusBar *sb ) : mStatusBar( sb ) { }
+	PrintCoordsToStatusBar( CMapWidget *the_canvas ) 
+		: base_t()
+		, mCanvas( the_canvas ) 
+	{}
 
 	void set( const GeoPoint& p, osg::View* view, MapNode* mapNode )
 	{
 		std::string str = osgEarth::Stringify() << p.y() << ", " << p.x();
-		mStatusBar->showMessage( QString( str.c_str() ) );
+		//mCoordsEdit->setText( QString( str.c_str() ) );
+		qDebug() << str.c_str();
+		mCanvas->ShowMouseCoordinate( QgsPoint( p.x(), p.y() ) );
 	}
 
 	void reset( osg::View* view, MapNode* mapNode )
 	{
-		mStatusBar->showMessage( QString( "out of range" ) );
+		//mCoordsEdit->setText( QString( "out of range" ) );
+		mCanvas->ShowMouseCoordinate( QgsPoint(), true );
 	}
 };
 
@@ -428,38 +436,13 @@ protected:
 };
 
 
-void CGlobeWidget::CanvasStarted()
+void CGlobeWidget::Pause()
 {
-	//class CSleep : public QThread
-	//{
-	//public:
-	//	static void sleep( unsigned long secs ) 
-	//	{
-	//		QThread::sleep( secs );
-	//	}
-
-	//	static void msleep( unsigned long msecs ) 
-	//	{
-	//		QThread::msleep( msecs );
-	//	}
-
-	//	static void usleep( unsigned long usecs ) 
-	//	{
-	//		QThread::usleep( usecs );
-	//	}
-	//};
-
-	//mGlobeViewerWidget->Pause();
-	//CSleep::sleep( 4 );
-	//while ( mCanvas->isDrawing() )
-	//	qApp->processEvents();
+	mGlobeViewerWidget->Pause();
 }
-void CGlobeWidget::CanvasFinished()
+void CGlobeWidget::Resume()
 {
-	//while ( mCanvas->isDrawing() )
-	//	qApp->processEvents();
-	//CSleep::sleep( 4 );
-	//mGlobeViewerWidget->Resume();
+	mGlobeViewerWidget->Resume();
 }
 
 
@@ -468,9 +451,14 @@ bool CGlobeWidget::ScheduleClose()
 	mCloseScheduled = true;
 	mTileSource->mStop = true;
 	mGlobeViewerWidget->Stop();
-	//mLayersChanging = true;
 	QTimer::singleShot( 1, this, SLOT( close() ) );
 	return !mGlobeViewerWidget->mPainting;
+}
+
+
+void CGlobeWidget::Home()
+{
+	mOsgViewer->getCameraManipulator()->home( 0. );
 }
 
 
@@ -491,7 +479,7 @@ CGlobeWidget::~CGlobeWidget()
 }
 
 
-CGlobeWidget::CGlobeWidget( QWidget *parent, QgsMapCanvas *the_canvas, QStatusBar *sb )		//sb = nullptr 
+CGlobeWidget::CGlobeWidget( QWidget *parent, CMapWidget *the_canvas )
 	: base_t( parent )
 	, mCanvas( the_canvas )
 {
@@ -575,12 +563,9 @@ CGlobeWidget::CGlobeWidget( QWidget *parent, QgsMapCanvas *the_canvas, QStatusBa
 	mOsgViewer->addEventHandler( new FlyToExtentHandler( this ) );
 	mOsgViewer->addEventHandler( new KeyboardControlHandler( manip ) );
 
-	if ( sb )
-	{
-		MouseCoordsTool* tool = new MouseCoordsTool( mMapNode );
-		tool->addCallback( new PrintCoordsToStatusBar( sb ) );
-		mOsgViewer->addEventHandler( tool );
-	}
+	MouseCoordsTool* tool = new MouseCoordsTool( mMapNode );
+	tool->addCallback( new PrintCoordsToStatusBar( mCanvas ) );
+	mOsgViewer->addEventHandler( tool );
 
 
 	mControls = new CGlobeControls( this );
@@ -657,8 +642,8 @@ void CGlobeWidget::Unwire()
 
 	disconnect( mCanvas, SIGNAL( layersChanged() ),				this, SLOT( imageLayersChanged() ) );
 
-	connect( mCanvas, SIGNAL( renderStarting() ), this, SLOT( CanvasStarted() ) );
-	connect( mCanvas, SIGNAL( mapCanvasRefreshed() ), this, SLOT( CanvasFinished() ) );
+	//connect( mCanvas, SIGNAL( renderStarting() ), this, SLOT( CanvasStarted() ) );
+	//connect( mCanvas, SIGNAL( mapCanvasRefreshed() ), this, SLOT( CanvasFinished() ) );
 }
 
 void CGlobeWidget::Wire()
@@ -669,8 +654,8 @@ void CGlobeWidget::Wire()
 	connect( mCanvas, SIGNAL( extentsChanged() ),				this, SLOT( extentsChanged() ) );
 	connect( mCanvas, SIGNAL( layersChanged() ),				this, SLOT( imageLayersChanged() ) );
 
-	connect( mCanvas, SIGNAL( renderStarting() ), this, SLOT( CanvasStarted() ) );
-	connect( mCanvas, SIGNAL( mapCanvasRefreshed() ), this, SLOT( CanvasFinished() ) );
+	//connect( mCanvas, SIGNAL( renderStarting() ), this, SLOT( CanvasStarted() ) );
+	//connect( mCanvas, SIGNAL( mapCanvasRefreshed() ), this, SLOT( CanvasFinished() ) );
 }
 
 

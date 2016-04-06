@@ -167,6 +167,8 @@ bool CBratAreas::Load()
 
 bool CBratAreas::Save()
 {
+	Clear();
+
 	for ( auto it = mAreasMap.cbegin(); it != mAreasMap.cend(); it++ )
 	{
 		WriteSection( it->first,
@@ -298,6 +300,8 @@ bool CBratRegions::Load()
 
 bool CBratRegions::Save()
 {
+	Clear();
+
 	for ( auto it = mRegionsMap.cbegin(); it != mRegionsMap.cend(); it++ )
 	{
 		QStringList list;
