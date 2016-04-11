@@ -308,7 +308,7 @@ CExpressionInfoDlg::CExpressionInfoDlg( wxWindow *parent, wxWindowID id, const w
 
         try
         {
-          CUnit unit = field->GetUnit();
+          CUnit unit( field->GetUnit() );
           if (unit.HasDateRef())
           {
             baseUnit = CUnit::m_DATE_REF_UNIT.c_str();
@@ -862,7 +862,7 @@ void COperationPanel::ClearFieldsInfo()
 {
   if (m_operation != NULL)
   {
-    if (m_operation->GetDataset() != NULL)
+    if (m_operation->Dataset() != NULL)
     {
       DeleteProduct();
     }
@@ -1109,7 +1109,7 @@ bool COperationPanel::SetCurrentDataset()
   m_operation->SetDataset(GetCurrentDataset());
   m_operation->SetProduct(m_product);
 
-  return (m_operation->GetDataset() != NULL);
+  return (m_operation->Dataset() != NULL);
 }
 //----------------------------------------
 CDataset* COperationPanel::GetCurrentDataset()
@@ -1324,7 +1324,7 @@ wxTreeItemId COperationPanel::GetOperationDataset(bool select /*= true*/)
     return m_currentDataset;
   }
 
-  wxTreeItemId id =  GetDatasettreectrl()->FindItem(m_operation->GetDatasetName());
+  wxTreeItemId id =  GetDatasettreectrl()->FindItem(m_operation->OriginalDatasetName());
 
   if (select)
   {
@@ -2010,7 +2010,7 @@ void COperationPanel::OnDatasetSelChanging( wxTreeEvent &event )
 	}
 
 
-	wxString datasetNameOperation =  m_operation->GetDatasetName();
+    wxString datasetNameOperation =  m_operation->OriginalDatasetName();
 	wxString datasetName = dataset->GetName();
 	bool resetDataExpression = m_operation->HasFormula() && ( datasetNameOperation.CmpNoCase( datasetName ) != 0 );
 
@@ -2019,7 +2019,7 @@ void COperationPanel::OnDatasetSelChanging( wxTreeEvent &event )
 		int32_t result =  wxMessageBox( wxString::Format( "Some data expressions are built from '%s' dataset.\n"
 			"If you want to use another dataset, make sure that field names in data expressions are the same, or don't forget to change them.\n"
 			"Change to '%s' dataset ?",
-			m_operation->GetDatasetName().c_str(),
+            m_operation->OriginalDatasetName().c_str(),
 			GetDatasettreectrl()->GetItemText( id ).c_str() ),
 			"Changing operation dataset",
 			wxYES_NO | wxCENTRE | wxICON_QUESTION );
@@ -2036,7 +2036,7 @@ void COperationPanel::OnDatasetSelChanging( wxTreeEvent &event )
 
 		try
 		{
-			product = dataset->SetProduct();
+            product = dataset->OpenProduct();
 		}
 		catch ( CException& e )
 		{
@@ -2105,7 +2105,7 @@ void COperationPanel::OnDatasetSelChanged( wxTreeEvent &event )
 
 		try
 		{
-			m_product = dataset->SetProduct();
+            m_product = dataset->OpenProduct();
 
 			if ( m_product != NULL )
 			{
@@ -2197,9 +2197,9 @@ void COperationPanel::SetDataSetAndRecordLabel()
   wxString datasetName = "?";
   wxString recordName = "?";
 
-  if (!m_operation->GetDatasetName().empty())
+  if (!m_operation->OriginalDatasetName().empty())
   {
-    datasetName =  m_operation->GetDatasetName();
+    datasetName =  m_operation->OriginalDatasetName();
   }
   if (!m_operation->GetRecord().empty())
   {
@@ -2943,7 +2943,7 @@ wxString COperationPanel::GetAlgorithmSyntax( wxTextCtrl* textCtrl, wxTextCtrl* 
 			// Algo. unit can be a descriptive label and not necessary a unit label, 
 			// e.g on algo. whose unit depends on algo. input param/expression .
 			// So, don't erase the current unit if the algo. has no specified unit.
-			CUnit algoUnit = dlg.m_algo->GetOutputUnit();
+			CUnit algoUnit( dlg.m_algo->GetOutputUnit() );
 			if ( !algoUnit.HasNoUnit() )
 			{
 				unitCtrl->SetValue( dlg.m_algo->GetOutputUnit().c_str() );
@@ -3745,7 +3745,7 @@ void COperationPanel::ExportGeoTiff(wxFileName inputFile, wxFileName outputFile,
     file.Write("\n");
     file.Write(kwPRODUCT_LIST.c_str());
     file.Write("=");
-    file.Write(m_operation->GetDataset()->GetProductList()->ToString(", ", true));
+    file.Write(m_operation->Dataset()->GetProductList()->ToString(", ", true));
     file.Write("\n");
   }
   file.Write("\n#----- OUTPUT -----\n\n");

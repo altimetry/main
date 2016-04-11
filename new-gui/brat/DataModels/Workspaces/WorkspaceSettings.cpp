@@ -19,6 +19,7 @@
 
 #include "libbrathl/ProductNetCdf.h"
 
+#include "../Filters/BratFilters.h"
 #include "Workspace.h"
 #include "Dataset.h"
 #include "Operation.h"
@@ -485,6 +486,8 @@ bool CWorkspaceSettings::LoadConfigOperation( CWorkspaceOperation &op, std::stri
 {
 	assert__( this == op.m_config );
 
+	//assuming filters are already loaded
+
 	ApplyToWholeSection< std::string >( GROUP_OPERATIONS,
 
 		[&op]( const std::string &key, const std::string &value ) -> bool
@@ -516,11 +519,11 @@ bool CWorkspaceSettings::SaveConfig( const COperation &op, const CWorkspaceOpera
 {
 	std::string group = op.m_name;
 
-	if ( op.m_dataset != nullptr )
+	if ( op.OriginalDataset() != nullptr )
 	{
 		WriteSection( group,
 
-			k_v( ENTRY_DSNAME,		op.m_dataset->GetName() ),
+			k_v( ENTRY_DSNAME,		op.OriginalDatasetName() ),
 			k_v( ENTRY_RECORDNAME,	op.GetRecord() )
 		);
 	}
@@ -549,7 +552,7 @@ bool CWorkspaceSettings::SaveConfig( const COperation &op, const CWorkspaceOpera
 		//v4 k_v( ENTRY_EXPORT_ASCII_OUTPUT, Absolute2PortableDataPath( op.m_exportAsciiOutput ) )		//op.GetExportAsciiOutputPathRelativeToWks( wks )	)
 		k_v( ENTRY_OUTPUT,				op.GetOutputPathRelativeToWks( wks ) ),
 		k_v( ENTRY_EXPORT_ASCII_OUTPUT, op.GetExportAsciiOutputPathRelativeToWks( wks )	),
-		k_v( ENTRY_OPERATION_FILTER,	op.FilterName() )
+		k_v( ENTRY_OPERATION_FILTER,	op.Filter()->Name() )
 	);
 
 	return Status() == QSettings::NoError;
@@ -571,7 +574,9 @@ bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &errorMsg, CWor
 
 	);
 
-	op.m_dataset = op.FindDataset( dsname, wks );
+	const CBratFilter *filter = CBratFilters::GetInstance().Find( v4filter );
+	op.SetFilter( filter );
+	op.SetDataset( op.FindDataset( dsname, wks ) );
 	op.m_type = type.empty() ? CMapTypeOp::eTypeOpYFX : CMapTypeOp::GetInstance().NameToId( type );
 	op.m_dataMode = data_mode.empty() ? CMapDataMode::GetInstance().GetDefault() : CMapDataMode::GetInstance().NameToId( data_mode );
 	if ( op.m_record.empty() )
@@ -594,8 +599,6 @@ bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &errorMsg, CWor
 	{
 		op.InitExportAsciiOutput( wkso );
 	}
-
-	op.SetFilterName( v4filter );
 
 	// We don't use Group(), like v3 with the equivalent GetPath(), because, 
 	//	given the open/close policy of QSttings, the current group is indeed 

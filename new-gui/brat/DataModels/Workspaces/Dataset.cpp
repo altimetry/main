@@ -52,21 +52,29 @@ bool CDataset::CtrlFiles( std::vector< std::string > &v )
 }
 
 //----------------------------------------
-CProduct* CDataset::SetProduct()
+CProduct* CDataset::OpenProduct() const
 {
 	if ( m_files.size() <= 0 )
 		return nullptr;
 
-	return SetProduct( *m_files.begin() );
+	return OpenProduct( *m_files.begin() );
 }
+
+CProduct* CDataset::OpenProduct( const std::string& fileName ) const
+{
+	return OpenProduct( fileName, m_fieldSpecificUnit );
+}
+
 //----------------------------------------
-CProduct* CDataset::SetProduct( const std::string& fileName )
+//became static in v4
+//
+CProduct* CDataset::OpenProduct( const std::string& fileName, const CStringMap& fieldSpecificUnit )
 {
 	CProduct* product = nullptr;
 	try
 	{
 		product = CProduct::Construct( fileName );
-        product->SetFieldSpecificUnits( m_fieldSpecificUnit );
+        product->SetFieldSpecificUnits( fieldSpecificUnit );
         product->Open( fileName );
 	}
 	catch ( const CException& e )

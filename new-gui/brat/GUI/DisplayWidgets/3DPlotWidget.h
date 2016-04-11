@@ -117,10 +117,12 @@ public:
 
 	void SetCoordinateStyle( Qwt3D::COORDSTYLE style = Qwt3D::FRAME );
 
-	void Reset();
-
 protected:
 	void SetAxisTitle( Qwt3D::AXIS axis, const std::string &title );
+
+public slots:
+
+	void Reset();
 
 protected slots:
 

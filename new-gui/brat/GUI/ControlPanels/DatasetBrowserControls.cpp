@@ -346,7 +346,7 @@ void CDatasetBrowserControls::HandleNewDataset()
     // ---------------------------------------------
 
     // FEMM (TBC) - Signal emission is not required. It creates only a new dataset, the dataset selection is catched by HandleTreeItemChanged().
-    //emit CurrentDatasetChanged( mWDataset->GetDataset( q2a( dataset_name ) ) );
+    //emit	( mWDataset->GetDataset( q2a( dataset_name ) ) );
 }
 
 
@@ -368,9 +368,8 @@ void CDatasetBrowserControls::HandleDeleteDataset()
 	CDataset *current_dataset = mWDataset->GetDataset( current_dataset_item->text( 0 ).toStdString() );
 
 	CWorkspaceOperation *wks = mModel.Workspace<CWorkspaceOperation>();			assert__( wks != nullptr );
-	std::string error_msg;
 	CStringArray operation_names;
-	if ( wks->UseDataset( current_dataset->GetName(), error_msg, &operation_names ) )
+	if ( wks->UseDataset( current_dataset->GetName(), &operation_names ) )
 	{
 		std::string str = operation_names.ToString( "\n", false );
 		SimpleErrorBox(
@@ -402,7 +401,8 @@ void CDatasetBrowserControls::HandleDeleteDataset()
 	delete current_dataset_item;
 
 	// Notify about the change (dataset deleted)
-	emit DatasetsChanged( current_dataset );
+	emit DatasetsChanged( nullptr );
+	emit CurrentDatasetChanged( nullptr );
 
 	// -TODO -- Old Brat code ----------------------
 	//EnableCtrl();
@@ -410,9 +410,6 @@ void CDatasetBrowserControls::HandleDeleteDataset()
 	//CNewDatasetEvent ev(GetId(), dsName);
 	//wxPostEvent(GetParent(), ev);
 	// ---------------------------------------------
-
-	// // FEMM (TBC) - Signal emission is not required. Previous dataset is automatically selected and catched by HandleTreeItemChanged()
-	//emit CurrentDatasetChanged( nullptr );
 }
 
 
@@ -624,9 +621,8 @@ void CDatasetBrowserControls::AddFiles( QStringList &paths_list )
 		str_icmp( old_product_type, current_dataset->GetProductList()->m_productType );
 
 	CWorkspaceOperation *wks = mModel.Workspace<CWorkspaceOperation>();		assert__( wks != nullptr );
-	std::string error_msg;
 	CStringArray operation_names;
-	bool used_by_operations = wks->UseDataset( current_dataset->GetName(), error_msg, &operation_names );
+	bool used_by_operations = wks->UseDataset( current_dataset->GetName(), &operation_names );
 	if ( !is_same_product_class_type && used_by_operations )
 	{
 		std::string str = operation_names.ToString( "\n", false );
@@ -703,7 +699,7 @@ void CDatasetBrowserControls::FillFieldList( QTreeWidgetItem *current_file_item 
     CProduct *product = nullptr;
     try
     {
-        product = current_dataset->SetProduct( q2t<std::string>( current_file_item->text(0) ) );
+        product = current_dataset->OpenProduct( q2t<std::string>( current_file_item->text(0) ) );	//SetProduct => OpenProduct
 
         // GetDictlist()->InsertProduct(m_product); //////////////////////////////////////////////
         CTreeField* tree = product->GetTreeField();

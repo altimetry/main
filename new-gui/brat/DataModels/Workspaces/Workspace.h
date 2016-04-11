@@ -386,7 +386,8 @@ public:
 
 	bool RenameOperation( COperation* operation, const std::string& newName );
 
-	bool UseDataset( const std::string& name, std::string &errorMsg, CStringArray* operationNames = nullptr );
+	bool UseDataset( const std::string& name, CStringArray* operation_names = nullptr );
+	bool UseFilter( const std::string& name, CStringArray* operation_names = nullptr );
 
 	bool DeleteOperation( COperation* operation );
 

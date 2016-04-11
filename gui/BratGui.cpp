@@ -340,10 +340,7 @@ bool CBratGuiApp::CanDeleteDataset( const wxString& name, CStringArray* operatio
 		return true;
 	}
 
-	std::string errorMsg;
-	canDelete &= ( wks->UseDataset( name.ToStdString(), errorMsg, operationNames ) == false );
-	if ( !errorMsg.empty() )
-		wxMessageBox( errorMsg, "Error", wxOK | wxCENTRE | wxICON_ERROR );
+    canDelete &= ( wks->UseDataset( name.ToStdString(), operationNames ) == false );
 
 	return canDelete;
 }

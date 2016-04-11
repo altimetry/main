@@ -40,7 +40,6 @@ using namespace osgEarth::Util::Controls;
 
 
 
-#include "Globe/GlobeUpdateCallback.h"
 #include "Globe/GlobeControls.h"
 
 #include "new-gui/Common/QtUtils.h"
@@ -297,16 +296,21 @@ public:
 
 	void set( const GeoPoint& p, osg::View* view, MapNode* mapNode )
 	{
+		if ( !mCanvas->mapSettings().destinationCrs().isValid() )
+			return;
+
 		std::string str = osgEarth::Stringify() << p.y() << ", " << p.x();
 		//mCoordsEdit->setText( QString( str.c_str() ) );
-		qDebug() << str.c_str();
-		mCanvas->ShowMouseCoordinate( QgsPoint( p.x(), p.y() ) );
+		//qDebug() << str.c_str();
+		//mCanvas->ShowMouseCoordinate( QgsPoint( p.x(), p.y() ) );
+		mCanvas->ShowMouseDegreeCoordinates( QgsPoint( p.x(), p.y() ) );
+		//mCanvas->ShowMouseCoordinate( QString( str.c_str() ) );
 	}
 
 	void reset( osg::View* view, MapNode* mapNode )
 	{
 		//mCoordsEdit->setText( QString( "out of range" ) );
-		mCanvas->ShowMouseCoordinate( QgsPoint(), true );
+		mCanvas->ShowMouseCoordinate( "", true );
 	}
 };
 
@@ -534,8 +538,6 @@ CGlobeWidget::CGlobeWidget( QWidget *parent, CMapWidget *the_canvas )
 	mControlCanvas = ControlCanvas::get( mOsgViewer );		//OSGEARTH_VERSION_GREATER_OR_EQUAL( 2, 1, 1 )
 	mRootNode->addChild( mControlCanvas );
 
-	mRootUpdateCallback = new CRootUpdateCallback( this );
-	mRootNode->setUpdateCallback( mRootUpdateCallback );
 
 	//	Root node
 	//
@@ -905,11 +907,11 @@ void CGlobeWidget::setSkyParameters( bool sky, const QDateTime& date_time, bool 
 
 		mSkyNode->attach( mOsgViewer );
 			
-		mRootUpdateCallback->AssignNodeToAdd( mSkyNode );		//mRootNode->addChild( mSkyNode );
+		mRootNode->addChild( mSkyNode );
 	}
 	else
 	{
-		mRootUpdateCallback->AssignNodeToDelete( mSkyNode );	// mRootNode->removeChild( mSkyNode );
+		mRootNode->removeChild( mSkyNode );
 	}
 }
 

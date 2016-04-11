@@ -127,6 +127,7 @@ CDataset* COperationControls::QuickDataset()
 void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 {
 	mQuickVariablesList->setEnabled( dataset_index >= 0 );
+	mOperationFilterButton_Quick->setEnabled( dataset_index >= 0 );
 	mQuickFieldDesc->clear();
 
     if ( dataset_index < 0 )
@@ -151,7 +152,7 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 	bool has_lon_lat_fields = false;
 	for ( auto const &path : dataset_files )
 	{
-		CProduct *product = dataset->SetProduct( path );
+		CProduct *product = dataset->OpenProduct( path );
 		if ( !product )
 			continue;
 
@@ -175,7 +176,7 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 		auto *item = mQuickVariablesList->item( i );
 		for ( auto const &path : dataset_files )
 		{
-			CProduct *product = dataset->SetProduct( path );
+			CProduct *product = dataset->OpenProduct( path );
 			if ( !product )
 				continue;
 
@@ -307,6 +308,14 @@ void COperationControls::HandleSelectedFieldChanged_Quick( int variable_index )
 //}
 
 
+COperation* COperationControls::QuickOperation()
+{
+	static const std::string opname = CWorkspaceOperation::QuickOperationName();
+
+	return mWOperation ? mWOperation->GetOperation( opname ) : nullptr;
+}
+
+
 // Valid types
 //		eTypeOpYFX,
 //		eTypeOpZFXY
@@ -317,7 +326,7 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 
 	WaitCursor wait;				assert__( mWRoot && QuickDataset() );
 
-	COperation *operation = mWOperation->GetOperation( opname );
+	COperation *operation = QuickOperation();
 	if ( operation )
 	{
 		int current_index = mOperationsCombo->currentIndex();
@@ -339,7 +348,7 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 	operation->SetType( type );
 
 	operation->SetDataset( QuickDataset() );
-	CProduct *product = operation->GetDataset()->SetProduct();
+	CProduct *product = const_cast<const COperation*>( operation )->Dataset()->OpenProduct();
 	operation->SetProduct( product );
 
 	std::string operation_record = operation->GetRecord();
@@ -416,7 +425,7 @@ void COperationControls::SelectOperation( const std::string &name, bool select_m
 	}
 	mOperationsCombo->setCurrentIndex( new_index );
 
-	assert__( mCurrentOperation == operation && mDataset == operation->GetDataset() );
+	assert__( mCurrentOperation == operation && mCurrentDataset == operation->OriginalDataset() );
 
 	if ( select_map )
 		mSwitchToMapButton->setChecked( true );

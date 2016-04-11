@@ -350,7 +350,7 @@ void CDatasetPanel::FillDict()
   try
   {
     DeleteProduct();
-    m_product = dataset->SetProduct(m_currentFilename.ToStdString());
+    m_product = dataset->OpenProduct(m_currentFilename.ToStdString());
     GetDictlist()->InsertProduct(m_product);
   }
   catch (CException& e)

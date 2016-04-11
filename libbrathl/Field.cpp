@@ -540,7 +540,7 @@ void CField::Convert(double* data, int32_t size)
     //std::string temp = CTools::StringRemoveAllSpaces(m_unit);
     //temp = CTools::StringReplace(temp, '^', 'e');
     //CUnit unit = temp;
-    CUnit unit = m_unit;
+    CUnit unit( m_unit );
     unit.SetConversionToBaseUnit();
     unit.ConvertVector(data, size);
   }

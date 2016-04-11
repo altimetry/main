@@ -791,6 +791,8 @@ inline QActionGroup* CreateActionGroup( QObject *parent, const QList<QAction*> &
 	for ( auto *action : actions )
 	{
 		group->addAction( action );
+		action->setParent( group );					//to find in group
+		action->setObjectName( action->text() );	//to find in group
 		action->setCheckable( exclusive );
 	}
 	return group;

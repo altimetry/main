@@ -40,15 +40,20 @@ class CRegionSettingsDialog : public QDialog
     // instance data
     /////////////////////////////
 
+    QListWidget *mAreasListWidget = nullptr;
+    QComboBox *mRegionsCombo = nullptr;
+
     QDialogButtonBox *mButtonBox = nullptr;
 
     QToolButton *mNewRegion = nullptr;
     QToolButton *mRenameRegion = nullptr;
     QToolButton *mDeleteRegion = nullptr;
-    QToolButton *mSaveRegion = nullptr;
+    //QToolButton *mSaveRegion = nullptr;
 
     CBratRegions &mBratRegions;
     CBratAreas &mBratAreas;
+
+    CRegion *mCurrentRegion = nullptr;
 
     /////////////////////////////
     //construction / destruction
@@ -71,13 +76,19 @@ public:
     // Operations
     /////////////////////////////
 
-public slots:
-    // NEW CODE - TO BE IMPLEMENTED /////////////
-    //    void HandleNewRegion();
-    //    void HandleRenameRegion();
-    //    void HandleDeleteRegion();
-    //    void HandleSaveRegion();
+protected:
+    void FillRegionsCombo();
+    void FillAreasList();
+    void SaveAllRegions();
 
+public slots:
+    void HandleNewRegion();
+    void HandleRenameRegion();
+    void HandleDeleteRegion();
+    //void HandleSaveRegion();
+    void HandleRegionsCurrentIndexChanged(int region_index);
+    //void HandleAreaChecked(QListWidgetItem *area_item);
+    void HandleAreaClicked(QListWidgetItem *area_item);
 
 protected:
     virtual void accept() override;

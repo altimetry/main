@@ -842,7 +842,7 @@ void CResolutionDlg::GetMinMax(CFormula* formula)
   try
   {
     //productTmp = CProduct::Construct(product->GetProductList());
-    productTmp = CProduct::Construct(*(m_operation->GetDataset()->GetProductList()));
+    productTmp = CProduct::Construct(*m_operation->Dataset()->GetProductList());
   }
   catch (CException &e)
   {

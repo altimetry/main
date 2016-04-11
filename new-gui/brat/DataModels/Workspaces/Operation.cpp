@@ -27,6 +27,7 @@
 using namespace brathl;
 using namespace processes;
 
+#include "../Filters/BratFilters.h"
 #include "Workspace.h"
 #include "Operation.h"
 #include "WorkspaceSettings.h"
@@ -110,7 +111,7 @@ public:
 		WriteLn( kwRECORD + "=" + mOp.GetRecord() );
 		WriteLn();
 		std::vector< std::string >  array;
-		mOp.GetDataset()->GetFiles( array );
+		mOp.Dataset()->GetFiles( array );
 		for ( size_t i = 0; i < array.size(); i++ )
 		{
 			WriteLn( kwFILE + "=" + array[ i ] );
@@ -120,7 +121,7 @@ public:
 
 	bool BuildCmdFileSpecificUnit()
 	{
-		const CDataset* dataset = mOp.GetDataset();
+		const CDataset* dataset = mOp.Dataset();
 		if ( dataset == nullptr )
 			return false;
 
@@ -521,41 +522,47 @@ void COperation::SetExecNames( const CApplicationPaths &app_path )
 //static 
 COperation* COperation::Copy( const COperation &o, CWorkspaceOperation *wkso, CWorkspaceDataset *wksd )
 {
-	COperation *op = new COperation( o.m_name );
+	COperation *new_op = new COperation( o.m_name );
 	
-	assert__( op->m_dataset == nullptr );
+	assert__( new_op->Dataset() == nullptr && new_op->OriginalDataset() == nullptr );
 
-	if ( o.m_dataset != nullptr )
-		op->m_dataset = op->FindDataset( o.m_dataset->GetName(), wksd );
+	new_op->SetFilter( o.Filter() );
 
-	op->m_record = o.m_record;
-	op->m_product = o.m_product;		//TODO v4: check this...
+	if ( o.mDataset != nullptr )
+	{
+		assert__( o.OriginalDataset() != nullptr );
+
+		new_op->SetDataset( new_op->FindDataset( o.Dataset()->GetName(), wksd ) );
+	}
+
+	new_op->SetRecord( o.m_record );
+	new_op->SetProduct( o.m_product );
 
 	if ( o.m_select != nullptr )
 	{
-		if ( op->m_select != nullptr )
+		if ( new_op->m_select != nullptr )
 		{
-			*op->m_select = *o.m_select;
+			*new_op->m_select = *o.m_select;
 		}
 		else
 		{
-			op->m_select = new CFormula( *o.m_select );
+			new_op->m_select = new CFormula( *o.m_select );
 		}
 	}
 
-	op->m_formulas = o.m_formulas;
+	new_op->m_formulas = o.m_formulas;
 
-	op->m_type = o.m_type;
-	op->m_dataMode = o.m_dataMode;
-	op->m_exportAsciiDateAsPeriod = o.m_exportAsciiDateAsPeriod;
+	new_op->m_type = o.m_type;
+	new_op->m_dataMode = o.m_dataMode;
+	new_op->m_exportAsciiDateAsPeriod = o.m_exportAsciiDateAsPeriod;
 
-	op->InitOutput( wkso );					//assigns m_output and m_cmdFile
-	op->SetCmdFile( wkso );					//assigns m_cmdFile
+	new_op->InitOutput( wkso );					//assigns m_output and m_cmdFile
+	new_op->SetCmdFile( wkso );					//assigns m_cmdFile
 
-	op->InitExportAsciiOutput( wkso );		//assigns m_exportAsciiOutput and m_exportAsciiCmdFile
-	op->SetExportAsciiCmdFile( wkso );		//assigns m_exportAsciiCmdFile
+	new_op->InitExportAsciiOutput( wkso );		//assigns m_exportAsciiOutput and m_exportAsciiCmdFile
+	new_op->SetExportAsciiCmdFile( wkso );		//assigns m_exportAsciiCmdFile
 
-	return op;
+	return new_op;
 
 	// TODO not assigned: check why and consequences
 
@@ -577,7 +584,9 @@ COperation* COperation::Copy( const COperation &o, CWorkspaceOperation *wkso, CW
 void COperation::Clear()
 {
 	m_product = nullptr;
-	m_dataset = nullptr;
+	mOriginalDataset = nullptr;
+	RemoveFilter();					//makes SetDataset
+	SetDataset();
 	m_record.clear();
 	delete m_select;
 	m_select = new CFormula( ENTRY_SELECT, false );
@@ -587,16 +596,14 @@ void COperation::Clear()
 	m_dataMode = CMapDataMode::GetInstance().GetDefault();
 
 	m_output.clear();
-	m_exportAsciiOutput.clear();;
-	m_showStatsOutput.clear();;
+	m_exportAsciiOutput.clear();
+	m_showStatsOutput.clear();
 
 	m_cmdFile.clear();;
-	m_exportAsciiCmdFile.clear();;
-	m_showStatsCmdFile.clear();;
+	m_exportAsciiCmdFile.clear();
+	m_showStatsCmdFile.clear();
 
-	mFilterName.clear();;
-
-	m_logFile.clear();;
+	m_logFile.clear();
 
 	m_exportAsciiDateAsPeriod = false;
 	m_exportAsciiExpandArray = false;
@@ -790,10 +797,10 @@ bool COperation::CtrlLoessCutOff( std::string &msg )
 //----------------------------------------
 bool COperation::UseDataset( const std::string& name )
 {
-	if ( m_dataset == nullptr )
+	if ( mOriginalDataset == nullptr )
 		return false;
 
-	return str_icmp( m_dataset->GetName(), name );
+	return str_icmp( mOriginalDataset->GetName(), name );
 }
 
 //----------------------------------------
@@ -842,15 +849,72 @@ bool COperation::RenameFormula(CFormula* formula, const std::string &newName)
  return true;
 }
 
-//----------------------------------------
-std::string COperation::GetDatasetName()
-{
-  if (m_dataset == nullptr)
-  {
-    return "";
-  }
 
-  return m_dataset->GetName();
+//v4
+void COperation::ReapplyFilter()
+{ 
+	SetDataset();
+}
+//v4
+void COperation::SetFilter( const CBratFilter *filter )
+{ 
+	mFilter = filter; 
+	SetDataset();
+}
+
+//v4
+void COperation::RemoveFilter()
+{
+	mFilter = nullptr; 
+	SetDataset();
+}
+
+//v4
+void COperation::SetDataset()
+{
+	delete mDataset;
+	if ( !mOriginalDataset )
+	{
+		mDataset = nullptr;
+		return;
+	}
+	mDataset = new CDataset( OriginalDatasetName() + "_filtered_" + m_name );
+	const CProductList &products = *mOriginalDataset->GetProductList();		//this is a CStringList
+	CStringList file_list;
+	for ( auto const &product : products )
+	{
+		file_list.InsertUnique( product );
+	}
+
+	if ( mFilter )
+	{
+		CStringList files_out;
+
+		if ( mFilter->Apply( file_list, files_out ) )
+		{
+			file_list.clear();
+			file_list.Insert( files_out );
+		}
+	}
+
+	mDataset->GetProductList()->InsertUnique( file_list );
+}
+void COperation::SetDataset( const CDataset *dataset ) 
+{ 
+	//m_dataset = value;
+	mOriginalDataset = dataset;
+	SetDataset();
+}
+
+//----------------------------------------
+std::string COperation::FilterName() const
+{
+	return mFilter == nullptr ? "" : mFilter->Name();
+}
+
+std::string COperation::OriginalDatasetName() const
+{
+	return mOriginalDataset == nullptr ? "" : mOriginalDataset->GetName();
 }
 
 //----------------------------------------
@@ -1703,7 +1767,7 @@ void COperation::Dump(std::ostream& fOut /* = std::cerr */)
 
   fOut << "==> Dump a COperation Object at "<< this << std::endl;
 
-  m_dataset->Dump(fOut);
+  mDataset->Dump(fOut);
   fOut << "==> END Dump a COperation Object at "<< this << std::endl;
 
   fOut << std::endl;

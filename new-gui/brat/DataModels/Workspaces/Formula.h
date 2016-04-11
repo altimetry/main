@@ -150,7 +150,9 @@ public:
 		eTypeOpAsField,
 		eTypeOpAsX,
 		eTypeOpAsY,
-		eTypeOpAsSelect
+		eTypeOpAsSelect,
+
+		ETypeField_size
 	};
 
 public:
@@ -165,7 +167,7 @@ public:
 	bool ValidName( const std::string& name );
 
 	std::string IdToName( uint32_t id );
-	uint32_t NameToId( const std::string& name );
+	ETypeField NameToId( const std::string& name );
 
 	int GetMaxAllowed( ETypeField type )
 	{
@@ -241,7 +243,7 @@ protected:
 	std::string m_title;
 	std::string m_description;
 	std::string m_comment;
-	int32_t m_type = CMapTypeField::eTypeOpAsField;
+	CMapTypeField::ETypeField m_type = CMapTypeField::eTypeOpAsField;
 
 	CUnit m_unit;
 
@@ -374,8 +376,12 @@ public:
 	void SetLoessCutOffDefault() { setDefaultValue( m_loessCutOff ); }
 
 	std::string GetTypeAsString() const { return CMapTypeField::GetInstance().IdToName( m_type ); }
-	int32_t GetType() const { return m_type; }
-	void SetType( int32_t value ) { m_type = value; }
+	CMapTypeField::ETypeField GetType() const { return m_type; }	
+	void SetType( CMapTypeField::ETypeField type ) { m_type = type; }
+	void SetType( int32_t value )
+	{ 
+		SetType( (CMapTypeField::ETypeField)value ); 
+	}
 
 	std::string GetDataTypeAsString() const { return CMapTypeData::GetInstance().IdToName( m_dataType ); }
 	int32_t GetDataType() const { return m_dataType; }

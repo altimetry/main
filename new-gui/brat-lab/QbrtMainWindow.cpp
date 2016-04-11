@@ -10,11 +10,11 @@
 
 #include "new-gui/brat/DataModels/DisplayFilesProcessor.h"
 #include "GUI/SettingsDlg.h"
+#include "new-gui/brat/GUI/DisplayWidgets/GlobeWidget.h"
 #include "GUI/QbrtMapEditor.h"
 
 #include "brat-lab.h"
 #include "QbrtMainWindow.h"
-#include "new-gui/brat/GUI/DisplayWidgets/GlobeWidget.h"
 
 
 #ifdef Q_WS_MAC

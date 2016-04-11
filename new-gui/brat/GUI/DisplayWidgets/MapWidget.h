@@ -116,7 +116,9 @@ public:
 
 	static QgsSymbolV2* createLineSymbol( double width, const QColor &color );
 
-	static QgsFeatureList& createPointFeature( QgsFeatureList &list, double lon, double lat, double value );
+    static QgsFeatureList& CreatePointFeature( QgsFeatureList &list, double lon, double lat, const std::map<QString, QVariant> &attrs = std::map<QString, QVariant>() );
+
+	static QgsFeatureList& CreatePointFeature( QgsFeatureList &list, double lon, double lat, double value );
 
 	static QgsFeatureList& createLineFeature( QgsFeatureList &list, QgsPolyline points );
 
@@ -128,6 +130,7 @@ protected:
 
 	QgsVectorLayer *mMainLayer = nullptr;
 	QgsVectorLayer *mTracksLayer = nullptr;
+	std::vector< QgsVectorLayer* > mDataLayers;
 	QgsRasterLayer *mMainRasterLayer = nullptr;
     QList <QgsMapCanvasLayer> mLayerSet;
 
@@ -147,14 +150,16 @@ protected:
 	unsigned int mMousePrecisionDecimalPlaces = 0;
 	QToolButton *mCoordinatesFormatButton = nullptr;
 	QString mCoordinatesFormat;
+	QAction *mActionDM = nullptr;
+	QAction *mActionDMS = nullptr;
+	QAction *mActionDecimal = nullptr;
+
 
 
 	//...context menu
 	//
 	QAction *mActionAddRaster = nullptr;
 	QAction *mActionRemoveLayers = nullptr;
-	QAction *mActionDefaultProjection = nullptr;
-	QAction *mActionNextProjection = nullptr;
 
 
 	//...domain
@@ -174,11 +179,14 @@ protected:
 	void drawLines();			//experimental
 	void addLabelsLayer();		//experimental
 	void addGrid();				//experimental
+	void setProjectionExp();	//experimental
+	//void CopyStyle( QgsMapLayer * sourceLayer );
+	//void PasteStyle( QgsMapLayer * destinationLayer );
+	QgsMapLayer* DuplicateLayer( QgsMapLayer *layer );
 
-	void setProjection();
+
 	void CreateSelectionWidgets( QToolBar *tb );
 	void CreateGridWidgets( QToolBar *tb );
-
 public:
     CMapWidget( QWidget *parent = nullptr );
 
@@ -227,14 +235,24 @@ public:
 
 	void RemoveTracksLayer();
 	
-	void SetDefaultProjection();
 
-	void SetProjection( unsigned id );
+	void Home();
 
-    void PlotTrack( const double *x, const double *y, const double *z, size_t size, QColor color = Qt::red );
+	QgsCoordinateReferenceSystem DefaultProjection() const { return mDefaultProjection; }
+
+	bool SetDefaultProjection();
+
+	bool SetProjection( unsigned id );
+
+    void PlotTrack( const double *x, const double *y, const double *z, size_t size, brathl_refDate ref_date, QColor color = Qt::red );
 
 
 protected:
+
+	void SetMainLayerVisible( bool show );
+
+	bool IsLayerVisible( QgsVectorLayer *layer ) const;
+
 
     //////////////////////////////////////
     //	overrides
@@ -255,24 +273,34 @@ protected:
 	void SetCurrentLayer( QgsMapLayer *l );	
 
 	QgsMapCanvasLayer* FindCanvasLayer( QgsVectorLayer *layer );	
+	const QgsMapCanvasLayer* FindCanvasLayer( QgsVectorLayer *layer ) const
+	{
+        return const_cast<CMapWidget*>( this )->FindCanvasLayer( layer );
+	}
 
 	QgsMapCanvasLayer* FindCanvasLayer( size_t index );	
 	const QgsMapCanvasLayer* FindCanvasLayer( size_t index ) const
 	{
         return const_cast<CMapWidget*>( this )->FindCanvasLayer( index );
 	}
+
 	const QgsMapCanvasLayer* FindCanvasLayer( const std::string &name ) const
 	{
         return const_cast<CMapWidget*>( this )->FindCanvasLayer( name );
 	}
 	
-	void SetProjection( const QgsCoordinateReferenceSystem &proj );
+
+	bool SetProjection( const QgsCoordinateReferenceSystem &proj );
+
+	QgsVectorLayer* AddDataLayer( const std::string &name, double width, double m, double M, size_t contours, QgsFeatureList &flist );
+
+
+protected:
 
 	QgsVectorLayer* AddVectorLayer( const std::string &name, const QString &layer_path, const QString &provider, QgsFeatureRendererV2 *renderer = nullptr );
 
-	QgsVectorLayer* AddMemoryLayer( const std::string &name, QgsFeatureRendererV2 *renderer, const QString &target_field );
+	QgsVectorLayer* AddMemoryLayer( const std::string &name, QgsFeatureRendererV2 *renderer );
 	QgsVectorLayer* AddMemoryLayer( const std::string &name = "", QgsSymbolV2* symbol = nullptr );
-    QgsVectorLayer* AddMemoryLayer( const std::string &name, double width, double m, double M, size_t contours );
 
 	QgsVectorLayer* AddOGRVectorLayer( const QString &layer_path, QgsSymbolV2* symbol = nullptr );
 
@@ -282,6 +310,9 @@ protected:
 
 	QgsRubberBand* AddRBPoint( double lon, double lat, QColor color, QgsVectorLayer *layer = nullptr );
 	QgsRubberBand* AddRBLine( QgsPolyline points, QColor color, QgsVectorLayer *layer = nullptr );
+
+	void WriteTrackValue( QgsRectangle rect );
+	void WriteDataValue( QgsRectangle rect );
 
 protected:
 
@@ -295,6 +326,8 @@ signals:
 public slots:
 
 	void ShowMouseCoordinate( const QgsPoint & p, bool erase = false );
+	void ShowMouseCoordinate( const QString s, bool erase = false );
+	void ShowMouseDegreeCoordinates( const QgsPoint & p, bool erase = false );
 
 protected slots:
 
@@ -323,8 +356,6 @@ protected slots:
 
 	void HandleAddRaster();
 	void HandleRemoveLayers();
-	void HandleNextProjection();
-	void HandleDefaultProjection();
 };
 
 

@@ -33,21 +33,21 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_Exit, "&Exit", "Exit brat", ":/images/OSGeo/exit.png" },
 
-    { eAction_Open, "&Open...", "Open\nOpen existing workspace", ":/images/OSGeo/open.png", "", "Ctrl+O" },
+    { eAction_Open, "&Open...", "<b>Open</b><br>Open existing workspace", ":/images/OSGeo/open.png", "", "Ctrl+O" },
 
-    { eAction_New, "&New...", "New\nCreate a new workspace", ":/images/OSGeo/new.png", "", "Ctrl+N" },
+    { eAction_New, "&New...", "<b>New</b><br>Create a new workspace", ":/images/OSGeo/new.png", "", "Ctrl+N" },
 
 	{ eAction_CloseWorkspace, "&Close", "Close and unload the workspace", "://images/alpha-numeric/__q.png" },
 
-    { eAction_Save, "&Save","Save\nSave the workspace to disk", ":/images/OSGeo/save.png", "", "Ctrl+S" },
+    { eAction_Save, "&Save","<b>Save</b><br>Save the workspace to disk", ":/images/OSGeo/save.png", "", "Ctrl+S" },
 
     { eAction_Save_As, "Save &As...", "Save As", ":/images/OSGeo/save-as.png" },
 
-    { eAction_Import_Workspace, "&Import...", "Import\nImport existing workspace objects", ":/images/OSGeo/import.png" },
+    { eAction_Import_Workspace, "&Import...", "<b>Import</b><br>Import existing workspace objects", ":/images/OSGeo/import.png" },
 
-    { eAction_Rename_Workspace, "&Rename...", "Rename\nRename the loaded workspace\n""The workspace directory will not change", "" },
+    { eAction_Rename_Workspace, "&Rename...", "<b>Rename</b><br>Rename the loaded workspace\n""The workspace directory will not change", "" },
 
-    { eAction_Delete_Workspace, "&Delete...", "Delete\nDelete the loaded workspace", ":/images/OSGeo/workspace-delete.png" },
+    { eAction_Delete_Workspace, "&Delete...", "<b>Delete</b><br>Delete the loaded workspace", ":/images/OSGeo/workspace-delete.png" },
 
     { eAction_About, "&About...", "About", ":/images/BratIcon.png" },
 
@@ -57,31 +57,31 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
 	{ eAction_Open_View, "&Open...", "Select a view from the list of all workspace views", ":/images/OSGeo/open.png" },
 
-    { eAction_Options, "&Options...", "Options\nEdit application settings", ":/images/OSGeo/settings.png" },		//icon 5.png is below TODO: delete this comment
+    { eAction_Options, "&Options...", "<b>Options</b><br>Edit application settings", ":/images/OSGeo/settings.png" },		//icon 5.png is below TODO: delete this comment
 
 	{ eAction_Test, "Test...", "Test", ":/images/test.png" },
 
-    { eAction_One_Click, "One-&Click...", "One-Click\nGroup actions as a single operation under a single name", ":/images/alpha-numeric/7.png" },
+    { eAction_One_Click, "One-&Click...", "<b>One-Click</b><br>Group actions as a single operation under a single name", ":/images/alpha-numeric/7.png" },
 
-    { eAction_Launch_Scheduler, "Launch Scheduler", "Brat Scheduler\nLaunch Scheduler application", ":/images/alpha-numeric/8.png" },
+    { eAction_Launch_Scheduler, "Launch Scheduler", "<b>Brat Scheduler</b><br>Launch Scheduler application", ":/images/alpha-numeric/8.png" },
 
-    { eAction_Workspace_Tree, "Workspace Tree...", "Workspace Tree\nSee the objects tree of the loaded workspace", ":/images/OSGeo/page-info.png" },
+    { eAction_Workspace_Tree, "Workspace Tree...", "<b>Workspace Tree</b><br>See the objects tree of the loaded workspace", ":/images/OSGeo/page-info.png" },
 
-    { eAction_Save_Map_Image, "Save Map Image...", "Save Map Image\nSave map to file", ":/images/OSGeo/map-export.png" },
+    { eAction_Save_Map_Image, "Save Map Image...", "<b>Save Map Image</b><br>Save map to file", ":/images/OSGeo/map-export.png" },
 
-    { eAction_Refresh_Map, "Refresh", "Refresh\nRefresh main map", ":/images/OSGeo/zoom-refresh.png" },
+    { eAction_Refresh_Map, "Refresh", "<b>Refresh</b><br>Refresh main map", ":/images/OSGeo/zoom-refresh.png" },
 
-    { eAction_Graphic_Settings, "Graphic Settings...", "Graphic Settings\nAdjust map graphics", ":images/OSGeo/map-settings.png" },
+    { eAction_Graphic_Settings, "Graphic Settings...", "<b>Graphic Settings</b><br>Adjust map graphics", ":images/OSGeo/map-settings.png" },
 
     { action_Satellite_Tracks, "Satellite Tracks", "<b>Satellite track</b><br>Enable/Disable automatic satellite track drawing when selected dataset changes", ":images/OSGeo/satellite_tracks.png", ":images/OSGeo/satellite_tracks.png" },
 
-    { eAction_Full_Screen, "Full Screen", "Full Screen\nToggle full screen mode.\nUse the <span style=\" font-weight:600;\">F11</span> key to switch modes.", ":images/OSGeo/fullscreen.png", "", "F11" },
+    { eAction_Full_Screen, "Full Screen", "<b>Full Screen</b><br>Toggle full screen mode.\nUse the <span style=\" font-weight:600;\">F11</span> key to switch modes.", ":images/OSGeo/fullscreen.png", "", "F11" },
 
-    { eAction_Re_center, "Re-center", "Re-center\nBring view to original position and size", ":/images/OSGeo/zoom-extent.png", "", "Home" },
+    { eAction_Re_center, "Re-center", "<b>Re-center</b><br>Bring view to original position and size", ":/images/OSGeo/zoom-extent.png", "", "Home" },
 
-    { eAction_Zoom_In, "Zoom In", "Zoom In\nZoom map in", ":/images/OSGeo/zoom-in.png", "", "Ctrl++" },
+    { eAction_Zoom_In, "Zoom In", "<b>Zoom In</b><br>Zoom map in", ":/images/OSGeo/zoom-in.png", "", "Ctrl++" },
 
-    { eAction_Zoom_Out, "Zoom Out", "Zoom Out\nZoom map out", ":/images/OSGeo/zoom-out.png", "", "Ctrl+-" },			//last designer icon, so far.  TODO: delete this comment
+    { eAction_Zoom_Out, "Zoom Out", "<b>Zoom Out</b><br>Zoom map out", ":/images/OSGeo/zoom-out.png", "", "Ctrl+-" },			//last designer icon, so far.  TODO: delete this comment
 
 	{ eAction_Operations, "&Operations", "Operations", "" },
 
@@ -93,21 +93,21 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 	// End of Designer actions list
 
 
-    { eAction_DisplayEditor2D, "2D", "2D\nDisplay 2D view", "://images/alpha-numeric/__a.png", "://images/alpha-numeric/__a.png" },
+    { eAction_DisplayEditor2D, "2D", "<b>2D</b><br>Display 2D view", "://images/alpha-numeric/__a.png", "://images/alpha-numeric/__a.png" },
 
-    { eAction_DisplayEditor3D, "3D", "3D\nDisplay 3D view", "://images/alpha-numeric/__b.png", "://images/alpha-numeric/__b.png" },
+    { eAction_DisplayEditor3D, "3D", "<b>3D</b><br>Display 3D view", "://images/alpha-numeric/__b.png", "://images/alpha-numeric/__b.png" },
 
 	{ eAction_DisplayEditorDock, "", "Show/Hide the view working panel", "://images/alpha-numeric/__d.png" },
 
-	{ eAction_MeasureLine, "Distance", "Distance\nMeasure distance (m) between two points", "://images/OSGeo/measure-length.png", "://images/OSGeo/measure-length.png" },
+    { eAction_MeasureLine, "Distance", "<b>Distance</b><br>Measure distance (m) between two points", "://images/OSGeo/measure-length.png", "://images/OSGeo/measure-length.png" },
 
-	{ eAction_MeasureArea, "Area", "Area\nMeasure area (m<sup>2</sup>) of selected region", "://images/OSGeo/measure-area.png", "://images/OSGeo/measure-area.png" },
+    { eAction_MeasureArea, "Area", "<b>Area</b><br>Measure area (m<sup>2</sup>) of selected region", "://images/OSGeo/measure-area.png", "://images/OSGeo/measure-area.png" },
 
-    { eAction_MapEditorMean, "Mean", "Mean\nCompute mean of plotted variable in selected region", "://images/alpha-numeric/__g.png" },
+    { eAction_MapEditorMean, "Mean", "<b>Mean</b><br>Compute mean of plotted variable in selected region", "://images/alpha-numeric/__g.png" },
 
-    { eAction_MapEditorStDev, "StDev", "Standard Deviation\nCompute standard deviation of plotted variable in selected region", "://images/alpha-numeric/__h.png" },
+    { eAction_MapEditorStDev, "StDev", "<b>Standard Deviation</b><br>Compute standard deviation of plotted variable in selected region", "://images/alpha-numeric/__h.png" },
 
-    { eAction_MapEditorLinearRegression, "LG", "Linear Regression\nCompute linear regression of plotted variable in selected area", "://images/alpha-numeric/__i.png" },
+    { eAction_MapEditorLinearRegression, "LG", "<b>Linear Regression</b><br>Compute linear regression of plotted variable in selected area", "://images/alpha-numeric/__i.png" },
 
 
     { eActionGroup_Projections, "", "Projections menu", "://images/OSGeo/crs-change.png" },
@@ -144,18 +144,24 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 	{ eAction_ApplicationStyles_page, "Styles", "Application visual options", "://images/alpha-numeric/__p.png", "://images/alpha-numeric/__p.png" },
 
 
-	{ eAction_SelectFeatures, "Rectangular Selection", "Select Features by area or single click", ":/images/themes/default/mActionSelectRectangle.svg", ":/images/themes/default/mActionSelectRectangle.svg" },
+    { eAction_SelectFeatures, "Rectangular Selection", "<b>Selection</b><br>Select Features by area or single click", ":/images/themes/default/mActionSelectRectangle.svg", ":/images/themes/default/mActionSelectRectangle.svg" },
 
 	{ eAction_SelectPolygon, "Polygon Selection", "Select Features by Polygon", ":/images/themes/default/mActionSelectPolygon.svg", ":/images/themes/default/mActionSelectPolygon.svg" },
 
-	{ eAction_DeselectAll, "Deselect All", "Deselect Features from All Layers", ":/images/themes/default/mActionDeselectAll.svg" },
+    { eAction_DeselectAll, "Deselect All", "<b>Deselect</b><br>Remove selections from all layers", ":/images/themes/default/mActionDeselectAll.svg" },
 
-	{ eAction_DecorationGrid, "Grid", "Creates a scale bar that is displayed on the map canvas", ":/images/themes/default/transformed.png", ":/images/themes/default/transformed.png" },
+    { eAction_DecorationGrid, "Grid", "<b>Grid</b><br>Creates a scale bar that is displayed on the map canvas", ":/images/themes/default/transformed.png", ":/images/themes/default/transformed.png" },
 
 	{ eAction_MouseTrackingeCoordinatesFormat, "Format", "Coordinates format", ":/images/themes/default/tracking.png" },
 
 
-	{ eActionGroup_Filters, "", "Select a filter", "://images/OSGeo/filter.png" },
+	{ eActionGroup_Filters_Quick, "", "Quick operation filters", "://images/OSGeo/filter.png", "://images/OSGeo/filter.png" },
+
+	{ eActionGroup_Filters_Advanced, "", "Advanced operation filters", "://images/OSGeo/filter.png", "://images/OSGeo/filter.png" },
+
+	{ eAction_Item_Filters, "", "Click to apply filter", "://images/OSGeo/filter.png" },
+
+	{ eAction_AssignExpression, "", "Assign to the selected tree item", ":/images/themes/default/mIconDataDefineExpressionOn.svg" },
 
 
     // TODO images __n, __o and __p are used by settings dialog
@@ -333,6 +339,18 @@ QToolButton* CActionInfo::CreatePopupButton( EActionTag button_tag, const QList<
 
 	return ::CreatePopupButton( button_ai.mName, button_ai.mIconPath, button_ai.mTip, actions, default_action );
 }
+
+
+//static 
+QToolButton* CActionInfo::CreateToolButton( EActionTag button_tag, bool auto_raise )	//, bool auto_raise = false 
+{
+	assert__( button_tag < EActionTags_size );
+
+	CActionInfo  &button_ai = ActionsTable[ button_tag ];
+
+	return ::CreateToolButton( button_ai.mName, button_ai.mIconPath, button_ai.mTip, auto_raise );
+}
+
 
 
 

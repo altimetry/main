@@ -860,43 +860,64 @@ void CWorkspaceOperation::GetOperationNames( std::vector< std::string >& array )
 		array.push_back( it->first );
 }
 //----------------------------------------
-bool CWorkspaceOperation::UseDataset( const std::string& name, std::string &errorMsg, CStringArray* operationNames /*= nullptr*/ )
+bool CWorkspaceOperation::UseDataset( const std::string& name, CStringArray *operation_names )	//operation_names = nullptr 
 {
-	CObMap::iterator it;
-	bool useDataset = false;
-	for ( it = m_operations.begin(); it != m_operations.end(); it++ )
+	bool use = false;
+	for ( CObMap::iterator it = m_operations.begin(); it != m_operations.end(); it++ )
 	{
-		COperation* operation = dynamic_cast<COperation*>( it->second );
-		if ( operation == nullptr )
-		{
-			errorMsg += "ERROR in  CWorkspaceOperation::UseDataset\ndynamic_cast<COperation*>(it->second) returns nullptr pointer"
-				"\nList seems to contain objects other than those of the class COperation\n";
-
-			return false;
-		}
+		COperation* operation = dynamic_cast<COperation*>( it->second );		assert__( operation != nullptr );
 
 		bool useIt = operation->UseDataset( name );
-		useDataset |= useIt;
+		use |= useIt;
 
-		if ( operationNames != nullptr )
+		if ( operation_names != nullptr )
 		{
 			if ( useIt )
 			{
-				operationNames->Insert( (const char *)operation->GetName().c_str() );
+				operation_names->Insert( operation->GetName() );
 			}
 
 		}
 		else
 		{
-			if ( useDataset )
+			if ( use )
 			{
 				break;
 			}
 		}
 	}
 
-	return useDataset;
+	return use;
 }
+bool CWorkspaceOperation::UseFilter( const std::string& name, CStringArray* operation_names )		//operation_names = nullptr 
+{
+	bool use = false;
+	for ( CObMap::iterator it = m_operations.begin(); it != m_operations.end(); it++ )
+	{
+		COperation* operation = dynamic_cast<COperation*>( it->second );		assert__( operation != nullptr );
+
+		bool useIt = operation->FilterName() == name;
+		use |= useIt;
+
+		if ( operation_names != nullptr )
+		{
+			if ( useIt )
+			{
+				operation_names->Insert( operation->GetName() );
+			}
+		}
+		else
+		{
+			if ( use )
+			{
+				break;
+			}
+		}
+	}
+
+	return use;
+}
+
 //----------------------------------------
 bool CWorkspaceOperation::DeleteOperation(COperation* operation)
 {

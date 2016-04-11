@@ -22,7 +22,7 @@ static_assert( OSGEARTH_VERSION_GREATER_OR_EQUAL( 2, 5, 0 ), "osgEarth version n
 class CMapWidget;
 class CGlobeViewerWidget;
 
-
+class QgsPoint;
 class QAction;
 class QToolBar;
 class QgisInterface;
@@ -110,8 +110,6 @@ protected:
 	CGlobeViewerWidget *mGlobeViewerWidget = nullptr;
 	CMapWidget *mCanvas = nullptr;
 	bool mCloseScheduled = false;
-
-	CRootUpdateCallback *mRootUpdateCallback = nullptr;
 
 
 	//...scene graph nodes

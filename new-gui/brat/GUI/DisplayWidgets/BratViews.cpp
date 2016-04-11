@@ -44,29 +44,6 @@
 //			3) cannot color the values over a line (unless with another layer, a point layer, but then, why the line layer?)
 //(***) Using features and not rubberbands because these are not projected in the globe
 //
-void CBratMapView::PlotTrack( const double *x, const double *y, size_t size, QColor color )		//color = Qt::red 
-{
-    QgsFeatureList flist;
-
-    for ( auto i = 0u; i < size; ++ i )
-    {
-
-#if defined (USE_FEATURES) //(***)
-        createPointFeature( flist, x[ i ], y[ i ], color.red() );		//use color.red() as value: not relevant
-#else
-        addRBPoint( x[ i ], y[ i ], QColor( (long)v[ i ] ), mMainLayer );
-#endif
-    }
-
-#if defined (USE_FEATURES)
-    auto memL = AddMemoryLayer( "", CreatePointSymbol( 0.7, color ) );	//(*)	//note that you can use strings like "red" instead!!!
-    memL->dataProvider()->addFeatures( flist );
-    //memL->updateExtents();
-    //refresh();
-#endif
-}
-
-
 void CBratMapView::AddData( CWorldPlotData *pdata, size_t index )
 {
     Q_UNUSED( index );					   	//index is NOT the index in maps
@@ -106,18 +83,17 @@ void CBratMapView::Plot( const CWorldPlotInfo &maps, CWorldPlotProperties *props
 		auto y = i / map.mXaxis.size(); // ( x * geo_map->lats.size() ) + i;
 
 #if defined (USE_FEATURES) //(***)
-		createPointFeature( flist, map.mXaxis.at( x ), map.mYaxis.at( y ), map.mValues[ i ] );
+		CreatePointFeature( flist, map.mXaxis.at( x ), map.mYaxis.at( y ), map.mValues[ i ] );
 #else
 		addRBPoint( geo_map->lons.at( x ), geo_map->lats.at( y ), QColor( (long)(geo_map->vals[ i ]) ), mMainLayer );
 #endif  //USE_FEATURES
 	}
 
 #if defined (USE_FEATURES)
-    auto memL = AddMemoryLayer( props->m_name, 0.333, map.mMinHeightValue, map.mMaxHeightValue, props->m_numContour );
-	memL->dataProvider()->addFeatures( flist );
-	//memL->updateExtents();
-	//refresh();
-#endif  //USE_FEATURES
+
+    AddDataLayer( props->m_name, 0.333, map.mMinHeightValue, map.mMaxHeightValue, props->m_numContour, flist );
+
+#endif 
 
 	return;
 

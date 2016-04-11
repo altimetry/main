@@ -933,7 +933,7 @@ bool CConfiguration::LoadConfig( COperation &op, std::string &errorMsg, CWorkspa
 
 	std::string valueString;
 	valueString = Read( ENTRY_DSNAME );
-	op.m_dataset = op.FindDataset( valueString, wks );
+    op.SetDataset( op.FindDataset( valueString, wks ) );
 
 	valueString = Read( ENTRY_TYPE, CMapTypeOp::GetInstance().IdToName( op.m_type ) );
 	if ( valueString.empty() )
@@ -996,8 +996,8 @@ bool CConfiguration::SaveConfig( const COperation &op, const CWorkspaceOperation
 	SetPath( "/" + op.m_name );
 
 	bool bOk = true;
-	if ( op.m_dataset != nullptr )
-		bOk &= Write( ENTRY_DSNAME, op.m_dataset->GetName().c_str() ) && Write( ENTRY_RECORDNAME, op.GetRecord().c_str() );
+    if ( op.OriginalDataset() != nullptr )
+        bOk &= Write( ENTRY_DSNAME, op.OriginalDatasetName().c_str() ) && Write( ENTRY_RECORDNAME, op.GetRecord().c_str() );
 
 	bOk &= Write( ENTRY_TYPE, CMapTypeOp::GetInstance().IdToName( op.m_type ).c_str() );
 

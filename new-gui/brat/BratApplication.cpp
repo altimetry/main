@@ -289,7 +289,7 @@ CBratApplication::~CBratApplication()
     CProduct::CodaRelease();
 
     if ( !mSettings.SaveConfig() )
-		std::cout << "Unable to save BRAT the application settings." << std::endl;	// TODO log this
+		LOG_TRACE( "Unable to save BRAT the application settings." );	// TODO log this
 
     mSettings.Sync();
 }

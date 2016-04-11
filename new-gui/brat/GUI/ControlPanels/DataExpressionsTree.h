@@ -84,6 +84,9 @@ protected:
 	template< typename PARENT, typename DATA >
 	QTreeWidgetItem* MakeItem( PARENT *parent, const std::string &name, DATA data = nullptr, bool bold = false, bool folder = false );	
 
+	template< typename PARENT, typename DATA >
+	QTreeWidgetItem* MakeEditableLeaf( PARENT *parent, const std::string &name, DATA data = nullptr, bool bold = false );	
+
 
 	template< typename DATA >
 	DATA ItemData( QTreeWidgetItem *item )
@@ -148,6 +151,8 @@ class CFieldsTreeWidget : public CAbstractTree
 	// types
 
 	using base_t = CAbstractTree;
+
+	friend class CDataExpressionsTreeWidget;
 
 
 	// instance variables
@@ -253,6 +258,7 @@ class CDataExpressionsTreeWidget : public CAbstractTree
 	QAction *mSortDescending = nullptr;
 
 	CTextWidget *mExpressionTextWidget = nullptr;
+	QToolButton *mAssignExpressionButton = nullptr;
 
 
 	//...domain
@@ -279,6 +285,7 @@ public:
 
 	
 	CTextWidget *ExpressionTextWidget() { return mExpressionTextWidget; }
+	QToolButton *AssignExpressionButton() { return mAssignExpressionButton; }
 
 	
 	CFormula* SelectedFormula()			//from COperationTreeCtrl::GetCurrentFormula()
@@ -325,6 +332,9 @@ protected:
 		return const_cast<CDataExpressionsTreeWidget*>( this )->ItemFormula( const_cast<QTreeWidgetItem*>( item ) );
 	}
 
+	std::string ItemUnit( const QTreeWidgetItem *item ) const;
+
+
 
 	void SetItemType( QTreeWidgetItem *item, CMapTypeField::ETypeField type );
 
@@ -345,6 +355,13 @@ protected:
 
 
 	void AddField( QTreeWidgetItem *parent, CField *field );
+	void InsertField( CField *field );
+
+	void AddEmptyExpression( QTreeWidgetItem *parent );
+
+	void FormulaNameEdited( QTreeWidgetItem *item, std::string label );
+	void FormulaUnitEdited( QTreeWidgetItem *item, std::string label  );
+	void SetUnit( std::string label  );
 
 
 	//drag and drop
@@ -358,6 +375,9 @@ signals:
 
 protected slots:
 	void HandleSelectionChanged();
+	void HandleAssignExpression();
+	void HandleExpressionTextChanged();
+	void HandleItemChanged( QTreeWidgetItem *item, int column );
 
     void HandlemInsertExpr();
     void HandleInsertField();

@@ -11,6 +11,7 @@
 namespace brathl
 {
     class CStringList;
+	class CMapProduct;
 }
 
 
@@ -64,6 +65,8 @@ public:
     const std::string& Name() const { return mName; }
     std::string& Name() { return mName; }
 
+	const CBratAreas& Areas() const;
+
 
     //space
 
@@ -78,7 +81,6 @@ public:
     bool AddArea( const std::string &name );
 
     bool RemoveArea( const std::string &name );
-
 
 
     //time
@@ -99,6 +101,13 @@ public:
     int& StopCycle() { return mStopCycle; }
     int& StartPass() { return mStartPass; }
     int& StopPass() { return mStopPass; }
+
+
+	// operations
+
+	void BoundingArea( double &lon1, double &lat1, double &lon2, double &lat2 ) const;
+
+    bool Apply( const CStringList& files_in, CStringList& files_out ) const;
 };
 
 
@@ -113,6 +122,31 @@ class CBratFilters : public CFileSettings
     using base_t = CFileSettings;
 
 
+	// static data
+
+	static CBratFilters *smInstance;
+
+public:
+
+	//client in charge of deletion
+	//
+	static CBratFilters* CreateInstance( const std::string &internal_data_dir )
+	{
+		assert__( !smInstance );
+
+		smInstance = new CBratFilters( internal_data_dir );
+		return smInstance;
+	}
+
+	static const CBratFilters& GetInstance()
+	{
+		assert__( smInstance );
+
+		return *smInstance;
+	}
+
+
+
 protected:
     // instance data
 
@@ -123,24 +157,28 @@ protected:
 
     // construction / destruction
 
-public:
     CBratFilters( const std::string &internal_data_dir )
         : base_t( internal_data_dir + "/Filters.ini" )
         , mInternalDataPath( internal_data_dir )
     {}
+public:
 
     virtual ~CBratFilters()
     {}
 
-
-    // persistence
-
+	//access related data managed by filters
 
     CBratAreas& Areas()
     {
         static CBratAreas a( mInternalDataPath + "/UserAreas.ini" );
         return a;
     }
+
+	const CBratAreas& Areas() const
+	{
+		return const_cast<CBratFilters*>( this )->Areas();
+	}
+
     CBratRegions& Regions()
     {
         static CBratRegions r( mInternalDataPath + "/UserRegions.ini" );
@@ -148,12 +186,7 @@ public:
     }
 
 
-    bool Load();
-
-    bool Save();
-
-
-    // access
+    // access filters
 
     const std::map< std::string, CBratFilter >& FiltersMap() const { return mFiltersMap; }
 
@@ -175,7 +208,15 @@ public:
 
     bool DeleteFilter( const std::string &name );
 
-    bool Apply( const std::string &name, const CStringList& files_in, CStringList& files_out );
+    bool Apply( const std::string &name, const CStringList& files_in, CStringList& files_out ) const;
+    bool Translate2SelectionCriteria( CProduct *product_ref, const std::string &name ) const;
+
+
+    // persistence
+
+    bool Load();
+
+    bool Save();
 };
 
 

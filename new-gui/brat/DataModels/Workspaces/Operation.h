@@ -29,6 +29,7 @@
 
 class CWorkspaceDataset;
 class CWorkspaceOperation;
+class CBratFilter;
 
 
 
@@ -134,10 +135,12 @@ protected:
 	static std::string m_execBratSchedulerName;
 
 
-	CProduct* m_product = nullptr;
-	CDataset* m_dataset = nullptr;
+	CProduct *m_product = nullptr;
+	CDataset *mDataset = nullptr;
+	const CDataset *mOriginalDataset = nullptr;				//v4
+	const CBratFilter *mFilter = nullptr;					//v4
 	std::string m_record;									//CFormula* m_formula;
-	CFormula* m_select = new CFormula(ENTRY_SELECT, false);
+	CFormula *m_select = new CFormula(ENTRY_SELECT, false);
 	CMapFormula m_formulas;
 	CMapTypeOp::ETypeOp m_type = CMapTypeOp::eTypeOpYFX;
 	int32_t m_dataMode = CMapDataMode::GetInstance().GetDefault();
@@ -149,8 +152,6 @@ protected:
 	std::string m_cmdFile;
 	std::string m_exportAsciiCmdFile;
 	std::string m_showStatsCmdFile;
-
-	std::string mFilterName;
 
 public:
 	const int32_t m_verbose = 2;
@@ -184,6 +185,7 @@ public:
 	virtual ~COperation()
 	{
 		delete m_select;
+		delete mDataset;
 	}
 
 	virtual const_iterator begin() const { return m_formulas.begin(); }
@@ -200,9 +202,6 @@ public:
 
 	const std::string& GetName() const { return m_name; }
 	void SetName( const std::string& value ) { m_name = value; }
-
-	const std::string& FilterName() const { return mFilterName; }
-	void SetFilterName( const std::string &filter_name ) { mFilterName = filter_name; }
 
 	bool HasFormula() const { return GetFormulaCount() > 0; }
 	bool HasFilters() const { return m_formulas.HasFilters(); }
@@ -228,10 +227,23 @@ public:
 	int32_t GetDataMode() const { return m_dataMode; }
 	void SetDataMode( int32_t value ) { m_dataMode = value; }
 
-	CDataset* GetDataset() { return m_dataset; }
-	const CDataset* GetDataset() const { return m_dataset; }
-	void SetDataset( CDataset* value ) { m_dataset = value; }
-	std::string GetDatasetName();
+#if !defined(BRAT_V3)
+protected:
+#endif
+
+	CDataset* Dataset() { return mDataset; }
+	void SetDataset();
+
+public:
+	const CDataset* OriginalDataset() const { return mOriginalDataset; }
+	std::string OriginalDatasetName() const;
+	const CDataset* Dataset() const { return mDataset; }
+	void SetDataset( const CDataset *dataset );
+	const CBratFilter* Filter() const { return mFilter; }
+	std::string FilterName() const;
+	void SetFilter( const CBratFilter *filter );
+	void RemoveFilter();
+	void ReapplyFilter();
 
 	CProduct* GetProduct() { return m_product; }
 	void SetProduct( CProduct* value ) { m_product = value; }

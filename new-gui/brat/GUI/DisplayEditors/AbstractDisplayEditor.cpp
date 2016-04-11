@@ -70,7 +70,7 @@ void CAbstractDisplayEditor::CreateMainToolbar()
 
 	addToolBar( AddWidgets( toptoolbar,
 	{
-		loperations, mOperationsCombo, nullptr, lfilters, mFilterLineEdit, nullptr, ldataset, mDatasetName, nullptr, mSaveOneClickButton
+		loperations, mOperationsCombo, nullptr, ldataset, mDatasetName, nullptr, lfilters, mFilterLineEdit, nullptr, mSaveOneClickButton
 	}
 	) );
 }
@@ -408,9 +408,9 @@ void CAbstractDisplayEditor::HandleOperationsIndexChanged( int index )
 			LOG_TRACE( "Operation already assigned before handling index change." );
 
 		mOperation = op;
-		const CDataset *dataset = mOperation->GetDataset();
-		mDatasetName->setText( t2q( dataset->GetName() ) );
-		mFilterLineEdit->setText( t2q( mOperation->FilterName() ) );
+		std::string dataset_name = mOperation->OriginalDatasetName();
+		mDatasetName->setText( t2q( dataset_name ) );
+		mFilterLineEdit->setText( mOperation->Filter() ? t2q( mOperation->Filter()->Name() ) : "" );
 	}
 	
 	FilterDisplays();

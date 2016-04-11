@@ -68,7 +68,7 @@ QIcon ButtonDisplayIconIsPlot()
 
 
 //static 
-QList<QAction*> COperationControls::CreateDataComputationActions( QObject *parent )
+QList<QAction*> COperationControls::CreateDataComputationActions()
 {
 	QList<QAction*> actions;
 	auto map = CMapDataMode::GetInstance();
@@ -76,8 +76,7 @@ QList<QAction*> COperationControls::CreateDataComputationActions( QObject *paren
 	{
 		if ( !isDefaultValue( it->second ) )
 		{
-			auto *action = new QAction( it->first.c_str(), parent );
-			action->setCheckable( true );
+			auto *action = new QAction( it->first.c_str(), nullptr );	//checkable, parent and name properties assigned by group creation function
 			actions << action;
 		}
 	}
@@ -92,34 +91,33 @@ void COperationControls::CreateQuickOperationsPage()
 
 	// I. Buttons row
 
-	mAddVariable = CreateToolButton( "Add", ":/images/OSGeo/new.png", "Add a new variable" );
-	mClearVariables = CreateToolButton( "Clear", ":/images/OSGeo/workspace-delete.png", "Clear selection" );
 	mDisplayMapButton = CreateToolButton( ButtonDisplayTextIsMap, ":/images/themes/default/propertyicons/map_tools.png", "Edit operation map" );
 	mDisplayPlotButton = CreateToolButton( ButtonDisplayTextIsPlot, ":/images/themes/default/histogram.png", "Edit operation plot" );
-
-	mAddVariable->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
-	mClearVariables->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
 	mDisplayMapButton->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
-	mDisplayPlotButton ->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
+	mDisplayPlotButton->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
 
-	mAddVariable->setEnabled( false );
-	mClearVariables->setEnabled( false );
+	QWidget *buttons_row = CreateButtonRow( false, Qt::Horizontal, { nullptr, mDisplayMapButton, mDisplayPlotButton, nullptr } );
 
-	QWidget *buttons_row = CreateButtonRow( false, Qt::Horizontal, {
-		mAddVariable, mClearVariables, nullptr, mDisplayMapButton, mDisplayPlotButton } );
-
-	// II. Dataset
+	// II. Dataset &Filters
 
 	mQuickDatasetsCombo = new QComboBox;
 	mQuickDatasetsCombo->setToolTip( "Selected operation dataset" );
-	auto *data_label = new QLabel( "Dataset" );
-	data_label->setAlignment( Qt::AlignCenter );
+
+	mOperationFilterButton_Quick = CActionInfo::CreatePopupButton( eActionGroup_Filters_Quick, QList<QAction*>() );
+	mOperationFilterButton_Quick->setCheckable( true );
+	mOperationFilterButton_Quick->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
+
 	auto *data_group = CreateGroupBox( ELayoutType::Horizontal, 
 	{
-		LayoutWidgets( Qt::Vertical, { new QLabel( "Dataset" ), mQuickDatasetsCombo }, nullptr, s, m, m, m, m )
+		nullptr,
+		LayoutWidgets( Qt::Horizontal, { new QLabel( "Dataset" ), mQuickDatasetsCombo }, nullptr, s, m, m, m, m ),
+		nullptr,
+		LayoutWidgets( Qt::Horizontal, { new QLabel( "Filter" ), mOperationFilterButton_Quick }, nullptr, s, m, m, m, m ),
+		nullptr,
 	}, 
 	"", nullptr, s, m, m, m, m );
 	data_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
+
 
 	
 	// III. Predefined Variables
@@ -132,7 +130,20 @@ void COperationControls::CreateQuickOperationsPage()
 		{ smPredefinedVariables[ eSigma0 ] }
 	} );
 	mQuickVariablesList->setSelectionMode( QAbstractItemView::NoSelection );
-	QGroupBox *vars_group = CreateGroupBox( ELayoutType::Vertical, { mQuickVariablesList }, "Fields" , nullptr, 0, m, m, m, m );
+
+	mAddVariable = CreateToolButton( "Add", ":/images/OSGeo/new.png", "Add a new variable" );
+	mClearVariables = CreateToolButton( "Clear", ":/images/OSGeo/workspace-delete.png", "Clear selection" );
+	mAddVariable->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
+	mClearVariables->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
+	mAddVariable->setEnabled( false );
+	mClearVariables->setEnabled( false );
+
+	QWidget *variables_buttons = CreateButtonRow( true, Qt::Vertical, 
+	{ 
+		mAddVariable, mClearVariables
+	} );
+
+	QGroupBox *vars_group = CreateGroupBox( ELayoutType::Horizontal, { mQuickVariablesList, variables_buttons }, "Fields" , nullptr, 12, 10, 10, 10, 10 );
 
 	mQuickFieldDesc = new CTextWidget;
 	mQuickFieldDesc->SetReadOnlyEditor( true );
@@ -145,7 +156,8 @@ void COperationControls::CreateQuickOperationsPage()
 	{ 
 		buttons_row,
 		data_group,
-		CreateSplitter( nullptr, Qt::Vertical, { vars_group, desc_group } ) 
+		CreateSplitter( nullptr, Qt::Vertical, { vars_group, desc_group } ),
+		nullptr
 	}, 
 	mQuickOperationsPage, 0, m, m, m, m );
 }
@@ -164,23 +176,28 @@ void COperationControls::CreateAdancedOperationsPage()
     mDuplicateOperationButton = CreateToolButton( "", ":/images/themes/default/mActionCopySelected.png", "Duplicate the selected operation" );
     mDeleteOperationButton = CreateToolButton( "", ":/images/OSGeo/workspace-delete.png", "Delete the selected operation" );
 
-	mAdvancedDisplayButton = CreateToolButton( "", ":/images/OSGeo/execute.png", "Execute the operation and edit resulting view" );	//ButtonDisplayIconNoOpPath
-	mAdvancedDisplayButton->setPopupMode( QToolButton::MenuButtonPopup );
+	mAdvancedExecuteButton = CreateToolButton( "Execute", ":/images/OSGeo/execute.png", "Execute the operation and edit resulting view" );
+	mAdvancedExecuteButton->setPopupMode( QToolButton::MenuButtonPopup );
+	mAdvancedExecuteButton->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
     mDelayExecutionAction = new QAction( "Delay Execution...", this );
 	mLaunchSchedulerAction = CActionInfo::CreateAction( this, eAction_Launch_Scheduler );
-	mAdvancedDisplayButton->addAction( mDelayExecutionAction );
-	mAdvancedDisplayButton->addAction( mLaunchSchedulerAction );
+	mAdvancedExecuteButton->addAction( mDelayExecutionAction );
+	mAdvancedExecuteButton->addAction( mLaunchSchedulerAction );
 
 	QWidget *top_buttons_row = CreateButtonRow( false, Qt::Horizontal, 
 	{ 
-        mNewOperationButton, mRenameOperationButton, mDeleteOperationButton, mDuplicateOperationButton, nullptr, mAdvancedDisplayButton
+        mNewOperationButton, mRenameOperationButton, mDeleteOperationButton, mDuplicateOperationButton, nullptr, mAdvancedExecuteButton
 	} );
 
 
-	// II. Operations & Datasets
+	// II. Operations & Datasets &Filters
 
 	mOperationsCombo = new QComboBox;		
 	mOperationsCombo->setToolTip( "Selected operation" );
+	mOperationFilterButton_Advanced = CActionInfo::CreatePopupButton( eActionGroup_Filters_Advanced, QList<QAction*>() );
+	mOperationFilterButton_Advanced->setCheckable( true );
+	//mOperationFilterButton_Advanced->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
+
 
 	//dataset list
 
@@ -190,8 +207,11 @@ void COperationControls::CreateAdancedOperationsPage()
 	//auto *ops_group = CreateGroupBox( ELayoutType::Horizontal, 
 	auto *ops_group = LayoutWidgets( Qt::Horizontal, 
 	{ 
-		LayoutWidgets( Qt::Vertical, { new QLabel("Operation"), mOperationsCombo }, nullptr, s, m, m, m, m ), 
-		LayoutWidgets( Qt::Vertical, { new QLabel("Dataset"), mAdvancedDatasetsCombo }, nullptr, s, m, m, m, m )
+		LayoutWidgets( Qt::Horizontal, { new QLabel("Operation"), mOperationsCombo }, nullptr, s, m, m, m, m ), 
+		nullptr,
+		LayoutWidgets( Qt::Horizontal, { new QLabel("Dataset"), mAdvancedDatasetsCombo }, nullptr, s, m, m, m, m ),
+		nullptr,
+		LayoutWidgets( Qt::Horizontal, { new QLabel("Filter"), mOperationFilterButton_Advanced }, nullptr, s, m, m, m, m )
 	}, 
 	nullptr, s, m, m, m, m );
 
@@ -204,6 +224,7 @@ void COperationControls::CreateAdancedOperationsPage()
 	mAdvancedFieldsTree = new CFieldsTreeWidget( mAdvancedOperationsPage );
 	mAdvancedFieldDesc = new CTextWidget;
 	mAdvancedFieldDesc->SetReadOnlyEditor( true );
+	mAdvancedFieldDesc->SetSizeHint( 40 * fontMetrics().width( 'x' ), mAdvancedFieldDesc->sizeHint().height() );
 
 	QGroupBox *fields_group = CreateGroupBox( ELayoutType::Horizontal, 
 	{ 
@@ -214,32 +235,6 @@ void COperationControls::CreateAdancedOperationsPage()
 
 	// ...2. Expressions Tree(s)
 
-#if defined(USE_2_EXPRESSION_TREES)
-	//...map tree page
-    //
-	QWidget *page_1 = mDataExpressionsTree = mDataExpressionsTrees[eExpressionTreeMap] = 
-		new CDataExpressionsTreeWidget( true, mAdvancedOperationsPage, mAdvancedFieldsTree );
-
-	//plot tree page
-	//
-	QWidget *page_2 = mDataExpressionsTrees[eExpressionTreePlot] = 
-		new CDataExpressionsTreeWidget( false, mAdvancedOperationsPage, mAdvancedFieldsTree );
-
-    // Group Stack Widget Buttons & add Stack Widget itself
-    //
-    mDataExpressionsStack = new CStackedWidget( nullptr, 
-	{
-		{ page_1, "Map", "", ":/images/themes/default/propertyicons/map_tools.png", true },
-		{ page_2, "Plot", "", ":/images/themes/default/histogram.png", true }
-	} );
-
-    mSwitchToMapButton = qobject_cast<stack_button_type*>( mDataExpressionsStack->Button( eExpressionTreeMap ) );
-    mSwitchToPlotButton = qobject_cast<stack_button_type*>( mDataExpressionsStack->Button( eExpressionTreePlot ) );
-	auto *data_expressions_buttons = CreateButtonRow( Qt::Vertical, { mSwitchToMapButton, mSwitchToPlotButton } );
-
-    auto *data_expressions_group = CreateGroupBox( ELayoutType::Horizontal, { data_expressions_buttons, mDataExpressionsStack }, "", nullptr, s, m, m, m, m );
-
-#else
 	mDataExpressionsTree = new CDataExpressionsTreeWidget( mWFormula, mMapFormulaString, true, mAdvancedOperationsPage, mAdvancedFieldsTree );
 
 	mSwitchToMapButton = CreateToolButton( "Map", ":/images/themes/default/propertyicons/map_tools.png", "Click to change the type of the expression output" );
@@ -252,9 +247,7 @@ void COperationControls::CreateAdancedOperationsPage()
 
     //auto *data_expressions_group = CreateGroupBox( ELayoutType::Horizontal, { data_expressions_buttons, mDataExpressionsTree }, "", nullptr, s, m, m, m, m );
 	QWidget *data_expressions_group = new QWidget;
-    LayoutWidgets( Qt::Horizontal, { mDataExpressionsTree, data_expressions_buttons }, data_expressions_group, s, m, m, m, m );
-
-#endif
+    LayoutWidgets( Qt::Horizontal, { mDataExpressionsTree, data_expressions_buttons }, data_expressions_group, 12, 10, 10, 10, 10 );
 
 
 	//...3. Buttons Row & Expression
@@ -263,7 +256,7 @@ void COperationControls::CreateAdancedOperationsPage()
 	mInsertAlgorithm = CreateToolButton( "", ":/images/alpha-numeric/2.png", "Insert algorithm" );
 	mInsertFormula = CreateToolButton( "", ":/images/alpha-numeric/3.png", "Insert formula" );
 	mSaveAsFormula = CreateToolButton( "", ":/images/alpha-numeric/4.png", "Save as formula" );
-	mDataComputationGroup = CreateActionGroup( this, CreateDataComputationActions( this ), true );
+	mDataComputationGroup = CreateActionGroup( this, CreateDataComputationActions(), true );
 	mDataComputation = CreateMenuButton(  "", ":/images/alpha-numeric/b.png", "Set how data are stored/computed", mDataComputationGroup->actions() );
 	mShowInfoButton = CreateToolButton( "", ":/images/OSGeo/page-info.png", "Show information" );
     mShowAliasesButton = CreateToolButton( "", ":/images/alpha-numeric/__e.png", "Show aliases" );
@@ -275,19 +268,20 @@ void COperationControls::CreateAdancedOperationsPage()
 		mInsertFunction, mInsertFormula, mSaveAsFormula, mInsertAlgorithm, mDataComputation, nullptr, mShowInfoButton, mShowAliasesButton, mCheckSyntaxButton
 	} );
 
-	mExpressionGroup = CreateGroupBox( ELayoutType::Vertical, { expression_buttons, mDataExpressionsTree->ExpressionTextWidget() }, "Expression", mAdvancedOperationsPage, 0, m, m, m, m );
+	mExpressionGroup = CreateGroupBox( ELayoutType::Vertical, 
+	{ 
+		expression_buttons, 
+		LayoutWidgets( Qt::Horizontal, { mDataExpressionsTree->ExpressionTextWidget(), mDataExpressionsTree->AssignExpressionButton() }, nullptr, s + m, m, m, m, m ),
+	}
+	, "Expression", mAdvancedOperationsPage, 0, m, m, m, m );
 
 	//....Split in Group
 
-    static const QString SyncGroup("SyncGroup");
-	mOperationExpressionsGroup = CreateCollapsibleGroupBox( 
+	mOperationExpressionsGroup = CreateGroupBox( 
 		ELayoutType::Vertical, { 
 			CreateSplitter( nullptr, Qt::Vertical, { fields_group, data_expressions_group, mExpressionGroup } )
 		}, 
-		"Define Operation", mAdvancedOperationsPage, s, 4, 4, 4, 4 );
-	mOperationExpressionsGroup->setCollapsed( false );
-	mOperationExpressionsGroup->setSyncGroup( SyncGroup );
-	//expression_group->setCheckable( true );
+		"", mAdvancedOperationsPage, s, 4, 4, 4, 4 );
 
 
 	// IV. Sampling Group
@@ -313,38 +307,29 @@ void COperationControls::CreateAdancedOperationsPage()
 	mSamplingGroup = CreateCollapsibleGroupBox( ELayoutType::Horizontal, { adv_filter_vl, line, sampling_gridl }, 
         "Sampling", mAdvancedOperationsPage, s, 4, 4, 4, 4 );
 	mSamplingGroup->setCollapsed( true );
+    //static const QString SyncGroup("SyncGroup");
 	//mSamplingGroup->setCheckable( true );
-	mSamplingGroup->setSyncGroup( SyncGroup );
+	//mSamplingGroup->setSyncGroup( SyncGroup );
 
 
     LayoutWidgets( Qt::Vertical,
 	{ 
 		top_buttons_row, 
-		ops_group,
+		CreateGroupBox( ELayoutType::Horizontal, { ops_group }, "" ),
 		mOperationExpressionsGroup,
 		mSamplingGroup,
 		nullptr
 	}, 
 	mAdvancedOperationsPage, 0, m, m, m, m );
-
 }
 
 
 //	QUESTIONS: 
-//	save workspace, not individual things...
-//	quick can only be quick if an auto/default operation is created
 //	view: determined by operation: distinction quick/advanced does not seem to stand
-
+//
 QWidget* COperationControls::CreateCommonWidgets( QAbstractButton *b1, QAbstractButton *b2 )
 {
 	//buttons row
-
-	//mOperationFilterButton = CActionInfo::CreatePopupButton( eActionGroup_Filters, QList<QAction*>() /*mOperationFilterGroup->actions() */);
-	mOperationFilterButton = CActionInfo::CreatePopupButton( eActionGroup_Filters, QList<QAction*>() /*mOperationFilterGroup->actions() */);
-	mOperationFilterButton->setPopupMode( QToolButton::DelayedPopup );
-	mOperationFilterButton->setCheckable( true );
-	mOperationFilterButton->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
-
 
 	mExportOperationAction = new QAction( "Export...", this );
 	mEditExportAsciiAction = new QAction( "Edit ASCII Export", this );
@@ -359,53 +344,198 @@ QWidget* COperationControls::CreateCommonWidgets( QAbstractButton *b1, QAbstract
 	{ 
 		b1, b2, 
 		nullptr,
-		mOperationFilterButton, mOperationExportButton, mOperationStatisticsButton, mSplitPlotsButton,		
+		mOperationExportButton, mOperationStatisticsButton, mSplitPlotsButton,		
 	} );
 
 	return buttons;
 }
 
 
-void COperationControls::ResetSelectedFilter()
-{
-	std::string selected_filter_name;
-	if ( mCurrentOperation )
-		selected_filter_name = mCurrentOperation->FilterName();
+///////////////////////////////////////////////////////////////////////////////////////////////
+//			Filters
+///////////////////////////////////////////////////////////////////////////////////////////////
 
-	mOperationFilterButton->setChecked( false );			//triggers
-	auto actions = mOperationFilterButton->actions();
-	for ( auto a : actions )
+void COperationControls::ResetFilterSelection()
+{
+	auto reset_filter_selection = []( QToolButton *button, const COperation *operation )
 	{
-		std::string filter_name = q2a( a->text() );
-		a->setChecked( filter_name == selected_filter_name );
-		if ( a->isChecked() )
-			//mOperationFilterButton->setDefaultAction( a );
-			mOperationFilterButton->setChecked( true );
-	}
+		std::string selected_filter_name;
+		if ( operation && operation->Filter() )
+			selected_filter_name = operation->FilterName();
+
+		button->setText( "" );
+
+		auto actions = button->actions();
+		for ( auto a : actions )
+		{
+			std::string filter_name = q2a( a->text() );
+			a->setChecked( filter_name == selected_filter_name );
+			if ( a->isChecked() )
+			{
+				button->setText( a->text() );
+			}
+		};
+
+		button->setChecked( !button->text().isEmpty() );
+	};
+
+	reset_filter_selection( mOperationFilterButton_Advanced, mCurrentOperation );
+	reset_filter_selection( mOperationFilterButton_Quick, QuickOperation() );
 }
 
 
 void COperationControls::ResetFilterActions()
 {
-	mOperationFilterButton->setChecked( false );
-	auto actions = mOperationFilterButton->actions();
-	for ( auto a : actions )
-		mOperationFilterButton->removeAction( a );
-
-	auto const &filters = mBratFilters.FiltersMap();
-	for ( auto const &filter : filters )
+	auto reset_filter_actions = [this]( QToolButton *button, const CBratFilters &brat_filters )
 	{
-		std::string filter_name = filter.first;
-		QAction *a = new QAction( filter_name.c_str(), this );
-		a->setCheckable( true );
-		mOperationFilterButton->addAction( a );
-		connect( a, SIGNAL( triggered() ), this, SLOT( HandleOperationFilter() ) );
-	}
-	CreateActionGroup( mOperationFilterButton, mOperationFilterButton->actions(), true );
-	//connect( mOperationFilterButton, SIGNAL( triggered( QAction * ) ), this, SLOT( HandleOperationFilterButton( QAction * ) ) );	TODO re-enable and test only when filters ready
-	//connect( mOperationFilterButton, SIGNAL( toggled( bool ) ), this, SLOT( HandleOperationFilterButtonToggled( bool ) ) );		TODO re-enable and test only when filters ready
-	ResetSelectedFilter();
+		auto actions = button->actions();
+		for ( auto a : actions )
+			button->removeAction( a );
+
+		auto const &filters = brat_filters.FiltersMap();
+		for ( auto const &filter : filters )
+		{
+			std::string filter_name = filter.first;
+			QAction *a = CActionInfo::CreateAction( this, eAction_Item_Filters );
+			a->setText( filter_name.c_str() );
+			a->setToolTip( filter_name.c_str() );
+			button->addAction( a );
+		}
+	};
+
+	reset_filter_actions( mOperationFilterButton_Advanced, mBratFilters );
+	connect( mOperationFilterButton_Advanced, SIGNAL( triggered( QAction * ) ), this, SLOT( HandleOperationFilterButton_Advanced( QAction * ) ) );
+	connect( mOperationFilterButton_Advanced, SIGNAL( toggled( bool ) ), this, SLOT( HandleOperationFilterButtonToggled_Advanced( bool ) ) );
+
+	reset_filter_actions( mOperationFilterButton_Quick, mBratFilters );
+	connect( mOperationFilterButton_Quick, SIGNAL( triggered( QAction * ) ), this, SLOT( HandleOperationFilterButton_Quick( QAction * ) ) );
+	connect( mOperationFilterButton_Quick, SIGNAL( toggled( bool ) ), this, SLOT( HandleOperationFilterButtonToggled_Quick( bool ) ) );
+
+	ResetFilterSelection();
 }
+
+
+void COperationControls::HandleFilterCompositionChanged( std::string filter_name )
+{
+	auto &operations = *mWOperation->GetOperations();
+	for ( auto &operation_entry : operations )
+	{
+		COperation *operation = dynamic_cast<COperation*>( operation_entry.second );
+		if ( operation->FilterName() == filter_name )
+		{
+			operation->ReapplyFilter();
+		}
+	}
+}
+
+
+void COperationControls::HandleFiltersChanged()
+{
+	ResetFilterActions();
+}
+
+
+bool COperationControls::AssignFilter( const std::string &name )
+{
+	assert__( mCurrentOperation );
+
+	const std::string &op_filter_name = mCurrentOperation->FilterName();
+
+	if ( op_filter_name.empty() )
+	{
+		if ( !SimpleQuestion( "Are you sure you want to apply the filter '" + name + "' to the operation '" + mCurrentOperation->GetName() + "'?" ) )
+		{
+			return false;
+		}
+	}
+	else
+	{
+		if ( op_filter_name != name &&
+			!SimpleQuestion( "Operation '" + mCurrentOperation->GetName() + "' has associated filter '" + op_filter_name + "'. Are you sure you want to change it to '" + name + "'?" )
+			)
+		{
+			return false;
+		}
+	}
+
+	WaitCursor wait;
+
+	auto *filter = mBratFilters.Find( name );			assert__( filter );
+	mCurrentOperation->SetFilter( filter );
+	return true;
+}
+
+
+bool COperationControls::RemoveFilter( const std::string &name )
+{
+	assert__( mCurrentOperation );		Q_UNUSED( name );		//release builds
+
+	const std::string &op_filter_name = mCurrentOperation->FilterName();	assert__( name == op_filter_name );	
+
+	if ( !op_filter_name.empty() && 
+		!SimpleQuestion( "Are you sure you want to remove the filter '" + op_filter_name + "' from the operation '" + mCurrentOperation->GetName() + "'?" ) )
+	{
+		return false;
+	}
+
+	WaitCursor wait;
+
+	mCurrentOperation->RemoveFilter();
+	return true;
+}
+
+
+void COperationControls::HandleOperationFilterButton_Quick( QAction * )
+{
+}
+void COperationControls::HandleOperationFilterButtonToggled_Quick( bool )
+{
+}
+
+
+void COperationControls::HandleOperationFilterButtonToggled_Advanced( bool toggled )
+{
+	assert__( mCurrentOperation );
+
+	const std::string filter_name = q2a( mOperationFilterButton_Advanced->text() );
+
+	if ( toggled )
+	{
+		AssignFilter( filter_name );
+	}
+	else
+	{
+		RemoveFilter( filter_name );
+	}
+
+	//ugly...
+	mOperationFilterButton_Advanced->blockSignals( true );
+	mOperationFilterButton_Advanced->setChecked( mCurrentOperation->Filter() );
+	mOperationFilterButton_Advanced->setText( mCurrentOperation->FilterName().c_str() );
+	mOperationFilterButton_Advanced->blockSignals( false );
+
+	mDataExpressionsTree->InsertOperation( mCurrentOperation );
+}
+
+
+void COperationControls::HandleOperationFilterButton_Advanced( QAction *a )
+{
+	QToolButton *bt = qobject_cast<QToolButton *>( sender() );
+	if ( !bt )
+		return;
+
+	mOperationFilterButton_Advanced->setText( a->text() );
+	HandleOperationFilterButtonToggled_Advanced( true );
+	//qDebug() << "HandleOperationFilterButton==" << a->text();
+}
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////
+//
+///////////////////////////////////////////////////////////////////////////////////////////////
+
 
 void COperationControls::Wire()
 {
@@ -434,7 +564,7 @@ void COperationControls::Wire()
 	connect( mDeleteOperationButton, SIGNAL( clicked() ), this, SLOT( HandleDeleteOperation() ) );
     connect( mDuplicateOperationButton, SIGNAL( clicked() ), this, SLOT( HandleDuplicateOperation() ) );
 
-	connect( mAdvancedDisplayButton, SIGNAL( clicked() ), this, SLOT( HandleExecute() ) );
+	connect( mAdvancedExecuteButton, SIGNAL( clicked() ), this, SLOT( HandleExecute() ) );
 	connect( mDelayExecutionAction, SIGNAL( triggered() ), this, SLOT( HandleDelayExecution() ) );
 	connect( mLaunchSchedulerAction, SIGNAL( triggered() ), this, SLOT( HandleLaunchScheduler() ) );
 
@@ -459,14 +589,6 @@ void COperationControls::Wire()
 	connect( mProcessesTable, SIGNAL( ProcessFinished( int, QProcess::ExitStatus, const COperation* ) ),
 		this, SLOT( HandleProcessFinished( int, QProcess::ExitStatus, const COperation* ) ) );
 
-#if defined(USE_2_EXPRESSION_TREES)
-
-	connect( mDataExpressionsStack, SIGNAL( PageChanged( int ) ), this, SLOT( HandleExpressionsTreePageChanged( int ) ) );
-	connect( mDataExpressionsTrees[eExpressionTreeMap], SIGNAL( FormulaInserted( CFormula * ) ), this, SLOT( HandleFormulaInserted( CFormula * ) ) );
-	connect( mDataExpressionsTrees[eExpressionTreePlot], SIGNAL( FormulaInserted( CFormula * ) ), this, SLOT( HandleFormulaInserted( CFormula * ) ) );
-
-#else
-
 	connect( mSwitchToMapButton, SIGNAL( clicked() ), this, SLOT( HandleSwitchExpressionType() ) );
 	connect( mSwitchToPlotButton, SIGNAL( clicked() ), this, SLOT( HandleSwitchExpressionType() ) );
 
@@ -474,11 +596,6 @@ void COperationControls::Wire()
 	connect( mDataExpressionsTree, SIGNAL( SelectedFormulaChanged( CFormula* ) ), this, SLOT( HandleSelectedFormulaChanged( CFormula* ) ) );
 
 	mSwitchToMapButton->setChecked( true );
-
-#endif
-
-	mOperationExpressionsGroup->setCollapsed( false );
-
 
 	//connect( &mTimer, SIGNAL( timeout() ), this, SLOT( HandleExecute() ) );
 	//mTimer.start( 10000 );
@@ -562,7 +679,6 @@ void COperationControls::HandleWorkspaceChanged()
 
     setEnabled( mWRoot != nullptr );
 
-	mOperationFilterButton->setEnabled( false );		//TODO enable only when filters ready
 	HandleDatasetsChanged_Advanced( nullptr );			//disables tab if !mWDataset || !mWDataset->GetDatasetCount() > 0 
 
 	HandleWorkspaceChanged_Quick();
@@ -615,7 +731,7 @@ void COperationControls::HandleDatasetsChanged_Advanced( CDataset *dataset )
 	const bool has_datasets = mAdvancedDatasetsCombo->count() > 0;
 	if ( has_datasets )
 	{
-		index = mCurrentOperation ? mAdvancedDatasetsCombo->findText( mCurrentOperation->GetDatasetName().c_str() ) : 0;
+		index = mCurrentOperation ? mAdvancedDatasetsCombo->findText( mCurrentOperation->OriginalDatasetName().c_str() ) : 0;
 		mAdvancedDatasetsCombo->setCurrentIndex( index );
 	}
 
@@ -633,7 +749,7 @@ void COperationControls::HandleDatasetsChanged_Advanced( CDataset *dataset )
 
 void COperationControls::HandleSelectedOperationChanged( int operation_index )	//ComboOperation( int32_t currentOperation )
 {
-	mAdvancedDisplayButton->setEnabled( operation_index >= 0 );
+	mAdvancedExecuteButton->setEnabled( operation_index >= 0 );
 	mSplitPlotsButton->setEnabled( operation_index >= 0 );
 
 	mOperationExportButton->setEnabled( operation_index >= 0 );
@@ -647,7 +763,7 @@ void COperationControls::HandleSelectedOperationChanged( int operation_index )	/
 	mSwitchToMapButton->setEnabled( operation_index >= 0 );
 	mSwitchToPlotButton->setEnabled( operation_index >= 0 );
 	mDataExpressionsTree->setEnabled( operation_index >= 0 );
-	mSamplingGroup->setEnabled( operation_index >= 0 );
+	//mSamplingGroup->setEnabled( operation_index >= 0 );			TODO delete comment marks when implemented
 
 	if ( operation_index < 0 )
 	{
@@ -656,7 +772,7 @@ void COperationControls::HandleSelectedOperationChanged( int operation_index )	/
 	else
 	{
 		mCurrentOperation = mWOperation->GetOperation( q2a( mOperationsCombo->itemText( operation_index ) ) )	;					assert__( mCurrentOperation );
-		int dataset_index = mAdvancedDatasetsCombo->findText( mCurrentOperation->GetDatasetName().c_str() );
+		int dataset_index = mAdvancedDatasetsCombo->findText( mCurrentOperation->OriginalDatasetName().c_str() );
 		if ( mAdvancedDatasetsCombo->currentIndex() != dataset_index )
 			mAdvancedDatasetsCombo->setCurrentIndex( dataset_index );	//trigger signal
 		else
@@ -665,205 +781,23 @@ void COperationControls::HandleSelectedOperationChanged( int operation_index )	/
 
 	mDataExpressionsTree->InsertOperation( mCurrentOperation );
 
-	ResetSelectedFilter();
-
-	if ( mCurrentOperation == nullptr )
-	{
-		return;
-	}
-
-	return;	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	CDataset *dataset = nullptr;
-	//DatasetSelChanged(id);//////////////////////////////////////////////////////////////
-	{
-		//ClearFieldsInfo();
-
-		dataset = mCurrentOperation->GetDataset();	 //GetDatasettreectrl()->GetDataset( id );
-		assert__( dataset != nullptr );			//v4 can an operation have a nullptr dataset??? v3 tested and returned on nullptr; leave assert here until we understand
-
-		std::string msg;
-		try
-		{
-			mProduct = dataset->SetProduct();
-
-			if ( mProduct != nullptr )
-			{
-				//TODO
-				//m_productClass = mProduct->GetProductClass();
-				//m_productType = mProduct->GetProductType();
-			}
-		}
-		catch ( CException& e )
-		{
-			mProduct = nullptr;
-			msg = std::string( "Unable to process files.\nReason:\n") + e.what();
-		}
-
-		if ( mProduct == nullptr )
-		{
-			if ( msg.empty() )
-				msg = "Unable to set Product\nPerhaps dataset file list is empty or product file doesn't exist()";
-
-			return;
-		}
-
-
-		mAdvancedFieldsTree->InsertProduct( mProduct );
-
-		//	GetFieldstreectrl()->InsertProduct( mProduct );
-		//wxTreeItemId rootIdFields = GetFieldstreectrl()->GetRootItem();
-		//int32_t nRecords = rootIdFields.IsOk() ? GetFieldstreectrl()->GetChildrenCount( rootIdFields, false ) : 0;
-		//if ( nRecords > 0 && nRecords <= 2 )
-		//{
-		//	wxTreeItemIdValue cookie;
-		//	wxTreeItemId idChild = GetFieldstreectrl()->GetFirstChild( rootIdFields, cookie );
-		//	if ( nRecords == 2 )
-		//	{
-		//		idChild = GetFieldstreectrl()->GetNextChild( rootIdFields, cookie );
-		//	}
-		//	GetFieldstreectrl()->Expand( idChild );
-		//}
-	}
-	//////////////////////////////////////////////////////////////////////////////////////
-
-	//m_currentDataset = id;
-	////////////////////////////////////////////////////////////////////////////////////////SetCurrentDataset();
-	{
-		mCurrentOperation->SetDataset( dataset );
-		mCurrentOperation->SetProduct( mProduct );
-	}
-	//// If there is only one record in the dataset ==> select it	
-	//GetOperationRecord();			TODO ???//////////////////////////////////////COperationPanel::GetOperationRecord(bool select = true)
-	//wxTreeItemId id;
-	//if ( mCurrentOperation == nullptr )
-	//	return id;
-	//id = GetFieldstreectrl()->FindItem( mCurrentOperation->GetRecord() );
-	//if ( select )
-	//{
-	//	m_currentRecord = id;
-	//	// if no selection (current record < 0) and only one record in the list, select it
-	//	if ( ( !m_currentRecord ) && ( GetFieldstreectrl()->GetRecordCount() == 1 ) )
-	//	{
-	//		m_currentRecord = GetFieldstreectrl()->GetFirstRecordId();
-	//	}
-	//	GetFieldstreectrl()->SelectItem( m_currentRecord );
-	//	GetFieldstreectrl()->Expand( m_currentRecord );
-	//}
-
-	//SetCurrentRecord();			TODO ???/////////////////////////	bool COperationPanel::SetCurrentRecord()
-	//{
-	//	mCurrentOperation->SetRecord( GetFieldstreectrl()->GetCurrentRecord().ToStdString() );
-	//}
-
-	//SetDataSetAndRecordLabel();	TODO ???	///////////////////void COperationPanel::SetDataSetAndRecordLabel()
-	//{
-	//	if ( mProduct == nullptr )
-	//	{
-	//		GetOperationtreectrllabel()->SetLabel( "" );
-	//		GetOpchangerecord()->Enable( false );
-	//		return;
-	//	}
-	//	if ( mCurrentOperation == nullptr )
-	//	{
-	//		GetOperationtreectrllabel()->SetLabel( "" );
-	//		GetOpchangerecord()->Enable( false );
-	//		return;
-	//	}
-
-	//	std::string strFormat = "Product: %s/%s\nDataset: %s\nDefault record: %s";
-
-	//	if ( CProductNetCdf::IsProductNetCdf( mProduct ) )
-	//	{
-	//		strFormat = "Product: %s/%s\nDataset: %s";
-	//	}
-
-	//	std::string str;
-	//	std::string datasetName = "?";
-	//	std::string recordName = "?";
-
-	//	if ( !mCurrentOperation->GetDatasetName().empty() )
-	//	{
-	//		datasetName =  mCurrentOperation->GetDatasetName();
-	//	}
-	//	if ( !mCurrentOperation->GetRecord().empty() )
-	//	{
-	//		recordName =  mCurrentOperation->GetRecord();
-	//	}
-
-	//	if ( CProductNetCdf::IsProductNetCdf( mProduct ) )
-	//	{
-	//		GetOpchangerecord()->Enable( false );
-	//		str.Printf( strFormat, m_productClass.c_str(), m_productType.c_str(), datasetName.c_str() );
-	//	}
-	//	else
-	//	{
-	//		GetOpchangerecord()->Enable( true );
-	//		str.Printf( strFormat, m_productClass.c_str(), m_productType.c_str(), datasetName.c_str(), recordName.c_str() );
-	//	}
-
-	//	GetOperationtreectrllabel()->SetLabel( str );
-	//}
-
-	//EnableCtrl();					v4 this is the UpdateUI....
+	ResetFilterSelection();
 }
 
 
-
-
-void COperationControls::HandleSelectedDatasetChanged_Advanced( int dataset_index )		   //OnDatasetSelChanging( wxTreeEvent &event )
+bool COperationControls::AssignDatasetAndProduct( const CDataset *dataset, bool changing_used_dataset )
 {
-	//lambdas
-
-	auto cancel_dataset_change = [this]()
-	{
-		if ( mCurrentOperation )
-			mAdvancedDatasetsCombo->setCurrentIndex( mAdvancedDatasetsCombo->findText( mCurrentOperation->GetDatasetName().c_str() ) );
-	};
-
-
-	//function body 
-
-	CDataset *new_dataset = nullptr;
 	CProduct* new_product = nullptr;
-	if ( dataset_index >= 0 )
+
+	if ( mCurrentOperation && dataset )
 	{
-		auto new_dataset_name = q2a( mAdvancedDatasetsCombo->itemText( dataset_index ) );
-		bool changing_used_dataset = false;
-		if ( mCurrentOperation )
-		{
-			std::string current_dataset_name = mCurrentOperation->GetDatasetName();			assert__( !mCurrentOperation->HasFormula() || !current_dataset_name.empty() );
-			changing_used_dataset = mCurrentOperation->HasFormula() && new_dataset_name != current_dataset_name;
-		}
-		if ( changing_used_dataset )
-		{
-			std::string question =
-				"Some data expressions are built from '"
-				+ mCurrentOperation->GetDatasetName()
-				+ "' dataset.\nIf you want to use another dataset, make sure that field names in data expressions are the same, or don't forget to change them.\nChange to '"
-				+ new_dataset_name
-				+ "' dataset ?";
-
-			if ( !SimpleQuestion( question ) )
-			{
-				cancel_dataset_change();
-				return;
-			}
-
-			mCurrentOperation->SetRecord( "" );
-			// v4
-			while ( mCurrentOperation->GetFormulaCount() > 0 )
-				mCurrentOperation->DeleteFormula( dynamic_cast<CFormula*>( mCurrentOperation->GetFormulas()->at(0) )->GetName() );
-			mDataExpressionsTree->InsertOperation( mCurrentOperation );
-		}
-
-		new_dataset = mWDataset->GetDataset( new_dataset_name );	//do not return if dataset is the same: content may have changed
-
+		const CDataset *saved_filtered_dataset = new CDataset( *const_cast<const COperation*>( mCurrentOperation )->Dataset() );
+		mCurrentOperation->SetDataset( dataset );
+		const CDataset *filtered_dataset = const_cast<const COperation*>( mCurrentOperation )->Dataset();
 		std::string error_msg;
 		try
 		{
-			new_product = new_dataset->SetProduct();
+			new_product = filtered_dataset->OpenProduct();
 		}
 		catch ( CException& e )
 		{
@@ -877,20 +811,20 @@ void COperationControls::HandleSelectedDatasetChanged_Advanced( int dataset_inde
 			else
 				SimpleErrorBox( "Unable to set Product\nPerhaps dataset file list is empty or product file doesn't exist." );
 
-			cancel_dataset_change();
-			return;
+			mCurrentOperation->SetDataset( saved_filtered_dataset );
+			return false;
 		}
 
 		if ( changing_used_dataset && !mDataExpressionsTree->SelectRecord( new_product ) )
 		{
 			SimpleErrorBox( "You have not selected a record name.\nDataset has not been changed.\nChanging operation dataset is canceled." );
-			cancel_dataset_change();
+			mCurrentOperation->SetDataset( saved_filtered_dataset );
 			delete new_product;
-			return;
+			return false;
 		}
 	}
 
-	mDataset = new_dataset;
+	mCurrentDataset = dataset;
 
 	//////////////////////////////////////////////////////////////////void COperationPanel::OnDatasetSelChanged( wxTreeEvent &event ) - begin
 	//DatasetSelChanged( id );////////////////////////////////////////void COperationPanel::DatasetSelChanged(id);
@@ -906,7 +840,7 @@ void COperationControls::HandleSelectedDatasetChanged_Advanced( int dataset_inde
 
 	mAdvancedFieldsTree->InsertProduct( mProduct );
 	if ( !mCurrentOperation )
-		return;
+		return true;
 
 	//TODO what is the meaning of the following lines ???
 	//
@@ -926,7 +860,8 @@ void COperationControls::HandleSelectedDatasetChanged_Advanced( int dataset_inde
 	//m_currentDataset = id;
 	//SetCurrentDataset();
 	//////////////////////////////////////////////////////////////////SetCurrentDataset(); begin
-	mCurrentOperation->SetDataset( mDataset );
+	if (!mCurrentDataset )
+		mCurrentOperation->SetDataset( nullptr );
 	mCurrentOperation->SetProduct( mProduct );
 	//////////////////////////////////////////////////////////////////SetCurrentDataset(); end
 
@@ -939,6 +874,64 @@ void COperationControls::HandleSelectedDatasetChanged_Advanced( int dataset_inde
 	//SetDataSetAndRecordLabel();
 
 	//EnableCtrl();
+
+	return true;
+}
+
+
+void COperationControls::HandleSelectedDatasetChanged_Advanced( int dataset_index )		   //OnDatasetSelChanging( wxTreeEvent &event )
+{
+	//lambdas
+
+	auto cancel_dataset_change = [this]()
+	{
+		if ( mCurrentOperation )
+			mAdvancedDatasetsCombo->setCurrentIndex( mAdvancedDatasetsCombo->findText( mCurrentOperation->OriginalDatasetName().c_str() ) );
+	};
+
+
+	//function body 
+
+	CDataset *new_dataset = nullptr;
+	bool changing_used_dataset = false;
+	if ( dataset_index >= 0 )
+	{
+		auto new_dataset_name = q2a( mAdvancedDatasetsCombo->itemText( dataset_index ) );
+		if ( mCurrentOperation )
+		{
+			std::string current_dataset_name = mCurrentOperation->OriginalDatasetName();						assert__( !mCurrentOperation->HasFormula() || !current_dataset_name.empty() );
+			changing_used_dataset = mCurrentOperation->HasFormula() && new_dataset_name != current_dataset_name;
+		}
+		if ( changing_used_dataset )
+		{
+			std::string question =
+				"Some data expressions are built from '"
+				+ mCurrentOperation->OriginalDatasetName()
+				+ "' dataset.\nIf you want to use another dataset, make sure that field names in data expressions are the same, or don't forget to change them.\nChange to '"
+				+ new_dataset_name
+				+ "' dataset ?";
+
+			if ( !SimpleQuestion( question ) )
+			{
+				cancel_dataset_change();
+				return;
+			}
+
+			mCurrentOperation->SetRecord( "" );
+
+			while ( mCurrentOperation->GetFormulaCount() > 0 )
+				mCurrentOperation->DeleteFormula( mCurrentOperation->GetFormulas()->begin()->first );
+
+			mDataExpressionsTree->InsertOperation( mCurrentOperation );
+		}
+
+		new_dataset = mWDataset->GetDataset( new_dataset_name );	//do not return if dataset is the same: content may have changed
+		if ( mCurrentOperation )
+			mCurrentOperation->RemoveFilter();
+	}
+
+	if ( !AssignDatasetAndProduct( new_dataset, changing_used_dataset ) )
+		cancel_dataset_change();
 }
 
 
@@ -957,13 +950,12 @@ void COperationControls::SelectDataComputationMode()		//from COperationPanel::Ge
 	}
 
 	// if same pointer
-	if ( mCurrentOperation->GetSelect() == formula )			//IsCriteriaSelection( formula )
+	if ( mCurrentOperation->GetSelect() == formula )		//IsCriteriaSelection( formula )
 	{
 		return;
 	}
 
-
-	auto *action = mDataComputationGroup->findChild<QAction*>( formula->GetDataModeAsString().c_str() );
+	auto *action = mDataComputationGroup->findChild<QAction*>( QString( formula->GetDataModeAsString().c_str() ) );
 	if ( action )
 		action->setChecked( true );
 }
@@ -975,19 +967,6 @@ void COperationControls::SelectDataComputationMode()		//from COperationPanel::Ge
 //				Data Expressions Operations
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-
-#if defined(USE_2_EXPRESSION_TREES)
-
-void COperationControls::HandleExpressionsTreePageChanged( int index )
-{
-	assert__( index >= 0 && index < EExpressionTrees_size );
-
-    mDataExpressionsTree = mDataExpressionsTrees[ index ];
-
-	//TODO ???
-}
-
-#else
 
 void COperationControls::HandleSwitchExpressionType()
 {
@@ -1007,9 +986,6 @@ void COperationControls::HandleSwitchExpressionType()
 }
 
 
-#endif
-
-
 void COperationControls::HandleSelectedFormulaChanged( CFormula *formula )
 {
 	mUserFormula = formula;
@@ -1017,6 +993,7 @@ void COperationControls::HandleSelectedFormulaChanged( CFormula *formula )
 	mDataComputation->setEnabled( mUserFormula != nullptr && !COperation::IsSelect( mUserFormula->GetName() ) );
 	//mExpressionGroup->setTitle( mUserFormula ? mUserFormula->GetName().c_str() : "" );
 	mExpressionGroup->setTitle( mUserFormula ? mDataExpressionsTree->ParentItemTitle( formula ).c_str() : "No Expression Selected" );
+	SelectDataComputationMode();
 }
 
 
@@ -1441,81 +1418,6 @@ void COperationControls::HandleRenameOperation()
             emit OperationModified( mCurrentOperation );
         }
     }
-}
-
-
-void COperationControls::HandleOperationFilterButtonToggled( bool toggled )
-{
-	//assert__( mCurrentOperation );
-	if ( !mCurrentOperation )
-		return;
-
-	const std::string &op_filter_name = mCurrentOperation->FilterName();
-	if ( !toggled )
-	{
-		if ( !op_filter_name.empty() && !SimpleQuestion( "Are you sure you want to remove the filter '" + op_filter_name + "' from the operation '" + mCurrentOperation->GetName() + "'?" ) )
-		{
-			mOperationFilterButton->setChecked( true );
-			return;
-		}
-
-		mCurrentOperation->SetFilterName( "" );
-
-		mOperationFilterButton->setText( "" );
-		auto actions = mOperationFilterButton->actions();
-		for ( auto *a : actions )
-			a->setChecked( false );
-	}
-}
-void COperationControls::HandleOperationFilterButton( QAction *a )
-{
-	qDebug() << a->text();
-}
-void COperationControls::HandleOperationFilter()
-{
-	assert__( mCurrentOperation );
-
-	const std::string &op_filter_name = mCurrentOperation->FilterName();
-	std::string filter_name;
-	QAction *a = nullptr;
-
-	//if ( !mOperationFilterButton->isChecked() )
-	//{
-	//	//if ( !op_filter_name.empty() && !SimpleQuestion( "Are you sure you want to remove the filter '" + op_filter_name + "' from the operation '" + mCurrentOperation->GetName() + "'?" ) )
-	//		return;
-	//}
-	//else
-	{
-		a = qobject_cast<QAction*>( sender() );	assert__( a );
-		filter_name = q2a( a->text() );
-
-	qDebug() << a->isChecked();
-
-		if ( op_filter_name.empty() )
-		{
-			if ( !SimpleQuestion( "Are you sure you want to apply the filter '" + filter_name + "' to the operation '" + mCurrentOperation->GetName() + "'?" ) )
-			{
-				a->setChecked( false );
-				return;
-			}
-		}
-		else
-		{
-			if ( op_filter_name != filter_name &&
-				!SimpleQuestion( "Operation '" + mCurrentOperation->GetName() + "' has associated filter '" + op_filter_name + "'. Are you sure you want to change it to '" + filter_name + "'?" )
-				)
-			{
-				a->setChecked( false );
-				return;
-			}
-		}
-	}
-
-	//mOperationFilterButton->setDefaultAction( a );
-	//mOperationFilterButton->setChecked( true );
-	mOperationFilterButton->setText( filter_name.c_str() );
-	mOperationFilterButton->setChecked( true );
-	mCurrentOperation->SetFilterName( filter_name );
 }
 
 

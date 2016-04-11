@@ -88,7 +88,11 @@ enum EActionTag : int
 	eAction_DecorationGrid,
 	eAction_MouseTrackingeCoordinatesFormat,
 
-	eActionGroup_Filters,
+	eActionGroup_Filters_Quick,
+	eActionGroup_Filters_Advanced,
+	eAction_Item_Filters,
+
+	eAction_AssignExpression,
 
 	//add new items before this line
 
@@ -198,6 +202,9 @@ public:
 
 
 	static QToolButton* CreatePopupButton( EActionTag button_tag, const QList<QAction*> &actions, QAction *default_action = nullptr );
+
+
+	static QToolButton* CreateToolButton( EActionTag button_tag, bool auto_raise = false );
 
 
 	// Calls CreateAction

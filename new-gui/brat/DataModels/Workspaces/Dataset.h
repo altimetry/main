@@ -43,12 +43,12 @@ public:
 
 	CDataset( const std::string name ) : m_name ( name )
 	{}
-	CDataset( CDataset &o )
+	CDataset( const CDataset &o )
 	{
 		*this = o;
 	}
 
-	CDataset& operator=( CDataset &o )
+	CDataset& operator= ( const CDataset &o )
 	{
 		if ( this != &o )
 		{
@@ -79,8 +79,14 @@ public:
 public:
 	bool LoadConfig( CWorkspaceSettings *config );
 
-	CProduct* SetProduct( const std::string& fileName );
-	CProduct* SetProduct();
+private:
+	//v4 NOTE: all OpenProduct renamed from SetProduct
+
+	static CProduct* OpenProduct( const std::string& fileName, const CStringMap& fieldSpecificUnit );
+
+public:
+	CProduct* OpenProduct( const std::string& fileName ) const;
+	CProduct* OpenProduct() const;
 
 	const CProductList* GetProductList() const { return &m_files; }		
 	CProductList* GetProductList() { return &m_files; }

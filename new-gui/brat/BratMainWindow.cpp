@@ -202,7 +202,7 @@ void CBratMainWindow::CreateWorkingDock()
 
 	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eFilter ), "Filters" );	 		assert( mMainWorkingDock->TabIndex( tab ) == eFilter );
 	mMainWorkingDock->SetTabToolTip( tab, "Dataset filter" );
-	connect( this, SIGNAL( WorkspaceChanged( CWorkspaceDataset* ) ), WorkingPanel< eFilter >(), SLOT( HandleWorkspaceChanged( CWorkspaceDataset* ) ) );
+	connect( this, SIGNAL( WorkspaceChanged() ), WorkingPanel< eFilter >(), SLOT( HandleWorkspaceChanged() ) );
 
 	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eOperations ), "Operations" );	assert( mMainWorkingDock->TabIndex( tab ) == eOperations );
 	mMainWorkingDock->SetTabToolTip( tab, "Quick or advanced operations"  );
@@ -214,6 +214,9 @@ void CBratMainWindow::CreateWorkingDock()
 	connect( WorkingPanel< eDataset >(), SIGNAL( CurrentDatasetChanged(CDataset*) ), WorkingPanel< eFilter >(), SLOT( HandleDatasetChanged(CDataset*) ) );
     connect( WorkingPanel< eDataset >(), SIGNAL( DatasetsChanged(CDataset*) ), WorkingPanel< eOperations >(), SLOT( HandleDatasetsChanged_Quick(CDataset*) ) );
     connect( WorkingPanel< eDataset >(), SIGNAL( DatasetsChanged(CDataset*) ), WorkingPanel< eOperations >(), SLOT( HandleDatasetsChanged_Advanced(CDataset*) ) );
+    connect( WorkingPanel< eFilter >(), SIGNAL( FiltersChanged() ), WorkingPanel< eOperations >(), SLOT( HandleFiltersChanged() ) );
+    connect( WorkingPanel< eFilter >(), SIGNAL( FilterCompositionChanged( std::string ) ), WorkingPanel< eOperations >(), SLOT( HandleFilterCompositionChanged( std::string ) ) );
+
 
 	LOG_TRACE( "Finished working dock construction." );
 }
@@ -552,6 +555,8 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
 		LoadCmdLineFiles();
 
 	mApp.EndSplash( this );
+
+	//mDesktopManager->Map()->SetProjection( 1);
 
 	LOG_TRACE( "Finished main window construction." );
 }
@@ -895,11 +900,12 @@ bool CBratMainWindow::OpenWorkspace( const std::string &path )
 		CWorkspace* wks = mModel.LoadWorkspace( path, error_msg );
 		if ( !error_msg.empty() )
 		{
-			assert__( !wks );
-
-			SimpleWarnBox( error_msg );
-			DoNoWorkspace();
-			return false;
+			SimpleWarnBox( error_msg );		//can be only warnings about (missing) filters
+			if ( !wks )
+			{
+				DoNoWorkspace();
+				return false;
+			}
 		}
 
 		SetCurrentWorkspace( wks );
@@ -1462,6 +1468,9 @@ void CBratMainWindow::HandleSyncProcessExecution( bool executing )
 		eAction_Operations,
 		eAction_Dataset,
 		eAction_Filter,
+
+		eAction_Views_List,
+		eAction_Close_All,
 
 	}, !executing );
 

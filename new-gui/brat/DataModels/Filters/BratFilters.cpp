@@ -87,6 +87,56 @@ bool CBratFilter::RemoveArea( const std::string &name )
 }
 
 
+const CBratAreas& CBratFilter::Areas() const
+{
+	return CBratFilters::GetInstance().Areas();
+}
+
+
+void CBratFilter::BoundingArea( double &lon1, double &lat1, double &lon2, double &lat2 ) const
+{
+	auto const &areas = Areas();
+
+	for ( auto const &name : mAreaNames )		//iterate over filter area names
+	{
+		auto const &area = areas.Find( name );	//find area object in the set of all areas; an area 'is a' vector
+
+		//TODO delete after correct implementation
+		{
+			assert__( area->size() >= 2 );
+
+			lon1 = (*area)[0].lon();
+			lat1 = (*area)[0].lat();
+			lon2 = (*area)[1].lon();
+			lat2 = (*area)[1].lat();
+
+			break;
+		}
+
+		for ( auto const &vertex : *area )	  	//iterate over area vertices
+		{
+			double lon = vertex.lon();
+			double lat = vertex.lat();
+
+			// etc....
+
+			UNUSED( lat );		UNUSED( lon );
+		}
+
+		//TODO delete after correct implementation
+		{
+			break;
+		}
+
+	}
+}
+
+
+bool CBratFilter::Apply( const CStringList& files_in, CStringList& files_out ) const
+{
+	return CBratFilters::GetInstance().Apply( mName, files_in, files_out );
+}
+
 
 
 
@@ -94,6 +144,10 @@ bool CBratFilter::RemoveArea( const std::string &name )
 //////////////////////////////////////////////////////////////
 //						All Filters
 //////////////////////////////////////////////////////////////
+
+
+CBratFilters *CBratFilters::smInstance = nullptr;
+
 
 
 CBratFilter* CBratFilters::Find( const std::string &name )
@@ -241,8 +295,58 @@ bool CBratFilters::Load()
 }
 
 
-bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, CStringList& files_out )
+
+bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std::string &name ) const
 {
+	auto const *filter = Find( name );
+
+	assert__( filter );
+
+	if ( product_ref == nullptr || !product_ref->HasCriteriaInfo() )
+		return false;
+
+	std::string val;
+	if ( product_ref->HasLatLonCriteria() )
+	{
+		double lon1, lat1, lon2, lat2;
+		filter->BoundingArea( lon1, lat1, lon2, lat2 );
+		product_ref->GetLatLonCriteria()->Set( lat1, lon1, lat2, lon2 );		//double latLow, double lonLow, double latHigh, double lonHigh
+	}
+	//if ( product->HasDatetimeCriteria() )
+	//{
+	//	val = ReadValue( section, ENTRY_DATETIME );
+	//	if ( !val.empty() )
+	//		product->GetDatetimeCriteria()->Set( doubles from to );
+	//}
+	//if ( product->HasCycleCriteria() )
+	//{
+	//	val = ReadValue( section, ENTRY_CYCLE );
+	//	if ( !val.empty() )
+	//		product->GetCycleCriteria()->Set( ints from to );
+	//}
+	//if ( product->HasPassIntCriteria() )
+	//{
+	//	val = ReadValue( section, ENTRY_PASS_NUMBER );
+	//	if ( !val.empty() )
+	//		product->GetPassIntCriteria()->Set( int32_t from, int32_t to );
+	//}
+	//if ( product->HasPassStringCriteria() )
+	//{
+	//	val = ReadValue( section, ENTRY_PASS_STRING );
+	//	if ( !val.empty() )
+	//		product->GetPassStringCriteria()->Set( comma separated strings );
+	//}
+
+	return true;
+}
+
+
+bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, CStringList& files_out ) const
+{
+#if defined(BRAT_V3)
+	return true;
+#endif
+
     auto *filter = Find( name );
     if ( !filter )
         return false;
@@ -259,18 +363,21 @@ bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, 
         p->GetProductList().clear();
         p->GetProductList().Insert( files_in );
 
-        CProduct* product_ref = dynamic_cast< CProduct* >( CMapProduct::GetInstance().Exists( p->GetLabel() ) );
-        if ( product_ref == nullptr )
+		CMapProduct mapProduct;
+		mapProduct.AddCriteriaToProducts();
+
+        CProduct *product_ref = dynamic_cast< CProduct* >( mapProduct.Exists( p->GetLabel() ) );	//CMapProduct::GetInstance()
+        if ( product_ref == nullptr || !Translate2SelectionCriteria( product_ref, name ) )
         {
             result = false;
         }
         else
         {
-            p->AddCriteria( product_ref );
+			p->AddCriteria( product_ref );
 
-            std::string log_path = mInternalDataPath + "/" + DATASET_SELECTION_LOG_FILENAME;
+			std::string log_path = mInternalDataPath + "/" + DATASET_SELECTION_LOG_FILENAME;
 
-            p->ApplyCriteria( files_out, log_path );
+			p->ApplyCriteria( files_out, log_path );
         }
     }
     catch ( CException e )

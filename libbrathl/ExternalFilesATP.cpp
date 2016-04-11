@@ -375,7 +375,7 @@ void CExternalFilesATP::GetValue(const std::string& name, double& value, const s
 // Find field def.
   CFieldNetCdf* var = GetFieldNetCdf(name);
 
-  CUnit	unit = var->GetUnit();
+  CUnit	unit( var->GetUnit() );
 
   // get the value (computed by LoadPass), and already converted to its base unit
 /*  if (wantedUnit != "")

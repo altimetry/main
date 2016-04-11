@@ -1061,8 +1061,8 @@ bool CFormula::IsUnitCompatible(int32_t dataType, const CUnit& unit)
   bool bOk = true;
 
   //To avoid compilation error on Linux : 2 steps
-  std::string defaultUnit = (const char *)GetDefaultUnit(dataType).c_str();
-  CUnit unitDataType = defaultUnit;
+  std::string defaultUnit = GetDefaultUnit(dataType);
+  CUnit unitDataType( defaultUnit );
 
   if (CFormula::IsDefaultUnitData(unitDataType))
   {
@@ -1086,7 +1086,7 @@ bool CFormula::IsUnitCompatible(int32_t dataType, const std::string& unitText)
 {
     UNUSED( unitText );
 
-  CUnit unit((const char *)GetDefaultUnit(dataType).c_str());
+  CUnit unit(GetDefaultUnit(dataType));
 
   return CFormula::IsUnitCompatible(dataType, unit);
 }
@@ -1162,9 +1162,7 @@ void CFormula::SetUnit( const std::string& value, std::string &errorMsg, const s
 				+ e.what()
 				+ "'\n";
 
-				//wxMessageBox(				"Warning",				wxOK | wxICON_EXCLAMATION );
-
-		m_unit = (const char *)defaultValue.c_str();
+		m_unit = defaultValue;
 	}
 
 	SetStepToDefaultAsNecessary();
@@ -1200,9 +1198,8 @@ void CFormula::SetUnit( const CUnit& value, std::string &errorMsg, const std::st
 			+ "'\nReason\n'"
 			+ e.what()
 			+ "'\n";
-		//wxMessageBox(		  "Warning",		  wxOK | wxICON_EXCLAMATION);
 
-		m_unit = (const char *)defaultValue.c_str();
+		m_unit = defaultValue;
 	}
 
 	SetStepToDefaultAsNecessary();
@@ -2256,9 +2253,13 @@ std::string CMapTypeField::IdToName(uint32_t id)
 
 
 //----------------------------------------
-uint32_t CMapTypeField::NameToId(const std::string& name)
+CMapTypeField::ETypeField CMapTypeField::NameToId(const std::string& name)
 {
-  return Exists(name);
+	auto type = Exists(name);
+
+	assert__( type < ETypeField_size );
+
+	return (CMapTypeField::ETypeField)type;
 }
 
 //-------------------------------------------------------------

@@ -1,5 +1,6 @@
 #include "new-gui/brat/stdafx.h"
 
+#include "new-gui/brat/ApplicationLogger.h"
 #include "new-gui/Common/QtUtilsIO.h"
 #include "new-gui/Common/ApplicationPaths.h"
 #include "Workspaces/Workspace.h"
@@ -8,7 +9,14 @@
 
 
 //static 
-CModel* CModel::smInstance = nullptr;
+CModel *CModel::smInstance = nullptr;
+
+//static 
+CBratFilters *CModel::smBratFilters = nullptr;
+
+//static 
+bool CModel::smValidFilters = false;
+
 
 
 
@@ -18,6 +26,13 @@ CModel& CModel::CreateInstance( const CApplicationPaths &brat_paths )
 	assert__( !smInstance );
 
 	smInstance = new CModel( brat_paths );
+	smBratFilters = CBratFilters::CreateInstance( brat_paths.mInternalDataDir );
+	smValidFilters = smBratFilters->Load();
+	if ( !smValidFilters )
+	{
+		delete smBratFilters;
+		smBratFilters = nullptr;
+	}
 	return *smInstance;
 }
 
@@ -25,7 +40,6 @@ CModel& CModel::CreateInstance( const CApplicationPaths &brat_paths )
 //explicit 
 CModel::CModel( const CApplicationPaths &brat_paths ) 
 	: mBratPaths( brat_paths )
-	, mBratFilters( BratPaths().mInternalDataDir )
 {}
 
 //virtual 
@@ -35,8 +49,25 @@ CModel::~CModel()
 
 	assert__( smInstance );
 	delete smInstance;
-	smInstance = nullptr;
+	smInstance = nullptr;		//just in case
+	delete smBratFilters;
+	smBratFilters = nullptr;	//idem
 }	
+
+
+CBratFilters& CModel::BratFilters() 
+{ 
+	if ( !BratFiltersValid() )
+	{
+		const std::string msg = "Trying to use invalid filter data structures.";
+		LOG_WARN( msg );
+		throw CException( msg );
+	}
+
+	assert__( smBratFilters );
+
+	return *smBratFilters; 
+}
 
 
 //static 
@@ -82,6 +113,37 @@ CWorkspace* CModel::CreateTree( CTreeWorkspace &tree, const std::string& path, s
 }
 
 
+
+//static 
+bool CModel::MakeWorkspaceFiltersConsistent( CTreeWorkspace &tree, std::string &error_msg )
+{
+	if ( !BratFiltersValid() )
+		return true;
+
+	bool result = true;		//bad function outcome is not critical: simply points to missing filters
+
+	auto &operations = *Workspace< CWorkspaceOperation >( tree )->GetOperations();
+	for ( auto &operation_entry : operations )
+	{
+		COperation *operation = dynamic_cast<COperation *>( operation_entry.second );		assert__( operation );
+		if ( !operation->Filter() )
+			continue;
+
+		auto const &filter = operation->Filter()->Name();
+		if ( !filter.empty() && !smBratFilters->Find( filter ) )
+		{
+			const std::string msg = "Operation '" + operation->GetName() + "' referenced non-existing filter '" + filter + "'. The reference was removed.";
+			operation->RemoveFilter();
+			LOG_WARN( msg );
+			error_msg += ( "\n" + msg );
+			result = false;
+		}
+	}
+	
+	return result || SaveWorkspace( tree, error_msg );
+}
+
+
 //static 
 CWorkspace* CModel::LoadWorkspace( CTreeWorkspace &tree, const std::string& path, std::string &error_msg )
 {
@@ -102,8 +164,12 @@ CWorkspace* CModel::LoadWorkspace( CTreeWorkspace &tree, const std::string& path
 			wks = nullptr;
 		}
 	}
+
+	MakeWorkspaceFiltersConsistent( tree, error_msg );
+
 	return wks;
 }
+
 
 CWorkspace* CModel::LoadWorkspace( const std::string& path, std::string &error_msg )
 {
@@ -249,7 +315,7 @@ bool CModel::ImportWorkspace( const std::string& path,
 	bool oldValue = mTree.GetCtrlDatasetFiles();
 	mTree.SetCtrlDatasetFiles( false );
 
-	result = LoadWorkspace( wks_path, error_msg );
+	result = LoadWorkspace( wks_path, error_msg );		//checks filters
 
 	mTree.SetCtrlDatasetFiles( oldValue );
 

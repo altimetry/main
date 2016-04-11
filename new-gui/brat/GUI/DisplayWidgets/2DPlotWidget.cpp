@@ -480,6 +480,40 @@ void C2DPlotWidget::ShowSolidColor( int index, bool show )
 //									Histograms
 /////////////////////////////////////////////////////////////////////////////////////////
 
+//QwtPlotGrid *grid = new QwtPlotGrid;
+//grid->enableXMin(true);
+//grid->enableYMin(true);
+//grid->setMajPen(QPen(Qt::black, 0, Qt::DotLine));
+//grid->setMinPen(QPen(Qt::gray, 0 , Qt::DotLine));
+//grid->attach(&plot);
+//
+//HistogramItem *histogram = new HistogramItem();
+//histogram->setColor(Qt::darkCyan);
+//
+//const int numValues = 20;
+//
+//QwtArray<QwtDoubleInterval> intervals(numValues);
+//QwtArray<double> values(numValues);
+//
+//double pos = 0.0;
+//for ( int i = 0; i < (int)intervals.size(); i++ )
+//{
+//    const int width = 5 + rand() % 15;
+//    const int value = rand() % 100;
+//
+//    intervals[i] = QwtDoubleInterval(pos, pos + double(width));
+//    values[i] = value; 
+//
+//    pos += width;
+//}
+//
+//histogram->setData(QwtIntervalData(intervals, values));
+//histogram->attach(&plot);
+//
+//plot.setAxisScale(QwtPlot::yLeft, 0.0, 100.0);
+//plot.setAxisScale(QwtPlot::xBottom, 0.0, pos);
+//plot.replot();
+
 CHistogram* C2DPlotWidget::AddHistogram( const std::string &title, QColor color, const CQwtArrayPlotData *data )
 {
 	assert__( mSpectrograms.size() == 0 && mCurves.size() == 0 );
@@ -504,7 +538,7 @@ CHistogram* C2DPlotWidget::AddHistogram( const std::string &title, QColor color,
 	const int num_values = 24;					//arbitrary, must be an input parameter
 	const int step = (int)data_size / num_values;
 
-	QwtArray<QwtDoubleInterval> intervals( num_values );
+	QwtArray< QwtDoubleInterval > intervals( num_values );
 	QwtArray< double > values( num_values );
 
 	double pos = xmin;

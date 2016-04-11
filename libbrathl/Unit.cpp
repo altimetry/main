@@ -224,7 +224,7 @@ bool CUnit::operator==(CUnit& u)
 //----------------------------------------
 bool CUnit::operator==(const std::string& text)
 {
-  CUnit u = text;
+  CUnit u( text );
   return (*this == u);
 }
 
@@ -443,7 +443,7 @@ bool CUnit::IsCompatible(const std::string& otherUnit, std::string* errorMsg /* 
 
   try 
   {
-    CUnit unit = otherUnit;
+    CUnit unit( otherUnit );
     bOk = IsCompatible(unit);
   }
   catch (CException& e)

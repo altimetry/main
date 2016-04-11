@@ -18,16 +18,6 @@ struct CMapControlsPanelView;
 
 
 /////////////////////////////////////////////////////////////////
-//	TODO: move to proper place after using real projections
-/////////////////////////////////////////////////////////////////
-
-QActionGroup* ProjectionsActions( QWidget *parent );
-
-
-
-
-
-/////////////////////////////////////////////////////////////////
 //						Map Editor
 /////////////////////////////////////////////////////////////////
 
@@ -94,6 +84,7 @@ class CMapEditor : public CAbstractDisplayEditor
 	// construction /destruction
 
 private:
+	QActionGroup* CreateProjectionsActions();
 	void CreateMapActions();
 	void CreateAndWireNewMap();
 	void CreateWidgets();

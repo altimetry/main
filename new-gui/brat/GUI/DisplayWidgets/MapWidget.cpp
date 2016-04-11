@@ -33,6 +33,8 @@
 
 
 // from brat
+#include "libbrathl/Date.h"
+
 #include "new-gui/Common/+UtilsIO.h"
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/tools/Trace.h"
@@ -234,6 +236,9 @@ const std::string& CMapWidget::RasterLayerPath()
 //}
 
 
+#if defined (WIN32) || defined(_WIN32)
+#pragma warning ( disable : 4996 )
+#endif
 
 CMapWidget::CMapWidget( QWidget *parent )	//parent = nullptr
 	: base_t(parent)
@@ -244,29 +249,14 @@ CMapWidget::CMapWidget( QWidget *parent )	//parent = nullptr
 	Q_UNUSED( preg );
 
 	assert__( IsFile( smVectorLayerPath ) );
-	//QString source, dest;
-	//if ( !readFileFromResource( ":/maps/ne_10m_coastline/ne_10m_coastline.shp", dest, true ) )
-	//	std::cout << "problem" << std::endl;
-	//else
-	//	qDebug() << dest;
 		
 	mMainLayer = AddOGRVectorLayer( t2q( smVectorLayerPath ) );
 	mMainLayer->rendererV2()->symbols()[ 0 ]->setColor( "black" );
 
 	//addRasterLayer( "http://server.arcgisonline.com/arcgis/rest/services/ESRI_Imagery_World_2D/MapServer?f=json&pretty=true", "raster", "" );
 
-    //QString myLayerBaseName     = "italy";
-    //QString myProviderName      = "ogr";
-
     //mMainLayer =  new QgsVectorLayer(mVectorLayerPath, myLayerBaseName, myProviderName);
     //QgsSingleSymbolRendererV2 *mypRenderer = new QgsSingleSymbolRendererV2(QgsSymbolV2::defaultSymbol(mMainLayer->geometryType()));
-
-    //mMainLayer->setRendererV2(mypRenderer);    mMainLayer->isValid() ? qDebug("Layer is valid") : qDebug("Layer is NOT valid");
-
-    //// Add the Vector Layer to the Layer Registry
-    //QgsMapLayerRegistry::instance()->addMapLayer(mMainLayer, TRUE);
-    //// Add the Layer to the Layer Set
-    //mLayerSet.append(QgsMapCanvasLayer(mMainLayer, TRUE));
 
 	//setupDatabase();
 	//setupMapLayers();
@@ -276,18 +266,25 @@ CMapWidget::CMapWidget( QWidget *parent )	//parent = nullptr
 	//5. Now, we get our census layer's features as an iterator:
 	//features = tractLyr.getFeatures()
 	//6. We need a data provider for the memory layer so that we can edit it:
-	
 	//auto vpr = popLyr->dataProvider();
 
-    setExtent(mMainLayer->extent());
-    enableAntiAliasing(true);
+    setExtent( mMainLayer->extent() );
+    enableAntiAliasing( true );
     setCanvasColor( QColor( 0xFF, 0xFF, 0xF0, 255 ) );		//setCanvasColor(QColor(255, 255, 255));
-    freeze(false);
+    freeze( false );
 
 	// projections
 	//
-	mDefaultProjection = mMainLayer->crs();
 	setCrsTransformEnabled( true );
+    //mapRenderer()->setProjectionsEnabled( true );
+	//SetProjection( PROJ2D_LAMBERT_AZIMUTHAL );
+	mDefaultProjection = mMainLayer->crs();
+	mDefaultProjection.validate();		   						assert__( mDefaultProjection.isValid() );
+	if ( mDefaultProjection.mapUnits() == QGis::UnknownUnit )
+		LOG_WARN("Base map layer has unknown units");
+	//setDestinationCrs( mDefaultProjection );
+	//mMainLayer->setCrs( QgsCoordinateReferenceSystem() );
+	//SetDefaultProjection();
 
     //// Set the Map Canvas Layer Set
     //setLayerSet(mLayerSet);
@@ -297,6 +294,8 @@ CMapWidget::CMapWidget( QWidget *parent )	//parent = nullptr
     refresh();
 
 	
+#if defined (DEBUG) || defined(_DEBUG)
+
 	//context menu
 
 	setContextMenuPolicy( Qt::ActionsContextMenu );
@@ -307,56 +306,74 @@ CMapWidget::CMapWidget( QWidget *parent )	//parent = nullptr
 	mActionRemoveLayers = new QAction( "Remove Layers", this );
 	connect( mActionRemoveLayers, SIGNAL( triggered() ), this, SLOT( HandleRemoveLayers() ) );
 	addAction( mActionRemoveLayers );
-	
-	mActionNextProjection = new QAction( "Next Projection", this );
-	connect( mActionNextProjection, SIGNAL( triggered() ), this, SLOT( HandleNextProjection() ) );
-	addAction( mActionNextProjection );
-	
-	mActionDefaultProjection = new QAction( "Default Projection", this );
-	connect( mActionDefaultProjection, SIGNAL( triggered() ), this, SLOT( HandleDefaultProjection() ) );
-	addAction( mActionDefaultProjection );
+
+#endif
+
 }
+
+#if defined (WIN32) || defined(_WIN32)
+#pragma warning ( default : 4996 )
+#endif
 
 
 //////////////
 // Projections
 //////////////
 
-void CMapWidget::SetDefaultProjection()
+bool CMapWidget::SetDefaultProjection()
 {
-	SetProjection( mDefaultProjection );
+	return SetProjection( mDefaultProjection );
 }
 
 
-void CMapWidget::SetProjection( const QgsCoordinateReferenceSystem &crs )
+bool CMapWidget::SetProjection( const QgsCoordinateReferenceSystem &crs )
 {
 	assert__( hasCrsTransformEnabled() );
 
-	freeze();
-	setDestinationCrs( crs );
-
 	if ( crs.mapUnits() == QGis::UnknownUnit )
-		LOG_WARN( "Projection with unknown map units." );
-	else
-		setMapUnits( crs.mapUnits() );
-
-	//if ( mDecorationGrid )
-	//{
-	//	mDecorationGrid->setMapUnits( crs.mapUnits() );
-	//	if ( !mDecorationGrid->enabled() )				//the grid can disable itself 
-	//		if ( mActionDecorationGrid )
-	//			mActionDecorationGrid->setChecked( false );
-	//}
-
-	for ( auto &layer : mLayerSet )
 	{
-		auto *vlayer = qobject_cast<QgsVectorLayer*>( layer.layer() );
-		if ( vlayer )
-		{
-			vlayer->setCrs( crs );
-			vlayer->triggerRepaint();
-		}
+		LOG_WARN( "Projection with unknown map units." );
+		return false;
 	}
+
+	if ( !crs.isValid() )
+	{
+		LOG_WARN( "Invalid projection specification." );
+		return false;
+	}
+
+	freeze();
+
+	setDestinationCrs( crs );
+	setMapUnits( crs.mapUnits() );
+
+	if ( mDecorationGrid )
+	{
+		mDecorationGrid->setMapUnits( crs.mapUnits() );
+		if ( !mDecorationGrid->enabled() )				//the grid can disable itself
+			if ( mActionDecorationGrid )
+				mActionDecorationGrid->setChecked( false );
+	}
+
+//    mMainLayer = (QgsVectorLayer*)mLayerSet.last().layer();
+//    while( mLayerSet.size() > 0 )
+//        mLayerSet.removeLast();
+//    mLayerSet.append( QgsMapCanvasLayer( mMainLayer, true ) );
+
+
+	//for ( auto &layer : mLayerSet )
+	//{
+	//	//layer.setVisible( true );
+	//	auto *vlayer = qobject_cast<QgsVectorLayer*>( layer.layer() );
+	//	if ( vlayer && vlayer != mMainLayer )
+	//	{
+	//		vlayer->setCrs( QgsCoordinateReferenceSystem().createFromProj4( crs.toProj4() ) );
+	//		//vlayer->setCrs( crs );			//vlayer->setCoordinateSystem();
+	//		//vlayer->updateExtents();
+	//		vlayer->triggerRepaint();
+	//	}
+	//}
+    //setLayerSet( mLayerSet );
 
 	//QgsCoordinateReferenceSystem crs = currentLayer()->crs();
 	//freeze();
@@ -365,39 +382,31 @@ void CMapWidget::SetProjection( const QgsCoordinateReferenceSystem &crs )
 	//{
 	//	setMapUnits( crs.mapUnits() );
 	//}
+
+	//SetCurrentLayer( mLayerSet.last().layer() );
+
 	freeze( false );
-	refresh();
 
-	//setLayerSet( mLayerSet );
+	//refresh();
 
-	//zoomToFullExtent();
+	Home();
+
+	return true;
 }
 
-void CMapWidget::SetProjection( unsigned id )
+bool CMapWidget::SetProjection( unsigned id )
 {
 	assert__( id != PROJ2D_3D );	//3D projections not supported in 2D maps...
 
-	SetProjection( CMapProjection::GetInstance()->IdToCRS( id ) );
-}
-
-void CMapWidget::HandleDefaultProjection()
-{
-	SetDefaultProjection();
+	return SetProjection( CMapProjection::GetInstance()->IdToCRS( id ) );
 }
 
 
-void CMapWidget::HandleNextProjection()
+void CMapWidget::Home()
 {
-	//if ( crs->isValid() )
-	//{
-	//	if ( !this->hasCrsTransformEnabled() )
-	//		SimpleErrorBox("ahhhhhhhhhhhhhhhhhhhhh");
-	//	SimpleMsgBox( crs->description() );
-	//	setDestinationCrs( *crs );
- //       setMapUnits( crs->mapUnits() );
-	//}
-	//else
-	//	SimpleErrorBox("chissa");
+	zoomToFullExtent();		//makes refresh()
+}
+
 //void QgsProjectionSelector::loadCrsList( QSet<QString> *crsFilter )
 //{
 //  if ( mProjListDone )
@@ -538,7 +547,7 @@ void CMapWidget::HandleNextProjection()
 //
 //  mProjListDone = true;
 //}
-}
+
 
 void CMapWidget::HandleAddRaster()
 {
@@ -631,10 +640,11 @@ QgsSymbolV2* CMapWidget::CreatePointSymbol( double width, const QColor &color )
 
     auto symbolLayer = new QgsSimpleMarkerSymbolLayerV2;
     symbolLayer->setColor( color );
-    symbolLayer->setName("square");							//
-    symbolLayer->setSizeUnit( QgsSymbolV2::MapUnit );		//
+    symbolLayer->setName("square");					//
+    symbolLayer->setSizeUnit( QgsSymbolV2::MM );	//
     symbolLayer->setSize( width );
     symbolLayer->setOutlineStyle( Qt::NoPen );
+
     s->appendSymbolLayer( symbolLayer );
 
     return s;
@@ -668,17 +678,64 @@ QgsSymbolV2* CMapWidget::createLineSymbol( double width, const QColor &color )
 	return s;
 }
 
-//static 
-QgsFeatureList& CMapWidget::createPointFeature( QgsFeatureList &list, double lon, double lat, double value )
+
+QgsFields::FieldOrigin field_origin = QgsFields::OriginUnknown;
+
+
+QgsFields DefaultFields()
 {
 	QgsFields fields;
-	fields.append( QgsField("height", QVariant::Double),  QgsFields::OriginProvider );
+	fields.append( QgsField( "height", QVariant::Type::Double ),  field_origin );
+	fields.append( QgsField( "ref_date", QVariant::Type::Int ),  field_origin );
+	return fields;
+}
+
+static const QgsFields default_fields = DefaultFields();
+
+static const QString height_key = default_fields[ 0 ].name();
+static const QString height_type = ":double";
+
+static const QString ref_date_key = default_fields[ 1 ].name();
+static const QString ref_date_type = ":integer";
+
+
+//static 
+QgsFeatureList& CMapWidget::CreatePointFeature( QgsFeatureList &list, double lon, double lat, const std::map<QString, QVariant> &attrs )	//attrs = std::map<std::string, QVariant>()
+{
+	QgsFields fields;
+	for ( auto ii = attrs.begin(); ii != attrs.end(); ++ii )
+	{
+		fields.append( QgsField( ii->first, ii->second.type() ),  field_origin );
+	}
+
 	QgsFeature *f = new QgsFeature( fields );
 	f->setGeometry( QgsGeometry::fromPoint( QgsPoint( lon, lat ) ) );
-	f->setAttribute( "height", value );					//not working
-	list.append( *f );
 
+	for ( auto ii = attrs.begin(); ii != attrs.end(); ++ii )
+	{
+		f->setAttribute( ii->first, ii->second );
+	}
+
+	list.append( *f );
 	return list;
+}
+
+
+//static 
+QgsFeatureList& CMapWidget::CreatePointFeature( QgsFeatureList &list, double lon, double lat, double value )
+{
+	std::map<QString, QVariant> attrs;
+	attrs[ height_key ] = QVariant::fromValue( value );
+	return CreatePointFeature( list, lon, lat, attrs );
+
+	//QgsFields fields;
+	//fields.append( QgsField("height", QVariant::Double),  field_origin );
+	//QgsFeature *f = new QgsFeature( fields );
+	//f->setGeometry( QgsGeometry::fromPoint( QgsPoint( lon, lat ) ) );
+	//f->setAttribute( "height", value );					//not working
+	//list.append( *f );
+
+	//return list;
 }
 
 //static 
@@ -717,11 +774,22 @@ QgsMapCanvasLayer* CMapWidget::FindCanvasLayer( QgsVectorLayer *layer )
 }
 
 
+bool CMapWidget::IsLayerVisible( QgsVectorLayer *layer ) const
+{
+	const QgsMapCanvasLayer *l = FindCanvasLayer( layer );
+	if ( l )
+		return l->isVisible();
+
+	return false;
+}
+
+
 bool CMapWidget::IsLayerVisible( size_t index ) const
 {
 	const QgsMapCanvasLayer *l = FindCanvasLayer( index );
 	if ( l )
 		return l->isVisible();
+
 	return false;
 }
 bool CMapWidget::SetLayerVisible( size_t index, bool show )
@@ -740,6 +808,17 @@ bool CMapWidget::SetLayerVisible( size_t index, bool show )
 
 	return true;
 }
+void CMapWidget::SetMainLayerVisible( bool show )
+{
+	QgsMapCanvasLayer *cl = FindCanvasLayer( mMainLayer );
+	if ( show != cl->isVisible() )
+	{
+		cl->setVisible( show );
+		setLayerSet( mLayerSet );
+		refresh();
+	}
+}
+
 
 
 void CMapWidget::RemoveLayers( bool render )		//render = false 
@@ -748,6 +827,8 @@ void CMapWidget::RemoveLayers( bool render )		//render = false
 
 	while( mLayerSet.size() > 1 )
 		mLayerSet.removeLast();
+
+	mDataLayers.clear();
 
 	if ( count > 1 )
 	{
@@ -762,6 +843,10 @@ void CMapWidget::RemoveLayer( QgsMapLayer *layer, bool render )		//render = fals
 {
 	if ( !layer )
 		return;
+
+	for ( auto &l : mDataLayers )
+		if ( l == layer )
+			mDataLayers.erase( std::find( mDataLayers.begin(), mDataLayers.end(), layer ) );
 
 	QList <QgsMapCanvasLayer> set = mLayerSet;
 	RemoveLayers( false );
@@ -853,31 +938,21 @@ QgsVectorLayer* CMapWidget::AddVectorLayer( const std::string &name, const QStri
 	if ( !renderer )
 		renderer = CreateRenderer( l );
 	l->setRendererV2( renderer );
-	//l->setLayerName( layer_name.c_str() );
 
-	if ( l->isValid() ) {
+    if ( l->isValid() )
+    {
 							qDebug( "Layer is valid" );
 
 		// Add the Vector Layer to the Layer Registry
-		QgsMapLayerRegistry::instance()->addMapLayer(l, TRUE);
+		QgsMapLayerRegistry::instance()->addMapLayer( l, true );
 
 		// Add the Layer to the Layer Set
-		mLayerSet.append(QgsMapCanvasLayer(l, TRUE));
+		mLayerSet.append( QgsMapCanvasLayer( l, true ) );
 
 		// Set the Map Canvas Layer Set			//TODO: check if we need to setLayerSet every time
 		setLayerSet(mLayerSet);
 
 		SetCurrentLayer( l );
-
-	QgsCoordinateReferenceSystem crs = currentLayer()->crs();
-	freeze();
-	setDestinationCrs( crs );
-	if ( crs.mapUnits() != QGis::UnknownUnit )
-	{
-		setMapUnits( crs.mapUnits() );
-	}
-	freeze( false );
-	refresh();
 
 		return l;
 	}
@@ -887,24 +962,77 @@ QgsVectorLayer* CMapWidget::AddVectorLayer( const std::string &name, const QStri
 }
 
 
-QgsVectorLayer* CMapWidget::AddMemoryLayer( const std::string &name, QgsFeatureRendererV2 *renderer, const QString &target_field )
+
+
+//qgsvectorfilewriter.h inclusion requires the following undefs
+//
+//#undef HAVE_VPRINTF
+//#undef HAVE_DIRECT_H
+//#undef HAVE_SNPRINTF
+//#include <qgsvectorfilewriter.h>
+
+QgsVectorLayer* CMapWidget::AddMemoryLayer( const std::string &name, QgsFeatureRendererV2 *renderer )
 {
 	static const QString base_name = "mem";
     static const QString provider = "memory";
-    
+ 
+
+	//return AddVectorLayer( name, R"-(L:\project\dev\source\data\empty\empty.shp)-", "ogr", renderer );
+
+
 	//auto &crs = mapSettings().destinationCrs();
 
-	const QString layer_path = "Point?crs=EPSG:4326&field=" + target_field + ":double&field=name:string(255)&index=yes";
+	//const QString s = mMainLayer->crs().toProj4();		//EPSG:4326
+	const QString s = mapSettings().destinationCrs().toProj4();		//
 
-	return AddVectorLayer( name, layer_path, provider, renderer );
+	const QString layer_path =
+        "Point?crs=EPSG:4326"
+
+		+ QString( "&field=" ) + height_key + height_type
+		+ QString( "&field=" ) + ref_date_key + ref_date_type 
+
+		+ "&index=yes";
+
+	auto *l = AddVectorLayer( name, layer_path, provider, renderer );
+
+	////QgsVectorFileWriter::writeAsVectorFormat( l, "L:\\my.shp", "", &l->crs(), "ESRI Shapefile", false, 0, QStringList(), QStringList(), false, 0, QgsVectorFileWriter::SymbolLayerSymbology );
+
+	//QgsFields fields;
+	//fields.append( QgsField( height_key, QVariant::Type::Double ), field_origin );
+	//fields.append( QgsField( ref_date_key, QVariant::Type::Int ), field_origin );
+    //QgsVectorFileWriter r( "L:\\layer", "", fields, QGis::WkbType::WKBPoint, &l->crs(), "ESRI Shapefile", QStringList(), QStringList(), 0, QgsVectorFileWriter::SymbolLayerSymbology );
+	//QgsFeatureRequest req;
+	//QgsFeatureIterator it = l->dataProvider()->getFeatures( req );
+	//QgsFeature f;
+	//while ( it.nextFeature( f ) )
+	//	r.addFeature( f );
+
+	//if ( r.hasError() )
+	//	qDebug() << r.errorMessage();
+
+
+
+//"Point?
+	//field=Rec_No:integer
+	//&field=Include:string(120)
+	//&field=Label:string(120)
+	//&field=X:double
+	//&field=Y:double
+	//&field=Z:double
+	//&field=Height:double
+	//&field=Project_Re:string(120)
+	//&field=NCA:string(120)
+	//&field=DayCrit:integer
+	//&field=EveCrit:integer
+	//&field=NightCrit:integer",
+
+	return l;		// AddVectorLayer( name, layer_path, provider, renderer );
 }
 
 
 QgsVectorLayer* CMapWidget::AddMemoryLayer( const std::string &name, QgsSymbolV2* symbol )		//name = "", symbol = nullptr 
 {
-	static const QString target_field = QString( "height" );
-
-	return AddMemoryLayer( name, CreateRenderer( symbol ), target_field );
+	return AddMemoryLayer( name, CreateRenderer( symbol ) );
 
 	//auto ml = AddVectorLayer( "Point?crs=EPSG:4326&field=height:double&field=name:string(255)&index=yes", "mem", "memory" );	// , symbol );
 
@@ -999,13 +1127,19 @@ QgsGraduatedSymbolRendererV2* CMapWidget::CreateRenderer( const QString &target_
 }
 
 
-QgsVectorLayer* CMapWidget::AddMemoryLayer( const std::string &name, double width, double m, double M, size_t contours )
+QgsVectorLayer* CMapWidget::AddDataLayer( const std::string &name, double width, double m, double M, size_t contours, QgsFeatureList &flist )
 {
-	static const QString target_field = QString( "height" );
+	static const QString target_field = height_key;
 
-	return AddMemoryLayer( name, CreateRenderer( target_field, width, m, M, contours ), target_field );
+	auto *l = AddMemoryLayer( name, CreateRenderer( target_field, width, m, M, contours ) );
+	if ( l )
+	{
+		l->dataProvider()->addFeatures( flist );
+		//l->updateExtents();
+		mDataLayers.push_back( l );
+	}
+	return l;
 
-    ///// ATTENTION: delete #include <qgsvectorcolorrampv2.h> //////////////
 //    QgsVectorColorRampV2 *myColorRamp = nullptr;
 //    myColorRamp = QgsVectorGradientColorRampV2::create();
 
@@ -1019,8 +1153,6 @@ QgsVectorLayer* CMapWidget::AddMemoryLayer( const std::string &name, double widt
 //      //bool inverted = false,
 //      //QgsRendererRangeV2LabelFormat legendFormat = QgsRendererRangeV2LabelFormat()
 //      );
-
-    ///////////////////
 }
 
 
@@ -1035,25 +1167,27 @@ QgsVectorLayer* CMapWidget::AddOGRVectorLayer( const QString &layer_path, QgsSym
 
 
 
-
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //		Specialized Layers
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-void CMapWidget::PlotTrack( const double *x, const double *y, const double *z, size_t size, QColor color )		//color = Qt::red 
+void CMapWidget::PlotTrack( const double *x, const double *y, const double *z, size_t size, brathl_refDate ref_date, QColor color )		//color = Qt::red 
 {
-    QgsFeatureList flist;
+	QgsFeatureList flist;
+	std::map<QString, QVariant> attrs;
+	attrs[ ref_date_key ] = QVariant::fromValue( (int)ref_date );
 
-    for ( auto i = 0u; i < size; ++ i )
-    {
-		createPointFeature( flist, x[ i ], y[ i ], z[ i ] );
-    }
+	for ( auto i = 0u; i < size; ++ i )
+	{
+		attrs[ height_key ] = QVariant::fromValue( z[ i ] );		//CreatePointFeature( flist, x[ i ], y[ i ], z[ i ] );
+		CreatePointFeature( flist, x[ i ], y[ i ], attrs );
+	}
 
 	if ( mTracksLayer == nullptr )
-		mTracksLayer = AddMemoryLayer( "SatelliteTrack", CreatePointSymbol( 0.7, color ) );
+		mTracksLayer = AddMemoryLayer( "SatelliteTrack", CreatePointSymbol( 0.5, color ) );
 
-    mTracksLayer->dataProvider()->addFeatures( flist );
+	mTracksLayer->dataProvider()->addFeatures( flist );
 }
 
 
@@ -1393,26 +1527,68 @@ void CMapWidget::CoordinatesFormatChanged()
 }
 
 
-void CMapWidget::ShowMouseCoordinate( const QgsPoint &p, bool erase )		//erase = false 
+void CMapWidget::WriteTrackValue( QgsRectangle rect )
+{
+	if ( !mTracksLayer || isDrawing() )
+		return;
+
+	auto *provider = mTracksLayer->dataProvider();
+	QgsFeatureRequest req;
+	req.setFilterRect( rect );
+	QgsFeatureIterator it = provider->getFeatures( req );
+	QgsFeature f;
+	if ( it.nextFeature( f ) )
+	{
+		auto v = f.attribute( height_key );
+		if ( v.isValid() )
+		{
+			bool ok;
+			CDate d( v.toDouble( &ok ) );
+			if ( ok && !d.IsDefaultValue() )
+				mCoordsEdit->setText( mCoordsEdit->text() + " - " + d.AsString().c_str() );
+		}
+	}
+}
+void CMapWidget::WriteDataValue( QgsRectangle rect )
+{
+	if ( mDataLayers.empty() || isDrawing() )
+		return;
+
+	for ( auto *l : mDataLayers )
+	{
+		if ( !IsLayerVisible( l ) )
+			continue;
+
+		auto *provider = l->dataProvider();
+		QgsFeatureRequest req;
+		req.setFilterRect( rect );
+		QgsFeatureIterator it = provider->getFeatures( req );
+		QgsFeature f;
+		if ( it.nextFeature( f ) )
+		{
+			//TODO how do we know its a time variable?
+			//brathl_refDate ref_date = (brathl_refDate)f.attribute( ref_date_key ).toInt();	CDate d( f.attribute( height_key ).toDouble(), ref_date );
+			auto v = f.attribute( height_key );
+			if ( v.isValid() )
+			{
+				bool ok;
+				double d = v.toDouble( &ok );
+				if ( ok && !isDefaultValue(d) )
+					mCoordsEdit->setText( mCoordsEdit->text() + " - " + v.toString() );
+			}
+		}
+	}
+}
+
+
+void CMapWidget::ShowMouseDegreeCoordinates( const QgsPoint &geo, bool erase )			//erase = false 
 {
 	if ( erase )
 	{
 		mCoordsEdit->clear();
-		return;
 	}
-
-	QgsPoint geo = p;
-	if ( mapUnits() == QGis::Degrees )
+	else
 	{
-		if ( !mapSettings().destinationCrs().isValid() )
-			return;
-
-		if ( !mapSettings().destinationCrs().geographicFlag() )
-		{
-			QgsCoordinateTransform ct( mapSettings().destinationCrs(), QgsCoordinateReferenceSystem( GEOSRID ) );
-			geo = ct.transform( p );
-		}
-
 		if ( mCoordinatesFormat == "DM" )
 		{
 			mCoordsEdit->setText( geo.toDegreesMinutes( mMousePrecisionDecimalPlaces ) );
@@ -1426,35 +1602,81 @@ void CMapWidget::ShowMouseCoordinate( const QgsPoint &p, bool erase )		//erase =
 			mCoordsEdit->setText( geo.toString( mMousePrecisionDecimalPlaces ) );
 		}
 	}
+}
+
+
+void CMapWidget::ShowMouseCoordinate( const QString s, bool erase )			//erase = false 
+{
+	if ( erase )
+	{
+		mCoordsEdit->clear();
+	}
 	else
 	{
-		mCoordsEdit->setText( geo.toString( mMousePrecisionDecimalPlaces ) );
+		mCoordsEdit->setText( s );
+	}
+}
+
+
+void CMapWidget::ShowMouseCoordinate( const QgsPoint &p, bool erase )		//erase = false 
+{
+	if ( erase )
+	{
+		mCoordsEdit->clear();
+		return;
 	}
 
-	if ( mCoordsEdit->width() > mCoordsEdit->minimumWidth() )
-	{
-		mCoordsEdit->setMinimumWidth( mCoordsEdit->width() );
-	}
+	QGis::UnitType unit = mapUnits();
 
-	if ( mTracksLayer )
-	{
-		auto *provider = mTracksLayer->dataProvider();
-		QgsFeatureRequest req;
-		QgsRectangle rect( QgsPoint( geo.x() - 1, geo.y() - 1 ), QgsPoint( geo.x() + 1, geo.y() + 1 ) );
-		req.setFilterRect( rect );
-		//provider->select( provider->attributeIndexes(), extent() );
-		QgsFeatureIterator it = provider->getFeatures( req );
-		QgsFeature f;
-		if ( it.nextFeature( f ) )
+	mActionDM->setEnabled( unit == QGis::Degrees );
+	if ( !mActionDM->isEnabled() )
+		mActionDM->setChecked( false );
+
+	mActionDMS->setEnabled( unit == QGis::Degrees );
+	if ( !mActionDMS->isEnabled() )
+		mActionDMS->setChecked( false );
+
+	mActionDecimal->setEnabled( unit != QGis::UnknownUnit );
+	if ( !mActionDecimal->isEnabled() )
+		mActionDecimal->setChecked( false );
+	else
+		mActionDecimal->setChecked( unit != QGis::Degrees );
+
+	if ( unit == QGis::UnknownUnit )
+		return;
+
+	try {
+		QgsPoint geo = p;
+		if ( unit == QGis::Degrees )
 		{
-			//QgsFields fields;
-			//fields.append( QgsField("height", QVariant::Double),  QgsFields::OriginProvider );
-			//QgsFeature *f = new QgsFeature( fields );
-			//f->setGeometry( QgsGeometry::fromPoint( QgsPoint( lon, lat ) ) );
-			//f->setAttribute( "height", value );					//not working
-			//list.append( *f );
-			mCoordsEdit->setText( f.attribute( "height" ).toString() );
+			if ( !mapSettings().destinationCrs().isValid() )
+				return;
+
+			if ( !mapSettings().destinationCrs().geographicFlag() )
+			{
+				QgsCoordinateTransform ct( mapSettings().destinationCrs(), QgsCoordinateReferenceSystem( GEOSRID ) );
+				geo = ct.transform( p );
+			}
+
+			ShowMouseDegreeCoordinates( geo );
 		}
+		else
+		{
+			mCoordsEdit->setText( geo.toString( mMousePrecisionDecimalPlaces ) );
+		}
+
+		QgsRectangle rect( QgsPoint( geo.x() - 1, geo.y() - 1 ), QgsPoint( geo.x() + 1, geo.y() + 1 ) );		//TODO check this "around point" rectangle
+		WriteTrackValue( rect );
+		WriteDataValue( rect );
+
+		if ( mCoordsEdit->width() > mCoordsEdit->minimumWidth() )
+		{
+			mCoordsEdit->setMinimumWidth( mCoordsEdit->width() );
+		}
+	}
+	catch ( ... )
+	{
+		mCoordsEdit->clear();
 	}
 }
 
@@ -1469,12 +1691,15 @@ void CMapWidget::UpdateMouseCoordinatePrecision()
 	// to show the difference in position between adjacent pixels.
 	// Also avoid taking the log of 0.
 
+	int dp = 0;							//do not compute with an unsigned
 	if ( mapUnitsPerPixel() != 0.0 )
-		mMousePrecisionDecimalPlaces = static_cast<int>( ceil( -1.0 * log10( mapUnitsPerPixel() ) ) );
+		dp = static_cast<int>( ceil( -1.0 * log10( mapUnitsPerPixel() ) ) );
 
 	// Keep mMousePrecisionDecimalPlaces sensible
-	if ( mMousePrecisionDecimalPlaces < 0 )
-		mMousePrecisionDecimalPlaces = 0;
+	if ( dp < 0 )
+		dp = 0;
+
+	mMousePrecisionDecimalPlaces = dp;			assert__( mMousePrecisionDecimalPlaces < 20 );
 }
 
 
@@ -1488,7 +1713,7 @@ void CMapWidget::CreateCoordinatesWidget( QStatusBar *bar, QLineEdit *&coords, Q
 	coords->setObjectName( "coords" );
 	coords->setFont( myFont );
 	coords->setMinimumWidth( 10 );
-	coords->setMaximumWidth( 200 );
+	coords->setMaximumWidth( 400 );
 	coords->setMaximumHeight( 20 );
 	coords->setContentsMargins( 0, 0, 0, 0 );
 	coords->setAlignment( Qt::AlignCenter );
@@ -1528,6 +1753,10 @@ void CMapWidget::ConnectCoordinatesWidget( QLineEdit *&coords, QToolButton *form
 		mCoordinatesFormat = a->text();
 		a->setChecked( true );
 	}
+	mActionDM = list[ 0 ];			assert__( mActionDM->text() == "DM" );
+	mActionDMS = list[ 1 ];			assert__( mActionDMS->text() == "DMS" );
+	mActionDecimal = list[ 2 ];		assert__( mActionDecimal->text() == "Decimal" );
+
 
 	connect( this, SIGNAL( xyCoordinates( const QgsPoint & ) ), this, SLOT( ShowMouseCoordinate( const QgsPoint & ) ) );
 	connect( this, SIGNAL( scaleChanged( double ) ), this, SLOT( UpdateMouseCoordinatePrecision() ) );

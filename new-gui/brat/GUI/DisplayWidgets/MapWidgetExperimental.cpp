@@ -298,7 +298,7 @@ void CMapWidget::setupMapLayers()
 	endPointLayer->setRendererV2( new QgsSingleSymbolRendererV2( symbol ) );
 }
 
-void CMapWidget::setProjection()
+void CMapWidget::setProjectionExp()
 {
 ///////////////////////////////////////////////////////////
 	//QgsMapRenderer r = 
@@ -542,3 +542,165 @@ void CMapWidget::addLabelsLayer()
 	// Set the Map Canvas Layer Set
 	//mpMapCanvas->setLayerSet( mLayerSet );
 }
+
+
+//#define QGSCLIPBOARD_STYLE_MIME "application/qgis.style"
+//
+//
+//void CMapWidget::CopyStyle( QgsMapLayer * sourceLayer )
+//{
+//	QgsMapLayer *selectionLayer = sourceLayer;
+//	if ( selectionLayer )
+//	{
+//		QDomImplementation DomImplementation;
+//		QDomDocumentType documentType =
+//			DomImplementation.createDocumentType(
+//			"qgis", "http://mrcc.com/qgis.dtd", "SYSTEM" );
+//		QDomDocument doc( documentType );
+//		QDomElement rootNode = doc.createElement( "qgis" );
+//		rootNode.setAttribute( "version", QString( "%1" ).arg( QGis::QGIS_VERSION ) );
+//		doc.appendChild( rootNode );
+//		QString errorMsg;
+//		if ( !selectionLayer->writeSymbology( rootNode, doc, errorMsg ) )
+//		{
+//			QMessageBox::warning( this,
+//				tr( "Error" ),
+//				tr( "Cannot copy style: %1" )
+//				.arg( errorMsg ),
+//				QMessageBox::Ok );
+//			return;
+//		}
+//		// Copies data in text form as well, so the XML can be pasted into a text editor
+//		qApp->clipboard()->setData( QGSCLIPBOARD_STYLE_MIME, doc.toByteArray(), doc.toString() );
+//	}
+//}
+//
+//void CMapWidget::PasteStyle( QgsMapLayer * destinationLayer )
+//{
+//	QgsMapLayer *selectionLayer = destinationLayer;
+//	if ( selectionLayer )
+//	{
+//		if ( qApp->clipboard()->hasFormat( QGSCLIPBOARD_STYLE_MIME ) )
+//		{
+//			QDomDocument doc( "qgis" );
+//			QString errorMsg;
+//			int errorLine, errorColumn;
+//			if ( !doc.setContent( clipboard()->data( QGSCLIPBOARD_STYLE_MIME ), false, &errorMsg, &errorLine, &errorColumn ) )
+//			{
+//				QMessageBox::information( this,
+//					tr( "Error" ),
+//					tr( "Cannot parse style: %1:%2:%3" )
+//					.arg( errorMsg )
+//					.arg( errorLine )
+//					.arg( errorColumn ),
+//					QMessageBox::Ok );
+//				return;
+//			}
+//			QDomElement rootNode = doc.firstChildElement( "qgis" );
+//			if ( !selectionLayer->readSymbology( rootNode, errorMsg ) )
+//			{
+//				QMessageBox::information( this,
+//					tr( "Error" ),
+//					tr( "Cannot read style: %1" )
+//					.arg( errorMsg ),
+//					QMessageBox::Ok );
+//				return;
+//			}
+//
+//			mLayerTreeView->refreshLayerSymbology( selectionLayer->id() );
+//			mMapCanvas->clearCache();
+//			mMapCanvas->refresh();
+//		}
+//	}
+//}
+QgsMapLayer* CMapWidget::DuplicateLayer( QgsMapLayer *layer )
+{
+	freeze();
+	QgsMapLayer *dupLayer;
+	QString layerDupName, unSppType;
+	QList<QString> msgBars;
+
+	dupLayer = 0;
+	unSppType = QString( "" );
+	layerDupName = layer->name() + " " + tr( "copy" );
+
+	if ( layer->type() == QgsMapLayer::PluginLayer )
+	{
+		unSppType = tr( "Plugin layer" );
+	}
+
+	// duplicate the layer's basic parameters
+
+	if ( unSppType.isEmpty() )
+	{
+		QgsVectorLayer *vlayer = qobject_cast<QgsVectorLayer*>( layer );
+		// TODO: add other layer types that can be duplicated
+		// currently memory and plugin layers are skipped
+		if ( vlayer && vlayer->storageType() == "Memory storage" )
+		{
+			unSppType = tr( "Memory layer" );
+		}
+		else if ( vlayer )
+		{
+			QgsVectorLayer *dupVLayer = new QgsVectorLayer( vlayer->source(), layerDupName, vlayer->providerType() );
+			if ( vlayer->dataProvider() )
+			{
+				dupVLayer->setProviderEncoding( vlayer->dataProvider()->encoding() );
+			}
+			dupLayer = dupVLayer;
+		}
+	}
+
+	if ( unSppType.isEmpty() && !dupLayer )
+	{
+		QgsRasterLayer *rlayer = qobject_cast<QgsRasterLayer*>( layer );
+		if ( rlayer )
+		{
+			dupLayer = new QgsRasterLayer( rlayer->source(), layerDupName );
+		}
+	}
+
+	if ( unSppType.isEmpty() && dupLayer && !dupLayer->isValid() )
+	{
+		msgBars << QString( "Duplicate layer: %1 (duplication resulted in invalid layer)" ).arg( layer->name() );
+		return nullptr;
+	}
+
+	if ( !unSppType.isEmpty() || !dupLayer )
+	{
+		msgBars << QString( "Duplicate layer: %1 (%2 type unsupported)" ).arg( layer->name() ).arg( !unSppType.isEmpty() ? QString( "'" ) + unSppType + "' " : "" );
+		return nullptr;
+	}
+
+	// add layer to layer registry and legend
+	QList<QgsMapLayer *> myList;
+	myList << dupLayer;
+	//QgsProject::instance()->layerTreeRegistryBridge()->setEnabled( false );
+	QgsMapLayerRegistry::instance()->addMapLayers( myList );
+	//QgsProject::instance()->layerTreeRegistryBridge()->setEnabled( true );
+
+	// duplicate the layer style
+	//copyStyle( layer );
+	//pasteStyle( dupLayer );
+
+	QgsVectorLayer* vLayer = dynamic_cast<QgsVectorLayer*>( layer );
+	QgsVectorLayer* vDupLayer = dynamic_cast<QgsVectorLayer*>( dupLayer );
+	if ( vLayer && vDupLayer )
+	{
+		foreach( const QgsVectorJoinInfo join, vLayer->vectorJoins() )
+		{
+			vDupLayer->addJoin( join );
+		}
+	}
+
+	freeze( false );
+
+	// display errors in message bar after duplication of layers
+	foreach( QString msgBar, msgBars )
+	{
+		qDebug() << msgBar;
+	}
+
+	return dupLayer;
+}
+

@@ -118,7 +118,7 @@ void CUnitFieldDlg::OnOk(wxCommandEvent &event)
 
   try
   {
-    CUnit unit = m_newUnit;
+    CUnit unit( m_newUnit );
   }
   catch (CException& e)
   {

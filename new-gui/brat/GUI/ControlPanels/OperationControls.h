@@ -21,9 +21,6 @@ class CDisplayFilesProcessor;
 
 
 
-//#define USE_2_EXPRESSION_TREES
-
-
 
 class COperationControls : public CDesktopControlsPanel
 {
@@ -66,17 +63,6 @@ public:
 	};
 
 
-#if defined(USE_2_EXPRESSION_TREES)
-	enum EExpressionTrees
-	{
-		eExpressionTreeMap,
-		eExpressionTreePlot,
-
-		EExpressionTrees_size
-	};
-#endif
-
-
 	//static members
 
     static const std::vector<std::string> smPredefinedVariables;
@@ -84,7 +70,7 @@ public:
 
 	//...fill helpers
 
-	static QList<QAction*> CreateDataComputationActions( QObject *parent );
+	static QList<QAction*> CreateDataComputationActions();
 
 
 protected:
@@ -98,8 +84,6 @@ protected:
 
 	QWidget *mCommonGroup = nullptr;
 
-	QToolButton *mOperationFilterButton = nullptr;
-	//QActionGroup *mOperationFilterGroup = nullptr;
 	QToolButton *mOperationExportButton = nullptr;
 	QAction *mExportOperationAction = nullptr;
 	QAction *mEditExportAsciiAction = nullptr;
@@ -109,6 +93,7 @@ protected:
 
 	//...advanced
 
+	QToolButton *mOperationFilterButton_Advanced = nullptr;
 	QComboBox *mOperationsCombo = nullptr;
 	QComboBox *mAdvancedDatasetsCombo = nullptr;
 	QToolButton *mNewOperationButton = nullptr;
@@ -116,12 +101,12 @@ protected:
     QToolButton *mRenameOperationButton = nullptr;
     QToolButton *mDuplicateOperationButton = nullptr;
 
-	QToolButton *mAdvancedDisplayButton = nullptr;
+	QToolButton *mAdvancedExecuteButton = nullptr;
 	QAction *mDelayExecutionAction = nullptr;
 	QAction *mLaunchSchedulerAction = nullptr;
 	CProcessesTable *mProcessesTable = nullptr;
 
-	QgsCollapsibleGroupBox *mOperationExpressionsGroup = nullptr;
+	QGroupBox *mOperationExpressionsGroup = nullptr;
 	QgsCollapsibleGroupBox *mSamplingGroup = nullptr;
 
 
@@ -143,16 +128,13 @@ protected:
 	CFieldsTreeWidget *mAdvancedFieldsTree = nullptr;
     CTextWidget *mAdvancedFieldDesc = nullptr;
 
-#if defined(USE_2_EXPRESSION_TREES)
-	CStackedWidget *mDataExpressionsStack = nullptr;
-	CDataExpressionsTreeWidget *mDataExpressionsTrees[ EExpressionTrees_size ];
-#endif
 	QToolButton *mSwitchToMapButton = nullptr;
 	QToolButton *mSwitchToPlotButton = nullptr;
 	CDataExpressionsTreeWidget *mDataExpressionsTree = nullptr;
 
 	//...quick
 
+	QToolButton *mOperationFilterButton_Quick = nullptr;
 	QComboBox *mQuickDatasetsCombo = nullptr;
 	QToolButton *mAddVariable = nullptr;
 	QToolButton *mClearVariables = nullptr;
@@ -173,7 +155,7 @@ protected:
 	const CBratFilters &mBratFilters;
 
 	COperation *mCurrentOperation = nullptr;
-	CDataset *mDataset = nullptr;
+	const CDataset *mCurrentDataset = nullptr;
 	CProduct *mProduct = nullptr;
 	CFormula *mUserFormula = nullptr;
 
@@ -205,6 +187,7 @@ public:
 protected:
 
 	CDataset* QuickDataset();
+	COperation* QuickOperation();
 
 	bool Execute( bool sync );
 
@@ -215,18 +198,21 @@ protected:
 	std::string GetOpunit();		//TODO how to deal/assign with field units
 
     void ResetFilterActions();
-    void ResetSelectedFilter();
+    void ResetFilterSelection();
 
 	void LaunchDisplay( const std::string &display_name );
 
 	COperation* CreateQuickOperation( CMapTypeOp::ETypeOp type );
 	void SelectOperation( const std::string &name, bool select_map );
 
+	bool AssignFilter( const std::string &name );
+	bool RemoveFilter( const std::string &name );
+
+	bool AssignDatasetAndProduct( const CDataset *dataset, bool changing_used_dataset );
 
 signals:
 	void SyncProcessExecution( bool executing );
     void OperationModified( const COperation *operation );
-
 
 
 public slots:
@@ -243,6 +229,9 @@ protected slots:
 	void HandleVariableStateChanged_Quick( QListWidgetItem *item );
     void HandleDatasetsChanged_Quick(CDataset*);
 
+	void HandleOperationFilterButton_Quick( QAction *a );
+	void HandleOperationFilterButtonToggled_Quick( bool );
+
 	void HandleQuickMap();
 	void HandleQuickPlot();
 
@@ -255,13 +244,10 @@ protected slots:
 	void HandleSelectedDatasetChanged_Advanced( int dataset_index );
     void HandleDatasetsChanged_Advanced( CDataset *dataset );
 
-#if defined(USE_2_EXPRESSION_TREES)
-
-	void HandleExpressionsTreePageChanged( int index );
-#else
+    void HandleFiltersChanged();
+	void HandleFilterCompositionChanged( std::string filter_name );
 
 	void HandleSwitchExpressionType();
-#endif
 
 	void HandleFormulaInserted( CFormula *formula );
 	void HandleSelectedFormulaChanged( CFormula *formula );
@@ -270,9 +256,10 @@ protected slots:
 	void HandleDeleteOperation();
     void HandleRenameOperation();
     void HandleDuplicateOperation();
-    void HandleOperationFilter();
-	void HandleOperationFilterButton( QAction *a );
-	void HandleOperationFilterButtonToggled( bool );
+
+	void HandleOperationFilterButton_Advanced( QAction *a );
+	void HandleOperationFilterButtonToggled_Advanced( bool );
+
 	void HandleExportOperation();
 	void HandleEditExportAscii();
 	void HandleOperationStatistics();

@@ -82,46 +82,46 @@ crs_entry_t MakeCRSEntryFromId( unsigned id )
 	switch ( id )
 	{
 		case PROJ2D_LAMBERT_CYLINDRICAL:
-			return { id, { 4326, QgsCoordinateReferenceSystem::PostgisCrsId } };
+            return { id, { 54003, QgsCoordinateReferenceSystem::EpsgCrsId } };	//World_Miller_Cylindrical
 			break;
 
 		case PROJ2D_PLATE_CAREE:
-			return { id, { 53026, QgsCoordinateReferenceSystem::EpsgCrsId } };
+			return { id, { 32662, QgsCoordinateReferenceSystem::EpsgCrsId } };		//WGS 84 / Plate Carree
 			break;
 
 		case PROJ2D_MOLLWEIDE:
-			return { id, { 54003, QgsCoordinateReferenceSystem::EpsgCrsId } };
+			return { id, { 54009, QgsCoordinateReferenceSystem::EpsgCrsId } };		//World_Mollweide
 			break;
 
 		case PROJ2D_ROBINSON:
-			return { id, { 53009, QgsCoordinateReferenceSystem::EpsgCrsId } };
+			return { id, { 54030, QgsCoordinateReferenceSystem::EpsgCrsId } };		//World_Robinson
 			break;
 
 		case PROJ2D_LAMBERT_AZIMUTHAL:
-			return { id, { 53009, QgsCoordinateReferenceSystem::EpsgCrsId } };
+			return { id, { 102017, QgsCoordinateReferenceSystem::EpsgCrsId } };		//North_Pole_Lambert_Azimuthal_Equal_Area
 			break;
 
 		case PROJ2D_AZIMUTHAL_EQUIDISTANT:
-            return { id, { 54032, QgsCoordinateReferenceSystem::EpsgCrsId } };
+            return { id, { 54032, QgsCoordinateReferenceSystem::EpsgCrsId } };		//World_Azimuthal_Equidistant
 			break;
 
 		case PROJ2D_3D:			//invalid CRS, not 2D
 			break;
 
 		case PROJ2D_MERCATOR:
-			return { id, { 53009, QgsCoordinateReferenceSystem::EpsgCrsId } };
+			return { id, { 3785, QgsCoordinateReferenceSystem::EpsgCrsId } };		//Popular .... Mercator
 			break;
 
 		case PROJ2D_ORTHO:
-			return { id, { 53009, QgsCoordinateReferenceSystem::EpsgCrsId } };
+			return { id, { 102020, QgsCoordinateReferenceSystem::EpsgCrsId } };		//???? South_Pole_Lambert_Azimuthal_Equal_Area
 			break;
 
 		case PROJ2D_NEAR_SIGHTED:
-			return { id, { 53009, QgsCoordinateReferenceSystem::EpsgCrsId } };
+			return { id, { 53031, QgsCoordinateReferenceSystem::EpsgCrsId } };		//??? Sphere_Two_point_Equidistant 
 			break;
 
 		case PROJ2D_STEREOGRAPHIC:
-			return { id, { 53009, QgsCoordinateReferenceSystem::EpsgCrsId } };
+			return { id, { 53026, QgsCoordinateReferenceSystem::EpsgCrsId } };		//Sphere_Stereographic, 54026-World_Stereographic
 			break;
 
 		case PROJ2D_TMERCATOR:	//not used

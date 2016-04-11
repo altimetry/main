@@ -7339,7 +7339,7 @@ void CNetCDFFiles::ApplyUnitAndFactorsToDataRead
   std::string UnitStr;
   GetAtt(varId, UNITS_ATTR, UnitStr, false, "");
 
-  CUnit	Unit	= UnitStr;
+  CUnit	Unit( UnitStr );
 
   if ((WantedUnit != "") && (WantedUnit != CUnit::m_UNIT_SI))
   {

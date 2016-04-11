@@ -16,6 +16,8 @@ namespace osgEarth {
 }
 
 
+class CGlobeWidget;
+
 
 //#ifdef HAVE_OSGEARTH_ELEVATION_QUERY
 //#undef HAVE_OSGEARTH_ELEVATION_QUERY

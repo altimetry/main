@@ -25,7 +25,7 @@ void CMapEditor::CreateMapActions()
 	// add menu button for projections
 
 	AddToolBarSeparator();
-	mProjectionsGroup = ProjectionsActions( this );
+	mProjectionsGroup = CreateProjectionsActions();
 	mToolProjection = AddMenuButton( eActionGroup_Projections, mProjectionsGroup->actions() );
 }
 
@@ -200,7 +200,7 @@ void CMapEditor::Show2D( bool checked )
 	mMapView->setVisible( checked );
 
 	mMeasureButton->setEnabled( checked );
-	mActionDecorationGrid->setEnabled( checked );
+	//mActionDecorationGrid->setEnabled( checked );
 	if( mToolProjection )
 		mToolProjection->setEnabled( checked );
 }
@@ -229,7 +229,7 @@ void CMapEditor::Show3D( bool checked )
 //virtual 
 void CMapEditor::Recenter()
 {
-	mMapView->zoomToFullExtent();
+	mMapView->Home();
 	if ( mGlobeView )
 		mGlobeView->Home();
 }
@@ -516,9 +516,9 @@ void CMapEditor::HandleShowSolidColor( bool checked )
 static const unsigned default_projection_id = (unsigned)-1;
 
 
-QActionGroup* ProjectionsActions( QWidget *parent )
+QActionGroup* CMapEditor::CreateProjectionsActions()
 {
-	static const std::vector< std::pair< EActionTag, unsigned > > ProjIdsMap =
+	static const std::vector< std::pair< EActionTag, unsigned > > proj_ids_map =
 	{
 		{ eAction_Projection_LAMBERT_CYLINDRICAL,	PROJ2D_LAMBERT_CYLINDRICAL   },
 		{ eAction_Projection_PLATE_CAREE,			PROJ2D_PLATE_CAREE			 },
@@ -538,27 +538,27 @@ QActionGroup* ProjectionsActions( QWidget *parent )
 
 	static const std::vector< EActionTag > ActionTags =
 	{
-		ProjIdsMap[size++].first,
-		ProjIdsMap[size++].first,
-		ProjIdsMap[size++].first,
-		ProjIdsMap[size++].first,
-		ProjIdsMap[size++].first,
-		ProjIdsMap[size++].first,
-		ProjIdsMap[size++].first,
-		ProjIdsMap[size++].first,
-		ProjIdsMap[size++].first,
-		ProjIdsMap[size++].first,
-		ProjIdsMap[size++].first,
-		ProjIdsMap[size++].first,
+		proj_ids_map[size++].first,
+		proj_ids_map[size++].first,
+		proj_ids_map[size++].first,
+		proj_ids_map[size++].first,
+		proj_ids_map[size++].first,
+		proj_ids_map[size++].first,
+		proj_ids_map[size++].first,
+		proj_ids_map[size++].first,
+		proj_ids_map[size++].first,
+		proj_ids_map[size++].first,
+		proj_ids_map[size++].first,
+		proj_ids_map[size++].first,
 	};
 
 
-	QActionGroup *g = CActionInfo::CreateActionGroup( parent, ActionTags, true );
+	QActionGroup *g = CActionInfo::CreateActionGroup( this, ActionTags, true );
 	auto actions = g->actions();
 
 	// CMapProjection::3D is not in ActionTags, default_projection_id and separator are not in CMapProjection
 	//
-	assert__( size == ActionTags.size() && size == CMapProjection::GetInstance()->size() + 1 && size == ProjIdsMap.size() && size == actions.size() );
+	assert__( size == ActionTags.size() && size == CMapProjection::GetInstance()->size() + 1 && size == proj_ids_map.size() && size == actions.size() );
 
 	for ( size_t i = 0; i < size; ++i )
 	{
@@ -566,14 +566,18 @@ QActionGroup* ProjectionsActions( QWidget *parent )
 		if ( a->isSeparator() )
 			continue;
 
-		auto id = ProjIdsMap[ i ].second;
+		auto id = proj_ids_map[ i ].second;
 		if ( (unsigned)id == (unsigned)default_projection_id )
+		{
 			a->setChecked( true );
+			if ( mMapView )
+				a->setText( a->text() + " - C.R.S. " + ( mMapView->DefaultProjection().description() ) );
+		}
 		else
 		{
-			a->setData( QVariant::fromValue( id ) );
 			a->setText( a->text() + " - C.R.S. " + CMapProjection::GetInstance()->IdToCRS( id ).description() );
 		}
+		a->setData( QVariant::fromValue( id ) );
 	}
 
 	return g;
@@ -589,13 +593,19 @@ void CMapEditor::HandleProjection()
 
 	unsigned proj_id = a->data().toUInt();
 
+	bool result = false;
 	if ( proj_id == PROJ2D_3D )
 		Show3D( true );
 	else
 	if ( proj_id == default_projection_id )
-		mMapView->SetDefaultProjection();
+		result = mMapView->SetDefaultProjection();
 	else
-		mMapView->SetProjection( proj_id );
+		result = mMapView->SetProjection( proj_id );
+
+	if ( !result )
+	{
+		a->setChecked( false );
+	}
 }
 
 

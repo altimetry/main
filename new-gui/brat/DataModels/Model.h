@@ -34,6 +34,8 @@ class CModel : public QObject
 	/////////////////
 
 	static CModel *smInstance;
+	static CBratFilters *smBratFilters;
+	static bool smValidFilters;
 
 
 	static CWorkspace* RootWorkspace( CTreeWorkspace &tree );
@@ -48,6 +50,23 @@ class CModel : public QObject
 
 	static CWorkspace* LoadWorkspace( CTreeWorkspace &tree, const std::string& path, std::string &error_msg );
 
+	static bool MakeWorkspaceFiltersConsistent( CTreeWorkspace &tree, std::string &error_msg );
+
+	static bool SaveWorkspace( CTreeWorkspace &tree, std::string &error_msg )
+	{
+		return tree.SaveConfig(
+			error_msg,
+			Workspace< CWorkspaceOperation >( tree ),
+			Workspace< CWorkspaceDisplay >( tree ) );
+	}
+
+
+public:
+
+	static bool BratFiltersValid() { return smValidFilters; }
+
+
+private:
 
 	/////////////////
 	// instance data
@@ -55,7 +74,6 @@ class CModel : public QObject
 
 	CTreeWorkspace mTree;
 	const CApplicationPaths &mBratPaths;
-	CBratFilters mBratFilters;
 
 
 	/////////////////////////////
@@ -100,7 +118,9 @@ public:
 
 	//...filters
 
-	CBratFilters& BratFilters() { return mBratFilters; }
+	//always check BratFiltersValid() before using BratFilters()
+
+	CBratFilters& BratFilters();				//throws
 
 	const CBratFilters& BratFilters() const
 	{ 

@@ -52,7 +52,7 @@ class CUnitSmartCleaner;
 class CUnit : public CBratObject
 {
 public:
-  CUnit	(const std::string	&Text = "");
+  explicit CUnit(const std::string	&Text = "");
   //CUnit	(const char*	Text);
   CUnit (const CUnit	&Copy);
   virtual ~CUnit();

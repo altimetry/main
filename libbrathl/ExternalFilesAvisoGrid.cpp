@@ -287,7 +287,7 @@ void CExternalFilesAvisoGrid::GetValue
 
     value	= var->GetValues()[index];
     
-    CUnit	unit	= var->GetUnit();
+    CUnit unit( var->GetUnit() );
     
     if ((wantedUnit != "") && (wantedUnit != CUnit::m_UNIT_SI))
     {

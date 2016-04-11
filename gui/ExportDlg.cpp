@@ -126,7 +126,7 @@ void CExportDlg::CalculateColorValueRange( void )
 {
   const CFormula *formula = m_operation->GetFormula(CMapTypeField::eTypeOpAsField);
 
-  CProduct* productTmp = CProduct::Construct(*(m_operation->GetDataset()->GetProductList()));
+  CProduct* productTmp = CProduct::Construct(*(const_cast<COperation*>(m_operation)->Dataset()->GetProductList()));
 
   std::string errorMsg;
   CExpression expr;

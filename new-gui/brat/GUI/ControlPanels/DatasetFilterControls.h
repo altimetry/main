@@ -94,7 +94,8 @@ class CDatasetFilterControls : public CDesktopControlsPanel
 	CBratRegions &mBratRegions;
 	CBratFilter *mFilter = nullptr;
 
-	CWorkspaceDataset *mWks = nullptr;
+	CWorkspaceDataset *mWDataset = nullptr;
+	CWorkspaceOperation *mWOperation = nullptr;
     CDataset *mDataset = nullptr;
 
 
@@ -135,6 +136,12 @@ protected:
     void ShowOnlyAreasInRegion(int region_index);
     void SaveAllAreas();
 
+
+signals:
+    void FiltersChanged();
+    void FilterCompositionChanged( std::string filter_name );
+
+
 public slots:
 	void HandleNewFilter();
 	void HandleRenameFilter();
@@ -157,7 +164,7 @@ public slots:
     void HandleDeleteArea();
     void HandleAreaChecked(QListWidgetItem*area_item);
 
-	void HandleWorkspaceChanged( CWorkspaceDataset *wksd );
+	void HandleWorkspaceChanged();
     void HandleDatasetChanged( CDataset *dataset );
 
 	void HandleCurrentLayerSelectionChanged();
