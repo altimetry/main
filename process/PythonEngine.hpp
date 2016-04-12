@@ -342,7 +342,7 @@ class PyAlgo : public CBratAlgorithmBase
     PyObject *m_class = nullptr;      /**< Python object to hold the algorithm class.      */
     PyObject *m_instance = nullptr;   /**< Python object to hold an instance of the class. */
 
-    static const PythonEngine &sm_pe; /**< PythonEngine object (Python interpreter).       */
+    //static const PythonEngine *sm_pe; /**< PythonEngine object (Python interpreter).       */
 
     //construction / destruction
 public:
