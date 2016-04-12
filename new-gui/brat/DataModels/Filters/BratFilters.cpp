@@ -105,10 +105,10 @@ void CBratFilter::BoundingArea( double &lon1, double &lat1, double &lon2, double
 		{
 			assert__( area->size() >= 2 );
 
-			lon1 = (*area)[0].lon();
-			lat1 = (*area)[0].lat();
-			lon2 = (*area)[1].lon();
-			lat2 = (*area)[1].lat();
+			//lon1 = (*area)[0].lon();
+			//lat1 = (*area)[0].lat();
+			//lon2 = (*area)[1].lon();
+			//lat2 = (*area)[1].lat();
 
 			break;
 		}
@@ -129,6 +129,11 @@ void CBratFilter::BoundingArea( double &lon1, double &lat1, double &lon2, double
 		}
 
 	}
+
+	lon1 = -180;
+	lat1 = -90;
+	lon2 = 180;
+	lat2 = 90;
 }
 
 
@@ -312,7 +317,7 @@ bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std
 		filter->BoundingArea( lon1, lat1, lon2, lat2 );
 		product_ref->GetLatLonCriteria()->Set( lat1, lon1, lat2, lon2 );		//double latLow, double lonLow, double latHigh, double lonHigh
 	}
-	//if ( product->HasDatetimeCriteria() )
+	//if ( product->HasDatetimeCriteria() )										//TODO re-implement in v4 after proper time filters implementation
 	//{
 	//	val = ReadValue( section, ENTRY_DATETIME );
 	//	if ( !val.empty() )

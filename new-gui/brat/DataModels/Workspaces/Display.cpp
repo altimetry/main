@@ -1144,13 +1144,14 @@ bool CDisplay::AssignOperation( const COperation *operation, bool update )	//boo
 
 	if ( update )
 	{
-		while ( m_data.size() > 0 )
-		{
-            auto const &data = m_data.begin();
-			CDisplayData* dataTmp = dynamic_cast<CDisplayData*>( dataList->Exists( data->first ) );
-			if ( dataTmp != nullptr )
-				RemoveData( data->first );
-		}
+		m_data.clear();
+		//while ( m_data.size() > 0 )
+		//{
+  //          auto const &data = m_data.begin();
+		//	CDisplayData* dataTmp = dynamic_cast<CDisplayData*>( dataList->Exists( data->first ) );
+		//	if ( dataTmp != nullptr )
+		//		RemoveData( data->first );
+		//}
 	}
 
 	for ( auto &data : *dataList )

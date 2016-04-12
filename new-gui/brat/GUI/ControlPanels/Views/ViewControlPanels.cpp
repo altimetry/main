@@ -119,11 +119,11 @@ CAxisTab::CAxisTab( QWidget *parent, Qt::WindowFlags f )
     //tab_group->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
 
 
-	// 5. help text
-	QPushButton *b = new QPushButton( "Help" );
-	b->setCheckable( true );
-	auto help = new CTextWidget;	//use spaces and/or try to have lines without very dissimilar lengths
-	help->SetHelpProperties( 
+	// 5. help text											remove comment to whole section when properly implemented
+	//QPushButton *b = new QPushButton( "Help" );
+	//b->setCheckable( true );
+	mHelpText = new CTextWidget;	//use spaces and/or try to have lines without very dissimilar lengths
+	mHelpText->SetHelpProperties( 
 		"Y=F(X) plots:\n"
 		"Use mouse middle button to pan and mouse left or wheel buttons to zoom.\n"
 		"\nZ=F(X,Y) plots:\n"
@@ -131,13 +131,13 @@ CAxisTab::CAxisTab( QWidget *parent, Qt::WindowFlags f )
 		"In 3D, use Alt (x,y) or Alt+Shift (z) with the mouse left button to \n"
 		"zoom a particular axis."
 		, 3, 6, Qt::AlignCenter );
-    auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
-    help->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::Maximum );
-    help_group->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Maximum );
-	connect( b, SIGNAL( toggled( bool ) ), help_group, SLOT( setVisible(bool) ) );
-	help_group->setVisible( false );
+    mHelpGroup = CreateGroupBox( ELayoutType::Grid, { mHelpText }, "", nullptr, 6, 6, 6, 6, 6 );
+    mHelpText->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::Maximum );
+    mHelpGroup->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Maximum );
+	//connect( b, SIGNAL( toggled( bool ) ), help_group, SLOT( setVisible(bool) ) );
+	mHelpGroup->setVisible( false );
 
-	LayoutWidgets( Qt::Horizontal, { tab_group, b, help_group }, this, 2,2,2,2,2 );
+	LayoutWidgets( Qt::Horizontal, { tab_group /*, b*/, mHelpGroup }, this, 2,2,2,2,2 );		//let help_group in when properly implemented
 }
 
 
@@ -259,6 +259,14 @@ CPlotControlsPanelAxisOptions::CPlotControlsPanelAxisOptions( QWidget *parent, Q
     mAxisOptionsTabs->addTab( mZ_axis, "Z/Y2" );
 
     AddTopGroupBox( ELayoutType::Horizontal, { mAxisOptionsTabs } );
+}
+
+
+void CPlotControlsPanelAxisOptions::SelectTab( int index )
+{
+	assert__( index < 3 );
+
+	mAxisOptionsTabs->setCurrentIndex( index );
 }
 
 

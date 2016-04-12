@@ -5,6 +5,7 @@
 #include "ViewControlPanelsCommon.h"
 
 class CDisplay;
+class CTextWidget;
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -124,6 +125,8 @@ public:
     QLineEdit *mAxisMax = nullptr;
     QLineEdit *mAxisMin = nullptr;
     QPushButton *mReset = nullptr;
+	CTextWidget *mHelpText = nullptr;
+	QGroupBox *mHelpGroup = nullptr;
 
     CAxisTab( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
@@ -251,10 +254,7 @@ public:
     virtual ~CPlotControlsPanelAxisOptions()
     {}
 
-signals:
-	void LogarithmicScaleX( bool log );
-	void LogarithmicScaleY( bool log );
-	void LogarithmicScaleZ( bool log );
+	void SelectTab( int index );
 };
 
 

@@ -552,7 +552,7 @@ bool CWorkspaceSettings::SaveConfig( const COperation &op, const CWorkspaceOpera
 		//v4 k_v( ENTRY_EXPORT_ASCII_OUTPUT, Absolute2PortableDataPath( op.m_exportAsciiOutput ) )		//op.GetExportAsciiOutputPathRelativeToWks( wks )	)
 		k_v( ENTRY_OUTPUT,				op.GetOutputPathRelativeToWks( wks ) ),
 		k_v( ENTRY_EXPORT_ASCII_OUTPUT, op.GetExportAsciiOutputPathRelativeToWks( wks )	),
-		k_v( ENTRY_OPERATION_FILTER,	op.Filter()->Name() )
+        k_v( ENTRY_OPERATION_FILTER,	op.FilterName() )
 	);
 
 	return Status() == QSettings::NoError;

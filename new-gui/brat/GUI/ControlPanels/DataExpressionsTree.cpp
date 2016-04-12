@@ -242,7 +242,7 @@ void CFieldsTreeWidget::SelectRecord( const std::string &record )		//see COperat
 	if ( !item )
 	{
 		item = GetFirstRecordItem();
-	}									assert__( item );
+    }									//assert__( item );
 
 	setCurrentItem( item );
 	if ( item )
@@ -252,7 +252,7 @@ void CFieldsTreeWidget::SelectRecord( const std::string &record )		//see COperat
 
 std::string	CFieldsTreeWidget::GetCurrentRecord() //CFieldsTreeCtrl::GetCurrentRecord()
 {
-	std::string record_name;			assert__( mProduct );
+    std::string record_name;			//assert__( mProduct );
 	if ( mProduct )
 	{
 		QTreeWidgetItem *item = SelectedItem();

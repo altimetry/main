@@ -20,6 +20,19 @@ void CPlotEditor::CreateWidgets() 	//parent = nullptr
 	AddTab( mTabCurveOptions, "Data Options" );
 	AddTab( mTabAxisOptions, "Axis Options" );
 
+	mTabAxisOptions->mX_axis->setEnabled( false );				//TODO delete when properly implemented
+	mTabAxisOptions->mY_axis->setEnabled( false );				//TODO delete when properly implemented
+	mTabAxisOptions->mZ_axis->mAxisLabel->setEnabled( false );	//TODO delete when properly implemented
+	mTabAxisOptions->mZ_axis->mAxisMax->setEnabled( false );	//TODO delete when properly implemented
+	mTabAxisOptions->mZ_axis->mAxisMin->setEnabled( false );	//TODO delete when properly implemented
+	mTabAxisOptions->mZ_axis->mNbTicks->setEnabled( false );	//TODO delete when properly implemented
+	mTabAxisOptions->mZ_axis->mBase->setEnabled( false );		//TODO delete when properly implemented
+	mTabAxisOptions->mZ_axis->mBase->setEnabled( false );		//TODO delete when properly implemented
+	mTabAxisOptions->mZ_axis->mNbDigits->setEnabled( false );	//TODO delete when properly implemented
+	mTabAxisOptions->mZ_axis->mReset->setEnabled( false );		//TODO delete when properly implemented
+	mTabAxisOptions->mZ_axis->mHelpGroup->setVisible( true );	//TODO delete when properly implemented
+	
+
 	//Even if ResetViews destroys them before first use, 
 	//	it is important to start with valid views
 	//
@@ -249,23 +262,27 @@ void CPlotEditor::OneClick()
 //JOFF
 void CPlotEditor::mousePressEvent(QMouseEvent * mouse_event)
 {
-    Q_UNUSED(mouse_event);
-    RespondUpdateAxis();
+    //Q_UNUSED(mouse_event);
+    //RespondUpdateAxis();
+    base_t::mousePressEvent( mouse_event );
 }
 void CPlotEditor::mouseReleaseEvent(QMouseEvent * mouse_event)
 {
-    Q_UNUSED(mouse_event);
-    RespondUpdateAxis();
+    //Q_UNUSED(mouse_event);
+    //RespondUpdateAxis();
+    base_t::mouseReleaseEvent( mouse_event );
 }
 void CPlotEditor::mouseMoveEvent(QMouseEvent * mouse_event)
 {
-    Q_UNUSED(mouse_event);
-    RespondUpdateAxis();
+//    Q_UNUSED(mouse_event);
+//    RespondUpdateAxis();
+    base_t::mouseMoveEvent( mouse_event );
 }
-void CPlotEditor::wheelEvent(QWheelEvent * event)
+void CPlotEditor::wheelEvent(QWheelEvent *mouse_event)
 {
-    RespondUpdateAxis();
-    event->accept();
+    //RespondUpdateAxis();
+    //event->accept();
+    base_t::wheelEvent( mouse_event );
 }
 
 
@@ -730,6 +747,8 @@ void CPlotEditor::Reset2DProperties( const CZFXYPlotProperties *props, CZFXYPlot
 	mTabCurveOptions->mSpectrogramOptions->setEnabled( true );
 
 	mTabAxisOptions->mZ_axis->setEnabled( true );
+	mTabAxisOptions->mZ_axis->setEnabled( true );
+	mTabAxisOptions->SelectTab( 2 );					//TODO delete when properly implemented
 
 	mTabCurveOptions->mFieldsList->setCurrentRow( 0 );
 }
@@ -739,6 +758,11 @@ void CPlotEditor::Reset2DProperties( const CXYPlotProperties *props, CPlot *plot
 {
 	assert__( mPlot2DView && mCurrentDisplayFilesProcessor );
 
+	if ( mPlotType == eHistogram )									   //TODO deal with histograms in 2D and 3D when properly implemented
+	{
+		BRAT_MSG_NOT_IMPLEMENTED( n2s<std::string>( eHistogram ) );
+	}
+	else
 	if ( mPlotType == eHistogram || mPlotType == eXY )
 	{
 		mPlot2DView->CreatePlot( props, plot, mPlotType == eHistogram );
@@ -760,6 +784,7 @@ void CPlotEditor::Reset2DProperties( const CXYPlotProperties *props, CPlot *plot
 
 	mPlot2DView->EnableAxisY2( mPlotType == eXYY );
 	mTabAxisOptions->mZ_axis->setEnabled( mPlotType == eXYY );
+	mTabAxisOptions->SelectTab( 0 );					//TODO delete when properly implemented
 
 	mDataArrayXY = mPlot2DView->PlotDataCollection();								assert__( mDataArrayXY );
 
@@ -809,8 +834,8 @@ void CPlotEditor::Reset2DProperties( const CXYPlotProperties *props, CPlot *plot
             double y_min = mPropertiesXY->GetCurrYMin();
             double y_max = mPropertiesXY->GetCurrYMax();
 
-            mPlot2DView->GenScaleX(x_min, x_max, (x_max-x_min)/5);
-            mPlot2DView->GenScaleY(y_min, y_max, (y_max-y_min)/5);
+            mPlot2DView->GenScaleX(x_min, x_max, (x_max-x_min)/5);		//TODO 5 ?????
+            mPlot2DView->GenScaleY(y_min, y_max, (y_max-y_min)/5);		//TODO 5 ?????
 
 		}
 	}

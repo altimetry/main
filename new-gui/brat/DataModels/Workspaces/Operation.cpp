@@ -532,7 +532,7 @@ COperation* COperation::Copy( const COperation &o, CWorkspaceOperation *wkso, CW
 	{
 		assert__( o.OriginalDataset() != nullptr );
 
-		new_op->SetDataset( new_op->FindDataset( o.Dataset()->GetName(), wksd ) );
+        new_op->SetDataset( new_op->FindDataset( o.OriginalDatasetName(), wksd ) );
 	}
 
 	new_op->SetRecord( o.m_record );

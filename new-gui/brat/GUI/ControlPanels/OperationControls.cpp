@@ -196,7 +196,7 @@ void COperationControls::CreateAdancedOperationsPage()
 	mOperationsCombo->setToolTip( "Selected operation" );
 	mOperationFilterButton_Advanced = CActionInfo::CreatePopupButton( eActionGroup_Filters_Advanced, QList<QAction*>() );
 	mOperationFilterButton_Advanced->setCheckable( true );
-	//mOperationFilterButton_Advanced->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
+	mOperationFilterButton_Advanced->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
 
 
 	//dataset list
@@ -656,6 +656,11 @@ void COperationControls::SetAdvancedMode( bool advanced ) const
 
 void COperationControls::HandleWorkspaceChanged()
 {
+    mWDataset = nullptr;
+    mWOperation = nullptr;
+    mWDisplay = nullptr;
+    mWFormula = nullptr;
+
 	int index = mOperationsCombo->currentIndex();
 	mOperationsCombo->clear();					//can trigger
 	if ( index < 0 )
@@ -668,13 +673,6 @@ void COperationControls::HandleWorkspaceChanged()
 		mWOperation = mModel.Workspace< CWorkspaceOperation >();
 		mWDisplay = mModel.Workspace< CWorkspaceDisplay >();
 		mWFormula = mModel.Workspace< CWorkspaceFormula >();		assert__( mWDataset && mWOperation && mWDisplay && mWFormula );
-	}
-	else
-	{
-		mWDataset = nullptr;
-		mWOperation = nullptr;
-		mWDisplay = nullptr;
-		mWFormula = nullptr;
 	}
 
     setEnabled( mWRoot != nullptr );
@@ -791,7 +789,8 @@ bool COperationControls::AssignDatasetAndProduct( const CDataset *dataset, bool 
 
 	if ( mCurrentOperation && dataset )
 	{
-		const CDataset *saved_filtered_dataset = new CDataset( *const_cast<const COperation*>( mCurrentOperation )->Dataset() );
+        const CDataset *op_filtered_dataset = const_cast<const COperation*>( mCurrentOperation )->Dataset();
+        const CDataset *saved_filtered_dataset = op_filtered_dataset ? new CDataset( *op_filtered_dataset ) : nullptr;
 		mCurrentOperation->SetDataset( dataset );
 		const CDataset *filtered_dataset = const_cast<const COperation*>( mCurrentOperation )->Dataset();
 		std::string error_msg;
@@ -899,7 +898,7 @@ void COperationControls::HandleSelectedDatasetChanged_Advanced( int dataset_inde
 		auto new_dataset_name = q2a( mAdvancedDatasetsCombo->itemText( dataset_index ) );
 		if ( mCurrentOperation )
 		{
-			std::string current_dataset_name = mCurrentOperation->OriginalDatasetName();						assert__( !mCurrentOperation->HasFormula() || !current_dataset_name.empty() );
+            std::string current_dataset_name = mCurrentOperation->OriginalDatasetName();						//TODO why cannot assert assert__( !mCurrentOperation->HasFormula() || !current_dataset_name.empty() );
 			changing_used_dataset = mCurrentOperation->HasFormula() && new_dataset_name != current_dataset_name;
 		}
 		if ( changing_used_dataset )

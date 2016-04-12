@@ -51,7 +51,7 @@ SYMBOL_TO symbol_cast( SYMBOL_FROM s );
 template<>
 inline EPointGlyph symbol_cast< EPointGlyph >( QwtSymbol::Style s )
 {
-    assert__( s >= (int)eFirstPointGlyph && s < (int)EPointGlyph_size );
+    //TODO assert__( s >= (int)eFirstPointGlyph && s < (int)EPointGlyph_size );
 
 	return static_cast< EPointGlyph >( s );
 }
