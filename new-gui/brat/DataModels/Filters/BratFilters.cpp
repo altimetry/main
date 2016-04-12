@@ -93,40 +93,66 @@ const CBratAreas& CBratFilter::Areas() const
 }
 
 
+/*
+ * A implementar (JOFF)
+ * Here in our algo we simply take advantage of the previously calculated min, max on lon, lat.
+ * (FAST LDR)
+*/
 void CBratFilter::BoundingArea( double &lon1, double &lat1, double &lon2, double &lat2 ) const
 {
-	auto const &areas = Areas();
+    auto const &areas = Areas(); //returns a CBratAreas
+
+    lon1 = std::numeric_limits<double>::max();
+    lon2 = std::numeric_limits<double>::min();
+    lat1 = std::numeric_limits<double>::max();
+    lat2 = std::numeric_limits<double>::min();
 
 	for ( auto const &name : mAreaNames )		//iterate over filter area names
 	{
 		auto const &area = areas.Find( name );	//find area object in the set of all areas; an area 'is a' vector
 
+        if (area->GetLonMin() < lon1)
+        {
+            lon1= area->GetLonMin();
+        }
+        if (area->GetLonMax() > lon2)
+        {
+            lon2= area->GetLonMax();
+        }
+        if (area->GetLatMin() < lat1)
+        {
+            lat1= area->GetLatMin();
+        }
+        if (area->GetLatMax() > lat2)
+        {
+            lat2= area->GetLatMax();
+        }
 		//TODO delete after correct implementation
-		{
-			assert__( area->size() >= 2 );
+//		{
+//			assert__( area->size() >= 2 );
 
-			lon1 = (*area)[0].lon();
-			lat1 = (*area)[0].lat();
-			lon2 = (*area)[1].lon();
-			lat2 = (*area)[1].lat();
+//			lon1 = (*area)[0].lon();
+//			lat1 = (*area)[0].lat();
+//			lon2 = (*area)[1].lon();
+//			lat2 = (*area)[1].lat();
 
-			break;
-		}
+//			break;
+//		}
 
-		for ( auto const &vertex : *area )	  	//iterate over area vertices
-		{
-			double lon = vertex.lon();
-			double lat = vertex.lat();
+//		for ( auto const &vertex : *area )	  	//iterate over area vertices
+//		{
+//			double lon = vertex.lon();
+//			double lat = vertex.lat();
 
-			// etc....
+//			// etc....
 
-			UNUSED( lat );		UNUSED( lon );
-		}
+//			UNUSED( lat );		UNUSED( lon );
+//		}
 
-		//TODO delete after correct implementation
-		{
-			break;
-		}
+//		//TODO delete after correct implementation
+//		{
+//			break;
+//		}
 
 	}
 }

@@ -483,7 +483,13 @@ void CDatasetFilterControls::HandleDeleteFilter()
 
 void CDatasetFilterControls::HandleSaveFilters()
 {
-	assert__( mFilter );
+    double lat_min, lat_max, lon_min, lon_max;
+    lat_min = 0;
+    lat_max = 0;
+    lon_min = 0;
+    lon_max = 0;
+
+    assert__( mFilter );
 
 	// TODO validation
 
@@ -494,6 +500,8 @@ void CDatasetFilterControls::HandleSaveFilters()
     mFilter->StopCycle() = s2n< int >( q2a( mStopCycleEdit->text() ) );
     mFilter->StartPass() = s2n< int >( q2a( mStartPassEdit->text() ) );
     mFilter->StopPass() = s2n< int >( q2a( mStopPassEdit->text() ) );
+
+    mFilter->BoundingArea(lon_min, lat_min, lon_max, lat_max);
 
 	if ( !mBratFilters.Save() )
 		SimpleWarnBox( "There was a problem saving filters to '" + mBratFilters.FilePath() + "'. Some information could be lost or damaged." );
@@ -572,23 +580,10 @@ void CDatasetFilterControls::HandleAreasSelectionChanged()
     // Fill Min, Max values of Lon and lat
     CArea *area = mBratAreas.Find( item->text().toStdString() );
 
-    //   Note: the Max values are initialized with Min values and vice-versa.
-    //   TODO: add this to CArea methods???
-    double lat_min = 90;     double lat_max = -90;
-    double lon_min = 180;    double lon_max = -180;
-
-    for ( auto vertex : *area )
-    {
-        if (vertex.first > lon_max){   lon_max = vertex.first;   }
-        if (vertex.first < lon_min){   lon_min = vertex.first;   }
-        if (vertex.second > lat_max){  lat_max = vertex.second;  }
-        if (vertex.second < lat_min){  lat_min = vertex.second;  }
-    }
-
-    mMinLonEdit->setText( n2q( lon_min ) );
-    mMaxLonEdit->setText( n2q( lon_max ) );
-    mMinLatEdit->setText( n2q( lat_min ) );
-    mMaxLatEdit->setText( n2q( lat_max ) );
+    mMinLonEdit->setText( n2q( area->GetLonMin() ) );
+    mMaxLonEdit->setText( n2q( area->GetLonMax()) );
+    mMinLatEdit->setText( n2q( area->GetLatMin() ) );
+    mMaxLatEdit->setText( n2q( area->GetLatMax() ) );
 }
 
 

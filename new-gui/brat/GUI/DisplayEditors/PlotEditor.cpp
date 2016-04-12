@@ -663,16 +663,19 @@ void CPlotEditor::ScaleFromPropertiesTo2DPlot()
 
 //from plot to widge,properties
 void CPlotEditor::RespondUpdateAxis()
-{    
-    mPropertiesXY->SetCurrXMin(mPlot2DView->GetXMin());
-    mPropertiesXY->SetCurrXMax(mPlot2DView->GetXMax());
-    mPropertiesXY->SetCurrYMin(mPlot2DView->GetYMin());
-    mPropertiesXY->SetCurrYMax(mPlot2DView->GetYMax());
+{
+    if (mPlotType==eXY)
+    {
+        mPropertiesXY->SetCurrXMin(mPlot2DView->GetXMin());
+        mPropertiesXY->SetCurrXMax(mPlot2DView->GetXMax());
+        mPropertiesXY->SetCurrYMin(mPlot2DView->GetYMin());
+        mPropertiesXY->SetCurrYMax(mPlot2DView->GetYMax());
 
-    mTabAxisOptions->mY_axis->mAxisMin->setText(QString::number(mPropertiesXY->GetCurrYMin()));
-    mTabAxisOptions->mY_axis->mAxisMax->setText(QString::number(mPropertiesXY->GetCurrYMax()));
-    mTabAxisOptions->mX_axis->mAxisMin->setText(QString::number(mPropertiesXY->GetCurrXMin()));
-    mTabAxisOptions->mX_axis->mAxisMax->setText(QString::number(mPropertiesXY->GetCurrXMax()));
+        mTabAxisOptions->mY_axis->mAxisMin->setText(QString::number(mPropertiesXY->GetCurrYMin()));
+        mTabAxisOptions->mY_axis->mAxisMax->setText(QString::number(mPropertiesXY->GetCurrYMax()));
+        mTabAxisOptions->mX_axis->mAxisMin->setText(QString::number(mPropertiesXY->GetCurrXMin()));
+        mTabAxisOptions->mX_axis->mAxisMax->setText(QString::number(mPropertiesXY->GetCurrXMax()));
+    }
 }
 
 
