@@ -118,12 +118,14 @@ public:
   /** Gets the unit of an output value returned by the 'Run' function.
    \param indexParam [in] : parameter index.
    */
-  virtual std::string GetOutputUnit() const override { return "this unit depends on the input data (variable or Brat expression), but it is always a SI unit"; };
+  virtual std::string GetOutputUnit() const override { return "this unit depends on the input data (variable or Brat expression), but it is always a SI unit"; }
 
   virtual double Run(CVectorBratAlgorithmParam& args);
 
   virtual void CheckInputParams(CVectorBratAlgorithmParam& args);
+
   virtual void SetParamValues(CVectorBratAlgorithmParam& args);
+
   virtual std::string GetParamName(uint32_t indexParam) const override {
         std::string value = "";
         switch (indexParam) 

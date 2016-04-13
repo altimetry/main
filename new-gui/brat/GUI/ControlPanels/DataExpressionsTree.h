@@ -157,6 +157,10 @@ class CFieldsTreeWidget : public CAbstractTree
 
 	// instance variables
 
+	QAction *mSortAscending = nullptr;
+	QAction *mSortDescending = nullptr;
+
+
 	//...domain data
 
 	CProduct *mProduct = nullptr;
@@ -211,6 +215,12 @@ protected:
     }
 
 	QTreeWidgetItem* InsertField( QTreeWidgetItem *parent, CObjectTreeNode *node );
+
+
+protected slots:
+
+    void HandleSortAscending();
+    void HandleSortDescending();
 };
 
 
@@ -254,8 +264,6 @@ class CDataExpressionsTreeWidget : public CAbstractTree
 	QAction *mRenameExprAction = nullptr;
 	QAction *mSaveasFormulaAction = nullptr;
 	QAction *mInsertFunctionAction = nullptr;
-	QAction *mSortAscending = nullptr;
-	QAction *mSortDescending = nullptr;
 
 	CTextWidget *mExpressionTextWidget = nullptr;
 	QToolButton *mAssignExpressionButton = nullptr;
@@ -378,6 +386,7 @@ protected slots:
 	void HandleAssignExpression();
 	void HandleExpressionTextChanged();
 	void HandleItemChanged( QTreeWidgetItem *item, int column );
+    void HandleItemActivated( QTreeWidgetItem *item, int column );
 
     void HandlemInsertExpr();
     void HandleInsertField();
@@ -386,8 +395,6 @@ protected slots:
     void HandlemSaveasFormula();
     void HandleDeleteExpr();
 	void HandleRenameExpr();
-    void HandleSortAscending();
-    void HandleSortDescending();
 };
 
 

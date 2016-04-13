@@ -367,21 +367,6 @@ include(TestBigEndian)
 # check_include_file("libgen.h" HAVE_LIBGEN_H)
 
 
-  This file is part of BRAT.
-
-    BRAT is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    BRAT is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License
-    along with BRAT.  If not, see <http://www.gnu.org/licenses/>.
-
 # ---------------------------------
 # Some system dependant settings
 # ---------------------------------
@@ -627,7 +612,6 @@ set(LIBBRATHL_CXX_SOURCES
   libbrathl/CriteriaPass.cpp
   libbrathl/Date.cpp
   libbrathl/DatePeriod.cpp
-  libbrathl/Exception.cpp
   libbrathl/Expression.cpp
   libbrathl/ExternalFiles.cpp
   libbrathl/ExternalFilesNetCDF.cpp
@@ -667,8 +651,6 @@ set(LIBBRATHL_CXX_SOURCES
   libbrathl/ProductTopex.cpp
   libbrathl/ProductTopexSDR.cpp
   libbrathl/Tools.cpp
-  libbrathl/Trace.cpp
-  libbrathl/TraceLog.cpp
   libbrathl/TreeField.cpp
   libbrathl/Unit.cpp
   libbrathl/Xml.cpp

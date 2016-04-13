@@ -50,8 +50,7 @@ void CInsertFunctionDialog::CreateWidgets()
     mHelpText = new CTextWidget;
 	//mHelpText->setHelpProperties( "" , 6, Qt::AlignCenter );
     auto help_group = CreateGroupBox( ELayoutType::Vertical, { mHelpText }, "", nullptr, 6, 6, 6, 6, 6 );
-    mHelpText->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
-    help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Preferred );
+    //help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
 
     //... Buttons
 
@@ -148,7 +147,9 @@ void CInsertFunctionDialog::HandleFunctionListRowChanged( int index )
 	std::string func_desc = CMapFunction::GetInstance().GetDescFunc( func_name );
 	//if ( !EndsWith( func_desc, std::string( "\n" ) ) )
 	//	func_desc += "\n";
-    mHelpText->SetHelpProperties( func_desc.c_str(), 0, 6, Qt::AlignCenter, true );
+    mHelpText->SetHelpProperties( func_desc.c_str(), 1, 6, Qt::AlignCenter, true );
+    mHelpText->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Expanding );
+    mHelpText->adjustSize();
     //mHelpText->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
 }
 

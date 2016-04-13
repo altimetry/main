@@ -450,6 +450,22 @@ public:
   {
       return 4;
   }
+
+  virtual std::string GetParamName(uint32_t indexParam) const override {
+        std::string value = "";
+        switch (indexParam)
+        {
+          case 0: value = "first"; break;
+          case 1: value = "second"; break;
+          case 2: value = "third"; break;
+          case 3: value = "fourth"; break;
+          default: value = CTools::Format("CBratAlgoFilterGaussian#GetParamName: out of range parameter index %d. Valid range is [0,%d].",
+                     indexParam, GetNumInputParam()); break;
+
+        }
+        return value;
+  };
+
   virtual std::string GetInputParamDesc(uint32_t indexParam) const override
   {
         std::string value = "";

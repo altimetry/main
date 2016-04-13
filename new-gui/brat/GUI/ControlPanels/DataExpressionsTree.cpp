@@ -135,7 +135,9 @@ QTreeWidgetItem* CAbstractTree::FindItem( FUNCTION f )
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //						CFieldsTreeWidget
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 CFieldsTreeWidget::CFieldsTreeWidget( QWidget *parent )
@@ -149,6 +151,14 @@ CFieldsTreeWidget::CFieldsTreeWidget( QWidget *parent )
 	setDragEnabled( true );
 	setDragDropMode( DragOnly );
 	setToolTip( "Drag fields to the data expressions tree" );
+
+	setSortingEnabled( true );
+
+	mSortAscending = AddMenuAction( "Sort &Ascending" );
+	mSortDescending = AddMenuAction( "Sort &Descending" );
+
+    connect( mSortAscending,		SIGNAL(triggered()),	this, SLOT( HandleSortAscending() ) );
+    connect( mSortDescending,		SIGNAL(triggered()),	this, SLOT( HandleSortDescending() ) );
 
     //wxMenu* item1 = new wxMenu( _("Menu for fields tree") );
     //item1->Append( ID_ASXMENU, _("Set as &X"), _("Set field as X") );
@@ -339,10 +349,25 @@ QTreeWidgetItem* CFieldsTreeWidget::InsertField( QTreeWidgetItem *parent, CObjec
 }
 
 
+void CFieldsTreeWidget::HandleSortAscending()
+{
+	sortByColumn( 0, Qt::AscendingOrder );
+}
+
+
+void CFieldsTreeWidget::HandleSortDescending()
+{
+	sortByColumn( 0, Qt::DescendingOrder );
+}
+
+
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //						CDataExpressionsTreeWidget
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -396,6 +421,8 @@ CDataExpressionsTreeWidget::CDataExpressionsTreeWidget( CWorkspaceFormula *&wksp
 	connect( mExpressionTextWidget, SIGNAL( textChanged() ), this, SLOT( HandleExpressionTextChanged() ) );
 
 	connect( this, SIGNAL( itemChanged( QTreeWidgetItem *, int ) ), this, SLOT( HandleItemChanged( QTreeWidgetItem *, int ) ) );
+    connect( this, SIGNAL( itemActivated( QTreeWidgetItem *, int ) ), this, SLOT( HandleItemActivated( QTreeWidgetItem *, int ) ) );
+
 
 	//Tree context menu
 
@@ -411,8 +438,6 @@ CDataExpressionsTreeWidget::CDataExpressionsTreeWidget( CWorkspaceFormula *&wksp
 	mDeleteExprAction = AddMenuAction( "&Delete expression" );
 	mRenameExprAction = AddMenuAction( "&Rename expression" );
 	AddMenuSeparator();
-	mSortAscending = AddMenuAction( "Sort &Ascending" );
-	mSortDescending = AddMenuAction( "Sort &Descending" );
 
     connect( mInsertExprAction,		SIGNAL(triggered()),	this, SLOT( HandlemInsertExpr() ) );
     connect( mInsertFieldAction,	SIGNAL(triggered()),	this, SLOT( HandleInsertField() ) );
@@ -421,8 +446,6 @@ CDataExpressionsTreeWidget::CDataExpressionsTreeWidget( CWorkspaceFormula *&wksp
     connect( mSaveasFormulaAction,	SIGNAL(triggered()),	this, SLOT( HandlemSaveasFormula() ) );
     connect( mDeleteExprAction,		SIGNAL(triggered()),	this, SLOT( HandleDeleteExpr() ) );
 	connect( mRenameExprAction,		SIGNAL(triggered()),	this, SLOT( HandleRenameExpr() ) );
-    connect( mSortAscending,		SIGNAL(triggered()),	this, SLOT( HandleSortAscending() ) );
-    connect( mSortDescending,		SIGNAL(triggered()),	this, SLOT( HandleSortDescending() ) );
 }
 
 
@@ -1290,6 +1313,17 @@ void CDataExpressionsTreeWidget::HandleItemChanged( QTreeWidgetItem *item, int c
 }
 
 
+void CDataExpressionsTreeWidget::HandleItemActivated( QTreeWidgetItem *item, int column )
+{
+    if ( item != mItemSelectionCriteria || column != 1 )
+        return;
+
+    mItemSelectionCriteria->setFlags( mItemSelectionCriteria->flags() | Qt::ItemIsEditable );
+    editItem( mItemSelectionCriteria, 1 );
+    mItemSelectionCriteria->setFlags( mItemSelectionCriteria->flags() &~ Qt::ItemIsEditable );
+}
+
+
 void CDataExpressionsTreeWidget::HandleRenameExpr()		//COperationPanel::RenameExpression()
 {
 	assert__( mCurrentOperation );
@@ -1301,14 +1335,6 @@ void CDataExpressionsTreeWidget::HandleRenameExpr()		//COperationPanel::RenameEx
 	//GetOperationtreectrl()->EditLabel( id );
 
 	//EnableCtrl();
-}
-void CDataExpressionsTreeWidget::HandleSortAscending()
-{
-	BRAT_NOT_IMPLEMENTED;
-}
-void CDataExpressionsTreeWidget::HandleSortDescending()
-{
-	BRAT_NOT_IMPLEMENTED;
 }
 
 

@@ -116,8 +116,10 @@ public:
   virtual double Run(CVectorBratAlgorithmParam& args);
 
   virtual void CheckInputParams(CVectorBratAlgorithmParam& args);
+
   virtual void SetParamValues(CVectorBratAlgorithmParam& args);
-  virtual std::string GetParamName(uint32_t indexParam) {
+
+  virtual std::string GetParamName(uint32_t indexParam) const override {
         std::string value = "";
         switch (indexParam) 
         {

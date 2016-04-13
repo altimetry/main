@@ -72,7 +72,8 @@ void CTextWidget::SetHelpProperties( const QString &text, int empty_lines, int s
     setAlignment( alignment );
 	int line, col;
     getPosition( line, col );
-	const int average_line_length = text.length() / line + empty_lines;
+    line += empty_lines;
+    const int average_line_length = text.length() / line;
     const int height = line * fontMetrics().height() + 2 * spacing;
     SetSizeHint( average_line_length * fontMetrics().width('X') + 2 * spacing , height );
     setMaximumHeight( height );

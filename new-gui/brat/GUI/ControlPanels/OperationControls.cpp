@@ -258,6 +258,7 @@ void COperationControls::CreateAdancedOperationsPage()
 	mSaveAsFormula = CreateToolButton( "", ":/images/alpha-numeric/4.png", "Save as formula" );
 	mDataComputationGroup = CreateActionGroup( this, CreateDataComputationActions(), true );
 	mDataComputation = CreateMenuButton(  "", ":/images/alpha-numeric/b.png", "Set how data are stored/computed", mDataComputationGroup->actions() );
+    mDataComputation->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
 	mShowInfoButton = CreateToolButton( "", ":/images/OSGeo/page-info.png", "Show information" );
     mShowAliasesButton = CreateToolButton( "", ":/images/alpha-numeric/__e.png", "Show aliases" );
 
@@ -956,7 +957,12 @@ void COperationControls::SelectDataComputationMode()		//from COperationPanel::Ge
 
 	auto *action = mDataComputationGroup->findChild<QAction*>( QString( formula->GetDataModeAsString().c_str() ) );
 	if ( action )
+    {
 		action->setChecked( true );
+        mDataComputation->setText( action->text() );
+    }
+    else
+        mDataComputation->setText( "" );
 }
 
 

@@ -51,6 +51,11 @@ class CArea : public std::vector< CVertex >
 	bool mPredefined = false;
 
 
+    //JOFF -
+    double mlat_min = std::numeric_limits<double>::max();
+    double mlat_max = std::numeric_limits<double>::min();
+    double mlon_min = std::numeric_limits<double>::max();
+    double mlon_max = std::numeric_limits<double>::min();
 
 	//construction / destruction
 
@@ -84,6 +89,10 @@ public:
 			static_cast<base_t&>( *this ) = o;
 			mName = o.mName;
 			mPredefined = o.mPredefined;
+            mlat_min = o.mlat_min;
+            mlat_max = o.mlat_max;
+            mlon_min = o.mlon_min;
+            mlon_max = o.mlon_max;
 		}
 		return *this;
 	}
@@ -123,6 +132,10 @@ public:
 
 	const std::string& Name() const { return mName; }
 
+    double GetLatMax() const {return mlat_max; }
+    double GetLatMin() const {return mlat_min; }
+    double GetLonMax() const {return mlon_max; }
+    double GetLonMin() const {return mlon_min; }
 
 	bool IsPredefined() const { return mPredefined; }
 
@@ -133,12 +146,49 @@ public:
 	void AddVertex( double lon, double lat )
 	{
 		push_back( CVertex( lon, lat ) );
+        if (lon < mlon_min)
+        {
+            mlon_min = lon;
+        }
+        if (lon > mlon_max)
+        {
+            mlon_max = lon;
+        }
+
+        if (lat < mlat_min)
+        {
+            mlat_min = lat;
+        }
+        if (lat > mlat_max)
+        {
+            mlat_max = lat;
+        }
 	}
 
 
 	void AddVertex( const CVertex &v )
 	{
-		push_back( v );
+        push_back( v );
+        double lon = v.lon();
+        double lat = v.lat();
+
+        if (lon < mlon_min)
+        {
+            mlon_min = lon;
+        }
+        if (lon > mlon_max)
+        {
+            mlon_max = lon;
+        }
+
+        if (lat < mlat_min)
+        {
+            mlat_min = lat;
+        }
+        if (lat > mlat_max)
+        {
+            mlat_max = lat;
+        }
 	}
 
 	void RemoveVertex( size_t index )
@@ -146,6 +196,40 @@ public:
 		assert__( index < size() );
 
 		erase( begin() + index  );
+
+        //recalc min/max
+
+        double lon =0;
+        double lat =0;
+        mlat_min = std::numeric_limits<double>::max();
+        mlat_max = std::numeric_limits<double>::min();
+        mlon_min = std::numeric_limits<double>::max();
+        mlon_max = std::numeric_limits<double>::min();
+        size_t sz = size();
+
+        for(unsigned int i=0;i<sz;i++)
+        {
+            lon = at(i).lon();
+            lat = at(i).lat();
+            if (lon < mlon_min)
+            {
+                mlon_min = lon;
+            }
+            if (lon > mlon_max)
+            {
+                mlon_max = lon;
+            }
+
+            if (lat < mlat_min)
+            {
+                mlat_min = lat;
+            }
+            if (lat > mlat_max)
+            {
+                mlat_max = lat;
+            }
+        }
+        // actualization complete.
 	}
 
 
@@ -160,7 +244,7 @@ public:
 
 
 
-
+//map str->Area;
 class CBratAreas : public CFileSettings
 {
 	//types

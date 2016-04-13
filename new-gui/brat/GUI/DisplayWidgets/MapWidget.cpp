@@ -1111,7 +1111,7 @@ QgsGraduatedSymbolRendererV2* CMapWidget::CreateRenderer( const QString &target_
     auto range_list = new QgsRangeList;
 
 	const double range = M - m;
-    size_t step = range / contours;	// color_map_size;
+    double step = range / contours;	// color_map_size;
 
 	mc.ResetPrimaryColors();
 	double v = m;

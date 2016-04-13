@@ -135,8 +135,10 @@ public:
   virtual std::string GetOutputUnit() const override { return "this unit depends on the input data (variable or Brat expression), but it is always a SI unit"; };
 
   virtual void CheckInputParams(CVectorBratAlgorithmParam& args);
+
   virtual void SetParamValues(CVectorBratAlgorithmParam& args);
-  virtual std::string GetParamName(uint32_t indexParam) {
+
+  virtual std::string GetParamName(uint32_t indexParam) const override {
         std::string value = "";
         switch (indexParam) 
         {
