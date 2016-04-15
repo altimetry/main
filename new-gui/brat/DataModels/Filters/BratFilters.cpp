@@ -93,11 +93,9 @@ const CBratAreas& CBratFilter::Areas() const
 }
 
 
-/*
- * A implementar (JOFF)
- * Here in our algo we simply take advantage of the previously calculated min, max on lon, lat.
- * (FAST LDR)
-*/
+// Here in our algo we simply take advantage of the previously calculated min, max on lon, lat.
+// (FAST LDR)
+//
 void CBratFilter::BoundingArea( double &lon1, double &lat1, double &lon2, double &lat2 ) const
 {
     auto const &areas = Areas(); //returns a CBratAreas
@@ -127,33 +125,6 @@ void CBratFilter::BoundingArea( double &lon1, double &lat1, double &lon2, double
         {
             lat2= area->GetLatMax();
         }
-		//TODO delete after correct implementation
-//		{
-//			assert__( area->size() >= 2 );
-
-//			lon1 = (*area)[0].lon();
-//			lat1 = (*area)[0].lat();
-//			lon2 = (*area)[1].lon();
-//			lat2 = (*area)[1].lat();
-
-//			break;
-//		}
-
-//		for ( auto const &vertex : *area )	  	//iterate over area vertices
-//		{
-//			double lon = vertex.lon();
-//			double lat = vertex.lat();
-
-//			// etc....
-
-//			UNUSED( lat );		UNUSED( lon );
-//		}
-
-//		//TODO delete after correct implementation
-//		{
-//			break;
-//		}
-
 	}
 }
 
@@ -321,7 +292,6 @@ bool CBratFilters::Load()
 }
 
 
-
 bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std::string &name ) const
 {
 	auto const *filter = Find( name );
@@ -336,32 +306,37 @@ bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std
 	{
 		double lon1, lat1, lon2, lat2;
 		filter->BoundingArea( lon1, lat1, lon2, lat2 );
-		product_ref->GetLatLonCriteria()->Set( lat1, lon1, lat2, lon2 );		//double latLow, double lonLow, double latHigh, double lonHigh
+		product_ref->GetLatLonCriteria()->Set( lat1, lon1, lat2, lon2 );	//double latLow, double lonLow, double latHigh, double lonHigh
 	}
-	//if ( product->HasDatetimeCriteria() )										//TODO re-implement in v4 after proper time filters implementation
-	//{
-	//	val = ReadValue( section, ENTRY_DATETIME );
-	//	if ( !val.empty() )
-	//		product->GetDatetimeCriteria()->Set( doubles from to );
-	//}
-	//if ( product->HasCycleCriteria() )
-	//{
-	//	val = ReadValue( section, ENTRY_CYCLE );
-	//	if ( !val.empty() )
-	//		product->GetCycleCriteria()->Set( ints from to );
-	//}
-	//if ( product->HasPassIntCriteria() )
-	//{
-	//	val = ReadValue( section, ENTRY_PASS_NUMBER );
-	//	if ( !val.empty() )
-	//		product->GetPassIntCriteria()->Set( int32_t from, int32_t to );
-	//}
-	//if ( product->HasPassStringCriteria() )
-	//{
-	//	val = ReadValue( section, ENTRY_PASS_STRING );
-	//	if ( !val.empty() )
-	//		product->GetPassStringCriteria()->Set( comma separated strings );
-	//}
+	if ( product_ref->HasDatetimeCriteria() )
+	{
+		//RCCC please review;
+		//
+		//brathl comment: Value returns the date in a number of seconds since internal reference date, ie 1950)
+		//
+		product_ref->GetDatetimeCriteria()->Set( filter->BratStartTime().Value(), filter->BratStopTime().Value() );
+	}
+	//RCCC please review;
+	//
+	//	next 2 criteria assignments (cycle and pass) assume that cycle and pass can be used like simple integers as they come from the GUI
+	//
+	if ( product_ref->HasCycleCriteria() )
+	{
+		product_ref->GetCycleCriteria()->Set( filter->StartCycle(), filter->StopCycle() );
+	}
+	if ( product_ref->HasPassIntCriteria() )
+	{
+		product_ref->GetPassIntCriteria()->Set( filter->StartPass(), filter->StopPass() );
+	}
+	//RCCC please review;
+	//
+	//	Apparently Cryosat uses this criterion; is it simply composed by integer passes converted to string??? I wonder...
+	//	If not, we still don't have GUI support for this
+	//
+	if ( product_ref->HasPassStringCriteria() )
+	{
+		//product_ref->GetPassStringCriteria()->Set( comma separated strings );
+	}
 
 	return true;
 }

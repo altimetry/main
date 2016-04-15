@@ -3,6 +3,8 @@
 
 #include <QDate>
 
+#include "libbrathl/Date.h"
+
 #include "new-gui/Common/ApplicationSettings.h"
 
 #include "BratAreas.h"
@@ -14,6 +16,7 @@ namespace brathl
 	class CMapProduct;
 }
 
+using namespace brathl;
 
 
 
@@ -25,7 +28,18 @@ class CBratFilter
 
 protected:
 
-    //static data
+    //static members
+
+	static inline CDate q2brat( const QDateTime &q )
+	{
+		if ( !q.isValid() )
+			return CDate();
+
+		return CDate( 
+			q.date().year(), q.date().month(), q.date().day(), 
+			q.time().hour(), q.time().minute(), q.time().second(), q.time().msec() );
+	}
+
 
     // instance data
 
@@ -37,9 +51,9 @@ protected:
     QDateTime mStopTime;
 
     int mStartCycle = 0;
-    int mStopCycle = 0;
+    int mStopCycle = 99999;
     int mStartPass = 0;
-    int mStopPass = 0;
+    int mStopPass = 999;
 
 
     // construction / destruction
@@ -85,8 +99,13 @@ public:
 
     //time
 
+
     QDateTime StartTime() const { return mStartTime; }
     QDateTime StopTime() const { return mStopTime; }
+
+    CDate BratStartTime() const { return q2brat( mStartTime ); }
+    CDate BratStopTime() const { return q2brat( mStopTime ); }
+
 
     int StartCycle() const { return mStartCycle; }
     int StopCycle() const { return mStopCycle; }
