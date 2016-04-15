@@ -144,7 +144,7 @@ signals:
 
 public slots:
 	void HandleNewFilter();
-	void HandleRenameFilter();
+    void HandleRenameFilter();
 	void HandleDeleteFilter();
 	void HandleSaveFilters();
 

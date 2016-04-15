@@ -53,9 +53,9 @@ class CArea : public std::vector< CVertex >
 
     //JOFF -
     double mlat_min = std::numeric_limits<double>::max();
-    double mlat_max = std::numeric_limits<double>::min();
+    double mlat_max = std::numeric_limits<double>::lowest();
     double mlon_min = std::numeric_limits<double>::max();
-    double mlon_max = std::numeric_limits<double>::min();
+    double mlon_max = std::numeric_limits<double>::lowest();
 
 	//construction / destruction
 
@@ -202,9 +202,9 @@ public:
         double lon =0;
         double lat =0;
         mlat_min = std::numeric_limits<double>::max();
-        mlat_max = std::numeric_limits<double>::min();
+        mlat_max = std::numeric_limits<double>::lowest();
         mlon_min = std::numeric_limits<double>::max();
-        mlon_max = std::numeric_limits<double>::min();
+        mlon_max = std::numeric_limits<double>::lowest();
         size_t sz = size();
 
         for(unsigned int i=0;i<sz;i++)

@@ -103,9 +103,9 @@ void CBratFilter::BoundingArea( double &lon1, double &lat1, double &lon2, double
     auto const &areas = Areas(); //returns a CBratAreas
 
     lon1 = std::numeric_limits<double>::max();
-    lon2 = std::numeric_limits<double>::min();
+    lon2 = std::numeric_limits<double>::lowest();
     lat1 = std::numeric_limits<double>::max();
-    lat2 = std::numeric_limits<double>::min();
+    lat2 = std::numeric_limits<double>::lowest();
 
 	for ( auto const &name : mAreaNames )		//iterate over filter area names
 	{
