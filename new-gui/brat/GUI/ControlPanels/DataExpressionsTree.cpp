@@ -640,7 +640,10 @@ void CDataExpressionsTreeWidget::InsertOperation( COperation *operation )
 			case CMapTypeField::eTypeOpAsField:
 				InsertFormula( mItemData, formula );
 				break;
-		}
+
+            default:
+                assert__( false );
+        }
 	}
 
 	InsertFormula( mItemSelectionCriteria, mCurrentOperation->GetSelect() );

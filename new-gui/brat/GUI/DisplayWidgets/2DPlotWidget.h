@@ -177,7 +177,7 @@ public:
         return mantissa_digits;
     }
 
-    int SetMantissa(int _mantissa)
+    void SetMantissa(int _mantissa)
     {
         mantissa_digits = _mantissa;
     }

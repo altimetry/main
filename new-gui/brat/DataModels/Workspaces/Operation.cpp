@@ -1503,6 +1503,7 @@ bool COperation::ControlXYDataFields(std::string &error_msg, const CStringMap* a
       break;
     //-----------------------------
     case CMapTypeField::eTypeOpAsField:
+    {
     //-----------------------------
       bOk &= CFormula::SetExpression(value->GetDescription(true, aliases, fieldAliases), dataExpr, error_msg);
 
@@ -1527,8 +1528,11 @@ bool COperation::ControlXYDataFields(std::string &error_msg, const CStringMap* a
         error_msg.append(intersect.ToString("\n", false).c_str());
         bOk = false;
       }
+    }
+    break;
 
-      break;
+    default:
+        assert__( false );
     }
 
   }
@@ -1675,6 +1679,9 @@ bool COperation::Control(CWorkspaceFormula *wks, std::string& msg, bool basicCon
     case CMapTypeField::eTypeOpAsField:
       fieldCount++;
       break;
+
+    default:
+        assert__( false );
     }
     bOk = value->CheckExpression(wks, msg, m_record, aliases, m_product);
     if (!bOk)

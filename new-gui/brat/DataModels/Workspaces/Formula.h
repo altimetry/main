@@ -186,6 +186,9 @@ public:
 			case CMapTypeField::eTypeOpAsSelect:
 				max = 1;
 				break;
+
+            default:
+                assert__( false );
 		}
 
 		return max;
