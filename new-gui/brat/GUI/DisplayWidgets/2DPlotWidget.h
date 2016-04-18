@@ -25,10 +25,11 @@
 class QwtPlotCurve;
 class QwtData;
 class QwtPlotZoomer;
-class QwtPlotMagnifier;
+class C2DMagnifier;
 class QwtPlotPanner;
 class CHistogram;
 class C2DZoomer;
+class C2DMagnifier;
 
 
 class CQwtArrayPlotData;
@@ -321,7 +322,7 @@ class C2DPlotWidget : public QwtPlot
     bool mIsLog = false;
 
 
-	QwtPlotMagnifier *mMagnifier = nullptr;
+	C2DMagnifier *mMagnifier = nullptr;
 	QwtPlotPanner *mPanner = nullptr;
 	C2DZoomer *mZoomer = nullptr; 
 
@@ -595,7 +596,7 @@ public:
 
 	QwtPlotZoomer* AddZoomer();
 
-	QwtPlotMagnifier* AddMagnifier();
+	C2DMagnifier* AddMagnifier();
 
 	QwtPlotPanner* AddPanner();
 

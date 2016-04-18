@@ -885,6 +885,27 @@ QwtPlotMarker* C2DPlotWidget::AddMarker( const std::string &label, QwtPlotMarker
 //	Custom Zoomers	
 ////////////////////
 
+class C2DMagnifier : public QwtPlotMagnifier
+{
+	using base_t = QwtPlotMagnifier;
+
+public:
+	explicit C2DMagnifier( QwtPlotCanvas *canvas )
+		: base_t( canvas )
+	{}
+
+	virtual ~C2DMagnifier()
+	{}
+
+protected:
+	virtual void rescale( double factor )
+	{
+		if ( factor != 0.0 )
+			base_t::rescale( 1 / factor );
+	}
+};
+
+
 class C2DZoomer : public QwtPlotZoomer
 {
 	using base_t = QwtPlotZoomer;
@@ -917,6 +938,7 @@ public:
 };
 
 
+
 void C2DPlotWidget::Home()
 {
 	if ( mZoomer )			//null for curves
@@ -944,11 +966,11 @@ void C2DPlotWidget::Home()
 }
 
 
-QwtPlotMagnifier* C2DPlotWidget::AddMagnifier()
+C2DMagnifier* C2DPlotWidget::AddMagnifier()
 {
 	assert__( !mMagnifier );
 
-	mMagnifier = new QwtPlotMagnifier( canvas() );
+	mMagnifier = new C2DMagnifier( canvas() );
 	return mMagnifier;
 }
 

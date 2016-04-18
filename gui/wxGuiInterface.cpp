@@ -94,14 +94,14 @@ const std::string GROUP_GENERAL = "General";
 
 
 
-bool StdGetNextEntry( CConfiguration *config, std::string& str, long& lIndex )
+inline bool StdGetNextEntry( CConfiguration *config, std::string& str, long& lIndex )
 {
 	wxString wstr( str );
 	bool result = config->GetNextEntry( wstr, lIndex );
 	str = wstr.ToStdString();
 	return result;
 }
-bool StdRead( CConfiguration *config, const std::string& str, std::string *value )
+inline bool StdRead( CConfiguration *config, const std::string& str, std::string *value )
 {
 	wxString wvalue( *value );
 	bool result = config->Read( str, &wvalue );

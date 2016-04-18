@@ -104,7 +104,9 @@ static const KeywordHelp keywordList[]	= {
 CDisplayFilesProcessor::~CDisplayFilesProcessor()
 {
 	for ( auto *f : m_OpenFiles )
+	{
 		f->Close();
+	}
 }
 
 

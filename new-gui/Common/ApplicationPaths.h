@@ -32,7 +32,7 @@ public:
 
     static std::string DefaultExternalDataSubDir()
     {
-        static const std::string s = "data";
+        static const std::string s = "user-data";
         return s;
     }
     static std::string DefaultProjectsSubDir()
@@ -47,7 +47,7 @@ public:
     }
     static std::string RasterLayerSubPath()
     {
-        static const std::string s = "maps/NE1_HR_LC_SR_W_DR/NE1_HR_LC_SR_W_DR.tif";
+        static const std::string s = "globe/world.tif"; // TODO RCCC changed raster file //"maps/NE1_HR_LC_SR_W_DR/NE1_HR_LC_SR_W_DR.tif";
         return s;
     }
 
@@ -90,13 +90,12 @@ public:
     //	are based on defaults. Origin: lib/data,
     //	deployment like COTS libraries
 
-    std::string mUserBasePath;					// defaults to executable grand-parent directory (deployed) or S3ALTB_ROOT/lib (development)
-    std::string mExternalDataDir;				// defaults mUserBasePath/data (i.e., to executable's sub-directory sibling when deployed)
-    std::string mRasterLayerPath;				// deployed as external data sample (lives in mExternalDataDir)
+    std::string mPortableBasePath;				// defaults to executable grand-parent directory (deployed) or S3ALTB_ROOT/lib (development)
+    std::string mRasterLayerPath;
 
     std::string mWorkspacesDir;					// samples? if so, deployed as external data sample (like mRasterLayerPath)
 
-    bool mUniqueUserBasePath = true;			// re-assigned in ctor
+    bool mUsePortablePaths = true;			// re-assigned in ctor
 
 
     ////////////////////////////////////////////
@@ -124,21 +123,19 @@ public:
         return !( *this == o );
     }
 
-    const std::string& UserBasePath() const { return mUserBasePath; }
-
-    const std::string& ExternalDataDir() const { return mExternalDataDir; }
+    const std::string& PortableBasePath() const { return mPortableBasePath; }
 
     const std::string& RasterLayerPath() const { return mRasterLayerPath; }
 
     const std::string& WorkspacesPath() const { return mWorkspacesDir; }
 
-    bool UniqueUserBasePath() const { return mUniqueUserBasePath; }
+    bool UsePortablePaths() const { return mUsePortablePaths; }
 
 
 	std::string Absolute2PortableDataPath( const std::string &path ) const
 	{
-		if ( mUniqueUserBasePath )
-			return ::Absolute2PortableDataPath( path, mUserBasePath );
+		if ( mUsePortablePaths )
+			return ::Absolute2PortableDataPath( path, mPortableBasePath );
 
 		return path;
 	}
@@ -148,9 +145,9 @@ public:
 	{
 		// Portable2AbsoluteDataPath does not change an already absolute path,
 		//	but a portable path always needs to be converted to an absolute 
-		//	path even if mUniqueUserBasePath is false
+		//	path even if mUsePortablePaths is false
 		//
-		return ::Portable2AbsoluteDataPath( path, mUserBasePath );
+		return ::Portable2AbsoluteDataPath( path, mPortableBasePath );
 	}
 
 
@@ -171,26 +168,9 @@ public:
     // Operates only over user changeable paths, trying to
     //	ensure their existence in the expected locations
     //
-
-
-
-    // if "unique" is true, path must exist
-    //
-
-    bool SetUserBasePath( bool unique, const std::string &path = "" );
-
-    // When mUniqueUserBasePath is true, SetUniqueUserBasePath
-    //	is the only setter accepted. Otherwise, these 2 setters
-    //	can be used to make individual changes to paths.
-
-    bool SetExternalDataDirectory( const std::string &path );
+    bool SetUserBasePath( bool portable, const std::string &path = "" );
 
     bool SetWorkspacesDirectory( const std::string &path );
-
-
-protected:
-
-	bool CopyRasterLayerFile();
 };
 
 

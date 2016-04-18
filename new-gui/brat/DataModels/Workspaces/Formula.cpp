@@ -837,7 +837,7 @@ bool CFormula::CheckExpression(CWorkspaceFormula *wks, std::string& errorMsg, co
   std::string stringExpr = GetDescription(true);
 
   // Empty expression is allowed for selection criteria
-  if ((this->GetType() == CMapTypeField::eTypeOpAsSelect) && (stringExpr.empty()))
+  if ((this->GetFieldType() == CMapTypeField::eTypeOpAsSelect) && (stringExpr.empty()))
   {
     return true;
   }
@@ -953,17 +953,17 @@ bool CFormula::CtrlMinMaxValue( std::string& errorMsg ) const
 //----------------------------------------
 bool CFormula::IsFieldType() const
 {
-	return GetType() == CMapTypeField::eTypeOpAsField;
+	return GetFieldType() == CMapTypeField::eTypeOpAsField;
 }
 //----------------------------------------
 bool CFormula::IsXType() const
 {
-	return GetType() == CMapTypeField::eTypeOpAsX;
+	return GetFieldType() == CMapTypeField::eTypeOpAsX;
 }
 //----------------------------------------
 bool CFormula::IsYType() const
 {
-	return GetType() == CMapTypeField::eTypeOpAsY;
+	return GetFieldType() == CMapTypeField::eTypeOpAsY;
 }
 //----------------------------------------
 bool CFormula::IsXYType() const
@@ -1783,7 +1783,7 @@ CFormula* CMapFormula::GetFormula( int32_t type )
 		if ( value == nullptr )
 			continue;
 
-		if ( value->GetType() == type )
+		if ( value->GetFieldType() == type )
 			return value;
 	}
 
@@ -1819,7 +1819,7 @@ size_t CMapFormula::CountDataFields()
 		CFormula* value = dynamic_cast<CFormula*>( it->second );
 		if ( value != nullptr )
 		{
-			if ( value->GetType() == CMapTypeField::eTypeOpAsField )
+			if ( value->GetFieldType() == CMapTypeField::eTypeOpAsField )
 			{
 				count++;
 			}
@@ -1839,7 +1839,7 @@ bool CMapFormula::HasFilters() const
 		CFormula* value = dynamic_cast<CFormula*>( it->second );
 		if ( value != nullptr )
 		{
-			if ( value->GetType() == CMapTypeField::eTypeOpAsField )
+			if ( value->GetFieldType() == CMapTypeField::eTypeOpAsField )
 			{
 				if ( value->GetFilter() != CMapTypeFilter::eFilterNone )
 				{

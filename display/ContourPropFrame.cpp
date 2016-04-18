@@ -29,7 +29,8 @@
     #pragma hdrstop
 #endif
 
-#include "PlotData/BratLookupTable.h"
+#include "wxInterface.h"
+#include "new-gui/brat/DataModels/PlotData/BratLookupTable.h"
 #include "BratDisplayApp.h"
 #include "ContourPropFrame.h"
 #include "new-gui/brat/DataModels/PlotData/MapColor.h"

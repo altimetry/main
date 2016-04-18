@@ -1057,7 +1057,7 @@ bool CDisplay::AssignOperation( const COperation *operation, bool update )	//boo
 {
 	CInternalFiles *file = nullptr;
 	CUIntArray displayTypes;
-	CDisplay::GetDisplayType( operation, displayTypes, &file );
+	CDisplay::GetDisplayType( operation, displayTypes, &file );	//must close returned files, if any
 	if ( file == nullptr )
 	{
 		return false;
@@ -1103,7 +1103,7 @@ bool CDisplay::AssignOperation( const COperation *operation, bool update )	//boo
 				description += "." + comment;
 			}
 
-			displayData->GetField()->SetDescription( (const char *)description.c_str() );
+			displayData->GetField()->SetDescription( description );
 
 			if ( nbDims >= 1 )
 			{
@@ -1141,17 +1141,11 @@ bool CDisplay::AssignOperation( const COperation *operation, bool update )	//boo
 			dataList->Insert( displayData->GetDataKey(), displayData, false );
 		}
 	}
+	delete file;	//file->Close();		//critical
 
 	if ( update )
 	{
 		m_data.clear();
-		//while ( m_data.size() > 0 )
-		//{
-  //          auto const &data = m_data.begin();
-		//	CDisplayData* dataTmp = dynamic_cast<CDisplayData*>( dataList->Exists( data->first ) );
-		//	if ( dataTmp != nullptr )
-		//		RemoveData( data->first );
-		//}
 	}
 
 	for ( auto &data : *dataList )

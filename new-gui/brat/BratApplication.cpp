@@ -350,21 +350,7 @@ void CBratApplication::CreateSplash()
 
 void CBratApplication::UpdateSettings()
 {
-	bool result = true;
-	//const TApplicationOptions &current = getAppOptions();		assert__( current.m_DefaultAppStyle == options.m_DefaultAppStyle );		//this field is set by application ctor and so far there is no reason besides error to request it's change
-	//bool needStyleUpdate = 
-	//	current.m_AppStyle != options.m_AppStyle ||
-	//	current.m_UseDefaultStyle != options.m_UseDefaultStyle ||
-
-	//	current.m_CustomAppStyleSheet != options.m_CustomAppStyleSheet ||
-	//	current.m_NoStyleSheet != options.m_NoStyleSheet;
-
-    if ( /*needStyleUpdate && */!mSettings.setApplicationStyle( *this, mDefaultAppStyle /*options */) )	//if necessary (e.g. error) setApplicationStyle corrects options to reflect actually changed settings; so far (08/2014) this only happens if style sheet resource not found
-		result = false;
-
-	// getPrivateAppOptions() = options;
-
-	//return result;
+	mSettings.setApplicationStyle( *this, mDefaultAppStyle );
 }
 
 

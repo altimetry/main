@@ -410,7 +410,7 @@ void CAbstractDisplayEditor::HandleOperationsIndexChanged( int index )
 		mOperation = op;
 		std::string dataset_name = mOperation->OriginalDatasetName();
 		mDatasetName->setText( t2q( dataset_name ) );
-		mFilterLineEdit->setText( mOperation->Filter() ? t2q( mOperation->Filter()->Name() ) : "" );
+		mFilterLineEdit->setText( mOperation->Filter() ? t2q( mOperation->FilterName() ) : "" );
 	}
 	
 	FilterDisplays();

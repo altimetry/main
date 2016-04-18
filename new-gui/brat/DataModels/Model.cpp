@@ -115,32 +115,12 @@ CWorkspace* CModel::CreateTree( CTreeWorkspace &tree, const std::string& path, s
 
 
 //static 
-bool CModel::MakeWorkspaceFiltersConsistent( CTreeWorkspace &tree, std::string &error_msg )
+bool CModel::SaveWorkspace( CTreeWorkspace &tree, std::string &error_msg )
 {
-	if ( !BratFiltersValid() )
-		return true;
-
-	bool result = true;		//bad function outcome is not critical: simply points to missing filters
-
-	auto &operations = *Workspace< CWorkspaceOperation >( tree )->GetOperations();
-	for ( auto &operation_entry : operations )
-	{
-		COperation *operation = dynamic_cast<COperation *>( operation_entry.second );		assert__( operation );
-		if ( !operation->Filter() )
-			continue;
-
-		auto const &filter = operation->Filter()->Name();
-		if ( !filter.empty() && !smBratFilters->Find( filter ) )
-		{
-			const std::string msg = "Operation '" + operation->GetName() + "' referenced non-existing filter '" + filter + "'. The reference was removed.";
-			operation->RemoveFilter();
-			LOG_WARN( msg );
-			error_msg += ( "\n" + msg );
-			result = false;
-		}
-	}
-	
-	return result || SaveWorkspace( tree, error_msg );
+	return smBratFilters->Save() && tree.SaveConfig(
+		error_msg,
+		Workspace< CWorkspaceOperation >( tree ),
+		Workspace< CWorkspaceDisplay >( tree ) );
 }
 
 
@@ -159,13 +139,10 @@ CWorkspace* CModel::LoadWorkspace( CTreeWorkspace &tree, const std::string& path
 			error_msg
 			) )
 		{
-			error_msg += ( "\nUnable to load workspace '" + ( failed_wks ? failed_wks->GetName() : "" ) + "'." );
-			delete wks;
-			wks = nullptr;
+			error_msg += ( "\nUnable to load sub-workspace '" + ( failed_wks ? failed_wks->GetName() : "" ) + "'." );
+			return nullptr;
 		}
 	}
-
-	MakeWorkspaceFiltersConsistent( tree, error_msg );
 
 	return wks;
 }

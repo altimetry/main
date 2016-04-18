@@ -18,6 +18,7 @@
 
 /// RCCC Added this
 #include <qgsvectorcolorrampv2.h>
+#include <qgsmaptip.h>
 
 
 
@@ -240,20 +241,59 @@ const std::string& CMapWidget::RasterLayerPath()
 #pragma warning ( disable : 4996 )
 #endif
 
-CMapWidget::CMapWidget( QWidget *parent )	//parent = nullptr
-	: base_t(parent)
+void CMapWidget::Init()
 {
     // Instantiate Provider Registry
 	//
     QgsProviderRegistry *preg = QgsProviderRegistry::instance( t2q( smQgisPluginsDir ) );
 	Q_UNUSED( preg );
 
-	assert__( IsFile( smVectorLayerPath ) );
+	assert__( mUsingRasterLayerBase || IsFile( smVectorLayerPath ) );
+	assert__( !mUsingRasterLayerBase || IsFile( smRasterLayerPath ) );
 		
-	mMainLayer = AddOGRVectorLayer( t2q( smVectorLayerPath ) );
-	mMainLayer->rendererV2()->symbols()[ 0 ]->setColor( "black" );
+	if ( mUsingRasterLayerBase )
+	{
+		mMainRasterLayer = AddRasterLayer( t2q( smRasterLayerPath ), "raster", "" );
+		mMainLayer = mMainRasterLayer;
+	}
+	else
+	{
+		QgsVectorLayer *l = AddOGRVectorLayer( t2q( smVectorLayerPath ) );
+		l->rendererV2()->symbols()[ 0 ]->setColor( "black" );
+		mMainLayer = l;
+	}
 
 	//addRasterLayer( "http://server.arcgisonline.com/arcgis/rest/services/ESRI_Imagery_World_2D/MapServer?f=json&pretty=true", "raster", "" );
+
+
+    /////////////////// TODO RCCC //////////////////////////////////
+//    auto l = new QgsRasterLayer( QString("contextualWMSLegend=0&crs=EPSG:4326&dpiMode=all&featureCount=10&format=image/png&layers=bluemarble&styles=&url=http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_airsnrt?layer%3DAIRS_SO2_A%26" /*"http://localhost:8080/geoserver/wfs?srsname=EPSG:23030&typename=union&version=1.0.0&request=GetFeature&service=WFS"*/  /*"url=http://kaart.maaamet.ee/wms/alus&format=image/png&layers=MA-ALUS&styles=&crs=EPSG:AUTO"*/),
+//                                 QString("basemap"),
+//                                 QString("wms"),
+//                                 false
+//                                 );
+
+
+//    if ( l->isValid() )
+//    {
+//                            qDebug( "Layer is valid" );
+
+//        // Add the Raster Layer to the Layer Registry
+//        QgsMapLayerRegistry::instance()->addMapLayer(l, true);
+
+//        // Add the Layer to the Layer Set
+//        mLayerSet.append(QgsMapCanvasLayer(l, TRUE));
+
+//        // Set the Map Canvas Layer Set			//TODO: check if we need to SetLayerSet every time
+//        SetLayerSet(mLayerSet);
+//    }
+//    else
+//    {
+//        qDebug( "Layer is NOT valid, basemap not loaded" );
+//        delete l;
+//    }
+    //////////////////////////////////////////////////////////////////
+
 
     //mMainLayer =  new QgsVectorLayer(mVectorLayerPath, myLayerBaseName, myProviderName);
     //QgsSingleSymbolRendererV2 *mypRenderer = new QgsSingleSymbolRendererV2(QgsSymbolV2::defaultSymbol(mMainLayer->geometryType()));
@@ -287,11 +327,16 @@ CMapWidget::CMapWidget( QWidget *parent )	//parent = nullptr
 	//SetDefaultProjection();
 
     //// Set the Map Canvas Layer Set
-    //setLayerSet(mLayerSet);
+    //SetLayerSet(mLayerSet);
 
     setMinimumSize( min_globe_widget_width, min_globe_widget_height );    //setVisible(true);
 	setParallelRenderingEnabled( false );
     refresh();
+
+    // TODO: RCCC - Create Map Tips. ////////////
+    createMapTips();
+    mMapTipsVisible = true;
+    /////////////////////////////////////////////
 
 	
 #if defined (DEBUG) || defined(_DEBUG)
@@ -308,12 +353,29 @@ CMapWidget::CMapWidget( QWidget *parent )	//parent = nullptr
 	addAction( mActionRemoveLayers );
 
 #endif
-
 }
 
 #if defined (WIN32) || defined(_WIN32)
 #pragma warning ( default : 4996 )
 #endif
+
+
+
+CMapWidget::CMapWidget( bool use_raster, QWidget *parent )
+	: base_t(parent)
+	, mUsingRasterLayerBase( use_raster )
+{
+	Init();
+}
+
+CMapWidget::CMapWidget( QWidget *parent )
+	: base_t(parent)
+	, mUsingRasterLayerBase( false )
+{
+	Init();
+}
+
+
 
 
 //////////////
@@ -373,7 +435,7 @@ bool CMapWidget::SetProjection( const QgsCoordinateReferenceSystem &crs )
 	//		vlayer->triggerRepaint();
 	//	}
 	//}
-    //setLayerSet( mLayerSet );
+    //SetLayerSet( mLayerSet );
 
 	//QgsCoordinateReferenceSystem crs = currentLayer()->crs();
 	//freeze();
@@ -551,6 +613,9 @@ void CMapWidget::Home()
 
 void CMapWidget::HandleAddRaster()
 {
+	if ( mUsingRasterLayerBase )
+		return;
+
 	if ( IsFile( smRasterLayerPath ) )
 		mMainRasterLayer = AddRasterLayer( t2q( smRasterLayerPath ), "raster", "" );
 }
@@ -620,6 +685,47 @@ QgsRubberBand* CMapWidget::AddRBLine( QgsPolyline points, QColor color, QgsVecto
 
 	return r;
 }
+
+
+#include <qgsfillsymbollayerv2.h>
+
+/////// TODO - RCCC ///////////////////////////////////////////////////////
+//static
+QgsSymbolV2* CMapWidget::CreatePolygonSymbol( const QColor &color )
+{
+    auto qsm = []( const char *s1, const std::string &s2 )
+    {
+        QgsStringMap m;
+        m.insert( s1, s2.c_str() );
+        return m;
+    };
+
+    //QgsSymbolV2 *s = QgsMarkerSymbolV2::createSimple( qsm( "","" ) );
+    QgsFillSymbolV2 *s = QgsFillSymbolV2::createSimple( qsm( "","" ) );
+    qDebug() << "///// TYPE:" << s->type();
+    s->deleteSymbolLayer( 0 );		// Remove default symbol layer.
+    //s->setColor( color );
+
+    //s->setColor( lineColor );
+    //s->setMapUnitScale()
+
+    //auto symbolLayer = new QgsSimpleMarkerSymbolLayerV2;
+    auto symbolLayer = new QgsSimpleFillSymbolLayerV2;
+
+    symbolLayer->setBorderColor( color );
+    //symbolLayer->setFillColor( color );
+
+    symbolLayer->setColor( color );
+    //symbolLayer->setName("square");					//
+    //symbolLayer->setSizeUnit( QgsSymbolV2::MM );	//
+    //symbolLayer->setSize( width );
+    //symbolLayer->setOutlineStyle( Qt::NoPen );
+
+    s->appendSymbolLayer( symbolLayer );
+
+    return s;
+}
+///////////////////////////////////////////////////////////////////////////
 
 
 
@@ -738,6 +844,52 @@ QgsFeatureList& CMapWidget::CreatePointFeature( QgsFeatureList &list, double lon
 	//return list;
 }
 
+
+////////////// TODO : RCCC /////////////////////////////////////////////////////////
+QgsFeatureList& CMapWidget::CreatePolygonFeature( QgsFeatureList &list, double lon, double lat, const std::map<QString, QVariant> &attrs )	//attrs = std::map<std::string, QVariant>()
+{
+    QgsFields fields;
+    for ( auto ii = attrs.begin(); ii != attrs.end(); ++ii )
+    {
+        fields.append( QgsField( ii->first, ii->second.type() ),  field_origin );
+    }
+
+    // TODO - RCCC - Step between consecutive points (in degrees)
+    double step = 0.333;
+    QgsPolyline polyline;
+    QgsPolygon polygon;
+
+    polyline.append( QgsPoint( lon - step/2 , lat + step/2 ) );
+    polyline.append( QgsPoint( lon + step/2 , lat + step/2 ) );
+    polyline.append( QgsPoint( lon + step/2 , lat - step/2 ) );
+    polyline.append( QgsPoint( lon - step/2 , lat - step/2 ) );
+
+    polygon.append( polyline );
+
+    QgsFeature *f = new QgsFeature( fields );
+    //f->setGeometry( QgsGeometry::fromPoint( QgsPoint( lon, lat ) ) );
+    f->setGeometry( QgsGeometry::fromPolygon( polygon ) );
+
+    for ( auto ii = attrs.begin(); ii != attrs.end(); ++ii )
+    {
+        f->setAttribute( ii->first, ii->second );
+    }
+
+    list.append( *f );
+    return list;
+}
+
+
+QgsFeatureList& CMapWidget::CreatePolygonFeature( QgsFeatureList &list, double lon, double lat, double value )
+{
+    std::map<QString, QVariant> attrs;
+    attrs[ height_key ] = QVariant::fromValue( value );
+    return CreatePolygonFeature( list, lon, lat, attrs );
+}
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+
 //static 
 QgsFeatureList& CMapWidget::createLineFeature( QgsFeatureList &list, QgsPolyline points )
 {
@@ -755,6 +907,27 @@ QgsFeatureList& CMapWidget::createLineFeature( QgsFeatureList &list, QgsPolyline
 //		Layers
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+template <typename T>
+QList<T> reversed( const QList<T> & in ) 
+{
+	QList<T> result;
+	result.reserve( in.size() ); // reserve is new in Qt 4.7
+	std::reverse_copy( in.begin(), in.end(), std::back_inserter( result ) );
+	return result;
+}
+
+
+void CMapWidget::SetLayerSet()
+{
+	QList < QgsMapCanvasLayer > list = mLayerSet;
+
+	std::reverse( list.begin(), list.end() );
+
+	setLayerSet( list );
+}
+
+
 QgsMapCanvasLayer* CMapWidget::FindCanvasLayer( size_t index )
 {
 	index++;				//leave out main layer
@@ -764,7 +937,7 @@ QgsMapCanvasLayer* CMapWidget::FindCanvasLayer( size_t index )
 }
 
 
-QgsMapCanvasLayer* CMapWidget::FindCanvasLayer( QgsVectorLayer *layer )
+QgsMapCanvasLayer* CMapWidget::FindCanvasLayer( QgsMapLayer *layer )
 {
 	for ( auto &cl : mLayerSet )
 		if ( cl.layer() == layer )
@@ -801,7 +974,7 @@ bool CMapWidget::SetLayerVisible( size_t index, bool show )
 	if ( show != IsLayerVisible( index ) )
 	{
 		l->setVisible( show );
-		setLayerSet( mLayerSet );
+		SetLayerSet();
 		SetCurrentLayer( l->layer() );
 		refresh();
 	}
@@ -814,7 +987,7 @@ void CMapWidget::SetMainLayerVisible( bool show )
 	if ( show != cl->isVisible() )
 	{
 		cl->setVisible( show );
-		setLayerSet( mLayerSet );
+		SetLayerSet();
 		refresh();
 	}
 }
@@ -832,7 +1005,7 @@ void CMapWidget::RemoveLayers( bool render )		//render = false
 
 	if ( count > 1 )
 	{
-		setLayerSet( mLayerSet );
+		SetLayerSet();
 		SetCurrentLayer( mLayerSet.begin()->layer() );
 		if ( render )
 			refresh();
@@ -856,7 +1029,7 @@ void CMapWidget::RemoveLayer( QgsMapLayer *layer, bool render )		//render = fals
 
 	QgsMapLayerRegistry::instance()->removeMapLayer( layer->id() );
 
-	setLayerSet( mLayerSet );
+	SetLayerSet();
 	SetCurrentLayer( mLayerSet.begin()->layer() );		//deletes layer;
 
 	if ( render )
@@ -908,10 +1081,10 @@ QgsRasterLayer* CMapWidget::AddRasterLayer( const QString &layer_path, const QSt
 		// Add the Layer to the Layer Set
 		mLayerSet.append(QgsMapCanvasLayer(l, TRUE));
 
-		// Set the Map Canvas Layer Set			//TODO: check if we need to setLayerSet every time
-		setLayerSet(mLayerSet);
+		// Set the Map Canvas Layer Set			//TODO: check if we need to SetLayerSet every time
+		SetLayerSet();
 
-		//setCurrentLayer( l );
+		SetCurrentLayer( l );
 
 		return l;
 	}
@@ -935,9 +1108,9 @@ QgsVectorLayer* CMapWidget::AddVectorLayer( const std::string &name, const QStri
 
 	auto l = new QgsVectorLayer( layer_path, layer_name.c_str(), provider );
 
-	if ( !renderer )
-		renderer = CreateRenderer( l );
-	l->setRendererV2( renderer );
+    if ( !renderer )
+        renderer = CreateRenderer( l );
+    l->setRendererV2( renderer );
 
     if ( l->isValid() )
     {
@@ -949,8 +1122,8 @@ QgsVectorLayer* CMapWidget::AddVectorLayer( const std::string &name, const QStri
 		// Add the Layer to the Layer Set
 		mLayerSet.append( QgsMapCanvasLayer( l, true ) );
 
-		// Set the Map Canvas Layer Set			//TODO: check if we need to setLayerSet every time
-		setLayerSet(mLayerSet);
+		// Set the Map Canvas Layer Set
+		SetLayerSet();
 
 		SetCurrentLayer( l );
 
@@ -984,6 +1157,8 @@ QgsVectorLayer* CMapWidget::AddMemoryLayer( const std::string &name, QgsFeatureR
 
 	//const QString s = mMainLayer->crs().toProj4();		//EPSG:4326
 	const QString s = mapSettings().destinationCrs().toProj4();		//
+
+	//"Point", "LineString", "Polygon", "MultiPoint", "MultiLineString", or "MultiPolygon".
 
 	const QString layer_path =
         "Point?crs=EPSG:4326"
@@ -1066,6 +1241,29 @@ QgsVectorLayer* CMapWidget::AddMemoryLayer( const std::string &name, QgsSymbolV2
 	//return ml;
 }
 
+
+//////////////////////////// TODO - RCCC ////////////////////////////////////////
+QgsVectorLayer* CMapWidget::AddMemoryLayer_polygon( const std::string &name, QgsFeatureRendererV2 *renderer )
+{
+    static const QString provider = "memory";
+
+    const QString layer_path =
+        "polygon?crs=EPSG:4326"
+
+        + QString( "&field=" ) + height_key + height_type
+        + QString( "&field=" ) + ref_date_key + ref_date_type
+
+        + "&index=yes";
+
+    auto *l = AddVectorLayer( name, layer_path, provider, renderer );
+
+
+    return l;		// AddVectorLayer( name, layer_path, provider, renderer );
+}
+
+/////////////////////////////////////////////////////////////////////////////////
+
+
 template< class LAYER >
 //static 
 QgsSingleSymbolRendererV2* CMapWidget::CreateRenderer( LAYER *layer )
@@ -1078,6 +1276,53 @@ QgsSingleSymbolRendererV2* CMapWidget::CreateRenderer( QgsSymbolV2* symbol )
 {
 	return new QgsSingleSymbolRendererV2( symbol );
 }
+
+
+/////// TODO - RCCC ///////////////////////////////////////////////////////
+//static
+QgsGraduatedSymbolRendererV2* CMapWidget::CreateRenderer_polygon( const QString &target_field, double m, double M, size_t contours )
+{
+    static const auto opacity = 1;
+    static const QColor color_map[] =
+    {
+        QColor( "blue" ),
+        QColor( "cyan" ),
+        QColor( "green" ),
+        QColor( "yellow" )
+    };
+    static const DEFINE_ARRAY_SIZE( color_map );        Q_UNUSED(color_map_size);
+    static CMapColor &mc = CMapColor::GetInstance();
+
+    auto create_range = []( double m, double M, int index )
+    {
+        auto label = "Group " + n2s<std::string>( index + 1 );
+        auto symbol = CreatePolygonSymbol( color_cast<QColor>( mc.NextPrimaryColors() ) );
+        symbol->setAlpha( opacity );
+        return new QgsRendererRangeV2( m, M, symbol, label.c_str() );
+    };
+
+    //function body
+
+    auto range_list = new QgsRangeList;
+
+    const double range = M - m;
+    double step = range / contours;	// color_map_size;
+
+    mc.ResetPrimaryColors();
+    double v = m;
+    for ( size_t i = 0; i < contours; ++i )
+    {
+        range_list->append( *create_range( v, v + step, i ) );
+        v += step;
+    }
+
+    auto renderer = new QgsGraduatedSymbolRendererV2( target_field, *range_list );
+    renderer->setMode( QgsGraduatedSymbolRendererV2::EqualInterval );
+    return renderer;
+
+}
+//////////////////////////////////////////////////////////////////////////////
+
 
 //static 
 QgsGraduatedSymbolRendererV2* CMapWidget::CreateRenderer( const QString &target_field, double width, double m, double M, size_t contours )
@@ -1154,6 +1399,23 @@ QgsVectorLayer* CMapWidget::AddDataLayer( const std::string &name, double width,
 //      //QgsRendererRangeV2LabelFormat legendFormat = QgsRendererRangeV2LabelFormat()
 //      );
 }
+
+
+////////////// TODO : RCCC /////////////////////////////////////////////////////////
+QgsVectorLayer* CMapWidget::AddDataLayer_Polygon( const std::string &name, double m, double M, size_t contours, QgsFeatureList &flist )
+{
+    static const QString target_field = height_key;
+
+    auto *l = AddMemoryLayer_polygon( name, CreateRenderer_polygon( target_field, m, M, contours ) );
+    if ( l )
+    {
+        l->dataProvider()->addFeatures( flist );
+        //l->updateExtents();
+        mDataLayers.push_back( l );
+    }
+    return l;
+}
+////////////////////////////////////////////////////////////////////////////////////
 
 
 QgsVectorLayer* CMapWidget::AddOGRVectorLayer( const QString &layer_path, QgsSymbolV2* symbol )		//symbol = nullptr 
@@ -1583,7 +1845,7 @@ void CMapWidget::WriteDataValue( QgsRectangle rect )
 
 void CMapWidget::ShowMouseDegreeCoordinates( const QgsPoint &geo, bool erase )			//erase = false 
 {
-	if ( erase )
+    if ( erase )
 	{
 		mCoordsEdit->clear();
 	}
@@ -1626,7 +1888,27 @@ void CMapWidget::ShowMouseCoordinate( const QgsPoint &p, bool erase )		//erase =
 		return;
 	}
 
-	QGis::UnitType unit = mapUnits();
+    // TODO - RCCC /////////////////////////////////////////////////////////
+    if ( mMapTipsVisible && ( mTracksLayer || !mDataLayers.empty() ) )
+    {
+      // store the point, we need it for when the maptips timer fires
+      mLastMapPosition = p;
+
+      // we use this slot to control the timer for maptips since it is fired each time
+      // the mouse moves.
+      if ( this->underMouse() )
+      {
+        // Clear the maptip (this is done conditionally)
+        mpMaptip->clear( this );
+        // don't start the timer if the mouse is not over the map canvas
+        mpMapTipsTimer->start();
+        //QgsDebugMsg("Started maptips timer");
+      }
+    }
+    /////////////////////////////////////////////////////////////////////
+
+
+    QGis::UnitType unit = mapUnits();
 
 	mActionDM->setEnabled( unit == QGis::Degrees );
 	if ( !mActionDM->isEnabled() )
@@ -1760,6 +2042,72 @@ void CMapWidget::ConnectCoordinatesWidget( QLineEdit *&coords, QToolButton *form
 
 	connect( this, SIGNAL( xyCoordinates( const QgsPoint & ) ), this, SLOT( ShowMouseCoordinate( const QgsPoint & ) ) );
 	connect( this, SIGNAL( scaleChanged( double ) ), this, SLOT( UpdateMouseCoordinatePrecision() ) );
+}
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//		Creating Map Tips - TODO - RCCC
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// TODO: RCCC - Create Map Tips.
+void CMapWidget::createMapTips()
+{
+    // Set up the timer for maptips. The timer is reset everytime the mouse is moved
+    mpMapTipsTimer = new QTimer( this );
+
+    // connect the timer to the maptips slot
+    connect( mpMapTipsTimer, SIGNAL( timeout() ), this, SLOT( showMapTip() ) );
+
+    // set the interval to 0.850 seconds - timer will be started next time the mouse moves
+    mpMapTipsTimer->setInterval( 850 );
+
+    // Create the maptips object
+    mpMaptip = new QgsMapTip();
+}
+
+// Show the maptip using tooltip (SLOT)
+void CMapWidget::showMapTip()
+{
+  // Stop the timer while we look for a maptip
+  mpMapTipsTimer->stop();
+
+  // Only show tooltip if the mouse is over the canvas
+  if ( this->underMouse() )
+  {
+    QPoint myPointerPos = this->mouseLastXY();
+
+    //  Make sure there is an active layer before proceeding
+    QgsMapLayer* mypLayer = this->currentLayer();
+    if ( mypLayer )
+    {
+      //QgsDebugMsg("Current layer for maptip display is: " + mypLayer->source());
+      // only process vector layers
+      if ( mypLayer->type() == QgsMapLayer::VectorLayer )
+      {
+        // Show the maptip if the maptips button is depressed
+        if ( mMapTipsVisible )
+        {
+          mpMaptip->showMapTip( mypLayer, mLastMapPosition, myPointerPos, this );
+        }
+      }
+    }
+    else
+    {
+      LOG_WARN( "Maptips require an active layer" );
+    }
+  }
+}
+
+
+void CMapWidget::toggleMapTips()
+{
+  mMapTipsVisible = !mMapTipsVisible;
+  // if off, stop the timer
+  if ( !mMapTipsVisible )
+  {
+    mpMapTipsTimer->stop();
+  }
 }
 
 

@@ -1,6 +1,42 @@
 #ifndef WX_DISPLAY_INTERFACE_H
 #define WX_DISPLAY_INTERFACE_H
 
+
+#if defined(BRAT_V3)
+#include "wx/fileconf.h"		// (wxFileConfig class)
+#define CONFIG wxFileConfig
+#define QLookupTable vtkLookupTable
+#define CBratLookupTableSettings CBratLookupTableConfiguration
+#define DATA_MODELS_PLOT_DATA_BRAT_LOOKUP_TABLE_SETTINGS_H
+#include "new-gui/brat/DataModels/PlotData/BratLookupTable.h"
+//#else
+//#include "new-gui/brat/DataModels/Workspaces/WorkspaceSettings.h"
+//#define CONFIG CWorkspaceSettings
+#endif
+
+
+
+class CBratLookupTableConfiguration : public CONFIG
+{
+	typedef CONFIG base_t;
+
+public:
+	CBratLookupTableConfiguration( const std::string& localFilename );
+
+	virtual void Sync();
+	virtual void Clear();
+
+	void SaveToFile( const CBratLookupTable &table );
+	bool LoadFromFile( std::string &error_msg, CBratLookupTable &table );
+
+	void SaveGradToFile( const CBratLookupTable &table );
+	void SaveCustToFile( const CBratLookupTable &table );
+
+	bool LoadGradFromFile( std::string &error_msg, CBratLookupTable &table );
+	bool LoadCustFromFile( std::string &error_msg, CBratLookupTable &table );
+};
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Declarations / Definitions involving (tying) wxWidgets and migrated code, stripped out of wxWidgtes dependencies
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -30,8 +66,6 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 //										CBratLookupTable	
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-#include "PlotData/BratLookupTable.h"
 
 
 //void CPlotColor::Get(wxColour& color) const

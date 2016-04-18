@@ -37,9 +37,7 @@ using namespace brathl;
 #include "PlotColor.h"
 #include "ZFXYPlot.h"
 
-#if defined(BRAT_V3)
-#include "display/PlotData/BratLookupTable.h"
-#endif
+#include "new-gui/brat/DataModels/PlotData/BratLookupTable.h"
 
 
 
@@ -54,9 +52,7 @@ struct CZFXYPlotProperties : public CBratObject
 	std::string m_xLabel;
 	std::string m_yLabel;
 
-#if defined(BRAT_V3)
-	CBratLookupTable* m_LUT;
-#endif
+	CBratLookupTable* m_LUT = nullptr;
 
 	double m_opacity;
 
@@ -115,9 +111,7 @@ struct CZFXYPlotProperties : public CBratObject
 
 private:
 
-#if defined(BRAT_V3)
 	void DeleteLUT();
-#endif
 
 	void Copy( const CZFXYPlotProperties& p );
 };

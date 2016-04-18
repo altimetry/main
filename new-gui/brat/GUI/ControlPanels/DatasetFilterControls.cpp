@@ -1021,9 +1021,10 @@ void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
 				LOG_WARN( "Different latitude/longitude dimensions in file " + path );
 			}
 
-            LOG_WARN( "lat==" + ( lat ? lat->GetName() : "" ) +
-                      " lon==" + ( lon ? lon->GetName() : "" ) +
-                      " time==" + ( time ? time->GetName() : "") );
+			LOG_WARN( 
+				"%{lat}==" + ( lat ? lat->GetName() : "" ) +
+				" %{lon}==" + ( lon ? lon->GetName() : "" ) +
+				" %{time}==" + ( time ? time->GetName() : "") );
 
 			auto ref_date = product->GetRefDate();
             delete product;
@@ -1070,7 +1071,7 @@ void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
 
 				debug_log( "About to plot..." );
 
-				mMap->PlotTrack( lonv, latv, timev, lon_dim, ref_date, color_cast<QColor>( mc.NextPrimaryColors() ) );
+				mMap->PlotTrack( lonv, latv, timev, lon_dim, ref_date, Qt::red );	// <QColor>( mc.NextPrimaryColors() ) );
 
 				debug_log( "Finished plotting..." );
 			}

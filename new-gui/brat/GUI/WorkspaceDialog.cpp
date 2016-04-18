@@ -160,42 +160,7 @@ void CWorkspaceDialog::CreateGUI()
     mButtonBox->button( QDialogButtonBox::Ok )->setDefault( true );
 
 
-	//	Set state according to task
-
-	QString ok_text;
-	switch ( mTask )
-	{
-		case CTreeWorkspace::eNew:
-			import_group->setVisible( false );
-			ok_text = "Create";
-			break;
-		case CTreeWorkspace::eOpen:
-			name_wrapper->setEnabled( false );
-		    import_group->setVisible( false );
-			ok_text = "Open";
-			break;
-		case CTreeWorkspace::eImport:
-			name_wrapper->setEnabled( false );
-			mPathText->setEnabled( false );			//force usage of browse button so we can detect new import source; and minimize path input errors
-			ok_text = "Import";
-			break;
-		case CTreeWorkspace::eRename:
-			path_wrapper->setEnabled( false );		//TODO this can change if rename is construed as a save as
-			import_group->setVisible( false );
-			ok_text = "Rename";
-			break;
-		case CTreeWorkspace::eDelete:
-			name_wrapper->setEnabled( false );
-			path_wrapper->setEnabled( false );
-			import_group->setVisible( false );
-			ok_text = "Delete";
-			break;
-		default:
-			assert__( false );
-			break;
-	}
-    mButtonBox->button( QDialogButtonBox::Ok )->setText( ok_text );
-
+	//	Layout everything
 
     QBoxLayout *l =
             LayoutWidgets( Qt::Vertical,
@@ -215,6 +180,47 @@ void CWorkspaceDialog::CreateGUI()
                                 mButtonBox
 
                             }, this, 6, 6, 6, 6, 6 );
+
+
+	//	Set state according to task
+
+	QString ok_text;
+	switch ( mTask )
+	{
+		case CTreeWorkspace::eNew:
+			mNameText->setFocus();
+			import_group->setVisible( false );
+			ok_text = "Create";
+			break;
+		case CTreeWorkspace::eOpen:
+			mBrowseDirButton->setFocus();
+			name_wrapper->setEnabled( false );
+		    import_group->setVisible( false );
+			ok_text = "Open";
+			break;
+		case CTreeWorkspace::eImport:
+			mBrowseDirButton->setFocus();
+			name_wrapper->setEnabled( false );
+			mPathText->setEnabled( false );			//force usage of browse button so we can detect new import source; and minimize path input errors
+			ok_text = "Import";
+			break;
+		case CTreeWorkspace::eRename:
+			mNameText->setFocus();
+			path_wrapper->setEnabled( false );		//TODO this can change if rename is construed as a save as
+			import_group->setVisible( false );
+			ok_text = "Rename";
+			break;
+		case CTreeWorkspace::eDelete:
+			name_wrapper->setEnabled( false );
+			path_wrapper->setEnabled( false );
+			import_group->setVisible( false );
+			ok_text = "Delete";
+			break;
+		default:
+			assert__( false );
+			break;
+	}
+    mButtonBox->button( QDialogButtonBox::Ok )->setText( ok_text );
 
 
     setWindowTitle( "Workspace Dialog - " + ok_text );
@@ -258,6 +264,8 @@ CWorkspaceDialog::CWorkspaceDialog( QWidget *parent, CTreeWorkspace::EValidation
 		mNameText->setText( t2q( mWks->GetName() ) );
 		mPathText->setText( t2q( mWks->GetPath() ) );
 	}
+	else
+		mPathText->setText( mInitialDir );
 }
 
 

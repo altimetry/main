@@ -173,7 +173,7 @@ public:
 
 	COperation( const std::string name ) : m_name( name )
 	{
-		m_select->SetType( CMapTypeField::eTypeOpAsSelect );
+		m_select->SetFieldType( CMapTypeField::eTypeOpAsSelect );
 	}
 
 	static COperation* Copy( const COperation &o, CWorkspaceOperation *wkso, CWorkspaceDataset *wksd );

@@ -1186,7 +1186,7 @@ const int min_plot_widget_height = min_globe_widget_height;
 const int min_editor_dock_width = 200;
 const int min_editor_dock_height = 10;
 
-
+const int min_readable_combo_width = 90;
 
 
 

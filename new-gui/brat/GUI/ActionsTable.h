@@ -324,14 +324,19 @@ public:
 	void SetEnabled( bool enable );
 
 
-	// UPDATE: to be called when file is successfully opened
+	// UPDATE
 
-	void setCurrentFile( const QString &curFile )
+	// To be called when file is successfully opened
+	//
+	void SetCurrentFile( const QString &cur_file )
 	{
-		mRecentFiles.removeAll( curFile );
-		mRecentFiles.prepend( curFile );
+		mRecentFiles.removeAll( cur_file );
+		mRecentFiles.prepend( cur_file );
 		UpdateRecentFileActions();
 	}
+
+
+	void DeleteEntry( const QString &path );
 
 
 	// PERSISTENCE  

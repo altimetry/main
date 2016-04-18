@@ -299,11 +299,9 @@ CMapControlsPanelDataLayers::CMapControlsPanelDataLayers( QWidget *parent, Qt::W
 
     QFrame *lineHorizontal = WidgetLine( nullptr, Qt::Horizontal );
 
-    auto mMinRange = new QLineEdit(this);
-    mMinRange->setText("0");
-    auto mMaxRange = new QLineEdit(this);
-    mMaxRange->setText("0");
-    auto mReset = new QPushButton("Reset");
+    mMinRange = new QLineEdit(this);
+    mMaxRange = new QLineEdit(this);
+    mReset = new QPushButton( "Reset" );
 
     QLayout *group = LayoutWidgets( Qt::Vertical, 
 		{

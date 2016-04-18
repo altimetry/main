@@ -7,7 +7,7 @@
 #define CONFIG wxFileConfig
 #define CWorkspaceSettings CConfiguration
 #define WORKSPACES_WORKSPACE_SETTINGS_H
-#include "display/PlotData/BratLookupTable.h"
+//#include "new-gui/brat/DataModels/PlotData/BratLookupTable.h"
 //#else
 //#include "new-gui/brat/DataModels/Workspaces/WorkspaceSettings.h"
 //#define CONFIG CWorkspaceSettings

@@ -49,11 +49,9 @@ const std::string KEY_MAIN_WINDOW_STATE = "state";
 const std::string KEY_MAIN_WINDOW_MAXIMIZED = "maximized";
 
 const std::string ENTRY_LOAD_WKSPC_AT_STARTUP = "load_wkspc_at_startup";
+const std::string ENTRY_USE_RASTER_LAYER = "use_raster_in_maps";
 const std::string ENTRY_APP_STYLE = "application_style";
-const std::string ENTRY_APPLICATION_STYLESHEETS = "application_stylesheet";
 const std::string ENTRY_USE_DEFAULT_STYLE = "use_default_style";
-const std::string ENTRY_CUSTOM_STYLESHEET = "custom_stylesheet";
-const std::string ENTRY_NO_STYLESHEET = "no_stylesheet";
 
 
 // Workspaces module

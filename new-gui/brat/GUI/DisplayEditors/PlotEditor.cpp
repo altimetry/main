@@ -30,7 +30,7 @@ void CPlotEditor::CreateWidgets() 	//parent = nullptr
 	mTabAxisOptions->mZ_axis->mBase->setEnabled( false );		//TODO delete when properly implemented
 	mTabAxisOptions->mZ_axis->mNbDigits->setEnabled( false );	//TODO delete when properly implemented
 	mTabAxisOptions->mZ_axis->mReset->setEnabled( false );		//TODO delete when properly implemented
-	mTabAxisOptions->mZ_axis->mHelpGroup->setVisible( true );	//TODO delete when properly implemented
+	//mTabAxisOptions->mZ_axis->mHelpGroup->setVisible( true );	//TODO delete when properly implemented
 	
 
 	//Even if ResetViews destroys them before first use, 

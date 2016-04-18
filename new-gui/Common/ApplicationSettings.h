@@ -4,37 +4,25 @@
 #include "new-gui/Common/FileSettings.h"
 
 
-enum EApplicationStyleSheets : int
-{
-	e_DarkStyle,
-	e_DarkOrangeStyle,
-	e_Dark_2015Style,
-
-	EApplicationStylesSheets_size
-};
-
-
-
-
-
 ///////////////////////////////////////////////////
 //	Extract and insert values in QVariant
 ///////////////////////////////////////////////////
 
 // Extract: QVariant => Type
 
-template<>
-inline EApplicationStyleSheets qv2type( const QVariant &v )
-{
-	return static_cast< EApplicationStyleSheets >( v.toInt() );
-}
+//DO NOT DELETE: example
+//
+//template<>
+//inline EApplicationStyleSheets qv2type( const QVariant &v )
+//{
+//	return static_cast< EApplicationStyleSheets >( v.toInt() );
+//}
+
 
 
 // Insert: Type => QVariant
 
 // See FileSettings.h
-
-
 
 
 
@@ -59,8 +47,6 @@ public:
 
 	static size_t getStyleIndex( const QString &qname );
 
-	static const std::vector< std::string >& getStyleSheets( bool resources );
-
 	static std::string getNameOfStyle( const QStyle *s );
 
 	static std::string getNameOfStyle( QStyle *s, bool del );
@@ -81,8 +67,6 @@ public:
 
 	QString mAppStyle;
 	bool mUseDefaultStyle = false;
-	EApplicationStyleSheets mCustomAppStyleSheet = e_Dark_2015Style;
-	bool mNoStyleSheet = false;
 
 
     //////////////////////////////////////

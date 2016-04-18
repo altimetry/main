@@ -50,15 +50,7 @@ class CModel : public QObject
 
 	static CWorkspace* LoadWorkspace( CTreeWorkspace &tree, const std::string& path, std::string &error_msg );
 
-	static bool MakeWorkspaceFiltersConsistent( CTreeWorkspace &tree, std::string &error_msg );
-
-	static bool SaveWorkspace( CTreeWorkspace &tree, std::string &error_msg )
-	{
-		return tree.SaveConfig(
-			error_msg,
-			Workspace< CWorkspaceOperation >( tree ),
-			Workspace< CWorkspaceDisplay >( tree ) );
-	}
+	static bool SaveWorkspace( CTreeWorkspace &tree, std::string &error_msg );
 
 
 public:
@@ -147,10 +139,7 @@ public:
 
 	bool SaveWorkspace( std::string &error_msg )
 	{
-		return mTree.SaveConfig(
-			error_msg,
-			Workspace< CWorkspaceOperation >(),
-			Workspace< CWorkspaceDisplay >() );
+		return SaveWorkspace( mTree, error_msg );
 	}
 
 

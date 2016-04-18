@@ -6,133 +6,153 @@
 #include "BratSettings.h"
 #include "ApplicationSettingsDlg.h"
 
-/*
-Receives a CBratSettings ref, which includes a CApplicationSettings ref as well.
-mSettings is set by copy from options.
-*/
-CApplicationSettingsDlg::CApplicationSettingsDlg( CBratSettings &options, QWidget *parent ) : QDialog( parent ), mSettings( options )
+
+void CApplicationSettingsDlg::CreateWidgets()
 {
-    //Add sub widgets and additional contents.
-	setupUi( this );
-	//QIcon icon;
-	//icon.addFile( QString::fromUtf8( ":/settings.png" ), QSize(), QIcon::Normal, QIcon::Off );
-	//setWindowIcon( icon );
-
-	// *** Page Selector ***
-
-	static const size_t iwidth = 48, iheight = iwidth, spacing = 12;
-    const CApplicationPaths* settings_paths = &mSettings.BratPaths();
-
-	Contents_ListWidget->setViewMode( QListView::IconMode );
-	Contents_ListWidget->setIconSize( QSize( iwidth, iheight ) );
-	Contents_ListWidget->setMovement( QListView::Static );
-	Contents_ListWidget->setMaximumWidth( iwidth + 2*spacing + 10 );	//don't change, empirically found
-	Contents_ListWidget->setSpacing( spacing );
-	createIcons();
-	connect( 
-		Contents_ListWidget,SIGNAL( currentItemChanged( QListWidgetItem*, QListWidgetItem* ) ),
-		this, SLOT( changePage( QListWidgetItem*, QListWidgetItem* ) ) );
-	Contents_ListWidget->setCurrentRow( 0 );
-
-
 	// *** Pages ***
 
-	//	ApplicationPaths_page
+	//	ApplicationPaths Page
 
-    DataDirectory_lineEdit->setText( settings_paths->mUserBasePath.c_str() );
-    ExternalDataDirectory_lineEdit->setText( settings_paths->mExternalDataDir.c_str() );
-    ProjectsDirectory_lineEdit->setText( settings_paths->mWorkspacesDir.c_str() );
+    mDataDirectoryLineEdit = new QLineEdit( this );
+    mDataDirectoryLineEdit->setObjectName(QString::fromUtf8("DataDirectory_lineEdit"));
+	mBrowseDataDirectoryPushButton = new QPushButton( "Browse..." );
+	mUsePortablePathsCheckBox = new QCheckBox( "Use portable paths" );
 
-    AutoRelativePaths_checkBox->setChecked( settings_paths->UniqueUserBasePath() );
-
-    // Signal and slots:
-    // DataDirectory_lineEdit reacts to signal textChanged with callback
-    // 'UpdateDirectoriesActions'
-    connect( DataDirectory_lineEdit, SIGNAL( textChanged(const QString&) ), this, SLOT( UpdateDirectoriesActions(const QString&) ) );
-
-	on_AutoRelativePaths_checkBox_clicked( AutoRelativePaths_checkBox->isChecked() );
+	auto *data_l =
+		LayoutWidgets( Qt::Vertical, {
+			new QLabel( "Default Data Directory" ),
+			LayoutWidgets( Qt::Horizontal, { mDataDirectoryLineEdit, mBrowseDataDirectoryPushButton }, nullptr, 2, 2, 2, 2, 2 ),
+			mUsePortablePathsCheckBox
+		}, nullptr, 2, 2, 2, 2, 2 );
 
 
-	//	StartupOptions_page
+    mProjectsDirectoryLineEdit = new QLineEdit( this );
+    mProjectsDirectoryLineEdit->setObjectName(QString::fromUtf8("ExternalDataDirectory_lineEdit"));
+	mBrowseWorkspacesDirectoryPushButton = new QPushButton( "Browse..." );
 
-	LoadLastProjectAtAtartup_checkBox->setChecked( mSettings.mLoadLastWorkspaceAtStartUp );
+	auto *wkspc_l = 
+		LayoutWidgets( Qt::Vertical, {
+			new QLabel( "Default Workspaces Directory" ),
+			LayoutWidgets( Qt::Horizontal, { mProjectsDirectoryLineEdit, mBrowseWorkspacesDirectoryPushButton }, nullptr, 2, 2, 2, 2, 2 )
+		}, nullptr, 2, 2, 2, 2, 2 );
+
+
+	mApplicationPathsPage = CreateGroupBox( ELayoutType::Vertical, { nullptr, data_l, nullptr, wkspc_l, nullptr }, "Application Paths", this, 6, 6, 6, 6, 6 );
+
+
+	//StartupOptions Page
+
+	mLoadLastProjectAtAtartupCheckBox = new QCheckBox( "Load last workspace of previous session" );
+	mUseVectorLayer = new QRadioButton( "Use a vector layer" );
+	mUseRasterLayer = new QRadioButton( "Use a raster layer" );
+	auto layers_group = CreateGroupBox( ELayoutType::Vertical, { mUseVectorLayer, mUseRasterLayer, }, "Map Base Layer (requires restart)", this );
 
 #if defined(DEBUG) || defined(_DEBUG)
+
 	mDesktopManagerSdiCheckbox = new QCheckBox( "Single Document Interface desktop manager" );
-	mStartupOptions_groupBox->layout()->addWidget( mDesktopManagerSdiCheckbox );
 	mDesktopManagerSdiCheckbox->setChecked( mSettings.mDesktopManagerSdi );
+
+	mStartupOptionsPage = CreateGroupBox( ELayoutType::Vertical, 
+	{ 
+		nullptr, mLoadLastProjectAtAtartupCheckBox, nullptr, layers_group, nullptr, mDesktopManagerSdiCheckbox, nullptr
+	}
+	, "Startup Options", this, 6, 6, 6, 6, 6 );
+#else
+
+	mStartupOptionsPage = CreateGroupBox( ELayoutType::Vertical, 
+	{ 
+		nullptr, mLoadLastProjectAtAtartupCheckBox, nullptr, layers_group, nullptr, 
+	}
+	, "Startup Options", this, 6, 6, 6, 6, 6 );
 #endif
 
 
-    //	ApplicationStyles_page - irrelevant for now.
+	//ApplicationStyles Page
 
-	Styles_listWidget->setSelectionMode( QAbstractItemView::SingleSelection );
+    mStylesListWidget = new QListWidget( this );
+    mDefaultStyleCheckBox = new QCheckBox( "Use the default style", this );
+
+	mApplicationStylesPage = CreateGroupBox( ELayoutType::Vertical, 
+	{ 
+		nullptr, mStylesListWidget, mDefaultStyleCheckBox, nullptr 
+	}, 
+	"Application Styles", this, 6, 6, 6, 6, 6 );
+
+
+
+	// Stack pages
+
+	mStackedWidget = new CStackedWidget( this, { 
+		{ mApplicationPathsPage, "Paths", CActionInfo::FormatTip("Paths\nDefault application paths selection"), "://images/alpha-numeric/__n.png", true }, 
+		{ mStartupOptionsPage, "Startup", CActionInfo::FormatTip("Startup\nApplication start-up behavior"), "://images/alpha-numeric/__o.png", true },
+		{ mApplicationStylesPage, "Style", CActionInfo::FormatTip("Styles\nApplication visual options"), "://images/alpha-numeric/__p.png", true }
+	} );
+
+
+	auto *row = CreateButtonRow( true, Qt::Vertical, { mStackedWidget->Button( 0 ), mStackedWidget->Button( 1 ), mStackedWidget->Button( 2 ) } );
+
+	auto *content_l = LayoutWidgets( Qt::Horizontal, { row, mStackedWidget }, nullptr, 6, 6, 6, 6, 6 );
+
+
+	// Dialog buttons
+
+    mButtonBox = new QDialogButtonBox( this );
+    mButtonBox->setObjectName(QString::fromUtf8("mButtonBox"));
+    mButtonBox->setMinimumSize(QSize(495, 25));
+    mButtonBox->setStandardButtons(QDialogButtonBox::Cancel|QDialogButtonBox::Ok);
+
+
+	// Main layout
+
+	LayoutWidgets( Qt::Vertical, { content_l, mButtonBox }, this, 6, 6, 6, 6, 6 );
+
+	Wire();
+}
+
+
+void CApplicationSettingsDlg::Wire()
+{
+    const CApplicationPaths* settings_paths = &mSettings.BratPaths();
+
+	//	ApplicationPaths Page
+
+    mDataDirectoryLineEdit->setText( settings_paths->mPortableBasePath.c_str() );				//for data portable paths
+    mProjectsDirectoryLineEdit->setText( settings_paths->mWorkspacesDir.c_str() );
+
+    mUsePortablePathsCheckBox->setChecked( settings_paths->UsePortablePaths() );
+
+	connect( mBrowseDataDirectoryPushButton, SIGNAL( clicked() ), this, SLOT(  HandleBrowseDataDirectory() ) );
+	connect( mBrowseWorkspacesDirectoryPushButton, SIGNAL( clicked() ), this, SLOT(  HandleBrowseProjectsPath() ) );
+
+
+	//StartupOptions Page
+
+	mLoadLastProjectAtAtartupCheckBox->setChecked( mSettings.mLoadLastWorkspaceAtStartUp );
+
+	mUseRasterLayer->setChecked( mSettings.UsingRasterLayer() );
+	mUseVectorLayer->setChecked( !mSettings.UsingRasterLayer() );
+
+
+    //	Application Styles
+
+	mStylesListWidget->setSelectionMode( QAbstractItemView::SingleSelection );
 	const std::vector< std::string > &styles = CBratSettings::getStyles();
-	FillList( Styles_listWidget, styles, (int)CBratSettings::getStyleIndex( mSettings.mAppStyle ), true );
+	FillList( mStylesListWidget, styles, (int)CBratSettings::getStyleIndex( mSettings.mAppStyle ), true );
 
-	StyleSheets_listWidget->setSelectionMode( QAbstractItemView::SingleSelection );
-	const std::vector< std::string > &style_sheets = CBratSettings::getStyleSheets( false );
-	FillList( StyleSheets_listWidget, style_sheets, mSettings.mCustomAppStyleSheet, true );
+    mDefaultStyleCheckBox->setChecked( mSettings.mUseDefaultStyle );
+	mStylesListWidget->setDisabled( mDefaultStyleCheckBox->isChecked() );
+	connect( mDefaultStyleCheckBox, SIGNAL( clicked( bool ) ), mStylesListWidget, SLOT( setDisabled( bool ) ) );
 
-    DefaultStyle_checkBox->setChecked( mSettings.mUseDefaultStyle );
-	NoStyleSheet_checkBox->setChecked( mSettings.mNoStyleSheet );
-
-	Styles_listWidget->setDisabled( DefaultStyle_checkBox->isChecked() );
-	StyleSheets_listWidget->setDisabled( NoStyleSheet_checkBox->isChecked() );
-	connect( DefaultStyle_checkBox, SIGNAL( clicked( bool ) ), Styles_listWidget, SLOT( setDisabled( bool ) ) );
-	connect( NoStyleSheet_checkBox, SIGNAL( clicked( bool ) ), StyleSheets_listWidget, SLOT( setDisabled( bool ) ) );
-
-	StyleSheets_listWidget->item( e_DarkStyle )->setToolTip(" recommended with QCleanlooksStyle " );
-	StyleSheets_listWidget->item( e_DarkOrangeStyle )->setToolTip(" recommended with QPlastiqueStyle " );
+    connect( mButtonBox, SIGNAL(accepted()), this, SLOT(accept()) );
+    connect( mButtonBox, SIGNAL(rejected()), this, SLOT(reject()) );
 }
 
 
-///////////////////////////////////////////////////////////////////////////////////
-//
-//							*** Page Selector ***
-//
-///////////////////////////////////////////////////////////////////////////////////
-
-void CApplicationSettingsDlg::createIcons()
+CApplicationSettingsDlg::CApplicationSettingsDlg( CBratSettings &options, QWidget *parent ) : QDialog( parent ), mSettings( options )
 {
-	// ApplicationPaths_page
-	QAction *a = CActionInfo::CreateAction( this, eAction_ApplicationPaths_page );
-	QListWidgetItem *configButton = new QListWidgetItem( Contents_ListWidget );
-    configButton->setIcon( a->icon() );
-	configButton->setText( a->text() );
-	configButton->setToolTip( a->toolTip() );
-	configButton->setTextAlignment( Qt::AlignHCenter );
-	configButton->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled );
-	delete a;
-
-	// StartupOptions_page
-	a = CActionInfo::CreateAction( this, eAction_StartupOptions_page );
-	QListWidgetItem *updateButton = new QListWidgetItem( Contents_ListWidget );
-    updateButton->setIcon( a->icon() );
-	updateButton->setText( a->text() );
-	updateButton->setToolTip( a->toolTip() );
-	updateButton->setTextAlignment( Qt::AlignHCenter );
-	updateButton->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled );
-	delete a;
-
-	// ApplicationStyles_page
-	a = CActionInfo::CreateAction( this, eAction_ApplicationStyles_page );
-	QListWidgetItem *queryButton = new QListWidgetItem( Contents_ListWidget );
-    queryButton->setIcon( a->icon() );
-	queryButton->setText( a->text() );
-	queryButton->setToolTip( a->toolTip() );
-	queryButton->setTextAlignment( Qt::AlignHCenter );
-	queryButton->setFlags( Qt::ItemIsSelectable | Qt::ItemIsEnabled );
-	delete a;
+	CreateWidgets();
 }
 
-void CApplicationSettingsDlg::changePage( QListWidgetItem *current, QListWidgetItem *previous )
-{
-	if ( !current )
-		current = previous;
-
-	Pages_StackedWidget->setCurrentIndex( Contents_ListWidget->row( current ) );
-}
 
 
 
@@ -145,58 +165,24 @@ void CApplicationSettingsDlg::changePage( QListWidgetItem *current, QListWidgetI
 
 //	ApplicationPaths_page
 
-
-void CApplicationSettingsDlg::on_BrowseParseDataDirectory_pushButton_clicked()
+void CApplicationSettingsDlg::HandleBrowseDataDirectory()
 {
-    QString dir = BrowseDirectory( this, "Select BRAT Working Directory", DataDirectory_lineEdit->text() );
+    QString dir = BrowseDirectory( this, "Select Default Data Directory", mDataDirectoryLineEdit->text() );
     if ( !dir.isEmpty() )
-        DataDirectory_lineEdit->setText( dir );
+        mDataDirectoryLineEdit->setText( dir );
 }
 
-void CApplicationSettingsDlg::on_Browse_ExternalDataPath_pushButton_clicked()
+void CApplicationSettingsDlg::HandleBrowseProjectsPath()
 {
-    QString dir = BrowseDirectory( this, "Select External Data Directory", ExternalDataDirectory_lineEdit->text() );
+    QString dir = BrowseDirectory( this, "Select Default Workspaces Directory", mProjectsDirectoryLineEdit->text() );
     if ( !dir.isEmpty() )
-        ExternalDataDirectory_lineEdit->setText( dir );
+        mProjectsDirectoryLineEdit->setText( dir );
 }
 
-void CApplicationSettingsDlg::on_Browse_ProjectsPath_pushButton_clicked()
-{
-    QString dir = BrowseDirectory( this, "Select Workspaces Directory", ProjectsDirectory_lineEdit->text() );
-    if ( !dir.isEmpty() )
-        ProjectsDirectory_lineEdit->setText( dir );
-}
-
-//This is a callback. DataDirectory_LineEdit was updated for some reason.
-void CApplicationSettingsDlg::UpdateDirectoriesActions(const QString & text)
-{
-    // Only do anything if AutoRelativePaths is checked as positive:
-    // Which would make sense since we are only managing the default part.
-	if ( AutoRelativePaths_checkBox->isChecked() )
-	{
-        // The text for ExternalDataDirectory_lineEdit will be text / DefaultExternalDataSubDir()
-        ExternalDataDirectory_lineEdit->setText( text + "/" + t2q( mSettings.BratPaths().DefaultExternalDataSubDir() ) );
-        // ProjectsDirectory_lineEdit text will be text / DefaultProjectsSubdir()
-        ProjectsDirectory_lineEdit->setText( text + "/" + t2q( mSettings.BratPaths().DefaultProjectsSubDir() ) );
-	}
-}
-
-// Only enable other boxes if we don't ise AutoRelativePaths
-void CApplicationSettingsDlg::on_AutoRelativePaths_checkBox_clicked( bool checked )
-{
-	if ( checked )
-        UpdateDirectoriesActions(DataDirectory_lineEdit->text());
-
-    ExternalDataDirectory_lineEdit->setEnabled( !checked );
-    ProjectsDirectory_lineEdit->setEnabled( !checked );
-    Browse_ExternalDataPath_pushButton->setEnabled( !checked );
-    Browse_ProjectsPath_pushButton->setEnabled( !checked );
-    DataDirectory_lineEdit->setEnabled( checked );
-    BrowseParseDataDirectory_pushButton->setEnabled( checked );
-}
 
 //	StartupOptions_page
 //	ApplicationStyles_page
+
 
 
 
@@ -235,47 +221,31 @@ bool CApplicationSettingsDlg::ValidateAndAssign()
 
 	// main function body
 
-	//	1. ApplicationPaths_page: 
+	//	1. Application Paths
 
-    bool isPathUnique =  AutoRelativePaths_checkBox->isChecked();
+    std::string user_dir = q2a(mDataDirectoryLineEdit->text());
+    std::string workspace_dir = q2a(mProjectsDirectoryLineEdit->text());
 
-    std::string user_dir = q2a(DataDirectory_lineEdit->text());
-    std::string workspace_dir = q2a(ProjectsDirectory_lineEdit->text());
-    std::string external_data_dir = q2a(ExternalDataDirectory_lineEdit->text());
-
-    if (isPathUnique)
+    if ( !IsDir( user_dir ) && !ask_create_dir( "User working directory", user_dir ) )
     {
-        if ( !IsDir( user_dir ) && !ask_create_dir( "BRAT working directory", user_dir ) )
-        {
-			return false;
-        }
-    }
-    else
-    {
-        if ( !IsDir(workspace_dir) && !ask_create_dir( "Workspaces directory.", workspace_dir ) )
-        {
-			return false;
-        }
-        if ( !IsDir(external_data_dir) && !ask_create_dir( "External data directory.", external_data_dir ) )
-        {
-			return false;
-        }
+		return false;
     }
 
-	// TODO Pass most validation logic to CApplicationPaths; the intelligence should be centralized there, the dialog is only a fancy input device.
-	//	Anyway, the boolean return values of CApplicationPaths have a meaning, namely if it refuses to make an assignment, so they must be inspected.
+    if ( !IsDir(workspace_dir) && !ask_create_dir( "Workspaces directory.", workspace_dir ) )
+    {
+		return false;
+    }
 
     //Its safe now to apply these procedures
-    mSettings.SetUserBasePath( isPathUnique, user_dir );
+    mSettings.SetUserBasePath( mUsePortablePathsCheckBox->isChecked(), user_dir );
     mSettings.SetWorkspacesDirectory( workspace_dir );
-    mSettings.SetExternalDataDirectory( external_data_dir );
 
 
-	//	2. Application Options (the dialog acts over an options object copy, not changing the application state)
+	//	2. Startup Options
 
-	//	2a. StartupOptions_page
+	mSettings.mLoadLastWorkspaceAtStartUp = mLoadLastProjectAtAtartupCheckBox->isChecked();
+	mSettings.mUseRasterLayer  = mUseRasterLayer->isChecked();
 
-	mSettings.mLoadLastWorkspaceAtStartUp = LoadLastProjectAtAtartup_checkBox->isChecked();
 
 #if defined(DEBUG) || defined(_DEBUG)
 	assert__( mDesktopManagerSdiCheckbox );
@@ -283,16 +253,15 @@ bool CApplicationSettingsDlg::ValidateAndAssign()
 #endif
 
 
-	//	2b. ApplicationStyles_page
+	//	3. Application Styles
 
-	if ( Styles_listWidget->currentItem() )
-		mSettings.mAppStyle = Styles_listWidget->currentItem()->text();
-    mSettings.mUseDefaultStyle = DefaultStyle_checkBox->isChecked();
-	mSettings.mCustomAppStyleSheet = (EApplicationStyleSheets)StyleSheets_listWidget->currentRow();
-	mSettings.mNoStyleSheet = NoStyleSheet_checkBox->isChecked();
+	if ( mStylesListWidget->currentItem() )
+		mSettings.mAppStyle = mStylesListWidget->currentItem()->text();
+    mSettings.mUseDefaultStyle = mDefaultStyleCheckBox->isChecked();
 
     return true;
 }
+
 
 void CApplicationSettingsDlg::accept()
 {

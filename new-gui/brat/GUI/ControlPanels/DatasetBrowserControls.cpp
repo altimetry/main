@@ -165,6 +165,7 @@ void CDatasetBrowserControls::HandleRenameDataset(QTreeWidgetItem *dataset_item,
 void CDatasetBrowserControls::HandleTreeItemChanged( )
 {
     static CDataset *current_dataset = nullptr;
+
     QString dataset_name;
 
     QTreeWidgetItem *tree_item = mDatasetTree->currentItem();
@@ -223,7 +224,10 @@ void CDatasetBrowserControls::HandleWorkspaceChanged( CWorkspaceDataset *wksd )
     mWDataset = wksd;
 
     // Fill DatasetTree with Datasets items
+	mDatasetTree->blockSignals( true );
     mDatasetTree->clear();
+	mDatasetTree->blockSignals( false );
+
     HandleTreeItemChanged(); // for updating buttons status
 
     if (wksd)
@@ -416,7 +420,7 @@ void CDatasetBrowserControls::HandleDeleteDataset()
 
 void CDatasetBrowserControls::HandleAddFiles()
 {
-	static std::string last_path = mBratPaths.mExternalDataDir;
+	static std::string last_path = mBratPaths.mPortableBasePath;
 
     // Get selected dataset item
     QTreeWidgetItem *current_dataset_item = mDatasetTree->currentItem();
@@ -441,7 +445,7 @@ void CDatasetBrowserControls::HandleAddFiles()
 
 void CDatasetBrowserControls::HandleAddDir()
 {
-	static std::string last_path = mBratPaths.mExternalDataDir;
+	static std::string last_path = mBratPaths.mPortableBasePath;
 
     // Get selected dataset item
     QTreeWidgetItem *current_dataset_item = mDatasetTree->currentItem();
@@ -577,18 +581,6 @@ void CDatasetBrowserControls::AddFiles( QStringList &paths_list )
 	// Get current files class and type
 	std::string old_product_class = current_dataset->GetProductList()->m_productClass;
 	std::string old_product_type = current_dataset->GetProductList()->m_productType;
-
-	// -TODO-- Old Brat code for applying select criteria -----
-	//    bool applySelectionCriteria = GetDsapplycrit()->GetValue();
-
-	//    if (applySelectionCriteria)
-	//    {
-	//      CStringList filesOut;
-	//      ApplySelectionCriteria(fileList, filesOut);
-
-	//      fileList.clear();
-	//      fileList.Insert(filesOut);
-	//    }
 
 	foreach( QString file_path, paths_list )
 	{

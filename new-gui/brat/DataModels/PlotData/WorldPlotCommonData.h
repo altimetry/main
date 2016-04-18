@@ -36,6 +36,7 @@ using namespace brathl;
 #include "PlotField.h"
 
 
+class CBratLookupTable;
 
 
 //#include "vtkActor.h"
@@ -226,9 +227,9 @@ public:
 
 	std::string m_coastResolution;
 	std::string m_projection;
-#if defined (BRAT_V3)
-	CBratLookupTable* m_LUT;
-#endif
+
+	CBratLookupTable *m_LUT = nullptr;
+
 	//CDoubleArray m_colorRange;
 	double m_opacity;
 	double m_deltaRadius;

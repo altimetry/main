@@ -366,7 +366,7 @@ public:
 			if ( value == nullptr )
 				continue;
 
-			if ( value->GetType() != CMapTypeField::eTypeOpAsField )
+			if ( value->GetFieldType() != CMapTypeField::eTypeOpAsField )
 				continue;
 
 			WriteLn();
@@ -590,7 +590,7 @@ void COperation::Clear()
 	m_record.clear();
 	delete m_select;
 	m_select = new CFormula( ENTRY_SELECT, false );
-	m_select->SetType( CMapTypeField::eTypeOpAsSelect );
+	m_select->SetFieldType( CMapTypeField::eTypeOpAsSelect );
 	m_formulas.clear();
 	m_type = CMapTypeOp::eTypeOpYFX;
 	m_dataMode = CMapDataMode::GetInstance().GetDefault();
@@ -714,12 +714,12 @@ bool COperation::CtrlLoessCutOff( std::string &msg )
       continue;
     }
 
-    if (value->GetType() == CMapTypeField::eTypeOpAsSelect)
+    if (value->GetFieldType() == CMapTypeField::eTypeOpAsSelect)
     {
       continue;
     }
 
-    if (value->GetType() == CMapTypeField::eTypeOpAsField)
+    if (value->GetFieldType() == CMapTypeField::eTypeOpAsField)
     {
       if ( (isDefaultValue(value->GetFilter()) == false) &&
         (value->GetFilter() != CMapTypeFilter::eFilterNone) )
@@ -728,7 +728,7 @@ bool COperation::CtrlLoessCutOff( std::string &msg )
         fields += "\t'" + value->GetName() + "'";
       }
     }
-    if (value->GetType() == CMapTypeField::eTypeOpAsX)
+    if (value->GetFieldType() == CMapTypeField::eTypeOpAsX)
     {
       if ( (isDefaultValue(value->GetLoessCutOff()) == false) &&
            (value->GetLoessCutOff() > 1) )
@@ -736,7 +736,7 @@ bool COperation::CtrlLoessCutOff( std::string &msg )
         hasCutOffX = true;
       }
     }
-    if (value->GetType() == CMapTypeField::eTypeOpAsY)
+    if (value->GetFieldType() == CMapTypeField::eTypeOpAsY)
     {
       if ( (isDefaultValue(value->GetLoessCutOff()) == false) &&
            (value->GetLoessCutOff() > 1) )
@@ -950,7 +950,7 @@ CFormula* COperation::NewUserFormula( std::string &error_msg, const std::string&
 	std::string formulaName = name.empty() ? GetFormulaNewName() : GetFormulaNewName( name );
 
 	CFormula formula( formulaName, false );
-	formula.SetType( typeField );
+	formula.SetFieldType( typeField );
 	formula.SetUnit( strUnit, error_msg, "", false );
 
 	const CUnit* unit = formula.GetUnit();
@@ -1492,7 +1492,7 @@ bool COperation::ControlXYDataFields(std::string &error_msg, const CStringMap* a
       continue;
     }
 
-    switch (value->GetType())
+    switch (value->GetFieldType())
     {
 
     //-----------------------------
@@ -1592,7 +1592,7 @@ bool COperation::ControlDimensions( CFormula* formula, std::string &error_msg, c
 
 	return bOk;
 
-	if ( formula->GetType() != CMapTypeField::eTypeOpAsSelect )
+	if ( formula->GetFieldType() != CMapTypeField::eTypeOpAsSelect )
 	{
 		return bOk;
 	}
@@ -1668,7 +1668,7 @@ bool COperation::Control(CWorkspaceFormula *wks, std::string& msg, bool basicCon
       continue;
     }
 
-    switch (value->GetType())
+    switch (value->GetFieldType())
     {
     case CMapTypeField::eTypeOpAsX:
       xCount++;

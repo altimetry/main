@@ -83,7 +83,11 @@ void CBratMapView::Plot( const CWorldPlotInfo &maps, CWorldPlotProperties *props
 		auto y = i / map.mXaxis.size(); // ( x * geo_map->lats.size() ) + i;
 
 #if defined (USE_FEATURES) //(***)
-		CreatePointFeature( flist, map.mXaxis.at( x ), map.mYaxis.at( y ), map.mValues[ i ] );
+        //CreatePointFeature( flist, map.mXaxis.at( x ), map.mYaxis.at( y ), map.mValues[ i ] );  // TODO - RCCC Uncomment this to use Points
+
+        ////////// TODO RCCC  ////////////////
+        CreatePolygonFeature( flist, map.mXaxis.at( x ), map.mYaxis.at( y ), map.mValues[ i ] );
+        //////////////////////////////////////
 #else
 		addRBPoint( geo_map->lons.at( x ), geo_map->lats.at( y ), QColor( (long)(geo_map->vals[ i ]) ), mMainLayer );
 #endif  //USE_FEATURES
@@ -91,7 +95,11 @@ void CBratMapView::Plot( const CWorldPlotInfo &maps, CWorldPlotProperties *props
 
 #if defined (USE_FEATURES)
 
-    AddDataLayer( props->m_name, 0.333, map.mMinHeightValue, map.mMaxHeightValue, props->m_numContour, flist );
+    //AddDataLayer( props->m_name, 0.333, map.mMinHeightValue, map.mMaxHeightValue, props->m_numContour, flist );  // TODO - RCCC Uncomment this to use Points
+
+    ////////// TODO RCCC  ////////////////
+    AddDataLayer_Polygon( props->m_name, map.mMinHeightValue, map.mMaxHeightValue, props->m_numContour, flist );
+    //////////////////////////////////////
 
 #endif 
 

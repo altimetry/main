@@ -59,7 +59,7 @@ using namespace brathl;
 #include "vtkEarthSource.h"
 #include "vtkLookupTable.h"
 
-#include "display/PlotData/BratLookupTable.h"
+#include "new-gui/brat/DataModels/PlotData/BratLookupTable.h"
 
 #include "WorldPlotData_vtk.h"
 

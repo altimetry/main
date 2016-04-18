@@ -198,24 +198,30 @@ void CBratMainWindow::CreateWorkingDock()
 	auto 
 	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eDataset ), "Datasets" );			assert( mMainWorkingDock->TabIndex( tab ) == eDataset );
 	mMainWorkingDock->SetTabToolTip( tab, "Dataset browser" );
-    connect( this, SIGNAL( WorkspaceChanged( CWorkspaceDataset* ) ), WorkingPanel< eDataset >(), SLOT( HandleWorkspaceChanged( CWorkspaceDataset* ) ) );
 
 	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eFilter ), "Filters" );	 		assert( mMainWorkingDock->TabIndex( tab ) == eFilter );
 	mMainWorkingDock->SetTabToolTip( tab, "Dataset filter" );
-	connect( this, SIGNAL( WorkspaceChanged() ), WorkingPanel< eFilter >(), SLOT( HandleWorkspaceChanged() ) );
 
 	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eOperations ), "Operations" );	assert( mMainWorkingDock->TabIndex( tab ) == eOperations );
 	mMainWorkingDock->SetTabToolTip( tab, "Quick or advanced operations"  );
+
+    connect( this, SIGNAL( WorkspaceChanged( CWorkspaceDataset* ) ), WorkingPanel< eDataset >(), SLOT( HandleWorkspaceChanged( CWorkspaceDataset* ) ) );
+	connect( this, SIGNAL( WorkspaceChanged() ), WorkingPanel< eFilter >(), SLOT( HandleWorkspaceChanged() ) );
 	connect( this, SIGNAL( WorkspaceChanged() ), WorkingPanel< eOperations >(), SLOT( HandleWorkspaceChanged() ) );
+
 	connect( WorkingPanel< eOperations >(), SIGNAL( SyncProcessExecution( bool ) ), this, SLOT( HandleSyncProcessExecution( bool ) ) );
 
-
 	action_Satellite_Tracks->setChecked( WorkingPanel< eFilter >()->AutoSatelliteTrack() );
+	//notifications from datasets to filters
 	connect( WorkingPanel< eDataset >(), SIGNAL( CurrentDatasetChanged(CDataset*) ), WorkingPanel< eFilter >(), SLOT( HandleDatasetChanged(CDataset*) ) );
+
+	//notifications from datasets to operations
     connect( WorkingPanel< eDataset >(), SIGNAL( DatasetsChanged(CDataset*) ), WorkingPanel< eOperations >(), SLOT( HandleDatasetsChanged_Quick(CDataset*) ) );
     connect( WorkingPanel< eDataset >(), SIGNAL( DatasetsChanged(CDataset*) ), WorkingPanel< eOperations >(), SLOT( HandleDatasetsChanged_Advanced(CDataset*) ) );
-    connect( WorkingPanel< eFilter >(), SIGNAL( FiltersChanged() ), WorkingPanel< eOperations >(), SLOT( HandleFiltersChanged() ) );
-    connect( WorkingPanel< eFilter >(), SIGNAL( FilterCompositionChanged( std::string ) ), WorkingPanel< eOperations >(), SLOT( HandleFilterCompositionChanged( std::string ) ) );
+
+	//notifications from filters to operations
+    connect( WorkingPanel< eFilter >(), SIGNAL( FiltersChanged() ),							WorkingPanel< eOperations >(), SLOT( HandleFiltersChanged() ) );
+    connect( WorkingPanel< eFilter >(), SIGNAL( FilterCompositionChanged( std::string ) ),	WorkingPanel< eOperations >(), SLOT( HandleFilterCompositionChanged( std::string ) ) );
 
 
 	LOG_TRACE( "Finished working dock construction." );
@@ -322,6 +328,10 @@ void CBratMainWindow::ProcessMenu()
     //
 	connect( action_Close_All, SIGNAL(triggered()), mDesktopManager, SLOT(closeAllSubWindows()) );
 
+#if !defined(DEBUG) || !defined(_DEBUG) 
+	action_Close_Workspace->setVisible( false );
+#endif
+
     // Menu File / Most recent files logic
     //
 	mRecentFilesSeparatorAction = menu_File->insertSeparator( action_Exit );
@@ -424,13 +434,22 @@ void CBratMainWindow::FillStatusBar()
 	statusBar()->addPermanentWidget( mMessageButton, 0 );
 
 	connect( mMessageButton, SIGNAL( toggled( bool ) ), mOutputDock, SLOT( setVisible( bool ) ) );
-	connect( mOutputDock, SIGNAL( visibilityChanged( bool ) ), mMessageButton, SLOT( setChecked( bool ) ) );
+	connect( mOutputDock, SIGNAL( visibilityChanged( bool ) ), this, SLOT( OutputDockVisibilityChanged( bool ) ) );
 
 
 	LOG_TRACE( "Finished status-bar construction." );
 }
 
 
+void CBratMainWindow::OutputDockVisibilityChanged( bool visible )
+{ 
+	//We can't use
+	//connect( mOutputDock, SIGNAL( visibilityChanged( bool ) ), mMessageButton, SLOT( setChecked( bool ) ) );
+	//because visibilityChanged is triggered when windows is minimized, not when is restored
+
+	if ( !isMinimized() )
+		mMessageButton->setChecked( visible );
+}
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //											Constructor
@@ -491,9 +510,9 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
     // Sub-Windows management
     //
 	if ( mSettings.mDesktopManagerSdi )
-		mDesktopManager = new CDesktopManagerSDI( mSettings.BratPaths(), this );
+		mDesktopManager = new CDesktopManagerSDI( mSettings, this );
 	else
-		mDesktopManager = new CDesktopManagerMDI( mSettings.BratPaths(), this );
+		mDesktopManager = new CDesktopManagerMDI( mSettings, this );
 
 
     // Docked controls
@@ -760,7 +779,7 @@ bool CBratMainWindow::OkToContinue()
 
 	int r = 
 		QMessageBox::warning( this, base_t::windowTitle(),
-		base_t::tr( "Do you want to save your changes?" ),
+		base_t::tr( "Do you want to save the workspace changes?" ),
 		QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel );
 
 	if ( r == QMessageBox::Yes ) 
@@ -868,7 +887,7 @@ void CBratMainWindow::SetCurrentWorkspace( const CWorkspace *wks )
     mMainWorkingDock->SelectTab( ETabName::eDataset );
     EmitWorkspaceChanged();
 
-	QString curFile = t2q( wks->GetPath() );
+	QString cur_file = t2q( wks->GetPath() );
     QString shownName;
 
     if ( !wks->GetName().empty() )
@@ -877,7 +896,7 @@ void CBratMainWindow::SetCurrentWorkspace( const CWorkspace *wks )
         //
         // Most recent files logic
         //
-		mRecentFilesProcessor->setCurrentFile( curFile );
+		mRecentFilesProcessor->SetCurrentFile( cur_file );
 	}
 
 	setWindowTitle( makeWindowTitle( shownName ) );
@@ -1013,12 +1032,7 @@ void CBratMainWindow::on_action_Rename_Workspace_triggered()
 {
     static QString last_path = t2q( mSettings.BratPaths().WorkspacesPath() );
 
-	CWorkspace *wks = mModel.RootWorkspace();
-	if ( wks == nullptr )											//TODO: update actions should have prevented this
-	{
-		SimpleWarnBox( "There is no current workspace opened" );		
-		return;
-	}
+	CWorkspace *wks = mModel.RootWorkspace();			assert__( wks != nullptr );
 
 	CWorkspaceDialog dlg( this, CTreeWorkspace::eRename, wks, last_path, mModel );
 	if ( dlg.exec() == QDialog::Accepted )
@@ -1034,19 +1048,19 @@ void CBratMainWindow::on_action_Delete_Workspace_triggered()
 {
     static QString last_path = t2q( mSettings.BratPaths().WorkspacesPath() );
 
-	CWorkspace *wks = mModel.RootWorkspace();
-	if ( wks == nullptr )											//TODO: update actions should have prevented this
-	{
-		SimpleWarnBox( "There is no current workspace opened" );
-		return;
-	}
+	CWorkspace *wks = mModel.RootWorkspace();			assert__( wks != nullptr );
 
 	CWorkspaceDialog dlg( this, CTreeWorkspace::eDelete, wks, last_path, mModel );	// TODO is it worth showing the dialog? All widgets are dimmed except the delete
 	if ( dlg.exec() == QDialog::Accepted )
 	{
 		last_path = t2q( dlg.mPath );
 
-		BRAT_NOT_IMPLEMENTED
+		DoNoWorkspace();
+
+		if ( !DeleteDirectory( dlg.mPath ) )
+			SimpleWarnBox( "A system error occurred deleting " + dlg.mPath + ".\nPlease check if the workspace directory was fully deleted.");
+
+		mRecentFilesProcessor->DeleteEntry( dlg.mPath.c_str() );
 	}
 }
 
@@ -1157,8 +1171,6 @@ void CBratMainWindow::on_action_Options_triggered()
     CApplicationSettingsDlg dlg( mSettings, this );
 	if ( dlg.exec() == QDialog::Accepted )
 		emit SettingsUpdated();
-
-	BRAT_NOT_IMPLEMENTED
 }
 
 

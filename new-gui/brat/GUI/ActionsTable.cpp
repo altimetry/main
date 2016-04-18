@@ -31,86 +31,86 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 	{ eAction_RecentFile7, "", "", "", "", "" }, { eAction_RecentFile8, "", "", "", "", "" }, 
 	{ eAction_RecentFile9, "", "", "", "", "" }, { eAction_RecentFile10, "", "", "", "", "" },
 
-    { eAction_Exit, "&Exit", "Exit brat", ":/images/OSGeo/exit.png" },
+    { eAction_Exit, "&Exit", CActionInfo::FormatTip("Exit brat"), ":/images/OSGeo/exit.png" },
 
-    { eAction_Open, "&Open...", "<b>Open</b><br>Open existing workspace", ":/images/OSGeo/open.png", "", "Ctrl+O" },
+    { eAction_Open, "&Open...", CActionInfo::FormatTip("Open\nOpen existing workspace"), ":/images/OSGeo/open.png", "", "Ctrl+O" },
 
-    { eAction_New, "&New...", "<b>New</b><br>Create a new workspace", ":/images/OSGeo/new.png", "", "Ctrl+N" },
+    { eAction_New, "&New...", CActionInfo::FormatTip("New\nCreate a new workspace"), ":/images/OSGeo/new.png", "", "Ctrl+N" },
 
-	{ eAction_CloseWorkspace, "&Close", "Close and unload the workspace", "://images/alpha-numeric/__q.png" },
+    { eAction_CloseWorkspace, "&Close", CActionInfo::FormatTip("Close\nClose and unload the workspace"), "://images/alpha-numeric/__q.png" },
 
-    { eAction_Save, "&Save","<b>Save</b><br>Save the workspace to disk", ":/images/OSGeo/save.png", "", "Ctrl+S" },
+    { eAction_Save, "&Save", CActionInfo::FormatTip("Save\nSave the workspace to disk"), ":/images/OSGeo/save.png", "", "Ctrl+S" },
 
-    { eAction_Save_As, "Save &As...", "Save As", ":/images/OSGeo/save-as.png" },
+    { eAction_Save_As, "Save &As...", CActionInfo::FormatTip("Save As..."), ":/images/OSGeo/save-as.png" },
 
-    { eAction_Import_Workspace, "&Import...", "<b>Import</b><br>Import existing workspace objects", ":/images/OSGeo/import.png" },
+    { eAction_Import_Workspace, "&Import...", CActionInfo::FormatTip("Import\nImport existing workspace objects"), ":/images/OSGeo/import.png" },
 
-    { eAction_Rename_Workspace, "&Rename...", "<b>Rename</b><br>Rename the loaded workspace\n""The workspace directory will not change", "" },
+    { eAction_Rename_Workspace, "&Rename...", CActionInfo::FormatTip("Rename\nRename the loaded workspace\n""The workspace directory will not change"), "" },
 
-    { eAction_Delete_Workspace, "&Delete...", "<b>Delete</b><br>Delete the loaded workspace", ":/images/OSGeo/workspace-delete.png" },
+    { eAction_Delete_Workspace, "&Delete...", CActionInfo::FormatTip("Delete\nDelete the loaded workspace"), ":/images/OSGeo/workspace-delete.png" },
 
-    { eAction_About, "&About...", "About", ":/images/BratIcon.png" },
+    { eAction_About, "&About...", CActionInfo::FormatTip("About"), ":/images/BratIcon.png" },
 
-    { eAction_Views_List, "&List...", "List all open windows and select or close views", ":/images/themes/default/propertyicons/diagram.png" },
+    { eAction_Views_List, "&List...", CActionInfo::FormatTip("List\nList all open windows and select or close views"), ":/images/themes/default/propertyicons/diagram.png" },
 
-	{ eAction_Close_All, "Close &All", "Close All", "" },
+    { eAction_Close_All, "Close &All", CActionInfo::FormatTip("Close All"), "" },
 
-	{ eAction_Open_View, "&Open...", "Select a view from the list of all workspace views", ":/images/OSGeo/open.png" },
+    { eAction_Open_View, "&Open...", CActionInfo::FormatTip("Open view\nSelect a view from the list of all workspace views"), ":/images/OSGeo/open.png" },
 
-    { eAction_Options, "&Options...", "<b>Options</b><br>Edit application settings", ":/images/OSGeo/settings.png" },		//icon 5.png is below TODO: delete this comment
+    { eAction_Options, "&Options...", CActionInfo::FormatTip("Options\nEdit application settings"), ":/images/OSGeo/settings.png" },		//icon 5.png is below TODO: delete this comment
 
 	{ eAction_Test, "Test...", "Test", ":/images/test.png" },
 
-    { eAction_One_Click, "One-&Click...", "<b>One-Click</b><br>Group actions as a single operation under a single name", ":/images/alpha-numeric/7.png" },
+    { eAction_One_Click, "One-&Click...", CActionInfo::FormatTip("One-Click\nGroup actions as a single operation under a single name"), ":/images/alpha-numeric/7.png" },
 
-    { eAction_Launch_Scheduler, "Launch Scheduler", "<b>Brat Scheduler</b><br>Launch Scheduler application", ":/images/alpha-numeric/8.png" },
+    { eAction_Launch_Scheduler, "Launch Scheduler", CActionInfo::FormatTip("Brat Scheduler\nLaunch Scheduler application"), ":/images/alpha-numeric/8.png" },
 
-    { eAction_Workspace_Tree, "Workspace Tree...", "<b>Workspace Tree</b><br>See the objects tree of the loaded workspace", ":/images/OSGeo/page-info.png" },
+    { eAction_Workspace_Tree, "Workspace Tree...", CActionInfo::FormatTip("Workspace Tree\nSee the objects tree of the loaded workspace"), ":/images/OSGeo/page-info.png" },
 
-    { eAction_Save_Map_Image, "Save Map Image...", "<b>Save Map Image</b><br>Save map to file", ":/images/OSGeo/map-export.png" },
+    { eAction_Save_Map_Image, "Save Map Image...", CActionInfo::FormatTip("Save Map Image\nSave map to file"), ":/images/OSGeo/map-export.png" },
 
-    { eAction_Refresh_Map, "Refresh", "<b>Refresh</b><br>Refresh main map", ":/images/OSGeo/zoom-refresh.png" },
+    { eAction_Refresh_Map, "Refresh", CActionInfo::FormatTip("Refresh\nRefresh main map"), ":/images/OSGeo/zoom-refresh.png" },
 
-    { eAction_Graphic_Settings, "Graphic Settings...", "<b>Graphic Settings</b><br>Adjust map graphics", ":images/OSGeo/map-settings.png" },
+    { eAction_Graphic_Settings, "Graphic Settings...", CActionInfo::FormatTip("Graphic Settings\nAdjust map graphics"), ":images/OSGeo/map-settings.png" },
 
-    { action_Satellite_Tracks, "Satellite Tracks", "<b>Satellite track</b><br>Enable/Disable automatic satellite track drawing when selected dataset changes", ":images/OSGeo/satellite_tracks.png", ":images/OSGeo/satellite_tracks.png" },
+    { action_Satellite_Tracks, "Satellite Tracks", CActionInfo::FormatTip("Satellite track\nEnable/Disable automatic satellite track drawing when selected dataset changes"), ":images/OSGeo/satellite_tracks.png", ":images/OSGeo/satellite_tracks.png" },
 
-    { eAction_Full_Screen, "Full Screen", "<b>Full Screen</b><br>Toggle full screen mode.\nUse the <span style=\" font-weight:600;\">F11</span> key to switch modes.", ":images/OSGeo/fullscreen.png", "", "F11" },
+    { eAction_Full_Screen, "Full Screen", CActionInfo::FormatTip("Full Screen\nToggle full screen mode.\nUse the <span style=\" font-weight:600;\">F11</span> key to switch modes."), ":images/OSGeo/fullscreen.png", "", "F11" },
 
-    { eAction_Re_center, "Re-center", "<b>Re-center</b><br>Bring view to original position and size", ":/images/OSGeo/zoom-extent.png", "", "Home" },
+    { eAction_Re_center, "Re-center", CActionInfo::FormatTip("Re-center\nBring view to original position and size"), ":/images/OSGeo/zoom-extent.png", "", "Home" },
 
-    { eAction_Zoom_In, "Zoom In", "<b>Zoom In</b><br>Zoom map in", ":/images/OSGeo/zoom-in.png", "", "Ctrl++" },
+    { eAction_Zoom_In, "Zoom In", CActionInfo::FormatTip("Zoom In\nZoom map in"), ":/images/OSGeo/zoom-in.png", "", "Ctrl++" },
 
-    { eAction_Zoom_Out, "Zoom Out", "<b>Zoom Out</b><br>Zoom map out", ":/images/OSGeo/zoom-out.png", "", "Ctrl+-" },			//last designer icon, so far.  TODO: delete this comment
+    { eAction_Zoom_Out, "Zoom Out", CActionInfo::FormatTip("Zoom Out\nZoom map out"), ":/images/OSGeo/zoom-out.png", "", "Ctrl+-" },			//last designer icon, so far.  TODO: delete this comment
 
-	{ eAction_Operations, "&Operations", "Operations", "" },
+    { eAction_Operations, "&Operations", CActionInfo::FormatTip("Operations"), "" },
 
-	{ eAction_Dataset, "&Dataset", "Dataset", "" },
+    { eAction_Dataset, "&Dataset", CActionInfo::FormatTip("Dataset"), "" },
 
-	{ eAction_Filter, "&Filter", "Filter", "" },	
+    { eAction_Filter, "&Filter", CActionInfo::FormatTip("Filter"), "" },
 
 
 	// End of Designer actions list
 
 
-    { eAction_DisplayEditor2D, "2D", "<b>2D</b><br>Display 2D view", "://images/alpha-numeric/__a.png", "://images/alpha-numeric/__a.png" },
+    { eAction_DisplayEditor2D, "2D", CActionInfo::FormatTip("2D\nDisplay 2D view"), "://images/alpha-numeric/__a.png", "://images/alpha-numeric/__a.png" },
 
-    { eAction_DisplayEditor3D, "3D", "<b>3D</b><br>Display 3D view", "://images/alpha-numeric/__b.png", "://images/alpha-numeric/__b.png" },
+    { eAction_DisplayEditor3D, "3D", CActionInfo::FormatTip("3D\nDisplay 3D view"), "://images/alpha-numeric/__b.png", "://images/alpha-numeric/__b.png" },
 
-	{ eAction_DisplayEditorDock, "", "Show/Hide the view working panel", "://images/alpha-numeric/__d.png" },
+    { eAction_DisplayEditorDock, "", CActionInfo::FormatTip("Show/Hide the view working panel"), "://images/alpha-numeric/__d.png" },
 
-    { eAction_MeasureLine, "Distance", "<b>Distance</b><br>Measure distance (m) between two points", "://images/OSGeo/measure-length.png", "://images/OSGeo/measure-length.png" },
+    { eAction_MeasureLine, "Distance", CActionInfo::FormatTip("Distance\nMeasure distance (m) between two points"), "://images/OSGeo/measure-length.png", "://images/OSGeo/measure-length.png" },
 
-    { eAction_MeasureArea, "Area", "<b>Area</b><br>Measure area (m<sup>2</sup>) of selected region", "://images/OSGeo/measure-area.png", "://images/OSGeo/measure-area.png" },
+    { eAction_MeasureArea, "Area", CActionInfo::FormatTip("Area\nMeasure area (m<sup>2</sup>) of selected region"), "://images/OSGeo/measure-area.png", "://images/OSGeo/measure-area.png" },
 
-    { eAction_MapEditorMean, "Mean", "<b>Mean</b><br>Compute mean of plotted variable in selected region", "://images/alpha-numeric/__g.png" },
+    { eAction_MapEditorMean, "Mean", CActionInfo::FormatTip("Mean\nCompute mean of plotted variable in selected region"), "://images/alpha-numeric/__g.png" },
 
-    { eAction_MapEditorStDev, "StDev", "<b>Standard Deviation</b><br>Compute standard deviation of plotted variable in selected region", "://images/alpha-numeric/__h.png" },
+    { eAction_MapEditorStDev, "StDev", CActionInfo::FormatTip("Standard Deviation\nCompute standard deviation of plotted variable in selected region"), "://images/alpha-numeric/__h.png" },
 
-    { eAction_MapEditorLinearRegression, "LG", "<b>Linear Regression</b><br>Compute linear regression of plotted variable in selected area", "://images/alpha-numeric/__i.png" },
+    { eAction_MapEditorLinearRegression, "LG", CActionInfo::FormatTip("Linear Regression\nCompute linear regression of plotted variable in selected area"), "://images/alpha-numeric/__i.png" },
 
 
-    { eActionGroup_Projections, "", "Projections menu", "://images/OSGeo/crs-change.png" },
+    { eActionGroup_Projections, "", CActionInfo::FormatTip("Projections menu"), "://images/OSGeo/crs-change.png" },
 
 	{ eAction_Projection_LAMBERT_CYLINDRICAL, CMapProjection::GetInstance()->IdToName( PROJ2D_LAMBERT_CYLINDRICAL ), "Projection Lambert Cylindrical", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
 
@@ -137,22 +137,22 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 	{ eAction_Projection_Default, "Default", "Original projection", "://images/OSGeo/projection.png", "://images/OSGeo/projection.png" },
 
 
-	{ eAction_ApplicationPaths_page, "Paths", "Default application paths selection", "://images/alpha-numeric/__n.png", "://images/alpha-numeric/__n.png" },
+    { eAction_ApplicationPaths_page, "Paths", CActionInfo::FormatTip("Paths\nDefault application paths selection"), "://images/alpha-numeric/__n.png", "://images/alpha-numeric/__n.png" },
 
-	{ eAction_StartupOptions_page, "Startup", "Application start-up behavior", "://images/alpha-numeric/__o.png", "://images/alpha-numeric/__o.png" },
+    { eAction_StartupOptions_page, "Startup", CActionInfo::FormatTip("Startup\nApplication start-up behavior"), "://images/alpha-numeric/__o.png", "://images/alpha-numeric/__o.png" },
 
-	{ eAction_ApplicationStyles_page, "Styles", "Application visual options", "://images/alpha-numeric/__p.png", "://images/alpha-numeric/__p.png" },
+    { eAction_ApplicationStyles_page, "Styles", CActionInfo::FormatTip("Styles\nApplication visual options"), "://images/alpha-numeric/__p.png", "://images/alpha-numeric/__p.png" },
 
 
-    { eAction_SelectFeatures, "Rectangular Selection", "<b>Selection</b><br>Select Features by area or single click", ":/images/themes/default/mActionSelectRectangle.svg", ":/images/themes/default/mActionSelectRectangle.svg" },
+    { eAction_SelectFeatures, "Rectangular Selection", CActionInfo::FormatTip("Selection\nSelect Features by area or single click"), ":/images/themes/default/mActionSelectRectangle.svg", ":/images/themes/default/mActionSelectRectangle.svg" },
 
-	{ eAction_SelectPolygon, "Polygon Selection", "Select Features by Polygon", ":/images/themes/default/mActionSelectPolygon.svg", ":/images/themes/default/mActionSelectPolygon.svg" },
+    { eAction_SelectPolygon, "Polygon Selection", CActionInfo::FormatTip("Polygon Selection\nSelect Features by Polygon"), ":/images/themes/default/mActionSelectPolygon.svg", ":/images/themes/default/mActionSelectPolygon.svg" },
 
-    { eAction_DeselectAll, "Deselect All", "<b>Deselect</b><br>Remove selections from all layers", ":/images/themes/default/mActionDeselectAll.svg" },
+    { eAction_DeselectAll, "Deselect All", CActionInfo::FormatTip("Deselect\nRemove selections from all layers"), ":/images/themes/default/mActionDeselectAll.svg" },
 
-    { eAction_DecorationGrid, "Grid", "<b>Grid</b><br>Creates a scale bar that is displayed on the map canvas", ":/images/themes/default/transformed.png", ":/images/themes/default/transformed.png" },
+    { eAction_DecorationGrid, "Grid", CActionInfo::FormatTip("Grid\nCreates a scale bar that is displayed on the map canvas"), ":/images/themes/default/transformed.png", ":/images/themes/default/transformed.png" },
 
-	{ eAction_MouseTrackingeCoordinatesFormat, "Format", "Coordinates format", ":/images/themes/default/tracking.png" },
+    { eAction_MouseTrackingeCoordinatesFormat, "Format", CActionInfo::FormatTip("Format\nCoordinates format"), ":/images/themes/default/tracking.png" },
 
 
 	{ eActionGroup_Filters_Quick, "", "Quick operation filters", "://images/OSGeo/filter.png", "://images/OSGeo/filter.png" },
@@ -473,6 +473,13 @@ void CRecentFilesProcessor::UpdateRecentFileActions()
 	mRecentFilesMenu->setEnabled( !mRecentFiles.isEmpty() );
 
 	emit updatedRecentFiles();
+}
+
+
+void CRecentFilesProcessor::DeleteEntry( const QString &cur_file )
+{
+	mRecentFiles.removeAll( cur_file );
+	UpdateRecentFileActions();
 }
 
 

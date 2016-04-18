@@ -233,6 +233,9 @@ private:
 	void UpdateDisplaysCombo( int index );
 	void UpdateOperationsCombo();
 
+protected slots:
+	void RunButtonClicked();
+
 private slots:
 
 	void Handle2D( bool checked );
@@ -245,7 +248,7 @@ private slots:
 		OneClick();
 	}
 
-	void RunButtonClicked();
+	//void RunButtonClicked();
 	void HandleViewChanged( int index );
 
 	void HandleNewButtonClicked();

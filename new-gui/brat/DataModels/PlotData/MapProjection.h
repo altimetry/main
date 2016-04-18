@@ -29,7 +29,7 @@ class CSmartCleanerMapProj;
 
 
 #if defined (BRAT_V3)
-#include "display/PlotData/BratLookupTable.h"
+#include "new-gui/brat/DataModels/PlotData/BratLookupTable.h"
 #include "display/PlotData/vtkProj2DFilter.h"
 // (Pseudo) Cylindrical projections:
 // - Lambert Cylindrical Equal Area

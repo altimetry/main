@@ -40,7 +40,7 @@ QgsVectorLayer* QgsMapToolSelectUtils::getCurrentVectorLayer( QgsMapCanvas* canv
 	if ( !canvas->currentLayer()
 		|| ( vlayer = qobject_cast<QgsVectorLayer *>( canvas->currentLayer() ) ) == nullptr )
 	{
-		LOG_INFO( "No active vector layer\nTo select features, choose a vector layer in the legend" );
+		LOG_INFO( "No active vector layer to select features." );
 	}
 	return vlayer;
 }

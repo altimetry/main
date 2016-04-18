@@ -572,7 +572,7 @@ void CCustomModifyPanel::OnColorChange( CColorChangedEvent& event )
     throw(e);
   }
   
-  c->SetVtkColor(event.m_vtkColor);
+  c->SetColor(event.m_vtkColor);
 
   m_LUT->Custom(m_cust);
 
@@ -721,7 +721,7 @@ void CCustomModifyPanel::OnGChange(wxCommandEvent& event)
                        color[2], 
                        color[3]); 
     */
-    m_colorPicker->SetColor(*(c->GetVtkColor()));
+    m_colorPicker->SetColor(*(c->GetColor()));
   }
 
   m_parent->SetLUT(m_LUT);
@@ -785,7 +785,7 @@ void CCustomModifyPanel::OnGSelect2()
                      color[2], 
                     color[3]); 
 */
-  m_colorPicker->SetColor(*(c->GetVtkColor()));
+  m_colorPicker->SetColor(*(c->GetColor()));
 
 
 

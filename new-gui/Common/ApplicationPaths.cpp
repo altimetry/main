@@ -65,17 +65,18 @@ const std::string BRATCREATEYFX_EXE		= setExecExtension( "BratCreateYFX" );
 //static
 std::string CApplicationPaths::ComputeDefaultUserBasePath( const std::string &DeploymentRootDir )
 {
+	std::string s;
     auto s3root = getenv( "S3ALTB_ROOT" );	//assuming development environment available
     if ( s3root )
     {
-        std::string s = s3root + std::string( "/project" );
-        if ( IsDir( s ) )
-            return s;
+        s = s3root + std::string( "/project" );
+        if ( !IsDir( s ) )
+            s = DeploymentRootDir;
     }
 
-    assert__( IsDir( DeploymentRootDir ) );
+    assert__( IsDir( s ) );
 
-    return DeploymentRootDir;
+    return s + "/" + DefaultExternalDataSubDir();
 }
 
 
@@ -87,6 +88,7 @@ CApplicationPaths::CApplicationPaths( const QString &exec_path ) :
 	base_t( q2a( exec_path ) )
 
     , mVectorLayerPath( mInternalDataDir + "/maps/ne_10m_coastline/ne_10m_coastline.shp" )
+    , mRasterLayerPath( mExecutableDir + "/" + RasterLayerSubPath() )
 
     , mOsgPluginsDir( mExecutableDir + "/" + osg_paths_SUBDIR )
 
@@ -169,8 +171,7 @@ bool CApplicationPaths::operator == ( const CApplicationPaths &o ) const
     return
         // user re-definable
 
-        mUserBasePath == o.mUserBasePath &&
-        mExternalDataDir == o.mExternalDataDir &&
+        mPortableBasePath == o.mPortableBasePath &&
         mRasterLayerPath == o.mRasterLayerPath &&
 
         mWorkspacesDir == o.mWorkspacesDir
@@ -205,13 +206,12 @@ std::string CApplicationPaths::ToString() const
     s += ( "\nQgisPlugins Dir == " + mQgisPluginsDir );
     s += ( "\nGlobe Dir == " + mGlobeDir );
 
-    s += ( "\nUserBase Path == " + mUserBasePath );
-    s += ( "\nExternalData Dir == " + mExternalDataDir );
+    s += ( "\nUserBase Path == " + mPortableBasePath );
     s += ( "\nRasterLayer Path == " + mRasterLayerPath );
 
     s += ( "\nWorkspaces Dir == " + mWorkspacesDir );
 
-    s += ( std::string( "\nUnique UserBasePath == " ) + ( mUniqueUserBasePath ? "true" : "false" ) );
+    s += ( std::string( "\nUnique UserBasePath == " ) + ( mUsePortablePaths ? "true" : "false" ) );
 
     return s;
 }
@@ -222,6 +222,7 @@ bool CApplicationPaths::ValidatePaths() const
 	mValid =
 		base_t::ValidatePaths() &&											// tests mInternalDataDir
         ValidPath( mErrorMsg, mVectorLayerPath, true, "Vector Layer path" ) &&
+        ValidPath( mErrorMsg, mRasterLayerPath, true, "Raster Layer path" ) &&
         ValidPath( mErrorMsg, mOsgPluginsDir, false, "OSG Plugins diretory" ) &&
         ValidPath( mErrorMsg, mQtPluginsDir, false, "Qt Plugins directory" ) &&
         ValidPath( mErrorMsg, mQgisPluginsDir, false, "Qgis Plugins directory" ) &&
@@ -231,53 +232,14 @@ bool CApplicationPaths::ValidatePaths() const
 }
 
 
-
-// If "unique" is true, path must exist
-//
-bool CApplicationPaths::SetUserBasePath( bool unique, const std::string &path )	//path = ""
+bool CApplicationPaths::SetUserBasePath( bool portable, const std::string &path )	//path = ""
 {
-    if ( !unique )
-    {
-        mUniqueUserBasePath = false;
-        mUserBasePath = path;
-        return true;
-    }
-    else
-    if ( !IsDir( path ) )
+    if ( !MakeDirectory( path ) )
         return false;
 
-    std::string external = path + "/" + DefaultExternalDataSubDir();
-    std::string wkspaces = path + "/" + DefaultProjectsSubDir();
+    mPortableBasePath = path;
 
-    if ( !MakeDirectory( external ) || !MakeDirectory( wkspaces ) )
-        return false;
-
-    mUserBasePath = path;
-    mExternalDataDir = external;
-    mWorkspacesDir = wkspaces;
-
-    CopyRasterLayerFile();
-
-    mUniqueUserBasePath = true;
-    return true;
-}
-
-
-// When mUniqueUserBasePath is true, SetUniqueUserBasePath
-//	is the only setter accepted. Otherwise, these setters
-//	can be used to make individual changes to paths.
-
-bool CApplicationPaths::SetExternalDataDirectory( const std::string &path )
-{
-    if ( UniqueUserBasePath() )
-        return false;
-
-    if ( !IsDir( path ) && !MakeDirectory( path ) )
-        return false;
-
-    mExternalDataDir = path;
-
-    CopyRasterLayerFile();
+    mUsePortablePaths = portable;
 
     return true;
 }
@@ -285,9 +247,6 @@ bool CApplicationPaths::SetExternalDataDirectory( const std::string &path )
 
 bool CApplicationPaths::SetWorkspacesDirectory( const std::string &path )
 {
-    if ( UniqueUserBasePath() )
-        return false;
-
     if ( !IsDir( path ) && !MakeDirectory( path ) )
         return false;
 
@@ -298,51 +257,13 @@ bool CApplicationPaths::SetWorkspacesDirectory( const std::string &path )
 
 bool CApplicationPaths::SetUserPaths()
 {
-    //
-    // brat: (deployment_root_dir)
-    //   +bin
-    //   +data
-    //   +...
-    //
-    if ( !IsDir( mUserBasePath ) )
-        mUserBasePath = ComputeDefaultUserBasePath( mDeploymentRootDir );
+    if ( !IsDir( mPortableBasePath ) )
+        mPortableBasePath = ComputeDefaultUserBasePath( mDeploymentRootDir );
 
-    if ( mUniqueUserBasePath ) //portable?
-    {
-        return SetUserBasePath( true, mUserBasePath );
-    }
-    else
-    {
-        std::string external = mUserBasePath + "/" + DefaultExternalDataSubDir();
-        std::string wkspaces = mUserBasePath + "/" + DefaultProjectsSubDir();
+    std::string wkspaces = GetDirectoryFromPath( mPortableBasePath ) + "/" + DefaultProjectsSubDir();
 
-        if ( !IsDir( mExternalDataDir ) && !SetExternalDataDirectory( external ) )
-            return false;
+    if ( !IsDir( mPortableBasePath ) && !SetUserBasePath( mUsePortablePaths, mPortableBasePath ) )
+        return false;
 
-        if ( !IsDir( mWorkspacesDir ) && !SetWorkspacesDirectory( wkspaces ) )
-            return false;
-    }
-
-    return true;
-}
-
-
-// mRasterLayerPath setter
-//	- assumes mExternalDataDir correctly assigned
-//	- copies around a distributed raster layer file if the user changes
-//		the external data directory location
-//
-bool CApplicationPaths::CopyRasterLayerFile()
-{
-    const std::string raster_path = mExternalDataDir + "/" + RasterLayerSubPath();
-
-    if ( raster_path == mRasterLayerPath )
-        return true;
-
-    if ( IsFile( raster_path ) || ( IsFile( mRasterLayerPath ) && DuplicateFile( mRasterLayerPath, raster_path ) ) )
-        mRasterLayerPath = raster_path;
-    else
-        return false;	//deserves at most a warning; so far this file exists only to test raster layers
-
-    return true;
+    return IsDir( mWorkspacesDir ) || SetWorkspacesDirectory( wkspaces );
 }

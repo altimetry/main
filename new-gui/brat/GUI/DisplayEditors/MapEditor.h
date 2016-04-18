@@ -79,6 +79,7 @@ class CMapEditor : public CAbstractDisplayEditor
 	std::vector< CWorldPlotData* > *mDataArrayMap;
 
 	CWorldPlotProperties *mPropertiesMap = nullptr;
+	CDisplayData *mCurrentDisplayData = nullptr;
 
 
 	// construction /destruction
@@ -141,6 +142,9 @@ protected slots:
 	void HandleStatisticsLinearRegression();
 
 	void HandleCurrentFieldChanged( int field_index );
+
+	void HandleFieldMinRangeEntered();
+	void HandleFieldMaxRangeEntered();
 
 	void HandleShowSolidColor( bool checked );
 

@@ -609,7 +609,7 @@ void COperationTreeCtrl::Insert(COperation* operation)
       continue;
     }
 
-    switch (formula->GetType())
+    switch (formula->GetFieldType())
     {
     case CMapTypeField::eTypeOpAsX: 
       Add(idRootX, formula);

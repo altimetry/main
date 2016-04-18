@@ -14,21 +14,8 @@ class CMapDisplayData;
 class CBratFilters;
 
 
-
-//HAMMER SECTION
-class CDisplayFilesProcessor;
-//HAMMER SECTION
-
-
-
-
 class COperationControls : public CDesktopControlsPanel
 {
-	//HAMMER SECTION
-	CDisplayFilesProcessor *mCmdLineProcessor = nullptr;
-	void openTestFile( const QString &fileName );
-	//HAMMER SECTION
-
 #if defined (__APPLE__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
@@ -66,6 +53,13 @@ public:
 	//static members
 
     static const std::vector<std::string> smPredefinedVariables;
+
+
+	static void SelectOperationDataset( COperation *operation, QComboBox *combo, bool block_signals );
+
+	static bool AssignFilter( const CBratFilters &brat_filters, COperation *operation, const std::string &name );
+
+	static bool RemoveFilter( COperation *operation, const std::string &name );
 
 
 	//...fill helpers
@@ -142,6 +136,7 @@ protected:
 	QToolButton *mDisplayPlotButton = nullptr;
 	QListWidget *mQuickVariablesList = nullptr;
     CTextWidget *mQuickFieldDesc = nullptr;
+	bool mCanExecuteQuickOperation = false;
 
 
 	//...domain variables
@@ -155,7 +150,8 @@ protected:
 	const CBratFilters &mBratFilters;
 
 	COperation *mCurrentOperation = nullptr;
-	const CDataset *mCurrentDataset = nullptr;
+	COperation *mQuickOperation = nullptr;
+	const CDataset *mCurrentOriginalDataset = nullptr;
 	CProduct *mProduct = nullptr;
 	CFormula *mUserFormula = nullptr;
 
@@ -172,8 +168,8 @@ protected:
 public:
 	COperationControls( CProcessesTable *processes_table, CModel &model, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
 
-	virtual ~COperationControls()
-	{}	
+	virtual ~COperationControls();
+
 
 	// access 
 
@@ -186,29 +182,48 @@ public:
 
 protected:
 
-	CDataset* QuickDataset();
-	COperation* QuickOperation();
-
-	bool Execute( bool sync );
-
-	void SelectDataComputationMode();
-
-    bool MapRequested() const;
-
-	std::string GetOpunit();		//TODO how to deal/assign with field units
+	//filtering
 
     void ResetFilterActions();
     void ResetFilterSelection();
 
-	void LaunchDisplay( const std::string &display_name );
+	bool AssignAdvancedFilter( const std::string &name );
+	bool RemoveAdvancedFilter( const std::string &name );
+	bool AssignQuickFilter( const std::string &name );
+	bool RemoveQuickFilter( const std::string &name );
 
+	void SelectOperation( const std::string &name, bool select_map );	//meant for quick, designed (not tested) for all
+
+	//quick
+
+	CDataset* QuickDatasetSelected() const;
+	COperation* QuickOperation() const;
+	COperation* CreateEmptyQuickOperation();
 	COperation* CreateQuickOperation( CMapTypeOp::ETypeOp type );
-	void SelectOperation( const std::string &name, bool select_map );
+    bool IsQuickOperationSelected() const;
+    void UpdateFieldsCheckState();
 
-	bool AssignFilter( const std::string &name );
-	bool RemoveFilter( const std::string &name );
+	//advanced
 
-	bool AssignDatasetAndProduct( const CDataset *dataset, bool changing_used_dataset );
+	void SelectDataComputationMode();
+	std::string GetOpunit();
+
+    bool MapRequested() const;
+
+	//both
+
+	void LaunchDisplay( const std::string &display_name );
+	bool Execute( bool sync );
+
+
+	//remaining
+
+	bool AssignDataset( const CDataset *dataset, bool changing_used_dataset );
+	bool SelectDataset( const std::string &dataset_name );
+	//bool SelectDataset( int dataset_index );
+	bool SelectDataset( const CDataset *dataset );
+
+    void FillDatasets_Advanced( int index );
 
 signals:
 	void SyncProcessExecution( bool executing );

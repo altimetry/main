@@ -19,14 +19,15 @@
 
 #include "libbrathl/ProductNetCdf.h"
 
+#include "../MapTypeDisp.h"
 #include "../Filters/BratFilters.h"
 #include "Workspace.h"
 #include "Dataset.h"
 #include "Operation.h"
+#include "Display.h"
 #include "Function.h"
 #include "WorkspaceSettings.h"
-#include "Display.h"
-#include "DataModels/MapTypeDisp.h"
+#include "ApplicationLogger.h"
 
 
 
@@ -85,7 +86,7 @@ bool CWorkspaceSettings::LoadCommonConfig( CWorkspace &wks )
 
 
 
-bool CWorkspaceSettings::SaveConfigDataset( const CWorkspaceDataset &data, std::string &errorMsg )
+bool CWorkspaceSettings::SaveConfigDataset( const CWorkspaceDataset &data, std::string &error_msg )
 {
 	assert__( this == data.m_config );
 
@@ -97,7 +98,7 @@ bool CWorkspaceSettings::SaveConfigDataset( const CWorkspaceDataset &data, std::
 			CDataset* dataset = dynamic_cast< CDataset* >( it->second );
 			if ( dataset == nullptr )
 			{
-				errorMsg += "ERROR in  CWorkspaceDataset::SaveConfigDataset\ndynamic_cast<CDataset*>(it->second) returns nullptr pointer"
+				error_msg += "ERROR in  CWorkspaceDataset::SaveConfigDataset\ndynamic_cast<CDataset*>(it->second) returns nullptr pointer"
 					"\nList seems to contain objects other than those of the class CDataset";
 				return false;
 			}
@@ -114,7 +115,7 @@ bool CWorkspaceSettings::SaveConfigDataset( const CWorkspaceDataset &data, std::
 
 	return Status() == QSettings::NoError;
 }
-bool CWorkspaceSettings::LoadConfigDataset( CWorkspaceDataset &data, std::string &errorMsg )
+bool CWorkspaceSettings::LoadConfigDataset( CWorkspaceDataset &data, std::string &error_msg )
 {
 	assert__( this == data.m_config );
 
@@ -129,7 +130,7 @@ bool CWorkspaceSettings::LoadConfigDataset( CWorkspaceDataset &data, std::string
 	}
 	if ( Status() != QSettings::NoError )
 	{
-		errorMsg += "Error reading datasets from configuration file " + mFilePath;
+		error_msg += "Error reading datasets from configuration file " + mFilePath;
 		return false;
 	}
 
@@ -151,7 +152,7 @@ bool CWorkspaceSettings::LoadConfigDataset( CWorkspaceDataset &data, std::string
 			if ( !dataset->CtrlFiles(v) )
 			{
 				std::string s = Vector2String( v, "\n" );
-				errorMsg += "Dataset '" + data.m_name + "':\n contains file '" + s + "' that doesn't exist\n";
+				error_msg += "Dataset '" + data.m_name + "':\n contains file '" + s + "' that doesn't exist\n";
 				return false;
 			}
 			else {
@@ -264,7 +265,7 @@ bool CWorkspaceSettings::SaveConfig( const CMapFormula &mapf, bool predefined, c
 	return Status() == QSettings::NoError;
 }
 
-bool CWorkspaceSettings::LoadConfig( CMapFormula &mapf, std::string &errorMsg, bool predefined, const std::string& pathSuff )
+bool CWorkspaceSettings::LoadConfig( CMapFormula &mapf, std::string &error_msg, bool predefined, const std::string& pathSuff )
 {
 	std::string path = GROUP_FORMULAS;
 	if ( !pathSuff.empty() )
@@ -296,14 +297,14 @@ bool CWorkspaceSettings::LoadConfig( CMapFormula &mapf, std::string &errorMsg, b
 		if ( formula == nullptr )
 		{
 			//an error msg box was displayed here
-			errorMsg +=
+			error_msg +=
 				"ERROR in  CMapFormula::LoadConfig\ndynamic_cast<CFormula*>(it->second) returns nullptr pointer"
 				"\nList seems to contain objects other than those of the class CFormula.\n";
 			
 			return false;
 		}
 
-		if ( !formula->LoadConfig( this, errorMsg, pathSuff ) )
+		if ( !formula->LoadConfig( this, error_msg, pathSuff ) )
 			return false;
 	}
 
@@ -378,7 +379,7 @@ bool CWorkspaceSettings::SaveConfig( const CFormula &f, const std::string& pathS
 
 	return Status() == QSettings::NoError;
 }
-bool CWorkspaceSettings::LoadConfig( CFormula &f, std::string &errorMsg, const std::string& pathSuff )
+bool CWorkspaceSettings::LoadConfig( CFormula &f, std::string &error_msg, const std::string& pathSuff )
 {			
 	std::string path = f.m_name;
 	if ( !pathSuff.empty() )
@@ -397,7 +398,7 @@ bool CWorkspaceSettings::LoadConfig( CFormula &f, std::string &errorMsg, const s
 		k_v( ENTRY_FILTER,		&filter,			f.GetFilterAsString() )
 	);
 				
-	f.SetUnit( unit, errorMsg, "" );
+	f.SetUnit( unit, error_msg, "" );
 	f.m_type = type.empty() ? CMapTypeField::eTypeOpAsField : CMapTypeField::GetInstance().NameToId( type );
 	f.m_dataType = data_type.empty()  ? CMapTypeData::eTypeOpData :CMapTypeData::GetInstance().NameToId( data_type );
 	f.m_filter = filter.empty() ? CMapTypeFilter::eFilterNone : CMapTypeFilter::GetInstance().NameToId( filter );
@@ -453,7 +454,7 @@ bool CWorkspaceSettings::LoadConfig( CFormula &f, std::string &errorMsg, const s
 }
 
 
-bool CWorkspaceSettings::SaveConfigOperation( const CWorkspaceOperation &op, std::string &errorMsg )
+bool CWorkspaceSettings::SaveConfigOperation( const CWorkspaceOperation &op, std::string &error_msg )
 {
 	assert__( this == op.m_config );
 
@@ -465,7 +466,7 @@ bool CWorkspaceSettings::SaveConfigOperation( const CWorkspaceOperation &op, std
 			const COperation* operation = dynamic_cast< const COperation* >( it->second );
 			if ( operation == nullptr )
 			{
-				errorMsg += "ERROR in  CWorkspaceOperation::SaveConfigOperation\ndynamic_cast<COperation*>(it->second) returns nullptr pointer"
+				error_msg += "ERROR in  CWorkspaceOperation::SaveConfigOperation\ndynamic_cast<COperation*>(it->second) returns nullptr pointer"
 					"\nList seems to contain objects other than those of the class COperation\n";
 
 				return false;
@@ -482,7 +483,7 @@ bool CWorkspaceSettings::SaveConfigOperation( const CWorkspaceOperation &op, std
 	}
 	return Status() == QSettings::NoError;
 }
-bool CWorkspaceSettings::LoadConfigOperation( CWorkspaceOperation &op, std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
+bool CWorkspaceSettings::LoadConfigOperation( CWorkspaceOperation &op, std::string &error_msg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
 {
 	assert__( this == op.m_config );
 
@@ -501,13 +502,13 @@ bool CWorkspaceSettings::LoadConfigOperation( CWorkspaceOperation &op, std::stri
 		COperation* operation = dynamic_cast<COperation*>( it->second );
 		if ( operation == nullptr )
 		{
-			errorMsg += "ERROR in  CWorkspaceOperation::LoadConfigOperation\ndynamic_cast<COperation*>(it->second) returns nullptr pointer"
+			error_msg += "ERROR in  CWorkspaceOperation::LoadConfigOperation\ndynamic_cast<COperation*>(it->second) returns nullptr pointer"
 				"\nList seems to contain objects other than those of the class COperation";
 
 			return false;
 		}
 
-		if ( !operation->LoadConfig( this, errorMsg, wks, wkso ) )
+		if ( !operation->LoadConfig( this, error_msg, wks, wkso ) )
 			return false;
 	}
 
@@ -557,7 +558,7 @@ bool CWorkspaceSettings::SaveConfig( const COperation &op, const CWorkspaceOpera
 
 	return Status() == QSettings::NoError;
 }
-bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
+bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &error_msg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
 {
 	std::string group = op.m_name;
 	std::string dsname, type, data_mode, output, ascii_export_output, v4filter;
@@ -575,6 +576,11 @@ bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &errorMsg, CWor
 	);
 
 	const CBratFilter *filter = CBratFilters::GetInstance().Find( v4filter );
+	if ( !filter && !v4filter.empty() )
+	{
+		const std::string msg = "Operation '" + op.GetName() + "' referenced non-existing filter '" + v4filter + "'. The reference was removed.";
+		LOG_WARN( msg );
+	}
 	op.SetFilter( filter );
 	op.SetDataset( op.FindDataset( dsname, wks ) );
 	op.m_type = type.empty() ? CMapTypeOp::eTypeOpYFX : CMapTypeOp::GetInstance().NameToId( type );
@@ -609,7 +615,7 @@ bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &errorMsg, CWor
 	if ( 
 		!op.m_select->LoadConfigDesc( this, group ) 
 		||
-		!op.m_formulas.LoadConfig( this, errorMsg, false, op.GetName() )	// Warning after formulas Load config conig path has changed	(v3 note)
+		!op.m_formulas.LoadConfig( this, error_msg, false, op.GetName() )	// Warning after formulas Load config conig path has changed	(v3 note)
 		)
 		return false;
 
@@ -639,7 +645,7 @@ bool CWorkspaceSettings::LoadConfigDesc( CFormula &f, const std::string& path )
 }
 
 
-bool CWorkspaceSettings::SaveConfigDisplay( const CWorkspaceDisplay &disp, std::string &errorMsg, CWorkspaceDisplay *wksd )
+bool CWorkspaceSettings::SaveConfigDisplay( const CWorkspaceDisplay &disp, std::string &error_msg, CWorkspaceDisplay *wksd )
 {
 	assert__( this == disp.m_config );
 
@@ -651,7 +657,7 @@ bool CWorkspaceSettings::SaveConfigDisplay( const CWorkspaceDisplay &disp, std::
 			CDisplay* display = dynamic_cast<CDisplay*>( it->second );
 			if ( display == nullptr )
 			{
-				errorMsg +=
+				error_msg +=
 					"ERROR in  CWorkspaceDisplay::m_displays\ndynamic_cast<CDisplay*>(it->second) returns nullptr pointer"
 					"\nList seems to contain objects other than those of the class CDisplay";
 
@@ -670,7 +676,7 @@ bool CWorkspaceSettings::SaveConfigDisplay( const CWorkspaceDisplay &disp, std::
 
 	return Status() == QSettings::NoError;
 }
-bool CWorkspaceSettings::LoadConfigDisplay( CWorkspaceDisplay &disp, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
+bool CWorkspaceSettings::LoadConfigDisplay( CWorkspaceDisplay &disp, std::string &error_msg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
 {
 	assert__( this == disp.m_config );
 
@@ -687,14 +693,14 @@ bool CWorkspaceSettings::LoadConfigDisplay( CWorkspaceDisplay &disp, std::string
 		CDisplay* display = dynamic_cast< CDisplay* >( it->second );
 		if ( display == nullptr )
 		{
-			errorMsg +=
+			error_msg +=
 				"ERROR in  CWorkspaceDisplay::LoadConfigOperation\ndynamic_cast<CDisplay*>(it->second) returns nullptr pointer"
 				"\nList seems to contain objects other than those of the class CDisplay\n";
 
 			return false;
 		}
 
-		if ( !display->LoadConfig( this, errorMsg, wksd, wkso ) )
+		if ( !display->LoadConfig( this, error_msg, wksd, wkso ) )
 			return false;
 	}
 
@@ -745,7 +751,7 @@ bool CWorkspaceSettings::SaveConfig( const CDisplay &d, CWorkspaceDisplay *wksd 
 
 	return Status() == QSettings::NoError;
 }
-bool CWorkspaceSettings::LoadConfig( CDisplay &d, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
+bool CWorkspaceSettings::LoadConfig( CDisplay &d, std::string &error_msg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
 {
 	std::string type, zoom;
 
@@ -774,7 +780,7 @@ bool CWorkspaceSettings::LoadConfig( CDisplay &d, std::string &errorMsg, CWorksp
 
 	d.InitOutput( wksd );
 
-	return d.m_data.LoadConfig( this, errorMsg, wksd, wkso, d.GetName() );
+	return d.m_data.LoadConfig( this, error_msg, wksd, wkso, d.GetName() );
 }
 
 bool CWorkspaceSettings::SaveConfig( const CMapDisplayData &data, CWorkspaceDisplay *wks, const std::string& pathSuff )
@@ -807,7 +813,7 @@ bool CWorkspaceSettings::SaveConfig( const CMapDisplayData &data, CWorkspaceDisp
 	}
 	return Status() == QSettings::NoError;
 }
-bool CWorkspaceSettings::LoadConfig( CMapDisplayData &data, std::string &errorMsg, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso, const std::string& pathSuff )
+bool CWorkspaceSettings::LoadConfig( CMapDisplayData &data, std::string &error_msg, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso, const std::string& pathSuff )
 {
 	std::string path = GROUP_DISPLAY;
 	if ( !pathSuff.empty() )
@@ -837,7 +843,7 @@ bool CWorkspaceSettings::LoadConfig( CMapDisplayData &data, std::string &errorMs
 		CDisplayData* displayData = dynamic_cast< CDisplayData* >( it->second );
 		if ( displayData == nullptr )
 		{
-			errorMsg +=
+			error_msg +=
 				"ERROR in  CMapDisplayData::LoadConfig\ndynamic_cast<CDisplayData*>(it->second) returns nullptr pointer"
 				"\nList seems to contain objects other than those of the class CDisplayData";
 

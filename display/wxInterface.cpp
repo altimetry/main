@@ -18,7 +18,387 @@
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-//#define brathlFmtEntryColorMacro(entry, index)	wxString::Format(wxString(CBratLookupTable::GROUP_COLOR()) + "%d/" + entry, index)
+
+
+CBratLookupTableConfiguration::CBratLookupTableConfiguration( 
+	//const std::string& appName,
+	//const std::string& vendorName,
+	const std::string& localFilename
+	//const std::string& globalFilename
+	////, long style = wxCONFIG_USE_LOCAL_FILE | wxCONFIG_USE_GLOBAL_FILE 
+	)
+	: base_t( "", "", localFilename, "", wxCONFIG_USE_LOCAL_FILE )
+{}
+
+
+void CBratLookupTableConfiguration::Sync()
+{
+	base_t::Flush();
+}
+void CBratLookupTableConfiguration::Clear()
+{
+	base_t::DeleteAll();
+}
+
+void CBratLookupTableConfiguration::SaveToFile( const CBratLookupTable &table )
+{
+	bool bOk = true;
+	bOk &= Write( CBratLookupTable::ENTRY_NUMCOLORS(), static_cast<int>( table.m_vtkLookupTable->GetNumberOfTableValues() ) );
+	bOk &= Write( CBratLookupTable::ENTRY_CURRENTFCT(), table.m_currentFunction.c_str() );
+	bOk &= Write( CBratLookupTable::ENTRY_CURVE(), table.m_curve.c_str() );
+	if ( bOk == false )
+	{
+		CException e( CTools::Format( "ERROR in CBratLookupTable::SaveToFile - Can't write file %s", table.m_fileName.c_str() ),
+			BRATHL_LOGIC_ERROR );
+		throw( e );
+	}
+
+	SaveGradToFile( table );
+
+	SaveCustToFile( table );
+}
+
+void CBratLookupTableConfiguration::SaveGradToFile( const CBratLookupTable &table )
+{
+	bool bOk = true;
+
+	if ( table.m_grad.size() <= 0 )
+	{
+		return;
+	}
+	if ( table.m_grad.size() != 2 )
+	{
+		std::string msg = CTools::Format( "ERROR in CBratLookupTable::SaveGradToFile() - size of color array (must contains min/max) not equal 2 : %ld",
+			(long)table.m_grad.size() );
+		CException e( msg, BRATHL_LOGIC_ERROR );
+		throw( e );
+	}
+
+	CPlotColor* c1 = dynamic_cast<CPlotColor*>( table.m_grad.at( 0 ) );
+	CPlotColor* c2 = dynamic_cast<CPlotColor*>( table.m_grad.at( 1 ) );
+	if ( ( c1 == nullptr ) || ( c2 == nullptr ) )
+	{
+		CException e( "ERROR in CBratLookupTable::SaveGradToFile() - at least one of the color object is not a CPlotColor object", BRATHL_LOGIC_ERROR );
+		throw( e );
+	}
+
+	bOk &= Write( table.brathlFmtEntryColorMacro( "R", 0 ), c1->Red() );
+	bOk &= Write( table.brathlFmtEntryColorMacro( "G", 0 ), c1->Green() );
+	bOk &= Write( table.brathlFmtEntryColorMacro( "B", 0 ), c1->Blue() );
+	bOk &= Write( table.brathlFmtEntryColorMacro( "A", 0 ), c1->Alpha() );
+	bOk &= Write( table.brathlFmtEntryColorMacro( "Value", 0 ), 0 );
+
+	bOk &= Write( table.brathlFmtEntryColorMacro( "R", 1 ), c2->Red() );
+	bOk &= Write( table.brathlFmtEntryColorMacro( "G", 1 ), c2->Green() );
+	bOk &= Write( table.brathlFmtEntryColorMacro( "B", 1 ), c2->Blue() );
+	bOk &= Write( table.brathlFmtEntryColorMacro( "A", 1 ), c2->Alpha() );
+	bOk &= Write( table.brathlFmtEntryColorMacro( "Value", 1 ), static_cast<int>( table.m_vtkLookupTable->GetNumberOfTableValues() ) );
+
+	if ( bOk == false )
+	{
+		CException e( CTools::Format( "ERROR in CBratLookupTable::SaveToFile - Can't write file %s",
+			table.m_fileName.c_str() ),
+			BRATHL_LOGIC_ERROR );
+		throw( e );
+	}
+}
+void CBratLookupTableConfiguration::SaveCustToFile( const CBratLookupTable &table )
+{
+	bool bOk = true;
+
+	if ( table.m_cust.size() <= 0 )
+	{
+		return;
+	}
+
+	if ( table.m_cust.size() < 2 )
+	{
+		std::string msg = CTools::Format( "ERROR in CBratLookupTable::SaveCustToFile() - size of custom color array is less 2 : %ld",
+			(long)table.m_cust.size() );
+		CException e( msg, BRATHL_LOGIC_ERROR );
+		throw( e );
+	}
+
+
+	CObArray::const_iterator it;
+
+	for ( it = table.m_cust.begin(); it != table.m_cust.end(); it++ )
+	{
+		CCustomColor* customColor = dynamic_cast<CCustomColor*>( *it );
+		if ( customColor == nullptr )
+		{
+			CException e( "ERROR in CBratLookupTable::SaveCustToFile - at least one of the array custom color object is not a CCustomColor object", BRATHL_LOGIC_ERROR );
+			throw( e );
+		}
+
+		CPlotColor* color = customColor->GetColor();
+		if ( color == nullptr )
+		{
+			CException e( "ERROR in CBratLookupTable::SaveCustToFile - In Custom Color object there isn't a CPlotColor object", BRATHL_LOGIC_ERROR );
+			throw( e );
+		}
+
+
+		bOk &= Write( table.brathlFmtEntryColorMacro( "R", it - table.m_cust.begin() ), color->Red() );
+		bOk &= Write( table.brathlFmtEntryColorMacro( "G", it - table.m_cust.begin() ), color->Green() );
+		bOk &= Write( table.brathlFmtEntryColorMacro( "B", it - table.m_cust.begin() ), color->Blue() );
+		bOk &= Write( table.brathlFmtEntryColorMacro( "A", it - table.m_cust.begin() ), color->Alpha() );
+		bOk &= Write( table.brathlFmtEntryColorMacro( "Value", it - table.m_cust.begin() ), customColor->GetXValue() );
+	}
+
+	if ( bOk == false )
+	{
+		CException e( CTools::Format( "ERROR in CBratLookupTable::SaveToFile - Can't write file %s",
+			table.m_fileName.c_str() ),
+			BRATHL_LOGIC_ERROR );
+		throw( e );
+	}
+
+}
+
+
+bool CBratLookupTableConfiguration::LoadFromFile( std::string &error_msg, CBratLookupTable &table )
+{
+	CBratLookupTable* lutBackup = new CBratLookupTable( table );
+
+	int32_t valueLong;
+	wxString valueString;
+
+	bool bOk = Read( CBratLookupTable::ENTRY_NUMCOLORS(), &valueLong );
+	table.HandleLoadError( bOk, CBratLookupTable::ENTRY_NUMCOLORS() );
+	valueLong = ( valueLong > 65536 ) ? 65536 : valueLong;
+	table.m_vtkLookupTable->SetNumberOfTableValues( valueLong );
+
+	bOk = Read( table.ENTRY_CURVE(), &valueString );
+	table.HandleLoadError( bOk, table.ENTRY_CURVE() );
+	table.m_curve = valueString.c_str();
+
+	if ( table.IsValidCurve( table.m_curve ) == false )
+	{
+		::wxMessageBox( CTools::Format( "Unknown entry value '%s' for '%s' in file '%s'\n Linear value will be set",
+			table.m_curve.c_str(), table.ENTRY_CURVE().c_str(), table.m_fileName.c_str() ),
+			"Warning",
+			wxOK | wxCENTRE | wxICON_EXCLAMATION );
+
+		table.m_curve = table.CURVE_LINEAR();
+	}
+
+	bOk = Read( table.ENTRY_CURRENTFCT(), &valueString );
+	table.HandleLoadError( bOk, table.ENTRY_CURRENTFCT() );
+	table.m_currentFunction = valueString.c_str();
+
+
+	if ( table.m_currentFunction == table.m_customFunction )
+	{
+		bOk = LoadCustFromFile( error_msg, table );
+	}
+	else if ( table.m_currentFunction == table.m_gradientFunction )
+	{
+		bOk = LoadGradFromFile( error_msg, table );
+	}
+	else
+	{
+		::wxMessageBox( CTools::Format( "Unknown entry value '%s' for '%s' in file '%s'\n Color table will not be loaded",
+            table.m_currentFunction.c_str(), table.ENTRY_CURRENTFCT().c_str(), table.m_fileName.c_str() ),
+			"Warning",
+			wxOK | wxCENTRE | wxICON_EXCLAMATION );
+		bOk = false;
+
+	}
+
+	if ( bOk == false )
+	{
+		table = *lutBackup;
+	}
+
+	delete lutBackup;
+	lutBackup = nullptr;
+
+	table.ExecMethod( table.m_currentFunction );
+
+	table.ExecCurveMethod( table.m_curve );
+
+	return bOk;
+}
+bool CBratLookupTableConfiguration::LoadGradFromFile( std::string &error_msg, CBratLookupTable &table )
+{
+	bool bOk = true;
+	table.m_grad.RemoveAll();
+	table.m_cust.RemoveAll();
+
+	wxString group;
+	long dummy;
+	SetPath( "/" );
+
+	bOk = GetFirstGroup( group, dummy );
+
+	double r, g, b, a;
+	r = g = b = a = 0.0;
+	int32_t xValue = 0;
+
+	bool isColorDef = false;
+	bool bError = false;
+
+	while ( bOk )
+	{
+		isColorDef =  ( wxString( table.GROUP_COLOR() ).CmpNoCase( group.Left( table.GROUP_COLOR().length() ) ) == 0 );
+		if ( isColorDef )
+		{
+			bool bOkEntry = true;
+			bOkEntry = Read( group + "/R", &r );
+			table.HandleLoadColorError( error_msg, bOkEntry, (const char*)group, r );
+			bOkEntry = Read( group + "/G", &g );
+			table.HandleLoadColorError( error_msg, bOkEntry, (const char*)group, g );
+			bOkEntry = Read( group + "/B", &b );
+			table.HandleLoadColorError( error_msg, bOkEntry, (const char*)group, b );
+			bOkEntry = Read( group + "/A", &a );
+			table.HandleLoadColorError( error_msg, bOkEntry, (const char*)group, a );
+			bOkEntry = Read( group + "/Value", &xValue );
+			table.HandleLoadError( bOkEntry, (const char*)group );
+			if ( ( xValue != 0 ) && ( xValue != table.m_vtkLookupTable->GetNumberOfTableValues() ) )
+			{
+				std::string msg = CTools::Format( "Invalid value %d for '%s/Value' \n Color table will not be loaded",
+					xValue,
+					(const char*)group );
+				::wxMessageBox( msg,
+					"Warning",
+					wxOK | wxCENTRE | wxICON_EXCLAMATION );
+				bError = true;
+				//----------
+				break;
+				//----------
+			}
+
+
+			CPlotColor* color = new CPlotColor( r, g, b, a );
+			if ( xValue == 0 )
+			{
+				table.m_grad.InsertAt( table.m_grad.begin(), color );
+			}
+			else
+			{
+				table.m_grad.InsertAt( table.m_grad.end(), color );
+			}
+
+		}
+
+		bOk = GetNextGroup( group, dummy );
+	}
+
+	if ( bError )
+	{
+		table.m_grad.RemoveAll();
+	}
+
+
+	if ( table.m_grad.size() <= 0 )
+	{
+		return false;
+	}
+
+	if ( table.m_grad.size() != 2 )
+	{
+		::wxMessageBox( CTools::Format( "There are %ld color definitions in file '%s'\n File must contains only 2 (min/max)\n"
+			"Color table will not be loaded", (long)table.m_grad.size(), table.m_fileName.c_str() ),
+			"Warning",
+			wxOK | wxCENTRE | wxICON_EXCLAMATION );
+		bError = true;
+	}
+
+	return ( bError == false );
+
+}
+bool CBratLookupTableConfiguration::LoadCustFromFile( std::string &error_msg, CBratLookupTable &table )
+{
+
+	bool bOk = true;
+	table.m_grad.RemoveAll();
+	table.m_cust.RemoveAll();
+
+	wxString group;
+	long dummy;
+	SetPath( "/" );
+
+	bOk = GetFirstGroup( group, dummy );
+
+	double r, g, b, a;
+	r = g = b = a = 0.0;
+	int32_t xValue = 0;
+
+	bool isColorDef = false;
+	bool bError = false;
+
+	while ( bOk )
+	{
+		isColorDef =  ( wxString( table.GROUP_COLOR() ).CmpNoCase( group.Left( table.GROUP_COLOR().length() ) ) == 0 );
+		if ( isColorDef )
+		{
+			bool bOkEntry = true;
+			bOkEntry = Read( group + "/R", &r );
+			table.HandleLoadColorError( error_msg, bOkEntry, (const char*)group, r );
+			bOkEntry = Read( group + "/G", &g );
+			table.HandleLoadColorError( error_msg, bOkEntry, (const char*)group, g );
+			bOkEntry = Read( group + "/B", &b );
+			table.HandleLoadColorError( error_msg, bOkEntry, (const char*)group, b );
+			bOkEntry = Read( group + "/A", &a );
+			table.HandleLoadColorError( error_msg, bOkEntry, (const char*)group, a );
+			bOkEntry = Read( group + "/Value", &xValue );
+			table.HandleLoadError( bOkEntry, (const char*)group );
+			if ( ( xValue < 0 ) || ( xValue > table.m_vtkLookupTable->GetNumberOfTableValues() ) )
+			{
+				::wxMessageBox( CTools::Format( "Invalid value %d for '%s'\n"
+					"Correct range is [%d,%d]\n"
+					"Color table will not be loaded",
+					xValue, (const char*)group, 0, static_cast<int>( table.m_vtkLookupTable->GetNumberOfTableValues() ) ),
+					"Warning",
+					wxOK | wxCENTRE | wxICON_EXCLAMATION );
+				bError = true;
+				//----------
+				break;
+				//----------
+			}
+
+
+			CCustomColor* c = new CCustomColor( CPlotColor( r, g, b, a ), xValue );
+
+			std::string warning;
+			table.InsertCustomColor( c, warning );
+		}
+
+		bOk = GetNextGroup( group, dummy );
+	}
+
+	if ( bError )
+	{
+		table.m_cust.RemoveAll();
+	}
+
+
+	if ( table.m_cust.size() <= 0 )
+	{
+		return false;
+	}
+
+	if ( table.m_cust.size() < 2 )
+	{
+		::wxMessageBox( CTools::Format( "There are %ld color definitions in file '%s'\n File must contains at least 2\n"
+			"Color table will not be loaded", (long)table.m_cust.size(), table.m_fileName.c_str() ),
+			"Warning",
+			wxOK | wxCENTRE | wxICON_EXCLAMATION );
+		bError = true;
+	}
+
+	return ( bError == false );
+
+}
+
+
+
+
+
+
+
+//#define table.brathlFmtEntryColorMacro(entry, index)	wxString::Format(wxString(CBratLookupTable::GROUP_COLOR()) + "%d/" + entry, index)
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -303,7 +683,7 @@
 //	}
 
 //	delete lutBackup;
-//	lutBackup = NULL;
+//	lutBackup = nullptr;
 
 //	lut.ExecMethod( lut.m_currentFunction );
 
@@ -346,25 +726,25 @@
 //		for ( it = lut.m_cust.begin(); it != lut.m_cust.end(); it++ )
 //		{
 //			CCustomColor* customColor = dynamic_cast<CCustomColor*>( *it );
-//			if ( customColor == NULL )
+//			if ( customColor == nullptr )
 //			{
 //				CException e( "ERROR in CBratLookupTable::SaveCustToFile - at least one of the array custom color object is not a CCustomColor object", BRATHL_LOGIC_ERROR );
 //				throw( e );
 //			}
 
 //			CPlotColor* vtkColor = customColor->GetVtkColor();
-//			if ( vtkColor == NULL )
+//			if ( vtkColor == nullptr )
 //			{
 //				CException e( "ERROR in CBratLookupTable::SaveCustToFile - In Custom Color object there isn't a CPlotColor object", BRATHL_LOGIC_ERROR );
 //				throw( e );
 //			}
 
 
-//			bOk &= file.Write( brathlFmtEntryColorMacro( "R", it - lut.m_cust.begin() ), vtkColor->Red() );
-//			bOk &= file.Write( brathlFmtEntryColorMacro( "G", it - lut.m_cust.begin() ), vtkColor->Green() );
-//			bOk &= file.Write( brathlFmtEntryColorMacro( "B", it - lut.m_cust.begin() ), vtkColor->Blue() );
-//			bOk &= file.Write( brathlFmtEntryColorMacro( "A", it - lut.m_cust.begin() ), vtkColor->Alpha() );
-//			bOk &= file.Write( brathlFmtEntryColorMacro( "Value", it - lut.m_cust.begin() ), customColor->GetXValue() );
+//			bOk &= file.Write( table.brathlFmtEntryColorMacro( "R", it - lut.m_cust.begin() ), vtkColor->Red() );
+//			bOk &= file.Write( table.brathlFmtEntryColorMacro( "G", it - lut.m_cust.begin() ), vtkColor->Green() );
+//			bOk &= file.Write( table.brathlFmtEntryColorMacro( "B", it - lut.m_cust.begin() ), vtkColor->Blue() );
+//			bOk &= file.Write( table.brathlFmtEntryColorMacro( "A", it - lut.m_cust.begin() ), vtkColor->Alpha() );
+//			bOk &= file.Write( table.brathlFmtEntryColorMacro( "Value", it - lut.m_cust.begin() ), customColor->GetXValue() );
 //		}
 
 //		if ( bOk == false )
@@ -395,23 +775,23 @@
 
 //		CPlotColor* c1 = dynamic_cast<CPlotColor*>( lut.m_grad.at( 0 ) );
 //		CPlotColor* c2 = dynamic_cast<CPlotColor*>( lut.m_grad.at( 1 ) );
-//		if ( ( c1 == NULL ) || ( c2 == NULL ) )
+//		if ( ( c1 == nullptr ) || ( c2 == nullptr ) )
 //		{
 //			CException e( "ERROR in CBratLookupTable::SaveGradToFile() - at least one of the color object is not a CPlotColor object", BRATHL_LOGIC_ERROR );
 //			throw( e );
 //		}
 
-//		bOk &= file.Write( brathlFmtEntryColorMacro( "R", 0 ), c1->Red() );
-//		bOk &= file.Write( brathlFmtEntryColorMacro( "G", 0 ), c1->Green() );
-//		bOk &= file.Write( brathlFmtEntryColorMacro( "B", 0 ), c1->Blue() );
-//		bOk &= file.Write( brathlFmtEntryColorMacro( "A", 0 ), c1->Alpha() );
-//		bOk &= file.Write( brathlFmtEntryColorMacro( "Value", 0 ), 0 );
+//		bOk &= file.Write( table.brathlFmtEntryColorMacro( "R", 0 ), c1->Red() );
+//		bOk &= file.Write( table.brathlFmtEntryColorMacro( "G", 0 ), c1->Green() );
+//		bOk &= file.Write( table.brathlFmtEntryColorMacro( "B", 0 ), c1->Blue() );
+//		bOk &= file.Write( table.brathlFmtEntryColorMacro( "A", 0 ), c1->Alpha() );
+//		bOk &= file.Write( table.brathlFmtEntryColorMacro( "Value", 0 ), 0 );
 
-//		bOk &= file.Write( brathlFmtEntryColorMacro( "R", 1 ), c2->Red() );
-//		bOk &= file.Write( brathlFmtEntryColorMacro( "G", 1 ), c2->Green() );
-//		bOk &= file.Write( brathlFmtEntryColorMacro( "B", 1 ), c2->Blue() );
-//		bOk &= file.Write( brathlFmtEntryColorMacro( "A", 1 ), c2->Alpha() );
-//		bOk &= file.Write( brathlFmtEntryColorMacro( "Value", 1 ), static_cast<int>( lut.m_vtkLookupTable->GetNumberOfTableValues() ) );
+//		bOk &= file.Write( table.brathlFmtEntryColorMacro( "R", 1 ), c2->Red() );
+//		bOk &= file.Write( table.brathlFmtEntryColorMacro( "G", 1 ), c2->Green() );
+//		bOk &= file.Write( table.brathlFmtEntryColorMacro( "B", 1 ), c2->Blue() );
+//		bOk &= file.Write( table.brathlFmtEntryColorMacro( "A", 1 ), c2->Alpha() );
+//		bOk &= file.Write( table.brathlFmtEntryColorMacro( "Value", 1 ), static_cast<int>( lut.m_vtkLookupTable->GetNumberOfTableValues() ) );
 
 //		if ( bOk == false )
 //		{

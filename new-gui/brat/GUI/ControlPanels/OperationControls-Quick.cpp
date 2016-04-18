@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT 
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #include "new-gui/brat/stdafx.h"
 
 #include "libbrathl/ProductNetCdf.h"
@@ -12,18 +29,8 @@
 #include "GUI/DisplayEditors/MapEditor.h"
 #include "GUI/DisplayEditors/PlotEditor.h"
 
-//HAMMER SECTION - begin
-#include "DataModels/DisplayFilesProcessor.h"
-#include "DataModels/PlotData/ZFXYPlot.h"
-#include "DataModels/PlotData/XYPlot.h"
-#include "DataModels/PlotData/WorldPlot.h"
-//HAMMER SECTION - end
-
-
 #include "OperationControls.h"
 
-//
-//
 //inline int ItemRow( QListWidgetItem *item )
 //{
 //	return item->listWidget()->row( item );
@@ -38,8 +45,12 @@
 //	auto *item = list->item( index );
 //	return item->text();
 //}
-//
 
+
+
+/////////////////////////////////////////////////////////////////////////////////
+//	Quick Operation Helpers
+/////////////////////////////////////////////////////////////////////////////////
 
 std::string PseudoAlias( const std::string &name )
 {
@@ -56,35 +67,165 @@ std::string PseudoAlias( const std::string &name )
 //lon
 //lat
 //time
-//ssha (isto é para o SSH)
-//swh_ku (isto é para o SWH)
-//sig0_ku (isto é para o sigma0)
-//wind_speed_alt (isto é para Winds)
-//range_ku (isto é para Tracker range)
+//ssha (para o SSH)
+//swh_ku (para o SWH)
+//sig0_ku (para o sigma0)
+//wind_speed_alt (para Winds)
+//range_ku (para Tracker range)
 
 
-/////////////////////////////////////////////////////////////////////////////////
-//						
-/////////////////////////////////////////////////////////////////////////////////
 
-void COperationControls::HandleWorkspaceChanged_Quick()
+// Retrieves quick operation from workspace, if any
+//
+COperation* COperationControls::QuickOperation() const
 {
-	HandleDatasetsChanged_Quick( nullptr );		//fill quick datasets combo
-
-	// TODO check fields if quick operation exists
-				//	if ( !item_to_check )
-				//{
-				//	item_to_check = item;
-				//	item->setCheckState( Qt::Checked );
-				//}
+	return mWOperation ? mWOperation->GetQuickOperation() : nullptr;
 }
 
 
-// NOTE connected by main window to datasets panel
+CDataset* COperationControls::QuickDatasetSelected() const
+{
+	const int dataset_index = mQuickDatasetsCombo->currentIndex();
+	if ( dataset_index < 0 )
+		return nullptr;
+
+	return mWDataset->GetDataset( q2a( mQuickDatasetsCombo->itemText( dataset_index ) ) );
+}
+
+
+// Checks fields according to quick operation formulas
+//
+void COperationControls::UpdateFieldsCheckState()
+{
+	//lambda
+
+	auto set_field = [this]( const std::string &name )
+	{
+		for ( int i = 0; i < EPredefinedVariables_size; ++i )
+		{
+			auto *item = mQuickVariablesList->item( i );
+			if ( name == PseudoAlias( smPredefinedVariables[ i ] ) )
+			{
+				item->setFlags( item->flags() | Qt::ItemIsEnabled );
+				item->setCheckState( Qt::Checked );
+			}
+		}
+	};
+
+
+	//function body
+
+	assert__( mQuickOperation );
+
+	CMapFormula *formulas = mQuickOperation->GetFormulas();
+	if ( !formulas )
+		return;
+
+	for ( CMapFormula::iterator it = formulas->begin(); it != formulas->end(); it++ )
+	{
+		CFormula* formula = mQuickOperation->GetFormula( it );
+		if ( formula == nullptr )
+			continue;
+
+		switch ( formula->GetFieldType() )
+		{
+		case CMapTypeField::eTypeOpAsX:
+			assert__( formula->IsXType() || formula->IsLatLonDataType() );
+			break;
+		case CMapTypeField::eTypeOpAsY:
+			assert__( formula->IsYType() || formula->IsLatLonDataType() );
+			break;
+		case CMapTypeField::eTypeOpAsField:
+			{
+				set_field( formula->GetDescription() );
+			}
+			break;
+        default:
+            break;
+        }
+	}
+}
+
+
+COperation* COperationControls::CreateEmptyQuickOperation()
+{
+	static const std::string opname = CWorkspaceOperation::QuickOperationName();
+
+	if ( !mWOperation )
+		return nullptr;
+
+	COperation *operation = QuickOperation();
+	if ( !operation )
+	{
+		if ( !mWOperation->InsertOperation( opname ) )
+		{
+			LOG_FATAL( "Unexpected v3 error...." );
+			return nullptr;
+		}
+	}
+	operation = mWOperation->GetOperation( opname );		assert__( operation );
+	return operation;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+//	Quick Operation Entry Point
+/////////////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////////////////////////////////////////////////
+
+// Quick Operations entry point
+//
+//	If a workspace exists, even if empty, a quick operation is always created.
+//
+void COperationControls::HandleWorkspaceChanged_Quick()
+{
+	// 1. Retrieve /create, if any; only return null if mWOperation is null
+	//
+	mQuickOperation = CreateEmptyQuickOperation();	//always assign mQuickOperation if possible, and always do it first 
+
+	// 2. Fill quick datasets
+	//		- also: assigns dataset, enables all dataset dependent elements (fields and execution buttons, etc.)
+	//
+	HandleDatasetsChanged_Quick( nullptr );
+
+	if ( !mWOperation )
+		return;
+
+	// 3. Always ensure quick operation existence
+	//
+	assert__( mQuickOperation );
+
+	// 4. Select operation dataset in combo 
+	//		- no signals (*): 
+	//			- if recently created, and there are datasets, one was assigned
+	//			- if existed, and there are datasets, one was assigned and/or selected
+	//
+	SelectOperationDataset( mQuickOperation, mQuickDatasetsCombo, true );	//true == no signals (*)
+
+	// 5. Check fields according to quick operation formulas
+	//		- assuming that this synchronization only needs to be done when setting 
+	//			up a recently opened workspace:	the quick formulas are retrieved from 
+	//			persistence (and reflected by this update) or are assigned by operation 
+	//			execution according to fields check in the GUI. So, nothing in between 
+	//			changes the quick formulas. If  dataset changes, all fields are unchecked.
+	//
+	UpdateFieldsCheckState();
+}
+
+
+// - Fill datasets combo (no signals)
+// - Select quick operation dataset
+// - Trigger or call HandleSelectedDatasetChanged_Quick: 
+//		- update dataset dependent GUI / data members, including dataset assignment if needed
+// 
+// - connected by main window to datasets panel
+// - triggered when whole datasets or a dataset composition changes; so when 
+//		externally triggered, a workspace exists
 //
 void COperationControls::HandleDatasetsChanged_Quick( CDataset * )
-{
-	int selected = mQuickDatasetsCombo->currentIndex();
+{	
+	// 1. Refill datasets combo (no signals)
 
 	mQuickDatasetsCombo->clear();
 	if ( mWDataset )
@@ -95,17 +236,25 @@ void COperationControls::HandleDatasetsChanged_Quick( CDataset * )
 			-1, true,
 
 			[]( const CObMap::value_type &i ) -> const char*
-		{
-			return i.first.c_str();
-		}
+			{
+				return i.first.c_str();
+			}
 		);
 		mQuickDatasetsCombo->blockSignals( false );
 	}
 
-	if (  selected >= mQuickDatasetsCombo->count() ||
-		( selected < 0 && mQuickDatasetsCombo->count() > 0 )
-		)
-		selected = 0;
+	// 2. Select quick operation dataset (if any) OR automatically select (assign) one 
+
+	int selected = -1;
+	if ( mQuickOperation )
+	{
+		selected = mQuickDatasetsCombo->findText( mQuickOperation->OriginalDatasetName().c_str() );
+		if ( selected < 0 && mQuickDatasetsCombo->count() > 0 )
+			selected = 0;
+	}
+
+	// 3. Trigger or call HandleSelectedDatasetChanged_Quick: 
+	//		- update in function of selected dataset (includes dataset assignment)
 
 	if ( mQuickDatasetsCombo->currentIndex() == selected )
 		HandleSelectedDatasetChanged_Quick( selected );
@@ -114,20 +263,25 @@ void COperationControls::HandleDatasetsChanged_Quick( CDataset * )
 }
 
 
-CDataset* COperationControls::QuickDataset()
-{
-	const int dataset_index = mQuickDatasetsCombo->currentIndex();
-	if ( dataset_index < 0 )
-		return nullptr;
-
-	return mWDataset->GetDataset( q2a( mQuickDatasetsCombo->itemText( dataset_index ) ) );
-}
-
-
+//	Update dataset dependent GUI/data elements/members
+//	Assign QuickOperation dataset, if any
+//	Quit if there are no lon/lat fields
+//	Enable quick data fields found in dataset
+//	Call HandleVariableStateChanged_Quick: enable/disable execution buttons
+//	ASSUMES: mQuickOperation is assigned if dataset_index >= 0
+//
 void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 {
-	mQuickVariablesList->setEnabled( dataset_index >= 0 );
-	mOperationFilterButton_Quick->setEnabled( dataset_index >= 0 );
+	mQuickVariablesList->setEnabled( dataset_index >= 0 );			//items are enabled only if required field exists, regardless of whole list being enabled
+	mOperationFilterButton_Quick->setEnabled( dataset_index >= 0 );	//assume that, if a dataset exists, it will be assigned and filtering makes sense
+
+	//always disable execution in this function
+	//	- enable (in HandleVariableStateChanged_Quick) only if valid dataset with required fields AND some are checked
+	//
+	mCanExecuteQuickOperation = false;
+	mDisplayMapButton->setEnabled( mCanExecuteQuickOperation );
+	mDisplayPlotButton->setEnabled( mCanExecuteQuickOperation );
+
 	mQuickFieldDesc->clear();
 
     if ( dataset_index < 0 )
@@ -135,20 +289,25 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 
     WaitCursor wait;
 
+	// 1. disable and check fields off
+	//
 	const int size = mQuickVariablesList->count();
 	for ( int i = 0; i < size; ++i )
 	{
 		auto *item = mQuickVariablesList->item( i );
-		item->setCheckState( Qt::Unchecked );						 //triggers
-		item->setFlags( item->flags() &~ ( Qt::ItemIsEnabled ) );
+		item->setCheckState( Qt::Unchecked );					//triggers
+		item->setFlags( item->flags() & ~Qt::ItemIsEnabled );
 	}
-	mDisplayMapButton->setEnabled( false );
-	mDisplayPlotButton->setEnabled( false );
 
-	CDataset *dataset = QuickDataset();			assert__( dataset );
+	// 2. assign dataset
+	//
+	CDataset *dataset = QuickDatasetSelected();			assert__( dataset );		assert__( mQuickOperation );
+	mQuickOperation->SetDataset( dataset );
+
+	// 3. check if dataset files are usable (have lon/lat fields); return if not
+	//
 	std::vector<std::string> dataset_files;
 	dataset->GetFiles( dataset_files );
-
 	bool has_lon_lat_fields = false;
 	for ( auto const &path : dataset_files )
 	{
@@ -169,7 +328,8 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 	if ( !has_lon_lat_fields )
 		return;
 
-
+	// 4. enable quick data fields found in dataset
+	//
 	bool has_fields = false;
 	for ( int i = 0; i < EPredefinedVariables_size; ++i )	//TODO maybe this should be corrected to open products only once, not once per iteration
 	{
@@ -194,31 +354,43 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 				break;
 		}
 	}
-	mDisplayMapButton->setEnabled( has_fields );
-	mDisplayPlotButton->setEnabled( has_fields );
 
-	HandleVariableStateChanged_Quick( nullptr );	//update actions state
+	// 5. Call HandleVariableStateChanged_Quick to update execution buttons state
+	//
+	HandleVariableStateChanged_Quick( nullptr );
 }
 
 
-
+// Update execution buttons state
+//
 void COperationControls::HandleVariableStateChanged_Quick( QListWidgetItem * )
 {
 	const int size = mQuickVariablesList->count();
-	bool enable = false;
+	mCanExecuteQuickOperation = false;
 	for ( int i = 0; i < size; ++i )
 	{
 		auto *item = mQuickVariablesList->item( i );
 		if ( item->checkState() == Qt::Checked )
 		{
-			enable = true;
+			mCanExecuteQuickOperation = true;
 			break;
 		}
 	}
-	mDisplayMapButton->setEnabled( enable );
-	mDisplayPlotButton->setEnabled( enable );
+
+	mDisplayMapButton->setEnabled( mCanExecuteQuickOperation );
+	mDisplayPlotButton->setEnabled( mCanExecuteQuickOperation );
+
+	if ( IsQuickOperationSelected() )
+	{
+		mAdvancedExecuteButton->setEnabled( mCanExecuteQuickOperation );
+		mSwitchToMapButton->setEnabled( mCanExecuteQuickOperation );
+		mSwitchToPlotButton->setEnabled( mCanExecuteQuickOperation );
+	}
 }
 
+
+// Update field description
+//
 void COperationControls::HandleSelectedFieldChanged_Quick( int variable_index )
 {
 	mQuickFieldDesc->clear();
@@ -308,14 +480,6 @@ void COperationControls::HandleSelectedFieldChanged_Quick( int variable_index )
 //}
 
 
-COperation* COperationControls::QuickOperation()
-{
-	static const std::string opname = CWorkspaceOperation::QuickOperationName();
-
-	return mWOperation ? mWOperation->GetOperation( opname ) : nullptr;
-}
-
-
 // Valid types
 //		eTypeOpYFX,
 //		eTypeOpZFXY
@@ -324,30 +488,23 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 {
 	static const std::string opname = CWorkspaceOperation::QuickOperationName();
 
-	WaitCursor wait;				assert__( mWRoot && QuickDataset() );
+	WaitCursor wait;											assert__( mWRoot && QuickDatasetSelected() );
 
-	COperation *operation = QuickOperation();
+	COperation *operation = CreateEmptyQuickOperation();		assert__( operation );
 	if ( operation )
 	{
 		int current_index = mOperationsCombo->currentIndex();
-		int op_index = mOperationsCombo->findText( opname.c_str() );
-		if ( op_index == current_index )
+		int quick_op_index = mOperationsCombo->findText( opname.c_str() );
+		if ( quick_op_index == current_index )
 			mOperationsCombo->setCurrentIndex( -1 );
 		operation->Clear();
 	}
-	else
-	if ( !mWOperation->InsertOperation( opname ) )		//v4 this is weired: call to GetOperationNewName ensures not existing name
-	{
-		LOG_FATAL( "Unexpected v3 error...." );
-		return nullptr;
-	}
-	operation = mWOperation->GetOperation( opname );		assert__( operation );
 
 	operation->InitOutput( mWOperation );
 	operation->InitExportAsciiOutput( mWOperation );
 	operation->SetType( type );
 
-	operation->SetDataset( QuickDataset() );
+	operation->SetDataset( QuickDatasetSelected() );
 	CProduct *product = const_cast<const COperation*>( operation )->Dataset()->OpenProduct();
 	operation->SetProduct( product );
 
@@ -425,7 +582,7 @@ void COperationControls::SelectOperation( const std::string &name, bool select_m
 	}
 	mOperationsCombo->setCurrentIndex( new_index );
 
-	assert__( mCurrentOperation == operation && mCurrentDataset == operation->OriginalDataset() );
+	assert__( mCurrentOperation == operation && mCurrentOriginalDataset == operation->OriginalDataset() );
 
 	if ( select_map )
 		mSwitchToMapButton->setChecked( true );
@@ -447,10 +604,7 @@ void COperationControls::HandleQuickMap()
 
 	SelectOperation( operation->GetName(), true );
 
-	if ( !Execute( true ) )
-		return;
-
-	//openTestFile( t2q( mDesktopManager->mPaths.mWorkspacesDir + R"(/newWP/Displays/DisplayDisplays_New.par)" ) );
+	Execute( true );
 }
 
 
@@ -467,89 +621,6 @@ void COperationControls::HandleQuickPlot()
 
 	SelectOperation( operation->GetName(), false );
 
-	if ( !Execute( true ) )
-		return;
-
-	//openTestFile( t2q( mDesktopManager->mPaths.mWorkspacesDir + R"(/newWP/Displays/DisplayDisplays_New.par)" ) );
+	Execute( true );
 }
 
-
-
-//L:\project\workspaces\newWP\Displays\DisplayDisplays_New.par
-
-void COperationControls::openTestFile( const QString &fileName )
-{
-	delete mCmdLineProcessor;
-	mCmdLineProcessor = new CDisplayFilesProcessor( false );
-
-	const std::string s = q2a( fileName );
-	const char *argv[] = { "", s.c_str() };
-	try
-	{
-		if ( mCmdLineProcessor->Process( 2, argv ) )
-		{
-			auto &plots = mCmdLineProcessor->plots();
-			if ( mCmdLineProcessor->isZFLatLon() )		// =================================== WorldPlot
-			{
-				for ( auto &plot : plots )
-				{
-					CWPlot* wplot = dynamic_cast<CWPlot*>( plot );
-					if ( wplot == nullptr )
-						continue;
-
-					auto ed = new CMapEditor( mCmdLineProcessor, wplot );
-					auto subWindow = mDesktopManager->AddSubWindow( ed );
-					subWindow->show();
-				}
-			}
-			else if ( mCmdLineProcessor->isYFX() )		// =================================== XYPlot();
-			{
-				for ( auto &plot : plots )
-				{
-					CPlot* yfxplot = dynamic_cast<CPlot*>( plot );
-					if ( yfxplot == nullptr )
-						continue;
-
-					auto ed = new CPlotEditor( mCmdLineProcessor, yfxplot );
-					auto subWindow = mDesktopManager->AddSubWindow( ed );
-					subWindow->show();
-				}
-			}
-			else if ( mCmdLineProcessor->isZFXY() )		// =================================== ZFXYPlot();
-			{
-				for ( auto &plot : plots )
-				{
-					CZFXYPlot* zfxyplot = dynamic_cast<CZFXYPlot*>( plot );
-					if ( zfxyplot == nullptr )
-						continue;
-
-					auto ed = new CPlotEditor( mCmdLineProcessor, zfxyplot );
-					auto subWindow = mDesktopManager->AddSubWindow( ed );
-					subWindow->show();
-				}
-			}
-			else
-			{
-				CException e( "CBratDisplayApp::OnInit - Only World Plot Data, XY Plot Data and ZFXY Plot Data are implemented", BRATHL_UNIMPLEMENT_ERROR );
-				LOG_TRACE( e.what() );
-				throw e;
-			}
-		}
-	}
-	catch ( CException &e )
-	{
-		SimpleErrorBox( e.what() );
-		throw;
-	}
-	catch ( std::exception &e )
-	{
-		SimpleErrorBox( e.what() );
-		throw;
-	}
-	catch ( ... )
-	{
-		SimpleErrorBox( "Unexpected error encountered" );
-		throw;
-	}
-}
-//HAMMER SECTION

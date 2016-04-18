@@ -20,6 +20,7 @@
 #include "Dialogs/InsertAlgorithmDialog.h"
 #include "Dialogs/SelectRecordDialog.h"
 #include "Dialogs/FormulaDialog.h"
+#include "Dialogs/ShowAliasesDialog.h"
 
 #include "DataExpressionsTree.h"
 
@@ -227,6 +228,8 @@ void CFieldsTreeWidget::InsertProduct( CProduct *product )
 		parent = InsertField( parent, tree->GetWalkCurrent() );
 	} 
 	while ( tree->SubTreeWalkDown() );
+
+	HandleSortAscending();
 }
 
 
@@ -629,7 +632,7 @@ void CDataExpressionsTreeWidget::InsertOperation( COperation *operation )
 		if ( formula == nullptr )
 			continue;
 
-		switch ( formula->GetType() )
+		switch ( formula->GetFieldType() )
 		{
 			case CMapTypeField::eTypeOpAsX:
 				InsertFormula( mItemX, formula );
@@ -669,7 +672,7 @@ void CDataExpressionsTreeWidget::HandleAssignExpression()
 
 void CDataExpressionsTreeWidget::HandleExpressionTextChanged()
 {
-	mAssignExpressionButton->setEnabled( !mExpressionTextWidget->isEmpty() );
+	//mAssignExpressionButton->setEnabled( !mExpressionTextWidget->isEmpty() );		allow empty assignments
 }
 
 
@@ -693,22 +696,28 @@ void CDataExpressionsTreeWidget::HandleSelectionChanged()
 }
 
 
-bool CDataExpressionsTreeWidget::SelectRecord( CProduct *product )
+//static 
+bool CDataExpressionsTreeWidget::SelectRecord( QWidget *parent, COperation *operation, CProduct *product )
 {
-	assert__( mCurrentOperation );
-
 	if ( product == nullptr )
 	{
 		return false;
 	}
 
-	CSelectRecordDialog dlg( this, product );	//product cannot be const, product iteration is not read-only...
+	CSelectRecordDialog dlg( parent, product );	//product cannot be const, product iteration is not read-only...
 	if ( dlg.exec() == QDialog::Accepted )
 	{
-		mCurrentOperation->SetRecord( dlg.SelectedRecord() );
+		operation->SetRecord( dlg.SelectedRecord() );
 		return true;
 	}
 	return false;
+}
+
+bool CDataExpressionsTreeWidget::SelectRecord( CProduct *product )
+{
+	assert__( mCurrentOperation );
+
+	return CDataExpressionsTreeWidget::SelectRecord( this, mCurrentOperation, product );
 }
 
 
@@ -1083,6 +1092,39 @@ void CDataExpressionsTreeWidget::HandleInsertField()
 	CField *field = mDragSource->ItemField( item );		assert__( item );
 
 	InsertField( field );
+}
+
+
+void CDataExpressionsTreeWidget::ShowAliases()
+{
+	assert__( mCurrentOperation );
+
+    CShowAliasesDialog dlg( this, mCurrentOperation, mCurrentFormula );
+    dlg.exec();
+
+	bool hasOpFieldSelected = mCurrentFormula != nullptr;
+	if ( hasOpFieldSelected )
+	{
+		std::string text;
+		const std::vector<QCheckBox*>& checked = dlg.CheckedItems();
+        size_t num_rows = checked.size();
+
+		bool hasSelectedItems = false;
+		for ( int i = 0; i < num_rows; i++ )
+		{
+			if ( checked[i]->isChecked() )
+			{
+				hasSelectedItems = true;
+				text += dlg.AliasSyntax( i );
+				text += " ";
+			}
+		}
+		if ( hasSelectedItems )
+		{
+			mExpressionTextWidget->append( text.c_str() );	//		GetOptextform()->WriteText( text );
+			HandleAssignExpression();						//		SetTextFormula();
+		}
+	}
 }
 
 

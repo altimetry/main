@@ -1016,7 +1016,7 @@ bool COperationPanel::IsFormulaDataField()
     return enable;
   }
 
-  return (m_userFormula->GetType() == CMapTypeField::eTypeOpAsField);
+  return (m_userFormula->GetFieldType() == CMapTypeField::eTypeOpAsField);
 }
 //----------------------------------------
 bool COperationPanel::IsFormulaSelectField()
@@ -2279,7 +2279,7 @@ void COperationPanel::Resolution()
 
   if (m_userFormula != NULL)
   {
-    if (m_userFormula->GetType() == CMapTypeField::eTypeOpAsField)
+    if (m_userFormula->GetFieldType() == CMapTypeField::eTypeOpAsField)
     {
       title = wxString::Format("Set filter for '%s' and X/Y resolution...", m_userFormula->GetName().c_str());
     }

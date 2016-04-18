@@ -77,6 +77,11 @@ protected:
 
 	//construction / destruction
 
+	//for maps with raster option
+	//
+    CBratView( bool use_raster, QWidget *parent ) 
+		: base_t( use_raster, parent )
+	{}
 public:
     CBratView( QWidget *parent = nullptr ) 
 		: base_t( parent )
@@ -298,8 +303,12 @@ class CBratMapView : public CBratView< CMapWidget >
 	// construction /destruction
 
 public:
-    CBratMapView( QWidget *parent = nullptr ) 
+    CBratMapView( QWidget *parent ) 
 		: base_t( parent )
+	{}
+
+    CBratMapView( bool use_raster, QWidget *parent ) 
+		: base_t( use_raster, parent )
 	{}
 
 	virtual ~CBratMapView()

@@ -122,6 +122,8 @@ void CMapEditor::Wire()
 
 	connect( mTabDataLayers->mFieldsList, SIGNAL( currentRowChanged( int ) ), this, SLOT( HandleCurrentFieldChanged( int ) ) );
 
+	connect( mTabDataLayers->mMinRange, SIGNAL( returnPressed() ), this, SLOT( HandleFieldMinRangeEntered() ) );
+	connect( mTabDataLayers->mMaxRange, SIGNAL( returnPressed() ), this, SLOT( HandleFieldMaxRangeEntered() ) );
 
 	//...show/hide layers
 	connect( mTabDataLayers->mShowSolidColorCheck, SIGNAL( toggled( bool ) ), this, SLOT( HandleShowSolidColor( bool ) ) );
@@ -460,6 +462,7 @@ void CMapEditor::HandleCurrentFieldChanged( int field_index )
 	mTabDataLayers->mShowSolidColorCheck->setEnabled( field_index >= 0 && mDataArrayMap );
 
 	mPropertiesMap = nullptr;
+	mCurrentDisplayData = nullptr;
 
 	if ( field_index < 0 )
 		return;
@@ -467,8 +470,16 @@ void CMapEditor::HandleCurrentFieldChanged( int field_index )
 	assert__( field_index < mDataArrayMap->size() );
 
 	mPropertiesMap = &mDataArrayMap->at( field_index )->m_plotProperty;	  			assert__( mPropertiesMap );
+	//TODO - fetch correct display data
+	mCurrentDisplayData = mDisplay->GetDisplayData( mPropertiesMap->m_name );
 
 	mTabDataLayers->mShowSolidColorCheck->setChecked( mMapView->IsLayerVisible( field_index ) );
+
+	//TODO - fetch correct display data
+	//mTabDataLayers->mMinRange->setText( n2s<std::string>( mCurrentDisplayData->GetMinValue() ).c_str() );
+	//mTabDataLayers->mMaxRange->setText( n2s<std::string>( mCurrentDisplayData->GetMaxValue() ).c_str() );
+
+
 	//mTabDataLayers->mLineColorButton->SetColor( mPlot2DView->CurveLineColor( index ) );
 	//mTabDataLayers->mLineOpacityValue->setText( n2s<std::string>( mPlot2DView->CurveLineOpacity( index ) ).c_str() );
 	//mTabDataLayers->mStipplePattern->setCurrentIndex( mPlot2DView->CurveLinePattern( index ) );
@@ -503,6 +514,26 @@ void CMapEditor::HandleShowSolidColor( bool checked )
 }
 
 
+void CMapEditor::HandleFieldMinRangeEntered()
+{
+	//assert__( mCurrentDisplayData );
+
+ //   bool is_converted=false;
+ //   const QString rmin = mTabDataLayers->mMinRange->text();
+	//mCurrentDisplayData->SetMinValue( rmin.toInt( &is_converted, 10 ) );			//TODO VALIDATE
+
+	//RunButtonClicked();
+}
+void CMapEditor::HandleFieldMaxRangeEntered()
+{
+	//assert__( mCurrentDisplayData );
+
+ //   bool is_converted=false;
+ //   const QString rmax = mTabDataLayers->mMaxRange->text();
+	//mCurrentDisplayData->SetMaxValue( rmax.toInt( &is_converted, 10 ) );			//TODO VALIDATE
+
+	//RunButtonClicked();
+}
 
 
 

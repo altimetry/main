@@ -379,11 +379,11 @@ public:
 	void SetLoessCutOffDefault() { setDefaultValue( m_loessCutOff ); }
 
 	std::string GetTypeAsString() const { return CMapTypeField::GetInstance().IdToName( m_type ); }
-	CMapTypeField::ETypeField GetType() const { return m_type; }	
-	void SetType( CMapTypeField::ETypeField type ) { m_type = type; }
-	void SetType( int32_t value )
+	CMapTypeField::ETypeField GetFieldType() const { return m_type; }	
+	void SetFieldType( CMapTypeField::ETypeField type ) { m_type = type; }
+	void SetFieldType( int32_t value )
 	{ 
-		SetType( (CMapTypeField::ETypeField)value ); 
+		SetFieldType( (CMapTypeField::ETypeField)value ); 
 	}
 
 	std::string GetDataTypeAsString() const { return CMapTypeData::GetInstance().IdToName( m_dataType ); }

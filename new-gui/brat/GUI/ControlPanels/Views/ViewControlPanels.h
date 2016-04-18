@@ -294,6 +294,9 @@ public:
     QListWidget *mFieldsList = nullptr;
     QCheckBox *mShowSolidColorCheck = nullptr;
 
+    QLineEdit *mMinRange = nullptr;
+    QLineEdit *mMaxRange = nullptr;
+    QPushButton *mReset = nullptr;
 
 public:
     CMapControlsPanelDataLayers( QWidget *parent = nullptr, Qt::WindowFlags f = 0 );

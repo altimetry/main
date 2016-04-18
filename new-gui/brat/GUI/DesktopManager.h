@@ -11,7 +11,7 @@
 
 
 
-class CTreeWorkspace;
+class CBratSettings;
 
 class CTabbedDock;
 class CGlobeWidget;
@@ -69,7 +69,7 @@ protected:
 #if defined TABBED_MANAGER
 	CDesktopManagerBase( const CApplicationPaths &paths, QMainWindow *const parent );
 #else
-	CDesktopManagerBase( const CApplicationPaths &paths, QMainWindow *const parent, Qt::WindowFlags f = 0 );
+	CDesktopManagerBase( const CBratSettings &settings, QMainWindow *const parent, Qt::WindowFlags f = 0 );
 #endif
 
 	static void SetChildWindowTitle( QWidget *child, const QWidget *widget = nullptr )
@@ -136,11 +136,11 @@ protected:
 	// construction / destruction
 
 #if defined TABBED_MANAGER
-	CAbstractDesktopManager( const CApplicationPaths &paths, QMainWindow *const parent )
-		: base_t( paths, parent )
+	CAbstractDesktopManager( const CBratSettings &settings, QMainWindow *const parent )
+		: base_t( settings, parent )
 #else
-	CAbstractDesktopManager( const CApplicationPaths &paths, QMainWindow *const parent, Qt::WindowFlags f = 0 )
-		: base_t( paths, parent, f )
+	CAbstractDesktopManager( const CBratSettings &settings, QMainWindow *const parent, Qt::WindowFlags f = 0 )
+		: base_t( settings, parent, f )
 #endif
 	{}
 
@@ -252,7 +252,7 @@ protected:
 public:
 	//ctor/dtor
 
-	CDesktopManagerSDI( const CApplicationPaths &paths, QMainWindow *parent );
+	CDesktopManagerSDI( const CBratSettings &settings, QMainWindow *parent );
 
 	virtual ~CDesktopManagerSDI()
 	{}
@@ -351,7 +351,7 @@ protected:
 	void AddMDIArea( QWidget *parent );
 public:
 
-	CDesktopManagerMDI( const CApplicationPaths &paths, QMainWindow *parent );
+	CDesktopManagerMDI( const CBratSettings &settings, QMainWindow *parent );
 
 	virtual ~CDesktopManagerMDI()
 	{}

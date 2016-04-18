@@ -5,6 +5,9 @@
 #include <QDialog>
 
 
+class COperation;
+class CFormula;
+
 
 
 class CShowAliasesDialog : public QDialog
@@ -26,6 +29,16 @@ class CShowAliasesDialog : public QDialog
 
     using base_t = QDialog;
 
+	enum EColums
+	{
+		eValue,
+		eSyntax,
+		eDescription,
+		eSelect,
+
+		EColums_size
+	};
+
     /////////////////////////////
     // static data
     /////////////////////////////
@@ -33,6 +46,11 @@ class CShowAliasesDialog : public QDialog
     /////////////////////////////
     // instance data
     /////////////////////////////
+
+	QTableWidget *mAliasesTable = nullptr;
+	QLabel *mHeaderLabel = nullptr;
+	QLabel *mFooterLabel = nullptr;
+	std::vector<QCheckBox*> mSelected;
 
     QDialogButtonBox *mButtonBox = nullptr;
 
@@ -46,7 +64,7 @@ private:
     void Wire();
 
 public:
-    CShowAliasesDialog( QWidget *parent );
+    CShowAliasesDialog( QWidget *parent, COperation* operation, CFormula* formula );
 
     virtual ~CShowAliasesDialog();
 
@@ -54,11 +72,22 @@ public:
     // getters / setters / testers
     /////////////////////////////
 
+
+	const std::vector<QCheckBox*>& CheckedItems() const { return mSelected; }
+
+	std::string AliasSyntax( int row ) const 
+	{ 
+		return q2a( mAliasesTable->item( row, eSyntax )->text() );
+	}
+
+
     /////////////////////////////
     // Operations
     /////////////////////////////
 
 protected:
+	QWidget* MakeSelectCell();
+
     virtual void accept() override;
 
 };

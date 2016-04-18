@@ -14,7 +14,7 @@ const std::string ENTRY_USER_BASE_PATH =		"user_base_path";
 const std::string ENTRY_EXTERNAL_DATA_DIR =		"external_data_dir";
 const std::string ENTRY_RASTER_LAYER_PATH =		"raster_layer_path";
 const std::string ENTRY_WORKSPACES_DIR =		"workspaces_dir";
-const std::string ENTRY_UNIQUE_USER_BASE_PATH = "unique_user_base_path";
+const std::string ENTRY_PORTABLE_PATHS =		"portable_paths";
 const std::string ENTRY_DESKTOP_MANAGER_SDI =	"desktop_manager_sdi";
 
 
@@ -136,12 +136,11 @@ bool CBratSettings::LoadPaths()
 	return
 		ReadSection( GROUP_PATHS,
 
-            k_v( ENTRY_USER_BASE_PATH,			&mBratPaths.mUserBasePath ),
-            k_v( ENTRY_EXTERNAL_DATA_DIR,		&mBratPaths.mExternalDataDir ),
-            k_v( ENTRY_RASTER_LAYER_PATH,		&mBratPaths.mRasterLayerPath ),
+            k_v( ENTRY_USER_BASE_PATH,			&mBratPaths.mPortableBasePath ),
+            //k_v( ENTRY_RASTER_LAYER_PATH,		&mBratPaths.mRasterLayerPath ),
             k_v( ENTRY_WORKSPACES_DIR,			&mBratPaths.mWorkspacesDir ),
 
-            k_v( ENTRY_UNIQUE_USER_BASE_PATH,	&mBratPaths.mUniqueUserBasePath )
+            k_v( ENTRY_PORTABLE_PATHS,	&mBratPaths.mUsePortablePaths )
 		)
 		&&
         mBratPaths.SetUserPaths();
@@ -152,12 +151,11 @@ bool CBratSettings::SavePaths()
 	return 
 		WriteSection( GROUP_PATHS,
 
-            k_v( ENTRY_USER_BASE_PATH,			mBratPaths.mUserBasePath ),
-            k_v( ENTRY_EXTERNAL_DATA_DIR,		mBratPaths.mExternalDataDir ),
-            k_v( ENTRY_RASTER_LAYER_PATH,		mBratPaths.mRasterLayerPath ),
+            k_v( ENTRY_USER_BASE_PATH,			mBratPaths.mPortableBasePath ),
+            //k_v( ENTRY_RASTER_LAYER_PATH,		mBratPaths.mRasterLayerPath ),
             k_v( ENTRY_WORKSPACES_DIR,			mBratPaths.mWorkspacesDir ),
 
-            k_v( ENTRY_UNIQUE_USER_BASE_PATH,	mBratPaths.mUniqueUserBasePath )
+            k_v( ENTRY_PORTABLE_PATHS,	mBratPaths.mUsePortablePaths )
 		);
 }
 
@@ -173,6 +171,7 @@ bool CBratSettings::SaveConfig()
 		k_v( ENTRY_ADVANCED_OPERATIONS,		mAdvancedOperations ),
 
 		k_v( ENTRY_LOAD_WKSPC_AT_STARTUP,	mLoadLastWorkspaceAtStartUp ),
+		k_v( ENTRY_USE_RASTER_LAYER,		mUseRasterLayer ),
 		k_v( ENTRY_DESKTOP_MANAGER_SDI,		mDesktopManagerSdi )
 	)
 	&&
@@ -206,6 +205,7 @@ bool CBratSettings::LoadConfig()
 		k_v( ENTRY_ADVANCED_OPERATIONS,		&mAdvancedOperations ),
 
 		k_v( ENTRY_LOAD_WKSPC_AT_STARTUP,	&mLoadLastWorkspaceAtStartUp ),
+		k_v( ENTRY_USE_RASTER_LAYER,		&mUseRasterLayer ),
 		k_v( ENTRY_DESKTOP_MANAGER_SDI,		&mDesktopManagerSdi )
 	)
 	&&

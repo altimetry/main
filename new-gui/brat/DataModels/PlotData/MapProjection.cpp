@@ -102,7 +102,7 @@ crs_entry_t MakeCRSEntryFromId( unsigned id )
 			break;
 
 		case PROJ2D_AZIMUTHAL_EQUIDISTANT:
-            return { id, { 54032, QgsCoordinateReferenceSystem::EpsgCrsId } };		//World_Azimuthal_Equidistant
+            return { id, { 53032, QgsCoordinateReferenceSystem::EpsgCrsId } };		//Sphere_Azimuthal_Equidistant
 			break;
 
 		case PROJ2D_3D:			//invalid CRS, not 2D

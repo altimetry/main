@@ -48,7 +48,7 @@
 #include "LUTFrame.h"
 #include "ColorPicker.h"
 
-#include "PlotData/BratLookupTable.h"
+#include "new-gui/brat/DataModels/PlotData/BratLookupTable.h"
 
 
 extern long ID_CLUTPANEL_APPLY_BUTTON;

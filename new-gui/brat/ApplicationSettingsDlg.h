@@ -1,33 +1,65 @@
 #ifndef APPLICATION_SETTINGS_DLG_H
 #define APPLICATION_SETTINGS_DLG_H
 
-#include "ui_ApplicationSettingsDlg.h"
+
+#include "GUI/StackedWidget.h"
 
 
-
-
-class CApplicationSettingsDlg : public QDialog, private Ui::CApplicationSettingsDlg
+class CApplicationSettingsDlg : public QDialog
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
 #endif
 
-	Q_OBJECT
+	Q_OBJECT;
 
 #if defined (__APPLE__)
 #pragma clang diagnostic pop
 #endif
 
+	//types
+
+	using base_t = QDialog;
+
+
+	//instance data
+
+    CStackedWidget *mStackedWidget = nullptr;
+
+	QLineEdit *mDataDirectoryLineEdit = nullptr;
+	QPushButton *mBrowseDataDirectoryPushButton = nullptr;
+    QLineEdit *mProjectsDirectoryLineEdit = nullptr;
+	QPushButton *mBrowseWorkspacesDirectoryPushButton = nullptr;
+    QCheckBox *mUsePortablePathsCheckBox = nullptr;
+    QWidget *mApplicationPathsPage = nullptr;
+
+    QCheckBox *mLoadLastProjectAtAtartupCheckBox = nullptr;
+	QRadioButton *mUseVectorLayer = nullptr;
+	QRadioButton *mUseRasterLayer = nullptr;
+	QWidget *mStartupOptionsPage = nullptr;
+
+    QListWidget *mStylesListWidget = nullptr;
+    QCheckBox *mDefaultStyleCheckBox = nullptr;
+    QWidget *mApplicationStylesPage = nullptr;
+
 	QCheckBox *mDesktopManagerSdiCheckbox = nullptr;
+
+    QDialogButtonBox *mButtonBox = nullptr;
+
 
 	CBratSettings &mSettings;
 
-	//ctor helpers
 
-	void createIcons();
+	//construction / destruction
+
+	void CreateWidgets();
+	void Wire();
 public:
     explicit CApplicationSettingsDlg( CBratSettings &options, QWidget *parent );
+
+	
+	//remaining methods
 
 protected:
     bool ValidateAndAssign();
@@ -35,14 +67,8 @@ protected:
 private slots:
     virtual void accept();
 
-	void changePage( QListWidgetItem *current, QListWidgetItem *previous );
-
-	void UpdateDirectoriesActions( const QString & text );
-
-    void on_BrowseParseDataDirectory_pushButton_clicked();
-    void on_Browse_ProjectsPath_pushButton_clicked();
-    void on_Browse_ExternalDataPath_pushButton_clicked();
-    void on_AutoRelativePaths_checkBox_clicked(bool checked);
+    void HandleBrowseDataDirectory();
+    void HandleBrowseProjectsPath();
 };
 
 #endif // APPLICATION_SETTINGS_DLG_H

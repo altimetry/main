@@ -34,7 +34,8 @@
 
 // Custom source
 #include "brathl.h"
-#include "PlotData/BratLookupTable.h"
+#include "wxInterface.h"
+#include "new-gui/brat/DataModels/PlotData/BratLookupTable.h"
 #include "BratDisplayApp.h"
 #include "Validators.h"
 #include "LabeledTextCtrl.h"

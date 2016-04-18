@@ -47,6 +47,7 @@ public:
     std::string m_lastColorTable;
 
 	bool mLoadLastWorkspaceAtStartUp = true;
+	bool mUseRasterLayer = false;
 	bool mDesktopManagerSdi = true;
 
 
@@ -100,10 +101,7 @@ public:
 	}
 
 
-	bool SetExternalDataDirectory( const std::string &path )
-	{
-		return mBratPaths.SetExternalDataDirectory( path );
-	}
+	bool UsingRasterLayer() const { return mUseRasterLayer; }
 
 
 public:

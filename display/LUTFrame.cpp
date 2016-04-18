@@ -30,7 +30,8 @@
 #endif
 
 #include <wx/numdlg.h>
-#include "PlotData/BratLookupTable.h"
+#include "wxInterface.h"
+#include "new-gui/brat/DataModels/PlotData/BratLookupTable.h"
 #include "BratDisplayApp.h"
 #include "LUTFrame.h"
 #include "new-gui/Common/tools/Trace.h"
@@ -425,7 +426,8 @@ void CLUTFrame::Open()
   
   try
   {
-    bOk = m_lutPanel->GetLUT()->LoadFromFile(m_fileName.GetFullPath().ToStdString());
+	std::string error_msg;
+    bOk = m_lutPanel->GetLUT()->LoadFromFile(error_msg, m_fileName.GetFullPath().ToStdString());
   }
   catch(CException& e)
   {

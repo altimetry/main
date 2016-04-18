@@ -34,6 +34,7 @@
 
 using namespace brathl;
 
+#include "wxInterface.h"
 
 class VTK_CZFXYPlotData;
 
@@ -79,7 +80,7 @@ class VTK_CZFXYPlotData;
 #include "PlotData/vtkGSHHSReader.h"
 #include "PlotData/vtkList.h"
 #include "PlotData/vtkZFXYPlotActor.h"
-#include "PlotData/BratLookupTable.h"
+#include "new-gui/brat/DataModels/PlotData/BratLookupTable.h"
 
 
 

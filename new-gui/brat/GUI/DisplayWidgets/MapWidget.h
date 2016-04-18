@@ -20,6 +20,9 @@ class QgsRasterLayer;
 class CDecorationGrid;
 class QgsGraduatedSymbolRendererV2;
 
+// TODO RCCC
+class QgsMapTip;
+
 
 
 //
@@ -110,7 +113,11 @@ public:
 
 	static QgsGraduatedSymbolRendererV2* CreateRenderer( const QString &target_field, double width, double m, double M, size_t contours );
 
+    ///////////////// TODO _ RCCC //////////////////////////////////////////
+    static QgsGraduatedSymbolRendererV2* CreateRenderer_polygon( const QString &target_field, double m, double M, size_t contours );
 
+    static QgsSymbolV2* CreatePolygonSymbol( const QColor &color );
+    /////////////////////////////////////////////////////////////////////////
 	
     static QgsSymbolV2* CreatePointSymbol( double width, const QColor &color );
 
@@ -120,6 +127,12 @@ public:
 
 	static QgsFeatureList& CreatePointFeature( QgsFeatureList &list, double lon, double lat, double value );
 
+    ///////////////// TODO _ RCCC //////////////////////////////////////////
+    static QgsFeatureList& CreatePolygonFeature( QgsFeatureList &list, double lon, double lat, const std::map<QString, QVariant> &attrs = std::map<QString, QVariant>() );
+
+    static QgsFeatureList& CreatePolygonFeature( QgsFeatureList &list, double lon, double lat, double value );
+    /////////////////////////////////////////////////////////////////////////
+
 	static QgsFeatureList& createLineFeature( QgsFeatureList &list, QgsPolyline points );
 
 
@@ -128,7 +141,8 @@ protected:
     //	instance data
     //////////////////////////////////////
 
-	QgsVectorLayer *mMainLayer = nullptr;
+	QgsMapLayer *mMainLayer = nullptr;
+	bool mUsingRasterLayerBase = false;
 	QgsVectorLayer *mTracksLayer = nullptr;
 	std::vector< QgsVectorLayer* > mDataLayers;
 	QgsRasterLayer *mMainRasterLayer = nullptr;
@@ -167,6 +181,18 @@ protected:
 	QgsCoordinateReferenceSystem mDefaultProjection;
 
 
+    // TODO: RCCC - Create Map Tips. ///////////////////////////
+    // Timer for map tips
+    QTimer *mpMapTipsTimer = nullptr;
+    // Maptip object
+    QgsMapTip *mpMaptip = nullptr;
+    // Point of last mouse position in map coordinates (used with MapTips)
+    QgsPoint mLastMapPosition;
+    // Flag to indicate if maptips are on or off
+    bool mMapTipsVisible;
+    /////////////////////////////////////////////////////////////
+
+
     //////////////////////////////////////
     //	construction / destruction
     //////////////////////////////////////
@@ -187,8 +213,10 @@ protected:
 
 	void CreateSelectionWidgets( QToolBar *tb );
 	void CreateGridWidgets( QToolBar *tb );
+	void Init();		
 public:
-    CMapWidget( QWidget *parent = nullptr );
+    CMapWidget( QWidget *parent );
+    explicit CMapWidget( bool use_raster, QWidget *parent );
 
 	virtual ~CMapWidget();
 
@@ -247,7 +275,16 @@ public:
     void PlotTrack( const double *x, const double *y, const double *z, size_t size, brathl_refDate ref_date, QColor color = Qt::red );
 
 
+    // TODO - RCCC Map tips    //////////////
+    void createMapTips();
+
+    // Toggle map tips on/off
+    void toggleMapTips();
+    /////////////////////////////////////////
+
+
 protected:
+	void SetLayerSet();
 
 	void SetMainLayerVisible( bool show );
 
@@ -272,8 +309,8 @@ protected:
 
 	void SetCurrentLayer( QgsMapLayer *l );	
 
-	QgsMapCanvasLayer* FindCanvasLayer( QgsVectorLayer *layer );	
-	const QgsMapCanvasLayer* FindCanvasLayer( QgsVectorLayer *layer ) const
+	QgsMapCanvasLayer* FindCanvasLayer( QgsMapLayer *layer );	
+	const QgsMapCanvasLayer* FindCanvasLayer( QgsMapLayer *layer ) const
 	{
         return const_cast<CMapWidget*>( this )->FindCanvasLayer( layer );
 	}
@@ -294,6 +331,9 @@ protected:
 
 	QgsVectorLayer* AddDataLayer( const std::string &name, double width, double m, double M, size_t contours, QgsFeatureList &flist );
 
+    //////////////////////////////// TODO - RCCC /////////////////////////////////////
+    QgsVectorLayer* AddDataLayer_Polygon(const std::string &name, double m, double M, size_t contours, QgsFeatureList &flist );
+    ///////////////////////////////////////////////////////////////////////////////////
 
 protected:
 
@@ -301,6 +341,10 @@ protected:
 
 	QgsVectorLayer* AddMemoryLayer( const std::string &name, QgsFeatureRendererV2 *renderer );
 	QgsVectorLayer* AddMemoryLayer( const std::string &name = "", QgsSymbolV2* symbol = nullptr );
+
+    //////////////////////////////// TODO - RCCC /////////////////////////////////////
+    QgsVectorLayer* AddMemoryLayer_polygon( const std::string &name, QgsFeatureRendererV2 *renderer );
+    ///////////////////////////////////////////////////////////////////////////////////
 
 	QgsVectorLayer* AddOGRVectorLayer( const QString &layer_path, QgsSymbolV2* symbol = nullptr );
 
@@ -328,6 +372,11 @@ public slots:
 	void ShowMouseCoordinate( const QgsPoint & p, bool erase = false );
 	void ShowMouseCoordinate( const QString s, bool erase = false );
 	void ShowMouseDegreeCoordinates( const QgsPoint & p, bool erase = false );
+
+    // TODO - RCCC Map tips    //////////////
+    // Show the maptip using tooltip
+    void showMapTip();
+    /////////////////////////////////////////
 
 protected slots:
 

@@ -932,7 +932,8 @@ void CBratDisplayApp::GetWPlotPropertyParams(int32_t nFields)
         // load the color table file definition
         try
         {
-          props->m_LUT->LoadFromFile(fileName.GetFullPath().ToStdString());
+			std::string error_msg;
+          props->m_LUT->LoadFromFile(error_msg, fileName.GetFullPath().ToStdString());
         }
         catch(CException& e)
         {
@@ -1259,7 +1260,8 @@ void CBratDisplayApp::GetZFXYPlotPropertyParams(int32_t nFields)
         // load the color table file definition
         try
         {
-          props->m_LUT->LoadFromFile(fileName.GetFullPath().ToStdString());
+			std::string error_msg;
+          props->m_LUT->LoadFromFile(error_msg, fileName.GetFullPath().ToStdString());
         }
         catch(CException& e)
         {

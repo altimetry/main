@@ -374,6 +374,7 @@ public:
 	std::string GetOperationCopyName( const std::string& baseName );
 
 	COperation* GetOperation( const std::string& name );
+	COperation* GetQuickOperation() { return GetOperation( QuickOperationName() ); }
 	const COperation* GetOperation( const std::string& name ) const;
 
 	CObMap* GetOperations() { return &m_operations; }

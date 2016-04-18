@@ -4,6 +4,7 @@
 #include "DisplayWidgets/BratViews.h"
 #include "GUI/TabbedDock.h"
 #include "DesktopManager.h"
+#include "BratSettings.h"
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -11,21 +12,23 @@
 /////////////////////////////////////////////////////////////////////////////////////
 
 #if defined TABBED_MANAGER
-CDesktopManagerBase::CDesktopManagerBase( const CApplicationPaths &paths, QMainWindow *const parent )
+CDesktopManagerBase::CDesktopManagerBase( const CBratSettings &settings, QMainWindow *const parent )
 	: base_t( parent )
 #else
-CDesktopManagerBase::CDesktopManagerBase( const CApplicationPaths &paths, QMainWindow *const parent, Qt::WindowFlags f )	//f = 0 
+CDesktopManagerBase::CDesktopManagerBase( const CBratSettings &settings, QMainWindow *const parent, Qt::WindowFlags f )	//f = 0 
 	: base_t( parent, f )
 #endif
-	, mPaths( paths )
+	, mPaths( settings.BratPaths() )
 {
 	setAttribute( Qt::WA_DeleteOnClose );
 
 	setObjectName( QString::fromUtf8( "centralWidget" ) );
 
-	mMap = new CBratMapView( this );
+	mMap = new CBratMapView( settings.UsingRasterLayer(), this );
 
 	parent->setCentralWidget( this );
+
+	mMap->Home();
 }
 
 
@@ -126,8 +129,8 @@ CDesktopManagerSDI::desktop_child_t* CDesktopManagerSDI::AddSubWindow( QWidget *
 }
 
 
-CDesktopManagerSDI::CDesktopManagerSDI( const CApplicationPaths &paths, QMainWindow *parent )
-	: base_t( paths, parent )
+CDesktopManagerSDI::CDesktopManagerSDI( const CBratSettings &settings, QMainWindow *parent )
+	: base_t( settings, parent )
 {
 
 #if defined TABBED_MANAGER
@@ -175,8 +178,8 @@ void CDesktopManagerMDI::AddMDIArea( QWidget *parent )
     gridLayout->addWidget( mMdiArea, 0, 0, 1, 1 );
 }
 
-CDesktopManagerMDI::CDesktopManagerMDI( const CApplicationPaths &paths, QMainWindow *parent )		//parent = nullptr 
-	: base_t( paths, parent )
+CDesktopManagerMDI::CDesktopManagerMDI( const CBratSettings &settings, QMainWindow *parent )		//parent = nullptr 
+	: base_t( settings, parent )
 {
 #if defined TABBED_MANAGER
 	QWidget *tab = new QWidget();

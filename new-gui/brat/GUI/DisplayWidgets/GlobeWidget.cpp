@@ -525,8 +525,11 @@ CGlobeWidget::CGlobeWidget( QWidget *parent, CMapWidget *the_canvas )
 
 	// install the programmable manipulator.
 	//
-	osgEarth::Util::EarthManipulator* manip = new osgEarth::Util::EarthManipulator();
+	osgEarth::Util::EarthManipulator *manip = new osgEarth::Util::EarthManipulator();
+	manip->getSettings()->bindScroll( osgEarth::Util::EarthManipulator::ACTION_ZOOM_OUT,  osgGA::GUIEventAdapter::SCROLL_DOWN ); 
+	manip->getSettings()->bindScroll( osgEarth::Util::EarthManipulator::ACTION_ZOOM_IN, osgGA::GUIEventAdapter::SCROLL_UP ); 
 	mOsgViewer->setCameraManipulator( manip );
+
 
 	SetupMap();		//creates and attaches the map node, graticule, layers...
 

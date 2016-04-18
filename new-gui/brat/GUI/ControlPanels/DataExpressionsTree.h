@@ -248,6 +248,13 @@ class CDataExpressionsTreeWidget : public CAbstractTree
 	using base_t = CAbstractTree;
 
 
+	// static members
+
+public:
+	static bool SelectRecord( QWidget *parent, COperation *operation, CProduct *product );
+
+
+private:
 	// instance variables
 
 	CFieldsTreeWidget *mDragSource = nullptr;
@@ -324,6 +331,7 @@ public:
 	void InsertFormula();
 	void SaveAsFormula();
 
+	void ShowAliases();
 	bool CheckSyntax( CProduct *product );
 
 
