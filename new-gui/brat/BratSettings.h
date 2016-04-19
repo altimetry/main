@@ -4,6 +4,7 @@
 #include "new-gui/Common/ApplicationPaths.h"
 #include "new-gui/Common/ApplicationSettings.h"
 #include "new-gui/Common/QtUtilsIO.h"
+#include "new-gui/brat/GUI/DisplayWidgets/MapWidget.h"
 
 
 class CWorkspace;
@@ -23,13 +24,13 @@ class CBratSettings : public CApplicationSettings
     using base_t = CApplicationSettings;
 
     friend class CBratApplication;
-	friend class QbrtApplication;		//TODO delete when brat-lab is discontinued
 
 
     //////////////////////////////////////
     //	static members
     //////////////////////////////////////
 
+    static const CMapWidget::ELayerBaseType smDefaultLayerBaseType;
 
 protected:
 
@@ -47,7 +48,7 @@ public:
     std::string m_lastColorTable;
 
 	bool mLoadLastWorkspaceAtStartUp = true;
-	bool mUseRasterLayer = false;
+    CMapWidget::ELayerBaseType mLayerBaseType = CMapWidget::ELayerBaseType::eRasterLayer;
 	bool mDesktopManagerSdi = true;
 
 
@@ -101,7 +102,13 @@ public:
 	}
 
 
-	bool UsingRasterLayer() const { return mUseRasterLayer; }
+    CMapWidget::ELayerBaseType LayerBaseType() const { return mLayerBaseType; }
+
+    void SetURLRasterLayerPath( const std::string &path )
+    {
+        mBratPaths.SetURLRasterLayerPath( path );
+    }
+
 
 
 public:

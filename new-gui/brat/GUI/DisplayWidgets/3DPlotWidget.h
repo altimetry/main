@@ -2,6 +2,9 @@
 #define GUI_DISPLAY_WIDGETS_3D_PLOT_WIDGET_H
 
 #include <qtimer.h>
+#if !defined (GL_EXT_geometry_shader4)
+#define GL_EXT_geometry_shader4
+#endif
 #include <qwt3d_surfaceplot.h>
 
 

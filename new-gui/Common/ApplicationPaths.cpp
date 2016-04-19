@@ -51,7 +51,6 @@ const std::string osg_paths_SUBDIR = "osgPlugins-3.4.0";
 
 
 
-
 const std::string BRATSHOWSTATS_EXE		= setExecExtension( "BratStats" );
 const std::string BRATSCHEDULER_EXE		= setExecExtension( "scheduler" );
 const std::string BRATEXPORTGEOTIFF_EXE = setExecExtension( "BratExportGeoTiff" );
@@ -59,6 +58,11 @@ const std::string BRATEXPORTASCII_EXE	= setExecExtension( "BratExportAscii" );
 const std::string BRATCREATEZFXY_EXE	= setExecExtension( "BratCreateZFXY" );
 const std::string BRATCREATEYFX_EXE		= setExecExtension( "BratCreateYFX" );
 
+
+//static 
+const std::string CApplicationPaths::smDefaultURLRasterLayerPath =
+		R"raw(&format=image/png&layers=bluemarble&styles=&url=http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_airsnrt?layer%3DAIRS_SO2_A%26)raw";
+            //contextualWMSLegend=0&crs=EPSG:4326&dpiMode=all&featureCount=10&format=image/png&layers=bluemarble&styles=&url=http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_airsnrt?layer%3DAIRS_SO2_A%26
 
 
 
@@ -88,7 +92,11 @@ CApplicationPaths::CApplicationPaths( const QString &exec_path ) :
 	base_t( q2a( exec_path ) )
 
     , mVectorLayerPath( mInternalDataDir + "/maps/ne_10m_coastline/ne_10m_coastline.shp" )
-    , mRasterLayerPath( mExecutableDir + "/" + RasterLayerSubPath() )
+    , mRasterLayerPath( mInternalDataDir + "/maps/NE1_HR_LC_SR_W_DR/NE1_HR_LC_SR_W_DR.tif" )
+    , mURLRasterLayerPath( smDefaultURLRasterLayerPath )
+
+    //"http://localhost:8080/geoserver/wfs?srsname=EPSG:23030&typename=union&version=1.0.0&request=GetFeature&service=WFS"
+    //"url=http://kaart.maaamet.ee/wms/alus&format=image/png&layers=MA-ALUS&styles=&crs=EPSG:AUTO"
 
     , mOsgPluginsDir( mExecutableDir + "/" + osg_paths_SUBDIR )
 

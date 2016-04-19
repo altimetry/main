@@ -37,7 +37,7 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_New, "&New...", CActionInfo::FormatTip("New\nCreate a new workspace"), ":/images/OSGeo/new.png", "", "Ctrl+N" },
 
-    { eAction_CloseWorkspace, "&Close", CActionInfo::FormatTip("Close\nClose and unload the workspace"), "://images/alpha-numeric/__q.png" },
+    { eAction_CloseWorkspace, "&Close", CActionInfo::FormatTip("Close\nClose and unload the workspace"), ":/images/OSGeo/quit.png" },
 
     { eAction_Save, "&Save", CActionInfo::FormatTip("Save\nSave the workspace to disk"), ":/images/OSGeo/save.png", "", "Ctrl+S" },
 
@@ -93,9 +93,9 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 	// End of Designer actions list
 
 
-    { eAction_DisplayEditor2D, "2D", CActionInfo::FormatTip("2D\nDisplay 2D view"), "://images/alpha-numeric/__a.png", "://images/alpha-numeric/__a.png" },
+    { eAction_DisplayEditor2D, "2D", CActionInfo::FormatTip("2D\nDisplay 2D view"), "://images/OSGeo/2d-view.png", "://images/OSGeo/2d-view.png" },
 
-    { eAction_DisplayEditor3D, "3D", CActionInfo::FormatTip("3D\nDisplay 3D view"), "://images/alpha-numeric/__b.png", "://images/alpha-numeric/__b.png" },
+    { eAction_DisplayEditor3D, "3D", CActionInfo::FormatTip("3D\nDisplay 3D view"), "://images/OSGeo/3d-view.png", "://images/OSGeo/3d-view.png" },
 
     { eAction_DisplayEditorDock, "", CActionInfo::FormatTip("Show/Hide the view working panel"), "://images/alpha-numeric/__d.png" },
 
@@ -103,11 +103,11 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_MeasureArea, "Area", CActionInfo::FormatTip("Area\nMeasure area (m<sup>2</sup>) of selected region"), "://images/OSGeo/measure-area.png", "://images/OSGeo/measure-area.png" },
 
-    { eAction_MapEditorMean, "Mean", CActionInfo::FormatTip("Mean\nCompute mean of plotted variable in selected region"), "://images/alpha-numeric/__g.png" },
+    { eAction_MapEditorMean, "Mean", CActionInfo::FormatTip("Mean\nCompute mean of plotted variable in selected region"), "://images/OSGeo/stats.png" },
 
-    { eAction_MapEditorStDev, "StDev", CActionInfo::FormatTip("Standard Deviation\nCompute standard deviation of plotted variable in selected region"), "://images/alpha-numeric/__h.png" },
+    { eAction_MapEditorStDev, "StDev", CActionInfo::FormatTip("Standard Deviation\nCompute standard deviation of plotted variable in selected region"), "://images/OSGeo/stats_std.png" },
 
-    { eAction_MapEditorLinearRegression, "LG", CActionInfo::FormatTip("Linear Regression\nCompute linear regression of plotted variable in selected area"), "://images/alpha-numeric/__i.png" },
+    { eAction_MapEditorLinearRegression, "LG", CActionInfo::FormatTip("Linear Regression\nCompute linear regression of plotted variable in selected area"), "://images/OSGeo/regression.png" },
 
 
     { eActionGroup_Projections, "", CActionInfo::FormatTip("Projections menu"), "://images/OSGeo/crs-change.png" },

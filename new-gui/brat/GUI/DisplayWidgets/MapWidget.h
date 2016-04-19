@@ -76,6 +76,17 @@ class CMapWidget : public QgsMapCanvas
 
     using base_t = QgsMapCanvas;
 
+public:
+
+    enum ELayerBaseType
+    {
+        eVectorLayer,
+        eRasterLayer,
+        eRasterURL
+    };
+
+
+protected:
 
     //////////////////////////////////////
     //	static members
@@ -86,19 +97,22 @@ class CMapWidget : public QgsMapCanvas
 	static std::string smQgisPluginsDir;
 	static std::string smVectorLayerPath;
 	static std::string smRasterLayerPath;
+    static std::string smURLRasterLayerPath;
 
 public:
 
 	static const std::string& QgisPluginsDir();
 	static const std::string& VectorLayerPath();
-	static const std::string& RasterLayerPath();	//not required, used if exists on disk
+    static const std::string& RasterLayerPath();
+    static const std::string& URLRasterLayerPath();
 
 	// Must be called at startup, before 1st map creation
 	//
 	static void SetQGISDirectories( 
 		const std::string &QgisPluginsDir, 
 		const std::string &VectorLayerPath, 
-		const std::string &RasterLayerPath );
+        const std::string &RasterLayerPath,
+        const std::string &URLRasterLayerPath );
 
 
 	// See parent widget creation helpers near instance methods for 
@@ -142,7 +156,7 @@ protected:
     //////////////////////////////////////
 
 	QgsMapLayer *mMainLayer = nullptr;
-	bool mUsingRasterLayerBase = false;
+    ELayerBaseType mLayerBaseType = eVectorLayer;
 	QgsVectorLayer *mTracksLayer = nullptr;
 	std::vector< QgsVectorLayer* > mDataLayers;
 	QgsRasterLayer *mMainRasterLayer = nullptr;
@@ -216,7 +230,7 @@ protected:
 	void Init();		
 public:
     CMapWidget( QWidget *parent );
-    explicit CMapWidget( bool use_raster, QWidget *parent );
+    explicit CMapWidget( ELayerBaseType layer_base_type , QWidget *parent );
 
 	virtual ~CMapWidget();
 

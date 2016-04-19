@@ -79,8 +79,9 @@ protected:
 
 	//for maps with raster option
 	//
-    CBratView( bool use_raster, QWidget *parent ) 
-		: base_t( use_raster, parent )
+    template< typename OPTION >
+    CBratView( OPTION option, QWidget *parent )
+        : base_t( option, parent )
 	{}
 public:
     CBratView( QWidget *parent = nullptr ) 
@@ -307,8 +308,8 @@ public:
 		: base_t( parent )
 	{}
 
-    CBratMapView( bool use_raster, QWidget *parent ) 
-		: base_t( use_raster, parent )
+    CBratMapView( CMapWidget::ELayerBaseType layer_type, QWidget *parent )
+        : base_t( layer_type, parent )
 	{}
 
 	virtual ~CBratMapView()

@@ -30,6 +30,9 @@ class CApplicationPaths : public CConsoleApplicationPaths
 
 public:
 
+	static const std::string smDefaultURLRasterLayerPath;
+
+
     static std::string DefaultExternalDataSubDir()
     {
         static const std::string s = "user-data";
@@ -45,13 +48,6 @@ public:
         static const std::string s = "globe/gui";
         return s;
     }
-    static std::string RasterLayerSubPath()
-    {
-        static const std::string s = "globe/world.tif"; // TODO RCCC changed raster file //"maps/NE1_HR_LC_SR_W_DR/NE1_HR_LC_SR_W_DR.tif";
-        return s;
-    }
-
-
 
 protected:
 
@@ -92,6 +88,7 @@ public:
 
     std::string mPortableBasePath;				// defaults to executable grand-parent directory (deployed) or S3ALTB_ROOT/lib (development)
     std::string mRasterLayerPath;
+    std::string mURLRasterLayerPath;
 
     std::string mWorkspacesDir;					// samples? if so, deployed as external data sample (like mRasterLayerPath)
 
@@ -123,13 +120,26 @@ public:
         return !( *this == o );
     }
 
+    const std::string& RasterLayerPath() const { return mRasterLayerPath; }
+
+    const std::string& URLRasterLayerPath() const { return mURLRasterLayerPath; }
+
+    void SetURLRasterLayerPath( const std::string &path ) { mURLRasterLayerPath = path; }
+
+
+    // Operates only over user changeable paths, trying to
+    //	ensure their existence in the expected locations
+    //
+    bool SetUserBasePath( bool portable, const std::string &path = "" );
+
+    bool UsePortablePaths() const { return mUsePortablePaths; }
+
     const std::string& PortableBasePath() const { return mPortableBasePath; }
 
-    const std::string& RasterLayerPath() const { return mRasterLayerPath; }
 
     const std::string& WorkspacesPath() const { return mWorkspacesDir; }
 
-    bool UsePortablePaths() const { return mUsePortablePaths; }
+    bool SetWorkspacesDirectory( const std::string &path );
 
 
 	std::string Absolute2PortableDataPath( const std::string &path ) const
@@ -162,15 +172,6 @@ public:
     bool SetUserPaths();
 
     std::string ToString() const;
-
-public:
-
-    // Operates only over user changeable paths, trying to
-    //	ensure their existence in the expected locations
-    //
-    bool SetUserBasePath( bool portable, const std::string &path = "" );
-
-    bool SetWorkspacesDirectory( const std::string &path );
 };
 
 

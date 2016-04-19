@@ -479,7 +479,8 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
 	CMapWidget::SetQGISDirectories(
 		mSettings.BratPaths().mQgisPluginsDir,
 		mSettings.BratPaths().mVectorLayerPath,
-		mSettings.BratPaths().RasterLayerPath() );
+        mSettings.BratPaths().RasterLayerPath(),
+        mSettings.BratPaths().URLRasterLayerPath() );
 
 	CGlobeWidget::SetOSGDirectories( mSettings.BratPaths().mGlobeDir );
 

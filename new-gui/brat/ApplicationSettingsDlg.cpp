@@ -45,7 +45,16 @@ void CApplicationSettingsDlg::CreateWidgets()
 	mLoadLastProjectAtAtartupCheckBox = new QCheckBox( "Load last workspace of previous session" );
 	mUseVectorLayer = new QRadioButton( "Use a vector layer" );
 	mUseRasterLayer = new QRadioButton( "Use a raster layer" );
-	auto layers_group = CreateGroupBox( ELayoutType::Vertical, { mUseVectorLayer, mUseRasterLayer, }, "Map Base Layer (requires restart)", this );
+    mUseURLRasterLayer = new QRadioButton( "Use a raster layer URL" );
+    mLayerURLLineEdit = new QLineEdit;
+    auto layers_group = CreateGroupBox( ELayoutType::Vertical,
+                                        {
+                                            mUseVectorLayer,
+                                            mUseRasterLayer,
+                                            mUseURLRasterLayer,
+                                            mLayerURLLineEdit
+                                        },
+                                        "Map Base Layer (requires restart)", this );
 
 #if defined(DEBUG) || defined(_DEBUG)
 
@@ -129,8 +138,17 @@ void CApplicationSettingsDlg::Wire()
 
 	mLoadLastProjectAtAtartupCheckBox->setChecked( mSettings.mLoadLastWorkspaceAtStartUp );
 
-	mUseRasterLayer->setChecked( mSettings.UsingRasterLayer() );
-	mUseVectorLayer->setChecked( !mSettings.UsingRasterLayer() );
+    mUseVectorLayer->setChecked( mSettings.LayerBaseType() == CMapWidget::ELayerBaseType::eVectorLayer );
+    mUseRasterLayer->setChecked( mSettings.LayerBaseType() == CMapWidget::ELayerBaseType::eRasterLayer );
+    mUseURLRasterLayer->setChecked( mSettings.LayerBaseType() == CMapWidget::ELayerBaseType::eRasterURL );
+
+    connect( mUseRasterLayer, SIGNAL( toggled( bool ) ), this,  SLOT( HandleLayerTypeChanged( bool ) ) );
+    connect( mUseVectorLayer, SIGNAL( toggled( bool ) ), this,  SLOT( HandleLayerTypeChanged( bool ) ) );
+    connect( mUseURLRasterLayer, SIGNAL( toggled( bool ) ), this,  SLOT( HandleLayerTypeChanged( bool ) ) );
+
+    mLayerURLLineEdit->setText( settings_paths->mURLRasterLayerPath.c_str() );
+
+    HandleLayerTypeChanged( false );
 
 
     //	Application Styles
@@ -143,6 +161,9 @@ void CApplicationSettingsDlg::Wire()
 	mStylesListWidget->setDisabled( mDefaultStyleCheckBox->isChecked() );
 	connect( mDefaultStyleCheckBox, SIGNAL( clicked( bool ) ), mStylesListWidget, SLOT( setDisabled( bool ) ) );
 
+
+    //button box
+
     connect( mButtonBox, SIGNAL(accepted()), this, SLOT(accept()) );
     connect( mButtonBox, SIGNAL(rejected()), this, SLOT(reject()) );
 }
@@ -154,13 +175,6 @@ CApplicationSettingsDlg::CApplicationSettingsDlg( CBratSettings &options, QWidge
 }
 
 
-
-
-///////////////////////////////////////////////////////////////////////////////////
-//
-//								*** Pages ***
-//
-///////////////////////////////////////////////////////////////////////////////////
 
 
 //	ApplicationPaths_page
@@ -181,6 +195,12 @@ void CApplicationSettingsDlg::HandleBrowseProjectsPath()
 
 
 //	StartupOptions_page
+
+void CApplicationSettingsDlg::HandleLayerTypeChanged( bool )
+{
+    mLayerURLLineEdit->setEnabled( mUseURLRasterLayer->isChecked() );
+}
+
 //	ApplicationStyles_page
 
 
@@ -244,7 +264,26 @@ bool CApplicationSettingsDlg::ValidateAndAssign()
 	//	2. Startup Options
 
 	mSettings.mLoadLastWorkspaceAtStartUp = mLoadLastProjectAtAtartupCheckBox->isChecked();
-	mSettings.mUseRasterLayer  = mUseRasterLayer->isChecked();
+    if ( mUseVectorLayer->isChecked() )
+        mSettings.mLayerBaseType = CMapWidget::ELayerBaseType::eVectorLayer;
+    else
+    if ( mUseRasterLayer->isChecked() )
+        mSettings.mLayerBaseType = CMapWidget::ELayerBaseType::eRasterLayer;
+    else
+    if ( mUseURLRasterLayer->isChecked() )
+    {
+        mSettings.mLayerBaseType = CMapWidget::ELayerBaseType::eRasterURL;
+		std::string url = q2a( mLayerURLLineEdit->text() );
+		if ( url.empty() )
+		{
+			mLayerURLLineEdit->setFocus();
+			SimpleErrorBox( "Layer URL cannot be empty" );
+			return false;
+		}
+        mSettings.SetURLRasterLayerPath( url );
+    }
+    else
+        assert__( false );
 
 
 #if defined(DEBUG) || defined(_DEBUG)

@@ -286,7 +286,7 @@ void COperationControls::CreateAdancedOperationsPage()
 
 	//...3. Buttons Row & Expression
 
-	mInsertFunction = CreateToolButton( "", ":/images/alpha-numeric/1.png", "Insert function" );
+    mInsertFunction = CreateToolButton( "", ":/images/OSGeo/function.png", "Insert function" );
 	mInsertAlgorithm = CreateToolButton( "", ":/images/alpha-numeric/2.png", "Insert algorithm" );
 	mInsertFormula = CreateToolButton( "", ":/images/alpha-numeric/3.png", "Insert formula" );
 	mSaveAsFormula = CreateToolButton( "", ":/images/alpha-numeric/4.png", "Save as formula" );

@@ -68,16 +68,19 @@ std::string CMapWidget::smQgisPluginsDir;
 std::string CMapWidget::smVectorLayerPath;
 //static 
 std::string CMapWidget::smRasterLayerPath;
+//static
+std::string CMapWidget::smURLRasterLayerPath;
 
 
-void CMapWidget::SetQGISDirectories( 
-	const std::string &QgisPluginsDir, 
-	const std::string &VectorLayerPath, 
-	const std::string &RasterLayerPath )
+void CMapWidget::SetQGISDirectories(const std::string &QgisPluginsDir,
+    const std::string &VectorLayerPath,
+    const std::string &RasterLayerPath ,
+    const std::string &URLRasterLayerPath)
 {
 	smQgisPluginsDir = QgisPluginsDir;
 	smVectorLayerPath = VectorLayerPath;
 	smRasterLayerPath = RasterLayerPath;
+    smURLRasterLayerPath = URLRasterLayerPath;
 }
 
 
@@ -101,6 +104,13 @@ const std::string& CMapWidget::RasterLayerPath()
 	//no assert, not mandatory
 
 	return smRasterLayerPath;
+}
+//static
+const std::string& CMapWidget::URLRasterLayerPath()
+{
+    //no assert, not mandatory
+
+    return smURLRasterLayerPath;
 }
 
 
@@ -248,22 +258,43 @@ void CMapWidget::Init()
     QgsProviderRegistry *preg = QgsProviderRegistry::instance( t2q( smQgisPluginsDir ) );
 	Q_UNUSED( preg );
 
-	assert__( mUsingRasterLayerBase || IsFile( smVectorLayerPath ) );
-	assert__( !mUsingRasterLayerBase || IsFile( smRasterLayerPath ) );
+    assert__( mLayerBaseType != eVectorLayer || IsFile( smVectorLayerPath ) );
+    assert__( mLayerBaseType != eRasterLayer || IsFile( smRasterLayerPath ) );
 		
-	if ( mUsingRasterLayerBase )
+    if ( mLayerBaseType == eVectorLayer )
 	{
-		mMainRasterLayer = AddRasterLayer( t2q( smRasterLayerPath ), "raster", "" );
+        QgsVectorLayer *l = AddOGRVectorLayer( t2q( smVectorLayerPath ) );
+        l->rendererV2()->symbols()[ 0 ]->setColor( "black" );
+        mMainLayer = l;
+    }
+    else
+    {
+        std::string raster_url = mLayerBaseType == eRasterLayer ? smRasterLayerPath : smURLRasterLayerPath;
+        std::string provider = mLayerBaseType == eRasterLayer ? "" : "wms";
+        mMainRasterLayer = AddRasterLayer( t2q( raster_url ), "raster", t2q( provider ) );
+		if ( mMainRasterLayer )
+		{
+			//auto crs = mMainRasterLayer->crs();
+			//setMapUnits( crs.mapUnits() );
+			//auto crs = mMainRasterLayer->crs();
+			mMainRasterLayer->setCrs( mapSettings().destinationCrs() );
+		}
+		else if ( mLayerBaseType == eRasterURL )
+		{
+			if ( !IsFile( smRasterLayerPath ) )
+				throw CException( "Loading layer from URL or file failed. Cannot continue." );
+
+			mLayerBaseType = eRasterLayer;
+			mMainRasterLayer = AddRasterLayer( t2q( smRasterLayerPath ), "raster", "" );
+			LOG_WARN( "Raster layer URL seems invalid. Tried to load the default layer instead." );
+		}
 		mMainLayer = mMainRasterLayer;
-	}
-	else
-	{
-		QgsVectorLayer *l = AddOGRVectorLayer( t2q( smVectorLayerPath ) );
-		l->rendererV2()->symbols()[ 0 ]->setColor( "black" );
-		mMainLayer = l;
 	}
 
 	//addRasterLayer( "http://server.arcgisonline.com/arcgis/rest/services/ESRI_Imagery_World_2D/MapServer?f=json&pretty=true", "raster", "" );
+	//crs=EPSG:900913&dpiMode=7&featureCount=10&format=image/png&layers=precipitation&styles=&url=http://wms.openweathermap.org/service
+
+
 
 
     /////////////////// TODO RCCC //////////////////////////////////
@@ -361,16 +392,16 @@ void CMapWidget::Init()
 
 
 
-CMapWidget::CMapWidget( bool use_raster, QWidget *parent )
+CMapWidget::CMapWidget(ELayerBaseType layer_base_type, QWidget *parent )
 	: base_t(parent)
-	, mUsingRasterLayerBase( use_raster )
+    , mLayerBaseType( layer_base_type )
 {
 	Init();
 }
 
 CMapWidget::CMapWidget( QWidget *parent )
 	: base_t(parent)
-	, mUsingRasterLayerBase( false )
+    , mLayerBaseType( eVectorLayer )
 {
 	Init();
 }
@@ -613,7 +644,7 @@ void CMapWidget::Home()
 
 void CMapWidget::HandleAddRaster()
 {
-	if ( mUsingRasterLayerBase )
+    if ( mLayerBaseType != eVectorLayer )
 		return;
 
 	if ( IsFile( smRasterLayerPath ) )
@@ -746,8 +777,8 @@ QgsSymbolV2* CMapWidget::CreatePointSymbol( double width, const QColor &color )
 
     auto symbolLayer = new QgsSimpleMarkerSymbolLayerV2;
     symbolLayer->setColor( color );
-    symbolLayer->setName("square");					//
-    symbolLayer->setSizeUnit( QgsSymbolV2::MM );	//
+    symbolLayer->setName("circle");					//
+    symbolLayer->setSizeUnit( QgsSymbolV2::MapUnit );	//
     symbolLayer->setSize( width );
     symbolLayer->setOutlineStyle( Qt::NoPen );
 
@@ -859,10 +890,20 @@ QgsFeatureList& CMapWidget::CreatePolygonFeature( QgsFeatureList &list, double l
     QgsPolyline polyline;
     QgsPolygon polygon;
 
-    polyline.append( QgsPoint( lon - step/2 , lat + step/2 ) );
-    polyline.append( QgsPoint( lon + step/2 , lat + step/2 ) );
-    polyline.append( QgsPoint( lon + step/2 , lat - step/2 ) );
-    polyline.append( QgsPoint( lon - step/2 , lat - step/2 ) );
+    double lon_max = lon + step/2;
+    double lon_min = lon - step/2;
+    double lat_min = lat - step/2;
+    double lat_max = lat + step/2;
+
+    lon_max = lon_max < 180 ? lon_max : 179.99;
+    lon_min = lon_min > -180 ? lon_min : -179.99;
+    lat_max = lat_max < 90 ? lat_max : 89.99;
+    lat_min = lat_min > -90 ? lat_min : -89.99;
+
+    polyline.append( QgsPoint( lon_min , lat_max ) );
+    polyline.append( QgsPoint( lon_max , lat_max ) );
+    polyline.append( QgsPoint( lon_max , lat_min ) );
+    polyline.append( QgsPoint( lon_min , lat_min ) );
 
     polygon.append( polyline );
 
@@ -1067,9 +1108,20 @@ QgsRasterLayer* CMapWidget::AddRasterLayer( const QString &layer_path, const QSt
     static const std::string index_symbol = "#";
 	static size_t index = 0;
 
-	std::string name = q2a( base_name ) + index_symbol + n2s<std::string>(index++);
-	auto l = provider.isEmpty() ? new QgsRasterLayer( layer_path, name.c_str() ) : new QgsRasterLayer( layer_path, name.c_str(), provider );
-	//addRenderer( l, symbol );
+        //auto l = new QgsRasterLayer( //"url=http://localhost:8080/geoserver/wfs?srsname=EPSG:23030&typename=union&version=1.0.0&request=GetFeature&service=WFS",
+								//	//QString("url=http://kaart.maaamet.ee/wms/alus&format=image/png&layers=MA-ALUS&styles=&crs=EPSG:AUTO"),
+								//	 "contextualWMSLegend=0&crs=EPSG:4326&dpiMode=all&featureCount=10&format=image/png&layers=bluemarble&styles=&url=http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_airsnrt?layer%3DAIRS_SO2_A%26",
+								//	 /*"http://localhost:8080/geoserver/wfs?srsname=EPSG:23030&typename=union&version=1.0.0&request=GetFeature&service=WFS"*/  
+								//	 /*"url=http://kaart.maaamet.ee/wms/alus&format=image/png&layers=MA-ALUS&styles=&crs=EPSG:AUTO",*/
+        //                             "basemap",
+        //                             "wms",
+        //                             false
+        //                             );
+
+
+    std::string name = q2a( base_name ) + index_symbol + n2s<std::string>(index++);
+    auto l = provider.isEmpty() ? new QgsRasterLayer( layer_path, name.c_str() ) : new QgsRasterLayer( layer_path, name.c_str(), provider );
+	////addRenderer( l, symbol );
 
 	if ( l->isValid() ) 
 	{
@@ -1447,7 +1499,7 @@ void CMapWidget::PlotTrack( const double *x, const double *y, const double *z, s
 	}
 
 	if ( mTracksLayer == nullptr )
-		mTracksLayer = AddMemoryLayer( "SatelliteTrack", CreatePointSymbol( 0.5, color ) );
+        mTracksLayer = AddMemoryLayer( "SatelliteTrack", CreatePointSymbol( 0.1, color ) );
 
 	mTracksLayer->dataProvider()->addFeatures( flist );
 }

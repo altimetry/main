@@ -172,6 +172,7 @@
         <file>images/OSGeo/save-as2.png</file>
         <file>images/OSGeo/search.png</file>
         <file>images/OSGeo/stats.png</file>
+        <file>images/OSGeo/stats_std.png</file>
         <file>images/OSGeo/tools.png</file>
         <file>images/OSGeo/add.png</file>
         <file>images/OSGeo/north-arrow.png</file>
@@ -194,6 +195,9 @@
         <file>images/OSGeo/filter_save.png</file>
         <file>images/OSGeo/satellite_tracks.png</file>
         <file>images/OSGeo/maptips.png</file>
+        <file>images/OSGeo/2d-view.png</file>
+        <file>images/OSGeo/3d-view.png</file>
+        <file>images/OSGeo/function.png</file>
         <file>images/rads.gif</file>
     </qresource>
 </RCC>
