@@ -1147,9 +1147,11 @@ bool CDataExpressionsTreeWidget::CheckSyntax( CProduct *product )
 	{
 		std::string unit = mCurrentFormula->GetUnitAsText();	// = GetOpunit()->GetValue();
 		result = CFormula::CheckExpression( mWFormula, value, mCurrentOperation->GetRecord(), msg, &unit, &mMapFormulaString, product, &value_out );
+		if ( !result )
+			SimpleWarnBox( msg );
 	}
 
-	if ( ! value_out.empty() )
+	if ( !value_out.empty() )
 	{
 		if ( value != value_out )
 		{

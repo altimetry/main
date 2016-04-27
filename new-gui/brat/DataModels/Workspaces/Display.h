@@ -55,6 +55,11 @@ class CDisplayData : public CBratObject
 public:
 	static const char* FMT_FLOAT_XY;
 
+	static std::string MakeKey( const COperation *operation, const std::string &field_name, CMapTypeDisp::ETypeDisp type );
+
+    static const unsigned smDefaultNumberOfBins;
+
+
 private:
 	CMapTypeDisp::ETypeDisp m_type = CMapTypeDisp::Invalid();
 
@@ -80,6 +85,11 @@ private:
 
 	bool m_eastcomponent = false;
 	bool m_northcomponent = false;
+
+	//histogram
+
+	unsigned mNumberOfBins = smDefaultNumberOfBins;
+
 
 public:
 	static std::string GetValueAsText( double value );
@@ -108,7 +118,7 @@ public:
 		m_operation = operation;
 	}
 	
-	CDisplayData( const CDisplayData &o, CWorkspaceOperation *wkso );
+	CDisplayData( const CDisplayData &o, const CWorkspaceOperation *wkso );
 
 	~CDisplayData()
 	{}
@@ -185,6 +195,9 @@ public:
 	void SetType( CMapTypeDisp::ETypeDisp value ) { m_type = value; }
 	void SetType( int32_t value ) { SetType( (CMapTypeDisp::ETypeDisp)value ); }
 
+	unsigned GetNumberOfBins() const { return mNumberOfBins; }
+	void SetNumberOfBins( unsigned bins ) { mNumberOfBins = bins; }
+
 
 	bool LoadConfig( CWorkspaceSettings* config, const std::string& path, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso );
 	bool SaveConfig( CWorkspaceSettings* config, const std::string& pathSuff, CWorkspaceDisplay *wks );
@@ -212,7 +225,7 @@ public:
 	CMapDisplayData()
 	{}
 
-	CMapDisplayData( const CMapDisplayData &o, CWorkspaceOperation *wkso );
+	CMapDisplayData( const CMapDisplayData &o, const CWorkspaceOperation *wkso );
 
 	/// CMapDisplayData dtor
 	virtual ~CMapDisplayData()
@@ -260,7 +273,6 @@ public:
 class CDisplay : public CBratObject
 {
 	friend class CDisplayCmdFile;
-	friend class CConfiguration;
 	friend class CWorkspaceSettings;
 
 public:
@@ -300,7 +312,8 @@ public:
 	/// Empty CDisplay ctor
 	CDisplay( const std::string name );
 
-	CDisplay( const CDisplay &o, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso ) : m_data( o.m_data, wkso )
+	CDisplay( const CDisplay &o, const CWorkspaceDisplay *wks, const CWorkspaceOperation *wkso ) 
+		: m_data( o.m_data, wkso )
 	{
 		m_name = o.m_name;
 		m_withAnimation = o.m_withAnimation;
@@ -322,11 +335,20 @@ public:
 		InitOutput( wks );
 	}
 
+	//v4 new
 
-	//v4 new; see comments in function definition
+	CDisplay* Clone( const std::string &name,  const CWorkspaceDisplay *wks, const CWorkspaceOperation *wkso ) const
+	{
+		CDisplay *d = new CDisplay( *this, wks, wkso );
+		d->m_name = name;
+		d->InitOutput( wks );
+		return d;
+	}
 
-	bool AssignOperation( const COperation *operation, bool update = false );
+	//bool AssignOperation( const COperation *operation, bool update = false );
+	void UpdateDisplayData( const CMapDisplayData *data_list, const CWorkspaceOperation *wkso );
 
+	//
 
 protected:
 
@@ -402,8 +424,16 @@ public:
 	void SetMaxYValue( double value ) { m_maxYValue = value; }
 
 
+protected:
 	CDisplayData* GetDisplayData( const std::string& name );
+public:
 	CDisplayData* GetDisplayData( CMapDisplayData::iterator it );
+	CDisplayData* GetDisplayData( const COperation *operation, const std::string &field_name )
+	{
+		std::string key = CDisplayData::MakeKey( operation, field_name, GetType() );
+		return GetDisplayData( key );
+	}
+
 
 	std::string GetOutputFilename() const { return GetCmdFilename(); }
 	std::string GetOutputName() const { return GetCmdFilePath(); }
@@ -430,7 +460,7 @@ public:
 	bool BuildCmdFile( std::string &error_msg, bool map_as_3dplot = false );
 
 public:
-	void InitOutput( CWorkspaceDisplay *wks );
+	void InitOutput( const CWorkspaceDisplay *wks );
 
 	bool IsYFXType() const;
 	bool IsZYFXType() const;

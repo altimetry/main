@@ -14,23 +14,6 @@
 #include "2DPlotWidget.h"
 
 
-CBratScaleDraw::CBratScaleDraw()
-{
-    mantissa_digits = 2 % MAX_MANTISSA;
-}
-
-
-CBratScaleDraw::CBratScaleDraw(int _mantissa)
-{
-    mantissa_digits = _mantissa % MAX_MANTISSA;
-}
-
-QwtText CBratScaleDraw::label(double value) const
-{
-    //return QLocale::system().toString(value);
-    return QString::number(value, 'f', mantissa_digits);
-}
-
 //////////////////////////////////////////////////////////////////
 //						Custom Curve
 //////////////////////////////////////////////////////////////////
@@ -39,8 +22,6 @@ void CGeneralizedCurve::CommonConstruct()
 {
 	if ( mData )
 		setData( *mData );
-
-	connect( &mTimer, SIGNAL( timeout() ), this, SLOT( ChangeFrame() ) );
 }
 
 
@@ -66,6 +47,20 @@ CGeneralizedCurve::CGeneralizedCurve( const CQwtArrayPlotData *data, const QStri
 
 // access
 
+void CGeneralizedCurve::AxisTitles( std::string &xtitle, std::string &ytitle, std::string &ztitle )
+{
+	xtitle = mXtitle;
+	ytitle = mYtitle;
+	ztitle = mZtitle;
+}
+void CGeneralizedCurve::SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle )
+{
+	mXtitle = xtitle;
+	mYtitle = ytitle;
+	mZtitle = ztitle;
+}
+
+
 void CGeneralizedCurve::Ranges( double &xMin, double &xMax, double &yMin, double &yMax )
 {
 	xMin = mMinXValue;
@@ -87,27 +82,68 @@ void CGeneralizedCurve::SetRanges( double xMin, double xMax, double yMin, double
 }
 
 
-void CGeneralizedCurve::Animate( int updateinterval )		//updateinterval = 500 
+size_t CGeneralizedCurve::CurrentFrame()
 {
-	if ( updateinterval == 0 )
-	{
-		mTimer.stop();
-	}
-	else
-	{
-		mTimer.start( updateinterval );
-	}
+	return mData->CurrentFrame();
 }
 
-void CGeneralizedCurve::ChangeFrame()
+bool CGeneralizedCurve::FrameUpdated()
+{
+	bool stop = false;
+	if ( !mLoop )
+	{
+		stop = ( mAnimForward && CurrentFrame() == 0 ) || ( !mAnimForward && CurrentFrame() == mData->GetNumberOfFrames() - 1 );
+	}
+
+	if ( stop )
+	{
+		size_t start_frame = mAnimForward ? 0 : mData->GetNumberOfFrames() - 1;
+		mData->SetFrame( start_frame );
+	}
+
+	mRangeComputed = false;		//TODO really needed? 
+	setData( *mData );
+
+	return stop;
+}
+
+
+bool CGeneralizedCurve::SetFrame( size_t frame )
 {
 	assert__( mData );
 
-	mData->SetNextFrame();
-	mRangeComputed = false;		//TODO really needed? 
-	setData( *mData );
-	emit FrameChanged();
+	mData->SetFrame( frame );
+	return FrameUpdated();
 }
+
+
+bool CGeneralizedCurve::ChangeFrame()
+{
+	assert__( mData );
+
+	mData->SetNextFrame( mAnimForward );
+	return FrameUpdated();
+}
+
+
+bool CGeneralizedCurve::ResetFrame()
+{
+	size_t start_frame = mAnimForward ? 0 : mData->GetNumberOfFrames() - 1;
+	return SetFrame( start_frame );
+}
+
+
+void CGeneralizedCurve::SetMovingForward( bool forward )
+{
+	mAnimForward = forward;
+}
+
+
+void CGeneralizedCurve::SetLoop( bool loop )
+{
+	mLoop = loop;
+}
+
 
 
 
@@ -194,6 +230,125 @@ void CGeneralizedCurve::ComputeRange()
 
 
 
+
+
+
+//////////////////////////////////////////////////////////////////
+//						Custom Spectrogram
+//////////////////////////////////////////////////////////////////
+
+class CBratSpectrogram : public QwtPlotSpectrogram
+{
+	using base_t = QwtPlotSpectrogram;
+
+	double mMinXValue = 0.;
+	double mMaxXValue = 0.;
+
+	double mMinYValue = 0.;
+	double mMaxYValue = 0.;
+
+	std::string mXtitle;
+	std::string mYtitle;
+	std::string mZtitle;
+
+public:
+
+	explicit CBratSpectrogram( const QString &title = QString::null )
+		: base_t( title )
+	{}
+	virtual ~CBratSpectrogram()
+	{}
+
+	// access
+
+	void AxisTitles( std::string &xtitle, std::string &ytitle, std::string &ztitle )
+	{
+		xtitle = mXtitle;
+		ytitle = mYtitle;
+		ztitle = mZtitle;
+	}
+	void SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle )
+	{
+		mXtitle = xtitle;
+		mYtitle = ytitle;
+		mZtitle = ztitle;
+	}
+
+
+	void Ranges( double &xMin, double &xMax, double &yMin, double &yMax )
+	{
+		xMin = mMinXValue;
+		xMax = mMaxXValue;
+
+		yMin = mMinYValue;
+		yMax = mMaxYValue;
+	}
+
+	void SetRanges( double xMin, double xMax, double yMin, double yMax )
+	{
+		mMinXValue = xMin;
+		mMaxXValue = xMax;
+
+		mMinYValue = yMin;
+		mMaxYValue = yMax;
+	}
+};
+
+
+
+//////////////////////////////////////////////////////////////////
+//						Custom Scale Draw
+//////////////////////////////////////////////////////////////////
+
+//choice of MAX_MANTISSA as 15 because
+//the compiler generated code is lighter (and value, 0xF)
+
+static const int MAX_MANTISSA = 15;
+
+class CBratScaleDraw : public QwtScaleDraw
+{
+private:
+    int mantissa_digits;
+public:
+    CBratScaleDraw();
+    CBratScaleDraw(int _mantissa);
+
+    //our overloads
+
+    QwtText label(double) const;
+
+    int GetMantissa() const
+    {
+        return mantissa_digits;
+    }
+
+    void SetMantissa(int _mantissa)
+    {
+        mantissa_digits = _mantissa;
+    }
+};
+
+
+
+CBratScaleDraw::CBratScaleDraw()
+{
+    mantissa_digits = 2 % MAX_MANTISSA;
+}
+
+
+CBratScaleDraw::CBratScaleDraw(int _mantissa)
+{
+    mantissa_digits = _mantissa % MAX_MANTISSA;
+}
+
+QwtText CBratScaleDraw::label(double value) const
+{
+    //return QLocale::system().toString(value);
+    return QString::number(value, 'g', mantissa_digits);
+}
+
+
+
 //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
 //						Main Class
@@ -209,6 +364,7 @@ const std::string C2DPlotWidget::smFontName = "Arial";
 
 C2DPlotWidget::C2DPlotWidget( QWidget *parent ) 
 	: base_t( parent )
+	, mIsLog( false )
 {
 	setWindowIcon( QPixmap( ":/2.png" ) );
 	setWindowTitle( "[*]" );
@@ -216,34 +372,108 @@ C2DPlotWidget::C2DPlotWidget( QWidget *parent )
 
 	setCanvasBackground( Qt::white );
 
-///////////////////////////////////////////////////////////////////////////////////////////////////////
-    mXScaler = new CBratScaleDraw;
-    mYScaler = new CBratScaleDraw;
-    //xAXiS
+	QwtLegend *legend = AddLegend( RightLegend );		Q_UNUSED( legend );
 
-//    logScaler = new QwtLog10ScaleEngine();
-//    linScaler = new QwtLinearScaleEngine();
+	connect( &mTimer, SIGNAL( timeout() ), this, SLOT( ChangeFrame() ) );
 
-    mIsLog = false;
 
-    setAxisScaleDraw(QwtPlot::xBottom, mXScaler);
-    setAxisScaleDraw(QwtPlot::yLeft, mYScaler);
-///////////////////////////////////////////////////////////////////////////////////////////////////////
+	QwtScaleWidget *x = axisWidget( xBottom );
+	QwtScaleWidget *y = axisWidget( yLeft );
+	QwtScaleWidget *y2 = axisWidget( yRight );
 
-#if defined (TEST_2D_EXAMPLES)
+	connect( x, SIGNAL( scaleDivChanged() ), this, SLOT( HandleScaleDivChanged() ) );
+	connect( y, SIGNAL( scaleDivChanged() ), this, SLOT( HandleScaleDivChanged() ) );
+	connect( y2, SIGNAL( scaleDivChanged() ), this, SLOT( HandleScaleDivChanged() ) );
 
-//	Spectogram( parent );
 
-#endif
+    CBratScaleDraw* pDrawer = new CBratScaleDraw();
+    pDrawer->SetMantissa(2);
+    setAxisScaleDraw(QwtPlot::xBottom, pDrawer);
+    pDrawer = new CBratScaleDraw();
+    pDrawer->SetMantissa(2);
+    setAxisScaleDraw(QwtPlot::yLeft, pDrawer);
 
     setMinimumSize( min_plot_widget_width, min_plot_widget_height );
 }
+
+
+
+void C2DPlotWidget::RescaleX( double x )
+{
+	double xMin, xMax, yMin, yMax, y2Min, y2Max;
+	CurrentRanges( xMin, xMax, yMin, yMax, y2Min, y2Max );
+
+	const double range = xMax - xMin;
+	const double center = xMin + range / 2;
+	const double width = range / 2 * ( 1 / x );
+
+	setAxisScale( xBottom, center - width, center + width );
+	replot();
+}
+void C2DPlotWidget::RescaleY( double y )
+{
+	double xMin, xMax, yMin, yMax, y2Min, y2Max;
+	CurrentRanges( xMin, xMax, yMin, yMax, y2Min, y2Max );
+
+	const double range = yMax - yMin;
+	const double center = yMin + range / 2;
+	const double width = range / 2 * ( 1 / y );
+
+	setAxisScale( yLeft, center - width, center + width );
+	replot();
+}
+
+void C2DPlotWidget::HandleScaleDivChanged()
+{
+	QwtScaleWidget *axis = qobject_cast<QwtScaleWidget*>( sender() );
+	if ( !axis )
+		return;
+
+	double xMin, xMax, yMin, yMax, y2Min, y2Max;
+	CurrentRanges( xMin, xMax, yMin, yMax, y2Min, y2Max );
+
+	int iaxis = 0;
+	QwtScaleDiv *div = nullptr;
+	double *pscale_factor = nullptr;
+	double R = 0.;
+	if ( axis == axisWidget( yLeft ) )
+	{
+		iaxis = 1;
+		div = axisScaleDiv( yLeft );
+		R = yMax - yMin;
+		pscale_factor = &mYScaleFactor;
+	}
+	else
+	if ( axis == axisWidget( yRight ) )
+	{
+		iaxis = 2;
+		div = axisScaleDiv( yRight );
+		R = y2Max - y2Min;
+		pscale_factor = &mY2ScaleFactor;
+	}
+	else
+	{
+		assert__( axis == axisWidget( xBottom ) );
+		div = axisScaleDiv( xBottom );
+
+		R = xMax - xMin;
+		pscale_factor = &mXScaleFactor;
+	}
+
+	std::string msg = n2s<std::string>( div->lowerBound() ) + " <=> " + n2s<std::string>( div->upperBound() );
+
+	*pscale_factor = R / ( div->upperBound() - div->lowerBound() );
+
+	emit ScaleDivChanged( iaxis, *pscale_factor, msg.c_str() );
+}
+
 
 
 C2DPlotWidget::~C2DPlotWidget()
 {
 	DestroyPointersAndContainer( mCurves );
 	DestroyPointersAndContainer( mSpectrograms );
+	DestroyPointersAndContainer( mHistograms );
 }
 
 
@@ -267,10 +497,305 @@ void C2DPlotWidget::Clear()		// TODO analyze; not usable so far
 
 
 
-void C2DPlotWidget::HandleFrameChanged()
+/////////////////////////////////////////////////////////////////////////////////////////
+//									Title
+/////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+void C2DPlotWidget::SetPlotTitle( const std::string &title )
 {
+	QwtText text( t2q( title ) );
+	QFont font( t2q( smFontName ), smTitleFontSize );
+	font.setBold( true );
+	text.setFont( font );
+	setTitle( text );
+}
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+//									Animation
+/////////////////////////////////////////////////////////////////////////////////////////
+
+
+void C2DPlotWidget::Animate( int updateinterval )
+{
+	if ( updateinterval == 0 )
+	{
+		mTimer.stop();
+	}
+	else
+	{
+		//first "manual" impulse: if current frame is at the end, it will be reset
+		//
+		for ( auto *c : mCurves )
+			c->ChangeFrame();
+
+		mTimer.start( updateinterval );
+	}
+}
+
+
+void C2DPlotWidget::SetSpeed( int updateinterval )
+{
+	mTimer.setInterval( updateinterval );
+}
+
+
+//slot
+void C2DPlotWidget::ChangeFrame()
+{
+	bool stop = false;
+	for ( auto *c : mCurves )
+		stop |= c->ChangeFrame();
+
+	replot();
+
+	if ( stop )
+	{
+		Animate( 0 );
+		emit AnimationStopped();
+	}
+
+	emit FrameChanged( mCurves[0]->CurrentFrame() );
+}
+
+
+void C2DPlotWidget::StopAnimation()
+{
+	Animate( 0 );
+	for ( auto *c : mCurves )
+		c->ResetFrame();
+
+	replot();
+
+	size_t current_frame = 0;
+	if ( mCurves.size() > 0 )
+		current_frame = mCurves[ 0 ]->CurrentFrame();
+
+	emit FrameChanged( current_frame );
+}
+
+
+void C2DPlotWidget::SetFrame( unsigned int frame )
+{
+	for ( auto *c : mCurves )
+		c->SetFrame( frame );
+
+	replot();
+
+	//emit FrameChanged( mCurves[0]->CurrentFrame() );	if assigned from outside, do not emit
+}
+
+
+void C2DPlotWidget::SetMovingForward( bool forward )
+{
+	for ( auto *c : mCurves )
+		c->SetMovingForward( forward );
+}
+
+
+void C2DPlotWidget::SetLoop( bool loop )
+{
+	for ( auto *c : mCurves )
+		c->SetLoop( loop );
+}
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+//									Axis
+/////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+void C2DPlotWidget::AxisTitles( std::string *xtitle, std::string *ytitle, std::string *y2title )
+{
+	if ( xtitle )
+		*xtitle = q2a( axisTitle( xBottom ).text() );
+	if ( ytitle )
+		*ytitle = q2a( axisTitle( yLeft ).text() );
+	if ( y2title )
+		*y2title = q2a( axisTitle( yRight ).text() );
+}
+
+
+void C2DPlotWidget::SetAxisTitles( int index, const std::string &xtitle, const std::string &ytitle, const std::string &y2title )		//y2title = "" 
+{
+	if ( mCurves.size() > 0 )
+		mCurves[index]->SetAxisTitles( xtitle, ytitle, y2title );
+
+	if ( mHistograms.size() > 0 )
+		mHistograms[index]->SetAxisTitles( xtitle, ytitle, y2title );
+
+	if ( mSpectrograms.size() > 0 )
+		mSpectrograms[index]->SetAxisTitles( xtitle, ytitle, y2title );
+
+	SetAxisTitle( xBottom, xtitle );
+	SetAxisTitle( yLeft, ytitle );
+	if ( !y2title.empty() )
+		SetAxisTitle( yRight, y2title );
+}
+
+
+void C2DPlotWidget::SetAxisTitle( Axis axis, const std::string &title )
+{
+	QwtText text( t2q( title ) );
+	QFont font( t2q( smFontName ), smAxisFontSize );
+	font.setBold( true );
+	text.setFont( font );
+    setAxisTitle( axis, text );
+}
+
+
+void C2DPlotWidget::HistogramAxisTitles( int index, std::string &xtitle, std::string &ytitle, std::string &y2title )
+{
+	assert__( index < mHistograms.size() );
+
+	mHistograms[ index ]->AxisTitles( xtitle, ytitle, y2title );
+}
+
+
+void C2DPlotWidget::SpectrogramAxisTitles( int index, std::string &xtitle, std::string &ytitle, std::string &y2title )
+{
+	assert__( index < mSpectrograms.size() );
+
+	mSpectrograms[ index ]->AxisTitles( xtitle, ytitle, y2title );
+}
+
+
+
+//...digits
+
+int C2DPlotWidget::GetXAxisMantissa() const
+{
+	const CBratScaleDraw* curr_drawer = dynamic_cast<const CBratScaleDraw*>( axisScaleDraw( QwtPlot::xBottom ) );
+	if ( !curr_drawer )
+	{
+		//default value
+		return 2;
+	}
+	return curr_drawer->GetMantissa();
+}
+
+int C2DPlotWidget::GetYAxisMantissa() const
+{
+	const CBratScaleDraw* curr_drawer = dynamic_cast<const CBratScaleDraw*>( axisScaleDraw( QwtPlot::yLeft ) );
+	if ( !curr_drawer )
+	{
+		//default value
+		return 2;
+	}
+	return curr_drawer->GetMantissa();
+}
+
+void C2DPlotWidget::SetXAxisMantissa( int new_mantissa )
+{
+	CBratScaleDraw* scale_drawer = new CBratScaleDraw();
+	scale_drawer->SetMantissa( new_mantissa );
+	setAxisScaleDraw( QwtPlot::xBottom, scale_drawer );
 	replot();
 }
+
+void C2DPlotWidget::SetYAxisMantissa( int new_mantissa )
+{
+	CBratScaleDraw* scale_drawer = new CBratScaleDraw();
+	scale_drawer->SetMantissa( new_mantissa );
+	setAxisScaleDraw( QwtPlot::yLeft, scale_drawer );
+	replot();
+}
+
+
+
+
+//...scale
+
+void C2DPlotWidget::CurrentHistogramRanges( double &xMin, double &xMax, double &yMin, double &yMax )
+{
+	assert__( mCurrentHistogram );
+
+	mCurrentHistogram->Ranges( xMin, xMax, yMin, yMax );
+}
+
+void C2DPlotWidget::CurrentSpectrogramRanges( double &xMin, double &xMax, double &yMin, double &yMax, double &y2Min, double &y2Max )
+{
+	assert__( mCurrentSpectrogram );
+
+	y2Min = mCurrentSpectrogram->data().range().minValue();
+	y2Max = mCurrentSpectrogram->data().range().maxValue();
+
+	mCurrentSpectrogram->Ranges( xMin, xMax, yMin, yMax );
+}
+
+void C2DPlotWidget::CurrentRanges( double &xMin, double &xMax, double &yMin, double &yMax, double &y2Min, double &y2Max  )
+{
+	if ( mSpectrograms.size() > 0 )
+	{	
+		assert__( mCurrentSpectrogram );
+
+		CurrentSpectrogramRanges( xMin, xMax, yMin, yMax, y2Min, y2Max );
+	}
+	else
+	{
+		AxisScales( xMin, xMax, yMin, yMax, y2Min, y2Max );
+
+		if ( mCurves.size() > 0 )
+		{
+			CGeneralizedCurve *pcurve = mCurves[ 0 ];
+			pcurve->Ranges( xMin, xMax, yMin, yMax );
+		}
+		else
+		if ( mHistograms.size() > 0 )
+		{
+			assert__( mCurrentHistogram );
+
+			mCurrentHistogram->Ranges( xMin, xMax, yMin, yMax );
+		}
+	}
+}
+
+
+void C2DPlotWidget::SetPlotAxisScales( int index, double xMin, double xMax, double yMin, double yMax, double y2Min, double y2Max )   //y2Min = defaultValue<double>(), double y2Max = defaultValue<double>()
+{
+	for ( auto *curve : mCurves )
+		curve->SetRanges( xMin, xMax, yMin, yMax );
+
+	if ( mHistograms.size() > 0 )
+		mHistograms[index]->SetRanges( xMin, xMax, yMin, yMax );
+
+	if ( mSpectrograms.size() > 0 )
+		mSpectrograms[index]->SetRanges( xMin, xMax, yMin, yMax );
+
+	SetAxisScales( xMin, xMax, yMin, yMax, y2Min, y2Max );
+}
+
+
+void C2DPlotWidget::AxisScales( double &xMin, double &xMax, double &yMin, double &yMax, double &y2Min, double &y2Max )
+{
+	QwtScaleDiv *xdiv = axisScaleDiv( xBottom );
+	QwtScaleDiv *ydiv = axisScaleDiv( yLeft );
+	QwtScaleDiv *y2div = axisScaleDiv( yRight );
+	
+	xMin = xdiv->lowerBound();
+	xMax = xdiv->upperBound();
+
+	yMin = ydiv->lowerBound();
+	yMax = ydiv->upperBound();
+
+	y2Min = y2div->lowerBound();
+	y2Max = y2div->upperBound();
+}
+void C2DPlotWidget::SetAxisScales( double xMin, double xMax, double yMin, double yMax, double y2Min, double y2Max )   //y2Min = defaultValue<double>(), double y2Max = defaultValue<double>()
+{
+	setAxisScale( xBottom, xMin, xMax );
+	setAxisScale( yLeft, yMin, yMax  );
+	if ( !isDefaultValue( y2Min ) && !isDefaultValue( y2Max ) )
+		setAxisScale( yRight, y2Min, y2Max  );
+	replot();
+}
+
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 void C2DPlotWidget::SetLogScale(int axisId, bool _isLog)
@@ -295,63 +820,14 @@ void C2DPlotWidget::SetLogScale(int axisId, bool _isLog)
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
-//									Title
-/////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-void C2DPlotWidget::SetPlotTitle( const std::string &title )
-{
-	QwtText text( t2q( title ) );
-	QFont font( t2q( smFontName ), smTitleFontSize );
-	font.setBold( true );
-	text.setFont( font );
-	setTitle( text );
-}
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
-//									Axis
-/////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-void C2DPlotWidget::SetAxisTitle( Axis axis, const std::string &title )
-{
-	QwtText text( t2q( title ) );
-	QFont font( t2q( smFontName ), smAxisFontSize );
-	font.setBold( true );
-	text.setFont( font );
-    setAxisTitle( axis, text );
-}
-
-
-void C2DPlotWidget::SetAxisScales( double xMin, double xMax, double yMin, double yMax, double y2Min, double y2Max )   //y2Min = defaultValue<double>(), double y2Max = defaultValue<double>()
-{
-	for ( auto *c : mCurves )
-		c->SetRanges( xMin, xMax, yMin, yMax );
-
-	for ( auto *h : mHistograms )
-		h->SetRanges( xMin, xMax, yMin, yMax );
-
-	setAxisScale( xBottom, xMin, xMax );
-	setAxisScale( yLeft, yMin, yMax  );
-	if ( !isDefaultValue( y2Min ) && !isDefaultValue( y2Max ) )
-		setAxisScale( yRight, y2Min, y2Max  );
-}
-
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////////
 //									Spectrogram
 /////////////////////////////////////////////////////////////////////////////////////////
 
-QwtPlotSpectrogram* C2DPlotWidget::AddRaster( const std::string &title, const C3DPlotInfo &maps, double min_contour, double max_contour, size_t ncontours, size_t index )
+QwtPlotSpectrogram* C2DPlotWidget::PushRaster( const std::string &title, const C3DPlotInfo &maps, double min_contour, double max_contour, size_t ncontours )
 {
-    assert__( mCurves.size() == 0 );            Q_UNUSED( index );
+    assert__( mCurves.size() == 0 );
 
-    mSpectrograms.push_back( new QwtPlotSpectrogram );
+    mSpectrograms.push_back( new CBratSpectrogram );
 	mCurrentSpectrogram = mSpectrograms.back();
 
 	const C3DPlotInfo::value_type &map = maps[ 0 ];	//the index parameter is the index of recently created spectrogram, not the maps index
@@ -364,7 +840,7 @@ QwtPlotSpectrogram* C2DPlotWidget::AddRaster( const std::string &title, const C3
 	//const_cast<C3DPlotInfo&>( maps ).setBoundingRect( QwtDoubleRect( 0, 0, 10*(map.mMaxX - map.mMinX), 10*(map.mMaxY - map.mMinY )) );
 
 	EnableAxisY2();
-	SetAxisScales( map.mMinX, map.mMaxX, map.mMinY, map.mMaxY, mCurrentSpectrogram->data().range().minValue(), mCurrentSpectrogram->data().range().maxValue() );
+	SetPlotAxisScales( (int)mSpectrograms.size() - 1, map.mMinX, map.mMaxX, map.mMinY, map.mMaxY, mCurrentSpectrogram->data().range().minValue(), mCurrentSpectrogram->data().range().maxValue() );
 
     // Color map
 
@@ -414,14 +890,23 @@ QwtPlotSpectrogram* C2DPlotWidget::AddRaster( const std::string &title, const C3
 
 void C2DPlotWidget::SetCurrentRaster( int index )
 {
-	assert__( index < mSpectrograms.size() );
+	assert__( size_t( index ) < mSpectrograms.size() );
 
 	mCurrentSpectrogram->detach();
 	mCurrentSpectrogram = mSpectrograms[ index ];
 	mCurrentSpectrogram->attach( this );
+
+	double xMin, xMax, yMin, yMax, y2Min, y2Max;
+	CurrentSpectrogramRanges( xMin, xMax, yMin, yMax, y2Min, y2Max );
+	EnableAxisY2();
+	SetAxisScales( xMin, xMax, yMin, yMax, y2Min, y2Max );
+
+	std::string xtitle, ytitle, ztitle;
+	SpectrogramAxisTitles( index, xtitle, ytitle, ztitle );
+	SetAxisTitles( index, xtitle, ytitle, ztitle );
+
 	replot();
 }
-
 
 
 bool C2DPlotWidget::HasContour() const
@@ -459,13 +944,13 @@ void C2DPlotWidget::ShowSolidColor( bool show )
 
 void C2DPlotWidget::ShowContour( int index, bool show )
 {
-	assert__( index < mSpectrograms.size() );
+	assert__( size_t( index ) < mSpectrograms.size() );
 
 	mSpectrograms[index]->setDisplayMode( QwtPlotSpectrogram::ContourMode, show );
 }
 void C2DPlotWidget::ShowSolidColor( int index, bool show )
 {
-	assert__( index < mSpectrograms.size() );
+	assert__( size_t( index ) < mSpectrograms.size() );
 
 	mSpectrograms[index]->setDisplayMode( QwtPlotSpectrogram::ImageMode, show );
 	mSpectrograms[index]->setDefaultContourPen( show ? QPen() : QPen( Qt::NoPen ) );
@@ -514,53 +999,122 @@ void C2DPlotWidget::ShowSolidColor( int index, bool show )
 //plot.setAxisScale(QwtPlot::xBottom, 0.0, pos);
 //plot.replot();
 
-CHistogram* C2DPlotWidget::AddHistogram( const std::string &title, QColor color, const CQwtArrayPlotData *data )
+int C2DPlotWidget::NumberOfBins( int index ) const 
+{
+	assert__( index < mHistograms.size() );
+
+	return (int)mHistograms[ index ]->data().size();
+}
+
+
+template< typename DATA >
+CHistogram* C2DPlotWidget::CreateHistogram( const std::string &title, QColor color, const DATA *data, double &max_freq, int bins )
+{
+	CHistogram *h = new CHistogram;
+
+	h->setColor( color );
+	h->setTitle( t2q( title ) );
+
+	//size_t data_size = data->GetDataSize( 0 );
+	double m, M;
+	data->GetDataRange( m, M, 0 );
+
+	QwtArray< QwtDoubleInterval > intervals( bins );
+	QwtArray< double > values( bins );
+
+    const double width = ( M - m ) / double( bins );
+	double b0 = m;
+	max_freq = std::numeric_limits<double>::lowest();
+	for ( int i = 0; i < (int)intervals.size(); i++ )
+	{
+		double b1 = b0 + width;
+
+	    intervals[i] = QwtDoubleInterval( b0, b1 );
+
+		values[ i ] = data->GetDataCountIf( 0, [&b0, &b1]( const double &v )
+		{
+			return !isDefaultValue( v ) && v >= b0 && v < b1;
+		}
+		);
+
+		max_freq = std::max( max_freq, values[ i ] );
+	    b0 = b1;
+	}
+
+	//SetAxisScales( m, b0, 0, max_value );
+
+	h->setData( QwtIntervalData( intervals, values ) );
+
+	return h;
+}
+
+
+
+CHistogram* C2DPlotWidget::AddHistogram( const std::string &title, QColor color, const CQwtArrayPlotData *data, double &max_freq, int bins )
 {
 	assert__( mSpectrograms.size() == 0 && mCurves.size() == 0 );
 
-	QwtPlotGrid *grid = new QwtPlotGrid;
-	grid->enableXMin( true );
-	grid->enableYMin( true );
-	grid->setMajPen( QPen( Qt::black, 0, Qt::DotLine ) );
-	grid->setMinPen( QPen( Qt::gray, 0, Qt::DotLine ) );
-	grid->attach( this );
-
-	mHistograms.push_back( new CHistogram );
-	CHistogram *histogram = mHistograms.back();
-
-	histogram->setColor( color );
-	histogram->setTitle( t2q( title ) );
-
-	size_t data_size = data->size();			//is sizeX
-	double xmin, xmax;
-	data->GetXRange( xmin, xmax );				//double ymin, ymax;	//data->GetYRange( ymin, ymax );
-
-	const int num_values = 24;					//arbitrary, must be an input parameter
-	const int step = (int)data_size / num_values;
-
-	QwtArray< QwtDoubleInterval > intervals( num_values );
-	QwtArray< double > values( num_values );
-
-	double pos = xmin;
-	for ( int i = 0; i < intervals.size(); i++ )
+	if ( mHistograms.size() == 0 )
 	{
-		size_t index = i * step;
-
-		values[ i ] = data->y( index );
-		if ( isDefaultValue( values[ i ] ) || std::isnan( values[ i ] ) )
-			values[ i ] = 0;
-
-		double xvalue = data->x( index + step );
-		intervals[ i ] = QwtDoubleInterval( pos, xvalue );
-
-		pos = xvalue;
+		QwtPlotGrid *grid = new QwtPlotGrid;
+		grid->enableXMin( true );
+		grid->enableYMin( true );
+		grid->setMajPen( QPen( Qt::black, 0, Qt::DotLine ) );
+		grid->setMinPen( QPen( Qt::gray, 0, Qt::DotLine ) );
+		grid->attach( this );
 	}
 
-	histogram->setData( QwtIntervalData( intervals, values ) );
-	histogram->attach( this );
-
-	return histogram;
+	color.setAlpha( 127 );
+	CHistogram *h = CreateHistogram( title, color, data, max_freq, bins );
+	mHistograms.push_back( h );
+	h->attach( this );
+	mCurrentHistogram = h;
+	return h;
 }
+
+CHistogram* C2DPlotWidget::PushHistogram( const std::string &title, QColor color, const C3DPlotInfo *data, double &max_freq, int bins )
+{
+	assert__( mSpectrograms.size() == 0 && mCurves.size() == 0 );
+
+	if ( mHistograms.size() == 0 )
+	{
+		QwtPlotGrid *grid = new QwtPlotGrid;
+		grid->enableXMin( true );
+		grid->enableYMin( true );
+		grid->setMajPen( QPen( Qt::black, 0, Qt::DotLine ) );
+		grid->setMinPen( QPen( Qt::gray, 0, Qt::DotLine ) );
+		grid->attach( this );
+	}
+
+	mCurrentHistogram = CreateHistogram( title, color, data, max_freq, bins );
+	mHistograms.push_back( mCurrentHistogram );
+
+	return mCurrentHistogram;
+}
+
+
+void C2DPlotWidget::SetCurrentHistogram( int index )
+{
+	assert__( size_t( index ) < mHistograms.size() );
+
+	//if ( mHistograms[ index ] == mCurrentHistogram )
+	//	return;
+
+	mCurrentHistogram->detach();
+	mCurrentHistogram = mHistograms[ index ];
+	mCurrentHistogram->attach( this );
+
+	double xMin, xMax, yMin, yMax;
+	CurrentHistogramRanges( xMin, xMax, yMin, yMax );
+	SetAxisScales( xMin, xMax, yMin, yMax );
+
+	std::string xtitle, ytitle, ztitle;
+	HistogramAxisTitles( index, xtitle, ytitle, ztitle );
+	SetAxisTitles( index, xtitle, ytitle, ztitle );
+
+	replot();
+}
+
 
 
 
@@ -574,17 +1128,10 @@ QwtPlotCurve* C2DPlotWidget::AddCurve( const std::string &title, QColor color, c
 
     CGeneralizedCurve *c = new CGeneralizedCurve( data, title.c_str() );
 	mCurves.push_back( c );
-	connect( c, SIGNAL( FrameChanged() ), this, SLOT( HandleFrameChanged() ) );
     c->setRenderHint( QwtPlotItem::RenderAntialiased );
     c->setPen( QPen( color ) );
     c->attach( this );
 
-	// TODO this needs a lot more work, including GUI to control animation and animation settings, and above all check if 
-	//	axis and everything else besides the curve needs change; but for now, good for testing values 
-	//
-	if ( data->GetNumberOfFrames() > 1 )
-		c->Animate();
-	//
 	return c;
 }
 QwtPlotCurve* C2DPlotWidget::AddCurve( const QwtData &data, const std::string &title, QColor color )	//for experimental samples
@@ -616,7 +1163,7 @@ void C2DPlotWidget::SetCurvesStyle( QwtPlotCurve::CurveStyle style )
 
 void C2DPlotWidget::EnableCurveLine( int curve, bool enable )
 {
-	assert__( curve < mCurves.size() );
+	assert__( size_t( curve ) < mCurves.size() );
 
 	CGeneralizedCurve * pcurve = mCurves[ curve ];
     QwtSymbol c_symbol = pcurve->symbol();
@@ -628,14 +1175,14 @@ void C2DPlotWidget::EnableCurveLine( int curve, bool enable )
 
 QColor C2DPlotWidget::CurveLineColor( int curve ) const
 {
-	assert__( curve < mCurves.size() );
+	assert__( size_t( curve ) < mCurves.size() );
 
 	return mCurves[ curve ]->pen().color();
 }
 
 void C2DPlotWidget::SetCurveLineColor( int curve, QColor color )
 {
-	assert__( curve < mCurves.size() );
+	assert__( size_t( curve ) < mCurves.size() );
 
 	CGeneralizedCurve *pcurve = mCurves[ curve ];			assert__( pcurve );
 
@@ -655,14 +1202,14 @@ void C2DPlotWidget::SetCurveLineColor( int curve, QColor color )
 
 int C2DPlotWidget::CurveLineOpacity( int curve ) const
 {
-	assert__( curve < mCurves.size() );
+	assert__( size_t( curve ) < mCurves.size() );
 
 	return mCurves[ curve ]->pen().color().alpha();
 }
 
 void C2DPlotWidget::SetCurveLineOpacity( int curve, int alpha )
 {
-	assert__( curve < mCurves.size() );
+	assert__( size_t( curve ) < mCurves.size() );
 
 	CGeneralizedCurve *pcurve = this->mCurves[ curve ];		assert__( pcurve );
 
@@ -679,14 +1226,14 @@ void C2DPlotWidget::SetCurveLineOpacity( int curve, int alpha )
 
 EStipplePattern C2DPlotWidget::CurveLinePattern( int curve ) const
 {
-	assert__( curve < mCurves.size() );
+	assert__( size_t( curve ) < mCurves.size() );
 
 	return pattern_cast< EStipplePattern >( mCurves[ curve ]->pen().style() );
 }
 
 void C2DPlotWidget::SetCurveLinePattern( int curve, EStipplePattern p )
 {
-	assert__( curve < mCurves.size() && p >= eFirstStipplePattern && p < EStipplePattern_size );
+	assert__( size_t( curve ) < mCurves.size() && p >= eFirstStipplePattern && p < EStipplePattern_size );
 
 	CGeneralizedCurve *pcurve = mCurves[ curve ];	   		assert__( pcurve );
 
@@ -701,14 +1248,14 @@ void C2DPlotWidget::SetCurveLinePattern( int curve, EStipplePattern p )
 
 int C2DPlotWidget::CurveLineWidth( int curve ) const
 {
-	assert__( curve < mCurves.size() );
+	assert__( size_t( curve ) < mCurves.size() );
 
 	return mCurves[ curve ]->pen().width();
 }
 
 void C2DPlotWidget::SetCurveLineWidth( int curve, int pixels )
 {
-	assert__( curve < mCurves.size() );
+	assert__( size_t( curve ) < mCurves.size() );
 
 	CGeneralizedCurve *pcurve = mCurves[ curve ];	   		assert__( pcurve );
 
@@ -727,7 +1274,7 @@ void C2DPlotWidget::SetCurveLineWidth( int curve, int pixels )
 
 void C2DPlotWidget::EnableCurvePoints( int curve, bool enable, EPointGlyph default_symbol )
 {
-	assert__( curve < mCurves.size() );
+	assert__( size_t( curve ) < mCurves.size() );
 
 	CGeneralizedCurve *pcurve = mCurves[ curve ];	   		assert__( pcurve );
 
@@ -743,14 +1290,14 @@ void C2DPlotWidget::EnableCurvePoints( int curve, bool enable, EPointGlyph defau
 
 QColor C2DPlotWidget::CurvePointColor( int curve ) const
 {
-	assert__( curve < mCurves.size() );
+	assert__( size_t( curve ) < mCurves.size() );
 
 	return mCurves[ curve ]->symbol().pen().color();
 }
 
 void C2DPlotWidget::SetCurvePointColor( int curve, QColor color )
 {
-	assert__( curve < mCurves.size() );
+	assert__( size_t( curve ) < mCurves.size() );
 
 	CGeneralizedCurve *pcurve = mCurves[ curve ];	   		assert__( pcurve );
 
@@ -766,14 +1313,14 @@ void C2DPlotWidget::SetCurvePointColor( int curve, QColor color )
 
 bool C2DPlotWidget::IsCurvePointFilled( int curve ) const
 {
-	assert__( curve < mCurves.size() );
+	assert__( size_t( curve ) < mCurves.size() );
 
 	return mCurves[ curve ]->symbol().brush() != Qt::NoBrush;
 }
 
 void C2DPlotWidget::SetCurvePointFilled( int curve, bool fill )
 {
-	assert__( curve < mCurves.size() );
+	assert__( size_t( curve ) < mCurves.size() );
 
 	CGeneralizedCurve *pcurve = mCurves[ curve ];	   		assert__( pcurve );
 
@@ -798,14 +1345,14 @@ void C2DPlotWidget::SetCurvePointFilled( int curve, bool fill )
 
 EPointGlyph C2DPlotWidget::CurvePointGlyph( int curve ) const
 {
-	assert__( curve < mCurves.size() );
+	assert__( size_t( curve ) < mCurves.size() );
 
 	return symbol_cast< EPointGlyph >( mCurves[ curve ]->symbol().style() );
 }
 
 void C2DPlotWidget::SetCurvePointGlyph( int curve, EPointGlyph symbol )
 {
-	assert__( curve < mCurves.size() );
+	assert__( size_t( curve ) < mCurves.size() );
 
 	CGeneralizedCurve *pcurve = mCurves[ curve ];	   		assert__( pcurve );
 
@@ -819,14 +1366,14 @@ void C2DPlotWidget::SetCurvePointGlyph( int curve, EPointGlyph symbol )
 
 int C2DPlotWidget::CurvePointSize( int curve ) const
 {
-	assert__( curve < mCurves.size() );
+	assert__( size_t( curve ) < mCurves.size() );
 
 	return mCurves[ curve ]->symbol().size().height();
 }
 
 void C2DPlotWidget::SetCurvePointSize( int curve, int pixels )
 {
-	assert__( curve < mCurves.size() );
+	assert__( size_t( curve ) < mCurves.size() );
 
 	CGeneralizedCurve *pcurve = mCurves[ curve ];	   		assert__( pcurve );
 
@@ -889,6 +1436,8 @@ class C2DMagnifier : public QwtPlotMagnifier
 {
 	using base_t = QwtPlotMagnifier;
 
+	double mFactor = 1.;
+
 public:
 	explicit C2DMagnifier( QwtPlotCanvas *canvas )
 		: base_t( canvas )
@@ -897,11 +1446,19 @@ public:
 	virtual ~C2DMagnifier()
 	{}
 
+	void Home()		//works only if always notified through rescale of factor changes, which is not the case, unless linked to scale change signal
+	{
+		rescale( 1 / mFactor );
+	}
+
 protected:
 	virtual void rescale( double factor )
 	{
-		if ( factor != 0.0 )
-			base_t::rescale( 1 / factor );
+		if ( factor == 0.0 )
+			return;
+
+		mFactor *= factor;
+		base_t::rescale( 1 / factor );
 	}
 };
 
@@ -938,13 +1495,19 @@ public:
 };
 
 
-
 void C2DPlotWidget::Home()
 {
-	if ( mZoomer )			//null for curves
+	if ( mZoomer )			//NULL for curves and histograms, USED for rasters
 	{
 		mZoomer->Home();
+		return;
 	}
+
+	//if ( mMagnifier )
+	//{
+	//	mMagnifier->Home();
+	//	return;
+	//}
 
 	double xMin, xMax, yMin, yMax;
 	if ( mCurves.size() > 0 )
@@ -954,9 +1517,10 @@ void C2DPlotWidget::Home()
 	}
 	else
 	if ( mHistograms.size() > 0 )
-	{						//mHistograms
-		auto *phisto = mHistograms[ 0 ];
-		phisto->Ranges( xMin, xMax, yMin, yMax );
+	{	
+		assert__( mCurrentHistogram );
+
+		mCurrentHistogram->Ranges( xMin, xMax, yMin, yMax );
 	}
 	else
 		return;

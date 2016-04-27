@@ -26,7 +26,7 @@
 #include <osgEarth/Common>
 #include <osgEarth/TileSource>
 
-//#define USE_RENDERER
+#define USE_RENDERER
 
 #ifndef USE_RENDERER
 #include "qgsmapsettings.h"

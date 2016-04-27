@@ -74,8 +74,9 @@ struct CZFXYPlotProperties : public CBratObject
 	bool m_xLog;
 	bool m_yLog;
 
-	uint32_t m_xNumTicks;
-	uint32_t m_yNumTicks;
+	unsigned int m_xNumTicks;
+	unsigned int m_yNumTicks;
+    unsigned int m_zNumTicks;
 
 
 	bool m_withContour;

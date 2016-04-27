@@ -266,7 +266,7 @@ public:
 
 
 	bool IsLayerVisible( size_t index ) const;
-	bool SetLayerVisible( size_t index, bool show );
+	bool SetLayerVisible( size_t index, bool show, bool render );
 
 
 	QgsRectangle CurrentLayerSelectedBox() const;

@@ -38,7 +38,7 @@ inline QToolBar* AddWidgets( QToolBar *toolbar, const std::vector< QObject* > &v
 
 void CAbstractDisplayEditor::CreateMainToolbar()
 {
-	QToolBar *toptoolbar = new QToolBar( "View ToolBar", this );
+	QToolBar *toptoolbar = new QToolBar( "Operation ToolBar", this );
 	//toptoolbar->setIconSize( { tool_icon_size, tool_icon_size } );
 	toptoolbar->setAllowedAreas( Qt::TopToolBarArea );
 	toptoolbar->setMovable( false );
@@ -83,6 +83,8 @@ void CAbstractDisplayEditor::CreateWorkingDock()
 	//dock
 	assert__( mOperation );
 	mWorkingDock = new CTabbedDock( "Display Properties", this );
+	mWorkingDock->setTitleBarWidget( WidgetLine( this, Qt::Horizontal) );
+	mWorkingDock->SetTabShape( QTabWidget::Triangular );					//enum TabShape { Rounded, Triangular };
 
 	mWorkingDock->setMinimumSize( min_editor_dock_width, min_editor_dock_height );
 	auto PreventActions = QDockWidget::DockWidgetClosable;								//QDockWidget::DockWidgetFloatable | QDockWidget::DockWidgetMovable | 
@@ -111,6 +113,10 @@ void CAbstractDisplayEditor::CreateGraphicsBar()
 	mGraphicsToolBar->addActions( group->actions() );
 	mGraphicsToolBar->addAction( mRecenterAction );
 
+#if defined (DEBUG) || defined(_DEBUG)
+	mActionTest = CActionInfo::CreateAction( this, eAction_Test );
+	mGraphicsToolBar->addAction( mActionTest );
+#endif
 
 	// add the bar
 
@@ -166,6 +172,10 @@ void CAbstractDisplayEditor::Wire()
 	connect( m3DAction, SIGNAL( toggled( bool ) ), this, SLOT( Handle3D( bool ) ) );
 
 	connect( mRecenterAction, SIGNAL( triggered() ), this, SLOT( HandleRecenter() ) );
+
+#if defined (DEBUG) || defined(_DEBUG)
+	connect( mActionTest, SIGNAL( triggered() ), this, SLOT( HandleTest() ) );
+#endif
 
 
 	//tab general
@@ -560,6 +570,7 @@ void CAbstractDisplayEditor::HandleRecenter()
 
 void CAbstractDisplayEditor::HandleNewButtonClicked()
 {
+    assert__( mDisplay );
 	assert__( mOperation && mWDisplay );
 	
     /*int current_display = */mTabGeneral->mDisplaysCombo->currentIndex();
@@ -568,39 +579,45 @@ void CAbstractDisplayEditor::HandleNewButtonClicked()
 	//FillPaletteList();
 	//GetDispNames()->Enable( true );
 
-	CDisplay *new_display = nullptr;
-
-	std::string display_name = mWDisplay->GetDisplayNewName();
-	if ( !mWDisplay->InsertDisplay( display_name ) )
+	CDisplay *new_display = mWDisplay->CloneDisplay( mDisplay, mWOperation );
+	if ( !new_display )
 	{
-		SimpleErrorBox( "Display '" + display_name + "' already exists" );		//TODO After call to GetDisplayNewName(), this is stupid and should be an assert
+		SimpleErrorBox( "Error cloning '" + mDisplay->GetName() );
 		return;
 	}
-	else
-	{
-		//new_display = GetDispNames()->Append( display_name );
-		//GetDispNames()->SetSelection( m_currentDisplay );
-	}
+
+
+	std::string display_name = new_display->GetName();	// mWDisplay->GetDisplayNewName();
+	////////if ( !mWDisplay->InsertDisplay( display_name ) )
+	////////{
+	////////	SimpleErrorBox( "Display '" + display_name + "' already exists" );		//TODO After call to GetDisplayNewName(), this is stupid and should be an assert
+	////////	return;
+	////////}
+	////////else
+	////////{
+	////////	//new_display = GetDispNames()->Append( display_name );
+	////////	//GetDispNames()->SetSelection( m_currentDisplay );
+	////////}
 
 	//SetCurrentDisplay();		//assigns mDisplay using m_currentDisplay
 
 	//InitDisplayOutput();		//makes mDisplay->InitOutput( wksd );
 	//GetDisplayOutput();			//oddly, makes InitOutput( wksd ); in case output is empty
 
-	new_display = mWDisplay->GetDisplay( display_name );
-	new_display->InitOutput( mWDisplay );
+	////////new_display = mWDisplay->GetDisplay( display_name );
+	////////new_display->InitOutput( mWDisplay );
 
-	if ( !new_display->AssignOperation( mOperation ) )
+	////////if ( !new_display->AssignOperation( mOperation ) )
 	////display panel -> GetOperations();
 	////display panel -> GetDispavailtreectrl()->InsertData( &m_dataList );
 	//CMapDisplayData *m_dataList = new CMapDisplayData;
 	//m_dataList->clear();
 	//if ( !CreateDisplayData( mCurrentOperation, *m_dataList ) )	//CDisplay::GetDisplayType failed
-	{
-		SimpleErrorBox( "Could not retrieve operation output." );
-		mWDisplay->DeleteDisplay( new_display );
-		return;	
-	}
+	////////{
+	////////	SimpleErrorBox( "Could not retrieve operation output." );
+	////////	mWDisplay->DeleteDisplay( new_display );
+	////////	return;	
+	////////}
 
 	//GetDispTitle()->Clear();
 

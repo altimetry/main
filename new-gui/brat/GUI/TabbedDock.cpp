@@ -7,6 +7,15 @@
 #include "TabbedDock.h"
 
 
+CExpandableTabWidget::CExpandableTabWidget( QWidget *parent )		//parent = nullptr 
+	: QTabWidget( parent )
+{
+	tabBar()->setExpanding( true );
+}
+
+
+
+
 static const int ContentsMargin = 1;
 static const int Spacing = 6;
 
@@ -46,6 +55,12 @@ CTabbedDock::CTabbedDock( const QString &title, QWidget *parent, Qt::WindowFlags
 	: base_t( title, parent, f )
 {
 	CreateContents();
+}
+
+
+void CTabbedDock::SetTabShape( QTabWidget::TabShape s )
+{
+	mTabWidget->setTabShape( s );
 }
 
 

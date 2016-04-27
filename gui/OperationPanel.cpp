@@ -1243,7 +1243,7 @@ void COperationPanel::SetResolutionLabels()
 		}
 
 
-		bool hasFilter = m_operation->HasFilters();
+		bool hasFilter = m_operation->HasV3Filters();
 
 		if ( xFormula != NULL )
 		{

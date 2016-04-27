@@ -52,6 +52,7 @@ const std::string ENTRY_PROJECTION = "Projection";
 const std::string ENTRY_GROUP = "Group";
 const std::string ENTRY_CONTOUR = "Contour";
 const std::string ENTRY_INVERT_XYAXES = "InvertXYAxes";
+const std::string ENTRY_NUMBER_OF_BINS = "number_of_bins";		//v4
 const std::string ENTRY_SOLID_COLOR = "SolidColor";
 const std::string ENTRY_COLOR_PALETTE = "ColorPalette";
 const std::string ENTRY_EAST_COMPONENT = "EastComponent";

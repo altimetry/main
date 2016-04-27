@@ -62,6 +62,11 @@ inline int qv2type( const QVariant &v )
 	return v.toInt();
 }
 template<>
+inline unsigned int qv2type( const QVariant &v )
+{
+	return v.toUInt();
+}
+template<>
 inline double qv2type( const QVariant &v )
 {
 	return v.toDouble();

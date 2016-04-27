@@ -63,6 +63,7 @@ CZFXYPlotProperties::CZFXYPlotProperties()
 
 	setDefaultValue( m_xNumTicks );
 	setDefaultValue( m_yNumTicks );
+	setDefaultValue( m_zNumTicks );
 
 	m_xLog = false;
 	m_yLog = false;
@@ -164,6 +165,7 @@ void CZFXYPlotProperties::Copy(const CZFXYPlotProperties& p)
 
   m_xNumTicks = p.m_xNumTicks;
   m_yNumTicks = p.m_yNumTicks;
+  m_zNumTicks = p.m_zNumTicks;
 
   m_withContour = p.m_withContour;
   m_withContourLabel = p.m_withContourLabel;

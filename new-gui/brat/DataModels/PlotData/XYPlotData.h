@@ -250,8 +250,8 @@ class CXYPlotProperties : public CBratObject
 	uint32_t m_xNumTicks;
 	uint32_t m_yNumTicks;
 
-    uint32_t m_xNbDigits;
-    uint32_t m_yNbDigits;
+    uint32_t m_xNbDigits = 3;	//v4 (...)
+    uint32_t m_yNbDigits = 3;	//v4 (...)
 
 
 	EPointGlyph m_glyphType;
@@ -390,10 +390,10 @@ public:
 	uint32_t GetFps() const { return m_fps; }
 	void SetFps( uint32_t value ) { m_fps = value; }
 
-	uint32_t GetXNumTicks() const { return m_xNumTicks; }
-	uint32_t GetYNumTicks() const { return m_yNumTicks; }
-	void SetXNumTicks( uint32_t value ) { m_xNumTicks = value; }
-	void SetYNumTicks( uint32_t value ) { m_yNumTicks = value; }
+	unsigned int GetXNumTicks() const { return m_xNumTicks; }
+	unsigned int GetYNumTicks() const { return m_yNumTicks; }
+	void SetXNumTicks( unsigned int value ) { m_xNumTicks = value; }
+	void SetYNumTicks( unsigned int value ) { m_yNumTicks = value; }
 
     uint32_t GetXNbDigits() const { return m_xNbDigits; }
     uint32_t GetYNbDigits() const { return m_yNbDigits; }
@@ -504,8 +504,6 @@ public:
 	std::string GetName() { return m_plotProperty.GetName(); }
 	void SetName( const std::string& name ) { m_plotProperty.SetName( name ); }
 
-	void OnFrameChange( int32_t f );
-
 	const CQwtArrayPlotData*  GetQwtArrayPlotData() const { return &mQwtPlotData; }
 
 	CXYPlotProperties* GetPlotProperties() { return &m_plotProperty; }
@@ -517,11 +515,12 @@ public:
 	const CObArray& GetOtherVars() { return m_otherVars; };
 	const CObArray& GetOtherFields() { return m_otherFields; };
 
+#if defined(BRAT_V3)
 
-protected:
-
-
+	void OnFrameChange( int32_t f );
 	virtual void Update();
+
+#endif
 };
 
 
@@ -531,6 +530,7 @@ protected:
 
 class CXYPlotDataCollection : public CObArray
 {
+	using base_t = CObArray;
 
 	bool m_zoomToDataRange;
 	int32_t m_currentFrame;
@@ -544,6 +544,8 @@ public:
 	virtual ~CXYPlotDataCollection()
 	{}
 
+	void AddData( CBratObject* ob );
+
 	void GetXRange( double& min, double& max, uint32_t frame );
 	void GetYRange( double& min, double& max, uint32_t frame );
 
@@ -551,6 +553,8 @@ public:
 	void GetYRange( double& min, double& max );
 
 #if defined(BRAT_V3)
+	void OnFrameChange( int32_t f );
+
 	VTK_CXYPlotData* Get( CObArray::iterator it );
 	VTK_CXYPlotData* Get( int32_t index );
 #else
@@ -558,8 +562,6 @@ public:
 	CXYPlotData* Get( int32_t index );
 #endif
 	CXYPlotProperties* GetPlotProperties( int32_t index );
-
-	void OnFrameChange( int32_t f );
 
 	bool ShowPropertyMenu();
 

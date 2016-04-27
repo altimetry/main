@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #include "new-gui/brat/stdafx.h"
 
 #include "new-gui/Common/QtUtilsIO.h"
@@ -30,7 +47,7 @@ void CMapEditor::CreateMapActions()
 }
 
 
-void CMapEditor::CreateAndWireNewMap()
+void CMapEditor::ResetAndWireNewMap()
 {
 	if ( mMapView )
 	{
@@ -91,7 +108,7 @@ void CMapEditor::CreateWidgets()
 	mGraphicsToolBar->addAction( mActionDecorationGrid );
 
     //    Map
-	ResetViews( true, false );		//creates map and connects map actions; hides it
+    ResetViews( true, true, true, false );		//creates map and connects map actions; hides it
 	mMapView->setVisible( true );
 
 	// Tool-bar actions
@@ -127,6 +144,8 @@ void CMapEditor::Wire()
 
 	//...show/hide layers
 	connect( mTabDataLayers->mShowSolidColorCheck, SIGNAL( toggled( bool ) ), this, SLOT( HandleShowSolidColor( bool ) ) );
+
+	mMainSplitter->setHandleWidth( 0 );
 }
 
 CMapEditor::CMapEditor( CModel *model, const COperation *op, const std::string &display_name )		//display_name = ""
@@ -196,8 +215,25 @@ CViewControlsPanelGeneralMaps* CMapEditor::TabGeneral()
 //virtual 
 void CMapEditor::Show2D( bool checked )
 {
+	if ( mMapProcessing )
+	{
+		LOG_FATAL( "2D reentrant request" );
+		return;
+	}
+	mMapProcessing = true;
+
+	LOG_FATAL( QString( "2D" ) + ( checked ? " ==> CHECKED" : "==> unchecked" ) );
+
 	if ( checked )
+	{
+		if ( mGlobeView )
+		{
+			mGlobeView->Pause();		assert__( !mGlobeView->Rendering() );
+		}
+
 		mMapView->freeze( false );
+		mMapView->refresh();
+	}
 
 	mMapView->setVisible( checked );
 
@@ -205,17 +241,34 @@ void CMapEditor::Show2D( bool checked )
 	//mActionDecorationGrid->setEnabled( checked );
 	if( mToolProjection )
 		mToolProjection->setEnabled( checked );
+
+	mMapProcessing = false;
+	mDisplaying2D = true;
+	mDisplaying3D = false;
 }
 //virtual 
 void CMapEditor::Show3D( bool checked )
 {
+	if ( mGlobeProcessing )
+	{
+		LOG_FATAL( "3D reentrant request" );
+		return;
+	}
+	mGlobeProcessing = true;
+
+	LOG_FATAL( QString( "3D" ) + ( checked ? " ==> CHECKED" : "==> unchecked" ) );
+
 	if ( checked )
 	{
 		while ( mMapView->isDrawing() )
 			qApp->processEvents();
 		mMapView->freeze( true );
 
-		if ( !mGlobeView )
+		if ( mGlobeView )
+		{
+			mGlobeView->Resume( true );
+		}
+		else
 		{
 			WaitCursor wait;
 
@@ -225,14 +278,20 @@ void CMapEditor::Show3D( bool checked )
 	}
 
 	mGlobeView->setVisible( checked );
+
+	mGlobeProcessing = false;
+	mDisplaying2D = false;
+	mDisplaying3D = true;
 }
 
 
 //virtual 
 void CMapEditor::Recenter()
 {
-	mMapView->Home();
-	if ( mGlobeView )
+	if ( mDisplaying2D )
+		mMapView->Home();
+
+	if ( mGlobeView && mDisplaying3D )
 		mGlobeView->Home();
 }
 
@@ -253,12 +312,12 @@ void CMapEditor::KillGlobe()
 
 
 //virtual 
-bool CMapEditor::ResetViews( bool reset_2d, bool reset_3d )
+bool CMapEditor::ResetViews( bool reset_2d, bool reset_3d, bool enable_2d, bool enable_3d )
 {
-	KillGlobe();
+	KillGlobe();		Q_UNUSED( reset_3d );		Q_UNUSED( enable_2d );		Q_UNUSED( enable_3d );
 	if ( reset_2d )
 	{
-		CreateAndWireNewMap();
+		ResetAndWireNewMap();
 	}
 	return true;
 }
@@ -302,6 +361,12 @@ void CMapEditor::DeleteButtonClicked()
 void CMapEditor::OneClick()
 {
 	BRAT_NOT_IMPLEMENTED
+}
+//virtual 
+bool CMapEditor::Test()
+{
+	BRAT_NOT_IMPLEMENTED;
+	return false;
 }
 
 
@@ -365,10 +430,10 @@ bool CMapEditor::ViewChanged()
 	{
 		std::vector< CWPlot* > wplots;
 		if ( mDisplay->IsZLatLonType() )
-			wplots = GetDisplayPlots< CWPlot >( mDisplay );			assert__( wplots.size() && mCurrentDisplayFilesProcessor );
+			wplots = GetPlotsFromDisplayFile< CWPlot >( mDisplay );			assert__( wplots.size() && mCurrentDisplayFilesProcessor );
 
 
-		if ( !ResetViews( wplots.size() > 0, false ) )
+        if ( !ResetViews( wplots.size() > 0, true, wplots.size() > 0, false ) )
 			throw CException( "A previous map is still processing. Please try again later." );
 		SelectTab( mTabGeneral->parentWidget() );
 
@@ -471,7 +536,7 @@ void CMapEditor::HandleCurrentFieldChanged( int field_index )
 
 	mPropertiesMap = &mDataArrayMap->at( field_index )->m_plotProperty;	  			assert__( mPropertiesMap );
 	//TODO - fetch correct display data
-	mCurrentDisplayData = mDisplay->GetDisplayData( mPropertiesMap->m_name );
+	mCurrentDisplayData = mDisplay->GetDisplayData( mOperation, mPropertiesMap->m_name );
 
 	mTabDataLayers->mShowSolidColorCheck->setChecked( mMapView->IsLayerVisible( field_index ) );
 
@@ -510,7 +575,7 @@ void CMapEditor::HandleShowSolidColor( bool checked )
 
     mPropertiesMap->m_solidColor = checked;
 
-	mMapView->SetLayerVisible( mTabDataLayers->mFieldsList->currentRow(), mPropertiesMap->m_solidColor );
+	mMapView->SetLayerVisible( mTabDataLayers->mFieldsList->currentRow(), mPropertiesMap->m_solidColor, mDisplaying2D );
 }
 
 

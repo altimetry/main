@@ -1336,16 +1336,7 @@ void CXYPlotData::Create( CInternalFiles* yfx, CPlot* plot, int32_t iField )
 
 	m_plotProperty.SetParent( this );
 }
-//----------------------------------------
-void CXYPlotData::OnFrameChange(int32_t f)
-{
 
-  m_currentFrame = (f < m_length - 1) ? f : m_length - 1;
-  m_currentFrame = (m_currentFrame > 0) ? m_currentFrame : 0;
-
-  Update();
-
-}
 
 //-------------------------------------------------------------
 //------------------- ex-CXYPlotDataMulti class --------------------
@@ -1698,15 +1689,25 @@ void CXYPlotData::Normalize( int32_t value )
 	NormalizeY( value );
 }
 
-//----------------------------------------
-void CXYPlotData::Update()
-{
-	//TODO this will be deleted; do not care about this
 
-	///////////////////////////////////////m_vtkDataArrayPlotData->SetDataArrays( GetRawData( 0 )->GetFrameData( m_currentFrame ), GetRawData( 1 )->GetFrameData( m_currentFrame ) );
+#if defined(BRAT_V3)
+
+void CXYPlotData::OnFrameChange(int32_t f)
+{
+
+  m_currentFrame = (f < m_length - 1) ? f : m_length - 1;
+  m_currentFrame = (m_currentFrame > 0) ? m_currentFrame : 0;
+
+  Update();
+
 }
 
+void CXYPlotData::Update()
+{
+    //m_vtkDataArrayPlotData->SetDataArrays( GetRawData( 0 )->GetFrameData( m_currentFrame ), GetRawData( 1 )->GetFrameData( m_currentFrame ) );
+}
 
+#endif
 
 
 //-------------------------------------------------------------
@@ -1760,7 +1761,36 @@ CXYPlotProperties* CXYPlotDataCollection::GetPlotProperties(int32_t index)
   return data->GetPlotProperties();
 }
 
-//----------------------------------------
+
+void CXYPlotDataCollection::AddData( CBratObject* ob )
+{
+	base_t::Insert( ob );
+
+	CXYPlotData *pdata = dynamic_cast<CXYPlotData*>( ob );		assert__( pdata );
+	auto *properties = pdata->GetPlotProperties();				assert__( properties );
+
+	if ( isDefaultValue( properties->GetXMin() ) || isDefaultValue( properties->GetXMax() ) )
+	{
+		double xrMin, xrMax;
+
+		GetXRange( xrMin, xrMax );
+		properties->SetXMin( xrMin );
+		properties->SetXMax( xrMax );
+	}
+
+	if ( isDefaultValue( properties->GetYMin() ) || isDefaultValue( properties->GetYMax() ) )
+	{
+		double yrMin, yrMax;
+		GetYRange( yrMin, yrMax );
+		properties->SetYMin( yrMin );
+		properties->SetYMax( yrMax );
+	}
+}
+
+
+
+#if defined(BRAT_V3)
+
 void CXYPlotDataCollection::OnFrameChange(int32_t f)
 {
   CObArray::iterator it;
@@ -1771,9 +1801,9 @@ void CXYPlotDataCollection::OnFrameChange(int32_t f)
   }
 
   m_currentFrame = f;
-
-
 }
+
+#endif
 
 //----------------------------------------
 void CXYPlotDataCollection::GetXRange(double& min, double& max, uint32_t frame)

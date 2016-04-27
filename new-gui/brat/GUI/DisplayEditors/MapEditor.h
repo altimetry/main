@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #ifndef GUI_DISPLAY_EDITORS_MAP_EDITOR_H
 #define GUI_DISPLAY_EDITORS_MAP_EDITOR_H
 
@@ -47,6 +64,10 @@ class CMapEditor : public CAbstractDisplayEditor
 	//map && globe
 	CBratMapView *mMapView = nullptr;
 	CGlobeWidget *mGlobeView = nullptr;
+	bool mMapProcessing = false;
+	bool mGlobeProcessing = false;
+	bool mDisplaying2D = false;
+	bool mDisplaying3D = false;
 	//
 	//...map/globe managed widgets/actions
 	QProgressBar *mProgressBar = nullptr;
@@ -87,7 +108,7 @@ class CMapEditor : public CAbstractDisplayEditor
 private:
 	QActionGroup* CreateProjectionsActions();
 	void CreateMapActions();
-	void CreateAndWireNewMap();
+	void ResetAndWireNewMap();
 	void CreateWidgets();
 	void WireMapActions();
 	void Wire();
@@ -116,7 +137,7 @@ protected:
 
 	virtual bool IsMapEditor() const { return true; }
 
-	virtual bool ResetViews( bool reset_2d, bool reset_3d ) override;
+	virtual bool ResetViews( bool reset_2d, bool reset_3d, bool enable_2d, bool enable_3d ) override;
 
 	virtual void Show2D( bool checked ) override;
 	virtual void Show3D( bool checked ) override;
@@ -130,6 +151,9 @@ protected:
 	virtual void OperationChanged( int index ) override;
 
 	virtual void OneClick() override;
+
+	virtual bool Test() override;
+
 
 	///////////////////////////////////////////////////////////
 	// Handlers

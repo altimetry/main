@@ -249,7 +249,7 @@ void CGlobeWidget::SetupMap()
 	// The MapNode will render the Map object in the scene graph.
 	mMapNode = new osgEarth::MapNode( map, nodeOptions );
 
-	const bool enable_base_map = false;	//don't load; besides, it needs renderer in tile source
+	const bool enable_base_map = true;	//don't load; besides, it needs renderer in tile source
 	if ( enable_base_map )
 	{
 		setBaseMap( "http://readymap.org/readymap/tiles/1.0.0/7/" );
@@ -344,10 +344,15 @@ class CGlobeViewerWidget : public osgEarth::QtGui::ViewerWidget
 
 	QgsMapCanvas *mCanvas = nullptr;
 
+	bool mPainting = false;
+	bool mPaused = false;
+
 public:
 	CGlobeViewerWidget( QgsMapCanvas *the_canvas, osgViewer::ViewerBase *viewer )
 		: base_t( viewer )
 		, mCanvas( the_canvas )
+		, mPainting( false )
+		, mPaused( false )
 	{
 		assert__( Viewer() == viewer );
 	}
@@ -358,6 +363,11 @@ public:
 	}
 
 
+	bool Painting() const
+	{
+		return mPainting;
+	}
+
 	void Stop()
 	{
 		mPaused = true;
@@ -366,10 +376,10 @@ public:
 		_viewer->setDone( true );
 	}
 
-	bool mPainting = false;
-
 	void Pause()
 	{
+		if ( mPaused )
+			return;
 		mPaused = true;
 		_timer.stop();
 		PausePager();
@@ -377,6 +387,8 @@ public:
 
 	void Resume()
 	{
+		if ( !mPaused )
+			return;
 		mPaused = false;
 		_timer.start(20);
 		ResumePager();
@@ -404,8 +416,6 @@ protected:
 		return mPaused;
 	}
 
-	bool mPaused = false;
-
 	virtual void paintEvent( QPaintEvent *event ) override
 	{
 		mPainting = true;
@@ -419,6 +429,7 @@ protected:
 			return;
 		}
 
+		bool map_frozen = false;
 		if ( mCanvas->isDrawing() )
 		{
 			return;
@@ -426,26 +437,34 @@ protected:
 		else
 		{
 			mCanvas->stopRendering();
-			mCanvas->freeze( true );
+			map_frozen = mCanvas->isFrozen();
+			if ( !map_frozen )
+				mCanvas->freeze( true );
 			ResumePager();
 		}
 
 		base_t::paintEvent( event );
 
 		PausePager();
-		mCanvas->freeze( false );
+		mCanvas->freeze( map_frozen );
 
 		mPainting = false;
 	}
 };
 
 
+bool CGlobeWidget::Rendering() const
+{
+	return mGlobeViewerWidget->Painting();
+}
 void CGlobeWidget::Pause()
 {
 	mGlobeViewerWidget->Pause();
 }
-void CGlobeWidget::Resume()
+void CGlobeWidget::Resume( bool layers_changed )
 {
+	if ( layers_changed )
+		ChangeImageLayers();		// imageLayersChanged();
 	mGlobeViewerWidget->Resume();
 }
 
@@ -456,7 +475,7 @@ bool CGlobeWidget::ScheduleClose()
 	mTileSource->mStop = true;
 	mGlobeViewerWidget->Stop();
 	QTimer::singleShot( 1, this, SLOT( close() ) );
-	return !mGlobeViewerWidget->mPainting;
+	return !mGlobeViewerWidget->Painting();
 }
 
 
@@ -535,6 +554,7 @@ CGlobeWidget::CGlobeWidget( QWidget *parent, CMapWidget *the_canvas )
 
 
 	// v4 setSkyParameters was called here
+	SetSkyParameters( true );
 
 	// create a surface to house the controls
 	//
@@ -900,7 +920,7 @@ void CGlobeWidget::setSkyParameters( bool sky, const QDateTime& date_time, bool 
 		bool fancy = false;
 
 		mSkyNode->setMoonVisible( fancy );
-		mSkyNode->setStarsVisible( fancy );
+		mSkyNode->setStarsVisible( true );
 		mSkyNode->setSunVisible( fancy );
 
 		//mSkyNode->setLighting( osg::StateAttribute::OFF );

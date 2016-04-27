@@ -167,120 +167,120 @@ void CBratMapView::Plot( const CWorldPlotInfo &maps, CWorldPlotProperties *props
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-CBrat3DPlotView::CBrat3DPlotView( QWidget *parent )		//parent = nullptr 
-	: base_t( parent )
-	, mZfxyPlotData( new CObArray )
-{
-	mZfxyPlotData->SetDelete(false);
-}
+//CBrat3DPlotView::CBrat3DPlotView( QWidget *parent )		//parent = nullptr 
+//	: base_t( parent )
+//	, mZfxyPlotData( new CObArray )
+//{
+//	mZfxyPlotData->SetDelete(false);
+//}
+//
+//
 
-
-
-void CBrat3DPlotView::AddData( CZFXYPlotData* pdata, size_t index )
-{
-    Q_UNUSED( index );
-
-	assert__( pdata != nullptr );
-
-#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
-	std::string szMsg = std::string::Format( "Rendering %s ...", GetTitle().c_str() );
-	int32_t maxProgbar = 4;
-	wxProgressDialog* dlg = new wxProgressDialog( szMsg,
-		"Adding data to plot...",
-		maxProgbar, this, wxPD_SMOOTH | wxPD_APP_MODAL | wxPD_AUTO_HIDE );
-
-	dlg->SetSize( -1, -1, 350, -1 );
-#endif
-
-	int32_t nFrames = pdata->GetNrMaps();
-
-	// v3 note
-    // Only pop-up the animation toolbar if this is the first
-	// multi-frame dataset and the user has not specified any
-	// explicit option so far.
-	if ( ( !mMultiFrame ) && ( nFrames > 1 ) )	//v4: this variable was private and assigned only here
-	{
-		mMultiFrame = true;
-		// TODO translate this to v4
-		//m_menuBar->Enable( ID_MENU_VIEW_SLIDER, true );
-		//ShowAnimationToolbar( true );
-
-	}
-#if defined (BRAT_V3)									  //TODO this file is never executed in v3, but remains here as a remark for something whose port is missing
-	if ( !mHasClut && pdata->GetLookupTable() != nullptr )
-#else
-	if ( !mHasClut )
-#endif
-	{
-		mHasClut = true;
-		// TODO translate this to v4
-		//m_menuBar->Enable( ID_MENU_VIEW_COLORBAR, m_hasClut );
-		//m_menuBar->Enable( ID_MENU_VIEW_CLUTEDIT, m_hasClut );
-		//v3 commented out ShowColorBar(data->m_plotProperty.m_showColorBar);
-	}
-
-	// TODO m_plotPanel->AddData( pdata, dlg );
-	// TODO taken from void CZFXYPlotPanel::AddData( CZFXYPlotData* pdata, wxProgressDialog* dlg )
-
-#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
-	std::string szMsg = std::string::Format( "Displaying data: %s ...", pdata->GetDataTitle().c_str() );
-	if ( dlg != nullptr )
-		dlg->Update( 0, szMsg );
-#endif
-
-	//v4 pdata->SetRenderer( m_vtkRend );
-	mZfxyPlotData->Insert( pdata );
-
-	// v4
-	const C3DPlotInfo &maps = pdata->Maps();	assert__( maps.size() == 1 );	//simply to check if ever...
-	const C3DPlotParameters &values = maps[0];
-	AddPlot( values,
-		pdata->GetXRangeMin(), pdata->GetXRangeMax(), pdata->GetYRangeMin(), pdata->GetYRangeMax(), 
-		pdata->GetComputedRangeMin(),
-		pdata->GetComputedRangeMax());
-
-    SetPlotTitle( q2a( windowTitle() ) );
-
-	//axis titles assigned per plot switch
-    //CZFXYPlotProperties *props = pdata->GetPlotProperties();
-	//SetAxisTitles( props->m_xLabel, props->m_yLabel, props->m_name );
-
-	//v4 m_plotActor->AddInput( pdata );
-
-
-#if defined (BRAT_V3)									  //TODO this file is never executed in v3, but remains here as a remark for something whose port is missing
-	if ( pdata->GetColorBarRenderer() != nullptr )
-	{
-		//v4 m_vtkWidget->GetRenderWindow()->AddRenderer( pdata->GetColorBarRenderer()->GetVtkRenderer() );
-	}
-#endif
-
-	std::string textLayer = pdata->GetDataName();
-
-	//v4 GetZfxylayerchoice()->Append( textLayer, static_cast<void*>( pdata ) );
-	//v4 m_plotPropertyTab->SetCurrentLayer( 0 );
-
-
-#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
-	if ( dlg != nullptr )
-		dlg->Update( 1 );
-#endif
-
-	//v4 m_animationToolbar->SetMaxFrame( nFrames );
-
-
-#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
-	if ( dlg != nullptr )
-		dlg->Update( 3 );
-#endif
-
-	//v4 m_plotPropertyTab->UpdateTitleControls();
-	//v4 UpdateRender();
-
-#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
-	dlg->Destroy();
-#endif
-}
+//void CBrat3DPlotView::AddData( CZFXYPlotData* pdata, size_t index, bool histogram )
+//{
+//    Q_UNUSED( index );		Q_UNUSED( histogram );
+//
+//	assert__( pdata != nullptr );
+//
+//#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
+//	std::string szMsg = std::string::Format( "Rendering %s ...", GetTitle().c_str() );
+//	int32_t maxProgbar = 4;
+//	wxProgressDialog* dlg = new wxProgressDialog( szMsg,
+//		"Adding data to plot...",
+//		maxProgbar, this, wxPD_SMOOTH | wxPD_APP_MODAL | wxPD_AUTO_HIDE );
+//
+//	dlg->SetSize( -1, -1, 350, -1 );
+//#endif
+//
+//	int32_t nFrames = pdata->GetNrMaps();
+//
+//	// v3 note
+//    // Only pop-up the animation toolbar if this is the first
+//	// multi-frame dataset and the user has not specified any
+//	// explicit option so far.
+//	if ( ( !mMultiFrame ) && ( nFrames > 1 ) )	//v4: this variable was private and assigned only here
+//	{
+//		mMultiFrame = true;
+//		// TODO translate this to v4
+//		//m_menuBar->Enable( ID_MENU_VIEW_SLIDER, true );
+//		//ShowAnimationToolbar( true );
+//
+//	}
+//#if defined (BRAT_V3)									  //TODO this file is never executed in v3, but remains here as a remark for something whose port is missing
+//	if ( !mHasClut && pdata->GetLookupTable() != nullptr )
+//#else
+//	if ( !mHasClut )
+//#endif
+//	{
+//		mHasClut = true;
+//		// TODO translate this to v4
+//		//m_menuBar->Enable( ID_MENU_VIEW_COLORBAR, m_hasClut );
+//		//m_menuBar->Enable( ID_MENU_VIEW_CLUTEDIT, m_hasClut );
+//		//v3 commented out ShowColorBar(data->m_plotProperty.m_showColorBar);
+//	}
+//
+//	// TODO m_plotPanel->AddData( pdata, dlg );
+//	// TODO taken from void CZFXYPlotPanel::AddData( CZFXYPlotData* pdata, wxProgressDialog* dlg )
+//
+//#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
+//	std::string szMsg = std::string::Format( "Displaying data: %s ...", pdata->GetDataTitle().c_str() );
+//	if ( dlg != nullptr )
+//		dlg->Update( 0, szMsg );
+//#endif
+//
+//	//v4 pdata->SetRenderer( m_vtkRend );
+//	mZfxyPlotData->Insert( pdata );
+//
+//	// v4
+//	const C3DPlotInfo &maps = pdata->Maps();	assert__( maps.size() == 1 );	//simply to check if ever...
+//	const C3DPlotParameters &values = maps[0];
+//	AddPlot( values,
+//		pdata->GetXRangeMin(), pdata->GetXRangeMax(), pdata->GetYRangeMin(), pdata->GetYRangeMax(), 
+//		pdata->GetComputedRangeMin(),
+//		pdata->GetComputedRangeMax());
+//
+//    SetPlotTitle( q2a( windowTitle() ) );
+//
+//	//axis titles assigned per plot switch
+//    //CZFXYPlotProperties *props = pdata->GetPlotProperties();
+//	//SetAxisTitles( props->m_xLabel, props->m_yLabel, props->m_name );
+//
+//	//v4 m_plotActor->AddInput( pdata );
+//
+//
+//#if defined (BRAT_V3)									  //TODO this file is never executed in v3, but remains here as a remark for something whose port is missing
+//	if ( pdata->GetColorBarRenderer() != nullptr )
+//	{
+//		//v4 m_vtkWidget->GetRenderWindow()->AddRenderer( pdata->GetColorBarRenderer()->GetVtkRenderer() );
+//	}
+//#endif
+//
+//	std::string textLayer = pdata->GetDataName();
+//
+//	//v4 GetZfxylayerchoice()->Append( textLayer, static_cast<void*>( pdata ) );
+//	//v4 m_plotPropertyTab->SetCurrentLayer( 0 );
+//
+//
+//#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
+//	if ( dlg != nullptr )
+//		dlg->Update( 1 );
+//#endif
+//
+//	//v4 m_animationToolbar->SetMaxFrame( nFrames );
+//
+//
+//#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
+//	if ( dlg != nullptr )
+//		dlg->Update( 3 );
+//#endif
+//
+//	//v4 m_plotPropertyTab->UpdateTitleControls();
+//	//v4 UpdateRender();
+//
+//#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
+//	dlg->Destroy();
+//#endif
+//}
 
 
 
@@ -291,157 +291,177 @@ void CBrat3DPlotView::AddData( CZFXYPlotData* pdata, size_t index )
 //////////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-CBrat2DPlotView::CBrat2DPlotView( QWidget *parent )	//parent = nullptr 
-	: base_t( parent )
-	, mPlotDataCollection( new CXYPlotDataCollection )
-	, mZfxyPlotData( new CObArray )
-{
-	mZfxyPlotData->SetDelete(false);
-
-	QwtLegend *legend = AddLegend( RightLegend );		Q_UNUSED( legend );
-}
-
-
-void CBrat2DPlotView::AddData( CXYPlotData *pdata, size_t index, bool histogram )
-{
-    Q_UNUSED( index );
-
-	//v4 taken from CXYPlotFrame::AddData(CXYPlotData* data)
-
-            //v3 comment
-			//uniquified_name = self.usg.uniquify(data.GetName())
-			//if not uniquified_name.endswith(" 1"):
-			//data.SetName(uniquified_name)
-
-	// v3 note Only pop-up the animation toolbar if this is the first
-	// multi-frame dataset and the user has not specified any
-	// explicit option so far.
-
-	if ( !mMultiFrame )	//v4: this variable was private and assigned only here
-	{
-		int32_t nFrames = pdata->GetNumberOfFrames();
-		if ( nFrames > 1 )
-		{
-			mMultiFrame = true;
-			// TODO translate this to v4
-			// m_menuBar->Enable( ID_MENU_VIEW_SLIDER, true );
-			// ShowAnimationToolbar( true );
-		}
-	}
-
-	//m_plotPanel->AddData( data );
-	//TODO taken from void CXYPlotPanel::AddData( CXYPlotData* pdata )
-
-	if ( mPlotDataCollection == nullptr )
-		return;
-
-	CXYPlotProperties* props = pdata->GetPlotProperties();
-
-	mPlotDataCollection->Insert( pdata );
-
-	//m_plotActor->AddInput( pdata->GetVtkDataArrayPlotData(), props->GetVtkProperty2D() );		v4 commented out
-	//vtkDataArrayPlotData*	  vtkProperty2D* 
-
-	double xrMin = 0;
-	double xrMax = 0;
-	double yrMin = 0;
-	double yrMax = 0;
-
-	if ( isDefaultValue( props->GetXMin() ) || isDefaultValue( props->GetXMax() ) )
-	{
-        mPlotDataCollection->GetXRange( xrMin, xrMax );
-	}
-
-	if ( isDefaultValue( props->GetYMin() ) || isDefaultValue( props->GetYMax() ) )
-	{
-        mPlotDataCollection->GetYRange( yrMin, yrMax );
-	}
-
-	if ( !isDefaultValue( props->GetXMin() ) )
-	{
-		xrMin = props->GetXMin();
-	}
-	if ( !isDefaultValue( props->GetXMax() ) )
-	{
-		xrMax = props->GetXMax();
-	}
-
-	if ( !isDefaultValue( props->GetYMin() ) )
-	{
-		yrMin = props->GetYMin();
-	}
-	if ( !isDefaultValue( props->GetYMax() ) )
-	{
-		yrMax = props->GetYMax();
-	}
-
-	/*v4 commented out; for an example of a SetRange method, see //(*) below
-	SetXRange( xrMin, xrMax );			***
-	SetYRange( yrMin, yrMax );			***
-
-	SetBaseX( props->GetXBase() );
-	SetBaseY( props->GetYBase() );
-
-	SetLogX( props->GetXLog() );
-	SetLogY( props->GetYLog() );
-
-	SetXTitle( props->GetXLabel() );	***
-	SetYTitle( props->GetYLabel() );	***
-
-	SetTitle( props->GetTitle() );		***
-
-	if ( isDefaultValue( props->GetXNumTicks() ) == false )
-	{
-		m_plotActor->SetNumberOfXLabels( props->GetXNumTicks() );
-	}
-
-	if ( isDefaultValue( props->GetYNumTicks() ) == false )
-	{
-		m_plotActor->SetNumberOfYLabels( props->GetYNumTicks() );
-	}
-	*/
-
-	int32_t nFrames = pdata->GetNumberOfFrames();
-	mPanelMultiFrame |= ( nFrames > 1 );
-
-	// v4: all following code is v4
-    SetPlotTitle( q2a( windowTitle() ) );
-
-    // Set axis titles
-    SetAxisTitles( props->GetXLabel(), props->GetYLabel() );
-
-    // Insert new curves
-	QwtPlotCurve *curve = nullptr;
-	CHistogram *histo = nullptr;
-	if ( histogram )
-		histo = AddHistogram( props->GetName(), color_cast< QColor >( props->GetColor() ), pdata->GetQwtArrayPlotData() );
-	else
-		curve = AddCurve( props->GetName(), color_cast< QColor >( props->GetColor() ), pdata->GetQwtArrayPlotData() );
-
-    // Markers example
-    //  ...a horizontal line at y = 0...
-    //  ...a vertical line at x = 2 * pi
-	//
-    //QwtPlotMarker *mY = AddMarker( "y = 0", QwtPlotMarker::HLine, 0.0 );
-    //QwtPlotMarker *mX = AddMarker( "x = 2 pi", QwtPlotMarker::VLine, 2.0 * M_PI );
-    //mX->setLinePen( QPen( Qt::black, 0, Qt::DashDotLine ) );								Q_UNUSED( mY );
-
-	SetAxisScales( xrMin, xrMax, yrMin, yrMax );
-
-	replot();
-
-	Q_UNUSED( curve );		Q_UNUSED( histo );
-}
-
-//(*)
 //
-//void CXYPlotPanel::SetYRange( double min, double max )
+//CBrat2DPlotView::CBrat2DPlotView( QWidget *parent )	//parent = nullptr 
+//	: base_t( parent )
+//	, mPlotDataCollection( new CXYPlotDataCollection )
+//	, mZfxyPlotData( new CObArray )
 //{
-//	m_currentYMin = min;
-//	m_currentYMax = max;
-//	m_plotActor->SetYRange( min, max );
+//	mZfxyPlotData->SetDelete(false);
+//
+//	QwtLegend *legend = AddLegend( RightLegend );		Q_UNUSED( legend );
 //}
+//
+//
+////virtual 
+//CBrat2DPlotView::~CBrat2DPlotView()
+//{
+//	delete mPlotDataCollection;
+//	delete mZfxyPlotData;
+//}
+//
+//
+
+//void CBrat2DPlotView::AddData( CXYPlotData *pdata, size_t index, bool histogram )
+//{
+//    Q_UNUSED( index );
+//
+//	//v4 taken from CXYPlotFrame::AddData(CXYPlotData* data)
+//
+//            //v3 comment
+//			//uniquified_name = self.usg.uniquify(data.GetName())
+//			//if not uniquified_name.endswith(" 1"):
+//			//data.SetName(uniquified_name)
+//
+//	// v3 note Only pop-up the animation toolbar if this is the first
+//	// multi-frame dataset and the user has not specified any
+//	// explicit option so far.
+//
+//	if ( !mMultiFrame )	//v4: this variable was private and assigned only here
+//	{
+//		int32_t nFrames = pdata->GetNumberOfFrames();
+//		if ( nFrames > 1 )
+//		{
+//			mMultiFrame = true;
+//			// TODO translate this to v4
+//			// m_menuBar->Enable( ID_MENU_VIEW_SLIDER, true );
+//			// ShowAnimationToolbar( true );
+//		}
+//	}
+//
+//	//m_plotPanel->AddData( data );
+//	//TODO taken from void CXYPlotPanel::AddData( CXYPlotData* pdata )
+//
+//	if ( mPlotDataCollection == nullptr )
+//		return;
+//
+//	CXYPlotProperties* props = pdata->GetPlotProperties();
+//
+//	mPlotDataCollection->Insert( pdata );
+//
+//	//m_plotActor->AddInput( pdata->GetVtkDataArrayPlotData(), props->GetVtkProperty2D() );		v4 commented out
+//	//vtkDataArrayPlotData*	  vtkProperty2D* 
+//
+//	double xrMin = 0;
+//	double xrMax = 0;
+//	double yrMin = 0;
+//	double yrMax = 0;
+//
+//	if ( isDefaultValue( props->GetXMin() ) || isDefaultValue( props->GetXMax() ) )
+//	{
+//        mPlotDataCollection->GetXRange( xrMin, xrMax );
+//	}
+//
+//	if ( isDefaultValue( props->GetYMin() ) || isDefaultValue( props->GetYMax() ) )
+//	{
+//        mPlotDataCollection->GetYRange( yrMin, yrMax );
+//	}
+//
+//	if ( !isDefaultValue( props->GetXMin() ) )
+//	{
+//		xrMin = props->GetXMin();
+//	}
+//	if ( !isDefaultValue( props->GetXMax() ) )
+//	{
+//		xrMax = props->GetXMax();
+//	}
+//
+//	if ( !isDefaultValue( props->GetYMin() ) )
+//	{
+//		yrMin = props->GetYMin();
+//	}
+//	if ( !isDefaultValue( props->GetYMax() ) )
+//	{
+//		yrMax = props->GetYMax();
+//	}
+//
+//	/*v4 commented out; for an example of a SetRange method, see //(*) below
+//	SetXRange( xrMin, xrMax );			***
+//	SetYRange( yrMin, yrMax );			***
+//
+//	SetBaseX( props->GetXBase() );
+//	SetBaseY( props->GetYBase() );
+//
+//	SetLogX( props->GetXLog() );
+//	SetLogY( props->GetYLog() );
+//
+//	SetXTitle( props->GetXLabel() );	***
+//	SetYTitle( props->GetYLabel() );	***
+//
+//	SetTitle( props->GetTitle() );		***
+//
+//	if ( isDefaultValue( props->GetXNumTicks() ) == false )
+//	{
+//		m_plotActor->SetNumberOfXLabels( props->GetXNumTicks() );
+//	}
+//
+//	if ( isDefaultValue( props->GetYNumTicks() ) == false )
+//	{
+//		m_plotActor->SetNumberOfYLabels( props->GetYNumTicks() );
+//	}
+//	*/
+//
+//	int32_t nFrames = pdata->GetNumberOfFrames();
+//	mPanelMultiFrame |= ( nFrames > 1 );
+//
+//	// v4: all following code is v4
+//    SetPlotTitle( q2a( windowTitle() ) );
+//
+//    // Set axis titles
+//	if ( histogram )
+//		SetAxisTitles( props->GetYLabel(), "Frequency" );
+//	else
+//		SetAxisTitles( props->GetXLabel(), props->GetYLabel() );
+//
+//    // Insert new curves
+//	QwtPlotCurve *curve = nullptr;
+//	CHistogram *histo = nullptr;
+//	if ( histogram )
+//		histo = AddHistogram( props->GetName(), color_cast<QColor>( props->GetColor() ), pdata->GetQwtArrayPlotData(), xrMax );
+//	else
+//		curve = AddCurve( props->GetName(), color_cast<QColor>( props->GetColor() ), pdata->GetQwtArrayPlotData() );
+//
+//	if ( histogram )
+//		SetAxisScales( yrMin, yrMax, 0, xrMax );
+//	else
+//		SetAxisScales( xrMin, xrMax, yrMin, yrMax );
+//
+//    // Markers example
+//    //  ...a horizontal line at y = 0...
+//    //  ...a vertical line at x = 2 * pi
+//	//
+//    //QwtPlotMarker *mY = AddMarker( "y = 0", QwtPlotMarker::HLine, 0.0 );
+//    //QwtPlotMarker *mX = AddMarker( "x = 2 pi", QwtPlotMarker::VLine, 2.0 * M_PI );
+//    //mX->setLinePen( QPen( Qt::black, 0, Qt::DashDotLine ) );								Q_UNUSED( mY );
+//
+//	//if ( !histogram )
+//	////	SetAxisScales( yrMin, yrMax, 0, pdata->GetQwtArrayPlotData()->size() );
+//	////else
+//	//	SetAxisScales( xrMin, xrMax, yrMin, yrMax );
+//
+//	replot();
+//
+//	Q_UNUSED( curve );		Q_UNUSED( histo );
+//}
+//
+////(*)
+////
+////void CXYPlotPanel::SetYRange( double min, double max )
+////{
+////	m_currentYMin = min;
+////	m_currentYMax = max;
+////	m_plotActor->SetYRange( min, max );
+////}
 
 
 //void vtkXYPlotActor::AddInput(vtkPlotData *plotData, vtkProperty2D* property)
@@ -475,110 +495,113 @@ void CBrat2DPlotView::AddData( CXYPlotData *pdata, size_t index, bool histogram 
 
 
 
-void CBrat2DPlotView::AddData( CZFXYPlotData* pdata, size_t index )
-{
-    assert__( pdata != nullptr );
-
-#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
-    std::string szMsg = std::string::Format( "Rendering %s ...", GetTitle().c_str() );
-    int32_t maxProgbar = 4;
-    wxProgressDialog* dlg = new wxProgressDialog( szMsg,
-        "Adding data to plot...",
-        maxProgbar, this, wxPD_SMOOTH | wxPD_APP_MODAL | wxPD_AUTO_HIDE );
-
-    dlg->SetSize( -1, -1, 350, -1 );
-#endif
-
-    int32_t nFrames = pdata->GetNrMaps();
-
-    // v3 note
-    // Only pop-up the animation toolbar if this is the first
-    // multi-frame dataset and the user has not specified any
-    // explicit option so far.
-    if ( ( !mMultiFrame ) && ( nFrames > 1 ) )	//v4: this variable was private and assigned only here
-    {
-        mMultiFrame = true;
-        // TODO translate this to v4
-        //m_menuBar->Enable( ID_MENU_VIEW_SLIDER, true );
-        //ShowAnimationToolbar( true );
-
-    }
-#if defined (BRAT_V3)									  //TODO this file is never executed in v3, but remains here as a remark for something whose port is missing
-    if ( !mHasClut && pdata->GetLookupTable() != nullptr )
-#else
-//    if ( !mHasClut )
-#endif
+//void CBrat2DPlotView::AddData( CZFXYPlotData* pdata, size_t index, bool histogram )
+//{
+//    assert__( pdata != nullptr );
+//
+//#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
+//    std::string szMsg = std::string::Format( "Rendering %s ...", GetTitle().c_str() );
+//    int32_t maxProgbar = 4;
+//    wxProgressDialog* dlg = new wxProgressDialog( szMsg,
+//        "Adding data to plot...",
+//        maxProgbar, this, wxPD_SMOOTH | wxPD_APP_MODAL | wxPD_AUTO_HIDE );
+//
+//    dlg->SetSize( -1, -1, 350, -1 );
+//#endif
+//
+//    int32_t nFrames = pdata->GetNrMaps();
+//
+//    // v3 note
+//    // Only pop-up the animation toolbar if this is the first
+//    // multi-frame dataset and the user has not specified any
+//    // explicit option so far.
+//    if ( ( !mMultiFrame ) && ( nFrames > 1 ) )	//v4: this variable was private and assigned only here
 //    {
-//        mHasClut = true;
+//        mMultiFrame = true;
 //        // TODO translate this to v4
-//        //m_menuBar->Enable( ID_MENU_VIEW_COLORBAR, m_hasClut );
-//        //m_menuBar->Enable( ID_MENU_VIEW_CLUTEDIT, m_hasClut );
-//        //v3 commented out ShowColorBar(data->m_plotProperty.m_showColorBar);
+//        //m_menuBar->Enable( ID_MENU_VIEW_SLIDER, true );
+//        //ShowAnimationToolbar( true );
+//
 //    }
-
-    // TODO m_plotPanel->AddData( pdata, dlg );
-    // TODO taken from void CZFXYPlotPanel::AddData( CZFXYPlotData* pdata, wxProgressDialog* dlg )
-
-#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
-    std::string szMsg = std::string::Format( "Displaying data: %s ...", pdata->GetDataTitle().c_str() );
-    if ( dlg != nullptr )
-        dlg->Update( 0, szMsg );
-#endif
-
-    //v4 pdata->SetRenderer( m_vtkRend );
-    mZfxyPlotData->Insert( pdata );
-
-    // v4
-    const C3DPlotInfo *maps = dynamic_cast<const C3DPlotInfo*>( &pdata->Maps() );		assert__( maps->size() == 1 );	//simply to check if ever...
-	CZFXYPlotProperties *props = pdata->GetPlotProperties();							assert__( pdata->GetDataName() == props->m_name );
-
-    //mSpectogramData = new SpectrogramData();
-    //mSpectogramData->InjectData( values.mXaxis, values.mYaxis, values.mBits, values.mValues );
-    //Spectogram( parentWidget() );
-
-	AddRaster( pdata->GetPlotProperties()->m_name, *maps, props->m_minContourValue, props->m_maxContourValue, props->m_numContour, index );
-
-    SetPlotTitle( q2a( windowTitle() ) );
-
-	//plot axis titles must be assigned per raster switch
-    //SetAxisTitles__( pdata->GetPlotProperties()->m_xLabel, pdata->GetPlotProperties()->m_yLabel, pdata->GetPlotProperties()->m_name );
-
-    //v4 m_plotActor->AddInput( pdata );
-
-
-#if defined (BRAT_V3)									  //TODO this file is never executed in v3, but remains here as a remark for something whose port is missing
-    if ( pdata->GetColorBarRenderer() != nullptr )
-    {
-        //v4 m_vtkWidget->GetRenderWindow()->AddRenderer( pdata->GetColorBarRenderer()->GetVtkRenderer() );
-    }
-#endif
-
-    std::string textLayer = pdata->GetDataName();
-
-    //v4 GetZfxylayerchoice()->Append( textLayer, static_cast<void*>( pdata ) );
-    //v4 m_plotPropertyTab->SetCurrentLayer( 0 );
-
-
-#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
-    if ( dlg != nullptr )
-        dlg->Update( 1 );
-#endif
-
-    //v4 m_animationToolbar->SetMaxFrame( nFrames );
-
-
-#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
-    if ( dlg != nullptr )
-        dlg->Update( 3 );
-#endif
-
-    //v4 m_plotPropertyTab->UpdateTitleControls();
-    //v4 UpdateRender();
-
-#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
-    dlg->Destroy();
-#endif
-}
+//#if defined (BRAT_V3)									  //TODO this file is never executed in v3, but remains here as a remark for something whose port is missing
+//    if ( !mHasClut && pdata->GetLookupTable() != nullptr )
+//#else
+////    if ( !mHasClut )
+//#endif
+////    {
+////        mHasClut = true;
+////        // TODO translate this to v4
+////        //m_menuBar->Enable( ID_MENU_VIEW_COLORBAR, m_hasClut );
+////        //m_menuBar->Enable( ID_MENU_VIEW_CLUTEDIT, m_hasClut );
+////        //v3 commented out ShowColorBar(data->m_plotProperty.m_showColorBar);
+////    }
+//
+//    // TODO m_plotPanel->AddData( pdata, dlg );
+//    // TODO taken from void CZFXYPlotPanel::AddData( CZFXYPlotData* pdata, wxProgressDialog* dlg )
+//
+//#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
+//    std::string szMsg = std::string::Format( "Displaying data: %s ...", pdata->GetDataTitle().c_str() );
+//    if ( dlg != nullptr )
+//        dlg->Update( 0, szMsg );
+//#endif
+//
+//    //v4 pdata->SetRenderer( m_vtkRend );
+//    mZfxyPlotData->Insert( pdata );
+//
+//    // v4
+//    const C3DPlotInfo *maps = dynamic_cast<const C3DPlotInfo*>( &pdata->Maps() );		assert__( maps->size() == 1 );	//simply to check if ever...
+//	CZFXYPlotProperties *props = pdata->GetPlotProperties();							assert__( pdata->GetDataName() == props->m_name );
+//
+//    //mSpectogramData = new SpectrogramData();
+//    //mSpectogramData->InjectData( values.mXaxis, values.mYaxis, values.mBits, values.mValues );
+//    //Spectogram( parentWidget() );
+//
+//	if ( histogram )
+//		PushHistogram( pdata->GetPlotProperties()->m_name, Qt::green, maps );
+//	else
+//		AddRaster( pdata->GetPlotProperties()->m_name, *maps, props->m_minContourValue, props->m_maxContourValue, props->m_numContour );
+//
+//    SetPlotTitle( q2a( windowTitle() ) );
+//
+//	//plot axis titles must be assigned per raster switch
+//    //SetAxisTitles__( pdata->GetPlotProperties()->m_xLabel, pdata->GetPlotProperties()->m_yLabel, pdata->GetPlotProperties()->m_name );
+//
+//    //v4 m_plotActor->AddInput( pdata );
+//
+//
+//#if defined (BRAT_V3)									  //TODO this file is never executed in v3, but remains here as a remark for something whose port is missing
+//    if ( pdata->GetColorBarRenderer() != nullptr )
+//    {
+//        //v4 m_vtkWidget->GetRenderWindow()->AddRenderer( pdata->GetColorBarRenderer()->GetVtkRenderer() );
+//    }
+//#endif
+//
+//    std::string textLayer = pdata->GetDataName();
+//
+//    //v4 GetZfxylayerchoice()->Append( textLayer, static_cast<void*>( pdata ) );
+//    //v4 m_plotPropertyTab->SetCurrentLayer( 0 );
+//
+//
+//#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
+//    if ( dlg != nullptr )
+//        dlg->Update( 1 );
+//#endif
+//
+//    //v4 m_animationToolbar->SetMaxFrame( nFrames );
+//
+//
+//#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
+//    if ( dlg != nullptr )
+//        dlg->Update( 3 );
+//#endif
+//
+//    //v4 m_plotPropertyTab->UpdateTitleControls();
+//    //v4 UpdateRender();
+//
+//#if defined(BRAT_V3)		// TODO replace by callback device to inform progress
+//    dlg->Destroy();
+//#endif
+//}
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //

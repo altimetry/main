@@ -5,17 +5,17 @@
 #include "AbstractDisplayEditor.h"
 #include "DataModels/PlotData/MapColor.h"
 
+class C2DPlotWidget;
+class C3DPlotWidget;
 
 class CPlot;
 class CZFXYPlot;
 class CXYPlotDataCollection;
 
-class CBrat2DPlotView;
-class CBrat3DPlotView;
-
 struct CViewControlsPanelGeneralPlots;
 struct CPlotControlsPanelCurveOptions;
 struct CPlotControlsPanelAxisOptions;
+struct CPlotControlsPanelAnimateOptions;
 
 
 
@@ -46,7 +46,6 @@ public:
 	enum EPlotType
 	{
 		eXY, 
-		eXYY,
 		eXYZ,
 		eHistogram,
 
@@ -59,7 +58,6 @@ public:
 		static const std::string names[ EPlotTypes_size ] =
 		{
 			"XY", 
-			"XYY",
 			"XYZ",
 			"Histogram"
 		};
@@ -74,25 +72,27 @@ private:
 
 	// instance data
 
-	CBrat2DPlotView *mPlot2DView = nullptr;
-	CBrat3DPlotView *mPlot3DView = nullptr;
+	C2DPlotWidget *mPlot2DView = nullptr;
+	C3DPlotWidget *mPlot3DView = nullptr;
 
 	CPlotControlsPanelCurveOptions *mTabCurveOptions = nullptr;	
-	CPlotControlsPanelAxisOptions *mTabAxisOptions = nullptr;	
+	CPlotControlsPanelAxisOptions *mTabAxisOptions = nullptr;
+	CPlotControlsPanelAnimateOptions *mTabAnimateOptions = nullptr;
 
 	EPlotType mPlotType = EPlotTypes_size;		//start with invalid value
 
 
 	//...domain data
 
+	CDisplayData *mCurrentDisplayData = nullptr;
+
 	CXYPlotDataCollection *mDataArrayXY = nullptr;
 	CXYPlotProperties *mPropertiesXY = nullptr;
+	bool mMultiFrame = false;					//	bool mPanelMultiFrame;	2 variables in v3: one in the window, the other in the panel
+	bool mHasClut = false;
 
-	CObArray *mDataArrayZFXY_2D = nullptr;
-	CZFXYPlotProperties *mPropertiesZFXY_2D = nullptr;
-	CObArray *mDataArrayZFXY_3D = nullptr;
-	CZFXYPlotProperties *mPropertiesZFXY_3D = nullptr;
-
+	CObArray *mDataArrayZFXY = nullptr;
+	CZFXYPlotProperties *mPropertiesZFXY = nullptr;
 
 
 	// construction /destruction
@@ -109,21 +109,22 @@ public:
 	virtual ~CPlotEditor();
 
 
+protected:
+	
 	// remaining operations
 
 protected:
 	
-	bool Refresh( EPlotType type );
+	bool CreatePlotData( EPlotType type );
 
 	CViewControlsPanelGeneralPlots* TabGeneral();
 	void UpdatePlotType( EPlotType type, bool select );
 
-	void Reset2DProperties( const CXYPlotProperties *props, CPlot *plot );
-	void Reset2DProperties( const CZFXYPlotProperties *props, CZFXYPlot *zfxyplot );
+	void Recreate2DPlots();
+	void Recreate3DPlots( bool build2d, bool build3d );
 
-    void RespondUpdateAxis();		//JOFF
+	void SetAnimationDescr( int frame );		//from v3 CXYPlotPanel::SetAnimationDescr
 
-    void ScaleFromPropertiesTo2DPlot();		//JOFF
 
 	///////////////////////////////////////////////////////////
 	// Virtual interface implementations
@@ -131,7 +132,7 @@ protected:
 
 	virtual bool IsMapEditor() const { return false; }
 
-	virtual bool ResetViews( bool enable_2d, bool enable_3d ) override;
+	virtual bool ResetViews( bool reset_2d, bool reset_3d, bool enable_2d, bool enable_3d ) override;
 
 	virtual void Show2D( bool checked ) override;
 	virtual void Show3D( bool checked ) override;
@@ -146,11 +147,8 @@ protected:
 
 	virtual void OneClick() override;
 
-	//JOFF
-    virtual void mousePressEvent(QMouseEvent * mouse_event) override;
-    virtual void mouseReleaseEvent(QMouseEvent * mouse_event) override;
-    virtual void mouseMoveEvent(QMouseEvent* mouse_event) override;
-    virtual void wheelEvent(QWheelEvent * event) override;
+	virtual bool Test() override;
+
 
 	///////////////////////////////////////////////////////////
 	// Handlers
@@ -158,23 +156,41 @@ protected:
 
 protected slots:
 
-    // nb Ticks Slots:
-    void HandleXNbTicksChanged();
-    void HandleYNbTicksChanged();
-
 	void HandlePlotTypeChanged( int );
 
 	//axis handlers ///////////////////////////////////////////
 
+    //...labels
+    void HandleXAxisLabelChanged();
+    void HandleYAxisLabelChanged();
+    void HandleZAxisLabelChanged();
+
+    //...ticks
+    void HandleXNbTicksChanged();
+    void HandleYNbTicksChanged();
+    void HandleZNbTicksChanged();
+
+    //...digits
+    void HandleXAxisNbDigitsChanged();
+    void HandleYAxisNbDigitsChanged();
+    void HandleZAxisNbDigitsChanged();
+
+	//...scale
+	void HandleX2DScaleSpinChanged( double );
+	void HandleY2DScaleSpinChanged( double );
+	void HandleX3DScaleSpinChanged( double );
+	void HandleY3DScaleSpinChanged( double );
+	void HandleZ3DScaleSpinChanged( double );
+
+	void Handle2DScaleChanged( int iaxis, double factor, QString range );
+	void Handle3DScaleChanged( double xVal, double yVal, double zVal );
+
+
+	//...log
 	void HandleLogarithmicScaleX( bool log );
 	void HandleLogarithmicScaleY( bool log );
 	void HandleLogarithmicScaleZ( bool log );
-	//JOFF
-    void HandleResetAxis();
-    void HandleXAxisMinScaleChanged();
-    void HandleXAxisMaxScaleChanged();
-    void HandleYAxisMinScaleChanged();
-    void HandleYAxisMaxScaleChanged();
+
 
 	//curve handlers //////////////////////////////////////////
 
@@ -185,6 +201,11 @@ protected slots:
 
 	void HandleShowContourChecked( bool checked );
 	void HandleShowSolidColorChecked( bool checked );
+
+	//...histogram //////////////////////////////////////////
+
+	void HandleNumberOfBinsChanged();
+
 
 	//...line/points //////////////////////////////////////////
 
@@ -207,6 +228,17 @@ protected slots:
 	//...width/size
 	void HandleCurveLineWidthEntered();
 	void HandleCurveGlyphWidthEntered();
+
+
+	//animation handlers //////////////////////////////////////////
+
+	void HandleAnimateButtonToggled( bool toggled );
+	void HandleStopAnimationButton();
+	void HandleAnimateLoop( bool );
+	void HandleAnimateBackwardToggled( bool );
+	void HandleAnimateForwardToggled( bool );
+	void AnimationStopped();
+	void HandleFrameIndexSpinChanged( int i );
 };
 
 

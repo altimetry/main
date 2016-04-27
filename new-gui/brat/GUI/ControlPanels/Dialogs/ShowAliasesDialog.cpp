@@ -171,7 +171,6 @@ CShowAliasesDialog::~CShowAliasesDialog()
 //virtual
 void  CShowAliasesDialog::accept()
 {
-
     base_t::accept();
 }
 

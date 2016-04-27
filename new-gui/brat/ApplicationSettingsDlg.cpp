@@ -2,6 +2,7 @@
 
 #include "new-gui/Common/QtUtils.h"
 #include "GUI/ActionsTable.h"
+#include "GUI/DisplayWidgets/TextWidget.h"
 #include "BratApplication.h"
 #include "BratSettings.h"
 #include "ApplicationSettingsDlg.h"
@@ -99,8 +100,20 @@ void CApplicationSettingsDlg::CreateWidgets()
 
 
 	auto *row = CreateButtonRow( true, Qt::Vertical, { mStackedWidget->Button( 0 ), mStackedWidget->Button( 1 ), mStackedWidget->Button( 2 ) } );
+	auto *row_group = CreateGroupBox( ELayoutType::Vertical, { row } );
 
-	auto *content_l = LayoutWidgets( Qt::Horizontal, { row, mStackedWidget }, nullptr, 6, 6, 6, 6, 6 );
+	auto *content_l = LayoutWidgets( Qt::Horizontal, { row_group, mStackedWidget }, nullptr, 6, 6, 6, 6, 6 );
+
+
+
+    // Help				TODO
+    //
+    auto help = new CTextWidget;
+    help->SetHelpProperties(
+                "Application wide options"
+         ,0 , 6 );
+    auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
+    help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 
 
 	// Dialog buttons
@@ -113,7 +126,7 @@ void CApplicationSettingsDlg::CreateWidgets()
 
 	// Main layout
 
-	LayoutWidgets( Qt::Vertical, { content_l, mButtonBox }, this, 6, 6, 6, 6, 6 );
+	LayoutWidgets( Qt::Vertical, { content_l, help_group, mButtonBox }, this, 6, 6, 6, 6, 6 );
 
 	Wire();
 }

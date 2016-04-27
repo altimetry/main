@@ -47,6 +47,8 @@ const int IMPORT_DISPLAY_INDEX = 3;
 class CWorkspaceOperation;
 class CWorkspaceDataset;
 class CWorkspaceDisplay;
+class CMapDisplayData;
+
 
 
 //-------------------------------------------------------------
@@ -458,9 +460,15 @@ public:
 
     bool InsertDisplay( const std::string& name );
 
+    CDisplay* CloneDisplay( const CDisplay *display, const CWorkspaceOperation *wkso );
+
 	bool DeleteDisplay( CDisplay* display );
 
 	bool RenameDisplay( CDisplay* display, const std::string& newName );
+
+
+	std::vector< CDisplay*> CeateDisplays4Operation( const COperation *operation, CMapDisplayData *dataList );
+
 
     virtual void Dump( std::ostream& fOut = std::cerr ) override;
 

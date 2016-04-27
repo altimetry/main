@@ -27,6 +27,10 @@ class CDisplayFilesProcessor;
 enum EActionTag : int;
 
 
+#if !defined(DEBUG)	//TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	
+#define DEBUG
+#endif
+
 
 /////////////////////////////////////////////////////////////////
 //
@@ -93,6 +97,10 @@ protected:
 	QAction *m2DAction = nullptr;
 	QAction *m3DAction = nullptr;
 	QAction *mRecenterAction = nullptr;
+
+#if defined (DEBUG) || defined(_DEBUG)
+	QAction *mActionTest = nullptr;
+#endif
 
 	//... status-bar
     QStatusBar *mStatusBar = nullptr;
@@ -186,8 +194,9 @@ protected:
 
 	// Delete existing view widgets and replace by newly created ones
 	//	typically preparing for new display
+	// This is a (quick) design enforcement, not a polymorphic construct
 	//
-	virtual bool ResetViews( bool enable_2d, bool enable_3d ) = 0;
+	virtual bool ResetViews( bool reset_2d, bool reset_3d, bool enable_2d, bool enable_3d ) = 0;
 
 
 	// Virtual interface for slot handling, require implementation by specialized classes
@@ -206,6 +215,8 @@ protected:
 
 	virtual bool ViewChanged() = 0;
 
+	virtual bool Test() = 0;
+
 
 	///////////////////////////////////////////////////////////
 	// domain management helpers
@@ -218,7 +229,7 @@ protected:
 	void FilterOperations();
 
 	template< typename PLOT >
-	std::vector< PLOT* > GetDisplayPlots( CDisplay *display );
+	std::vector< PLOT* > GetPlotsFromDisplayFile( CDisplay *display );
 
 	///. inherited from v3, must be reviewed
 	bool ControlSolidColor();
@@ -241,6 +252,10 @@ private slots:
 	void Handle2D( bool checked );
 	void Handle3D( bool checked );
 	void HandleRecenter();
+	void HandleTest()
+	{
+		Test();
+	}
 
 	void HandleOperationsIndexChanged( int index );
 	void HandleOneClickClicked()
@@ -266,7 +281,7 @@ private slots:
 
 
 template< typename PLOT >
-std::vector< PLOT* > CAbstractDisplayEditor::GetDisplayPlots( CDisplay *display )
+std::vector< PLOT* > CAbstractDisplayEditor::GetPlotsFromDisplayFile( CDisplay *display )
 {
 	std::vector< PLOT* > v;
 

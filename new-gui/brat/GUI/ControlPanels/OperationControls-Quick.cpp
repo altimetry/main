@@ -31,20 +31,18 @@
 
 #include "OperationControls.h"
 
-//inline int ItemRow( QListWidgetItem *item )
-//{
-//	return item->listWidget()->row( item );
-//}
-//inline int FindText( QListWidget *list, const char *text  )
-//{
-//    auto items = list->findItems( text, Qt::MatchExactly );			assert__( items.size() == 1 );
-//	return ItemRow( items[ 0 ] );
-//}
-//inline QString ItemText( QListWidget *list, int index  )
-//{
-//	auto *item = list->item( index );
-//	return item->text();
-//}
+
+
+//static 
+const std::vector<std::string> COperationControls::smQuickPredefinedVariableNames =
+{
+	"SSH",
+	"SWH",
+	"Winds",
+	"Sigma0",
+	"Tracker Range"
+};
+
 
 
 
@@ -52,18 +50,59 @@
 //	Quick Operation Helpers
 /////////////////////////////////////////////////////////////////////////////////
 
-std::string PseudoAlias( const std::string &name )
+std::string QuickAlias( COperationControls::EPredefinedVariables index )
 {
-	static std::map<std::string, std::string> alias_map =
+	static std::vector< std::string > valiases =
 	{
-		{ COperationControls::smPredefinedVariables[ COperationControls::eSSH ], "ssha" },
-		{ COperationControls::smPredefinedVariables[ COperationControls::eSWH ], "swh_ku" },
-		{ COperationControls::smPredefinedVariables[ COperationControls::eSigma0 ], "sig0_ku" },
-		{ COperationControls::smPredefinedVariables[ COperationControls::eWinds ], "wind_speed_alt" }
+		"ssh",
+		"swh",
+		"winds",
+		"sigma0",
+		"range_ku"	//TODO TODO TODO TODO TODO TODO TODO confirm
 	};
 
-	return alias_map[ name ];
+	return valiases[ index ];
 }
+//std::string QuickAlias4Name( const std::string &name )
+//{
+//	static std::map<std::string, std::string> alias_map =
+//	{
+//		{ COperationControls::smQuickPredefinedVariableNames[ COperationControls::eSSH ], QuickAlias( COperationControls::eSSH ) },
+//		{ COperationControls::smQuickPredefinedVariableNames[ COperationControls::eSWH ], QuickAlias( COperationControls::eSWH ) },
+//		{ COperationControls::smQuickPredefinedVariableNames[ COperationControls::eSigma0 ], QuickAlias( COperationControls::eSigma0 ) },
+//		{ COperationControls::smQuickPredefinedVariableNames[ COperationControls::eWinds ], QuickAlias( COperationControls::eWinds ) },
+//		{ COperationControls::smQuickPredefinedVariableNames[ COperationControls::eRange ], QuickAlias( COperationControls::eRange ) },
+//	};
+//
+//	return alias_map[ name ];
+//}
+
+std::string PseudoQuickAlias( COperationControls::EPredefinedVariables index )
+{
+	static std::vector<std::string> valiases =
+	{
+		"ssha",
+		"swh_ku",
+		"wind_speed_alt",
+		"sig0_ku",
+		"range_ku"
+	};
+
+	return valiases[ index ];
+}
+//std::string PseudoQuickAlias4Name( const std::string &name )
+//{
+//	static std::map<std::string, std::string> alias_map =
+//	{
+//		{ COperationControls::smQuickPredefinedVariableNames[ COperationControls::eSSH ], PseudoQuickAlias( COperationControls::eSSH ) },
+//		{ COperationControls::smQuickPredefinedVariableNames[ COperationControls::eSWH ], PseudoQuickAlias( COperationControls::eSWH ) },
+//		{ COperationControls::smQuickPredefinedVariableNames[ COperationControls::eSigma0 ], PseudoQuickAlias( COperationControls::eSigma0 ) },
+//		{ COperationControls::smQuickPredefinedVariableNames[ COperationControls::eWinds ], PseudoQuickAlias( COperationControls::eWinds ) },
+//		{ COperationControls::smQuickPredefinedVariableNames[ COperationControls::eRange ], PseudoQuickAlias( COperationControls::eRange ) },
+//	};
+//
+//	return alias_map[ name ];
+//}
 //lon
 //lat
 //time
@@ -72,6 +111,23 @@ std::string PseudoAlias( const std::string &name )
 //sig0_ku (para o sigma0)
 //wind_speed_alt (para Winds)
 //range_ku (para Tracker range)
+
+
+CField* COperationControls::QuickFindField( CProduct *product, EPredefinedVariables index, bool &alias_used, std::string &field_error_msg )
+{
+	CField *field = FindField( product, QuickAlias( index ), alias_used, field_error_msg );
+	if ( !field )
+		field = FindField( product, PseudoQuickAlias( index ), alias_used, field_error_msg );
+
+	return field;
+}
+
+
+//static 
+bool COperationControls::FormulaMatchesQuickAlias( const std::string &description, EPredefinedVariables index )
+{
+	return description == QuickAlias( index ) || description == PseudoQuickAlias( index );
+}
 
 
 
@@ -104,10 +160,11 @@ void COperationControls::UpdateFieldsCheckState()
 		for ( int i = 0; i < EPredefinedVariables_size; ++i )
 		{
 			auto *item = mQuickVariablesList->item( i );
-			if ( name == PseudoAlias( smPredefinedVariables[ i ] ) )
+			if ( FormulaMatchesQuickAlias( name, (EPredefinedVariables)i ) )	//aliases: assuming formulas use the alias as description
 			{
 				item->setFlags( item->flags() | Qt::ItemIsEnabled );
 				item->setCheckState( Qt::Checked );
+				item->setData( Qt::UserRole, i );
 			}
 		}
 	};
@@ -264,6 +321,7 @@ void COperationControls::HandleDatasetsChanged_Quick( CDataset * )
 
 
 //	Update dataset dependent GUI/data elements/members
+//	Clears operation formulas
 //	Assign QuickOperation dataset, if any
 //	Quit if there are no lon/lat fields
 //	Enable quick data fields found in dataset
@@ -283,6 +341,9 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 	mDisplayPlotButton->setEnabled( mCanExecuteQuickOperation );
 
 	mQuickFieldDesc->clear();
+
+	if ( mQuickOperation )
+		RemoveOperationFormulas( mQuickOperation );
 
     if ( dataset_index < 0 )
         return;
@@ -342,7 +403,7 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 
 			bool alias_used;
 			std::string field_error_msg;
-			CField *field = FindField( product, PseudoAlias( smPredefinedVariables[ i ] ), alias_used, field_error_msg );
+			CField *field = QuickFindField( product, (EPredefinedVariables)i, alias_used, field_error_msg );
 			if ( field )
 			{
 				item->setFlags( item->flags() | Qt::ItemIsEnabled );
@@ -484,11 +545,24 @@ void COperationControls::HandleSelectedFieldChanged_Quick( int variable_index )
 //		eTypeOpYFX,
 //		eTypeOpZFXY
 //
+//Advanced operation creation sequence:
+//
+	// 1. create and insert operation
+	// 2. Assign mCurrentOperation, init outputs, update data expressions tree
+	// 3. Select data computation mode in GUI
+	// 4. Select X in expression tree
+	// 5. Assigns selected dataset and mProduct
+	// 6. Add new operation to GUI lits and select it (possibly triggers all handling operation change sequence)
+	// 7. Select and re-assign operation record (v3 technique: amounts to update GUI with operation record and assign one to operation if none assigned)
+//
+//
 COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 {
 	static const std::string opname = CWorkspaceOperation::QuickOperationName();
 
 	WaitCursor wait;											assert__( mWRoot && QuickDatasetSelected() );
+
+	// 1. create and insert operation
 
 	COperation *operation = CreateEmptyQuickOperation();		assert__( operation );
 	if ( operation )
@@ -540,7 +614,7 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 		auto *item = mQuickVariablesList->item( i );
 		if ( item->checkState() ==  Qt::Checked  )
 		{
-			field = FindField( product, PseudoAlias( smPredefinedVariables[ i ] ), alias_used, field_error_msg );
+			field = QuickFindField( product, (EPredefinedVariables)i, alias_used, field_error_msg );
 			if ( field )
 				fields.push_back( field );
 		}

@@ -386,8 +386,14 @@ public:
 //------------------- CDisplayData class --------------------
 //-------------------------------------------------------------
 
+
+//static
+const unsigned CDisplayData::smDefaultNumberOfBins = 20;
+
+
+
 //----------------------------------------
-CDisplayData::CDisplayData( const CDisplayData &o, CWorkspaceOperation *wkso )
+CDisplayData::CDisplayData( const CDisplayData &o, const CWorkspaceOperation *wkso )
 {
 	Init();
 	m_field.SetName( o.m_field.GetName() );
@@ -466,12 +472,16 @@ void CDisplayData::CopyFieldUserProperties(CDisplayData& d)
 
 }
 //----------------------------------------
-std::string CDisplayData::GetDataKey( int32_t type )
+std::string CDisplayData::MakeKey( const COperation *operation, const std::string &field_name, CMapTypeDisp::ETypeDisp type )
 {
-	if ( m_operation == nullptr )
+	if ( operation == nullptr )
 		return "";
 
-	return m_operation->GetName() + "_" + m_field.GetName() + "_" + n2s<std::string>( type );
+	return operation->GetName() + "_" + field_name + "_" + n2s<std::string>( type );
+}
+std::string CDisplayData::GetDataKey( int32_t type )
+{
+	return MakeKey( m_operation, m_field.GetName(), (CMapTypeDisp::ETypeDisp)type );
 }
 std::string CDisplayData::GetDataKey()
 {
@@ -634,7 +644,7 @@ bool CDisplayData::SaveConfig( CWorkspaceSettings *config, const std::string& pa
 //------------------- CMapDisplayData class --------------------
 //-------------------------------------------------------------
 
-CMapDisplayData::CMapDisplayData( const CMapDisplayData &o, CWorkspaceOperation *wkso )
+CMapDisplayData::CMapDisplayData( const CMapDisplayData &o, const CWorkspaceOperation *wkso )
 {
 	if ( this != &o )					 
 	{
@@ -1035,6 +1045,23 @@ void CDisplay::Init()
 
 }
 
+
+void CDisplay::UpdateDisplayData( const CMapDisplayData *data_list, const CWorkspaceOperation *wkso )
+{
+	for ( auto it = m_data.begin(); it != m_data.end(); ++it )
+	{
+		if ( !data_list->Exists( it->first ) )
+			m_data.Erase( it->first );
+	}
+	for ( auto it = data_list->begin(); it != data_list->begin(); ++it )
+	{
+		CDisplayData *data = dynamic_cast<CDisplayData*>( it->second );
+		if ( m_type == data->GetType() && !m_data.Exists( it->first ) )
+			m_data.Insert( it->first, new CDisplayData( *data, wkso ), false );
+	}
+}
+
+
 // After executing an operation, the following call were made (in views tab)
 //
 //	CDisplayPanel::GetOperations(); - inserted all operations data in member m_dataList
@@ -1053,106 +1080,106 @@ void CDisplay::Init()
 //	associated operation is executed again: if update is true, existing fields 
 //	not in operation are removed
 //
-bool CDisplay::AssignOperation( const COperation *operation, bool update )	//bool update = false 
-{
-	CInternalFiles *file = nullptr;
-	CUIntArray displayTypes;
-	CDisplay::GetDisplayType( operation, displayTypes, &file );	//must close returned files, if any
-	if ( file == nullptr )
-	{
-		return false;
-	}
-
-	CMapDisplayData *dataList = new CMapDisplayData;		//v3: dataList, data member
-
-	CStringArray names;
-	names.RemoveAll();
-	file->GetDataVars( names );
-
-	for ( CUIntArray::iterator itDispType = displayTypes.begin(); itDispType != displayTypes.end(); itDispType++ )
-	{
-		for ( CStringArray::iterator itField = names.begin(); itField != names.end(); itField++ )
-		{
-			CStringArray varDimensions;
-			file->GetVarDims( *itField, varDimensions );
-
-			size_t nbDims = varDimensions.size();
-			if ( nbDims > 2 )
-			{
-				continue;
-			}
-			if ( ( nbDims != 2 ) && ( *itDispType == CMapTypeDisp::eTypeDispZFXY || *itDispType == CMapTypeDisp::eTypeDispZFLatLon ) )
-			{
-				continue;
-			}
-
-			CDisplayData* displayData = new CDisplayData( operation );
-
-			displayData->SetType( *itDispType );
-
-			displayData->GetField()->SetName( *itField );
-
-			std::string unit = file->GetUnit( *itField ).GetText();
-			displayData->GetField()->SetUnit( unit );
-
-			std::string comment = file->GetComment( *itField );
-			std::string description = file->GetTitle( *itField );
-
-			if ( !comment.empty() )
-			{
-				description += "." + comment;
-			}
-
-			displayData->GetField()->SetDescription( description );
-
-			if ( nbDims >= 1 )
-			{
-				std::string dimName = varDimensions.at( 0 );
-				displayData->GetX()->SetName( varDimensions.at( 0 ) );
-
-				std::string unit = file->GetUnit( dimName ).GetText();
-				displayData->GetX()->SetUnit( unit );
-
-				displayData->GetX()->SetDescription( file->GetTitle( dimName ) );
-			}
-
-			if ( nbDims >= 2 )
-			{
-				std::string dimName = varDimensions.at( 1 );
-				displayData->GetY()->SetName( varDimensions.at( 1 ) );
-
-				std::string unit = file->GetUnit( dimName ).GetText();
-				displayData->GetY()->SetUnit( unit );
-
-				displayData->GetY()->SetDescription( file->GetTitle( dimName ) );
-			}
-
-			if ( nbDims >= 3 )
-			{
-				std::string dimName = varDimensions.at( 2 );
-				displayData->GetZ()->SetName( varDimensions.at( 2 ) );
-
-				std::string unit = file->GetUnit( dimName ).GetText();
-				displayData->GetZ()->SetUnit( unit );
-
-				displayData->GetZ()->SetDescription( file->GetTitle( dimName ) );
-			}
-
-			dataList->Insert( displayData->GetDataKey(), displayData, false );
-		}
-	}
-	delete file;	//file->Close();		//critical
-
-	if ( update )
-	{
-		m_data.clear();
-	}
-
-	for ( auto &data : *dataList )
-		InsertData( data.first, dynamic_cast<CDisplayData*>( data.second ) );
-
-	return true;
-}
+//bool CDisplay::AssignOperation( const COperation *operation, bool update )	//bool update = false 
+//{
+//	CInternalFiles *file = nullptr;
+//	CUIntArray displayTypes;
+//	CDisplay::GetDisplayType( operation, displayTypes, &file );	//must close returned files, if any
+//	if ( file == nullptr )
+//	{
+//		return false;
+//	}
+//
+//	CMapDisplayData *dataList = new CMapDisplayData;		//v3: dataList, data member
+//
+//	CStringArray names;
+//	names.RemoveAll();
+//	file->GetDataVars( names );
+//
+//	for ( CUIntArray::iterator itDispType = displayTypes.begin(); itDispType != displayTypes.end(); itDispType++ )
+//	{
+//		for ( CStringArray::iterator itField = names.begin(); itField != names.end(); itField++ )
+//		{
+//			CStringArray varDimensions;
+//			file->GetVarDims( *itField, varDimensions );
+//
+//			size_t nbDims = varDimensions.size();
+//			if ( nbDims > 2 )
+//			{
+//				continue;
+//			}
+//			if ( ( nbDims != 2 ) && ( *itDispType == CMapTypeDisp::eTypeDispZFXY || *itDispType == CMapTypeDisp::eTypeDispZFLatLon ) )
+//			{
+//				continue;
+//			}
+//
+//			CDisplayData* displayData = new CDisplayData( operation );
+//
+//			displayData->SetType( *itDispType );
+//
+//			displayData->GetField()->SetName( *itField );
+//
+//			std::string unit = file->GetUnit( *itField ).GetText();
+//			displayData->GetField()->SetUnit( unit );
+//
+//			std::string comment = file->GetComment( *itField );
+//			std::string description = file->GetTitle( *itField );
+//
+//			if ( !comment.empty() )
+//			{
+//				description += "." + comment;
+//			}
+//
+//			displayData->GetField()->SetDescription( description );
+//
+//			if ( nbDims >= 1 )
+//			{
+//				std::string dimName = varDimensions.at( 0 );
+//				displayData->GetX()->SetName( varDimensions.at( 0 ) );
+//
+//				std::string unit = file->GetUnit( dimName ).GetText();
+//				displayData->GetX()->SetUnit( unit );
+//
+//				displayData->GetX()->SetDescription( file->GetTitle( dimName ) );
+//			}
+//
+//			if ( nbDims >= 2 )
+//			{
+//				std::string dimName = varDimensions.at( 1 );
+//				displayData->GetY()->SetName( varDimensions.at( 1 ) );
+//
+//				std::string unit = file->GetUnit( dimName ).GetText();
+//				displayData->GetY()->SetUnit( unit );
+//
+//				displayData->GetY()->SetDescription( file->GetTitle( dimName ) );
+//			}
+//
+//			if ( nbDims >= 3 )
+//			{
+//				std::string dimName = varDimensions.at( 2 );
+//				displayData->GetZ()->SetName( varDimensions.at( 2 ) );
+//
+//				std::string unit = file->GetUnit( dimName ).GetText();
+//				displayData->GetZ()->SetUnit( unit );
+//
+//				displayData->GetZ()->SetDescription( file->GetTitle( dimName ) );
+//			}
+//
+//			dataList->Insert( displayData->GetDataKey(), displayData, false );
+//		}
+//	}
+//	delete file;	//file->Close();		//critical
+//
+//	if ( update )
+//	{
+//		m_data.clear();
+//	}
+//
+//	for ( auto &data : *dataList )
+//		InsertData( data.first, dynamic_cast<CDisplayData*>( data.second ) );
+//
+//	return true;
+//}
 
 
 
@@ -1275,7 +1302,7 @@ bool CDisplay::BuildCmdFile( std::string &error_msg, bool map_as_3dplot )	//map_
 #endif
 }
 //----------------------------------------
-void CDisplay::InitOutput( CWorkspaceDisplay *wks )
+void CDisplay::InitOutput( const CWorkspaceDisplay *wks )
 {
 	//CWorkspaceDisplay* wks = wxGetApp().GetCurrentWorkspaceDisplay();
 	if ( wks == nullptr )

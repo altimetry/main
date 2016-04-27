@@ -296,9 +296,9 @@ bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std
 {
 	auto const *filter = Find( name );
 
-	assert__( filter );
+	assert__( filter && product_ref );
 
-	if ( product_ref == nullptr || !product_ref->HasCriteriaInfo() )
+	if ( !product_ref->HasCriteriaInfo() )
 		return false;
 
 	std::string val;

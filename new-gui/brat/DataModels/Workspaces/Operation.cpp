@@ -1128,7 +1128,7 @@ std::string COperation::GetExportAsciiFullCmd()
 	return "\"" + GetExportAsciiSystemCommand() + "\" \"" + GetExportAsciiCmdFile() + "\"";
 }
 //----------------------------------------
-std::string COperation::GetShowStatsFullCmd()
+std::string COperation::GetShowStatsFullCmd() const
 {
 	return "\"" + GetShowStatsSystemCommand() + "\" \"" + GetShowStatsCmdFile() + "\"";
 }

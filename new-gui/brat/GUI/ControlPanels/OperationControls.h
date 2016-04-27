@@ -45,6 +45,7 @@ public:
 		eSWH,
 		eWinds,
 		eSigma0,
+		eRange,
 
 		EPredefinedVariables_size
 	};
@@ -52,7 +53,11 @@ public:
 
 	//static members
 
-    static const std::vector<std::string> smPredefinedVariables;
+    static const std::vector<std::string> smQuickPredefinedVariableNames;
+
+	static bool FormulaMatchesQuickAlias( const std::string &description, EPredefinedVariables index );
+
+	CField* QuickFindField( CProduct *product, EPredefinedVariables index, bool &alias_used, std::string &field_error_msg );
 
 
 	static void SelectOperationDataset( COperation *operation, QComboBox *combo, bool block_signals );
@@ -60,6 +65,8 @@ public:
 	static bool AssignFilter( const CBratFilters &brat_filters, COperation *operation, const std::string &name );
 
 	static bool RemoveFilter( COperation *operation, const std::string &name );
+
+	static void RemoveOperationFormulas( COperation *operation );
 
 
 	//...fill helpers
@@ -85,6 +92,10 @@ protected:
 
 	QToolButton *mSplitPlotsButton = nullptr;
 
+	stack_button_type *mQuickPageButton = nullptr;
+	stack_button_type *mAdvancedPageButton = nullptr;
+
+
 	//...advanced
 
 	QToolButton *mOperationFilterButton_Advanced = nullptr;
@@ -101,8 +112,6 @@ protected:
 	CProcessesTable *mProcessesTable = nullptr;
 
 	QGroupBox *mOperationExpressionsGroup = nullptr;
-	QgsCollapsibleGroupBox *mSamplingGroup = nullptr;
-
 
 	QTimer mTimer;
 
@@ -125,6 +134,16 @@ protected:
 	QToolButton *mSwitchToMapButton = nullptr;
 	QToolButton *mSwitchToPlotButton = nullptr;
 	CDataExpressionsTreeWidget *mDataExpressionsTree = nullptr;
+
+	QgsCollapsibleGroupBox *mSamplingGroup = nullptr;
+	QComboBox *mAdvFilter = nullptr;
+	QLineEdit *mLonStep = nullptr;
+	QLineEdit *mLatStep = nullptr;
+	QLineEdit *mLonCutOff = nullptr;
+	QLineEdit *mLatCutOff = nullptr;
+    QLabel *mLonIntervalsLabel = nullptr;
+    QLabel *mLatIntervalsLabel = nullptr;
+
 
 	//...quick
 
@@ -175,7 +194,7 @@ public:
 
     bool AdvancedMode() const;
 
-    void SetAdvancedMode( bool advanced ) const;
+    void SetAdvancedMode( bool advanced );
 
 
 	// remaining operations
@@ -207,11 +226,14 @@ protected:
 
 	void SelectDataComputationMode();
 	std::string GetOpunit();
+	void UpdateSamplingGroup();
 
     bool MapRequested() const;
 
 	//both
 
+	bool CheckQuickOperation( std::string& msg, bool basicControl, const CStringMap* aliases );		//CtrlOperation
+	bool CheckAdvancedOperation( std::string& msg, bool basicControl, const CStringMap* aliases );	//CtrlOperation
 	void LaunchDisplay( const std::string &display_name );
 	bool Execute( bool sync );
 
@@ -225,7 +247,11 @@ protected:
 
     void FillDatasets_Advanced( int index );
 
+	void SyncProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation );
+	void AsyncProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation );
+
 signals:
+	void AsyncProcessExecution( bool executing );
 	void SyncProcessExecution( bool executing );
     void OperationModified( const COperation *operation );
 
@@ -252,6 +278,9 @@ protected slots:
 
 	//remaining
 
+	void HandlePageChanged( int index );
+
+	//entry point
 	void HandleWorkspaceChanged();
 
 	void HandleSelectedOperationChanged( int operation_index );
@@ -280,7 +309,13 @@ protected slots:
 	void HandleOperationStatistics();
 
 	bool HandleExecute();
-	void HandleProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation );
+	void HandleProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation, bool sync )
+	{
+		sync ?
+			SyncProcessFinished( exit_code, exitStatus, operation )
+			:
+			AsyncProcessFinished( exit_code, exitStatus, operation );
+	}
 	void HandleDelayExecution();
 	void SchedulerProcessError( QProcess::ProcessError );
 

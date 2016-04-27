@@ -4,8 +4,7 @@
 
 #include <QDialog>
 
-
-#include "new-gui/brat/DataModels/Workspaces/Operation.h"
+#include "GUI/StackedWidget.h"
 
 
 //------------------------------------------------------------------------------------
@@ -51,6 +50,28 @@ public:
     /////////////////////////////
     // instance data
     /////////////////////////////
+
+    CStackedWidget *mStackedWidget = nullptr;
+
+	QFrame *mFormatASCIIPage = nullptr;
+	QFrame *mFormatNetCdfPage = nullptr;
+	QFrame *mFormatGeoTiffPage = nullptr;
+
+	QCheckBox *mDeliverDataAsPeriod = nullptr;
+	QCheckBox *mExpandArrays = nullptr;
+	QCheckBox *mExecuteOperationAscii = nullptr;
+	QCheckBox *mExecuteOperationNetCdf = nullptr;
+	QCheckBox *mOnlyDumpExpressions = nullptr;
+
+	QLineEdit *mASCIINumberPrecision = nullptr;
+
+	QCheckBox *mCreateGoogleKMLFile = nullptr;
+	QComboBox *mColorTableCombo = nullptr;
+	QLineEdit *mColorRangeMin = nullptr;
+	QLineEdit *mColorRangeMax = nullptr;
+	QPushButton *mCalculateMinMax = nullptr;
+
+	QPushButton *mBrowseButton = nullptr;
 
     QDialogButtonBox *mButtonBox = nullptr;
 
@@ -133,7 +154,13 @@ public:
 //    bool AsAscii() { return (m_format == CExportDlg::AS_ASCII); };
 //    bool AsGeoTiff() { return (m_format == CExportDlg::AS_GEOTIFF); };
 
-public slots:
+protected:
+    virtual void accept() override;
+
+	void DelayExecution();
+	void Execute();
+
+protected slots:
     // NEW CODE - TO BE IMPLEMENTED /////////////
 //    void HandleDelayExecution();
 //    void HandleNoDataComputation();
@@ -147,72 +174,7 @@ public slots:
 //    void HandleCancel();
 
 
-protected:
-    virtual void accept() override;
-
-};
-
-
-
-
-//------------------------------------------------------------------------------------
-// CEditExportAsciiDialog
-//------------------------------------------------------------------------------------
-class CEditExportAsciiDialog : public QDialog
-{
-#if defined (__APPLE__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winconsistent-missing-override"
-#endif
-
-    Q_OBJECT;
-
-#if defined (__APPLE__)
-#pragma clang diagnostic pop
-#endif
-
-    /////////////////////////////
-    //	types
-    /////////////////////////////
-
-    using base_t = QDialog;
-
-    /////////////////////////////
-    // static data
-    /////////////////////////////
-
-    /////////////////////////////
-    // instance data
-    /////////////////////////////
-
-    QDialogButtonBox *mButtonBox = nullptr;
-
-
-
-    /////////////////////////////
-    //construction / destruction
-    /////////////////////////////
-private:
-
-    void CreateWidgets();
-    void Wire();
-
-public:
-    CEditExportAsciiDialog( QWidget *parent );
-
-    virtual ~CEditExportAsciiDialog();
-
-    /////////////////////////////
-    // getters / setters / testers
-    /////////////////////////////
-
-    /////////////////////////////
-    // Operations
-    /////////////////////////////
-
-protected:
-    virtual void accept() override;
-
+	void HandleButtonClicked( QAbstractButton *button );
 };
 
 

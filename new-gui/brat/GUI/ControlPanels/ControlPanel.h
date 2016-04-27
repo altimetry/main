@@ -99,6 +99,12 @@ protected:
 	// GUI
 	////////////////////////////
 
+	int MaxSmallListsHeight( int items = 4 ) const
+	{
+		return fontMetrics().lineSpacing() * items + 10;		//very rough 
+	}
+
+
 	QBoxLayout* LayoutWidgets( Qt::Orientation o, const std::vector< QObject* > &v, QWidget *parent = nullptr,
 		int spacing = smSpacing, int left = smLeft, int top = smTop, int right = smRight, int bottom = smBottom )
 	{

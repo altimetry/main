@@ -210,6 +210,7 @@ void CBratMainWindow::CreateWorkingDock()
 	connect( this, SIGNAL( WorkspaceChanged() ), WorkingPanel< eOperations >(), SLOT( HandleWorkspaceChanged() ) );
 
 	connect( WorkingPanel< eOperations >(), SIGNAL( SyncProcessExecution( bool ) ), this, SLOT( HandleSyncProcessExecution( bool ) ) );
+	connect( WorkingPanel< eOperations >(), SIGNAL( AsyncProcessExecution( bool ) ), this, SLOT( HandleAsyncProcessExecution( bool ) ) );
 
 	action_Satellite_Tracks->setChecked( WorkingPanel< eFilter >()->AutoSatelliteTrack() );
 	//notifications from datasets to filters
@@ -1457,6 +1458,16 @@ void CBratMainWindow::EnableMapSelectionActions( bool enable )
 	{
 		mSelectionButton->setEnabled( enable );
 		mActionDeselectAll->setEnabled( enable );
+	}
+}
+
+
+void CBratMainWindow::HandleAsyncProcessExecution( bool executing )
+{
+	if ( executing )
+	{
+		mOutputDock->SelectTab( mLogFrameIndex );
+		mOutputDock->setVisible( true );
 	}
 }
 

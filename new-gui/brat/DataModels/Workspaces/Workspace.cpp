@@ -1119,6 +1119,13 @@ std::string CWorkspaceDisplay::GetDisplayNewName()
 	return key;
 }
 //----------------------------------------
+CDisplay* CWorkspaceDisplay::CloneDisplay( const CDisplay *display, const CWorkspaceOperation *wkso )
+{
+	std::string display_name = GetDisplayNewName();				assert__( !m_displays.Exists( display_name ) );
+	CDisplay *d = display->Clone( display_name, this, wkso );
+    m_displays.Insert( display_name, d );
+    return d;
+}
 bool CWorkspaceDisplay::InsertDisplay(const std::string &name)
 {
     if (m_displays.Exists(name))
@@ -1140,6 +1147,137 @@ bool CWorkspaceDisplay::DeleteDisplay( CDisplay* display )
 {
 	return m_displays.Erase( display->GetName() );
 }
+
+
+
+
+
+// After executing an operation, the following call were made (in views tab)
+//
+//	CDisplayPanel::GetOperations(); - inserted all operations data in member m_dataList
+//	which then was loaded in available data tree widget:
+//
+//	CDisplayPanel::GetDispavailtreectrl()->InsertData( &m_dataList );
+//
+//  When a field was dragged from this tree to the selected data list
+//	 a succession of calls CDisplayPanel::AddField resulted in
+//
+//		m_display->InsertData( GetDataKey( *data ).ToStdString(), newdata );
+//
+//	This function is based on all that.
+//
+//	The parameter update is an attempt to maintain display consistency when the 
+//	associated operation is executed again: if update is true, existing fields 
+//	not in operation are removed
+//
+std::vector< CDisplay* > CWorkspaceDisplay::CeateDisplays4Operation( const COperation *operation, CMapDisplayData *dataList )
+{
+	std::vector< CDisplay*> v;
+
+	CInternalFiles *file = nullptr;
+	CUIntArray displayTypes;
+	CDisplay::GetDisplayType( operation, displayTypes, &file );	//must close returned files, if any
+	if ( file == nullptr )
+	{
+		return v;
+	}
+
+	//CMapDisplayData *dataList = new CMapDisplayData;		//v3: dataList, data member
+
+	CStringArray names;
+	names.RemoveAll();
+	file->GetDataVars( names );
+
+	for ( CUIntArray::iterator itDispType = displayTypes.begin(); itDispType != displayTypes.end(); itDispType++ )
+	{
+		std::string display_name = GetDisplayNewName();
+		InsertDisplay( display_name );
+		CDisplay *display = GetDisplay( display_name );
+		display->InitOutput( this );							assert__( display->GetDataCount() == 0 );
+
+		for ( CStringArray::iterator itField = names.begin(); itField != names.end(); itField++ )
+		{
+			CStringArray varDimensions;
+			file->GetVarDims( *itField, varDimensions );
+
+			size_t nbDims = varDimensions.size();
+			if ( nbDims > 2 )
+			{
+				continue;
+			}
+			if ( ( nbDims != 2 ) && ( *itDispType == CMapTypeDisp::eTypeDispZFXY || *itDispType == CMapTypeDisp::eTypeDispZFLatLon ) )
+			{
+				continue;
+			}
+
+			CDisplayData* displayData = new CDisplayData( operation );
+
+			displayData->SetType( *itDispType );
+
+			displayData->GetField()->SetName( *itField );
+
+			std::string unit = file->GetUnit( *itField ).GetText();
+			displayData->GetField()->SetUnit( unit );
+
+			std::string comment = file->GetComment( *itField );
+			std::string description = file->GetTitle( *itField );
+
+			if ( !comment.empty() )
+			{
+				description += "." + comment;
+			}
+
+			displayData->GetField()->SetDescription( description );
+
+			if ( nbDims >= 1 )
+			{
+				std::string dimName = varDimensions.at( 0 );
+				displayData->GetX()->SetName( varDimensions.at( 0 ) );
+
+				std::string unit = file->GetUnit( dimName ).GetText();
+				displayData->GetX()->SetUnit( unit );
+
+				displayData->GetX()->SetDescription( file->GetTitle( dimName ) );
+			}
+
+			if ( nbDims >= 2 )
+			{
+				std::string dimName = varDimensions.at( 1 );
+				displayData->GetY()->SetName( varDimensions.at( 1 ) );
+
+				std::string unit = file->GetUnit( dimName ).GetText();
+				displayData->GetY()->SetUnit( unit );
+
+				displayData->GetY()->SetDescription( file->GetTitle( dimName ) );
+			}
+
+			if ( nbDims >= 3 )
+			{
+				std::string dimName = varDimensions.at( 2 );
+				displayData->GetZ()->SetName( varDimensions.at( 2 ) );
+
+				std::string unit = file->GetUnit( dimName ).GetText();
+				displayData->GetZ()->SetUnit( unit );
+
+				displayData->GetZ()->SetDescription( file->GetTitle( dimName ) );
+			}
+
+			dataList->Insert( displayData->GetDataKey(), displayData, false );
+			display->InsertData( displayData->GetDataKey(), displayData );
+		}
+
+		v.push_back( display );
+	}
+
+	delete file;	//file->Close();		//critical
+
+	return v;
+}
+
+
+
+
+
 
 
 //----------------------------------------

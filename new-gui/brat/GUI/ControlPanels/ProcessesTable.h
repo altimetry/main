@@ -186,6 +186,7 @@ public:
 
 	bool Add( bool sync, bool allow_multiple, const std::string &original_name, const std::string &cmd, const COperation *operation = nullptr );
 	bool Add( bool sync, bool allow_multiple, const COperation *operation );
+	bool Add4Statistics( bool allow_multiple, const COperation *operation );
 	bool Add( bool sync, bool allow_multiple, const std::string &original_name, const std::string &executable, const std::vector< std::string > &args )
 	{
 		std::string cmd = executable + " ";
@@ -237,8 +238,10 @@ protected:
 	}
 
 
+	COsProcess* ProcessFinished( int exit_code, QProcess::ExitStatus exitStatus );
+
 signals:
-	void ProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation );
+	void ProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation, bool sync );
 
 
 private slots :
@@ -251,7 +254,8 @@ private slots :
 	// QProcess report handling
 
 	void UpdateOutput();
-	void ProcessFinished( int exit_code, QProcess::ExitStatus exitStatus );
+	void AsyncProcessFinished( int exit_code, QProcess::ExitStatus exitStatus );
+	void SyncProcessFinished( int exit_code, QProcess::ExitStatus exitStatus );
 	void ProcessError( QProcess::ProcessError error );
 };
 

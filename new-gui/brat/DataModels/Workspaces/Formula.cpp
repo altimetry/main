@@ -235,6 +235,24 @@ std::string CFormula::GetFilterAsLabel()
 }
 
 //----------------------------------------
+std::string CFormula::GetLoessCutOffAsText() const
+{ 
+	return isDefaultValue( m_loessCutOff ) ? std::string("Not defined") : n2s< std::string >( m_loessCutOff ); 
+}
+std::string CFormula::GetIntervalAsText() const
+{ 
+	return isDefaultValue( m_interval ) ? std::string("Not defined") : n2s< std::string >( m_interval ); 
+}
+std::string CFormula::GetMinAsString()
+{
+  return isDefaultValue( m_minValue ) ? std::string("Not defined") : GetMinValueAsText();
+}
+std::string CFormula::GetMaxAsString()
+{
+  return isDefaultValue( m_maxValue ) ? std::string("Not defined") : GetMaxValueAsText();
+}
+
+
 std::string CFormula::GetResolutionAsLabel( bool hasFilter )
 {
 	auto FORMAT_LOESS_CUT_OFF_LABEL = []( const std::string &s )
@@ -253,52 +271,15 @@ std::string CFormula::GetResolutionAsLabel( bool hasFilter )
 	};
 
 
-	std::string loessCutOffLabel;
-	std::string intervalLabel;
-
-	if ( hasFilter )
-	{
-		if ( isDefaultValue( m_loessCutOff ) )
-		{
-			loessCutOffLabel = FORMAT_LOESS_CUT_OFF_LABEL( "Not defined" );
-		}
-		else
-		{
-			loessCutOffLabel = FORMAT_LOESS_CUT_OFF_LABEL( GetLoessCutOffAsText() );
-		}
-	}
-
-	if ( isDefaultValue( m_interval ) )
-	{
-		intervalLabel = FORMAT_INTERVAL_LABEL( "Not defined" );
-	}
-	else
-	{
-		intervalLabel = FORMAT_INTERVAL_LABEL( GetIntervalAsText() );
-	}
-
 	return FORMAT_XY_RESOLUTION_LABEL
 		( 
-		isDefaultValue( m_minValue ) ? "Not defined" : GetMinAsString(),
-		isDefaultValue( m_maxValue ) ? "Not defined" : GetMaxAsString(),
-		loessCutOffLabel,
+		GetMinAsString(),
+		GetMaxAsString(),
+		hasFilter ? FORMAT_LOESS_CUT_OFF_LABEL( GetLoessCutOffAsText() ) : std::string(),
 		GetStep(),
-		intervalLabel 
+		FORMAT_INTERVAL_LABEL( GetIntervalAsText() )
 		);
 }
-
-//----------------------------------------
-std::string CFormula::GetMinAsString()
-{
-  return GetMinValueAsText();
-}
-
-//----------------------------------------
-std::string CFormula::GetMaxAsString()
-{
-  return GetMaxValueAsText();
-}
-
 
 //----------------------------------------
 double CFormula::GetStepAsDouble( std::string &errorMsg )

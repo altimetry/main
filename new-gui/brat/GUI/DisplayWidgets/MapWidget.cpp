@@ -262,10 +262,13 @@ void CMapWidget::Init()
     assert__( mLayerBaseType != eRasterLayer || IsFile( smRasterLayerPath ) );
 		
     if ( mLayerBaseType == eVectorLayer )
-	{
+    {
         QgsVectorLayer *l = AddOGRVectorLayer( t2q( smVectorLayerPath ) );
         l->rendererV2()->symbols()[ 0 ]->setColor( "black" );
         mMainLayer = l;
+//        QgsVectorSimplifyMethod simp;
+//        simp.setSimplifyHints( QgsVectorSimplifyMethod::NoSimplification);
+//        l->setSimplifyMethod( simp );
     }
     else
     {
@@ -277,8 +280,10 @@ void CMapWidget::Init()
 			//auto crs = mMainRasterLayer->crs();
 			//setMapUnits( crs.mapUnits() );
 			//auto crs = mMainRasterLayer->crs();
-			mMainRasterLayer->setCrs( mapSettings().destinationCrs() );
-		}
+
+            //mMainRasterLayer->setCrs( mapSettings().destinationCrs() );
+            //setDestinationCrs( mMainRasterLayer->crs() );
+        }
 		else if ( mLayerBaseType == eRasterURL )
 		{
 			if ( !IsFile( smRasterLayerPath ) )
@@ -972,7 +977,7 @@ void CMapWidget::SetLayerSet()
 QgsMapCanvasLayer* CMapWidget::FindCanvasLayer( size_t index )
 {
 	index++;				//leave out main layer
-	assert__( index < mLayerSet.size() );
+	assert__( int( index ) <mLayerSet.size() );
 
 	return &mLayerSet[ index ];
 }
@@ -1006,7 +1011,7 @@ bool CMapWidget::IsLayerVisible( size_t index ) const
 
 	return false;
 }
-bool CMapWidget::SetLayerVisible( size_t index, bool show )
+bool CMapWidget::SetLayerVisible( size_t index, bool show, bool render )
 {
 	QgsMapCanvasLayer *l = FindCanvasLayer( index );
 	if ( !l )
@@ -1017,7 +1022,8 @@ bool CMapWidget::SetLayerVisible( size_t index, bool show )
 		l->setVisible( show );
 		SetLayerSet();
 		SetCurrentLayer( l->layer() );
-		refresh();
+		if ( render )
+			refresh();
 	}
 
 	return true;
@@ -1089,7 +1095,7 @@ void CMapWidget::RemoveTracksLayer()
 void CMapWidget::SetCurrentLayer( QgsMapLayer *l )
 {
 	LOG_WARN( "Layer CRS = " + n2s<std::string>( l->crs().srsid() ) );
-	setCurrentLayer( l );
+    setCurrentLayer( l );
 	QgsVectorLayer *vl = qobject_cast< QgsVectorLayer* >( l );
 	if ( vl )
 		connect( vl, SIGNAL( selectionChanged() ), this, SIGNAL( CurrentLayerSelectionChanged() ), Qt::QueuedConnection );

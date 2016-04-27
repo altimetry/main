@@ -253,6 +253,7 @@ protected slots:
     //
     void WorkspaceChangedUpdateUI();
 	void HandleSyncProcessExecution( bool executing );
+	void HandleAsyncProcessExecution( bool executing );
 	void EnableMapSelectionActions( bool enable );		//more a slot helper than a slot
 
     void UpdateWindowMenu();

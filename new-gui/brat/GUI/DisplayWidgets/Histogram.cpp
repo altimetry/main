@@ -69,6 +69,24 @@ void CHistogram::SetRanges( double xMin, double xMax, double yMin, double yMax )
 }
 
 
+void CHistogram::AxisTitles( std::string &xtitle, std::string &ytitle, std::string &ztitle )
+{
+	xtitle = mXtitle;
+	ytitle = mYtitle;
+	ztitle = mZtitle;
+}
+
+
+void CHistogram::SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle )
+{
+	mXtitle = xtitle;
+	mYtitle = ytitle;
+	mZtitle = ztitle;
+}
+
+
+
+
 void CHistogram::setBaseline(double reference)
 {
     if ( d_data->reference != reference )

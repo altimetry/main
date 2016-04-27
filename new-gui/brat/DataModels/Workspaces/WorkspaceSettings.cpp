@@ -911,7 +911,8 @@ bool CWorkspaceSettings::SaveConfig( CDisplayData &data, const std::string& path
 		k_v( ENTRY_SOLID_COLOR, data.m_withSolidColor ),
 		k_v( ENTRY_EAST_COMPONENT, data.m_eastcomponent ),
 		k_v( ENTRY_NORTH_COMPONENT, data.m_northcomponent ),
-		k_v( ENTRY_INVERT_XYAXES, data.m_invertXYAxes )
+		k_v( ENTRY_INVERT_XYAXES, data.m_invertXYAxes ),
+		k_v( ENTRY_NUMBER_OF_BINS, data.mNumberOfBins )
 	);
 
 	if ( !isDefaultValue( data.m_minValue ) )
@@ -997,6 +998,8 @@ bool CWorkspaceSettings::LoadConfig( CDisplayData &data, const std::string& path
 		k_v( ENTRY_NORTH_COMPONENT, &data.m_northcomponent,		false  ),
 
 		k_v( ENTRY_INVERT_XYAXES,	&data.m_invertXYAxes,		false  ),
+
+		k_v( ENTRY_NUMBER_OF_BINS,	&data.mNumberOfBins,		CDisplayData::smDefaultNumberOfBins ),
 
 		k_v( ENTRY_MINVALUE,		&data.m_minValue,			defaultValue<double>()  ),
 		k_v( ENTRY_MAXVALUE,		&data.m_maxValue,			defaultValue<double>()  ),

@@ -26,10 +26,7 @@ class CExpandableTabWidget : public QTabWidget
 	Q_PROPERTY( bool expanding_tabs READ Expanding WRITE SetExpanding );
 
 public:
-	CExpandableTabWidget( QWidget *parent = NULL ) : QTabWidget( parent )
-	{
-		tabBar()->setExpanding( true );
-	}
+	CExpandableTabWidget( QWidget *parent = nullptr );
 
 	bool Expanding() const
 	{
@@ -111,6 +108,9 @@ public:
 
 
 	// operations
+
+	void SetTabShape( QTabWidget::TabShape s );
+
 
 	// Sets QWidget parameter ("tab_widget") parent
 	//

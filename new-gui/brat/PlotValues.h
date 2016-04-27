@@ -97,13 +97,29 @@ class CQwtArrayPlotData : public QwtData
 			min = mMinY;
 			max = mMaxY;
 		}
+
+
+		// NOTE: "to" is one after
+		//
+		template< class F >
+		size_t GetDataCountIf( size_t from, size_t to, const F &f ) const
+		{
+			return std::count_if( &mY[ from ], &mY[ to ], f );
+		}
+
+
+		template< class F >
+        size_t GetDataCountIf( const F &f ) const
+		{
+			return GetDataCountIf( 0, mSizeY, f ) ;
+		}
 	};
 
 
 	//instance data
 
 	std::vector< CCurve > mFrames;
-	mutable size_t mCurrentFrame = 0;
+	mutable int mCurrentFrame = 0;
 
     double mMinXValue = std::numeric_limits<double>::max();
     double mMaxXValue = std::numeric_limits<double>::lowest();
@@ -157,6 +173,11 @@ public:
 	}
 
 
+	// access
+
+	int CurrentFrame() const { return mCurrentFrame; }
+
+
 	// Qwt interface
 
 	virtual QwtData *copy() const override
@@ -192,11 +213,24 @@ public:
 	// assignment
 
 
-	void SetNextFrame() const
+	void SetNextFrame( bool forward ) const
 	{
-		mCurrentFrame++;
-		if ( mCurrentFrame >= mFrames.size() )
+		int incr = forward ? 1 : -1;
+		mCurrentFrame += incr;
+
+		if ( mCurrentFrame >= (int)mFrames.size() )
 			mCurrentFrame = 0;
+
+		if ( mCurrentFrame < 0 )
+            mCurrentFrame = (int)mFrames.size() - 1;
+	}
+
+
+    void SetFrame( size_t iframe ) const
+	{
+		assert__( iframe < mFrames.size() );
+
+        mCurrentFrame = (int)iframe;
 	}
 
 
@@ -271,6 +305,45 @@ public:
 
 
 	//access
+
+
+	template< class F >
+	size_t GetDataCountIf( size_t from, size_t to, size_t iframe, const F &f ) const
+	{
+		assert__( iframe < mFrames.size() );
+
+		auto const &frame = mFrames[ iframe ];
+
+		return frame.GetDataCountIf( from, to, f ) ;
+    }
+
+
+	template< class F >
+	size_t GetDataCountIf( size_t iframe, const F &f ) const
+	{
+		assert__( iframe < mFrames.size() );
+
+		auto const &frame = mFrames[ iframe ];
+
+		return frame.GetDataCountIf( f ) ;
+    }
+
+
+	void GetDataRange( double& min, double& max, size_t iframe ) const
+	{
+		return GetYRange( min, max, iframe );
+    }
+
+
+	size_t GetDataSize( size_t iframe ) const
+	{
+		assert__( iframe < mFrames.size() );
+
+		auto const &frame = mFrames[ iframe ];			assert__( frame.mSizeX == frame.mSizeY );
+
+		return frame.mSizeY;
+    }
+
 
 
 	void GetXRange( double& min, double& max, size_t iframe ) const
@@ -359,45 +432,60 @@ struct C3DPlotParameters
 
 
 protected:
-    static size_t nearest( double raster_x, const std::set<double> &nearest_map, const std::vector<double> &axis )
-    {
-        auto pair = nearest_map.equal_range( raster_x );
+	static size_t nearest( double raster_x, const std::set<double> &nearest_map, const std::vector<double> &axis )
+	{
+		auto pair = nearest_map.equal_range( raster_x );
 
-        if ( pair.first == nearest_map.end() )
-            //return m;
-            return 0;
+		if ( pair.first == nearest_map.end() )
+			//return m;
+			return 0;
 
-        size_t index = std::distance( nearest_map.begin(), pair.first );
-        if ( index == 0)
-            return index;
+		size_t index = std::distance( nearest_map.begin(), pair.first );
+		if ( index == 0 )
+			return index;
 
-        if ( *pair.first - raster_x < raster_x - axis[ index - 1] )
-            return index;
+		if ( *pair.first - raster_x < raster_x - axis[ index - 1 ] )
+			return index;
 
-        return index - 1;
-    }
-    size_t nearest_x( double raster_x ) const
-    {
-        return nearest( raster_x, mXmap, mXaxis );
-    }
-    size_t nearest_y( double raster_y ) const
-    {
-        return nearest( raster_y, mYmap, mYaxis  );
-    }
+		return index - 1;
+	}
+	size_t nearest_x( double raster_x ) const
+	{
+		return nearest( raster_x, mXmap, mXaxis );
+	}
+	size_t nearest_y( double raster_y ) const
+	{
+		return nearest( raster_y, mYmap, mYaxis );
+	}
 
 public:
 
-    double value( double x, double y ) const
-    {
-        x = nearest_x( x );
-        y = nearest_y( y );
+	double value( double x, double y ) const
+	{
+		x = nearest_x( x );
+		y = nearest_y( y );
 
-        auto index = y * mXaxis.size() + x;								assert__( index >= 0 && index < mBits.size() );
-        if ( index < 0 || index >= mBits.size() || !mBits.at( index ) )
-            return 0;		//rasters do not seem to support NANs std::numeric_limits<double>::quiet_NaN();
+		auto index = y * mXaxis.size() + x;								assert__( index >= 0 && index < mBits.size() );
+		if ( index < 0 || index >= mBits.size() || !mBits.at( index ) )
+			return 0;		//rasters do not seem to support NANs std::numeric_limits<double>::quiet_NaN();
 
-        return mValues.at( index );
-    }
+		return mValues.at( index );
+	}
+
+	// NOTE: "to" is one after
+	//
+	template< class F >
+	size_t GetDataCountIf( size_t from, size_t to, const F &f ) const
+	{
+		return std::count_if( mValues.begin() + from, mValues.begin() + to, f );
+	}
+
+
+	template< class F >
+	size_t GetDataCountIf( const F &f ) const
+	{
+        return GetDataCountIf( 0, mValues.size(), f );
+	}
 };
 
 
@@ -445,6 +533,43 @@ struct CGeneric3DPlotInfo : public std::vector< PARAMS >, public QwtRasterData
 	virtual ~CGeneric3DPlotInfo()
 	{}
 
+
+	template< class F >
+	size_t GetDataCountIf( size_t iframe, const F &f ) const
+	{
+        assert__( iframe < size() );
+
+        auto const &frame = at( iframe );
+
+		return frame.GetDataCountIf( f ) ;
+    }
+
+
+	void GetDataRange( double& min, double& max, size_t iframe ) const
+	{
+        assert__( iframe < size() );
+
+        auto const &frame = at( iframe );
+
+		min = frame.mMinHeightValue;
+		max = frame.mMaxHeightValue;
+    }
+
+
+	void GetDataRange( double& min, double& max ) const
+	{
+		return GetDataRange( min, max, mCurrentFrame );
+    }
+
+
+	size_t GetDataSize( size_t iframe ) const
+	{
+        assert__( iframe < size() );
+
+        auto const &frame = at( iframe );
+
+		return frame.mValues.size();
+    }
 
 	//QwtRasterData interface
 

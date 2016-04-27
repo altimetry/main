@@ -3,7 +3,9 @@
 #include "DataModels/DisplayFilesProcessor.h"
 #include "DataModels/Workspaces/Display.h"
 
+#include "GUI/ActionsTable.h"
 #include "GUI/DisplayWidgets/TextWidget.h"
+
 
 #include "ViewControlPanels.h"
 
@@ -61,83 +63,60 @@ CColorButton::CColorButton( QWidget *parent )
 CAxisTab::CAxisTab( QWidget *parent, Qt::WindowFlags f )
     : base_t( parent, f)
 {
-	auto short_line_edit = [this]()
+	QFont axis_font = font();
+	axis_font.setPointSize( axis_font.pointSize() - 1 );
+	setFont( axis_font );
+	const int height = fontMetrics().lineSpacing() + 6;
+	const int width = 10 * fontMetrics().width( '0' );
+
+	auto titled_edit = [&axis_font, &height, &width]( const char *title, QLineEdit *&l/*, Qt::Orientation o = Qt::Horizontal */) -> QLayout*
 	{
-		auto *line = new QLineEdit(this);
-		line->setMaximumWidth( 60 );
-		return line;
+		l = new QLineEdit;
+		l->setMaximumWidth( width );
+		l->setMaximumHeight( height );
+		return LayoutWidgets( Qt::Horizontal, { nullptr, new QLabel( title ), l }, nullptr, 2, 0, 0, 0, 0 );
 	};
 
-	const int vm = 0;	//vertical margins
+	const int lm = 6;
+	const int rm = 6;
 
-    // 1. Axis label and Scale
-	//
     mAxisLabel = new QLineEdit;
-	mAxisLabel->setToolTip("Axis label");
+	mAxisLabel->setMaximumWidth( width );
+	mAxisLabel->setMaximumHeight( height );
+    mLogScaleCheck = new QCheckBox( "Logarithmic" );
 
-    mLogScaleCheck = new QCheckBox( "Logarithmic Scale" );
-
-    // 2. Nb. Ticks, Base and Digits
-	//
-    mNbTicks = short_line_edit();
-    mBase = short_line_edit();
-    mNbDigits = short_line_edit();
-
-    // 3. Range
-	//
-    mReset = new QPushButton("Reset");
-    mReset->setAutoDefault(false);
-    mAxisMax = short_line_edit();
-    mAxisMin = short_line_edit();
-
-
-    QGroupBox *range_group = CreateGroupBox( ELayoutType::Horizontal, 
-	{
-		mReset, nullptr, new QLabel("Min"), mAxisMin, nullptr, new QLabel("Max"), mAxisMax,
+	auto *left_l = LayoutWidgets( Qt::Vertical, 
+	{ 
+		LayoutWidgets( Qt::Horizontal, { new QLabel( "Label" ), mAxisLabel }, nullptr, 0,0,0,0,0 ), mLogScaleCheck
 	}, 
-	"Range");
+	nullptr, 2, lm, 0, rm, 0 );
 
-
-    // 4. Creating Tab Group
-    QGroupBox *tab_group = CreateGroupBox( ELayoutType::Vertical, 
+	auto *ticks_l = LayoutWidgets( Qt::Horizontal,
 	{
-		::LayoutWidgets( Qt::Horizontal, 
-		{
-			new QLabel("Axis Label"), mAxisLabel, nullptr, mLogScaleCheck
-		}, 
-		nullptr, 2, 2, vm, 2, vm ),
-
-		::LayoutWidgets( Qt::Horizontal, 
-		{
-			new QLabel( "Ticks" ), mNbTicks, nullptr, new QLabel( "Base" ), mBase, nullptr, new QLabel( "Digits" ), mNbDigits
-		}, 
-		nullptr, 2, 2, vm, 2, vm ),
-
-		range_group,
-
-	}, "", nullptr, 4, 4, vm, 4, vm );
-    //tab_group->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
+		titled_edit( "Max Ticks", mNbTicks ), titled_edit( "Digits", mNbDigits )
+	}, 
+	nullptr, 6, lm, 0, rm, 0 );
+	
+	auto *range_l = LayoutWidgets( Qt::Horizontal,
+	{
+		nullptr, titled_edit( "Min", mAxisMin ), titled_edit( "Max", mAxisMax )
+	},
+	nullptr, 6, lm, 0, rm, 0 );
 
 
-	// 5. help text											remove comment to whole section when properly implemented
-	//QPushButton *b = new QPushButton( "Help" );
-	//b->setCheckable( true );
-	mHelpText = new CTextWidget;	//use spaces and/or try to have lines without very dissimilar lengths
-	mHelpText->SetHelpProperties( 
+	LayoutWidgets( Qt::Horizontal,
+	{
+		left_l, nullptr, LayoutWidgets( Qt::Vertical, { ticks_l, range_l }, nullptr, 4, lm, 0, rm, 0 )
+	}, 
+	this, 2, 2, 2, 2, 2 );
+
+	setToolTip( 
 		"Y=F(X) plots:\n"
 		"Use mouse middle button to pan and mouse left or wheel buttons to zoom.\n"
 		"\nZ=F(X,Y) plots:\n"
 		"In 2D, use mouse left and right buttons to respectively zoom in and out.\n"
 		"In 3D, use Alt (x,y) or Alt+Shift (z) with the mouse left button to \n"
-		"zoom a particular axis."
-		, 3, 6, Qt::AlignCenter );
-    mHelpGroup = CreateGroupBox( ELayoutType::Grid, { mHelpText }, "", nullptr, 6, 6, 6, 6, 6 );
-    mHelpText->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::Maximum );
-    mHelpGroup->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Maximum );
-	//connect( b, SIGNAL( toggled( bool ) ), help_group, SLOT( setVisible(bool) ) );
-	mHelpGroup->setVisible( false );
-
-	LayoutWidgets( Qt::Horizontal, { tab_group /*, b*/, mHelpGroup }, this, 2,2,2,2,2 );		//let help_group in when properly implemented
+		"zoom a particular axis." );
 }
 
 
@@ -160,25 +139,26 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
     //
     mFieldsList = new QListWidget;
 	auto *fields_group = CreateGroupBox( ELayoutType::Horizontal, { mFieldsList }, "Fields", nullptr );
-	fields_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
+	fields_group->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Maximum );
+	mFieldsList->setMaximumHeight( MaxSmallListsHeight( 5 ) );
 
 
     // 2. Spectrogram Options
 
 	mShowSolidColor = new QCheckBox( "Solid Color");
 	mShowContour = new QCheckBox( "Contour");
-	mSpectrogramOptions = CreateGroupBox( ELayoutType::Vertical, { mShowSolidColor, mShowContour }, "", nullptr );
+	mSpectrogramOptions = CreateGroupBox( ELayoutType::Vertical, { mShowSolidColor, mShowContour }, "3D", nullptr );
 
 
     //
     // 3. Line Options
     //
-    mLineColorButton = new CColorButton();
-    mLineOpacityValue = new QLineEdit(this);
+    mLineColorButton = new CColorButton;
+    mLineOpacityValue = new QLineEdit;
 	mLineOpacityValue->setToolTip( "Press <enter> to assign value" );
     mStipplePattern = new QComboBox;
     mStipplePattern->setToolTip("Stipple pattern");
-    mLineWidthValue = new QLineEdit(this);
+    mLineWidthValue = new QLineEdit;
 	mLineWidthValue->setToolTip( "Press <enter> to assign value" );
 
     mLineOptions = CreateGroupBox( ELayoutType::Horizontal, 
@@ -193,11 +173,11 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
 
     // 4. Point Options
     //
-    mPointColorButton = new CColorButton();
-    mFillPointCheck   = new QCheckBox(this);
+    mPointColorButton = new CColorButton;
+    mFillPointCheck = new QCheckBox;
     mPointGlyph = new QComboBox;
     mPointGlyph->setToolTip("Point Glyph");
-    mPointSizeValue = new QLineEdit(this);
+    mPointSizeValue = new QLineEdit;
 	mPointSizeValue->setToolTip( "Press <enter> to assign value" );
 
     mPointOptions = CreateGroupBox( ELayoutType::Horizontal, 
@@ -209,31 +189,77 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
     mPointOptions->setCheckable( true );
     mPointOptions->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Maximum);
 
+
+    // 5. Histogram
+    //
+	mNumberOfBins = new QLineEdit;
+    mHistogramOptions = CreateGroupBox( ELayoutType::Vertical, 
+	{
+		new QLabel( "Bins (recreates plot)" ), mNumberOfBins,
+	}, 
+	"Histogram", nullptr, s, m, m, m, m );
+
+
 	//2D
-	auto *box2d = CreateGroupBox( ELayoutType::Vertical, { mLineOptions, mPointOptions }, "2D", nullptr );
+	mBox2D = new QWidget( this );
+	LayoutWidgets( Qt::Vertical, { mLineOptions, mPointOptions }, mBox2D );
 
 	//3D
-	auto *box3d = CreateGroupBox( ELayoutType::Vertical, { nullptr, mSpectrogramOptions, nullptr }, "3D", nullptr );
+	mBox3D = new QWidget( this );
+	LayoutWidgets( Qt::Vertical, { nullptr, mSpectrogramOptions, nullptr }, mBox3D );
 
+	mBoxHistogram = new QWidget( this );
+	LayoutWidgets( Qt::Vertical, { nullptr, mHistogramOptions, nullptr }, mBoxHistogram );
 
-	// 5. help text
-	auto help = new CTextWidget;
-	help->SetHelpProperties( "Press enter to \n assign values \n entered with \n the keyboard.", 0, 6, Qt::AlignCenter );
-    auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
-    help->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Maximum );
-    //help_group->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Maximum );
 
     // 6. Grouping all widgets
-     AddTopGroupBox( ELayoutType::Horizontal, 
+     AddTopLayout( ELayoutType::Horizontal, 
 	 { 
 		 fields_group,
 		 nullptr,
-		 box3d,
-		 box2d,
-		 help_group
+		 mBoxHistogram,
+		 nullptr,
+		 mBox3D,
+		 nullptr,
+		 mBox2D,
 	}, 
-	"", s, m, m, m, m );
+	s, m, m, m, m );
 }
+
+
+
+void CPlotControlsPanelCurveOptions::SwitchTo2D()
+{
+	mBox2D->setVisible( true );
+	mBox3D->setVisible( false );
+	mBoxHistogram->setVisible( false );
+	//setToolTip( "Press enter to \n assign values \n entered with \n the keyboard." );
+}
+
+void CPlotControlsPanelCurveOptions::SwitchTo3D()
+{
+	mBoxHistogram->setVisible( false );
+	mBox2D->setVisible( false );
+	mBox3D->setVisible( true );
+	setToolTip( "" );
+	//setToolTip( 
+	//	"Y=F(X) plots:\n"
+	//	"Use mouse middle button to pan and mouse left or wheel buttons to zoom.\n"
+	//	"\nZ=F(X,Y) plots:\n"
+	//	"In 2D, use mouse left and right buttons to respectively zoom in and out.\n"
+	//	"In 3D, use Alt (x,y) or Alt+Shift (z) with the mouse left button to \n"
+	//	"zoom a particular axis."
+	//	, 3, 6, Qt::AlignCenter );
+}
+
+void CPlotControlsPanelCurveOptions::SwitchToHistogram( bool hide3d )
+{
+	mBox2D->setVisible( false );
+	mBox3D->setVisible( !hide3d );
+	mBoxHistogram->setVisible( true );
+}
+
+
 
 
 
@@ -245,20 +271,139 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
 CPlotControlsPanelAxisOptions::CPlotControlsPanelAxisOptions( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
     : base_t( parent, f )
 {
-    // V. Axes Options
-    //
-    mAxisOptionsTabs = new QTabWidget;
-	mAxisOptionsTabs->setTabPosition( QTabWidget::West );
+	QFont axis_font = font();
+	axis_font.setPointSize( axis_font.pointSize() - 1 );
+	setFont( axis_font );
+	const int height = fontMetrics().lineSpacing() + 6;
+	const int width = 10 * fontMetrics().width( '0' );
 
-	mX_axis = new CAxisTab;
-	mY_axis = new CAxisTab;
-	mZ_axis = new CAxisTab;
+	auto shrinkh = [&height]( QWidget *w )
+	{
+		w->setMaximumHeight( height );
+		return w;
+	};
+
+	auto shrink = [&width, &shrinkh]( QWidget *w )
+	{
+		shrinkh( w );
+		w->setMaximumWidth( width );
+		return w;
+	};
+
+	auto lshrink = [&shrinkh]( const std::string &text )
+	{
+		QLabel *l = new QLabel( text.c_str() );
+		l->setAlignment( Qt::AlignCenter );
+		shrinkh( l );
+		return l;
+	};
+
+	auto eshrinkh = [&shrinkh]( QLineEdit *e )
+	{
+		e->setAlignment( Qt::AlignCenter );
+		shrinkh( e );
+		return e;
+	};
+
+	auto eshrink = [&width, &eshrinkh]( QLineEdit *e )
+	{
+		eshrinkh( e );
+		e->setMaximumWidth( width );
+		return e;
+	};
+
+	//mX_axis = new CAxisTab;
+	//mY_axis = new CAxisTab;
+	//mZ_axis = new CAxisTab;
+
+	//mXScaleSpin = new QDoubleSpinBox;
+	//mYScaleSpin = new QDoubleSpinBox;
+	//mZScaleSpin = new QDoubleSpinBox;
+
+    mXAxisLabel = new QLineEdit;
+    mYAxisLabel = new QLineEdit;
+    mZAxisLabel = new QLineEdit;
+
+    mXNbTicks = new QLineEdit;
+    mYNbTicks = new QLineEdit;
+    mZNbTicks = new QLineEdit;
+
+    mXNbDigits = new QLineEdit;
+    mYNbDigits = new QLineEdit;
+    mZNbDigits = new QLineEdit;
+
+	mX2DScaleSpin = new QDoubleSpinBox;
+	mY2DScaleSpin = new QDoubleSpinBox;
+	mZ2DScaleSpin = new QDoubleSpinBox;
+
+    mX2DScaleSpin->setRange( 0.1, 10000. );
+    mX2DScaleSpin->setSingleStep( 0.1 );
+    mX2DScaleSpin->setValue( 1. );
+
+    mY2DScaleSpin->setRange( 0.1, 10000. );
+    mY2DScaleSpin->setSingleStep( 0.1 );
+    mY2DScaleSpin->setValue( 1. );
+
+    mZ2DScaleSpin->setRange( 0.1, 10000. );
+    mZ2DScaleSpin->setSingleStep( 0.1 );
+    mZ2DScaleSpin->setValue( 1. );
+
+
+    mXAxisMinMax = new QLineEdit;
+    mYAxisMinMax = new QLineEdit;
+    mZAxisMinMax = new QLineEdit;
+
+    SetReadOnlyEditor( mXAxisMinMax, true );
+    SetReadOnlyEditor( mYAxisMinMax, true );
+    SetReadOnlyEditor( mZAxisMinMax, true );
+	mXAxisMinMax->setFont( axis_font );			//SetReadOnlyEditor indirectly assigns font
+	mYAxisMinMax->setFont( axis_font );			//idem
+	mZAxisMinMax->setFont( axis_font );			//idem
+
+	mX3DScaleSpin = new QDoubleSpinBox;
+	mY3DScaleSpin = new QDoubleSpinBox;
+	mZ3DScaleSpin = new QDoubleSpinBox;
+
+
+    mX3DScaleSpin->setRange( 0.1, 10000. );
+    mX3DScaleSpin->setSingleStep( 0.1 );
+    mX3DScaleSpin->setValue( 1. );
+
+    mY3DScaleSpin->setRange( 0.1, 10000. );
+    mY3DScaleSpin->setSingleStep( 0.1 );
+    mY3DScaleSpin->setValue( 1. );
+
+    mZ3DScaleSpin->setRange( 0.1, 10000. );
+    mZ3DScaleSpin->setSingleStep( 0.1 );
+    mZ3DScaleSpin->setValue( 1. );
+
+    AddTopLayout( ELayoutType::Grid,  
+	{ 
+		new QLabel("Axis"), lshrink("label"),		lshrink("ticks"),		lshrink("digits"),		lshrink("2D scale"),		lshrink("2D range"),		lshrink("3D scale"),	nullptr,
+		lshrink("X"),		shrinkh( mXAxisLabel) ,	eshrink( mXNbTicks ),	eshrink( mXNbDigits ),	shrink( mX2DScaleSpin ),	eshrinkh( mXAxisMinMax ),	shrink( mX3DScaleSpin ), nullptr,
+		lshrink("Y"),		shrinkh( mYAxisLabel ),	eshrink( mYNbTicks ),	eshrink( mYNbDigits ),	shrink( mY2DScaleSpin ),	eshrinkh( mYAxisMinMax ),	shrink( mY3DScaleSpin ), nullptr,
+		lshrink("Z"),		shrinkh( mZAxisLabel ),	eshrink( mZNbTicks ),	eshrink( mZNbDigits ),	shrink( mZ2DScaleSpin ),	eshrinkh( mZAxisMinMax ),	shrink( mZ3DScaleSpin ), nullptr,
+	}, 2, 2, 0, 2, 0 
+	);
+
+
+#if defined USE_AXIS_TABS
+    mAxisOptionsTabs = new QTabWidget;
+	mAxisOptionsTabs->setTabPosition( QTabWidget::South );
 
     mAxisOptionsTabs->addTab( mX_axis, "X" );
     mAxisOptionsTabs->addTab( mY_axis, "Y" );
-    mAxisOptionsTabs->addTab( mZ_axis, "Z/Y2" );
+    mAxisOptionsTabs->addTab( mZ_axis, "Z" );
 
-    AddTopGroupBox( ELayoutType::Horizontal, { mAxisOptionsTabs } );
+    AddTopLayout( ELayoutType::Horizontal, { mAxisOptionsTabs } );
+#else
+#endif
+
+ //   AddTopLayout( ELayoutType::Horizontal, 
+	//{ 
+	//	mX_axis, mY_axis, mZ_axis, LayoutWidgets( Qt::Vertical, { mXScaleSpin, mYScaleSpin, mZScaleSpin }, nullptr )
+	//} 
+	//);
 }
 
 
@@ -266,8 +411,164 @@ void CPlotControlsPanelAxisOptions::SelectTab( int index )
 {
 	assert__( index < 3 );
 
+#if defined USE_AXIS_TABS
 	mAxisOptionsTabs->setCurrentIndex( index );
+#else
+	Q_UNUSED( index );
+#endif
 }
+
+
+void CPlotControlsPanelAxisOptions::SwitchTo2D()
+{
+	//mZ_axis->setEnabled( false );
+	mZAxisLabel->setEnabled( false );
+	mZNbTicks->setEnabled( false );
+	mZNbDigits->setEnabled( false );
+	mZ2DScaleSpin->setEnabled( false );
+	//mZAxisMinMax->setEnabled( false );
+
+	mX3DScaleSpin->setEnabled( false );
+	mY3DScaleSpin->setEnabled( false );
+	mZ3DScaleSpin->setEnabled( false );
+
+#if defined USE_AXIS_TABS
+	if ( mAxisOptionsTabs->currentIndex() == 2 )
+		SelectTab( 0 );
+#endif
+}
+
+void CPlotControlsPanelAxisOptions::SwitchTo3D()
+{
+	//mZ_axis->setEnabled( true );
+	mZAxisLabel->setEnabled( true );
+	mZNbTicks->setEnabled( true );
+	mZNbDigits->setEnabled( true );
+	//mZ2DScaleSpin->setEnabled( true );
+	//mZAxisMinMax->setEnabled( true );
+
+	mX3DScaleSpin->setEnabled( true );
+	mY3DScaleSpin->setEnabled( true );
+	mZ3DScaleSpin->setEnabled( true );
+
+	SelectTab( 2 );					//TODO delete when properly implemented
+}
+
+
+
+
+
+
+
+
+////////////////////////////////////////
+//		Animation Options Tab					
+////////////////////////////////////////
+
+CPlotControlsPanelAnimateOptions::CPlotControlsPanelAnimateOptions( QWidget *parent, Qt::WindowFlags f )		//parent = nullptr, Qt::WindowFlags f = 0
+    : base_t( parent, f )
+{
+	mAnimateButton = CreateToolButton( "", ":/images/themes/default/media/media-play-16.png", CActionInfo::FormatTip("Animate") ); 
+	mAnimateButton->setCheckable( true );
+	mAnimateButton->setChecked( false );
+	mStopButton = CreateToolButton( "", ":/images/themes/default/media/media-stop-16.png", CActionInfo::FormatTip("Stop") ); 
+	mMoveForwardButton = CreateToolButton( "", ":/images/themes/default/media/media-seek-forward-16.png", CActionInfo::FormatTip("Forward animation") ); 
+	mMoveForwardButton->setCheckable( true );
+	mMoveForwardButton->setAutoExclusive( true );
+	mMoveBackwardButton = CreateToolButton( "", ":/images/themes/default/media/media-seek-backward-16.png", CActionInfo::FormatTip("Backward animation") ); 
+	mMoveBackwardButton ->setCheckable( true );
+	mMoveBackwardButton ->setAutoExclusive( true );
+	mLoopButton = CreateToolButton( "", ":/images/themes/default/media/media-loop.png", CActionInfo::FormatTip("Loop") );
+	mLoopButton->setCheckable( true );
+	mLoopButton->setChecked( false );
+	mSpeedEdit = new QLineEdit; 
+
+	mFrameIndexSpin = new QSpinBox;
+    mFrameIndexSpin->setRange( 0, 100 );
+    mFrameIndexSpin->setSingleStep( 1 );
+    mFrameIndexSpin->setValue( 0 );
+
+	QButtonGroup *direction_group = new QButtonGroup;
+	direction_group->addButton( mMoveForwardButton );
+	direction_group->addButton( mMoveBackwardButton );
+    auto *options_row = CreateButtonRow( false, Qt::Horizontal, { nullptr, new QLabel( "Speed" ), mSpeedEdit, mMoveForwardButton, mMoveBackwardButton, mLoopButton }, 2 );
+    auto *animate_row = CreateButtonRow( false, Qt::Horizontal, { mAnimateButton, mStopButton, new QLabel( "Frame" ), mFrameIndexSpin, nullptr }, 2 );
+
+	auto *autoanimationgroup = CreateGroupBox( ELayoutType::Vertical,
+	{
+		animate_row,
+		options_row,
+		//LayoutWidgets( Qt::Horizontal, { new QLabel( "Speed" ), mSpeedEdit, nullptr, options_row, }, nullptr )
+	}, "" );
+
+	mInformation = new QTextEdit;
+	SetReadOnlyEditor( mInformation, true );
+
+	AddTopLayout( ELayoutType::Horizontal, { autoanimationgroup, CreateGroupBox( ELayoutType::Horizontal, { mInformation }, "" ) } );
+
+
+	HandleAnimateButtonToggled( false );
+
+	connect( mAnimateButton, SIGNAL(toggled(bool)), this, SLOT(HandleAnimateButtonToggled(bool)) );
+}
+
+
+void CPlotControlsPanelAnimateOptions::SetRange( unsigned int max )
+{
+    mFrameIndexSpin->setRange( 0, max );
+}
+
+
+//slot
+void CPlotControlsPanelAnimateOptions::HandleFrameChanged( size_t iframe )
+{					 
+    mFrameIndexSpin->setValue( (int)iframe );
+}
+
+
+//slot
+void CPlotControlsPanelAnimateOptions::HandleAnimateButtonToggled( bool toggled )
+{
+	std::string pix_path, tip;
+	if ( toggled )
+	{
+		pix_path = ":/images/themes/default/media/media-pause-16.png";
+		tip = "Pause";
+	}
+	else
+	{
+		pix_path = ":/images/themes/default/media/media-play-16.png";
+		tip = "Animate";
+	}
+
+	mAnimateButton->setToolTip( tip.c_str() );
+
+	QPixmap pix( pix_path.c_str() );
+	QIcon icon(pix);	
+	mAnimateButton->setIcon(icon);
+	mAnimateButton->setIconSize(QSize(tool_icon_size, tool_icon_size));
+	mSpeedEdit->setEnabled( !toggled );
+	mFrameIndexSpin->setEnabled( !toggled );
+}
+
+
+void CPlotControlsPanelAnimateOptions::SwitchTo2D()
+{
+	setVisible( true );
+}
+
+
+void CPlotControlsPanelAnimateOptions::SwitchTo3D()
+{
+	setVisible( false );
+}
+
+
+
+
+
+
+
 
 
 

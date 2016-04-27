@@ -30,7 +30,8 @@ class QwtPlotPanner;
 class CHistogram;
 class C2DZoomer;
 class C2DMagnifier;
-
+class CBratSpectrogram;
+class CBratScaleDraw;
 
 class CQwtArrayPlotData;
 
@@ -94,107 +95,6 @@ inline Qt::PenStyle pattern_cast< Qt::PenStyle >( EStipplePattern p )
 
 
 
-///////////////////////////////////////////////////////////////////////////
-
-class SpectrogramJOFFData : public QwtRasterData
-{
-private:
-    std::vector<double> x_vect;
-    std::vector<double> y_vect;
-    std::vector<bool> b_vect;
-    std::vector<double> z_vect;
-public:
-    SpectrogramJOFFData() :
-        QwtRasterData( QwtDoubleRect( 0, 0, 571, 128 ) )
-    {
-        //s=0;
-    }
-
-    void InjectData(std::vector<double> & _x,std::vector<double> & _y,std::vector<bool> & _b, std::vector<double> & _z)
-    {
-        x_vect =_x;
-        y_vect =_y;
-        b_vect =_b;
-        z_vect =_z;
-    }
-
-    virtual QwtRasterData *copy() const
-    {
-        SpectrogramJOFFData* cp_sp = new SpectrogramJOFFData();
-        std::vector<double> x_cp = x_vect;
-        std::vector<double> y_cp = y_vect;
-        std::vector<bool> b_cp = b_vect;
-        std::vector<double> z_cp = z_vect;
-
-        cp_sp->InjectData(x_cp, y_cp, b_cp, z_cp);
-        return cp_sp;
-        //return new SpectrogramJOFFData();
-    }
-
-    virtual QwtDoubleInterval range() const
-    {
-        return QwtDoubleInterval( 0.0, 100000.0 );
-    }
-
-    virtual double value( double x, double y ) const
-    {        
-
-        if ((x_vect.size()*(int)y + (int)x)>=z_vect.size())
-        {
-            return 0.0;
-        }
-        return z_vect[x_vect.size()*(int)y + (int)x];
-
-//        return z_vect[s%z_vect.size()];
-        //return 1.0 / (7*x*x + y*y);
-    }
-};
-
-///////////////////////////////////////////////////////////////////////////
-
-//JOFF
-//////////////////////////////////////////////////////////////////
-//						Custom Scale Draw
-//////////////////////////////////////////////////////////////////
-
-//choice of MAX_MANTISSA as 15 because
-//the compiler generated code is lighter (and value, 0xF)
-#define MAX_MANTISSA 15
-
-class CBratScaleDraw : public QwtScaleDraw
-{
-private:
-    int mantissa_digits;
-public:
-    CBratScaleDraw();
-    CBratScaleDraw(int _mantissa);
-
-    //our overloads
-
-    QwtText label(double) const;
-
-    int GetMantissa() const
-    {
-        return mantissa_digits;
-    }
-
-    void SetMantissa(int _mantissa)
-    {
-        mantissa_digits = _mantissa;
-    }
-
-//    QwtText QwtAbstractScaleDraw::label(double value) const
-//    {
-//        //return QLocale::system().toString(value);
-//        return "derp";
-//    }
-
-    //its virtual
-   // void drawLabel(QPainter* painter, double value) const;
-};
-
-
-
 //////////////////////////////////////////////////////////////////
 //						Custom Curve
 //////////////////////////////////////////////////////////////////
@@ -229,7 +129,12 @@ class CGeneralizedCurve : public QObject, public QwtPlotCurve
 
 	const CQwtArrayPlotData *mData = nullptr;
 
-	QTimer mTimer;
+	bool mAnimForward = true;
+	bool mLoop = true;
+
+	std::string mXtitle;
+	std::string mYtitle;
+	std::string mZtitle;
 
 
 	//construction / destruction
@@ -244,11 +149,31 @@ public:
 	// access / assignment
 
 	void Ranges( double &xMin, double &xMax, double &yMin, double &yMax );
-
 	void SetRanges( double xMin, double xMax, double yMin, double yMax );
 
-	void Animate( int updateinterval = 500 );
+	void AxisTitles( std::string &xtitle, std::string &ytitle, std::string &ztitle );
+	void SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle );
 
+
+
+	bool MovingForward() const { return mAnimForward;}
+
+	void SetMovingForward( bool forward );
+
+	void SetLoop( bool loop );
+
+	bool ResetFrame();
+
+	bool SetFrame( size_t frame );
+
+	bool ChangeFrame();
+
+	size_t CurrentFrame();
+
+protected:
+	bool FrameUpdated();
+
+public:
 
 	// QWT interface
 
@@ -272,13 +197,6 @@ private:
 	}
 
 	void ComputeRange();
-
-signals:
-	void FrameChanged();
-
-protected slots:
-
-	void ChangeFrame();
 };
 
 
@@ -307,32 +225,38 @@ class C2DPlotWidget : public QwtPlot
 	using base_t = QwtPlot;
 
 
-	//static data
+	//static members
 
 	static const std::string smFontName;
 	static const int smAxisFontSize = 8;
 	static const int smTitleFontSize = 10;
 
+	//static CHistogram* CreateHistogram near respective instance methods
+
 
 	//instance data
 	
-    // Scaling Objects
-//    QwtLog10ScaleEngine* logScaler = nullptr;
-//    QwtLinearScaleEngine* linScaler = nullptr;
     bool mIsLog = false;
-
 
 	C2DMagnifier *mMagnifier = nullptr;
 	QwtPlotPanner *mPanner = nullptr;
 	C2DZoomer *mZoomer = nullptr; 
 
-    std::vector< QwtPlotSpectrogram* > mSpectrograms;
-	QwtPlotSpectrogram *mCurrentSpectrogram = nullptr;
+    std::vector< CBratSpectrogram* > mSpectrograms;
+	CBratSpectrogram *mCurrentSpectrogram = nullptr;
 	std::vector< CHistogram* > mHistograms;
+	CHistogram *mCurrentHistogram = nullptr;
 	std::vector< CGeneralizedCurve* > mCurves;
 
-    CBratScaleDraw* mXScaler = nullptr;
-    CBratScaleDraw* mYScaler = nullptr;
+    CBratScaleDraw *mXScaler = nullptr;
+    CBratScaleDraw *mYScaler = nullptr;
+	double mXScaleFactor = 1.;
+	double mYScaleFactor = 1.;
+	double mY2ScaleFactor = 1.;
+
+
+	QTimer mTimer;
+
 
 	QSize mSizeHint = QSize( 72 * fontMetrics().width( 'x' ), 25 * fontMetrics().lineSpacing() );
 
@@ -358,85 +282,91 @@ public:
     void SetPlotTitle( const std::string &title );
 
 
+	////////////
+	// animation
+	////////////
+
+	void Animate( int updateinterval );
+
+	void StopAnimation();
+
+	void SetMovingForward( bool forward );
+
+	void SetFrame( unsigned int frame );
+
+	void SetSpeed( int updateinterval );
+
+	void SetLoop( bool loop );
+
+
 	///////////
 	// axis
 	///////////
-
-    int GetXAxisMantissa() const
-    {
-       return mXScaler->GetMantissa();
-    }
-
-    int GetYAxisMantissa() const
-    {
-       return mYScaler->GetMantissa();
-    }
-
-    void SetXAxisMantissa(int new_mantissa)
-    {
-       mXScaler->SetMantissa(new_mantissa);
-    }
-
-    void SetYAxisMantissa(int new_mantissa)
-    {
-       mYScaler->SetMantissa(new_mantissa);
-    }
-
-	void SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &y2title = "" )
-	{
-		SetAxisTitle( xBottom, xtitle );
-		SetAxisTitle( yLeft, ytitle );
-		if ( !y2title.empty() )
-			SetAxisTitle( yRight, y2title );
-	}
-
-
-	void SetAxisScales( double xMin, double xMax, double yMin, double yMax, double y2Min = defaultValue<double>(), double y2Max = defaultValue<double>() );
-
 
 	void EnableAxisY2( bool enable = true ) 
 	{ 
 		enableAxis( QwtPlot::yRight, enable );
 	}
 
-    //Range
-    double GetXMin()
+
+	//...titles
+
+	void AxisTitles( std::string *xtitle, std::string *ytitle, std::string *y2title );
+	void HistogramAxisTitles( int index, std::string &xtitle, std::string &ytitle, std::string &y2title );
+	void SpectrogramAxisTitles( int index, std::string &xtitle, std::string &ytitle, std::string &y2title );
+
+	void SetAxisTitles( int index, const std::string &xtitle, const std::string &ytitle, const std::string &y2title = "" );
+
+
+	//...ticks
+    int XAxisNbTicks() const
     {
-        return axisScaleDiv(QwtPlot::xBottom)->interval().minValue();
+        return axisMaxMajor(QwtPlot::xBottom);
     }
-
-    double GetXMax()
+    void SetXAxisNbTicks(int new_value)
     {
-        return axisScaleDiv(QwtPlot::xBottom)->interval().maxValue();
-    }
-
-    double GetYMin()
-    {
-        return axisScaleDiv(QwtPlot::yLeft)->interval().minValue();
-    }
-
-    double GetYMax()
-    {
-        return axisScaleDiv(QwtPlot::yLeft)->interval().maxValue();
-    }
-
-
-    void SetXAxisBounds(double x_min, double x_max)
-    {
-        setAxisScale(QwtPlot::xBottom, x_min, x_max);
-        replot();
-    }
-
-    void SetYAxisBounds(double y_min, double y_max)
-    {
-        setAxisScale(QwtPlot::yLeft, y_min, y_max);
+        setAxisMaxMajor( QwtPlot::xBottom, new_value );
         replot();
     }
 
 
-    //Scaling
+	int YAxisNbTicks() const
+    {
+        return axisMaxMajor(QwtPlot::yLeft);
+    }
+    void SetYAxisNbTicks( int new_value )
+    {
+        setAxisMaxMajor( QwtPlot::yLeft, new_value );
+        replot();
+    }
+
+
+	//...digits
+	int GetXAxisMantissa() const;
+	void SetXAxisMantissa( int new_mantissa );
+
+	int GetYAxisMantissa() const;
+	void SetYAxisMantissa( int new_mantissa );
+
+
+    //...scaling
 
     void SetLogScale(int axisId, bool _isLog);
+
+	void SetPlotAxisScales( int index, double xMin, double xMax, double yMin, double yMax, double y2Min = defaultValue<double>(), double y2Max = defaultValue<double>() );
+
+protected:
+	void CurrentHistogramRanges( double &xMin, double &xMax, double &yMin, double &yMax );
+	void CurrentSpectrogramRanges( double &xMin, double &xMax, double &yMin, double &yMax, double &y2Min, double &y2Max );
+
+	void AxisScales( double &xMin, double &xMax, double &yMin, double &yMax, double &y2Min, double &y2Max );
+	void SetAxisScales( double xMin, double xMax, double yMin, double yMax, double y2Min = defaultValue<double>(), double y2Max = defaultValue<double>() );
+
+public:
+
+	void CurrentRanges( double &xMin, double &xMax, double &yMin, double &yMax, double &y2Min, double &y2Max );
+	void RescaleX( double x );
+	void RescaleY( double y );
 
 
 	///////////
@@ -450,7 +380,7 @@ public:
 	// raster
 	///////////
 
-	QwtPlotSpectrogram* AddRaster( const std::string &title, const C3DPlotInfo &maps, double min_contour, double max_contour, size_t ncontours, size_t index );
+	QwtPlotSpectrogram* PushRaster( const std::string &title, const C3DPlotInfo &maps, double min_contour, double max_contour, size_t ncontours );
 
 	//switch plot
 
@@ -470,8 +400,18 @@ public:
 	// histogram
 	////////////
 
+	int NumberOfBins( int index ) const;
 
-	CHistogram* AddHistogram( const std::string &title, QColor color, const CQwtArrayPlotData *data );
+protected:
+	template< typename DATA >
+	static CHistogram* CreateHistogram( const std::string &title, QColor color, const DATA *data, double &max_freq, int bins );
+
+public:
+	CHistogram* AddHistogram( const std::string &title, QColor color, const CQwtArrayPlotData *data, double &max_freq, int bins );
+
+	CHistogram* PushHistogram( const std::string &title, QColor color, const C3DPlotInfo *data, double &max_freq, int bins );
+
+	void SetCurrentHistogram( int index );
 
 
 	//////////
@@ -485,59 +425,6 @@ public:
 	}
 	QwtPlotCurve* AddCurve( const QwtData &data, const std::string &title, QColor color );	//for experimental samples
 
-
-    // Get/Set nb of ticks
-#define MAX_MAJOR_STEPS 50
-#define MAX_MINOR_STEPS 20
-
-    void GenScaleX(double x_min, double x_max, double delta_x)
-    {
-        QwtScaleEngine *curr_engine = axisScaleEngine(QwtPlot::xBottom);
-        QwtScaleDiv new_div = curr_engine->divideScale(x_min,x_max,
-                                                       MAX_MAJOR_STEPS,MAX_MINOR_STEPS,
-                                                       delta_x);
-        setAxisScaleDiv(QwtPlot::xBottom,new_div);
-        replot();
-
-    }
-
-    void GenScaleY(double y_min, double y_max, double delta_y)
-    {
-        QwtScaleEngine *curr_engine = axisScaleEngine(QwtPlot::yLeft);
-        QwtScaleDiv new_div = curr_engine->divideScale(y_min,y_max,
-                                                       MAX_MAJOR_STEPS,MAX_MINOR_STEPS,
-                                                       delta_y);
-        setAxisScaleDiv(QwtPlot::yLeft,new_div);
-        replot();
-
-    }
-
-    void SetXnbTicks(int new_value)
-    {
-        Q_UNUSED(new_value);
-        //setAxisMinMinor(QwtPlot::xBottom, new_value);
-        QwtScaleEngine *curr_engine = axisScaleEngine(QwtPlot::xBottom);
-        QwtScaleDiv new_div = curr_engine->divideScale(0,60,20,20,5);
-        setAxisScaleDiv(QwtPlot::xBottom,new_div);
-        replot();
-    }
-
-    void SetYnbTicks(int new_value)
-    {
-        setAxisMaxMinor(QwtPlot::yLeft, new_value);
-        replot();
-    }
-
-
-    int GetXnbTicks() const
-    {
-        return axisMaxMinor(QwtPlot::xBottom);
-    }
-
-    int GetYnbTicks() const
-    {
-        return axisMaxMinor(QwtPlot::yLeft);
-    }
 
 	// curve line
 
@@ -616,10 +503,17 @@ protected:
 public:
     QSize sizeHint() const override;
 
+signals:
+	void FrameChanged( size_t iframe );
+	void AnimationStopped();
+	void ScaleDivChanged( int iaxis, double factor, QString range );
+
 public slots:
     void printPlot();
 
-	void HandleFrameChanged();
+protected slots:
+	void HandleScaleDivChanged();
+	void ChangeFrame();
 };
 
 

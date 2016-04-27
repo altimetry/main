@@ -1172,7 +1172,7 @@ inline QSize DefaultSizeHint( const QWidget *w )
 
 
 const int min_main_window_width = 1024;
-const int min_main_window_height = 640;
+const int min_main_window_height = 512;
 
 const auto child_ratio = 1. / 2.;
 
@@ -1202,6 +1202,27 @@ inline void NotImplemented( const char *msg = nullptr )
 #define BRAT_NOT_IMPLEMENTED  NotImplemented( __func__ );
 #define BRAT_MSG_NOT_IMPLEMENTED( x )  NotImplemented( std::string( x ).c_str() );
 
+
+
+
+//////////////////////////////////////////////////////////////////
+//	Candidates
+//////////////////////////////////////////////////////////////////
+
+//inline int ItemRow( QListWidgetItem *item )
+//{
+//	return item->listWidget()->row( item );
+//}
+//inline int FindText( QListWidget *list, const char *text  )
+//{
+//    auto items = list->findItems( text, Qt::MatchExactly );			assert__( items.size() == 1 );
+//	return ItemRow( items[ 0 ] );
+//}
+//inline QString ItemText( QListWidget *list, int index  )
+//{
+//	auto *item = list->item( index );
+//	return item->text();
+//}
 
 
 

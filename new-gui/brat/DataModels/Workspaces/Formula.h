@@ -366,13 +366,13 @@ public:
 	std::string GetStep() { return m_step; }
 	void SetStep( const std::string& value ) { m_step = value; }
 
-	std::string GetIntervalAsText() { return n2s< std::string >( m_interval ); }
+	std::string GetIntervalAsText() const;
 	int32_t GetInterval() { return m_interval; }
 	void SetInterval( int32_t value ) { m_interval = value; }
 
 	void SetIntervalDefault() { setDefaultValue( m_interval ); }
 
-	std::string GetLoessCutOffAsText() { return n2s< std::string >( m_loessCutOff ); }
+	std::string GetLoessCutOffAsText() const;
 	int32_t GetLoessCutOff() { return m_loessCutOff; }
 	void SetLoessCutOff( int32_t value ) { m_loessCutOff = value; }
 

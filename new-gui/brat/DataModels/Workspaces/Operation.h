@@ -204,7 +204,7 @@ public:
 	void SetName( const std::string& value ) { m_name = value; }
 
 	bool HasFormula() const { return GetFormulaCount() > 0; }
-	bool HasFilters() const { return m_formulas.HasFilters(); }
+	bool HasV3Filters() const { return m_formulas.HasFilters(); }
 
 	size_t GetFormulaCount() const { return m_formulas.size(); }
 	size_t GetFormulaCountDataFields();
@@ -331,7 +331,7 @@ public:
 	std::string GetExportAsciiFullCmd();
 
 	const std::string& GetShowStatsSystemCommand() const;
-	std::string GetShowStatsFullCmd();
+	std::string GetShowStatsFullCmd() const;
 
 
 	bool IsExportAsciiDateAsPeriod() const { return m_exportAsciiDateAsPeriod; }

@@ -210,7 +210,7 @@ QString CProcessesTable::ReadStdOut( COsProcess *process )
 }
 
 
-
+					
 ////////////////////////////
 // Kill
 ////////////////////////////
@@ -259,6 +259,11 @@ bool CProcessesTable::Add( bool sync, bool allow_multiple, const COperation *ope
 	return Add( sync, allow_multiple, operation->GetTaskName(), operation->GetFullCmd(), operation );
 }
 
+bool CProcessesTable::Add4Statistics( bool allow_multiple, const COperation *operation )
+{
+	return Add( false, allow_multiple, operation->GetShowStatsTaskName(), operation->GetShowStatsFullCmd(), operation );
+}
+
 bool CProcessesTable::Add( bool sync, bool allow_multiple, const std::string &original_name, const std::string &cmd, const COperation *operation )		//operation==nullptr
 {
 	std::string name = original_name;
@@ -290,7 +295,12 @@ bool CProcessesTable::Add( bool sync, bool allow_multiple, const std::string &or
 
     connect( process, SIGNAL( readyReadStandardOutput() ),				this, SLOT( UpdateOutput() ) );
     connect( process, SIGNAL( readyReadStandardError() ),				this, SLOT( UpdateOutput() ) );
-    connect( process, SIGNAL( finished( int, QProcess::ExitStatus ) ),	this, SLOT( ProcessFinished( int, QProcess::ExitStatus ) ) );
+    connect( process, SIGNAL( finished( int, QProcess::ExitStatus ) ),	this, 
+		sync ?
+		SLOT( SyncProcessFinished( int, QProcess::ExitStatus ) ) 
+		:
+		SLOT( AsyncProcessFinished( int, QProcess::ExitStatus ) ) 
+		);
     connect( process, SIGNAL( error( QProcess::ProcessError ) ),		this, SLOT( ProcessError( QProcess::ProcessError ) ) );
 
 	if ( sync )
@@ -378,7 +388,7 @@ void CProcessesTable::UpdateOutput()
 }
 
 
-void CProcessesTable::ProcessFinished( int exit_code, QProcess::ExitStatus exitStatus )
+COsProcess* CProcessesTable::ProcessFinished( int exit_code, QProcess::ExitStatus exitStatus )
 {
 	COsProcess *process = qobject_cast<COsProcess*>( sender() );			assert__( process );
 
@@ -395,7 +405,21 @@ void CProcessesTable::ProcessFinished( int exit_code, QProcess::ExitStatus exitS
         LOG_INFO( FormatFinishedMessage( process, "success" ) );
     }
 
-	emit ProcessFinished( exit_code, exitStatus, process->Operation() );
+	return process;
+}
+void CProcessesTable::AsyncProcessFinished( int exit_code, QProcess::ExitStatus exitStatus )
+{
+	COsProcess *process = ProcessFinished( exit_code, exitStatus );
+
+	emit ProcessFinished( exit_code, exitStatus, process->Operation(), false );
+
+	Remove( process );
+}
+void CProcessesTable::SyncProcessFinished( int exit_code, QProcess::ExitStatus exitStatus )
+{
+	COsProcess *process = ProcessFinished( exit_code, exitStatus );
+
+	emit ProcessFinished( exit_code, exitStatus, process->Operation(), true );
 
 	Remove( process );
 }

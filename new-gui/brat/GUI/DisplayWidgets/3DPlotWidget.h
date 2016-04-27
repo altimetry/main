@@ -101,9 +101,9 @@ public:
 
 	virtual ~CBrat3DPlot();
 
-	// 
+	// axis
 
-	void SetLogarithmicScale( bool onlyz, bool log );
+	//...labels
 
 	void SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle )
 	{
@@ -112,13 +112,50 @@ public:
 		SetAxisTitle( Qwt3D::Z1, ztitle );		
 	}
 
-	// 
+	//...ticks
+
+    unsigned int XAxisNbTicks() const;
+    void SetXAxisTicks( unsigned int nticks );
+
+    unsigned int YAxisNbTicks() const;
+    void SetYAxisTicks( unsigned int nticks );
+
+    unsigned int ZAxisNbTicks() const;
+    void SetZAxisTicks( unsigned int nticks );
+
+
+	//...digits
+
+	unsigned int XScaleConf() const;
+	unsigned int YScaleConf() const;
+	unsigned int ZScaleConf() const;
+
+	void SetXScaleConf( unsigned int nMantissa, bool is_log = false );
+	void SetYScaleConf( unsigned int nMantissa, bool is_log = false );
+	void SetZScaleConf( unsigned int nMantissa, bool is_log = false );
+
+
+	//...scale
+
+	void Scale( double &xVal, double &yVal, double &zVal );
+	void SetScale( double xVal, double yVal, double zVal );
+
+
+	void SetLogarithmicScale( bool onlyz, bool log );
+
+	// data
 
 	void AddSurface( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax );
+
+
+	// style
 
 	void SetPlotStyle( Qwt3D::PLOTSTYLE style = Qwt3D::FILLEDMESH );
 
 	void SetCoordinateStyle( Qwt3D::COORDSTYLE style = Qwt3D::FRAME );
+
+
+	// protected
 
 protected:
 	void SetAxisTitle( Qwt3D::AXIS axis, const std::string &title );
@@ -209,7 +246,7 @@ public:
 
 	//...create plot
 
-	void AddPlot( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax );
+	void PushPlot( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax );
 
 
 	//switch plot
@@ -236,11 +273,35 @@ public:
 
 	//axis
 
+	//...labels
 	void SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle );
 
+	//...log
 	void SetLogarithmicScaleZ( bool log );
-
 	void SetLogarithmicScale( bool log );
+
+	//...ticks
+
+    unsigned int XAxisNbTicks() const;
+    void SetXAxisNbTicks( unsigned int nbticks );
+
+    unsigned int YAxisNbTicks() const;
+    void SetYAxisNbTicks( unsigned int nbticks );
+
+    unsigned int ZAxisNbTicks() const;
+    void SetZAxisNbTicks( unsigned int nbticks );
+
+
+	//...digits
+
+	void SetXScaleConf( unsigned int nMantissa, bool is_log = false );
+	void SetYScaleConf( unsigned int nMantissa, bool is_log = false );
+	void SetZScaleConf( unsigned int nMantissa, bool is_log = false );
+
+	//...scale
+
+	void Scale( double &xVal, double &yVal, double &zVal );
+	void SetScale( double xVal, double yVal, double zVal );
 
 
 	//interaction
@@ -248,14 +309,22 @@ public:
 	void Home();
 
 
+	QSize sizeHint() const override;
+
 	// protected operations
 
 protected:
-	QSize sizeHint() const override;
 
 	void AddWidget( QWidget *w );
 
 	void SetStyle( bool show_contour, bool show_mesh );
+
+signals:
+	void ScaleChanged( double xVal, double yVal, double zVal );
+
+protected slots:
+
+	void HandleScaleChanged( double xVal, double yVal, double zVal );
 
 public slots:
 	void setLevel( int );		//enrichment example

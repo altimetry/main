@@ -189,7 +189,9 @@ public:
 
 	void Pause();
 
-	void Resume();
+	void Resume( bool layers_changed );
+
+	bool Rendering() const;		//not accurate at all
 
 	void Home();
 

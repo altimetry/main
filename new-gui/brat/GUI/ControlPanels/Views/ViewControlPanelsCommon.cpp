@@ -21,7 +21,7 @@ void CViewControlsPanelGeneral::CreateWidgets()
 	mNewDisplayButton = CreateToolButton( "", ":/images/OSGeo/new.png", "Create a new view" );
     mRenameDisplayButton = CreateToolButton( "", ":/images/OSGeo/edit.png", "Rename the selected view" );
 	mDeleteDisplayButton = CreateToolButton( "", ":/images/OSGeo/workspace-delete.png", "Delete the selected view" );
-	mExecuteDisplay = CreateToolButton( "Refresh", ":/images/OSGeo/execute.png", "Plot the view" );
+	mExecuteDisplay = CreateToolButton( "Reset", ":/images/OSGeo/execute.png", "Rebuild the view(s)" );
 	mExecuteDisplay->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
 
 
@@ -42,23 +42,29 @@ void CViewControlsPanelGeneral::CreateWidgets()
     mPlotType = new QLineEdit(this);
 	SetReadOnlyEditor( mPlotType, true );
 
-	auto *plots_group = CreateGroupBox( ELayoutType::Horizontal, 
-	{ 
-		LayoutWidgets( Qt::Vertical, { mDisplaysCombo }, nullptr, s, m, m, m, m ),
-	}, 
-	"Operation Views", nullptr, s, m, m, m, m );
+	auto *plots_group = //CreateGroupBox( ELayoutType::Horizontal,
+			LayoutWidgets( Qt::Horizontal,
+	{
+		CreateGroupBox( ELayoutType::Horizontal,
+		{
+			mDisplaysCombo,
+		}, "Operation Views", nullptr ),
+
+			nullptr,
+			//CreateGroupBox( ELayoutType::Horizontal,
+			LayoutWidgets( Qt::Horizontal,
+			{
+				title_label, mPlotTitle, nullptr, new QLabel( "Type" ), mPlotType
+			} )
+	},
+	nullptr, s, m, m, m, m );
 
     auto *plots_l = LayoutWidgets( Qt::Vertical, 
 	{ 
 		top_buttons_row, 
-		plots_group, 
-		CreateGroupBox( ELayoutType::Horizontal, 
-		{ 
-			title_label, mPlotTitle, nullptr, new QLabel("Type"), mPlotType
-		}
-		, "", nullptr ), nullptr
+		plots_group
 	}, 
-	nullptr, 4, 4, 4, 4, 4 );
+	nullptr, 4, 4, top_margin, 4, top_margin );
 
 
 	mViewsLayout = LayoutWidgets( Qt::Horizontal, { plots_l }, nullptr, s, m, m, m, m );
@@ -86,12 +92,13 @@ void CViewControlsPanelGeneralPlots::CreateWidgets()
 
     mPlotTypesList = new QListWidget;
     mPlotTypesList->setToolTip( "Select a plot type" );
+	mPlotTypesList->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
+	mPlotTypesList->setMaximumHeight( MaxSmallListsHeight() );
+
+    auto *types_group = CreateGroupBox( ELayoutType::Vertical, { mPlotTypesList }, "Plot Type", nullptr, s, m, m, m, m );
 	mPlotTypesList->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
 
-    auto *types_group = CreateGroupBox( ELayoutType::Vertical, { mPlotTypesList }, "2D Plot Type", nullptr, s, m, m, m, m );
-	//types_group->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
-
-    auto *views_group = CreateGroupBox( ELayoutType::Horizontal, { mViewsLayout, types_group }, "Operation Display", nullptr, s, m, m, m, m );
+    auto *views_group = LayoutWidgets( Qt::Horizontal, { mViewsLayout }, nullptr, s, m, m, m, m );
 
     mLinkToPlot = new QComboBox;
     auto *link_group = CreateGroupBox( ELayoutType::Vertical, { mLinkToPlot }, "Link to Plot", nullptr, s, m, m, m, m );
@@ -99,7 +106,7 @@ void CViewControlsPanelGeneralPlots::CreateWidgets()
 
 	AddTopLayout( ELayoutType::Horizontal, 
 	{ 
-		views_group, nullptr, LayoutWidgets( Qt::Vertical, { link_group }, nullptr )
+		views_group, nullptr, types_group, LayoutWidgets( Qt::Vertical, { link_group }, nullptr )
 	}, 
 	s, m, m, m, m );
 
