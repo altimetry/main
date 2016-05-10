@@ -11,7 +11,7 @@
 #include "QtUtilsIO.h"
 #include "ConsoleApplicationPaths.h"
 
-#include "Tools.h"
+#include "libbrathl/Tools.h"
 
 
 

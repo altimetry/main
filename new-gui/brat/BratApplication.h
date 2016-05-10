@@ -18,6 +18,11 @@
 #include "BratSettings.h"
 
 
+
+class PythonEngine;
+
+
+
 using namespace brathl;
 
 
@@ -51,6 +56,8 @@ class CBratApplication : public QgsApplication
 	static bool smPrologueCalled;					//initialized in Prologue
 
 	static CApplicationPaths *smApplicationPaths;	//initialized in Prologue
+
+	static const PythonEngine *sm_pe;
 
 
 	static void CheckOpenGL( bool extended = false );

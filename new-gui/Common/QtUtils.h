@@ -241,15 +241,6 @@ inline std::pair< bool, QString > SimpleInputString( const QString &input_name, 
 		result.second,
         &result.first );
 
-    // Check if text has only alphanumeric letters
-    static QRegExp re("[_a-zA-Z0-9]+"); // alphanumeric letters
-    if ( !re.exactMatch( text ) && result.first ) // Has an Invalid Name
-    {
-        SimpleWarnBox( QString( "Unable to rename '%1' by '%2'.\nPlease enter only alphanumeric letters, 'A-Z' or '_a-z' or '0-9'.").arg(
-                                result.second, text ) );
-        result.first = false;
-    }
-
     if ( result.first )
         result.second = text;
 
@@ -262,6 +253,29 @@ inline std::pair< bool, std::string > SimpleInputString( const std::string &inpu
 
 	return std::pair< bool, std::string >( { qresult.first, q2a( qresult.second ) } );
 }
+
+
+// Validate Input String (to be used on rename objects such as filters, operations...)
+//
+inline std::pair< bool, std::string > ValidatedInputString( const std::string &input_name, const std::string &init_value, const std::string &dialog_title = "" )
+{
+    std::pair< bool, QString > qresult = SimpleInputString( t2q( input_name ), t2q( init_value ), t2q( dialog_title ) );
+
+    /////////////////////////////////////////////////
+    // Check if text has only alphanumeric letters //
+    /////////////////////////////////////////////////
+    static QRegExp re("[_a-zA-Z0-9]+"); // alphanumeric letters
+    if ( !re.exactMatch( qresult.second ) && qresult.first ) // Has an Invalid Name
+    {
+        SimpleWarnBox( QString( "Unable to rename '%1' by '%2'.\nPlease enter only alphanumeric letters, 'A-Z' or '_a-z' or '0-9'.").arg(
+                                 t2q(init_value), qresult.second ) );
+        qresult.first = false;
+        qresult.second = t2q(init_value);
+    }
+
+    return std::pair< bool, std::string >( { qresult.first, q2a( qresult.second ) } );
+}
+
 
 
 template< typename VALUE > 

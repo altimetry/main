@@ -32,7 +32,7 @@ my @SourceDirs = qw(
 		packager
 		process
 		scheduler
-                vtk-patch
+		new-gui
         vtkzlib
         vtkjpeg
         vtktiff

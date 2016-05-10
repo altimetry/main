@@ -532,7 +532,7 @@ void CMapEditor::HandleCurrentFieldChanged( int field_index )
 	if ( field_index < 0 )
 		return;
 
-	assert__( field_index < mDataArrayMap->size() );
+	assert__( field_index < (int)mDataArrayMap->size() );
 
 	mPropertiesMap = &mDataArrayMap->at( field_index )->m_plotProperty;	  			assert__( mPropertiesMap );
 	//TODO - fetch correct display data

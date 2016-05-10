@@ -3,7 +3,7 @@
 
 
 #include <QDialog>
-
+#include "DataModels/Workspaces/Operation.h"
 
 
 class CShowInfoDialog : public QDialog
@@ -34,19 +34,24 @@ class CShowInfoDialog : public QDialog
     /////////////////////////////
 
     QDialogButtonBox *mButtonBox = nullptr;
-
+    QStandardItemModel *mInfoTable  = nullptr;
+    QTableView * mTableView = nullptr;
 
     /////////////////////////////
     //construction / destruction
     /////////////////////////////
 private:
 
-    void CreateWidgets();
+    void CreateWidgets( const std::string& exprValue, COperation *operation );
     void Wire();
 
+    //Setup SqlTableDb
+    void initializeModel(QStandardItemModel *model);
+    QTableView *CreateTableView(QStandardItemModel *model, const QString &title);
+    void addEntry(unsigned int i, QString& exp_name, QString& oUnit, QString& cUnit);
 
 public:
-    CShowInfoDialog( QWidget *parent );
+    CShowInfoDialog( QWidget *parent, const CFormula *formula, COperation *operation );
 
     virtual ~CShowInfoDialog();
 

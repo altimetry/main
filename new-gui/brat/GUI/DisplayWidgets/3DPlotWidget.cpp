@@ -573,8 +573,8 @@ void CBrat3DPlot::SetScale( double xVal, double yVal, double zVal )
 	static const auto yaxis = { Qwt3D::AXIS::Y1, Qwt3D::AXIS::Y2, Qwt3D::AXIS::Y3, Qwt3D::AXIS::Y4 };
 	static const auto zaxis = { Qwt3D::AXIS::Z1, Qwt3D::AXIS::Z2, Qwt3D::AXIS::Z3, Qwt3D::AXIS::Z4 };
 
-	static const double m = mTicLength( coordinates()->axes[ Qwt3D::AXIS::X1 ] );
-	static const double M = MTicLength( coordinates()->axes[ Qwt3D::AXIS::X1 ] );
+//	static const double m = mTicLength( coordinates()->axes[ Qwt3D::AXIS::X1 ] );
+//	static const double M = MTicLength( coordinates()->axes[ Qwt3D::AXIS::X1 ] );
 
 	setScale( xVal, yVal, zVal );
 

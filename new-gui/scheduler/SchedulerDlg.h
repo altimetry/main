@@ -11,6 +11,9 @@
 #include "TaskProcessor.h"
 
 
+class CConsoleApplicationPaths;
+
+
 //// RCCC - TODO - Put in right place (here or in SchedulerApplication?)
 // Creating QString with BratScheduler window title
 #if defined(_WIN64) || defined(WIN64) || defined(__LP64__) || defined(__x86_64__)
@@ -31,7 +34,16 @@
 
 class CSchedulerDlg : public QDialog, private Ui::CSchedulerDlg
 {
-	Q_OBJECT
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+    Q_OBJECT;
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
 
 	// types
 
@@ -57,6 +69,7 @@ class CSchedulerDlg : public QDialog, private Ui::CSchedulerDlg
     // instance data members
 
     bool mIsDialog = false;
+    const CConsoleApplicationPaths *mAppPaths;
 
 	// construction / destruction
 
@@ -68,10 +81,10 @@ class CSchedulerDlg : public QDialog, private Ui::CSchedulerDlg
 	void LoadTasks();
 
 public:
-    explicit CSchedulerDlg(QWidget *parent = 0);
+    CSchedulerDlg( const CConsoleApplicationPaths *paths, QWidget *parent = 0);
 
-	virtual ~CSchedulerDlg()
-	{}
+    virtual ~CSchedulerDlg();
+
 
 	// operations
 
@@ -80,6 +93,8 @@ protected:
     bool ChangeProcessingToPending();
 
 	// signals / slots
+
+    virtual void closeEvent( QCloseEvent *event ) override;
 
 public slots:
     void action_ViewConfig_slot();

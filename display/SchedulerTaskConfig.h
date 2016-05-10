@@ -146,7 +146,7 @@ public:
 
 	wxXmlNode* FindTaskNode_xml( const std::string& taskId, bool allDepths = false );
 
-    static bool IsLoaded() { return mInstance != NULL; }
+    static bool IsLoaded() { return smInstance != NULL; }
 
 	void setReloadAll( bool value ) { m_reloadAll = value; }
 

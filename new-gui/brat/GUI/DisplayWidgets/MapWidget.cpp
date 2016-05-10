@@ -273,6 +273,7 @@ void CMapWidget::Init()
     else
     {
         std::string raster_url = mLayerBaseType == eRasterLayer ? smRasterLayerPath : smURLRasterLayerPath;
+        //"/home/brat/s3-altb/project/dev/support/data/WebMapServices_xml_files/map_GoogleMaps_jpg.xml";
         std::string provider = mLayerBaseType == eRasterLayer ? "" : "wms";
         mMainRasterLayer = AddRasterLayer( t2q( raster_url ), "raster", t2q( provider ) );
 		if ( mMainRasterLayer )
@@ -354,6 +355,9 @@ void CMapWidget::Init()
 	setCrsTransformEnabled( true );
     //mapRenderer()->setProjectionsEnabled( true );
 	//SetProjection( PROJ2D_LAMBERT_AZIMUTHAL );
+    ///// RCCC TODO - To use Google Maps TMS define 4326 as default projection after adding Google raster //////
+    //mDefaultProjection = { 4326, QgsCoordinateReferenceSystem::EpsgCrsId }; // NOTE: comment the following line.
+    ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 	mDefaultProjection = mMainLayer->crs();
 	mDefaultProjection.validate();		   						assert__( mDefaultProjection.isValid() );
 	if ( mDefaultProjection.mapUnits() == QGis::UnknownUnit )

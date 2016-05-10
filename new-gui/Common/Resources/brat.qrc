@@ -138,6 +138,7 @@
         <file>images/OSGeo/execute.png</file>
         <file>images/OSGeo/export.png</file>
         <file>images/OSGeo/expression.png</file>
+        <file>images/OSGeo/expression_save.png</file>
         <file>images/OSGeo/expression-builder.png</file>
         <file>images/OSGeo/expression-filter.png</file>
         <file>images/OSGeo/expression-preview.png</file>
@@ -162,7 +163,6 @@
         <file>images/OSGeo/pan.png</file>
         <file>images/OSGeo/pan-selection.png</file>
         <file>images/OSGeo/print.png</file>
-        <file>images/OSGeo/processing.png</file>
         <file>images/OSGeo/projection-add.png</file>
         <file>images/OSGeo/projection-export.png</file>
         <file>images/OSGeo/redraw.png</file>
@@ -198,6 +198,13 @@
         <file>images/OSGeo/2d-view.png</file>
         <file>images/OSGeo/3d-view.png</file>
         <file>images/OSGeo/function.png</file>
+        <file>images/OSGeo/algorithm.png</file>
+        <file>images/OSGeo/pointer_oneclick.png</file>
+        <file>images/OSGeo/processing.png</file>
+        <file>images/OSGeo/aliases.png</file>
+        <file>images/OSGeo/warning.png</file>
+        <file>images/OSGeo/brat_smoothing.png</file>
+        <file>images/brat_scheduler.png</file>
         <file>images/rads.gif</file>
     </qresource>
 </RCC>

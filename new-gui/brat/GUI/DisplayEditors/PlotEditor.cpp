@@ -324,7 +324,7 @@ bool CPlotEditor::Test()
 		nframes = data.GetNumberOfFrames();
 		int iframe = 0;
 		nvalues = data.GetDataSize( iframe );
-		for ( ; iframe < nframes; ++iframe )
+        for ( ; iframe < (int)nframes; ++iframe )
 			if ( data.GetDataSize( iframe ) != nvalues )
 				error_msg += "2D frames with different size\n";
 
@@ -352,7 +352,7 @@ bool CPlotEditor::Test()
 		nframes = data.size();					assert__( nframes == 1 );	//#frames; simply to check if ever...
 		int iframe = 0;
 		nvalues = data.GetDataSize( iframe );
-		for ( ; iframe < nframes; ++iframe )
+        for ( ; iframe < (int)nframes; ++iframe )
 		{
 			if ( data.GetDataSize( iframe ) != nvalues )
 				error_msg += "3D frames with different size\n";
@@ -1101,7 +1101,7 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
 
 	if ( !mDataArrayZFXY->empty() )
 	{
-		assert__( index < mDataArrayZFXY->size() );
+		assert__( index < (int)mDataArrayZFXY->size() );
 
 		mPropertiesZFXY = dynamic_cast<CZFXYPlotData*>( mDataArrayZFXY->at( index ) )->GetPlotProperties();		assert__( mPropertiesZFXY );
 		mCurrentDisplayData = mDisplay->GetDisplayData( mOperation, mPropertiesZFXY->m_name );					assert__( mCurrentDisplayData );
@@ -1136,7 +1136,7 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
 		return;
 	}
 
-	assert__( index < mDataArrayXY->size() );
+	assert__( index < (int)mDataArrayXY->size() );
 
 	mPropertiesXY = mDataArrayXY->Get( index )->GetPlotProperties();							assert__( mPropertiesXY );
 	mCurrentDisplayData = mDisplay->GetDisplayData( mOperation, mPropertiesXY->GetName() );		assert__( mCurrentDisplayData );

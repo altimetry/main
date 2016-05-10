@@ -19,7 +19,7 @@
 '''
   This python module contains the code used for defining a new algorithm, and
   it shall be taken as an example.
-  (Python v.3.3)
+  (Python v.3.2)
 '''
 
 from BratAlgorithmBase import PyBratAlgoBase

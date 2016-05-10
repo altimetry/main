@@ -72,6 +72,7 @@ public:
 	//...fill helpers
 
 	static QList<QAction*> CreateDataComputationActions();
+    static QList<QAction*> CreateDataSmoothingActions();
 
 
 protected:
@@ -128,6 +129,11 @@ protected:
 	QToolButton *mDataComputation = nullptr;
 	QActionGroup *mDataComputationGroup = nullptr;
 
+    // NOTE: 'filter' (Brat v.3) was renamed to 'Smoothing' (Brat v.4)
+    // In Brat v.4 'filter' is a reserved word to spatial and temporal filters
+    QToolButton *mDataSmoothing = nullptr;
+    QActionGroup *mDataSmoothingGroup = nullptr;
+
 	CFieldsTreeWidget *mAdvancedFieldsTree = nullptr;
     CTextWidget *mAdvancedFieldDesc = nullptr;
 
@@ -136,13 +142,21 @@ protected:
 	CDataExpressionsTreeWidget *mDataExpressionsTree = nullptr;
 
 	QgsCollapsibleGroupBox *mSamplingGroup = nullptr;
-	QComboBox *mAdvFilter = nullptr;
-	QLineEdit *mLonStep = nullptr;
-	QLineEdit *mLatStep = nullptr;
-	QLineEdit *mLonCutOff = nullptr;
-	QLineEdit *mLatCutOff = nullptr;
-    QLabel *mLonIntervalsLabel = nullptr;
-    QLabel *mLatIntervalsLabel = nullptr;
+    //QComboBox *mAdvFilter = nullptr;
+    QLabel *mXLonLabel = nullptr;
+    QLabel *mYLatLabel = nullptr;
+    QLineEdit *mXLonMinValue = nullptr;
+    QLineEdit *mXLonMaxValue = nullptr;
+    QLineEdit *mYLatMinValue = nullptr;
+    QLineEdit *mYLatMaxValue = nullptr;
+    QLineEdit *mXLonStep = nullptr;
+    QLineEdit *mYLatStep = nullptr;
+    QLineEdit *mXLonCutOff = nullptr;
+    QLineEdit *mYLatCutOff = nullptr;
+    QLabel *mXLonIntervalsLabel = nullptr;
+    QLabel *mYLatIntervalsLabel = nullptr;
+    QLabel *XiconWarning = nullptr;
+    QLabel *YiconWarning = nullptr;
 
 
 	//...quick
@@ -172,9 +186,11 @@ protected:
 	COperation *mQuickOperation = nullptr;
 	const CDataset *mCurrentOriginalDataset = nullptr;
 	CProduct *mProduct = nullptr;
-	CFormula *mUserFormula = nullptr;
+    CFormula *mUserFormula = nullptr;
+    CFormula *mXformula = nullptr;
+    CFormula *mYformula = nullptr;
 
-	CStringMap mMapFormulaString;
+    CStringMap mMapFormulaString;
 
 
 	// construction / destruction
@@ -225,8 +241,20 @@ protected:
 	//advanced
 
 	void SelectDataComputationMode();
-	std::string GetOpunit();
-	void UpdateSamplingGroup();
+    void SelectDataSmoothingMode();
+    std::string GetOpunit();
+    /// Sampling methods ////////////////
+    void UpdateSamplingGroup();
+    void GetMinMax(CFormula *formula);
+    bool ValidateData();
+    bool VerifyMinMaxXY();
+    bool VerifyMinMaxX();
+    bool VerifyYMinMaxY();
+    bool VerifyMinMaxAsDate( CFormula *formula, QLineEdit *LineEdit_Min, QLineEdit *LineEdit_Max );
+    void GetValueAsDate( QLineEdit *mLineEdit_Axisvalue, double &seconds, double defValue, double min, double max );
+    bool ComputeXYInterval();
+    bool ComputeInterval(CFormula *formula, QLabel *IntervalsLabel, QLineEdit *StepLineEdit, QLabel *IconWarning );
+    /////////////////////////////////////
 
     bool MapRequested() const;
 
@@ -324,6 +352,7 @@ protected slots:
 	void HandleInsertFormula();
 	void HandleSaveAsFormula();
 	void HandleDataComputation();
+    void HandleDataSmoothing();
 
 	void HandleShowAliases();
 	void HandleCheckSyntax();

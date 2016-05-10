@@ -164,6 +164,14 @@ public slots:
     void HandleDeleteArea();
     void HandleAreaChecked(QListWidgetItem*area_item);
 
+    void HandleStartDateTimeChanged(const QDateTime &start_datetime);
+    void HandleStopDateTimeChanged (const QDateTime &stop_datetime);
+
+    void HandleStartCycleChanged(const QString &new_cycle);
+    void HandleStopCycleChanged(const QString &new_cycle);
+    void HandleStartPassChanged(const QString &new_pass);
+    void HandleStopPassChanged(const QString &new_pass);
+
 	void HandleWorkspaceChanged();
     void HandleDatasetChanged( CDataset *dataset );
 

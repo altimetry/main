@@ -116,6 +116,9 @@ crs_entry_t MakeCRSEntryFromId( unsigned id )
 			return { id, { 102020, QgsCoordinateReferenceSystem::EpsgCrsId } };		//???? South_Pole_Lambert_Azimuthal_Equal_Area
 			break;
 
+        // TODO RCCC - This projection should be Azimuthal Orthographic Projection
+        // See:  http://polemic.nz/2014/11/21/nz-azimuth-orthographic/
+        // +proj=ortho +lat_0=-36 +lon_0=175 +x_0=0 +y_0=0 +a=6371000 +b=6371000 +units=m +no_defs
 		case PROJ2D_NEAR_SIGHTED:
 			return { id, { 53031, QgsCoordinateReferenceSystem::EpsgCrsId } };		//??? Sphere_Two_point_Equidistant 
 			break;
@@ -190,7 +193,7 @@ CMapProjection::~CMapProjection()
 }
 
 
-#if !defined( BRAT_V3)
+#if !defined(BRAT_V3)
 const QgsCoordinateReferenceSystem& CMapProjection::IdToCRS( unsigned id )
 {
 	// lambda
@@ -224,7 +227,8 @@ const QgsCoordinateReferenceSystem& CMapProjection::IdToCRS( unsigned id )
 		//MakeCRSEntryFromId( PROJ2D_TMERCATOR ),
 	};
 
-	static const bool valid_projections = validate_projections( m );		assert__( valid_projections && ( m.size() == CMapProjection::GetInstance()->size() ) );
+    static const bool valid_projections = validate_projections( m );		assert__( valid_projections && ( m.size() == CMapProjection::GetInstance()->size() ) );     Q_UNUSED(valid_projections);
+
 
 	for ( auto &crs : m )
 		if ( crs.first == id )

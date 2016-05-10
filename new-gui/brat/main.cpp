@@ -31,6 +31,11 @@
 
 int main( int argc, char *argv[] )
 try {
+
+#if defined(_MSC_VER)
+	RestoreSystemSETranslator();
+#endif
+
 	LOG_TRACE( "\n*** Entering main." );
 
 	//  In Linux there must be a strict destruction order; 1. application

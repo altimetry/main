@@ -689,7 +689,6 @@ void CDataExpressionsTreeWidget::HandleSelectionChanged()
 	}
 
 	mExpressionTextWidget->setText( formula_text );
-	mAssignExpressionButton->setEnabled( formula_text.length() > 0 );
 	FormulaChanged();
 
 	emit SelectedFormulaChanged( mCurrentFormula );
@@ -1110,7 +1109,7 @@ void CDataExpressionsTreeWidget::ShowAliases()
         size_t num_rows = checked.size();
 
 		bool hasSelectedItems = false;
-		for ( int i = 0; i < num_rows; i++ )
+        for ( int i = 0; i < (int)num_rows; i++ )
 		{
 			if ( checked[i]->isChecked() )
 			{

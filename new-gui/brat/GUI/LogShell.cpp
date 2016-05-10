@@ -97,7 +97,7 @@ CLogShell::CLogShell( QWidget *parent )
 		"DEBUG_INFO",
 		"DEBUG_FP"
 	};
-    static const DEFINE_ARRAY_SIZE( names );
+    static const DEFINE_ARRAY_SIZE( names ); Q_UNUSED(names_size);
 
 	mSeverityToColorTable.reserve( 10 );
 

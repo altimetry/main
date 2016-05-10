@@ -41,12 +41,12 @@ STRING q2t( const QString &str )
 }
 
 template<>
-inline std::string q2t( const QString &str )
+inline std::string q2t< std::string >( const QString &str )
 {
     return q2a( str );
 }
 template<>
-inline std::wstring q2t( const QString &str )
+inline std::wstring q2t< std::wstring >( const QString &str )
 {
     return q2w( str );
 }

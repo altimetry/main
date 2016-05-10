@@ -7,12 +7,12 @@
 
 #include <QMenuBar>
 
+#include "libbrathl/Tools.h"
+
 #include "new-gui/Common/QtUtils.h"
+#include "new-gui/Common/ConsoleApplicationPaths.h"
 
 #include "TaskProcessor.h"
-
-
-#include "libbrathl/Tools.h"
 
 #include "SchedulerDlg.h"
 
@@ -155,10 +155,13 @@ void CSchedulerDlg::LoadTasks()
 /////////////////////////////////////////////////////////////////////////////////
 
 
-CSchedulerDlg::CSchedulerDlg( QWidget *parent ) 
-	: base_t( parent )
+CSchedulerDlg::CSchedulerDlg( const CConsoleApplicationPaths *paths, QWidget *parent )
+    : base_t( parent )
 	, mIsDialog( parent ? true : false )
+    , mAppPaths( paths )
 {
+    assert__( paths );
+
 	setupUi( this );
 
 	if ( mIsDialog )
@@ -167,11 +170,15 @@ CSchedulerDlg::CSchedulerDlg( QWidget *parent )
 	}
 	else
 	{
-	    setWindowIcon( QIcon("://images/BratIcon.png") );
+        setAttribute( Qt::WA_QuitOnClose, true );
+        setWindowIcon( QIcon("://images/BratIcon.png") );
 		setWindowTitle( qBRATSCHEDULER_APP_TITLE );
 		CreateMenuBar();
 		SetMaximizableDialog( this );
 	}
+
+    if ( !CTasksProcessor::GetInstance() )
+        CTasksProcessor::CreateInstance( mAppPaths->mExecutableDir );
 
 	LoadTasks();
 
@@ -183,6 +190,21 @@ CSchedulerDlg::CSchedulerDlg( QWidget *parent )
 	setMinimumSize( width(), height() );
 }
 
+
+//virtual
+CSchedulerDlg::~CSchedulerDlg()
+{
+}
+
+
+//virtual
+void CSchedulerDlg::closeEvent( QCloseEvent *event )
+{
+    if ( !mIsDialog )
+        QTimer::singleShot( 0, qApp, SLOT( quit() ) );
+
+    base_t::closeEvent( event );
+}
 
 
 /////////////////////////////////////////////////////////////////////////////////

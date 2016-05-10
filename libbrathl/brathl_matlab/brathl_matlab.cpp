@@ -24,7 +24,12 @@
 
 #define MAX_FUNCNAME_LENGTH     50
 
-#include "Tools.h"
+#include "libbrathl/Tools.h"
+
+using namespace brathl;
+
+
+
 
 static void brathlm_SetDataDir(void)
 {
@@ -43,11 +48,10 @@ static void brathlm_SetDataDir(void)
         mexErrMsgTxt("Error copying std::string");
     }
 
-    std::string datadir = CTools::MakeCorrectPath(CTools::AbsolutePath(CTools::DirName(path) +
-                                                                  (PATH_SEPARATOR ".." PATH_SEPARATOR "data")));
+    std::string datadir = CTools::MakeCorrectPath( CTools::AbsolutePath( std::string( path ) + ( PATH_SEPARATOR ".." PATH_SEPARATOR "data") ) );
     if (!datadir.empty())
     {
-        CTools::SetDataDir(datadir);
+        CTools::SetInternalDataDir( datadir );
     }
     mxFree(path);
 }
@@ -1197,7 +1201,7 @@ static void brathlm_ReadData(int nlhs, mxArray *plhs[], int nrhs, const mxArray 
   double	**data = NULL;
   int32_t	num_sizes = 0;
   int32_t	*sizes = NULL;
-  int32_t	actualSize = -1;
+  size_t	actualSize = -1;
   int		ignoreOutOfRange = 0;
   int		statistics = 0;
   double	defaultValue = 0.0;

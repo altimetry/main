@@ -36,7 +36,7 @@ protected:
 	std::string m_fullFileName;
 
 	static bool mFactoryCalled;
-	static CTasksProcessor* mInstance;
+    static CTasksProcessor* smInstance;
 	static std::function<CTasksProcessor*( const std::string &filename, bool lockFile, bool unlockFile )> mFactory;
 
 	bool m_reloadAll = false;
@@ -83,22 +83,29 @@ public:	//TODO: pass to private after transition
 		LoadAndCreateTasks( filename, lockFile, unlockFile );		//if not ... throw ???
 	}
 
-public:
+protected:
     static CTasksProcessor* GetInstance( const std::string* fileName, bool reload = false, bool lockFile = true, bool unlockFile = true );
-	static CTasksProcessor* GetInstance( bool reload = false, bool lockFile = true, bool unlockFile = true )
-	{
-		const std::string path = std::string( getenv( "S3ALTB_ROOT") ) + "/project/dev/source/new-gui/scheduler/BratSchedulerTasksConfig.xml";
-		//std::string fileName = GetConfigFilePath( CSchedulerTaskConfig::m_CONFIG_APPNAME );
-        return GetInstance( &path, reload, lockFile, unlockFile );
 
-		return mInstance;
+public:
+    static CTasksProcessor* GetInstance( bool reload = false, bool lockFile = true, bool unlockFile = true )
+    {
+        if ( !smInstance || smInstance->m_fullFileName.empty())
+            return nullptr;
+
+        return GetInstance( &smInstance->m_fullFileName, reload, lockFile, unlockFile );
+    }
+    static CTasksProcessor* CreateInstance( const std::string &exec_path, bool reload = false, bool lockFile = true, bool unlockFile = true )
+	{
+        const std::string path = exec_path + "/BratSchedulerTasksConfig.xml";
+
+        return GetInstance( &path, reload, lockFile, unlockFile );
 	}
 
 	static void DestroyInstance()
 	{
 		assert__( mFactoryCalled );
-		delete mInstance;
-		mInstance = nullptr;
+        delete smInstance;
+        smInstance = nullptr;
 	}
 
 

@@ -4,6 +4,11 @@
 #include <QApplication>
 #include <QString>
 
+class CConsoleApplicationPaths;
+
+
+
+
 
 class QSchedulerApplication : public QApplication
 {
@@ -15,6 +20,10 @@ class QSchedulerApplication : public QApplication
 
     // static data members
 
+    static const CConsoleApplicationPaths *smApplicationPaths;
+
+protected:
+
 #if defined(MEM_LEAKS)
     static _CrtMemState FirstState;			//before all run-time allocations
     static _CrtMemState BeforeRunState;		//after app creation, before running engine
@@ -25,6 +34,13 @@ class QSchedulerApplication : public QApplication
 
 public:
     static void dumpMemoryStatistics();
+
+    static int OffGuiErrorDialog( int error_type, char const *error_msg );
+
+    static const CConsoleApplicationPaths* ApplicationPaths()
+    {
+        return smApplicationPaths;
+    }
 
 private:
 

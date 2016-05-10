@@ -215,11 +215,26 @@ inline const char* typeName(CBratAlgorithmParam::bratAlgoParamTypeVal t)
 }
 
 
+
+
+
+//////////////////////////////////////////////////////////////
+//						Hack
+//////////////////////////////////////////////////////////////
+
+//...caused by poor python API
+
+template< typename CHAR >
+inline CHAR* ccast( const CHAR *s )
+{
+    return const_cast<CHAR*>( s );
+}
+
+
+
 //////////////////////////////////////////////////////////////
 //						Python Engine
 //////////////////////////////////////////////////////////////
-
-//#define TEST_SET_PYTHON_ENVIRONMENT
 
 
 /**
@@ -229,31 +244,37 @@ inline const char* typeName(CBratAlgorithmParam::bratAlgoParamTypeVal t)
  */
 class PythonEngine
 {
-    PyObject *m_global_dict = nullptr;
-
-public:
-    static PythonEngine& Instance()
+    static PythonEngine*& InstancePointer()
     {
-        static PythonEngine pe;
+        static PythonEngine *pe = nullptr;
         return pe;
     }
 
-protected:
-    PythonEngine( wchar_t *wargv0 = nullptr )
+public:
+    static PythonEngine* CreateInstance( wchar_t *pypath )
     {
+        static PythonEngine *&pe = InstancePointer();
+		if (!pe)
+			pe = new PythonEngine( pypath );
 
-#if defined (TEST_SET_PYTHON_ENVIRONMENT)
-		Py_SetPythonHome( L"J:\\Python\\301" );
-		Py_SetPath( L"J:\\Python\\301" );
-		std::wcout << Py_GetPythonHome() << std::endl;
-		PyRun_SimpleString( "import sys" );
-		PyRun_SimpleString( "print( sys.path )" );
-#endif
+        return pe;
+    }
 
-		if ( wargv0 )
-			Py_SetProgramName( wargv0 );  // optional but recommended
+    static PythonEngine* Instance()
+    {
+		return InstancePointer();
+    }
 
-        Py_Initialize();
+protected:
+    PyObject *m_global_dict = nullptr;
+
+    PythonEngine( wchar_t *pypath )
+    {
+		assert__( pypath );
+
+        Py_SetPythonHome( pypath );
+
+        Py_InitializeEx( 0 );
 
         // Get a reference to the main module and global dictionary
         //
@@ -325,14 +346,6 @@ class PyAlgo : public CBratAlgorithmBase
 
     //static members
 
-    //...hack caused by poor python API
-
-    static inline char* ccast( const char *s )
-    {
-        return const_cast<char*>( s );
-    }
-
-
     //instance members
 
     const std::string mFilePath;    /**< The path of the algorithm python script/module. */
@@ -352,8 +365,10 @@ public:
      * \param[in]    file_path         The path of the algorithm python script/module.
      * \param[in]    class_name         Name of the algorithm class.
      */
-    PyAlgo( const std::string file_path, const std::string &class_name ) :
-        mFilePath( file_path ), mClassName( class_name )
+    PyAlgo( const std::string file_path, const std::string &class_name )
+        : base_t()
+        , mFilePath( file_path )
+        , mClassName( class_name )
     {
         if ( !IsFile(mFilePath.c_str()) )
             throw e_file_not_found;

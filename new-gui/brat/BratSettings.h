@@ -48,8 +48,14 @@ public:
     std::string m_lastColorTable;
 
 	bool mLoadLastWorkspaceAtStartUp = true;
+
+#if defined(BRAT_ARCHITECTURE_64)
     CMapWidget::ELayerBaseType mLayerBaseType = CMapWidget::ELayerBaseType::eRasterLayer;
+#else
+    CMapWidget::ELayerBaseType mLayerBaseType = CMapWidget::ELayerBaseType::eRasterLayer;
+#endif
 	bool mDesktopManagerSdi = true;
+	bool mCheckOpenGL = true;
 
 
     //////////////////////////////////////

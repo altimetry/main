@@ -53,7 +53,7 @@ std::string CSchedulerTaskConfig::m_CONFIG_APPNAME = "BratScheduler";
 const std::string CSchedulerTaskConfig::m_CONFIG_FILE_NAME = "BratSchedulerTasksConfig.xml";
 const std::string CSchedulerTaskConfig::m_LOG_REL_PATH = "Logs";
 
-//CSchedulerTaskConfig* CSchedulerTaskConfig::mInstance = NULL;
+//CSchedulerTaskConfig* CSchedulerTaskConfig::smInstance = NULL;
 wxLogBuffer* CSchedulerTaskConfig::m_logBuffer = NULL;
 wxLog* CSchedulerTaskConfig::m_initialLog = NULL;
 
@@ -176,7 +176,7 @@ void CSchedulerTaskConfig::PrepareSmartCleaner()
   // GetInstance interfaces.
   //wxCriticalSectionLocker locker(CSchedulerTaskConfig::CSmartCleaner::m_critSectSmartCleanerInstance);
   //cout << "Enter PrepareSmartCleaner" << std::endl;
-  static CSmartCleaner object(&CSchedulerTaskConfig::mInstance, &CSchedulerTaskConfig::m_logBuffer);
+  static CSmartCleaner object(&CSchedulerTaskConfig::smInstance, &CSchedulerTaskConfig::m_logBuffer);
 }
 //----------------------------------------
 CSchedulerTaskConfig* CSchedulerTaskConfig::GetInstance( bool reload, bool lockFile, bool unlockFile )		//bool reload = false, bool lockFile, bool unlockFile
@@ -194,19 +194,19 @@ CSchedulerTaskConfig* CSchedulerTaskConfig::GetInstance( const std::string* file
 		CreateFactory< CSchedulerTaskConfig >();
 	}
 
-    if ( mInstance )
+    if ( smInstance )
 		return dynamic_cast<CSchedulerTaskConfig*>( base_t::GetInstance( fileName, reload, lockFile, unlockFile ) );
 //	{
 //		if ( reload )
 //		{
-//			if ( mInstance->IsReloadAll() )
+//			if ( smInstance->IsReloadAll() )
 //			{
-//				mInstance->LoadAndCreateTasks( *fileName, lockFile, unlockFile );
+//				smInstance->LoadAndCreateTasks( *fileName, lockFile, unlockFile );
 //			}
 //			else
 //			{
 //				// "Reload" function just load (add in memory) new defined tasks from the configuration file
-//				mInstance->ReloadOnlyNew(
+//				smInstance->ReloadOnlyNew(
 ///*					[]( const std::string &filename, bool lockFile, bool unlockFile )
 //					{ 
 //						return new CTasksProcessor( filename, lockFile, unlockFile ); 
@@ -233,9 +233,9 @@ CSchedulerTaskConfig* CSchedulerTaskConfig::GetInstance( const std::string* file
 			std::string errorMsg;
 			try
 			{
-                //mInstance = new CSchedulerTaskConfig( *fileName, lockFile, unlockFile );
-                mInstance = dynamic_cast<CSchedulerTaskConfig*>( base_t::GetInstance( fileName, reload, lockFile, unlockFile ) );
-                bOk = mInstance && mInstance->IsOk();
+                //smInstance = new CSchedulerTaskConfig( *fileName, lockFile, unlockFile );
+                smInstance = dynamic_cast<CSchedulerTaskConfig*>( base_t::GetInstance( fileName, reload, lockFile, unlockFile ) );
+                bOk = smInstance && smInstance->IsOk();
 			}
 			catch ( CException& e )
 			{
@@ -272,7 +272,7 @@ CSchedulerTaskConfig* CSchedulerTaskConfig::GetInstance( const std::string* file
 		}
 	}
 
-    return dynamic_cast<CSchedulerTaskConfig*>( mInstance );
+    return dynamic_cast<CSchedulerTaskConfig*>( smInstance );
 }
 ////----------------------------------------------------
 //CSchedulerTaskConfig* CSchedulerTaskConfig::GetInstance(const std::string* fileName, bool reload /* = false */, const std::string& encoding /* = "UTF-8" */)

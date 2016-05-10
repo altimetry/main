@@ -1,6 +1,7 @@
 #include "stdafx.h"
 
 #include "new-gui/Common/+Utils.h"
+#include "new-gui/Common/+UtilsIO.h"
 
 #include "TaskProcessor.h"
 
@@ -17,7 +18,7 @@
 //static 
 bool CTasksProcessor::mFactoryCalled = false;
 //static 
-CTasksProcessor* CTasksProcessor::mInstance = nullptr;
+CTasksProcessor* CTasksProcessor::smInstance = nullptr;
 //static 
 std::function<CTasksProcessor*( const std::string &filename, bool lockFile, bool unlockFile )> CTasksProcessor::mFactory = nullptr;
 
@@ -25,24 +26,24 @@ std::function<CTasksProcessor*( const std::string &filename, bool lockFile, bool
 
 CTasksProcessor* CTasksProcessor::GetInstance( const std::string* fileName, bool reload /* = false */, bool lockFile /* = true */, bool unlockFile )
 {
-	if ( !mFactory )
-	{
-		CreateFactory();
-	}
-	//wxCriticalSectionLocker locker( m_critSectSchedulerTaskConfigInstance );			// TODO
+    if ( !mFactory )
+    {
+        CreateFactory();
+    }
+    //wxCriticalSectionLocker locker( m_critSectSchedulerTaskConfigInstance );			// TODO
 	
-	if ( mInstance )
+    if ( smInstance )
 	{
 		if ( reload )
 		{
-			if ( mInstance->IsReloadAll() )
+            if ( smInstance->IsReloadAll() )
 			{
-				mInstance->LoadAndCreateTasks( *fileName, lockFile, unlockFile );
+                smInstance->LoadAndCreateTasks( *fileName, lockFile, unlockFile );
 			}
 			else
 			{
 				// "Reload" function just load (add in memory) new defined tasks from the configuration file
-				mInstance->ReloadOnlyNew( lockFile, unlockFile );
+                smInstance->ReloadOnlyNew( lockFile, unlockFile );
 			}
 		}
 	}
@@ -64,9 +65,9 @@ CTasksProcessor* CTasksProcessor::GetInstance( const std::string* fileName, bool
 			std::string errorMsg;
 			try
 			{
-				//mInstance = new CSchedulerTaskConfig( *fileName, lockFile, unlockFile );
-				mInstance = mFactory( *fileName, lockFile, unlockFile );
-				bOk = mInstance->IsOk();
+                //smInstance = new CSchedulerTaskConfig( *fileName, lockFile, unlockFile );
+                smInstance = mFactory( *fileName, lockFile, unlockFile );
+                bOk = smInstance->IsOk();
 			}
 			catch ( CException& e )
 			{
@@ -103,7 +104,7 @@ CTasksProcessor* CTasksProcessor::GetInstance( const std::string* fileName, bool
 		}
 	}
 
-	return mInstance;
+    return smInstance;
 }
 
 
@@ -278,11 +279,18 @@ bool CTasksProcessor::LoadAllTasks()
 {
 	RemoveMapBratTasks();
 
-	std::string ex;		bool result = false;
-	try {
-		result = load( m_fullFileName );
+    std::string ex;
+    bool result = true;
 
-#if defined(DEBUG)
+	try {
+		if ( !IsFile( m_fullFileName ) )
+		{
+			result = store( m_fullFileName );
+		}
+
+		result = result && load( m_fullFileName );
+
+#if defined(DEBUG) || defined(_DEBUG)
 
 		CTasksProcessor debug_tasks;
 		if ( result )

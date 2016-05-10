@@ -249,7 +249,7 @@ void CStringArray::FindIndexes(const std::string& str, CIntArray& indexes, bool 
 //----------------------------------------
 void CStringArray::GetValues( const CIntArray& indexes, CStringArray& values ) const
 {
-    const int32_t maxIndex =  this->size() - 1;
+    const int32_t maxIndex =  (int32_t)this->size() - 1;
 
 	for ( auto it = indexes.begin(); it != indexes.end(); it++ )
 	{
@@ -365,7 +365,7 @@ bool CStringArray::Remove( const CStringArray& array, bool compareNoCase /* = fa
 	bool bOk = Intersect( array, intersect, compareNoCase );
 	if ( bOk )
 	{
-        for ( long i = intersect.size() - 1; i >= 0; i-- )
+        for ( long i = (long)intersect.size() - 1; i >= 0; i-- )
 		{
 			this->Erase( intersect.at( i ) );
 		}

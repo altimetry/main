@@ -55,9 +55,9 @@ inline std::string GetLastExtensionFromPath( const std::string &path )
 
 
 template< typename STRING >
-inline std::string GetDirectoryFromPath( const STRING &path )
+inline STRING GetDirectoryFromPath( const STRING &path )
 {
-	return q2t< std::string >( QFileInfo( t2q( path ) ).absoluteDir().absolutePath() );
+	return q2t< STRING >( QFileInfo( t2q( path ) ).absoluteDir().absolutePath() );
 }
 
 

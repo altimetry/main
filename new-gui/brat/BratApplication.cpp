@@ -13,6 +13,8 @@
 
 bool CBratApplication::smPrologueCalled = false;
 CApplicationPaths *CBratApplication::smApplicationPaths = nullptr;
+const PythonEngine *CBratApplication::sm_pe = nullptr;
+
 
 // Tries to create a QApplication on-the-fly to able to use the
 //	 GUI, since the only place we will call this is in main, where 
@@ -60,16 +62,46 @@ void CBratApplication::Prologue( int argc, char *argv[] )
 
 	LOG_TRACE( "prologue tasks.." );
 	
+#if defined(_MSC_VER)
+	if ( !CheckSETranslator() )
+		LOG_TRACE( "WARNING: structured exceptions translator not assigned." );
+
+	SetAbortSignal();
+#endif
+
 	safe_debug_envar_msg( "QGIS_LOG_FILE" );
 	safe_debug_envar_msg( "QGIS_DEBUG_FILE" );
 	safe_debug_envar_msg( "QGIS_DEBUG" );
+
+
+	// Application Pahs ////////////////////////////////////
 
     static CApplicationPaths brat_paths( argv[0] );		// (*)
     if ( !brat_paths.IsValid() )
 		throw CException( "One or more path directories are invalid:\n" + brat_paths.GetErrorMsg() );
 
 	smApplicationPaths = &brat_paths;
-	
+
+
+	// Python Engine ////////////////////////////////////
+
+	try {
+		std::wstring ws = q2w( brat_paths.mExecutableDir.c_str() ) + L"/Python";
+		wchar_t *argv_buffer = new wchar_t[ ws.length() + 1 ];
+		memcpy( argv_buffer, ws.c_str(), ( ws.length() + 1 ) * sizeof( wchar_t ) );
+		sm_pe = PythonEngine::CreateInstance( argv_buffer );
+    }
+    catch ( const CException &e )
+    {
+        LOG_TRACEstd( e.Message() );
+		sm_pe = nullptr;
+    }
+    catch ( ... )
+    {
+        LOG_TRACE( "Unknown exception caught creating embedded Python." );
+		sm_pe = nullptr;
+    }
+
     smPrologueCalled = true;
 
 	LOG_TRACE( "prologue tasks finished." );
@@ -184,13 +216,6 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 	CreateSplash();
 
 
-	// OpenGL
-	//
-	ShowSplash( "Checking OpenGL..." );
-    //CheckOpenGL();							//throws on failure
-	LOG_TRACE( "OpenGL check successful." );
-
-
 	// QGIS paths
 	//
 	setPkgDataPath( mSettings.BratPaths().mInternalDataDir.c_str() ); // returned by QgsApplication::srsDbFilePath();	variable: mPkgDataPath
@@ -198,11 +223,8 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 	LOG_TRACE( "showSettings==" + showSettings() );
 	LOG_TRACE( "qgisSettingsDirPath==" + qgisSettingsDirPath() );
 	LOG_TRACE( "qgisUserDbFilePath==" + qgisUserDbFilePath() );		//variable mConfigPath
-
-
-	// Register Brat algorithms
-	//
-	RegisterAlgorithms();
+    LOG_TRACEstd( "Qt plugins==" + mSettings.BratPaths().mQtPluginsDir );
+    LOG_TRACEstd( "QGIS plugins==" + mSettings.BratPaths().mQgisPluginsDir );
 
 
 	// To be sure that number have always a decimal point (and not a comma or something else)
@@ -223,6 +245,22 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 	// Keep v3 happy
 	//
 	CTools::SetInternalDataDir( mSettings.BratPaths().mInternalDataDir );	assert__( CTools::DirectoryExists( CTools::GetInternalDataDir() ) );
+
+
+	// Register Brat algorithms
+	//
+	LOG_TRACE( "Registering algorithms..." );
+	RegisterAlgorithms();
+
+
+	// OpenGL
+	//
+	ShowSplash( "Checking OpenGL..." );
+	if ( mSettings.mCheckOpenGL )
+	{
+		CheckOpenGL();							//throws on failure
+		LOG_TRACE( "OpenGL check successful." );
+	}
 
 
 	// Use application paths to initialize COperation internal path references
@@ -328,6 +366,8 @@ void CBratApplication::ShowSplash( const std::string &msg, bool disable_events )
 
 	assert__( mSplash );
 
+	LOG_TRACE( msg.c_str() );
+
 	mSplash->showMessage( msg.c_str(), Qt::AlignHCenter | Qt::AlignBottom, Qt::white );
 	if ( !disable_events )
 		processEvents();
@@ -393,48 +433,53 @@ void CBratApplication::RegisterAlgorithms()
 
 	//load python algorithms
 
-	//const std::string python_algorithms_path = mSettings.BratPaths().mExternalDataDir + "/python";
-	//try
-	//{
-	//	QDir sourceDir( python_algorithms_path.c_str() );
-	//	QStringList files = sourceDir.entryList( QDir::Files );
-	//	auto &registry = CBratAlgorithmBaseRegistry::GetInstance();
-	//	for ( int i = 0; i < files.count(); i++ )
-	//	{
-	//		auto file_name = q2a( files[ i ] );
-	//		if ( StartsWith( file_name, file_prefix ) && EndsWith( file_name, file_suffix ) )
-	//		{
-	//			auto path = python_algorithms_path + "/" + file_name;
-	//			auto class_name = file_name.substr( file_prefix.length() );
-	//			class_name = class_name.substr( 0, class_name.length() - file_suffix.length() );				//qDebug() << files[ i ];
-	//			registry.Add( new python_base_creator( path, class_name ) );
-	//		}
-	//	}
-	//}
-	//catch ( const CException &e )
-	//{
-	//	LOG_WARN( e.Message() );
-	//	SimpleErrorBox( e.Message() );
-	//}
-	//catch ( ... )
-	//{
-	//	static const std::string msg(
-	//		"Unknown exception caught loading python algorithm.\nPlease make sure that the python file name matches the pattern "
-	//		+ file_prefix + "<python-class-name>" + file_suffix );
-	//	LOG_WARN( msg );
-	//	SimpleErrorBox( msg );
-	//}
+    if ( sm_pe == nullptr )
+	{
+		const std::string msg = "Python engine could not be created.\nPython algorithms will not be available.";
+        SimpleErrorBox( msg );
+		LOG_TRACEstd( msg );
+		return;
+	}
+
+    const std::string python_algorithms_path = mSettings.BratPaths().mPortableBasePath + "/python";
+	if ( !IsDir( python_algorithms_path ) )
+		return;
+
+    try
+    {
+		LOG_TRACEstd( "Searching python algorithms in " + python_algorithms_path );
+
+        QDir sourceDir( python_algorithms_path.c_str() );
+        QStringList files = sourceDir.entryList( QDir::Files );
+        auto &registry = CBratAlgorithmBaseRegistry::GetInstance();
+        for ( int i = 0; i < files.count(); i++ )
+        {
+            std::string file_name = q2a( files[ i ] );
+            if ( StartsWith( file_name, file_prefix ) && EndsWith( file_name, file_suffix ) )
+            {
+                std::string path = python_algorithms_path + "/" + file_name;
+                std::string class_name = file_name.substr( file_prefix.length() );
+                class_name = class_name.substr( 0, class_name.length() - file_suffix.length() );				//qDebug() << files[ i ];
+                registry.Add( new python_base_creator( path, class_name ) );
+            }
+        }
+
+		LOG_TRACE( "Finished registering python algorithms." );
+    }
+    catch ( const CException &e )
+    {
+        LOG_WARN( e.Message() );
+        SimpleErrorBox( e.Message() );
+    }
+    catch ( ... )
+    {
+        static const std::string msg(
+            "Unknown exception caught loading python algorithm.\nPlease make sure that the python file name matches the pattern "
+            + file_prefix + "<python-class-name>" + file_suffix );
+        LOG_WARN( msg );
+        SimpleErrorBox( msg );
+    }
 }
-
-
-////////////////////////////////////////////////
-////////////////////////////////////////////////
-//			PythonEngine Singleton
-////////////////////////////////////////////////
-////////////////////////////////////////////////
-
-//const PythonEngine* PyAlgo::sm_pe = &PythonEngine::Instance();
-
 
 
 

@@ -25,7 +25,7 @@
      <x>0</x>
      <y>0</y>
      <width>982</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu_File">
@@ -246,7 +246,7 @@
   </action>
   <action name="action_Test">
    <property name="icon">
-    <iconset resource="../brat-lab/res/brat-lab.qrc">
+    <iconset resource="../Common/Resources/brat.qrc">
      <normaloff>:/images/test.png</normaloff>:/images/test.png</iconset>
    </property>
    <property name="text">
@@ -479,9 +479,8 @@ The workspace directory will not change</string>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="../brat-lab/res/brat-lab.qrc"/>
-  <include location="../Common/Resources/brat.qrc"/>
   <include location="Resources/images/qgis-themes-2.qrc"/>
+  <include location="../Common/Resources/brat.qrc"/>
   <include location="../Common/Resources/brat.qrc"/>
  </resources>
  <connections>

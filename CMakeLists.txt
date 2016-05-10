@@ -25,9 +25,8 @@ message(STATUS "System type: ${CMAKE_SYSTEM_NAME}")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY bin CACHE INTERNAL "Directory for all programs")
 set(CMAKE_LIBRARY_OUTPUT_DIRECTORY lib CACHE INTERNAL "Directory for all dynamic libraries")
 set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY lib CACHE INTERNAL "Directory for all static libraries")
-set(CMAKE_MODULE_PATH ${BRAT_SOURCE_DIR}/CMakeModules ${CMAKE_MODULE_PATH} CACHE INTERNAL "Directories where to find modules defs")
+set(CMAKE_MODULE_PATH ${BRAT_SOURCE_DIR}/CMakeModules ${CMAKE_MODULE_PATH} CACHE INTERNAL "Directories where to find module definitions")
 set(CMAKE_BUILD_TYPE "" CACHE STRING "Build type option")
-
 
 # Make sure to override /usr/local as default installation
 # prefix, because BRAT needs to be installed in a subdirectory of
@@ -40,6 +39,7 @@ if(NOT WIN32)
   endif(CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 endif(NOT WIN32)
 
+
 if(WIN32)
 
   set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${CMAKE_ARCHIVE_OUTPUT_DIRECTORY}/${CMAKE_BUILD_TYPE})
@@ -50,38 +50,8 @@ if(WIN32)
     set(CMAKE_DEBUG_POSTFIX "")
   endif(CMAKE_BUILD_TYPE MATCHES "Debug")
 
+
   if (MSVC)
-
-	  if(MSVC60)
-		set(MSPROJECT_TEMPLATE_DIRECTORY ${BRAT_SOURCE_DIR}/CMakeMsvc6Templates)
-
-		MESSAGE(STATUS "Processing MSVC60 redistributable DLLs...")
-	
-		# Microsoft's redistributable DLLs
-		# 
-		install(FILES "C:/WINDOWS/system32/msvcp60.dll" DESTINATION bin/)
-		install(FILES "C:/WINDOWS/system32/msvcrt.dll" DESTINATION bin/)
-
-		# Note: abusing configure_file again, just to get things in
-		# the right location for InstallBuilder. This is now getting
-		# out of hand however, and I will fix this properly (using
-		# the installed files instead) with top priority.
-		# 
-		configure_file("C:/WINDOWS/system32/msvcp60.dll"
-					   ${BRAT_BINARY_DIR}/bin/msvcp60.dll
-					   COPYONLY)
-		configure_file("C:/WINDOWS/system32/msvcrt.DLL"
-					   ${BRAT_BINARY_DIR}/bin/msvcrt.DLL
-					   COPYONLY)
-
-		configure_file("C:/WINDOWS/system32/msvcp60.dll"
-					   ${BRAT_BINARY_DIR}/matlab/msvcp60.dll
-					   COPYONLY)
-		configure_file("C:/WINDOWS/system32/msvcrt.DLL"
-					   ${BRAT_BINARY_DIR}/matlab/msvcrt.DLL
-					   COPYONLY)
-
-	  endif(MSVC60)
 
 	  if(MSVC90)
 
@@ -293,20 +263,23 @@ endif(CMAKE_BUILD_TYPE MATCHES "^$")
 # Global compilation settings
 #
 if(CMAKE_COMPILER_IS_GNUCXX)
-  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC" )
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++0x" )
-  set(BRAT_GNU_OPTIONS "-Wall")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fPIC" )
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fPIC -std=c++0x -Wl,--rpath=./" )
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,--rpath=./" )
+	SET(CMAKE_INSTALL_RPATH "$ORIGIN/.")
+	set(BRAT_GNU_OPTIONS "-Wall")
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11" )
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -stdlib=libc++ -std=c++11 -Wno-dangling-else -Wno-format-security" )
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++" )
 endif()
 
 IF (WIN32)
 #    IF ("${BRAT_TARGET_PROCESSOR}" STREQUAL "Win32")
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _USING_V110_SDK71_" )
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D _USING_V110_SDK71_" )
+        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D _USING_V110_SDK71_ /D _CRT_SECURE_NO_WARNINGS" )
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D _USING_V110_SDK71_ /D _CRT_SECURE_NO_WARNINGS" )
 		IF ("${BRAT_TARGET_PROCESSOR}" STREQUAL "x64")
 			SET(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /SUBSYSTEM:WINDOWS\",5.02\"")
 		ELSE()
@@ -324,6 +297,697 @@ if(MSVC)
 endif(MSVC)
 
 
+# RUNTIME ##################################################################################################
+
+
+IF (BRAT_BUILD_GUI)
+
+	# VC90 vcredist_x64.exe or vcredist_x86.exe still needed in XP
+	
+	IF (NOT APPLE)
+		IF (NOT EXISTS ${PYTHON_BIN_DIR})
+			MESSAGE(FATAL_ERROR "PYTHON_BIN_DIR not defined or not found." )
+		ENDIF()
+		IF (WIN32)
+			IF (NOT EXISTS ${PYTHON_LIBRARY})
+				MESSAGE(FATAL_ERROR "PYTHON_LIBRARY not defined or not found." )
+			ENDIF()
+		ENDIF()
+	ENDIF (NOT APPLE)
+
+
+
+	IF (NOT EXISTS ${QT_QMAKE_EXECUTABLE})
+		MESSAGE(FATAL_ERROR "QT_QMAKE_EXECUTABLE not defined or not found." )
+	ELSE()
+	ENDIF()
+
+	IF (NOT EXISTS ${OSG_BIN_DIR})
+		MESSAGE(FATAL_ERROR "OSG_BIN_DIR not defined or not found." )
+	ENDIF()
+
+	IF (NOT EXISTS ${QWT_BIN_DIR})
+		MESSAGE(FATAL_ERROR "QWT_BIN_DIR not defined or not found: ${QWT_BIN_DIR}." )
+	ENDIF()
+
+	IF (NOT EXISTS ${QWT3D_BIN_DIR})
+		MESSAGE(FATAL_ERROR "QWT3D_BIN_DIR not defined or not found." )
+	ENDIF()
+
+	
+	get_filename_component( QT_BINDIR ${QT_QMAKE_EXECUTABLE} PATH )
+	get_filename_component( QT_BINDIR_PARENT ${QT_BINDIR} PATH )
+	set( QT_LIBDIR ${QT_BINDIR_PARENT}/lib )
+	IF(NOT WIN32)
+		set( QT_BINDIR ${QT_LIBDIR} )
+	ENDIF(NOT WIN32)
+
+	get_filename_component( QTDIR ${QT_BINDIR} PATH )
+	get_filename_component( QGIS_DIR ${QGIS_BIN_DIR} PATH )
+	
+ENDIF (BRAT_BUILD_GUI)
+
+
+
+
+
+IF( WIN32)
+	SET( DBG_SUFFIX ${CMAKE_DEBUG_POSTFIX} )
+	SET( DLL_SUFFIX .dll )
+	SET( EXEC_SUFFIX .exe )
+
+ELSEIF(APPLE)
+	if(CMAKE_BUILD_TYPE MATCHES "Debug")
+		SET( DBG_SUFFIX _debug )
+		SET( OSG_DBG_SUFFIX d )
+	else(CMAKE_BUILD_TYPE MATCHES "Debug")
+		SET( DBG_SUFFIX )
+		SET( OSG_DBG_SUFFIX )
+	endif(CMAKE_BUILD_TYPE MATCHES "Debug")
+
+	SET( DLL_SUFFIX .dylib )
+	SET( EXEC_SUFFIX )
+
+ELSE(WIN32)
+	if(CMAKE_BUILD_TYPE MATCHES "Debug")
+		SET( OSG_DBG_SUFFIX d )
+	else(CMAKE_BUILD_TYPE MATCHES "Debug")
+		SET( OSG_DBG_SUFFIX )
+	endif(CMAKE_BUILD_TYPE MATCHES "Debug")
+
+	SET( DBG_SUFFIX )
+	SET( DLL_SUFFIX .so )
+	SET( EXEC_SUFFIX )
+ENDIF(WIN32)
+
+
+
+
+# Files for main binary directory or Frameworks directory in Mac
+#
+#	- Qt		(Frameworks)
+#	- OSG		(Frameworks)
+#	- qwt		(Frameworks)
+#	- qwt3d		(Frameworks)
+#	- QGIS		(Frameworks)
+#	- osgEarth	(Frameworks)
+#	- OSGeo4W
+#	- trace scripts
+
+IF( WIN32)
+	SET( OTHER_FILES
+		${OTHER_FILES}
+		${QT_BINDIR}/QtCore${DBG_SUFFIX}4${DLL_SUFFIX}
+		${QT_BINDIR}/QtGui${DBG_SUFFIX}4${DLL_SUFFIX}
+		${QT_BINDIR}/QtOpenGL${DBG_SUFFIX}4${DLL_SUFFIX}
+		${QT_BINDIR}/QtNetwork${DBG_SUFFIX}4${DLL_SUFFIX}
+		${QT_BINDIR}/QtSvg${DBG_SUFFIX}4${DLL_SUFFIX}
+		${QT_BINDIR}/QtXml${DBG_SUFFIX}4${DLL_SUFFIX}
+		${QT_BINDIR}/QtWebKit${DBG_SUFFIX}4${DLL_SUFFIX}
+		${OSG_BIN_DIR}/osg130-osg${DBG_SUFFIX}${DLL_SUFFIX}
+		${OSG_BIN_DIR}/osg130-osgDB${DBG_SUFFIX}${DLL_SUFFIX}
+		${OSG_BIN_DIR}/osg130-osgGA${DBG_SUFFIX}${DLL_SUFFIX}
+		${OSG_BIN_DIR}/osg130-osgUtil${DBG_SUFFIX}${DLL_SUFFIX}
+		${OSG_BIN_DIR}/osg130-osgQt${DBG_SUFFIX}${DLL_SUFFIX}
+		${OSG_BIN_DIR}/osg130-osgViewer${DBG_SUFFIX}${DLL_SUFFIX}
+		${OSG_BIN_DIR}/osg130-osgShadow${DBG_SUFFIX}${DLL_SUFFIX}
+		${OSG_BIN_DIR}/osg130-osgText${DBG_SUFFIX}${DLL_SUFFIX}
+		${OSG_BIN_DIR}/osg130-osgTerrain${DBG_SUFFIX}${DLL_SUFFIX}
+		${OSG_BIN_DIR}/osg130-osgManipulator${DBG_SUFFIX}${DLL_SUFFIX}
+		${OSG_BIN_DIR}/osg130-osgAnimation${DBG_SUFFIX}${DLL_SUFFIX}
+		${OSG_BIN_DIR}/osg130-osgSim${DBG_SUFFIX}${DLL_SUFFIX}
+		${OSG_BIN_DIR}/ot20-OpenThreads${DBG_SUFFIX}${DLL_SUFFIX}
+		${OSG_BIN_DIR}/zlib${DBG_SUFFIX}${DLL_SUFFIX}
+		${OSG_BIN_DIR}/gdal110${DLL_SUFFIX}
+		${QWT_BIN_DIR}/qwt${DBG_SUFFIX}5${DLL_SUFFIX}
+		${QWT3D_BIN_DIR}/qwtplot3d${DLL_SUFFIX}
+		${QGIS_BIN_DIR}/qgis_core${DLL_SUFFIX}
+		${QGIS_BIN_DIR}/qgis_gui${DLL_SUFFIX}
+		${OSG_EARTH_BIN_DIR}/osgEarth${DBG_SUFFIX}${DLL_SUFFIX}
+		${OSG_EARTH_BIN_DIR}/osgEarthAnnotation${DBG_SUFFIX}${DLL_SUFFIX}
+		${OSG_EARTH_BIN_DIR}/osgEarthFeatures${DBG_SUFFIX}${DLL_SUFFIX}
+		${OSG_EARTH_BIN_DIR}/osgEarthQt${DBG_SUFFIX}${DLL_SUFFIX}
+		${OSG_EARTH_BIN_DIR}/osgEarthSymbology${DBG_SUFFIX}${DLL_SUFFIX}
+		${OSG_EARTH_BIN_DIR}/osgEarthUtil${DBG_SUFFIX}${DLL_SUFFIX}
+		)
+
+	IF (CMAKE_BUILD_TYPE MATCHES "Debug")
+		SET( OTHER_FILES
+			${OTHER_FILES}
+			${QT_LIBDIR}/QtCore${DBG_SUFFIX}4.pdb
+			${QT_LIBDIR}/QtGui${DBG_SUFFIX}4.pdb
+			${QT_LIBDIR}/QtOpenGL${DBG_SUFFIX}4.pdb
+			${QT_LIBDIR}/QtNetwork${DBG_SUFFIX}4.pdb
+			${QT_LIBDIR}/QtSvg${DBG_SUFFIX}4.pdb
+			${QT_LIBDIR}/QtXml${DBG_SUFFIX}4.pdb
+			${QT_LIBDIR}/QtWebKit${DBG_SUFFIX}4.pdb
+			${OSG_BIN_DIR}/osg130-osg${DBG_SUFFIX}.pdb
+			${OSG_BIN_DIR}/osg130-osgDB${DBG_SUFFIX}.pdb
+			${OSG_BIN_DIR}/osg130-osgGA${DBG_SUFFIX}.pdb
+			${OSG_BIN_DIR}/osg130-osgUtil${DBG_SUFFIX}.pdb
+			${OSG_BIN_DIR}/osg130-osgQt${DBG_SUFFIX}.pdb
+			${OSG_BIN_DIR}/osg130-osgViewer${DBG_SUFFIX}.pdb
+			${OSG_BIN_DIR}/osg130-osgShadow${DBG_SUFFIX}.pdb
+			${OSG_BIN_DIR}/osg130-osgText${DBG_SUFFIX}.pdb
+			${OSG_BIN_DIR}/osg130-osgTerrain${DBG_SUFFIX}.pdb
+			${OSG_BIN_DIR}/osg130-osgManipulator${DBG_SUFFIX}.pdb
+			${OSG_BIN_DIR}/osg130-osgAnimation${DBG_SUFFIX}.pdb
+			${OSG_BIN_DIR}/osg130-osgSim${DBG_SUFFIX}.pdb
+			# ${OSG_BIN_DIR}/ot20-OpenThreads${DBG_SUFFIX}.pdb
+			${OSG_BIN_DIR}/zlib${DBG_SUFFIX}.pdb
+			# ${OSG_BIN_DIR}/gdal110.pdb
+			${QWT_BIN_DIR}/qwt${DBG_SUFFIX}5.pdb
+			${QWT3D_BIN_DIR}/qwtplot3d.pdb
+			${QGIS_BIN_DIR}/qgis_core.pdb
+			${QGIS_BIN_DIR}/qgis_gui.pdb
+			${OSG_EARTH_BIN_DIR}/osgEarth${DBG_SUFFIX}.pdb
+			${OSG_EARTH_BIN_DIR}/osgEarthAnnotation${DBG_SUFFIX}.pdb
+			${OSG_EARTH_BIN_DIR}/osgEarthFeatures${DBG_SUFFIX}.pdb
+			${OSG_EARTH_BIN_DIR}/osgEarthQt${DBG_SUFFIX}.pdb
+			${OSG_EARTH_BIN_DIR}/osgEarthSymbology${DBG_SUFFIX}.pdb
+			${OSG_EARTH_BIN_DIR}/osgEarthUtil${DBG_SUFFIX}.pdb
+			)
+	ENDIF (CMAKE_BUILD_TYPE MATCHES "Debug")
+	
+ELSE(WIN32)
+
+	IF(APPLE)
+		SET( QT_FRAMEWORK_FILES
+			${QT_FRAMEWORK_FILES}
+			${QT_BINDIR}/libQtCore${DBG_SUFFIX}.4.8.6${DLL_SUFFIX}
+			${QT_BINDIR}/libQtGui${DBG_SUFFIX}.4.8.6${DLL_SUFFIX}
+			${QT_BINDIR}/libQtOpenGL${DBG_SUFFIX}.4.8.6${DLL_SUFFIX}
+			${QT_BINDIR}/libQtNetwork${DBG_SUFFIX}.4.8.6${DLL_SUFFIX}
+			${QT_BINDIR}/libQtSvg${DBG_SUFFIX}.4.8.6${DLL_SUFFIX}
+			${QT_BINDIR}/libQtXml${DBG_SUFFIX}.4.8.6${DLL_SUFFIX}
+			${QT_BINDIR}/libQtWebKit${DBG_SUFFIX}.4.9.4${DLL_SUFFIX}
+			${QT_BINDIR}/libQtCore${DBG_SUFFIX}.4${DLL_SUFFIX}
+			${QT_BINDIR}/libQtGui${DBG_SUFFIX}.4${DLL_SUFFIX}
+			${QT_BINDIR}/libQtOpenGL${DBG_SUFFIX}.4${DLL_SUFFIX}
+			${QT_BINDIR}/libQtNetwork${DBG_SUFFIX}.4${DLL_SUFFIX}
+			${QT_BINDIR}/libQtSvg${DBG_SUFFIX}.4${DLL_SUFFIX}
+			${QT_BINDIR}/libQtXml${DBG_SUFFIX}.4${DLL_SUFFIX}
+			${QT_BINDIR}/libQtWebKit${DBG_SUFFIX}.4${DLL_SUFFIX}
+		)
+
+		SET( FRAMEWORK_FILES
+			${QT_FRAMEWORK_FILES}
+			${FRAMEWORK_FILES}
+			${QT_BINDIR}/libQtCore${DBG_SUFFIX}.4.8.6${DLL_SUFFIX}
+			${QT_BINDIR}/libQtGui${DBG_SUFFIX}.4.8.6${DLL_SUFFIX}
+			${QT_BINDIR}/libQtOpenGL${DBG_SUFFIX}.4.8.6${DLL_SUFFIX}
+			${QT_BINDIR}/libQtNetwork${DBG_SUFFIX}.4.8.6${DLL_SUFFIX}
+			${QT_BINDIR}/libQtSvg${DBG_SUFFIX}.4.8.6${DLL_SUFFIX}
+			${QT_BINDIR}/libQtXml${DBG_SUFFIX}.4.8.6${DLL_SUFFIX}
+			${QT_BINDIR}/libQtWebKit${DBG_SUFFIX}.4.9.4${DLL_SUFFIX}
+			${QT_BINDIR}/libQtCore${DBG_SUFFIX}.4${DLL_SUFFIX}
+			${QT_BINDIR}/libQtGui${DBG_SUFFIX}.4${DLL_SUFFIX}
+			${QT_BINDIR}/libQtOpenGL${DBG_SUFFIX}.4${DLL_SUFFIX}
+			${QT_BINDIR}/libQtNetwork${DBG_SUFFIX}.4${DLL_SUFFIX}
+			${QT_BINDIR}/libQtSvg${DBG_SUFFIX}.4${DLL_SUFFIX}
+			${QT_BINDIR}/libQtXml${DBG_SUFFIX}.4${DLL_SUFFIX}
+			${QT_BINDIR}/libQtWebKit${DBG_SUFFIX}.4${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosg${OSG_DBG_SUFFIX}.3.4.0${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgDB${OSG_DBG_SUFFIX}.3.4.0${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgFX${OSG_DBG_SUFFIX}.3.4.0${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgGA${OSG_DBG_SUFFIX}.3.4.0${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgUtil${OSG_DBG_SUFFIX}.3.4.0${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgQt${OSG_DBG_SUFFIX}.3.4.0${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgWidget${OSG_DBG_SUFFIX}.3.4.0${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgViewer${OSG_DBG_SUFFIX}.3.4.0${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgShadow${OSG_DBG_SUFFIX}.3.4.0${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgText${OSG_DBG_SUFFIX}.3.4.0${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgTerrain${OSG_DBG_SUFFIX}.3.4.0${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgManipulator${OSG_DBG_SUFFIX}.3.4.0${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgAnimation${OSG_DBG_SUFFIX}.3.4.0${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgSim${OSG_DBG_SUFFIX}.3.4.0${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libOpenThreads${OSG_DBG_SUFFIX}.3.3.0${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosg${OSG_DBG_SUFFIX}.130${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgDB${OSG_DBG_SUFFIX}.130${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgFX${OSG_DBG_SUFFIX}.130${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgGA${OSG_DBG_SUFFIX}.130${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgUtil${OSG_DBG_SUFFIX}.130${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgQt${OSG_DBG_SUFFIX}.130${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgWidget${OSG_DBG_SUFFIX}.130${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgViewer${OSG_DBG_SUFFIX}.130${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgShadow${OSG_DBG_SUFFIX}.130${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgText${OSG_DBG_SUFFIX}.130${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgTerrain${OSG_DBG_SUFFIX}.130${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgManipulator${OSG_DBG_SUFFIX}.130${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgAnimation${OSG_DBG_SUFFIX}.130${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libosgSim${OSG_DBG_SUFFIX}.130${DLL_SUFFIX}
+			${OSG_BIN_DIR}/libOpenThreads${OSG_DBG_SUFFIX}.20${DLL_SUFFIX}
+			${QWT_BIN_DIR}/libqwt${DLL_SUFFIX}
+			${QWT3D_BIN_DIR}/libqwtplot3d${DLL_SUFFIX}
+			${OSG_EARTH_BIN_DIR}/libosgEarth${OSG_DBG_SUFFIX}.2.6.0${DLL_SUFFIX}
+			${OSG_EARTH_BIN_DIR}/libosgEarthAnnotation${OSG_DBG_SUFFIX}.2.6.0${DLL_SUFFIX}
+			${OSG_EARTH_BIN_DIR}/libosgEarthFeatures${OSG_DBG_SUFFIX}.2.6.0${DLL_SUFFIX}
+			${OSG_EARTH_BIN_DIR}/libosgEarthQt${OSG_DBG_SUFFIX}.2.6.0${DLL_SUFFIX}
+			${OSG_EARTH_BIN_DIR}/libosgEarthSymbology${OSG_DBG_SUFFIX}.2.6.0${DLL_SUFFIX}
+			${OSG_EARTH_BIN_DIR}/libosgEarthUtil${OSG_DBG_SUFFIX}.2.6.0${DLL_SUFFIX}
+			${OSG_EARTH_BIN_DIR}/libosgEarth${OSG_DBG_SUFFIX}.0${DLL_SUFFIX}
+			${OSG_EARTH_BIN_DIR}/libosgEarthAnnotation${OSG_DBG_SUFFIX}.0${DLL_SUFFIX}
+			${OSG_EARTH_BIN_DIR}/libosgEarthFeatures${OSG_DBG_SUFFIX}.0${DLL_SUFFIX}
+			${OSG_EARTH_BIN_DIR}/libosgEarthQt${OSG_DBG_SUFFIX}.0${DLL_SUFFIX}
+			${OSG_EARTH_BIN_DIR}/libosgEarthSymbology${OSG_DBG_SUFFIX}.0${DLL_SUFFIX}
+			${OSG_EARTH_BIN_DIR}/libosgEarthUtil${OSG_DBG_SUFFIX}.0${DLL_SUFFIX}
+		)
+	ELSE(APPLE)
+		SET( OTHER_FILES
+			${OTHER_FILES}
+			${QT_BINDIR}/libQtCore${DLL_SUFFIX}.4.8.6
+			${QT_BINDIR}/libQtGui${DLL_SUFFIX}.4.8.6
+			${QT_BINDIR}/libQtOpenGL${DLL_SUFFIX}.4.8.6
+			${QT_BINDIR}/libQtNetwork${DLL_SUFFIX}.4.8.6
+			${QT_BINDIR}/libQtSvg${DLL_SUFFIX}.4.8.6
+			${QT_BINDIR}/libQtXml${DLL_SUFFIX}.4.8.6
+			${QT_BINDIR}/libQtWebKit${DLL_SUFFIX}.4.9.4
+			${QT_BINDIR}/libQtCore${DLL_SUFFIX}.4
+			${QT_BINDIR}/libQtGui${DLL_SUFFIX}.4
+			${QT_BINDIR}/libQtOpenGL${DLL_SUFFIX}.4
+			${QT_BINDIR}/libQtNetwork${DLL_SUFFIX}.4
+			${QT_BINDIR}/libQtSvg${DLL_SUFFIX}.4
+			${QT_BINDIR}/libQtXml${DLL_SUFFIX}.4
+			${QT_BINDIR}/libQtWebKit${DLL_SUFFIX}.4
+			${OSG_BIN_DIR}/libosg${OSG_DBG_SUFFIX}${DLL_SUFFIX}.3.4.0
+			${OSG_BIN_DIR}/libosgDB${OSG_DBG_SUFFIX}${DLL_SUFFIX}.3.4.0
+			${OSG_BIN_DIR}/libosgFX${OSG_DBG_SUFFIX}${DLL_SUFFIX}.3.4.0
+			${OSG_BIN_DIR}/libosgGA${OSG_DBG_SUFFIX}${DLL_SUFFIX}.3.4.0
+			${OSG_BIN_DIR}/libosgUtil${OSG_DBG_SUFFIX}${DLL_SUFFIX}.3.4.0
+			${OSG_BIN_DIR}/libosgQt${OSG_DBG_SUFFIX}${DLL_SUFFIX}.3.4.0
+			${OSG_BIN_DIR}/libosgWidget${OSG_DBG_SUFFIX}${DLL_SUFFIX}.3.4.0
+			${OSG_BIN_DIR}/libosgViewer${OSG_DBG_SUFFIX}${DLL_SUFFIX}.3.4.0
+			${OSG_BIN_DIR}/libosgShadow${OSG_DBG_SUFFIX}${DLL_SUFFIX}.3.4.0
+			${OSG_BIN_DIR}/libosgText${OSG_DBG_SUFFIX}${DLL_SUFFIX}.3.4.0
+			${OSG_BIN_DIR}/libosgTerrain${OSG_DBG_SUFFIX}${DLL_SUFFIX}.3.4.0
+			${OSG_BIN_DIR}/libosgManipulator${OSG_DBG_SUFFIX}${DLL_SUFFIX}.3.4.0
+			${OSG_BIN_DIR}/libosgAnimation${OSG_DBG_SUFFIX}${DLL_SUFFIX}.3.4.0
+			${OSG_BIN_DIR}/libosgSim${OSG_DBG_SUFFIX}${DLL_SUFFIX}.3.4.0
+			${OSG_BIN_DIR}/libOpenThreads${OSG_DBG_SUFFIX}${DLL_SUFFIX}.3.3.0
+			${OSG_BIN_DIR}/libosg${OSG_DBG_SUFFIX}${DLL_SUFFIX}.130
+			${OSG_BIN_DIR}/libosgDB${OSG_DBG_SUFFIX}${DLL_SUFFIX}.130
+			${OSG_BIN_DIR}/libosgFX${OSG_DBG_SUFFIX}${DLL_SUFFIX}.130
+			${OSG_BIN_DIR}/libosgGA${OSG_DBG_SUFFIX}${DLL_SUFFIX}.130
+			${OSG_BIN_DIR}/libosgUtil${OSG_DBG_SUFFIX}${DLL_SUFFIX}.130
+			${OSG_BIN_DIR}/libosgQt${OSG_DBG_SUFFIX}${DLL_SUFFIX}.130
+			${OSG_BIN_DIR}/libosgWidget${OSG_DBG_SUFFIX}${DLL_SUFFIX}.130
+			${OSG_BIN_DIR}/libosgViewer${OSG_DBG_SUFFIX}${DLL_SUFFIX}.130
+			${OSG_BIN_DIR}/libosgShadow${OSG_DBG_SUFFIX}${DLL_SUFFIX}.130
+			${OSG_BIN_DIR}/libosgText${OSG_DBG_SUFFIX}${DLL_SUFFIX}.130
+			${OSG_BIN_DIR}/libosgTerrain${OSG_DBG_SUFFIX}${DLL_SUFFIX}.130
+			${OSG_BIN_DIR}/libosgManipulator${OSG_DBG_SUFFIX}${DLL_SUFFIX}.130
+			${OSG_BIN_DIR}/libosgAnimation${OSG_DBG_SUFFIX}${DLL_SUFFIX}.130
+			${OSG_BIN_DIR}/libosgSim${OSG_DBG_SUFFIX}${DLL_SUFFIX}.130
+			${OSG_BIN_DIR}/libOpenThreads${OSG_DBG_SUFFIX}${DLL_SUFFIX}.20
+			${QWT_BIN_DIR}/libqwt${DLL_SUFFIX}
+			${QWT3D_BIN_DIR}/libqwtplot3d${DLL_SUFFIX}
+			${QGIS_BIN_DIR}/libqgis_core${DLL_SUFFIX}.2.8.3
+			${QGIS_BIN_DIR}/libqgis_gui${DLL_SUFFIX}.2.8.3
+			${QGIS_BIN_DIR}/libqgis_analysis${DLL_SUFFIX}.2.8.3
+			${OSG_EARTH_BIN_DIR}/libosgEarth${OSG_DBG_SUFFIX}${DLL_SUFFIX}.2.6.0
+			${OSG_EARTH_BIN_DIR}/libosgEarthAnnotation${OSG_DBG_SUFFIX}${DLL_SUFFIX}.2.6.0
+			${OSG_EARTH_BIN_DIR}/libosgEarthFeatures${OSG_DBG_SUFFIX}${DLL_SUFFIX}.2.6.0
+			${OSG_EARTH_BIN_DIR}/libosgEarthQt${OSG_DBG_SUFFIX}${DLL_SUFFIX}.2.6.0
+			${OSG_EARTH_BIN_DIR}/libosgEarthSymbology${OSG_DBG_SUFFIX}${DLL_SUFFIX}.2.6.0
+			${OSG_EARTH_BIN_DIR}/libosgEarthUtil${OSG_DBG_SUFFIX}${DLL_SUFFIX}.2.6.0
+			${OSG_EARTH_BIN_DIR}/libosgEarth${OSG_DBG_SUFFIX}${DLL_SUFFIX}.0
+			${OSG_EARTH_BIN_DIR}/libosgEarthAnnotation${OSG_DBG_SUFFIX}${DLL_SUFFIX}.0
+			${OSG_EARTH_BIN_DIR}/libosgEarthFeatures${OSG_DBG_SUFFIX}${DLL_SUFFIX}.0
+			${OSG_EARTH_BIN_DIR}/libosgEarthQt${OSG_DBG_SUFFIX}${DLL_SUFFIX}.0
+			${OSG_EARTH_BIN_DIR}/libosgEarthSymbology${OSG_DBG_SUFFIX}${DLL_SUFFIX}.0
+			${OSG_EARTH_BIN_DIR}/libosgEarthUtil${OSG_DBG_SUFFIX}${DLL_SUFFIX}.0
+			)
+	ENDIF(APPLE)
+ENDIF(WIN32)
+
+
+SET( OTHER_FILES
+	${OTHER_FILES}
+	new-gui/brat/brat_trace.bat
+	new-gui/brat/brat_trace.py
+	new-gui/brat/brat_trace.sh
+	)
+
+
+IF( WIN32)
+
+	IF ("${BRAT_TARGET_PROCESSOR}" STREQUAL "x64")
+	
+        set( OTHER_FILES
+			${OTHER_FILES}
+            ${OSGeo4W_BIN_DIR}/expat${DLL_SUFFIX}
+            ${OSGeo4W_BIN_DIR}/ogdi${DLL_SUFFIX}
+            ${OSGeo4W_BIN_DIR}/libpng16${DLL_SUFFIX}
+            ${OSGeo4W_BIN_DIR}/spatialite${DLL_SUFFIX}
+            ${OSGeo4W_BIN_DIR}/spatialindex-64${DLL_SUFFIX} 
+		)
+
+    ELSE()
+
+        set( OTHER_FILES
+			${OTHER_FILES}
+            ${OSGeo4W_BIN_DIR}/ogdi_32b1${DLL_SUFFIX}
+            ${OSGeo4W_BIN_DIR}/spatialite4${DLL_SUFFIX}
+            ${OSGeo4W_BIN_DIR}/spatialindex1${DLL_SUFFIX}
+            ${OSGeo4W_BIN_DIR}/zlib_osgeo${DLL_SUFFIX}
+            ${OSGeo4W_BIN_DIR}/libexpat${DLL_SUFFIX}
+            ${OSGeo4W_BIN_DIR}/libiconv-2${DLL_SUFFIX}
+            ${OSGeo4W_BIN_DIR}/hdf_fw${DLL_SUFFIX}
+            ${OSGeo4W_BIN_DIR}/mfhdf_fw${DLL_SUFFIX}
+            ${OSGeo4W_BIN_DIR}/libintl-8${DLL_SUFFIX}
+            ${OSGeo4W_BIN_DIR}/krb5_32${DLL_SUFFIX}
+            ${OSGeo4W_BIN_DIR}/comerr32${DLL_SUFFIX}
+            ${OSGeo4W_BIN_DIR}/k5sprt32${DLL_SUFFIX}
+            ${OSGeo4W_BIN_DIR}/gssapi32${DLL_SUFFIX}
+            ${OSGeo4W_BIN_DIR}/libgcc_s_dw2-1${DLL_SUFFIX}
+		)
+
+    ENDIF()
+
+
+	IF (CMAKE_BUILD_TYPE MATCHES "Debug")
+		SET( OTHER_FILES
+			${OTHER_FILES}
+	        ${OSGeo4W_BIN_DIR}/libcurl${DLL_SUFFIX}
+			)
+	ENDIF()
+
+
+    set( OTHER_FILES
+		${OTHER_FILES}
+		${OSGeo4W_BIN_DIR}/proj${DLL_SUFFIX}
+		${OSGeo4W_BIN_DIR}/geos_c${DLL_SUFFIX}
+		${OSGeo4W_BIN_DIR}/gdal111${DLL_SUFFIX}
+		${OSGeo4W_BIN_DIR}/iconv${DLL_SUFFIX}
+		${OSGeo4W_BIN_DIR}/xerces-c_3_1${DLL_SUFFIX}
+		${OSGeo4W_BIN_DIR}/libpq${DLL_SUFFIX}
+		${OSGeo4W_BIN_DIR}/netcdf${DLL_SUFFIX}
+		${OSGeo4W_BIN_DIR}/geotiff${DLL_SUFFIX}
+		${OSGeo4W_BIN_DIR}/libtiff${DLL_SUFFIX}
+		${OSGeo4W_BIN_DIR}/sqlite3${DLL_SUFFIX}
+		${OSGeo4W_BIN_DIR}/freexl${DLL_SUFFIX}
+		${OSGeo4W_BIN_DIR}/libxml2${DLL_SUFFIX}
+		${OSGeo4W_BIN_DIR}/libmysql${DLL_SUFFIX}
+		${OSGeo4W_BIN_DIR}/hdf5${DLL_SUFFIX}
+		${OSGeo4W_BIN_DIR}/zlib1${DLL_SUFFIX}
+		${OSGeo4W_BIN_DIR}/szip${DLL_SUFFIX}
+		${OSGeo4W_BIN_DIR}/openjp2${DLL_SUFFIX}
+		${OSGeo4W_BIN_DIR}/ssleay32${DLL_SUFFIX}
+		${OSGeo4W_BIN_DIR}/libeay32${DLL_SUFFIX}
+        ${XSD_BIN_DIR}/xerces-c_3_1_vc120${DLL_SUFFIX}
+	)
+
+	file( GLOB JPEG_OTHER_FILES ${OSGeo4W_BIN_DIR}/jpeg*${DLL_SUFFIX} )
+	file( GLOB MSVC_OTHER_FILES ${OSGeo4W_BIN_DIR}/msvc*${DLL_SUFFIX} )
+	SET( OTHER_FILES
+		${OTHER_FILES}
+		${JPEG_OTHER_FILES}
+		${MSVC_OTHER_FILES}
+		${PYTHON_LIBRARY}
+		)
+
+ENDIF(WIN32)
+
+
+
+
+IF (APPLE)
+	set( RUNTIME_DESTINATION ${BRAT_BINARY_DIR}/bin/brat.app/Contents/MacOS )
+	set( SCHEDULER_RUNTIME_DESTINATION ${BRAT_BINARY_DIR}/bin/scheduler.app/Contents/MacOS )
+	set( RUNTIME_DESTINATION_QT_PLUGINS ${BRAT_BINARY_DIR}/bin/brat.app/Contents/Plugins )
+	set( SCHEDULER_RUNTIME_DESTINATION_QT_PLUGINS ${BRAT_BINARY_DIR}/bin/scheduler.app/Contents/Plugins )
+ELSE (APPLE)
+	set( RUNTIME_DESTINATION bin )
+	set( RUNTIME_DESTINATION_QT_PLUGINS bin )
+ENDIF (APPLE)
+
+
+
+
+
+ADD_CUSTOM_TARGET( brat_runtime )
+ADD_CUSTOM_TARGET( scheduler_runtime )
+
+#######################################################
+# Python
+#######################################################
+
+
+IF (NOT APPLE)
+
+	file( GLOB PYTHON_EXECS ${PYTHON_BIN_DIR}/python*${EXEC_SUFFIX} )
+
+	INSTALL(
+		FILES
+		${PYTHON_EXECS}
+		DESTINATION ${RUNTIME_DESTINATION}/Python
+		COMPONENT brat_runtime
+		)
+
+ENDIF (NOT APPLE)
+
+
+file( GLOB BRAT_EMBEDDED_PYTHON_FILES process/python/*.* )
+
+INSTALL(
+	FILES
+	${BRAT_EMBEDDED_PYTHON_FILES}
+	DESTINATION ${RUNTIME_DESTINATION}/Python
+	COMPONENT brat_runtime
+	)
+
+
+IF(WIN32)
+	INSTALL(
+		DIRECTORY
+		${PYTHON_BIN_DIR}/DLLs
+		${PYTHON_BIN_DIR}/Lib
+		DESTINATION bin/Python
+		COMPONENT brat_runtime
+		PATTERN __pycache__ EXCLUDE
+		)
+ELSE(WIN32)
+	IF (APPLE)
+		INSTALL(
+			DIRECTORY
+			${PYTHON_BIN_DIR}/
+			DESTINATION ${RUNTIME_DESTINATION}/Python
+			COMPONENT brat_runtime
+			PATTERN __pycache__ EXCLUDE
+			)
+	ELSE (APPLE)
+		INSTALL(
+			DIRECTORY
+			${PYTHON_BIN_DIR}
+			DESTINATION ${RUNTIME_DESTINATION}/Python/lib
+			COMPONENT brat_runtime
+			PATTERN __pycache__ EXCLUDE
+			)
+	ENDIF(APPLE)
+ENDIF(WIN32)
+
+
+#######################################################
+# Libraries | Frameworks
+#######################################################
+
+INSTALL(
+	FILES 
+	${OTHER_FILES}
+	DESTINATION ${RUNTIME_DESTINATION}
+	COMPONENT brat_runtime
+	)
+
+
+IF (APPLE)
+	INSTALL(
+		FILES
+		${QT_FRAMEWORK_FILES}
+		DESTINATION ${SCHEDULER_RUNTIME_DESTINATION}/../Frameworks
+		COMPONENT scheduler_runtime
+		)
+
+	INSTALL(
+		FILES
+		${FRAMEWORK_FILES}
+		DESTINATION ${RUNTIME_DESTINATION}/../Frameworks
+		COMPONENT brat_runtime
+		)
+
+
+	INSTALL(
+		DIRECTORY
+		${QGIS_BIN_DIR}
+		DESTINATION ${RUNTIME_DESTINATION}/../
+		COMPONENT brat_runtime
+		)
+ENDIF(APPLE)
+
+
+#######################################################
+# Qt/QGIS plugins
+#######################################################
+
+IF (APPLE)
+
+	IF (CMAKE_BUILD_TYPE MATCHES "Debug")
+		INSTALL(
+			DIRECTORY
+			${QTDIR}/plugins/
+			DESTINATION ${RUNTIME_DESTINATION_QT_PLUGINS}
+			COMPONENT brat_runtime
+			PATTERN *_debug.dylib
+			)
+	ELSE (CMAKE_BUILD_TYPE MATCHES "Debug")
+		INSTALL(
+			DIRECTORY
+			${QTDIR}/plugins/
+			DESTINATION ${RUNTIME_DESTINATION_QT_PLUGINS}
+			COMPONENT brat_runtime
+			PATTERN *_debug.dylib EXCLUDE
+			)
+	ENDIF (CMAKE_BUILD_TYPE MATCHES "Debug")
+	
+	IF (CMAKE_BUILD_TYPE MATCHES "Debug")
+		INSTALL(
+			DIRECTORY
+			${QTDIR}/plugins/
+			DESTINATION ${SCHEDULER_RUNTIME_DESTINATION_QT_PLUGINS}
+			COMPONENT scheduler_runtime
+			PATTERN *_debug.dylib
+			)
+	ELSE (CMAKE_BUILD_TYPE MATCHES "Debug")
+		INSTALL(
+			DIRECTORY
+			${QTDIR}/plugins/
+			DESTINATION ${SCHEDULER_RUNTIME_DESTINATION_QT_PLUGINS}
+			COMPONENT scheduler_runtime
+			PATTERN *_debug.dylib EXCLUDE
+			)
+	ENDIF (CMAKE_BUILD_TYPE MATCHES "Debug")
+
+ELSE(APPLE)
+
+	INSTALL(
+		DIRECTORY
+		${QTDIR}/plugins
+		DESTINATION ${RUNTIME_DESTINATION_QT_PLUGINS}
+		COMPONENT brat_runtime
+		)
+	
+ENDIF(APPLE)
+
+
+
+INSTALL(
+	DIRECTORY
+	${QGIS_PLUGINS_DIR}
+	DESTINATION ${RUNTIME_DESTINATION_QT_PLUGINS}
+	COMPONENT brat_runtime
+	)
+
+
+
+#######################################################
+# OSG plugins
+#######################################################
+
+IF (APPLE)
+	file( GLOB OSG_PLUGIN_FILES ${OSG_BIN_DIR}/osgPlugins-3.4.0/*.so )			# .so, amazing...
+ELSE (APPLE)
+	IF (WIN32)
+		file( GLOB OSG_PLUGIN_FILES ${OSG_BIN_DIR}/osgPlugins-3.4.0/*${DBG_SUFFIX}${DLL_SUFFIX} )
+		file( GLOB OSG_PLUGIN_FILES_DEBUG ${OSG_BIN_DIR}/osgPlugins-3.4.0/*.pdb )
+		SET( OSG_PLUGIN_FILES ${OSG_PLUGIN_FILES} ${OSG_PLUGIN_FILES_DEBUG} )
+	ELSE (WIN32)
+		file( GLOB OSG_PLUGIN_FILES ${OSG_BIN_DIR}/osgPlugins-3.4.0/*${DLL_SUFFIX} )
+	ENDIF (WIN32)
+ENDIF (APPLE)
+
+
+INSTALL(
+	FILES
+	${OSG_PLUGIN_FILES}
+	DESTINATION ${RUNTIME_DESTINATION}/osgPlugins-3.4.0
+	COMPONENT brat_runtime
+	)
+
+
+#######################################################
+# Globe
+#######################################################
+
+IF(WIN32)
+
+	INSTALL(
+		DIRECTORY
+		${QGIS_DIR}/globe
+		DESTINATION ${RUNTIME_DESTINATION}
+		COMPONENT brat_runtime
+		)
+
+ELSE(WIN32)
+
+	IF (APPLE)
+
+		INSTALL(
+			DIRECTORY
+			${QGIS_DIR}/Resources/globe
+			DESTINATION ${RUNTIME_DESTINATION}
+			COMPONENT brat_runtime
+			)
+
+	ELSE (APPLE)
+		INSTALL(
+			DIRECTORY
+			${QGIS_DIR}/share/qgis/globe
+			DESTINATION ${RUNTIME_DESTINATION}
+			COMPONENT brat_runtime
+			)
+	ENDIF(APPLE)
+
+ENDIF(WIN32)
+
+	
+#######################################################
+# Data
+#######################################################
+
+INSTALL( 
+	DIRECTORY 
+	data
+	DESTINATION ${RUNTIME_DESTINATION}
+	COMPONENT brat_runtime
+	)
+	
+
+# in mac internal data is in both bundles
+#
+IF (APPLE)
+	INSTALL(
+		DIRECTORY
+		data
+		DESTINATION ${SCHEDULER_RUNTIME_DESTINATION}
+		COMPONENT scheduler_runtime
+		)
+ENDIF(APPLE)
+
+INSTALL(
+	DIRECTORY 
+	${EXTERNAL_DATA_DIR}/maps/NE1_HR_LC_SR_W_DR
+	DESTINATION ${RUNTIME_DESTINATION}/data/maps
+	COMPONENT brat_runtime
+	)
+
+
+
+# RETURN()
+
+
+###################################################################################################
+
+
+
 # ---------------------------------
 # Cmake modules needed
 # ---------------------------------
@@ -338,48 +1002,6 @@ include(CheckLibraryExists)
 include(CheckIncludeFile)
 include(TestBigEndian)
 
-
-# ---------------------------------
-# Check for various functions..
-# ---------------------------------
-
-# check_function_exists(snprintf HAVE_SNPRINTF)
-# check_function_exists(_snprintf HAVE_USCORE_SNPRINTF)
-# check_function_exists(vsnprintf HAVE_VSNPRINTF)
-# check_function_exists(_vsnprintf HAVE_USCORE_VSNPRINTF)
-# check_function_exists(strcasecmp HAVE_STRCASECMP)
-# check_function_exists(_stricmp HAVE_USCORE_STRICMP)
-# check_function_exists(isinf HAVE_ISINF)
-# check_function_exists(isnan HAVE_ISNAN)
-# check_function_exists(_isnan HAVE_USCORE_ISNAN)
-# check_function_exists(_fpclass HAVE_FPCLASS)
-# check_function_exists(_fullpath HAVE_FULLPATH)
-# check_function_exists(realpath HAVE_REALPATH)
-# check_function_exists(dirname HAVE_DIRNAME)
-# check_function_exists(basename HAVE_BASENAME)
-# check_function_exists(_splitpath HAVE_SPLITPATH)
-# check_function_exists(stat HAVE_STAT)
-
-# ---------------------------------
-# check for optional include files
-# ---------------------------------
-
-# check_include_file("libgen.h" HAVE_LIBGEN_H)
-
-
-# ---------------------------------
-# Some system dependant settings
-# ---------------------------------
-
-#if(WIN32)
-#  set(PATH_SEPARATOR "\\\\")
-#  set(PATH_LIST_SEPARATOR ";")
-#else(WIN32)
-#  set(PATH_SEPARATOR "/")
-#  set(PATH_LIST_SEPARATOR ":")
-#endif(WIN32)
-
-#set(BRATHL_ENVVAR "BRAT_DATA_DIR")
 
 
 
@@ -477,6 +1099,10 @@ ELSE (WIN32)
     add_dependencies(netcdf hdf5 hdf5_hl)
 ENDIF (WIN32)
 
+IF(APPLE)
+	add_dependencies(coda vtkzlib szip)
+ENDIF(APPLE)
+
 add_dependencies(geotiff vtktiff)
 include_directories(${CURL_INCLUDES})
 include_directories(${LIBGEOTIFF_INCLUDE_DIRS})
@@ -501,7 +1127,6 @@ add_custom_target(externals-install
   COMMAND  ${MAKE_COMMAND} install
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/externals
 )
-
 
 
 # The data/ subdirectory
@@ -540,13 +1165,9 @@ set(GUI_DATA_FILES
   data/BratIcon.bmp
   )
 
-set(BRAT_DISPLAY_DATA_FILES
-  data/gshhs_l.b
-  )
-
 set(BRAT_GUI_DATA_FILES
   data/function_descr.txt
-  new-gui/Common/res/BratIcon.png
+  new-gui/Common/Resources/images/BratIcon.png
   data/BratLogo.png
   data/Formulas.ini
   )
@@ -555,33 +1176,41 @@ set(DATA_FILES
   ${CODADEF_FILES}
   ${LIBBRATHL_DATA_FILES}
   ${GUI_DATA_FILES}
-  ${BRAT_DISPLAY_DATA_FILES}
   ${BRAT_GUI_DATA_FILES}
   )
 
 install(FILES ${DATA_FILES} DESTINATION data/)
 
 
-# The BRAT core tools library
+# The BRAT core tools library  ############################################################################################################
 
 set(BRAT_TOOLS_SOURCES
-  new-gui/Common/tools/Exception.cpp
-  new-gui/Common/tools/Trace.cpp
-  new-gui/Common/tools/TraceLog.cpp
+    new-gui/Common/tools/stdafx.cpp
+    new-gui/Common/tools/Exception.cpp
+    new-gui/Common/tools/ExceptionWin.cpp
+    new-gui/Common/tools/Trace.cpp
+    new-gui/Common/tools/TraceLog.cpp
+    new-gui/Common/tools/CoreTypes.cpp
   )
 
 set(BRAT_TOOLS_SOURCES_H
-  new-gui/Common/tools/Exception.h
-  new-gui/Common/tools/Trace.h
-  new-gui/Common/tools/TraceLog.h
+    new-gui/Common/tools/stdafx.h
+    new-gui/Common/tools/Exception.h
+    new-gui/Common/tools/ExceptionWin.h
+    new-gui/Common/tools/Trace.h
+    new-gui/Common/tools/TraceLog.h
+    new-gui/Common/tools/brathl_error.h
+    new-gui/Common/tools/CoreTypes.h
+    new-gui/Common/+Utils.h
+
   )
 
-include_directories(${BRAT_TOOLS_SOURCES_H})
+
 
 add_library(brat-tools STATIC ${BRAT_TOOLS_SOURCES} ${BRAT_TOOLS_SOURCES_H})
 
 
-# The libbrathl/ subdirectory
+# The libbrathl/ subdirectory  ############################################################################################################
 
 set(LIBBRATHL_CXX_SOURCES
   libbrathl/Aliases.cpp
@@ -657,7 +1286,7 @@ set(LIBBRATHL_CXX_SOURCES
   )
 
 
-# brathl_c
+# brathl_c  ############################################################################################################
 #
 
 set(LIBBRATHL_C_SOURCES
@@ -699,7 +1328,7 @@ install(FILES libbrathl/brathl_python/example.py DESTINATION examples/python)
 install(FILES libbrathl/brathl_python/example.nc DESTINATION examples/python)
 
 
-# brathl_fortran
+# brathl_fortran  ############################################################################################################
 #
 if(BRATHL_BUILD_FORTRAN)
   include(CheckFortranNames)
@@ -719,7 +1348,7 @@ if(BRATHL_BUILD_FORTRAN)
 
 endif(BRATHL_BUILD_FORTRAN)
 
-# brathl_idl
+# brathl_idl ############################################################################################################
 #
 if(BRATHL_BUILD_IDL)
 
@@ -788,7 +1417,7 @@ if(BRATHL_BUILD_IDL)
     message(FATAL_ERROR "IDL not found. Try setting the IDL_DIR environment or CMake variable to the root directory of an IDL installation.")
   endif(IDL_DIR)
 
-endif(BRATHL_BUILD_IDL)
+endif(BRATHL_BUILD_IDL)  ############################################################################################################
 
 
 # ------------------------------------------------------
@@ -851,9 +1480,9 @@ endif()
 #
 add_library(brathl_module MODULE ${ALL_BRATHL_SOURCES})
 if ("${CMAKE_SYSTEM_NAME}" STREQUAL "Linux")
-    target_link_libraries(brathl_module netcdf coda_static hdf5 ssh2 udunits)
+    target_link_libraries(brathl_module brat-tools netcdf coda_static hdf5 ssh2 udunits)
 else()
-    target_link_libraries(brathl_module netcdf coda_static hdf5 udunits)
+    target_link_libraries(brathl_module brat-tools netcdf coda_static hdf5 udunits)
 endif()
 
 set_target_properties(brathl_module PROPERTIES 
@@ -887,13 +1516,9 @@ add_definitions(-DXML_NS=1)
 add_definitions(-DXML_CONTEXT_BYTES=1024)
 include_directories(${CODA_SOURCE_DIR}/libcoda/expat)
 
-# include_directories(${BRAT_SOURCE_DIR}/libbrathl/brathl_c)
-# set(SAMPLEXML BratSampleXMLProgram)
-# add_executable(${SAMPLEXML} libbrathl/brathl_c/${SAMPLEXML}.c)
-# target_link_libraries(${SAMPLEXML} brathl)
 
-# brathl_matlab
-#
+# brathl_matlab ###########################################################################################
+
 if(BRATHL_BUILD_MATLAB)
 
   # If not in cache, try from environment
@@ -924,7 +1549,7 @@ if(BRATHL_BUILD_MATLAB)
       )
 
     # Configure the mex compiler
-    set(MEXFLAGS -I${MATLAB_INCLUDE_DIR} -I. -I${CMAKE_CURRENT_BINARY_DIR}/libbrathl -I${CODA_BINARY_DIR} -I${CODA_SOURCE_DIR}/libcoda -I${CMAKE_CURRENT_SOURCE_DIR}/libbrathl -I${CMAKE_CURRENT_SOURCE_DIR}/libbrathl/brathl_c -DSTL_USING_ALL)
+    set(MEXFLAGS -I${MATLAB_INCLUDE_DIR} -I. -I${CMAKE_CURRENT_BINARY_DIR}/libbrathl -I${CODA_BINARY_DIR} -I${CODA_SOURCE_DIR}/libcoda -I${CMAKE_CURRENT_SOURCE_DIR} -I${CMAKE_CURRENT_SOURCE_DIR}/libbrathl -I${CMAKE_CURRENT_SOURCE_DIR}/libbrathl/brathl_c -DSTL_USING_ALL)
 
     # Note: The explicit mex.bat assignment is necessary because
     # only with the .bat attached will name invoke the command
@@ -975,9 +1600,9 @@ if(BRATHL_BUILD_MATLAB)
 		)
 	
     if(WIN32)
-      set(MEX_CMD ${MEX} ${MEXFLAGS} ${LIBBRATHL_MATLAB_SOURCE_FILES} ${INT_LIB_DIR}/brathl.lib ${CODA_INT_LIB_DIR}/libcoda.lib ${NETCDF_INT_LIB_DIR}/netcdf.lib ${UDUNITS_INT_LIB_DIR}/udunits.lib ${HDF4_LIBRARIES} ${HDF5_LIBRARIES}  -output ${MEX_OUTPUT})
+      set(MEX_CMD ${MEX} ${MEXFLAGS} ${LIBBRATHL_MATLAB_SOURCE_FILES} ${INT_LIB_DIR}/brathl.lib ${INT_LIB_DIR}/brat-tools.lib ${CODA_INT_LIB_DIR}/libcoda.lib ${NETCDF_INT_LIB_DIR}/netcdf.lib ${UDUNITS_INT_LIB_DIR}/udunits.lib ${HDF4_LIBRARIES} ${HDF5_LIBRARIES}  -output ${MEX_OUTPUT})
     else(WIN32)
-      set(MEX_CMD ${MEX} ${MEXFLAGS} ${LIBBRATHL_MATLAB_SOURCE_FILES} ${INT_LIB_DIR}/libbrathl.a ${CODA_INT_LIB_DIR}/libcoda.a ${NETCDF_INT_LIB_DIR}/libnetcdf.a ${UDUNITS_INT_LIB_DIR}/libudunits.a ${HDF4_LIBRARIES} ${HDF5_LIBRARIES} -o ${MEX_OUTPUT})
+      set(MEX_CMD ${MEX} ${MEXFLAGS} ${LIBBRATHL_MATLAB_SOURCE_FILES} ${INT_LIB_DIR}/libbrathl.a ${INT_LIB_DIR}/libbrat-tools.a ${CODA_INT_LIB_DIR}/libcoda.a ${NETCDF_INT_LIB_DIR}/libnetcdf.a ${UDUNITS_INT_LIB_DIR}/libudunits.a ${HDF4_LIBRARIES} ${HDF5_LIBRARIES} -o ${MEX_OUTPUT})
     endif(WIN32)
 
     add_custom_command(
@@ -1031,11 +1656,72 @@ if(BRATHL_BUILD_MATLAB)
   endif(MATLAB_DIR)
 
 
-endif(BRATHL_BUILD_MATLAB)
+endif(BRATHL_BUILD_MATLAB) ###############################################################################
 
 
-# process
-#
+
+
+
+# Check for Qt ###########################################################################################
+
+SET(QT_MIN_VERSION 4.8.0)
+SET (ENABLE_QT5 FALSE CACHE BOOL "If enabled will try to find Qt5 before looking for Qt4")
+IF (ENABLE_QT5)
+	FIND_PACKAGE(Qt5Core QUIET)
+	FIND_PACKAGE(Qt5Gui REQUIRED)
+	FIND_PACKAGE(Qt5Widgets REQUIRED)
+	FIND_PACKAGE(Qt5Network REQUIRED)
+	FIND_PACKAGE(Qt5Xml REQUIRED)
+	FIND_PACKAGE(Qt5Svg REQUIRED)
+	FIND_PACKAGE(Qt5Concurrent REQUIRED)
+	FIND_PACKAGE(Qt5PrintSupport REQUIRED)
+	FIND_PACKAGE(Qt5WebKit REQUIRED)
+	FIND_PACKAGE(Qt5WebKitWidgets REQUIRED)
+	FIND_PACKAGE(Qt5Test REQUIRED)
+	FIND_PACKAGE(Qt5UiTools REQUIRED)
+	FIND_PACKAGE(Qt5Script REQUIRED)
+	FIND_PACKAGE(Qt5Sql REQUIRED)
+	SET(QT5_BUILD TRUE)
+	INCLUDE("cmake/modules/ECMQt4To5Porting.cmake")
+	MESSAGE(STATUS "Found Qt version: ${Qt5Core_VERSION_STRING}")
+ELSE()
+	FIND_PACKAGE(Qt4 ${QT_MIN_VERSION} REQUIRED)
+	SET(QT_USE_QTXML 1)
+	SET(QT_USE_QTNETWORK 1)
+	SET(QT_USE_QTSVG 1)
+	SET(QT_USE_QTSQL 1)
+	SET(QT_USE_QTWEBKIT 1)
+	IF (NOT QT_QTXML_FOUND OR NOT QT_QTNETWORK_FOUND OR NOT QT_QTSVG_FOUND OR NOT QT_QTSQL_FOUND OR NOT QT_QTWEBKIT_FOUND OR (WITH_CUSTOM_WIDGETS AND NOT QT_QTDESIGNER_FOUND))
+	MESSAGE(SEND_ERROR "Some Qt4 modules haven't been found!")
+	ENDIF (NOT QT_QTXML_FOUND OR NOT QT_QTNETWORK_FOUND OR NOT QT_QTSVG_FOUND OR NOT QT_QTSQL_FOUND OR NOT QT_QTWEBKIT_FOUND OR (WITH_CUSTOM_WIDGETS AND NOT QT_QTDESIGNER_FOUND))
+
+	INCLUDE( ${QT_USE_FILE} )
+
+	MESSAGE(STATUS "Found Qt version: ${QTVERSION}")
+ENDIF()
+
+
+SET(QT_USE_QTOPENGL 1)
+INCLUDE_DIRECTORIES( 
+	${QT_INCLUDE_DIR} 
+	${QT_INCLUDE_DIR}/QtCore
+	${QT_INCLUDE_DIR}/QtGui
+	${QT_INCLUDE_DIR}/QtXml
+	${QT_INCLUDE_DIR}/QtOpenGL
+	${QT_INCLUDE_DIR}/ActiveQt
+	${QT_INCLUDE_DIR}/QtNetwork
+	new-gui/Common
+	)
+
+
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+
+
+
+
+# process ##########################################################################################################
+
 
 set(PROCESS_LIB_SOURCES
   process/BratProcess.cpp
@@ -1044,16 +1730,26 @@ set(PROCESS_LIB_SOURCES
   process/BratProcessExportAscii.cpp
   process/BratProcessStats.cpp
   process/ProcessCommonTools.cpp
+  new-gui/Common/ConsoleApplicationPaths.cpp
   )
 
-string(REGEX REPLACE "\\.cpp" .h PROCESS_LIB_SOURCES_H  "${PROCESS_LIB_SOURCES}")
+
+set(PROCESS_LIB_SOURCES_H  
+    process/BratProcess.h
+    process/BratProcessYFX.h
+    process/BratProcessZFXY.h
+    process/BratProcessExportAscii.h
+    process/BratProcessStats.h
+    process/ProcessCommonTools.h
+    new-gui/Common/ConsoleApplicationPaths.h
+	)
 
 set(PROCESS_SOURCES "")
 
 macro(DEFINE_PROCESS PNAME)
   set(PROCESS_SOURCES "process/${PNAME}.cpp")
   add_executable(${PNAME} "${PROCESS_SOURCES}")
-  target_link_libraries(${PNAME} brathlProcessUtilities brathl ${ADDITIONAL_LIBS})
+  target_link_libraries(${PNAME} brathlProcessUtilities brathl ${QT_QTCORE_LIBRARY} ${ADDITIONAL_LIBS})
   install(TARGETS ${PNAME} DESTINATION bin/)
 endmacro(DEFINE_PROCESS)
 
@@ -1066,39 +1762,39 @@ DEFINE_PROCESS(BratListFieldNames)
 DEFINE_PROCESS(BratCheckAliases)
 
 
+
+
+# Embedded Python #
+
 set(PY_VER_SUFFIX 3.2)
 
-#IF(BUILD_RunPythonAlgorithm)
-#
-#	IF (WIN32)
-#		IF ("${BRAT_TARGET_PROCESSOR}" MATCHES "Win32")
-#			SET(PY_SUBDIR x86/default)
-#		ELSE()
-#			SET(PY_SUBDIR default)
-#		ENDIF()
-#		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /I$ENV{S3ALTB_ROOT}/compilers/Python/${PY_SUBDIR}/include")
-#		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /L$ENV{S3ALTB_ROOT}/compilers/Python/default/libs")
-#	ELSEIF(APPLE)
-#		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/Library/Frameworks/Python.framework/Versions/${PY_VER_SUFFIX}/include/python${PY_VER_SUFFIX}m")
-#		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/Library/Frameworks/Python.framework/Versions/${PY_VER_SUFFIX}/lib/python${PY_VER_SUFFIX}/config-${PY_VER_SUFFIX}m")
-#		 SET(PY_LIB python${PY_VER_SUFFIX})
-#	ELSE(APPLE)
-#		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -I/usr/include/python${PY_VER_SUFFIX}")
-#		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/lib/python${PY_VER_SUFFIX}/config-${PY_VER_SUFFIX}mu")
-#		SET(PY_LIB python${PY_VER_SUFFIX}mu)
-#	ENDIF(WIN32)
-#	
-#	set(ADDITIONAL_LIBS ${PY_LIB})
-#	DEFINE_PROCESS(RunPythonAlgorithm)
-#
-#	add_custom_target(run_py_algo DEPENDS RunPythonAlgorithm)
-#	
-#ENDIF()
+include_directories(
+
+	${PYTHON_INCLUDE_DIR}
+)
+
+
+IF (NOT WIN32)
+	SET( PYTHON_IMPORT_LIBRARY ${PYTHON_LIBRARY})
+ENDIF (NOT WIN32)
+
+set(ADDITIONAL_LIBS ${PYTHON_IMPORT_LIBRARY})
+IF(UNIX AND NOT APPLE)
+	set(ADDITIONAL_LIBS ${ADDITIONAL_LIBS} util expat )
+ENDIF(UNIX AND NOT APPLE)
+
+DEFINE_PROCESS(RunPythonAlgorithm)
+
+add_custom_target(run_py_algo DEPENDS RunPythonAlgorithm)
+
+###################
+
+
 
 
 
 #set(ADDITIONAL_LIBS ${LIBGEOTIFF_LIBRARIES} ${JPEG_LIBRARIES} ${ZLIB_LIBRARIES})
-set(ADDITIONAL_LIBS geotiff vtktiff vtkjpeg vtkzlib)
+set(ADDITIONAL_LIBS geotiff vtktiff vtkjpeg vtkzlib ${QT_QTCORE_LIBRARY})
 DEFINE_PROCESS(BratExportGeoTiff)
 
 add_custom_target(command-line-tools DEPENDS 
@@ -1128,500 +1824,534 @@ endif(CMAKE_COMPILER_IS_GNUCXX)
 add_library(brathlProcessUtilities STATIC ${PROCESS_LIB_SOURCES} ${PROCESS_LIB_SOURCES_H})
 
 
-# GUI Tools
 
-# display
-#
+
+
+# GUI Tools ###########################################################################################################
+#######################################################################################################################
 
 if(BRAT_BUILD_GUI)
 
-	# ---------------------------------
-	# Check for Qt
-	# ---------------------------------	
-	SET(QT_MIN_VERSION 4.8.0)
-	SET (ENABLE_QT5 FALSE CACHE BOOL "If enabled will try to find Qt5 before looking for Qt4")
-	IF (ENABLE_QT5)
-	  FIND_PACKAGE(Qt5Core QUIET)
-	  FIND_PACKAGE(Qt5Gui REQUIRED)
-	  FIND_PACKAGE(Qt5Widgets REQUIRED)
-	  FIND_PACKAGE(Qt5Network REQUIRED)
-	  FIND_PACKAGE(Qt5Xml REQUIRED)
-	  FIND_PACKAGE(Qt5Svg REQUIRED)
-	  FIND_PACKAGE(Qt5Concurrent REQUIRED)
-	  FIND_PACKAGE(Qt5PrintSupport REQUIRED)
-	  FIND_PACKAGE(Qt5WebKit REQUIRED)
-	  FIND_PACKAGE(Qt5WebKitWidgets REQUIRED)
-	  FIND_PACKAGE(Qt5Test REQUIRED)
-	  FIND_PACKAGE(Qt5UiTools REQUIRED)
-	  FIND_PACKAGE(Qt5Script REQUIRED)
-	  FIND_PACKAGE(Qt5Sql REQUIRED)
-	  SET(QT5_BUILD TRUE)
-	  INCLUDE("cmake/modules/ECMQt4To5Porting.cmake")
-	  MESSAGE(STATUS "Found Qt version: ${Qt5Core_VERSION_STRING}")
-	ELSE()
-	  FIND_PACKAGE(Qt4 ${QT_MIN_VERSION} REQUIRED)
-	  SET(QT_USE_QTXML 1)
-	  SET(QT_USE_QTNETWORK 1)
-	  SET(QT_USE_QTSVG 1)
-	  SET(QT_USE_QTSQL 1)
-	  SET(QT_USE_QTWEBKIT 1)
-	  IF (NOT QT_QTXML_FOUND OR NOT QT_QTNETWORK_FOUND OR NOT QT_QTSVG_FOUND OR NOT QT_QTSQL_FOUND OR NOT QT_QTWEBKIT_FOUND OR (WITH_CUSTOM_WIDGETS AND NOT QT_QTDESIGNER_FOUND))
-		MESSAGE(SEND_ERROR "Some Qt4 modules haven't been found!")
-	  ENDIF (NOT QT_QTXML_FOUND OR NOT QT_QTNETWORK_FOUND OR NOT QT_QTSVG_FOUND OR NOT QT_QTSQL_FOUND OR NOT QT_QTWEBKIT_FOUND OR (WITH_CUSTOM_WIDGETS AND NOT QT_QTDESIGNER_FOUND))
+	SET(CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/CMakeModules ${CMAKE_MODULE_PATH})
 
-	  INCLUDE( ${QT_USE_FILE} )
-
-	  MESSAGE(STATUS "Found Qt version: ${QTVERSION}")
-	ENDIF()
-
-	# ---------------------------------
-	# Check for xerces 3
-	# ---------------------------------	
 	SET(XERCES_MIN_VERSION 3.1.1)
     FIND_PACKAGE(XercesC ${XERCES_MIN_VERSION} REQUIRED)
 	IF (NOT XercesC_FOUND)
 		MESSAGE(SEND_ERROR "Xerces not found!")
 	ELSE()
-		INCLUDE_DIRECTORIES(${XercesC_INCLUDE_DIRS})
+		INCLUDE_DIRECTORIES(${XercesC_INCLUDE_DIRS} ${XSD_INCLUDE_DIR})
 	ENDIF()
 
-#XercesC_FOUND - true if the Xerces headers and libraries were found
-#XercesC_VERSION - Xerces release version
-#XercesC_INCLUDE_DIRS - the directory containing the Xerces headers
-#XercesC_LIBRARIES 	
-#XercesC_INCLUDE_DIR - the directory containing the Xerces headers
-#XercesC_LIBRARY 
-
-  # ---------------------------------
-  # Check for VTK..
-  # ---------------------------------
-  find_package(VTK5 REQUIRED)
-  if(VTK_USE_FILE)
-    set(SAVE_CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
-    set(SAVE_CMAKE_C_FLAGS ${CMAKE_C_FLAGS})
-    # set(SKIP_VTK_BUILD_SETTINGS_FILE ON)
-    # set(VTK_NO_LIBRARY_DEPENDS ON)
-    include(${VTK_USE_FILE})                            #..../lib/vtk-5.6/UseVTK.cmake
-    if (${CMAKE_SYSTEM_NAME} MATCHES "Darwin" AND "${BRAT_TARGET_PROCESSOR}" MATCHES "i386" )
-      #
-      # Not nice but necessary: get rid of undesired, deprecated, flags that cause errors 
-      # in recent clang versions, which do not allow uknown arguments, like -mlong-branch
-      #
-      set(CMAKE_CXX_FLAGS ${SAVE_CMAKE_CXX_FLAGS})
-      set(CMAKE_C_FLAGS ${SAVE_CMAKE_C_FLAGS})
-    endif()
-  endif(VTK_USE_FILE)
-  set(VTK_DIR ${VTK_DIR} CACHE STRING "VTK installation directory containing VTKConfig.cmake" FORCE)
-  # set(VTK_NO_LIBRARY_DEPENDS ON)
-
-  # ---------------------------------
-  # Check for GTK..
-  # ---------------------------------
-  if(VTK_USE_X)
-    find_package(GTK REQUIRED)
-    if(GTK_FOUND)
-      set(CMAKE_CXX_FLAGS "${CMAKE_GTK_CXX_FLAGS} ${CMAKE_CXX_FLAGS}")
-      add_definitions(-DWXVTK_GTK)
-    endif(GTK_FOUND)
-  endif(VTK_USE_X)
+	
+#	if(VTK_USE_X)
+#	find_package(GTK REQUIRED)
+#	if(GTK_FOUND)
+#		set(CMAKE_CXX_FLAGS "${CMAKE_GTK_CXX_FLAGS} ${CMAKE_CXX_FLAGS}")
+#		add_definitions(-DWXVTK_GTK)
+#	endif(GTK_FOUND)
+#	endif(VTK_USE_X)
 
 
-  # ---------------------------------
-  # Check for wxWidgets..
-  # ---------------------------------
-  set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/CMakeModules/")
+	FIND_PACKAGE(GEOS REQUIRED)
+	INCLUDE_DIRECTORIES(
+		${GEOS_INCLUDE_DIR}
+	)
 
-  # find_package(wxWidgets COMPONENTS base core net xml adv gl xrc)
-  find_package(wxWidgets COMPONENTS base core net xml adv gl xrc)
-  if(NOT wxWidgets_FOUND)
-    if(WIN32)
-      message(FATAL_ERROR "WxWidgets not found. Try setting the wxWidgets_ROOT_DIR environment or CMake variable to the root of a wxWidgets build tree or installation.")
-    endif(WIN32)
-    if(UNIX)
-      message(FATAL_ERROR "WxWidgets not found. Try adding the location of the wx-config utility from the wxWidgets installation you want to use to your executable search PATH.")
-    endif(UNIX)
-  endif(NOT wxWidgets_FOUND)
-  include(${wxWidgets_USE_FILE})
+	SET(QGIS_MIN_VERSION 2.8.3)
+	FIND_PACKAGE(QGIS ${QGIS_MIN_VERSION} REQUIRED)
+	IF (QGIS_FOUND)
+		INCLUDE_DIRECTORIES( ${QGIS_INCLUDE_DIR} )
+		IF(APPLE)
+			INCLUDE_DIRECTORIES( ${QGIS_GUI_INCLUDE_DIR} ${QGIS_ANALYSIS_INCLUDE_DIR} )
+		ELSEIF(UNIX)
+			INCLUDE_DIRECTORIES( /usr/include/gdal )
+		ENDIF(APPLE)
+	ENDIF(QGIS_FOUND)
 
-  # Use BRATS's embedded vtktiff, avoiding duplicate symbol errors
-  list(REMOVE_ITEM wxWidgets_LIBRARIES -lwxtiff-3.0)
+	FIND_PACKAGE(Qwt REQUIRED)
+	INCLUDE_DIRECTORIES(
+		${QWT_INCLUDE_DIR}
+	)
 
+	FIND_PACKAGE(QwtPlot3d REQUIRED)
+		INCLUDE_DIRECTORIES(
+		${QWTPLOT3D_INCLUDE_DIR}
+	)
 
-  # -----------------------------------------------------
-  # Set common gui object sources library
-  # -----------------------------------------------------
-  set(DISPLAY_LIB_SOURCES
-    display/BitSet32.cpp
-    new-gui/scheduler/BratTask.cpp
-    display/CheckListBox.cpp
-    display/ColorPicker.cpp
-    display/ColorPalette.cpp
-    display/DirTraverser.cpp
-    display/Dnd.cpp
-    display/LabeledTextCtrl.cpp
-    display/MapColor.cpp
-    display/MapImageType.cpp
-    display/PlotData/MapProjection.cpp
-    display/MapTypeDisp.cpp
-    display/Process.cpp
-    display/SchedulerTaskConfig.cpp
-    display/SchedulerTimer.cpp
-    display/TimeCtrl.cpp
-    display/TreeCtrl.cpp
-    display/Validators.cpp
-    display/PlotData/vtkBratColor.cpp
-    display/vtkTools.cpp
-    display/wxList.cpp
-    display/wxBratTools.cpp
-    display/WindowHandler.cpp
-    )
+	FIND_PACKAGE(OSG REQUIRED)
+
+	FIND_PACKAGE(OsgEarth REQUIRED)
+	IF (OSGEARTHQT_LIBRARY)
+		# following variable is used in qgsconfig.h
+		SET(HAVE_OSGEARTHQT TRUE)
+	ENDIF (OSGEARTHQT_LIBRARY)
+
+	FIND_PACKAGE(Threads)
+
+	INCLUDE_DIRECTORIES(
+		${OSGEARTH_INCLUDE_DIR}
+		${OSG_INCLUDE_DIR}
+	)
+
+	INCLUDE_DIRECTORIES(
+		${OSGEARTH_SOURCE_DIR}/src
+		${OSG_INCLUDE_DIR}
+	)
 
 
-  # -----------------------------------------------------
-  # Set BratDisplay sources
-  # -----------------------------------------------------
-  set(DISPLAY_SOURCES
-    display/AnimationToolbar.cpp
-    display/AxisPropertyPanel.cpp
-    display/BratDisplayApp.cpp
-    display/BratDisplay_wdr.cpp
-    display/PlotData/BratLookupTable.cpp
-    display/ContourPropFrame.cpp
-    display/DatasetPanel.cpp
-    display/LUTFrame.cpp
-    display/LUTPanel.cpp
-    display/PlotData/PlotBase.cpp
-    display/PlotData/Plot.cpp
-    display/PlotData/PlotField.cpp
-    display/TypedSaveFileDialog.cpp
-    display/PlotData/WPlot.cpp
-    display/WPlotPropertyPanel.cpp
-    display/PlotData/WorldPlotData.cpp
-    display/WorldPlotFrame.cpp
-    display/WorldPlotPanel.cpp
-    display/XYPlotData.cpp
-    display/XYPlotFrame.cpp
-    display/XYPlotPanel.cpp
-    display/XYPlotPropertyPanel.cpp
-    display/ZFXYContourPropFrame.cpp
-    display/PlotData/ZFXYPlot.cpp
-    display/ZFXYPlotData.cpp
-    display/ZFXYPlotFrame.cpp
-    display/ZFXYPlotPanel.cpp
-    display/ZFXYPlotPropertyPanel.cpp
-    display/vtkCameraState.cpp
-    display/vtkDataArrayPlotData.cpp
-    display/PlotData/vtkGSHHSReader.cpp
-    display/PlotData/vtkGeoGridSource.cpp
-    display/PlotData/vtkGeoMapFilter.cpp
-    display/vtkInteractorStyleWPlot.cpp
-    display/vtkInteractorStyle3DWPlot.cpp
-    display/vtkInteractorStyleXYPlot.cpp
-    display/vtkInteractorStyleZFXYPlot.cpp
-    display/PlotData/vtkList.cpp
-    display/vtkNewAxisActor2D.cpp
-    display/vtkPlotData.cpp
-    display/vtkPlotDataCollection.cpp
-    display/vtkPointLocatorBrat.cpp
-    display/PlotData/vtkProj2DFilter.cpp
-    display/vtkXYPlotActor.cpp
-    display/vtkZFXYPlotActor.cpp
-    display/vtkZFXYPlotFilter.cpp
-    display/vtkZFXYPlotFilterCollection.cpp
-    display/Config.cpp
-    display/PlotData/vtkVelocityGlyphFilter.cpp
-    display/PlotData/vtkBratArrowSource.cpp
-    display/PlotData/WorldPlotProperty.cpp
-    display/PlotData/GeoMap.cpp
-    display/wxInterface.cpp
-    )
+	# scheduler ########################################################################################################
+
+	# -----------------------------------------------------
+	# Set scheduler sources
+	# -----------------------------------------------------
+	set(SCHEDULER_SOURCES
+		new-gui/scheduler/main.cpp
+		new-gui/scheduler/SchedulerDlg.cpp
+		new-gui/scheduler/TaskProcessor.cpp
+		new-gui/scheduler/SchedulerApplication.cpp
+		new-gui/scheduler/BratTask.cpp
+	)
 
 
-  # -----------------------------------------------------
-  # Just to setup 'Header Files' file tab in Visual Studio
-  # -----------------------------------------------------
-  string(REGEX REPLACE "\\.cpp" .h DISPLAY_SOURCES_H_TEMP
-    "${DISPLAY_SOURCES}"
-    )
-  string(REGEX REPLACE "\\.cxx" .h DISPLAY_SOURCES_H
-    "${DISPLAY_SOURCES_H_TEMP}"
-    )
-  string(REGEX REPLACE "\\.cpp" .h DISPLAY_LIB_SOURCES_H
-    "${DISPLAY_LIB_SOURCES}"
-    )
+	# -----------------------------------------------------
+	# Just to setup 'Header Files' file tab in Visual Studio
+	# -----------------------------------------------------
 
-  # -----------------------------------------------------
-  # Set VTK libraries used by BratDisplay
-  # -----------------------------------------------------
-  set(BRAT_VTK_LIBRARIES
-    vtkCommon
-    vtkRendering
-    vtkHybrid
-    )
+	set(SCHEDULER_SOURCES_H
+		new-gui/Common/+Utils.h
+		new-gui/Common/QtUtilsIO.h
+		new-gui/Common/QtStringUtils.h
+		new-gui/Common/QtUtils.h
+		new-gui/scheduler/SchedulerDlg.h
+		new-gui/scheduler/TaskProcessor.h
+		new-gui/scheduler/SchedulerApplication.h
+		new-gui/Common/ScheduledTasksList.hxx
+		new-gui/scheduler/BratTask.h
+		new-gui/Common/XmlSerializer.h
+	)
 
-  if(CMAKE_COMPILER_IS_GNUCXX)
-    # Only for C++
-    set_source_files_properties(
-      ${DISPLAY_SOURCES} ${C_SOURCES}
-      PROPERTIES
-      COMPILE_FLAGS "-Wall -Wno-write-strings"
-      )
-  endif(CMAKE_COMPILER_IS_GNUCXX)
+	QT4_WRAP_UI(schedulerUISrcs new-gui/scheduler/SchedulerDlg.ui)
+	QT4_WRAP_CPP(schedulerMOCSrcs ${SCHEDULER_SOURCES_H})
 
+	  
+	# -----------------------------------------------------
+	# Add RC file in WIN32
+	# Add 'Resource Files' file tab in Visual Studio
+	# -----------------------------------------------------
+	if(WIN32)
+		set(SCHEDULER_SOURCES_RC new-gui/Common/Resources/scheduler.rc)
+		SOURCE_GROUP("Resource Files" FILES ${SCHEDULER_SOURCES_RC})
+	endif(WIN32)
 
-  # -----------------------------------------------------
-  # Add RC file in WIN32
-  # Add 'Resource Files' file tab in Visual Studio
-  # -----------------------------------------------------
-  if(WIN32)
-    set(DISPLAY_SOURCES_RC display/BratDisplayRC.rc)
-    SOURCE_GROUP("Resource Files" FILES ${DISPLAY_SOURCES_RC})
+	if(APPLE)
+		set(SCHEDULER_BUNDLE_DATA_FILES ${GUI_DATA_FILES} ${CODADEF_FILES} ${LIBBRATHL_DATA_FILES})
+		set_source_files_properties(${SCHEDULER_BUNDLE_DATA_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION data)
+		set_source_files_properties(new-gui/Common/Resources/brat.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+		set(SCHEDULER_SOURCES_RC ${SCHEDULER_BUNDLE_DATA_FILES} new-gui/Common/Resources/brat.icns)
+	endif(APPLE)
 
-    set_source_files_properties(display/vtkProj2DFilter.cpp
-                                PROPERTIES COMPILE_FLAGS "/Od")
-  endif(WIN32)
-
-  if(APPLE)
-    set(DISPLAY_BUNDLE_DATA_FILES data/brathl_units.dat ${GUI_DATA_FILES} ${BRAT_DISPLAY_DATA_FILES})
-    set_source_files_properties(${DISPLAY_BUNDLE_DATA_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION data)
-    set_source_files_properties(gui/BratGui.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-    set(DISPLAY_SOURCES_RC ${DISPLAY_BUNDLE_DATA_FILES} gui/BratGui.icns)
-    # Add MakeApplicationActive.mm for Mac OS X build
-    set(DISPLAY_SOURCES ${DISPLAY_SOURCES} display/MakeApplicationActive.mm display/wxVTKRenderWindowInteractor.mm)
-    # set_source_files_properties(display/wxVTKRenderWindowInteractor.cxx PROPERTIES COMPILE_FLAGS "-x objective-c++")
-    # if (APPLE)
-    #  set(DISPLAY_SOURCES ${DISPLAY_SOURCES} display/wxVTKRenderWindowInteractor.mm)
-    # else(APPLE)
-    #  set(DISPLAY_SOURCES ${DISPLAY_SOURCES} display/wxVTKRenderWindowInteractor.cxx)
-    # endif(APPLE)
-  else(APPLE)
-    set(DISPLAY_SOURCES ${DISPLAY_SOURCES} display/wxVTKRenderWindowInteractor.cxx)
-  endif(APPLE)
-
-  include_directories(
-    ${BRAT_SOURCE_DIR}/process ${wxWidgets_INCLUDE_DIRS}
-    )
-
-  add_executable(BratDisplay
-    WIN32 MACOSX_BUNDLE
-    ${DISPLAY_SOURCES} ${DISPLAY_SOURCES_RC} ${DISPLAY_SOURCES_H}
-    )
-
-  target_link_libraries(BratDisplay brathl proj brathlProcessUtilities brathlGuiUtilities ${QT_QTCORE_LIBRARY} ${BRAT_VTK_LIBRARIES} ${wxWidgets_LIBRARIES} vtktiff vtkjpeg )
-#	TARGET_LINK_LIBRARIES(qgis_core
-#	  ${QT_QTMAIN_LIBRARY}
-#	  ${QT_QTXML_LIBRARY}
-#	  ${QT_QTCORE_LIBRARY}
-#	  ${QT_QTGUI_LIBRARY}
-#	  ${QT_QTNETWORK_LIBRARY}
-#	  ${QT_QTSVG_LIBRARY}
-#	  ${QT_QTWEBKIT_LIBRARY}
-#	  ${QSCINTILLA_LIBRARY}
-#
-#	  ${PROJ_LIBRARY}
-#	  ${GEOS_LIBRARY}
-#	  ${GDAL_LIBRARY}
-#	  ${SPATIALINDEX_LIBRARY}
-#	  ${EXPAT_LIBRARY}
-#	  ${SQLITE3_LIBRARY}
-#	  ${SPATIALITE_LIBRARY}
-#	)
-
-  if(APPLE)
-    # On Mac OS X we install a script that invokes the BratDisplay binary that is located in BratGui.app
-    install(PROGRAMS display/BratDisplayMac.sh RENAME BratDisplay DESTINATION bin/)
-  else(APPLE)
-    install(TARGETS BratDisplay DESTINATION bin/)
-  endif(APPLE)
-
-  add_library(brathlGuiUtilities STATIC ${DISPLAY_LIB_SOURCES} ${DISPLAY_LIB_SOURCES_H})
-
-  if(APPLE)
-    set_target_properties(BratDisplay PROPERTIES
-      MACOSX_BUNDLE_ICON_FILE BratGui
-      MACOSX_BUNDLE_BUNDLE_NAME BratDisplay)
-    add_custom_command(TARGET BratDisplay
-      POST_BUILD COMMAND cp -f ${BRAT_SOURCE_DIR}/display/BratDisplay BratDisplay
-      WORKING_DIRECTORY ${BRAT_BINARY_DIR}/bin)
-  endif(APPLE)
-
-
-  # scheduler
-  #
-
-  # -----------------------------------------------------
-  # Set BratScheduler sources
-  # -----------------------------------------------------
-  set(SCHEDULER_SOURCES
-    scheduler/BratSchedulerApp.cpp
-    scheduler/BratScheduler_wdr.cpp
-    scheduler/EndedPanel.cpp
-    scheduler/LogPanel.cpp
-    scheduler/PendingPanel.cpp
-    scheduler/ProcessingPanel.cpp
-    scheduler/RichTextFrame.cpp
-    scheduler/SchedulerFrame.cpp
-    scheduler/SchedulerPanel.cpp
-    scheduler/TaskListView.cpp
+	include_directories(
+		${BRAT_SOURCE_DIR}/process 
     )
   
-  # -----------------------------------------------------
-  # Just to setup 'Header Files' file tab in Visual Studio
-  # -----------------------------------------------------
-  string(REGEX REPLACE "\\.cpp" .h SCHEDULER_SOURCES_H
-    "${SCHEDULER_SOURCES}"
-    )
+	
+	add_executable(scheduler
+	WIN32 MACOSX_BUNDLE
+	${SCHEDULER_SOURCES} ${SCHEDULER_SOURCES_RC} ${SCHEDULER_SOURCES_H} ${schedulerUISrcs} )
+	# ${schedulerMOCSrcs} 
 
-  # -----------------------------------------------------
-  # Add RC file in WIN32
-  # Add 'Resource Files' file tab in Visual Studio
-  # -----------------------------------------------------
-  if(WIN32)
-    set(SCHEDULER_SOURCES_RC scheduler/BratSchedulerRC.rc)
-    SOURCE_GROUP("Resource Files" FILES ${SCHEDULER_SOURCES_RC})
-  endif(WIN32)
+	target_link_libraries( scheduler 
+		${QT_QTCORE_LIBRARY} 
+		${QT_QTMAIN_LIBRARY}
+		${QT_QTGUI_LIBRARY}
+		${XercesC_LIBRARIES} 
+		brathlProcessUtilities 
+		brathl 
+	)
+	
+	install(TARGETS scheduler DESTINATION bin BUNDLE DESTINATION .)
+	
 
-  if(APPLE)
-    set(SCHEDULER_BUNDLE_DATA_FILES ${GUI_DATA_FILES} ${CODADEF_FILES} ${LIBBRATHL_DATA_FILES})
-    set_source_files_properties(${SCHEDULER_BUNDLE_DATA_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION data)
-    set_source_files_properties(gui/BratGui.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-    set(SCHEDULER_SOURCES_RC ${SCHEDULER_BUNDLE_DATA_FILES} gui/BratGui.icns)
-    # Add MakeApplicationActive.mm for Mac OS X build
-    set(SCHEDULER_SOURCES ${SCHEDULER_SOURCES} scheduler/MakeApplicationActive.mm)
-  endif(APPLE)
-
-  include_directories(
-    ${BRAT_SOURCE_DIR}/process 
-    ${BRAT_SOURCE_DIR}/display 
-    ${wxWidgets_INCLUDE_DIRS}
-    )
-  
-  
-  add_executable(BratScheduler
-    WIN32 MACOSX_BUNDLE
-    ${SCHEDULER_SOURCES} ${SCHEDULER_SOURCES_RC} ${SCHEDULER_SOURCES_H})
-
-  target_link_libraries(BratScheduler brathlGuiUtilities  ${QT_QTCORE_LIBRARY} ${XercesC_LIBRARIES} brathlProcessUtilities brathl ${wxWidgets_LIBRARIES})
-  install(TARGETS BratScheduler DESTINATION bin BUNDLE DESTINATION .)
-
-  if(APPLE)
-    # On Mac OS X we install a script that invokes the BratScheduler application
-    install(PROGRAMS scheduler/BratScheduler RENAME BratScheduler DESTINATION bin/)
-
-    add_dependencies(BratScheduler BratCreateYFX BratCreateZFXY BratExportAscii BratExportGeoTiff BratStats)
-    set_target_properties(BratScheduler PROPERTIES
-      MACOSX_BUNDLE_ICON_FILE BratGui
-      MACOSX_BUNDLE_BUNDLE_NAME BratScheduler)
-    add_custom_command(TARGET BratScheduler
-      POST_BUILD COMMAND cp -f ${BRAT_SOURCE_DIR}/scheduler/BratScheduler BratScheduler
-      COMMAND cp -f ../../BratCreateYFX MacOS/BratCreateYFX
-      COMMAND cp -f ../../BratCreateZFXY MacOS/BratCreateZFXY
-      COMMAND cp -f ../../BratExportAscii MacOS/BratExportAscii
-      COMMAND cp -f ../../BratExportGeoTiff MacOS/BratExportGeoTiff
-      COMMAND cp -f ../../BratStats MacOS/BratStats
-      WORKING_DIRECTORY ${BRAT_BINARY_DIR}/bin/BratScheduler.app/Contents)  
-  endif(APPLE)
+	if(APPLE)
+		add_dependencies(scheduler BratCreateYFX BratCreateZFXY BratExportAscii BratExportGeoTiff BratStats)
+		set_target_properties(
+			scheduler PROPERTIES
+			MACOSX_BUNDLE_ICON_FILE brat
+			MACOSX_BUNDLE_BUNDLE_NAME scheduler
+			LINK_FLAGS "-rpath @executable_path/../Frameworks/"
+			)
+		add_custom_command(TARGET scheduler
+			POST_BUILD COMMAND
+			COMMAND cp -f ../../BratCreateYFX MacOS/BratCreateYFX
+			COMMAND cp -f ../../BratCreateZFXY MacOS/BratCreateZFXY
+			COMMAND cp -f ../../BratExportAscii MacOS/BratExportAscii
+			COMMAND cp -f ../../BratExportGeoTiff MacOS/BratExportGeoTiff
+			COMMAND cp -f ../../BratStats MacOS/BratStats
+			WORKING_DIRECTORY ${BRAT_BINARY_DIR}/bin/scheduler.app/Contents)
+	endif(APPLE)
    
+	add_dependencies( scheduler scheduler_runtime )
+
+
+
+	# brat ##############################################################################################################
+
+
+	# -----------------------------------------------------
+	# Set brat sources
+	# -----------------------------------------------------
+	set(GUI_SOURCES
+		new-gui/brat/main.cpp
+		new-gui/brat/BratApplication.cpp
+		new-gui/brat/BratMainWindow.cpp
+		new-gui/brat/BratMainWindowExperimental.cpp
+		new-gui/brat/stdafx.cpp
+		new-gui/brat/DataModels/MapTypeDisp.cpp
+		new-gui/brat/GUI/DisplayEditors/AbstractDisplayEditor.cpp
+		new-gui/brat/DataModels/Workspaces/Dataset.cpp
+		new-gui/brat/DataModels/Workspaces/Operation.cpp
+		new-gui/brat/DataModels/Workspaces/Formula.cpp
+		new-gui/brat/DataModels/Workspaces/Function.cpp
+		new-gui/brat/DataModels/Workspaces/Display.cpp
+		new-gui/brat/DataModels/Workspaces/Workspace.cpp
+		new-gui/brat/DataModels/Workspaces/TreeWorkspace.cpp
+		new-gui/brat/GUI/DisplayWidgets/Globe/qgsosgearthtilesource.cpp
+		new-gui/brat/GUI/DisplayWidgets/2DPlotWidget.cpp
+		new-gui/brat/GUI/DisplayWidgets/3DPlotWidget.cpp
+		new-gui/brat/GUI/DisplayWidgets/GlobeWidget.cpp
+		new-gui/brat/GUI/DisplayWidgets/MapWidget.cpp
+		new-gui/brat/GUI/DisplayWidgets/MapWidgetExperimental.cpp
+		new-gui/brat/GUI/DesktopManager.cpp
+		new-gui/brat/GUI/DisplayWidgets/TextWidget.cpp
+		new-gui/brat/GUI/TabbedDock.cpp
+		new-gui/brat/GUI/ControlPanels/ControlPanel.cpp
+		new-gui/brat/GUI/ControlPanels/DatasetBrowserControls.cpp
+		new-gui/brat/DataModels/Model.cpp
+		new-gui/brat/GUI/ActionsTable.cpp
+		new-gui/Common/ConfigurationKeywords.cpp
+		new-gui/Common/FileSettings.cpp
+		new-gui/Common/ApplicationSettings.cpp
+		new-gui/brat/BratSettings.cpp
+		new-gui/brat/DataModels/Workspaces/WorkspaceSettings.cpp
+		new-gui/brat/GUI/WorkspaceDialog.cpp
+		new-gui/brat/GUI/WorkspaceElementsDialog.cpp
+		new-gui/brat/ApplicationSettingsDlg.cpp
+		new-gui/brat/GUI/norwegianwoodstyle.cpp
+		new-gui/Common/ApplicationPaths.cpp
+		new-gui/brat/ApplicationLogger.cpp
+		new-gui/brat/GUI/LogShell.cpp
+		new-gui/brat/DataModels/PlotData/WorldPlot.cpp
+		new-gui/brat/DataModels/PlotData/ZFXYPlot.cpp
+		new-gui/brat/DataModels/PlotData/MapProjection.cpp
+		new-gui/brat/DataModels/PlotData/XYPlot.cpp
+		new-gui/brat/DataModels/PlotData/PlotBase.cpp
+		new-gui/brat/DataModels/PlotData/PlotField.cpp
+		new-gui/brat/DataModels/PlotData/PlotColor.cpp
+		new-gui/brat/DataModels/PlotData/WorldPlotCommonData.cpp
+		new-gui/brat/DataModels/PlotData/WorldPlotData.cpp
+		new-gui/brat/DataModels/DisplayFilesNetCDFParameters.cpp
+		new-gui/brat/DataModels/DisplayFilesProcessor.cpp
+		new-gui/brat/DataModels/PlotData/XYPlotData.cpp
+		new-gui/brat/DataModels/PlotData/ZFXYPlotData.cpp
+		new-gui/brat/GUI/DisplayWidgets/BratViews.cpp
+		new-gui/brat/GUI/DisplayWidgets/3DPlotWidgetExperimental.cpp
+		new-gui/brat/DataModels/PlotData/MapColor.cpp
+		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapDecorationGrid.cpp
+		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapDecorationItem.cpp
+		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolMeasure.cpp
+		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolMeasureDialog.cpp
+		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolSelectPolygon.cpp
+		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolSelectRectangle.cpp
+		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolSelectUtils.cpp
+		new-gui/brat/GUI/ControlPanels/DatasetFilterControls.cpp
+		new-gui/brat/GUI/DisplayWidgets/Globe/GlobeControls.cpp
+		new-gui/brat/GUI/ControlPanels/OperationControls.cpp
+		new-gui/brat/GUI/ControlPanels/ProcessesTable.cpp
+		new-gui/brat/GUI/DisplayEditors/MapEditor.cpp
+		new-gui/brat/GUI/DisplayEditors/PlotEditor.cpp
+		new-gui/brat/GUI/ControlPanels/OperationControls-Quick.cpp
+		new-gui/brat/GUI/ControlPanels/Views/ViewControlPanels.cpp
+		new-gui/brat/GUI/ControlPanels/Views/ViewControlPanelsCommon.cpp
+		new-gui/brat/GUI/ControlPanels/DataExpressionsTree.cpp
+		new-gui/brat/GUI/WorkspaceViewsDialog.cpp
+		new-gui/brat/DataModels/Filters/BratFilters.cpp
+		new-gui/brat/GUI/ControlPanels/Dialogs/FormulaDialog.cpp
+		new-gui/brat/GUI/ControlPanels/Dialogs/InsertAlgorithmDialog.cpp
+		new-gui/brat/GUI/ControlPanels/Dialogs/InsertFunctionDialog.cpp
+		new-gui/brat/GUI/ControlPanels/Dialogs/ShowAliasesDialog.cpp
+		new-gui/brat/GUI/ControlPanels/Dialogs/ShowInfoDialog.cpp
+		new-gui/brat/GUI/ControlPanels/Dialogs/DelayExecutionDialog.cpp
+		new-gui/brat/GUI/ControlPanels/Dialogs/ExportDialog.cpp
+		new-gui/brat/GUI/ControlPanels/Dialogs/RegionSettingsDialog.cpp
+		new-gui/brat/DataModels/Filters/BratAreas.cpp
+		new-gui/brat/GUI/ControlPanels/Dialogs/SelectRecordDialog.cpp
+		new-gui/brat/GUI/DisplayWidgets/Histogram.cpp
+		new-gui/brat/GUI/ActiveViewsDialog.cpp
+		new-gui/brat/GUI/StackedWidget.cpp
+		new-gui/brat/DataModels/PlotData/BratLookupTable.cpp
+		new-gui/brat/DataModels/PlotData/BratLookupTableSettings.cpp
+		new-gui/brat/GUI/ControlPanels/Dialogs/EditExportAsciiDialog.cpp
+	)
+
+
+
+	# -----------------------------------------------------
+	# Just to setup 'Header Files' file tab in Visual Studio
+	# -----------------------------------------------------
+	set(GUI_SOURCES_H
+		new-gui/brat/stdafx.h
+		new-gui/brat/BratApplication.h
+		new-gui/brat/BratMainWindow.h
+		new-gui/brat/DataModels/Workspaces/BitSet32.h
+		new-gui/brat/DataModels/MapTypeDisp.h
+		new-gui/brat/GUI/DisplayEditors/AbstractDisplayEditor.h
+		new-gui/brat/GUI/DisplayWidgets/Globe/qgsosgearthtilesource.h
+		new-gui/brat/GUI/DisplayWidgets/2DPlotWidget.h
+		new-gui/brat/GUI/DisplayWidgets/3DPlotWidget.h
+		new-gui/brat/GUI/DisplayWidgets/GlobeWidget.h
+		new-gui/brat/GUI/DisplayWidgets/MapWidget.h
+		new-gui/brat/DataModels/Workspaces/Constants.h
+		new-gui/brat/DataModels/Workspaces/Dataset.h
+		new-gui/brat/DataModels/Workspaces/Operation.h
+		new-gui/brat/DataModels/Workspaces/Formula.h
+		new-gui/brat/DataModels/Workspaces/Function.h
+		new-gui/brat/DataModels/Workspaces/Display.h
+		new-gui/brat/DataModels/Workspaces/Workspace.h
+		new-gui/brat/DataModels/Workspaces/TreeWorkspace.h
+		new-gui/Common/+Utils.h
+		new-gui/Common/+UtilsIO.h
+		new-gui/Common/QtUtilsIO.h
+		new-gui/Common/QtStringUtils.h
+		new-gui/Common/QtUtils.h
+		new-gui/brat/GUI/DesktopManager.h
+		new-gui/brat/GUI/DisplayWidgets/TextWidget.h
+		new-gui/brat/GUI/TabbedDock.h
+		new-gui/brat/GUI/ControlPanels/ControlPanel.h
+		new-gui/brat/GUI/ControlPanels/DatasetBrowserControls.h
+		new-gui/brat/DataModels/Model.h
+		new-gui/brat/GUI/ActionsTable.h
+		new-gui/Common/ConfigurationKeywords.h
+		new-gui/Common/FileSettings.h
+		new-gui/Common/ApplicationSettings.h
+		new-gui/brat/BratSettings.h
+		new-gui/brat/DataModels/Workspaces/WorkspaceSettings.h
+		new-gui/brat/GUI/WorkspaceDialog.h
+		new-gui/brat/GUI/WorkspaceElementsDialog.h
+		new-gui/brat/ApplicationSettingsDlg.h
+		new-gui/brat/GUI/norwegianwoodstyle.h
+		new-gui/Common/ApplicationPaths.h
+		new-gui/brat/ApplicationLogger.h
+		new-gui/brat/GUI/LogShell.h
+		new-gui/brat/DataModels/PlotData/PlotColor.h
+		new-gui/brat/DataModels/PlotData/WorldPlotCommonData.h
+		new-gui/brat/DataModels/PlotData/WorldPlotData.h
+		new-gui/brat/DataModels/PlotData/WorldPlot.h
+		new-gui/brat/DataModels/PlotData/ZFXYPlot.h
+		new-gui/brat/DataModels/DisplayFilesProcessor.h
+		new-gui/brat/DataModels/PlotData/XYPlotData.h
+		new-gui/brat/DataModels/PlotData/ZFXYPlotData.h
+		new-gui/brat/GUI/DisplayWidgets/BratViews.h
+		new-gui/brat/DataModels/PlotData/MapColor.h
+		new-gui/brat/PlotValues.h
+		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapDecorationGrid.h
+		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapDecorationItem.h
+		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolMeasure.h
+		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolMeasureDialog.h
+		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolSelectPolygon.h
+		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolSelectRectangle.h
+		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolSelectUtils.h
+		new-gui/brat/GUI/ControlPanels/DatasetFilterControls.h
+		new-gui/brat/GUI/DisplayWidgets/Globe/GlobeControls.h
+		new-gui/brat/GUI/ControlPanels/OperationControls.h
+		new-gui/brat/GUI/ControlPanels/ProcessesTable.h
+		new-gui/brat/GUI/DisplayEditors/MapEditor.h
+		new-gui/brat/GUI/DisplayEditors/PlotEditor.h
+		new-gui/brat/GUI/ControlPanels/Views/ViewControlPanels.h
+		new-gui/brat/GUI/ControlPanels/Views/ViewControlPanelsCommon.h
+		new-gui/brat/GUI/ControlPanels/DataExpressionsTree.h
+		new-gui/brat/GUI/WorkspaceViewsDialog.h
+		new-gui/brat/DataModels/Filters/BratFilters.h
+		new-gui/brat/GUI/ControlPanels/Dialogs/FormulaDialog.h
+		new-gui/brat/GUI/ControlPanels/Dialogs/InsertAlgorithmDialog.h
+		new-gui/brat/GUI/ControlPanels/Dialogs/InsertFunctionDialog.h
+		new-gui/brat/GUI/ControlPanels/Dialogs/ShowAliasesDialog.h
+		new-gui/brat/GUI/ControlPanels/Dialogs/ShowInfoDialog.h
+		new-gui/brat/GUI/ControlPanels/Dialogs/DelayExecutionDialog.h
+		new-gui/brat/GUI/ControlPanels/Dialogs/ExportDialog.h
+		new-gui/brat/GUI/ControlPanels/Dialogs/RegionSettingsDialog.h
+		new-gui/brat/DataModels/Filters/BratAreas.h
+		new-gui/brat/GUI/ControlPanels/Dialogs/SelectRecordDialog.h
+		new-gui/brat/GUI/DisplayWidgets/Histogram.h
+		process/PythonEngine.hpp
+		new-gui/brat/GUI/ActiveViewsDialog.h
+		new-gui/brat/GUI/StackedWidget.h
+		new-gui/brat/DataModels/PlotData/BratLookupTable.h
+		new-gui/brat/DataModels/PlotData/BratLookupTableSettings.h
+		new-gui/brat/GUI/ControlPanels/Dialogs/EditExportAsciiDialog.h
+	)
+
+
+	QT4_WRAP_UI( BRAT_UI_SOURCES new-gui/brat/BratMainWindow.ui OPTIONS -o ${BRAT_SOURCE_DIR}/new-gui/brat/tmp/ui_BratMainWindow.h )
+	QT4_ADD_RESOURCES( BRAT_RCC_SOURCES new-gui/Common/Resources/brat.qrc OPTIONS -o ${BRAT_SOURCE_DIR}/new-gui/brat/tmp/qrc_brat.cpp )
+	QT4_ADD_RESOURCES( BRAT_RCC_SOURCES new-gui/brat/GUI/DisplayWidgets/Globe/globe_plugin.qrc OPTIONS -o ${BRAT_SOURCE_DIR}/new-gui/brat/tmp/qrc_globe_plugin.cpp )
+	QT4_ADD_RESOURCES( BRAT_RCC_SOURCES new-gui/brat/Resources/images/qgis-themes-1.qrc OPTIONS -o ${BRAT_SOURCE_DIR}/new-gui/brat/tmp/qrc_qgis-themes-1.cpp )
+	QT4_ADD_RESOURCES( BRAT_RCC_SOURCES new-gui/brat/Resources/images/qgis-themes-2.qrc OPTIONS -o ${BRAT_SOURCE_DIR}/new-gui/brat/tmp/qrc_qgis-themes-2.cpp )
+
+	include_directories(
+		${BRAT_SOURCE_DIR}/new-gui/brat/tmp
+	)
+	include_directories(
+		${BRAT_SOURCE_DIR}/process
+	)
+
+	
+	# -----------------------------------------------------
+	# Add RC file in WIN32
+	# Add 'Resource Files' file tab in Visual Studio
+	# -----------------------------------------------------
+	if(WIN32)
+		set(GUI_SOURCES_RC new-gui/Common/Resources/brat.rc)
+		SOURCE_GROUP("Resource Files" FILES ${GUI_SOURCES_RC})
+	endif(WIN32)
   
-  # gui
-  #
+	
+	# -----------------------------------------------------
+	# Mac OS X application bundle specific rules
+	# -----------------------------------------------------
+	if(APPLE)
+		foreach(DATA_FILE ${DATA_FILES})
+			set(GUI_BUNDLE_DATA_FILES ${GUI_BUNDLE_DATA_FILES} ${DATA_FILE})
+		endforeach(DATA_FILE ${DATA_FILES})
 
-  # -----------------------------------------------------
-  # Set BratGui sources
-  # -----------------------------------------------------
-  set(GUI_SOURCES
-    gui/AlgorithmDlg.cpp
-    gui/BratGui.cpp
-    gui/BratGui_wdr.cpp
-    gui/Dataset.cpp
-    gui/DatasetPanel.cpp
-    gui/DatasetTreeCtrl.cpp
-    gui/DelayDlg.cpp
-    gui/Dictionary.cpp
-    gui/Display.cpp
-    gui/DisplayPanel.cpp
-    gui/DisplayDataTreeCtrl.cpp
-    gui/ExportDlg.cpp
-    gui/FieldsTreeCtrl.cpp
-    gui/Formula.cpp
-    gui/FormulaDlg.cpp
-    gui/Function.cpp
-    gui/FunctionDlg.cpp
-    gui/GuiPanel.cpp
-    gui/GuiFrame.cpp
-    gui/LogPanel.cpp
-    gui/Operation.cpp
-    gui/OperationPanel.cpp
-    gui/OperationTreeCtrl.cpp
-    gui/ResolutionDlg.cpp
-    gui/RichTextFrame.cpp
-    gui/SelectionCriteriaDlg.cpp
-    gui/TaskList.cpp
-    gui/TreeWorkspace.cpp
-    gui/Workspace.cpp
-    gui/WorkspaceDlg.cpp
-    )
+		set_source_files_properties(${GUI_BUNDLE_DATA_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION data)
+		set_source_files_properties(new-gui/Common/Resources/brat.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+		set(GUI_SOURCES_RC ${GUI_BUNDLE_DATA_FILES} new-gui/Common/Resources/brat.icns)
+	endif(APPLE)
 
-  # -----------------------------------------------------
-  # Just to setup 'Header Files' file tab in Visual Studio
-  # -----------------------------------------------------
-  string(REGEX REPLACE "\\.cpp" .h GUI_SOURCES_H
-    "${GUI_SOURCES}"
-    )
 
-  # -----------------------------------------------------
-  # Add RC file in WIN32
-  # Add 'Resource Files' file tab in Visual Studio
-  # -----------------------------------------------------
-  if(WIN32)
-    set(GUI_SOURCES_RC gui/BratGuiRC.rc)
-    SOURCE_GROUP("Resource Files" FILES ${GUI_SOURCES_RC})
-  endif(WIN32)
-  
-  # -----------------------------------------------------
-  # Mac OS X application bundle specific rules
-  # -----------------------------------------------------
-  if(APPLE)
-    foreach(DATA_FILE ${DATA_FILES})
-      set(GUI_BUNDLE_DATA_FILES ${GUI_BUNDLE_DATA_FILES} ${DATA_FILE})
-    endforeach(DATA_FILE ${DATA_FILES})
-    set_source_files_properties(${GUI_BUNDLE_DATA_FILES} PROPERTIES MACOSX_PACKAGE_LOCATION data)
-    set_source_files_properties(gui/BratGui.icns PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-    set(GUI_SOURCES_RC ${GUI_BUNDLE_DATA_FILES} gui/BratGui.icns)
-  endif(APPLE)
 
-  include_directories(
-    ${BRAT_SOURCE_DIR}/process
-    ${BRAT_SOURCE_DIR}/display
-    )
+	add_executable(brat WIN32 MACOSX_BUNDLE ${GUI_SOURCES} ${GUI_SOURCES_RC} ${BRAT_RCC_SOURCES} ${GUI_SOURCES_H} )
+	
+	target_include_directories( brat PRIVATE new-gui/brat )
+	
+	add_dependencies( brat brat_runtime )
 
-  add_executable(BratGui WIN32 MACOSX_BUNDLE ${GUI_SOURCES} ${GUI_SOURCES_RC} ${GUI_SOURCES_H})
+	target_link_libraries( brat
+		 
+		${QT_QTCORE_LIBRARY} 
+		${QT_QTMAIN_LIBRARY}
+		${QT_QTXML_LIBRARY}
+		${QT_QTGUI_LIBRARY}
+		${QT_QTNETWORK_LIBRARY}
+		${QT_QTSVG_LIBRARY}
+		${QT_QTOPENGL_LIBRARY}
+		${QT_QTWEBKIT_LIBRARY}
+		${QWT_LIBRARY}
+		${QWTPLOT3D_LIBRARY}
+		${QGIS_CORE_LIBRARY}
+		${QGIS_GUI_LIBRARY}
+		${QGIS_ANALYSIS_LIBRARY}
+		${GEOS_LIBRARY}
+		${OSGDB_LIBRARY}
+		${OSGGA_LIBRARY}
+		${OSGUTIL_LIBRARY}
+		${OSG_LIBRARY}
+		${OSGQT_LIBRARY}
+		${OSGVIEWER_LIBRARY}
+		${OSGSHADOW_LIBRARY}
+		${OSGEARTH_LIBRARY}
+		${OSGEARTHFEATURES_LIBRARY}
+		${OSGEARTHUTIL_LIBRARY}
+		${OSGEARTHQT_LIBRARY}
+		${OSGEARTHSYMBOLOGY_LIBRARY}
+		${OSGEARTHANNOTATION_LIBRARY}
+		${OPENTHREADS_LIBRARY}
+		${PYTHON_IMPORT_LIBRARY}
+		brathlProcessUtilities 
+		brathl 
+		proj 
+		brat-tools
+	)
+	
+	target_compile_definitions( brat 
+		PRIVATE
+		-DHAVE_OSGEARTH_ELEVATION_QUERY 
+		-DHAVE_OSGEARTHQT 
+		-DQWT_DLL 
+		-DQWT3D_DLL 
+		-DSPATIALITE_VERSION_GE_4_0_0 
+		-DSPATIALITE_HAS_INIT_EX 
+		-DPYTHON_EXPORT 
+		-DANALYSIS_EXPORT 
+		-DAPP_EXPORT 
+		-DCUSTOMWIDGETS_EXPORT 
+		-DSERVER_EXPORT 			
+		)
+		
+	IF (WIN32)	
+		target_link_libraries( brat opengl32.lib )
+        set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /D CORE_EXPORT=__declspec(dllimport) /D GUI_EXPORT=__declspec(dllimport)" )
+		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /D CORE_EXPORT=__declspec(dllimport) /D GUI_EXPORT=__declspec(dllimport)" )
+	ELSE()
+		set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -DCORE_EXPORT= -DGUI_EXPORT=" )
+		set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DCORE_EXPORT= -DGUI_EXPORT=" )
 
-  target_link_libraries(BratGui brathlGuiUtilities  ${QT_QTCORE_LIBRARY} brathlProcessUtilities brathl proj ${wxWidgets_LIBRARIES})
-  install(TARGETS BratGui DESTINATION bin BUNDLE DESTINATION .)
+		IF (APPLE)
+			target_link_libraries( brat
 
-  if(APPLE)
-    add_dependencies(BratGui BratCreateYFX BratCreateZFXY BratExportAscii BratExportGeoTiff BratStats BratDisplay BratScheduler)
-    set_target_properties(BratGui PROPERTIES
-      MACOSX_BUNDLE_ICON_FILE BratGui
-      MACOSX_BUNDLE_BUNDLE_NAME BratGui)
-    add_custom_command(TARGET BratGui
-      POST_BUILD
-      COMMAND cp -f ../../BratCreateYFX MacOS/BratCreateYFX
-      COMMAND cp -f ../../BratCreateZFXY MacOS/BratCreateZFXY
-      COMMAND cp -f ../../BratExportAscii MacOS/BratExportAscii
-      COMMAND cp -f ../../BratExportGeoTiff MacOS/BratExportGeoTiff
-      COMMAND cp -f ../../BratStats MacOS/BratStats
-      COMMAND cp -f ${BRAT_SOURCE_DIR}/display/BratDisplay MacOS/BratDisplay
-      COMMAND rm -rf MacOS/BratDisplay.app
-      COMMAND cp -RL ../../BratDisplay.app MacOS/BratDisplay.app
-      COMMAND cp -f ${BRAT_SOURCE_DIR}/scheduler/BratScheduler MacOS/BratScheduler
-      COMMAND cp -f ${BRAT_SOURCE_DIR}/doc/brat_user_manual.pdf data/brat_user_manual_${BRAT_VERSION}.pdf
-      WORKING_DIRECTORY ${BRAT_BINARY_DIR}/bin/BratGui.app/Contents)
-  endif(APPLE)
+				"-framework OpenGL"
+			)
+		ELSE(APPLE)
+			target_link_libraries( brat
+
+				${OSGTEXT_LIBRARY}
+				${OSGWIDGET_LIBRARY}
+				${OSGSIM_LIBRARY}
+				${OSGTERRAIN_LIBRARY}
+				${OSGFX_LIBRARY}
+				${OSGMANIPULATOR_LIBRARY}
+				util
+			)
+		ENDIF (APPLE)
+	ENDIF (WIN32)
+	
+	install(TARGETS brat DESTINATION bin BUNDLE DESTINATION .)
+
+
+
+
+	if(APPLE)
+
+		add_dependencies(brat BratCreateYFX BratCreateZFXY BratExportAscii BratExportGeoTiff BratStats scheduler)
+		set_target_properties(
+			brat PROPERTIES
+			MACOSX_BUNDLE_ICON_FILE brat
+			MACOSX_BUNDLE_BUNDLE_NAME brat
+			LINK_FLAGS "-rpath @executable_path/../Frameworks/"
+			)
+
+		add_custom_command(TARGET brat
+			POST_BUILD
+			COMMAND cp -f ../../BratCreateYFX MacOS/BratCreateYFX
+			COMMAND cp -f ../../BratCreateZFXY MacOS/BratCreateZFXY
+			COMMAND cp -f ../../BratExportAscii MacOS/BratExportAscii
+			COMMAND cp -f ../../BratExportGeoTiff MacOS/BratExportGeoTiff
+			COMMAND cp -f ../../BratStats MacOS/BratStats
+			# COMMAND cp -f ${BRAT_SOURCE_DIR}/doc/brat_user_manual.pdf doc/brat_user_manual_${BRAT_VERSION}.pdf
+			WORKING_DIRECTORY ${BRAT_BINARY_DIR}/bin/brat.app/Contents)
+
+	endif(APPLE)
 
 
 endif(BRAT_BUILD_GUI)
+
+
+#######################################################################################################################
+#######################################################################################################################
+
+
+
+
 
 
 # documentation
@@ -1860,6 +2590,7 @@ add_custom_target(dvd
 add_dependencies(dvd sdist)
 
 
+# bdist ############################################################################################
 
 if(APPLE)
   set(APPLE_CPU ${BRAT_TARGET_PROCESSOR})
@@ -1871,8 +2602,8 @@ if(APPLE)
     COMMENT "Copying the files needed for Mac OS X distribution"
     COMMAND rm -rf ${BDIST_PKGDIR}
     COMMAND mkdir ${BDIST_PKGDIR}
-    COMMAND cp -RL ${BRAT_BINARY_DIR}/bin/BratGui.app ${BDIST_PKGDIR}
-    COMMAND cp -RL ${BRAT_BINARY_DIR}/bin/BratScheduler.app ${BDIST_PKGDIR}
+	COMMAND cp -R ${BRAT_BINARY_DIR}/bin/brat.app ${BDIST_PKGDIR}
+    COMMAND cp -RL ${BRAT_BINARY_DIR}/bin/scheduler.app ${BDIST_PKGDIR}
 
     COMMAND mkdir -p ${BDIST_ROOT}/bin
     COMMAND cp ${BRAT_BINARY_DIR}/externals/coda/bin/coda* ${BDIST_ROOT}/bin
@@ -1888,10 +2619,6 @@ if(APPLE)
     COMMAND cp ${BRAT_BINARY_DIR}/bin/BratShowInternalFile ${BDIST_ROOT}/bin
     COMMAND cp ${BRAT_BINARY_DIR}/bin/BratCheckAliases ${BDIST_ROOT}/bin
     COMMAND cp ${BRAT_BINARY_DIR}/bin/BratStats ${BDIST_ROOT}/bin
-    COMMAND cp ${BRAT_SOURCE_DIR}/display/BratDisplayMac.sh ${BDIST_ROOT}/bin/BratDisplay
-    COMMAND chmod 755 ${BDIST_ROOT}/bin/BratDisplay
-    COMMAND cp ${BRAT_SOURCE_DIR}/scheduler/BratScheduler ${BDIST_ROOT}/bin/BratScheduler
-    COMMAND chmod 755 ${BDIST_ROOT}/bin/BratScheduler
 
     COMMAND mkdir -p ${BDIST_ROOT}/lib
     COMMAND cp ${BRAT_BINARY_DIR}/lib/libbrathl.a ${BDIST_ROOT}/lib
@@ -1909,8 +2636,8 @@ if(APPLE)
     COMMAND cp ${BRAT_SOURCE_DIR}/externals/netcdf-c/include/netcdf.h ${BDIST_ROOT}/include
     COMMAND cp ${BRAT_SOURCE_DIR}/externals/udunits/src/lib/udunits.h ${BDIST_ROOT}/include
 
-    COMMAND mkdir -p ${BDIST_ROOT}/data
-    COMMAND cp ${BRAT_SOURCE_DIR}/data/* ${BDIST_ROOT}/data
+#    COMMAND mkdir -p ${BDIST_ROOT}/data
+#	COMMAND cp -R ${BRAT_SOURCE_DIR}/data ${BDIST_ROOT}/data
 
     COMMAND mkdir ${BDIST_PKGDIR}/doc
     COMMAND cp ${BRAT_SOURCE_DIR}/doc/brat_user_manual.pdf ${BDIST_PKGDIR}/doc/brat_user_manual_${BRAT_VERSION}.pdf
@@ -1940,8 +2667,8 @@ if(APPLE)
   add_custom_target(bdist
     COMMENT "Creating the Mac OS X disk image"
     COMMAND rm -f ${BDIST_DMGFILE}
-    # -megabytes: to avoid error -5341; use a size that is comfortably bigger than expected (about 120 Mb)
-    COMMAND hdiutil create -megabytes 500 -srcfolder ${BDIST_PKGDIR} -volname "BRAT-${BRAT_VERSION}-${APPLE_CPU}" ${BDIST_DMGFILE}
+	# -megabytes: to avoid error -5341; use a size that is comfortably bigger than expected (more than 1Gb)
+	COMMAND hdiutil create -megabytes 2000 -srcfolder ${BDIST_PKGDIR} -volname "BRAT-${BRAT_VERSION}-${APPLE_CPU}" ${BDIST_DMGFILE}
     )
 
   add_dependencies(bdist bdist_stage_macos)

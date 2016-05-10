@@ -4,6 +4,7 @@
 #include "new-gui/Common/ScheduledTasksList.hxx"
 #include "new-gui/Common/XmlSerializer.h"
 #include "new-gui/scheduler/TaskProcessor.h"
+#include "new-gui/Common/ConsoleApplicationPaths.h"
 
 #if defined(MEM_LEAKS)
 	#include "new-gui/Common/WinMemChecker.h"
@@ -14,11 +15,33 @@
 	_CrtMemState QSchedulerApplication::AfterRunState;		//after running engine, before de-allocating
 #endif
 
+const CConsoleApplicationPaths *QSchedulerApplication::smApplicationPaths = nullptr;
+
+
  
 // When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
 // Needs to be included after all #include commands
 #include "libbrathl/Win32MemLeaksAccurate.h"
+
+
+// Tries to create a QApplication on-the-fly to able to use the
+//	 GUI, since the only place we will call this is in main, where
+//	everything else has failed.
+//
+//static
+int QSchedulerApplication::OffGuiErrorDialog( int error_type, char const *error_msg )
+{
+    int argc = 0;
+    QApplication a( argc, nullptr );
+    QMessageBox msg_abort;
+    msg_abort.setText( QString("A fatal error as ocurred.") );
+    msg_abort.setInformativeText( error_msg );
+    msg_abort.setStandardButtons( QMessageBox::Abort );
+    msg_abort.setIcon( QMessageBox::Critical );
+    msg_abort.exec();
+    return error_type;
+}
 
 
 
@@ -40,6 +63,15 @@ QSchedulerApplication::QSchedulerApplication(int &argc, char **argv, int flags)
     setlocale( LC_NUMERIC, "C" );
 
     //	III. Locate data directory
+
+    static const CConsoleApplicationPaths brat_paths( argv[ 0 ] );
+    if ( !brat_paths.IsValid() )
+        throw CException( "One or more path directories are invalid:\n" + brat_paths.GetErrorMsg() );
+
+    smApplicationPaths = &brat_paths;
+
+    CTools::SetInternalDataDir( brat_paths.mInternalDataDir );
+
     /*
     if ( getenv( BRATHL_ENVVAR ) == NULL )
     {

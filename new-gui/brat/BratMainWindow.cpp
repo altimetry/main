@@ -195,15 +195,23 @@ void CBratMainWindow::CreateWorkingDock()
 	mMainWorkingDock->setAllowedAreas( Qt::LeftDockWidgetArea | Qt::RightDockWidgetArea );	//mMainWorkingDock->setMaximumWidth( max_main_dock_width );
 	addDockWidget( Qt::LeftDockWidgetArea, mMainWorkingDock, Qt::Vertical );
 
+	LOG_TRACE( "Added mMainWorkingDock..." );
+
 	auto 
 	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eDataset ), "Datasets" );			assert( mMainWorkingDock->TabIndex( tab ) == eDataset );
 	mMainWorkingDock->SetTabToolTip( tab, "Dataset browser" );
 
+	LOG_TRACE( "Added MakeWorkingPanel( eDataset )..." );
+
 	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eFilter ), "Filters" );	 		assert( mMainWorkingDock->TabIndex( tab ) == eFilter );
 	mMainWorkingDock->SetTabToolTip( tab, "Dataset filter" );
 
+	LOG_TRACE( "Added MakeWorkingPanel( eFilter )..." );
+
 	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eOperations ), "Operations" );	assert( mMainWorkingDock->TabIndex( tab ) == eOperations );
 	mMainWorkingDock->SetTabToolTip( tab, "Quick or advanced operations"  );
+
+	LOG_TRACE( "Added MakeWorkingPanel( eOperations )..." );
 
     connect( this, SIGNAL( WorkspaceChanged( CWorkspaceDataset* ) ), WorkingPanel< eDataset >(), SLOT( HandleWorkspaceChanged( CWorkspaceDataset* ) ) );
 	connect( this, SIGNAL( WorkspaceChanged() ), WorkingPanel< eFilter >(), SLOT( HandleWorkspaceChanged() ) );

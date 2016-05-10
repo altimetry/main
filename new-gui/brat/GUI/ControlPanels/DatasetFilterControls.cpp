@@ -25,10 +25,10 @@ void CDatasetFilterControls::CreateWidgets()
 {
     // I. Top buttons row
     //
-    mNewFilter = CreateToolButton( "", ":/images/OSGeo/filter_new.png", "<b>Create filter</b><br>Create a new filter" );
+    mNewFilter    = CreateToolButton( "", ":/images/OSGeo/filter_new.png", "<b>Create filter</b><br>Create a new filter" );
     mRenameFilter = CreateToolButton( "", ":/images/OSGeo/filter_edit.png", "<b>Rename filter</b><br>Change the name of selected filter" );
     mDeleteFilter = CreateToolButton( "", ":/images/OSGeo/filter_delete.png", "<b>Delete filter</b><br>Delete the selected filter" );
-    mSaveFilters = CreateToolButton( "", ":/images/OSGeo/filter_save.png", "<b>Save filters</b><br>Save filter parameters." );
+    mSaveFilters  = CreateToolButton( "", ":/images/OSGeo/filter_save.png", "<b>Save filters</b><br>Save filter parameters." );
 
     mFiltersCombo = new QComboBox;
     mFiltersCombo->setToolTip( "Select Filter" );
@@ -128,13 +128,21 @@ void CDatasetFilterControls::CreateWidgets()
 	AddTopLayout( ELayoutType::Horizontal, { WidgetLine( nullptr, Qt::Horizontal ), when_l, WidgetLine( nullptr, Qt::Horizontal ), mClearWhen }, s, m, m, m, m );
 
     //    III.1 Dates, Cycles and Pass (start and stop values)
+    QDateTime minDateTime( QDate(1900, 1, 1), QTime(0, 0, 0));
 
-    mStartTimeEdit  = new QDateTimeEdit;			mStartTimeEdit->setCalendarPopup(true);
-    mStopTimeEdit  = new QDateTimeEdit;				mStopTimeEdit->setCalendarPopup(true);
-    mStartCycleEdit = new QLineEdit(this);
-    mStopCycleEdit  = new QLineEdit(this);
-    mStartPassEdit  = new QLineEdit(this);
-    mStopPassEdit   = new QLineEdit(this);
+    mStartTimeEdit = new QDateTimeEdit();                      mStopTimeEdit = new QDateTimeEdit();
+    mStartTimeEdit->setCalendarPopup(true);                    mStopTimeEdit->setCalendarPopup(true);
+    mStartTimeEdit->setDisplayFormat("yyyy.MM.dd hh:mm:ss");   mStopTimeEdit->setDisplayFormat("yyyy.MM.dd hh:mm:ss");
+    mStartTimeEdit->setMinimumDateTime( minDateTime );         mStopTimeEdit->setMinimumDateTime( minDateTime );
+
+    static QRegExpValidator *textValidator = new QRegExpValidator( QRegExp("[0-9]+"), this ); // only numeric letters
+
+    mStartCycleEdit = new QLineEdit(this);           mStopCycleEdit  = new QLineEdit(this);
+    mStartCycleEdit->setValidator( textValidator );  mStopCycleEdit->setValidator( textValidator );
+
+    mStartPassEdit = new QLineEdit(this);            mStopPassEdit = new QLineEdit(this);
+    mStartPassEdit->setValidator( textValidator );   mStopPassEdit->setValidator( textValidator );
+
 
     QBoxLayout *dates_box = LayoutWidgets( Qt::Vertical, {
                                                  LayoutWidgets( Qt::Horizontal, { new QLabel( "Start Date" ), mStartTimeEdit } ),
@@ -246,6 +254,13 @@ void CDatasetFilterControls::Wire()
     connect( mDeleteArea, SIGNAL( clicked() ), this, SLOT( HandleDeleteArea() ) );
 
 	connect( mClearWhen, SIGNAL( clicked() ), this, SLOT( HandleClearWhen() ) );
+    connect( mStartTimeEdit, SIGNAL( dateTimeChanged(const QDateTime&) ), this, SLOT( HandleStartDateTimeChanged(const QDateTime&) ) );
+    connect( mStopTimeEdit, SIGNAL( dateTimeChanged(const QDateTime&) ), this, SLOT( HandleStopDateTimeChanged(const QDateTime&) ) );
+
+    connect( mStartCycleEdit, SIGNAL( textEdited(const QString &) ), this, SLOT( HandleStartCycleChanged(const QString &) ) );
+    connect( mStopCycleEdit,  SIGNAL( textEdited(const QString &) ), this, SLOT( HandleStopCycleChanged(const QString &) ) );
+    connect( mStartPassEdit,  SIGNAL( textEdited(const QString &) ), this, SLOT( HandleStartPassChanged(const QString &) ) );
+    connect( mStopPassEdit,   SIGNAL( textEdited(const QString &) ), this, SLOT( HandleStopPassChanged(const QString &) ) );
 
 	connect( mMap, SIGNAL( CurrentLayerSelectionChanged() ), this, SLOT( HandleCurrentLayerSelectionChanged() ) );
 }
@@ -410,7 +425,7 @@ void CDatasetFilterControls::HandleWorkspaceChanged()
 
 void CDatasetFilterControls::HandleNewFilter()
 {
-    auto result = SimpleInputString( "Filter Name", mBratFilters.MakeNewName(), "New Filter..." );
+    auto result = ValidatedInputString( "Filter Name", mBratFilters.MakeNewName(), "New Filter..." );
 	if ( !result.first )
 		return;
 
@@ -430,7 +445,7 @@ void CDatasetFilterControls::HandleRenameFilter()
 {
 	assert__( mFilter );
 
-    auto result = SimpleInputString( "Filter Name", mFilter->Name(), "Rename Filter..." );
+    auto result = ValidatedInputString( "Filter Name", mFilter->Name(), "Rename Filter..." );
 	if ( !result.first )
 		return;
 
@@ -483,25 +498,7 @@ void CDatasetFilterControls::HandleDeleteFilter()
 
 void CDatasetFilterControls::HandleSaveFilters()
 {
-    double lat_min, lat_max, lon_min, lon_max;
-    lat_min = 0;
-    lat_max = 0;
-    lon_min = 0;
-    lon_max = 0;
-
     assert__( mFilter );
-
-	// TODO validation
-
-    mFilter->StartTime() = mStartTimeEdit->dateTime();
-    mFilter->StopTime() = mStopTimeEdit->dateTime();
-
-    mFilter->StartCycle() = s2n< int >( q2a( mStartCycleEdit->text() ) );
-    mFilter->StopCycle() = s2n< int >( q2a( mStopCycleEdit->text() ) );
-    mFilter->StartPass() = s2n< int >( q2a( mStartPassEdit->text() ) );
-    mFilter->StopPass() = s2n< int >( q2a( mStopPassEdit->text() ) );
-
-    mFilter->BoundingArea(lon_min, lat_min, lon_max, lat_max);
 
 	if ( !mBratFilters.Save() )
 		SimpleWarnBox( "There was a problem saving filters to '" + mBratFilters.FilePath() + "'. Some information could be lost or damaged." );
@@ -558,10 +555,8 @@ void CDatasetFilterControls::HandleRegionsCurrentIndexChanged( int region_index 
 
 //    std::string name = q2a( mRegionsCombo->itemText( region_index ) );
 //    CRegion *region = mBratRegions.Find( name );
-
 //    Q_UNUSED( region );
 
-    //TODO - Set checked areas...
 }
 
 
@@ -628,7 +623,7 @@ void CDatasetFilterControls::HandleRegionSettings()
 
 void CDatasetFilterControls::HandleNewArea()
 {
-    auto result = SimpleInputString( "Area Name", mBratAreas.MakeNewName(), "New Area..." );
+    auto result = ValidatedInputString( "Area Name", mBratAreas.MakeNewName(), "New Area..." );
     if ( !result.first )
         return;
 
@@ -691,7 +686,7 @@ void CDatasetFilterControls::HandleRenameArea()
         }
 
     // Rename area
-    auto result = SimpleInputString( "Area Name", area_name, "Rename Area..." );
+    auto result = ValidatedInputString( "Area Name", area_name, "Rename Area..." );
     if ( !result.first )
         return;
 
@@ -755,18 +750,90 @@ void CDatasetFilterControls::HandleAreaChecked(QListWidgetItem *area_item)
 
 void CDatasetFilterControls::SaveAllAreas()
 {
-    //std::string area_name = mAreasListWidget->currentItem()->text().toStdString();
-
-    // TODO: Complete this method?
-
     if ( !mBratAreas.Save() )
         SimpleWarnBox( "There was a problem saving areas to '" + mBratAreas.FilePath() + "'. Some information could be lost or damaged." );
 }
 
 
 
+void CDatasetFilterControls::HandleStartDateTimeChanged(const QDateTime &start_datetime)
+{
+    // Start_datetime defines the minimum allowed stop_datetime [Signals are blocked, otherwise HandleStopDateTimeChanged is called]
+    mStopTimeEdit->blockSignals( true );
+    mStopTimeEdit->setMinimumDateTime( start_datetime );
+    mStopTimeEdit->blockSignals( false );
+
+    mFilter->StartTime() = start_datetime;
+}
 
 
+void CDatasetFilterControls::HandleStopDateTimeChanged(const QDateTime &stop_datetime)
+{
+    // Stop_datetime defines the maximum allowed start_datetime [Signals are blocked, otherwise HandleStartDateTimeChanged is called]
+    mStartTimeEdit->blockSignals( true );
+    mStartTimeEdit->setMaximumDateTime( stop_datetime );
+    mStartTimeEdit->blockSignals( false );
+
+    mFilter->StopTime() = stop_datetime;
+}
+
+
+void CDatasetFilterControls::HandleStartCycleChanged(const QString &new_cycle)
+{
+    int new_startCycle = new_cycle.toInt();
+    int stopCycle      = mStopCycleEdit->text().toInt();
+
+    if ( new_startCycle > stopCycle )
+    {
+        new_startCycle = stopCycle;
+    }
+
+    mStartCycleEdit->setText( n2q( new_startCycle) );
+    mFilter->StartCycle() = new_startCycle;
+}
+
+
+void CDatasetFilterControls::HandleStopCycleChanged(const QString &new_cycle)
+{
+    int new_stopCycle = new_cycle.toInt();
+    int startCycle    = mStartCycleEdit->text().toInt();
+
+    if ( new_stopCycle < startCycle )
+    {
+        new_stopCycle = startCycle;
+    }
+
+    mStopCycleEdit->setText( n2q( new_stopCycle ) );
+    mFilter->StopCycle() = new_stopCycle;
+}
+
+void CDatasetFilterControls::HandleStartPassChanged(const QString &new_pass)
+{
+    int new_startPass = new_pass.toInt();
+    int stopPass      = mStopPassEdit->text().toInt();
+
+    if ( new_startPass > stopPass )
+    {
+        new_startPass = stopPass;
+    }
+
+    mStartPassEdit->setText( n2q( new_startPass) );
+    mFilter->StartPass() = new_startPass;
+}
+
+void CDatasetFilterControls::HandleStopPassChanged(const QString &new_pass)
+{
+    int new_stopPass = new_pass.toInt();
+    int startPass    = mStartPassEdit->text().toInt();
+
+    if ( new_stopPass < startPass )
+    {
+        new_stopPass = startPass;
+    }
+
+    mStopPassEdit->setText( n2q( new_stopPass ) );
+    mFilter->StopPass() = new_stopPass;
+}
 
 
 
@@ -945,7 +1012,7 @@ CField* CControlPanel::FindTimeField( CProduct *product, bool &alias_used, std::
 
 void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
 {    
-	static CMapColor &mc = CMapColor::GetInstance();
+    static CMapColor &mc = CMapColor::GetInstance();        Q_UNUSED(mc);
 
     //lambdas
 

@@ -17,6 +17,7 @@ const std::string ENTRY_URL_RASTER_LAYER_PATH =	"url_raster_layer_path";
 const std::string ENTRY_WORKSPACES_DIR =		"workspaces_dir";
 const std::string ENTRY_PORTABLE_PATHS =		"portable_paths";
 const std::string ENTRY_DESKTOP_MANAGER_SDI =	"desktop_manager_sdi";
+const std::string ENTRY_CHECK_OPENGL =			"check_opengl_capabilities";
 
 
 
@@ -28,7 +29,12 @@ const std::string ENTRY_DESKTOP_MANAGER_SDI =	"desktop_manager_sdi";
 
 
 //static 
-const CMapWidget::ELayerBaseType CBratSettings::smDefaultLayerBaseType = CMapWidget::ELayerBaseType::eRasterLayer;
+const CMapWidget::ELayerBaseType CBratSettings::smDefaultLayerBaseType =
+#if defined(BRAT_ARCHITECTURE_64)
+    CMapWidget::ELayerBaseType::eRasterLayer;
+#else
+    CMapWidget::ELayerBaseType::eRasterLayer;
+#endif
 
 
 
@@ -178,7 +184,8 @@ bool CBratSettings::SaveConfig()
 
 		k_v( ENTRY_LOAD_WKSPC_AT_STARTUP,	mLoadLastWorkspaceAtStartUp ),
         k_v( ENTRY_LAYER_BASE_TYPE,         (int)mLayerBaseType ),
-		k_v( ENTRY_DESKTOP_MANAGER_SDI,		mDesktopManagerSdi )
+		k_v( ENTRY_DESKTOP_MANAGER_SDI,		mDesktopManagerSdi ),
+		k_v( ENTRY_CHECK_OPENGL,			mCheckOpenGL )
 	)
 	&&
 	WriteValues( GROUP_WKS, 
@@ -212,7 +219,8 @@ bool CBratSettings::LoadConfig()
 
 		k_v( ENTRY_LOAD_WKSPC_AT_STARTUP,	&mLoadLastWorkspaceAtStartUp ),
         k_v( ENTRY_LAYER_BASE_TYPE,         (int*)&mLayerBaseType, (int)smDefaultLayerBaseType ),
-		k_v( ENTRY_DESKTOP_MANAGER_SDI,		&mDesktopManagerSdi, true )
+		k_v( ENTRY_DESKTOP_MANAGER_SDI,		&mDesktopManagerSdi, true ),
+		k_v( ENTRY_CHECK_OPENGL,			&mCheckOpenGL, true )
 	)
 	&&
 	ReadValues( GROUP_WKS, 

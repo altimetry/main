@@ -36,7 +36,7 @@ class CBratMainWindow : public QMainWindow, public non_copyable, private Ui::CBr
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
 #endif
 
-    Q_OBJECT
+    Q_OBJECT;
 
 #if defined (__APPLE__)
 #pragma clang diagnostic pop

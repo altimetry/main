@@ -651,7 +651,7 @@ void C2DPlotWidget::SetAxisTitle( Axis axis, const std::string &title )
 
 void C2DPlotWidget::HistogramAxisTitles( int index, std::string &xtitle, std::string &ytitle, std::string &y2title )
 {
-	assert__( index < mHistograms.size() );
+	assert__( index < (int)mHistograms.size() );
 
 	mHistograms[ index ]->AxisTitles( xtitle, ytitle, y2title );
 }
@@ -659,7 +659,7 @@ void C2DPlotWidget::HistogramAxisTitles( int index, std::string &xtitle, std::st
 
 void C2DPlotWidget::SpectrogramAxisTitles( int index, std::string &xtitle, std::string &ytitle, std::string &y2title )
 {
-	assert__( index < mSpectrograms.size() );
+	assert__( index < (int)mSpectrograms.size() );
 
 	mSpectrograms[ index ]->AxisTitles( xtitle, ytitle, y2title );
 }
@@ -1001,7 +1001,7 @@ void C2DPlotWidget::ShowSolidColor( int index, bool show )
 
 int C2DPlotWidget::NumberOfBins( int index ) const 
 {
-	assert__( index < mHistograms.size() );
+	assert__( index < (int)mHistograms.size() );
 
 	return (int)mHistograms[ index ]->data().size();
 }

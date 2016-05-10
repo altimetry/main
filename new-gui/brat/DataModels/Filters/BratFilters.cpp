@@ -307,36 +307,43 @@ bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std
 		double lon1, lat1, lon2, lat2;
 		filter->BoundingArea( lon1, lat1, lon2, lat2 );
 		product_ref->GetLatLonCriteria()->Set( lat1, lon1, lat2, lon2 );	//double latLow, double lonLow, double latHigh, double lonHigh
+
+        /// RCCC TODO DEBUG //////////////////////////
+        qDebug() << "\n\nlon1 here: " << product_ref->GetLatLonCriteria()->GetLatLonRect()->GetLonMin() << "\n";
+        qDebug() << "\n\nlon2: " << product_ref->GetLatLonCriteria()->GetLatLonRect()->GetLonMax() << "\n";
+        qDebug() << "\n\nlat1: " << product_ref->GetLatLonCriteria()->GetLatLonRect()->GetLatMin() << "\n";
+        qDebug() << "\n\nlat2: " << product_ref->GetLatLonCriteria()->GetLatLonRect()->GetLatMax() << "\n";
+        /// RCCC TODO DEBUG //////////////////////////
 	}
 	if ( product_ref->HasDatetimeCriteria() )
 	{
 		//RCCC please review;
 		//
-		//brathl comment: Value returns the date in a number of seconds since internal reference date, ie 1950)
+        //brathl comment: Value returns the date in a number of seconds since internal reference date, ie 1950) -->RCCC: Tested!
 		//
-		product_ref->GetDatetimeCriteria()->Set( filter->BratStartTime().Value(), filter->BratStopTime().Value() );
+        product_ref->GetDatetimeCriteria()->Set( filter->BratStartTime().Value(), filter->BratStopTime().Value() );
 	}
 	//RCCC please review;
 	//
 	//	next 2 criteria assignments (cycle and pass) assume that cycle and pass can be used like simple integers as they come from the GUI
 	//
-	if ( product_ref->HasCycleCriteria() )
-	{
-		product_ref->GetCycleCriteria()->Set( filter->StartCycle(), filter->StopCycle() );
-	}
-	if ( product_ref->HasPassIntCriteria() )
-	{
-		product_ref->GetPassIntCriteria()->Set( filter->StartPass(), filter->StopPass() );
-	}
+//    if ( product_ref->HasCycleCriteria() )
+//    {
+//        product_ref->GetCycleCriteria()->Set( filter->StartCycle(), filter->StopCycle() );
+//    }
+//	if ( product_ref->HasPassIntCriteria() )
+//	{
+//		product_ref->GetPassIntCriteria()->Set( filter->StartPass(), filter->StopPass() );
+//	}
 	//RCCC please review;
 	//
 	//	Apparently Cryosat uses this criterion; is it simply composed by integer passes converted to string??? I wonder...
 	//	If not, we still don't have GUI support for this
 	//
-	if ( product_ref->HasPassStringCriteria() )
-	{
-		//product_ref->GetPassStringCriteria()->Set( comma separated strings );
-	}
+//	if ( product_ref->HasPassStringCriteria() )
+//	{
+//		//product_ref->GetPassStringCriteria()->Set( comma separated strings );
+//	}
 
 	return true;
 }
@@ -368,7 +375,7 @@ bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, 
 		mapProduct.AddCriteriaToProducts();
 
         CProduct *product_ref = dynamic_cast< CProduct* >( mapProduct.Exists( p->GetLabel() ) );	//CMapProduct::GetInstance()
-        if ( product_ref == nullptr || !Translate2SelectionCriteria( product_ref, name ) )
+        if ( /*product_ref == nullptr ||*/ !Translate2SelectionCriteria( product_ref, name ) )
         {
             result = false;
         }
@@ -396,6 +403,7 @@ bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, 
     }
 
     delete p;
+
     return result;
 }
 

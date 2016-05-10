@@ -61,9 +61,9 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
 	{ eAction_Test, "Test...", "Test", ":/images/test.png" },
 
-    { eAction_One_Click, "One-&Click...", CActionInfo::FormatTip("One-Click\nGroup actions as a single operation under a single name"), ":/images/alpha-numeric/7.png" },
+    { eAction_One_Click, "One-&Click...", CActionInfo::FormatTip("One-Click\nGroup actions as a single operation under a single name"), ":/images/OSGeo/pointer_oneclick.png" },
 
-    { eAction_Launch_Scheduler, "Launch Scheduler", CActionInfo::FormatTip("Brat Scheduler\nLaunch Scheduler application"), ":/images/alpha-numeric/8.png" },
+    { eAction_Launch_Scheduler, "Launch Scheduler", CActionInfo::FormatTip("Brat Scheduler\nLaunch Scheduler application"), ":/images/brat_scheduler.png" },
 
     { eAction_Workspace_Tree, "Workspace Tree...", CActionInfo::FormatTip("Workspace Tree\nSee the objects tree of the loaded workspace"), ":/images/OSGeo/page-info.png" },
 
@@ -77,7 +77,7 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_Full_Screen, "Full Screen", CActionInfo::FormatTip("Full Screen\nToggle full screen mode.\nUse the <span style=\" font-weight:600;\">F11</span> key to switch modes."), ":images/OSGeo/fullscreen.png", "", "F11" },
 
-    { eAction_Re_center, "Re-center", CActionInfo::FormatTip("Re-center\nBring view to original position and size"), ":/images/OSGeo/zoom-extent.png", "", "Home" },
+    { eAction_Re_center, "Re-center", CActionInfo::FormatTip("Zoom Full\nZoom to full map extent"), ":/images/OSGeo/zoom-extent.png", "", "Home" },
 
     { eAction_Zoom_In, "Zoom In", CActionInfo::FormatTip("Zoom In\nZoom map in"), ":/images/OSGeo/zoom-in.png", "", "Ctrl++" },
 

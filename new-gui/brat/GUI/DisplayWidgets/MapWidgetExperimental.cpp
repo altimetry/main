@@ -76,7 +76,7 @@ auto POINT_SIZE  = 0.0004;  // Diameter of a start/end point, in map units.
 
 void CMapWidget::setupDatabase()
 {
-    std::string cur_dir = GetDirectoryFromPath( qApp->argv()[ 0 ] );
+    std::string cur_dir = GetDirectoryFromPath( std::string( qApp->argv()[ 0 ] ) );
 	std::string dbName = cur_dir + "/data" + "/tracks.sqlite";
 	if ( !IsFile( dbName ) )
 	{
@@ -190,7 +190,7 @@ QgsSymbolV2* CMapWidget::createSymbol( double width,
 
 void CMapWidget::setupMapLayers()
 {
-    std::string cur_dir = GetDirectoryFromPath( qApp->argv()[ 0 ] );
+    std::string cur_dir = GetDirectoryFromPath( std::string( qApp->argv()[ 0 ] ) );
 
 	// Raster base layer.
 
