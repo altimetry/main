@@ -344,26 +344,6 @@ void CBratApplication::EndSplash( QWidget *w )
 }
 void CBratApplication::ShowSplash( const std::string &msg, bool disable_events ) const		//disable_events = false 
 {
-	class I : public QThread
-	{
-	public:
-		static void sleep( unsigned long secs ) 
-		{
-			QThread::sleep( secs );
-		}
-
-		static void msleep( unsigned long msecs ) 
-		{
-			QThread::msleep( msecs );
-		}
-
-		static void usleep( unsigned long usecs ) 
-		{
-			QThread::usleep( usecs );
-		}
-	};
-
-
 	assert__( mSplash );
 
 	LOG_TRACE( msg.c_str() );
@@ -372,7 +352,7 @@ void CBratApplication::ShowSplash( const std::string &msg, bool disable_events )
 	if ( !disable_events )
 		processEvents();
 
-	//I::sleep( 1 );
+	//QBratThread::sleep( 1 );
 }
 void CBratApplication::CreateSplash()
 {

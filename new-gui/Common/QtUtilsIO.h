@@ -13,6 +13,7 @@
 #include <QTemporaryFile>
 
 #include "new-gui/Common/ccore-types.h"
+#include "+UtilsIO.h"		// => +Utils.h
 #include "QtStringUtils.h"	// => QtUtils.h => QtUtilsIO.h => QtStringUtils.h => +Utils.h
 
 

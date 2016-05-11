@@ -333,15 +333,15 @@ bool CProcessesTable::Add( bool sync, bool allow_multiple, const std::string &or
 		LOG_INFO( msg );
 	}
 
-	if ( sync )
-	{
-		while ( !process->waitForFinished( 250 ) )	//calling this from thread or GUI risks to block if called process never returns
-		{
-			qApp->processEvents();
-		}
-	}
+	//if ( sync )
+	//{
+	//  while ( !process->waitForFinished( 250 ) )	//calling this from thread or GUI risks to block if called process never returns
+	//  {
+	//		qApp->processEvents();
+	//	}
+	//}
 
-	return true;
+	return process->waitForStarted( 5000 ) ;	//calling this from thread or GUI risks to block if called process never returns
 }
 
 

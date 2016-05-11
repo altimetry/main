@@ -58,6 +58,15 @@ int main( int argc, char *argv[] )
 	bool bOk = true;
 
 	const CConsoleApplicationPaths brat_paths( argv[ 0 ] );
+    if (brat_paths.IsValid())
+    {
+        std::cout << "Using data directory: " << brat_paths.mInternalDataDir << std::endl;
+    }
+    else
+    {
+        std::cerr << brat_paths.GetErrorMsg() << std::endl;
+        return BRATHL_ERROR;
+    }
 
 	CTools::SetInternalDataDir( brat_paths.mInternalDataDir );
 

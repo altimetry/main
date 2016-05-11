@@ -111,6 +111,7 @@ protected:
 	QAction *mDelayExecutionAction = nullptr;
 	QAction *mLaunchSchedulerAction = nullptr;
 	CProcessesTable *mProcessesTable = nullptr;
+	bool mSyncProcessExecuting = false;
 
 	QGroupBox *mOperationExpressionsGroup = nullptr;
 

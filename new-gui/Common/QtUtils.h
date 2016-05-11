@@ -42,6 +42,7 @@
 #include <QResource>
 #include <QElapsedTimer>
 #include <QDesktopWidget>
+#include <QThread>
 
 
 #include "QtUtilsIO.h"	// QtUtilsIO.h => QtStringUtils.h => +Utils.h
@@ -1237,6 +1238,29 @@ inline void NotImplemented( const char *msg = nullptr )
 //	auto *item = list->item( index );
 //	return item->text();
 //}
+
+
+
+class QBratThread : public QThread
+{
+public:
+	static void sleep( unsigned long secs ) 
+	{
+		QThread::sleep( secs );
+	}
+
+	static void msleep( unsigned long msecs ) 
+	{
+		QThread::msleep( msecs );
+	}
+
+	static void usleep( unsigned long usecs ) 
+	{
+		QThread::usleep( usecs );
+	}
+};
+
+
 
 
 

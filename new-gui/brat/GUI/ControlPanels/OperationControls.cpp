@@ -2650,40 +2650,44 @@ void COperationControls::SyncProcessFinished( int exit_code, QProcess::ExitStatu
 		exit_code == 0 &&
 		exitStatus == QProcess::NormalExit;
 
-	if ( !success )
-		return;
-
-	if ( operation != mCurrentOperation )	//should only happen if asynchronous process; requires refreshing all operations info
-		return;			
-
-	auto displays = mModel.OperationDisplays( operation->GetName() );
-
-	CMapDisplayData data_list;		//v3: dataList, pointer data member
-	data_list.SetDelete( false );
-	std::vector< CDisplay* > v = mWDisplay->CeateDisplays4Operation( mCurrentOperation, &data_list );
-	if ( v.empty() )
-	////display panel -> GetOperations();
-	////display panel -> GetDispavailtreectrl()->InsertData( &m_dataList );
-	//CMapDisplayData *m_dataList = new CMapDisplayData;
-	//m_dataList->clear();
-	//if ( !CreateDisplayData( mCurrentOperation, *m_dataList ) )	//CDisplay::GetDisplayType failed
+	mSyncProcessExecuting = false;
+	if ( success )
 	{
-		SimpleErrorBox( "Could not retrieve operation output." );
-		return;	
-	}
-	for ( auto *display : displays )
-	{
-		display->UpdateDisplayData( &data_list, mWOperation );
-		//if ( !display->AssignOperation( mCurrentOperation, true ) )
-		//{
-		//	SimpleErrorBox( "Could not retrieve operation output." );
-		//	return;
-		//}
-	}
-	//for ( auto &data : *m_dataList )
-	//	display->InsertData( data.first, dynamic_cast<CDisplayData*>( data.second ) );
+		assert__( operation == mCurrentOperation );		//should only fail if asynchronous process; requires refreshing all operations info
 
-	LaunchDisplay( v[0]->GetName() );
+		auto displays = mModel.OperationDisplays( operation->GetName() );
+
+		CMapDisplayData data_list;		//v3: dataList, pointer data member
+		data_list.SetDelete( false );
+		std::vector< CDisplay* > v = mWDisplay->CeateDisplays4Operation( mCurrentOperation, &data_list );
+		if ( v.empty() )
+			////display panel -> GetOperations();
+			////display panel -> GetDispavailtreectrl()->InsertData( &m_dataList );
+			//CMapDisplayData *m_dataList = new CMapDisplayData;
+			//m_dataList->clear();
+			//if ( !CreateDisplayData( mCurrentOperation, *m_dataList ) )	//CDisplay::GetDisplayType failed
+		{
+			SimpleErrorBox( "Could not retrieve operation output." );
+		}
+		else
+		{
+			for ( auto *display : displays )
+			{
+				display->UpdateDisplayData( &data_list, mWOperation );
+				//if ( !display->AssignOperation( mCurrentOperation, true ) )
+				//{
+				//	SimpleErrorBox( "Could not retrieve operation output." );
+				//	return;
+				//}
+			}
+			//for ( auto &data : *m_dataList )
+			//	display->InsertData( data.first, dynamic_cast<CDisplayData*>( data.second ) );
+
+			LaunchDisplay( v[ 0 ]->GetName() );
+		}
+	}
+
+	emit SyncProcessExecution( false );
 }
 
 //slot
@@ -2882,8 +2886,20 @@ bool COperationControls::Execute( bool sync )
 	// ProcessesTable will display user messages for us, no need to report on false return
 	//
 	emit SyncProcessExecution( true );
-	bool result = mProcessesTable->Add( sync, false, mCurrentOperation );
-	emit SyncProcessExecution( false );
+	bool result = mSyncProcessExecuting = mProcessesTable->Add( sync, false, mCurrentOperation );
+	if ( !mSyncProcessExecuting )
+		emit SyncProcessExecution( false );
+	else
+	{
+		if ( sync )
+		{
+			while ( mSyncProcessExecuting )
+			{
+				QBratThread::sleep( 1 );
+				qApp->processEvents();
+			}
+		}
+	}
 
 	/*
 		//----------------
