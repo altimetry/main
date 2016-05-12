@@ -1087,6 +1087,11 @@ void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
 				skip_iteration = true;
 				LOG_WARN( "Different latitude/longitude dimensions in file " + path );
 			}
+			if ( !time )
+			{
+				skip_iteration = true;
+				LOG_WARN( "No time data found in file " + path + "; cannot display track." );
+			}
 
 			LOG_WARN( 
 				"%{lat}==" + ( lat ? lat->GetName() : "" ) +

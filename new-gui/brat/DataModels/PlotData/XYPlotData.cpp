@@ -28,7 +28,7 @@ using namespace brathl;
 
 #if defined(BRAT_V3)
 	#include "MapColor.h"
-	#include "display/PlotData/XYPlotData_vtk.h"
+    #include "../support/code/legacy/display/PlotData/XYPlotData_vtk.h"
 	#include "wxInterface.h"
 	#include "wx/progdlg.h"
 #endif

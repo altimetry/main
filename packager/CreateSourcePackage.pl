@@ -16,9 +16,7 @@ my @SourceDirs = qw(
 		CMakeModules
 		CMakeModules/Platform
 		data
-		display
 		doc
-		gui
 		libbrathl
         externals/
         externals/libgeotiff.brat
@@ -31,7 +29,6 @@ my @SourceDirs = qw(
                 externals/coda.brat
 		packager
 		process
-		scheduler
 		new-gui
         vtkzlib
         vtkjpeg

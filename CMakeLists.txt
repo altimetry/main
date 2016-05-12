@@ -899,7 +899,9 @@ ELSE (APPLE)
 	IF (WIN32)
 		file( GLOB OSG_PLUGIN_FILES ${OSG_BIN_DIR}/osgPlugins-3.4.0/*${DBG_SUFFIX}${DLL_SUFFIX} )
 		file( GLOB OSG_PLUGIN_FILES_DEBUG ${OSG_BIN_DIR}/osgPlugins-3.4.0/*.pdb )
-		SET( OSG_PLUGIN_FILES ${OSG_PLUGIN_FILES} ${OSG_PLUGIN_FILES_DEBUG} )
+		IF (CMAKE_BUILD_TYPE MATCHES "Debug")
+			SET( OSG_PLUGIN_FILES ${OSG_PLUGIN_FILES} ${OSG_PLUGIN_FILES_DEBUG} )
+		ENDIF (CMAKE_BUILD_TYPE MATCHES "Debug")
 	ELSE (WIN32)
 		file( GLOB OSG_PLUGIN_FILES ${OSG_BIN_DIR}/osgPlugins-3.4.0/*${DLL_SUFFIX} )
 	ENDIF (WIN32)
@@ -1932,7 +1934,7 @@ if(BRAT_BUILD_GUI)
 	)
 
 	QT4_WRAP_UI(schedulerUISrcs new-gui/scheduler/SchedulerDlg.ui)
-	QT4_WRAP_CPP(schedulerMOCSrcs ${SCHEDULER_SOURCES_H})
+	QT4_ADD_RESOURCES( SCHEDULER_RCC_SOURCES new-gui/Common/Resources/brat.qrc OPTIONS -o ${BRAT_SOURCE_DIR}/new-gui/scheduler/tmp/qrc_brat.cpp )
 
 	  
 	# -----------------------------------------------------
@@ -1958,7 +1960,7 @@ if(BRAT_BUILD_GUI)
 	
 	add_executable(scheduler
 	WIN32 MACOSX_BUNDLE
-	${SCHEDULER_SOURCES} ${SCHEDULER_SOURCES_RC} ${SCHEDULER_SOURCES_H} ${schedulerUISrcs} )
+	${SCHEDULER_SOURCES} ${SCHEDULER_SOURCES_RC} ${SCHEDULER_RCC_SOURCES} ${SCHEDULER_SOURCES_H} ${schedulerUISrcs} )
 	# ${schedulerMOCSrcs} 
 
 	target_link_libraries( scheduler 
@@ -2192,6 +2194,7 @@ if(BRAT_BUILD_GUI)
 	)
 
 
+	# -o is ignored
 	QT4_WRAP_UI( BRAT_UI_SOURCES new-gui/brat/BratMainWindow.ui OPTIONS -o ${BRAT_SOURCE_DIR}/new-gui/brat/tmp/ui_BratMainWindow.h )
 	QT4_ADD_RESOURCES( BRAT_RCC_SOURCES new-gui/Common/Resources/brat.qrc OPTIONS -o ${BRAT_SOURCE_DIR}/new-gui/brat/tmp/qrc_brat.cpp )
 	QT4_ADD_RESOURCES( BRAT_RCC_SOURCES new-gui/brat/GUI/DisplayWidgets/Globe/globe_plugin.qrc OPTIONS -o ${BRAT_SOURCE_DIR}/new-gui/brat/tmp/qrc_globe_plugin.cpp )
@@ -2231,7 +2234,7 @@ if(BRAT_BUILD_GUI)
 
 
 
-	add_executable(brat WIN32 MACOSX_BUNDLE ${GUI_SOURCES} ${GUI_SOURCES_RC} ${BRAT_RCC_SOURCES} ${GUI_SOURCES_H} )
+	add_executable(brat WIN32 MACOSX_BUNDLE ${GUI_SOURCES} ${GUI_SOURCES_RC} ${BRAT_RCC_SOURCES} ${GUI_SOURCES_H} ${BRAT_UI_SOURCES} )
 	
 	target_include_directories( brat PRIVATE new-gui/brat )
 	
@@ -2428,8 +2431,6 @@ if(DOXYGEN_FOUND)
     ${CMAKE_SOURCE_DIR}/libbrathl
     ${CMAKE_SOURCE_DIR}/libbrathl/brathl_c
     ${CMAKE_SOURCE_DIR}/process
-    ${CMAKE_SOURCE_DIR}/display
-    ${CMAKE_SOURCE_DIR}/gui
     )
 
   if(BRATHL_BUILD_FORTRAN)

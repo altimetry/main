@@ -188,6 +188,10 @@ void CAbstractDisplayEditor::Wire()
 
 	connect( mTabGeneral->mPlotTitle, SIGNAL( returnPressed() ), this, SLOT( HandlePlotTitleEntered() ) );
 
+	if ( mDisplayOnlyMode )
+	{
+		return;
+	}
 
 	//main tool-bar
 
@@ -236,8 +240,7 @@ CAbstractDisplayEditor::CAbstractDisplayEditor( bool map_editor, const CDisplayF
     assert__( !map_editor || proc->isZFLatLon() );                  Q_UNUSED(map_editor);   //for release builds
 	assert__( map_editor || proc->isYFX() || proc->isZFXY() );
 
-	mTabGeneral->mDisplaysCombo->addItem( t2q( mCurrentDisplayFilesProcessor->ParamFile() ) );
-	mTabGeneral->mDisplaysCombo->setEnabled( false );
+	//IMPORTANT CreateWidgets() must be called by derived classes
 }
 
 
@@ -432,6 +435,15 @@ void CAbstractDisplayEditor::HandleOperationsIndexChanged( int index )
 
 bool CAbstractDisplayEditor::Start( const std::string &display_name )
 {
+	if ( mDisplayOnlyMode )
+	{
+		mTabGeneral->mDisplaysCombo->setEnabled( false );
+		mTabGeneral->mDisplaysCombo->blockSignals( true );
+		mTabGeneral->mDisplaysCombo->addItem( t2q( mCurrentDisplayFilesProcessor->ParamFile() ) );
+		mTabGeneral->mDisplaysCombo->blockSignals( false );
+		return true;
+	}
+
 	FilterDisplays();
 	mRequestedDisplayIndex = 0;
 	if ( !display_name.empty() )

@@ -239,7 +239,7 @@
                     <name>Uninstall ${product_fullname}</name>
                     <runAsAdmin>0</runAsAdmin>
                     <runInTerminal>0</runInTerminal>
-                    <windowsExec>${installdir}/uninstall-${product_shortname}-${product_version}-${platform_name}.exe</windowsExec>
+                    <windowsExec>${installdir}/uninstall-${product_shortname}-${product_version}-x64.exe</windowsExec>
                     <windowsExecArgs></windowsExecArgs>
                     <windowsIcon>${installdir}/data/BratIcon.ico</windowsIcon>
                     <windowsPath>${installdir}/</windowsPath>

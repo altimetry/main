@@ -168,6 +168,8 @@ CMapEditor::CMapEditor( CDisplayFilesProcessor *proc, CWPlot* wplot )
 {
 	CreateWidgets();
 
+	Start( "" );
+
 	mMapView->CreatePlot( proc->GetWorldPlotProperties( 0 ), wplot );
 }
 

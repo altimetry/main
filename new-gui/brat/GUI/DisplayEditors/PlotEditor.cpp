@@ -162,6 +162,8 @@ CPlotEditor::CPlotEditor( const CDisplayFilesProcessor *proc, CPlot* plot )
     Q_UNUSED(proc);     Q_UNUSED(plot);
 
     CreateWidgets();
+
+	Start( "" );
 }
 
 CPlotEditor::CPlotEditor( const CDisplayFilesProcessor *proc, CZFXYPlot* plot )
@@ -169,9 +171,11 @@ CPlotEditor::CPlotEditor( const CDisplayFilesProcessor *proc, CZFXYPlot* plot )
 	, mDataArrayXY( new CXYPlotDataCollection )
 	, mDataArrayZFXY( new CObArray )
 {
+    Q_UNUSED(proc);     Q_UNUSED(plot);
+
     CreateWidgets();
 
-    Q_UNUSED(proc);     Q_UNUSED(plot);
+	Start( "" );
 }
 
 

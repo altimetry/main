@@ -2,7 +2,7 @@
 #define QT_INTERFACE_H
 
 #if defined(BRAT_V3)
-#include "display/wxInterface.h"
+#include "../support/code/legacy/display/wxInterface.h"
 #include "wx/fileconf.h"		// (wxFileConfig class)
 #define CONFIG wxFileConfig
 #define CWorkspaceSettings CConfiguration
