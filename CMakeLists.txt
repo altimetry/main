@@ -2062,7 +2062,6 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/DataModels/DisplayFilesProcessor.cpp
 		new-gui/brat/DataModels/PlotData/XYPlotData.cpp
 		new-gui/brat/DataModels/PlotData/ZFXYPlotData.cpp
-		new-gui/brat/GUI/DisplayWidgets/BratViews.cpp
 		new-gui/brat/GUI/DisplayWidgets/3DPlotWidgetExperimental.cpp
 		new-gui/brat/DataModels/PlotData/MapColor.cpp
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapDecorationGrid.cpp
@@ -2159,7 +2158,6 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/DataModels/DisplayFilesProcessor.h
 		new-gui/brat/DataModels/PlotData/XYPlotData.h
 		new-gui/brat/DataModels/PlotData/ZFXYPlotData.h
-		new-gui/brat/GUI/DisplayWidgets/BratViews.h
 		new-gui/brat/DataModels/PlotData/MapColor.h
 		new-gui/brat/PlotValues.h
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapDecorationGrid.h
