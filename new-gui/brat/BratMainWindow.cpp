@@ -32,9 +32,12 @@
 #include "GUI/ControlPanels/OperationControls.h"
 #include "GUI/ControlPanels/ProcessesTable.h"
 #include "GUI/DisplayWidgets/TextWidget.h"
-#include "GUI/DisplayWidgets/GlobeWidget.h"
-#include "GUI/DisplayWidgets/BratViews.h"
 
+#include "GUI/DisplayWidgets/GlobeWidget.h"
+#undef GL_LINES_ADJACENCY_EXT
+#undef GL_LINE_STRIP_ADJACENCY_EXT
+#undef GL_TRIANGLES_ADJACENCY_EXT
+#undef GL_TRIANGLE_STRIP_ADJACENCY_EXT
 #include "GUI/DisplayEditors/MapEditor.h"
 #include "GUI/DisplayEditors/PlotEditor.h"
 
@@ -1071,6 +1074,8 @@ void CBratMainWindow::on_action_Delete_Workspace_triggered()
 			SimpleWarnBox( "A system error occurred deleting " + dlg.mPath + ".\nPlease check if the workspace directory was fully deleted.");
 
 		mRecentFilesProcessor->DeleteEntry( dlg.mPath.c_str() );
+
+		WorkingPanel< ETabName::eFilter >()->HandleDatasetChanged( nullptr );
 	}
 }
 
@@ -1234,6 +1239,7 @@ void CBratMainWindow::UpdateWindowMenu()
 	bool has_sub_windows = !mDesktopManager->SubWindowList().empty();
 	action_Close_All->setEnabled( has_sub_windows );
 	action_Views_List->setEnabled( has_sub_windows );
+	action_Open_View->setEnabled( mModel.Workspace< CWorkspaceDisplay >()->GetDisplays() && mModel.Workspace< CWorkspaceDisplay >()->GetDisplays()->size() > 0 );
 }
 
 

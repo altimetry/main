@@ -643,6 +643,22 @@ void CBrat3DPlot::CoordinateStyle()
 
 
 
+void CBrat3DPlot::SetColorMap( Qwt3D::Color *pcolor_map )
+{
+	setDataColor( pcolor_map );
+	updateData();
+	updateGL();
+
+	//legend()->setMajors( majors );
+	//legend()->setMinors( minors );
+	double start, stop;
+	coordinates()->axes[ Qwt3D::AXIS::Z1 ].limits(start,stop);
+	legend()->setLimits(start, stop);
+
+	showColorLegend( true );
+}
+
+
 
 
 //////////////////////////////////////////////////////////////////
@@ -710,7 +726,7 @@ C3DPlotWidget::~C3DPlotWidget()
 }
 
 
-void C3DPlotWidget::PushPlot( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax )
+void C3DPlotWidget::PushPlot( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, Qwt3D::Color *pcolor_map )
 {
 #if defined (TEST_EXAMPLES)
 	return;
@@ -723,7 +739,21 @@ void C3DPlotWidget::PushPlot( const C3DPlotParameters &values, double xmin, doub
 	connect( mCurrentPlot, SIGNAL( scaleChanged( double, double, double ) ), this, SLOT( HandleScaleChanged( double, double, double ) ) );
 
 	mCurrentPlot->AddSurface( values, xmin, xmax, ymin, ymax, zmin, zmax );
+
+	mCurrentPlot->setDataColor( pcolor_map );
 }
+
+
+void C3DPlotWidget::SetColorMap( Qwt3D::Color *pcolor_map )
+{
+	assert__( mSurfacePlots.size() );
+
+	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mCurrentPlot );		assert__( p );
+
+	p->SetColorMap( pcolor_map );
+}
+
+
 
 
 void C3DPlotWidget::SetCurrentPlot( int index )

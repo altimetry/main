@@ -1,5 +1,5 @@
 == == == == == == == == == == == == == == == == == == == == == =
-BRAT - Basic Radar Altimetry Toolbox README
+BRAT - Broadview Radar Altimetry Toolbox README
 == == == == == == == == == == == == == == == == == == == == == =
 
 
@@ -7,9 +7,9 @@ BRAT - Basic Radar Altimetry Toolbox README
 Overview
 == == == ==
 
-The Basic Radar Altimetry Toolbox (BRAT) is a collection of tools
-and tutorial documents designed to facilitate the processing of
-radar altimetry data. BRAT is able to handle most distributed
+The Broadview Radar Altimetry Toolbox (BRAT) is a collection of
+tools and tutorial documents designed to facilitate the processing
+of radar altimetry data. BRAT is able to handle most distributed
 radar altimetry data formats, providing support for ingesting,
 processing, editing (to a certain extent), generating statistics,
 visualising and exporting the results.

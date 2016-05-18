@@ -11,6 +11,7 @@
 
 #include "DataModels/PlotData/WorldPlot.h"
 #include "DataModels/PlotData/WorldPlotData.h"
+#include "DataModels/PlotData/BratLookupTable.h"
 
 #include "BratViews.h"
 
@@ -34,6 +35,20 @@
 //	ResetTextActor();
 //}
 
+//void CBratMapView::AddData( CWorldPlotData *pdata, size_t index )
+//{
+//    Q_UNUSED( index );					   	//index is NOT the index in maps
+//
+//	CWorldPlotData* geo_map = pdata;
+//	const CWorldPlotInfo &maps = geo_map->PlotInfo();					assert__( maps.size() == 1 );	//simply to check if ever...	
+//	mMapDataCollection.push_back( geo_map );
+//
+//	// TODO brat v3 does not update range
+//	geo_map->m_plotProperty.mLUT->GetLookupTable()->SetTableRange( geo_map->GetLookupTable()->GetTableRange() );
+//
+//	Plot( maps, &geo_map->m_plotProperty );
+//}
+
 #define USE_POINTS		//(**)
 #define USE_FEATURES	//(***)
 //
@@ -44,15 +59,6 @@
 //			3) cannot color the values over a line (unless with another layer, a point layer, but then, why the line layer?)
 //(***) Using features and not rubberbands because these are not projected in the globe
 //
-void CBratMapView::AddData( CWorldPlotData *pdata, size_t index )
-{
-    Q_UNUSED( index );					   	//index is NOT the index in maps
-
-	CWorldPlotData* geo_map = pdata;
-	const CWorldPlotInfo &maps = geo_map->PlotInfo();					assert__( maps.size() == 1 );	//simply to check if ever...	
-	mMapDataCollection.push_back( geo_map );
-	Plot( maps, &geo_map->m_plotProperty );
-}
 void CBratMapView::Plot( const CWorldPlotInfo &maps, CWorldPlotProperties *props )
 {
 	auto IsValidPoint = []( const CWorldPlotParameters &map, int32_t i )
@@ -98,7 +104,7 @@ void CBratMapView::Plot( const CWorldPlotInfo &maps, CWorldPlotProperties *props
     //AddDataLayer( props->m_name, 0.333, map.mMinHeightValue, map.mMaxHeightValue, props->m_numContour, flist );  // TODO - RCCC Uncomment this to use Points
 
     ////////// TODO RCCC  ////////////////
-    AddDataLayer_Polygon( props->m_name, map.mMinHeightValue, map.mMaxHeightValue, props->m_numContour, flist );
+    AddPolygonDataLayer( props->m_name, map.mMinHeightValue, map.mMaxHeightValue, props->mLUT->GetLookupTable(), props->m_numContour, flist );
     //////////////////////////////////////
 
 #endif 

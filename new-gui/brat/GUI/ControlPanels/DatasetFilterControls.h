@@ -82,7 +82,7 @@ class CDatasetFilterControls : public CDesktopControlsPanel
 	//
 	QLineEdit *mTotalRecordsSelectedEdit = nullptr;
 
-    CBratMapView *mMap = nullptr;
+    CMapWidget *mMap = nullptr;
 
 	bool mAutoSatelliteTrack = true;
 

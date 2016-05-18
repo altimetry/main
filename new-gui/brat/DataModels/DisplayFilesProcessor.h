@@ -82,6 +82,12 @@ public:
 		Process( display_cmd_file );
 	}
 
+	CDisplayFilesProcessor( bool maps_as_plots, const std::vector< std::string > &args )
+		: mMapsAsPlots( maps_as_plots )
+	{
+		Process( args );
+	}
+
 	//Destruction
 
 	virtual ~CDisplayFilesProcessor();

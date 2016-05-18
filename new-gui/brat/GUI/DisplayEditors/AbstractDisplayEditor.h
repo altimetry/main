@@ -23,6 +23,7 @@ class CWorkspaceDisplay;
 class COperation;
 class CDisplay;
 class CDisplayFilesProcessor;
+class CBratLookupTable;
 
 enum EActionTag : int;
 
@@ -127,6 +128,8 @@ protected:
 	const COperation *mOperation = nullptr;
 	int mRequestedDisplayIndex = 0;				//trick for first requested display
 
+	CBratLookupTable *mBratLookupTable = nullptr;
+
 	const CDisplayFilesProcessor *mCurrentDisplayFilesProcessor = nullptr;
 	const bool mDisplayOnlyMode;
 	const bool mIsMapEditor;
@@ -228,8 +231,21 @@ protected:
 	void FilterDisplays();
 	void FilterOperations();
 
+protected:
 	template< typename PLOT >
-	std::vector< PLOT* > GetPlotsFromDisplayFile( CDisplay *display );
+	std::vector< PLOT* > GetPlotsFromDisplayFile( bool maps_as_plots, const std::vector< std::string > &args );
+
+	template< typename PLOT >
+	std::vector< PLOT* > GetPlotsFromDisplayFile( CDisplay *display )
+	{
+		std::vector< std::string > v;
+		v.push_back( "" );
+		v.push_back( display->GetCmdFilePath() );
+
+		return GetPlotsFromDisplayFile< PLOT >( !IsMapEditor(), v );
+	}
+
+public:
 
 	///. inherited from v3, must be reviewed
 	bool ControlSolidColor();
@@ -281,7 +297,7 @@ private slots:
 
 
 template< typename PLOT >
-std::vector< PLOT* > CAbstractDisplayEditor::GetPlotsFromDisplayFile( CDisplay *display )
+std::vector< PLOT* > CAbstractDisplayEditor::GetPlotsFromDisplayFile( bool maps_as_plots, const std::vector< std::string > &args )
 {
 	std::vector< PLOT* > v;
 
@@ -289,7 +305,7 @@ std::vector< PLOT* > CAbstractDisplayEditor::GetPlotsFromDisplayFile( CDisplay *
 	delete mCurrentDisplayFilesProcessor;
 	try
 	{
-		mCurrentDisplayFilesProcessor = new CDisplayFilesProcessor( !IsMapEditor(), display->GetCmdFilePath() );
+		mCurrentDisplayFilesProcessor = new CDisplayFilesProcessor( maps_as_plots, args );
 
 		auto &plots = mCurrentDisplayFilesProcessor->plots();
 		for ( auto *plot : plots )

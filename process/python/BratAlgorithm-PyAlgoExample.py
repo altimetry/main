@@ -19,7 +19,7 @@
 '''
   This python module contains the code used for defining a new algorithm, and
   it shall be taken as an example.
-  (Python v.3.3)
+  (Python v.3.2)
 '''
 
 from BratAlgorithmBase import PyBratAlgoBase
@@ -51,12 +51,22 @@ class PyAlgoExample(PyBratAlgoBase):
     def GetNumInputParam(self):
         return 5
     
+    def GetInputParamName(self, indexParam):
+        Param_dict = {0       : "1st",
+                      1       : "2nd",
+                      2       : "3rd",
+                      3       : "4th",
+                      4       : "5th",
+                      }
+        value = Param_dict.get(indexParam)
+        return value
+    
     def GetInputParamDesc(self, indexParam):
-        Param_dict = {0       : "first parameter",
-                      1       : "second parameter",
-                      2       : "third parameter",
-                      3       : "fourth parameter",
-                      4       : "fifth parameter",
+        Param_dict = {0       : "first PyAlgoExample parameter description",
+                      1       : "second PyAlgoExample parameter description",
+                      2       : "third PyAlgoExample parameter description",
+                      3       : "fourth PyAlgoExample parameter description",
+                      4       : "fifth PyAlgoExample parameter description",
                       }
         value = Param_dict.get(indexParam)
         return value

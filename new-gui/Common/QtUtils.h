@@ -324,50 +324,6 @@ inline std::pair< bool, VALUE > SimpleInputNumber( const QString &input_name, co
 
 
 ///////////////////////////////////////////////////////////////////////////
-//								Timer
-///////////////////////////////////////////////////////////////////////////
-
-//Use like this
-//		QElapsedTimer timer;
-//		timer.start();
-//		//do stuff 
-//		QString elapsed = ElapsedFormat( timer );
-//
-inline QString ElapsedFormat( QElapsedTimer &timer )
-{
-	auto t = timer.elapsed();
-	TIME_FIELD TimeFld;
-	FormatTimeFields( t * 1e4, &TimeFld );
-	QString s = t2q( n2s< std::string >( t ) + " - " );
-	std::string tmp;
-
-	tmp = n2s< std::string >( TimeFld.Hours );
-	if ( tmp.length() < 2 )
-		tmp = "0" + tmp;
-	s += t2q( tmp + ":" );
-
-	tmp = n2s< std::string >( TimeFld.Mins );
-	if ( tmp.length() < 2 )
-		tmp = "0" + tmp;
-	s += t2q( tmp + ":" );
-
-	tmp = n2s< std::string >( TimeFld.Secs );
-	if ( tmp.length() < 2 )
-		tmp = "0" + tmp;
-	s += t2q( tmp + "::" );
-
-	tmp = n2s< std::string >( TimeFld.mSecs );
-	const size_t zeros = 3 - tmp.length();
-	for ( size_t i = 0; i < zeros; ++ i )
-		tmp = "0" + tmp;
-	s += t2q( tmp );
-
-	return s;
-}
-
-
-
-///////////////////////////////////////////////////////////////////////////
 //						Widget Creation Utilities
 ///////////////////////////////////////////////////////////////////////////
 

@@ -26,7 +26,7 @@ int CBratApplication::OffGuiErrorDialog( int error_type, char const *error_msg )
 	int argc = 0;
     QApplication a( argc, nullptr );
     QMessageBox msg_abort;
-    msg_abort.setText( QString("A fatal error as ocurred.") );
+    msg_abort.setText( QString("A fatal error has occurred.") );
     msg_abort.setInformativeText( error_msg );
     msg_abort.setStandardButtons( QMessageBox::Abort );
     msg_abort.setIcon( QMessageBox::Critical );
@@ -327,7 +327,7 @@ CBratApplication::~CBratApplication()
     CProduct::CodaRelease();
 
     if ( !mSettings.SaveConfig() )
-		LOG_TRACE( "Unable to save BRAT the application settings." );	// TODO log this
+		LOG_TRACE( "Unable to save BRAT the application settings." );
 
     mSettings.Sync();
 }
@@ -429,17 +429,16 @@ void CBratApplication::RegisterAlgorithms()
     {
 		LOG_TRACEstd( "Searching python algorithms in " + python_algorithms_path );
 
-        QDir sourceDir( python_algorithms_path.c_str() );
-        QStringList files = sourceDir.entryList( QDir::Files );
         auto &registry = CBratAlgorithmBaseRegistry::GetInstance();
-        for ( int i = 0; i < files.count(); i++ )
+		QDirIterator it( python_algorithms_path.c_str(), QStringList() << "*.py", QDir::Files, QDirIterator::Subdirectories );
+		while ( it.hasNext() )
         {
-            std::string file_name = q2a( files[ i ] );
+            std::string path = q2a( it.next() );
+            std::string file_name = GetFilenameFromPath( path );
             if ( StartsWith( file_name, file_prefix ) && EndsWith( file_name, file_suffix ) )
             {
-                std::string path = python_algorithms_path + "/" + file_name;
                 std::string class_name = file_name.substr( file_prefix.length() );
-                class_name = class_name.substr( 0, class_name.length() - file_suffix.length() );				//qDebug() << files[ i ];
+                class_name = class_name.substr( 0, class_name.length() - file_suffix.length() );
                 registry.Add( new python_base_creator( path, class_name ) );
             }
         }

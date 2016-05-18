@@ -30,7 +30,7 @@ class CWorldPlotData;
 struct CViewControlsPanelGeneralMaps;
 struct CMapControlsPanelDataLayers;
 struct CMapControlsPanelView;
-
+class CMapWidget;
 
 
 
@@ -62,7 +62,7 @@ class CMapEditor : public CAbstractDisplayEditor
 	// instance data
 
 	//map && globe
-	CBratMapView *mMapView = nullptr;
+	CMapWidget *mMapView = nullptr;
 	CGlobeWidget *mGlobeView = nullptr;
 	bool mMapProcessing = false;
 	bool mGlobeProcessing = false;
@@ -97,7 +97,7 @@ class CMapEditor : public CAbstractDisplayEditor
 
 	//...domain data
 
-	std::vector< CWorldPlotData* > *mDataArrayMap;
+	std::vector< CWorldPlotData* > mDataArrayMap;
 
 	CWorldPlotProperties *mPropertiesMap = nullptr;
 	CDisplayData *mCurrentDisplayData = nullptr;
@@ -127,9 +127,12 @@ protected:
 
 	CViewControlsPanelGeneralMaps* TabGeneral();
 
-	void ResetProperties( const CWorldPlotProperties *props, CWPlot *wplot );
+	void ResetMap();
 
 	void KillGlobe();
+
+	bool CreatePlotData( const std::vector< CWPlot* > &wplots );
+
 
 	///////////////////////////////////////////////////////////
 	// Virtual interface implementations
@@ -170,7 +173,10 @@ protected slots:
 	void HandleFieldMinRangeEntered();
 	void HandleFieldMaxRangeEntered();
 
-	void HandleShowSolidColor( bool checked );
+	void HandleShowContourChecked( bool checked );
+	void HandleShowSolidColorChecked( bool checked );
+	void HandleColorTablesIndexChanged( int index );
+
 
 	void HandleProjection();
 };

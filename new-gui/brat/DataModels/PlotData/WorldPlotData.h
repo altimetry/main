@@ -63,6 +63,8 @@ protected:
 	double m_minhv;
 	double m_maxhv;
 
+
+
 	// v3 note: for base classes
 	//
 	CWorldPlotData( CWorldPlotProperties *plotProperty )

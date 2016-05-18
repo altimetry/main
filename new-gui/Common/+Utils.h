@@ -22,6 +22,8 @@
 #include <map>
 #include <iterator>
 #include <iomanip>
+#include <string>
+#include <iostream>
 
 #include <time.h>
 
@@ -35,10 +37,6 @@ typedef std::strstream stream_t;
 #endif
 
 
-#if !defined(far)
-#define far
-#endif
-
 //Avoid problems if windows headers are included before this none
 //
 #if defined (WIN32)	|| defined (_WIN32)
@@ -49,34 +47,6 @@ typedef std::strstream stream_t;
 #undef max
 #endif
 #endif
-
-
-
-////////////////////////////////
-//	PRE-PROCESSOR UTILITIES
-////////////////////////////////
-
-//
-//DELAYED_STRINGIFICATION: helper macro to allow stringification of the result of a macro expansion
-//DELAYED_T: helper macro to allow _T (concatenation of L) to the result of a macro expansion
-//
-#define STRINGIFY(TOKEN)				#TOKEN
-#define DELAYED_STRINGIFICATION(TOKEN)	STRINGIFY(TOKEN)	//applying # directly would prevent TOKEN macro expansion
-#define DELAYED_T(TOKEN)				_T(TOKEN)			//same reason: applying _T directly would prevent TOKEN macro expansion
-
-
-
-
-//	- to be used like this, to see macro #definitions:
-//
-//		#pragma message ( OUTPUT_MACRO( THE_MACRO_I_WANT_TO_INSPECT ) )		//TODO: find equivalent pragma for Linux
-//
-//	- does NOT work with function macros
-//
-#define OUTPUT_MACRO_VALUE(a, b) "Information: macro " a## " defined as " #b
-
-#define OUTPUT_MACRO(a) OUTPUT_MACRO_VALUE(#a, a)
-
 
 
 #undef UNUSED
@@ -102,9 +72,6 @@ typedef std::strstream stream_t;
 #if defined (__unix__)		//#if defined (__STDC_VERSION__) 
 
 #include <csignal>
-
-//#define DEBUG_BREAK asm("int $3")					//int $3 hangs on Debian (at least)
-//#define assert__(TEST) if(!(TEST)) asm("int $3");
 
 #if defined (_DEBUG) || defined(DEBUG)
 
@@ -144,306 +111,19 @@ typedef std::strstream stream_t;
 #  define __func__ __FUNCTION__
 #endif
 
-//////////////////////////////////////////
-//		Must come before STL...
-//////////////////////////////////////////
 
-/*
-#if defined(_MSC_VER) && (_MSC_VER >= 1310)
-//
-//	- _HAS_ITERATOR_DEBUGGING must be defined before yvals;
-//		does not work to undefine it after the templates (such as in <limits>) have seen it defined to 1 in _DEBUG mode
-//
-//	- (old note on _SECURE_SCL):	//All standard iterators are unchecked (same behavior as specified by the C++ standard).
-//
-#	undef _HAS_ITERATOR_DEBUGGING
-#	define _HAS_ITERATOR_DEBUGGING 0	
-
-#	undef _SECURE_SCL
-#	define _SECURE_SCL 0			//if this sh... thing is defined, you cannot clear an empty vector (just created, for instance)
-
-#	undef _ITERATOR_DEBUG_LEVEL
-#	define _ITERATOR_DEBUG_LEVEL 0
-
-#	include <yvals.h>
-#endif
-*/
-
-//////////////////////////////////////////
-//
-//////////////////////////////////////////
-
-
-#define nullInt (-1)  //sempre equivalente ao maior unsigned int, seja este de 16 ou 32 bits
-
-template< typename I >
-inline bool
-IsNull(I n)
-{
-    return n == (I)nullInt;
-}
-
-
-
-////////////////
-//	UNICODE
-////////////////
-
-/*
-INFO: UNICODE and _UNICODE Needed to Compile for Unicode
-ID: Q99359
-
---------------------------------------------------------------------------------
-The information in this article applies to:
-
-Microsoft Win32 Software Development Kit (SDK), used with:
-the operating system Microsoft Windows NT, versions 3.1, 3.5, 3.51, 4.0
-the operating system Microsoft Windows 2000
-
---------------------------------------------------------------------------------
-
-
-SUMMARY
-To compile code for Unicode, you need to #define UNICODE for the Win32 header files and #define _UNICODE for the C Run-time header
- files. These #defines must appear before the following:
-   #include <windows.h>
-and any included C Run-time headers. The leading underscore indicates deviance from the ANSI C standard. Because the Windows header
-files are not part of this standard, it is allowable to use UNICODE without the leading underscore.
-*/
-
-#if defined (UNICODE) || defined (_UNICODE)		//Old comment: Dado Q99359 acima, como uso _UNICODE, que UNICODE seja tb definido.
-#	undef UNICODE								//New comment (17/09/09): anyway, ensure that it is enough to use UNICODE (not also _UNICODE) as flag for unicode environment tests
+#if defined (UNICODE) || defined (_UNICODE)
+#	undef UNICODE
 #	undef _UNICODE
 #	define UNICODE
 #	define _UNICODE
 #endif
 
 
-#include <string>
-//#include <sstream>		//above
-#include <iostream>
-
-
-//this is a boost header sentinel to not force all users to include boost; if one wants to use this, then include, before this file:
-//
-//#include <boost/archive/iterators/mb_from_wchar.hpp>    //for UNICODE/MBCS literals
-//#include <boost/archive/iterators/wchar_from_mb.hpp>    //for UNICODE/MBCS literals
-//
-#if defined( BOOST_ARCHIVE_ITERATORS_MB_FROM_WCHAR_HPP )
-
-	typedef boost::archive::iterators::wchar_from_mb< const char* > atranslator;
-	typedef boost::archive::iterators::mb_from_wchar< const wchar_t* > wtranslator;
-
-
-	inline std::wstring a2w( const char *a, size_t length = (size_t)-1 )
-	{
-		return std::wstring( atranslator( a ), atranslator( a + ( length == (size_t)-1 ? strlen( a ) : length ) ) );
-	}
-
-	inline std::string w2a( const wchar_t *w, size_t length = (size_t)-1 )
-	{
-		return std::string( wtranslator( w ), wtranslator( w + ( length == (size_t)-1 ? wcslen( w ) : length ) ) );
-	}
-
-	inline std::wstring a2w( const std::string& a )
-	{
-		return a2w( a.c_str(), a.length() );
-	//    std::wstring temp(s.length(),L' ');
-	//    std::copy(s.begin(), s.end(), temp.begin());
-	//    return temp;
-	}
-	inline std::string w2a( const std::wstring& w )
-	{
-		return w2a( w.c_str(), w.length() );
-	//    std::string temp(s.length(),' ');
-	//    for ( size_t i = 0; i < s.length(); ++i )
-	//        temp[i] = (char)s[i];
-	//    //std::copy(s.begin(), s.end(), temp.begin());
-	//    return temp;
-	}
-
-	// t 2 X ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-	inline std::string t2a( const std::string &s )
-	{
-		return s;
-	}
-	inline std::string t2a( const std::wstring &s )
-	{
-		return w2a( s );
-	}
-
-	inline std::wstring t2w( const std::string &s )
-	{
-		return a2w( s );
-	}
-	inline std::wstring t2w( const std::wstring &s )
-	{
-		return s;
-	}
-
-
-	inline const std::string& t2ac( const std::string &s )
-	{
-		return s;
-	}
-	inline std::string t2ac( const std::wstring &s )
-	{
-		return w2a( s );
-	}
-
-	inline std::wstring t2wc( const std::string &s )
-	{
-		return a2w( s );
-	}
-	inline const std::wstring& t2wc( const std::wstring &s )
-	{
-		return s;
-	}
-
-
-	// X 2 t ////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-	template< class STRING >
-	inline STRING w2t( const std::wstring &s );
-
-	template< class STRING >
-	inline STRING a2t( const std::string &s );
-
-	template<>
-	inline std::wstring w2t( const std::wstring &s )
-	{
-		return s;
-	}
-
-	template<>
-	inline std::string w2t( const std::wstring &s )
-	{
-		return w2a( s );
-	}
-
-	template<>
-	inline std::wstring a2t( const std::string &s )
-	{
-		return a2w( s );
-	}
-
-	template<>
-	inline std::string a2t( const std::string &s )
-	{
-		return s;
-	}
-
-
-	template< class STRING >
-	inline STRING w2tc( const std::wstring &s );
-
-	template< class STRING >
-	inline STRING a2tc( const std::string &s );
-
-	template<>
-	inline const std::wstring& w2tc( const std::wstring &s )
-	{
-		return s;
-	}
-
-	template<>
-	inline std::string w2tc( const std::wstring &s )
-	{
-		return w2a( s );
-	}
-
-	template<>
-	inline std::wstring a2tc( const std::string &s )
-	{
-		return a2w( s );
-	}
-
-	template<>
-	inline const std::string& a2tc( const std::string &s )
-	{
-		return s;
-	}
-
-
-	//////////////////////////////////// "polymorphic" string literals ////////////////////////////////////
-
-
-	template< typename CHAR >
-	struct poly_string_literal;
-
-	template<>
-	struct poly_string_literal< char >
-	{
-		static inline std::string TS_( const char *a ){ return std::string( a ); }
-
-		static inline std::string TS_( const char &a ){ return std::string( a, 1 ); }
-	};
-
-	template<>
-	struct poly_string_literal< wchar_t >
-	{
-		static inline std::wstring TS_( const char *a )
-		{ 
-			return a2w( a ); 
-		}
-
-		static inline std::wstring TS_( const char &a )
-		{ 
-			return a2w( &a, 1 ); 
-		}
-	};
-
-
-
-	namespace std {					//otherwise, if defined at global scope and std:: qualified, the  the compiler won't match it
-
-		inline wostream& operator << ( wostream &o, const char *s )
-		{
-			return o << a2w( s );
-		}
-
-		inline wostream& operator << ( wostream &o, const std::string s )
-		{
-			return o << a2w( s );
-		}
-	}
-
-#endif
 
 
 
 
-//this is a boost header sentinel to not force all users to include boost; if one wants to use this, then include, before this file:
-//
-//#include <boost/locale.hpp>           //for utf8 <-> utf16 conversions
-//
-#if defined(BOOST_LOCALE_HPP_INCLUDED)
-
-    inline std::wstring utf8to16( const std::string utf8_string )
-    {
-        std::wstring utf16_string = boost::locale::conv::utf_to_utf< wchar_t >( utf8_string );
-        return utf16_string;
-    }
-    inline std::string utf16to8( const std::wstring utf16_string )
-    {
-        std::string utf8_string = boost::locale::conv::utf_to_utf< char >( utf16_string );
-        return utf8_string;
-    }
-
-#endif
-
-
-
-
-#if defined (UNICODE)													 //TODO for all this file: try to avoid std_string_t uses (dependency of macro UNICODE) and REPLACE BY TEMPLATES
-	typedef std::wstring std_string_t;
-	typedef std::wstringstream std_stringstream_t;
-#else
-	typedef std::string std_string_t;
-	typedef std::stringstream std_stringstream_t;
-#endif
 
 
 
@@ -543,132 +223,6 @@ inline const STRING& empty_string()
 	static const STRING empty;
 	return empty; 
 }
-
-//////////////////////////////////////////////////////////////////
-//					STANDARD IN/OUTPUT
-//////////////////////////////////////////////////////////////////
-
-
-
-template< class STRING >
-inline typename string_traits< STRING >::ostream_type& std_tcout()
-{
-	return string_traits< STRING >::tcout();
-}
-
-template< class STRING >
-inline typename string_traits< STRING >::istream_type& std_tcin()
-{
-	return string_traits< STRING >::tcin();
-}
-
-
-
-#if defined (UNICODE)
-
-	inline std::wostream& tcout()
-	{ 
-        return string_traits< std::wstring >::tcout();
-	}
-
-#else
-	inline std::ostream& tcout()
-	{ 
-        return string_traits< std::string >::tcout();
-    }
-#endif
-
-
-
-///////////////////////////
-//		REDIRECTORS
-///////////////////////////
-//
-//	to redirect std::cout/std::cin at instance scope: declare a variable of the type, passing
-//	the stream to redirect out/input as argument; the destructor will restore streamimg to the
-//	standard objects.
-//
-
-template< class STRING >
-class std_cout_redirector
-{
-	typedef typename string_traits< STRING >::streambuf_type	streambuf_type; 
-	typedef typename string_traits< STRING >::ostream_type		ostream_type; 
-
-	streambuf_type *m_coutbuf;
-
-public:
-	static inline ostream_type& tcout()
-	{
-		return string_traits< STRING >::tcout();
-	}
-
-	std_cout_redirector( ostream_type &out )
-	{
-		m_coutbuf = tcout().rdbuf();
-		tcout().rdbuf( out.rdbuf() );
-	}
-
-	~std_cout_redirector()
-	{
-		tcout().rdbuf( m_coutbuf ); //reset to standard output
-	}
-};
-
-template< class STRING >
-class std_cerr_redirector
-{
-	typedef typename string_traits< STRING >::streambuf_type	streambuf_type; 
-	typedef typename string_traits< STRING >::ostream_type		ostream_type; 
-
-	streambuf_type *m_cerrbuf;
-
-public:
-	static inline ostream_type& tcerr()
-	{
-		return string_traits< STRING >::tcerr();
-	}
-
-	std_cerr_redirector( ostream_type &err )
-	{
-		m_cerrbuf = tcerr().rdbuf();
-		tcerr().rdbuf( err.rdbuf() );
-	}
-
-	~std_cerr_redirector()
-	{
-		tcerr().rdbuf( m_cerrbuf ); //reset to standard output
-	}
-};
-
-//!!!!!!!!!!!!!	cin redirector NOT TESTED !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-template< class STRING >
-class std_cin_redirector
-{
-	typedef typename string_traits< STRING >::streambuf_type	streambuf_type; 
-	typedef typename string_traits< STRING >::istream_type		istream_type; 
-
-	streambuf_type *m_cinbuf;
-
-public:
-	static inline istream_type& tcin()
-	{
-		return string_traits< STRING >::tcin();
-	}
-
-	std_cin_redirector( istream_type &in )
-	{
-		m_cinbuf = tcin().rdbuf();
-		tcin().rdbuf( in.rdbuf() );
-	}
-
-	~std_cin_redirector()
-	{
-		tcin().rdbuf( m_cinbuf );	//reset to standard input
-	}
-};
-
-
 
 
 //////////////////////////////////////////////////////////////////
@@ -968,7 +522,6 @@ inline STRING ToLowerCopy( const STRING &s )
 template< class STRING, typename T >
 STRING hn2s( T n, bool hex )
 {
-    //return ((typename string_traits< STRING >::str_stream_type&)(typename string_traits< STRING >::str_stream_type() << n)).str();	//<< yields ostream type (not stringstream)
     typename string_traits< STRING >::str_stream_type st;
 	if ( hex )
 		st << std::hex;
@@ -997,14 +550,6 @@ template< class STRING, typename T >
 STRING n2s( T n )
 {
     return hn2s< STRING >( n, false );
-}
-
-// replaces itoa
-
-template< typename T >
-std_string_t itoa( T n )
-{
-	return ((std_stringstream_t&)(std_stringstream_t() << n)).str();	//<< yields ostream type (not stringstream)
 }
 
 // hexadecimal
@@ -1036,15 +581,6 @@ inline T s2n( const STRING& s )
     st >> v;
     if ( !st )
         throw std::invalid_argument( std::string( s.begin(), s.end() ) + ": Invalid number format." );
-    return v;
-}
-
-
-template< class T >
-inline T atoi( const std_string_t& s )
-{
-    T v;
-    std_stringstream_t( s ) >> v;
     return v;
 }
 
@@ -1098,20 +634,6 @@ typename STRING::size_type i_find( const STRING &source, const STRING &find, siz
         return ( it == source.end() ?  STRING::npos  :  it - source.begin() );
 }
 
-//template< typename STRING >
-//inline STRING& FindAndReplace( STRING& source, const typename STRING::value_type *find, const typename STRING::value_type *replace, size_t pos = 0 )
-//{
-//																	assert__( find && replace );
-//	size_t findLen = Tstrlen( find );
-//	size_t replaceLen = Tstrlen( replace );
-//
-//	while ( ( pos = source.find( find, pos) ) != std::string::npos ) {
-//		source.replace( pos, findLen, replace );
-//		pos += replaceLen;
-//	}
-//	return source;
-//}
-
 
 template< typename STRING, typename TOKEN_STRING >
 STRING replace( const STRING &str, const TOKEN_STRING &strToFind, const TOKEN_STRING &replaceBy, bool compareNoCase = false )
@@ -1134,8 +656,6 @@ STRING replace( const STRING &str, const typename STRING::value_type *strToFind,
 {
 	return replace( str, STRING( strToFind ), STRING( replaceBy ), compareNoCase );
 }
-
-
 
 
 
@@ -1247,96 +767,6 @@ inline std::wstring currentDateTime( const std::wstring &format = defaultDateTim
 	wcsftime( buf, sizeof( buf ) / sizeof(wchar_t), format.c_str(), &tstruct );
     return buf;
 }
-
-
-
-//////////////////////////////////////////
-//   		Chronometers
-//////////////////////////////////////////
-
-
-
-typedef struct {
-	int Hours;
-	int Mins;
-	int Secs;
-	int mSecs;
-} TIME_FIELD;
-
-
-inline void FormatTimeFields( double nano100SecsTime, TIME_FIELD *pTimeFld )
-{
-    nano100SecsTime /= 1.0e4;
-
-    pTimeFld->Hours = (int)((nano100SecsTime /1000) /3600);
-	nano100SecsTime -= (pTimeFld->Hours * 3600.0 * 1000.0);
-    pTimeFld->Mins = (int)((nano100SecsTime /1000) /60);
-	nano100SecsTime -= (pTimeFld->Mins * 60.0 * 1000.0);
-	pTimeFld->Secs = (int)(nano100SecsTime /1000);
-	nano100SecsTime -= (pTimeFld->Secs * 1000.0);
-    pTimeFld->mSecs = (int)nano100SecsTime;
-}
-
-
-
-
-
-
-
-							//////////////////////////////////////////
-							//	  									//
-							//   			Rand
-							//              	         	  		//
-							//////////////////////////////////////////
-
-
-//
-//	stdlib.h: #define RAND_MAX 0x7fff
-//
-inline 
-int SeedRand()
-{
-	int i = (unsigned)time( NULL );
-	srand(i);
-	return i;
-}
-
-#if defined (__unix__)
-#pragma GCC diagnostic ignored "-Wunused-variable"
-#endif
-
-//
-//	- returns values in the range [bottom, top], whose limits are, respectively, 0 and RAND_MAX
-//	- arguments must have values in accordance with first assert, here (*)
-//
-inline 
-short Rand(short top = (short)RAND_MAX, short bottom = 0)
-{
-#ifdef _MT
-#if defined (_MSC_VER)
-	__declspec( thread )
-#else
-	__thread
-#endif
-	 static int dummy = 0;
-	if (!dummy)
-		dummy = SeedRand();
-#else
-	static int dummy = SeedRand();
-#endif
-
-	assert(top >= 0 && bottom >= 0 && top >= bottom);	//(*)
-	short i = rand() % ((unsigned short)top + 1);		//0 <= i <= top
-	if (i < bottom)
-		i = std::max((short)(top - i), bottom);			//i is always <= top
-	assert(i >= bottom && i <= top);
-	return i;
-}
-
-#if defined (__unix__)
-#pragma GCC diagnostic warning "-Wunused-variable"
-#endif
-
 
 
 

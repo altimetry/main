@@ -6,6 +6,7 @@
 
 class CDisplay;
 class CTextWidget;
+class CBratLookupTable;
 
 
 /////////////////////////////////////////////////////////////////////////////////////
@@ -13,6 +14,106 @@ class CTextWidget;
 //							Specialized Widgets
 /////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
+
+class CColorMapLabel : public QLabel
+{
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+    Q_OBJECT;
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
+    // types
+
+	using base_t = QLabel;
+
+	//data
+
+	const CBratLookupTable *mLut = nullptr;
+
+public:
+	CColorMapLabel( QWidget *parent = nullptr );
+
+	virtual ~CColorMapLabel()
+	{}
+
+	void SetLUT( const CBratLookupTable *lut );
+
+protected:
+
+	virtual void resizeEvent( QResizeEvent * ) override;
+};
+
+
+
+
+
+class CColorMapWidget : public QWidget
+{
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+    Q_OBJECT;
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
+    // types
+
+    using base_t = QWidget;
+
+	friend struct CPlotControlsPanelCurveOptions;
+	friend struct CMapControlsPanelDataLayers;
+
+
+	//data
+
+	QCheckBox *mShowContour = nullptr;
+	QCheckBox *mShowSolidColor = nullptr;
+	CColorMapLabel *mColorMapLabel = nullptr;
+	QComboBox *mColorTables = nullptr;
+
+	CBratLookupTable *mLut = nullptr;
+
+	//construction / destruction
+
+public:
+    CColorMapWidget( QWidget *parent = nullptr );
+
+    virtual ~CColorMapWidget()
+    {}
+
+    // access
+
+	void SetShowContour( bool checked );
+
+	void SetShowSolidColor( bool checked );
+
+	void SetLUT( CBratLookupTable *lut );
+
+	QString itemText( int index )
+	{
+		return mColorTables->itemText( index );
+	}
+
+signals:
+	void CurrentIndexChanged( int );
+	void ShowContourToggled( bool );
+	void ShowSolidColorToggled( bool );
+
+protected slots:
+
+void HandleColorTablesIndexChanged( int index );
+};
+
 
 
 ////////////////////////////////////////////////////////////////
@@ -190,8 +291,7 @@ public:
     QLineEdit *mLineWidthValue = nullptr;
     QLineEdit *mPointSizeValue = nullptr;
 
-	QCheckBox *mShowContour = nullptr;
-	QCheckBox *mShowSolidColor = nullptr;
+	CColorMapWidget *mColorMapWidget = nullptr;
 
     QLineEdit *mNumberOfBins = nullptr;
 
@@ -396,7 +496,8 @@ public:
     // instance data members
 
     QListWidget *mFieldsList = nullptr;
-    QCheckBox *mShowSolidColorCheck = nullptr;
+
+	CColorMapWidget *mColorMapWidget = nullptr;
 
     QLineEdit *mMinRange = nullptr;
     QLineEdit *mMaxRange = nullptr;

@@ -890,20 +890,25 @@ INSTALL(
 
 
 #######################################################
-# OSG plugins
+# OSG & osgEarth plugins
 #######################################################
 
 IF (APPLE)
-	file( GLOB OSG_PLUGIN_FILES ${OSG_BIN_DIR}/osgPlugins-3.4.0/*.so )			# .so, amazing...
+	file( GLOB OSG_PLUGIN_FILES ${OSG_BIN_DIR}/osgPlugins-3.4.0/*.so )					# .so, amazing...
+	file( GLOB OSG_EARTH_PLUGIN_FILES ${OSG_EARTH_BIN_DIR}/osgPlugins-3.4.0/*.so )
 ELSE (APPLE)
 	IF (WIN32)
 		file( GLOB OSG_PLUGIN_FILES ${OSG_BIN_DIR}/osgPlugins-3.4.0/*${DBG_SUFFIX}${DLL_SUFFIX} )
 		file( GLOB OSG_PLUGIN_FILES_DEBUG ${OSG_BIN_DIR}/osgPlugins-3.4.0/*.pdb )
+		file( GLOB OSG_EARTH_PLUGIN_FILES ${OSG_EARTH_BIN_DIR}/osgPlugins-3.4.0/*${DBG_SUFFIX}${DLL_SUFFIX} )
+		file( GLOB OSG_EARTH_PLUGIN_FILES_DEBUG ${OSG_EARTH_BIN_DIR}/osgPlugins-3.4.0/*.pdb )
 		IF (CMAKE_BUILD_TYPE MATCHES "Debug")
 			SET( OSG_PLUGIN_FILES ${OSG_PLUGIN_FILES} ${OSG_PLUGIN_FILES_DEBUG} )
+			SET( OSG_EARTH_PLUGIN_FILES ${OSG_EARTH_PLUGIN_FILES} ${OSG_EARTH_PLUGIN_FILES_DEBUG} )
 		ENDIF (CMAKE_BUILD_TYPE MATCHES "Debug")
 	ELSE (WIN32)
 		file( GLOB OSG_PLUGIN_FILES ${OSG_BIN_DIR}/osgPlugins-3.4.0/*${DLL_SUFFIX} )
+		file( GLOB OSG_EARTH_PLUGIN_FILES ${OSG_EARTH_BIN_DIR}/osgPlugins-3.4.0/*${DLL_SUFFIX} )
 	ENDIF (WIN32)
 ENDIF (APPLE)
 
@@ -911,6 +916,7 @@ ENDIF (APPLE)
 INSTALL(
 	FILES
 	${OSG_PLUGIN_FILES}
+	${OSG_EARTH_PLUGIN_FILES}
 	DESTINATION ${RUNTIME_DESTINATION}/osgPlugins-3.4.0
 	COMPONENT brat_runtime
 	)

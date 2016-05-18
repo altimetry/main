@@ -24,6 +24,7 @@
 #include "libbrathl/LatLonPoint.h"
 using namespace brathl;
 
+
 //#if defined (__DEPRECATED)          //avoid linux warning in vtk include
 //#undef __DEPRECATED
 //#endif
@@ -58,6 +59,7 @@ using namespace brathl;
 //#include "vtkEarthSource.h"
 //#include "vtkLookupTable.h"
 
+#include "BratLookupTable.h"
 #include "MapProjection.h"
 #include "WorldPlotCommonData.h"
 
@@ -69,11 +71,11 @@ using namespace brathl;
 //CLUTRenderer::CLUTRenderer()
 //{
 //
-//  m_vtkRend = NULL;
-//  m_LUT = NULL;
-//  m_scalarBarActor = NULL;
-//  //m_txtProp = NULL;
-//  //m_titleProp = NULL;
+//  m_vtkRend = nullptr;
+//  m_LUT = nullptr;
+//  m_scalarBarActor = nullptr;
+//  //m_txtProp = nullptr;
+//  //m_titleProp = nullptr;
 //
 //  m_vtkRend = vtkRenderer::New();
 //
@@ -114,16 +116,16 @@ using namespace brathl;
 ////----------------------------------------
 //CLUTRenderer::~CLUTRenderer()
 //{
-//  if (m_scalarBarActor != NULL)
+//  if (m_scalarBarActor != nullptr)
 //  {
 //    m_scalarBarActor->Delete();
-//    m_scalarBarActor = NULL;
+//    m_scalarBarActor = nullptr;
 //  }
 //
-//  if (m_vtkRend != NULL)
+//  if (m_vtkRend != nullptr)
 //  {
 //    m_vtkRend->Delete();
-//    m_vtkRend = NULL;
+//    m_vtkRend = nullptr;
 //  }
 //
 //  DeleteLUT();
@@ -147,17 +149,17 @@ using namespace brathl;
 ////----------------------------------------
 //void CLUTRenderer::DeleteLUT()
 //{
-//  if (m_LUT != NULL)
+//  if (m_LUT != nullptr)
 //  {
 //    delete m_LUT;
-//    m_LUT = NULL;
+//    m_LUT = nullptr;
 //  }
 //}
 //
 ////----------------------------------------
 //void CLUTRenderer::SetLUT(CBratLookupTable* lut)
 //{
-//  if (lut == NULL)
+//  if (lut == nullptr)
 //  {
 //    return;
 //  }
@@ -171,7 +173,7 @@ using namespace brathl;
 ////----------------------------------------
 //void CLUTRenderer::SetNumberOfLabels(int32_t n)
 //{
-//  if (m_scalarBarActor == NULL)
+//  if (m_scalarBarActor == nullptr)
 //  {
 //    return;
 //  }
@@ -181,7 +183,7 @@ using namespace brathl;
 ////----------------------------------------
 //int32_t CLUTRenderer::GetNumberOfLabels()
 //{
-//  if (m_scalarBarActor == NULL)
+//  if (m_scalarBarActor == nullptr)
 //  {
 //    return 0;
 //  }
@@ -192,11 +194,11 @@ using namespace brathl;
 ////----------------------------------------
 //void CLUTRenderer::SetBackground(double r, double g, double b)
 //{
-//  if (m_vtkRend == NULL)
+//  if (m_vtkRend == nullptr)
 //  {
 //    return;
 //  }
-//  if (m_scalarBarActor == NULL)
+//  if (m_scalarBarActor == nullptr)
 //  {
 //    return;
 //  }
@@ -230,7 +232,7 @@ CWorldPlotProperties::CWorldPlotProperties()
   m_heightFactor = 0;
   m_numColorLabels = 5;
 
-  //m_colorTable = NULL;
+  //m_colorTable = nullptr;
 
   setDefaultValue(m_minHeightValue);
   setDefaultValue(m_maxHeightValue);
@@ -242,12 +244,8 @@ CWorldPlotProperties::CWorldPlotProperties()
   m_centerLongitude = 0.0;
   m_centerLatitude = 0.0;
 
-#if defined(BRAT_V3)
-
-  m_LUT = new CBratLookupTable();
-  m_LUT->ExecMethodDefaultColorTable();
-
-#endif
+  mLUT = new CBratLookupTable();
+  mLUT->ExecMethodDefaultColorTable();
 
   m_zoom = false;
   m_zoomLon1 = -180.0;
@@ -285,37 +283,31 @@ CWorldPlotProperties::CWorldPlotProperties()
 
 CWorldPlotProperties::CWorldPlotProperties(const CWorldPlotProperties& p)
 {
-#if defined(BRAT_V3)
-  m_LUT = NULL;
-#endif
-  this->Copy(p);
+  mLUT = nullptr;
+  Copy(p);
 }
 
 //----------------------------------------
 const CWorldPlotProperties& CWorldPlotProperties::operator=(const CWorldPlotProperties& p)
 {
-  this->Copy(p);
+  Copy(p);
   return *this;
 }
 //----------------------------------------
 CWorldPlotProperties::~CWorldPlotProperties()
 {
-#if defined(BRAT_V3)
   DeleteLUT();
-#endif
 }
 
 //----------------------------------------
-#if defined(BRAT_V3)
 void CWorldPlotProperties::DeleteLUT()
 {
-  if (m_LUT != NULL)
+  if (mLUT != nullptr)
   {
-    delete m_LUT;
-    m_LUT = NULL;
+    delete mLUT;
+    mLUT = nullptr;
   }
 }
-#endif
 //----------------------------------------
 void CWorldPlotProperties::Copy(const CWorldPlotProperties& p)
 {
@@ -323,10 +315,8 @@ void CWorldPlotProperties::Copy(const CWorldPlotProperties& p)
   m_coastResolution = p.m_coastResolution;
   m_projection = p.m_projection;
 
-#if defined(BRAT_V3)
   DeleteLUT();
-  m_LUT = new CBratLookupTable(*(p.m_LUT));
-#endif
+  mLUT = new CBratLookupTable(*(p.mLUT));
 
   m_title = p.m_title;
 
@@ -385,72 +375,103 @@ void CWorldPlotProperties::Copy(const CWorldPlotProperties& p)
 //------------------- CWorldPlotCommonData class --------------------
 //-------------------------------------------------------------
 
-CWorldPlotCommonData::CWorldPlotCommonData(CWorldPlotProperties* plotProperty)
+CWorldPlotCommonData::CWorldPlotCommonData( CWorldPlotProperties* plotProperty )
 {
-  if (plotProperty != NULL)
-  {
-    m_plotProperty = *plotProperty;
-  }
+	if ( plotProperty != nullptr )
+	{
+		m_plotProperty = *plotProperty;
+	}
 
-//  m_colorBarRenderer = NULL;
-//
-//  m_vtkActor = NULL;
-//  m_vtkContourActor = NULL;
-//
-//  m_vtkActor2D = NULL;
-//  m_vtkContourActor2D = NULL;
-//
-//  m_vtkMapper = NULL;
-//  m_vtkContourMapper = NULL;
-//
-//  m_vtkMapper2D = NULL;
-//  m_vtkContourMapper2D = NULL;
-//
-//  m_LUT = NULL;
-//
-//  m_vtkFilter = vtkProj2DFilter::New();
-//#ifdef WIN32
-//  // decrease interpolation distance on windows
-//  // because of inacurate calculations with VC 7.1
-//  GetVtkFilter()->SetInterpolationDistance(0.02);
-//#endif
-//
-//  m_vtkTransform = vtkTransformPolyDataFilter::New();
-//
-//  m_transform = vtkTransform::New();
-//
-//  m_vtkContourFilter = NULL;
-//
-//  m_vtkContourLabelMapper = NULL;
-//  m_vtkContourLabelActor = NULL;
-//
-//  m_vtkLabelContourData = NULL;
-//  m_vtkLabelContourPoints = NULL;
-//  m_vtkLabelContourPositions = NULL;
-//
-//  m_vtkConnectivity = NULL;
-//
-//  m_vtkVisiblePointsFilter = NULL;
-//  m_vtkVisibleSpherePointsFilter = NULL;
-//  m_vtkVisibleSpherePoints = NULL;
-//  m_vtkVisibleSpherePointsData = NULL;
-//
-//  m_LUT = new CBratLookupTable(*m_plotProperty.m_LUT);
-//
-//  m_vtkRend = NULL;
-//
-  m_aborted = false;
+	//  m_colorBarRenderer = nullptr;
+	//
+	//  m_vtkActor = nullptr;
+	//  m_vtkContourActor = nullptr;
+	//
+	//  m_vtkActor2D = nullptr;
+	//  m_vtkContourActor2D = nullptr;
+	//
+	//  m_vtkMapper = nullptr;
+	//  m_vtkContourMapper = nullptr;
+	//
+	//  m_vtkMapper2D = nullptr;
+	//  m_vtkContourMapper2D = nullptr;
+	//
+	//  m_LUT = nullptr;
+	//
+	//  m_vtkFilter = vtkProj2DFilter::New();
+	//#ifdef WIN32
+	//  // decrease interpolation distance on windows
+	//  // because of inacurate calculations with VC 7.1
+	//  GetVtkFilter()->SetInterpolationDistance(0.02);
+	//#endif
+	//
+	//  m_vtkTransform = vtkTransformPolyDataFilter::New();
+	//
+	//  m_transform = vtkTransform::New();
+	//
+	//  m_vtkContourFilter = nullptr;
+	//
+	//  m_vtkContourLabelMapper = nullptr;
+	//  m_vtkContourLabelActor = nullptr;
+	//
+	//  m_vtkLabelContourData = nullptr;
+	//  m_vtkLabelContourPoints = nullptr;
+	//  m_vtkLabelContourPositions = nullptr;
+	//
+	//  m_vtkConnectivity = nullptr;
+	//
+	//  m_vtkVisiblePointsFilter = nullptr;
+	//  m_vtkVisibleSpherePointsFilter = nullptr;
+	//  m_vtkVisibleSpherePoints = nullptr;
+	//  m_vtkVisibleSpherePointsData = nullptr;
+	//
+	mLUT = new CBratLookupTable( *m_plotProperty.mLUT );
+	//
+	//  m_vtkRend = nullptr;
+	//
+	m_aborted = false;
 
-  m_is3D = false;
+	m_is3D = false;
 
-  m_projection = PROJ2D_3D;
+	m_projection = PROJ2D_3D;
 
-  //NoTransform();
+	//NoTransform();
 }
 //----------------------------------------
 CWorldPlotCommonData::~CWorldPlotCommonData()
 {
 }
+
+
+QLookupTable* CWorldPlotCommonData::GetLookupTable()
+{
+	return mLUT ? mLUT->GetLookupTable() : nullptr;
+};
+
+
+void CWorldPlotCommonData::SetLUT( CBratLookupTable* lut )
+{
+	if ( lut == nullptr )
+	{
+		return;
+	}
+
+	DeleteLUT();
+
+	mLUT = new CBratLookupTable( *lut );
+}
+
+void CWorldPlotCommonData::DeleteLUT()
+{
+	if ( mLUT != nullptr )
+	{
+		delete mLUT;
+		mLUT = nullptr;
+	}
+}
+
+
+
 //----------------------------------------
 //void CWorldPlotCommonData::NewVtkContourLabelObject()
 //{
@@ -472,65 +493,65 @@ CWorldPlotCommonData::~CWorldPlotCommonData()
 ////----------------------------------------
 //void CWorldPlotCommonData::DeleteVtkContourLabelObject()
 //{
-//  if (m_vtkVisiblePointsFilter != NULL)
+//  if (m_vtkVisiblePointsFilter != nullptr)
 //  {
 //    m_vtkVisiblePointsFilter->Delete();
-//    m_vtkVisiblePointsFilter = NULL;
+//    m_vtkVisiblePointsFilter = nullptr;
 //  }
-//  if (m_vtkVisibleSpherePointsFilter != NULL)
+//  if (m_vtkVisibleSpherePointsFilter != nullptr)
 //  {
 //    m_vtkVisibleSpherePointsFilter->Delete();
-//    m_vtkVisibleSpherePointsFilter = NULL;
+//    m_vtkVisibleSpherePointsFilter = nullptr;
 //  }
-//  if (m_vtkVisibleSpherePoints != NULL)
+//  if (m_vtkVisibleSpherePoints != nullptr)
 //  {
 //    m_vtkVisibleSpherePoints->Delete();
-//    m_vtkVisibleSpherePoints = NULL;
+//    m_vtkVisibleSpherePoints = nullptr;
 //  }
-//  if (m_vtkVisibleSpherePointsData != NULL)
+//  if (m_vtkVisibleSpherePointsData != nullptr)
 //  {
 //    m_vtkVisibleSpherePointsData->Delete();
-//    m_vtkVisibleSpherePointsData = NULL;
+//    m_vtkVisibleSpherePointsData = nullptr;
 //  }
-//  if (m_vtkConnectivity != NULL)
+//  if (m_vtkConnectivity != nullptr)
 //  {
 //    m_vtkConnectivity->Delete();
-//    m_vtkConnectivity = NULL;
+//    m_vtkConnectivity = nullptr;
 //  }
-//  if (m_vtkLabelContourPositions != NULL)
+//  if (m_vtkLabelContourPositions != nullptr)
 //  {
 //    m_vtkLabelContourPositions->Delete();
-//    m_vtkLabelContourPositions = NULL;
+//    m_vtkLabelContourPositions = nullptr;
 //  }
-//  if (m_vtkLabelContourPoints != NULL)
+//  if (m_vtkLabelContourPoints != nullptr)
 //  {
 //    m_vtkLabelContourPoints->Delete();
-//    m_vtkLabelContourPoints = NULL;
+//    m_vtkLabelContourPoints = nullptr;
 //  }
-//  if (m_vtkLabelContourData != NULL)
+//  if (m_vtkLabelContourData != nullptr)
 //  {
 //    m_vtkLabelContourData->Delete();
-//    m_vtkLabelContourData = NULL;
+//    m_vtkLabelContourData = nullptr;
 //  }
 //
 //}
 //----------------------------------------
 //void CWorldPlotCommonData::DeleteContourFilter()
 //{
-//  if (m_vtkContourFilter != NULL)
+//  if (m_vtkContourFilter != nullptr)
 //  {
 //    m_vtkContourFilter->Delete();
-//    m_vtkContourFilter = NULL;
+//    m_vtkContourFilter = nullptr;
 //  }
 //
 //}
 //----------------------------------------
 //void CWorldPlotCommonData::DeleteLUT()
 //{
-//  if (m_LUT != NULL)
+//  if (m_LUT != nullptr)
 //  {
 //    delete m_LUT;
-//    m_LUT = NULL;
+//    m_LUT = nullptr;
 //  }
 //
 //}
@@ -586,111 +607,111 @@ CWorldPlotCommonData::~CWorldPlotCommonData()
 ////----------------------------------------
 //void CWorldPlotCommonData::DeleteActor()
 //{
-//  if (m_vtkActor != NULL)
+//  if (m_vtkActor != nullptr)
 //  {
 //    m_vtkActor->Delete();
-//    m_vtkActor = NULL;
+//    m_vtkActor = nullptr;
 //  }
 //}
 //
 ////----------------------------------------
 //void CWorldPlotCommonData::DeleteContourActor()
 //{
-//  if (m_vtkContourActor != NULL)
+//  if (m_vtkContourActor != nullptr)
 //  {
 //    m_vtkContourActor->Delete();
-//    m_vtkContourActor = NULL;
+//    m_vtkContourActor = nullptr;
 //  }
 //}
 ////----------------------------------------
 //void CWorldPlotCommonData::DeleteContourLabelActor()
 //{
-//  if (m_vtkContourLabelActor != NULL)
+//  if (m_vtkContourLabelActor != nullptr)
 //  {
 //    m_vtkContourLabelActor->Delete();
-//    m_vtkContourLabelActor = NULL;
+//    m_vtkContourLabelActor = nullptr;
 //  }
 //}
 //
 ////----------------------------------------
 //void CWorldPlotCommonData::DeleteActor2D()
 //{
-//  if (m_vtkActor2D != NULL)
+//  if (m_vtkActor2D != nullptr)
 //  {
 //    m_vtkActor2D->Delete();
-//    m_vtkActor2D = NULL;
+//    m_vtkActor2D = nullptr;
 //  }
 //}
 //
 ////----------------------------------------
 //void CWorldPlotCommonData::DeleteContourActor2D()
 //{
-//  if (m_vtkContourActor2D != NULL)
+//  if (m_vtkContourActor2D != nullptr)
 //  {
 //    m_vtkContourActor2D->Delete();
-//    m_vtkContourActor2D = NULL;
+//    m_vtkContourActor2D = nullptr;
 //  }
 //}
 //
 ////----------------------------------------
 //void CWorldPlotCommonData::DeleteMapper()
 //{
-//  if (m_vtkMapper != NULL)
+//  if (m_vtkMapper != nullptr)
 //  {
 //    m_vtkMapper->Delete();
-//    m_vtkMapper = NULL;
+//    m_vtkMapper = nullptr;
 //  }
 //}
 //
 ////----------------------------------------
 //void CWorldPlotCommonData::DeleteContourMapper()
 //{
-//  if (m_vtkContourMapper != NULL)
+//  if (m_vtkContourMapper != nullptr)
 //  {
 //    m_vtkContourMapper->Delete();
-//    m_vtkContourMapper = NULL;
+//    m_vtkContourMapper = nullptr;
 //  }
 //}
 //
 ////----------------------------------------
 //void CWorldPlotCommonData::DeleteContourLabelMapper()
 //{
-//  if (m_vtkContourLabelMapper != NULL)
+//  if (m_vtkContourLabelMapper != nullptr)
 //  {
 //    m_vtkContourLabelMapper->Delete();
-//    m_vtkContourLabelMapper = NULL;
+//    m_vtkContourLabelMapper = nullptr;
 //  }
 //}
 //
 ////----------------------------------------
 //void CWorldPlotCommonData::DeleteMapper2D()
 //{
-//  if (m_vtkMapper2D != NULL)
+//  if (m_vtkMapper2D != nullptr)
 //  {
 //    m_vtkMapper2D->Delete();
-//    m_vtkMapper2D = NULL;
+//    m_vtkMapper2D = nullptr;
 //  }
 //
 //}
 ////----------------------------------------
 //void CWorldPlotCommonData::DeleteContourMapper2D()
 //{
-//  if (m_vtkContourMapper2D != NULL)
+//  if (m_vtkContourMapper2D != nullptr)
 //  {
 //    m_vtkContourMapper2D->Delete();
-//    m_vtkContourMapper2D = NULL;
+//    m_vtkContourMapper2D = nullptr;
 //  }
 //
 //}
 //----------------------------------------
 //bool CWorldPlotCommonData::HasActor()
 //{
-//  return ((m_vtkActor != NULL) || (m_vtkContourActor != NULL));
+//  return ((m_vtkActor != nullptr) || (m_vtkContourActor != nullptr));
 //}
 ////----------------------------------------
 //bool CWorldPlotCommonData::HasActor2D()
 //{
-//  return ((m_vtkActor2D != NULL) || (m_vtkContourActor2D != NULL));
+//  return ((m_vtkActor2D != nullptr) || (m_vtkContourActor2D != nullptr));
 //}
 ////----------------------------------------
 //
@@ -704,12 +725,12 @@ CWorldPlotCommonData::~CWorldPlotCommonData()
 //----------------------------------------
 //void CWorldPlotCommonData::SetLUT(CBratLookupTable* lut)
 //{
-//  if (lut == NULL)
+//  if (lut == nullptr)
 //  {
 //    return;
 //  }
 //
-//  if ( (m_vtkMapper == NULL) && (m_vtkMapper2D == NULL) )
+//  if ( (m_vtkMapper == nullptr) && (m_vtkMapper2D == nullptr) )
 //  {
 //    return;
 //  }
@@ -719,11 +740,11 @@ CWorldPlotCommonData::~CWorldPlotCommonData()
 //
 //  m_LUT = new CBratLookupTable(*lut);
 //
-//  if (m_vtkMapper != NULL)
+//  if (m_vtkMapper != nullptr)
 //  {
 //    m_vtkMapper->SetLookupTable(m_LUT->GetLookupTable());
 //  }
-//  else if (m_vtkMapper2D != NULL)
+//  else if (m_vtkMapper2D != nullptr)
 //  {
 //    m_vtkMapper2D->SetLookupTable(m_LUT->GetLookupTable());
 //  }
@@ -736,7 +757,7 @@ void CWorldPlotCommonData::SetProjection( int32_t proj )
 	m_projection = proj;
 	//  GetVtkFilter()->SetProjection(proj);
 	//
-	//  //if ( (proj == VTK_PROJ2D_3D) && ((m_is3D == false) || (m_vtkActor == NULL)) )
+	//  //if ( (proj == VTK_PROJ2D_3D) && ((m_is3D == false) || (m_vtkActor == nullptr)) )
 	//  if ( (proj == PROJ2D_3D) && ((m_is3D == false) || (HasActor() == false)) )
 	//  {
 	//    DeleteAll2D();
@@ -744,7 +765,7 @@ void CWorldPlotCommonData::SetProjection( int32_t proj )
 	//    Set3D();
 	//
 	//  }
-	//  //else if ( (proj != VTK_PROJ2D_3D) && ((m_is3D == true) || (m_vtkActor2D == NULL)) )
+	//  //else if ( (proj != VTK_PROJ2D_3D) && ((m_is3D == true) || (m_vtkActor2D == nullptr)) )
 	//  else if ( (proj != PROJ2D_3D) && ((m_is3D == true) || (HasActor2D() == false)) )
 	//  {
 	//    DeleteAll3D();
@@ -771,7 +792,7 @@ void CWorldPlotCommonData::Set3D()
 //	m_vtkMapper->SetScalarModeToUseCellData();
 //	m_vtkMapper->UseLookupTableScalarRangeOn();
 //
-//	if ( m_LUT != NULL )
+//	if ( m_LUT != nullptr )
 //	{
 //		m_vtkMapper->SetLookupTable( m_LUT->GetLookupTable() );
 //	}
@@ -802,7 +823,7 @@ void CWorldPlotCommonData::Set2D()
 //	m_vtkMapper2D->SetScalarModeToUseCellData();
 //	m_vtkMapper2D->UseLookupTableScalarRangeOn();
 //
-//	if ( m_LUT != NULL )
+//	if ( m_LUT != nullptr )
 //	{
 //		m_vtkMapper2D->SetLookupTable( m_LUT->GetLookupTable() );
 //	}
@@ -811,7 +832,7 @@ void CWorldPlotCommonData::Set2D()
 //	m_vtkActor2D->SetMapper( m_vtkMapper2D );
 //
 //	c->Delete();
-//	c = NULL;
+//	c = nullptr;
 //
 //	Update();
 }
@@ -819,7 +840,7 @@ void CWorldPlotCommonData::Set2D()
 ////----------------------------------------
 //void CWorldPlotCommonData::SetCenterLatitude(double lat)
 //{
-//  if (GetVtkFilter() != NULL)
+//  if (GetVtkFilter() != nullptr)
 //  {
 //    GetVtkFilter()->SetCenterLatitude(lat);
 //  }
@@ -828,7 +849,7 @@ void CWorldPlotCommonData::Set2D()
 ////----------------------------------------
 //void CWorldPlotCommonData::SetCenterLongitude(double lon)
 //{
-//  if (GetVtkFilter() != NULL)
+//  if (GetVtkFilter() != nullptr)
 //  {
 //    GetVtkFilter()->SetCenterLongitude(lon);
 //  }
@@ -837,7 +858,7 @@ void CWorldPlotCommonData::Set2D()
 ////----------------------------------------
 //void CWorldPlotCommonData::SetInput(vtkPolyData* output)
 //{
-//  if (GetVtkFilter() != NULL)
+//  if (GetVtkFilter() != nullptr)
 //  {
 //    GetVtkFilter()->SetInput(output);
 //  }
@@ -860,10 +881,10 @@ void CWorldPlotCommonData::Set2D()
 //
 //CGeoGrid::~CGeoGrid()
 //{
-//  if (m_source != NULL)
+//  if (m_source != nullptr)
 //  {
 //    m_source->Delete();
-//    m_source = NULL;
+//    m_source = nullptr;
 //  }
 //
 //}
@@ -897,12 +918,12 @@ void CWorldPlotCommonData::Set2D()
 //  //m_source->Modified();
 //  m_source->Update();
 //
-//  if ((m_is3D == true) && (m_vtkActor != NULL))
+//  if ((m_is3D == true) && (m_vtkActor != nullptr))
 //  {
 //    m_vtkActor->GetProperty()->SetOpacity(m_plotProperty.m_opacity);
 //    m_vtkActor->GetProperty()->SetLineWidth(.7);
 //  }
-//  else if ((m_is3D == false) && (m_vtkActor2D != NULL))
+//  else if ((m_is3D == false) && (m_vtkActor2D != nullptr))
 //  {
 //    m_vtkActor2D->GetProperty()->SetOpacity(m_plotProperty.m_opacity);
 //    m_vtkActor2D->GetProperty()->SetLineWidth(.7);
@@ -930,17 +951,17 @@ void CWorldPlotCommonData::Set2D()
 //    return false;
 //  }
 //
-//  if (ren == NULL)
+//  if (ren == nullptr)
 //  {
 //    return false;
 //  }
 //
-//  if (m_vtkMapper2D == NULL)
+//  if (m_vtkMapper2D == nullptr)
 //  {
 //    return false;
 //  }
 //
-//  if (m_transform == NULL)
+//  if (m_transform == nullptr)
 //  {
 //    return false;
 //  }
@@ -948,11 +969,11 @@ void CWorldPlotCommonData::Set2D()
 //  vtkPolyData *outputSource = (vtkPolyData *) m_source->GetOutput();
 //  vtkPolyData *outputTransform = (vtkPolyData *) m_vtkTransform->GetOutput();
 //
-//  if (outputSource == NULL)
+//  if (outputSource == nullptr)
 //  {
 //    return false;
 //  }
-//  if (outputTransform == NULL)
+//  if (outputTransform == nullptr)
 //  {
 //    return false;
 //  }
@@ -1002,17 +1023,17 @@ void CWorldPlotCommonData::Set2D()
 //
 //CCoastLine::~CCoastLine()
 //{
-//  if (m_GSHHSReader != NULL)
+//  if (m_GSHHSReader != nullptr)
 //  {
 //    m_GSHHSReader->Delete();
-//    m_GSHHSReader = NULL;
+//    m_GSHHSReader = nullptr;
 //  }
 //
 //}
 ////----------------------------------------
 //void CCoastLine::SetGSHHSReader(const std::string& fileName, int32_t maxLevel)
 //{
-//  if (m_GSHHSReader != NULL)
+//  if (m_GSHHSReader != nullptr)
 //  {
 //    m_GSHHSReader->SetFileName(fileName.c_str());
 //    m_GSHHSReader->SetMaxLevel(maxLevel);
@@ -1025,7 +1046,7 @@ void CWorldPlotCommonData::Set2D()
 //void CCoastLine::Update()
 //{
 //
-//  if ((m_is3D == true) && (m_vtkActor != NULL))
+//  if ((m_is3D == true) && (m_vtkActor != nullptr))
 //  {
 //    //m_vtkMapper->SetInputConnection(normals2->GetOutputPort());
 //
@@ -1033,7 +1054,7 @@ void CWorldPlotCommonData::Set2D()
 //    m_vtkActor->GetProperty()->SetLineWidth(1.5);
 //
 //  }
-//  else if ((m_is3D == false) && (m_vtkActor2D != NULL))
+//  else if ((m_is3D == false) && (m_vtkActor2D != nullptr))
 //  {
 //    //m_vtkMapper2D->SetInputConnection(normals2->GetOutputPort());
 //    m_vtkActor2D->GetProperty()->SetOpacity(m_plotProperty.m_opacity);
@@ -1071,10 +1092,10 @@ void CWorldPlotCommonData::Set2D()
 //
 //CGlobe::~CGlobe()
 //{
-//  if (m_source != NULL)
+//  if (m_source != nullptr)
 //  {
 //    m_source->Delete();
-//    m_source = NULL;
+//    m_source = nullptr;
 //  }
 //
 //}
@@ -1082,7 +1103,7 @@ void CWorldPlotCommonData::Set2D()
 ////----------------------------------------
 //void CGlobe::SetProjection(int32_t proj)
 //{
-//  if ( (proj == VTK_PROJ2D_3D) && (m_vtkActor == NULL) )
+//  if ( (proj == VTK_PROJ2D_3D) && (m_vtkActor == nullptr) )
 //  {
 //    m_vtkActor = vtkActor::New();
 //    m_vtkActor->SetMapper(m_vtkMapper);

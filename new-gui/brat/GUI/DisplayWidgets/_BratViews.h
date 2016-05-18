@@ -3,14 +3,10 @@
 
 #include "new-gui/Common/QtStringUtils.h"
 
-#include "DataModels/PlotData/ZFXYPlotData.h"
-#include "DataModels/PlotData/XYPlotData.h"
 #include "DataModels/PlotData/WorldPlotData.h"
 #include "DataModels/PlotData/WorldPlot.h"
 
 #include "MapWidget.h"
-#include "3DPlotWidget.h"
-#include "2DPlotWidget.h"
 
 #include "ApplicationLogger.h"
 
@@ -40,22 +36,22 @@ struct plot_traits< CWPlot >
 
 // traits for 3D view specialization
 //
-template<>
-struct plot_traits< CZFXYPlot >
-{
-	using properties_type = CZFXYPlotProperties;
-	using data_type = CZFXYPlotData;
-};
+//template<>
+//struct plot_traits< CZFXYPlot >
+//{
+//	using properties_type = CZFXYPlotProperties;
+//	using data_type = CZFXYPlotData;
+//};
 
 
 // traits for 2D view specialization
 //
-template<>
-struct plot_traits< CPlot >
-{
-	using properties_type = CXYPlotProperties;
-	using data_type = CXYPlotData;
-};
+//template<>
+//struct plot_traits< CPlot >
+//{
+//	using properties_type = CXYPlotProperties;
+//	using data_type = CXYPlotData;
+//};
 
 
 
@@ -96,9 +92,9 @@ public:
 
 	virtual void CreatePlot( const CWorldPlotProperties *props, CWPlot *plot );
 
-protected:
-
-	virtual void AddData( CWorldPlotData *pdata, size_t index ) = 0;
+//protected:
+//
+//	virtual void AddData( CWorldPlotData *pdata, size_t index ) = 0;
 };
 
 
@@ -144,13 +140,13 @@ void CBratView< WIDGET >::CreatePlot( const CWorldPlotProperties *props, CWPlot*
 		}
 
 		// otherwise just add it as regular data
-		AddData( new CWorldPlotData( field ), index++ );					   		//v4 note: CWorldPlotData ctor is only invoked here
+//		AddData( new CWorldPlotData( field ), index++ );					   		//v4 note: CWorldPlotData ctor is only invoked here
 	}
 
 	// we have a Vector Plot!
 	if ( northField != nullptr && eastField != nullptr ) 
 	{
-		AddData( new CWorldPlotVelocityData( northField, eastField ), 0 );	//v4 note: CWorldPlotVelocityData ctor is only invoked here
+//		AddData( new CWorldPlotVelocityData( northField, eastField ), 0 );	//v4 note: CWorldPlotVelocityData ctor is only invoked here
 	}
 	else if ( northField != eastField ) 
 	{
@@ -286,7 +282,7 @@ class CBratMapView : public CBratView< CMapWidget >
 
 	// instance data
 
-	std::vector< CWorldPlotData* > mMapDataCollection;
+	//std::vector< CWorldPlotData* > mMapDataCollection;
 
 
 	// construction /destruction
@@ -306,17 +302,17 @@ public:
 
 	//access
 
-	std::vector< CWorldPlotData* >* MapDataCollection() { return &mMapDataCollection; }
+	//std::vector< CWorldPlotData* >* MapDataCollection() { return &mMapDataCollection; }
 
 
 	//operations
 
 	// CBratView interface
 
-protected:
 	void Plot( const CWorldPlotInfo &maps, CWorldPlotProperties *props );
 
-	virtual void AddData( CWorldPlotData *pdata, size_t index ) override;
+//protected:
+//	virtual void AddData( CWorldPlotData *pdata, size_t index ) override;
 };
 
 

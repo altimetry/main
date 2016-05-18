@@ -15,7 +15,7 @@ class CBratSettings;
 
 class CTabbedDock;
 class CGlobeWidget;
-class CBratMapView;
+class CMapWidget;
 
 
 //#define TABBED_MANAGER
@@ -59,7 +59,7 @@ public:
 	const CApplicationPaths &mPaths;
 
 protected:
-	CBratMapView *mMap = nullptr;
+	CMapWidget *mMap = nullptr;
 	CTabbedDock *mMapDock = nullptr;
 
 protected:
@@ -88,7 +88,7 @@ public:
 
 	// access
 
-	CBratMapView* Map() { return mMap; }
+	CMapWidget* Map() { return mMap; }
 
 
 	CTabbedDock* MapDock() { return mMapDock; }

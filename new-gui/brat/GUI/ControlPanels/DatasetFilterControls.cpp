@@ -3,12 +3,13 @@
 #include "libbrathl/ProductNetCdf.h"
 
 #include "DataModels/Model.h"
+#include "DataModels/Workspaces/Workspace.h"
 #include "DataModels/Filters/BratFilters.h"
 #include "DataModels/Workspaces/Dataset.h"
-#include "DataModels/Workspaces/Workspace.h"
+#include "DataModels/PlotData/MapColor.h"
 
 #include "GUI/ControlPanels/Dialogs/RegionSettingsDialog.h"
-#include "GUI/DisplayWidgets/BratViews.h"
+#include "GUI/DisplayWidgets/MapWidget.h"
 
 #include "ApplicationLogger.h"
 

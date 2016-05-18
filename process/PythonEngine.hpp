@@ -533,6 +533,12 @@ public:
         return processCall( PyObject_CallMethod( m_instance, ccast( "GetNumInputParam" ), nullptr ), result );
     }
 
+	virtual std::string GetParamName(uint32_t indexParam) const override 
+    {
+        std::string result;
+        return processCall( PyObject_CallMethod( m_instance, ccast( "GetInputParamName" ), ccast( "(i)" ), indexParam ), result );
+    }
+
     virtual std::string GetInputParamDesc(uint32_t indexParam) const override
     {
         std::string result;

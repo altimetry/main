@@ -48,10 +48,8 @@ CZFXYPlotProperties::CZFXYPlotProperties()
 	setDefaultValue( m_minHeightValue );
 	setDefaultValue( m_maxHeightValue );
 
-#if defined(BRAT_V3)
-	m_LUT = new CBratLookupTable();
-	m_LUT->ExecMethodDefaultColorTable();
-#endif
+	mLUT = new CBratLookupTable();
+	mLUT->ExecMethodDefaultColorTable();
 
 	setDefaultValue( m_xMax );
 	setDefaultValue( m_xMin );
@@ -90,101 +88,90 @@ CZFXYPlotProperties::CZFXYPlotProperties()
 
 //----------------------------------------
 
-CZFXYPlotProperties::CZFXYPlotProperties(const CZFXYPlotProperties& p)
+CZFXYPlotProperties::CZFXYPlotProperties( const CZFXYPlotProperties& p )
 {
-#if defined(BRAT_V3)
-  m_LUT = NULL;
-#endif
-
-  this->Copy(p);
-
+	mLUT = nullptr;
+	Copy( p );
 }
 
 //----------------------------------------
-const CZFXYPlotProperties& CZFXYPlotProperties::operator=(const CZFXYPlotProperties& p)
+const CZFXYPlotProperties& CZFXYPlotProperties::operator=( const CZFXYPlotProperties& p )
 {
-  this->Copy(p);
-  return *this;
+	Copy( p );
+	return *this;
 }
 //----------------------------------------
 CZFXYPlotProperties::~CZFXYPlotProperties()
 {
-#if defined(BRAT_V3)
-  DeleteLUT();
-#endif
+	DeleteLUT();
 }
 
 //----------------------------------------
-#if defined(BRAT_V3)
 void CZFXYPlotProperties::DeleteLUT()
 {
-  if (m_LUT != NULL)
-  {
-    delete m_LUT;
-    m_LUT = NULL;
-  }
+	if ( mLUT != nullptr )
+	{
+		delete mLUT;
+		mLUT = nullptr;
+	}
 }
-#endif
 
 //----------------------------------------
-void CZFXYPlotProperties::Copy(const CZFXYPlotProperties& p)
+void CZFXYPlotProperties::Copy( const CZFXYPlotProperties& p )
 {
+	DeleteLUT();
+	mLUT = new CBratLookupTable( *( p.mLUT ) );
 
-#if defined(BRAT_V3)
-  DeleteLUT();
-  m_LUT = new CBratLookupTable(*(p.m_LUT));
-#endif
+	m_title = p.m_title;
 
-  m_title = p.m_title;
+	m_name = p.m_name;
 
-  m_name = p.m_name;
+	m_xLabel = p.m_xLabel;
+	m_yLabel = p.m_yLabel;
 
-  m_xLabel = p.m_xLabel;
-  m_yLabel = p.m_yLabel;
+	m_opacity = p.m_opacity;
+	m_showPropertyPanel = p.m_showPropertyPanel;
+	m_showColorBar = p.m_showColorBar;
+	m_showAnimationToolbar = p.m_showAnimationToolbar;
 
-  m_opacity = p.m_opacity;
-  m_showPropertyPanel = p.m_showPropertyPanel;
-  m_showColorBar = p.m_showColorBar;
-  m_showAnimationToolbar = p.m_showAnimationToolbar;
+	m_numColorLabels = p.m_numColorLabels;
 
-  m_numColorLabels = p.m_numColorLabels;
+	m_minHeightValue = p.m_minHeightValue;
+	m_maxHeightValue = p.m_maxHeightValue;
 
-  m_minHeightValue = p.m_minHeightValue;
-  m_maxHeightValue = p.m_maxHeightValue;
+	m_xMax = p.m_xMax;
+	m_xMin = p.m_xMin;
+	m_yMax = p.m_yMax;
+	m_yMin = p.m_yMin;
 
-  m_xMax = p.m_xMax;
-  m_xMin = p.m_xMin;
-  m_yMax = p.m_yMax;
-  m_yMin = p.m_yMin;
+	m_xBase = p.m_xBase;
+	m_yBase = p.m_yBase;
 
-  m_xBase = p.m_xBase;
-  m_yBase = p.m_yBase;
+	m_xLog = p.m_xLog;
+	m_yLog = p.m_yLog;
 
-  m_xLog = p.m_xLog;
-  m_yLog = p.m_yLog;
+	m_xNumTicks = p.m_xNumTicks;
+	m_yNumTicks = p.m_yNumTicks;
+	m_zNumTicks = p.m_zNumTicks;
 
-  m_xNumTicks = p.m_xNumTicks;
-  m_yNumTicks = p.m_yNumTicks;
-  m_zNumTicks = p.m_zNumTicks;
+	m_withContour = p.m_withContour;
+	m_withContourLabel = p.m_withContourLabel;
+	m_minContourValue = p.m_minContourValue;
+	m_maxContourValue = p.m_maxContourValue;
+	m_numContour = p.m_numContour;
+	m_numContourLabel = p.m_numContourLabel;
 
-  m_withContour = p.m_withContour;
-  m_withContourLabel = p.m_withContourLabel;
-  m_minContourValue = p.m_minContourValue;
-  m_maxContourValue = p.m_maxContourValue;
-  m_numContour = p.m_numContour;
-  m_numContourLabel = p.m_numContourLabel;
+	m_contourLabelSize = p.m_contourLabelSize;
+	m_contourLineWidth = p.m_contourLineWidth;
 
-  m_contourLabelSize = p.m_contourLabelSize;
-  m_contourLineWidth = p.m_contourLineWidth;
+	m_contourLineColor = p.m_contourLineColor;
+	m_contourLabelColor = p.m_contourLabelColor;
 
-  m_contourLineColor = p.m_contourLineColor;
-  m_contourLabelColor = p.m_contourLabelColor;
+	m_contourLabelFormat = p.m_contourLabelFormat;
 
-  m_contourLabelFormat = p.m_contourLabelFormat;
+	m_solidColor = p.m_solidColor;
 
-  m_solidColor = p.m_solidColor;
-
-  m_withAnimation = p.m_withAnimation;
+	m_withAnimation = p.m_withAnimation;
 }
 
 //-------------------------------------------------------------
@@ -216,11 +203,50 @@ CZFXYPlotData::CZFXYPlotData( CZFXYPlot* plot, CPlotField* field )
 	setDefaultValue( m_yMin );
 	setDefaultValue( m_yMax );
 
+	mLUT = nullptr;
+
+	
 	Create( &( field->m_internalFiles ), field->m_name, plot );
+
+
+	SetLUT( m_plotProperties.mLUT );
+
+	mLUT->GetLookupTable()->SetTableRange( m_plotProperties.m_minContourValue, m_plotProperties.m_maxContourValue );
 }
 //----------------------------------------
 CZFXYPlotData::~CZFXYPlotData()
-{}
+{
+	DeleteLUT();
+}
+
+
+//----------------------------------------
+void CZFXYPlotData::DeleteLUT()
+{
+	if ( mLUT != nullptr )
+	{
+		delete mLUT;
+		mLUT = nullptr;
+	}
+}
+
+void CZFXYPlotData::SetLUT( CBratLookupTable* lut )
+{
+	if ( lut == nullptr )
+	{
+		return;
+	}
+
+	DeleteLUT();
+
+	mLUT = new CBratLookupTable( *lut );
+
+	//if ( m_vtkMapper2D != nullptr )
+	//{
+	//	m_vtkMapper2D->SetLookupTable( m_LUT->GetLookupTable() );
+	//}
+}
+
 
 //----------------------------------------
 std::string CZFXYPlotData::GetDataDateString( size_t index ) const

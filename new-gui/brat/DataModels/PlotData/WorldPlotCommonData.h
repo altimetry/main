@@ -37,6 +37,7 @@ using namespace brathl;
 
 
 class CBratLookupTable;
+class QLookupTable;
 
 
 //#include "vtkActor.h"
@@ -228,7 +229,7 @@ public:
 	std::string m_coastResolution;
 	std::string m_projection;
 
-	CBratLookupTable *m_LUT = nullptr;
+	CBratLookupTable *mLUT = nullptr;
 
 	//CDoubleArray m_colorRange;
 	double m_opacity;
@@ -280,9 +281,7 @@ public:
 	bool m_withAnimation;
 
 private:
-#if defined (BRAT_V3)
 	void DeleteLUT();
-#endif
 
 	void Copy( const CWorldPlotProperties& p );
 };
@@ -337,7 +336,7 @@ protected:
   //vtkPoints* m_vtkVisibleSpherePoints;
   //vtkDoubleArray* m_vtkVisibleSpherePointsData;
 
-  //CBratLookupTable* m_LUT;
+  CBratLookupTable* mLUT = nullptr;
 
   bool m_aborted;
   bool m_is3D;
@@ -347,7 +346,6 @@ protected:
   //CLUTRenderer* m_colorBarRenderer;
 
   int32_t m_projection;
-
 
   //construction /destruction
 
@@ -443,7 +441,15 @@ public:
 
 
 
+	CBratLookupTable* GetLUT() { return mLUT; }
+
+	QLookupTable* GetLookupTable();
+
 protected:
+
+	virtual void SetLUT( CBratLookupTable* lut );
+
+	void DeleteLUT();
 
   //void NoTransform();
 

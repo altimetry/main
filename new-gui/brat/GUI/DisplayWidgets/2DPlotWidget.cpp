@@ -823,7 +823,8 @@ void C2DPlotWidget::SetLogScale(int axisId, bool _isLog)
 //									Spectrogram
 /////////////////////////////////////////////////////////////////////////////////////////
 
-QwtPlotSpectrogram* C2DPlotWidget::PushRaster( const std::string &title, const C3DPlotInfo &maps, double min_contour, double max_contour, size_t ncontours )
+
+QwtPlotSpectrogram* C2DPlotWidget::PushRaster( const std::string &title, const C3DPlotInfo &maps, double min_contour, double max_contour, size_t ncontours, const QwtColorMap &color_map )
 {
     assert__( mCurves.size() == 0 );
 
@@ -844,13 +845,11 @@ QwtPlotSpectrogram* C2DPlotWidget::PushRaster( const std::string &title, const C
 
     // Color map
 
-	QwtLinearColorMap color_map( Qt::darkCyan, Qt::red );
-	color_map.addColorStop( 0.1, Qt::cyan );
-	color_map.addColorStop( 0.4, Qt::green );
-	color_map.addColorStop( 0.90, Qt::yellow );
+	////////////////QwtLinearColorMap color_map( Qt::darkCyan, Qt::red );
+	////////////////color_map.addColorStop( 0.1, Qt::cyan );
+	////////////////color_map.addColorStop( 0.4, Qt::green );
+	////////////////color_map.addColorStop( 0.90, Qt::yellow );
 	mCurrentSpectrogram->setColorMap( color_map );
-	//color_map.setMode( color_map.ScaledColors );
-	//color_map.setMode( color_map.FixedColors );
 
 	//...color bar on the right axis
 	QwtScaleWidget *rightAxis = axisWidget( QwtPlot::yRight );
@@ -956,6 +955,17 @@ void C2DPlotWidget::ShowSolidColor( int index, bool show )
 	mSpectrograms[index]->setDefaultContourPen( show ? QPen() : QPen( Qt::NoPen ) );
 }
 
+
+void C2DPlotWidget::SetRasterColorMap( const QwtColorMap &color_map )
+{
+	assert__( mCurrentSpectrogram );
+
+	mCurrentSpectrogram->setColorMap( color_map );
+	QwtScaleWidget *rightAxis = axisWidget( QwtPlot::yRight );
+	rightAxis->setColorMap( mCurrentSpectrogram->data().range(), mCurrentSpectrogram->colorMap() );
+
+	replot();
+}
 
 
 

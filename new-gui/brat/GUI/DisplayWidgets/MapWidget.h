@@ -19,6 +19,7 @@ class QgsRubberBand;
 class QgsRasterLayer;
 class CDecorationGrid;
 class QgsGraduatedSymbolRendererV2;
+class QLookupTable;
 
 // TODO RCCC
 class QgsMapTip;
@@ -120,22 +121,23 @@ public:
 
 
 public:
+	typedef QgsSymbolV2* (*create_symbol_t)( double width, const QColor &color );
+
+
 	template< class LAYER >
 	static QgsSingleSymbolRendererV2* CreateRenderer( LAYER *layer );
 	
 	static QgsSingleSymbolRendererV2* CreateRenderer( QgsSymbolV2* symbol );
 
-	static QgsGraduatedSymbolRendererV2* CreateRenderer( const QString &target_field, double width, double m, double M, size_t contours );
+	static QgsGraduatedSymbolRendererV2* CreateRenderer( const QString &target_field, double width, double m, double M, const QLookupTable *lut, size_t contours, create_symbol_t cs );
 
-    ///////////////// TODO _ RCCC //////////////////////////////////////////
-    static QgsGraduatedSymbolRendererV2* CreateRenderer_polygon( const QString &target_field, double m, double M, size_t contours );
 
-    static QgsSymbolV2* CreatePolygonSymbol( const QColor &color );
-    /////////////////////////////////////////////////////////////////////////
+    static QgsSymbolV2* CreatePolygonSymbol( double width, const QColor &color );
 	
     static QgsSymbolV2* CreatePointSymbol( double width, const QColor &color );
 
 	static QgsSymbolV2* createLineSymbol( double width, const QColor &color );
+
 
     static QgsFeatureList& CreatePointFeature( QgsFeatureList &list, double lon, double lat, const std::map<QString, QVariant> &attrs = std::map<QString, QVariant>() );
 
@@ -286,6 +288,11 @@ public:
 
 	bool SetProjection( unsigned id );
 
+	QgsVectorLayer* AddPolygonDataLayer( const std::string &name, double m, double M, const QLookupTable *lut, size_t contours, QgsFeatureList &flist )
+	{
+		return AddDataLayer( true, name, 0., m, M, lut, contours, flist );
+	}
+
     void PlotTrack( const double *x, const double *y, const double *z, size_t size, brathl_refDate ref_date, QColor color = Qt::red );
 
 
@@ -343,22 +350,16 @@ protected:
 
 	bool SetProjection( const QgsCoordinateReferenceSystem &proj );
 
-	QgsVectorLayer* AddDataLayer( const std::string &name, double width, double m, double M, size_t contours, QgsFeatureList &flist );
+	QgsVectorLayer* AddDataLayer( bool polygon, const std::string &name, double width, double m, double M, const QLookupTable *lut, size_t contours, QgsFeatureList &flist );
 
-    //////////////////////////////// TODO - RCCC /////////////////////////////////////
-    QgsVectorLayer* AddDataLayer_Polygon(const std::string &name, double m, double M, size_t contours, QgsFeatureList &flist );
-    ///////////////////////////////////////////////////////////////////////////////////
 
 protected:
 
 	QgsVectorLayer* AddVectorLayer( const std::string &name, const QString &layer_path, const QString &provider, QgsFeatureRendererV2 *renderer = nullptr );
 
-	QgsVectorLayer* AddMemoryLayer( const std::string &name, QgsFeatureRendererV2 *renderer );
+	QgsVectorLayer* AddMemoryLayer( bool polygon, const std::string &name, QgsFeatureRendererV2 *renderer );
 	QgsVectorLayer* AddMemoryLayer( const std::string &name = "", QgsSymbolV2* symbol = nullptr );
 
-    //////////////////////////////// TODO - RCCC /////////////////////////////////////
-    QgsVectorLayer* AddMemoryLayer_polygon( const std::string &name, QgsFeatureRendererV2 *renderer );
-    ///////////////////////////////////////////////////////////////////////////////////
 
 	QgsVectorLayer* AddOGRVectorLayer( const QString &layer_path, QgsSymbolV2* symbol = nullptr );
 

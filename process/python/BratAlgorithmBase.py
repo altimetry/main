@@ -19,7 +19,7 @@
 '''
   This python module contains the algorithm base class with abstract methods. 
   The user-defined algorithms shall be subclasses of this base class. 
-  (Python v.3.3)
+  (Python v.3.2)
 '''
 
 import abc
@@ -54,6 +54,15 @@ class PyBratAlgoBase(metaclass = abc.ABCMeta):
         """Returns the number of input parameters to pass to the 'Run' function 
         (Type: Integer)."""
 
+    @abc.abstractmethod
+    def GetInputParamName(self, indexParam):
+        """Returns the name of an input parameter.
+        \param[in]    indexParam   The parameter index. First parameter index is 
+                                   0, last one is 'number of parameters - 1'
+                                   (Type: Int).
+        \return       name         Parameter name (Type: String)."""
+    
+    
     @abc.abstractmethod
     def GetInputParamDesc(self, indexParam):
         """Returns the description of an input parameter.

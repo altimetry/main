@@ -23,13 +23,19 @@
 #include "DataModels/Workspaces/Display.h"
 #include "DataModels/PlotData/MapProjection.h"
 #include "DataModels/PlotData/WorldPlot.h"
+#include "DataModels/PlotData/WorldPlotData.h"
 
 #include "GUI/ActionsTable.h"
 #include "GUI/ControlPanels/Views/ViewControlPanels.h"
-#include "GUI/DisplayWidgets/GlobeWidget.h"				//include map before globe to avoid macro definition collisions
-#include "GUI/DisplayWidgets/BratViews.h"
+
+#include "GUI/DisplayWidgets/GlobeWidget.h"				//these 3 includes must be done in this  order to avoid macro definition collisions
+#include "GUI/DisplayWidgets/MapWidget.h"
+#include "DataModels/PlotData/BratLookupTable.h"
+
+#include "ApplicationLogger.h"
 
 #include "MapEditor.h"
+
 
 
 void CMapEditor::CreateMapActions()
@@ -57,7 +63,7 @@ void CMapEditor::ResetAndWireNewMap()
 		mMapView = nullptr;
 		RemoveView( p, false, false );
 	}
-	mMapView = new CBratMapView( this );
+	mMapView = new CMapWidget( this );
 	mMapView->ConnectParentRenderWidgets( mProgressBar, mRenderSuppressionCBox );
 	mMapView->ConnectParentMeasureActions( mMeasureButton, mActionMeasure, mActionMeasureArea );
 	mMapView->ConnectParentGridAction( mActionDecorationGrid );
@@ -142,8 +148,10 @@ void CMapEditor::Wire()
 	connect( mTabDataLayers->mMinRange, SIGNAL( returnPressed() ), this, SLOT( HandleFieldMinRangeEntered() ) );
 	connect( mTabDataLayers->mMaxRange, SIGNAL( returnPressed() ), this, SLOT( HandleFieldMaxRangeEntered() ) );
 
-	//...show/hide layers
-	connect( mTabDataLayers->mShowSolidColorCheck, SIGNAL( toggled( bool ) ), this, SLOT( HandleShowSolidColor( bool ) ) );
+	//... layer options
+	connect( mTabDataLayers->mColorMapWidget, SIGNAL( ShowContourToggled( bool ) ), this, SLOT( HandleShowContourChecked( bool ) ) );
+	connect( mTabDataLayers->mColorMapWidget, SIGNAL( ShowSolidColorToggled( bool ) ), this, SLOT( HandleShowSolidColorChecked( bool ) ) );
+	connect( mTabDataLayers->mColorMapWidget, SIGNAL( CurrentIndexChanged( int ) ), this, SLOT( HandleColorTablesIndexChanged( int ) ) );
 
 	mMainSplitter->setHandleWidth( 0 );
 }
@@ -170,7 +178,10 @@ CMapEditor::CMapEditor( CDisplayFilesProcessor *proc, CWPlot* wplot )
 
 	Start( "" );
 
-	mMapView->CreatePlot( proc->GetWorldPlotProperties( 0 ), wplot );
+	std::vector< CWPlot* > wplots;
+	wplots.push_back( wplot );
+
+	CreatePlotData( wplots );
 }
 
 
@@ -430,22 +441,111 @@ bool CMapEditor::ViewChanged()
 
 	try
 	{
-		std::vector< CWPlot* > wplots;
-		if ( mDisplay->IsZLatLonType() )
-			wplots = GetPlotsFromDisplayFile< CWPlot >( mDisplay );			assert__( wplots.size() && mCurrentDisplayFilesProcessor );
+		//	I . Assign current plot type
+		//without meaning in maps
+
+		//	II . Reset "current" pointers
+
+		mDataArrayMap.clear();
+		mPropertiesMap = nullptr;
 
 
-        if ( !ResetViews( wplots.size() > 0, true, wplots.size() > 0, false ) )
+		//	III . Get plots (v3 plot definitions) from display file
+
+		std::vector< CWPlot* > wplots;			assert__( mDisplay->IsZLatLonType() );
+
+		wplots = GetPlotsFromDisplayFile< CWPlot >( mDisplay );	assert__( wplots.size() && mCurrentDisplayFilesProcessor );
+
+		//	IV . Reset views and select general tab 
+
+		if ( !ResetViews( wplots.size() > 0, true, wplots.size() > 0, false ) )
 			throw CException( "A previous map is still processing. Please try again later." );
 		SelectTab( mTabGeneral->parentWidget() );
 
+		return CreatePlotData( wplots );
+	}
+	catch ( CException &e )
+	{
+		SimpleErrorBox( e.what() );
+	}
+	catch ( std::exception &e )
+	{
+		SimpleErrorBox( e.what() );
+	}
+	catch ( ... )
+	{
+		SimpleErrorBox( "Unexpected error trying to create a map plot." );
+	}
+
+	return false;
+}
+
+
+bool CMapEditor::CreatePlotData( const std::vector< CWPlot* > &wplots )
+{
+	WaitCursor wait;
+
+	try
+	{
+		//	V . Process the plot definitions: create plot data and plots
 
 		int map_index = 0;						assert__( wplots.size() <= 1 );		//forces redesign if false
 		for ( auto *wplot : wplots )
 		{
 			assert__( wplot != nullptr );
 
-			ResetProperties( mCurrentDisplayFilesProcessor->GetWorldPlotProperties( map_index++ ), wplot );	//v3 always used hard coded map_index == 0
+			//ResetProperties( mCurrentDisplayFilesProcessor->GetWorldPlotProperties( map_index++ ), wplot );	//v3 always used hard coded map_index == 0
+
+			const CWorldPlotProperties *props = mCurrentDisplayFilesProcessor->GetWorldPlotProperties( map_index++ );	Q_UNUSED( props );  //mPlotPropertiesMap = *props;	// *proc->GetWorldPlotProperties( 0 );
+			mMapView->setWindowTitle( t2q( wplot->MakeTitle() ) );
+
+			// for Geo-strophic velocity
+			//
+			CPlotField * northField =nullptr;
+			CPlotField * eastField =nullptr;
+
+			//size_t index = 0;							//index is NOT the index in maps
+			for ( auto &itField : wplot->m_fields )
+			{
+				CPlotField* field = CPlotField::GetPlotField( itField );
+
+#if defined(_DEBUG) || defined(DEBUG) 
+				if ( field->m_worldProps != props )
+					LOG_WARN( "field->m_worldProps != props" );
+#endif
+
+				if ( field->m_internalFiles.empty() )
+					continue;
+
+				if ( field->m_worldProps->m_northComponent && northField == nullptr )
+				{
+					northField = field;
+					continue;
+				}
+				else
+				if ( field->m_worldProps->m_eastComponent && eastField == nullptr )
+				{
+					eastField = field;
+					continue;
+				}
+
+				// otherwise just add it as regular data
+				mDataArrayMap.push_back( new CWorldPlotData( field ) );		//v4 note: CWorldPlotData ctor is only invoked here
+			}
+
+			// we have a Vector Plot!
+			if ( northField != nullptr && eastField != nullptr )
+			{
+				mDataArrayMap.push_back( new CWorldPlotVelocityData( northField, eastField ) );	//v4 note: CWorldPlotVelocityData ctor is only invoked here
+			}
+			else if ( northField != eastField )
+			{
+				CException e( "CMapEditor::ViewChanged() - incomplete std::vector plot components", BRATHL_INCONSISTENCY_ERROR );
+				LOG_TRACE( e.what() );
+				throw e;
+			}
+
+			ResetMap();
 		}
 
 		mMapView->setVisible( true );
@@ -486,20 +586,134 @@ bool CMapEditor::ViewChanged()
 //	From properties to plot
 ///////////////////////////
 
+#define USE_POINTS		//(**)
+#define USE_FEATURES	//(***)
+//
+//(*)	Using memory layer because: "OGR error creating feature 0: CreateFeature : unsupported operation on a read-only datasource."
+//(**)	Using point and not line features because: 
+//			1) (If using main layer and "this" shapefile) "Feature creation error (OGR error: Attempt to write non-linestring (POINT) geometry to ARC type shapefile.)"
+//			2) There is no algorithm to "bezier" the points collection to an spline
+//			3) cannot color the values over a line (unless with another layer, a point layer, but then, why the line layer?)
+//(***) Using features and not rubberbands because these are not projected in the globe
+//
 
-void CMapEditor::ResetProperties( const CWorldPlotProperties *props, CWPlot *wplot )
+void CMapEditor::ResetMap()
 {
 	assert__( mMapView && mCurrentDisplayFilesProcessor );
 
-	mMapView->CreatePlot( props, wplot );
+	auto IsValidPoint = []( const CWorldPlotParameters &map, int32_t i )
+	{
+		bool bOk = map.mBits[ i ];
 
-	mDataArrayMap = mMapView->MapDataCollection();									assert__( mDataArrayMap );
+		//	  if (Projection == VTK_PROJ2D_MERCATOR)
+		//	  {
+		//bOk &= maps(0).mValidMercatorLatitudes[ i ];
+		//	  }
+		//
+		return bOk;
+	};
+
 
 	mTabDataLayers->mFieldsList->clear();
-	const size_t size = mDataArrayMap->size();										assert__( size == mCurrentDisplayFilesProcessor->GetWorldPlotPropertiesSize() );
+	const size_t size = mDataArrayMap.size();								assert__( size == mCurrentDisplayFilesProcessor->GetWorldPlotPropertiesSize() );
 	for ( size_t i = 0; i < size; ++i )
 	{
-		mPropertiesMap = &mDataArrayMap->at( i )->m_plotProperty;					assert__( mPropertiesMap );
+		CWorldPlotData* geo_map = mDataArrayMap[ i ];
+		mPropertiesMap = &geo_map->m_plotProperty;							assert__( mPropertiesMap );
+		const CWorldPlotInfo &maps = geo_map->PlotInfo();					assert__( maps.size() == 1 );	//simply to check if ever...	
+
+		// TODO brat v3 does not update range
+		geo_map->m_plotProperty.mLUT->GetLookupTable()->SetTableRange( geo_map->GetLookupTable()->GetTableRange() );
+
+		auto const size = maps( 0 ).mValues.size();
+		const CWorldPlotParameters &map = maps( 0 );
+		QgsFeatureList flist;
+
+#if defined (USE_POINTS)	//(**)
+
+		for ( auto i = 0u; i < size; ++ i )
+		{
+			if ( !IsValidPoint( map, i ) )
+				continue;
+
+			auto x = i % map.mXaxis.size(); // ( x * geo_map->lats.size() ) + i;
+			auto y = i / map.mXaxis.size(); // ( x * geo_map->lats.size() ) + i;
+
+#if defined (USE_FEATURES) //(***)
+			//CreatePointFeature( flist, map.mXaxis.at( x ), map.mYaxis.at( y ), map.mValues[ i ] );  // TODO - RCCC Uncomment this to use Points
+
+			////////// TODO RCCC  ////////////////
+			mMapView->CreatePolygonFeature( flist, map.mXaxis.at( x ), map.mYaxis.at( y ), map.mValues[ i ] );
+			//////////////////////////////////////
+#else
+			addRBPoint( geo_map->lons.at( x ), geo_map->lats.at( y ), QColor( (long)(geo_map->vals[ i ]) ), mMainLayer );
+#endif  //USE_FEATURES
+		}
+
+#if defined (USE_FEATURES)
+
+		//AddDataLayer( props->m_name, 0.333, map.mMinHeightValue, map.mMaxHeightValue, props->m_numContour, flist );  // TODO - RCCC Uncomment this to use Points
+
+		////////// TODO RCCC  ////////////////
+		mMapView->AddPolygonDataLayer( 
+			mPropertiesMap->m_name, map.mMinHeightValue, map.mMaxHeightValue, mPropertiesMap->mLUT->GetLookupTable(), mPropertiesMap->m_numContour, flist );
+		//////////////////////////////////////
+
+#endif 
+
+
+#else		//(**)
+
+		QgsPolyline points;
+		for ( auto i = 0; i < size; ++ i ) 
+		{
+			if ( !IsValidPoint(i) )
+				continue;
+
+			auto x = i % geo_map->lons.size();
+			auto y = i / geo_map->lons.size();
+
+			points.append( QgsPoint( geo_map->lons.at( x ), geo_map->lats.at( y ) ) );
+		}
+#if !defined (USE_FEATURES) //(***)
+		auto memL = addMemoryLayer( createLineSymbol( 0.5, Qt::red ) );	//(*)	//note that you can use strings like "red" instead!!!
+		createLineFeature( flist, points );						
+		memL->dataProvider()->addFeatures( flist );				
+		//memL->updateExtents();
+		//refresh();
+#else
+		addRBLine( points, QColor( 0, 255, 0 ), mMainLayer );	
+#endif
+
+		return;
+
+#endif
+
+		//femm: This is CWorldPlotPanel::AddData
+
+		//femm: the important part
+		//if ( pdata->GetColorBarRenderer() != nullptr )
+		//	m_vtkWidget->GetRenderWindow()->AddRenderer( pdata->GetColorBarRenderer()->GetVtkRenderer() );
+		//m_plotRenderer->AddData( pdata );
+
+
+		//CWorldPlotData* geo_map = dynamic_cast<CWorldPlotData*>( pdata );
+		//if ( geo_map != nullptr )
+		//{
+		//	wxString textLayer = wxString::Format( "%s", geo_map->GetDataName().c_str() );
+
+		//	m_plotPropertyTab->GetLayerChoice()->Append( textLayer, static_cast<void*>( geo_map ) );
+		//	m_plotPropertyTab->SetCurrentLayer( 0 );
+		//}
+
+		//int32_t nFrames = 1;
+		//if ( geo_map != nullptr )
+		//	nFrames = geo_map->GetNrMaps();
+
+		//m_animationToolbar->SetMaxFrame( nFrames );
+
+		//////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
 		mTabDataLayers->mFieldsList->addItem( t2q( mPropertiesMap->m_name ) );
 
 		//mMapView->SetCurveLineColor( i, mPropertiesMap->GetColor() );
@@ -526,21 +740,28 @@ void CMapEditor::HandleCurrentFieldChanged( int field_index )
 {
 	assert__( mMapView );
 
-	mTabDataLayers->mShowSolidColorCheck->setEnabled( field_index >= 0 && mDataArrayMap );
+	mTabDataLayers->mColorMapWidget->setEnabled( field_index >= 0 );
 
 	mPropertiesMap = nullptr;
 	mCurrentDisplayData = nullptr;
+	mBratLookupTable= nullptr;
 
 	if ( field_index < 0 )
 		return;
 
-	assert__( field_index < (int)mDataArrayMap->size() );
+	assert__( field_index < (int)mDataArrayMap.size() );
 
-	mPropertiesMap = &mDataArrayMap->at( field_index )->m_plotProperty;	  			assert__( mPropertiesMap );
+	mPropertiesMap = &mDataArrayMap.at( field_index )->m_plotProperty;	  			assert__( mPropertiesMap );
 	//TODO - fetch correct display data
 	mCurrentDisplayData = mDisplay->GetDisplayData( mOperation, mPropertiesMap->m_name );
+	mBratLookupTable = mPropertiesMap->mLUT;
 
-	mTabDataLayers->mShowSolidColorCheck->setChecked( mMapView->IsLayerVisible( field_index ) );
+	mTabDataLayers->mColorMapWidget->SetShowSolidColor( mMapView->IsLayerVisible( field_index ) );
+	
+	mTabDataLayers->mColorMapWidget->blockSignals( true );
+	mTabDataLayers->mColorMapWidget->SetLUT( mBratLookupTable );	// TODO color table must be assigned to plot and retrieved here from plot
+	mTabDataLayers->mColorMapWidget->blockSignals( false );
+	// TODO on the other hand do we want a color table per field???
 
 	//TODO - fetch correct display data
 	//mTabDataLayers->mMinRange->setText( n2s<std::string>( mCurrentDisplayData->GetMinValue() ).c_str() );
@@ -569,9 +790,9 @@ void CMapEditor::HandleCurrentFieldChanged( int field_index )
 ///////////////////////////////////////////////////////
 
 
-void CMapEditor::HandleShowSolidColor( bool checked )
+void CMapEditor::HandleShowSolidColorChecked( bool checked )
 {
-	assert__( mMapView && mDataArrayMap && mPropertiesMap );
+	assert__( mMapView && mPropertiesMap );
 
 	WaitCursor wait;
 
@@ -579,6 +800,25 @@ void CMapEditor::HandleShowSolidColor( bool checked )
 
 	mMapView->SetLayerVisible( mTabDataLayers->mFieldsList->currentRow(), mPropertiesMap->m_solidColor, mDisplaying2D );
 }
+
+
+void CMapEditor::HandleShowContourChecked( bool checked )
+{
+	BRAT_NOT_IMPLEMENTED;
+}
+void CMapEditor::HandleColorTablesIndexChanged( int index )
+{
+	if ( !ResetViews( true, true, true, false ) )
+	{
+		SimpleWarnBox( "A previous map is still processing. Please try again later." );
+		return;
+	}
+
+	//SelectTab( mTabGeneral->parentWidget() );
+	ResetMap();
+	mMapView->setVisible( true );
+}
+
 
 
 void CMapEditor::HandleFieldMinRangeEntered()

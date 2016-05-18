@@ -51,12 +51,22 @@ class PyAlgoExample1(PyBratAlgoBase):
     def GetNumInputParam(self):
         return 5
     
+    def GetInputParamName(self, indexParam):
+        Param_dict = {0       : "first",
+                      1       : "second",
+                      2       : "third",
+                      3       : "fourth",
+                      4       : "fifth",
+                      }
+        value = Param_dict.get(indexParam)
+        return value
+    
     def GetInputParamDesc(self, indexParam):
-        Param_dict = {0       : "first parameter",
-                      1       : "second parameter",
-                      2       : "third parameter",
-                      3       : "fourth parameter",
-                      4       : "fifth parameter",
+        Param_dict = {0       : "first parameter description",
+                      1       : "second parameter description",
+                      2       : "third parameter description",
+                      3       : "fourth parameter description",
+                      4       : "fifth parameter description",
                       }
         value = Param_dict.get(indexParam)
         return value

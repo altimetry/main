@@ -1,16 +1,14 @@
 #ifndef GUI_DISPLAY_EDITORS_PLOT_EDITOR_H
 #define GUI_DISPLAY_EDITORS_PLOT_EDITOR_H
 
+#include "DataModels/PlotData/ZFXYPlotData.h"
+#include "DataModels/PlotData/XYPlotData.h"
+#include "DataModels/PlotData/MapColor.h"
 
 #include "AbstractDisplayEditor.h"
-#include "DataModels/PlotData/MapColor.h"
 
 class C2DPlotWidget;
 class C3DPlotWidget;
-
-class CPlot;
-class CZFXYPlot;
-class CXYPlotDataCollection;
 
 struct CViewControlsPanelGeneralPlots;
 struct CPlotControlsPanelCurveOptions;
@@ -86,12 +84,12 @@ private:
 
 	CDisplayData *mCurrentDisplayData = nullptr;
 
-	CXYPlotDataCollection *mDataArrayXY = nullptr;
+	CXYPlotDataCollection mDataArrayXY;
 	CXYPlotProperties *mPropertiesXY = nullptr;
 	bool mMultiFrame = false;					//	bool mPanelMultiFrame;	2 variables in v3: one in the window, the other in the panel
 	bool mHasClut = false;
 
-	CObArray *mDataArrayZFXY = nullptr;
+	CObArray mDataArrayZFXY;
 	CZFXYPlotProperties *mPropertiesZFXY = nullptr;
 
 
@@ -201,6 +199,8 @@ protected slots:
 
 	void HandleShowContourChecked( bool checked );
 	void HandleShowSolidColorChecked( bool checked );
+	void HandleColorTablesIndexChanged( int index );
+
 
 	//...histogram //////////////////////////////////////////
 

@@ -183,7 +183,7 @@ protected:
 //
 //	Settings of type II. use instance variables of the class to
 //	to read-write the file they are associated with. Settings 
-//	of type II. can be accessed globally, without the need of 
+//	of type I. can be accessed globally, without the need of
 //	an instance variable, but they also benefit of the same 
 //	interface of type II, if they have access to the instance 
 //	variable stored in the application class. 
@@ -191,8 +191,8 @@ protected:
 //	A set of global functions, prefixed with "AppSettings", 
 //	encapsulates and provides access to the global settings; 
 //	the interface formed by these functions exactly matches the 
-//	static interface of the class, where the logic whole logic 
-//	is centralized. These functions are defined after the class 
+//	static interface of the class, where the whole logic is
+//	centralized. These functions are defined after the class
 //	declaration and should be used everywhere, with these 
 //	exceptions:
 //	- in the class (or derived classes) implementation

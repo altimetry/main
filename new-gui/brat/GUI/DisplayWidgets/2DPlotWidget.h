@@ -380,10 +380,9 @@ public:
 	// raster
 	///////////
 
-	QwtPlotSpectrogram* PushRaster( const std::string &title, const C3DPlotInfo &maps, double min_contour, double max_contour, size_t ncontours );
+	QwtPlotSpectrogram* PushRaster( const std::string &title, const C3DPlotInfo &maps, double min_contour, double max_contour, size_t ncontours, const QwtColorMap &color_map );
 
 	//switch plot
-
 	void SetCurrentRaster( int index );
 
     bool HasContour() const;
@@ -394,6 +393,8 @@ public:
 
     void ShowContour( int index, bool show );
     void ShowSolidColor( int index, bool show );
+
+	void SetRasterColorMap( const QwtColorMap &color_map );
 
 
 	////////////

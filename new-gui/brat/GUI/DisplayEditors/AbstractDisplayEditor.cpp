@@ -8,6 +8,7 @@
 #include "DataModels/DisplayFilesProcessor.h"
 #include "DataModels/Workspaces/Workspace.h"
 #include "DataModels/Workspaces/Display.h"
+#include "DataModels/PlotData/BratLookupTable.h"
 
 #include "GUI/ActionsTable.h"
 #include "GUI/TabbedDock.h"
@@ -237,7 +238,7 @@ CAbstractDisplayEditor::CAbstractDisplayEditor( bool map_editor, const CDisplayF
 	, mDisplayOnlyMode( true )
 	, mIsMapEditor( map_editor )
 {
-    assert__( !map_editor || proc->isZFLatLon() );                  Q_UNUSED(map_editor);   //for release builds
+    assert__( !map_editor || !proc || proc->isZFLatLon() );                  Q_UNUSED(map_editor);   //for release builds
 	assert__( map_editor || proc->isYFX() || proc->isZFXY() );
 
 	//IMPORTANT CreateWidgets() must be called by derived classes
@@ -437,7 +438,7 @@ bool CAbstractDisplayEditor::Start( const std::string &display_name )
 {
 	if ( mDisplayOnlyMode )
 	{
-		mTabGeneral->mDisplaysCombo->setEnabled( false );
+		mTabGeneral->setEnabled( false );
 		mTabGeneral->mDisplaysCombo->blockSignals( true );
 		mTabGeneral->mDisplaysCombo->addItem( t2q( mCurrentDisplayFilesProcessor->ParamFile() ) );
 		mTabGeneral->mDisplaysCombo->blockSignals( false );

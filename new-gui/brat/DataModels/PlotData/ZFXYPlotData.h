@@ -52,7 +52,7 @@ struct CZFXYPlotProperties : public CBratObject
 	std::string m_xLabel;
 	std::string m_yLabel;
 
-	CBratLookupTable* m_LUT = nullptr;
+	CBratLookupTable* mLUT = nullptr;
 
 	double m_opacity;
 
@@ -150,6 +150,8 @@ protected:
 
 	C3DPlotInfo mMaps;
 
+	CBratLookupTable *mLUT = nullptr;
+
 public:
 	CZFXYPlotProperties m_plotProperties;
 
@@ -206,6 +208,18 @@ public:
 
 	std::string GetDataUnitString() const { return GetDataUnitString( m_currentMap ); }
 	std::string GetDataUnitString( size_t index ) const;
+
+
+	CBratLookupTable* GetLUT() { return mLUT; }
+
+	virtual void SetLUT( CBratLookupTable* lut );
+
+	QLookupTable* GetLookupTable()
+	{
+		return mLUT ? mLUT->GetLookupTable() : nullptr;
+	};
+
+	void DeleteLUT();
 };
 
 

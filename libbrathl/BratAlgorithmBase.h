@@ -122,7 +122,7 @@ public:
   virtual std::string GetOutputUnit() const = 0;
   
   //virtual std::string GetParamFormats();
-  virtual std::string GetParamName(uint32_t /*indexParam*/) const {return ""; }
+  virtual std::string GetParamName( uint32_t /*indexParam*/ ) const = 0;
   virtual double GetParamDefaultValue(uint32_t /*indexParam*/) const {return CTools::m_defaultValueDOUBLE; }
   
   void GetParamDefValue(uint32_t indexParam, double& value);

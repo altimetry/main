@@ -23,13 +23,236 @@
 #include "libbrathl/Tools.h"
 using namespace brathl;
 
-#include "new-gui/brat/DataModels/PlotData/ColorPalleteNames.h"
-
 #include "BratLookupTableSettings.h"
 #include "BratLookupTable.h"
 
 //#include "ColorPalette.h"
 
+
+#if !defined(BRAT_V3)
+
+
+//class QWT_EXPORT QwtLinearColorMap: public QwtColorMap
+//{
+//public:
+//    /*!
+//       Mode of color map
+//       \sa setMode(), mode()
+//    */
+//    enum Mode
+//    {
+//        FixedColors,
+//        ScaledColors
+//    };
+//
+//    QwtLinearColorMap(QwtColorMap::Format = QwtColorMap::RGB);
+//    QwtLinearColorMap( const QColor &from, const QColor &to,
+//        QwtColorMap::Format = QwtColorMap::RGB);
+//
+//    QwtLinearColorMap(const QwtLinearColorMap &);
+//
+//    virtual ~QwtLinearColorMap();
+//
+//    QwtLinearColorMap &operator=(const QwtLinearColorMap &);
+//
+//    virtual QwtColorMap *copy() const;
+//
+//    void setMode(Mode);
+//    Mode mode() const;
+//
+//    void setColorInterval(const QColor &color1, const QColor &color2);
+//    void addColorStop(double value, const QColor&);
+//    QwtArray<double> colorStops() const;
+//
+//    QColor color1() const;
+//    QColor color2() const;
+//
+//    virtual QRgb rgb(const QwtDoubleInterval &, double value) const;
+//    virtual unsigned char colorIndex(
+//        const QwtDoubleInterval &, double value) const;
+//
+//    class ColorStops;
+//
+//private:
+//    class PrivateData;
+//    PrivateData *d_data;
+//};
+
+
+
+void QLookupTable::SetNumberOfTableValues(vtkIdType number)
+{
+	mTable.resize( number );
+}
+
+size_t QLookupTable::GetNumberOfTableValues() const
+{ 
+	return mTable.size(); 
+}
+
+//virtual 
+void QLookupTable::SetTableRange( double m, double M )
+{
+	mTableRange[0] = m;
+	mTableRange[1] = M;
+}
+
+const QColor& QLookupTable::GetTableValue( size_t indx) const
+{
+	assert__( (vtkIdType)indx >= 0 && indx < GetNumberOfTableValues() );
+
+	return mTable[ indx ];
+}
+
+void QLookupTable::SetTableValue( size_t indx, double r, double g, double b, double a )		//a=1.0
+{
+	assert__( (vtkIdType)indx >= 0 && indx < GetNumberOfTableValues() );
+
+	//double rgba[ 4 ];
+	//rgba[ 0 ] = r; rgba[ 1 ] = g; rgba[ 2 ] = b; rgba[ 3 ] = a;
+
+	QColor &c = mTable[ indx ];
+	c.setAlpha( a * 255.0f + 0.5f );
+	c.setRed( r * 255.0f + 0.5f );
+	c.setGreen( g * 255.0f + 0.5f );
+	c.setBlue( b * 255.0f + 0.5f );
+}
+
+
+size_t QLookupTable::GetIndex( double v ) const
+{
+	double maxIndex = mTable.size() - 1;
+	double shift, scale;
+
+	//if ( this->Scale == VTK_SCALE_LOG10 )
+	//{   // handle logarithmic scale
+	//	double logRange[ 2 ];
+	//	vtkLookupTableLogRange( mTableRange, logRange );
+	//	shift = -logRange[ 0 ];
+	//	if ( logRange[ 1 ] <= logRange[ 0 ] )
+	//	{
+	//		scale = VTK_DOUBLE_MAX;
+	//	}
+	//	else
+	//	{
+	//		/* while this looks like the wrong scale, it is the correct scale
+	//		 * taking into account the truncation to int that happens below. */
+	//		scale = ( maxIndex + 1 ) / ( logRange[ 1 ] - logRange[ 0 ] );
+	//	}
+	//	v = vtkApplyLogScale( v, mTableRange, logRange );
+	//}
+	//else
+	{   // plain old linear
+		shift = - mTableRange[ 0 ];
+		if ( mTableRange[ 1 ] <= mTableRange[ 0 ] )
+		{
+			scale = 1.0e+299;
+		}
+		else
+		{
+			/* while this looks like the wrong scale, it is the correct scale
+			 * taking into account the truncation to int that happens below. */
+			scale = ( maxIndex + 1 ) / ( mTableRange[ 1 ] - mTableRange[ 0 ] );
+		}
+	}
+
+	// map to an index
+	double findx = ( v + shift )*scale;
+	if ( findx < 0 )
+	{
+		findx = 0;
+	}
+	if ( findx > maxIndex )
+	{
+		findx = maxIndex;
+	}
+	return static_cast<int>( findx );
+}
+
+
+
+// QWT interface
+
+QLookupTable::QLookupTable( const QLookupTable&o ) 
+	: qwt_base_t( o )
+	, qwt3d_base_t( o )
+	, mTable( o.mTable )
+{
+	mTableRange[0] = o.mTableRange[0] ;
+	mTableRange[1] = o.mTableRange[1];
+}
+
+
+//virtual 
+QwtColorMap *QLookupTable::copy() const
+{
+	return new QLookupTable( *this );
+}
+
+//Map a value of a given interval into a rgb value.
+// param interval Range for the values
+// param value Value
+// return rgb value, corresponding to value
+//
+//virtual 
+QRgb QLookupTable::rgb( const QwtDoubleInterval &interval, double value ) const
+{
+    Q_UNUSED( interval );
+
+	return mTable[ GetIndex( value ) ].rgba();
+}
+
+//Map a value of a given interval into a color index
+// param interval Range for the values
+// param value Value
+// return color index, corresponding to value
+//
+//virtual 
+unsigned char QLookupTable::colorIndex( const QwtDoubleInterval &interval, double value ) const
+{
+    Q_UNUSED( interval );
+
+    return (unsigned char) GetIndex( value );
+}
+
+//QColor color(const QwtDoubleInterval &, double value) const;
+
+//virtual 
+QVector<QRgb> QLookupTable::colorTable( const QwtDoubleInterval &interval ) const
+{
+	return qwt_base_t::colorTable( interval );
+}
+
+
+
+	// QWT3D interface
+
+
+//virtual 
+Qwt3D::RGBA QLookupTable::operator()( double x, double y, double z ) const
+{
+	Q_UNUSED( x );		Q_UNUSED( y );
+
+	auto const &c = mTable[ GetIndex( z ) ];
+	return Qwt3D::RGBA( c.red() / 255.0, c.green() / 255.0, c.blue() / 255.0, c.alpha() / 255.0 );
+}
+
+
+//virtual 
+Qwt3D::ColorVector& QLookupTable::createVector( Qwt3D::ColorVector& vec )
+{
+	vec.clear();
+	const size_t size = mTable.size();
+	for ( size_t i = 0; i < size; i++ )
+	{
+		auto const &c = mTable[ i ];
+		vec.push_back( Qwt3D::RGBA( c.red() / 255.0, c.green() / 255.0, c.blue() / 255.0, c.alpha() / 255.0 ) );
+	}
+	return vec;
+}
+
+
+#endif
 
 
 
@@ -68,47 +291,29 @@ CBratLookupTable::CBratLookupTable(const CBratLookupTable& lut)
 
 CBratLookupTable::~CBratLookupTable()
 {
-  if (m_vtkLookupTable != NULL)
+  if (m_vtkLookupTable != nullptr)
   {
     m_vtkLookupTable->Delete();
-    m_vtkLookupTable = NULL;
+    m_vtkLookupTable = nullptr;
   }
 }
 
 //----------------------------------------
 CBratLookupTable& CBratLookupTable::operator=(const CBratLookupTable& lut)
 {
-
   m_cust.RemoveAll();
   DupCustMap(*(lut.GetCust()));
 
   m_grad.RemoveAll();
   DupGradMap(*(lut.GetGrad()));
 
-
-  //m_std = lut.GetStd();
   m_currentFunction = lut.GetCurrentFunction();
 
   m_vtkLookupTable->SetNumberOfTableValues(lut.GetLookupTable()->GetNumberOfTableValues());
   m_vtkLookupTable->SetTableRange(lut.GetLookupTable()->GetTableRange());
 
-
   ExecCurveMethod(lut.GetCurve());
-/*
-  CallbackVoid* method = static_cast< CallbackVoid* >(m_nameToMethod[methodName]);
-  if (method == NULL)
-  {
-    std::string msg = CTools::Format("ERROR in CBratLookupTable::CBratLookupTable(CBratLookupTable& lut) : unknown methodname '%s'",
-                                 methodName.c_str());
-    CException e(msg, BRATHL_LOGIC_ERROR);
-    CTrace::Tracer(e.what());
-    Dump(*CTrace::GetDumpContext());
-    throw (e);
 
-  }
-
-  method->execute();
-*/
   Update();
 
   return *this;
@@ -117,65 +322,59 @@ CBratLookupTable& CBratLookupTable::operator=(const CBratLookupTable& lut)
 //----------------------------------------
 void CBratLookupTable::Init()
 {
+	//mUpFlank = nullptr;
+	//mDownFlank = nullptr;
 
-  UpFlank = NULL;
-  DownFlank = NULL;
+	m_vtkLookupTable = QLookupTable::New();
 
-  m_vtkLookupTable = QLookupTable::New();
+	m_vtkLookupTable->SetNumberOfTableValues( 256 );
 
-  m_vtkLookupTable->SetNumberOfTableValues(256);
+	//m_resetFunction = "Reset";
 
-  m_resetFunction = "Reset";
+	m_currentFunction = m_resetFunction;
 
-  m_currentFunction = m_resetFunction;
+	m_curveNames.Insert( CURVE_LINEAR() );
+	m_curveNames.Insert( CURVE_SQRT() );
+	m_curveNames.Insert( CURVE_COSINUS() );
 
-  m_curveNames.Insert(CURVE_LINEAR());
-  m_curveNames.Insert(CURVE_SQRT());
-  m_curveNames.Insert(CURVE_COSINUS());
+	//mDefaultColorTable = PALETTE_AEROSOL.c_str();
 
-  //m_std = m_resetFunction;
+	m_nameToMethod.Insert( PALETTE_BLACKTOWHITE,	static_cast<CBratObject *>( new CallbackVoid( this, &CBratLookupTable::BlackToWhite ) ) );
+	m_nameToMethod.Insert( PALETTE_WHITETOBLACK,	static_cast<CBratObject *>( new CallbackVoid( this, &CBratLookupTable::WhiteToBlack ) ) );
+	m_nameToMethod.Insert( PALETTE_REDTOGREEN,		static_cast<CBratObject *>( new CallbackVoid( this, &CBratLookupTable::RedToGreen ) ) );
+	m_nameToMethod.Insert( PALETTE_GREENTORED,		static_cast<CBratObject *>( new CallbackVoid( this, &CBratLookupTable::GreenToRed ) ) );
+	m_nameToMethod.Insert( PALETTE_CLOUD,			static_cast<CBratObject *>( new CallbackVoid( this, &CBratLookupTable::Cloud ) ) );
+	m_nameToMethod.Insert( PALETTE_RAINBOW,			static_cast<CBratObject *>( new CallbackVoid( this, &CBratLookupTable::Rainbow ) ) );
+	m_nameToMethod.Insert( PALETTE_RAINBOW2,		static_cast<CBratObject *>( new CallbackVoid( this, &CBratLookupTable::Rainbow2 ) ) );
+	m_nameToMethod.Insert( mDefaultColorTable,		static_cast<CBratObject *>( new CallbackVoid( this, &CBratLookupTable::Aerosol ) ) );
+	m_nameToMethod.Insert( PALETTE_AEROSOL2,		static_cast<CBratObject *>( new CallbackVoid( this, &CBratLookupTable::Aerosol2 ) ) );
+	m_nameToMethod.Insert( PALETTE_OZONE,			static_cast<CBratObject *>( new CallbackVoid( this, &CBratLookupTable::Ozone ) ) );
+	m_nameToMethod.Insert( PALETTE_BLACKBODY,		static_cast<CBratObject *>( new CallbackVoid( this, &CBratLookupTable::Blackbody ) ) );
 
-  m_defaultColorTable = PALETTE_AEROSOL.c_str();
-  #define BRATHL_CALLBACK(Type, Name) static_cast<CBratObject *>(new Type(this, &CBratLookupTable::Name))
-  m_nameToMethod.Insert(PALETTE_BLACKTOWHITE,			BRATHL_CALLBACK(CallbackVoid, BlackToWhite));
-  m_nameToMethod.Insert(PALETTE_WHITETOBLACK,			BRATHL_CALLBACK(CallbackVoid, WhiteToBlack));
-  m_nameToMethod.Insert(PALETTE_REDTOGREEN,			BRATHL_CALLBACK(CallbackVoid, RedToGreen));
-  m_nameToMethod.Insert(PALETTE_GREENTORED,			BRATHL_CALLBACK(CallbackVoid, GreenToRed));
-  m_nameToMethod.Insert(PALETTE_CLOUD,			BRATHL_CALLBACK(CallbackVoid, Cloud));
-  m_nameToMethod.Insert(PALETTE_RAINBOW,			BRATHL_CALLBACK(CallbackVoid, Rainbow));
-  m_nameToMethod.Insert(PALETTE_RAINBOW2,			BRATHL_CALLBACK(CallbackVoid, Rainbow2));
-  m_nameToMethod.Insert(m_defaultColorTable,	BRATHL_CALLBACK(CallbackVoid, Aerosol));
-  m_nameToMethod.Insert(PALETTE_AEROSOL2,	BRATHL_CALLBACK(CallbackVoid, Aerosol2));
-  m_nameToMethod.Insert(PALETTE_OZONE,			BRATHL_CALLBACK(CallbackVoid, Ozone));
-  m_nameToMethod.Insert(PALETTE_BLACKBODY,			BRATHL_CALLBACK(CallbackVoid, Blackbody));
+	for ( CObMap::iterator it = m_nameToMethod.begin(); it != m_nameToMethod.end(); it++ )
+	{
+		m_colorTableList.push_back( ( it->first ).c_str() );
+	}
 
-  CObMap::iterator it;
-  for (it = m_nameToMethod.begin() ; it != m_nameToMethod.end() ; it++)
-  {
-    m_colorTableList.push_back((it->first).c_str());
-  }
+	m_gradientFunction = "Gradient";
+	m_customFunction = "Custom";
+	m_nameToMethod.Insert( m_resetFunction,		static_cast<CBratObject *>( new CallbackVoid( this, &CBratLookupTable::Reset ) ) );
+	m_nameToMethod.Insert( m_gradientFunction,	static_cast<CBratObject *>( new CallbackVoid( this, &CBratLookupTable::Gradient ) ) );
+	m_nameToMethod.Insert( m_customFunction,	static_cast<CBratObject *>( new CallbackVoid( this, &CBratLookupTable::Custom ) ) );
 
-  m_gradientFunction = "Gradient";
-  m_customFunction = "Custom";
-  m_nameToMethod.Insert(m_resetFunction,	BRATHL_CALLBACK(CallbackVoid, Reset));
-  m_nameToMethod.Insert(m_gradientFunction,	BRATHL_CALLBACK(CallbackVoid, Gradient));
-  m_nameToMethod.Insert(m_customFunction,	BRATHL_CALLBACK(CallbackVoid, Custom));
+	m_nameToMethod.Insert( "SetCurveLinear",	static_cast<CBratObject *>( new CallbackVoid( this, &CBratLookupTable::SetCurveLinear ) ) );
+	m_nameToMethod.Insert( "SetCurveSQRT",		static_cast<CBratObject *>( new CallbackVoid( this, &CBratLookupTable::SetCurveSQRT ) ) );
+	m_nameToMethod.Insert( "SetCurveCosinus",	static_cast<CBratObject *>( new CallbackVoid( this, &CBratLookupTable::SetCurveCosinus ) ) );
 
-  m_nameToMethod.Insert("SetCurveLinear",	BRATHL_CALLBACK(CallbackVoid, SetCurveLinear));
-  m_nameToMethod.Insert("SetCurveSQRT",		BRATHL_CALLBACK(CallbackVoid, SetCurveSQRT));
-  m_nameToMethod.Insert("SetCurveCosinus",	BRATHL_CALLBACK(CallbackVoid, SetCurveCosinus));
+	m_nameToMethod.Insert( "LineUp",			static_cast<CBratObject *>( new CallbackFlank( this, &CBratLookupTable::LineUp ) ) );
+	m_nameToMethod.Insert( "LineDown",			static_cast<CBratObject *>( new CallbackFlank( this, &CBratLookupTable::LineDown ) ) );
+	m_nameToMethod.Insert( "SqrtUp",			static_cast<CBratObject *>( new CallbackFlank( this, &CBratLookupTable::SqrtUp ) ) );
+	m_nameToMethod.Insert( "SqrtDown",			static_cast<CBratObject *>( new CallbackFlank( this, &CBratLookupTable::SqrtDown ) ) );
+	m_nameToMethod.Insert( "CosUp",				static_cast<CBratObject *>( new CallbackFlank( this, &CBratLookupTable::CosUp ) ) );
+	m_nameToMethod.Insert( "CosDown",			static_cast<CBratObject *>( new CallbackFlank( this, &CBratLookupTable::CosDown ) ) );
 
-  m_nameToMethod.Insert("LineUp",		BRATHL_CALLBACK(CallbackFlank, LineUp));
-  m_nameToMethod.Insert("LineDown",		BRATHL_CALLBACK(CallbackFlank, LineDown));
-  m_nameToMethod.Insert("SqrtUp",		BRATHL_CALLBACK(CallbackFlank, SqrtUp));
-  m_nameToMethod.Insert("SqrtDown",		BRATHL_CALLBACK(CallbackFlank, SqrtDown));
-  m_nameToMethod.Insert("CosUp",		BRATHL_CALLBACK(CallbackFlank, CosUp));
-  m_nameToMethod.Insert("CosDown",		BRATHL_CALLBACK(CallbackFlank, CosDown));
-
-  #undef BRATHL_CALLBACK
-
-  SetCurveLinear();
-  //ExecMethodDefaultColorTable();
+	SetCurveLinear();
+	//ExecMethodDefaultColorTable();
 }
 //----------------------------------------
 std::string CBratLookupTable::MethodToLabeledMethod(const std::string& method)
@@ -232,7 +431,7 @@ bool CBratLookupTable::IsValidCurve(const std::string& curve)
 bool CBratLookupTable::IsValidMethod(const std::string& methodName)
 {
   CallbackVoid* method = static_cast< CallbackVoid* >(m_nameToMethod[methodName]);
-  if (method == NULL)
+  if (method == nullptr)
   {
     return false;
   }
@@ -242,72 +441,61 @@ bool CBratLookupTable::IsValidMethod(const std::string& methodName)
 }
 
 //----------------------------------------
-//femmDONE
-//void CBratLookupTable::ExecMethod(const std::string& methodName)
-//{
-//  ExecMethod(std::string(methodName));
-//}
-
-//----------------------------------------
-void CBratLookupTable::ExecMethod(const std::string& methodName)
+void CBratLookupTable::ExecMethod( const std::string& methodName )
 {
+	CallbackVoid* method = static_cast<CallbackVoid*>( m_nameToMethod[ methodName ] );
+	if ( method == nullptr )
+	{
+		std::string msg = CTools::Format( "ERROR in CBratLookupTable::ExecMethod : unknown methodname or not a CallbackVoid :'%s'",
+			methodName.c_str() );
+		CException e( msg, BRATHL_LOGIC_ERROR );
+		CTrace::Tracer( "%s", e.what() );
+		Dump( *CTrace::GetDumpContext() );
+		throw ( e );
 
+	}
 
-  CallbackVoid* method = static_cast< CallbackVoid* >(m_nameToMethod[methodName]);
-  if (method == NULL)
-  {
-    std::string msg = CTools::Format("ERROR in CBratLookupTable::ExecMethod : unknown methodname or not a CallbackVoid :'%s'",
-                                 methodName.c_str());
-    CException e(msg, BRATHL_LOGIC_ERROR);
-    CTrace::Tracer("%s", e.what());
-    Dump(*CTrace::GetDumpContext());
-    throw (e);
-
-  }
-
-  try
-  {
-    method->execute();
-  }
-  catch (CException e)
-  {
-    std::string msg = CTools::Format("BRAT ERROR in CBratLookupTable::ExecMethod : std::exception while executing methodname :'%s'"
-                                "\nNative Error : %s",
-                                 methodName.c_str(),
-                                 e.what());
-    CException e2(msg, BRATHL_LOGIC_ERROR);
-    CTrace::Tracer("%s",e2.what());
-    Dump(*CTrace::GetDumpContext());
-    throw (e2);
-  }
-  catch (std::exception e)
-  {
-    std::string msg = CTools::Format("BRAT RUNTIME ERROR in CBratLookupTable::ExecMethod : std::exception while executing methodname :'%s'"
-                                "\nNative Error : %s",
-                                 methodName.c_str(),
-                                 e.what());
-    CException e2(msg, BRATHL_LOGIC_ERROR);
-    CTrace::Tracer("%s",e2.what());
-    Dump(*CTrace::GetDumpContext());
-    throw (e2);
-  }
-  catch (...)
-  {
-    std::string msg = CTools::Format("BRAT FATAL ERROR in CBratLookupTable::ExecMethod : std::exception while executing methodname :'%s'",
-                                 methodName.c_str());
-    CException e2(msg, BRATHL_LOGIC_ERROR);
-    CTrace::Tracer("%s",e2.what());
-    Dump(*CTrace::GetDumpContext());
-    throw (e2);
-  }
-
-
+	try
+	{
+		method->execute();
+	}
+	catch ( CException e )
+	{
+		std::string msg = CTools::Format( "BRAT ERROR in CBratLookupTable::ExecMethod : std::exception while executing methodname :'%s'"
+			"\nNative Error : %s",
+			methodName.c_str(),
+			e.what() );
+		CException e2( msg, BRATHL_LOGIC_ERROR );
+		CTrace::Tracer( "%s", e2.what() );
+		Dump( *CTrace::GetDumpContext() );
+		throw ( e2 );
+	}
+	catch ( std::exception e )
+	{
+		std::string msg = CTools::Format( "BRAT RUNTIME ERROR in CBratLookupTable::ExecMethod : std::exception while executing methodname :'%s'"
+			"\nNative Error : %s",
+			methodName.c_str(),
+			e.what() );
+		CException e2( msg, BRATHL_LOGIC_ERROR );
+		CTrace::Tracer( "%s", e2.what() );
+		Dump( *CTrace::GetDumpContext() );
+		throw ( e2 );
+	}
+	catch ( ... )
+	{
+		std::string msg = CTools::Format( "BRAT FATAL ERROR in CBratLookupTable::ExecMethod : std::exception while executing methodname :'%s'",
+			methodName.c_str() );
+		CException e2( msg, BRATHL_LOGIC_ERROR );
+		CTrace::Tracer( "%s", e2.what() );
+		Dump( *CTrace::GetDumpContext() );
+		throw ( e2 );
+	}
 }
 
 //----------------------------------------
 void CBratLookupTable::ExecMethodDefaultColorTable()
 {
-  ExecMethod(m_defaultColorTable);
+  ExecMethod(mDefaultColorTable);
 }
 //----------------------------------------
 void CBratLookupTable::ExecCurveMethod(const std::string& curve)
@@ -321,8 +509,8 @@ void CBratLookupTable::ExecCurveMethod(const std::string& curve)
 //----------------------------------------
 void CBratLookupTable::SetCurveUpDown(CallbackFlank* up, CallbackFlank* down)
 {
-  UpFlank = up;
-  DownFlank = down;
+  mUpFlank = up;
+  mDownFlank = down;
 }
 
 //----------------------------------------
@@ -431,20 +619,18 @@ double CBratLookupTable::CosDown(double a, double b, double x)
 //----------------------------------------
 void CBratLookupTable::BlackToWhite()
 {
-
   m_cust.RemoveAll();
   m_grad.RemoveAll();
 
-  //m_std = "BlackToWhite";
   m_currentFunction = PALETTE_BLACKTOWHITE;
 
   double u = static_cast<double>(m_vtkLookupTable->GetNumberOfTableValues());
 
-  for (int32_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
+  for (size_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
   {
     double r, g, b;
     double di = static_cast<double>(i);
-    r = g = b = UpFlank->execute(0, u, di);
+    r = g = b = mUpFlank->execute(0, u, di);
     m_vtkLookupTable->SetTableValue(i, r, g, b, 1.0);
   }
 
@@ -452,20 +638,18 @@ void CBratLookupTable::BlackToWhite()
 
 void CBratLookupTable::Black()
 {
-
   m_cust.RemoveAll();
   m_grad.RemoveAll();
 
-  //m_std = "BlackToWhite";
   m_currentFunction = PALETTE_BLACKTOWHITE;
 
   double u = static_cast<double>(m_vtkLookupTable->GetNumberOfTableValues());
 
-  for (int32_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
+  for (size_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
   {
     double r, g, b;
     double di = static_cast<double>(i);
-    r = g = b = UpFlank->execute(0, u, di);
+    r = g = b = mUpFlank->execute(0, u, di);
     m_vtkLookupTable->SetTableValue(i, 0.0, 0.0, 0.0, 1.0);
   }
 
@@ -474,20 +658,18 @@ void CBratLookupTable::Black()
 //----------------------------------------
 void CBratLookupTable::WhiteToBlack()
 {
-
   m_cust.RemoveAll();
   m_grad.RemoveAll();
 
-  //m_std = "WhiteToBlack";
   m_currentFunction = PALETTE_WHITETOBLACK;
 
   double u = static_cast<double>(m_vtkLookupTable->GetNumberOfTableValues());
 
-  for (int32_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
+  for (size_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
   {
     double r, g, b;
     double di = static_cast<double>(i);
-    r = g = b = 1 + DownFlank->execute(0, u, di);
+    r = g = b = 1 + mDownFlank->execute(0, u, di);
     m_vtkLookupTable->SetTableValue(i, r, g, b, 1.0);
   }
 
@@ -496,92 +678,80 @@ void CBratLookupTable::WhiteToBlack()
 //----------------------------------------
 void CBratLookupTable::GreenToRed()
 {
-
   m_cust.RemoveAll();
   m_grad.RemoveAll();
-  //m_std = "GreenToRed";
   m_currentFunction = PALETTE_GREENTORED;
 
   double u = static_cast<double>(m_vtkLookupTable->GetNumberOfTableValues());
 
-  for (int32_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
+  for (size_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
   {
     double r, g;
     double di = static_cast<double>(i);
-    r = UpFlank->execute(0, u, di);
-    g = 1 + DownFlank->execute(0, u, di);
+    r = mUpFlank->execute(0, u, di);
+    g = 1 + mDownFlank->execute(0, u, di);
     m_vtkLookupTable->SetTableValue(i, r, g, 0.0, 1.0);
   }
-
 }
 
 //----------------------------------------
 void CBratLookupTable::RedToGreen()
 {
-
   m_cust.RemoveAll();
   m_grad.RemoveAll();
-  //m_std = "RedToGreen";
   m_currentFunction = PALETTE_REDTOGREEN;
 
   double u = static_cast<double>(m_vtkLookupTable->GetNumberOfTableValues());
 
-  for (int32_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
+  for (size_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
   {
     double r, g;
     double di = static_cast<double>(i);
-    r = 1 + DownFlank->execute(0, u, di);
-    g = UpFlank->execute(0, u, di);
+    r = 1 + mDownFlank->execute(0, u, di);
+    g = mUpFlank->execute(0, u, di);
     m_vtkLookupTable->SetTableValue(i, r, g, 0.0, 1.0);
   }
-
 }
 
 //----------------------------------------
 void CBratLookupTable::Cloud()
 {
-
   m_cust.RemoveAll();
   m_grad.RemoveAll();
-  //m_std = "Cloud";
   m_currentFunction = PALETTE_CLOUD;
 
   double u = static_cast<double>(m_vtkLookupTable->GetNumberOfTableValues());
 
-  for (int32_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
+  for (size_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
   {
     double r, g, b, a;
     double di = static_cast<double>(i);
-    r = 1 + DownFlank->execute(0, 2.0 * u, di);
-    g = 1 + DownFlank->execute(0, 2.0 * u, di);
-    b = 1 + DownFlank->execute(0, 2.0 * u, di);
-    a = UpFlank->execute(0, 2.0 * u, i);
+    r = 1 + mDownFlank->execute(0, 2.0 * u, di);
+    g = 1 + mDownFlank->execute(0, 2.0 * u, di);
+    b = 1 + mDownFlank->execute(0, 2.0 * u, di);
+    a = mUpFlank->execute(0, 2.0 * u, i);
     m_vtkLookupTable->SetTableValue(i, r, g, b, a);
   }
-
 }
 
 //----------------------------------------
 void CBratLookupTable::Rainbow()
 {
-
   m_cust.RemoveAll();
   m_grad.RemoveAll();
-  //m_std = "Rainbow";
   m_currentFunction = PALETTE_RAINBOW;
 
   double u = (1.0/6) * static_cast<double>(m_vtkLookupTable->GetNumberOfTableValues());
 
-  for (int32_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
+  for (size_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
   {
     double r, g, b;
     double di = static_cast<double>(i);
-    r = 1 + DownFlank->execute(2.*u, 3.*u, di) + UpFlank->execute(4.*u, 6.*u, di);
-    g = UpFlank->execute(0, 2.*u, di) + DownFlank->execute(3.*u, 4.*u, di);
-    b = UpFlank->execute(3.*u, 4.*u, di);
+    r = 1 + mDownFlank->execute(2.*u, 3.*u, di) + mUpFlank->execute(4.*u, 6.*u, di);
+    g = mUpFlank->execute(0, 2.*u, di) + mDownFlank->execute(3.*u, 4.*u, di);
+    b = mUpFlank->execute(3.*u, 4.*u, di);
     m_vtkLookupTable->SetTableValue(i, r, g, b, 1.0);
   }
-
 }
 //----------------------------------------
 void CBratLookupTable::Rainbow2()
@@ -589,117 +759,103 @@ void CBratLookupTable::Rainbow2()
 
   m_cust.RemoveAll();
   m_grad.RemoveAll();
-  //m_std = "Rainbow";
   m_currentFunction = PALETTE_RAINBOW2;
 
   double u = (1.0/6) * static_cast<double>(m_vtkLookupTable->GetNumberOfTableValues());
 
-  int32_t j = m_vtkLookupTable->GetNumberOfTableValues() - 1;
+  size_t j = m_vtkLookupTable->GetNumberOfTableValues() - 1;
 
-  for (int32_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
+  for (size_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
   {
     double r, g, b;
     double di = static_cast<double>(i);
-    r = 1 + DownFlank->execute(2.*u, 3.*u, di) + UpFlank->execute(4.*u, 6.*u, di);
-    g = UpFlank->execute(0, 2.*u, di) + DownFlank->execute(3.*u, 4.*u, di);
-    b = UpFlank->execute(3.*u, 4.*u, di);
+    r = 1 + mDownFlank->execute(2.*u, 3.*u, di) + mUpFlank->execute(4.*u, 6.*u, di);
+    g = mUpFlank->execute(0, 2.*u, di) + mDownFlank->execute(3.*u, 4.*u, di);
+    b = mUpFlank->execute(3.*u, 4.*u, di);
     m_vtkLookupTable->SetTableValue(j, r, g, b, 1.0);
     j--;
   }
-
 }
 
 //----------------------------------------
 void CBratLookupTable::Ozone()
 {
-
   m_cust.RemoveAll();
   m_grad.RemoveAll();
-  //m_std = "Ozone";
   m_currentFunction = PALETTE_OZONE;
 
   double u = (1.0/7) * static_cast<double>(m_vtkLookupTable->GetNumberOfTableValues());
 
-  for (int32_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
+  for (size_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
   {
     double r, g, b;
     double di = static_cast<double>(i);
-    r = UpFlank->execute(3*u, 4*u, di);
-    g = UpFlank->execute(u, 2*u, di) + DownFlank->execute(4*u, 5*u, di) + UpFlank->execute(6*u, 7*u, di);
-    b = UpFlank->execute(0, u, di) + DownFlank->execute(2*u, 3*u, di) + UpFlank->execute(5*u, 6*u, di);
+    r = mUpFlank->execute(3*u, 4*u, di);
+    g = mUpFlank->execute(u, 2*u, di) + mDownFlank->execute(4*u, 5*u, di) + mUpFlank->execute(6*u, 7*u, di);
+    b = mUpFlank->execute(0, u, di) + mDownFlank->execute(2*u, 3*u, di) + mUpFlank->execute(5*u, 6*u, di);
     m_vtkLookupTable->SetTableValue(i, r, g, b, 1.0);
   }
-
 }
 
 //----------------------------------------
 void CBratLookupTable::Blackbody()
 {
-
   m_cust.RemoveAll();
   m_grad.RemoveAll();
-  //m_std = "Blackbody";
   m_currentFunction = "Blackbody";
 
   double u = (1.0/3) * static_cast<double>(m_vtkLookupTable->GetNumberOfTableValues());
 
-  for (int32_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
+  for (size_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
   {
     double r, g, b;
     double di = static_cast<double>(i);
-    r = UpFlank->execute(0, u, di);
-    g = UpFlank->execute(u, 2*u, di);
-    b = UpFlank->execute(2*u, 3*u, di);
+    r = mUpFlank->execute(0, u, di);
+    g = mUpFlank->execute(u, 2*u, di);
+    b = mUpFlank->execute(2*u, 3*u, di);
     m_vtkLookupTable->SetTableValue(i, r, g, b, 1.0);
   }
-
 }
 
 //----------------------------------------
 void CBratLookupTable::Aerosol()
 {
-
   m_cust.RemoveAll();
   m_grad.RemoveAll();
-  //m_std = PALETTE_AEROSOL
   m_currentFunction = PALETTE_AEROSOL;
 
   double u = (1.0/4) * static_cast<double>(m_vtkLookupTable->GetNumberOfTableValues());
 
-  for (int32_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
+  for (size_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
   {
     double r, g, b;
     double di = static_cast<double>(i);
-    r = UpFlank->execute(2*u, 3*u, di);
-    g = UpFlank->execute(0, 2*u, di) + DownFlank->execute(3*u, 4*u, di);
-    b = SqrtUp(0, u, i) + DownFlank->execute(2*u, 3*u, di);
+    r = mUpFlank->execute(2*u, 3*u, di);
+    g = mUpFlank->execute(0, 2*u, di) + mDownFlank->execute(3*u, 4*u, di);
+    b = SqrtUp(0, u, i) + mDownFlank->execute(2*u, 3*u, di);
     m_vtkLookupTable->SetTableValue(i, r, g, b, 1.0);
   }
-
 }
 
 //----------------------------------------
 void CBratLookupTable::Aerosol2()
 {
-
   m_cust.RemoveAll();
   m_grad.RemoveAll();
-  //m_std = PALETTE_AEROSOL
   m_currentFunction = PALETTE_AEROSOL2;
 
   double u = (1.0/4) * static_cast<double>(m_vtkLookupTable->GetNumberOfTableValues());
-  int32_t j = m_vtkLookupTable->GetNumberOfTableValues() - 1;
-  for (int32_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
+  size_t j = m_vtkLookupTable->GetNumberOfTableValues() - 1;
+  for (size_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
   {
     double r, g, b;
     double di = static_cast<double>(i);
-    r = UpFlank->execute(2*u, 3*u, di);
-    g = UpFlank->execute(0, 2*u, di) + DownFlank->execute(3*u, 4*u, di);
-    b = SqrtUp(0, u, i) + DownFlank->execute(2*u, 3*u, di);
+    r = mUpFlank->execute(2*u, 3*u, di);
+    g = mUpFlank->execute(0, 2*u, di) + mDownFlank->execute(3*u, 4*u, di);
+    b = SqrtUp(0, u, i) + mDownFlank->execute(2*u, 3*u, di);
     m_vtkLookupTable->SetTableValue(j, r, g, b, 1.0);
     j--;
   }
-
 }
 
 
@@ -707,17 +863,14 @@ void CBratLookupTable::Aerosol2()
 //----------------------------------------
 void CBratLookupTable::Reset()
 {
-
   m_cust.RemoveAll();
   m_grad.RemoveAll();
-  //m_std = "Reset";
   m_currentFunction = m_resetFunction;
 
-  for (int32_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
+  for (size_t i = 0 ; i <  m_vtkLookupTable->GetNumberOfTableValues() ; i++)
   {
     m_vtkLookupTable->SetTableValue(i, 0.0, 0.0, 0.0, 1.0);
   }
-
 }
 
 //----------------------------------------
@@ -766,7 +919,7 @@ int32_t CBratLookupTable::GetMaxCustomXValue()
   {
     it = m_cust.end() - 1;
     CCustomColor* customColor = dynamic_cast<CCustomColor*>(*it);
-    if (customColor == NULL)
+    if (customColor == nullptr)
     {
       CException e("ERROR in CBratLookupTable::GetMaxCustomXValue - at least one of the array custom color object is not a CCustomColor object", BRATHL_LOGIC_ERROR);
       throw(e);
@@ -778,7 +931,7 @@ int32_t CBratLookupTable::GetMaxCustomXValue()
   for (it = m_cust.begin() ; it != m_cust.end() ; it++)
   {
     CCustomColor* customColor = dynamic_cast<CCustomColor*>(*it);
-    if (customColor == NULL)
+    if (customColor == nullptr)
     {
       CException e("ERROR in CBratLookupTable::GetMaxCustomXValue - at least one of the array custom color object is not a CCustomColor object", BRATHL_LOGIC_ERROR);
       throw(e);
@@ -809,7 +962,7 @@ void CBratLookupTable::FacetsCorrection()
 
   CCustomColor* cMin = dynamic_cast<CCustomColor*>(*(m_cust.begin()));
   CCustomColor* cMax = dynamic_cast<CCustomColor*>(*(m_cust.end() - 1));
-  if ( (cMin == NULL) || (cMax == NULL) )
+  if ( (cMin == nullptr) || (cMax == nullptr) )
   {
     CException e("ERROR in CBratLookupTable::FacetsCorrection - at least one of the array custom color object is not a CCustomColor object", BRATHL_LOGIC_ERROR);
     throw(e);
@@ -823,7 +976,7 @@ void CBratLookupTable::FacetsCorrection()
   // max value correction
   if (cMax->GetXValue() != m_vtkLookupTable->GetNumberOfTableValues())
   {
-    cMax->SetXValue(m_vtkLookupTable->GetNumberOfTableValues());
+    cMax->SetXValue((int)m_vtkLookupTable->GetNumberOfTableValues());
   }
 
 
@@ -838,7 +991,7 @@ void CBratLookupTable::FacetsCorrection()
   {
     CCustomColor* c1 = dynamic_cast<CCustomColor*>(*it);
     CCustomColor* c2 = dynamic_cast<CCustomColor*>(*(it+1));
-    if ( (c1 == NULL) || (c2 == NULL))
+    if ( (c1 == nullptr) || (c2 == nullptr))
     {
       CException e("ERROR in CBratLookupTable::FacetsCorrection - at least one of the array custom color object is not a CCustomColor object", BRATHL_LOGIC_ERROR);
       throw(e);
@@ -848,7 +1001,7 @@ void CBratLookupTable::FacetsCorrection()
     {
       //delete duplication value (c2)
       m_cust.Erase(it+1);
-      c2 = NULL;
+      c2 = nullptr;
       it = m_cust.begin();
     }
     else
@@ -863,7 +1016,7 @@ void CBratLookupTable::FacetsCorrection()
 //----------------------------------------
 void CBratLookupTable::SetFacets(int32_t f)
 {
-  int32_t old = m_vtkLookupTable->GetNumberOfTableValues();
+  size_t old = m_vtkLookupTable->GetNumberOfTableValues();
 
   m_vtkLookupTable->SetNumberOfTableValues(f);
 
@@ -872,7 +1025,7 @@ void CBratLookupTable::SetFacets(int32_t f)
   for (it = m_cust.begin() ; it != m_cust.end() ; it++)
   {
     CCustomColor* customColor = dynamic_cast<CCustomColor*>(*it);
-    if (customColor == NULL)
+    if (customColor == nullptr)
     {
       CException e("ERROR in CBratLookupTable::SetFacets - at least one of the array custom color object is not a CCustomColor object", BRATHL_LOGIC_ERROR);
       throw(e);
@@ -916,7 +1069,7 @@ void CBratLookupTable::Gradient()
   }
   CPlotColor* c1 = dynamic_cast<CPlotColor*>(m_grad.at(0));
   CPlotColor* c2 = dynamic_cast<CPlotColor*>(m_grad.at(1));
-  if ( (c1 == NULL) || (c2 == NULL))
+  if ( (c1 == nullptr) || (c2 == nullptr))
   {
     CException e("ERROR in CBratLookupTable::Gradient() - at least one of the color object is not a CPlotColor object", BRATHL_LOGIC_ERROR);
     throw(e);
@@ -925,7 +1078,7 @@ void CBratLookupTable::Gradient()
   //m_std = m_resetFunction;
   m_currentFunction = m_gradientFunction;
 
-  DrawGradient(*c1, *c2, 0, m_vtkLookupTable->GetNumberOfTableValues());
+  DrawGradient(*c1, *c2, 0, (int)m_vtkLookupTable->GetNumberOfTableValues());
 
 }
 
@@ -986,7 +1139,7 @@ void CBratLookupTable::Custom()
   {
     CCustomColor* c1 = dynamic_cast<CCustomColor*>(*it);
     CCustomColor* c2 = dynamic_cast<CCustomColor*>(*(it+1));
-    if ( (c1 == NULL) || (c2 == NULL))
+    if ( (c1 == nullptr) || (c2 == nullptr))
     {
       CException e("ERROR in CBratLookupTable::Custom - at least one of the array custom color object is not a CCustomColor object", BRATHL_LOGIC_ERROR);
       throw(e);
@@ -1010,23 +1163,23 @@ void CBratLookupTable::DrawGradient(const CPlotColor& c1, const CPlotColor& c2, 
     double r, g, b, a;
     double di = static_cast<double>(i);
     r =   c1.Red()
-        + c1.Red() * DownFlank->execute(d1, d2, di)
-        + c2.Red() * UpFlank->execute(d1, d2, di);
+        + c1.Red() * mDownFlank->execute(d1, d2, di)
+        + c2.Red() * mUpFlank->execute(d1, d2, di);
     r = (r > 1) ? 1 : r;
 
     g =  c1.Green()
-       + c1.Green() * DownFlank->execute(d1, d2, di)
-       + c2.Green() * UpFlank->execute(d1, d2, di);
+       + c1.Green() * mDownFlank->execute(d1, d2, di)
+       + c2.Green() * mUpFlank->execute(d1, d2, di);
     g = (g > 1) ? 1 : g;
 
     b =  c1.Blue()
-       + c1.Blue() * DownFlank->execute(d1, d2, di)
-       + c2.Blue() * UpFlank->execute(d1, d2, di);
+       + c1.Blue() * mDownFlank->execute(d1, d2, di)
+       + c2.Blue() * mUpFlank->execute(d1, d2, di);
     b = (b > 1) ? 1 : b;
 
     a =  c1.Alpha()
-       + c1.Alpha() * DownFlank->execute(d1, d2, di)
-       + c2.Alpha() * UpFlank->execute(d1, d2, di);
+       + c1.Alpha() * mDownFlank->execute(d1, d2, di)
+       + c2.Alpha() * mUpFlank->execute(d1, d2, di);
     a = (a > 1) ? 1 : a;
 
     m_vtkLookupTable->SetTableValue(i, r, g, b, a);
@@ -1180,7 +1333,7 @@ int32_t CBratLookupTable::InsertCustomColor(CCustomColor *color, std::string &wa
 
   CCustomColor* cMin = dynamic_cast<CCustomColor*>(*(m_cust.begin()));
   CCustomColor* cMax = dynamic_cast<CCustomColor*>(*(m_cust.end() - 1));
-  if ( (cMin == NULL) || (cMax == NULL) )
+  if ( (cMin == nullptr) || (cMax == nullptr) )
   {
     CException e("ERROR in CBratLookupTable::InsertCustomColor - at least one of the array custom color object is not a CCustomColor object", BRATHL_LOGIC_ERROR);
     throw(e);
@@ -1193,7 +1346,7 @@ int32_t CBratLookupTable::InsertCustomColor(CCustomColor *color, std::string &wa
   for (it = m_cust.begin() ; it != m_cust.end() ; it++)
   {
     CCustomColor* c = dynamic_cast<CCustomColor*>(*it);
-    if (c == NULL)
+    if (c == nullptr)
     {
       CException e("ERROR in CBratLookupTable::InsertCustomColor - at least one of the array custom color object is not a CCustomColor object", BRATHL_LOGIC_ERROR);
       throw(e);

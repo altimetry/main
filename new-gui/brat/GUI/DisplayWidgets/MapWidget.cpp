@@ -40,12 +40,14 @@
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/tools/Trace.h"
 
+#include "DataModels/PlotData/MapProjection.h"
+#include "DataModels/PlotData/BratLookupTable.h"
+#include "DataModels/PlotData/MapColor.h"
+
 #include "ApplicationLogger.h"
 #include "BratSettings.h"
-#include "DataModels/PlotData/MapProjection.h"
 #include "GUI/ActionsTable.h"
 
-#include "DataModels/PlotData/MapColor.h"
 
 #include "MapWidget.h"
 
@@ -731,7 +733,7 @@ QgsRubberBand* CMapWidget::AddRBLine( QgsPolyline points, QColor color, QgsVecto
 
 /////// TODO - RCCC ///////////////////////////////////////////////////////
 //static
-QgsSymbolV2* CMapWidget::CreatePolygonSymbol( const QColor &color )
+QgsSymbolV2* CMapWidget::CreatePolygonSymbol( double width, const QColor &color )
 {
     auto qsm = []( const char *s1, const std::string &s2 )
     {
@@ -740,9 +742,11 @@ QgsSymbolV2* CMapWidget::CreatePolygonSymbol( const QColor &color )
         return m;
     };
 
+	Q_UNUSED( width );
+
     //QgsSymbolV2 *s = QgsMarkerSymbolV2::createSimple( qsm( "","" ) );
     QgsFillSymbolV2 *s = QgsFillSymbolV2::createSimple( qsm( "","" ) );
-    qDebug() << "///// TYPE:" << s->type();
+    //qDebug() << "///// TYPE:" << s->type();
     s->deleteSymbolLayer( 0 );		// Remove default symbol layer.
     //s->setColor( color );
 
@@ -1206,7 +1210,8 @@ QgsVectorLayer* CMapWidget::AddVectorLayer( const std::string &name, const QStri
 //#undef HAVE_SNPRINTF
 //#include <qgsvectorfilewriter.h>
 
-QgsVectorLayer* CMapWidget::AddMemoryLayer( const std::string &name, QgsFeatureRendererV2 *renderer )
+
+QgsVectorLayer* CMapWidget::AddMemoryLayer( bool polygon, const std::string &name, QgsFeatureRendererV2 *renderer )
 {
 	static const QString base_name = "mem";
     static const QString provider = "memory";
@@ -1222,8 +1227,10 @@ QgsVectorLayer* CMapWidget::AddMemoryLayer( const std::string &name, QgsFeatureR
 
 	//"Point", "LineString", "Polygon", "MultiPoint", "MultiLineString", or "MultiPolygon".
 
+	const QString prefix = polygon ? "polygon" : "Point";
+
 	const QString layer_path =
-        "Point?crs=EPSG:4326"
+        prefix + "?crs=EPSG:4326"
 
 		+ QString( "&field=" ) + height_key + height_type
 		+ QString( "&field=" ) + ref_date_key + ref_date_type 
@@ -1269,7 +1276,7 @@ QgsVectorLayer* CMapWidget::AddMemoryLayer( const std::string &name, QgsFeatureR
 
 QgsVectorLayer* CMapWidget::AddMemoryLayer( const std::string &name, QgsSymbolV2* symbol )		//name = "", symbol = nullptr 
 {
-	return AddMemoryLayer( name, CreateRenderer( symbol ) );
+	return AddMemoryLayer( false, name, CreateRenderer( symbol ) );
 
 	//auto ml = AddVectorLayer( "Point?crs=EPSG:4326&field=height:double&field=name:string(255)&index=yes", "mem", "memory" );	// , symbol );
 
@@ -1304,27 +1311,6 @@ QgsVectorLayer* CMapWidget::AddMemoryLayer( const std::string &name, QgsSymbolV2
 }
 
 
-//////////////////////////// TODO - RCCC ////////////////////////////////////////
-QgsVectorLayer* CMapWidget::AddMemoryLayer_polygon( const std::string &name, QgsFeatureRendererV2 *renderer )
-{
-    static const QString provider = "memory";
-
-    const QString layer_path =
-        "polygon?crs=EPSG:4326"
-
-        + QString( "&field=" ) + height_key + height_type
-        + QString( "&field=" ) + ref_date_key + ref_date_type
-
-        + "&index=yes";
-
-    auto *l = AddVectorLayer( name, layer_path, provider, renderer );
-
-
-    return l;		// AddVectorLayer( name, layer_path, provider, renderer );
-}
-
-/////////////////////////////////////////////////////////////////////////////////
-
 
 template< class LAYER >
 //static 
@@ -1340,67 +1326,21 @@ QgsSingleSymbolRendererV2* CMapWidget::CreateRenderer( QgsSymbolV2* symbol )
 }
 
 
-/////// TODO - RCCC ///////////////////////////////////////////////////////
-//static
-QgsGraduatedSymbolRendererV2* CMapWidget::CreateRenderer_polygon( const QString &target_field, double m, double M, size_t contours )
-{
-    static const auto opacity = 1;
-    static const QColor color_map[] =
-    {
-        QColor( "blue" ),
-        QColor( "cyan" ),
-        QColor( "green" ),
-        QColor( "yellow" )
-    };
-    static const DEFINE_ARRAY_SIZE( color_map );        Q_UNUSED(color_map_size);
-    static CMapColor &mc = CMapColor::GetInstance();
-
-    auto create_range = []( double m, double M, int index )
-    {
-        auto label = "Group " + n2s<std::string>( index + 1 );
-        auto symbol = CreatePolygonSymbol( color_cast<QColor>( mc.NextPrimaryColors() ) );
-        symbol->setAlpha( opacity );
-        return new QgsRendererRangeV2( m, M, symbol, label.c_str() );
-    };
-
-    //function body
-
-    auto range_list = new QgsRangeList;
-
-    const double range = M - m;
-    double step = range / contours;	// color_map_size;
-
-    mc.ResetPrimaryColors();
-    double v = m;
-    for ( size_t i = 0; i < contours; ++i )
-    {
-        range_list->append( *create_range( v, v + step, i ) );
-        v += step;
-    }
-
-    auto renderer = new QgsGraduatedSymbolRendererV2( target_field, *range_list );
-    renderer->setMode( QgsGraduatedSymbolRendererV2::EqualInterval );
-    return renderer;
-
-}
-//////////////////////////////////////////////////////////////////////////////
-
-
 //static 
-QgsGraduatedSymbolRendererV2* CMapWidget::CreateRenderer( const QString &target_field, double width, double m, double M, size_t contours )
+QgsGraduatedSymbolRendererV2* CMapWidget::CreateRenderer( const QString &target_field, double width, double m, double M, const QLookupTable *lut, size_t contours, create_symbol_t cs )
 {
-    static const auto opacity = 1;
-	static const QColor color_map[] =
-	{
-		QColor( "blue" ),
-		QColor( "cyan" ),
-		QColor( "green" ),
-		QColor( "yellow" )
-	};
-    static const DEFINE_ARRAY_SIZE( color_map );        Q_UNUSED(color_map_size);
-	static CMapColor &mc = CMapColor::GetInstance();
+ //   static const auto opacity = 1;
+	//static const QColor color_map[] =
+	//{
+	//	QColor( "blue" ),
+	//	QColor( "cyan" ),
+	//	QColor( "green" ),
+	//	QColor( "yellow" )
+	//};
+ //   static const DEFINE_ARRAY_SIZE( color_map );        Q_UNUSED(color_map_size);
+	//static CMapColor &mc = CMapColor::GetInstance();
 
-	auto create_range = [&width]( double m, double M, int index )
+	auto create_range = [&lut, &cs, &width]( double mx, double Mx, int index )
 	{
 		//int color_index = index;
 		//if ( color_index >= color_map_size )
@@ -1408,9 +1348,13 @@ QgsGraduatedSymbolRendererV2* CMapWidget::CreateRenderer( const QString &target_
 
 		auto label = "Group " + n2s<std::string>( index + 1 );
 		//auto symbol = CreatePointSymbol( width, color_map[ color_index ] );
-		auto symbol = CreatePointSymbol( width, color_cast<QColor>( mc.NextPrimaryColors() ) );
-		symbol->setAlpha( opacity );
-		return new QgsRendererRangeV2( m, M, symbol, label.c_str() );
+		//auto symbol = cs( width, color_cast<QColor>( mc.NextPrimaryColors() ) );
+
+        QColor c = lut->GetTableValue( lut->GetIndex( Mx ) );
+
+		auto symbol = cs( width, c );
+		symbol->setAlpha( c.alpha() / 255. );
+		return new QgsRendererRangeV2( mx, Mx, symbol, label.c_str() );
 	};
 
 	//function body
@@ -1418,11 +1362,13 @@ QgsGraduatedSymbolRendererV2* CMapWidget::CreateRenderer( const QString &target_
     auto range_list = new QgsRangeList;
 
 	const double range = M - m;
-    double step = range / contours;	// color_map_size;
+	//size_t size = contours;
+    size_t size = lut->GetNumberOfTableValues();            Q_UNUSED( contours );
+    double step = range / size;	// color_map_size;
 
-	mc.ResetPrimaryColors();
+	//mc.ResetPrimaryColors();
 	double v = m;
-    for ( size_t i = 0; i < contours; ++i )
+    for ( size_t i = 0; i < size; ++i )
 	{
 	    range_list->append( *create_range( v, v + step, i ) );
 		v += step;
@@ -1434,11 +1380,16 @@ QgsGraduatedSymbolRendererV2* CMapWidget::CreateRenderer( const QString &target_
 }
 
 
-QgsVectorLayer* CMapWidget::AddDataLayer( const std::string &name, double width, double m, double M, size_t contours, QgsFeatureList &flist )
+QgsVectorLayer* CMapWidget::AddDataLayer( bool polygon, const std::string &name, double width, double m, double M, const QLookupTable *lut, size_t contours, QgsFeatureList &flist )
 {
 	static const QString target_field = height_key;
 
-	auto *l = AddMemoryLayer( name, CreateRenderer( target_field, width, m, M, contours ) );
+	auto *l = AddMemoryLayer( polygon, name, CreateRenderer( target_field, width, m, M, lut, contours, 
+		polygon ?
+		&CMapWidget::CreatePolygonSymbol :
+		&CMapWidget::CreatePointSymbol
+		) );
+
 	if ( l )
 	{
 		l->dataProvider()->addFeatures( flist );
@@ -1462,22 +1413,6 @@ QgsVectorLayer* CMapWidget::AddDataLayer( const std::string &name, double width,
 //      );
 }
 
-
-////////////// TODO : RCCC /////////////////////////////////////////////////////////
-QgsVectorLayer* CMapWidget::AddDataLayer_Polygon( const std::string &name, double m, double M, size_t contours, QgsFeatureList &flist )
-{
-    static const QString target_field = height_key;
-
-    auto *l = AddMemoryLayer_polygon( name, CreateRenderer_polygon( target_field, m, M, contours ) );
-    if ( l )
-    {
-        l->dataProvider()->addFeatures( flist );
-        //l->updateExtents();
-        mDataLayers.push_back( l );
-    }
-    return l;
-}
-////////////////////////////////////////////////////////////////////////////////////
 
 
 QgsVectorLayer* CMapWidget::AddOGRVectorLayer( const QString &layer_path, QgsSymbolV2* symbol )		//symbol = nullptr 

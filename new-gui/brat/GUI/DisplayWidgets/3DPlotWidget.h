@@ -155,6 +155,11 @@ public:
 	void SetCoordinateStyle( Qwt3D::COORDSTYLE style = Qwt3D::FRAME );
 
 
+	// color
+
+	void SetColorMap( Qwt3D::Color *pcolor_map );
+
+
 	// protected
 
 protected:
@@ -246,7 +251,11 @@ public:
 
 	//...create plot
 
-	void PushPlot( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax );
+	//takes ownership of pcolor_map
+	void PushPlot( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, Qwt3D::Color *pcolor_map );
+
+	//takes ownership of pcolor_map
+	void SetColorMap( Qwt3D::Color *pcolor_map );
 
 
 	//switch plot

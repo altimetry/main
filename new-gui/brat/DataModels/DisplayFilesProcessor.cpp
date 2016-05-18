@@ -24,9 +24,7 @@
 
 #include "DataModels/PlotData/ColorPalleteNames.h"
 #include "DataModels/PlotData/MapProjection.h"
-#if defined (BRAT_V3)
-#include "display/PlotData/BratLookupTable.h"
-#endif
+#include "PlotData/BratLookupTable.h"
 
 
 
@@ -1083,8 +1081,8 @@ void CDisplayFilesProcessor::GetWPlotPropertyParams( int32_t nFields )
 	{
         CWorldPlotProperties* props = GetWorldPlotProperties( i );
 		m_params.m_mapParam[ kwDISPLAY_COLORCURVE ]->GetValue( stringValue, i );
-#if defined (BRAT_V3)
-		std::string stringValueOk = wPlotProperty.m_LUT->CurveToLabeledCurve( stringValue );
+
+		std::string stringValueOk = wPlotProperty.mLUT->CurveToLabeledCurve( stringValue );
 		if ( stringValueOk.empty() )
 		{
 			throw  CParameterException( CTools::Format( "Unknown color curve name value '%s' for  parameter '%s'",
@@ -1093,10 +1091,7 @@ void CDisplayFilesProcessor::GetWPlotPropertyParams( int32_t nFields )
 				BRATHL_SYNTAX_ERROR );
 
 		}
-		props->m_LUT->ExecCurveMethod( stringValueOk );
-#else
-        UNUSED( props );
-#endif
+		props->mLUT->ExecCurveMethod( stringValueOk );
 	}
 	//------------------------------------------
 	// Get color table Property for each plot
@@ -1105,8 +1100,8 @@ void CDisplayFilesProcessor::GetWPlotPropertyParams( int32_t nFields )
 	{
 		CWorldPlotProperties* props = GetWorldPlotProperties( i );
 		m_params.m_mapParam[ kwDISPLAY_COLORTABLE ]->GetValue( stringValue, i, PALETTE_AEROSOL );
-#if defined (BRAT_V3)
-		std::string stringValueOk = wPlotProperty.m_LUT->MethodToLabeledMethod( stringValue );
+
+		std::string stringValueOk = wPlotProperty.mLUT->MethodToLabeledMethod( stringValue );
 
 		if ( stringValueOk.empty() )
 		{
@@ -1120,9 +1115,10 @@ void CDisplayFilesProcessor::GetWPlotPropertyParams( int32_t nFields )
 			else
 			{
 				// load the color table file definition
+				std::string error_msg;
 				try
 				{
-					props->m_LUT->LoadFromFile( stringValue );
+					props->mLUT->LoadFromFile( error_msg, stringValue );
 				}
 				catch ( CException& e )
 				{
@@ -1130,17 +1126,17 @@ void CDisplayFilesProcessor::GetWPlotPropertyParams( int32_t nFields )
 				}
 				catch ( ... )
 				{
-					SimpleErrorBox( "Can't load " + stringValue );
+					if (!error_msg.empty())
+						SimpleErrorBox( error_msg );
+					else
+						SimpleErrorBox( "Can't load " + stringValue );
 				}
 			}
 		}
 		else  //stringValueOk is not empty, it's a predefined color
 		{
-			props->m_LUT->ExecMethod( stringValueOk );
+			props->mLUT->ExecMethod( stringValueOk );
 		}
-#else
-        UNUSED( props );
-#endif
 	}
 	//------------------------------------------
 	// Get contour Property for each plot
@@ -1410,8 +1406,8 @@ void CDisplayFilesProcessor::GetZFXYPlotPropertyParams( int32_t nFields )
 	{
 		CZFXYPlotProperties* props = GetZFXYPlotProperties( i );
 		m_params.m_mapParam[ kwDISPLAY_COLORCURVE ]->GetValue( stringValue, i );
-#if defined (BRAT_V3)
-		std::string stringValueOk = zfxyPlotProperty.m_LUT->CurveToLabeledCurve( stringValue );
+
+		std::string stringValueOk = zfxyPlotProperty.mLUT->CurveToLabeledCurve( stringValue );
 		if ( stringValueOk.empty() )
 		{
 			throw  CParameterException( CTools::Format( "Unknown color curve name value '%s' for  parameter '%s'",
@@ -1420,10 +1416,7 @@ void CDisplayFilesProcessor::GetZFXYPlotPropertyParams( int32_t nFields )
 				BRATHL_SYNTAX_ERROR );
 
 		}
-		props->m_LUT->ExecCurveMethod( stringValueOk );
-#else
-        UNUSED( props );
-#endif
+		props->mLUT->ExecCurveMethod( stringValueOk );
 	}
 	//------------------------------------------
 	// Get color table Property for each plot
@@ -1432,8 +1425,8 @@ void CDisplayFilesProcessor::GetZFXYPlotPropertyParams( int32_t nFields )
 	{
 		CZFXYPlotProperties* props = GetZFXYPlotProperties( i );
 		m_params.m_mapParam[ kwDISPLAY_COLORTABLE ]->GetValue( stringValue, i, PALETTE_AEROSOL );
-#if defined (BRAT_V3)
-		std::string stringValueOk = zfxyPlotProperty.m_LUT->MethodToLabeledMethod( stringValue );
+
+		std::string stringValueOk = zfxyPlotProperty.mLUT->MethodToLabeledMethod( stringValue );
 
 		if ( stringValueOk.empty() )
 		{
@@ -1449,9 +1442,10 @@ void CDisplayFilesProcessor::GetZFXYPlotPropertyParams( int32_t nFields )
 			else
 			{
 				// load the color table file definition
+				std::string error_msg;
 				try
 				{
-					props->m_LUT->LoadFromFile( fileName );		//fileName.GetFullPath() 
+					props->mLUT->LoadFromFile( error_msg, fileName );		//fileName.GetFullPath() 
 				}
 				catch ( CException& e )
 				{
@@ -1459,17 +1453,17 @@ void CDisplayFilesProcessor::GetZFXYPlotPropertyParams( int32_t nFields )
 				}
 				catch ( ... )
 				{
-					SimpleWarnBox( "Can't load " + fileName );
+					if (!error_msg.empty())
+						SimpleErrorBox( error_msg );
+					else
+						SimpleErrorBox( "Can't load " + stringValue );
 				}
 			}
 		}
 		else  //stringValueOk is not empty, it's a predefined color
 		{
-			props->m_LUT->ExecMethod( stringValueOk );
+			props->mLUT->ExecMethod( stringValueOk );
 		}
-#else
-        UNUSED( props );
-#endif
 	}
 	//------------------------------------------
 	// Get contour Property for each plot

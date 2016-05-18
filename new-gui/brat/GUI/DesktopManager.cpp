@@ -1,7 +1,6 @@
 #include "new-gui/brat/stdafx.h"
 
 #include "GUI/DisplayWidgets/GlobeWidget.h"
-#include "DisplayWidgets/BratViews.h"
 #include "GUI/TabbedDock.h"
 #include "DesktopManager.h"
 #include "BratSettings.h"
@@ -24,7 +23,7 @@ CDesktopManagerBase::CDesktopManagerBase( const CBratSettings &settings, QMainWi
 
 	setObjectName( QString::fromUtf8( "centralWidget" ) );
 
-    mMap = new CBratMapView( settings.LayerBaseType(), this );
+    mMap = new CMapWidget( settings.LayerBaseType(), this );
 
 	parent->setCentralWidget( this );
 

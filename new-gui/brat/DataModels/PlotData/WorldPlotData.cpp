@@ -55,8 +55,7 @@ using namespace brathl;
 //#include "vtkEarthSource.h"
 //#include "vtkLookupTable.h"
 
-//#include "display/PlotData/BratLookupTable.h"
-
+#include "BratLookupTable.h"
 #include "WorldPlotData.h"
 
 //-------------------------------------------------------------
@@ -299,7 +298,7 @@ void CWorldPlotData::Create( CObArray* pinternal_files, const std::string& field
 	//////////////}
 
 
-	//////////////m_LUT->GetLookupTable()->SetTableRange( minHeightValue, maxHeightValue );
+	mLUT->GetLookupTable()->SetTableRange( mMaps().mMinHeightValue, mMaps().mMaxHeightValue );
 
 	//////////////m_colorBarRenderer->SetLUT( m_LUT );
 
@@ -1550,8 +1549,8 @@ void CWorldPlotVelocityData::Create( CObArray* northData, CObArray* eastData, co
 	//////////////}
 
 
-	//////////////m_LUT->GetLookupTable()->SetTableRange( 0, m_maxhv );
-	//////////////m_LUT->Black();
+	mLUT->GetLookupTable()->SetTableRange( 0, m_maxhv );
+	mLUT->Black();
 	// v3 original comment no LUT displayed for this
 	//v3 original comment m_colorBarRenderer->SetLUT(m_LUT);
 

@@ -24,37 +24,111 @@
 
 #else
 
-struct QLookupTable
+#include <qwt3d_color.h>
+#include <qwt_color_map.h>
+
+
+class QLookupTable : public QwtColorMap, public Qwt3D::Color
 {
+	// types
+
+	typedef QwtColorMap qwt_base_t;
+	typedef Qwt3D::Color qwt3d_base_t;
+
 	typedef long long vtkIdType;
+
+
+	// data
+
+	std::vector<QColor> mTable;
+	double mTableRange[2];
+	//double HueRange[2];
+	//double SaturationRange[2];
+	//double ValueRange[2];
+	//double AlphaRange[2];
+	//int Scale;
+	//int Ramp;
+
+	//double RGBA[4]; //used during conversion process
+
+	//int OpaqueFlag;
+	////vtkTimeStamp OpaqueFlagBuildTime;
+
+	// construction / destruction
+
+	QLookupTable() 
+		: qwt_base_t()
+		, qwt3d_base_t()
+	{
+		mTableRange[0] = 0;
+		mTableRange[1] = 0;
+	}
+
+public:
+	QLookupTable( const QLookupTable&o );
 
 	static QLookupTable* New()
 	{
 		return new QLookupTable();
 	}
-	static void Delete()
-	{}
+	void Delete()
+	{
+	}
 
-	vtkIdType mNumberOfColors;
-	double mTableRange[2];
+	// remaining
+
+	size_t GetNumberOfTableValues() const;
+	void SetNumberOfTableValues(vtkIdType number);
+
+	const double *GetTableRange() const
+	{ 
+		return mTableRange; 
+	};
+
+	void SetTableRange( const double r[2] )
+	{
+		SetTableRange( r[0], r[1] );
+	}
+
+	virtual void SetTableRange(double m, double M);
+
+	void SetTableValue( size_t indx, double r, double g, double b, double a=1.0);
 
 
+	const QColor& GetTableValue( size_t indx) const;
 
-	void SetNumberOfTableValues(vtkIdType number)
-    {
-        UNUSED(number);
-    }
-	vtkIdType GetNumberOfTableValues() { return mNumberOfColors; };
+	size_t GetIndex( double v ) const;
 
-	double *GetTableRange() { return mTableRange; };
-	void SetTableRange(double r[2])
-    {
-        UNUSED(r);
-    }
-	void SetTableValue(vtkIdType indx, double r, double g, double b, double a=1.0)
-    {
-        UNUSED(indx); UNUSED(r); UNUSED(g); UNUSED(b); UNUSED(a);
-    }
+
+	// QWT interface
+
+protected:
+	virtual QwtColorMap *copy() const override;
+
+	//Map a value of a given interval into a rgb value.
+	// param interval Range for the values
+	// param value Value
+	// return rgb value, corresponding to value
+	//
+    virtual QRgb rgb( const QwtDoubleInterval &interval, double value ) const override;
+
+    //Map a value of a given interval into a color index
+    // param interval Range for the values
+    // param value Value
+    // return color index, corresponding to value
+	//
+    virtual unsigned char colorIndex( const QwtDoubleInterval &interval, double value ) const  override;
+
+    //QColor color(const QwtDoubleInterval &, double value) const;
+
+    virtual QVector<QRgb> colorTable(const QwtDoubleInterval &) const override;
+
+
+	// QWT3D interface
+
+	virtual Qwt3D::RGBA operator()(double x, double y, double z) const override;
+
+	virtual Qwt3D::ColorVector& createVector(Qwt3D::ColorVector& vec) override;
 };
 
 #endif
@@ -67,6 +141,7 @@ struct QLookupTable
 #include "libbrathl/CallBack.h"
 using namespace brathl;
 
+#include "new-gui/brat/DataModels/PlotData/ColorPalleteNames.h"
 #include "new-gui/brat/DataModels/PlotData/PlotColor.h"
 
 
@@ -136,6 +211,34 @@ class CBratLookupTable : public CBratObject
     static const std::string CURVE_SQRT()		{ return "SQRT"; }
     static const std::string CURVE_COSINUS()	{ return "Cosinus"; }
 
+
+protected:
+
+  QLookupTable *m_vtkLookupTable = nullptr;
+
+  const std::string mDefaultColorTable = PALETTE_AEROSOL;
+  const std::string m_resetFunction = "Reset";
+
+  std::string m_currentFunction;
+
+  std::string m_curve;
+  CStringArray m_curveNames;
+
+  CObMap m_nameToMethod;
+
+  std::vector< std::string > m_colorTableList;
+
+  std::string m_gradientFunction;
+  std::string m_customFunction;
+
+  CallbackFlank *mUpFlank = nullptr;
+  CallbackFlank *mDownFlank = nullptr;
+
+  CObArray m_cust;
+  CObArray m_grad;
+
+  std::string m_fileName;
+
 public:
 
 	static inline std::string brathlFmtEntryColorMacro( const std::string &entry, int index )
@@ -164,7 +267,7 @@ public:
   CObArray* GetCust() {return &m_cust;}
   int GetMaxCustomXValue();
 
-  const std::vector<std::string >* GetColorTableList() {return &m_colorTableList;}
+  const std::vector<std::string >* GetColorTableList() const { return &m_colorTableList; }
 
   std::string MethodToLabeledMethod(const std::string& method);
   bool IsValidMethod(const std::string& methodName);
@@ -182,22 +285,27 @@ public:
   bool IsCurrentGradient() {return m_currentFunction == m_gradientFunction;}
   bool IsCurrentReset() {return m_currentFunction == m_resetFunction;}
 
-  std::string GetDefaultColorTable() {return m_defaultColorTable;}
+  std::string GetDefaultColorTable() {return mDefaultColorTable;}
 
-  void BlackToWhite();
-  void Black();
-  void WhiteToBlack();
-  void RedToGreen();
-  void GreenToRed();
-  void Cloud();
-  void Rainbow();
-  void Rainbow2();
-  void Aerosol();
-  void Aerosol2();
-  void Ozone();
-  void Blackbody();
 
-  void SetCurveLinear();
+	void Black();
+protected:
+
+	void BlackToWhite();
+	void WhiteToBlack();
+	void RedToGreen();
+	void GreenToRed();
+	void Cloud();
+	void Rainbow();
+	void Rainbow2();
+	void Aerosol();
+	void Aerosol2();
+	void Ozone();
+	void Blackbody();
+
+public:
+
+	void SetCurveLinear();
   void SetCurveSQRT();
   void SetCurveCosinus();
 
@@ -258,33 +366,6 @@ protected:
   ////////////////////////////////////////////////////////v4
 
   int InsertCustomColor(CCustomColor *color, std::string &warning );
-
-protected:
-
-  QLookupTable* m_vtkLookupTable;
-
-  std::string m_currentFunction;
-
-  std::string m_curve;
-  CStringArray m_curveNames;
-
-  CObMap m_nameToMethod;
-
-  std::vector< std::string > m_colorTableList;
-  std::string m_defaultColorTable;
-
-  std::string m_resetFunction;
-
-  std::string m_gradientFunction;
-  std::string m_customFunction;
-
-  CallbackFlank* UpFlank;
-  CallbackFlank* DownFlank;
-
-  CObArray m_cust;
-  CObArray m_grad;
-
-  std::string m_fileName;
 };
 
 
