@@ -750,16 +750,21 @@ QgsSymbolV2* CMapWidget::CreatePolygonSymbol( double width, const QColor &color 
     s->deleteSymbolLayer( 0 );		// Remove default symbol layer.
     //s->setColor( color );
 
-    //s->setColor( lineColor );
     //s->setMapUnitScale()
 
     //auto symbolLayer = new QgsSimpleMarkerSymbolLayerV2;
     auto symbolLayer = new QgsSimpleFillSymbolLayerV2;
 
     symbolLayer->setBorderColor( color );
-    //symbolLayer->setFillColor( color );
+	//symbolLayer->setBorderWidthUnit( QgsSymbolV2::Pixel );
+	//symbolLayer->setBorderWidth( symbolLayer->borderWidth() / 2 );
+    //symbolLayer->setBorderStyle( Qt::NoPen );
+	//symbolLayer->setPenJoinStyle( Qt::SvgMiterJoin );
+    //symbolLayer->setFillColor( color );		== setColor
+    //symbolLayer->setOutlineColor( color );
 
     symbolLayer->setColor( color );
+
     //symbolLayer->setName("square");					//
     //symbolLayer->setSizeUnit( QgsSymbolV2::MM );	//
     //symbolLayer->setSize( width );
@@ -1353,7 +1358,7 @@ QgsGraduatedSymbolRendererV2* CMapWidget::CreateRenderer( const QString &target_
         QColor c = lut->GetTableValue( lut->GetIndex( Mx ) );
 
 		auto symbol = cs( width, c );
-		symbol->setAlpha( c.alpha() / 255. );
+		//symbol->setAlpha( 1. );
 		return new QgsRendererRangeV2( mx, Mx, symbol, label.c_str() );
 	};
 
@@ -1392,6 +1397,7 @@ QgsVectorLayer* CMapWidget::AddDataLayer( bool polygon, const std::string &name,
 
 	if ( l )
 	{
+		l->setLayerTransparency( 10 );
 		l->dataProvider()->addFeatures( flist );
 		//l->updateExtents();
 		mDataLayers.push_back( l );

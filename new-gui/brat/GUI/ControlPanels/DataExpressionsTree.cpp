@@ -847,8 +847,8 @@ void CDataExpressionsTreeWidget::AddField( QTreeWidgetItem *parent, CField *fiel
 		std::string	error_msg;
 		mCurrentOperation->ComputeInterval( error_msg );
 
-		if ( !error_msg.empty() )
-			SimpleErrorBox( error_msg );
+        if ( !error_msg.empty() )
+            SimpleErrorBox( error_msg );
 
 		emit FormulaInserted( formula );
 	}

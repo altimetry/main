@@ -204,6 +204,8 @@
         <file>images/OSGeo/aliases.png</file>
         <file>images/OSGeo/warning.png</file>
         <file>images/OSGeo/brat_smoothing.png</file>
+        <file>images/OSGeo/data_minmax_x.png</file>
+        <file>images/OSGeo/data_minmax_y.png</file>
         <file>images/brat_scheduler.png</file>
         <file>images/rads.gif</file>
     </qresource>

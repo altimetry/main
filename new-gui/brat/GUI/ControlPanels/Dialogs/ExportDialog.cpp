@@ -14,11 +14,11 @@ void  CExportDialog::CreateWidgets()
 {
     // Output file
 
-    QLineEdit *OutputPath = new QLineEdit();
+    mOutputPath = new QLineEdit();
     mBrowseButton = new QPushButton( "Browse..." );
 	mBrowseButton->setToolTip( CActionInfo::FormatTip( "Select a output file." ).c_str() );
 
-    auto *output_group = CreateGroupBox( ELayoutType::Horizontal, { OutputPath, mBrowseButton }, "Output File", nullptr, 6, 6, 6, 6, 6 );
+    auto *output_group = CreateGroupBox( ELayoutType::Horizontal, { mOutputPath, mBrowseButton }, "Output File", nullptr, 6, 6, 6, 6, 6 );
 
     // Pages
 
@@ -104,6 +104,8 @@ void  CExportDialog::CreateWidgets()
 		{ mFormatGeoTiffPage, "GeoTiff", CActionInfo::FormatTip("GeoTiff format options"), "://images/alpha-numeric/__s.png", true }
 	} );
 
+    m_exportType = (EExportFormat)0;
+
 	auto *b0 = dynamic_cast<QToolButton*>( mStackedWidget->Button( 0 ) );
 	b0->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
 	auto *b1 = dynamic_cast<QToolButton*>( mStackedWidget->Button( 1 ) );
@@ -119,9 +121,9 @@ void  CExportDialog::CreateWidgets()
 
     auto help = new CTextWidget;
     help->SetHelpProperties(
-				"Ascii: can be seen in a built-in text viewer through 'Edit Ascii Export'\n"
-				"     NetCDF: can be used as source data in a new dataset     \n"
-				"GeoTiff: available if the axis of the operation are longitude and latitude."
+                "Ascii: can be seen in a built-in text viewer through 'Edit Ascii Export'.\n"
+                "NetCDF: can be used as source data in a new dataset.\n"
+                "GeoTiff: available if the axes of the operation are longitude and latitude."
          ,0 , 6, Qt::AlignCenter );
     auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
     help_group->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::Maximum );
@@ -171,9 +173,11 @@ void CExportDialog::Wire()
 {
     //	Setup things
 
+    connect( mStackedWidget, SIGNAL( currentChanged(int)), this, SLOT(HandleExportType(int)));
     connect( mButtonBox, SIGNAL( clicked( QAbstractButton* ) ), this, SLOT( HandleButtonClicked( QAbstractButton* ) ) );
     connect( mButtonBox, SIGNAL( accepted() ), this, SLOT( accept() ) );
     connect( mButtonBox, SIGNAL( rejected() ), this, SLOT( reject() ) );
+    connect( mBrowseButton, SIGNAL(clicked()), this, SLOT(HandleChangeExportPath()));
 }
 
 
@@ -199,6 +203,21 @@ void CExportDialog::HandleButtonClicked( QAbstractButton *button )
 
 }
 
+void CExportDialog::HandleExportType(int index)
+{
+    m_exportType = (EExportFormat)index;
+}
+
+void CExportDialog::HandleChangeExportPath()
+{
+    QString export_path = BrowseDirectory(this, "Select export directory...", QString(""));
+
+        if ( !export_path.isEmpty() )
+        {
+            mOutputPath->setText(export_path);
+        }
+
+}
 
 void CExportDialog::DelayExecution()
 {

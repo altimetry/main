@@ -143,13 +143,14 @@ protected:
 	CDataExpressionsTreeWidget *mDataExpressionsTree = nullptr;
 
 	QgsCollapsibleGroupBox *mSamplingGroup = nullptr;
-    //QComboBox *mAdvFilter = nullptr;
     QLabel *mXLonLabel = nullptr;
     QLabel *mYLatLabel = nullptr;
     QLineEdit *mXLonMinValue = nullptr;
     QLineEdit *mXLonMaxValue = nullptr;
     QLineEdit *mYLatMinValue = nullptr;
     QLineEdit *mYLatMaxValue = nullptr;
+    QToolButton *mGetDataMaxMinX = nullptr;
+    QToolButton *mGetDataMaxMinY = nullptr;
     QLineEdit *mXLonStep = nullptr;
     QLineEdit *mYLatStep = nullptr;
     QLineEdit *mXLonCutOff = nullptr;
@@ -246,17 +247,18 @@ protected:
     std::string GetOpunit();
     /// Sampling methods ////////////////
     void UpdateSamplingGroup();
-    void GetMinMax(CFormula *formula);
-    bool ValidateData();
-    bool VerifyMinMaxXY();
+    void GetDataMinMax(CFormula *formula);
+    void ValidateData();
     bool VerifyMinMaxX();
-    bool VerifyYMinMaxY();
+    bool VerifyMinMaxY();
     bool VerifyMinMaxAsDate( CFormula *formula, QLineEdit *LineEdit_Min, QLineEdit *LineEdit_Max );
-    void GetValueAsDate( QLineEdit *mLineEdit_Axisvalue, double &seconds, double defValue, double min, double max );
-    bool ComputeXYInterval();
-    bool ComputeInterval(CFormula *formula, QLabel *IntervalsLabel, QLineEdit *StepLineEdit, QLabel *IconWarning );
+    bool VerifyMinMax( CFormula *formula, QLineEdit *LineEdit_Min, QLineEdit *LineEdit_Max );
+    void GetValueAsDate( QLineEdit *LineEdit_Axisvalue, double &seconds, double defValue, double min, double max );
+    void GetValue      ( QLineEdit *LineEdit_Axisvalue, double &value, double defValue,
+                         double min = CTools::m_defaultValueDOUBLE, double max = CTools::m_defaultValueDOUBLE);
+    void ComputeXYInterval();
+    bool ComputeInterval( CFormula *formula, QLabel *IntervalsLabel, QLineEdit *StepLineEdit, QLabel *IconWarning );
     /////////////////////////////////////
-
     bool MapRequested() const;
 
 	//both
@@ -358,6 +360,19 @@ protected slots:
 	void HandleShowAliases();
 	void HandleCheckSyntax();
 	void HandleShowInfo();
+
+    // Sampling //////////////
+    void HandleXLonMin_changed();
+    void HandleXLonMax_changed();
+    void HandleYLatMin_changed();
+    void HandleYLatMax_changed();
+    void HandleXLonStep_changed();
+    void HandleYLatStep_changed();
+    void HandleXLoessCut_changed();
+    void HandleYLoessCut_changed();
+    void HandleGetDataMinMaxX();
+    void HandleGetDataMinMaxY();
+
 };
 
 

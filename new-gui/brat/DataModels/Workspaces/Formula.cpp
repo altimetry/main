@@ -923,7 +923,7 @@ bool CFormula::CtrlMinMaxValue( std::string& errorMsg ) const
 	}
 	if ( min >= max )
 	{
-		errorMsg += "\n\tMinimun value must be strictly less than Maximum value.",
+        errorMsg += "\n  Minimum value must be strictly less than Maximum value.",
 			bOk = false;
 	}
 

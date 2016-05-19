@@ -149,6 +149,7 @@ void CColorMapWidget::SetLUT( CBratLookupTable *lut )
 {
 	mLut = lut;
 	mColorTables->blockSignals( true );		//we don't want client code to think that the user changed the color map
+	mColorTables->clear();
 	for ( auto ii = mLut->GetColorTableList()->cbegin(); ii != mLut->GetColorTableList()->cend(); ++ii )
 		mColorTables->addItem( ii->c_str() );	
 	mColorTables->blockSignals( false );

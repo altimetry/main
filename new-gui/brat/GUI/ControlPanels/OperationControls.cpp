@@ -27,6 +27,7 @@
 #include "ProcessesTable.h"
 #include "OperationControls.h"
 
+#include "process/BratProcessExportAscii.h"
 
 
 
@@ -34,16 +35,18 @@ static const std::string ButtonDisplayTextNoOp = "View...";
 static const std::string ButtonDisplayTextIsMap = "Map...";
 static const std::string ButtonDisplayTextIsPlot = "Plot...";
 
-static const QString Xresolution_labelFormat = "<b>X Resolution</b><br><font size='2'>expression: '%1'<br>unit: %2<br></font>";
-static const QString Yresolution_labelFormat = "<b>Y Resolution</b><br><font size='2'>expression: '%1'<br>unit: %2<br></font>";
-static const QString LonResolution_labelFormat = "<b>Lon Resolution</b><br><font size='2'>expression: '%1'<br>unit: %2<br></font>";
-static const QString LatResolution_labelFormat = "<b>Lat Resolution</b><br><font size='2'>expression: '%1'<br>unit: %2<br></font>";
+static const QString Xresolution_labelFormat = "<b>X Resolution</b><br><font size='2'>expression: '%1'<br>unit: %2</font>";
+static const QString Yresolution_labelFormat = "<b>Y Resolution</b><br><font size='2'>expression: '%1'<br>unit: %2</font>";
+static const QString LonResolution_labelFormat = "<b>Lon Resolution</b><br><font size='2'>expression: '%1'<br>unit: %2</font>";
+static const QString LatResolution_labelFormat = "<b>Lat Resolution</b><br><font size='2'>expression: '%1'<br>unit: %2</font>";
 
 static const QString MinResolutionlabel   = "<font size='2'>Min.</font>";
 static const QString MaxResolutionlabel   = "<font size='2'>Max.</font>";
 static const QString StepResolutionlabel  = "<font size='2'>Step</font>";
-static const QString LoessResolutionlabel = "<font size='2'>Loess<br>Cut-Off</font>";
+static const QString LoessResolutionlabel = "<font size='2'>Loess Cut-Off</font>";
 static const QString NbIntervalslabel     = "<font size='2'>Number of<br>Intervals</font>";
+
+static const QString DataMaxMin_labelFormat = "<b>Min/Max data coverage</b><br>Gets the minimum and maximum '%1' coverage of the dataset.";
 
 static const QString WarningResolutionIconPath = ":/images/OSGeo/warning.png";
 static const std::string ButtonDisplayIconNoOpPath = ":/images/themes/default/propertyicons/display.svg";
@@ -339,10 +342,6 @@ void COperationControls::CreateAdancedOperationsPage()
 
 	// ...4. Sampling Sub-Group
 
-    //auto adv_filter_label = new QLabel( "Filter" );    adv_filter_label->setAlignment(Qt::AlignCenter);
-    //mAdvFilter = new QComboBox;
-    //QBoxLayout *adv_filter_vl = LayoutWidgets( Qt::Vertical, { nullptr, adv_filter_label, mAdvFilter, nullptr }, nullptr, 0, m, m, m, m );
-
     //QFrame *line = WidgetLine( nullptr, Qt::Vertical );
     //line->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Minimum );
 
@@ -352,43 +351,65 @@ void COperationControls::CreateAdancedOperationsPage()
     auto cut_label       = new QLabel( LoessResolutionlabel );   cut_label->setAlignment(Qt::AlignCenter);
     auto intervals_label = new QLabel( NbIntervalslabel );       intervals_label->setAlignment(Qt::AlignCenter);
 
+    mGetDataMaxMinX = CreateToolButton( "", ":/images/OSGeo/data_minmax_x.png", "Get min/max X coverage" );
+    mGetDataMaxMinY = CreateToolButton( "", ":/images/OSGeo/data_minmax_y.png", "Get min/max Y coverage" );
+
     mXLonLabel = new QLabel("X Resolution");  mXLonLabel->setAlignment(Qt::AlignCenter);
     mYLatLabel = new QLabel("Y Resolution");  mYLatLabel->setAlignment(Qt::AlignCenter);
-
-//    // Temporarily as read only (TODO - allow user to define min/max values)
-//    QPalette *palette_readOnly = new QPalette();
-//    palette_readOnly->setColor(QPalette::Base, Qt::gray );
-//    palette_readOnly->setColor(QPalette::Text,Qt::black);
-
-    mXLonMinValue = new QLineEdit;  mXLonMinValue->setAlignment(Qt::AlignCenter);  /*mXLonMinValue->setReadOnly(true);  mXLonMinValue->setPalette(*palette_readOnly);*/
-    mXLonMaxValue = new QLineEdit;  mXLonMaxValue->setAlignment(Qt::AlignCenter);  /*mXLonMaxValue->setReadOnly(true);  mXLonMaxValue->setPalette(*palette_readOnly);*/
-    mYLatMinValue = new QLineEdit;  mYLatMinValue->setAlignment(Qt::AlignCenter);  /*mYLatMinValue->setReadOnly(true);  mYLatMinValue->setPalette(*palette_readOnly);*/
-    mYLatMaxValue = new QLineEdit;  mYLatMaxValue->setAlignment(Qt::AlignCenter);  /*mYLatMaxValue->setReadOnly(true);  mYLatMaxValue->setPalette(*palette_readOnly);*/
-
-    mXLonIntervalsLabel = new QLabel;         mXLonIntervalsLabel->setAlignment(Qt::AlignCenter);
-    mYLatIntervalsLabel = new QLabel;         mYLatIntervalsLabel->setAlignment(Qt::AlignCenter);
+    mXLonMinValue = new QLineEdit;            mXLonMinValue->setAlignment(Qt::AlignCenter);
+    mXLonMaxValue = new QLineEdit;            mXLonMaxValue->setAlignment(Qt::AlignCenter);
+    mYLatMinValue = new QLineEdit;            mYLatMinValue->setAlignment(Qt::AlignCenter);
+    mYLatMaxValue = new QLineEdit;            mYLatMaxValue->setAlignment(Qt::AlignCenter);
     mXLonStep = new QLineEdit;                mXLonStep->setAlignment(Qt::AlignCenter);
     mYLatStep = new QLineEdit;			      mYLatStep->setAlignment(Qt::AlignCenter);
+    mXLonIntervalsLabel = new QLabel;         mXLonIntervalsLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
+    mYLatIntervalsLabel = new QLabel;         mYLatIntervalsLabel->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
     mXLonCutOff = new QLineEdit;		      mXLonCutOff->setAlignment(Qt::AlignCenter);
     mYLatCutOff = new QLineEdit;			  mYLatCutOff->setAlignment(Qt::AlignCenter);
 
+    // VALIDATORS for min/max X/Y, step and cut off //
+    // Explanation:
+    //   [-0-9:.]+  -> means only hyphens(-), numbers(0-9), colons(:) and points(.); one-or-more (+) or zero-or-more (*) repetition of the characters within character class ([]).
+    //     (^$)     -> allows empty strings (otherwise editingFinished signal is not triggered ). (^) and ($) mean beginning and end of string, respectively.
+    static QRegExpValidator *DegreeAndTimeValidator = new QRegExpValidator( QRegExp("[-0-9:. ]*"), this );
+    static QRegExpValidator *LoessCutValidator      = new QRegExpValidator( QRegExp("[0-9]+|(^$)"), this );
+    static QRegExpValidator *StepValidator          = new QRegExpValidator( QRegExp("[-+/0-9.]+|(^$)"), this );
+
+    mXLonMinValue->setValidator( DegreeAndTimeValidator );
+    mXLonMaxValue->setValidator( DegreeAndTimeValidator );
+    mYLatMinValue->setValidator( DegreeAndTimeValidator );
+    mYLatMaxValue->setValidator( DegreeAndTimeValidator );
+    mXLonStep->setValidator( StepValidator );
+    mYLatStep->setValidator( StepValidator );
+    mXLonCutOff->setValidator( LoessCutValidator );
+    mYLatCutOff->setValidator( LoessCutValidator );
+
     XiconWarning = new QLabel();
     YiconWarning = new QLabel();
+    auto *Xintr_WarnIcon = LayoutWidgets( Qt::Horizontal, { mXLonIntervalsLabel, XiconWarning }, nullptr, s, m, m, m, m );
+    auto *Yintr_WarnIcon = LayoutWidgets( Qt::Horizontal, { mYLatIntervalsLabel, YiconWarning }, nullptr, s, m, m, m, m );
 
 	QGridLayout *sampling_gridl = LayoutWidgets(
 	{ 
-        mXLonLabel,       mXLonMinValue, mXLonMaxValue, mXLonStep,  mXLonCutOff, mXLonIntervalsLabel, XiconWarning,     nullptr,
-        new QLabel( "" ), min_label,     max_label,     step_label, cut_label,   intervals_label,     new QLabel( "" ), nullptr,
-        mYLatLabel,       mYLatMinValue, mYLatMaxValue, mYLatStep,  mYLatCutOff, mYLatIntervalsLabel, YiconWarning,     nullptr
+//        mXLonLabel,       mXLonMinValue, mXLonMaxValue, mXLonStep,  mXLonCutOff, mXLonIntervalsLabel, XiconWarning,     nullptr,
+//        new QLabel( "" ), min_label,     max_label,     step_label, cut_label,   intervals_label,     new QLabel( "" ), nullptr,
+//        mYLatLabel,       mYLatMinValue, mYLatMaxValue, mYLatStep,  mYLatCutOff, mYLatIntervalsLabel, YiconWarning,     nullptr
+            new QLabel( "" ),  mXLonLabel,      new QLabel( "" ),  mYLatLabel,      new QLabel( "" ),  nullptr,
+            mGetDataMaxMinX,   mXLonMinValue,   min_label,         mYLatMinValue,   mGetDataMaxMinY,   nullptr,
+            new QLabel( "" ),  mXLonMaxValue,   max_label,         mYLatMaxValue,   new QLabel( "" ),  nullptr,
+            new QLabel( "" ),  mXLonStep,       step_label,        mYLatStep,       new QLabel( "" ),  nullptr,
+            new QLabel( "" ),  Xintr_WarnIcon,  intervals_label,   Yintr_WarnIcon,  new QLabel( "" ),  nullptr,
 	},
-    nullptr, 2, 4, 4, 4, 4 );
-    mSamplingGroup = CreateCollapsibleGroupBox( ELayoutType::Horizontal, { /*adv_filter_vl, nullptr,*/ nullptr/*line*/, sampling_gridl },
-        "Sampling", mAdvancedOperationsPage, s, 4, 4, 4, 4 );
+    nullptr, 2, 4, 4, 4, 2 );
+
+    auto *CutOff_Layout = LayoutWidgets( Qt::Horizontal, { nullptr, mXLonCutOff, nullptr, cut_label, nullptr, mYLatCutOff, nullptr }, nullptr, s, m, m, m, m );
+
+    mSamplingGroup = CreateCollapsibleGroupBox( ELayoutType::Vertical, { sampling_gridl, CutOff_Layout },
+        "Sampling", mAdvancedOperationsPage, s, 4, 4, 4, 2 );
 	mSamplingGroup->setCollapsed( true );
     //static const QString SyncGroup("SyncGroup");
 	//mSamplingGroup->setCheckable( true );
-	//mSamplingGroup->setSyncGroup( SyncGroup );
-
+	//mSamplingGroup->setSyncGroup( SyncGroup );    
 
 	mExpressionGroup = CreateGroupBox( ELayoutType::Vertical, 
 	{ 
@@ -752,6 +773,17 @@ void COperationControls::Wire()
 
 	connect( mStackWidget, SIGNAL( PageChanged( int ) ), this, SLOT( HandlePageChanged( int ) ) );
 
+    connect( mXLonMinValue, SIGNAL( editingFinished() ), this, SLOT( HandleXLonMin_changed() ) );
+    connect( mXLonMaxValue, SIGNAL( editingFinished() ), this, SLOT( HandleXLonMax_changed() ) );
+    connect( mYLatMinValue, SIGNAL( editingFinished() ), this, SLOT( HandleYLatMin_changed() ) );
+    connect( mYLatMaxValue, SIGNAL( editingFinished() ), this, SLOT(HandleYLatMax_changed() ) );
+    connect( mXLonStep, SIGNAL( editingFinished() ), this, SLOT(HandleXLonStep_changed() ) );
+    connect( mYLatStep, SIGNAL( editingFinished() ), this, SLOT(HandleYLatStep_changed() ) );
+    connect( mXLonCutOff, SIGNAL( editingFinished() ), this, SLOT(HandleXLoessCut_changed() ) );
+    connect( mYLatCutOff, SIGNAL( editingFinished() ), this, SLOT(HandleYLoessCut_changed() ) );
+
+    connect( mGetDataMaxMinX, SIGNAL( clicked() ), this, SLOT( HandleGetDataMinMaxX() ) );
+    connect( mGetDataMaxMinY, SIGNAL( clicked() ), this, SLOT( HandleGetDataMinMaxY() ) );
 
 	mSwitchToMapButton->setChecked( true );
 
@@ -1479,38 +1511,24 @@ void COperationControls::HandleDataSmoothing()
     mUserFormula->SetFilter( id );
 
     SelectDataSmoothingMode();
+
+    // To update Loess Cut off widgets
+    // Check if has smoothing
+    bool hasSmoothing = mCurrentOperation->HasV3Filters();
+    mXLonCutOff->setEnabled( hasSmoothing );
+    mYLatCutOff->setEnabled( hasSmoothing );
 }
 
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-//				Data Expressions Operations
+//                    SAMPLING METHODS
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-
-void COperationControls::HandleSwitchExpressionType()
-{
-    QAbstractButton *b = qobject_cast< QAbstractButton* >( sender() );
-	bool map = mSwitchToMapButton->isChecked();
-	if ( map == mDataExpressionsTree->IsMap() )
-		return;
-
-	std::string error_msg;
-	if ( !mDataExpressionsTree->CanSwitchType( error_msg ) )
-	{
-		SimpleErrorBox( error_msg );
-		b->setChecked( false );
-	}
-	else
-		mDataExpressionsTree->SwitchType();
-}
-
-
-///////// SAMPLING METHODS //////////////////////////////////////////////////////
-// At old Brat -> CResolutionDlg::Init(). TODO: This method needs to be completed
+// At old Brat -> CResolutionDlg::Init().
 void COperationControls::UpdateSamplingGroup()
 {
-    //mAdvFilter->clear();
+    // Clear sampling widgets
     mXLonLabel->clear();
     mYLatLabel->clear();
     mXLonMinValue->clear();
@@ -1523,59 +1541,47 @@ void COperationControls::UpdateSamplingGroup()
     mYLatCutOff->clear();
     mYLatIntervalsLabel->clear();
     mXLonIntervalsLabel->clear();
-	mSamplingGroup->setEnabled( false );
 
-	if ( !mCurrentOperation ||
-		 !mCurrentOperation->IsZFXY() )		//TODO only ZFXY? confirm for v4
+	mSamplingGroup->setEnabled( false );
+    mXLonCutOff->setEnabled( false );
+    mYLatCutOff->setEnabled( false );
+
+    if ( !mCurrentOperation || !mCurrentOperation->IsZFXY() )
 		return;
 
-
-	mSamplingGroup->setEnabled( true );
-
+    // Is ZFXY ///
     mXformula = mCurrentOperation->GetFormula( CMapTypeField::eTypeOpAsX );
     mYformula = mCurrentOperation->GetFormula( CMapTypeField::eTypeOpAsY );
 
-    // Setting sampling filter (in Brat v4 is Smoothing) -> RCCC TODO: Is this block being used?
-    if ( mUserFormula != nullptr )
-	{
-		if ( mUserFormula->GetDataType() == CMapTypeField::eTypeOpAsField		//IsFormulaDataField()
-			&&
-			!mCurrentOperation->IsSelect( mUserFormula ) )						//!IsFormulaSelectField()
-		{
-			QString sampling_filter;
-			if ( mUserFormula->GetFilter() == CMapTypeFilter::eFilterNone )
-                sampling_filter = "None";
-			else
-				sampling_filter = mUserFormula->GetFilterAsString().c_str();
+    if ( mXformula == nullptr || mYformula == nullptr )
+        return;
 
-            //mAdvFilter->addItem( sampling_filter );
-		}
-	}
+    mSamplingGroup->setEnabled( true );
 
+    // Check if has smoothing
+    bool hasSmoothing = mCurrentOperation->HasV3Filters();
+    mXLonCutOff->setEnabled( hasSmoothing );
+    mYLatCutOff->setEnabled( hasSmoothing );
 
-	bool has_filter = mCurrentOperation->HasV3Filters();
+    ////////////////////////////////////////////////////////////
+    ///  Initialize values on text box, labels and tooltips  ///
+    ////////////////////////////////////////////////////////////
 
-
+    ///////////////////
+    ///  X Formula  ///
+    ///////////////////
     if ( mXformula )
 	{
         QString xFormula_name = mXformula->GetName().c_str();
         QString xFormula_units = mXformula->GetUnitAsText().c_str();
 
-        if ( mXformula->IsLonDataType() )
-            mXLonLabel->setText( LonResolution_labelFormat.arg( xFormula_name,
-                                                                xFormula_units ) );
+        // X Label //
+        if ( mXformula->IsLonDataType() && mYformula->IsLatDataType() )
+            mXLonLabel->setText( LonResolution_labelFormat.arg( xFormula_name, xFormula_units ) );
         else
             mXLonLabel->setText( Xresolution_labelFormat.arg( xFormula_name, xFormula_units ) );
 
-
-        if ( has_filter )
-        {
-            mXLonCutOff->setText( mXformula->GetLoessCutOffAsText().c_str() );
-            mXLonCutOff->setToolTip( "Distance (in dots) for '" + xFormula_name +
-                                     "' field where LOESS smoothing reaches 0 along X axis.\n" +
-                                     "Must be an odd integer. If 1 or 0, Distance computation is disabled." );
-        }
-
+        // Min/Max X //
         if ( mXformula->IsTimeDataType() )
         {
             mXLonMinValue->setText( mXformula->GetMinValueAsDateString().c_str() );
@@ -1587,39 +1593,44 @@ void COperationControls::UpdateSamplingGroup()
             mXLonMaxValue->setText( mXformula->GetMaxAsString().c_str() );
         }
 
-
-        // Set remaining values
+        // Set Step and Interval values //
         mXLonStep->setText( mXformula->GetStep().c_str() );
         mXLonIntervalsLabel->setText( mXformula->GetIntervalAsText().c_str() );
 
-        // Set ToolTips
+        // Set ToolTips //
         mXLonMinValue->setToolTip( "Minimun value for '" + xFormula_name + "' field." );
         mXLonMaxValue->setToolTip( "Maximum value for '" + xFormula_name + "' field." );
+        mGetDataMaxMinX->setToolTip( DataMaxMin_labelFormat.arg( xFormula_name ) );
         mXLonStep->setToolTip( "Step between consecutive values for '" + xFormula_name +  "' field.\n" +
                                "'Step' is correlated with 'Number of intervals'." );
         mXLonIntervalsLabel->setToolTip( "Number of intervals between min. and max value for '" + xFormula_name +
                                          "' field.\n'Number of intervals' is correlate with 'Step',"  );
 
-	}
+        // Smoothing //
+        if ( hasSmoothing )
+        {
+            mXLonCutOff->setText( isDefaultValue(mXformula->GetLoessCutOff()) ? "" : n2q(mXformula->GetLoessCutOff()) );
+            mXLonCutOff->setToolTip( "Distance (in dots) for '" + xFormula_name +
+                                     "' field where LOESS smoothing reaches 0 along X axis.\n" +
+                                     "Must be an odd integer. If 1 or 0, Distance computation is disabled." );
+        }
+    }
+
+    ///////////////////
+    ///  Y Formula  ///
+    ///////////////////
     if ( mYformula )
 	{
         QString yFormula_name = mYformula->GetName().c_str();
         QString yFormula_units = mYformula->GetUnitAsText().c_str();
 
-        if ( mYformula->IsLatDataType() )
+        // Y Label //
+        if ( mYformula->IsLatDataType() && mXformula->IsLonDataType() )
             mYLatLabel->setText( LatResolution_labelFormat.arg( yFormula_name, yFormula_units ) );
         else
             mYLatLabel->setText( Yresolution_labelFormat.arg( yFormula_name, yFormula_units ) );
 
-
-        if ( has_filter )
-        {
-            mYLatCutOff->setText( mYformula->GetLoessCutOffAsText().c_str() );
-            mYLatCutOff->setToolTip( "Distance (in dots) for '" + yFormula_name +
-                                     "' field where LOESS smoothing reaches 0 along Y axis.\n" +
-                                     "Must be an odd integer. If 1 or 0, Distance computation is disabled." );
-        }
-
+        // Min/Max Y //
         if ( mYformula->IsTimeDataType() )
         {
             mYLatMinValue->setText( mYformula->GetMinValueAsDateString().c_str() );
@@ -1631,31 +1642,47 @@ void COperationControls::UpdateSamplingGroup()
             mYLatMaxValue->setText( mYformula->GetMaxAsString().c_str() );
         }
 
-        // Set remaining values
+        // Set Step and Interval values //
         mYLatStep->setText( mYformula->GetStep().c_str() );
         mYLatIntervalsLabel->setText( mYformula->GetIntervalAsText().c_str() );
 
-        // Set ToolTips
+        // Set ToolTips //
         mYLatMinValue->setToolTip( "Minimun value for '" + yFormula_name + "' field." );
         mYLatMaxValue->setToolTip( "Maximum value for '" + yFormula_name + "' field." );
+        mGetDataMaxMinY->setToolTip( DataMaxMin_labelFormat.arg( yFormula_name ) );
         mYLatStep->setToolTip( "Step between consecutive values for '" + yFormula_name +  "' field.\n" +
                                "'Step' is correlated with 'Number of intervals'." );
         mYLatIntervalsLabel->setToolTip( "Number of intervals between min. and max value for '" + yFormula_name +
                                          "' field.\n'Number of intervals' is correlated with 'Step',"  );
 
+        // Smoothing //
+        if ( hasSmoothing )
+        {
+            mYLatCutOff->setText( isDefaultValue(mYformula->GetLoessCutOff()) ? "" : n2q(mYformula->GetLoessCutOff()) );
+            mYLatCutOff->setToolTip( "Distance (in dots) for '" + yFormula_name +
+                                     "' field where LOESS smoothing reaches 0 along Y axis.\n" +
+                                     "Must be an odd integer. If 1 or 0, Distance computation is disabled." );
+        }
 	}
 
+    ///////////////////////////////////////////////////////
+    /// Verify values, compute interval, update mformula //
+    ValidateData();
 
-    //////// RCCC TEMP ///
-    GetMinMax( mXformula );
-    GetMinMax( mYformula );
-    ////////////////////////
+    ///////////////////
+    /// IMPROVEMENT ///
+    // Case X or Y are TimeDateType, automatically sets the min/max data coverage of the dataset
+    // Otherwise the user may create, by default, a operation with a huge time range from 2000 to current date...
+    if ( mXformula->IsTimeDataType() )
+        GetDataMinMax( mXformula );
+    if ( mYformula->IsTimeDataType() )
+        GetDataMinMax( mYformula );
+
 }
 
 
-//// RCCC - TODO: To be Reviewed ///////////////////////////////////////////////////////////
 // At old Brat -> CResolutionDlg::GetMinmax(CFormula* formula).
-void COperationControls::GetMinMax(CFormula* formula)
+void COperationControls::GetDataMinMax(CFormula* formula)
 {
     if ( formula == nullptr )
         return;
@@ -1863,100 +1890,77 @@ void COperationControls::GetMinMax(CFormula* formula)
 }
 
 
-bool COperationControls::ValidateData()
+void COperationControls::ValidateData()
 {
-    if ( VerifyMinMaxXY() == false )
-        return false;
-
+    VerifyMinMaxX();
+    VerifyMinMaxY();
     ComputeXYInterval();
-    return true;
 }
 
-
-bool COperationControls::VerifyMinMaxXY()
-{
-    return ( VerifyMinMaxX() /*&& VerifyYMinMaxY()*/ );
-}
 
 bool COperationControls::VerifyMinMaxX()
 {
-    bool Ok = true;
-
     if ( mXformula->IsTimeDataType() )
-    {
-        Ok = VerifyMinMaxAsDate(mXformula, mXLonMinValue, mXLonMaxValue);
-    }
-//    else if (m_x->IsLatLonDataType())
-//    {
-//        bOk = VerifyMinMax(m_xFormulaTmp, GetFormulaoptXmin(), GetFormulaoptXmax(), m_xMinValueDefault, m_xMaxValueDefault);
-//    }
-//    else
-//    {
-//        bOk = VerifyMinMax(m_xFormulaTmp, GetFormulaoptXmin(), GetFormulaoptXmax(), m_xMinValueDefault, m_xMaxValueDefault);
-//    }
+        return VerifyMinMaxAsDate( mXformula, mXLonMinValue, mXLonMaxValue );
+    else
+        return VerifyMinMax( mXformula, mXLonMinValue, mXLonMaxValue );
+}
 
-    return Ok;
+bool COperationControls::VerifyMinMaxY()
+{
+    if ( mYformula->IsTimeDataType() )
+        return VerifyMinMaxAsDate( mYformula, mYLatMinValue, mYLatMaxValue );
+    else
+        return VerifyMinMax( mYformula, mYLatMinValue, mYLatMaxValue );
 }
 
 
 bool COperationControls::VerifyMinMaxAsDate( CFormula *formula, QLineEdit *LineEdit_Min, QLineEdit *LineEdit_Max )
 {
-    Q_UNUSED( LineEdit_Min );        Q_UNUSED( LineEdit_Max );        Q_UNUSED( formula );
+    if ( mCurrentOperation == nullptr )
+        return true;
 
-	if ( mCurrentOperation == nullptr )
-	{
-		return true;
-	}
+    ////////////////////////////////////////////////////////////////////////
+    /// GetCtrlMinMaxAsDate(formula, ctrlMin, ctrlMax) -> Old method BratV3
+    ////////////////////////////////////////////////////////////////////////
+    CProduct* product = mCurrentOperation->GetProduct();
 
-	//////////////////////////////////////////////////
-	/// GetCtrlMinMaxAsDate(formula, ctrlMin, ctrlMax);
-	//////////////////////////////////////////////////
-	CProduct* product = mCurrentOperation->GetProduct();
+    CDate dateMin, dateMax;
+    double min = 0.0;
+    double max = 0.0;
 
-	CDate dateMin, dateMax;
-	double min = 0.0;
-	double max = 0.0;
+    dateMin.InitDateZero();
 
-	dateMin.InitDateZero();
+    if (product != nullptr)
+    {
+        dateMin.SetDate(0.0, product->GetRefDate());
+    }
 
-	if ( product != nullptr )
-	{
-		dateMin.SetDate( 0.0, product->GetRefDate() );
-	}
+    dateMax.SetDateNow();
 
-	dateMax.SetDateNow();
+    GetValueAsDate( LineEdit_Min, min, dateMin.Value(), dateMin.Value(), dateMax.Value() );
+    GetValueAsDate( LineEdit_Max, max, dateMax.Value(), dateMin.Value(), dateMax.Value() );
 
-	GetValueAsDate( mXLonMinValue, min, dateMin.Value(), dateMin.Value(), dateMax.Value() );
-	GetValueAsDate( mYLatMinValue, max, dateMax.Value(), dateMin.Value(), dateMax.Value() );
+    // Set validated values into formula //
+    formula->SetMinValue( min );
+    formula->SetMaxValue( max );
+    //////////////////////////////////////////////////
 
-	// to set right date std::string format
-	//    ctrlMin->SetValueAsDate(min, "");
-	//    ctrlMax->SetValueAsDate(max, "");
+    if ( ( isDefaultValue(min) && isDefaultValue(max) ) )
+        return true;
 
-	//    formula.SetMinValue(min);
-	//    formula.SetMaxValue(max);
-	//////////////////////////////////////////////////
+    if ( min >= max )
+    {
+        // Set default values into formula and LineEdit //
+        formula->SetMinValue( dateMin.Value() );   LineEdit_Min->setText( dateMin.AsString( DateTimeFormat ).c_str() );
+        formula->SetMaxValue( dateMax.Value() );   LineEdit_Max->setText( dateMax.AsString( DateTimeFormat ).c_str() );
+        SimpleWarnBox( QString("'%1' minimum value must be strictly less than '%2' maximum value.").arg(
+                                formula->GetName().c_str(),
+                                formula->GetName().c_str() ) );
+        return false;
+    }
 
-
-	//  double min = formula.GetMinValue();
-	//  double max = formula.GetMaxValue();
-
-	//  if (isDefaultValue(min) && isDefaultValue(max))
-	//  {
-	//    return true;
-	//  }
-
-	//  if (min >= max)
-	//  {
-	//     wxMessageBox(wxString::Format("'%s' minimun value must be strictly less than '%s' maximum value.",
-	//                                  formula.GetName().c_str(),
-	//                                  formula.GetName().c_str()),
-	//           "Warning",
-	//            wxOK | wxCENTRE | wxICON_EXCLAMATION);
-	//    return false;
-	//  }
-
-	return true;
+    return true;
 }
 
 
@@ -1964,10 +1968,9 @@ void COperationControls::GetValueAsDate( QLineEdit *LineEdit_Axisvalue, double &
 {
     CDate dateTmp;
 
-    //////////////////////////////////////////
-    // GetValue(dateTmp, defValue, min, max);
-    // GetValue(CDate& value, double defValue, double min, double max)
-    //////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////
+    // GetValue(CDate& value, double defValue, double min, double max) -> Old BratV3
+    ///////////////////////////////////////////////////////////////////////////
     try
     {
         QString str = LineEdit_Axisvalue->text();
@@ -1980,69 +1983,150 @@ void COperationControls::GetValueAsDate( QLineEdit *LineEdit_Axisvalue, double &
             if ( isDefaultValue(defValue) )
                 dateTmp.SetDefaultValue();
             else
-            {
                 dateTmp = defValue;
-                LineEdit_Axisvalue->setText( dateTmp.AsString( DateTimeFormat ).c_str() );
-            }
-            return;
         }
-
-
-        int32_t result = dateTmp.SetDate( str.toStdString().c_str() );
-        if ( result != BRATHL_SUCCESS )
-            dateTmp.SetDefaultValue();
-
-        // //////////////////////////////////
-        // Is Default (value in line Edit) //
-        // //////////////////////////////////
-        if ( dateTmp.IsDefaultValue() )
+        else
         {
-            if ( !isDefaultValue(defValue) )
-            {
+            int32_t result = dateTmp.SetDate( str.toStdString().c_str() );
+            if ( result != BRATHL_SUCCESS )
+                dateTmp.SetDefaultValue();
+
+            // //////////////////////////////////
+            // Is Default (value in line Edit) //
+            // //////////////////////////////////
+            if ( dateTmp.IsDefaultValue() && !isDefaultValue(defValue) )
                 dateTmp = defValue;
-                LineEdit_Axisvalue->setText( dateTmp.AsString( DateTimeFormat ).c_str() );
-            }
-            return;
-        }
 
-        // /////////////////////////////////////////////////
-        // Is outside Min/Max limits (value in line Edit) //
-        // /////////////////////////////////////////////////
-        if ( !isDefaultValue(min) || !isDefaultValue(max) )
-        {
-            if ( dateTmp < min  || dateTmp > max  )
+            // /////////////////////////////////////////////////
+            // Is outside Min/Max limits (value in line Edit) //
+            // /////////////////////////////////////////////////
+            if (  (!isDefaultValue(min) && dateTmp < min) ||
+                  (!isDefaultValue(max) && dateTmp > max)    )
             {
                 if ( isDefaultValue(defValue) )
                     dateTmp.SetDefaultValue();
                 else
-                {
                     dateTmp = defValue;
-                    LineEdit_Axisvalue->setText( dateTmp.AsString( DateTimeFormat ).c_str() );
-                }
-                return;
-
             }
         }
     }
     catch (CException e)
     {
         dateTmp = defValue;
-        LineEdit_Axisvalue->setText( dateTmp.AsString( DateTimeFormat ).c_str() );
     }
 
-    // This value allows
+    // Validated date is set on Line Edit and will be passed to formula object (in seconds)
+    LineEdit_Axisvalue->setText( dateTmp.AsString( DateTimeFormat ).c_str() );
     seconds = dateTmp.Value();
 }
 
 
-
-
-
-bool COperationControls::ComputeXYInterval()
+bool COperationControls::VerifyMinMax( CFormula *formula, QLineEdit *LineEdit_Min, QLineEdit *LineEdit_Max )
 {
-    return 
-		ComputeInterval( mXformula, mXLonIntervalsLabel, mXLonStep, XiconWarning) &&
-		ComputeInterval( mYformula, mYLatIntervalsLabel, mYLatStep, YiconWarning);
+    if ( mCurrentOperation == nullptr )
+        return true;
+
+    ////////////////////////////////////////////////////////////////////////
+    /// GetCtrlMinMax(formula, ctrlMin, ctrlMax, minDefault, maxDefault) -> Old method BratV3
+    ////////////////////////////////////////////////////////////////////////
+    double minDefault = 0;
+    double maxDefault = 0;
+    double min = 0.0;
+    double max = 0.0;
+
+    if ( formula->IsLonDataType() )
+    {
+        formula->ConvertToFormulaUnit( -180, minDefault );
+        formula->ConvertToFormulaUnit(  180, maxDefault );
+
+        GetValue( LineEdit_Min, min, minDefault );
+        GetValue( LineEdit_Max, max, maxDefault );
+    }
+    else
+    {
+        formula->ConvertToFormulaUnit( -90, minDefault );
+        formula->ConvertToFormulaUnit(  90, maxDefault );
+
+        GetValue( LineEdit_Min, min, minDefault, minDefault, maxDefault );
+        GetValue( LineEdit_Max, max, maxDefault, minDefault, maxDefault );
+    }
+
+    // Set validated values into formula //
+    formula->SetMinValue( min );
+    formula->SetMaxValue( max );
+    ///////////////////////////////////////////////////////////////////////
+
+    if ( isDefaultValue(min) && isDefaultValue(max) )
+        return true;
+
+    // Chech if min>=max ////////////
+    std::string errorMsg = "Resolution for '" + formula->GetName() + "': ";
+    if ( !formula->CtrlMinMaxValue(errorMsg) )
+    {
+        // Set default values into formula and LineEdit //
+        formula->SetMinValue( minDefault );    LineEdit_Min->setText( n2q( minDefault ) );
+        formula->SetMaxValue( maxDefault );    LineEdit_Max->setText( n2q( maxDefault ) );
+        SimpleWarnBox( t2q(errorMsg) );
+        return false;
+    }
+
+    return true;
+}
+
+void COperationControls::GetValue( QLineEdit *LineEdit_Axisvalue, double &value, double defValue,
+                                   double min/*= CTools::m_defaultValueDOUBLE*/,
+                                   double max/*= CTools::m_defaultValueDOUBLE*/                   )
+{
+    CExpression expression;
+    CExpressionValue exprValue;
+
+    try
+    {
+        std::string str = q2a( LineEdit_Axisvalue->text() );
+
+        // ////////////////////////////////
+        // Is Empty (value in line Edit) //
+        // ////////////////////////////////
+        if ( str.empty() )
+        {
+            value = defValue;
+            LineEdit_Axisvalue->setText( n2q(value) );
+            return;
+        }
+
+        if ( str.back() == '.' )
+            str.append("0");
+
+        expression.SetExpression( str );
+        if ( expression.GetFieldNames()->size() != 0 )
+            throw CException( "Fieldnames are not allowed for float parameter value", BRATHL_SYNTAX_ERROR );
+
+        exprValue = expression.Execute();
+        value = *( exprValue.GetValues() );
+
+        // /////////////////////////////////////////////////
+        // Is outside Min/Max limits (value in line Edit) //
+        // /////////////////////////////////////////////////
+        if ( (!isDefaultValue(min) && value < min) ||
+             (!isDefaultValue(max) && value > max)    )
+        {
+            value = defValue;
+            LineEdit_Axisvalue->setText( n2q(value) );
+            return;
+        }
+    }
+    catch (CException e)
+    {
+        value = defValue;
+        LineEdit_Axisvalue->setText( n2q(value) );
+    }
+}
+
+
+void COperationControls::ComputeXYInterval()
+{
+    ComputeInterval( mXformula, mXLonIntervalsLabel, mXLonStep, XiconWarning);
+    ComputeInterval( mYformula, mYLatIntervalsLabel, mYLatStep, YiconWarning);
 }
 
 
@@ -2051,8 +2135,8 @@ bool COperationControls::ComputeInterval( CFormula *formula, QLabel *IntervalsLa
     // Compute interval of the formula
     std::string errorMsg;
     bool Ok = formula->ComputeInterval( errorMsg );
-    if ( !errorMsg.empty() )
-        SimpleWarnBox( errorMsg );
+    //if ( !errorMsg.empty() && !Ok )
+    //    SimpleWarnBox( errorMsg );
 
     // Update warning icon
     if ( Ok == false )
@@ -2079,7 +2163,145 @@ bool COperationControls::ComputeInterval( CFormula *formula, QLabel *IntervalsLa
     return Ok;
 }
 
-///////// END OF SAMPLING METHODS /////////////////////////////////////////////////////////
+
+void COperationControls::HandleXLonMin_changed()
+{
+    VerifyMinMaxX();
+    ComputeXYInterval();
+}
+
+
+void COperationControls::HandleXLonMax_changed()
+{
+    VerifyMinMaxX();
+    ComputeXYInterval();
+}
+
+void COperationControls::HandleYLatMin_changed()
+{
+    VerifyMinMaxY();
+    ComputeXYInterval();
+}
+
+void COperationControls::HandleYLatMax_changed()
+{
+    VerifyMinMaxY();
+    ComputeXYInterval();
+}
+
+
+void COperationControls::HandleXLonStep_changed()
+{
+    QString step = mXLonStep->text();
+
+    // Empty step or division by zero not allowed //
+    static QRegExp re("[0-9]+[/][0.]+");
+    if ( step.isEmpty() || re.exactMatch( step ) )
+        step = t2q( mXformula->GetDefaultStep() );
+
+    mXLonStep->setText( step );
+    mXformula->SetStep( step.toStdString() );
+
+    ComputeXYInterval();
+}
+
+
+void COperationControls::HandleYLatStep_changed()
+{
+    QString step = mYLatStep->text();
+
+    // Empty step or division by zero not allowed //
+    static QRegExp re("[0-9]+[/][0.]+");
+    if ( step.isEmpty() || re.exactMatch( step ) )
+        step = t2q( mYformula->GetDefaultStep() );
+
+    mYLatStep->setText( step );
+    mYformula->SetStep( step.toStdString() );
+
+    ComputeXYInterval();
+}
+
+
+void COperationControls::HandleXLoessCut_changed()
+{
+    QString loess = mXLonCutOff->text();
+    int loess_int = loess.toInt();
+
+    if ( loess.isEmpty() )
+    {
+        mXformula->SetLoessCutOffDefault(); // distance computation disabled
+    }
+    else if ( loess_int % 2 == 0   ||   loess_int < 2 ) // Invalid! Loess_int is even or smaller than 2
+    {
+        mXLonCutOff->setText( "" );
+        mXformula->SetLoessCutOffDefault();
+        SimpleWarnBox( "Loess Cut-Off value must be an odd integer. If 0 or 1, distance computation is disabled." );
+    }
+    else // Valid! It's passed to formula
+    {
+        mXformula->SetLoessCutOff( loess_int );
+    }
+}
+
+
+void COperationControls::HandleYLoessCut_changed()
+{
+    QString loess = mYLatCutOff->text();
+    int loess_int = loess.toInt();
+
+    if ( loess.isEmpty() )
+    {
+        mYformula->SetLoessCutOffDefault(); // distance computation disabled
+    }
+    else if ( loess_int % 2 == 0   ||   loess_int < 2 ) // Invalid! Loess_int is even or smaller than 2
+    {
+        mYLatCutOff->setText( "" );
+        mYformula->SetLoessCutOffDefault();
+        SimpleWarnBox( "Loess Cut-Off value must be an odd integer. If 0 or 1, distance computation is disabled." );
+    }
+    else // Valid! It's passed to formula
+    {
+        mYformula->SetLoessCutOff( loess_int );
+    }
+}
+
+
+void COperationControls::HandleGetDataMinMaxX()
+{
+    // Sets min/max X data coverage
+    GetDataMinMax( mXformula );
+}
+
+void COperationControls::HandleGetDataMinMaxY()
+{
+    // Sets min/max Y data coverage
+    GetDataMinMax( mYformula );
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+//				Data Expressions Operations
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+void COperationControls::HandleSwitchExpressionType()
+{
+    QAbstractButton *b = qobject_cast< QAbstractButton* >( sender() );
+    bool map = mSwitchToMapButton->isChecked();
+    if ( map == mDataExpressionsTree->IsMap() )
+        return;
+
+    std::string error_msg;
+    if ( !mDataExpressionsTree->CanSwitchType( error_msg ) )
+    {
+        SimpleErrorBox( error_msg );
+        b->setChecked( false );
+    }
+    else
+        mDataExpressionsTree->SwitchType();
+}
 
 
 void COperationControls::HandleSelectedFormulaChanged( CFormula *formula )
@@ -2099,9 +2321,9 @@ void COperationControls::HandleSelectedFormulaChanged( CFormula *formula )
     SelectDataSmoothingMode();
 
     // Update Sampling parameters/buttons
-	bool enable_sampling = 
+    bool enable_sampling =
 		mUserFormula != nullptr &&
-        //mUserFormula->GetFieldType() == CMapTypeField::eTypeOpAsField && // Enables only if Formula is a data field
+        //mUserFormula->GetFieldType() == CMapTypeField::eTypeOpAsField && // Enables only if Formula has a data field
         !COperation::IsSelect( mUserFormula->GetName() );
 
 	mSamplingGroup->setEnabled( enable_sampling );
@@ -2492,12 +2714,147 @@ void COperationControls::HandleRenameOperation()
 
 void COperationControls::HandleExportOperation()
 {
+//    assert__( mCurrentOperation || mQuickOperation );
+
+//    COperation *operation = AdvancedMode() ? mCurrentOperation : mQuickOperation;		assert__( operation );
+
+//    // Check if operation has errors
+//    std::string msg;
+//    bool operationOk = AdvancedMode() ? CheckAdvancedOperation( msg, true, &mMapFormulaString ) : CheckQuickOperation( msg, true, &mMapFormulaString );
+//    if ( !operationOk )
+//    {
+//        SimpleErrorBox( "Operation '"
+//                        + operation->GetName()
+//                        + "' has some errors and process can't be achieved"
+//                        + ( msg.empty() ? "." : ":\n" )
+//                        + msg );
+//        return;
+//    }
+
+
     CExportDialog dlg( this );
-    if ( dlg.exec() == QDialog::Accepted )
+    if ( dlg.exec() == QDialog::Rejected )
     {
-        BRAT_NOT_IMPLEMENTED;
+        return;
     }
+
+//    //------------------
+//    // Remember last export filename and path -> OLD BRAT
+//    //------------------
+////    wxFileName filenameToSave = dlg.m_currentName;
+////    filenameToSave.SetExt(CExportDlg::m_defaultExtensionAscii);
+////    m_operation->SetExportAsciiOutput( filenameToSave.GetFullPath().ToStdString(), wxGetApp().GetCurrentWorkspaceOperation() );
+
+////    m_operation->SetExecuteAgain(dlg.m_executeAgain);
+////  //  m_operation->SetDelayExecution(dlg.m_delayExecution);
+
+
+//    //------------------
+//    // Export as Ascii
+//    //------------------
+//    if ( dlg.AsAscii() )
+//    {
+//        operation->SetExportAsciiDateAsPeriod( dlg.m_dateAsPeriod );
+//        operation->SetExportAsciiExpandArray( dlg.m_expandArray );
+//        operation->SetExportAsciiNoDataComputation( dlg.m_noDataComputation );
+//        operation->SetExportAsciiNumberPrecision( dlg.m_asciiNumberPrecision );
+
+//        if ( dlg.m_delayExecution )
+//        {
+//            //DelayExportOperationAsAscii( dlg.m_delayDlg );
+//            BRAT_NOT_IMPLEMENTED;
+//        }
+//        else
+//        {
+//            ExportOperationAsAscii( operation );
+//        }
+//        return;
+//    }
+
+
+//    ///////////////// TO INTEGRATE /////////////////
+////	operation->ClearLogFile();		//!sync
+////	operation->InitShowStatsOutput( mWOperation );
+//    if ( !operation->BuildShowStatsCmdFile( mWFormula, mWOperation ) )	//v3 didn't seem to care if this fails
+//    {
+//        SimpleErrorBox( "There was an error composing the command file.\nStatistics cannot be computed." );
+//        return;
+//    }
+
+//    emit AsyncProcessExecution( true );
+//    // ProcessesTable will display user messages for us, no need to report on false return
+//    //
+//    //bool result =
+//    mProcessesTable->Add4Statistics( false, operation );
+//    emit AsyncProcessExecution( false );
+//    ///////////////// TO INTEGRATE /////////////////
+
+//    //------------------
+//    // Export as NetCdf
+//    //------------------
+
+//    //------------------
+//    // Export as GeoTiff
+//    //------------------
+
 }
+
+//void COperationControls::ExportOperationAsAscii( COperation *operation ) // TODO RCCC: Old method at OperationPanel
+//{
+//    if ( !m_operation )
+//        return;
+
+//    // Exports operation with data computation, otherwise only dumps expressions
+//    if ( !m_operation->IsExportAsciiNoDataComputation() )
+//    {
+//        // [TODO RCCC: FEMM comment at v3 method] The output file is not updated as it should when the values in the formula tree change;
+//        //so, inspecting IsExecuteAgain and output file existence is not enough to know when execution
+//        //is necessary. Hence, here, we are forced to always execute, because apparently there is no other
+//        //mechanism that we could inspect to know if the output (netcdf) file is updated.
+//        //
+//        bool bExecute = true; // m_operation->IsExecuteAgain() || ( ! wxFileExists(m_operation->GetOutputName()) );
+
+//        if ( bExecute )
+//        {
+//            Execute( true );
+
+//            if ( wxFileExists( m_operation->GetOutputPath() ) == false )
+//            {
+//                wxMessageBox( wxString::Format( "File'%s' doesn't exist - Please, look at the messages in the log panel"
+//                    " and check if the operation has been correctly processed",
+//                    m_operation->GetOutputPath() ),
+//                    "Warning",
+//                    wxOK | wxCENTRE | wxICON_EXCLAMATION );
+//                EnableCtrl();
+//                return;
+//            }
+//        }
+//    }
+
+
+
+//    //////////
+//    WaitCursor wait;				assert__( mWRoot );
+
+//    COperation *operation = CreateQuickOperation( CMapTypeOp::eTypeOpZFXY );
+//    if ( !operation )
+//    {
+//        return;
+//    }
+//    assert__( operation->IsMap() );
+
+//    SelectOperation( operation->GetName(), false );
+
+//    Execute( true );
+//    ///////////
+
+
+
+
+//}
+
+
+
 void COperationControls::HandleEditExportAscii()
 {
     CEditExportAsciiDialog dlg( this );
@@ -2702,23 +3059,7 @@ bool COperationControls::HandleExecute()
 			HandleQuickPlot();
 
 		return true;
-	}
-
-
-    // TODO RCCC TEMP: Check here sampling parameters
-    mXformula->SetMinValue( mXLonMinValue->text().toDouble() );
-    mXformula->SetMaxValue( mXLonMaxValue->text().toDouble() );
-    mXformula->SetStep( mXLonStep->text().toStdString() );
-    mXformula->SetLoessCutOff( mXLonCutOff->text().toInt() );
-
-    mYformula->SetMinValue( mYLatMinValue->text().toDouble() );
-    mYformula->SetMaxValue( mYLatMaxValue->text().toDouble() );
-    mYformula->SetStep( mYLatStep->text().toStdString() );
-    mYformula->SetLoessCutOff( mYLatCutOff->text().toInt() );
-
-    ComputeXYInterval();
-    mXformula->SetInterval( mXLonIntervalsLabel->text().toInt() ); //////////////ATTENTION RCCC needs to be calculated
-    mYformula->SetInterval( mYLatIntervalsLabel->text().toInt() ); //////////////ATTENTION RCCC needs to be calculated
+    }
 
 	return Execute( true );
 }

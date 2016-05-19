@@ -34,11 +34,13 @@ public:
 
     enum EExportFormat
     {
+        eNONE = -1,
         eASCII,
         eNETCDF,
         eGEOTIFF
     };
 
+    EExportFormat m_exportType;
 
     /////////////////////////////
     // static data
@@ -74,6 +76,8 @@ public:
 	QPushButton *mBrowseButton = nullptr;
 
     QDialogButtonBox *mButtonBox = nullptr;
+
+    QLineEdit *mOutputPath=nullptr;
 
 //OLD BRAT CODE /////////////////////////////////////////
 //    CLabeledTextCtrl* GetExportAsciiNumberPrecision()  { return (CLabeledTextCtrl*) FindWindow( ID_EXPORT_ASCII_NUMBER_PRECISION ); }
@@ -175,6 +179,8 @@ protected slots:
 
 
 	void HandleButtonClicked( QAbstractButton *button );
+    void HandleExportType(int);
+    void HandleChangeExportPath();
 };
 
 
