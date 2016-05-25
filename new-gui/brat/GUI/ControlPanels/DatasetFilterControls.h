@@ -135,6 +135,7 @@ protected:
     void FillAreasList();
     void ShowOnlyAreasInRegion(int region_index);
     void SaveAllAreas();
+    void ValidateAndStoreValue(QLineEdit *TextBox, int &ValueInFilter, int ParamDef, int min, int max);
 
 
 signals:
@@ -167,10 +168,10 @@ public slots:
     void HandleStartDateTimeChanged(const QDateTime &start_datetime);
     void HandleStopDateTimeChanged (const QDateTime &stop_datetime);
 
-    void HandleStartCycleChanged(const QString &new_cycle);
-    void HandleStopCycleChanged(const QString &new_cycle);
-    void HandleStartPassChanged(const QString &new_pass);
-    void HandleStopPassChanged(const QString &new_pass);
+    void HandleStartCycleChanged();
+    void HandleStopCycleChanged();
+    void HandleStartPassChanged();
+    void HandleStopPassChanged();
 
 	void HandleWorkspaceChanged();
     void HandleDatasetChanged( CDataset *dataset );

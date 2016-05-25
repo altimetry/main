@@ -6,27 +6,19 @@
 
 
 
-CEditExportAsciiDialog::CEditExportAsciiDialog( QWidget *parent )
-    : base_t( parent )
-{
-
-    CreateWidgets();
-}
-
-CEditExportAsciiDialog::~CEditExportAsciiDialog()
-{}
-
-
 void  CEditExportAsciiDialog::CreateWidgets()
 {
-    //	Create
+    //	Text
+
+	mTextEdit = new CTextWidget;
+	mTextEdit->SetSizeHint( mTextEdit->sizeHint().width(), 2 * mTextEdit->sizeHint().height() );
+	auto *content_l = LayoutWidgets( Qt::Vertical, { mTextEdit }, nullptr, 2, 2, 2, 2, 2 );
+
 
     //	... Help
 
     auto help = new CTextWidget;
-    help->SetHelpProperties(
-                "It can be used to visualize and edit the exported Ascii files."
-         ,0 , 6, Qt::AlignCenter );
+    help->SetHelpProperties( "Exported ASCII file for operation " + t2q( mOperation->GetName() ) + ".", 0 , 6 );
     auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
     help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 
@@ -36,20 +28,19 @@ void  CEditExportAsciiDialog::CreateWidgets()
     mButtonBox = new QDialogButtonBox( this );
     mButtonBox->setObjectName( QString::fromUtf8( "mButtonBox" ) );
     mButtonBox->setOrientation( Qt::Horizontal );
-    mButtonBox->setStandardButtons( QDialogButtonBox::Ok | QDialogButtonBox::Cancel );
-    mButtonBox->button( QDialogButtonBox::Ok )->setDefault( true );
-
+    mButtonBox->setStandardButtons( QDialogButtonBox::Close );
+    mButtonBox->button( QDialogButtonBox::Close )->setDefault( true );
 
     QBoxLayout *main_l =
             LayoutWidgets( Qt::Vertical,
                             {
+								content_l,
+								WidgetLine( nullptr, Qt::Horizontal ),
                                 help_group,
                                 mButtonBox
 
                             }, this, 6, 6, 6, 6, 6 );                       Q_UNUSED( main_l );
 
-
-    setWindowTitle( "Edit Export Ascii...");
 
     //	Wrap up dimensions
 
@@ -62,18 +53,33 @@ void  CEditExportAsciiDialog::CreateWidgets()
 
 void  CEditExportAsciiDialog::Wire()
 {
-    //	Setup things
+	mTextEdit->readFromFile( t2q( mOperation->GetExportAsciiOutputPath() ) );
+	mTextEdit->MoveTo( 0, false );
+
+    //	connect
 
     connect( mButtonBox, SIGNAL( accepted() ), this, SLOT( accept() ) );
     connect( mButtonBox, SIGNAL( rejected() ), this, SLOT( reject() ) );
 }
 
 
+CEditExportAsciiDialog::CEditExportAsciiDialog( COperation *operation, QWidget *parent )
+    : base_t( parent )
+	, mOperation( operation )
+{
+    CreateWidgets();
+
+	setWindowTitle( "Exported ASCII file: " + t2q( mOperation->GetExportAsciiOutputPath() ) );
+}
+
+
+CEditExportAsciiDialog::~CEditExportAsciiDialog()
+{}
+
 
 //virtual
 void  CEditExportAsciiDialog::accept()
 {
-
     base_t::accept();
 }
 

@@ -135,6 +135,11 @@ protected:
 	virtual void Show2D( bool checked ) override;
 	virtual void Show3D( bool checked ) override;
 	virtual void Recenter() override;
+	virtual void Export2Image( const std::string path, EImageExportType type ) override;
+
+	virtual void StatisticsMean() override;
+	virtual void StatisticsStDev() override;
+	virtual void StatisticsLinearRegression() override;
 
 	virtual bool ViewChanged() override;
 	virtual void NewButtonClicked() override;

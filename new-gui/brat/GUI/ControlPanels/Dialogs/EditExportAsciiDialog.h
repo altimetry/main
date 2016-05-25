@@ -35,9 +35,12 @@ class CEditExportAsciiDialog : public QDialog
     // instance data
     /////////////////////////////
 
+	CTextWidget *mTextEdit = nullptr;
     QDialogButtonBox *mButtonBox = nullptr;
 
+	//domain data
 
+	COperation *mOperation = nullptr;
 
     /////////////////////////////
     //construction / destruction
@@ -48,7 +51,7 @@ private:
     void Wire();
 
 public:
-    CEditExportAsciiDialog( QWidget *parent );
+    CEditExportAsciiDialog( COperation *operation, QWidget *parent );
 
     virtual ~CEditExportAsciiDialog();
 

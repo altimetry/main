@@ -1304,7 +1304,7 @@ CBratAlgorithmBase* CBratAlgorithmBase::GetNew(const char* algorithName)
 
   for(CBratAlgorithmBaseRegistry::iterator it = registry.Begin(); it != registry.End(); ++it)
   {
-    base_creator func = **it;
+    base_creator &func = **it;					//v4 "func" as reference: must be polymorphic...
     algorithm = func();
     std::string nameToSearch = algorithName;
 

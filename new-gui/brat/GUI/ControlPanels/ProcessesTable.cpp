@@ -15,13 +15,13 @@
 
 
 
-COsProcess::COsProcess( const COperation *operation, bool sync, const std::string& name, QWidget *parent, const std::string& cmd, const std::string *output, int type )		//output = nullptr, int type = -1 
+COsProcess::COsProcess( const COperation *operation, bool sync, const std::string& name, QWidget *parent, const std::string& cmd, void *user_data, const std::string *output )		//user_data = nullptr, const std::string *output = nullptr 
 	: QProcess( parent )
 	, mSync( sync )
 	, mName( name )
 	, mCmdLine( cmd )
 	, mOutput( output ? *output : "" )
-	, mType( type )
+	, mUserData( user_data )
 	, mOperation( operation )
 {}
 
@@ -254,17 +254,7 @@ std::string CProcessesTable::MakeProcessNewName( const std::string &original_nam
 }
 
 
-bool CProcessesTable::Add( bool sync, bool allow_multiple, const COperation *operation )
-{
-	return Add( sync, allow_multiple, operation->GetTaskName(), operation->GetFullCmd(), operation );
-}
-
-bool CProcessesTable::Add4Statistics( bool allow_multiple, const COperation *operation )
-{
-	return Add( false, allow_multiple, operation->GetShowStatsTaskName(), operation->GetShowStatsFullCmd(), operation );
-}
-
-bool CProcessesTable::Add( bool sync, bool allow_multiple, const std::string &original_name, const std::string &cmd, const COperation *operation )		//operation==nullptr
+bool CProcessesTable::Add( void *user_data, bool sync, bool allow_multiple, const std::string &original_name, const std::string &cmd, const COperation *operation )		//operation==nullptr
 {
 	std::string name = original_name;
 
@@ -289,7 +279,7 @@ bool CProcessesTable::Add( bool sync, bool allow_multiple, const std::string &or
 	}
 
 
-	COsProcess *process = new COsProcess( operation, sync, name, this, cmd );
+	COsProcess *process = new COsProcess( operation, sync, name, this, cmd, user_data );
 	mProcesses.push_back( process );
 	FillList();
 
@@ -411,7 +401,7 @@ void CProcessesTable::AsyncProcessFinished( int exit_code, QProcess::ExitStatus 
 {
 	COsProcess *process = ProcessFinished( exit_code, exitStatus );
 
-	emit ProcessFinished( exit_code, exitStatus, process->Operation(), false );
+	emit ProcessFinished( exit_code, exitStatus, process->Operation(), false, process->UserData() );
 
 	Remove( process );
 }
@@ -419,7 +409,7 @@ void CProcessesTable::SyncProcessFinished( int exit_code, QProcess::ExitStatus e
 {
 	COsProcess *process = ProcessFinished( exit_code, exitStatus );
 
-	emit ProcessFinished( exit_code, exitStatus, process->Operation(), true );
+	emit ProcessFinished( exit_code, exitStatus, process->Operation(), true, process->UserData() );
 
 	Remove( process );
 }

@@ -14,6 +14,7 @@
 #include "GUI/TabbedDock.h"
 #include "GUI/ControlPanels/Views/ViewControlPanels.h"
 #include "GUI/DisplayWidgets/TextWidget.h"
+#include "Dialogs/ExportImageDialog.h"
 
 #include "AbstractDisplayEditor.h"
 
@@ -110,14 +111,24 @@ void CAbstractDisplayEditor::CreateGraphicsBar()
 	m2DAction = group->actions()[0];	assert__( m2DAction->isCheckable() );
 	m3DAction = group->actions()[1];	assert__( m3DAction->isCheckable() );
 	mRecenterAction = CActionInfo::CreateAction( this, eAction_Re_center );
+	mExport2ImageAction = CActionInfo::CreateAction( this, eAction_ExportView );
 
 	mGraphicsToolBar->addActions( group->actions() );
 	mGraphicsToolBar->addAction( mRecenterAction );
+	mGraphicsToolBar->addAction( mExport2ImageAction );
 
 #if defined (DEBUG) || defined(_DEBUG)
 	mActionTest = CActionInfo::CreateAction( this, eAction_Test );
 	mGraphicsToolBar->addAction( mActionTest );
 #endif
+
+	if ( !mIsMapEditor )
+	{
+		AddToolBarSeparator();
+		mActionStatisticsMean = AddToolBarAction( this, eAction_MapEditorMean );
+		mActionStatisticsStDev = AddToolBarAction( this, eAction_MapEditorStDev );
+		mActionStatisticsLinearRegression = AddToolBarAction( this, eAction_MapEditorLinearRegression );
+	}
 
 	// add the bar
 
@@ -173,11 +184,18 @@ void CAbstractDisplayEditor::Wire()
 	connect( m3DAction, SIGNAL( toggled( bool ) ), this, SLOT( Handle3D( bool ) ) );
 
 	connect( mRecenterAction, SIGNAL( triggered() ), this, SLOT( HandleRecenter() ) );
+	connect( mExport2ImageAction, SIGNAL( triggered() ), this, SLOT( HandleExport2Image() ) );
 
 #if defined (DEBUG) || defined(_DEBUG)
 	connect( mActionTest, SIGNAL( triggered() ), this, SLOT( HandleTest() ) );
 #endif
 
+	if ( !mIsMapEditor )
+	{
+		connect( mActionStatisticsMean, SIGNAL( triggered() ), this, SLOT( HandleStatisticsMean() ) );
+		connect( mActionStatisticsStDev, SIGNAL( triggered() ), this, SLOT( HandleStatisticsStDev() ) );
+		connect( mActionStatisticsLinearRegression, SIGNAL( triggered() ), this, SLOT( HandleStatisticsLinearRegression() ) );
+	}
 
 	//tab general
 
@@ -290,6 +308,12 @@ QWidget* CAbstractDisplayEditor::AddTab( QWidget *tab, const QString title )		//
 void CAbstractDisplayEditor::SelectTab( QWidget *tab )
 {
 	mWorkingDock->SelectTab( mWorkingDock->TabIndex( tab ) );
+}
+
+
+const std::string& CAbstractDisplayEditor::UserDataDirectory() const
+{
+	return mModel->BratPaths().mPortableBasePath;
 }
 
 
@@ -572,6 +596,21 @@ void CAbstractDisplayEditor::Handle3D( bool checked )
 void CAbstractDisplayEditor::HandleRecenter()
 {
 	Recenter();
+}
+
+
+void CAbstractDisplayEditor::HandleExport2Image()
+{
+	static std::string path = UserDataDirectory();
+
+	assert__( mDisplay );
+
+    CExportImageDialog dlg( path, this );
+    if ( dlg.exec() == QDialog::Accepted )
+    {
+		path = dlg.OutputFileName();
+		Export2Image( path, dlg.OutputFileType() );
+    }
 }
 
 

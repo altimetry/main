@@ -34,8 +34,13 @@ class CDelayExecutionDialog : public QDialog
     // instance data
     /////////////////////////////
 
+	QDateTimeEdit *mExecDateEdit = nullptr;
+	QLineEdit *mTaskLabelLineEdit = nullptr;
+
     QDialogButtonBox *mButtonBox = nullptr;
 
+	std::string &mTaskLabel;
+	QDateTime &mDateTime;
 
     /////////////////////////////
     //construction / destruction
@@ -46,7 +51,7 @@ private:
     void Wire();
 
 public:
-    CDelayExecutionDialog(QWidget *parent);
+    CDelayExecutionDialog( std::string &label, QDateTime &dt, QWidget *parent );
 
     virtual ~CDelayExecutionDialog();
 

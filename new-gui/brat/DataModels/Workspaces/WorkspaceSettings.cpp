@@ -549,11 +549,13 @@ bool CWorkspaceSettings::SaveConfig( const COperation &op, const CWorkspaceOpera
 
 	WriteSection( group,
 
-		//v4 k_v( ENTRY_OUTPUT,				Absolute2PortableDataPath( op.m_output ) ),					//op.GetOutputPathRelativeToWks( wks )
-		//v4 k_v( ENTRY_EXPORT_ASCII_OUTPUT, Absolute2PortableDataPath( op.m_exportAsciiOutput ) )		//op.GetExportAsciiOutputPathRelativeToWks( wks )	)
-		k_v( ENTRY_OUTPUT,				op.GetOutputPathRelativeToWks( wks ) ),
-		k_v( ENTRY_EXPORT_ASCII_OUTPUT, op.GetExportAsciiOutputPathRelativeToWks( wks )	),
-        k_v( ENTRY_OPERATION_FILTER,	op.FilterName() )
+		//v4 k_v( ENTRY_OUTPUT,					Absolute2PortableDataPath( op.m_output ) ),					//op.GetOutputPathRelativeToWks( wks )
+		//v4 k_v( ENTRY_EXPORT_ASCII_OUTPUT,	Absolute2PortableDataPath( op.m_exportAsciiOutput ) )		//op.GetExportAsciiOutputPathRelativeToWks( wks )	)
+		//v4 k_v( ENTRY_EXPORT_GEOTIFF_OUTPUT,	Absolute2PortableDataPath( op.m_exportGeoTIFFOutput ) )		//op.GetExportGeoTIFFOutputPathRelativeToWks( wks )	)
+		k_v( ENTRY_OUTPUT,					op.GetOutputPathRelativeToWks( wks ) ),
+		k_v( ENTRY_EXPORT_ASCII_OUTPUT,		op.GetExportAsciiOutputPathRelativeToWks( wks )	),
+		k_v( ENTRY_EXPORT_GEOTIFF_OUTPUT,	op.GetExportGeoTIFFOutputPathRelativeToWks( wks )	),
+        k_v( ENTRY_OPERATION_FILTER,		op.FilterName() )
 	);
 
 	return Status() == QSettings::NoError;
@@ -561,17 +563,18 @@ bool CWorkspaceSettings::SaveConfig( const COperation &op, const CWorkspaceOpera
 bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &error_msg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
 {
 	std::string group = op.m_name;
-	std::string dsname, type, data_mode, output, ascii_export_output, v4filter;
+	std::string dsname, type, data_mode, output, ascii_export_output, geo_tiff_export_output, v4filter;
 
 	ReadSection( group,
 
-		k_v( ENTRY_DSNAME,				&dsname					),
-		k_v( ENTRY_TYPE,				&type,					CMapTypeOp::GetInstance().IdToName( op.m_type ) ),
-		k_v( ENTRY_DATA_MODE,			&data_mode,				CMapDataMode::GetInstance().IdToName( op.m_dataMode ) ),
-		k_v( ENTRY_RECORDNAME,			&op.m_record			),
-		k_v( ENTRY_OUTPUT,				&output					),
-		k_v( ENTRY_EXPORT_ASCII_OUTPUT,	&ascii_export_output	),
-		k_v( ENTRY_OPERATION_FILTER,	&v4filter				)
+		k_v( ENTRY_DSNAME,					&dsname					),
+		k_v( ENTRY_TYPE,					&type,					CMapTypeOp::GetInstance().IdToName( op.m_type ) ),
+		k_v( ENTRY_DATA_MODE,				&data_mode,				CMapDataMode::GetInstance().IdToName( op.m_dataMode ) ),
+		k_v( ENTRY_RECORDNAME,				&op.m_record			),
+		k_v( ENTRY_OUTPUT,					&output					),
+		k_v( ENTRY_EXPORT_ASCII_OUTPUT,		&ascii_export_output	),
+		k_v( ENTRY_EXPORT_GEOTIFF_OUTPUT,	&geo_tiff_export_output	),
+		k_v( ENTRY_OPERATION_FILTER,		&v4filter				)
 
 	);
 
@@ -604,6 +607,15 @@ bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &error_msg, CWo
 	else
 	{
 		op.InitExportAsciiOutput( wkso );
+	}
+
+	if ( !geo_tiff_export_output.empty() )
+	{
+		op.SetExportGeoTIFFOutput( geo_tiff_export_output, wkso );	//v4 op.SetExportGeoTIFFOutput( PortableData2AbsolutePath( geo_tiff_export_output ), wkso );
+	}
+	else
+	{
+		op.InitExportGeoTIFFOutput( wkso );
 	}
 
 	// We don't use Group(), like v3 with the equivalent GetPath(), because, 

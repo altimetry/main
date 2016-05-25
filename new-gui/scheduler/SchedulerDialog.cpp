@@ -12,9 +12,9 @@
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/ConsoleApplicationPaths.h"
 
-#include "TaskProcessor.h"
+#include "new-gui/Common/DataModels/TaskProcessor.h"
 
-#include "SchedulerDlg.h"
+#include "SchedulerDialog.h"
 
 // When debugging changes all calls to new to be calls to DEBUG_NEW allowing for memory leaks to
 // give you the file name and line number where it occurred.
@@ -43,7 +43,7 @@ const std::string BRATHL_ICON_FILENAME = "BratIcon.bmp";
 
 
 template< typename... Args >
-void CSchedulerDlg::SetupTables( Args... args )
+void CSchedulerDialog::SetupTables( Args... args )
 {
 	// lambdas
 
@@ -86,7 +86,7 @@ void CSchedulerDlg::SetupTables( Args... args )
 };
 
 
-void CSchedulerDlg::CreateMenuBar()
+void CSchedulerDialog::CreateMenuBar()
 {
     // 1. MenuBar
     QMenuBar *menuBar = new QMenuBar(this);
@@ -139,7 +139,7 @@ void CSchedulerDlg::CreateMenuBar()
 }
 
 
-void CSchedulerDlg::LoadTasks()
+void CSchedulerDialog::LoadTasks()
 {
 	LoadTasks( *CTasksProcessor::GetInstance()->GetMapPendingBratTask(), tablePendingTask );
 	//loadTasks(*CTasksProcessor::GetInstance()->GetMapProcessingBratTask(), tableProcTask);
@@ -155,7 +155,7 @@ void CSchedulerDlg::LoadTasks()
 /////////////////////////////////////////////////////////////////////////////////
 
 
-CSchedulerDlg::CSchedulerDlg( const CConsoleApplicationPaths *paths, QWidget *parent )
+CSchedulerDialog::CSchedulerDialog( const CConsoleApplicationPaths *paths, QWidget *parent )
     : base_t( parent )
 	, mIsDialog( parent ? true : false )
     , mAppPaths( paths )
@@ -192,13 +192,13 @@ CSchedulerDlg::CSchedulerDlg( const CConsoleApplicationPaths *paths, QWidget *pa
 
 
 //virtual
-CSchedulerDlg::~CSchedulerDlg()
+CSchedulerDialog::~CSchedulerDialog()
 {
 }
 
 
 //virtual
-void CSchedulerDlg::closeEvent( QCloseEvent *event )
+void CSchedulerDialog::closeEvent( QCloseEvent *event )
 {
     if ( !mIsDialog )
         QTimer::singleShot( 0, qApp, SLOT( quit() ) );
@@ -212,7 +212,7 @@ void CSchedulerDlg::closeEvent( QCloseEvent *event )
 /////////////////////////////////////////////////////////////////////////////////
 
 
-void CSchedulerDlg::LoadTasks( const CMapBratTask &data, QTableWidget* tableTasks )
+void CSchedulerDialog::LoadTasks( const CMapBratTask &data, QTableWidget* tableTasks )
 {
 	tableTasks->setRowCount( (int)data.size() );
 
@@ -233,7 +233,7 @@ void CSchedulerDlg::LoadTasks( const CMapBratTask &data, QTableWidget* tableTask
 }
 
 
-bool CSchedulerDlg::ChangeProcessingToPending()
+bool CSchedulerDialog::ChangeProcessingToPending()
 {
     CVectorBratTask vectorTasks(false);
     bool somethingHasChanged = CTasksProcessor::GetInstance()->ChangeProcessingToPending(vectorTasks);
@@ -258,19 +258,19 @@ bool CSchedulerDlg::ChangeProcessingToPending()
 
 
 
-void CSchedulerDlg::action_ViewConfig_slot()
+void CSchedulerDialog::action_ViewConfig_slot()
 {
     BRAT_MSG_NOT_IMPLEMENTED( "This should open Config file." );
 }
 
 
-void CSchedulerDlg::action_UserManual_slot()
+void CSchedulerDialog::action_UserManual_slot()
 {
     BRAT_MSG_NOT_IMPLEMENTED( "This should open User's manual." );
 }
 
 
-void CSchedulerDlg::action_About_slot()
+void CSchedulerDialog::action_About_slot()
 {
     BRAT_MSG_NOT_IMPLEMENTED( "This should open About info." );
 }
@@ -280,4 +280,4 @@ void CSchedulerDlg::action_About_slot()
 //
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include "moc_SchedulerDlg.cpp"
+#include "moc_SchedulerDialog.cpp"

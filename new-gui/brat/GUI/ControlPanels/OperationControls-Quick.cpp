@@ -667,7 +667,7 @@ void COperationControls::SelectOperation( const std::string &name, bool select_m
 
 void COperationControls::HandleQuickMap()
 {
-	WaitCursor wait;				assert__( mWRoot );
+	assert__( mWRoot );
 
 	COperation *operation = CreateQuickOperation( CMapTypeOp::eTypeOpZFXY );
 	if ( !operation )
@@ -676,15 +676,15 @@ void COperationControls::HandleQuickMap()
 	}
 	assert__( operation->IsMap() );
 
-	SelectOperation( operation->GetName(), true );
-
-	Execute( true );
+	SelectOperation( operation->GetName(), true );		assert__( operation == mCurrentOperation );
+	
+	ExecuteCurrentOperation();
 }
 
 
 void COperationControls::HandleQuickPlot()
 {
-	WaitCursor wait;				assert__( mWRoot );
+	assert__( mWRoot );
 
 	COperation *operation = CreateQuickOperation( CMapTypeOp::eTypeOpZFXY );
 	if ( !operation )
@@ -693,8 +693,8 @@ void COperationControls::HandleQuickPlot()
 	}
 	assert__( operation->IsMap() );
 
-	SelectOperation( operation->GetName(), false );
+	SelectOperation( operation->GetName(), false );		assert__( operation == mCurrentOperation );
 
-	Execute( true );
+	ExecuteCurrentOperation();
 }
 

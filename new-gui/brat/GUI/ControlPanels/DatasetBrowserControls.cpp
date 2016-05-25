@@ -26,14 +26,14 @@ CDatasetBrowserControls::CDatasetBrowserControls( CModel &model, CDesktopManager
 
     // Datasets files buttons group
 	mNewDataset = CreateToolButton( "", ":/images/OSGeo/dataset_new.png", "<b>New Dataset</b><br>Insert a new Dataset in current workspace." );
-	mRemoveDataset = CreateToolButton( "", ":/images/OSGeo/dataset_remove.png", "<b>Delete...</b><br>Delete selected Dataset." );
+    mDeleteDataset = CreateToolButton( "", ":/images/OSGeo/dataset_delete.png", "<b>Delete...</b><br>Delete selected Dataset." );
     mAddFiles = CreateToolButton( "", ":/images/OSGeo/add_files_dataset.png", "<b>Add Files...</b><br>Add files to selected dataset.");
     mAddDir = CreateToolButton( "", ":/images/OSGeo/add_dir_dataset.png", "<b>Add Dir...</b><br>Add directory contents to selected dataset.");
     mRemove = CreateToolButton( "", ":/images/OSGeo/file_remove.png", "<b>Remove...</b><br>Remove selected file." );
     mClear = CreateToolButton( "", ":/images/OSGeo/file_delete.png", "<b>Clear...</b><br>Clear all files of selected dataset.");
 
     QWidget *buttons_row = CreateButtonRow( false, Qt::Horizontal, {
-        mNewDataset, mRemoveDataset, nullptr, mAddFiles, mAddDir, mRemove, mClear } );
+        mNewDataset, mDeleteDataset, nullptr, mAddFiles, mAddDir, mRemove, mClear } );
 
 	AddTopWidget( buttons_row );
 
@@ -104,7 +104,7 @@ void CDatasetBrowserControls::Wire()
     connect( mDatasetTree, SIGNAL( itemChanged(QTreeWidgetItem*,int) ), this, SLOT( HandleRenameDataset(QTreeWidgetItem*,int) ) );
 
     connect( mNewDataset, SIGNAL( clicked(bool) ), this, SLOT (HandleNewDataset()) );
-    connect( mRemoveDataset, SIGNAL( clicked(bool) ), this, SLOT (HandleDeleteDataset()) );
+    connect( mDeleteDataset, SIGNAL( clicked(bool) ), this, SLOT (HandleDeleteDataset()) );
 
     connect( mAddFiles, SIGNAL( clicked(bool) ), this, SLOT( HandleAddFiles() ) );
     connect( mAddDir, SIGNAL( clicked(bool) ), this, SLOT( HandleAddDir() ) );
@@ -174,7 +174,7 @@ void CDatasetBrowserControls::HandleTreeItemChanged( )
     if ( tree_item == nullptr )
     {
         // Update buttons status
-        mRemoveDataset->setDisabled(true);
+        mDeleteDataset->setDisabled(true);
         mAddFiles->setDisabled(true);
         mAddDir->setDisabled(true);
         mRemove->setDisabled(true);
@@ -189,7 +189,7 @@ void CDatasetBrowserControls::HandleTreeItemChanged( )
         DatasetChanged( tree_item );
 
         // Update buttons status
-        mRemoveDataset->setEnabled(true);
+        mDeleteDataset->setEnabled(true);
         mAddFiles->setEnabled(true);
         mAddDir->setEnabled(true);
         mRemove->setDisabled(true);
@@ -201,7 +201,7 @@ void CDatasetBrowserControls::HandleTreeItemChanged( )
         FileChanged( tree_item );
 
         // Update buttons status
-        mRemoveDataset->setEnabled(true);
+        mDeleteDataset->setEnabled(true);
         mAddFiles->setEnabled(true);
         mAddDir->setEnabled(true);
         mRemove->setEnabled(true);

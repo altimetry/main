@@ -163,6 +163,8 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
 	{ eAction_AssignExpression, "", "Assign to the selected tree item", ":/images/themes/default/mIconDataDefineExpressionOn.svg" },
 
+	{ eAction_ExportView, "", "Save view as image file under selected format", "://images/OSGeo/map-export.png" },
+
 
     // TODO images __n, __o and __p are used by settings dialog
 };

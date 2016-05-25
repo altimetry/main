@@ -574,11 +574,6 @@ bool CTextWidget::writeToFile( const QString &fileName )
 //////////////////////////////////////////////////////////////////////////
 
 
-//	This is meaningful for cascade (at least...); 
-//	These values were taken from sample code, and are as good as any others, except the defaults (which seem to be 0)
-//	The function body is the same as the base class's, because the bases's being generic and not only text targeted,  
-//		it is more likely to change	than this one, whose values are (rightly) text based.
-//
 //virtual 
 QSize CTextWidget::sizeHint() const
 {

@@ -121,10 +121,26 @@ public:
 
 class COperation : public CBratObject, public non_copyable
 {
+	//types
+
 	friend class CWorkspaceSettings;
+	friend class COperationCmdFile;
 
 public:
 	using const_iterator = std::map< std::string, CBratObject* >::const_iterator;
+
+	enum EExecutionType
+	{
+		eOperation,
+		eExportASCII,
+		eExportGeoTIFF,
+		eStatistics,
+
+		EExecutionType_size
+	};
+
+
+	//static data
 
 protected:
 	static std::string m_execYFXName;
@@ -134,6 +150,8 @@ protected:
 	static std::string m_execShowStatsName;
 	static std::string m_execBratSchedulerName;
 
+
+	//instance data
 
 	CProduct *m_product = nullptr;
 	CDataset *mDataset = nullptr;
@@ -147,17 +165,29 @@ protected:
 
 	std::string m_output;
 	std::string m_exportAsciiOutput;
+	std::string m_exportGeoTIFFOutput;
 	std::string m_showStatsOutput;
 
 	std::string m_cmdFile;
 	std::string m_exportAsciiCmdFile;
+	std::string m_exportGeoTIFFCmdFile;
 	std::string m_showStatsCmdFile;
+
+	std::string mScheduledTaskName;
+	std::string mScheduledExportAsciiTaskName;
+	std::string mScheduledExportGeoTIFFTaskName;
 
 public:
 	const int32_t m_verbose = 2;
 
 protected:
 	std::string m_logFile;
+
+	bool mCreateKML = false;
+	std::string mColorTable;
+	double mGeoTIFFRangeMin = defaultValue<double>();
+	double mGeoTIFFRangeMax = defaultValue<double>();
+	std::string mBratLogoPath;
 
 	bool m_exportAsciiDateAsPeriod = false;
 	bool m_exportAsciiExpandArray = false;
@@ -214,7 +244,7 @@ public:
 	bool SaveConfig( CWorkspaceSettings *config, const CWorkspaceOperation *wks ) const;
 	bool LoadConfig( CWorkspaceSettings *config, std::string &error_msg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso );
 
-	CDataset* FindDataset( const std::string& datasetName, CWorkspaceDataset *wks );
+	static CDataset* FindDataset( const std::string& datasetName, CWorkspaceDataset *wks );
 
 	std::string GetRecord() const { return m_record; }
 	void SetRecord( const std::string& value ) { m_record = value; }
@@ -270,8 +300,50 @@ public:
 	std::string GetDescFormula( const std::string& name, bool alias = false );
 	//void SetDescFormula(const std::string& name, const std::string& value);
 
+
+	void GetExportGeoTiffProperties( bool &createKML, std::string &colorTable, double &rangeMin, double &rangeMax )
+	{
+		createKML = mCreateKML;
+		colorTable = mColorTable;
+		rangeMin = mGeoTIFFRangeMin;
+		rangeMax = mGeoTIFFRangeMax;
+	}
+
+	void SetExportGeoTiffProperties( bool createKML, std::string colorTable, double rangeMin, double rangeMax, const std::string &logo_path )
+	{
+		mCreateKML = createKML;
+		mColorTable = colorTable;
+		mGeoTIFFRangeMin = rangeMin;
+		mGeoTIFFRangeMax = rangeMax;
+		mBratLogoPath = logo_path;
+	}
+
 	// output paths ///////////////////////////////////////////////////////////////////////
 	//
+	void InitOutput( CWorkspaceOperation *wks );
+	void InitExportAsciiOutput( CWorkspaceOperation *wks );
+	void InitExportGeoTIFFOutput( CWorkspaceOperation *wks );
+	void InitShowStatsOutput( CWorkspaceOperation *wks );
+
+	std::string GetOutputPath( EExecutionType type ) const
+	{
+		switch ( type )
+		{
+			case eOperation:
+				return GetOutputPath();
+			case eExportASCII:
+				return GetExportAsciiOutputPath();
+			case eExportGeoTIFF:
+				return GetExportGeoTIFFOutputPath();
+			case eStatistics:
+				return GetShowStatsOutputPath();
+			default:
+				assert__( false );
+		}
+		return empty_string<std::string>();
+	}
+
+
 	const std::string& GetOutputPath() const { return m_output; }				//femm: GetOutputName -> GetOutputPath; old body: {return m_output.GetFullPath();};
 	void SetOutput( const std::string& value, CWorkspaceOperation* wks );
 	std::string GetOutputPathRelativeToWks( const CWorkspaceOperation *wks ) const;
@@ -280,6 +352,10 @@ public:
 	void SetExportAsciiOutput( const std::string& value, CWorkspaceOperation* wks );
 	std::string GetExportAsciiOutputPathRelativeToWks( const CWorkspaceOperation *wks ) const;
 
+	const std::string& GetExportGeoTIFFOutputPath() const { return m_exportGeoTIFFOutput; }
+	void SetExportGeoTIFFOutput( const std::string& value, CWorkspaceOperation* wks );
+	std::string GetExportGeoTIFFOutputPathRelativeToWks( const CWorkspaceOperation *wks ) const;
+
 	const std::string& GetShowStatsOutputPath() const { return m_showStatsOutput; }
 	void SetShowStatsOutput( const std::string& value, CWorkspaceOperation* wks );
 	std::string GetShowStatsOutputPathRelativeToWks( const CWorkspaceOperation *wks ) const;
@@ -287,19 +363,162 @@ public:
 	///////////////////////////////////////////////////////////////////////////////////////
 
 
+public:
+	// build command files ////////////////////////////////////////////////////////////////
+	//
+	bool BuildCmdFile( EExecutionType type, CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg )
+	{
+		switch ( type )
+		{
+			case eOperation:
+				return BuildCmdFile( wks, wkso, error_msg );
+			case eExportASCII:
+				return BuildExportAsciiCmdFile( wks, wkso, error_msg );
+			case eExportGeoTIFF:
+				return BuildExportGeoTIFFCmdFile( wks, wkso, error_msg );
+			case eStatistics:
+				return BuildShowStatsCmdFile( wks, wkso, error_msg );
+			default:
+				assert__( false );
+		}
+		return false;
+	}
+protected:
+	bool BuildCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg );
+	bool BuildExportAsciiCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg );
+	bool BuildExportGeoTIFFCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg );
+	bool BuildShowStatsCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg );
+	//
+	///////////////////////////////////////////////////////////////////////////////////////
+
+public:
+	// tasks names ////////////////////////////////////////////////////////////////////////
+	//
+	std::string GetTaskName( EExecutionType type, bool delayed = false ) const
+	{
+		switch ( type )
+		{
+			case eOperation:
+			{
+				if ( delayed || mScheduledTaskName.empty() )
+					return GetTaskName();
+				else
+					return mScheduledTaskName;
+			}
+			break;
+
+			case eExportASCII:
+			{
+				if ( delayed || mScheduledExportAsciiTaskName.empty() )
+					return GetExportAsciiTaskName();
+				else
+					return mScheduledExportAsciiTaskName;
+			}
+			break;
+
+			case eExportGeoTIFF:
+			{
+				if ( delayed || mScheduledExportGeoTIFFTaskName.empty() )
+					return GetExportGeoTIFFTaskName();
+				else
+					return mScheduledExportGeoTIFFTaskName;
+			}
+			break;
+
+			case eStatistics:
+			{
+				return GetShowStatsTaskName();
+			}
+			break;
+
+			default:
+				assert__( false );
+		}
+		return empty_string<std::string>();
+	}
+
+	void SetScheduledTaskName( const std::string &name ){ mScheduledTaskName = name; }
+	void SetScheduledExportAsciiTaskName( const std::string &name ){ mScheduledExportAsciiTaskName = name; }
+	void SetScheduledExportGeoTIFFTaskName( const std::string &name ){ mScheduledExportGeoTIFFTaskName = name; }
+
+protected:
 	std::string GetTaskName() const;
+	std::string GetExportAsciiTaskName() const;
+	std::string GetExportGeoTIFFTaskName() const;
+	std::string GetShowStatsTaskName() const;
+
+public:
+	// command files //////////////////////////////////////////////////////////////////////
+	//
+	const std::string& GetCmdFile( EExecutionType type ) const 
+	{
+		switch ( type )
+		{
+			case eOperation:
+				return GetCmdFile();
+			case eExportASCII:
+				return GetExportAsciiCmdFile();
+			case eExportGeoTIFF:
+				return GetExportGeoTIFFCmdFile();
+			case eStatistics:
+				return GetShowStatsCmdFile();
+			default:
+				assert__( false );
+		}
+		return empty_string<std::string>();
+	}	
+protected:
 	const std::string& GetCmdFile() const { return m_cmdFile; }	
 	void SetCmdFile( CWorkspaceOperation* wks );
 
-	std::string GetExportAsciiTaskName() const;
 	const std::string& GetExportAsciiCmdFile() const { return m_exportAsciiCmdFile; }
 	void SetExportAsciiCmdFile( CWorkspaceOperation *wks );
 
-	std::string GetShowStatsTaskName() const;
+	const std::string& GetExportGeoTIFFCmdFile() const { return m_exportGeoTIFFCmdFile; }
+	void SetExportGeoTIFFCmdFile( CWorkspaceOperation *wks );
+
 	const std::string& GetShowStatsCmdFile() const { return m_showStatsCmdFile; }
 	void SetShowStatsCmdFile( CWorkspaceOperation *wks );
+	//
+	///////////////////////////////////////////////////////////////////////////////////////
+
+public:
+	// full command lines /////////////////////////////////////////////////////////////////
+	//
+	std::string GetFullCmd( EExecutionType type ) const
+	{
+		switch ( type )
+		{
+			case eOperation:
+				return GetFullCmd();
+			case eExportASCII:
+				return GetExportAsciiFullCmd();
+			case eExportGeoTIFF:
+				return GetExportGeoTIFFFullCmd();
+			case eStatistics:
+				return GetShowStatsFullCmd();
+			default:
+				assert__( false );
+		}
+		return empty_string<std::string>();
+	}	
+
+protected:
+	const std::string& GetSystemCommand() const;
+	std::string GetFullCmd() const;
+
+	const std::string& GetExportAsciiSystemCommand() const;
+	std::string GetExportAsciiFullCmd() const;
+
+	std::string GetExportGeoTIFFFullCmd() const;
+
+	const std::string& GetShowStatsSystemCommand() const;
+	std::string GetShowStatsFullCmd() const;
+	//
+	///////////////////////////////////////////////////////////////////////////////////////
 
 
+public:
 	std::string GetCommentFormula( const std::string& name ) const;
 	void SetCommentFormula( const std::string &name, const std::string &value );
 
@@ -324,16 +543,6 @@ public:
 	std::string GetFormulaNewName() const;
 	std::string GetFormulaNewName( const std::string& prefix ) const;
 
-	const std::string& GetSystemCommand() const;
-	std::string GetFullCmd() const;
-
-	const std::string& GetExportAsciiSystemCommand() const;
-	std::string GetExportAsciiFullCmd();
-
-	const std::string& GetShowStatsSystemCommand() const;
-	std::string GetShowStatsFullCmd() const;
-
-
 	bool IsExportAsciiDateAsPeriod() const { return m_exportAsciiDateAsPeriod; }
 	void SetExportAsciiDateAsPeriod( bool value ) { m_exportAsciiDateAsPeriod = value; }
 
@@ -356,14 +565,7 @@ public:
 	bool RemoveOutput();
 	bool RenameOutput( const std::string& oldPath );
 
-	bool BuildCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg );
-	bool BuildShowStatsCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso );
-	bool BuildExportAsciiCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso );
-
 public:
-	void InitOutput( CWorkspaceOperation *wks );
-	void InitExportAsciiOutput( CWorkspaceOperation *wks );
-	void InitShowStatsOutput( CWorkspaceOperation *wks );
 
 	//bool ComputeInterval( const std::string& formulaName, std::string &error_msg );
 	bool ComputeInterval( std::string &error_msg );
@@ -371,7 +573,7 @@ public:
 
 	bool ControlDimensions( CFormula* formula, std::string &error_msg, const CStringMap* aliases = nullptr );
 	bool ControlResolution( std::string &error_msg );
-	bool Control( CWorkspaceFormula *wks, std::string& msg, bool basicControl = false, const CStringMap* aliases = nullptr );
+	bool Control( CWorkspaceFormula *wks, std::string& msg, const CStringMap* aliases = nullptr );
 
 	bool GetXExpression( CExpression& expr, std::string& error_msg, const CStringMap* aliases = nullptr ) const;
 	bool GetYExpression( CExpression& expr, std::string& error_msg, const CStringMap* aliases = nullptr ) const;

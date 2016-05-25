@@ -43,7 +43,7 @@ protected:
 	bool mKilled;
 
 	std::string mOutput;
-	int mType;
+	void *mUserData = nullptr;
 
 	int mExecuteFlags;
 
@@ -52,13 +52,15 @@ protected:
 	const COperation *mOperation = nullptr;
 
 public:
-	COsProcess( const COperation *operation, bool sync, const std::string& name, QWidget *parent, const std::string& cmd, const std::string *output = nullptr, int type = -1 );
+	COsProcess( const COperation *operation, bool sync, const std::string& name, QWidget *parent, const std::string& cmd, void *user_data = nullptr, const std::string *output = nullptr );
 
 	virtual ~COsProcess();
 
 	const std::string& GetCmd() const { return mCmdLine; };
 
 	const COperation* Operation() const { return mOperation; }
+
+	void* UserData() const { return mUserData; }
 
 
 	virtual void Kill();
@@ -184,14 +186,12 @@ public:
 
 	// Add is called by the client...
 
-	bool Add( bool sync, bool allow_multiple, const std::string &original_name, const std::string &cmd, const COperation *operation = nullptr );
-	bool Add( bool sync, bool allow_multiple, const COperation *operation );
-	bool Add4Statistics( bool allow_multiple, const COperation *operation );
-	bool Add( bool sync, bool allow_multiple, const std::string &original_name, const std::string &executable, const std::vector< std::string > &args )
+	bool Add( void *user_data, bool sync, bool allow_multiple, const std::string &original_name, const std::string &cmd, const COperation *operation = nullptr );
+	bool Add( void *user_data, bool sync, bool allow_multiple, const std::string &original_name, const std::string &executable, const std::vector< std::string > &args )
 	{
 		std::string cmd = executable + " ";
 		cmd += Vector2String( args, " " );
-		return Add( sync, allow_multiple, original_name, cmd );
+		return Add( user_data, sync, allow_multiple, original_name, cmd );
 	}
 
 
@@ -241,7 +241,7 @@ protected:
 	COsProcess* ProcessFinished( int exit_code, QProcess::ExitStatus exitStatus );
 
 signals:
-	void ProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation, bool sync );
+	void ProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation, bool sync, void *user_data );
 
 
 private slots :

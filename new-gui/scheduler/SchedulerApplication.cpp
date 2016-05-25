@@ -3,7 +3,7 @@
 #include "SchedulerApplication.h"
 #include "new-gui/Common/ScheduledTasksList.hxx"
 #include "new-gui/Common/XmlSerializer.h"
-#include "new-gui/scheduler/TaskProcessor.h"
+#include "new-gui/Common/DataModels/TaskProcessor.h"
 #include "new-gui/Common/ConsoleApplicationPaths.h"
 
 #if defined(MEM_LEAKS)

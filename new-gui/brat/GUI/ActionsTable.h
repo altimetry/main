@@ -93,6 +93,7 @@ enum EActionTag : int
 	eAction_Item_Filters,
 
 	eAction_AssignExpression,
+	eAction_ExportView,
 
 	//add new items before this line
 

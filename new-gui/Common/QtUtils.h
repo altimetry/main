@@ -1067,6 +1067,15 @@ inline QStringList getOpenFileName( QWidget * parent = 0, const QString & captio
     return result;
 }
 
+inline QStringList getSaveFileName( QWidget * parent = 0, const QString & caption = QString(),
+                             const QString & dir = QString(), const QString & filter = QString(),
+                             QString * selectedFilter = 0, QFileDialog::Options options = 0 )
+{
+    QStringList result;
+    result.append( QFileDialog::getSaveFileName( parent, caption, dir, filter, selectedFilter, options ) );
+    return result;
+}
+
 template< typename F >
 QStringList tBrowseFile( F f, QWidget *parent, const char *title, QString Initial )
 {
@@ -1080,6 +1089,11 @@ QStringList tBrowseFile( F f, QWidget *parent, const char *title, QString Initia
 inline QString BrowseFile( QWidget *parent, const char *title, QString Initial )
 {
     return tBrowseFile( getOpenFileName, parent, title, Initial )[0];
+}
+
+inline QString BrowseNewFile( QWidget *parent, const char *title, QString Initial )
+{
+    return tBrowseFile( getSaveFileName, parent, title, Initial )[0];
 }
 
 inline QStringList BrowseFiles( QWidget *parent, const char *title, QString Initial )

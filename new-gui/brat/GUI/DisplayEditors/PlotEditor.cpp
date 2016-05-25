@@ -234,6 +234,38 @@ void CPlotEditor::Recenter()
 
 
 //virtual 
+void CPlotEditor::Export2Image( const std::string path, EImageExportType type )
+{
+    Q_UNUSED( path );   Q_UNUSED( type );
+
+	BRAT_NOT_IMPLEMENTED;
+}
+
+
+//virtual 
+void CPlotEditor::StatisticsMean()
+{
+	BRAT_NOT_IMPLEMENTED
+}
+
+
+//virtual 
+void CPlotEditor::StatisticsStDev()
+{
+	BRAT_NOT_IMPLEMENTED
+}
+
+
+//virtual 
+void CPlotEditor::StatisticsLinearRegression()
+{
+	BRAT_NOT_IMPLEMENTED
+}
+
+
+
+
+//virtual 
 bool CPlotEditor::ResetViews( bool reset_2d, bool reset_3d, bool enable_2d, bool enable_3d )
 {
 	assert__( enable_2d );		//2d displays all types
@@ -456,6 +488,8 @@ void CPlotEditor::UpdatePlotType( EPlotType plot_type, bool select )
 	TabGeneral()->mPlotTypesList->setCurrentItem( TabGeneral()->mPlotTypesList->item( plot_type ) );
 	if ( !select )
 		TabGeneral()->mPlotTypesList->blockSignals( false );
+
+	mActionStatisticsLinearRegression->setEnabled( type == CMapTypeDisp::eTypeDispYFX );
 
 	//DO NOT delete: example of selecting without triggering signal; disadvantage: triggers on 1st activation without user intervention
 	//

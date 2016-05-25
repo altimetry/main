@@ -56,19 +56,20 @@ public:
 		return true;
 	}
 
-	bool BuildCmdFileVerbose()
+	bool BuildCmdFileVerbose( bool write_log_file = true )
 	{
 		WriteLn();
 		Comment( "----- LOG -----" );
 		WriteLn();
 		WriteLn( kwVERBOSE + "=" + n2s<std::string>( mOp.m_verbose ) );
 
-		if ( !mOp.GetLogFile().empty() )
+		if ( write_log_file && !mOp.GetLogFile().empty() )
 		{
 			WriteLn( kwLOGFILE + "=" + mOp.GetLogFile() );
 		}
 		return true;
 	}
+
 
 	bool BuildCmdFileGeneralProperties()
 	{
@@ -254,7 +255,7 @@ public:
 		return true;
 	}
 
-	bool BuildExportAsciiCmdFileHeader()
+	bool BuildExportCmdFileHeader()
 	{
 		// Comment("!/usr/bin/env " + GetExportAsciiSystemCommand()->GetName());
 		return true;
@@ -273,6 +274,44 @@ public:
 		valueString = ( mOp.IsExportAsciiExpandArray() ? "Yes" : "No" );
 
 		WriteLn( std::string( kwEXPAND_ARRAY.c_str() ) + "=" + valueString );
+
+		return true;
+	}
+
+	bool BuildExportGeoTIFFProperties()
+	{
+		WriteLn();
+		Comment( "----- INPUT -----" );
+		WriteLn();
+		WriteLn( kwFILE + "=" + mOp.GetOutputPath() );
+		WriteLn();
+		Comment( "----- COLORTABLE -----" );
+		WriteLn();
+		WriteLn( kwDISPLAY_COLORTABLE + "=" + mOp.mColorTable );
+
+		if ( !isDefaultValue( mOp.mGeoTIFFRangeMin ) )
+		{
+			WriteLn( kwDISPLAY_MINVALUE + "=" + n2s<std::string>( mOp.mGeoTIFFRangeMin ) );
+		}
+		if ( !isDefaultValue( mOp.mGeoTIFFRangeMax ) )
+		{
+			WriteLn( kwDISPLAY_MAXVALUE + "=" + n2s<std::string>( mOp.mGeoTIFFRangeMax ) );
+		}
+
+		if ( mOp.mCreateKML )
+		{
+			std::string kmlOutputFile = mOp.GetExportGeoTIFFOutputPath();
+			SetFileExtension( kmlOutputFile, "kml" );
+
+			WriteLn();
+			Comment( "----- GOOGLE EARTH -----" );
+			WriteLn();
+			WriteLn( kwOUTPUT_KML + "=" + kmlOutputFile );
+			WriteLn( kwDISPLAY_LOGO_URL + "=" + mOp.mBratLogoPath );
+			//v4: the following does not seem to be written in v3 when delaying
+			WriteLn( kwFILETYPE + "=" + mOp.m_product->GetProductClass() + " / " + mOp.m_product->GetProductType() );
+			WriteLn( kwPRODUCT_LIST + "=" + mOp.OriginalDataset()->GetProductList()->ToString( ", ", true ) );
+		}
 
 		return true;
 	}
@@ -345,6 +384,16 @@ public:
 
 		return true;
 
+	}
+
+	bool BuildExportGeoTIFFCmdFileOutput()
+	{
+		WriteLn();
+		Comment( "----- OUTPUT -----" );
+		WriteLn();
+		WriteLn( kwOUTPUT + "=" + mOp.GetExportGeoTIFFOutputPath() );
+
+		return true;
 	}
 
 	bool BuildShowStatsCmdFileHeader()
@@ -430,7 +479,7 @@ public:
 
 		return
 			f.IsOk()																								&&
-			f.BuildExportAsciiCmdFileHeader()																		&&
+			f.BuildExportCmdFileHeader()																			&&
 			f.BuildCmdFileVerbose()																					&&
 			f.BuildExportAsciiCmdFileGeneralProperties()															&&
 			f.BuildCmdFileAlias( wks )																				&&
@@ -443,6 +492,20 @@ public:
 			// and the fields contained in the select expression are not necessarily in the output file. 
 			( !Op.IsExportAsciiNoDataComputation() || f.BuildCmdFileSelect() )										&&
 			f.BuildExportAsciiCmdFileOutput()																		&&
+			f.IsOk();
+	}
+
+
+    static bool BuildExportGeoTIFFCmdFile( const std::string &path, const COperation &Op )
+	{
+		COperationCmdFile f( path, Op );
+
+		return
+			f.IsOk() &&
+			f.BuildExportCmdFileHeader()		&&
+			f.BuildCmdFileVerbose( false )		&&
+			f.BuildExportGeoTIFFProperties()	&&
+			f.BuildExportGeoTIFFCmdFileOutput() &&
 			f.IsOk();
 	}
 
@@ -561,6 +624,8 @@ COperation* COperation::Copy( const COperation &o, CWorkspaceOperation *wkso, CW
 
 	new_op->InitExportAsciiOutput( wkso );		//assigns m_exportAsciiOutput and m_exportAsciiCmdFile
 	new_op->SetExportAsciiCmdFile( wkso );		//assigns m_exportAsciiCmdFile
+	new_op->InitExportGeoTIFFOutput( wkso );	//assigns m_exportGetTIFFOutput and m_exportGetTIFFCmdFile
+	new_op->SetExportGeoTIFFCmdFile( wkso );	//assigns m_exportGetTIFFCmdFile
 
 	return new_op;
 
@@ -569,7 +634,7 @@ COperation* COperation::Copy( const COperation &o, CWorkspaceOperation *wkso, CW
 	//std::string m_showStatsOutput;
 	//std::string m_showStatsCmdFile;
 
-	//const int32_t m_verbose = 2;
+	//const int m_verbose = 2;
 
 	//std::string m_logFile;
 
@@ -577,7 +642,7 @@ COperation* COperation::Copy( const COperation &o, CWorkspaceOperation *wkso, CW
 	//bool m_exportAsciiNoDataComputation = false;
 	//bool m_executeAgain = false;
 
-	//int32_t m_exportAsciiNumberPrecision = defaultValue<int32_t>();
+	//int m_exportAsciiNumberPrecision = defaultValue<int>();
 }
 
 
@@ -610,7 +675,7 @@ void COperation::Clear()
 	m_exportAsciiNoDataComputation = false;
 	m_executeAgain = false;
 
-	m_exportAsciiNumberPrecision = defaultValue<int32_t>();
+	m_exportAsciiNumberPrecision = defaultValue<int>();
 }
 
 
@@ -918,7 +983,7 @@ std::string COperation::OriginalDatasetName() const
 }
 
 //----------------------------------------
-CFormula* COperation::NewUserFormula( std::string &error_msg, CField* field, int32_t typeField, bool addToMap, const CProduct* product )
+CFormula* COperation::NewUserFormula( std::string &error_msg, CField* field, int typeField, bool addToMap, const CProduct* product )
 {
   if (field == nullptr)
   {
@@ -941,7 +1006,7 @@ CFormula* COperation::NewUserFormula( std::string &error_msg, CField* field, int
   return formula;
 }
 //----------------------------------------
-CFormula* COperation::NewUserFormula( std::string &error_msg, const std::string& name, int32_t typeField, const std::string& strUnit, bool addToMap, const CProduct* product )
+CFormula* COperation::NewUserFormula( std::string &error_msg, const std::string& name, int typeField, const std::string& strUnit, bool addToMap, const CProduct* product )
 {
 	bool bOk = true;
 
@@ -1037,7 +1102,7 @@ CFormula* COperation::GetFormula( const std::string& name ) const
 	return dynamic_cast<CFormula*>( m_formulas.Exists( name ) );
 }
 //----------------------------------------
-CFormula* COperation::GetFormula( int32_t type )
+CFormula* COperation::GetFormula( int type )
 {
 	return m_formulas.GetFormula( type );
 }
@@ -1118,16 +1183,23 @@ const std::string& COperation::GetExportAsciiSystemCommand() const
   return GetExecExportAsciiName();
 }
 //----------------------------------------
+
+
 std::string COperation::GetFullCmd() const
 {
 	return "\"" + GetSystemCommand() + "\" \"" + GetCmdFile() + "\"";
 }
-//----------------------------------------
-std::string COperation::GetExportAsciiFullCmd()
+
+std::string COperation::GetExportAsciiFullCmd() const
 {
 	return "\"" + GetExportAsciiSystemCommand() + "\" \"" + GetExportAsciiCmdFile() + "\"";
 }
-//----------------------------------------
+
+std::string COperation::GetExportGeoTIFFFullCmd() const
+{
+	return "\"" + GetExecExportGeoTiffName() + "\" \"" + GetExportGeoTIFFCmdFile() + "\"";
+}
+
 std::string COperation::GetShowStatsFullCmd() const
 {
 	return "\"" + GetShowStatsSystemCommand() + "\" \"" + GetShowStatsCmdFile() + "\"";
@@ -1148,6 +1220,11 @@ std::string COperation::GetExportAsciiTaskName() const
 {
 	return m_exportAsciiCmdFile.empty() ? NoName : GetFileName( m_exportAsciiCmdFile );
 }
+std::string COperation::GetExportGeoTIFFTaskName() const
+{
+	return m_exportGeoTIFFCmdFile.empty() ? NoName : GetFileName( m_exportGeoTIFFCmdFile );
+}
+
 //----------------------------------------
 std::string COperation::GetShowStatsTaskName() const
 {
@@ -1163,20 +1240,49 @@ bool COperation::BuildCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso
 	return COperationCmdFile::BuildCmdFile( m_cmdFile, *this, wks, error_msg );
 }
 //----------------------------------------
-bool COperation::BuildExportAsciiCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso )
+bool COperation::BuildExportAsciiCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg )
 {
 	if ( m_exportAsciiOutput.empty() )
 		InitExportAsciiOutput( wkso );
 
-	return COperationCmdFile::BuildExportAsciiCmdFile( m_exportAsciiCmdFile, *this, wks );
+	if ( !COperationCmdFile::BuildExportAsciiCmdFile( m_exportAsciiCmdFile, *this, wks ) )
+	{
+		error_msg = "There was an error composing the command file.\nOperation cannot be exported.";
+		return false;
+	}
+
+	return true;
 }
 //----------------------------------------
-bool COperation::BuildShowStatsCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso )
+bool COperation::BuildShowStatsCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg )
 {
 	if ( m_showStatsOutput.empty() )
 		InitShowStatsOutput( wkso );
 
-	return COperationCmdFile::BuildShowStatsCmdFile( m_showStatsCmdFile, *this, wks );
+	if ( !COperationCmdFile::BuildShowStatsCmdFile( m_showStatsCmdFile, *this, wks ) )
+	{
+		error_msg = "There was an error composing the command file.\nStatistics cannot be computed.";
+		return false;
+	}
+
+	return true;
+}
+
+
+bool COperation::BuildExportGeoTIFFCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg )
+{
+    UNUSED( wks );
+
+	if ( m_exportGeoTIFFOutput.empty() )
+		InitExportGeoTIFFOutput( wkso );
+
+    if ( !COperationCmdFile::BuildExportGeoTIFFCmdFile( m_exportGeoTIFFCmdFile, *this ) )
+	{
+		error_msg = "There was an error composing the command file.\nOperation cannot be exported.";
+		return false;
+	}
+
+	return true;
 }
 
 
@@ -1219,6 +1325,24 @@ void COperation::SetExportAsciiOutput( const std::string& value, CWorkspaceOpera
 
 	SetExportAsciiCmdFile( wks );
 }
+
+void COperation::SetExportGeoTIFFOutput( const std::string& value, CWorkspaceOperation* wks )
+{
+	m_exportGeoTIFFOutput = value;
+
+	if ( wks == nullptr )
+	{
+		clean_path( m_exportGeoTIFFOutput );
+	}
+	else
+	{
+		//m_exportAsciiOutput.Normalize( wxPATH_NORM_ALL, wks->GetPath() );
+		normalize( m_exportGeoTIFFOutput, wks->GetPath() );
+	}
+
+	SetExportGeoTIFFCmdFile( wks );
+}
+
 //----------------------------------------
 void COperation::SetOutput( const std::string& value, CWorkspaceOperation* wks )
 {
@@ -1254,6 +1378,13 @@ std::string COperation::GetExportAsciiOutputPathRelativeToWks( const CWorkspaceO
 
 	return GetRelativePath( wks->GetPath(), m_exportAsciiOutput );
 }
+std::string COperation::GetExportGeoTIFFOutputPathRelativeToWks( const CWorkspaceOperation *wks ) const
+{
+	if ( wks == nullptr )
+		return GetExportGeoTIFFOutputPath();
+
+	return GetRelativePath( wks->GetPath(), m_exportGeoTIFFOutput );
+}
 std::string COperation::GetShowStatsOutputPathRelativeToWks( const CWorkspaceOperation *wks ) const
 {
 	if ( wks == nullptr )
@@ -1278,6 +1409,9 @@ void COperation::SetCmdFile( CWorkspaceOperation* wks )
 		//m_cmdFile.Normalize( wxPATH_NORM_ALL, wks->GetPath() );
 		normalize( m_cmdFile, wks->GetPath() );
 	}
+
+	if ( mScheduledTaskName.empty() )
+		mScheduledTaskName = GetTaskName();
 }
 //----------------------------------------
 void COperation::SetExportAsciiCmdFile( CWorkspaceOperation *wks )
@@ -1295,6 +1429,9 @@ void COperation::SetExportAsciiCmdFile( CWorkspaceOperation *wks )
 		//m_exportAsciiCmdFile.Normalize( wxPATH_NORM_ALL, wks->GetPath() );
 		normalize( m_exportAsciiCmdFile, wks->GetPath() );
 	}
+
+	if ( mScheduledExportAsciiTaskName.empty() )
+		mScheduledExportAsciiTaskName = GetExportAsciiTaskName();
 }
 //----------------------------------------
 void COperation::SetShowStatsCmdFile( CWorkspaceOperation *wks )
@@ -1312,6 +1449,23 @@ void COperation::SetShowStatsCmdFile( CWorkspaceOperation *wks )
 		//m_showStatsCmdFile.Normalize( wxPATH_NORM_ALL, wks->GetPath() );
 		normalize( m_showStatsCmdFile, wks->GetPath() );
 	}
+}
+void COperation::SetExportGeoTIFFCmdFile( CWorkspaceOperation *wks )
+{
+	m_exportGeoTIFFCmdFile = wks->GetPath() + "/" + GetFileName( m_exportGeoTIFFOutput );
+	SetFileExtension( m_exportGeoTIFFCmdFile, EXPORTGEOTIFF_COMMANDFILE_EXTENSION );
+	if ( wks == nullptr )
+	{
+		clean_path( m_exportGeoTIFFCmdFile );
+	}
+	else
+	{
+		//m_exportAsciiCmdFile.Normalize( wxPATH_NORM_ALL, wks->GetPath() );
+		normalize( m_exportGeoTIFFCmdFile, wks->GetPath() );
+	}	
+
+	if ( mScheduledExportGeoTIFFTaskName.empty() )
+		mScheduledExportGeoTIFFTaskName = GetExportGeoTIFFTaskName();
 }
 
 //----------------------------------------
@@ -1345,6 +1499,17 @@ void COperation::InitExportAsciiOutput( CWorkspaceOperation *wks )
 
 	SetExportAsciiOutput( wks->GetPath() + "/ExportAscii" + GetName() + ".txt", wks );
 }
+void COperation::InitExportGeoTIFFOutput( CWorkspaceOperation *wks )
+{
+	//CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
+	if ( wks == nullptr )
+		return;
+
+	//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR !!! femm attention here !!!
+
+	SetExportGeoTIFFOutput( wks->GetPath() + "/ExportGeoTIFF" + GetName() + ".tif", wks );
+}
+
 //----------------------------------------
 bool COperation::RemoveOutput()
 {
@@ -1651,115 +1816,115 @@ bool COperation::ControlDimensions( CFormula* formula, std::string &error_msg, c
 }
 
 //----------------------------------------
-bool COperation::Control(CWorkspaceFormula *wks, std::string& msg, bool basicControl /* = false */, const CStringMap* aliases /* = nullptr*/)
+bool COperation::Control( CWorkspaceFormula *wks, std::string& msg, const CStringMap* aliases /* = nullptr*/ )
 {
-  CMapFormula::iterator it;
-  int32_t xCount = 0;
-  int32_t yCount = 0;
-  int32_t fieldCount = 0;
-  int32_t errorCount = 0;
-  bool bOk = true;
+	const bool basicControl = false;
+	int xCount = 0;
+	int yCount = 0;
+	int fieldCount = 0;
+	int errorCount = 0;
+	bool bOk = true;
 
-  for (it = m_formulas.begin() ; it != m_formulas.end() ; it++)
-  {
-    CFormula* value = dynamic_cast<CFormula*>(it->second);
-    if (value == nullptr)
-    {
-      continue;
-    }
+	for ( CMapFormula::iterator it = m_formulas.begin(); it != m_formulas.end(); it++ )
+	{
+		CFormula* value = dynamic_cast<CFormula*>( it->second );
+		if ( value == nullptr )
+		{
+			continue;
+		}
 
-    switch (value->GetFieldType())
-    {
-    case CMapTypeField::eTypeOpAsX:
-      xCount++;
-      break;
-    case CMapTypeField::eTypeOpAsY:
-      yCount++;
-      break;
-    case CMapTypeField::eTypeOpAsField:
-      fieldCount++;
-      break;
+		switch ( value->GetFieldType() )
+		{
+			case CMapTypeField::eTypeOpAsX:
+				xCount++;
+				break;
+			case CMapTypeField::eTypeOpAsY:
+				yCount++;
+				break;
+			case CMapTypeField::eTypeOpAsField:
+				fieldCount++;
+				break;
 
-    default:
-        assert__( false );
-    }
-    bOk = value->CheckExpression(wks, msg, m_record, aliases, m_product);
-    if (!bOk)
-    {
-      errorCount++;
-    }
-    else
-    {
-      bOk = ControlDimensions(value, msg, aliases);
-      if (!bOk)
-      {
-        errorCount++;
-      }
-    }
+			default:
+				assert__( false );
+		}
+		bOk = value->CheckExpression( wks, msg, m_record, aliases, m_product );
+		if ( !bOk )
+		{
+			errorCount++;
+		}
+		else
+		{
+			bOk = ControlDimensions( value, msg, aliases );
+			if ( !bOk )
+			{
+				errorCount++;
+			}
+		}
 
-    if (!basicControl)
-    {
-      bOk = value->ControlUnitConsistency(msg);
-      if (!bOk)
-      {
-        errorCount++;
-      }
-    }
-  }
-
-
-  bOk = m_select->CheckExpression(wks, msg, m_record, aliases, m_product);
-  if (!bOk)
-  {
-    errorCount++;
-  }
-  else
-  {
-    bOk = ControlDimensions(m_select, msg, aliases);
-    if (!bOk)
-    {
-      errorCount++;
-    }
-  }
+		if ( !basicControl )
+		{
+			bOk = value->ControlUnitConsistency( msg );
+			if ( !bOk )
+			{
+				errorCount++;
+			}
+		}
+	}
 
 
-  if (!basicControl)
-  {
-    if (xCount == 0)
-    {
-      msg += ( std::string("\nThere is no 'X field' for operation '" ) + GetName() + "'." );
-      errorCount++;
-    }
-
-    if ( (yCount == 0) && (this->GetType() == CMapTypeOp::eTypeOpZFXY) )
-    {
-      msg += ( std::string("\nThere is no 'Y field' for operation '" ) + GetName() + "'." );
-      errorCount++;
-    }
-    if (fieldCount == 0)
-    {
-      msg += ( std::string( "\nThere is no 'Data field' for operation '" ) + GetName() + "'." );
-      errorCount++;
-    }
-
-    if (CtrlLoessCutOff(msg) == false)
-    {
-      errorCount++;
-    }
+	bOk = m_select->CheckExpression( wks, msg, m_record, aliases, m_product );
+	if ( !bOk )
+	{
+		errorCount++;
+	}
+	else
+	{
+		bOk = ControlDimensions( m_select, msg, aliases );
+		if ( !bOk )
+		{
+			errorCount++;
+		}
+	}
 
 
-    if (ControlResolution(msg) == false)
-    {
-      errorCount++;
-    }
+	if ( !basicControl )
+	{
+		if ( xCount == 0 )
+		{
+			msg += ( std::string( "\nThere is no 'X field' for operation '" ) + GetName() + "'." );
+			errorCount++;
+		}
 
-    //if (ControlXYDataFields(msg, aliases) == false)
-    //{
-    //  errorCount++;
-    //}
-  }
+		if ( ( yCount == 0 ) && ( this->GetType() == CMapTypeOp::eTypeOpZFXY ) )
+		{
+			msg += ( std::string( "\nThere is no 'Y field' for operation '" ) + GetName() + "'." );
+			errorCount++;
+		}
+		if ( fieldCount == 0 )
+		{
+			msg += ( std::string( "\nThere is no 'Data field' for operation '" ) + GetName() + "'." );
+			errorCount++;
+		}
 
-  return (errorCount == 0);
+		if ( CtrlLoessCutOff( msg ) == false )
+		{
+			errorCount++;
+		}
+
+
+		if ( ControlResolution( msg ) == false )
+		{
+			errorCount++;
+		}
+
+		//if (ControlXYDataFields(msg, aliases) == false)
+		//{
+		//  errorCount++;
+		//}
+	}
+
+	return ( errorCount == 0 );
 }
 
 

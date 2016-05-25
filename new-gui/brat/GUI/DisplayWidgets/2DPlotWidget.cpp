@@ -8,7 +8,7 @@
 #include <qwt_legend.h>
 
 #include "new-gui/Common/QtUtils.h"
-#include "PlotValues.h"
+#include "DataModels/PlotData/PlotValues.h"
 
 #include "Histogram.h"
 #include "2DPlotWidget.h"

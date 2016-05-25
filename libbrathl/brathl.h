@@ -259,7 +259,10 @@ typedef enum {
                 ENVISAT,	/**< Envisat */
                 ERS1_A,	      	/**< ERS1-A */
                 ERS1_B,	      	/**< ERS1-B */
-		GFO	      	/**< GFO */
+        GFO,	      	/**< GFO */
+
+    brathl_mission_size
+
       } brathl_mission;
 
 

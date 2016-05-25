@@ -4,6 +4,8 @@
 
 #include "libbrathl/Product.h"
 
+#include "DataModels/Workspaces/Operation.h"
+
 #include "ControlPanel.h"
 
 
@@ -12,6 +14,7 @@ class CDataExpressionsTreeWidget;
 class CFieldsTreeWidget;
 class CMapDisplayData;
 class CBratFilters;
+class CBratTask;
 
 
 class COperationControls : public CDesktopControlsPanel
@@ -48,6 +51,16 @@ public:
 		eRange,
 
 		EPredefinedVariables_size
+	};
+
+
+	using EExecutionType = COperation::EExecutionType;
+
+	using post_execution_handler_t = void(COperationControls::*)( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation );
+
+	struct post_execution_handler_wrapper_t
+	{
+		post_execution_handler_t post_execution_handler;
 	};
 
 
@@ -200,7 +213,7 @@ protected:
     void Wire();
 	QWidget* CreateCommonWidgets( QAbstractButton *b1, QAbstractButton *b2 );
 	void CreateQuickOperationsPage();
-	void CreateAdancedOperationsPage();
+	void CreateAdvancedOperationsPage();
 
 public:
 	COperationControls( CProcessesTable *processes_table, CModel &model, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
@@ -231,6 +244,24 @@ protected:
 
 	void SelectOperation( const std::string &name, bool select_map );	//meant for quick, designed (not tested) for all
 
+	//both
+
+	// for enabling / disabling widgets dependent of multiple change types
+	//
+	void UpdateGUIState();
+
+	bool CreateOperationExecutionDisplays( std::string &to_display, int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation );
+	void OperationSyncExecutionFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation );
+	void OperationSyncExecutionFinishedWithDisplay( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation );
+	void StatsAsyncComputationFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation );
+
+	bool CheckOperation( COperation *operation, std::string& msg, const CStringMap* aliases );	//CtrlOperation
+	void LaunchDisplay( const std::string &display_name );
+	bool ExecuteCurrentOperation( post_execution_handler_t post_execution_handler = &COperationControls::OperationSyncExecutionFinishedWithDisplay );
+	bool Execute( EExecutionType type, COperation *operation, bool sync, post_execution_handler_t post_execution_handler );
+	CBratTask* Schedule( EExecutionType type, const QDateTime &at, CBratTask *parent = nullptr );
+
+
 	//quick
 
 	CDataset* QuickDatasetSelected() const;
@@ -245,7 +276,8 @@ protected:
 	void SelectDataComputationMode();
     void SelectDataSmoothingMode();
     std::string GetOpunit();
-    /// Sampling methods ////////////////
+    
+	/// Sampling methods ////////////////
     void UpdateSamplingGroup();
     void GetDataMinMax(CFormula *formula);
     void ValidateData();
@@ -255,18 +287,14 @@ protected:
     bool VerifyMinMax( CFormula *formula, QLineEdit *LineEdit_Min, QLineEdit *LineEdit_Max );
     void GetValueAsDate( QLineEdit *LineEdit_Axisvalue, double &seconds, double defValue, double min, double max );
     void GetValue      ( QLineEdit *LineEdit_Axisvalue, double &value, double defValue,
-                         double min = CTools::m_defaultValueDOUBLE, double max = CTools::m_defaultValueDOUBLE);
+                         double min = defaultValue<double>(), double max = defaultValue<double>() );
     void ComputeXYInterval();
     bool ComputeInterval( CFormula *formula, QLabel *IntervalsLabel, QLineEdit *StepLineEdit, QLabel *IconWarning );
     /////////////////////////////////////
+
     bool MapRequested() const;
-
-	//both
-
-	bool CheckQuickOperation( std::string& msg, bool basicControl, const CStringMap* aliases );		//CtrlOperation
-	bool CheckAdvancedOperation( std::string& msg, bool basicControl, const CStringMap* aliases );	//CtrlOperation
-	void LaunchDisplay( const std::string &display_name );
-	bool Execute( bool sync );
+	void ExportASCIIAsyncComputationFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation );
+	void ExportGeoTIFFAsyncComputationFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation );
 
 
 	//remaining
@@ -277,9 +305,6 @@ protected:
 	bool SelectDataset( const CDataset *dataset );
 
     void FillDatasets_Advanced( int index );
-
-	void SyncProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation );
-	void AsyncProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation );
 
 signals:
 	void AsyncProcessExecution( bool executing );
@@ -340,13 +365,8 @@ protected slots:
 	void HandleOperationStatistics();
 
 	bool HandleExecute();
-	void HandleProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation, bool sync )
-	{
-		sync ?
-			SyncProcessFinished( exit_code, exitStatus, operation )
-			:
-			AsyncProcessFinished( exit_code, exitStatus, operation );
-	}
+
+	void HandleProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation, bool sync, void *user_data );
 	void HandleDelayExecution();
 	void SchedulerProcessError( QProcess::ProcessError );
 

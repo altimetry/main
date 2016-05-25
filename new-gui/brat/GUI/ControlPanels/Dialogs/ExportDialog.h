@@ -6,10 +6,10 @@
 
 #include "GUI/StackedWidget.h"
 
+class COperation;
+class CColorMapWidget;
 
-//------------------------------------------------------------------------------------
-// CExportDialog
-//------------------------------------------------------------------------------------
+
 class CExportDialog : public QDialog
 {
 #if defined (__APPLE__)
@@ -34,19 +34,27 @@ public:
 
     enum EExportFormat
     {
-        eNONE = -1,
         eASCII,
         eNETCDF,
-        eGEOTIFF
+        eGEOTIFF,
+
+		EExportFormat_size
     };
 
-    EExportFormat m_exportType;
+	using EExecutionType = COperation::EExecutionType;
+
+
+protected:
 
     /////////////////////////////
     // static data
     /////////////////////////////
-//OLD BRAT CODE //////////////////////////////////
-//  static int32_t m_defaultDecimalPrecision;
+
+	static const int smDefaultDecimalPrecision = 10;
+
+    static const std::string smDefaultExtensionAscii;
+    static const std::string smDefaultExtensionNetCdf;
+    static const std::string smDefaultExtensionGeoTiff;
 
 
     /////////////////////////////
@@ -58,71 +66,61 @@ public:
 	QFrame *mFormatASCIIPage = nullptr;
 	QFrame *mFormatNetCdfPage = nullptr;
 	QFrame *mFormatGeoTiffPage = nullptr;
+	QToolButton *mFormatGeoTiffButton = nullptr;
 
 	QCheckBox *mDeliverDataAsPeriod = nullptr;
 	QCheckBox *mExpandArrays = nullptr;
-	QCheckBox *mExecuteOperationAscii = nullptr;
-	QCheckBox *mExecuteOperationNetCdf = nullptr;
+
 	QCheckBox *mOnlyDumpExpressions = nullptr;
 
-	QLineEdit *mASCIINumberPrecision = nullptr;
+	QLineEdit *mASCIINumberPrecisionLineEdit = nullptr;
 
+	CBratLookupTable *mLUT = nullptr;
+	CColorMapWidget *mColorMapWidget = nullptr;
 	QCheckBox *mCreateGoogleKMLFile = nullptr;
-	QComboBox *mColorTableCombo = nullptr;
-	QLineEdit *mColorRangeMin = nullptr;
-	QLineEdit *mColorRangeMax = nullptr;
+	QLineEdit *mColorRangeMinEdit = nullptr;
+	QLineEdit *mColorRangeMaxEdit = nullptr;
 	QPushButton *mCalculateMinMax = nullptr;
 
 	QPushButton *mBrowseButton = nullptr;
 
     QDialogButtonBox *mButtonBox = nullptr;
 
-    QLineEdit *mOutputPath=nullptr;
+    QLineEdit *mOutputPathLineEdit = nullptr;
 
-//OLD BRAT CODE /////////////////////////////////////////
-//    CLabeledTextCtrl* GetExportAsciiNumberPrecision()  { return (CLabeledTextCtrl*) FindWindow( ID_EXPORT_ASCII_NUMBER_PRECISION ); }
-//    wxCheckBox* GetExportNoDataComputation()  { return (wxCheckBox*) FindWindow( ID_EXPORT_NO_DATA_COMPUTATION ); }
-//    wxCheckBox* GetExpandArray()  { return (wxCheckBox*) FindWindow( ID_EXPAND_ARRAY ); }
-//    wxCheckBox* GetDateAsPeriod()  { return (wxCheckBox*) FindWindow( ID_DATE_AS_PERIOD ); }
-//    wxCheckBox* GetExecagain()  { return (wxCheckBox*) FindWindow( ID_EXECAGAIN ); }
-//    wxRadioBox* GetExportformat()  { return (wxRadioBox*) FindWindow( ID_EXPORTFORMAT ); }
-//    wxButton* GetExportBrowse()  { return (wxButton*) FindWindow( ID_EXPORT_BROWSE ); }
-//    wxButton* GetCalcColorRange()  { return (wxButton*) FindWindow( ID_EXPORT_CALC_COLOR_RANGE ); }
-//    wxTextCtrl* GetExportoutputfile()  { return (wxTextCtrl*) FindWindow( ID_EXPORTOUTPUTFILE ); }
-//    wxCheckBox* GetCreateKMLFile()  { return (wxCheckBox*) FindWindow( ID_EXPORT_CREATE_KML_FILE ); }
-//    wxComboBox* GetColorTable()  { return (wxComboBox*) FindWindow( ID_EXPORT_COLOR_TABLE ); }
-//    wxStaticText* GetColorTableLabel()  { return (wxStaticText*) FindWindow( ID_EXPORT_COLOR_TABLE_LABEL ); }
-//    CLabeledTextCtrl* GetColorRangeMin()  { return (CLabeledTextCtrl*) FindWindow( ID_EXPORT_COLORRANGE_MIN ); }
-//    CLabeledTextCtrl* GetColorRangeMax()  { return (CLabeledTextCtrl*) FindWindow( ID_EXPORT_COLORRANGE_MAX ); }
+	QPushButton *mDelayExecutionButton = nullptr;
+	QCheckBox *mDelayExecutionCheckBox = nullptr;
 
-//    COperation* m_operation;
+	QPushButton *mExecuteButton = nullptr;
 
-//    wxFileName m_currentName;
-//    wxFileName m_initialName;
+	std::string mCurrentAsciiOutputFileName;
+	std::string mCurrentGeoTIFFOutputFileName;
+	std::string mCurrentNetcdfOutputFileName;
+//    std::string m_initialName;
 
-//    int32_t m_format;
+    bool mDelayExecution = false;
+    //std::string mTaskLabel;
+    QDateTime mDateTime;
 
-//    CDelayDlg m_delayDlg;
-//    bool m_delayExecution;
-
-//    bool m_executeAgain;
 //    bool m_dateAsPeriod;
 //    bool m_expandArray;
-//    bool m_noDataComputation;
+    //bool mOnlyDumpExpressions == NoDataComputation = false;
 
-//    int32_t m_asciiNumberPrecision;
+	int mASCIINumberPrecision = smDefaultDecimalPrecision;
 
-//    bool m_isGeoImage;
-//    bool m_createKML;
-//    wxString m_colorTable;
-//    double m_colorRangeMin;
-//    double m_colorRangeMax;
+	bool mIsGeoImage = false;
 
-//    const CStringMap* m_aliases;
+    bool mCreateKML;
+    std::string mColorTable;
+    double mColorRangeMin = defaultValue<double>();
+    double mColorRangeMax = defaultValue<double>();
 
-//    static wxString m_defaultExtensionAscii;
-//    static wxString m_defaultExtensionNetCdf;
-//    static wxString m_defaultExtensionGeoTiff;
+	CWorkspaceOperation *mWOperation = nullptr;
+	COperation *mOperation = nullptr;
+    const CStringMap *mAliases = nullptr;
+	const std::string mLogoPath;
+
+    EExportFormat mExportType = eASCII;
 
     /////////////////////////////
     //construction / destruction
@@ -131,13 +129,11 @@ private:
 
     void CreateWidgets();
     void Wire();
-    //OLD BRAT CODE //////////////////////////////
-    //void CalculateColorValueRange( void );
 
 public:
-    CExportDialog( QWidget *parent );
+    CExportDialog( const std::string logo_path, CWorkspaceOperation *wkso, COperation *operation, const CStringMap *aliases, QWidget *parent );
     //OLD BRAT CODE //////////////////////////////////////
-    //    ( wxWindow *parent, wxWindowID id, const wxString &title,
+    //    ( wxWindow *parent, wxWindowID id, const std::string &title,
     //          COperation* operation, const CStringMap* aliases = NULL,
     //          const wxPoint& pos = wxDefaultPosition,
     //          const wxSize& size = wxDefaultSize,
@@ -145,42 +141,56 @@ public:
 
     virtual ~CExportDialog();
 
+
     /////////////////////////////
     // getters / setters / testers
     /////////////////////////////
 
+	EExportFormat ExportFormat() const { return mExportType; }
+
+
+    bool DelayExecution() const { return mDelayExecution; }
+
+
+	const std::string& OutputPath() const
+	{
+		switch ( mExportType )
+		{
+			case eASCII:
+				return mCurrentAsciiOutputFileName;
+				break;
+			case eNETCDF:
+				return mCurrentNetcdfOutputFileName;
+				break;
+			case eGEOTIFF:
+				return mCurrentGeoTIFFOutputFileName;
+				break;
+			default:
+				assert__( false );
+		}
+		return empty_string<std::string>();
+	}
+
+
+	QDateTime DateTime() const { return mDateTime; }
+
+
+
     /////////////////////////////
     // Operations
     /////////////////////////////
-    //OLD BRAT CODE ///////////////////////////////
-//    void Format( int32_t format );
-//    bool AsNetCdf() { return (m_format == CExportDlg::AS_NETCDF); };
-//    bool AsAscii() { return (m_format == CExportDlg::AS_ASCII); };
-//    bool AsGeoTiff() { return (m_format == CExportDlg::AS_GEOTIFF); };
 
 protected:
     virtual void accept() override;
 
-	void DelayExecution();
-	void Execute();
+	bool Execute();
 
 protected slots:
-    // NEW CODE - TO BE IMPLEMENTED /////////////
-//    void HandleDelayExecution();
-//    void HandleNoDataComputation();
-//    void HandleExpandArray();
-//    void HandleDateAsPeriod();
-//    void HandleExecuteAgain();
-//    void HandleFormat();
-//    void HandleBrowse();
-//    void HandleCalcColorRange();
-//    void HandleOk();
-//    void HandleCancel();
 
-
-	void HandleButtonClicked( QAbstractButton *button );
     void HandleExportType(int);
     void HandleChangeExportPath();
+	void HandleDelayExecution();
+	void HandleCalculateMinMax();
 };
 
 

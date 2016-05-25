@@ -7,8 +7,8 @@
 #include <QtWidgets/QToolBar>
 #endif
 
-#include "ui_SchedulerDlg.h"
-#include "TaskProcessor.h"
+#include "ui_SchedulerDialog.h"
+#include "new-gui/Common/DataModels/TaskProcessor.h"
 
 
 class CConsoleApplicationPaths;
@@ -32,7 +32,7 @@ class CConsoleApplicationPaths;
 #endif
 
 
-class CSchedulerDlg : public QDialog, private Ui::CSchedulerDlg
+class CSchedulerDialog : public QDialog, private Ui::CSchedulerDialog
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
@@ -81,9 +81,9 @@ class CSchedulerDlg : public QDialog, private Ui::CSchedulerDlg
 	void LoadTasks();
 
 public:
-    CSchedulerDlg( const CConsoleApplicationPaths *paths, QWidget *parent = 0);
+    CSchedulerDialog( const CConsoleApplicationPaths *paths, QWidget *parent = 0);
 
-    virtual ~CSchedulerDlg();
+    virtual ~CSchedulerDialog();
 
 
 	// operations

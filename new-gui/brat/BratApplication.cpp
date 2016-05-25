@@ -5,6 +5,7 @@
 #include "new-gui/Common/+Utils.h"
 #include "new-gui/Common/+UtilsIO.h"
 #include "new-gui/Common/QtUtils.h"
+#include "new-gui/Common/DataModels/TaskProcessor.h"
 #include "DataModels/Workspaces/Operation.h"
 
 #include "ApplicationLogger.h"
@@ -315,6 +316,18 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 
     mSettings.setApplicationStyle( *this, mDefaultAppStyle );
 
+	// Load XML processor and TasksProcessor
+	//
+	ShowSplash( "Loading scheduled tasks processor." );
+
+    ::xercesc::XMLPlatformUtils::Initialize();
+
+    if ( !CTasksProcessor::GetInstance() )
+        CTasksProcessor::CreateInstance( mSettings.BratPaths().mExecutableDir );
+
+	LOG_TRACE( "Scheduled tasks processor loaded." );
+
+
     //v4: remaining initialization in charge of the main window
 
 	LOG_TRACE( "Finished application instance construction." );
@@ -325,6 +338,9 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 CBratApplication::~CBratApplication()
 {
     CProduct::CodaRelease();
+
+    ::xercesc::XMLPlatformUtils::Terminate();
+	CTasksProcessor::DestroyInstance();
 
     if ( !mSettings.SaveConfig() )
 		LOG_TRACE( "Unable to save BRAT the application settings." );
@@ -375,6 +391,8 @@ void CBratApplication::UpdateSettings()
 
 
 
+
+
 void CBratApplication::RegisterAlgorithms()
 {
 	static const std::string file_prefix = "BratAlgorithm-";
@@ -384,21 +402,39 @@ void CBratApplication::RegisterAlgorithms()
 
 	struct python_base_creator : public base_creator
 	{
+		//types
+
 		using base_t = base_creator;
+
+		//statics
+
+		static CBratAlgorithmBase* pseud_python_factory()
+		{
+			assert__( false );
+			throw CException( "Programming error: calling C factory for Python algorithm" );
+		}
+
+		//data
 
 		const std::string mFilePath;
 		const std::string mClassName;
+
+		//construction / destruction
 
 		python_base_creator( const std::string file_path, const std::string &class_name ) 
 			: base_t( nullptr )
 			, mFilePath( file_path )
 			, mClassName( class_name )
-		{}
+		{
+			mF = &pseud_python_factory;
+		}
 
 		virtual ~python_base_creator()
 		{}
 
-		virtual CBratAlgorithmBase* operator()( void )
+		//functor
+
+		virtual CBratAlgorithmBase* operator()( void ) override
 		{
 			return new PyAlgo( mFilePath, mClassName );
 		}
@@ -407,11 +443,12 @@ void CBratApplication::RegisterAlgorithms()
 
 	//function body
 
-	//load C++ algorithms
+	// I. load C++ algorithms
 
 	CBratAlgorithmBase::RegisterAlgorithms();
 
-	//load python algorithms
+
+	// II. load python algorithms
 
     if ( sm_pe == nullptr )
 	{

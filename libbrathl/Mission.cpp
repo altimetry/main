@@ -47,11 +47,51 @@ const char* CMission::m_nameEN = "ENVISAT";
 const char* CMission::m_nameE_C = "ERS1-A";
 const char* CMission::m_nameE_G = "ERS1-B";
 const char* CMission::m_nameG2 = "GFO";
+
+static std::vector<std::string> MissionNames()
+{
+    std::vector<std::string> v( brathl_mission_size );
+
+    v[TOPEX] = ( "Topex/Poseidon" );
+    v[JASON1] = ( "Jason-1" );
+    v[JASON2] = ( "Jason-2" );
+    v[ERS2] = ( "ERS2" );
+    v[ENVISAT] = ( "ENVISAT" );
+    v[ERS1_A] = ( "ERS1-A" );
+    v[ERS1_B] = ( "ERS1-B" );
+    v[GFO] = ( "GFO" );
+
+    return v;
+}
+
 const char* CMission::m_nameUnknown = "Unknown mission";
 const char* CMission::m_refFileName = "brathl_refmission.txt";
 const char* CMission::m_refAliasName = "brathl_aliasmission.txt";
 
 const int CMission::m_maxLenName = 30;
+
+
+//static
+brathl_mission CMission::FindMission( const std::string product_type )
+{
+    static std::vector<std::string> mission_names = MissionNames();
+
+    int i = 0;
+    for ( auto const &mission_name : mission_names )
+    {
+        //mission_names
+        std::string s1 = CTools::StringToLower(product_type).substr(0, mission_name.size());
+        std::string s2 = CTools::StringToLower(mission_name);
+        if ( s1 == s2 )
+            return (brathl_mission)i;
+        ++i;
+    }
+
+    return brathl_mission_size;
+}
+
+
+
 
 //ctor		
 CMission::CMission(brathl_mission mission, bool printWarnings /* = true */)  
@@ -364,7 +404,7 @@ const char* const CMission::GetName()
   return CMission::m_nameUnknown;
 }
 
-int32_t CMission::Convert(CDate& date,  uint32_t& cycle, uint32_t& pass) 
+int32_t CMission::Convert(CDate& date,  uint32_t& cycle, uint32_t& pass)
 {
   double dateJulian = 0.0;
   double dateJulianRef = 0.0;

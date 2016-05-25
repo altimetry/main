@@ -11,6 +11,11 @@
 #include <qgsmarkersymbollayerv2.h>
 #include <qgssinglesymbolrendererv2.h>
 
+//////////////// TODO RCCC DELETE THIS /////////
+//#include <qgscoordinatetransform.h>
+//#include <qgsvectorfilewriter.h>
+///////////////////////////////////////////////
+
 // for addMemoryLayer
 #include <qgsgraduatedsymbolrendererv2.h>
 #include <qgssinglebandpseudocolorrenderer.h>
@@ -1397,11 +1402,23 @@ QgsVectorLayer* CMapWidget::AddDataLayer( bool polygon, const std::string &name,
 
 	if ( l )
 	{
-		l->setLayerTransparency( 10 );
+		l->setLayerTransparency( 10 );				//TODO Magic Number
 		l->dataProvider()->addFeatures( flist );
 		//l->updateExtents();
 		mDataLayers.push_back( l );
 	}
+
+    //////////////// TODO RCCC DELETE THIS /////////
+//    const QString filename( "/home/brat/Downloads/file" + l->name() + ".shp" );
+//    const QString fileencoding( "System" );
+//    QgsCoordinateTransform *ct = new QgsCoordinateTransform( l->crs(), l->crs());
+
+//    QgsVectorFileWriter::writeAsVectorFormat( l,
+//                                              filename,
+//                                              fileencoding,
+//                                              ct );
+    ////////////////////////////////////////////////
+
 	return l;
 
 //    QgsVectorColorRampV2 *myColorRamp = nullptr;

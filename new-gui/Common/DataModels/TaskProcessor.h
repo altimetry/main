@@ -26,9 +26,9 @@ protected:
 	typedef CBratTask::Status	Status;
 
 private:
-	tasks_set_t mPendingTasks;
-	tasks_set_t mProcessingTasks;
-	tasks_set_t mEndedTasks;
+	//tasks_set_t mPendingTasks;
+	//tasks_set_t mProcessingTasks;
+	//tasks_set_t mEndedTasks;
 
 	uid_t m_lastId;
 
@@ -45,11 +45,11 @@ private:
 	// Map for all tasks (the reference map)
 	CMapBratTask m_mapBratTask;
 	// Map for pending tasks - Warning : don't delete object stored in it.
-	CMapBratTask m_mapPendingBratTask;
+	CMapBratTask mPendingTasksMap;
 	// Map for processing tasks - Warning : don't delete object stored in it.
-	CMapBratTask m_mapProcessingBratTask;
+	CMapBratTask mProcessingTasksMap;
 	// Map for ended (or error) tasks - Warning : don't delete object stored in it.
-	CMapBratTask m_mapEndedBratTask;
+	CMapBratTask mEndedTasksMap;
 	// Map used to stored new pending tasks when file is reloaded.
 	// Tasks are just added as reference - Warning : don't delete object stored in it.
 	CMapBratTask m_mapNewBratTask;
@@ -66,18 +66,18 @@ protected:
 	}
 
 	CTasksProcessor() :
-		  m_mapPendingBratTask( false )
-		, m_mapProcessingBratTask( false )
-		, m_mapEndedBratTask( false )
+		  mPendingTasksMap( false )
+		, mProcessingTasksMap( false )
+		, mEndedTasksMap( false )
 		, m_mapNewBratTask( false )
 	{}
 
 public:	//TODO: pass to private after transition
 	CTasksProcessor( const std::string &filename, bool lockFile = true, bool unlockFile = true ) : 
 		  m_fullFileName( filename )
-		, m_mapPendingBratTask( false )
-		, m_mapProcessingBratTask( false )
-		, m_mapEndedBratTask( false )
+		, mPendingTasksMap( false )
+		, mProcessingTasksMap( false )
+		, mEndedTasksMap( false )
 		, m_mapNewBratTask( false )
 	{
 		LoadAndCreateTasks( filename, lockFile, unlockFile );		//if not ... throw ???
@@ -117,27 +117,42 @@ public:
 	}
 
 
+	// brat interface - begin /////////////////////////////////////////////////////////////////////////////////////
+
+	CBratTask* CreateTaskAsPending( bool function, CBratTask *parent, const std::string& cmd_or_function, CVectorBratAlgorithmParam& params, const QDateTime& at, const std::string& name, const std::string& log_dir );
+	CBratTask* CreateCmdTaskAsPending( CBratTask *parent, const std::string& cmd, const QDateTime& at, const std::string& name, const std::string& log_dir );
+	CBratTask* CreateFunctionTaskAsPending( CBratTask *parent, const std::string& function, CVectorBratAlgorithmParam& params, const QDateTime& at, const std::string& name, const std::string& log_dir );
+
+
+	// brat interface - end ///////////////////////////////////////////////////////////////////////////////////////
+
 protected:
 
 	bool operator == ( const CTasksProcessor &o ) const 
 	{
-		auto equal_vectors = []( const tasks_set_t &v1, const tasks_set_t &v2 )
+		auto equal_maps = []( const CMapBratTask &v1, const CMapBratTask &v2 )
 		{
 			const size_t size = v1.size();
 			if ( size != v2.size() )
 				return false;
 
-			for ( size_t i = 0; i < size; ++i )
-				if ( *v1[ i ] != *v2[ i ] )
+			for ( auto const &entry : v1 )
+			{
+				auto it = v2.find( entry.first );
+				if ( it == v2.end() )
 					return false;
+
+				if ( *it->second != *entry.second )
+					return false;
+			}
 
 			return true;
 		};
 
 		return 
-			equal_vectors( mPendingTasks, o.mPendingTasks ) &&
-			equal_vectors( mProcessingTasks, o.mProcessingTasks ) &&
-			equal_vectors( mEndedTasks, o.mEndedTasks );
+			equal_maps( mPendingTasksMap, o.mPendingTasksMap ) &&
+			equal_maps( mProcessingTasksMap, o.mProcessingTasksMap ) &&
+			equal_maps( mEndedTasksMap, o.mEndedTasksMap );
 	}
 
 
@@ -188,8 +203,8 @@ public:
 
     bool IsReloadAll() { return m_reloadAll; }
 
-	CMapBratTask* GetMapPendingBratTask() { return &m_mapPendingBratTask; }
-	CMapBratTask* GetMapEndedBratTask() { return &m_mapEndedBratTask; }
+	CMapBratTask* GetMapPendingBratTask() { return &mPendingTasksMap; }
+	CMapBratTask* GetMapEndedBratTask() { return &mEndedTasksMap; }
 
 	const CMapBratTask* GetMapNewBratTask() const { return &m_mapNewBratTask; }
 	bool HasMapNewBratTask() const { return ( m_mapNewBratTask.size() > 0 ); }
@@ -205,7 +220,7 @@ public:
 protected:
 //were private
     CMapBratTask* GetMapBratTask() { return &m_mapBratTask; }
-    CMapBratTask* GetMapProcessingBratTask() { return &m_mapProcessingBratTask; }
+    CMapBratTask* GetMapProcessingBratTask() { return &mProcessingTasksMap; }
 
 
 
@@ -241,12 +256,15 @@ protected:
 	/////////////////////////////////////////////////////
 	//			Add / Remove
 
+public:
 	virtual bool LoadAllTasks();
+	virtual bool SaveAllTasks();
 
+protected:
 
 	virtual void AddTaskToMap( CBratTask* bratTask );
 
-	void AddTask( uid_t parentId, CBratTask* bratTask );
+	void AddTask2Parent( uid_t parentId, CBratTask* bratTask );
 	void AddTask( const CMapBratTask* mapBratTask );
 
 
@@ -255,9 +273,9 @@ protected:
 	{
 		//wxCriticalSectionLocker locker( m_critSectMapBratTask );		//TODO
 
-		m_mapPendingBratTask.RemoveAll();
-		m_mapProcessingBratTask.RemoveAll();
-		m_mapEndedBratTask.RemoveAll();
+		mPendingTasksMap.RemoveAll();
+		mProcessingTasksMap.RemoveAll();
+		mEndedTasksMap.RemoveAll();
 		m_mapNewBratTask.RemoveAll();
 
 		m_mapBratTask.RemoveAll();

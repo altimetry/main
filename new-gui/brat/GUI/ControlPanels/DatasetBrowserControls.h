@@ -42,7 +42,7 @@ class CDatasetBrowserControls : public CDesktopControlsPanel
     QTreeWidget *mDatasetTree = nullptr;
 
     QToolButton *mNewDataset = nullptr;
-    QToolButton *mRemoveDataset = nullptr;
+    QToolButton *mDeleteDataset = nullptr;
     QToolButton *mAddDir = nullptr;
     QToolButton *mAddFiles = nullptr;
     QToolButton *mRemove = nullptr;

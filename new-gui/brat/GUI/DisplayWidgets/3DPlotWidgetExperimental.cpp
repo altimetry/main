@@ -7,8 +7,7 @@
 #include <qwt3d_function.h>
 
 #include "new-gui/Common/QtUtils.h"
-
-#include "PlotValues.h"
+#include "DataModels/PlotData/PlotValues.h"
 
 #include "3DPlotWidget.h"
 

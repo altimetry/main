@@ -123,7 +123,7 @@
         <file>images/OSGeo/projection.png</file>
         <file>images/OSGeo/dataset.png</file>
         <file>images/OSGeo/dataset_new.png</file>
-        <file>images/OSGeo/dataset_remove.png</file>
+        <file>images/OSGeo/dataset_delete.png</file>
         <file>images/OSGeo/file.png</file>
         <file>images/OSGeo/add_dir_dataset.png</file>
         <file>images/OSGeo/add_files_dataset.png</file>
@@ -206,7 +206,14 @@
         <file>images/OSGeo/brat_smoothing.png</file>
         <file>images/OSGeo/data_minmax_x.png</file>
         <file>images/OSGeo/data_minmax_y.png</file>
+        <file>images/OSGeo/operation_new.png</file>
+        <file>images/OSGeo/operation_edit.png</file>
+        <file>images/OSGeo/operation_delete.png</file>
+        <file>images/OSGeo/operation_duplicate.png</file>
+        <file>images/OSGeo/filter_clearvalues.png</file>
         <file>images/brat_scheduler.png</file>
+        <file>images/brat_paths.png</file>
+        <file>images/brat_style.png</file>
         <file>images/rads.gif</file>
     </qresource>
 </RCC>

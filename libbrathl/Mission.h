@@ -46,6 +46,9 @@ namespace brathl
 
 class CMission 
 {
+public:
+    static brathl_mission FindMission( const std::string product_type);
+
 
 public: 
   /** Constructs a CMission object 
@@ -161,6 +164,8 @@ public:
     The file can contained several record for a same mission. 
     Only the field with the greatest date is taken into account 
     */
+protected:
+
   static const char* m_refFileName;
 
   /** Name of the mission aliases file
@@ -174,6 +179,9 @@ public:
     The file can contained several record for a same mission. 
     */
   static const char* m_refAliasName;
+
+
+public:
 
   /** Max length of the name of the mission */
   static const int m_maxLenName;

@@ -42,7 +42,7 @@ void CDatasetFilterControls::CreateWidgets()
 
     // II. "Where" Description group
     //
-	mClearWhere = CreateToolButton( "", ":/images/themes/default/clearInput.png", "Clear values" );
+    mClearWhere = CreateToolButton( "", ":/images/OSGeo/filter_clearvalues.png", "Clear values" );
 	auto *where_l = new QLabel( "Where" );
 	QFont font = where_l->font();
 	font.setBold( true );
@@ -125,7 +125,7 @@ void CDatasetFilterControls::CreateWidgets()
     //
     auto *when_l = new QLabel( "When" );
 	when_l->setFont( font );
-	mClearWhen = CreateToolButton( "", ":/images/themes/default/clearInput.png", "Clear values" );
+    mClearWhen = CreateToolButton( "", ":/images/OSGeo/filter_clearvalues.png", "Clear values" );
 	AddTopLayout( ELayoutType::Horizontal, { WidgetLine( nullptr, Qt::Horizontal ), when_l, WidgetLine( nullptr, Qt::Horizontal ), mClearWhen }, s, m, m, m, m );
 
     //    III.1 Dates, Cycles and Pass (start and stop values)
@@ -258,10 +258,10 @@ void CDatasetFilterControls::Wire()
     connect( mStartTimeEdit, SIGNAL( dateTimeChanged(const QDateTime&) ), this, SLOT( HandleStartDateTimeChanged(const QDateTime&) ) );
     connect( mStopTimeEdit, SIGNAL( dateTimeChanged(const QDateTime&) ), this, SLOT( HandleStopDateTimeChanged(const QDateTime&) ) );
 
-    connect( mStartCycleEdit, SIGNAL( textEdited(const QString &) ), this, SLOT( HandleStartCycleChanged(const QString &) ) );
-    connect( mStopCycleEdit,  SIGNAL( textEdited(const QString &) ), this, SLOT( HandleStopCycleChanged(const QString &) ) );
-    connect( mStartPassEdit,  SIGNAL( textEdited(const QString &) ), this, SLOT( HandleStartPassChanged(const QString &) ) );
-    connect( mStopPassEdit,   SIGNAL( textEdited(const QString &) ), this, SLOT( HandleStopPassChanged(const QString &) ) );
+    connect( mStartCycleEdit, SIGNAL( textEdited(const QString &) ), this, SLOT( HandleStartCycleChanged() ) );
+    connect( mStopCycleEdit,  SIGNAL( textEdited(const QString &) ), this, SLOT( HandleStopCycleChanged() ) );
+    connect( mStartPassEdit,  SIGNAL( textEdited(const QString &) ), this, SLOT( HandleStartPassChanged() ) );
+    connect( mStopPassEdit,   SIGNAL( textEdited(const QString &) ), this, SLOT( HandleStopPassChanged() ) );
 
 	connect( mMap, SIGNAL( CurrentLayerSelectionChanged() ), this, SLOT( HandleCurrentLayerSelectionChanged() ) );
 }
@@ -536,11 +536,11 @@ void CDatasetFilterControls::HandleFiltersCurrentIndexChanged( int filter_index 
 	mStartTimeEdit->setDateTime( mFilter->StartTime() );
     mStopTimeEdit->setDateTime( mFilter->StopTime() );
 
-    mStartCycleEdit->setText( n2s< std::string >( mFilter->StartCycle() ).c_str() );
-    mStopCycleEdit->setText( n2s< std::string >( mFilter->StopCycle() ).c_str() );
+    mStartCycleEdit->setText( isDefaultValue(mFilter->StartCycle()) ? "" : n2q(mFilter->StartCycle()) );
+    mStopCycleEdit->setText(  isDefaultValue(mFilter->StopCycle())  ? "" : n2q(mFilter->StopCycle()) );
 
-    mStartPassEdit->setText( n2s< std::string >( mFilter->StartPass() ).c_str() );
-    mStopPassEdit->setText( n2s< std::string >( mFilter->StopPass() ).c_str() );
+    mStartPassEdit->setText( isDefaultValue(mFilter->StartPass()) ? "" : n2q(mFilter->StartPass()) );
+    mStopPassEdit->setText(  isDefaultValue(mFilter->StopPass())  ? "" : n2q(mFilter->StopPass()) );
 }
 
 
@@ -585,13 +585,26 @@ void CDatasetFilterControls::HandleAreasSelectionChanged()
 
 void CDatasetFilterControls::HandleClearWhere()
 {
-	BRAT_NOT_IMPLEMENTED;
+    mFilter->DeleteAllAreas();
+
+    // Refresh areas list (checked/unchecked status)
+    FillAreasList();
+
+    // Update Max/Min Lat and Lon and refresh "NewArea" button status
+    HandleCurrentLayerSelectionChanged();
 }
 
 
 void CDatasetFilterControls::HandleClearWhen()
 {
-	BRAT_NOT_IMPLEMENTED;
+    mFilter->setDefaultValues();
+
+    mStartTimeEdit->setDateTime( mFilter->StartTime() );
+    mStopTimeEdit->setDateTime( mFilter->StopTime() );
+    mStartCycleEdit->clear();
+    mStopCycleEdit->clear();
+    mStartPassEdit->clear();
+    mStopPassEdit->clear();
 }
 
 
@@ -779,63 +792,68 @@ void CDatasetFilterControls::HandleStopDateTimeChanged(const QDateTime &stop_dat
 }
 
 
-void CDatasetFilterControls::HandleStartCycleChanged(const QString &new_cycle)
+void CDatasetFilterControls::HandleStartCycleChanged()
 {
-    int new_startCycle = new_cycle.toInt();
-    int stopCycle      = mStopCycleEdit->text().toInt();
-
-    if ( new_startCycle > stopCycle )
-    {
-        new_startCycle = stopCycle;
-    }
-
-    mStartCycleEdit->setText( n2q( new_startCycle) );
-    mFilter->StartCycle() = new_startCycle;
+    ValidateAndStoreValue( mStartCycleEdit,              // Text box
+                           mFilter->StartCycle(),        // Filter value
+                           mFilter->StopCycle(),         // Default Param
+                           CTools::m_defaultValueINT32,  // Min
+                           mFilter->StopCycle()  );      // Max (should be < StopCycle)
 }
 
 
-void CDatasetFilterControls::HandleStopCycleChanged(const QString &new_cycle)
+void CDatasetFilterControls::HandleStopCycleChanged()
 {
-    int new_stopCycle = new_cycle.toInt();
-    int startCycle    = mStartCycleEdit->text().toInt();
-
-    if ( new_stopCycle < startCycle )
-    {
-        new_stopCycle = startCycle;
-    }
-
-    mStopCycleEdit->setText( n2q( new_stopCycle ) );
-    mFilter->StopCycle() = new_stopCycle;
+    ValidateAndStoreValue( mStopCycleEdit,                // Text box
+                           mFilter->StopCycle(),          // Filter value
+                           mFilter->StartCycle(),         // Default Param
+                           mFilter->StartCycle(),         // Min (should be > StartCycle)
+                           CTools::m_defaultValueINT32 ); // Max
 }
 
-void CDatasetFilterControls::HandleStartPassChanged(const QString &new_pass)
+
+void CDatasetFilterControls::HandleStartPassChanged()
 {
-    int new_startPass = new_pass.toInt();
-    int stopPass      = mStopPassEdit->text().toInt();
-
-    if ( new_startPass > stopPass )
-    {
-        new_startPass = stopPass;
-    }
-
-    mStartPassEdit->setText( n2q( new_startPass) );
-    mFilter->StartPass() = new_startPass;
+    ValidateAndStoreValue( mStartPassEdit,               // Text box
+                           mFilter->StartPass(),         // Filter value
+                           mFilter->StopPass(),          // Default Param
+                           CTools::m_defaultValueINT32,  // Min
+                           mFilter->StopPass()  );       // Max (should be < StopPass)
 }
 
-void CDatasetFilterControls::HandleStopPassChanged(const QString &new_pass)
+void CDatasetFilterControls::HandleStopPassChanged()
 {
-    int new_stopPass = new_pass.toInt();
-    int startPass    = mStartPassEdit->text().toInt();
-
-    if ( new_stopPass < startPass )
-    {
-        new_stopPass = startPass;
-    }
-
-    mStopPassEdit->setText( n2q( new_stopPass ) );
-    mFilter->StopPass() = new_stopPass;
+    ValidateAndStoreValue( mStopPassEdit,                 // Text box
+                           mFilter->StopPass(),           // Filter value
+                           mFilter->StartPass(),          // Default Param
+                           mFilter->StartPass(),          // Min (should be > StartPass)
+                           CTools::m_defaultValueINT32 ); // Max
 }
 
+
+// ---------------------------------------------------------------------------------------
+// This method is used to validate the (start/stop) Cycle and Pass values.
+// The value in TextBox is validated and set into filter object.
+// Case the value is outside the min/max limits, the ParamDef is automatically assigned.
+void CDatasetFilterControls::ValidateAndStoreValue(QLineEdit *TextBox, int &ValueInFilter, int ParamDef, int min, int max)
+{
+    int new_value;
+    QString value_str = TextBox->text();
+
+    if ( value_str.isEmpty() )
+        setDefaultValue( new_value );
+    else
+    {
+        new_value = value_str.toInt();
+
+        if ( (!isDefaultValue(min)  &&  new_value < min) ||
+             (!isDefaultValue(max)  &&  new_value > max)    )
+            new_value = ParamDef;
+    }
+
+    TextBox->setText( isDefaultValue(new_value) ? "" : n2q(new_value) );
+    ValueInFilter = new_value;
+}
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////

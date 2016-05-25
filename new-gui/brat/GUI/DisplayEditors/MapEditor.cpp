@@ -40,11 +40,6 @@
 
 void CMapEditor::CreateMapActions()
 {
-	AddToolBarSeparator();
-	mActionStatisticsMean = AddToolBarAction( this, eAction_MapEditorMean );
-	mActionStatisticsStDev = AddToolBarAction( this, eAction_MapEditorStDev );
-	mActionStatisticsLinearRegression = AddToolBarAction( this, eAction_MapEditorLinearRegression );
-
 	// add menu button for projections
 
 	AddToolBarSeparator();
@@ -134,10 +129,6 @@ void CMapEditor::Wire()
 		assert__( a->isCheckable() );
 		connect( a, SIGNAL( triggered() ), this, SLOT( HandleProjection() ) );
 	}
-
-	connect( mActionStatisticsMean, SIGNAL( triggered() ), this, SLOT( HandleStatisticsMean() ) );
-	connect( mActionStatisticsStDev, SIGNAL( triggered() ), this, SLOT( HandleStatisticsStDev() ) );
-	connect( mActionStatisticsLinearRegression, SIGNAL( triggered() ), this, SLOT( HandleStatisticsLinearRegression() ) );
 
 	// layers
 
@@ -309,6 +300,17 @@ void CMapEditor::Recenter()
 }
 
 
+//virtual 
+void CMapEditor::Export2Image( const std::string path, EImageExportType type )
+{
+    Q_UNUSED( path );   Q_UNUSED( type );
+
+    BRAT_NOT_IMPLEMENTED;
+}
+
+
+
+
 void CMapEditor::KillGlobe()
 {
 	if ( mGlobeView )
@@ -383,19 +385,22 @@ bool CMapEditor::Test()
 }
 
 
-void CMapEditor::HandleStatisticsMean()
+//virtual 
+void CMapEditor::StatisticsMean()
 {
 	BRAT_NOT_IMPLEMENTED
 }
 
 
-void CMapEditor::HandleStatisticsStDev()
+//virtual 
+void CMapEditor::StatisticsStDev()
 {
 	BRAT_NOT_IMPLEMENTED
 }
 
 
-void CMapEditor::HandleStatisticsLinearRegression()
+//virtual 
+void CMapEditor::StatisticsLinearRegression()
 {
 	BRAT_NOT_IMPLEMENTED
 }

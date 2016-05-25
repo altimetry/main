@@ -1,7 +1,7 @@
 #include "stdafx.h"
 
 #include "SchedulerApplication.h"
-#include "SchedulerDlg.h"
+#include "SchedulerDialog.h"
 
 
 class CConsoleApplicationPaths;
@@ -13,7 +13,7 @@ try {
 	{
 		QSchedulerApplication a( argc, argv );
 
-        CSchedulerDlg w( a.ApplicationPaths(), nullptr );
+        CSchedulerDialog w( a.ApplicationPaths(), nullptr );
 
 		w.show();
 

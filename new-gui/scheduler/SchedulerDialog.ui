@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>CSchedulerDlg</class>
- <widget class="QDialog" name="CSchedulerDlg">
+ <class>CSchedulerDialog</class>
+ <widget class="QDialog" name="CSchedulerDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>CSchedulerDlg</string>
+   <string>CSchedulerDialog</string>
   </property>
   <property name="windowIcon">
    <iconset>

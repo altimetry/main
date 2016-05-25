@@ -41,6 +41,9 @@ class CQwtArrayPlotData : public QwtData
         double mMinY = std::numeric_limits<double>::max();
         double mMaxY = std::numeric_limits<double>::lowest();
 
+		double mIntercept_a = defaultValue<double>();
+		double mSlope_b = defaultValue<double>();
+
 
         //construction / destruction
 
@@ -111,8 +114,11 @@ class CQwtArrayPlotData : public QwtData
 		template< class F >
         size_t GetDataCountIf( const F &f ) const
 		{
-			return GetDataCountIf( 0, mSizeY, f ) ;
+			return GetDataCountIf( 0, mSizeY, f );
 		}
+
+		//
+		bool Fit();
 	};
 
 

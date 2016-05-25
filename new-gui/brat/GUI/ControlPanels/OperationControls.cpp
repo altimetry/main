@@ -7,10 +7,10 @@
 
 #include "ApplicationLogger.h"
 
+#include "new-gui/Common/DataModels/TaskProcessor.h"
 #include "DataModels/Model.h"
 #include "DataModels/Filters/BratFilters.h"
 #include "DataModels/Workspaces/Workspace.h"
-#include "DataModels/Workspaces/Operation.h"
 #include "DataModels/Workspaces/Function.h"
 
 #include "GUI/ActionsTable.h"
@@ -229,28 +229,32 @@ void COperationControls::CreateQuickOperationsPage()
 
 
 
-void COperationControls::CreateAdancedOperationsPage()
+void COperationControls::CreateAdvancedOperationsPage()
 {
 	mAdvancedOperationsPage = new QWidget( this );
 
 	// I. Top Buttons Row
 
-	mNewOperationButton = CreateToolButton( "", ":/images/OSGeo/new.png", "Create a new operation" );
-    mRenameOperationButton = CreateToolButton( "", ":/images/OSGeo/edit.png", "Rename the selected operation" );
-    mDuplicateOperationButton = CreateToolButton( "", ":/images/themes/default/mActionCopySelected.png", "Duplicate the selected operation" );
-    mDeleteOperationButton = CreateToolButton( "", ":/images/OSGeo/workspace-delete.png", "Delete the selected operation" );
+    mNewOperationButton = CreateToolButton( "", ":/images/OSGeo/operation_new.png", "Create a new operation" );
+    mRenameOperationButton = CreateToolButton( "", ":/images/OSGeo/operation_edit.png", "Rename the selected operation" );
+    mDuplicateOperationButton = CreateToolButton( "", ":/images/OSGeo/operation_duplicate.png", "Duplicate the selected operation" );
+    mDeleteOperationButton = CreateToolButton( "", ":/images/OSGeo/operation_delete.png", "Delete the selected operation" );
 
 	mAdvancedExecuteButton = CreateToolButton( "Execute", ":/images/OSGeo/execute.png", "Execute the operation and edit resulting view" );
 	mAdvancedExecuteButton->setPopupMode( QToolButton::MenuButtonPopup );
 	mAdvancedExecuteButton->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
-    mDelayExecutionAction = new QAction( "Delay Execution...", this );
+    mDelayExecutionAction = new QAction( "Schedule Execution...", this );
 	mLaunchSchedulerAction = CActionInfo::CreateAction( this, eAction_Launch_Scheduler );
 	mAdvancedExecuteButton->addAction( mDelayExecutionAction );
 	mAdvancedExecuteButton->addAction( mLaunchSchedulerAction );
 
+	mExportOperationAction = new QAction( "Export...", this );
+	mEditExportAsciiAction = new QAction( "Edit ASCII Export", this );
+	mOperationExportButton = CreateMenuButton( "", ":/images/OSGeo/export.png", "Export operation", { mExportOperationAction, mEditExportAsciiAction } );
+
 	QWidget *top_buttons_row = CreateButtonRow( false, Qt::Horizontal, 
 	{ 
-        mNewOperationButton, mRenameOperationButton, mDeleteOperationButton, mDuplicateOperationButton, nullptr, mAdvancedExecuteButton
+        mNewOperationButton, mRenameOperationButton, mDeleteOperationButton, mDuplicateOperationButton, nullptr, mOperationExportButton, mAdvancedExecuteButton
 	} );
 
 
@@ -371,9 +375,9 @@ void COperationControls::CreateAdancedOperationsPage()
     // Explanation:
     //   [-0-9:.]+  -> means only hyphens(-), numbers(0-9), colons(:) and points(.); one-or-more (+) or zero-or-more (*) repetition of the characters within character class ([]).
     //     (^$)     -> allows empty strings (otherwise editingFinished signal is not triggered ). (^) and ($) mean beginning and end of string, respectively.
-    static QRegExpValidator *DegreeAndTimeValidator = new QRegExpValidator( QRegExp("[-0-9:. ]*"), this );
-    static QRegExpValidator *LoessCutValidator      = new QRegExpValidator( QRegExp("[0-9]+|(^$)"), this );
-    static QRegExpValidator *StepValidator          = new QRegExpValidator( QRegExp("[-+/0-9.]+|(^$)"), this );
+    QRegExpValidator *DegreeAndTimeValidator = new QRegExpValidator( QRegExp("[-0-9:. ]*"), this );
+    QRegExpValidator *LoessCutValidator      = new QRegExpValidator( QRegExp("[0-9]+|(^$)"), this );
+    QRegExpValidator *StepValidator          = new QRegExpValidator( QRegExp("[-+/0-9.]+|(^$)"), this );
 
     mXLonMinValue->setValidator( DegreeAndTimeValidator );
     mXLonMaxValue->setValidator( DegreeAndTimeValidator );
@@ -384,21 +388,21 @@ void COperationControls::CreateAdancedOperationsPage()
     mXLonCutOff->setValidator( LoessCutValidator );
     mYLatCutOff->setValidator( LoessCutValidator );
 
-    XiconWarning = new QLabel();
-    YiconWarning = new QLabel();
+    XiconWarning = new QLabel;
+    YiconWarning = new QLabel;
     auto *Xintr_WarnIcon = LayoutWidgets( Qt::Horizontal, { mXLonIntervalsLabel, XiconWarning }, nullptr, s, m, m, m, m );
     auto *Yintr_WarnIcon = LayoutWidgets( Qt::Horizontal, { mYLatIntervalsLabel, YiconWarning }, nullptr, s, m, m, m, m );
 
 	QGridLayout *sampling_gridl = LayoutWidgets(
 	{ 
 //        mXLonLabel,       mXLonMinValue, mXLonMaxValue, mXLonStep,  mXLonCutOff, mXLonIntervalsLabel, XiconWarning,     nullptr,
-//        new QLabel( "" ), min_label,     max_label,     step_label, cut_label,   intervals_label,     new QLabel( "" ), nullptr,
+//        new QLabel,		min_label,     max_label,     step_label, cut_label,   intervals_label,     new QLabel, nullptr,
 //        mYLatLabel,       mYLatMinValue, mYLatMaxValue, mYLatStep,  mYLatCutOff, mYLatIntervalsLabel, YiconWarning,     nullptr
-            new QLabel( "" ),  mXLonLabel,      new QLabel( "" ),  mYLatLabel,      new QLabel( "" ),  nullptr,
-            mGetDataMaxMinX,   mXLonMinValue,   min_label,         mYLatMinValue,   mGetDataMaxMinY,   nullptr,
-            new QLabel( "" ),  mXLonMaxValue,   max_label,         mYLatMaxValue,   new QLabel( "" ),  nullptr,
-            new QLabel( "" ),  mXLonStep,       step_label,        mYLatStep,       new QLabel( "" ),  nullptr,
-            new QLabel( "" ),  Xintr_WarnIcon,  intervals_label,   Yintr_WarnIcon,  new QLabel( "" ),  nullptr,
+            new QLabel,			mXLonLabel,      new QLabel,		mYLatLabel,      new QLabel,		nullptr,
+            mGetDataMaxMinX,	mXLonMinValue,   min_label,         mYLatMinValue,   mGetDataMaxMinY,   nullptr,
+            new QLabel,			mXLonMaxValue,   max_label,         mYLatMaxValue,   new QLabel,		nullptr,
+            new QLabel,			mXLonStep,       step_label,        mYLatStep,       new QLabel,		nullptr,
+            new QLabel,			Xintr_WarnIcon,  intervals_label,   Yintr_WarnIcon,  new QLabel,		nullptr,
 	},
     nullptr, 2, 4, 4, 4, 2 );
 
@@ -452,10 +456,6 @@ QWidget* COperationControls::CreateCommonWidgets( QAbstractButton *b1, QAbstract
 {
 	//buttons row
 
-	mExportOperationAction = new QAction( "Export...", this );
-	mEditExportAsciiAction = new QAction( "Edit ASCII Export", this );
-	mOperationExportButton = CreateMenuButton( "", ":/images/OSGeo/export.png", "Export operation", { mExportOperationAction, mEditExportAsciiAction } );
-
 	mOperationStatisticsButton = CreateToolButton( "", ":/images/OSGeo/stats.png", "Generate statistics and save results in file" );
 
 	mSplitPlotsButton = CreateToolButton( "", ":/images/alpha-numeric/__s.png", "Split plots" );
@@ -465,7 +465,7 @@ QWidget* COperationControls::CreateCommonWidgets( QAbstractButton *b1, QAbstract
 	{ 
 		b1, b2, 
 		nullptr,
-		mOperationExportButton, mOperationStatisticsButton, mSplitPlotsButton,		
+		mOperationStatisticsButton, mSplitPlotsButton,		
 	} );
 
 	return buttons;
@@ -762,8 +762,8 @@ void COperationControls::Wire()
         connect( a, SIGNAL( triggered() ), this, SLOT( HandleDataSmoothing() ) );
     }
 
-	connect( mProcessesTable, SIGNAL( ProcessFinished( int, QProcess::ExitStatus, const COperation*, bool ) ),
-		this, SLOT( HandleProcessFinished( int, QProcess::ExitStatus, const COperation*, bool ) ) );
+	connect( mProcessesTable, SIGNAL( ProcessFinished( int, QProcess::ExitStatus, const COperation*, bool, void* ) ),
+		this, SLOT( HandleProcessFinished( int, QProcess::ExitStatus, const COperation*, bool, void* ) ) );
 
 	connect( mSwitchToMapButton, SIGNAL( clicked() ), this, SLOT( HandleSwitchExpressionType() ) );
 	connect( mSwitchToPlotButton, SIGNAL( clicked() ), this, SLOT( HandleSwitchExpressionType() ) );
@@ -800,7 +800,7 @@ COperationControls::COperationControls( CProcessesTable *processes_table, CModel
 	, mBratFilters( mModel.BratFilters() )
 {
 	CreateQuickOperationsPage();		assert__( mQuickOperationsPage );
-	CreateAdancedOperationsPage();		assert__( mAdvancedOperationsPage );
+	CreateAdvancedOperationsPage();		assert__( mAdvancedOperationsPage );
 
     mStackWidget = new CStackedWidget( this, { 
 		{ mQuickOperationsPage, "Quick", "", "", true }, 
@@ -858,10 +858,10 @@ void COperationControls::HandlePageChanged( int index )
 
 	//enable = hasOperation && hasDataset;
 	//enableField = (GetDatasettreectrl()->GetSelection().IsOk() && (GetFieldstreectrl()->GetCount() > 0));
-    //hasUserFormula = m_operation->HasFormula();
+    //hasUserFormula = mCurrentOperation->HasFormula();
 	//enableExecute = enable && enableField && hasUserFormula;
 
-    //enableExportAsciiEdit = wxFile::Exists(m_operation->GetExportAsciiOutputName());
+    //enableExportAsciiEdit = wxFile::Exists(mCurrentOperation->GetExportAsciiOutputName());
 
 	COperation *operation = nullptr;
 	switch ( m )
@@ -882,10 +882,6 @@ void COperationControls::HandlePageChanged( int index )
 			assert__( false );
 			break;
 	}
-
-	mExportOperationAction->setEnabled( operation && operation->HasFormula() );
-	mEditExportAsciiAction->setEnabled( operation && IsFile( operation->GetExportAsciiOutputPath() ) );
-	mOperationExportButton->setEnabled( mEditExportAsciiAction->isEnabled() || mExportOperationAction->isEnabled() );
 
 	mOperationStatisticsButton->setEnabled( operation && operation->HasFormula() );
 	mSplitPlotsButton->setEnabled( operation );
@@ -1048,6 +1044,20 @@ void COperationControls::HandleDatasetsChanged_Advanced( CDataset *dataset )
 }
 
 
+// for enabling / disabling widgets dependent of multiple state changes:
+//
+//	- operation existence
+//	- formula existence
+//	- operation file existence
+//
+void COperationControls::UpdateGUIState()
+{
+	mExportOperationAction->setEnabled( mCurrentOperation && !IsQuickOperationSelected() && mCurrentOperation->HasFormula() );
+	mEditExportAsciiAction->setEnabled( mCurrentOperation && !IsQuickOperationSelected() && IsFile( mCurrentOperation->GetExportAsciiOutputPath() ) );
+	mOperationExportButton->setEnabled( mEditExportAsciiAction->isEnabled() || mExportOperationAction->isEnabled() );
+}
+
+
 // Assuming datasets setup in combo, this function should be enough to setup remaining tab
 //
 void COperationControls::HandleSelectedOperationChanged( int operation_index )	//ComboOperation( int currentOperation )
@@ -1120,6 +1130,8 @@ void COperationControls::HandleSelectedOperationChanged( int operation_index )	/
 	//update filters
 
 	ResetFilterSelection();
+
+	UpdateGUIState();
 }
 
 
@@ -1697,7 +1709,7 @@ void COperationControls::GetDataMinMax(CFormula* formula)
     /// Get product temp object  //
     ///////////////////////////////
     // Don't use product of operation object to read data
-    // because reading reload fiels info and the we get bad pointer
+    // because reading reload fields info and then we get bad pointer
     // So, we use a CProduct temporary object (Old Brat comment)
     CProduct* productTmp = nullptr;
 
@@ -1705,7 +1717,7 @@ void COperationControls::GetDataMinMax(CFormula* formula)
     bool is_Ok = true;
     try
     {
-        /// RCCC TODO: Try to avoid the following 2 lines (dummy)
+        /// RCCC TODO: Try to merge the following 2 lines (dummy)
         const COperation *currentOperation = mCurrentOperation;
         CProductList *currentProductList   = const_cast<CProductList*>( currentOperation->Dataset()->GetProductList() );
 
@@ -1780,7 +1792,7 @@ void COperationControls::GetDataMinMax(CFormula* formula)
                 {
                     CExpression expr = std::string( formula->GetDescription( true,
                                                                              &mMapFormulaString,
-                                                                             productTmp->GetAliasesAsString()  ).c_str() );
+                                                                             productTmp->GetAliasesAsString() ).c_str() );
                     productTmp->GetValueMinMax( expr,
                                                 (const char *)mCurrentOperation->GetRecord().c_str(),
                                                 valueMin,
@@ -1805,7 +1817,7 @@ void COperationControls::GetDataMinMax(CFormula* formula)
             }
         }
 
-        if ( !resultGetCoverage ) // If failed in determining Max/min date or Lat/Lon
+        if ( !resultGetCoverage ) // If failed in determining Max/min date or Lat/Lon or field has other type of info
         {
             double valueMin = 0.0;
             double valueMax = 0.0;
@@ -2042,13 +2054,27 @@ bool COperationControls::VerifyMinMax( CFormula *formula, QLineEdit *LineEdit_Mi
         GetValue( LineEdit_Min, min, minDefault );
         GetValue( LineEdit_Max, max, maxDefault );
     }
-    else
+    else if( formula->IsLatDataType() )
     {
         formula->ConvertToFormulaUnit( -90, minDefault );
         formula->ConvertToFormulaUnit(  90, maxDefault );
 
         GetValue( LineEdit_Min, min, minDefault, minDefault, maxDefault );
         GetValue( LineEdit_Max, max, maxDefault, minDefault, maxDefault );
+    }
+    else // Any other type besides Lon, Lat and time. Examples: alt, ssh...
+    {
+        setDefaultValue( minDefault );
+        setDefaultValue( maxDefault );
+
+        GetValue( LineEdit_Min, min, minDefault, minDefault, maxDefault );
+        GetValue( LineEdit_Max, max, maxDefault, minDefault, maxDefault );
+
+        if ( min == max ) // for variables than have only one value, min == max.
+        {
+            setDefaultValue( max );
+            LineEdit_Max->setText( "" );
+        }
     }
 
     // Set validated values into formula //
@@ -2064,8 +2090,12 @@ bool COperationControls::VerifyMinMax( CFormula *formula, QLineEdit *LineEdit_Mi
     if ( !formula->CtrlMinMaxValue(errorMsg) )
     {
         // Set default values into formula and LineEdit //
-        formula->SetMinValue( minDefault );    LineEdit_Min->setText( n2q( minDefault ) );
-        formula->SetMaxValue( maxDefault );    LineEdit_Max->setText( n2q( maxDefault ) );
+        formula->SetMinValue( minDefault );
+        formula->SetMaxValue( maxDefault );
+
+        LineEdit_Min->setText( isDefaultValue(minDefault) ? "" : n2q(minDefault) );
+        LineEdit_Max->setText( isDefaultValue(maxDefault) ? "" : n2q(maxDefault) );
+
         SimpleWarnBox( t2q(errorMsg) );
         return false;
     }
@@ -2073,9 +2103,7 @@ bool COperationControls::VerifyMinMax( CFormula *formula, QLineEdit *LineEdit_Mi
     return true;
 }
 
-void COperationControls::GetValue( QLineEdit *LineEdit_Axisvalue, double &value, double defValue,
-                                   double min/*= CTools::m_defaultValueDOUBLE*/,
-                                   double max/*= CTools::m_defaultValueDOUBLE*/                   )
+void COperationControls::GetValue( QLineEdit *LineEdit_Axisvalue, double &value, double defValue, double min, double max )	//min = defaultValue<double>(), double max = defaultValue<double>() 
 {
     CExpression expression;
     CExpressionValue exprValue;
@@ -2090,7 +2118,7 @@ void COperationControls::GetValue( QLineEdit *LineEdit_Axisvalue, double &value,
         if ( str.empty() )
         {
             value = defValue;
-            LineEdit_Axisvalue->setText( n2q(value) );
+            LineEdit_Axisvalue->setText( isDefaultValue(value) ? "" : n2q(value) );
             return;
         }
 
@@ -2118,7 +2146,7 @@ void COperationControls::GetValue( QLineEdit *LineEdit_Axisvalue, double &value,
     catch (CException e)
     {
         value = defValue;
-        LineEdit_Axisvalue->setText( n2q(value) );
+        LineEdit_Axisvalue->setText( isDefaultValue(value) ? "" : n2q(value) );
     }
 }
 
@@ -2282,9 +2310,16 @@ void COperationControls::HandleGetDataMinMaxY()
 
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
-//				Data Expressions Operations
+//						Field & Data Expressions
 ///////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////
+
+
+void COperationControls::HandleSelectedFieldChanged_Advanced()
+{
+	mAdvancedFieldDesc->setText( mAdvancedFieldsTree->GetCurrentFieldDescription().c_str() );
+}
+
 
 void COperationControls::HandleSwitchExpressionType()
 {
@@ -2330,6 +2365,8 @@ void COperationControls::HandleSelectedFormulaChanged( CFormula *formula )
 	mSamplingGroup->setCollapsed( mSamplingGroup->isCollapsed() || !enable_sampling );
 	if ( enable_sampling )
 		UpdateSamplingGroup();
+
+	UpdateGUIState();
 }
 
 
@@ -2595,7 +2632,7 @@ void COperationControls::HandleDeleteOperation()
         return;
     }
 
-//    m_operation = nullptr;
+//    mCurrentOperation = nullptr;
 //    mUserFormula = nullptr;
 
     int current = mOperationsCombo->currentIndex();     assert__( current == mOperationsCombo->findText( op_name.c_str() ) );
@@ -2647,7 +2684,7 @@ void COperationControls::HandleDuplicateOperation()
     if ( !mWOperation->InsertOperation( op_name, mCurrentOperation, mWDataset ) )
     {
         SimpleMsgBox( "Operation '" + op_name + "' already exists" );
-//        GetOpnames()->SetStringSelection(m_operation->GetName());
+//        GetOpnames()->SetStringSelection(mCurrentOperation->GetName());
 //        m_currentOperationIndex = GetOpnames()->GetSelection();
     }
     else
@@ -2712,41 +2749,297 @@ void COperationControls::HandleRenameOperation()
 }
 
 
+
+void COperationControls::ExportGeoTIFFAsyncComputationFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation )
+{
+	const bool success = 
+		exit_code == 0 &&
+		exitStatus == QProcess::NormalExit;
+
+	if ( !success )
+		return;
+
+	LOG_INFO( "Asynchronous export GeoTIFF process for operation '" + operation->GetName() + "' finished execution." );
+}
+
+void COperationControls::ExportASCIIAsyncComputationFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation )
+{
+	const bool success = 
+		exit_code == 0 &&
+		exitStatus == QProcess::NormalExit;
+
+	if ( !success )
+		return;
+
+	LOG_INFO( "Asynchronous export ASCII process for operation '" + operation->GetName() + "' finished execution." );
+}
+
+/*
+void COperationControls::ExportGeoTiff( std::string out_file, bool createKML, std::string colorTable, double rangeMin, double rangeMax )
+{
+	//wxGetApp().GotoLogPage();
+	//file.Create( exportGeoTiffCmdFile.GetFullPath(), true, wxS_DEFAULT | wxS_IXUSR );
+
+	std::string exportGeoTiffCmdFile = mWOperation->GetPath() + "/" + GetFilenameFromPath( out_file ) + EXPORTGEOTIFF_COMMANDFILE_EXTENSION;
+
+	//std::string 
+	//content = "\n#----- LOG -----\n\n";
+	//content += ( kwVERBOSE + "=2\n" );
+	//content += ( "\n#----- INPUT -----\n\n" );
+	//content += ( kwFILE );
+	//content += ( "=" );
+	//content += ( mCurrentOperation->GetOutputPath() );
+	//content += ( "\n" );
+	//content += ( "\n#----- COLORTABLE -----\n\n" );
+	//content += ( kwDISPLAY_COLORTABLE );
+	//content += ( "=" );
+	//content += ( colorTable );
+	//content += ( "\n" );
+	//if ( !isDefaultValue( rangeMin ) )
+	//{
+	//	content += ( kwDISPLAY_MINVALUE + "=" + n2s<std::string>( rangeMin ) + "\n" );
+	//}
+	//if ( !isDefaultValue( rangeMax ) )
+	//{
+	//	content += ( kwDISPLAY_MAXVALUE + "=" + n2s<std::string>( rangeMax ) + "\n" );
+	//}
+	//if ( createKML )
+	//{
+	//	std::string kmlOutputFile = out_file;
+	//	SetFileExtension( out_file, "kml" );
+	//	content += ( "\n#----- GOOGLE EARTH -----\n\n" );
+	//	content += ( kwOUTPUT_KML );
+	//	content += ( "=" );
+	//	content += ( kmlOutputFile );
+	//	content += ( "\n" );
+	//	content += ( kwDISPLAY_LOGO_URL );
+	//	content += ( "=" );
+	//	content += ( mBratPaths.mInternalDataDir );
+	//	content += ( "/BratLogo.png" );
+	//	content += ( "\n" );
+	//	content += ( kwFILETYPE );
+	//	content += ( "=" );
+	//	content += ( mProduct->GetProductClass().c_str() );
+	//	content += ( " / " );
+	//	content += ( mProduct->GetProductType().c_str() );
+	//	content += ( "\n" );
+	//	content += ( kwPRODUCT_LIST );
+	//	content += ( "=" );
+	//	content += ( mCurrentOperation->OriginalDataset()->GetProductList()->ToString( ", ", true ) );
+	//	content += ( "\n" );
+	//}
+	//content += ( "\n#----- OUTPUT -----\n\n" );
+	//content += ( kwOUTPUT );
+	//content += ( "=" );
+	//content += ( out_file );
+	//content += ( "\n" );
+
+	//std::string fullCommand = "\"" + COperation::GetExecExportGeoTiffName() + "\" \"" + exportGeoTiffCmdFile + "\"";
+
+	//std::string outputFile_str = out_file;
+
+	//CPipedProcess* process = new CPipedProcess( exportGeoTiffCmdFile.GetName(),
+	//	wxGetApp().GetLogPanel(),
+	//	fullCommand,
+	//	wxGetApp().GetLogPanel()->GetLogMess(),
+	//	&outputFile_str,
+	//	mCurrentOperation->GetType() );
+
+	//bool bOk = wxGetApp().GetLogPanel()->AddProcess( process );
+	//if ( bOk == false )
+	//{
+	//	delete process;
+	//	process = nullptr;
+	//}
+
+	//EnableCtrl();
+}
+*/
+
+
 void COperationControls::HandleExportOperation()
 {
-//    assert__( mCurrentOperation || mQuickOperation );
+	///////////////
+	//lambdas
+	///////////////
 
-//    COperation *operation = AdvancedMode() ? mCurrentOperation : mQuickOperation;		assert__( operation );
+	auto DelayExportOperationAsGeoTiff = [this]( const QDateTime &at )
+	{
+		CBratTask *parent = Schedule( EExecutionType::eOperation, at );
+		if ( parent == nullptr )
+		{
+			return;
+		}
+		Schedule( EExecutionType::eExportGeoTIFF, at, parent );
+	};
 
-//    // Check if operation has errors
-//    std::string msg;
-//    bool operationOk = AdvancedMode() ? CheckAdvancedOperation( msg, true, &mMapFormulaString ) : CheckQuickOperation( msg, true, &mMapFormulaString );
-//    if ( !operationOk )
-//    {
-//        SimpleErrorBox( "Operation '"
-//                        + operation->GetName()
-//                        + "' has some errors and process can't be achieved"
-//                        + ( msg.empty() ? "." : ":\n" )
-//                        + msg );
-//        return;
-//    }
+	auto ExportOperationAsGeoTiff = [this]()
+	{
+		// v3: Always execute again
+		if ( !ExecuteCurrentOperation( &COperationControls::OperationSyncExecutionFinished ) )
+			return;
+
+		Execute( EExecutionType::eExportGeoTIFF, mCurrentOperation, false, &COperationControls::ExportGeoTIFFAsyncComputationFinished );
+	};
 
 
-    CExportDialog dlg( this );
-    if ( dlg.exec() == QDialog::Rejected )
+	auto DelayExportOperationAsNetCdf = [this]( const QDateTime &at )
+	{
+		CBratTask *parent = Schedule( EExecutionType::eOperation, at );
+		if ( parent == nullptr )
+		{
+			return;
+		}
+		Schedule( EExecutionType::eOperation, at, parent );
+	};
+
+	auto ExportOperationAsNetCdf = [this]( const std::string &export_path )
+	{
+		if ( !ExecuteCurrentOperation( &COperationControls::OperationSyncExecutionFinished ) )
+			return;
+
+		const std::string output_path = mCurrentOperation->GetOutputPath( EExecutionType::eOperation );
+
+		if ( !IsFile( output_path ) )
+		{
+			SimpleWarnBox(
+				"File'"
+				+ output_path
+				+ "' doesn't exist - Please, look at the messages in the log panel"
+				" and check if the operation has been correctly processed" );
+		}
+		else if ( !DuplicateFile( output_path, export_path ) )
+		{
+			SimpleWarnBox( "Unable to copy file '" + output_path + "' to '" + export_path + "'" );
+		}
+		else
+		{
+			SimpleMsgBox( "File has been exported to '" + export_path + "' " );
+		}
+	};
+
+
+	auto DelayExportOperationAsAscii = [this]( const QDateTime &at )
+	{
+		CBratTask *parent = nullptr;
+
+		// Exports operation with data computation, otherwise only dumps expressions
+		if ( !mCurrentOperation->IsExportAsciiNoDataComputation() )
+		{
+			parent = Schedule( EExecutionType::eOperation, at );
+			if ( parent == nullptr )
+			{
+				return;
+			}
+		}
+		Schedule( EExecutionType::eExportASCII, at, parent );
+	};
+
+	auto ExportOperationAsAscii = [this]()
+	{
+		// Exports operation with data computation, otherwise only dumps expressions
+		if ( !mCurrentOperation->IsExportAsciiNoDataComputation() )
+		{
+			if ( !ExecuteCurrentOperation( &COperationControls::OperationSyncExecutionFinished ) )
+				return;
+
+			if ( !IsFile( mCurrentOperation->GetOutputPath( EExecutionType::eOperation ) ) )
+			{
+				SimpleWarnBox(
+					"File'"
+					+ mCurrentOperation->GetOutputPath( EExecutionType::eOperation )
+					+ "' doesn't exist - Please, look at the messages in the log panel"
+					" and check if the operation has been correctly processed." );
+
+				return;
+			}
+		}
+		//ExportOperationAsAsciiDump == following
+		Execute( EExecutionType::eExportASCII, mCurrentOperation, false, &COperationControls::ExportASCIIAsyncComputationFinished );
+	};
+
+
+	///////////////
+	//function body
+	///////////////
+
+	assert__( mCurrentOperation && !IsQuickOperationSelected() );
+
+    // Check if operation has errors
+    std::string msg;
+    bool operationOk = CheckOperation( mCurrentOperation, msg, &mMapFormulaString );
+    if ( !operationOk )
     {
+        SimpleErrorBox( "Operation '"
+                        + mCurrentOperation->GetName()
+                        + "' has some errors and process can't be achieved"
+                        + ( msg.empty() ? "." : ":\n" )
+                        + msg );
         return;
     }
 
+
+    CExportDialog dlg( mModel.BratPaths().mInternalDataDir + "/BratLogo.png",  mWOperation, mCurrentOperation, &mMapFormulaString, this );
+    if ( dlg.exec() == QDialog::Rejected )
+        return;
+
+ 	switch ( dlg.ExportFormat() )
+	{
+		case CExportDialog::eASCII:
+		{
+			if ( dlg.DelayExecution() )
+			{
+				DelayExportOperationAsAscii( dlg.DateTime() );
+			}
+			else
+			{
+				ExportOperationAsAscii();
+			}
+		}
+		break;
+
+
+		case CExportDialog::eNETCDF:
+		{
+			if ( dlg.DelayExecution() )
+			{
+				DelayExportOperationAsNetCdf( dlg.DateTime() );
+			}
+			else
+			{
+				ExportOperationAsNetCdf( dlg.OutputPath() );
+			}
+		}
+		break;
+
+
+		case CExportDialog::eGEOTIFF:
+		{
+			if ( dlg.DelayExecution() )
+			{
+				DelayExportOperationAsGeoTiff( dlg.DateTime() );
+			}
+			else
+			{
+				ExportOperationAsGeoTiff();
+			}
+		}
+		break;
+
+
+		default:
+			assert__( false );
+		break;
+	}
 //    //------------------
 //    // Remember last export filename and path -> OLD BRAT
 //    //------------------
-////    wxFileName filenameToSave = dlg.m_currentName;
+////    std::string filenameToSave = dlg.m_currentName;
 ////    filenameToSave.SetExt(CExportDlg::m_defaultExtensionAscii);
-////    m_operation->SetExportAsciiOutput( filenameToSave.GetFullPath().ToStdString(), wxGetApp().GetCurrentWorkspaceOperation() );
+////    mCurrentOperation->SetExportAsciiOutput( filenameToSave.GetFullPath().ToStdString(), wxGetApp().GetCurrentWorkspaceOperation() );
 
-////    m_operation->SetExecuteAgain(dlg.m_executeAgain);
-////  //  m_operation->SetDelayExecution(dlg.m_delayExecution);
+////    mCurrentOperation->SetExecuteAgain(dlg.m_executeAgain);
+////  //  mCurrentOperation->SetDelayExecution(dlg.m_delayExecution);
 
 
 //    //------------------
@@ -2797,128 +3090,66 @@ void COperationControls::HandleExportOperation()
 //    // Export as GeoTiff
 //    //------------------
 
+	UpdateGUIState();
 }
-
-//void COperationControls::ExportOperationAsAscii( COperation *operation ) // TODO RCCC: Old method at OperationPanel
-//{
-//    if ( !m_operation )
-//        return;
-
-//    // Exports operation with data computation, otherwise only dumps expressions
-//    if ( !m_operation->IsExportAsciiNoDataComputation() )
-//    {
-//        // [TODO RCCC: FEMM comment at v3 method] The output file is not updated as it should when the values in the formula tree change;
-//        //so, inspecting IsExecuteAgain and output file existence is not enough to know when execution
-//        //is necessary. Hence, here, we are forced to always execute, because apparently there is no other
-//        //mechanism that we could inspect to know if the output (netcdf) file is updated.
-//        //
-//        bool bExecute = true; // m_operation->IsExecuteAgain() || ( ! wxFileExists(m_operation->GetOutputName()) );
-
-//        if ( bExecute )
-//        {
-//            Execute( true );
-
-//            if ( wxFileExists( m_operation->GetOutputPath() ) == false )
-//            {
-//                wxMessageBox( wxString::Format( "File'%s' doesn't exist - Please, look at the messages in the log panel"
-//                    " and check if the operation has been correctly processed",
-//                    m_operation->GetOutputPath() ),
-//                    "Warning",
-//                    wxOK | wxCENTRE | wxICON_EXCLAMATION );
-//                EnableCtrl();
-//                return;
-//            }
-//        }
-//    }
-
-
-
-//    //////////
-//    WaitCursor wait;				assert__( mWRoot );
-
-//    COperation *operation = CreateQuickOperation( CMapTypeOp::eTypeOpZFXY );
-//    if ( !operation )
-//    {
-//        return;
-//    }
-//    assert__( operation->IsMap() );
-
-//    SelectOperation( operation->GetName(), false );
-
-//    Execute( true );
-//    ///////////
-
-
-
-
-//}
-
 
 
 void COperationControls::HandleEditExportAscii()
 {
-    CEditExportAsciiDialog dlg( this );
-    if ( dlg.exec() == QDialog::Accepted )
-    {
-        BRAT_NOT_IMPLEMENTED;
-    }
+  //std::string title = std::string::Format("%s", mCurrentOperation->GetExportAsciiOutputName().c_str());
+  //CRichTextFrame* frame = new CRichTextFrame(this, title);
+
+  //wxFFile wxffile(mCurrentOperation->GetExportAsciiOutputName());
+
+  //std::string content;
+  //wxffile.ReadAll(&content);
+  //frame->GetTextCtrl()->SetValue(content);
+  ////frame->GetTextCtrl()->LoadFile(mCurrentOperation->GetExportAsciiOutputName());
+
+  //frame->Show(true);
+  //frame->GetTextCtrl()->SetInsertionPoint(0);
+
+  //EnableCtrl();
+
+
+	assert__( mCurrentOperation && !IsQuickOperationSelected() );
+
+    CEditExportAsciiDialog dlg( mCurrentOperation, this );
+    dlg.exec();
 }
 
 
+void COperationControls::StatsAsyncComputationFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation )
+{
+	const bool success = 
+		exit_code == 0 &&
+		exitStatus == QProcess::NormalExit;
+
+	if ( !success )
+		return;
+
+	LOG_INFO( "Asynchronous statistics process for operation '" + operation->GetName() + "' finished execution." );
+}
 void COperationControls::HandleOperationStatistics()
 {
 	assert__( mCurrentOperation || mQuickOperation );
 
-	COperation *operation = AdvancedMode() ? mCurrentOperation : mQuickOperation;		assert__( operation );
-
-	std::string msg;
-	bool operationOk = AdvancedMode() ? CheckAdvancedOperation( msg, true, &mMapFormulaString ) : CheckQuickOperation( msg, true, &mMapFormulaString );
-	if ( !operationOk )
-	{
-		SimpleErrorBox( "Operation '" + operation->GetName() + "' has some errors and process can't be achieved:\n"	+ msg );
-		return;
-	}
-
-	//wxGetApp().GotoLogPage();
-	operation->ClearLogFile();		//!sync
-	operation->InitShowStatsOutput( mWOperation );
-	if ( !operation->BuildShowStatsCmdFile( mWFormula, mWOperation ) )	//v3 didn't seem to care if this fails
-	{
-		SimpleErrorBox( "There was an error composing the command file.\nStatistics cannot be computed." );
-		return;
-	}
-
-	emit AsyncProcessExecution( true );
-	// ProcessesTable will display user messages for us, no need to report on false return
-	//
-	//bool result = 
-	mProcessesTable->Add4Statistics( false, operation );
-	emit AsyncProcessExecution( false );
-
-
-	//CPipedProcess* process = new CPipedProcess( 
-	//	m_operation->GetShowStatsTaskName(),
-	//	wxGetApp().GetLogPanel(),
-	//	m_operation->GetShowStatsFullCmd(),
-	//	wxGetApp().GetLogPanel()->GetLogMess(),
-	//	m_operation->GetShowStatsOutput(),			mCurrentOperation->GetShowStatsOutputPath();
-	//	-1 );
-	//bool bOk = wxGetApp().GetLogPanel()->AddProcess( process );
-	//if ( bOk == false )
-	//{
-	//	delete process;
-	//	process = NULL;
-	//}
-	//EnableCtrl();
+	Execute( EExecutionType::eStatistics, AdvancedMode() ? mCurrentOperation : mQuickOperation, false, &COperationControls::StatsAsyncComputationFinished );
 }
 
 
 void COperationControls::HandleDelayExecution()
 {
-    CDelayExecutionDialog dlg( this );
+	assert__( mCurrentOperation );
+
+	QDateTime at = QDateTime::currentDateTime();
+	std::string label = mCurrentOperation->GetTaskName( EExecutionType::eOperation );
+
+    CDelayExecutionDialog dlg( label, at, this );
     if ( dlg.exec() == QDialog::Accepted )
     {
-        BRAT_NOT_IMPLEMENTED;
+		mCurrentOperation->SetScheduledTaskName( label );
+		Schedule( EExecutionType::eOperation, at );
     }
 }
 
@@ -2970,28 +3201,51 @@ void COperationControls::LaunchDisplay( const std::string &display_name )
 
 
 /////////////////////////////////////////////////////////////////////////////////
-//								Execute
+//							Operation Execution
 /////////////////////////////////////////////////////////////////////////////////
 
-void COperationControls::AsyncProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation )
-{
-	const bool success = 
-		exit_code == 0 &&
-		exitStatus == QProcess::NormalExit;
-
-	if ( !success )
-		return;
-
-	LOG_INFO( "Asynchronous process for operation '" + operation->GetName() + "' finished execution." );
-}
-
-
+///////////////////////////////////////////////////////////////////
+//
+//	TODO BIG one
+//
+//	CRITICAL: check if operation is selected in any editor and 
+//		close it. Emit signal, at least after operation execution, 
+//		so that all display editors refresh their internal data.
+//
+//	This happens for all destructive operations, so a method must
+//	be created that collects all currently selected operations and 
+//	prevents operating on it if it is selected.
+//
+//	Furthermore, in the display editors a device must be implemented, 
+//	and made compatible with existing execution flow, and tested, 
+//	and what not, to refresh all internal data... gosh...
+//
+///////////////////////////////////////////////////////////////////
 
 
 bool COperationControls::MapRequested() const
 {
     return mSwitchToMapButton->isChecked();
 }
+
+
+//slot
+//
+bool COperationControls::HandleExecute()
+{
+	if ( IsQuickOperationSelected() )
+	{
+		if ( MapRequested() )
+			HandleQuickMap();
+		else
+			HandleQuickPlot();
+
+		return true;
+    }
+
+	return ExecuteCurrentOperation();
+}
+
 
 //	Operation::Execute generates 
 //		operation.par 
@@ -3001,13 +3255,13 @@ bool COperationControls::MapRequested() const
 //		display.par
 //
 //
-void COperationControls::SyncProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation )
+
+bool COperationControls::CreateOperationExecutionDisplays( std::string &to_display, int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation )
 {
 	const bool success = 
 		exit_code == 0 &&
 		exitStatus == QProcess::NormalExit;
 
-	mSyncProcessExecuting = false;
 	if ( success )
 	{
 		assert__( operation == mCurrentOperation );		//should only fail if asynchronous process; requires refreshing all operations info
@@ -3040,70 +3294,87 @@ void COperationControls::SyncProcessFinished( int exit_code, QProcess::ExitStatu
 			//for ( auto &data : *m_dataList )
 			//	display->InsertData( data.first, dynamic_cast<CDisplayData*>( data.second ) );
 
-			LaunchDisplay( v[ 0 ]->GetName() );
+			to_display = v[ 0 ]->GetName();
 		}
 	}
-
-	emit SyncProcessExecution( false );
+	return success;
 }
 
-//slot
-//
-bool COperationControls::HandleExecute()
+
+void COperationControls::OperationSyncExecutionFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation )
 {
-	if ( IsQuickOperationSelected() )
+	std::string to_display;
+	if ( CreateOperationExecutionDisplays( to_display, exit_code, exitStatus, operation ) )
+		LOG_INFO( "Execution of operation '" + operation->GetName() + "' finished." );
+}
+
+
+void COperationControls::OperationSyncExecutionFinishedWithDisplay( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation )
+{
+	std::string to_display;
+	if ( CreateOperationExecutionDisplays( to_display, exit_code, exitStatus, operation ) )
+		LaunchDisplay( to_display );
+}
+
+
+bool COperationControls::ExecuteCurrentOperation( post_execution_handler_t post_execution_handler )	//post_execution_handler = &COperationControls::OperationSyncExecutionFinishedWithDisplay
+{
+	assert__( mCurrentOperation );
+
+	//v4
+	if ( IsFile( mCurrentOperation->GetOutputPath( EExecutionType::eOperation ) ) )         //COperationPanel::RemoveOutput()
 	{
-		if ( MapRequested() )
-			HandleQuickMap();
-		else
-			HandleQuickPlot();
-
-		return true;
-    }
-
-	return Execute( true );
-}
-
-///////////////////////////////////////////////////////////////////
-//
-//	TODO BIG one
-//
-//	CRITICAL: check if operation is selected in any editor and 
-//		close it. Emit signal, at least after operation execution, 
-//		so that all display editors refresh their internal data.
-//
-//	This happens for all destructive operations, so a method must
-//	be created that collects all currently selected operations and 
-//	prevents operating on it if it is selected.
-//
-//	Furthermore, in the display editors a device must be implemented, 
-//	and made compatible with existing execution flow, and tested, 
-//	and what not, to refresh all internal data... gosh...
-//
-///////////////////////////////////////////////////////////////////
-
-bool COperationControls::CheckQuickOperation( std::string& msg, bool basicControl, const CStringMap* aliases )		//CtrlOperation
-{
-	return mQuickOperation && mQuickOperation->Control( mWFormula, msg, basicControl, aliases );
-}
-
-
-bool COperationControls::CheckAdvancedOperation( std::string& msg, bool basicControl, const CStringMap* aliases )	//CtrlOperation
-{
-	if ( mCurrentOperation && mCurrentOperation->Control( mWFormula, msg, basicControl, aliases ) )
-	{
-		if ( mUserFormula != nullptr )
+		if ( !mCurrentOperation->RemoveOutput() )
 		{
-			mDataExpressionsTree->ExpressionTextWidget()->setText( mUserFormula->GetDescription().c_str() );		//mExpressionTextWidget is v3 GetOptextform()
+			SimpleWarnBox(
+				"Unable to use file '"
+				+ mCurrentOperation->GetOutputPath( EExecutionType::eOperation )
+				+ "' \nIf it is opened by the operation in a display window, please close it and try again." );
+
+			return false;
 		}
-		return true;
 	}
 
-	return false;
+	bool result = Execute( COperation::eOperation, mCurrentOperation, true, post_execution_handler );
+
+	UpdateGUIState();
+
+	return result;
 }
 
 
-bool COperationControls::Execute( bool sync )
+
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+//				Generic External Process Execution for Operations
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+
+bool COperationControls::CheckOperation( COperation *operation, std::string& msg, const CStringMap* aliases )		//CtrlOperation
+{
+	return operation && operation->Control( mWFormula, msg, aliases );
+}
+
+
+void COperationControls::HandleProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation, bool sync, void *user_data )
+{
+	if ( sync )
+		mSyncProcessExecuting = false;
+
+	post_execution_handler_wrapper_t *handler = reinterpret_cast<post_execution_handler_wrapper_t*>( user_data );
+	if ( handler && handler->post_execution_handler )
+		( this->*(handler->post_execution_handler) )( exit_code, exitStatus, operation );
+
+	if ( sync )
+		emit SyncProcessExecution( false );
+
+	delete handler;
+}
+
+
+bool COperationControls::Execute( EExecutionType type, COperation *operation, bool sync, post_execution_handler_t post_execution_handler )
 {
     //static int n = 0;
 
@@ -3114,13 +3385,13 @@ bool COperationControls::Execute( bool sync )
 	//emit SyncProcessExecution( false );
 	//return;
 
-	assert__( mCurrentOperation );
+	assert__( operation );
 
 	//v4 checks 
 
     if ( MapRequested() )
     {
-		if ( !mCurrentOperation->IsMap() )
+		if ( !operation->IsMap() )
 		{
 			SimpleErrorBox( "A map view was requested but the operation expressions are not suitable for a map.\n"
 				"Map views require longitude, latitude and data fields." );
@@ -3132,12 +3403,12 @@ bool COperationControls::Execute( bool sync )
 	//v3 checks 
 
 	std::string msg;
-	bool operationOk = CheckAdvancedOperation( msg, false, &mMapFormulaString );
+	bool operationOk = CheckOperation( operation, msg, &mMapFormulaString );
 	if ( !operationOk )
 	{
 		SimpleWarnBox( 
 			"Operation '"
-			+ mCurrentOperation->GetName()
+			+ operation->GetName()
 			+ "' has some errors and can't be executed"
 			+ ( msg.empty() ? "." : ":\n" )
 			+ msg );
@@ -3149,31 +3420,17 @@ bool COperationControls::Execute( bool sync )
 
 	if ( sync )
 	{
-		mCurrentOperation->SetLogFile( mWOperation );
+		operation->SetLogFile( mWOperation );
 	}
 	else
 	{
-		mCurrentOperation->ClearLogFile();
-	}
-
-	//v4
-	if ( IsFile( mCurrentOperation->GetOutputPath() ) )         //COperationPanel::RemoveOutput()
-	{
-		if ( !mCurrentOperation->RemoveOutput() )
-		{
-			SimpleWarnBox(
-				"Unable to use file '"
-				+ mCurrentOperation->GetOutputPath()
-				+ "' \nIf it is opened by the operation in a display window, please close it and try again." );
-
-			return false;
-		}
+		operation->ClearLogFile();
 	}
 
 
 	//BuildCmdFile(); == following 
 	std::string error_msg;
-	if ( !mCurrentOperation->BuildCmdFile( mWFormula, mWOperation, error_msg ) )	//v3 didn't seem to care if this fails
+	if ( !operation->BuildCmdFile( type, mWFormula, mWOperation, error_msg ) )	//v3 didn't seem to care if this fails
 	{
 		assert__( !error_msg.empty() );
 
@@ -3184,12 +3441,12 @@ bool COperationControls::Execute( bool sync )
 	/*
 	CPipedProcess* process = new CPipedProcess( 
 
-		mCurrentOperation->GetTaskName(),
+		operation->GetTaskName(),
 		wxGetApp().GetLogPanel(),
-		mCurrentOperation->GetFullCmd(),
+		operation->GetFullCmd(),
 		wxGetApp().GetLogPanel()->GetLogMess(),
-		&mCurrentOperation->GetOutputPath(),				//used in remove file, must be complete path
-		mCurrentOperation->GetType() 
+		&operation->GetOutputPath(),				//used in remove file, must be complete path
+		operation->GetType() 
 
 		);
 
@@ -3215,10 +3472,10 @@ bool COperationControls::Execute( bool sync )
 		*/
 
 	if ( !SimpleQuestion(
-		"Operation '"
-		+ mCurrentOperation->GetName()
+		"A process for the operation '"
+		+ operation->GetName()
 		+ "' will be executed with the following command line\n\n"
-		+ mCurrentOperation->GetFullCmd()
+		+ operation->GetFullCmd( type )
 		+ "\n\nDo you want to proceed?" ) 
 		)
 		return false;
@@ -3226,10 +3483,12 @@ bool COperationControls::Execute( bool sync )
 
 	// ProcessesTable will display user messages for us, no need to report on false return
 	//
-	emit SyncProcessExecution( true );
-	bool result = mSyncProcessExecuting = mProcessesTable->Add( sync, false, mCurrentOperation );
+	emit sync ? SyncProcessExecution( true ) : AsyncProcessExecution( true );
+	post_execution_handler_wrapper_t *handler = new post_execution_handler_wrapper_t{ post_execution_handler };
+	bool result = mProcessesTable->Add( handler, sync, false, operation->GetTaskName( type ), operation->GetFullCmd( type ), operation );
+	mSyncProcessExecuting = sync && result;
 	if ( !mSyncProcessExecuting )
-		emit SyncProcessExecution( false );
+		emit sync ? SyncProcessExecution( false ) : AsyncProcessExecution( false );
 	else
 	{
 		if ( sync )
@@ -3266,7 +3525,7 @@ bool COperationControls::Execute( bool sync )
 
 	if ( wait )
 	{
-		wxGetApp().GetLogPanel()->LogFile( wxFileName( mCurrentOperation->GetLogFile() ) );
+		wxGetApp().GetLogPanel()->LogFile( std::string( operation->GetLogFile() ) );
 	}
 
 
@@ -3277,11 +3536,88 @@ bool COperationControls::Execute( bool sync )
 }
 
 
-
-void COperationControls::HandleSelectedFieldChanged_Advanced()
+CBratTask* COperationControls::Schedule( EExecutionType type, const QDateTime &at, CBratTask *parent )		//parent = nullptr 
 {
-	mAdvancedFieldDesc->setText( mAdvancedFieldsTree->GetCurrentFieldDescription().c_str() );
+	static auto *task_scheduler = CTasksProcessor::GetInstance();
+
+	assert__( mCurrentOperation );
+
+	const bool subordinated_task = parent != nullptr;
+	const bool exporting_netcdf = subordinated_task && type == EExecutionType::eOperation;
+
+	std::string msg;
+	if ( !subordinated_task && !CheckOperation( mCurrentOperation, msg, &mMapFormulaString ) )
+	{
+		SimpleWarnBox( "Operation '" + mCurrentOperation->GetName() + "' has some errors and can't be execute:\n" + msg );
+		return nullptr;
+	}
+
+	WaitCursor wait;
+
+	//BuildCmdFile(); == following 
+	std::string error_msg;
+	if ( !exporting_netcdf && !mCurrentOperation->BuildCmdFile( type, mWFormula, mWOperation, error_msg ) )	//v3 didn't seem to care if this fails
+	{
+		assert__( !error_msg.empty() );
+
+		wait.Restore();
+		SimpleWarnBox( error_msg );
+        return nullptr;
+	}
+
+	std::string task_label = mCurrentOperation->GetTaskName( type, true );		assert__( !task_label.empty() );
+
+	// Save tasks uid because LoadSchedulerTaskConfig can reload all the file
+	// and 'parent' will be invalid
+	CBratTask::uid_t uid_saved = 0;
+	if ( parent != nullptr )
+	{
+		uid_saved = parent->GetUid();
+	}
+
+	if ( !task_scheduler->LoadAllTasks() || !task_scheduler->IsOk() )
+	{
+		wait.Restore();
+		SimpleErrorBox( "An error accessing the scheduled tasks file prevents delaying tasks execution." );
+		return nullptr;
+	}
+
+	//restore parent
+	if ( parent != nullptr )
+		parent = task_scheduler->FindTaskFromMap( uid_saved );
+
+	CBratTask *task = nullptr;
+	try
+	{
+		std::string log_dir = GetDirectoryFromPath( mCurrentOperation->GetOutputPath( type ) );
+		if ( exporting_netcdf )
+		{
+			CVectorBratAlgorithmParam params;
+			params.Insert( mCurrentOperation->GetOutputPath() );
+			params.Insert( mCurrentOperation->GetOutputPath( type ) );
+
+			task = task_scheduler->CreateFunctionTaskAsPending( parent, CBratTaskFunction::m_TASK_FUNC_COPYFILE, params, at, task_label, log_dir );
+		}
+		else
+		{
+			task = task_scheduler->CreateCmdTaskAsPending( parent, mCurrentOperation->GetFullCmd( type ), at, task_label, log_dir );
+		}
+	}
+	catch ( const CException &e )
+	{
+		SimpleErrorBox( e.Message() );
+		return nullptr;
+	}
+
+	//if ( !SaveSchedulerTaskConfig() )
+	//{
+	//	RemoveTaskFromSchedulerTaskConfig( taskNode );
+	//}
+
+	return task;
 }
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //

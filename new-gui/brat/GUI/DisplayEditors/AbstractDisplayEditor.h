@@ -28,11 +28,6 @@ class CBratLookupTable;
 enum EActionTag : int;
 
 
-//#if !defined(DEBUG)	//TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	TODO	
-//#define DEBUG
-//#endif
-
-
 /////////////////////////////////////////////////////////////////
 //
 /////////////////////////////////////////////////////////////////
@@ -66,11 +61,15 @@ class CAbstractDisplayEditor : public QMainWindow
 
 	using base_t = QMainWindow;
 
+protected:
 
+	using EImageExportType = CDisplayData::EImageExportType;
+
+
+private:
 	///////////////////////////////////////////////////////////
 	// static members
 	///////////////////////////////////////////////////////////
-
 
 
 	///////////////////////////////////////////////////////////
@@ -98,6 +97,11 @@ protected:
 	QAction *m2DAction = nullptr;
 	QAction *m3DAction = nullptr;
 	QAction *mRecenterAction = nullptr;
+	QAction *mExport2ImageAction = nullptr;
+
+	QAction *mActionStatisticsMean = nullptr;
+	QAction *mActionStatisticsStDev = nullptr;
+	QAction *mActionStatisticsLinearRegression = nullptr;
 
 #if defined (DEBUG) || defined(_DEBUG)
 	QAction *mActionTest = nullptr;
@@ -166,6 +170,8 @@ protected:
 
 	void SelectTab( QWidget *tab );
 
+	const std::string& UserDataDirectory() const;
+
 
 	///////////////////////////////////////////////////////////
 	// GUI creation/management helpers
@@ -207,6 +213,11 @@ protected:
 	virtual void Show2D( bool display ) = 0;
 	virtual void Show3D( bool display ) = 0;
 	virtual void Recenter() = 0;
+	virtual void Export2Image( const std::string path, EImageExportType type ) = 0;
+
+	virtual void StatisticsMean() {}
+	virtual void StatisticsStDev() {}
+	virtual void StatisticsLinearRegression() {}
 
 	virtual void NewButtonClicked() = 0;
 	virtual void RenameButtonClicked() = 0;
@@ -268,6 +279,19 @@ private slots:
 	void Handle2D( bool checked );
 	void Handle3D( bool checked );
 	void HandleRecenter();
+	void HandleExport2Image();
+	void HandleStatisticsMean()
+	{
+		StatisticsMean();
+	}
+	void HandleStatisticsStDev()
+	{
+		StatisticsStDev();
+	}
+	void HandleStatisticsLinearRegression()
+	{
+		StatisticsLinearRegression();
+	}
 	void HandleTest()
 	{
 		Test();

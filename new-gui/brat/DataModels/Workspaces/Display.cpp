@@ -1048,12 +1048,14 @@ void CDisplay::Init()
 
 void CDisplay::UpdateDisplayData( const CMapDisplayData *data_list, const CWorkspaceOperation *wkso )
 {
-	for ( auto it = m_data.begin(); it != m_data.end(); ++it )
+	CStringArray keys;
+	m_data.GetKeys( keys );
+	for ( auto it = keys.begin(); it != keys.end(); ++it )
 	{
-		if ( !data_list->Exists( it->first ) )
-			m_data.Erase( it->first );
+		if ( !data_list->Exists( *it ) )
+			m_data.Erase( *it );
 	}
-	for ( auto it = data_list->begin(); it != data_list->begin(); ++it )
+	for ( auto it = data_list->begin(); it != data_list->end(); ++it )
 	{
 		CDisplayData *data = dynamic_cast<CDisplayData*>( it->second );
 		if ( m_type == data->GetType() && !m_data.Exists( it->first ) )

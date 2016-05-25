@@ -1915,10 +1915,10 @@ if(BRAT_BUILD_GUI)
 	# -----------------------------------------------------
 	set(SCHEDULER_SOURCES
 		new-gui/scheduler/main.cpp
-		new-gui/scheduler/SchedulerDlg.cpp
-		new-gui/scheduler/TaskProcessor.cpp
+		new-gui/scheduler/SchedulerDialog.cpp
 		new-gui/scheduler/SchedulerApplication.cpp
-		new-gui/scheduler/BratTask.cpp
+		new-gui/Common/DataModels/TaskProcessor.cpp
+		new-gui/Common/DataModels/BratTask.cpp
 	)
 
 
@@ -1931,15 +1931,15 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/QtUtilsIO.h
 		new-gui/Common/QtStringUtils.h
 		new-gui/Common/QtUtils.h
-		new-gui/scheduler/SchedulerDlg.h
-		new-gui/scheduler/TaskProcessor.h
+		new-gui/scheduler/SchedulerDialog.h
 		new-gui/scheduler/SchedulerApplication.h
 		new-gui/Common/ScheduledTasksList.hxx
-		new-gui/scheduler/BratTask.h
+		new-gui/Common/DataModels/TaskProcessor.h
+		new-gui/Common/DataModels/BratTask.h
 		new-gui/Common/XmlSerializer.h
 	)
 
-	QT4_WRAP_UI(schedulerUISrcs new-gui/scheduler/SchedulerDlg.ui)
+	QT4_WRAP_UI(schedulerUISrcs new-gui/scheduler/SchedulerDialog.ui)
 	QT4_ADD_RESOURCES( SCHEDULER_RCC_SOURCES new-gui/Common/Resources/brat.qrc OPTIONS -o ${BRAT_SOURCE_DIR}/new-gui/scheduler/tmp/qrc_brat.cpp )
 
 	  
@@ -1969,6 +1969,8 @@ if(BRAT_BUILD_GUI)
 	${SCHEDULER_SOURCES} ${SCHEDULER_SOURCES_RC} ${SCHEDULER_RCC_SOURCES} ${SCHEDULER_SOURCES_H} ${schedulerUISrcs} )
 	# ${schedulerMOCSrcs} 
 
+	target_include_directories( scheduler BEFORE PRIVATE new-gui/scheduler )
+	
 	target_link_libraries( scheduler 
 		${QT_QTCORE_LIBRARY} 
 		${QT_QTMAIN_LIBRARY}
@@ -2064,6 +2066,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/DataModels/PlotData/ZFXYPlotData.cpp
 		new-gui/brat/GUI/DisplayWidgets/3DPlotWidgetExperimental.cpp
 		new-gui/brat/DataModels/PlotData/MapColor.cpp
+		new-gui/brat/DataModels/PlotData/PlotValues.cpp
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapDecorationGrid.cpp
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapDecorationItem.cpp
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolMeasure.cpp
@@ -2099,10 +2102,13 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/DataModels/PlotData/BratLookupTable.cpp
 		new-gui/brat/DataModels/PlotData/BratLookupTableSettings.cpp
 		new-gui/brat/GUI/ControlPanels/Dialogs/EditExportAsciiDialog.cpp
+		new-gui/brat/GUI/ControlPanels/ColorMapWidget.cpp
+		new-gui/Common/DataModels/TaskProcessor.cpp
+		new-gui/Common/DataModels/BratTask.cpp
+		new-gui/brat/GUI/DisplayEditors/Dialogs/ExportImageDialog.cpp
 	)
 
-
-
+		
 	# -----------------------------------------------------
 	# Just to setup 'Header Files' file tab in Visual Studio
 	# -----------------------------------------------------
@@ -2159,7 +2165,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/DataModels/PlotData/XYPlotData.h
 		new-gui/brat/DataModels/PlotData/ZFXYPlotData.h
 		new-gui/brat/DataModels/PlotData/MapColor.h
-		new-gui/brat/PlotValues.h
+		new-gui/brat/DataModels/PlotData/PlotValues.h
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapDecorationGrid.h
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapDecorationItem.h
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolMeasure.h
@@ -2195,6 +2201,10 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/DataModels/PlotData/BratLookupTable.h
 		new-gui/brat/DataModels/PlotData/BratLookupTableSettings.h
 		new-gui/brat/GUI/ControlPanels/Dialogs/EditExportAsciiDialog.h
+		new-gui/brat/GUI/ControlPanels/ColorMapWidget.h
+		new-gui/Common/DataModels/TaskProcessor.h
+		new-gui/Common/DataModels/BratTask.h
+		new-gui/brat/GUI/DisplayEditors/Dialogs/ExportImageDialog.h
 	)
 
 
@@ -2240,7 +2250,7 @@ if(BRAT_BUILD_GUI)
 
 	add_executable(brat WIN32 MACOSX_BUNDLE ${GUI_SOURCES} ${GUI_SOURCES_RC} ${BRAT_RCC_SOURCES} ${GUI_SOURCES_H} ${BRAT_UI_SOURCES} )
 	
-	target_include_directories( brat PRIVATE new-gui/brat )
+	target_include_directories( brat BEFORE PRIVATE new-gui/brat )
 	
 	add_dependencies( brat brat_runtime )
 
@@ -2275,6 +2285,7 @@ if(BRAT_BUILD_GUI)
 		${OSGEARTHANNOTATION_LIBRARY}
 		${OPENTHREADS_LIBRARY}
 		${PYTHON_IMPORT_LIBRARY}
+		${XercesC_LIBRARIES} 
 		brathlProcessUtilities 
 		brathl 
 		proj 

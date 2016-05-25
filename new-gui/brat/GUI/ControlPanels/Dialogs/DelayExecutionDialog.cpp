@@ -6,32 +6,32 @@
 #include "DelayExecutionDialog.h"
 
 
-
-
-CDelayExecutionDialog::CDelayExecutionDialog(QWidget *parent)
-    : base_t( parent )
-{
-
-    CreateWidgets();
-}
-
-CDelayExecutionDialog::~CDelayExecutionDialog()
-{}
-
-
 void  CDelayExecutionDialog::CreateWidgets()
 {
-    //	Create
+    //	Content
+
+    mExecDateEdit = new QDateTimeEdit;							//mExecDateEdit->setCalendarPopup(true);
+    mExecDateEdit->setDisplayFormat("yyyy.MM.dd hh:mm:ss");
+    mExecDateEdit->setMinimumDateTime( mDateTime );
+	mTaskLabelLineEdit = new QLineEdit;
+	mTaskLabelLineEdit->setText( mTaskLabel.c_str() );
+
+	auto *content_l = LayoutWidgets( Qt::Horizontal,
+	{
+		LayoutWidgets( Qt::Vertical, { new QLabel( "Execution date and time" ), mExecDateEdit }, nullptr, 2, 2, 2, 2, 2 ),
+		LayoutWidgets( Qt::Vertical, { new QLabel( "Task label (optional)" ), mTaskLabelLineEdit }, nullptr, 2, 2, 2, 2, 2 ),
+	}, 
+	nullptr, 6, 6, 6, 6, 6 );
+
 
     //	... Help
 
     auto help = new CTextWidget;
     help->SetHelpProperties(
-    "The 'Delay execution' schedules the active operation at a time given by the user.\n"
-    "Note that 'scheduler' has to be running in order to have the tasks executed.\n"
-    "Date and time for the execution, as well as an optional name for the operation can be defined.\n"
-    "Once scheduled, such an operation can be viewed or removed within BRAT scheduler interface."
-         , 0, 6, Qt::AlignJustify );
+    "This dialog schedules the active operation at a time given by the user.\n"
+    "Note that the 'scheduler' must be running in order to have the tasks executed.\n"
+    "Once scheduled, the operation can be viewed or removed within the 'scheduler' interface.",
+	0, 2 );
     auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
     help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 
@@ -48,13 +48,15 @@ void  CDelayExecutionDialog::CreateWidgets()
     QBoxLayout *main_l =
             LayoutWidgets( Qt::Vertical,
                             {
+								content_l,
+								WidgetLine( this, Qt::Horizontal),
                                 help_group,
                                 mButtonBox
 
                             }, this, 6, 6, 6, 6, 6 );                       Q_UNUSED( main_l );
 
 
-    setWindowTitle( "Delay Execution...");
+    setWindowTitle( "Delay Execution");
 
     //	Wrap up dimensions
 
@@ -74,13 +76,28 @@ void  CDelayExecutionDialog::Wire()
 }
 
 
+CDelayExecutionDialog::CDelayExecutionDialog( std::string &label, QDateTime &dt, QWidget *parent )
+    : base_t( parent )
+	, mTaskLabel( label )
+	, mDateTime( dt )
+{
+    CreateWidgets();
+}
+
+CDelayExecutionDialog::~CDelayExecutionDialog()
+{}
+
+
 
 //virtual
 void  CDelayExecutionDialog::accept()
 {
-
+	mTaskLabel = q2a( mTaskLabelLineEdit->text() );
+	mDateTime = mExecDateEdit->dateTime();
     base_t::accept();
 }
+
+
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 //

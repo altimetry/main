@@ -93,9 +93,9 @@ void CApplicationSettingsDlg::CreateWidgets()
 	// Stack pages
 
 	mStackedWidget = new CStackedWidget( this, { 
-		{ mApplicationPathsPage, "Paths", CActionInfo::FormatTip("Paths\nDefault application paths selection"), "://images/alpha-numeric/__n.png", true }, 
-		{ mStartupOptionsPage, "Startup", CActionInfo::FormatTip("Startup\nApplication start-up behavior"), "://images/alpha-numeric/__o.png", true },
-		{ mApplicationStylesPage, "Style", CActionInfo::FormatTip("Styles\nApplication visual options"), "://images/alpha-numeric/__p.png", true }
+        { mApplicationPathsPage, "Paths", CActionInfo::FormatTip("Paths\nDefault application paths selection"), "://images/brat_paths.png", true },
+        { mStartupOptionsPage, "Startup", CActionInfo::FormatTip("Startup\nApplication start-up behavior"), "://images/OSGeo/tools.png", true },
+        { mApplicationStylesPage, "Style", CActionInfo::FormatTip("Styles\nApplication visual options"), "://images/brat_style.png", true }
 	} );
 
 

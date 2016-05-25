@@ -6,6 +6,7 @@
 #include "libbrathl/Date.h"
 
 #include "new-gui/Common/ApplicationSettings.h"
+#include "new-gui/Common/tools/CoreTypes.h"
 
 #include "BratAreas.h"
 
@@ -50,10 +51,10 @@ protected:
     QDateTime mStartTime;
     QDateTime mStopTime;
 
-    int mStartCycle = 0;
-    int mStopCycle = 99999;
-    int mStartPass = 0;
-    int mStopPass = 999;
+    int mStartCycle;
+    int mStopCycle;
+    int mStartPass;
+    int mStopPass;
 
 
     // construction / destruction
@@ -61,7 +62,9 @@ protected:
 public:
     CBratFilter( const std::string &name ) :
         mName( name )
-    {}
+    {
+        setDefaultValues();
+    }
 
     CBratFilter( const CBratFilter &o )
     {
@@ -96,6 +99,11 @@ public:
 
     bool RemoveArea( const std::string &name );
 
+    void DeleteAllAreas()
+    {
+        mAreaNames.clear();
+    }
+
 
     //time
 
@@ -127,6 +135,8 @@ public:
 	void BoundingArea( double &lon1, double &lat1, double &lon2, double &lat2 ) const;
 
     bool Apply( const CStringList& files_in, CStringList& files_out ) const;
+
+    void setDefaultValues();
 };
 
 

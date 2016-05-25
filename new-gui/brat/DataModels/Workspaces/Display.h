@@ -52,6 +52,21 @@ class CDisplayData : public CBratObject
 	friend class CConfiguration;
 	friend class CWorkspaceSettings;
 
+
+public:
+
+	enum EImageExportType
+	{
+		eTif,
+		eBmp,
+		eJpg,
+		ePng,
+		ePnm,
+
+		EImageExportType_size
+	};
+
+
 public:
 	static const char* FMT_FLOAT_XY;
 
