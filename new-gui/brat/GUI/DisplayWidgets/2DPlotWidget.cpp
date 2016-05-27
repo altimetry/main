@@ -1,5 +1,7 @@
 #include "new-gui/brat/stdafx.h"
 
+#include <QtSvg/QSvgGenerator>
+
 #include <qwt_plot_grid.h>				//histogram
 #include <qwt_interval_data.h>			//histogram
 #include <qwt_plot_zoomer.h>			
@@ -511,6 +513,122 @@ void C2DPlotWidget::SetPlotTitle( const std::string &title )
 	text.setFont( font );
 	setTitle( text );
 }
+
+
+/////////////////////////////////////////////////////////////////////////////////////////
+//								Persistence (image only)
+/////////////////////////////////////////////////////////////////////////////////////////
+
+//static 
+bool C2DPlotWidget::Save2unsupported( C2DPlotWidget *p, const QString &path, const QString &format )
+{
+	QPixmap pix = QPixmap::grabWidget( p );
+	if ( pix.isNull() )
+	{
+		return false;
+	}
+
+	QString qpath = path;
+	SetFileExtension( qpath, format );
+	return pix.save( qpath, q2a( format ).c_str() );
+}
+//static 
+bool C2DPlotWidget::Save2ps( C2DPlotWidget *p, const QString &path )
+{
+	return Save2unsupported( p, path, "ps" );
+}
+//static 
+bool C2DPlotWidget::Save2gif( C2DPlotWidget *p, const QString &path )
+{
+	return Save2unsupported( p, path, "gif" );
+}
+//static 
+bool C2DPlotWidget::Save2svg( C2DPlotWidget *p, const QString &path )
+{
+	QString qpath = path;
+	SetFileExtension( qpath, QString( "svg" ) );
+
+	QPixmap pix = QPixmap::grabWidget( p );
+	if ( pix.isNull() )
+	{
+		return false;
+	}
+
+	QSvgGenerator generator;
+	generator.setFileName( qpath );
+	generator.setSize( QSize( p->width(), p->height() ) );
+	QwtPlotPrintFilter filter;
+	filter.setOptions( 
+		QwtPlotPrintFilter::PrintAll | 
+		QwtPlotPrintFilter::PrintBackground | 
+		QwtPlotPrintFilter::PrintFrameWithScales | 
+		QwtPlotPrintFilter::PrintMargin 
+		);
+	QPainter painter( &generator );
+	painter.drawPixmap( 0, 0, -1, -1, pix );	//pixmap.save( qpath, "SVG" );		//fails
+
+	return true;
+}
+
+//static 
+void C2DPlotWidget::Save2All( C2DPlotWidget *p, const QString &path )
+{
+	Save2ps( p, path );		//fails
+	Save2gif( p, path );	//fails
+	Save2svg( p, path ); 	//ok
+
+	QPixmap pix = QPixmap::grabWidget( p );
+	if ( pix.isNull() )
+	{
+		qDebug( "Failed to capture the plot for saving" );
+	}
+
+	QString qpath = path;
+
+	SetFileExtension( qpath, QString( "jpg" ) );
+	pix.save( qpath, "JPEG" );	//ok
+
+	SetFileExtension( qpath, QString( "png" ) );
+	pix.save( qpath, "PNG" );		//ok
+
+	SetFileExtension( qpath, QString( "pnm" ) );
+	pix.save( qpath, "PPM" );		//ok;	fails with "PNM" as format
+
+	SetFileExtension( qpath, QString( "bmp" ) );
+	pix.save( qpath, "BMP" );		//ok
+
+	SetFileExtension( qpath, QString( "tif" ) );
+	pix.save( qpath, "TIF" );		//ok
+}
+// Supported (and required) formats:
+//
+//enum EImageExportType
+//{
+//	eTif,
+//	eBmp,
+//	eJpg,
+//	ePng,
+//	ePnm,
+//};
+//
+bool C2DPlotWidget::Save2Image( const QString &path, const QString &format, const QString &extension )
+{
+//#if defined (_DEBUG) || defined(DEBUG)
+//	Save2All( this, path );
+//#endif
+
+	QPixmap pix = QPixmap::grabWidget( this );
+	if ( pix.isNull() )
+	{
+		return false;
+	}
+
+	QString qpath = path;
+	QString f = format.toLower();
+	SetFileExtension( qpath, extension );
+	return pix.save( qpath, q2a( format ).c_str() );
+}
+
 
 
 /////////////////////////////////////////////////////////////////////////////////////////
@@ -1132,6 +1250,8 @@ void C2DPlotWidget::SetCurrentHistogram( int index )
 //									Curves
 /////////////////////////////////////////////////////////////////////////////////////////
 
+
+
 QwtPlotCurve* C2DPlotWidget::AddCurve( const std::string &title, QColor color, const CQwtArrayPlotData *data )	//data = nullptr 
 {
 	assert__( mSpectrograms.size() == 0 && mHistograms.size() == 0 );
@@ -1141,6 +1261,30 @@ QwtPlotCurve* C2DPlotWidget::AddCurve( const std::string &title, QColor color, c
     c->setRenderHint( QwtPlotItem::RenderAntialiased );
     c->setPen( QPen( color ) );
     c->attach( this );
+
+	/*Linear Regression
+
+	CQwtFitData *cfit_data = new CQwtFitData( *data );
+    QwtPlotCurve *cfit = new QwtPlotCurve( ( "fit - " + title ).c_str() );
+	cfit->setData( *cfit_data );
+    cfit->setPen( QPen( QColor( Qt::darkCyan ) ) );
+    cfit->attach( this );
+
+	AddMarker( "y = " + n2s<std::string>( cfit_data->yintersect() ) + " + " + n2s<std::string>( cfit_data->slope() ) + " x", 
+		Qt::AlignRight, Qt::Horizontal, QwtPlotMarker::NoLine, cfit_data->yintersect() );
+
+	//QwtText titl( "Plot Title" );
+ //   titl.setRenderFlags( Qt::AlignHCenter | Qt::AlignTop );
+
+ //   QFont font;
+ //   font.setBold( true );
+ //   titl.setFont( font );
+
+ //   QwtPlotTextLabel *titleItem = new QwtPlotTextLabel();
+ //   titleItem->setText( titl );
+ //   titleItem->attach( this );
+
+ */
 
 	return c;
 }

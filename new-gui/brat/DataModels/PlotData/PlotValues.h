@@ -25,6 +25,9 @@ class CQwtArrayPlotData : public QwtData
 {
 	//types
 
+	friend class CQwtFitData;
+
+
 	struct CCurve
 	{
 		//instance data
@@ -41,8 +44,8 @@ class CQwtArrayPlotData : public QwtData
         double mMinY = std::numeric_limits<double>::max();
         double mMaxY = std::numeric_limits<double>::lowest();
 
-		double mIntercept_a = defaultValue<double>();
-		double mSlope_b = defaultValue<double>();
+		mutable double mIntercept_a = defaultValue<double>();
+		mutable double mSlope_b = defaultValue<double>();
 
 
         //construction / destruction
@@ -118,10 +121,11 @@ class CQwtArrayPlotData : public QwtData
 		}
 
 		//
-		bool Fit();
+		bool Fit() const;
 	};
 
 
+protected:
 	//instance data
 
 	std::vector< CCurve > mFrames;
@@ -408,6 +412,95 @@ public:
 	}
 #endif
 };
+
+
+
+
+
+
+
+
+class CQwtFitData : public QwtData
+{
+	using base_t = QwtData;
+
+	const CQwtArrayPlotData &mData;
+
+public:
+	CQwtFitData( const CQwtArrayPlotData &data )
+		: base_t()
+		, mData( data )
+	{}
+
+	CQwtFitData( CQwtFitData &o )
+		: base_t( o )
+		, mData( o.mData )
+	{}
+
+
+	//acaess 
+
+	double slope() const
+	{
+		auto &curve = mData.mFrames[ mData.mCurrentFrame ];
+
+		if ( !curve.Fit() )
+			return std::numeric_limits< double >::quiet_NaN();		//needed for our QWT partial functions plotting algorithm
+
+		return curve.mSlope_b;
+	}
+
+	double yintersect() const
+	{
+		auto &curve = mData.mFrames[ mData.mCurrentFrame ];
+
+		if ( !curve.Fit() )
+			return std::numeric_limits< double >::quiet_NaN();		//needed for our QWT partial functions plotting algorithm
+
+		return curve.mIntercept_a;
+	}
+
+
+
+
+	// Qwt interface
+
+	virtual QwtData *copy() const override
+	{
+		return new CQwtFitData( mData );
+	}
+
+
+	virtual size_t size() const override
+	{
+		assert__( mData.mFrames[ mData.mCurrentFrame ].mSizeX == mData.mFrames[ mData.mCurrentFrame ].mSizeY );
+
+		return mData.mFrames[ mData.mCurrentFrame ].mSizeX;
+	}
+
+
+	virtual double x( size_t i ) const override
+	{
+		assert__( i < mData.mFrames[ mData.mCurrentFrame ].mSizeX );
+
+		return mData.mFrames[ mData.mCurrentFrame ].mX[ i ];
+	}
+
+
+	virtual double y( size_t i ) const override
+	{
+		assert__( i < mData.mFrames[ mData.mCurrentFrame ].mSizeY );
+
+		auto &curve = mData.mFrames[ mData.mCurrentFrame ];
+
+		if ( !curve.Fit() )
+			return std::numeric_limits< double >::quiet_NaN();		//needed for our QWT partial functions plotting algorithm
+
+
+		return curve.mX[ i ] * curve.mSlope_b + curve.mIntercept_a;
+	}
+};
+
 
 
 

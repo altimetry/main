@@ -516,6 +516,22 @@ void CMapWidget::Home()
 	zoomToFullExtent();		//makes refresh()
 }
 
+
+bool CMapWidget::Save2Image( const QString &path, const QString &format, const QString &extension )
+{
+	QPixmap pix = QPixmap::grabWidget( this );
+	if ( pix.isNull() )
+	{
+		return false;
+	}
+
+	QString qpath = path;
+	QString f = format.toLower();
+	SetFileExtension( qpath, extension );
+	return pix.save( qpath, q2a( format ).c_str() );
+}
+
+
 //void QgsProjectionSelector::loadCrsList( QSet<QString> *crsFilter )
 //{
 //  if ( mProjListDone )

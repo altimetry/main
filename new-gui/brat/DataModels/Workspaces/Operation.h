@@ -49,13 +49,6 @@ inline std::string GetFileName( const std::string &path )
 	return GetBaseFilenameFromPath( path );
 }
 
-inline void SetFileExtension( std::string &path, const std::string &extension )
-{
-	std::string dir = GetDirectoryFromPath( path );
-	std::string name = GetFileName( path );
-	path = dir + "/" + name + "." + extension;
-}
-
 inline std::string NormalizedAbsolutePath( const std::string &path, const std::string &dir )
 {
 	std::string d = NormalizedPath( dir );

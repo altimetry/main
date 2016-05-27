@@ -57,14 +57,42 @@ public:
 
 	enum EImageExportType
 	{
-		eTif,
 		eBmp,
 		eJpg,
 		ePng,
 		ePnm,
+		eTif,
 
 		EImageExportType_size
 	};
+
+
+	static const std::string* ImageTypeStrings()
+	{
+		static const std::string names[ EImageExportType_size ] =
+		{
+			"bmp",
+			"jpg",
+			"png",
+			"pnm",
+			"tif",
+		};
+		static const DEFINE_ARRAY_SIZE( names );
+
+		assert__( names_size == EImageExportType_size );
+
+		return names;
+	}
+
+
+	static std::string ImageType2String( EImageExportType type )
+	{
+		static const std::string *names = ImageTypeStrings();
+
+		assert__( type >= 0 && type < EImageExportType_size );
+
+		return names[ type ];
+	}
 
 
 public:

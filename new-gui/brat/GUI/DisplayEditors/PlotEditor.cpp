@@ -234,11 +234,18 @@ void CPlotEditor::Recenter()
 
 
 //virtual 
-void CPlotEditor::Export2Image( const std::string path, EImageExportType type )
+void CPlotEditor::Export2Image( bool save_2d, bool save_3d, const std::string path2d, const std::string path3d, EImageExportType type )
 {
-    Q_UNUSED( path );   Q_UNUSED( type );
+	assert__( !save_2d || mPlot2DView && !save_3d || mPlot3DView );
 
-	BRAT_NOT_IMPLEMENTED;
+	QString extension = CDisplayData::ImageType2String( type ).c_str();
+	QString format = type == CDisplayData::ePnm ? "ppm" : extension;
+
+	if ( save_2d && !mPlot2DView->Save2Image( path2d.c_str(), format, extension ) )
+		SimpleWarnBox( "There was an error saving file " + path2d );
+
+	if ( save_3d && !mPlot3DView->Save2Image( path3d.c_str(), format, extension ) )
+		SimpleWarnBox( "There was an error saving file " + path3d );
 }
 
 

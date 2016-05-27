@@ -231,7 +231,7 @@ protected:
 	void CreateGridWidgets( QToolBar *tb );
 	void Init();		
 public:
-    CMapWidget( QWidget *parent );
+    explicit CMapWidget( QWidget *parent );
     explicit CMapWidget( ELayerBaseType layer_base_type , QWidget *parent );
 
 	virtual ~CMapWidget();
@@ -281,6 +281,8 @@ public:
 	
 
 	void Home();
+
+	bool Save2Image( const QString &path, const QString &format, const QString &extension );
 
 	QgsCoordinateReferenceSystem DefaultProjection() const { return mDefaultProjection; }
 

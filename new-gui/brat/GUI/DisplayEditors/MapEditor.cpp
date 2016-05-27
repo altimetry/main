@@ -301,11 +301,18 @@ void CMapEditor::Recenter()
 
 
 //virtual 
-void CMapEditor::Export2Image( const std::string path, EImageExportType type )
+void CMapEditor::Export2Image( bool save_2d, bool save_3d, const std::string path2d, const std::string path3d, EImageExportType type )
 {
-    Q_UNUSED( path );   Q_UNUSED( type );
+	assert__( !save_2d || mMapView && !save_3d || mGlobeView );
 
-    BRAT_NOT_IMPLEMENTED;
+	QString extension = CDisplayData::ImageType2String( type ).c_str();
+	QString format = type == CDisplayData::ePnm ? "ppm" : extension;
+
+	if ( save_2d && !mMapView->Save2Image( path2d.c_str(), format, extension ) )
+		SimpleWarnBox( "There was an error saving file " + path3d );
+
+	if ( save_3d && !mGlobeView->Save2Image( path3d.c_str(), format, extension ) )
+		SimpleWarnBox( "There was an error saving file " + path3d );
 }
 
 

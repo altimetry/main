@@ -195,6 +195,9 @@ public:
 
 	void Home();
 
+	bool Save2Image( const QString &path, const QString &format, const QString &extension );
+
+
 signals:
 	//! emits current mouse position
 	void xyCoordinates( const QgsPoint & p );

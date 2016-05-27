@@ -213,7 +213,7 @@ protected:
 	virtual void Show2D( bool display ) = 0;
 	virtual void Show3D( bool display ) = 0;
 	virtual void Recenter() = 0;
-	virtual void Export2Image( const std::string path, EImageExportType type ) = 0;
+	virtual void Export2Image( bool save_2d, bool save_3d, const std::string path2d, const std::string path3d, EImageExportType type ) = 0;
 
 	virtual void StatisticsMean() {}
 	virtual void StatisticsStDev() {}

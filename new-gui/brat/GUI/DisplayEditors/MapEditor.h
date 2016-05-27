@@ -142,7 +142,7 @@ protected:
 	virtual void Show2D( bool checked ) override;
 	virtual void Show3D( bool checked ) override;
 	virtual void Recenter() override;
-	virtual void Export2Image( const std::string path, EImageExportType type ) override;
+	virtual void Export2Image( bool save_2d, bool save_3d, const std::string path2d, const std::string path3d, EImageExportType type ) override;
 
 	virtual void StatisticsMean() override;
 	virtual void StatisticsStDev() override;

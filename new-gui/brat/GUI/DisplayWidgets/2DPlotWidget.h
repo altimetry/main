@@ -233,6 +233,14 @@ class C2DPlotWidget : public QwtPlot
 
 	//static CHistogram* CreateHistogram near respective instance methods
 
+	static void Save2All( C2DPlotWidget *p, const QString &path );
+	// ok
+	static bool Save2svg( C2DPlotWidget *p, const QString &path );
+	// unsuccessful
+	static bool Save2unsupported( C2DPlotWidget *p, const QString &path, const QString &format );
+	static bool Save2gif( C2DPlotWidget *p, const QString &path );
+	static bool Save2ps( C2DPlotWidget *p, const QString &path );
+
 
 	//instance data
 	
@@ -280,6 +288,14 @@ public:
 	///////////
 
     void SetPlotTitle( const std::string &title );
+
+
+	////////////////////////////
+	// persistence (image only)
+	//		- see also unsupported format tests in static section
+	////////////////////////////
+
+	bool Save2Image( const QString &path, const QString &format, const QString &extension );
 
 
 	////////////

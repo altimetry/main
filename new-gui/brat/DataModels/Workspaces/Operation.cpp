@@ -301,7 +301,7 @@ public:
 		if ( mOp.mCreateKML )
 		{
 			std::string kmlOutputFile = mOp.GetExportGeoTIFFOutputPath();
-			SetFileExtension( kmlOutputFile, "kml" );
+			SetFileExtension( kmlOutputFile, std::string( "kml" ) );
 
 			WriteLn();
 			Comment( "----- GOOGLE EARTH -----" );

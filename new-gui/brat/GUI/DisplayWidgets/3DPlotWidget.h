@@ -207,7 +207,7 @@ class C3DPlotWidget : public QFrame
 	using base_t = QFrame;
 
 
-	//static data
+	//statics
 
 public:
 
@@ -215,6 +215,17 @@ public:
 	static const int smAxisFontSize = 8;
 	static const int smTitleFontSize = 10;
 
+
+protected:
+	static void Save2All( CBrat3DPlot *p, const QString &path );
+
+	// ok
+	static bool Save2ps( CBrat3DPlot *p, const QString &path );
+
+	// unsuccessful
+	static bool Save2unsupported( CBrat3DPlot *p, const QString &path, const QString &format );
+	static bool Save2gif( CBrat3DPlot *p, const QString &path );
+	static bool Save2svg( CBrat3DPlot *p, const QString &path );
 
 protected:
 
@@ -261,6 +272,12 @@ public:
 	//switch plot
 
 	void SetCurrentPlot( int index );
+
+
+	//...persistence
+	//		- see also unsupported format tests in static section
+
+	bool Save2Image( const QString &path, const QString &format, const QString &extension );
 
 
 	//...title

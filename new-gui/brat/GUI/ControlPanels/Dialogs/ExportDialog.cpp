@@ -221,6 +221,8 @@ void CExportDialog::Wire()
 		mFormatGeoTiffButton->setEnabled( false );
 	}
 
+	HandleCalculateMinMax();
+
 
 	//schedule
 

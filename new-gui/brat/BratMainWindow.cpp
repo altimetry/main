@@ -32,6 +32,7 @@
 #include "GUI/ControlPanels/OperationControls.h"
 #include "GUI/ControlPanels/ProcessesTable.h"
 #include "GUI/DisplayWidgets/TextWidget.h"
+#include "GUI/DisplayEditors/Dialogs/ExportImageDialog.h"
 
 #include "GUI/DisplayWidgets/GlobeWidget.h"
 #undef GL_LINES_ADJACENCY_EXT
@@ -1145,7 +1146,20 @@ void CBratMainWindow::on_action_Satellite_Tracks_toggled( bool checked )
 
 void CBratMainWindow::on_action_Save_Map_Image_triggered()
 {
-	BRAT_NOT_IMPLEMENTED
+	static std::string path2d = mSettings.BratPaths().mPortableBasePath + "/BratMainMap_2D";		//extension is added by dialog
+	static std::string path3d = mSettings.BratPaths().mPortableBasePath + "/BratMainMap_3D";		//NOT used
+
+    CExportImageDialog dlg( true, false, path2d, path3d, this );
+    if ( dlg.exec() == QDialog::Accepted )
+    {
+		path2d = dlg.OutputFileName2D();		assert__( dlg.Save2D() );
+
+		QString extension = CDisplayData::ImageType2String( dlg.OutputFileType() ).c_str();
+		QString format = dlg.OutputFileType() == CDisplayData::ePnm ? "ppm" : extension;
+
+		if ( !mDesktopManager->Map()->Save2Image( path2d.c_str(), format, extension ) )
+			SimpleWarnBox( "There was an error saving file " + path2d );
+    }
 }
 
 
@@ -1413,8 +1427,6 @@ void CBratMainWindow::on_action_Test_triggered()
     msg += "\n\n";
     msg += mSettings.BratPaths().ToString();
     SimpleMsgBox( msg );
-
-    // BRAT_NOT_IMPLEMENTED
 
 #endif
     //*/

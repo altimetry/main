@@ -167,7 +167,7 @@ struct Fitab
 
 
 
-bool CQwtArrayPlotData::CCurve::Fit()
+bool CQwtArrayPlotData::CCurve::Fit() const
 {
 	assert__( mX && mY && mSizeX == mSizeY );
 

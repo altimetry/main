@@ -7,6 +7,7 @@
 #include <qwt3d_function.h>
 
 #include "new-gui/Common/QtUtils.h"
+#include "new-gui/Common/+UtilsIO.h"
 #include "DataModels/PlotData/PlotValues.h"
 
 #include "GUI/ActionsTable.h"
@@ -740,6 +741,14 @@ void C3DPlotWidget::PushPlot( const C3DPlotParameters &values, double xmin, doub
 	mCurrentPlot->AddSurface( values, xmin, xmax, ymin, ymax, zmin, zmax );
 
 	mCurrentPlot->setDataColor( pcolor_map );
+
+	double mmax = std::max( xmax, std::max( ymax, zmax ) );
+	double xscale = mmax / xmax;
+	double yscale = mmax / ymax;
+	double zscale = mmax / zmax;
+	const double r = 2. / 3.;
+
+	SetScale( xscale * r, yscale * r, zscale * r );
 }
 
 
@@ -777,6 +786,109 @@ void C3DPlotWidget::SetPlotTitle( const std::string &title )
 	p->setTitleFont( t2q( smFontName ), smTitleFontSize, QFont::Bold );
 
 	p->setTitle( title.c_str() );
+}
+
+
+// persistence (image only)
+
+//static 
+bool C3DPlotWidget::Save2ps( CBrat3DPlot *p, const QString &path )	//Supported
+{
+	QString qpath = path;
+	QString f = "PS";
+	SetFileExtension( qpath, f );
+	return p->saveVector( qpath, f, Qwt3D::VectorWriter::NATIVE, Qwt3D::VectorWriter::NOSORT );
+}
+//static 
+bool C3DPlotWidget::Save2unsupported( CBrat3DPlot *p, const QString &path, const QString &format )
+{
+	QPixmap pix = QPixmap::grabWidget( p );
+	if ( pix.isNull() )
+	{
+		return false;
+	}
+
+	QString qpath = path;
+	QString f = format;
+	SetFileExtension( qpath, f );
+	if ( p->saveVector( qpath, f, Qwt3D::VectorWriter::NATIVE, Qwt3D::VectorWriter::NOSORT ) || 
+		p->save( qpath, f ) || 
+		pix.save( qpath, f.toStdString().c_str() ) )
+		return true;
+
+	f = format.toLower();
+	SetFileExtension( qpath, f );
+	return  
+		p->saveVector( qpath, f, Qwt3D::VectorWriter::NATIVE, Qwt3D::VectorWriter::NOSORT ) || 
+		p->save( qpath, f ) || 
+		pix.save( qpath, f.toStdString().c_str() );
+}
+//static 
+bool C3DPlotWidget::Save2svg( CBrat3DPlot *p, const QString &path )	//NOT supported
+{
+	return Save2unsupported( p, path, "SVG" );
+}
+//static 
+bool C3DPlotWidget::Save2gif( CBrat3DPlot *p, const QString &path )
+{
+	return Save2unsupported( p, path, "GIF" );
+}
+
+//static 
+void C3DPlotWidget::Save2All( CBrat3DPlot *p, const QString &path )
+{
+	Save2ps( p, path );		//supported
+	Save2svg( p, path );	//NOT supported
+	Save2gif( p, path );	//NOT supported
+
+	QString qpath = path;
+	QString 
+	f = "tif";
+	SetFileExtension( qpath, f );	//OK
+	p->savePixmap( qpath, f );
+
+	f = "bmp";
+	SetFileExtension( qpath, f );	//OK
+	p->savePixmap( qpath, f );
+
+	f = "jpg";
+	SetFileExtension( qpath, f );	//OK
+	p->savePixmap( qpath, f );
+
+	f = "png";
+	SetFileExtension( qpath, f );	//OK
+	p->savePixmap( qpath, f );
+
+	f = "ppm";						//OK
+	SetFileExtension( qpath, QString( "pnm" ) );
+	p->save( qpath, f );
+}
+
+// Supported (and required) formats:
+//
+//enum EImageExportType
+//{
+//	eTif,
+//	eBmp,
+//	eJpg,
+//	ePng,
+//	ePnm,
+//};
+//
+bool C3DPlotWidget::Save2Image( const QString &path, const QString &format, const QString &extension )
+{
+	assert__( mSurfacePlots.size() );
+
+	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mCurrentPlot );		assert__( p );
+
+//#if defined (_DEBUG) || defined(DEBUG)
+//	Save2All( p, path );
+//#endif
+
+	QString qpath = path;
+	QString f = format.toLower();
+	SetFileExtension( qpath, extension );
+	return p->savePixmap( qpath, f );
 }
 
 

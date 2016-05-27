@@ -485,6 +485,19 @@ void CGlobeWidget::Home()
 }
 
 
+bool CGlobeWidget::Save2Image( const QString &path, const QString &format, const QString &extension )
+{
+	const bool with_alpha = true;
+	QImage img = mGlobeViewerWidget->grabFrameBuffer( with_alpha );
+
+	QString qpath = path;
+	QString f = format.toLower();
+	SetFileExtension( qpath, extension );
+	return img.save( qpath, q2a( format ).c_str(), 100 );	//int quality = -1
+}
+
+
+
 
 //virtual 
 CGlobeWidget::~CGlobeWidget()

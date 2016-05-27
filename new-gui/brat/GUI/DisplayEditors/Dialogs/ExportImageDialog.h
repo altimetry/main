@@ -35,43 +35,29 @@ protected:
     // static data
     /////////////////////////////
 
-	static const std::string* ImageTypeStrings()
-	{
-		static const std::string names[ CDisplayData::EImageExportType_size ] =
-		{
-			"tif",
-			"bmp",
-			"jpg",
-			"png",
-			"pnm"
-		};
-
-		return names;
-	}
-
-	static std::string ImageType2String( EImageExportType type )
-	{
-		static const std::string *names = ImageTypeStrings();
-
-		assert__( type >= 0 && type < CDisplayData::EImageExportType_size );
-
-		return names[ type ];
-	}
-
 
     /////////////////////////////
     // instance data
     /////////////////////////////
 
-    QLineEdit *mOutputPathLineEdit = nullptr;
-	QPushButton *mBrowseButton = nullptr;
+    QLineEdit *mOutputPathLineEdit2D = nullptr;
+	QPushButton *mBrowseButton2D = nullptr;
+    QLineEdit *mOutputPathLineEdit3D = nullptr;
+	QPushButton *mBrowseButton3D = nullptr;
     QComboBox *mExtensionCombo = nullptr;
+    QCheckBox *m2DCheck = nullptr;
+    QCheckBox *m3DCheck = nullptr;
+    QGroupBox *mOutputFileGroup2D = nullptr;
+    QGroupBox *mOutputFileGroup3D = nullptr;
 	QPushButton *mSaveButton = nullptr;
 
     QDialogButtonBox *mButtonBox = nullptr;
 
-	std::string mOutputFileName;
+	std::string mOutputFileName2D;
+	std::string mOutputFileName3D;
 	EImageExportType mOutputFileType = CDisplayData::eTif;
+	bool m2D = false;
+	bool m3D = false;
 
 
     /////////////////////////////
@@ -79,11 +65,11 @@ protected:
     /////////////////////////////
 private:
 
-    void CreateWidgets();
-    void Wire();
+    void CreateWidgets( bool enable2D, bool enable3D );
+    void Wire( bool enable2D, bool enable3D );
 
 public:
-    CExportImageDialog( std::string &ouput_path, QWidget *parent );
+    CExportImageDialog( bool enable2D, bool enable3D, std::string &ouput_path2d, std::string &ouput_path3d, QWidget *parent );
 
     virtual ~CExportImageDialog();
 
@@ -92,9 +78,14 @@ public:
     // getters / setters / testers
     /////////////////////////////
 
-	const std::string& OutputFileName() const { return mOutputFileName; }
+	const std::string& OutputFileName2D() const { return mOutputFileName2D; }
+
+	const std::string& OutputFileName3D() const { return mOutputFileName3D; }
 
 	EImageExportType OutputFileType() const { return mOutputFileType; }
+
+	bool Save2D() const { return m2DCheck->isChecked(); }
+	bool Save3D() const { return m3DCheck->isChecked(); }
 
 
     /////////////////////////////
@@ -109,6 +100,8 @@ protected:
 
 protected slots:
 
+    void Handle2DChecked( bool checked );
+    void Handle3DChecked( bool checked );
     void HandleExportExtension(int);
     void HandleChangeExportPath();
 };

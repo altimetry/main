@@ -601,15 +601,17 @@ void CAbstractDisplayEditor::HandleRecenter()
 
 void CAbstractDisplayEditor::HandleExport2Image()
 {
-	static std::string path = UserDataDirectory();
+	static std::string path2d = UserDataDirectory() + "/" + mDisplay->GetName() + "_2D";		//extension is added by dialog
+	static std::string path3d = UserDataDirectory() + "/" + mDisplay->GetName() + "_3D";		//idem
 
 	assert__( mDisplay );
 
-    CExportImageDialog dlg( path, this );
+    CExportImageDialog dlg( m2DAction->isChecked(), m3DAction->isChecked(), path2d, path3d, this );
     if ( dlg.exec() == QDialog::Accepted )
     {
-		path = dlg.OutputFileName();
-		Export2Image( path, dlg.OutputFileType() );
+		path2d = dlg.OutputFileName2D();
+		path3d = dlg.OutputFileName3D();
+		Export2Image( dlg.Save2D(), dlg.Save3D(), path2d, path3d, dlg.OutputFileType() );
     }
 }
 

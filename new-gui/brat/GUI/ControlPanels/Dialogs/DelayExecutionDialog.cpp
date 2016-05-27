@@ -29,9 +29,8 @@ void  CDelayExecutionDialog::CreateWidgets()
     auto help = new CTextWidget;
     help->SetHelpProperties(
     "This dialog schedules the active operation at a time given by the user.\n"
-    "Note that the 'scheduler' must be running in order to have the tasks executed.\n"
-    "Once scheduled, the operation can be viewed or removed within the 'scheduler' interface.",
-	0, 2 );
+    "The 'scheduler' must be running in order to have the tasks executed.\n"
+    "The operation can be viewed or removed within the 'scheduler' interface.", 0, 2 );
     auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
     help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 

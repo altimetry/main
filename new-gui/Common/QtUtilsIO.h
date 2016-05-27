@@ -38,9 +38,14 @@ inline QString& switchExtension( QString &fullPath, const QString &ext_a, const 
     return fullPath;
 }
 
+inline QString GetBaseFilenameFromPath( const QString &path )
+{
+	return QFileInfo( t2q( path ) ).baseName();
+}
+
 inline std::string GetBaseFilenameFromPath( const std::string &path )
 {
-	return q2t< std::string >( QFileInfo( t2q( path ) ).baseName() );
+	return q2t< std::string >( GetBaseFilenameFromPath( t2q( path ) ) );
 }
 
 template< typename STRING >
@@ -60,6 +65,16 @@ inline STRING GetDirectoryFromPath( const STRING &path )
 {
 	return q2t< STRING >( QFileInfo( t2q( path ) ).absoluteDir().absolutePath() );
 }
+
+
+template< typename STRING >
+inline void SetFileExtension( STRING &path, const STRING &extension )
+{
+	STRING dir = GetDirectoryFromPath( path );
+	STRING name = GetBaseFilenameFromPath( path );
+	path = dir + "/" + name + "." + extension;
+}
+
 
 
 // Path normalization:

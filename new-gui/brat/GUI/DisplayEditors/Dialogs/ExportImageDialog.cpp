@@ -7,20 +7,27 @@
 #include "ExportImageDialog.h"
 
 
-void CExportImageDialog::CreateWidgets()
+void CExportImageDialog::CreateWidgets( bool enable2D, bool enable3D )
 {
-    // Output file
-
-    mOutputPathLineEdit = new QLineEdit();
-    mBrowseButton = new QPushButton( "Browse..." );
-	mBrowseButton->setToolTip( CActionInfo::FormatTip( "Select output file name and location." ).c_str() );
-
-    auto *output_file_group = CreateGroupBox( ELayoutType::Horizontal, { mOutputPathLineEdit, mBrowseButton }, "Output File", nullptr, 6, 6, 6, 6, 6 );
-
-    // Output file
+    // Output type
 
 	mExtensionCombo = new QComboBox;
-    auto *output_type_group = CreateGroupBox( ELayoutType::Horizontal, { mExtensionCombo }, "File type", nullptr, 6, 6, 6, 6, 6 );
+    m2DCheck = new QCheckBox( "2D" );
+    m3DCheck = new QCheckBox( "3D" );
+    auto *output_type_group = CreateGroupBox( ELayoutType::Horizontal, { mExtensionCombo, nullptr, m2DCheck, m3DCheck }, "Image and File Type", nullptr, 6, 6, 6, 6, 6 );
+
+
+    // Output file
+
+    mOutputPathLineEdit2D = new QLineEdit();
+    mBrowseButton2D = new QPushButton( "Browse..." );
+    mOutputPathLineEdit3D = new QLineEdit();
+    mBrowseButton3D = new QPushButton( "Browse..." );
+	mBrowseButton2D->setToolTip( CActionInfo::FormatTip( "Select output file name and location." ).c_str() );
+	mBrowseButton3D->setToolTip( CActionInfo::FormatTip( "Select output file name and location." ).c_str() );
+
+    mOutputFileGroup2D = CreateGroupBox( ELayoutType::Horizontal, { mOutputPathLineEdit2D, mBrowseButton2D }, "2D Output File", nullptr, 6, 6, 6, 6, 6 );
+    mOutputFileGroup3D = CreateGroupBox( ELayoutType::Horizontal, { mOutputPathLineEdit3D, mBrowseButton3D }, "3D Output File", nullptr, 6, 6, 6, 6, 6 );
 
 
     // Help
@@ -43,7 +50,8 @@ void CExportImageDialog::CreateWidgets()
 	mSaveButton = mButtonBox->button( QDialogButtonBox::Save );
     mSaveButton->setDefault( false );
 
-	output_file_group->setStyleSheet("QGroupBox { font-weight: bold; } ");
+	mOutputFileGroup2D->setStyleSheet("QGroupBox { font-weight: bold; } ");
+	mOutputFileGroup3D->setStyleSheet("QGroupBox { font-weight: bold; } ");
 	output_type_group->setStyleSheet("QGroupBox { font-weight: bold; } ");
 
 
@@ -52,8 +60,9 @@ void CExportImageDialog::CreateWidgets()
     QBoxLayout *main_l =
             LayoutWidgets( Qt::Vertical,
                             {
-                                output_file_group,
 								output_type_group,
+                                mOutputFileGroup2D,
+                                mOutputFileGroup3D,
 								nullptr,
                                 help_group,
                                 mButtonBox
@@ -61,39 +70,55 @@ void CExportImageDialog::CreateWidgets()
                             }, this, 6, 6, 6, 6, 6 );                       Q_UNUSED( main_l );
 
 
-    setWindowTitle( "Export...");
-
-    //	Wrap up dimensions
-
-    adjustSize();
-    setMinimumWidth( width() );
-
-    Wire();
+    Wire( enable2D, enable3D );
 }
 
 
-void CExportImageDialog::Wire()
+void CExportImageDialog::Wire( bool enable2D, bool enable3D )
 {
 	for ( int i = 0; i < CDisplayData::EImageExportType_size; ++i )
-		mExtensionCombo->addItem( ImageType2String( (EImageExportType)i ).c_str() );
+		mExtensionCombo->addItem( CDisplayData::ImageType2String( (EImageExportType)i ).c_str() );
 
 	mExtensionCombo->setCurrentIndex( mOutputFileType );
 
 
 	// Connect
 
-	connect( mBrowseButton, SIGNAL( clicked() ), this, SLOT( HandleChangeExportPath() ) );
+    connect( m2DCheck, SIGNAL( toggled( bool ) ), this, SLOT( Handle2DChecked( bool ) ) );
+    connect( m3DCheck, SIGNAL( toggled( bool ) ), this, SLOT( Handle3DChecked( bool ) ) );
+	connect( mBrowseButton2D, SIGNAL( clicked() ), this, SLOT( HandleChangeExportPath() ) );
+	connect( mBrowseButton3D, SIGNAL( clicked() ), this, SLOT( HandleChangeExportPath() ) );
 	connect( mExtensionCombo, SIGNAL( currentIndexChanged( int ) ), this, SLOT( HandleExportExtension( int ) ) );
 	connect( mButtonBox, SIGNAL( accepted() ), this, SLOT( accept() ) );
 	connect( mButtonBox, SIGNAL( rejected() ), this, SLOT( reject() ) );
+
+	m2DCheck->setChecked( enable2D );
+	m3DCheck->setChecked( enable3D );
+	Handle2DChecked( enable2D );
+	Handle3DChecked( enable3D );
+	m2DCheck->setEnabled( enable2D && enable3D );	//enable only if there is also the other alternative
+	m3DCheck->setEnabled( enable3D && enable2D );	//idem
+
+	HandleExportExtension( 0 );
+
+    //	Wrap up dimensions
+
+    adjustSize();
+    setMinimumWidth( width() );
+    setMaximumHeight( height() );
 }
 
 
-CExportImageDialog::CExportImageDialog( std::string &ouput_path, QWidget *parent )
+CExportImageDialog::CExportImageDialog( bool enable2D, bool enable3D, std::string &ouput_path2d, std::string &ouput_path3d, QWidget *parent )
     : base_t( parent )
-	, mOutputFileName(ouput_path)
+	, mOutputFileName2D( ouput_path2d )
+	, mOutputFileName3D( ouput_path3d )
 {
-    CreateWidgets();
+	assert__( enable2D || enable3D );
+
+    CreateWidgets( enable2D, enable3D );
+
+    setWindowTitle( "Export to Image");
 }
 
 
@@ -103,11 +128,30 @@ CExportImageDialog::~CExportImageDialog()
 
 void CExportImageDialog::HandleChangeExportPath()
 {
-	QString export_path = BrowseNewFile( this, "Export Output File", QString( mOutputFileName.c_str() ) );
+	std::string *output = nullptr;
+	std::string title = "Export Output File";
+	QLineEdit *edit = nullptr;
+	if ( sender() == mBrowseButton2D )
+	{
+		title += " 2D";
+		output = &mOutputFileName2D;
+		edit = mOutputPathLineEdit2D;
+	}
+	else
+	if ( sender() == mBrowseButton3D )
+	{
+		title += " 3D";
+		output = &mOutputFileName3D;
+		edit = mOutputPathLineEdit3D;
+	}
+	else
+		assert__( false );
+
+	QString export_path = BrowseNewFile( this, title.c_str(), QString( output->c_str() ) );
 	if ( !export_path.isEmpty() )
 	{
-		mOutputFileName = q2a( export_path );
-		mOutputPathLineEdit->setText( export_path );
+		*output = q2a( export_path );
+		edit->setText( export_path );
 	}
 }
 
@@ -118,15 +162,39 @@ void CExportImageDialog::HandleExportExtension( int index )
 
 	mOutputFileType = (EImageExportType)index;
 
-	std::string extension = ImageType2String( mOutputFileType );
+	std::string extension = CDisplayData::ImageType2String( mOutputFileType );
 
-	SetFileExtension( mOutputFileName, extension );
-	mOutputPathLineEdit->setText( mOutputFileName.c_str() );
+	SetFileExtension( mOutputFileName2D, extension );
+	mOutputPathLineEdit2D->setText( mOutputFileName2D.c_str() );
+	SetFileExtension( mOutputFileName3D, extension );
+	mOutputPathLineEdit3D->setText( mOutputFileName3D.c_str() );
+}
+
+
+void CExportImageDialog::Handle2DChecked( bool checked )
+{
+	mOutputFileGroup2D->setEnabled( checked );
+	mSaveButton->setEnabled( checked || m3DCheck->isChecked() );
+}
+void CExportImageDialog::Handle3DChecked( bool checked )
+{
+	mOutputFileGroup3D->setEnabled( checked );
+	mSaveButton->setEnabled( checked || m2DCheck->isChecked() );
 }
 
 
 bool CExportImageDialog::Check()
 {
+	if ( Save2D() && mOutputFileName2D.empty() || Save3D() && mOutputFileName3D.empty() )
+	{
+		SimpleErrorBox( "The output path of the file(s) to save must be specified." );
+		return false;
+	}
+	if ( mOutputFileName2D == mOutputFileName3D )
+	{
+		SimpleErrorBox( "Cannot save both images to the same file" );
+		return false;
+	}
 	return true;
 }
 
