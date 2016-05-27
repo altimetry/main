@@ -56,13 +56,13 @@ public:
   /** Destructor */
   virtual ~CBratAlgoFilterMedian2D();
 
-  virtual std::string GetName() const override { return "BratAlgoFilterMedianGrid"; };
+  virtual std::string GetName() const override { return "BratAlgoFilterMedianGrid"; }
 
   virtual std::string GetDescription() const override { return "Median filter for two-dimensionals data (e.g. gridded data) as input data source. "
                                            "Median filter is windowed filter of nonlinear class, which removes destructive noise while preserving edges. "
-                                           "The output value unit depends on the variable (data) filtered" ; };
+                                           "The output value unit depends on the variable (data) filtered" ; }
 
-  virtual uint32_t GetNumInputParam() const override { return CBratAlgoFilterMedian2D::m_INPUT_PARAMS; };
+  virtual uint32_t GetNumInputParam() const override { return CBratAlgoFilterMedian2D::m_INPUT_PARAMS; }
   
   virtual std::string GetInputParamDesc(uint32_t indexParam) const override {
         std::string value = "";
@@ -118,11 +118,11 @@ public:
   /** Gets the unit of an output value returned by the 'Run' function.
    \param indexParam [in] : parameter index.
    */
-  virtual std::string GetOutputUnit() const override { return "this unit depends on the input data (variable or Brat expression), but it is always a SI unit"; };
+  virtual std::string GetOutputUnit() const override { return "this unit depends on the input data (variable or Brat expression), but it is always a SI unit"; }
 
-  virtual double Run(CVectorBratAlgorithmParam& args);
+  virtual double Run(CVectorBratAlgorithmParam& args) override;
 
-  virtual void CheckInputParams(CVectorBratAlgorithmParam& args);
+  virtual void CheckInputParams(CVectorBratAlgorithmParam& args) override;
 
   virtual void SetParamValues(CVectorBratAlgorithmParam& args);
 
@@ -161,10 +161,10 @@ public:
     /** Overloads operator '=' */
   CBratAlgoFilterMedian2D& operator=(const CBratAlgoFilterMedian2D &copy);
 
-  virtual uint32_t GetDataWindowSize() { return m_dataWindowHeight * m_dataWindowWidth; };
+  virtual uint32_t GetDataWindowSize() override { return m_dataWindowHeight * m_dataWindowWidth; }
 
   /** Dump function */
-  virtual void Dump(std::ostream& fOut = std::cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr) override;
  
 
 protected:
@@ -172,13 +172,13 @@ protected:
   void Init();
   void Set(const CBratAlgoFilterMedian2D &copy);
 
-  virtual void OpenProductFile();
+  virtual void OpenProductFile() override;
   void CheckProduct();
-  void CheckVarExpression(uint32_t index);
+  void CheckVarExpression(uint32_t index) override;
 
 
-  void SetBeginOfFile();
-  void SetEndOfFile();
+  virtual void SetBeginOfFile() override;
+  virtual void SetEndOfFile() override;
 
 
   void PrepareDataWindow();

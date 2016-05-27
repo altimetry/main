@@ -56,23 +56,23 @@ public:
   /** Destructor */
   virtual ~CBratAlgoFilterLanczos2D();
 
-  virtual std::string GetName() const override { return "BratAlgoFilterLanczosGrid"; };
+  virtual std::string GetName() const override { return "BratAlgoFilterLanczosGrid"; }
 
   virtual std::string GetDescription() const override { return "Lanczos filter for two-dimensional data (e.g. gridded data) as input data source. "
                                            "Lanczos filter is windowed filter. The Lanczos window is the central lobe of a horizontally-stretched sinc, sinc(X/a) for -a <= X <= a, with (2 x a) = window length."
                                            "Thus the Lanczos filter, on its interval, is a product of two sinc functions. The resulting function is then used as a convolution kernel to resample the input field. "
-                                           "The output value unit depends on the variable (data) filtered" ; };
+                                           "The output value unit depends on the variable (data) filtered" ; }
 
-  virtual double Run(CVectorBratAlgorithmParam& args);
+  virtual double Run(CVectorBratAlgorithmParam& args) override;
 
 
     /** Overloads operator '=' */
   CBratAlgoFilterLanczos2D& operator=(const CBratAlgoFilterLanczos2D &copy);
 
-  virtual uint32_t GetDataWindowSize() { return m_dataWindowLength * m_dataWindowLength; };
+  virtual uint32_t GetDataWindowSize() override { return m_dataWindowLength * m_dataWindowLength; }
 
   /** Dump function */
-  virtual void Dump(std::ostream& fOut = std::cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr) override;
  
 
 protected:
@@ -80,12 +80,12 @@ protected:
   void Init();
   void Set(const CBratAlgoFilterLanczos2D &copy);
 
-  virtual void OpenProductFile();
+  virtual void OpenProductFile() override;
   void CheckProduct();
-  void CheckVarExpression(uint32_t index);
+  void CheckVarExpression(uint32_t index) override;
 
-  void SetBeginOfFile();
-  void SetEndOfFile();
+  virtual void SetBeginOfFile() override;
+  virtual void SetEndOfFile() override;
   
   double ComputeSingle();
   double ComputeMean();

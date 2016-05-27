@@ -345,7 +345,9 @@ void CExportDialog::HandleChangeExportPath()
 			case eGEOTIFF:
 				mCurrentGeoTIFFOutputFileName = currentoutputfilename;
 				break;
-		}
+            default:
+                assert__( false );
+        }
 
 		mOutputPathLineEdit->setText( export_path );
 	}
@@ -415,7 +417,9 @@ void CExportDialog::HandleDelayExecution()
 			case eGEOTIFF:
 				mOperation->SetScheduledExportGeoTIFFTaskName( mTaskLabel );
 				break;
-		}
+            default:
+                assert__( false );
+        }
 	}
 }
 

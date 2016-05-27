@@ -54,37 +54,37 @@ public:
   CBratAlgoFilterLanczos1D(const CBratAlgoFilterLanczos1D	&copy);
 
   /** Destructor */
-  virtual ~CBratAlgoFilterLanczos1D() {};
+  virtual ~CBratAlgoFilterLanczos1D() {}
 
-  virtual std::string GetName() const override { return "BratAlgoFilterLanczosAtp"; };
+  virtual std::string GetName() const override { return "BratAlgoFilterLanczosAtp"; }
   
   virtual std::string GetDescription() const override { return "Lanczos filter for one-dimensional data (e.g. along-track data) as input data source. "
                                            "Lanczos filter is low-pass windowed filter. The Lanczos window is the central lobe of a horizontally-stretched sinc, sinc(X/a) for -a <= X <= a, with (2 x a) = window length."
                                            "Thus the Lanczos filter, on its interval, is a product of two sinc functions. The resulting function is then used as a convolution kernel to resample the input field. "
-                                           "The output value unit depends on the variable (data) filtered" ; };
+                                           "The output value unit depends on the variable (data) filtered" ; }
   
-  virtual double Run(CVectorBratAlgorithmParam& args);
+  virtual double Run(CVectorBratAlgorithmParam& args) override;
 
     /** Overloads operator '=' */
   CBratAlgoFilterLanczos1D& operator=(const CBratAlgoFilterLanczos1D &copy);
 
-  virtual uint32_t GetDataWindowSize() { return m_dataWindowLength; };
+  virtual uint32_t GetDataWindowSize() override { return m_dataWindowLength; }
 
   /** Dump function */
-  virtual void Dump(std::ostream& fOut = std::cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr) override;
  
 protected:
 
   void Init();
   void Set(const CBratAlgoFilterLanczos1D &copy);
     
-  virtual void SetPreviousValues(bool fromProduct);
-  virtual void SetNextValues();
+  virtual void SetPreviousValues(bool fromProduct) override;
+  virtual void SetNextValues() override;
 
-  virtual void CheckVarExpression(uint32_t index);
+  virtual void CheckVarExpression(uint32_t index) override;
 
-  void SetBeginOfFile();
-  void SetEndOfFile();
+  virtual void SetBeginOfFile() override;
+  virtual void SetEndOfFile() override;
 
   double ComputeLanczos();
 

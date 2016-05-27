@@ -54,13 +54,13 @@ public:
   CBratAlgorithmGeosVelAtp(const CBratAlgorithmGeosVelAtp	&copy);
 
   /** Destructor */
-  virtual ~CBratAlgorithmGeosVelAtp() {};
+  virtual ~CBratAlgorithmGeosVelAtp() {}
 
-  virtual std::string GetName() const override { return "BratAlgoGeosVelAtp"; };
+  virtual std::string GetName() const override { return "BratAlgoGeosVelAtp"; }
   
-  virtual std::string GetDescription() const override { return "Geostrophic velocity computation for along-track data; result is the value of the geostrophic velocity component perpendicular to the track."; };
+  virtual std::string GetDescription() const override { return "Geostrophic velocity computation for along-track data; result is the value of the geostrophic velocity component perpendicular to the track."; }
   
-  virtual uint32_t GetNumInputParam() const override { return CBratAlgorithmGeosVelAtp::m_INPUT_PARAMS; };
+  virtual uint32_t GetNumInputParam() const override { return CBratAlgorithmGeosVelAtp::m_INPUT_PARAMS; }
   
   virtual std::string GetInputParamDesc(uint32_t indexParam) const override {
         std::string value = "";
@@ -111,11 +111,11 @@ public:
   /** Gets the unit of an output value returned by the 'Run' function.
    \param indexParam [in] : parameter index.
    */
-  virtual std::string GetOutputUnit() const override { return "m/s"; };
+  virtual std::string GetOutputUnit() const override { return "m/s"; }
 
-  virtual double Run(CVectorBratAlgorithmParam& args);
+  virtual double Run(CVectorBratAlgorithmParam& args) override;
 
-  virtual void CheckInputParams(CVectorBratAlgorithmParam& args);
+  virtual void CheckInputParams(CVectorBratAlgorithmParam& args) override;
 
   virtual void SetParamValues(CVectorBratAlgorithmParam& args);
 
@@ -133,13 +133,13 @@ public:
         return value;
   };
 
-  double GetTrackDirection() { return (m_gap >= 0.0 ? 1.0 : -1.0); };
+  double GetTrackDirection() { return (m_gap >= 0.0 ? 1.0 : -1.0); }
 
     /** Overloads operator '=' */
   CBratAlgorithmGeosVelAtp& operator=(const CBratAlgorithmGeosVelAtp &copy);
 
   /** Dump function */
-  virtual void Dump(std::ostream& fOut = std::cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr) override;
  
 protected:
 
@@ -150,14 +150,14 @@ protected:
   double ComputeVelocityEquator();
   double ComputeVelocityOutsideEquator();
   
-  virtual void SetPreviousValues(bool fromProduct);
-  virtual void SetNextValues();
+  virtual void SetPreviousValues(bool fromProduct) override;
+  virtual void SetNextValues() override;
 
   void SetEquatorTransition();
   void SetGap();
 
-  void SetBeginOfFile();
-  void SetEndOfFile();
+  virtual void SetBeginOfFile() override;
+  virtual void SetEndOfFile() override;
 
 
 

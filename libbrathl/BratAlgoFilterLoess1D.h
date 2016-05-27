@@ -56,13 +56,13 @@ public:
   /** Destructor */
   virtual ~CBratAlgoFilterLoess1D() {};
 
-  virtual std::string GetName() const override { return "BratAlgoFilterLoessAtp"; };
+  virtual std::string GetName() const override { return "BratAlgoFilterLoessAtp"; }
   
   virtual std::string GetDescription() const override { return "Loess filter (smoothing filter) for one-dimensional data (e.g. along-track data) as input data source. "
                                            "Description to be completed... . "
-                                           "The output value unit depends on the variable (data) filtered" ; };
+                                           "The output value unit depends on the variable (data) filtered" ; }
   
-  virtual uint32_t GetNumInputParam() const override { return CBratAlgoFilterLoess1D::m_INPUT_PARAMS; };
+  virtual uint32_t GetNumInputParam() const override { return CBratAlgoFilterLoess1D::m_INPUT_PARAMS; }
   
   virtual std::string GetInputParamDesc(uint32_t indexParam) const override {
         std::string value = "";
@@ -120,9 +120,9 @@ public:
    */
   virtual std::string GetOutputUnit() const override { return "this unit depends on the input data (variable or Brat expression), but it is always a SI unit"; }
 
-  virtual double Run(CVectorBratAlgorithmParam& args);
+  virtual double Run(CVectorBratAlgorithmParam& args) override;
 
-  virtual void CheckInputParams(CVectorBratAlgorithmParam& args);
+  virtual void CheckInputParams(CVectorBratAlgorithmParam& args) override;
 
   virtual void SetParamValues(CVectorBratAlgorithmParam& args);
 
@@ -161,28 +161,28 @@ public:
     /** Overloads operator '=' */
   CBratAlgoFilterLoess1D& operator=(const CBratAlgoFilterLoess1D &copy);
 
-  virtual uint32_t GetDataWindowSize() { return m_dataWindowLength; };
+  virtual uint32_t GetDataWindowSize() override { return m_dataWindowLength; }
 
   /** Dump function */
-  virtual void Dump(std::ostream& fOut = std::cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr) override;
  
 protected:
 
   void Init();
   void Set(const CBratAlgoFilterLoess1D &copy);
     
-  virtual void SetPreviousValues(bool fromProduct);
-  virtual void SetNextValues();
+  virtual void SetPreviousValues(bool fromProduct) override;
+  virtual void SetNextValues() override;
 
-  virtual void CheckVarExpression(uint32_t index);
+  virtual void CheckVarExpression(uint32_t index) override;
 
-  void SetBeginOfFile();
-  void SetEndOfFile();
+  virtual void SetBeginOfFile() override;
+  virtual void SetEndOfFile() override;
 
-  virtual void TreatLeftEdge1D(uint32_t shiftSymmetry, uint32_t index);
-  virtual void TreatRightEdge1D(uint32_t shiftSymmetry, uint32_t index);
-  virtual void RemoveFirstItemDataWindow1D();
-  virtual void InsertCurrentValueDataWindow1D();
+  virtual void TreatLeftEdge1D(uint32_t shiftSymmetry, uint32_t index) override;
+  virtual void TreatRightEdge1D(uint32_t shiftSymmetry, uint32_t index) override;
+  virtual void RemoveFirstItemDataWindow1D() override;
+  virtual void InsertCurrentValueDataWindow1D() override;
 
   double ComputeLoess();
 

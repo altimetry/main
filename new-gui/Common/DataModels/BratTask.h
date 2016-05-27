@@ -308,7 +308,7 @@ public:
 	CBratTask( uid_t uid, const std::string &name, CBratTaskFunction function, const QDateTime &at, Status status, const std::string &log_file )
 		: m_uid( uid )
 		, m_name( name )
-		, m_function( m_function )
+        , m_function( function )
 		, m_at( at )
 		, m_status( status )
 		, m_logFile( log_file )

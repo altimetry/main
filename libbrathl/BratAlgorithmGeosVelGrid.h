@@ -56,8 +56,8 @@ public:
   /** Destructor */
   virtual ~CBratAlgorithmGeosVelGrid();
 
-  virtual uint32_t GetNumInputParam() const override { return CBratAlgorithmGeosVelGrid::m_INPUT_PARAMS; };
-  
+  virtual uint32_t GetNumInputParam() const override { return CBratAlgorithmGeosVelGrid::m_INPUT_PARAMS; }
+
   virtual std::string GetInputParamDesc(uint32_t indexParam) const override {
         std::string value = "";
         switch (indexParam) 
@@ -111,11 +111,11 @@ public:
   /** Gets the unit of an output value returned by the 'Run' function.
    \param indexParam [in] : parameter index.
    */
-  virtual std::string GetOutputUnit() const override { return "m/s"; };
+  virtual std::string GetOutputUnit() const override { return "m/s"; }
 
-  virtual double Run(CVectorBratAlgorithmParam& args);
+  virtual double Run(CVectorBratAlgorithmParam& args) override;
 
-  virtual void CheckInputParams(CVectorBratAlgorithmParam& args);
+  virtual void CheckInputParams(CVectorBratAlgorithmParam& args) override;
 
   virtual void SetParamValues(CVectorBratAlgorithmParam& args);
 
@@ -153,20 +153,20 @@ public:
   CBratAlgorithmGeosVelGrid& operator=(const CBratAlgorithmGeosVelGrid &copy);
 
   /** Dump function */
-  virtual void Dump(std::ostream& fOut = std::cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr) override;
  
 
 protected:
 
   void Init();
   void Set(const CBratAlgorithmGeosVelGrid &copy);
-  virtual void DeleteFieldNetCdf();
-  virtual void DeleteProduct();
+  virtual void DeleteFieldNetCdf() override;
+  virtual void DeleteProduct() override;
 
   virtual double ComputeVelocity() = 0;
   bool PrepareComputeVelocity();
   
-  virtual void OpenProductFile();
+  virtual void OpenProductFile() override;
   void CheckProduct();
   void CheckVarExpression(uint32_t index);
 
@@ -174,8 +174,8 @@ protected:
 
   void CheckEquatorLimit();
 
-  void SetBeginOfFile();
-  void SetEndOfFile();
+  virtual void SetBeginOfFile() override;
+  virtual void SetEndOfFile() override;
 
   void GetVarCacheExpressionValue(int32_t minIndexLat, int32_t maxIndexLat, int32_t minIndexLon, int32_t maxIndexLon);
 
@@ -268,13 +268,13 @@ public:
   virtual std::string GetDescription() const override { return "Geostrophic velocity Zonal component (U) computation from gridded data"; };
 
   /** Dump function */
-  virtual void Dump(std::ostream& fOut = std::cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr) override;
 
 protected:
 
   void Init();
 
-  double ComputeVelocity();
+  double ComputeVelocity() override;
 
 };
 
@@ -302,19 +302,19 @@ public:
   /** Destructor */
   virtual ~CBratAlgorithmGeosVelGridV();
 
-  virtual std::string GetName() const override { return "BratAlgoGeosVelGridV"; };
+  virtual std::string GetName() const override { return "BratAlgoGeosVelGridV"; }
   
-  virtual std::string GetDescription() const override { return "Geostrophic velocity Meridional component (V) computation from gridded data"; };
+  virtual std::string GetDescription() const override { return "Geostrophic velocity Meridional component (V) computation from gridded data"; }
   
 
   /** Dump function */
-  virtual void Dump(std::ostream& fOut = std::cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr) override;
 
 protected:
 
   void Init();
 
-  double ComputeVelocity();
+  double ComputeVelocity() override;
 
 };
 

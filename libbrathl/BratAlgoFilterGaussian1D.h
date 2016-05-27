@@ -54,37 +54,37 @@ public:
   CBratAlgoFilterGaussian1D(const CBratAlgoFilterGaussian1D	&copy);
 
   /** Destructor */
-  virtual ~CBratAlgoFilterGaussian1D() {};
+  virtual ~CBratAlgoFilterGaussian1D() {}
 
-  virtual std::string GetName() const override { return "BratAlgoFilterGaussianAtp"; };
+  virtual std::string GetName() const override { return "BratAlgoFilterGaussianAtp"; }
   
   virtual std::string GetDescription() const override { return "Gaussian filter for one-dimensional data (e.g. along-track data) as input data source. "
                                            "Gaussian filter is windowed filter of linear class, by its nature is weighted mean. "
                                            "Gaussian filter is a type of data-smoothing filter that uses a Gaussian function (normal distribution) for calculating the transformation to apply to each data. "
-                                           "The output value unit depends on the variable (data) filtered" ; };
+                                           "The output value unit depends on the variable (data) filtered" ; }
   
-  virtual double Run(CVectorBratAlgorithmParam& args);
+  virtual double Run(CVectorBratAlgorithmParam& args) override;
 
     /** Overloads operator '=' */
   CBratAlgoFilterGaussian1D& operator=(const CBratAlgoFilterGaussian1D &copy);
 
-  virtual uint32_t GetDataWindowSize() { return m_dataWindowLength; };
+  virtual uint32_t GetDataWindowSize() override { return m_dataWindowLength; }
 
   /** Dump function */
-  virtual void Dump(std::ostream& fOut = std::cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr) override;
  
 protected:
 
   void Init();
   void Set(const CBratAlgoFilterGaussian1D &copy);
     
-  virtual void SetPreviousValues(bool fromProduct);
-  virtual void SetNextValues();
+  virtual void SetPreviousValues(bool fromProduct) override;
+  virtual void SetNextValues() override;
 
-  virtual void CheckVarExpression(uint32_t index);
+  virtual void CheckVarExpression(uint32_t index) override;
 
-  void SetBeginOfFile();
-  void SetEndOfFile();
+  virtual void SetBeginOfFile() override;
+  virtual void SetEndOfFile() override;
 
   //virtual void GetNextData(uint32_t gapFromCurrent);
 

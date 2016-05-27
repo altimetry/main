@@ -115,11 +115,11 @@ public:
   /** Gets the unit of an output value returned by the 'Run' function.
    \param indexParam [in] : parameter index.
    */
-  virtual std::string GetOutputUnit() const override { return "this unit depends on the input data (variable or Brat expression), but it is always a SI unit"; };
+  virtual std::string GetOutputUnit() const override { return "this unit depends on the input data (variable or Brat expression), but it is always a SI unit"; }
 
-  virtual double Run(CVectorBratAlgorithmParam& args);
+  virtual double Run(CVectorBratAlgorithmParam& args) override;
 
-  virtual void CheckInputParams(CVectorBratAlgorithmParam& args);
+  virtual void CheckInputParams(CVectorBratAlgorithmParam& args) override;
 
   virtual void SetParamValues(CVectorBratAlgorithmParam& args);
 
@@ -156,23 +156,23 @@ public:
     /** Overloads operator '=' */
   CBratAlgoFilterMedian1D& operator=(const CBratAlgoFilterMedian1D &copy);
 
-  virtual uint32_t GetDataWindowSize() { return m_dataWindowLength; };
+  virtual uint32_t GetDataWindowSize() override { return m_dataWindowLength; }
 
   /** Dump function */
-  virtual void Dump(std::ostream& fOut = std::cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr) override;
  
 protected:
 
   void Init();
   void Set(const CBratAlgoFilterMedian1D &copy);
     
-  virtual void SetPreviousValues(bool fromProduct);
-  virtual void SetNextValues();
+  virtual void SetPreviousValues(bool fromProduct) override;
+  virtual void SetNextValues() override;
 
-  virtual void CheckVarExpression(uint32_t index);
+  virtual void CheckVarExpression(uint32_t index) override;
 
-  void SetBeginOfFile();
-  void SetEndOfFile();
+  virtual void SetBeginOfFile() override;
+  virtual void SetEndOfFile() override;
 
 protected:
 

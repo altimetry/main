@@ -185,7 +185,7 @@ void CExportImageDialog::Handle3DChecked( bool checked )
 
 bool CExportImageDialog::Check()
 {
-	if ( Save2D() && mOutputFileName2D.empty() || Save3D() && mOutputFileName3D.empty() )
+    if ( ( Save2D() && mOutputFileName2D.empty() ) || ( Save3D() && mOutputFileName3D.empty() ) )
 	{
 		SimpleErrorBox( "The output path of the file(s) to save must be specified." );
 		return false;

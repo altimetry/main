@@ -119,9 +119,9 @@ public:
   /** Gets the unit of an output value returned by the 'Run' function.
    \param indexParam [in] : parameter index.
    */
-  virtual std::string GetOutputUnit() const override { return "this unit depends on the input data (variable or Brat expression), but it is always a SI unit"; };
+  virtual std::string GetOutputUnit() const override { return "this unit depends on the input data (variable or Brat expression), but it is always a SI unit"; }
 
-  virtual void CheckInputParams(CVectorBratAlgorithmParam& args);
+  virtual void CheckInputParams(CVectorBratAlgorithmParam& args) override;
 
   virtual void SetParamValues(CVectorBratAlgorithmParam& args);
 
@@ -164,7 +164,7 @@ public:
   CBratAlgoFilterGaussian& operator=(const CBratAlgoFilterGaussian &copy);
 
   /** Dump function */
-  virtual void Dump(std::ostream& fOut = std::cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr) override;
  
 protected:
   enum ComputeMode {ModeHorizontal, ModeVertical};
@@ -174,11 +174,11 @@ protected:
   void Init();
   void Set(const CBratAlgoFilterGaussian &o);
   //Save current values to previous values previous values.
-  virtual void SetPreviousValues(bool fromProduct);
-  virtual void SetNextValues();
+  virtual void SetPreviousValues(bool fromProduct) override;
+  virtual void SetNextValues() override;
 
-  void SetBeginOfFile();
-  void SetEndOfFile();
+  virtual void SetBeginOfFile() override;
+  virtual void SetEndOfFile() override;
 
   void PrepareReturn() ;
 

@@ -56,23 +56,23 @@ public:
   /** Destructor */
   virtual ~CBratAlgoFilterGaussian2D();
 
-  virtual std::string GetName() const override { return "BratAlgoFilterGaussianGrid"; };
+  virtual std::string GetName() const override { return "BratAlgoFilterGaussianGrid"; }
 
   virtual std::string GetDescription() const override { return "Gaussian filter for two-dimensional data (e.g. gridded data) as input data source. "
                                            "Gaussian filter is windowed filter of linear class, by its nature is weighted mean. "
                                            "Gaussian filter is a type of data-smoothing filter that uses a Gaussian function (normal distribution) for calculating the transformation to apply to each data. "
-                                           "The output value unit depends on the variable (data) filtered" ; };
+                                           "The output value unit depends on the variable (data) filtered" ; }
 
-  virtual double Run(CVectorBratAlgorithmParam& args);
+  virtual double Run(CVectorBratAlgorithmParam& args) override;
 
 
     /** Overloads operator '=' */
   CBratAlgoFilterGaussian2D& operator=(const CBratAlgoFilterGaussian2D &copy);
 
-  virtual uint32_t GetDataWindowSize() { return m_dataWindowLength * m_dataWindowLength; };
+  virtual uint32_t GetDataWindowSize() override { return m_dataWindowLength * m_dataWindowLength; }
 
   /** Dump function */
-  virtual void Dump(std::ostream& fOut = std::cerr);
+  virtual void Dump(std::ostream& fOut = std::cerr) override;
  
 
 protected:
@@ -80,12 +80,12 @@ protected:
   void Init();
   void Set(const CBratAlgoFilterGaussian2D &copy);
 
-  virtual void OpenProductFile();
+  virtual void OpenProductFile() override;
   void CheckProduct();
-  void CheckVarExpression(uint32_t index);
+  virtual void CheckVarExpression(uint32_t index) override;
 
-  void SetBeginOfFile();
-  void SetEndOfFile();
+  virtual void SetBeginOfFile() override;
+  virtual void SetEndOfFile() override;
   
   double ComputeSingle();
   double ComputeMean();
