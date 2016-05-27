@@ -39,7 +39,7 @@ struct Line
 			return false;
 		}
 		double sumX=0, sumY=0, sumXY=0, sumX2=0;
-		for ( int i=0; i < nPoints; i++ ) {
+		for ( size_t i=0; i < nPoints; i++ ) {
 			sumX += pts[ i ]._x;
 			sumY += pts[ i ]._y;
 			sumXY += pts[ i ]._x * pts[ i ]._y;
@@ -75,14 +75,14 @@ struct StdFitab
 	{
 		double sx=0., sy=0., st2=0., t;
 		slope_b = 0.0;
-		for ( int i=0; i < ndata; i++ )
+		for ( size_t i=0; i < ndata; i++ )
 		{
 			sx += x[ i ];
 			sy += y[ i ];
 		}
 		const double ss = ndata;
 		const double sxoss = sx / ss;
-		for ( int i=0; i < ndata; i++ ) 
+		for ( size_t i=0; i < ndata; i++ ) 
 		{
 			t=x[ i ] - sxoss;
 			st2 += t*t;
@@ -92,7 +92,7 @@ struct StdFitab
 		intercept_a = ( sy - sx * slope_b ) / ss;
 		siga=sqrt( ( 1.0 + sx*sx / ( ss*st2 ) ) / ss );
 		sigb=sqrt( 1.0 / st2 );
-		for ( int i=0; i < ndata; i++ ) 
+		for ( size_t i=0; i < ndata; i++ ) 
 			chi2 += SQR( y[ i ] - intercept_a - slope_b * x[ i ] );
 		if ( ndata > 2 ) 
 			sigdat=sqrt( chi2 / ( ndata - 2 ) );
@@ -116,14 +116,14 @@ struct Fitab
 	{
 		double sx=0., sy=0., st2=0., t;
 		slope_b = 0.0;
-		for ( int i=0; i < ndata; i++ )
+		for ( size_t i=0; i < ndata; i++ )
 		{
 			sx += x[ i ];
 			sy += y[ i ];
 		}
 		const double ss = ndata;
 		const double sxoss = sx / ss;
-		for ( int i=0; i < ndata; i++ ) 
+		for ( size_t i=0; i < ndata; i++ ) 
 		{
 			t=x[ i ] - sxoss;
 			st2 += t*t;
@@ -133,7 +133,7 @@ struct Fitab
 		intercept_a = ( sy - sx * slope_b ) / ss;
 		siga=sqrt( ( 1.0 + sx*sx / ( ss*st2 ) ) / ss );
 		sigb=sqrt( 1.0 / st2 );
-		for ( int i=0; i < ndata; i++ ) 
+		for ( size_t i=0; i < ndata; i++ ) 
 			chi2 += SQR( y[ i ] - intercept_a - slope_b * x[ i ] );
 		if ( ndata > 2 ) 
 			sigdat=sqrt( chi2 / ( ndata - 2 ) );
