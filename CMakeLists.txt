@@ -1734,8 +1734,6 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 set(PROCESS_LIB_SOURCES
   process/BratProcess.cpp
-  process/BratProcessYFX.cpp
-  process/BratProcessZFXY.cpp
   process/BratProcessExportAscii.cpp
   process/BratProcessStats.cpp
   process/ProcessCommonTools.cpp
@@ -1745,8 +1743,6 @@ set(PROCESS_LIB_SOURCES
 
 set(PROCESS_LIB_SOURCES_H  
     process/BratProcess.h
-    process/BratProcessYFX.h
-    process/BratProcessZFXY.h
     process/BratProcessExportAscii.h
     process/BratProcessStats.h
     process/ProcessCommonTools.h
@@ -1762,14 +1758,23 @@ macro(DEFINE_PROCESS PNAME)
   install(TARGETS ${PNAME} DESTINATION bin/)
 endmacro(DEFINE_PROCESS)
 
+
 DEFINE_PROCESS(BratExportAscii)
-DEFINE_PROCESS(BratCreateYFX)
-DEFINE_PROCESS(BratCreateZFXY)
 DEFINE_PROCESS(BratShowInternalFile)
 DEFINE_PROCESS(BratStats)
 DEFINE_PROCESS(BratListFieldNames)
 DEFINE_PROCESS(BratCheckAliases)
 
+
+
+set(ADDITIONAL_PROCESS_SOURCES "")
+
+macro(DEFINE_PROCESS_WITH_PYTHON PNAME)
+  set(PROCESS_SOURCES "process/${PNAME}.cpp" process/BratEmbeddedPythonProcess.h process/BratEmbeddedPythonProcess.cpp ${ADDITIONAL_PROCESS_SOURCES} )
+  add_executable(${PNAME} "${PROCESS_SOURCES}")
+  target_link_libraries(${PNAME} brathlProcessUtilities brathl ${QT_QTCORE_LIBRARY} ${ADDITIONAL_LIBS})
+  install(TARGETS ${PNAME} DESTINATION bin/)
+endmacro(DEFINE_PROCESS_WITH_PYTHON)
 
 
 
@@ -1795,6 +1800,14 @@ ENDIF(UNIX AND NOT APPLE)
 DEFINE_PROCESS(RunPythonAlgorithm)
 
 add_custom_target(run_py_algo DEPENDS RunPythonAlgorithm)
+
+
+SET( ADDITIONAL_PROCESS_SOURCES process/BratProcessYFX.cpp process/BratProcessYFX.h )
+DEFINE_PROCESS_WITH_PYTHON( BratCreateYFX )
+
+SET( ADDITIONAL_PROCESS_SOURCES process/BratProcessZFXY.cpp process/BratProcessZFXY.h )
+DEFINE_PROCESS_WITH_PYTHON( BratCreateZFXY )
+
 
 ###################
 
@@ -1914,11 +1927,17 @@ if(BRAT_BUILD_GUI)
 	# Set scheduler sources
 	# -----------------------------------------------------
 	set(SCHEDULER_SOURCES
+	    new-gui/scheduler/stdafx.cpp
 		new-gui/scheduler/main.cpp
 		new-gui/scheduler/SchedulerDialog.cpp
 		new-gui/scheduler/SchedulerApplication.cpp
 		new-gui/Common/DataModels/TaskProcessor.cpp
 		new-gui/Common/DataModels/BratTask.cpp
+		new-gui/Common/ConsoleApplicationPaths.cpp
+		new-gui/Common/ApplicationLogger.cpp
+		new-gui/scheduler/SchedulerLogger.cpp
+		new-gui/Common/GUI/TextWidget.cpp
+		new-gui/Common/GUI/BasicLogShell.cpp
 	)
 
 
@@ -1927,6 +1946,7 @@ if(BRAT_BUILD_GUI)
 	# -----------------------------------------------------
 
 	set(SCHEDULER_SOURCES_H
+	    new-gui/scheduler/stdafx.h
 		new-gui/Common/+Utils.h
 		new-gui/Common/QtUtilsIO.h
 		new-gui/Common/QtStringUtils.h
@@ -1936,7 +1956,12 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/ScheduledTasksList.hxx
 		new-gui/Common/DataModels/TaskProcessor.h
 		new-gui/Common/DataModels/BratTask.h
+		new-gui/Common/ConsoleApplicationPaths.h
+		new-gui/Common/ApplicationLogger.h
+		new-gui/scheduler/SchedulerLogger.h
 		new-gui/Common/XmlSerializer.h
+		new-gui/Common/GUI/TextWidget.h
+		new-gui/Common/GUI/BasicLogShell.h
 	)
 
 	QT4_WRAP_UI(schedulerUISrcs new-gui/scheduler/SchedulerDialog.ui)
@@ -2033,7 +2058,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/DisplayWidgets/MapWidget.cpp
 		new-gui/brat/GUI/DisplayWidgets/MapWidgetExperimental.cpp
 		new-gui/brat/GUI/DesktopManager.cpp
-		new-gui/brat/GUI/DisplayWidgets/TextWidget.cpp
+		new-gui/Common/GUI/TextWidget.cpp
 		new-gui/brat/GUI/TabbedDock.cpp
 		new-gui/brat/GUI/ControlPanels/ControlPanel.cpp
 		new-gui/brat/GUI/ControlPanels/DatasetBrowserControls.cpp
@@ -2049,7 +2074,8 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/ApplicationSettingsDlg.cpp
 		new-gui/brat/GUI/norwegianwoodstyle.cpp
 		new-gui/Common/ApplicationPaths.cpp
-		new-gui/brat/ApplicationLogger.cpp
+		new-gui/Common/ApplicationLogger.cpp
+		new-gui/brat/BratLogger.cpp
 		new-gui/brat/GUI/LogShell.cpp
 		new-gui/brat/DataModels/PlotData/WorldPlot.cpp
 		new-gui/brat/DataModels/PlotData/ZFXYPlot.cpp
@@ -2138,7 +2164,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/QtStringUtils.h
 		new-gui/Common/QtUtils.h
 		new-gui/brat/GUI/DesktopManager.h
-		new-gui/brat/GUI/DisplayWidgets/TextWidget.h
+		new-gui/Common/GUI/TextWidget.h
 		new-gui/brat/GUI/TabbedDock.h
 		new-gui/brat/GUI/ControlPanels/ControlPanel.h
 		new-gui/brat/GUI/ControlPanels/DatasetBrowserControls.h
@@ -2154,7 +2180,8 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/ApplicationSettingsDlg.h
 		new-gui/brat/GUI/norwegianwoodstyle.h
 		new-gui/Common/ApplicationPaths.h
-		new-gui/brat/ApplicationLogger.h
+		new-gui/Common/ApplicationLogger.h
+		new-gui/brat/BratLogger.h
 		new-gui/brat/GUI/LogShell.h
 		new-gui/brat/DataModels/PlotData/PlotColor.h
 		new-gui/brat/DataModels/PlotData/WorldPlotCommonData.h

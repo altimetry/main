@@ -1,7 +1,8 @@
 #include "new-gui/brat/stdafx.h"
 
 #include "new-gui/Common/QtUtils.h"
-#include "ApplicationLogger.h"
+#include "new-gui/Common/GUI/TextWidget.h"
+#include "BratLogger.h"
 
 #include "DataModels/Model.h"
 #include "DataModels/Workspaces/Display.h"
@@ -13,7 +14,6 @@
 #include "GUI/ActionsTable.h"
 #include "GUI/TabbedDock.h"
 #include "GUI/ControlPanels/Views/ViewControlPanels.h"
-#include "GUI/DisplayWidgets/TextWidget.h"
 #include "Dialogs/ExportImageDialog.h"
 
 #include "AbstractDisplayEditor.h"

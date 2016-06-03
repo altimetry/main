@@ -11,9 +11,11 @@
 
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/ConsoleApplicationPaths.h"
+#include "new-gui/Common/GUI/BasicLogShell.h"
 
 #include "new-gui/Common/DataModels/TaskProcessor.h"
 
+#include "SchedulerLogger.h"
 #include "SchedulerDialog.h"
 
 // When debugging changes all calls to new to be calls to DEBUG_NEW allowing for memory leaks to
@@ -164,6 +166,39 @@ CSchedulerDialog::CSchedulerDialog( const CConsoleApplicationPaths *paths, QWidg
 
 	setupUi( this );
 
+	static std::string names[] =
+	{
+		"INFO",
+		"WARN",
+		"FATAL"
+	};
+    static const DEFINE_ARRAY_SIZE( names ); Q_UNUSED(names_size);
+
+	mSeverityToColorTable.reserve( 3 );
+
+	mSeverityToColorTable.insert( QtDebugMsg,		QColor( 0,255,0, 127 ) );
+	mSeverityToColorTable.insert( QtWarningMsg,		QColor( 255, 0, 0, 127 ) );
+	mSeverityToColorTable.insert( QtCriticalMsg,	QColor( 255, 255, 0, 127 ) );
+		
+	mSeverityToPromptTable.reserve( 3 );
+
+	mSeverityToPromptTable.insert( QtDebugMsg,		"[INFO] " );
+	mSeverityToPromptTable.insert( QtWarningMsg,	"[WARN] " );
+	mSeverityToPromptTable.insert( QtCriticalMsg,	"[FATAL] ");
+
+	mLogFrame = new CBasicLogShell( CSchedulerLogger::Instance(), std::vector< std::string >( &names[0], &names[names_size] ), 
+		mSeverityToColorTable, mSeverityToPromptTable, this );
+	mLogFrame->setObjectName( QString::fromUtf8( "mLogShell" ) );
+	mLogFrameIndex = mTabWidget->addTab( mLogFrame, "Log" );
+
+	connect( 
+		&CSchedulerLogger::Instance(), SIGNAL( QtLogMessage( int, QString  ) ),
+		mLogFrame, SLOT( QtNotifySlot( int, QString ) ), Qt::QueuedConnection );
+
+	mLogFrame->Deactivate( false );
+
+	LOG_INFO( "OSG initialized in " + qApp->applicationName().toStdString() );
+
 	if ( mIsDialog )
 	{
 		setWindowTitle( qBRATSCHEDULER_DIALOG_TITLE );
@@ -230,6 +265,8 @@ void CSchedulerDialog::LoadTasks( const CMapBratTask &data, QTableWidget* tableT
 
 		index++;
 	}
+
+	LOG_INFO( "Tasks loaded." );
 }
 
 

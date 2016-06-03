@@ -118,12 +118,12 @@ private:
 
 	// domain data
 
-	const CModel *mModel = nullptr;
 	const CWorkspaceDataset *mWDataset = nullptr;
 	const CWorkspaceOperation *mWOperation = nullptr;
 	const CWorkspaceFormula *mWFormula = nullptr;
 
 protected:
+	const CModel *mModel = nullptr;
 	CWorkspaceDisplay *mWDisplay = nullptr;
 	std::vector< CDisplay* > mFilteredDisplays;
 	std::vector< const COperation* > mFilteredOperations;

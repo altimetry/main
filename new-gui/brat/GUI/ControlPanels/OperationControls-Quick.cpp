@@ -19,13 +19,13 @@
 
 #include "libbrathl/ProductNetCdf.h"
 
-#include "ApplicationLogger.h"
+#include "BratLogger.h"
 
 #include "DataModels/Model.h"
 #include "DataModels/Workspaces/Workspace.h"
 #include "DataModels/MapTypeDisp.h"
 
-#include "GUI/DisplayWidgets/TextWidget.h"
+#include "new-gui/Common/GUI/TextWidget.h"
 #include "GUI/DisplayEditors/MapEditor.h"
 #include "GUI/DisplayEditors/PlotEditor.h"
 

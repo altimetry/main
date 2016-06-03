@@ -90,7 +90,7 @@ bool CBratProcessStats::Initialize(std::string& msg)
           CTrace::GetInstance();
 
   // Register Brat algorithms
-  CBratAlgorithmBase::RegisterAlgorithms();
+  CBratAlgorithmBase::RegisterCAlgorithms();
 
   // Load aliases dictionnary
   std::string errorMsg;

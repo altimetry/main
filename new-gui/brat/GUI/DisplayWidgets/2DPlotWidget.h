@@ -335,6 +335,7 @@ public:
 
 
 	//...ticks
+
     int XAxisNbTicks() const
     {
         return axisMaxMajor(QwtPlot::xBottom);
@@ -357,12 +358,16 @@ public:
     }
 
 
-	//...digits
-	int GetXAxisMantissa() const;
-	void SetXAxisMantissa( int new_mantissa );
+    //...digits / date
 
-	int GetYAxisMantissa() const;
-	void SetYAxisMantissa( int new_mantissa );
+    int XDigits() const;
+    int YDigits() const;
+
+    bool XisDateTime() const;
+    bool YisDateTime() const;
+
+    void SetXDigits( bool isdate, int digits, brathl_refDate date_ref = REF19500101 );
+    void SetYDigits( bool isdate, int digits, brathl_refDate date_ref = REF19500101 );
 
 
     //...scaling
@@ -389,7 +394,8 @@ public:
 	// legends
 	///////////
 
-	QwtLegend* AddLegend( LegendPosition pos );
+	QwtLegend* AddLegend( LegendPosition pos, bool checkable = false );
+
 
 
 	///////////
@@ -531,6 +537,8 @@ public slots:
 protected slots:
 	void HandleScaleDivChanged();
 	void ChangeFrame();
+
+	void ShowCurve( QwtPlotItem *item, bool on );
 };
 
 

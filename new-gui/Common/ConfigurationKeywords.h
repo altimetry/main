@@ -49,7 +49,8 @@ const std::string KEY_MAIN_WINDOW_STATE = "state";
 const std::string KEY_MAIN_WINDOW_MAXIMIZED = "maximized";
 
 const std::string ENTRY_LOAD_WKSPC_AT_STARTUP = "load_wkspc_at_startup";
-const std::string ENTRY_LAYER_BASE_TYPE = "layer_base_type";
+const std::string ENTRY_MAIN_LAYER_BASE_TYPE = "main_layer_base_type";
+const std::string ENTRY_VIEWS_LAYER_BASE_TYPE = "views_layer_base_type";
 const std::string ENTRY_APP_STYLE = "application_style";
 const std::string ENTRY_USE_DEFAULT_STYLE = "use_default_style";
 

@@ -2,7 +2,7 @@
 
 
 #include "new-gui/Common/QtUtils.h"
-#include "ApplicationLogger.h"
+#include "BratLogger.h"
 
 #include "DataModels/Workspaces/Operation.h"
 

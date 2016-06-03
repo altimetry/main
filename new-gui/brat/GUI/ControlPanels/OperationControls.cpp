@@ -5,7 +5,7 @@
 
 #include "new-gui/Common/QtUtils.h"
 
-#include "ApplicationLogger.h"
+#include "BratLogger.h"
 
 #include "new-gui/Common/DataModels/TaskProcessor.h"
 #include "DataModels/Model.h"
@@ -14,7 +14,7 @@
 #include "DataModels/Workspaces/Function.h"
 
 #include "GUI/ActionsTable.h"
-#include "GUI/DisplayWidgets/TextWidget.h"
+#include "new-gui/Common/GUI/TextWidget.h"
 #include "GUI/DisplayEditors/MapEditor.h"
 #include "GUI/DisplayEditors/PlotEditor.h"
 
@@ -1121,7 +1121,7 @@ void COperationControls::HandleSelectedOperationChanged( int operation_index )	/
 	// data expression tree update
 
 	mDataExpressionsTree->InsertOperation( mCurrentOperation );
-	bool can_be_map = !mCurrentOperation || mCurrentOperation->IsMap();
+    bool can_be_map = mDataExpressionsTree->IsMap();
 	if ( can_be_map )
 		mSwitchToMapButton->setChecked( true );		//with auto-exclusive buttons, calling with false doesn't work
 	else

@@ -1,6 +1,7 @@
 #include "new-gui/brat/stdafx.h"
 
-#include "new-gui/brat/ApplicationLogger.h"
+#include "BratLogger.h"
+#include "BratSettings.h"
 #include "new-gui/Common/QtUtilsIO.h"
 #include "new-gui/Common/ApplicationPaths.h"
 #include "Workspaces/Workspace.h"
@@ -21,12 +22,12 @@ bool CModel::smValidFilters = false;
 
 
 //static 
-CModel& CModel::CreateInstance( const CApplicationPaths &brat_paths )
+CModel& CModel::CreateInstance( const CBratSettings &settings )
 {
 	assert__( !smInstance );
 
-	smInstance = new CModel( brat_paths );
-	smBratFilters = CBratFilters::CreateInstance( brat_paths.mInternalDataDir );
+	smInstance = new CModel( settings );
+	smBratFilters = CBratFilters::CreateInstance( settings.BratPaths().mInternalDataDir );
 	smValidFilters = smBratFilters->Load();
 	if ( !smValidFilters )
 	{
@@ -38,8 +39,8 @@ CModel& CModel::CreateInstance( const CApplicationPaths &brat_paths )
 
 
 //explicit 
-CModel::CModel( const CApplicationPaths &brat_paths ) 
-	: mBratPaths( brat_paths )
+CModel::CModel( const CBratSettings &settings ) 
+	: mSettings( settings )
 {}
 
 //virtual 
@@ -53,6 +54,12 @@ CModel::~CModel()
 	delete smBratFilters;
 	smBratFilters = nullptr;	//idem
 }	
+						
+
+const CApplicationPaths& CModel::BratPaths() const 
+{ 
+	return mSettings.BratPaths(); 
+}
 
 
 CBratFilters& CModel::BratFilters() 
@@ -104,12 +111,12 @@ const WKSPC* CModel::Workspace( const CTreeWorkspace &tree )
 
 CWorkspace* CModel::CreateWorkspace( const std::string& name, const std::string& path, std::string &error_msg )
 {
-    return mTree.CreateReset( mBratPaths.mInternalDataDir, name, path, error_msg );
+    return mTree.CreateReset( mSettings.BratPaths().mInternalDataDir, name, path, error_msg );
 }
 
 CWorkspace* CModel::CreateTree( CTreeWorkspace &tree, const std::string& path, std::string &error_msg )
 {
-    return tree.LoadReset( smInstance->mBratPaths.mInternalDataDir, path, error_msg );
+    return tree.LoadReset( smInstance->mSettings.BratPaths().mInternalDataDir, path, error_msg );
 }
 
 

@@ -137,6 +137,8 @@ public:
     bool Apply( const CStringList& files_in, CStringList& files_out ) const;
 
     void setDefaultValues();
+    void setDefaultDateValues();
+    void setDefaultCyclePassValues();
 };
 
 

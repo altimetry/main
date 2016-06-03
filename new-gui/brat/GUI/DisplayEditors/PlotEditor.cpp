@@ -1,6 +1,6 @@
 #include "new-gui/brat/stdafx.h"
 
-#include "ApplicationLogger.h"
+#include "BratLogger.h"
 
 #include "DataModels/MapTypeDisp.h"
 #include "DataModels/Workspaces/Display.h"
@@ -720,6 +720,18 @@ bool CPlotEditor::CreatePlotData( EPlotType type )
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
+//int32_t CDate::GetDateRef(CDate& date, brathl_refDate& refDate)
+inline brathl_refDate RefDateFromUnit( const CUnit &u )
+{
+    brathl_refDate refDate;
+    CDate dateRef;
+    u.HasDateRef(&dateRef);
+    CDate::GetDateRef(dateRef, refDate);
+    return refDate;
+}
+
+
 //////////////////
 // I.1.	z=f(x,y)
 //////////////////
@@ -842,22 +854,18 @@ void CPlotEditor::Recreate3DPlots( bool build2d, bool build3d )
 			//
 			// NOTE this approach does not work per field (if any does)
 			//
-			unsigned x_digits = 3, y_digits = 3;// , z_digits = 3;
-			if ( build2d )
-			{
-				if ( x_digits > 0 && !isDefaultValue( x_digits ) )
-					mPlot2DView->SetXAxisMantissa( x_digits );
-				if ( y_digits > 0 && !isDefaultValue( y_digits ) )
-					mPlot2DView->SetYAxisMantissa( y_digits );
-			}
 			if ( build3d )
 			{
-				//if ( x_digits > 0 && !isDefaultValue( x_digits ) )
-				//	mPlot3DView->SetXAxisMantissa( x_digits );
-				//if ( y_digits > 0 && !isDefaultValue( y_digits ) )
-				//	mPlot3DView->SetYAxisMantissa( y_digits );
-				//if ( z_digits > 0 && !isDefaultValue( z_digits ) )
-				//	mPlot3DView->SetZAxisMantissa( z_digits );
+                mPlot3DView->SetXDigits( pdata->GetXUnit().IsDate(), -1, RefDateFromUnit(pdata->GetXUnit()) );	//negative digits means default value
+                mPlot3DView->SetYDigits( pdata->GetYUnit().IsDate(), -1, RefDateFromUnit(pdata->GetYUnit()) );
+                mPlot3DView->SetZDigits( pdata->GetZUnit().IsDate(), -1, RefDateFromUnit(pdata->GetZUnit()) );
+			}
+			if ( build2d )
+			{
+				const auto x_digits = mPlot3DView->XDigits(), y_digits = mPlot3DView->YDigits();	//use 3D defaults
+
+                mPlot2DView->SetXDigits( pdata->GetXUnit().IsDate(), x_digits, RefDateFromUnit(pdata->GetXUnit()) );
+                mPlot2DView->SetYDigits( pdata->GetYUnit().IsDate(), y_digits, RefDateFromUnit(pdata->GetYUnit()) );
 			}
 
 
@@ -988,7 +996,9 @@ void CPlotEditor::Recreate2DPlots()
 			max_y = std::max( max_y, yrMax );
 		}
 		else
+		{
 			curve = mPlot2DView->AddCurve( mPropertiesXY->GetName(), color_cast<QColor>( mPropertiesXY->GetColor() ), pdata->GetQwtArrayPlotData() );
+		}
 
 
 		// axis labels: assign here, as v3 (assuming common labels)
@@ -1046,13 +1056,18 @@ void CPlotEditor::Recreate2DPlots()
 
 	//digits
 	//
-	// NOTE this approach does not work per field (if any does)
+    // NOTE this approach does not work per field (if any does); using last assignment in loop to mPropertiesXY...
 	//
 	unsigned x_digits = mPropertiesXY->GetXNbDigits(), y_digits = mPropertiesXY->GetYNbDigits();
-	if ( x_digits > 0 && !isDefaultValue( x_digits ) )
-		mPlot2DView->SetXAxisMantissa( x_digits );
-	if ( y_digits > 0 && !isDefaultValue( y_digits ) )
-		mPlot2DView->SetYAxisMantissa( y_digits );
+    if ( isDefaultValue( x_digits ) )
+        x_digits = 0;                       //0 means use plot defaults
+    if ( isDefaultValue( y_digits ) )
+        y_digits = 0;                       //0 means use plot defaults
+
+    CXYPlotData *pdata = mDataArrayXY.Get( 0 );
+
+    mPlot2DView->SetXDigits( nrFields == 1 && pdata->GetXUnit().IsDate(), x_digits, RefDateFromUnit(pdata->GetXUnit()) );
+    mPlot2DView->SetYDigits( nrFields == 1 && pdata->GetYUnit().IsDate(), y_digits, RefDateFromUnit(pdata->GetYUnit()) );
 
 
 	//animation
@@ -1147,9 +1162,13 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
 	//scales are sensitive to user interaction so widget assignment is automatically done by remaining handlers in this file's section
 
 	//...digits
-	mTabAxisOptions->mXNbDigits->setText( n2s<std::string>( mPlot2DView->GetXAxisMantissa() ).c_str() );
-	mTabAxisOptions->mYNbDigits->setText( n2s<std::string>( mPlot2DView->GetYAxisMantissa() ).c_str() );
-	//mTabAxisOptions->mZNbDigits->setText( n2s<std::string>( mPlot3DView->GetZAxisMantissa() ).c_str() );
+    mTabAxisOptions->mXNbDigits->setText( n2s<std::string>( mPlot2DView->XDigits() ).c_str() );
+    mTabAxisOptions->mYNbDigits->setText( n2s<std::string>( mPlot2DView->YDigits() ).c_str() );
+	mTabAxisOptions->mZNbDigits->setText( mPlot3DView ? n2s<std::string>( mPlot3DView->ZDigits() ).c_str() : "" );
+
+    mTabAxisOptions->mXNbDigits->setEnabled( !mPlot2DView->XisDateTime() );
+    mTabAxisOptions->mYNbDigits->setEnabled( !mPlot2DView->YisDateTime() );
+    mTabAxisOptions->mZNbDigits->setEnabled( mPlot3DView && !mPlot3DView->ZisDateTime() );
 
 
 	//bins
@@ -1828,7 +1847,7 @@ void CPlotEditor::HandleXAxisNbDigitsChanged()
 		if ( mPropertiesXY )
 			mPropertiesXY->SetXNbDigits(ndigits);
         //mCurrentDisplayData->SetXMantissa(mPropertiesXY->GetXNbDigits());
-        mPlot2DView->SetXAxisMantissa(ndigits);
+        mPlot2DView->SetXDigits( false, ndigits );		//false: this can destroy dates display but GUI must take care of disabling this handler for dates
     }
 
 	if ( mPlot3DView )
@@ -1840,7 +1859,7 @@ void CPlotEditor::HandleXAxisNbDigitsChanged()
         }
 
         //mPropertiesZFXY->m_xMantissaDigits = ndigits;
-        mPlot3DView->SetXScaleConf(ndigits);
+        mPlot3DView->SetXDigits( false, ndigits );		//false: this can destroy dates display but GUI must take care of disabling this handler for dates
         ////trigger 3DPlot axis changing functions
     }
 }
@@ -1863,7 +1882,7 @@ void CPlotEditor::HandleYAxisNbDigitsChanged()
 		if ( mPropertiesXY )
 			mPropertiesXY->SetYNbDigits(ndigits);
         //mCurrentDisplayData->SetYMantissa(mPropertiesXY->GetYNbDigits());
-        mPlot2DView->SetYAxisMantissa(ndigits);
+        mPlot2DView->SetYDigits( false, ndigits );		//false: this can destroy dates display but GUI must take care of disabling this handler for dates
     }
 
 	if ( mPlot3DView )
@@ -1875,7 +1894,7 @@ void CPlotEditor::HandleYAxisNbDigitsChanged()
         }
 
         //mPropertiesZFXY_3D->m_yMantissaDigits = ndigits;
-        mPlot3DView->SetYScaleConf(ndigits);
+        mPlot3DView->SetYDigits( false, ndigits );		//false: this can destroy dates display but GUI must take care of disabling this handler for dates
         ////trigger 3DPlot axis changing functions
     }
 }
@@ -1895,7 +1914,7 @@ void CPlotEditor::HandleZAxisNbDigitsChanged()
         }
 
         //mPropertiesZFXY_3D->m_zMantissaDigits = ndigits;
-        mPlot3DView->SetZScaleConf(ndigits);
+        mPlot3DView->SetZDigits( false, ndigits );		//false: this can destroy dates display but GUI must take care of disabling this handler for dates
     }
 }
 

@@ -249,21 +249,22 @@ typedef struct _structDateJulian
 
 
 
-/** Satellite (mission) enumeration
+/** Satellite (mission) ID  -> On Brat V.4, mission ID is defined on txt file CMission::m_refFileName
 */
-typedef enum {
-                TOPEX,	      	/**< Topex/Poseidon */
-                JASON2,	      	/**< Jason-2 */
-                JASON1,	      	/**< Jason-1 */
-                ERS2,	      	/**< ERS2*/
-                ENVISAT,	/**< Envisat */
-                ERS1_A,	      	/**< ERS1-A */
-                ERS1_B,	      	/**< ERS1-B */
-        GFO,	      	/**< GFO */
+typedef int		brathl_mission;	 // (int32_t)
+//
+//typedef enum {
+//                TOPEX,	      	/**< Topex/Poseidon */
+//                JASON2,	      	/**< Jason-2 */
+//                JASON1,	      	/**< Jason-1 */
+//                ERS2,	      	    /**< ERS2*/
+//                ENVISAT,	        /**< Envisat */
+//                ERS1_A,	      	/**< ERS1-A */
+//                ERS1_B,	      	/**< ERS1-B */
+//                   GFO,	      	/**< GFO */
+//    brathl_mission_size
+//      } brathl_mission;
 
-    brathl_mission_size
-
-      } brathl_mission;
 
 
 typedef enum

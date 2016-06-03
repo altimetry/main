@@ -173,7 +173,7 @@ public:
 
   static double ExecInternal(CBratAlgorithmBase* algo, CVectorBratAlgorithmParam& arg);
 
-  static void RegisterAlgorithms();
+  static void RegisterCAlgorithms();
 
 protected:
 

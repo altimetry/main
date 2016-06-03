@@ -34,7 +34,7 @@ using namespace brathl;
 #endif
 
 
-#include "ApplicationLogger.h"
+#include "BratLogger.h"
 
 
 #include "XYPlotData.h"

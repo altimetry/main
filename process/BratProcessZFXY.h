@@ -20,7 +20,7 @@
 #ifndef _BratProcessZFXY_h_
 #define _BratProcessZFXY_h_
 
-#include "BratProcess.h"
+#include "BratEmbeddedPythonProcess.h"
 
 using namespace brathl;
 using namespace processes;
@@ -32,10 +32,12 @@ namespace processes
 //------------------- CBratProcessZFXY class --------------------
 //-------------------------------------------------------------
 
-class CBratProcessZFXY : public CBratProcess
+class CBratProcessZFXY : public CBratEmbeddedPythonProcess
 {
+	using base_t = CBratEmbeddedPythonProcess;
+
 public:
-  CBratProcessZFXY();
+  CBratProcessZFXY( const std::string &executable_dir );
     
   virtual ~CBratProcessZFXY();
 
@@ -170,8 +172,8 @@ protected:
   bool m_yCircular;
   int32_t	m_yLoessCutoff;
 
-  CBratProcess::PositionMode m_positionMode;
-  CBratProcess::OutsideMode m_outsideMode;
+  CBratEmbeddedPythonProcess::PositionMode m_positionMode;
+  CBratEmbeddedPythonProcess::OutsideMode m_outsideMode;
 
   std::vector<bool> m_smooth;
   std::vector<bool> m_extrapolate;

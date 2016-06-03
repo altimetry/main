@@ -80,6 +80,15 @@ class CBrat3DPlot : public Qwt3D::SurfacePlot
 
 	using base_t = Qwt3D::SurfacePlot;
 
+
+	//static data
+
+    static const std::vector< Qwt3D::AXIS > smXaxis;
+	static const std::vector< Qwt3D::AXIS > smYaxis;
+	static const std::vector< Qwt3D::AXIS > smZaxis;
+
+
+
 	//instance data
 
 	std::vector<CBrat3DFunction*> mFunctions;		//TODO is this (multiple functions) really supported?
@@ -89,6 +98,10 @@ class CBrat3DPlot : public Qwt3D::SurfacePlot
 	QAction *mAnimateAction = nullptr;
     QAction *mStandardColorAction = nullptr;
     QAction *mHomeAction = nullptr;
+
+	int mXDigits = 0;		//-1 means date
+	int mYDigits = 0;		//-1 means date
+	int mZDigits = 0;		//-1 means date
 
 	QTimer mTimer;
 
@@ -124,16 +137,27 @@ public:
     void SetZAxisTicks( unsigned int nticks );
 
 
-	//...digits
+	//...digits / date
+	//		- once assigned as date, number of ticks cannot be re-assigned
+	//		- if isdate, "digits" is ignored and -1 is assigned internally
+	//		- if not isdate and digits <= 0, the default value is used
 
-	unsigned int XScaleConf() const;
-	unsigned int YScaleConf() const;
-	unsigned int ZScaleConf() const;
+	int XDigits() const { return mXDigits; }
+	int YDigits() const { return mYDigits; }
+	int ZDigits() const { return mZDigits; }
 
-	void SetXScaleConf( unsigned int nMantissa, bool is_log = false );
-	void SetYScaleConf( unsigned int nMantissa, bool is_log = false );
-	void SetZScaleConf( unsigned int nMantissa, bool is_log = false );
+	bool XisDateTinme() const { return mXDigits == -1; }
+	bool YisDateTinme() const { return mYDigits == -1; }
+	bool ZisDateTinme() const { return mZDigits == -1; }
 
+    void SetXDigits( bool isdate, int digits, brathl_refDate date_ref = REF19500101 );
+    void SetYDigits( bool isdate, int digits, brathl_refDate date_ref = REF19500101 );
+    void SetZDigits( bool isdate, int digits, brathl_refDate date_ref = REF19500101 );
+
+protected:
+    void SetDigits( int &this_digits, const std::vector< Qwt3D::AXIS > &axis_ids, bool isdate, int digits, brathl_refDate date_ref = REF19500101 );
+	
+public:
 
 	//...scale
 
@@ -302,6 +326,7 @@ public:
 	//...labels
 	void SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle );
 
+
 	//...log
 	void SetLogarithmicScaleZ( bool log );
 	void SetLogarithmicScale( bool log );
@@ -318,11 +343,20 @@ public:
     void SetZAxisNbTicks( unsigned int nbticks );
 
 
-	//...digits
+	//...digits / date
 
-	void SetXScaleConf( unsigned int nMantissa, bool is_log = false );
-	void SetYScaleConf( unsigned int nMantissa, bool is_log = false );
-	void SetZScaleConf( unsigned int nMantissa, bool is_log = false );
+	int XDigits() const;
+	int YDigits() const;
+	int ZDigits() const;
+
+    bool XisDateTime() const;
+    bool YisDateTime() const;
+    bool ZisDateTime() const;
+
+    void SetXDigits( bool isdate, unsigned int  digits, brathl_refDate date_ref = REF19500101 );
+    void SetYDigits( bool isdate, unsigned int  digits, brathl_refDate date_ref = REF19500101 );
+    void SetZDigits( bool isdate, unsigned int  digits, brathl_refDate date_ref = REF19500101 );
+
 
 	//...scale
 

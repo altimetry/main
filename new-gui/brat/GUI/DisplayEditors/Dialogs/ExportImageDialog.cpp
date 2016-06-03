@@ -2,7 +2,7 @@
 
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/brat/GUI/ActionsTable.h"
-#include "new-gui/brat/GUI/DisplayWidgets/TextWidget.h"
+#include "new-gui/Common/GUI/TextWidget.h"
 
 #include "ExportImageDialog.h"
 

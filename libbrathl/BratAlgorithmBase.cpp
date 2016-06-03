@@ -87,7 +87,7 @@ CBratAlgorithmBase::~CBratAlgorithmBase()
 }
 
 //----------------------------------------
-void CBratAlgorithmBase::RegisterAlgorithms()
+void CBratAlgorithmBase::RegisterCAlgorithms()
 {
   if (CBratAlgorithmBase::m_algorithmsRegistered)
   {

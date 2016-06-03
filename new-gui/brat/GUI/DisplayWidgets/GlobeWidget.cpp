@@ -232,7 +232,7 @@ void CGlobeWidget::setBaseMap( QString url )
 	}
 }
 
-void CGlobeWidget::SetupMap()
+void CGlobeWidget::SetupMap( bool enable_base_map )	//it needs renderer in tile source
 {
 	QString cacheDirectory = QgsApplication::qgisSettingsDirPath() + "cache";
 	FileSystemCacheOptions cacheOptions;
@@ -249,7 +249,6 @@ void CGlobeWidget::SetupMap()
 	// The MapNode will render the Map object in the scene graph.
 	mMapNode = new osgEarth::MapNode( map, nodeOptions );
 
-	const bool enable_base_map = true;	//don't load; besides, it needs renderer in tile source
 	if ( enable_base_map )
 	{
 		setBaseMap( "http://readymap.org/readymap/tiles/1.0.0/7/" );
@@ -264,16 +263,83 @@ void CGlobeWidget::SetupMap()
 
 	imageLayersChanged();
 
-	// And what remains of elevationLayersChanged()
+    // And what remains of
+    if ( false )
+		elevationLayersChanged();
+	else
+	{
+		assert__( mMapNode->getMap()->getNumElevationLayers() == 0 );
 
-	assert__( mMapNode->getMap()->getNumElevationLayers() == 0 );
+		ElevationLayerVector list;
+		map->getElevationLayers( list );		assert__( list.size() == 0 );
 
-	ElevationLayerVector list;
-	map->getElevationLayers( list );
-	assert__( list.size() == 0 );
+		double scale = 1.;
+		setVerticalScale( scale );
+	}
+}
 
-	double scale = 1;
-	setVerticalScale( scale );
+
+
+//else if ( "Worldwind" == type )
+//elevationPath->setText( "http://tileservice.worldwindcentral.com/getTile?bmng.topo.bathy.200401" );
+//else if ( "TMS" == type )
+//elevationPath->setText( "http://readymap.org/readymap/tiles/1.0.0/9/" );
+
+void CGlobeWidget::elevationLayersChanged()
+{
+    QgsDebugMsg( "elevationLayersChanged: Globe Running, executing" );
+    osg::ref_ptr<Map> map = mMapNode->getMap();
+
+    if ( map->getNumElevationLayers() > 1 )
+    {
+        mOsgViewer->getDatabasePager()->clear();
+    }
+
+    // Remove elevation layers
+    ElevationLayerVector list;
+    map->getElevationLayers( list );
+    for ( ElevationLayerVector::iterator i = list.begin(); i != list.end(); ++i )
+    {
+        map->removeElevationLayer( *i );
+    }
+
+    // Add elevation layers
+    QSettings settings;
+    QString cacheDirectory = settings.value( "cache/directory", QgsApplication::qgisSettingsDirPath() + "cache" ).toString();
+    ElevationLayer *layer = nullptr;
+//    QTableWidget* table = mSettingsDialog->elevationDatasources();
+//    for ( int i = 0; i < table->rowCount(); ++i )
+//    {
+//        QString type = table->item( i, 0 )->text();
+//        //bool cache = table->item( i, 1 )->checkState();
+//        QString uri = table->item( i, 2 )->text();
+//        ElevationLayer* layer = 0;
+
+//        if ( "Raster" == type )
+//        {
+//            GDALOptions options;
+//            options.url() = uri.toStdString();
+//            layer = new osgEarth::ElevationLayer( uri.toStdString(), options );
+//        }
+//        else if ( "TMS" == type )
+//        {
+
+    std::string p2 = "http://readymap.org/readymap/tiles/1.0.0/9/";
+    //std::string p2 = "http://tileservice.worldwindcentral.com/getTile?bmng.topo.bathy.200401";
+	//std::string p2 = "http://tileservice.worldwindcentral.com/getTile?interface=map&version=1&dataset=bmng.topo.bathy.200401&level=0&x=0&y=0";
+
+            TMSOptions options;
+            options.url() = p2;       //uri.toStdString();
+            layer = new osgEarth::ElevationLayer( p2/*uri.toStdString()*/, options );
+//        }
+        map->addElevationLayer( layer );
+
+        //if ( !cache || type == "Worldwind" ) layer->setCache( 0 ); //no tms cache for worldwind (use worldwind_cache)
+//    }
+#if OSGEARTH_VERSION_GREATER_OR_EQUAL( 2, 5, 0 )
+    //double scale = QgsProject::instance()->readDoubleEntry( "Globe-Plugin", "/verticalScale", 1 );
+    setVerticalScale( 20./*scale */);
+#endif
 }
 
 
@@ -563,7 +629,7 @@ CGlobeWidget::CGlobeWidget( QWidget *parent, CMapWidget *the_canvas )
 	mOsgViewer->setCameraManipulator( manip );
 
 
-	SetupMap();		//creates and attaches the map node, graticule, layers...
+	SetupMap( false );		//creates and attaches the map node, graticule, layers...
 
 
 	// v4 setSkyParameters was called here
@@ -932,7 +998,7 @@ void CGlobeWidget::setSkyParameters( bool sky, const QDateTime& date_time, bool 
 
 		bool fancy = false;
 
-		mSkyNode->setMoonVisible( fancy );
+        mSkyNode->setMoonVisible( true );
 		mSkyNode->setStarsVisible( true );
 		mSkyNode->setSunVisible( fancy );
 

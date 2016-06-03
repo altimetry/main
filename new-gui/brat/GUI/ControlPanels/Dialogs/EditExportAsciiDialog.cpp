@@ -1,6 +1,6 @@
 #include "new-gui/brat/stdafx.h"
 
-#include "GUI/DisplayWidgets/TextWidget.h"
+#include "new-gui/Common/GUI/TextWidget.h"
 
 #include "EditExportAsciiDialog.h"
 

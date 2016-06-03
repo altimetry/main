@@ -87,7 +87,7 @@ public:
   void InitDateZero();
 
   /// Gets the year of the date
-  uint32_t GetYear();
+  uint32_t GetYear() const;
 
   /// Gets the month of the date
   uint32_t GetMonth();
@@ -237,7 +237,7 @@ public:
 
   /** Tests the internal value to the default value 
      \return true if default value, otherwise false */
-  bool IsDefaultValue();
+  bool IsDefaultValue() const;
 
 
   /** Converts the date value into a number of seconds, microseconds
@@ -312,7 +312,7 @@ public:
      \return #BRATHL_SUCCESS or error code (see \ref Date_error_codes) */
   int32_t Convert2YMDHMSM(uint32_t& year, uint32_t& month, uint32_t& day, 
       	      	      	  uint32_t& hour, uint32_t& minute, uint32_t& second,
-      	      	      	  uint32_t& muSecond);
+                          uint32_t& muSecond) const;
 
   /** Converts a date whose value corresponds to the date reference enumeration
      \param refDate [in]: date reference - see #brathl_refDate)
@@ -362,7 +362,7 @@ public:
   /** Computes the number of leap years since a year 
      \param year [in]: year
      \return number of leap years  */
-  uint32_t HowManyLeapYear(const uint32_t year);
+  uint32_t HowManyLeapYear(const uint32_t year) const;
   
   /** Retrieves the number of days in a month, according to a year and a month
     \param month [in] : month
@@ -520,6 +520,7 @@ private:
     \return #BRATHL_SUCCESS or error code (see \ref Date_error_codes) */
   int32_t GetDateRef(const brathl_refDate refDate, CDate& date);
 
+public:
   /** Construct a date reference enumeration according to a CDate object 
     Only date according to #brathl_refDate enumeration are valid, 
     furthermore REFUSER1 and REFUSER2 are not allowed.
@@ -527,8 +528,9 @@ private:
     \param refDate [out]: date reference enumeration value (see #brathl_refDate)
     \return #BRATHL_SUCCESS if CDate object is according to #brathl_refDate enumeration
      except REFUSER1 and REFUSER2. Otherwise returns a erro code (see \ref Date_error_codes) */
-  int32_t GetDateRef(CDate& date, brathl_refDate& refDate);  
+  static int32_t GetDateRef(const CDate& date, brathl_refDate& refDate);
 
+private:
   /** Retrieves the date value in a decimal number of seconds (since internal reference date, ie 1950) */
   double GetNbSeconds(); 
   

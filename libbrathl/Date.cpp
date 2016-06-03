@@ -789,7 +789,7 @@ int32_t CDate::ConstructDate(const brathl_refDate refDate)
 
 
 //----------------------------------------
-int32_t CDate::GetDateRef(CDate& date, brathl_refDate& refDate)
+int32_t CDate::GetDateRef(const CDate& date, brathl_refDate& refDate)
 {
   int32_t result = BRATHL_SUCCESS;
 
@@ -851,7 +851,7 @@ int32_t CDate::GetDateRef(const brathl_refDate refDate, CDate& date)
 }
 //----------------------------------------
 
-uint32_t CDate::HowManyLeapYear(const uint32_t year)
+uint32_t CDate::HowManyLeapYear(const uint32_t year) const
 {
   uint32_t nbLeapYear = 0;
 
@@ -983,16 +983,9 @@ void CDate::SetDefaultValue()
 }
 
 
-bool CDate::IsDefaultValue()
+bool CDate::IsDefaultValue() const
 {
-  if ((isDefaultValue(m_minutes) == true) ||
-      (isDefaultValue(m_muSeconds) == true))
-  {
-    return true;
-  }
-
-  return false;
-
+    return isDefaultValue(m_minutes) || isDefaultValue(m_muSeconds);
 }
 
 bool CDate::IsDefaultValueYMDHMSM(const uint32_t year, const uint32_t month /*= 1*/, const uint32_t day /*= 1*/,
@@ -1441,7 +1434,7 @@ int32_t CDate::Convert2Second(double& seconds, const brathl_refDate refDate /*= 
 //----------------------------------------
 int32_t CDate::Convert2YMDHMSM(uint32_t& year, uint32_t& month, uint32_t& day,
       	      	      	  uint32_t& hour, uint32_t& minute, uint32_t& second,
-      	      	      	  uint32_t& muSecond)
+                          uint32_t& muSecond) const
 {
   int32_t result = BRATHL_SUCCESS;
 
@@ -1633,7 +1626,7 @@ int32_t CDate::DSM2Second(const uint32_t days, const uint32_t seconds, const uin
 
 //----------------------------------------
 
-uint32_t CDate::GetYear()
+uint32_t CDate::GetYear() const
 {
   int32_t result = BRATHL_SUCCESS;
 

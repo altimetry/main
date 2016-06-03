@@ -4403,7 +4403,7 @@ std::string CNetCDFFiles::IdentifyExistingFile
     if ((foundMissionNameAttr == NC_NOERR) && (foundDataSetAttr == NC_NOERR))
         
     {
-      CMission mission(JASON2, false);
+      CMission mission("Jason-2", false);
       CStringList aliases;
       mission.LoadAliasName(aliases);
       if (aliases.ExistsNoCase(missionNameAttrValue))

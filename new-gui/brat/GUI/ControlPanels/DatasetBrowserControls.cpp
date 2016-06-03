@@ -2,7 +2,7 @@
 
 #include "DataModels/Model.h"
 #include "DataModels/Workspaces/Workspace.h"
-#include "GUI/DisplayWidgets/TextWidget.h"
+#include "new-gui/Common/GUI/TextWidget.h"
 #include "GUI/ControlPanels/DatasetBrowserControls.h"
 
 #include "libbrathl/Field.h"

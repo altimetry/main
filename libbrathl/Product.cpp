@@ -6119,7 +6119,7 @@ int32_t CProduct::ReadData(
 	)
 {
 
-	CBratAlgorithmBase::RegisterAlgorithms();
+	CBratAlgorithmBase::RegisterCAlgorithms();
 
 	// Load aliases dictionnary
 	std::string errorMsg;

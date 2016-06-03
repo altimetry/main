@@ -30,7 +30,7 @@ email                : jpalmer at linz dot govt dot nz
 #include "qgslogger.h"
 #include "qgis.h"
 
-#include "ApplicationLogger.h"
+#include "BratLogger.h"
 #include "MapToolSelectUtils.h"
 
 

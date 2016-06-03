@@ -20,7 +20,7 @@
 #ifndef _BratProcessYFX_h_
 #define _BratProcessYFX_h_
 
-#include "BratProcess.h"
+#include "BratEmbeddedPythonProcess.h"
 
 using namespace brathl;
 using namespace processes;
@@ -31,10 +31,12 @@ namespace processes
 //------------------- CBratProcessYFX class --------------------
 //-------------------------------------------------------------
 
-class CBratProcessYFX : public CBratProcess
+class CBratProcessYFX : public CBratEmbeddedPythonProcess
 {
+	using base_t = CBratEmbeddedPythonProcess;
+
 public:
-  CBratProcessYFX();
+  CBratProcessYFX( const std::string &executable_dir );
     
   virtual ~CBratProcessYFX();
 

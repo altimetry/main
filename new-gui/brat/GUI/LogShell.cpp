@@ -6,9 +6,9 @@
 #include <QTextEdit>
 #include <QVBoxLayout>
 
-#include "ApplicationLogger.h"
+#include "BratLogger.h"
 
-#include "DisplayWidgets/TextWidget.h"
+#include "new-gui/Common/GUI/TextWidget.h"
 #include "LogShell.h"
 
 
@@ -184,7 +184,7 @@ void CLogShell::UpdateMsgsPerSecCounter()
 //
 void CLogShell::UpdateOsgLogLevel( int index )
 {
-	CApplicationLogger *h = dynamic_cast< CApplicationLogger* >( osg::getNotifyHandler() );
+	CBratLogger *h = dynamic_cast< CBratLogger* >( osg::getNotifyHandler() );
 	if ( h )
 	{
 		h->SetOsgNotifyLevel( (osg::NotifySeverity) index );
@@ -205,7 +205,7 @@ void CLogShell::Enable( bool yes )
 {
 	static const auto sheet = mEditor->styleSheet();
 
-	CApplicationLogger *h = dynamic_cast< CApplicationLogger* >( osg::getNotifyHandler() );
+	CBratLogger *h = dynamic_cast< CBratLogger* >( osg::getNotifyHandler() );
 	if ( h )
 	{
 		h->SetEnabled( yes );

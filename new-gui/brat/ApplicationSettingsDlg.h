@@ -39,7 +39,9 @@ class CApplicationSettingsDlg : public QDialog
 	QRadioButton *mUseRasterLayer = nullptr;
     QRadioButton *mUseURLRasterLayer = nullptr;
     QLineEdit *mLayerURLLineEdit = nullptr;
-    QWidget *mStartupOptionsPage = nullptr;
+	QRadioButton *mViewsUseVectorLayer = nullptr;
+	QRadioButton *mViewsUseRasterLayer = nullptr;
+	QWidget *mStartupOptionsPage = nullptr;
 
     QListWidget *mStylesListWidget = nullptr;
     QCheckBox *mDefaultStyleCheckBox = nullptr;
@@ -71,7 +73,8 @@ private slots:
 
     void HandleBrowseDataDirectory();
     void HandleBrowseProjectsPath();
-    void HandleLayerTypeChanged( bool toggled );
+    void HandleMainLayerTypeChanged( bool toggled );
+    void HandleViewsLayerTypeChanged( bool toggled );
 };
 
 #endif // APPLICATION_SETTINGS_DLG_H

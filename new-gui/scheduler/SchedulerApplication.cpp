@@ -10,12 +10,12 @@
 	#include "new-gui/Common/WinMemChecker.h"
 	MemChecker MemChecker::instance;
 
-	_CrtMemState QSchedulerApplication::FirstState;			//before all run-time allocations
-	_CrtMemState QSchedulerApplication::BeforeRunState;		//after app creation, before running engine
-	_CrtMemState QSchedulerApplication::AfterRunState;		//after running engine, before de-allocating
+	_CrtMemState CSchedulerApplication::FirstState;			//before all run-time allocations
+	_CrtMemState CSchedulerApplication::BeforeRunState;		//after app creation, before running engine
+	_CrtMemState CSchedulerApplication::AfterRunState;		//after running engine, before de-allocating
 #endif
 
-const CConsoleApplicationPaths *QSchedulerApplication::smApplicationPaths = nullptr;
+const CConsoleApplicationPaths *CSchedulerApplication::smApplicationPaths = nullptr;
 
 
  
@@ -30,7 +30,7 @@ const CConsoleApplicationPaths *QSchedulerApplication::smApplicationPaths = null
 //	everything else has failed.
 //
 //static
-int QSchedulerApplication::OffGuiErrorDialog( int error_type, char const *error_msg )
+int CSchedulerApplication::OffGuiErrorDialog( int error_type, char const *error_msg )
 {
     int argc = 0;
     QApplication a( argc, nullptr );
@@ -45,7 +45,7 @@ int QSchedulerApplication::OffGuiErrorDialog( int error_type, char const *error_
 
 
 
-QSchedulerApplication::QSchedulerApplication(int &argc, char **argv, int flags)
+CSchedulerApplication::CSchedulerApplication(int &argc, char **argv, int flags)
     : base_t(argc, argv, flags)
 {
     ::xercesc::XMLPlatformUtils::Initialize();
@@ -190,7 +190,7 @@ QSchedulerApplication::QSchedulerApplication(int &argc, char **argv, int flags)
 }
 
 //virtual
-QSchedulerApplication::~QSchedulerApplication()
+CSchedulerApplication::~CSchedulerApplication()
 {
 	//_CrtMemState state, CurrentState, AfterState, ComparisonState;
 	//_CrtMemCheckpoint( &CurrentState );
@@ -216,7 +216,7 @@ QSchedulerApplication::~QSchedulerApplication()
 
 
 
-void QSchedulerApplication::dumpMemoryStatistics()
+void CSchedulerApplication::dumpMemoryStatistics()
 {
 #if defined(MEM_LEAKS)
 

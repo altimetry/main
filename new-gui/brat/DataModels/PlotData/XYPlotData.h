@@ -508,12 +508,12 @@ public:
 
 	CXYPlotProperties* GetPlotProperties() { return &m_plotProperty; }
 
-	CExpressionValue& GetVarComplement() { return m_varComplement; };
+    CExpressionValue& GetVarComplement() { return m_varComplement; }
 
-	CFieldNetCdf& GetFieldComplement() { return m_fieldComplement; };
+    CFieldNetCdf& GetFieldComplement() { return m_fieldComplement; }
 
-	const CObArray& GetOtherVars() { return m_otherVars; };
-	const CObArray& GetOtherFields() { return m_otherFields; };
+    const CObArray& GetOtherVars() { return m_otherVars; }
+    const CObArray& GetOtherFields() { return m_otherFields; }
 
 #if defined(BRAT_V3)
 

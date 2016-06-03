@@ -882,12 +882,10 @@ inline void FillCombo( COMBO *c, const CONTAINER &items, int selected = 0, bool 
 }
 
 
-//NOTE: this is a template only for the compiler not to error "use of undefined type" in the poor moc files
-//
 template< typename COMBO >
-inline void FillCombo( COMBO *c, const std::string *names, size_t size, int selected, bool enabled )
+inline void FillCombo( COMBO *c, const std::vector<std::string> &names, int selected, bool enabled )
 {
-	FillCombo( c, std::vector< std::string >( &names[0], &names[size] ),  selected, enabled,
+	FillCombo( c, names, selected, enabled,
 
 		[]( const std::string &s ) -> const char*
         {
@@ -895,6 +893,14 @@ inline void FillCombo( COMBO *c, const std::string *names, size_t size, int sele
 		}
 
 		);
+}
+
+//NOTE: this is a template only for the compiler not to error "use of undefined type" in the poor moc files
+//
+template< typename COMBO >
+inline void FillCombo( COMBO *c, const std::string *names, size_t size, int selected, bool enabled )
+{
+	FillCombo( c, std::vector< std::string >( &names[0], &names[size] ),  selected, enabled );
 }
 
 

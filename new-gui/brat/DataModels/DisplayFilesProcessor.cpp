@@ -5,7 +5,7 @@
 
 #include "libbrathl/Tools.h"
 
-#include "ApplicationLogger.h"
+#include "BratLogger.h"
 #include "libbrathl/InternalFilesFactory.h"
 #include "libbrathl/InternalFilesZFXY.h"
 #include "libbrathl/InternalFilesYFX.h"

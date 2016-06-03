@@ -299,7 +299,7 @@ public:
 
 
 //////////////////////////////////////////////////////////////////
-//						Custom Scale Draw
+//						Custom Scale
 //////////////////////////////////////////////////////////////////
 
 //choice of MAX_MANTISSA as 15 because
@@ -309,45 +309,58 @@ static const int MAX_MANTISSA = 15;
 
 class CBratScaleDraw : public QwtScaleDraw
 {
-private:
-    int mantissa_digits;
+    brathl_refDate mDateRef = REF19500101;
+    bool mIsDate = false;
+    int mMantissaDigits;
+
 public:
-    CBratScaleDraw();
-    CBratScaleDraw(int _mantissa);
+	CBratScaleDraw()
+	{
+		mMantissaDigits = 2 % MAX_MANTISSA;
+	}
+	virtual ~CBratScaleDraw()
+	{}
 
-    //our overloads
-
-    QwtText label(double) const;
-
-    int GetMantissa() const
+    int GetMantissaDigits() const
     {
-        return mantissa_digits;
+        return mMantissaDigits;
     }
 
-    void SetMantissa(int _mantissa)
+    void SetMantissaDigits( int mantissa )
     {
-        mantissa_digits = _mantissa;
+        mMantissaDigits = mantissa;
     }
+
+
+	bool IsDate() const
+	{
+		return mIsDate;
+	}
+
+    void SetAsDate( bool isdate, brathl_refDate date_ref = REF19500101 )
+	{
+		mIsDate = isdate;
+        mDateRef = date_ref;
+	}
+
+
+	// QwtScaleDraw interface
+
+	virtual QwtText label( double value ) const override
+	{
+		if ( mIsDate )
+		{
+            CDate d( value, mDateRef );
+			if ( !d.IsDefaultValue() )
+                return QString( d.AsString().c_str() );
+		}
+
+		return QString::number( value, 'g', mMantissaDigits );
+	}
 };
 
 
 
-CBratScaleDraw::CBratScaleDraw()
-{
-    mantissa_digits = 2 % MAX_MANTISSA;
-}
-
-
-CBratScaleDraw::CBratScaleDraw(int _mantissa)
-{
-    mantissa_digits = _mantissa % MAX_MANTISSA;
-}
-
-QwtText CBratScaleDraw::label(double value) const
-{
-    //return QLocale::system().toString(value);
-    return QString::number(value, 'g', mantissa_digits);
-}
 
 
 
@@ -389,10 +402,10 @@ C2DPlotWidget::C2DPlotWidget( QWidget *parent )
 
 
     CBratScaleDraw* pDrawer = new CBratScaleDraw();
-    pDrawer->SetMantissa(2);
+    pDrawer->SetMantissaDigits(2);
     setAxisScaleDraw(QwtPlot::xBottom, pDrawer);
     pDrawer = new CBratScaleDraw();
-    pDrawer->SetMantissa(2);
+    pDrawer->SetMantissaDigits(2);
     setAxisScaleDraw(QwtPlot::yLeft, pDrawer);
 
     setMinimumSize( min_plot_widget_width, min_plot_widget_height );
@@ -784,47 +797,62 @@ void C2DPlotWidget::SpectrogramAxisTitles( int index, std::string &xtitle, std::
 
 
 
-//...digits
 
-int C2DPlotWidget::GetXAxisMantissa() const
+//...digits / date
+
+int C2DPlotWidget::XDigits() const
 {
-	const CBratScaleDraw* curr_drawer = dynamic_cast<const CBratScaleDraw*>( axisScaleDraw( QwtPlot::xBottom ) );
-	if ( !curr_drawer )
-	{
-		//default value
-		return 2;
-	}
-	return curr_drawer->GetMantissa();
+	const CBratScaleDraw *xdrawer = dynamic_cast<const CBratScaleDraw*>( axisScaleDraw( QwtPlot::xBottom ) );	assert__( xdrawer );
+	return xdrawer->GetMantissaDigits();
 }
 
-int C2DPlotWidget::GetYAxisMantissa() const
+int C2DPlotWidget::YDigits() const
 {
-	const CBratScaleDraw* curr_drawer = dynamic_cast<const CBratScaleDraw*>( axisScaleDraw( QwtPlot::yLeft ) );
-	if ( !curr_drawer )
-	{
-		//default value
-		return 2;
-	}
-	return curr_drawer->GetMantissa();
+	const CBratScaleDraw *ydrawer = dynamic_cast<const CBratScaleDraw*>( axisScaleDraw( QwtPlot::yLeft ) );		assert__( ydrawer );
+	return ydrawer->GetMantissaDigits();
 }
 
-void C2DPlotWidget::SetXAxisMantissa( int new_mantissa )
+bool C2DPlotWidget::XisDateTime() const
 {
-	CBratScaleDraw* scale_drawer = new CBratScaleDraw();
-	scale_drawer->SetMantissa( new_mantissa );
-	setAxisScaleDraw( QwtPlot::xBottom, scale_drawer );
+    const CBratScaleDraw *xdrawer = dynamic_cast<const CBratScaleDraw*>( axisScaleDraw( QwtPlot::xBottom ) );	assert__( xdrawer );
+    return xdrawer->IsDate();
+}
+bool C2DPlotWidget::YisDateTime() const
+{
+    const CBratScaleDraw *ydrawer = dynamic_cast<const CBratScaleDraw*>( axisScaleDraw( QwtPlot::yLeft ) );		assert__( ydrawer );
+    return ydrawer->IsDate();
+}
+
+void C2DPlotWidget::SetXDigits( bool isdate, int digits, brathl_refDate date_ref )    //date_ref = REF19500101
+{
+	CBratScaleDraw *xdrawer = dynamic_cast<CBratScaleDraw*>( axisScaleDraw( QwtPlot::xBottom ) );	assert__( xdrawer );
+    if (digits <= 0)
+        digits = xdrawer->GetMantissaDigits();
+    xdrawer->SetMantissaDigits( digits );
+    xdrawer->SetAsDate( isdate, date_ref );
+    //setAxisScaleDraw( QwtPlot::xBottom, xdrawer );
 	replot();
 }
 
-void C2DPlotWidget::SetYAxisMantissa( int new_mantissa )
+void C2DPlotWidget::SetYDigits( bool isdate, int digits, brathl_refDate date_ref )    //date_ref = REF19500101
 {
-	CBratScaleDraw* scale_drawer = new CBratScaleDraw();
-	scale_drawer->SetMantissa( new_mantissa );
-	setAxisScaleDraw( QwtPlot::yLeft, scale_drawer );
+	CBratScaleDraw *ydrawer = dynamic_cast<CBratScaleDraw*>( axisScaleDraw( QwtPlot::yLeft ) );		assert__( ydrawer );
+    if (digits <= 0)
+        digits = ydrawer->GetMantissaDigits();
+    ydrawer->SetMantissaDigits( digits );
+    ydrawer->SetAsDate( isdate, date_ref );
+    //setAxisScaleDraw( QwtPlot::yLeft, ydrawer );
 	replot();
 }
 
 
+//void C2DPlotWidget::SetAxisAsDate( bool xaxis, bool yaxis )
+//{
+//    CBratScaleDraw *xdrawer = dynamic_cast<CBratScaleDraw*>( axisScaleDraw( QwtPlot::xBottom ) );	assert__( xdrawer );
+//    xdrawer->SetAsDate( xaxis );
+//    CBratScaleDraw *ydrawer = dynamic_cast<CBratScaleDraw*>( axisScaleDraw( QwtPlot::yLeft ) );		assert__( ydrawer );
+//    ydrawer->SetAsDate( yaxis );
+//}
 
 
 //...scale
@@ -1262,7 +1290,7 @@ QwtPlotCurve* C2DPlotWidget::AddCurve( const std::string &title, QColor color, c
     c->setPen( QPen( color ) );
     c->attach( this );
 
-	/*Linear Regression
+	//Linear Regression
 
 	CQwtFitData *cfit_data = new CQwtFitData( *data );
     QwtPlotCurve *cfit = new QwtPlotCurve( ( "fit - " + title ).c_str() );
@@ -1284,7 +1312,6 @@ QwtPlotCurve* C2DPlotWidget::AddCurve( const std::string &title, QColor color, c
  //   titleItem->setText( titl );
  //   titleItem->attach( this );
 
- */
 
 	return c;
 }
@@ -1725,12 +1752,28 @@ QwtPlotPanner* C2DPlotWidget::AddPanner()
 /////////////////////////////////////////////////////////////////////////////////////////
 
 
-QwtLegend* C2DPlotWidget::AddLegend( LegendPosition pos )
+QwtLegend* C2DPlotWidget::AddLegend( LegendPosition pos, bool checkable )		//checkable = false 
 {
 	QwtLegend *legend = new QwtLegend;
     insertLegend( legend, pos );
 	legend->setDisplayPolicy( QwtLegend::AutoIdentifier, 0 );
+	if ( checkable )
+	{
+		legend->setItemMode( QwtLegend::CheckableItem );
+		connect( this, SIGNAL( legendChecked( QwtPlotItem *, bool ) ), SLOT( ShowCurve( QwtPlotItem *, bool ) ) );
+	}
 	return legend;
+}
+
+
+void C2DPlotWidget::ShowCurve( QwtPlotItem *item, bool on )
+{
+	item->setVisible( on );
+	//QWidget *w = legend()->find( item );
+	//if ( w && w->inherits( "QwtLegendItem" ) )
+	//	( (QwtLegendItem *)w )->setChecked( on );
+
+	replot();
 }
 
 

@@ -49,7 +49,7 @@
 #include "DataModels/PlotData/BratLookupTable.h"
 #include "DataModels/PlotData/MapColor.h"
 
-#include "ApplicationLogger.h"
+#include "BratLogger.h"
 #include "BratSettings.h"
 #include "GUI/ActionsTable.h"
 
@@ -352,6 +352,8 @@ void CMapWidget::Init()
 	//6. We need a data provider for the memory layer so that we can edit it:
 	//auto vpr = popLyr->dataProvider();
 
+    setWheelAction( WheelZoomToMouseCursor, 1.1 );
+
     setExtent( mMainLayer->extent() );
     enableAntiAliasing( true );
     setCanvasColor( QColor( 0xFF, 0xFF, 0xF0, 255 ) );		//setCanvasColor(QColor(255, 255, 255));
@@ -415,12 +417,6 @@ CMapWidget::CMapWidget(ELayerBaseType layer_base_type, QWidget *parent )
 	Init();
 }
 
-CMapWidget::CMapWidget( QWidget *parent )
-	: base_t(parent)
-    , mLayerBaseType( eVectorLayer )
-{
-	Init();
-}
 
 
 
@@ -2016,8 +2012,10 @@ void CMapWidget::UpdateMouseCoordinatePrecision()
 	// Keep mMousePrecisionDecimalPlaces sensible
 	if ( dp < 0 )
 		dp = 0;
+    if ( dp > 20 )
+        dp = 20;
 
-	mMousePrecisionDecimalPlaces = dp;			assert__( mMousePrecisionDecimalPlaces < 20 );
+    mMousePrecisionDecimalPlaces = dp;			assert__( mMousePrecisionDecimalPlaces <= 20 );
 }
 
 

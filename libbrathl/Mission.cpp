@@ -38,7 +38,6 @@ using namespace brathl;
 namespace brathl
 {
 
-	
 const char* CMission::m_nameTP = "Topex/Poseidon";
 const char* CMission::m_nameJ1 = "Jason-1";
 const char* CMission::m_nameJ2 = "Jason-2";
@@ -47,85 +46,74 @@ const char* CMission::m_nameEN = "ENVISAT";
 const char* CMission::m_nameE_C = "ERS1-A";
 const char* CMission::m_nameE_G = "ERS1-B";
 const char* CMission::m_nameG2 = "GFO";
-
-static std::vector<std::string> MissionNames()
-{
-    std::vector<std::string> v( brathl_mission_size );
-
-    v[TOPEX] = ( "Topex/Poseidon" );
-    v[JASON1] = ( "Jason-1" );
-    v[JASON2] = ( "Jason-2" );
-    v[ERS2] = ( "ERS2" );
-    v[ENVISAT] = ( "ENVISAT" );
-    v[ERS1_A] = ( "ERS1-A" );
-    v[ERS1_B] = ( "ERS1-B" );
-    v[GFO] = ( "GFO" );
-
-    return v;
-}
-
 const char* CMission::m_nameUnknown = "Unknown mission";
+
+
+
 const char* CMission::m_refFileName = "brathl_refmission.txt";
 const char* CMission::m_refAliasName = "brathl_aliasmission.txt";
 
 const int CMission::m_maxLenName = 30;
 
 
-//static
-brathl_mission CMission::FindMission( const std::string product_type )
-{
-    static std::vector<std::string> mission_names = MissionNames();
-
-    int i = 0;
-    for ( auto const &mission_name : mission_names )
-    {
-        //mission_names
-        std::string s1 = CTools::StringToLower(product_type).substr(0, mission_name.size());
-        std::string s2 = CTools::StringToLower(mission_name);
-        if ( s1 == s2 )
-            return (brathl_mission)i;
-        ++i;
-    }
-
-    return brathl_mission_size;
-}
-
-
-
 
 //ctor		
 CMission::CMission(brathl_mission mission, bool printWarnings /* = true */)  
 {
-  int32_t result = BRATHL_SUCCESS;
+    m_errno = BRATHL_SUCCESS;
+    m_mission = mission;
+    m_printWarnings = printWarnings;
   
-  m_mission = mission;
-  m_printWarnings = printWarnings;
-  
-  InitDefault();
-  
-  result = SearchNearestDateRef();
-  
-  if (result == BRATHL_ERROR_INVALID_MISSION)
-  {
-    printf("\nERROR - Invalid mission value : %d \n",  mission);
-     
-  }
-  
+    // Initializing parameters
+    m_missionName = CMission::m_nameUnknown;
+    m_repeat = 0.0;
+    m_dateRef.SetDateJulian( 0.0 );
+    m_cycleRef = 0;
+    m_passRef = 0;
+    m_nbPass = 0;
+
+    // Loading mission conversion parameters from file m_refFileName
+    m_errno = LoadRefMission();  // (search by brathl_mission ID -> "m_mission")
+
+    if ( m_errno != BRATHL_SUCCESS )
+        printf("\nERROR - Invalid mission value : %d \n",  mission);
 }
 
+
+CMission::CMission( const std::string &product_type, bool printWarnings /* = true */ )
+{
+	m_errno = BRATHL_SUCCESS;
+    m_missionName = product_type; // assigning product label as mission name (temporary)
+    m_printWarnings = printWarnings;
+
+    // Initializing parameters
+    m_mission = 0;
+    m_repeat = 0.0;
+    m_dateRef.SetDateJulian( 0.0 );
+    m_cycleRef = 0;
+    m_passRef = 0;
+    m_nbPass = 0;
+
+    // Loading mission conversion parameters from file m_refFileName
+    m_errno = LoadRefMission( false );  // (search by product label or mission name -> "m_missionName")
+
+    if ( m_errno != BRATHL_SUCCESS )
+        printf("\nERROR - Invalid mission name or product label : %s \n",  product_type.c_str());
+}
 
 
 CMission::CMission(brathl_mission mission, const double repeat, const CDate& dateRef, const uint32_t cycleRef, 
       	   const uint32_t passRef,  const uint32_t nbPass, bool printWarnings /* = true */)  
 {
-  m_mission = mission;
-  m_repeat = repeat;
-  m_dateRef = dateRef ;
-  m_cycleRef = cycleRef;
-  m_passRef = passRef;
-  m_nbPass = nbPass;
-  m_printWarnings = printWarnings;
-
+    m_mission     = mission;
+    m_missionName = CMission::m_nameUnknown;
+    m_repeat      = repeat;
+    m_dateRef     = dateRef ;
+    m_cycleRef    = cycleRef;
+    m_passRef     = passRef;
+    m_nbPass      = nbPass;
+    m_printWarnings = printWarnings;
+    m_errno = BRATHL_SUCCESS;
 }
 
 //----------------------------------------
@@ -137,273 +125,149 @@ CMission::~CMission()
 
 const CMission& CMission::operator =(const CMission& m)
 {
-
-  m_mission = m.m_mission;
-  m_repeat = m.m_repeat;
-  m_dateRef = m.m_dateRef;
-  m_cycleRef = m.m_cycleRef;
-  m_passRef = m.m_passRef;
-  m_nbPass = m.m_nbPass;
-  m_printWarnings = m.m_printWarnings;
+    m_mission     = m.m_mission;
+    m_missionName = m.m_missionName;
+    m_repeat      = m.m_repeat;
+    m_dateRef     = m.m_dateRef;
+    m_cycleRef    = m.m_cycleRef;
+    m_passRef     = m.m_passRef;
+    m_nbPass      = m.m_nbPass;
+    m_printWarnings = m.m_printWarnings;
+    m_errno = m.m_errno;
     
-  return *this;
-
-    
+    return *this;
 }
 
 //----------------------------------------
-int32_t CMission::SearchNearestDateRef() 
+int32_t CMission::LoadRefMission(bool searchByID /* = true */ )
 {
-  int32_t result = BRATHL_SUCCESS;
+    int32_t result = BRATHL_SUCCESS;
   
-  const uint32_t MAX_LINE_LEN = 255;
-  char line[MAX_LINE_LEN+1];
+    const uint32_t MAX_LINE_LEN = 255;
+    char line[MAX_LINE_LEN+1];
   
-  char name[MAX_LINE_LEN+1];
-  int32_t cycle = 0;
-  int32_t pass = 0;
-  double julian = 0.0;
-  bool bFoundInFile = false;
-
-    
-  result = CtrlMission();
-  if (result != BRATHL_SUCCESS)
-  {
-    return result;
-  }
+    brathl_mission id = 0;
+    char name[CMission::m_maxLenName+1];
+    int32_t cycle  = 0;
+    int32_t pass   = 0;
+    double julian  = 0.0;
+    double repeat  = 0.0;
+    int32_t nbPass = 0;
+    bool bFoundInFile = false;
   
-  CMission missionSave = *this;
+    CMission missionSave = *this;
   
-  std::string refFilePathName = CTools::FindDataFile(CMission::m_refFileName);
-  if (refFilePathName == "")
-  {
-    if (m_printWarnings) 
+    std::string refFilePathName = CTools::FindDataFile( CMission::m_refFileName );
+    if (refFilePathName == "")
     {
-      printf("\nWARNING - CMission::SearchNearestDateRef - Unabled to open file '%s' "
-         "\nCheck directory '%s'"
-	     "\n Default values will be considered\n",  
-	      CMission::m_refFileName,
-              CTools::GetInternalDataDir().c_str());
+        if (m_printWarnings)
+        {
+            printf( "\nWARNING - CMission::LoadRefMission - Unabled to open file '%s' "
+                    "\nCheck directory '%s'\n",
+                    CMission::m_refFileName,
+                    CTools::GetInternalDataDir().c_str());
+        }
+        return BRATHL_WARNING_OPEN_FILE_REF_FILE;
     }
-    return BRATHL_WARNING_OPEN_FILE_REF_FILE;
-  }
 
+    // reads file contains conversion parameters
+    CFile fileRef(refFilePathName, CFile::modeRead);
 
-  // reads file contains value reference
-  CFile fileRef(refFilePathName, CFile::modeRead); 
-  
-  if (fileRef.IsOpen() == false)
-  {
-    if (m_printWarnings) 
+    if (fileRef.IsOpen() == false)
     {
-      printf("\nWARNING - CMission::SearchNearestDateRef - Unabled to open file '%s'\n Default values will be considered\n",  refFilePathName.c_str());
+        if (m_printWarnings)
+        {
+            printf( "\nWARNING - CMission::LoadRefMission - Unabled to open file '%s'\n", refFilePathName.c_str() );
+        }
+        return BRATHL_WARNING_OPEN_FILE_REF_FILE;
     }
-    return BRATHL_WARNING_OPEN_FILE_REF_FILE;
-  }
   
-  int32_t nbFields = EOF;
+    int32_t nbFields = EOF;
+    int32_t lineNb = 0;
+    int32_t size = fileRef.ReadLineData(line, MAX_LINE_LEN);
   
-  int32_t size = fileRef.ReadLineData(line, MAX_LINE_LEN);
-  
-  while (size > 0)
-  {
-    nbFields = sscanf (line, "%s %d %d %lf", 
-      	      	      	    name,
-      	      	      	    &cycle,
-      	      	      	    &pass,
-      	      	      	    &julian);
-    
-    if ( (nbFields < 4) )
+    while (size > 0)
     {
-      if (m_printWarnings) 
-      {
-        printf("\nWARNING - CMission::SearchNearestDateRef - Invalid reference mission file format - file name %s \n"
-	    "Default values will be considered\n",
-	    refFilePathName.c_str());
-      }
-     
-     return BRATHL_WARNING_INVALID_REF_FILE_FIELD;
-    }
+        ++lineNb;
+        nbFields = sscanf ( line, "%d %s %d %d %lf %lf %d",
+                            &id, name, &cycle, &pass, &julian, &repeat, &nbPass );
     
-    /*printf("name %s, cycle %d, pass %d, julian %lf\n", 
-	      	      	    name,
-      	      	      	    cycle,
-      	      	      	    pass,
-      	      	      	    julian);
-    */
+        if ( nbFields < 7 )
+        {
+            if (m_printWarnings)
+            {
+                printf( "\nWARNING - CMission::LoadRefMission - Invalid reference mission file format - line: %d of file: %s \n",
+                        lineNb,
+                        refFilePathName.c_str() );
+            }
+            return BRATHL_WARNING_INVALID_REF_FILE_FIELD;
+        }
+        /*printf("id %d, name %s, cycle %d, pass %d, julian %lf, repead %lf, nbpass %d \n", id, name, cycle, pass, julian, repeat, nbPass);*/
 	
-    if (strcmp(name, GetName()) == 0)
-    {
-      bFoundInFile = true;
-      if (julian > m_dateRef.ValueJulian())
-      {
-	missionSave = *this;
-	
-	m_cycleRef = cycle;
-	m_passRef = pass;
-	result = m_dateRef.SetDateJulian(julian);
-	
-	if (result != BRATHL_SUCCESS)
-	{
-          if (m_printWarnings) 
-          {
-            printf("\nWARNING - CMission::SearchNearestDateRef - Invalid reference date - file name %s \n"
-		   "mission %s, cycle %d, pass %d, julian %lf\n",
-        	   refFilePathName.c_str(),  	      	    
-		   name,
-      		   cycle,
-      		   pass,
-      		   julian);
-          }
-	  *this = missionSave;
-      	  result = BRATHL_WARNING_INVALID_REF_FILE_FIELDDATE;
-	}
-      }
-    } 
-    
-    // reads next data
-    size = fileRef.ReadLineData(line, MAX_LINE_LEN);
+        if ( searchByID )
+            bFoundInFile = ( id == GetMission() );
+        else
+        {
+            std::string product_type ( GetName() ); // product type/label
+            std::string name_read( name );          // mission name at reference file
 
-  }    
+            product_type = CTools::StringToLower(product_type).substr(0, name_read.size());
+            name_read    = CTools::StringToLower(name_read);
+
+            bFoundInFile = ( product_type == name_read );
+        }
+
+        if ( bFoundInFile )
+        {
+        	missionSave = *this;
+
+            // Assign mission conversion parameters
+            m_mission     = id;
+            m_missionName = name;
+            m_cycleRef    = cycle;
+            m_passRef     = pass;
+            m_repeat      = repeat;
+            m_nbPass      = nbPass;
+            result        = m_dateRef.SetDateJulian(julian);
+
+            if (result != BRATHL_SUCCESS)
+            {
+                if (m_printWarnings)
+                {
+                    printf( "\nWARNING - CMission::LoadRefMission - Invalid reference date - file name %s \n"
+                            "mission %s, cycle %d, pass %d, julian %lf, repeat %lf, nb passes %d\n",
+                            refFilePathName.c_str(),
+                            name, cycle, pass, julian, repeat, nbPass  );
+                }
+                *this = missionSave;
+                result = BRATHL_WARNING_INVALID_REF_FILE_FIELDDATE;
+            }
+        }
+
+        // Breaks while loop if mission was found
+        if ( bFoundInFile ) {  break; }
+        else                { size = fileRef.ReadLineData(line, MAX_LINE_LEN); } // reads next line
+    }
   
-  if (bFoundInFile == false)
+    if ( bFoundInFile == false )
     {
-      if (m_printWarnings) 
-      {
-        printf("\nWARNING - CMission::SearchNearestDateRef - no reference date found in file %s \n"
-	      "Default values will be considered\n",
-	      refFilePathName.c_str());
-      }
+        if ( m_printWarnings )
+        {
+            if (searchByID)
+                printf("\nWARNING - CMission::LoadRefMission - no mission ID=%d found in file: %s \n", GetMission(), refFilePathName.c_str());
+            else
+                printf("\nWARNING - CMission::LoadRefMission - no mission name='%s' found in file: %s \n", GetName(), refFilePathName.c_str());
+        }
+        m_missionName = CMission::m_nameUnknown;
+        result = BRATHL_ERROR_INVALID_MISSION;
     }
    
-  fileRef.Close(); 
-  
-  return result;
+    fileRef.Close();
+    return result;
 }
 
 
 //----------------------------------------
-void CMission::InitDefault() 
-{
-  switch (m_mission)
-  {
-    case TOPEX:
-      m_repeat = 9.91564;
-      m_dateRef.SetDateJulian(19987.9127535);
-      m_cycleRef = 442;
-      m_passRef = 230;
-      m_nbPass = 254;   
-      break;
-
-    case JASON1:
-      m_repeat = 9.91564;
-      m_dateRef.SetDateJulian(19987.9081795);
-      m_cycleRef = 99;
-      m_passRef = 230;
-      m_nbPass = 254;   
-      break;
-
-    case JASON2:
-      // @@@@@@@@@@ To be modified
-      m_repeat = 9.91564;
-      m_dateRef.SetDateJulian(19987.9081795);
-      m_cycleRef = 99;
-      m_passRef = 230;
-      m_nbPass = 254;   
-      break;
-
-    case ERS2:
-      m_repeat = 35.;
-      m_dateRef.SetDateJulian(18831.768334);
-      m_cycleRef = 66;
-      m_passRef = 598;
-      m_nbPass = 1002;   
-      break;
-
-    case ENVISAT:    
-      m_repeat = 35.;
-      m_dateRef.SetDateJulian(19986.106016);
-      m_cycleRef = 30;
-      m_passRef = 579;
-      m_nbPass = 1002;   
-      break;
-            
-    case ERS1_A:
-      m_repeat = 35.;
-      m_dateRef.SetDateJulian(15636.938955);
-      m_cycleRef = 15;
-      m_passRef = 1;
-      m_nbPass = 1002;   
-      break;
-            
-    case ERS1_B: 
-      m_repeat = 35.;
-      m_dateRef.SetDateJulian(16538.6732895);
-      m_cycleRef = 42;
-      m_passRef = 108;
-      m_nbPass = 1002;   
-      break;
-          
-    case GFO:
-      m_repeat = 17.05064;
-      m_dateRef.SetDateJulian(19987.743864);
-      m_cycleRef = 137;
-      m_passRef = 400;
-      m_nbPass = 488;   
-      break;
-          
-    default : 
-      m_repeat = 0.0;
-      m_cycleRef = 0;
-      m_passRef = 0;
-      m_nbPass = 0;
-      break;
-  }
-}
-//----------------------------------------
-
-int32_t CMission::CtrlMission() 
-{
-  int32_t result = BRATHL_SUCCESS;
-
-  switch (m_mission)
-  {
-    case TOPEX:
-    case JASON1:
-    case JASON2:
-    case ERS2:
-    case ENVISAT: 
-    case ERS1_A:
-    case ERS1_B: 
-    case GFO:
-      break; 
-    default : 
-      result = BRATHL_ERROR_INVALID_MISSION; 
-      break;
-  }
-  return result;     
-}
-
-const char* const CMission::GetName() 
-{
-  switch (m_mission)
-  {
-	
-    case TOPEX: return CMission::m_nameTP;
-    case JASON1: return CMission::m_nameJ1;
-    case JASON2: return CMission::m_nameJ2;
-    case ERS2: return CMission::m_nameE2;
-    case ENVISAT: return CMission::m_nameEN;
-    case ERS1_A: return CMission::m_nameE_C;
-    case ERS1_B: return CMission::m_nameE_G;
-    case GFO: return CMission::m_nameG2;
-    default: break;
-    
-  }
-
-  return CMission::m_nameUnknown;
-}
-
 int32_t CMission::Convert(CDate& date,  uint32_t& cycle, uint32_t& pass)
 {
   double dateJulian = 0.0;
@@ -468,63 +332,63 @@ int32_t CMission::Convert(uint32_t cycle, uint32_t pass, CDate& date)
 //----------------------------------------
 int32_t CMission::LoadAliasName(CStringList& aliases) 
 {
-  int32_t result = BRATHL_SUCCESS;
+    int32_t result = BRATHL_SUCCESS;
   
-  const uint32_t MAX_LINE_LEN = 255;
-  char line[MAX_LINE_LEN+1];
+    const uint32_t MAX_LINE_LEN = 255;
+    char line[MAX_LINE_LEN+1];
   
-  char name[MAX_LINE_LEN+1];
-  char alias[MAX_LINE_LEN+1];
-  bool bFoundInFile = false;
+    char name[MAX_LINE_LEN+1];
+    char alias[MAX_LINE_LEN+1];
+    bool bFoundInFile = false;
   
-  aliases.InsertUnique(GetName());
+    aliases.InsertUnique(GetName());
 
     
-  std::string refFilePathName = CTools::FindDataFile(CMission::m_refAliasName);
-  if (refFilePathName == "")
-  {
-    if (m_printWarnings) 
+    std::string refFilePathName = CTools::FindDataFile(CMission::m_refAliasName);
+    if (refFilePathName == "")
     {
-      printf("\nWARNING - CMission::LoadAliasName - Unabled to open file '%s' "
-         "\nCheck directory '%s'",
-	      CMission::m_refAliasName,
-              CTools::GetInternalDataDir().c_str());
-      }
-    return BRATHL_WARNING_OPEN_FILE_ALIAS_MISSION;
-  }
-
-
-  // reads file contains value reference
-  CFile fileRef(refFilePathName, CFile::modeRead); 
-  
-  if (fileRef.IsOpen() == false)
-  {
-    if (m_printWarnings) 
-    {
-      printf("\nWARNING - CMission::LoadAliasName - Unabled to open file '%s'\n",  refFilePathName.c_str());
+        if (m_printWarnings)
+        {
+            printf("\nWARNING - CMission::LoadAliasName - Unabled to open file '%s' "
+                   "\nCheck directory '%s'",
+                    CMission::m_refAliasName,
+                    CTools::GetInternalDataDir().c_str());
+        }
+        return BRATHL_WARNING_OPEN_FILE_ALIAS_MISSION;
     }
-    return BRATHL_WARNING_OPEN_FILE_ALIAS_MISSION;
-  }
+
+
+    // reads file contains value reference
+    CFile fileRef(refFilePathName, CFile::modeRead);
   
-  int32_t nbFields = EOF;
+    if (fileRef.IsOpen() == false)
+    {
+        if (m_printWarnings)
+        {
+            printf("\nWARNING - CMission::LoadAliasName - Unabled to open file '%s'\n",  refFilePathName.c_str());
+        }
+        return BRATHL_WARNING_OPEN_FILE_ALIAS_MISSION;
+    }
   
-  int32_t size = fileRef.ReadLineData(line, MAX_LINE_LEN);
+    int32_t nbFields = EOF;
   
-  while (size > 0)
-  {
-    nbFields = sscanf (line, "%s %s", 
+    int32_t size = fileRef.ReadLineData(line, MAX_LINE_LEN);
+  
+    while (size > 0)
+    {
+        nbFields = sscanf ( line, "%s %s",
       	      	      	    name,
       	      	      	    alias);
     
     if ( (nbFields < 2) )
     {
-      if (m_printWarnings) 
-      {
-        printf("\nWARNING - CMission::LoadAliasName - Invalid reference mission file format - file name %s \n",
-	      refFilePathName.c_str());
-      }
+        if (m_printWarnings)
+        {
+            printf("\nWARNING - CMission::LoadAliasName - Invalid reference mission file format - file name %s \n",
+            refFilePathName.c_str());
+        }
      
-     return BRATHL_WARNING_INVALID_REF_FILE_FIELD;
+        return BRATHL_WARNING_INVALID_REF_FILE_FIELD;
     }
     
     /*printf("name %s, alias %s\n", 
@@ -558,6 +422,8 @@ int32_t CMission::LoadAliasName(CStringList& aliases)
   
   return result;
 }
+
+
 double CMission::GetGlobalConstant(brathl_global_constants constantValue)
 {
     switch (constantValue)

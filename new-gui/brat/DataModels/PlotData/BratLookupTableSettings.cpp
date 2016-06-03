@@ -17,7 +17,7 @@
 */
 #include "new-gui/brat/stdafx.h"
 
-#include "ApplicationLogger.h"
+#include "BratLogger.h"
 
 #include "BratLookupTableSettings.h"
 

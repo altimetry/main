@@ -8,7 +8,7 @@
 #include "new-gui/Common/DataModels/TaskProcessor.h"
 #include "DataModels/Workspaces/Operation.h"
 
-#include "ApplicationLogger.h"
+#include "BratLogger.h"
 #include "BratApplication.h"
 
 
@@ -17,7 +17,7 @@ CApplicationPaths *CBratApplication::smApplicationPaths = nullptr;
 const PythonEngine *CBratApplication::sm_pe = nullptr;
 
 
-// Tries to create a QApplication on-the-fly to able to use the
+// Tries to create a QApplication on-the-fly to be able to use the
 //	 GUI, since the only place we will call this is in main, where 
 //	everything else has failed.
 //
@@ -239,7 +239,7 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 	//
     if ( !mSettings.LoadConfig() )
 	{		
-		throw CException( "Error reading the configuration file." );
+		throw CException( "Error reading the configuration. Settings file: " + mSettings.FilePath() );
 	}
 
 
@@ -445,7 +445,7 @@ void CBratApplication::RegisterAlgorithms()
 
 	// I. load C++ algorithms
 
-	CBratAlgorithmBase::RegisterAlgorithms();
+	CBratAlgorithmBase::RegisterCAlgorithms();
 
 
 	// II. load python algorithms

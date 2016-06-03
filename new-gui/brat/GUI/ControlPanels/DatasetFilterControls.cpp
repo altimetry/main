@@ -11,7 +11,7 @@
 #include "GUI/ControlPanels/Dialogs/RegionSettingsDialog.h"
 #include "GUI/DisplayWidgets/MapWidget.h"
 
-#include "ApplicationLogger.h"
+#include "BratLogger.h"
 
 #include "DatasetFilterControls.h"
 
@@ -533,14 +533,8 @@ void CDatasetFilterControls::HandleFiltersCurrentIndexChanged( int filter_index 
     HandleCurrentLayerSelectionChanged();
 
     // Update When section
-	mStartTimeEdit->setDateTime( mFilter->StartTime() );
-    mStopTimeEdit->setDateTime( mFilter->StopTime() );
-
-    mStartCycleEdit->setText( isDefaultValue(mFilter->StartCycle()) ? "" : n2q(mFilter->StartCycle()) );
-    mStopCycleEdit->setText(  isDefaultValue(mFilter->StopCycle())  ? "" : n2q(mFilter->StopCycle()) );
-
-    mStartPassEdit->setText( isDefaultValue(mFilter->StartPass()) ? "" : n2q(mFilter->StartPass()) );
-    mStopPassEdit->setText(  isDefaultValue(mFilter->StopPass())  ? "" : n2q(mFilter->StopPass()) );
+    updateDateWidgets();
+    updateCyclePassWidgets();
 }
 
 
@@ -599,12 +593,8 @@ void CDatasetFilterControls::HandleClearWhen()
 {
     mFilter->setDefaultValues();
 
-    mStartTimeEdit->setDateTime( mFilter->StartTime() );
-    mStopTimeEdit->setDateTime( mFilter->StopTime() );
-    mStartCycleEdit->clear();
-    mStopCycleEdit->clear();
-    mStartPassEdit->clear();
-    mStopPassEdit->clear();
+    updateDateWidgets();
+    updateCyclePassWidgets();
 }
 
 
@@ -772,23 +762,23 @@ void CDatasetFilterControls::SaveAllAreas()
 
 void CDatasetFilterControls::HandleStartDateTimeChanged(const QDateTime &start_datetime)
 {
-    // Start_datetime defines the minimum allowed stop_datetime [Signals are blocked, otherwise HandleStopDateTimeChanged is called]
-    mStopTimeEdit->blockSignals( true );
-    mStopTimeEdit->setMinimumDateTime( start_datetime );
-    mStopTimeEdit->blockSignals( false );
-
     mFilter->StartTime() = start_datetime;
+
+    // When user selects a data, the cycle and pass are automatically deleted (Only user dates are used in When criteria)
+    mFilter->setDefaultCyclePassValues();
+    updateDateWidgets();
+    updateCyclePassWidgets();
 }
 
 
 void CDatasetFilterControls::HandleStopDateTimeChanged(const QDateTime &stop_datetime)
 {
-    // Stop_datetime defines the maximum allowed start_datetime [Signals are blocked, otherwise HandleStartDateTimeChanged is called]
-    mStartTimeEdit->blockSignals( true );
-    mStartTimeEdit->setMaximumDateTime( stop_datetime );
-    mStartTimeEdit->blockSignals( false );
-
     mFilter->StopTime() = stop_datetime;
+
+    // When user selects a data, the cycle and pass are automatically deleted (Only user dates are used in When criteria)
+    mFilter->setDefaultCyclePassValues();
+    updateDateWidgets();
+    updateCyclePassWidgets();
 }
 
 
@@ -799,6 +789,11 @@ void CDatasetFilterControls::HandleStartCycleChanged()
                            mFilter->StopCycle(),         // Default Param
                            CTools::m_defaultValueINT32,  // Min
                            mFilter->StopCycle()  );      // Max (should be < StopCycle)
+
+    // When user selects a cycle, the dates are automatically deleted (Only user cycle/pass are used in When criteria) 
+    mFilter->setDefaultDateValues();
+    updateDateWidgets();
+    updateCyclePassWidgets();
 }
 
 
@@ -809,6 +804,11 @@ void CDatasetFilterControls::HandleStopCycleChanged()
                            mFilter->StartCycle(),         // Default Param
                            mFilter->StartCycle(),         // Min (should be > StartCycle)
                            CTools::m_defaultValueINT32 ); // Max
+
+    // When user selects a cycle, the dates are automatically deleted (Only user cycle/pass are used in When criteria)
+    mFilter->setDefaultDateValues();
+    updateDateWidgets();
+    updateCyclePassWidgets();
 }
 
 
@@ -819,6 +819,11 @@ void CDatasetFilterControls::HandleStartPassChanged()
                            mFilter->StopPass(),          // Default Param
                            CTools::m_defaultValueINT32,  // Min
                            mFilter->StopPass()  );       // Max (should be < StopPass)
+
+    // When user selects a cycle, the dates are automatically deleted (Only user cycle/pass are used in When criteria)
+    mFilter->setDefaultDateValues();
+    updateDateWidgets();
+    updateCyclePassWidgets();
 }
 
 void CDatasetFilterControls::HandleStopPassChanged()
@@ -828,6 +833,11 @@ void CDatasetFilterControls::HandleStopPassChanged()
                            mFilter->StartPass(),          // Default Param
                            mFilter->StartPass(),          // Min (should be > StartPass)
                            CTools::m_defaultValueINT32 ); // Max
+
+    // When user selects a cycle, the dates are automatically deleted (Only user cycle/pass are used in When criteria)
+    mFilter->setDefaultDateValues();
+    updateDateWidgets();
+    updateCyclePassWidgets();
 }
 
 
@@ -855,6 +865,66 @@ void CDatasetFilterControls::ValidateAndStoreValue(QLineEdit *TextBox, int &Valu
     ValueInFilter = new_value;
 }
 
+
+void CDatasetFilterControls::updateDateWidgets()
+{
+    // BLOCK SIGNALS //
+    // Signals are blocked, otherwise HandleStartDateTimeChanged or HandleStopDateTimeChanged are called
+    mStartTimeEdit->blockSignals( true );
+    mStopTimeEdit->blockSignals( true );
+
+    // UPDATE start/stop dates and max/min allowed
+    mStartTimeEdit->setDateTime( mFilter->StartTime() );
+    mStartTimeEdit->setMaximumDateTime( mFilter->StopTime() ); // Stop_datetime defines the maximum allowed start_datetime
+    mStopTimeEdit->setDateTime( mFilter->StopTime() );
+    mStopTimeEdit->setMinimumDateTime( mFilter->StartTime() ); // Start_datetime defines the minimum allowed stop_datetime
+
+    // SET READ_ONLY PALETTE
+    bool markAsReadOnly = ( !isDefaultValue(mFilter->StartCycle()) &
+                            !isDefaultValue(mFilter->StopCycle())  &
+                            !isDefaultValue(mFilter->StartPass())  &
+                            !isDefaultValue(mFilter->StopPass())
+                           );
+    QPalette *palette_readOnly = new QPalette();
+    if ( markAsReadOnly )
+    {
+        palette_readOnly->setColor(QPalette::Base, Qt::gray );
+        palette_readOnly->setColor(QPalette::Text,Qt::black);
+    }
+    mStartTimeEdit->setPalette( *palette_readOnly );
+    mStopTimeEdit->setPalette( *palette_readOnly );
+
+    // UNBLOCK SIGNALS //
+    mStartTimeEdit->blockSignals( false );
+    mStopTimeEdit->blockSignals( false );
+}
+
+
+void CDatasetFilterControls::updateCyclePassWidgets ()
+{
+    // UPDATE start/stop Cycle and Pass
+    mStartCycleEdit->setText( isDefaultValue(mFilter->StartCycle()) ? "" : n2q(mFilter->StartCycle()) );
+    mStopCycleEdit->setText(  isDefaultValue(mFilter->StopCycle())  ? "" : n2q(mFilter->StopCycle()) );
+    mStartPassEdit->setText( isDefaultValue(mFilter->StartPass()) ? "" : n2q(mFilter->StartPass()) );
+    mStopPassEdit->setText(  isDefaultValue(mFilter->StopPass())  ? "" : n2q(mFilter->StopPass()) );
+
+    // SET READ_ONLY PALETTE
+    bool markAsReadOnly = ( isDefaultValue(mFilter->StartCycle()) ||
+                            isDefaultValue(mFilter->StopCycle())  ||
+                            isDefaultValue(mFilter->StartPass())  ||
+                            isDefaultValue(mFilter->StopPass())
+                           );
+    QPalette *palette_readOnly = new QPalette();
+    if ( markAsReadOnly )
+    {
+        palette_readOnly->setColor(QPalette::Base, Qt::gray );
+        palette_readOnly->setColor(QPalette::Text,Qt::black);
+    }
+    mStartCycleEdit->setPalette( *palette_readOnly );
+    mStopCycleEdit->setPalette( *palette_readOnly );
+    mStartPassEdit->setPalette( *palette_readOnly );
+    mStopPassEdit->setPalette( *palette_readOnly );
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -1067,7 +1137,7 @@ void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
 		WaitCursor wait;
 		try
 		{
-			CProduct *product = mDataset->OpenProduct( path );
+            CProduct *product = mDataset->OpenProduct( path );
             //total_records += product->GetNumberOfRecords();
 			bool skip_iteration = !product || !product->HasAliases();
 			if ( skip_iteration )
@@ -1148,6 +1218,8 @@ void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
 			double *timev = nullptr;
 
 			debug_log( "About to read variables from file " + path );
+
+            //https://decs.deimos.com.pt/pages/viewpage.action?spaceKey=S3ALTB&title=Aliases+Products+IDs
 
 			int ReturnCode = ReadTrack( alias_used, path, record, lonv, lon_dim, latv, lat_dim, timev, time_dim, time ? 3 : 2 );
 			if ( ReturnCode == BRATHL_SUCCESS )

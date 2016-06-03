@@ -38,8 +38,8 @@ const KeywordHelp CBratProcessYFX::YFXKeywordList[]	= {
 	KeywordHelp(kwOUTPUT),
 	KeywordHelp(kwOUTPUT_TITLE,	0, 1, "\"\""),
 	KeywordHelp(kwSELECT,		0, 0, "1"),
-	KeywordHelp(kwFIELD,		1, CBratProcess::NB_MAX_Y, NULL, 24),
-	KeywordHelp(kwFIELD_COMMENT,	0, CBratProcess::NB_MAX_Y, NULL, 24),
+	KeywordHelp(kwFIELD,		1, base_t::NB_MAX_Y, NULL, 24),
+	KeywordHelp(kwFIELD_COMMENT,	0, base_t::NB_MAX_Y, NULL, 24),
 	KeywordHelp(kwFIELD_DATA_MODE,	-24),
 	KeywordHelp(kwFIELD_NAME,	-24),
 	KeywordHelp(kwFIELD_TYPE,	-24),
@@ -64,7 +64,8 @@ const KeywordHelp CBratProcessYFX::YFXKeywordList[]	= {
 //------------------- CBratProcessYFX class --------------------
 //-------------------------------------------------------------
 
-CBratProcessYFX::CBratProcessYFX()
+CBratProcessYFX::CBratProcessYFX( const std::string &executable_dir )
+	: base_t( executable_dir )
 {
   Init();
 }
@@ -83,7 +84,7 @@ void CBratProcessYFX::Init()
 //----------------------------------------
 void CBratProcessYFX::ResizeArrayDependOnFields(uint32_t size)
 {
-  CBratProcess::ResizeArrayDependOnFields(size);
+  base_t::ResizeArrayDependOnFields(size);
 
 }
 
@@ -100,7 +101,7 @@ void CBratProcessYFX::AddFieldIndexes(CFieldIndex* fieldIndex, CNetCDFVarDef* va
     return;
   }
 
-  CBratProcess::AddFieldIndexes(fieldIndex, varDef);
+  base_t::AddFieldIndexes(fieldIndex, varDef);
 
   /*
   IncrementOffsetValues();
@@ -129,7 +130,7 @@ void CBratProcessYFX::GetParameters()
   CUnit	unit;
 
 // Verify keyword occurences
-  uint32_t nbFields		= params.CheckCount(kwFIELD,  1, CBratProcess::NB_MAX_Y);
+  uint32_t nbFields		= params.CheckCount(kwFIELD,  1, base_t::NB_MAX_Y);
 
   params.CheckCount(kwOUTPUT);
   params.CheckCount(kwRECORD);
@@ -179,7 +180,7 @@ void CBratProcessYFX::GetParameters()
 
   //---------
   m_dataModeGlobal = GetDataMode(params);
-  CTrace::Tracer(1, PCT_StrFmt, "Default data mode",  CBratProcess::DataModeStr(m_dataModeGlobal).c_str());
+  CTrace::Tracer(1, PCT_StrFmt, "Default data mode",  base_t::DataModeStr(m_dataModeGlobal).c_str());
 
   //---------
   this->GetDefinition(params,
@@ -221,7 +222,7 @@ void CBratProcessYFX::GetParameters()
 	      index,
 	      nbFields);
 
-    m_dataMode[index] = CBratProcess::GetDataMode(params, kwFIELD, 0, nbFields, index, m_dataModeGlobal);
+    m_dataMode[index] = base_t::GetDataMode(params, kwFIELD, 0, nbFields, index, m_dataModeGlobal);
 
     // The stored values are:
     // X (1 double)
@@ -233,7 +234,7 @@ void CBratProcessYFX::GetParameters()
     // Data itself and count for mean (==> 2)
     // Data itself, mean and count for stddev (==> 3)
     // Data only for the others (==> 1)
-    int32_t nbDataSlices = CBratProcess::GetMergedDataSlices(m_dataMode[index]);
+    int32_t nbDataSlices = base_t::GetMergedDataSlices(m_dataMode[index]);
     /*
     if (nbDataSlices > m_nbMaxDataSlices)
     {
@@ -282,7 +283,7 @@ void CBratProcessYFX::GetParameters()
 //----------------------------------------
 bool CBratProcessYFX::CheckCommandLineOptions(int	argc, char	**argv)
 {
-  return CBratProcess::CheckCommandLineOptions(argc, argv,
+  return base_t::CheckCommandLineOptions(argc, argv,
 		              "This program creates data files corresponding to Y=F(X) function",
 	      		      YFXKeywordList);
 
@@ -306,13 +307,13 @@ void CBratProcessYFX::AfterBuildListFieldsToRead()
 //----------------------------------------
 void CBratProcessYFX::BuildListFieldsToRead()
 {
-  CBratProcess::BuildListFieldsToRead();
+  base_t::BuildListFieldsToRead();
 }
 //----------------------------------------
 void CBratProcessYFX::AddComplementDimensionsFromNetCdf()
 {
   // Applies only to Netcdf products
-  if (! CBratProcess::IsProductNetCdf() )
+  if (! base_t::IsProductNetCdf() )
   {
    return;
   }
@@ -510,7 +511,7 @@ void CBratProcessYFX::RegisterData()
         //---------
       }
 
-      xValue = CBratProcess::CheckLongitudeValue(xValue, -180.0, m_xType);
+      xValue = base_t::CheckLongitudeValue(xValue, -180.0, m_xType);
     }
     else
     {
@@ -573,7 +574,7 @@ void CBratProcessYFX::RegisterData()
       foundX = false;
       try
       {
-        fieldsArray = m_measures.Insert(xValue, CBratProcess::MergeIdentifyUnsetData);
+        fieldsArray = m_measures.Insert(xValue, base_t::MergeIdentifyUnsetData);
       }
       catch (std::bad_alloc& e) // If memory allocation (new) failed...
       {
@@ -650,7 +651,7 @@ void CBratProcessYFX::RegisterData()
 			                   BRATHL_LOGIC_ERROR);
       }
 
-      //dataValues = CBratProcess::GetDoubleArrayOb(fieldsArray->at(indexExpr), false);
+      //dataValues = base_t::GetDoubleArrayOb(fieldsArray->at(indexExpr), false);
       dataValues = fieldsArray[indexExpr];
       
       if (dataValues == NULL)
@@ -666,7 +667,7 @@ void CBratProcessYFX::RegisterData()
 
       if (countOffset > 0)
       {
-        //countValues = CBratProcess::GetDoubleArrayOb(fieldsArray->at(countOffset), false);
+        //countValues = base_t::GetDoubleArrayOb(fieldsArray->at(countOffset), false);
         countValues = fieldsArray[countOffset];
         if (countValues == NULL)
         {
@@ -695,7 +696,7 @@ void CBratProcessYFX::RegisterData()
 
       if (meanOffset > 0)
       {
-        //meanValues = CBratProcess::GetDoubleArrayOb(fieldsArray->at(meanOffset), false);
+        //meanValues = base_t::GetDoubleArrayOb(fieldsArray->at(meanOffset), false);
         meanValues = fieldsArray[meanOffset];
         if (meanValues == NULL)
         {
@@ -724,7 +725,7 @@ void CBratProcessYFX::RegisterData()
 
 
       
-      if (CBratProcess::IsProductNetCdf())
+      if (base_t::IsProductNetCdf())
       {
         CNetCDFCoordinateAxis* coordVar = dynamic_cast<CNetCDFCoordinateAxis*>(m_internalFiles->GetNetCDFVarDef(m_names[indexExpr]));
         if (coordVar != NULL)
@@ -901,7 +902,7 @@ int32_t CBratProcessYFX::WriteData()
 
     for (itX = m_measures.begin(); itX != m_measures.end() ; itX++)
     {
-      //CObArrayOb* fieldsArray = CBratProcess::GetObArrayOb(itX->second);
+      //CObArrayOb* fieldsArray = base_t::GetObArrayOb(itX->second);
       DoublePtr* fieldsArray = itX->second;
       if (fieldsArray == NULL)
       {
@@ -914,7 +915,7 @@ int32_t CBratProcessYFX::WriteData()
 
       }
 
-      //CDoubleArrayOb* dataValues = CBratProcess::GetDoubleArrayOb(fieldsArray->at(indexExpr), false);
+      //CDoubleArrayOb* dataValues = base_t::GetDoubleArrayOb(fieldsArray->at(indexExpr), false);
       double* dataValues = fieldsArray[indexExpr];
         
       if (dataValues == NULL)
@@ -936,7 +937,7 @@ int32_t CBratProcessYFX::WriteData()
 
       if (countOffset > 0)
       {
-        //countValues = CBratProcess::GetDoubleArrayOb(fieldsArray->at(countOffset), false);
+        //countValues = base_t::GetDoubleArrayOb(fieldsArray->at(countOffset), false);
         countValues = fieldsArray[countOffset];
         if (countValues == NULL)
         {
@@ -966,7 +967,7 @@ int32_t CBratProcessYFX::WriteData()
       }
       if (meanOffset > 0)
       {
-        //meanValues = CBratProcess::GetDoubleArrayOb(fieldsArray->at(meanOffset), false);
+        //meanValues = base_t::GetDoubleArrayOb(fieldsArray->at(meanOffset), false);
         meanValues = fieldsArray[meanOffset];
         if (meanValues == NULL)
         {
@@ -1035,7 +1036,7 @@ int32_t CBratProcessYFX::WriteData()
 
     addedVarDef->SetValidMinMax(m_validMin, m_validMax);
     
-    if (CBratProcess::IsProductNetCdf())
+    if (base_t::IsProductNetCdf())
     {
       if ( ( ! addedVarDef->IsCoordinateAxis() ) && ( addedVarDef->HasCommonDims(m_xName) ) )
       {
@@ -1121,14 +1122,14 @@ int32_t CBratProcessYFX::WriteData()
     
     std::string coordAxisName = ((coordAxis != NULL) ? coordAxis->GetName() : "");
 
-    if (! CBratProcess::IsProductNetCdf() && (coordAxis == NULL) ) 
+    if (! base_t::IsProductNetCdf() && (coordAxis == NULL) ) 
     {
       //-----------
       continue;
       //-----------
     }
 
-    if ( CBratProcess::IsProductNetCdf() && (coordAxis == NULL) && varDef->HasCommonDims(m_xName) ) 
+    if ( base_t::IsProductNetCdf() && (coordAxis == NULL) && varDef->HasCommonDims(m_xName) ) 
     {
       //-----------
       continue;
@@ -1160,7 +1161,7 @@ int32_t CBratProcessYFX::WriteData()
         dataWritten.SetNewValue(vect);
 
       }
-      else if (CBratProcess::IsProductNetCdf())
+      else if (base_t::IsProductNetCdf())
       {
         // It's a CProductNetCdf, and variable doesn't depend on X
         // ==> Write variable data.
@@ -1234,7 +1235,7 @@ int32_t CBratProcessYFX::WriteData()
       //-----------
     }
 
-    if ( CBratProcess::IsProductNetCdf() && ( ! varDef->HasCommonDims(m_xName) ) )
+    if ( base_t::IsProductNetCdf() && ( ! varDef->HasCommonDims(m_xName) ) )
     {
       //-----------
       continue;
@@ -1262,7 +1263,7 @@ int32_t CBratProcessYFX::WriteData()
 
     for (itX = m_measures.begin(); itX != m_measures.end() ; itX++)
     {
-      //CObArrayOb* fieldsArray = CBratProcess::GetObArrayOb(itX->second);
+      //CObArrayOb* fieldsArray = base_t::GetObArrayOb(itX->second);
       DoublePtr* fieldsArray = itX->second;
       
       if (fieldsArray == NULL)
@@ -1282,7 +1283,7 @@ int32_t CBratProcessYFX::WriteData()
 			                   BRATHL_LOGIC_ERROR);
       }
 
-      //CDoubleArrayOb* dataValues = CBratProcess::GetDoubleArrayOb(fieldsArray->at(indexVar), false);
+      //CDoubleArrayOb* dataValues = base_t::GetDoubleArrayOb(fieldsArray->at(indexVar), false);
       double* dataValues = fieldsArray[indexVar];
         
       if (dataValues == NULL)
@@ -1335,7 +1336,7 @@ DoublePtr* CBratProcessYFX::GetOneMeasure(double key)
 //----------------------------------------
 //CObArrayOb* CBratProcessYFX::GetOneMeasure(double key, bool withExcept /*= true*/)
 //{   
-//  return CBratProcess::GetObArrayOb(m_measures.Exists(key), withExcept);
+//  return base_t::GetObArrayOb(m_measures.Exists(key), withExcept);
 //}
 //----------------------------------------
 void CBratProcessYFX::ResizeDataValues(CDoubleArrayOb* dataValues, uint32_t nbValues)
@@ -1346,7 +1347,7 @@ void CBratProcessYFX::ResizeDataValues(CDoubleArrayOb* dataValues, uint32_t nbVa
   }
 
   int32_t size = (nbValues == 0 ? 1 : nbValues);
-  dataValues->resize(size, CBratProcess::MergeIdentifyUnsetData);
+  dataValues->resize(size, base_t::MergeIdentifyUnsetData);
 }
 //----------------------------------------
 void CBratProcessYFX::SubstituteAxisDim(const CStringArray& fieldDims, CStringArray& fieldDimsOut)
@@ -1360,7 +1361,7 @@ void CBratProcessYFX::SubstituteAxisDim(const CStringArray& fieldDims, CStringAr
 //----------------------------------------
 void CBratProcessYFX::OnAddDimensionsFromNetCdf()
 {
-  CBratProcess::OnAddDimensionsFromNetCdf();
+  base_t::OnAddDimensionsFromNetCdf();
 
 }
 
@@ -1400,7 +1401,7 @@ bool CBratProcessYFX::CheckValuesSimilar(uint32_t indexExpr, double* dataValues,
 
   for (indexValues = 0 ; indexValues < cols; indexValues++)
   {
-    if (dataValuesRef[indexValues] == CBratProcess::MergeIdentifyUnsetData)
+    if (dataValuesRef[indexValues] == base_t::MergeIdentifyUnsetData)
     {
       break;
     }

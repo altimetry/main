@@ -316,8 +316,9 @@ public:
 
 	bool CanSwitchType( std::string &error_msg ) const;
 	bool SwitchType();
+    void SetType( bool map );
 
-	void InsertOperation( COperation *operation );
+    void InsertOperation( COperation *operation );
 
 	bool SelectRecord( CProduct *product );
 

@@ -1,5 +1,5 @@
-#if !defined APPLICATION_LOGGER_H
-#define APPLICATION_LOGGER_H
+#if !defined BRAT_LOGGER_H
+#define BRAT_LOGGER_H
 
 #include <QMutex>
 
@@ -9,6 +9,7 @@
 #include <qgslogger.h>
 
 #include "new-gui/Common/+Utils.h"
+#include "new-gui/Common/ApplicationLogger.h"
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -50,7 +51,7 @@
 //		- always print to the GUI (as soon as available, but can be used anytime)
 //		- also print to LOG_TRACE in debug builds
 //		- also print to LOG_TRACE in release builds if QGIS_DEBUG is 1
-//		- are defined through calls to CApplicationLogger::Instance().LogMsg
+//		- are defined through calls to CBratLogger::Instance().LogMsg
 //
 //	So, in release builds, they are useful for tracing purposes only if QGIS_DEBUG is on and the GUI 
 //	is not (or not yet, or not already) available. This means that there is never a reason to use 
@@ -81,11 +82,11 @@
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 
+//#undef LOG_TRACE
+//#define LOG_TRACE( msg )
 
 
-
-
-class CApplicationLogger : public QObject, public osg::NotifyHandler, public non_copyable
+class CBratLogger : public CApplicationLoggerBase, public osg::NotifyHandler
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
@@ -100,55 +101,28 @@ class CApplicationLogger : public QObject, public osg::NotifyHandler, public non
 
     // types & friends
 
-	using base_t = QObject;
+	using base_t = CApplicationLoggerBase;
 	using osg_base_t = osg::NotifyHandler;
 
-	using log_msg_t = void (CApplicationLogger::*)( const QString &msg, QgsMessageLog::MessageLevel level );
-
-
-	// static data
-
-	static CApplicationLogger *smInstance;
-
-	static void MessageOutputProxy( QtMsgType type, const char *msg )
-	{
-		smInstance->MessageOutput( type, msg );
-	}
+	
+	// static members
 
 public:
-
-	static CApplicationLogger& Instance();
-
-
-	static void LogMsg( const QString &msg, QgsMessageLog::MessageLevel level )
-	{
-		(smInstance->*(smInstance->mLogMsg))( msg, level );
-	}
+	static CBratLogger& Instance();
 
 	// instance data 
 
 protected:
 
-	log_msg_t				mLogMsg = nullptr;
-	bool					mEnabled = true;
-	QtMsgHandler			mQtHandler = nullptr;
-	//std::recursive_mutex	mSignalsMutex;
-	//std::recursive_mutex	mRecMutex;
-    QMutex					mSignalsMutex;
-	QMutex					mQtHandlerMutex;
-
 	// construction / destruction
 
-	CApplicationLogger();
+	CBratLogger();
 
 public:
-
-	virtual ~CApplicationLogger();
+	virtual ~CBratLogger();
 
 
 	// access
-
-	void SetEnabled( bool enable ){ mEnabled = enable;	}
 
 	osg::NotifySeverity OsgNotifyLevel() const
 	{
@@ -156,6 +130,12 @@ public:
 	}
 
 	void SetOsgNotifyLevel( osg::NotifySeverity ns );
+
+
+	virtual void SetNotifyLevel( int level ) override;
+
+	virtual int NotifyLevel() const override { return OsgNotifyLevel(); }
+
 
 protected:
 
@@ -166,8 +146,7 @@ protected:
 
 	// remaining member functions
 
-	void FullLog( const QString &msg, QgsMessageLog::MessageLevel level );
-	void ProductionLog( const QString &msg, QgsMessageLog::MessageLevel level );
+	virtual void ProductionLogMsg( const QString &msg, QtMsgType level ) override;
 
 
 	// Qt callback: 
@@ -180,7 +159,9 @@ protected:
 	//
 	//	- qCritical, qWarning, qFatal are redirected also to qDebug and to the GUI (via QGIS QgsMessageLog::logMessage)
 	//
-	void MessageOutput( QtMsgType type, const char *msg );
+	//	enum QtMsgType { QtDebugMsg, QtWarningMsg, QtCriticalMsg, QtFatalMsg, QtSystemMsg = QtCriticalMsg };
+	//
+	virtual void QtMessageOutput( QtMsgType type, const char *msg ) override;
 
 
 	// OSG callback: Capture OSG notify, emits OsgLogMessage for GUI display
@@ -198,7 +179,7 @@ signals:
     void OsgLogLevelChanged( int ns );
 
 	// Log signals, meant for GUI display
-	//	- use queued connections for these guys
+	//	- use queued connections for these
 	//
 	void OsgLogMessage( int severity, QString message );
     void QgisLogMessage( int severity, QString message );
@@ -208,58 +189,129 @@ signals:
 
 
 
+static_assert( 
+    QgsMessageLog::INFO == (int)QtMsgType::QtDebugMsg &&
+    QgsMessageLog::WARNING == (int)QtMsgType::QtWarningMsg &&
+    QgsMessageLog::CRITICAL == (int)QtMsgType::QtCriticalMsg
+
+	, "QGIS and Qt log message types do not match." );
 
 
-// Using the same definition for release and debug builds, there is always a function call, even in
-//	release mode, and even if QGIS_DEBUG is 0 and messages are not printed.
+template< typename TO, typename FROM >
+inline TO level_cast( FROM level );
+//{
+//	assert__( false );
 //
-// On the other hand, if QGIS_DEBUG is 1, this allows to still have access to trace
-//	messages in release builds.
+//	return (TO)level;
+//}
+
+template<>
+inline QgsMessageLog::MessageLevel level_cast< QgsMessageLog::MessageLevel >( QtMsgType level )
+{
+	if ( level == QtFatalMsg )
+		level = QtCriticalMsg;
+
+	return ( QgsMessageLog::MessageLevel )level;
+}
+
+
+//enum NotifySeverity 
+//{
+//    ALWAYS=0,
+//    FATAL=1,
+//    WARN=2,
+//    NOTICE=3,
+//    INFO=4,
+//    DEBUG_INFO=5,
+//    DEBUG_FP=6
+//};
+
+//enum MessageLevel
+//{
+//  INFO = 0,
+//  WARNING = 1,
+//  CRITICAL = 2
+//};
+
+template<>
+inline osg::NotifySeverity level_cast< osg::NotifySeverity >( QgsMessageLog::MessageLevel level )
+{
+	switch (level)
+	{
+		case QgsMessageLog::INFO:
+			return osg::ALWAYS;
+			break;
+
+		case QgsMessageLog::WARNING:
+			return osg::WARN;
+			break;
+
+		case QgsMessageLog::CRITICAL:
+			return osg::FATAL;
+			break;
+
+		default:
+			assert__( false );
+	}
+
+	return osg::FATAL;	//never reached
+}
+
+
+template<>
+inline osg::NotifySeverity level_cast< osg::NotifySeverity >( int level )
+{
+	assert__( level >= osg::NotifySeverity::ALWAYS  && level <= osg::NotifySeverity::DEBUG_FP );
+
+	return ( osg::NotifySeverity )level;
+}
+
+
+
+
+// Using CBratLogger::Instance() for calling the static CApplicationLoggerBase::LogMsg
+//	to ensure singleton instantiation and that it's type is of the correct class
+
+//template< typename STRING >
+//inline void LOG_INFO( const STRING &msg )
+//{
+//    CBratLogger::Instance().LogMsg( msg, QtMsgType::QtDebugMsg );
+//}
+//template<>
+//inline void LOG_INFO( const std::string &msg )
+//{
+//    LOG_INFO( msg.c_str() );
+//}
+
 //
-#define LOG_TRACE( msg )	QgsLogger::debug(QString(msg), 1, __FILE__, __FUNCTION__, __LINE__)
-
-// The same as LOG_TRACE, for std::strings. Macros cannot be overloaded...
+//template< typename STRING >
+//inline void LOG_WARN( const STRING &msg )
+//{
+//    CBratLogger::Instance().LogMsg( msg, QtMsgType::QtWarningMsg );
+//}
+//template<>
+//inline void LOG_WARN( const std::string &msg )
+//{
+//    LOG_WARN( msg.c_str() );
+//}
 //
-#define LOG_TRACEstd( msg )	LOG_TRACE( t2q( msg ) )
+//
+//template< typename STRING >
+//inline void LOG_FATAL( const STRING &msg )
+//{
+//    CBratLogger::Instance().LogMsg( msg, QtMsgType::QtCriticalMsg );
+//}
+//template<>
+//inline void LOG_FATAL( const std::string &msg )
+//{
+//    LOG_FATAL( msg.c_str() );
+//}
+
+
+#define LOG_INFO( msg ) log_info< CBratLogger >( msg )
+#define LOG_WARN( msg ) log_warn< CBratLogger >( msg )
+#define LOG_FATAL( msg ) log_fatal< CBratLogger >( msg )
 
 
 
-template< typename STRING >
-inline void LOG_INFO( const STRING &msg )
-{
-    CApplicationLogger::Instance().LogMsg( msg, QgsMessageLog::INFO );
-}
-template<>
-inline void LOG_INFO( const std::string &msg )
-{
-    LOG_INFO( msg.c_str() );
-}
-
-
-template< typename STRING >
-inline void LOG_WARN( const STRING &msg )
-{
-    CApplicationLogger::Instance().LogMsg( msg, QgsMessageLog::WARNING );
-}
-template<>
-inline void LOG_WARN( const std::string &msg )
-{
-    LOG_WARN( msg.c_str() );
-}
-
-
-template< typename STRING >
-inline void LOG_FATAL( const STRING &msg )
-{
-    CApplicationLogger::Instance().LogMsg( msg, QgsMessageLog::CRITICAL );
-}
-template<>
-inline void LOG_FATAL( const std::string &msg )
-{
-    LOG_FATAL( msg.c_str() );
-}
-
-
-
-
-#endif	//APPLICATION_LOGGER_H
+#endif	//BRAT_LOGGER_H

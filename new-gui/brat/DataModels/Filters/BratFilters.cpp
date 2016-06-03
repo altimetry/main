@@ -1,10 +1,13 @@
 #include "new-gui/brat/stdafx.h"
 
+#include "new-gui/Common/QtUtils.h"
+
 #include "libbrathl/Product.h"
+#include "libbrathl/Mission.h"
 
 using namespace brathl;
 
-#include "ApplicationLogger.h"
+#include "BratLogger.h"
 
 #include "BratFilters.h"
 
@@ -147,6 +150,21 @@ void CBratFilter::setDefaultValues()
     setDefaultValue( mStopPass );
 }
 
+
+void CBratFilter::setDefaultDateValues()
+{
+    // Setting Brathl internal reference date year (1950)
+    mStartTime = QDateTime( QDate(1950, 1, 1), QTime(0, 0, 0) );
+    mStopTime  = QDateTime::currentDateTime();
+}
+
+void CBratFilter::setDefaultCyclePassValues()
+{
+    setDefaultValue( mStartCycle );
+    setDefaultValue( mStopCycle );
+    setDefaultValue( mStartPass );
+    setDefaultValue( mStopPass );
+}
 
 
 
@@ -313,45 +331,75 @@ bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std
 	if ( !product_ref->HasCriteriaInfo() )
 		return false;
 
-	std::string val;
-	if ( product_ref->HasLatLonCriteria() )
+    ///////////////////////
+    ///  LatLon Criteria //
+    ///////////////////////
+    if ( product_ref->HasLatLonCriteria() && !filter->AreaNames().empty() )
 	{
 		double lon1, lat1, lon2, lat2;
 		filter->BoundingArea( lon1, lat1, lon2, lat2 );
-		product_ref->GetLatLonCriteria()->Set( lat1, lon1, lat2, lon2 );	//double latLow, double lonLow, double latHigh, double lonHigh
+        product_ref->GetLatLonCriteria()->Set( lat1, lon1, lat2, lon2 );  // double latLow, double lonLow, double latHigh, double lonHigh
 
-        /// RCCC TODO DEBUG //////////////////////////
-//        qDebug() << "\n\nlon1 here: " << product_ref->GetLatLonCriteria()->GetLatLonRect()->GetLonMin() << "\n";
-//        qDebug() << "\n\nlon2: " << product_ref->GetLatLonCriteria()->GetLatLonRect()->GetLonMax() << "\n";
-//        qDebug() << "\n\nlat1: " << product_ref->GetLatLonCriteria()->GetLatLonRect()->GetLatMin() << "\n";
-//        qDebug() << "\n\nlat2: " << product_ref->GetLatLonCriteria()->GetLatLonRect()->GetLatMax() << "\n";
-        /// RCCC TODO DEBUG //////////////////////////
+        LOG_INFO("Filter '" + filter->Name() + "' applied a LatLonCriteria, Lat=[" + std::to_string(lat1) + "; " + std::to_string(lat2) +
+                                                                     "] and Lon=[" + std::to_string(lon1) + "; " + std::to_string(lon2) + "].");
 	}
-	if ( product_ref->HasDatetimeCriteria() )
+
+    ////////////////////////
+    /// DateTime Criteria //
+    ////////////////////////
+    if ( product_ref->HasDatetimeCriteria() )
 	{
-		//RCCC please review;
-		//
-        //brathl comment: Value returns the date in a number of seconds since internal reference date, ie 1950) -->RCCC: Tested!
-		//
-        product_ref->GetDatetimeCriteria()->Set( filter->BratStartTime().Value(), filter->BratStopTime().Value() );
+        CDate Start, Stop;
+
+        /// Try to convert Cycle and Pass to Datetime //////////////////////////////////////
+        if ( !isDefaultValue(filter->StartCycle()) && !isDefaultValue(filter->StopCycle()) &&
+             !isDefaultValue(filter->StartPass())  && !isDefaultValue(filter->StopPass())     )
+        {
+            // Uses Start/Stop Cycle/Pass defined by user
+
+            CMission m( product_ref->GetLabel() );
+
+            if ( m.CtrlMission() == BRATHL_SUCCESS )
+            {
+                CDate StartDate, StopDate;
+
+                m.Convert(filter->StartCycle(), filter->StartPass(), StartDate);
+                m.Convert(filter->StopCycle(), filter->StopPass(), StopDate);
+
+                Start = StartDate;
+                Stop  = StopDate;
+            }
+            else // Mission not found
+            {
+                SimpleErrorBox( "Filter '" + filter->Name() + "' was not applied!\nUnable to convert Cycle and Pass to date: no mission found for product '"
+                                + product_ref->GetLabel() + "'." );
+                return false;
+            }
+        }
+        else // Uses Start and Stop datetimes defined by user
+        {
+            Start = filter->BratStartTime();
+            Stop  = filter->BratStopTime();
+        }
+
+        // Start and Stop.Value() contains the date in a number of seconds since internal reference date, ie 1950.
+        product_ref->GetDatetimeCriteria()->Set( Start.Value(), Stop.Value() );
+        LOG_INFO("Filter '" + filter->Name() + "' applied a DateTimeCriteria from: " + Start.AsString() + " to: " + Stop.AsString()
+                 + ".\n(product type/label: '" + product_ref->GetLabel() + "')");
 	}
-	//RCCC please review;
-	//
-	//	next 2 criteria assignments (cycle and pass) assume that cycle and pass can be used like simple integers as they come from the GUI
-	//
-    if ( product_ref->HasCycleCriteria() )
-    {
-        product_ref->GetCycleCriteria()->Set( filter->StartCycle(), filter->StopCycle() );
-    }
-    if ( product_ref->HasPassIntCriteria() )
-    {
-        product_ref->GetPassIntCriteria()->Set( filter->StartPass(), filter->StopPass() );
-    }
-	//RCCC please review;
-	//
+
+    /// NOT USED ON BRAT V.4 /// Cycle/Pass criteria are applied as datetime criteria, therefore the old criteria are not used.
+    //	Next 2 criteria assignments (cycle and pass) assume that cycle and pass can be used like simple integers as they come from the GUI
+//    if ( product_ref->HasCycleCriteria() )
+//    {
+//        product_ref->GetCycleCriteria()->Set( filter->StartCycle(), filter->StopCycle() );
+//    }
+//    if ( product_ref->HasPassIntCriteria() )
+//    {
+//        product_ref->GetPassIntCriteria()->Set( filter->StartPass(), filter->StopPass() );
+//    }
 	//	Apparently Cryosat uses this criterion; is it simply composed by integer passes converted to string??? I wonder...
 	//	If not, we still don't have GUI support for this
-	//
 //	if ( product_ref->HasPassStringCriteria() )
 //	{
 //		//product_ref->GetPassStringCriteria()->Set( comma separated strings );

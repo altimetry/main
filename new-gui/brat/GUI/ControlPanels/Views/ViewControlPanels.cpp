@@ -5,7 +5,7 @@
 #include "DataModels/PlotData/BratLookupTable.h"
 
 #include "GUI/ActionsTable.h"
-#include "GUI/DisplayWidgets/TextWidget.h"
+#include "new-gui/Common/GUI/TextWidget.h"
 
 
 #include "ViewControlPanels.h"

@@ -147,6 +147,7 @@ protected:
 
 	CUnit m_unitX;
 	CUnit m_unitY;
+	CUnit m_unitZ;
 
 	C3DPlotInfo mMaps;
 
@@ -169,6 +170,7 @@ public:
 
 	const CUnit& GetXUnit() const { return m_unitX; }
 	const CUnit& GetYUnit() const { return m_unitY; }
+	const CUnit& GetZUnit() const { return m_unitZ; }
 
 	uint32_t GetCurrentMap() const { return m_currentMap; }
 

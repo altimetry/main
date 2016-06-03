@@ -5,7 +5,7 @@
 #include "libbrathl/Expression.h"
 
 #include "DataModels/Workspaces/Function.h"
-#include "GUI/DisplayWidgets/TextWidget.h"
+#include "new-gui/Common/GUI/TextWidget.h"
 
 #include "InsertFunctionDialog.h"
 

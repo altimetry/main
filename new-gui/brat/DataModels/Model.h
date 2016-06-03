@@ -7,6 +7,7 @@
 #include "Filters/BratFilters.h"
 
 
+class CBratSettings;
 class CApplicationPaths;
 class CDisplay;
 
@@ -65,17 +66,17 @@ private:
 	/////////////////
 
 	CTreeWorkspace mTree;
-	const CApplicationPaths &mBratPaths;
+	const CBratSettings &mSettings;
 
 
 	/////////////////////////////
 	// construction / destruction
 	/////////////////////////////
 
-	explicit CModel( const CApplicationPaths &brat_paths );
+	explicit CModel( const CBratSettings &settings );
 
 public:
-	static CModel& CreateInstance( const CApplicationPaths &brat_paths );
+	static CModel& CreateInstance( const CBratSettings &settings );
 
 	virtual ~CModel();
 
@@ -103,10 +104,11 @@ public:
 	}
 
 
-	//...paths
+	//...settings && paths
 
-	const CApplicationPaths& BratPaths() const { return mBratPaths; }
+	const CBratSettings& Settings() const { return mSettings; }
 
+	const CApplicationPaths& BratPaths() const;
 
 	//...filters
 

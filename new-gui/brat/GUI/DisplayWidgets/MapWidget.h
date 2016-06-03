@@ -231,7 +231,6 @@ protected:
 	void CreateGridWidgets( QToolBar *tb );
 	void Init();		
 public:
-    explicit CMapWidget( QWidget *parent );
     explicit CMapWidget( ELayerBaseType layer_base_type , QWidget *parent );
 
 	virtual ~CMapWidget();

@@ -3,7 +3,7 @@
 #include "BratApplication.h"
 #include "BratMainWindow.h"
 
-#include "GUI/DisplayWidgets/TextWidget.h"
+#include "new-gui/Common/GUI/TextWidget.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

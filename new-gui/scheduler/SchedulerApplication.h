@@ -10,7 +10,7 @@ class CConsoleApplicationPaths;
 
 
 
-class QSchedulerApplication : public QApplication
+class CSchedulerApplication : public QApplication
 {
     Q_OBJECT
 
@@ -52,19 +52,19 @@ private:
     // Ctors / Dtor
 
 public:
-    QSchedulerApplication( int &argc, char **argv, int flags = ApplicationFlags );
+    CSchedulerApplication( int &argc, char **argv, int flags = ApplicationFlags );
 
 #if defined( QT_VERSION) && (QT_VERSION < 050000)
-    QSchedulerApplication(int &argc, char **argv, bool GUIenabled, int = ApplicationFlags)
+    CSchedulerApplication(int &argc, char **argv, bool GUIenabled, int = ApplicationFlags)
         : base_t(argc, argv, GUIenabled, ApplicationFlags)
     {}
 
-    QSchedulerApplication(int &argc, char **argv, Type t, int = ApplicationFlags)
+    CSchedulerApplication(int &argc, char **argv, Type t, int = ApplicationFlags)
         : base_t(argc, argv, t, ApplicationFlags)
     {}
 #endif
 
-    virtual ~QSchedulerApplication();
+    virtual ~CSchedulerApplication();
 
 };
 

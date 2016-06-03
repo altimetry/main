@@ -136,6 +136,8 @@ protected:
     void ShowOnlyAreasInRegion(int region_index);
     void SaveAllAreas();
     void ValidateAndStoreValue(QLineEdit *TextBox, int &ValueInFilter, int ParamDef, int min, int max);
+    void updateDateWidgets();
+    void updateCyclePassWidgets ();
 
 
 signals:

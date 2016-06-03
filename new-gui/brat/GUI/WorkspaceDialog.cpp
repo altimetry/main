@@ -3,7 +3,7 @@
 #include "new-gui/Common/QtUtilsIO.h"
 
 #include "DataModels/Workspaces/Workspace.h"
-#include "DisplayWidgets/TextWidget.h"
+#include "new-gui/Common/GUI/TextWidget.h"
 #include "DataModels/Model.h"
 
 #include "WorkspaceDialog.h"

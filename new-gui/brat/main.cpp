@@ -21,7 +21,7 @@
 
 #include "BratApplication.h"
 #include "BratMainWindow.h"
-#include "ApplicationLogger.h"
+#include "BratLogger.h"
 
 #include "GUI/norwegianwoodstyle.h"
 
@@ -31,6 +31,8 @@
 
 int main( int argc, char *argv[] )
 try {
+
+	//CBratLogger::Instance().SetEnabled( false );
 
 #if defined(_MSC_VER)
 	RestoreSystemSETranslator();

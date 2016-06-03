@@ -19,6 +19,7 @@
 
 #include "new-gui/Common/QtUtilsIO.h"
 
+#include "DataModels/Model.h"
 #include "DataModels/DisplayFilesProcessor.h"
 #include "DataModels/Workspaces/Display.h"
 #include "DataModels/PlotData/MapProjection.h"
@@ -32,7 +33,8 @@
 #include "GUI/DisplayWidgets/MapWidget.h"
 #include "DataModels/PlotData/BratLookupTable.h"
 
-#include "ApplicationLogger.h"
+#include "BratLogger.h"
+#include "BratSettings.h"
 
 #include "MapEditor.h"
 
@@ -58,7 +60,7 @@ void CMapEditor::ResetAndWireNewMap()
 		mMapView = nullptr;
 		RemoveView( p, false, false );
 	}
-	mMapView = new CMapWidget( this );
+	mMapView = new CMapWidget( mModel->Settings().mViewsLayerBaseType, this );
 	mMapView->ConnectParentRenderWidgets( mProgressBar, mRenderSuppressionCBox );
 	mMapView->ConnectParentMeasureActions( mMeasureButton, mActionMeasure, mActionMeasureArea );
 	mMapView->ConnectParentGridAction( mActionDecorationGrid );
@@ -329,6 +331,7 @@ void CMapEditor::KillGlobe()
 		m3DAction->setChecked( false );
 		m3DAction->setDisabled( false );
 		m3DAction->blockSignals( false );
+		qApp->processEvents();///////////////////////////////////////////////////// ADDED FOR TESTING
 	}
 }
 

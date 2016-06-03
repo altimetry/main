@@ -902,7 +902,7 @@ LIBRATHL_API int32_t brathl_ReadData
 LIBRATHL_API void brathl_RegisterAlgorithms()
 {	
   // Register Brat algorithms
-  CBratAlgorithmBase::RegisterAlgorithms();
+  CBratAlgorithmBase::RegisterCAlgorithms();
 
 }
 

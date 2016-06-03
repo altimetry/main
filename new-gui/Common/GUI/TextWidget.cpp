@@ -1,4 +1,4 @@
-#include "new-gui/brat/stdafx.h"
+#include "stdafx.h"
 
 #include <QtGui>
 #if QT_VERSION >= 0x050000

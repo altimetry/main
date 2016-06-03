@@ -2,7 +2,7 @@
 
 #include "new-gui/Common/ApplicationSettings.h"
 
-#include "DisplayWidgets/TextWidget.h"
+#include "new-gui/Common/GUI/TextWidget.h"
 
 #include "TabbedDock.h"
 

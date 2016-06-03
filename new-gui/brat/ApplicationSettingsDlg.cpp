@@ -2,7 +2,7 @@
 
 #include "new-gui/Common/QtUtils.h"
 #include "GUI/ActionsTable.h"
-#include "GUI/DisplayWidgets/TextWidget.h"
+#include "new-gui/Common/GUI/TextWidget.h"
 #include "BratApplication.h"
 #include "BratSettings.h"
 #include "ApplicationSettingsDlg.h"
@@ -44,18 +44,37 @@ void CApplicationSettingsDlg::CreateWidgets()
 	//StartupOptions Page
 
 	mLoadLastProjectAtAtartupCheckBox = new QCheckBox( "Load last workspace of previous session" );
+
 	mUseVectorLayer = new QRadioButton( "Use a vector layer" );
 	mUseRasterLayer = new QRadioButton( "Use a raster layer" );
     mUseURLRasterLayer = new QRadioButton( "Use a raster layer URL" );
     mLayerURLLineEdit = new QLineEdit;
-    auto layers_group = CreateGroupBox( ELayoutType::Vertical,
+    auto *main_layers_group = CreateGroupBox( ELayoutType::Vertical,
                                         {
                                             mUseVectorLayer,
                                             mUseRasterLayer,
                                             mUseURLRasterLayer,
                                             mLayerURLLineEdit
                                         },
-                                        "Map Base Layer (requires restart)", this );
+                                        "Main Map Base Layer (requires restart)", this );
+
+	mViewsUseVectorLayer = new QRadioButton( "Use vector layers" );
+	mViewsUseRasterLayer = new QRadioButton( "Use raster layers" );
+    auto *views_layers_group = CreateGroupBox( ELayoutType::Vertical,
+                                        {
+                                            mViewsUseVectorLayer,
+                                            mViewsUseRasterLayer,
+                                        },
+                                        "View Maps Base Layer", this );
+
+
+	auto *layers_l = LayoutWidgets( Qt::Horizontal, 
+	{ 
+		main_layers_group, views_layers_group 
+	}
+	, nullptr, 2, 2, 2, 2, 2 );
+
+
 
 #if defined(DEBUG) || defined(_DEBUG)
 
@@ -64,14 +83,14 @@ void CApplicationSettingsDlg::CreateWidgets()
 
 	mStartupOptionsPage = CreateGroupBox( ELayoutType::Vertical, 
 	{ 
-		nullptr, mLoadLastProjectAtAtartupCheckBox, nullptr, layers_group, nullptr, mDesktopManagerSdiCheckbox, nullptr
+		nullptr, mLoadLastProjectAtAtartupCheckBox, nullptr, layers_l, nullptr, mDesktopManagerSdiCheckbox, nullptr
 	}
 	, "Startup Options", this, 6, 6, 6, 6, 6 );
 #else
 
 	mStartupOptionsPage = CreateGroupBox( ELayoutType::Vertical, 
 	{ 
-		nullptr, mLoadLastProjectAtAtartupCheckBox, nullptr, layers_group, nullptr, 
+        nullptr, mLoadLastProjectAtAtartupCheckBox, nullptr, layers_l, nullptr,
 	}
 	, "Startup Options", this, 6, 6, 6, 6, 6 );
 #endif
@@ -110,7 +129,7 @@ void CApplicationSettingsDlg::CreateWidgets()
     //
     auto help = new CTextWidget;
     help->SetHelpProperties(
-                "Application wide options"
+                "Application global options"
          ,0 , 6 );
     auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
     help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
@@ -151,17 +170,24 @@ void CApplicationSettingsDlg::Wire()
 
 	mLoadLastProjectAtAtartupCheckBox->setChecked( mSettings.mLoadLastWorkspaceAtStartUp );
 
-    mUseVectorLayer->setChecked( mSettings.LayerBaseType() == CMapWidget::ELayerBaseType::eVectorLayer );
-    mUseRasterLayer->setChecked( mSettings.LayerBaseType() == CMapWidget::ELayerBaseType::eRasterLayer );
-    mUseURLRasterLayer->setChecked( mSettings.LayerBaseType() == CMapWidget::ELayerBaseType::eRasterURL );
+    mUseVectorLayer->setChecked( mSettings.MainLayerBaseType() == CMapWidget::ELayerBaseType::eVectorLayer );
+    mUseRasterLayer->setChecked( mSettings.MainLayerBaseType() == CMapWidget::ELayerBaseType::eRasterLayer );
+    mUseURLRasterLayer->setChecked( mSettings.MainLayerBaseType() == CMapWidget::ELayerBaseType::eRasterURL );
 
-    connect( mUseRasterLayer, SIGNAL( toggled( bool ) ), this,  SLOT( HandleLayerTypeChanged( bool ) ) );
-    connect( mUseVectorLayer, SIGNAL( toggled( bool ) ), this,  SLOT( HandleLayerTypeChanged( bool ) ) );
-    connect( mUseURLRasterLayer, SIGNAL( toggled( bool ) ), this,  SLOT( HandleLayerTypeChanged( bool ) ) );
+    mViewsUseVectorLayer->setChecked( mSettings.ViewsLayerBaseType() == CMapWidget::ELayerBaseType::eVectorLayer );
+    mViewsUseRasterLayer->setChecked( mSettings.ViewsLayerBaseType() == CMapWidget::ELayerBaseType::eRasterLayer );
+
+    connect( mUseRasterLayer, SIGNAL( toggled( bool ) ), this,  SLOT( HandleMainLayerTypeChanged( bool ) ) );
+    connect( mUseVectorLayer, SIGNAL( toggled( bool ) ), this,  SLOT( HandleMainLayerTypeChanged( bool ) ) );
+    connect( mUseURLRasterLayer, SIGNAL( toggled( bool ) ), this,  SLOT( HandleMainLayerTypeChanged( bool ) ) );
+
+    connect( mViewsUseRasterLayer, SIGNAL( toggled( bool ) ), this,  SLOT( HandleViewsLayerTypeChanged( bool ) ) );
+    connect( mViewsUseVectorLayer, SIGNAL( toggled( bool ) ), this,  SLOT( HandleViewsLayerTypeChanged( bool ) ) );
 
     mLayerURLLineEdit->setText( settings_paths->mURLRasterLayerPath.c_str() );
 
-    HandleLayerTypeChanged( false );
+    HandleMainLayerTypeChanged( false );		//argument not used
+    HandleViewsLayerTypeChanged( false );		//idem
 
 
     //	Application Styles
@@ -209,9 +235,12 @@ void CApplicationSettingsDlg::HandleBrowseProjectsPath()
 
 //	StartupOptions_page
 
-void CApplicationSettingsDlg::HandleLayerTypeChanged( bool )
+void CApplicationSettingsDlg::HandleMainLayerTypeChanged( bool )
 {
     mLayerURLLineEdit->setEnabled( mUseURLRasterLayer->isChecked() );
+}
+void CApplicationSettingsDlg::HandleViewsLayerTypeChanged( bool )
+{
 }
 
 //	ApplicationStyles_page
@@ -278,14 +307,14 @@ bool CApplicationSettingsDlg::ValidateAndAssign()
 
 	mSettings.mLoadLastWorkspaceAtStartUp = mLoadLastProjectAtAtartupCheckBox->isChecked();
     if ( mUseVectorLayer->isChecked() )
-        mSettings.mLayerBaseType = CMapWidget::ELayerBaseType::eVectorLayer;
+        mSettings.mMainLayerBaseType = CMapWidget::ELayerBaseType::eVectorLayer;
     else
     if ( mUseRasterLayer->isChecked() )
-        mSettings.mLayerBaseType = CMapWidget::ELayerBaseType::eRasterLayer;
+        mSettings.mMainLayerBaseType = CMapWidget::ELayerBaseType::eRasterLayer;
     else
     if ( mUseURLRasterLayer->isChecked() )
     {
-        mSettings.mLayerBaseType = CMapWidget::ELayerBaseType::eRasterURL;
+        mSettings.mMainLayerBaseType = CMapWidget::ELayerBaseType::eRasterURL;
 		std::string url = q2a( mLayerURLLineEdit->text() );
 		if ( url.empty() )
 		{
@@ -295,6 +324,14 @@ bool CApplicationSettingsDlg::ValidateAndAssign()
 		}
         mSettings.SetURLRasterLayerPath( url );
     }
+    else
+        assert__( false );
+
+    if ( mViewsUseVectorLayer->isChecked() )
+        mSettings.mViewsLayerBaseType = CMapWidget::ELayerBaseType::eVectorLayer;
+    else
+    if ( mViewsUseRasterLayer->isChecked() )
+        mSettings.mViewsLayerBaseType = CMapWidget::ELayerBaseType::eRasterLayer;
     else
         assert__( false );
 

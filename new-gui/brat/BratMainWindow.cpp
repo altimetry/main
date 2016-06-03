@@ -6,10 +6,11 @@
 #include "new-gui/Common/ccore-types.h"
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/ConfigurationKeywords.h"
+#include "new-gui/Common/GUI/TextWidget.h"
 
 #include "BratApplication.h"
 #include "ApplicationSettingsDlg.h"
-#include "ApplicationLogger.h"
+#include "BratLogger.h"
 
 #include "DataModels/DisplayFilesProcessor.h"
 #include "DataModels/Workspaces/Workspace.h"
@@ -31,7 +32,6 @@
 #include "GUI/ControlPanels/DatasetFilterControls.h"
 #include "GUI/ControlPanels/OperationControls.h"
 #include "GUI/ControlPanels/ProcessesTable.h"
-#include "GUI/DisplayWidgets/TextWidget.h"
 #include "GUI/DisplayEditors/Dialogs/ExportImageDialog.h"
 
 #include "GUI/DisplayWidgets/GlobeWidget.h"
@@ -263,15 +263,15 @@ void CBratMainWindow::CreateOutputDock()
 	// wire to logger
 
 	connect( 
-		&CApplicationLogger::Instance(), SIGNAL( OsgLogLevelChanged( int ) ), 
+		&CBratLogger::Instance(), SIGNAL( OsgLogLevelChanged( int ) ), 
 		mLogFrame, SLOT( SetOsgLogLevel( int ) ), Qt::QueuedConnection );
 
 	connect( 
-		&CApplicationLogger::Instance(), SIGNAL( OsgLogMessage( int, QString ) ), 
+		&CBratLogger::Instance(), SIGNAL( OsgLogMessage( int, QString ) ), 
 		mLogFrame, SLOT( OsgNotifySlot( int, QString ) ), Qt::QueuedConnection );
 
 	connect( 
-		&CApplicationLogger::Instance(), SIGNAL( QgisLogMessage( int, QString  ) ),
+		&CBratLogger::Instance(), SIGNAL( QgisLogMessage( int, QString  ) ),
 		mLogFrame, SLOT( QtNotifySlot( int, QString ) ), Qt::QueuedConnection );
 
 	//mLogFrame->SetOsgLogLevel( ns );	//also updates the application logger
@@ -284,7 +284,7 @@ void CBratMainWindow::CreateOutputDock()
 	else
 		LOG_INFO( "OSG_FILE_PATH not defined" );
 
-	LOG_INFO( "Initial OSG notification level: " + n2s<std::string>( CApplicationLogger::Instance().OsgNotifyLevel() ) );
+	LOG_INFO( "Initial OSG notification level: " + n2s<std::string>( CBratLogger::Instance().OsgNotifyLevel() ) );
 
 
 	//Processes Tab
@@ -477,7 +477,7 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
 
 	, mSettings( mApp.Settings() )
 
-	, mModel( CModel::CreateInstance( mSettings.BratPaths() ) )
+	, mModel( CModel::CreateInstance( mSettings ) )
 
 {
 	LOG_TRACE( "Starting main window construction..." );

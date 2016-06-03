@@ -3,9 +3,9 @@
 #include "libbrathl/TreeField.h"
 #include "libbrathl/Field.h"
 
-#include "ApplicationLogger.h"
+#include "BratLogger.h"
 
-#include "GUI/DisplayWidgets/TextWidget.h"
+#include "new-gui/Common/GUI/TextWidget.h"
 #include "GUI/DisplayWidgets/2DPlotWidget.h"
 #include "GUI/DisplayWidgets/3DPlotWidget.h"
 

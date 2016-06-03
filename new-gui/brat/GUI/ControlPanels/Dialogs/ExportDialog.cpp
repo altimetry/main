@@ -7,7 +7,7 @@
 
 #include "GUI/ActionsTable.h"
 #include "GUI/ControlPanels/ColorMapWidget.h"
-#include "GUI/DisplayWidgets/TextWidget.h"
+#include "new-gui/Common/GUI/TextWidget.h"
 #include "DelayExecutionDialog.h"
 
 #include "ExportDialog.h"

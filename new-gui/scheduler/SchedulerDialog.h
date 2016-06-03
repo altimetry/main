@@ -12,6 +12,7 @@
 
 
 class CConsoleApplicationPaths;
+class CBasicLogShell;
 
 
 //// RCCC - TODO - Put in right place (here or in SchedulerApplication?)
@@ -68,8 +69,15 @@ class CSchedulerDialog : public QDialog, private Ui::CSchedulerDialog
 
     // instance data members
 
+    CBasicLogShell *mLogFrame = nullptr;
+	int mLogFrameIndex = -1;
+	QHash< int, QColor >	mSeverityToColorTable;
+	QHash< int, QString >	mSeverityToPromptTable;
+
     bool mIsDialog = false;
     const CConsoleApplicationPaths *mAppPaths;
+
+
 
 	// construction / destruction
 

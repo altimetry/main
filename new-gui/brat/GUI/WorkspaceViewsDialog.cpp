@@ -7,7 +7,7 @@
 #include "DataModels/Workspaces/Workspace.h"
 #include "DataModels/Workspaces/Display.h"
 
-#include "GUI/DisplayWidgets/TextWidget.h"
+#include "new-gui/Common/GUI/TextWidget.h"
 
 #include "WorkspaceViewsDialog.h"
 

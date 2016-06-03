@@ -15,7 +15,7 @@
 #include "DataModels/MapTypeDisp.h"
 
 #include "GUI/ActionsTable.h"
-#include "GUI/DisplayWidgets/TextWidget.h"
+#include "new-gui/Common/GUI/TextWidget.h"
 #include "Dialogs/InsertFunctionDialog.h"
 #include "Dialogs/InsertAlgorithmDialog.h"
 #include "Dialogs/SelectRecordDialog.h"
@@ -593,18 +593,24 @@ bool CDataExpressionsTreeWidget::CanSwitchType( std::string &error_msg ) const
 }
 
 
+void CDataExpressionsTreeWidget::SetType( bool map )
+{
+    mIsMap = map;
+
+    mItemX->setText( 0, mIsMap ? "Lon" : "X" );
+    mItemY->setText( 0, mIsMap ? "Lat" : "Y (optional)" );
+
+    if ( mCurrentOperation )
+        mCurrentOperation->SetType( GetOperationType() );
+}
+
 bool CDataExpressionsTreeWidget::SwitchType()
 {
 	std::string error_msg;
 	if ( !CanSwitchType(error_msg) )
 		return false;
 
-	mIsMap = !mIsMap;
-
-	mItemX->setText( 0, mIsMap ? "Lon" : "X" );
-	mItemY->setText( 0, mIsMap ? "Lat" : "Y (optional)" );
-
-	mCurrentOperation->SetType( GetOperationType() );
+    SetType( !mIsMap );
 
 	//assert__( !mIsMap || mCurrentOperation->IsMap() );
 
@@ -612,14 +618,16 @@ bool CDataExpressionsTreeWidget::SwitchType()
 }
 
 
-void CDataExpressionsTreeWidget::InsertOperation( COperation *operation )
+void CDataExpressionsTreeWidget::InsertOperation(COperation *operation )
 {
 	mCurrentOperation = operation;
 
 	clear();
 	MakeRootItems();
 
-	if ( mCurrentOperation == nullptr )
+    SetType( !mCurrentOperation || mCurrentOperation->IsMap() );
+
+    if ( mCurrentOperation == nullptr )
 	{
 		emit SelectedFormulaChanged( nullptr );
 		return;

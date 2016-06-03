@@ -1,8 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no" ?>
 <bratSchedulerConfig>
-  <pendingTasks>
-    <task at="2017-05-23 14:56:46" cmd="&quot;L:/bin/v120_xp/x64/Debug/brat/BratExportAscii.exe&quot; &quot;L:/project/workspaces/RCCC/Operations/BratExportAscii.export.par&quot;" logFile="L:/bin/v120_xp/x64/Debug/brat/BratTask_BratExportAscii_1464011832845.log" name="BratExportAscii" status="pending" uid="1464011832845"/>
-  </pendingTasks>
+  <pendingTasks/>
   <endedTasks/>
   <processingTasks/>
 </bratSchedulerConfig>

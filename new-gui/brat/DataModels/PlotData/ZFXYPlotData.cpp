@@ -433,6 +433,7 @@ void CZFXYPlotData::Create( CObArray* data, const std::string& fieldName, CZFXYP
 		zfxy->ReadVar( fieldName, varValue, unit->GetText() );
 		varKind	= zfxy->GetVarKind( fieldName );
 
+		m_unitZ = *unit;
 
 		if ( varKind != Data )
 		{

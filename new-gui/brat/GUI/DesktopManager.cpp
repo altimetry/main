@@ -23,7 +23,7 @@ CDesktopManagerBase::CDesktopManagerBase( const CBratSettings &settings, QMainWi
 
 	setObjectName( QString::fromUtf8( "centralWidget" ) );
 
-    mMap = new CMapWidget( settings.LayerBaseType(), this );
+    mMap = new CMapWidget( settings.MainLayerBaseType(), this );
 
 	parent->setCentralWidget( this );
 

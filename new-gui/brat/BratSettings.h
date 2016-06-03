@@ -49,11 +49,9 @@ public:
 
 	bool mLoadLastWorkspaceAtStartUp = true;
 
-#if defined(BRAT_ARCHITECTURE_64)
-    CMapWidget::ELayerBaseType mLayerBaseType = CMapWidget::ELayerBaseType::eRasterLayer;
-#else
-    CMapWidget::ELayerBaseType mLayerBaseType = CMapWidget::ELayerBaseType::eRasterLayer;
-#endif
+    CMapWidget::ELayerBaseType mMainLayerBaseType = CMapWidget::ELayerBaseType::eRasterLayer;
+    CMapWidget::ELayerBaseType mViewsLayerBaseType = CMapWidget::ELayerBaseType::eVectorLayer;
+
 	bool mDesktopManagerSdi = true;
 	bool mCheckOpenGL = true;
 
@@ -108,7 +106,10 @@ public:
 	}
 
 
-    CMapWidget::ELayerBaseType LayerBaseType() const { return mLayerBaseType; }
+    CMapWidget::ELayerBaseType MainLayerBaseType() const { return mMainLayerBaseType; }
+
+    CMapWidget::ELayerBaseType ViewsLayerBaseType() const { return mViewsLayerBaseType; }
+
 
     void SetURLRasterLayerPath( const std::string &path )
     {

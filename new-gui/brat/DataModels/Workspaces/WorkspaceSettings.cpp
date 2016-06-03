@@ -27,7 +27,7 @@
 #include "Display.h"
 #include "Function.h"
 #include "WorkspaceSettings.h"
-#include "ApplicationLogger.h"
+#include "BratLogger.h"
 
 
 

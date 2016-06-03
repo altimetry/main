@@ -166,7 +166,7 @@ protected:
 	////////////////////////////
 
 	//!  Setup map
-	void SetupMap();
+	void SetupMap( bool enable_base_map );
 	osgEarth::Util::GraticuleNode* CreateGraticule();
 	void Wire();
 	void Unwire();
@@ -220,6 +220,7 @@ public slots:
 
 	//! Set a different base map (QString::NULL will disable the base map)
 	void setBaseMap( QString url );
+    void elevationLayersChanged();
 
 	//! Called when the extents of the map change
 	void extentsChanged();

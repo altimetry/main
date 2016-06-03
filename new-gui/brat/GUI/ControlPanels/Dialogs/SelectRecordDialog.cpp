@@ -4,7 +4,7 @@
 
 #include "DataModels/Workspaces/Workspace.h"
 
-#include "GUI/DisplayWidgets/TextWidget.h"
+#include "new-gui/Common/GUI/TextWidget.h"
 
 #include "SelectRecordDialog.h"
 
