@@ -17,6 +17,8 @@
 
 
 //static 
+const std::string CTasksProcessor::smFileName = "SchedulerTasksConfig";		//extension ".xml" must be added
+//static 
 bool CTasksProcessor::mFactoryCalled = false;
 //static 
 CTasksProcessor* CTasksProcessor::smInstance = nullptr;
@@ -66,9 +68,9 @@ CTasksProcessor* CTasksProcessor::GetInstance( const std::string* fileName, bool
 			std::string errorMsg;
 			try
 			{
-                //smInstance = new CSchedulerTaskConfig( *fileName, lockFile, unlockFile );
+                //smInstance = new CTasksProcessor( *fileName, lockFile, unlockFile );
                 smInstance = mFactory( *fileName, lockFile, unlockFile );
-                bOk = smInstance->IsOk();
+                bOk = smInstance != nullptr;
 			}
 			catch ( CException& e )
 			{
@@ -314,7 +316,7 @@ bool CTasksProcessor::LoadAllTasks()
 		CTasksProcessor debug_tasks;
 		if ( result )
 		{
-			std::string debug_path = std::string( getenv( "S3ALTB_ROOT" ) ) + "/project/dev/source/new-gui/scheduler/BratSchedulerTasksConfig_backup.xml";
+			std::string debug_path = std::string( getenv( "S3ALTB_ROOT" ) ) + "/project/dev/source/new-gui/scheduler/" + smFileName + "_backup.xml";
 			result = store( debug_path );
 			if ( result )
 				result = debug_tasks.load( debug_path );
@@ -381,7 +383,7 @@ bool CTasksProcessor::AddNewTasksFromSibling( CTasksProcessor* sched )
 			//	std::string msg = 
 			//		"Unable to find task id '"
 			//		+ bratTaskNew->GetUidAsString()
-			//		+ "' in Xml file while adding new tasks (CSchedulerTaskConfig::AddNewTask) ";
+			//		+ "' in Xml file while adding new tasks (CTasksProcessor::AddNewTask) ";
 			//	throw CException( msg, BRATHL_ERROR );
 			//}
 
@@ -415,7 +417,7 @@ bool CTasksProcessor::ReloadOnlyNew( /*std::function<CTasksProcessor*(const std:
 		throw CException( msg, BRATHL_WARNING );
 	}
 
-	//wxLog::SetActiveTarget( CSchedulerTaskConfig::m_initialLog );
+	//wxLog::SetActiveTarget( CTasksProcessor::m_initialLog );
 	//wxLogInfo( "Re-loading '%s' ...", m_fullFileName.c_str() );
 	//wxLog::SetActiveTarget( m_logBuffer );					   				// TODO
 
@@ -427,7 +429,6 @@ bool CTasksProcessor::ReloadOnlyNew( /*std::function<CTasksProcessor*(const std:
 	{
 		//schedulerTaskConfig = new CTasksProcessor( m_fullFileName, false, false );		//assert__(this->GetFileEncoding() == encoding() );
 		schedulerTaskConfig = mFactory( m_fullFileName, false, false );		//assert__(this->GetFileEncoding() == encoding() );
-		bOk = schedulerTaskConfig->IsOk();
 	}
 	catch ( CException& e )
 	{
@@ -453,7 +454,7 @@ bool CTasksProcessor::ReloadOnlyNew( /*std::function<CTasksProcessor*(const std:
 			msg = errorMsg;
 		}
 
-		//wxLog::SetActiveTarget( CSchedulerTaskConfig::m_initialLog );			// TODO
+		//wxLog::SetActiveTarget( CTasksProcessor::m_initialLog );			// TODO
 
 		delete schedulerTaskConfig;
 		schedulerTaskConfig = nullptr;
@@ -463,7 +464,7 @@ bool CTasksProcessor::ReloadOnlyNew( /*std::function<CTasksProcessor*(const std:
 		throw CException( msg, BRATHL_ERROR );
 	}
 
-	//wxLog::SetActiveTarget( CSchedulerTaskConfig::m_initialLog );	   			// TODO
+	//wxLog::SetActiveTarget( CTasksProcessor::m_initialLog );	   			// TODO
 
 	AddNewTasksFromSibling( schedulerTaskConfig );
 
@@ -513,9 +514,9 @@ CBratTask::uid_t CTasksProcessor::GenerateId()
 }
 
 
-void CTasksProcessor::GetMapPendingBratTaskToProcess( std::vector<uid_t>* vectorBratTaskToProcess )
+void CTasksProcessor::GetMapPendingBratTaskToProcess( std::vector<uid_t> *tasks2process )
 {
-	if ( !vectorBratTaskToProcess )
+	if ( !tasks2process )
 		return;
 
 	//wxCriticalSectionLocker locker( m_critSectMapBratTask );			//TODO
@@ -526,11 +527,9 @@ void CTasksProcessor::GetMapPendingBratTaskToProcess( std::vector<uid_t>* vector
 		if ( !bratTask || bratTask->laterThanNow() )		//if (bratTask->GetAt() > dateRef)		femm
 			continue;
 
-		vectorBratTaskToProcess->push_back( bratTask->GetUid() );
+		tasks2process->push_back( bratTask->GetUid() );
 	}
 }
-
-
 
 
 
@@ -567,17 +566,16 @@ CBratTask* CTasksProcessor::CreateTaskAsPending( bool function, CBratTask *paren
 		}
 
 		CBratTaskFunction f = *functionRef;
-		CVectorBratAlgorithmParam *fparams = task->GetBratTaskFunction()->GetParams();
+        task = new CBratTask( id, name, f, at, CBratTask::eBRAT_STATUS_PENDING, log_dir + log_file_name );
+        CVectorBratAlgorithmParam *fparams = task->GetBratTaskFunction()->GetParams();
 		for ( CVectorBratAlgorithmParam::const_iterator it = params.begin(); it != params.end(); it++ )
 		{
 			fparams->Insert( *it );
 		}
-
-		task = new CBratTask( id, name, f, at, CBratTask::e_BRAT_STATUS_PENDING, log_dir + log_file_name );
 	}
 	else
 	{
-		task = new CBratTask( id, name, cmd_or_function, at, CBratTask::e_BRAT_STATUS_PENDING, log_dir + log_file_name );
+		task = new CBratTask( id, name, cmd_or_function, at, CBratTask::eBRAT_STATUS_PENDING, log_dir + log_file_name );
 	}
 
 
@@ -591,7 +589,7 @@ CBratTask* CTasksProcessor::CreateTaskAsPending( bool function, CBratTask *paren
 		AddTask2Parent( parent->GetUid(), task );
 	}
 
-	//if ( !CSchedulerTaskConfig::SaveSchedulerTaskConfig() )
+	//if ( !CTasksProcessor::SaveSchedulerTaskConfig() )
 	//	RemoveTaskFromSchedulerTaskConfig( r.n );
 
 	if ( !SaveAllTasks() )
@@ -611,7 +609,7 @@ CBratTask* CTasksProcessor::CreateCmdTaskAsPending( CBratTask *parent, const std
 
 CBratTask* CTasksProcessor::CreateFunctionTaskAsPending( CBratTask *parent, const std::string &function, CVectorBratAlgorithmParam& params, const QDateTime& at, const std::string& name, const std::string& log_dir )
 {
-	return CreateTaskAsPending( false, parent, function, params, at, name, log_dir );
+    return CreateTaskAsPending( true, parent, function, params, at, name, log_dir );
 }
 
 // brat interface - end ///////////////////////////////////////////////////////////////////////////////////////
@@ -629,22 +627,22 @@ void CTasksProcessor::AddTaskToMap( CBratTask* bratTask )
 	uid_t uid = bratTask->GetUid();
 	m_mapBratTask.Insert( uid, bratTask );
 
-	CBratTask::Status status = bratTask->GetStatus();
+	CBratTask::EStatus status = bratTask->GetStatus();
 	switch ( status )
 	{
-		case CBratTask::e_BRAT_STATUS_PENDING:
+		case CBratTask::eBRAT_STATUS_PENDING:
 		{
 			mPendingTasksMap.Insert( uid, bratTask );
 			break;
 		}
-		case CBratTask::e_BRAT_STATUS_PROCESSING:
+		case CBratTask::eBRAT_STATUS_PROCESSING:
 		{
 			mProcessingTasksMap.Insert( uid, bratTask );
 			break;
 		}
-		case CBratTask::e_BRAT_STATUS_ENDED:
-		case CBratTask::e_BRAT_STATUS_ERROR:
-		case CBratTask::e_BRAT_STATUS_WARNING:
+		case CBratTask::eBRAT_STATUS_ENDED:
+		case CBratTask::eBRAT_STATUS_ERROR:
+		case CBratTask::eBRAT_STATUS_WARNING:
 		{
 			mEndedTasksMap.Insert( uid, bratTask );
 			break;
@@ -652,7 +650,7 @@ void CTasksProcessor::AddTaskToMap( CBratTask* bratTask )
 		default:
 		{
 			std::string msg =
-				"ERROR in CSchedulerTaskConfig#AddTaskToMap - status "
+				"ERROR in CTasksProcessor#AddTaskToMap - status "
 				+ n2s<std::string>( static_cast<int>( status ) )
 				+ " ("
 				+ bratTask->GetStatusAsString()
@@ -680,6 +678,8 @@ void CTasksProcessor::AddTask2Parent( uid_t parentId, CBratTask* bratTask )
 
 
 
+#if defined(BRAT_V3)
+
 void CTasksProcessor::AddTask( const CMapBratTask* mapBratTask )
 {
 	if ( !mapBratTask )
@@ -695,6 +695,7 @@ void CTasksProcessor::AddTask( const CMapBratTask* mapBratTask )
 	}
 }
 
+#endif
 
 
 
@@ -712,9 +713,9 @@ bool CTasksProcessor::RemoveTaskFromMap( uid_t id )
 		return false;
 	}
 
-	CBratTask::Status status = bratTask->GetStatus();
+	CBratTask::EStatus status = bratTask->GetStatus();
 
-	if ( status == CBratTask::e_BRAT_STATUS_PROCESSING )
+	if ( status == CBratTask::eBRAT_STATUS_PROCESSING )
 	{
 		std::string msg =
 			"Task id '"
@@ -745,6 +746,7 @@ bool CTasksProcessor::RemoveTaskFromMap( uid_t id )
 ///////////////////////////////////////
 //			Change Status
 
+
 //----------------------------------------------------
 bool CTasksProcessor::ChangeProcessingToPending( CVectorBratTask& vectorTasks )
 {
@@ -767,17 +769,17 @@ bool CTasksProcessor::ChangeProcessingToPending( CVectorBratTask& vectorTasks )
 		if ( !bratTask )
 			continue;
 
-		ChangeTaskStatus( bratTask->GetUid(), CBratTask::e_BRAT_STATUS_PENDING );
+		ChangeTaskStatus( bratTask->GetUid(), CBratTask::eBRAT_STATUS_PENDING );
 	}
 
 	return vectorTasks.size() > 0;
 }
 
 
-CTasksProcessor::Status CTasksProcessor::ChangeTaskStatus( uid_t id, Status newStatus )
+CTasksProcessor::EStatus CTasksProcessor::ChangeTaskStatus( uid_t id, EStatus newStatus )
 {
 	//ChangeTaskStatusFromXml( id, newStatus );
-	//CBratTask::Status currentStatus = ChangeTaskStatusFromMap( id, newStatus );
+	//CBratTask::EStatus currentStatus = ChangeTaskStatusFromMap( id, newStatus );
 
 	//wxCriticalSectionLocker locker(m_critSectMapBratTask);		// TODO
 
@@ -790,28 +792,28 @@ CTasksProcessor::Status CTasksProcessor::ChangeTaskStatus( uid_t id, Status newS
 		std::string msg =
 			"Unable to update task status: task uid '"
 			+ idAsString
-			+ "' is not found (CSchedulerTaskConfig#ChangeTaskStatusFromMap).";
+			+ "' is not found (CTasksProcessor#ChangeTaskStatusFromMap).";
 
 		throw CException( msg, BRATHL_ERROR );
 	}
 
-	Status currentStatus = bratTask->GetStatus();
+	EStatus currentStatus = bratTask->GetStatus();
 
 	switch ( currentStatus )
 	{
-		case CBratTask::e_BRAT_STATUS_PENDING:
+		case CBratTask::eBRAT_STATUS_PENDING:
 		{
 			mPendingTasksMap.Remove( id );
 			break;
 		}
-		case CBratTask::e_BRAT_STATUS_PROCESSING:
+		case CBratTask::eBRAT_STATUS_PROCESSING:
 		{
 			mProcessingTasksMap.Remove( id );
 			break;
 		}
-		case CBratTask::e_BRAT_STATUS_ENDED:
-		case CBratTask::e_BRAT_STATUS_ERROR:
-		case CBratTask::e_BRAT_STATUS_WARNING:
+		case CBratTask::eBRAT_STATUS_ENDED:
+		case CBratTask::eBRAT_STATUS_ERROR:
+		case CBratTask::eBRAT_STATUS_WARNING:
 		{
 			mEndedTasksMap.Remove( id );
 			break;
@@ -819,7 +821,7 @@ CTasksProcessor::Status CTasksProcessor::ChangeTaskStatus( uid_t id, Status newS
 		default:
 		{
 			std::string msg =
-				"ERROR in CSchedulerTaskConfig#ChangeTaskStatusFromMap - status "
+				"ERROR in CTasksProcessor#ChangeTaskStatusFromMap - status "
 				+ n2s<std::string>( static_cast<int>( currentStatus ) )
 				+ " ("
 				+ bratTask->GetStatusAsString()
@@ -833,19 +835,19 @@ CTasksProcessor::Status CTasksProcessor::ChangeTaskStatus( uid_t id, Status newS
 
 	switch ( newStatus )
 	{
-		case CBratTask::e_BRAT_STATUS_PENDING:
+		case CBratTask::eBRAT_STATUS_PENDING:
 		{
 			mPendingTasksMap.Insert( id, bratTask );
 			break;
 		}
-		case CBratTask::e_BRAT_STATUS_PROCESSING:
+		case CBratTask::eBRAT_STATUS_PROCESSING:
 		{
 			mProcessingTasksMap.Insert( id, bratTask );
 			break;
 		}
-		case CBratTask::e_BRAT_STATUS_ENDED:
-		case CBratTask::e_BRAT_STATUS_ERROR:
-		case CBratTask::e_BRAT_STATUS_WARNING:
+		case CBratTask::eBRAT_STATUS_ENDED:
+		case CBratTask::eBRAT_STATUS_ERROR:
+		case CBratTask::eBRAT_STATUS_WARNING:
 		{
 			mEndedTasksMap.Insert( id, bratTask );
 			break;
@@ -853,7 +855,7 @@ CTasksProcessor::Status CTasksProcessor::ChangeTaskStatus( uid_t id, Status newS
 		default:
 		{
 			std::string msg =
-				"ERROR in CSchedulerTaskConfig#ChangeTaskStatusFromMap - status "
+				"ERROR in CTasksProcessor#ChangeTaskStatusFromMap - status "
 				+ n2s<std::string>( static_cast<int>( newStatus ) )
 				+ " ("
 				+ CBratTask::TaskStatusToString( newStatus )

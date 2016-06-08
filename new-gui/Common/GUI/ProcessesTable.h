@@ -6,9 +6,6 @@
 
 
 
-class COperation;
-
-
 /////////////////////////////////////////////////////////////////////////////////
 //							Brat Process Class
 /////////////////////////////////////////////////////////////////////////////////
@@ -31,41 +28,52 @@ class COsProcess : public QProcess
 
 	using base_t = QProcess;
 
+	typedef long long uid_t;
+
+	using log_file_t = void (COsProcess::*)( const std::string &msg );
+
 
 	// instance data
 
 protected:
 	bool mSync = false;
-	std::string mName;
-	std::string mCmdLine;
+	std::string mId;		//tasks
+	std::string mAt;		//tasks
+	std::string mName;		//tasks & operations
+	std::string mStatus;	//tasks
+	std::string mCmdLine;	//tasks & operations
+	std::string mLogPath;	//tasks
 
-	int m_running;
-	bool mKilled;
-
-	std::string mOutput;
 	void *mUserData = nullptr;
 
-	int mExecuteFlags;
-
-	long mCurrentPid;
-
-	const COperation *mOperation = nullptr;
+	CLogFile mLog;
+	log_file_t mLogPtr = nullptr;
 
 public:
-	COsProcess( const COperation *operation, bool sync, const std::string& name, QWidget *parent, const std::string& cmd, void *user_data = nullptr, const std::string *output = nullptr );
+	COsProcess( bool sync, const std::string &name, QWidget *parent, const std::string &cmd, void *user_data = nullptr,
+		const std::string &id = "",
+		const std::string &at = "",
+		const std::string &status = "",
+		const std::string &log_file = ""
+		);
 
 	virtual ~COsProcess();
 
-	const std::string& GetCmd() const { return mCmdLine; };
 
-	const COperation* Operation() const { return mOperation; }
+	// access
 
 	void* UserData() const { return mUserData; }
 
+	const std::string& CmdLine() const { return mCmdLine; };
+	virtual void SetCmd( const std::string& value ) { mCmdLine = value; };
 
-	virtual void Kill();
+	virtual const std::string& Name() const { return mName; };
+	virtual void SetName( const std::string& value ) { mName = value; };
 
-	virtual void Execute();
+	const std::string& Id() const { return mId; }
+	const std::string& At() const { return mAt; }
+	const std::string& Status() const { return mStatus; }
+	const std::string& LogPath() const { return mLogPath; }
 
 	long long Pid() const
 	{
@@ -79,43 +87,29 @@ public:
 
 	std::string PidString() const {	return n2s<std::string>( Pid() ); }
 
-	//
 
-	virtual void SetCmd( const std::string& value ) { mCmdLine = value; };
+	// operate
 
+	virtual void Kill();
 
-
-	virtual const std::string& GetName() const { return mName; };
-	virtual void SetName( const std::string& value ) { mName = value; };
+	virtual void Execute();
 
 
-	int GetExecuteFlags() { return mExecuteFlags; };
-	void SetExecuteFlags( int value ) { mExecuteFlags = value; };
+	void Log( const std::string &msg )
+	{
+		assert__( mLogPtr );
 
-	// instead of overriding this virtual function we might as well process the
-	// event from it in the frame class - this might be more convenient in some
-	// cases
-	//virtual void OnTerminate( int pid, int status );
-
-	//virtual void OnTerminate( int status );
-
-	virtual bool HasInput() { return false; };
-
-	bool IsRunning() { return m_running > 0; };
-	bool IsEnded() { return m_running < 0; };
-	bool IsReady() { return m_running == 0; };
-	bool IsKilled() { return mKilled; };
-
-	int AskForPid();
-
-	//static void EvtProcessTermCommand( wxEvtHandler& evtHandler, const CProcessTermEventFunction& method,
-	//	wxObject* userData = nullptr, wxEvtHandler* eventSink = nullptr );
-
-	//static void DisconnectEvtProcessTermCommand( wxEvtHandler& evtHandler );
+		(this->*mLogPtr)( msg );
+	}
 
 protected:
-	//virtual int ExecuteSync();
-	//virtual int ExecuteAsync();
+	void RealLog( const std::string &msg )
+	{
+		mLog.Log( msg );
+	}
+
+	void PseudoLog( const std::string & )
+	{}
 };
 
 
@@ -144,14 +138,24 @@ class CProcessesTable : public CControlPanel
 
 	using base_t = CControlPanel;
 
+	friend class CSchedulerDialog;
+
+
+public:
 	enum EProcessColumn
 	{
-		eProcessName,
-		eProcessCmdLine,
+		eTaskUid,
+		eProcessName,		eTaskName = eProcessName,
+		eTaskStart,
+		eTaskStatus,
+		eProcessCmdLine,	eTaskCMD = eProcessCmdLine,
+		eTaskLogFile,
 
 		EProcessColumn_size
 	};
 
+
+protected:
 
 	// static data
 
@@ -186,14 +190,30 @@ public:
 
 	// Add is called by the client...
 
-	bool Add( void *user_data, bool sync, bool allow_multiple, const std::string &original_name, const std::string &cmd, const COperation *operation = nullptr );
+	bool Add( bool with_gui, void *user_data, bool sync, bool allow_multiple, const std::string &original_name, const std::string &cmd,
+		const std::string &id = "",
+		const std::string &at = "",
+		const std::string &status = "",
+		const std::string &log_file = ""
+		);
 	bool Add( void *user_data, bool sync, bool allow_multiple, const std::string &original_name, const std::string &executable, const std::vector< std::string > &args )
 	{
 		std::string cmd = executable + " ";
 		cmd += Vector2String( args, " " );
-		return Add( user_data, sync, allow_multiple, original_name, cmd );
+		return Add( true, user_data, sync, allow_multiple, original_name, cmd );
+	}
+	bool SilentAdd( void *user_data, bool sync, bool allow_multiple, const std::string &original_name, const std::string &cmd,
+		const std::string &id = "",
+		const std::string &at = "",
+		const std::string &status = "",
+		const std::string &log_file = ""
+		)
+	{
+		return Add( false, user_data, sync, allow_multiple, original_name, cmd, id, at, status, log_file );	
 	}
 
+
+	void HideColumns( std::initializer_list< EProcessColumn > columns, bool hide = true );
 
 	bool Empty() const { return mProcessesList->rowCount() == 0; }
 
@@ -224,24 +244,36 @@ protected:
 	QString ReadStdError( COsProcess *process );
 	QString ReadStdOut( COsProcess *process );
 
+	std::string FormatOutputMessage( const std::string &name, const std::string &b ) const
+	{
+		return b.empty() ? std::string() : ( name.empty() ? b : name + q2a( smSeparator ) + b );
+	}
 	QString FormatOutputMessage( const QString &name, const QByteArray &b ) const
 	{
-		return b.isEmpty() ? QString() : ( name + smSeparator + QString::fromLocal8Bit( b ) );
+		return b.isEmpty() ? QString() : ( name.isEmpty() ? QString::fromLocal8Bit( b ) : name + smSeparator + QString::fromLocal8Bit( b ) );
 	}
 	QString FormatErrorMessage( COsProcess *process, const QString &msg ) const
 	{
-		return msg.isEmpty() ? QString() : ( process->GetName().c_str() + smSeparator + "Process error occurred: " + msg );
+		return msg.isEmpty() ? QString() : ( process->Name().c_str() + smSeparator + "Process error occurred: " + msg );
 	}
 	QString FormatFinishedMessage( COsProcess *process, const QString &msg ) const
 	{
-		return msg.isEmpty() ? QString() : ( process->GetName().c_str() + smSeparator + "Process execution finished reporting " + msg );
+		return msg.isEmpty() ? QString() : ( process->Name().c_str() + smSeparator + "Process execution finished reporting " + msg );
 	}
 
+	//... log helpers
+
+	void LogInfo( COsProcess *process, const std::string &text );
+
+	void LogWarn( COsProcess *process, const std::string &text );
+
+	
+	// Finish Handlers
 
 	COsProcess* ProcessFinished( int exit_code, QProcess::ExitStatus exitStatus );
 
 signals:
-	void ProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation, bool sync, void *user_data );
+	void ProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, bool sync, void *user_data );
 
 
 private slots :

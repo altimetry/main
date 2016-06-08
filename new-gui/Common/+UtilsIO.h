@@ -214,4 +214,50 @@ inline std::string Portable2AbsoluteDataPath( const std::string &path, const std
 
 
 
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//													BASIC LOG FILE
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+class CLogFile : non_copyable
+{
+protected:
+	std::fstream mFile;
+
+public:
+	CLogFile( bool append, const std::string &path ) :
+		mFile( path, std::ios::binary | std::ios::out | ( append ? std::ios::app : std::ios::trunc ) )
+	{}
+
+	virtual ~CLogFile()
+	{
+		mFile.close();		// just in case
+	}
+
+
+	bool IsOk() const { return !!mFile; }
+
+	
+	///////////////////////////////////////////////////
+
+	void Log( const std::string& text = "" )
+	{
+		assert__( !!mFile );
+
+		mFile << text;
+	}
+
+	void LogLn( const std::string& text = "" )
+	{
+		Log( text + "\n" );
+	}
+};
+
+
+
+
+
 #endif  //BRAT_CROSS_PLATFORM_UTILS_IO_H

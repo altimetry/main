@@ -35,8 +35,18 @@ namespace processes
 
 		static const PythonEngine *smPE;
 
+		static bool smPythonStatus;
+		static std::string smPythonMessages;
+
 	public:
+		// Also loads C++ algorithms
+		//
 		static bool LoadPythonEngine( const std::string &executable_dir );
+
+		static const std::string& PythonMessages()
+		{
+			return smPythonMessages;
+		}
 
 
 		//instance data

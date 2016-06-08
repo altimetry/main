@@ -550,7 +550,7 @@ void CPlotEditor::OperationChanged( int index )
 
 
 //virtual 
-bool CPlotEditor::ViewChanged()
+bool CPlotEditor::ChangeView()
 {
 	EPlotType type = mDisplay->IsYFXType() ? eXY : eXYZ;
 	UpdatePlotType( type, false );

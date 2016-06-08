@@ -76,30 +76,24 @@ inline std::string normalize( std::string &path, const std::string &dir )
 
 
 
-class CCmdFile : non_copyable
+class CCmdFile : protected CLogFile
 {
-	std::fstream mFile;
+	using base_t = CLogFile;
 
 public:
-	CCmdFile( const std::string &path ) :
-		mFile( path, std::ios::binary | std::ios::out | std::ios::trunc )
+	CCmdFile( const std::string &path ) 
+		: base_t( false, path )
 	{}
 
 	virtual ~CCmdFile()
-	{
-		mFile.close();		// just in case
-	}
-
-	bool IsOk() const { return !!mFile; }
+	{}
 
 	
 	///////////////////////////////////////////////////
 
 	void WriteLn( const std::string& text = "" )
 	{
-		assert__( !!mFile );
-
-		mFile << text << "\n";
+		LogLn( text );
 	}
 
 	void Comment( const std::string& text )

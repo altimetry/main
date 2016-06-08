@@ -322,6 +322,30 @@ bool CBratFilters::Load()
 }
 
 
+//////// RCCC TODO /////////////////////////////////////
+std::string CBratFilters::GetSelectionCriteriaExpression( const std::string &name )
+{
+    auto const *filter = Find( name );
+    assert__( filter );
+
+    std::string expression;
+
+    // Lat/Lon filtering expression (TODO: Check first if filter has any area?)
+    double lon1, lat1, lon2, lat2;
+    filter->BoundingArea( lon1, lat1, lon2, lat2 );
+
+    expression += "is_bounded(" + std::to_string(lat1) + ", " + lat_alias() + ", " + std::to_string(lat2) + ")";
+    expression += " && ";
+    expression += "is_bounded(" + std::to_string(lon1) + ", " + lon_alias() + ", " + std::to_string(lon2) + ")";
+
+    // Time filtering expression
+    // TO BE CONCLUDED
+
+    return expression;
+}
+//////////////////////////////////////////////////
+
+
 bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std::string &name ) const
 {
 	auto const *filter = Find( name );

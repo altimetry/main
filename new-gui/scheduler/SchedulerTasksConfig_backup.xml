@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
+<bratSchedulerConfig>
+  <pendingTasks/>
+  <endedTasks>
+    <task at="2016-06-05 19:59:14" cmd="&quot;L:/bin/v120_xp/x64/Debug/brat/BratCreateYFX.exe&quot; &quot;L:/project/workspaces/RCCC/Operations/CreateSimple.par&quot;" logFile="L:/project/workspaces/RCCC/Operations/BratTask_CreateSimple_1465153162633.log" name="CreateSimple" status="ended" uid="1465153162633">
+      <task at="2016-06-05 19:59:14" cmd="&quot;L:/bin/v120_xp/x64/Debug/brat/BratExportAscii.exe&quot; &quot;L:/project/workspaces/RCCC/Operations/BratExportAscii.export.par&quot;" logFile="P:/bin/Qt-4.8.6/brat/x64/Release/BratTask_BratExportAscii_1465153162641.log" name="BratExportAscii" status="pending" uid="1465153162641"/>
+    </task>
+    <task at="2016-06-06 04:38:09" cmd="&quot;L:/bin/v120_xp/x64/Debug/brat/BratCreateYFX.exe&quot; &quot;L:/project/workspaces/RCCC/Operations/CreateSimple.par&quot;" logFile="L:/project/workspaces/RCCC/Operations/BratTask_CreateSimple_1465184292521.log" name="CreateSimple" status="ended" uid="1465184292521"/>
+    <task at="2016-06-06 05:10:59" cmd="&quot;L:/bin/v120_xp/x64/Debug/brat/BratCreateYFX.exe&quot; &quot;L:/project/workspaces/RCCC/Operations/CreateSimple.par&quot;" logFile="L:/project/workspaces/RCCC/Operations/BratTask_CreateSimple_1465186260739.log" name="CreateSimple" status="ended" uid="1465186260739"/>
+    <task at="2016-06-06 05:12:11" cmd="&quot;L:/bin/v120_xp/x64/Debug/brat/BratCreateYFX.exe&quot; &quot;L:/project/workspaces/RCCC/Operations/CreateSimple.par&quot;" logFile="L:/project/workspaces/RCCC/Operations/BratTask_CreateSimple_1465186332662.log" name="CreateSimple" status="ended" uid="1465186332662"/>
+    <task at="2016-06-06 05:12:14" cmd="&quot;L:/bin/v120_xp/x64/Debug/brat/BratCreateYFX.exe&quot; &quot;L:/project/workspaces/RCCC/Operations/CreateSimple.par&quot;" logFile="L:/project/workspaces/RCCC/Operations/BratTask_CreateSimple_1465186335700.log" name="CreateSimple" status="ended" uid="1465186335700"/>
+    <task at="2016-06-06 05:12:17" cmd="&quot;L:/bin/v120_xp/x64/Debug/brat/BratCreateYFX.exe&quot; &quot;L:/project/workspaces/RCCC/Operations/CreateSimple.par&quot;" logFile="L:/project/workspaces/RCCC/Operations/BratTask_CreateSimple_1465186338441.log" name="CreateSimple" status="ended" uid="1465186338441"/>
+    <task at="2016-06-06 05:12:20" cmd="&quot;L:/bin/v120_xp/x64/Debug/brat/BratCreateYFX.exe&quot; &quot;L:/project/workspaces/RCCC/Operations/CreateSimple.par&quot;" logFile="L:/project/workspaces/RCCC/Operations/BratTask_CreateSimple_1465186341963.log" name="CreateSimple" status="ended" uid="1465186341963"/>
+    <task at="2016-06-06 05:38:43" cmd="&quot;L:/bin/v120_xp/x64/Debug/brat/BratCreateYFX.exe&quot; &quot;L:/project/workspaces/RCCC/Operations/CreateSimple.par&quot;" logFile="L:/project/workspaces/RCCC/Operations/BratTask_CreateSimple_1465187924968.log" name="CreateSimple" status="ended" uid="1465187924968"/>
+    <task at="2016-06-06 06:30:50" cmd="&quot;L:/bin/v120_xp/x64/Debug/brat/BratCreateYFX.exe&quot; &quot;L:/project/workspaces/RCCC/Operations/CreateSimple.par&quot;" logFile="L:/project/workspaces/RCCC/Operations/BratTask_CreateSimple_1465191051542.log" name="CreateSimple" status="ended" uid="1465191051542"/>
+    <task at="2016-06-06 06:38:49" cmd="&quot;L:/bin/v120_xp/x64/Debug/brat/BratCreateYFX.exe&quot; &quot;L:/project/workspaces/RCCC/Operations/CreateSimple.par&quot;" logFile="L:/project/workspaces/RCCC/Operations/BratTask_CreateSimple_1465191530277.log" name="CreateSimple" status="ended" uid="1465191530277"/>
+    <task at="2016-06-06 07:09:29" cmd="&quot;L:/bin/v120_xp/x64/Debug/brat/BratCreateYFX.exe&quot; &quot;L:/project/workspaces/RCCC/Operations/CreateSimple.par&quot;" logFile="L:/project/workspaces/RCCC/Operations/BratTask_CreateSimple_1465193370443.log" name="CreateSimple" status="ended" uid="1465193370443"/>
+  </endedTasks>
+  <processingTasks/>
+</bratSchedulerConfig>

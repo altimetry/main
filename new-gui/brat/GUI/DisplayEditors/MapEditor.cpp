@@ -450,7 +450,7 @@ void CMapEditor::OperationChanged( int index )
 
 
 
-bool CMapEditor::ViewChanged()
+bool CMapEditor::ChangeView()
 {
 	WaitCursor wait;
 
@@ -532,20 +532,22 @@ bool CMapEditor::CreatePlotData( const std::vector< CWPlot* > &wplots )
 				if ( field->m_internalFiles.empty() )
 					continue;
 
-				if ( field->m_worldProps->m_northComponent && northField == nullptr )
+                //////// RCCC TODO: Temporarily changed to detect U and V components /////
+                if ( field->m_worldProps->m_name == "V" /*field->m_worldProps->m_northComponent*/ && northField == nullptr )
 				{
 					northField = field;
 					continue;
 				}
 				else
-				if ( field->m_worldProps->m_eastComponent && eastField == nullptr )
+                if ( field->m_worldProps->m_name == "U" /*field->m_worldProps->m_eastComponent*/ && eastField == nullptr )
 				{
 					eastField = field;
 					continue;
 				}
+                ///////////////////////////////////////////////////////////////////////////
 
 				// otherwise just add it as regular data
-				mDataArrayMap.push_back( new CWorldPlotData( field ) );		//v4 note: CWorldPlotData ctor is only invoked here
+                mDataArrayMap.push_back( new CWorldPlotData( field ) );		//v4 note: CWorldPlotData ctor is only invoked here
 			}
 
 			// we have a Vector Plot!
@@ -630,21 +632,41 @@ void CMapEditor::ResetMap()
 
 
 	mTabDataLayers->mFieldsList->clear();
-	const size_t size = mDataArrayMap.size();								assert__( size == mCurrentDisplayFilesProcessor->GetWorldPlotPropertiesSize() );
+    const size_t size = mDataArrayMap.size();								//assert__( size == mCurrentDisplayFilesProcessor->GetWorldPlotPropertiesSize() );
 	for ( size_t i = 0; i < size; ++i )
 	{
-		CWorldPlotData* geo_map = mDataArrayMap[ i ];
+		CWorldPlotData* geo_map = mDataArrayMap[ i ];        
+        CWorldPlotVelocityData *geo_velocity_map = dynamic_cast<CWorldPlotVelocityData*>( geo_map );
+
 		mPropertiesMap = &geo_map->m_plotProperty;							assert__( mPropertiesMap );
 		const CWorldPlotInfo &maps = geo_map->PlotInfo();					assert__( maps.size() == 1 );	//simply to check if ever...	
 
 		// TODO brat v3 does not update range
 		geo_map->m_plotProperty.mLUT->GetLookupTable()->SetTableRange( geo_map->GetLookupTable()->GetTableRange() );
 
-		auto const size = maps( 0 ).mValues.size();
 		const CWorldPlotParameters &map = maps( 0 );
+		auto const size = map.mValues.size();
 		QgsFeatureList flist;
 
 #if defined (USE_POINTS)	//(**)
+
+        ////// RCCC TODO // MOVED OUT OF FOR CYCLE : Fields and attributes can be created only once //
+        std::map<QString, QVariant>   attrs;
+        QgsFields fields;
+
+        if ( geo_velocity_map )
+        {
+            attrs[ "angle" ] = QVariant::fromValue( 0.0 );
+            attrs[ "magnitude" ] = QVariant::fromValue( 0.0 );
+        }
+        else
+        {
+            attrs[ "height" ] = QVariant::fromValue( 0.0 );
+        }
+
+        for ( auto ii = attrs.begin(); ii != attrs.end(); ++ii )
+            fields.append( QgsField( ii->first, ii->second.type() ),  QgsFields::OriginUnknown );
+        ////////////////////////////////////////////////////////////////////////////////////////////////
 
 		for ( auto i = 0u; i < size; ++ i )
 		{
@@ -657,9 +679,28 @@ void CMapEditor::ResetMap()
 #if defined (USE_FEATURES) //(***)
 			//CreatePointFeature( flist, map.mXaxis.at( x ), map.mYaxis.at( y ), map.mValues[ i ] );  // TODO - RCCC Uncomment this to use Points
 
-			////////// TODO RCCC  ////////////////
-			mMapView->CreatePolygonFeature( flist, map.mXaxis.at( x ), map.mYaxis.at( y ), map.mValues[ i ] );
-			//////////////////////////////////////
+            ////////// TODO RCCC  //////////////////////////////////////////////////
+            if ( geo_velocity_map )
+            {
+                double magnitude = sqrt( map.mValues[ i ]*map.mValues[ i ] + map.mValuesEast[ i ]*map.mValuesEast[ i ] ) ;
+                double angle = 0;
+
+                /// TODO RCCC: Needs to be validated!!!
+                if     ( map.mValuesEast[ i ] > 0 && map.mValues[ i ] > 0 )  { angle = 180 * ( atan(map.mValuesEast[ i ]/map.mValues[ i ]) + 180 ) / M_PI; }
+                else if( map.mValuesEast[ i ] < 0 && map.mValues[ i ] < 0 )  { angle = 180 * ( atan(map.mValuesEast[ i ]/map.mValues[ i ]) + 0 )   / M_PI; }
+                else if( map.mValuesEast[ i ] > 0 && map.mValues[ i ] < 0 )  { angle = 180 * ( atan(map.mValuesEast[ i ]/map.mValues[ i ]) + 360 ) / M_PI; }
+                else if( map.mValuesEast[ i ] < 0 && map.mValues[ i ] > 0 )  { angle = 180 * ( atan(map.mValuesEast[ i ]/map.mValues[ i ]) + 270 ) / M_PI; }
+
+                attrs[ "angle" ]     = QVariant::fromValue( angle );
+                attrs[ "magnitude" ] = QVariant::fromValue( magnitude );
+                mMapView->CreatePointArrowFeature( flist, map.mXaxis.at( x ), map.mYaxis.at( y ), attrs, fields );
+            }
+            else
+            {
+                attrs[ "height" ] = QVariant::fromValue( map.mValues[ i ] );
+                mMapView->CreatePolygonFeature( flist, map.mXaxis.at( x ), map.mYaxis.at( y ), attrs, fields );
+            }
+            ///////////////////////////////////////////////////////////////////////
 #else
 			addRBPoint( geo_map->lons.at( x ), geo_map->lats.at( y ), QColor( (long)(geo_map->vals[ i ]) ), mMainLayer );
 #endif  //USE_FEATURES
@@ -669,10 +710,17 @@ void CMapEditor::ResetMap()
 
 		//AddDataLayer( props->m_name, 0.333, map.mMinHeightValue, map.mMaxHeightValue, props->m_numContour, flist );  // TODO - RCCC Uncomment this to use Points
 
-		////////// TODO RCCC  ////////////////
-		mMapView->AddPolygonDataLayer( 
-			mPropertiesMap->m_name, map.mMinHeightValue, map.mMaxHeightValue, mPropertiesMap->mLUT->GetLookupTable(), mPropertiesMap->m_numContour, flist );
-		//////////////////////////////////////
+        ////////// TODO RCCC  ////////////////////////////////////
+        if( geo_velocity_map )
+        {
+             mMapView->AddArrowDataLayer( mPropertiesMap->m_name, flist );
+        }
+        else
+        {
+            mMapView->AddPolygonDataLayer(
+                mPropertiesMap->m_name, map.mMinHeightValue, map.mMaxHeightValue, mPropertiesMap->mLUT->GetLookupTable(), mPropertiesMap->m_numContour, flist );
+        }
+        /////////////////////////////////////////////////////////
 
 #endif 
 
@@ -817,10 +865,73 @@ void CMapEditor::HandleShowSolidColorChecked( bool checked )
 }
 
 
+#include "../DataModels/PlotData/Contour/ListContour.h"
+
 void CMapEditor::HandleShowContourChecked( bool checked )
 {
-	BRAT_NOT_IMPLEMENTED;
+	//BRAT_NOT_IMPLEMENTED;
+
+	int field_index = mTabDataLayers->mFieldsList->currentRow();
+	assert__( field_index < (int)mDataArrayMap.size() );
+	const CWorldPlotInfo &maps = mDataArrayMap[ field_index ]->PlotInfo();
+	const CWorldPlotParameters &map = maps( 0 );
+
+	QgsFeatureList flist;
+	CListContour contours;
+	contours.SetFieldFcn(
+		[&map]( double x, double y ) ->double
+	{
+		return map.value( x, y );
+	} );
+
+
+	double pLimits[ 4 ] ={ -179, 179, -89, 89 };
+	std::vector<double> vPlanes;
+	vPlanes.resize( mPropertiesMap->m_numContour );
+	const auto range = map.mMaxHeightValue - map.mMinHeightValue;
+	for ( unsigned long i=0; i < vPlanes.size(); i++ )
+	{
+		vPlanes[ i ] = range / ( i + 1 );
+	}
+	contours.SetPlanes( vPlanes );
+	contours.SetFirstGrid( map.mXaxis.size(), map.mYaxis.size() );
+	contours.SetSecondaryGrid( 2 * map.mXaxis.size(), 2 * map.mYaxis.size() );
+	contours.SetLimits( pLimits );
+	contours.Generate();
+	contours.GetLimits( pLimits );
+	auto const size = contours.GetNPlanes();
+	for ( size_t i = 0; i < size; i++ )
+	{
+		auto pStripList = contours.GetLines( i );			assert__( pStripList );
+		for ( auto pos=pStripList->begin(); pos != pStripList->end(); pos++ )
+		{
+			auto pStrip=( *pos );				assert__( pStrip );
+			if ( pStrip->empty() )
+				continue;
+
+			QgsPolyline points;
+			for ( auto pos2=pStrip->begin(); pos2 != pStrip->end(); pos2++ )
+			{
+				// retreiving index
+				auto index=( *pos2 );
+				// drawing
+				double x = contours.GetXi( index );
+				double y = contours.GetYi( index );
+
+				//glVertex2f((GLfloat)(pLimits[0]+x),(GLfloat)(pLimits[2]+y));
+				//mMapView->CreatePolygonFeature( flist, x, y,  map.mValues[ index ] );
+				//mMapView->CreatePointFeature( flist, x, y,  map.mValues[ index ] );
+				points.append( QgsPoint( x, y ) );
+			}
+			mMapView->CreateLineFeature( flist, points );
+		}
+	}
+
+	mMapView->AddContourDataLayer(
+		mPropertiesMap->m_name, map.mMinHeightValue, map.mMaxHeightValue, mPropertiesMap->mLUT->GetLookupTable(), mPropertiesMap->m_numContour, flist );
 }
+
+
 void CMapEditor::HandleColorTablesIndexChanged( int index )
 {
 	if ( !ResetViews( true, true, true, false ) )

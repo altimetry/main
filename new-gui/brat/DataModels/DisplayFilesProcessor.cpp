@@ -1650,7 +1650,7 @@ void CDisplayFilesProcessor::CheckFieldsData( CInternalFilesYFX* yfx, const std:
 
 	if ( names.Exists( fieldName ) == false )
 	{
-		std::string msg = CTools::Format( "CDisplayFilesProcessor::CheckFieldsData - Field '%s' in command file doesn't exist in intput file '%s'",
+		std::string msg = CTools::Format( "CDisplayFilesProcessor::CheckFieldsData - Field '%s' in command file doesn't exist in input file '%s'",
 			fieldName.c_str(), yfx->GetName().c_str() );
 		CException e( msg, BRATHL_INCONSISTENCY_ERROR );
 		LOG_TRACE( e.what() );
@@ -1669,7 +1669,7 @@ void CDisplayFilesProcessor::CheckFieldsData( CInternalFilesZFXY* zfxy, const st
 
 	if ( names.Exists( fieldName ) == false )
 	{
-		std::string msg = CTools::Format( "CDisplayFilesProcessor::CheckFieldsData - Field '%s' in command file doesn't exist in intput file '%s'",
+		std::string msg = CTools::Format( "CDisplayFilesProcessor::CheckFieldsData - Field '%s' in command file doesn't exist in input file '%s'",
 			fieldName.c_str(), zfxy->GetName().c_str() );
 		CException e( msg, BRATHL_INCONSISTENCY_ERROR );
 		LOG_TRACE( e.what() );

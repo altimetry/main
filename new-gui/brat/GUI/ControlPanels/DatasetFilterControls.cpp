@@ -973,19 +973,6 @@ void CDatasetFilterControls::updateCyclePassWidgets ()
 
 
 
-inline std::string MakeAlias( const std::string &aname )
-{
-	return "%{" + aname + "}";
-}
-
-static const std::string lon_name = "lon";
-static const std::string lat_name = "lat";
-static const std::string time_name = "time";
-
-static const std::string lon_alias = MakeAlias( lon_name );
-static const std::string lat_alias = MakeAlias( lat_name );
-static const std::string time_alias = MakeAlias( time_name );
-
 // Here is an expression using the  alias 'swh': %{sig_wave_height} -->  'swh' field in tha aliases dictionary (Jason-1)
 //Expressions[1]	= "%{sig_wave_height}";
 //Units[1]		= "count";
@@ -1001,9 +988,9 @@ int ReadTrack( bool can_use_alias, const std::string &path, const std::string &r
 
 	const char *Expressions[] = 
 	{ 
-		can_use_alias ? lon_alias.c_str()	: lon_name.c_str(),
-		can_use_alias ? lat_alias.c_str()	: lat_name.c_str(),
-		can_use_alias ? time_alias.c_str()	: time_name.c_str()
+		can_use_alias ? lon_alias().c_str()	: lon_name().c_str(),
+		can_use_alias ? lat_alias().c_str()	: lat_name().c_str(),
+		can_use_alias ? time_alias().c_str()	: time_name().c_str()
 	};
 	char *Names[] = { const_cast<char*>( path.c_str() ) };
 
@@ -1042,7 +1029,7 @@ int ReadTrack( bool can_use_alias, const std::string &path, const std::string &r
 }
 
 
-CField* CControlPanel::FindField( CProduct *product, const std::string &name, bool &alias_used, std::string &field_error_msg )
+CField* CDesktopControlsPanel::FindField( CProduct *product, const std::string &name, bool &alias_used, std::string &field_error_msg )
 {
 	std::string record;
 	if ( product->IsNetCdfOrNetCdfCFProduct() )
@@ -1084,17 +1071,17 @@ CField* CControlPanel::FindField( CProduct *product, const std::string &name, bo
 	return field;
 }
 
-std::pair<CField*, CField*> CControlPanel::FindLonLatFields( CProduct *product, bool &alias_used, std::string &field_error_msg )
+std::pair<CField*, CField*> CDesktopControlsPanel::FindLonLatFields( CProduct *product, bool &alias_used, std::string &field_error_msg )
 {
 	std::pair<CField*, CField*> fields;
-	fields.first = FindField( product, lon_name, alias_used, field_error_msg );
-	fields.second = FindField( product, lat_name, alias_used, field_error_msg );
+	fields.first = FindField( product, lon_name(), alias_used, field_error_msg );
+	fields.second = FindField( product, lat_name(), alias_used, field_error_msg );
 	return fields;
 }
 
-CField* CControlPanel::FindTimeField( CProduct *product, bool &alias_used, std::string &field_error_msg )
+CField* CDesktopControlsPanel::FindTimeField( CProduct *product, bool &alias_used, std::string &field_error_msg )
 {
-	return FindField( product, time_name, alias_used, field_error_msg );
+	return FindField( product, time_name(), alias_used, field_error_msg );
 }
 
 

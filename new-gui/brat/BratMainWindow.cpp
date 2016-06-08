@@ -7,6 +7,7 @@
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/ConfigurationKeywords.h"
 #include "new-gui/Common/GUI/TextWidget.h"
+#include "new-gui/Common/GUI/ProcessesTable.h"
 
 #include "BratApplication.h"
 #include "ApplicationSettingsDlg.h"
@@ -27,11 +28,9 @@
 #include "GUI/WorkspaceViewsDialog.h"
 #include "GUI/ActiveViewsDialog.h"
 #include "GUI/TabbedDock.h"
-#include "GUI/ControlPanels/ControlPanel.h"
 #include "GUI/ControlPanels/DatasetBrowserControls.h"
 #include "GUI/ControlPanels/DatasetFilterControls.h"
 #include "GUI/ControlPanels/OperationControls.h"
-#include "GUI/ControlPanels/ProcessesTable.h"
 #include "GUI/DisplayEditors/Dialogs/ExportImageDialog.h"
 
 #include "GUI/DisplayWidgets/GlobeWidget.h"
@@ -43,42 +42,6 @@
 #include "GUI/DisplayEditors/PlotEditor.h"
 
 #include "BratMainWindow.h"
-
-
-
-#if defined(BRAT_ARCHITECTURE_64)
-
-    static const QString build_platform( " 64-bit" );
-
-#elif defined(BRAT_ARCHITECTURE_32)
-
-	static const QString build_platform( " 32-bit" );
-#else
-#error One of BRAT_ARCHITECTURE_32 or BRAT_ARCHITECTURE_64 must be defined
-#endif
-
-
-#if defined(_UNICODE) || defined(UNICODE)
-    static const QString build_charset( " Un" );
-#else
-	static const QString build_charset( "" );
-#endif
-
-
-#if defined (DEBUG) || defined(_DEBUG)
-    static const QString build_configuration = build_platform + " [DEBUG] " + build_charset;
-#else
-	static const QString build_configuration = build_platform + build_charset;
-#endif
-
-
-auto const PROCESSOR_ARCH =
-
-#if defined(BRAT_ARCHITECTURE_64)
-	"64 bit";
-#else
-	"32 bit";
-#endif
 
 
 
@@ -100,7 +63,7 @@ CBratMainWindow *CBratMainWindow::smInstance = nullptr;
 //static
 QString CBratMainWindow::makeWindowTitle( const QString &title )// = QString() //returns the application name if title is empty
 {
-    static const QString &app_title = qApp->applicationName() + build_configuration;
+    static const QString &app_title = qApp->applicationName() + build_configuration.c_str();
 
     QString t = app_title;
 

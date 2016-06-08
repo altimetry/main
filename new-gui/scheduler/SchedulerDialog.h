@@ -12,25 +12,10 @@
 
 
 class CConsoleApplicationPaths;
+class CSchedulerApplication;
 class CBasicLogShell;
+class CProcessesTable;
 
-
-//// RCCC - TODO - Put in right place (here or in SchedulerApplication?)
-// Creating QString with BratScheduler window title
-#if defined(_WIN64) || defined(WIN64) || defined(__LP64__) || defined(__x86_64__)
-    const QString qBRATSCHEDULER_DIALOG_BASE ("Brat Scheduler Dialog (64 bit)");
-    const QString qBRATSCHEDULER_APP_BASE ("Brat Scheduler (64 bit)");
-#else
-    const QString qBRATSCHEDULER_DIALOG_BASE ("Brat Scheduler Dialog (32 bit)");
-    const QString qBRATSCHEDULER_APP_BASE ("Brat Scheduler (32 bit)");
-#endif
-#if defined(DEBUG) || defined(_DEBUG)
-    const QString qBRATSCHEDULER_DIALOG_TITLE = qBRATSCHEDULER_DIALOG_BASE + " [Debug]";
-    const QString qBRATSCHEDULER_APP_TITLE = qBRATSCHEDULER_APP_BASE + " [Debug]";
-#else
-    const QString qBRATSCHEDULER_DIALOG_TITLE = qBRATSCHEDULER_DIALOG_BASE;
-    const QString qBRATSCHEDULER_APP_TITLE = qBRATSCHEDULER_APP_BASE;
-#endif
 
 
 class CSchedulerDialog : public QDialog, private Ui::CSchedulerDialog
@@ -50,46 +35,61 @@ class CSchedulerDialog : public QDialog, private Ui::CSchedulerDialog
 
 	using base_t = QDialog;
 
-	enum ETaskListCol
+	using uid_t = CBratTask::uid_t;
+
+	struct post_execution_handler_wrapper_t;
+
+	using post_execution_handler_t = void(CSchedulerDialog::*)( int exit_code, QProcess::ExitStatus exitStatus, post_execution_handler_wrapper_t *phandler );
+
+	struct post_execution_handler_wrapper_t
 	{
-		eTaskUid,
-		eTaskName,
-		eTaskStart,
-		eTaskStatus,
-		eTaskCMD,
-		eTaskLogFile,
-		eTaskListCol_size
+		CBratTask *task;
+		post_execution_handler_t next_post_execution_handler;
+		int isubtask;
 	};
 
-
-    // static data members
+    // static members
 
     static const auto smSCHEDULER_TIMER_INTERVAL = 30000;
     static const auto smCHECK_CONFIGFILE_TIMER_INTERVAL = 5000;
 
+	static QString MakeWindowTitle( const QString &title = QString() );	//returns the application name if title is empty
+
+
     // instance data members
+
+	CProcessesTable *mProcessesTable = nullptr;
+	int mProcessesTableIndex = -1;
+	bool mSyncProcessExecuting = false;
 
     CBasicLogShell *mLogFrame = nullptr;
 	int mLogFrameIndex = -1;
 	QHash< int, QColor >	mSeverityToColorTable;
 	QHash< int, QString >	mSeverityToPromptTable;
 
-    bool mIsDialog = false;
     const CConsoleApplicationPaths *mAppPaths;
+	std::string mSchedulerFilePath;
 
+	QTimer mSchedulerTimer;
+	QTimer mCheckConfigFileTimer;
+	QDateTime mLastCheck;
+
+    QMutex mTasksMutex;
 
 
 	// construction / destruction
 
     void CreateMenuBar();
+    void CreateLogTable();
+    void CreateProcessesTable();
 	
 	template< typename... Args > 
-	void SetupTables( Args... args );
+	void SetTablesProperties( Args... args );
     
-	void LoadTasks();
+	void UpdateTasksTables();
 
 public:
-    CSchedulerDialog( const CConsoleApplicationPaths *paths, QWidget *parent = 0);
+    CSchedulerDialog( CSchedulerApplication &a, QWidget *parent = 0);
 
     virtual ~CSchedulerDialog();
 
@@ -97,17 +97,55 @@ public:
 	// operations
 
 protected:
-    void LoadTasks(const CMapBratTask &data, QTableWidget* tableTasks);
-    bool ChangeProcessingToPending();
+	void StartTimers();
+	void StopTimers();
+
+	void SetItemProcessData( QTableWidget *table, int index, CBratTask *task );
+	CBratTask* GetItemProcessData( QTableWidget *table, int index ) const;
+
+    void UpdateTasksTable( const CMapBratTask &data, QTableWidget *table );
+
+	bool RemoveTaskFromTable( QTableWidget *table, const CBratTask *task );
+	bool RemoveTaskFromTableAndMap( QTableWidget *table, CBratTask *task );
+	bool RemoveTasksFromTableAndMap( QTableWidget *table );
+	void InsertTaskInTable( QTableWidget *table, CBratTask *task );
+
+	bool ExecuteAsync( CBratTask *task, int isubtask = - 1 );
+	void AsyncTaskFinished( int exit_code, QProcess::ExitStatus exitStatus, post_execution_handler_wrapper_t *phandler );
+	void AsyncSubtaskFinished( int exit_code, QProcess::ExitStatus exitStatus, post_execution_handler_wrapper_t *phandler );
+
 
 	// signals / slots
 
     virtual void closeEvent( QCloseEvent *event ) override;
 
+signals:
+	void AsyncProcessExecution( bool executing );
+	void SyncProcessExecution( bool executing );
+
 public slots:
+
+    void action_ToggleTimers_slot( bool checked );
     void action_ViewConfig_slot();
     void action_UserManual_slot();
     void action_About_slot();
+
+	void SchedulerTimerTimeout();
+	void CheckConfigFileTimerTimeout();
+
+private slots:
+
+	void HandlePeerMessage( const QString& );
+	void HandleProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, bool sync, void *user_data );
+
+    void on_mRemovePendTaskButton_clicked();
+    void on_mClearPendTaskButton_clicked();
+    void on_mRemoveEndedTaskButton_clicked();
+    void on_mClearEndedTaskButton_clicked();
+    void on_mShowEndedLogButton_clicked();
+
+	void HandleSelectedPendingProcessChanged();
+	void HandleSelectedEndedProcessChanged();
 };
 
 #endif // SCHEDULER_DLG_H

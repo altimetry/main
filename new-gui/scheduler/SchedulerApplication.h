@@ -1,8 +1,8 @@
 #ifndef QSCHEDULER_APPLICATION
 #define QSCHEDULER_APPLICATION
 
-#include <QApplication>
-#include <QString>
+#include "stdafx.h"
+
 
 class CConsoleApplicationPaths;
 
@@ -10,13 +10,23 @@ class CConsoleApplicationPaths;
 
 
 
-class CSchedulerApplication : public QApplication
+class CSchedulerApplication : public QtSingleApplication
 {
-    Q_OBJECT
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+    Q_OBJECT;
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
 
     // types
 
-    using base_t = QApplication;
+    using base_t = QtSingleApplication;
 
     // static data members
 
@@ -35,7 +45,7 @@ protected:
 public:
     static void dumpMemoryStatistics();
 
-    static int OffGuiErrorDialog( int error_type, char const *error_msg );
+    static int OffGuiErrorDialog( int error_code, char const *error_msg );
 
     static const CConsoleApplicationPaths* ApplicationPaths()
     {
@@ -65,6 +75,8 @@ public:
 #endif
 
     virtual ~CSchedulerApplication();
+
+protected slots:
 
 };
 

@@ -8,51 +8,38 @@
 #include "new-gui/Common/XmlSerializer.h"
 
 
-
+// for serialization
+//
 class bratSchedulerConfig;
 
 
-///////////////////////////////////////
-//			CTasksProcessor
-///////////////////////////////////////
 
 class CTasksProcessor
 {
-	typedef std::vector<CBratTask*> tasks_set_t;
+	///////////////////////////////////////
+	//	types
+	///////////////////////////////////////
 
-protected:
-
+public:
 	typedef CBratTask::uid_t	uid_t;
-	typedef CBratTask::Status	Status;
-
-private:
-	//tasks_set_t mPendingTasks;
-	//tasks_set_t mProcessingTasks;
-	//tasks_set_t mEndedTasks;
-
-	uid_t m_lastId;
 
 protected:
-	std::string m_fullFileName;
+
+	typedef CBratTask::EStatus	EStatus;
+
+	///////////////////////////////////////
+	//static members
+	///////////////////////////////////////
+
+
+	static const std::string smFileName;
 
 	static bool mFactoryCalled;
     static CTasksProcessor* smInstance;
 	static std::function<CTasksProcessor*( const std::string &filename, bool lockFile, bool unlockFile )> mFactory;
 
-	bool m_reloadAll = false;
 
-private:
-	// Map for all tasks (the reference map)
-	CMapBratTask m_mapBratTask;
-	// Map for pending tasks - Warning : don't delete object stored in it.
-	CMapBratTask mPendingTasksMap;
-	// Map for processing tasks - Warning : don't delete object stored in it.
-	CMapBratTask mProcessingTasksMap;
-	// Map for ended (or error) tasks - Warning : don't delete object stored in it.
-	CMapBratTask mEndedTasksMap;
-	// Map used to stored new pending tasks when file is reloaded.
-	// Tasks are just added as reference - Warning : don't delete object stored in it.
-	CMapBratTask m_mapNewBratTask;
+	//....construction
 
 protected:
 	template< class DERIVED = CTasksProcessor >
@@ -65,25 +52,6 @@ protected:
 		};
 	}
 
-	CTasksProcessor() :
-		  mPendingTasksMap( false )
-		, mProcessingTasksMap( false )
-		, mEndedTasksMap( false )
-		, m_mapNewBratTask( false )
-	{}
-
-public:	//TODO: pass to private after transition
-	CTasksProcessor( const std::string &filename, bool lockFile = true, bool unlockFile = true ) : 
-		  m_fullFileName( filename )
-		, mPendingTasksMap( false )
-		, mProcessingTasksMap( false )
-		, mEndedTasksMap( false )
-		, m_mapNewBratTask( false )
-	{
-		LoadAndCreateTasks( filename, lockFile, unlockFile );		//if not ... throw ???
-	}
-
-protected:
     static CTasksProcessor* GetInstance( const std::string* fileName, bool reload = false, bool lockFile = true, bool unlockFile = true );
 
 public:
@@ -96,7 +64,7 @@ public:
     }
     static CTasksProcessor* CreateInstance( const std::string &exec_path, bool reload = false, bool lockFile = true, bool unlockFile = true )
 	{
-        const std::string path = exec_path + "/BratSchedulerTasksConfig.xml";
+        const std::string path = exec_path + "/" + smFileName + ".xml";
 
         return GetInstance( &path, reload, lockFile, unlockFile );
 	}
@@ -109,22 +77,110 @@ public:
 	}
 
 
-	virtual ~CTasksProcessor()
+
+	///////////////////////////////////////
+	//instance data
+	///////////////////////////////////////
+
+private:
+
+	uid_t m_lastId;
+
+protected:
+	std::string m_fullFileName;
+
+	bool m_reloadAll = false;
+
+private:
+	// Map for all tasks (the reference map)
+	//
+	CMapBratTask m_mapBratTask;
+
+	// Map for pending tasks - Warning : don't delete object stored in it.
+	//
+	CMapBratTask mPendingTasksMap;
+
+	// Map for processing tasks - Warning : don't delete object stored in it.
+	//
+	CMapBratTask mProcessingTasksMap;
+
+	// Map for ended (or error) tasks - Warning : don't delete object stored in it.
+	//
+	CMapBratTask mEndedTasksMap;
+
+	// Map used to stored new pending tasks when file is reloaded.
+	// Tasks are just added as reference - Warning : don't delete object stored in it.
+	//
+	CMapBratTask m_mapNewBratTask;
+
+
+
+	///////////////////////////////////////
+	//construction / destruction				//- see also static section, singleton related
+	///////////////////////////////////////
+
+protected:
+
+#if defined(BRAT_V3) || defined(DEBUG) || defined(_DEBUG)
+	CTasksProcessor() :
+		  mPendingTasksMap( false )
+		, mProcessingTasksMap( false )
+		, mEndedTasksMap( false )
+		, m_mapNewBratTask( false )
+	{}
+#endif
+
+
+//called by factory, also used by CSchedulerTaskConfig
+
+	CTasksProcessor( const std::string &filename, bool lockFile = true, bool unlockFile = true ) : 
+		  m_fullFileName( filename )
+		, mPendingTasksMap( false )
+		, mProcessingTasksMap( false )
+		, mEndedTasksMap( false )
+		, m_mapNewBratTask( false )
 	{
-		//destroyPointersAndContainer( mPendingTasks );
-		//destroyPointersAndContainer( mProcessingTasks );
-		//destroyPointersAndContainer( mEndedTasks );
+		LoadAndCreateTasks( filename, lockFile, unlockFile );		//if not ... throw ???
 	}
 
+public:
 
+	virtual ~CTasksProcessor()
+	{}
+
+
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 	// brat interface - begin /////////////////////////////////////////////////////////////////////////////////////
 
 	CBratTask* CreateTaskAsPending( bool function, CBratTask *parent, const std::string& cmd_or_function, CVectorBratAlgorithmParam& params, const QDateTime& at, const std::string& name, const std::string& log_dir );
 	CBratTask* CreateCmdTaskAsPending( CBratTask *parent, const std::string& cmd, const QDateTime& at, const std::string& name, const std::string& log_dir );
 	CBratTask* CreateFunctionTaskAsPending( CBratTask *parent, const std::string& function, CVectorBratAlgorithmParam& params, const QDateTime& at, const std::string& name, const std::string& log_dir );
 
+	virtual bool LoadAllTasks();
+
+	////////////////
+	// Find
+
+	CBratTask* FindTaskFromMap( uid_t id );
+
+protected:
+
+	void AddTask2Parent( uid_t parentId, CBratTask* task );
+
+	bool RemoveTaskFromMap( uid_t id );
+
 
 	// brat interface - end ///////////////////////////////////////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+	
+public:
+
+	//access 
+	
+	const std::string& SchedulerFilePath() const { return m_fullFileName; }
+
+
 
 protected:
 
@@ -156,12 +212,13 @@ protected:
 	}
 
 
-	///////////////
-	//serialization
+	///////////////////////////////////////
+	//	serialization
+	///////////////////////////////////////
 
-public:		//TODO pass to private after transition to new scheduler
-	virtual bool LoadAndCreateTasks( const std::string& fileName, bool lockFile = true, bool unlockFile = true );
 protected:
+	virtual bool LoadAndCreateTasks( const std::string& fileName, bool lockFile = true, bool unlockFile = true );
+
 	bool LoadAndCreateTasks( bool lockFile = true, bool unlockFile = true )
 	{
 		return LoadAndCreateTasks( m_fullFileName, lockFile, unlockFile );
@@ -171,16 +228,24 @@ protected:
 	virtual bool AddNewTasksFromSibling( CTasksProcessor* sched );
 
 	
-public:		//TODO pass to private after transition to new scheduler
+public:
 
-	bool ReloadOnlyNew( /*std::function<CTasksProcessor*(const std::string &filename, bool lockFile, bool unlockFile)> factory, */
+	// scheduler interface
+
+	bool ReloadOnlyNew( //std::function<CTasksProcessor*(const std::string &filename, bool lockFile, bool unlockFile)> factory,
 		bool lockFile = true, bool unlockFile = true );
+
+	void GetMapPendingBratTaskToProcess( std::vector<uid_t> *tasks2process );	//const wxDateTime& dateref,  femm
+
+	bool HasMapNewBratTask() const { return ( m_mapNewBratTask.size() > 0 ); }
+
+	virtual bool SaveAllTasks();
 
 public:
 
-    CTasksProcessor& operator = ( const bratSchedulerConfig &o );			//USED ON LOAD
+    CTasksProcessor& operator = ( const bratSchedulerConfig &o );		//used by global load
 
-    bratSchedulerConfig& IOcopy( bratSchedulerConfig &oxml ) const;			//USED ON STORE
+    bratSchedulerConfig& IOcopy( bratSchedulerConfig &oxml ) const;		//used by global store
 
 protected:
 
@@ -190,42 +255,9 @@ protected:
 	bool load( const std::string &path );
 
 
-
-	/////////////////////////////////////////////////////
-	//			CSchedulerTaskConfig methods
-	/////////////////////////////////////////////////////
-
-	/////////////////////////////////////////////////////
-	//			Accessors
-
-public:
-    virtual bool IsOk() const { return true; }
-
-    bool IsReloadAll() { return m_reloadAll; }
-
-	CMapBratTask* GetMapPendingBratTask() { return &mPendingTasksMap; }
-	CMapBratTask* GetMapEndedBratTask() { return &mEndedTasksMap; }
-
-	const CMapBratTask* GetMapNewBratTask() const { return &m_mapNewBratTask; }
-	bool HasMapNewBratTask() const { return ( m_mapNewBratTask.size() > 0 ); }
-
-
-	CBratTask* FindTaskFromMap( uid_t id );
-
-	uid_t GenerateId();
-
-	void GetMapPendingBratTaskToProcess(/*const wxDateTime& dateref,  femm*/std::vector<uid_t>* vectorBratTaskToProcess );
-
-
-protected:
-//were private
-    CMapBratTask* GetMapBratTask() { return &m_mapBratTask; }
-    CMapBratTask* GetMapProcessingBratTask() { return &mProcessingTasksMap; }
-
-
-
-	/////////////////////////////////////////////////////
+	///////////////////////////////////////
 	//			Locks
+	///////////////////////////////////////
 
 protected:
 	virtual bool LockConfigFile( bool lockFile = true )
@@ -254,20 +286,24 @@ protected:
 
 
 	/////////////////////////////////////////////////////
-	//			Add / Remove
+	//			CSchedulerTaskConfig methods
+	/////////////////////////////////////////////////////
 
 public:
-	virtual bool LoadAllTasks();
-	virtual bool SaveAllTasks();
+
+	CMapBratTask* GetMapPendingBratTask() { return &mPendingTasksMap; }
+	CMapBratTask* GetMapEndedBratTask() { return &mEndedTasksMap; }
 
 protected:
 
-	virtual void AddTaskToMap( CBratTask* bratTask );
-
-	void AddTask2Parent( uid_t parentId, CBratTask* bratTask );
-	void AddTask( const CMapBratTask* mapBratTask );
+    bool IsReloadAll() { return m_reloadAll; }
 
 
+	////////////////
+	// Add / Remove
+
+
+	virtual void AddTaskToMap( CBratTask* task );
 
 	virtual void RemoveMapBratTasks()
 	{
@@ -282,25 +318,57 @@ protected:
 	}
 
 
-	bool RemoveTaskFromMap( CBratTask* bratTask )
-	{
-		if ( !bratTask )
-			return false;
+	////////////////
+	// 
 
-		return RemoveTaskFromMap( bratTask->GetUid() );
-	}
-	bool RemoveTaskFromMap( uid_t id );
+	uid_t GenerateId();
 
+
+#if defined(BRAT_V3)
+
+	/////////////////////////////////////////////////////
+	//			Accessors
+
+public:
+    virtual bool IsOk() const { return true; }
+
+	const CMapBratTask* GetMapNewBratTask() const { return &m_mapNewBratTask; }
+
+
+protected:
+//were private
+    CMapBratTask* GetMapBratTask() { return &m_mapBratTask; }
+    CMapBratTask* GetMapProcessingBratTask() { return &mProcessingTasksMap; }
+
+
+
+	/////////////////////////////////////////////////////
+	//			Add / Remove
+
+
+	void AddTask( const CMapBratTask* mapBratTask );
+
+
+#endif	//BRAT_V3
 
 
 	/////////////////////////////////////////////////////
 	//			Change
 
-	virtual Status ChangeTaskStatus( uid_t id, Status newStatus );
 public:
+	// scheduler interface
+
+	virtual EStatus ChangeTaskStatus( uid_t id, EStatus newStatus );
 
 	bool ChangeProcessingToPending( CVectorBratTask& vectorTasks );
 
+	bool RemoveTaskFromMap( CBratTask* task )
+	{
+		if ( !task )
+			return false;
+
+		return RemoveTaskFromMap( task->GetUid() );
+	}
 };
 
 

@@ -73,6 +73,8 @@ void CWorkspaceViewsDialog::Wire()
 {
     //	Setup things
 
+	connect( mViewsListWidget, SIGNAL( itemActivated(QListWidgetItem*) ), this, SLOT( accept() ) );
+
 	connect( mButtonBox, SIGNAL( accepted() ), this, SLOT( accept() ) );
 	connect( mButtonBox, SIGNAL( rejected() ), this, SLOT( reject() ) );
 

@@ -227,7 +227,7 @@ protected:
 
 	virtual void OneClick() = 0;
 
-	virtual bool ViewChanged() = 0;
+	virtual bool ChangeView() = 0;
 
 	virtual bool Test() = 0;
 
@@ -325,7 +325,7 @@ std::vector< PLOT* > CAbstractDisplayEditor::GetPlotsFromDisplayFile( bool maps_
 {
 	std::vector< PLOT* > v;
 
-	std::string errors;
+	//std::string errors;
 	delete mCurrentDisplayFilesProcessor;
 	try
 	{
@@ -342,15 +342,16 @@ std::vector< PLOT* > CAbstractDisplayEditor::GetPlotsFromDisplayFile( bool maps_
 			}
 		}
 	}
-	catch ( const CException &e )
+	catch ( const CException & )
 	{
-		errors = e.Message();
+		//errors = e.Message();
 		delete mCurrentDisplayFilesProcessor;
 		mCurrentDisplayFilesProcessor = nullptr;
+		throw;		//propagate outside
 	}
 
-	if ( !errors.empty() )
-		SimpleWarnBox( errors );
+	//if ( !errors.empty() )
+	//	SimpleWarnBox( errors );
 
 	return v;
 }

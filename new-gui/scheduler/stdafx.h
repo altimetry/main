@@ -139,6 +139,10 @@
 	#include <QMenu>
 #endif
 
+
+#include <new-gui/Common/SingleApplication/QtSingleApplication>
+
+
 #if defined (WIN32) || defined(_WIN32)
 #pragma warning ( default: 4100 )           //unreferenced formal parameter
 #endif
@@ -152,13 +156,19 @@
 //////////////////////////////////////////////////////
 //////////////////////////////////////////////////////Avoid 3rd Party Warnings - end
 
+
+
+//////////////////////////////////////////////////////////
+//				Miscellaneous
+//////////////////////////////////////////////////////////
+
 #if defined (_MSC_VER)
 #include "new-gui/Common/tools/ExceptionWin.h"
 #endif
 
-//////////////////////////////////////////////////////////
-//				Miscellaneous Experimental
-//////////////////////////////////////////////////////////
+
+#include "SchedulerLogger.h"
+
 
 #define BOOST_LOCALE_LINKED   //required for utf <-> ascii conversions
 
@@ -169,8 +179,6 @@
 #endif
 #endif
 
-
-//#define TESTING_GLOBE
 
 
 

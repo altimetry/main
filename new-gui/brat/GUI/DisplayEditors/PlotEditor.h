@@ -141,7 +141,7 @@ protected:
 	virtual void StatisticsStDev() override;
 	virtual void StatisticsLinearRegression() override;
 
-	virtual bool ViewChanged() override;
+	virtual bool ChangeView() override;
 	virtual void NewButtonClicked() override;
 	virtual void RenameButtonClicked() override;
 	virtual void DeleteButtonClicked() override;

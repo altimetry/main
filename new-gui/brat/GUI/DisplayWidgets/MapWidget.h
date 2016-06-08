@@ -136,20 +136,25 @@ public:
 	
     static QgsSymbolV2* CreatePointSymbol( double width, const QColor &color );
 
-	static QgsSymbolV2* createLineSymbol( double width, const QColor &color );
+	static QgsSymbolV2* CreateLineSymbol( double width, const QColor &color );
 
+    ///////////////// TODO _ RCCC //////////////////////////////////////////
+    static QgsSymbolV2* CreateArrowSymbol(const QColor &color );
+    /////////////////////////////////////////////////////////////////////////
 
     static QgsFeatureList& CreatePointFeature( QgsFeatureList &list, double lon, double lat, const std::map<QString, QVariant> &attrs = std::map<QString, QVariant>() );
 
 	static QgsFeatureList& CreatePointFeature( QgsFeatureList &list, double lon, double lat, double value );
 
     ///////////////// TODO _ RCCC //////////////////////////////////////////
-    static QgsFeatureList& CreatePolygonFeature( QgsFeatureList &list, double lon, double lat, const std::map<QString, QVariant> &attrs = std::map<QString, QVariant>() );
+    static QgsFeatureList& CreatePolygonFeature(QgsFeatureList &list, double lon, double lat, const std::map<QString, QVariant> &attrs = std::map<QString, QVariant>(), const QgsFields &fields = QgsFields());
 
-    static QgsFeatureList& CreatePolygonFeature( QgsFeatureList &list, double lon, double lat, double value );
+    static QgsFeatureList& CreatePolygonFeature(QgsFeatureList &list, double lon, double lat, double value );
+
+    static QgsFeatureList& CreatePointArrowFeature(QgsFeatureList &list, double lon, double lat, const std::map<QString, QVariant> &attrs, const QgsFields &fields);
     /////////////////////////////////////////////////////////////////////////
 
-	static QgsFeatureList& createLineFeature( QgsFeatureList &list, QgsPolyline points );
+	static QgsFeatureList& CreateLineFeature( QgsFeatureList &list, QgsPolyline points );
 
 
 protected:
@@ -293,6 +298,12 @@ public:
 	{
 		return AddDataLayer( true, name, 0., m, M, lut, contours, flist );
 	}
+
+    QgsVectorLayer* AddContourDataLayer( const std::string &name, double m, double M, const QLookupTable *lut, size_t contours, QgsFeatureList &flist );
+
+    ///////////////// RCCC TODO ///////////////////////////////////////////////////////////
+    QgsVectorLayer* AddArrowDataLayer(const std::string &name, QgsFeatureList &flist );
+    ///////////////////////////////////////////////////////////////////////////////////////
 
     void PlotTrack( const double *x, const double *y, const double *z, size_t size, brathl_refDate ref_date, QColor color = Qt::red );
 

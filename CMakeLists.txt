@@ -17,7 +17,7 @@ project(BRAT)
 
 set(BRAT_MAJOR_VERSION "4")
 set(BRAT_MINOR_VERSION "0")
-set(BRAT_REVISION_VERSION "0-beta")
+set(BRAT_REVISION_VERSION "0-rc3")
 set(BRAT_VERSION "${BRAT_MAJOR_VERSION}.${BRAT_MINOR_VERSION}.${BRAT_REVISION_VERSION}")
 
 message(STATUS "System type: ${CMAKE_SYSTEM_NAME}")
@@ -1931,6 +1931,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/scheduler/main.cpp
 		new-gui/scheduler/SchedulerDialog.cpp
 		new-gui/scheduler/SchedulerApplication.cpp
+		new-gui/scheduler/EditTasksFileDialog.cpp
 		new-gui/Common/DataModels/TaskProcessor.cpp
 		new-gui/Common/DataModels/BratTask.cpp
 		new-gui/Common/ConsoleApplicationPaths.cpp
@@ -1938,6 +1939,10 @@ if(BRAT_BUILD_GUI)
 		new-gui/scheduler/SchedulerLogger.cpp
 		new-gui/Common/GUI/TextWidget.cpp
 		new-gui/Common/GUI/BasicLogShell.cpp
+		new-gui/Common/GUI/ProcessesTable.cpp
+		new-gui/Common/GUI/ControlPanel.cpp
+		new-gui/Common/SingleApplication/qtsingleapplication.cpp
+		new-gui/Common/SingleApplication/qtlocalpeer.cpp
 	)
 
 
@@ -1947,12 +1952,14 @@ if(BRAT_BUILD_GUI)
 
 	set(SCHEDULER_SOURCES_H
 	    new-gui/scheduler/stdafx.h
+		new-gui/Common/BratVersion.h
 		new-gui/Common/+Utils.h
 		new-gui/Common/QtUtilsIO.h
 		new-gui/Common/QtStringUtils.h
 		new-gui/Common/QtUtils.h
 		new-gui/scheduler/SchedulerDialog.h
 		new-gui/scheduler/SchedulerApplication.h
+		new-gui/scheduler/EditTasksFileDialog.h
 		new-gui/Common/ScheduledTasksList.hxx
 		new-gui/Common/DataModels/TaskProcessor.h
 		new-gui/Common/DataModels/BratTask.h
@@ -1962,6 +1969,10 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/XmlSerializer.h
 		new-gui/Common/GUI/TextWidget.h
 		new-gui/Common/GUI/BasicLogShell.h
+		new-gui/Common/GUI/ProcessesTable.h
+		new-gui/Common/GUI/ControlPanel.h
+		new-gui/Common/SingleApplication/qtsingleapplication.h
+		new-gui/Common/SingleApplication/qtlocalpeer.h
 	)
 
 	QT4_WRAP_UI(schedulerUISrcs new-gui/scheduler/SchedulerDialog.ui)
@@ -2000,10 +2011,17 @@ if(BRAT_BUILD_GUI)
 		${QT_QTCORE_LIBRARY} 
 		${QT_QTMAIN_LIBRARY}
 		${QT_QTGUI_LIBRARY}
+		${QT_QTNETWORK_LIBRARY}
 		${XercesC_LIBRARIES} 
 		brathlProcessUtilities 
 		brathl 
 	)
+	
+	target_compile_definitions( scheduler 
+		PRIVATE
+		-DUNICODE
+		-D_UNICODE
+		)
 	
 	install(TARGETS scheduler DESTINATION bin BUNDLE DESTINATION .)
 	
@@ -2060,7 +2078,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/DesktopManager.cpp
 		new-gui/Common/GUI/TextWidget.cpp
 		new-gui/brat/GUI/TabbedDock.cpp
-		new-gui/brat/GUI/ControlPanels/ControlPanel.cpp
+		new-gui/Common/GUI/ControlPanel.cpp
 		new-gui/brat/GUI/ControlPanels/DatasetBrowserControls.cpp
 		new-gui/brat/DataModels/Model.cpp
 		new-gui/brat/GUI/ActionsTable.cpp
@@ -2103,7 +2121,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/ControlPanels/DatasetFilterControls.cpp
 		new-gui/brat/GUI/DisplayWidgets/Globe/GlobeControls.cpp
 		new-gui/brat/GUI/ControlPanels/OperationControls.cpp
-		new-gui/brat/GUI/ControlPanels/ProcessesTable.cpp
+		new-gui/Common/GUI/ProcessesTable.cpp
 		new-gui/brat/GUI/DisplayEditors/MapEditor.cpp
 		new-gui/brat/GUI/DisplayEditors/PlotEditor.cpp
 		new-gui/brat/GUI/ControlPanels/OperationControls-Quick.cpp
@@ -2132,6 +2150,10 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/DataModels/TaskProcessor.cpp
 		new-gui/Common/DataModels/BratTask.cpp
 		new-gui/brat/GUI/DisplayEditors/Dialogs/ExportImageDialog.cpp
+		process/BratEmbeddedPythonProcess.cpp
+		new-gui/brat/GUI/ControlPanels/DesktopControlPanel.cpp
+		new-gui/brat/DataModels/PlotData/Contour/Contour.cpp
+		new-gui/brat/DataModels/PlotData/Contour/ListContour.cpp
 	)
 
 		
@@ -2140,6 +2162,7 @@ if(BRAT_BUILD_GUI)
 	# -----------------------------------------------------
 	set(GUI_SOURCES_H
 		new-gui/brat/stdafx.h
+		new-gui/Common/BratVersion.h
 		new-gui/brat/BratApplication.h
 		new-gui/brat/BratMainWindow.h
 		new-gui/brat/DataModels/Workspaces/BitSet32.h
@@ -2166,7 +2189,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/DesktopManager.h
 		new-gui/Common/GUI/TextWidget.h
 		new-gui/brat/GUI/TabbedDock.h
-		new-gui/brat/GUI/ControlPanels/ControlPanel.h
+		new-gui/Common/GUI/ControlPanel.h
 		new-gui/brat/GUI/ControlPanels/DatasetBrowserControls.h
 		new-gui/brat/DataModels/Model.h
 		new-gui/brat/GUI/ActionsTable.h
@@ -2203,7 +2226,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/ControlPanels/DatasetFilterControls.h
 		new-gui/brat/GUI/DisplayWidgets/Globe/GlobeControls.h
 		new-gui/brat/GUI/ControlPanels/OperationControls.h
-		new-gui/brat/GUI/ControlPanels/ProcessesTable.h
+		new-gui/Common/GUI/ProcessesTable.h
 		new-gui/brat/GUI/DisplayEditors/MapEditor.h
 		new-gui/brat/GUI/DisplayEditors/PlotEditor.h
 		new-gui/brat/GUI/ControlPanels/Views/ViewControlPanels.h
@@ -2232,6 +2255,10 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/DataModels/TaskProcessor.h
 		new-gui/Common/DataModels/BratTask.h
 		new-gui/brat/GUI/DisplayEditors/Dialogs/ExportImageDialog.h
+		process/BratEmbeddedPythonProcess.h
+		new-gui/brat/GUI/ControlPanels/DesktopControlPanel.h
+		new-gui/brat/DataModels/PlotData/Contour/Contour.h
+		new-gui/brat/DataModels/PlotData/Contour/ListContour.h
 	)
 
 
@@ -2331,7 +2358,9 @@ if(BRAT_BUILD_GUI)
 		-DANALYSIS_EXPORT 
 		-DAPP_EXPORT 
 		-DCUSTOMWIDGETS_EXPORT 
-		-DSERVER_EXPORT 			
+		-DSERVER_EXPORT
+		-DUNICODE
+		-D_UNICODE
 		)
 		
 	IF (WIN32)	

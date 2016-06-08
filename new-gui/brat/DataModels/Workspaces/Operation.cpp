@@ -234,7 +234,7 @@ public:
 		WriteLn();
 		Comment( "----- SELECT -----" );
 		WriteLn();
-		if ( mOp.GetSelect()->GetDescription( true ).empty() == false )
+        if ( !mOp.GetSelect()->GetDescription( true ).empty() )
 		{
 			WriteLn( std::string( kwSELECT.c_str() ) + "=" + mOp.GetSelect()->GetDescription( true ) );
 		}

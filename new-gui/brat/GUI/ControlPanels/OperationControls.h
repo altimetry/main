@@ -6,7 +6,7 @@
 
 #include "DataModels/Workspaces/Operation.h"
 
-#include "ControlPanel.h"
+#include "DesktopControlPanel.h"
 
 
 class CProcessesTable;
@@ -60,6 +60,7 @@ public:
 
 	struct post_execution_handler_wrapper_t
 	{
+		COperation *operation;
 		post_execution_handler_t post_execution_handler;
 	};
 
@@ -102,6 +103,7 @@ protected:
 	QToolButton *mOperationExportButton = nullptr;
 	QAction *mExportOperationAction = nullptr;
 	QAction *mEditExportAsciiAction = nullptr;
+	QAction *mCreateExportedDisplaysAction = nullptr;
 	QToolButton *mOperationStatisticsButton = nullptr;
 
 	QToolButton *mSplitPlotsButton = nullptr;
@@ -362,11 +364,12 @@ protected slots:
 
 	void HandleExportOperation();
 	void HandleEditExportAscii();
+	void HandleCreateExportedDisplays();
 	void HandleOperationStatistics();
 
 	bool HandleExecute();
 
-	void HandleProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation, bool sync, void *user_data );
+	void HandleProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, bool sync, void *user_data );
 	void HandleDelayExecution();
 	void SchedulerProcessError( QProcess::ProcessError );
 

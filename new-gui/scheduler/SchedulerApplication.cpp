@@ -30,31 +30,44 @@ const CConsoleApplicationPaths *CSchedulerApplication::smApplicationPaths = null
 //	everything else has failed.
 //
 //static
-int CSchedulerApplication::OffGuiErrorDialog( int error_type, char const *error_msg )
+int CSchedulerApplication::OffGuiErrorDialog( int error_code, char const *error_msg )
 {
     int argc = 0;
     QApplication a( argc, nullptr );
     QMessageBox msg_abort;
-    msg_abort.setText( QString("A fatal error as ocurred.") );
+    msg_abort.setText( error_code == 0 ? QString("Warning:") : QString("A fatal error as occurred.") );
     msg_abort.setInformativeText( error_msg );
-    msg_abort.setStandardButtons( QMessageBox::Abort );
-    msg_abort.setIcon( QMessageBox::Critical );
+    msg_abort.setStandardButtons( error_code == 0 ? QMessageBox::Close : QMessageBox::Abort );
+    msg_abort.setIcon( error_code == 0 ? QMessageBox::Warning : QMessageBox::Critical );
     msg_abort.exec();
-    return error_type;
+    return error_code;
 }
 
 
-
-CSchedulerApplication::CSchedulerApplication(int &argc, char **argv, int flags)
-    : base_t(argc, argv, flags)
+CSchedulerApplication::CSchedulerApplication( int &argc, char **argv, int flags )
+    : base_t( argc, argv, flags )
 {
+    //	0. SingleInstanceChecker
+
+	if ( isRunning() )
+	{
+		QString msg = QString("Quiting duplicated scheduler instance %1.").arg( QCoreApplication::applicationPid() );
+		bool sentok = sendMessage( msg, 2000 );
+		QString rep( "Another instance is running. Exiting...." );
+		rep += sentok ? " Message sent ok." : " Message sending failed; the other instance may be frozen.";
+		LOG_WARN( rep );
+		throw QtSingleApplicationException( "Scheduler is already running." );		//dtor won't be called
+	}
+
+
+    //	I. XML
+
     ::xercesc::XMLPlatformUtils::Initialize();
 
 #if defined(MEM_LEAKS)
 	_CrtMemCheckpoint( &FirstState );			//set first flag
 #endif
 
-    //	I. SingleInstanceChecker
 
     //	II. Logging
 
@@ -73,33 +86,6 @@ CSchedulerApplication::CSchedulerApplication(int &argc, char **argv, int flags)
     CTools::SetInternalDataDir( brat_paths.mInternalDataDir );
 
     /*
-    if ( getenv( BRATHL_ENVVAR ) == NULL )
-    {
-        // Note that this won't work on Mac OS X when you use './BratGui' from within the Contents/MacOS directory of
-        // you .app bundle. The problem is that in that case Mac OS X will change the current working directory to the
-        // location of the .app bundle and thus the calculation of absolute paths will break
-        CTools::SetDataDirForExecutable( wxGetApp().argv[ 0 ] );
-    }
-
-
-    if ( appPath != "" )
-    {
-        if ( getenv( BRATHL_ENVVAR ) == NULL )
-        {
-            CTools::SetDataDirForExecutable( wxGetApp().argv[ 0 ] );
-        }
-    }
-
-    if ( !CTools::DirectoryExists( CTools::GetDataDir() ) )
-    {
-        std::cerr << "ERROR: " << CTools::GetDataDir() << " is not a valid directory" << std::endl;
-        ::wxMessageBox( std::string( CTools::GetDataDir().c_str() ) + " is not a valid directory -- BRAT cannot continue. \n\nAre you sure your " + BRATHL_ENVVAR + " environment variable is set correctly?", "BRAT ERROR" );
-
-        DeleteChecker(); // OnExit() won't be called if we return false
-
-        return false;
-    }
-
     //	IV. Units System
 
     std::string errorMsg;

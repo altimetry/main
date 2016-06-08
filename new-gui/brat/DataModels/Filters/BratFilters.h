@@ -21,6 +21,50 @@ using namespace brathl;
 
 
 
+inline std::string MakeAlias( const std::string &aname )
+{
+    return "%{" + aname + "}";
+}
+
+
+
+inline const std::string& lon_name()
+{
+    static const std::string s = "lon";
+    return s;
+}
+inline const std::string& lat_name()
+{
+    static const std::string s = "lat";
+    return s;
+}
+inline const std::string& time_name()
+{
+    static const std::string s = "time";
+    return s;
+}
+
+
+inline const std::string& lon_alias()
+{
+    static const std::string s = MakeAlias( lon_name() );
+    return s;
+}
+inline const std::string& lat_alias()
+{
+    static const std::string s = MakeAlias( lat_name() );
+    return s;
+}
+inline const std::string& time_alias()
+{
+    static const std::string s = MakeAlias( time_name() );
+    return s;
+}
+
+
+/////////////////////////////////////////////////////////////////////////////
+
+
 class CBratFilter
 {
     //types
@@ -241,7 +285,9 @@ public:
 
     bool Apply( const std::string &name, const CStringList& files_in, CStringList& files_out ) const;
     bool Translate2SelectionCriteria( CProduct *product_ref, const std::string &name ) const;
-
+    //////// RCCC TODO /////////////////////////////////////
+    std::string GetSelectionCriteriaExpression( const std::string &name );
+    /////////////////////////////////////////////////////////
 
     // persistence
 

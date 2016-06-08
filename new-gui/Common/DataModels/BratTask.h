@@ -48,7 +48,9 @@ class CVectorBratTask : public std::vector<CBratTask*>
 	bool m_bDelete;
 
 public:
-	CVectorBratTask( bool bDelete = true ) : base_t(), m_bDelete( bDelete )
+	CVectorBratTask( bool bDelete = true ) 
+		: base_t()
+		, m_bDelete( bDelete )
 	{}
 
 	virtual ~CVectorBratTask()
@@ -205,15 +207,15 @@ public:
 
 	typedef long long uid_t;
 
-	enum Status
+	enum EStatus
 	{
-		e_BRAT_STATUS_PENDING,
-		e_BRAT_STATUS_PROCESSING,
-		e_BRAT_STATUS_ENDED,
-		e_BRAT_STATUS_ERROR,
-		e_BRAT_STATUS_WARNING,
+		eBRAT_STATUS_PENDING,
+		eBRAT_STATUS_PROCESSING,
+		eBRAT_STATUS_ENDED,
+		eBRAT_STATUS_ERROR,
+		eBRAT_STATUS_WARNING,
 
-		e_Status_size
+		eStatus_size
 	};
 
 	//static members (functions and data)
@@ -221,7 +223,7 @@ public:
 protected:
 	static const std::string* statusNames()		//XSD: these are values of the XSD enumeration of status attribute
 	{
-		static const std::string labels[ e_Status_size ] =
+		static const std::string labels[ eStatus_size ] =
 		{
 			"pending",
 			"in progress",
@@ -230,27 +232,27 @@ protected:
 			"warning"
 		};
 
-		static_assert( ARRAY_SIZE( labels ) == e_Status_size, "CBratTask: Number of status labels and values does not match." );
+		static_assert( ARRAY_SIZE( labels ) == eStatus_size, "CBratTask: Number of status labels and values does not match." );
 
 		return labels;
 	}
 
 
 public:
-	static const std::string& TaskStatusToString( Status s )
+	static const std::string& TaskStatusToString( EStatus s )
 	{
-		assert__( s < e_Status_size );
+		assert__( s < eStatus_size );
 
 		return statusNames()[ s ];
 	}
 
-	static Status StringToTaskStatus( const std::string& status )
+	static EStatus StringToTaskStatus( const std::string& status )
 	{
 		static const std::string *labels = statusNames();
 
-		auto it = std::find( labels, &labels[ e_Status_size ], status );
-		if ( it != &labels[ e_Status_size ] )
-			return static_cast<Status>( it - labels );
+		auto it = std::find( labels, &labels[ eStatus_size ], status );
+		if ( it != &labels[ eStatus_size ] )
+			return static_cast<EStatus>( it - labels );
 
 		throw CException( "CBratTask::StringToTaskStatus: unknown status label " + status, BRATHL_INCONSISTENCY_ERROR );
 	}
@@ -285,7 +287,7 @@ protected:
 	std::string m_cmd;										//3
 	CBratTaskFunction m_function;							//4
 	QDateTime m_at;											//5	//typedef wxDateTime QDateTime;
-	Status m_status = CBratTask::e_BRAT_STATUS_PENDING;		//6
+	EStatus m_status = CBratTask::eBRAT_STATUS_PENDING;		//6
 	std::string m_logFile;									//7
 
 	CVectorBratTask m_subordinateTasks;						//8
@@ -296,7 +298,7 @@ public:
 	CBratTask()
 	{}
 
-	CBratTask( uid_t uid, const std::string &name, const std::string &cmd, const QDateTime &at, Status status, const std::string &log_file )
+	CBratTask( uid_t uid, const std::string &name, const std::string &cmd, const QDateTime &at, EStatus status, const std::string &log_file )
 		: m_uid( uid )
 		, m_name( name )
 		, m_cmd( cmd )
@@ -305,7 +307,7 @@ public:
 		, m_logFile( log_file )
 	{}
 
-	CBratTask( uid_t uid, const std::string &name, CBratTaskFunction function, const QDateTime &at, Status status, const std::string &log_file )
+	CBratTask( uid_t uid, const std::string &name, CBratTaskFunction function, const QDateTime &at, EStatus status, const std::string &log_file )
 		: m_uid( uid )
 		, m_name( name )
         , m_function( function )
@@ -408,10 +410,10 @@ public:
 	const std::string& GetCmd() const { return m_cmd; }
 	void SetCmd( const std::string &value ) { m_cmd = value; }
 
-	Status GetStatus() const { return m_status; }
+	EStatus GetStatus() const { return m_status; }
 	std::string GetStatusAsString() const { return TaskStatusToString( m_status ); }
 	void SetStatus( const std::string& value ) { m_status = CBratTask::StringToTaskStatus( value ); }
-	void SetStatus( Status value ) { m_status = value; }
+	void SetStatus( EStatus value ) { m_status = value; }
 
 	const std::string& GetLogFile() const { return m_logFile; }				//std::string GetLogFileAsString() { return m_logFile.GetFullPath(); }	
 	void SetLogFile( const std::string& value ) { m_logFile = value; }		//void SetLogFile( const std::string& value ) { m_logFile.Assign( value ); }
@@ -443,8 +445,8 @@ public:
 	}
 
 	//femm
-	//static std::string TaskStatusToString( Status status );
-	//static Status StringToTaskStatus( const std::string& status );
+	//static std::string TaskStatusToString( EStatus status );
+	//static EStatus StringToTaskStatus( const std::string& status );
 
 	// Dump function
 	virtual void Dump( std::ostream& fOut = std::cerr );

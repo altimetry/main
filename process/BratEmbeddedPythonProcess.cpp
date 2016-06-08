@@ -29,7 +29,12 @@ using namespace processes;
 
 namespace processes
 {
+	//static 
 	const PythonEngine *CBratEmbeddedPythonProcess::smPE = nullptr;
+	//static 
+	bool CBratEmbeddedPythonProcess::smPythonStatus = true;
+	//static 
+	std::string CBratEmbeddedPythonProcess::smPythonMessages;
 
 
 	//static 
@@ -83,42 +88,44 @@ namespace processes
 
 		//function body
 
-
-		const std::wstring wpython_dir = q2w( executable_dir.c_str() ) + L"/Python";
-		wchar_t *argv_buffer = new wchar_t[ wpython_dir.length() + 1 ];
-		memcpy( argv_buffer, wpython_dir.c_str(), ( wpython_dir.length() + 1 ) * sizeof( wchar_t ) );
-		smPE = PythonEngine::CreateInstance( argv_buffer );
-
-
-		// I. load C++ algorithms
-
-		CBratAlgorithmBase::RegisterCAlgorithms();
-
-
-		// II. load python algorithms
-
-		std::string msg;
-		if ( smPE == nullptr )
-		{
-			msg = "Python engine could not be created.";
-		}
-
-		const std::string python_algorithms_path = executable_dir + "/Python";
-		if ( !IsDir( python_algorithms_path ) )
-		{
-			msg = "Python directory " + python_algorithms_path + " not found.";
-		}
-
-		if ( !msg.empty() )
-		{
-			std::cout << msg << "\nPython algorithms will not be available." << std::endl;
-			return false;
-		}
-
-
 		try
 		{
-			std::cout << "Searching python algorithms in " + python_algorithms_path << std::endl;
+			const std::wstring wpython_dir = q2w( executable_dir.c_str() ) + L"/Python";
+			wchar_t *argv_buffer = new wchar_t[ wpython_dir.length() + 1 ];
+			memcpy( argv_buffer, wpython_dir.c_str(), ( wpython_dir.length() + 1 ) * sizeof( wchar_t ) );
+			smPE = PythonEngine::CreateInstance( argv_buffer );
+
+
+			// I. load C++ algorithms
+
+			CBratAlgorithmBase::RegisterCAlgorithms();
+
+
+			// II. load Python algorithms
+
+			if ( smPE == nullptr )
+			{
+				smPythonMessages += "Python engine could not be created.\n";
+				smPythonStatus = false;
+			}
+
+			const std::string python_algorithms_path = executable_dir + "/Python";
+			if ( !IsDir( python_algorithms_path ) )
+			{
+				smPythonMessages += "Python directory " + python_algorithms_path + " not found.\n";
+				smPythonStatus = false;
+			}
+
+			if ( !smPythonStatus )
+			{
+				smPythonMessages += "\nPython algorithms will not be available.\n";
+				std::cout << smPythonMessages;
+				return false;
+			}
+
+
+			smPythonMessages += ( "Searching python algorithms in " + python_algorithms_path + "\n" );
+			std::cout << smPythonMessages;
 
 			auto &registry = CBratAlgorithmBaseRegistry::GetInstance();
 			QDirIterator it( python_algorithms_path.c_str(), QStringList() << "*.py", QDir::Files, QDirIterator::Subdirectories );
@@ -134,23 +141,29 @@ namespace processes
 				}
 			}
 
-			std::cout << "Finished registering python algorithms." << std::endl;
+			const std::string msg = "Finished registering python algorithms.\n";
+			smPythonMessages += msg;
+			std::cout << msg;
 
 			return true;
 		}
 		catch ( const CException &e )
 		{
+			smPythonMessages += ( e.Message() + "\n" );
 			std::cout << e.Message() << std::endl;
 		}
 		catch ( ... )
 		{
-			static const std::string msg(
+			const std::string msg(
 				"Unknown exception caught loading python algorithm.\nPlease make sure that the python file name matches the pattern "
 				+ file_prefix + "<python-class-name>" + file_suffix );
+			smPythonMessages += msg;
 			std::cout << msg  << std::endl;
 		}
 
-		return false;
+		smPythonStatus = false;
+
+		return smPythonStatus;
 	}
 
 
@@ -158,20 +171,7 @@ namespace processes
 	//virtual 
 	bool CBratEmbeddedPythonProcess::Initialize( std::string& msg )
 	{
-		try {
-			return LoadPythonEngine( mExecutableDir ) && base_t::Initialize( msg );
-		}
-		catch ( const CException &e )
-		{
-			std::cout << e.Message() << std::endl;
-		}
-		catch ( ... )
-		{
-			std::cout << "Unknown exception caught creating embedded Python." << std::endl;
-		}
-
-		smPE = nullptr;
-		return false;
+		return LoadPythonEngine( mExecutableDir ) && base_t::Initialize( msg );
 	}
 
 

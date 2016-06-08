@@ -57,8 +57,6 @@ class CBratApplication : public QgsApplication
 
 	static CApplicationPaths *smApplicationPaths;	//initialized in Prologue
 
-	static const PythonEngine *sm_pe;
-
 
 	static void CheckOpenGL( bool extended = false );
 
@@ -157,7 +155,7 @@ public:
 
 protected:
 
-	void RegisterAlgorithms();
+    bool RegisterAlgorithms();
 
 
 public slots:

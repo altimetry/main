@@ -1,18 +1,9 @@
-#if !defined GUI_CONTROL_PANELS_CONTROL_PANEL_H
-#define GUI_CONTROL_PANELS_CONTROL_PANEL_H
+#if !defined COMMON_GUI_CONTROL_PANEL_H
+#define COMMON_GUI_CONTROL_PANEL_H
 
-#include "libbrathl/Product.h"
-
-#include "GUI/DesktopManager.h"
-#include "GUI/StackedWidget.h"
-
+#include "new-gui/Common/QtUtils.h"
 
 class QgsCollapsibleGroupBox;
-class CWorkspaceDataset;
-class CWorkspaceOperation;
-class CWorkspaceDisplay;
-class CModel;
-
 
 
 
@@ -46,7 +37,7 @@ class CControlPanel : public controls_panel_base_t
 
 protected:
 
-	using stack_button_type = CStackedWidget::stack_button_type;
+	//using stack_button_type = CStackedWidget::stack_button_type;
 
 
 protected:
@@ -128,12 +119,6 @@ protected:
 		return ::CreateGroupBox< QGroupBox >( o, v, title, parent, spacing, left, top, right, bottom );
 	}
 
-	static 
-	QgsCollapsibleGroupBox* CreateCollapsibleGroupBox( ELayoutType o, const std::vector< QObject* > &v, const QString &title = "", QWidget *parent = nullptr,
-		int spacing = smSpacing, int left = smLeft, int top = smTop, int right = smRight, int bottom = smBottom )
-	{
-		return ::CreateGroupBox< QgsCollapsibleGroupBox >( o, v, title, parent, spacing, left, top, right, bottom);
-	}
 
 	static QListWidget* CreateBooleanList( QWidget *parent, std::initializer_list< BooleanListItemInfo > il );
 
@@ -150,57 +135,7 @@ protected:
 		int spacing = smSpacing, int left = smLeft, int top = smTop, int right = smRight, int bottom = smBottom );
 
 	QSplitter* AddTopSplitter( Qt::Orientation o, const std::vector< QWidget* > &v, bool collapsible = false, const QList< int > sizes = QList<int>() );
-
-
-	////////////////////////////
-	// domain
-	////////////////////////////
-
-	CField* FindField( CProduct *product, const std::string &name, bool &alias_used, std::string &field_error_msg );
-
-	std::pair<CField*, CField*> FindLonLatFields( CProduct *product, bool &alias_used, std::string &field_error_msg );
-	CField* FindTimeField( CProduct *product, bool &alias_used, std::string &field_error_msg );
 };
 
 
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////
-//					Control Panel Specialized for Desktop
-/////////////////////////////////////////////////////////////////////////////////////
-
-
-class CDesktopControlsPanel : public CControlPanel
-{
-#if defined (__APPLE__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winconsistent-missing-override"
-#endif
-
-	Q_OBJECT;
-
-#if defined (__APPLE__)
-#pragma clang diagnostic pop
-#endif
-
-	using base_t = CControlPanel;
-
-protected:
-	CModel &mModel;
-	CDesktopManagerBase *mDesktopManager = nullptr;
-
-public:
-	explicit CDesktopControlsPanel( CModel &model, CDesktopManagerBase *manager, QWidget *parent = nullptr, Qt::WindowFlags f = 0 );
-
-	virtual ~CDesktopControlsPanel()
-	{}	
-
-	// access 
-
-	// operations
-};
-
-
-
-#endif	//GUI_CONTROL_PANELS_CONTROL_PANEL_H
+#endif	//COMMON_GUI_CONTROL_PANEL_H

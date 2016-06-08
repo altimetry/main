@@ -77,7 +77,11 @@ class CBratColor : public Qwt3D::StandardColor
 	//construction / destruction
 
 public:
+#if (QWT3D_MINOR_VERSION > 2)
+	CBratColor( Qwt3D::Curve *data, unsigned size = 100 ) 
+#else
 	CBratColor( Qwt3D::Plot3D *data, unsigned size = 100 ) 
+#endif
 		: base_t( data, size )
 	{
 		reset(size);
@@ -123,7 +127,11 @@ struct CBrat3DFunction : public Qwt3D::Function
 
 	bool mLogarithmic = false;
 
+#if (QWT3D_MINOR_VERSION > 2)
+	CBrat3DFunction( Qwt3D::Curve& pw ) 
+#else
 	CBrat3DFunction( SurfacePlot& pw ) 
+#endif
 		: Qwt3D::Function( pw )
 	{}
 	virtual ~CBrat3DFunction()
@@ -340,7 +348,11 @@ void CBrat3DPlot::CreateContextMenu()
 	{
 		auto a = new QAction( name.c_str(), mStyleGroup );
 		a->setCheckable( true );
+#if (QWT3D_MINOR_VERSION > 2)
+		a->setChecked( curve()->plotStyle() == style );
+#else
 		a->setChecked( plotStyle() == style );
+#endif
 		a->setToolTip( tip.c_str() );
 		a->setData( style );
 		style_actions_list << a;
@@ -593,8 +605,11 @@ void CBrat3DPlot::StandardColor( bool standard )
 	if ( standard )
 		setDataColor( new Qwt3D::StandardColor( this ) );
 	else
+#if (QWT3D_MINOR_VERSION > 2)
+		setDataColor( new CBratColor( curve() ) );
+#else
 		setDataColor( new CBratColor( this ) );
-
+#endif
 	updateData();
 }
 
@@ -645,7 +660,11 @@ void CBrat3DPlot::SetColorMap( Qwt3D::Color *pcolor_map )
 	//legend()->setMinors( minors );
 	double start, stop;
 	coordinates()->axes[ Qwt3D::AXIS::Z1 ].limits(start,stop);
+#if (QWT3D_MINOR_VERSION > 2)
+	curve()->legend()->setLimits(start, stop);
+#else
 	legend()->setLimits(start, stop);
+#endif
 
 	showColorLegend( true );
 }

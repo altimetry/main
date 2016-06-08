@@ -11,10 +11,10 @@
 #include <qgsmarkersymbollayerv2.h>
 #include <qgssinglesymbolrendererv2.h>
 
-//////////////// TODO RCCC DELETE THIS /////////
-//#include <qgscoordinatetransform.h>
+//// TODO RCCC - Uncomment to use methods that write layer to shapefile //
+#include <qgscoordinatetransform.h>
 //#include <qgsvectorfilewriter.h>
-///////////////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////
 
 // for addMemoryLayer
 #include <qgsgraduatedsymbolrendererv2.h>
@@ -823,11 +823,41 @@ QgsSymbolV2* CMapWidget::CreatePointSymbol( double width, const QColor &color )
 }
 
 
+//static
+QgsSymbolV2* CMapWidget::CreateArrowSymbol( const QColor &color )
+{
+    auto qsm = []( const char *s1, const std::string &s2 )
+    {
+        QgsStringMap m;
+        m.insert( s1, s2.c_str() );
+        return m;
+    };
+
+    QgsSymbolV2 *s = QgsMarkerSymbolV2::createSimple( qsm( "","" ) );
+    s->deleteSymbolLayer( 0 );		// Remove default symbol layer.
+    //s->setColor( lineColor );
+    //s->setMapUnitScale()
+
+    auto symbolLayer = new QgsSimpleMarkerSymbolLayerV2;
+    symbolLayer->setColor( color );
+    symbolLayer->setName("arrow");					//
+    symbolLayer->setSizeUnit( QgsSymbolV2::Pixel );	//
+    //symbolLayer->setSize( width );
+    //symbolLayer->removeDataDefinedProperties();
+    symbolLayer->setDataDefinedProperty( "size", "magnitude" ); //  m->setDataDefinedProperty( "size", props["size_expression"] );
+    symbolLayer->setDataDefinedProperty( "angle", "angle" ); //m->setDataDefinedProperty( "angle", props["angle_expression"] );
+    symbolLayer->setOutlineStyle( Qt::NoPen );
+
+    s->appendSymbolLayer( symbolLayer );
+
+    return s;
+}
+
 
 //	Note that you can use strings like "red" instead of Qt::red !!!
 //
 //static 
-QgsSymbolV2* CMapWidget::createLineSymbol( double width, const QColor &color )
+QgsSymbolV2* CMapWidget::CreateLineSymbol( double width, const QColor &color )
 {
 	auto qsm = []( const char *s1, const std::string &s2 )
 	{
@@ -869,6 +899,12 @@ static const QString height_type = ":double";
 
 static const QString ref_date_key = default_fields[ 1 ].name();
 static const QString ref_date_type = ":integer";
+
+static const QString magnitude_key = QString ("magnitude");
+static const QString magnitude_type = ":double";
+
+static const QString angle_key = QString ("angle");
+static const QString angle_type = ":double";
 
 
 //static 
@@ -912,14 +948,30 @@ QgsFeatureList& CMapWidget::CreatePointFeature( QgsFeatureList &list, double lon
 
 
 ////////////// TODO : RCCC /////////////////////////////////////////////////////////
-QgsFeatureList& CMapWidget::CreatePolygonFeature( QgsFeatureList &list, double lon, double lat, const std::map<QString, QVariant> &attrs )	//attrs = std::map<std::string, QVariant>()
+//static
+QgsFeatureList& CMapWidget::CreatePointArrowFeature(QgsFeatureList &list, double lon, double lat, const std::map<QString, QVariant> &attrs, const QgsFields &fields)
 {
-    QgsFields fields;
+//    QgsFields fields;
+//	for ( auto ii = attrs.begin(); ii != attrs.end(); ++ii )
+//	{
+//		fields.append( QgsField( ii->first, ii->second.type() ),  field_origin );
+//	}
+
+    QgsFeature *f = new QgsFeature( fields );
+    f->setGeometry( QgsGeometry::fromPoint( QgsPoint( lon, lat ) ) );
+
     for ( auto ii = attrs.begin(); ii != attrs.end(); ++ii )
     {
-        fields.append( QgsField( ii->first, ii->second.type() ),  field_origin );
+        f->setAttribute( ii->first, ii->second );
     }
 
+    list.append( *f );
+    return list;
+}
+
+//static
+QgsFeatureList& CMapWidget::CreatePolygonFeature( QgsFeatureList &list, double lon, double lat, const std::map<QString, QVariant> &attrs, const QgsFields &fields )
+{
     // TODO - RCCC - Step between consecutive points (in degrees)
     double step = 0.333;
     QgsPolyline polyline;
@@ -955,7 +1007,7 @@ QgsFeatureList& CMapWidget::CreatePolygonFeature( QgsFeatureList &list, double l
     return list;
 }
 
-
+//static
 QgsFeatureList& CMapWidget::CreatePolygonFeature( QgsFeatureList &list, double lon, double lat, double value )
 {
     std::map<QString, QVariant> attrs;
@@ -967,13 +1019,21 @@ QgsFeatureList& CMapWidget::CreatePolygonFeature( QgsFeatureList &list, double l
 
 
 //static 
-QgsFeatureList& CMapWidget::createLineFeature( QgsFeatureList &list, QgsPolyline points )
+QgsFeatureList& CMapWidget::CreateLineFeature( QgsFeatureList &list, QgsPolyline points )
 {
+    std::map<QString, QVariant> attrs;
+    attrs[ height_key ] = QVariant::fromValue( 10. );
+
 	auto line = QgsGeometry::fromPolyline( points );
 	QgsFeature *f = new QgsFeature();
 	f->setGeometry( line );
-	list.append( *f );
 
+    for ( auto ii = attrs.begin(); ii != attrs.end(); ++ii )
+    {
+        f->setAttribute( ii->first, ii->second );
+    }
+
+	list.append( *f );
 	return list;
 }
 
@@ -1402,6 +1462,7 @@ QgsGraduatedSymbolRendererV2* CMapWidget::CreateRenderer( const QString &target_
 }
 
 
+
 QgsVectorLayer* CMapWidget::AddDataLayer( bool polygon, const std::string &name, double width, double m, double M, const QLookupTable *lut, size_t contours, QgsFeatureList &flist )
 {
 	static const QString target_field = height_key;
@@ -1420,7 +1481,7 @@ QgsVectorLayer* CMapWidget::AddDataLayer( bool polygon, const std::string &name,
 		mDataLayers.push_back( l );
 	}
 
-    //////////////// TODO RCCC DELETE THIS /////////
+    //////////////// TODO RCCC - Uncomment for writing layer to shapefile ///
 //    const QString filename( "/home/brat/Downloads/file" + l->name() + ".shp" );
 //    const QString fileencoding( "System" );
 //    QgsCoordinateTransform *ct = new QgsCoordinateTransform( l->crs(), l->crs());
@@ -1428,8 +1489,19 @@ QgsVectorLayer* CMapWidget::AddDataLayer( bool polygon, const std::string &name,
 //    QgsVectorFileWriter::writeAsVectorFormat( l,
 //                                              filename,
 //                                              fileencoding,
-//                                              ct );
-    ////////////////////////////////////////////////
+//                                              ct,
+//                                              "ESRI Shapefile", // const QString& driverName = "ESRI Shapefile",
+//                                              false,            // bool onlySelected = false,
+//                                              0,                // QString *errorMessage = 0,
+//                                              QStringList(),    // const QStringList &datasourceOptions = QStringList(),
+//                                              QStringList(),    // const QStringList &layerOptions = QStringList(),
+//                                              false,            // bool skipAttributeCreation = false,
+//                                              0,                // QString *newFilename = 0,
+//                                              QgsVectorFileWriter::FeatureSymbology, // SymbologyExport symbologyExport = NoSymbology,
+//                                              1.0,              // double symbologyScale = 1.0,
+//                                                0              // const QgsRectangle* filterExtent = 0
+//                                            );
+    ////////////////////////////////////////////////////////////////////////
 
 	return l;
 
@@ -1448,6 +1520,106 @@ QgsVectorLayer* CMapWidget::AddDataLayer( bool polygon, const std::string &name,
 //      );
 }
 
+
+QgsVectorLayer* CMapWidget::AddContourDataLayer( const std::string &name, double m, double M, const QLookupTable *lut, size_t contours, QgsFeatureList &flist )
+{
+	static const QString target_field = height_key;
+
+	static const QString base_name = "mem";
+    static const QString provider = "memory";
+ 
+
+	//return AddVectorLayer( name, R"-(L:\project\dev\source\data\empty\empty.shp)-", "ogr", renderer );
+
+
+	//auto &crs = mapSettings().destinationCrs();
+
+	//const QString s = mMainLayer->crs().toProj4();		//EPSG:4326
+	const QString s = mapSettings().destinationCrs().toProj4();		//
+
+	//"Point", "LineString", "Polygon", "MultiPoint", "MultiLineString", or "MultiPolygon".
+
+	const QString prefix = "LineString";
+
+	const QString layer_path =
+        prefix + "?crs=EPSG:4326"
+
+		+ QString( "&field=" ) + height_key + height_type
+//		+ QString( "&field=" ) + ref_date_key + ref_date_type 
+
+		+ "&index=yes";
+
+	auto *l = AddVectorLayer( name, layer_path, provider, nullptr );
+
+	Q_UNUSED( m ); Q_UNUSED( M ); Q_UNUSED( lut ); Q_UNUSED( contours );
+
+	//auto *l = AddMemoryLayer( polygon, name, CreateRenderer( target_field, width, m, M, lut, contours, 
+	//	polygon ?
+	//	&CMapWidget::CreatePolygonSymbol :
+	//	&CMapWidget::CreateLineSymbol
+	//	) );
+
+	if ( l )
+	{
+		l->setLayerTransparency( 10 );				//TODO Magic Number
+		l->dataProvider()->addFeatures( flist );
+		mDataLayers.push_back( l );
+	}
+
+	return l;
+}
+
+
+QgsVectorLayer* CMapWidget::AddArrowDataLayer( const std::string &name, QgsFeatureList &flist )
+{
+    static const QString base_name = "mem";
+    static const QString provider = "memory";
+
+    //"Point", "LineString", "Polygon", "MultiPoint", "MultiLineString", or "MultiPolygon".
+    const QString prefix = "Point";
+
+    const QString layer_path =
+        prefix + "?crs=EPSG:4326"
+
+        + QString( "&field=" ) + angle_key + angle_type
+        + QString( "&field=" ) + magnitude_key + magnitude_type
+
+        + "&index=yes";
+
+    auto *l = AddVectorLayer( name, layer_path, provider, CreateRenderer( CreateArrowSymbol( QColor("black")) ) );
+
+    if ( l )
+    {
+       //l->setLayerTransparency( 10 );				//TODO Magic Number
+       l->dataProvider()->addFeatures( flist );
+       //l->updateExtents();
+       mDataLayers.push_back( l );
+    }
+
+//    //////////////// TODO RCCC - Uncomment for writing layer to shapefile ///
+//    const QString filename( "/home/brat/Downloads/file.shp" );
+//    const QString fileencoding( "System" );
+//    QgsCoordinateTransform *ct = new QgsCoordinateTransform( l->crs(), l->crs());
+
+//    QgsVectorFileWriter::writeAsVectorFormat( l,
+//                                              filename,
+//                                              fileencoding,
+//                                              ct,
+//                                              "ESRI Shapefile", // const QString& driverName = "ESRI Shapefile",
+//                                              false,            // bool onlySelected = false,
+//                                              0,                // QString *errorMessage = 0,
+//                                              QStringList(),    // const QStringList &datasourceOptions = QStringList(),
+//                                              QStringList(),    // const QStringList &layerOptions = QStringList(),
+//                                              false,            // bool skipAttributeCreation = false,
+//                                              0,                // QString *newFilename = 0,
+//                                              QgsVectorFileWriter::SymbolLayerSymbology, // SymbologyExport symbologyExport = NoSymbology,
+//                                              1.0,              // double symbologyScale = 1.0,
+//                                                0              // const QgsRectangle* filterExtent = 0
+//                                            );
+//    ////////////////////////////////////////////////////////////////////////
+
+    return l;
+}
 
 
 QgsVectorLayer* CMapWidget::AddOGRVectorLayer( const QString &layer_path, QgsSymbolV2* symbol )		//symbol = nullptr 

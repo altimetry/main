@@ -9,6 +9,7 @@
 
 #include "+UtilsIO.h"
 #include "QtUtilsIO.h"
+#include "BratVersion.h"
 #include "ConsoleApplicationPaths.h"
 
 #include "libbrathl/Tools.h"
@@ -103,6 +104,7 @@ CConsoleApplicationPaths::CConsoleApplicationPaths( const std::string &exec_path
     , mExecutablePath( exec_path )
     , mExecutableDir( GetDirectoryFromPath( mExecutablePath ) )			// (*)
     , mDeploymentRootDir( GetDirectoryFromPath( mExecutableDir ) )
+	, mUserManualPath( mDeploymentRootDir + "/doc/brat_user_manual_" + BRAT_VERSION + ".pdf" )
 
     , mInternalDataDir( ComputeInternalDataDirectory( mExecutableDir ) )
 {

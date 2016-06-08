@@ -5,7 +5,17 @@
 #if !defined (GL_EXT_geometry_shader4)
 #define GL_EXT_geometry_shader4
 #endif
+
+#include <qwt3d_global.h>
+#if (QWT3D_MINOR_VERSION > 2)
+#include <qwt3d_curve.h>
+//typedef Qwt3D::Curve BratSurfacePlot;
+#else
 #include <qwt3d_surfaceplot.h>
+typedef Qwt3D::SurfacePlot SurfacePlot; // VC6/moc issue
+typedef Qwt3D::SurfacePlot BratSurfacePlot;
+#endif
+
 
 
 class CDisplayFilesProcessor;
@@ -17,7 +27,6 @@ struct C3DPlotParameters;
 struct CBrat3DFunction;
 class CBrat3DPlot;
 
-typedef Qwt3D::SurfacePlot SurfacePlot; // VC6/moc issue
 
 
 
@@ -54,7 +63,7 @@ inline Plot3dExample& operator ++( Plot3dExample &ex )
 }
 
 
-class Plot : public Qwt3D::SurfacePlot
+class Plot : public BratSurfacePlot
 {
 	Q_OBJECT
 
@@ -68,17 +77,17 @@ public slots:
 
 
 ////////////////////////////////////////////////////////////
-//			Internal Qwt3D function 
+//	
 ////////////////////////////////////////////////////////////
 
 
-class CBrat3DPlot : public Qwt3D::SurfacePlot
+class CBrat3DPlot : public BratSurfacePlot
 {
 	Q_OBJECT
 
 	// types
 
-	using base_t = Qwt3D::SurfacePlot;
+	using base_t = BratSurfacePlot;
 
 
 	//static data
@@ -257,7 +266,7 @@ protected:
 
 	QStackedLayout *mStackedLayout = nullptr;
 
-	std::vector< Qwt3D::SurfacePlot* > mSurfacePlots;
+	std::vector< BratSurfacePlot* > mSurfacePlots;
 	CBrat3DPlot *mCurrentPlot = nullptr;
 
 	QSize m_SizeHint;

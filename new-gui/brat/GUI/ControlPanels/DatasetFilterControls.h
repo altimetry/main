@@ -7,7 +7,7 @@
 //
 
 
-#include "ControlPanel.h"
+#include "DesktopControlPanel.h"
 
 class CDataset;
 

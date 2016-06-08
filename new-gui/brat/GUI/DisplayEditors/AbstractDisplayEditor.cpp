@@ -571,7 +571,11 @@ void CAbstractDisplayEditor::HandleViewChanged( int index )
 		}
 	}
 
-	ViewChanged();
+	if ( !ChangeView() )
+	{
+		//	TODO	implement recovery similar to HandleDeleteButtonClicked, closing if necessary
+		BRAT_MSG_NOT_IMPLEMENTED( "This view may become unstable. Better close it and open another view editor." );
+	}
 }
 
 

@@ -41,15 +41,20 @@ try {
 	LOG_INFO( "scheduler is starting..." );
 
 	CSchedulerApplication a( argc, argv );
-	CSchedulerDialog w( a.ApplicationPaths(), nullptr );
+	CSchedulerDialog w( a, nullptr );
 	w.show();
 	auto result = a.exec();
 
 
-	LOG_INFO( "brat is exiting with result " + n2s<std::string>( result ) + ".");
+	LOG_INFO( "scheduler is exiting with result " + n2s<std::string>( result ) + ".");
 
 	LOG_TRACE( "\nLeaving main. ***" );
 	return result;
+}
+catch ( const QtSingleApplicationException &e )
+{
+	LOG_WARN( e.Message() );
+    return CSchedulerApplication::OffGuiErrorDialog( 0, e.Message().c_str() );
 }
 catch ( const CException &e )
 {

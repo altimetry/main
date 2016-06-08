@@ -298,7 +298,7 @@ CBratTask::CBratTask( const task &oxml )				//USED ON LOAD
 	//5
 	SetAt( oxml.at() );
 	//6
-	m_status = enum_cast<Status>( oxml.status() );
+	m_status = enum_cast<EStatus>( oxml.status() );
 	//7
 	m_logFile = oxml.logFile();
 

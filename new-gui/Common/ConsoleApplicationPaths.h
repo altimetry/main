@@ -56,6 +56,8 @@ public:
     const std::string mExecutableDir;			//origin: runtime binary
     const std::string mDeploymentRootDir;		//origin: runtime binary; executable's parent directory
 
+    const std::string mUserManualPath;			//origin: runtime binary
+
     // mInternalDataDir: allowed to change for
     //	compatibility reasons only. Modifiable
     //	exclusively through environment variable.

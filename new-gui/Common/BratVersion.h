@@ -20,7 +20,44 @@
 #define COMMON_BRAT_VERSION_H
 
 
-#define BRAT_VERSION             "4.0.0-beta"
+#define BRAT_VERSION             "4.0.0-rc3"
+
+
+
+#if defined(BRAT_ARCHITECTURE_64)
+
+    static const std::string build_platform( " 64-bit" );
+
+#elif defined(BRAT_ARCHITECTURE_32)
+
+	static const std::string build_platform( " 32-bit" );
+#else
+#error One of BRAT_ARCHITECTURE_32 or BRAT_ARCHITECTURE_64 must be defined
+#endif
+
+
+#if defined(_UNICODE) || defined(UNICODE)
+    static const std::string build_charset( " Un" );
+#else
+	static const std::string build_charset( "" );
+#endif
+
+
+#if defined (DEBUG) || defined(_DEBUG)
+    static const std::string build_configuration = build_platform + " [DEBUG] " + build_charset;
+#else
+	static const std::string build_configuration = build_platform + build_charset;
+#endif
+
+
+auto static const PROCESSOR_ARCH =
+
+#if defined(BRAT_ARCHITECTURE_64)
+	"64 bit";
+#else
+	"32 bit";
+#endif
+
 
 
 

@@ -2,7 +2,7 @@
 #define GUI_CONTROL_PANELS_VIEW_CONTROL_PANELS_COMMON_H
 
 
-#include "../ControlPanel.h"
+#include "new-gui/Common/GUI/ControlPanel.h"
 
 class CDisplay;
 

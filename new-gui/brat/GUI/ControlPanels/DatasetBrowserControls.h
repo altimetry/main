@@ -2,7 +2,7 @@
 #define GUI_CONTROL_PANELS_DATASETBROWSERCONTROLS_H
 
 
-#include "GUI/ControlPanels/ControlPanel.h"
+#include "DesktopControlPanel.h"
 
 
 class CTextWidget;

@@ -628,7 +628,6 @@ CMapControlsPanelDataLayers::CMapControlsPanelDataLayers( QWidget *parent, Qt::W
 
 
 	//TODO delete remaining lines after implementation
-	mColorMapWidget->mShowContour->setEnabled( false );
 	mNbLabels->setEnabled( false );
 
     mMinRange->setEnabled( false );

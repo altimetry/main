@@ -1,13 +1,4 @@
-#include "new-gui/brat/stdafx.h"
-
-#include "libbrathl/TreeField.h"
-#include "libbrathl/Field.h"
-
-#include "BratLogger.h"
-
-#include "new-gui/Common/GUI/TextWidget.h"
-#include "GUI/DisplayWidgets/2DPlotWidget.h"
-#include "GUI/DisplayWidgets/3DPlotWidget.h"
+#include "stdafx.h"
 
 #include "ControlPanel.h"
 
@@ -100,24 +91,6 @@ QSplitter* CControlPanel::AddTopSplitter( Qt::Orientation o, const std::vector< 
 	AddTopWidget( splitter );
 	return splitter;
 }
-
-
-
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////
-//					Control Panel Specialized for Desktop
-/////////////////////////////////////////////////////////////////////////////////////
-
-
-
-//explicit 
-CDesktopControlsPanel::CDesktopControlsPanel( CModel &model, CDesktopManagerBase *manager, QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 
-	: base_t( parent, f ), mModel( model ), mDesktopManager( manager )
-{}
-
-
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

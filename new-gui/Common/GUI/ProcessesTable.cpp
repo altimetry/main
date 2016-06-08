@@ -1,10 +1,7 @@
-#include "new-gui/brat/stdafx.h"
+#include "stdafx.h"
 
 
 #include "new-gui/Common/QtUtils.h"
-#include "BratLogger.h"
-
-#include "DataModels/Workspaces/Operation.h"
 
 #include "ProcessesTable.h"
 
@@ -15,15 +12,25 @@
 
 
 
-COsProcess::COsProcess( const COperation *operation, bool sync, const std::string& name, QWidget *parent, const std::string& cmd, void *user_data, const std::string *output )		//user_data = nullptr, const std::string *output = nullptr 
+COsProcess::COsProcess( bool sync, const std::string& name, QWidget *parent, const std::string& cmd, void *user_data,
+		const std::string &id,
+		const std::string &at,
+		const std::string &status,
+		const std::string &log_file	)		//user_data = nullptr, etc.
+
 	: QProcess( parent )
 	, mSync( sync )
 	, mName( name )
 	, mCmdLine( cmd )
-	, mOutput( output ? *output : "" )
 	, mUserData( user_data )
-	, mOperation( operation )
-{}
+	, mId( id )
+	, mAt( at )
+	, mStatus( status )
+	, mLogPath( log_file )
+	, mLog( true, log_file )
+{
+	mLogPtr = mLog.IsOk() ? &COsProcess::RealLog : &COsProcess::PseudoLog;
+}
 
 
 //virtual 
@@ -73,6 +80,16 @@ void CProcessesTable::CreateWidgets()
 {
 	mProcessesList = new QTableWidget;
 	mProcessesList->setColumnCount( EProcessColumn_size );
+
+	for ( int i = 0; i < EProcessColumn_size; ++i )
+        mProcessesList->setHorizontalHeaderItem( i, new QTableWidgetItem() );
+
+    mProcessesList->horizontalHeaderItem( eTaskUid )->setText( "Uid" );
+    mProcessesList->horizontalHeaderItem( eProcessName )->setText( "Name" );
+    mProcessesList->horizontalHeaderItem( eTaskStart )->setText( "Start" );
+    mProcessesList->horizontalHeaderItem( eTaskStatus )->setText( "Status" );
+    mProcessesList->horizontalHeaderItem( eProcessCmdLine )->setText( "Command Line" );
+    mProcessesList->horizontalHeaderItem( eTaskLogFile )->setText( "Log file" );
 
 	mProcessesList->setSortingEnabled( false );
 	mProcessesList->setSelectionBehavior( QAbstractItemView::SelectRows );
@@ -134,13 +151,13 @@ Q_DECLARE_METATYPE( COsProcess* )
 
 void CProcessesTable::SetItemProcessData( int index, COsProcess *process )
 {
-	QTableWidgetItem *widgetItem = mProcessesList->item( index, 0 ); 
+	QTableWidgetItem *widgetItem = mProcessesList->item( index, eProcessCmdLine ); 
 	widgetItem->setData( Qt::UserRole, QVariant::fromValue( process ) );
 }
 
 COsProcess* CProcessesTable::GetItemProcessData( int index ) const
 {
-	QTableWidgetItem *widgetItem = mProcessesList->item( index, 0 );
+	QTableWidgetItem *widgetItem = mProcessesList->item( index, eProcessCmdLine );
 	return widgetItem->data( Qt::UserRole ).value< COsProcess* >();
 }
 
@@ -150,12 +167,21 @@ int CProcessesTable::FindProcess( const std::string &name ) const
 	for ( int index = 0; index < size; ++index )
 	{
 		COsProcess *item_process = GetItemProcessData( index );		assert__( item_process );
-		if ( item_process->GetName() == name )
+		if ( item_process->Name() == name )
 			return index;
 	}
 	return -1;
 }
 
+
+
+void CProcessesTable::HideColumns( std::initializer_list< EProcessColumn > columns, bool hide )		//bool hide = true 
+{
+	for ( auto column : columns )
+	{
+		mProcessesList->setColumnHidden( column, hide );
+	}
+}
 
 
 void CProcessesTable::FillList()
@@ -176,15 +202,21 @@ void CProcessesTable::FillList()
 
 	// function body
 
-	mProcessesList->clear();
+	mProcessesList->setRowCount( 0 );
 	mProcessesList->setRowCount( (int)mProcesses.size() );
 	int index = 0;
 	for ( auto *process : mProcesses )
 	{
-		auto *cmd_item = new QTableWidgetItem( process->GetCmd().c_str() );
+		auto *cmd_item = new QTableWidgetItem( process->CmdLine().c_str() );
 		cmd_item->setToolTip( cmd_item->text() );							//for long command lines
-		mProcessesList->setItem( index, eProcessName, new QTableWidgetItem( process->GetName().c_str() ) );
+
+		mProcessesList->setItem( index, eProcessName, new QTableWidgetItem( process->Name().c_str() ) );
 		mProcessesList->setItem( index, eProcessCmdLine, cmd_item );
+
+		mProcessesList->setItem( index, eTaskUid, new QTableWidgetItem( process->Id().c_str() ) );
+		mProcessesList->setItem( index, eTaskStart, new QTableWidgetItem( process->At().c_str() ) );
+		mProcessesList->setItem( index, eTaskStatus, new QTableWidgetItem( process->Status().c_str() ) );
+		mProcessesList->setItem( index, eTaskLogFile, new QTableWidgetItem( process->LogPath().c_str() ) );
 
 		SetItemProcessData( index, process );
 		index++;
@@ -199,15 +231,27 @@ void CProcessesTable::FillList()
 ////////////////////////////
 
 
-
 QString CProcessesTable::ReadStdError( COsProcess *process )
 { 
-	return FormatOutputMessage( process->GetName().c_str(), process->readAllStandardError() );
+	return FormatOutputMessage( QString(), process->readAllStandardError() );
 }
 QString CProcessesTable::ReadStdOut( COsProcess *process )
 { 
-	return FormatOutputMessage( process->GetName().c_str(), process->readAllStandardOutput() );
+	return FormatOutputMessage( QString(), process->readAllStandardOutput() );
 }
+
+
+void CProcessesTable::LogInfo( COsProcess *process, const std::string &text )
+{
+	LOG_INFO( FormatOutputMessage( process->Name(), text ) );
+	process->Log( text );
+}
+void CProcessesTable::LogWarn( COsProcess *process, const std::string &text )
+{
+	LOG_WARN( FormatOutputMessage( process->Name(), text ) );
+	process->Log( text );
+}
+
 
 
 					
@@ -254,7 +298,11 @@ std::string CProcessesTable::MakeProcessNewName( const std::string &original_nam
 }
 
 
-bool CProcessesTable::Add( void *user_data, bool sync, bool allow_multiple, const std::string &original_name, const std::string &cmd, const COperation *operation )		//operation==nullptr
+bool CProcessesTable::Add( bool with_gui, void *user_data, bool sync, bool allow_multiple, const std::string &original_name, const std::string &cmd,
+		const std::string &id,
+		const std::string &at,
+		const std::string &status,
+		const std::string &log_file	)	//id = "", etc.
 {
 	std::string name = original_name;
 
@@ -273,13 +321,14 @@ bool CProcessesTable::Add( void *user_data, bool sync, bool allow_multiple, cons
 				+ "'. A similar task is already running.";
 
 			LOG_WARN( "\n==> " + msg + "<===\n" );		//v3 also logged besides displaying message box
-			SimpleWarnBox( msg );
+			if ( with_gui )
+				SimpleWarnBox( msg );
 			return false;
 		}
 	}
 
 
-	COsProcess *process = new COsProcess( operation, sync, name, this, cmd, user_data );
+	COsProcess *process = new COsProcess( sync, name, this, cmd, user_data, id, at, status, log_file );
 	mProcesses.push_back( process );
 	FillList();
 
@@ -297,12 +346,12 @@ bool CProcessesTable::Add( void *user_data, bool sync, bool allow_multiple, cons
 	{
 		std::string msg = 
 			"\n\n===> Synchronous Task '"
-			+ process->GetName()
+			+ process->Name()
 			+ "' started with command line below:<===\n'"
-			+ process->GetCmd()
+			+ process->CmdLine()
 			+ "'\n\n\n ==========> Please wait.... A report will display at the end of the task <==========\n\n";
 
-		LOG_INFO( msg );
+		LogInfo( process, msg );
 	}
 
 	///////////////////
@@ -313,14 +362,14 @@ bool CProcessesTable::Add( void *user_data, bool sync, bool allow_multiple, cons
 	{
 		std::string msg = 
 			"\n\n===> Asynchronous Task '"
-			+ process->GetName()
+			+ process->Name()
 			+ "' (pid "
 			+ process->PidString()
 			+ ") started with command line below:<===\n'"
-			+ process->GetCmd()
+			+ process->CmdLine()
 			+ "'\n\n";
 
-		LOG_INFO( msg );
+		LogInfo( process, msg );
 	}
 
 	//if ( sync )
@@ -370,11 +419,11 @@ void CProcessesTable::UpdateOutput()
 
     QString text = ReadStdError( process );
 	if ( !text.isEmpty() )
-		LOG_WARN( text );
+		LogWarn( process, q2a( text ) );
 
     text = ReadStdOut( process );
 	if ( !text.isEmpty() )
-		LOG_INFO( text );
+		LogInfo( process, q2a( text ) );
 }
 
 
@@ -384,15 +433,15 @@ COsProcess* CProcessesTable::ProcessFinished( int exit_code, QProcess::ExitStatu
 
     if (exitStatus == QProcess::CrashExit) 
 	{
-        LOG_WARN( FormatFinishedMessage( process, "program crash") );
+        LogWarn( process, q2a( FormatFinishedMessage( process, "program crash") ) );
     } 
 	else if ( exit_code != 0 )	//this is ExitStatus::NormalExit, although error code != 0
 	{
-        LOG_WARN( FormatFinishedMessage( process, ( "exit code " + n2s<std::string>( exit_code ) ).c_str() ) );
+        LogWarn( process, q2a( FormatFinishedMessage( process, ( "exit code " + n2s<std::string>( exit_code ) ).c_str() ) ) );
     } 
 	else 
 	{
-        LOG_INFO( FormatFinishedMessage( process, "success" ) );
+        LogInfo( process, q2a( FormatFinishedMessage( process, "success" ) ) );
     }
 
 	return process;
@@ -401,7 +450,7 @@ void CProcessesTable::AsyncProcessFinished( int exit_code, QProcess::ExitStatus 
 {
 	COsProcess *process = ProcessFinished( exit_code, exitStatus );
 
-	emit ProcessFinished( exit_code, exitStatus, process->Operation(), false, process->UserData() );
+	emit ProcessFinished( exit_code, exitStatus, false, process->UserData() );
 
 	Remove( process );
 }
@@ -409,7 +458,7 @@ void CProcessesTable::SyncProcessFinished( int exit_code, QProcess::ExitStatus e
 {
 	COsProcess *process = ProcessFinished( exit_code, exitStatus );
 
-	emit ProcessFinished( exit_code, exitStatus, process->Operation(), true, process->UserData() );
+	emit ProcessFinished( exit_code, exitStatus, true, process->UserData() );
 
 	Remove( process );
 }
@@ -442,7 +491,7 @@ void CProcessesTable::ProcessError( QProcess::ProcessError error )
 {
 	COsProcess *process = qobject_cast<COsProcess*>( sender() );			assert__( process );
 
-	LOG_WARN( FormatErrorMessage( process, ProcessErrorMessage( error ) ) );
+	LogWarn( process, q2a( FormatErrorMessage( process, ProcessErrorMessage( error ) ) ) );
 }
 
 

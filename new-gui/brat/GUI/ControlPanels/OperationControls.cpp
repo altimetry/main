@@ -4,17 +4,18 @@
 #include "libbrathl/Field.h"
 
 #include "new-gui/Common/QtUtils.h"
+#include "new-gui/Common/DataModels/TaskProcessor.h"
+#include "new-gui/Common/GUI/ProcessesTable.h"
+#include "new-gui/Common/GUI/TextWidget.h"
 
 #include "BratLogger.h"
 
-#include "new-gui/Common/DataModels/TaskProcessor.h"
 #include "DataModels/Model.h"
 #include "DataModels/Filters/BratFilters.h"
 #include "DataModels/Workspaces/Workspace.h"
 #include "DataModels/Workspaces/Function.h"
 
 #include "GUI/ActionsTable.h"
-#include "new-gui/Common/GUI/TextWidget.h"
 #include "GUI/DisplayEditors/MapEditor.h"
 #include "GUI/DisplayEditors/PlotEditor.h"
 
@@ -24,7 +25,6 @@
 #include "Dialogs/ShowInfoDialog.h"
 
 #include "DataExpressionsTree.h"
-#include "ProcessesTable.h"
 #include "OperationControls.h"
 
 #include "process/BratProcessExportAscii.h"
@@ -249,8 +249,12 @@ void COperationControls::CreateAdvancedOperationsPage()
 	mAdvancedExecuteButton->addAction( mLaunchSchedulerAction );
 
 	mExportOperationAction = new QAction( "Export...", this );
-	mEditExportAsciiAction = new QAction( "Edit ASCII Export", this );
-	mOperationExportButton = CreateMenuButton( "", ":/images/OSGeo/export.png", "Export operation", { mExportOperationAction, mEditExportAsciiAction } );
+	mEditExportAsciiAction = new QAction( "Edit ASCII Export...", this );
+	mCreateExportedDisplaysAction = new QAction( "(Re)Create Views...", this );
+	mOperationExportButton = CreateMenuButton( "", ":/images/OSGeo/export.png", "Export operation", 
+	{ 
+		mExportOperationAction, mEditExportAsciiAction, mCreateExportedDisplaysAction 
+	} );
 
 	QWidget *top_buttons_row = CreateButtonRow( false, Qt::Horizontal, 
 	{ 
@@ -716,6 +720,7 @@ void COperationControls::Wire()
 
 	connect( mExportOperationAction, SIGNAL( triggered() ), this, SLOT( HandleExportOperation() ) );
 	connect( mEditExportAsciiAction, SIGNAL( triggered() ), this, SLOT( HandleEditExportAscii() ) );
+	connect( mCreateExportedDisplaysAction, SIGNAL( triggered() ), this, SLOT( HandleCreateExportedDisplays() ) );
 	connect( mOperationStatisticsButton, SIGNAL( clicked() ), this, SLOT( HandleOperationStatistics() ) );
 
 	//...quick mQuickVariablesList
@@ -762,8 +767,8 @@ void COperationControls::Wire()
         connect( a, SIGNAL( triggered() ), this, SLOT( HandleDataSmoothing() ) );
     }
 
-	connect( mProcessesTable, SIGNAL( ProcessFinished( int, QProcess::ExitStatus, const COperation*, bool, void* ) ),
-		this, SLOT( HandleProcessFinished( int, QProcess::ExitStatus, const COperation*, bool, void* ) ) );
+	connect( mProcessesTable, SIGNAL( ProcessFinished( int, QProcess::ExitStatus, bool, void* ) ),
+		this, SLOT( HandleProcessFinished( int, QProcess::ExitStatus, bool, void* ) ) );
 
 	connect( mSwitchToMapButton, SIGNAL( clicked() ), this, SLOT( HandleSwitchExpressionType() ) );
 	connect( mSwitchToPlotButton, SIGNAL( clicked() ), this, SLOT( HandleSwitchExpressionType() ) );
@@ -784,6 +789,8 @@ void COperationControls::Wire()
 
     connect( mGetDataMaxMinX, SIGNAL( clicked() ), this, SLOT( HandleGetDataMinMaxX() ) );
     connect( mGetDataMaxMinY, SIGNAL( clicked() ), this, SLOT( HandleGetDataMinMaxY() ) );
+
+	mProcessesTable->HideColumns( { CProcessesTable::eTaskUid, CProcessesTable::eTaskStart, CProcessesTable::eTaskStatus, CProcessesTable::eTaskLogFile } );
 
 	mSwitchToMapButton->setChecked( true );
 
@@ -1054,7 +1061,8 @@ void COperationControls::UpdateGUIState()
 {
 	mExportOperationAction->setEnabled( mCurrentOperation && !IsQuickOperationSelected() && mCurrentOperation->HasFormula() );
 	mEditExportAsciiAction->setEnabled( mCurrentOperation && !IsQuickOperationSelected() && IsFile( mCurrentOperation->GetExportAsciiOutputPath() ) );
-	mOperationExportButton->setEnabled( mEditExportAsciiAction->isEnabled() || mExportOperationAction->isEnabled() );
+	mCreateExportedDisplaysAction->setEnabled( mCurrentOperation && !IsQuickOperationSelected() && IsFile( mCurrentOperation->GetOutputPath() ) );
+	mOperationExportButton->setEnabled( mEditExportAsciiAction->isEnabled() || mExportOperationAction->isEnabled() || mCreateExportedDisplaysAction->isEnabled() );
 }
 
 
@@ -3119,6 +3127,14 @@ void COperationControls::HandleEditExportAscii()
 }
 
 
+void COperationControls::HandleCreateExportedDisplays()
+{
+	assert__( mCurrentOperation && !IsQuickOperationSelected() );
+
+	OperationSyncExecutionFinishedWithDisplay( 0, QProcess::NormalExit, mCurrentOperation );
+}
+
+
 void COperationControls::StatsAsyncComputationFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation )
 {
 	const bool success = 
@@ -3162,7 +3178,7 @@ void COperationControls::SchedulerProcessError( QProcess::ProcessError error )
 }
 void COperationControls::HandleLaunchScheduler()
 {
-	COsProcess *process = new COsProcess( nullptr, false, "", this, mModel.BratPaths().mExecBratSchedulerName );
+	COsProcess *process = new COsProcess( false, "", this, mModel.BratPaths().mExecBratSchedulerName );
     connect( process, SIGNAL( error( QProcess::ProcessError ) ), this, SLOT( SchedulerProcessError( QProcess::ProcessError ) ) );
 	process->Execute();
 }
@@ -3358,14 +3374,14 @@ bool COperationControls::CheckOperation( COperation *operation, std::string& msg
 }
 
 
-void COperationControls::HandleProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation, bool sync, void *user_data )
+void COperationControls::HandleProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, bool sync, void *user_data )
 {
 	if ( sync )
 		mSyncProcessExecuting = false;
 
 	post_execution_handler_wrapper_t *handler = reinterpret_cast<post_execution_handler_wrapper_t*>( user_data );
 	if ( handler && handler->post_execution_handler )
-		( this->*(handler->post_execution_handler) )( exit_code, exitStatus, operation );
+		( this->*(handler->post_execution_handler) )( exit_code, exitStatus, handler->operation );
 
 	if ( sync )
 		emit SyncProcessExecution( false );
@@ -3484,8 +3500,8 @@ bool COperationControls::Execute( EExecutionType type, COperation *operation, bo
 	// ProcessesTable will display user messages for us, no need to report on false return
 	//
 	emit sync ? SyncProcessExecution( true ) : AsyncProcessExecution( true );
-	post_execution_handler_wrapper_t *handler = new post_execution_handler_wrapper_t{ post_execution_handler };
-	bool result = mProcessesTable->Add( handler, sync, false, operation->GetTaskName( type ), operation->GetFullCmd( type ), operation );
+	post_execution_handler_wrapper_t *handler = new post_execution_handler_wrapper_t{ operation, post_execution_handler };
+	bool result = mProcessesTable->Add( true, handler, sync, false, operation->GetTaskName( type ), operation->GetFullCmd( type ) );
 	mSyncProcessExecuting = sync && result;
 	if ( !mSyncProcessExecuting )
 		emit sync ? SyncProcessExecution( false ) : AsyncProcessExecution( false );
@@ -3575,7 +3591,7 @@ CBratTask* COperationControls::Schedule( EExecutionType type, const QDateTime &a
 		uid_saved = parent->GetUid();
 	}
 
-	if ( !task_scheduler->LoadAllTasks() || !task_scheduler->IsOk() )
+	if ( !task_scheduler->LoadAllTasks() )
 	{
 		wait.Restore();
 		SimpleErrorBox( "An error accessing the scheduled tasks file prevents delaying tasks execution." );

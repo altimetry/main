@@ -2,6 +2,8 @@
 
 #include <QtOpenGL>
 
+#include "process/BratEmbeddedPythonProcess.h"
+
 #include "new-gui/Common/+Utils.h"
 #include "new-gui/Common/+UtilsIO.h"
 #include "new-gui/Common/QtUtils.h"
@@ -14,7 +16,6 @@
 
 bool CBratApplication::smPrologueCalled = false;
 CApplicationPaths *CBratApplication::smApplicationPaths = nullptr;
-const PythonEngine *CBratApplication::sm_pe = nullptr;
 
 
 // Tries to create a QApplication on-the-fly to be able to use the
@@ -82,26 +83,6 @@ void CBratApplication::Prologue( int argc, char *argv[] )
 		throw CException( "One or more path directories are invalid:\n" + brat_paths.GetErrorMsg() );
 
 	smApplicationPaths = &brat_paths;
-
-
-	// Python Engine ////////////////////////////////////
-
-	try {
-		std::wstring ws = q2w( brat_paths.mExecutableDir.c_str() ) + L"/Python";
-		wchar_t *argv_buffer = new wchar_t[ ws.length() + 1 ];
-		memcpy( argv_buffer, ws.c_str(), ( ws.length() + 1 ) * sizeof( wchar_t ) );
-		sm_pe = PythonEngine::CreateInstance( argv_buffer );
-    }
-    catch ( const CException &e )
-    {
-        LOG_TRACEstd( e.Message() );
-		sm_pe = nullptr;
-    }
-    catch ( ... )
-    {
-        LOG_TRACE( "Unknown exception caught creating embedded Python." );
-		sm_pe = nullptr;
-    }
 
     smPrologueCalled = true;
 
@@ -390,111 +371,30 @@ void CBratApplication::UpdateSettings()
 }
 
 
-
-
-
-void CBratApplication::RegisterAlgorithms()
+bool CBratApplication::RegisterAlgorithms()
 {
-	static const std::string file_prefix = "BratAlgorithm-";
-	static const std::string file_suffix = ".py";
-
-	//types
-
-	struct python_base_creator : public base_creator
-	{
-		//types
-
-		using base_t = base_creator;
-
-		//statics
-
-		static CBratAlgorithmBase* pseud_python_factory()
-		{
-			assert__( false );
-			throw CException( "Programming error: calling C factory for Python algorithm" );
-		}
-
-		//data
-
-		const std::string mFilePath;
-		const std::string mClassName;
-
-		//construction / destruction
-
-		python_base_creator( const std::string file_path, const std::string &class_name ) 
-			: base_t( nullptr )
-			, mFilePath( file_path )
-			, mClassName( class_name )
-		{
-			mF = &pseud_python_factory;
-		}
-
-		virtual ~python_base_creator()
-		{}
-
-		//functor
-
-		virtual CBratAlgorithmBase* operator()( void ) override
-		{
-			return new PyAlgo( mFilePath, mClassName );
-		}
-	};
-
-
-	//function body
-
-	// I. load C++ algorithms
-
-	CBratAlgorithmBase::RegisterCAlgorithms();
-
-
-	// II. load python algorithms
-
-    if ( sm_pe == nullptr )
-	{
-		const std::string msg = "Python engine could not be created.\nPython algorithms will not be available.";
-        SimpleErrorBox( msg );
-		LOG_TRACEstd( msg );
-		return;
-	}
-
-    const std::string python_algorithms_path = mSettings.BratPaths().mPortableBasePath + "/python";
-	if ( !IsDir( python_algorithms_path ) )
-		return;
-
+	std::string msg;
     try
     {
-		LOG_TRACEstd( "Searching python algorithms in " + python_algorithms_path );
-
-        auto &registry = CBratAlgorithmBaseRegistry::GetInstance();
-		QDirIterator it( python_algorithms_path.c_str(), QStringList() << "*.py", QDir::Files, QDirIterator::Subdirectories );
-		while ( it.hasNext() )
-        {
-            std::string path = q2a( it.next() );
-            std::string file_name = GetFilenameFromPath( path );
-            if ( StartsWith( file_name, file_prefix ) && EndsWith( file_name, file_suffix ) )
-            {
-                std::string class_name = file_name.substr( file_prefix.length() );
-                class_name = class_name.substr( 0, class_name.length() - file_suffix.length() );
-                registry.Add( new python_base_creator( path, class_name ) );
-            }
-        }
-
+		bool result = CBratEmbeddedPythonProcess::LoadPythonEngine( mSettings.BratPaths().mExecutableDir );
+		LOG_TRACEstd( CBratEmbeddedPythonProcess::PythonMessages() );
 		LOG_TRACE( "Finished registering python algorithms." );
+        return result;
     }
     catch ( const CException &e )
     {
-        LOG_WARN( e.Message() );
-        SimpleErrorBox( e.Message() );
+        msg = e.Message();
     }
     catch ( ... )
     {
-        static const std::string msg(
-            "Unknown exception caught loading python algorithm.\nPlease make sure that the python file name matches the pattern "
-            + file_prefix + "<python-class-name>" + file_suffix );
-        LOG_WARN( msg );
-        SimpleErrorBox( msg );
+        msg = "Unknown exception caught loading python algorithm.";
     }
+
+	msg += ( "\n" + CBratEmbeddedPythonProcess::PythonMessages() );
+	LOG_WARN( msg );
+	SimpleErrorBox( msg );
+
+    return false;
 }
 
 
