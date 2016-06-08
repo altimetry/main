@@ -1,0 +1,8 @@
+========================== 
+Result for 'SLA'
+========================== 
+	Number of valid data = 493573.000000
+	Mean = 0.500023
+	Standard deviation = 0.160768
+	Minimum = -1.999000
+	Maximum = 2.000000

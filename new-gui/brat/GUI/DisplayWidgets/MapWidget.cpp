@@ -1561,7 +1561,7 @@ QgsVectorLayer* CMapWidget::AddContourDataLayer( const std::string &name, double
 
 	if ( l )
 	{
-		l->setLayerTransparency( 10 );				//TODO Magic Number
+        //l->setLayerTransparency( 10 );				//TODO Magic Number
 		l->dataProvider()->addFeatures( flist );
 		mDataLayers.push_back( l );
 	}
@@ -2030,7 +2030,7 @@ void CMapWidget::WriteDataValue( QgsRectangle rect )
 		req.setFilterRect( rect );
 		QgsFeatureIterator it = provider->getFeatures( req );
 		QgsFeature f;
-		if ( it.nextFeature( f ) )
+        if ( it.nextFeature( f ) && f.attributes().size() > 0 )
 		{
 			//TODO how do we know its a time variable?
 			//brathl_refDate ref_date = (brathl_refDate)f.attribute( ref_date_key ).toInt();	CDate d( f.attribute( height_key ).toDouble(), ref_date );

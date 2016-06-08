@@ -57,7 +57,7 @@ void CListContour::CleanMemory()
 	CContour::CleanMemory();
 	
 	// reseting lists
-	assert__(m_vStripLists.size() == GetNPlanes());
+//	assert__(m_vStripLists.size() == GetNPlanes());
 	for (unsigned long i= 0; i< m_vStripLists.size(); i++ )
 	{
 		for (CLineStripList::iterator pos=m_vStripLists[i].begin(); pos!=m_vStripLists[i].end();pos++)

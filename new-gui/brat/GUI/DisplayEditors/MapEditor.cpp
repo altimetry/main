@@ -869,7 +869,8 @@ void CMapEditor::HandleShowSolidColorChecked( bool checked )
 
 void CMapEditor::HandleShowContourChecked( bool checked )
 {
-	//BRAT_NOT_IMPLEMENTED;
+    BRAT_NOT_IMPLEMENTED;
+    return;
 
 	int field_index = mTabDataLayers->mFieldsList->currentRow();
 	assert__( field_index < (int)mDataArrayMap.size() );
@@ -885,17 +886,18 @@ void CMapEditor::HandleShowContourChecked( bool checked )
 	} );
 
 
-	double pLimits[ 4 ] ={ -179, 179, -89, 89 };
+    double pLimits[ 4 ] ={ map.mXaxis[0], map.mXaxis[map.mXaxis.size()-1], map.mYaxis[0], map.mYaxis[map.mYaxis.size()-1] };
 	std::vector<double> vPlanes;
+    mPropertiesMap->m_numContour = 5;
 	vPlanes.resize( mPropertiesMap->m_numContour );
-	const auto range = map.mMaxHeightValue - map.mMinHeightValue;
-	for ( unsigned long i=0; i < vPlanes.size(); i++ )
+    const auto step = ( map.mMaxHeightValue - map.mMinHeightValue ) / mPropertiesMap->m_numContour;
+    for ( unsigned long i = 0; i < vPlanes.size(); i++ )
 	{
-		vPlanes[ i ] = range / ( i + 1 );
+        vPlanes[ i ] = map.mMaxHeightValue - i * step;
 	}
 	contours.SetPlanes( vPlanes );
-	contours.SetFirstGrid( map.mXaxis.size(), map.mYaxis.size() );
-	contours.SetSecondaryGrid( 2 * map.mXaxis.size(), 2 * map.mYaxis.size() );
+    contours.SetFirstGrid( 2 * map.mXaxis.size(), 2 * map.mYaxis.size() );
+    contours.SetSecondaryGrid( 10 * map.mXaxis.size(), 10 * map.mYaxis.size() );
 	contours.SetLimits( pLimits );
 	contours.Generate();
 	contours.GetLimits( pLimits );

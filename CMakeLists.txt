@@ -990,6 +990,20 @@ INSTALL(
 
 
 
+#######################################################
+# Demo
+#######################################################
+
+INSTALL(
+    DIRECTORY
+    Demo
+    DESTINATION Demo
+    COMPONENT brat_runtime
+    )
+
+
+
+
 # RETURN()
 
 
@@ -1140,55 +1154,55 @@ add_custom_target(externals-install
 
 # The data/ subdirectory
 
-set(BRATHL_DEFDATADIR  "${CMAKE_INSTALL_PREFIX}/${INSTALL_DIR}/data" CACHE INTERNAL "Default data directory")
-set(BRATHL_UNITFILE "brathl_units.dat" CACHE INTERNAL "Units file")
+#set(BRATHL_DEFDATADIR  "${CMAKE_INSTALL_PREFIX}/${INSTALL_DIR}/data" CACHE INTERNAL "Default data directory")
+#set(BRATHL_UNITFILE "brathl_units.dat" CACHE INTERNAL "Units file")
 
 
-set(CODADEF_FILES
-	#data/CRYOSAT-20120130.codadef
-	data/CRYOSAT-20150601.codadef
-	#data/ENVISAT_RA2MWR-20110125.codadef
-	data/ENVISAT_RA2MWR-20120623.codadef
-	data/ERS_MWR-20110820.codadef
-	data/ERS_RA-20110820.codadef
-	data/GFO-20110125.codadef
-	data/JASON-20110125.codadef
-	data/PODAAC-20110125.codadef
-	data/RADS-20080701.codadef
-	data/River_Lake-20110125.codadef
-	data/Topex_Poseidon-20110125.codadef
-  )
+#set(CODADEF_FILES
+#	#data/CRYOSAT-20120130.codadef
+#	data/CRYOSAT-20150601.codadef
+#	#data/ENVISAT_RA2MWR-20110125.codadef
+#	data/ENVISAT_RA2MWR-20120623.codadef
+#	data/ERS_MWR-20110820.codadef
+#	data/ERS_RA-20110820.codadef
+#	data/GFO-20110125.codadef
+#	data/JASON-20110125.codadef
+#	data/PODAAC-20110125.codadef
+#	data/RADS-20080701.codadef
+#	data/River_Lake-20110125.codadef
+#	data/Topex_Poseidon-20110125.codadef
+#  )
 
-set(LIBBRATHL_DATA_FILES
-  data/brathl_units.dat
-  data/brathl_refmission.txt
-  data/brathl_aliasmission.txt
-  data/brathl_transposefieldvalues.txt
-  data/aliases.xml
-  data/aliases.xsd
-  data/aliases.xsd.html
-  )
+#set(LIBBRATHL_DATA_FILES
+#  data/brathl_units.dat
+#  data/brathl_refmission.txt
+#  data/brathl_aliasmission.txt
+#  data/brathl_transposefieldvalues.txt
+#  data/aliases.xml
+#  data/aliases.xsd
+#  data/aliases.xsd.html
+#  )
 
-set(GUI_DATA_FILES
-  data/BratIcon.ico
-  data/BratIcon.bmp
-  )
+#set(GUI_DATA_FILES
+#  data/BratIcon.ico
+#  data/BratIcon.bmp
+#  )
 
-set(BRAT_GUI_DATA_FILES
-  data/function_descr.txt
-  new-gui/Common/Resources/images/BratIcon.png
-  data/BratLogo.png
-  data/Formulas.ini
-  )
+#set(BRAT_GUI_DATA_FILES
+#  data/function_descr.txt
+#  new-gui/Common/Resources/images/BratIcon.png
+#  data/BratLogo.png
+#  data/Formulas.ini
+#  )
   
-set(DATA_FILES
-  ${CODADEF_FILES}
-  ${LIBBRATHL_DATA_FILES}
-  ${GUI_DATA_FILES}
-  ${BRAT_GUI_DATA_FILES}
-  )
+#set(DATA_FILES
+#  ${CODADEF_FILES}
+#  ${LIBBRATHL_DATA_FILES}
+#  ${GUI_DATA_FILES}
+#  ${BRAT_GUI_DATA_FILES}
+#  )
 
-install(FILES ${DATA_FILES} DESTINATION data/)
+#install(FILES ${DATA_FILES} DESTINATION data/)
 
 
 # The BRAT core tools library  ############################################################################################################

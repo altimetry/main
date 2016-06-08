@@ -1,0 +1,16 @@
+
+#----- LOG -----
+
+VERBOSE=2
+
+#----- INPUT -----
+
+FILE=/home/brat/s3-altb/project/workspaces/RCCC/Operations/CreateEnv_GDR_04.nc
+
+#----- COLORTABLE -----
+
+DISPLAY_COLORTABLE=Aerosol
+
+#----- OUTPUT -----
+
+OUTPUT=/home/brat/s3-altb/project/workspaces/RCCC/Operations/ExportAsciiEnv_GDR_04.tif

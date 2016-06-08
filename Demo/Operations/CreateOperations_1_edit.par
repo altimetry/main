@@ -1,0 +1,143 @@
+#Type:Y=F(X)
+
+#----- LOG -----
+
+VERBOSE=2
+
+#----- GENERAL PROPERTIES -----
+
+
+#----- ALIAS -----
+ALIAS_NAME=Ocean_data_editing_CryoSat_OceanProducts_GOP_IOP
+ALIAS_VALUE=surf_type == 0 && is_bounded(-130,(alt_cog_ref_ellip-ocean_range),100) && is_bounded(-2.5,dry_tropo_corr,-1.9) && is_bounded(-0.500,wet_tropo_corr,-0.001) && is_bounded(-0.400, ion_corr_gim,0.040) && is_bounded(-0.500,sea_state_bias_corr,0) && is_bounded(-5, ( ocean_load_tide_got + ocean_tide_got),5) && is_bounded(-1,sol_earth_tide,1) && is_bounded(-0.150,geocen_pol_tide,0.150) && is_bounded(-2,inv_barom_corr,2)
+ALIAS_NAME=Ocean_data_editing_ERS
+ALIAS_VALUE=Nval >= 10 && is_bounded(0,Std_H_Alt,0.450 ) && is_bounded(-130,(H_Sat-H_Alt),100) && is_bounded(-2,%{SLA_ERS},2) && is_bounded(-2.5,Dry_Cor,-1.9) && is_bounded(-0.500,Wet_Cor,-0.001) && is_bounded(-0.400,Iono_Cor,0.040) && is_bounded(-0.500,SSB_Cor,0) && is_bounded(-5,(H_Eot + H_Lt),5) && is_bounded(-1,H_Set,1) && is_bounded(0,SWH,11) && is_bounded(7,Sigma0,30) && is_bounded(0,Wind_Sp,30) && is_bounded(-0.16 ,Square_Off_Nad_Smoothed,0.16 )
+ALIAS_NAME=Ocean_data_editing_Envisat_GdrA
+ALIAS_VALUE=altim_landocean_flag == 0 && num_18hz_ku_ocean >= 10 && is_bounded(0,sd_18hz_ku_ocean,0.25) && is_bounded(-130,(alt_cog_ellip-ku_band_ocean_range),100) && is_bounded(-2.5,mod_dry_tropo_corr,-1.9) && is_bounded(-0.500,mwr_wet_tropo_corr,-0.001) && is_bounded(-0.400, %{Select_Envisat_ion_corr_ku},0.040) && is_bounded(-0.500,sea_bias_ku,0) && is_bounded(-5, (tot_geocen_ocn_tide_ht_sol1 + tidal_load_ht_sol1 + long_period_ocn_tide_ht),5) && is_bounded(-1,solid_earth_tide_ht,1) && is_bounded(-0.150,geocen_pole_tide_ht,0.150) && is_bounded(0,ku_sig_wv_ht ,11) && is_bounded(7,ku_ocean_bscat_coeff,30) && is_bounded(0,ra2_wind_sp,30) && is_bounded(-0.2,off_nad_ang_wvform,0.16) && is_bounded(-2,%{SLA_Envisat_GdrA},2) && is_bounded(-2,inv_barom_corr,2)
+ALIAS_NAME=Ocean_data_editing_Envisat_GdrB
+ALIAS_VALUE=altim_landocean_flag == 0 && num_18hz_ku_ocean >= 10 && is_bounded(0,sd_18hz_ku_ocean,0.25) && is_bounded(-130,(alt_cog_ellip-ku_band_ocean_range),100) && is_bounded(-2.5,mod_dry_tropo_corr,-1.9) && is_bounded(-0.500,mwr_wet_tropo_corr,-0.001) && is_bounded(-0.400, %{Select_Envisat_ion_corr_ku},0.040) && is_bounded(-0.500,sea_bias_ku,0) && is_bounded(-5, (tot_geocen_ocn_tide_ht_sol1 + tidal_load_ht_sol1 + long_period_ocn_tide_ht),5) && is_bounded(-1,solid_earth_tide_ht,1) && is_bounded(-0.150,geocen_pole_tide_ht,0.150) && is_bounded(0,ku_sig_wv_ht ,11) && is_bounded(7,ku_ocean_bscat_coeff,30) && is_bounded(0,ra2_wind_sp,30) && is_bounded(-0.2,off_nad_ang_wvform,0.16) && is_bounded(-2,%{SLA_Envisat_GdrB},2) && is_bounded(-2, ( dib_hf + inv_barom_corr ),2)
+ALIAS_NAME=Ocean_data_editing_Envisat_GdrC
+ALIAS_VALUE=altim_landocean_flag == 0 && num_18hz_ku_ocean >= 10 && is_bounded(0,sd_18hz_ku_ocean,0.25) && is_bounded(-130,(alt_cog_ellip-ku_band_ocean_range),100) && is_bounded(-2.5,mod_dry_tropo_corr,-1.9) && is_bounded(-0.500,mwr_wet_tropo_corr,-0.001) && is_bounded(-0.400, %{Select_Envisat_ion_corr_ku},0.040) && is_bounded(-0.500,sea_bias_ku,0.010) && is_bounded(-5, (tot_geocen_ocn_tide_ht_sol1 + tidal_load_ht_sol1 + long_period_ocn_tide_ht),5) && is_bounded(-1,solid_earth_tide_ht,1) && is_bounded(-0.150,geocen_pole_tide_ht,0.150) && is_bounded(0,ku_sig_wv_ht ,11) && is_bounded(7,ku_ocean_bscat_coeff,30) && is_bounded(0,ra2_wind_sp,30) && is_bounded(-0.2,off_nad_ang_wvform,0.16) && is_bounded(-2,%{SLA_Envisat_GdrC},2) && is_bounded(-2, ( dib_hf + inv_barom_corr ),2)
+ALIAS_NAME=Ocean_data_editing_GFO_cycle_135_136_137_166
+ALIAS_VALUE=NOAA_FLAGS.Land_Ocean == 0 && NVals_SSHU >= 5 && is_bounded(0,SSHU_STD,0.15 ) && is_bounded(-110,SSHU, 110) && is_bounded(-10 ,%{SLA_GFO},10) && is_bounded(-2.5,Dry_Troposphere,-1.9) && is_bounded(-0.500,Wet_Troposphere_Model ,-0.001) && is_bounded(-0.400, Ionosphere,0.040) && is_bounded(-0.500,Sea_State_Bias,0) && is_bounded(-5,(Ocean_Water_Tide+Ocean_Load_Tide),5) && is_bounded(-1,Solid_Earth_Tide,1) && is_bounded(-0.150,Pole_Tide,0.150) && is_bounded(0,SWH,11) && is_bounded(7,Sigma0,30) && is_bounded(0,Wind_Speed,30) && is_bounded(-0.025 ,Attitude_Squared, 0.05) && is_bounded(-2,Inverse_Barometer,2)
+ALIAS_NAME=Ocean_data_editing_GFO_from_cycle_83
+ALIAS_VALUE=NOAA_FLAGS.Land_Ocean == 0 && NVals_SSHU >= 5 && is_bounded(0,SSHU_STD,0.15 ) && is_bounded(-110,SSHU, 110) && is_bounded(-10 ,%{SLA_GFO},10) && is_bounded(-2.5,Dry_Troposphere,-1.9) && is_bounded(-0.500,Wet_Troposphere,-0.001) && is_bounded(-0.400, Ionosphere,0.040) && is_bounded(-0.500,Sea_State_Bias,0) && is_bounded(-5,(Ocean_Water_Tide+Ocean_Load_Tide),5) && is_bounded(-1,Solid_Earth_Tide,1) && is_bounded(-0.150,Pole_Tide,0.150) && is_bounded(0,SWH,11) && is_bounded(7,Sigma0,30) && is_bounded(0,Wind_Speed,30) && is_bounded(-0.025 ,Attitude_Squared, 0.05) && is_bounded(-2,Inverse_Barometer,2)
+ALIAS_NAME=Ocean_data_editing_GFO_until_cycle_82
+ALIAS_VALUE=NOAA_FLAGS.Land_Ocean == 0 && NVals_SSHU >= 5 && is_bounded(0,SSHU_STD,0.15 ) && is_bounded(-110,SSHU, 110) && is_bounded(-10 ,%{SLA_GFO},10) && is_bounded(-2.5,Dry_Troposphere,-1.9) && is_bounded(-0.500,Wet_Troposphere,-0.001) && is_bounded(-0.400, Ionosphere,0.040) && is_bounded(-0.500,Sea_State_Bias,0) && is_bounded(-5,(Ocean_Water_Tide+Ocean_Load_Tide),5) && is_bounded(-1,Solid_Earth_Tide,1) && is_bounded(-0.150,Pole_Tide,0.150) && is_bounded(0,SWH,11) && is_bounded(7,Sigma0,30) && is_bounded(0,Wind_Speed,30) && is_bounded(-0.2,Attitude_Squared,0.16) && is_bounded(-2,Inverse_Barometer,2)
+ALIAS_NAME=Ocean_data_editing_Jason1_GdrA
+ALIAS_VALUE=surface_type == 0 && range_numval_ku >= 10 && is_bounded(0,range_rms_ku,0.2) && is_bounded(-130,(altitude-range_ku),100) && is_bounded(-2.5,model_dry_tropo_corr,-1.9) && is_bounded(-0.500,rad_wet_tropo_corr,-0.001) && is_bounded(-0.400, iono_corr_alt_ku,0.040) && is_bounded(-0.500,sea_state_bias_ku,0) && is_bounded(-5,ocean_tide_sol1,5) && is_bounded(-1,solid_earth_tide,1) && is_bounded(-0.150,pole_tide,0.150) && is_bounded(0,swh_ku,11) && is_bounded(7,sig0_ku,30) && is_bounded(0,wind_speed_alt,30) && is_bounded(-0.2,off_nadir_angle_ku_wvf,0.16) && is_bounded(-2,%{SLA_Jason1_GdrA},2) && is_bounded(-2,inv_bar_corr,2)
+ALIAS_NAME=Ocean_data_editing_Jason1_GdrB
+ALIAS_VALUE=surface_type == 0 && range_numval_ku >= 10 && is_bounded(0,range_rms_ku,0.2) && is_bounded(-130,(altitude-range_ku),100) && is_bounded(-2.5,model_dry_tropo_corr,-1.9) && is_bounded(-0.500,rad_wet_tropo_corr,-0.001) && is_bounded(-0.400, iono_corr_alt_ku,0.040) && is_bounded(-0.500,sea_state_bias_ku,0) && is_bounded(-5,ocean_tide_sol1,5) && is_bounded(-1,solid_earth_tide,1) && is_bounded(-0.150,pole_tide,0.150) && is_bounded(0,swh_ku,11) && is_bounded(7,sig0_ku,30) && is_bounded(0,wind_speed_alt,30) && is_bounded(-0.2,off_nadir_angle_ku_wvf,0.64 ) && is_bounded(-2,%{SLA_Jason1_GdrB},2) && is_bounded(-2,( hf_fluctuations_corr + inv_bar_corr),2) && sig0_num_val_ku >= 10 && is_bounded(0,sig0_rms_ku,1)
+ALIAS_NAME=Ocean_data_editing_Jason1_GdrC
+ALIAS_VALUE=surface_type == 0 && range_numval_ku >= 10 && is_bounded(0,range_rms_ku,0.2) && is_bounded(-130,(altitude-range_ku),100) && is_bounded(-2.5,model_dry_tropo_corr,-1.9) && is_bounded(-0.500,rad_wet_tropo_corr,-0.001) && is_bounded(-0.400, iono_corr_alt_ku,0.040) && is_bounded(-0.500,sea_state_bias_ku,0) && is_bounded(-5,ocean_tide_sol1,5) && is_bounded(-1,solid_earth_tide,1) && is_bounded(-0.150,pole_tide,0.150) && is_bounded(0,swh_ku,11) && is_bounded(7,sig0_ku,30) && is_bounded(0,wind_speed_alt,30) && is_bounded(-0.2,off_nadir_angle_ku_wvf,0.64 ) && is_bounded(-2,%{SLA_Jason1_GdrC},2) && is_bounded(-2,( hf_fluctuations_corr + inv_bar_corr),2) && sig0_num_val_ku >= 10 && is_bounded(0,sig0_rms_ku,1)
+ALIAS_NAME=Ocean_data_editing_Jason2
+ALIAS_VALUE=surface_type == 0 && range_numval_ku >= 10 && is_bounded(0,range_rms_ku,0.2) && is_bounded(-130,(alt-range_ku),100)  && is_bounded(-2.5,model_dry_tropo_corr,-1.9) && is_bounded(-0.500,rad_wet_tropo_corr,-0.001) && is_bounded(-0.400, iono_corr_alt_ku,0.040) && is_bounded(-0.500,sea_state_bias_ku,0) && is_bounded(-5,ocean_tide_sol1,5) && is_bounded(-1,solid_earth_tide,1) && is_bounded(-0.150,pole_tide,0.150) && is_bounded(0,swh_ku,11) && is_bounded(7,sig0_ku,30) && is_bounded(0,wind_speed_alt,30) && is_bounded(-0.2,off_nadir_angle_wf_ku,0.16) && is_bounded(-2,%{SLA_Jason2},2) && is_bounded(-2,( hf_fluctuations_corr + inv_bar_corr),2) && sig0_numval_ku >= 10 && is_bounded(0,sig0_rms_ku,1) 
+ALIAS_NAME=Ocean_data_editing_Poseidon
+ALIAS_VALUE=Geo_Bad_1.water_land_distribution == 0 && Nval_H_Alt >= 10 && is_bounded(0,RMS_H_Alt,0.2) && is_bounded(-130,(Sat_Alt-H_Alt),100) && is_bounded(-2.5,Dry_Corr,-1.9) && is_bounded(-0.500,Wet_H_Rad,-0.001) && is_bounded(-0.400,Iono_Dor,0.040) && is_bounded(-5,H_Eot_FES,5) && is_bounded(-1,H_Set,1) && is_bounded(-0.150,H_Pol,0.150) && is_bounded(0,SWH_K ,11) && is_bounded(7,Sigma0_K, 30) && is_bounded(0,Wind_Sp,30) && is_bounded(0,Att_Wvf,0.4) && is_bounded(-0.5,SSB_Corr_K1,0) && is_bounded(-2,Inv_Bar,2) && is_bounded(-2,%{SLA_Topex_Poseidon},2)
+ALIAS_NAME=Ocean_data_editing_Sentinel3
+ALIAS_VALUE=surf_type_01==0 && is_bounded(-130,(alt_01 - range_ocean_01_ku),100) && is_bounded(-2.5,mod_dry_tropo_cor_meas_altitude_01,-1.9) && is_bounded(-0.500,mod_wet_tropo_cor_meas_altitude_01,-0.001) && is_bounded(-0.400, iono_cor_alt_01_ku,0.040) && is_bounded(-0.500,sea_state_bias_01_ku,0) && is_bounded(-5, ocean_tide_sol1_01,5) && is_bounded(-1,solid_earth_tide_01,1) && is_bounded(-0.150,load_tide_sol1_01,0.150) && is_bounded(-2,inv_bar_cor_01,2)
+ALIAS_NAME=Ocean_data_editing_Topex
+ALIAS_VALUE=Geo_Bad_1.water_land_distribution == 0 && Nval_H_Alt >= 5 && is_bounded(0,RMS_H_Alt,0.1) && is_bounded(-130,(Sat_Alt-H_Alt),100) && is_bounded(-2.5,Dry_Corr,-1.9) && is_bounded(-0.500,Wet_H_Rad,-0.001) && is_bounded(-0.400,Iono_Cor,0.040) && is_bounded(-5,H_Eot_FES,5) && is_bounded(-1,H_Set,1) && is_bounded(-0.150,H_Pol,0.150) && is_bounded(0,SWH_K ,11) && is_bounded(7,Sigma0_K, 30) && is_bounded(0,Wind_Sp,30) && is_bounded(0,Att_Wvf,0.4) && is_bounded(-0.5,SSB_Corr_K1,0) && is_bounded(-2,Inv_Bar,2) && is_bounded(-2,%{SLA_Topex_Poseidon},2)
+ALIAS_NAME=SLA_CryoSat_OceanProducts_GOP_IOP
+ALIAS_VALUE=%{SSH_CryoSat_OceanProducts_GOP_IOP}-mdt/1000
+ALIAS_NAME=SLA_ERS
+ALIAS_VALUE=%{SSH_ERS} - H_MSS_OSU
+ALIAS_NAME=SLA_Envisat_GdrA
+ALIAS_VALUE=%{SSH_Envisat_GdrA} - m_sea_surf_ht
+ALIAS_NAME=SLA_Envisat_GdrB
+ALIAS_VALUE=%{SSH_Envisat_GdrB} - m_sea_surf_ht
+ALIAS_NAME=SLA_Envisat_GdrC
+ALIAS_VALUE=%{SSH_Envisat_GdrC} - m_sea_surf_ht
+ALIAS_NAME=SLA_GFO
+ALIAS_VALUE=SSHC - Mean_Sea_Surface_I 
+ALIAS_NAME=SLA_Jason1_GdrA
+ALIAS_VALUE=%{SSH_Jason1_GdrA} - mss
+ALIAS_NAME=SLA_Jason1_GdrB
+ALIAS_VALUE=%{SSH_Jason1_GdrB} - mss
+ALIAS_NAME=SLA_Jason1_GdrC
+ALIAS_VALUE=%{SSH_Jason1_GdrC} - mss
+ALIAS_NAME=SLA_Jason2
+ALIAS_VALUE=%{SSH_Jason2} - mean_sea_surface 
+ALIAS_NAME=SLA_Poseidon
+ALIAS_VALUE=%{SSH_Poseidon} - H_MSS
+ALIAS_NAME=SLA_Sentinel_3
+ALIAS_VALUE=%{SSH_Sentinel_3_SAR}-mean_dyn_topo_01
+ALIAS_NAME=SLA_Topex
+ALIAS_VALUE=%{SSH_Topex} - H_MSS
+ALIAS_NAME=SLA_Topex_Poseidon
+ALIAS_VALUE=%{SSH_Topex_Poseidon} - H_MSS
+ALIAS_NAME=SSH_CryoSat_OceanProducts_GOP_IOP
+ALIAS_VALUE=(alt_cog_ref_ellip -( ocean_range + ion_corr_gim + dry_tropo_corr + wet_tropo_corr + sol_earth_tide + ocean_tide_got + ocean_load_tide_got + geocen_pol_tide + inv_barom_corr + sea_state_bias_corr))/1000
+ALIAS_NAME=SSH_ERS
+ALIAS_VALUE=H_Sat - H_Alt - Dry_Cor - (H_Eot + H_Lt) - H_Set - SSB_Cor - Iono_Cor - Wet_Cor
+ALIAS_NAME=SSH_Envisat_GdrA
+ALIAS_VALUE=alt_cog_ellip - ku_band_ocean_range - mod_dry_tropo_corr - inv_barom_corr - (tot_geocen_ocn_tide_ht_sol1)- solid_earth_tide_ht - geocen_pole_tide_ht - sea_bias_ku - %{Select_Envisat_ion_corr_ku} - mwr_wet_tropo_corr
+ALIAS_NAME=SSH_Envisat_GdrB
+ALIAS_VALUE=alt_cog_ellip - ku_band_ocean_range - mod_dry_tropo_corr - ( dib_hf + inv_barom_corr )- (tot_geocen_ocn_tide_ht_sol1)- solid_earth_tide_ht - geocen_pole_tide_ht - sea_bias_ku - %{Select_Envisat_ion_corr_ku} - mwr_wet_tropo_corr
+ALIAS_NAME=SSH_Envisat_GdrC
+ALIAS_VALUE=alt_cog_ellip - ku_band_ocean_range - mod_dry_tropo_corr - ( dib_hf + inv_barom_corr )- (tot_geocen_ocn_tide_ht_sol1)- solid_earth_tide_ht - geocen_pole_tide_ht - sea_bias_ku - %{Select_Envisat_ion_corr_ku} - mwr_wet_tropo_corr
+ALIAS_NAME=SSH_GFO
+ALIAS_VALUE=SSHU - Solid_Earth_Tide - Sea_State_Bias - Pole_Tide - Ionosphere - iif(is_default(Wet_Troposphere)==0,Wet_Troposphere,Wet_Troposphere_Model) - Dry_Troposphere - Inverse_Barometer - Ocean_Water_Tide - Ocean_Load_Tide
+ALIAS_NAME=SSH_Jason1_GdrA
+ALIAS_VALUE=altitude - range_ku - model_dry_tropo_corr - inv_bar_corr - ocean_tide_sol1 - solid_earth_tide - pole_tide - sea_state_bias_ku - iono_corr_alt_ku - rad_wet_tropo_corr
+ALIAS_NAME=SSH_Jason1_GdrB
+ALIAS_VALUE=altitude - range_ku - model_dry_tropo_corr - ( hf_fluctuations_corr + inv_bar_corr) - ocean_tide_sol1 - solid_earth_tide - pole_tide - sea_state_bias_ku - iono_corr_alt_ku - rad_wet_tropo_corr
+ALIAS_NAME=SSH_Jason1_GdrC
+ALIAS_VALUE=altitude - range_ku - model_dry_tropo_corr - ( hf_fluctuations_corr + inv_bar_corr) - ocean_tide_sol1 - solid_earth_tide - pole_tide - sea_state_bias_ku - iono_corr_alt_ku - rad_wet_tropo_corr - pseudo_datation_bias_corr_ku 
+ALIAS_NAME=SSH_Jason2
+ALIAS_VALUE=alt - range_ku - model_dry_tropo_corr - (hf_fluctuations_corr + inv_bar_corr) - ocean_tide_sol1 - solid_earth_tide - pole_tide - sea_state_bias_ku - iono_corr_alt_ku - rad_wet_tropo_corr
+ALIAS_NAME=SSH_Poseidon
+ALIAS_VALUE=Sat_Alt - H_Alt - Dry_Corr - Inv_Bar - (H_Eot_FES) - H_Set - H_Pol - SSB_Corr_K1 - Iono_Dor - Wet_H_Rad
+ALIAS_NAME=SSH_Sentinel_3
+ALIAS_VALUE=(alt_01 -( range_ocean_01_ku + iono_cor_alt_01_ku + mod_dry_tropo_cor_meas_altitude_01 + mod_wet_tropo_cor_meas_altitude_01 + solid_earth_tide_01 + ocean_tide_sol1_01 + load_tide_sol1_01 + inv_bar_cor_01 + sea_state_bias_01_ku))
+ALIAS_NAME=SSH_Topex
+ALIAS_VALUE=Sat_Alt - H_Alt - Dry_Corr - Inv_Bar - (H_Eot_FES) - H_Set - H_Pol - SSB_Corr_K1 - Iono_Cor - Wet_H_Rad
+ALIAS_NAME=SSH_Topex_Poseidon
+ALIAS_VALUE=iif(ALTON==0, %{SSH_Poseidon}, %{SSH_Topex})
+ALIAS_NAME=Select_Envisat_ion_corr_ku
+ALIAS_VALUE=iif(((mph.cycle == 47) && (sph.pass_number > 935)) || ((mph.cycle == 48) && (sph.pass_number < 848)) || ((mph.cycle == 65) && (sph.pass_number > 288)) || (mph.cycle > 65), ion_corr_mod_ku, ra2_ion_corr_ku)
+
+#----- DATASET -----
+
+RECORD=data
+
+FILE=/home/brat/s3-altb/project/workspaces/RCCC/Datasets/Data/JA2_GPR_2PdP240_157_20150112_233717_20150113_003330.nc
+
+#----- SPECIFIC UNIT -----
+
+#----- FIELDS -----
+
+
+#
+FIELD=%{SSH_Jason2} - mean_sea_surface 
+FIELD_NAME=SLA
+FIELD_TYPE=Data
+FIELD_UNIT=m
+FIELD_DATA_MODE=MEAN
+FIELD_TITLE=SLA
+FIELD_COMMENT=DV
+
+#
+FIELD=alt - range_ku - model_dry_tropo_corr - (hf_fluctuations_corr + inv_bar_corr) - ocean_tide_sol1 - solid_earth_tide - pole_tide - sea_state_bias_ku - iono_corr_alt_ku - rad_wet_tropo_corr
+FIELD_NAME=SSH
+FIELD_TYPE=Data
+FIELD_UNIT=m
+FIELD_DATA_MODE=MEAN
+FIELD_TITLE=SSH
+FIELD_COMMENT=DV
+
+#
+X=lat
+X_NAME=lat
+X_TYPE=Latitude
+X_UNIT=degrees_north
+X_TITLE=lat
+X_COMMENT=DV
+
+#----- SELECT -----
+
+SELECT=surface_type==2
+
+#----- OUTPUT -----
+
+OUTPUT=/home/brat/s3-altb/project/workspaces/RCCC/Operations/CreateOperations_1_edit.nc

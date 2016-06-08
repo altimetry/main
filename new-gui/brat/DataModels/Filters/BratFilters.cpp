@@ -393,9 +393,9 @@ bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std
                 Start = StartDate;
                 Stop  = StopDate;
             }
-            else // Mission not found
+            else // Mission not found       TODO add string parameter for error messages
             {
-                SimpleErrorBox( "Filter '" + filter->Name() + "' was not applied!\nUnable to convert Cycle and Pass to date: no mission found for product '"
+                LOG_WARN( "Filter '" + filter->Name() + "' was not applied!\nUnable to convert Cycle and Pass to date: no mission found for product '"
                                 + product_ref->GetLabel() + "'." );
                 return false;
             }

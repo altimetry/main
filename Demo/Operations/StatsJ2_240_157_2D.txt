@@ -1,0 +1,16 @@
+========================== 
+Result for '(((((((((alt - range_ku) - model_dry_tropo_corr) - (hf_fluctuations_corr + inv_bar_corr)) - ocean_tide_sol1) - solid_earth_tide) - pole_tide) - sea_state_bias_ku) - iono_corr_alt_ku) - rad_wet_tropo_corr) - mean_sea_surface'
+========================== 
+	Number of valid data = 1862.000000
+	Mean = 2.158587
+	Standard deviation = 18.723469
+	Minimum = -32.306000
+	Maximum = 273.735400
+========================== 
+Result for '((((((((alt - range_ku) - model_dry_tropo_corr) - (hf_fluctuations_corr + inv_bar_corr)) - ocean_tide_sol1) - solid_earth_tide) - pole_tide) - sea_state_bias_ku) - iono_corr_alt_ku) - rad_wet_tropo_corr'
+========================== 
+	Number of valid data = 1862.000000
+	Mean = -1.082455
+	Standard deviation = 34.314162
+	Minimum = -66.673800
+	Maximum = 239.990000
