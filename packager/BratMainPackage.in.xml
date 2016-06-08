@@ -209,7 +209,7 @@
             </distributionFile>
           </distributionFileList>
         </folder>-->
-                <folder>
+<!--                <folder>
                     <description>Shared data files</description>
                     <destination>${installdir}</destination>
                     <name>data</name>
@@ -217,6 +217,17 @@
                     <distributionFileList>
                         <distributionDirectory>
                             <origin>@CMAKE_SOURCE_DIR@/data</origin>
+                        </distributionDirectory>
+                    </distributionFileList>
+                </folder>-->
+                <folder>
+                    <description>Demo Workspace</description>
+                    <destination>${installdir}</destination>
+                    <name>Demo</name>
+                    <platforms>all</platforms>
+                    <distributionFileList>
+                        <distributionDirectory>
+                            <origin>@CMAKE_SOURCE_DIR@/Demo</origin>
                         </distributionDirectory>
                     </distributionFileList>
                 </folder>
