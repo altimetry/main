@@ -970,7 +970,7 @@ INSTALL(
 	)
 	
 
-# in mac internal data is in both bundles
+# in mac internal data is in both bundles (and in API...)
 #
 IF (APPLE)
 	INSTALL(
@@ -994,12 +994,21 @@ INSTALL(
 # Demo
 #######################################################
 
-INSTALL(
-    DIRECTORY
-    Demo
-    DESTINATION Demo
-    COMPONENT brat_runtime
-    )
+IF (APPLE)
+	INSTALL(
+		DIRECTORY
+		Demo
+		DESTINATION ${RUNTIME_DESTINATION}/../
+		COMPONENT brat_runtime
+		)
+ELSE(APPLE)
+	INSTALL(
+		DIRECTORY
+		Demo
+		DESTINATION Demo
+		COMPONENT brat_runtime
+		)
+ENDIF(APPLE)
 
 
 
@@ -1158,35 +1167,35 @@ add_custom_target(externals-install
 #set(BRATHL_UNITFILE "brathl_units.dat" CACHE INTERNAL "Units file")
 
 
-#set(CODADEF_FILES
-#	#data/CRYOSAT-20120130.codadef
-#	data/CRYOSAT-20150601.codadef
-#	#data/ENVISAT_RA2MWR-20110125.codadef
-#	data/ENVISAT_RA2MWR-20120623.codadef
-#	data/ERS_MWR-20110820.codadef
-#	data/ERS_RA-20110820.codadef
-#	data/GFO-20110125.codadef
-#	data/JASON-20110125.codadef
-#	data/PODAAC-20110125.codadef
-#	data/RADS-20080701.codadef
-#	data/River_Lake-20110125.codadef
-#	data/Topex_Poseidon-20110125.codadef
-#  )
+set(CODADEF_FILES
+	#data/CRYOSAT-20120130.codadef
+	data/CRYOSAT-20150601.codadef
+	#data/ENVISAT_RA2MWR-20110125.codadef
+	data/ENVISAT_RA2MWR-20120623.codadef
+	data/ERS_MWR-20110820.codadef
+	data/ERS_RA-20110820.codadef
+	data/GFO-20110125.codadef
+	data/JASON-20110125.codadef
+	data/PODAAC-20110125.codadef
+	data/RADS-20080701.codadef
+	data/River_Lake-20110125.codadef
+	data/Topex_Poseidon-20110125.codadef
+  )
 
-#set(LIBBRATHL_DATA_FILES
-#  data/brathl_units.dat
-#  data/brathl_refmission.txt
-#  data/brathl_aliasmission.txt
-#  data/brathl_transposefieldvalues.txt
-#  data/aliases.xml
-#  data/aliases.xsd
-#  data/aliases.xsd.html
-#  )
+set(LIBBRATHL_DATA_FILES
+  data/brathl_units.dat
+  data/brathl_refmission.txt
+  data/brathl_aliasmission.txt
+  data/brathl_transposefieldvalues.txt
+  data/aliases.xml
+  data/aliases.xsd
+  data/aliases.xsd.html
+  )
 
-#set(GUI_DATA_FILES
-#  data/BratIcon.ico
-#  data/BratIcon.bmp
-#  )
+set(GUI_DATA_FILES
+  data/BratIcon.ico
+  data/BratIcon.bmp
+  )
 
 #set(BRAT_GUI_DATA_FILES
 #  data/function_descr.txt
@@ -2168,6 +2177,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/ControlPanels/DesktopControlPanel.cpp
 		new-gui/brat/DataModels/PlotData/Contour/Contour.cpp
 		new-gui/brat/DataModels/PlotData/Contour/ListContour.cpp
+		new-gui/brat/GUI/ControlPanels/Dialogs/DataDisplayPropertiesDialog.cpp
 	)
 
 		
@@ -2273,6 +2283,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/ControlPanels/DesktopControlPanel.h
 		new-gui/brat/DataModels/PlotData/Contour/Contour.h
 		new-gui/brat/DataModels/PlotData/Contour/ListContour.h
+		new-gui/brat/GUI/ControlPanels/Dialogs/DataDisplayPropertiesDialog.h
 	)
 
 
@@ -2723,8 +2734,8 @@ if(APPLE)
     COMMAND cp ${BRAT_SOURCE_DIR}/externals/netcdf-c/include/netcdf.h ${BDIST_ROOT}/include
     COMMAND cp ${BRAT_SOURCE_DIR}/externals/udunits/src/lib/udunits.h ${BDIST_ROOT}/include
 
-#    COMMAND mkdir -p ${BDIST_ROOT}/data
-#	COMMAND cp -R ${BRAT_SOURCE_DIR}/data ${BDIST_ROOT}/data
+	COMMAND mkdir -p ${BDIST_ROOT}/data
+	COMMAND cp -R ${BRAT_SOURCE_DIR}/data ${BDIST_ROOT}/data
 
     COMMAND mkdir ${BDIST_PKGDIR}/doc
     COMMAND cp ${BRAT_SOURCE_DIR}/doc/brat_user_manual.pdf ${BDIST_PKGDIR}/doc/brat_user_manual_${BRAT_VERSION}.pdf

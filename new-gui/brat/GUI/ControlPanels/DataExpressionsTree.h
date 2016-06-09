@@ -176,7 +176,7 @@ public:
 
 	//
 
-	const CProduct* Product() const { return mProduct; }
+    CProduct* Product() { return mProduct; }
 
 	void InsertProduct( CProduct *product );
 
@@ -274,6 +274,7 @@ private:
 
 	CTextWidget *mExpressionTextWidget = nullptr;
 	QToolButton *mAssignExpressionButton = nullptr;
+    QToolButton *mCheckSyntaxButton = nullptr;
 
 
 	//...domain
@@ -301,6 +302,7 @@ public:
 	
 	CTextWidget *ExpressionTextWidget() { return mExpressionTextWidget; }
 	QToolButton *AssignExpressionButton() { return mAssignExpressionButton; }
+    QToolButton *CheckSyntaxButton() { return mCheckSyntaxButton; }
 
 	
 	CFormula* SelectedFormula()			//from COperationTreeCtrl::GetCurrentFormula()
@@ -333,7 +335,6 @@ public:
 	void SaveAsFormula();
 
 	void ShowAliases();
-	bool CheckSyntax( CProduct *product );
 
 
 protected:
@@ -404,6 +405,7 @@ protected slots:
     void HandlemSaveasFormula();
     void HandleDeleteExpr();
 	void HandleRenameExpr();
+    void HandleCheckSyntax();
 };
 
 

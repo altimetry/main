@@ -983,7 +983,7 @@ std::string COperation::OriginalDatasetName() const
 }
 
 //----------------------------------------
-CFormula* COperation::NewUserFormula( std::string &error_msg, CField* field, int typeField, bool addToMap, const CProduct* product )
+CFormula* COperation::NewUserFormula( std::string &error_msg, CField* field, CMapTypeField::ETypeField typeField, bool addToMap, const CProduct* product )
 {
   if (field == nullptr)
   {
@@ -1006,7 +1006,7 @@ CFormula* COperation::NewUserFormula( std::string &error_msg, CField* field, int
   return formula;
 }
 //----------------------------------------
-CFormula* COperation::NewUserFormula( std::string &error_msg, const std::string& name, int typeField, const std::string& strUnit, bool addToMap, const CProduct* product )
+CFormula* COperation::NewUserFormula( std::string &error_msg, const std::string& name, CMapTypeField::ETypeField typeField, const std::string& strUnit, bool addToMap, const CProduct* product )
 {
 	bool bOk = true;
 

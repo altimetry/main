@@ -45,7 +45,6 @@ enum EActionTag : int
 	eAction_Workspace_Tree,
 	eAction_Save_Map_Image,
 	eAction_Refresh_Map,
-	eAction_Graphic_Settings,
 	action_Satellite_Tracks,
 	eAction_Full_Screen,
 	eAction_Re_center,
@@ -94,6 +93,7 @@ enum EActionTag : int
 
 	eAction_AssignExpression,
 	eAction_ExportView,
+    eAction_DataDisplayProperties,
 
 	//add new items before this line
 

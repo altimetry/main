@@ -405,6 +405,7 @@ CDataExpressionsTreeWidget::CDataExpressionsTreeWidget( CWorkspaceFormula *&wksp
 	, mIsMap( is_map )
 	, mExpressionTextWidget( new CTextWidget )
 	, mAssignExpressionButton( CActionInfo::CreateToolButton( eAction_AssignExpression ) )
+    , mCheckSyntaxButton( CreateToolButton( "", ":/images/OSGeo/check.png", "Check syntax" ) )
 {
     QStringList labels;
     labels << tr("Data Expressions") << tr("Units");
@@ -422,6 +423,7 @@ CDataExpressionsTreeWidget::CDataExpressionsTreeWidget( CWorkspaceFormula *&wksp
 	connect( this, SIGNAL( itemSelectionChanged() ), this, SLOT( HandleSelectionChanged() ) );
 	connect( mAssignExpressionButton, SIGNAL( clicked() ), this, SLOT( HandleAssignExpression() ) );
 	connect( mExpressionTextWidget, SIGNAL( textChanged() ), this, SLOT( HandleExpressionTextChanged() ) );
+    connect( mCheckSyntaxButton, SIGNAL( clicked() ), this, SLOT( HandleCheckSyntax() ) );
 
 	connect( this, SIGNAL( itemChanged( QTreeWidgetItem *, int ) ), this, SLOT( HandleItemChanged( QTreeWidgetItem *, int ) ) );
     connect( this, SIGNAL( itemActivated( QTreeWidgetItem *, int ) ), this, SLOT( HandleItemActivated( QTreeWidgetItem *, int ) ) );
@@ -1135,9 +1137,9 @@ void CDataExpressionsTreeWidget::ShowAliases()
 }
 
 
-bool CDataExpressionsTreeWidget::CheckSyntax( CProduct *product )
+void CDataExpressionsTreeWidget::HandleCheckSyntax()
 {
-	assert__( mCurrentOperation );
+    assert__( mCurrentOperation && mDragSource->Product() );
 
 	std::string value = q2a( mExpressionTextWidget->toPlainText() );
 	std::string value_out;
@@ -1146,14 +1148,16 @@ bool CDataExpressionsTreeWidget::CheckSyntax( CProduct *product )
 
 	if ( mCurrentOperation->IsSelect( mCurrentFormula ) )
 	{
-		result = CFormula::CheckExpression( mWFormula, value, mCurrentOperation->GetRecord(), msg, nullptr, &mMapFormulaString, product, &value_out );
+        result = CFormula::CheckExpression( mWFormula, value, mCurrentOperation->GetRecord(), msg, nullptr, &mMapFormulaString,
+                                            mDragSource->Product(), &value_out );
 		if ( !result )
 			SimpleWarnBox( msg );
 	}
 	else
 	{
 		std::string unit = mCurrentFormula->GetUnitAsText();	// = GetOpunit()->GetValue();
-		result = CFormula::CheckExpression( mWFormula, value, mCurrentOperation->GetRecord(), msg, &unit, &mMapFormulaString, product, &value_out );
+        result = CFormula::CheckExpression( mWFormula, value, mCurrentOperation->GetRecord(), msg, &unit, &mMapFormulaString,
+                                            mDragSource->Product(), &value_out );
 		if ( !result )
 			SimpleWarnBox( msg );
 	}
@@ -1166,12 +1170,14 @@ bool CDataExpressionsTreeWidget::CheckSyntax( CProduct *product )
 		}
 	}
 
-	if ( !result )
-	{
+    if ( result )
+    {
+        LOG_WARN( "Data expression OK." );
+    }
+    else
+    {
 		mExpressionTextWidget->setFocus();
-	}
-
-	return result;
+    }
 }
 
 

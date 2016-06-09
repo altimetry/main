@@ -277,8 +277,8 @@ public:
 	CFormula* GetFormula( CMapFormula::iterator it );
 	const CFormula* GetFormula( CMapFormula::const_iterator it ) const;
 
-	CFormula* NewUserFormula( std::string &error_msg, CField* field, int32_t typeField, bool addToMap = true, const CProduct *product = nullptr );
-	CFormula* NewUserFormula( std::string &error_msg, const std::string& name = "", int32_t typeField = CMapTypeField::eTypeOpAsField, 
+	CFormula* NewUserFormula( std::string &error_msg, CField* field, CMapTypeField::ETypeField typeField, bool addToMap = true, const CProduct *product = nullptr );
+	CFormula* NewUserFormula( std::string &error_msg, const std::string& name = "", CMapTypeField::ETypeField typeField = CMapTypeField::eTypeOpAsField, 
 		const std::string& strUnit = "", bool addToMap = true, const CProduct *product = nullptr );
 
 	bool AddFormula( CFormula& value, std::string &error_msg );

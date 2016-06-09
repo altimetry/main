@@ -1152,7 +1152,7 @@ bool CWorkspaceDisplay::DeleteDisplay( CDisplay* display )
 
 
 
-// After executing an operation, the following call were made (in views tab)
+// After executing an operation, the following calls were made (in views tab)
 //
 //	CDisplayPanel::GetOperations(); - inserted all operations data in member m_dataList
 //	which then was loaded in available data tree widget:
@@ -1170,7 +1170,7 @@ bool CWorkspaceDisplay::DeleteDisplay( CDisplay* display )
 //	associated operation is executed again: if update is true, existing fields 
 //	not in operation are removed
 //
-std::vector< CDisplay* > CWorkspaceDisplay::CeateDisplays4Operation( const COperation *operation, CMapDisplayData *dataList )
+std::vector< CDisplay* > CWorkspaceDisplay::CreateDisplays4Operation( const COperation *operation, CMapDisplayData *dataList )
 {
 	std::vector< CDisplay*> v;
 
@@ -1215,6 +1215,12 @@ std::vector< CDisplay* > CWorkspaceDisplay::CeateDisplays4Operation( const COper
 			displayData->SetType( *itDispType );
 
 			displayData->GetField()->SetName( *itField );
+            CFormula *f = operation->GetFormula( *itField );
+            if ( f )
+            {
+                displayData->SetNorthComponent( f->IsNorthComponent() );
+                displayData->SetEastComponent( f->IsEastComponent() );
+            }
 
 			std::string unit = file->GetUnit( *itField ).GetText();
 			displayData->GetField()->SetUnit( unit );

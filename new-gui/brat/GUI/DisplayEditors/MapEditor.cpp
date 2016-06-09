@@ -533,13 +533,13 @@ bool CMapEditor::CreatePlotData( const std::vector< CWPlot* > &wplots )
 					continue;
 
                 //////// RCCC TODO: Temporarily changed to detect U and V components /////
-                if ( field->m_worldProps->m_name == "V" /*field->m_worldProps->m_northComponent*/ && northField == nullptr )
+                if ( /*field->m_worldProps->m_name == "V" /*/ field->m_worldProps->m_northComponent && northField == nullptr )
 				{
 					northField = field;
 					continue;
 				}
 				else
-                if ( field->m_worldProps->m_name == "U" /*field->m_worldProps->m_eastComponent*/ && eastField == nullptr )
+                if ( /*field->m_worldProps->m_name == "U" /*/ field->m_worldProps->m_eastComponent && eastField == nullptr )
 				{
 					eastField = field;
 					continue;

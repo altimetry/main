@@ -23,6 +23,7 @@
 #include "Dialogs/ExportDialog.h"
 #include "Dialogs/EditExportAsciiDialog.h"
 #include "Dialogs/ShowInfoDialog.h"
+#include "Dialogs/DataDisplayPropertiesDialog.h"
 
 #include "DataExpressionsTree.h"
 #include "OperationControls.h"
@@ -329,6 +330,7 @@ void COperationControls::CreateAdvancedOperationsPage()
     mInsertAlgorithm = CreateToolButton( "", ":/images/OSGeo/algorithm.png", "Insert algorithm" );
     mInsertFormula = CreateToolButton( "", ":/images/OSGeo/expression.png", "Insert formula" );
     mSaveAsFormula = CreateToolButton( "", ":/images/OSGeo/expression_save.png", "Save as formula" );
+    mDataDisplayProperties = CActionInfo::CreateToolButton( eAction_DataDisplayProperties );
 	mDataComputationGroup = CreateActionGroup( this, CreateDataComputationActions(), true );
     mDataComputation = CreateMenuButton(  "", ":/images/OSGeo/processing.png", "Set how data are stored/computed", mDataComputationGroup->actions() );
     mDataComputation->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
@@ -340,11 +342,10 @@ void COperationControls::CreateAdvancedOperationsPage()
 	mShowInfoButton = CreateToolButton( "", ":/images/OSGeo/page-info.png", "Show information" );
     mShowAliasesButton = CreateToolButton( "", ":/images/OSGeo/aliases.png", "Show aliases" );
 
-	mCheckSyntaxButton = CreateToolButton( "", ":/images/OSGeo/check.png", "Check syntax" );
-
 	auto *expression_buttons = CreateButtonRow( false, Qt::Horizontal, 
 	{ 
-        mInsertFunction, mInsertFormula, mSaveAsFormula, mInsertAlgorithm, nullptr, mDataComputation, mDataSmoothing, nullptr, mShowInfoButton, mShowAliasesButton, mCheckSyntaxButton
+        mInsertFunction, mInsertFormula, mSaveAsFormula, mInsertAlgorithm, nullptr, mDataDisplayProperties, mDataComputation, mDataSmoothing, nullptr,
+                                                    mShowInfoButton, mShowAliasesButton
 	} );
 
 
@@ -425,7 +426,11 @@ void COperationControls::CreateAdvancedOperationsPage()
 		LayoutWidgets( Qt::Horizontal, 
 		{ 
 			mDataExpressionsTree->ExpressionTextWidget(), 
-			mDataExpressionsTree->AssignExpressionButton() 
+            CreateButtonRow( false, Qt::Vertical,
+            {
+                mDataExpressionsTree->CheckSyntaxButton(),
+                mDataExpressionsTree->AssignExpressionButton()
+           } )
 		}, 
 		nullptr, s + m, m, m, m, m ),
 		mSamplingGroup,
@@ -752,9 +757,10 @@ void COperationControls::Wire()
 	connect( mInsertAlgorithm, SIGNAL( clicked() ), this, SLOT( HandleInsertAlgorithm() ) );
 	connect( mInsertFormula, SIGNAL( clicked() ), this, SLOT( HandleInsertFormula() ) );
 	connect( mSaveAsFormula, SIGNAL( clicked() ), this, SLOT( HandleSaveAsFormula() ) );
+    connect( mDataDisplayProperties, SIGNAL( clicked() ), this, SLOT( HandleDataDisplayProperties() ) );
+
 
 	connect( mShowAliasesButton, SIGNAL( clicked() ), this, SLOT( HandleShowAliases() ) );
-	connect( mCheckSyntaxButton, SIGNAL( clicked() ), this, SLOT( HandleCheckSyntax() ) );
 	connect( mShowInfoButton, SIGNAL( clicked() ), this, SLOT( HandleShowInfo() ) );
 
 	for ( auto *a : mDataComputationGroup->actions() )
@@ -2374,6 +2380,8 @@ void COperationControls::HandleSelectedFormulaChanged( CFormula *formula )
 	if ( enable_sampling )
 		UpdateSamplingGroup();
 
+    mDataDisplayProperties->setEnabled( enable_data_Computation_Smooth );
+
 	UpdateGUIState();
 }
 
@@ -2419,19 +2427,21 @@ void COperationControls::HandleInsertFormula()
 	mDataExpressionsTree->InsertFormula();
 }
 
+
 void COperationControls::HandleSaveAsFormula()
 {
 	mDataExpressionsTree->SaveAsFormula();
 }
 
 
-void COperationControls::HandleCheckSyntax()
+void COperationControls::HandleDataDisplayProperties()
 {
-	assert__( mProduct );
+    assert__( mCurrentOperation && mUserFormula );
 
-	if ( mDataExpressionsTree->CheckSyntax( mProduct ) )
-		LOG_WARN( "Data expression OK." );
+    CDataDisplayPropertiesDialog dlg( this, mUserFormula, mCurrentOperation );
+    dlg.exec();
 }
+
 
 
 void COperationControls::HandleShowInfo()
@@ -3286,7 +3296,7 @@ bool COperationControls::CreateOperationExecutionDisplays( std::string &to_displ
 
 		CMapDisplayData data_list;		//v3: dataList, pointer data member
 		data_list.SetDelete( false );
-		std::vector< CDisplay* > v = mWDisplay->CeateDisplays4Operation( mCurrentOperation, &data_list );
+        std::vector< CDisplay* > v = mWDisplay->CreateDisplays4Operation( mCurrentOperation, &data_list );
 		if ( v.empty() )
 			////display panel -> GetOperations();
 			////display panel -> GetDispavailtreectrl()->InsertData( &m_dataList );

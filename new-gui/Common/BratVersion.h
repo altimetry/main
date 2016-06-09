@@ -24,16 +24,23 @@
 
 
 
+auto static const PROCESSOR_ARCH =
+
 #if defined(BRAT_ARCHITECTURE_64)
 
-    static const std::string build_platform( " 64-bit" );
+	"64 bit";
 
 #elif defined(BRAT_ARCHITECTURE_32)
 
-	static const std::string build_platform( " 32-bit" );
+	"32 bit";
+
 #else
 #error One of BRAT_ARCHITECTURE_32 or BRAT_ARCHITECTURE_64 must be defined
 #endif
+
+
+static const std::string build_platform( " " + std::string( PROCESSOR_ARCH ) );
+
 
 
 #if defined(_UNICODE) || defined(UNICODE)
@@ -47,15 +54,6 @@
     static const std::string build_configuration = build_platform + " [DEBUG] " + build_charset;
 #else
 	static const std::string build_configuration = build_platform + build_charset;
-#endif
-
-
-auto static const PROCESSOR_ARCH =
-
-#if defined(BRAT_ARCHITECTURE_64)
-	"64 bit";
-#else
-	"32 bit";
 #endif
 
 

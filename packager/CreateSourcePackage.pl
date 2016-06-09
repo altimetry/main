@@ -16,6 +16,7 @@ my @SourceDirs = qw(
 		CMakeModules
 		CMakeModules/Platform
 		data
+		Demo
 		doc
 		libbrathl
         externals/

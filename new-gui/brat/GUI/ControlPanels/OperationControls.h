@@ -138,8 +138,8 @@ protected:
 	QToolButton *mInsertAlgorithm = nullptr;
 	QToolButton *mInsertFormula = nullptr;
 	QToolButton *mSaveAsFormula = nullptr;
-	QToolButton *mCheckSyntaxButton = nullptr;
-	QToolButton *mShowInfoButton = nullptr;
+    QToolButton *mDataDisplayProperties = nullptr;
+    QToolButton *mShowInfoButton = nullptr;
 	QGroupBox *mExpressionGroup = nullptr;
 
 	QToolButton *mDataComputation = nullptr;
@@ -377,11 +377,12 @@ protected slots:
 	void HandleInsertAlgorithm();
 	void HandleInsertFormula();
 	void HandleSaveAsFormula();
+    void HandleDataDisplayProperties();
+
 	void HandleDataComputation();
     void HandleDataSmoothing();
 
 	void HandleShowAliases();
-	void HandleCheckSyntax();
 	void HandleShowInfo();
 
     // Sampling //////////////

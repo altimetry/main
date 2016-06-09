@@ -143,7 +143,7 @@ std::string CFormula::GetValueAsString( double value )
 	return CTools::TrailingZeroesTrim( SprintfFormat( GetFormatString(), value ) );
 }
 //----------------------------------------
-void CFormula::SetDataType(int32_t typeField, const CUnit& unit, const CProduct *product)
+void CFormula::SetDataType(CMapTypeField::ETypeField typeField, const CUnit& unit, const CProduct *product)
 {
 
   switch (typeField)
@@ -160,7 +160,7 @@ void CFormula::SetDataType(int32_t typeField, const CUnit& unit, const CProduct 
 
         if (product != nullptr)
         {
-          if ( (product->IsLatitudeFieldName((const char *)m_name.c_str())) || (CTools::FindNoCase((const char *)m_name.c_str(), "lat") == 0) )
+          if ( (product->IsLatitudeFieldName(m_name)) || (CTools::FindNoCase(m_name, "lat") == 0) )
           {
             SetDataType(CMapTypeData::eTypeOpLatitude);
           }
@@ -1975,33 +1975,31 @@ bool CMapTypeData::ValidName(const std::string& name)
 //----------------------------------------
 bool CMapTypeData::ValidName(const char* name)
 {
-  uint32_t value = Exists(name);
+  uint32_t value = Exists( name );
   return (!isDefaultValue(value));
 }
 
 //----------------------------------------
 
-std::string CMapTypeData::IdToName(uint32_t id)
+std::string CMapTypeData::IdToName( ETypeData id )
 {
-  CMapTypeData::iterator it;
+	for ( CMapTypeData::iterator it = begin(); it != end(); it++ )
+	{
+		ETypeData value = ( ETypeData )it->second;
+		if ( value == id )
+		{
+			return ( it->first ).c_str();
+		}
+	}
 
-  for (it = begin() ; it != end() ; it++)
-  {
-    uint32_t value = it->second;
-    if (value == id)
-    {
-      return (it->first).c_str();
-    }
-  }
-
-  return "";
+	return "";
 }
 
 
 //----------------------------------------
-uint32_t CMapTypeData::NameToId(const std::string& name)
+CMapTypeData::ETypeData CMapTypeData::NameToId( const std::string& name )
 {
-  return Exists((const char *)name.c_str());
+	return ( ETypeData )Exists( name );
 }
 
 //-------------------------------------------------------------

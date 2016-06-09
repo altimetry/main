@@ -13,7 +13,7 @@ CShowInfoDialog::CShowInfoDialog( QWidget *parent, const CFormula *formula, COpe
 {
     CreateWidgets( formula->GetDescription(), operation );
 
-    setWindowTitle( ( "Show '" + formula->GetName() + "' information...").c_str() );
+    setWindowTitle( ( "Show '" + formula->GetName() + "' Information").c_str() );
 }
 
 

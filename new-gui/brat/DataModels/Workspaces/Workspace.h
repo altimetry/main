@@ -467,7 +467,7 @@ public:
 	bool RenameDisplay( CDisplay* display, const std::string& newName );
 
 
-	std::vector< CDisplay*> CeateDisplays4Operation( const COperation *operation, CMapDisplayData *dataList );
+    std::vector< CDisplay*> CreateDisplays4Operation( const COperation *operation, CMapDisplayData *dataList );
 
 
     virtual void Dump( std::ostream& fOut = std::cerr ) override;

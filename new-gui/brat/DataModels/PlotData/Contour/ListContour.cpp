@@ -529,9 +529,16 @@ void CListContour::DumpPlane(unsigned long iPlane) const
 	{
 		pStrip=*pos;
 		assert__(pStrip);
-		LOG_WARN("%d %d %d %d %g %g %g %g\r\n"),i,pStrip->size(),pStrip->front(),pStrip->back(),
-			GetXi(pStrip->front()),GetYi(pStrip->front()),
-			GetXi(pStrip->back()),GetYi(pStrip->back() );
+        LOG_WARN(
+                    n2s<std::string>(i) + " " +
+                    n2s<std::string>(pStrip->size()) + " " +
+                    n2s<std::string>(pStrip->front()) + " " +
+                    n2s<std::string>(pStrip->back()) + " " +
+                    n2s<std::string>(GetXi(pStrip->front())) + " " +
+                    n2s<std::string>(GetYi(pStrip->front())) + " " +
+                    n2s<std::string>(GetXi(pStrip->back())) + " " +
+                    n2s<std::string>(GetYi(pStrip->back())) + "\r\n"
+                    );
 	}
 }
 

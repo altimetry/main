@@ -104,8 +104,8 @@ public:
 	bool ValidName( const char* name );
 	bool ValidName( const std::string& name );
 
-	std::string IdToName( uint32_t id );
-	uint32_t NameToId( const std::string& name );
+	std::string IdToName( ETypeData id );
+	ETypeData NameToId( const std::string& name );
 };
 //-------------------------------------------------------------
 //------------------- CMapTypeOp class --------------------
@@ -250,7 +250,7 @@ protected:
 
 	CUnit m_unit;
 
-	int32_t m_dataType = -1;
+	CMapTypeData::ETypeData m_dataType = (CMapTypeData::ETypeData)-1;
 
 	int m_filter = CMapTypeFilter::eFilterNone;
 
@@ -263,6 +263,10 @@ protected:
 	bool m_predefined = false;
 
 	int32_t m_dataMode = CMapDataMode::GetInstance().GetDefault();
+
+    bool mNorthComponent = false;
+    bool mEastComponent = false;
+
 
 public:
 	CFormula()
@@ -299,7 +303,9 @@ public:
 			m_title = o.m_title;
 			m_unit = o.m_unit;
 			m_dataMode = o.m_dataMode;
-		}
+            mNorthComponent = o.mNorthComponent;
+            mEastComponent = o.mEastComponent;
+        }
 		return *this;
 	}
 
@@ -321,6 +327,12 @@ public:
 
 	bool IsPredefined() const { return m_predefined; }
 	void SetPredefined( bool value ) { m_predefined = value; }
+
+    bool IsNorthComponent() const { return mNorthComponent; }
+    bool IsEastComponent() const { return mEastComponent; }
+    void SetNorthComponent( bool north ) { mNorthComponent = north; }
+    void SetEastComponent( bool east ) { mEastComponent = east; }
+
 
 	//bool LoadConfig( CWorkspaceSettings *config );
 	bool LoadConfig( CWorkspaceSettings *config, std::string &errorMsg, const std::string& pathSuff );
@@ -387,9 +399,9 @@ public:
 	}
 
 	std::string GetDataTypeAsString() const { return CMapTypeData::GetInstance().IdToName( m_dataType ); }
-	int32_t GetDataType() const { return m_dataType; }
-	void SetDataType( int32_t value ) { m_dataType = value; }
-	void SetDataType( int32_t typeField, const CUnit& unit, const CProduct* product = nullptr );
+	CMapTypeData::ETypeData GetDataType() const { return m_dataType; }
+	void SetDataType( CMapTypeData::ETypeData value ) { m_dataType = value; }
+	void SetDataType( CMapTypeField::ETypeField typeField, const CUnit& unit, const CProduct* product = nullptr );
 
 
 	void SetDefaultMinMax();

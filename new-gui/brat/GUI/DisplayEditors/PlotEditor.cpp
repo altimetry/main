@@ -1305,7 +1305,9 @@ void CPlotEditor::HandleShowContourChecked( bool checked )
 
 	if ( mPlotType != eHistogram )
 		mPlot2DView->ShowContour( mPropertiesZFXY->m_withContour );
+
 	mPlot3DView->ShowContour( mPropertiesZFXY->m_withContour );
+    BRAT_MSG_NOT_IMPLEMENTED(" Working for 2D plots only.");
 }
 
 void CPlotEditor::HandleShowSolidColorChecked( bool checked )

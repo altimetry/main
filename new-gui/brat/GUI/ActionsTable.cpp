@@ -71,8 +71,6 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_Refresh_Map, "Refresh", CActionInfo::FormatTip("Refresh\nRefresh main map"), ":/images/OSGeo/zoom-refresh.png" },
 
-    { eAction_Graphic_Settings, "Graphic Settings...", CActionInfo::FormatTip("Graphic Settings\nAdjust map graphics"), ":images/OSGeo/map-settings.png" },
-
     { action_Satellite_Tracks, "Satellite Tracks", CActionInfo::FormatTip("Satellite track\nEnable/Disable automatic satellite track drawing when selected dataset changes"), ":images/OSGeo/satellite_tracks.png", ":images/OSGeo/satellite_tracks.png" },
 
     { eAction_Full_Screen, "Full Screen", CActionInfo::FormatTip("Full Screen\nToggle full screen mode.\nUse the <span style=\" font-weight:600;\">F11</span> key to switch modes."), ":images/OSGeo/fullscreen.png", "", "F11" },
@@ -164,6 +162,8 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 	{ eAction_AssignExpression, "", "Assign to the selected tree item", ":/images/themes/default/mIconDataDefineExpressionOn.svg" },
 
 	{ eAction_ExportView, "", "Save view as image file under selected format", "://images/OSGeo/map-export.png" },
+
+    { eAction_DataDisplayProperties, "", CActionInfo::FormatTip("View Properties\nEdit display properties of selected field"), ":images/OSGeo/map-settings.png" },
 
 
     // TODO images __n, __o and __p are used by settings dialog
