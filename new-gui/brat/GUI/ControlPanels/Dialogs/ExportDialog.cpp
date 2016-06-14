@@ -68,25 +68,9 @@ void  CExportDialog::CreateWidgets()
 	// GeoTiff
 
 	mCreateGoogleKMLFile = new QCheckBox( "Create GoogleEarth KML file" );
-	mColorMapWidget = new CColorMapWidget( true, nullptr );
-	mColorRangeMinEdit = new QLineEdit;
-	mColorRangeMinEdit->setMaximumWidth( 80 );
-	mColorRangeMaxEdit = new QLineEdit;
-	mColorRangeMaxEdit->setMaximumWidth( 80 );
-	mCalculateMinMax = new QPushButton( "Calculate" );
+	mColorMapWidget = new CColorMapWidget( true, false, nullptr );
 
-	mColorRangeMinEdit->setValidator( new QRegExpValidator( QRegExp( "[-0-9.]+" ) ) );
-	mColorRangeMaxEdit->setValidator( new QRegExpValidator( QRegExp( "[-0-9.]+" ) ) );
-
-	auto *color_range_group = CreateGroupBox( ELayoutType::Vertical, 
-	{
-		LayoutWidgets( Qt::Horizontal, { new QLabel("min"), mColorRangeMinEdit, nullptr, new QLabel("max"), mColorRangeMaxEdit } , nullptr ,6,6,6,6,6 ),
-		mCalculateMinMax,
-	}
-	,"Color Range", nullptr, 4,4,4,4,4 );
-	color_range_group->setStyleSheet("QGroupBox { font-weight: normal; } ");		//necessary to break inheritance from enveloping group font
-
-	auto *color_table_group = CreateGroupBox( ELayoutType::Horizontal, { mColorMapWidget }, "Color Table", nullptr, 4, 4, 4, 4, 4 );
+	auto *color_table_group = CreateGroupBox( ELayoutType::Horizontal, { mColorMapWidget }, "", nullptr, 4, 4, 4, 4, 4 );		//mColorMapWidget already has group titles
 	color_table_group->setStyleSheet("QGroupBox { font-weight: normal; } ");		//necessary to break inheritance from enveloping group font
 
 	LayoutWidgets( Qt::Horizontal,
@@ -98,7 +82,6 @@ void  CExportDialog::CreateWidgets()
 			mCreateGoogleKMLFile,
 		}, 
 		nullptr, 2, 2, 2, 2, 2 ),
-		color_range_group,
 	},
 	mFormatGeoTiffPage, 6, 6, 6, 6, 6 );
 
@@ -106,9 +89,9 @@ void  CExportDialog::CreateWidgets()
 	// Stack pages
 
 	mStackedWidget = new CStackedWidget( this, { 
-		{ mFormatASCIIPage, "Ascii", CActionInfo::FormatTip("Ascii format options"), "://images/alpha-numeric/__q.png", true }, 
-		{ mFormatNetCdfPage, "NetCdf", CActionInfo::FormatTip("NetCdf format options"), "://images/alpha-numeric/__r.png", true },
-		{ mFormatGeoTiffPage, "GeoTiff", CActionInfo::FormatTip("GeoTiff format options"), "://images/alpha-numeric/__s.png", true }
+        { mFormatASCIIPage, "Ascii", CActionInfo::FormatTip("Ascii format options"), "://images/OSGeo/export_ascii.png", true },
+        { mFormatNetCdfPage, "NetCdf", CActionInfo::FormatTip("NetCdf format options"), "://images/OSGeo/export_netcdf.png", true },
+        { mFormatGeoTiffPage, "GeoTiff", CActionInfo::FormatTip("GeoTiff format options"), "://images/OSGeo/export_geotiff.png", true }
 	} );
 
 	auto *b0 = dynamic_cast<QToolButton*>( mStackedWidget->Button( eASCII ) );
@@ -196,6 +179,29 @@ void  CExportDialog::CreateWidgets()
 }
 
 
+void CExportDialog::CalculateMinMax()
+{
+	WaitCursor wait;
+
+	CFormula *formula = mOperation->GetFormula( CMapTypeField::eTypeOpAsField );
+
+	CProduct *product_tmp = CProduct::Construct( *(const_cast<CDataset*>(mOperation->OriginalDataset())->GetProductList() ) );
+
+	std::string error_msg;
+	CExpression expr;
+	if ( !CFormula::SetExpression( formula->GetDescription( true, mAliases, product_tmp->GetAliasesAsString() ), expr, error_msg ) )
+	{
+		wait.Restore();
+		SimpleWarnBox( "Unable to calculate min/max. Expression can't be set:\n'" + error_msg + "'" );
+		return;		//v3 didn't return
+	}
+
+	product_tmp->GetValueMinMax( expr, mOperation->GetRecord(), mColorRangeMin, mColorRangeMax, *formula->GetUnit() );
+
+	delete product_tmp;
+}
+
+
 void CExportDialog::Wire()
 {
 	//ASCII related
@@ -205,14 +211,15 @@ void CExportDialog::Wire()
 
 	//GeoTIFF related
 
+	CalculateMinMax();
+
 	if ( mIsGeoImage )
 	{
 		mFormatGeoTiffButton->setEnabled( true );
 
 		mCreateGoogleKMLFile->setChecked( mCreateKML );
-		mColorMapWidget->SetLUT( mLUT );
-		mColorRangeMinEdit->setText( n2s<std::string>( mColorRangeMin ).c_str() );
-		mColorRangeMaxEdit->setText( n2s<std::string>( mColorRangeMax ).c_str() );
+		mColorMapWidget->SetLUT( mLUT, mColorRangeMin, mColorRangeMax );
+		connect( mColorMapWidget, SIGNAL( CurrentIndexChanged( int ) ), this, SLOT( HandleColorTablesIndexChanged( int ) ) );
 	}
 	else
 	{
@@ -220,9 +227,6 @@ void CExportDialog::Wire()
 		mFormatGeoTiffPage->setEnabled( false );
 		mFormatGeoTiffButton->setEnabled( false );
 	}
-
-	HandleCalculateMinMax();
-
 
 	//schedule
 
@@ -244,7 +248,6 @@ void CExportDialog::Wire()
 
 	// Connect
 
-	connect( mCalculateMinMax, SIGNAL( clicked() ), this, SLOT( HandleCalculateMinMax() ) );
 	connect( mBrowseButton, SIGNAL( clicked() ), this, SLOT( HandleChangeExportPath() ) );
 	connect( mStackedWidget, SIGNAL( currentChanged( int ) ), this, SLOT( HandleExportType( int ) ) );
 	connect( mDelayExecutionButton, SIGNAL( clicked() ), this, SLOT( HandleDelayExecution() ) );
@@ -354,32 +357,6 @@ void CExportDialog::HandleChangeExportPath()
 }
 
 
-void CExportDialog::HandleCalculateMinMax()
-{
-	WaitCursor wait;
-
-	CFormula *formula = mOperation->GetFormula( CMapTypeField::eTypeOpAsField );
-
-	CProduct *product_tmp = CProduct::Construct( *(const_cast<CDataset*>(mOperation->OriginalDataset())->GetProductList() ) );
-
-	std::string error_msg;
-	CExpression expr;
-	if ( !CFormula::SetExpression( formula->GetDescription( true, mAliases, product_tmp->GetAliasesAsString() ), expr, error_msg ) )
-	{
-		wait.Restore();
-		SimpleWarnBox( "Unable to calculate min/max. Expression can't be set:\n'" + error_msg + "'" );
-		return;		//v3 didn't return
-	}
-
-	product_tmp->GetValueMinMax( expr, mOperation->GetRecord(), mColorRangeMin, mColorRangeMax, *formula->GetUnit() );
-
-	mColorRangeMinEdit->setText( n2s<std::string>( mColorRangeMin ).c_str() );
-	mColorRangeMaxEdit->setText( n2s<std::string>( mColorRangeMax ).c_str() );
-
-	delete product_tmp;
-}
-
-
 void CExportDialog::HandleDelayExecution()
 {
 	if ( mDateTime < QDateTime::currentDateTime() )
@@ -421,6 +398,13 @@ void CExportDialog::HandleDelayExecution()
                 assert__( false );
         }
 	}
+}
+
+
+void CExportDialog::HandleColorTablesIndexChanged( int )
+{
+	mColorRangeMin = mColorMapWidget->ColorRangeMin();
+	mColorRangeMax = mColorMapWidget->ColorRangeMax();
 }
 
 
@@ -470,25 +454,8 @@ bool CExportDialog::Execute()
 
 		case eGEOTIFF:
 		{
-			QString smin = mColorRangeMinEdit->text();
-			QString smax = mColorRangeMaxEdit->text();
-			bool ok_conv = false;
-			double rangeMin = smin.toDouble( &ok_conv );
-			if ( !ok_conv )
-			{
-				SimpleErrorBox( "Invalid minimum range value." );
-				mColorRangeMinEdit->setFocus();
-				return false;
-			}
-			mColorRangeMin = rangeMin;
-			double rangeMax = smax.toDouble( &ok_conv );
-			if ( !ok_conv )
-			{
-				SimpleErrorBox( "Invalid maximum range value." );
-				mColorRangeMaxEdit->setFocus();
-				return false;
-			}
-			mColorRangeMax = rangeMax;
+			mColorRangeMin = mColorMapWidget->ColorRangeMin();
+			mColorRangeMax = mColorMapWidget->ColorRangeMax();
 
 			mCreateKML = mCreateGoogleKMLFile->isChecked();
 			mColorTable = q2a( mColorMapWidget->currentText() );

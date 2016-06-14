@@ -26,7 +26,7 @@
 #include <osgEarth/Common>
 #include <osgEarth/TileSource>
 
-//#define USE_RENDERER
+#define USE_RENDERER
 
 #ifndef USE_RENDERER
 #include "qgsmapsettings.h"
@@ -53,10 +53,10 @@ namespace osgEarth
 			QgsMapCanvas *mCanvas = nullptr;
 			QgsCoordinateTransform *mCoordTransform = nullptr;
 
-#ifndef USE_RENDERER
-			QgsMapSettings mMapSettings;
-#else
+#ifdef USE_RENDERER
 			QgsMapRenderer *mMapRenderer = nullptr;
+#else
+			QgsMapSettings mMapSettings;
 #endif
 		public:
 

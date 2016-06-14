@@ -3,7 +3,7 @@
 
 #include "stdafx.h"
 
-#include "Contour.h"
+#include "BratContour.h"
 
 // a list of point index referring to the secondary grid
 // Let i the index of a point,
@@ -11,25 +11,25 @@ typedef std::list<unsigned long> CLineStrip;
 typedef std::list<CLineStrip*> CLineStripList;
 typedef std::vector<CLineStripList> CLineStripListVector;
 
-class CListContour : public CContour  
+class CListContour : public CBratContour  
 {
 public:
 	CListContour();
 	virtual ~CListContour();
 
 	// retreiving list of line strip for the i-th contour
-	CLineStripList* GetLines(unsigned long iPlane)	{	assert__(iPlane>=0); assert__(iPlane<GetNPlanes());	return &m_vStripLists[iPlane];};
+    CLineStripList* GetLines(unsigned long iPlane)	{	assert__(iPlane>=0); assert__(iPlane<GetNPlanes());	return &m_vStripLists[iPlane]; }
 
 	// Initializing memory
-	virtual void InitMemory();
+    virtual void InitMemory() override;
 	// Cleaning memory and line strips
-	virtual void CleanMemory();
+    virtual void CleanMemory() override;
 	// Generate contour strips
-	virtual void Generate();
+	virtual void Generate( bool compact = true ) override;
 
 	// Adding segment to line strips
-	// See CContour::ExportLine for further details
-	void ExportLine(int iPlane,int x1, int y1, int x2, int y2);
+	// See CBratContour::ExportLine for further details
+    void ExportLine(int iPlane,int x1, int y1, int x2, int y2) override;
 
 	// Basic algorithm to concatanate line strip. Not optimized at all !
 	bool CompactStrips();

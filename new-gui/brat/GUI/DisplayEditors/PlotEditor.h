@@ -205,6 +205,9 @@ protected slots:
 	void HandleShowContourChecked( bool checked );
 	void HandleShowSolidColorChecked( bool checked );
 	void HandleColorTablesIndexChanged( int index );
+	void HandleContourColorSelected();
+	void HandleNumberOfContoursChanged();
+	void HandleContourWidthChanged();
 
 
 	//...histogram //////////////////////////////////////////

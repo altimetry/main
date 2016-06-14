@@ -117,7 +117,7 @@ void CAbstractDisplayEditor::CreateGraphicsBar()
 	mGraphicsToolBar->addAction( mRecenterAction );
 	mGraphicsToolBar->addAction( mExport2ImageAction );
 
-#if defined (DEBUG) || defined(_DEBUG)
+#if defined (SHOW_TEST)
 	mActionTest = CActionInfo::CreateAction( this, eAction_Test );
 	mGraphicsToolBar->addAction( mActionTest );
 #endif
@@ -186,7 +186,7 @@ void CAbstractDisplayEditor::Wire()
 	connect( mRecenterAction, SIGNAL( triggered() ), this, SLOT( HandleRecenter() ) );
 	connect( mExport2ImageAction, SIGNAL( triggered() ), this, SLOT( HandleExport2Image() ) );
 
-#if defined (DEBUG) || defined(_DEBUG)
+#if defined (SHOW_TEST)
 	connect( mActionTest, SIGNAL( triggered() ), this, SLOT( HandleTest() ) );
 #endif
 
@@ -378,16 +378,27 @@ QAction* CAbstractDisplayEditor::AddToolBarAction( QObject *parent, EActionTag t
 }
 
 
-QAction* CAbstractDisplayEditor::AddToolBarSeparator()
+QAction* CAbstractDisplayEditor::AddToolBarSeparator( QAction *after )		//after = nullptr 
 {
-	return mGraphicsToolBar->addSeparator();
+	if ( after )
+	{
+		QAction *a = CActionInfo::CreateAction( mGraphicsToolBar, eAction_Separator );
+		mGraphicsToolBar->insertAction( after, a );
+		return a;
+	}
+	else
+		return mGraphicsToolBar->addSeparator();
 }
 
 
-QToolButton* CAbstractDisplayEditor::AddMenuButton( EActionTag button_tag, const QList<QAction*> &actions )
+QToolButton* CAbstractDisplayEditor::AddMenuButton( EActionTag button_tag, const QList<QAction*> &actions, QAction *after )		//after = nullptr 
 {
 	QToolButton *b = CActionInfo::CreateMenuButton( button_tag, actions );
-	mGraphicsToolBar->addWidget( b );
+	if ( after )
+		mGraphicsToolBar->insertWidget( after, b );
+	else
+		mGraphicsToolBar->addWidget( b );
+
 	return b;
 }
 

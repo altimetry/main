@@ -2175,9 +2175,10 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/DisplayEditors/Dialogs/ExportImageDialog.cpp
 		process/BratEmbeddedPythonProcess.cpp
 		new-gui/brat/GUI/ControlPanels/DesktopControlPanel.cpp
-		new-gui/brat/DataModels/PlotData/Contour/Contour.cpp
+		new-gui/brat/DataModels/PlotData/Contour/BratContour.cpp
 		new-gui/brat/DataModels/PlotData/Contour/ListContour.cpp
 		new-gui/brat/GUI/ControlPanels/Dialogs/DataDisplayPropertiesDialog.cpp
+		new-gui/brat/GUI/ControlPanels/ColorButton.cpp		
 	)
 
 		
@@ -2281,9 +2282,10 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/DisplayEditors/Dialogs/ExportImageDialog.h
 		process/BratEmbeddedPythonProcess.h
 		new-gui/brat/GUI/ControlPanels/DesktopControlPanel.h
-		new-gui/brat/DataModels/PlotData/Contour/Contour.h
+		new-gui/brat/DataModels/PlotData/Contour/BratContour.h
 		new-gui/brat/DataModels/PlotData/Contour/ListContour.h
 		new-gui/brat/GUI/ControlPanels/Dialogs/DataDisplayPropertiesDialog.h
+		new-gui/brat/GUI/ControlPanels/ColorButton.h
 	)
 
 

@@ -320,13 +320,13 @@ public:
 
 	//style
 
-    bool HasContour() const;
-    void ShowContour( bool show );
+    bool HasMesh() const;
+    void ShowMesh( bool show );
 
     bool HasSolidColor() const;
     void ShowSolidColor( bool show );
 
-    void ShowContour( int index, bool show );
+    void ShowMesh( int index, bool show );
     void ShowSolidColor( int index, bool show );
 
 

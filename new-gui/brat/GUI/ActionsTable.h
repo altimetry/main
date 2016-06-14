@@ -49,10 +49,7 @@ enum EActionTag : int
 	eAction_Full_Screen,
 	eAction_Re_center,
 	eAction_Zoom_In,
-    eAction_Zoom_Out,
-	eAction_Operations,
-	eAction_Dataset,
-	eAction_Filter, eLastAutomaticAction = eAction_Filter,
+    eAction_Zoom_Out, eLastAutomaticAction = eAction_Zoom_Out,
 
 	eAction_DisplayEditor2D,
 	eAction_DisplayEditor3D,
@@ -85,6 +82,7 @@ enum EActionTag : int
 	eAction_SelectPolygon,
 	eAction_DeselectAll,
 	eAction_DecorationGrid,
+	eAction_MapTips,
 	eAction_MouseTrackingeCoordinatesFormat,
 
 	eActionGroup_Filters_Quick,

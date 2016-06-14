@@ -28,6 +28,11 @@ class CBratLookupTable;
 enum EActionTag : int;
 
 
+//#if defined (DEBUG) || defined(_DEBUG)
+#	define SHOW_TEST
+//#endif
+
+
 /////////////////////////////////////////////////////////////////
 //
 /////////////////////////////////////////////////////////////////
@@ -103,7 +108,7 @@ protected:
 	QAction *mActionStatisticsStDev = nullptr;
 	QAction *mActionStatisticsLinearRegression = nullptr;
 
-#if defined (DEBUG) || defined(_DEBUG)
+#if defined (SHOW_TEST)
 	QAction *mActionTest = nullptr;
 #endif
 
@@ -183,8 +188,8 @@ protected:
 	bool RemoveView( QWidget *view, bool view3D, bool disable_action );
 
 	QAction* AddToolBarAction( QObject *parent, EActionTag tag );
-	QAction* AddToolBarSeparator();
-	QToolButton* AddMenuButton( EActionTag button_tag, const QList<QAction*> &actions );
+	QAction* AddToolBarSeparator( QAction *after = nullptr );
+	QToolButton* AddMenuButton( EActionTag button_tag, const QList<QAction*> &actions, QAction *after = nullptr );
 
 	QSize sizeHint() const override;
 
@@ -228,6 +233,13 @@ protected:
 	virtual void OneClick() = 0;
 
 	virtual bool ChangeView() = 0;
+
+	//debug helper
+	template< typename T >
+	inline std::string TF( const std::string &s, T n )
+	{
+		return s + " == " + n2s<std::string>( n ) + "\n";
+	};
 
 	virtual bool Test() = 0;
 

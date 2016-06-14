@@ -1,7 +1,16 @@
 #ifndef DATAMODELS_PLOTDATA_PLOT_VALUES_H
 #define DATAMODELS_PLOTDATA_PLOT_VALUES_H
 
+//#undef _ITERATOR_DEBUG_LEVEL
+//#define _ITERATOR_DEBUG_LEVEL 0
+//#undef HAS_ITERATOR_DEBUGGING
+//#define HAS_ITERATOR_DEBUGGING 0
+//#define NDEBUG
+//#undef DEBUG
+//#undef _DEBUG
+
 #include <set>
+#include <functional>
 
 #include <qwt_data.h>
 #include <qwt_raster_data.h>
@@ -506,16 +515,12 @@ public:
 
 
 
-
 struct C3DPlotParameters
 {
 	std::vector<double>	mValues;
 	std::vector<bool>	mBits;
 	std::vector<double>	mXaxis;
 	std::vector<double>	mYaxis;
-
-	std::set< double > mXmap;
-	std::set< double > mYmap;
 
 	int mPlotWidth = 0;
 	int mPlotHeight = 0;
@@ -530,8 +535,46 @@ struct C3DPlotParameters
 	double mMaxHeightValue = 0.;
 
 
+	std::set< double > mXmap;
+	std::set< double > mYmap;
+
+	mutable std::vector< double > mXvector;
+	mutable std::vector< double > mYvector;
+	mutable bool mOrdered = false;
+
 protected:
-	static size_t nearest( double raster_x, const std::set<double> &nearest_map, const std::vector<double> &axis )
+	template< class IT >
+	static inline std::pair< IT, IT > ER( const std::set< double > &c, double v )
+	{
+		return c.equal_range( v );
+	}
+	template< class IT >
+	static inline std::pair< IT, IT > ER( const std::vector< double > &c, double v  )
+	{
+		return std::equal_range( c.begin(), c.end(), v );
+	}
+
+
+	template< class ORDERED_CONTAINER >
+	static size_t compute_nearest( double raster_x, const ORDERED_CONTAINER &nearest_map, const std::vector<double> &axis )
+	{
+		auto pair = ER< typename ORDERED_CONTAINER::const_iterator >( nearest_map, raster_x );
+
+		if ( pair.first == nearest_map.end() )
+			//return m;
+			return 0;
+
+		size_t index = std::distance( nearest_map.begin(), pair.first );
+		if ( index == 0 )
+			return index;
+
+		if ( *pair.first - raster_x < raster_x - axis[ index - 1 ] )
+			return index;
+
+		return index - 1;
+	}
+
+	static size_t nearest( double raster_x, const std::set< double > &nearest_map, const std::vector<double> &axis )
 	{
 		auto pair = nearest_map.equal_range( raster_x );
 
@@ -557,19 +600,58 @@ protected:
 		return nearest( raster_y, mYmap, mYaxis );
 	}
 
+	size_t vnearest_x( double raster_x ) const
+	{
+		return compute_nearest( raster_x, mXvector, mXaxis );
+	}
+	size_t vnearest_y( double raster_y ) const
+	{
+		return compute_nearest( raster_y, mYvector, mYaxis );
+	}
+
+	template< typename NEAREST >
+	inline double compute_value( double x, double y, const double DEFAULT, NEAREST nx, NEAREST ny ) const
+	{
+		x = (this->*nx)( x );
+		y = (this->*ny)( y );
+
+		auto index = y * mXaxis.size() + x;								assert__( index >= 0 && index < mBits.size() );
+		if ( index < 0 || index >= mBits.size() || !mBits.at( index ) )
+			return DEFAULT;
+
+		return mValues.at( index );
+	}
+
 public:
 
-	double value( double x, double y ) const
+	inline double value( double x, double y ) const
 	{
+		//return compute_value< size_t (C3DPlotParameters::* )(double) const >( x, y, 0., &C3DPlotParameters::nearest_x, &C3DPlotParameters::nearest_y );
+
 		x = nearest_x( x );
 		y = nearest_y( y );
 
 		auto index = y * mXaxis.size() + x;								assert__( index >= 0 && index < mBits.size() );
 		if ( index < 0 || index >= mBits.size() || !mBits.at( index ) )
-			return 0;		//rasters do not seem to support NANs std::numeric_limits<double>::quiet_NaN();
+			//return 0.;		//rasters do not seem to support NANs std::numeric_limits<double>::quiet_NaN();
+			return std::numeric_limits<double>::quiet_NaN();
 
 		return mValues.at( index );
 	}
+
+	inline double vvalue( double x, double y ) const
+	{
+		assert__( mOrdered );
+		return compute_value( x, y, 0., &C3DPlotParameters::vnearest_x, &C3DPlotParameters::vnearest_y );
+	}
+
+	inline double nan_vvalue( double x, double y ) const
+	{
+		assert__( mOrdered );
+		return compute_value( x, y, std::numeric_limits<double>::quiet_NaN(), &C3DPlotParameters::vnearest_x, &C3DPlotParameters::vnearest_y );
+	}
+
+
 
 	// NOTE: "to" is one after
 	//
@@ -585,6 +667,46 @@ public:
 	{
         return GetDataCountIf( 0, mValues.size(), f );
 	}
+
+
+
+protected:
+
+	template< class AXIS >
+	inline bool CheckOrder( const AXIS &axis ) const
+	{
+#if defined (DEBUG) || defined(_DEBUG)
+		double m = std::numeric_limits< double >::lowest();
+		for ( auto const &v : axis )
+		{
+			if ( v < m )
+				return false;
+			m = v;
+		}
+#else
+        UNUSED( axis );
+#endif
+		return true;
+	}
+
+
+	template< class ORDERED_AXIS, class AXIS >
+	inline bool OrderAxis( const ORDERED_AXIS &ordered_axis, AXIS &axis ) const
+	{
+		for ( auto const &v : ordered_axis )
+			axis.push_back( v );
+
+		return CheckOrder( axis );
+	}
+
+public:
+	inline virtual bool OrderAxis()
+	{
+		if ( !mOrdered )
+			mOrdered = OrderAxis( mXmap, mXvector ) && OrderAxis( mYmap, mYvector );
+
+		return mOrdered;
+	}
 };
 
 
@@ -593,11 +715,27 @@ public:
 
 struct CWorldPlotParameters : public C3DPlotParameters
 {
+	using base_t = C3DPlotParameters;
+
 	std::vector< bool >	mValidMercatorLatitudes;
 	std::vector<double>	mValuesEast;				//for velocity maps
 
 	double mLongitudeOffset = 0.;
 	double mLatitudeOffset = 0.;
+
+
+	inline virtual bool OrderAxis()
+	{
+		if ( base_t::OrderAxis() )
+		{
+			mMinX = mXvector.front();
+			mMaxX = mXvector.back();
+			mMinY = mYvector.front();
+			mMaxY = mYvector.back();
+		}
+
+		return mOrdered;
+	}
 };
 
 
@@ -687,7 +825,7 @@ struct CGeneric3DPlotInfo : public std::vector< PARAMS >, public QwtRasterData
 	virtual double value( double x, double y ) const override
     {
 		const parameters_t &frame = ( *this )[ mCurrentFrame ];
-        return frame.value( x, y );
+        return frame.nan_vvalue( x, y );
     }
 
 

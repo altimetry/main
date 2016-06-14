@@ -79,6 +79,7 @@ class CMapEditor : public CAbstractDisplayEditor
 	QAction *mActionMeasureArea = nullptr;
 	QToolButton *mMeasureButton = nullptr;
 	QAction *mActionDecorationGrid = nullptr;
+    QAction *mActionMapTips = nullptr;
 
 
 	//...actions
@@ -103,7 +104,6 @@ class CMapEditor : public CAbstractDisplayEditor
 
 private:
 	QActionGroup* CreateProjectionsActions();
-	void CreateMapActions();
 	void ResetAndWireNewMap();
 	void CreateWidgets();
 	void WireMapActions();
@@ -167,10 +167,10 @@ protected slots:
 
 	void HandleCurrentFieldChanged( int field_index );
 
-	void HandleFieldMinRangeEntered();
-	void HandleFieldMaxRangeEntered();
-
 	void HandleShowContourChecked( bool checked );
+	void HandleContourColorSelected();
+	void HandleNumberOfContoursChanged();
+	void HandleContourWidthChanged();
 	void HandleShowSolidColorChecked( bool checked );
 	void HandleColorTablesIndexChanged( int index );
 

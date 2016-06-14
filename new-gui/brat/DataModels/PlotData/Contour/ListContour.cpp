@@ -7,7 +7,7 @@
 //////////////////////////////////////////////////////////////////////
 
 CListContour::CListContour()
-	: CContour()
+	: CBratContour()
 {}
 
 CListContour::~CListContour()
@@ -15,17 +15,18 @@ CListContour::~CListContour()
 	CleanMemory();
 }
 
-void CListContour::Generate()
+void CListContour::Generate( bool compact )	//compact = true 
 {
 	// generate line strips
-	CContour::Generate();
+	CBratContour::Generate();
 	// compact strips
-	CompactStrips();
+	if ( compact )
+		CompactStrips();
 }
 
 void CListContour::InitMemory()
 {
-	CContour::InitMemory();
+	CBratContour::InitMemory();
 	
 	CLineStripList::iterator pos;
 	CLineStrip* pStrip;
@@ -54,10 +55,11 @@ void CListContour::InitMemory()
 
 void CListContour::CleanMemory()
 {
-	CContour::CleanMemory();
+	CBratContour::CleanMemory();
 	
 	// reseting lists
-//	assert__(m_vStripLists.size() == GetNPlanes());
+	//assert__(m_vStripLists.size() == GetNPlanes());
+	assert__( GetNPlanes() == 0 || m_vStripLists.size() == 0 || m_vStripLists.size() == GetNPlanes() );	//femm: replaced line commented out above: base calls CleanMemory() before SetPlanes assigns m_vPlanes
 	for (unsigned long i= 0; i< m_vStripLists.size(); i++ )
 	{
 		for (CLineStripList::iterator pos=m_vStripLists[i].begin(); pos!=m_vStripLists[i].end();pos++)
@@ -75,10 +77,16 @@ void CListContour::ExportLine(int iPlane,int x1, int y1, int x2, int y2)
 	assert__( iPlane >= 0 );
 	assert__( iPlane < (int)GetNPlanes() );
 	
+	if ( invalid == x1 )
+	{
+		//m_vStripLists[ iPlane ].insert( m_vStripLists[ iPlane ].begin(), new CLineStrip );
+		return;
+	}
+
 	// check that the two points are not at the beginning or end of the  some line strip
-	unsigned long i1=y1*( m_iColSec + 1 ) + x1;
-	unsigned long i2=y2*( m_iColSec + 1 ) + x2;
-	
+	unsigned long i1 = y1*( m_iColSec + 1 ) + x1;
+	unsigned long i2 = y2*( m_iColSec + 1 ) + x2;
+
 	CLineStrip* pStrip;
 	bool added=false;
 	for ( CLineStripList::iterator pos = m_vStripLists[ iPlane ].begin(); pos != m_vStripLists[ iPlane ].end() && !added; pos++ )
@@ -236,9 +244,9 @@ bool CListContour::MergeStrips(CLineStrip* pStrip1, CLineStrip* pStrip2)
 		// adding the rest to strip1
 		for (rpos=pStrip2->rbegin(); rpos!=pStrip2->rend();rpos++)
 		{
-			index=(*rpos);
-			assert__(index>=0);
-			pStrip1->insert(pStrip1->begin(),index);
+			index=(*rpos);			//assert__(index>=0);
+			if ( index >= 0 )
+				pStrip1->insert(pStrip1->begin(),index);
 		}
 		pStrip2->clear();
 		return true;
@@ -433,6 +441,8 @@ bool CListContour::CompactStrips()
 					else 
 					{
 						LOG_WARN("unpaird open strip at 1!");
+						//newList.pop_front();//femmfemmfemmefemm
+						//continue;			//femmfemmfemmefemm
 						return false;
 					}
 				}
@@ -600,35 +610,31 @@ double CListContour:: EdgeWeight(CLineStrip* pLine, double R)
 	return (double)count/pLine->size();
 }
 
-bool::CListContour::PrintContour(char *fname) 
+bool::CListContour::PrintContour( char *fname )
 {
-	std::ofstream file(fname);
-	if (!file) 
-	{ 
-		LOG_WARN("cannot open output file.\n"); 
-		return false; 
+	std::ofstream file( fname );
+	if ( !file )
+	{
+		LOG_WARN( "cannot open output file.\n" );
+		return false;
 	}
 
-	file << std::setprecision(10);
-	
-	unsigned long i, index;
-	CLineStrip* pStrip;
-	CLineStrip::iterator pos2;
-	CLineStripList::iterator pos;
-	
-	for(i=0;i<GetNPlanes();i++) {
-		for(pos = m_vStripLists[i].begin();pos!=m_vStripLists[i].end();pos++) 
+	file << std::setprecision( 10 );
+
+	for ( unsigned long i=0; i < GetNPlanes(); i++ )
+	{
+		for ( CLineStripList::iterator pos = m_vStripLists[ i ].begin(); pos != m_vStripLists[ i ].end(); pos++ )
 		{
-			pStrip = (*pos);
-			for(pos2 = pStrip->begin();pos2!=pStrip->end();pos2++) 
+			CLineStrip* pStrip = ( *pos );
+			for ( CLineStrip::iterator pos2 = pStrip->begin(); pos2 != pStrip->end(); pos2++ )
 			{
-				index = (*pos2);
-				file << GetXi(index)<<"\t"<<GetYi(index)<<"\n";
+				unsigned long index = ( *pos2 );
+				file << GetXi( index ) << "\t" << GetYi( index ) << "\n";
 			}
-			file<<"\n";
+			file << "\n";
 		}
 	}
 	file.close();
+
 	return true;
-	
 }

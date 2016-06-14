@@ -196,15 +196,7 @@ struct CBrat3DFunction : public Qwt3D::Function
 
     double operator()( double x, double y )
     {
-//        x -= mxmin;
-//        y -= mymin;
-//        auto index = mPlotValues->mXaxis.size() * y + x;											assert__( size_t( index ) <mPlotValues->mBits.size() );
-//        if ( index >= mPlotValues->mBits.size() || !mPlotValues->mBits.at( index ) )
-//            return std::numeric_limits< double >::quiet_NaN();
-
         return CorrectedValue( mPlotValues->value( x, y ) );
-
-        //return CorrectedValue( mPlotValues->mValues.at( index ) );
     }
 };
 
@@ -971,7 +963,7 @@ void C3DPlotWidget::SetStyle( bool show_contour, bool show_mesh )
 	mCurrentPlot->SetPlotStyle( style );
 }
 
-bool C3DPlotWidget::HasContour() const
+bool C3DPlotWidget::HasMesh() const
 {
 	assert__( mCurrentPlot );
 
@@ -980,7 +972,7 @@ bool C3DPlotWidget::HasContour() const
 	return style == Qwt3D::FILLEDMESH || style == Qwt3D::HIDDENLINE;
 }
 
-void C3DPlotWidget::ShowContour( bool show )
+void C3DPlotWidget::ShowMesh( bool show )
 {
 	SetStyle( show, HasSolidColor() );
 }
@@ -997,17 +989,17 @@ bool C3DPlotWidget::HasSolidColor() const
 
 void C3DPlotWidget::ShowSolidColor( bool show )
 {
-	SetStyle( HasContour(), show );
+	SetStyle( HasMesh(), show );
 }
 
 
-void C3DPlotWidget::ShowContour( int index, bool show )
+void C3DPlotWidget::ShowMesh( int index, bool show )
 {
 	assert__( size_t( index ) <mSurfacePlots.size() );
 
 	auto save = mCurrentPlot;
 	mCurrentPlot = dynamic_cast<CBrat3DPlot*>( mSurfacePlots[ index ] );
-	ShowContour( show );
+	ShowMesh( show );
 	mCurrentPlot = save;
 }
 

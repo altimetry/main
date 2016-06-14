@@ -40,16 +40,6 @@
 
 
 
-void CMapEditor::CreateMapActions()
-{
-	// add menu button for projections
-
-	AddToolBarSeparator();
-	mProjectionsGroup = CreateProjectionsActions();
-	mToolProjection = AddMenuButton( eActionGroup_Projections, mProjectionsGroup->actions() );
-}
-
-
 void CMapEditor::ResetAndWireNewMap()
 {
 	if ( mMapView )
@@ -64,6 +54,7 @@ void CMapEditor::ResetAndWireNewMap()
 	mMapView->ConnectParentRenderWidgets( mProgressBar, mRenderSuppressionCBox );
 	mMapView->ConnectParentMeasureActions( mMeasureButton, mActionMeasure, mActionMeasureArea );
 	mMapView->ConnectParentGridAction( mActionDecorationGrid );
+	mMapView->ConnectParentMapTipsAction( mActionMapTips );
 	mMapView->ConnectCoordinatesWidget( mCoordsEdit, mCoordinatesFormatButton, mCoordinatesFormat );
 	AddView( mMapView, false );
 	mMapView->setVisible( false );
@@ -71,18 +62,17 @@ void CMapEditor::ResetAndWireNewMap()
 
 //create and insert widgets
 
+
 void CMapEditor::CreateWidgets()
 {
 	base_t::CreateWidgets<CViewControlsPanelGeneralMaps>();
 
     //    Specialized Tabs
 	mTabDataLayers = new CMapControlsPanelDataLayers( this );
-	mTabView = new CMapControlsPanelView( this );
-
 	AddTab( mTabDataLayers, "Data Layers" );
-	AddTab( mTabView, "View" );
 
-	mTabView->setEnabled( false );			//TODO delete after implementation
+	//mTabView = new CMapControlsPanelView( this );	//TODO comment in after implementation
+	//AddTab( mTabView, "View" );					//TODO comment in after implementation
 
 	// map widget managed
 
@@ -103,20 +93,29 @@ void CMapEditor::CreateWidgets()
 	statusBar()->addPermanentWidget( mCoordsEdit, 0 );
 
 	//graphics bar
-	mMeasureButton = CMapWidget::CreateMapMeasureActions( mGraphicsToolBar, mActionMeasure, mActionMeasureArea );
-	mGraphicsToolBar->addAction( CActionInfo::CreateAction( mGraphicsToolBar, eAction_Separator ) );
-	mGraphicsToolBar->addWidget( mMeasureButton );
+	QAction *after = mExport2ImageAction;
+	AddToolBarSeparator( after );
 
 	mActionDecorationGrid = CMapWidget::CreateGridAction( mGraphicsToolBar );
-	mGraphicsToolBar->addAction( mActionDecorationGrid );
+	mGraphicsToolBar->insertAction( after, mActionDecorationGrid );
+
+	mActionMapTips = CMapWidget::CreateMapTipsAction( mGraphicsToolBar );
+	mGraphicsToolBar->insertAction( after, mActionMapTips );
+
+	mMeasureButton = CMapWidget::CreateMapMeasureActions( mGraphicsToolBar, mActionMeasure, mActionMeasureArea );
+	mGraphicsToolBar->insertWidget( after, mMeasureButton );
+
 
     //    Map
     ResetViews( true, true, true, false );		//creates map and connects map actions; hides it
 	mMapView->setVisible( true );
 
-	// Tool-bar actions
+	// add menu button for projections: should be done after view created
 
-	CreateMapActions();
+	AddToolBarSeparator( after );
+	mProjectionsGroup = CreateProjectionsActions();
+	mToolProjection = AddMenuButton( eActionGroup_Projections, mProjectionsGroup->actions(), after );
+	AddToolBarSeparator( after );
 
 	Wire();
 }
@@ -138,16 +137,18 @@ void CMapEditor::Wire()
 
 	connect( mTabDataLayers->mFieldsList, SIGNAL( currentRowChanged( int ) ), this, SLOT( HandleCurrentFieldChanged( int ) ) );
 
-	connect( mTabDataLayers->mMinRange, SIGNAL( returnPressed() ), this, SLOT( HandleFieldMinRangeEntered() ) );
-	connect( mTabDataLayers->mMaxRange, SIGNAL( returnPressed() ), this, SLOT( HandleFieldMaxRangeEntered() ) );
-
 	//... layer options
+
 	connect( mTabDataLayers->mColorMapWidget, SIGNAL( ShowContourToggled( bool ) ), this, SLOT( HandleShowContourChecked( bool ) ) );
+	connect( mTabDataLayers->mColorMapWidget, SIGNAL( ContourColorSelected() ), this, SLOT( HandleContourColorSelected() ) );
 	connect( mTabDataLayers->mColorMapWidget, SIGNAL( ShowSolidColorToggled( bool ) ), this, SLOT( HandleShowSolidColorChecked( bool ) ) );
 	connect( mTabDataLayers->mColorMapWidget, SIGNAL( CurrentIndexChanged( int ) ), this, SLOT( HandleColorTablesIndexChanged( int ) ) );
+	connect( mTabDataLayers->mColorMapWidget, SIGNAL( ContoursEditReturnPressed() ), this, SLOT( HandleNumberOfContoursChanged() ) );
+	connect( mTabDataLayers->mColorMapWidget, SIGNAL( ContourWidthReturnPressed() ), this, SLOT( HandleContourWidthChanged() ) );
 
 	mMainSplitter->setHandleWidth( 0 );
 }
+
 
 CMapEditor::CMapEditor( CModel *model, const COperation *op, const std::string &display_name )		//display_name = ""
 	: base_t( true, model, op, display_name )
@@ -228,7 +229,7 @@ void CMapEditor::Show2D( bool checked )
 	}
 	mMapProcessing = true;
 
-	LOG_FATAL( QString( "2D" ) + ( checked ? " ==> CHECKED" : "==> unchecked" ) );
+	//LOG_FATAL( QString( "2D" ) + ( checked ? " ==> CHECKED" : "==> unchecked" ) );
 
 	if ( checked )
 	{
@@ -262,7 +263,7 @@ void CMapEditor::Show3D( bool checked )
 	}
 	mGlobeProcessing = true;
 
-	LOG_FATAL( QString( "3D" ) + ( checked ? " ==> CHECKED" : "==> unchecked" ) );
+	//LOG_FATAL( QString( "3D" ) + ( checked ? " ==> CHECKED" : "==> unchecked" ) );
 
 	if ( checked )
 	{
@@ -390,8 +391,75 @@ void CMapEditor::OneClick()
 //virtual 
 bool CMapEditor::Test()
 {
-	BRAT_NOT_IMPLEMENTED;
-	return false;
+	int index = mTabDataLayers->mFieldsList->currentRow();
+	if ( index < 0 )
+	{
+		LOG_WARN( "Test: No data" );
+		return false;
+	}
+
+	double all_mx, all_Mx, all_my, all_My, all_mz, all_Mz, mx, Mx, my, My, mz, Mz;
+	all_mx = all_Mx = all_my = all_My = all_mz = all_Mz = mx = Mx = my = My = mz = Mz = 0.;
+	size_t nframes, nvalues, nvalues0, ndefault_values;
+	nframes = nvalues = nvalues0 = ndefault_values = 0;
+	std::string error_msg, field;
+
+	if ( !mDataArrayMap.empty() )
+	{
+		CWorldPlotData *pdata = mDataArrayMap[ index ];
+		const CWorldPlotInfo &data = pdata->PlotInfo();
+		const CWorldPlotParameters &map = data( 0 );		Q_UNUSED( map );
+		field = pdata->GetDataName();
+
+		all_mx = mx = data[ 0 ].mMinX;
+		all_Mx = Mx = data[ 0 ].mMaxX; 
+		all_my = my = data[ 0 ].mMinY;
+		all_My = My = data[ 0 ].mMaxX;
+		all_mz = mz = data[ 0 ].mMinHeightValue;
+		all_Mz = Mz = data[ 0 ].mMaxHeightValue;
+
+		if ( data.size() > 1 )
+			error_msg += "Unexpected World number of frames greater than 1\n";
+
+		nframes = data.size();					assert__( nframes == 1 );	//#frames; simply to check if ever...
+		int iframe = 0;
+		nvalues = data.GetDataSize( iframe );
+        for ( ; iframe < (int)nframes; ++iframe )
+		{
+			if ( data.GetDataSize( iframe ) != nvalues )
+				error_msg += "3D frames with different size\n";
+		}
+
+		nvalues0 = data.GetDataCountIf( 0, []( const double &v ) { return v == 0; } );
+		ndefault_values = data.GetDataCountIf( 0, []( const double &v ) { return isDefaultValue( v ); } );
+	}
+
+	const std::string msg =
+		+ "\nData dump for '"
+		+ field
+		+ "'\n"
+		+ TF( "mx", mx )
+		+ TF( "Mx", Mx )
+		+ TF( "all_mx", all_mx )
+		+ TF( "all_Mx", all_Mx )
+		+ TF( "my", my )
+		+ TF( "My", My )
+		+ TF( "all_my", all_my )
+		+ TF( "all_My", all_My )
+		+ TF( "mz", mz )
+		+ TF( "Mz", Mz )
+		+ TF( "all_mz", all_mz )
+		+ TF( "all_Mz", all_Mz )
+		+ TF( "nvalues", nvalues ) 
+		+ TF( "nframes", nframes )
+		+ TF( "nvalues0", nvalues0 ) 
+		+ TF( "ndefault_values", ndefault_values )
+		+ error_msg
+		;
+
+	LOG_FATAL( msg );
+
+	return true;
 }
 
 
@@ -509,8 +577,6 @@ bool CMapEditor::CreatePlotData( const std::vector< CWPlot* > &wplots )
 		{
 			assert__( wplot != nullptr );
 
-			//ResetProperties( mCurrentDisplayFilesProcessor->GetWorldPlotProperties( map_index++ ), wplot );	//v3 always used hard coded map_index == 0
-
 			const CWorldPlotProperties *props = mCurrentDisplayFilesProcessor->GetWorldPlotProperties( map_index++ );	Q_UNUSED( props );  //mPlotPropertiesMap = *props;	// *proc->GetWorldPlotProperties( 0 );
 			mMapView->setWindowTitle( t2q( wplot->MakeTitle() ) );
 
@@ -532,19 +598,17 @@ bool CMapEditor::CreatePlotData( const std::vector< CWPlot* > &wplots )
 				if ( field->m_internalFiles.empty() )
 					continue;
 
-                //////// RCCC TODO: Temporarily changed to detect U and V components /////
-                if ( /*field->m_worldProps->m_name == "V" /*/ field->m_worldProps->m_northComponent && northField == nullptr )
+                if ( field->m_worldProps->m_northComponent && northField == nullptr )
 				{
 					northField = field;
 					continue;
 				}
 				else
-                if ( /*field->m_worldProps->m_name == "U" /*/ field->m_worldProps->m_eastComponent && eastField == nullptr )
+                if ( field->m_worldProps->m_eastComponent && eastField == nullptr )
 				{
 					eastField = field;
 					continue;
 				}
-                ///////////////////////////////////////////////////////////////////////////
 
 				// otherwise just add it as regular data
                 mDataArrayMap.push_back( new CWorldPlotData( field ) );		//v4 note: CWorldPlotData ctor is only invoked here
@@ -632,8 +696,8 @@ void CMapEditor::ResetMap()
 
 
 	mTabDataLayers->mFieldsList->clear();
-    const size_t size = mDataArrayMap.size();								//assert__( size == mCurrentDisplayFilesProcessor->GetWorldPlotPropertiesSize() );
-	for ( size_t i = 0; i < size; ++i )
+    const size_t array_size = mDataArrayMap.size();								//assert__( size == mCurrentDisplayFilesProcessor->GetWorldPlotPropertiesSize() );
+	for ( size_t i = 0; i < array_size; ++i )
 	{
 		CWorldPlotData* geo_map = mDataArrayMap[ i ];        
         CWorldPlotVelocityData *geo_velocity_map = dynamic_cast<CWorldPlotVelocityData*>( geo_map );
@@ -650,24 +714,6 @@ void CMapEditor::ResetMap()
 
 #if defined (USE_POINTS)	//(**)
 
-        ////// RCCC TODO // MOVED OUT OF FOR CYCLE : Fields and attributes can be created only once //
-        std::map<QString, QVariant>   attrs;
-        QgsFields fields;
-
-        if ( geo_velocity_map )
-        {
-            attrs[ "angle" ] = QVariant::fromValue( 0.0 );
-            attrs[ "magnitude" ] = QVariant::fromValue( 0.0 );
-        }
-        else
-        {
-            attrs[ "height" ] = QVariant::fromValue( 0.0 );
-        }
-
-        for ( auto ii = attrs.begin(); ii != attrs.end(); ++ii )
-            fields.append( QgsField( ii->first, ii->second.type() ),  QgsFields::OriginUnknown );
-        ////////////////////////////////////////////////////////////////////////////////////////////////
-
 		for ( auto i = 0u; i < size; ++ i )
 		{
 			if ( !IsValidPoint( map, i ) )
@@ -677,28 +723,20 @@ void CMapEditor::ResetMap()
 			auto y = i / map.mXaxis.size(); // ( x * geo_map->lats.size() ) + i;
 
 #if defined (USE_FEATURES) //(***)
-			//CreatePointFeature( flist, map.mXaxis.at( x ), map.mYaxis.at( y ), map.mValues[ i ] );  // TODO - RCCC Uncomment this to use Points
 
             ////////// TODO RCCC  //////////////////////////////////////////////////
             if ( geo_velocity_map )
             {
                 double magnitude = sqrt( map.mValues[ i ]*map.mValues[ i ] + map.mValuesEast[ i ]*map.mValuesEast[ i ] ) ;
-                double angle = 0;
+                double angle = atan2(map.mValuesEast[ i ], map.mValues[ i ]) * 180 / M_PI;
+                if ( angle < 0 ) {  angle += 360;  }
 
-                /// TODO RCCC: Needs to be validated!!!
-                if     ( map.mValuesEast[ i ] > 0 && map.mValues[ i ] > 0 )  { angle = 180 * ( atan(map.mValuesEast[ i ]/map.mValues[ i ]) + 180 ) / M_PI; }
-                else if( map.mValuesEast[ i ] < 0 && map.mValues[ i ] < 0 )  { angle = 180 * ( atan(map.mValuesEast[ i ]/map.mValues[ i ]) + 0 )   / M_PI; }
-                else if( map.mValuesEast[ i ] > 0 && map.mValues[ i ] < 0 )  { angle = 180 * ( atan(map.mValuesEast[ i ]/map.mValues[ i ]) + 360 ) / M_PI; }
-                else if( map.mValuesEast[ i ] < 0 && map.mValues[ i ] > 0 )  { angle = 180 * ( atan(map.mValuesEast[ i ]/map.mValues[ i ]) + 270 ) / M_PI; }
-
-                attrs[ "angle" ]     = QVariant::fromValue( angle );
-                attrs[ "magnitude" ] = QVariant::fromValue( magnitude );
-                mMapView->CreatePointArrowFeature( flist, map.mXaxis.at( x ), map.mYaxis.at( y ), attrs, fields );
+                mMapView->CreateVectorFeature( flist, map.mXaxis.at( x ), map.mYaxis.at( y ), angle, magnitude );
             }
             else
             {
-                attrs[ "height" ] = QVariant::fromValue( map.mValues[ i ] );
-                mMapView->CreatePolygonFeature( flist, map.mXaxis.at( x ), map.mYaxis.at( y ), attrs, fields );
+                //mMapView->CreatePointDataFeature( flist, map.mXaxis.at( x ), map.mYaxis.at( y ), map.mValues[ i ] );
+                mMapView->CreatePolygonDataFeature( flist, map.mXaxis.at( x ), map.mYaxis.at( y ), map.mValues[ i ] );
             }
             ///////////////////////////////////////////////////////////////////////
 #else
@@ -710,17 +748,14 @@ void CMapEditor::ResetMap()
 
 		//AddDataLayer( props->m_name, 0.333, map.mMinHeightValue, map.mMaxHeightValue, props->m_numContour, flist );  // TODO - RCCC Uncomment this to use Points
 
-        ////////// TODO RCCC  ////////////////////////////////////
         if( geo_velocity_map )
         {
              mMapView->AddArrowDataLayer( mPropertiesMap->m_name, flist );
         }
         else
         {
-            mMapView->AddPolygonDataLayer(
-                mPropertiesMap->m_name, map.mMinHeightValue, map.mMaxHeightValue, mPropertiesMap->mLUT->GetLookupTable(), mPropertiesMap->m_numContour, flist );
+            mMapView->AddDataLayer( mPropertiesMap->m_name, 0.1, map.mMinHeightValue, map.mMaxHeightValue, mPropertiesMap->mLUT->GetLookupTable(), flist );
         }
-        /////////////////////////////////////////////////////////
 
 #endif 
 
@@ -755,19 +790,8 @@ void CMapEditor::ResetMap()
 		//femm: This is CWorldPlotPanel::AddData
 
 		//femm: the important part
-		//if ( pdata->GetColorBarRenderer() != nullptr )
-		//	m_vtkWidget->GetRenderWindow()->AddRenderer( pdata->GetColorBarRenderer()->GetVtkRenderer() );
-		//m_plotRenderer->AddData( pdata );
 
-
-		//CWorldPlotData* geo_map = dynamic_cast<CWorldPlotData*>( pdata );
-		//if ( geo_map != nullptr )
-		//{
-		//	wxString textLayer = wxString::Format( "%s", geo_map->GetDataName().c_str() );
-
-		//	m_plotPropertyTab->GetLayerChoice()->Append( textLayer, static_cast<void*>( geo_map ) );
-		//	m_plotPropertyTab->SetCurrentLayer( 0 );
-		//}
+		// ( ... )
 
 		//int32_t nFrames = 1;
 		//if ( geo_map != nullptr )
@@ -819,13 +843,21 @@ void CMapEditor::HandleCurrentFieldChanged( int field_index )
 	mCurrentDisplayData = mDisplay->GetDisplayData( mOperation, mPropertiesMap->m_name );
 	mBratLookupTable = mPropertiesMap->mLUT;
 
-	mTabDataLayers->mColorMapWidget->SetShowSolidColor( mMapView->IsLayerVisible( field_index ) );
-	
 	mTabDataLayers->mColorMapWidget->blockSignals( true );
-	mTabDataLayers->mColorMapWidget->SetLUT( mBratLookupTable );	// TODO color table must be assigned to plot and retrieved here from plot
+	// TODO color table and range should be retrieved here from plot, but maps still know nothing about LUTs or data ranges
+	// TODO create a current CWorldPlotParameters data member
+	const CWorldPlotInfo &maps = mDataArrayMap[ field_index ]->PlotInfo();
+	const CWorldPlotParameters &map = maps( 0 );
+	mTabDataLayers->mColorMapWidget->SetLUT( mBratLookupTable, map.mMinHeightValue, map.mMaxHeightValue );
+	mTabDataLayers->mColorMapWidget->SetContourColor( mPropertiesMap->m_contourLineColor.GetQColor() );
 	mTabDataLayers->mColorMapWidget->blockSignals( false );
-	// TODO on the other hand do we want a color table per field???
 
+	mTabDataLayers->mColorMapWidget->SetShowSolidColor( mMapView->IsDataLayerVisible( field_index ) );
+	mTabDataLayers->mColorMapWidget->SetShowContour( mMapView->IsContourLayerVisible( field_index ) );
+	mTabDataLayers->mColorMapWidget->SetNumberOfContours( mPropertiesMap->m_numContour );
+	mTabDataLayers->mColorMapWidget->SetContoursWidth( mPropertiesMap->m_contourLineWidth );
+
+	
 	//TODO - fetch correct display data
 	//mTabDataLayers->mMinRange->setText( n2s<std::string>( mCurrentDisplayData->GetMinValue() ).c_str() );
 	//mTabDataLayers->mMaxRange->setText( n2s<std::string>( mCurrentDisplayData->GetMaxValue() ).c_str() );
@@ -861,116 +893,88 @@ void CMapEditor::HandleShowSolidColorChecked( bool checked )
 
     mPropertiesMap->m_solidColor = checked;
 
-	mMapView->SetLayerVisible( mTabDataLayers->mFieldsList->currentRow(), mPropertiesMap->m_solidColor, mDisplaying2D );
+	mMapView->SetDataLayerVisible( mTabDataLayers->mFieldsList->currentRow(), mPropertiesMap->m_solidColor, mDisplaying2D );
 }
 
 
-#include "../DataModels/PlotData/Contour/ListContour.h"
-
 void CMapEditor::HandleShowContourChecked( bool checked )
 {
-    BRAT_NOT_IMPLEMENTED;
-    return;
-
 	int field_index = mTabDataLayers->mFieldsList->currentRow();
-	assert__( field_index < (int)mDataArrayMap.size() );
+	assert__( field_index >= 0 && field_index < (int)mDataArrayMap.size() );
+
+	if ( mMapView->HasContourLayer( field_index ) )
+	{
+		mMapView->SetContourLayerVisible( field_index, checked, mDisplaying2D );
+		return;
+	}
+
+	if ( !checked )
+		return;
+
+    WaitCursor wait;
+
 	const CWorldPlotInfo &maps = mDataArrayMap[ field_index ]->PlotInfo();
 	const CWorldPlotParameters &map = maps( 0 );
 
-	QgsFeatureList flist;
-	CListContour contours;
-	contours.SetFieldFcn(
-		[&map]( double x, double y ) ->double
-	{
-		return map.value( x, y );
-	} );
+	CBratLookupTable t;
+	t.ExecMethod( "Rainbow" );
+	mMapView->AddContourLayer( field_index, mPropertiesMap->m_name, mPropertiesMap->m_contourLineWidth, mPropertiesMap->m_contourLineColor.GetQColor(), 
+		t.GetLookupTable(), mPropertiesMap->m_numContour, map );
+}
 
 
-    double pLimits[ 4 ] ={ map.mXaxis[0], map.mXaxis[map.mXaxis.size()-1], map.mYaxis[0], map.mYaxis[map.mYaxis.size()-1] };
-	std::vector<double> vPlanes;
-    mPropertiesMap->m_numContour = 5;
-	vPlanes.resize( mPropertiesMap->m_numContour );
-    const auto step = ( map.mMaxHeightValue - map.mMinHeightValue ) / mPropertiesMap->m_numContour;
-    for ( unsigned long i = 0; i < vPlanes.size(); i++ )
-	{
-        vPlanes[ i ] = map.mMaxHeightValue - i * step;
-	}
-	contours.SetPlanes( vPlanes );
-    contours.SetFirstGrid( 2 * map.mXaxis.size(), 2 * map.mYaxis.size() );
-    contours.SetSecondaryGrid( 10 * map.mXaxis.size(), 10 * map.mYaxis.size() );
-	contours.SetLimits( pLimits );
-	contours.Generate();
-	contours.GetLimits( pLimits );
-	auto const size = contours.GetNPlanes();
-	for ( size_t i = 0; i < size; i++ )
-	{
-		auto pStripList = contours.GetLines( i );			assert__( pStripList );
-		for ( auto pos=pStripList->begin(); pos != pStripList->end(); pos++ )
-		{
-			auto pStrip=( *pos );				assert__( pStrip );
-			if ( pStrip->empty() )
-				continue;
+void CMapEditor::HandleNumberOfContoursChanged()
+{
+	WaitCursor wait;												assert__( mMapView && mPropertiesMap );
 
-			QgsPolyline points;
-			for ( auto pos2=pStrip->begin(); pos2 != pStrip->end(); pos2++ )
-			{
-				// retreiving index
-				auto index=( *pos2 );
-				// drawing
-				double x = contours.GetXi( index );
-				double y = contours.GetYi( index );
+	int field_index = mTabDataLayers->mFieldsList->currentRow();
 
-				//glVertex2f((GLfloat)(pLimits[0]+x),(GLfloat)(pLimits[2]+y));
-				//mMapView->CreatePolygonFeature( flist, x, y,  map.mValues[ index ] );
-				//mMapView->CreatePointFeature( flist, x, y,  map.mValues[ index ] );
-				points.append( QgsPoint( x, y ) );
-			}
-			mMapView->CreateLineFeature( flist, points );
-		}
-	}
+	mPropertiesMap->m_numContour = mTabDataLayers->mColorMapWidget->NumberOfContours();
 
-	mMapView->AddContourDataLayer(
-		mPropertiesMap->m_name, map.mMinHeightValue, map.mMaxHeightValue, mPropertiesMap->mLUT->GetLookupTable(), mPropertiesMap->m_numContour, flist );
+	const CWorldPlotInfo &maps = mDataArrayMap[ field_index ]->PlotInfo();
+	const CWorldPlotParameters &map = maps( 0 );
+
+	mMapView->SetNumberOfContours( field_index, mPropertiesMap->m_numContour, map );
+}
+
+
+void CMapEditor::HandleContourColorSelected()
+{
+	WaitCursor wait;												assert__( mMapView && mPropertiesMap );
+
+	int field_index = mTabDataLayers->mFieldsList->currentRow();
+
+	mPropertiesMap->m_contourLineColor = mTabDataLayers->mColorMapWidget->ContourColor();
+
+	mMapView->SetContoursProperties( field_index, mPropertiesMap->m_contourLineColor.GetQColor(), mPropertiesMap->m_contourLineWidth );
+}
+
+
+void CMapEditor::HandleContourWidthChanged()
+{
+	WaitCursor wait;												assert__( mMapView && mPropertiesMap );
+
+	int field_index = mTabDataLayers->mFieldsList->currentRow();
+
+	mPropertiesMap->m_contourLineWidth = mTabDataLayers->mColorMapWidget->ContoursWidth();
+
+	mMapView->SetContoursProperties( field_index, mPropertiesMap->m_contourLineColor.GetQColor(), mPropertiesMap->m_contourLineWidth );
 }
 
 
 void CMapEditor::HandleColorTablesIndexChanged( int index )
 {
-	if ( !ResetViews( true, true, true, false ) )
-	{
-		SimpleWarnBox( "A previous map is still processing. Please try again later." );
-		return;
-	}
+	WaitCursor wait;												assert__( mMapView && mPropertiesMap );
 
-	//SelectTab( mTabGeneral->parentWidget() );
-	ResetMap();
-	mMapView->setVisible( true );
+	int field_index = mTabDataLayers->mFieldsList->currentRow();	assert__( field_index >= 0 && field_index < (int)mDataArrayMap.size() );
+
+	const CWorldPlotInfo &maps = mDataArrayMap[ field_index ]->PlotInfo();
+	const CWorldPlotParameters &map = maps( 0 );
+
+	//NOTE: no need to assign anything to mPropertiesMap
+
+	mMapView->ChangeDataRenderer( field_index, 0., map.mMinHeightValue, map.mMaxHeightValue, mBratLookupTable->GetLookupTable() );	
 }
-
-
-
-void CMapEditor::HandleFieldMinRangeEntered()
-{
-	//assert__( mCurrentDisplayData );
-
- //   bool is_converted=false;
- //   const QString rmin = mTabDataLayers->mMinRange->text();
-	//mCurrentDisplayData->SetMinValue( rmin.toInt( &is_converted, 10 ) );			//TODO VALIDATE
-
-	//RunButtonClicked();
-}
-void CMapEditor::HandleFieldMaxRangeEntered()
-{
-	//assert__( mCurrentDisplayData );
-
- //   bool is_converted=false;
- //   const QString rmax = mTabDataLayers->mMaxRange->text();
-	//mCurrentDisplayData->SetMaxValue( rmax.toInt( &is_converted, 10 ) );			//TODO VALIDATE
-
-	//RunButtonClicked();
-}
-
-
 
 
 

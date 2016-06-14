@@ -47,7 +47,7 @@ void CApplicationSettingsDlg::CreateWidgets()
 
 	mUseVectorLayer = new QRadioButton( "Use a vector layer" );
 	mUseRasterLayer = new QRadioButton( "Use a raster layer" );
-    mUseURLRasterLayer = new QRadioButton( "Use a raster layer URL" );
+    mUseURLRasterLayer = new QRadioButton( "Use a raster layer URI" );
     mLayerURLLineEdit = new QLineEdit;
     auto *main_layers_group = CreateGroupBox( ELayoutType::Vertical,
                                         {

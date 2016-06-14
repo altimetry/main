@@ -1083,18 +1083,35 @@ inline QStringList getSaveFileName( QWidget * parent = 0, const QString & captio
 }
 
 template< typename F >
+QStringList tBrowseFileWithExtension( F f, QWidget *parent, const char *title, QString Initial, const QString &extension, const QString &description = "" )
+{
+    QFileDialog::Options options;
+    QString selectedFilter;
+	QString desc = description.isEmpty() ? extension : description;
+    QString filter = desc + " (*." + extension + ");;" + "All Files (*)";
+    return f( parent, QObject::tr( title ), Initial, filter, &selectedFilter, options);
+}
+
+template< typename F >
 QStringList tBrowseFile( F f, QWidget *parent, const char *title, QString Initial )
 {
     QFileDialog::Options options;
     //if (!native->isChecked())
     //    options |= QFileDialog::DontUseNativeDialog;
     QString selectedFilter;
-    return f( parent, QObject::tr( title ), Initial, QObject::tr("All Files (*);;Text Files (*.txt)"), &selectedFilter, options);
+
+	return tBrowseFileWithExtension( f, parent, title, Initial, "txt", "Text Files" );
+    //return f( parent, QObject::tr( title ), Initial, QObject::tr("All Files (*);;Text Files (*.txt)"), &selectedFilter, options);
 }
 
 inline QString BrowseFile( QWidget *parent, const char *title, QString Initial )
 {
     return tBrowseFile( getOpenFileName, parent, title, Initial )[0];
+}
+
+inline QString BrowseFileWithExtension( QWidget *parent, const char *title, QString Initial, const QString &extension, const QString &description = "" )
+{
+    return tBrowseFileWithExtension( getOpenFileName, parent, title, Initial, extension, description )[0];
 }
 
 inline QString BrowseNewFile( QWidget *parent, const char *title, QString Initial )

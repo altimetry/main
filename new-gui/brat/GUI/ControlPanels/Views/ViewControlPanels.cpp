@@ -1,67 +1,38 @@
+/*
+* This file is part of BRAT
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #include "new-gui/brat/stdafx.h"
 
 #include "DataModels/DisplayFilesProcessor.h"
 #include "DataModels/Workspaces/Display.h"
 #include "DataModels/PlotData/BratLookupTable.h"
 
-#include "GUI/ActionsTable.h"
 #include "new-gui/Common/GUI/TextWidget.h"
-
+#include "GUI/ActionsTable.h"
+#include "GUI/ControlPanels/ColorButton.h"
 
 #include "ViewControlPanels.h"
-
-
-
-/////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////
-//							Specialized Widgets
-/////////////////////////////////////////////////////////////////////////////////////
-/////////////////////////////////////////////////////////////////////////////////////
-
-
-
-////////////////////////////////////////////////////////////////
-//	 Color Button (Builds a button for selecting a color)
-////////////////////////////////////////////////////////////////
-
-
-//Definition of Static Variables
-const QString CColorButton::smInitColor = "white";
-const QString CColorButton::smStyleSheet_colorButton = "background-color: ";
-
-//TODO: delete this:
-//                                                        border-style: outset; \
-//                                                        border-width: 1px; \
-//                                                        border-color: black; \
-//        qlineargradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 1 #dadbde, stop: 1 ";
-
-
-//explicit
-CColorButton::CColorButton( QWidget *parent )
-    : base_t( parent)
-    , mCurrentColor( smInitColor )
-{
-    //setFixedSize(24, 24);
-
-    QIcon colorIcon = QIcon(":/images/OSGeo/paint.png");
-    setIcon( colorIcon );
-	setIconSize( QSize( tool_icon_size, tool_icon_size ) );
-
-    mColorDisplay = new QWidget(this);
-    mColorDisplay->setStyleSheet( smStyleSheet_colorButton + mCurrentColor.name() );
-    mColorDisplay->setFixedSize( 18, 4 );
-    mColorDisplay->move( QPoint( 3, 17 ) );
-
-	connect( this, SIGNAL( clicked() ), this, SLOT( InputColor() ) );
-}
-
-
 
 
 
 ////////////////////////////////////////////////////////////////
 //	 Axis Tab (used to build the tab page with axis options)
 ////////////////////////////////////////////////////////////////
+
 CAxisTab::CAxisTab( QWidget *parent, Qt::WindowFlags f )
     : base_t( parent, f)
 {
@@ -71,7 +42,7 @@ CAxisTab::CAxisTab( QWidget *parent, Qt::WindowFlags f )
 	const int height = fontMetrics().lineSpacing() + 6;
 	const int width = 10 * fontMetrics().width( '0' );
 
-	auto titled_edit = [&axis_font, &height, &width]( const char *title, QLineEdit *&l/*, Qt::Orientation o = Qt::Horizontal */) -> QLayout*
+	auto titled_edit = [&axis_font, &height, &width]( const char *title, QLineEdit *&l ) -> QLayout*	//, Qt::Orientation o = Qt::Horizontal
 	{
 		l = new QLineEdit;
 		l->setMaximumWidth( width );
@@ -147,7 +118,7 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
 
     // 2. Spectrogram Options
 
-	mColorMapWidget = new CColorMapWidget( false, nullptr );
+	mColorMapWidget = new CColorMapWidget( false, true, nullptr );
 	mSpectrogramOptions = CreateGroupBox( ELayoutType::Horizontal, { mColorMapWidget }, "3D", nullptr );
 
     //
@@ -206,7 +177,7 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
 
 	//3D
 	mBox3D = new QWidget( this );
-	LayoutWidgets( Qt::Vertical, { nullptr, mSpectrogramOptions, nullptr }, mBox3D );
+	LayoutWidgets( Qt::Vertical, { mSpectrogramOptions }, mBox3D );
 
 	//Histogram
 	mBoxHistogram = new QWidget( this );
@@ -593,46 +564,22 @@ CMapControlsPanelDataLayers::CMapControlsPanelDataLayers( QWidget *parent, Qt::W
     mFieldsList = new QListWidget;
     mFieldsList->setToolTip("Data Layer");
 
-    mColorMapWidget = new CColorMapWidget( false, this );
-	mColorMapWidget->setMaximumSize( 200, 60 );
-    auto mNbLabels = new QLineEdit;
-
-    mMinRange = new QLineEdit;
-    mMaxRange = new QLineEdit;
-    mReset = new QPushButton( "Reset" );
+    mColorMapWidget = new CColorMapWidget( false, true, this );
 
 	auto *color_l = CreateGroupBox( ELayoutType::Horizontal,
 	{
 		mColorMapWidget,
-		LayoutWidgets( Qt::Vertical, { new QLabel( "# Labels (Color Bar)" ), mNbLabels }, nullptr ),
+		//LayoutWidgets( Qt::Vertical, { new QLabel( "# Labels (Color Bar)" ), mNbLabels }, nullptr ),
 	},
 	"", nullptr, 2, m, m, m, m );
-
-	auto *range_box = CreateGroupBox( ELayoutType::Vertical, 
-	{ 
-		LayoutWidgets( Qt::Horizontal, { new QLabel( "Min." ), mMinRange }, nullptr, s, m, m, m, m ),
-        LayoutWidgets( Qt::Horizontal, { new QLabel( "Max." ), mMaxRange }, nullptr, s, m, m, m, m ),
-		mReset 
-	}, 
-	"Range", nullptr );
 
     AddTopLayout( ELayoutType::Horizontal, 
 	{
 		mFieldsList, 
         nullptr,
 		color_l,
-        nullptr,
-		range_box
 	}, 
 	s, m, m, m, m );
-
-
-	//TODO delete remaining lines after implementation
-	mNbLabels->setEnabled( false );
-
-    mMinRange->setEnabled( false );
-    mMaxRange->setEnabled( false );
-    mReset->setEnabled( false );
 }
 
 

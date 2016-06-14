@@ -584,6 +584,8 @@ void CZFXYPlotData::Create( CObArray* data, const std::string& fieldName, CZFXYP
 			}
 
 		}
+
+		mMaps().OrderAxis();
 	}
 
 

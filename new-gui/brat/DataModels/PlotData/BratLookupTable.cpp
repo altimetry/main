@@ -32,6 +32,9 @@ using namespace brathl;
 #if !defined(BRAT_V3)
 
 
+static const QColor invalid_color = QColor( 255, 255, 255, 0 );
+
+
 //class QWT_EXPORT QwtLinearColorMap: public QwtColorMap
 //{
 //public:
@@ -170,8 +173,9 @@ size_t QLookupTable::GetIndex( double v ) const
 }
 
 
-
+////////////////
 // QWT interface
+////////////////
 
 QLookupTable::QLookupTable( const QLookupTable&o ) 
 	: qwt_base_t( o )
@@ -199,6 +203,9 @@ QRgb QLookupTable::rgb( const QwtDoubleInterval &interval, double value ) const
 {
     Q_UNUSED( interval );
 
+	if ( std::isnan( value ) )
+		return invalid_color.rgba();
+
 	return mTable[ GetIndex( value ) ].rgba();
 }
 
@@ -225,7 +232,9 @@ QVector<QRgb> QLookupTable::colorTable( const QwtDoubleInterval &interval ) cons
 
 
 
-	// QWT3D interface
+//////////////////
+// QWT3D interface
+//////////////////
 
 
 //virtual 
@@ -233,7 +242,7 @@ Qwt3D::RGBA QLookupTable::operator()( double x, double y, double z ) const
 {
 	Q_UNUSED( x );		Q_UNUSED( y );
 
-	auto const &c = mTable[ GetIndex( z ) ];
+	auto const &c = std::isnan( z ) ? invalid_color : mTable[ GetIndex( z ) ];
 	return Qwt3D::RGBA( c.red() / 255.0, c.green() / 255.0, c.blue() / 255.0, c.alpha() / 255.0 );
 }
 

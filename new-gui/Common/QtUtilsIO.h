@@ -228,10 +228,10 @@ STRING CreateUniqueFileName( const STRING &base_path )
 
 // On directories...
 
-inline bool MakeDirectory( const std::string &Path )
+inline bool MakeDirectory( const std::string &path )
 {
     QDir d;
-    return d.mkpath( Path.c_str() );
+    return d.mkpath( path.c_str() );
 }
 
 

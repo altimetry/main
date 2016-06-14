@@ -132,6 +132,74 @@ void CBratFilter::BoundingArea( double &lon1, double &lat1, double &lon2, double
 }
 
 
+bool CBratFilter::GetTimeBounds( CDate &Start, CDate &Stop, const std::string &product_label ) const
+{
+    if ( !isDefaultValue( StartCycle() ) && !isDefaultValue( StopCycle() ) &&
+         !isDefaultValue( StartPass() )  && !isDefaultValue( StopPass() )     )
+    {
+        // 1- Uses Start/Stop Cycle/Pass defined by user
+        CMission m( product_label );
+
+        if ( m.CtrlMission() == BRATHL_SUCCESS )
+        {
+            m.Convert( StartCycle(), StartPass(), Start);
+            m.Convert( StopCycle(), StopPass(), Stop);
+            return true;
+        }
+        else // Mission not found       TODO add string parameter for error messages
+        {
+            LOG_WARN( "Filter '" + Name() + "' was not applied!\nUnable to convert Cycle and Pass to date: no mission found for product '"
+                            + product_label + "'." );
+            return false;
+        }
+    }
+    else // 2- Uses Start and Stop datetimes defined by user
+    {
+        Start = BratStartTime();
+        Stop  = BratStopTime();
+        return true;
+    }
+}
+
+
+//////// RCCC TODO /////////////////////////////////////
+std::string CBratFilter::GetSelectionCriteriaExpression( const std::string product_label ) const
+{
+    std::string expression;
+
+    // LAT/LON filtering expression //
+    if ( !mAreaNames.empty() )
+    {
+        double lon1, lat1, lon2, lat2;
+        BoundingArea( lon1, lat1, lon2, lat2 );
+
+        lon1 = CLatLonPoint::LonNormal360( lon1 );  // NOTE: We assume that all products have longitude fields in degrees east units,
+        lon2 = CLatLonPoint::LonNormal360( lon2 );  // i.e, in the [0, 360] range. (Examples: Cryosat, Jason1, Jason2, GRID_DOTS_MERCATOR... )
+
+        expression += func_is_bounded( lat1, lat_alias(), lat2 );
+        expression += " && ";
+        expression += func_is_bounded( lon1, lon_alias(), lon2 );
+    }
+    // TIME filtering expression //
+    CDate Start, Stop;
+    if ( GetTimeBounds( Start, Stop, product_label ) )
+    {
+        double start_seconds, stop_seconds;
+        Start.Convert2Second( start_seconds ); // NOTE: Although some products have time fields in seconds since 2000-01-01,
+        Stop.Convert2Second( stop_seconds );   // in selection criteria expression the user shall insert time values in seconds since 1950-01-01.
+
+        expression.empty()  ?  expression += ""  :  expression += " && ";
+        expression += func_is_bounded( start_seconds, time_alias(), stop_seconds );
+    }
+
+    if (expression.empty()) { LOG_INFO( "Filter '" + mName + "' applied no selection criteria expression." ); }
+    else                    { LOG_INFO( "Filter '" + mName + "' translated to a selection criteria expression:\n" + expression );}
+
+    return expression;
+}
+//////////////////////////////////////////////////
+
+
 bool CBratFilter::Apply( const CStringList& files_in, CStringList& files_out ) const
 {
 	return CBratFilters::GetInstance().Apply( mName, files_in, files_out );
@@ -322,30 +390,6 @@ bool CBratFilters::Load()
 }
 
 
-//////// RCCC TODO /////////////////////////////////////
-std::string CBratFilters::GetSelectionCriteriaExpression( const std::string &name )
-{
-    auto const *filter = Find( name );
-    assert__( filter );
-
-    std::string expression;
-
-    // Lat/Lon filtering expression (TODO: Check first if filter has any area?)
-    double lon1, lat1, lon2, lat2;
-    filter->BoundingArea( lon1, lat1, lon2, lat2 );
-
-    expression += "is_bounded(" + std::to_string(lat1) + ", " + lat_alias() + ", " + std::to_string(lat2) + ")";
-    expression += " && ";
-    expression += "is_bounded(" + std::to_string(lon1) + ", " + lon_alias() + ", " + std::to_string(lon2) + ")";
-
-    // Time filtering expression
-    // TO BE CONCLUDED
-
-    return expression;
-}
-//////////////////////////////////////////////////
-
-
 bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std::string &name ) const
 {
 	auto const *filter = Find( name );
@@ -375,41 +419,13 @@ bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std
 	{
         CDate Start, Stop;
 
-        /// Try to convert Cycle and Pass to Datetime //////////////////////////////////////
-        if ( !isDefaultValue(filter->StartCycle()) && !isDefaultValue(filter->StopCycle()) &&
-             !isDefaultValue(filter->StartPass())  && !isDefaultValue(filter->StopPass())     )
+        if ( filter->GetTimeBounds( Start, Stop, product_ref->GetLabel() ) )
         {
-            // Uses Start/Stop Cycle/Pass defined by user
-
-            CMission m( product_ref->GetLabel() );
-
-            if ( m.CtrlMission() == BRATHL_SUCCESS )
-            {
-                CDate StartDate, StopDate;
-
-                m.Convert(filter->StartCycle(), filter->StartPass(), StartDate);
-                m.Convert(filter->StopCycle(), filter->StopPass(), StopDate);
-
-                Start = StartDate;
-                Stop  = StopDate;
-            }
-            else // Mission not found       TODO add string parameter for error messages
-            {
-                LOG_WARN( "Filter '" + filter->Name() + "' was not applied!\nUnable to convert Cycle and Pass to date: no mission found for product '"
-                                + product_ref->GetLabel() + "'." );
-                return false;
-            }
+            // Start and Stop.Value() contains the date in a number of seconds since internal reference date, ie 1950.
+            product_ref->GetDatetimeCriteria()->Set( Start.Value(), Stop.Value() );
+            LOG_INFO("Filter '" + filter->Name() + "' applied a DateTimeCriteria from: " + Start.AsString() + " to: " + Stop.AsString()
+                     + ".\n(product type/label: '" + product_ref->GetLabel() + "')");
         }
-        else // Uses Start and Stop datetimes defined by user
-        {
-            Start = filter->BratStartTime();
-            Stop  = filter->BratStopTime();
-        }
-
-        // Start and Stop.Value() contains the date in a number of seconds since internal reference date, ie 1950.
-        product_ref->GetDatetimeCriteria()->Set( Start.Value(), Stop.Value() );
-        LOG_INFO("Filter '" + filter->Name() + "' applied a DateTimeCriteria from: " + Start.AsString() + " to: " + Stop.AsString()
-                 + ".\n(product type/label: '" + product_ref->GetLabel() + "')");
 	}
 
     /// NOT USED ON BRAT V.4 /// Cycle/Pass criteria are applied as datetime criteria, therefore the old criteria are not used.

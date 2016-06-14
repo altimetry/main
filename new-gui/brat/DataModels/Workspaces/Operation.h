@@ -262,7 +262,8 @@ public:
 	void RemoveFilter();
 	void ReapplyFilter();
 
-	CProduct* GetProduct() { return m_product; }
+    CProduct* GetProduct() { return m_product; }
+    CProduct* GetProduct() const { return m_product; }
 	void SetProduct( CProduct* value ) { m_product = value; }
 
 	const CMapFormula* GetFormulas() const { return &m_formulas; }

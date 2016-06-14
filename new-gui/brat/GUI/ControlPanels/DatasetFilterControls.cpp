@@ -662,10 +662,23 @@ void CDatasetFilterControls::HandleNewArea()
 
 void CDatasetFilterControls::HandleAddKML()
 {
+	static std::string kml_path = mModel.BratPaths().mPortableBasePath;
+	
+	QString path = BrowseFileWithExtension( this, "Open from KML File", kml_path.c_str(), "kml", "Keyhole Markup Language" );
+
+	if ( !path.isEmpty() )
+	{
+		kml_path = q2a( path );
+		QgsRectangle bounding_box;
+		if ( !CMapWidget::OpenLayer( path, bounding_box ) )
+			return;
+
+		LOG_WARN( bounding_box.toString() );
+
     // TODO
-    BRAT_NOT_IMPLEMENTED;
     //Save all areas
 //    SaveAllAreas();
+	}
 }
 
 void CDatasetFilterControls::HandleAddMask()
@@ -874,10 +887,10 @@ void CDatasetFilterControls::updateDateWidgets()
     mStopTimeEdit->blockSignals( true );
 
     // UPDATE start/stop dates and max/min allowed
-    mStartTimeEdit->setDateTime( mFilter->StartTime() );
     mStartTimeEdit->setMaximumDateTime( mFilter->StopTime() ); // Stop_datetime defines the maximum allowed start_datetime
-    mStopTimeEdit->setDateTime( mFilter->StopTime() );
     mStopTimeEdit->setMinimumDateTime( mFilter->StartTime() ); // Start_datetime defines the minimum allowed stop_datetime
+    mStartTimeEdit->setDateTime( mFilter->StartTime() );
+    mStopTimeEdit->setDateTime( mFilter->StopTime() );
 
     // SET READ_ONLY PALETTE
     bool markAsReadOnly = ( !isDefaultValue(mFilter->StartCycle()) &

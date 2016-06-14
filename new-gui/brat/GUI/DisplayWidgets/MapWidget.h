@@ -20,8 +20,7 @@ class QgsRasterLayer;
 class CDecorationGrid;
 class QgsGraduatedSymbolRendererV2;
 class QLookupTable;
-
-// TODO RCCC
+struct CWorldPlotParameters;
 class QgsMapTip;
 
 
@@ -124,12 +123,25 @@ public:
 	typedef QgsSymbolV2* (*create_symbol_t)( double width, const QColor &color );
 
 
+	static bool OpenLayer( const QString &path, QgsRectangle &bounding_box );
+
+
 	template< class LAYER >
 	static QgsSingleSymbolRendererV2* CreateRenderer( LAYER *layer );
 	
+    static QgsFeatureList& CreatePointDataFeature( QgsFeatureList &list, double lon, double lat, double value);
+
+    static QgsFeatureList& CreatePolygonDataFeature(QgsFeatureList &list, double lon, double lat, double value  );
+
+    static QgsFeatureList& CreateVectorFeature( QgsFeatureList &list, double lon, double lat, double angle, double magnitude );
+
+protected:
+
 	static QgsSingleSymbolRendererV2* CreateRenderer( QgsSymbolV2* symbol );
 
-	static QgsGraduatedSymbolRendererV2* CreateRenderer( const QString &target_field, double width, double m, double M, const QLookupTable *lut, size_t contours, create_symbol_t cs );
+	static QgsGraduatedSymbolRendererV2* CreateRenderer( const QString &target_field, double width, double m, double M, const QLookupTable *lut, create_symbol_t cs );
+
+	static void ChangeRenderer( QgsVectorLayer *layer, const QString &target_field, double width, double m, double M, const QLookupTable *lut, create_symbol_t cs );
 
 
     static QgsSymbolV2* CreatePolygonSymbol( double width, const QColor &color );
@@ -142,20 +154,6 @@ public:
     static QgsSymbolV2* CreateArrowSymbol(const QColor &color );
     /////////////////////////////////////////////////////////////////////////
 
-    static QgsFeatureList& CreatePointFeature( QgsFeatureList &list, double lon, double lat, const std::map<QString, QVariant> &attrs = std::map<QString, QVariant>() );
-
-	static QgsFeatureList& CreatePointFeature( QgsFeatureList &list, double lon, double lat, double value );
-
-    ///////////////// TODO _ RCCC //////////////////////////////////////////
-    static QgsFeatureList& CreatePolygonFeature(QgsFeatureList &list, double lon, double lat, const std::map<QString, QVariant> &attrs = std::map<QString, QVariant>(), const QgsFields &fields = QgsFields());
-
-    static QgsFeatureList& CreatePolygonFeature(QgsFeatureList &list, double lon, double lat, double value );
-
-    static QgsFeatureList& CreatePointArrowFeature(QgsFeatureList &list, double lon, double lat, const std::map<QString, QVariant> &attrs, const QgsFields &fields);
-    /////////////////////////////////////////////////////////////////////////
-
-	static QgsFeatureList& CreateLineFeature( QgsFeatureList &list, QgsPolyline points );
-
 
 protected:
     //////////////////////////////////////
@@ -166,6 +164,7 @@ protected:
     ELayerBaseType mLayerBaseType = eVectorLayer;
 	QgsVectorLayer *mTracksLayer = nullptr;
 	std::vector< QgsVectorLayer* > mDataLayers;
+	std::vector< QgsVectorLayer* > mContourLayers;
 	QgsRasterLayer *mMainRasterLayer = nullptr;
     QList <QgsMapCanvasLayer> mLayerSet;
 
@@ -175,7 +174,18 @@ protected:
 	QgsMapTool *mMeasureDistance = nullptr;
 	QgsMapTool *mMeasureArea = nullptr;
 	QAction *mActionDecorationGrid = nullptr;	//we need this reference to parent action for enabling/disabling
-	CDecorationGrid* mDecorationGrid = nullptr;
+	CDecorationGrid *mDecorationGrid = nullptr;
+
+    // TODO: RCCC - Create Map Tips. ///////////////////////////
+    // Maptip object
+    QgsMapTip *mpMaptip = nullptr;
+    // Point of last mouse position in map coordinates (used with MapTips)
+    QgsPoint mLastMapPosition;
+
+    QAction *mActionMapTips = nullptr;			//we need this reference to parent action for enabling/disabling
+    bool mMapTipsVisible = false;
+    QTimer mpMapTipsTimer;
+
 
 	//reference to parent widgets
 	//
@@ -201,17 +211,6 @@ protected:
 
 	QgsCoordinateReferenceSystem mDefaultProjection;
 
-
-    // TODO: RCCC - Create Map Tips. ///////////////////////////
-    // Timer for map tips
-    QTimer *mpMapTipsTimer = nullptr;
-    // Maptip object
-    QgsMapTip *mpMaptip = nullptr;
-    // Point of last mouse position in map coordinates (used with MapTips)
-    QgsPoint mLastMapPosition;
-    // Flag to indicate if maptips are on or off
-    bool mMapTipsVisible;
-    /////////////////////////////////////////////////////////////
 
 
     //////////////////////////////////////
@@ -254,6 +253,9 @@ public:
 	static QAction* CreateGridAction( QToolBar *tb );
 	void ConnectParentGridAction( QAction *action_grid );
 
+	static QAction* CreateMapTipsAction( QToolBar *tb );
+	void ConnectParentMapTipsAction( QAction *action_map_tips );
+
 	static void CreateRenderWidgets( QStatusBar *bar, QProgressBar *&progress, QCheckBox *&box );
 	void ConnectParentRenderWidgets( QProgressBar *bar, QCheckBox *box );
 
@@ -271,8 +273,13 @@ public:
     //////////////////////////////////////
 
 
-	bool IsLayerVisible( size_t index ) const;
-	bool SetLayerVisible( size_t index, bool show, bool render );
+	bool IsDataLayerVisible( size_t index ) const;
+	bool IsContourLayerVisible( size_t index ) const;
+	bool SetDataLayerVisible( size_t index, bool show, bool render );
+	bool SetContourLayerVisible( size_t index, bool show, bool render );
+	bool HasContourLayer( size_t index ) const;
+
+	void ChangeDataRenderer( size_t index, double width, double m, double M, const QLookupTable *lut );
 
 
 	QgsRectangle CurrentLayerSelectedBox() const;
@@ -288,43 +295,37 @@ public:
 
 	bool Save2Image( const QString &path, const QString &format, const QString &extension );
 
+
+    void SetNumberOfContours( size_t index, size_t ncontours, const CWorldPlotParameters &map );
+
+    void SetContoursProperties( size_t index, QColor color, unsigned width );
+
+
 	QgsCoordinateReferenceSystem DefaultProjection() const { return mDefaultProjection; }
 
 	bool SetDefaultProjection();
 
 	bool SetProjection( unsigned id );
 
-	QgsVectorLayer* AddPolygonDataLayer( const std::string &name, double m, double M, const QLookupTable *lut, size_t contours, QgsFeatureList &flist )
+
+
+	QgsVectorLayer* AddPolygonDataLayer( const std::string &name, double m, double M, const QLookupTable *lut, QgsFeatureList &flist )
 	{
-		return AddDataLayer( true, name, 0., m, M, lut, contours, flist );
+		return AddDataLayer( true, name, 0., m, M, lut, flist );
 	}
 
-    QgsVectorLayer* AddContourDataLayer( const std::string &name, double m, double M, const QLookupTable *lut, size_t contours, QgsFeatureList &flist );
+	QgsVectorLayer* AddDataLayer( const std::string &name, double symbol_width, double m, double M, const QLookupTable *lut, QgsFeatureList &flist );
+    
+	QgsVectorLayer* AddContourLayer( size_t index, const std::string &name, unsigned width, QColor color, const QLookupTable *lut, size_t ncontours, const CWorldPlotParameters &map );
 
-    ///////////////// RCCC TODO ///////////////////////////////////////////////////////////
     QgsVectorLayer* AddArrowDataLayer(const std::string &name, QgsFeatureList &flist );
-    ///////////////////////////////////////////////////////////////////////////////////////
 
     void PlotTrack( const double *x, const double *y, const double *z, size_t size, brathl_refDate ref_date, QColor color = Qt::red );
 
 
-    // TODO - RCCC Map tips    //////////////
-    void createMapTips();
-
-    // Toggle map tips on/off
-    void toggleMapTips();
-    /////////////////////////////////////////
-
-
 protected:
-	void SetLayerSet();
 
-	void SetMainLayerVisible( bool show );
-
-	bool IsLayerVisible( QgsVectorLayer *layer ) const;
-
-
-    //////////////////////////////////////
+	//////////////////////////////////////
     //	overrides
     //////////////////////////////////////
 
@@ -340,18 +341,19 @@ protected:
     //	protected layer operations
     //////////////////////////////////////
 
+	void SetLayerSet();
+
+	void SetMainLayerVisible( bool show );
+
+	bool IsLayerVisible( QgsVectorLayer *layer ) const;
+	bool SetLayerVisible( QgsVectorLayer *layer, bool show, bool render );
+
 	void SetCurrentLayer( QgsMapLayer *l );	
 
 	QgsMapCanvasLayer* FindCanvasLayer( QgsMapLayer *layer );	
 	const QgsMapCanvasLayer* FindCanvasLayer( QgsMapLayer *layer ) const
 	{
         return const_cast<CMapWidget*>( this )->FindCanvasLayer( layer );
-	}
-
-	QgsMapCanvasLayer* FindCanvasLayer( size_t index );	
-	const QgsMapCanvasLayer* FindCanvasLayer( size_t index ) const
-	{
-        return const_cast<CMapWidget*>( this )->FindCanvasLayer( index );
 	}
 
 	const QgsMapCanvasLayer* FindCanvasLayer( const std::string &name ) const
@@ -362,15 +364,16 @@ protected:
 
 	bool SetProjection( const QgsCoordinateReferenceSystem &proj );
 
-	QgsVectorLayer* AddDataLayer( bool polygon, const std::string &name, double width, double m, double M, const QLookupTable *lut, size_t contours, QgsFeatureList &flist );
+	QgsVectorLayer* AddDataLayer( bool polygon, const std::string &name, double width, double m, double M, const QLookupTable *lut, QgsFeatureList &flist );
 
 
 protected:
 
 	QgsVectorLayer* AddVectorLayer( const std::string &name, const QString &layer_path, const QString &provider, QgsFeatureRendererV2 *renderer = nullptr );
+	QgsVectorLayer* AddVectorLayer( QgsVectorLayer *l );
 
-	QgsVectorLayer* AddMemoryLayer( bool polygon, const std::string &name, QgsFeatureRendererV2 *renderer );
-	QgsVectorLayer* AddMemoryLayer( const std::string &name = "", QgsSymbolV2* symbol = nullptr );
+	//QgsVectorLayer* AddMemoryLayer( bool polygon, const std::string &name, QgsFeatureRendererV2 *renderer );
+	//QgsVectorLayer* AddMemoryLayer( const std::string &name = "", QgsSymbolV2* symbol = nullptr );
 
 
 	QgsVectorLayer* AddOGRVectorLayer( const QString &layer_path, QgsSymbolV2* symbol = nullptr );
@@ -400,11 +403,6 @@ public slots:
 	void ShowMouseCoordinate( const QString s, bool erase = false );
 	void ShowMouseDegreeCoordinates( const QgsPoint & p, bool erase = false );
 
-    // TODO - RCCC Map tips    //////////////
-    // Show the maptip using tooltip
-    void showMapTip();
-    /////////////////////////////////////////
-
 protected slots:
 
 	void EnableRectangularSelection( bool enable );
@@ -417,6 +415,9 @@ protected slots:
 	void ToolButtonTriggered( QAction *action );
 
 	void ToggleGridEnabled( bool toggle );
+
+    void ToggleMapTips( bool checked );
+    void ShowMapTip();
 
 	//parent's status-bar
 

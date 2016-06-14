@@ -234,9 +234,24 @@ public:
 		WriteLn();
 		Comment( "----- SELECT -----" );
 		WriteLn();
-        if ( !mOp.GetSelect()->GetDescription( true ).empty() )
+
+        ///// RCCC TODO /////////////////////////////////////////////////
+        std::string CritExpression; // Selection criteria expression
+
+        // Add user expression
+        CritExpression += mOp.GetSelect()->GetDescription( true );
+
+        // Add filter expression
+        if ( mOp.Filter() )
+        {
+            CritExpression.empty() ? CritExpression += "" : CritExpression += " && ";
+            CritExpression += mOp.Filter()->GetSelectionCriteriaExpression( mOp.GetProduct()->GetLabel() );
+        }
+        /////////////////////////////////////////////////////////////////
+
+        if ( !CritExpression.empty() ) /// RCCC TODO: // ( !mOp.GetSelect()->GetDescription( true ).empty() )
 		{
-			WriteLn( std::string( kwSELECT.c_str() ) + "=" + mOp.GetSelect()->GetDescription( true ) );
+            WriteLn( std::string( kwSELECT.c_str() ) + "=" + CritExpression ); /// RCCC TODO: // + mOp.GetSelect()->GetDescription( true )
 		}
 		return true;
 	}

@@ -1,7 +1,11 @@
 #include "new-gui/brat/stdafx.h"
 #include "stdlib.h"
 #include "math.h"
-#include "Contour.h"
+#include "BratContour.h"
+
+//static 
+const int CBratContour::invalid = std::numeric_limits<int>::max();
+
 
 double TestFunction(double x,double y)
 {  
@@ -12,7 +16,7 @@ double TestFunction(double x,double y)
 // Construction/Destruction
 //////////////////////////////////////////////////////////////////////
 
-CContour::CContour()
+CBratContour::CBratContour()
 {
 	m_iColFir=m_iRowFir=32;
 	m_iColSec=m_iRowSec=256;
@@ -31,12 +35,12 @@ CContour::CContour()
 	}
 }
 
-CContour::~CContour()
+CBratContour::~CBratContour()
 {
 	CleanMemory();
 }
 
-void CContour::InitMemory()
+void CBratContour::InitMemory()
 {
 	if (!m_ppFnData)
 	{
@@ -48,7 +52,7 @@ void CContour::InitMemory()
 	}
 }
 
-void CContour::CleanMemory()
+void CBratContour::CleanMemory()
 {
 	if (m_ppFnData)
 	{
@@ -63,8 +67,9 @@ void CContour::CleanMemory()
 	}
 }
 
-void CContour::Generate()
+void CBratContour::Generate( bool compact )	//compact = true 
 {
+	UNUSED( compact );
 
 	int i, j;
 	int x3, x4, y3, y4, x, y, oldx3, xlow;
@@ -155,7 +160,7 @@ void CContour::Generate()
 	}
 }
 
-void CContour::Cntr1(int x1, int x2, int y1, int y2)
+void CBratContour::Cntr1(int x1, int x2, int y1, int y2)
 {
 	double f11, f12, f21, f22, f33;
 	int x3, y3, i, j;
@@ -166,10 +171,14 @@ void CContour::Cntr1(int x1, int x2, int y1, int y2)
 	f12 = Field(x1, y2);
 	f21 = Field(x2, y1);
 	f22 = Field(x2, y2);
+	//if ( std::isnan( f11 ) || std::isnan( f12 ) || std::isnan( f21 ) || std::isnan( f22 ) )
+	//	return;
 	if ((x2 > x1+1) || (y2 > y1+1)) {	/* is cell divisible? */
 		x3 = (x1+x2)/2;
 		y3 = (y1+y2)/2;
 		f33 = Field(x3, y3);
+		//if ( std::isnan( f33 ) )
+		//	return;
 		i = j = 0;
 		if (f33 < f11) i++; else if (f33 > f11) j++;
 		if (f33 < f12) i++; else if (f33 > f12) j++;
@@ -190,11 +199,11 @@ void CContour::Cntr1(int x1, int x2, int y1, int y2)
 	FnctData(x2,y1)->m_sLeftLen = FnctData(x1,y1)->m_sRightLen = y2-y1;
 }
 
-void CContour::Pass2(int x1, int x2, int y1, int y2)
+void CBratContour::Pass2(int x1, int x2, int y1, int y2)
 {
 	int left, right, top, bot,old, iNew, i, j, x3, y3;
 	double yy0, yy1, xx0, xx1, xx3, yy3;
-	double v, f11, f12, f21, f22, f33, fold, fnew, f;
+	double v, f11, f12, f21, f22, f33, fold, fnew;
 	double xoff=m_pLimits[0];
 	double yoff=m_pLimits[2];
 	
@@ -359,23 +368,36 @@ void CContour::Pass2(int x1, int x2, int y1, int y2)
 			yy3 = y1+yy3*(y2-y1);
 			xx3 = xoff+xx3*m_dDx;
 			yy3 = yoff+yy3*m_dDy;
-			f = m_pFieldFcn(xx3, yy3);
-			if (f == v) {
-				ExportLine(i,bot,y1,top,y2);
-				ExportLine(i,x1,left,x2,right);
-			} else
-				if (((f > v) && (f22 > v)) || ((f < v) && (f22 < v))) {
-					ExportLine(i,x1,left,top,y2);
-					ExportLine(i,bot,y1,x2,right);
-				} else {
-					ExportLine(i,x1,left,bot,y1);
-					ExportLine(i,top,y2,x2,right);
-				}
+			/////////////////////////////////
+			double f = m_pFieldFcn(xx3, yy3);
+			/////////////////////////////////
+			if ( std::isnan( f ) )
+			{
+				ExportLine( i, invalid, invalid, invalid, invalid );
+				ExportLine( i, invalid, invalid, invalid, invalid );
+			}
+			else
+			if (f == v) 
+			{
+				ExportLine( i, bot, y1, top, y2 );
+				ExportLine( i, x1, left, x2, right );
+			} 
+			else
+			if (((f > v) && (f22 > v)) || ((f < v) && (f22 < v))) 
+			{
+				ExportLine( i, x1, left, top, y2 );
+				ExportLine( i, bot, y1, x2, right );
+			} 
+			else 
+			{
+				ExportLine( i, x1, left, bot, y1 );
+				ExportLine( i, top, y2, x2, right );
+			}
 		}
 	}
 }
 
-double CContour::Field(int x, int y)	 /* evaluate funct if we must,	*/
+double CBratContour::Field(int x, int y)	 /* evaluate funct if we must,	*/
 {
 	double x1, y1;
 	
@@ -389,10 +411,12 @@ double CContour::Field(int x, int y)	 /* evaluate funct if we must,	*/
 	FnctData(x,y)->m_sBotLen = 0;
 	FnctData(x,y)->m_sRightLen = 0;
 	FnctData(x,y)->m_sLeftLen = 0;
+	///////////////////////////////////////////////////////
 	return (FnctData(x,y)->m_dFnVal = m_pFieldFcn(x1, y1));
+	///////////////////////////////////////////////////////
 }
 
-void CContour::SetPlanes(const std::vector<double>& vPlanes)
+void CBratContour::SetPlanes(const std::vector<double>& vPlanes)
 {	
 	// cleaning memory
 	CleanMemory();
@@ -400,18 +424,18 @@ void CContour::SetPlanes(const std::vector<double>& vPlanes)
 	m_vPlanes = vPlanes;
 };
 
-void CContour::SetFieldFcn( const std::function<double (double x, double y)>& pFieldFcn ) 
+void CBratContour::SetFieldFcn( const std::function<double (double x, double y)>& pFieldFcn ) 
 {	
 	m_pFieldFcn = pFieldFcn ;
 };
 
-void CContour::SetFirstGrid(int iCol, int iRow)
+void CBratContour::SetFirstGrid(int iCol, int iRow)
 {
 	m_iColFir=std::max(iCol,2);
 	m_iRowFir=std::max(iRow,2);
 }
 
-void CContour::SetSecondaryGrid(int iCol, int iRow)
+void CBratContour::SetSecondaryGrid(int iCol, int iRow)
 {
 	// cleaning work matrices if allocated
 	CleanMemory();
@@ -420,7 +444,7 @@ void CContour::SetSecondaryGrid(int iCol, int iRow)
 	m_iRowSec=std::max(iRow,2);
 }
 
-void CContour::SetLimits(double pLimits[])
+void CBratContour::SetLimits(double pLimits[])
 {
 	assert__(pLimits[0]<pLimits[1]);
 	assert__(pLimits[2]<pLimits[3]);
@@ -430,7 +454,7 @@ void CContour::SetLimits(double pLimits[])
 	}	
 }
 
-void CContour::GetLimits(double pLimits[])
+void CBratContour::GetLimits(double pLimits[])
 {
 	for (int i=0;i<4;i++)
 	{

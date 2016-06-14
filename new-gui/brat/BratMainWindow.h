@@ -115,6 +115,7 @@ private:
 	QLineEdit *mCoordsEdit = nullptr;
 	QCheckBox *mRenderSuppressionCBox = nullptr;
 	QAction *mActionDecorationGrid = nullptr;
+    QAction *mActionMapTips = nullptr;
 	QAction *mActionSelectFeatures = nullptr;
 	QAction *mActionSelectPolygon = nullptr;
 	QAction *mActionDeselectAll = nullptr;

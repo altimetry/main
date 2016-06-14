@@ -211,6 +211,10 @@
         <file>images/OSGeo/operation_delete.png</file>
         <file>images/OSGeo/operation_duplicate.png</file>
         <file>images/OSGeo/filter_clearvalues.png</file>
+        <file>images/OSGeo/split_plots.png</file>
+        <file>images/OSGeo/export_netcdf.png</file>
+        <file>images/OSGeo/export_ascii.png</file>
+        <file>images/OSGeo/export_geotiff.png</file>
         <file>images/brat_scheduler.png</file>
         <file>images/brat_paths.png</file>
         <file>images/brat_style.png</file>

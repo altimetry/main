@@ -6,6 +6,7 @@
 #include "DataModels/Workspaces/Display.h"
 #include "DataModels/DisplayFilesProcessor.h"
 
+#include "GUI/ControlPanels/ColorButton.h"
 #include "GUI/ControlPanels/Views/ViewControlPanels.h"
 #include "GUI/DisplayWidgets/3DPlotWidget.h"
 #include "GUI/DisplayWidgets/2DPlotWidget.h"
@@ -97,8 +98,13 @@ void CPlotEditor::Wire()
     // spectrogram
 
 	connect( mTabCurveOptions->mColorMapWidget, SIGNAL( ShowContourToggled( bool ) ), this, SLOT( HandleShowContourChecked( bool ) ) );
+	connect( mTabCurveOptions->mColorMapWidget, SIGNAL( ContourColorSelected() ), this, SLOT( HandleContourColorSelected() ) );
+	connect( mTabCurveOptions->mColorMapWidget, SIGNAL( ContoursEditReturnPressed() ), this, SLOT( HandleNumberOfContoursChanged() ) );
+	connect( mTabCurveOptions->mColorMapWidget, SIGNAL( ContourWidthReturnPressed() ), this, SLOT( HandleContourWidthChanged() ) );
 	connect( mTabCurveOptions->mColorMapWidget, SIGNAL( ShowSolidColorToggled( bool ) ), this, SLOT( HandleShowSolidColorChecked( bool ) ) );
 	connect( mTabCurveOptions->mColorMapWidget, SIGNAL( CurrentIndexChanged( int ) ), this, SLOT( HandleColorTablesIndexChanged( int ) ) );
+
+
 
 
     // histogram
@@ -323,12 +329,6 @@ void CPlotEditor::OneClick()
 	BRAT_NOT_IMPLEMENTED
 }
 
-
-template< typename T >
-inline std::string TF( const std::string &s, T n )
-{
-	return s + " == " + n2s<std::string>( n ) + "\n";
-};
 
 //virtual 
 bool CPlotEditor::Test()
@@ -879,8 +879,8 @@ void CPlotEditor::Recreate3DPlots( bool build2d, bool build3d )
 
 			if ( build3d )
 			{
-				mPlot3DView->ShowContour( i, mPropertiesZFXY->m_withContour );		//in fact, in qwtplot3d this affects the axis (all fields) not only the current iteration one
-				mPlot3DView->ShowSolidColor( i, mPropertiesZFXY->m_solidColor );	//idem
+//TODO	TODO	TODO	TODO	mPlot3DView->ShowContour( i, mPropertiesZFXY->m_withContour );		
+				mPlot3DView->ShowSolidColor( i, mPropertiesZFXY->m_solidColor );	//in fact, in qwtplot3d this affects the axis (all fields) not only the current iteration one
 			}
 		}
 	}
@@ -1182,8 +1182,9 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
 	{
 		assert__( index < (int)mDataArrayZFXY.size() );
 
-		mPropertiesZFXY = dynamic_cast<CZFXYPlotData*>( mDataArrayZFXY[ index ] )->GetPlotProperties();		assert__( mPropertiesZFXY );
-		mCurrentDisplayData = mDisplay->GetDisplayData( mOperation, mPropertiesZFXY->m_name );				assert__( mCurrentDisplayData );
+		CZFXYPlotData *pdata = dynamic_cast<CZFXYPlotData*>( mDataArrayZFXY[ index ] );			assert__( pdata );
+		mPropertiesZFXY = pdata->GetPlotProperties();											assert__( mPropertiesZFXY );
+		mCurrentDisplayData = mDisplay->GetDisplayData( mOperation, mPropertiesZFXY->m_name );	assert__( mCurrentDisplayData );
 		mBratLookupTable = mPropertiesZFXY->mLUT;
 
 		if ( mPlotType == eHistogram )
@@ -1205,14 +1206,22 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
 			//TODO temporarily here, while axis work is not done
 			mPlot2DView->SetAxisTitles( index, mPropertiesZFXY->m_xLabel, mPropertiesZFXY->m_yLabel, mPropertiesZFXY->m_name );
 
-			assert__( mPlot2DView->HasContour() == mPlot3DView->HasContour() );
+//TODO	TODO	TODO	TODO				assert__( mPlot2DView->HasContour() == mPlot3DView->HasContour() );
 			assert__( mPlot2DView->HasSolidColor() == mPlot3DView->HasSolidColor() );
 		}
 		
-		//use 3d widget; 2d can be on histogram mode
-		mTabCurveOptions->mColorMapWidget->SetShowContour( mPlot3DView->HasContour() );		
+		//use 3d widget when possible; 2d can be on histogram mode
+		mTabCurveOptions->mColorMapWidget->SetShowContour( mPlotType != eHistogram && mPlot2DView->HasContour() );		
 		mTabCurveOptions->mColorMapWidget->SetShowSolidColor( mPlot3DView->HasSolidColor() );	
-		mTabCurveOptions->mColorMapWidget->SetLUT( mBratLookupTable );	// TODO color table must be assigned to plot and retrieved here from plot
+		// TODO color table properties must be assigned to plot and retrieved here from plot
+		// TODO apparently in v3 mPropertiesZFXY and pdata are out of sync, mPropertiesZFXY being outdated
+		mPropertiesZFXY->m_minHeightValue = pdata->Maps()[ 0 ].mMinHeightValue;
+		mPropertiesZFXY->m_maxHeightValue = pdata->Maps()[ 0 ].mMaxHeightValue;
+		mTabCurveOptions->mColorMapWidget->SetLUT( mBratLookupTable, mPropertiesZFXY->m_minHeightValue, mPropertiesZFXY->m_maxHeightValue );		
+		
+		mTabCurveOptions->mColorMapWidget->SetContourColor( mPropertiesZFXY->m_contourLineColor.GetQColor() );
+		mTabCurveOptions->mColorMapWidget->SetNumberOfContours( mPropertiesZFXY->m_numContour );
+		mTabCurveOptions->mColorMapWidget->SetContoursWidth( mPropertiesZFXY->m_contourLineWidth );
 
 		return;
 	}
@@ -1306,9 +1315,10 @@ void CPlotEditor::HandleShowContourChecked( bool checked )
 	if ( mPlotType != eHistogram )
 		mPlot2DView->ShowContour( mPropertiesZFXY->m_withContour );
 
-	mPlot3DView->ShowContour( mPropertiesZFXY->m_withContour );
+//TODO	TODO	TODO	TODO	TODO	mPlot3DView->ShowContour( mPropertiesZFXY->m_withContour );
     BRAT_MSG_NOT_IMPLEMENTED(" Working for 2D plots only.");
 }
+
 
 void CPlotEditor::HandleShowSolidColorChecked( bool checked )
 {
@@ -1320,6 +1330,7 @@ void CPlotEditor::HandleShowSolidColorChecked( bool checked )
 		mPlot2DView->ShowSolidColor( mPropertiesZFXY->m_solidColor );
 	mPlot3DView->ShowSolidColor( mPropertiesZFXY->m_solidColor );
 }
+
 
 void CPlotEditor::HandleColorTablesIndexChanged( int index )
 {
@@ -1336,6 +1347,32 @@ void CPlotEditor::HandleColorTablesIndexChanged( int index )
 	if ( mPlotType != eHistogram )
 		mPlot2DView->SetRasterColorMap( *mBratLookupTable->GetLookupTable() );
 	mPlot3DView->SetColorMap( new QLookupTable( *mBratLookupTable->GetLookupTable() ) );
+}
+
+
+void CPlotEditor::HandleContourColorSelected()
+{
+	assert__( mPlot2DView && mPlot3DView && mPropertiesZFXY && !mDataArrayZFXY.empty() );
+
+	mPropertiesZFXY->m_contourLineColor = mTabCurveOptions->mColorMapWidget->ContourColor();
+
+    BRAT_NOT_IMPLEMENTED;
+}
+void CPlotEditor::HandleNumberOfContoursChanged()
+{
+	assert__( mPlot2DView && mPlot3DView && mPropertiesZFXY && !mDataArrayZFXY.empty() );
+
+	mPropertiesZFXY->m_numContour = mTabCurveOptions->mColorMapWidget->NumberOfContours();
+
+    BRAT_NOT_IMPLEMENTED;
+}
+void CPlotEditor::HandleContourWidthChanged()
+{
+	assert__( mPlot2DView && mPlot3DView && mPropertiesZFXY && !mDataArrayZFXY.empty() );
+
+	mPropertiesZFXY->m_contourLineWidth = mTabCurveOptions->mColorMapWidget->ContoursWidth();
+
+    BRAT_NOT_IMPLEMENTED;
 }
 
 

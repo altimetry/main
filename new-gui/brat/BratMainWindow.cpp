@@ -240,7 +240,6 @@ void CBratMainWindow::CreateOutputDock()
 	//mLogFrame->SetOsgLogLevel( ns );	//also updates the application logger
 	mLogFrame->Deactivate( false );
 
-	LOG_INFO( "OSG initialized in " + qApp->applicationName().toStdString() );
 	LOG_INFO( "OSG version: " + std::string( osgGetVersion() ) + " - " + osgGetSOVersion() + " - " + osgGetLibraryName() );
 	if ( getenv("OSG_FILE_PATH") )
 		LOG_INFO( "OSG_FILE_PATH = " + std::string( getenv("OSG_FILE_PATH") ) );
@@ -312,7 +311,7 @@ void CBratMainWindow::ProcessMenu()
     //
 	mRecentFilesSeparatorAction = menu_File->insertSeparator( action_Exit );
 
-	mRecentFilesProcessor = new CRecentFilesProcessor( this, "Recent WorkSpaces", menu_File, action_Exit, GROUP_WKS_RECENT.c_str() );
+	mRecentFilesProcessor = new CRecentFilesProcessor( this, "Recent Workspaces", menu_File, action_Exit, GROUP_WKS_RECENT.c_str() );
 	connect( mRecentFilesProcessor, SIGNAL( triggered( QAction* ) ), this, SLOT( openRecentWorkspace_triggered( QAction* ) ) );
 
 	mRecentFilesSeparatorAction = menu_File->insertSeparator( action_Exit );
@@ -326,16 +325,20 @@ void CBratMainWindow::ProcessMenu()
 
     // mMainToolsToolBar: Map actions
     //
-	mSelectionButton = CMapWidget::CreateMapSelectionActions( mMainToolsToolBar, mActionSelectFeatures, mActionSelectPolygon, mActionDeselectAll );
-	QAction *a = CActionInfo::CreateAction( mMainToolsToolBar, eAction_Separator );
-	mMainToolsToolBar->insertAction( action_Graphic_Settings, a );
-	mMainToolsToolBar->insertAction( a, mActionDeselectAll );
-	mMainToolsToolBar->insertWidget( mActionDeselectAll, mSelectionButton );
-	mDesktopManager->Map()->ConnectParentSelectionActions( mSelectionButton, mActionSelectFeatures, mActionSelectPolygon, mActionDeselectAll );
+	QAction *after = action_Satellite_Tracks;
 
 	mActionDecorationGrid = CMapWidget::CreateGridAction( mMainToolsToolBar );
-	mMainToolsToolBar->insertAction( action_Graphic_Settings, mActionDecorationGrid );
+	mMainToolsToolBar->insertAction( after, mActionDecorationGrid );
 	mDesktopManager->Map()->ConnectParentGridAction( mActionDecorationGrid );
+
+	mActionMapTips = CMapWidget::CreateMapTipsAction( mMainToolsToolBar );
+	mMainToolsToolBar->insertAction( after, mActionMapTips );
+	mDesktopManager->Map()->ConnectParentMapTipsAction( mActionMapTips );
+
+	mSelectionButton = CMapWidget::CreateMapSelectionActions( mMainToolsToolBar, mActionSelectFeatures, mActionSelectPolygon, mActionDeselectAll );
+	mMainToolsToolBar->insertAction( after, mActionDeselectAll );
+	mMainToolsToolBar->insertWidget( mActionDeselectAll, mSelectionButton );
+	mDesktopManager->Map()->ConnectParentSelectionActions( mSelectionButton, mActionSelectFeatures, mActionSelectPolygon, mActionDeselectAll );
 
 
     // Menu View / ToolBars
@@ -1426,9 +1429,6 @@ void CBratMainWindow::WorkspaceChangedUpdateUI()
 
 		eAction_One_Click,
 		eAction_Workspace_Tree,
-		eAction_Operations,
-		eAction_Dataset,
-		eAction_Filter,
 
 		eAction_Views_List,
 		eAction_Close_All,
@@ -1478,9 +1478,6 @@ void CBratMainWindow::HandleSyncProcessExecution( bool executing )
 
 		eAction_One_Click,
 		eAction_Workspace_Tree,
-		eAction_Operations,
-		eAction_Dataset,
-		eAction_Filter,
 
 		eAction_Views_List,
 		eAction_Close_All,

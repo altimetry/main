@@ -274,6 +274,8 @@ void CWorldPlotData::Create( CObArray* pinternal_files, const std::string& field
 		////////////validMercatorLatitudes->Delete();
 		////////////longitudes->Delete();
 		////////////latitudes->Delete();
+
+		mMaps().OrderAxis();
 	}
 	
 
@@ -1520,6 +1522,8 @@ void CWorldPlotVelocityData::Create( CObArray* northData, CObArray* eastData, co
 		////////////validMercatorLatitudes->Delete();
 		////////////longitudes->Delete();
 		////////////latitudes->Delete();
+
+		mMaps().OrderAxis();
 	}
 
 

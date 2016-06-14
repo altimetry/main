@@ -81,11 +81,6 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_Zoom_Out, "Zoom Out", CActionInfo::FormatTip("Zoom Out\nZoom map out"), ":/images/OSGeo/zoom-out.png", "", "Ctrl+-" },			//last designer icon, so far.  TODO: delete this comment
 
-    { eAction_Operations, "&Operations", CActionInfo::FormatTip("Operations"), "" },
-
-    { eAction_Dataset, "&Dataset", CActionInfo::FormatTip("Dataset"), "" },
-
-    { eAction_Filter, "&Filter", CActionInfo::FormatTip("Filter"), "" },
 
 
 	// End of Designer actions list
@@ -149,6 +144,8 @@ CActionInfo ActionsTable[ EActionTags_size ] =
     { eAction_DeselectAll, "Deselect All", CActionInfo::FormatTip("Deselect\nRemove selections from all layers"), ":/images/themes/default/mActionDeselectAll.svg" },
 
     { eAction_DecorationGrid, "Grid", CActionInfo::FormatTip("Grid\nCreates a scale bar that is displayed on the map canvas"), ":/images/themes/default/transformed.png", ":/images/themes/default/transformed.png" },
+
+    { eAction_MapTips, "Map Tips", CActionInfo::FormatTip("Map Tips\nShow layer data values when mouse moves over map canvas"), ":/images/OSGeo/maptips.png", ":/images/OSGeo/maptips.png" },	
 
     { eAction_MouseTrackingeCoordinatesFormat, "Format", CActionInfo::FormatTip("Format\nCoordinates format"), ":/images/themes/default/tracking.png" },
 

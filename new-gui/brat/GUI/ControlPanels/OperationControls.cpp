@@ -236,12 +236,12 @@ void COperationControls::CreateAdvancedOperationsPage()
 
 	// I. Top Buttons Row
 
-    mNewOperationButton = CreateToolButton( "", ":/images/OSGeo/operation_new.png", "Create a new operation" );
-    mRenameOperationButton = CreateToolButton( "", ":/images/OSGeo/operation_edit.png", "Rename the selected operation" );
-    mDuplicateOperationButton = CreateToolButton( "", ":/images/OSGeo/operation_duplicate.png", "Duplicate the selected operation" );
-    mDeleteOperationButton = CreateToolButton( "", ":/images/OSGeo/operation_delete.png", "Delete the selected operation" );
+    mNewOperationButton = CreateToolButton( "", ":/images/OSGeo/operation_new.png", "<b>Create operation</b><br>Create a new operation" );
+    mRenameOperationButton = CreateToolButton( "", ":/images/OSGeo/operation_edit.png", "<b>Rename operation...</b><br>Rename the selected operation" );
+    mDuplicateOperationButton = CreateToolButton( "", ":/images/OSGeo/operation_duplicate.png", "<b>Duplicate operation</b><br>Duplicate the selected operation" );
+    mDeleteOperationButton = CreateToolButton( "", ":/images/OSGeo/operation_delete.png", "<b>Delete operation...</b><br>Delete the selected operation" );
 
-	mAdvancedExecuteButton = CreateToolButton( "Execute", ":/images/OSGeo/execute.png", "Execute the operation and edit resulting view" );
+    mAdvancedExecuteButton = CreateToolButton( "Execute", ":/images/OSGeo/execute.png", "<b>Execute</b><br>Execute the operation and edit resulting view" );
 	mAdvancedExecuteButton->setPopupMode( QToolButton::MenuButtonPopup );
 	mAdvancedExecuteButton->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
     mDelayExecutionAction = new QAction( "Schedule Execution...", this );
@@ -252,7 +252,7 @@ void COperationControls::CreateAdvancedOperationsPage()
 	mExportOperationAction = new QAction( "Export...", this );
 	mEditExportAsciiAction = new QAction( "Edit ASCII Export...", this );
 	mCreateExportedDisplaysAction = new QAction( "(Re)Create Views...", this );
-	mOperationExportButton = CreateMenuButton( "", ":/images/OSGeo/export.png", "Export operation", 
+    mOperationExportButton = CreateMenuButton( "", ":/images/OSGeo/export.png", "<b>Export operation...</b><br>Export output data of selected operation",
 	{ 
 		mExportOperationAction, mEditExportAsciiAction, mCreateExportedDisplaysAction 
 	} );
@@ -437,7 +437,7 @@ void COperationControls::CreateAdvancedOperationsPage()
 	}
 	, "Expression", mAdvancedOperationsPage, 0, m, m, m, m );
 
-	//....Split in Group
+    //....Split in Group
 
 	mOperationExpressionsGroup = CreateGroupBox( 
 		ELayoutType::Vertical, { 
@@ -467,7 +467,7 @@ QWidget* COperationControls::CreateCommonWidgets( QAbstractButton *b1, QAbstract
 
 	mOperationStatisticsButton = CreateToolButton( "", ":/images/OSGeo/stats.png", "Generate statistics and save results in file" );
 
-	mSplitPlotsButton = CreateToolButton( "", ":/images/alpha-numeric/__s.png", "Split plots" );
+    mSplitPlotsButton = CreateToolButton( "", ":/images/OSGeo/split_plots.png", "Split plots" );
 	mSplitPlotsButton->setCheckable( true );
 
 	auto *buttons = CreateButtonRow( false, Qt::Horizontal, 

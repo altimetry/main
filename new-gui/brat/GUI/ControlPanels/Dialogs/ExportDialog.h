@@ -78,9 +78,6 @@ protected:
 	CBratLookupTable *mLUT = nullptr;
 	CColorMapWidget *mColorMapWidget = nullptr;
 	QCheckBox *mCreateGoogleKMLFile = nullptr;
-	QLineEdit *mColorRangeMinEdit = nullptr;
-	QLineEdit *mColorRangeMaxEdit = nullptr;
-	QPushButton *mCalculateMinMax = nullptr;
 
 	QPushButton *mBrowseButton = nullptr;
 
@@ -127,6 +124,7 @@ protected:
     /////////////////////////////
 private:
 
+	void CalculateMinMax();
     void CreateWidgets();
     void Wire();
 
@@ -187,10 +185,10 @@ protected:
 
 protected slots:
 
-    void HandleExportType(int);
+	void HandleColorTablesIndexChanged( int );
+	void HandleExportType(int);
     void HandleChangeExportPath();
 	void HandleDelayExecution();
-	void HandleCalculateMinMax();
 };
 
 

@@ -61,6 +61,18 @@ inline const std::string& time_alias()
     return s;
 }
 
+// Creates the expression for 'is_bounded' function, which checks if a value x is included between two values (min/max).
+// The result is a string like 'is_bounded(min, x, max)'.
+// It will be used to translate filter parameters into selection criteria expressions.
+inline std::string func_is_bounded( double min, std::string field_alias, double max )
+{
+    std::string expression;
+    expression = "is_bounded(" + std::to_string(min) + ", "
+                               + field_alias         + ", "
+                               + std::to_string(max) + ")";
+    return expression;
+}
+
 
 /////////////////////////////////////////////////////////////////////////////
 
@@ -177,8 +189,14 @@ public:
 	// operations
 
 	void BoundingArea( double &lon1, double &lat1, double &lon2, double &lat2 ) const;
+    ///// TODO RCCC //////////////////////////////////
+    bool GetTimeBounds( CDate &Start, CDate &Stop, const std::string &product_label ) const;
+    ////////////////////////////////////////////////////
 
     bool Apply( const CStringList& files_in, CStringList& files_out ) const;
+    //////// RCCC TODO /////////////////////////////////////
+    std::string GetSelectionCriteriaExpression( const std::string product_label ) const;
+    /////////////////////////////////////////////////////////
 
     void setDefaultValues();
     void setDefaultDateValues();
@@ -285,9 +303,6 @@ public:
 
     bool Apply( const std::string &name, const CStringList& files_in, CStringList& files_out ) const;
     bool Translate2SelectionCriteria( CProduct *product_ref, const std::string &name ) const;
-    //////// RCCC TODO /////////////////////////////////////
-    std::string GetSelectionCriteriaExpression( const std::string &name );
-    /////////////////////////////////////////////////////////
 
     // persistence
 
