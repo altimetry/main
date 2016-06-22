@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT 
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #ifndef GUI_DISPLAY_EDITORS_PLOT_EDITOR_H
 #define GUI_DISPLAY_EDITORS_PLOT_EDITOR_H
 
@@ -89,7 +106,7 @@ private:
 	bool mMultiFrame = false;					//	bool mPanelMultiFrame;	2 variables in v3: one in the window, the other in the panel
 	bool mHasClut = false;
 
-	CObArray mDataArrayZFXY;
+	std::vector< CZFXYPlotData* > mDataArrayZFXY;
 	CZFXYPlotProperties *mPropertiesZFXY = nullptr;
 
 
@@ -113,7 +130,11 @@ protected:
 
 protected:
 	
-	bool CreatePlotData( EPlotType type );
+	bool CreatePlotData( EPlotType type );					 		//when display changes
+
+	CBratObject* UpdateCurrentPointers( int field_index );			//when field changes
+	CXYPlotData* UpdateCurrentYFXPointers( int field_index );		//when field changes
+	CZFXYPlotData* UpdateCurrentZFXYPointers( int field_index );	//when field changes
 
 	CViewControlsPanelGeneralPlots* TabGeneral();
 	void UpdatePlotType( EPlotType type, bool select );
@@ -136,10 +157,6 @@ protected:
 	virtual void Show3D( bool checked ) override;
 	virtual void Recenter() override;
 	virtual void Export2Image( bool save_2d, bool save_3d, const std::string path2d, const std::string path3d, EImageExportType type ) override;
-
-	virtual void StatisticsMean() override;
-	virtual void StatisticsStDev() override;
-	virtual void StatisticsLinearRegression() override;
 
 	virtual bool ChangeView() override;
 	virtual void NewButtonClicked() override;
@@ -205,9 +222,7 @@ protected slots:
 	void HandleShowContourChecked( bool checked );
 	void HandleShowSolidColorChecked( bool checked );
 	void HandleColorTablesIndexChanged( int index );
-	void HandleContourColorSelected();
 	void HandleNumberOfContoursChanged();
-	void HandleContourWidthChanged();
 
 
 	//...histogram //////////////////////////////////////////

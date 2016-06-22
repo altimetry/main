@@ -919,11 +919,9 @@ bool CWorkspaceOperation::UseFilter( const std::string& name, CStringArray* oper
 }
 
 //----------------------------------------
-bool CWorkspaceOperation::DeleteOperation(COperation* operation)
+bool CWorkspaceOperation::DeleteOperation( COperation* operation )
 {
- bool bOk = m_operations.Erase((const char *)operation->GetName().c_str());
-
- return bOk;
+	return m_operations.Erase( operation->GetName() );
 }
 
 //----------------------------------------
@@ -1105,23 +1103,29 @@ CDisplay* CWorkspaceDisplay::GetDisplay( const std::string& name )
 
 
 //----------------------------------------
-std::string CWorkspaceDisplay::GetDisplayNewName()
+std::string CWorkspaceDisplay::GetDisplayNewName( const COperation *operation )
 {
+#if !defined (BRAT_V3)
+	assert__( operation );
+#endif
+
 	size_t i = m_displays.size();
 	std::string key;
+	const std::string op_name = operation ? operation->GetName() : "";
 
 	do
 	{
-		key = NAME + "_" + n2s< std::string >( i + 1 );
+		key = op_name + "_" + NAME + "_" + n2s< std::string >( i + 1 );
 		i++;
-	} while ( m_displays.Exists( key ) != nullptr );
+	} 
+	while ( m_displays.Exists( key ) != nullptr );
 
 	return key;
 }
 //----------------------------------------
-CDisplay* CWorkspaceDisplay::CloneDisplay( const CDisplay *display, const CWorkspaceOperation *wkso )
+CDisplay* CWorkspaceDisplay::CloneDisplay( const CDisplay *display, const COperation *operation, const CWorkspaceOperation *wkso )
 {
-	std::string display_name = GetDisplayNewName();				assert__( !m_displays.Exists( display_name ) );
+	std::string display_name = GetDisplayNewName( operation );		assert__( !m_displays.Exists( display_name ) );
 	CDisplay *d = display->Clone( display_name, this, wkso );
     m_displays.Insert( display_name, d );
     return d;
@@ -1170,13 +1174,12 @@ bool CWorkspaceDisplay::DeleteDisplay( CDisplay* display )
 //	associated operation is executed again: if update is true, existing fields 
 //	not in operation are removed
 //
-std::vector< CDisplay* > CWorkspaceDisplay::CreateDisplays4Operation( const COperation *operation, CMapDisplayData *dataList )
+std::vector< CDisplay* > CWorkspaceDisplay::CreateDisplays4Operation( const COperation *operation, CMapDisplayData *dataList, bool split_plots )
 {
 	std::vector< CDisplay*> v;
 
 	CInternalFiles *file = nullptr;
-	CUIntArray displayTypes;
-	CDisplay::GetDisplayType( operation, displayTypes, &file );	//must close returned files, if any
+	std::vector< CMapTypeDisp::ETypeDisp > displayTypes = operation->GetDisplayTypes( &file );	//must close returned files, if any
 	if ( file == nullptr )
 	{
 		return v;
@@ -1188,15 +1191,21 @@ std::vector< CDisplay* > CWorkspaceDisplay::CreateDisplays4Operation( const COpe
 	names.RemoveAll();
 	file->GetDataVars( names );
 
-	for ( CUIntArray::iterator itDispType = displayTypes.begin(); itDispType != displayTypes.end(); itDispType++ )
+	for ( auto itDispType = displayTypes.begin(); itDispType != displayTypes.end(); itDispType++ )
 	{
-		std::string display_name = GetDisplayNewName();
-		InsertDisplay( display_name );
-		CDisplay *display = GetDisplay( display_name );
-		display->InitOutput( this );							assert__( display->GetDataCount() == 0 );
+		CDisplay *display = nullptr;
 
 		for ( CStringArray::iterator itField = names.begin(); itField != names.end(); itField++ )
 		{
+			if ( !display )
+			{
+				std::string display_name = GetDisplayNewName( operation );
+				InsertDisplay( display_name );
+				display = GetDisplay( display_name );
+				display->InitOutput( this );							assert__( display->GetDataCount() == 0 );
+				v.push_back( display );
+			}
+
 			CStringArray varDimensions;
 			file->GetVarDims( *itField, varDimensions );
 
@@ -1270,9 +1279,9 @@ std::vector< CDisplay* > CWorkspaceDisplay::CreateDisplays4Operation( const COpe
 
 			dataList->Insert( displayData->GetDataKey(), displayData, false );
 			display->InsertData( displayData->GetDataKey(), displayData );
+			if ( split_plots )
+				display = nullptr;
 		}
-
-		v.push_back( display );
 	}
 
 	delete file;	//file->Close();		//critical
@@ -1280,6 +1289,36 @@ std::vector< CDisplay* > CWorkspaceDisplay::CreateDisplays4Operation( const COpe
 	return v;
 }
 
+
+
+  //wxString errorMsg;
+  //bOk = m_display->GetDataSelected()->CheckFields(errorMsg, m_display);
+
+  //if ( ! bOk )
+  //{
+  //  GetDispgroupfields()->SetValue(false);
+  //  SetValueFieldGroup();
+
+  //  wxString msg = wxString::Format("View '%s':\n\nData expressions can't be displayed on the same plot because of the following reasons:\n"
+  //                                  "%s\n\n"
+  //                                  "'%s' option have been unchecked.",
+  //                                  m_display->GetName().c_str(),
+  //                                  errorMsg.c_str(),
+  //                                  GetDispgroupfields()->GetLabel().c_str());
+  //  /*
+  //  wxString msg = wxString::Format("Data fields can't be displayed on the same plot because of\nat least one of the following reasons:\n"
+  //                                  " - number of dimensions is different\n"
+  //                                  " - names of the dimensions are different\n"
+  //                                  " - units of the dimensions are not in the same way (not compatible)\n"
+  //                                  " - (only Y=F(X)) units of the fields are not in the same way (not compatible)\n\n"
+  //                                  "'%s' option have been unchecked.",
+  //                 GetDispgroupfields()->GetLabel().c_str());
+  //  */
+  //  wxMessageBox(msg,
+  //              "Warning",
+  //              wxOK | wxICON_EXCLAMATION);
+
+  //}
 
 
 

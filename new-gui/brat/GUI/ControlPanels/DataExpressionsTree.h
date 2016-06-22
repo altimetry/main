@@ -285,7 +285,6 @@ private:
 	CFormula *mCurrentFormula = nullptr;		//mUserFormula
 	bool mIsMap = true;
 
-
 	//construction / destruction
 
 	void MakeRootItems();

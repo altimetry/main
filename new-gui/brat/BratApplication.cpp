@@ -166,8 +166,12 @@ void CBratApplication::CheckRunMode()
 	
     QStringList args = arguments();
     args.removeFirst();
-	QString wkspc_dir;
-	mOperatingInDisplayMode = !args.empty() && !IsDir( args[ 0 ] );	//no workspace, but there are command line arguments: let the old BratDisplay ghost take the command
+    if ( args.empty() )
+        return;
+
+    QString wkspc_dir = args[ 0 ];
+    mOperatingInDisplayMode = !IsDir( wkspc_dir );	//no workspace, but there are command line arguments: let the old BratDisplay ghost take the command
+    mOperatingInInstantPlotSaveMode = IsDir( args[ 0 ] ) && args.size() >= 3 && args.size() <= 4;
 }
 
 

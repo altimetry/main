@@ -23,9 +23,10 @@
 
 
 class CWPlot;
+class CWorldPlotData;
+
 class CBratMapView;
 class CGlobeWidget;
-class CWorldPlotData;
 
 struct CViewControlsPanelGeneralMaps;
 struct CMapControlsPanelDataLayers;
@@ -127,7 +128,9 @@ protected:
 
 	void KillGlobe();
 
-	bool CreatePlotData( const std::vector< CWPlot* > &wplots );
+	bool CreatePlotData( const std::vector< CWPlot* > &wplots );		//when display changes
+
+	CWorldPlotData* UpdateCurrentPointers( int field_index );			//when field changes
 
 
 	///////////////////////////////////////////////////////////
@@ -142,10 +145,6 @@ protected:
 	virtual void Show3D( bool checked ) override;
 	virtual void Recenter() override;
 	virtual void Export2Image( bool save_2d, bool save_3d, const std::string path2d, const std::string path3d, EImageExportType type ) override;
-
-	virtual void StatisticsMean() override;
-	virtual void StatisticsStDev() override;
-	virtual void StatisticsLinearRegression() override;
 
 	virtual bool ChangeView() override;
 	virtual void NewButtonClicked() override;

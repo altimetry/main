@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #include "new-gui/brat/stdafx.h"
 
 #include "libbrathl/TreeField.h"
@@ -173,12 +190,20 @@ void COperationControls::CreateQuickOperationsPage()
 	{ 
 		{ smQuickPredefinedVariableNames[ eSSH ] }, 
 		{ smQuickPredefinedVariableNames[ eSWH ] }, 
+		{ smQuickPredefinedVariableNames[ eSLA ] }, 
 		{ smQuickPredefinedVariableNames[ eWinds ] }, 
 		{ smQuickPredefinedVariableNames[ eSigma0 ] },
 		{ smQuickPredefinedVariableNames[ eRange ] }
 	} );
-	mQuickVariablesList->setSelectionMode( QAbstractItemView::NoSelection );
+	mQuickVariablesList->setSelectionMode( QAbstractItemView::NoSelection );		assert__( mQuickVariablesList->count() == EPredefinedVariables_size );
 
+	mQuickSelectionCriteriaCheck = new QCheckBox( "Use Predefined Selection Criteria (ocean_editing)" );
+	mQuickSelectionCriteriaCheck->setChecked( true );
+
+	auto *vars_layout = LayoutWidgets( Qt::Vertical, { mQuickVariablesList, mQuickSelectionCriteriaCheck }, nullptr );
+
+
+#if defined (CREAD_AND_ADD_BUTTONS)
 	mAddVariable = CreateToolButton( "Add", ":/images/OSGeo/new.png", "Add a new variable" );
 	mClearVariables = CreateToolButton( "Clear", ":/images/OSGeo/workspace-delete.png", "Clear selection" );
 	mAddVariable->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
@@ -191,7 +216,10 @@ void COperationControls::CreateQuickOperationsPage()
 		mAddVariable, mClearVariables
 	} );
 
-	QGroupBox *vars_group = CreateGroupBox( ELayoutType::Horizontal, { mQuickVariablesList, variables_buttons }, "Fields" , nullptr, 12, 10, 10, 10, 10 );
+	QGroupBox *vars_group = CreateGroupBox( ELayoutType::Horizontal, { vars_layout, variables_buttons }, "Fields" , nullptr, 12, 10, 10, 10, 10 );
+#else
+	QGroupBox *vars_group = CreateGroupBox( ELayoutType::Horizontal, { vars_layout }, "Fields" , nullptr, 12, 10, 10, 10, 10 );
+#endif
 
 	mQuickFieldDesc = new CTextWidget;
 	mQuickFieldDesc->SetReadOnlyEditor( true );
@@ -2350,6 +2378,8 @@ void COperationControls::HandleSwitchExpressionType()
     }
     else
         mDataExpressionsTree->SwitchType();
+
+	HandleSelectedFormulaChanged( mUserFormula );	//update expression related GUI fields
 }
 
 
@@ -2380,7 +2410,7 @@ void COperationControls::HandleSelectedFormulaChanged( CFormula *formula )
 	if ( enable_sampling )
 		UpdateSamplingGroup();
 
-    mDataDisplayProperties->setEnabled( enable_data_Computation_Smooth );
+    mDataDisplayProperties->setEnabled( MapPlotSelected() && mCurrentOperation && mCurrentOperation->GetFormulaCountDataFields() > 1 && enable_data_Computation_Smooth );
 
 	UpdateGUIState();
 }
@@ -2597,29 +2627,24 @@ void COperationControls::HandleDeleteOperation()
 {
     assert__( mCurrentOperation );
 
-    if ( !SimpleQuestion( "Are you sure to delete operation '" + mCurrentOperation->GetName() + "' ?" ) )
-         return;
-
     //  Check display dependencies
     //
+    CStringArray display_names;
+    std::string error_msg;
+    bool simply_delete = !mWDisplay->UseOperation( mCurrentOperation->GetName(), error_msg, &display_names );       assert__( error_msg.empty() );
+	std::string msg;
+    if ( !simply_delete )
     {
-        CStringArray display_names;
-        std::string error_msg;
-        bool can_delete = !mWDisplay->UseOperation( mCurrentOperation->GetName(), error_msg, &display_names );       assert__( error_msg.empty() );
-        if ( !can_delete )
-        {
-            std::string str = display_names.ToString( "\n", false );
-            SimpleWarnBox( "Unable to delete operation '"
-                          + mCurrentOperation->GetName()
-                          + "'.\nIt is used by the views below:\n"
-                          + str
-                          + "\n" );
-            return;
-        }
+        msg = display_names.ToString( "\n", false );
+        msg = "The operation is used by the views:\n\n" + msg + "\n\n";
     }
 
-    //
+    if ( !SimpleQuestion( msg + "Are you sure to delete operation '" + mCurrentOperation->GetName() + "' ?" ) )
+         return;
 
+
+    //  Check external file dependencies
+    //
     if ( IsFile(mCurrentOperation->GetOutputPath() ) )         //COperationPanel::RemoveOutput()
     {
 
@@ -2632,23 +2657,21 @@ void COperationControls::HandleDeleteOperation()
 
         if ( !mCurrentOperation->RemoveOutput() )
         {
-            SimpleWarnBox(
-                        "Unable to delete file '"
-                        + mCurrentOperation->GetOutputPath()
-                        + "' \nYou have to delete it by yourself" );
+            SimpleWarnBox( "Unable to delete file '" + mCurrentOperation->GetOutputPath() + "'.\nPlease check if it is being used." );
+            return;
         }
     }
 
 
     std::string op_name = mCurrentOperation->GetName();
 
+	mModel.DeleteOperationDisplays( op_name );	// must be done before deleting operation
+
     if ( !mWOperation->DeleteOperation( mCurrentOperation ) )
     {
-        SimpleErrorBox( "Unable to delete operation '"
-                        + mCurrentOperation->GetName()
-                        + "'" );
-        return;
+        assert__( false );
     }
+
 
 //    mCurrentOperation = nullptr;
 //    mUserFormula = nullptr;
@@ -2778,6 +2801,8 @@ void COperationControls::ExportGeoTIFFAsyncComputationFinished( int exit_code, Q
 		return;
 
 	LOG_INFO( "Asynchronous export GeoTIFF process for operation '" + operation->GetName() + "' finished execution." );
+
+	UpdateGUIState();
 }
 
 void COperationControls::ExportASCIIAsyncComputationFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation )
@@ -2790,89 +2815,9 @@ void COperationControls::ExportASCIIAsyncComputationFinished( int exit_code, QPr
 		return;
 
 	LOG_INFO( "Asynchronous export ASCII process for operation '" + operation->GetName() + "' finished execution." );
+
+	UpdateGUIState();
 }
-
-/*
-void COperationControls::ExportGeoTiff( std::string out_file, bool createKML, std::string colorTable, double rangeMin, double rangeMax )
-{
-	//wxGetApp().GotoLogPage();
-	//file.Create( exportGeoTiffCmdFile.GetFullPath(), true, wxS_DEFAULT | wxS_IXUSR );
-
-	std::string exportGeoTiffCmdFile = mWOperation->GetPath() + "/" + GetFilenameFromPath( out_file ) + EXPORTGEOTIFF_COMMANDFILE_EXTENSION;
-
-	//std::string 
-	//content = "\n#----- LOG -----\n\n";
-	//content += ( kwVERBOSE + "=2\n" );
-	//content += ( "\n#----- INPUT -----\n\n" );
-	//content += ( kwFILE );
-	//content += ( "=" );
-	//content += ( mCurrentOperation->GetOutputPath() );
-	//content += ( "\n" );
-	//content += ( "\n#----- COLORTABLE -----\n\n" );
-	//content += ( kwDISPLAY_COLORTABLE );
-	//content += ( "=" );
-	//content += ( colorTable );
-	//content += ( "\n" );
-	//if ( !isDefaultValue( rangeMin ) )
-	//{
-	//	content += ( kwDISPLAY_MINVALUE + "=" + n2s<std::string>( rangeMin ) + "\n" );
-	//}
-	//if ( !isDefaultValue( rangeMax ) )
-	//{
-	//	content += ( kwDISPLAY_MAXVALUE + "=" + n2s<std::string>( rangeMax ) + "\n" );
-	//}
-	//if ( createKML )
-	//{
-	//	std::string kmlOutputFile = out_file;
-	//	SetFileExtension( out_file, "kml" );
-	//	content += ( "\n#----- GOOGLE EARTH -----\n\n" );
-	//	content += ( kwOUTPUT_KML );
-	//	content += ( "=" );
-	//	content += ( kmlOutputFile );
-	//	content += ( "\n" );
-	//	content += ( kwDISPLAY_LOGO_URL );
-	//	content += ( "=" );
-	//	content += ( mBratPaths.mInternalDataDir );
-	//	content += ( "/BratLogo.png" );
-	//	content += ( "\n" );
-	//	content += ( kwFILETYPE );
-	//	content += ( "=" );
-	//	content += ( mProduct->GetProductClass().c_str() );
-	//	content += ( " / " );
-	//	content += ( mProduct->GetProductType().c_str() );
-	//	content += ( "\n" );
-	//	content += ( kwPRODUCT_LIST );
-	//	content += ( "=" );
-	//	content += ( mCurrentOperation->OriginalDataset()->GetProductList()->ToString( ", ", true ) );
-	//	content += ( "\n" );
-	//}
-	//content += ( "\n#----- OUTPUT -----\n\n" );
-	//content += ( kwOUTPUT );
-	//content += ( "=" );
-	//content += ( out_file );
-	//content += ( "\n" );
-
-	//std::string fullCommand = "\"" + COperation::GetExecExportGeoTiffName() + "\" \"" + exportGeoTiffCmdFile + "\"";
-
-	//std::string outputFile_str = out_file;
-
-	//CPipedProcess* process = new CPipedProcess( exportGeoTiffCmdFile.GetName(),
-	//	wxGetApp().GetLogPanel(),
-	//	fullCommand,
-	//	wxGetApp().GetLogPanel()->GetLogMess(),
-	//	&outputFile_str,
-	//	mCurrentOperation->GetType() );
-
-	//bool bOk = wxGetApp().GetLogPanel()->AddProcess( process );
-	//if ( bOk == false )
-	//{
-	//	delete process;
-	//	process = nullptr;
-	//}
-
-	//EnableCtrl();
-}
-*/
 
 
 void COperationControls::HandleExportOperation()
@@ -3206,23 +3151,24 @@ void COperationControls::LaunchDisplay( const std::string &display_name )
 {
 	assert__( mCurrentOperation );
 
-    if ( MapRequested() )
-    {
-        assert__( mCurrentOperation->IsMap() );
+	mDesktopManager->AddSubWindow(
 
-        auto ed = new CMapEditor( &mModel, mCurrentOperation, display_name );
-        auto subWindow = mDesktopManager->AddSubWindow( ed );
-        subWindow->show();
-    }
-    else
-    //if ( mCurrentOperation->IsZFXY() || mCurrentOperation->IsYFX() )
-    {
-        auto ed = new CPlotEditor( &mModel, mCurrentOperation, display_name );
-        auto subWindow = mDesktopManager->AddSubWindow( ed );
-        subWindow->show();
-    }
-    //else
-    //    assert__( false );
+		[this, &display_name]() -> QWidget*
+		{
+			if ( MapPlotSelected() )
+			{
+				assert__( mCurrentOperation->IsMap() );
+
+				return new CMapEditor( &mModel, mCurrentOperation, display_name );
+			}
+			else	//if ( mCurrentOperation->IsZFXY() || mCurrentOperation->IsYFX() )
+			{
+				return new CPlotEditor( &mModel, mCurrentOperation, display_name );
+			}
+			//else
+			//    assert__( false );
+		}
+	);
 }
 
 
@@ -3249,7 +3195,7 @@ void COperationControls::LaunchDisplay( const std::string &display_name )
 ///////////////////////////////////////////////////////////////////
 
 
-bool COperationControls::MapRequested() const
+bool COperationControls::MapPlotSelected() const
 {
     return mSwitchToMapButton->isChecked();
 }
@@ -3261,7 +3207,7 @@ bool COperationControls::HandleExecute()
 {
 	if ( IsQuickOperationSelected() )
 	{
-		if ( MapRequested() )
+		if ( MapPlotSelected() )
 			HandleQuickMap();
 		else
 			HandleQuickPlot();
@@ -3292,34 +3238,22 @@ bool COperationControls::CreateOperationExecutionDisplays( std::string &to_displ
 	{
 		assert__( operation == mCurrentOperation );		//should only fail if asynchronous process; requires refreshing all operations info
 
-		auto displays = mModel.OperationDisplays( operation->GetName() );
+		auto old_displays = mModel.OperationDisplays( operation->GetName() );
 
 		CMapDisplayData data_list;		//v3: dataList, pointer data member
 		data_list.SetDelete( false );
-        std::vector< CDisplay* > v = mWDisplay->CreateDisplays4Operation( mCurrentOperation, &data_list );
+        std::vector< CDisplay* > v = mWDisplay->CreateDisplays4Operation( mCurrentOperation, &data_list, mSplitPlotsButton->isChecked() );
 		if ( v.empty() )
-			////display panel -> GetOperations();
-			////display panel -> GetDispavailtreectrl()->InsertData( &m_dataList );
-			//CMapDisplayData *m_dataList = new CMapDisplayData;
-			//m_dataList->clear();
-			//if ( !CreateDisplayData( mCurrentOperation, *m_dataList ) )	//CDisplay::GetDisplayType failed
 		{
 			SimpleErrorBox( "Could not retrieve operation output." );
 		}
 		else
 		{
-			for ( auto *display : displays )
+			for ( auto *old_display : old_displays )
 			{
-				display->UpdateDisplayData( &data_list, mWOperation );
-				//if ( !display->AssignOperation( mCurrentOperation, true ) )
-				//{
-				//	SimpleErrorBox( "Could not retrieve operation output." );
-				//	return;
-				//}
+				//display->UpdateDisplayData( &data_list, mWOperation );
+				mWDisplay->DeleteDisplay( old_display );
 			}
-			//for ( auto &data : *m_dataList )
-			//	display->InsertData( data.first, dynamic_cast<CDisplayData*>( data.second ) );
-
 			to_display = v[ 0 ]->GetName();
 		}
 	}
@@ -3415,7 +3349,7 @@ bool COperationControls::Execute( EExecutionType type, COperation *operation, bo
 
 	//v4 checks 
 
-    if ( MapRequested() )
+    if ( MapPlotSelected() )
     {
 		if ( !operation->IsMap() )
 		{

@@ -64,9 +64,18 @@ try {
 
     CBratApplication a( argc, argv, true );    //QApplication::setStyle(new NorwegianWoodStyle);		//joke
 	CBratMainWindow w( a );
-	w.show();
-	auto result = a.exec();
 
+	int result = 0;
+	if ( a.OperatingInInstantPlotSaveMode() )
+	{
+		//a.processEvents();
+		//result = a.exec();
+	}
+	else
+	{
+        w.show();
+		result = a.exec();
+	}
 
 	LOG_INFO( "brat is exiting with result " + n2s<std::string>( result ) + ".");
 

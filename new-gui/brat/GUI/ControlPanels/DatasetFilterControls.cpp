@@ -635,7 +635,6 @@ void CDatasetFilterControls::HandleNewArea()
         SimpleMsgBox( "A area with same name already exists." );
     else
     {
-        // TODO - TO BE CORRECTED: Add vertex of selection instead of max/min lat and lon.
         // Add all vertex of selection to new area
         CArea *area = mBratAreas.Find( result.second );
 
@@ -664,20 +663,59 @@ void CDatasetFilterControls::HandleAddKML()
 {
 	static std::string kml_path = mModel.BratPaths().mPortableBasePath;
 	
+    // Ask user to choose a KML file
 	QString path = BrowseFileWithExtension( this, "Open from KML File", kml_path.c_str(), "kml", "Keyhole Markup Language" );
 
 	if ( !path.isEmpty() )
 	{
-		kml_path = q2a( path );
+        kml_path = q2a( path );  // save path for next usages
+
+        // Open Layer and get bounding_box
 		QgsRectangle bounding_box;
-		if ( !CMapWidget::OpenLayer( path, bounding_box ) )
+		if ( !CMapWidget::OpenLayer( this, path, bounding_box ) )
 			return;
 
 		LOG_WARN( bounding_box.toString() );
+        if ( bounding_box.isEmpty() )
+            return;
 
-    // TODO
-    //Save all areas
-//    SaveAllAreas();
+        // Ask user to provide an area name
+        auto result = ValidatedInputString( "Area Name", mBratAreas.MakeNewName(), "New Area from KML..." );
+        if ( !result.first )
+            return;
+
+        if ( !mBratAreas.AddArea( result.second ) )
+        {
+            SimpleMsgBox( "A area with same name already exists." );
+            return;
+        }
+
+        // Add all vertex of bounding_box to new area and show vertex values
+        CArea *area = mBratAreas.Find( result.second );
+
+        double lat_max = bounding_box.yMaximum();
+        double lat_min = bounding_box.yMinimum();
+        double lon_max = bounding_box.xMaximum();
+        double lon_min = bounding_box.xMinimum();
+
+        area->AddVertex( lon_min, lat_max );      area->AddVertex( lon_max, lat_max );
+        area->AddVertex( lon_min, lat_min );      area->AddVertex( lon_max, lat_min );
+
+        mMaxLatEdit->setText( n2q( lat_max ) );
+        mMaxLonEdit->setText( n2q( lon_max ) );
+        mMinLatEdit->setText( n2q( lat_min ) );
+        mMinLonEdit->setText( n2q( lon_min ) );
+
+        // Save all areas
+        SaveAllAreas();
+
+        // Add new area to areas list
+        QListWidgetItem* item = new QListWidgetItem;
+        item->setText( t2q( result.second ) );
+        item->setFlags( item->flags() | Qt::ItemIsUserCheckable );
+        item->setCheckState( Qt::Unchecked );
+        mAreasListWidget->addItem( item );
+        mAreasListWidget->setCurrentItem( item ); //mAreasListWidget->findItems( result.second.c_str(), Qt::MatchExactly ).first() );
 	}
 }
 
@@ -1042,6 +1080,22 @@ int ReadTrack( bool can_use_alias, const std::string &path, const std::string &r
 }
 
 
+//static 
+const std::string& CDesktopControlsPanel::FindAliasValue( CProduct *product, const std::string &alias_name )
+{
+	auto *alias = product->GetAlias( alias_name );
+	if ( !alias )
+		alias = product->GetAlias( ToLowerCopy( alias_name ) );	//TODO confirm aliases case sensitiveness
+
+	if ( alias )
+	{
+		return alias->GetValue();
+	}
+
+	return empty_string< std::string >();
+}
+
+//static
 CField* CDesktopControlsPanel::FindField( CProduct *product, const std::string &name, bool &alias_used, std::string &field_error_msg )
 {
 	std::string record;
@@ -1058,15 +1112,15 @@ CField* CDesktopControlsPanel::FindField( CProduct *product, const std::string &
 	CField *field = nullptr;
 	alias_used = true;
 
-	auto *alias = product->GetAlias( ToLowerCopy( name ) );
-	if ( alias )
+	std::string value = FindAliasValue( product, name );
+	if ( !value.empty() )
 	{
-		field = product->FindFieldByName( alias->GetValue(), false, &field_error_msg );		//true: throw on failure
+		field = product->FindFieldByName( value, false, &field_error_msg );		//true: throw on failure
 		//guessing
 		if ( !field && !record.empty() )
-			field = product->FindFieldByName( alias->GetValue(), record, false );	//true: throw on failure
+			field = product->FindFieldByName( value, record, false );	//true: throw on failure
 		if ( !field )
-			field = product->FindFieldByInternalName( alias->GetValue(), false );	//true: throw on failure
+			field = product->FindFieldByInternalName( value, false );	//true: throw on failure
 	}
 
 	if ( !field )
@@ -1084,6 +1138,8 @@ CField* CDesktopControlsPanel::FindField( CProduct *product, const std::string &
 	return field;
 }
 
+
+//static
 std::pair<CField*, CField*> CDesktopControlsPanel::FindLonLatFields( CProduct *product, bool &alias_used, std::string &field_error_msg )
 {
 	std::pair<CField*, CField*> fields;
@@ -1092,6 +1148,8 @@ std::pair<CField*, CField*> CDesktopControlsPanel::FindLonLatFields( CProduct *p
 	return fields;
 }
 
+
+//static
 CField* CDesktopControlsPanel::FindTimeField( CProduct *product, bool &alias_used, std::string &field_error_msg )
 {
 	return FindField( product, time_name(), alias_used, field_error_msg );
@@ -1187,7 +1245,7 @@ void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
 				" %{lon}==" + ( lon ? lon->GetName() : "" ) +
 				" %{time}==" + ( time ? time->GetName() : "") );
 
-			auto ref_date = product->GetRefDate();
+			auto ref_date = REF19500101;	//Use ReadData ref date instead of product->GetRefDate();
             delete product;
             if ( skip_iteration )
             {

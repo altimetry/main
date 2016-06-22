@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT 
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #ifndef GUI_DISPLAY_EDITORS_ABSTRACT_DISPLAY_EDITOR_H
 #define GUI_DISPLAY_EDITORS_ABSTRACT_DISPLAY_EDITOR_H
 
@@ -25,12 +42,18 @@ class CDisplay;
 class CDisplayFilesProcessor;
 class CBratLookupTable;
 
+class CZFXYPlotData;
+class CXYPlotData;
+class CXYPlotDataCollection;
+class CWorldPlotData;
+
+
 enum EActionTag : int;
 
 
-//#if defined (DEBUG) || defined(_DEBUG)
+#if defined (DEBUG) || defined(_DEBUG)
 #	define SHOW_TEST
-//#endif
+#endif
 
 
 /////////////////////////////////////////////////////////////////
@@ -76,7 +99,26 @@ private:
 	// static members
 	///////////////////////////////////////////////////////////
 
+protected:
+	//int32_t CDate::GetDateRef(CDate& date, brathl_refDate& refDate)
 
+	static brathl_refDate RefDateFromUnit( const CUnit &u );
+
+
+	static CZFXYPlotData* GetFieldData( size_t field_index, std::vector< CZFXYPlotData* > &zfxy_data_array );
+	static CXYPlotData* GetFieldData( size_t field_index, CXYPlotDataCollection &yfx_data_collection );
+	static CWorldPlotData* GetFieldData( size_t field_index, std::vector< CWorldPlotData* > &lon_lat_data_array );
+
+	static CZFXYPlotProperties* GetProperties( size_t field_index, std::vector< CZFXYPlotData* > &zfxy_data_array );
+	static CXYPlotProperties* GetProperties( size_t field_index, CXYPlotDataCollection &yfx_data_collection );
+	static CWorldPlotProperties* GetProperties( size_t field_index, std::vector< CWorldPlotData* > &lon_lat_data_array );
+
+	static CDisplayData* GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, std::vector< CZFXYPlotData* > &zfxy_data_array );
+	static CDisplayData* GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, CXYPlotDataCollection &yfx_data_collection );
+	static CDisplayData* GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, std::vector< CWorldPlotData* > &lon_lat_data_array );
+
+	
+private:
 	///////////////////////////////////////////////////////////
 	// instance data
 	///////////////////////////////////////////////////////////
@@ -103,10 +145,6 @@ protected:
 	QAction *m3DAction = nullptr;
 	QAction *mRecenterAction = nullptr;
 	QAction *mExport2ImageAction = nullptr;
-
-	QAction *mActionStatisticsMean = nullptr;
-	QAction *mActionStatisticsStDev = nullptr;
-	QAction *mActionStatisticsLinearRegression = nullptr;
 
 #if defined (SHOW_TEST)
 	QAction *mActionTest = nullptr;
@@ -137,7 +175,7 @@ protected:
 	const COperation *mOperation = nullptr;
 	int mRequestedDisplayIndex = 0;				//trick for first requested display
 
-	CBratLookupTable *mBratLookupTable = nullptr;
+	CBratLookupTable *mCurrentBratLookupTable = nullptr;
 
 	const CDisplayFilesProcessor *mCurrentDisplayFilesProcessor = nullptr;
 	const bool mDisplayOnlyMode;
@@ -218,11 +256,11 @@ protected:
 	virtual void Show2D( bool display ) = 0;
 	virtual void Show3D( bool display ) = 0;
 	virtual void Recenter() = 0;
+
+public:
 	virtual void Export2Image( bool save_2d, bool save_3d, const std::string path2d, const std::string path3d, EImageExportType type ) = 0;
 
-	virtual void StatisticsMean() {}
-	virtual void StatisticsStDev() {}
-	virtual void StatisticsLinearRegression() {}
+protected:
 
 	virtual void NewButtonClicked() = 0;
 	virtual void RenameButtonClicked() = 0;
@@ -234,11 +272,15 @@ protected:
 
 	virtual bool ChangeView() = 0;
 
-	//debug helper
+	//debug helpers
 	template< typename T >
 	inline std::string TF( const std::string &s, T n )
 	{
-		return s + " == " + n2s<std::string>( n ) + "\n";
+		std::string dv;
+		if ( isDefaultValue( n ) )
+			dv = "!!! DV !!!";
+
+		return s + " == " + n2s<std::string>( n ) + dv + "\n";
 	};
 
 	virtual bool Test() = 0;
@@ -286,24 +328,15 @@ private:
 protected slots:
 	void RunButtonClicked();
 
+public slots:
+
+	void Handle2D( bool checked );    
+	void Handle3D( bool checked );
+
 private slots:
 
-	void Handle2D( bool checked );
-	void Handle3D( bool checked );
-	void HandleRecenter();
+    void HandleRecenter();
 	void HandleExport2Image();
-	void HandleStatisticsMean()
-	{
-		StatisticsMean();
-	}
-	void HandleStatisticsStDev()
-	{
-		StatisticsStDev();
-	}
-	void HandleStatisticsLinearRegression()
-	{
-		StatisticsLinearRegression();
-	}
 	void HandleTest()
 	{
 		Test();
@@ -369,6 +402,18 @@ std::vector< PLOT* > CAbstractDisplayEditor::GetPlotsFromDisplayFile( bool maps_
 }
 
 
+
+
+//////////////////////////////////////////////////////////////////////////////////////
+
+
+
+template< typename T >
+inline bool VirtuallyEqual( T a, T b )
+{
+	//return std::abs( a - b ) < std::numeric_limits< T >::epsilon();
+	return true;
+}
 
 
 

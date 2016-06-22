@@ -55,6 +55,7 @@ void CMapEditor::ResetAndWireNewMap()
 	mMapView->ConnectParentMeasureActions( mMeasureButton, mActionMeasure, mActionMeasureArea );
 	mMapView->ConnectParentGridAction( mActionDecorationGrid );
 	mMapView->ConnectParentMapTipsAction( mActionMapTips );
+	mActionMapTips->setChecked( true );
 	mMapView->ConnectCoordinatesWidget( mCoordsEdit, mCoordinatesFormatButton, mCoordinatesFormat );
 	AddView( mMapView, false );
 	mMapView->setVisible( false );
@@ -400,16 +401,17 @@ bool CMapEditor::Test()
 
 	double all_mx, all_Mx, all_my, all_My, all_mz, all_Mz, mx, Mx, my, My, mz, Mz;
 	all_mx = all_Mx = all_my = all_My = all_mz = all_Mz = mx = Mx = my = My = mz = Mz = 0.;
-	size_t nframes, nvalues, nvalues0, ndefault_values;
-	nframes = nvalues = nvalues0 = ndefault_values = 0;
+	size_t nframes, nvalues, nvalues0, ndefault_values, nan_values;
+	nframes = nvalues = nvalues0 = ndefault_values = nan_values = 0;
 	std::string error_msg, field;
 
 	if ( !mDataArrayMap.empty() )
 	{
-		CWorldPlotData *pdata = mDataArrayMap[ index ];
-		const CWorldPlotInfo &data = pdata->PlotInfo();
-		const CWorldPlotParameters &map = data( 0 );		Q_UNUSED( map );
-		field = pdata->GetDataName();
+		CWorldPlotData *pdata = GetFieldData( index, mDataArrayMap );
+		const CMapValues &data = pdata->PlotValues();
+		const CMapPlotParameters &map = data( 0 );		Q_UNUSED( map );
+		field = pdata->FieldName();
+        CDisplayData *ddata = mDisplay->GetFieldDisplayData( field );    Q_UNUSED( ddata );
 
 		all_mx = mx = data[ 0 ].mMinX;
 		all_Mx = Mx = data[ 0 ].mMaxX; 
@@ -432,6 +434,7 @@ bool CMapEditor::Test()
 
 		nvalues0 = data.GetDataCountIf( 0, []( const double &v ) { return v == 0; } );
 		ndefault_values = data.GetDataCountIf( 0, []( const double &v ) { return isDefaultValue( v ); } );
+		nan_values = data.GetDataCountIf( 0, []( const double &v ) { return std::isnan( v ); } );
 	}
 
 	const std::string msg =
@@ -454,6 +457,7 @@ bool CMapEditor::Test()
 		+ TF( "nframes", nframes )
 		+ TF( "nvalues0", nvalues0 ) 
 		+ TF( "ndefault_values", ndefault_values )
+		+ TF( "nan_values", nan_values )
 		+ error_msg
 		;
 
@@ -461,29 +465,6 @@ bool CMapEditor::Test()
 
 	return true;
 }
-
-
-//virtual 
-void CMapEditor::StatisticsMean()
-{
-	BRAT_NOT_IMPLEMENTED
-}
-
-
-//virtual 
-void CMapEditor::StatisticsStDev()
-{
-	BRAT_NOT_IMPLEMENTED
-}
-
-
-//virtual 
-void CMapEditor::StatisticsLinearRegression()
-{
-	BRAT_NOT_IMPLEMENTED
-}
-
-
 
 
 
@@ -661,6 +642,27 @@ bool CMapEditor::CreatePlotData( const std::vector< CWPlot* > &wplots )
 //////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////
 
+CWorldPlotData* CMapEditor::UpdateCurrentPointers( int field_index )
+{
+	mPropertiesMap = nullptr;
+	mCurrentDisplayData = nullptr;
+	mCurrentBratLookupTable = nullptr;
+
+	if ( field_index < 0 )
+		return nullptr;
+
+	assert__( mOperation && mDisplay );
+
+	mPropertiesMap = GetProperties( field_index, mDataArrayMap );
+	mCurrentDisplayData = GetDisplayData( field_index, mOperation, mDisplay, mDataArrayMap );
+	mCurrentBratLookupTable = mPropertiesMap->mLUT;
+	mCurrentBratLookupTable->ExecMethod( mCurrentDisplayData->GetColorPalette() );
+
+	assert__( mPropertiesMap && mCurrentDisplayData && mCurrentBratLookupTable );
+
+	return GetFieldData( field_index, mDataArrayMap );
+}
+
 
 
 ///////////////////////////
@@ -682,7 +684,7 @@ void CMapEditor::ResetMap()
 {
 	assert__( mMapView && mCurrentDisplayFilesProcessor );
 
-	auto IsValidPoint = []( const CWorldPlotParameters &map, int32_t i )
+	auto IsValidPoint = []( const CMapPlotParameters &map, int32_t i )
 	{
 		bool bOk = map.mBits[ i ];
 
@@ -699,16 +701,14 @@ void CMapEditor::ResetMap()
     const size_t array_size = mDataArrayMap.size();								//assert__( size == mCurrentDisplayFilesProcessor->GetWorldPlotPropertiesSize() );
 	for ( size_t i = 0; i < array_size; ++i )
 	{
-		CWorldPlotData* geo_map = mDataArrayMap[ i ];        
+		CWorldPlotData *geo_map = UpdateCurrentPointers( i );			assert__( mPropertiesMap );
         CWorldPlotVelocityData *geo_velocity_map = dynamic_cast<CWorldPlotVelocityData*>( geo_map );
+		
+		const CMapValues &maps = geo_map->PlotValues();					assert__( maps.size() == 1 );	//simply to check if ever...	
 
-		mPropertiesMap = &geo_map->m_plotProperty;							assert__( mPropertiesMap );
-		const CWorldPlotInfo &maps = geo_map->PlotInfo();					assert__( maps.size() == 1 );	//simply to check if ever...	
+		mCurrentBratLookupTable->GetLookupTable()->SetTableRange( mCurrentDisplayData->GetCurrentMinValue(), mCurrentDisplayData->GetCurrentMaxValue() );		//geo_map->GetLookupTable()->GetTableRange()
 
-		// TODO brat v3 does not update range
-		geo_map->m_plotProperty.mLUT->GetLookupTable()->SetTableRange( geo_map->GetLookupTable()->GetTableRange() );
-
-		const CWorldPlotParameters &map = maps( 0 );
+		const CMapPlotParameters &map = maps( 0 );
 		auto const size = map.mValues.size();
 		QgsFeatureList flist;
 
@@ -736,7 +736,11 @@ void CMapEditor::ResetMap()
             else
             {
                 //mMapView->CreatePointDataFeature( flist, map.mXaxis.at( x ), map.mYaxis.at( y ), map.mValues[ i ] );
-                mMapView->CreatePolygonDataFeature( flist, map.mXaxis.at( x ), map.mYaxis.at( y ), map.mValues[ i ] );
+                std::string errorMsg;
+                double step_x = const_cast<CFormula*>( mOperation->GetFormula( CMapTypeField::eTypeOpAsX ))->GetStepAsDouble( errorMsg );
+                double step_y = const_cast<CFormula*>( mOperation->GetFormula( CMapTypeField::eTypeOpAsY ))->GetStepAsDouble( errorMsg );
+                mMapView->CreatePolygonDataFeature( flist, map.mXaxis.at( x ), map.mYaxis.at( y ), map.mValues[ i ], step_x, step_y );
+
             }
             ///////////////////////////////////////////////////////////////////////
 #else
@@ -753,8 +757,9 @@ void CMapEditor::ResetMap()
              mMapView->AddArrowDataLayer( mPropertiesMap->m_name, flist );
         }
         else
-        {
-            mMapView->AddDataLayer( mPropertiesMap->m_name, 0.1, map.mMinHeightValue, map.mMaxHeightValue, mPropertiesMap->mLUT->GetLookupTable(), flist );
+        {			
+            mMapView->AddDataLayer( mPropertiesMap->m_name, 0.1, map.mMinHeightValue, map.mMaxHeightValue, mCurrentBratLookupTable->GetLookupTable(), flist,
+				geo_map->GetDataUnit()->IsDate(), RefDateFromUnit( *geo_map->GetDataUnit() ) );
         }
 
 #endif 
@@ -801,7 +806,9 @@ void CMapEditor::ResetMap()
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-		mTabDataLayers->mFieldsList->addItem( t2q( mPropertiesMap->m_name ) );
+		QListWidgetItem *item = new QListWidgetItem( t2q( geo_map->FieldName() ) );
+		item->setToolTip( item->text() );
+		mTabDataLayers->mFieldsList->addItem( item );
 
 		//mMapView->SetCurveLineColor( i, mPropertiesMap->GetColor() );
 		//mMapView->SetCurveLineOpacity( i, mPropertiesMap->GetOpacity() );
@@ -829,53 +836,30 @@ void CMapEditor::HandleCurrentFieldChanged( int field_index )
 
 	mTabDataLayers->mColorMapWidget->setEnabled( field_index >= 0 );
 
-	mPropertiesMap = nullptr;
-	mCurrentDisplayData = nullptr;
-	mBratLookupTable= nullptr;
+	UpdateCurrentPointers( -1 );
 
 	if ( field_index < 0 )
 		return;
 
-	assert__( field_index < (int)mDataArrayMap.size() );
-
-	mPropertiesMap = &mDataArrayMap.at( field_index )->m_plotProperty;	  			assert__( mPropertiesMap );
-	//TODO - fetch correct display data
-	mCurrentDisplayData = mDisplay->GetDisplayData( mOperation, mPropertiesMap->m_name );
-	mBratLookupTable = mPropertiesMap->mLUT;
+	CWorldPlotData *world_data = UpdateCurrentPointers( field_index );			assert__( world_data );
 
 	mTabDataLayers->mColorMapWidget->blockSignals( true );
 	// TODO color table and range should be retrieved here from plot, but maps still know nothing about LUTs or data ranges
-	// TODO create a current CWorldPlotParameters data member
-	const CWorldPlotInfo &maps = mDataArrayMap[ field_index ]->PlotInfo();
-	const CWorldPlotParameters &map = maps( 0 );
-	mTabDataLayers->mColorMapWidget->SetLUT( mBratLookupTable, map.mMinHeightValue, map.mMaxHeightValue );
+	// TODO create a current CMapPlotParameters data member
+	const CMapValues &maps = world_data->PlotValues();
+	const CMapPlotParameters &map = maps( 0 );
+	mTabDataLayers->mColorMapWidget->SetLUT( mCurrentBratLookupTable, map.mMinHeightValue, map.mMaxHeightValue );	
+
+	assert__( VirtuallyEqual( map.mMinHeightValue, mCurrentDisplayData->GetAbsoluteMinValue() ) );
+	assert__( VirtuallyEqual( map.mMaxHeightValue, mCurrentDisplayData->GetAbsoluteMaxValue() ) );
+
 	mTabDataLayers->mColorMapWidget->SetContourColor( mPropertiesMap->m_contourLineColor.GetQColor() );
 	mTabDataLayers->mColorMapWidget->blockSignals( false );
 
 	mTabDataLayers->mColorMapWidget->SetShowSolidColor( mMapView->IsDataLayerVisible( field_index ) );
 	mTabDataLayers->mColorMapWidget->SetShowContour( mMapView->IsContourLayerVisible( field_index ) );
 	mTabDataLayers->mColorMapWidget->SetNumberOfContours( mPropertiesMap->m_numContour );
-	mTabDataLayers->mColorMapWidget->SetContoursWidth( mPropertiesMap->m_contourLineWidth );
-
-	
-	//TODO - fetch correct display data
-	//mTabDataLayers->mMinRange->setText( n2s<std::string>( mCurrentDisplayData->GetMinValue() ).c_str() );
-	//mTabDataLayers->mMaxRange->setText( n2s<std::string>( mCurrentDisplayData->GetMaxValue() ).c_str() );
-
-
-	//mTabDataLayers->mLineColorButton->SetColor( mPlot2DView->CurveLineColor( index ) );
-	//mTabDataLayers->mLineOpacityValue->setText( n2s<std::string>( mPlot2DView->CurveLineOpacity( index ) ).c_str() );
-	//mTabDataLayers->mStipplePattern->setCurrentIndex( mPlot2DView->CurveLinePattern( index ) );
-	//mTabDataLayers->mLineWidthValue->setText( n2s<std::string>( mPlot2DView->CurveLineWidth( index ) ).c_str() );
-
-
-	//mTabDataLayers->mPointColorButton->SetColor( mPlot2DView->CurvePointColor( index ) );
-	//mTabDataLayers->mFillPointCheck->setChecked( mPlot2DView->IsCurvePointFilled( index ) );
-	//mTabDataLayers->mPointGlyph->setCurrentIndex( mPlot2DView->CurvePointGlyph( index ) );
-	//mTabDataLayers->mPointSizeValue->setText( n2s<std::string>( mPlot2DView->CurvePointSize( index ) ).c_str() );
-
-	//mTabDataLayers->mLineOptions->setChecked( mPlotType != eHistogram && mPropertiesMap->GetLines() );
-	//mTabDataLayers->mPointOptions->setChecked( mPropertiesMap->GetPoints() );
+	mTabDataLayers->mColorMapWidget->SetContoursWidth( mPropertiesMap->mContourLineWidth );
 }
 
 
@@ -891,6 +875,7 @@ void CMapEditor::HandleShowSolidColorChecked( bool checked )
 
 	WaitCursor wait;
 
+	mCurrentDisplayData->SetSolidColor( checked );
     mPropertiesMap->m_solidColor = checked;
 
 	mMapView->SetDataLayerVisible( mTabDataLayers->mFieldsList->currentRow(), mPropertiesMap->m_solidColor, mDisplaying2D );
@@ -901,6 +886,8 @@ void CMapEditor::HandleShowContourChecked( bool checked )
 {
 	int field_index = mTabDataLayers->mFieldsList->currentRow();
 	assert__( field_index >= 0 && field_index < (int)mDataArrayMap.size() );
+
+	mCurrentDisplayData->SetContour( checked );
 
 	if ( mMapView->HasContourLayer( field_index ) )
 	{
@@ -913,12 +900,12 @@ void CMapEditor::HandleShowContourChecked( bool checked )
 
     WaitCursor wait;
 
-	const CWorldPlotInfo &maps = mDataArrayMap[ field_index ]->PlotInfo();
-	const CWorldPlotParameters &map = maps( 0 );
+	const CMapValues &maps = GetFieldData( field_index, mDataArrayMap )->PlotValues();
+	const CMapPlotParameters &map = maps( 0 );
 
 	CBratLookupTable t;
 	t.ExecMethod( "Rainbow" );
-	mMapView->AddContourLayer( field_index, mPropertiesMap->m_name, mPropertiesMap->m_contourLineWidth, mPropertiesMap->m_contourLineColor.GetQColor(), 
+	mMapView->AddContourLayer( field_index, mPropertiesMap->m_name, mPropertiesMap->mContourLineWidth, mPropertiesMap->m_contourLineColor.GetQColor(), 
 		t.GetLookupTable(), mPropertiesMap->m_numContour, map );
 }
 
@@ -931,8 +918,8 @@ void CMapEditor::HandleNumberOfContoursChanged()
 
 	mPropertiesMap->m_numContour = mTabDataLayers->mColorMapWidget->NumberOfContours();
 
-	const CWorldPlotInfo &maps = mDataArrayMap[ field_index ]->PlotInfo();
-	const CWorldPlotParameters &map = maps( 0 );
+	const CMapValues &maps = GetFieldData( field_index, mDataArrayMap )->PlotValues();
+	const CMapPlotParameters &map = maps( 0 );
 
 	mMapView->SetNumberOfContours( field_index, mPropertiesMap->m_numContour, map );
 }
@@ -946,7 +933,7 @@ void CMapEditor::HandleContourColorSelected()
 
 	mPropertiesMap->m_contourLineColor = mTabDataLayers->mColorMapWidget->ContourColor();
 
-	mMapView->SetContoursProperties( field_index, mPropertiesMap->m_contourLineColor.GetQColor(), mPropertiesMap->m_contourLineWidth );
+	mMapView->SetContoursProperties( field_index, mPropertiesMap->m_contourLineColor.GetQColor(), mPropertiesMap->mContourLineWidth );
 }
 
 
@@ -956,9 +943,9 @@ void CMapEditor::HandleContourWidthChanged()
 
 	int field_index = mTabDataLayers->mFieldsList->currentRow();
 
-	mPropertiesMap->m_contourLineWidth = mTabDataLayers->mColorMapWidget->ContoursWidth();
+	mPropertiesMap->mContourLineWidth = mTabDataLayers->mColorMapWidget->ContoursWidth();
 
-	mMapView->SetContoursProperties( field_index, mPropertiesMap->m_contourLineColor.GetQColor(), mPropertiesMap->m_contourLineWidth );
+	mMapView->SetContoursProperties( field_index, mPropertiesMap->m_contourLineColor.GetQColor(), mPropertiesMap->mContourLineWidth );
 }
 
 
@@ -968,12 +955,16 @@ void CMapEditor::HandleColorTablesIndexChanged( int index )
 
 	int field_index = mTabDataLayers->mFieldsList->currentRow();	assert__( field_index >= 0 && field_index < (int)mDataArrayMap.size() );
 
-	const CWorldPlotInfo &maps = mDataArrayMap[ field_index ]->PlotInfo();
-	const CWorldPlotParameters &map = maps( 0 );
+	const CMapValues &maps = GetFieldData( field_index, mDataArrayMap )->PlotValues();
+	const CMapPlotParameters &map = maps( 0 );
+
+	mCurrentDisplayData->SetColorPalette( mCurrentBratLookupTable->GetCurrentFunction() );
+	mCurrentDisplayData->SetCurrentMinValue( mCurrentBratLookupTable->GetLookupTable()->GetTableRange()[0] );
+	mCurrentDisplayData->SetCurrentMaxValue( mCurrentBratLookupTable->GetLookupTable()->GetTableRange()[1] );
 
 	//NOTE: no need to assign anything to mPropertiesMap
 
-	mMapView->ChangeDataRenderer( field_index, 0., map.mMinHeightValue, map.mMaxHeightValue, mBratLookupTable->GetLookupTable() );	
+	mMapView->ChangeDataRenderer( field_index, 0., map.mMinHeightValue, map.mMaxHeightValue, mCurrentBratLookupTable->GetLookupTable() );	
 }
 
 

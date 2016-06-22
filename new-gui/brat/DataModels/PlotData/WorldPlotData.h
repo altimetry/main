@@ -40,7 +40,9 @@ public:
 
 protected:
 
-	CWorldPlotInfo mMaps;
+	std::string mFieldName;
+
+	CMapValues mMaps;
 
 	bool m_finished;
 	uint32_t m_currentMap;
@@ -74,6 +76,7 @@ protected:
 public:
 	CWorldPlotData( CPlotField* field )
 		: CWorldPlotCommonData( field->m_worldProps )
+		, mFieldName( field->m_name )
 	{
 		Create( &field->m_internalFiles, field->m_name );
 	}
@@ -86,7 +89,9 @@ protected:
 
 public:
 
-	const CWorldPlotInfo& PlotInfo() const { return mMaps; }
+	const CMapValues& PlotValues() const { return mMaps; }
+
+	const std::string &FieldName() const { return mFieldName; }
 
 
 	int32_t GetNrMaps() { return m_nrMaps; };

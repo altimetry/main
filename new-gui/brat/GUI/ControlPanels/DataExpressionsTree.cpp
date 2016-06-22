@@ -20,6 +20,7 @@
 #include "Dialogs/InsertAlgorithmDialog.h"
 #include "Dialogs/SelectRecordDialog.h"
 #include "Dialogs/FormulaDialog.h"
+#include "Dialogs/SaveAsFormulaDialog.h"
 #include "Dialogs/ShowAliasesDialog.h"
 
 #include "DataExpressionsTree.h"
@@ -407,6 +408,8 @@ CDataExpressionsTreeWidget::CDataExpressionsTreeWidget( CWorkspaceFormula *&wksp
 	, mAssignExpressionButton( CActionInfo::CreateToolButton( eAction_AssignExpression ) )
     , mCheckSyntaxButton( CreateToolButton( "", ":/images/OSGeo/check.png", "Check syntax" ) )
 {
+	mExpressionTextWidget->SetSizeHint( mExpressionTextWidget->sizeHint().width(), 3 * fontMetrics().lineSpacing() );
+
     QStringList labels;
     labels << tr("Data Expressions") << tr("Units");
     setHeaderLabels(labels);
@@ -1239,10 +1242,21 @@ void CDataExpressionsTreeWidget::HandleInsertFormula()
 
 void CDataExpressionsTreeWidget::SaveAsFormula()
 {
-    CSaveAsFormula dlg( this );
+	assert__( mCurrentFormula );
+
+	CFormula new_formula( *mCurrentFormula );
+
+    CSaveAsFormula dlg( &new_formula, this );
     if ( dlg.exec() == QDialog::Accepted )
     {
-        BRAT_NOT_IMPLEMENTED;
+		std::string error_msg;
+		if ( !mWFormula->AddFormula( new_formula, error_msg ) )
+			SimpleErrorBox( error_msg );
+		else
+		{
+			if (mWFormula->GetFormulaCount() > 0)
+				mWFormula->GetFormulaNames( mMapFormulaString );
+		}
     }
 }
 void CDataExpressionsTreeWidget::HandlemSaveasFormula()
@@ -1275,6 +1289,7 @@ void CDataExpressionsTreeWidget::FormulaNameEdited( QTreeWidgetItem *item, std::
 		if ( other_formula != formula )
 		{
 			SimpleErrorBox( "Unable to rename.\nAnother data expression is already named '" + label + "'." );
+			item->setText( 0, formula->GetName().c_str() );
 			return;
 		}
 	}

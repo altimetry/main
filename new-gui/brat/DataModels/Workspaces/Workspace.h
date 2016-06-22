@@ -446,7 +446,7 @@ public:
 
 	bool HasDisplay() { return GetDisplayCount() > 0; }
 
-	std::string GetDisplayNewName();
+	std::string GetDisplayNewName( const COperation *operation );
 
 	CDisplay* GetDisplay( const std::string& name );
 
@@ -460,14 +460,14 @@ public:
 
     bool InsertDisplay( const std::string& name );
 
-    CDisplay* CloneDisplay( const CDisplay *display, const CWorkspaceOperation *wkso );
+    CDisplay* CloneDisplay( const CDisplay *display, const COperation *operation, const CWorkspaceOperation *wkso );
 
 	bool DeleteDisplay( CDisplay* display );
 
 	bool RenameDisplay( CDisplay* display, const std::string& newName );
 
 
-    std::vector< CDisplay*> CreateDisplays4Operation( const COperation *operation, CMapDisplayData *dataList );
+    std::vector< CDisplay*> CreateDisplays4Operation( const COperation *operation, CMapDisplayData *dataList, bool split_plots );
 
 
     virtual void Dump( std::ostream& fOut = std::cerr ) override;

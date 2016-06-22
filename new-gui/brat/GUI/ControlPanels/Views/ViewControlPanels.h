@@ -118,6 +118,7 @@ public:
 
     QGroupBox *mLineOptions = nullptr;
     QGroupBox *mPointOptions = nullptr;
+    //QGroupBox *mStatisticsOptions = nullptr;
     QGroupBox *mSpectrogramOptions = nullptr;
 	QGroupBox *mHistogramOptions = nullptr;
 

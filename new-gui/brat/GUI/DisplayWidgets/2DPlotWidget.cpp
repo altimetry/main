@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT 
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #include "new-gui/brat/stdafx.h"
 
 #include <QtSvg/QSvgGenerator>
@@ -8,6 +25,7 @@
 #include <qwt_plot_panner.h>
 #include <qwt_plot_magnifier.h>
 #include <qwt_legend.h>
+#include <qwt_legend_item.h>
 
 #include "new-gui/Common/QtUtils.h"
 #include "DataModels/PlotData/PlotValues.h"
@@ -16,35 +34,101 @@
 #include "2DPlotWidget.h"
 
 
+using CFitCurve = CPartialCurve< CQwtFitData >;
+
+
+//virtual 
+template< class DATA >
+QwtDoubleRect CPartialCurve< DATA >::boundingRect() const
+{
+	if ( dataSize() <= 0 )
+		return QwtDoubleRect( 1.0, 1.0, -2.0, -2.0 ); // Empty data.
+
+	int first = 0;
+	while ( first < dataSize() && ( isNaN( x( first ) ) || isNaN( y( first ) ) ) )
+		++first;
+
+	if ( first == dataSize() )
+		return QwtDoubleRect( 1.0, 1.0, -2.0, -2.0 ); // Empty data.
+
+	const_cast<CPartialCurve*>( this )->ComputeRange();
+
+	return QwtDoubleRect( mMinXValue, mMinYValue, mMaxXValue - mMinXValue, mMaxYValue - mMinYValue );
+}
+
+
+// This is a slow implementation: it might be worth to cache valid data ranges.
+//
+//virtual 
+template< class DATA >
+void CPartialCurve< DATA >::draw( QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &yMap, int from, int to ) const
+{
+	if ( to < 0 )
+		to = dataSize() - 1;
+
+	int first, last = from;
+	while ( last <= to )
+	{
+		first = last;
+		while ( first <= to && ( isNaN( x( first ) ) || isNaN( y( first ) ) ) )
+			++first;
+		last = first;
+		while ( last <= to && !isNaN( x( last ) ) && !isNaN( y( last ) ) )
+			++last;
+		if ( first <= to )
+			base_t::draw( painter, xMap, yMap, first, last - 1 );
+	}
+}
+
+
+template< class DATA >
+void CPartialCurve< DATA >::ComputeRange()
+{
+	if ( mRangeComputed )
+		return;
+
+	int first = 0;
+	double minX, maxX, minY, maxY;
+	minX = maxX = x( first );
+	minY = maxY = y( first );
+	for ( int i = first + 1; i < dataSize(); ++i )
+	{
+		const double xv = x( i );
+		if ( xv < minX )
+			minX = xv;
+		if ( xv > maxX )
+			maxX = xv;
+		const double yv = y( i );
+		if ( yv < minY )
+			minY = yv;
+		if ( yv > maxY )
+			maxY = yv;
+	}
+
+	mMinXValue = minX;
+	mMaxXValue = maxX;
+
+	mMinYValue = minY;
+	mMaxYValue = maxY;
+
+	mRangeComputed = true;
+}
+
+
+
 //////////////////////////////////////////////////////////////////
 //						Custom Curve
 //////////////////////////////////////////////////////////////////
 
-void CGeneralizedCurve::CommonConstruct()
-{
-	if ( mData )
-		setData( *mData );
-}
-
-
-CGeneralizedCurve::CGeneralizedCurve( const CQwtArrayPlotData *data )
-	: QwtPlotCurve()
-	, mData( data )
-{
-	CommonConstruct();
-}
-CGeneralizedCurve::CGeneralizedCurve( const CQwtArrayPlotData *data, const QwtText &title )
-	: QwtPlotCurve( title )
-	, mData( data )
-{
-	CommonConstruct();
-}
-CGeneralizedCurve::CGeneralizedCurve( const CQwtArrayPlotData *data, const QString &title )
-	: QwtPlotCurve( title )
-	, mData( data )
-{
-	CommonConstruct();
-}
+CGeneralizedCurve::CGeneralizedCurve( const CYFXValues *data )
+	: base_t( data )
+{}
+CGeneralizedCurve::CGeneralizedCurve( const CYFXValues *data, const QwtText &title )
+	: base_t( data, title )
+{}
+CGeneralizedCurve::CGeneralizedCurve( const CYFXValues *data, const QString &title )
+	: base_t( data, title )
+{}
 
 
 // access
@@ -149,86 +233,86 @@ void CGeneralizedCurve::SetLoop( bool loop )
 
 
 
-// QWT interface
-
-
-// This overload is needed when using auto-scale
+//// QWT interface
 //
-//virtual 
-QwtDoubleRect CGeneralizedCurve::boundingRect() const
-{
-	if ( dataSize() <= 0 )
-		return QwtDoubleRect( 1.0, 1.0, -2.0, -2.0 ); // Empty data.
-
-	int first = 0;
-	while ( first < dataSize() && ( isNaN( x( first ) ) || isNaN( y( first ) ) ) )
-		++first;
-
-	if ( first == dataSize() )
-		return QwtDoubleRect( 1.0, 1.0, -2.0, -2.0 ); // Empty data.
-
-	const_cast<CGeneralizedCurve*>( this )->ComputeRange();
-
-	return QwtDoubleRect( mMinXValue, mMinYValue, mMaxXValue - mMinXValue, mMaxYValue - mMinYValue );
-}
-
-
-// This is a slow implementation: it might be worth to cache valid data ranges.
 //
-//virtual 
-void CGeneralizedCurve::draw( QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &yMap, int from, int to ) const
-{
-	if ( to < 0 )
-		to = dataSize() - 1;
-
-	int first, last = from;
-	while ( last <= to )
-	{
-		first = last;
-		while ( first <= to && ( isNaN( x( first ) ) || isNaN( y( first ) ) ) )
-			++first;
-		last = first;
-		while ( last <= to && !isNaN( x( last ) ) && !isNaN( y( last ) ) )
-			++last;
-		if ( first <= to )
-			QwtPlotCurve::draw( painter, xMap, yMap, first, last - 1 );
-	}
-}
-
-
-// internal processing
-
-void CGeneralizedCurve::ComputeRange()
-{
-	if ( mRangeComputed )
-		return;
-
-	int first = 0;
-	double minX, maxX, minY, maxY;
-	minX = maxX = x( first );
-	minY = maxY = y( first );
-	for ( int i = first + 1; i < dataSize(); ++i )
-	{
-		const double xv = x( i );
-		if ( xv < minX )
-			minX = xv;
-		if ( xv > maxX )
-			maxX = xv;
-		const double yv = y( i );
-		if ( yv < minY )
-			minY = yv;
-		if ( yv > maxY )
-			maxY = yv;
-	}
-
-	mMinXValue = minX;
-	mMaxXValue = maxX;
-
-	mMinYValue = minY;
-	mMaxYValue = maxY;
-
-	mRangeComputed = true;
-}
+//// This overload is needed when using auto-scale
+////
+////virtual 
+//QwtDoubleRect CGeneralizedCurve::boundingRect() const
+//{
+//	if ( dataSize() <= 0 )
+//		return QwtDoubleRect( 1.0, 1.0, -2.0, -2.0 ); // Empty data.
+//
+//	int first = 0;
+//	while ( first < dataSize() && ( isNaN( x( first ) ) || isNaN( y( first ) ) ) )
+//		++first;
+//
+//	if ( first == dataSize() )
+//		return QwtDoubleRect( 1.0, 1.0, -2.0, -2.0 ); // Empty data.
+//
+//	const_cast<CGeneralizedCurve*>( this )->ComputeRange();
+//
+//	return QwtDoubleRect( mMinXValue, mMinYValue, mMaxXValue - mMinXValue, mMaxYValue - mMinYValue );
+//}
+//
+//
+//// This is a slow implementation: it might be worth to cache valid data ranges.
+////
+////virtual 
+//void CGeneralizedCurve::draw( QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &yMap, int from, int to ) const
+//{
+//	if ( to < 0 )
+//		to = dataSize() - 1;
+//
+//	int first, last = from;
+//	while ( last <= to )
+//	{
+//		first = last;
+//		while ( first <= to && ( isNaN( x( first ) ) || isNaN( y( first ) ) ) )
+//			++first;
+//		last = first;
+//		while ( last <= to && !isNaN( x( last ) ) && !isNaN( y( last ) ) )
+//			++last;
+//		if ( first <= to )
+//			QwtPlotCurve::draw( painter, xMap, yMap, first, last - 1 );
+//	}
+//}
+//
+//
+//// internal processing
+//
+//void CGeneralizedCurve::ComputeRange()
+//{
+//	if ( mRangeComputed )
+//		return;
+//
+//	int first = 0;
+//	double minX, maxX, minY, maxY;
+//	minX = maxX = x( first );
+//	minY = maxY = y( first );
+//	for ( int i = first + 1; i < dataSize(); ++i )
+//	{
+//		const double xv = x( i );
+//		if ( xv < minX )
+//			minX = xv;
+//		if ( xv > maxX )
+//			maxX = xv;
+//		const double yv = y( i );
+//		if ( yv < minY )
+//			minY = yv;
+//		if ( yv > maxY )
+//			maxY = yv;
+//	}
+//
+//	mMinXValue = minX;
+//	mMaxXValue = maxX;
+//
+//	mMinYValue = minY;
+//	mMaxYValue = maxY;
+//
+//	mRangeComputed = true;
+//}
 
 
 
@@ -387,7 +471,7 @@ C2DPlotWidget::C2DPlotWidget( QWidget *parent )
 
 	setCanvasBackground( Qt::white );
 
-	QwtLegend *legend = AddLegend( RightLegend );		Q_UNUSED( legend );
+	AddLegend( RightLegend, true );
 
 	connect( &mTimer, SIGNAL( timeout() ), this, SLOT( ChangeFrame() ) );
 
@@ -548,7 +632,54 @@ bool C2DPlotWidget::Save2unsupported( C2DPlotWidget *p, const QString &path, con
 //static 
 bool C2DPlotWidget::Save2ps( C2DPlotWidget *p, const QString &path )
 {
-	return Save2unsupported( p, path, "ps" );
+	QPrinter printer;
+	//QPrinter printer(QPrinter::HighResolution);
+
+	QString format = "ps";
+	QString qpath = path;
+	SetFileExtension( qpath, format );
+
+//#if QT_VERSION < 0x040000
+	//printer.setOutputToFile(true);
+	printer.setOutputFileName( qpath );
+	printer.setOutputFormat( QPrinter::PostScriptFormat );
+	printer.setColorMode( QPrinter::Color );
+//#else
+//	printer.setOutputFileName("/tmp/bode.pdf");
+//#endif
+
+	QString docName = p->title().text();
+	if ( !docName.isEmpty() )
+	{
+		docName.replace( QRegExp( QString::fromLatin1( "\n" ) ), tr( " -- " ) );
+		printer.setDocName( docName );
+	}
+
+	printer.setCreator( "Brat v4.0.0" );
+	printer.setOrientation( QPrinter::Landscape );
+
+//#if QT_VERSION >= 0x040000
+//	QPrintDialog dialog( &printer );
+//	if ( dialog.exec() )
+//	{
+//#else
+	//if (printer.setup())
+	{
+//#endif
+		QwtPlotPrintFilter filter;
+		if ( printer.colorMode() == QPrinter::GrayScale )
+		{
+			int options = QwtPlotPrintFilter::PrintAll;
+			options &= ~QwtPlotPrintFilter::PrintBackground;
+			options |= QwtPlotPrintFilter::PrintFrameWithScales;
+			filter.setOptions( options );
+		}
+		p->print( printer, filter );
+	}
+
+	return true;
+
+	//return Save2unsupported( p, path, "ps" );
 }
 //static 
 bool C2DPlotWidget::Save2gif( C2DPlotWidget *p, const QString &path )
@@ -630,6 +761,10 @@ bool C2DPlotWidget::Save2Image( const QString &path, const QString &format, cons
 //	Save2All( this, path );
 //#endif
 
+	QString f = format.toLower();
+	if ( f == "ps" )
+		return Save2ps( this, path );
+
 	QPixmap pix = QPixmap::grabWidget( this );
 	if ( pix.isNull() )
 	{
@@ -637,7 +772,6 @@ bool C2DPlotWidget::Save2Image( const QString &path, const QString &format, cons
 	}
 
 	QString qpath = path;
-	QString f = format.toLower();
 	SetFileExtension( qpath, extension );
 	return pix.save( qpath, q2a( format ).c_str() );
 }
@@ -970,21 +1104,21 @@ void C2DPlotWidget::SetLogScale(int axisId, bool _isLog)
 /////////////////////////////////////////////////////////////////////////////////////////
 
 
-QwtPlotSpectrogram* C2DPlotWidget::PushRaster( const std::string &title, const C3DPlotInfo &maps, double min_contour, double max_contour, size_t ncontours, const QwtColorMap &color_map )
+QwtPlotSpectrogram* C2DPlotWidget::PushRaster( const std::string &title, const CZFXYValues &maps, double min_contour, double max_contour, size_t ncontours, const QwtColorMap &color_map )
 {
     assert__( mCurves.size() == 0 );
 
     mSpectrograms.push_back( new CBratSpectrogram );
 	mCurrentSpectrogram = mSpectrograms.back();
 
-	const C3DPlotInfo::value_type &map = maps[ 0 ];	//the index parameter is the index of recently created spectrogram, not the maps index
+	const CZFXYValues::value_type &map = maps[ 0 ];	//the index parameter is the index of recently created spectrogram, not the maps index
     mCurrentSpectrogram->setData( maps );
 	mCurrentSpectrogram->attach( this );
     //QVector<double> vmatrix;
     //for ( double d : map.mValues )
     //    vmatrix.append(d);
-    //const_cast<C3DPlotInfo&>( maps ).setValueMatrix( vmatrix, 1 );
-	//const_cast<C3DPlotInfo&>( maps ).setBoundingRect( QwtDoubleRect( 0, 0, 10*(map.mMaxX - map.mMinX), 10*(map.mMaxY - map.mMinY )) );
+    //const_cast<CZFXYValues&>( maps ).setValueMatrix( vmatrix, 1 );
+	//const_cast<CZFXYValues&>( maps ).setBoundingRect( QwtDoubleRect( 0, 0, 10*(map.mMaxX - map.mMinX), 10*(map.mMaxY - map.mMinY )) );
 
 	EnableAxisY2();
 	SetPlotAxisScales( (int)mSpectrograms.size() - 1, map.mMinX, map.mMaxX, map.mMinY, map.mMaxY, mCurrentSpectrogram->data().range().minValue(), mCurrentSpectrogram->data().range().maxValue() );
@@ -1005,29 +1139,15 @@ QwtPlotSpectrogram* C2DPlotWidget::PushRaster( const std::string &title, const C
 
 	// Contour levels
 
-	if ( ncontours > 0 && !isDefaultValue( ncontours ) )
-	{
-		if ( !isDefaultValue( min_contour ) && !isDefaultValue( max_contour ) )
-		{
-			QwtValueList contour_levels;
-			double step = ( max_contour - min_contour ) / ncontours;						assert__( step > 0 );
-			if ( step > 0 )
-				for ( double level = map.mMinHeightValue; level < max_contour; level += step )
-				{
-					contour_levels += level;
-				}
-			mCurrentSpectrogram->setContourLevels( contour_levels );
-		}
-	}
-
-	plotLayout()->setAlignCanvasToScales( true );
-	replot();
+	SetNumberOfContours( min_contour, max_contour, ncontours );
 	
     // Avoid jumping when labels with more/less digits appear/disappear when scrolling vertically
 
 	const QFontMetrics fm( axisWidget( QwtPlot::yLeft )->font() );
     QwtScaleDraw *sd = axisScaleDraw( QwtPlot::yLeft );
 	sd->setMinimumExtent( fm.width( "100.00" ) );
+
+	replot();
 
 	return mCurrentSpectrogram;
 }
@@ -1099,6 +1219,35 @@ void C2DPlotWidget::ShowSolidColor( int index, bool show )
 
 	mSpectrograms[index]->setDisplayMode( QwtPlotSpectrogram::ImageMode, show );
 	mSpectrograms[index]->setDefaultContourPen( show ? QPen() : QPen( Qt::NoPen ) );
+}
+
+
+int C2DPlotWidget::NumberOfContours() const
+{
+	assert__( mCurrentSpectrogram );
+
+	return mCurrentSpectrogram->contourLevels().size();
+}
+void C2DPlotWidget::SetNumberOfContours( double min_contour, double max_contour, size_t ncontours )
+{
+	assert__( mCurrentSpectrogram );
+
+	if ( !isDefaultValue( ncontours ) )
+	{
+		if ( !isDefaultValue( min_contour ) && !isDefaultValue( max_contour ) )
+		{
+			QwtValueList contour_levels;
+			double step = ( max_contour - min_contour ) / ncontours;						assert__( step > 0 );
+			if ( step > 0 )
+				for ( double level = min_contour; level < max_contour; level += step )
+				{
+					contour_levels += level;
+				}
+			mCurrentSpectrogram->setContourLevels( contour_levels );
+			plotLayout()->setAlignCanvasToScales( true );
+			replot();
+		}
+	}
 }
 
 
@@ -1206,7 +1355,7 @@ CHistogram* C2DPlotWidget::CreateHistogram( const std::string &title, QColor col
 
 
 
-CHistogram* C2DPlotWidget::AddHistogram( const std::string &title, QColor color, const CQwtArrayPlotData *data, double &max_freq, int bins )
+CHistogram* C2DPlotWidget::AddHistogram( const std::string &title, QColor color, const CYFXValues *data, double &max_freq, int bins )
 {
 	assert__( mSpectrograms.size() == 0 && mCurves.size() == 0 );
 
@@ -1228,7 +1377,7 @@ CHistogram* C2DPlotWidget::AddHistogram( const std::string &title, QColor color,
 	return h;
 }
 
-CHistogram* C2DPlotWidget::PushHistogram( const std::string &title, QColor color, const C3DPlotInfo *data, double &max_freq, int bins )
+CHistogram* C2DPlotWidget::PushHistogram( const std::string &title, QColor color, const CZFXYValues *data, double &max_freq, int bins )
 {
 	assert__( mSpectrograms.size() == 0 && mCurves.size() == 0 );
 
@@ -1278,9 +1427,25 @@ void C2DPlotWidget::SetCurrentHistogram( int index )
 //									Curves
 /////////////////////////////////////////////////////////////////////////////////////////
 
+void C2DPlotWidget::ShowFitCurve( QwtPlotItem *item, bool on )
+{
+	if ( dynamic_cast< CFitCurve* >( item ) )
+		item->setVisible( on );
+	else
+	if (!on)
+	{
+		QWidget *w = legend()->find( item );
+		if ( w && w->inherits( "QwtLegendItem" ) )
+			( (QwtLegendItem *)w )->setChecked( true );
+	}
+
+	replot();
+}
 
 
-QwtPlotCurve* C2DPlotWidget::AddCurve( const std::string &title, QColor color, const CQwtArrayPlotData *data )	//data = nullptr 
+
+
+QwtPlotCurve* C2DPlotWidget::AddCurve( const std::string &title, QColor color, const CYFXValues *data )	//data = nullptr 
 {
 	assert__( mSpectrograms.size() == 0 && mHistograms.size() == 0 );
 
@@ -1289,29 +1454,28 @@ QwtPlotCurve* C2DPlotWidget::AddCurve( const std::string &title, QColor color, c
     c->setRenderHint( QwtPlotItem::RenderAntialiased );
     c->setPen( QPen( color ) );
     c->attach( this );
+	c->setVisible( true );
+	QwtLegendItem* curve_legend = (QwtLegendItem*)mLegend->find( c );	//label->setItemMode(QwtLegend::CheckableItem);
+	curve_legend->setChecked(true);
+
 
 	//Linear Regression
 
 	CQwtFitData *cfit_data = new CQwtFitData( *data );
-    QwtPlotCurve *cfit = new QwtPlotCurve( ( "fit - " + title ).c_str() );
-	cfit->setData( *cfit_data );
-    cfit->setPen( QPen( QColor( Qt::darkCyan ) ) );
-    cfit->attach( this );
-
-	AddMarker( "y = " + n2s<std::string>( cfit_data->yintersect() ) + " + " + n2s<std::string>( cfit_data->slope() ) + " x", 
-		Qt::AlignRight, Qt::Horizontal, QwtPlotMarker::NoLine, cfit_data->yintersect() );
-
-	//QwtText titl( "Plot Title" );
- //   titl.setRenderFlags( Qt::AlignHCenter | Qt::AlignTop );
-
- //   QFont font;
- //   font.setBold( true );
- //   titl.setFont( font );
-
- //   QwtPlotTextLabel *titleItem = new QwtPlotTextLabel();
- //   titleItem->setText( titl );
- //   titleItem->attach( this );
-
+	if ( !cfit_data->viable() )
+	{
+		delete cfit_data;
+	}
+	else
+	{
+		CFitCurve *cfit = new CFitCurve( cfit_data, ( "linear fit - " + n2s<std::string>( mCurves.size() ) ).c_str() );
+		cfit->setData( *cfit_data );
+		cfit->setPen( QPen( QColor( Qt::darkCyan ) ) );
+		cfit->attach( this );
+		cfit->setVisible( false );
+		QwtLegendItem *fit_legend = (QwtLegendItem*)mLegend->find( cfit );		//label->setItemMode(QwtLegend::CheckableItem);
+		fit_legend->setToolTip( ( title + " - linear regression\n" + "y = " + n2s<std::string>( cfit_data->yintersect() ) + " + " + n2s<std::string>( cfit_data->slope() ) + " x" ).c_str() );
+	}
 
 	return c;
 }
@@ -1752,28 +1916,16 @@ QwtPlotPanner* C2DPlotWidget::AddPanner()
 /////////////////////////////////////////////////////////////////////////////////////////
 
 
-QwtLegend* C2DPlotWidget::AddLegend( LegendPosition pos, bool checkable )		//checkable = false 
+void C2DPlotWidget::AddLegend( LegendPosition pos, bool checkable )		//checkable = false 
 {
-	QwtLegend *legend = new QwtLegend;
-    insertLegend( legend, pos );
-	legend->setDisplayPolicy( QwtLegend::AutoIdentifier, 0 );
+	mLegend  = new QwtLegend;
+    insertLegend( mLegend , pos );
+	mLegend ->setDisplayPolicy( QwtLegend::AutoIdentifier, 0 );
 	if ( checkable )
 	{
-		legend->setItemMode( QwtLegend::CheckableItem );
-		connect( this, SIGNAL( legendChecked( QwtPlotItem *, bool ) ), SLOT( ShowCurve( QwtPlotItem *, bool ) ) );
+		mLegend ->setItemMode( QwtLegend::CheckableItem );
+		connect( this, SIGNAL( legendChecked( QwtPlotItem *, bool ) ), SLOT( ShowFitCurve( QwtPlotItem *, bool ) ) );
 	}
-	return legend;
-}
-
-
-void C2DPlotWidget::ShowCurve( QwtPlotItem *item, bool on )
-{
-	item->setVisible( on );
-	//QWidget *w = legend()->find( item );
-	//if ( w && w->inherits( "QwtLegendItem" ) )
-	//	( (QwtLegendItem *)w )->setChecked( on );
-
-	replot();
 }
 
 

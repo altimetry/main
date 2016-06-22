@@ -40,8 +40,13 @@ const std::string ENTRY_TITLE = "Title";
 const std::string ENTRY_INTERVAL = "Interval";
 const std::string ENTRY_STEP = "Step";
 const std::string ENTRY_FILTER = "Filter";
+
 const std::string ENTRY_MINVALUE = "MinValue";
 const std::string ENTRY_MAXVALUE = "MaxValue";
+
+const std::string ENTRY_CURRENT_MINVALUE = "CurrentMinValue";
+const std::string ENTRY_CURRENT_MAXVALUE = "CurrentMaxValue";
+
 const std::string ENTRY_MINXVALUE = "MinXValue";
 const std::string ENTRY_MAXXVALUE = "MaxXValue";
 const std::string ENTRY_MINYVALUE = "MinYValue";

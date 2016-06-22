@@ -17,7 +17,7 @@ project(BRAT)
 
 set(BRAT_MAJOR_VERSION "4")
 set(BRAT_MINOR_VERSION "0")
-set(BRAT_REVISION_VERSION "0-rc3")
+set(BRAT_REVISION_VERSION "0-beta")
 set(BRAT_VERSION "${BRAT_MAJOR_VERSION}.${BRAT_MINOR_VERSION}.${BRAT_REVISION_VERSION}")
 
 message(STATUS "System type: ${CMAKE_SYSTEM_NAME}")
@@ -1311,6 +1311,7 @@ set(LIBBRATHL_CXX_SOURCES
   libbrathl/ProductRiverLake.cpp
   libbrathl/ProductTopex.cpp
   libbrathl/ProductTopexSDR.cpp
+  libbrathl/ProductReaper.cpp
   libbrathl/Tools.cpp
   libbrathl/TreeField.cpp
   libbrathl/Unit.cpp
@@ -2178,7 +2179,11 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/DataModels/PlotData/Contour/BratContour.cpp
 		new-gui/brat/DataModels/PlotData/Contour/ListContour.cpp
 		new-gui/brat/GUI/ControlPanels/Dialogs/DataDisplayPropertiesDialog.cpp
-		new-gui/brat/GUI/ControlPanels/ColorButton.cpp		
+		new-gui/brat/GUI/ControlPanels/ColorButton.cpp
+		new-gui/brat/GUI/DisplayWidgets/SublayersDialog.cpp
+		new-gui/brat/GUI/DisplayWidgets/MapTip.cpp
+		new-gui/brat/GUI/OperationViewsDialog.cpp
+		new-gui/brat/GUI/ControlPanels/Dialogs/SaveAsFormulaDialog.cpp
 	)
 
 		
@@ -2286,6 +2291,10 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/DataModels/PlotData/Contour/ListContour.h
 		new-gui/brat/GUI/ControlPanels/Dialogs/DataDisplayPropertiesDialog.h
 		new-gui/brat/GUI/ControlPanels/ColorButton.h
+		new-gui/brat/GUI/DisplayWidgets/SublayersDialog.h
+		new-gui/brat/GUI/DisplayWidgets/MapTip.h
+		new-gui/brat/GUI/OperationViewsDialog.h
+		new-gui/brat/GUI/ControlPanels/Dialogs/SaveAsFormulaDialog.h
 	)
 
 
@@ -2757,10 +2766,13 @@ if(APPLE)
     COMMAND mkdir -p ${BDIST_ROOT}/examples/matlab
     COMMAND cp ${BRAT_SOURCE_DIR}/libbrathl/brathl_matlab/examples.m ${BDIST_ROOT}/examples/matlab
 
+    COMMAND cp ${BRAT_SOURCE_DIR}/INSTALL ${BDIST_PKGDIR}
     COMMAND cp ${BRAT_SOURCE_DIR}/README ${BDIST_PKGDIR}
     COMMAND cp ${BRAT_SOURCE_DIR}/COPYING ${BDIST_PKGDIR}
     COMMAND cp ${BRAT_SOURCE_DIR}/COPYING.LESSER ${BDIST_PKGDIR}
-    WORKING_DIRECTORY ${BRAT_SOURCE_DIR}
+
+	COMMAND cp -R ${BRAT_SOURCE_DIR}/externals/OsGeo4Mac/lib ${BDIST_PKGDIR}/lib
+	WORKING_DIRECTORY ${BRAT_SOURCE_DIR}
     )
 
   set(BDIST_DMGFILE "${BDIST_PKGDIR}.dmg")

@@ -553,12 +553,63 @@ void CGlobeWidget::Home()
 
 bool CGlobeWidget::Save2Image( const QString &path, const QString &format, const QString &extension )
 {
-	const bool with_alpha = true;
-	QImage img = mGlobeViewerWidget->grabFrameBuffer( with_alpha );
+	while ( mCanvas->isDrawing() && Rendering() )			//this is very uncertain...
+		qApp->processEvents();
+
+	static const bool with_alpha = true;
 
 	QString qpath = path;
 	QString f = format.toLower();
 	SetFileExtension( qpath, extension );
+	QImage img = mGlobeViewerWidget->grabFrameBuffer( with_alpha );
+	if ( f == "ps" )
+	{
+		//QPrinter printer( QPrinter::HighResolution );
+		QPrinter printer;
+		printer.setOutputFileName( qpath );
+		printer.setOutputFormat( QPrinter::PostScriptFormat );
+		printer.setColorMode( QPrinter::Color );
+		printer.setPaperSize( QSizeF( 80, 80 ), QPrinter::Millimeter );
+		//qreal xmargin = contentRect.width()*0.01;
+		//qreal ymargin = contentRect.height()*0.01;
+		//printer.setPaperSize( 10 * contentRect.size()*1.02, QPrinter::DevicePixel );
+		//printer.setPageMargins( xmargin, ymargin, xmargin, ymargin, QPrinter::DevicePixel );
+
+		QString docName = windowTitle();
+		if ( !docName.isEmpty() )
+		{
+			docName.replace( QRegExp( QString::fromLatin1( "\n" ) ), tr( " -- " ) );
+			printer.setDocName( docName );
+		}
+
+		printer.setCreator( "Brat v4.0.0" );
+		printer.setOrientation( QPrinter::Landscape );
+
+		QPainter painter( &printer );
+
+		//double scale = printer.width() / 80;
+		//painter.setTransform( QTransform( scale, 0, 0, 0, scale, 0, 0, 0, 1.0 ) );
+
+		//// Draw the image
+		//QRectF src( 0, 0, img.width(), img.height() );
+		//QRectF dst( 0, 0, img.width(), img.height() );
+		//painter.drawImage( dst, img, src );
+
+		//painter.begin( &printer );
+		//painter.drawPixmap( 0, 0, -1, -1, img );	//pixmap.save( qpath, "SVG" );		//fails
+		//painter.drawImage( 0, 0, img );	//pixmap.save( qpath, "SVG" );		//fails
+
+		//QPrintDialog dialog( &printer );
+		//dialog.exec();
+
+
+		painter.drawPixmap( 0, 0, -1, -1, QPixmap::fromImage( img ) );	//pixmap.save( qpath, "SVG" );		//fails
+
+		//mGlobeViewerWidget->render( &painter/*, QPointF( 0, 0 ), contentRect */ );
+		return true;
+		//return painter.end();
+	}
+
 	return img.save( qpath, q2a( format ).c_str(), 100 );	//int quality = -1
 }
 

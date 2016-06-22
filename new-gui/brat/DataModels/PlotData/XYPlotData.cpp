@@ -506,6 +506,7 @@ using namespace brathl;
 
 
 CXYPlotProperties::CXYPlotProperties( CXYPlotData* parent )
+	: base_t()
 {
 	m_focus = false;
 
@@ -517,8 +518,6 @@ CXYPlotProperties::CXYPlotProperties( CXYPlotData* parent )
 	SetLineStipple( displayFULL );
 	SetOpacityFactor( 1 / GetOpacity() );
 #endif
-
-	SetLineWidthFactor( 1.5 );
 
 	SetLineWidth( 0.8 );
 
@@ -572,23 +571,21 @@ CXYPlotProperties::CXYPlotProperties( CXYPlotData* parent )
 	SetPointGlyph( displayCIRCLE_GLYPH );
 	SetFilledPoint( true );
 
-	SetLineWidthFactor( 1.5 );
-
 	SetHide( false );
 
 }
 
 //----------------------------------------
-CXYPlotProperties::CXYPlotProperties(CXYPlotProperties& p)
+CXYPlotProperties::CXYPlotProperties(CXYPlotProperties& o)
 {
   m_focus = false;
-  this->Copy(p);
+  this->Copy(o);
 }
 
 //----------------------------------------
-const CXYPlotProperties& CXYPlotProperties::operator=( const CXYPlotProperties& p )
+const CXYPlotProperties& CXYPlotProperties::operator=( const CXYPlotProperties& o )
 {
-  this->Copy(p);
+  this->Copy(o);
   return *this;
 }
 
@@ -604,75 +601,75 @@ CXYPlotProperties::~CXYPlotProperties()
 #endif
 }
 //----------------------------------------
-void CXYPlotProperties::Copy( const CXYPlotProperties& p )
+void CXYPlotProperties::Copy( const CXYPlotProperties& o )
 {
-	SetParent( p.GetParent() );
+	SetParent( o.GetParent() );
 
 #if defined(BRAT_V3)
 	m_vtkProperty2D = vtkProperty2D::New();
 
-	SetLineStipple( p.GetLineStipple() );
-	SetLineWidth( p.GetLineWidth() );
-	SetOpacity( p.GetOpacity() );
+	SetLineStipple( o.GetLineStipple() );
+	SetLineWidth( o.GetLineWidth() );
+	SetOpacity( o.GetOpacity() );
 
 #endif
 
-	SetLineWidthFactor( p.GetLineWidthFactor() );
-	m_focus = p.GetFocus();
+	m_lineWidthFactor = o.m_lineWidthFactor;
+	m_focus = o.GetFocus();
 
-	SetLines( p.GetLines() );
-	SetPoints( p.GetPoints() );
+	SetLines( o.GetLines() );
+	SetPoints( o.GetPoints() );
 
-	SetPointSize( p.GetPointSize() );
+	SetPointSize( o.GetPointSize() );
 
-	SetXMax( p.GetXMax() );
-	SetYMax( p.GetYMax() );
+	SetXMax( o.GetXMax() );
+	SetYMax( o.GetYMax() );
 
-	SetXMin( p.GetXMin() );
-	SetYMin( p.GetYMin() );
+	SetXMin( o.GetXMin() );
+	SetYMin( o.GetYMin() );
 
-	SetXLog( p.GetXLog() );
-	SetYLog( p.GetYLog() );
+	SetXLog( o.GetXLog() );
+	SetYLog( o.GetYLog() );
 
-	SetShowAnimationToolbar( p.GetShowAnimationToolbar() );
-	SetShowPropertyPanel( p.GetShowPropertyPanel() );
+	SetShowAnimationToolbar( o.GetShowAnimationToolbar() );
+	SetShowPropertyPanel( o.GetShowPropertyPanel() );
 
-	SetLoop( p.GetLoop() );
+	SetLoop( o.GetLoop() );
 
-	SetNormalizeX( p.GetNormalizeX() );
-	SetNormalizeY( p.GetNormalizeY() );
+	SetNormalizeX( o.GetNormalizeX() );
+	SetNormalizeY( o.GetNormalizeY() );
 
-	SetFps( p.GetFps() );
+	SetFps( o.GetFps() );
 
-	SetXNumTicks( p.GetXNumTicks() );
-	SetYNumTicks( p.GetYNumTicks() );
+	SetXNumTicks( o.GetXNumTicks() );
+	SetYNumTicks( o.GetYNumTicks() );
 
-	SetXBase( p.GetXBase() );
-	SetYBase( p.GetYBase() );
+	SetXBase( o.GetXBase() );
+	SetYBase( o.GetYBase() );
 
-	SetColor( p.GetColor() );
+	SetColor( o.GetColor() );
 
-	SetTitle( p.GetTitle() );
-	SetName( p.GetName() );
-	SetXAxis( p.GetXAxis() );
-	SetXLabel( p.GetXLabel() );
-	SetYLabel( p.GetYLabel() );
+	SetTitle( o.GetTitle() );
+	m_name = o.m_name;
+	SetXAxis( o.GetXAxis() );
+	SetXLabel( o.GetXLabel() );
+	SetYLabel( o.GetYLabel() );
 
-	SetPointGlyph( p.GetPointGlyph() );
-	SetFilledPoint( p.GetFilledPoint() );
+	SetPointGlyph( o.GetPointGlyph() );
+	SetFilledPoint( o.GetFilledPoint() );
 
-	SetOpacityFactor( p.GetOpacityFactor() );
+	SetOpacityFactor( o.GetOpacityFactor() );
 
-	SetHide( p.GetHide() );
+	SetHide( o.GetHide() );
 
-	mColor = p.mColor;
-	mPointColor = p.mPointColor;
-	mOpacity = p.mOpacity;
-	mLineWidth = p.mLineWidth ;
+	mColor = o.mColor;
+	mPointColor = o.mPointColor;
+	mOpacity = o.mOpacity;
+	mLineWidth = o.mLineWidth ;
 
 #if !defined(BRAT_V3)
 
-	mStipplePattern = p.mStipplePattern;
+	mStipplePattern = o.mStipplePattern;
 #endif
 
 }
@@ -953,7 +950,7 @@ void CXYPlotProperties::SetYLog(bool value)
 void CXYPlotProperties::SetFocus( bool value )
 {
 
-	if ( ( m_focus == false ) && ( value == true ) )
+	if ( !m_focus && value )
 	{
 		m_focus = value;
 
@@ -961,7 +958,7 @@ void CXYPlotProperties::SetFocus( bool value )
 		SetLineWidth( GetLineWidth() * m_lineWidthFactor );
 #endif
 	}
-	else if ( ( m_focus == true ) && ( value == false ) )
+	else if ( m_focus && !value )
 	{
 		m_focus = value;
 
@@ -1060,6 +1057,8 @@ void CXYPlotProperties::SetColor( const CPlotColor& color )
 //-------------------------------------------------------------
 
 CXYPlotData::CXYPlotData( CPlot* plot, int32_t iField )
+	: base_t()
+	, mFieldName( plot->GetPlotField( iField )->m_name )
 {
 	m_plotProperty.SetParent( this );
 

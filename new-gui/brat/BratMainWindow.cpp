@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #include "stdafx.h"
 
 #include <osg/Version>
@@ -26,6 +43,7 @@
 #include "GUI/WorkspaceDialog.h"
 #include "GUI/WorkspaceElementsDialog.h"
 #include "GUI/WorkspaceViewsDialog.h"
+#include "GUI/OperationViewsDialog.h"
 #include "GUI/ActiveViewsDialog.h"
 #include "GUI/TabbedDock.h"
 #include "GUI/ControlPanels/DatasetBrowserControls.h"
@@ -334,6 +352,7 @@ void CBratMainWindow::ProcessMenu()
 	mActionMapTips = CMapWidget::CreateMapTipsAction( mMainToolsToolBar );
 	mMainToolsToolBar->insertAction( after, mActionMapTips );
 	mDesktopManager->Map()->ConnectParentMapTipsAction( mActionMapTips );
+	mActionMapTips->setChecked( true );
 
 	mSelectionButton = CMapWidget::CreateMapSelectionActions( mMainToolsToolBar, mActionSelectFeatures, mActionSelectPolygon, mActionDeselectAll );
 	mMainToolsToolBar->insertAction( after, mActionDeselectAll );
@@ -359,11 +378,13 @@ void CBratMainWindow::ProcessMenu()
 
     // Global Wiring
     //
+    connect( menu_Tools, SIGNAL(aboutToShow()), this, SLOT(UpdateToolsMenu()) );
     connect( menu_Window, SIGNAL(aboutToShow()), this, SLOT(UpdateWindowMenu()) );
 	connect( this, SIGNAL( WorkspaceChanged() ), this, SLOT( WorkspaceChangedUpdateUI() ) );
 
 #if !defined (DEBUG) && !defined(_DEBUG)
 	action_Test->setVisible( false );
+	action_One_Click->setVisible( false );			//TODO delete line when implemented
 #endif
 
 	LOG_TRACE( "Finished main menu processing." );
@@ -557,22 +578,8 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
 
 	//mDesktopManager->Map()->SetProjection( 1);
 
+
 	LOG_TRACE( "Finished main window construction." );
-}
-
-
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-//											Access
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-template< CBratMainWindow::ETabName INDEX >
-CBratMainWindow::TabType< INDEX >* CBratMainWindow::WorkingPanel()
-{
-    return dynamic_cast< TabType< INDEX >* >( mMainWorkingDock->TabWidget( INDEX ) );
 }
 
 
@@ -637,6 +644,12 @@ void CBratMainWindow::LoadCmdLineFiles()
 		if ( !args.empty() )
 			wkspc_dir = args[ 0 ];
 
+        // parameters for instant pot save
+        bool start_in_instant_plot_save_mode = mApp.OperatingInInstantPlotSaveMode();
+        std::string instant_display_name, instant_path;
+        bool instant_is_3d = false;                                             //defaults to 2D
+        CDisplayData::EImageExportType instant_type = CDisplayData::ePng;       //format defaults to png
+
 		// try to find out which workspace to load
 		//	- if one was passed in the command line, it takes precedence over the mLoadLastWorkspaceAtStartUp option
 		//	- if none was passed and LoadLastWorkspaceAtStartUp is false, invalidate the workspace string
@@ -650,6 +663,12 @@ void CBratMainWindow::LoadCmdLineFiles()
 			else
 				wkspc_dir.clear();
 		}
+        else    //a workspace was passed in the command line; check remaining arguments for a plot save
+        if ( start_in_instant_plot_save_mode )
+        {
+            start_in_instant_plot_save_mode =
+                    CheckInstantPlotSave( args, wkspc_dir, instant_display_name, instant_path, instant_is_3d, instant_type );
+        }
 
 		if ( wkspc_dir.isEmpty() )
 		{
@@ -672,6 +691,11 @@ void CBratMainWindow::LoadCmdLineFiles()
 
 				mMainWorkingDock->SelectTab( compute_last_page_reached() );
 				WorkingPanel<eOperations>()->SetAdvancedMode( mSettings.mAdvancedOperations );
+
+                if ( start_in_instant_plot_save_mode )
+                {
+                    StartInInstantPlotSaveMode( instant_display_name, instant_path, instant_is_3d, instant_type );
+                }
 			}
 		}
 	}
@@ -680,12 +704,104 @@ void CBratMainWindow::LoadCmdLineFiles()
 }
 
 
+// args[0] - workspace directory
+// args[1] - display name
+// args[2] - full file path; picture format will be taken from file extension
+// args[3] - "3" if a 3D image is required;
+//
+bool CBratMainWindow::CheckInstantPlotSave( const QStringList &args, const QString &wkspc_dir, std::string &display_name,
+                                            std::string &path, bool &is_3d, CDisplayData::EImageExportType &type )
+{
+	//try to infer if the user is attempting to plot without the GUI; failure here is not an error
+
+    if ( !IsDir( wkspc_dir ) )
+        return false;
+
+    if ( args.size() < 3 || args.size() > 4 )
+        return false;
+
+    display_name = q2a( args[ 1 ] );
+    path = q2a( args[ 2 ] );
+    is_3d = args.size() == 4 && args[ 3 ] == "3";
+
+	//from here on it is reasonable to assume that the user is attempting to plot without the GUI
+
+	std::string dir = GetDirectoryFromPath( path );
+	if ( !IsDir( dir ) )
+	{
+		LOG_FATAL( "Output directory must exist." );
+		return false;
+	}
+
+    std::string extension = GetLastExtensionFromPath( path );
+    type = CDisplayData::String2ImageType( extension );
+	bool valid_type = type != CDisplayData::EImageExportType_size;
+	if ( !valid_type )
+		LOG_FATAL( "Extension type not supported." );
+
+    return valid_type;
+}
+
+
+void CBratMainWindow::StartInInstantPlotSaveMode( const std::string &display_name, const std::string &path, bool is_3d, CDisplayData::EImageExportType type)
+{
+    LOG_TRACE( "Starting in instant plot save mode." );
+
+    CDisplay *d = mModel.Workspace< CWorkspaceDisplay >()->GetDisplay( display_name );
+    if ( !d )
+    {
+        LOG_FATAL( "Could not find view '" + display_name + "' in workspace." + mModel.RootWorkspace()->GetName() );
+    }
+    else
+    if ( is_3d && d->IsYFXType() )
+    {
+        LOG_FATAL( "View '" + display_name + "' does not support 3D format." );
+        //qDebug() << "View '" + t2q( display_name ) + "' does not support 3D format.";
+    }
+    else
+    {
+        QWidget *w = OpenDisplay( d, false );
+        CSubWindow *sub_window = nullptr;
+        CAbstractDisplayEditor *ed = nullptr;
+        if ( w )
+        {
+            sub_window = dynamic_cast<CSubWindow*>( w );
+            if ( sub_window )
+                ed = dynamic_cast<CAbstractDisplayEditor*>( sub_window->Widget() );
+        }
+        if ( !w || !sub_window || !ed )
+        {
+            LOG_FATAL( "Could not create view." );
+        }
+		else
+		{
+			if ( is_3d )
+			{
+				ed->Handle3D( true );
+				if ( d->IsZLatLonType() )
+					mApp.processEvents();
+			}
+
+			ed->Export2Image( !is_3d, is_3d, path, path, type );
+			//w->setVisible( false );
+		}
+    }
+
+    LOG_TRACE( "Exiting from n instant plot save mode." );
+
+	mDesktopManager->CloseAllSubWindows();
+	//exit( 0 );
+    StopDisplayMode();//                    abort();
+}
+
+
 void CBratMainWindow::StopDisplayMode()
 {
-	assert__( mApp.OperatingInDisplayMode() );
+    assert__( mApp.OperatingInDisplayMode() || mApp.OperatingInInstantPlotSaveMode() );
 
 	CActionInfo::TriggerAction( eAction_Exit );
 }
+
 
 bool CBratMainWindow::StartDisplayMode()
 {
@@ -784,6 +900,15 @@ void CBratMainWindow::closeEvent( QCloseEvent *event )
 		"If you exit they will be terminated now without finishing and information can be lost.\n"
 		"Do you still want to exit?";
 
+
+    if ( mApp.OperatingInDisplayMode() || mApp.OperatingInInstantPlotSaveMode() )
+    {
+		mDesktopManager->CloseAllSubWindows();
+        event->accept();
+        return;
+    }
+
+
 	if ( !mProcessesTable->Empty() && !SimpleQuestion( processes_question ) )
 	{
 		event->ignore();
@@ -829,6 +954,18 @@ CBratMainWindow::~CBratMainWindow()
 
 
 
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//											Access
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+template< CBratMainWindow::ETabName INDEX >
+CBratMainWindow::TabType< INDEX >* CBratMainWindow::WorkingPanel()
+{
+    return dynamic_cast< TabType< INDEX >* >( mMainWorkingDock->TabWidget( INDEX ) );
+}
 
 
 /////////////////////////////////////////////////////////////////////////
@@ -980,14 +1117,6 @@ void CBratMainWindow::on_action_Save_triggered()
 }
 
 
-void CBratMainWindow::on_action_Save_As_triggered()		//Save As implies (better, would imply) moving a directory...
-{
-    BRAT_NOT_IMPLEMENTED
-    //if (activeTextEditor())
-    //    activeTextEditor()->saveAs();
-}
-
-
 void CBratMainWindow::on_action_Import_Workspace_triggered()
 {
     static QString last_path = t2q( mSettings.BratPaths().WorkspacesPath() );
@@ -1100,11 +1229,6 @@ void CBratMainWindow::on_action_Refresh_Map_triggered()
 }
 
 
-void CBratMainWindow::on_action_Graphic_Settings_triggered()
-{
-	BRAT_NOT_IMPLEMENTED
-}
-
 void CBratMainWindow::on_action_Satellite_Tracks_toggled( bool checked )
 {
 	WorkingPanel< eFilter >()->SetAutoSatelliteTrack( checked );
@@ -1155,6 +1279,46 @@ void CBratMainWindow::on_action_Workspace_Tree_triggered()
 }
 
 
+QWidget* CBratMainWindow::OpenDisplay( CDisplay *display, bool maps_as_plots )
+{
+	return mDesktopManager->AddSubWindow( 
+		
+		[this, &maps_as_plots, &display]() -> QWidget*
+			{
+				auto v = display->GetOperations();					assert__( v.size() > 0 );
+
+				if ( maps_as_plots || !display->IsZLatLonType() )
+				{
+					return new CPlotEditor( &mModel, v[ 0 ], display->GetName() );
+				}
+				else
+				{
+					return new CMapEditor( &mModel, v[ 0 ], display->GetName() );
+				}
+			}		
+		);
+}
+
+
+void CBratMainWindow::on_action_Operation_Views_triggered()
+{
+	COperation *operation = WorkingPanel< eOperations >()->CurrentOperation();
+	if ( !operation )
+		operation = WorkingPanel< eOperations >()->QuickOperation();
+
+	COperationViewsDialog dlg( this, *operation, mModel );
+
+	if ( dlg.exec() == QDialog::Accepted )
+	{
+		auto *display = dlg.SelectedDisplay();
+		if ( !display )
+			return;
+
+		OpenDisplay( display, dlg.DisplayMapsAsPlots() );
+	}
+}
+
+
 void CBratMainWindow::on_action_Launch_Scheduler_triggered()
 {
 	WorkingPanel<eOperations>()->HandleLaunchScheduler();
@@ -1166,6 +1330,16 @@ void CBratMainWindow::on_action_Options_triggered()
     CApplicationSettingsDlg dlg( mSettings, this );
 	if ( dlg.exec() == QDialog::Accepted )
 		emit SettingsUpdated();
+}
+
+
+void CBratMainWindow::UpdateToolsMenu()
+{
+	COperation *operation = WorkingPanel< eOperations >()->CurrentOperation();
+	if ( !operation )
+		operation = WorkingPanel< eOperations >()->QuickOperation();
+
+	action_Operation_Views->setEnabled( operation && mModel.OperationDisplays( operation->GetName() ).size() > 0 );
 }
 
 
@@ -1189,23 +1363,7 @@ void CBratMainWindow::on_action_Open_View_triggered()
 	if ( dlg.exec() == QDialog::Accepted )
 	{
 		auto *display = dlg.SelectedDisplay();				assert__( display );
-		const bool maps_as_plots = dlg.DisplayMapsAsPlots();
-		auto v = display->GetOperations();					assert__( v.size() > 0 );
-		CAbstractDisplayEditor *ed = nullptr;
-
-		if ( maps_as_plots || !display->IsZLatLonType() )
-		{
-			ed = new CPlotEditor( &mModel, v[ 0 ], display->GetName() );
-		}
-		else
-		{
-			ed = new CMapEditor( &mModel, v[ 0 ], display->GetName() );
-		}
-
-		assert__( ed != nullptr );
-
-		auto subWindow = mDesktopManager->AddSubWindow( ed );
-		subWindow->show();
+		OpenDisplay( display, dlg.DisplayMapsAsPlots() );
 	}
 }
 
@@ -1213,6 +1371,7 @@ void CBratMainWindow::on_action_Open_View_triggered()
 //////////////////////////////////////////
 //NOTE: Close All connected in constructor
 //////////////////////////////////////////
+
 
 void CBratMainWindow::UpdateWindowMenu()
 {
@@ -1422,13 +1581,14 @@ void CBratMainWindow::WorkspaceChangedUpdateUI()
 	CActionInfo::UpdateActionsState( {
 
 		eAction_Save,
-		eAction_Save_As,
 		eAction_Import_Workspace,
 		eAction_Rename_Workspace,
 		eAction_Delete_Workspace,
 
 		eAction_One_Click,
 		eAction_Workspace_Tree,
+
+		eAction_Operation_Views,
 
 		eAction_Views_List,
 		eAction_Close_All,
@@ -1469,15 +1629,14 @@ void CBratMainWindow::HandleSyncProcessExecution( bool executing )
 		eAction_New,
 		eAction_CloseWorkspace,
 		eAction_Save,
-		eAction_Save_As,
 		eAction_Import_Workspace,
 		eAction_Rename_Workspace,
 		eAction_Delete_Workspace,
 
-		eAction_Options,
-
 		eAction_One_Click,
 		eAction_Workspace_Tree,
+		eAction_Operation_Views,
+		eAction_Options,
 
 		eAction_Views_List,
 		eAction_Close_All,

@@ -52,8 +52,6 @@ public:
 	std::string IdToName( uint32_t id );
 	ETypeDisp NameToId( const std::string& name );
 
-	//void NamesToArrayString( wxArrayString& array );
-
 	std::string Enum() const;
 };
 

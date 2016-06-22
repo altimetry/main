@@ -160,6 +160,8 @@ public:
 	std::vector<const CDisplay*> OperationDisplays( const std::string &name ) const;
 
 	std::vector<CDisplay*> OperationDisplays( const std::string &name );
+
+	bool DeleteOperationDisplays( const std::string &name );
 };
 
 

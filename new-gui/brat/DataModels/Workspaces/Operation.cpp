@@ -616,17 +616,11 @@ COperation* COperation::Copy( const COperation &o, CWorkspaceOperation *wkso, CW
 	new_op->SetRecord( o.m_record );
 	new_op->SetProduct( o.m_product );
 
-	if ( o.m_select != nullptr )
-	{
-		if ( new_op->m_select != nullptr )
-		{
-			*new_op->m_select = *o.m_select;
-		}
-		else
-		{
-			new_op->m_select = new CFormula( *o.m_select );
-		}
-	}
+
+	assert__( new_op->mSelectionCriteria && o.mSelectionCriteria );
+
+	*new_op->mSelectionCriteria = *o.mSelectionCriteria;
+
 
 	new_op->m_formulas = o.m_formulas;
 
@@ -668,9 +662,9 @@ void COperation::Clear()
 	RemoveFilter();					//makes SetDataset
 	SetDataset();
 	m_record.clear();
-	delete m_select;
-	m_select = new CFormula( ENTRY_SELECT, false );
-	m_select->SetFieldType( CMapTypeField::eTypeOpAsSelect );
+
+	CreateSelectionCriteria();
+
 	m_formulas.clear();
 	m_type = CMapTypeOp::eTypeOpYFX;
 	m_dataMode = CMapDataMode::GetInstance().GetDefault();
@@ -698,7 +692,7 @@ void COperation::Clear()
 bool COperation::IsSelect( const CFormula* value ) const
 {
 	// if same pointer --> return
-	return m_select == value;
+	return mSelectionCriteria == value;
 }
 //----------------------------------------
 bool COperation::IsZFXY() const
@@ -735,13 +729,15 @@ bool COperation::IsMap() const
 //----------------------------------------
 void COperation::SetSelect( CFormula* value )
 {
+	//assert__( value );	//v3 implementation assumed it:
+	//	apparently, cleaning a selection criteria did not use this function but instead:
+	//		mSelectionCriteria->SetDescription( "" );
+
 	// if same pointer --> return
 	if ( IsSelect( value ) )
 		return;
 
-	delete m_select;
-	m_select = value;
-	m_select->SetName( ENTRY_SELECT );
+	CreateSelectionCriteria( value );
 }
 
 //----------------------------------------
@@ -1021,7 +1017,8 @@ CFormula* COperation::NewUserFormula( std::string &error_msg, CField* field, CMa
   return formula;
 }
 //----------------------------------------
-CFormula* COperation::NewUserFormula( std::string &error_msg, const std::string& name, CMapTypeField::ETypeField typeField, const std::string& strUnit, bool addToMap, const CProduct* product )
+CFormula* COperation::NewUserFormula( std::string &error_msg, const std::string& name, CMapTypeField::ETypeField typeField, const std::string& strUnit, 
+	bool addToMap, const CProduct* product )	//name = "", CMapTypeField::ETypeField typeField = CMapTypeField::eTypeOpAsField, const std::string& strUnit = "", bool addToMap = true, const CProduct *product = nullptr );
 {
 	bool bOk = true;
 
@@ -1090,7 +1087,7 @@ bool COperation::DeleteFormula( const std::string& name )
 	}
 	else if ( COperation::IsSelect( name ) )
 	{
-		m_select->SetDescription( "" );
+		mSelectionCriteria->SetDescription( "" );
 		bOk = true;
 	}
 
@@ -1139,13 +1136,55 @@ size_t COperation::GetFormulaCountDataFields()
 //----------------------------------------
 std::string COperation::GetSelectName() const
 {
-	return m_select ? m_select->GetName() : "";
+	assert__( mSelectionCriteria );
+
+	return mSelectionCriteria->GetName();
 }
 //----------------------------------------
 std::string COperation::GetSelectDescription() const
 {
-	return m_select ? m_select->GetDescription() : "";
+	assert__( mSelectionCriteria );
+
+	return mSelectionCriteria->GetDescription();
 }
+
+//v4: formerly static void CDisplay::GetDisplayType( const COperation* operation, CUIntArray& displayTypes, CInternalFiles** pf = nullptr );
+//
+std::vector< CMapTypeDisp::ETypeDisp > COperation::GetDisplayTypes( CInternalFiles** pf ) const		//CInternalFiles** pf = nullptr 
+{
+	std::vector< CMapTypeDisp::ETypeDisp > types;
+
+	CInternalFiles* f = CInternalFiles::Create( GetOutputPath(), true, false );
+
+	if ( CInternalFiles::IsYFXFile( f ) )
+	{
+		types.push_back( CMapTypeDisp::eTypeDispYFX );
+	}
+
+	if ( CInternalFiles::IsZFLatLonFile( f ) )
+	{
+		types.push_back( CMapTypeDisp::eTypeDispZFLatLon );
+	}
+
+	if ( CInternalFiles::IsZFXYFile( f ) )
+	{
+		types.push_back( CMapTypeDisp::eTypeDispZFXY );
+	}
+
+	if ( pf == NULL )
+	{
+		delete f;
+		f = NULL;
+	}
+	else
+	{
+		*pf = f;
+	}
+
+	return types;
+}
+
+
 //----------------------------------------
 bool COperation::SaveConfig( CWorkspaceSettings *config, const CWorkspaceOperation *wks ) const
 {
@@ -1888,14 +1927,14 @@ bool COperation::Control( CWorkspaceFormula *wks, std::string& msg, const CStrin
 	}
 
 
-	bOk = m_select->CheckExpression( wks, msg, m_record, aliases, m_product );
+	bOk = mSelectionCriteria->CheckExpression( wks, msg, m_record, aliases, m_product );
 	if ( !bOk )
 	{
 		errorCount++;
 	}
 	else
 	{
-		bOk = ControlDimensions( m_select, msg, aliases );
+		bOk = ControlDimensions( mSelectionCriteria, msg, aliases );
 		if ( !bOk )
 		{
 			errorCount++;

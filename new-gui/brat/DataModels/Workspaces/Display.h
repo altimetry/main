@@ -27,12 +27,8 @@
 
 #include "Operation.h"
 #include "DataModels/MapTypeDisp.h"
+#include "DataModels/PlotData/ColorPalleteNames.h"
 
-
-namespace brathl 
-{
-	class CInternalFiles;
-};
 
 class COperation;
 class CFormula;
@@ -49,9 +45,12 @@ using namespace brathl;
 
 class CDisplayData : public CBratObject
 {
+	// types
+
+	using base_t = CBratObject;
+
 	friend class CConfiguration;
 	friend class CWorkspaceSettings;
-
 
 public:
 
@@ -62,10 +61,13 @@ public:
 		ePng,
 		ePnm,
 		eTif,
+		ePS,
 
 		EImageExportType_size
 	};
 
+
+	//statics
 
 	static const std::string* ImageTypeStrings()
 	{
@@ -76,6 +78,7 @@ public:
 			"png",
 			"pnm",
 			"tif",
+			"ps"
 		};
 		static const DEFINE_ARRAY_SIZE( names );
 
@@ -95,13 +98,38 @@ public:
 	}
 
 
+    // returns EImageExportType_size on failure
+    //
+    static EImageExportType String2ImageType( const std::string &str_type )
+    {
+        static const std::string *names = ImageTypeStrings();
+
+        size_t i = 0;
+        for ( ; i < EImageExportType_size; ++i )
+            if ( names[i] == str_type )
+                break;
+
+        return (EImageExportType) i;
+    }
+
+
 public:
+	static std::string GetValueAsText( double value );
+
 	static const char* FMT_FLOAT_XY;
 
+#if defined(BRAT_V3)
 	static std::string MakeKey( const COperation *operation, const std::string &field_name, CMapTypeDisp::ETypeDisp type );
+#else
+	static std::string MakeKeyV3( const COperation *operation, const std::string &field_name, CMapTypeDisp::ETypeDisp type );
+
+	static std::string MakeKey( const std::string &field_name, CMapTypeDisp::ETypeDisp type );
+#endif
 
     static const unsigned smDefaultNumberOfBins;
 
+
+	//instance data
 
 private:
 	CMapTypeDisp::ETypeDisp m_type = CMapTypeDisp::Invalid();
@@ -115,10 +143,11 @@ private:
 	bool m_withContour = false;
 	bool m_withSolidColor = true;
 
-	double m_minValue = defaultValue<double>();
-	double m_maxValue = defaultValue<double>();
-
-	std::string m_colorPalette;
+	double mAbsoluteMinValue = defaultValue<double>();
+	double mAbsoluteMaxValue = defaultValue<double>();
+	double mCurrentMinValue = defaultValue<double>();
+	double mCurrentMaxValue = defaultValue<double>();
+	std::string m_colorPalette = PALETTE_AEROSOL;
 
 	std::string m_xAxis;
 
@@ -133,9 +162,6 @@ private:
 
 	unsigned mNumberOfBins = smDefaultNumberOfBins;
 
-
-public:
-	static std::string GetValueAsText( double value );
 
 private:
 	void Init()
@@ -185,13 +211,43 @@ public:
 	bool GetSolidColor() const { return m_withSolidColor; }
 	void SetSolidColor( bool value ) { m_withSolidColor = value; }
 
-	std::string GetMinValueAsText() const { return GetValueAsText( m_minValue ); }
-	double GetMinValue() const { return m_minValue; }
-	void SetMinValue( double value ) { m_minValue = value; }
+	std::string GetAbsoluteMinValueAsText() const { return GetValueAsText( mAbsoluteMinValue ); }
+	std::string GetAbsoluteMaxValueAsText() const { return GetValueAsText( mAbsoluteMaxValue ); }
+	double GetAbsoluteMinValue() const { return mAbsoluteMinValue; }
+	double GetAbsoluteMaxValue() const { return mAbsoluteMaxValue; }
+	void SetAbsoluteRangeValues( double m, double M ) 
+	{ 
+		if ( m > M )
+			return;
 
-	std::string GetMaxValueAsText() const { return GetValueAsText( m_maxValue ); }
-	double GetMaxValue() const { return m_maxValue; }
-	void SetMaxValue( double value ) { m_maxValue = value; }
+		mAbsoluteMinValue = m; 
+		mAbsoluteMaxValue = M; 
+
+		if ( isDefaultValue( mCurrentMinValue ) )
+			mCurrentMinValue = m;
+		else
+			SetCurrentMinValue( mCurrentMinValue );
+
+		if ( isDefaultValue( mCurrentMaxValue ) )
+			mCurrentMaxValue = M;
+		else
+			SetCurrentMaxValue( mCurrentMaxValue );
+	}
+
+
+	std::string GetCurrentMinValueAsText() const { return GetValueAsText( mCurrentMinValue ); }
+	double GetCurrentMinValue() const { return mCurrentMinValue; }
+	void SetCurrentMinValue( double value ) 
+	{ 
+		mCurrentMinValue = std::min( std::max( value, mAbsoluteMinValue ), mAbsoluteMaxValue ); 
+	}
+
+	std::string GetCurrentMaxValueAsText() const { return GetValueAsText( mCurrentMaxValue ); }
+	double GetCurrentMaxValue() const { return mCurrentMaxValue; }
+	void SetCurrentMaxValue( double value ) 
+	{ 
+		mCurrentMaxValue = std::max( std::min( value, mAbsoluteMaxValue ), mAbsoluteMinValue ); 
+	}
 
 	std::string GetColorPalette() const { return m_colorPalette; }
 	void SetColorPalette( const std::string& value ) { m_colorPalette = value; }
@@ -214,8 +270,6 @@ public:
 
 	void GetAvailableAxes( CStringArray& names );
 
-	void GetAvailableDisplayTypes( CUIntArray& displayTypes );
-
 	CObArray* GetDimFields() { return &m_dimFields; }
 
 	bool IsYFXType();
@@ -232,7 +286,7 @@ public:
 	void SetNorthComponent( bool value ) { m_northcomponent = value; }
 
 	std::string GetDataKey();
-	std::string GetDataKey( int32_t type );
+	std::string GetDataKey( CMapTypeDisp::ETypeDisp type );
 
 	CMapTypeDisp::ETypeDisp GetType() const { return m_type; }
 	void SetType( CMapTypeDisp::ETypeDisp value ) { m_type = value; }
@@ -274,9 +328,8 @@ public:
 	virtual ~CMapDisplayData()
 	{}
 
-	const CDisplayData* GetDisplayData( const std::string& name ) const;
+	const CDisplayData* GetDisplayData( const std::string& name ) const	{ return GetDisplayData( name.c_str() ); }
 	const CDisplayData* GetDisplayData( const char* name ) const;
-	CDisplayData* GetDisplayData( CMapDisplayData::const_iterator& it );
 
 	bool AreFieldsGrouped() const;
 
@@ -318,8 +371,8 @@ class CDisplay : public CBratObject
 	friend class CDisplayCmdFile;
 	friend class CWorkspaceSettings;
 
-public:
-	static void GetDisplayType( const COperation* operation, CUIntArray& displayTypes, CInternalFiles** pf = nullptr );
+	//v4: move to COperation
+	//v3: static void GetDisplayType( const COperation* operation, CUIntArray& displayTypes, CInternalFiles** pf = nullptr );
 
 protected:
 	static const std::string m_zoomDelimiter;
@@ -466,16 +519,16 @@ public:
 	double GetMaxYValue() const { return m_maxYValue; }
 	void SetMaxYValue( double value ) { m_maxYValue = value; }
 
-
-protected:
-	CDisplayData* GetDisplayData( const std::string& name );
-public:
-	CDisplayData* GetDisplayData( CMapDisplayData::iterator it );
+#if defined(BRAT_V3)
 	CDisplayData* GetDisplayData( const COperation *operation, const std::string &field_name )
 	{
 		std::string key = CDisplayData::MakeKey( operation, field_name, GetType() );
-		return GetDisplayData( key );
+        return const_cast<CDisplayData*>( m_data.GetDisplayData( key ) );            //hack
 	}
+#else
+    CDisplayData* GetFieldDisplayDataV3( const COperation *operation, const std::string &field_name );
+    CDisplayData* GetFieldDisplayData( const std::string &field_name );
+#endif
 
 
 	std::string GetOutputFilename() const { return GetCmdFilename(); }

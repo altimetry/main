@@ -33,10 +33,10 @@ class CDataDisplayPropertiesDialog : public QDialog
     // instance data
     /////////////////////////////
 
-    QDialogButtonBox *mButtonBox = nullptr;
     QRadioButton *mNorthComponent = nullptr;
     QRadioButton *mEastComponent  = nullptr;
     QGroupBox *mVectorBox  = nullptr;
+    QDialogButtonBox *mButtonBox = nullptr;
 
 
     // domain data

@@ -31,6 +31,29 @@ CDesktopManagerBase::CDesktopManagerBase( const CBratSettings &settings, QMainWi
 }
 
 
+//virtual 
+QWidget* CDesktopManagerBase::AddSubWindow( std::function< QWidget*( ) > f, Qt::WindowFlags flags )	//flags = 0 
+{
+	try
+	{
+		auto subWindow = AddSubWindow( f(), flags );
+		subWindow->show();
+		return subWindow;
+	}
+	catch ( const CException &e )
+	{
+		SimpleErrorBox( e.Message() );
+	}
+	catch ( ... )
+	{
+		LOG_FATAL( "Unknown error: could not add editor to desktop." );
+	}
+	return nullptr;
+}
+
+
+
+
 
 
 

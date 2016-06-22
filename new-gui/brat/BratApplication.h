@@ -90,6 +90,7 @@ protected:
 	bool mLeakExceptions = false;
 
 	bool mOperatingInDisplayMode = false;
+    bool mOperatingInInstantPlotSaveMode = false;
 
 	QSplashScreen *mSplash = nullptr;
 
@@ -125,6 +126,7 @@ public:
 
 
 	bool OperatingInDisplayMode() const { return mOperatingInDisplayMode; }
+    bool OperatingInInstantPlotSaveMode() const { return mOperatingInInstantPlotSaveMode; }
 
 	void ShowSplash( const std::string &msg, bool disable_events = false ) const;
 	void EndSplash( QWidget *w );

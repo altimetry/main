@@ -85,7 +85,7 @@ CColorMapLabel::CColorMapLabel( QWidget *parent )	//parent = nullptr
 	: base_t( parent )
 {
 	setMaximumHeight( 25 );
-	setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::Fixed );
+	setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Fixed );
 }
 
 
@@ -126,6 +126,8 @@ void CColorMapLabel::SetLUT( const CBratLookupTable *lut )
 
 void CColorMapWidget::CreateWidgets( bool show_labels )
 {
+	// generic data and tools
+
 	QFont view_control_font = font();
 	view_control_font.setPointSize( view_control_font.pointSize() - 1 );
 	setFont( view_control_font );
@@ -145,6 +147,9 @@ void CColorMapWidget::CreateWidgets( bool show_labels )
 		return w;
 	};
 
+
+	// contours
+
 	QLayout *solid_and_contour_l = nullptr;
 	if ( !mOnlyLUT )
 	{
@@ -154,12 +159,13 @@ void CColorMapWidget::CreateWidgets( bool show_labels )
 		mContourWidthEdit = new QLineEdit;
 		mContourWidthEdit->setValidator( new QRegExpValidator( QRegExp( "[0-9.]+" ) ) );
 		mContourColorButton = new CColorButton;
+		mContourWidthLabel = new QLabel( "Width" );
 		mShowContourBox = CreateGroupBox( ELayoutType::Horizontal, 
 		{ 
 			LayoutWidgets( Qt::Vertical, 
 			{ 
 				LayoutWidgets( Qt::Horizontal, { new QLabel( "Number" ), shrinkh( mNumberOfContoursEdit ) }, nullptr, 2,2,0,2,2 ),
-				LayoutWidgets( Qt::Horizontal, { new QLabel( "Width" ), shrinkh( mContourWidthEdit ) }, nullptr, 2,2,0,2,2 ),
+				LayoutWidgets( Qt::Horizontal, { mContourWidthLabel, shrinkh( mContourWidthEdit ) }, nullptr, 2,2,0,2,2 ),
 			}, nullptr, 2,0,0,0,0 ),
 
 			nullptr,
@@ -171,6 +177,9 @@ void CColorMapWidget::CreateWidgets( bool show_labels )
 		mShowContourBox->setChecked( false );
 		solid_and_contour_l = LayoutWidgets( Qt::Vertical, { mShowSolidColor, mShowContourBox }, nullptr, 6, 2, 2, 2, 2 );
 	}
+
+	// color table
+
 	mColorTables = new QComboBox;
 	mColorMapLabel = new CColorMapLabel;
 	mColorRangeMinEdit = new QLineEdit;
@@ -180,6 +189,8 @@ void CColorMapWidget::CreateWidgets( bool show_labels )
 	mCalculateMinMax = new QPushButton( "Recalculate" );
 	mCalculateMinMax->setAutoDefault( false );
 	mCalculateMinMax->setDefault( false );
+
+	// color range
 
 	mColorRangeMinEdit->setValidator( new QRegExpValidator( QRegExp( "[-0-9.]+" ) ) );
 	mColorRangeMaxEdit->setValidator( new QRegExpValidator( QRegExp( "[-0-9.]+" ) ) );
@@ -191,6 +202,8 @@ void CColorMapWidget::CreateWidgets( bool show_labels )
 	}
 	,"Color Range", nullptr, 4,4,4,4,4 );
 
+
+	// color table labels
 
 	QLayout *labels_l = nullptr;
 	if ( show_labels )
@@ -211,7 +224,8 @@ void CColorMapWidget::CreateWidgets( bool show_labels )
 		}, nullptr, 0, 0, 0, 0, 0 );
 
 		mColorMapLabel->setMinimumWidth( ( lwidth + 3 ) * 5 );
-		setSizePolicy( QSizePolicy::Maximum, QSizePolicy::MinimumExpanding );
+		//mColorMapLabel->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::Maximum );
+		//setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::Maximum );
 	}
 
 	std::vector<QObject*> v{ mColorTables, mColorMapLabel };
@@ -219,6 +233,9 @@ void CColorMapWidget::CreateWidgets( bool show_labels )
 		v.push_back( labels_l );
 	v.push_back( nullptr );
 	auto *color_map_l = CreateGroupBox( ELayoutType::Vertical, v, "Color Table", nullptr, 1,2,0,2,2 );
+
+
+	// assemble all
 
 	if ( solid_and_contour_l )
 		LayoutWidgets( Qt::Horizontal, { solid_and_contour_l, color_map_l, color_range_group }, this, 2,2,2,2,2 );
@@ -248,6 +265,8 @@ CColorMapWidget::CColorMapWidget( bool only_lut, bool show_labels, QWidget *pare
 	connect( mCalculateMinMax, SIGNAL( clicked() ), this, SLOT( HandleCalculateMinMax() ) );
 	connect( mColorRangeMinEdit, SIGNAL( returnPressed() ), this, SLOT( HandleColorRangeMinChanged( ) ) );
 	connect( mColorRangeMaxEdit, SIGNAL( returnPressed() ), this, SLOT( HandleColorRangeMaxChanged( ) ) );
+	connect( mColorRangeMinEdit, SIGNAL( editingFinished() ), this, SLOT( HandleColorRangeMinFinished( ) ) );
+	connect( mColorRangeMaxEdit, SIGNAL( editingFinished() ), this, SLOT( HandleColorRangeMaxFinished( ) ) );
 	connect( mColorTables, SIGNAL( currentIndexChanged( int ) ), this, SLOT( HandleColorTablesIndexChanged( int ) ) );
 }
 
@@ -319,6 +338,13 @@ void CColorMapWidget::HandleContourColorSelected()
 }
 
 
+void CColorMapWidget::HideContourColorWidget() 
+{ 
+	if ( mContourColorButton ) 
+		mContourColorButton->setVisible( false ); 
+}
+
+
 
 void CColorMapWidget::SetShowSolidColor( bool checked )
 {
@@ -350,6 +376,24 @@ void CColorMapWidget::HandleCalculateMinMax()
 }
 
 
+void CColorMapWidget::HandleColorRangeMinFinished()
+{
+	QString smin = mColorRangeMinEdit->text();
+	bool ok_conv = false;
+	double rangeMin = smin.toDouble( &ok_conv );
+	if ( !ok_conv || rangeMin != mColorRangeMin )
+		mColorRangeMinEdit->setText( n2s< std::string >( mColorRangeMin ).c_str() );
+}
+void CColorMapWidget::HandleColorRangeMaxFinished()
+{
+	QString smax = mColorRangeMaxEdit->text();
+	bool ok_conv = false;
+	double rangeMax = smax.toDouble( &ok_conv );
+	if ( !ok_conv || rangeMax != mColorRangeMax )
+		mColorRangeMaxEdit->setText( n2s< std::string >( mColorRangeMax ).c_str() );
+}
+
+
 void CColorMapWidget::HandleColorRangeMinChanged()
 {
 	QString smin = mColorRangeMinEdit->text();
@@ -363,8 +407,6 @@ void CColorMapWidget::HandleColorRangeMinChanged()
 	}
 	SetRange( rangeMin, mColorRangeMax );
 }
-
-
 void CColorMapWidget::HandleColorRangeMaxChanged()
 {
 	QString smax = mColorRangeMaxEdit->text();

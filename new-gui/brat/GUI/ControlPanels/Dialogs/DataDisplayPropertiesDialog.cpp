@@ -8,7 +8,7 @@
 
 void  CDataDisplayPropertiesDialog::CreateWidgets()
 {
-    //	Create
+    //	Vector fields
 
     mNorthComponent = new QRadioButton( "North Component" );
     mEastComponent = new QRadioButton( "East Component" );
@@ -28,7 +28,7 @@ void  CDataDisplayPropertiesDialog::CreateWidgets()
     QString name = t2q( mFormula->GetName() );
     help->SetHelpProperties(
                 "Edit the expression '" + name + "' display properties.\n"
-                "Vector box is available only if the operation has more than 1 data field.",
+                "Vector box is available only if a map operation has more than 1 data field.",
         0 , 6 );
     auto help_group = CreateGroupBox( ELayoutType::Grid, { help }, "", nullptr, 6, 6, 6, 6, 6 );
     help_group->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
@@ -41,16 +41,16 @@ void  CDataDisplayPropertiesDialog::CreateWidgets()
     mButtonBox->setStandardButtons( QDialogButtonBox::Ok | QDialogButtonBox::Cancel );
     mButtonBox->button( QDialogButtonBox::Ok )->setDefault( true );
 
-    QBoxLayout *main_l =
-            LayoutWidgets( Qt::Vertical,
-                            {
-                               mVectorBox,
-                               WidgetLine(this, Qt::Horizontal),
-                               help_group,
-                               WidgetLine(this, Qt::Horizontal),
-                               mButtonBox
+	QBoxLayout *main_l =
+		LayoutWidgets( Qt::Vertical,
+		{
+			mVectorBox,
+			WidgetLine( this, Qt::Horizontal ),
+			help_group,
+			WidgetLine( this, Qt::Horizontal ),
+			mButtonBox
 
-                            }, this, 6, 6, 6, 6, 6 );                       Q_UNUSED( main_l );
+		}, this, 6, 6, 6, 6, 6 );                       Q_UNUSED( main_l );
 
 
     //	Wrap up dimensions
@@ -64,22 +64,10 @@ void  CDataDisplayPropertiesDialog::CreateWidgets()
 
 void  CDataDisplayPropertiesDialog::Wire()
 {
-	size_t data_count = 0;
-    const CMapFormula &formulas = *mOperation->GetFormulas();
-	for ( CMapFormula::const_iterator it = formulas.begin(); it != formulas.end(); it++ )
-	{
-		CFormula *f = dynamic_cast<CFormula*>( it->second );
-		if ( f == nullptr )
-			continue;
-
-		if ( f->GetFieldType() == CMapTypeField::eTypeOpAsField )
-			data_count++;
-	}
-
-	mVectorBox->setEnabled( data_count > 1 );
-
-
-    //	Setup things
+	mVectorBox->setEnabled( mOperation->IsMap() && mOperation->GetFormulaCountDataFields() > 1 );
+	mVectorBox->setChecked( mFormula->IsNorthComponent() || mFormula->IsEastComponent() );
+    mNorthComponent->setChecked( mFormula->IsNorthComponent() );
+    mEastComponent->setChecked( mFormula->IsEastComponent() );
 
     connect( mButtonBox, SIGNAL( accepted() ), this, SLOT( accept() ) );
     connect( mButtonBox, SIGNAL( rejected() ), this, SLOT( reject() ) );
@@ -95,7 +83,7 @@ CDataDisplayPropertiesDialog::CDataDisplayPropertiesDialog( QWidget *parent, CFo
 
     CreateWidgets();
 
-    setWindowTitle( ( "'" + formula->GetName() + "'' Display Properties").c_str() );
+    setWindowTitle( ( "'" + formula->GetName() + "' Display Properties").c_str() );
 }
 
 
@@ -130,8 +118,8 @@ void  CDataDisplayPropertiesDialog::accept()
     }
     else
     {
-        mFormula->SetNorthComponent( mNorthComponent->isChecked() );
-        mFormula->SetEastComponent( mEastComponent->isChecked() );
+        mFormula->SetNorthComponent( false );
+        mFormula->SetEastComponent( false );
     }
     base_t::accept();
 }

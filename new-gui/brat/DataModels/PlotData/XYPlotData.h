@@ -194,6 +194,8 @@ class CPlotColor;
 
 class CXYPlotProperties : public CBratObject
 {
+	using base_t = CBratObject;
+
 #if defined(BRAT_V3)
 	vtkProperty2D* m_vtkProperty2D;
 #endif
@@ -257,7 +259,7 @@ class CXYPlotProperties : public CBratObject
 	EPointGlyph m_glyphType;
 	bool m_filledPoint;
 
-	double m_lineWidthFactor;
+	double m_lineWidthFactor = 1.5;
 	double m_opacityFactor;
 
 	bool m_hide;
@@ -268,7 +270,7 @@ protected:
 
 public:
 
-	CXYPlotProperties( CXYPlotData* parent = NULL );
+	CXYPlotProperties( CXYPlotData* parent = nullptr );
 	CXYPlotProperties( CXYPlotProperties& p );
 
 	virtual ~CXYPlotProperties();
@@ -423,7 +425,7 @@ public:
 	void SetFilledPoint();
 
 	double GetLineWidthFactor() const { return m_lineWidthFactor; }
-	void SetLineWidthFactor( double value ) { m_lineWidthFactor = value; }
+
 	double GetOpacityFactor() const { return m_opacityFactor; }
 	void SetOpacityFactor( double value ) { m_opacityFactor = value; }
 
@@ -441,15 +443,18 @@ public:
 
 class CXYPlotData : public CBratObject
 {
+	using base_t = CBratObject;
 
 protected:
+	const std::string mFieldName;
+
 	CXYPlotProperties m_plotProperty;
 
 	int32_t m_currentFrame;
 	int32_t m_length;
 
 
-	CQwtArrayPlotData mQwtPlotData;
+	CYFXValues mQwtPlotData;
 
 	CUnit m_unitX;
 	CUnit m_unitY;
@@ -475,6 +480,10 @@ protected:
 	void Create(CInternalFiles* yfx, CPlot* plot, int32_t iField);
 
 public:
+
+	const CYFXValues* PlotValues() const { return &mQwtPlotData; }
+
+	const std::string &FieldName() const { return mFieldName; }
 
 
 	virtual void GetXRange( double& min, double& max, uint32_t frame );
@@ -503,8 +512,6 @@ public:
 
 	std::string GetName() { return m_plotProperty.GetName(); }
 	void SetName( const std::string& name ) { m_plotProperty.SetName( name ); }
-
-	const CQwtArrayPlotData*  GetQwtArrayPlotData() const { return &mQwtPlotData; }
 
 	CXYPlotProperties* GetPlotProperties() { return &m_plotProperty; }
 

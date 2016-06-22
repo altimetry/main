@@ -101,6 +101,8 @@ public:
 public:
 	virtual QWidget* AddSubWindow( QWidget *widget, Qt::WindowFlags flags = 0 ) = 0;
 
+	virtual QWidget* AddSubWindow( std::function< QWidget*() > f, Qt::WindowFlags flags = 0 );
+
 
 	virtual void SubWindowClosed( QWidget *emitter ) = 0;
 
@@ -193,7 +195,7 @@ public:
 
 	//access
 
-	QWidget* widget() { return mWidget;	}
+	QWidget* Widget() { return mWidget;	}
 
 protected:
 
@@ -264,6 +266,7 @@ public:
 	}
 
 	virtual desktop_child_t* AddSubWindow( QWidget *widget, Qt::WindowFlags flags = 0 ) override;
+
 
 	// see base class comment
 	//
@@ -368,6 +371,7 @@ public:
 
 		return child;
 	}
+
 
 	virtual QList<QWidget*> SubWindowList() override
 	{

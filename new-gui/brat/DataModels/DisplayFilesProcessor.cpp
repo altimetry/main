@@ -730,7 +730,7 @@ void CDisplayFilesProcessor::GetXYPlotPropertyParams( int32_t nFields )
 	}
 
 	//------------------------------------------
-	// Fill plot porperties array and set a default color for each property
+	// Fill plot properties array and set a default color for each property
 	//------------------------------------------
 	CMapColor::GetInstance().ResetPrimaryColors();
 	for ( i = 0; i < nFields; i++ )

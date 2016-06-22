@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #ifndef BRAT_MAIN_WINDOW_H
 #define BRAT_MAIN_WINDOW_H
 
@@ -8,6 +25,7 @@
 #include "GUI/LogShell.h"
 #include "BratSettings.h"
 #include "DataModels/Model.h"
+#include "DataModels/Workspaces/Display.h"
 #include "DataModels/Filters/BratFilters.h"
 
 
@@ -24,6 +42,9 @@ class CAbstractDisplayEditor;
 
 class CWorkspace;
 class CBratFilters;
+
+
+
 
 
 //net stop uxsms
@@ -159,6 +180,10 @@ private:
 	//
 	bool StartDisplayMode();
 
+    // Operate in instant save mode
+    //
+    void StartInInstantPlotSaveMode( const std::string &display_name, const std::string &path, bool is_3d, CDisplayData::EImageExportType type);
+
 public:
     explicit CBratMainWindow( CBratApplication &a );
 	
@@ -245,9 +270,13 @@ protected:
 	bool OkToContinue();
     virtual void closeEvent( QCloseEvent *event ) override;
 
+	QWidget* OpenDisplay( CDisplay *display, bool maps_as_plots );
+
 
 protected slots:
 
+    bool CheckInstantPlotSave( const QStringList &args, const QString &wkspc_dir,
+                               std::string &display_name, std::string &path, bool &is_3d, CDisplayData::EImageExportType &type );
     void LoadCmdLineFiles();
 
     // Update State
@@ -257,6 +286,7 @@ protected slots:
 	void HandleAsyncProcessExecution( bool executing );
 	void EnableMapSelectionActions( bool enable );		//more a slot helper than a slot
 
+    void UpdateToolsMenu();
     void UpdateWindowMenu();
 
 
@@ -272,7 +302,6 @@ private slots:
     void on_action_New_triggered();
     void on_action_Open_triggered();
     void on_action_Save_triggered();
-    void on_action_Save_As_triggered();
 	void openRecentWorkspace_triggered( QAction *action );
     void on_action_Close_Workspace_triggered();
 
@@ -284,7 +313,6 @@ private slots:
     void on_action_Zoom_Out_triggered();
     void on_action_Re_center_triggered();
     void on_action_Refresh_Map_triggered();
-    void on_action_Graphic_Settings_triggered();
 	void on_action_Satellite_Tracks_toggled( bool checked );
     void on_action_Save_Map_Image_triggered();
     void on_action_Full_Screen_triggered();
@@ -297,6 +325,7 @@ private slots:
     void on_action_Workspace_Tree_triggered();
     void on_action_Launch_Scheduler_triggered();
     void on_action_Options_triggered();
+    void on_action_Operation_Views_triggered();
 
 	////////////////
 	//Menu Window

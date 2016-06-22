@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT 
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #include "new-gui/brat/stdafx.h"
 
 #include <QtGui>
@@ -116,7 +133,7 @@ public:
 
 struct CBrat3DFunction : public Qwt3D::Function
 {
-	const C3DPlotParameters *mPlotValues = nullptr;
+	const CZFXYPlotParameters *mPlotParameters = nullptr;
 
 	double mxmin;
 	double mxmax;
@@ -147,18 +164,18 @@ struct CBrat3DFunction : public Qwt3D::Function
 	}
 
 
-	void AddSurface( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax )
+	void AddSurface( const CZFXYPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax )
 	{
 		assert__( values.mValues.size() == values.mBits.size() );
 		assert__( values.mValues.size() == values.mXaxis.size() * values.mYaxis.size() );
 
-		mPlotValues = &values;
+		mPlotParameters = &values;
 		mxmin = xmin;
 		mxmax = xmax;
 		mymin = ymin;
 		mymax = ymax;
 
-		setMesh( (int)mPlotValues->mXaxis.size(), (int)mPlotValues->mYaxis.size() );		//setMesh( xmax, ymax );
+		setMesh( (int)mPlotParameters->mXaxis.size(), (int)mPlotParameters->mYaxis.size() );		//setMesh( xmax, ymax );
 		setDomain( xmin, xmax, ymin, ymax );
 
 		SetZRange( zmin, zmax );
@@ -167,8 +184,16 @@ struct CBrat3DFunction : public Qwt3D::Function
 
 	void SetZRange( double zmin, double zmax )
 	{
-		mzmin = zmin;
-		mzmax = zmax;
+		if ( isDefaultValue( zmin ) || isDefaultValue( zmax ) )
+		{
+			mzmin = 0;
+			mzmax = 0;
+		}
+		else
+		{
+			mzmin = zmin;
+			mzmax = zmax;
+		}
 
 		SetZRange();
 	}
@@ -196,7 +221,7 @@ struct CBrat3DFunction : public Qwt3D::Function
 
     double operator()( double x, double y )
     {
-        return CorrectedValue( mPlotValues->value( x, y ) );
+        return CorrectedValue( mPlotParameters->value( x, y ) );
     }
 };
 
@@ -320,20 +345,6 @@ protected:
 
 void CBrat3DPlot::CreateContextMenu()
 {
-	setContextMenuPolicy( Qt::ActionsContextMenu );
-
-    mAnimateAction = new QAction( "Animate", this );
-	mAnimateAction->setCheckable( true );
-	mAnimateAction->setChecked( false );
-
-    mStandardColorAction = new QAction( "Standard Color", this );
-	mStandardColorAction->setCheckable( true );
-	mStandardColorAction->setChecked( true );
-
-    mHomeAction = new QAction( "Reset", this );
-
-	mStyleGroup = new QActionGroup( this );
-	mStyleGroup->setExclusive( true );
 	QList<QAction*> style_actions_list;
 
 	auto create_style_item = [ this, &style_actions_list ]( const std::string &name, const std::string tip, Qwt3D::PLOTSTYLE style )
@@ -350,11 +361,46 @@ void CBrat3DPlot::CreateContextMenu()
 		style_actions_list << a;
 		connect( a, SIGNAL( triggered() ), this, SLOT( PlotStyle() ) );
 	};
+
+
+
+	setContextMenuPolicy( Qt::ActionsContextMenu );
+
+#if defined (DEBUG) || defined (_DEBUG)
+	mAnimateAction = new QAction( "Animate", this );
+	mAnimateAction->setCheckable( true );
+	mAnimateAction->setChecked( false );
+
+    mStandardColorAction = new QAction( "Standard Color", this );
+	mStandardColorAction->setCheckable( true );
+	mStandardColorAction->setChecked( true );
+
+    mHomeAction = new QAction( "Reset", this );
+
+    addAction( mAnimateAction );
+	addAction( mStandardColorAction );
+    addAction( CActionInfo::CreateAction( this, eAction_Separator) );
+    addAction( mHomeAction );
+    addAction( CActionInfo::CreateAction( this, eAction_Separator) );
+
+    connect( mAnimateAction,		SIGNAL(toggled(bool)),	this, SLOT( Animate() ) );
+    connect( mStandardColorAction,	SIGNAL(toggled(bool)),	this, SLOT( StandardColor(bool) ) );
+    connect( mHomeAction,			SIGNAL(triggered()),	this, SLOT( Reset() ) );
+#endif
+
+	mStyleGroup = new QActionGroup( this );
+	mStyleGroup->setExclusive( true );
+
+#if defined (DEBUG) || defined (_DEBUG)
 	create_style_item( "Qwt3D::NOPLOT", "No visible data", Qwt3D::NOPLOT );
 	create_style_item( "Qwt3D::WIREFRAME", "Wire-frame style", Qwt3D::WIREFRAME );
 	create_style_item( "Qwt3D::HIDDENLINE", "Hidden Line style", Qwt3D::HIDDENLINE );
 	create_style_item( "Qwt3D::FILLED", "Color filled polygons w/o edges", Qwt3D::FILLED );
 	create_style_item( "Qwt3D::FILLEDMESH", "Color filled polygons w/ separately colored edges", Qwt3D::FILLEDMESH );
+#else
+	create_style_item( "Color Filled", "Color filled polygons w/o edges", Qwt3D::FILLED );
+	create_style_item( "Color Filled Mesh", "Color filled polygons w/ separately colored edges", Qwt3D::FILLEDMESH );
+#endif
 
 	mCoordinateStyleGroup = new QActionGroup( this );
 	mStyleGroup->setExclusive( true );
@@ -370,22 +416,19 @@ void CBrat3DPlot::CreateContextMenu()
 		coord_style_actions_list << a;
 		connect( a, SIGNAL( triggered() ), this, SLOT( CoordinateStyle() ) );
 	};
+#if defined (DEBUG) || defined (_DEBUG)
 	create_coordinate_style_item( "Qwt3D::NOCOORD", "Coordinate system is not visible", Qwt3D::NOCOORD );
 	create_coordinate_style_item( "Qwt3D::BOX", "Boxed", Qwt3D::BOX );
 	create_coordinate_style_item( "Qwt3D::FRAME", "Frame - 3 visible axes", Qwt3D::FRAME );
+#else
+	create_coordinate_style_item( "No Coordinates", "Coordinate system is not visible", Qwt3D::NOCOORD );
+	create_coordinate_style_item( "Boxed Coordinates", "Boxed", Qwt3D::BOX );
+	create_coordinate_style_item( "Frame Coordinates", "Frame - 3 visible axes", Qwt3D::FRAME );
+#endif
 
-    addAction( mAnimateAction );
-	addAction( mStandardColorAction );
-    addAction( CActionInfo::CreateAction( this, eAction_Separator) );
-    addAction( mHomeAction );
-    addAction( CActionInfo::CreateAction( this, eAction_Separator) );
 	addActions( style_actions_list );
     addAction( CActionInfo::CreateAction( this, eAction_Separator) );
 	addActions( coord_style_actions_list );
-
-    connect( mAnimateAction,		SIGNAL(toggled(bool)),	this, SLOT( Animate() ) );
-    connect( mStandardColorAction,	SIGNAL(toggled(bool)),	this, SLOT( StandardColor(bool) ) );
-    connect( mHomeAction,			SIGNAL(triggered()),	this, SLOT( Reset() ) );
 }
 
 
@@ -489,7 +532,7 @@ void CBrat3DPlot::SetZAxisTicks( unsigned int nticks )
 
 
 
-void CBrat3DPlot::AddSurface( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax )
+void CBrat3DPlot::AddSurface( const CZFXYPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax )
 {
 	mFunctions.push_back( new CBrat3DFunction( *this ) );
 	mFunctions.back()->AddSurface( values, xmin, xmax, ymin, ymax, zmin, zmax );
@@ -658,7 +701,8 @@ void CBrat3DPlot::SetColorMap( Qwt3D::Color *pcolor_map )
 	legend()->setLimits(start, stop);
 #endif
 
-	showColorLegend( true );
+	if ( !isDefaultValue( start ) && !isDefaultValue( stop ) && start != defaultValueDOUBLE && stop != defaultValueDOUBLE )
+		showColorLegend( true );
 }
 
 
@@ -769,7 +813,7 @@ C3DPlotWidget::~C3DPlotWidget()
 }
 
 
-void C3DPlotWidget::PushPlot( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, Qwt3D::Color *pcolor_map )
+void C3DPlotWidget::PushPlot( const CZFXYPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, Qwt3D::Color *pcolor_map )
 {
 #if defined (TEST_EXAMPLES)
 	return;
@@ -785,13 +829,16 @@ void C3DPlotWidget::PushPlot( const C3DPlotParameters &values, double xmin, doub
 
 	mCurrentPlot->setDataColor( pcolor_map );
 
-	double mmax = std::max( xmax, std::max( ymax, zmax ) );
-	double xscale = mmax / xmax;
-	double yscale = mmax / ymax;
-	double zscale = mmax / zmax;
-	const double r = 2. / 3.;
+	if ( !isDefaultValue( zmin ) && !isDefaultValue( zmax ) )
+	{
+		double mmax = std::max( xmax, std::max( ymax, zmax ) );
+		double xscale = mmax / xmax;
+		double yscale = mmax / ymax;
+		double zscale = mmax / zmax;
+		const double r = 2. / 3.;
 
-	SetScale( xscale * r, yscale * r, zscale * r );
+		SetScale( xscale * r, yscale * r, zscale * r );
+	}
 }
 
 
@@ -930,6 +977,9 @@ bool C3DPlotWidget::Save2Image( const QString &path, const QString &format, cons
 
 	QString qpath = path;
 	QString f = format.toLower();
+	if ( f == "ps" )
+		return Save2ps( p, path );
+
 	SetFileExtension( qpath, extension );
 	return p->savePixmap( qpath, f );
 }

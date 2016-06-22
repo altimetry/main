@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #include "new-gui/brat/stdafx.h"
 
 #include <QAction>
@@ -41,8 +58,6 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_Save, "&Save", CActionInfo::FormatTip("Save\nSave the workspace to disk"), ":/images/OSGeo/save.png", "", "Ctrl+S" },
 
-    { eAction_Save_As, "Save &As...", CActionInfo::FormatTip("Save As..."), ":/images/OSGeo/save-as.png" },
-
     { eAction_Import_Workspace, "&Import...", CActionInfo::FormatTip("Import\nImport existing workspace objects"), ":/images/OSGeo/import.png" },
 
     { eAction_Rename_Workspace, "&Rename...", CActionInfo::FormatTip("Rename\nRename the loaded workspace\n""The workspace directory will not change"), "" },
@@ -66,6 +81,8 @@ CActionInfo ActionsTable[ EActionTags_size ] =
     { eAction_Launch_Scheduler, "Launch Scheduler", CActionInfo::FormatTip("Brat Scheduler\nLaunch Scheduler application"), ":/images/brat_scheduler.png" },
 
     { eAction_Workspace_Tree, "Workspace Tree...", CActionInfo::FormatTip("Workspace Tree\nSee the objects tree of the loaded workspace"), ":/images/OSGeo/page-info.png" },
+
+    { eAction_Operation_Views, "Operation Views...", CActionInfo::FormatTip("List the views of the selected operation"), "" },
 
     { eAction_Save_Map_Image, "Save Map Image...", CActionInfo::FormatTip("Save Map Image\nSave map to file"), ":/images/OSGeo/map-export.png" },
 
@@ -147,7 +164,7 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_MapTips, "Map Tips", CActionInfo::FormatTip("Map Tips\nShow layer data values when mouse moves over map canvas"), ":/images/OSGeo/maptips.png", ":/images/OSGeo/maptips.png" },	
 
-    { eAction_MouseTrackingeCoordinatesFormat, "Format", CActionInfo::FormatTip("Format\nCoordinates format"), ":/images/themes/default/tracking.png" },
+    { eAction_MouseTrackingeCoordinatesFormat, "", CActionInfo::FormatTip("Format\nCoordinates format"), ":/images/OSGeo/coordinate_capture.png" },
 
 
 	{ eActionGroup_Filters_Quick, "", "Quick operation filters", "://images/OSGeo/filter.png", "://images/OSGeo/filter.png" },

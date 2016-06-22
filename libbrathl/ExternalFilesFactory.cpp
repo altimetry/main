@@ -74,7 +74,20 @@ CExternalFiles* BuildExistingExternalFileKind
 
   // Generic Netcdf roducts
   CHECK_TYPE(CExternalFilesNetCDFCFGeneric);
+
+  // Sentinel 3A
   CHECK_TYPE(CExternalFilesSentinel3A);
+
+  CHECK_TYPE(CExternalFilesSentinel3A_enhanced);
+  CHECK_TYPE(CExternalFilesSentinel3A_standard);
+  CHECK_TYPE(CExternalFilesSentinel3A_reduced);
+
+  CHECK_TYPE(CExternalFilesSentinel3A_l1b);
+  CHECK_TYPE(CExternalFilesSentinel3A_l1a);
+  CHECK_TYPE(CExternalFilesSentinel3A_l1bs);
+
+  // Reaper
+  CHECK_TYPE(CExternalFilesReaper);
 
   return NULL;
 }

@@ -1,0 +1,36 @@
+#Type:Z=F(Lon,Lat)
+
+#----- LOG -----
+
+VERBOSE=2
+
+#----- GENERAL PROPERTIES -----
+
+
+#Display Type:Y=F(X) ==> 0  Z=F(Lon,Lat) ==> 2  Z=F(X,Y) ==> 1  
+
+DISPLAY_PLOT_TYPE=2
+
+DISPLAY_ANIMATION=N
+DISPLAY_PROJECTION=3D
+DISPLAY_ZOOM_LAT1=-90.000
+DISPLAY_ZOOM_LON1=-180.00
+DISPLAY_ZOOM_LAT2=90.000
+DISPLAY_ZOOM_LON2=180.00
+
+#----- wind_speed_alt FIELD -----
+
+FIELD=wind_speed_alt
+FILE=/home/brat/s3-altb/project/dev/source/Demo/Operations/CreateOp6_Jason2_PythonAlgo.nc
+
+#----- wind_speed_alt FIELDS PROPERTIES -----
+
+DISPLAY_NAME=wind_speed_alt
+FIELD_GROUP=1
+DISPLAY_MINVALUE=DV
+DISPLAY_MAXVALUE=DV
+DISPLAY_CONTOUR=N
+DISPLAY_SOLID_COLOR=Y
+DISPLAY_COLORTABLE=DV
+DISPLAY_EAST_COMPONENT=N
+DISPLAY_NORTH_COMPONENT=N

@@ -41,20 +41,18 @@ using namespace brathl;
 
 
 
-
-const char* CDisplayData::FMT_FLOAT_XY = "%-#.5g";
-//const unsigned int CDisplayData::NB_DIMS = 3;
-
+//const char* CDisplayData::FMT_FLOAT_XY = "%-#.5g";
+const char* CDisplayData::FMT_FLOAT_XY = "%-.5g";
 
 
 
 class CDisplayCmdFile : CCmdFile
 {
-	const CDisplay &mDisp;
+	const CDisplay &mDisplay;
 
 public:
 	CDisplayCmdFile( const std::string &path, const CDisplay &Disp ) :
-		CCmdFile( path ), mDisp( Disp )
+		CCmdFile( path ), mDisplay( Disp )
 	{}
 
 	virtual ~CDisplayCmdFile()
@@ -71,7 +69,7 @@ public:
 
 	bool BuildCmdFileHeader( bool map_as_3dplot )
 	{
-		Comment( "Type:" + CMapTypeDisp::GetInstance().IdToName( mDisp.GetPlotType( map_as_3dplot ) ) );
+		Comment( "Type:" + CMapTypeDisp::GetInstance().IdToName( mDisplay.GetPlotType( map_as_3dplot ) ) );
 		return true;
 	}
 	bool BuildCmdFileVerbose()
@@ -79,7 +77,7 @@ public:
 		WriteLn();
 		Comment( "----- LOG -----" );
 		WriteLn();
-		WriteLn( kwVERBOSE + "=" + n2s<std::string>( mDisp.m_verbose ) );
+		WriteLn( kwVERBOSE + "=" + n2s<std::string>( mDisplay.m_verbose ) );
 
 		return true;
 	}
@@ -90,18 +88,18 @@ public:
 		Comment( "----- GENERAL PROPERTIES -----" );
 		WriteLn();
 
-		if ( !mDisp.GetTitle().empty() )
-			WriteLn( FmtCmdParam( kwDISPLAY_TITLE ) + mDisp.GetTitle() );
+		if ( !mDisplay.GetTitle().empty() )
+			WriteLn( FmtCmdParam( kwDISPLAY_TITLE ) + mDisplay.GetTitle() );
 
 		WriteLn();
 		Comment( "Display Type:" + CMapTypeDisp::GetInstance().Enum() );
 		WriteLn();
 
-		WriteLn( FmtCmdParam( kwDISPLAY_PLOT_TYPE ) + mDisp.GetTypeAsString( map_as_3dplot ) );
+		WriteLn( FmtCmdParam( kwDISPLAY_PLOT_TYPE ) + mDisplay.GetTypeAsString( map_as_3dplot ) );
 
 		WriteLn();
 
-		switch ( mDisp.GetPlotType( map_as_3dplot ) )
+		switch ( mDisplay.GetPlotType( map_as_3dplot ) )
 		{
 			case CMapTypeDisp::eTypeDispYFX:
 				BuildCmdFileGeneralPropertiesXY();
@@ -122,16 +120,16 @@ public:
 	bool BuildCmdFileGeneralPropertiesXY()
 	{
 		std::string
-		valueString = ( isDefaultValue( mDisp.GetMinXValue() ) ) ? "DV" : mDisp.GetMinXValueAsText();
+		valueString = ( isDefaultValue( mDisplay.GetMinXValue() ) ) ? "DV" : mDisplay.GetMinXValueAsText();
 		WriteLn( FmtCmdParam( kwDISPLAY_XMINVALUE ) + valueString );
 
-		valueString = ( isDefaultValue( mDisp.GetMaxXValue() ) ) ? "DV" : mDisp.GetMaxXValueAsText();
+		valueString = ( isDefaultValue( mDisplay.GetMaxXValue() ) ) ? "DV" : mDisplay.GetMaxXValueAsText();
 		WriteLn( FmtCmdParam( kwDISPLAY_XMAXVALUE ) + valueString );
 
-		valueString = ( isDefaultValue( mDisp.GetMinYValue() ) ) ? "DV" : mDisp.GetMinYValueAsText();
+		valueString = ( isDefaultValue( mDisplay.GetMinYValue() ) ) ? "DV" : mDisplay.GetMinYValueAsText();
 		WriteLn( FmtCmdParam( kwDISPLAY_YMINVALUE ) + valueString );
 
-		valueString = ( isDefaultValue( mDisp.GetMaxYValue() ) ) ? "DV" : mDisp.GetMaxYValueAsText();
+		valueString = ( isDefaultValue( mDisplay.GetMaxYValue() ) ) ? "DV" : mDisplay.GetMaxYValueAsText();
 		WriteLn( FmtCmdParam( kwDISPLAY_YMAXVALUE ) + valueString );
 
 		WriteLn();
@@ -141,7 +139,7 @@ public:
 
 		Comment( "----- X AXIS -----" );
 
-		auto &data = mDisp.GetData();
+		auto &data = mDisplay.GetData();
 		for ( CObMap::const_iterator it = data.begin(); it != data.end(); it++ )
 		{
 			CDisplayData* value = dynamic_cast<CDisplayData*>( it->second );
@@ -163,7 +161,7 @@ public:
 			WriteLn( FmtCmdParam( kwDISPLAY_XAXIS ) + axisName );
 			WriteLn( FmtCmdParam( kwDISPLAY_XLABEL ) + axisLabel );
 
-			if ( mDisp.AreFieldsGrouped() )
+			if ( mDisplay.AreFieldsGrouped() )
 				break;
 		}
 
@@ -172,19 +170,19 @@ public:
 
 	bool BuildCmdFileGeneralPropertiesZXY()
 	{
-		WriteLn( FmtCmdParam( kwDISPLAY_ANIMATION ) + mDisp.GetWithAnimationAsText() );
+		WriteLn( FmtCmdParam( kwDISPLAY_ANIMATION ) + mDisplay.GetWithAnimationAsText() );
 
 		std::string 
-		valueString = ( isDefaultValue( mDisp.GetMinXValue() ) ) ? "DV" : mDisp.GetMinXValueAsText();
+		valueString = ( isDefaultValue( mDisplay.GetMinXValue() ) ) ? "DV" : mDisplay.GetMinXValueAsText();
 		WriteLn( FmtCmdParam( kwDISPLAY_XMINVALUE ) + valueString );
 
-		valueString = ( isDefaultValue( mDisp.GetMaxXValue() ) ) ? "DV" : mDisp.GetMaxXValueAsText();
+		valueString = ( isDefaultValue( mDisplay.GetMaxXValue() ) ) ? "DV" : mDisplay.GetMaxXValueAsText();
 		WriteLn( FmtCmdParam( kwDISPLAY_XMAXVALUE ) + valueString );
 
-		valueString = ( isDefaultValue( mDisp.GetMinYValue() ) ) ? "DV" : mDisp.GetMinYValueAsText();
+		valueString = ( isDefaultValue( mDisplay.GetMinYValue() ) ) ? "DV" : mDisplay.GetMinYValueAsText();
 		WriteLn( FmtCmdParam( kwDISPLAY_YMINVALUE ) + valueString );
 
-		valueString = ( isDefaultValue( mDisp.GetMaxYValue() ) ) ? "DV" : mDisp.GetMaxYValueAsText();
+		valueString = ( isDefaultValue( mDisplay.GetMaxYValue() ) ) ? "DV" : mDisplay.GetMaxYValueAsText();
 		WriteLn( FmtCmdParam( kwDISPLAY_YMAXVALUE ) + valueString );
 
 		WriteLn();
@@ -194,7 +192,7 @@ public:
 		std::string xAxisName;
 		std::string yAxisName;
 
-		auto &data = mDisp.GetData();
+		auto &data = mDisplay.GetData();
 		for ( CObMap::const_iterator it = data.begin(); it != data.end(); it++ )
 		{
 			CDisplayData* value = dynamic_cast<CDisplayData*>( it->second );
@@ -216,7 +214,7 @@ public:
 			WriteLn( FmtCmdParam( kwDISPLAY_XAXIS ) + xAxisName );
 			WriteLn( FmtCmdParam( kwDISPLAY_YAXIS ) + yAxisName );
 
-			if ( mDisp.AreFieldsGrouped() )
+			if ( mDisplay.AreFieldsGrouped() )
 				break;
 		}
 
@@ -225,12 +223,12 @@ public:
 
 	bool BuildCmdFileGeneralPropertiesZLatLon()
 	{
-		WriteLn( FmtCmdParam( kwDISPLAY_ANIMATION ) + mDisp.GetWithAnimationAsText() );
+		WriteLn( FmtCmdParam( kwDISPLAY_ANIMATION ) + mDisplay.GetWithAnimationAsText() );
 
-		WriteLn( FmtCmdParam( kwDISPLAY_PROJECTION ) + mDisp.m_projection );
+		WriteLn( FmtCmdParam( kwDISPLAY_PROJECTION ) + mDisplay.m_projection );
 
 		CStringArray array;
-		mDisp.m_zoom.GetAsString( array );
+		mDisplay.m_zoom.GetAsString( array );
 		if ( array.size() == 4 )
 		{
 			WriteLn( FmtCmdParam( kwDISPLAY_ZOOM_LAT1 ) + array.at( 0 ).c_str() );
@@ -245,12 +243,12 @@ public:
 
 	bool BuildCmdFileFields( std::string errorMsg )
 	{
-		return mDisp.m_type == CMapTypeDisp::eTypeDispYFX ? BuildCmdFileFieldsYFX( errorMsg ) : BuildCmdFileFieldsZFXY( errorMsg );
+		return mDisplay.m_type == CMapTypeDisp::eTypeDispYFX ? BuildCmdFileFieldsYFX( errorMsg ) : BuildCmdFileFieldsZFXY( errorMsg );
 	}
 
 	bool BuildCmdFileFieldsYFX( std::string errorMsg )
 	{
-		for ( CMapDisplayData::const_iterator it = mDisp.m_data.begin(); it != mDisp.m_data.end(); it++ )
+		for ( CMapDisplayData::const_iterator it = mDisplay.m_data.begin(); it != mDisplay.m_data.end(); it++ )
 		{
 			CDisplayData* value = dynamic_cast<CDisplayData*>( it->second );
 
@@ -270,7 +268,7 @@ public:
 
 	bool BuildCmdFileFieldsZFXY( std::string errorMsg )
 	{
-		for ( CMapDisplayData::const_iterator it = mDisp.m_data.begin(); it != mDisp.m_data.end(); it++ )
+		for ( CMapDisplayData::const_iterator it = mDisplay.m_data.begin(); it != mDisplay.m_data.end(); it++ )
 		{
 			CDisplayData* value = dynamic_cast<CDisplayData*>( it->second );
 			if ( value == nullptr )
@@ -289,7 +287,7 @@ public:
 
 	bool BuildCmdFileFieldProperties( const std::string& dataKey, std::string errorMsg )
 	{
-		const CDisplayData *data = mDisp.m_data.GetDisplayData( dataKey );
+		const CDisplayData *data = mDisplay.m_data.GetDisplayData( dataKey );
 		if ( data == nullptr )
 		{
 			errorMsg += "ERROR in  CDisplay::BuildCmdFileFieldProperties\ndynamic_cast<CDisplay*>(it->second) returns nullptr pointer"
@@ -304,7 +302,7 @@ public:
 		WriteLn();
 
 		std::string displayName = data->GetField()->GetDescription();
-		if ( displayName.empty() == false )
+		if ( !displayName.empty() )
 		{
 			WriteLn( FmtCmdParam( kwDISPLAY_NAME ) + displayName );
 		}
@@ -316,7 +314,7 @@ public:
 
 		WriteLn( FmtCmdParam( kwFIELD_GROUP ) + data->GetGroupAsText() );
 
-		switch ( mDisp.m_type )
+		switch ( mDisplay.m_type )
 		{
 			case CMapTypeDisp::eTypeDispYFX:
 				BuildCmdFileFieldPropertiesXY( data );
@@ -343,10 +341,10 @@ public:
 			return false;
 
 		std::string
-		valueString = ( isDefaultValue( value->GetMinValue() ) ) ? "DV" : value->GetMinValueAsText();
+		valueString = ( isDefaultValue( value->GetCurrentMinValue() ) ) ? "DV" : value->GetAbsoluteMinValueAsText();
 		WriteLn( FmtCmdParam( kwDISPLAY_MINVALUE ) + valueString );
 
-		valueString = ( isDefaultValue( value->GetMaxValue() ) ) ? "DV" : value->GetMaxValueAsText();
+		valueString = ( isDefaultValue( value->GetCurrentMaxValue() ) ) ? "DV" : value->GetAbsoluteMaxValueAsText();
 		WriteLn( FmtCmdParam( kwDISPLAY_MAXVALUE ) + valueString );
 
 		WriteLn( FmtCmdParam( kwDISPLAY_CONTOUR ) + value->GetContourAsText() );
@@ -421,8 +419,10 @@ CDisplayData::CDisplayData( const CDisplayData &o, const CWorkspaceOperation *wk
 	m_group = o.m_group;
 	m_withContour = o.m_withContour;
 	m_withSolidColor = o.m_withSolidColor;
-	m_minValue = o.m_minValue;
-	m_maxValue = o.m_maxValue;
+	mCurrentMinValue = o.mCurrentMinValue;
+	mCurrentMaxValue = o.mCurrentMaxValue;
+	mAbsoluteMinValue = o.mAbsoluteMinValue;
+	mAbsoluteMaxValue = o.mAbsoluteMaxValue;
 	m_colorPalette = o.m_colorPalette;
 	m_xAxis = o.m_xAxis;
 
@@ -460,8 +460,10 @@ void CDisplayData::CopyFieldUserProperties(CDisplayData& d)
 
   m_withContour = d.m_withContour;
   m_withSolidColor = d.m_withSolidColor;
-  m_minValue = d.m_minValue;
-  m_maxValue = d.m_maxValue;
+  mCurrentMinValue = d.mCurrentMinValue;
+  mCurrentMaxValue = d.mCurrentMaxValue;
+  mAbsoluteMinValue = d.mAbsoluteMinValue;
+  mAbsoluteMaxValue = d.mAbsoluteMaxValue;
   m_colorPalette = d.m_colorPalette;
   m_xAxis = d.m_xAxis;
 
@@ -472,17 +474,43 @@ void CDisplayData::CopyFieldUserProperties(CDisplayData& d)
 
 }
 //----------------------------------------
+
+//static 
+#if defined(BRAT_V3)
 std::string CDisplayData::MakeKey( const COperation *operation, const std::string &field_name, CMapTypeDisp::ETypeDisp type )
+#else
+std::string CDisplayData::MakeKeyV3( const COperation *operation, const std::string &field_name, CMapTypeDisp::ETypeDisp type )
+#endif
 {
 	if ( operation == nullptr )
 		return "";
 
 	return operation->GetName() + "_" + field_name + "_" + n2s<std::string>( type );
 }
-std::string CDisplayData::GetDataKey( int32_t type )
+
+#if !defined(BRAT_V3)
+
+//static 
+std::string CDisplayData::MakeKey( const std::string &field_name, CMapTypeDisp::ETypeDisp type )
 {
-	return MakeKey( m_operation, m_field.GetName(), (CMapTypeDisp::ETypeDisp)type );
+	return field_name + "_" + n2s<std::string>( type );
 }
+
+
+#endif
+
+
+std::string CDisplayData::GetDataKey( CMapTypeDisp::ETypeDisp type )
+{
+#if defined(BRAT_V3)
+    return MakeKey( m_operation, m_field.GetName(), type );
+#else
+
+	return MakeKey( m_field.GetName(), type );
+
+#endif
+}
+
 std::string CDisplayData::GetDataKey()
 {
 	return GetDataKey( GetType() );
@@ -502,18 +530,6 @@ bool CDisplayData::IsZYFXType()
 bool CDisplayData::IsZLatLonType()
 {
 	return m_type == CMapTypeDisp::eTypeDispZFLatLon;
-}
-//----------------------------------------
-void CDisplayData::GetAvailableDisplayTypes( CUIntArray& displayTypes )
-{
-	displayTypes.RemoveAll();
-
-	if ( m_operation == nullptr )
-	{
-		return;
-	}
-
-	CDisplay::GetDisplayType( m_operation, displayTypes );
 }
 //----------------------------------------
 std::string CDisplayData::GetXAxisText(const std::string& name)
@@ -651,9 +667,7 @@ CMapDisplayData::CMapDisplayData( const CMapDisplayData &o, const CWorkspaceOper
 		RemoveAll();
 		for ( CMapDisplayData::const_iterator it = o.begin(); it != o.end(); it++ )
 		{
-			CDisplayData* value = dynamic_cast< CDisplayData* >( it->second );
-			if ( value == nullptr )
-				continue;
+			CDisplayData* value = dynamic_cast<CDisplayData*>( it->second ); 			assert__( value );
 
 			Insert( value->GetDataKey(), new CDisplayData( *value, wkso ) );
 		}
@@ -780,16 +794,6 @@ void CMapDisplayData::SetAllInvertXYAxes(bool value)
 
 }
 
-//----------------------------------------
-CDisplayData* CMapDisplayData::GetDisplayData(CMapDisplayData::const_iterator& it)
-{
-  return dynamic_cast<CDisplayData*>(it->second);
-}
-//----------------------------------------
-const CDisplayData* CMapDisplayData::GetDisplayData( const std::string& name ) const
-{
-  return dynamic_cast<CDisplayData*>(Exists(name.c_str()));
-}
 //----------------------------------------
 const CDisplayData* CMapDisplayData::GetDisplayData(const char* name) const
 {
@@ -973,44 +977,8 @@ bool CMapDisplayData::CheckFields( std::string& errorMsg, CDisplay* display )
 //------------------- CDisplay class --------------------
 //-------------------------------------------------------------
 
+//static 
 const std::string CDisplay::m_zoomDelimiter = " ";
-
-
-//static
-void CDisplay::GetDisplayType( const COperation* operation, CUIntArray& displayTypes, CInternalFiles** pf )		//pf = nullptr
-{
-	displayTypes.RemoveAll();
-
-	if ( operation == NULL )
-		return;
-
-	CInternalFiles* f = CInternalFiles::Create( operation->GetOutputPath(), true, false );
-
-	if ( CInternalFiles::IsYFXFile( f ) )
-	{
-		displayTypes.Insert( CMapTypeDisp::eTypeDispYFX );
-	}
-
-	if ( CInternalFiles::IsZFLatLonFile( f ) )
-	{
-		displayTypes.Insert( CMapTypeDisp::eTypeDispZFLatLon );
-	}
-
-	if ( CInternalFiles::IsZFXYFile( f ) )
-	{
-		displayTypes.Insert( CMapTypeDisp::eTypeDispZFXY );
-	}
-
-	if ( pf == NULL )
-	{
-		delete f;
-		f = NULL;
-	}
-	else
-	{
-		*pf = f;
-	}
-}
 
 
 //----------------------------------------
@@ -1202,16 +1170,25 @@ bool CDisplay::IsZLatLonType() const
 	return m_type == CMapTypeDisp::eTypeDispZFLatLon;
 }
 
-//----------------------------------------
-CDisplayData* CDisplay::GetDisplayData( const std::string& name )
+#if !defined(BRAT_V3)
+
+CDisplayData* CDisplay::GetFieldDisplayData( const std::string &field_name )
 {
-  return dynamic_cast< CDisplayData* >( m_data.Exists( name ) );
+	std::string key = CDisplayData::MakeKey( field_name, GetType() );
+
+	return dynamic_cast< CDisplayData* >( m_data.Exists( key ) );
 }
-//----------------------------------------
-CDisplayData* CDisplay::GetDisplayData(CMapDisplayData::iterator it)
+
+
+CDisplayData* CDisplay::GetFieldDisplayDataV3( const COperation *operation, const std::string &field_name )
 {
-  return dynamic_cast< CDisplayData* >( it->second );
+	std::string key = CDisplayData::MakeKeyV3( operation, field_name, GetType() );
+
+	return dynamic_cast< CDisplayData* >( m_data.Exists( key ) );
 }
+
+
+#endif
 
 //----------------------------------------
 std::string CDisplay::FmtCmdParam( const std::string& name )

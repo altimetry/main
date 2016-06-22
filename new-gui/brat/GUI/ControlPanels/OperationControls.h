@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #if !defined GUI_CONTROL_PANELS_OPERATIONS_CONTROL_PANEL_H
 #define GUI_CONTROL_PANELS_OPERATIONS_CONTROL_PANEL_H
 
@@ -46,12 +63,21 @@ public:
 	{
 		eSSH,
 		eSWH,
+        eSLA,
 		eWinds,
 		eSigma0,
 		eRange,
 
 		EPredefinedVariables_size
 	};
+
+	enum EPredefinedSelectionCriteria
+	{
+		eOceanEditing,
+
+		EPredefinedSelectionCriteria_size
+	};
+
 
 
 	using EExecutionType = COperation::EExecutionType;
@@ -71,7 +97,13 @@ public:
 
 	static bool FormulaMatchesQuickAlias( const std::string &description, EPredefinedVariables index );
 
-	CField* QuickFindField( CProduct *product, EPredefinedVariables index, bool &alias_used, std::string &field_error_msg );
+	static const std::string& QuickFindAliasValue( CProduct *product, EPredefinedVariables index );
+
+	static CField* QuickFindField( CProduct *product, EPredefinedVariables index, bool &alias_used, std::string &field_error_msg );
+
+	static const std::string& QuickFindAliasValue( CProduct *product, EPredefinedSelectionCriteria index );
+
+	static CField* QuickFindField( CProduct *product, EPredefinedSelectionCriteria index, bool &alias_used, std::string &field_error_msg );
 
 
 	static void SelectOperationDataset( COperation *operation, QComboBox *combo, bool block_signals );
@@ -185,6 +217,7 @@ protected:
 	QToolButton *mDisplayMapButton = nullptr;
 	QToolButton *mDisplayPlotButton = nullptr;
 	QListWidget *mQuickVariablesList = nullptr;
+	QCheckBox *mQuickSelectionCriteriaCheck = nullptr;
     CTextWidget *mQuickFieldDesc = nullptr;
 	bool mCanExecuteQuickOperation = false;
 
@@ -229,6 +262,10 @@ public:
 
     void SetAdvancedMode( bool advanced );
 
+	COperation* CurrentOperation() { return mCurrentOperation; }
+
+	COperation* QuickOperation() { return mQuickOperation; }
+
 
 	// remaining operations
 
@@ -267,7 +304,6 @@ protected:
 	//quick
 
 	CDataset* QuickDatasetSelected() const;
-	COperation* QuickOperation() const;
 	COperation* CreateEmptyQuickOperation();
 	COperation* CreateQuickOperation( CMapTypeOp::ETypeOp type );
     bool IsQuickOperationSelected() const;
@@ -294,7 +330,7 @@ protected:
     bool ComputeInterval( CFormula *formula, QLabel *IntervalsLabel, QLineEdit *StepLineEdit, QLabel *IconWarning );
     /////////////////////////////////////
 
-    bool MapRequested() const;
+    bool MapPlotSelected() const;
 	void ExportASCIIAsyncComputationFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation );
 	void ExportGeoTIFFAsyncComputationFinished( int exit_code, QProcess::ExitStatus exitStatus, const COperation *operation );
 

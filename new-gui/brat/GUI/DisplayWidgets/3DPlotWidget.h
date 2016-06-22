@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT 
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #ifndef GUI_DISPLAY_WIDGETS_3D_PLOT_WIDGET_H
 #define GUI_DISPLAY_WIDGETS_3D_PLOT_WIDGET_H
 
@@ -22,7 +39,7 @@ class CDisplayFilesProcessor;
 class CZFXYPlot;
 class CZFXYPlotData;
 
-struct C3DPlotParameters;
+struct CZFXYPlotParameters;
 
 struct CBrat3DFunction;
 class CBrat3DPlot;
@@ -178,7 +195,7 @@ public:
 
 	// data
 
-	void AddSurface( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax );
+	void AddSurface( const CZFXYPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax );
 
 
 	// style
@@ -296,7 +313,7 @@ public:
 	//...create plot
 
 	//takes ownership of pcolor_map
-	void PushPlot( const C3DPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, Qwt3D::Color *pcolor_map );
+	void PushPlot( const CZFXYPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, Qwt3D::Color *pcolor_map );
 
 	//takes ownership of pcolor_map
 	void SetColorMap( Qwt3D::Color *pcolor_map );

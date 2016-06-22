@@ -108,7 +108,7 @@ CAxisTab::CAxisTab( QWidget *parent, Qt::WindowFlags f )
 CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
     : base_t( parent, f )
 {
-    // 1. Plot List
+    // 1. Fields List
     //
     mFieldsList = new QListWidget;
 	auto *fields_group = CreateGroupBox( ELayoutType::Horizontal, { mFieldsList }, "Fields", nullptr );
@@ -119,7 +119,10 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
     // 2. Spectrogram Options
 
 	mColorMapWidget = new CColorMapWidget( false, true, nullptr );
-	mSpectrogramOptions = CreateGroupBox( ELayoutType::Horizontal, { mColorMapWidget }, "3D", nullptr );
+	mColorMapWidget->HideContourColorWidget();
+	mColorMapWidget->HideContourWidthWidget();
+	mColorMapWidget->SetContoursTitle( "2D Contours" );
+	mSpectrogramOptions = CreateGroupBox( ELayoutType::Horizontal, { mColorMapWidget }, "", nullptr );
 
     //
     // 3. Line Options
@@ -134,7 +137,7 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
 
     mLineOptions = CreateGroupBox( ELayoutType::Horizontal, 
 	{
-		new QLabel( "Plot Color" ), mLineColorButton, nullptr, new QLabel( "Opacity" ), mLineOpacityValue, nullptr,
+		new QLabel( "Color" ), mLineColorButton, nullptr, new QLabel( "Opacity" ), mLineOpacityValue, nullptr,
 		new QLabel( "Stipple pattern"), mStipplePattern, nullptr, new QLabel( "Width" ), mLineWidthValue
     }, 
 	"Line", nullptr, s, m, m, m, m );
@@ -153,8 +156,8 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
 
     mPointOptions = CreateGroupBox( ELayoutType::Horizontal, 
 	{ 
-		new QLabel( "Plot Color" ), mPointColorButton, nullptr, mFillPointCheck, new QLabel( "Fill point" ), nullptr,
-		new QLabel( "Point Glyph"), mPointGlyph, nullptr, new QLabel( "Size" ), mPointSizeValue
+		new QLabel( "Color" ), mPointColorButton, nullptr, mFillPointCheck, new QLabel( "Fill point" ), nullptr,
+		new QLabel( "Glyph"), mPointGlyph, nullptr, new QLabel( "Size" ), mPointSizeValue
 	}, 
 	"Point", nullptr, s, m, m, m, m );
     mPointOptions->setCheckable( true );
@@ -188,11 +191,11 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
      AddTopLayout( ELayoutType::Horizontal, 
 	 { 
 		 fields_group,
-		 nullptr,
+		 //nullptr,
 		 mBoxHistogram,
-		 nullptr,
+		 //nullptr,
 		 mBox3D,
-		 nullptr,
+		 //nullptr,
 		 mBox2D,
 	}, 
 	s, m, m, m, m );
@@ -553,30 +556,41 @@ void CPlotControlsPanelAnimateOptions::SwitchTo3D()
 
 
 ////////////////////////////////////////
-//			Map Edit Tab					
+//			Map Layers Tab					
 ////////////////////////////////////////
 
 CMapControlsPanelDataLayers::CMapControlsPanelDataLayers( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0 );
     : base_t( parent, f )
 {
-    // III. Data Layers
+    // 1. Fields List
     //
     mFieldsList = new QListWidget;
-    mFieldsList->setToolTip("Data Layer");
+	auto *fields_group = CreateGroupBox( ELayoutType::Horizontal, { mFieldsList }, "Fields", nullptr );
+	fields_group->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Maximum );
+	mFieldsList->setMaximumHeight( MaxSmallListsHeight( 5 ) );
 
     mColorMapWidget = new CColorMapWidget( false, true, this );
 
 	auto *color_l = CreateGroupBox( ELayoutType::Horizontal,
 	{
 		mColorMapWidget,
-		//LayoutWidgets( Qt::Vertical, { new QLabel( "# Labels (Color Bar)" ), mNbLabels }, nullptr ),
 	},
 	"", nullptr, 2, m, m, m, m );
+	//color_l->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
+
+
+
+	auto *layers_l = CreateGroupBox( ELayoutType::Horizontal,
+	{
+		mFieldsList,
+	},
+	"", nullptr, 2, m, m, m, m );
+	//layers_l->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Maximum );
+
 
     AddTopLayout( ELayoutType::Horizontal, 
 	{
-		mFieldsList, 
-        nullptr,
+		layers_l, 
 		color_l,
 	}, 
 	s, m, m, m, m );
@@ -585,7 +599,7 @@ CMapControlsPanelDataLayers::CMapControlsPanelDataLayers( QWidget *parent, Qt::W
 
 
 ////////////////////////////////////////
-//			Map Options Tab
+//			Map View Tab
 ////////////////////////////////////////
 
 void CMapControlsPanelView::CreateWidgets()

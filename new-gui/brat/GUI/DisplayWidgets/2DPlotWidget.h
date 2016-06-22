@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT 
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #ifndef GUI_DISPLAY_WIDGETS_2D_PLOT_WIDGET_H
 #define GUI_DISPLAY_WIDGETS_2D_PLOT_WIDGET_H
 
@@ -33,12 +50,12 @@ class C2DMagnifier;
 class CBratSpectrogram;
 class CBratScaleDraw;
 
-class CQwtArrayPlotData;
+class CYFXValues;
 
 template< class PARAMS >
-struct CGeneric3DPlotInfo;
-struct C3DPlotParameters;
-using C3DPlotInfo = CGeneric3DPlotInfo< C3DPlotParameters >;
+struct CGenericZFXYValues;
+struct CZFXYPlotParameters;
+using CZFXYValues = CGenericZFXYValues< CZFXYPlotParameters >;
 
 
 
@@ -96,10 +113,96 @@ inline Qt::PenStyle pattern_cast< Qt::PenStyle >( EStipplePattern p )
 
 
 //////////////////////////////////////////////////////////////////
-//						Custom Curve
+//						Custom Curves
 //////////////////////////////////////////////////////////////////
 
-class CGeneralizedCurve : public QObject, public QwtPlotCurve
+
+
+template< class DATA >
+class CPartialCurve : public QwtPlotCurve
+{
+	// types
+
+	using base_t = QwtPlotCurve;
+
+protected:
+
+	using data_t = DATA;
+
+
+	//instance data
+
+	double mMinXValue = 0.;
+	double mMaxXValue = 0.;
+
+	double mMinYValue = 0.;
+	double mMaxYValue = 0.;
+
+	bool mRangeComputed = false;
+
+	const data_t *mData = nullptr;
+
+	//construction / destruction
+
+	void CommonConstruct()
+	{
+		if ( mData )
+			setData( *mData );
+	}
+public:
+	explicit CPartialCurve( const data_t *data )
+		: base_t()
+		, mData( data )
+	{
+		CommonConstruct();
+	}
+	explicit CPartialCurve( const data_t *data, const QwtText &title )
+        : base_t( title )
+		, mData( data )
+	{
+		CommonConstruct();
+	}
+	explicit CPartialCurve( const data_t *data, const QString &title )
+        : base_t( title )
+		, mData( data )
+	{
+		CommonConstruct();
+	}
+
+	
+	// access / assignment
+
+public:
+
+	// QWT interface
+
+
+	// This overload is needed when using auto-scale
+	//
+	virtual QwtDoubleRect boundingRect() const override;
+
+
+	// This is a slow implementation: it might be worth to cache valid data ranges.
+	//
+	virtual void draw( QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &yMap, int from, int to ) const override;
+
+
+	// internal processing
+
+private:
+	static bool isNaN( double x )
+	{
+		return x != x;
+	}
+
+	void ComputeRange();
+};
+
+
+
+
+
+class CGeneralizedCurve : public QObject, public CPartialCurve< CYFXValues >
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
@@ -114,20 +217,10 @@ class CGeneralizedCurve : public QObject, public QwtPlotCurve
 
 	// types
 
-	using base_t = QwtPlotCurve;
+	using base_t = CPartialCurve< CYFXValues >;
 
 
 	//instance data
-
-	double mMinXValue = 0.;
-	double mMaxXValue = 0.;
-
-	double mMinYValue = 0.;
-	double mMaxYValue = 0.;
-
-	bool mRangeComputed = false;
-
-	const CQwtArrayPlotData *mData = nullptr;
 
 	bool mAnimForward = true;
 	bool mLoop = true;
@@ -139,11 +232,10 @@ class CGeneralizedCurve : public QObject, public QwtPlotCurve
 
 	//construction / destruction
 
-	void CommonConstruct();
 public:
-	explicit CGeneralizedCurve( const CQwtArrayPlotData *data );
-	explicit CGeneralizedCurve( const CQwtArrayPlotData *data, const QwtText &title );
-	explicit CGeneralizedCurve( const CQwtArrayPlotData *data, const QString &title );
+	explicit CGeneralizedCurve( const CYFXValues *data );
+	explicit CGeneralizedCurve( const CYFXValues *data, const QwtText &title );
+	explicit CGeneralizedCurve( const CYFXValues *data, const QString &title );
 
 	
 	// access / assignment
@@ -172,31 +264,6 @@ public:
 
 protected:
 	bool FrameUpdated();
-
-public:
-
-	// QWT interface
-
-
-	// This overload is needed when using auto-scale
-	//
-	virtual QwtDoubleRect boundingRect() const;
-
-
-	// This is a slow implementation: it might be worth to cache valid data ranges.
-	//
-	virtual void draw( QPainter *painter, const QwtScaleMap &xMap, const QwtScaleMap &yMap, int from, int to ) const;
-
-
-	// internal processing
-
-private:
-	static bool isNaN( double x )
-	{
-		return x != x;
-	}
-
-	void ComputeRange();
 };
 
 
@@ -249,6 +316,8 @@ class C2DPlotWidget : public QwtPlot
 	C2DMagnifier *mMagnifier = nullptr;
 	QwtPlotPanner *mPanner = nullptr;
 	C2DZoomer *mZoomer = nullptr; 
+
+	QwtLegend *mLegend = nullptr; 
 
     std::vector< CBratSpectrogram* > mSpectrograms;
 	CBratSpectrogram *mCurrentSpectrogram = nullptr;
@@ -394,7 +463,7 @@ public:
 	// legends
 	///////////
 
-	QwtLegend* AddLegend( LegendPosition pos, bool checkable = false );
+	void AddLegend( LegendPosition pos, bool checkable = false );
 
 
 
@@ -402,7 +471,7 @@ public:
 	// raster
 	///////////
 
-	QwtPlotSpectrogram* PushRaster( const std::string &title, const C3DPlotInfo &maps, double min_contour, double max_contour, size_t ncontours, const QwtColorMap &color_map );
+	QwtPlotSpectrogram* PushRaster( const std::string &title, const CZFXYValues &maps, double min_contour, double max_contour, size_t ncontours, const QwtColorMap &color_map );
 
 	//switch plot
 	void SetCurrentRaster( int index );
@@ -413,8 +482,11 @@ public:
     bool HasSolidColor() const;
     void ShowSolidColor( bool show );
 
-    void ShowContour( int index, bool show );
-    void ShowSolidColor( int index, bool show );
+	int NumberOfContours() const;
+	void SetNumberOfContours( double min_contour, double max_contour, size_t ncontours );
+	
+	void ShowContour( int index, bool show );
+    void ShowSolidColor( int index, bool show );    
 
 	void SetRasterColorMap( const QwtColorMap &color_map );
 
@@ -430,9 +502,9 @@ protected:
 	static CHistogram* CreateHistogram( const std::string &title, QColor color, const DATA *data, double &max_freq, int bins );
 
 public:
-	CHistogram* AddHistogram( const std::string &title, QColor color, const CQwtArrayPlotData *data, double &max_freq, int bins );
+	CHistogram* AddHistogram( const std::string &title, QColor color, const CYFXValues *data, double &max_freq, int bins );
 
-	CHistogram* PushHistogram( const std::string &title, QColor color, const C3DPlotInfo *data, double &max_freq, int bins );
+	CHistogram* PushHistogram( const std::string &title, QColor color, const CZFXYValues *data, double &max_freq, int bins );
 
 	void SetCurrentHistogram( int index );
 
@@ -441,8 +513,8 @@ public:
 	// curves
 	//////////
 
-	QwtPlotCurve* AddCurve( const std::string &title, QColor color, const CQwtArrayPlotData *data = nullptr );
-	QwtPlotCurve* AddCurve( const std::string &title, QColor color, const CQwtArrayPlotData &data )
+	QwtPlotCurve* AddCurve( const std::string &title, QColor color, const CYFXValues *data = nullptr );
+	QwtPlotCurve* AddCurve( const std::string &title, QColor color, const CYFXValues &data )
 	{
 		return AddCurve( title, color, &data );
 	}
@@ -538,7 +610,7 @@ protected slots:
 	void HandleScaleDivChanged();
 	void ChangeFrame();
 
-	void ShowCurve( QwtPlotItem *item, bool on );
+	void ShowFitCurve( QwtPlotItem *item, bool on );
 };
 
 

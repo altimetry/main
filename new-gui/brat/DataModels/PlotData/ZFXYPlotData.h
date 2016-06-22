@@ -87,7 +87,7 @@ struct CZFXYPlotProperties : public CBratObject
 	int32_t m_numContourLabel;
 
 	int32_t m_contourLabelSize;
-	double m_contourLineWidth;
+	double mContourLineWidth = 0.1;
 
 	CPlotColor m_contourLineColor;
 	CPlotColor m_contourLabelColor;
@@ -126,7 +126,11 @@ private:
 
 class CZFXYPlotData : public CBratObject
 {
+	using base_t = CBratObject;
+
 protected:
+	const std::string mFieldName;
+
 	bool m_aborted;
 
 	uint32_t m_currentMap;
@@ -149,7 +153,7 @@ protected:
 	CUnit m_unitY;
 	CUnit m_unitZ;
 
-	C3DPlotInfo mMaps;
+	CZFXYValues mMaps;
 
 	CBratLookupTable *mLUT = nullptr;
 
@@ -166,7 +170,10 @@ public:
 
 	// access
 
-	const C3DPlotInfo& Maps() const { return mMaps; }
+	const CZFXYValues& PlotValues() const { return mMaps; }
+
+	const std::string &FieldName() const { return mFieldName; }
+
 
 	const CUnit& GetXUnit() const { return m_unitX; }
 	const CUnit& GetYUnit() const { return m_unitY; }

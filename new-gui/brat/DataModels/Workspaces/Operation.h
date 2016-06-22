@@ -27,9 +27,18 @@
 #include "Formula.h"
 #include "new-gui/Common/ApplicationPaths.h"
 
+#include "../MapTypeDisp.h"
+
+
 class CWorkspaceDataset;
 class CWorkspaceOperation;
 class CBratFilter;
+namespace brathl 
+{
+	class CInternalFiles;
+};
+
+
 
 
 
@@ -145,7 +154,7 @@ protected:
 	const CDataset *mOriginalDataset = nullptr;				//v4
 	const CBratFilter *mFilter = nullptr;					//v4
 	std::string m_record;									//CFormula* m_formula;
-	CFormula *m_select = new CFormula(ENTRY_SELECT, false);
+	CFormula *mSelectionCriteria = nullptr;
 	CMapFormula m_formulas;
 	CMapTypeOp::ETypeOp m_type = CMapTypeOp::eTypeOpYFX;
 	int32_t m_dataMode = CMapDataMode::GetInstance().GetDefault();
@@ -186,24 +195,36 @@ protected:
 private:
 	std::string m_name;
 
+	//construction / destruction 
+
 public:
 
 	COperation( const std::string name ) : m_name( name )
 	{
-		m_select->SetFieldType( CMapTypeField::eTypeOpAsSelect );
+		CreateSelectionCriteria();
 	}
 
 	static COperation* Copy( const COperation &o, CWorkspaceOperation *wkso, CWorkspaceDataset *wksd );
 
 	void Clear();
 
+	CFormula* CreateSelectionCriteria( CFormula *f = nullptr )
+	{
+		delete mSelectionCriteria;
+		mSelectionCriteria = f ? new CFormula( *f ) : new CFormula( ENTRY_SELECT, false );
+		mSelectionCriteria->SetName( ENTRY_SELECT );
+		mSelectionCriteria->SetFieldType( CMapTypeField::eTypeOpAsSelect );
+		return mSelectionCriteria;
+	}
 
-	/// Destructor
 	virtual ~COperation()
 	{
-		delete m_select;
+		delete mSelectionCriteria;
 		delete mDataset;
 	}
+
+
+	//remaining...
 
 	virtual const_iterator begin() const { return m_formulas.begin(); }
 
@@ -236,8 +257,7 @@ public:
 	std::string GetRecord() const { return m_record; }
 	void SetRecord( const std::string& value ) { m_record = value; }
 
-	CMapTypeOp::ETypeOp GetType() const { return (CMapTypeOp::ETypeOp)m_type; }
-	void SetType( int32_t value ) { SetType( (CMapTypeOp::ETypeOp)value ); }
+	CMapTypeOp::ETypeOp GetType() const { return m_type; }
 	void SetType( CMapTypeOp::ETypeOp value ) { m_type = value; }
 
 	std::string GetDataModeAsString() { return CMapDataMode::GetInstance().IdToName( m_dataMode ); }
@@ -287,6 +307,10 @@ public:
 
 	std::string GetDescFormula( const std::string& name, bool alias = false );
 	//void SetDescFormula(const std::string& name, const std::string& value);
+
+	//v4: formerly static void CDisplay::GetDisplayType( const COperation* operation, CUIntArray& displayTypes, CInternalFiles** pf = nullptr );
+	//
+	std::vector< CMapTypeDisp::ETypeDisp > GetDisplayTypes( CInternalFiles** pf = nullptr ) const;
 
 
 	void GetExportGeoTiffProperties( bool &createKML, std::string &colorTable, double &rangeMin, double &rangeMax )
@@ -510,8 +534,8 @@ public:
 	std::string GetCommentFormula( const std::string& name ) const;
 	void SetCommentFormula( const std::string &name, const std::string &value );
 
-	const CFormula* GetSelect() const { return m_select; }
-	CFormula* GetSelect() { return m_select; }
+	const CFormula* GetSelect() const { return mSelectionCriteria; }
+	CFormula* GetSelect() { return mSelectionCriteria; }
 	void SetSelect( CFormula* value );
 
 	bool IsYFX() const;

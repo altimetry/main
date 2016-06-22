@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT 
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #include "new-gui/brat/stdafx.h"
 
 #include "new-gui/Common/QtUtils.h"
@@ -10,6 +27,9 @@
 #include "DataModels/Workspaces/Workspace.h"
 #include "DataModels/Workspaces/Display.h"
 #include "DataModels/PlotData/BratLookupTable.h"
+#include "DataModels/PlotData/ZFXYPlotData.h"
+#include "DataModels/PlotData/XYPlotData.h"
+#include "DataModels/PlotData/WorldPlotData.h"
 
 #include "GUI/ActionsTable.h"
 #include "GUI/TabbedDock.h"
@@ -18,6 +38,164 @@
 
 #include "AbstractDisplayEditor.h"
 
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//						CAbstractDisplayEditor static tools
+//////////////////////////////////////////////////////////////////////////////////////////////////
+
+//static
+brathl_refDate CAbstractDisplayEditor::RefDateFromUnit( const CUnit &u )
+{
+	brathl_refDate refDate;
+	CDate dateRef;
+	u.HasDateRef(&dateRef);
+	CDate::GetDateRef(dateRef, refDate);
+	return refDate;
+}
+
+
+CZFXYPlotData* CAbstractDisplayEditor::GetFieldData( size_t field_index, std::vector< CZFXYPlotData* > &zfxy_data_array )
+{
+	assert__( field_index < zfxy_data_array.size() );
+
+	CZFXYPlotData *pdata = zfxy_data_array[ field_index ];			assert__( pdata != nullptr );
+	return pdata;
+}
+//static
+CXYPlotData* CAbstractDisplayEditor::GetFieldData( size_t field_index, CXYPlotDataCollection &yfx_data_collection )
+{
+	assert__( field_index < yfx_data_collection.size() );
+
+	CXYPlotData *pdata = yfx_data_collection.Get( field_index );	assert__( pdata != nullptr );
+	return pdata;
+}
+//static
+CWorldPlotData* CAbstractDisplayEditor::GetFieldData( size_t field_index, std::vector< CWorldPlotData* > &lon_lat_data_array )
+{
+	assert__( field_index < lon_lat_data_array.size() );
+
+	CWorldPlotData *pdata = lon_lat_data_array[ field_index ];		assert__( pdata != nullptr );
+	return pdata;
+}
+
+
+//static
+CZFXYPlotProperties* CAbstractDisplayEditor::GetProperties( size_t field_index, std::vector< CZFXYPlotData* > &zfxy_data_array )
+{
+	CZFXYPlotData *pdata = GetFieldData( field_index, zfxy_data_array );
+	CZFXYPlotProperties* props = pdata->GetPlotProperties();					assert__( props );
+	return props;
+}
+//static
+CXYPlotProperties* CAbstractDisplayEditor::GetProperties( size_t field_index, CXYPlotDataCollection &yfx_data_collection )
+{
+	CXYPlotData *pdata = GetFieldData( field_index, yfx_data_collection );
+	CXYPlotProperties *props = pdata->GetPlotProperties();						assert__( props );
+	return props;
+}
+//static
+CWorldPlotProperties* CAbstractDisplayEditor::GetProperties( size_t field_index, std::vector< CWorldPlotData* > &lon_lat_data_array )
+{
+	CWorldPlotData *pdata = GetFieldData( field_index, lon_lat_data_array );
+	CWorldPlotProperties *props = &pdata->m_plotProperty;						assert__( props );
+	return props;
+}
+
+
+
+void ThrowDisplayDataNotAvaiable()
+{
+	throw CException( "DisplayData not available. This can sometimes happen when opening Brat V3 views.\nIf that is the case, the operation should be run again" );
+}
+
+//static
+CDisplayData* CAbstractDisplayEditor::GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, std::vector< CZFXYPlotData* > &zfxy_data_array )
+{
+	CZFXYPlotData *pdata = GetFieldData( field_index, zfxy_data_array );
+	std::string field = pdata->FieldName();
+	CDisplayData *ddata = display->GetFieldDisplayData( field );	
+	if ( !ddata )
+	{
+		CZFXYPlotProperties *props = GetProperties( field_index, zfxy_data_array );
+		field = props->m_name;
+		ddata = display->GetFieldDisplayDataV3( operation, field );
+		if ( pdata->FieldName() != field )
+			LOG_WARN( pdata->FieldName() + " [<= DisplayData] != [ZFXY Properties=>] " + props->m_name );
+	}
+
+	if ( !ddata )
+		ThrowDisplayDataNotAvaiable();
+	else
+	{
+		// TODO brat v3 does not update range: this should be done in plots Create
+		if ( isDefaultValue( ddata->GetAbsoluteMinValue() ) || isDefaultValue( ddata->GetAbsoluteMaxValue() ) )
+		{
+			ddata->SetAbsoluteRangeValues( pdata->GetLookupTable()->GetTableRange()[0], pdata->GetLookupTable()->GetTableRange()[1] );
+		}
+	}
+
+	return ddata;
+}
+//static
+CDisplayData* CAbstractDisplayEditor::GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, CXYPlotDataCollection &yfx_data_collection )
+{
+	CXYPlotData *pdata = GetFieldData( field_index, yfx_data_collection );
+	std::string field = pdata->FieldName();
+	CDisplayData *ddata = display->GetFieldDisplayData( field );	
+	if ( !ddata )
+	{
+		CXYPlotProperties *props = GetProperties( field_index, yfx_data_collection );
+		field = props->GetName();
+		ddata = display->GetFieldDisplayDataV3( operation, field );
+		if ( pdata->FieldName() != field )
+			LOG_WARN( pdata->FieldName() + " [<= DisplayData] != [YFX Properties=>] " + props->GetName() );
+	}
+	
+	if ( !ddata )
+		ThrowDisplayDataNotAvaiable();
+
+	return ddata;
+}
+//static
+CDisplayData* CAbstractDisplayEditor::GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, std::vector< CWorldPlotData* > &lon_lat_data_array )
+{
+	CWorldPlotData *pdata = GetFieldData( field_index, lon_lat_data_array );
+	std::string field = pdata->FieldName();
+	CDisplayData *ddata = display->GetFieldDisplayData( field );	
+	if ( !ddata )
+	{
+		CWorldPlotProperties *props = GetProperties( field_index, lon_lat_data_array );
+		field = props->m_name;
+		ddata = display->GetFieldDisplayDataV3( operation, field );
+		if ( pdata->FieldName() != field )
+			LOG_WARN( pdata->FieldName() + " [<= DisplayData] != [LonLat Properties=>] " + props->m_name );
+	}
+
+	if ( !ddata )
+		ThrowDisplayDataNotAvaiable();
+	else
+	{
+		// TODO brat v3 does not update range: this should be done in plots Create
+		if ( isDefaultValue( ddata->GetAbsoluteMinValue() ) || isDefaultValue( ddata->GetAbsoluteMaxValue() ) )
+		{
+			ddata->SetAbsoluteRangeValues( pdata->GetLookupTable()->GetTableRange()[0], pdata->GetLookupTable()->GetTableRange()[1] );
+		}
+	}
+
+	return ddata;
+}
+
+
+
+
+
+
+
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////
+//								CAbstractDisplayEditor 
+//////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -69,6 +247,7 @@ void CAbstractDisplayEditor::CreateMainToolbar()
 	mSaveOneClickButton->setIcon( icon );
 	mSaveOneClickButton->setDefault( false );
 	mSaveOneClickButton->setAutoDefault( false );
+	mSaveOneClickButton->setVisible( false );			//TODO delete after implemented
 
 	addToolBar( AddWidgets( toptoolbar,
 	{
@@ -80,7 +259,7 @@ void CAbstractDisplayEditor::CreateMainToolbar()
 
 void CAbstractDisplayEditor::CreateWorkingDock()
 {
-	setDockOptions( dockOptions() & ~AnimatedDocks );	//TODO DELETE AFTER CHECKING WINDOWS BLUE SCREENS
+	setDockOptions( dockOptions() & ~AnimatedDocks );	//blue screens
 
 	//dock
 	assert__( mOperation );
@@ -121,14 +300,6 @@ void CAbstractDisplayEditor::CreateGraphicsBar()
 	mActionTest = CActionInfo::CreateAction( this, eAction_Test );
 	mGraphicsToolBar->addAction( mActionTest );
 #endif
-
-	if ( !mIsMapEditor )
-	{
-		AddToolBarSeparator();
-		mActionStatisticsMean = AddToolBarAction( this, eAction_MapEditorMean );
-		mActionStatisticsStDev = AddToolBarAction( this, eAction_MapEditorStDev );
-		mActionStatisticsLinearRegression = AddToolBarAction( this, eAction_MapEditorLinearRegression );
-	}
 
 	// add the bar
 
@@ -190,13 +361,6 @@ void CAbstractDisplayEditor::Wire()
 	connect( mActionTest, SIGNAL( triggered() ), this, SLOT( HandleTest() ) );
 #endif
 
-	if ( !mIsMapEditor )
-	{
-		connect( mActionStatisticsMean, SIGNAL( triggered() ), this, SLOT( HandleStatisticsMean() ) );
-		connect( mActionStatisticsStDev, SIGNAL( triggered() ), this, SLOT( HandleStatisticsStDev() ) );
-		connect( mActionStatisticsLinearRegression, SIGNAL( triggered() ), this, SLOT( HandleStatisticsLinearRegression() ) );
-	}
-
 	//tab general
 
 	connect( mTabGeneral->mDisplaysCombo, SIGNAL( currentIndexChanged(int) ), this, SLOT( HandleViewChanged(int) ) );
@@ -240,7 +404,7 @@ CAbstractDisplayEditor::CAbstractDisplayEditor( bool map_editor, CModel *model, 
 	FilterOperations();
 	if ( !mOperation )
 	{
-		throw CException( "The requested operation " + op->GetName() + " has no associated displays. Please run the operation again" );
+		throw CException( "The requested operation " + op->GetName() + " has no associated views of types supported by this editor." );
 	}
 
 	//IMPORTANT CreateWidgets() must be called by derived classes
@@ -291,7 +455,7 @@ int CAbstractDisplayEditor::DisplayIndex( const CDisplay *display ) const
 
 int CAbstractDisplayEditor::OperationIndex( const COperation *op ) const
 {
-	if ( !op )
+	if ( !op || mFilteredOperations.empty() )
 		return -1;
 
 	return std::find( mFilteredOperations.begin(), mFilteredOperations.end(), op ) - mFilteredOperations.begin();
@@ -584,8 +748,16 @@ void CAbstractDisplayEditor::HandleViewChanged( int index )
 
 	if ( !ChangeView() )
 	{
-		//	TODO	implement recovery similar to HandleDeleteButtonClicked, closing if necessary
-		BRAT_MSG_NOT_IMPLEMENTED( "This view may become unstable. Better close it and open another view editor." );
+		if ( parentWidget() )
+		{
+			//	TODO	implement recovery similar to HandleDeleteButtonClicked, closing if necessary
+			SimpleErrorBox( "This view editor will be closed." );
+			QTimer::singleShot( 1000, parentWidget(), SLOT( close() ) );
+		}
+		else	//we must be starting
+		{
+			throw CException( "Unrecoverable error: the view could not be displayed." );
+		}
 	}
 }
 
@@ -648,7 +820,7 @@ void CAbstractDisplayEditor::HandleNewButtonClicked()
 	//FillPaletteList();
 	//GetDispNames()->Enable( true );
 
-	CDisplay *new_display = mWDisplay->CloneDisplay( mDisplay, mWOperation );
+	CDisplay *new_display = mWDisplay->CloneDisplay( mDisplay, mOperation, mWOperation );
 	if ( !new_display )
 	{
 		SimpleErrorBox( "Error cloning '" + mDisplay->GetName() );
@@ -1013,8 +1185,10 @@ std::vector< CDisplay* >  CAbstractDisplayEditor::FilterDisplays( const COperati
 }
 
 //  - called by constructor and delete display
-//	- can cancel mOperation assignment if it does not have associated views
-//	- 
+//
+//	- IMPORTANT: can cancel mOperation assignment if 
+//		- it does not have associated views
+//		- it does not have associated views of a type that matches the editor (while the plot editor supports everything, it can happen only for the map editor)
 //
 void CAbstractDisplayEditor::FilterOperations()
 {
@@ -1046,6 +1220,12 @@ void CAbstractDisplayEditor::FilterOperations()
 		}
 	}
 
+	if ( mOperation && mFilteredOperations.size() == 0 )
+	{
+		LOG_WARN( "Operation " + mOperation->GetName() + " has no views supported by this editor." );
+		mOperation = nullptr;
+	}
+
 	if ( !errors.empty() )
 		SimpleWarnBox( errors );
 }
@@ -1056,13 +1236,11 @@ bool CAbstractDisplayEditor::ControlSolidColor()
 {
 	assert__( mDisplay != nullptr );
 
-	CMapDisplayData* selectedData =  mDisplay->GetData();
+	CMapDisplayData *selectedData =  mDisplay->GetData();
 
 	for ( CMapDisplayData::const_iterator itSel = selectedData->begin(); itSel != selectedData->end(); itSel ++ )
 	{
-		CDisplayData* dataSel = selectedData->GetDisplayData( itSel );
-		if ( dataSel == nullptr )
-			continue;
+		CDisplayData* dataSel = dynamic_cast<CDisplayData*>( itSel->second );		assert__( dataSel );
 
 		if ( !dataSel->IsSolidColor() && !dataSel->IsContour() )
 			dataSel->SetSolidColor( true );
@@ -1082,9 +1260,7 @@ bool CAbstractDisplayEditor::ControlVectorComponents( std::string& msg )
 
 	for ( CMapDisplayData::const_iterator itSel = selectedData->begin(); itSel != selectedData->end(); itSel ++ )
 	{
-		CDisplayData* dataSel = selectedData->GetDisplayData( itSel );
-		if ( dataSel == nullptr )
-			continue;
+		CDisplayData* dataSel = dynamic_cast<CDisplayData*>( itSel->second );	assert__( dataSel );
 
 		if ( dataSel->IsEastComponent() ) 
 		{

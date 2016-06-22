@@ -264,7 +264,7 @@ CWorldPlotProperties::CWorldPlotProperties()
   m_numContourLabel = 1;
 
   m_contourLabelSize = 10;
-  m_contourLineWidth = 1.0;
+  //m_contourLineWidth = 1.0;	v4 initialized in class
 
   m_contourLineColor.Set(0.0, 0.0, 0.0);
   m_contourLineColor.Set(0.0, 0.0, 0.0);
@@ -353,7 +353,7 @@ void CWorldPlotProperties::Copy(const CWorldPlotProperties& p)
   m_numContourLabel = p.m_numContourLabel;
 
   m_contourLabelSize = p.m_contourLabelSize;
-  m_contourLineWidth = p.m_contourLineWidth;
+  mContourLineWidth = p.mContourLineWidth;
 
   m_contourLineColor = p.m_contourLineColor;
   m_contourLabelColor = p.m_contourLabelColor;

@@ -265,7 +265,7 @@ public:
 	int32_t m_numContourLabel;
 
 	int32_t m_contourLabelSize;
-	double m_contourLineWidth;
+	double mContourLineWidth = 0.1;
 
 	CPlotColor m_contourLineColor;
 	CPlotColor m_contourLabelColor;

@@ -79,9 +79,6 @@ void CExportImageDialog::Wire( bool enable2D, bool enable3D )
 	for ( int i = 0; i < CDisplayData::EImageExportType_size; ++i )
 		mExtensionCombo->addItem( CDisplayData::ImageType2String( (EImageExportType)i ).c_str() );
 
-	mExtensionCombo->setCurrentIndex( mOutputFileType );
-
-
 	// Connect
 
     connect( m2DCheck, SIGNAL( toggled( bool ) ), this, SLOT( Handle2DChecked( bool ) ) );
@@ -99,7 +96,8 @@ void CExportImageDialog::Wire( bool enable2D, bool enable3D )
 	m2DCheck->setEnabled( enable2D && enable3D );	//enable only if there is also the other alternative
 	m3DCheck->setEnabled( enable3D && enable2D );	//idem
 
-	HandleExportExtension( 0 );
+	mExtensionCombo->setCurrentIndex( mOutputFileType );
+	//HandleExportExtension( 0 );
 
     //	Wrap up dimensions
 

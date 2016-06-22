@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT 
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #ifndef DATAMODELS_PLOTDATA_PLOT_VALUES_H
 #define DATAMODELS_PLOTDATA_PLOT_VALUES_H
 
@@ -30,7 +47,7 @@ static_assert( std::numeric_limits<double>::has_quiet_NaN, "Value nan of type do
 static_assert( std::numeric_limits<float>::has_quiet_NaN, "Value nan of type float is undefined in the system." );
 
 
-class CQwtArrayPlotData : public QwtData
+class CYFXValues : public QwtData
 {
 	//types
 
@@ -134,6 +151,11 @@ class CQwtArrayPlotData : public QwtData
 	};
 
 
+public:
+
+	using CYFXPlotParameters = CCurve;
+
+
 protected:
 	//instance data
 
@@ -150,16 +172,16 @@ protected:
     //construction / destruction
 
 public:
-	CQwtArrayPlotData()
+	CYFXValues()
 	{}
 
-	CQwtArrayPlotData( const CQwtArrayPlotData &o )
+	CYFXValues( const CYFXValues &o )
 	{
 		*this = o;
 	}
 
 
-	CQwtArrayPlotData& operator = ( const CQwtArrayPlotData &o )
+	CYFXValues& operator = ( const CYFXValues &o )
 	{
 		Reset();
 		if ( this != &o )
@@ -186,7 +208,7 @@ protected:
 	}
 
 public:
-	virtual ~CQwtArrayPlotData()
+	virtual ~CYFXValues()
 	{
 		Reset();
 	}
@@ -201,7 +223,7 @@ public:
 
 	virtual QwtData *copy() const override
 	{
-		return new CQwtArrayPlotData( *this );
+		return new CYFXValues( *this );
 	}
 
 
@@ -433,10 +455,10 @@ class CQwtFitData : public QwtData
 {
 	using base_t = QwtData;
 
-	const CQwtArrayPlotData &mData;
+	const CYFXValues &mData;
 
 public:
-	CQwtFitData( const CQwtArrayPlotData &data )
+	CQwtFitData( const CYFXValues &data )
 		: base_t()
 		, mData( data )
 	{}
@@ -467,6 +489,13 @@ public:
 			return std::numeric_limits< double >::quiet_NaN();		//needed for our QWT partial functions plotting algorithm
 
 		return curve.mIntercept_a;
+	}
+
+	bool viable()
+	{
+		auto &curve = mData.mFrames[ mData.mCurrentFrame ];
+
+		return curve.Fit();
 	}
 
 
@@ -515,7 +544,7 @@ public:
 
 
 
-struct C3DPlotParameters
+struct CZFXYPlotParameters
 {
 	std::vector<double>	mValues;
 	std::vector<bool>	mBits;
@@ -626,7 +655,7 @@ public:
 
 	inline double value( double x, double y ) const
 	{
-		//return compute_value< size_t (C3DPlotParameters::* )(double) const >( x, y, 0., &C3DPlotParameters::nearest_x, &C3DPlotParameters::nearest_y );
+		//return compute_value< size_t (CZFXYPlotParameters::* )(double) const >( x, y, 0., &CZFXYPlotParameters::nearest_x, &CZFXYPlotParameters::nearest_y );
 
 		x = nearest_x( x );
 		y = nearest_y( y );
@@ -642,13 +671,13 @@ public:
 	inline double vvalue( double x, double y ) const
 	{
 		assert__( mOrdered );
-		return compute_value( x, y, 0., &C3DPlotParameters::vnearest_x, &C3DPlotParameters::vnearest_y );
+		return compute_value( x, y, 0., &CZFXYPlotParameters::vnearest_x, &CZFXYPlotParameters::vnearest_y );
 	}
 
 	inline double nan_vvalue( double x, double y ) const
 	{
 		assert__( mOrdered );
-		return compute_value( x, y, std::numeric_limits<double>::quiet_NaN(), &C3DPlotParameters::vnearest_x, &C3DPlotParameters::vnearest_y );
+		return compute_value( x, y, std::numeric_limits<double>::quiet_NaN(), &CZFXYPlotParameters::vnearest_x, &CZFXYPlotParameters::vnearest_y );
 	}
 
 
@@ -713,9 +742,9 @@ public:
 
 
 
-struct CWorldPlotParameters : public C3DPlotParameters
+struct CMapPlotParameters : public CZFXYPlotParameters
 {
-	using base_t = C3DPlotParameters;
+	using base_t = CZFXYPlotParameters;
 
 	std::vector< bool >	mValidMercatorLatitudes;
 	std::vector<double>	mValuesEast;				//for velocity maps
@@ -741,7 +770,7 @@ struct CWorldPlotParameters : public C3DPlotParameters
 
 
 template< class PARAMS >
-struct CGeneric3DPlotInfo : public std::vector< PARAMS >, public QwtRasterData
+struct CGenericZFXYValues : public std::vector< PARAMS >, public QwtRasterData
 {
 	//types
 
@@ -763,11 +792,11 @@ struct CGeneric3DPlotInfo : public std::vector< PARAMS >, public QwtRasterData
 
 	// construction / destruction
 
-	CGeneric3DPlotInfo() 
+	CGenericZFXYValues() 
 		: base_t()
         , qwt_base_t()
 	{}
-	virtual ~CGeneric3DPlotInfo()
+	virtual ~CGenericZFXYValues()
 	{}
 
 
@@ -812,7 +841,7 @@ struct CGeneric3DPlotInfo : public std::vector< PARAMS >, public QwtRasterData
 
     virtual QwtRasterData *copy() const override
     {
-        return new CGeneric3DPlotInfo< parameters_t >( *this );
+        return new CGenericZFXYValues< parameters_t >( *this );
     }
 
     virtual QwtDoubleInterval range() const override
@@ -886,21 +915,21 @@ struct CGeneric3DPlotInfo : public std::vector< PARAMS >, public QwtRasterData
 
 
 
-struct CWorldPlotInfo : CGeneric3DPlotInfo< CWorldPlotParameters >
+struct CMapValues : CGenericZFXYValues< CMapPlotParameters >
 {
 	//types
 
-	using parameters_t = CWorldPlotParameters;
+	using parameters_t = CMapPlotParameters;
 
-	using base_t = CGeneric3DPlotInfo< parameters_t >;
+	using base_t = CGenericZFXYValues< parameters_t >;
 
 
 	// construction / destruction
 
-	CWorldPlotInfo() 
+	CMapValues() 
 		: base_t()
 	{}
-	virtual ~CWorldPlotInfo()
+	virtual ~CMapValues()
 	{}
 
 
@@ -920,8 +949,9 @@ struct CWorldPlotInfo : CGeneric3DPlotInfo< CWorldPlotParameters >
 
 
 
+using CYFXPlotParameters = CYFXValues::CYFXPlotParameters;
 
-using C3DPlotInfo = CGeneric3DPlotInfo< C3DPlotParameters >;
+using CZFXYValues = CGenericZFXYValues< CZFXYPlotParameters >;
 
 
 

@@ -33,14 +33,26 @@
 
 
 
+
+
+// 1) change name from range_ku to range (range_ku and range always defined); range makes more sense
+
+// 2) Add sla to quicks (alias sla in aliases.xml always defined where applicable)
+
+// 3) New alias in aliases.xml: ocean_editing. Only applicable when ssh or sla are being calculated (otherwise ignore). If alias
+//	ocean_editing exists and quick ssh or sla is being done, then apply alias in selection criteria. If alias ocean_editing  does 
+//	not exist compute ssh and sla with empty selection criteria.
+
+
 //static 
 const std::vector<std::string> COperationControls::smQuickPredefinedVariableNames =
 {
 	"SSH",
 	"SWH",
+	"SLA",
 	"Winds",
 	"Sigma0",
-	"Tracker Range"
+	"Tracker Range",
 };
 
 
@@ -50,93 +62,70 @@ const std::vector<std::string> COperationControls::smQuickPredefinedVariableName
 //	Quick Operation Helpers
 /////////////////////////////////////////////////////////////////////////////////
 
-std::string QuickAlias( COperationControls::EPredefinedVariables index )
+inline std::string QuickVariableAlias( COperationControls::EPredefinedVariables index )
 {
 	static std::vector< std::string > valiases =
 	{
 		"ssh",
 		"swh",
+        "sla",
 		"winds",
 		"sigma0",
-		"range_ku"	//TODO TODO TODO TODO TODO TODO TODO confirm
+        "range",
 	};
+
+	assert__( index < COperationControls::EPredefinedVariables_size );
 
 	return valiases[ index ];
 }
-//std::string QuickAlias4Name( const std::string &name )
-//{
-//	static std::map<std::string, std::string> alias_map =
-//	{
-//		{ COperationControls::smQuickPredefinedVariableNames[ COperationControls::eSSH ], QuickAlias( COperationControls::eSSH ) },
-//		{ COperationControls::smQuickPredefinedVariableNames[ COperationControls::eSWH ], QuickAlias( COperationControls::eSWH ) },
-//		{ COperationControls::smQuickPredefinedVariableNames[ COperationControls::eSigma0 ], QuickAlias( COperationControls::eSigma0 ) },
-//		{ COperationControls::smQuickPredefinedVariableNames[ COperationControls::eWinds ], QuickAlias( COperationControls::eWinds ) },
-//		{ COperationControls::smQuickPredefinedVariableNames[ COperationControls::eRange ], QuickAlias( COperationControls::eRange ) },
-//	};
-//
-//	return alias_map[ name ];
-//}
 
-std::string PseudoQuickAlias( COperationControls::EPredefinedVariables index )
+
+inline std::string QuickCriteriaAlias( COperationControls::EPredefinedSelectionCriteria index )
 {
-	static std::vector<std::string> valiases =
+	static std::vector< std::string > valiases =
 	{
-		"ssha",
-		"swh_ku",
-		"wind_speed_alt",
-		"sig0_ku",
-		"range_ku"
+		"ocean_editing",
 	};
+
+	assert__( index < COperationControls::EPredefinedSelectionCriteria_size );
 
 	return valiases[ index ];
 }
-//std::string PseudoQuickAlias4Name( const std::string &name )
-//{
-//	static std::map<std::string, std::string> alias_map =
-//	{
-//		{ COperationControls::smQuickPredefinedVariableNames[ COperationControls::eSSH ], PseudoQuickAlias( COperationControls::eSSH ) },
-//		{ COperationControls::smQuickPredefinedVariableNames[ COperationControls::eSWH ], PseudoQuickAlias( COperationControls::eSWH ) },
-//		{ COperationControls::smQuickPredefinedVariableNames[ COperationControls::eSigma0 ], PseudoQuickAlias( COperationControls::eSigma0 ) },
-//		{ COperationControls::smQuickPredefinedVariableNames[ COperationControls::eWinds ], PseudoQuickAlias( COperationControls::eWinds ) },
-//		{ COperationControls::smQuickPredefinedVariableNames[ COperationControls::eRange ], PseudoQuickAlias( COperationControls::eRange ) },
-//	};
-//
-//	return alias_map[ name ];
-//}
-//lon
-//lat
-//time
-//ssha (para o SSH)
-//swh_ku (para o SWH)
-//sig0_ku (para o sigma0)
-//wind_speed_alt (para Winds)
-//range_ku (para Tracker range)
 
 
+
+//static 
+const std::string& COperationControls::QuickFindAliasValue( CProduct *product, EPredefinedVariables index )
+{
+	return FindAliasValue( product, QuickVariableAlias( index ) );
+}
+
+//static 
+const std::string& COperationControls::QuickFindAliasValue( CProduct *product, EPredefinedSelectionCriteria index )
+{
+	return FindAliasValue( product, QuickCriteriaAlias( index ) );
+}
+
+
+//static
 CField* COperationControls::QuickFindField( CProduct *product, EPredefinedVariables index, bool &alias_used, std::string &field_error_msg )
 {
-	CField *field = FindField( product, QuickAlias( index ), alias_used, field_error_msg );
-	if ( !field )
-		field = FindField( product, PseudoQuickAlias( index ), alias_used, field_error_msg );
-
-	return field;
+	return FindField( product, QuickVariableAlias( index ), alias_used, field_error_msg );
 }
+//static
+CField* COperationControls::QuickFindField( CProduct *product, EPredefinedSelectionCriteria index, bool &alias_used, std::string &field_error_msg )
+{
+	return FindField( product, QuickCriteriaAlias( index ), alias_used, field_error_msg );
+}
+
 
 
 //static 
 bool COperationControls::FormulaMatchesQuickAlias( const std::string &description, EPredefinedVariables index )
 {
-	return description == QuickAlias( index ) || description == PseudoQuickAlias( index );
+	return description == QuickVariableAlias( index );
 }
 
-
-
-// Retrieves quick operation from workspace, if any
-//
-COperation* COperationControls::QuickOperation() const
-{
-	return mWOperation ? mWOperation->GetQuickOperation() : nullptr;
-}
 
 
 CDataset* COperationControls::QuickDatasetSelected() const
@@ -211,7 +200,9 @@ COperation* COperationControls::CreateEmptyQuickOperation()
 	if ( !mWOperation )
 		return nullptr;
 
-	COperation *operation = QuickOperation();
+	// Retrieve quick operation from workspace, if any
+	
+	COperation *operation = mWOperation ? mWOperation->GetQuickOperation() : nullptr;
 	if ( !operation )
 	{
 		if ( !mWOperation->InsertOperation( opname ) )
@@ -331,6 +322,7 @@ void COperationControls::HandleDatasetsChanged_Quick( CDataset * )
 void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 {
 	mQuickVariablesList->setEnabled( dataset_index >= 0 );			//items are enabled only if required field exists, regardless of whole list being enabled
+	mQuickSelectionCriteriaCheck->setEnabled( dataset_index >= 0 );
 	mOperationFilterButton_Quick->setEnabled( dataset_index >= 0 );	//assume that, if a dataset exists, it will be assigned and filtering makes sense
 
 	//always disable execution in this function
@@ -386,39 +378,50 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 			break;
 		}
 	}
-	if ( !has_lon_lat_fields )
-		return;
 
-	// 4. enable quick data fields found in dataset
-	//
-	bool has_fields = false;
-	for ( int i = 0; i < EPredefinedVariables_size; ++i )	//TODO maybe this should be corrected to open products only once, not once per iteration
+	bool has_selection_criteria = false;					//TODO big hack see below (*)
+	if ( has_lon_lat_fields )
 	{
-		auto *item = mQuickVariablesList->item( i );
-		for ( auto const &path : dataset_files )
+		// 4. enable quick data fields found in dataset
+		//
+		bool has_fields = false;
+		for ( int i = 0; i < EPredefinedVariables_size; ++i )	//TODO maybe this should be corrected to open products only once, not once per iteration
 		{
-			CProduct *product = dataset->OpenProduct( path );
-			if ( !product )
-				continue;
-
-			bool alias_used;
-			std::string field_error_msg;
-			CField *field = QuickFindField( product, (EPredefinedVariables)i, alias_used, field_error_msg );
-			if ( field )
+			auto *item = mQuickVariablesList->item( i );			assert__( item );
+			for ( auto const &path : dataset_files )
 			{
-				item->setFlags( item->flags() | Qt::ItemIsEnabled );
-				has_fields = true;
-				item->setData( Qt::UserRole, t2q( field->GetDescription() ) );
+				CProduct *product = dataset->OpenProduct( path );
+				if ( !product )
+					continue;
+
+				bool alias_used;
+				std::string field_error_msg;
+				EPredefinedVariables vi = (EPredefinedVariables)i;
+				std::string expression = QuickFindAliasValue( product, vi );
+				CField *field = QuickFindField( product, vi, alias_used, field_error_msg );
+				//if ( field )
+				if ( !expression.empty() )
+				{
+					item->setFlags( item->flags() | Qt::ItemIsEnabled );
+					has_fields = true;
+					if ( field )
+						item->setData( Qt::UserRole, t2q( field->GetDescription() ) );
+				}
+				has_selection_criteria |= ( has_fields && !QuickFindAliasValue( product, eOceanEditing ).empty() );		//TODO see above (*)
+				delete product;
+				if ( !expression.empty() )
+					break;
 			}
-			delete product;
-			if ( field )
-				break;
 		}
+
+		// 5. Call HandleVariableStateChanged_Quick to update execution buttons state
+		//
+		HandleVariableStateChanged_Quick( nullptr );
 	}
 
-	// 5. Call HandleVariableStateChanged_Quick to update execution buttons state
-	//
-	HandleVariableStateChanged_Quick( nullptr );
+	mQuickSelectionCriteriaCheck->setEnabled( has_selection_criteria );
+	if ( !has_selection_criteria )
+		mQuickSelectionCriteriaCheck->setChecked( false );
 }
 
 
@@ -584,7 +587,6 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 
 	std::string operation_record = operation->GetRecord();
 
-	std::vector< CField*> fields;
 	bool alias_used;
 	std::string field_error_msg;
 	std::pair<CField*, CField*> lon_lat_fields = FindLonLatFields( product, alias_used, field_error_msg );		assert__( lon_lat_fields.first && lon_lat_fields.second );
@@ -607,38 +609,138 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
   //Insert("asX", eTypeOpAsX);
   //Insert("asY", eTypeOpAsY);
 
-	CField *field = nullptr;
+	std::vector< std::string > fields;
 	const int size = mQuickVariablesList->count();
+	bool add_selection_criteria = false;
 	for ( int i = 0; i < size; ++i )
 	{
 		auto *item = mQuickVariablesList->item( i );
 		if ( item->checkState() ==  Qt::Checked  )
 		{
-			field = QuickFindField( product, (EPredefinedVariables)i, alias_used, field_error_msg );
-			if ( field )
-				fields.push_back( field );
+			EPredefinedVariables vi = (EPredefinedVariables)i;
+			add_selection_criteria |= vi == eSSH || vi == eSLA;
+			std::string expression = QuickFindAliasValue( product, vi );
+			if ( !expression.empty() )
+				fields.push_back( expression );
 		}
 	}									 assert__( fields.size() > 0 );
 
-	for ( auto *field : fields )
-	{
-		std::string field_record = field->GetRecordName();
-		if ( !operation->HasFormula() )
-		{
-		//	operation->SetRecord( field_record );
-		//	if ( operation->GetRecord().empty() && product->IsNetCdf() )
-		//		operation->SetRecord( CProductNetCdf::m_virtualRecordName );
-		}
-		CFormula* formula = operation->NewUserFormula( error_msg, field, CMapTypeField::eTypeOpAsField, true, product );
-		if ( !error_msg.empty() )
-			SimpleErrorBox( error_msg );
-		//Add( theParentId, formula );
+	add_selection_criteria &= mQuickSelectionCriteriaCheck->isChecked();
 
-        Q_UNUSED( formula)
+	for ( auto const &expression : fields )
+	{
+		std::string error_msg;
+		CFormula *formula = operation->NewUserFormula( error_msg, operation->GetFormulaNewName(), CMapTypeField::eTypeOpAsField, "", true );
+		if ( error_msg.empty() )
+			formula->SetDescription( expression );
+		else
+			SimpleWarnBox( error_msg );
 	}
+
+	std::string selection_criteria;
+	if ( add_selection_criteria )
+	{
+		selection_criteria = QuickFindAliasValue( product, eOceanEditing );
+	}
+	operation->GetSelect()->SetDescription( selection_criteria );
 
 	return operation;
 }
+
+
+//COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
+//{
+//	static const std::string opname = CWorkspaceOperation::QuickOperationName();
+//
+//	WaitCursor wait;											assert__( mWRoot && QuickDatasetSelected() );
+//
+//	// 1. create and insert operation
+//
+//	COperation *operation = CreateEmptyQuickOperation();		assert__( operation );
+//	if ( operation )
+//	{
+//		int current_index = mOperationsCombo->currentIndex();
+//		int quick_op_index = mOperationsCombo->findText( opname.c_str() );
+//		if ( quick_op_index == current_index )
+//			mOperationsCombo->setCurrentIndex( -1 );
+//		operation->Clear();
+//	}
+//
+//	operation->InitOutput( mWOperation );
+//	operation->InitExportAsciiOutput( mWOperation );
+//	operation->SetType( type );
+//
+//	operation->SetDataset( QuickDatasetSelected() );
+//	CProduct *product = const_cast<const COperation*>( operation )->Dataset()->OpenProduct();
+//	operation->SetProduct( product );
+//
+//	std::string operation_record = operation->GetRecord();
+//
+//	std::vector< CField*> fields;
+//	bool alias_used;
+//	std::string field_error_msg;
+//	std::pair<CField*, CField*> lon_lat_fields = FindLonLatFields( product, alias_used, field_error_msg );		assert__( lon_lat_fields.first && lon_lat_fields.second );
+//
+//	std::string error_msg;
+//	if ( !operation->HasFormula() )
+//	{
+//		std::string field_record = lon_lat_fields.first->GetRecordName();
+//		operation->SetRecord( field_record );
+//		if ( operation->GetRecord().empty() && product->IsNetCdf() )
+//			operation->SetRecord( CProductNetCdf::m_virtualRecordName );
+//	}
+//	CFormula* formula = operation->NewUserFormula( error_msg, lon_lat_fields.first, CMapTypeField::eTypeOpAsX, true, product );
+//	operation->ComputeInterval( formula, error_msg );
+//
+//	formula = operation->NewUserFormula( error_msg, lon_lat_fields.second, CMapTypeField::eTypeOpAsY, true, product );
+//	operation->ComputeInterval( formula, error_msg );
+//
+//  //Insert("asField", eTypeOpAsField);
+//  //Insert("asX", eTypeOpAsX);
+//  //Insert("asY", eTypeOpAsY);
+//
+//	CField *field = nullptr;
+//	const int size = mQuickVariablesList->count();
+//	bool add_selection_criteria = false;
+//	for ( int i = 0; i < size; ++i )
+//	{
+//		auto *item = mQuickVariablesList->item( i );
+//		if ( item->checkState() ==  Qt::Checked  )
+//		{
+//			EPredefinedVariables vi = (EPredefinedVariables)i;
+//			add_selection_criteria |= vi == eSSH || vi == eSLA;
+//			field = QuickFindField( product, vi, alias_used, field_error_msg );
+//			if ( field )
+//				fields.push_back( field );
+//		}
+//	}									 assert__( fields.size() > 0 );
+//
+//	for ( auto *field : fields )
+//	{
+//		std::string field_record = field->GetRecordName();
+//		if ( !operation->HasFormula() )
+//		{
+//		//	operation->SetRecord( field_record );
+//		//	if ( operation->GetRecord().empty() && product->IsNetCdf() )
+//		//		operation->SetRecord( CProductNetCdf::m_virtualRecordName );
+//		}
+//		CFormula* formula = operation->NewUserFormula( error_msg, field, CMapTypeField::eTypeOpAsField, true, product );
+//		if ( !error_msg.empty() )
+//			SimpleErrorBox( error_msg );
+//		//Add( theParentId, formula );
+//
+//        Q_UNUSED( formula)
+//	}
+//
+//	std::string selection_criteria;
+//	if ( add_selection_criteria )
+//	{
+//		selection_criteria = QuickFindAliasValue( product, eOceanEditing );
+//	}
+//	operation->GetSelect()->SetDescription( selection_criteria );
+//
+//	return operation;
+//}
 
 
 void COperationControls::SelectOperation( const std::string &name, bool select_map )

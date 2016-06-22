@@ -90,6 +90,7 @@ class CColorMapWidget : public QWidget
 	CColorButton *mContourColorButton = nullptr;
 	QColor mContourColor;
     QLineEdit *mContourWidthEdit = nullptr;
+    QLabel *mContourWidthLabel = nullptr;
 	QCheckBox *mShowSolidColor = nullptr;
 	CColorMapLabel *mColorMapLabel = nullptr;
 	QComboBox *mColorTables = nullptr;
@@ -122,6 +123,13 @@ public:
 
 	//...contours
 
+	void SetContoursTitle( const QString &title )
+	{
+		if ( mShowContourBox )
+			mShowContourBox->setTitle( title );
+	}
+
+
 	void SetShowContour( bool checked );
 
 	unsigned NumberOfContours() const;
@@ -133,9 +141,21 @@ public:
 
 	void SetContourColor( QColor color );
 
+	void HideContourColorWidget();
+
+
+
 	double ContoursWidth() const;
 
 	void SetContoursWidth( double contours );
+
+	void HideContourWidthWidget() 
+	{ 
+		if ( mContourWidthEdit ) 
+			mContourWidthEdit->setVisible( false ); 
+		if ( mContourWidthLabel ) 
+			mContourWidthLabel->setVisible( false ); 
+	}
 
 
 	//...show solid color
@@ -184,6 +204,8 @@ protected slots:
 	void HandleContourColorSelected();
 	void HandleColorRangeMinChanged();
 	void HandleColorRangeMaxChanged();
+	void HandleColorRangeMinFinished();
+	void HandleColorRangeMaxFinished();
 	void HandleCalculateMinMax();
 	void HandleColorTablesIndexChanged( int index );
 	void HandleShowContourToggled( bool );

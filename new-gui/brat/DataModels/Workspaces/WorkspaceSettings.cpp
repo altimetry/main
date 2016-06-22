@@ -335,13 +335,15 @@ bool CWorkspaceSettings::SaveConfig( const CFormula &f, const std::string& pathS
 
     WriteSection( path,
 
-		k_v( ENTRY_DEFINE,		f.GetDescription( true ) ),
-		k_v( ENTRY_COMMENT,		f.GetComment( true ) ),
-		k_v( ENTRY_UNIT,		f.m_unit.GetText() ),
-		k_v( ENTRY_FIELDTYPE,	f.GetTypeAsString() ),
-		k_v( ENTRY_DATATYPE,	f.GetDataTypeAsString() ),
-		k_v( ENTRY_TITLE,		f.m_title ),
-		k_v( ENTRY_FILTER,		f.GetFilterAsString() )
+		k_v( ENTRY_DEFINE,			f.GetDescription( true ) ),
+		k_v( ENTRY_COMMENT,			f.GetComment( true ) ),
+		k_v( ENTRY_UNIT,			f.m_unit.GetText() ),
+		k_v( ENTRY_FIELDTYPE,		f.GetTypeAsString() ),
+		k_v( ENTRY_DATATYPE,		f.GetDataTypeAsString() ),
+		k_v( ENTRY_TITLE,			f.m_title ),
+		k_v( ENTRY_FILTER,			f.GetFilterAsString() ),
+		k_v( ENTRY_NORTH_COMPONENT,	f.IsNorthComponent() ),
+		k_v( ENTRY_EAST_COMPONENT,	f.IsEastComponent() )
 	);
 
 	{
@@ -389,13 +391,15 @@ bool CWorkspaceSettings::LoadConfig( CFormula &f, std::string &error_msg, const 
 
 	ReadSection( path,
 
-		k_v( ENTRY_DEFINE,		&f.m_description	),
-		k_v( ENTRY_COMMENT,		&f.m_comment		),
-		k_v( ENTRY_UNIT,		&unit,				f.m_unit.GetText() ),
-		k_v( ENTRY_FIELDTYPE,	&type,				f.GetTypeAsString() ),
-		k_v( ENTRY_DATATYPE,	&data_type,			f.GetDataTypeAsString() ),
-		k_v( ENTRY_TITLE,		&f.m_title			),
-		k_v( ENTRY_FILTER,		&filter,			f.GetFilterAsString() )
+		k_v( ENTRY_DEFINE,			&f.m_description	),
+		k_v( ENTRY_COMMENT,			&f.m_comment		),
+		k_v( ENTRY_UNIT,			&unit,				f.m_unit.GetText() ),
+		k_v( ENTRY_FIELDTYPE,		&type,				f.GetTypeAsString() ),
+		k_v( ENTRY_DATATYPE,		&data_type,			f.GetDataTypeAsString() ),
+		k_v( ENTRY_TITLE,			&f.m_title			),
+		k_v( ENTRY_FILTER,			&filter,			f.GetFilterAsString() ),
+		k_v( ENTRY_NORTH_COMPONENT,	&f.mNorthComponent, false ),
+		k_v( ENTRY_EAST_COMPONENT,	&f.mEastComponent,	false )
 	);
 				
 	f.SetUnit( unit, error_msg, "" );
@@ -541,7 +545,7 @@ bool CWorkspaceSettings::SaveConfig( const COperation &op, const CWorkspaceOpera
 	// See note close to LoadConfigDesc call in LoadConfig( COperation &op, ...)
 	//
 	if (
-		!op.m_select->SaveConfigDesc( this, group )
+		!op.mSelectionCriteria->SaveConfigDesc( this, group )
 		||
 		!op.m_formulas.SaveConfig( this, false, op.GetName() )	//v3 note:  Warning after formulas Load config conig path has changed
 		)
@@ -625,7 +629,7 @@ bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &error_msg, CWo
 	//	the v3 note below
 	//
 	if ( 
-		!op.m_select->LoadConfigDesc( this, group ) 
+		!op.mSelectionCriteria->LoadConfigDesc( this, group ) 
 		||
 		!op.m_formulas.LoadConfig( this, error_msg, false, op.GetName() )	// Warning after formulas Load config conig path has changed	(v3 note)
 		)
@@ -927,20 +931,35 @@ bool CWorkspaceSettings::SaveConfig( CDisplayData &data, const std::string& path
 		k_v( ENTRY_NUMBER_OF_BINS, data.mNumberOfBins )
 	);
 
-	if ( !isDefaultValue( data.m_minValue ) )
+	if ( !isDefaultValue( data.mAbsoluteMinValue ) )
 	{
 		WriteSection( path,
 
-			k_v( ENTRY_MINVALUE, CTools::Format( "%.15g", data.m_minValue ) )
+			k_v( ENTRY_MINVALUE, CTools::Format( "%.15g", data.mAbsoluteMinValue ) )
 		);
 	}
-	if ( !isDefaultValue( data.m_maxValue ) )
+	if ( !isDefaultValue( data.mAbsoluteMaxValue ) )
 	{
 		WriteSection( path,
 
-			k_v( ENTRY_MAXVALUE, CTools::Format( "%.15g", data.m_maxValue ) )
+			k_v( ENTRY_MAXVALUE, CTools::Format( "%.15g", data.mAbsoluteMaxValue ) )
 		);
 	}
+	if ( !isDefaultValue( data.mCurrentMinValue ) )
+	{
+		WriteSection( path,
+
+			k_v( ENTRY_CURRENT_MINVALUE, CTools::Format( "%.15g", data.mCurrentMinValue ) )
+		);
+	}
+	if ( !isDefaultValue( data.mCurrentMaxValue ) )
+	{
+		WriteSection( path,
+
+			k_v( ENTRY_CURRENT_MAXVALUE, CTools::Format( "%.15g", data.mCurrentMaxValue ) )
+		);
+	}
+
 	if ( !data.m_colorPalette.empty() )
 	{
 		// v3 note
@@ -983,42 +1002,45 @@ bool CWorkspaceSettings::LoadConfig( CDisplayData &data, const std::string& path
 
 	ReadSection( path,
 
-		k_v( ENTRY_TYPE,			&type,						CMapTypeDisp::GetInstance().IdToName( data.m_type ) ),
-		k_v( ENTRY_FIELD,			&field_name					),
-		k_v( ENTRY_FIELDNAME,		&field_description			),		// v4: yes, not a mistake, the key retrieves a value for setDescription
-		k_v( ENTRY_UNIT,			&unit						),
+		k_v( ENTRY_TYPE,				&type,						CMapTypeDisp::GetInstance().IdToName( data.m_type ) ),
+		k_v( ENTRY_FIELD,				&field_name					),
+		k_v( ENTRY_FIELDNAME,			&field_description			),		// v4: yes, not a mistake, the key retrieves a value for setDescription
+		k_v( ENTRY_UNIT,				&unit						),
 
-		k_v( ENTRY_X,				&entry_x					),
-		k_v( ENTRY_XDESCR,			&entry_x_desc				),
-		k_v( ENTRY_XUNIT,			&entry_x_unit				),
+		k_v( ENTRY_X,					&entry_x					),
+		k_v( ENTRY_XDESCR,				&entry_x_desc				),
+		k_v( ENTRY_XUNIT,				&entry_x_unit				),
 
-		k_v( ENTRY_Y,				&entry_y					),
-		k_v( ENTRY_YDESCR,			&entry_y_desc				),
-		k_v( ENTRY_YUNIT,			&entry_y_unit				),
+		k_v( ENTRY_Y,					&entry_y					),
+		k_v( ENTRY_YDESCR,				&entry_y_desc				),
+		k_v( ENTRY_YUNIT,				&entry_y_unit				),
 
-		k_v( ENTRY_Z,				&entry_z					),
-		k_v( ENTRY_ZDESCR,			&entry_z_desc				),
-		k_v( ENTRY_ZUNIT,			&entry_z_unit				),
+		k_v( ENTRY_Z,					&entry_z					),
+		k_v( ENTRY_ZDESCR,				&entry_z_desc				),
+		k_v( ENTRY_ZUNIT,				&entry_z_unit				),
 
-		k_v( ENTRY_OPNAME,			&op_name					),
+		k_v( ENTRY_OPNAME,				&op_name					),
 
-		k_v( ENTRY_GROUP,			&data.m_group,				1 ),
-		k_v( ENTRY_CONTOUR,			&data.m_withContour,		false  ),
-		k_v( ENTRY_SOLID_COLOR,		&data.m_withSolidColor,		true  ),
+		k_v( ENTRY_GROUP,				&data.m_group,				1 ),
+		k_v( ENTRY_CONTOUR,				&data.m_withContour,		false  ),
+		k_v( ENTRY_SOLID_COLOR,			&data.m_withSolidColor,		true  ),
 
-		k_v( ENTRY_EAST_COMPONENT,	&data.m_eastcomponent,		false  ),
-		k_v( ENTRY_NORTH_COMPONENT, &data.m_northcomponent,		false  ),
+		k_v( ENTRY_EAST_COMPONENT,		&data.m_eastcomponent,		false  ),
+		k_v( ENTRY_NORTH_COMPONENT,		&data.m_northcomponent,		false  ),
 
-		k_v( ENTRY_INVERT_XYAXES,	&data.m_invertXYAxes,		false  ),
+		k_v( ENTRY_INVERT_XYAXES,		&data.m_invertXYAxes,		false  ),
 
-		k_v( ENTRY_NUMBER_OF_BINS,	&data.mNumberOfBins,		CDisplayData::smDefaultNumberOfBins ),
+		k_v( ENTRY_NUMBER_OF_BINS,		&data.mNumberOfBins,		CDisplayData::smDefaultNumberOfBins ),
 
-		k_v( ENTRY_MINVALUE,		&data.m_minValue,			defaultValue<double>()  ),
-		k_v( ENTRY_MAXVALUE,		&data.m_maxValue,			defaultValue<double>()  ),
+		k_v( ENTRY_MINVALUE,			&data.mAbsoluteMinValue,	defaultValue<double>()  ),
+		k_v( ENTRY_MAXVALUE,			&data.mAbsoluteMaxValue,	defaultValue<double>()  ),
 
-		k_v( ENTRY_COLOR_PALETTE,	&data.m_colorPalette		),
+		k_v( ENTRY_CURRENT_MINVALUE,	&data.mCurrentMinValue,		defaultValue<double>()  ),
+		k_v( ENTRY_CURRENT_MAXVALUE,	&data.mCurrentMaxValue,		defaultValue<double>()  ),
 
-		k_v( ENTRY_X_AXIS,			&data.m_xAxis				)
+		k_v( ENTRY_COLOR_PALETTE,		&data.m_colorPalette		),
+
+		k_v( ENTRY_X_AXIS,				&data.m_xAxis				)
 	);
 
 	if ( type.empty() )	{

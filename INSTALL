@@ -1,7 +1,7 @@
 
-============================================
-BRAT - Basic Radar Altimetry Toolbox INSTALL
-============================================
+================================================
+BRAT - Broadview Radar Altimetry Toolbox INSTALL
+================================================
 
 
 
@@ -16,26 +16,28 @@ distribution or installation.
 The short version is as follows:
 
 + For Windows: double-click the installer file appropriate
-for your platform (brat-3.3.1-Win32-installer.exe for 32-bit
-operating systems, brat-3.3.1-x64-installer.exe for 64-bit
+for your platform (brat-4.0.0-beta-Win32-installer.exe for 32-bit
+operating systems, brat-4.0.0-beta-x64-installer.exe for 64-bit
 operating systems), and follow the instructions.
 
 
 + For Linux: double-click in your desktop manager (or execute
 from the command-line) the installer file appropriate for your
 platform. For 32 bit operating system execute the file 
-brat-3.3.1-i386-installer.run. For 64-bit operating system execute
-the script brat-3.3.1-x86_64-installer.sh (it checks if your system
+brat-4.0.0-beta-i386-installer.run. For 64-bit operating system execute
+the script brat-4.0.0-beta-x86_64-installer.sh (it checks if your system
 is prepared for running the installer and automatically runs the file
-brat-3.3.1-x86_64-installer.run). In both cases, follow the instructions.
+brat-4.0.0-beta-x86_64-installer.run). In both cases, follow the instructions.
 (If necessary, use 'chmod +x <installer-filename>' to ensure the 
 installer is executable.)
 
 
 + For Mac OS X: double-click the image file appropriate for the
-type of application you want to install: brat-3.3.1-macosx-i386.dmg
-for 32 bit BRAT applications, or brat-3.3.1-macosx-x86_64.dmg for 
-64 bit BRAT applications (Intel only). Then, drag the 'BratGui' and
+type of application you want to install: brat-4.0.0-beta-macosx-i386.dmg
+for 32 bit BRAT applications, or brat-4.0.0-beta-macosx-x86_64.dmg for 
+64 bit BRAT applications (Intel only). 
+Drag the 'lib' folder to the directory '/usr/local', supplying your 
+administration credentials if required. Then, drag the 'BratGui' and
 'BratScheduler' applications to the 'Applications' folder on your
 machine. You can optionally drag the 'brat' folder to a location
 of your choice if you want to have the non-GUI components of BRAT
@@ -104,7 +106,7 @@ be downloaded using the native package manager) so this should
 not be a problem. For Linux, BRAT was developed with GNU g++
 (version 4.7.x or higher), for Windows with Visual Studio
 C++ 2013, for Mac OS X with GNU g++ 4.2 (BRAT 3.2.0, 32 bit) and
-clang 6.x (BRAT 3.3.1, 32 bit and 64 bit). In Mac OS X you should
+clang 6.x (BRAT 4.0.0, 32 bit and 64 bit). In Mac OS X you should
 make sure you have installed the Developer Tools; also, note that
 32 bit builds use SDK 10.6.
 
@@ -449,7 +451,7 @@ a Linux-based platform:
     The following additional options were inherited from 
     BRAT 3.1.0 and, with the exception of MATLAB support for 64 
     bit, so far they are supported only to the extent where they 
-    are compatible without changes with BRAT 3.3.1.
+    are compatible without changes with BRAT 4.0.0.
     
     -DBRATHL_BUILD_FORTRAN=OFF
 

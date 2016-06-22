@@ -36,7 +36,6 @@
     <addaction name="action_Open"/>
     <addaction name="action_Close_Workspace"/>
     <addaction name="action_Save"/>
-    <addaction name="action_Save_As"/>
     <addaction name="separator"/>
     <addaction name="action_Import_Workspace"/>
     <addaction name="action_Rename_Workspace"/>
@@ -79,6 +78,7 @@
     </property>
     <addaction name="action_One_Click"/>
     <addaction name="action_Workspace_Tree"/>
+    <addaction name="action_Operation_Views"/>
     <addaction name="action_Launch_Scheduler"/>
     <addaction name="separator"/>
     <addaction name="action_Save_Map_Image"/>
@@ -205,11 +205,6 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+S</string>
-   </property>
-  </action>
-  <action name="action_Save_As">
-   <property name="text">
-    <string>Save &amp;As...</string>
    </property>
   </action>
   <action name="action_About">
@@ -367,21 +362,6 @@
     <string>Ctrl+-</string>
    </property>
   </action>
-  <action name="action_Operations">
-   <property name="text">
-    <string>&amp;Operations</string>
-   </property>
-  </action>
-  <action name="action_Dataset">
-   <property name="text">
-    <string>&amp;Dataset</string>
-   </property>
-  </action>
-  <action name="action_Filter">
-   <property name="text">
-    <string>&amp;Filter</string>
-   </property>
-  </action>
   <action name="action_Import_Workspace">
    <property name="text">
     <string>&amp;Import...</string>
@@ -458,11 +438,19 @@ The workspace directory will not change</string>
     <string>Select a view from the list of all workspace views</string>
    </property>
   </action>
+  <action name="action_Operation_Views">
+   <property name="text">
+    <string>Operation Views...</string>
+   </property>
+   <property name="toolTip">
+    <string>List the views of the selected operation</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="Resources/images/qgis-themes-2.qrc"/>
   <include location="../Common/Resources/brat.qrc"/>
+  <include location="Resources/images/qgis-themes-2.qrc"/>
   <include location="../Common/Resources/brat.qrc"/>
  </resources>
  <connections>

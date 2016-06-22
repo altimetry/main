@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT 
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #ifndef GUI_DISPLAY_WIDGETS_MAP_WIDGET_H
 #define GUI_DISPLAY_WIDGETS_MAP_WIDGET_H
 
@@ -20,40 +37,8 @@ class QgsRasterLayer;
 class CDecorationGrid;
 class QgsGraduatedSymbolRendererV2;
 class QLookupTable;
-struct CWorldPlotParameters;
-class QgsMapTip;
-
-
-
-//
-// http://foodforsamurai.com/post/483440483/git-to-jira
-// https://github.com/joyjit/git-jira-hook
-//
-// https://sites.google.com/site/midvattenpluginforqgis/download/dependencies
-//
-// http://doc.qt.io/QtDataVisualization/index.html
-// http://plplot.sourceforge.net/index.php
-// http://www.qcustomplot.com/
-//
-
-
-//	ShapeFiles
-//
-// Tiago - I
-//	http://www.naturalearthdata.com/downloads/10m-raster-data/10m-cross-blend-hypso/
-//	http://www.naturalearthdata.com/tag/world-file/
-//	http://www.bluemarblegeo.com/products/world-map-data.php
-//	http://www.gadm.org/version2
-
-// Tiago - II
-//	http://www.gadm.org/
-//	http://ec.europa.eu/eurostat/web/gisco/overview
-//	http://www.statsilk.com/maps/download-free-shapefile-maps
-//	http://cloudmade.com/
-
-
-//qgis.utils.iface.addRasterLayer("http://server.arcgisonline.com/arcgis/rest/services/ESRI_Imagery_World_2D/MapServer?f=json&pretty=true","raster")
-
+struct CMapPlotParameters;
+class CMapTip;
 
 
 
@@ -75,6 +60,11 @@ class CMapWidget : public QgsMapCanvas
     //////////////////////////////////////
 
     using base_t = QgsMapCanvas;
+
+	friend class CMapTip;
+
+
+	typedef QgsSymbolV2* (*create_symbol_t)( double width, const QColor &color );
 
 public:
 
@@ -120,10 +110,13 @@ public:
 
 
 public:
-	typedef QgsSymbolV2* (*create_symbol_t)( double width, const QColor &color );
 
+	static const char* ReferenceDateFieldKey();
 
-	static bool OpenLayer( const QString &path, QgsRectangle &bounding_box );
+	static QString ExtractLayerBaseName( const QString &qname );
+
+    static QgsVectorLayer* AskUserForOGRSublayers( QWidget *parent, QgsVectorLayer *layer );
+    static bool OpenLayer( QWidget *parent, const QString &path, QgsRectangle &bounding_box );
 
 
 	template< class LAYER >
@@ -131,7 +124,7 @@ public:
 	
     static QgsFeatureList& CreatePointDataFeature( QgsFeatureList &list, double lon, double lat, double value);
 
-    static QgsFeatureList& CreatePolygonDataFeature(QgsFeatureList &list, double lon, double lat, double value  );
+    static QgsFeatureList& CreatePolygonDataFeature(QgsFeatureList &list, double lon, double lat, double value, double step_x, double step_y);
 
     static QgsFeatureList& CreateVectorFeature( QgsFeatureList &list, double lon, double lat, double angle, double magnitude );
 
@@ -163,6 +156,7 @@ protected:
 	QgsMapLayer *mMainLayer = nullptr;
     ELayerBaseType mLayerBaseType = eVectorLayer;
 	QgsVectorLayer *mTracksLayer = nullptr;
+	QgsVectorLayer *mCurrentDataLayer = nullptr;		//last added that is visible
 	std::vector< QgsVectorLayer* > mDataLayers;
 	std::vector< QgsVectorLayer* > mContourLayers;
 	QgsRasterLayer *mMainRasterLayer = nullptr;
@@ -178,7 +172,7 @@ protected:
 
     // TODO: RCCC - Create Map Tips. ///////////////////////////
     // Maptip object
-    QgsMapTip *mpMaptip = nullptr;
+    CMapTip *mpMaptip = nullptr;
     // Point of last mouse position in map coordinates (used with MapTips)
     QgsPoint mLastMapPosition;
 
@@ -296,7 +290,7 @@ public:
 	bool Save2Image( const QString &path, const QString &format, const QString &extension );
 
 
-    void SetNumberOfContours( size_t index, size_t ncontours, const CWorldPlotParameters &map );
+    void SetNumberOfContours( size_t index, size_t ncontours, const CMapPlotParameters &map );
 
     void SetContoursProperties( size_t index, QColor color, unsigned width );
 
@@ -314,9 +308,10 @@ public:
 		return AddDataLayer( true, name, 0., m, M, lut, flist );
 	}
 
-	QgsVectorLayer* AddDataLayer( const std::string &name, double symbol_width, double m, double M, const QLookupTable *lut, QgsFeatureList &flist );
+	QgsVectorLayer* AddDataLayer( const std::string &name, double symbol_width, double m, double M, const QLookupTable *lut, QgsFeatureList &flist,
+		bool isdate, brathl_refDate date_ref );
     
-	QgsVectorLayer* AddContourLayer( size_t index, const std::string &name, unsigned width, QColor color, const QLookupTable *lut, size_t ncontours, const CWorldPlotParameters &map );
+	QgsVectorLayer* AddContourLayer( size_t index, const std::string &name, unsigned width, QColor color, const QLookupTable *lut, size_t ncontours, const CMapPlotParameters &map );
 
     QgsVectorLayer* AddArrowDataLayer(const std::string &name, QgsFeatureList &flist );
 
@@ -345,7 +340,7 @@ protected:
 
 	void SetMainLayerVisible( bool show );
 
-	bool IsLayerVisible( QgsVectorLayer *layer ) const;
+	bool IsLayerVisible( QgsMapLayer *layer ) const;
 	bool SetLayerVisible( QgsVectorLayer *layer, bool show, bool render );
 
 	void SetCurrentLayer( QgsMapLayer *l );	
@@ -369,7 +364,7 @@ protected:
 
 protected:
 
-	QgsVectorLayer* AddVectorLayer( const std::string &name, const QString &layer_path, const QString &provider, QgsFeatureRendererV2 *renderer = nullptr );
+	//QgsVectorLayer* AddVectorLayer( const std::string &name, const QString &layer_path, const QString &provider, QgsFeatureRendererV2 *renderer = nullptr );
 	QgsVectorLayer* AddVectorLayer( QgsVectorLayer *l );
 
 	//QgsVectorLayer* AddMemoryLayer( bool polygon, const std::string &name, QgsFeatureRendererV2 *renderer );
@@ -385,8 +380,8 @@ protected:
 	QgsRubberBand* AddRBPoint( double lon, double lat, QColor color, QgsVectorLayer *layer = nullptr );
 	QgsRubberBand* AddRBLine( QgsPolyline points, QColor color, QgsVectorLayer *layer = nullptr );
 
-	void WriteTrackValue( QgsRectangle rect );
-	void WriteDataValue( QgsRectangle rect );
+	void DebugWriteTrackValue( QgsRectangle rect );
+	void DebugWriteDataValue( QgsRectangle rect );
 
 protected:
 

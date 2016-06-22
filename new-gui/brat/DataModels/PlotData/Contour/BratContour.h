@@ -1,29 +1,20 @@
-// Contour.h: interface for the CBratContour class.
-//
-// CBratContour implements Contour plot algorithm descrided in 
-//		IMPLEMENTATION OF
-//		AN IMPROVED CONTOUR
-//		PLOTTING ALGORITHM
-//		BY 
-//
-//		MICHAEL JOSEPH ARAMINI 
-//
-//		B.S., Stevens Institute of Technology, 1980 
-// See http://www.ultranet.com/~aramini/thesis.html
-//
-// Ported to C++ by Jonathan de Halleux.
-//
-// Using CBratContour :
-//
-// CBratContour is not directly usable. The user has to 
-//	1. derive the function ExportLine that is 
-//		supposed to draw/store the segment of the contour
-//	2. Set the function draw contour of. (using  SetFieldFn
-//		The function must be declared as follows
-//		double (*myF)(double x , double y);
-//
-//////////////////////////////////////////////////////////////////////
-
+/*
+* This file is part of BRAT
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #if !defined(AFX_CONTOUR_H__45A84754_43CD_414A_80A0_9211F954B0DA__INCLUDED_)
 #define AFX_CONTOUR_H__45A84754_43CD_414A_80A0_9211F954B0DA__INCLUDED_
 

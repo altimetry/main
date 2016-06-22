@@ -340,6 +340,21 @@ std::vector<CDisplay*> CModel::OperationDisplays( const std::string &name )
 }
 
 
+bool CModel::DeleteOperationDisplays( const std::string &name )
+{
+	std::vector<CDisplay*> v = OperationDisplays( name );
+	CWorkspaceDisplay *wkspcd = Workspace< CWorkspaceDisplay >( mTree );
+
+	while ( v.begin() != v.end() )
+	{
+		if ( !wkspcd->DeleteDisplay( *v.begin() ) ) 
+			return false;
+
+		v.erase( v.begin() );
+	}
+
+	return true;
+}
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////

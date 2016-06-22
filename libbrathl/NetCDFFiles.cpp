@@ -4365,8 +4365,88 @@ std::string CNetCDFFiles::IdentifyExistingFile
     int foundDataSetAttr = GetAtt(NC_GLOBAL, DATA_SET_ATTR, dataSetAttrValue, false, attrNotFound);
     int foundTitleAttr = GetAtt(NC_GLOBAL, TITLE_ATTR, titleAttrValue, false, attrNotFound);
 
-	if ( foundMissionNameAttr == NC_NOERR && missionNameAttrValue == CExternalFilesSentinel3A::TypeOf() )
-		return CExternalFilesSentinel3A::TypeOf();
+    // ---------------------------------------------------------
+    // Sentinel 3A
+    // ---------------------------------------------------------
+
+	//	Relation CProduct / CExternalFile
+	//
+	//	CProduct* CProduct::Construct( CProductList& fileNameList ) => 
+	//	...CProductList::CheckFiles() (assigns m_productClass & m_productType) => 
+	//		...CProductList::CheckFilesNetCdf() 
+	//				=> BuildExistingExternalFileKind => IdentifyExistingFile (this function)
+	//				=> assigns AGAIN m_productClass & m_productType with the matching values in the class CExternalFilesXXX returned here; 
+	//						odd NOTE 1. CheckFilesNetCdf fails if m_productType is different from here; when concludes its equal, assigns it again...
+	//						odd NOTE 2. at least for CExternalFilesNetCDFCFGeneric hierarchy, virtual GetType return the static TypeOf, so it must be repeated in every derived class
+	//
+	//	...if-else-if sequence to build instance of derived class according to m_productClass & m_productType of CProductList
+	//
+
+    if ( foundMissionNameAttr == NC_NOERR && missionNameAttrValue == CExternalFilesSentinel3A::TypeOf() )
+    {
+		//    - Reference date for S3A is 2000-01-01 00:00:00
+
+        std::string dummy;
+
+        //if "mission_name" equals "Sentinel 3A" and exists attribute "xref_altimeter_level1" the Sentinel 3A level 2
+
+        int found_ref_altimeter_level1 = GetAtt(NC_GLOBAL, "xref_altimeter_level1", dummy, false, attrNotFound);
+        int found_time_l1b_echo_sar_ku = GetAtt(NC_GLOBAL, "time_l1b_echo_sar_ku", dummy, false, attrNotFound);
+        int found_time_l1a_echo_sar_ku = GetAtt(NC_GLOBAL, "time_l1a_echo_sar_ku", dummy, false, attrNotFound);
+        int found_time_l1bs_echo_sar_ku = GetAtt(NC_GLOBAL, "time_l1bs_echo_sar_ku", dummy, false, attrNotFound);
+        if (found_ref_altimeter_level1 == NC_NOERR)
+        {
+            // if exists dimension "echo_sample_ind" the enhanced, if exists dimension "time_20_ku" then standard,  otherwise reduced
+
+            if ( DimExists( "echo_sample_ind" ) )
+                return CExternalFilesSentinel3A_enhanced::TypeOf();	//    S3A/SR_2_ENH (s3a enhanced level 2 product
+            else
+            if ( DimExists( "time_20_ku" ) )
+                return CExternalFilesSentinel3A_standard::TypeOf();	//    S3A/SR_2_STD (s3a standard level 2 product
+            else
+                return CExternalFilesSentinel3A_reduced::TypeOf();	//    S3A/SR_2_RED (s3a reduced level 2 product
+        }
+		else
+		if ( found_time_l1b_echo_sar_ku == NC_NOERR )
+		{
+			//    S3A/SR_1_B - Mission name is Sentinel 3A and dimension "time_l1b_echo_sar_ku" exists.
+			return CExternalFilesSentinel3A_l1b::TypeOf();
+		}
+		else
+		if ( found_time_l1a_echo_sar_ku == NC_NOERR )
+		{
+			//    S3A/SR_1_A Mission name is Sentinel 3A and dimension "time_l1a_echo_sar_ku" exists.
+			return CExternalFilesSentinel3A_l1a::TypeOf();
+		}
+		else
+		if ( found_time_l1bs_echo_sar_ku == NC_NOERR )
+		{
+			//    S3A/SR_1_BS Mission name is Sentinel 3A and dimension "time_l1bs_echo_sar_ku" exists.
+			return CExternalFilesSentinel3A_l1bs::TypeOf();
+		}
+
+
+		// fallback to generic Sentinel3A
+
+        return CExternalFilesSentinel3A::TypeOf();
+    }
+	else
+    if (foundDataSetAttr != NC_NOERR)
+	//if ( foundMissionNameAttr == NC_NOERR && missionNameAttrValue == CExternalFilesReaper::TypeOf() )
+	{
+		//    - Reference date for REAPER is 1990-01-01 00:00:00
+
+		std::string str_l2_ref_doc;
+
+		//    REAPER/ERS_ALT_2	//    Global attribute "l2_ref_doc" exists and is equal to "REA-IS-PSD-5001"
+
+        int found_str_l2_ref_doc = GetAtt(NC_GLOBAL, "l2_ref_doc", str_l2_ref_doc, false, attrNotFound);
+		if ( found_str_l2_ref_doc == NC_NOERR && str_l2_ref_doc == "REA-IS-PSD-5001" )
+		{
+			return CExternalFilesReaper::TypeOf();
+		}
+	}
+
 
     int32_t pos = -1;
 
