@@ -36,7 +36,7 @@ using namespace brathl;
 //----------------------------------------
 void CWPlot::GetInfo()
 {
-	CPlotField* field = CPlotField::GetPlotField( *( m_fields.begin() ) );
+	CPlotField *field = *mFields.begin();
 
 	if ( field == NULL )
 	{
@@ -47,7 +47,7 @@ void CWPlot::GetInfo()
 
 	if ( worldProps != NULL )
 	{
-		m_title = worldProps->m_title;
+		m_title = worldProps->Title();
 	}
 
 	if ( m_title.empty() )

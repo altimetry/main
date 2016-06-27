@@ -30,12 +30,16 @@ class CPlot;
 class CWPlot;
 class CZFXYPlot;
 
+class CDisplayData;
 
 namespace brathl {
 
 	class CInternalFiles;
 	class CInternalFilesYFX;
 }
+
+
+
 
 
 //-------------------------------------------------------------
@@ -46,23 +50,70 @@ namespace brathl {
 
 class CPlotField : public CBratObject
 {
-	void Init();
+	using base_t = CBratObject;
+
 public:
-	CPlotField( const std::string& name );
-	virtual ~CPlotField();
-
-	static CPlotField* GetPlotField( CBratObject* ob );
-
-	CInternalFiles* GetInternalFiles( int32_t index );
-	CInternalFilesYFX* GetInternalFilesYFX( int32_t index );
-
 	std::string m_name;
 	CObArray m_internalFiles;
 
-	CXYPlotProperties* m_xyProps;
-	CWorldPlotProperties* m_worldProps;
-	CZFXYPlotProperties* m_zfxyProps;
+	CDisplayData *mDisplayData = nullptr;
+
+	CXYPlotProperties *m_xyProps = nullptr;
+	CWorldPlotProperties *m_worldProps = nullptr;
+	CZFXYPlotProperties *m_zfxyProps = nullptr;
+
+public:
+	CPlotField( const std::string& name, CDisplayData *ddata = nullptr )
+		: base_t()
+		, m_name( name )
+		, m_internalFiles( false )
+		, mDisplayData( ddata )
+		, m_xyProps( nullptr )
+		, m_worldProps( nullptr )
+		, m_zfxyProps( nullptr )
+	{}
+
+	virtual ~CPlotField()
+	{}
+
+	CInternalFiles* GetInternalFiles( int32_t index );
+	CInternalFilesYFX* GetInternalFilesYFX( int32_t index );
 };
+
+
+
+
+// Base class for all CXXXPlotData hierarchy
+//
+class CPlotData : public CBratObject
+{
+	using base_t = CBratObject;
+
+protected:
+	std::vector<std::string> mFieldNames;
+
+public:
+	CPlotData( std::initializer_list< const std::string > names )
+		: base_t()
+	{
+		for ( auto const &name : names )
+			mFieldNames.push_back( name );
+	}
+
+	virtual ~CPlotData()
+	{}
+
+
+	const std::string& FieldName( size_t index ) const
+	{
+		assert__( index < mFieldNames.size() );
+
+		return mFieldNames[ index ];
+	}
+};
+
+
+
 
 
 #endif			//DATA_MODELS_PLOT_DATA_PLOTFIELD_H

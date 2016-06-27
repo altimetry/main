@@ -72,6 +72,8 @@ void CDatasetFilterControls::CreateWidgets()
     mRenameArea = CreateToolButton( "", ":/images/OSGeo/area_edit.png", "<b>Rename area</b><br>Change the name of selected area" );
     mDeleteArea = CreateToolButton( "", ":/images/OSGeo/area_remove.png", "<b>Delete area</b><br>Delete the selected area" );
     //mSaveArea = CreateToolButton( "", ":/images/OSGeo/area_save.png", "<b>Save area</b><br>Save values in selected area" );
+	mAddMask->setVisible( false );		//TODO	MODIFY WHEN IMPLEMENTED
+
 
     QWidget *buttons_col = CreateButtonRow( false, Qt::Vertical, { mNewArea, mAddKML, mAddMask, mRenameArea, mDeleteArea, nullptr } );
     QBoxLayout *areas_layout = LayoutWidgets( Qt::Horizontal, { buttons_col, mAreasListWidget } );
@@ -166,6 +168,8 @@ void CDatasetFilterControls::CreateWidgets()
 
     //   III.2 One-Click Time Filtering
 
+#if defined (ONE_CLICK_TIME_FILTERING)
+
 	auto *one_click_title = 
 		LayoutWidgets( Qt::Horizontal, { WidgetLine( nullptr, Qt::Horizontal ), new QLabel( "One-Click Time Filtering" ), WidgetLine( nullptr, Qt::Horizontal ) }, nullptr, s, m, m, m, m );
 
@@ -197,8 +201,10 @@ void CDatasetFilterControls::CreateWidgets()
         one_click_title,
         LayoutWidgets( Qt::Horizontal, { month_year_cycle_layout, lineVertical_1, relative_times, lineVertical_2, refDateBox }
 	) }, s, m, m, m, m );
+#endif
 
 	AddTopSpace( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
+    AddTopWidget( WidgetLine( nullptr, Qt::Horizontal ) );
 
 
     // IV. "Total Nb Records Selected" Description group
@@ -214,16 +220,6 @@ void CDatasetFilterControls::CreateWidgets()
     QGroupBox *Records_topBox = AddTopGroupBox( ELayoutType::Horizontal, { TotalRecords_box});
     Records_topBox->setDisabled( true );
 
-
-    // IV. a. v3 Inherited Selection Criteria... (TBD)
-    //
-//    auto mDefineSelectionCriteria = new QPushButton( "Define..." );
-//    auto mApplySelectionCriteria = new QPushButton( "Apply..." );
-//    auto mShowSelectionReport = new QPushButton( "Report..." );
-
-//    AddTopGroupBox( ELayoutType::Horizontal, { mDefineSelectionCriteria, mApplySelectionCriteria, mShowSelectionReport }, "Selection Criteria" );
-
-    AddTopWidget( WidgetLine( nullptr, Qt::Horizontal ) );
 
     AddTopSpace( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
 
@@ -661,7 +657,7 @@ void CDatasetFilterControls::HandleNewArea()
 
 void CDatasetFilterControls::HandleAddKML()
 {
-	static std::string kml_path = mModel.BratPaths().mPortableBasePath;
+	static std::string kml_path = mModel.BratPaths().UserDataDirectory();
 	
     // Ask user to choose a KML file
 	QString path = BrowseFileWithExtension( this, "Open from KML File", kml_path.c_str(), "kml", "Keyhole Markup Language" );

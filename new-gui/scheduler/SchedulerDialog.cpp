@@ -261,7 +261,7 @@ CSchedulerDialog::CSchedulerDialog( CSchedulerApplication &a, QWidget *parent )
 	CreateProcessesTable();
 
     if ( !CTasksProcessor::GetInstance() )
-        CTasksProcessor::CreateInstance( mAppPaths->mExecutableDir );
+        CTasksProcessor::CreateInstance( *mAppPaths );
 	mSchedulerFilePath = CTasksProcessor::GetInstance()->SchedulerFilePath();
 
     // v3 note: After loading, tasks whose status is 'in progress' are considered as 'pending'

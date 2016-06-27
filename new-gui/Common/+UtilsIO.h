@@ -169,7 +169,7 @@ inline const std::string portable_data_path_prefix()
 }
 
 
-inline bool isPortableDataPath( const std::string &path )
+inline bool IsPortableDataPath( const std::string &path )
 {
     return StartsWith( path, portable_data_path_prefix() );
 }
@@ -206,7 +206,7 @@ inline std::string Portable2AbsoluteDataPath( const std::string &path, const std
 	const std::string data_path = normalizedPath( standard_path );
 	const std::string new_path = path;								//(*)
 
-    if ( isPortableDataPath( new_path ) )
+    if ( IsPortableDataPath( new_path ) )
 		return data_path + new_path.substr( portable_data_path_prefix().length() ); 
 
     return new_path;

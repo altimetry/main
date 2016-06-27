@@ -36,6 +36,7 @@ using namespace brathl;
 //-------------------------------------------------------------
 
 CZFXYPlotProperties::CZFXYPlotProperties()
+	: base_t()
 {
 	m_opacity = 0.7;
 
@@ -87,19 +88,65 @@ CZFXYPlotProperties::CZFXYPlotProperties()
 }
 
 //----------------------------------------
-
-CZFXYPlotProperties::CZFXYPlotProperties( const CZFXYPlotProperties& p )
+const CZFXYPlotProperties& CZFXYPlotProperties::operator=( const CZFXYPlotProperties &o )
 {
-	mLUT = nullptr;
-	Copy( p );
-}
+	if ( this != &o )
+	{
+		*static_cast< base_t* >( this ) = static_cast< const base_t& >( o );
 
-//----------------------------------------
-const CZFXYPlotProperties& CZFXYPlotProperties::operator=( const CZFXYPlotProperties& p )
-{
-	Copy( p );
+		DeleteLUT();
+		mLUT = new CBratLookupTable( *( o.mLUT ) );
+
+		m_xLabel = o.m_xLabel;
+		m_yLabel = o.m_yLabel;
+
+		m_opacity = o.m_opacity;
+		m_showPropertyPanel = o.m_showPropertyPanel;
+		m_showColorBar = o.m_showColorBar;
+		m_showAnimationToolbar = o.m_showAnimationToolbar;
+
+		m_numColorLabels = o.m_numColorLabels;
+
+		m_minHeightValue = o.m_minHeightValue;
+		m_maxHeightValue = o.m_maxHeightValue;
+
+		m_xMax = o.m_xMax;
+		m_xMin = o.m_xMin;
+		m_yMax = o.m_yMax;
+		m_yMin = o.m_yMin;
+
+		m_xBase = o.m_xBase;
+		m_yBase = o.m_yBase;
+
+		m_xLog = o.m_xLog;
+		m_yLog = o.m_yLog;
+
+		m_xNumTicks = o.m_xNumTicks;
+		m_yNumTicks = o.m_yNumTicks;
+		m_zNumTicks = o.m_zNumTicks;
+
+		m_withContour = o.m_withContour;
+		m_withContourLabel = o.m_withContourLabel;
+		m_minContourValue = o.m_minContourValue;
+		m_maxContourValue = o.m_maxContourValue;
+		m_numContour = o.m_numContour;
+		m_numContourLabel = o.m_numContourLabel;
+
+		m_contourLabelSize = o.m_contourLabelSize;
+		mContourLineWidth = o.mContourLineWidth;
+
+		m_contourLineColor = o.m_contourLineColor;
+		m_contourLabelColor = o.m_contourLabelColor;
+
+		m_contourLabelFormat = o.m_contourLabelFormat;
+
+		m_solidColor = o.m_solidColor;
+
+		m_withAnimation = o.m_withAnimation;
+	}
 	return *this;
 }
+
 //----------------------------------------
 CZFXYPlotProperties::~CZFXYPlotProperties()
 {
@@ -116,71 +163,12 @@ void CZFXYPlotProperties::DeleteLUT()
 	}
 }
 
-//----------------------------------------
-void CZFXYPlotProperties::Copy( const CZFXYPlotProperties& p )
-{
-	DeleteLUT();
-	mLUT = new CBratLookupTable( *( p.mLUT ) );
-
-	m_title = p.m_title;
-
-	m_name = p.m_name;
-
-	m_xLabel = p.m_xLabel;
-	m_yLabel = p.m_yLabel;
-
-	m_opacity = p.m_opacity;
-	m_showPropertyPanel = p.m_showPropertyPanel;
-	m_showColorBar = p.m_showColorBar;
-	m_showAnimationToolbar = p.m_showAnimationToolbar;
-
-	m_numColorLabels = p.m_numColorLabels;
-
-	m_minHeightValue = p.m_minHeightValue;
-	m_maxHeightValue = p.m_maxHeightValue;
-
-	m_xMax = p.m_xMax;
-	m_xMin = p.m_xMin;
-	m_yMax = p.m_yMax;
-	m_yMin = p.m_yMin;
-
-	m_xBase = p.m_xBase;
-	m_yBase = p.m_yBase;
-
-	m_xLog = p.m_xLog;
-	m_yLog = p.m_yLog;
-
-	m_xNumTicks = p.m_xNumTicks;
-	m_yNumTicks = p.m_yNumTicks;
-	m_zNumTicks = p.m_zNumTicks;
-
-	m_withContour = p.m_withContour;
-	m_withContourLabel = p.m_withContourLabel;
-	m_minContourValue = p.m_minContourValue;
-	m_maxContourValue = p.m_maxContourValue;
-	m_numContour = p.m_numContour;
-	m_numContourLabel = p.m_numContourLabel;
-
-	m_contourLabelSize = p.m_contourLabelSize;
-	mContourLineWidth = p.mContourLineWidth;
-
-	m_contourLineColor = p.m_contourLineColor;
-	m_contourLabelColor = p.m_contourLabelColor;
-
-	m_contourLabelFormat = p.m_contourLabelFormat;
-
-	m_solidColor = p.m_solidColor;
-
-	m_withAnimation = p.m_withAnimation;
-}
-
 //-------------------------------------------------------------
 //------------------- CZFXYPlotData class --------------------
 //-------------------------------------------------------------
 
 CZFXYPlotData::CZFXYPlotData( CZFXYPlot* plot, CPlotField* field )
-	: base_t()
-	, mFieldName( field->m_name )
+	: base_t( { field->m_name } )
 {
 	if ( field == nullptr )
 	{
@@ -208,17 +196,12 @@ CZFXYPlotData::CZFXYPlotData( CZFXYPlot* plot, CPlotField* field )
 	mLUT = nullptr;
 
 	
-	Create( &( field->m_internalFiles ), field->m_name, plot );
+	Create( &field->m_internalFiles, field->m_name, plot );
 
 
 	SetLUT( m_plotProperties.mLUT );
 
 	mLUT->GetLookupTable()->SetTableRange( m_plotProperties.m_minContourValue, m_plotProperties.m_maxContourValue );
-}
-//----------------------------------------
-CZFXYPlotData::~CZFXYPlotData()
-{
-	DeleteLUT();
 }
 
 
@@ -286,14 +269,14 @@ std::string CZFXYPlotData::GetDataUnitString( size_t index ) const
 //----------------------------------------
 void CZFXYPlotData::Create( CObArray* data, const std::string& fieldName, CZFXYPlot* plot )
 {
-	if ( m_plotProperties.m_name.empty() )
+	if ( m_plotProperties.Name().empty() )
 	{
-		m_plotProperties.m_name = fieldName.c_str();
+		m_plotProperties.SetName( fieldName );
 	}
 
-	if ( m_plotProperties.m_title.empty() )
+	if ( m_plotProperties.Title().empty() )
 	{
-		m_plotProperties.m_title = plot->m_title;
+		m_plotProperties.SetTitle( plot->m_title );
 	}
 
 
@@ -425,7 +408,7 @@ void CZFXYPlotData::Create( CObArray* data, const std::string& fieldName, CZFXYP
 		std::string dataTitle = zfxy->GetTitle( fieldName );
 		if ( dataTitle.empty() )
 		{
-			dataTitle = m_plotProperties.m_name;
+			dataTitle = m_plotProperties.Name();
 		}
 
 		m_dataTitles.Insert( dataTitle );

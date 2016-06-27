@@ -40,8 +40,6 @@ public:
 
 protected:
 
-	std::string mFieldName;
-
 	CMapValues mMaps;
 
 	bool m_finished;
@@ -69,17 +67,22 @@ protected:
 
 	// v3 note: for base classes
 	//
+#if defined(BRAT_V3)
 	CWorldPlotData( CWorldPlotProperties *plotProperty )
-		: CWorldPlotCommonData( plotProperty )
+		: base_t( plotProperty, {} )
 	{}
+#endif
 
 public:
 	CWorldPlotData( CPlotField* field )
-		: CWorldPlotCommonData( field->m_worldProps )
-		, mFieldName( field->m_name )
+		: base_t( field->m_worldProps, { field->m_name } )
 	{
 		Create( &field->m_internalFiles, field->m_name );
 	}
+
+	CWorldPlotData( CPlotField *north_field, CPlotField *east_field )
+		: base_t( north_field->m_worldProps, { north_field->m_name, east_field->m_name } )
+	{}
 
 	virtual ~CWorldPlotData()
 	{}
@@ -90,8 +93,6 @@ protected:
 public:
 
 	const CMapValues& PlotValues() const { return mMaps; }
-
-	const std::string &FieldName() const { return mFieldName; }
 
 
 	int32_t GetNrMaps() { return m_nrMaps; };
@@ -117,7 +118,7 @@ public:
     virtual std::string GetDataTitle() override { return GetDataTitle( m_currentMap ); }
     virtual std::string GetDataTitle( uint32_t index ) override { return m_dataTitles[ index ]; }
 
-    virtual std::string GetDataName() override { return m_plotProperty.m_name; }
+    virtual std::string GetDataName() override { return m_plotProperty.Name(); }
 
 	std::string GetDataUnitString() { return GetDataUnitString( m_currentMap ); }
 	std::string GetDataUnitString( uint32_t index );
@@ -177,59 +178,67 @@ class CWorldPlotVelocityData : public CWorldPlotData
 
 protected:
 
-   double m_minhvN;
-   double m_maxhvN;
+	double m_minhvN;
+	double m_maxhvN;
 
-   double m_minhvE;
-   double m_maxhvE;
+	double m_minhvE;
+	double m_maxhvE;
 
-   bool IsGlyph;
-   double zoom;
+	bool IsGlyph;
+	double zoom;
 
 
-   //vtkProj2DFilter *m_simple2DProjFilter;  // this could be of any implementation
-   //vtkVelocityGlyphFilter *m_geoMapFilter;
+	//vtkProj2DFilter *m_simple2DProjFilter;  // this could be of any implementation
+	//vtkVelocityGlyphFilter *m_geoMapFilter;
 
-   //// for glyphs
-   //vtkMaskPoints*   m_pointMask;
-   //vtkArrowSource* m_arrowSource;
-   //vtkBratArrowSource* m_barrowSource;
-   //vtkGlyph3D*  m_glyph;
+	//// for glyphs
+	//vtkMaskPoints*   m_pointMask;
+	//vtkArrowSource* m_arrowSource;
+	//vtkBratArrowSource* m_barrowSource;
+	//vtkGlyph3D*  m_glyph;
 
    //only for vtk derived classes (globe, etc)
    //
+#if defined(BRAT_V3)
    CWorldPlotVelocityData( CWorldPlotProperties* plotProperty = NULL )
 	   :base_t( plotProperty )
    {}
 
-   CWorldPlotVelocityData( CPlotField* field )
-	   :base_t( field )
-   {}
+	CWorldPlotVelocityData( CPlotField* field )
+		:base_t( field )
+	{}
+#endif
 
-public:
-
-  CWorldPlotVelocityData( CPlotField* northField, CPlotField* eastField );
-
-  virtual ~CWorldPlotVelocityData();
-
-protected:
 	void Create(CObArray* northData, CObArray* eastData, const std::string& fieldNameNorth, const std::string& fieldNameEast);
-
 public:
-  //vtkVelocityGlyphFilter * GetGlyphFilter() { return m_geoMapFilter; }
 
-  //void SetIsGlyph(bool val);
+	// The order of fields matters: if ever changed, modify XXXFieldName() getters
+	//
+	CWorldPlotVelocityData( CPlotField* northField, CPlotField* eastField )
+		: base_t( northField, eastField )										 //v3 note: this is just to compile
+	{
+		Create( &northField->m_internalFiles, &eastField->m_internalFiles, northField->m_name, eastField->m_name );
+	}
 
-  void SetZoom(double z) { zoom =z; }
+	virtual ~CWorldPlotVelocityData()
+	{}
+
+
+	const std::string& NorthFieldName() const { return FieldName( 0 ); }
+
+	const std::string& EastFieldName() const { return FieldName( 1 ); }
+
+
+	void SetZoom(double z) { zoom =z; }
 
 protected:
-   //vtkProj2DFilter* GetVtkFilter();
+	//vtkProj2DFilter* GetVtkFilter();
 
-   virtual void Set2D();
-   virtual void Set3D();
+	virtual void Set2D();
+	virtual void Set3D();
 
-   virtual void Set2DGlyphs();
-   virtual void Set3DGlyphs();
+	virtual void Set2DGlyphs();
+	virtual void Set3DGlyphs();
 
 };
 

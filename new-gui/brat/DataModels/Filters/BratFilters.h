@@ -8,6 +8,8 @@
 #include "new-gui/Common/ApplicationSettings.h"
 #include "new-gui/Common/tools/CoreTypes.h"
 
+#include "new-gui/brat/BratSettings.h"
+
 #include "BratAreas.h"
 
 
@@ -223,11 +225,11 @@ public:
 
 	//client in charge of deletion
 	//
-	static CBratFilters* CreateInstance( const std::string &internal_data_dir )
+	static CBratFilters* CreateInstance( const CBratSettings &settings )
 	{
 		assert__( !smInstance );
 
-		smInstance = new CBratFilters( internal_data_dir );
+		smInstance = new CBratFilters( settings.BratPaths().WorkspacesDirectory() );
 		return smInstance;
 	}
 
@@ -243,16 +245,16 @@ public:
 protected:
     // instance data
 
-    std::string mInternalDataPath;
+    std::string mWorkspacesPath;
 
     std::map< std::string, CBratFilter > mFiltersMap;
 
 
     // construction / destruction
 
-    CBratFilters( const std::string &internal_data_dir )
-        : base_t( internal_data_dir + "/Filters.ini" )
-        , mInternalDataPath( internal_data_dir )
+    CBratFilters( const std::string &dir )
+        : base_t( dir + "/Filters.ini" )
+        , mWorkspacesPath( dir )
     {}
 public:
 
@@ -263,7 +265,7 @@ public:
 
     CBratAreas& Areas()
     {
-        static CBratAreas a( mInternalDataPath + "/UserAreas.ini" );
+        static CBratAreas a( mWorkspacesPath + "/UserAreas.ini" );
         return a;
     }
 
@@ -274,7 +276,7 @@ public:
 
     CBratRegions& Regions()
     {
-        static CBratRegions r( mInternalDataPath + "/UserRegions.ini" );
+        static CBratRegions r( mWorkspacesPath + "/UserRegions.ini" );
         return r;
     }
 

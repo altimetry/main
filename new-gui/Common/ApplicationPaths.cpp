@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT 
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 // #include "stdafx.h"
 
 // While we can't include stdafx.h, this pragma must be here
@@ -21,18 +38,6 @@
 //									CApplicationPaths
 //
 ////////////////////////////////////////////////////////////////////////////////////////////
-
-
-const std::string QT_PLUGINS_SUBDIR =
-
-#if defined(_WIN32)
-    "plugins"
-#elif defined (__APPLE__)
-    "../PlugIns"
-#else
-    "plugins"
-#endif
-;
 
 
 const std::string QGIS_PLUGINS_SUBDIR =
@@ -66,30 +71,12 @@ const std::string CApplicationPaths::smDefaultURLRasterLayerPath =
 
 
 
-//static
-std::string CApplicationPaths::ComputeDefaultUserBasePath( const std::string &DeploymentRootDir )
-{
-	std::string s;
-    auto s3root = getenv( "S3ALTB_ROOT" );	//assuming development environment available
-    if ( s3root )
-    {
-        s = s3root + std::string( "/project" );
-        if ( !IsDir( s ) )
-            s = DeploymentRootDir;
-    }
-
-    assert__( IsDir( s ) );
-
-    return s + "/" + DefaultExternalDataSubDir();
-}
-
-
 
 CApplicationPaths::CApplicationPaths( const QString &exec_path ) :
 
     // I. NOT user (re)definable paths
 
-	base_t( q2a( exec_path ) )
+	base_t( q2a( exec_path ), DefaultUserDocumentsPath() )
 
     , mVectorLayerPath( mInternalDataDir + "/maps/ne_10m_coastline/ne_10m_coastline.shp" )
     , mRasterLayerPath( mInternalDataDir + "/maps/NE1_HR_LC_SR_W_DR/NE1_HR_LC_SR_W_DR.tif" )
@@ -100,34 +87,26 @@ CApplicationPaths::CApplicationPaths( const QString &exec_path ) :
 
     , mOsgPluginsDir( mExecutableDir + "/" + osg_paths_SUBDIR )
 
-    , mQtPluginsDir( mExecutableDir + "/" + QT_PLUGINS_SUBDIR )
     , mQgisPluginsDir( mExecutableDir + "/" + QGIS_PLUGINS_SUBDIR )
     , mGlobeDir( mExecutableDir + "/" + DefaultGlobeSubDir() )
 
-    , mExecYFXName( mExecutableDir + "/" + BRATCREATEYFX_EXE)
-    , mExecZFXYName( mExecutableDir + "/" + BRATCREATEZFXY_EXE )
-    , mExecExportAsciiName( mExecutableDir + "/" + BRATEXPORTASCII_EXE )
-    , mExecExportGeoTiffName( mExecutableDir + "/" + BRATEXPORTGEOTIFF_EXE )
-    , mExecShowStatsName( mExecutableDir + "/" + BRATSHOWSTATS_EXE )
+    , mExecYFXName(				EscapePath( mExecutableDir + "/" + BRATCREATEYFX_EXE) )
+    , mExecZFXYName(			EscapePath( mExecutableDir + "/" + BRATCREATEZFXY_EXE ) )
+    , mExecExportAsciiName(		EscapePath( mExecutableDir + "/" + BRATEXPORTASCII_EXE ) )
+    , mExecExportGeoTiffName(	EscapePath( mExecutableDir + "/" + BRATEXPORTGEOTIFF_EXE ) )
+    , mExecShowStatsName(		EscapePath( mExecutableDir + "/" + BRATSHOWSTATS_EXE ) )
 
 #if defined(__APPLE__)
-    , mExecBratSchedulerName( mExecutableDir + "/../../../scheduler.app/Contents/MacOS/" + BRATSCHEDULER_EXE )
+    , mExecBratSchedulerName(	EscapePath( mExecutableDir + "/../../../scheduler.app/Contents/MacOS/" + BRATSCHEDULER_EXE ) )
 #else
-    , mExecBratSchedulerName( mExecutableDir + "/" + BRATSCHEDULER_EXE )
+    , mExecBratSchedulerName(	EscapePath( mExecutableDir + "/" + BRATSCHEDULER_EXE ) )
 #endif
 
 {
-    //fixed (return if parent class dirs are not valid or subclass path are not valid as well)
     if ( !IsValid() || !ValidatePaths() )
     {
         return;
     }
-
-    // Set Qt plug-ins path
-	//
-	//	- Use QCoreApplication::libraryPaths(); to inspect Qt library (plug-ins) directories
-
-    QCoreApplication::setLibraryPaths( QStringList() << mQtPluginsDir.c_str() );
 
     // Set OSG plug-ins path
 	//
@@ -139,11 +118,6 @@ CApplicationPaths::CApplicationPaths( const QString &exec_path ) :
 	for ( auto const &s : osg_paths )
         qDebug() << t2q( s );
 #endif
-
-
-    // II. user (RE)DEFINABLE paths
-
-    SetUserPaths();
 }
 
 
@@ -158,46 +132,70 @@ bool CApplicationPaths::operator == ( const CApplicationPaths &o ) const
     assert__( mExecutableDir == o.mExecutableDir );
     assert__( mDeploymentRootDir == o.mDeploymentRootDir );
 
+    assert__( mQtPluginsDir == o.mQtPluginsDir );
+	assert__( mUserManualPath == o.mUserManualPath );
     assert__( mInternalDataDir == o.mInternalDataDir );
+
+	assert__( mUserDocumentsDirectory == o.mUserDocumentsDirectory );
+	assert__( mUserDataDirectory == o.mUserDataDirectory );
+	assert__( mWorkspacesDirectory == o.mWorkspacesDirectory );
 
 	// from this
 
     assert__( mVectorLayerPath == o.mVectorLayerPath );
 
     assert__( mOsgPluginsDir == o.mOsgPluginsDir );
-    assert__( mQtPluginsDir == o.mQtPluginsDir );
     assert__( mQgisPluginsDir == o.mQgisPluginsDir );
     assert__( mGlobeDir == o.mGlobeDir );
 
-    assert__(mExecYFXName == o.mExecYFXName);
-    assert__(mExecZFXYName == o.mExecZFXYName);
-    assert__(mExecExportAsciiName == o.mExecExportAsciiName);
-    assert__(mExecExportGeoTiffName == o.mExecExportGeoTiffName);
-    assert__(mExecShowStatsName == o.mExecShowStatsName);
-    assert__(mExecBratSchedulerName == o.mExecBratSchedulerName);
+    assert__( mExecYFXName == o.mExecYFXName );
+    assert__( mExecZFXYName == o.mExecZFXYName );
+    assert__( mExecExportAsciiName == o.mExecExportAsciiName );
+    assert__( mExecExportGeoTiffName == o.mExecExportGeoTiffName );
+    assert__( mExecShowStatsName == o.mExecShowStatsName );
+    assert__( mExecBratSchedulerName == o.mExecBratSchedulerName );
 
     return
         // user re-definable
 
-        mPortableBasePath == o.mPortableBasePath &&
         mRasterLayerPath == o.mRasterLayerPath &&
-
-        mWorkspacesDir == o.mWorkspacesDir
+		mURLRasterLayerPath == o.mRasterLayerPath;
         ;
 }
 
 
-
 std::string CApplicationPaths::ToString() const
 {
-    std::string s;
+    std::string s = std::string( "\n*** ApplicationPaths ***\nValidation Result: " ) + ( mValid ? "Ok" : "Failed" );
+
+	if ( !mErrorMsg.empty() ) s+= ( "\nValidation Messages: " + mErrorMsg + "\n\nData:\n\n" );
+
+	//base
 
     s += ( "\nPlatform == " + mPlatform );
     s += ( "\nConfiguration == " + mConfiguration );
 
     s += ( "\nExecutable Path == " + mExecutablePath );
     s += ( "\nExecutable Dir == " + mExecutableDir );
-    s += ( "\nDeploymentRoot Dir == " + mDeploymentRootDir );
+    s += ( "\nDeployment Root Dir == " + mDeploymentRootDir );
+
+    s += ( "\nQt Plugins Dir == " + mQtPluginsDir );
+	s += ( "\nUser Manual Path == " + mUserManualPath );
+    s += ( "\nInternalData Dir == " + mInternalDataDir );
+
+    s += ( std::string( "\nUse Portable Paths == " ) + ( UsePortablePaths() ? "true" : "false" ) );
+
+	s += ( "\nUser Documents Directory == " + mUserDocumentsDirectory );
+    s += ( "\nmUser Data Directory == " + mUserDataDirectory );
+    s += ( "\nWorkspaces Directory == " + mWorkspacesDirectory );
+
+	//this
+
+    s += ( "\nVectorLayer Path == " + mVectorLayerPath );
+
+    s += ( "\nOsgPlugins Dir == " + mOsgPluginsDir );
+    s += ( "\nQgisPlugins Dir == " + mQgisPluginsDir );
+    s += ( "\nGlobe Dir == " + mGlobeDir );
 
     s += ("\nmExecYFXName == " + mExecYFXName);
     s += ("\nmExecZFXYName == " + mExecZFXYName);
@@ -206,20 +204,8 @@ std::string CApplicationPaths::ToString() const
     s += ("\nmExecShowStatsName == " + mExecShowStatsName);
     s += ("\nmExecBratSchedulerName == " + mExecBratSchedulerName);
 
-    s += ( "\nInternalData Dir == " + mInternalDataDir );
-    s += ( "\nVectorLayer Path == " + mVectorLayerPath );
-
-    s += ( "\nOsgPlugins Dir == " + mOsgPluginsDir );
-    s += ( "\nQtPlugins Dir == " + mQtPluginsDir );
-    s += ( "\nQgisPlugins Dir == " + mQgisPluginsDir );
-    s += ( "\nGlobe Dir == " + mGlobeDir );
-
-    s += ( "\nUserBase Path == " + mPortableBasePath );
     s += ( "\nRasterLayer Path == " + mRasterLayerPath );
-
-    s += ( "\nWorkspaces Dir == " + mWorkspacesDir );
-
-    s += ( std::string( "\nUnique UserBasePath == " ) + ( mUsePortablePaths ? "true" : "false" ) );
+    s += ( "\nmURLRasterLayer Path == " + mURLRasterLayerPath );
 
     return s;
 }
@@ -232,46 +218,8 @@ bool CApplicationPaths::ValidatePaths() const
         ValidPath( mErrorMsg, mVectorLayerPath, true, "Vector Layer path" ) &&
         ValidPath( mErrorMsg, mRasterLayerPath, true, "Raster Layer path" ) &&
         ValidPath( mErrorMsg, mOsgPluginsDir, false, "OSG Plugins diretory" ) &&
-        ValidPath( mErrorMsg, mQtPluginsDir, false, "Qt Plugins directory" ) &&
         ValidPath( mErrorMsg, mQgisPluginsDir, false, "Qgis Plugins directory" ) &&
         ValidPath( mErrorMsg, mGlobeDir, false, "Globe files directory" );
 
     return mValid;
-}
-
-
-bool CApplicationPaths::SetUserBasePath( bool portable, const std::string &path )	//path = ""
-{
-    if ( !MakeDirectory( path ) )
-        return false;
-
-    mPortableBasePath = path;
-
-    mUsePortablePaths = portable;
-
-    return true;
-}
-
-
-bool CApplicationPaths::SetWorkspacesDirectory( const std::string &path )
-{
-    if ( !IsDir( path ) && !MakeDirectory( path ) )
-        return false;
-
-    mWorkspacesDir = path;
-    return true;
-}
-
-
-bool CApplicationPaths::SetUserPaths()
-{
-    if ( !IsDir( mPortableBasePath ) )
-        mPortableBasePath = ComputeDefaultUserBasePath( mDeploymentRootDir );
-
-    std::string wkspaces = GetDirectoryFromPath( mPortableBasePath ) + "/" + DefaultProjectsSubDir();
-
-    if ( !IsDir( mPortableBasePath ) && !SetUserBasePath( mUsePortablePaths, mPortableBasePath ) )
-        return false;
-
-    return IsDir( mWorkspacesDir ) || SetWorkspacesDirectory( wkspaces );
 }

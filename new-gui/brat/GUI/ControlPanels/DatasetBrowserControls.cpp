@@ -420,7 +420,7 @@ void CDatasetBrowserControls::HandleDeleteDataset()
 
 void CDatasetBrowserControls::HandleAddFiles()
 {
-	static std::string last_path = mBratPaths.mPortableBasePath;
+	static std::string last_path = mBratPaths.UserDataDirectory();
 
     // Get selected dataset item
     QTreeWidgetItem *current_dataset_item = mDatasetTree->currentItem();
@@ -445,7 +445,7 @@ void CDatasetBrowserControls::HandleAddFiles()
 
 void CDatasetBrowserControls::HandleAddDir()
 {
-	static std::string last_path = mBratPaths.mPortableBasePath;
+	static std::string last_path = mBratPaths.UserDataDirectory();
 
     // Get selected dataset item
     QTreeWidgetItem *current_dataset_item = mDatasetTree->currentItem();

@@ -198,7 +198,6 @@ void COperationControls::CreateQuickOperationsPage()
 	mQuickVariablesList->setSelectionMode( QAbstractItemView::NoSelection );		assert__( mQuickVariablesList->count() == EPredefinedVariables_size );
 
 	mQuickSelectionCriteriaCheck = new QCheckBox( "Use Predefined Selection Criteria (ocean_editing)" );
-	mQuickSelectionCriteriaCheck->setChecked( true );
 
 	auto *vars_layout = LayoutWidgets( Qt::Vertical, { mQuickVariablesList, mQuickSelectionCriteriaCheck }, nullptr );
 
@@ -3127,13 +3126,13 @@ void COperationControls::HandleDelayExecution()
 
 void COperationControls::SchedulerProcessError( QProcess::ProcessError error )
 {
-	auto message = "An error occurred launching scheduler application: " + CProcessesTable::ProcessErrorMessage( error );
+	auto message = "An error occurred launching " + mModel.BratPaths().mExecBratSchedulerName + "\n" + q2a( CProcessesTable::ProcessErrorMessage( error ) );
 	SimpleErrorBox( message );
 	LOG_WARN( message );
 }
 void COperationControls::HandleLaunchScheduler()
 {
-	COsProcess *process = new COsProcess( false, "", this, mModel.BratPaths().mExecBratSchedulerName );
+	COsProcess *process = new COsProcess( false, "", this, "\"" + mModel.BratPaths().mExecBratSchedulerName + "\"" );
     connect( process, SIGNAL( error( QProcess::ProcessError ) ), this, SLOT( SchedulerProcessError( QProcess::ProcessError ) ) );
 	process->Execute();
 }

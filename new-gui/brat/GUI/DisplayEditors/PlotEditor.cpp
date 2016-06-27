@@ -344,8 +344,10 @@ bool CPlotEditor::Test()
 
 		CXYPlotData *pdata =  GetFieldData( index, mDataArrayXY );
 		const CYFXValues &data = *pdata->PlotValues();
-		mCurrentDisplayData = GetDisplayData( index, mOperation, mDisplay, mDataArrayXY );
+		CPlotUnitData unit;
+		unit = GetDisplayData( index, mOperation, mDisplay, mDataArrayXY );		Q_UNUSED( unit );
 		field = pdata->GetName();
+		assert__( unit.Name() == field );
 
 		data.GetXRange( mx, Mx, data.CurrentFrame() );
 		data.GetYRange( my, My, data.CurrentFrame() );
@@ -369,7 +371,10 @@ bool CPlotEditor::Test()
 
 		CZFXYPlotData *pdata = dynamic_cast<CZFXYPlotData*>( mDataArrayZFXY[ index ] );
 		const CZFXYValues &data = pdata->PlotValues();
+		CPlotUnitData unit;
+		unit = GetDisplayData( index, mOperation, mDisplay, mDataArrayXY );		Q_UNUSED( unit );
 		field = pdata->GetDataName();
+		assert__( unit.Name() == field );
 
 		all_mx = mx = data[ 0 ].mMinX;
 		all_Mx = Mx = data[ 0 ].mMaxX; 
@@ -596,11 +601,13 @@ bool CPlotEditor::CreatePlotData( EPlotType type )
 		if ( mDisplay->IsYFXType() )
         {
             yfx_plots = GetPlotsFromDisplayFile< CPlot >( mDisplay );
+            //yfx_plots = GetPlotsFromDisplayFile< CPlot >( mOperation );
         }
         else
 		if ( mDisplay->IsZYFXType() || mDisplay->IsZLatLonType() )
 		{
-			zfxy_plots = GetPlotsFromDisplayFile< CZFXYPlot >( mDisplay );
+            zfxy_plots = GetPlotsFromDisplayFile< CZFXYPlot >( mDisplay );
+            //zfxy_plots = GetPlotsFromDisplayFile< CZFXYPlot >( mOperation );
 		}
 		else
 			assert__( false );						assert__( ( yfx_plots.size() || zfxy_plots.size() ) && mCurrentDisplayFilesProcessor );
@@ -625,7 +632,7 @@ bool CPlotEditor::CreatePlotData( EPlotType type )
 			mPlot2DView->setWindowTitle( t2q( yfxplot->MakeTitle() ) );
 			mPlot2DView->SetPlotTitle( q2a( mPlot2DView->windowTitle() ) );		//in v3 was inside the loop
 
-			int nrFields = (int)yfxplot->m_fields.size();		assert__( nrFields == mCurrentDisplayFilesProcessor->GetXYPlotPropertiesSize() );
+			int nrFields = (int)yfxplot->mFields.size();		assert__( nrFields == mCurrentDisplayFilesProcessor->GetXYPlotPropertiesSize() );
 			for ( int i = 0; i < nrFields; i++ )
 			{
 				//==>CXYPlotFrame::AddData(CXYPlotData* data) ==>CXYPlotPanel::AddData( CXYPlotData* pdata )
@@ -652,9 +659,8 @@ bool CPlotEditor::CreatePlotData( EPlotType type )
 
 			//CZFXYPlotFrame* frame = new CZFXYPlotFrame( nullptr, -1, title, zfxyPlotProperty, pos, size );
 
-			for ( auto &itField : zfxyplot->m_fields )
+			for ( auto *field : zfxyplot->mFields )
 			{
-				CPlotField* field = CPlotField::GetPlotField( itField );
 
 #if defined(_DEBUG) || defined(DEBUG) 
 				if ( field->m_zfxyProps != props )
@@ -713,7 +719,7 @@ CBratObject* CPlotEditor::UpdateCurrentPointers( int field_index )
 {
 	mPropertiesXY = nullptr;
 	mPropertiesZFXY = nullptr;
-	mCurrentDisplayData = nullptr;
+	mCurrentPlotUnit = nullptr;
 	mCurrentBratLookupTable = nullptr;
 
 	if ( field_index < 0 )
@@ -729,12 +735,12 @@ CBratObject* CPlotEditor::UpdateCurrentPointers( int field_index )
 
 		CZFXYPlotData *pdata = GetFieldData( field_index, mDataArrayZFXY );
 		mPropertiesZFXY = GetProperties( field_index, mDataArrayZFXY );
-		mCurrentDisplayData = GetDisplayData( field_index, mOperation, mDisplay, mDataArrayZFXY );
+		mCurrentPlotUnit = GetDisplayData( field_index, mOperation, mDisplay, mDataArrayZFXY );
 		mCurrentBratLookupTable = mPropertiesZFXY->mLUT;
-		mCurrentBratLookupTable->ExecMethod( mCurrentDisplayData->GetColorPalette() );
+		mCurrentBratLookupTable->ExecMethod( mCurrentPlotUnit.GetColorPalette() );
 		array_data = pdata;
 
-		assert__( pdata && mPropertiesZFXY && mCurrentDisplayData );
+		assert__( pdata && mPropertiesZFXY && mCurrentPlotUnit );
 	}
 	else
 	{
@@ -742,10 +748,10 @@ CBratObject* CPlotEditor::UpdateCurrentPointers( int field_index )
 
 		CXYPlotData *pdata = GetFieldData( field_index, mDataArrayXY );
 		mPropertiesXY = GetProperties( field_index, mDataArrayXY );
-		mCurrentDisplayData = GetDisplayData( field_index, mOperation, mDisplay, mDataArrayXY );
+		mCurrentPlotUnit = GetDisplayData( field_index, mOperation, mDisplay, mDataArrayXY );
 		array_data = pdata;
 
-		assert__( pdata && mPropertiesXY && mCurrentDisplayData );
+		assert__( pdata && mPropertiesXY && mCurrentPlotUnit );
 	}
 
 	return array_data;
@@ -808,7 +814,7 @@ void CPlotEditor::Recreate3DPlots( bool build2d, bool build3d )
 		// void CZFXYPlotPanel::AddData( CZFXYPlotData* pdata, wxProgressDialog* dlg )
 
 		// TODO brat v3 does not update range
-		mCurrentBratLookupTable->GetLookupTable()->SetTableRange( mCurrentDisplayData->GetCurrentMinValue(), mCurrentDisplayData->GetCurrentMaxValue() );		//pdata->GetLookupTable()->GetTableRange()
+		mCurrentBratLookupTable->GetLookupTable()->SetTableRange( mCurrentPlotUnit.GetCurrentMinValue(), mCurrentPlotUnit.GetCurrentMaxValue() );		//pdata->GetLookupTable()->GetTableRange()
 
 		const CZFXYValues &maps = pdata->PlotValues();	assert__( maps.size() == 1 );	//simply to check if ever...
 		if ( build2d )
@@ -816,7 +822,7 @@ void CPlotEditor::Recreate3DPlots( bool build2d, bool build3d )
 			if ( mPlotType == eHistogram )
 			{
 				double m, M, max_freq;
-				mPlot2DView->PushHistogram( mPropertiesZFXY->m_name, Qt::green, &maps, max_freq, mCurrentDisplayData->GetNumberOfBins() );
+				mPlot2DView->PushHistogram( mPropertiesZFXY->Name(), Qt::green, &maps, max_freq, mCurrentPlotUnit.GetNumberOfBins() );
 				maps.GetDataRange( m, M, 0 );
 
 				//axis scale
@@ -827,7 +833,7 @@ void CPlotEditor::Recreate3DPlots( bool build2d, bool build3d )
 				//AddRaster assigns axis scale
 
 				mPlot2DView->PushRaster( 
-					mPropertiesZFXY->m_name, maps, mPropertiesZFXY->m_minContourValue, 
+					mPropertiesZFXY->Name(), maps, mPropertiesZFXY->m_minContourValue, 
 					mPropertiesZFXY->m_maxContourValue, mPropertiesZFXY->m_numContour, 
 					*mPropertiesZFXY->mLUT->GetLookupTable() 
 					//*pdata->GetLookupTable()
@@ -836,7 +842,7 @@ void CPlotEditor::Recreate3DPlots( bool build2d, bool build3d )
 
 			mPlot2DView->SetPlotTitle( q2a( windowTitle() ) );
 
-			mPlot2DView->SetAxisTitles( i, mPropertiesZFXY->m_xLabel, mPropertiesZFXY->m_yLabel, mPropertiesZFXY->m_name );
+			mPlot2DView->SetAxisTitles( i, mPropertiesZFXY->m_xLabel, mPropertiesZFXY->m_yLabel, mPropertiesZFXY->Name() );
 		}
 
 		if ( build3d )
@@ -851,14 +857,14 @@ void CPlotEditor::Recreate3DPlots( bool build2d, bool build3d )
 
 			mPlot3DView->SetPlotTitle( q2a( windowTitle() ) );
 
-			mPlot3DView->SetAxisTitles( mPropertiesZFXY->m_xLabel, mPropertiesZFXY->m_yLabel, mPropertiesZFXY->m_name );
+			mPlot3DView->SetAxisTitles( mPropertiesZFXY->m_xLabel, mPropertiesZFXY->m_yLabel, mPropertiesZFXY->Name() );
 		}
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-		QListWidgetItem *item = new QListWidgetItem( t2q( pdata->FieldName() ) );
+		QListWidgetItem *item = new QListWidgetItem( t2q( mCurrentPlotUnit.Name() ) );		assert__( pdata->FieldName(0) == mCurrentPlotUnit.Name() );
 		item->setToolTip( item->text() );
 		mTabCurveOptions->mFieldsList->addItem( item );
 
@@ -1021,14 +1027,14 @@ void CPlotEditor::Recreate2DPlots()
 		if ( mPlotType == eHistogram )
 		{
 			//use xrMin for other purpose
-			histo = mPlot2DView->AddHistogram( mPropertiesXY->GetName(), color_cast<QColor>( mPropertiesXY->GetColor() ), pdata->PlotValues(), xrMin, mCurrentDisplayData->GetNumberOfBins() );
+			histo = mPlot2DView->AddHistogram( mPropertiesXY->Name(), color_cast<QColor>( mPropertiesXY->GetColor() ), pdata->PlotValues(), xrMin, mCurrentPlotUnit.GetNumberOfBins() );
 			max_freq = std::max( max_freq, xrMin );
 			min_y = std::min( min_y, yrMin );
 			max_y = std::max( max_y, yrMax );
 		}
 		else
 		{
-			curve = mPlot2DView->AddCurve( mPropertiesXY->GetName(), color_cast<QColor>( mPropertiesXY->GetColor() ), pdata->PlotValues() );
+			curve = mPlot2DView->AddCurve( mPropertiesXY->Name(), color_cast<QColor>( mPropertiesXY->GetColor() ), pdata->PlotValues() );
 		}
 
 
@@ -1050,7 +1056,7 @@ void CPlotEditor::Recreate2DPlots()
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 		////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-		QListWidgetItem *item = new QListWidgetItem( t2q( pdata->FieldName() ) );
+		QListWidgetItem *item = new QListWidgetItem( t2q( mCurrentPlotUnit.Name() ) );		assert__( pdata->FieldName(0) == mCurrentPlotUnit.Name() );
 		item->setToolTip( item->text() );
 		mTabCurveOptions->mFieldsList->addItem( item );
 
@@ -1225,11 +1231,11 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
 		if ( mPlotType == eHistogram )
 		{
 			//TODO temporarily here, while axis work is not done
-			mPlot2DView->SetAxisTitles( index, mPropertiesZFXY->m_name, "Frequency" );
+			mPlot2DView->SetAxisTitles( index, mPropertiesZFXY->Name(), "Frequency" );
 		}
 		else {
 			//TODO temporarily here, while axis work is not done
-			mPlot2DView->SetAxisTitles( index, mPropertiesZFXY->m_xLabel, mPropertiesZFXY->m_yLabel, mPropertiesZFXY->m_name );
+			mPlot2DView->SetAxisTitles( index, mPropertiesZFXY->m_xLabel, mPropertiesZFXY->m_yLabel, mPropertiesZFXY->Name() );
 
 			//TODO	TODO	TODO	TODO				assert__( mPlot2DView->HasContour() == mPlot3DView->HasContour() );
 			assert__( mPlot2DView->HasSolidColor() == mPlot3DView->HasSolidColor() );
@@ -1242,8 +1248,8 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
 			mPropertiesZFXY->m_minHeightValue = pdata->PlotValues()[ 0 ].mMinHeightValue;			
 			mPropertiesZFXY->m_maxHeightValue = pdata->PlotValues()[ 0 ].mMaxHeightValue;
 
-			assert__( VirtuallyEqual( pdata->PlotValues()[ 0 ].mMinHeightValue, mCurrentDisplayData->GetAbsoluteMinValue() ) );
-			assert__( VirtuallyEqual( pdata->PlotValues()[ 0 ].mMaxHeightValue, mCurrentDisplayData->GetAbsoluteMaxValue() ) );
+			assert__( VirtuallyEqual( pdata->PlotValues()[ 0 ].mMinHeightValue, mCurrentPlotUnit.GetAbsoluteMinValue() ) );
+			assert__( VirtuallyEqual( pdata->PlotValues()[ 0 ].mMaxHeightValue, mCurrentPlotUnit.GetAbsoluteMaxValue() ) );
 
 			mTabCurveOptions->mColorMapWidget->SetLUT( mCurrentBratLookupTable, mPropertiesZFXY->m_minHeightValue, mPropertiesZFXY->m_maxHeightValue );
 
@@ -1335,7 +1341,7 @@ void CPlotEditor::HandleShowContourChecked( bool checked )
 
 	WaitCursor wait;
 
-	mCurrentDisplayData->SetContour( checked );
+	mCurrentPlotUnit.SetContour( checked );
 	mPropertiesZFXY->m_withContour = checked;
 
 	if ( mPlotType != eHistogram )
@@ -1349,7 +1355,7 @@ void CPlotEditor::HandleShowSolidColorChecked( bool checked )
 
 	WaitCursor wait;
 
-	mCurrentDisplayData->SetSolidColor( checked );
+	mCurrentPlotUnit.SetSolidColor( checked );
 	mPropertiesZFXY->m_solidColor = checked;
 
 	if ( mPlotType != eHistogram )
@@ -1364,9 +1370,9 @@ void CPlotEditor::HandleColorTablesIndexChanged( int index )
 
 	WaitCursor wait;
 
-	mCurrentDisplayData->SetColorPalette( mCurrentBratLookupTable->GetCurrentFunction() );
-	mCurrentDisplayData->SetCurrentMinValue( mCurrentBratLookupTable->GetLookupTable()->GetTableRange()[0] );
-	mCurrentDisplayData->SetCurrentMaxValue( mCurrentBratLookupTable->GetLookupTable()->GetTableRange()[1] );
+	mCurrentPlotUnit.SetColorPalette( mCurrentBratLookupTable->GetCurrentFunction() );
+	mCurrentPlotUnit.SetCurrentMinValue( mCurrentBratLookupTable->GetLookupTable()->GetTableRange()[0] );
+	mCurrentPlotUnit.SetCurrentMaxValue( mCurrentBratLookupTable->GetLookupTable()->GetTableRange()[1] );
 
 	//if ( index >= 0 )
 	//{
@@ -1724,7 +1730,7 @@ void CPlotEditor::SetAnimationDescr( int frame )
 
 void CPlotEditor::HandleNumberOfBinsChanged()
 {
-	assert__( mPlot2DView && mCurrentDisplayData );
+	assert__( mPlot2DView && mCurrentPlotUnit );
 
     const QString qbins = mTabCurveOptions->mNumberOfBins->text();
 	bool is_converted = false;
@@ -1739,7 +1745,7 @@ void CPlotEditor::HandleNumberOfBinsChanged()
 		return;
 	}	
 
-	mCurrentDisplayData->SetNumberOfBins( bins );	
+	mCurrentPlotUnit.SetNumberOfBins( bins );	
 	HandlePlotTypeChanged( int( eHistogram ) );
 }
 
@@ -1902,7 +1908,7 @@ void CPlotEditor::HandleXAxisNbDigitsChanged()
 
 		if ( mPropertiesXY )
 			mPropertiesXY->SetXNbDigits(ndigits);
-        //mCurrentDisplayData->SetXMantissa(mPropertiesXY->GetXNbDigits());
+        //mCurrentPlotUnit.SetXMantissa(mPropertiesXY->GetXNbDigits());
         mPlot2DView->SetXDigits( false, ndigits );		//false: this can destroy dates display but GUI must take care of disabling this handler for dates
     }
 
@@ -1937,7 +1943,7 @@ void CPlotEditor::HandleYAxisNbDigitsChanged()
 
 		if ( mPropertiesXY )
 			mPropertiesXY->SetYNbDigits(ndigits);
-        //mCurrentDisplayData->SetYMantissa(mPropertiesXY->GetYNbDigits());
+        //mCurrentPlotUnit.SetYMantissa(mPropertiesXY->GetYNbDigits());
         mPlot2DView->SetYDigits( false, ndigits );		//false: this can destroy dates display but GUI must take care of disabling this handler for dates
     }
 
@@ -1999,7 +2005,7 @@ void CPlotEditor::HandleXAxisLabelChanged()
 
 	QString new_label = mTabAxisOptions->mXAxisLabel->text();
 	xtitle = q2a( new_label );
-	mCurrentDisplayData->SetXAxisText( 0, xtitle );
+	mCurrentPlotUnit.SetXAxisText( 0, xtitle );
 
 	if ( mPlot2DView )
 	{
@@ -2028,7 +2034,7 @@ void CPlotEditor::HandleYAxisLabelChanged()
 
 	QString new_label = mTabAxisOptions->mYAxisLabel->text();
 	ytitle = q2a( new_label );
-	//mCurrentDisplayData->SetXAxisText( 1, ytitle );
+	//mCurrentPlotUnit.SetXAxisText( 1, ytitle );
 
 	if ( mPlot2DView )
 	{
@@ -2057,7 +2063,7 @@ void CPlotEditor::HandleZAxisLabelChanged()
 
 	QString new_label = mTabAxisOptions->mZAxisLabel->text();
 	ztitle = q2a( new_label );
-	//mCurrentDisplayData->SetXAxisText( 2, ztitle );
+	//mCurrentPlotUnit.SetXAxisText( 2, ztitle );
 
 	if ( mPlot2DView )
 	{

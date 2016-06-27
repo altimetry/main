@@ -110,7 +110,7 @@ public:
 	as infinite. If < ValidMin, it is considered as equal to ValidMin.
     \return actual number of occurences of the parameter
   */
-  uint32_t CheckCount
+  unsigned CheckCount
 		(const std::string	&Key,
 		 int32_t	ValidMin	= 1,
 		 int32_t	ValidMax	= 1);

@@ -27,7 +27,9 @@
 
 #include "Operation.h"
 #include "DataModels/MapTypeDisp.h"
+#include "DataModels/PlotData/BratLookupTable.h"
 #include "DataModels/PlotData/ColorPalleteNames.h"
+#include "DataModels/PlotData/FieldData.h"
 
 
 class COperation;
@@ -43,13 +45,14 @@ using namespace brathl;
 //------------------- CDisplayData class --------------------
 //-------------------------------------------------------------
 
-class CDisplayData : public CBratObject
+class CDisplayData : public CFieldData
 {
+	////////
 	// types
+	////////
 
-	using base_t = CBratObject;
+	using base_t = CFieldData;
 
-	friend class CConfiguration;
 	friend class CWorkspaceSettings;
 
 public:
@@ -67,7 +70,11 @@ public:
 	};
 
 
+	/////////
 	//statics
+	/////////
+
+	//... export image types
 
 	static const std::string* ImageTypeStrings()
 	{
@@ -129,39 +136,58 @@ public:
     static const unsigned smDefaultNumberOfBins;
 
 
+	///////////////
 	//instance data
+	///////////////
 
 private:
+	//...type & key & fields
+
 	CMapTypeDisp::ETypeDisp m_type = CMapTypeDisp::Invalid();
+
+	CObArray m_dimFields;
 
 	CFieldBasic m_field;
 	CFieldBasic m_x;
 	CFieldBasic m_y;
 	CFieldBasic m_z;
-	const COperation* m_operation = nullptr;
+
+	//0...group ( TBC )
 	int m_group = 1;
+
+	//1...operation
+	const COperation* m_operation = nullptr;
+
+	//2...vector
+	bool mEastComponent = false;
+	bool mNorthComponent = false;
+
+	//3...contour
 	bool m_withContour = false;
+
+	//4...solid color
 	bool m_withSolidColor = true;
 
+	//5...color table && color table range
+	CBratLookupTable mLUT;
 	double mAbsoluteMinValue = defaultValue<double>();
 	double mAbsoluteMaxValue = defaultValue<double>();
 	double mCurrentMinValue = defaultValue<double>();
 	double mCurrentMaxValue = defaultValue<double>();
 	std::string m_colorPalette = PALETTE_AEROSOL;
 
+	//6...axis
 	std::string m_xAxis;
-
-	CObArray m_dimFields;
-
 	bool m_invertXYAxes = false;
 
-	bool m_eastcomponent = false;
-	bool m_northcomponent = false;
-
-	//histogram
+	//7...histogram
 
 	unsigned mNumberOfBins = smDefaultNumberOfBins;
 
+
+	/////////////////////////////
+	// construction / destruction
+	/////////////////////////////
 
 private:
 	void Init()
@@ -170,21 +196,26 @@ private:
 		m_dimFields.Insert( GetX() );
 		m_dimFields.Insert( GetY() );
 		m_dimFields.Insert( GetZ() );
+
+		mLUT.ExecMethodDefaultColorTable();
 	}
 
-	CDisplayData( const CDisplayData &o) = delete;
+	CDisplayData( const CDisplayData &o ) = delete;
 	CDisplayData& operator = ( const CDisplayData &o) = delete;
 
-public:
-	CDisplayData()
+	CDisplayData()	//for persistence
 	{
 		Init();
 	}
+
+public:
 	
-	CDisplayData( const COperation* operation )
+	CDisplayData( const COperation* operation, CMapTypeDisp::ETypeDisp type )
+		: base_t()
+		, m_operation( operation )
+		, m_type( type )
 	{
 		Init();
-		m_operation = operation;
 	}
 	
 	CDisplayData( const CDisplayData &o, const CWorkspaceOperation *wkso );
@@ -193,23 +224,89 @@ public:
 	{}
 
 
-	const COperation* GetOperation() { return m_operation; }
-	const COperation* GetOperation() const { return const_cast<CDisplayData*>( this )->GetOperation(); }
-	void SetOperation( COperation* value ) { m_operation = value; }
+	void CopyFieldUserProperties( CDisplayData &d );		//so far, v3 only
 
+
+	/////////////////////////////
+	//	identity / fields
+	/////////////////////////////
+
+	//...type & key
+
+	bool IsYFXType();
+	bool IsZYFXType();
+	bool IsZLatLonType();
+
+	std::string GetDataKey();
+	std::string GetDataKey( CMapTypeDisp::ETypeDisp type );
+
+	const std::string& FieldName() const { return m_field.GetName(); }
+
+	virtual const std::string& Name() const override
+	{ 
+		return FieldName(); 
+	}
+
+
+	CMapTypeDisp::ETypeDisp GetType() const { return m_type; }
+
+#if defined(BRAT_V3)
+	void SetType( int32_t value ){ m_type = (CMapTypeDisp::ETypeDisp)value; }
+#endif
+
+	//...field(s)
+
+	const CFieldBasic* GetField() const { return &m_field; }
+	CFieldBasic* GetField() { return &m_field; }
+	CFieldBasic* GetX() { return &m_x; }
+	CFieldBasic* GetY() { return &m_y; }
+	CFieldBasic* GetZ() { return &m_z; }
+
+
+
+
+	/////////////////////////////
+	//		properties
+	/////////////////////////////
+
+	//0...group ( TBC )
 	std::string GetGroupAsText() const { return n2s< std::string >( m_group ); }
 	int32_t GetGroup() { return m_group; }
 	void SetGroup( int32_t value ) { m_group = value; }
+
+
+	//1...operation
+
+	const COperation* GetOperation() { return m_operation; }
+	const COperation* GetOperation() const { return const_cast<CDisplayData*>( this )->GetOperation(); }
+
+
+	//2...vector
+
+	bool IsEastComponent() const { return mNorthComponent; }
+	void SetEastComponent( bool value ) { mNorthComponent = value; }
+
+	bool IsNorthComponent() const { return mEastComponent; }
+	void SetNorthComponent( bool value ) { mEastComponent = value; }
+
+
+	//3...contour
 
 	std::string GetContourAsText() const { return ( m_withContour ? "Y" : "N" ); }
 	bool IsContour() const { return GetContour(); }
 	bool GetContour() const { return m_withContour; }
 	void SetContour( bool value ) { m_withContour = value; }
 
+
+	//4...solid color
+
 	std::string GetSolidColorAsText() const { return ( m_withSolidColor ? "Y" : "N" ); }
 	bool IsSolidColor() const { return GetSolidColor(); }
 	bool GetSolidColor() const { return m_withSolidColor; }
 	void SetSolidColor( bool value ) { m_withSolidColor = value; }
+
+
+	//5...color table && color table range
 
 	std::string GetAbsoluteMinValueAsText() const { return GetValueAsText( mAbsoluteMinValue ); }
 	std::string GetAbsoluteMaxValueAsText() const { return GetValueAsText( mAbsoluteMaxValue ); }
@@ -249,58 +346,36 @@ public:
 		mCurrentMaxValue = std::max( std::min( value, mAbsoluteMaxValue ), mAbsoluteMinValue ); 
 	}
 
-	std::string GetColorPalette() const { return m_colorPalette; }
+	const std::string& GetColorPalette() const { return m_colorPalette; }
 	void SetColorPalette( const std::string& value ) { m_colorPalette = value; }
 
-	const CFieldBasic* GetField() const { return &m_field; }
-	CFieldBasic* GetField() { return &m_field; }
-	CFieldBasic* GetX() { return &m_x; }
-	CFieldBasic* GetY() { return &m_y; }
-	CFieldBasic* GetZ() { return &m_z; }
+
+	//6...axis
 
 	std::string GetXAxis() const { return m_xAxis; }
 	void SetXAxis( const std::string& value ) { m_xAxis = value; }
 
 	std::string GetXAxisText( const std::string& name );
-	std::string GetXAxisText( uint32_t index );
-	void SetXAxisText( uint32_t index, const std::string& value );
+	std::string GetXAxisText( unsigned index );
+	void SetXAxisText( unsigned index, const std::string& value );
 
 	bool HasXComplement();
 	void GetXComplement( CStringArray& complement );
 
 	void GetAvailableAxes( CStringArray& names );
 
-	CObArray* GetDimFields() { return &m_dimFields; }
-
-	bool IsYFXType();
-	bool IsZYFXType();
-	bool IsZLatLonType();
-
 	bool IsInvertXYAxes() const { return m_invertXYAxes; }
 	void SetInvertXYAxes( bool value ) { m_invertXYAxes = value; }
 
-	bool IsEastComponent() const { return m_eastcomponent; }
-	void SetEastComponent( bool value ) { m_eastcomponent = value; }
 
-	bool IsNorthComponent() const { return m_northcomponent; }
-	void SetNorthComponent( bool value ) { m_northcomponent = value; }
-
-	std::string GetDataKey();
-	std::string GetDataKey( CMapTypeDisp::ETypeDisp type );
-
-	CMapTypeDisp::ETypeDisp GetType() const { return m_type; }
-	void SetType( CMapTypeDisp::ETypeDisp value ) { m_type = value; }
-	void SetType( int32_t value ) { SetType( (CMapTypeDisp::ETypeDisp)value ); }
+	//7...histogram
 
 	unsigned GetNumberOfBins() const { return mNumberOfBins; }
 	void SetNumberOfBins( unsigned bins ) { mNumberOfBins = bins; }
-
-
-	bool LoadConfig( CWorkspaceSettings* config, const std::string& path, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso );
-	bool SaveConfig( CWorkspaceSettings* config, const std::string& pathSuff, CWorkspaceDisplay *wks );
-
-	void CopyFieldUserProperties( CDisplayData& d );
 };
+
+
+
 
 //-------------------------------------------------------------
 //------------------- CMapDisplayData class --------------------
@@ -357,7 +432,7 @@ public:
 
 	bool CheckFields( std::string& errorMsg, CDisplay* display );
 
-	void SetAllAxis( uint32_t index, const std::string& axisName, const std::string& axisLabel );
+	void SetAllAxis( unsigned index, const std::string& axisName, const std::string& axisLabel );
 	void SetAllInvertXYAxes( bool value );
 };
 
@@ -544,7 +619,7 @@ public:
 	const std::string& GetCmdFilePath() const { return m_cmdFile; }
 	void SetCmdFile( const std::string& value ) { m_cmdFile = value; clean_path( m_cmdFile ); }
 
-	void SetAllAxis( uint32_t index, const std::string& axisName, const std::string& axisLabel ) { m_data.SetAllAxis( index, axisName, axisLabel ); }
+	void SetAllAxis( unsigned index, const std::string& axisName, const std::string& axisLabel ) { m_data.SetAllAxis( index, axisName, axisLabel ); }
 	void SetAllInvertXYAxes( bool value ) { m_data.SetAllInvertXYAxes( value ); }
 
 	CLatLonRect* GetZoom() { return &m_zoom; }

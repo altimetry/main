@@ -1,5 +1,7 @@
 #include "stdafx.h"
 
+#include "new-gui/Common/QtUtils.h"
+
 #include "SchedulerApplication.h"
 #include "new-gui/Common/ScheduledTasksList.hxx"
 #include "new-gui/Common/XmlSerializer.h"
@@ -77,7 +79,7 @@ CSchedulerApplication::CSchedulerApplication( int &argc, char **argv, int flags 
 
     //	III. Locate data directory
 
-    static const CConsoleApplicationPaths brat_paths( argv[ 0 ] );
+    static const CConsoleApplicationPaths brat_paths( argv[ 0 ], DefaultUserDocumentsPath() );
     if ( !brat_paths.IsValid() )
         throw CException( "One or more path directories are invalid:\n" + brat_paths.GetErrorMsg() );
 

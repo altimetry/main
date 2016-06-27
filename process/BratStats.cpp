@@ -49,7 +49,7 @@ int main( int argc, char *argv[] )
 
 	bool bOk = true;
 
-	const CConsoleApplicationPaths brat_paths( argv[ 0 ] );
+	const CConsoleApplicationPaths brat_paths( argv[ 0 ], "" );
 
 	CTools::SetInternalDataDir( brat_paths.mInternalDataDir );
 

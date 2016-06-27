@@ -1779,10 +1779,12 @@ macro(DEFINE_PROCESS PNAME)
   set(PROCESS_SOURCES "process/${PNAME}.cpp")
   add_executable(${PNAME} "${PROCESS_SOURCES}")
   target_link_libraries(${PNAME} brathlProcessUtilities brathl ${QT_QTCORE_LIBRARY} ${ADDITIONAL_LIBS})
-  set_target_properties(
-			${PNAME} PROPERTIES
-			LINK_FLAGS "-rpath @executable_path/../Frameworks/"
-			)
+  if (APPLE)
+	  set_target_properties(
+				${PNAME} PROPERTIES
+				LINK_FLAGS "-rpath @executable_path/../Frameworks/"
+				)
+  endif(APPLE)
   install(TARGETS ${PNAME} DESTINATION bin/)
 endmacro(DEFINE_PROCESS)
 
@@ -1801,10 +1803,12 @@ macro(DEFINE_PROCESS_WITH_PYTHON PNAME)
   set(PROCESS_SOURCES "process/${PNAME}.cpp" process/BratEmbeddedPythonProcess.h process/BratEmbeddedPythonProcess.cpp ${ADDITIONAL_PROCESS_SOURCES} )
   add_executable(${PNAME} "${PROCESS_SOURCES}")
   target_link_libraries(${PNAME} brathlProcessUtilities brathl ${QT_QTCORE_LIBRARY} ${ADDITIONAL_LIBS})
-  set_target_properties(
-			${PNAME} PROPERTIES
-			LINK_FLAGS "-rpath @executable_path/../Frameworks/"
-			)
+  if (APPLE)
+	  set_target_properties(
+				${PNAME} PROPERTIES
+				LINK_FLAGS "-rpath @executable_path/../Frameworks/"
+				)
+  endif(APPLE)
   install(TARGETS ${PNAME} DESTINATION bin/)
 endmacro(DEFINE_PROCESS_WITH_PYTHON)
 

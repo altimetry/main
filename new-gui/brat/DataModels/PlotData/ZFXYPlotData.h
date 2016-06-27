@@ -33,6 +33,7 @@
 
 using namespace brathl;
 
+#include "FieldData.h"
 #include "PlotValues.h"
 #include "PlotColor.h"
 #include "ZFXYPlot.h"
@@ -45,10 +46,14 @@ using namespace brathl;
 //------------------- CZFXYPlotProperties class --------------------
 //-------------------------------------------------------------
 
-struct CZFXYPlotProperties : public CBratObject
+struct CZFXYPlotProperties : public CFieldData
 {
-	std::string m_title;
-	std::string m_name;
+	//types
+
+	using base_t = CFieldData;
+
+	//instance data
+
 	std::string m_xLabel;
 	std::string m_yLabel;
 
@@ -103,18 +108,18 @@ struct CZFXYPlotProperties : public CBratObject
 
 	CZFXYPlotProperties();
 
-	CZFXYPlotProperties( const CZFXYPlotProperties& p );
+	CZFXYPlotProperties( const CZFXYPlotProperties &o )
+	{
+		*this = o;
+	}
 
 	virtual ~CZFXYPlotProperties();
 
-	const CZFXYPlotProperties& operator=( const CZFXYPlotProperties& p );
+	const CZFXYPlotProperties& operator=( const CZFXYPlotProperties &o );
 
 
 private:
-
 	void DeleteLUT();
-
-	void Copy( const CZFXYPlotProperties& p );
 };
 
 
@@ -124,13 +129,11 @@ private:
 //------------------- CZFXYPlotData class --------------------
 //-------------------------------------------------------------
 
-class CZFXYPlotData : public CBratObject
+class CZFXYPlotData : public CPlotData
 {
-	using base_t = CBratObject;
+	using base_t = CPlotData;
 
 protected:
-	const std::string mFieldName;
-
 	bool m_aborted;
 
 	uint32_t m_currentMap;
@@ -166,13 +169,14 @@ public:
 public:
 	CZFXYPlotData( CZFXYPlot* plot, CPlotField* field );
 
-	virtual ~CZFXYPlotData();
+	virtual ~CZFXYPlotData()
+	{
+		DeleteLUT();
+	}
 
 	// access
 
 	const CZFXYValues& PlotValues() const { return mMaps; }
-
-	const std::string &FieldName() const { return mFieldName; }
 
 
 	const CUnit& GetXUnit() const { return m_unitX; }
@@ -184,7 +188,7 @@ public:
 	virtual const std::string& GetDataTitle() const { return GetDataTitle( m_currentMap ); }
 	virtual const std::string& GetDataTitle( uint32_t index ) const { return m_dataTitles[ index ]; }
 
-	virtual const std::string& GetDataName() const { return m_plotProperties.m_name; }
+	virtual const std::string& GetDataName() const { return m_plotProperties.Name(); }
 
 	bool GetContour() const { return m_plotProperties.m_withContour; }
 	void SetContour( bool value ) { m_plotProperties.m_withContour = value; }

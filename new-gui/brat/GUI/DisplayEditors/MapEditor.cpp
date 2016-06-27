@@ -21,7 +21,6 @@
 
 #include "DataModels/Model.h"
 #include "DataModels/DisplayFilesProcessor.h"
-#include "DataModels/Workspaces/Display.h"
 #include "DataModels/PlotData/MapProjection.h"
 #include "DataModels/PlotData/WorldPlot.h"
 #include "DataModels/PlotData/WorldPlotData.h"
@@ -31,7 +30,7 @@
 
 #include "GUI/DisplayWidgets/GlobeWidget.h"				//these 3 includes must be done in this  order to avoid macro definition collisions
 #include "GUI/DisplayWidgets/MapWidget.h"
-#include "DataModels/PlotData/BratLookupTable.h"
+#include "DataModels/Workspaces/Display.h"
 
 #include "BratLogger.h"
 #include "BratSettings.h"
@@ -410,8 +409,9 @@ bool CMapEditor::Test()
 		CWorldPlotData *pdata = GetFieldData( index, mDataArrayMap );
 		const CMapValues &data = pdata->PlotValues();
 		const CMapPlotParameters &map = data( 0 );		Q_UNUSED( map );
-		field = pdata->FieldName();
-        CDisplayData *ddata = mDisplay->GetFieldDisplayData( field );    Q_UNUSED( ddata );
+		CPlotUnitData unit;
+		unit = GetDisplayData( index, mOperation, mDisplay, mDataArrayMap );		Q_UNUSED( unit );
+		field = unit.Name();
 
 		all_mx = mx = data[ 0 ].mMinX;
 		all_Mx = Mx = data[ 0 ].mMaxX; 
@@ -567,9 +567,8 @@ bool CMapEditor::CreatePlotData( const std::vector< CWPlot* > &wplots )
 			CPlotField * eastField =nullptr;
 
 			//size_t index = 0;							//index is NOT the index in maps
-			for ( auto &itField : wplot->m_fields )
+			for ( auto *field : wplot->mFields )
 			{
-				CPlotField* field = CPlotField::GetPlotField( itField );
 
 #if defined(_DEBUG) || defined(DEBUG) 
 				if ( field->m_worldProps != props )
@@ -645,7 +644,7 @@ bool CMapEditor::CreatePlotData( const std::vector< CWPlot* > &wplots )
 CWorldPlotData* CMapEditor::UpdateCurrentPointers( int field_index )
 {
 	mPropertiesMap = nullptr;
-	mCurrentDisplayData = nullptr;
+	mCurrentPlotUnit = nullptr;
 	mCurrentBratLookupTable = nullptr;
 
 	if ( field_index < 0 )
@@ -654,11 +653,11 @@ CWorldPlotData* CMapEditor::UpdateCurrentPointers( int field_index )
 	assert__( mOperation && mDisplay );
 
 	mPropertiesMap = GetProperties( field_index, mDataArrayMap );
-	mCurrentDisplayData = GetDisplayData( field_index, mOperation, mDisplay, mDataArrayMap );
+	mCurrentPlotUnit = GetDisplayData( field_index, mOperation, mDisplay, mDataArrayMap );
 	mCurrentBratLookupTable = mPropertiesMap->mLUT;
-	mCurrentBratLookupTable->ExecMethod( mCurrentDisplayData->GetColorPalette() );
+	mCurrentBratLookupTable->ExecMethod( mCurrentPlotUnit.GetColorPalette() );
 
-	assert__( mPropertiesMap && mCurrentDisplayData && mCurrentBratLookupTable );
+	assert__( mPropertiesMap && mCurrentPlotUnit && mCurrentBratLookupTable );
 
 	return GetFieldData( field_index, mDataArrayMap );
 }
@@ -706,7 +705,7 @@ void CMapEditor::ResetMap()
 		
 		const CMapValues &maps = geo_map->PlotValues();					assert__( maps.size() == 1 );	//simply to check if ever...	
 
-		mCurrentBratLookupTable->GetLookupTable()->SetTableRange( mCurrentDisplayData->GetCurrentMinValue(), mCurrentDisplayData->GetCurrentMaxValue() );		//geo_map->GetLookupTable()->GetTableRange()
+		mCurrentBratLookupTable->GetLookupTable()->SetTableRange( mCurrentPlotUnit.GetCurrentMinValue(), mCurrentPlotUnit.GetCurrentMaxValue() );		//geo_map->GetLookupTable()->GetTableRange()
 
 		const CMapPlotParameters &map = maps( 0 );
 		auto const size = map.mValues.size();
@@ -754,11 +753,11 @@ void CMapEditor::ResetMap()
 
         if( geo_velocity_map )
         {
-             mMapView->AddArrowDataLayer( mPropertiesMap->m_name, flist );
+             mMapView->AddArrowDataLayer( mPropertiesMap->Name(), flist );
         }
         else
         {			
-            mMapView->AddDataLayer( mPropertiesMap->m_name, 0.1, map.mMinHeightValue, map.mMaxHeightValue, mCurrentBratLookupTable->GetLookupTable(), flist,
+            mMapView->AddDataLayer( mPropertiesMap->Name(), 0.1, map.mMinHeightValue, map.mMaxHeightValue, mCurrentBratLookupTable->GetLookupTable(), flist,
 				geo_map->GetDataUnit()->IsDate(), RefDateFromUnit( *geo_map->GetDataUnit() ) );
         }
 
@@ -806,7 +805,7 @@ void CMapEditor::ResetMap()
 
 		//////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-		QListWidgetItem *item = new QListWidgetItem( t2q( geo_map->FieldName() ) );
+		QListWidgetItem *item = new QListWidgetItem( t2q( mCurrentPlotUnit.Name() ) );		//cannot assert__( geo_map->FieldName(0) == mCurrentPlotUnit.Name() );
 		item->setToolTip( item->text() );
 		mTabDataLayers->mFieldsList->addItem( item );
 
@@ -850,8 +849,8 @@ void CMapEditor::HandleCurrentFieldChanged( int field_index )
 	const CMapPlotParameters &map = maps( 0 );
 	mTabDataLayers->mColorMapWidget->SetLUT( mCurrentBratLookupTable, map.mMinHeightValue, map.mMaxHeightValue );	
 
-	assert__( VirtuallyEqual( map.mMinHeightValue, mCurrentDisplayData->GetAbsoluteMinValue() ) );
-	assert__( VirtuallyEqual( map.mMaxHeightValue, mCurrentDisplayData->GetAbsoluteMaxValue() ) );
+	assert__( VirtuallyEqual( map.mMinHeightValue, mCurrentPlotUnit.GetAbsoluteMinValue() ) );
+	assert__( VirtuallyEqual( map.mMaxHeightValue, mCurrentPlotUnit.GetAbsoluteMaxValue() ) );
 
 	mTabDataLayers->mColorMapWidget->SetContourColor( mPropertiesMap->m_contourLineColor.GetQColor() );
 	mTabDataLayers->mColorMapWidget->blockSignals( false );
@@ -875,7 +874,7 @@ void CMapEditor::HandleShowSolidColorChecked( bool checked )
 
 	WaitCursor wait;
 
-	mCurrentDisplayData->SetSolidColor( checked );
+	mCurrentPlotUnit.SetSolidColor( checked );
     mPropertiesMap->m_solidColor = checked;
 
 	mMapView->SetDataLayerVisible( mTabDataLayers->mFieldsList->currentRow(), mPropertiesMap->m_solidColor, mDisplaying2D );
@@ -887,7 +886,7 @@ void CMapEditor::HandleShowContourChecked( bool checked )
 	int field_index = mTabDataLayers->mFieldsList->currentRow();
 	assert__( field_index >= 0 && field_index < (int)mDataArrayMap.size() );
 
-	mCurrentDisplayData->SetContour( checked );
+	mCurrentPlotUnit.SetContour( checked );
 
 	if ( mMapView->HasContourLayer( field_index ) )
 	{
@@ -905,7 +904,7 @@ void CMapEditor::HandleShowContourChecked( bool checked )
 
 	CBratLookupTable t;
 	t.ExecMethod( "Rainbow" );
-	mMapView->AddContourLayer( field_index, mPropertiesMap->m_name, mPropertiesMap->mContourLineWidth, mPropertiesMap->m_contourLineColor.GetQColor(), 
+	mMapView->AddContourLayer( field_index, mPropertiesMap->Name(), mPropertiesMap->mContourLineWidth, mPropertiesMap->m_contourLineColor.GetQColor(), 
 		t.GetLookupTable(), mPropertiesMap->m_numContour, map );
 }
 
@@ -958,9 +957,9 @@ void CMapEditor::HandleColorTablesIndexChanged( int index )
 	const CMapValues &maps = GetFieldData( field_index, mDataArrayMap )->PlotValues();
 	const CMapPlotParameters &map = maps( 0 );
 
-	mCurrentDisplayData->SetColorPalette( mCurrentBratLookupTable->GetCurrentFunction() );
-	mCurrentDisplayData->SetCurrentMinValue( mCurrentBratLookupTable->GetLookupTable()->GetTableRange()[0] );
-	mCurrentDisplayData->SetCurrentMaxValue( mCurrentBratLookupTable->GetLookupTable()->GetTableRange()[1] );
+	mCurrentPlotUnit.SetColorPalette( mCurrentBratLookupTable->GetCurrentFunction() );
+	mCurrentPlotUnit.SetCurrentMinValue( mCurrentBratLookupTable->GetLookupTable()->GetTableRange()[0] );
+	mCurrentPlotUnit.SetCurrentMaxValue( mCurrentBratLookupTable->GetLookupTable()->GetTableRange()[1] );
 
 	//NOTE: no need to assign anything to mPropertiesMap
 

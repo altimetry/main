@@ -74,8 +74,8 @@ void CWorldPlotData::Create( CObArray* pinternal_files, const std::string& field
 	m_contourLabelNeedUpdateOnWindow = false;
 	m_contourLabelNeedUpdatePositionOnContour = false;
 
-	if ( m_plotProperty.m_name.empty() )
-		m_plotProperty.m_name = fieldName.c_str();
+	if ( m_plotProperty.Name().empty() )
+		m_plotProperty.SetName( fieldName );
 
 	/////////////////m_colorBarRenderer = new CLUTRenderer();
 	/////////////////m_colorBarRenderer->GetVtkRenderer()->InteractiveOff();
@@ -139,7 +139,7 @@ void CWorldPlotData::Create( CObArray* pinternal_files, const std::string& field
 		// Get data title
 		std::string dataTitle = zfxy->GetTitle( fieldName );
 		if ( dataTitle.empty() )
-			dataTitle = m_plotProperty.m_name;
+			dataTitle = m_plotProperty.Name();
 		m_dataTitles.Insert( dataTitle );
 
 		// read data
@@ -1214,32 +1214,6 @@ void CWorldPlotData::Update2D()
 //-------------------------------------------------------------
 
 //----------------------------------------
-
-CWorldPlotVelocityData::CWorldPlotVelocityData( CPlotField* fieldNorth, CPlotField* fieldEast )
-	: base_t( fieldNorth->m_worldProps ) //v3 note: this is just to compile
-{
-	//m_simple2DProjFilter = vtkProj2DFilter::New();
-
-	//// this is just to avoid interpolation and generation of intermediate points
-	//GetVtkFilter()->SetInterpolationDistance( 10 );
-	//SetIsGlyph( true );
-	//m_arrowSource = NULL;
-	//m_glyph = NULL;
-
-	Create( &( fieldNorth->m_internalFiles ), &( fieldEast->m_internalFiles ), fieldNorth->m_name, fieldEast->m_name );
-}
-//----------------------------------------
-CWorldPlotVelocityData::~CWorldPlotVelocityData()
-{
-    //if ( m_simple2DProjFilter )
-    //m_simple2DProjFilter->Delete();
-    //if ( m_arrowSource )
-    //    m_arrowSource->Delete();
-    //if ( m_glyph )
-    //    m_glyph->Delete();
-}
-
-//----------------------------------------
 void CWorldPlotVelocityData::Create( CObArray* northData, CObArray* eastData, const std::string& fieldNameNorth, const std::string& fieldNameEast )
 {
 	auto Crash = []( const std::string &msg, int error_type )
@@ -1252,7 +1226,7 @@ void CWorldPlotVelocityData::Create( CObArray* northData, CObArray* eastData, co
 	m_contourLabelNeedUpdateOnWindow = false;
 	m_contourLabelNeedUpdatePositionOnContour = false;
 
-	m_plotProperty.m_name = fieldNameEast + "/" + fieldNameNorth;
+	m_plotProperty.SetName( fieldNameEast + "/" + fieldNameNorth );
 
 	/////////////////m_colorBarRenderer = new CLUTRenderer();
 	/////////////////m_colorBarRenderer->GetVtkRenderer()->InteractiveOff();
@@ -1332,7 +1306,7 @@ void CWorldPlotVelocityData::Create( CObArray* northData, CObArray* eastData, co
 
 		m_dataUnits.Insert( unitNorth );		//v3 original comment m_dataUnits.Insert(unitEast);
 
-		m_dataTitles.Insert( m_plotProperty.m_name );
+		m_dataTitles.Insert( m_plotProperty.Name() );
 
 
 		// read data

@@ -49,6 +49,7 @@
 #include "libbrathl/InternalFilesYFX.h"
 using namespace brathl;
 
+#include "FieldData.h"
 #include "PlotValues.h"
 #include "DataModels/PlotData/MapColor.h"
 #include "DataModels/PlotData/XYPlot.h"
@@ -58,143 +59,9 @@ class CXYPlotData;
 class CPlotColor;
 
 
-//// WDR: class declarations
-////-------------------------------------------------------------
-////------------------- vtkDoubleArrayBrathl class
-////-------------------------------------------------------------
-//class vtkDoubleArrayBrathl : public vtkDoubleArray
-//{
-//	// redefinition with suffix 2 because these attributes (without suffix 2) are private in vtkDataArray
-//	double Range2[ 2 ];
-//
-//	// 5 components since you can compute the range of components
-//	// less than 0 to get a magnitude range. ComponentRange[4] is 
-//	// this magnitude range
-//
-//	vtkTimeStamp ComponentRangeComputeTime2[ 5 ];
-//	double ComponentRange2[ 5 ][ 2 ];
-//
-//protected:
-//
-//	vtkDoubleArrayBrathl( vtkIdType numComp=1 ) : vtkDoubleArray( numComp )
-//	{}
-//	~vtkDoubleArrayBrathl()
-//	{}
-//
-//public:
-//	static vtkDoubleArrayBrathl* New();
-//	void PrintSelf( std::ostream& os, vtkIndent indent );
-//
-//	// Description:
-//	// Return the range of the array values for the 0th component. 
-//	// Range is copied into the array provided.
-//	double* GetRange2()
-//	{
-//		this->ComputeRange( 0 );
-//		return this->Range2;
-//	}
-//private:
-//	virtual void ComputeRange( int comp );
-//};
-//
-
-
-//-------------------------------------------------------------
-//------------------- vtkDataArrayPlotData class
-//-------------------------------------------------------------
-//class vtkDataArrayPlotData : public vtkPlotData
-//{
-//public:
-//	vtkTypeMacro( vtkDataArrayPlotData, vtkPlotData );
-//	static vtkDataArrayPlotData *New() { return new vtkDataArrayPlotData; }
-//
-//protected:
-//	void SetXDataArray( vtkDoubleArrayBrathl *dataArray );
-//	void SetYDataArray( vtkDoubleArrayBrathl *dataArray );
-//	void SetZDataArray( vtkDoubleArrayBrathl *dataArray );
-//
-//public:
-//	void SetDataArrays( vtkDoubleArrayBrathl *XdataArray, vtkDoubleArrayBrathl *YdataArray )
-//	{
-//		SetXDataArray( XdataArray );
-//		SetYDataArray( YdataArray );
-//	}
-//
-//	vtkDataArray *GetXDataArray() { return this->XDataArray; }
-//	vtkDataArray *GetYDataArray() { return this->YDataArray; }
-//	vtkDataArray *GetZDataArray() { return this->ZDataArray; }
-//
-//	virtual double GetXValue( int i );
-//	virtual double GetYValue( int i );
-//	virtual double GetZValue( int i );
-//	virtual int GetNumberOfItems();
-//
-//	// Description:
-//	// Override GetMTime because we depend on vtkDataArray objects
-//	unsigned long GetMTime();
-//
-//protected:
-//	vtkDataArrayPlotData();
-//	virtual ~vtkDataArrayPlotData();
-//
-//	// Description:
-//	// Override Execute so we can update NumberOfItems;
-//	virtual void Execute();
-//
-//	vtkDoubleArrayBrathl *XDataArray;
-//	vtkDoubleArrayBrathl *YDataArray;
-//	vtkDoubleArrayBrathl *ZDataArray;
-//
-//	int NumberOfItems;
-//
-//private:
-//	vtkDataArrayPlotData( const vtkDataArrayPlotData& );  // Not implemented.
-//	void operator=( const vtkDataArrayPlotData& );  // Not implemented.
-//};
-//
-
-
-
-//-------------------------------------------------------------
-//------------------- CPlotArray class --------------------
-//-------------------------------------------------------------
-
-//class CPlotArray : public CBratObject
-//{
-//protected:
-//	bool m_didCalculateRange;
-//	double m_min;
-//	double m_max;
-//
-//	vtkObArray m_rows;
-//
-//public:
-//	CPlotArray();
-//	virtual ~CPlotArray();
-//	vtkDoubleArrayBrathl* GetFrameData( size_t r );
-//	vtkDoubleArrayBrathl* GetFrameData( vtkObArray::iterator it );
-//
-//	void SetFrameData( uint32_t r, double* vect, int32_t size );
-//	void SetFrameData( uint32_t r, vtkDoubleArrayBrathl* vect );
-//
-//	void GetRange( double& min, double& max );
-//
-//	void GetRange( double& min, double& max, uint32_t frame );
-//
-//	size_t GetNumberOfFrames() { return m_rows.size(); }
-//
-//	void Normalize( int32_t value = 1 );
-//};
-//
-//-------------------------------------------------------------
-//------------------- CXYPlotProperties class --------------------
-//-------------------------------------------------------------
-
-
-
-class CXYPlotProperties : public CBratObject
+class CXYPlotProperties : public CFieldData
 {
-	using base_t = CBratObject;
+	using base_t = CFieldData;
 
 #if defined(BRAT_V3)
 	vtkProperty2D* m_vtkProperty2D;
@@ -217,8 +84,6 @@ class CXYPlotProperties : public CBratObject
 
 	double m_pointSize;
 
-	std::string m_name;
-	std::string m_title;
 	std::string m_xAxis;
 	std::string m_xLabel;
 	std::string m_yLabel;
@@ -266,16 +131,24 @@ class CXYPlotProperties : public CBratObject
 
 protected:
 	bool HasParent();
-	void Copy( const CXYPlotProperties& p );
 
 public:
 
 	CXYPlotProperties( CXYPlotData* parent = nullptr );
-	CXYPlotProperties( CXYPlotProperties& p );
+
+	CXYPlotProperties( const CXYPlotProperties &o )
+	{
+		*this = o;
+	}
 
 	virtual ~CXYPlotProperties();
 
-	const CXYPlotProperties& operator=( const CXYPlotProperties& p );
+	const CXYPlotProperties& operator=( const CXYPlotProperties &o );
+
+	//
+
+	virtual void SetName( const std::string& value ) override;
+
 
 #if defined(BRAT_V3)
 
@@ -323,9 +196,6 @@ public:
 	void SetLines( bool value );
 
 
-	std::string GetName() const { return m_name; }
-	void SetName( const std::string& value );
-
 	void SetOpacity( double value );
 
 	bool GetXLog() const { return m_xLog; }
@@ -364,9 +234,6 @@ public:
 	double GetYBase() const { return m_yBase; }
 	void SetXBase( double value ) { m_xBase = value; }
 	void SetYBase( double value ) { m_yBase = value; }
-
-	std::string GetTitle() const { return m_title; }
-	void SetTitle( const std::string& value ) { m_title = value; }
 
 	std::string GetXAxis() const { return m_xAxis; }
 	void SetXAxis( const std::string& value ) { m_xAxis = value; }
@@ -441,12 +308,11 @@ public:
 //------------------- CXYPlotData class --------------------
 //-------------------------------------------------------------
 
-class CXYPlotData : public CBratObject
+class CXYPlotData : public CPlotData
 {
-	using base_t = CBratObject;
+	using base_t = CPlotData;
 
 protected:
-	const std::string mFieldName;
 
 	CXYPlotProperties m_plotProperty;
 
@@ -474,7 +340,10 @@ protected:
 public:
 	CXYPlotData( CPlot* plot, int32_t iField );
 
-	virtual ~CXYPlotData();
+	virtual ~CXYPlotData()
+	{
+		m_otherVars.RemoveAll();
+	}
 
 protected:
 	void Create(CInternalFiles* yfx, CPlot* plot, int32_t iField);
@@ -482,9 +351,6 @@ protected:
 public:
 
 	const CYFXValues* PlotValues() const { return &mQwtPlotData; }
-
-	const std::string &FieldName() const { return mFieldName; }
-
 
 	virtual void GetXRange( double& min, double& max, uint32_t frame );
 	virtual void GetYRange( double& min, double& max, uint32_t frame );
@@ -510,7 +376,7 @@ public:
 		const CUIntArray& xCommonDimIndex,
 		const CUIntArray& yCommonDimIndex );
 
-	std::string GetName() { return m_plotProperty.GetName(); }
+	std::string GetName() { return m_plotProperty.Name(); }
 	void SetName( const std::string& name ) { m_plotProperty.SetName( name ); }
 
 	CXYPlotProperties* GetPlotProperties() { return &m_plotProperty; }

@@ -10,10 +10,10 @@
 
 const std::string GROUP_PATHS =					"ApplicationPaths";
 
-const std::string ENTRY_USER_BASE_PATH =		"user_base_path";
 const std::string ENTRY_EXTERNAL_DATA_DIR =		"external_data_dir";
 const std::string ENTRY_RASTER_LAYER_PATH =		"raster_layer_path";
 const std::string ENTRY_URL_RASTER_LAYER_PATH =	"url_raster_layer_path";
+const std::string ENTRY_USER_DATA_PATH =		"user_data_path";
 const std::string ENTRY_WORKSPACES_DIR =		"workspaces_dir";
 const std::string ENTRY_PORTABLE_PATHS =		"portable_paths";
 const std::string ENTRY_DESKTOP_MANAGER_SDI =	"desktop_manager_sdi";
@@ -148,11 +148,11 @@ bool CBratSettings::LoadPaths()
 	return
 		ReadSection( GROUP_PATHS,
 
-            k_v( ENTRY_USER_BASE_PATH,			&mBratPaths.mPortableBasePath ),
+			k_v( ENTRY_USER_DATA_PATH,			&mBratPaths.mUserDataDirectory ),
+            k_v( ENTRY_WORKSPACES_DIR,			&mBratPaths.mWorkspacesDirectory ),
             k_v( ENTRY_URL_RASTER_LAYER_PATH,   &mBratPaths.mURLRasterLayerPath, mBratPaths.smDefaultURLRasterLayerPath ),
-            k_v( ENTRY_WORKSPACES_DIR,			&mBratPaths.mWorkspacesDir ),
 
-            k_v( ENTRY_PORTABLE_PATHS,	&mBratPaths.mUsePortablePaths )
+            k_v( ENTRY_PORTABLE_PATHS,			&mBratPaths.mUsePortablePaths )
 		)
 		&&
         mBratPaths.SetUserPaths();
@@ -163,11 +163,11 @@ bool CBratSettings::SavePaths()
 	return 
 		WriteSection( GROUP_PATHS,
 
-            k_v( ENTRY_USER_BASE_PATH,          mBratPaths.mPortableBasePath ),
-            k_v( ENTRY_URL_RASTER_LAYER_PATH,	mBratPaths.mURLRasterLayerPath ),
-            k_v( ENTRY_WORKSPACES_DIR,          mBratPaths.mWorkspacesDir ),
+			k_v( ENTRY_USER_DATA_PATH,			mBratPaths.UserDataDirectory() ),
+            k_v( ENTRY_WORKSPACES_DIR,          mBratPaths.WorkspacesDirectory() ),
+            k_v( ENTRY_URL_RASTER_LAYER_PATH,	mBratPaths.URLRasterLayerPath() ),
 
-            k_v( ENTRY_PORTABLE_PATHS,	mBratPaths.mUsePortablePaths )
+            k_v( ENTRY_PORTABLE_PATHS,			mBratPaths.UsePortablePaths() )
 		);
 }
 

@@ -83,24 +83,15 @@ bool CWorkspace::DeleteConfigFile()
 //----------------------------------------
 void CWorkspace::InitConfig()
 {
-	//m_configFileName.Assign( m_path/*.GetPath( wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR )*/ + "/" + CWorkspace::m_configName );
-
 	assert__( m_configFileName == NormalizedPath( m_path + "/" + CWorkspace::m_configName ) );
 
 	delete m_config;
 	m_config = new CWorkspaceSettings( m_configFileName );
-	//m_config = new CWorkspaceSettings( m_configFileName.GetFullPath().ToStdString() );
-	//m_config = new CWorkspaceSettings( "", "", m_configFileName.GetFullPath().ToStdString(), "", wxCONFIG_USE_LOCAL_FILE );
 }
 //----------------------------------------
 bool CWorkspace::SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush )
 {
-	UNUSED( errorMsg );		UNUSED( wkso );		UNUSED( wksd );
-
-	assert__( m_config != nullptr );		//v4: only to detected when and why this could be null
-	// TODO DO NOT DELETE, until it is understood
-	//if ( m_config == nullptr )
-	//	return true;
+	UNUSED( errorMsg );		UNUSED( wkso );		UNUSED( wksd );		assert__( m_config != nullptr );
 
 	bool bOk = DeleteConfigFile() && SaveCommonConfig();
 
@@ -112,9 +103,7 @@ bool CWorkspace::SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, C
 //----------------------------------------
 bool CWorkspace::SaveCommonConfig( bool flush )
 {
-	assert__( m_config != nullptr );		//v4: to understand when and why this could be null; and why should it return true with a null config
-	//TODO: DO NOT DELETE until understood
-	//return !m_config || m_config->SaveCommonConfig( *this, flush );
+	assert__( m_config != nullptr );
 
 	return m_config->SaveCommonConfig( *this, flush );
 }
@@ -128,9 +117,7 @@ bool CWorkspace::LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWor
 //----------------------------------------
 bool CWorkspace::LoadCommonConfig()
 {
-	assert__( m_config != nullptr );		//v4: to understand when and why this could be null; and why should it return true with a null config
-	//TODO: DO NOT DELETE until understood
-	//return m_config && m_config->LoadCommonConfig( *this );
+	assert__( m_config != nullptr );
 
 	return m_config->LoadCommonConfig( *this );
 }
@@ -142,19 +129,9 @@ bool CWorkspace::SetPath( const std::string& path, bool createPath )
 
 	m_path = NormalizedPath( path );
 
-	//pathTmp.AssignDir( path );
-	////return SetPath( pathTmp, createPath );
-
-	//m_path.AssignDir( pathTmp.GetPath() );
-	//m_path.Normalize();
-
-	//if ( !IsDir( m_path ) )
-	//	return false;
-
 	if ( IsDir( m_path ) || ( createPath && MakeDirectory( m_path ) ) )
 	{
 		m_configFileName = NormalizedPath( m_path + "/" + CWorkspace::m_configName );
-		//if ( createPath )
 		if ( IsFile( m_configFileName) )
 			InitConfig();
 
@@ -244,13 +221,13 @@ bool CWorkspaceDataset::Import( CWorkspace* wksi, std::string &errorMsg, CWorksp
 }
 
 //----------------------------------------
-// femm: Apparently not used...
+// v4 note: Apparently not used...
+//
 bool CWorkspaceDataset::CheckFiles( std::string &errorMsg )
 {
 	bool bOk = true;
-	CObMap::iterator it;
 
-	for ( it = m_datasets.begin(); it != m_datasets.end(); it++ )
+	for ( CObMap::iterator it = m_datasets.begin(); it != m_datasets.end(); it++ )
 	{
 		CDataset* dataset = dynamic_cast<CDataset*>( it->second );
 		if ( dataset == nullptr )
@@ -283,12 +260,7 @@ bool CWorkspaceDataset::CheckFiles( std::string &errorMsg )
 //----------------------------------------
 bool CWorkspaceDataset::SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush )
 {
-    UNUSED( wksd );     UNUSED( wkso );
-
-	assert__( m_config != nullptr );		//v4: to understand when and why this could be null; and why should it return true with a null config
-	//TODO: DO NOT DELETE until understood
-	//if ( m_config == nullptr )
-	//	return true;
+    UNUSED( wksd );     UNUSED( wkso );		assert__( m_config != nullptr );
 
 	bool bOk = DeleteConfigFile() && SaveCommonConfig() && SaveConfigDataset( errorMsg );
 
@@ -300,9 +272,7 @@ bool CWorkspaceDataset::SaveConfig( std::string &errorMsg, CWorkspaceOperation *
 //----------------------------------------
 bool CWorkspaceDataset::SaveConfigDataset( std::string &errorMsg )
 {
-	assert__( m_config != nullptr );		//v4: to understand when and why this could be null; and why should it return true with a null config
-	//TODO: DO NOT DELETE until understood
-	//return !m_config || m_config->SaveConfigDataset( *this, errorMsg );
+	assert__( m_config != nullptr );
 
 	return m_config->SaveConfigDataset( *this, errorMsg );
 }
@@ -310,11 +280,7 @@ bool CWorkspaceDataset::SaveConfigDataset( std::string &errorMsg )
 //----------------------------------------
 bool CWorkspaceDataset::LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
 {
-    UNUSED( wks );        UNUSED( wksd );          UNUSED( wkso );
-
-	assert__( m_config != nullptr );		//v4: to understand when and why this could be null; and why should it return true with a null config
-	//TODO: DO NOT DELETE until understood
-	//return m_config && LoadCommonConfig() && LoadConfigDataset( errorMsg );
+    UNUSED( wks );        UNUSED( wksd );          UNUSED( wkso );			assert__( m_config != nullptr );
 
 	return LoadCommonConfig() && LoadConfigDataset( errorMsg );
 }
@@ -322,9 +288,7 @@ bool CWorkspaceDataset::LoadConfig( std::string &errorMsg, CWorkspaceDataset *wk
 //----------------------------------------
 bool CWorkspaceDataset::LoadConfigDataset( std::string &errorMsg )
 {
-	assert__( m_config != nullptr );		//v4: to understand when and why this could be null; and why should it return true with a null config
-	//TODO: DO NOT DELETE until understood
-	//return !m_config || m_config->LoadConfigDataset( *this, errorMsg );
+	assert__( m_config != nullptr );
 
 	return m_config->LoadConfigDataset( *this, errorMsg );
 }
@@ -367,18 +331,6 @@ std::string CWorkspaceDataset::GetDatasetNewName()
   return key;
 }
 //----------------------------------------
-void CWorkspaceDataset::Close()
-{
-	for ( CObMap::iterator it = m_datasets.begin(); it != m_datasets.end(); it++ )
-	{
-		CDataset* dataset = dynamic_cast<CDataset*>( it->second );
-		if ( dataset != nullptr )
-		{
-			//dataset->DeleteProduct();
-		}
-	}
-}
-//----------------------------------------
 CDataset* CWorkspaceDataset::GetDataset(const std::string& name)
 {
   return dynamic_cast<CDataset*>( m_datasets.Exists( name ) );
@@ -388,8 +340,7 @@ void CWorkspaceDataset::GetDatasetNames( std::vector< std::string >& array ) con
 {
 	for ( CObMap::const_iterator it = m_datasets.begin(); it != m_datasets.end(); it++ )
 	{
-		//std::string value = it->first;
-		array.push_back( it->first.c_str() );
+		array.push_back( it->first );
 	}
 }
 //----------------------------------------
@@ -591,13 +542,7 @@ void CWorkspaceFormula::GetFormulaNames( std::vector< std::string >& array, bool
 //----------------------------------------
 bool CWorkspaceFormula::SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush )
 {
-    UNUSED( errorMsg );		UNUSED( wkso );          UNUSED( wksd );
-
-	assert__( m_config != nullptr );		//v4: to understand when and why this could be null; and why should it return true with a null config
-	//TODO: DO NOT DELETE until understood
-	//bool bOk = !m_config || ( DeleteConfigFile() && SaveCommonConfig() && SaveConfigFormula() );
-	//if ( m_config && flush )
-	//	m_config->Sync();
+    UNUSED( errorMsg );		UNUSED( wkso );          UNUSED( wksd );		assert__( m_config != nullptr );
 
 	bool bOk = DeleteConfigFile() && SaveCommonConfig() && SaveConfigFormula();
 	if ( flush )
@@ -608,29 +553,21 @@ bool CWorkspaceFormula::SaveConfig( std::string &errorMsg, CWorkspaceOperation *
 //----------------------------------------
 bool CWorkspaceFormula::SaveConfigFormula()
 {
-	assert__( m_config != nullptr );		//v4: to understand when and why this could be null; and why should it return true with a null config
-	//TODO: DO NOT DELETE until understood
-	//return !m_config || m_formulas.SaveConfig( m_config, false );
+	assert__( m_config != nullptr );
 
 	return m_formulas.SaveConfig( m_config, false );
 }
 //----------------------------------------
 bool CWorkspaceFormula::LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
 {
-    UNUSED( wks );        UNUSED( wksd );          UNUSED( wkso );
-
-	assert__( m_config != nullptr );		//v4: to understand when and why this could be null; and why should it return true with a null config
-	//TODO: DO NOT DELETE until understood
-	//return m_config && LoadCommonConfig() && LoadConfigFormula( errorMsg );
+    UNUSED( wks );        UNUSED( wksd );          UNUSED( wkso );		assert__( m_config != nullptr );
 
 	return LoadCommonConfig() && LoadConfigFormula( errorMsg );
 }
 //----------------------------------------
 bool CWorkspaceFormula::LoadConfigFormula( std::string &errorMsg )
 {
-	assert__( m_config != nullptr );		//v4: to understand when and why this could be null; and why should it return true with a null config
-	//TODO: DO NOT DELETE until understood
-	//return !m_config || m_formulas.InsertUserDefined( m_config, errorMsg );
+	assert__( m_config != nullptr );
 
 	return m_formulas.InsertUserDefined( m_config, errorMsg );
 }
@@ -729,13 +666,7 @@ bool CWorkspaceOperation::RenameOperation( COperation* operation, const std::str
 //----------------------------------------
 bool CWorkspaceOperation::SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush )		//flush = true
 {
-	UNUSED( wkso );		UNUSED( wksd );
-
-	assert__( m_config != nullptr );		//v4: to understand when and why this could be null; and why should it return true with a null config
-	//TODO: DO NOT DELETE until understood
-	//bool bOk = m_config ||( DeleteConfigFile() && SaveCommonConfig() && SaveConfigOperation( errorMsg ) );
-	//if ( m_config && flush )
-	//	m_config->Sync();
+	UNUSED( wkso );		UNUSED( wksd );			assert__( m_config != nullptr );
 
 	bool bOk = DeleteConfigFile() && SaveCommonConfig() && SaveConfigOperation( errorMsg );
 	if ( flush )
@@ -747,9 +678,7 @@ bool CWorkspaceOperation::SaveConfig( std::string &errorMsg, CWorkspaceOperation
 //----------------------------------------
 bool CWorkspaceOperation::SaveConfigOperation( std::string &errorMsg )
 {
-	assert__( m_config != nullptr );		//v4: to understand when and why this could be null; and why should it return true with a null config
-	//TODO: DO NOT DELETE until understood
-	//return !m_config || m_config->SaveConfigOperation( *this, errorMsg );
+	assert__( m_config != nullptr );
 
 	return m_config->SaveConfigOperation( *this, errorMsg );
 }
@@ -757,11 +686,7 @@ bool CWorkspaceOperation::SaveConfigOperation( std::string &errorMsg )
 //----------------------------------------
 bool CWorkspaceOperation::LoadConfig( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
 {
-	UNUSED( wksd );
-
-	assert__( m_config != nullptr );		//v4: to understand when and why this could be null; and why should it return true with a null config
-	//TODO: DO NOT DELETE until understood
-	//return !m_config || ( LoadCommonConfig() && LoadConfigOperation( errorMsg, wks, wkso ) );
+	UNUSED( wksd );			assert__( m_config != nullptr );
 
 	return LoadCommonConfig() && LoadConfigOperation( errorMsg, wks, wkso );
 }
@@ -769,9 +694,7 @@ bool CWorkspaceOperation::LoadConfig( std::string &errorMsg, CWorkspaceDataset *
 //----------------------------------------
 bool CWorkspaceOperation::LoadConfigOperation( std::string &errorMsg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
 {
-	assert__( m_config != nullptr );		//v4: to understand when and why this could be null; and why should it return true with a null config
-	//TODO: DO NOT DELETE until understood
-	//return !m_config || m_config->LoadConfigOperation( *this, errorMsg, wks, wkso );
+	assert__( m_config != nullptr );
 
 	return m_config->LoadConfigOperation( *this, errorMsg, wks, wkso );
 }
@@ -1036,12 +959,7 @@ bool CWorkspaceDisplay::UseOperation( const std::string& name, std::string &erro
 //----------------------------------------
 bool CWorkspaceDisplay::SaveConfig( std::string &errorMsg, CWorkspaceOperation *wkso, CWorkspaceDisplay *wksd, bool flush )
 {
-     UNUSED( wkso );
-
-	assert__( m_config != nullptr );		//v4: to understand when and why this could be null; and why should it return true with a null config
-	//TODO: DO NOT DELETE until understood
-  //   if ( m_config == nullptr )
-		//return true;
+     UNUSED( wkso );			assert__( m_config != nullptr );
 
 	bool bOk = DeleteConfigFile() && SaveCommonConfig() && SaveConfigDisplay( errorMsg, wksd );
 
@@ -1053,9 +971,7 @@ bool CWorkspaceDisplay::SaveConfig( std::string &errorMsg, CWorkspaceOperation *
 //----------------------------------------
 bool CWorkspaceDisplay::SaveConfigDisplay( std::string &errorMsg, CWorkspaceDisplay *wksd )
 {
-	assert__( m_config != nullptr );		//v4: to understand when and why this could be null; and why should it return true with a null config
-	//TODO: DO NOT DELETE until understood
-	//return !m_config || m_config->SaveConfigDisplay( *this, errorMsg, wksd );
+	assert__( m_config != nullptr );
 
 	return m_config->SaveConfigDisplay( *this, errorMsg, wksd );
 }
@@ -1063,20 +979,14 @@ bool CWorkspaceDisplay::SaveConfigDisplay( std::string &errorMsg, CWorkspaceDisp
 //----------------------------------------
 bool CWorkspaceDisplay::LoadConfig( std::string &errorMsg, CWorkspaceDataset *wksds, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
 {
-	UNUSED( wksds );
-
-	assert__( m_config != nullptr );		//v4: to understand when and why this could be null; and why should it return true with a null config
-	//TODO: DO NOT DELETE until understood
-	//return !m_config || ( LoadCommonConfig() && LoadConfigDisplay( errorMsg, wksd, wkso ) );
+	UNUSED( wksds );				assert__( m_config != nullptr );
 
 	return LoadCommonConfig() && LoadConfigDisplay( errorMsg, wksd, wkso );
 }
 //----------------------------------------
 bool CWorkspaceDisplay::LoadConfigDisplay( std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
 {
-	assert__( m_config != nullptr );		//v4: to understand when and why this could be null; and why should it return true with a null config
-	//TODO: DO NOT DELETE until understood
-	//return !m_config || m_config->LoadConfigDisplay( *this, errorMsg, wksd, wkso );
+	assert__( m_config != nullptr );
 
 	return m_config->LoadConfigDisplay( *this, errorMsg, wksd, wkso );
 }
@@ -1191,9 +1101,11 @@ std::vector< CDisplay* > CWorkspaceDisplay::CreateDisplays4Operation( const COpe
 	names.RemoveAll();
 	file->GetDataVars( names );
 
-	for ( auto itDispType = displayTypes.begin(); itDispType != displayTypes.end(); itDispType++ )
+	for ( auto disp_type : displayTypes )
 	{
 		CDisplay *display = nullptr;
+		CDisplayData *north = nullptr;
+		CDisplayData *east = nullptr;
 
 		for ( CStringArray::iterator itField = names.begin(); itField != names.end(); itField++ )
 		{
@@ -1214,25 +1126,29 @@ std::vector< CDisplay* > CWorkspaceDisplay::CreateDisplays4Operation( const COpe
 			{
 				continue;
 			}
-			if ( ( nbDims != 2 ) && ( *itDispType == CMapTypeDisp::eTypeDispZFXY || *itDispType == CMapTypeDisp::eTypeDispZFLatLon ) )
+			if ( ( nbDims != 2 ) && ( disp_type == CMapTypeDisp::eTypeDispZFXY || disp_type == CMapTypeDisp::eTypeDispZFLatLon ) )
 			{
 				continue;
 			}
 
-			CDisplayData* displayData = new CDisplayData( operation );
+			CDisplayData *display_data = new CDisplayData( operation, disp_type );
 
-			displayData->SetType( *itDispType );
-
-			displayData->GetField()->SetName( *itField );
+			display_data->GetField()->SetName( *itField );
             CFormula *f = operation->GetFormula( *itField );
             if ( f )
             {
-                displayData->SetNorthComponent( f->IsNorthComponent() );
-                displayData->SetEastComponent( f->IsEastComponent() );
+				if ( f->IsNorthComponent() )
+					north = display_data;
+
+				if ( f->IsEastComponent() )
+					east = display_data;
+
+                display_data->SetNorthComponent( f->IsNorthComponent() );
+                display_data->SetEastComponent( f->IsEastComponent() );
             }
 
 			std::string unit = file->GetUnit( *itField ).GetText();
-			displayData->GetField()->SetUnit( unit );
+			display_data->GetField()->SetUnit( unit );
 
 			std::string comment = file->GetComment( *itField );
 			std::string description = file->GetTitle( *itField );
@@ -1242,55 +1158,60 @@ std::vector< CDisplay* > CWorkspaceDisplay::CreateDisplays4Operation( const COpe
 				description += "." + comment;
 			}
 
-			displayData->GetField()->SetDescription( description );
+			display_data->GetField()->SetDescription( description );
 
 			if ( nbDims >= 1 )
 			{
 				std::string dimName = varDimensions.at( 0 );
-				displayData->GetX()->SetName( varDimensions.at( 0 ) );
+				display_data->GetX()->SetName( varDimensions.at( 0 ) );
 
 				std::string unit = file->GetUnit( dimName ).GetText();
-				displayData->GetX()->SetUnit( unit );
+				display_data->GetX()->SetUnit( unit );
 
-				displayData->GetX()->SetDescription( file->GetTitle( dimName ) );
+				display_data->GetX()->SetDescription( file->GetTitle( dimName ) );
 			}
 
 			if ( nbDims >= 2 )
 			{
 				std::string dimName = varDimensions.at( 1 );
-				displayData->GetY()->SetName( varDimensions.at( 1 ) );
+				display_data->GetY()->SetName( varDimensions.at( 1 ) );
 
 				std::string unit = file->GetUnit( dimName ).GetText();
-				displayData->GetY()->SetUnit( unit );
+				display_data->GetY()->SetUnit( unit );
 
-				displayData->GetY()->SetDescription( file->GetTitle( dimName ) );
+				display_data->GetY()->SetDescription( file->GetTitle( dimName ) );
 			}
 
 			if ( nbDims >= 3 )
 			{
 				std::string dimName = varDimensions.at( 2 );
-				displayData->GetZ()->SetName( varDimensions.at( 2 ) );
+				display_data->GetZ()->SetName( varDimensions.at( 2 ) );
 
 				std::string unit = file->GetUnit( dimName ).GetText();
-				displayData->GetZ()->SetUnit( unit );
+				display_data->GetZ()->SetUnit( unit );
 
-				displayData->GetZ()->SetDescription( file->GetTitle( dimName ) );
+				display_data->GetZ()->SetDescription( file->GetTitle( dimName ) );
 			}
 
-			dataList->Insert( displayData->GetDataKey(), displayData, false );
-			display->InsertData( displayData->GetDataKey(), displayData );
+			dataList->Insert( display_data->GetDataKey(), display_data, false );
+			display->InsertData( display_data->GetDataKey(), display_data );
 			if ( split_plots )
 				display = nullptr;
 		}
+
+		// TODO : check vector and relation with split plots
+		//
+		//if ( north && east )
+		//{
+  //          north->SetAsNorthComponent( east );
+  //          east->SetAsEastComponent( north );
+		//}
 	}
 
 	delete file;	//file->Close();		//critical
 
 	return v;
 }
-
-
-
   //wxString errorMsg;
   //bOk = m_display->GetDataSelected()->CheckFields(errorMsg, m_display);
 

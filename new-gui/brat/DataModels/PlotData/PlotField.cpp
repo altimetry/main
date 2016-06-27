@@ -32,42 +32,6 @@ using namespace brathl;
 //------------------- CPlotField class --------------------
 //-------------------------------------------------------------
 
-CPlotField::CPlotField(const std::string& name)
-    : m_internalFiles(false)
-{
-  Init();
-  m_name = name;
-}
-//----------------------------------------
-CPlotField::~CPlotField()
-{
-}
-
-//----------------------------------------
-void CPlotField::Init()
-{
-  m_xyProps = NULL;
-  m_worldProps = NULL;
-  m_zfxyProps = NULL;
-}
-
-//----------------------------------------
-CPlotField* CPlotField::GetPlotField(CBratObject* ob)
-{
-  CPlotField* field = dynamic_cast<CPlotField*>(ob);
-  if (field == NULL)
-  {
-    CException e("CPlotField::CPlotField - dynamic_cast<CPlotField*>(ob) returns NULL"
-                 "object seems not to be an instance of CPlotField",
-                 BRATHL_LOGIC_ERROR);
-    CTrace::Tracer("%s", e.what());
-    throw (e);
-
-  }
-
-  return field;
-
-}
 //----------------------------------------
 CInternalFiles* CPlotField::GetInternalFiles(int32_t index)
 {

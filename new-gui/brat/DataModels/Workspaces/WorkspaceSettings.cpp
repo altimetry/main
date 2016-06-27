@@ -35,19 +35,28 @@
 const CApplicationPaths *CWorkspaceSettings::smBratPaths = nullptr;
 
 
-std::string CWorkspaceSettings::Absolute2PortableDataPath( const std::string &path ) const
+
+
+
+std::string CWorkspaceSettings::Absolute2PortableDatasetPath( const std::string &path ) const
 {
-	return smBratPaths ?
-		smBratPaths->Absolute2PortableDataPath( path ) :
-		path;
+	assert__( smBratPaths );
+
+	if ( smBratPaths->UsePortablePaths() && IsSubDirectory( mDir, path ) )
+		return GetRelativePath( mDir, path );
+
+	return smBratPaths->Absolute2PortableDataPath( path );
 }
 
 
-std::string CWorkspaceSettings::Portable2AbsoluteDataPath( const std::string &path ) const
+std::string CWorkspaceSettings::Portable2AbsoluteDatasetPath( const std::string &path ) const
 {
-	return smBratPaths ?
-		smBratPaths->Portable2AbsoluteDataPath( path ) :
-		path;
+	assert__( smBratPaths );
+
+	if ( IsPortableDataPath( path ) )
+		return smBratPaths->Portable2AbsoluteDataPath( path );
+
+	return GetAbsolutePath( mDir, path );		//returns path, if path is absolute
 }
 
 
@@ -137,13 +146,6 @@ bool CWorkspaceSettings::LoadConfigDataset( CWorkspaceDataset &data, std::string
 	for ( CObMap::iterator it = data.m_datasets.begin(); it != data.m_datasets.end(); it++ )
 	{
 		CDataset* dataset = dynamic_cast< CDataset* >( it->second );		assert__( dataset != nullptr );	//v3: an error msg box here
-		//{
-		//	wxMessageBox( "ERROR in  CWorkspaceDataset::LoadConfigDataset\ndynamic_cast<CDataset*>(it->second) returns nullptr pointer"
-		//		"\nList seems to contain objects other than those of the class CDataset",
-		//		"Error",
-		//		wxOK | wxCENTRE | wxICON_ERROR );
-		//	return false;
-		//}
 
 		dataset->LoadConfig( this );
 		if ( data.m_ctrlDatasetFiles )
@@ -172,7 +174,6 @@ bool CWorkspaceSettings::LoadConfigDataset( CWorkspaceDataset &data, std::string
 }
 
 
-
 bool CWorkspaceSettings::SaveConfig( const CDataset *d )
 {
 	{
@@ -183,7 +184,7 @@ bool CWorkspaceSettings::SaveConfig( const CDataset *d )
 		for ( CProductList::const_iterator it = d->GetProductList()->begin(); it != d->GetProductList()->end(); it++ )
 		{
 			index++;
-			WriteValue( section, ENTRY_FILE + n2s<std::string>( index ), Absolute2PortableDataPath( *it ) );		//v4 Absolute2PortableDataPath( *it )
+			WriteValue( section, ENTRY_FILE + n2s<std::string>( index ), Absolute2PortableDatasetPath( *it ) );		//v4 Absolute2PortableDataPath( *it )
 		}
 
 		//SaveConfigSpecificUnit( CConfiguration *config, const std::string& entry )
@@ -205,7 +206,7 @@ bool CWorkspaceSettings::LoadConfig( CDataset *d )
 		{
 			std::string entry = q2a( key );
 			std::string value_string = ReadValue( section, entry );			
-			value_string = Portable2AbsoluteDataPath( value_string );
+			value_string = Portable2AbsoluteDatasetPath( value_string );
 
 			// Find ENTRY_FILE entries (dataset files entries)
 			findStrings.RemoveAll();
@@ -822,7 +823,7 @@ bool CWorkspaceSettings::SaveConfig( const CMapDisplayData &data, CWorkspaceDisp
 					k_v( ENTRY_DISPLAY_DATA + n2s<std::string>( index ), key )
 				);
 
-				if ( !displayData->SaveConfig( this, pathSuff, wks ) )
+				if ( !SaveConfig( *displayData, pathSuff, wks ) )
 					return false;
 			}
 		}
@@ -866,7 +867,7 @@ bool CWorkspaceSettings::LoadConfig( CMapDisplayData &data, std::string &error_m
 			return false;		// v3: GUI error message displayed here
 		}
 
-		if ( !displayData->LoadConfig( this, it->first + "_" + pathSuff, wks, wkso ) )
+		if ( !LoadConfig( *displayData, it->first + "_" + pathSuff, wks, wkso ) )
 			return false;
 
 		// To maintain compatibility with Brat v1.x (display name doesn't contain 'display type' in v1.x)
@@ -877,6 +878,7 @@ bool CWorkspaceSettings::LoadConfig( CMapDisplayData &data, std::string &error_m
 			renameKeyMap.Insert( it->first, displayDataKey );
 		}
 	}
+
 
 	for ( CStringMap::const_iterator itStringMap = renameKeyMap.begin(); itStringMap != renameKeyMap.end(); itStringMap++ )
 	{
@@ -925,8 +927,8 @@ bool CWorkspaceSettings::SaveConfig( CDisplayData &data, const std::string& path
 		k_v( ENTRY_GROUP, data.m_group ),
 		k_v( ENTRY_CONTOUR, data.m_withContour ),
 		k_v( ENTRY_SOLID_COLOR, data.m_withSolidColor ),
-		k_v( ENTRY_EAST_COMPONENT, data.m_eastcomponent ),
-		k_v( ENTRY_NORTH_COMPONENT, data.m_northcomponent ),
+		k_v( ENTRY_EAST_COMPONENT, data.IsEastComponent() ),
+		k_v( ENTRY_NORTH_COMPONENT, data.IsNorthComponent() ),
 		k_v( ENTRY_INVERT_XYAXES, data.m_invertXYAxes ),
 		k_v( ENTRY_NUMBER_OF_BINS, data.mNumberOfBins )
 	);
@@ -1025,8 +1027,8 @@ bool CWorkspaceSettings::LoadConfig( CDisplayData &data, const std::string& path
 		k_v( ENTRY_CONTOUR,				&data.m_withContour,		false  ),
 		k_v( ENTRY_SOLID_COLOR,			&data.m_withSolidColor,		true  ),
 
-		k_v( ENTRY_EAST_COMPONENT,		&data.m_eastcomponent,		false  ),
-		k_v( ENTRY_NORTH_COMPONENT,		&data.m_northcomponent,		false  ),
+		k_v( ENTRY_EAST_COMPONENT,		&data.mEastComponent,		false  ),
+		k_v( ENTRY_NORTH_COMPONENT,		&data.mNorthComponent,		false  ),
 
 		k_v( ENTRY_INVERT_XYAXES,		&data.m_invertXYAxes,		false  ),
 

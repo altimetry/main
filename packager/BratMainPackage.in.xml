@@ -26,7 +26,7 @@
                 <shortcut>
                     <comment>${product_fullname} ${product_version} @BRAT_TARGET_PROCESSOR@ graphic user interface</comment>
                     <exec>${installdir}/bin/brat</exec>
-                    <icon>${installdir}/data/BratIcon.png</icon>
+                    <icon>@CMAKE_SOURCE_DIR@/new-gui/Common/Resources/images/BratIcon.png</icon>
                     <name>${product_shortname} GUI ${product_version} @BRAT_TARGET_PROCESSOR@</name>
                     <path></path>
                     <platforms>all</platforms>
@@ -40,7 +40,7 @@
                 <shortcut>
                     <comment>${product_fullname} ${product_version} @BRAT_TARGET_PROCESSOR@ graphic scheduler interface</comment>
                     <exec>${installdir}/bin/BratScheduler</exec>
-                    <icon>${installdir}/data/BratIcon.png</icon>
+                    <icon>@CMAKE_SOURCE_DIR@/new-gui/Common/Resources/images/BratIcon.png</icon>
                     <name>${product_shortname} Scheduler ${product_version} @BRAT_TARGET_PROCESSOR@</name>
                     <path></path>
                     <platforms>all</platforms>
@@ -62,7 +62,7 @@
                         <shortcut>
                             <comment>Uninstall</comment>
                             <exec>${installdir}/${uninstallerName}</exec>
-                            <icon>${installdir}/data/BratIcon.png</icon>
+                            <icon>@CMAKE_SOURCE_DIR@/new-gui/Common/Resources/images/BratIcon.png</icon>
                             <name>Uninstall ${product_fullname}</name>
                             <path>${installdir}</path>
                             <platforms>all</platforms>

@@ -24,279 +24,139 @@
 #include "libbrathl/LatLonPoint.h"
 using namespace brathl;
 
-
-//#if defined (__DEPRECATED)          //avoid linux warning in vtk include
-//#undef __DEPRECATED
-//#endif
-//#include "vtkProperty.h"
-//#include "vtkProperty2D.h"
-//#include "vtkDoubleArray.h"
-//#include "vtkShortArray.h"
-//#include "vtkRenderer.h"
-//#include "vtkPointData.h"
-//#include "vtkStructuredGrid.h"
-//#include "vtkCellData.h"
-//#include "vtkFloatArray.h"
-//#include "vtkCellDataToPointData.h"
-//#include "vtkStripper.h"
-//#include "vtkTextProperty.h"
-//#include "vtkIdTypeArray.h"
-//#include "vtkCellArray.h"
-//#include "vtkMath.h"
-//#include "vtkCamera.h"
-//#include "vtkRegularPolygonSource.h"
-//
-//#include "vtkMaskPoints.h"
-//#include "vtkBMPReader.h"
-//#include "vtkTexture.h"
-//#include "vtkSurfaceReconstructionFilter.h"
-//#include "vtkReverseSense.h"
-//#include "vtkTexturedSphereSource.h"
-//#include "vtkPNMReader.h"
-//#include "vtkGeometryFilter.h"
-//#include "vtkPolyDataNormals.h"
-//#include "vtkConnectivityFilter.h"
-//#include "vtkEarthSource.h"
-//#include "vtkLookupTable.h"
-
 #include "BratLookupTable.h"
 #include "MapProjection.h"
 #include "WorldPlotCommonData.h"
 
-//-------------------------------------------------------------
-//------------------- CLUTRenderer class --------------------
-//-------------------------------------------------------------
-
-
-//CLUTRenderer::CLUTRenderer()
-//{
-//
-//  m_vtkRend = nullptr;
-//  m_LUT = nullptr;
-//  m_scalarBarActor = nullptr;
-//  //m_txtProp = nullptr;
-//  //m_titleProp = nullptr;
-//
-//  m_vtkRend = vtkRenderer::New();
-//
-//  m_LUT = new CBratLookupTable();
-//
-//  m_scalarBarActor = vtkScalarBarActor::New();
-//  m_scalarBarActor->SetLookupTable(m_LUT->GetLookupTable());
-//  m_scalarBarActor->SetOrientationToHorizontal();
-//  m_scalarBarActor->SetPosition(0.1, 0.1);
-//  m_scalarBarActor->SetPosition2(0.8, 0.9);
-//  m_scalarBarActor->SetNumberOfLabels(2);
-//
-//  vtkTextProperty* txtProp = m_scalarBarActor->GetLabelTextProperty();
-//  vtkTextProperty* titleProp = m_scalarBarActor->GetTitleTextProperty();
-//
-//  titleProp->SetColor(0.7, 0.7, 0.7);
-//  titleProp->ShadowOff();
-//  titleProp->SetFontFamilyToArial();
-//  titleProp->SetFontSize(8);
-//  titleProp->ItalicOff();
-//  titleProp->BoldOff();
-//
-//  txtProp->SetColor(0.7, 0.7, 0.7);
-//  txtProp->ShadowOff();
-//  txtProp->SetFontFamilyToArial();
-//  txtProp->SetFontSize(8);
-//  txtProp->ItalicOff();
-//  txtProp->SetJustificationToCentered();
-//  txtProp->BoldOff();
-//
-//  m_scalarBarActor->SetLabelFormat("%g");
-//
-//  m_vtkRend->AddActor2D(m_scalarBarActor);
-//
-//
-//}
-//
-////----------------------------------------
-//CLUTRenderer::~CLUTRenderer()
-//{
-//  if (m_scalarBarActor != nullptr)
-//  {
-//    m_scalarBarActor->Delete();
-//    m_scalarBarActor = nullptr;
-//  }
-//
-//  if (m_vtkRend != nullptr)
-//  {
-//    m_vtkRend->Delete();
-//    m_vtkRend = nullptr;
-//  }
-//
-//  DeleteLUT();
-//
-//}
-////----------------------------------------
-//void CLUTRenderer::ResetTextActor(CWorldPlotData* geoMap)
-//{
-//  std::string text = geoMap->GetDataTitle();
-//  text += "\t\t(" + geoMap->m_plotProperty.m_name;
-//  text += ")\t\t-\t\tUnit:\t" +  geoMap->GetDataUnitString();
-//  text += "\t" + geoMap->GetDataDateString();
-//
-//  ResetTextActor(text);
-//}
-////----------------------------------------
-//void CLUTRenderer::ResetTextActor(const std::string& text)
-//{
-//  m_scalarBarActor->SetTitle(text.c_str());
-//}
-////----------------------------------------
-//void CLUTRenderer::DeleteLUT()
-//{
-//  if (m_LUT != nullptr)
-//  {
-//    delete m_LUT;
-//    m_LUT = nullptr;
-//  }
-//}
-//
-////----------------------------------------
-//void CLUTRenderer::SetLUT(CBratLookupTable* lut)
-//{
-//  if (lut == nullptr)
-//  {
-//    return;
-//  }
-//
-//  DeleteLUT();
-//
-//  m_LUT = new CBratLookupTable(*lut);
-//  m_scalarBarActor->SetLookupTable(m_LUT->GetLookupTable());
-//}
-//
-////----------------------------------------
-//void CLUTRenderer::SetNumberOfLabels(int32_t n)
-//{
-//  if (m_scalarBarActor == nullptr)
-//  {
-//    return;
-//  }
-//  m_scalarBarActor->SetNumberOfLabels(n);
-//}
-//
-////----------------------------------------
-//int32_t CLUTRenderer::GetNumberOfLabels()
-//{
-//  if (m_scalarBarActor == nullptr)
-//  {
-//    return 0;
-//  }
-//
-//  return m_scalarBarActor->GetNumberOfLabels();
-//}
-//
-////----------------------------------------
-//void CLUTRenderer::SetBackground(double r, double g, double b)
-//{
-//  if (m_vtkRend == nullptr)
-//  {
-//    return;
-//  }
-//  if (m_scalarBarActor == nullptr)
-//  {
-//    return;
-//  }
-//  m_vtkRend->SetBackground(r, g, b);
-//  m_scalarBarActor->GetLabelTextProperty()->SetColor(1-r, 1-g, 1-b);
-//  m_scalarBarActor->GetTitleTextProperty()->SetColor(1-r, 1-g, 1-b);
-//
-//}
-//
 
 //-------------------------------------------------------------
 //------------------- CWorldPlotProperties class --------------------
 //-------------------------------------------------------------
 
 CWorldPlotProperties::CWorldPlotProperties()
+	: base_t()
 {
+	//m_projection = "";
+	m_opacity = 0.7;
+	m_deltaRadius = 0.007;
 
-  //m_projection = "";
-  m_opacity = 0.7;
-  m_deltaRadius = 0.007;
+	m_showPropertyPanel = true;
+	m_showColorBar = true;
+	m_showAnimationToolbar = false;
+	//m_lineWidth = 1;
+	//m_pointSize = 2;
+	//m_color.Insert(0);
+	//m_color.Insert(0);
+	//m_color.Insert(1);
 
-  m_showPropertyPanel = true;
-  m_showColorBar = true;
-  m_showAnimationToolbar = false;
-  //m_lineWidth = 1;
-  //m_pointSize = 2;
-  //m_color.Insert(0);
-  //m_color.Insert(0);
-  //m_color.Insert(1);
+	m_heightFactor = 0;
+	m_numColorLabels = 5;
 
-  m_heightFactor = 0;
-  m_numColorLabels = 5;
+	//m_colorTable = nullptr;
 
-  //m_colorTable = nullptr;
+	setDefaultValue( m_minHeightValue );
+	setDefaultValue( m_maxHeightValue );
 
-  setDefaultValue(m_minHeightValue);
-  setDefaultValue(m_maxHeightValue);
+	//setDefaultValue(m_stipplepattern);
+	m_valueConversion = 0.0;
+	m_heightConversion = 0.0;
 
-  //setDefaultValue(m_stipplepattern);
-  m_valueConversion = 0.0;
-  m_heightConversion = 0.0;
+	m_centerLongitude = 0.0;
+	m_centerLatitude = 0.0;
 
-  m_centerLongitude = 0.0;
-  m_centerLatitude = 0.0;
+	mLUT = new CBratLookupTable();
+	mLUT->ExecMethodDefaultColorTable();
 
-  mLUT = new CBratLookupTable();
-  mLUT->ExecMethodDefaultColorTable();
+	m_zoom = false;
+	m_zoomLon1 = -180.0;
+	m_zoomLon2 = 180.0;
+	m_zoomLat1 = -90.0;
+	m_zoomLat2 = 90.0;
 
-  m_zoom = false;
-  m_zoomLon1 = -180.0;
-  m_zoomLon2 = 180.0;
-  m_zoomLat1 = -90.0;
-  m_zoomLat2 = 90.0;
+	m_withContour = false;
+	m_solidColor = true;;
+	m_gridLabel = true;
 
-  m_withContour = false;
-  m_solidColor = true;;
-  m_gridLabel = true;
+	m_withContourLabel = false;
+	setDefaultValue( m_minContourValue );
+	setDefaultValue( m_maxContourValue );
+	m_numContour = 5;
+	m_numContourLabel = 1;
 
-  m_withContourLabel = false;
-  setDefaultValue(m_minContourValue);
-  setDefaultValue(m_maxContourValue);
-  m_numContour = 5;
-  m_numContourLabel = 1;
+	m_contourLabelSize = 10;
+	//m_contourLineWidth = 1.0;	v4 initialized in class
 
-  m_contourLabelSize = 10;
-  //m_contourLineWidth = 1.0;	v4 initialized in class
+	m_contourLineColor.Set( 0.0, 0.0, 0.0 );
+	m_contourLineColor.Set( 0.0, 0.0, 0.0 );
 
-  m_contourLineColor.Set(0.0, 0.0, 0.0);
-  m_contourLineColor.Set(0.0, 0.0, 0.0);
+	m_contourLabelFormat = "%-#.3g";
 
-  m_contourLabelFormat = "%-#.3g";
+	m_withAnimation = false;
 
-  m_withAnimation = false;
-
-  m_eastComponent = false;
-  m_northComponent = false;
-
-
+	m_eastComponent = false;
+	m_northComponent = false;
 }
 
-//----------------------------------------
-
-CWorldPlotProperties::CWorldPlotProperties(const CWorldPlotProperties& p)
-{
-  mLUT = nullptr;
-  Copy(p);
-}
 
 //----------------------------------------
-const CWorldPlotProperties& CWorldPlotProperties::operator=(const CWorldPlotProperties& p)
+const CWorldPlotProperties& CWorldPlotProperties::operator = ( const CWorldPlotProperties &o )
 {
-  Copy(p);
-  return *this;
-}
-//----------------------------------------
-CWorldPlotProperties::~CWorldPlotProperties()
-{
-  DeleteLUT();
+	if ( this != &o )
+	{
+		*static_cast<base_t*>( this ) = static_cast<const base_t&>( o );
+
+		m_coastResolution = o.m_coastResolution;
+		m_projection = o.m_projection;
+
+		DeleteLUT();
+		mLUT = new CBratLookupTable( *( o.mLUT ) );
+
+		m_opacity = o.m_opacity;
+		m_deltaRadius = o.m_deltaRadius;
+		m_showPropertyPanel = o.m_showPropertyPanel;
+		m_showColorBar = o.m_showColorBar;
+		m_showAnimationToolbar = o.m_showAnimationToolbar;
+
+		m_heightFactor = o.m_heightFactor;
+		m_numColorLabels = o.m_numColorLabels;
+
+		m_minHeightValue = o.m_minHeightValue;
+		m_maxHeightValue = o.m_maxHeightValue;
+		m_valueConversion = o.m_valueConversion;
+		m_heightConversion = o.m_heightConversion;
+
+		m_centerLongitude = o.m_centerLongitude;
+		m_centerLatitude = o.m_centerLatitude;
+
+		m_zoom = o.m_zoom;
+		m_zoomLon1 = o.m_zoomLon1;
+		m_zoomLon2 = o.m_zoomLon2;
+		m_zoomLat1 = o.m_zoomLat1;
+		m_zoomLat2 = o.m_zoomLat2;
+
+		m_withContour = o.m_withContour;
+		m_withContourLabel = o.m_withContourLabel;
+		m_minContourValue = o.m_minContourValue;
+		m_maxContourValue = o.m_maxContourValue;
+		m_numContour = o.m_numContour;
+		m_numContourLabel = o.m_numContourLabel;
+
+		m_contourLabelSize = o.m_contourLabelSize;
+		mContourLineWidth = o.mContourLineWidth;
+
+		m_contourLineColor = o.m_contourLineColor;
+		m_contourLabelColor = o.m_contourLabelColor;
+
+		m_contourLabelFormat = o.m_contourLabelFormat;
+
+		m_solidColor = o.m_solidColor;
+
+		m_withAnimation = o.m_withAnimation;
+
+		m_eastComponent = o.m_eastComponent;
+		m_northComponent = o.m_northComponent;
+	}
+	return *this;
 }
 
 //----------------------------------------
@@ -308,74 +168,14 @@ void CWorldPlotProperties::DeleteLUT()
     mLUT = nullptr;
   }
 }
-//----------------------------------------
-void CWorldPlotProperties::Copy(const CWorldPlotProperties& p)
-{
-
-  m_coastResolution = p.m_coastResolution;
-  m_projection = p.m_projection;
-
-  DeleteLUT();
-  mLUT = new CBratLookupTable(*(p.mLUT));
-
-  m_title = p.m_title;
-
-  m_name = p.m_name;
-
-  m_opacity = p.m_opacity;
-  m_deltaRadius = p.m_deltaRadius;
-  m_showPropertyPanel = p.m_showPropertyPanel;
-  m_showColorBar = p.m_showColorBar;
-  m_showAnimationToolbar = p.m_showAnimationToolbar;
-
-  m_heightFactor = p.m_heightFactor;
-  m_numColorLabels = p.m_numColorLabels;
-
-  m_minHeightValue = p.m_minHeightValue;
-  m_maxHeightValue = p.m_maxHeightValue;
-  m_valueConversion = p.m_valueConversion;
-  m_heightConversion = p.m_heightConversion;
-
-  m_centerLongitude = p.m_centerLongitude;
-  m_centerLatitude = p.m_centerLatitude;
-
-  m_zoom = p.m_zoom;
-  m_zoomLon1 = p.m_zoomLon1;
-  m_zoomLon2 = p.m_zoomLon2;
-  m_zoomLat1 = p.m_zoomLat1;
-  m_zoomLat2 = p.m_zoomLat2;
-
-  m_withContour = p.m_withContour;
-  m_withContourLabel = p.m_withContourLabel;
-  m_minContourValue = p.m_minContourValue;
-  m_maxContourValue = p.m_maxContourValue;
-  m_numContour = p.m_numContour;
-  m_numContourLabel = p.m_numContourLabel;
-
-  m_contourLabelSize = p.m_contourLabelSize;
-  mContourLineWidth = p.mContourLineWidth;
-
-  m_contourLineColor = p.m_contourLineColor;
-  m_contourLabelColor = p.m_contourLabelColor;
-
-  m_contourLabelFormat = p.m_contourLabelFormat;
-
-  m_solidColor = p.m_solidColor;
-
-  m_withAnimation = p.m_withAnimation;
-
-  m_eastComponent = p.m_eastComponent;
-  m_northComponent = p.m_northComponent;
-
-
-}
 
 
 //-------------------------------------------------------------
 //------------------- CWorldPlotCommonData class --------------------
 //-------------------------------------------------------------
 
-CWorldPlotCommonData::CWorldPlotCommonData( CWorldPlotProperties* plotProperty )
+CWorldPlotCommonData::CWorldPlotCommonData( CWorldPlotProperties* plotProperty, std::initializer_list< const std::string > names )
+	: base_t( names )
 {
 	if ( plotProperty != nullptr )
 	{
@@ -436,10 +236,6 @@ CWorldPlotCommonData::CWorldPlotCommonData( CWorldPlotProperties* plotProperty )
 	m_projection = PROJ2D_3D;
 
 	//NoTransform();
-}
-//----------------------------------------
-CWorldPlotCommonData::~CWorldPlotCommonData()
-{
 }
 
 

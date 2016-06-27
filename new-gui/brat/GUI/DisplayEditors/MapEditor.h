@@ -98,7 +98,6 @@ class CMapEditor : public CAbstractDisplayEditor
 	std::vector< CWorldPlotData* > mDataArrayMap;
 
 	CWorldPlotProperties *mPropertiesMap = nullptr;
-	CDisplayData *mCurrentDisplayData = nullptr;
 
 
 	// construction /destruction

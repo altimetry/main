@@ -1,10 +1,27 @@
+/*
+* This file is part of BRAT 
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #if !defined COMMON_APPLICATION_PATHS_H
 #define COMMON_APPLICATION_PATHS_H
 
 
 #include <QString>
 
-#include "+UtilsIO.h"
+#include "QtUtilsIO.h"
 #include "ConsoleApplicationPaths.h"
 
 
@@ -23,6 +40,7 @@ class CApplicationPaths : public CConsoleApplicationPaths
 
 	using base_t = CConsoleApplicationPaths;
 
+	friend class CBratSettings;
 
     ////////////////////////////////////////////
     //	static members
@@ -33,25 +51,11 @@ public:
 	static const std::string smDefaultURLRasterLayerPath;
 
 
-    static std::string DefaultExternalDataSubDir()
-    {
-        static const std::string s = "user-data";
-        return s;
-    }
-    static std::string DefaultProjectsSubDir()
-    {
-        static const std::string s = "workspaces";
-        return s;
-    }
     static std::string DefaultGlobeSubDir()
     {
         static const std::string s = "globe/gui";
         return s;
     }
-
-protected:
-
-    static std::string ComputeDefaultUserBasePath( const std::string &DeploymentRootDir);
 
 
 public:
@@ -68,8 +72,6 @@ public:
     const std::string mVectorLayerPath;			//origin: version control, lives in mInternalDataDir
 
     const std::string mOsgPluginsDir;			//origin: OSG deployable (libraries)
-
-    const std::string mQtPluginsDir;			//origin: Qt deployable (libraries)
     const std::string mQgisPluginsDir;			//origin: QGIS deployable (libraries)
     const std::string mGlobeDir;				//origin: QGIS deployable (like libraries)
 
@@ -86,13 +88,9 @@ public:
     //	are based on defaults. Origin: lib/data,
     //	deployment like COTS libraries
 
-    std::string mPortableBasePath;				// defaults to executable grand-parent directory (deployed) or S3ALTB_ROOT/lib (development)
-    std::string mRasterLayerPath;
+protected:
+	std::string mRasterLayerPath;
     std::string mURLRasterLayerPath;
-
-    std::string mWorkspacesDir;					// samples? if so, deployed as external data sample (like mRasterLayerPath)
-
-    bool mUsePortablePaths = true;			// re-assigned in ctor
 
 
     ////////////////////////////////////////////
@@ -100,7 +98,7 @@ public:
     ////////////////////////////////////////////
 
 public:
-    CApplicationPaths( const QString &exec_path );
+    explicit CApplicationPaths( const QString &exec_path );
 
 
     virtual ~CApplicationPaths()
@@ -127,25 +125,12 @@ public:
     void SetURLRasterLayerPath( const std::string &path ) { mURLRasterLayerPath = path; }
 
 
-    // Operates only over user changeable paths, trying to
-    //	ensure their existence in the expected locations
-    //
-    bool SetUserBasePath( bool portable, const std::string &path = "" );
-
-    bool UsePortablePaths() const { return mUsePortablePaths; }
-
-    const std::string& PortableBasePath() const { return mPortableBasePath; }
-
-
-    const std::string& WorkspacesPath() const { return mWorkspacesDir; }
-
-    bool SetWorkspacesDirectory( const std::string &path );
-
+	//
 
 	std::string Absolute2PortableDataPath( const std::string &path ) const
 	{
-		if ( mUsePortablePaths )
-			return ::Absolute2PortableDataPath( path, mPortableBasePath );
+		if ( !IsRelative( path ) && UsePortablePaths() )
+			return ::Absolute2PortableDataPath( path, mUserDataDirectory );
 
 		return path;
 	}
@@ -157,7 +142,7 @@ public:
 		//	but a portable path always needs to be converted to an absolute 
 		//	path even if mUsePortablePaths is false
 		//
-		return ::Portable2AbsoluteDataPath( path, mPortableBasePath );
+		return ::Portable2AbsoluteDataPath( path, mUserDataDirectory );
 	}
 
 
@@ -168,8 +153,6 @@ public:
 
 
     virtual bool ValidatePaths() const override;
-
-    bool SetUserPaths();
 
     std::string ToString() const;
 };

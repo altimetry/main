@@ -29,6 +29,8 @@
 
 //_NO_DEBUG_HEAP=1
 
+
+
 int main( int argc, char *argv[] )
 try {
 	//CBratLogger::Instance().SetEnabled( false );

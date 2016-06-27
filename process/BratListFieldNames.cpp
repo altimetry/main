@@ -71,7 +71,7 @@ int main( int argc, char *argv[] )
 	if ( Error || Help )
 		return 2;
 
-	const CConsoleApplicationPaths brat_paths( argv[ 0 ] );
+	const CConsoleApplicationPaths brat_paths( argv[ 0 ], "" );
 
 	CTools::SetInternalDataDir( brat_paths.mInternalDataDir );
 

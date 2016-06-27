@@ -94,15 +94,13 @@ CProduct* CDataset::OpenProduct( const std::string& fileName, const CStringMap& 
 //----------------------------------------
 bool CDataset::SaveConfig( CWorkspaceSettings *config ) const
 {
-	assert__( config );			// v4 test why this could be null
-	//return !config || config->SaveConfig( this );
+	assert__( config );
 
 	return config->SaveConfig( this );
 }
 bool CDataset::LoadConfig( CWorkspaceSettings *config )
 {
-	assert__( config );			// v4 test why this could be null
-	//return !config || config->LoadConfig( this );
+	assert__( config );
 
 	return config->LoadConfig( this );
 }

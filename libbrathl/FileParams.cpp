@@ -283,43 +283,42 @@ void CFileParams::Decode(char *line)
 
 
 //----------------------------------------
-uint32_t CFileParams::CheckCount
-		(const std::string	&Key,
-		 int32_t	ValidMin	/*= 1*/,
-		 int32_t	ValidMax	/*= 0 */)
+unsigned CFileParams::CheckCount( const std::string	&Key, 
+	int32_t	ValidMin	/*= 1*/,
+	int32_t	ValidMax	/*= 0 */ )
 {
-  int32_t	ActualCount	= 0;
- 
-  // DON'T USE this syntax if you are not sure the key exist, there's a bug in STL,  
-  //   after calling  'record = m_recordSetMap[recordSetName]', if key not existed and the map is empty 
-  //   then the key exists 
-  //   in the map and points to a NULL object
-  //CParameter	*p = m_mapParam[Key];
-  CParameter	*p = m_mapParam.Exists(Key);
-  if (p != NULL)
-    ActualCount	= p->Count();
+	int32_t	ActualCount	= 0;
 
-  if (ValidMin < 0)
-    ValidMin	= 0;
-  if (ValidMax > 0)
-  {
-    if (ValidMax < ValidMin)
-      ValidMax	= ValidMin;
-  }
+	// DON'T USE this syntax if you are not sure the key exist, there's a bug in STL,  
+	//   after calling  'record = m_recordSetMap[recordSetName]', if key not existed and the map is empty 
+	//   then the key exists 
+	//   in the map and points to a NULL object
+	//CParameter	*p = m_mapParam[Key];
+	CParameter	*p = m_mapParam.Exists( Key );
+	if ( p != NULL )
+		ActualCount	= p->Count();
 
-  if (ActualCount < ValidMin)
-    throw  CParameterException(CTools::Format("Invalid number of %s parameter: %d (min=%d)",
-					      Key.c_str(),
-					      ActualCount,
-					      ValidMin),
-				BRATHL_COUNT_ERROR);
-  if ((ValidMax > 0) && (ActualCount > ValidMax))
-    throw  CParameterException(CTools::Format("Invalid number of %s parameter: %d (max=%d)",
-					      Key.c_str(),
-					      ActualCount,
-					      ValidMax),
-				BRATHL_COUNT_ERROR);
-  return ActualCount;
+	if ( ValidMin < 0 )
+		ValidMin	= 0;
+	if ( ValidMax > 0 )
+	{
+		if ( ValidMax < ValidMin )
+			ValidMax	= ValidMin;
+	}
+
+	if ( ActualCount < ValidMin )
+		throw  CParameterException( CTools::Format( "Invalid number of %s parameter: %d (min=%d)",
+		Key.c_str(),
+		ActualCount,
+		ValidMin ),
+		BRATHL_COUNT_ERROR );
+	if ( ( ValidMax > 0 ) && ( ActualCount > ValidMax ) )
+		throw  CParameterException( CTools::Format( "Invalid number of %s parameter: %d (max=%d)",
+		Key.c_str(),
+		ActualCount,
+		ValidMax ),
+		BRATHL_COUNT_ERROR );
+	return ActualCount;
 }
 
 //----------------------------------------

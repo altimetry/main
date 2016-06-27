@@ -13,18 +13,23 @@
 //	LOG_TRACE
 //		- never displayed by the GUI.
 //
-//		- outputs to wherever Qt qDebug outputs, or to whichever file QGIS_LOG_FILE points to
-//			if not empty. Never prints to both.
+//		- directly calls TraceWrite, which is implemented as a call to QGIS QgsLogger::debug (in
+//			QGIS dependent applications) or to the equivalent stream InternalOutputStream::debug 
+//			when QGIS is not available. 
+//			When active, these streams output to wherever Qt qDebug outputs, or to whichever file 
+//			QGIS_LOG_FILE environment variable points to if not empty. Never print to both.
 //
-//		- directly calls QGIS QgsLogger::debug
+//		- always active in debug builds (QGISDEBUG defined in stdafx.h of both brat's GUI applications)
+//			can be activated in release builds by defining QGIS_DEBUG to 1 in the execution environment. 
+//			For this to be possible, a runtime call is always made to <stream>::debug, even if, 
+//			as is the default case in release, that does nothing.
+//			In release builds Qt qDebug never outputs (QT_NO_DEBUG_OUTPUT defined in stdafx.h of 
+//			both brat's GUI applications), so QGIS_LOG_FILE must also be defined to have trace.
+//			QGIS_DEBUG is not the same as QGISDEBUG (see below). QGIS_DEBUG supersedes QGISDEBUG in
+//			the point where the streams decide if they output.
 //
 //		- defined through a macro, to convey __FILE__, __FUNCTION__, __LINE__ information (defined
 //			as a function, even inline, would always refer that function's file, name, line...)
-//
-//		- so far (see comments near the macro's definition), can be activated in release builds 
-//			by defining QGIS_DEBUG to 1 in the execution environment. This means that a runtime
-//			call is always made to the QgsLogger::debug, even if, as is the case in release, that
-//			does nothing. In debug builds it will always be on and always print.
 //
 //			So, LOG_TRACE should be used with care, because it has a weight in production, even if 
 //			the impact is very small for a few well chosen places.
@@ -72,7 +77,7 @@
 //						so by default in debug everything is printed, in release nothing is printed.
 //
 //		QGISDEBUG is a compile time macro (not to be confused with QGIS_DEBUG environment variable), 
-//			undefined in release builds (both brat's and QGIS's) and with value 1 in debug builds.
+//			undefined in release builds (both brat's and QGIS's) and with value 1 in debug builds
 //
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 

@@ -94,9 +94,9 @@ public:
     const CApplicationPaths& BratPaths() const { return mBratPaths; }
 
 
-	bool SetUserBasePath( bool unique, const std::string &path )
+	bool SetUserDataDirectory( bool unique, const std::string &path )
 	{
-		return mBratPaths.SetUserBasePath( unique, path );
+		return mBratPaths.SetUserDataDirectory( unique, path );
 	}
 
 

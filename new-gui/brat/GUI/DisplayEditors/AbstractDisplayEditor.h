@@ -93,6 +93,141 @@ protected:
 
 	using EImageExportType = CDisplayData::EImageExportType;
 
+	// This class's interface simulates a single CDisplayData
+	//
+	//	Works as a unit for displaying and assigning properties
+	//	- Several plot units can be displayed at the same time
+	//	- Properties are displayed and assigned only for the selected plot unit (in GUI fields/layers list)
+	//
+	class CPlotUnitData : protected std::vector<CDisplayData*> 
+	{
+		using base_t = std::vector<CDisplayData*>;
+
+		template< typename T >
+		using getter_t = T( CDisplayData::* )() const;
+
+
+		// assignment
+
+		void Assign( CDisplayData *data )
+		{
+			assert__( size() == 0 );
+
+			push_back( data );
+		}
+
+		//CWorldPlotData initializes north first; here we follow the order in which field names form the v3 CWorldPlotProperty name
+		//
+		void Assign( CDisplayData *east_data, CDisplayData *north_data )
+		{
+			assert__( size() == 0 );
+
+			push_back( east_data );
+			push_back( north_data );
+		}
+
+		// Must be called before assignment operator
+		void Clear()
+		{
+			clear();
+		}
+
+
+public:
+		CPlotUnitData& operator = ( const CPlotUnitData &o )
+		{
+			if ( this != &o )
+			{
+				Clear();				//really not necessary
+				base_t::operator=( o );
+			}
+
+			return *this;
+		}
+
+		CPlotUnitData& operator = ( CDisplayData *data )
+		{
+			if ( !data )
+				Clear();
+			else
+				Assign( data );
+
+			return *this;
+		}
+
+		CPlotUnitData& operator = ( std::pair<CDisplayData*, CDisplayData*> data )
+		{
+			Assign( data.first, data.second );
+
+			return *this;
+		}
+
+		operator bool() const { return size() > 0;  }
+
+
+	protected:
+
+		template< typename T, typename SETTER >
+		void Set( const T &value, SETTER set )
+		{
+			assert__( size() > 0 );
+
+			(at( 0 )->*set)( value );
+			if ( size() > 1 )
+				(at( 1 )->*set)( value );
+		}
+
+		template< typename T1, typename T2, typename SETTER >
+		void Set( const T1 &value1, const T2 &value2, SETTER set )
+		{
+			assert__( size() > 0 );
+
+			(at( 0 )->*set)( value1, value2 );
+			if ( size() > 1 )
+				(at( 1 )->*set)( value1, value2 );
+		}
+
+		template< typename T >
+		T Get( getter_t< T > get )
+		{
+			assert__( size() > 0 );
+
+			return (at( 0 )->*get)();
+		}
+
+	public:
+
+		std::string Name()									
+		{	
+			std::string name = Get( &CDisplayData::FieldName );			//fieldNameEast + "/" + fieldNameNorth;
+			if ( size() > 1 )
+				name += ( "/" + at( 1 )->FieldName() );
+
+			return name;
+		}
+
+		double GetCurrentMinValue()										{	return Get( &CDisplayData::GetCurrentMinValue );	}
+		void SetCurrentMinValue( const double &value )					{	Set( value, &CDisplayData::SetCurrentMinValue );	}
+		double GetCurrentMaxValue()										{	return Get( &CDisplayData::GetCurrentMaxValue );	}
+		void SetCurrentMaxValue( const double &value )					{	Set( value, &CDisplayData::SetCurrentMaxValue );	}
+
+		double GetAbsoluteMinValue()									{	return Get( &CDisplayData::GetAbsoluteMinValue );	}
+		double GetAbsoluteMaxValue()									{	return Get( &CDisplayData::GetAbsoluteMaxValue );	}
+		void SetAbsoluteRangeValues( const double &m, const double &M )	{	Set( m, M, &CDisplayData::SetAbsoluteRangeValues );	}
+
+		const std::string& GetColorPalette()							{	return Get( &CDisplayData::GetColorPalette );		}
+		void SetColorPalette( const std::string &value )				{	Set( value, &CDisplayData::SetColorPalette );		}
+
+		void SetXAxisText( unsigned index, const std::string& value )	{	Set( index, value, &CDisplayData::SetXAxisText );	}
+
+		unsigned GetNumberOfBins()										{	return Get( &CDisplayData::GetNumberOfBins );	}
+		void SetNumberOfBins( unsigned value )							{	Set( value, &CDisplayData::SetNumberOfBins );	}
+		
+		void SetContour( bool value )									{	Set( value, &CDisplayData::SetContour );	}
+		void SetSolidColor( bool value )								{	Set( value, &CDisplayData::SetSolidColor );	}
+	};
+
+
 
 private:
 	///////////////////////////////////////////////////////////
@@ -113,9 +248,9 @@ protected:
 	static CXYPlotProperties* GetProperties( size_t field_index, CXYPlotDataCollection &yfx_data_collection );
 	static CWorldPlotProperties* GetProperties( size_t field_index, std::vector< CWorldPlotData* > &lon_lat_data_array );
 
-	static CDisplayData* GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, std::vector< CZFXYPlotData* > &zfxy_data_array );
-	static CDisplayData* GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, CXYPlotDataCollection &yfx_data_collection );
-	static CDisplayData* GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, std::vector< CWorldPlotData* > &lon_lat_data_array );
+	static CPlotUnitData GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, std::vector< CZFXYPlotData* > &zfxy_data_array );
+	static CPlotUnitData GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, CXYPlotDataCollection &yfx_data_collection );
+	static CPlotUnitData GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, std::vector< CWorldPlotData* > &lon_lat_data_array );
 
 	
 private:
@@ -175,7 +310,10 @@ protected:
 	const COperation *mOperation = nullptr;
 	int mRequestedDisplayIndex = 0;				//trick for first requested display
 
+
 	CBratLookupTable *mCurrentBratLookupTable = nullptr;
+	CPlotUnitData mCurrentPlotUnit;
+
 
 	const CDisplayFilesProcessor *mCurrentDisplayFilesProcessor = nullptr;
 	const bool mDisplayOnlyMode;
@@ -306,6 +444,16 @@ protected:
 		std::vector< std::string > v;
 		v.push_back( "" );
 		v.push_back( display->GetCmdFilePath() );
+
+		return GetPlotsFromDisplayFile< PLOT >( !IsMapEditor(), v );
+	}
+
+	template< typename PLOT >
+	std::vector< PLOT* > GetPlotsFromDisplayFile( const COperation *operation )
+	{
+		std::vector< std::string > v;
+		v.push_back( "" );
+		v.push_back( operation->GetOutputPath() );
 
 		return GetPlotsFromDisplayFile< PLOT >( !IsMapEditor(), v );
 	}

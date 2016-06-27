@@ -109,80 +109,84 @@ void ThrowDisplayDataNotAvaiable()
 }
 
 //static
-CDisplayData* CAbstractDisplayEditor::GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, std::vector< CZFXYPlotData* > &zfxy_data_array )
+CAbstractDisplayEditor::CPlotUnitData
+CAbstractDisplayEditor::GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, std::vector< CZFXYPlotData* > &zfxy_data_array )
 {
 	CZFXYPlotData *pdata = GetFieldData( field_index, zfxy_data_array );
-	std::string field = pdata->FieldName();
-	CDisplayData *ddata = display->GetFieldDisplayData( field );	
-	if ( !ddata )
+	CPlotUnitData unit;
+	unit = display->GetFieldDisplayData( pdata->FieldName( 0 ) );
+	if ( !unit )
 	{
 		CZFXYPlotProperties *props = GetProperties( field_index, zfxy_data_array );
-		field = props->m_name;
-		ddata = display->GetFieldDisplayDataV3( operation, field );
-		if ( pdata->FieldName() != field )
-			LOG_WARN( pdata->FieldName() + " [<= DisplayData] != [ZFXY Properties=>] " + props->m_name );
+		unit = display->GetFieldDisplayDataV3( operation, props->Name() );
+		if ( unit.Name() != props->Name() )
+			LOG_WARN( unit.Name() + " [<= DisplayData] != [ZFXY Properties=>] " + props->Name() );
 	}
 
-	if ( !ddata )
+	if ( !unit )
 		ThrowDisplayDataNotAvaiable();
 	else
 	{
 		// TODO brat v3 does not update range: this should be done in plots Create
-		if ( isDefaultValue( ddata->GetAbsoluteMinValue() ) || isDefaultValue( ddata->GetAbsoluteMaxValue() ) )
+		if ( isDefaultValue( unit.GetAbsoluteMinValue() ) || isDefaultValue( unit.GetAbsoluteMaxValue() ) )
 		{
-			ddata->SetAbsoluteRangeValues( pdata->GetLookupTable()->GetTableRange()[0], pdata->GetLookupTable()->GetTableRange()[1] );
+			unit.SetAbsoluteRangeValues( pdata->GetLookupTable()->GetTableRange()[0], pdata->GetLookupTable()->GetTableRange()[1] );
 		}
 	}
 
-	return ddata;
+	return unit;
 }
 //static
-CDisplayData* CAbstractDisplayEditor::GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, CXYPlotDataCollection &yfx_data_collection )
+CAbstractDisplayEditor::CPlotUnitData 
+CAbstractDisplayEditor::GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, CXYPlotDataCollection &yfx_data_collection )
 {
 	CXYPlotData *pdata = GetFieldData( field_index, yfx_data_collection );
-	std::string field = pdata->FieldName();
-	CDisplayData *ddata = display->GetFieldDisplayData( field );	
-	if ( !ddata )
+	CPlotUnitData unit;
+	unit = display->GetFieldDisplayData( pdata->FieldName( 0 ) );	
+	if ( !unit )
 	{
 		CXYPlotProperties *props = GetProperties( field_index, yfx_data_collection );
-		field = props->GetName();
-		ddata = display->GetFieldDisplayDataV3( operation, field );
-		if ( pdata->FieldName() != field )
-			LOG_WARN( pdata->FieldName() + " [<= DisplayData] != [YFX Properties=>] " + props->GetName() );
+		unit = display->GetFieldDisplayDataV3( operation, props->Name() );
+		if ( unit.Name() != props->Name() )
+			LOG_WARN( unit.Name() + " [<= DisplayData] != [YFX Properties=>] " + props->Name() );
 	}
 	
-	if ( !ddata )
+	if ( !unit )
 		ThrowDisplayDataNotAvaiable();
 
-	return ddata;
+	return unit;
 }
 //static
-CDisplayData* CAbstractDisplayEditor::GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, std::vector< CWorldPlotData* > &lon_lat_data_array )
+CAbstractDisplayEditor::CPlotUnitData 
+CAbstractDisplayEditor::GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, std::vector< CWorldPlotData* > &lon_lat_data_array )
 {
 	CWorldPlotData *pdata = GetFieldData( field_index, lon_lat_data_array );
-	std::string field = pdata->FieldName();
-	CDisplayData *ddata = display->GetFieldDisplayData( field );	
-	if ( !ddata )
+	CWorldPlotVelocityData *pvelocity_data = dynamic_cast<CWorldPlotVelocityData*>( pdata );
+	CPlotUnitData unit;
+	if ( pvelocity_data )
+		unit = { display->GetFieldDisplayData( pvelocity_data->EastFieldName() ), display->GetFieldDisplayData( pvelocity_data->NorthFieldName() ) };
+	else
+		unit = display->GetFieldDisplayData( pdata->FieldName( 0 ) );	
+	if ( !unit )
 	{
 		CWorldPlotProperties *props = GetProperties( field_index, lon_lat_data_array );
-		field = props->m_name;
-		ddata = display->GetFieldDisplayDataV3( operation, field );
-		if ( pdata->FieldName() != field )
-			LOG_WARN( pdata->FieldName() + " [<= DisplayData] != [LonLat Properties=>] " + props->m_name );
+		unit = display->GetFieldDisplayDataV3( operation, props->Name() );				//VELOCITY MAPS FAIL HERE:	 we don't have the original field names
+		if ( unit.Name() != props->Name() )
+			LOG_WARN( unit.Name() + " [<= DisplayData] != [LonLat Properties=>] " + props->Name() );
 	}
 
-	if ( !ddata )
+	if ( !unit )
 		ThrowDisplayDataNotAvaiable();
 	else
 	{
 		// TODO brat v3 does not update range: this should be done in plots Create
-		if ( isDefaultValue( ddata->GetAbsoluteMinValue() ) || isDefaultValue( ddata->GetAbsoluteMaxValue() ) )
+		if ( isDefaultValue( unit.GetAbsoluteMinValue() ) || isDefaultValue( unit.GetAbsoluteMaxValue() ) )
 		{
-			ddata->SetAbsoluteRangeValues( pdata->GetLookupTable()->GetTableRange()[0], pdata->GetLookupTable()->GetTableRange()[1] );
+			unit.SetAbsoluteRangeValues( pdata->GetLookupTable()->GetTableRange()[0], pdata->GetLookupTable()->GetTableRange()[1] );
 		}
 	}
 
-	return ddata;
+	return unit;
 }
 
 
@@ -477,7 +481,7 @@ void CAbstractDisplayEditor::SelectTab( QWidget *tab )
 
 const std::string& CAbstractDisplayEditor::UserDataDirectory() const
 {
-	return mModel->BratPaths().mPortableBasePath;
+	return mModel->BratPaths().UserDataDirectory();
 }
 
 

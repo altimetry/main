@@ -209,11 +209,10 @@ public:
 
 	virtual ~CWorkspaceDataset()
 	{
-		Close();
 		m_datasets.RemoveAll();
 	}
 
-	void Close();
+	// 
 
 	bool HasDataset() { return GetDatasetCount() > 0; }
 

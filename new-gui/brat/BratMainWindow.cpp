@@ -38,6 +38,9 @@
 #include "DataModels/PlotData/XYPlot.h"
 #include "DataModels/PlotData/WorldPlot.h"
 
+#include "GUI/DisplayWidgets/GlobeWidget.h"
+#include "GUI/DisplayEditors/MapEditor.h"
+#include "GUI/DisplayEditors/PlotEditor.h"
 
 #include "GUI/ActionsTable.h"
 #include "GUI/WorkspaceDialog.h"
@@ -50,14 +53,6 @@
 #include "GUI/ControlPanels/DatasetFilterControls.h"
 #include "GUI/ControlPanels/OperationControls.h"
 #include "GUI/DisplayEditors/Dialogs/ExportImageDialog.h"
-
-#include "GUI/DisplayWidgets/GlobeWidget.h"
-#undef GL_LINES_ADJACENCY_EXT
-#undef GL_LINE_STRIP_ADJACENCY_EXT
-#undef GL_TRIANGLES_ADJACENCY_EXT
-#undef GL_TRIANGLE_STRIP_ADJACENCY_EXT
-#include "GUI/DisplayEditors/MapEditor.h"
-#include "GUI/DisplayEditors/PlotEditor.h"
 
 #include "BratMainWindow.h"
 
@@ -1052,7 +1047,7 @@ bool CBratMainWindow::OpenWorkspace( const std::string &path )
 
 void CBratMainWindow::on_action_New_triggered()
 {
-    static QString last_path = t2q( mSettings.BratPaths().WorkspacesPath() );
+    static QString last_path = t2q( mSettings.BratPaths().WorkspacesDirectory() );
 
 	CWorkspaceDialog dlg( this, CTreeWorkspace::eNew, nullptr, last_path, mModel );
 	if ( dlg.exec() == QDialog::Accepted )
@@ -1074,7 +1069,7 @@ void CBratMainWindow::on_action_New_triggered()
 
 void CBratMainWindow::on_action_Open_triggered()
 {
-    static QString last_path = t2q( mSettings.BratPaths().WorkspacesPath() );
+    static QString last_path = t2q( mSettings.BratPaths().WorkspacesDirectory() );
 
 	CWorkspaceDialog dlg( this, CTreeWorkspace::eOpen, nullptr, last_path, mModel );
 	if ( dlg.exec() == QDialog::Accepted )
@@ -1119,7 +1114,7 @@ void CBratMainWindow::on_action_Save_triggered()
 
 void CBratMainWindow::on_action_Import_Workspace_triggered()
 {
-    static QString last_path = t2q( mSettings.BratPaths().WorkspacesPath() );
+    static QString last_path = t2q( mSettings.BratPaths().WorkspacesDirectory() );
 
 	CWorkspace *wks = mModel.RootWorkspace();			assert__( wks != nullptr );
 
@@ -1139,7 +1134,7 @@ void CBratMainWindow::on_action_Import_Workspace_triggered()
 
 void CBratMainWindow::on_action_Rename_Workspace_triggered()
 {
-    static QString last_path = t2q( mSettings.BratPaths().WorkspacesPath() );
+    static QString last_path = t2q( mSettings.BratPaths().WorkspacesDirectory() );
 
 	CWorkspace *wks = mModel.RootWorkspace();			assert__( wks != nullptr );
 
@@ -1155,7 +1150,7 @@ void CBratMainWindow::on_action_Rename_Workspace_triggered()
 
 void CBratMainWindow::on_action_Delete_Workspace_triggered()
 {
-    static QString last_path = t2q( mSettings.BratPaths().WorkspacesPath() );
+    static QString last_path = t2q( mSettings.BratPaths().WorkspacesDirectory() );
 
 	CWorkspace *wks = mModel.RootWorkspace();			assert__( wks != nullptr );
 
@@ -1236,8 +1231,8 @@ void CBratMainWindow::on_action_Satellite_Tracks_toggled( bool checked )
 
 void CBratMainWindow::on_action_Save_Map_Image_triggered()
 {
-	static std::string path2d = mSettings.BratPaths().mPortableBasePath + "/BratMainMap_2D";		//extension is added by dialog
-	static std::string path3d = mSettings.BratPaths().mPortableBasePath + "/BratMainMap_3D";		//NOT used
+	static std::string path2d = mSettings.BratPaths().UserDataDirectory() + "/BratMainMap_2D";		//extension is added by dialog
+	static std::string path3d = mSettings.BratPaths().UserDataDirectory() + "/BratMainMap_3D";		//NOT used
 
     CExportImageDialog dlg( true, false, path2d, path3d, this );
     if ( dlg.exec() == QDialog::Accepted )

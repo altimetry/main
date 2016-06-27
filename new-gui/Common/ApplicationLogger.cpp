@@ -3,12 +3,17 @@
 #include "new-gui/Common/+Utils.h"
 #include "ApplicationLogger.h"
 
-// InternalLogger is a streamlined copy of QgsLogger, for applications that do not use QGIS
+// InternalOutputStream is the destination output stream of CApplicationLoggerBase; it abouts to 
+//	nothing in release builds. In debug builds, abouts to qDebug, or to file if QGIS_LOG_FILE 
+//	is not empty.
+//
+// InternalOutputStream is a streamlined copy of QgsLogger, for applications that do not use QGIS
 //	but where some logging uniformity with it is required.
 //
-// Define QGISDEBUG (typically, when DEBUG is defined) to activate logging (sDebugLevel
-//	is assigned 1; if sDebugLevel is 0 or the message debug level is greater than sDebugLevel
-//	no logging is done).
+// Define QGISDEBUG (typically, when DEBUG is defined) to activate logging, through macro 
+//	InternalDebugMsg (sDebugLevel is assigned 1; if sDebugLevel is 0 or the message debug 
+//	level is greater than sDebugLevel no logging is done).
+// This is done in stdafx.h of both brat's GUI applications.
 
 //Comments of the original class QgsLogger:
 //
@@ -26,7 +31,7 @@
 // QGIS_LOG_FILE may contain a file name. If set, all messages will be appended
 // to this file rather than to stdout.
 //
-class InternalLogger
+class InternalOutputStream
 {
 	// current debug level 
 	static int sDebugLevel;
@@ -130,14 +135,14 @@ public:
 	}
 };
 
-int InternalLogger::sDebugLevel = -999; // undefined value
-QString InternalLogger::sFileFilter;
-QString InternalLogger::sLogFile;
-QTime InternalLogger::sTime;
+int InternalOutputStream::sDebugLevel = -999; // undefined value
+QString InternalOutputStream::sFileFilter;
+QString InternalOutputStream::sLogFile;
+QTime InternalOutputStream::sTime;
 
 
 #ifdef QGISDEBUG
-#define InternalDebugMsg(str) InternalLogger::debug( QString(str), 1, __FILE__, __FUNCTION__, __LINE__ )
+#define InternalDebugMsg(str) InternalOutputStream::debug( QString(str), 1, __FILE__, __FUNCTION__, __LINE__ )
 #else
 #define InternalDebugMsg(str)
 #endif
@@ -152,11 +157,11 @@ QTime InternalLogger::sTime;
 CApplicationLoggerBase *CApplicationLoggerBase::smInstance = nullptr;
 
 
-// Replaces 
+//
 //
 void CApplicationLoggerBase::TraceWrite( const QString& msg, int debuglevel, const char* file, const char* function, int line ) //debuglevel = 1, const char* file = nullptr, const char* function = nullptr, int line = -1 
 {
-	InternalLogger::debug( msg, debuglevel, file, function, line );
+	InternalOutputStream::debug( msg, debuglevel, file, function, line );
 }
 
 
@@ -218,7 +223,7 @@ int CApplicationLoggerBase::NotifyLevel() const
 void CApplicationLoggerBase::SetEnabled( bool enable )
 { 
 	mEnabled = enable;
-	InternalLogger::setDebugLevel( enable ? 1 : 0 );
+	InternalOutputStream::setDebugLevel( enable ? 1 : 0 );
 }
 
 

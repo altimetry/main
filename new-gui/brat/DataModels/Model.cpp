@@ -27,7 +27,7 @@ CModel& CModel::CreateInstance( const CBratSettings &settings )
 	assert__( !smInstance );
 
 	smInstance = new CModel( settings );
-	smBratFilters = CBratFilters::CreateInstance( settings.BratPaths().mInternalDataDir );
+	smBratFilters = CBratFilters::CreateInstance( settings );
 	smValidFilters = smBratFilters->Load();
 	if ( !smValidFilters )
 	{

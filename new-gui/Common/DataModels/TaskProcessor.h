@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT 
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #ifndef TASK_PROCESSOR_H
 #define TASK_PROCESSOR_H
 
@@ -8,10 +25,12 @@
 #include "new-gui/Common/XmlSerializer.h"
 
 
+class CConsoleApplicationPaths;
+
+
 // for serialization
 //
 class bratSchedulerConfig;
-
 
 
 class CTasksProcessor
@@ -55,19 +74,9 @@ protected:
     static CTasksProcessor* GetInstance( const std::string* fileName, bool reload = false, bool lockFile = true, bool unlockFile = true );
 
 public:
-    static CTasksProcessor* GetInstance( bool reload = false, bool lockFile = true, bool unlockFile = true )
-    {
-        if ( !smInstance || smInstance->m_fullFileName.empty())
-            return nullptr;
+	static CTasksProcessor* GetInstance( bool reload = false, bool lockFile = true, bool unlockFile = true );
 
-        return GetInstance( &smInstance->m_fullFileName, reload, lockFile, unlockFile );
-    }
-    static CTasksProcessor* CreateInstance( const std::string &exec_path, bool reload = false, bool lockFile = true, bool unlockFile = true )
-	{
-        const std::string path = exec_path + "/" + smFileName + ".xml";
-
-        return GetInstance( &path, reload, lockFile, unlockFile );
-	}
+	static CTasksProcessor* CreateInstance( const CConsoleApplicationPaths &app_paths, bool reload = false, bool lockFile = true, bool unlockFile = true );
 
 	static void DestroyInstance()
 	{

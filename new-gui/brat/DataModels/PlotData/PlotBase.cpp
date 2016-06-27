@@ -26,6 +26,8 @@ using namespace brathl;
 
 #include "PlotBase.h"
 #include "PlotField.h"
+#include "WorldPlotData.h"
+#include "ZFXYPlotData.h"
 
 
 
@@ -34,166 +36,58 @@ using namespace brathl;
 //-------------------------------------------------------------
 
 //----------------------------------------
-CPlotField* CPlotBase::GetPlotField(int32_t index)
+CPlotField* CPlotBase::GetPlotField( size_t index )
 {
-  int32_t nCount = (int32_t)m_fields.size();
+	assert__( index < mFields.size() );
 
-  if ( (index < 0) || (index >= nCount))
-  {
-    std::string msg = CTools::Format("CPlotBase::GetPlotField - invalid index %d"
-                                "- Valid range is [0, %d]",
-                                index, nCount);
-    CException e(msg,
-                 BRATHL_LOGIC_ERROR);
-    CTrace::Tracer("%s", e.what());
-    throw (e);
-  }
-
-  CPlotField* field = dynamic_cast<CPlotField*>(m_fields[index]);
-  if (field == NULL)
-  {
-    CException e(CTools::Format("CPlotBase::GetPlotField - dynamic_cast<CPlotField*>(m_fields[%d]) returns NULL"
-                                "- Valid range is [0, %d]"
-                                "- object seems not to be an instance of CPlotField",
-                                index, nCount),
-                 BRATHL_LOGIC_ERROR);
-    CTrace::Tracer("%s", e.what());
-    throw (e);
-
-  }
-
-  return field;
+    return mFields[ index ];
 }
 //----------------------------------------
-CPlotField* CPlotBase::FindPlotField(const std::string& fieldName, bool* withContour, bool* withSolidColor )	// /withContour = NULL, bool* withSolidColor = NULL
+CPlotField* CPlotBase::FindPlotField( const std::string& fieldName, bool *withContour, bool *withSolidColor )	// /withContour = nullptr, bool* withSolidColor = nullptr
 {
-  CObArray::iterator it;
+	for ( auto *plotField : mFields )
+	{
+		if ( plotField->m_name == fieldName )
+		{
+			bool plotFieldWithContour = false;
+			bool plotFieldWithSolidColor = true;
 
-  for (it = m_fields.begin() ; it != m_fields.end() ; it++)
-  {
-    CPlotField* plotField = CPlotField::GetPlotField(*it);
-    if (plotField->m_name.compare(fieldName.c_str()) == 0)
-    {
-      //----------------------------------------------------
-      if ((withContour == NULL) && (withSolidColor == NULL))
-      //----------------------------------------------------
-      {
-        return plotField;
-      }
+			if ( plotField->m_worldProps != nullptr )
+			{
+				plotFieldWithContour = plotField->m_worldProps->m_withContour;
+				plotFieldWithSolidColor = plotField->m_worldProps->m_solidColor;
+			}
 
+			if ( plotField->m_zfxyProps != nullptr )
+			{
+				plotFieldWithContour = plotField->m_zfxyProps->m_withContour;
+				plotFieldWithSolidColor = plotField->m_zfxyProps->m_solidColor;
+			}
 
-      bool plotFieldWithContour = false;
-      bool plotFieldWithSolidColor = true;
+			if ( ( !withContour || *withContour == plotFieldWithContour ) &&
+				( !withSolidColor || *withSolidColor == plotFieldWithSolidColor ) )
+			{
+				return plotField;
+			}
+		}
+	}
 
-	  //femmTODO: uncommnet next 3 blocks
-      //if (plotField->m_worldProps != NULL)
-      //{
-      //  plotFieldWithContour = plotField->m_worldProps->m_withContour;
-      //  plotFieldWithSolidColor = plotField->m_worldProps->m_solidColor;
-      //}
-
-      //if (plotField->m_zfxyProps != NULL)
-      //{
-      //  plotFieldWithContour = plotField->m_zfxyProps->m_withContour;
-      //  plotFieldWithSolidColor = plotField->m_zfxyProps->m_solidColor;
-      //}
-
-      //----------------------------------------------------
-      if ((withContour != NULL) && (withSolidColor != NULL))
-      //----------------------------------------------------
-      {
-        if ((plotFieldWithContour != *withContour) || (plotFieldWithSolidColor != *withSolidColor))
-        {
-          continue;
-        }
-        else
-        {
-          return plotField;
-        }
-      }
-
-      //----------------------------------------------------
-      if (withContour != NULL)
-      //----------------------------------------------------
-      {
-        if (plotFieldWithContour != *withContour)
-        {
-          continue;
-        }
-        else
-        {
-          return plotField;
-        }
-      }
-
-      //----------------------------------------------------
-      if (withSolidColor != NULL)
-      //----------------------------------------------------
-      {
-        if (plotFieldWithSolidColor != *withSolidColor)
-        {
-          continue;
-        }
-        else
-        {
-          return plotField;
-        }
-      }
-    }
-  }
-  return NULL;
+	return nullptr;
 }
-/*
 //----------------------------------------
-CPlotField* CPlotBase::FindPlotField(const wxString& fieldName, bool withContour)
+void CPlotBase::GetAllInternalFiles( CObArray& allInternalFiles )
 {
-  CPlotField* plotField = FindPlotField(fieldName);
-  if (plotField == NULL)
-  {
-    return NULL;
-  }
-
-  if (plotField->m_worldProps != NULL)
-  {
-    if (plotField->m_worldProps->m_withContour != withContour)
-    {
-      return NULL;
-    }
-  }
-  else if (plotField->m_zfxyProps != NULL)
-  {
-    if (plotField->m_zfxyProps->m_withContour != withContour)
-    {
-      return NULL;
-    }
-  }
-
-  return plotField;
-}
-*/
-//----------------------------------------
-void CPlotBase::GetAllInternalFiles(CObArray& allInternalFiles)
-{
-
-  CObArray::iterator itField;
-  CObArray::iterator itInternalFile;
-
-  CPlotField* field = NULL;
-
-  for (itField = m_fields.begin() ; itField != m_fields.end() ; itField++)
-  {
-    field = CPlotField::GetPlotField(*itField);
-    if (field == NULL)
-    {
-      continue;
-    }
-    for (itInternalFile = field->m_internalFiles.begin() ; itInternalFile != field->m_internalFiles.end() ; itInternalFile++)
-    {
-      CInternalFiles* f = GetInternalFiles(*itInternalFile);
-      allInternalFiles.Insert(f);
-    }
-
-  }
+	for ( auto *field : mFields )
+	{
+		if ( field != nullptr )
+		{
+			for ( CObArray::iterator itInternalFile = field->m_internalFiles.begin(); itInternalFile != field->m_internalFiles.end(); itInternalFile++ )
+			{
+				CInternalFiles* f = GetInternalFiles( *itInternalFile );
+				allInternalFiles.Insert( f );
+			}
+		}
+	}
 }
 //----------------------------------------
 void CPlotBase::GetVar(const std::string& varName, CInternalFiles* file,
@@ -210,7 +104,7 @@ void CPlotBase::GetVar(const std::string& varName, CInternalFiles* file,
   }
 
   // Get dim
-  if (dimVal != NULL)
+  if (dimVal != nullptr)
   {
     file->GetVarDims(varName.c_str(), *dimVal);
     if ( (dimVal->size() <= 0) || (dimVal->size() > 2) )
@@ -224,7 +118,7 @@ void CPlotBase::GetVar(const std::string& varName, CInternalFiles* file,
   }
 
   // Get values
-  if (var != NULL)
+  if (var != nullptr)
   {
     file->ReadVar(varName, *var, file->GetUnit(varName).GetText());
   }

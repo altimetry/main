@@ -68,22 +68,21 @@ void CPlot::GetInfo()
   int32_t nrFiles = (int32_t)allInternalFiles.size();
 
   //int32_t iField = 0;
-  int32_t nrFields = (int32_t)m_fields.size();
-  CObArray::iterator itField;
+  size_t nrFields = mFields.size();
+
   CObArray::iterator itFile;
 
   CStringArray plotFieldNames;
 
-  for (itField = m_fields.begin() ; itField != m_fields.end() ; itField++)
+  for ( auto *field : mFields )
   {
-    CPlotField* field = CPlotField::GetPlotField(*itField);
     std::string fieldName = field->m_name;
 
     plotFieldNames.InsertUnique(fieldName);
 
     if ((field->m_xyProps != NULL) && (m_title.empty()) )
     {
-      m_title = field->m_xyProps->GetTitle();
+      m_title = field->m_xyProps->Title();
     }
 
     for (itFile = field->m_internalFiles.begin() ; itFile != field->m_internalFiles.end() ; itFile++)

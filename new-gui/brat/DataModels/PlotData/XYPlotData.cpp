@@ -40,466 +40,6 @@ using namespace brathl;
 #include "XYPlotData.h"
 
 
-
-//-------------------------------------------------------------
-//------------------- vtkDoubleArrayBrathl class --------------------
-//-------------------------------------------------------------
-
-//----------------------------------------------------------------------------
-//vtkStandardNewMacro(vtkDoubleArrayBrathl);
-//
-////----------------------------------------------------------------------------
-//void vtkDoubleArrayBrathl::PrintSelf(std::ostream& os, vtkIndent indent)
-//{
-//  this->vtkDoubleArray::PrintSelf(os,indent);
-//}
-////----------------------------------------------------------------------------
-//
-//void vtkDoubleArrayBrathl::ComputeRange( int comp )
-//{
-//	//---------------------------
-//	vtkDoubleArray::ComputeRange( comp );
-//	//---------------------------
-//	double s, t;
-//	vtkIdType numTuples;
-//
-//	if ( comp < 0 && this->NumberOfComponents == 1 )
-//	{
-//		comp = 0;
-//	}
-//
-//	int idx = comp;
-//	idx = ( idx<0 ) ? ( 4 ) : ( idx );
-//
-//	if ( ( this->GetMTime() > this->ComponentRangeComputeTime2[ idx ] ) )
-//	{
-//		numTuples=this->GetNumberOfTuples();
-//		this->Range2[ 0 ] =  VTK_DOUBLE_MAX;
-//		this->Range2[ 1 ] =  VTK_DOUBLE_MIN;
-//
-//		for ( vtkIdType i=0; i < numTuples; i++ )
-//		{
-//			if ( comp >= 0 )
-//			{
-//				s = this->GetComponent( i, comp );
-//				if ( isDefaultValue( s ) )
-//				{
-//					//------------------
-//					continue;
-//					//------------------
-//				}
-//			}
-//			else
-//			{ // Compute range of std::vector magnitude.
-//				s = 0.0;
-//				for ( int j=0; j < this->NumberOfComponents; ++j )
-//				{
-//					t = this->GetComponent( i, j );
-//					if ( isDefaultValue( t ) )
-//					{
-//						//------------------
-//						continue;
-//						//------------------
-//					}
-//					s += t*t;
-//				}
-//				s = sqrt( s );
-//			}
-//			if ( s < this->Range2[ 0 ] )
-//			{
-//				this->Range2[ 0 ] = s;
-//			}
-//			if ( s > this->Range2[ 1 ] )
-//			{
-//				this->Range2[ 1 ] = s;
-//			}
-//		}
-//		this->ComponentRangeComputeTime2[ idx ].Modified();
-//		this->ComponentRange2[ idx ][ 0 ] = this->Range2[ 0 ];
-//		this->ComponentRange2[ idx ][ 1 ] = this->Range2[ 1 ];
-//	}
-//	else
-//	{
-//		this->Range2[ 0 ] = this->ComponentRange2[ idx ][ 0 ];
-//		this->Range2[ 1 ] = this->ComponentRange2[ idx ][ 1 ];
-//	}
-//}
-//
-//
-//
-////-------------------------------------------------------------
-////------------------- vtkDataArrayPlotData class
-////-------------------------------------------------------------
-//
-////----------------------------------------------------------------------------
-//vtkDataArrayPlotData::vtkDataArrayPlotData()
-//{
-//  this->XDataArray = nullptr;
-//  this->YDataArray = nullptr;
-//  this->ZDataArray = nullptr;
-//  this->NumberOfItems = 0;
-//}
-//
-////----------------------------------------------------------------------------
-//vtkDataArrayPlotData::~vtkDataArrayPlotData()
-//{
-//  if (this->XDataArray != nullptr)
-//    {
-//    this->XDataArray->UnRegister(this);
-//    }
-//  if (this->YDataArray != nullptr)
-//    {
-//    this->YDataArray->UnRegister(this);
-//    }
-//  if (this->ZDataArray != nullptr)
-//    {
-//    this->ZDataArray->UnRegister(this);
-//    }
-//}
-//
-////----------------------------------------------------------------------------
-//void vtkDataArrayPlotData::SetXDataArray( vtkDoubleArrayBrathl *dataArray )
-//{
-//	if ( this->XDataArray != dataArray )
-//	{
-//		if ( dataArray != nullptr )
-//		{
-//			dataArray->Register( this );
-//		}
-//		if ( this->XDataArray != nullptr )
-//		{
-//			this->XDataArray->UnRegister( this );
-//		}
-//		this->XDataArray = dataArray;
-//		this->Modified();
-//	}
-//}
-//
-////----------------------------------------------------------------------------
-//void vtkDataArrayPlotData::SetYDataArray(vtkDoubleArrayBrathl *dataArray)
-//{
-//  if (this->YDataArray != dataArray)
-//    {
-//    if (dataArray != nullptr)
-//      {
-//      dataArray->Register(this);
-//      }
-//    if (this->YDataArray != nullptr)
-//      {
-//      this->YDataArray->UnRegister(this);
-//      }
-//    this->YDataArray = dataArray;
-//    this->Modified();
-//    }
-//}
-//
-////----------------------------------------------------------------------------
-//void vtkDataArrayPlotData::SetZDataArray(vtkDoubleArrayBrathl *dataArray)
-//{
-//  if (this->ZDataArray != dataArray)
-//    {
-//    if (dataArray != nullptr)
-//      {
-//      dataArray->Register(this);
-//      }
-//    if (this->ZDataArray != nullptr)
-//      {
-//      this->ZDataArray->UnRegister(this);
-//      }
-//    this->ZDataArray = dataArray;
-//    this->Modified();
-//    }
-//}
-//
-////----------------------------------------------------------------------------
-//// NumberOfItems is set to the minimum number of tuples of all data arrays.
-//// Only data arrays that are not null pointers are checked. If both the X, Y
-//// and Z data arrays are null pointers then NumberOfItems is set to 0.
-//void vtkDataArrayPlotData::Execute()
-//{
-//  vtkIdType numberOfTuples;
-//
-//  vtkDebugMacro(<<"Updating NumberOfItems");
-//
-//  this->NumberOfItems = -1;
-//
-//  if (this->XDataArray != nullptr)
-//    {
-//    numberOfTuples = this->XDataArray->GetNumberOfTuples();
-//    if (this->NumberOfItems == -1)
-//      {
-//      this->NumberOfItems = numberOfTuples;
-//      }
-//    }
-//  if (this->YDataArray != nullptr)
-//    {
-//    numberOfTuples = this->YDataArray->GetNumberOfTuples();
-//    if (this->NumberOfItems == -1 || this->NumberOfItems > numberOfTuples)
-//      {
-//      this->NumberOfItems = numberOfTuples;
-//      }
-//    }
-//  if (this->ZDataArray != nullptr)
-//    {
-//    numberOfTuples = this->ZDataArray->GetNumberOfTuples();
-//    if (this->NumberOfItems == -1 || this->NumberOfItems > numberOfTuples)
-//      {
-//      this->NumberOfItems = numberOfTuples;
-//      }
-//    }
-//  if (this->NumberOfItems == -1)
-//    {
-//    this->NumberOfItems = 0;
-//    }
-//
-//  this->vtkPlotData::Execute();
-//}
-//
-////----------------------------------------------------------------------------
-//double vtkDataArrayPlotData::GetXValue(int i)
-//{
-//  if (this->XDataArray != nullptr)
-//    {
-//    return this->XDataArray->GetTuple1(i);
-//    }
-//  return 0.0;
-//}
-//
-////----------------------------------------------------------------------------
-//double vtkDataArrayPlotData::GetYValue(int i)
-//{
-//  if (this->YDataArray != nullptr)
-//    {
-//    return this->YDataArray->GetTuple1(i);
-//    }
-//  return 0.0;
-//}
-//
-////----------------------------------------------------------------------------
-//double vtkDataArrayPlotData::GetZValue(int i)
-//{
-//  if (this->ZDataArray != nullptr)
-//    {
-//    return this->ZDataArray->GetTuple1(i);
-//    }
-//  return 0.0;
-//}
-//
-////----------------------------------------------------------------------------
-//int vtkDataArrayPlotData::GetNumberOfItems()
-//{
-//  return this->NumberOfItems;
-//}
-//
-////----------------------------------------------------------------------------
-//unsigned long vtkDataArrayPlotData::GetMTime()
-//{
-//  unsigned long mTime = this->vtkPlotData::GetMTime();
-//  unsigned long time;
-//
-//  vtkDebugMacro(<<"Returning modification time");
-//
-//  if (this->XDataArray != nullptr)
-//    {
-//    time = this->XDataArray->GetMTime();
-//    mTime = time > mTime ? time : mTime;
-//    }
-//  if (this->YDataArray != nullptr)
-//    {
-//    time = this->YDataArray->GetMTime();
-//    mTime = time > mTime ? time : mTime;
-//    }
-//  if (this->ZDataArray != nullptr)
-//    {
-//    time = this->ZDataArray->GetMTime();
-//    mTime = time > mTime ? time : mTime;
-//    }
-//
-//  return mTime;
-//}
-//
-//
-//
-//
-////-------------------------------------------------------------
-////------------------- CPlotArray class --------------------
-////-------------------------------------------------------------
-//CPlotArray::CPlotArray()
-//{
-//  m_didCalculateRange = false;
-//  setDefaultValue(m_min);
-//  setDefaultValue(m_max);
-//}
-////----------------------------------------
-//CPlotArray::~CPlotArray()
-//{
-//}
-////----------------------------------------
-//vtkDoubleArrayBrathl* CPlotArray::GetFrameData(size_t r)
-//{
-//  if (r >= m_rows.size())
-//  {
-//    r = m_rows.size() - 1;
-//  }
-//
-//  vtkDoubleArrayBrathl* data = dynamic_cast<vtkDoubleArrayBrathl*>(m_rows.at(r));
-//  if (data == nullptr)
-//  {
-//    std::string msg =
-//            "ERROR in CPlotArray::GetFrameData: dynamic_cast<vtkDoubleArrayBrathl*>(m_rows.at("
-//            + n2s<std::string>( r )
-//            + ") returns nullptr pointer - "
-//            "Plot Array (rows) seems to contain objects other than those of the class vtkDoubleArrayBrathl class";
-//    CException e(msg, BRATHL_LOGIC_ERROR);
-//    throw (e);
-//  }
-//
-//  return data;
-//
-//}
-////----------------------------------------
-//vtkDoubleArrayBrathl* CPlotArray::GetFrameData(vtkObArray::iterator it)
-//{
-//  vtkDoubleArrayBrathl* data = dynamic_cast<vtkDoubleArrayBrathl*>(*it);
-//  if (data == nullptr)
-//  {
-//    throw CException("ERROR in  GetFrameData(CObArray::iterator it) : dynamic_cast<vtkDoubleArrayBrathl*>(*it); returns nullptr pointer - "
-//                 "CPlot Array seems to contain objects other than those of the class vtkDoubleArrayBrathl or derived class", BRATHL_LOGIC_ERROR);
-//  }
-//  return data;
-//
-//}
-////----------------------------------------
-//void CPlotArray::SetFrameData( uint32_t r, double* vect, int32_t size )
-//{
-//	const bool bCopy = 
-//
-//#if defined(BRAT_V3)
-//		false;
-//#else
-//		true;
-//#endif
-//
-//	double* newVect = nullptr;
-//	if ( bCopy )
-//	{
-//		newVect = new double[ size ];
-//		memcpy( newVect, vect, size * sizeof( *vect ) );
-//	}
-//	else
-//	{
-//		newVect = vect;
-//	}
-//	vtkDoubleArrayBrathl* vtkArray = vtkDoubleArrayBrathl::New();
-//	// This method lets the user specify data to be held by the array.
-//	// The array argument is a pointer to the data.
-//	// size is the size of the array supplied by the user.
-//	// Set save to 1 to keep the class from deleting the array when it cleans up or reallocates memory.
-//	// The class uses the actual array provided; it does not copy the data from the suppled array
-//	vtkArray->SetArray( newVect, size, 0 );
-//
-//	SetFrameData( r, vtkArray );
-//}
-////----------------------------------------
-//void CPlotArray::SetFrameData( uint32_t r, vtkDoubleArrayBrathl* vect )
-//{
-//	//if (r == m_rows.size())
-//	if ( r >= m_rows.size() )
-//	{
-//		m_rows.Insert( vect );
-//	}
-//	else if ( r < m_rows.size() )
-//	{
-//		m_rows.ReplaceAt( m_rows.begin() + r, vect );
-//	}
-//	else
-//	{
-//		std::string msg = CTools::Format( "ERROR in  CPlotArray::SetFrameData : index %d out-of-range : [0, %ld]",
-//			r, (long)m_rows.size() );
-//		CException e( msg, BRATHL_LOGIC_ERROR );
-//		throw ( e );
-//
-//	}
-//	m_didCalculateRange = false;
-//}
-////----------------------------------------
-//void CPlotArray::GetRange(double& min, double& max, uint32_t frame)
-//{
-//
-//  setDefaultValue(min);
-//  setDefaultValue(max);
-//
-//  vtkDoubleArrayBrathl* data = GetFrameData(frame);
-//  if (data == nullptr)
-//  {
-//    return;
-//  }
-//
-//  min = data->GetRange2()[0];
-//  max = data->GetRange2()[1];
-//
-//}
-////----------------------------------------
-//void CPlotArray::GetRange(double& min, double& max)
-//{
-//  if (m_didCalculateRange)
-//  {
-//    min = m_min;
-//    max = m_max;
-//    return;
-//  }
-//
-//  vtkObArray::iterator it;
-//  setDefaultValue(min);
-//  setDefaultValue(max);
-//
-//  for (it = m_rows.begin(); it != m_rows.end() ; it++)
-//  {
-//    vtkDoubleArrayBrathl* data = GetFrameData(it);
-//    double l = data->GetRange2()[0];
-//    double h = data->GetRange2()[1];
-//
-//    //data->GetRange(l, h);
-//
-//    if (isDefaultValue(min))
-//    {
-//      min = l;
-//      max = h;
-//    }
-//    else
-//    {
-//      min = (min > l) ? l : min;
-//      max = (max > h) ? max : h;
-//    }
-//  }
-//
-//  m_min = min;
-//  m_max = max;
-//
-//  m_didCalculateRange = true;
-//}
-////----------------------------------------
-//void CPlotArray::Normalize(int32_t value)
-//{
-//  double l = 0;
-//  double h = 0;
-//  GetRange(l, h);
-//
-//  int i =0;
-//
-//  vtkObArray::iterator it;
-//
-//  for (it = m_rows.begin(); it != m_rows.end() ; it++)
-//  {
-//    vtkDoubleArrayBrathl* data = GetFrameData(it);
-//    for (i = 0 ; i < data->GetNumberOfTuples(); i++)
-//    {
-//      data->SetValue(i, ((data->GetValue(i) - l) / (h - l)) * value);
-//    }
-//  }
-//  m_didCalculateRange = false;
-//}
-
 //-------------------------------------------------------------
 //------------------- CXYPlotProperties class --------------------
 //-------------------------------------------------------------
@@ -572,21 +112,83 @@ CXYPlotProperties::CXYPlotProperties( CXYPlotData* parent )
 	SetFilledPoint( true );
 
 	SetHide( false );
-
 }
 
 //----------------------------------------
-CXYPlotProperties::CXYPlotProperties(CXYPlotProperties& o)
+const CXYPlotProperties& CXYPlotProperties::operator = ( const CXYPlotProperties& o )
 {
-  m_focus = false;
-  this->Copy(o);
-}
+	if ( this != &o )
+	{
+		*static_cast<base_t*>( this ) = static_cast<const base_t&>( o );
 
-//----------------------------------------
-const CXYPlotProperties& CXYPlotProperties::operator=( const CXYPlotProperties& o )
-{
-  this->Copy(o);
-  return *this;
+		SetParent( o.GetParent() );
+
+#if defined(BRAT_V3)
+		m_vtkProperty2D = vtkProperty2D::New();
+
+		SetLineStipple( o.GetLineStipple() );
+		SetLineWidth( o.GetLineWidth() );
+		SetOpacity( o.GetOpacity() );
+
+#endif
+
+		m_lineWidthFactor = o.m_lineWidthFactor;
+		m_focus = o.GetFocus();
+
+		SetLines( o.GetLines() );
+		SetPoints( o.GetPoints() );
+
+		SetPointSize( o.GetPointSize() );
+
+		SetXMax( o.GetXMax() );
+		SetYMax( o.GetYMax() );
+
+		SetXMin( o.GetXMin() );
+		SetYMin( o.GetYMin() );
+
+		SetXLog( o.GetXLog() );
+		SetYLog( o.GetYLog() );
+
+		SetShowAnimationToolbar( o.GetShowAnimationToolbar() );
+		SetShowPropertyPanel( o.GetShowPropertyPanel() );
+
+		SetLoop( o.GetLoop() );
+
+		SetNormalizeX( o.GetNormalizeX() );
+		SetNormalizeY( o.GetNormalizeY() );
+
+		SetFps( o.GetFps() );
+
+		SetXNumTicks( o.GetXNumTicks() );
+		SetYNumTicks( o.GetYNumTicks() );
+
+		SetXBase( o.GetXBase() );
+		SetYBase( o.GetYBase() );
+
+		SetColor( o.GetColor() );
+
+		SetXAxis( o.GetXAxis() );
+		SetXLabel( o.GetXLabel() );
+		SetYLabel( o.GetYLabel() );
+
+		SetPointGlyph( o.GetPointGlyph() );
+		SetFilledPoint( o.GetFilledPoint() );
+
+		SetOpacityFactor( o.GetOpacityFactor() );
+
+		SetHide( o.GetHide() );
+
+		mColor = o.mColor;
+		mPointColor = o.mPointColor;
+		mOpacity = o.mOpacity;
+		mLineWidth = o.mLineWidth;
+
+#if !defined(BRAT_V3)
+
+		mStipplePattern = o.mStipplePattern;
+#endif
+	}
+	return *this;
 }
 
 //----------------------------------------
@@ -600,79 +202,7 @@ CXYPlotProperties::~CXYPlotProperties()
 	}
 #endif
 }
-//----------------------------------------
-void CXYPlotProperties::Copy( const CXYPlotProperties& o )
-{
-	SetParent( o.GetParent() );
 
-#if defined(BRAT_V3)
-	m_vtkProperty2D = vtkProperty2D::New();
-
-	SetLineStipple( o.GetLineStipple() );
-	SetLineWidth( o.GetLineWidth() );
-	SetOpacity( o.GetOpacity() );
-
-#endif
-
-	m_lineWidthFactor = o.m_lineWidthFactor;
-	m_focus = o.GetFocus();
-
-	SetLines( o.GetLines() );
-	SetPoints( o.GetPoints() );
-
-	SetPointSize( o.GetPointSize() );
-
-	SetXMax( o.GetXMax() );
-	SetYMax( o.GetYMax() );
-
-	SetXMin( o.GetXMin() );
-	SetYMin( o.GetYMin() );
-
-	SetXLog( o.GetXLog() );
-	SetYLog( o.GetYLog() );
-
-	SetShowAnimationToolbar( o.GetShowAnimationToolbar() );
-	SetShowPropertyPanel( o.GetShowPropertyPanel() );
-
-	SetLoop( o.GetLoop() );
-
-	SetNormalizeX( o.GetNormalizeX() );
-	SetNormalizeY( o.GetNormalizeY() );
-
-	SetFps( o.GetFps() );
-
-	SetXNumTicks( o.GetXNumTicks() );
-	SetYNumTicks( o.GetYNumTicks() );
-
-	SetXBase( o.GetXBase() );
-	SetYBase( o.GetYBase() );
-
-	SetColor( o.GetColor() );
-
-	SetTitle( o.GetTitle() );
-	m_name = o.m_name;
-	SetXAxis( o.GetXAxis() );
-	SetXLabel( o.GetXLabel() );
-	SetYLabel( o.GetYLabel() );
-
-	SetPointGlyph( o.GetPointGlyph() );
-	SetFilledPoint( o.GetFilledPoint() );
-
-	SetOpacityFactor( o.GetOpacityFactor() );
-
-	SetHide( o.GetHide() );
-
-	mColor = o.mColor;
-	mPointColor = o.mPointColor;
-	mOpacity = o.mOpacity;
-	mLineWidth = o.mLineWidth ;
-
-#if !defined(BRAT_V3)
-
-	mStipplePattern = o.mStipplePattern;
-#endif
-
-}
 //----------------------------------------
 void CXYPlotProperties::Update()
 {
@@ -909,7 +439,7 @@ void CXYPlotProperties::SetOpacity( double value )
 //----------------------------------------
 void CXYPlotProperties::SetName( const std::string& value )
 {
-	m_name = value;
+	base_t::SetName( value );
 
 	if ( !HasParent() )
 	{
@@ -1057,8 +587,7 @@ void CXYPlotProperties::SetColor( const CPlotColor& color )
 //-------------------------------------------------------------
 
 CXYPlotData::CXYPlotData( CPlot* plot, int32_t iField )
-	: base_t()
-	, mFieldName( plot->GetPlotField( iField )->m_name )
+	: base_t( { plot->GetPlotField( iField )->m_name } )
 {
 	m_plotProperty.SetParent( this );
 
@@ -1081,11 +610,6 @@ CXYPlotData::CXYPlotData( CPlot* plot, int32_t iField )
 }
 
 //----------------------------------------
-CXYPlotData::~CXYPlotData()
-{
-	m_otherVars.RemoveAll();
-}
-//----------------------------------------
 void CXYPlotData::Create( CInternalFiles* yfx, CPlot* plot, int32_t iField )
 {
 	std::string varXName;
@@ -1096,7 +620,7 @@ void CXYPlotData::Create( CInternalFiles* yfx, CPlot* plot, int32_t iField )
 	std::string unitXStr;
 	std::string unitYStr;
 
-	if ( m_plotProperty.GetTitle().empty() )
+	if ( m_plotProperty.Title().empty() )
 	{
 		m_plotProperty.SetTitle( plot->m_title );
 	}

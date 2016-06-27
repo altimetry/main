@@ -47,8 +47,7 @@ public:
 
 	std::string m_title;
 
-	// a map that contains CPlotField object
-	CObArray m_fields;
+	std::vector<CPlotField*> mFields;
 	CStringArray m_nonPlotFieldNames;
 
 	std::string m_titleX;
@@ -93,7 +92,7 @@ public:
 		return BaseTitle() + " - " + titleTmp + n2s< std::string >( m_groupNumber );
 	}
 
-	CPlotField* GetPlotField( int32_t index );
+	CPlotField* GetPlotField( size_t index );
 
 	CPlotField* FindPlotField( const std::string& fieldName, bool* withContour = NULL, bool* withSolidColor = NULL );
 

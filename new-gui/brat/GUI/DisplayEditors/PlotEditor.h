@@ -99,8 +99,6 @@ private:
 
 	//...domain data
 
-	CDisplayData *mCurrentDisplayData = nullptr;
-
 	CXYPlotDataCollection mDataArrayXY;
 	CXYPlotProperties *mPropertiesXY = nullptr;
 	bool mMultiFrame = false;					//	bool mPanelMultiFrame;	2 variables in v3: one in the window, the other in the panel

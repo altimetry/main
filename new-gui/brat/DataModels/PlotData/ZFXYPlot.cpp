@@ -68,13 +68,11 @@ void CZFXYPlot::GetInfo()
 
   CStringArray varDimsRef;
 
-  CObArray::iterator itField;
   CObArray::iterator itFile;
 
   // Check dimensions of the plotted variables
-  for (itField = m_fields.begin() ; itField != m_fields.end() ; itField++)
+  for ( auto *field : mFields )
   {
-    CPlotField* field = CPlotField::GetPlotField(*itField);
     std::string fieldName = field->m_name;
 
     CInternalFiles* zfxy = CZFXYPlot::GetInternalFiles(*(field->m_internalFiles.begin()));
@@ -125,9 +123,8 @@ void CZFXYPlot::GetInfo()
 
 
   //
-  for (itField = m_fields.begin() ; itField != m_fields.end() ; itField++)
+  for ( auto *field : mFields )
   {
-    CPlotField* field = CPlotField::GetPlotField(*itField);
     std::string fieldName = field->m_name;
 
     if ((field->m_xyProps != NULL) && (m_title.empty()) )

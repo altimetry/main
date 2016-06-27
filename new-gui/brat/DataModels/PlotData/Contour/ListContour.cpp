@@ -451,13 +451,13 @@ bool CListContour::CompactStrips()
 				{			
 					if (OnBoundary(pStripBase)) 
 					{
-						LOG_WARN("# open strip ends on boundary, continue.\n");
+						LOG_TRACE("# open strip ends on boundary, continue.\n");
 						m_vStripLists[i].insert(m_vStripLists[i].begin(),pStripBase);
 						newList.pop_front();
 					} 
 					else 
 					{
-						LOG_WARN("unpaird open strip at 1!");
+						LOG_TRACE("unpaird open strip at 1!");
 						//newList.pop_front();//femmfemmfemmefemm
 						//continue;			//femmfemmfemmefemm
 						return false;
@@ -471,13 +471,13 @@ bool CListContour::CompactStrips()
 				pStripBase = newList.front();
 				if (OnBoundary(pStripBase)) 
 				{
-					LOG_WARN("# open strip ends on boundary, continue.\n");
+					LOG_TRACE("# open strip ends on boundary, continue.\n");
 					m_vStripLists[i].insert(m_vStripLists[i].begin(),pStripBase);
 					newList.pop_front();
 				} 
 				else 
 				{
-					LOG_WARN("unpaird open strip at 2!");
+					LOG_TRACE("unpaird open strip at 2!");
 					DumpPlane(i);
 					return false;
 				}
@@ -500,11 +500,11 @@ bool CListContour::CompactStrips()
 			}
 			if (OnBoundary(pStripBase)) 
 			{
-				LOG_WARN("# open strip ends on boundary, continue.\n");
+				LOG_TRACE("# open strip ends on boundary, continue.\n");
 			} 
 			else 
 			{
-				LOG_WARN("unpaird open strip at 3!");
+				LOG_TRACE("unpaird open strip at 3!");
 				DumpPlane(i);
 				return false;
 			}
@@ -548,15 +548,15 @@ void CListContour::DumpPlane(unsigned long iPlane) const
 	
 	assert__(iPlane>=0);
 	assert__(iPlane<GetNPlanes());
-	LOG_WARN("Level : %d"),GetPlane(iPlane);
+	LOG_TRACE("Level : %d"),GetPlane(iPlane);
 	
-	LOG_WARN("Number of strips : %d\r\n"),m_vStripLists[iPlane].size();
-	LOG_WARN("i np start end xstart ystart xend yend\r\n");
+	LOG_TRACE("Number of strips : %d\r\n"),m_vStripLists[iPlane].size();
+	LOG_TRACE("i np start end xstart ystart xend yend\r\n");
 	for (pos = m_vStripLists[iPlane].begin(), i=0; pos != m_vStripLists[iPlane].end(); pos++, i++)
 	{
 		pStrip=*pos;
 		assert__(pStrip);
-        LOG_WARN(
+        LOG_TRACEstd(
                     n2s<std::string>(i) + " " +
                     n2s<std::string>(pStrip->size()) + " " +
                     n2s<std::string>(pStrip->front()) + " " +
@@ -603,7 +603,7 @@ double CListContour::Area(CLineStrip* Line)
 	if ((x0-x)*(x0-x) + (y0-y)*(y0-y)>20*(m_dDx*m_dDx+m_dDy*m_dDy)) 
 	{
 		Ar = 0;
-		LOG_WARN("# open curve!\n");
+		LOG_TRACE("# open curve!\n");
 	}
 	//else   Ar /= -2;
 	else Ar/=4;
@@ -632,7 +632,7 @@ bool::CListContour::PrintContour( char *fname )
 	std::ofstream file( fname );
 	if ( !file )
 	{
-		LOG_WARN( "cannot open output file.\n" );
+		LOG_TRACE( "cannot open output file.\n" );
 		return false;
 	}
 

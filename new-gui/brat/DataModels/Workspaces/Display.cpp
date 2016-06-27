@@ -231,10 +231,10 @@ public:
 		mDisplay.m_zoom.GetAsString( array );
 		if ( array.size() == 4 )
 		{
-			WriteLn( FmtCmdParam( kwDISPLAY_ZOOM_LAT1 ) + array.at( 0 ).c_str() );
-			WriteLn( FmtCmdParam( kwDISPLAY_ZOOM_LON1 ) + array.at( 1 ).c_str() );
-			WriteLn( FmtCmdParam( kwDISPLAY_ZOOM_LAT2 ) + array.at( 2 ).c_str() );
-			WriteLn( FmtCmdParam( kwDISPLAY_ZOOM_LON2 ) + array.at( 3 ).c_str() );
+			WriteLn( FmtCmdParam( kwDISPLAY_ZOOM_LAT1 ) + array.at( 0 ) );
+			WriteLn( FmtCmdParam( kwDISPLAY_ZOOM_LON1 ) + array.at( 1 ) );
+			WriteLn( FmtCmdParam( kwDISPLAY_ZOOM_LAT2 ) + array.at( 2 ) );
+			WriteLn( FmtCmdParam( kwDISPLAY_ZOOM_LON2 ) + array.at( 3 ) );
 		}
 
 		return true;
@@ -243,11 +243,6 @@ public:
 
 	bool BuildCmdFileFields( std::string errorMsg )
 	{
-		return mDisplay.m_type == CMapTypeDisp::eTypeDispYFX ? BuildCmdFileFieldsYFX( errorMsg ) : BuildCmdFileFieldsZFXY( errorMsg );
-	}
-
-	bool BuildCmdFileFieldsYFX( std::string errorMsg )
-	{
 		for ( CMapDisplayData::const_iterator it = mDisplay.m_data.begin(); it != mDisplay.m_data.end(); it++ )
 		{
 			CDisplayData* value = dynamic_cast<CDisplayData*>( it->second );
@@ -266,24 +261,6 @@ public:
 		return true;
 	}
 
-	bool BuildCmdFileFieldsZFXY( std::string errorMsg )
-	{
-		for ( CMapDisplayData::const_iterator it = mDisplay.m_data.begin(); it != mDisplay.m_data.end(); it++ )
-		{
-			CDisplayData* value = dynamic_cast<CDisplayData*>( it->second );
-			if ( value == nullptr )
-				continue;
-
-			WriteLn();
-			Comment( "----- " + value->GetField()->GetName() + " FIELD -----" );
-			WriteLn();
-			WriteLn( kwFIELD + "=" + value->GetField()->GetName() );
-			WriteLn( kwFILE + "=" + value->GetOperation()->GetOutputPath() );
-			BuildCmdFileFieldProperties( ( it->first ).c_str(), errorMsg );
-		}
-
-		return true;
-	}
 
 	bool BuildCmdFileFieldProperties( const std::string& dataKey, std::string errorMsg )
 	{
@@ -394,11 +371,14 @@ const unsigned CDisplayData::smDefaultNumberOfBins = 20;
 CDisplayData::CDisplayData( const CDisplayData &o, const CWorkspaceOperation *wkso )
 {
 	Init();
+
+	//	identity / fields
+
+	m_type = o.m_type;
+
 	m_field.SetName( o.m_field.GetName() );
 	m_field.SetUnit( o.m_field.GetUnit() );
 	m_field.SetDescription( o.m_field.GetDescription() );
-
-	m_type = o.m_type;
 
 	m_x.SetName( o.m_x.GetName() );
 	m_x.SetUnit( o.m_x.GetUnit() );
@@ -411,27 +391,95 @@ CDisplayData::CDisplayData( const CDisplayData &o, const CWorkspaceOperation *wk
 	m_z.SetName( o.m_z.GetName() );
 	m_z.SetUnit( o.m_z.GetUnit() );
 	m_z.SetDescription( o.m_z.GetDescription() );
+	
+	//0...group ( TBC )
+	m_group = o.m_group;
+
+	//1...operation
 
 	m_operation = nullptr;
 	if ( o.m_operation != nullptr )
 		m_operation = wkso->GetOperation( o.m_operation->GetName() );
 
-	m_group = o.m_group;
+	//2...vector
+
+	mEastComponent = o.mEastComponent;
+	mNorthComponent = o.mNorthComponent;
+
+	//3...contour
+
 	m_withContour = o.m_withContour;
+
+	//4...solid color
+
 	m_withSolidColor = o.m_withSolidColor;
+
+	//5...color table && color table range
+
+	mLUT = o.mLUT;
 	mCurrentMinValue = o.mCurrentMinValue;
 	mCurrentMaxValue = o.mCurrentMaxValue;
 	mAbsoluteMinValue = o.mAbsoluteMinValue;
 	mAbsoluteMaxValue = o.mAbsoluteMaxValue;
 	m_colorPalette = o.m_colorPalette;
-	m_xAxis = o.m_xAxis;
 
+	//6...axis
+
+	m_xAxis = o.m_xAxis;
 	m_invertXYAxes = o.m_invertXYAxes;
 
-	m_eastcomponent = o.m_eastcomponent;
-	m_northcomponent = o.m_northcomponent;
+	//7...histogram
+
+	mNumberOfBins = o.mNumberOfBins;
 }
 
+
+//----------------------------------------
+void CDisplayData::CopyFieldUserProperties( CDisplayData &o  )
+{
+	//	identity / fields
+
+	m_field.SetDescription( o.m_field.GetDescription() );
+
+	m_x.SetDescription( o.m_x.GetDescription() );
+	m_y.SetDescription( o.m_y.GetDescription() );
+	m_z.SetDescription( o.m_z.GetDescription() );
+
+	//2...vector
+
+	mEastComponent = o.mEastComponent;
+	mNorthComponent = o.mNorthComponent;
+
+	//3...contour
+
+	m_withContour = o.m_withContour;
+
+	//4...solid color
+
+	m_withSolidColor = o.m_withSolidColor;
+
+	//5...color table && color table range
+
+	mLUT = o.mLUT;
+	mCurrentMinValue = o.mCurrentMinValue;
+	mCurrentMaxValue = o.mCurrentMaxValue;
+	mAbsoluteMinValue = o.mAbsoluteMinValue;
+	mAbsoluteMaxValue = o.mAbsoluteMaxValue;
+	m_colorPalette = o.m_colorPalette;
+
+	//6...axis
+
+	m_xAxis = o.m_xAxis;
+	m_invertXYAxes = o.m_invertXYAxes;
+
+	//7...histogram
+
+	mNumberOfBins = o.mNumberOfBins;
+}
+//----------------------------------------
+
+
+//static 
 std::string CDisplayData::GetValueAsText( double value )
 {
 	auto SprintfFormat = []( const std::string &format, double value )
@@ -447,33 +495,6 @@ std::string CDisplayData::GetValueAsText( double value )
 
 	return SprintfFormat( FMT_FLOAT_XY, value );
 }
-
-
-//----------------------------------------
-void CDisplayData::CopyFieldUserProperties(CDisplayData& d)
-{
-  m_field.SetDescription(d.m_field.GetDescription());
-
-  m_x.SetDescription(d.m_x.GetDescription());
-  m_y.SetDescription(d.m_y.GetDescription());
-  m_z.SetDescription(d.m_z.GetDescription());
-
-  m_withContour = d.m_withContour;
-  m_withSolidColor = d.m_withSolidColor;
-  mCurrentMinValue = d.mCurrentMinValue;
-  mCurrentMaxValue = d.mCurrentMaxValue;
-  mAbsoluteMinValue = d.mAbsoluteMinValue;
-  mAbsoluteMaxValue = d.mAbsoluteMaxValue;
-  m_colorPalette = d.m_colorPalette;
-  m_xAxis = d.m_xAxis;
-
-  m_invertXYAxes = d.m_invertXYAxes;
-
-  m_eastcomponent = d.m_eastcomponent;
-  m_northcomponent = d.m_northcomponent;
-
-}
-//----------------------------------------
 
 //static 
 #if defined(BRAT_V3)
@@ -506,7 +527,7 @@ std::string CDisplayData::GetDataKey( CMapTypeDisp::ETypeDisp type )
     return MakeKey( m_operation, m_field.GetName(), type );
 #else
 
-	return MakeKey( m_field.GetName(), type );
+	return MakeKey( FieldName(), type );
 
 #endif
 }
@@ -639,22 +660,7 @@ void CDisplayData::GetAvailableAxes( CStringArray& names )
 
 	}
 }
-//----------------------------------------
-bool CDisplayData::LoadConfig( CWorkspaceSettings *config, const std::string& path, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso )
-{
-	assert__( config );	//v4
-	//return !config || config->LoadConfig( *this, path, wks, wkso );
 
-	return config->LoadConfig( *this, path, wks, wkso );
-}
-//----------------------------------------
-bool CDisplayData::SaveConfig( CWorkspaceSettings *config, const std::string& pathSuff, CWorkspaceDisplay *wksd )
-{
-	assert__( config );	//v4
-	//return !config || config->SaveConfig( *this, pathSuff, wksd );
-
-	return config->SaveConfig( *this, pathSuff, wksd );
-}
 
 //-------------------------------------------------------------
 //------------------- CMapDisplayData class --------------------

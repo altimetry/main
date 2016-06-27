@@ -8,7 +8,6 @@
 #include "libbrathl/InternalFilesZFXY.h"
 #include "libbrathl/InternalFilesYFX.h"
 
-//#include "PlotData/PlotField.h"
 #include "PlotData/ZFXYPlot.h"
 #include "PlotData/XYPlot.h"
 #include "PlotData/WorldPlot.h"
@@ -29,9 +28,8 @@ bool CDisplayFilesProcessor::GetParametersNetcdfYFX( CExternalFilesNetCDF* exter
 	{
 		CStringArray varNames;
 		externalFile->GetVariables( varNames );
-		CStringArray::const_iterator it;
 
-		for ( it = varNames.begin(); it != varNames.end(); it++ )
+		for ( auto it = varNames.begin(); it != varNames.end(); it++ )
 		{
 			if ( ( *it ).compare( m_paramXAxis.c_str() ) == 0 )
 			{
@@ -72,13 +70,13 @@ bool CDisplayFilesProcessor::GetParametersNetcdfYFX( CExternalFilesNetCDF* exter
 		}
 	}
 
-	if ( ( m_paramYAxis.empty() == false ) && ( nFields > 1 ) )
+	if ( !m_paramYAxis.empty() && nFields > 1 )
 	{
 		m_paramXAxis = m_paramYAxis;
 		m_paramYAxis = "";
 	}
 
-	if ( ( m_paramYAxis.empty() == false ) && ( nFields == 1 ) )
+	if ( !m_paramYAxis.empty() && nFields == 1 )
 	{
 		m_paramXAxis = *( m_paramVars.begin() );
 		m_paramVars.RemoveAll();
@@ -94,7 +92,6 @@ bool CDisplayFilesProcessor::GetParametersNetcdfYFX( CExternalFilesNetCDF* exter
 			m_paramXAxis.c_str() );
 		CException e( msg, BRATHL_INCONSISTENCY_ERROR );
 		throw ( e );
-
 	}
 
 	if ( xDimValues.size() > 2 )
@@ -106,9 +103,7 @@ bool CDisplayFilesProcessor::GetParametersNetcdfYFX( CExternalFilesNetCDF* exter
 	}
 
 
-	CStringList::const_iterator itParamVar;
-
-	for ( itParamVar = m_paramVars.begin(); itParamVar != m_paramVars.end(); itParamVar++ )
+	for ( auto itParamVar = m_paramVars.begin(); itParamVar != m_paramVars.end(); itParamVar++ )
 	{
 		CUIntArray dimValues;
 		externalFile->GetDimensions( ( *itParamVar ), dimValues );
@@ -139,17 +134,17 @@ bool CDisplayFilesProcessor::GetParametersNetcdfYFX( CExternalFilesNetCDF* exter
 
 	uint32_t index = 0;
 
-	for ( itParamVar = m_paramVars.begin(); itParamVar != m_paramVars.end(); itParamVar++ )
+	for ( auto itParamVar = m_paramVars.begin(); itParamVar != m_paramVars.end(); itParamVar++ )
 	{
 		// Add field to xy plot group
 		CPlot* plot = dynamic_cast<CPlot*>( m_plots[ groupNumber ] );
-		if ( plot == NULL )
+		if ( plot == nullptr )
 		{
 			plot = new CPlot( groupNumber );
 			m_plots[ groupNumber ] = plot;
 		}
-		CPlotField* field = new CPlotField( ( *itParamVar ).c_str() );
-		plot->m_fields.Insert( field );
+		CPlotField* field = new CPlotField( *itParamVar );
+		plot->mFields.push_back( field );
 
 		if ( m_paramXAxis.empty() == false )
 		{
@@ -179,9 +174,9 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFXY( CExternalFilesNetCDF* exte
 
 	CNetCDFFiles* netCDFFile = externalFile->GetFile();
 
-	if ( netCDFFile == NULL )
+	if ( netCDFFile == nullptr )
 	{
-		std::string msg = CTools::Format( "ERROR - The input file '%s' is not a NetCdf file (internal file is NULL)",
+		std::string msg = CTools::Format( "ERROR - The input file '%s' is not a NetCdf file (internal file is nullptr)",
 			externalFile->GetName().c_str() );
 		CException e( msg, BRATHL_INCONSISTENCY_ERROR );
 		throw ( e );
@@ -196,8 +191,8 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFXY( CExternalFilesNetCDF* exte
 
 	int32_t nFields = (int32_t)m_paramVars.size();
 
-	CFieldNetCdf* fieldX = NULL;
-	CFieldNetCdf* fieldY = NULL;
+	CFieldNetCdf* fieldX = nullptr;
+	CFieldNetCdf* fieldY = nullptr;
 
 	bool bFoundLatDim = false;
 	bool bFoundLonDim = false;
@@ -209,20 +204,20 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFXY( CExternalFilesNetCDF* exte
 	{
 		CStringArray varNames;
 		externalFile->GetVariables( varNames );
-		CStringArray::const_iterator it;
 
-		for ( it = varNames.begin(); it != varNames.end(); it++ )
+
+		for ( auto it = varNames.begin(); it != varNames.end(); it++ )
 		{
 			bFoundLatDim = false;
 			bFoundLonDim = false;
 
-			if ( externalFile->IsAxisVar( ( *it ) ) )
+			if ( externalFile->IsAxisVar( *it ) )
 			{
 				continue;
 			}
 
 			CStringArray dimNames;
-			externalFile->GetDimensions( ( *it ), dimNames );
+			externalFile->GetDimensions( *it, dimNames );
 
 			if ( dimNames.size() != 2 )
 			{
@@ -232,12 +227,12 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFXY( CExternalFilesNetCDF* exte
 			fieldX = externalFile->GetFieldNetCdf( dimNames.at( 0 ) );
 			fieldY = externalFile->GetFieldNetCdf( dimNames.at( 1 ) );
 
-			if ( ( fieldX == NULL ) || ( fieldY == NULL ) )
+			if ( ( fieldX == nullptr ) || ( fieldY == nullptr ) )
 			{
 				continue;
 			}
 
-			m_paramVars.Insert( ( *it ) );
+			m_paramVars.Insert( *it );
 			nFields = (int32_t)m_paramVars.size();
 			break;
 
@@ -252,8 +247,6 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFXY( CExternalFilesNetCDF* exte
 			throw ( e );
 		}
 	}
-
-
 
 
 	if ( fieldX->GetDimIds().size() != 1 )
@@ -273,9 +266,7 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFXY( CExternalFilesNetCDF* exte
 	}
 
 
-	CStringList::const_iterator itParamVar;
-
-	for ( itParamVar = m_paramVars.begin(); itParamVar != m_paramVars.end(); itParamVar++ )
+	for ( auto itParamVar = m_paramVars.begin(); itParamVar != m_paramVars.end(); itParamVar++ )
 	{
 		CUIntArray dimValues;
 		externalFile->GetDimensions( ( *itParamVar ), dimValues );
@@ -291,13 +282,13 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFXY( CExternalFilesNetCDF* exte
 	}
 
 
-	CNetCDFVarDef* firstNetCDFVardef = NULL;
+	CNetCDFVarDef* firstNetCDFVardef = nullptr;
 
-	for ( itParamVar = m_paramVars.begin(); itParamVar != m_paramVars.end(); itParamVar++ )
+	for ( auto itParamVar = m_paramVars.begin(); itParamVar != m_paramVars.end(); itParamVar++ )
 	{
 		CNetCDFVarDef* netCDFVarDef = netCDFFile->GetNetCDFVarDef( *itParamVar );
 
-		if ( firstNetCDFVardef == NULL )
+		if ( firstNetCDFVardef == nullptr )
 		{
 			continue;
 		}
@@ -310,7 +301,7 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFXY( CExternalFilesNetCDF* exte
 			throw ( e );
 		}
 
-		if ( firstNetCDFVardef == NULL )
+		if ( firstNetCDFVardef == nullptr )
 		{
 			firstNetCDFVardef = netCDFVarDef;
 			continue;
@@ -333,37 +324,37 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFXY( CExternalFilesNetCDF* exte
 
 	uint32_t index = 0;
 
-	for ( itParamVar = m_paramVars.begin(); itParamVar != m_paramVars.end(); itParamVar++ )
+	for ( auto itParamVar = m_paramVars.begin(); itParamVar != m_paramVars.end(); itParamVar++ )
 	{
 		// Add field to ZFXY plot group
 		CZFXYPlot* zfxyplot = dynamic_cast<CZFXYPlot*>( m_plots[ groupNumber ] );
-		if ( zfxyplot == NULL )
+		if ( zfxyplot == nullptr )
 		{
 			zfxyplot = new CZFXYPlot( groupNumber );
 			m_plots[ groupNumber ] = zfxyplot;
 		}
 
-		CPlotField* field = new CPlotField( ( *itParamVar ).c_str() );
-		zfxyplot->m_fields.Insert( field );
+		CPlotField* field = new CPlotField( *itParamVar );
+		zfxyplot->mFields.push_back( field );
 
 
 		if ( m_paramXAxis.empty() == false )
 		{
-			zfxyplot->SetForcedVarXname( m_paramXAxis.c_str() );
+			zfxyplot->SetForcedVarXname( m_paramXAxis );
 		}
 
 		if ( m_paramYAxis.empty() == false )
 		{
-			zfxyplot->SetForcedVarYname( m_paramYAxis.c_str() );
+			zfxyplot->SetForcedVarYname( m_paramYAxis );
 		}
 
 
-		CInternalFiles* zfxy = Prepare( externalFile->GetName().c_str() );
+		CInternalFiles* zfxy = Prepare( externalFile->GetName() );
 
 		field->m_internalFiles.Insert( zfxy );
 		field->m_zfxyProps = GetZFXYPlotProperties( index );
 
-		m_fields[ index ] = ( *itParamVar );
+		m_fields[ index ] = *itParamVar;
 
 		index++;
 	}
@@ -376,7 +367,6 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFXY( CExternalFilesNetCDF* exte
 
 bool CDisplayFilesProcessor::GetParametersNetcdfZFLatLon( CExternalFilesNetCDF* externalFile )
 {
-
 	uint32_t groupNumber = 0;
 
 	m_inputFileType = CInternalFilesZFXY::TypeOf();
@@ -388,7 +378,7 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFLatLon( CExternalFilesNetCDF* 
 	CFieldNetCdf* fieldLat = externalFile->FindLatField();
 	CFieldNetCdf* fieldLon = externalFile->FindLonField();
 
-	if ( fieldLat == NULL )
+	if ( fieldLat == nullptr )
 	{
 		std::string msg = CTools::Format( "CDisplayFilesProcessor::GetParametersNetcdfZFLatLon - No Latitude field has been found in file '%s'",
 			externalFile->GetName().c_str() );
@@ -397,7 +387,7 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFLatLon( CExternalFilesNetCDF* 
 		throw ( e );
 	}
 
-	if ( fieldLon == NULL )
+	if ( fieldLon == nullptr )
 	{
 		std::string msg = CTools::Format( "CDisplayFilesProcessor::GetParametersNetcdfZFLatLon - No Longitude field has been found in file '%s'",
 			externalFile->GetName().c_str() );
@@ -405,6 +395,7 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFLatLon( CExternalFilesNetCDF* 
 		CTrace::Tracer( "%s", e.what() );
 		throw ( e );
 	}
+
 	bool bFoundLatDim = false;
 	bool bFoundLonDim = false;
 
@@ -412,20 +403,19 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFLatLon( CExternalFilesNetCDF* 
 	{
 		CStringArray varNames;
 		externalFile->GetVariables( varNames );
-		CStringArray::const_iterator it;
 
-		for ( it = varNames.begin(); it != varNames.end(); it++ )
+		for ( auto it = varNames.begin(); it != varNames.end(); it++ )
 		{
 			bFoundLatDim = false;
 			bFoundLonDim = false;
 
-			if ( externalFile->IsAxisVar( ( *it ) ) )
+			if ( externalFile->IsAxisVar( *it ) )
 			{
 				continue;
 			}
 
 			CUIntArray dimValues;
-			externalFile->GetDimensions( ( *it ), dimValues );
+			externalFile->GetDimensions( *it, dimValues );
 
 			if ( dimValues.size() != 2 )
 			{
@@ -433,25 +423,15 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFLatLon( CExternalFilesNetCDF* 
 			}
 
 			CStringArray dimNames;
-			externalFile->GetDimensions( ( *it ), dimNames );
+			externalFile->GetDimensions( *it, dimNames );
 
-
-			CStringArray::const_iterator itDimNames;
-
-			for ( itDimNames = dimNames.begin(); itDimNames != dimNames.end(); itDimNames++ )
+			for ( auto const &itDimName : dimNames )
 			{
-				if ( ( *itDimNames ).compare( fieldLat->GetName() ) )
-				{
-					bFoundLatDim = true;
-				}
-				if ( ( *itDimNames ).compare( fieldLon->GetName() ) )
-				{
-					bFoundLonDim = true;
-				}
-
+				bFoundLatDim = itDimName == fieldLat->GetName();
+				bFoundLonDim = itDimName == fieldLon->GetName();
 			}
 
-			if ( ( !bFoundLatDim ) || ( !bFoundLonDim ) )
+			if ( !bFoundLatDim || !bFoundLonDim )
 			{
 				continue;
 			}
@@ -459,7 +439,6 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFLatLon( CExternalFilesNetCDF* 
 			m_paramVars.Insert( ( *it ) );
 			nFields = (int32_t)m_paramVars.size();
 			break;
-
 		}
 
 		if ( m_paramVars.size() <= 0 )
@@ -471,9 +450,6 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFLatLon( CExternalFilesNetCDF* 
 			throw ( e );
 		}
 	}
-
-
-
 
 	if ( fieldLat->GetDimIds().size() != 1 )
 	{
@@ -492,9 +468,7 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFLatLon( CExternalFilesNetCDF* 
 	}
 
 
-	CStringList::const_iterator itParamVar;
-
-	for ( itParamVar = m_paramVars.begin(); itParamVar != m_paramVars.end(); itParamVar++ )
+	for ( auto itParamVar = m_paramVars.begin(); itParamVar != m_paramVars.end(); itParamVar++ )
 	{
 		CUIntArray dimValues;
 		externalFile->GetDimensions( ( *itParamVar ), dimValues );
@@ -515,18 +489,18 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFLatLon( CExternalFilesNetCDF* 
 
 	uint32_t index = 0;
 
-	for ( itParamVar = m_paramVars.begin(); itParamVar != m_paramVars.end(); itParamVar++ )
+	for ( auto itParamVar = m_paramVars.begin(); itParamVar != m_paramVars.end(); itParamVar++ )
 	{
 		// Add field to world plot group
 		CWPlot* wplot = dynamic_cast<CWPlot*>( m_plots[ groupNumber ] );
-		if ( wplot == NULL )
+		if ( wplot == nullptr )
 		{
 			wplot = new CWPlot( groupNumber );
 			m_plots[ groupNumber ] = wplot;
 		}
 
 		CPlotField* field = new CPlotField( itParamVar->c_str() );
-		wplot->m_fields.Insert( field );
+		wplot->mFields.push_back( field );
 
 
 		CInternalFilesZFXY* zfxy = dynamic_cast<CInternalFilesZFXY*>( Prepare( externalFile->GetName().c_str() ) );
@@ -550,22 +524,21 @@ bool CDisplayFilesProcessor::GetParametersNetcdf()
 {
 	bool bOk = false;
 
-	CExternalFiles* externalFileTmp = NULL;
+	CExternalFiles* externalFileTmp = nullptr;
 
 	try
 	{
 		// Test if file is a Netcdf file
+
 		externalFileTmp = BuildExistingExternalFileKind( m_paramFile );
-		if ( externalFileTmp != NULL )
+		if ( externalFileTmp != nullptr )
 		{
 			bOk = true;
 		}
 	}
-	catch ( CFileException &e )
+	catch ( CFileException & )
 	{
-		// it's not a netcdf file (it's a parameters file) or not a valid netcdf file
-		//Do Nothing
-		e.what(); // to avoid warning compilation error
+		// it's not a netcdf file (it's a parameters file) or not a valid netcdf file: Do Nothing
 	}
 	catch ( CException& e )
 	{
@@ -585,27 +558,24 @@ bool CDisplayFilesProcessor::GetParametersNetcdf()
 
 	CExternalFilesNetCDF* externalFile = dynamic_cast<CExternalFilesNetCDF*>( externalFileTmp );
 
-	if ( externalFile == NULL )
+	if ( externalFile == nullptr )
 	{
-		std::string msg = CTools::Format( "ERROR - The input file '%s' is not a NetCdf file",
-			externalFile->GetName().c_str() );
+		std::string msg = CTools::Format( "ERROR - The input file '%s' is not a NetCdf file", externalFile->GetName().c_str() );
 		CException e( msg, BRATHL_INCONSISTENCY_ERROR );
 		throw ( e );
 	}
 
-	// Open the Netcdf file
 	externalFile->Open();
 
 	m_inputFiles.Insert( m_paramFile );
 
-	if ( ( ( !m_paramXAxis.empty() ) && ( !m_paramYAxis.empty() ) )
-		|| ( ( m_paramXAxis.empty() ) && ( m_paramYAxis.empty() ) ) )
+	if (( !m_paramXAxis.empty() && !m_paramYAxis.empty() ) || 
+		( m_paramXAxis.empty() && m_paramYAxis.empty() ) )
 	{
-
 		CFieldNetCdf* fieldLat = externalFile->FindLatField();
 		CFieldNetCdf* fieldLon = externalFile->FindLonField();
 
-		if ( ( fieldLat != NULL ) && ( fieldLon != NULL ) )
+		if ( !mMapsAsPlots && ( fieldLat != nullptr && fieldLon != nullptr ) )
 		{
 			bOk = GetParametersNetcdfZFLatLon( externalFile );
 		}
@@ -613,8 +583,6 @@ bool CDisplayFilesProcessor::GetParametersNetcdf()
 		{
 			bOk = GetParametersNetcdfZFXY( externalFile );
 		}
-
-
 	}
 	else
 	{
@@ -623,7 +591,6 @@ bool CDisplayFilesProcessor::GetParametersNetcdf()
 
 	externalFile->Close();
 	delete externalFile;
-	externalFile = NULL;
 
 	return bOk;
 }

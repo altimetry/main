@@ -32,9 +32,9 @@ void CApplicationSettingsDlg::CreateWidgets()
 	//	ApplicationPaths Page
 
     mDataDirectoryLineEdit = new QLineEdit( this );
-    mDataDirectoryLineEdit->setObjectName(QString::fromUtf8("DataDirectory_lineEdit"));
 	mBrowseDataDirectoryPushButton = new QPushButton( "Browse..." );
 	mUsePortablePathsCheckBox = new QCheckBox( "Use portable paths" );
+	mUsePortablePathsCheckBox->setToolTip( "If checked, datasets in the data directory are stored as relative paths,\nallowing workspaces to be copied across machines" );
 
 	auto *data_l =
 		LayoutWidgets( Qt::Vertical, {
@@ -174,8 +174,8 @@ void CApplicationSettingsDlg::Wire()
 
 	//	ApplicationPaths Page
 
-    mDataDirectoryLineEdit->setText( settings_paths->mPortableBasePath.c_str() );				//for data portable paths
-    mProjectsDirectoryLineEdit->setText( settings_paths->mWorkspacesDir.c_str() );
+    mDataDirectoryLineEdit->setText( settings_paths->UserDataDirectory().c_str() );				//for data portable paths
+    mProjectsDirectoryLineEdit->setText( settings_paths->WorkspacesDirectory().c_str() );
 
     mUsePortablePathsCheckBox->setChecked( settings_paths->UsePortablePaths() );
 
@@ -201,7 +201,7 @@ void CApplicationSettingsDlg::Wire()
     connect( mViewsUseRasterLayer, SIGNAL( toggled( bool ) ), this,  SLOT( HandleViewsLayerTypeChanged( bool ) ) );
     connect( mViewsUseVectorLayer, SIGNAL( toggled( bool ) ), this,  SLOT( HandleViewsLayerTypeChanged( bool ) ) );
 
-    mLayerURLLineEdit->setText( settings_paths->mURLRasterLayerPath.c_str() );
+    mLayerURLLineEdit->setText( settings_paths->URLRasterLayerPath().c_str() );
 
     HandleMainLayerTypeChanged( false );		//argument not used
     HandleViewsLayerTypeChanged( false );		//idem
@@ -305,7 +305,7 @@ bool CApplicationSettingsDlg::ValidateAndAssign()
     std::string user_dir = q2a(mDataDirectoryLineEdit->text());
     std::string workspace_dir = q2a(mProjectsDirectoryLineEdit->text());
 
-    if ( !IsDir( user_dir ) && !ask_create_dir( "User working directory", user_dir ) )
+    if ( !IsDir( user_dir ) && !ask_create_dir( "User data working directory", user_dir ) )
     {
 		return false;
     }
@@ -316,7 +316,7 @@ bool CApplicationSettingsDlg::ValidateAndAssign()
     }
 
     //Its safe now to apply these procedures
-    mSettings.SetUserBasePath( mUsePortablePathsCheckBox->isChecked(), user_dir );
+    mSettings.SetUserDataDirectory( mUsePortablePathsCheckBox->isChecked(), user_dir );
     mSettings.SetWorkspacesDirectory( workspace_dir );
 
 

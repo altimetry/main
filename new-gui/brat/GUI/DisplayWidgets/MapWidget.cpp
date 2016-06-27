@@ -163,7 +163,7 @@ QgsVectorLayer* CMapWidget::AskUserForOGRSublayers( QWidget *parent, QgsVectorLa
         }
 
 		QString layertype = layer->dataProvider()->storageType();
-        LOG_WARN( "Layer type " + layertype );
+        LOG_TRACE( "Layer type " + layertype );
 
         return LoadOGRSublayer( layertype, uri, dlg.selectionName() );
     }
@@ -191,7 +191,7 @@ bool CMapWidget::OpenLayer( QWidget *parent, const QString &path, QgsRectangle &
 	{
         layer->setProviderEncoding( "System" );
         QStringList sublayers = layer->dataProvider()->subLayers();
-        LOG_WARN( QString( "got valid layer with %1 sub-layers" ).arg( sublayers.count() ) );
+        LOG_TRACE( QString( "got valid layer with %1 sub-layers" ).arg( sublayers.count() ) );
 
         // Show the sub-layers selection dialog so the user can confirm/select the sub-layer to actually load.
 		//
@@ -1840,7 +1840,7 @@ QgsFeatureList& CreateCountourFeatures( QgsFeatureList &flist, const CMapPlotPar
 					//points.append( QgsPoint(  x / default_data_step * default_data_step, y / default_data_step * default_data_step ) );
 				}
 				else
-					LOG_WARN( "Point discarded " + n2s<std::string>(x) + ", " + n2s<std::string>(y) );
+					LOG_TRACEstd( "Point discarded " + n2s<std::string>(x) + ", " + n2s<std::string>(y) );
 			}
 			if ( points.size() == 1 )
 			{

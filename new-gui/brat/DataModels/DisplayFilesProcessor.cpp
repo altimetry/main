@@ -323,12 +323,14 @@ void CDisplayFilesProcessor::GetParameters()
 	//--------------------------------------------
 	// Init parameters with a netcdf input file
 	//--------------------------------------------
-	if ( GetParametersNetcdf() )
+
+	if ( GetParametersNetcdf() )		//L:\project\workspaces\RCCC\Operations\CreateEnv_GDR_04_copy.nc
 	{
 		//---------
 		return;
 		//---------
 	}
+										//L:\project\workspaces\RCCC\Displays\DisplayWaveforms_Lat_2D_Animated_Summer.par
 
 	// Init parameters with a parameter input file
 	uint32_t index = 0;
@@ -340,7 +342,7 @@ void CDisplayFilesProcessor::GetParameters()
 
 
 	// Verify keyword occurences
-	uint32_t nbExpr = m_params.CheckCount( kwFIELD, 1, 32 ); // max 32 because of class CBitSet32
+	const uint32_t nbExpr = m_params.CheckCount( kwFIELD, 1, 32 ); // max 32 because of class CBitSet32
 
 
 	// Get keyword values
@@ -458,7 +460,7 @@ void CDisplayFilesProcessor::GetParameters()
 			throw ( e );
 		}
 
-		std::string fieldName = expr.GetFieldNames()->at( 0 ).c_str();
+		const std::string fieldName = expr.GetFieldNames()->at( 0 );
 
 		// ------------------------------
 		// -------------- YFX plot
@@ -473,7 +475,7 @@ void CDisplayFilesProcessor::GetParameters()
 				m_plots[ groupNumber ] = plot;
 			}
 			CPlotField* field = new CPlotField( fieldName.c_str() );
-			plot->m_fields.Insert( field );
+			plot->mFields.push_back( field );
 
 			std::string xAxisName;
 			uint32_t nXAxisName = m_params.CheckCount( kwDISPLAY_XAXIS, 0, nbGroup );
@@ -537,13 +539,13 @@ void CDisplayFilesProcessor::GetParameters()
 				if ( field == NULL )
 				{
 					field = new CPlotField( fieldName.c_str() );
-					wplot->m_fields.Insert( field );
+					wplot->mFields.push_back( field );
 				}
 			}
 			else
 			{
 				field = new CPlotField( fieldName.c_str() );
-				wplot->m_fields.Insert( field );
+				wplot->mFields.push_back( field );
 			}
 
 			CInternalFilesZFXY* zfxy = dynamic_cast<CInternalFilesZFXY*>( Prepare( index, fieldName ) );
@@ -585,13 +587,13 @@ void CDisplayFilesProcessor::GetParameters()
 				if ( field == NULL )
 				{
 					field = new CPlotField( fieldName.c_str() );
-					zfxyplot->m_fields.Insert( field );
+					zfxyplot->mFields.push_back( field );
 				}
 			}
 			else
 			{
 				field = new CPlotField( fieldName.c_str() );
-				zfxyplot->m_fields.Insert( field );
+				zfxyplot->mFields.push_back( field );
 			}
 
 
@@ -633,101 +635,122 @@ void CDisplayFilesProcessor::GetParameters()
 }
 
 
-void CDisplayFilesProcessor::GetXYPlotPropertyParams( int32_t nFields )
+template< class PROPS_CONTAINER >
+void CDisplayFilesProcessor::GetPlotPropertyParams4all( size_t nFields, PROPS_CONTAINER &data )
 {
-	int32_t i = 0;
+	std::string string_value;
+
+	unsigned name = m_params.CheckCount( kwDISPLAY_NAME, 0, nFields );
+	for ( unsigned i = 0; i < name; i++ )
+	{
+		typename PROPS_CONTAINER::value_type props = data[ i ];					assert__( props );
+		m_params.m_mapParam[ kwDISPLAY_NAME ]->GetValue( string_value, i );		assert__( !string_value.empty() );
+		props->SetName( string_value );
+	}
+}
+
+void CDisplayFilesProcessor::GetPlotPropertyParams( size_t nFields, CFieldData &data )
+{
+	if ( (int)nFields <= 0 )
+	{
+		throw  CParameterException( "CDisplayFilesProcessor::GetPlotPropertyParams - There is no field to plot", BRATHL_INCONSISTENCY_ERROR );
+	}
+
+
+	std::string string_value;
+
+	unsigned title = m_params.CheckCount( kwDISPLAY_TITLE, 0, 1 );
+	if ( title != 0 )
+	{
+		m_params.m_mapParam[ kwDISPLAY_TITLE ]->GetValue( string_value );
+		data.SetTitle( string_value );
+	}
+}
+
+
+void CDisplayFilesProcessor::GetXYPlotPropertyParams( size_t nFields )
+{
+	CXYPlotProperties xyPlotProperty;
+	GetPlotPropertyParams( nFields, xyPlotProperty );
+
+
+	unsigned i = 0;
 	bool boolValue = false;
 	double doubleValue = 0.0;
 	std::string stringValue;
 	int32_t uintValue = 0;
 
-	CXYPlotProperties xyPlotProperty;
 	CMapColor::GetInstance().ResetPrimaryColors();
-
-	if ( nFields <= 0 )
-		throw  CParameterException( "CDisplayFilesProcessor::GetXYPlotPropertyParams - There is no field to plot", BRATHL_INCONSISTENCY_ERROR );
-
-	int32_t showProp = m_params.CheckCount( kwDISPLAY_PROPERTIES, 0, 1 );
-	int32_t xMin = m_params.CheckCount( kwDISPLAY_XMINVALUE, 0, 1 );
-	int32_t xMax = m_params.CheckCount( kwDISPLAY_XMAXVALUE, 0, 1 );
-	int32_t yMin = m_params.CheckCount( kwDISPLAY_YMINVALUE, 0, 1 );
-	int32_t yMax = m_params.CheckCount( kwDISPLAY_YMAXVALUE, 0, 1 );
-	int32_t xTicks = m_params.CheckCount( kwDISPLAY_XTICKS, 0, 1 );
-	int32_t yTicks = m_params.CheckCount( kwDISPLAY_YTICKS, 0, 1 );
-	//int32_t xLabel = m_params.CheckCount(kwDISPLAY_XLABEL, 0, 1);
-	int32_t yLabel = m_params.CheckCount( kwDISPLAY_YLABEL, 0, 1 );
-	int32_t title = m_params.CheckCount( kwDISPLAY_TITLE, 0, 1 );
-
-	int32_t name = m_params.CheckCount( kwDISPLAY_NAME, 0, nFields );
-	int32_t color = m_params.CheckCount( kwDISPLAY_COLOR, 0, nFields );
-	int32_t opacity = m_params.CheckCount( kwDISPLAY_OPACITY, 0, nFields );
-	int32_t points = m_params.CheckCount( kwDISPLAY_POINTS, 0, nFields );
-	int32_t lines = m_params.CheckCount( kwDISPLAY_LINES, 0, nFields );
-
-	int32_t pointSize = m_params.CheckCount( kwDISPLAY_POINTSIZE, 0, nFields );
-
-	int32_t lineWidth = m_params.CheckCount( kwDISPLAY_LINEWIDTH, 0, nFields );
-	int32_t stipplePattern = m_params.CheckCount( kwDISPLAY_STIPPLEPATTERN, 0, nFields );
-
-	int32_t pointGlyph = m_params.CheckCount( kwDISPLAY_POINTGLYPH, 0, nFields );
-	int32_t pointFilled = m_params.CheckCount( kwDISPLAY_POINTFILLED, 0, nFields );
 
 	//------------------------------------------
 	// Get common property (same for each plot)
 	//------------------------------------------
 
+	unsigned showProp = m_params.CheckCount( kwDISPLAY_PROPERTIES, 0, 1 );
 	if ( showProp != 0 )
 	{
 		m_params.m_mapParam[ kwDISPLAY_PROPERTIES ]->GetValue( boolValue );
 		xyPlotProperty.SetShowPropertyPanel( boolValue );
 	}
+
+	unsigned xMin = m_params.CheckCount( kwDISPLAY_XMINVALUE, 0, 1 );
 	if ( xMin != 0 )
 	{
 		m_params.m_mapParam[ kwDISPLAY_XMINVALUE ]->GetValue( doubleValue );
 		xyPlotProperty.SetXMin( doubleValue );
 	}
+
+	unsigned xMax = m_params.CheckCount( kwDISPLAY_XMAXVALUE, 0, 1 );
 	if ( xMax != 0 )
 	{
 		m_params.m_mapParam[ kwDISPLAY_XMAXVALUE ]->GetValue( doubleValue );
 		xyPlotProperty.SetXMax( doubleValue );
 	}
+
+	unsigned yMin = m_params.CheckCount( kwDISPLAY_YMINVALUE, 0, 1 );
 	if ( yMin != 0 )
 	{
 		m_params.m_mapParam[ kwDISPLAY_YMINVALUE ]->GetValue( doubleValue );
 		xyPlotProperty.SetYMin( doubleValue );
 	}
+
+	unsigned yMax = m_params.CheckCount( kwDISPLAY_YMAXVALUE, 0, 1 );
 	if ( yMax != 0 )
 	{
 		m_params.m_mapParam[ kwDISPLAY_YMAXVALUE ]->GetValue( doubleValue );
 		xyPlotProperty.SetYMax( doubleValue );
 	}
+
+	unsigned xTicks = m_params.CheckCount( kwDISPLAY_XTICKS, 0, 1 );
 	if ( xTicks != 0 )
 	{
 		m_params.m_mapParam[ kwDISPLAY_XTICKS ]->GetValue( uintValue );
 		xyPlotProperty.SetXNumTicks( uintValue );
 	}
+
+	unsigned yTicks = m_params.CheckCount( kwDISPLAY_YTICKS, 0, 1 );
 	if ( yTicks != 0 )
 	{
 		m_params.m_mapParam[ kwDISPLAY_YTICKS ]->GetValue( uintValue );
 		xyPlotProperty.SetYNumTicks( uintValue );
 	}
 
+	//int32_t xLabel = m_params.CheckCount(kwDISPLAY_XLABEL, 0, 1);
 	//if (xLabel != 0)
 	//{
 	//m_params.m_mapParam[kwDISPLAY_XLABEL]->GetValue(stringValue);
 	//xyPlotProperty.SetXLabel(stringValue.c_str());
 	//}
 
+	unsigned yLabel = m_params.CheckCount( kwDISPLAY_YLABEL, 0, 1 );
 	if ( yLabel != 0 )
 	{
 		m_params.m_mapParam[ kwDISPLAY_YLABEL ]->GetValue( stringValue );
 		xyPlotProperty.SetYLabel( stringValue.c_str() );
 	}
-	if ( title != 0 )
-	{
-		m_params.m_mapParam[ kwDISPLAY_TITLE ]->GetValue( stringValue );
-		xyPlotProperty.SetTitle( stringValue.c_str() );
-	}
+
+
+	//v4 note: apparently, all properties above are common; from now on property values are per field
 
 	//------------------------------------------
 	// Fill plot properties array and set a default color for each property
@@ -735,39 +758,38 @@ void CDisplayFilesProcessor::GetXYPlotPropertyParams( int32_t nFields )
 	CMapColor::GetInstance().ResetPrimaryColors();
 	for ( i = 0; i < nFields; i++ )
 	{
-		CXYPlotProperties* props = new CXYPlotProperties( xyPlotProperty );
+		CXYPlotProperties *props = new CXYPlotProperties( xyPlotProperty );
 
-		m_xyPlotProperties.Insert( props );
+		m_xyPlotProperties.push_back( props );
 		CPlotColor vtkColor = CMapColor::GetInstance().NextPrimaryColors();
 		if ( vtkColor.Ok() )
 		{
 			props->SetColor( vtkColor );
 		}
-
 	}
 
 
 	//------------------------------------------
 	// Get Name Property for each plot
 	//------------------------------------------
-	for ( i = 0; i < name; i++ )
-	{
-		CXYPlotProperties* props = GetXYPlotProperties( i );
-		if ( props == NULL )
-		{
-			continue;
-		}
+	GetPlotPropertyParams4all( nFields, m_xyPlotProperties );
+	//unsigned name = m_params.CheckCount( kwDISPLAY_NAME, 0, nFields );
+	//for ( i = 0; i < name; i++ )
+	//{
+	//	CXYPlotProperties* props = GetXYPlotProperties( i );
+	//	if ( props == NULL )
+	//	{
+	//		continue;
+	//	}
 
-		m_params.m_mapParam[ kwDISPLAY_NAME ]->GetValue( stringValue, i );
-		if ( stringValue.empty() == false )
-		{
-			props->SetName( stringValue.c_str() );
-		}
-	}
+	//	m_params.m_mapParam[ kwDISPLAY_NAME ]->GetValue( stringValue, i );		assert__( !stringValue.empty() );
+	//	props->SetName( stringValue );
+	//}
 
 	//------------------------------------------
 	// Get Color Property for each plot
 	//------------------------------------------
+	unsigned color = m_params.CheckCount( kwDISPLAY_COLOR, 0, nFields );
 	for ( i = 0; i < color; i++ )
 	{
 		CXYPlotProperties* props = GetXYPlotProperties( i );
@@ -789,6 +811,7 @@ void CDisplayFilesProcessor::GetXYPlotPropertyParams( int32_t nFields )
 	//------------------------------------------
 	// Get Opacity Property for each plot
 	//------------------------------------------
+	unsigned opacity = m_params.CheckCount( kwDISPLAY_OPACITY, 0, nFields );
 	for ( i = 0; i < opacity; i++ )
 	{
 		CXYPlotProperties* props = GetXYPlotProperties( i );
@@ -804,12 +827,17 @@ void CDisplayFilesProcessor::GetXYPlotPropertyParams( int32_t nFields )
 		}
 	}
 
+
 	//------------------------------------------
 	// Get Points Property for each plot
 	//------------------------------------------
-	int32_t indexPointSize = 0;
-	int32_t indexPointGlyph = 0;
-	int32_t indexPointFilled = 0;
+	unsigned indexPointSize = 0;
+	unsigned indexPointGlyph = 0;
+	unsigned indexPointFilled = 0;
+	unsigned points = m_params.CheckCount( kwDISPLAY_POINTS, 0, nFields );
+	unsigned pointSize = m_params.CheckCount( kwDISPLAY_POINTSIZE, 0, nFields );
+	unsigned pointGlyph = m_params.CheckCount( kwDISPLAY_POINTGLYPH, 0, nFields );
+	unsigned pointFilled = m_params.CheckCount( kwDISPLAY_POINTFILLED, 0, nFields );
 	for ( i = 0; i < points; i++ )
 	{
 		CXYPlotProperties* props = GetXYPlotProperties( i );
@@ -848,6 +876,7 @@ void CDisplayFilesProcessor::GetXYPlotPropertyParams( int32_t nFields )
 	//------------------------------------------
 	// Get Lines Property for each plot
 	//------------------------------------------
+	unsigned lines = m_params.CheckCount( kwDISPLAY_LINES, 0, nFields );
 	for ( i = 0; i < lines; i++ )
 	{
 		CXYPlotProperties* props = GetXYPlotProperties( i );
@@ -863,6 +892,7 @@ void CDisplayFilesProcessor::GetXYPlotPropertyParams( int32_t nFields )
 	//------------------------------------------
 	// Get Line Width Property for each plot
 	//------------------------------------------
+	unsigned lineWidth = m_params.CheckCount( kwDISPLAY_LINEWIDTH, 0, nFields );
 	for ( i = 0; i < lineWidth; i++ )
 	{
 		CXYPlotProperties* props = GetXYPlotProperties( i );
@@ -877,6 +907,7 @@ void CDisplayFilesProcessor::GetXYPlotPropertyParams( int32_t nFields )
 	//------------------------------------------
 	// Get Line Stipple Pattern Properties for each plot
 	//------------------------------------------
+	unsigned stipplePattern = m_params.CheckCount( kwDISPLAY_STIPPLEPATTERN, 0, nFields );
 	for ( i = 0; i < stipplePattern; i++ )
 	{
 		CXYPlotProperties* props = GetXYPlotProperties( i );
@@ -897,25 +928,19 @@ void CDisplayFilesProcessor::GetXYPlotPropertyParams( int32_t nFields )
 
 
 
-
-void CDisplayFilesProcessor::GetWPlotPropertyParams( int32_t nFields )
+void CDisplayFilesProcessor::GetWPlotPropertyParams( size_t nFields )
 {
+	CWorldPlotProperties wPlotProperty;
+	GetPlotPropertyParams( nFields, wPlotProperty );
+
 	int32_t i = 0;
 	bool boolValue;
 	double doubleValue;
 	std::string stringValue;
 	int32_t intValue;
 
-	CWorldPlotProperties wPlotProperty;
 	//CMapColor::GetInstance().ResetPrimaryColors();
 
-	if ( nFields <= 0 )
-	{
-		throw  CParameterException( "CDisplayFilesProcessor::GetWPlotPropertyParams - There is no field to plot",
-			BRATHL_INCONSISTENCY_ERROR );
-	}
-
-	int32_t title = m_params.CheckCount( kwDISPLAY_TITLE, 0, 1 );
 	int32_t showProp = m_params.CheckCount( kwDISPLAY_PROPERTIES, 0, 1 );
 	int32_t showColorBar = m_params.CheckCount( kwDISPLAY_COLORBAR, 0, 1 );
 	int32_t showAnimationBar = m_params.CheckCount( kwDISPLAY_ANIMATIONBAR, 0, 1 );
@@ -946,13 +971,7 @@ void CDisplayFilesProcessor::GetWPlotPropertyParams( int32_t nFields )
 	int32_t eastComponent = m_params.CheckCount( kwDISPLAY_EAST_COMPONENT, 0, nFields );
 	int32_t northComponent = m_params.CheckCount( kwDISPLAY_NORTH_COMPONENT, 0, nFields );
 	//int32_t gridLabels = m_params.CheckCount(kwDISPLAY_GRID_LABELS, 0, nFields);
-	int32_t name = m_params.CheckCount( kwDISPLAY_NAME, 0, nFields );
 
-	if ( title != 0 )
-	{
-		m_params.m_mapParam[ kwDISPLAY_TITLE ]->GetValue( stringValue );
-		wPlotProperty.m_title = stringValue.c_str();
-	}
 	if ( showProp != 0 )
 	{
 		m_params.m_mapParam[ kwDISPLAY_PROPERTIES ]->GetValue( boolValue );
@@ -1035,7 +1054,7 @@ void CDisplayFilesProcessor::GetWPlotPropertyParams( int32_t nFields )
 
 	for ( i = 0; i < nFields; i++ )
 	{
-		m_wPlotProperties.Insert( new CWorldPlotProperties( wPlotProperty ) );
+		m_wPlotProperties.push_back( new CWorldPlotProperties( wPlotProperty ) );
 	}
 
 	//------------------------------------------
@@ -1228,17 +1247,16 @@ void CDisplayFilesProcessor::GetWPlotPropertyParams( int32_t nFields )
 	//------------------------------------------
 	// Get Name Property for each plot
 	//------------------------------------------
-	for ( i = 0; i < name; i++ )
-	{
-		CWorldPlotProperties* props = GetWorldPlotProperties( i );
-		m_params.m_mapParam[ kwDISPLAY_NAME ]->GetValue( stringValue, i );
-		props->m_name = stringValue.c_str();
-	}
+
+	GetPlotPropertyParams4all( nFields, m_wPlotProperties );
 }
 
 
-void CDisplayFilesProcessor::GetZFXYPlotPropertyParams( int32_t nFields )
+void CDisplayFilesProcessor::GetZFXYPlotPropertyParams( size_t nFields )
 {
+	CZFXYPlotProperties zfxyPlotProperty;
+	GetPlotPropertyParams( nFields, zfxyPlotProperty );
+
 	int32_t i = 0;
 	bool boolValue;
 	double doubleValue;
@@ -1246,20 +1264,11 @@ void CDisplayFilesProcessor::GetZFXYPlotPropertyParams( int32_t nFields )
 	int32_t intValue;
 	uint32_t uintValue;
 
-	CZFXYPlotProperties zfxyPlotProperty;
 	//CMapColor::GetInstance().ResetPrimaryColors();
 
-	if ( nFields <= 0 )
-	{
-		throw  CParameterException( "CDisplayFilesProcessor::GetZFXYPlotPropertyParams - There is no field to plot",
-			BRATHL_INCONSISTENCY_ERROR );
-	}
-
-	int32_t title = m_params.CheckCount( kwDISPLAY_TITLE, 0, 1 );
 	int32_t showProp = m_params.CheckCount( kwDISPLAY_PROPERTIES, 0, 1 );
 	int32_t showColorBar = m_params.CheckCount( kwDISPLAY_COLORBAR, 0, 1 );
 	int32_t showAnimationBar = m_params.CheckCount( kwDISPLAY_ANIMATIONBAR, 0, 1 );
-
 
 	int32_t xMin = m_params.CheckCount( kwDISPLAY_XMINVALUE, 0, 1 );
 	int32_t xMax = m_params.CheckCount( kwDISPLAY_XMAXVALUE, 0, 1 );
@@ -1286,19 +1295,12 @@ void CDisplayFilesProcessor::GetZFXYPlotPropertyParams( int32_t nFields )
 	int32_t contourMaxValue = m_params.CheckCount( kwDISPLAY_CONTOUR_MAXVALUE, 0, nFields );
 	int32_t solidColor = m_params.CheckCount( kwDISPLAY_SOLID_COLOR, 0, nFields );
 
-	int32_t name = m_params.CheckCount( kwDISPLAY_NAME, 0, nFields );
-
 	if ( yLabel != 0 )
 	{
 		m_params.m_mapParam[ kwDISPLAY_YLABEL ]->GetValue( stringValue );
 		zfxyPlotProperty.m_yLabel = stringValue.c_str();
 	}
 
-	if ( title != 0 )
-	{
-		m_params.m_mapParam[ kwDISPLAY_TITLE ]->GetValue( stringValue );
-		zfxyPlotProperty.m_title = stringValue.c_str();
-	}
 	if ( showProp != 0 )
 	{
 		m_params.m_mapParam[ kwDISPLAY_PROPERTIES ]->GetValue( boolValue );
@@ -1360,8 +1362,9 @@ void CDisplayFilesProcessor::GetZFXYPlotPropertyParams( int32_t nFields )
 
 	for ( i = 0; i < nFields; i++ )
 	{
-		m_zfxyPlotProperties.Insert( new CZFXYPlotProperties( zfxyPlotProperty ) );
+		m_zfxyPlotProperties.push_back( new CZFXYPlotProperties( zfxyPlotProperty ) );
 	}
+
 
 	//------------------------------------------
 	// Get max value Property for each plot
@@ -1529,87 +1532,34 @@ void CDisplayFilesProcessor::GetZFXYPlotPropertyParams( int32_t nFields )
 		props->m_solidColor = boolValue;
 	}
 
-
-
 	//------------------------------------------
 	// Get Name Property for each plot
 	//------------------------------------------
-	for ( i = 0; i < name; i++ )
-	{
-		CZFXYPlotProperties* props = GetZFXYPlotProperties( i );
-		m_params.m_mapParam[ kwDISPLAY_NAME ]->GetValue( stringValue, i );
-		props->m_name = stringValue.c_str();
-	}
+	GetPlotPropertyParams4all( nFields, m_zfxyPlotProperties );
+
 }
 
 
 
 
 
-CXYPlotProperties* CDisplayFilesProcessor::GetXYPlotProperties( int32_t index ) const
+CXYPlotProperties* CDisplayFilesProcessor::GetXYPlotProperties( size_t index ) const
 {
-	if ( ( index < 0 ) || ( static_cast<uint32_t>( index ) >= m_xyPlotProperties.size() ) )
-	{
-		std::string msg = "ERROR in  CDisplayFilesProcessor::GetXYPlotProperties : index "
-			+ n2s<std::string>(index) 
-			+ " out-of-range "
-			+ "Valid range is [0, "
-			+ n2s<std::string>( m_xyPlotProperties.size() )
-			+ "]";
+	assert__( index < m_xyPlotProperties.size() );
 
-		throw CException( msg, BRATHL_LOGIC_ERROR );
-	}
-
-	CXYPlotProperties* props = dynamic_cast<CXYPlotProperties*>( m_xyPlotProperties.at( index ) );
-	if ( props == NULL )
-	{
-		 throw CException("ERROR in  CDisplayFilesProcessor::GetXYPlotProperties : dynamic_cast<CXYPlotProperties*>(m_xyPlotProperties->at(index)); returns NULL pointer - "
-		              "XY Plot Property array seems to contain objects other than those of the class CXYPlotProperties or derived class", BRATHL_LOGIC_ERROR);
-	}
-	return props;
+	return m_xyPlotProperties[ index ];
 }
-CZFXYPlotProperties* CDisplayFilesProcessor::GetZFXYPlotProperties( int32_t index ) const
+CZFXYPlotProperties* CDisplayFilesProcessor::GetZFXYPlotProperties( size_t index ) const
 {
-	if ( ( index < 0 ) || ( static_cast<uint32_t>( index ) >= m_zfxyPlotProperties.size() ) )
-	{
-		std::string msg = "ERROR in  CDisplayFilesProcessor::GetZFXYPlotProperties : index "
-			+ n2s<std::string>(index) 
-			+ " out-of-range "
-			+ "Valid range is [0, "
-			+ n2s<std::string>( m_zfxyPlotProperties.size() )
-			+ "]";
+	assert__( index < m_zfxyPlotProperties.size() );
 
-		throw CException( msg, BRATHL_LOGIC_ERROR );
-	}
-
-	CZFXYPlotProperties* props = dynamic_cast<CZFXYPlotProperties*>( m_zfxyPlotProperties.at( index ) );
-	if ( props == NULL )
-	{
-		throw CException( "ERROR in  CDisplayFilesProcessor::GetZFXYPlotProperties : dynamic_cast<CZFXYPlotProperties*>(m_zfxyPlotProperties->at(index)); returns NULL pointer - "
-			"zFxy Plot Property array seems to contain objects other than those of the class CZFXYPlotProperties or derived class", BRATHL_LOGIC_ERROR );
-	}
-	return props;
+	return m_zfxyPlotProperties[ index ];
 }
-CWorldPlotProperties* CDisplayFilesProcessor::GetWorldPlotProperties( int32_t index ) const 
+CWorldPlotProperties* CDisplayFilesProcessor::GetWorldPlotProperties( size_t index ) const 
 {
-	if ( ( index < 0 ) || ( static_cast<uint32_t>( index ) >= m_wPlotProperties.size() ) )
-	{
-		std::string msg = "ERROR in  CDisplayFilesProcessor::CWorldPlotProperties : index " 
-			+ n2s<std::string>(index) 
-			+ " out-of-range.\nValid range is [0, " 
-			+ n2s<std::string>( m_wPlotProperties.size() )
-			+ "]";
+	assert__( index < m_wPlotProperties.size() );
 
-		throw CException( msg, BRATHL_LOGIC_ERROR );
-	}
-
-	CWorldPlotProperties* props = dynamic_cast<CWorldPlotProperties*>( m_wPlotProperties.at( index ) );
-	if ( props == NULL )
-	{
-		throw CException( "ERROR in  CDisplayFilesProcessor::GetWorldPlotProperties : dynamic_cast<CWorldPlotProperties*>(m_wPlotProperties->at(index)); returns NULL pointer - "
-			"world Plot Property array seems to contain objects other than those of the class CWorldPlotProperties or derived class", BRATHL_LOGIC_ERROR );
-	}
-	return props;
+	return m_wPlotProperties[ index ];
 }
 
 

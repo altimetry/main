@@ -19,6 +19,7 @@
 #ifndef WORKSPACES_WORKSPACE_SETTINGS_H
 #define WORKSPACES_WORKSPACE_SETTINGS_H
 
+#include "new-gui/Common/QtUtilsIO.h"
 #include "new-gui/Common/ApplicationSettings.h"
 
 
@@ -51,6 +52,11 @@ class CWorkspaceSettings : public CFileSettings
 	static const CApplicationPaths *smBratPaths;
 
 
+	//instance members
+
+	const std::string mDir;
+
+
 	//construction / destruction
 
 public:
@@ -61,8 +67,9 @@ public:
 	}
 
 public:
-	CWorkspaceSettings( const std::string &path ) :
-		base_t(path)
+	CWorkspaceSettings( const std::string &path ) 
+		: base_t(path)
+		, mDir( GetDirectoryFromPath( path ) )
 	{
 		assert__( smBratPaths );
 	}
@@ -112,9 +119,9 @@ public:
 
 protected:
 
-	std::string Absolute2PortableDataPath( const std::string &path ) const;
+	std::string Absolute2PortableDatasetPath( const std::string &path ) const;
 
-	std::string Portable2AbsoluteDataPath( const std::string &path ) const;
+	std::string Portable2AbsoluteDatasetPath( const std::string &path ) const;
 };
 
 

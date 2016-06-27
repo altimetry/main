@@ -12,6 +12,18 @@
 
 static_assert( OSGEARTH_VERSION_GREATER_OR_EQUAL( 2, 5, 0 ), "osgEarth version not supported." );
 
+#if defined(GL_LINES_ADJACENCY_EXT)
+#undef GL_LINES_ADJACENCY_EXT
+#endif
+#if defined(GL_LINE_STRIP_ADJACENCY_EXT)
+#undef GL_LINE_STRIP_ADJACENCY_EXT
+#endif
+#if defined(GL_TRIANGLES_ADJACENCY_EXT)
+#undef GL_TRIANGLES_ADJACENCY_EXT
+#endif
+#if defined(GL_TRIANGLE_STRIP_ADJACENCY_EXT)
+#undef GL_TRIANGLE_STRIP_ADJACENCY_EXT
+#endif
 
 #if defined (WIN32) || defined(_WIN32)
 #pragma warning ( default: 4100 )           //unreferenced formal parameter

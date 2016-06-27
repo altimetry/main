@@ -610,8 +610,14 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
   //Insert("asY", eTypeOpAsY);
 
 	std::vector< std::string > fields;
-	const int size = mQuickVariablesList->count();
+
+#if defined ONLY_USE_WITH_SLA_SSH
 	bool add_selection_criteria = false;
+#else
+	bool add_selection_criteria = true;
+#endif
+
+	const int size = mQuickVariablesList->count();
 	for ( int i = 0; i < size; ++i )
 	{
 		auto *item = mQuickVariablesList->item( i );

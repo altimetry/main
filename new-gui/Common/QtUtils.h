@@ -55,6 +55,7 @@
 	#include <QMenu>
 	#include <QInputDialog>
 #endif
+#include <QDesktopServices>
 #include <QSettings>
 #include <QResource>
 #include <QElapsedTimer>
@@ -1247,6 +1248,16 @@ inline void NotImplemented( const char *msg = nullptr )
 //	auto *item = list->item( index );
 //	return item->text();
 //}
+
+
+inline const std::string& DefaultUserDocumentsPath()
+{
+	static const std::string docs = q2a( QDesktopServices::storageLocation( QDesktopServices::DocumentsLocation ) );    assert__( IsDir( docs ) );
+	static const std::string s = docs + "/brat";
+
+	return s;
+}
+
 
 
 

@@ -12,15 +12,13 @@
 #include "libbrathl/FileParams.h"
 
 
-//  - empirical assumption (without this crashes): a forward like this is
-//  necessary not to crash on delete because we have a data member of this
-//  type in our Q_OBJECT class (and it seems it will be automatically
-//  deleted
-//
 QT_BEGIN_NAMESPACE
 class QString;
 class QSettings;
 QT_END_NAMESPACE
+
+
+class CFieldData;
 
 
 using namespace brathl;
@@ -60,9 +58,9 @@ class CDisplayFilesProcessor
 	std::vector< CPlotBase* > m_plots;
 	std::vector<CExpression> m_fields;
 
-	CObArray m_zfxyPlotProperties;
-	CObArray m_xyPlotProperties;
-	CObArray m_wPlotProperties;
+	std::vector<CZFXYPlotProperties*> m_zfxyPlotProperties;	
+	std::vector<CXYPlotProperties*> m_xyPlotProperties;
+	std::vector<CWorldPlotProperties*> m_wPlotProperties;
 
 	bool mMapsAsPlots = false;
 
@@ -103,9 +101,9 @@ public:
 
 	const std::vector< CPlotBase* > & plots() const { return m_plots; }
 
-	CWorldPlotProperties* GetWorldPlotProperties( int32_t index ) const;
-	CZFXYPlotProperties* GetZFXYPlotProperties( int32_t index ) const;
-	CXYPlotProperties* GetXYPlotProperties( int32_t index ) const;
+	CWorldPlotProperties* GetWorldPlotProperties( size_t index ) const;
+	CZFXYPlotProperties* GetZFXYPlotProperties( size_t index ) const;
+	CXYPlotProperties* GetXYPlotProperties( size_t index ) const;
 
     size_t GetXYPlotPropertiesSize() const { return m_xyPlotProperties.size(); }
     size_t GetZFXYPlotPropertiesSize() const { return m_zfxyPlotProperties.size(); }
@@ -150,10 +148,13 @@ protected:
 	void LoadParameters();
 	void CheckFiles();
 
+	template< class PROPS_CONTAINER >
+	void GetPlotPropertyParams4all( size_t nFields, PROPS_CONTAINER &data );
 
-	void GetXYPlotPropertyParams( int32_t nFields );
-	void GetWPlotPropertyParams( int32_t nFields );
-	void GetZFXYPlotPropertyParams( int32_t nFields );
+	void GetPlotPropertyParams( size_t nFields, CFieldData &data );
+	void GetXYPlotPropertyParams( size_t nFields );
+	void GetWPlotPropertyParams( size_t nFields );
+	void GetZFXYPlotPropertyParams( size_t nFields );
 
 	bool IsXYPlot();
 	bool IsWPlot();

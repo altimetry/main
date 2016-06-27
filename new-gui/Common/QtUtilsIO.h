@@ -104,11 +104,31 @@ inline std::string& NormalizePath( std::string &path )
 
 
 template< typename STRING >
-inline std::string GetRelativePath( const STRING &ref_path, const STRING &path )
+inline std::string GetRelativePath( const STRING &ref_path, const STRING &absolute )
 {
 	QDir dir( t2q( ref_path ) );
-	return q2t< STRING >( dir.relativeFilePath( t2q( path ) ) );	
+
+	return q2t< STRING >( dir.relativeFilePath( t2q( absolute ) ) );	
 }
+
+
+inline std::string GetRelativePath( const char *ref_path, const char *absolute )
+{
+	QDir dir( t2q( ref_path ) );
+
+	return q2a( dir.relativeFilePath( t2q( absolute ) ) );	
+}
+
+
+inline std::string GetAbsolutePath( const std::string &ref_dir, const std::string &relative )
+{
+	QDir dir( t2q( ref_dir ) );
+
+	return NormalizedPath( q2a( dir.absoluteFilePath( t2q( relative ) ) ) );
+}
+
+
+
 
 
 
@@ -117,6 +137,19 @@ inline std::string GetRelativePath( const STRING &ref_path, const STRING &path )
 //                      Paths Querying
 ///////////////////////////////////////////////////////////////////////////
 
+
+inline bool IsRelative( const std::string &path )
+{
+	return QFileInfo( t2q( path ) ).isRelative();
+}
+
+
+// only valid for absolute paths
+//
+inline bool IsSubDirectory( const std::string &path, const std::string &sub_path )
+{
+	return NormalizedPath( sub_path ).find( NormalizedPath( path ) ) != std::string::npos;
+}
 
 
 inline bool IsFile( QString path )
@@ -148,6 +181,11 @@ inline bool IsDir( const char *dir_path )
     return IsDir( QString( dir_path ) );
 }
 
+
+inline std::string EscapePath( const std::string &s )
+{
+	return q2a( QDir::toNativeSeparators( s.c_str() ) );
+}
 
 
 

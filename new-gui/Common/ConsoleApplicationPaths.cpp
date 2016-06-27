@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT 
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 // #include "stdafx.h"
 
 // While we can't include stdafx.h, this pragma must be here
@@ -6,6 +23,7 @@
 #pragma clang diagnostic ignored "-Wdeprecated-register"
 #endif
 
+#include <QCoreApplication>
 
 #include "+UtilsIO.h"
 #include "QtUtilsIO.h"
@@ -59,6 +77,18 @@ const std::string CONFIG_SUBDIR =
 ;
 
 
+const std::string QT_PLUGINS_SUBDIR =
+
+#if defined(_WIN32)
+    "plugins"
+#elif defined (__APPLE__)
+    "../PlugIns"
+#else
+    "plugins"
+#endif
+;
+
+
 //static
 std::string CConsoleApplicationPaths::ComputeInternalDataDirectory( const std::string &ExecutableDir )
 {
@@ -94,7 +124,7 @@ bool CConsoleApplicationPaths::ValidPath( std::string &error_msg, const std::str
 
 
 
-CConsoleApplicationPaths::CConsoleApplicationPaths( const std::string &exec_path ) :
+CConsoleApplicationPaths::CConsoleApplicationPaths( const std::string &exec_path, const std::string &user_docs_dir ) :
 
     // I. NOT user (re)definable paths
 
@@ -104,11 +134,23 @@ CConsoleApplicationPaths::CConsoleApplicationPaths( const std::string &exec_path
     , mExecutablePath( exec_path )
     , mExecutableDir( GetDirectoryFromPath( mExecutablePath ) )			// (*)
     , mDeploymentRootDir( GetDirectoryFromPath( mExecutableDir ) )
+    , mQtPluginsDir( mExecutableDir + "/" + QT_PLUGINS_SUBDIR )
 	, mUserManualPath( mDeploymentRootDir + "/doc/brat_user_manual_" + BRAT_VERSION + ".pdf" )
 
     , mInternalDataDir( ComputeInternalDataDirectory( mExecutableDir ) )
+	, mUserDocumentsDirectory( user_docs_dir )
 {
+    // user (RE)DEFINABLE paths
+	//
+    SetUserPaths();
+
     ValidatePaths();
+
+    // Set Qt plug-ins path
+	//
+	//	- Use QCoreApplication::libraryPaths(); to inspect Qt library (plug-ins) directories
+
+    QCoreApplication::setLibraryPaths( QStringList() << mQtPluginsDir.c_str() );	
 }
 // (*) this achieves the same (but, among other problems, needs
 //	an instance and is not Qt 5 portable): qApp->argv()[ 0 ]
@@ -119,6 +161,53 @@ CConsoleApplicationPaths::CConsoleApplicationPaths( const std::string &exec_path
 //
 bool CConsoleApplicationPaths::ValidatePaths() const
 {
-	mValid = ValidPath( mErrorMsg, mInternalDataDir, false, "BRAT resources directory" );
+	mValid = 
+        ValidPath( mErrorMsg, mQtPluginsDir, false, "Qt Plugins directory" ) &&
+		ValidPath( mErrorMsg, mInternalDataDir, false, "BRAT resources directory" );
+
+
     return mValid;
+}
+
+
+bool CConsoleApplicationPaths::SetUserDataDirectory( bool portable, const std::string &path )
+{
+    if ( !IsDir( path ) && !MakeDirectory( path ) )
+        return false;
+
+    mUsePortablePaths = portable;
+
+    mUserDataDirectory = path;
+
+    return true;
+}
+
+
+bool CConsoleApplicationPaths::SetWorkspacesDirectory( const std::string &path )
+{
+    if ( !IsDir( path ) && !MakeDirectory( path ) )
+        return false;
+
+    mWorkspacesDirectory = path;
+
+    return true;
+}
+
+
+bool CConsoleApplicationPaths::SetUserPaths()
+{
+	if ( mUserDocumentsDirectory.empty() )	//we are in a console application or the client does not need user directories
+		return true;
+
+    const std::string wkspaces = mUserDocumentsDirectory + "/workspaces";
+    const std::string data = mUserDocumentsDirectory + "/user-data";
+
+    if ( !IsDir( mUserDocumentsDirectory ) && !MakeDirectory( mUserDocumentsDirectory ) )
+        return false;
+
+	//set defaults taking "mUserDocumentsDirectory" as root if existing values don't exist
+
+    return 
+		( IsDir( mUserDataDirectory ) || SetUserDataDirectory( mUsePortablePaths, data ) ) &&
+		( IsDir( mWorkspacesDirectory ) || SetWorkspacesDirectory( wkspaces ) );
 }

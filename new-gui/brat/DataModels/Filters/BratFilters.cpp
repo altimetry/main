@@ -483,7 +483,7 @@ bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, 
         {
 			p->AddCriteria( product_ref );
 
-			std::string log_path = mInternalDataPath + "/" + DATASET_SELECTION_LOG_FILENAME;
+			std::string log_path = mWorkspacesPath + "/" + DATASET_SELECTION_LOG_FILENAME;
 
 			p->ApplyCriteria( files_out, log_path );
         }
