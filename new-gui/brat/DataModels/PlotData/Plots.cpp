@@ -190,6 +190,8 @@ void CMathPlot< DATA_FIELD, PLOT_FIELD >::GetTitleAndUnitInfo( CInternalFiles *f
 	{
 		mTitle = file->GetTitle( "" ).c_str();
 	}
+#else
+    UNUSED( useYnameInLabel );
 #endif
 
 	//-----------------------------------

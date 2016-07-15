@@ -1941,7 +1941,7 @@ bool CPlotEditor::HandleAxisLabelChanged( QLineEdit *label_edit, std::string &xt
 {
 	CPlotData *pdata = mCurrentPlotDataXY ? static_cast< CPlotData* >( mCurrentPlotDataXY ) : static_cast< CPlotData* >( mCurrentPlotDataZFXY );
 
-	assert__( mPlot2DView || mPlot3DView );		assert__( pdata );
+    assert__( mPlot2DView || mPlot3DView );		assert__( pdata );      Q_UNUSED( pdata );
 
 	const int index = mTabCurveOptions->mFieldsList->currentRow();
 
