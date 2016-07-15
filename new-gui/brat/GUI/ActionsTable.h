@@ -297,9 +297,63 @@ private:
 //						Most Recent Files QActions
 //////////////////////////////////////////////////////////////////////////////////
 
+
+class CRecentFilesMenu : public QMenu
+{
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+	Q_OBJECT;
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
+	// types
+
+	using base_t = QMenu;
+
+public:
+	CRecentFilesMenu( const QString &title, QWidget *parent = nullptr )
+		: base_t( title, parent )
+	{}
+
+	virtual ~CRecentFilesMenu()
+	{}
+
+	virtual bool event( QEvent *e ) override
+	{
+		const QHelpEvent *helpEvent = static_cast< QHelpEvent* >( e );
+		if ( helpEvent->type() == QEvent::ToolTip && activeAction() != nullptr )
+		{
+			QToolTip::showText( helpEvent->globalPos(), activeAction()->toolTip() );
+		}
+		else
+		{
+			QToolTip::hideText();
+		}
+		return base_t::event( e );
+	}
+};
+
+
+
 class CRecentFilesProcessor : public QObject
 {
-	Q_OBJECT
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+    Q_OBJECT;
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
+    // types
 
 
 	// DATA

@@ -22,8 +22,9 @@
 #include "AbstractDisplayEditor.h"
 
 
-class CWPlot;
+class CGeoPlot;
 class CWorldPlotData;
+class CWorldPlotVelocityData;
 
 class CBratMapView;
 class CGlobeWidget;
@@ -93,11 +94,10 @@ class CMapEditor : public CAbstractDisplayEditor
 	CMapControlsPanelView *mTabView = nullptr;
 
 
-	//...domain data
+	//...domain data: "current" pointers
 
-	std::vector< CWorldPlotData* > mDataArrayMap;
-
-	CWorldPlotProperties *mPropertiesMap = nullptr;
+	CWorldPlotData *mCurrentPlotData = nullptr;
+	CWorldPlotVelocityData *mCurrentPlotVelocityData = nullptr;
 
 
 	// construction /destruction
@@ -111,7 +111,8 @@ private:
 
 public:
     CMapEditor( CModel *model, const COperation *op, const std::string &display_name = "" );
-    CMapEditor( CDisplayFilesProcessor *proc, CWPlot* wplot );
+    CMapEditor( CDisplayDataProcessor *proc, CGeoPlot* wplot );
+    CMapEditor( CDisplayFilesProcessor *proc, CGeoPlot* wplot );
 
 	virtual ~CMapEditor();
 
@@ -127,10 +128,6 @@ protected:
 
 	void KillGlobe();
 
-	bool CreatePlotData( const std::vector< CWPlot* > &wplots );		//when display changes
-
-	CWorldPlotData* UpdateCurrentPointers( int field_index );			//when field changes
-
 
 	///////////////////////////////////////////////////////////
 	// Virtual interface implementations
@@ -145,7 +142,9 @@ protected:
 	virtual void Recenter() override;
 	virtual void Export2Image( bool save_2d, bool save_3d, const std::string path2d, const std::string path3d, EImageExportType type ) override;
 
-	virtual bool ChangeView() override;
+	virtual bool ChangeView() override;									//when display changes
+	virtual bool UpdateCurrentPointers( int field_index ) override;		//when field changes
+	virtual void SetPlotTitle() override;
 	virtual void NewButtonClicked() override;
 	virtual void RenameButtonClicked() override;
 	virtual void DeleteButtonClicked() override;

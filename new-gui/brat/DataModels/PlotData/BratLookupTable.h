@@ -28,6 +28,24 @@
 #include <qwt_color_map.h>
 
 
+#if defined(GL_LINES_ADJACENCY_EXT)
+#undef GL_LINES_ADJACENCY_EXT
+#endif
+#if defined(GL_LINE_STRIP_ADJACENCY_EXT)
+#undef GL_LINE_STRIP_ADJACENCY_EXT
+#endif
+#if defined(GL_TRIANGLES_ADJACENCY_EXT)
+#undef GL_TRIANGLES_ADJACENCY_EXT
+#endif
+#if defined(GL_TRIANGLE_STRIP_ADJACENCY_EXT)
+#undef GL_TRIANGLE_STRIP_ADJACENCY_EXT
+#endif
+#if defined(GL_BLEND_EQUATION_RGB)
+#undef GL_BLEND_EQUATION_RGB
+#endif
+
+
+
 class QLookupTable : public QwtColorMap, public Qwt3D::Color
 {
 	// types
@@ -201,43 +219,43 @@ class CBratLookupTable : public CBratObject
 {
 	friend class CBratLookupTableSettings;
 
-    static const std::string ENTRY_NUMCOLORS()	{ return "ColorTable/NumberOfColors"; }
-    static const std::string ENTRY_CURRENTFCT() { return "ColorTable/CurrentFunction"; }
-    static const std::string ENTRY_CURVE()		{ return "ColorTable/Curve"; }
+	static const std::string ENTRY_NUMCOLORS()	{ return "ColorTable/NumberOfColors"; }
+	static const std::string ENTRY_CURRENTFCT() { return "ColorTable/CurrentFunction"; }
+	static const std::string ENTRY_CURVE()		{ return "ColorTable/Curve"; }
 
-    static const std::string GROUP_COLOR()		{ return "ColorDef"; }
+	static const std::string GROUP_COLOR()		{ return "ColorDef"; }
 
-    static const std::string CURVE_LINEAR()		{ return "Linear"; }
-    static const std::string CURVE_SQRT()		{ return "SQRT"; }
-    static const std::string CURVE_COSINUS()	{ return "Cosinus"; }
+	static const std::string CURVE_LINEAR()		{ return "Linear"; }
+	static const std::string CURVE_SQRT()		{ return "SQRT"; }
+	static const std::string CURVE_COSINUS()	{ return "Cosinus"; }
 
 
 protected:
 
-  QLookupTable *m_vtkLookupTable = nullptr;
+	const std::string mDefaultColorTable = PALETTE_AEROSOL;
+	const std::string m_resetFunction = "Reset";
 
-  const std::string mDefaultColorTable = PALETTE_AEROSOL;
-  const std::string m_resetFunction = "Reset";
+	QLookupTable *m_vtkLookupTable = nullptr;
 
-  std::string m_currentFunction;
+	std::string m_currentFunction;
 
-  std::string m_curve;
-  CStringArray m_curveNames;
+	std::string m_curve;
+	CStringArray m_curveNames;
 
-  CObMap m_nameToMethod;
+	CObMap m_nameToMethod;
 
-  std::vector< std::string > m_colorTableList;
+	std::vector< std::string > m_colorTableList;
 
-  std::string m_gradientFunction;
-  std::string m_customFunction;
+	std::string m_gradientFunction;
+	std::string m_customFunction;
 
-  CallbackFlank *mUpFlank = nullptr;
-  CallbackFlank *mDownFlank = nullptr;
+	CallbackFlank *mUpFlank = nullptr;
+	CallbackFlank *mDownFlank = nullptr;
 
-  CObArray m_cust;
-  CObArray m_grad;
+	CObArray m_cust;
+	CObArray m_grad;
 
-  std::string m_fileName;
+	std::string m_fileName;
 
 public:
 
@@ -246,46 +264,54 @@ public:
 		return CBratLookupTable::GROUP_COLOR() + n2s<std::string>( index ) + "/" + entry;
 	}
 
-//	friend bool LoadFromFile( CBratLookupTable &lut, const std::string& file_name );
-//	friend void SaveToFile( CBratLookupTable &lut, const std::string& file_name );
+	//	friend bool LoadFromFile( CBratLookupTable &lut, const std::string& file_name );
+	//	friend void SaveToFile( CBratLookupTable &lut, const std::string& file_name );
+
+protected:
+	void Init();
 
 public:
 
-  CBratLookupTable();
-  CBratLookupTable(const CBratLookupTable& lut);
+	CBratLookupTable();
+	CBratLookupTable( const CBratLookupTable &lut );
 
-  virtual ~CBratLookupTable();
+	virtual ~CBratLookupTable();
 
-  QLookupTable* GetLookupTable() const {return m_vtkLookupTable;}
+	CBratLookupTable& operator = ( const CBratLookupTable &lut );
 
-  std::string GetCurve() const {return m_curve;}
-  std::string GetCurrentFunction() const {return m_currentFunction;}
-  std::string GetResetFunction() {return m_resetFunction;}
+	bool operator == ( const CBratLookupTable &o ) const;
 
-  const CObArray* GetGrad() const {return &m_grad;}
-  const CObArray* GetCust() const {return &m_cust;}
-  CObArray* GetCust() {return &m_cust;}
-  int GetMaxCustomXValue();
 
-  const std::vector<std::string >* GetColorTableList() const { return &m_colorTableList; }
+	QLookupTable* GetLookupTable() const { return m_vtkLookupTable; }
 
-  std::string MethodToLabeledMethod(const std::string& method);
-  bool IsValidMethod(const std::string& methodName);
+	const std::string& GetCurve() const { return m_curve; }
+	const std::string& GetCurrentFunction() const { return m_currentFunction; }
+	const std::string& GetResetFunction() { return m_resetFunction; }
 
-  std::string CurveToLabeledCurve(const std::string& curve);
-  bool IsValidCurve(const std::string& curve);
+	const CObArray* GetGrad() const { return &m_grad; }
+	const CObArray* GetCust() const { return &m_cust; }
+	CObArray* GetCust() { return &m_cust; }
+	int GetMaxCustomXValue();
 
-  void ExecMethod(const std::string& methodName);
+	const std::vector<std::string >* GetColorTableList() const { return &m_colorTableList; }
 
-  void ExecMethodDefaultColorTable();
+	std::string MethodToLabeledMethod( const std::string& method ) const;
+	bool IsValidMethod( const std::string& methodName );
 
-  void ExecCurveMethod(const std::string& curve);
+	std::string CurveToLabeledCurve( const std::string& curve ) const;
+	bool IsValidCurve( const std::string& curve );
 
-  bool IsCurrentCustom() {return m_currentFunction == m_customFunction;}
-  bool IsCurrentGradient() {return m_currentFunction == m_gradientFunction;}
-  bool IsCurrentReset() {return m_currentFunction == m_resetFunction;}
+	void ExecMethod( const std::string& methodName );
 
-  std::string GetDefaultColorTable() {return mDefaultColorTable;}
+	void ExecMethodDefaultColorTable();
+
+	void ExecCurveMethod( const std::string& curve );
+
+	bool IsCurrentCustom() { return m_currentFunction == m_customFunction; }
+	bool IsCurrentGradient() { return m_currentFunction == m_gradientFunction; }
+	bool IsCurrentReset() { return m_currentFunction == m_resetFunction; }
+
+	std::string GetDefaultColorTable() { return mDefaultColorTable; }
 
 
 	void Black();
@@ -306,66 +332,62 @@ protected:
 public:
 
 	void SetCurveLinear();
-  void SetCurveSQRT();
-  void SetCurveCosinus();
+	void SetCurveSQRT();
+	void SetCurveCosinus();
 
-  void SetFacets(int f);
-  void FacetsCorrection();
+	void SetFacets( int f );
+	void FacetsCorrection();
 
-  void Reset();
+	void Reset();
 
-  void Gradient(const CPlotColor& c1, const CPlotColor& c2);
-  void Gradient();
+	void Gradient( const CPlotColor& c1, const CPlotColor& c2 );
+	void Gradient();
 
-  void Custom(const CObArray& cust);
-  void Custom(const CCustomColor& c1, const CCustomColor& c2);
-  void Custom();
+	void Custom( const CObArray& cust );
+	void Custom( const CCustomColor& c1, const CCustomColor& c2 );
+	void Custom();
 
-  static void DupCustMap(const CObArray& custSrc, CObArray& custDest);
+	static void DupCustMap( const CObArray& custSrc, CObArray& custDest );
 
-  CBratLookupTable& operator=(const CBratLookupTable& lut);
-
-  ///Dump fonction
-  virtual void Dump(std::ostream& fOut = std::cerr);
+	///Dump fonction
+	virtual void Dump( std::ostream& fOut = std::cerr );
 
 protected:
 
-  void Init();
-
-  void DupCustMap(const CObArray& cust);
-  void DupGradMap(const CObArray& grad);
+	void DupCustMap( const CObArray& cust );
+	void DupGradMap( const CObArray& grad );
 
 
-  void SetCurveUpDown(CallbackFlank* up, CallbackFlank* down);
+	void SetCurveUpDown( CallbackFlank* up, CallbackFlank* down );
 
-  double LineUp(double a, double b, double x);
-  double LineDown(double a, double b, double x);
-  double SqrtUp(double a, double b, double x);
-  double SqrtDown(double a, double b, double x);
-  double CosUp(double a, double b, double x);
-  double CosDown(double a, double b, double x);
+	double LineUp( double a, double b, double x );
+	double LineDown( double a, double b, double x );
+	double SqrtUp( double a, double b, double x );
+	double SqrtDown( double a, double b, double x );
+	double CosUp( double a, double b, double x );
+	double CosDown( double a, double b, double x );
 
-  void Update();
+	void Update();
 
-  void DrawGradient(const CPlotColor& c1, const CPlotColor& c2, int i1, int i2);
+	void DrawGradient( const CPlotColor& c1, const CPlotColor& c2, int i1, int i2 );
 
-  ////////////////////////////////////////////////////////v4
+	////////////////////////////////////////////////////////v4
 public:
-  void SaveToFile(const std::string& file_name);
-  bool LoadFromFile( std::string &error_msg, const std::string& file_name );
+	void SaveToFile( const std::string& file_name );
+	bool LoadFromFile( std::string &error_msg, const std::string& file_name );
 
 protected:
-  //void SaveGradToFile( CBratLookupTableSettings& file );
-  //void SaveCustToFile( CBratLookupTableSettings& file );
+	//void SaveGradToFile( CBratLookupTableSettings& file );
+	//void SaveCustToFile( CBratLookupTableSettings& file );
 
-  //bool LoadGradFromFile( CBratLookupTableSettings& file );
-  //bool LoadCustFromFile( CBratLookupTableSettings& file );
+	//bool LoadGradFromFile( CBratLookupTableSettings& file );
+	//bool LoadCustFromFile( CBratLookupTableSettings& file );
 
-  void HandleLoadError(bool bOk, const std::string& entry);
-  void HandleLoadColorError( std::string &error_msg, bool bOk, const std::string& entry, double& color);
-  ////////////////////////////////////////////////////////v4
+	void HandleLoadError( bool bOk, const std::string& entry );
+	void HandleLoadColorError( std::string &error_msg, bool bOk, const std::string& entry, double& color );
+	////////////////////////////////////////////////////////v4
 
-  int InsertCustomColor(CCustomColor *color, std::string &warning );
+	int InsertCustomColor( CCustomColor *color, std::string &warning );
 };
 
 

@@ -124,7 +124,7 @@ void CColorMapLabel::SetLUT( const CBratLookupTable *lut )
 
 
 
-void CColorMapWidget::CreateWidgets( bool show_labels )
+void CColorMapWidget::CreateWidgets( bool show_range )
 {
 	// generic data and tools
 
@@ -190,24 +190,23 @@ void CColorMapWidget::CreateWidgets( bool show_labels )
 	mCalculateMinMax->setAutoDefault( false );
 	mCalculateMinMax->setDefault( false );
 
-	// color range
-
 	mColorRangeMinEdit->setValidator( new QRegExpValidator( QRegExp( "[-0-9.]+" ) ) );
 	mColorRangeMaxEdit->setValidator( new QRegExpValidator( QRegExp( "[-0-9.]+" ) ) );
 
-	auto *color_range_group = CreateGroupBox( ELayoutType::Vertical, 
-	{
-		LayoutWidgets( Qt::Horizontal, { new QLabel("min"), mColorRangeMinEdit, nullptr, new QLabel("max"), mColorRangeMaxEdit } , nullptr ,4,4,4,4,4 ),
-		mCalculateMinMax,
-	}
-	,"Color Range", nullptr, 4,4,4,4,4 );
-
-
-	// color table labels
+	// color range
 
 	QLayout *labels_l = nullptr;
-	if ( show_labels )
+	QGroupBox *color_range_group = nullptr;
+	if ( show_range )
 	{
+		color_range_group = CreateGroupBox( ELayoutType::Vertical, 
+		{
+			LayoutWidgets( Qt::Horizontal, { new QLabel("min"), mColorRangeMinEdit, nullptr, new QLabel("max"), mColorRangeMaxEdit } , nullptr ,4,4,4,4,4 ),
+			mCalculateMinMax,
+		}
+		,"Color Range", nullptr, 4,4,4,4,4 );
+
+
 		for ( int i = 0; i < smNumberOfColorLabels; ++i )
 		{
 			mColorLabels[ i ] = (QLabel*)wshrinkh( new QLabel );
@@ -238,19 +237,25 @@ void CColorMapWidget::CreateWidgets( bool show_labels )
 	// assemble all
 
 	if ( solid_and_contour_l )
-		LayoutWidgets( Qt::Horizontal, { solid_and_contour_l, color_map_l, color_range_group }, this, 2,2,2,2,2 );
+		if ( color_range_group )
+			LayoutWidgets( Qt::Horizontal, { solid_and_contour_l, color_map_l, color_range_group }, this, 2,2,2,2,2 );
+		else
+			LayoutWidgets( Qt::Horizontal, { solid_and_contour_l, color_map_l }, this, 2,2,2,2,2 );
 	else
-		LayoutWidgets( Qt::Horizontal, { color_map_l, color_range_group }, this, 2,2,2,2,2 );
+		if ( color_range_group )
+			LayoutWidgets( Qt::Horizontal, { color_map_l, color_range_group }, this, 2,2,2,2,2 );
+		else
+			LayoutWidgets( Qt::Horizontal, { color_map_l }, this, 2,2,2,2,2 );
 }
 
 
 
-CColorMapWidget::CColorMapWidget( bool only_lut, bool show_labels, QWidget *parent )
+CColorMapWidget::CColorMapWidget( bool only_lut, bool show_range, QWidget *parent )
 	: base_t( parent )
 	, mOnlyLUT( only_lut )
 	, mColorLabels( smNumberOfColorLabels )
 {
-	CreateWidgets( show_labels );
+	CreateWidgets( show_range );
 
 
 	if ( !mOnlyLUT )
@@ -366,7 +371,7 @@ void CColorMapWidget::SetLUT( CBratLookupTable *lut, double min, double max )
 
 	mAbsoluteMin = min;
 	mAbsoluteMax = max;
-	SetRange( mLut->GetLookupTable()->GetTableRange()[0], mLut->GetLookupTable()->GetTableRange()[1] );
+	SetRange( mAbsoluteMin, mAbsoluteMax );
 }
 
 
@@ -440,8 +445,8 @@ void CColorMapWidget::UpdateLabels()
 
 void CColorMapWidget::SetRange( double min, double max )
 {
-	mColorRangeMin = std::max( mAbsoluteMin, min );
-	mColorRangeMax = std::min( mAbsoluteMax, max );
+	mColorRangeMin = std::min( mAbsoluteMax, std::max( mAbsoluteMin, min ) );
+	mColorRangeMax = std::max( mAbsoluteMin, std::min( mAbsoluteMax, max ) );
 
 	mLut->GetLookupTable()->SetTableRange( mColorRangeMin, mColorRangeMax );
 

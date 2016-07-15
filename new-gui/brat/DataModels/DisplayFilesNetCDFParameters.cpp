@@ -8,9 +8,8 @@
 #include "libbrathl/InternalFilesZFXY.h"
 #include "libbrathl/InternalFilesYFX.h"
 
-#include "PlotData/ZFXYPlot.h"
-#include "PlotData/XYPlot.h"
-#include "PlotData/WorldPlot.h"
+#include "DataModels/PlotData/Plots.h"
+#include "DataModels/PlotData/FieldData.h"
 
 
 
@@ -132,32 +131,30 @@ bool CDisplayFilesProcessor::GetParametersNetcdfYFX( CExternalFilesNetCDF* exter
 
 	GetXYPlotPropertyParams( nFields );
 
-	uint32_t index = 0;
-
+	unsigned index = 0;
 	for ( auto itParamVar = m_paramVars.begin(); itParamVar != m_paramVars.end(); itParamVar++ )
 	{
+		auto *props = GetXYPlotProperties( index );
+
 		// Add field to xy plot group
-		CPlot* plot = dynamic_cast<CPlot*>( m_plots[ groupNumber ] );
+		CYFXPlot* plot = dynamic_cast<CYFXPlot*>( m_plots[ groupNumber ] );
 		if ( plot == nullptr )
 		{
-			plot = new CPlot( groupNumber );
+			plot = new CYFXPlot( "", groupNumber );
 			m_plots[ groupNumber ] = plot;
 		}
-		CPlotField* field = new CPlotField( *itParamVar );
-		plot->mFields.push_back( field );
+		plot->PushFieldData( props );
 
-		if ( m_paramXAxis.empty() == false )
+		if ( !m_paramXAxis.empty() )
 		{
 			plot->SetForcedVarXname( m_paramXAxis.c_str() );
 		}
 
+		CInternalFilesYFX* yfx = dynamic_cast<CInternalFilesYFX*>( PrepareNetcdf( externalFile->GetName().c_str() ) );
 
-		CInternalFilesYFX* yfx = dynamic_cast<CInternalFilesYFX*>( Prepare( externalFile->GetName().c_str() ) );
+		props->PushInternalFile( yfx );		//field->m_xyProps = GetXYPlotProperties( index );
 
-		field->m_internalFiles.Insert( yfx );
-		field->m_xyProps = GetXYPlotProperties( index );
-
-		m_fields[ index ] = ( *itParamVar );
+		m_fields[ index ] = *itParamVar;
 
 		index++;
 	}
@@ -326,33 +323,32 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFXY( CExternalFilesNetCDF* exte
 
 	for ( auto itParamVar = m_paramVars.begin(); itParamVar != m_paramVars.end(); itParamVar++ )
 	{
+		auto *props = GetZFXYPlotProperties( index );
+
 		// Add field to ZFXY plot group
 		CZFXYPlot* zfxyplot = dynamic_cast<CZFXYPlot*>( m_plots[ groupNumber ] );
 		if ( zfxyplot == nullptr )
 		{
-			zfxyplot = new CZFXYPlot( groupNumber );
+			zfxyplot = new CZFXYPlot( "", groupNumber );
 			m_plots[ groupNumber ] = zfxyplot;
 		}
 
-		CPlotField* field = new CPlotField( *itParamVar );
-		zfxyplot->mFields.push_back( field );
+		zfxyplot->PushFieldData( props );
 
-
-		if ( m_paramXAxis.empty() == false )
+		if ( !m_paramXAxis.empty() )
 		{
 			zfxyplot->SetForcedVarXname( m_paramXAxis );
 		}
 
-		if ( m_paramYAxis.empty() == false )
+		if ( !m_paramYAxis.empty() )
 		{
 			zfxyplot->SetForcedVarYname( m_paramYAxis );
 		}
 
 
-		CInternalFiles* zfxy = Prepare( externalFile->GetName() );
+		CInternalFiles* zfxy = PrepareNetcdf( externalFile->GetName() );
 
-		field->m_internalFiles.Insert( zfxy );
-		field->m_zfxyProps = GetZFXYPlotProperties( index );
+		props->PushInternalFile( zfxy );		//field->m_zfxyProps = GetZFXYPlotProperties( index );
 
 		m_fields[ index ] = *itParamVar;
 
@@ -491,24 +487,23 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFLatLon( CExternalFilesNetCDF* 
 
 	for ( auto itParamVar = m_paramVars.begin(); itParamVar != m_paramVars.end(); itParamVar++ )
 	{
+		auto *props = GetWorldPlotProperties( index );
+
 		// Add field to world plot group
-		CWPlot* wplot = dynamic_cast<CWPlot*>( m_plots[ groupNumber ] );
+		CGeoPlot* wplot = dynamic_cast<CGeoPlot*>( m_plots[ groupNumber ] );
 		if ( wplot == nullptr )
 		{
-			wplot = new CWPlot( groupNumber );
+			wplot = new CGeoPlot( "", groupNumber );
 			m_plots[ groupNumber ] = wplot;
 		}
 
-		CPlotField* field = new CPlotField( itParamVar->c_str() );
-		wplot->mFields.push_back( field );
+		wplot->PushFieldData( props );
 
+		CInternalFilesZFXY* zfxy = dynamic_cast<CInternalFilesZFXY*>( PrepareNetcdf( externalFile->GetName().c_str() ) );
 
-		CInternalFilesZFXY* zfxy = dynamic_cast<CInternalFilesZFXY*>( Prepare( externalFile->GetName().c_str() ) );
+		props->PushInternalFile( zfxy );		//field->m_worldProps = GetWorldPlotProperties( index );
 
-		field->m_internalFiles.Insert( zfxy );
-		field->m_worldProps = GetWorldPlotProperties( index );
-
-		m_fields[ index ] = ( *itParamVar );
+		m_fields[ index ] = *itParamVar;
 
 		index++;
 	}
@@ -520,7 +515,7 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFLatLon( CExternalFilesNetCDF* 
 
 
 
-bool CDisplayFilesProcessor::GetParametersNetcdf()
+bool CDisplayFilesProcessor::BuildPlotsFromNetcdf()
 {
 	bool bOk = false;
 
@@ -567,7 +562,7 @@ bool CDisplayFilesProcessor::GetParametersNetcdf()
 
 	externalFile->Open();
 
-	m_inputFiles.Insert( m_paramFile );
+	mOperationOutputFiles.Insert( m_paramFile );
 
 	if (( !m_paramXAxis.empty() && !m_paramYAxis.empty() ) || 
 		( m_paramXAxis.empty() && m_paramYAxis.empty() ) )

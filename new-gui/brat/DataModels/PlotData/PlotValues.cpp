@@ -131,23 +131,36 @@ struct Fitab
 	Fitab( const size_t ndata, const double *xx, const double *yy )
 		: x( xx ), y( yy ), chi2( 0. ), sigdat( 0. ) 
 	{
+		//compute slope_b & intercept_a; if at least one is NAN, linear fit is disabled
+
 		double sx=0., sy=0., st2=0., t;
 		slope_b = 0.0;
+		double ss = ndata;
 		for ( size_t i=0; i < ndata; i++ )
 		{
-			sx += x[ i ];
-			sy += y[ i ];
+			if ( std::isnan( x[ i ] ) || std::isnan( y[ i ] ) )
+				ss--;
+			else
+			{
+				sx += x[ i ];
+				sy += y[ i ];
+			}
 		}
-		const double ss = ndata;
 		const double sxoss = sx / ss;
 		for ( size_t i=0; i < ndata; i++ ) 
 		{
+			if ( std::isnan( x[ i ] ) || std::isnan( y[ i ] ) )
+				continue;
+
 			t=x[ i ] - sxoss;
 			st2 += t*t;
 			slope_b += t*y[ i ];
 		}
 		slope_b /= st2;
 		intercept_a = ( sy - sx * slope_b ) / ss;
+
+		//siga, sigb, chi2, sigdat: not used
+
 		siga=sqrt( ( 1.0 + sx*sx / ( ss*st2 ) ) / ss );
 		sigb=sqrt( 1.0 / st2 );
 		for ( size_t i=0; i < ndata; i++ ) 

@@ -38,6 +38,11 @@
 **
 ****************************************************************************/
 
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-register"
+#endif
+
 
 #include "qtlocalpeer.h"
 #include <QCoreApplication>
@@ -64,6 +69,12 @@ namespace QtLP_Private {
 #include "qtlockedfile_unix.cpp"
 #endif
 }
+
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
 
 const char* QtLocalPeer::ack = "ack";
 

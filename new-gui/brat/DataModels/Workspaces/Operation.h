@@ -179,10 +179,14 @@ public:
 protected:
 	std::string m_logFile;
 
-	bool mCreateKML = false;
+	bool mCreateKMLTrackData = false;
+    bool mCreateKMLFieldsData = false;
+	bool mCreateGeoTIFFs = true;
 	std::string mColorTable;
+#if defined(BRAT_V3)
 	double mGeoTIFFRangeMin = defaultValue<double>();
 	double mGeoTIFFRangeMax = defaultValue<double>();
+#endif
 	std::string mBratLogoPath;
 
 	bool m_exportAsciiDateAsPeriod = false;
@@ -313,26 +317,35 @@ public:
 	std::vector< CMapTypeDisp::ETypeDisp > GetDisplayTypes( CInternalFiles** pf = nullptr ) const;
 
 
-	void GetExportGeoTiffProperties( bool &createKML, std::string &colorTable, double &rangeMin, double &rangeMax )
+	void GetExportGeoTiffProperties( bool &createKMLFields, bool &createKMLTrack, bool &createGeoTIFFs, std::string &colorTable )
 	{
-		createKML = mCreateKML;
+		createKMLFields = mCreateKMLFieldsData;
+		createKMLTrack = mCreateKMLTrackData;
+		createGeoTIFFs = mCreateGeoTIFFs;
 		colorTable = mColorTable;
-		rangeMin = mGeoTIFFRangeMin;
-		rangeMax = mGeoTIFFRangeMax;
+//#if defined(BRAT_V3)
+//		rangeMin = mGeoTIFFRangeMin;
+//		rangeMax = mGeoTIFFRangeMax;
+//#endif
 	}
 
-	void SetExportGeoTiffProperties( bool createKML, std::string colorTable, double rangeMin, double rangeMax, const std::string &logo_path )
+	void SetExportGeoTiffProperties( bool createKMLFields, bool createKMLTrack, bool createGeoTIFFs, std::string colorTable, const std::string &logo_path )
 	{
-		mCreateKML = createKML;
+		mCreateKMLFieldsData = createKMLFields;
+		mCreateKMLTrackData = createKMLTrack;
+		mCreateGeoTIFFs = createGeoTIFFs;
 		mColorTable = colorTable;
-		mGeoTIFFRangeMin = rangeMin;
-		mGeoTIFFRangeMax = rangeMax;
+//#if defined(BRAT_V3)
+//		mGeoTIFFRangeMin = rangeMin;
+//		mGeoTIFFRangeMax = rangeMax;
+//#endif
 		mBratLogoPath = logo_path;
 	}
 
 	// output paths ///////////////////////////////////////////////////////////////////////
 	//
-	void InitOutput( CWorkspaceOperation *wks );
+	void InitOutputs( CWorkspaceOperation *wks );
+	void InitOperationOutput( CWorkspaceOperation *wks );
 	void InitExportAsciiOutput( CWorkspaceOperation *wks );
 	void InitExportGeoTIFFOutput( CWorkspaceOperation *wks );
 	void InitShowStatsOutput( CWorkspaceOperation *wks );

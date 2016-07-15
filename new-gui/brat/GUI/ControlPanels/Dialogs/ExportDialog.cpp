@@ -20,6 +20,8 @@ const std::string CExportDialog::smDefaultExtensionAscii = "txt";
 const std::string CExportDialog::smDefaultExtensionNetCdf = "nc";
 //static 
 const std::string CExportDialog::smDefaultExtensionGeoTiff = "tif";
+//static 
+const std::string CExportDialog::smDefaultExtensionKML = "kml";
 
 
 void  CExportDialog::CreateWidgets()
@@ -67,8 +69,13 @@ void  CExportDialog::CreateWidgets()
 
 	// GeoTiff
 
-	mCreateGoogleKMLFile = new QCheckBox( "Create GoogleEarth KML file" );
+	KMLAlongTrackDataCheck = new QCheckBox( "With Along Track Data" );
+	KMLFieldsDataCheck = new QCheckBox( "With Field Image Data" );
+	mCreateGoogleKMLFileGroup = CreateGroupBox( ELayoutType::Vertical, { KMLFieldsDataCheck, KMLAlongTrackDataCheck }, "Create GoogleEarth KML" );
+	mCreateGoogleKMLFileGroup->setCheckable( true );
+	mCreateGeoTiffFilesCheck = new QCheckBox( "Create GeoTIFF" );
 	mColorMapWidget = new CColorMapWidget( true, false, nullptr );
+	mCreateGoogleKMLFileGroup->setStyleSheet("QGroupBox { font-weight: normal; } ");		//necessary to break inheritance from enveloping group font
 
 	auto *color_table_group = CreateGroupBox( ELayoutType::Horizontal, { mColorMapWidget }, "", nullptr, 4, 4, 4, 4, 4 );		//mColorMapWidget already has group titles
 	color_table_group->setStyleSheet("QGroupBox { font-weight: normal; } ");		//necessary to break inheritance from enveloping group font
@@ -77,11 +84,12 @@ void  CExportDialog::CreateWidgets()
 	{
 		LayoutWidgets( Qt::Vertical,
 		{
-			color_table_group,
+			mCreateGeoTiffFilesCheck,
 			nullptr,
-			mCreateGoogleKMLFile,
+			mCreateGoogleKMLFileGroup
 		}, 
 		nullptr, 2, 2, 2, 2, 2 ),
+		color_table_group
 	},
 	mFormatGeoTiffPage, 6, 6, 6, 6, 6 );
 
@@ -91,7 +99,7 @@ void  CExportDialog::CreateWidgets()
 	mStackedWidget = new CStackedWidget( this, { 
         { mFormatASCIIPage, "Ascii", CActionInfo::FormatTip("Ascii format options"), "://images/OSGeo/export_ascii.png", true },
         { mFormatNetCdfPage, "NetCdf", CActionInfo::FormatTip("NetCdf format options"), "://images/OSGeo/export_netcdf.png", true },
-        { mFormatGeoTiffPage, "GeoTiff", CActionInfo::FormatTip("GeoTiff format options"), "://images/OSGeo/export_geotiff.png", true }
+        { mFormatGeoTiffPage, "KML/GeoTIFF", CActionInfo::FormatTip("GeoTiff format options"), "://images/OSGeo/export_geotiff.png", true }
 	} );
 
 	auto *b0 = dynamic_cast<QToolButton*>( mStackedWidget->Button( eASCII ) );
@@ -217,7 +225,10 @@ void CExportDialog::Wire()
 	{
 		mFormatGeoTiffButton->setEnabled( true );
 
-		mCreateGoogleKMLFile->setChecked( mCreateKML );
+		mCreateGoogleKMLFileGroup->setChecked( mCreateKMLTrackData || mCreateKMLFieldsData );
+		KMLAlongTrackDataCheck->setChecked( mCreateKMLTrackData );
+		KMLFieldsDataCheck->setChecked( mCreateKMLFieldsData );
+		mCreateGeoTiffFilesCheck->setChecked( mCreateGeoTIFFs );
 		mColorMapWidget->SetLUT( mLUT, mColorRangeMin, mColorRangeMax );
 		connect( mColorMapWidget, SIGNAL( CurrentIndexChanged( int ) ), this, SLOT( HandleColorTablesIndexChanged( int ) ) );
 	}
@@ -248,6 +259,11 @@ void CExportDialog::Wire()
 
 	// Connect
 
+	connect( KMLFieldsDataCheck, SIGNAL( toggled( bool ) ), this, SLOT( HandleKMLFieldsDataChecked( bool ) ) );
+	connect( KMLAlongTrackDataCheck, SIGNAL( toggled( bool ) ), this, SLOT( HandleKMLAlongTrackDataChecked( bool ) ) );
+	connect( mCreateGeoTiffFilesCheck, SIGNAL( toggled( bool ) ), this, SLOT( HandleCreateGeoTiffFilesChecked( bool ) ) );
+	connect( mCreateGoogleKMLFileGroup, SIGNAL( toggled( bool ) ), this, SLOT( HandleCreateGoogleKMLFileChecked( bool ) ) );
+
 	connect( mBrowseButton, SIGNAL( clicked() ), this, SLOT( HandleChangeExportPath() ) );
 	connect( mStackedWidget, SIGNAL( currentChanged( int ) ), this, SLOT( HandleExportType( int ) ) );
 	connect( mDelayExecutionButton, SIGNAL( clicked() ), this, SLOT( HandleDelayExecution() ) );
@@ -268,7 +284,7 @@ CExportDialog::CExportDialog( const std::string logo_path, CWorkspaceOperation *
 {
 	assert__( mWOperation && mOperation );
 
-	mOperation->GetExportGeoTiffProperties( mCreateKML, mColorTable, mColorRangeMin, mColorRangeMax );
+	mOperation->GetExportGeoTiffProperties( mCreateKMLFieldsData, mCreateKMLTrackData, mCreateGeoTIFFs, mColorTable );
 	if ( mColorTable.empty() )
 		mLUT->ExecMethodDefaultColorTable();
 	else
@@ -282,6 +298,48 @@ CExportDialog::~CExportDialog()
 {
 	delete mLUT;
 }
+
+
+// Ensure at least one of tiff/kml is checked
+//
+void CExportDialog::HandleCreateGeoTiffFilesChecked( bool checked )
+{
+	if ( !checked && !mCreateGoogleKMLFileGroup->isChecked() )
+	{
+		mCreateGeoTiffFilesCheck->setChecked( true );
+		return;
+	}
+
+	HandleExportType( mExportType );
+}
+void CExportDialog::HandleCreateGoogleKMLFileChecked( bool checked )
+{
+	if ( !checked && !mCreateGeoTiffFilesCheck->isChecked() )
+	{
+		mCreateGoogleKMLFileGroup->setChecked( true );		
+		return;
+	}
+
+	// If checked, ensure at least kml-fields is checked
+	//
+	if ( checked && !KMLFieldsDataCheck->isChecked() && !KMLAlongTrackDataCheck->isChecked())
+		KMLFieldsDataCheck->setChecked( true );		
+
+	HandleExportType( mExportType );
+}
+// Ensure at least one of kml-fields/kml-tracks is checked
+//
+void CExportDialog::HandleKMLFieldsDataChecked( bool checked )
+{
+	if ( !checked && !KMLAlongTrackDataCheck->isChecked() )
+		KMLFieldsDataCheck->setChecked( true );		
+}
+void CExportDialog::HandleKMLAlongTrackDataChecked( bool checked )
+{
+	if ( !checked && !KMLFieldsDataCheck->isChecked() )
+		KMLAlongTrackDataCheck->setChecked( true );		
+}
+
 
 
 void CExportDialog::HandleExportType( int index )
@@ -304,7 +362,7 @@ void CExportDialog::HandleExportType( int index )
 			break;
 		case eGEOTIFF:
 			currentoutputfilename = mCurrentGeoTIFFOutputFileName;
-			extension = smDefaultExtensionGeoTiff;
+			extension = mCreateGeoTiffFilesCheck->isChecked() ? smDefaultExtensionGeoTiff : smDefaultExtensionKML;
 			break;
 		default:
 			assert__( false );
@@ -454,13 +512,15 @@ bool CExportDialog::Execute()
 
 		case eGEOTIFF:
 		{
-			mColorRangeMin = mColorMapWidget->ColorRangeMin();
-			mColorRangeMax = mColorMapWidget->ColorRangeMax();
+			mColorRangeMin = mColorMapWidget->ColorRangeMin();	//v4 not used
+			mColorRangeMax = mColorMapWidget->ColorRangeMax();	//v4 not used
 
-			mCreateKML = mCreateGoogleKMLFile->isChecked();
+			mCreateKMLFieldsData = mCreateGoogleKMLFileGroup->isChecked() && KMLFieldsDataCheck->isChecked();
+			mCreateKMLTrackData = mCreateGoogleKMLFileGroup->isChecked() && KMLAlongTrackDataCheck->isChecked();
+			mCreateGeoTIFFs = mCreateGeoTiffFilesCheck->isChecked();
 			mColorTable = q2a( mColorMapWidget->currentText() );
 
-			mOperation->SetExportGeoTiffProperties( mCreateKML, mColorTable, mColorRangeMin, mColorRangeMax, mLogoPath );
+			mOperation->SetExportGeoTiffProperties( mCreateKMLFieldsData, mCreateKMLTrackData, mCreateGeoTIFFs, mColorTable, mLogoPath );
 		}
 		break;
 

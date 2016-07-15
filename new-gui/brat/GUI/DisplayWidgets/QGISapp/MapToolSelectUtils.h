@@ -31,6 +31,8 @@ class QgsRubberBand;
  */
 namespace QgsMapToolSelectUtils
 {
+	QgsGeometry toLayerCoordinates( QgsMapCanvas* canvas, QgsGeometry* selectGeometry, QgsVectorLayer *vlayer );
+
 	/**
 	  Selects the features within currently selected layer.
 	  @param canvas The map canvas used to get the current selected vector layer and

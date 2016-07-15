@@ -26,9 +26,9 @@ void CDatasetFilterControls::CreateWidgets()
 {
     // I. Top buttons row
     //
-    mNewFilter    = CreateToolButton( "", ":/images/OSGeo/filter_new.png", "<b>Create filter</b><br>Create a new filter" );
-    mRenameFilter = CreateToolButton( "", ":/images/OSGeo/filter_edit.png", "<b>Rename filter</b><br>Change the name of selected filter" );
-    mDeleteFilter = CreateToolButton( "", ":/images/OSGeo/filter_delete.png", "<b>Delete filter</b><br>Delete the selected filter" );
+    mNewFilter    = CreateToolButton( "", ":/images/OSGeo/filter_new.png", "<b>Create filter...</b><br>Create a new filter" );
+    mRenameFilter = CreateToolButton( "", ":/images/OSGeo/filter_edit.png", "<b>Rename filter...</b><br>Change the name of selected filter" );
+    mDeleteFilter = CreateToolButton( "", ":/images/OSGeo/filter_delete.png", "<b>Delete filter...</b><br>Delete the selected filter" );
     mSaveFilters  = CreateToolButton( "", ":/images/OSGeo/filter_save.png", "<b>Save filters</b><br>Save filter parameters." );
 
     mFiltersCombo = new QComboBox;
@@ -131,7 +131,7 @@ void CDatasetFilterControls::CreateWidgets()
 	AddTopLayout( ELayoutType::Horizontal, { WidgetLine( nullptr, Qt::Horizontal ), when_l, WidgetLine( nullptr, Qt::Horizontal ), mClearWhen }, s, m, m, m, m );
 
     //    III.1 Dates, Cycles and Pass (start and stop values)
-    QDateTime minDateTime( QDate(1900, 1, 1), QTime(0, 0, 0));
+    QDateTime minDateTime( QDate(1950, 1, 1), QTime(0, 0, 0));
 
     mStartTimeEdit = new QDateTimeEdit();                      mStopTimeEdit = new QDateTimeEdit();
     mStartTimeEdit->setCalendarPopup(true);                    mStopTimeEdit->setCalendarPopup(true);
@@ -162,10 +162,6 @@ void CDatasetFilterControls::CreateWidgets()
                                                  LayoutWidgets( Qt::Horizontal, { new QLabel( "Stop Pass" ),  mStopPassEdit  } )
                                                 } );
 
-    //LayoutWidgets( Qt::Horizontal, {dates_box, nullptr, cycles_box, nullptr, pass_box}, mWhenBox );
-    mWhenBox = AddTopGroupBox(  ELayoutType::Horizontal, { dates_box, nullptr, cycles_box, nullptr, pass_box} );
-
-
     //   III.2 One-Click Time Filtering
 
 #if defined (ONE_CLICK_TIME_FILTERING)
@@ -182,13 +178,6 @@ void CDatasetFilterControls::CreateWidgets()
     QFrame *lineVertical_1 = WidgetLine( nullptr, Qt::Vertical );
     QFrame *lineVertical_2 = WidgetLine( nullptr, Qt::Vertical );
 
-    auto mRelativeStart  = new QLineEdit(this);
-    auto mRelativeStop   = new QLineEdit(this);
-    QBoxLayout *relative_times = LayoutWidgets( Qt::Vertical, {
-                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Relative Start" ), mRelativeStart } ),
-                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Relative Stop" ),  mRelativeStop  } )
-                                                } );
-
     auto reference_date       = new QCheckBox( "Reference Date" );
     auto reference_date_text  = new QDateEdit;			  reference_date_text->setCalendarPopup(true);
     QBoxLayout *refDateBox = LayoutWidgets( Qt::Vertical, { reference_date, reference_date_text} );
@@ -202,6 +191,47 @@ void CDatasetFilterControls::CreateWidgets()
         LayoutWidgets( Qt::Horizontal, { month_year_cycle_layout, lineVertical_1, relative_times, lineVertical_2, refDateBox }
 	) }, s, m, m, m, m );
 #endif
+
+	mAbsoluteTimesBox = CreateGroupBox(  ELayoutType::Horizontal, { dates_box, nullptr, cycles_box, nullptr, pass_box} );
+
+    mRelativeStart  = new QLineEdit(this);
+    mRelativeStop   = new QLineEdit(this);
+    mRelativeStart->setToolTip( "Insert the number of days later than reference date (or earlier if number of days is negative)" );
+    mRelativeStop->setToolTip( "Insert the number of days later than reference date (or earlier if number of days is negative)" );
+
+    mRefDateTimeEdit = new QDateTimeEdit();
+    mRefDateTimeEdit->setCalendarPopup(true);
+    mRefDateTimeEdit->setDisplayFormat("yyyy.MM.dd hh:mm:ss");
+    mRefDateTimeEdit->setMinimumDateTime( minDateTime );
+    mRefDateTimeEdit->setToolTip( "Edit reference date" );
+
+    mUseCurrentDateTime = new QCheckBox( "Current DateTime" );
+    mUseCurrentDateTime->setLayoutDirection( Qt::RightToLeft );
+    mUseCurrentDateTime->setToolTip( "Use current datetime as reference date" );
+    mUseCurrentDateTime->setStyleSheet( "QCheckBox:checked{color: black;} QCheckBox:unchecked {color: grey;} QCheckBox:disabled {color: grey;}");
+
+    QBoxLayout *days_box = LayoutWidgets( Qt::Vertical, {
+                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Start" ), mRelativeStart } ),
+                                                 LayoutWidgets( Qt::Horizontal, { new QLabel( "Stop" ),  mRelativeStop } )
+                                                } );
+
+    QBoxLayout *RefDate_box = LayoutWidgets( Qt::Vertical, {
+                                                 mUseCurrentDateTime,
+                                                 mRefDateTimeEdit
+                                                } );
+
+    mRelativeTimesBox = CreateGroupBox( ELayoutType::Horizontal, { days_box, nullptr, RefDate_box}, "Use Relative Time (days)" );
+	mRelativeTimesBox->setCheckable( true );
+
+    //LayoutWidgets( Qt::Horizontal, {dates_box, nullptr, cycles_box, nullptr, pass_box}, mWhenBox );
+    mWhenBox = AddTopGroupBox( ELayoutType::Vertical, 
+	{ 
+		mAbsoluteTimesBox,
+		mRelativeTimesBox
+	}
+	);
+
+
 
 	AddTopSpace( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
     AddTopWidget( WidgetLine( nullptr, Qt::Horizontal ) );
@@ -229,12 +259,14 @@ void CDatasetFilterControls::CreateWidgets()
 
 void CDatasetFilterControls::Wire()
 {
-	connect( mNewFilter, SIGNAL( clicked() ), this, SLOT( HandleNewFilter() ) );
+    // Filter buttons //
+    connect( mNewFilter, SIGNAL( clicked() ), this, SLOT( HandleNewFilter() ) );
 	connect( mRenameFilter, SIGNAL( clicked() ), this, SLOT( HandleRenameFilter() ) );
 	connect( mDeleteFilter, SIGNAL( clicked() ), this, SLOT( HandleDeleteFilter() ) );
 	connect( mSaveFilters, SIGNAL( clicked() ), this, SLOT( HandleSaveFilters() ) );
-
 	connect( mFiltersCombo, SIGNAL( currentIndexChanged(int) ), this, SLOT( HandleFiltersCurrentIndexChanged(int) ) );
+
+    // Where widgets //
     connect( mRegionsCombo, SIGNAL( currentIndexChanged(int) ), this, SLOT( HandleRegionsCurrentIndexChanged(int) ) );
     connect( mAreasListWidget, SIGNAL( itemSelectionChanged() ), this, SLOT( HandleAreasSelectionChanged() ) );
     connect( mAreasListWidget, SIGNAL( itemChanged(QListWidgetItem*) ), this, SLOT( HandleAreaChecked(QListWidgetItem*) ) );
@@ -250,6 +282,7 @@ void CDatasetFilterControls::Wire()
     connect( mRenameArea, SIGNAL( clicked() ), this, SLOT( HandleRenameArea() ) );
     connect( mDeleteArea, SIGNAL( clicked() ), this, SLOT( HandleDeleteArea() ) );
 
+    // When widgets
 	connect( mClearWhen, SIGNAL( clicked() ), this, SLOT( HandleClearWhen() ) );
     connect( mStartTimeEdit, SIGNAL( dateTimeChanged(const QDateTime&) ), this, SLOT( HandleStartDateTimeChanged(const QDateTime&) ) );
     connect( mStopTimeEdit, SIGNAL( dateTimeChanged(const QDateTime&) ), this, SLOT( HandleStopDateTimeChanged(const QDateTime&) ) );
@@ -259,7 +292,18 @@ void CDatasetFilterControls::Wire()
     connect( mStartPassEdit,  SIGNAL( textEdited(const QString &) ), this, SLOT( HandleStartPassChanged() ) );
     connect( mStopPassEdit,   SIGNAL( textEdited(const QString &) ), this, SLOT( HandleStopPassChanged() ) );
 
-	connect( mMap, SIGNAL( CurrentLayerSelectionChanged() ), this, SLOT( HandleCurrentLayerSelectionChanged() ) );
+    connect( mRelativeTimesBox, SIGNAL( toggled( bool ) ), this, SLOT( HandleRelativeTimesBoxChecked( bool ) ) );
+    mRelativeTimesBox->setChecked( false );
+
+    connect( mRelativeStart,   SIGNAL( textEdited(const QString &) ), this, SLOT( HandleRelativeStartTimeChanged() ) );
+    connect( mRelativeStop,    SIGNAL( textEdited(const QString &) ), this, SLOT( HandleRelativeStopTimeChanged() ) );
+    connect( mRefDateTimeEdit, SIGNAL( dateTimeChanged(const QDateTime&) ), this, SLOT( HandleRelativeReferenceTimeChanged(const QDateTime&) ) );
+
+    connect( mUseCurrentDateTime, SIGNAL( toggled( bool ) ), this, SLOT( HandleCurrentDateTimeBoxChecked( bool ) ) );
+
+
+	//connect( mMap, SIGNAL( CurrentLayerSelectionChanged() ), this, SLOT( HandleCurrentLayerSelectionChanged() ) );
+	connect( mMap, SIGNAL( NewRubberBandSelection( QRectF ) ), this, SLOT( HandleCurrentLayerSelectionChanged( QRectF ) ) );
 }
 
 
@@ -273,7 +317,7 @@ CDatasetFilterControls::CDatasetFilterControls( CModel &model, CDesktopManagerBa
 {
 	CreateWidgets();
 
-	if ( !ReloadFilters() )
+    if ( !ReloadFilters() )
 	{
 		setEnabled( false );
 		LOG_WARN( "Brat filters cold not be loaded. Please check the filter configuration files." );
@@ -285,7 +329,7 @@ bool CDatasetFilterControls::ReloadFilters()
 {
 	if ( !mModel.BratFiltersValid() )
 	{
-		return false;
+        return false;
 	}
 
 	//CArea area1( "Lake Baikal", { { 24.3938, 57.7512 }, { -9.49747, 36.0065 } } );
@@ -300,8 +344,9 @@ bool CDatasetFilterControls::ReloadFilters()
 	//mBratRegions.AddRegion( r2 );	//this is a boolean, can fail
 	//mBratRegions.Save();			//this is a boolean, can fail
 
-	FillFiltersCombo();
+    HandleFiltersCurrentIndexChanged( -1 ); // for updating all buttons and sections status
 
+	FillFiltersCombo();
     FillRegionsCombo();
 
     // Default behavior: show all areas
@@ -382,9 +427,21 @@ void CDatasetFilterControls::ShowOnlyAreasInRegion(int region_index)
 }
 
 
+void CDatasetFilterControls::HandleCurrentLayerSelectionChanged( QRectF box )
+{
+	mMaxLatEdit->setText( n2q( box.bottom() ) );
+    mMaxLonEdit->setText( n2q( box.right() ) );
+    mMinLatEdit->setText( n2q( box.top() ) );
+    mMinLonEdit->setText( n2q( box.left() ) );
+
+    // Disable button new area if there is no selection
+    mNewArea->setDisabled( box.bottom() == 0 && box.right() == 0 &&
+                           box.top() == 0 && box.left() == 0		);
+}
+
 void CDatasetFilterControls::HandleCurrentLayerSelectionChanged()
 {
-	QgsRectangle box = mMap->CurrentLayerSelectedBox();
+	QgsRectangle box = mMap->CurrentLayerSelectedFeaturesBox();
 
 	mMaxLatEdit->setText( n2q( box.yMaximum() ) );
     mMaxLonEdit->setText( n2q( box.xMaximum() ) );
@@ -393,8 +450,7 @@ void CDatasetFilterControls::HandleCurrentLayerSelectionChanged()
 
     // Disable button new area if there is no selection
     mNewArea->setDisabled( box.yMaximum() == 0 && box.xMaximum() == 0 &&
-                           box.yMinimum() == 0 && box.xMaximum() == 0    );
-
+                           box.yMinimum() == 0 && box.xMinimum() == 0    );
 }
 
 
@@ -478,18 +534,18 @@ void CDatasetFilterControls::HandleDeleteFilter()
 			SimpleErrorBox( "Filter '" + mFilter->Name() + "' cannot be deleted. It is used by the following operations:\n\n" + operation_names.ToString( "\n" ) );
 			return;
 		}
+
+        if ( !mBratFilters.DeleteFilter( mFilter->Name() ) )
+        {
+            SimpleErrorBox( "Filter '" + mFilter->Name() + "' was not found!" );
+            return;
+        }
+
+        FillFiltersCombo();
+        mFiltersCombo->setCurrentIndex( 0 );
+
+        emit FiltersChanged();
 	}
-
-	if ( !mBratFilters.DeleteFilter( mFilter->Name() ) )
-	{
-		SimpleErrorBox( "Filter '" + mFilter->Name() + "' was not found!" );
-		return;
-	}
-
-	FillFiltersCombo();
-	mFiltersCombo->setCurrentIndex( 0 );
-
-	emit FiltersChanged();
 }
 
 
@@ -507,12 +563,14 @@ void CDatasetFilterControls::HandleFiltersCurrentIndexChanged( int filter_index 
 	mRenameFilter->setEnabled( filter_index >= 0 );
 	mDeleteFilter->setEnabled( filter_index >= 0 );
 	mSaveFilters->setEnabled( filter_index >= 0 );
-	mWhenBox->setEnabled( filter_index >= 0 );
     mWhereBox->setEnabled( filter_index >= 0 );
+    mWhenBox->setEnabled( filter_index >= 0 );
+    mClearWhere->setEnabled( filter_index >= 0 );
+    mClearWhen->setEnabled( filter_index >= 0 );
 
 	if ( filter_index < 0 )
 	{
-		return;
+        return;
     }
 
 	std::string name = q2a( mFiltersCombo->itemText( filter_index ) );
@@ -528,9 +586,11 @@ void CDatasetFilterControls::HandleFiltersCurrentIndexChanged( int filter_index 
     // Update Max/Min Lat and Lon and refresh "NewArea" button status
     HandleCurrentLayerSelectionChanged();
 
-    // Update When section
+    // Check/Uncheck Relative Time section and Updates When section
+    mRelativeTimesBox->setChecked( mFilter->UsingRelativeTimes() );
     updateDateWidgets();
     updateCyclePassWidgets();
+    updateRelativeTimeWidgets();
 }
 
 
@@ -558,6 +618,9 @@ void CDatasetFilterControls::HandleAreasSelectionChanged()
     mRenameArea->setEnabled( item != nullptr );
     mDeleteArea->setEnabled( item != nullptr );
 
+    // RCCC Check if you can remove this. Area is removed in the mMap->SelectedArea()
+    mMap->RemoveAreaSelection();
+
     if ( item == nullptr )
     {
         return;
@@ -570,6 +633,8 @@ void CDatasetFilterControls::HandleAreasSelectionChanged()
     mMaxLonEdit->setText( n2q( area->GetLonMax()) );
     mMinLatEdit->setText( n2q( area->GetLatMin() ) );
     mMaxLatEdit->setText( n2q( area->GetLatMax() ) );
+
+	mMap->SelectArea( area->GetLonMin(), area->GetLonMax(), area->GetLatMin(), area->GetLatMax() );
 }
 
 
@@ -587,10 +652,11 @@ void CDatasetFilterControls::HandleClearWhere()
 
 void CDatasetFilterControls::HandleClearWhen()
 {
-    mFilter->setDefaultValues();
+    mFilter->SetDefaultValues();
 
     updateDateWidgets();
     updateCyclePassWidgets();
+    updateRelativeTimeWidgets();
 }
 
 
@@ -812,7 +878,7 @@ void CDatasetFilterControls::HandleStartDateTimeChanged(const QDateTime &start_d
     mFilter->StartTime() = start_datetime;
 
     // When user selects a data, the cycle and pass are automatically deleted (Only user dates are used in When criteria)
-    mFilter->setDefaultCyclePassValues();
+    mFilter->SetDefaultCyclePassValues();
     updateDateWidgets();
     updateCyclePassWidgets();
 }
@@ -823,7 +889,7 @@ void CDatasetFilterControls::HandleStopDateTimeChanged(const QDateTime &stop_dat
     mFilter->StopTime() = stop_datetime;
 
     // When user selects a data, the cycle and pass are automatically deleted (Only user dates are used in When criteria)
-    mFilter->setDefaultCyclePassValues();
+    mFilter->SetDefaultCyclePassValues();
     updateDateWidgets();
     updateCyclePassWidgets();
 }
@@ -838,7 +904,7 @@ void CDatasetFilterControls::HandleStartCycleChanged()
                            mFilter->StopCycle()  );      // Max (should be < StopCycle)
 
     // When user selects a cycle, the dates are automatically deleted (Only user cycle/pass are used in When criteria) 
-    mFilter->setDefaultDateValues();
+    mFilter->SetDefaultDateValues();
     updateDateWidgets();
     updateCyclePassWidgets();
 }
@@ -853,7 +919,7 @@ void CDatasetFilterControls::HandleStopCycleChanged()
                            CTools::m_defaultValueINT32 ); // Max
 
     // When user selects a cycle, the dates are automatically deleted (Only user cycle/pass are used in When criteria)
-    mFilter->setDefaultDateValues();
+    mFilter->SetDefaultDateValues();
     updateDateWidgets();
     updateCyclePassWidgets();
 }
@@ -868,10 +934,11 @@ void CDatasetFilterControls::HandleStartPassChanged()
                            mFilter->StopPass()  );       // Max (should be < StopPass)
 
     // When user selects a cycle, the dates are automatically deleted (Only user cycle/pass are used in When criteria)
-    mFilter->setDefaultDateValues();
+    mFilter->SetDefaultDateValues();
     updateDateWidgets();
     updateCyclePassWidgets();
 }
+
 
 void CDatasetFilterControls::HandleStopPassChanged()
 {
@@ -882,14 +949,96 @@ void CDatasetFilterControls::HandleStopPassChanged()
                            CTools::m_defaultValueINT32 ); // Max
 
     // When user selects a cycle, the dates are automatically deleted (Only user cycle/pass are used in When criteria)
-    mFilter->setDefaultDateValues();
+    mFilter->SetDefaultDateValues();
     updateDateWidgets();
     updateCyclePassWidgets();
 }
 
 
+void CDatasetFilterControls::HandleRelativeTimesBoxChecked( bool checked )
+{
+    mAbsoluteTimesBox->setEnabled( !checked );
+
+    if ( mFilter )
+    {
+        if ( !checked )
+        {
+            mFilter->DisableRelativeTimes();
+        }
+        else
+        {
+            // When user selects a relative data, Cycle&Pass are automatically deleted (Only user dates are used in When criteria)
+            mFilter->SetDefaultCyclePassValues();
+
+            // For updating current DateTime
+            if ( mFilter->UseCurrentTime() ) { mFilter->RelativeReferenceTime() = QDateTime::currentDateTime(); }
+            mRefDateTimeEdit->setDateTime( mFilter->RelativeReferenceTime() );
+        }
+        updateDateWidgets();
+        updateCyclePassWidgets();
+        updateRelativeTimeWidgets();
+    }
+}
+
+
+void CDatasetFilterControls::HandleRelativeStartTimeChanged()
+{
+    ValidateAndStoreValue( mRelativeStart,                // Text box                                                   -------------------------------------
+                           mFilter->RelativeStartDays(),  // Filter value          Start  Stop    Ref    Start  Stop   | X1 and X2 are the number of days    |
+                           mFilter->RelativeStopDays(),   // Default Param         __|_____|_______|_______|_____|__   | later [or earlier if it's negative] |
+                           CTools::m_defaultValueINT32,   // Min                     |     |               |     |     | than Ref datetime)                  |
+                           mFilter->RelativeStopDays() ); // Max (should be < X2)   -X1   -X2              X1    X2     -------------------------------------
+
+    mFilter->Relative2AbsoluteTimes();
+
+    updateRelativeTimeWidgets();
+    updateDateWidgets();
+}
+
+
+void CDatasetFilterControls::HandleRelativeStopTimeChanged()
+{
+    ValidateAndStoreValue( mRelativeStop,                  // Text box                                                   -------------------------------------
+                           mFilter->RelativeStopDays(),    // Filter value          Start  Stop    Ref    Start  Stop   | X1 and X2 are the number of days    |
+                           mFilter->RelativeStartDays(),   // Default Param         __|_____|_______|_______|_____|__   | later [or earlier if it's negative] |
+                           mFilter->RelativeStartDays(),   // Min (should be > X1)    |     |               |     |     | than Ref datetime)                  |
+                           CTools::m_defaultValueINT32  ); // Max                    -X1   -X2              X1    X2     -------------------------------------
+
+    mFilter->Relative2AbsoluteTimes();
+
+    updateRelativeTimeWidgets();
+    updateDateWidgets();
+}
+
+
+void CDatasetFilterControls::HandleCurrentDateTimeBoxChecked( bool checked )
+{
+    mRefDateTimeEdit->setEnabled( !checked );
+
+    if ( mFilter )
+    {
+        mFilter->UseCurrentTime() = checked;
+
+        // Re-calculate start and stop dates using new reference date
+        mFilter->Relative2AbsoluteTimes();
+        updateDateWidgets();
+        updateRelativeTimeWidgets();
+    }
+}
+
+
+void CDatasetFilterControls::HandleRelativeReferenceTimeChanged(const QDateTime &ref_datetime)
+{
+    mFilter->RelativeReferenceTime() = ref_datetime;
+
+    // Re-calculate start and stop dates using new reference date
+    mFilter->Relative2AbsoluteTimes();
+    updateDateWidgets();
+}
+
+
 // ---------------------------------------------------------------------------------------
-// This method is used to validate the (start/stop) Cycle and Pass values.
+// This method is used to validate the (start/stop) Cycle, Pass and Relative time values.
 // The value in TextBox is validated and set into filter object.
 // Case the value is outside the min/max limits, the ParamDef is automatically assigned.
 void CDatasetFilterControls::ValidateAndStoreValue(QLineEdit *TextBox, int &ValueInFilter, int ParamDef, int min, int max)
@@ -932,6 +1081,7 @@ void CDatasetFilterControls::updateDateWidgets()
                             !isDefaultValue(mFilter->StartPass())  &
                             !isDefaultValue(mFilter->StopPass())
                            );
+
     QPalette *palette_readOnly = new QPalette();
     if ( markAsReadOnly )
     {
@@ -947,7 +1097,7 @@ void CDatasetFilterControls::updateDateWidgets()
 }
 
 
-void CDatasetFilterControls::updateCyclePassWidgets ()
+void CDatasetFilterControls::updateCyclePassWidgets()
 {
     // UPDATE start/stop Cycle and Pass
     mStartCycleEdit->setText( isDefaultValue(mFilter->StartCycle()) ? "" : n2q(mFilter->StartCycle()) );
@@ -972,6 +1122,18 @@ void CDatasetFilterControls::updateCyclePassWidgets ()
     mStartPassEdit->setPalette( *palette_readOnly );
     mStopPassEdit->setPalette( *palette_readOnly );
 }
+
+void CDatasetFilterControls::updateRelativeTimeWidgets()
+{
+    // UPDATE start/stop Relative Times
+    mRelativeStart->setText( isDefaultValue(mFilter->RelativeStartDays()) ? "" : n2q(mFilter->RelativeStartDays()) );
+    mRelativeStop->setText(  isDefaultValue(mFilter->RelativeStopDays() ) ? "" : n2q(mFilter->RelativeStopDays()) );
+    mRefDateTimeEdit->setDateTime( mFilter->RelativeReferenceTime() );
+
+    // SET Checked/Unchecked
+    mUseCurrentDateTime->setChecked( mFilter->UseCurrentTime() );
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -1168,7 +1330,7 @@ void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
 
     //function body
 
-	mMap->RemoveTracksLayer();
+	mMap->RemoveTracksLayerFeatures();
 	mTotalRecordsSelectedEdit->setText( "" );
 
     if ( !mAutoSatelliteTrack || !dataset || mDataset != dataset )

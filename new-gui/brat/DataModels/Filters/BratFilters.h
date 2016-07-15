@@ -81,13 +81,32 @@ inline std::string func_is_bounded( double min, std::string field_alias, double 
 
 class CBratFilter
 {
-    //types
+	/////////////////////////////
+    //			types
+	/////////////////////////////
 
     friend class CBratFilters;
 
 protected:
 
-    //static members
+	/////////////////////////////
+    //		static members
+	/////////////////////////////
+
+	//	NOTE mRelativeReferenceTime and mStopTime default
+	//	to current time, and so have no matching static variable
+
+    static const QDateTime smStartTime;
+
+    static const int smStartCycle;
+    static const int smStopCycle;
+    static const int smStartPass;
+    static const int smStopPass;
+
+	static const bool smUseCurrentTime;
+    static const int smRelativeStartDays;
+    static const int smRelativeStopDays;
+
 
 	static inline CDate q2brat( const QDateTime &q )
 	{
@@ -100,28 +119,37 @@ protected:
 	}
 
 
-    // instance data
+	/////////////////////////////
+    //		instance data
+	/////////////////////////////
 
     std::string mName;
 
     std::vector< std::string > mAreaNames;
 
-    QDateTime mStartTime;
-    QDateTime mStopTime;
+    QDateTime mStartTime = smStartTime;
+    QDateTime mStopTime = QDateTime::currentDateTime();
 
-    int mStartCycle;
-    int mStopCycle;
-    int mStartPass;
-    int mStopPass;
+    int mStartCycle = smStartCycle;
+    int mStopCycle = smStopCycle;
+    int mStartPass = smStartPass;
+    int mStopPass = smStopPass;
+
+    int mRelativeStartDays = smRelativeStartDays;
+    int mRelativeStopDays = smRelativeStopDays;
+	bool mUseCurrentTime = smUseCurrentTime;
+	QDateTime mRelativeReferenceTime = QDateTime::currentDateTime();
 
 
+	/////////////////////////////
     // construction / destruction
+	/////////////////////////////
 
 public:
     CBratFilter( const std::string &name ) :
         mName( name )
     {
-        setDefaultValues();
+        SetDefaultValues();		//not necessary, but OK
     }
 
     CBratFilter( const CBratFilter &o )
@@ -135,7 +163,9 @@ public:
     {}
 
 
-    // access
+	/////////////////////////////
+    //		name / areas
+	/////////////////////////////
 
     const std::string& Name() const { return mName; }
     std::string& Name() { return mName; }
@@ -143,7 +173,9 @@ public:
 	const CBratAreas& Areas() const;
 
 
-    //space
+	/////////////////////////////
+    //			space
+	/////////////////////////////
 
     const std::vector< std::string >& AreaNames() const
     {
@@ -163,7 +195,9 @@ public:
     }
 
 
-    //time
+	/////////////////////////////
+    //			time
+	/////////////////////////////
 
 
     QDateTime StartTime() const { return mStartTime; }
@@ -172,11 +206,16 @@ public:
     CDate BratStartTime() const { return q2brat( mStartTime ); }
     CDate BratStopTime() const { return q2brat( mStopTime ); }
 
-
     int StartCycle() const { return mStartCycle; }
     int StopCycle() const { return mStopCycle; }
     int StartPass() const { return mStartPass; }
     int StopPass() const { return mStopPass; }
+
+    bool UsingRelativeTimes() const { return mRelativeStartDays != smRelativeStartDays || mRelativeStopDays != smRelativeStopDays; }
+	int RelativeStartDays() const { return mRelativeStartDays; }
+    int RelativeStopDays() const { return mRelativeStopDays; }
+	bool UseCurrentTime() const { return mUseCurrentTime; }
+	QDateTime RelativeReferenceTime() const { return mRelativeReferenceTime; }
 
 
     QDateTime& StartTime() { return mStartTime; }
@@ -187,8 +226,17 @@ public:
     int& StartPass() { return mStartPass; }
     int& StopPass() { return mStopPass; }
 
+	void DisableRelativeTimes() { SetDefaultRelativeDays(); }
+	int& RelativeStartDays() { return mRelativeStartDays; }
+    int& RelativeStopDays() { return mRelativeStopDays; }
+	bool& UseCurrentTime() { return mUseCurrentTime; }
+	QDateTime& RelativeReferenceTime() { return mRelativeReferenceTime; }
 
-	// operations
+
+
+	/////////////////////////////
+	//		operations
+	/////////////////////////////
 
 	void BoundingArea( double &lon1, double &lat1, double &lon2, double &lat2 ) const;
     ///// TODO RCCC //////////////////////////////////
@@ -200,9 +248,11 @@ public:
     std::string GetSelectionCriteriaExpression( const std::string product_label ) const;
     /////////////////////////////////////////////////////////
 
-    void setDefaultValues();
-    void setDefaultDateValues();
-    void setDefaultCyclePassValues();
+    void Relative2AbsoluteTimes();
+    void SetDefaultValues();
+    void SetDefaultDateValues();
+    void SetDefaultCyclePassValues();
+    void SetDefaultRelativeDays();
 };
 
 

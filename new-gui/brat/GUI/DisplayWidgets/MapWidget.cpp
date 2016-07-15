@@ -563,11 +563,13 @@ void CMapWidget::Init()
 #endif
 
 
-CMapWidget::CMapWidget(ELayerBaseType layer_base_type, QWidget *parent )
-	: base_t(parent)
+CMapWidget::CMapWidget( ELayerBaseType layer_base_type, QWidget *parent, bool with_tracks_layer )		//with_tracks_layer = false 
+	: base_t( parent )
     , mLayerBaseType( layer_base_type )
 {
 	Init();
+	if ( with_tracks_layer )
+		PlotTrack( nullptr, nullptr, nullptr, 0, REF19500101 );		//Use ReadData ref date instead of product->GetRefDate();
 }
 
 
@@ -918,16 +920,16 @@ inline QgsFields DataFields()
 
 inline std::vector<const CFieldDefinition*> LayerVectorFields()
 {
-	static std::vector<const CFieldDefinition*> v{ &angle_def, &magnitude_def };
+    static std::vector<const CFieldDefinition*> v{ &magnitude_def, &angle_def };
 	return v;
 }
 attrs_t CreateVectorAttributes( double angle, double magnitude )
 {
 	attrs_t attrs =
 	{
-		{ angle_def.key, angle },
-		{ magnitude_def.key, magnitude }
-	};
+        { magnitude_def.key, magnitude },
+        { angle_def.key, angle }
+    };
 
 	return attrs;
 }
@@ -1083,6 +1085,18 @@ QgsFeatureList& CMapWidget::CreateVectorFeature( QgsFeatureList &list, double lo
     list.append( *f );
     return list;
 }
+
+
+//static
+void CMapWidget::RemoveFeatures( QgsVectorLayer *layer )
+{
+	//layer->selectAll();
+	//layer->deleteSelectedFeatures();
+
+	layer->dataProvider()->deleteFeatures( layer->allFeatureIds() );
+	layer->updateExtents();
+}
+
 
 
 
@@ -1263,6 +1277,28 @@ QString CMapWidget::ExtractLayerBaseName( const QString &qname )
 }
 	
 
+#include <qgsvectorlayerrenderer.h>
+class CVectorLayerRenderer : public QgsVectorLayerRenderer
+{
+	using base_t = QgsVectorLayerRenderer;
+public:
+	CVectorLayerRenderer( QgsVectorLayer *layer, QgsRenderContext &context )
+		: base_t( layer, context )
+	{}
+	virtual ~CVectorLayerRenderer()
+	{}
+
+	virtual bool render() override
+	{
+		try{
+            return base_t::render();
+		}
+		catch ( ... )
+		{
+		}
+        return false;
+	}
+};
 
 inline QgsVectorLayer* CreateVectorLayer( const std::string &name, const QString &layer_path, const QString &provider, QgsFeatureRendererV2 *renderer )	//renderer = nullptr 
 {
@@ -1856,7 +1892,7 @@ QgsFeatureList& CreateCountourFeatures( QgsFeatureList &flist, const CMapPlotPar
 
 //	Assumes that a corresponding data layer was already inserted
 //
-QgsVectorLayer* CMapWidget::AddContourLayer( size_t index, const std::string &name, unsigned width, QColor color, const QLookupTable *lut, size_t ncontours, const CMapPlotParameters &map )
+QgsVectorLayer* CMapWidget::AddContourLayer( size_t index, const std::string &name, unsigned width, QColor color, size_t ncontours, const CMapPlotParameters &map, const QLookupTable *lut )	//lut = nullptr  
 {
 	Q_UNUSED( lut );	Q_UNUSED( color );		// TODO while using lut is not decided
 
@@ -1877,6 +1913,14 @@ QgsVectorLayer* CMapWidget::AddContourLayer( size_t index, const std::string &na
 }
 
 
+bool CMapWidget::IsArrowLayer( size_t index ) const
+{
+	assert__( index < mDataLayers.size() );
+
+	return mDataLayers[ index ]->property( q2a( magnitude_def.key ).c_str() ) == magnitude_def.key;
+}
+
+
 QgsVectorLayer* CMapWidget::AddArrowDataLayer( const std::string &name, QgsFeatureList &flist )
 {
 	QgsVectorLayer *l = CreateMemoryLayer( ePoint, name, LayerVectorFields(), 
@@ -1885,6 +1929,7 @@ QgsVectorLayer* CMapWidget::AddArrowDataLayer( const std::string &name, QgsFeatu
 	if ( l )
 	{
 		l->dataProvider()->addFeatures( flist );
+		l->setProperty( q2a( magnitude_def.key ).c_str(), magnitude_def.key );
 		mDataLayers.push_back( l );
         mContourLayers.push_back( nullptr );
     }
@@ -1909,15 +1954,24 @@ void CMapWidget::PlotTrack( const double *x, const double *y, const double *z, s
 	{
 		mTracksLayer = AddVectorLayer( 
 			CreateMemoryLayer( ePoint, "SatelliteTrack", LayerTimeFields(), CreateRenderer( CreatePointSymbol( track_symbol_width, color ) ), flist ) );
-
-		mTracksLayer->setProperty( q2a( ref_date_def.key ).c_str(), ref_date );
 	}
 	else
 	{
 		mTracksLayer->dataProvider()->addFeatures( flist );		
 		mTracksLayer->updateExtents();
 	}
+
+	mTracksLayer->setProperty( q2a( ref_date_def.key ).c_str(), ref_date );	//for correction, because so far it is always ReadData ref date: REF19500101
 }
+
+
+void CMapWidget::RemoveTracksLayerFeatures()
+{
+	assert__( mTracksLayer != nullptr );
+
+	RemoveFeatures( mTracksLayer );
+}
+
 
 
 
@@ -2064,8 +2118,14 @@ void CMapWidget::ChangeDataRenderer( size_t index, double width, double m, doubl
 {
 	assert__( index < mDataLayers.size() );
 
+	stopRendering();
+	freeze( true );
+	while ( isDrawing() )
+		qApp->processEvents();
+
 	ChangeRenderer( mDataLayers[ index ], data_def.key, width, m, M, lut, &CMapWidget::CreatePolygonSymbol );
 
+	freeze( false );
 	refresh();
 }
 
@@ -2077,8 +2137,7 @@ void CMapWidget::SetNumberOfContours( size_t index, size_t ncontours, const CMap
 
 	QgsVectorLayer *l = mContourLayers[ index ];
 
-	l->selectAll();
-	l->deleteSelectedFeatures();
+	RemoveFeatures( l );
 
 	QgsFeatureList flist;
 	CreateCountourFeatures( flist, map, ncontours );
@@ -2197,6 +2256,8 @@ void CMapWidget::EnableRectangularSelection( bool enable )
 }																		 	
 void CMapWidget::EnablePolygonalSelection( bool enable )
 {
+	assert__( mSelectPolygon );
+
 	enable ? setMapTool( mSelectPolygon ) : unsetMapTool( mSelectPolygon );
 	setContextMenuPolicy( enable ? Qt::PreventContextMenu : Qt::ActionsContextMenu );
 }
@@ -2225,7 +2286,7 @@ void CMapWidget::DeselectAll()
 
 //get selection info
 
-QgsRectangle CMapWidget::CurrentLayerSelectedBox() const
+QgsRectangle CMapWidget::CurrentLayerSelectedFeaturesBox() const
 {
 	QgsRectangle box;
 	QgsVectorLayer *l = QgsMapToolSelectUtils::getCurrentVectorLayer( const_cast<CMapWidget*>( this ) );
@@ -2233,6 +2294,17 @@ QgsRectangle CMapWidget::CurrentLayerSelectedBox() const
 		box = l->boundingBoxOfSelected();
 
 	return box;
+}
+
+void CMapWidget::SelectArea( double lonm, double lonM, double latm, double latM )
+{
+	if ( mSelectFeatures )
+		mSelectFeatures->SetRubberBandSelection( lonm, lonM, latm, latM );
+}
+void CMapWidget::RemoveAreaSelection()
+{
+	if ( mSelectFeatures )
+		mSelectFeatures->RemoveRubberBandSelection();
 }
 
 
@@ -2243,10 +2315,14 @@ void CMapWidget::ConnectParentSelectionActions( QToolButton *selection_button, Q
 	connect( action_select_features, SIGNAL( toggled( bool ) ), this, SLOT( EnableRectangularSelection( bool ) ) );
 	mSelectFeatures = new CMapToolSelectFeatures( this );
 	mSelectFeatures->setAction( action_select_features );
+	connect( mSelectFeatures, SIGNAL( NewRubberBandSelection( QRectF ) ), this, SIGNAL( NewRubberBandSelection( QRectF ) ), Qt::QueuedConnection );
 
-	connect( action_select_polygon, SIGNAL( toggled( bool ) ), this, SLOT( EnablePolygonalSelection( bool ) ) );
-	mSelectPolygon = new CMapToolSelectPolygon( this );
-	mSelectPolygon->setAction( action_select_polygon );
+	if ( action_select_polygon )
+	{
+		connect( action_select_polygon, SIGNAL( toggled( bool ) ), this, SLOT( EnablePolygonalSelection( bool ) ) );
+		mSelectPolygon = new CMapToolSelectPolygon( this );
+		mSelectPolygon->setAction( action_select_polygon );
+	}
 
 	connect( action_deselect_all, SIGNAL( triggered() ), this, SLOT( DeselectAll() ) );
 
@@ -2255,21 +2331,28 @@ void CMapWidget::ConnectParentSelectionActions( QToolButton *selection_button, Q
 
 
 //static 
-QToolButton* CMapWidget::CreateMapSelectionActions( QToolBar *tb, QAction *&action_select_features, QAction *&action_select_polygon, QAction *&action_deselect_all )
+QToolButton* CMapWidget::CreateMapSelectionActions( QToolBar *tb, QAction *&action_select_features, QAction *&action_deselect_all )
 {
     action_select_features = CActionInfo::CreateAction( tb, eAction_SelectFeatures );
-	action_select_polygon = CActionInfo::CreateAction( tb, eAction_SelectPolygon );
 	action_deselect_all = CActionInfo::CreateAction( tb, eAction_DeselectAll );
 
 	QToolButton *selection = new QToolButton( tb );
-	selection->setPopupMode( QToolButton::MenuButtonPopup );
 	selection->addAction( action_select_features );
-	selection->addAction( action_select_polygon );
 	selection->setDefaultAction( action_select_features );
 
 	return selection;
 }
 
+//static 
+QToolButton* CMapWidget::AddMapSelectionPolygon( QToolButton *selection, QToolBar *tb, QAction *&action_select_polygon )
+{
+	action_select_polygon = CActionInfo::CreateAction( tb, eAction_SelectPolygon );
+
+	selection->setPopupMode( QToolButton::MenuButtonPopup );
+	selection->addAction( action_select_polygon );
+
+	return selection;
+}
 
 
 

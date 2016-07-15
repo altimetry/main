@@ -139,11 +139,13 @@ public:
     bool SetWorkspacesDirectory( const std::string &path );
 
 
-protected:
-
     ////////////////////////////////////////////
     //	remaining member functions
     ////////////////////////////////////////////
+
+	virtual std::string ToString() const;
+
+protected:
 
     virtual bool ValidatePaths() const;
 };

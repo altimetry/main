@@ -28,590 +28,67 @@ using namespace brathl;
 
 #if defined(BRAT_V3)
 	#include "MapColor.h"
-    #include "../support/code/legacy/display/PlotData/XYPlotData_vtk.h"
 	#include "wxInterface.h"
 	#include "wx/progdlg.h"
 #endif
 
 
 #include "BratLogger.h"
-
-
+#include "Plots.h"
 #include "XYPlotData.h"
 
-
-//-------------------------------------------------------------
-//------------------- CXYPlotProperties class --------------------
-//-------------------------------------------------------------
-
-
-CXYPlotProperties::CXYPlotProperties( CXYPlotData* parent )
-	: base_t()
-{
-	m_focus = false;
-
-	SetParent( parent );
-
-#if defined(BRAT_V3)
-	m_vtkProperty2D = vtkProperty2D::New();
-
-	SetLineStipple( displayFULL );
-	SetOpacityFactor( 1 / GetOpacity() );
-#endif
-
-	SetLineWidth( 0.8 );
-
-	SetLines( true );
-	SetPoints( false );
-
-	SetPointSize( 1.0 );
-
-	SetOpacity( 0.6 );
-
-	setDefaultValue( m_xMax );
-	setDefaultValue( m_xMin );
-	setDefaultValue( m_yMax );
-	setDefaultValue( m_yMin );
-
-
-	SetXLog( false );
-	SetYLog( false );
-
-	SetShowAnimationToolbar( false );
-	SetShowPropertyPanel( true );
-
-	SetLoop( false );
-
-	SetNormalizeX( 0 );
-	SetNormalizeY( 0 );
-
-	SetFps( 30 );
-
-	setDefaultValue( m_xNumTicks );
-	setDefaultValue( m_yNumTicks );
-
-	SetXBase( 10.0 );
-	SetYBase( 10.0 );
-
-    if (parent)
-    {
-        parent->GetXRange(m_xMin, m_xMax);
-    }
-
-	CPlotColor color = CMapColor::GetInstance().NextPrimaryColors();
-	if ( color.Ok() )
-	{
-		SetColor( color );
-	}
-	else
-	{
-		SetColor( CPlotColor( 0.0, 0.0, 0.0 ) );
-	}
-
-	SetPointGlyph( displayCIRCLE_GLYPH );
-	SetFilledPoint( true );
-
-	SetHide( false );
-}
-
-//----------------------------------------
-const CXYPlotProperties& CXYPlotProperties::operator = ( const CXYPlotProperties& o )
-{
-	if ( this != &o )
-	{
-		*static_cast<base_t*>( this ) = static_cast<const base_t&>( o );
-
-		SetParent( o.GetParent() );
-
-#if defined(BRAT_V3)
-		m_vtkProperty2D = vtkProperty2D::New();
-
-		SetLineStipple( o.GetLineStipple() );
-		SetLineWidth( o.GetLineWidth() );
-		SetOpacity( o.GetOpacity() );
-
-#endif
-
-		m_lineWidthFactor = o.m_lineWidthFactor;
-		m_focus = o.GetFocus();
-
-		SetLines( o.GetLines() );
-		SetPoints( o.GetPoints() );
-
-		SetPointSize( o.GetPointSize() );
-
-		SetXMax( o.GetXMax() );
-		SetYMax( o.GetYMax() );
-
-		SetXMin( o.GetXMin() );
-		SetYMin( o.GetYMin() );
-
-		SetXLog( o.GetXLog() );
-		SetYLog( o.GetYLog() );
-
-		SetShowAnimationToolbar( o.GetShowAnimationToolbar() );
-		SetShowPropertyPanel( o.GetShowPropertyPanel() );
-
-		SetLoop( o.GetLoop() );
-
-		SetNormalizeX( o.GetNormalizeX() );
-		SetNormalizeY( o.GetNormalizeY() );
-
-		SetFps( o.GetFps() );
-
-		SetXNumTicks( o.GetXNumTicks() );
-		SetYNumTicks( o.GetYNumTicks() );
-
-		SetXBase( o.GetXBase() );
-		SetYBase( o.GetYBase() );
-
-		SetColor( o.GetColor() );
-
-		SetXAxis( o.GetXAxis() );
-		SetXLabel( o.GetXLabel() );
-		SetYLabel( o.GetYLabel() );
-
-		SetPointGlyph( o.GetPointGlyph() );
-		SetFilledPoint( o.GetFilledPoint() );
-
-		SetOpacityFactor( o.GetOpacityFactor() );
-
-		SetHide( o.GetHide() );
-
-		mColor = o.mColor;
-		mPointColor = o.mPointColor;
-		mOpacity = o.mOpacity;
-		mLineWidth = o.mLineWidth;
-
-#if !defined(BRAT_V3)
-
-		mStipplePattern = o.mStipplePattern;
-#endif
-	}
-	return *this;
-}
-
-//----------------------------------------
-CXYPlotProperties::~CXYPlotProperties()
-{
-#if defined(BRAT_V3)
-	if ( m_vtkProperty2D != nullptr )
-	{
-		m_vtkProperty2D->Delete();
-		m_vtkProperty2D = nullptr;
-	}
-#endif
-}
-
-//----------------------------------------
-void CXYPlotProperties::Update()
-{
-  SetLines();
-
-  SetPoints();
-  SetPointSize();
-
-  SetPointGlyph();
-  SetFilledPoint();
-
-  SetNormalizeX();
-  SetNormalizeY();
-
-}
-
-#if defined(BRAT_V3)
-VTK_CXYPlotData* CXYPlotProperties::parent()
-{
-	return dynamic_cast<VTK_CXYPlotData*>( m_parent );
-}
-#endif
-
-//----------------------------------------
-bool CXYPlotProperties::HasParent()
-{
-  return m_parent != nullptr;
-}
-
-//----------------------------------------
-void CXYPlotProperties::SetHide(bool value)
-{
-  m_hide = value;
-
-  SetHide();
-
-}
-//----------------------------------------
-void CXYPlotProperties::SetHide()
-{
-  if (!HasParent())
-  {
-    return;
-  }
-
-  if (m_hide)
-  {
-#if defined(BRAT_V3)
-    parent()->GetVtkDataArrayPlotData()->PlotLinesOff();
-    parent()->GetVtkDataArrayPlotData()->PlotPointsOff();
-#endif
-  }
-  else
-  {
-    SetLines();
-    SetPoints();
-  }
-
-}
-
-//----------------------------------------
-void CXYPlotProperties::SetLineWidth( double value )
-{
-	mLineWidth = value < 1.0 ? value*m_lineWidthFactor : value;		//v3 compatibility
-
-#if defined(BRAT_V3)
-	if ( value <= 0.0 )
-	{
-		value = 0.8;
-	}
-	m_vtkProperty2D->SetLineWidth( value );
-#endif
-}
-//----------------------------------------
-void CXYPlotProperties::SetLines()
-{
-
-  if (!HasParent())
-  {
-    return;
-  }
-
-#if defined(BRAT_V3)
-  if (m_lines)
-  {
-    parent()->GetVtkDataArrayPlotData()->PlotLinesOn();
-  }
-  else
-  {
-    parent()->GetVtkDataArrayPlotData()->PlotLinesOff();
-  }
-#endif
-
-}
-//----------------------------------------
-void CXYPlotProperties::SetLines(bool value)
-{
-  m_lines = value;
-
-  SetLines();
-
-}
-//----------------------------------------
-void CXYPlotProperties::SetPoints()
-{
-
-  if (!HasParent())
-  {
-    return;
-  }
-
-#if defined(BRAT_V3)
-  if (m_points)
-  {
-    parent()->GetVtkDataArrayPlotData()->PlotPointsOn();
-  }
-  else
-  {
-    parent()->GetVtkDataArrayPlotData()->PlotPointsOff();
-  }
-#endif
-  SetFilledPoint();
-
-}
-
-//----------------------------------------
-void CXYPlotProperties::SetPoints( bool value )
-{
-	m_points = value;
-
-	SetPoints();
-}
-
-//----------------------------------------
-void CXYPlotProperties::SetPointSize()
-{
-	if ( !HasParent() )
-	{
-		return;
-	}
-
-#if defined(BRAT_V3)
-	parent()->GetVtkDataArrayPlotData()->SetGlyphSize( m_pointSize / 100.0 );
-#endif
-
-}
-
-//----------------------------------------
-void CXYPlotProperties::SetPointSize(double value)
-{
-  if (value <= 0.0)
-  {
-    value = 1.0;
-  }
-  m_pointSize = value;
-
-  SetPointSize();
-}
-
-//----------------------------------------
-void CXYPlotProperties::SetPointGlyph()
-{
-	if ( !HasParent() )
-	{
-		return;
-	}
-	if ( m_points == false )
-	{
-		return;
-	}
-
-#if defined(BRAT_V3)
-	parent()->GetVtkDataArrayPlotData()->GetGlyphSource()->SetGlyphType( m_glyphType );
-#endif
-}
-//----------------------------------------
-void CXYPlotProperties::SetPointGlyph( EPointGlyph value )
-{
-	m_glyphType = value;
-
-	SetPointGlyph();
-}
-//----------------------------------------
-void CXYPlotProperties::SetFilledPoint()
-{
-	if ( !HasParent() )
-	{
-		return;
-	}
-	if ( m_points == false )
-	{
-		return;
-	}
-
-#if defined(BRAT_V3)
-	if ( m_filledPoint )
-	{
-		parent()->GetVtkDataArrayPlotData()->GetGlyphSource()->FilledOn();
-	}
-	else
-	{
-		parent()->GetVtkDataArrayPlotData()->GetGlyphSource()->FilledOff();
-	}
-#endif
-}
-//----------------------------------------
-void CXYPlotProperties::SetFilledPoint( bool value )
-{
-	m_filledPoint = value;
-
-	SetFilledPoint();
-}
-
-//----------------------------------------
-void CXYPlotProperties::SetOpacity( double value )
-{
-	if ( value > 1.0 )
-	{
-		value = 1.0;
-	}
-
-	if ( value <= 0.0 )
-	{
-		value = 0.6;
-	}
-
-	m_opacityFactor = 1 / value;
-
-#if defined(BRAT_V3)
-	m_vtkProperty2D->SetOpacity( value );
-#endif
-}
-
-//----------------------------------------
-void CXYPlotProperties::SetName( const std::string& value )
-{
-	base_t::SetName( value );
-
-	if ( !HasParent() )
-	{
-		return;
-	}
-#if defined(BRAT_V3)
-	parent()->GetVtkDataArrayPlotData()->SetPlotLabel( value.c_str() );
-#endif
-}
-//----------------------------------------
-void CXYPlotProperties::SetXLog(bool value)
-{
-  m_xLog = value;
-
-  if ((m_xMin <= 0) && (value))
-  {
-    std::string msg = CTools::Format("ERROR in CXYPlotProperties::SetXLog : X range [%g, %g] contains value <= 0 - no logarithmic axis possible",
-                                 m_xMin, m_xMax);
-    CException e(msg, BRATHL_LOGIC_ERROR);
-    throw (e);
-  }
-}
-//----------------------------------------
-void CXYPlotProperties::SetYLog(bool value)
-{
-  m_yLog = value;
-
-  if ((m_yMin <= 0) && (value))
-  {
-    std::string msg = CTools::Format("ERROR in CXYPlotProperties::SetYLog : Y range [%g, %g] contains value <= 0 - no logarithmic axis possible",
-                                 m_yMin, m_yMax);
-    CException e(msg, BRATHL_LOGIC_ERROR);
-    throw (e);
-  }
-}
-
-//----------------------------------------
-void CXYPlotProperties::SetFocus( bool value )
-{
-
-	if ( !m_focus && value )
-	{
-		m_focus = value;
-
-#if defined(BRAT_V3)
-		SetLineWidth( GetLineWidth() * m_lineWidthFactor );
-#endif
-	}
-	else if ( m_focus && !value )
-	{
-		m_focus = value;
-
-#if defined(BRAT_V3)
-		SetLineWidth( GetLineWidth() / m_lineWidthFactor );
-#endif
-	}
-}
-
-//----------------------------------------
-void CXYPlotProperties::SetNormalizeX()
-{
-	if ( !HasParent() )
-	{
-		return;
-	}
-	if ( m_normalizeX <= 0 )
-	{
-		return;
-	}
-	m_parent->NormalizeX( m_normalizeX );
-}
-
-
-//----------------------------------------
-void CXYPlotProperties::SetNormalizeX(int32_t value)
-{
-  m_normalizeX = value;
-
-  SetNormalizeX();
-}
-
-
-//----------------------------------------
-void CXYPlotProperties::SetNormalizeY()
-{
-  if (!HasParent())
-  {
-    return;
-  }
-
-  if (m_normalizeY <= 0)
-  {
-    return;
-  }
-
-  m_parent->NormalizeY(m_normalizeY);
-}
-//----------------------------------------
-void CXYPlotProperties::SetNormalizeY(int32_t value)
-{
-  m_normalizeY = value;
-
-  SetNormalizeY();
-}
-
-//----------------------------------------
-CPlotColor CXYPlotProperties::GetColor() const
-{
-#if defined(BRAT_V3)
-
-	CPlotColor c( m_vtkProperty2D->GetColor()[ 0 ],
-		m_vtkProperty2D->GetColor()[ 1 ],
-		m_vtkProperty2D->GetColor()[ 2 ] );
-
-	assert__( c == mColor );
-
-	return c;
-
-#else
-
-	return mColor;
-#endif
-
-}
-//----------------------------------------
-void CXYPlotProperties::GetColor( CPlotColor& color ) const
-{
-	color = GetColor();
-}
-//----------------------------------------
-void CXYPlotProperties::SetColor( const CPlotColor& color )
-{
-	mColor = color;
-
-#if defined(BRAT_V3)
-	m_vtkProperty2D->SetColor( color.Red(),
-		color.Green(),
-		color.Blue() );
-#endif
-
-}
 
 //-------------------------------------------------------------
 //------------------- CXYPlotData class --------------------
 //-------------------------------------------------------------
 
-CXYPlotData::CXYPlotData( CPlot* plot, int32_t iField )
-	: base_t( { plot->GetPlotField( iField )->m_name } )
+CXYPlotData::CXYPlotData( CYFXPlot *plot, size_t iField )
+	: base_t( plot->FieldData( iField ) )
 {
-	m_plotProperty.SetParent( this );
+	//m_aborted = false;
 
-	m_currentFrame = 0;
-	m_length = 0;
-
-	m_aborted = false;
-
-	CPlotField* field = plot->GetPlotField( iField );
-
-	if ( field->m_xyProps != nullptr )
-	{
-		m_plotProperty = *field->m_xyProps;
-
-	}
-
-	CInternalFiles* yfx = field->GetInternalFiles( 0 );
-
-	Create( yfx, plot, iField );
+	Create( plot );
 }
 
-//----------------------------------------
-void CXYPlotData::Create( CInternalFiles* yfx, CPlot* plot, int32_t iField )
+//virtual 
+CXYPlotData::~CXYPlotData()
 {
+	m_otherVars.RemoveAll();
+}
+
+
+
+void CXYPlotData::SetXLog( bool value )
+{
+	if ( values_base_t::mMinXValue <= 0 && value )
+	{
+		std::string msg = CTools::Format( "ERROR in CXYPlotData::SetXLog : X range [%g, %g] contains value <= 0 - no logarithmic axis possible", 
+			values_base_t::mMinXValue, values_base_t::mMaxXValue );
+		CException e( msg, BRATHL_LOGIC_ERROR );
+		throw ( e );
+	}
+
+	GetPlotProperties()->SetXLog( value );	//v3 assigned before throw
+}
+
+
+void CXYPlotData::SetYLog( bool value )
+{
+	if ( values_base_t::mMinYValue <= 0 && value )
+	{
+		std::string msg = CTools::Format( "ERROR in CXYPlotData::SetYLog : Y range [%g, %g] contains value <= 0 - no logarithmic axis possible", 
+			values_base_t::mMinYValue, values_base_t::mMaxYValue );
+		CException e( msg, BRATHL_LOGIC_ERROR );
+		throw ( e );
+	}
+
+	GetPlotProperties()->SetYLog( value );	//v3 assigned before throw
+}
+//----------------------------------------
+void CXYPlotData::Create( CYFXPlot *plot )
+{
+	CInternalFiles *yfx = GetPlotProperties()->InternalFile( 0 );		//GetPlotProperties() == plot->FieldData( iField )
+
 	std::string varXName;
 
 	CUnit unitXRead;
@@ -620,38 +97,45 @@ void CXYPlotData::Create( CInternalFiles* yfx, CPlot* plot, int32_t iField )
 	std::string unitXStr;
 	std::string unitYStr;
 
-	if ( m_plotProperty.Title().empty() )
+#if defined (BRAT_V3)
+	if ( GetPlotProperties()->Title().empty() )
 	{
-		m_plotProperty.SetTitle( plot->m_title );
+		GetPlotProperties()->SetTitle( plot->mTitle );
 	}
 
-	if ( m_plotProperty.GetXLabel().empty() )
+	if ( GetPlotProperties()->Xlabel().empty() )
 	{
-		m_plotProperty.SetXLabel( plot->m_titleX );
+		GetPlotProperties()->SetXlabel( plot->m_titleX );
 	}
 	else
 	{
-		std::string titleX = m_plotProperty.GetXLabel();
+		std::string titleX = GetPlotProperties()->Xlabel();
 		titleX += plot->m_unitXLabel;
-		m_plotProperty.SetXLabel( titleX );
+		GetPlotProperties()->SetXlabel( titleX );
 	}
 
-	if ( m_plotProperty.GetYLabel().empty() )
+	if ( GetPlotProperties()->Ylabel().empty() )
 	{
-		m_plotProperty.SetYLabel( plot->m_titleY );
+		GetPlotProperties()->SetYlabel( plot->m_titleY );
 	}
 	else
 	{
-		std::string titleY = m_plotProperty.GetYLabel();
+		std::string titleY = GetPlotProperties()->Ylabel();
 		titleY += plot->m_unitYLabel;
-		m_plotProperty.SetYLabel( titleY );
+		GetPlotProperties()->SetYlabel( titleY );
 	}
 
-	m_unitX = plot->m_unitX;
-	m_unitY = plot->m_unitY;
+#else
+
+	assert__( !GetPlotProperties()->Xlabel().empty() );
+	assert__( !GetPlotProperties()->Ylabel().empty() );
+
+#endif
+
+	CUnit unitX = plot->XUnit();
+	CUnit unitY = plot->YUnit();
 
 	CExpressionValue varX;
-
 	ExpressionValueDimensions dimValX;
 
 	NetCDFVarKind varKind;
@@ -664,21 +148,21 @@ void CXYPlotData::Create( CInternalFiles* yfx, CPlot* plot, int32_t iField )
 	// Get and control unit of X axis
 	// X units are compatible but not the same --> convert
 	unitXRead = yfx->GetUnit( varXName );
-	if ( m_unitX.AsString() != unitXRead.AsString() )
+	if ( unitX.AsString() != unitXRead.AsString() )
 	{
-		plot->m_unitX.SetConversionFrom( unitXRead );
-		plot->m_unitX.ConvertVector( varX.GetValues(), (int32_t)varX.GetNbValues() );
+		plot->XUnit().SetConversionFrom( unitXRead );
+		plot->XUnit().ConvertVector( varX.GetValues(), (int32_t)varX.GetNbValues() );
 	}
 
 	CExpressionValue varY;
-	std::string fieldName = plot->GetPlotField( iField )->m_name.c_str();
+	std::string fieldName =  GetPlotProperties()->FieldName();
 
 	// Set name of the data
 
-	if ( GetName().empty() )
+	if ( GetPlotProperties()->UserName().empty() )
 	{
 		std::string str = yfx->GetTitle( fieldName ) + " (" + fieldName + ")";
-		SetName( str.c_str() );
+		GetPlotProperties()->SetUserName( str );
 	}
 
 	// Read Y data dimension
@@ -709,10 +193,10 @@ void CXYPlotData::Create( CInternalFiles* yfx, CPlot* plot, int32_t iField )
 	}
 	*/
 	// Y units are compatible but not the same --> convert
-	if ( m_unitY.AsString() != unitYRead.AsString() )
+	if ( unitY.AsString() != unitYRead.AsString() )
 	{
-		plot->m_unitY.SetConversionFrom( unitYRead );
-		plot->m_unitY.ConvertVector( varY.GetValues(), (int32_t)varY.GetNbValues() );
+		plot->YUnit().SetConversionFrom( unitYRead );
+		plot->YUnit().ConvertVector( varY.GetValues(), (int32_t)varY.GetNbValues() );
 	}
 
 	CStringArray commonDims;
@@ -720,8 +204,7 @@ void CXYPlotData::Create( CInternalFiles* yfx, CPlot* plot, int32_t iField )
 
 	if ( !intersect )
 	{
-		std::string msg = CTools::Format( "CXYPlotData::Create - variables '%s' and '%s' have no common dimension",
-			fieldName.c_str(), varXName.c_str() );
+		std::string msg = CTools::Format( "CXYPlotData::Create - variables '%s' and '%s' have no common dimension",	fieldName.c_str(), varXName.c_str() );
 		CException e( msg, BRATHL_INCONSISTENCY_ERROR );
 		LOG_TRACE( e.what() );
 		throw ( e );
@@ -791,13 +274,12 @@ void CXYPlotData::Create( CInternalFiles* yfx, CPlot* plot, int32_t iField )
 
 
 	CExternalFilesNetCDF* externalFile = dynamic_cast<CExternalFilesNetCDF*> ( BuildExistingExternalFileKind( yfx->GetName() ) );
-
 	if ( externalFile != nullptr )
 	{
 		externalFile->Open();
 	}
 
-	if ( ( complement ) && ( externalFile != nullptr ) )
+	if ( complement && externalFile != nullptr )
 	{
 		// Read 'Complement dim' var data
 		CFieldNetCdf* field = externalFile->GetFieldNetCdf( complementDims.at( 0 ), false );
@@ -815,15 +297,13 @@ void CXYPlotData::Create( CInternalFiles* yfx, CPlot* plot, int32_t iField )
 	{
 		// Read other var data (non plot data)
 		//CStringArray::const_iterator itStringArray;
-		uint32_t iOtherVars = 0;
 
 		m_otherVars.RemoveAll();
 		//m_otherVars.resize(plot->m_nonPlotFieldNames.size());
 
 
-		for ( iOtherVars = 0; iOtherVars < plot->m_nonPlotFieldNames.size(); iOtherVars++ )
+		for ( uint32_t iOtherVars = 0; iOtherVars < plot->m_nonPlotFieldNames.size(); iOtherVars++ )
 		{
-
 			CFieldNetCdf* field = externalFile->GetFieldNetCdf( plot->m_nonPlotFieldNames.at( iOtherVars ), false );
 			if ( field != nullptr )
 			{
@@ -838,13 +318,10 @@ void CXYPlotData::Create( CInternalFiles* yfx, CPlot* plot, int32_t iField )
 
 				m_otherVars.Insert( exprValue );
 			}
-
 		}
-
 	}
 
 	//m_otherFields.Dump(*(CTrace::GetInstance()->GetDumpContext()));
-
 
 	if ( externalFile != nullptr )
 	{
@@ -854,10 +331,7 @@ void CXYPlotData::Create( CInternalFiles* yfx, CPlot* plot, int32_t iField )
 	}
 
 
-
 	SetData( varX.GetValues(), dimValX, varY.GetValues(), dimValY, xCommonDimIndex, yCommonDimIndex );
-
-	m_plotProperty.SetParent( this );
 }
 
 
@@ -872,10 +346,10 @@ void CXYPlotData::SetData(
 	const CUIntArray& yCommonDimIndex
 	)
 {
-	if ( GetName().empty() )
-	{
-		SetName( "Dataset" );
-	}
+	assert__( !GetPlotProperties()->UserName().empty() );
+	//{
+	//	GetPlotProperties()->SetUserName( "Dataset" );	//what ???
+	//}
 
 	CUIntArray xDimIndex;
 	CUIntArray yDimIndex;
@@ -1135,401 +609,17 @@ void CXYPlotData::SetData(
 			}
 		}
 
-		mQwtPlotData.AddFrameData( newX, xDim, newY, yDim );
+		values_base_t::AddFrameData( newX, xDim, newY, yDim );
 	}
 
 #if defined BRAT_V3		// TODO: some callback device to display progress
 
 	pd->Destroy();
-#endif
 
 	if ( m_aborted )
 	{
 		return;
 	}
-}
-
-//----------------------------------------
-void CXYPlotData::GetXRange( double& min, double& max, uint32_t frame )
-{
-	//TODO check if this is what we want
-
-	mQwtPlotData.GetXRange( min, max, frame );
-
-	////////////////////////////////////GetRawData( 0 )->GetRange( min, max, frame );
-}
-//----------------------------------------
-void CXYPlotData::GetYRange( double& min, double& max, uint32_t frame )
-{
-    mQwtPlotData.GetYRange( min, max, frame );
-
-	//////////////////////////////////GetRawData( 1 )->GetRange( min, max, frame );
-}
-//----------------------------------------
-void CXYPlotData::GetXRange( double& min, double& max )
-{
-	mQwtPlotData.GetXRange( min, max );
-
-	////////////////////////////////GetRawData( 0 )->GetRange( min, max );
-}
-//----------------------------------------
-void CXYPlotData::GetYRange( double& min, double& max )
-{
-	mQwtPlotData.GetYRange( min, max );
-
-    ///////////////////////////////////////////GetRawData( 1 )->GetRange( min, max );
-}
-
-//----------------------------------------
-int32_t CXYPlotData::GetNumberOfFrames()
-{
-	return mQwtPlotData.GetNumberOfFrames();
-
-	/////////////////////return (int32_t)GetRawData( 0 )->GetNumberOfFrames();
-}
-//----------------------------------------
-void CXYPlotData::NormalizeX( int32_t value )
-{
-	//TODO
-
-    UNUSED( value );
-
-	/////////////////////////////////GetRawData( 0 )->Normalize( value );
-}
-//----------------------------------------
-void CXYPlotData::NormalizeY( int32_t value )
-{
-	//TODO
-
-    UNUSED( value );
-
-    //////////////////////////////////////GetRawData( 1 )->Normalize( value );
-}
-//----------------------------------------
-void CXYPlotData::Normalize( int32_t value )
-{
-	NormalizeX( value );
-	NormalizeY( value );
-}
-
-
-#if defined(BRAT_V3)
-
-void CXYPlotData::OnFrameChange(int32_t f)
-{
-
-  m_currentFrame = (f < m_length - 1) ? f : m_length - 1;
-  m_currentFrame = (m_currentFrame > 0) ? m_currentFrame : 0;
-
-  Update();
-
-}
-
-void CXYPlotData::Update()
-{
-    //m_vtkDataArrayPlotData->SetDataArrays( GetRawData( 0 )->GetFrameData( m_currentFrame ), GetRawData( 1 )->GetFrameData( m_currentFrame ) );
-}
-
 #endif
 
-
-//-------------------------------------------------------------
-//------------------- CXYPlotDataCollection class --------------------
-//-------------------------------------------------------------
-
-//----------------------------------------
-#if defined(BRAT_V3)
-using xy_plot_data_t = VTK_CXYPlotData;
-#else
-using xy_plot_data_t = CXYPlotData;
-#endif
-
-xy_plot_data_t* CXYPlotDataCollection::Get(CObArray::iterator it )
-{
-  xy_plot_data_t* data = dynamic_cast<xy_plot_data_t*>(*it);
-  if (data == nullptr)
-  {
-    throw CException("ERROR in  CXYPlotDataCollection::Get : dynamic_cast<CXYPlotData*>(*it); returns nullptr pointer - "
-                 "XYPlotData Collection seems to contain objects other than those of the class CXYPlotData or derived class", BRATHL_LOGIC_ERROR);
-  }
-  return data;
-}
-
-//----------------------------------------
-xy_plot_data_t* CXYPlotDataCollection::Get(int32_t index)
-{
-  if ( (index < 0) || (static_cast<uint32_t>(index) >= this->size()) )
-  {
-    std::string msg = CTools::Format("ERROR in  CXYPlotDataCollection::Get : index %d out-of-range "
-                                "Valid range is [0, %ld]",
-                                index,
-                                (long)this->size());
-    throw CException(msg, BRATHL_LOGIC_ERROR);
-
-  }
-
-  xy_plot_data_t* data = dynamic_cast<xy_plot_data_t*>(this->at(index));
-  if (data == nullptr)
-  {
-    throw CException("ERROR in  CXYPlotDataCollection::Get : dynamic_cast<CXYPlotData*>(this->at(index)); returns nullptr pointer - "
-                 "XYPlotData Collection seems to contain objects other than those of the class CXYPlotData or derived class", BRATHL_LOGIC_ERROR);
-  }
-  return data;
-}
-//----------------------------------------
-CXYPlotProperties* CXYPlotDataCollection::GetPlotProperties(int32_t index)
-{
-  CXYPlotData* data = Get(index);
-
-  return data->GetPlotProperties();
-}
-
-
-void CXYPlotDataCollection::AddData( CBratObject* ob )
-{
-	base_t::Insert( ob );
-
-	CXYPlotData *pdata = dynamic_cast<CXYPlotData*>( ob );		assert__( pdata );
-	auto *properties = pdata->GetPlotProperties();				assert__( properties );
-
-	if ( isDefaultValue( properties->GetXMin() ) || isDefaultValue( properties->GetXMax() ) )
-	{
-		double xrMin, xrMax;
-
-		GetXRange( xrMin, xrMax );
-		properties->SetXMin( xrMin );
-		properties->SetXMax( xrMax );
-	}
-
-	if ( isDefaultValue( properties->GetYMin() ) || isDefaultValue( properties->GetYMax() ) )
-	{
-		double yrMin, yrMax;
-		GetYRange( yrMin, yrMax );
-		properties->SetYMin( yrMin );
-		properties->SetYMax( yrMax );
-	}
-}
-
-
-
-#if defined(BRAT_V3)
-
-void CXYPlotDataCollection::OnFrameChange(int32_t f)
-{
-  CObArray::iterator it;
-
-  for (it = begin(); it != end() ; it++)
-  {
-    Get(it)->OnFrameChange(f);
-  }
-
-  m_currentFrame = f;
-}
-
-#endif
-
-//----------------------------------------
-void CXYPlotDataCollection::GetXRange(double& min, double& max, uint32_t frame)
-{
-  CObArray::iterator it;
-  setDefaultValue(min);
-  setDefaultValue(max);
-  for (it = begin(); it != end() ; it++)
-  {
-    CXYPlotData* data = Get(it);
-    if (data == nullptr)
-    {
-      continue;
-    }
-    double l = 0;
-    double h = 0;
-
-    CXYPlotProperties* props = data->GetPlotProperties();
-
-    data->GetXRange(l, h, frame);
-
-    if (isDefaultValue(props->GetXMin()) == false)
-    {
-      l = props->GetXMin();
-    }
-    if (isDefaultValue(props->GetXMax()) == false)
-    {
-      h = props->GetXMax();
-    }
-
-    if (isDefaultValue(min))
-    {
-      min = l;
-      max = h;
-    }
-    else
-    {
-      min = (min > l) ? l : min;
-      max = (max > h) ? max : h;
-    }
-
-  }
-
-}
-//----------------------------------------
-void CXYPlotDataCollection::GetYRange(double& min, double& max, uint32_t frame)
-{
-  CObArray::iterator it;
-  setDefaultValue(min);
-  setDefaultValue(max);
-
-  for (it = begin(); it != end() ; it++)
-  {
-    CXYPlotData* data = Get(it);
-    double l = 0;
-    double h = 0;
-
-    CXYPlotProperties* props = data->GetPlotProperties();
-
-    data->GetYRange(l, h, frame);
-
-    if (isDefaultValue(props->GetYMin()) == false)
-    {
-      l = props->GetYMin();
-    }
-    if (isDefaultValue(props->GetYMax()) == false)
-    {
-      h = props->GetYMax();
-    }
-
-    if (isDefaultValue(min))
-    {
-      min = l;
-      max = h;
-    }
-    else
-    {
-      min = (min > l) ? l : min;
-      max = (max > h) ? max : h;
-    }
-
-  }
-}
-//----------------------------------------
-/*
- * This function is calculating the general minimum along each frame.
- * however if CXYPlotProperties props already contains values for
- * m_xMin and m_xMax, it uses those instead.
- */
-void CXYPlotDataCollection::GetXRange(double& min, double& max)
-{
-  CObArray::iterator it;
-  setDefaultValue(min);
-  setDefaultValue(max);
-  for (it = begin(); it != end() ; it++)
-  {
-    CXYPlotData* data = Get(it);
-    double l = 0;
-    double h = 0;
-
-    CXYPlotProperties* props = data->GetPlotProperties();
-
-    //computes the X range (lower and upper)
-    //notice that the function receives a pointer to
-    // l and h
-    data->GetXRange(l, h);
-
-    //XYPlotProperties contains two CPlotArrays
-    //m_xMin does not have an initial value yet
-    if (isDefaultValue(props->GetXMin()) == false)
-    {
-      //only set l if xMin already contains an initial value
-        //that is non default
-      l = props->GetXMin();
-    }
-    //same for m_xMax
-    if (isDefaultValue(props->GetXMax()) == false)
-    {
-      h = props->GetXMax();
-    }
-
-    //min has not been initialized
-    if (isDefaultValue(min))
-    {
-      min = l;
-      max = h;
-    }
-    else
-    {
-      min = (min > l) ? l : min;
-      max = (max > h) ? max : h;
-    }
-
-  }
-
-}
-
-//----------------------------------------
-void CXYPlotDataCollection::GetYRange(double& min, double& max)
-{
-  CObArray::iterator it;
-  setDefaultValue(min);
-  setDefaultValue(max);
-
-  for (it = begin(); it != end() ; it++)
-  {
-    CXYPlotData* data = Get(it);
-    double l = 0;
-    double h = 0;
-
-    CXYPlotProperties* props = data->GetPlotProperties();
-
-    data->GetYRange(l, h);
-
-    if (isDefaultValue(props->GetYMin()) == false)
-    {
-      l = props->GetYMin();
-    }
-    if (isDefaultValue(props->GetYMax()) == false)
-    {
-      h = props->GetYMax();
-    }
-
-    if (isDefaultValue(min))
-    {
-      min = l;
-      max = h;
-    }
-    else
-    {
-      min = (min > l) ? l : min;
-      max = (max > h) ? max : h;
-    }
-
-  }
-}
-//----------------------------------------
-bool CXYPlotDataCollection::ShowPropertyMenu()
-{
-  CObArray::iterator it;
-
-  for (it = begin(); it != end() ; it++)
-  {
-    CXYPlotData* data = Get(it);
-
-    CXYPlotProperties* props = data->GetPlotProperties();
-
-    if (props->GetShowPropertyPanel())
-    {
-      return true;
-    }
-  }
-
-  return false;
-
-}
-
-//----------------------------------------
-void CXYPlotDataCollection::GetNames( std::vector<std::string>& names )
-{
-	for ( CObArray::iterator it = begin(); it != end(); it++ )
-	{
-		CXYPlotData* data = Get( it );
-		names.push_back( data->GetName() );
-	}
 }

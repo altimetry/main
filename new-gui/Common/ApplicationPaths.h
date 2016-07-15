@@ -152,9 +152,9 @@ public:
     ////////////////////////////////////////////
 
 
-    virtual bool ValidatePaths() const override;
+    virtual std::string ToString() const override;
 
-    std::string ToString() const;
+    virtual bool ValidatePaths() const override;
 };
 
 

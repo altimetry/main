@@ -76,6 +76,13 @@ class CDatasetFilterControls : public CDesktopControlsPanel
     QLineEdit *mStopCycleEdit = nullptr;
     QLineEdit *mStartPassEdit = nullptr;
     QLineEdit *mStopPassEdit = nullptr;
+    QGroupBox *mAbsoluteTimesBox = nullptr;
+
+    QLineEdit *mRelativeStart = nullptr;
+    QLineEdit *mRelativeStop = nullptr;
+    QDateTimeEdit *mRefDateTimeEdit = nullptr;
+    QCheckBox *mUseCurrentDateTime = nullptr;
+    QGroupBox *mRelativeTimesBox = nullptr;
 
     QWidget *mWhenBox = nullptr;
 
@@ -135,9 +142,11 @@ protected:
     void FillAreasList();
     void ShowOnlyAreasInRegion(int region_index);
     void SaveAllAreas();
+    void Relative2AbsoluteTimes();
     void ValidateAndStoreValue(QLineEdit *TextBox, int &ValueInFilter, int ParamDef, int min, int max);
     void updateDateWidgets();
-    void updateCyclePassWidgets ();
+    void updateCyclePassWidgets();
+    void updateRelativeTimeWidgets();
 
 
 signals:
@@ -175,10 +184,18 @@ public slots:
     void HandleStartPassChanged();
     void HandleStopPassChanged();
 
+    void HandleRelativeStartTimeChanged();
+    void HandleRelativeStopTimeChanged();
+    void HandleRelativeReferenceTimeChanged(const QDateTime &ref_datetime);
+
 	void HandleWorkspaceChanged();
     void HandleDatasetChanged( CDataset *dataset );
 
 	void HandleCurrentLayerSelectionChanged();
+	void HandleCurrentLayerSelectionChanged( QRectF box );
+	void HandleRelativeTimesBoxChecked( bool checked );
+    void HandleCurrentDateTimeBoxChecked( bool checked );
+
 };
 
 

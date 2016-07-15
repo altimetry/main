@@ -38,11 +38,18 @@
 **
 ****************************************************************************/
 
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-register"
+#endif
 
 #include "qtsingleapplication.h"
 #include "qtlocalpeer.h"
 #include <QWidget>
 
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
 
 /*!
     \class QtSingleApplication qtsingleapplication.h

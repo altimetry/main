@@ -140,20 +140,51 @@ CConsoleApplicationPaths::CConsoleApplicationPaths( const std::string &exec_path
     , mInternalDataDir( ComputeInternalDataDirectory( mExecutableDir ) )
 	, mUserDocumentsDirectory( user_docs_dir )
 {
+    // Set Qt plug-ins path before anything else
+	//
+	//	- Use QCoreApplication::libraryPaths(); to inspect Qt library (plug-ins) directories
+
+    QCoreApplication::setLibraryPaths( QStringList() << mQtPluginsDir.c_str() );	
+
+
     // user (RE)DEFINABLE paths
 	//
     SetUserPaths();
 
     ValidatePaths();
-
-    // Set Qt plug-ins path
-	//
-	//	- Use QCoreApplication::libraryPaths(); to inspect Qt library (plug-ins) directories
-
-    QCoreApplication::setLibraryPaths( QStringList() << mQtPluginsDir.c_str() );	
 }
 // (*) this achieves the same (but, among other problems, needs
 //	an instance and is not Qt 5 portable): qApp->argv()[ 0 ]
+
+
+//virtual
+std::string CConsoleApplicationPaths::ToString() const
+{
+    std::string s = std::string( "\n*** ApplicationPaths ***\nValidation Result: " ) + ( mValid ? "Ok" : "Failed" );
+
+	if ( !mErrorMsg.empty() ) s+= ( "\nValidation Messages: " + mErrorMsg + "\n\nData:\n\n" );
+
+	//base
+
+    s += ( "\nPlatform == " + mPlatform );
+    s += ( "\nConfiguration == " + mConfiguration );
+
+    s += ( "\nExecutable Path == " + mExecutablePath );
+    s += ( "\nExecutable Dir == " + mExecutableDir );
+    s += ( "\nDeployment Root Dir == " + mDeploymentRootDir );
+
+    s += ( "\nQt Plugins Dir == " + mQtPluginsDir );
+	s += ( "\nUser Manual Path == " + mUserManualPath );
+    s += ( "\nInternalData Dir == " + mInternalDataDir );
+
+    s += ( std::string( "\nUse Portable Paths == " ) + ( UsePortablePaths() ? "true" : "false" ) );
+
+	s += ( "\nUser Documents Directory == " + mUserDocumentsDirectory );
+    s += ( "\nmUser Data Directory == " + mUserDataDirectory );
+    s += ( "\nWorkspaces Directory == " + mWorkspacesDirectory );
+
+    return s;
+}
 
 
 // Test here mandatory paths only. User changeable paths are not tested, because

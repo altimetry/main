@@ -25,6 +25,11 @@ static const std::string STOPCYCLE_KEY = "StopCycle";
 static const std::string STARTPASS_KEY = "StartPass";
 static const std::string STOPPASS_KEY = "StopPass";
 
+static const std::string RELATIVE_START_DAYS_KEY = "RelativeStartDays";
+static const std::string RELATIVE_STOP_DAYS_KEY = "RelativeStopDays";
+static const std::string USE_CURRENT_TIME_KEY = "UseCurrentTime";
+static const std::string RELATIVE_REFERENCE_TIME = "RelativeReferenceTime";
+
 
 static const std::string date_time_format = "yyyy/MM/dd T hh:mm:ss";
 
@@ -37,6 +42,28 @@ static const std::string DATASET_SELECTION_LOG_FILENAME = "DatasetSelection.log"
 //////////////////////////////////////////////////////////////
 //						Single Filter
 //////////////////////////////////////////////////////////////
+
+// Setting Brathl internal reference date year (1950)
+//
+//static 
+const QDateTime CBratFilter::smStartTime = QDateTime( QDate(1950, 1, 1), QTime(0, 0, 0) );
+
+//static 
+const int CBratFilter::smStartCycle = defaultValue< int >();
+//static 
+const int CBratFilter::smStopCycle = defaultValue< int >();
+//static 
+const int CBratFilter::smStartPass = defaultValue< int >();
+//static 
+const int CBratFilter::smStopPass = defaultValue< int >();
+
+//static 
+const bool CBratFilter::smUseCurrentTime = true;
+//static 
+const int CBratFilter::smRelativeStartDays = defaultValue< int >();
+//static 
+const int CBratFilter::smRelativeStopDays = defaultValue< int >();
+
 
 
 CBratFilter& CBratFilter::operator = ( const CBratFilter &o )
@@ -54,6 +81,9 @@ CBratFilter& CBratFilter::operator = ( const CBratFilter &o )
         mStopCycle = o.mStopCycle;
         mStartPass = o.mStartPass;
         mStopPass = o.mStopPass;
+
+		mRelativeStartDays = o.mRelativeStartDays;
+		mRelativeStopDays = o.mRelativeStopDays;
     }
     return *this;
 }
@@ -206,34 +236,56 @@ bool CBratFilter::Apply( const CStringList& files_in, CStringList& files_out ) c
 }
 
 
-void CBratFilter::setDefaultValues()
+void CBratFilter::Relative2AbsoluteTimes()
 {
-    // Setting Brathl internal reference date year (1950)
-    mStartTime = QDateTime( QDate(1950, 1, 1), QTime(0, 0, 0) );
+    // Check if relative times are default values
+    if ( isDefaultValue(mRelativeStartDays) && isDefaultValue(mRelativeStopDays) )
+        return;
+    else if ( isDefaultValue(mRelativeStartDays) )
+        mRelativeStartDays = mRelativeStopDays;
+    else if ( isDefaultValue(mRelativeStopDays) )
+        mRelativeStopDays = mRelativeStartDays;
+
+    // Calculate Absolute Start and Stop times
+    if ( mUseCurrentTime ){ mRelativeReferenceTime = QDateTime::currentDateTime(); }
+
+    mStartTime = mRelativeReferenceTime.addDays( mRelativeStartDays );
+    mStopTime  = mRelativeReferenceTime.addDays( mRelativeStopDays );
+}
+
+
+void CBratFilter::SetDefaultValues()
+{
+	SetDefaultDateValues();
+
+	SetDefaultCyclePassValues();
+
+	SetDefaultRelativeDays();
+}
+
+
+void CBratFilter::SetDefaultDateValues()
+{
+    // Setting Brathl internal reference date year (1950): see smStartTime definition
+    mStartTime = smStartTime;
     mStopTime  = QDateTime::currentDateTime();
-
-    setDefaultValue( mStartCycle );
-    setDefaultValue( mStopCycle );
-    setDefaultValue( mStartPass );
-    setDefaultValue( mStopPass );
 }
 
-
-void CBratFilter::setDefaultDateValues()
+void CBratFilter::SetDefaultCyclePassValues()
 {
-    // Setting Brathl internal reference date year (1950)
-    mStartTime = QDateTime( QDate(1950, 1, 1), QTime(0, 0, 0) );
-    mStopTime  = QDateTime::currentDateTime();
+    mStartCycle = smStartCycle;
+    mStopCycle = smStopCycle;
+    mStartPass = smStartPass;
+    mStopPass = smStopPass;
 }
 
-void CBratFilter::setDefaultCyclePassValues()
+void CBratFilter::SetDefaultRelativeDays()
 {
-    setDefaultValue( mStartCycle );
-    setDefaultValue( mStopCycle );
-    setDefaultValue( mStartPass );
-    setDefaultValue( mStopPass );
+    mRelativeStartDays = smRelativeStartDays;
+    mRelativeStopDays = smRelativeStopDays;
+	mUseCurrentTime = smUseCurrentTime;
+	mRelativeReferenceTime = QDateTime::currentDateTime();
 }
-
 
 
 //////////////////////////////////////////////////////////////
@@ -328,13 +380,18 @@ bool CBratFilters::Save()
 
             k_v( FILTER_AREAS_KEY,	list ),
 
-            k_v( STARTDATE_KEY,		filter.StartTime().toString( t2q( date_time_format ) ) ),
-            k_v( STOPDATE_KEY,		filter.StopTime().toString( t2q( date_time_format ) ) ),
+            k_v( STARTDATE_KEY,				filter.StartTime().toString( t2q( date_time_format ) ) ),
+            k_v( STOPDATE_KEY,				filter.StopTime().toString( t2q( date_time_format ) ) ),
 
-            k_v( STARTCYCLE_KEY,	filter.StartCycle() ),
-            k_v( STOPCYCLE_KEY,		filter.StopCycle() ),
-            k_v( STARTPASS_KEY,		filter.StartPass() ),
-            k_v( STOPPASS_KEY,		filter.StopPass() )
+            k_v( STARTCYCLE_KEY,			filter.StartCycle() ),
+            k_v( STOPCYCLE_KEY,				filter.StopCycle() ),
+            k_v( STARTPASS_KEY,				filter.StartPass() ),
+            k_v( STOPPASS_KEY,				filter.StopPass() ),
+
+			k_v( RELATIVE_START_DAYS_KEY,	filter.RelativeStartDays() ),
+			k_v( RELATIVE_STOP_DAYS_KEY,	filter.RelativeStopDays() ),
+			k_v( USE_CURRENT_TIME_KEY,		filter.UseCurrentTime() ),
+			k_v( RELATIVE_REFERENCE_TIME,	filter.RelativeReferenceTime().toString( t2q( date_time_format ) ) )
         );
     }
 
@@ -358,22 +415,26 @@ bool CBratFilters::Load()
     for ( auto it = mFiltersMap.begin(); it != mFiltersMap.end(); it++ )
     {
         QStringList list;
-        std::string stime;
-        std::string etime;
+        std::string stime, etime, relative_ref_time;
         auto &filter = it->second;
 
         ReadSection( it->first,
 
-            k_v( FILTER_AREAS_KEY,	&list ),
+            k_v( FILTER_AREAS_KEY,			&list ),
 
-            k_v( STARTDATE_KEY,		&stime ),
-            k_v( STOPDATE_KEY,		&etime ),
+            k_v( STARTDATE_KEY,				&stime ),
+            k_v( STOPDATE_KEY,				&etime ),
 
-            k_v( STARTCYCLE_KEY,	&filter.StartCycle() ),
-            k_v( STOPCYCLE_KEY,		&filter.StopCycle() ),
-            k_v( STARTPASS_KEY,		&filter.StartPass() ),
-            k_v( STOPPASS_KEY,		&filter.StopPass() )
-        );
+            k_v( STARTCYCLE_KEY,			&filter.StartCycle(),	CBratFilter::smStartCycle ),
+            k_v( STOPCYCLE_KEY,				&filter.StopCycle(),	CBratFilter::smStopCycle ),
+            k_v( STARTPASS_KEY,				&filter.StartPass(),	CBratFilter::smStartPass ),
+            k_v( STOPPASS_KEY,				&filter.StopPass(),		CBratFilter::smStopPass ),
+
+			k_v( RELATIVE_START_DAYS_KEY,	&filter.RelativeStartDays(),	CBratFilter::smRelativeStartDays ),
+			k_v( RELATIVE_STOP_DAYS_KEY,	&filter.RelativeStopDays(),		CBratFilter::smRelativeStopDays ),
+			k_v( USE_CURRENT_TIME_KEY,		&filter.UseCurrentTime(),		CBratFilter::smUseCurrentTime ),
+			k_v( RELATIVE_REFERENCE_TIME,	&relative_ref_time )
+		);
 
         auto &areas = filter.mAreaNames;
         areas.clear();
@@ -382,8 +443,19 @@ bool CBratFilters::Load()
             areas.push_back( q2a( name ) );
         }
 
-        filter.StartTime() = QDateTime::fromString( stime.c_str(), t2q( date_time_format ) );
-        filter.StopTime() = QDateTime::fromString( etime.c_str(), t2q( date_time_format ) );
+        filter.StartTime() = stime.empty() ? CBratFilter::smStartTime : QDateTime::fromString( stime.c_str(), t2q( date_time_format ) );
+        filter.StopTime() = etime.empty() ?  QDateTime::currentDateTime() : QDateTime::fromString( etime.c_str(), t2q( date_time_format ) );
+        filter.RelativeReferenceTime() = relative_ref_time.empty() ?  
+                                                QDateTime::currentDateTime() :
+                                                QDateTime::fromString( relative_ref_time.c_str(), t2q( date_time_format ) );
+
+        // Re-calculate Start and Stop times relative to system current time //
+        if ( filter.UsingRelativeTimes() && filter.UseCurrentTime() )
+        {
+            filter.StartTime() = QDateTime::currentDateTime().addDays( filter.RelativeStartDays() );
+            filter.StopTime()  = QDateTime::currentDateTime().addDays( filter.RelativeStopDays() );
+        }
+        // //////////////////////////////////////////////////////////////////////
     }
 
     return mSettings.status() == QSettings::NoError && Areas().Load() && Regions().Load();

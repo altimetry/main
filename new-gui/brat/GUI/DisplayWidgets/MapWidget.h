@@ -39,7 +39,7 @@ class QgsGraduatedSymbolRendererV2;
 class QLookupTable;
 struct CMapPlotParameters;
 class CMapTip;
-
+class CMapToolSelectFeatures;
 
 
 class CMapWidget : public QgsMapCanvas
@@ -130,6 +130,8 @@ public:
 
 protected:
 
+	static void RemoveFeatures( QgsVectorLayer *layer );
+
 	static QgsSingleSymbolRendererV2* CreateRenderer( QgsSymbolV2* symbol );
 
 	static QgsGraduatedSymbolRendererV2* CreateRenderer( const QString &target_field, double width, double m, double M, const QLookupTable *lut, create_symbol_t cs );
@@ -147,7 +149,6 @@ protected:
     static QgsSymbolV2* CreateArrowSymbol(const QColor &color );
     /////////////////////////////////////////////////////////////////////////
 
-
 protected:
     //////////////////////////////////////
     //	instance data
@@ -162,7 +163,7 @@ protected:
 	QgsRasterLayer *mMainRasterLayer = nullptr;
     QList <QgsMapCanvasLayer> mLayerSet;
 
-	QgsMapTool *mSelectFeatures = nullptr;
+	CMapToolSelectFeatures *mSelectFeatures = nullptr;
 	QgsMapTool *mSelectPolygon = nullptr;
 
 	QgsMapTool *mMeasureDistance = nullptr;
@@ -229,7 +230,7 @@ protected:
 	void CreateGridWidgets( QToolBar *tb );
 	void Init();		
 public:
-    explicit CMapWidget( ELayerBaseType layer_base_type , QWidget *parent );
+    explicit CMapWidget( ELayerBaseType layer_base_type, QWidget *parent, bool with_tracks_layer = false );
 
 	virtual ~CMapWidget();
 
@@ -238,7 +239,8 @@ public:
     //	GUI operations
     //////////////////////////////////////
 
-	static QToolButton* CreateMapSelectionActions( QToolBar *tb, QAction *&action_select_features, QAction *&action_select_polygon, QAction *&action_deselect_all );
+	static QToolButton* CreateMapSelectionActions( QToolBar *tb, QAction *&action_select_features, QAction *&action_deselect_all );
+	static QToolButton* AddMapSelectionPolygon( QToolButton *selection, QToolBar *tb, QAction *&action_select_polygon );
 	void ConnectParentSelectionActions( QToolButton *selection_button, QAction *action_select_features, QAction *action_select_polygon, QAction *action_deselect_all );
 
 	static QToolButton* CreateMapMeasureActions( QToolBar *tb, QAction *&action_measure_distance, QAction *&action_measure_area );
@@ -273,16 +275,26 @@ public:
 	bool SetContourLayerVisible( size_t index, bool show, bool render );
 	bool HasContourLayer( size_t index ) const;
 
+	bool IsArrowLayer( size_t index ) const;
+
 	void ChangeDataRenderer( size_t index, double width, double m, double M, const QLookupTable *lut );
 
 
-	QgsRectangle CurrentLayerSelectedBox() const;
+	QgsRectangle CurrentLayerSelectedFeaturesBox() const;
 
 	void RemoveLayers( bool render = false );
 	
 	void RemoveLayer( QgsMapLayer *layer, bool render = false );
 
+protected:
 	void RemoveTracksLayer();
+
+public:
+
+	void RemoveTracksLayerFeatures();
+
+	void SelectArea( double lonm, double lonM, double latm, double latM );
+	void RemoveAreaSelection();												//TODO really needed?
 	
 
 	void Home();
@@ -311,7 +323,7 @@ public:
 	QgsVectorLayer* AddDataLayer( const std::string &name, double symbol_width, double m, double M, const QLookupTable *lut, QgsFeatureList &flist,
 		bool isdate, brathl_refDate date_ref );
     
-	QgsVectorLayer* AddContourLayer( size_t index, const std::string &name, unsigned width, QColor color, const QLookupTable *lut, size_t ncontours, const CMapPlotParameters &map );
+	QgsVectorLayer* AddContourLayer( size_t index, const std::string &name, unsigned width, QColor color, size_t ncontours, const CMapPlotParameters &map, const QLookupTable *lut = nullptr );
 
     QgsVectorLayer* AddArrowDataLayer(const std::string &name, QgsFeatureList &flist );
 
@@ -361,18 +373,11 @@ protected:
 
 	QgsVectorLayer* AddDataLayer( bool polygon, const std::string &name, double width, double m, double M, const QLookupTable *lut, QgsFeatureList &flist );
 
-
 protected:
 
-	//QgsVectorLayer* AddVectorLayer( const std::string &name, const QString &layer_path, const QString &provider, QgsFeatureRendererV2 *renderer = nullptr );
 	QgsVectorLayer* AddVectorLayer( QgsVectorLayer *l );
 
-	//QgsVectorLayer* AddMemoryLayer( bool polygon, const std::string &name, QgsFeatureRendererV2 *renderer );
-	//QgsVectorLayer* AddMemoryLayer( const std::string &name = "", QgsSymbolV2* symbol = nullptr );
-
-
 	QgsVectorLayer* AddOGRVectorLayer( const QString &layer_path, QgsSymbolV2* symbol = nullptr );
-
 
 	QgsRasterLayer* AddRasterLayer( const QString &layer_path, const QString &base_name, const QString &provider, QgsSymbolV2* symbol = nullptr );
 
@@ -390,7 +395,7 @@ protected:
 signals:
 	void CurrentLayerSelectionChanged();
 	void GridEnabled( bool enabled );
-
+	void NewRubberBandSelection( QRectF bounding );
 
 public slots:
 

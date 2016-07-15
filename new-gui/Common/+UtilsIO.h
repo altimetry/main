@@ -56,13 +56,24 @@ struct MatchPathSeparator
 };
 
 inline std::string
-removeExtension( std::string const& filename )
+remove_extension( std::string const& filename )
 {
     std::string::const_reverse_iterator pivot =
             std::find( filename.rbegin(), filename.rend(), '.' );
     return pivot == filename.rend()
         ? filename
         : std::string( filename.begin(), pivot.base() - 1 );
+}
+
+inline std::string
+extension_from_path( std::string const& filename )
+{
+    std::string::const_reverse_iterator pivot =
+            std::find( filename.rbegin(), filename.rend(), '.' );
+
+    return pivot == filename.rend()
+        ? ""
+        : std::string( pivot.base() - 1, filename.end() );
 }
 
 inline std::string
@@ -77,7 +88,7 @@ filename_from_path( std::string const& path )
 inline std::string
 basename_from_path( std::string const& path )
 {
-    return removeExtension( filename_from_path( path ) );
+    return remove_extension( filename_from_path( path ) );
 }
 
 inline std::string

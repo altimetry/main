@@ -448,6 +448,7 @@ public:
 	std::string GetDisplayNewName( const COperation *operation );
 
 	CDisplay* GetDisplay( const std::string& name );
+	const CDisplay* GetDisplay( const std::string& name ) const { return const_cast<CWorkspaceDisplay*>( this )->GetDisplay( name ); }
 
 	size_t GetDisplayCount()
 	{

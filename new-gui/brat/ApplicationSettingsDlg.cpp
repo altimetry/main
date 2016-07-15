@@ -222,6 +222,11 @@ void CApplicationSettingsDlg::Wire()
 
     connect( mButtonBox, SIGNAL(accepted()), this, SLOT(accept()) );
     connect( mButtonBox, SIGNAL(rejected()), this, SLOT(reject()) );
+
+
+    adjustSize();
+    setMinimumWidth( width() );
+    setMaximumHeight( height() );
 }
 
 

@@ -114,7 +114,6 @@ class CBrat3DPlot : public BratSurfacePlot
 	static const std::vector< Qwt3D::AXIS > smZaxis;
 
 
-
 	//instance data
 
 	std::vector<CBrat3DFunction*> mFunctions;		//TODO is this (multiple functions) really supported?
@@ -139,6 +138,10 @@ public:
 	CBrat3DPlot( QWidget *pw );
 
 	virtual ~CBrat3DPlot();
+
+
+	void SetTitle( const QString &title );
+
 
 	// axis
 
@@ -308,7 +311,9 @@ public:
 
 	virtual ~C3DPlotWidget();
 
+
 	// access/assignment
+
 
 	//...create plot
 

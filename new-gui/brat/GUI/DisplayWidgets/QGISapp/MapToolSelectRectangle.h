@@ -43,19 +43,6 @@ class CMapToolSelectFeatures : public QgsMapTool
 #pragma clang diagnostic pop
 #endif
 
-public:
-	CMapToolSelectFeatures( QgsMapCanvas* canvas );
-
-	//! Overridden mouse move event
-	virtual void canvasMoveEvent( QMouseEvent * e ) override;
-
-	//! Overridden mouse press event
-	virtual void canvasPressEvent( QMouseEvent * e ) override;
-
-	//! Overridden mouse release event
-	virtual void canvasReleaseEvent( QMouseEvent * e ) override;
-
-private:
 
 	//! Flag to indicate a map canvas drag operation is taking place
 	bool mDragging;
@@ -68,6 +55,32 @@ private:
 	QColor mFillColor;
 
 	QColor mBorderColour;
+
+public:
+	CMapToolSelectFeatures( QgsMapCanvas* canvas );
+
+	//! Overridden mouse move event
+	virtual void canvasMoveEvent( QMouseEvent * e ) override;
+
+	//! Overridden mouse press event
+	virtual void canvasPressEvent( QMouseEvent * e ) override;
+
+	//! Overridden mouse release event
+	virtual void canvasReleaseEvent( QMouseEvent * e ) override;
+
+	void SetRubberBandSelection( double lonm, double lonM, double latm, double latM );
+	void RemoveRubberBandSelection();														//TODO confirm it is really needed
+
+
+protected:
+
+	void CreateRubberBand();
+	void DeleteRubberBand();
+
+
+signals:
+
+	void NewRubberBandSelection( QRectF bounding );
 };
 
 #endif

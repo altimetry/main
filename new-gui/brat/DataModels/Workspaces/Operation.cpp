@@ -304,6 +304,7 @@ public:
 		WriteLn();
 		WriteLn( kwDISPLAY_COLORTABLE + "=" + mOp.mColorTable );
 
+#if defined(BRAT_V3)
 		if ( !isDefaultValue( mOp.mGeoTIFFRangeMin ) )
 		{
 			WriteLn( kwDISPLAY_MINVALUE + "=" + n2s<std::string>( mOp.mGeoTIFFRangeMin ) );
@@ -312,8 +313,8 @@ public:
 		{
 			WriteLn( kwDISPLAY_MAXVALUE + "=" + n2s<std::string>( mOp.mGeoTIFFRangeMax ) );
 		}
-
-		if ( mOp.mCreateKML )
+#endif
+		if ( mOp.mCreateKMLFieldsData || mOp.mCreateKMLTrackData )
 		{
 			std::string kmlOutputFile = mOp.GetExportGeoTIFFOutputPath();
 			SetFileExtension( kmlOutputFile, std::string( "kml" ) );
@@ -326,6 +327,12 @@ public:
 			//v4: the following does not seem to be written in v3 when delaying
 			WriteLn( kwFILETYPE + "=" + mOp.m_product->GetProductClass() + " / " + mOp.m_product->GetProductType() );
 			WriteLn( kwPRODUCT_LIST + "=" + mOp.OriginalDataset()->GetProductList()->ToString( ", ", true ) );
+
+			if ( mOp.mCreateKMLTrackData )
+				WriteLn( kwEXPORT_KML_TRACKS + "=Y" );
+
+			if ( mOp.mCreateKMLFieldsData )
+				WriteLn( kwEXPORT_KML_FIELDS + "=Y" );
 		}
 
 		return true;
@@ -403,6 +410,9 @@ public:
 
 	bool BuildExportGeoTIFFCmdFileOutput()
 	{
+		if ( !mOp.mCreateGeoTIFFs )
+			return true;
+
 		WriteLn();
 		Comment( "----- OUTPUT -----" );
 		WriteLn();
@@ -628,20 +638,17 @@ COperation* COperation::Copy( const COperation &o, CWorkspaceOperation *wkso, CW
 	new_op->m_dataMode = o.m_dataMode;
 	new_op->m_exportAsciiDateAsPeriod = o.m_exportAsciiDateAsPeriod;
 
-	new_op->InitOutput( wkso );					//assigns m_output and m_cmdFile
+	new_op->InitOutputs( wkso );				//assigns all output and cmd files
+	//new_op->InitExportGeoTIFFOutput( wkso );	//assigns m_exportGetTIFFOutput and m_exportGetTIFFCmdFile
+	//new_op->InitExportAsciiOutput( wkso );	//assigns m_exportAsciiOutput and m_exportAsciiCmdFile
 	new_op->SetCmdFile( wkso );					//assigns m_cmdFile
-
-	new_op->InitExportAsciiOutput( wkso );		//assigns m_exportAsciiOutput and m_exportAsciiCmdFile
 	new_op->SetExportAsciiCmdFile( wkso );		//assigns m_exportAsciiCmdFile
-	new_op->InitExportGeoTIFFOutput( wkso );	//assigns m_exportGetTIFFOutput and m_exportGetTIFFCmdFile
 	new_op->SetExportGeoTIFFCmdFile( wkso );	//assigns m_exportGetTIFFCmdFile
+	new_op->SetShowStatsCmdFile( wkso );
 
 	return new_op;
 
 	// TODO not assigned: check why and consequences
-
-	//std::string m_showStatsOutput;
-	//std::string m_showStatsCmdFile;
 
 	//const int m_verbose = 2;
 
@@ -1289,7 +1296,7 @@ std::string COperation::GetShowStatsTaskName() const
 bool COperation::BuildCmdFile( CWorkspaceFormula *wks, CWorkspaceOperation *wkso, std::string &error_msg )
 {
 	if ( m_output.empty() )
-		InitOutput( wkso );
+		InitOperationOutput( wkso );
 	
 	return COperationCmdFile::BuildCmdFile( m_cmdFile, *this, wks, error_msg );
 }
@@ -1523,7 +1530,14 @@ void COperation::SetExportGeoTIFFCmdFile( CWorkspaceOperation *wks )
 }
 
 //----------------------------------------
-void COperation::InitOutput( CWorkspaceOperation *wks )
+void COperation::InitOutputs( CWorkspaceOperation *wks )
+{
+	InitOperationOutput( wks );
+	InitShowStatsOutput( wks );
+	InitExportAsciiOutput( wks );
+	InitExportGeoTIFFOutput( wks );
+}
+void COperation::InitOperationOutput( CWorkspaceOperation *wks )
 {
 	if ( wks == nullptr )
 		return;
@@ -1532,7 +1546,6 @@ void COperation::InitOutput( CWorkspaceOperation *wks )
 
 	SetOutput( wks->GetPath() + "/Create" + GetName() + ".nc", wks );
 }
-//----------------------------------------
 void COperation::InitShowStatsOutput( CWorkspaceOperation *wks )
 {
 	if ( wks == nullptr )

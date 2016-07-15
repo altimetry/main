@@ -99,13 +99,11 @@ private:
 
 	//...domain data
 
-	CXYPlotDataCollection mDataArrayXY;
-	CXYPlotProperties *mPropertiesXY = nullptr;
+	CXYPlotData *mCurrentPlotDataXY = nullptr;
 	bool mMultiFrame = false;					//	bool mPanelMultiFrame;	2 variables in v3: one in the window, the other in the panel
 	bool mHasClut = false;
 
-	std::vector< CZFXYPlotData* > mDataArrayZFXY;
-	CZFXYPlotProperties *mPropertiesZFXY = nullptr;
+	CZFXYPlotData *mCurrentPlotDataZFXY = nullptr;
 
 
 	// construction /destruction
@@ -116,7 +114,9 @@ private:
 
 public:
     CPlotEditor( CModel *model, const COperation *op, const std::string &display_name = "" );
-    CPlotEditor( const CDisplayFilesProcessor *proc, CPlot* plot );
+    CPlotEditor( const CDisplayDataProcessor *proc, CYFXPlot* plot );
+    CPlotEditor( const CDisplayDataProcessor *proc, CZFXYPlot* plot );
+    CPlotEditor( const CDisplayFilesProcessor *proc, CYFXPlot* plot );
     CPlotEditor( const CDisplayFilesProcessor *proc, CZFXYPlot* plot );
 
 	virtual ~CPlotEditor();
@@ -128,12 +128,6 @@ protected:
 
 protected:
 	
-	bool CreatePlotData( EPlotType type );					 		//when display changes
-
-	CBratObject* UpdateCurrentPointers( int field_index );			//when field changes
-	CXYPlotData* UpdateCurrentYFXPointers( int field_index );		//when field changes
-	CZFXYPlotData* UpdateCurrentZFXYPointers( int field_index );	//when field changes
-
 	CViewControlsPanelGeneralPlots* TabGeneral();
 	void UpdatePlotType( EPlotType type, bool select );
 
@@ -156,7 +150,9 @@ protected:
 	virtual void Recenter() override;
 	virtual void Export2Image( bool save_2d, bool save_3d, const std::string path2d, const std::string path3d, EImageExportType type ) override;
 
-	virtual bool ChangeView() override;
+	virtual bool ChangeView() override;					 				//when display changes
+	virtual bool UpdateCurrentPointers( int field_index ) override;		//when field changes
+	virtual void SetPlotTitle() override;
 	virtual void NewButtonClicked() override;
 	virtual void RenameButtonClicked() override;
 	virtual void DeleteButtonClicked() override;
@@ -171,6 +167,9 @@ protected:
 	///////////////////////////////////////////////////////////
 	// Handlers
 	///////////////////////////////////////////////////////////
+
+	//not slots
+    bool HandleAxisLabelChanged( QLineEdit *label_edit, std::string &xtitle, std::string &ytitle, std::string &ztitle, std::string &new_title );
 
 protected slots:
 

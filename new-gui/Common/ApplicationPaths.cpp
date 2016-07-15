@@ -163,33 +163,10 @@ bool CApplicationPaths::operator == ( const CApplicationPaths &o ) const
         ;
 }
 
-
+//virtual
 std::string CApplicationPaths::ToString() const
 {
-    std::string s = std::string( "\n*** ApplicationPaths ***\nValidation Result: " ) + ( mValid ? "Ok" : "Failed" );
-
-	if ( !mErrorMsg.empty() ) s+= ( "\nValidation Messages: " + mErrorMsg + "\n\nData:\n\n" );
-
-	//base
-
-    s += ( "\nPlatform == " + mPlatform );
-    s += ( "\nConfiguration == " + mConfiguration );
-
-    s += ( "\nExecutable Path == " + mExecutablePath );
-    s += ( "\nExecutable Dir == " + mExecutableDir );
-    s += ( "\nDeployment Root Dir == " + mDeploymentRootDir );
-
-    s += ( "\nQt Plugins Dir == " + mQtPluginsDir );
-	s += ( "\nUser Manual Path == " + mUserManualPath );
-    s += ( "\nInternalData Dir == " + mInternalDataDir );
-
-    s += ( std::string( "\nUse Portable Paths == " ) + ( UsePortablePaths() ? "true" : "false" ) );
-
-	s += ( "\nUser Documents Directory == " + mUserDocumentsDirectory );
-    s += ( "\nmUser Data Directory == " + mUserDataDirectory );
-    s += ( "\nWorkspaces Directory == " + mWorkspacesDirectory );
-
-	//this
+	std::string s = base_t::ToString();
 
     s += ( "\nVectorLayer Path == " + mVectorLayerPath );
 

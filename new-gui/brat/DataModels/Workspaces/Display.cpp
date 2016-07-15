@@ -104,9 +104,11 @@ public:
 			case CMapTypeDisp::eTypeDispYFX:
 				BuildCmdFileGeneralPropertiesXY();
 				break;
+
 			case CMapTypeDisp::eTypeDispZFXY:
 				BuildCmdFileGeneralPropertiesZXY();
 				break;
+
 			case CMapTypeDisp::eTypeDispZFLatLon:
 				BuildCmdFileGeneralPropertiesZLatLon();
 				break;
@@ -117,21 +119,32 @@ public:
 		return true;
 	}
 
+
+	void WriteMinMax()
+	{
+		std::string	minx, maxx, miny, maxy;
+		minx = maxx = miny = maxy = "DV";
+
+#if defined(BRAT_V3)
+		if ( !isDefaultValue( mDisplay.GetMinXValue() ) )
+			minx = mDisplay.GetMinXValueAsText();
+		if (! isDefaultValue( mDisplay.GetMaxXValue() ) ) 
+			maxx = mDisplay.GetMaxXValueAsText();
+		if (!isDefaultValue( mDisplay.GetMinYValue() ) ) 
+			miny = mDisplay.GetMinYValueAsText();
+		if (!isDefaultValue( mDisplay.GetMaxYValue() ) ) 
+			maxy =mDisplay.GetMaxYValueAsText();
+#endif
+
+		WriteLn( FmtCmdParam( kwDISPLAY_XMINVALUE ) + minx );
+		WriteLn( FmtCmdParam( kwDISPLAY_XMAXVALUE ) + maxx );
+		WriteLn( FmtCmdParam( kwDISPLAY_YMINVALUE ) + miny );
+		WriteLn( FmtCmdParam( kwDISPLAY_YMAXVALUE ) + maxy );
+	}
+
 	bool BuildCmdFileGeneralPropertiesXY()
 	{
-		std::string
-		valueString = ( isDefaultValue( mDisplay.GetMinXValue() ) ) ? "DV" : mDisplay.GetMinXValueAsText();
-		WriteLn( FmtCmdParam( kwDISPLAY_XMINVALUE ) + valueString );
-
-		valueString = ( isDefaultValue( mDisplay.GetMaxXValue() ) ) ? "DV" : mDisplay.GetMaxXValueAsText();
-		WriteLn( FmtCmdParam( kwDISPLAY_XMAXVALUE ) + valueString );
-
-		valueString = ( isDefaultValue( mDisplay.GetMinYValue() ) ) ? "DV" : mDisplay.GetMinYValueAsText();
-		WriteLn( FmtCmdParam( kwDISPLAY_YMINVALUE ) + valueString );
-
-		valueString = ( isDefaultValue( mDisplay.GetMaxYValue() ) ) ? "DV" : mDisplay.GetMaxYValueAsText();
-		WriteLn( FmtCmdParam( kwDISPLAY_YMAXVALUE ) + valueString );
-
+		WriteMinMax();
 		WriteLn();
 
 		std::string axisName;
@@ -142,20 +155,26 @@ public:
 		auto &data = mDisplay.GetData();
 		for ( CObMap::const_iterator it = data.begin(); it != data.end(); it++ )
 		{
-			CDisplayData* value = dynamic_cast<CDisplayData*>( it->second );
+			const CDisplayData* value = dynamic_cast<const CDisplayData*>( it->second );
 			if ( value == nullptr )
 				continue;
 
+#if defined(BRAT_V3)
 			if ( value->GetXAxis().empty() )
 			{
-				axisName = value->GetX()->GetName().c_str();
-				axisLabel = value->GetX()->GetDescription().c_str();
+#endif
+				axisName = value->GetX()->GetName();				assert__( !axisName.empty() );
+				axisLabel = value->GetX()->GetDescription();		assert__( !axisLabel.empty() );
+
+#if defined(BRAT_V3)
 			}
 			else
 			{
 				axisName = value->GetXAxis();
-				axisLabel = value->GetXAxisText( (const char *)value->GetXAxis().c_str() );
+				auto const *f = value->FindDimension( axisName );
+				axisLabel = f ? f->GetDescription() : axisName;
 			}
+#endif
 
 			WriteLn();
 			WriteLn( FmtCmdParam( kwDISPLAY_XAXIS ) + axisName );
@@ -172,43 +191,36 @@ public:
 	{
 		WriteLn( FmtCmdParam( kwDISPLAY_ANIMATION ) + mDisplay.GetWithAnimationAsText() );
 
-		std::string 
-		valueString = ( isDefaultValue( mDisplay.GetMinXValue() ) ) ? "DV" : mDisplay.GetMinXValueAsText();
-		WriteLn( FmtCmdParam( kwDISPLAY_XMINVALUE ) + valueString );
-
-		valueString = ( isDefaultValue( mDisplay.GetMaxXValue() ) ) ? "DV" : mDisplay.GetMaxXValueAsText();
-		WriteLn( FmtCmdParam( kwDISPLAY_XMAXVALUE ) + valueString );
-
-		valueString = ( isDefaultValue( mDisplay.GetMinYValue() ) ) ? "DV" : mDisplay.GetMinYValueAsText();
-		WriteLn( FmtCmdParam( kwDISPLAY_YMINVALUE ) + valueString );
-
-		valueString = ( isDefaultValue( mDisplay.GetMaxYValue() ) ) ? "DV" : mDisplay.GetMaxYValueAsText();
-		WriteLn( FmtCmdParam( kwDISPLAY_YMAXVALUE ) + valueString );
-
+		WriteMinMax();
 		WriteLn();
 
 		Comment( "----- X/Y AXES -----" );
 
-		std::string xAxisName;
-		std::string yAxisName;
-
 		auto &data = mDisplay.GetData();
 		for ( CObMap::const_iterator it = data.begin(); it != data.end(); it++ )
 		{
-			CDisplayData* value = dynamic_cast<CDisplayData*>( it->second );
+			const CDisplayData* value = dynamic_cast<const CDisplayData*>( it->second );
 			if ( value == nullptr )
 				continue;
 
+			std::string xAxisName;
+			std::string yAxisName;
+
+#if defined(BRAT_V3)
 			if ( value->IsInvertXYAxes() )
 			{
-				xAxisName = value->GetY()->GetName().c_str();
-				yAxisName = value->GetX()->GetName().c_str();
+				xAxisName = value->GetY()->GetName();
+				yAxisName = value->GetX()->GetName();
 			}
 			else
 			{
-				xAxisName = value->GetX()->GetName().c_str();
-				yAxisName = value->GetY()->GetName().c_str();
+#endif
+				xAxisName = value->GetX()->GetName();
+				yAxisName = value->GetY()->GetName();
+
+#if defined(BRAT_V3)
 			}
+#endif
 
 			WriteLn();
 			WriteLn( FmtCmdParam( kwDISPLAY_XAXIS ) + xAxisName );
@@ -250,12 +262,14 @@ public:
 			if ( value == nullptr )
 				continue;
 
+			assert__( value->GetField()->GetName() == value->FieldName() );
+
 			WriteLn();
 			Comment( "----- " + value->GetField()->GetName() + " FIELD -----" );
 			WriteLn();
 			WriteLn( kwFIELD + "=" + value->GetField()->GetName() );
-			WriteLn( kwFILE + "=" + value->GetOperation()->GetOutputPath() );
-			BuildCmdFileFieldProperties( ( it->first ).c_str(), errorMsg );
+			WriteLn( kwFILE + "=" + value->Operation()->GetOutputPath() );
+			BuildCmdFileFieldProperties( it->first, errorMsg );
 		}
 
 		return true;
@@ -264,7 +278,7 @@ public:
 
 	bool BuildCmdFileFieldProperties( const std::string& dataKey, std::string errorMsg )
 	{
-		const CDisplayData *data = mDisplay.m_data.GetDisplayData( dataKey );
+		const CDisplayData *data = dynamic_cast< const CDisplayData* >( mDisplay.m_data.Exists( dataKey ) );
 		if ( data == nullptr )
 		{
 			errorMsg += "ERROR in  CDisplay::BuildCmdFileFieldProperties\ndynamic_cast<CDisplay*>(it->second) returns nullptr pointer"
@@ -278,16 +292,17 @@ public:
 		Comment( "----- " + data->GetField()->GetName() + " FIELDS PROPERTIES -----" );
 		WriteLn();
 
-		std::string displayName = data->GetField()->GetDescription();
-		if ( !displayName.empty() )
-		{
-			WriteLn( FmtCmdParam( kwDISPLAY_NAME ) + displayName );
-		}
-		else
-		{
-			WriteLn( FmtCmdParam( kwDISPLAY_NAME ) + data->GetField()->GetName() );
-		}
+		//std::string displayName = data->GetField()->GetDescription();
+		//if ( !displayName.empty() )
+		//{
+		//	WriteLn( FmtCmdParam( kwDISPLAY_NAME ) + displayName );
+		//}
+		//else
+		//{
+		//	WriteLn( FmtCmdParam( kwDISPLAY_NAME ) + data->GetField()->GetName() );
+		//}
 
+		WriteLn( FmtCmdParam( kwDISPLAY_NAME ) + data->UserName() );
 
 		WriteLn( FmtCmdParam( kwFIELD_GROUP ) + data->GetGroupAsText() );
 
@@ -318,16 +333,16 @@ public:
 			return false;
 
 		std::string
-		valueString = ( isDefaultValue( value->GetCurrentMinValue() ) ) ? "DV" : value->GetAbsoluteMinValueAsText();
+		valueString = ( isDefaultValue( value->CurrentMinValue() ) ) ? "DV" : value->AbsoluteMinValueAsText();
 		WriteLn( FmtCmdParam( kwDISPLAY_MINVALUE ) + valueString );
 
-		valueString = ( isDefaultValue( value->GetCurrentMaxValue() ) ) ? "DV" : value->GetAbsoluteMaxValueAsText();
+		valueString = ( isDefaultValue( value->CurrentMaxValue() ) ) ? "DV" : value->AbsoluteMaxValueAsText();
 		WriteLn( FmtCmdParam( kwDISPLAY_MAXVALUE ) + valueString );
 
-		WriteLn( FmtCmdParam( kwDISPLAY_CONTOUR ) + value->GetContourAsText() );
+		WriteLn( FmtCmdParam( kwDISPLAY_CONTOUR ) + value->ContourAsText() );
 		WriteLn( FmtCmdParam( kwDISPLAY_SOLID_COLOR ) + value->GetSolidColorAsText() );
 
-		valueString = ( value->GetColorPalette().empty() ) ? "DV" : value->GetColorPalette();
+		valueString = ( value->ColorPalette().empty() ) ? "DV" : value->ColorPalette();
 		WriteLn( FmtCmdParam( kwDISPLAY_COLORTABLE ) + valueString );
 
 		WriteLn( FmtCmdParam( kwDISPLAY_EAST_COMPONENT ) + ( value->IsEastComponent() ? "Y" : "N" ) );
@@ -362,16 +377,12 @@ public:
 //-------------------------------------------------------------
 
 
-//static
-const unsigned CDisplayData::smDefaultNumberOfBins = 20;
-
-
 
 //----------------------------------------
-CDisplayData::CDisplayData( const CDisplayData &o, const CWorkspaceOperation *wkso )
+CDisplayData::CDisplayData( const CDisplayData &o, const CWorkspaceOperation *wkso, const CWorkspaceDisplay *wksd )
+	: base_t( o )
+	, mDimFields( EAxisIndex_size )
 {
-	Init();
-
 	//	identity / fields
 
 	m_type = o.m_type;
@@ -380,102 +391,142 @@ CDisplayData::CDisplayData( const CDisplayData &o, const CWorkspaceOperation *wk
 	m_field.SetUnit( o.m_field.GetUnit() );
 	m_field.SetDescription( o.m_field.GetDescription() );
 
-	m_x.SetName( o.m_x.GetName() );
-	m_x.SetUnit( o.m_x.GetUnit() );
-	m_x.SetDescription( o.m_x.GetDescription() );
+	GetX()->SetName( o.GetX()->GetName() );
+	GetX()->SetUnit( o.GetX()->GetUnit() );
+	GetX()->SetDescription( o.GetX()->GetDescription() );
 
-	m_y.SetName( o.m_y.GetName() );
-	m_y.SetUnit( o.m_y.GetUnit() );
-	m_y.SetDescription( o.m_y.GetDescription() );
+	GetY()->SetName( o.GetY()->GetName() );
+	GetY()->SetUnit( o.GetY()->GetUnit() );
+	GetY()->SetDescription( o.GetY()->GetDescription() );
 
-	m_z.SetName( o.m_z.GetName() );
-	m_z.SetUnit( o.m_z.GetUnit() );
-	m_z.SetDescription( o.m_z.GetDescription() );
+	GetZ()->SetName( o.GetZ()->GetName() );
+	GetZ()->SetUnit( o.GetZ()->GetUnit() );
+	GetZ()->SetDescription( o.GetZ()->GetDescription() );
 	
 	//0...group ( TBC )
 	m_group = o.m_group;
 
-	//1...operation
+	//1...operation & display
 
-	m_operation = nullptr;
-	if ( o.m_operation != nullptr )
-		m_operation = wkso->GetOperation( o.m_operation->GetName() );
+	mOperation = nullptr;
+	if ( o.mOperation != nullptr )
+		mOperation = wkso->GetOperation( o.mOperation->GetName() );
 
-	//2...vector
-
-	mEastComponent = o.mEastComponent;
-	mNorthComponent = o.mNorthComponent;
-
-	//3...contour
-
-	m_withContour = o.m_withContour;
-
-	//4...solid color
-
-	m_withSolidColor = o.m_withSolidColor;
-
-	//5...color table && color table range
-
-	mLUT = o.mLUT;
-	mCurrentMinValue = o.mCurrentMinValue;
-	mCurrentMaxValue = o.mCurrentMaxValue;
-	mAbsoluteMinValue = o.mAbsoluteMinValue;
-	mAbsoluteMaxValue = o.mAbsoluteMaxValue;
-	m_colorPalette = o.m_colorPalette;
-
-	//6...axis
+#if defined(BRAT_V3)
+	//2...axis
 
 	m_xAxis = o.m_xAxis;
 	m_invertXYAxes = o.m_invertXYAxes;
+#else
 
-	//7...histogram
+	mDisplay = nullptr;
+	if ( o.mDisplay != nullptr )
+		mDisplay = wksd->GetDisplay( o.mDisplay->GetName() );
 
-	mNumberOfBins = o.mNumberOfBins;
+#endif
 }
 
 
 //----------------------------------------
+#if defined(BRAT_V3)
 void CDisplayData::CopyFieldUserProperties( CDisplayData &o  )
 {
 	//	identity / fields
 
 	m_field.SetDescription( o.m_field.GetDescription() );
 
-	m_x.SetDescription( o.m_x.GetDescription() );
-	m_y.SetDescription( o.m_y.GetDescription() );
-	m_z.SetDescription( o.m_z.GetDescription() );
+	mDimFields[eX].SetDescription( o.GetX()->GetDescription() );
+	mDimFields[eY].SetDescription( o.GetY()->GetDescription() );
+	mDimFields[eZ].SetDescription( o.GetZ()->GetDescription() );
 
 	//2...vector
 
-	mEastComponent = o.mEastComponent;
-	mNorthComponent = o.mNorthComponent;
+	SetEastComponent( o.IsEastComponent());
+	SetNorthComponent( o.IsNorthComponent());
 
 	//3...contour
 
-	m_withContour = o.m_withContour;
+	SetWithContour( o.WithContour() );
 
 	//4...solid color
 
-	m_withSolidColor = o.m_withSolidColor;
+	SetWithSolidColor( o.WithSolidColor() );
 
-	//5...color table && color table range
+	//..color table && color table range
 
-	mLUT = o.mLUT;
-	mCurrentMinValue = o.mCurrentMinValue;
-	mCurrentMaxValue = o.mCurrentMaxValue;
-	mAbsoluteMinValue = o.mAbsoluteMinValue;
-	mAbsoluteMaxValue = o.mAbsoluteMaxValue;
-	m_colorPalette = o.m_colorPalette;
+	SetColorTable( o.ColorTable() );
+	SetColorPalette( o.ColorPalette() );
 
-	//6...axis
+	SetCurrentMinValue( o.CurrentMinValue() );
+	SetCurrentMaxValue( o.CurrentMaxValue() );
+	SetAbsoluteRangeValues( o.AbsoluteMinValue(), o.AbsoluteMaxValue() );
+
+	//5...axis
 
 	m_xAxis = o.m_xAxis;
 	m_invertXYAxes = o.m_invertXYAxes;
 
-	//7...histogram
+	//6...histogram
 
-	mNumberOfBins = o.mNumberOfBins;
+	SetNumberOfBins( o.NumberOfBins() );
 }
+
+const std::string& CDisplayData::GetXAxisText( unsigned int index ) const
+{
+	assert__( index < mDimFields.size() );
+
+	const CField &dim = mDimFields[ index ];
+
+	return dim.GetDescription();
+}
+
+
+void CDisplayData::SetXAxisText( unsigned int index, const std::string &value )
+{
+	assert__( index < mDimFields.size() );
+
+	CField &dim = mDimFields[ index ];
+
+	dim.SetDescription( value );
+}
+
+
+//----------------------------------------
+bool CDisplayData::HasXComplement()
+{
+  CStringArray complement;
+  GetXComplement(complement);
+
+  return (complement.size() >= 1);
+
+}
+//----------------------------------------
+void CDisplayData::GetXComplement(CStringArray& complement)
+{
+  CStringArray xName;
+  CStringArray names;
+
+  xName.Insert(GetX()->GetName());
+
+  GetAvailableAxes(names);
+
+  xName.Complement(names, complement);
+}
+
+//----------------------------------------
+void CDisplayData::GetAvailableAxes( CStringArray& names ) const
+{
+	for ( auto const &dim : mDimFields )
+	{
+		if ( !dim.GetName().empty() )
+		{
+			names.Insert( dim.GetName() );
+		}
+	}
+}
+
+
+#endif
 //----------------------------------------
 
 
@@ -524,7 +575,7 @@ std::string CDisplayData::MakeKey( const std::string &field_name, CMapTypeDisp::
 std::string CDisplayData::GetDataKey( CMapTypeDisp::ETypeDisp type )
 {
 #if defined(BRAT_V3)
-    return MakeKey( m_operation, m_field.GetName(), type );
+    return MakeKey( mOperation, m_field.GetName(), type );
 #else
 
 	return MakeKey( FieldName(), type );
@@ -552,322 +603,78 @@ bool CDisplayData::IsZLatLonType()
 {
 	return m_type == CMapTypeDisp::eTypeDispZFLatLon;
 }
-//----------------------------------------
-std::string CDisplayData::GetXAxisText(const std::string& name)
+
+
+void CDisplayData::SetDimension( size_t index, const std::string &name, const std::string &description, const std::string &unit )
 {
+	assert__( index < mDimFields.size() );
 
-  std::string str = name;
+	CField &dim = mDimFields[ index ];
 
-  for (unsigned int index = 0 ; index < m_dimFields.size() ; index++)
-  {
-    CField* dim = dynamic_cast<CField*>(m_dimFields.at(index));
+	dim.SetName( name );
+	dim.SetDescription( description );
+	dim.SetUnit( unit );
 
-    if (dim == nullptr)
-    {
-      return "";
-    }
-
-    if (str_icmp(dim->GetName(), name))
-    {
-      str = dim->GetDescription().c_str();
-    }
-
-  }
-
-  return str.c_str();
-
-}
-//----------------------------------------
-std::string CDisplayData::GetXAxisText(unsigned int index)
-{
-  if (index >= m_dimFields.size())
-  {
-    return "";
-  }
-
-  CField* dim = dynamic_cast<CField*>(m_dimFields.at(index));
-
-  if (dim == nullptr)
-  {
-    return "";
-  }
-
-  return dim->GetDescription().c_str();
-
-}
-//----------------------------------------
-void CDisplayData::SetXAxisText(unsigned int index, const std::string& value)
-{
-  if (index >= m_dimFields.size())
-  {
-    return;
-  }
-
-  CField* dim = dynamic_cast<CField*>(m_dimFields.at(index));
-
-  if (dim == nullptr)
-  {
-    return;
-  }
-
-  dim->SetDescription((const char *)value.c_str());
-}
-//----------------------------------------
-bool CDisplayData::HasXComplement()
-{
-  CStringArray complement;
-  GetXComplement(complement);
-
-  return (complement.size() >= 1);
-
-}
-//----------------------------------------
-void CDisplayData::GetXComplement(CStringArray& complement)
-{
-  CStringArray xName;
-  CStringArray names;
-
-  xName.Insert(GetX()->GetName());
-
-  GetAvailableAxes(names);
-
-  xName.Complement(names, complement);
-
-}
-
-//----------------------------------------
-void CDisplayData::GetAvailableAxes( CStringArray& names )
-{
-	size_t nbDims = m_dimFields.size();
-
-	for ( unsigned int i = 0; i < nbDims; i++ )
+	const std::string &base_label = description.empty() ? name : description;
+	std::string label = base_label + " [" + unit + "]";
+	switch ( index )
 	{
-		CField* dim = dynamic_cast<CField*>( m_dimFields.at( i ) );
+		case eX:
+			if ( Xlabel().empty() )		//when reading from persistence we don't want to change it; this is a user managed variable, we only suggest the first value
+				SetXlabel( label );
+			break;
 
-		if ( dim == nullptr )
-		{
-			continue;
-		}
+		case eY:
+			if ( Ylabel().empty() )		//idem
+				SetYlabel( label );
+			break;
 
-		std::string name = dim->GetName().c_str();
+		case eZ:
+			assert__( false );
+			break;
 
-		if ( name.empty() )
-		{
-			continue;
-		}
-
-		names.Insert( (const char *)name.c_str() );
-
+		default:
+			assert__( false );
 	}
 }
 
+
+const CField* CDisplayData::FindDimension( const std::string &name ) const
+{
+	for ( auto const &dim : mDimFields )
+	{
+		if ( str_icmp( dim.GetName(), name ) )
+		{
+			return &dim;
+		}
+	}
+	return nullptr;
+}
 
 //-------------------------------------------------------------
-//------------------- CMapDisplayData class --------------------
+//				Ex-CMapDisplayData methods
 //-------------------------------------------------------------
 
-CMapDisplayData::CMapDisplayData( const CMapDisplayData &o, const CWorkspaceOperation *wkso )
-{
-	if ( this != &o )					 
-	{
-		RemoveAll();
-		for ( CMapDisplayData::const_iterator it = o.begin(); it != o.end(); it++ )
-		{
-			CDisplayData* value = dynamic_cast<CDisplayData*>( it->second ); 			assert__( value );
 
-			Insert( value->GetDataKey(), new CDisplayData( *value, wkso ) );
-		}
-	}
-}
+// Ex-CMapDisplayData called by v3 DisplayPanel when fields were grouped or a field was 
+//	added to the CDisplayData GUI list
+//
 //----------------------------------------
-void CMapDisplayData::SetGroups(bool groupFields)
+bool CDisplay::CheckFields( std::string &error_msg )
 {
-  if (groupFields)
-  {
-    GroupFields();
-  }
-  else
-  {
-    SplitFields();
-  }
-
-}
-//----------------------------------------
-bool CMapDisplayData::AreFieldsGrouped() const
-{
-	bool isGroup = true;
-
-	int groupNumber = 1;
-
-	for ( CMapDisplayData::const_iterator it = begin(); it != end(); it++ )
-	{
-		CDisplayData* value = dynamic_cast<CDisplayData*>( it->second );
-		if ( value != nullptr )
-		{
-			int otherNumber = value->GetGroup();
-
-			if ( it == begin() )
-				groupNumber = otherNumber;
-
-			if ( groupNumber != otherNumber )
-			{
-				isGroup = false;
-				break;
-			}
-		}
-	}
-
-	return isGroup;
-}
-//----------------------------------------
-void CMapDisplayData::GroupFields()
-{
-  CMapDisplayData::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
-    if (value != nullptr)
-    {
-      value->SetGroup(1);
-    }
-  }
-}
-//----------------------------------------
-void CMapDisplayData::SplitFields()
-{
-  CMapDisplayData::iterator it;
-
-  int32_t groupNumber = 0;
-  for (it = begin() ; it != end() ; it++)
-  {
-    CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
-    if (value != nullptr)
-    {
-      groupNumber++;
-      value->SetGroup(groupNumber);
-    }
-  }
-}
-
-//----------------------------------------
-bool CMapDisplayData::ValidName(const std::string& name)
-{
-  return ValidName(name.c_str());
-}
-//----------------------------------------
-bool CMapDisplayData::ValidName(const char* name)
-{
-  CDisplayData* value = dynamic_cast<CDisplayData*>(Exists(name));
-  return (value != nullptr);
-}
-//----------------------------------------
-void CMapDisplayData::SetAllAxis(unsigned int index, const std::string& axisName, const std::string& axisLabel)
-{
-  CMapDisplayData::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    CDisplayData* displayData = dynamic_cast<CDisplayData*>(it->second);
-
-    if (displayData == nullptr)
-    {
-      continue;
-    }
-
-    displayData->SetXAxis(axisName);
-    displayData->SetXAxisText(index, axisLabel);
-  }
-
-}
-
-//----------------------------------------
-void CMapDisplayData::SetAllInvertXYAxes(bool value)
-{
-  CMapDisplayData::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    CDisplayData* displayData = dynamic_cast<CDisplayData*>(it->second);
-
-    if (displayData == nullptr)
-    {
-      continue;
-    }
-
-    displayData->SetInvertXYAxes(value);
-  }
-
-}
-
-//----------------------------------------
-const CDisplayData* CMapDisplayData::GetDisplayData(const char* name) const
-{
-  return dynamic_cast<CDisplayData*>(Exists(name));
-}
-//----------------------------------------
-bool CMapDisplayData::LoadConfig( CWorkspaceSettings *config, std::string &errorMsg, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso, const std::string& pathSuff )
-{
-	return config && config->LoadConfig( *this, errorMsg, wks, wkso, pathSuff );
-}
-
-//----------------------------------------
-bool CMapDisplayData::SaveConfig( CWorkspaceSettings *config, CWorkspaceDisplay *wks, const std::string& pathSuff ) const
-{
-	return config && config->SaveConfig( *this, wks, pathSuff );
-}
-
-//----------------------------------------
-void CMapDisplayData::GetDistinctFiles(CStringMap& array)
-{
-  CMapDisplayData::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
-    if (value != nullptr)
-    {
-      array.Insert(value->GetOperation()->GetName(), value->GetOperation()->GetOutputPath(), false);
-    }
-  }
-
-}
-
-//----------------------------------------
-void CMapDisplayData::GetDistinctFields(CStringMap& array)
-{
-  CMapDisplayData::iterator it;
-
-  for (it = begin() ; it != end() ; it++)
-  {
-    CDisplayData* value = dynamic_cast<CDisplayData*>(it->second);
-    if (value != nullptr)
-    {
-      array.Insert(value->GetField()->GetName(), it->first, false);
-    }
-  }
-
-}
-
-//----------------------------------------
-bool CMapDisplayData::CheckFields( std::string& errorMsg, CDisplay* display )
-{
-	if ( this->size() <= 1 )
+	if ( m_data.size() <= 1 )
 		return true;
-
-	if ( display == nullptr )
-		return false;
 
 	CObMap internalFilesMap;
 	CInternalFiles *file = nullptr;
 
-	for ( CMapDisplayData::iterator it = begin(); it != end(); it++ )
+	for ( CMapDisplayData::iterator it = m_data.begin(); it != m_data.end(); it++ )
 	{
 		CDisplayData* value = dynamic_cast<CDisplayData*>( it->second );
 		if ( value == nullptr )
 			continue;
 
-		const COperation* operation = value->GetOperation();
+		const COperation* operation = value->Operation();
 		if ( operation == nullptr )
 			continue;
 
@@ -902,13 +709,13 @@ bool CMapDisplayData::CheckFields( std::string& errorMsg, CDisplay* display )
 
 	bool bOk = true;
 
-	for ( CMapDisplayData::iterator it = begin(); it != end(); it++ )
+	for ( CMapDisplayData::iterator it = m_data.begin(); it != m_data.end(); it++ )
 	{
 		CDisplayData* value = dynamic_cast<CDisplayData*>( it->second );
 		if ( value == nullptr )
 			continue;
 
-		const COperation* operation = value->GetOperation();
+		const COperation* operation = value->Operation();
 		if ( operation == nullptr )
 			continue;
 
@@ -936,23 +743,23 @@ bool CMapDisplayData::CheckFields( std::string& errorMsg, CDisplay* display )
 		//if ( ! firstNetCDFVardef->HaveEqualDims(netCDFVardef, firstFile->GetFile(), file->GetFile()) )
 		if ( ! firstNetCDFVardef->HaveEqualDimNames( netCDFVardef, &msg ) )
 		{
-			errorMsg += msg;
+			error_msg += msg;
 			bOk = false;
 			continue;
 		}
 
 		if ( ! firstNetCDFVardef->HaveCompatibleDimUnits( netCDFVardef, firstFile->GetFile(), file->GetFile(), &msg ) )
 		{
-			errorMsg += msg;
+			error_msg += msg;
 			bOk = false;
 			continue;
 		}
 
-		if ( display->IsYFXType() )
+		if ( IsYFXType() )
 		{
 			if ( !firstNetCDFVardef->HasCompatibleUnit( netCDFVardef ) )
 			{
-				errorMsg += 
+				error_msg += 
 					( "\tExpressions '"
 					+ firstNetCDFVardef->GetName()
 					+ "' and '"
@@ -964,7 +771,7 @@ bool CMapDisplayData::CheckFields( std::string& errorMsg, CDisplay* display )
 					+ ")\n"
 					);
 
-				errorMsg += msg;
+				error_msg += msg;
 				bOk = false;
 				continue;
 			}
@@ -976,7 +783,99 @@ bool CMapDisplayData::CheckFields( std::string& errorMsg, CDisplay* display )
 	return bOk;
 }
 
-//----------------------------------------
+
+bool CDisplay::AreFieldsGrouped() const
+{
+	bool isGroup = true;
+
+	int groupNumber = 1;
+
+	for ( CMapDisplayData::const_iterator it = m_data.begin(); it != m_data.end(); it++ )
+	{
+		CDisplayData* value = dynamic_cast<CDisplayData*>( it->second );
+		if ( value != nullptr )
+		{
+			int otherNumber = value->GetGroup();
+
+			if ( it == m_data.begin() )
+				groupNumber = otherNumber;
+
+			if ( groupNumber != otherNumber )
+			{
+				isGroup = false;
+				break;
+			}
+		}
+	}
+
+	return isGroup;
+}
+
+
+void CDisplay::GroupFields()
+{
+	for ( CMapDisplayData::iterator it = m_data.begin(); it != m_data.end(); it++ )
+	{
+		CDisplayData* value = dynamic_cast<CDisplayData*>( it->second );
+		if ( value != nullptr )
+		{
+			value->SetGroup( 1 );
+		}
+	}
+}
+
+
+void CDisplay::SplitFields()
+{
+	int32_t groupNumber = 0;
+	for ( CMapDisplayData::iterator it = m_data.begin(); it != m_data.end(); it++ )
+	{
+		CDisplayData* value = dynamic_cast<CDisplayData*>( it->second );
+		if ( value != nullptr )
+		{
+			groupNumber++;
+			value->SetGroup( groupNumber );
+		}
+	}
+}
+
+
+#if defined(BRAT_V3)
+
+void CDisplay::SetAllAxis( unsigned int index, const std::string& axisName, const std::string& axisLabel )
+{
+	for ( CMapDisplayData::iterator it = m_data.begin(); it != m_data.end(); it++ )
+	{
+		CDisplayData* displayData = dynamic_cast<CDisplayData*>( it->second );
+
+		if ( displayData == nullptr )
+		{
+			continue;
+		}
+
+		displayData->SetXAxis( axisName );
+		displayData->SetXAxisText( index, axisLabel );
+	}
+}
+
+void CDisplay::SetAllInvertXYAxes( bool value )
+{
+	for ( CMapDisplayData::iterator it = m_data.begin(); it != m_data.end(); it++ )
+	{
+		CDisplayData* displayData = dynamic_cast<CDisplayData*>( it->second );
+
+		if ( displayData == nullptr )
+		{
+			continue;
+		}
+
+		displayData->SetInvertXYAxes( value );
+	}
+}
+
+#endif
+
+
 
 
 //-------------------------------------------------------------
@@ -987,14 +886,17 @@ bool CMapDisplayData::CheckFields( std::string& errorMsg, CDisplay* display )
 const std::string CDisplay::m_zoomDelimiter = " ";
 
 
-//----------------------------------------
-
-CDisplay::CDisplay(std::string name)
+void CDisplay::CloneDisplayData( const CMapDisplayData &o, const CWorkspaceDisplay *wksd, const CWorkspaceOperation *wkso )
 {
-  Init();
-  m_name = name;
+	m_data.RemoveAll();
+	for ( CMapDisplayData::const_iterator it = o.begin(); it != o.end(); it++ )
+	{
+		CDisplayData* value = dynamic_cast<CDisplayData*>( it->second ); 			assert__( value );
+
+		m_data.Insert( value->GetDataKey(), new CDisplayData( *value, wkso, wksd ) );
+	}
 }
-//----------------------------------------
+
 
 CDisplay::~CDisplay()
 {
@@ -1002,25 +904,8 @@ CDisplay::~CDisplay()
 		RemoveFile( m_cmdFile );
 }
 
-//----------------------------------------
-void CDisplay::Init()
-{
-  //m_type = CMapTypeDisp::typeOpYFX;
-  m_type = CMapTypeDisp::Invalid();
-  m_withAnimation = false;
-//  m_projection = CMapProjection::GetInstance()->IdToName(VTK_PROJ2D_3D);
-  m_projection = PROJECTION_3D_VALUE;
 
-  setDefaultValue(m_minXValue);
-  setDefaultValue(m_maxXValue);
-
-  setDefaultValue(m_minYValue);
-  setDefaultValue(m_maxYValue);
-
-}
-
-
-void CDisplay::UpdateDisplayData( const CMapDisplayData *data_list, const CWorkspaceOperation *wkso )
+void CDisplay::UpdateDisplayData( const CMapDisplayData *data_list, const CWorkspaceDisplay *wksd, const CWorkspaceOperation *wkso )
 {
 	CStringArray keys;
 	m_data.GetKeys( keys );
@@ -1033,7 +918,7 @@ void CDisplay::UpdateDisplayData( const CMapDisplayData *data_list, const CWorks
 	{
 		CDisplayData *data = dynamic_cast<CDisplayData*>( it->second );
 		if ( m_type == data->GetType() && !m_data.Exists( it->first ) )
-			m_data.Insert( it->first, new CDisplayData( *data, wkso ), false );
+			m_data.Insert( it->first, new CDisplayData( *data, wkso, wksd ), false );
 	}
 }
 
@@ -1196,11 +1081,6 @@ CDisplayData* CDisplay::GetFieldDisplayDataV3( const COperation *operation, cons
 
 #endif
 
-//----------------------------------------
-std::string CDisplay::FmtCmdParam( const std::string& name )
-{
-	return name + "=";
-}
 
 //----------------------------------------
 bool CDisplay::SaveConfig( CWorkspaceSettings *config, CWorkspaceDisplay *wksd ) const
@@ -1223,10 +1103,10 @@ std::vector<const COperation*> CDisplay::GetOperations() const
 	std::vector< const COperation* > v;
 	for ( CMapDisplayData::const_iterator it = m_data.begin(); it != m_data.end(); it++ )
 	{
-		const CDisplayData* data = dynamic_cast<const CDisplayData*>( it->second );			assert__( data != nullptr && data->GetOperation() != nullptr );
-		auto *op = data->GetOperation();
+		const CDisplayData* data = dynamic_cast<const CDisplayData*>( it->second );			assert__( data != nullptr && data->Operation() != nullptr );
+		auto *op = data->Operation();
 		if ( std::find( v.begin(), v.end(), op ) == v.end() )		//check repeated
-			v.push_back( data->GetOperation() );
+			v.push_back( data->Operation() );
 	}
 
 	return v;
@@ -1246,7 +1126,7 @@ bool CDisplay::UsesOperation( const std::string& name ) const
 			throw CException( errorMsg );
 		}
 
-		if ( str_icmp( data->GetOperation()->GetName(), name ) )
+		if ( str_icmp( data->Operation()->GetName(), name ) )
 		{
 			uses = true;
 			break;
@@ -1329,12 +1209,7 @@ bool CDisplay::RemoveData(const std::string& key)
 
   return bOk;
 }
-//----------------------------------------
 
-void CDisplay::SetGroups(bool groupFields)
-{
-  m_data.SetGroups(groupFields);
-}
 //----------------------------------------
 void CDisplay::Dump( std::ostream& fOut /* = std::cerr */ )
 {

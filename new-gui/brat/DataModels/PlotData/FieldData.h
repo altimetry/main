@@ -15,115 +15,172 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-
 #ifndef DATA_MODELS_PLOT_DATA_FIELDDATA_H
 #define DATA_MODELS_PLOT_DATA_FIELDDATA_H
 
-//#include "new-gui/Common/tools/Exception.h"
-//#include "new-gui/Common/+Utils.h"
-//
-//#include "libbrathl/brathl.h"
+#include <algorithm>
 
 #include "libbrathl/BratObject.h"
 
-//#include "libbrathl/Tools.h"
-//#include "libbrathl/List.h"
-//#include "libbrathl/Date.h"
-//#include "libbrathl/Unit.h"
-//
-//#include "libbrathl/InternalFiles.h"
-//#include "libbrathl/InternalFilesZFXY.h"
-//#include "libbrathl/InternalFilesYFX.h"
 using namespace brathl;
-//
-//#include "PlotValues.h"
-//#include "DataModels/PlotData/MapColor.h"
-//#include "DataModels/PlotData/XYPlot.h"
-//
-//
-//class CXYPlotData;
-//class CPlotColor;
+
+#include "DataModels/PlotData/MapColor.h"
+#include "DataModels/PlotData/BratLookupTable.h"
+
+class CPlotData;
+class CXYPlotData;
+
+namespace brathl {
+
+	class CInternalFiles;
+	class CInternalFilesYFX;
+}
+
+
 
 
 class CFieldData : public CBratObject
 {
+	// types
+
 	using base_t = CBratObject;
 
-//	CXYPlotData* m_parent;
-//
-//	CPlotColor mColor;
-//	CPlotColor mPointColor = CPlotColor(0.,0.,0.);
-//	int mOpacity = 0xFF;
-//	double mLineWidth = 2.;
-//
-//#if !defined(BRAT_V3)
-//
-//	EStipplePattern mStipplePattern = EStipplePattern::eSolidLine;
-//#endif
-//
-//	bool m_lines;
-//	bool m_points;
-//
-//	double m_pointSize;
-
-	std::string mName;
-	std::string mTitle;
-	//std::string m_xAxis;
-	//std::string m_xLabel;
-	//std::string m_yLabel;
-
-	//double m_xMax;
-	//double m_yMax;
-	//double m_xMin;
-	//double m_yMin;
-
- //   double m_xMinCurr;
- //   double m_yMinCurr;
- //   double m_xMaxCurr;
- //   double m_yMaxCurr;
-
-	//double m_xBase;
-	//double m_yBase;
-
-	//bool m_xLog;
-	//bool m_yLog;
-
-
-	//bool m_showAnimationToolbar;
-	//bool m_showPropertyPanel;
-	//bool m_focus;
-	//bool m_loop;
-	//int32_t m_normalizeX;
-	//int32_t m_normalizeY;
-
-	//uint32_t m_fps;
-
-	//uint32_t m_xNumTicks;
-	//uint32_t m_yNumTicks;
-
- //   uint32_t m_xNbDigits = 3;	//v4 (...)
- //   uint32_t m_yNbDigits = 3;	//v4 (...)
-
-
-	//EPointGlyph m_glyphType;
-	//bool m_filledPoint;
-
-	//double m_lineWidthFactor = 1.5;
-	//double m_opacityFactor;
-
-	//bool m_hide;
-
-protected:
-	//bool HasParent();
-	//void Copy( const CXYPlotProperties& p );
+	friend class CWorkspaceSettings;
 
 public:
 
-	CFieldData()
-		: base_t()
-	{}
+	using unsigned_t =
 
-	CFieldData( CFieldData &o )
+#if defined(BRAT_V3)
+		double;
+#else
+		unsigned;
+#endif
+
+	// statics
+
+	static const unsigned_t smDefaultOpacity;
+	static const unsigned smDefaultNumberOfDigits;
+	static const bool smDefaultShowLines;
+	static const bool smDefaultShowPoints;
+	static const double smDefaultPointSize;
+	static const EPointGlyph smDefaultGlyphType;
+	static const bool smDefaultFilledPoint;
+	static const unsigned_t smDefaultLineWidth;
+	static const EStipplePattern smDefaultStipplePattern;
+	static const CPlotColor smDefaultPointColor;
+	static const int smDefaultNumColorLabels;
+	static const bool smDefaultWithContour;
+	static const unsigned smDefaultNumContour;
+	static const double smDefaultContourLineWidth;
+	static const CPlotColor smDefaultContourLineColor;
+    static const unsigned smDefaultNumberOfBins;
+
+
+private:
+
+	// instance data
+
+#if defined (BRAT_V3)
+	std::string mTitle;
+#endif
+
+	mutable std::vector< CInternalFiles* > mInternalFiles;		//TODO serialize ???
+
+
+	/////////////////////////
+	// YFX / ZFXY / LON-LAT
+	/////////////////////////
+
+	std::string mFieldName;
+	std::string mUserName;
+
+	unsigned_t mOpacity = smDefaultOpacity;	//v4: so far used only in YFX
+
+
+	/////////////////////////
+	//		YFX / ZFXY
+	/////////////////////////
+
+#if defined (BRAT_V3)
+	double m_xMax = defaultValue< double >();
+	double m_yMax = defaultValue< double >();
+	double m_xMin = defaultValue< double >();
+	double m_yMin = defaultValue< double >();
+#endif
+
+	unsigned m_xTicks = defaultValue< unsigned >();
+	unsigned m_yTicks = defaultValue< unsigned >();
+    unsigned m_zTicks = defaultValue< unsigned >();
+
+    unsigned m_xDigits = smDefaultNumberOfDigits;	//v4 (...)
+    unsigned m_yDigits = smDefaultNumberOfDigits;	//v4 (...)
+
+	std::string mXlabel;
+	std::string mYlabel;
+
+	bool mXlogarithmic = false;
+	bool mYlogarithmic = false;
+
+
+	/////////////////////////
+	//	ZFXY / LON-LAT
+	/////////////////////////
+
+	CBratLookupTable mLUT;
+	
+	double mMinHeightValue = defaultValue< double >();
+	double mMaxHeightValue = defaultValue< double >();
+	double mCurrentMinValue = defaultValue< double >();
+	double mCurrentMaxValue = defaultValue< double >();
+
+	bool mWithContour = false;
+	unsigned mNumContours = smDefaultNumContour;
+	double mContourLineWidth = smDefaultContourLineWidth;
+	CPlotColor mContourLineColor = smDefaultContourLineColor;
+	double mMinContourValue = defaultValue<double>();
+	double mMaxContourValue = defaultValue<double>();
+
+	bool mWithSolidColor = true;
+
+
+	/////////////////////////
+	//		LON-LAT
+	/////////////////////////
+
+	//std::string mProjection;
+	bool mEastComponent = false;
+	bool mNorthComponent = false;
+
+
+
+	/////////////////////////
+	//			YFX
+	/////////////////////////
+
+	bool mLines = smDefaultShowLines;
+	bool mPoints = smDefaultShowPoints;
+	double mPointSize = smDefaultPointSize;
+	EPointGlyph mPointGlyph = smDefaultGlyphType;
+	bool mFilledPoint = smDefaultFilledPoint;
+
+	CPlotColor mLineColor = CMapColor::GetInstance().NextPrimaryColors();
+	unsigned_t mLineWidth = smDefaultLineWidth;
+	EStipplePattern mStipplePattern = smDefaultStipplePattern;
+	CPlotColor mPointColor = smDefaultPointColor;
+
+	unsigned mNumberOfBins = smDefaultNumberOfBins;
+
+
+	///////////////////////////////
+	// construction / destruction
+	///////////////////////////////
+
+public:
+
+	CFieldData();
+
+	CFieldData( const CFieldData &o )
 	{
 		*this = o;
 	}
@@ -131,178 +188,415 @@ public:
 	virtual ~CFieldData()
 	{}
 
+	///////////////////////////////
+	//	assignment / identity
+	///////////////////////////////
+
 	const CFieldData& operator= ( const CFieldData& o )
 	{
 		if ( this != &o )
 		{
-			mName = o.mName;
+			mInternalFiles = o.mInternalFiles;
+
+#if defined (BRAT_V3)
 			mTitle = o.mTitle;
+			m_xMax = o.m_xMax;
+			m_yMax = o.m_yMax;
+			m_xMin = o.m_xMin;
+			m_yMin = o.m_yMin;
+#endif
+			// YFX / ZFXY / LON-LAT
+
+			mFieldName = o.mFieldName;
+			mUserName = o.mUserName;
+
+			mOpacity = o.mOpacity;
+
+			// YFX / ZFXY
+
+			m_xTicks = o.m_xTicks;
+			m_yTicks = o.m_yTicks;
+			m_zTicks = o.m_zTicks;
+
+			m_xDigits = o.m_xDigits;
+			m_yDigits = o.m_yDigits;
+
+			mXlabel = o.mXlabel;
+			mYlabel = o.mYlabel;
+
+			mXlogarithmic = o.mXlogarithmic;
+			mYlogarithmic = o.mYlogarithmic;
+
+			//	ZFXY / LON-LAT
+
+			mLUT = o.mLUT;
+			mMinHeightValue = o.mMinHeightValue;
+			mMaxHeightValue = o.mMaxHeightValue;
+			mCurrentMinValue = o.mCurrentMinValue;
+			mCurrentMaxValue = o.mCurrentMaxValue;
+
+			mWithContour = o.mWithContour;
+			mNumContours = o.mNumContours;
+			mContourLineWidth = o.mContourLineWidth;
+			mContourLineColor = o.mContourLineColor;
+			mMinContourValue = o.mMinContourValue;
+			mMaxContourValue = o.mMaxContourValue;
+
+			mWithSolidColor = o.mWithSolidColor;
+
+			// LON-LAT
+
+			mEastComponent = o.mEastComponent;
+			mNorthComponent = o.mNorthComponent;
+
+			// YFX
+
+			mLines = o.mLines;
+			mPoints = o.mPoints;
+
+			mPointSize = o.mPointSize;
+			mPointGlyph = o.mPointGlyph;
+			mFilledPoint = o.mFilledPoint;
+
+			mLineColor = o.mLineColor;
+			mLineWidth = o.mLineWidth;
+			mStipplePattern = o.mStipplePattern;
+			mPointColor = o.mPointColor;
+
+			mNumberOfBins = o.mNumberOfBins;
 		}
 		return *this;
 	}
 
-//#if defined(BRAT_V3)
-//
-//	VTK_CXYPlotData* parent();
-//
-//	vtkProperty2D* GetVtkProperty2D() { return m_vtkProperty2D; }
-//
-//	double GetLineWidth() const { return m_vtkProperty2D->GetLineWidth(); }
-//	double GetOpacity() const { return m_vtkProperty2D->GetOpacity(); }
-//
-//	EStipplePattern GetLineStipple() const { return static_cast<EStipplePattern>( m_vtkProperty2D->GetLineStipplePattern() ); }
-//	void SetLineStipple( EStipplePattern value ) { m_vtkProperty2D->SetLineStipplePattern( value ); }
-//
-//	void GetColor( double* value ) const { m_vtkProperty2D->GetColor( value ); }
-//	void SetColor( double* value ) { m_vtkProperty2D->SetColor( value ); }
-//
-//	void SetColor( double r, double g, double b ) { m_vtkProperty2D->SetColor( r, g, b ); }
-//
-//#else
-//	int GetOpacity() const { return mOpacity; }
-//
-//	int GetLineWidth() const { return std::round( mLineWidth ); }
-//
-//	EStipplePattern GetStipplePattern() { return mStipplePattern; }
-//	void SetStipplePattern( EStipplePattern e ) { mStipplePattern = e; }
-//
-//#endif
-//	void SetOpacity( int op ) { mOpacity = op; }
-//	void SetLineWidth( double value );
-//
-//
-//	CXYPlotData* GetParent() const { return m_parent; }
-//	void SetParent( CXYPlotData* parent ) { m_parent = parent; }
-//
-//	bool GetPoints() const { return m_points; }
-//	void SetPoints();
-//	void SetPoints( bool value );
-//
-//	double GetPointSize() const { return m_pointSize; }
-//	void SetPointSize();
-//	void SetPointSize( double value );
-//
-//	bool GetLines() const { return m_lines; }
-//	void SetLines();
-//	void SetLines( bool value );
-//
-//
+	
+	bool operator == ( const CFieldData& o ) const
+	{
+		return 
+			mInternalFiles == o.mInternalFiles &&
 
+#if defined (BRAT_V3)
+			mTitle == o.mTitle &&
+			m_xMax == o.m_xMax &&
+			m_yMax == o.m_yMax &&
+			m_xMin == o.m_xMin &&
+			m_yMin == o.m_yMin &&
+#endif
+			// YFX / ZFXY / LON-LAT
+
+			mFieldName == o.mFieldName &&
+			mUserName == o.mUserName &&
+
+			mOpacity == o.mOpacity &&
+
+			// YFX / ZFXY
+
+			m_xTicks == o.m_xTicks &&
+			m_yTicks == o.m_yTicks &&
+			m_zTicks == o.m_zTicks &&
+
+			m_xDigits == o.m_xDigits &&
+			m_yDigits == o.m_yDigits &&
+
+			mXlabel == o.mXlabel &&
+			mYlabel == o.mYlabel &&
+
+			mXlogarithmic == o.mXlogarithmic &&
+			mYlogarithmic == o.mYlogarithmic &&
+
+			//	ZFXY / LON-LAT
+
+			mLUT == o.mLUT &&
+			mMinHeightValue == o.mMinHeightValue &&
+			mMaxHeightValue == o.mMaxHeightValue &&
+			mCurrentMinValue == o.mCurrentMinValue &&
+			mCurrentMaxValue == o.mCurrentMaxValue &&
+
+			mWithContour == o.mWithContour &&
+			mNumContours == o.mNumContours &&
+			mContourLineWidth == o.mContourLineWidth &&
+			mContourLineColor == o.mContourLineColor &&
+			mMinContourValue == o.mMinContourValue &&
+			mMaxContourValue == o.mMaxContourValue &&
+
+			mWithSolidColor == o.mWithSolidColor &&
+
+			// LON-LAT
+
+			mEastComponent == o.mEastComponent &&
+			mNorthComponent == o.mNorthComponent &&
+
+			// YFX
+
+			mLines == o.mLines &&
+			mPoints == o.mPoints &&
+
+			mPointSize == o.mPointSize &&
+			mPointGlyph == o.mPointGlyph &&
+			mFilledPoint == o.mFilledPoint &&
+
+			mLineColor == o.mLineColor &&
+			mLineWidth == o.mLineWidth &&
+			mStipplePattern == o.mStipplePattern &&
+			mPointColor == o.mPointColor &&
+
+			mNumberOfBins == o.mNumberOfBins &&
+
+			true;
+	}
+
+	///////////////////////////////
+	//		properties
+	///////////////////////////////
+
+
+	// YFX / ZFXY / LON-LAT
+
+	const std::vector< CInternalFiles* >& InternalFiles() const
+	{
+		return mInternalFiles;
+	}
+
+	CInternalFiles* InternalFile( size_t index ) const
+	{
+		assert__( index < mInternalFiles.size() );
+
+		return mInternalFiles[ index ];
+	}
+	void PushInternalFile( CInternalFiles *f )
+	{
+		mInternalFiles.push_back( f );
+	}
+	void ClearInternalFiles()
+	{
+		mInternalFiles.clear();
+	}
+
+
+	CInternalFilesYFX* InternalFileYFX( size_t index ) const;
+
+public:
+
+#if defined (BRAT_V3)
 	const std::string& Title() const { return mTitle; }
 	void SetTitle( const std::string& value ) { mTitle = value; }
+	void XRange( double& min, double& max ) const { min = m_xMin; max = m_xMax; }
+	void SetXRange( double min, double max ) { m_xMin = min; m_xMax = max; }
 
-	virtual const std::string& Name() const { return mName; }
-	virtual void SetName( const std::string& value ) { mName = value; }
+	void YRange( double& min, double& max ) const { min = m_yMin; max = m_yMax; }
+	void SetYRange( double min, double max ) { m_yMin = min; m_yMax = max; }
 
-	//void SetOpacity( double value );
+	double Xmin() const { return m_xMin; }
+	double Xmax() const { return m_xMax; }
+	void SetXmin( double value ) { m_xMin = value; }
+	void SetXmax( double value ) { m_xMax = value; }
 
-	//bool GetXLog() const { return m_xLog; }
-	//void SetXLog( bool value );
+	double Ymin() const { return m_yMin; }
+	double Ymax() const { return m_yMax; }
+	void SetYmin( double value ) { m_yMin = value; }
+	void SetYmax( double value ) { m_yMax = value; }
+#endif
 
-	//bool GetYLog() const { return m_yLog; }
-	//void SetYLog( bool value );
+	const std::string& FieldName() const { return mFieldName; }
+	virtual void SetFieldName( const std::string& value ) 
+	{ 
+		mFieldName = value; 
+		if ( mUserName.empty() )
+			mUserName = mFieldName;
+	}
 
-	//void GetXRange( double& min, double& max ) { min = m_xMin; max = m_xMax; }
-	//void SetXRange( double min, double max ) { m_xMin = min; m_xMax = max; }
+	const std::string& UserName() const { return mUserName.empty() ? mFieldName : mUserName; }
+	virtual void SetUserName( const std::string &value ) { mUserName = value; }
 
-	//void GetYRange( double& min, double& max ) { min = m_yMin; max = m_yMax; }
-	//void SetYRange( double min, double max ) { m_yMin = min; m_yMax = max; }
+	unsigned_t Opacity() const { return mOpacity; }
+	virtual void SetOpacity( unsigned_t op ) { mOpacity = op; }
 
-	//double GetXMin() const { return m_xMin; }
-	//double GetXMax() const { return m_xMax; }
-	//void SetXMin( double value ) { m_xMin = value; }
-	//void SetXMax( double value ) { m_xMax = value; }
 
-	//double GetYMin() const { return m_yMin; }
-	//double GetYMax() const { return m_yMax; }
-	//void SetYMin( double value ) { m_yMin = value; }
-	//void SetYMax( double value ) { m_yMax = value; }
+	// YFX / ZFXY
 
- //   double GetCurrXMin() const { return m_xMinCurr; }
- //   double GetCurrXMax() const { return m_xMaxCurr; }
- //   void SetCurrXMin( double value ) { m_xMinCurr = value; }
- //   void SetCurrXMax( double value ) { m_xMaxCurr = value; }
+	unsigned int Xticks() const { return m_xTicks; }
+	unsigned int Yticks() const { return m_yTicks; }
+	unsigned int Zticks() const { return m_zTicks; }
+	void SetXticks( unsigned int value ) { m_xTicks = value; }
+	void SetYticks( unsigned int value ) { m_yTicks = value; }
+	void SetZticks( unsigned int value ) { m_zTicks = value; }
 
- //   double GetCurrYMin() const { return m_yMinCurr; }
- //   double GetCurrYMax() const { return m_yMaxCurr; }
- //   void SetCurrYMin( double value ) { m_yMinCurr = value; }
- //   void SetCurrYMax( double value ) { m_yMaxCurr = value; }
+    unsigned Xdigits() const { return m_xDigits; }
+    unsigned Ydigits() const { return m_yDigits; }
+    void SetXdigits( unsigned value ) { m_xDigits = value; }
+    void SetYdigits( unsigned value ) { m_yDigits = value; }
 
-	//double GetXBase() const { return m_xBase; }
-	//double GetYBase() const { return m_yBase; }
-	//void SetXBase( double value ) { m_xBase = value; }
-	//void SetYBase( double value ) { m_yBase = value; }
 
-	//std::string GetXAxis() const { return m_xAxis; }
-	//void SetXAxis( const std::string& value ) { m_xAxis = value; }
+	const std::string& Xlabel() const 
+	{ 
+		return mXlabel; 
+	}
+	virtual void SetXlabel( const std::string& value ) 
+	{ 
+		mXlabel = value; 
+	}
 
-	//std::string GetXLabel() const { return m_xLabel; }
-	//void SetXLabel( const std::string& value ) { m_xLabel = value; }
+	const std::string& Ylabel() const 
+	{ 
+		return mYlabel; 
+	}
+	virtual void SetYlabel( const std::string& value ) 
+	{ 
+		mYlabel = value; 
+	}
 
-	//std::string GetYLabel() const { return m_yLabel; }
-	//void SetYLabel( const std::string& value ) { m_yLabel = value; }
 
-	//bool GetShowPropertyPanel() const { return m_showPropertyPanel; }
-	//void SetShowPropertyPanel( bool value ) { m_showPropertyPanel = value; }
+	bool XLog() const { return mXlogarithmic; }
+	void SetXLog( bool value );
 
-	//bool GetShowAnimationToolbar() const { return m_showAnimationToolbar; }
-	//void SetShowAnimationToolbar( bool value ) { m_showAnimationToolbar = value; }
+	bool YLog() const { return mYlogarithmic; }
+	void SetYLog( bool value );
 
-	//bool GetFocus() const { return m_focus; }
-	//void SetFocus( bool value );
 
-	//bool GetLoop() const { return m_loop; }
-	//void SetLoop( bool value ) { m_loop = value; }
+	//	ZFXY / LON-LAT
 
-	//uint32_t GetFps() const { return m_fps; }
-	//void SetFps( uint32_t value ) { m_fps = value; }
+	//...color table && color table range
 
-	//unsigned int GetXNumTicks() const { return m_xNumTicks; }
-	//unsigned int GetYNumTicks() const { return m_yNumTicks; }
-	//void SetXNumTicks( unsigned int value ) { m_xNumTicks = value; }
-	//void SetYNumTicks( unsigned int value ) { m_yNumTicks = value; }
+	const std::string& ColorPalette() const { return mLUT.GetCurrentFunction(); }
+	void SetColorPalette( const std::string& value )								//NOTE: not prepared for v3 file palettes
+	{ 
+		mLUT.ExecMethod( value );	  				assert__( ColorPalette() == value );
+	}
+	const std::string& ColorCurve() const { return mLUT.GetCurve(); }
+	void SetColorCurve( const std::string& value )
+	{ 
+		mLUT.ExecCurveMethod( value );				assert__( ColorCurve() == value );
+	}
 
- //   uint32_t GetXNbDigits() const { return m_xNbDigits; }
- //   uint32_t GetYNbDigits() const { return m_yNbDigits; }
- //   void SetXNbDigits( uint32_t value ) { m_xNbDigits = value; }
- //   void SetYNbDigits( uint32_t value ) { m_yNbDigits = value; }
+	const CBratLookupTable& ColorTable() const { return mLUT; }
+	CBratLookupTable* ColorTablePtr() { return &mLUT; }
+	void SetColorTable( const CBratLookupTable &table ) { mLUT = table; }
 
-	//int32_t GetNormalizeX() const { return m_normalizeX; }
-	//int32_t GetNormalizeY() const { return m_normalizeY; }
-	//void SetNormalizeX();
-	//void SetNormalizeY();
-	//void SetNormalizeX( int32_t value );
-	//void SetNormalizeY( int32_t value );
+	bool LoadColorTable( std::string &error_msg, const std::string &path ) 
+	{ 
+		return mLUT.LoadFromFile( error_msg, path );
+	}
 
-	//CPlotColor GetColor() const;
-	//void GetColor( CPlotColor& color ) const ;
-	//void SetColor( const CPlotColor& color );
 
-	//const CPlotColor& GetPointColor() const { return mPointColor; }
-	//void SetPointColor( const CPlotColor &color ) { mPointColor = color; }
+	double AbsoluteMinValue() const { return mMinHeightValue; }
+	double AbsoluteMaxValue() const { return mMaxHeightValue; }
+	void SetAbsoluteRangeValues( double m, double M ) 
+	{ 
+		if ( m > M )
+			return;
 
-	//EPointGlyph GetPointGlyph() const { return m_glyphType; }
-	//void SetPointGlyph( EPointGlyph value );
-	//void SetPointGlyph();
+		mMinHeightValue = m; 
+		mMaxHeightValue = M; 
 
-	//bool GetFilledPoint() const { return m_filledPoint; }
-	//void SetFilledPoint( bool value );
-	//void SetFilledPoint();
+		if ( isDefaultValue( mCurrentMinValue ) )
+			mCurrentMinValue = m;
+		else
+			SetCurrentMinValue( mCurrentMinValue );
 
-	//double GetLineWidthFactor() const { return m_lineWidthFactor; }
+		if ( isDefaultValue( mCurrentMaxValue ) )
+			mCurrentMaxValue = M;
+		else
+			SetCurrentMaxValue( mCurrentMaxValue );
+	}
 
-	//double GetOpacityFactor() const { return m_opacityFactor; }
-	//void SetOpacityFactor( double value ) { m_opacityFactor = value; }
 
-	//bool GetHide() const { return m_hide; }
-	//void SetHide( bool value );
-	//void SetHide();
+	double CurrentMinValue() const { return mCurrentMinValue; }
+	void SetCurrentMinValue( double value ) 
+	{ 
+		mCurrentMinValue = std::min( std::max( value, mMinHeightValue ), mMaxHeightValue ); 
+	}
 
-	//void Update();
+	double CurrentMaxValue() const { return mCurrentMaxValue; }
+	void SetCurrentMaxValue( double value ) 
+	{ 
+		mCurrentMaxValue = std::max( std::min( value, mMaxHeightValue ), mMinHeightValue ); 
+	}
+
+
+	std::string ContourAsText() const { return mWithContour ? "Y" : "N"; }
+	bool WithContour() const { return mWithContour; }
+	void SetWithContour( bool value ) { mWithContour = value; }
+
+	unsigned NumContours() const { return mNumContours; }
+	void SetNumContours( unsigned contours ) { mNumContours = contours; }
+
+	double ContourLineWidth() const { return mContourLineWidth; }
+	void SetContourLineWidth( double width ) { mContourLineWidth = width; }
+
+	CPlotColor ContourLineColor() const { return mContourLineColor;	}
+	void SetContourLineColor( CPlotColor color ) { mContourLineColor = color; }
+
+	double MinContourValue() const { return mMinContourValue; }
+	double MaxContourValue() const { return mMaxContourValue; }
+	void SetContourValueRange( double m, double M ) 
+	{ 
+		assert__( m <= M );
+
+		mMinContourValue = m; 
+		mMaxContourValue = M; 
+	}
+
+	bool WithSolidColor() const { return mWithSolidColor; }
+	void SetWithSolidColor( bool value ) { mWithSolidColor = value; }
+
+
+	// LON-LAT
+
+	bool IsEastComponent() const { return mNorthComponent; }
+	void SetEastComponent( bool value ) { mNorthComponent = value; }
+
+	bool IsNorthComponent() const { return mEastComponent; }
+	void SetNorthComponent( bool value ) { mEastComponent = value; }
+
+
+
+	// YFX
+
+	bool Lines() const { return mLines; }
+	virtual void SetLines( bool value ) { mLines = value; }
+
+	bool Points() const { return mPoints; }
+	virtual void SetPoints( bool value ) { mPoints = value; }
+
+	double PointSize() const { return mPointSize; }
+	virtual void SetPointSize( double value ) { mPointSize = value; }
+
+	EPointGlyph PointGlyph() const { return mPointGlyph; }
+	virtual void SetPointGlyph( EPointGlyph value ) { mPointGlyph = value; }
+
+	bool FilledPoint() const { return mFilledPoint; }
+	virtual void SetFilledPoint( bool value ) { mFilledPoint = value; }
+
+	virtual CPlotColor LineColor() const { return mLineColor; }
+	virtual void SetLineColor( const CPlotColor& color ){ mLineColor = color; }
+
+	unsigned_t LineWidth() const { return mLineWidth; }
+	virtual void SetLineWidth( unsigned_t value ) { mLineWidth = value; }
+
+	EStipplePattern StipplePattern() const { return mStipplePattern; }
+	void SetStipplePattern( EStipplePattern e ) { mStipplePattern = e; }
+
+	const CPlotColor& PointColor() const { return mPointColor; }
+	void SetPointColor( const CPlotColor &color ) { mPointColor = color; }
+
+	unsigned NumberOfBins() const { return mNumberOfBins; }
+	void SetNumberOfBins( unsigned bins ) { mNumberOfBins = bins; }
 };
 
 
 
+
+#if defined(BRAT_V3)
+
+	#include "../support/code/legacy/display/PlotData/XYPlotProperties.h"
+	#include "../support/code/legacy/display/PlotData/ZFXYPlotProperties.h"
+	#include "../support/code/legacy/display/PlotData/WorldPlotProperties.h"
+#else
+
+	#define CXYPlotProperties CFieldData
+	#define CZFXYPlotProperties CFieldData
+	#define CWorldPlotProperties CFieldData
+
+#endif
 
 
 #endif			//DATA_MODELS_PLOT_DATA_FIELDDATA_H

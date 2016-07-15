@@ -108,9 +108,9 @@ public:
 	bool SaveConfig( const CDisplay &d, CWorkspaceDisplay *wksd );
 	bool LoadConfig( CDisplay &d, std::string &errorMsg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso );
 	bool SaveConfig( const CMapDisplayData &data, CWorkspaceDisplay *wks, const std::string& pathSuff );
-	bool LoadConfig( CMapDisplayData &data, std::string &errorMsg, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso, const std::string& pathSuff );
+	bool LoadConfig( CMapDisplayData &data, const CDisplay *parent, std::string &errorMsg, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso, const std::string& pathSuff );
 	bool SaveConfig( CDisplayData &data, const std::string& pathSuff, CWorkspaceDisplay *wksd );
-	bool LoadConfig( CDisplayData &data, const std::string& path, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso );
+	bool LoadConfig( CDisplayData *&data, const CDisplay *parent, const std::string& path, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso );
 
 
 	void SaveFunctionDescrTemplate( const std::string &internal_data_path, bool flush );

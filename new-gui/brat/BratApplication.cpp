@@ -93,7 +93,7 @@ void CBratApplication::Prologue( int argc, char *argv[] )
 	safe_debug_envar_msg( "QGIS_DEBUG" );
 
 
-	// Application Pahs ////////////////////////////////////
+	// Application Paths ////////////////////////////////////
 
     static CApplicationPaths brat_paths( argv[0] );		// (*)
     if ( !brat_paths.IsValid() )

@@ -2131,14 +2131,9 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/ApplicationLogger.cpp
 		new-gui/brat/BratLogger.cpp
 		new-gui/brat/GUI/LogShell.cpp
-		new-gui/brat/DataModels/PlotData/WorldPlot.cpp
-		new-gui/brat/DataModels/PlotData/ZFXYPlot.cpp
 		new-gui/brat/DataModels/PlotData/MapProjection.cpp
-		new-gui/brat/DataModels/PlotData/XYPlot.cpp
-		new-gui/brat/DataModels/PlotData/PlotBase.cpp
-		new-gui/brat/DataModels/PlotData/PlotField.cpp
+		new-gui/brat/DataModels/PlotData/Plots.cpp
 		new-gui/brat/DataModels/PlotData/PlotColor.cpp
-		new-gui/brat/DataModels/PlotData/WorldPlotCommonData.cpp
 		new-gui/brat/DataModels/PlotData/WorldPlotData.cpp
 		new-gui/brat/DataModels/DisplayFilesNetCDFParameters.cpp
 		new-gui/brat/DataModels/DisplayFilesProcessor.cpp
@@ -2183,8 +2178,8 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/DataModels/PlotData/BratLookupTableSettings.cpp
 		new-gui/brat/GUI/ControlPanels/Dialogs/EditExportAsciiDialog.cpp
 		new-gui/brat/GUI/ControlPanels/ColorMapWidget.cpp
-		new-gui/Common/DataModels/TaskProcessor.cpp
 		new-gui/Common/DataModels/BratTask.cpp
+		new-gui/Common/DataModels/TaskProcessor.cpp
 		new-gui/brat/GUI/DisplayEditors/Dialogs/ExportImageDialog.cpp
 		process/BratEmbeddedPythonProcess.cpp
 		new-gui/brat/GUI/ControlPanels/DesktopControlPanel.cpp
@@ -2196,6 +2191,8 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/DisplayWidgets/MapTip.cpp
 		new-gui/brat/GUI/OperationViewsDialog.cpp
 		new-gui/brat/GUI/ControlPanels/Dialogs/SaveAsFormulaDialog.cpp
+		new-gui/brat/DataModels/PlotData/FieldData.cpp
+		new-gui/brat/DataModels/DisplayDataProcessor.cpp
 	)
 
 		
@@ -2249,10 +2246,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/BratLogger.h
 		new-gui/brat/GUI/LogShell.h
 		new-gui/brat/DataModels/PlotData/PlotColor.h
-		new-gui/brat/DataModels/PlotData/WorldPlotCommonData.h
 		new-gui/brat/DataModels/PlotData/WorldPlotData.h
-		new-gui/brat/DataModels/PlotData/WorldPlot.h
-		new-gui/brat/DataModels/PlotData/ZFXYPlot.h
 		new-gui/brat/DataModels/DisplayFilesProcessor.h
 		new-gui/brat/DataModels/PlotData/XYPlotData.h
 		new-gui/brat/DataModels/PlotData/ZFXYPlotData.h
@@ -2294,8 +2288,8 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/DataModels/PlotData/BratLookupTableSettings.h
 		new-gui/brat/GUI/ControlPanels/Dialogs/EditExportAsciiDialog.h
 		new-gui/brat/GUI/ControlPanels/ColorMapWidget.h
-		new-gui/Common/DataModels/TaskProcessor.h
 		new-gui/Common/DataModels/BratTask.h
+		new-gui/Common/DataModels/TaskProcessor.h
 		new-gui/brat/GUI/DisplayEditors/Dialogs/ExportImageDialog.h
 		process/BratEmbeddedPythonProcess.h
 		new-gui/brat/GUI/ControlPanels/DesktopControlPanel.h
@@ -2307,6 +2301,10 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/DisplayWidgets/MapTip.h
 		new-gui/brat/GUI/OperationViewsDialog.h
 		new-gui/brat/GUI/ControlPanels/Dialogs/SaveAsFormulaDialog.h
+		new-gui/brat/DataModels/PlotData/FieldData.h
+		new-gui/brat/DataModels/DisplayDataProcessor.h
+		new-gui/brat/DataModels/PlotData/Plots.h
+		new-gui/brat/DataModels/PlotData/PlotData.h
 	)
 
 

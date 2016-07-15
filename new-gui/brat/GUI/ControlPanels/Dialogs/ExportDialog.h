@@ -55,6 +55,7 @@ protected:
     static const std::string smDefaultExtensionAscii;
     static const std::string smDefaultExtensionNetCdf;
     static const std::string smDefaultExtensionGeoTiff;
+	static const std::string smDefaultExtensionKML;
 
 
     /////////////////////////////
@@ -77,7 +78,10 @@ protected:
 
 	CBratLookupTable *mLUT = nullptr;
 	CColorMapWidget *mColorMapWidget = nullptr;
-	QCheckBox *mCreateGoogleKMLFile = nullptr;
+	QGroupBox *mCreateGoogleKMLFileGroup = nullptr;
+	QCheckBox *KMLAlongTrackDataCheck = nullptr;
+	QCheckBox *KMLFieldsDataCheck = nullptr;
+	QCheckBox *mCreateGeoTiffFilesCheck = nullptr;
 
 	QPushButton *mBrowseButton = nullptr;
 
@@ -107,7 +111,9 @@ protected:
 
 	bool mIsGeoImage = false;
 
-    bool mCreateKML;
+    bool mCreateGeoTIFFs;
+	bool mCreateKMLTrackData;
+    bool mCreateKMLFieldsData;
     std::string mColorTable;
     double mColorRangeMin = defaultValue<double>();
     double mColorRangeMax = defaultValue<double>();
@@ -189,6 +195,11 @@ protected slots:
 	void HandleExportType(int);
     void HandleChangeExportPath();
 	void HandleDelayExecution();
+
+	void HandleCreateGeoTiffFilesChecked( bool );
+	void HandleCreateGoogleKMLFileChecked( bool );
+	void HandleKMLFieldsDataChecked( bool );
+	void HandleKMLAlongTrackDataChecked( bool );
 };
 
 

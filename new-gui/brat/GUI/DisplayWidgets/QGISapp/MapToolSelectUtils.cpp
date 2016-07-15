@@ -85,6 +85,38 @@ void QgsMapToolSelectUtils::expandSelectRectangle( QRect& selectRect,
 	selectRect.setBottom( point.y() + boxSize );
 }
 
+
+// toLayerCoordinates will throw an exception for any 'invalid' points in
+// the rubber band.
+// For example, if you project a world map onto a globe using EPSG 2163
+// and then click somewhere off the globe, an exception will be thrown.
+//
+QgsGeometry QgsMapToolSelectUtils::toLayerCoordinates( QgsMapCanvas *canvas, QgsGeometry *selectGeometry, QgsVectorLayer *vlayer )
+{
+	assert__( canvas && selectGeometry && vlayer );
+
+	QgsGeometry selectGeomTrans( *selectGeometry );
+
+	if ( canvas->mapSettings().hasCrsTransformEnabled() )
+	{
+		try
+		{
+			QgsCoordinateTransform ct( canvas->mapSettings().destinationCrs(), vlayer->crs() );
+			selectGeomTrans.transform( ct );
+		}
+		catch ( QgsCsException &cse )
+		{
+			Q_UNUSED( cse );
+			// catch exception for 'invalid' point and leave existing selection unchanged
+			QgsLogger::warning( "Caught CRS exception " + QString( __FILE__ ) + ": " + QString::number( __LINE__ ) );
+			LOG_INFO( "CRS Exception\nSelection extends beyond layer's coordinate system" );
+			throw;
+		}
+	}
+	return selectGeomTrans;
+}
+
+
 void QgsMapToolSelectUtils::setSelectFeatures( QgsMapCanvas* canvas,
 	QgsGeometry* selectGeometry,
 	bool doContains,
@@ -105,23 +137,31 @@ void QgsMapToolSelectUtils::setSelectFeatures( QgsMapCanvas* canvas,
 	// the rubber band.
 	// For example, if you project a world map onto a globe using EPSG 2163
 	// and then click somewhere off the globe, an exception will be thrown.
-	QgsGeometry selectGeomTrans( *selectGeometry );
+	//QgsGeometry selectGeomTrans( *selectGeometry );
 
-	if ( canvas->mapSettings().hasCrsTransformEnabled() )
+	//if ( canvas->mapSettings().hasCrsTransformEnabled() )
+	//{
+	//	try
+	//	{
+	//		QgsCoordinateTransform ct( canvas->mapSettings().destinationCrs(), vlayer->crs() );
+	//		selectGeomTrans.transform( ct );
+	//	}
+	//	catch ( QgsCsException &cse )
+	//	{
+	//		Q_UNUSED( cse );
+	//		// catch exception for 'invalid' point and leave existing selection unchanged
+	//		QgsLogger::warning( "Caught CRS exception " + QString( __FILE__ ) + ": " + QString::number( __LINE__ ) );
+	//		LOG_INFO( "CRS Exception\nSelection extends beyond layer's coordinate system" );
+	//		return;
+	//	}
+	//}
+	QgsGeometry selectGeomTrans;
+	try{
+		selectGeomTrans = toLayerCoordinates( canvas, selectGeometry, vlayer );
+	}
+	catch ( QgsCsException & )
 	{
-		try
-		{
-			QgsCoordinateTransform ct( canvas->mapSettings().destinationCrs(), vlayer->crs() );
-			selectGeomTrans.transform( ct );
-		}
-		catch ( QgsCsException &cse )
-		{
-			Q_UNUSED( cse );
-			// catch exception for 'invalid' point and leave existing selection unchanged
-			QgsLogger::warning( "Caught CRS exception " + QString( __FILE__ ) + ": " + QString::number( __LINE__ ) );
-			LOG_INFO( "CRS Exception\nSelection extends beyond layer's coordinate system" );
-			return;
-		}
+		return;
 	}
 
 	QApplication::setOverrideCursor( Qt::WaitCursor );
@@ -224,9 +264,9 @@ void QgsMapToolSelectUtils::setSelectFeatures( QgsMapCanvas* canvas,
 	QApplication::restoreOverrideCursor();
 }
 
-void QgsMapToolSelectUtils::setSelectFeatures( QgsMapCanvas* canvas, QgsGeometry* selectGeometry, QMouseEvent * e )
+void QgsMapToolSelectUtils::setSelectFeatures( QgsMapCanvas *canvas, QgsGeometry *selectGeometry, QMouseEvent *e )
 {
-	bool doContains = e->modifiers() & Qt::ShiftModifier ? true : false;
-	bool doDifference = e->modifiers() & Qt::ControlModifier ? true : false;
+	bool doContains = e && ( e->modifiers() & Qt::ShiftModifier );
+	bool doDifference = e && ( e->modifiers() & Qt::ControlModifier );
 	setSelectFeatures( canvas, selectGeometry, doContains, doDifference );
 }

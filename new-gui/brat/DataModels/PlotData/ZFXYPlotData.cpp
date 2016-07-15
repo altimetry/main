@@ -24,292 +24,94 @@
 #include "libbrathl/LatLonPoint.h"
 using namespace brathl;
 
+#include "Plots.h"
 #include "ZFXYPlotData.h"
 
 #if defined(BRAT_V3)
 #include "wx/progdlg.h"
 #endif
 
-
-//-------------------------------------------------------------
-//------------------- CZFXYPlotProperties class --------------------
-//-------------------------------------------------------------
-
-CZFXYPlotProperties::CZFXYPlotProperties()
-	: base_t()
-{
-	m_opacity = 0.7;
-
-	m_showPropertyPanel = true;
-	m_showColorBar = true;
-	m_showAnimationToolbar = false;
-
-	m_numColorLabels = 5;
-
-	setDefaultValue( m_minHeightValue );
-	setDefaultValue( m_maxHeightValue );
-
-	mLUT = new CBratLookupTable();
-	mLUT->ExecMethodDefaultColorTable();
-
-	setDefaultValue( m_xMax );
-	setDefaultValue( m_xMin );
-	setDefaultValue( m_yMax );
-	setDefaultValue( m_yMin );
-
-	m_xBase = 10.0;
-	m_yBase = 10.0;
-
-	setDefaultValue( m_xNumTicks );
-	setDefaultValue( m_yNumTicks );
-	setDefaultValue( m_zNumTicks );
-
-	m_xLog = false;
-	m_yLog = false;
-
-	m_withContour = false;
-	m_solidColor = true;;
-
-	m_withContourLabel = false;
-	setDefaultValue( m_minContourValue );
-	setDefaultValue( m_maxContourValue );
-	m_numContour = 5;
-	m_numContourLabel = 1;
-
-	m_contourLabelSize = 10;
-	//m_contourLineWidth = 1.0; v4 initialized in class
-
-	m_contourLineColor.Set( 0.0, 0.0, 0.0 );
-	m_contourLineColor.Set( 0.0, 0.0, 0.0 );
-
-	m_contourLabelFormat = "%-#.3g";
-
-	m_withAnimation = false;
-}
-
-//----------------------------------------
-const CZFXYPlotProperties& CZFXYPlotProperties::operator=( const CZFXYPlotProperties &o )
-{
-	if ( this != &o )
-	{
-		*static_cast< base_t* >( this ) = static_cast< const base_t& >( o );
-
-		DeleteLUT();
-		mLUT = new CBratLookupTable( *( o.mLUT ) );
-
-		m_xLabel = o.m_xLabel;
-		m_yLabel = o.m_yLabel;
-
-		m_opacity = o.m_opacity;
-		m_showPropertyPanel = o.m_showPropertyPanel;
-		m_showColorBar = o.m_showColorBar;
-		m_showAnimationToolbar = o.m_showAnimationToolbar;
-
-		m_numColorLabels = o.m_numColorLabels;
-
-		m_minHeightValue = o.m_minHeightValue;
-		m_maxHeightValue = o.m_maxHeightValue;
-
-		m_xMax = o.m_xMax;
-		m_xMin = o.m_xMin;
-		m_yMax = o.m_yMax;
-		m_yMin = o.m_yMin;
-
-		m_xBase = o.m_xBase;
-		m_yBase = o.m_yBase;
-
-		m_xLog = o.m_xLog;
-		m_yLog = o.m_yLog;
-
-		m_xNumTicks = o.m_xNumTicks;
-		m_yNumTicks = o.m_yNumTicks;
-		m_zNumTicks = o.m_zNumTicks;
-
-		m_withContour = o.m_withContour;
-		m_withContourLabel = o.m_withContourLabel;
-		m_minContourValue = o.m_minContourValue;
-		m_maxContourValue = o.m_maxContourValue;
-		m_numContour = o.m_numContour;
-		m_numContourLabel = o.m_numContourLabel;
-
-		m_contourLabelSize = o.m_contourLabelSize;
-		mContourLineWidth = o.mContourLineWidth;
-
-		m_contourLineColor = o.m_contourLineColor;
-		m_contourLabelColor = o.m_contourLabelColor;
-
-		m_contourLabelFormat = o.m_contourLabelFormat;
-
-		m_solidColor = o.m_solidColor;
-
-		m_withAnimation = o.m_withAnimation;
-	}
-	return *this;
-}
-
-//----------------------------------------
-CZFXYPlotProperties::~CZFXYPlotProperties()
-{
-	DeleteLUT();
-}
-
-//----------------------------------------
-void CZFXYPlotProperties::DeleteLUT()
-{
-	if ( mLUT != nullptr )
-	{
-		delete mLUT;
-		mLUT = nullptr;
-	}
-}
-
 //-------------------------------------------------------------
 //------------------- CZFXYPlotData class --------------------
 //-------------------------------------------------------------
 
-CZFXYPlotData::CZFXYPlotData( CZFXYPlot* plot, CPlotField* field )
-	: base_t( { field->m_name } )
+CZFXYPlotData::CZFXYPlotData( CZFXYPlot* plot, CZFXYPlotProperties* field )
+	: base_t( field )
+	, values_base_t()
 {
-	if ( field == nullptr )
-	{
-		return;
-	}
+	//m_currentMap = 0;
 
-	if ( field->m_zfxyProps != nullptr )
-	{
-		m_plotProperties = *field->m_zfxyProps;
-	}
+	//setDefaultValue( m_minhv );
+	//setDefaultValue( m_maxhv );
 
-	m_currentMap = 0;
+	//setDefaultValue( m_xMin );
+	//setDefaultValue( m_xMax );
 
+	//setDefaultValue( m_yMin );
+	//setDefaultValue( m_yMax );
+
+	Create( plot );
+
+#if defined (BRAT_V3)
 	m_aborted = false;
-
-	setDefaultValue( m_minhv );
-	setDefaultValue( m_maxhv );
-
-	setDefaultValue( m_xMin );
-	setDefaultValue( m_xMax );
-
-	setDefaultValue( m_yMin );
-	setDefaultValue( m_yMax );
-
-	mLUT = nullptr;
-
-	
-	Create( &field->m_internalFiles, field->m_name, plot );
-
-
-	SetLUT( m_plotProperties.mLUT );
-
-	mLUT->GetLookupTable()->SetTableRange( m_plotProperties.m_minContourValue, m_plotProperties.m_maxContourValue );
+#endif
 }
 
 
 //----------------------------------------
-void CZFXYPlotData::DeleteLUT()
+void CZFXYPlotData::Create( CZFXYPlot *plot )
 {
-	if ( mLUT != nullptr )
-	{
-		delete mLUT;
-		mLUT = nullptr;
-	}
-}
+	const std::vector< CInternalFiles* > &internal_files = GetPlotProperties()->InternalFiles();
+	const std::string& fieldName = GetPlotProperties()->FieldName();
 
-void CZFXYPlotData::SetLUT( CBratLookupTable* lut )
-{
-	if ( lut == nullptr )
+
+	if ( GetPlotProperties()->UserName().empty() )
 	{
-		return;
+		GetPlotProperties()->SetUserName( fieldName );
 	}
 
-	DeleteLUT();
-
-	mLUT = new CBratLookupTable( *lut );
-
-	//if ( m_vtkMapper2D != nullptr )
-	//{
-	//	m_vtkMapper2D->SetLookupTable( m_LUT->GetLookupTable() );
-	//}
-}
-
-
-//----------------------------------------
-std::string CZFXYPlotData::GetDataDateString( size_t index ) const
-{
-	if ( index >= m_dataDates.size() )
+#if defined (BRAT_V3)
+	if ( GetPlotProperties()->Title().empty() )
 	{
-		return "";
-
+		GetPlotProperties()->SetTitle( plot->mTitle );
 	}
 
-	CDate* dataDate = dynamic_cast<CDate*>( m_dataDates[ index ] );
-	if ( dataDate->IsDefaultValue() == false )
+	if ( GetPlotProperties()->Xlabel().empty() )
 	{
-		return CTools::Format( 128, "Date:\t%s - Time:\t%s",
-			dataDate->AsString( "%d-%b-%Y", false ).c_str(),
-			dataDate->AsString( "%H:%M:%S", true ).c_str() );
-	}
-
-	return "";
-}
-
-//----------------------------------------
-std::string CZFXYPlotData::GetDataUnitString( size_t index ) const
-{
-	if ( index >= m_dataUnits.size() )
-	{
-		return "";
-	}
-
-	CUnit* dataUnit = dynamic_cast<CUnit*>( m_dataUnits[ index ] );
-
-	return dataUnit->GetText();
-}
-
-//----------------------------------------
-void CZFXYPlotData::Create( CObArray* data, const std::string& fieldName, CZFXYPlot* plot )
-{
-	if ( m_plotProperties.Name().empty() )
-	{
-		m_plotProperties.SetName( fieldName );
-	}
-
-	if ( m_plotProperties.Title().empty() )
-	{
-		m_plotProperties.SetTitle( plot->m_title );
-	}
-
-
-	if ( m_plotProperties.m_xLabel.empty() )
-	{
-		m_plotProperties.m_xLabel = plot->m_titleX;
+		GetPlotProperties()->SetXlabel( plot->m_titleX );
 	}
 	else
 	{
-		std::string titleX = m_plotProperties.m_xLabel;
+		std::string titleX = GetPlotProperties()->Xlabel();
 		titleX += plot->m_unitXLabel;
-		m_plotProperties.m_xLabel = titleX;
+		GetPlotProperties()->SetXlabel( titleX );
 	}
 
-	if ( m_plotProperties.m_yLabel.empty() )
+	if ( GetPlotProperties()->Ylabel().empty() )
 	{
-		m_plotProperties.m_yLabel = plot->m_titleY;
+		GetPlotProperties()->SetYlabel( plot->m_titleY );
 	}
 	else
 	{
-		std::string titleY = m_plotProperties.m_yLabel;
+		std::string titleY = GetPlotProperties()->Ylabel();
 		titleY += plot->m_unitYLabel;
-		m_plotProperties.m_yLabel = titleY;
+		GetPlotProperties()->SetYlabel( titleY );
 	}
+#else
 
-	m_unitX = plot->m_unitX;
-	m_unitY = plot->m_unitY;
+	assert__( !GetPlotProperties()->Xlabel().empty() );
+	assert__( !GetPlotProperties()->Ylabel().empty() );
 
-	m_currentMap = 0;
-	m_nrMaps = (uint32_t)data->size();
+#endif
+
+	CUnit unitX = plot->XUnit();
+	CUnit unitY = plot->YUnit();
+
+	mCurrentFrame = 0;
+	size_t nrMaps = internal_files.size();
 
 #if defined(BRAT_V3)		// TODO replace by callback device to display progress
-	wxProgressDialog pd("Calculating Plot Data", "", m_nrMaps, nullptr, wxPD_CAN_ABORT | wxPD_REMAINING_TIME | wxPD_SMOOTH| wxPD_APP_MODAL);
+	wxProgressDialog pd("Calculating Plot Data", "", size(), nullptr, wxPD_CAN_ABORT | wxPD_REMAINING_TIME | wxPD_SMOOTH| wxPD_APP_MODAL);
 	pd.SetSize(-1,-1, 350, -1);
 #endif
 
@@ -319,23 +121,28 @@ void CZFXYPlotData::Create( CObArray* data, const std::string& fieldName, CZFXYP
 	//double minHeightValue = 0;
 	//double maxHeightValue = 0;
 
-	for ( uint32_t iMap = 0; iMap < m_nrMaps; iMap++ )
+	//v4 IMPORTANT NOTE: in some steps, it seems that v3 supported more than one frame (**).
+	//	In others it seems it really did not (*). v4 does not support more than ore frame, so
+	//	the minimum and maximum values computed here are always relative to one frame.
+
+														assert__( nrMaps < 2 );
+	for ( size_t iMap = 0; iMap < nrMaps; iMap++ )		//(**)
 	{
-		mMaps.AddMap();
+		AddMap();
 
-		setDefaultValue( mMaps().mMinX );
-		setDefaultValue( mMaps().mMaxX );
-		setDefaultValue( mMaps().mMinY );
-		setDefaultValue( mMaps().mMaxY );
+		setDefaultValue( back().mMinX );
+		setDefaultValue( back().mMaxX );
+		setDefaultValue( back().mMinY );
+		setDefaultValue( back().mMaxY );
 
-		//	v4 note:
-		//	These assignments and the assignments below to m_plotProperties.m_xxxContourValue 
+		//	 (*) v4 note:
+		//	These assignments and the assignments below to GetPlotProperties()->m_xxxContourValue 
 		//	show that it was implicitly assumed that m_nrMaps was always 1, otherwise these 
-		//	values wouldn't be set to m_plotProperties.m_xxxHeightValue (which never changes 
+		//	values wouldn't be set to GetPlotProperties()->m_xxxHeightValue (which never changes 
 		//	in the loop) in each iteration. Or, this is a bug.
 		//
-		mMaps().mMinHeightValue = m_plotProperties.m_minHeightValue;
-		mMaps().mMaxHeightValue = m_plotProperties.m_maxHeightValue;
+		back().mMinHeightValue = GetPlotProperties()->AbsoluteMinValue();
+		back().mMaxHeightValue = GetPlotProperties()->AbsoluteMaxValue();
 
 		CExpressionValue varX;
 		CExpressionValue varY;
@@ -343,10 +150,10 @@ void CZFXYPlotData::Create( CObArray* data, const std::string& fieldName, CZFXYP
 		NetCDFVarKind varKind;
 
 
-		CInternalFiles* zfxy = dynamic_cast<CInternalFiles*>( data->at( iMap ) );
+		CInternalFiles* zfxy = dynamic_cast<CInternalFiles*>( internal_files.at( iMap ) );
 		if ( zfxy == nullptr )
 		{
-			CException e( "CZFXYPlotData ctor - dynamic_cast<CInternalFiles*>data->at(iMap) returns nullptr",	BRATHL_LOGIC_ERROR );
+			CException e( "CZFXYPlotData ctor - dynamic_cast<CInternalFiles*>internal_files.at(iMap) returns nullptr",	BRATHL_LOGIC_ERROR );
 			CTrace::Tracer( "%s", e.what() );
 			throw ( e );
 
@@ -362,7 +169,7 @@ void CZFXYPlotData::Create( CObArray* data, const std::string& fieldName, CZFXYP
 
 #if defined(BRAT_V3)		// TODO replace by callback device to display progress
 		//update ProgressDialog
-		std::string msg = CTools::Format("Calculating Frame: %d of %d", iMap + 1, m_nrMaps);
+		std::string msg = CTools::Format("Calculating Frame: %d of %d", iMap + 1, size() );
 		if (pd.Update(iMap, msg.c_str()) == false)
 		{
 			m_aborted = true;
@@ -376,49 +183,47 @@ void CZFXYPlotData::Create( CObArray* data, const std::string& fieldName, CZFXYP
 		std::string varXName;
 		std::string varYName;
 
-		plot->GetPlotWidthHeight( zfxy, fieldName, mMaps().mPlotWidth, mMaps().mPlotHeight, varX, varY, dimRangeX, dimRangeY, varXName, varYName );
-
-		CUnit unitXRead;
-		CUnit unitYRead;
+		plot->GetPlotWidthHeight( zfxy, fieldName, back().mPlotWidth, back().mPlotHeight, varX, varY, dimRangeX, dimRangeY, varXName, varYName );
 
 		// Get and control unit of X axis
 		// X units are compatible but not the same --> convert
-		unitXRead = zfxy->GetUnit( varXName );
-		if ( m_unitX.AsString() != unitXRead.AsString() )
+		CUnit unitXRead = zfxy->GetUnit( varXName );
+		if ( unitX.AsString() != unitXRead.AsString() )
 		{
-			plot->m_unitX.SetConversionFrom( unitXRead );
-			plot->m_unitX.ConvertVector( varX.GetValues(), (int32_t)varX.GetNbValues() );
+			plot->XUnit().SetConversionFrom( unitXRead );
+			plot->XUnit().ConvertVector( varX.GetValues(), (int32_t)varX.GetNbValues() );
 		}
 
 		// Get and control unit of Y axis
 		// Y units are compatible but not the same --> convert
-		unitYRead = zfxy->GetUnit( varYName );
-		if ( m_unitY.AsString() != unitYRead.AsString() )
+		CUnit unitYRead = zfxy->GetUnit( varYName );
+		if ( unitY.AsString() != unitYRead.AsString() )
 		{
-			plot->m_unitY.SetConversionFrom( unitYRead );
-			plot->m_unitY.ConvertVector( varY.GetValues(), (int32_t)varY.GetNbValues() );
+			plot->YUnit().SetConversionFrom( unitYRead );
+			plot->YUnit().ConvertVector( varY.GetValues(), (int32_t)varY.GetNbValues() );
 		}
 
 
 		// Get data unit
 		CUnit* unit = new CUnit( zfxy->GetUnit( fieldName ) );
-		m_dataUnits.Insert( unit );
+		m_dataUnits.push_back( unit );
+
+#if defined(BRAT_V3)
 
 		// Get data title
 		std::string dataTitle = zfxy->GetTitle( fieldName );
 		if ( dataTitle.empty() )
 		{
-			dataTitle = m_plotProperties.Name();
+			dataTitle = GetPlotProperties()->UserName();
 		}
 
 		m_dataTitles.Insert( dataTitle );
+#endif
 
 
 		// read data
 		zfxy->ReadVar( fieldName, varValue, unit->GetText() );
 		varKind	= zfxy->GetVarKind( fieldName );
-
-		m_unitZ = *unit;
 
 		if ( varKind != Data )
 		{
@@ -429,50 +234,43 @@ void CZFXYPlotData::Create( CObArray* data, const std::string& fieldName, CZFXYP
 			throw ( e );
 		}
 
-		bool transpose = false;
+		const bool transpose = dimRangeY == 0 && dimRangeX == 1;
 
-		if ( ( dimRangeY == 0 ) &&
-			( dimRangeX == 1 ) )
-		{
-			transpose = true;
-		}
-
-		const int maxX = mMaps().mPlotWidth;
-		const int maxY = mMaps().mPlotHeight;
+		const int maxX = back().mPlotWidth;
+		const int maxY = back().mPlotHeight;
 
 		for ( int iY = 0; iY < maxY; iY++ )
 		{
 			double valueY = varY.GetValues()[ iY ];
-			mMaps.AddY(valueY);
+			AddY(valueY);
 
 			if ( iY == 0 )
 			{
 				if ( iMap == 0 )
 				{
-					m_yMin = valueY;
-					m_yMax = valueY;
+					//m_yMin = valueY;
+					//m_yMax = valueY;
 				}
-
-				mMaps().mMinY = valueY;
-				mMaps().mMaxY = valueY;
+				back().mMinY = valueY;
+				back().mMaxY = valueY;
 			}
 			else
 			{
-				if ( valueY < m_yMin )
+				//if ( valueY < m_yMin )
+				//{
+				//	m_yMin = valueY;
+				//}
+				//if ( valueY > m_yMax )
+				//{
+				//	m_yMax = valueY;
+				//}
+				if ( valueY < back().mMinY )
 				{
-					m_yMin = valueY;
+					back().mMinY = valueY;
 				}
-				if ( valueY > m_yMax )
+				if ( valueY > back().mMaxY )
 				{
-					m_yMax = valueY;
-				}
-				if ( valueY < mMaps().mMinY )
-				{
-					mMaps().mMinY = valueY;
-				}
-				if ( valueY > mMaps().mMaxY )
-				{
-					mMaps().mMaxY = valueY;
+					back().mMaxY = valueY;
 				}
 			}
 
@@ -493,131 +291,92 @@ void CZFXYPlotData::Create( CObArray* data, const std::string& fieldName, CZFXYP
 				double v = varValue.GetValues()[ iTemp ];
 				if ( ( CTools::IsNan( v ) != 0 ) || isDefaultValue( v ) )
 				{
-					mMaps.AddValue( 0.0 );
-					mMaps.AddBit( false );
+					AddValue( 0.0 );
+					AddBit( false );
 				}
 				else
 				{
-					mMaps.AddValue( v );
-					mMaps.AddBit( true );
+					AddValue( v );
+					AddBit( true );
 
 					if ( firstValue )
 					{
 						firstValue = false;
-						m_minhv = v;
-						m_maxhv = v;
+						back().mMinHeightValue = v;
+						back().mMaxHeightValue = v;
 					}
 					else
 					{
-						if ( v < m_minhv )
+						if ( v < back().mMinHeightValue )
 						{
-							m_minhv = v;
+							back().mMinHeightValue = v;
 						}
-						if ( v > m_maxhv )
+						if ( v > back().mMaxHeightValue )
 						{
-							m_maxhv = v;
+							back().mMaxHeightValue = v;
 						}
 					}
 				}
 			}
 		}
 
-		if ( isDefaultValue( mMaps().mMinHeightValue ) )
-		{
-			mMaps().mMinHeightValue = m_minhv;
-		}
-		if ( isDefaultValue( mMaps().mMaxHeightValue ) )
-		{
-			mMaps().mMaxHeightValue = m_maxhv;
-		}
+		//if ( isDefaultValue( mMaps().mMinHeightValue ) )
+		//	mMaps().mMinHeightValue = m_minhv;
+		//if ( isDefaultValue( mMaps().mMaxHeightValue ) )
+		//	mMaps().mMaxHeightValue = m_maxhv;
 
 		for ( int iX = 0; iX < maxX; iX++ )
 		{
 			double valueX = varX.GetValues()[ iX ];
-			mMaps.AddX( valueX );
+			AddX( valueX );
 
 			if ( iX == 0 )
 			{
 				if ( iMap == 0 )
 				{
-					m_xMin = valueX;
-					m_xMax = valueX;
+					//m_xMin = valueX;
+					//m_xMax = valueX;
 				}
-
-				mMaps().mMinX = valueX;
-				mMaps().mMaxX = valueX;
-
+				back().mMinX = valueX;
+				back().mMaxX = valueX;
 			}
 			else
 			{
-				if ( valueX < m_xMin )
+				//if ( valueX < m_xMin )
+				//{
+				//	m_xMin = valueX;
+				//}
+				//if ( valueX > m_xMax )
+				//{
+				//	m_xMax = valueX;
+				//}
+				if ( valueX < back().mMinX )
 				{
-					m_xMin = valueX;
+					back().mMinX = valueX;
 				}
-				if ( valueX > m_xMax )
+				if ( valueX > back().mMaxX )
 				{
-					m_xMax = valueX;
-				}
-				if ( valueX < mMaps().mMinX )
-				{
-					mMaps().mMinX = valueX;
-				}
-				if ( valueX > mMaps().mMaxX )
-				{
-					mMaps().mMaxX = valueX;
+					back().mMaxX = valueX;
 				}
 			}
-
 		}
 
-		mMaps().OrderAxis();
+		back().OrderAxis();
 	}
 
 
-	if ( isDefaultValue( m_plotProperties.m_minContourValue ) )
+	if ( isDefaultValue( GetPlotProperties()->MinContourValue() ) || isDefaultValue( GetPlotProperties()->MaxContourValue() ) )
 	{
-		m_plotProperties.m_minContourValue = mMaps().mMinHeightValue;
+		GetPlotProperties()->SetContourValueRange( back().mMinHeightValue, back().mMaxHeightValue );
 	}
 
-	if ( isDefaultValue( m_plotProperties.m_maxContourValue ) )
-	{
-		m_plotProperties.m_maxContourValue = mMaps().mMaxHeightValue;
-	}
 
 #if defined(BRAT_V3)		// TODO replace by callback device to display progress
 	pd.Destroy();
-#endif
 
 	if ( m_aborted )
 	{
 		return;
 	}
-}
-
-
-void CZFXYPlotData::GetXRange( double& min, double& max, size_t frame ) const
-{
-	if ( frame >= mMaps.size() )
-	{
-		frame = mMaps.size() - 1;
-	}
-
-	auto &parameters = mMaps( frame );
-
-	min = parameters.mMinX;
-	max = parameters.mMaxX;
-}
-
-
-void CZFXYPlotData::GetYRange(double& min, double& max, size_t frame) const
-{
-	if ( frame >= mMaps.size() )
-	{
-		frame = mMaps.size() - 1;
-	}
-
-	auto &parameters = mMaps( frame );
-
-	min = parameters.mMinY;
-	max = parameters.mMaxY;
+#endif
 }

@@ -92,7 +92,7 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_Full_Screen, "Full Screen", CActionInfo::FormatTip("Full Screen\nToggle full screen mode.\nUse the <span style=\" font-weight:600;\">F11</span> key to switch modes."), ":images/OSGeo/fullscreen.png", "", "F11" },
 
-    { eAction_Re_center, "Re-center", CActionInfo::FormatTip("Zoom Full\nZoom to full map extent"), ":/images/OSGeo/zoom-extent.png", "", "Home" },
+    { eAction_Re_center, "Re-center", CActionInfo::FormatTip("Zoom Full\nZoom to full extent"), ":/images/OSGeo/zoom-extent.png", "", "Home" },
 
     { eAction_Zoom_In, "Zoom In", CActionInfo::FormatTip("Zoom In\nZoom map in"), ":/images/OSGeo/zoom-in.png", "", "Ctrl++" },
 
@@ -154,11 +154,11 @@ CActionInfo ActionsTable[ EActionTags_size ] =
     { eAction_ApplicationStyles_page, "Styles", CActionInfo::FormatTip("Styles\nApplication visual options"), "://images/alpha-numeric/__p.png", "://images/alpha-numeric/__p.png" },
 
 
-    { eAction_SelectFeatures, "Rectangular Selection", CActionInfo::FormatTip("Selection\nSelect Features by area or single click"), ":/images/themes/default/mActionSelectRectangle.svg", ":/images/themes/default/mActionSelectRectangle.svg" },
+    { eAction_SelectFeatures, "Rectangular Selection", CActionInfo::FormatTip("Selection\nSelect area"), ":/images/themes/default/mActionSelectRectangle.svg", ":/images/themes/default/mActionSelectRectangle.svg" },
 
     { eAction_SelectPolygon, "Polygon Selection", CActionInfo::FormatTip("Polygon Selection\nSelect Features by Polygon"), ":/images/themes/default/mActionSelectPolygon.svg", ":/images/themes/default/mActionSelectPolygon.svg" },
 
-    { eAction_DeselectAll, "Deselect All", CActionInfo::FormatTip("Deselect\nRemove selections from all layers"), ":/images/themes/default/mActionDeselectAll.svg" },
+    { eAction_DeselectAll, "Deselect All", CActionInfo::FormatTip("Deselect\nRemove features selection"), ":/images/themes/default/mActionDeselectAll.svg" },
 
     { eAction_DecorationGrid, "Grid", CActionInfo::FormatTip("Grid\nCreates a scale bar that is displayed on the map canvas"), ":/images/themes/default/transformed.png", ":/images/themes/default/transformed.png" },
 
@@ -422,7 +422,6 @@ void CActionInfo::TriggerAction( EActionTag tag )
 //						Most Recent Files QActions
 //////////////////////////////////////////////////////////////////////////////////
 
-
 //
 // - After construction, connect this class's triggered signal to client openRecentfile handler slot
 // - Also after construction, and only if some supplementary action is needed at runtime (for instance,
@@ -444,7 +443,7 @@ void CRecentFilesProcessor::SetupMenu( QMainWindow *parent, QAction *ActionAfter
 CRecentFilesProcessor::CRecentFilesProcessor( QMainWindow *parent, const std::string MenuName, QMenu *MenuParent, QAction *ActionAfter, const QString &SettingsSectionName ) : 
 	QObject( parent ), mSettingsSectionName( SettingsSectionName  )
 {
-	mRecentFilesMenu = new QMenu( MenuName.c_str(), MenuParent );
+	mRecentFilesMenu = new CRecentFilesMenu( MenuName.c_str(), MenuParent );
 	MenuParent->insertMenu( ActionAfter, mRecentFilesMenu );
 	SetupMenu( parent, ActionAfter );
 }
@@ -481,6 +480,7 @@ void CRecentFilesProcessor::UpdateRecentFileActions()
 			mRecentFileActions[j]->setText( text );
 			mRecentFileActions[j]->setData( mRecentFiles[j] );
 			mRecentFileActions[j]->setVisible( true );
+			mRecentFileActions[j]->setToolTip( mRecentFiles[j] );
 		}
 		else
 			mRecentFileActions[j]->setVisible( false );

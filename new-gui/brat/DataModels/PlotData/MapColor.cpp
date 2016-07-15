@@ -77,7 +77,7 @@ const std::string& CMapPointGlyph::Name( EPointGlyph e )
 CMapPointGlyph::CMapPointGlyph()
 {
 	//Insert("NO", 		        new CPointGlyph(displayNO_GLYPH, "No glyph"));
-	//Insert("VERTEX", 		new CPointGlyph(displayVERTEX_GLYPH, "Vertex"));
+	Insert("VERTEX", 		new CPointGlyph(displayVERTEX_GLYPH, "Vertex"));
 	Insert( "DASH", new CPointGlyph( displayDASH_GLYPH, "Dash" ) );
 	Insert( "CROSS", new CPointGlyph( displayCROSS_GLYPH, "Cross" ) );
 	Insert( "THICKCROSS", new CPointGlyph( displayTHICKCROSS_GLYPH, "Thick cross" ) );

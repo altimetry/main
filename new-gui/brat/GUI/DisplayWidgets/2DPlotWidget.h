@@ -53,7 +53,7 @@ class CBratScaleDraw;
 class CYFXValues;
 
 template< class PARAMS >
-struct CGenericZFXYValues;
+class CGenericZFXYValues;
 struct CZFXYPlotParameters;
 using CZFXYValues = CGenericZFXYValues< CZFXYPlotParameters >;
 
@@ -431,12 +431,19 @@ public:
 
     int XDigits() const;
     int YDigits() const;
+    int Y2Digits() const;
 
     bool XisDateTime() const;
     bool YisDateTime() const;
+    bool Y2isDateTime() const;
 
-    void SetXDigits( bool isdate, int digits, brathl_refDate date_ref = REF19500101 );
+protected:
+	void SetDigits( Axis axisId, bool isdate, int digits, brathl_refDate date_ref );
+
+public:
+	void SetXDigits( bool isdate, int digits, brathl_refDate date_ref = REF19500101 );
     void SetYDigits( bool isdate, int digits, brathl_refDate date_ref = REF19500101 );
+    void SetY2Digits( bool isdate, int digits, brathl_refDate date_ref = REF19500101 );
 
 
     //...scaling
@@ -499,12 +506,12 @@ public:
 
 protected:
 	template< typename DATA >
-	static CHistogram* CreateHistogram( const std::string &title, QColor color, const DATA *data, double &max_freq, int bins );
+	static CHistogram* CreateHistogram( const std::string &title, QColor color, const DATA &data, double &max_freq, int bins );
 
 public:
-	CHistogram* AddHistogram( const std::string &title, QColor color, const CYFXValues *data, double &max_freq, int bins );
+	CHistogram* AddHistogram( const std::string &title, QColor color, const CYFXValues &data, double &max_freq, int bins );
 
-	CHistogram* PushHistogram( const std::string &title, QColor color, const CZFXYValues *data, double &max_freq, int bins );
+	CHistogram* PushHistogram( const std::string &title, QColor color, const CZFXYValues &data, double &max_freq, int bins );
 
 	void SetCurrentHistogram( int index );
 
@@ -556,7 +563,7 @@ public:
 	bool IsCurvePointFilled( int curve ) const;
 	void SetCurvePointFilled( int curve, bool fill );
 
-	EPointGlyph CurvePointGlyph( int curve ) const;
+	EPointGlyph CurvePointGlyph( int curve, EPointGlyph default_symbol ) const;
 	void SetCurvePointGlyph( int curve, EPointGlyph symbol );
 
 	int CurvePointSize( int curve ) const;

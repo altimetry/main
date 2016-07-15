@@ -26,12 +26,15 @@
 #include "libbrathl/Tools.h"
 using namespace brathl;
 
-//-------------------------------------------------------------
-//------------------- CPlotColor class --------------------
-//-------------------------------------------------------------
 
 class CPlotColor : public CBratObject
 {
+	double m_r;
+	double m_g;
+	double m_b;
+	double m_a;
+
+	bool m_isInit;
 public:
 	CPlotColor();
 
@@ -57,7 +60,7 @@ public:
 	}
 	
 
-	bool operator ==( const CPlotColor& color );
+	bool operator == ( const CPlotColor& color ) const;
 
 	void Get( double& r, double& g, double& b, double& a ) const;
 	void Get( uint8_t& r, uint8_t& g, uint8_t& b, uint8_t& a ) const;
@@ -84,14 +87,6 @@ public:
 	double Green() const { return m_g; }
 	double Blue() const { return m_b; }
 	double Alpha() const { return m_a; }
-
-private:
-	double m_r;
-	double m_g;
-	double m_b;
-	double m_a;
-
-	bool m_isInit;
 };
 
 

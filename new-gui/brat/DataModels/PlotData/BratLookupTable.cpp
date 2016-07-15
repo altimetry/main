@@ -26,7 +26,6 @@ using namespace brathl;
 #include "BratLookupTableSettings.h"
 #include "BratLookupTable.h"
 
-//#include "ColorPalette.h"
 
 
 #if !defined(BRAT_V3)
@@ -270,30 +269,30 @@ Qwt3D::ColorVector& QLookupTable::createVector( Qwt3D::ColorVector& vec )
 //-------------------------------------------------------------
 
 CBratLookupTable::CBratLookupTable()
-    : m_nameToMethod(true)
+	: m_nameToMethod( true )
 {
-  Init();
+	Init();
 }
 
 //----------------------------------------
-CBratLookupTable::CBratLookupTable(const CBratLookupTable& lut)
+CBratLookupTable::CBratLookupTable( const CBratLookupTable& lut )
 {
-  Init();
-  m_cust.RemoveAll();
-  DupCustMap(*(lut.GetCust()));
+	Init();
+	m_cust.RemoveAll();
+	DupCustMap( *( lut.GetCust() ) );
 
-  m_grad.RemoveAll();
-  DupGradMap(*(lut.GetGrad()));
+	m_grad.RemoveAll();
+	DupGradMap( *( lut.GetGrad() ) );
 
-  //m_std = lut.GetStd();
-  m_currentFunction = lut.GetCurrentFunction();
+	//m_std = lut.GetStd();
+	m_currentFunction = lut.GetCurrentFunction();
 
-  m_vtkLookupTable->SetNumberOfTableValues(lut.GetLookupTable()->GetNumberOfTableValues());
-  m_vtkLookupTable->SetTableRange(lut.GetLookupTable()->GetTableRange());
+	m_vtkLookupTable->SetNumberOfTableValues( lut.GetLookupTable()->GetNumberOfTableValues() );
+	m_vtkLookupTable->SetTableRange( lut.GetLookupTable()->GetTableRange() );
 
-  ExecCurveMethod(lut.GetCurve());
+	ExecCurveMethod( lut.GetCurve() );
 
-  Update();
+	Update();
 }
 
 //----------------------------------------
@@ -308,25 +307,43 @@ CBratLookupTable::~CBratLookupTable()
 }
 
 //----------------------------------------
-CBratLookupTable& CBratLookupTable::operator=(const CBratLookupTable& lut)
+CBratLookupTable& CBratLookupTable::operator = ( const CBratLookupTable &lut )
 {
-  m_cust.RemoveAll();
-  DupCustMap(*(lut.GetCust()));
+	m_cust.RemoveAll();
+	DupCustMap( *( lut.GetCust() ) );
 
-  m_grad.RemoveAll();
-  DupGradMap(*(lut.GetGrad()));
+	m_grad.RemoveAll();
+	DupGradMap( *( lut.GetGrad() ) );
 
-  m_currentFunction = lut.GetCurrentFunction();
+	m_currentFunction = lut.GetCurrentFunction();
 
-  m_vtkLookupTable->SetNumberOfTableValues(lut.GetLookupTable()->GetNumberOfTableValues());
-  m_vtkLookupTable->SetTableRange(lut.GetLookupTable()->GetTableRange());
+	m_vtkLookupTable->SetNumberOfTableValues( lut.GetLookupTable()->GetNumberOfTableValues() );
+	m_vtkLookupTable->SetTableRange( lut.GetLookupTable()->GetTableRange() );
 
-  ExecCurveMethod(lut.GetCurve());
+	ExecCurveMethod( lut.GetCurve() );
 
-  Update();
+	Update();	// == ExecMethod( m_currentFunction );
 
-  return *this;
+	return *this;
 }
+
+// There is a lot of guessing here; drop any equality empirically not working
+//
+bool CBratLookupTable::operator == ( const CBratLookupTable &o ) const
+{
+	return
+		m_currentFunction == o.m_currentFunction &&
+		GetLookupTable()->GetNumberOfTableValues() == o.GetLookupTable()->GetNumberOfTableValues() &&
+		GetLookupTable()->GetTableRange()[ 0 ] == o.GetLookupTable()->GetTableRange()[ 0 ] &&
+		GetLookupTable()->GetTableRange()[ 1 ] == o.GetLookupTable()->GetTableRange()[ 1 ] &&
+		m_curve == o.m_curve &&
+		m_gradientFunction == o.m_gradientFunction &&
+		m_customFunction == o.m_customFunction &&
+		m_fileName == o.m_fileName &&
+
+		true;
+}
+
 
 //----------------------------------------
 void CBratLookupTable::Init()
@@ -386,38 +403,36 @@ void CBratLookupTable::Init()
 	//ExecMethodDefaultColorTable();
 }
 //----------------------------------------
-std::string CBratLookupTable::MethodToLabeledMethod(const std::string& method)
+std::string CBratLookupTable::MethodToLabeledMethod( const std::string& method ) const
 {
-  CObMap::iterator it;
-  std::string methodTmp = CTools::StringToLower(method);
+	std::string methodTmp = CTools::StringToLower( method );
 
-  for (it = m_nameToMethod.begin() ; it != m_nameToMethod.end() ; it++)
-  {
-    std::string lowerMethod = CTools::StringToLower(it->first);
-    if (methodTmp == lowerMethod)
-    {
-      return it->first;
-    }
-  }
+	for ( CObMap::const_iterator it = m_nameToMethod.begin(); it != m_nameToMethod.end(); it++ )
+	{
+		std::string lowerMethod = CTools::StringToLower( it->first );
+		if ( methodTmp == lowerMethod )
+		{
+			return it->first;
+		}
+	}
 
-  return "";
+	return "";
 }
 //----------------------------------------
-std::string CBratLookupTable::CurveToLabeledCurve(const std::string& curve)
+std::string CBratLookupTable::CurveToLabeledCurve( const std::string& curve ) const
 {
-  CStringArray::iterator it;
-  std::string curveTmp = CTools::StringToLower(curve);
+	std::string curveTmp = CTools::StringToLower( curve );
 
-  for (it = m_curveNames.begin() ; it != m_curveNames.end() ; it++)
-  {
-    std::string lowerCurve = CTools::StringToLower(*it);
-    if (curveTmp == lowerCurve)
-    {
-      return *it;
-    }
-  }
+	for ( CStringArray::const_iterator it = m_curveNames.begin(); it != m_curveNames.end(); it++ )
+	{
+		std::string lowerCurve = CTools::StringToLower( *it );
+		if ( curveTmp == lowerCurve )
+		{
+			return *it;
+		}
+	}
 
-  return "";
+	return "";
 }
 
 //----------------------------------------

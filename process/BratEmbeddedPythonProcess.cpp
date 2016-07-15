@@ -16,6 +16,11 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-register"
+#endif
+
 #include "PythonEngine.hpp"				//include before any Qt
 
 #include <QDirIterator>
@@ -23,6 +28,11 @@
 #include "new-gui/Common/QtStringUtils.h"
 
 #include "BratEmbeddedPythonProcess.h"
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
 
 using namespace brathl;
 using namespace processes;

@@ -21,148 +21,104 @@
 
 #include "libbrathl/brathl.h"
 
+#include "libbrathl/InternalFilesZFXY.h"
+
+using namespace brathl;
+
 #include "PlotValues.h"
-#include "WorldPlotCommonData.h"
+#include "MapProjection.h"
+#include "PlotData.h"
 
 
 
 
-class CWorldPlotData : public CWorldPlotCommonData
+class CWorldPlotData : public CMapValues, public CPlotData
 {
-	using base_t = CWorldPlotCommonData;
+	////////////////////////////
+	//			types
+	////////////////////////////
 
-public:
-		//std::vector<bool> v4_valids;
-		//std::vector<double> v4_vals;
-		//std::vector<bool> v4_bits;
-		//std::vector<double> v4_lons;
-		//std::vector<double> v4_lats;
+	using base_t = CPlotData;
+	using values_base_t = CMapValues;
+
+protected:
+	using values_base_t::back;
+
+
+	////////////////////////////
+	//			statics
+	////////////////////////////
 
 protected:
 
-	CMapValues mMaps;
-
-	bool m_finished;
-	uint32_t m_currentMap;
-	uint32_t m_nrMaps;
-
-	CObArray m_dataDates;
-	CStringArray m_dataTitles;
-	CObArray m_dataUnits;
-
-	//vtkObArray m_geoMapFilterList;
+	static void GetMapLatLon( CInternalFilesZFXY* zfxy,	int32_t& width, int32_t& height, CExpressionValue& varLat, CExpressionValue& varLon );
 
 
-	//vtkObArray m_labelPts;
-	//vtkObArray m_labelIds;
-	//vtkObArray m_labelData;
+	////////////////////////////
+	//		instance data
+	////////////////////////////
 
-	bool m_contourLabelNeedUpdateOnWindow;
-	bool m_contourLabelNeedUpdatePositionOnContour;
+	int32_t m_projection;
 
-	double m_minhv;
-	double m_maxhv;
+	//bool m_finished;
 
 
+	///////////////////////////////
+	// construction / destruction
+	///////////////////////////////
 
-	// v3 note: for base classes
-	//
-#if defined(BRAT_V3)
-	CWorldPlotData( CWorldPlotProperties *plotProperty )
-		: base_t( plotProperty, {} )
+
+	CWorldPlotData( CWorldPlotProperties *north_field, CWorldPlotProperties *east_field )
+		: base_t( north_field, east_field )
+		, values_base_t()
+		, m_projection( PROJ2D_3D )
 	{}
-#endif
 
 public:
-	CWorldPlotData( CPlotField* field )
-		: base_t( field->m_worldProps, { field->m_name } )
+	CWorldPlotData( CWorldPlotProperties *field )
+		: base_t( { field } )
+		, values_base_t()
+		, m_projection( PROJ2D_3D )
 	{
-		Create( &field->m_internalFiles, field->m_name );
+		Create();
 	}
-
-	CWorldPlotData( CPlotField *north_field, CPlotField *east_field )
-		: base_t( north_field->m_worldProps, { north_field->m_name, east_field->m_name } )
-	{}
 
 	virtual ~CWorldPlotData()
 	{}
 
 protected:
-	virtual void Create( CObArray *pinternal_files, const std::string& fieldName );
+	virtual void Create();
 
 public:
 
-	const CMapValues& PlotValues() const { return mMaps; }
+	///////////////////////////////
+	//			access
+	///////////////////////////////
+
+	virtual CWorldPlotProperties* GetPlotProperties() override { return dynamic_cast< CWorldPlotProperties* >( base_t::GetPlotProperties() ); }
+
+	virtual size_t CurrentFrame() const override { return values_base_t::CurrentFrame(); }
 
 
-	int32_t GetNrMaps() { return m_nrMaps; };
+	virtual void SetProjection( int32_t proj )
+	{
+		m_projection = proj;
+	}
 
-	//virtual void OnKeyframeChanged( uint32_t i ) override;
-	virtual void Close() override;
-	//virtual void Update() override;
+#if defined (BRAT_V3)
+	bool m_aborted = false;
+	CStringArray mDataTitles;			//filled, not used in v4
 
-    virtual void Update2D() override;
+protected:
+	// v3 note: for base classes
+	//
+    CWorldPlotData( CWorldPlotProperties &plotProperty )
+		: base_t( {} )
+		, values_base_t()
+		, m_projection( PROJ2D_3D )
+	{}
+#endif
 
-	void GetComputedRange( double& min, double& max ) { min = m_minhv; max = m_maxhv; }
-	double GetComputedRangeMin() { return m_minhv; }
-	//vtkObArray* GetGeoMapFilterList() { return &m_geoMapFilterList; }
-
-	double GetComputedRangeMax() { return m_maxhv; }
-
-	std::string GetDataDateString() { return GetDataDateString( m_currentMap ); }
-	std::string GetDataDateString( uint32_t index );
-
-	const CDate* GetDataDate() { return GetDataDate( m_currentMap ); }
-	const CDate* GetDataDate( uint32_t index ) { return dynamic_cast<CDate*>( m_dataDates[ index ] ); }
-
-    virtual std::string GetDataTitle() override { return GetDataTitle( m_currentMap ); }
-    virtual std::string GetDataTitle( uint32_t index ) override { return m_dataTitles[ index ]; }
-
-    virtual std::string GetDataName() override { return m_plotProperty.Name(); }
-
-	std::string GetDataUnitString() { return GetDataUnitString( m_currentMap ); }
-	std::string GetDataUnitString( uint32_t index );
-
-	const CUnit* GetDataUnit() { return GetDataUnit( m_currentMap ); }
-	const CUnit* GetDataUnit( uint32_t index ) { return dynamic_cast<CUnit*>( m_dataUnits[ index ] ); }
-
-	//virtual void SetProjection( int32_t proj ) override;
-
-    virtual void Set3D() override;
-    virtual void Set2D() override;
-
-	virtual void SetSolidColor3D();
-	virtual void SetSolidColor2D();
-
-	virtual void SetContour3D(){}
-	virtual void SetContour2D(){}
-
-	//void SetContourLabelProperties();
-	//void ContourGenerateValues();
-	//void SetContour3DProperties();
-	//void SetContour2DProperties();
-
-    virtual void CreateContourLabels() override {}
-	//static void FindVisibleSpherePoints( void* arg );
-    virtual void UpdateContourLabels() override {}
-
-    virtual void CreateContourLabels2D() override {}
-    virtual void UpdateContourLabels2D() override {}
-
-	//static void FindVisiblePlanePoints( void* arg );
-
-	//void SetContourLabels2DPosition();
-
-	bool GetContourLabelNeedUpdateOnWindow() { return m_contourLabelNeedUpdateOnWindow; }
-	void SetContourLabelNeedUpdateOnWindow( bool value ) { m_contourLabelNeedUpdateOnWindow = value; }
-
-	bool GetContourLabelNeedUpdatePositionOnContour() { return m_contourLabelNeedUpdatePositionOnContour; }
-	void SetContourLabelNeedUpdatePositionOnContour( bool value ) { m_contourLabelNeedUpdatePositionOnContour = value; }
-
-//protected:
-	static void GetMapLatLon( CInternalFilesZFXY* zfxy,
-		int32_t& width, int32_t& height,
-		CExpressionValue& varLat, CExpressionValue& varLon );
 };
 
 
@@ -184,62 +140,31 @@ protected:
 	double m_minhvE;
 	double m_maxhvE;
 
-	bool IsGlyph;
-	double zoom;
-
-
-	//vtkProj2DFilter *m_simple2DProjFilter;  // this could be of any implementation
-	//vtkVelocityGlyphFilter *m_geoMapFilter;
-
-	//// for glyphs
-	//vtkMaskPoints*   m_pointMask;
-	//vtkArrowSource* m_arrowSource;
-	//vtkBratArrowSource* m_barrowSource;
-	//vtkGlyph3D*  m_glyph;
-
    //only for vtk derived classes (globe, etc)
    //
 #if defined(BRAT_V3)
-   CWorldPlotVelocityData( CWorldPlotProperties* plotProperty = NULL )
+   CWorldPlotVelocityData( CWorldPlotProperties &plotProperty )
 	   :base_t( plotProperty )
    {}
 
-	CWorldPlotVelocityData( CPlotField* field )
+	CWorldPlotVelocityData( CWorldPlotProperties* field )
 		:base_t( field )
 	{}
 #endif
 
-	void Create(CObArray* northData, CObArray* eastData, const std::string& fieldNameNorth, const std::string& fieldNameEast);
+	void Create( const std::vector< CInternalFiles* > &north_files, const std::vector< CInternalFiles* > &east_files );
 public:
 
-	// The order of fields matters: if ever changed, modify XXXFieldName() getters
+	// The order of fields matters
 	//
-	CWorldPlotVelocityData( CPlotField* northField, CPlotField* eastField )
+	CWorldPlotVelocityData( CWorldPlotProperties* northField, CWorldPlotProperties* eastField )
 		: base_t( northField, eastField )										 //v3 note: this is just to compile
 	{
-		Create( &northField->m_internalFiles, &eastField->m_internalFiles, northField->m_name, eastField->m_name );
+		Create( northField->InternalFiles(), eastField->InternalFiles() );
 	}
 
 	virtual ~CWorldPlotVelocityData()
 	{}
-
-
-	const std::string& NorthFieldName() const { return FieldName( 0 ); }
-
-	const std::string& EastFieldName() const { return FieldName( 1 ); }
-
-
-	void SetZoom(double z) { zoom =z; }
-
-protected:
-	//vtkProj2DFilter* GetVtkFilter();
-
-	virtual void Set2D();
-	virtual void Set3D();
-
-	virtual void Set2DGlyphs();
-	virtual void Set3DGlyphs();
-
 };
 
 

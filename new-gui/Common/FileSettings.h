@@ -71,6 +71,11 @@ inline double qv2type( const QVariant &v )
 {
 	return v.toDouble();
 }
+template<>
+inline QColor qv2type( const QVariant &v )
+{
+	return v.value< QColor >();
+}
 
 
 
@@ -508,20 +513,31 @@ public:
         );
     };
 
+
 	void Sync()
 	{
 		mSettings.sync();
 	}
+
 
 	void Clear()
 	{
 		mSettings.clear();
 	}
 
+
 	void ClearGroup( const std::string &group )
 	{
 		CSection section( mSettings, group );		Q_UNUSED( section );
 		mSettings.remove( QString() );
+	}
+
+
+	void ClearKeys( const std::string &group, std::initializer_list< std::string > keys )
+	{
+		CSection section( mSettings, group );		Q_UNUSED( section );
+		for ( const auto &key : keys )
+			mSettings.remove( key.c_str() );
 	}
 };
 

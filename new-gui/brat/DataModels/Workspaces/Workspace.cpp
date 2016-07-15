@@ -770,8 +770,7 @@ bool CWorkspaceOperation::InsertOperation(const std::string &name, COperation* o
 
     // Set the correct names
     newOperation->SetName(name);
-    newOperation->InitOutput( this );
-    newOperation->InitExportAsciiOutput( this );
+    newOperation->InitOutputs( this );    //newOperation->InitExportAsciiOutput( this );
 
     m_operations.Insert( name, newOperation );
     return true;
@@ -1122,7 +1121,7 @@ std::vector< CDisplay* > CWorkspaceDisplay::CreateDisplays4Operation( const COpe
 			file->GetVarDims( *itField, varDimensions );
 
 			size_t nbDims = varDimensions.size();
-			if ( nbDims > 2 )
+			if ( nbDims > 2 )						// (*) see below
 			{
 				continue;
 			}
@@ -1131,9 +1130,24 @@ std::vector< CDisplay* > CWorkspaceDisplay::CreateDisplays4Operation( const COpe
 				continue;
 			}
 
-			CDisplayData *display_data = new CDisplayData( operation, disp_type );
+			CDisplayData *display_data = new CDisplayData( operation, display, disp_type );
 
-			display_data->GetField()->SetName( *itField );
+			//name
+			display_data->SetFieldName( *itField );
+
+			//unit
+			std::string unit = file->GetUnit( *itField ).GetText();
+			display_data->SetFieldUnit( unit );
+
+			//description
+			std::string comment = file->GetComment( *itField );
+			std::string description = file->GetTitle( *itField );
+			if ( !comment.empty() )
+			{
+				description += ( "." + comment );
+			}
+			display_data->SetFieldDescription( description );
+
             CFormula *f = operation->GetFormula( *itField );
             if ( f )
             {
@@ -1147,50 +1161,12 @@ std::vector< CDisplay* > CWorkspaceDisplay::CreateDisplays4Operation( const COpe
                 display_data->SetEastComponent( f->IsEastComponent() );
             }
 
-			std::string unit = file->GetUnit( *itField ).GetText();
-			display_data->GetField()->SetUnit( unit );
-
-			std::string comment = file->GetComment( *itField );
-			std::string description = file->GetTitle( *itField );
-
-			if ( !comment.empty() )
+			//dims / axis
+			size_t supported_dims = std::min( nbDims, (size_t)3 );		assert__( supported_dims < 3 );//given (*) above, 3 is never reached, but let v3 be...
+			for ( size_t idim = 0; idim < supported_dims; ++idim )
 			{
-				description += "." + comment;
-			}
-
-			display_data->GetField()->SetDescription( description );
-
-			if ( nbDims >= 1 )
-			{
-				std::string dimName = varDimensions.at( 0 );
-				display_data->GetX()->SetName( varDimensions.at( 0 ) );
-
-				std::string unit = file->GetUnit( dimName ).GetText();
-				display_data->GetX()->SetUnit( unit );
-
-				display_data->GetX()->SetDescription( file->GetTitle( dimName ) );
-			}
-
-			if ( nbDims >= 2 )
-			{
-				std::string dimName = varDimensions.at( 1 );
-				display_data->GetY()->SetName( varDimensions.at( 1 ) );
-
-				std::string unit = file->GetUnit( dimName ).GetText();
-				display_data->GetY()->SetUnit( unit );
-
-				display_data->GetY()->SetDescription( file->GetTitle( dimName ) );
-			}
-
-			if ( nbDims >= 3 )
-			{
-				std::string dimName = varDimensions.at( 2 );
-				display_data->GetZ()->SetName( varDimensions.at( 2 ) );
-
-				std::string unit = file->GetUnit( dimName ).GetText();
-				display_data->GetZ()->SetUnit( unit );
-
-				display_data->GetZ()->SetDescription( file->GetTitle( dimName ) );
+				const std::string &dimName = varDimensions.at( idim );
+				display_data->SetDimension( idim, dimName, file->GetTitle( dimName ), file->GetUnit( dimName ).GetText() );
 			}
 
 			dataList->Insert( display_data->GetDataKey(), display_data, false );

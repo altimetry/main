@@ -46,7 +46,7 @@ CDatasetBrowserControls::CDatasetBrowserControls( CModel &model, CDesktopManager
     QGroupBox *page_1 = CreateGroupBox( ELayoutType::Vertical, { mDatasetTree }, "File Datasets", nullptr, s, m, m, m, m );
 
 
-
+#if defined(TEST_RADS)
     // - Page RADS browser
     //
     QListWidget *mRadsList = CreateBooleanList( nullptr, { { "ERS1", true }, { "Jason1" }, { "CryoSat" } } );	//TODO, obviously
@@ -66,6 +66,7 @@ CDatasetBrowserControls::CDatasetBrowserControls( CModel &model, CDesktopManager
     auto *browse_buttons = CreateButtonRow( false, Qt::Vertical, { m_BrowseFilesButton, m_BrowseRadsButton } );
 
     auto *browse_group = CreateGroupBox( ELayoutType::Horizontal, { mBrowserStakWidget, browse_buttons }, "", nullptr, s, 4, 4, 4, 4 );
+#endif
 
 
     // II. File Description group
@@ -87,7 +88,12 @@ CDatasetBrowserControls::CDatasetBrowserControls( CModel &model, CDesktopManager
 		CreateSplitter( nullptr, Qt::Horizontal, { mFieldList, mFieldDesc }, false )
     }, "Fields Description", nullptr, s, 4, 4, 4, 4 );
 
+
+#if defined(TEST_RADS)
 	AddTopSplitter( Qt::Vertical, { browse_group, mFileDescGroup, fields_desc_group } );
+#else
+	AddTopSplitter( Qt::Vertical, { page_1, mFileDescGroup, fields_desc_group } );
+#endif
 
 
     // IV. Making connections

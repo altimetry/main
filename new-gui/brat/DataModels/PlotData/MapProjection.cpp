@@ -28,7 +28,6 @@ using namespace brathl;
 
 
 #include "MapProjection.h"
-#include "DataModels/PlotData/WorldPlotCommonData.h"
 
 
 ///////////////////////////

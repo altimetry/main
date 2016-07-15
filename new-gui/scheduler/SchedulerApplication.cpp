@@ -49,6 +49,15 @@ int CSchedulerApplication::OffGuiErrorDialog( int error_code, char const *error_
 CSchedulerApplication::CSchedulerApplication( int &argc, char **argv, int flags )
     : base_t( argc, argv, flags )
 {
+	// Application Paths - a critical first thing to do ////////////////////////////////////
+
+    static const CConsoleApplicationPaths brat_paths( argv[ 0 ], DefaultUserDocumentsPath() );
+    if ( !brat_paths.IsValid() )
+        throw CException( "One or more path directories are invalid:\n" + brat_paths.GetErrorMsg() );
+
+    smApplicationPaths = &brat_paths;	LOG_TRACEstd( smApplicationPaths->ToString() );
+
+
     //	0. SingleInstanceChecker
 
 	if ( isRunning() )
@@ -78,12 +87,6 @@ CSchedulerApplication::CSchedulerApplication( int &argc, char **argv, int flags 
     setlocale( LC_NUMERIC, "C" );
 
     //	III. Locate data directory
-
-    static const CConsoleApplicationPaths brat_paths( argv[ 0 ], DefaultUserDocumentsPath() );
-    if ( !brat_paths.IsValid() )
-        throw CException( "One or more path directories are invalid:\n" + brat_paths.GetErrorMsg() );
-
-    smApplicationPaths = &brat_paths;
 
     CTools::SetInternalDataDir( brat_paths.mInternalDataDir );
 

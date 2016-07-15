@@ -46,7 +46,6 @@ class CBratFilters;
 
 
 
-
 //net stop uxsms
 //net start uxsms
 
@@ -138,7 +137,9 @@ private:
 	QAction *mActionDecorationGrid = nullptr;
     QAction *mActionMapTips = nullptr;
 	QAction *mActionSelectFeatures = nullptr;
+#if defined(ENABLE_POLYGON_SELECTION)
 	QAction *mActionSelectPolygon = nullptr;
+#endif
 	QAction *mActionDeselectAll = nullptr;
 	QToolButton *mSelectionButton = nullptr;
 

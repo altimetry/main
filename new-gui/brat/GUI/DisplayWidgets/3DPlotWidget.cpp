@@ -303,7 +303,7 @@ protected:
 	virtual Scale* clone() const override
 	{
 		CBrat3DScale * new_nb = new CBrat3DScale;
-		new_nb->SetDate( mIsDate );
+		new_nb->SetDate( mIsDate, mDateRef );
 		new_nb->SetLog( mIsLog );
 		new_nb->SetNDigits( mDigits );
 		return new_nb;
@@ -475,6 +475,17 @@ CBrat3DPlot::~CBrat3DPlot()
 {
 	DestroyPointersAndContainer( mFunctions );
 }
+
+
+void CBrat3DPlot::SetTitle( const QString &title )
+{
+	setTitleFont( t2q( C3DPlotWidget::smFontName ), C3DPlotWidget::smTitleFontSize, QFont::Bold );
+
+	setTitle( title );
+
+    updateGL();
+}
+
 
 
 void CBrat3DPlot::SetAxisTitle( Qwt3D::AXIS axis, const std::string &title )
@@ -813,11 +824,26 @@ C3DPlotWidget::~C3DPlotWidget()
 }
 
 
+
 void C3DPlotWidget::PushPlot( const CZFXYPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, Qwt3D::Color *pcolor_map )
 {
 #if defined (TEST_EXAMPLES)
 	return;
 #endif
+
+	//double xmin = values.mMinX;
+	//double xmax = values.mMaxX;
+	//double ymin = values.mMinY;
+	//double ymax = values.mMaxY;
+	//double zmin = values.mMinHeightValue;
+	//double zmax = values.mMaxHeightValue;
+
+	assert__( xmin == values.mMinX );
+	assert__( xmax == values.mMaxX );
+	assert__( ymin == values.mMinY );
+	assert__( ymax == values.mMaxY );
+	assert__( zmin == values.mMinHeightValue );
+	assert__( zmax == values.mMaxHeightValue );
 
 	mCurrentPlot = new CBrat3DPlot( this );
 	mSurfacePlots.push_back( mCurrentPlot );
@@ -831,13 +857,18 @@ void C3DPlotWidget::PushPlot( const CZFXYPlotParameters &values, double xmin, do
 
 	if ( !isDefaultValue( zmin ) && !isDefaultValue( zmax ) )
 	{
-		double mmax = std::max( xmax, std::max( ymax, zmax ) );
-		double xscale = mmax / xmax;
-		double yscale = mmax / ymax;
-		double zscale = mmax / zmax;
-		const double r = 2. / 3.;
+		double xrange = xmax - xmin;			assert__( xrange > 0 );
+		double yrange = ymax - ymin;			assert__( yrange > 0 );
+		double zrange = zmax - zmin;			assert__( zrange > 0 );
 
-		SetScale( xscale * r, yscale * r, zscale * r );
+		double range_max = std::max( xrange, std::max( yrange, zrange ) );
+
+		double xscale = range_max / xrange ;
+		double yscale = range_max / yrange ;
+		double zscale = range_max / zrange ;
+
+		SetScale( xscale, yscale, zscale );
+		mCurrentPlot->setZoom( 0.5 );
 	}
 }
 
@@ -866,17 +897,19 @@ void C3DPlotWidget::SetCurrentPlot( int index )
 
 //title
 
+
 void C3DPlotWidget::SetPlotTitle( const std::string &title )
 {
 	assert__( mSurfacePlots.size() );
 
+	setWindowTitle( title.c_str() );
+
 	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mCurrentPlot );		assert__( p );
 
-
-	p->setTitleFont( t2q( smFontName ), smTitleFontSize, QFont::Bold );
-
-	p->setTitle( title.c_str() );
+	p->SetTitle( windowTitle() );
 }
+
+
 
 
 // persistence (image only)

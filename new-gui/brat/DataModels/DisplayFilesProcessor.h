@@ -1,50 +1,36 @@
-#ifndef CMD_LINE_PROCESSOR_H
-#define CMD_LINE_PROCESSOR_H
+/*
+* This file is part of BRAT 
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 
+#ifndef DATA_MODELS_DISPLAY_CMD_LINE_PROCESSOR_H
+#define DATA_MODELS_DISPLAY_CMD_LINE_PROCESSOR_H
+
+
+#include "DisplayDataProcessor.h"
 		
-#if QT_VERSION < 0x050000
-#include <QtGui/QApplication>
-#else
-#include <QtWidgets/QApplication>
-#endif
-
-#include "libbrathl/List.h"
-#include "libbrathl/FileParams.h"
 
 
-QT_BEGIN_NAMESPACE
-class QString;
-class QSettings;
-QT_END_NAMESPACE
-
-
-class CFieldData;
-
-
-using namespace brathl;
-
-namespace brathl {
-
-	class CInternalFiles;
-	class CExternalFilesNetCDF;
-	class CInternalFilesYFX;
-	class CInternalFilesZFXY;
-}
-
-class CWorldPlotProperties;
-struct CZFXYPlotProperties;
-class CXYPlotProperties;
-class CPlotBase;
-
-
-
-class CDisplayFilesProcessor
+class CDisplayFilesProcessor : public CDisplayDataProcessorBase
 {
-	//data
+	//types
 
-	bool m_isZFLatLon = false;
-	bool m_isYFX = false;
-	bool m_isZFXY = false;
+	using base_t = CDisplayDataProcessorBase;
+
+	//data
 
 	std::string m_paramFile;
 	std::string m_paramXAxis;
@@ -52,65 +38,36 @@ class CDisplayFilesProcessor
 
 	CStringList m_paramVars;
 	CFileParams m_params;
-	CStringArray m_inputFiles;
-	std::string m_inputFileType;
-
-	std::vector< CPlotBase* > m_plots;
-	std::vector<CExpression> m_fields;
-
-	std::vector<CZFXYPlotProperties*> m_zfxyPlotProperties;	
-	std::vector<CXYPlotProperties*> m_xyPlotProperties;
-	std::vector<CWorldPlotProperties*> m_wPlotProperties;
-
-	bool mMapsAsPlots = false;
-
-	std::vector<CInternalFiles*> m_OpenFiles;
 
 public:
 
 	//Public ctor
 
 	CDisplayFilesProcessor( bool maps_as_plots )
-		: mMapsAsPlots( maps_as_plots )
+		: base_t( maps_as_plots )
 	{}
 
 	CDisplayFilesProcessor( bool maps_as_plots, const std::string &display_cmd_file )
-		: mMapsAsPlots( maps_as_plots )
+		: base_t( maps_as_plots )
 	{
 		Process( display_cmd_file );
 	}
 
 	CDisplayFilesProcessor( bool maps_as_plots, const std::vector< std::string > &args )
-		: mMapsAsPlots( maps_as_plots )
+		: base_t( maps_as_plots )
 	{
 		Process( args );
 	}
 
 	//Destruction
 
-	virtual ~CDisplayFilesProcessor();
+	virtual ~CDisplayFilesProcessor()
+	{}
 
 
 	//Access
 
-	const std::string& ParamFile() const { return m_paramFile;  }
-
-	bool isZFLatLon() const { return m_isZFLatLon; }
-	bool isYFX() const { return m_isYFX; }
-	bool isZFXY() const { return m_isZFXY; }
-
-	const std::vector< CPlotBase* > & plots() const { return m_plots; }
-
-	CWorldPlotProperties* GetWorldPlotProperties( size_t index ) const;
-	CZFXYPlotProperties* GetZFXYPlotProperties( size_t index ) const;
-	CXYPlotProperties* GetXYPlotProperties( size_t index ) const;
-
-    size_t GetXYPlotPropertiesSize() const { return m_xyPlotProperties.size(); }
-    size_t GetZFXYPlotPropertiesSize() const { return m_zfxyPlotProperties.size(); }
-    size_t GetWorldPlotPropertiesSize() const { return m_wPlotProperties.size(); }
-
-
-	std::string GetFirstFileName();
+    virtual const std::string& ParamFile() const override { return m_paramFile;  }
 
 
 	//Operations
@@ -134,41 +91,24 @@ public:
 
 	bool Process( const QStringList &args );
 
-	CInternalFiles* Prepare( const std::string& fileName );
-	
 protected:
 	bool GetCommandLineOptions( const std::vector< std::string > &args );
-	void GetParameters();
-
-	bool GetParametersNetcdf();
-	bool GetParametersNetcdfZFLatLon( CExternalFilesNetCDF* externalFile );
-	bool GetParametersNetcdfZFXY( CExternalFilesNetCDF* externalFile );
-	bool GetParametersNetcdfYFX( CExternalFilesNetCDF* externalFile );
-
-	void LoadParameters();
-	void CheckFiles();
+	virtual void BuildPlotsPrivate() override;
 
 	template< class PROPS_CONTAINER >
 	void GetPlotPropertyParams4all( size_t nFields, PROPS_CONTAINER &data );
 
-	void GetPlotPropertyParams( size_t nFields, CFieldData &data );
+	void GetPlotPropertyCommonParams( size_t nFields, CFieldData &data );
 	void GetXYPlotPropertyParams( size_t nFields );
 	void GetWPlotPropertyParams( size_t nFields );
 	void GetZFXYPlotPropertyParams( size_t nFields );
 
-	bool IsXYPlot();
-	bool IsWPlot();
-	bool IsZXYPlot();
-
-	bool IsYFXType() const;
-	bool IsZFXYType() const;
-
-	void CheckFieldsData( CInternalFilesYFX* yfx, const std::string& fieldName );
-	void CheckFieldsData( CInternalFilesZFXY* zfxy, const std::string& fieldName );
-	void CheckFieldsData( CInternalFiles* f, const std::string& fieldName );
-	CInternalFiles* Prepare( int32_t indexFile, const std::string& fieldName );
+	bool BuildPlotsFromNetcdf();
+	bool GetParametersNetcdfZFLatLon( CExternalFilesNetCDF* externalFile );
+	bool GetParametersNetcdfZFXY( CExternalFilesNetCDF* externalFile );
+	bool GetParametersNetcdfYFX( CExternalFilesNetCDF* externalFile );
 };
 
 
 
-#endif // CMD_LINE_PROCESSOR_H
+#endif // DATA_MODELS_DISPLAY_CMD_LINE_PROCESSOR_H

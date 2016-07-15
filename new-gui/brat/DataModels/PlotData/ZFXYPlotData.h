@@ -33,206 +33,65 @@
 
 using namespace brathl;
 
-#include "FieldData.h"
 #include "PlotValues.h"
+#include "PlotData.h"
 #include "PlotColor.h"
-#include "ZFXYPlot.h"
 
 #include "new-gui/brat/DataModels/PlotData/BratLookupTable.h"
 
 
+class CZFXYPlot;
 
-//-------------------------------------------------------------
-//------------------- CZFXYPlotProperties class --------------------
-//-------------------------------------------------------------
 
-struct CZFXYPlotProperties : public CFieldData
+
+class CZFXYPlotData : public CZFXYValues, public CPlotData
 {
-	//types
+	////////////////////////////
+	//			types
+	////////////////////////////
 
-	using base_t = CFieldData;
-
-	//instance data
-
-	std::string m_xLabel;
-	std::string m_yLabel;
-
-	CBratLookupTable* mLUT = nullptr;
-
-	double m_opacity;
-
-	bool m_showAnimationToolbar;
-	bool m_showPropertyPanel;
-	bool m_showColorBar;
-	double m_minHeightValue;
-	double m_maxHeightValue;
-	int32_t m_numColorLabels;
-
-	double m_xMax;
-	double m_yMax;
-	double m_xMin;
-	double m_yMin;
-
-	double m_xBase;
-	double m_yBase;
-
-	bool m_xLog;
-	bool m_yLog;
-
-	unsigned int m_xNumTicks;
-	unsigned int m_yNumTicks;
-    unsigned int m_zNumTicks;
-
-
-	bool m_withContour;
-	bool m_withContourLabel;
-	double m_minContourValue;
-	double m_maxContourValue;
-	int32_t m_numContour;
-	int32_t m_numContourLabel;
-
-	int32_t m_contourLabelSize;
-	double mContourLineWidth = 0.1;
-
-	CPlotColor m_contourLineColor;
-	CPlotColor m_contourLabelColor;
-
-	std::string m_contourLabelFormat;
-
-	bool m_solidColor;
-
-	bool m_withAnimation;
-
-
-	//construction / destruction
-
-	CZFXYPlotProperties();
-
-	CZFXYPlotProperties( const CZFXYPlotProperties &o )
-	{
-		*this = o;
-	}
-
-	virtual ~CZFXYPlotProperties();
-
-	const CZFXYPlotProperties& operator=( const CZFXYPlotProperties &o );
-
-
-private:
-	void DeleteLUT();
-};
-
-
-
-
-//-------------------------------------------------------------
-//------------------- CZFXYPlotData class --------------------
-//-------------------------------------------------------------
-
-class CZFXYPlotData : public CPlotData
-{
 	using base_t = CPlotData;
+	using values_base_t = CZFXYValues;
+
+public:
+	using values_base_t::GetXRange;
+	using values_base_t::GetYRange;
+	using values_base_t::CurrentFrame;
 
 protected:
+	using values_base_t::back;
+
+
+	////////////////////////////
+	//		instance data
+	////////////////////////////
+
+
+#if defined (BRAT_V3)
 	bool m_aborted;
-
-	uint32_t m_currentMap;
-	uint32_t m_nrMaps;
-
-	double m_minhv;
-	double m_maxhv;
-
-	double m_xMin;
-	double m_xMax;
-
-	double m_yMin;
-	double m_yMax;
-
-	CObArray m_dataDates;
 	CStringArray m_dataTitles;
-	CObArray m_dataUnits;
-
-	CUnit m_unitX;
-	CUnit m_unitY;
-	CUnit m_unitZ;
-
-	CZFXYValues mMaps;
-
-	CBratLookupTable *mLUT = nullptr;
-
 public:
-	CZFXYPlotProperties m_plotProperties;
+#endif
 
-	//construction / destruction
+	////////////////////////////
+	// construction /destruction
+	////////////////////////////
 
-	void Create( CObArray* data, const std::string& fieldName, CZFXYPlot* plot );
+	void Create( CZFXYPlot* plot );
 public:
-	CZFXYPlotData( CZFXYPlot* plot, CPlotField* field );
+	CZFXYPlotData( CZFXYPlot* plot, CZFXYPlotProperties* field );
 
 	virtual ~CZFXYPlotData()
-	{
-		DeleteLUT();
-	}
+	{}
 
-	// access
+	
+	////////////////////////////
+	//		access
+	////////////////////////////
 
-	const CZFXYValues& PlotValues() const { return mMaps; }
+	virtual CZFXYPlotProperties* GetPlotProperties() override { return dynamic_cast< CZFXYPlotProperties* >( base_t::GetPlotProperties() ); }
 
-
-	const CUnit& GetXUnit() const { return m_unitX; }
-	const CUnit& GetYUnit() const { return m_unitY; }
-	const CUnit& GetZUnit() const { return m_unitZ; }
-
-	uint32_t GetCurrentMap() const { return m_currentMap; }
-
-	virtual const std::string& GetDataTitle() const { return GetDataTitle( m_currentMap ); }
-	virtual const std::string& GetDataTitle( uint32_t index ) const { return m_dataTitles[ index ]; }
-
-	virtual const std::string& GetDataName() const { return m_plotProperties.Name(); }
-
-	bool GetContour() const { return m_plotProperties.m_withContour; }
-	void SetContour( bool value ) { m_plotProperties.m_withContour = value; }
-
-	bool GetSolidColor() const { return m_plotProperties.m_solidColor; }
-	void SetSolidColor( bool value ) { m_plotProperties.m_solidColor = value; }
-
-	void GetComputedRange( double& min, double& max ) { min = m_minhv; max = m_maxhv; }
-	double GetComputedRangeMin() { return m_minhv; }
-	double GetComputedRangeMax() { return m_maxhv; }
-
-	void GetXRange( double& min, double& max, size_t frame ) const;
-	void GetXRange( double& min, double& max ) const { min = m_xMin; max = m_xMax; }
-	double GetXRangeMin() const { return m_xMin; }
-	double GetXRangeMax() const { return m_xMax; }
-
-	void GetYRange( double& min, double& max, size_t frame ) const;
-	void GetYRange( double& min, double& max ) const { min = m_yMin; max = m_yMax; }
-	double GetYRangeMin() const { return m_yMin; }
-	double GetYRangeMax() const { return m_yMax; }
-
-
-	int32_t GetNrMaps() const { return m_nrMaps; }
-
-	CZFXYPlotProperties* GetPlotProperties() { return &m_plotProperties; }
-
-
-	std::string GetDataDateString() const { return GetDataDateString( m_currentMap ); }
-	std::string GetDataDateString( size_t index ) const;
-
-	std::string GetDataUnitString() const { return GetDataUnitString( m_currentMap ); }
-	std::string GetDataUnitString( size_t index ) const;
-
-
-	CBratLookupTable* GetLUT() { return mLUT; }
-
-	virtual void SetLUT( CBratLookupTable* lut );
-
-	QLookupTable* GetLookupTable()
-	{
-		return mLUT ? mLUT->GetLookupTable() : nullptr;
-	};
-
-	void DeleteLUT();
+	virtual size_t CurrentFrame() const override { return values_base_t::CurrentFrame(); }
 };
 
 

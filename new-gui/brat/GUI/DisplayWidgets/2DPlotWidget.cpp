@@ -413,6 +413,7 @@ public:
     void SetMantissaDigits( int mantissa )
     {
         mMantissaDigits = mantissa;
+		invalidateCache();
     }
 
 
@@ -425,6 +426,7 @@ public:
 	{
 		mIsDate = isdate;
         mDateRef = date_ref;
+		invalidateCache();
 	}
 
 
@@ -485,12 +487,16 @@ C2DPlotWidget::C2DPlotWidget( QWidget *parent )
 	connect( y2, SIGNAL( scaleDivChanged() ), this, SLOT( HandleScaleDivChanged() ) );
 
 
-    CBratScaleDraw* pDrawer = new CBratScaleDraw();
+    CBratScaleDraw* 
+	pDrawer = new CBratScaleDraw();
     pDrawer->SetMantissaDigits(2);
-    setAxisScaleDraw(QwtPlot::xBottom, pDrawer);
+    setAxisScaleDraw( xBottom, pDrawer);
     pDrawer = new CBratScaleDraw();
     pDrawer->SetMantissaDigits(2);
-    setAxisScaleDraw(QwtPlot::yLeft, pDrawer);
+    setAxisScaleDraw( yLeft, pDrawer);
+    pDrawer = new CBratScaleDraw();
+    pDrawer->SetMantissaDigits(2);
+    setAxisScaleDraw( yRight, pDrawer);
 
     setMinimumSize( min_plot_widget_width, min_plot_widget_height );
 }
@@ -609,6 +615,7 @@ void C2DPlotWidget::SetPlotTitle( const std::string &title )
 	font.setBold( true );
 	text.setFont( font );
 	setTitle( text );
+	//setWindowTitle( text );
 }
 
 
@@ -936,57 +943,72 @@ void C2DPlotWidget::SpectrogramAxisTitles( int index, std::string &xtitle, std::
 
 int C2DPlotWidget::XDigits() const
 {
-	const CBratScaleDraw *xdrawer = dynamic_cast<const CBratScaleDraw*>( axisScaleDraw( QwtPlot::xBottom ) );	assert__( xdrawer );
+	const CBratScaleDraw *xdrawer = dynamic_cast<const CBratScaleDraw*>( axisScaleDraw( xBottom ) );	assert__( xdrawer );
 	return xdrawer->GetMantissaDigits();
 }
 
 int C2DPlotWidget::YDigits() const
 {
-	const CBratScaleDraw *ydrawer = dynamic_cast<const CBratScaleDraw*>( axisScaleDraw( QwtPlot::yLeft ) );		assert__( ydrawer );
+	const CBratScaleDraw *ydrawer = dynamic_cast<const CBratScaleDraw*>( axisScaleDraw( yLeft ) );		assert__( ydrawer );
 	return ydrawer->GetMantissaDigits();
 }
 
+int C2DPlotWidget::Y2Digits() const
+{
+	const CBratScaleDraw *ydrawer = dynamic_cast<const CBratScaleDraw*>( axisScaleDraw( yRight ) );		assert__( ydrawer );
+	return ydrawer->GetMantissaDigits();
+}
+
+
 bool C2DPlotWidget::XisDateTime() const
 {
-    const CBratScaleDraw *xdrawer = dynamic_cast<const CBratScaleDraw*>( axisScaleDraw( QwtPlot::xBottom ) );	assert__( xdrawer );
+    const CBratScaleDraw *xdrawer = dynamic_cast<const CBratScaleDraw*>( axisScaleDraw( xBottom ) );	assert__( xdrawer );
     return xdrawer->IsDate();
 }
 bool C2DPlotWidget::YisDateTime() const
 {
-    const CBratScaleDraw *ydrawer = dynamic_cast<const CBratScaleDraw*>( axisScaleDraw( QwtPlot::yLeft ) );		assert__( ydrawer );
+    const CBratScaleDraw *ydrawer = dynamic_cast<const CBratScaleDraw*>( axisScaleDraw( yLeft ) );		assert__( ydrawer );
     return ydrawer->IsDate();
 }
-
-void C2DPlotWidget::SetXDigits( bool isdate, int digits, brathl_refDate date_ref )    //date_ref = REF19500101
+bool C2DPlotWidget::Y2isDateTime() const
 {
-	CBratScaleDraw *xdrawer = dynamic_cast<CBratScaleDraw*>( axisScaleDraw( QwtPlot::xBottom ) );	assert__( xdrawer );
-    if (digits <= 0)
-        digits = xdrawer->GetMantissaDigits();
-    xdrawer->SetMantissaDigits( digits );
-    xdrawer->SetAsDate( isdate, date_ref );
-    //setAxisScaleDraw( QwtPlot::xBottom, xdrawer );
-	replot();
+    const CBratScaleDraw *y2drawer = dynamic_cast<const CBratScaleDraw*>( axisScaleDraw( yRight ) );	assert__( y2drawer );
+    return y2drawer->IsDate();
 }
 
-void C2DPlotWidget::SetYDigits( bool isdate, int digits, brathl_refDate date_ref )    //date_ref = REF19500101
+void C2DPlotWidget::SetDigits( Axis axisId, bool isdate, int digits, brathl_refDate date_ref )
 {
-	CBratScaleDraw *ydrawer = dynamic_cast<CBratScaleDraw*>( axisScaleDraw( QwtPlot::yLeft ) );		assert__( ydrawer );
+	CBratScaleDraw *drawer = dynamic_cast<CBratScaleDraw*>( axisScaleDraw( axisId ) );			assert__( drawer );
     if (digits <= 0)
-        digits = ydrawer->GetMantissaDigits();
-    ydrawer->SetMantissaDigits( digits );
-    ydrawer->SetAsDate( isdate, date_ref );
-    //setAxisScaleDraw( QwtPlot::yLeft, ydrawer );
-	replot();
+        digits = drawer->GetMantissaDigits();
+    drawer->SetMantissaDigits( digits );
+    drawer->SetAsDate( isdate, date_ref );
+	axisWidget( axisId )->update();
+	//replot();
+}
+
+void C2DPlotWidget::SetXDigits( bool isdate, int digits, brathl_refDate date_ref )		//date_ref = REF19500101
+{
+	static const auto axisId = xBottom;
+
+	SetDigits( axisId, isdate, digits, date_ref );
+}
+
+void C2DPlotWidget::SetYDigits( bool isdate, int digits, brathl_refDate date_ref )		//date_ref = REF19500101
+{
+	static const auto axisId = yLeft;
+
+	SetDigits( axisId, isdate, digits, date_ref );
+}
+
+void C2DPlotWidget::SetY2Digits( bool isdate, int digits, brathl_refDate date_ref )		//date_ref = REF19500101 
+{
+	static const auto axisId = yLeft;
+
+	SetDigits( axisId, isdate, digits, date_ref );
 }
 
 
-//void C2DPlotWidget::SetAxisAsDate( bool xaxis, bool yaxis )
-//{
-//    CBratScaleDraw *xdrawer = dynamic_cast<CBratScaleDraw*>( axisScaleDraw( QwtPlot::xBottom ) );	assert__( xdrawer );
-//    xdrawer->SetAsDate( xaxis );
-//    CBratScaleDraw *ydrawer = dynamic_cast<CBratScaleDraw*>( axisScaleDraw( QwtPlot::yLeft ) );		assert__( ydrawer );
-//    ydrawer->SetAsDate( yaxis );
-//}
 
 
 //...scale
@@ -1120,9 +1142,6 @@ QwtPlotSpectrogram* C2DPlotWidget::PushRaster( const std::string &title, const C
     //const_cast<CZFXYValues&>( maps ).setValueMatrix( vmatrix, 1 );
 	//const_cast<CZFXYValues&>( maps ).setBoundingRect( QwtDoubleRect( 0, 0, 10*(map.mMaxX - map.mMinX), 10*(map.mMaxY - map.mMinY )) );
 
-	EnableAxisY2();
-	SetPlotAxisScales( (int)mSpectrograms.size() - 1, map.mMinX, map.mMaxX, map.mMinY, map.mMaxY, mCurrentSpectrogram->data().range().minValue(), mCurrentSpectrogram->data().range().maxValue() );
-
     // Color map
 
 	////////////////QwtLinearColorMap color_map( Qt::darkCyan, Qt::red );
@@ -1130,6 +1149,12 @@ QwtPlotSpectrogram* C2DPlotWidget::PushRaster( const std::string &title, const C
 	////////////////color_map.addColorStop( 0.4, Qt::green );
 	////////////////color_map.addColorStop( 0.90, Qt::yellow );
 	mCurrentSpectrogram->setColorMap( color_map );
+
+    // Axis, scales (do this after color map or prevent re-plotting
+
+	EnableAxisY2();
+	SetPlotAxisScales( (int)mSpectrograms.size() - 1, map.mMinX, map.mMaxX, map.mMinY, map.mMaxY, 
+		mCurrentSpectrogram->data().range().minValue(), mCurrentSpectrogram->data().range().maxValue() );
 
 	//...color bar on the right axis
 	QwtScaleWidget *rightAxis = axisWidget( QwtPlot::yRight );
@@ -1313,7 +1338,7 @@ int C2DPlotWidget::NumberOfBins( int index ) const
 
 
 template< typename DATA >
-CHistogram* C2DPlotWidget::CreateHistogram( const std::string &title, QColor color, const DATA *data, double &max_freq, int bins )
+CHistogram* C2DPlotWidget::CreateHistogram( const std::string &title, QColor color, const DATA &data, double &max_freq, int bins )
 {
 	CHistogram *h = new CHistogram;
 
@@ -1322,7 +1347,7 @@ CHistogram* C2DPlotWidget::CreateHistogram( const std::string &title, QColor col
 
 	//size_t data_size = data->GetDataSize( 0 );
 	double m, M;
-	data->GetDataRange( m, M, 0 );
+	data.GetDataRange( m, M, 0 );
 
 	QwtArray< QwtDoubleInterval > intervals( bins );
 	QwtArray< double > values( bins );
@@ -1336,7 +1361,7 @@ CHistogram* C2DPlotWidget::CreateHistogram( const std::string &title, QColor col
 
 	    intervals[i] = QwtDoubleInterval( b0, b1 );
 
-		values[ i ] = data->GetDataCountIf( 0, [&b0, &b1]( const double &v )
+		values[ i ] = data.GetDataCountIf( 0, [&b0, &b1]( const double &v )
 		{
 			return !isDefaultValue( v ) && v >= b0 && v < b1;
 		}
@@ -1355,7 +1380,7 @@ CHistogram* C2DPlotWidget::CreateHistogram( const std::string &title, QColor col
 
 
 
-CHistogram* C2DPlotWidget::AddHistogram( const std::string &title, QColor color, const CYFXValues *data, double &max_freq, int bins )
+CHistogram* C2DPlotWidget::AddHistogram( const std::string &title, QColor color, const CYFXValues &data, double &max_freq, int bins )
 {
 	assert__( mSpectrograms.size() == 0 && mCurves.size() == 0 );
 
@@ -1377,7 +1402,7 @@ CHistogram* C2DPlotWidget::AddHistogram( const std::string &title, QColor color,
 	return h;
 }
 
-CHistogram* C2DPlotWidget::PushHistogram( const std::string &title, QColor color, const CZFXYValues *data, double &max_freq, int bins )
+CHistogram* C2DPlotWidget::PushHistogram( const std::string &title, QColor color, const CZFXYValues &data, double &max_freq, int bins )
 {
 	assert__( mSpectrograms.size() == 0 && mCurves.size() == 0 );
 
@@ -1623,6 +1648,8 @@ void C2DPlotWidget::EnableCurvePoints( int curve, bool enable, EPointGlyph defau
 
 	CGeneralizedCurve *pcurve = mCurves[ curve ];	   		assert__( pcurve );
 
+	//see CurvePointGlyph before changing
+
 	QwtSymbol c_symbol = pcurve->symbol();
 
 	c_symbol.setStyle( enable ? symbol_cast< QwtSymbol::Style >( default_symbol ) : QwtSymbol::NoSymbol );
@@ -1688,9 +1715,14 @@ void C2DPlotWidget::SetCurvePointFilled( int curve, bool fill )
 
 
 
-EPointGlyph C2DPlotWidget::CurvePointGlyph( int curve ) const
+EPointGlyph C2DPlotWidget::CurvePointGlyph( int curve, EPointGlyph default_symbol ) const
 {
 	assert__( size_t( curve ) < mCurves.size() );
+
+	//see EnableCurvePoints: when points not enabled symbol changes to QwtSymbol::NoSymbol
+
+	if ( mCurves[ curve ]->symbol().style() == QwtSymbol::NoSymbol )
+		return default_symbol;
 
 	return symbol_cast< EPointGlyph >( mCurves[ curve ]->symbol().style() );
 }

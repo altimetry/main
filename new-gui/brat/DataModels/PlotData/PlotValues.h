@@ -387,19 +387,17 @@ public:
 
 
 
-	void GetXRange( double& min, double& max, size_t iframe ) const
+	virtual void GetXRange( double& min, double& max, size_t iframe ) const
 	{
-        // is our frame within our bounds?
 		assert__( iframe < mFrames.size() );
 
-        // gets the associated frame
 		auto const &frame = mFrames[ iframe ];
 
 		frame.GetXRange( min, max );
 	}
 
 
-	void GetYRange( double& min, double& max, size_t iframe ) const
+	virtual void GetYRange( double& min, double& max, size_t iframe ) const
 	{
 		assert__( iframe < mFrames.size() );
 
@@ -409,21 +407,21 @@ public:
     }
 
 
-	void GetXRange( double& min, double& max ) const
+	virtual void GetXRange( double& min, double& max ) const
 	{
 		min = mMinXValue;
 		max = mMaxXValue;
 	}
 
 
-	void GetYRange( double& min, double& max ) const
+	virtual void GetYRange( double& min, double& max ) const
 	{
 		min = mMinYValue;
 		max = mMaxYValue;
 	}
 
 
-	size_t GetNumberOfFrames() const
+	virtual size_t GetNumberOfFrames() const
 	{
 		return mFrames.size();
 	}
@@ -469,7 +467,7 @@ public:
 	{}
 
 
-	//acaess 
+	//access 
 
 	double slope() const
 	{
@@ -770,9 +768,11 @@ struct CMapPlotParameters : public CZFXYPlotParameters
 
 
 template< class PARAMS >
-struct CGenericZFXYValues : public std::vector< PARAMS >, public QwtRasterData
+class CGenericZFXYValues : public std::vector< PARAMS >, public QwtRasterData
 {
 	//types
+
+public:
 
 	using parameters_t = PARAMS;
 
@@ -787,17 +787,51 @@ struct CGenericZFXYValues : public std::vector< PARAMS >, public QwtRasterData
 
 	//instance data
 
+protected:
+
 	mutable size_t mCurrentFrame = 0;
 
 
 	// construction / destruction
 
+public:
 	CGenericZFXYValues() 
 		: base_t()
         , qwt_base_t()
 	{}
 	virtual ~CGenericZFXYValues()
 	{}
+
+	// access
+
+	virtual size_t CurrentFrame() const { return mCurrentFrame; }
+
+
+	void GetXRange( double &min, double &max, size_t iframe ) const
+	{
+		assert__( iframe < size() );	//v3 if ( frame >= size() )	{	frame = size() - 1;	}
+
+        auto const &frame = at( iframe );
+
+		min = frame.mMinX;
+		max = frame.mMaxX;
+	}
+
+	void GetXRange( double& min, double& max ) const { GetXRange( min, max, mCurrentFrame ) ; }
+
+
+	void GetYRange( double &min, double &max, size_t iframe ) const
+	{
+		assert__( iframe < size() );	// v3 if ( frame >= size() ){	frame = size() - 1;	}
+
+        auto const &frame = at( iframe );
+
+		min = frame.mMinY;
+		max = frame.mMaxY;
+	}
+
+	void GetYRange( double& min, double& max ) const { GetYRange( min, max, mCurrentFrame ) ; }
+
 
 
 	template< class F >
@@ -836,6 +870,8 @@ struct CGenericZFXYValues : public std::vector< PARAMS >, public QwtRasterData
 
 		return frame.mValues.size();
     }
+
+
 
 	//QwtRasterData interface
 
@@ -952,9 +988,6 @@ struct CMapValues : CGenericZFXYValues< CMapPlotParameters >
 using CYFXPlotParameters = CYFXValues::CYFXPlotParameters;
 
 using CZFXYValues = CGenericZFXYValues< CZFXYPlotParameters >;
-
-
-
 
 
 #endif			// DATAMODELS_PLOTDATA_PLOT_VALUES_H

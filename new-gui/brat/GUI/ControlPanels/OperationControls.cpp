@@ -2546,8 +2546,7 @@ void COperationControls::HandleNewOperation()
 
 	//SetCurrentOperation();		//assigns   mCurrentOperation, makes GetOperationtreectrl()->Insert(mCurrentOperation);
 	mCurrentOperation = mWOperation->GetOperation( op_name );
-	mCurrentOperation->InitOutput( mWOperation );
-	mCurrentOperation->InitExportAsciiOutput( mWOperation );
+	mCurrentOperation->InitOutputs( mWOperation );					//mCurrentOperation->InitExportAsciiOutput( mWOperation );
 	mDataExpressionsTree->InsertOperation( mCurrentOperation );		//makes mExpressionTextWidget->setText( formula ? formula->GetDescription().c_str() : "" );
 
 	
@@ -2760,8 +2759,7 @@ void COperationControls::HandleRenameOperation()
             std::string old_output = mCurrentOperation->GetOutputPath();
             const bool output_exists = IsFile( old_output );
 
-            mCurrentOperation->InitExportAsciiOutput( mWOperation );
-            mCurrentOperation->InitOutput( mWOperation );
+            mCurrentOperation->InitOutputs( mWOperation );            //mCurrentOperation->InitExportAsciiOutput( mWOperation );
 
             if ( !mCurrentOperation->RenameOutput( old_output ) )
             {

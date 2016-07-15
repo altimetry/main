@@ -24,7 +24,9 @@
 #include "new-gui/Common/QtUtils.h"
 
 #include "DataModels/DisplayFilesProcessor.h"
+#include "DataModels/DisplayDataProcessor.h"
 #include "DataModels/Workspaces/Display.h"
+#include "DataModels/PlotData/PlotData.h"
 
 
 class CTabbedDock;
@@ -39,13 +41,23 @@ class CWorkspaceFormula;
 class CWorkspaceDisplay;
 class COperation;
 class CDisplay;
-class CDisplayFilesProcessor;
 class CBratLookupTable;
 
 class CZFXYPlotData;
 class CXYPlotData;
 class CXYPlotDataCollection;
 class CWorldPlotData;
+class CGeoPlot;
+class CYFXPlot;
+class CZFXYPlot;
+
+
+//#define USE_DISPLAY_FILES_PROCESSOR
+#if defined( USE_DISPLAY_FILES_PROCESSOR )
+using display_data_processor_t = CDisplayFilesProcessor;
+#else
+using display_data_processor_t = CDisplayDataProcessor;
+#endif
 
 
 enum EActionTag : int;
@@ -93,141 +105,6 @@ protected:
 
 	using EImageExportType = CDisplayData::EImageExportType;
 
-	// This class's interface simulates a single CDisplayData
-	//
-	//	Works as a unit for displaying and assigning properties
-	//	- Several plot units can be displayed at the same time
-	//	- Properties are displayed and assigned only for the selected plot unit (in GUI fields/layers list)
-	//
-	class CPlotUnitData : protected std::vector<CDisplayData*> 
-	{
-		using base_t = std::vector<CDisplayData*>;
-
-		template< typename T >
-		using getter_t = T( CDisplayData::* )() const;
-
-
-		// assignment
-
-		void Assign( CDisplayData *data )
-		{
-			assert__( size() == 0 );
-
-			push_back( data );
-		}
-
-		//CWorldPlotData initializes north first; here we follow the order in which field names form the v3 CWorldPlotProperty name
-		//
-		void Assign( CDisplayData *east_data, CDisplayData *north_data )
-		{
-			assert__( size() == 0 );
-
-			push_back( east_data );
-			push_back( north_data );
-		}
-
-		// Must be called before assignment operator
-		void Clear()
-		{
-			clear();
-		}
-
-
-public:
-		CPlotUnitData& operator = ( const CPlotUnitData &o )
-		{
-			if ( this != &o )
-			{
-				Clear();				//really not necessary
-				base_t::operator=( o );
-			}
-
-			return *this;
-		}
-
-		CPlotUnitData& operator = ( CDisplayData *data )
-		{
-			if ( !data )
-				Clear();
-			else
-				Assign( data );
-
-			return *this;
-		}
-
-		CPlotUnitData& operator = ( std::pair<CDisplayData*, CDisplayData*> data )
-		{
-			Assign( data.first, data.second );
-
-			return *this;
-		}
-
-		operator bool() const { return size() > 0;  }
-
-
-	protected:
-
-		template< typename T, typename SETTER >
-		void Set( const T &value, SETTER set )
-		{
-			assert__( size() > 0 );
-
-			(at( 0 )->*set)( value );
-			if ( size() > 1 )
-				(at( 1 )->*set)( value );
-		}
-
-		template< typename T1, typename T2, typename SETTER >
-		void Set( const T1 &value1, const T2 &value2, SETTER set )
-		{
-			assert__( size() > 0 );
-
-			(at( 0 )->*set)( value1, value2 );
-			if ( size() > 1 )
-				(at( 1 )->*set)( value1, value2 );
-		}
-
-		template< typename T >
-		T Get( getter_t< T > get )
-		{
-			assert__( size() > 0 );
-
-			return (at( 0 )->*get)();
-		}
-
-	public:
-
-		std::string Name()									
-		{	
-			std::string name = Get( &CDisplayData::FieldName );			//fieldNameEast + "/" + fieldNameNorth;
-			if ( size() > 1 )
-				name += ( "/" + at( 1 )->FieldName() );
-
-			return name;
-		}
-
-		double GetCurrentMinValue()										{	return Get( &CDisplayData::GetCurrentMinValue );	}
-		void SetCurrentMinValue( const double &value )					{	Set( value, &CDisplayData::SetCurrentMinValue );	}
-		double GetCurrentMaxValue()										{	return Get( &CDisplayData::GetCurrentMaxValue );	}
-		void SetCurrentMaxValue( const double &value )					{	Set( value, &CDisplayData::SetCurrentMaxValue );	}
-
-		double GetAbsoluteMinValue()									{	return Get( &CDisplayData::GetAbsoluteMinValue );	}
-		double GetAbsoluteMaxValue()									{	return Get( &CDisplayData::GetAbsoluteMaxValue );	}
-		void SetAbsoluteRangeValues( const double &m, const double &M )	{	Set( m, M, &CDisplayData::SetAbsoluteRangeValues );	}
-
-		const std::string& GetColorPalette()							{	return Get( &CDisplayData::GetColorPalette );		}
-		void SetColorPalette( const std::string &value )				{	Set( value, &CDisplayData::SetColorPalette );		}
-
-		void SetXAxisText( unsigned index, const std::string& value )	{	Set( index, value, &CDisplayData::SetXAxisText );	}
-
-		unsigned GetNumberOfBins()										{	return Get( &CDisplayData::GetNumberOfBins );	}
-		void SetNumberOfBins( unsigned value )							{	Set( value, &CDisplayData::SetNumberOfBins );	}
-		
-		void SetContour( bool value )									{	Set( value, &CDisplayData::SetContour );	}
-		void SetSolidColor( bool value )								{	Set( value, &CDisplayData::SetSolidColor );	}
-	};
-
-
 
 private:
 	///////////////////////////////////////////////////////////
@@ -239,18 +116,8 @@ protected:
 
 	static brathl_refDate RefDateFromUnit( const CUnit &u );
 
-
-	static CZFXYPlotData* GetFieldData( size_t field_index, std::vector< CZFXYPlotData* > &zfxy_data_array );
-	static CXYPlotData* GetFieldData( size_t field_index, CXYPlotDataCollection &yfx_data_collection );
-	static CWorldPlotData* GetFieldData( size_t field_index, std::vector< CWorldPlotData* > &lon_lat_data_array );
-
-	static CZFXYPlotProperties* GetProperties( size_t field_index, std::vector< CZFXYPlotData* > &zfxy_data_array );
-	static CXYPlotProperties* GetProperties( size_t field_index, CXYPlotDataCollection &yfx_data_collection );
-	static CWorldPlotProperties* GetProperties( size_t field_index, std::vector< CWorldPlotData* > &lon_lat_data_array );
-
-	static CPlotUnitData GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, std::vector< CZFXYPlotData* > &zfxy_data_array );
-	static CPlotUnitData GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, CXYPlotDataCollection &yfx_data_collection );
-	static CPlotUnitData GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, std::vector< CWorldPlotData* > &lon_lat_data_array );
+	static CZFXYPlotData* GetDisplayData( size_t field_index, CZFXYPlot *zfxy );
+	static CWorldPlotData* GetDisplayData( size_t field_index, CGeoPlot *lon_lat );
 
 	
 private:
@@ -300,6 +167,8 @@ private:
 	const CWorkspaceOperation *mWOperation = nullptr;
 	const CWorkspaceFormula *mWFormula = nullptr;
 
+	display_data_processor_t *mCurrentDisplayDataProcessor = nullptr;
+
 protected:
 	const CModel *mModel = nullptr;
 	CWorkspaceDisplay *mWDisplay = nullptr;
@@ -311,11 +180,11 @@ protected:
 	int mRequestedDisplayIndex = 0;				//trick for first requested display
 
 
+	CGeoPlot *mCurrentGeoPlot = nullptr;
+	CYFXPlot *mCurrentYFXPlot = nullptr;
+	CZFXYPlot *mCurrentZFXYPlot = nullptr;
 	CBratLookupTable *mCurrentBratLookupTable = nullptr;
-	CPlotUnitData mCurrentPlotUnit;
 
-
-	const CDisplayFilesProcessor *mCurrentDisplayFilesProcessor = nullptr;
 	const bool mDisplayOnlyMode;
 	const bool mIsMapEditor;
 
@@ -336,6 +205,7 @@ protected:
 
 protected:
 	CAbstractDisplayEditor( bool map_editor, CModel *model, const COperation *op, const std::string &display_name );
+	CAbstractDisplayEditor( bool map_editor, const CDisplayDataProcessor *proc );
 	CAbstractDisplayEditor( bool map_editor, const CDisplayFilesProcessor *proc );
 
 public:
@@ -346,6 +216,8 @@ protected:
 	///////////////////////////////////////////////////////////
 	//access
 	///////////////////////////////////////////////////////////
+
+	const display_data_processor_t *CurrentDisplayDataProcessor() const { return mCurrentDisplayDataProcessor; }
 
 	bool IsMapEditor() const { return mIsMapEditor; }
 
@@ -400,6 +272,8 @@ public:
 
 protected:
 
+	virtual void SetPlotTitle() = 0;
+
 	virtual void NewButtonClicked() = 0;
 	virtual void RenameButtonClicked() = 0;
 	virtual void DeleteButtonClicked() = 0;
@@ -408,7 +282,8 @@ protected:
 
 	virtual void OneClick() = 0;
 
-	virtual bool ChangeView() = 0;
+	virtual bool ChangeView() = 0;									//when display changes
+	virtual bool UpdateCurrentPointers( int field_index ) = 0;		//when field changes: update mCurrentBratLookupTable and any class "current" pointers
 
 	//debug helpers
 	template< typename T >
@@ -436,27 +311,29 @@ protected:
 
 protected:
 	template< typename PLOT >
-	std::vector< PLOT* > GetPlotsFromDisplayFile( bool maps_as_plots, const std::vector< std::string > &args );
+	std::vector< PLOT* > GetPlotsFromDisplayData( bool maps_as_plots, const std::vector< std::string > &args );
 
 	template< typename PLOT >
-	std::vector< PLOT* > GetPlotsFromDisplayFile( CDisplay *display )
+	std::vector< PLOT* > GetPlotsFromDisplayData( CDisplay *display )
 	{
 		std::vector< std::string > v;
 		v.push_back( "" );
 		v.push_back( display->GetCmdFilePath() );
 
-		return GetPlotsFromDisplayFile< PLOT >( !IsMapEditor(), v );
+		return GetPlotsFromDisplayData< PLOT >( !IsMapEditor(), v );
 	}
 
+#if defined( USE_DISPLAY_FILES_PROCESSOR )
 	template< typename PLOT >
-	std::vector< PLOT* > GetPlotsFromDisplayFile( const COperation *operation )
+	std::vector< PLOT* > GetPlotsFromDisplayData( const COperation *operation )
 	{
 		std::vector< std::string > v;
 		v.push_back( "" );
 		v.push_back( operation->GetOutputPath() );
 
-		return GetPlotsFromDisplayFile< PLOT >( !IsMapEditor(), v );
+		return GetPlotsFromDisplayData< PLOT >( !IsMapEditor(), v );
 	}
+#endif
 
 public:
 
@@ -514,23 +391,25 @@ private slots:
 
 
 template< typename PLOT >
-std::vector< PLOT* > CAbstractDisplayEditor::GetPlotsFromDisplayFile( bool maps_as_plots, const std::vector< std::string > &args )
+std::vector< PLOT* > CAbstractDisplayEditor::GetPlotsFromDisplayData( bool maps_as_plots, const std::vector< std::string > &args )
 {
-	std::vector< PLOT* > v;
+	std::vector< PLOT* > v;														 Q_UNUSED( args );
 
 	//std::string errors;
-	delete mCurrentDisplayFilesProcessor;
+	delete mCurrentDisplayDataProcessor;
 	try
 	{
-		mCurrentDisplayFilesProcessor = new CDisplayFilesProcessor( maps_as_plots, args );
-
-		auto &plots = mCurrentDisplayFilesProcessor->plots();
+#if defined( USE_DISPLAY_FILES_PROCESSOR )
+		mCurrentDisplayDataProcessor = new display_data_processor_t( maps_as_plots, args );
+#else
+		mCurrentDisplayDataProcessor = new display_data_processor_t( maps_as_plots, mDisplay );
+#endif
+		auto &plots = mCurrentDisplayDataProcessor->BuildPlots();
 		for ( auto *plot : plots )
 		{
 			PLOT *p = dynamic_cast< PLOT* >( plot );
 			if ( p )
 			{
-				p->GetInfo();
 				v.push_back( p );
 			}
 		}
@@ -538,30 +417,14 @@ std::vector< PLOT* > CAbstractDisplayEditor::GetPlotsFromDisplayFile( bool maps_
 	catch ( const CException & )
 	{
 		//errors = e.Message();
-		delete mCurrentDisplayFilesProcessor;
-		mCurrentDisplayFilesProcessor = nullptr;
+		delete mCurrentDisplayDataProcessor;
+		mCurrentDisplayDataProcessor = nullptr;
 		throw;		//propagate outside
 	}
-
-	//if ( !errors.empty() )
-	//	SimpleWarnBox( errors );
 
 	return v;
 }
 
-
-
-
-//////////////////////////////////////////////////////////////////////////////////////
-
-
-
-template< typename T >
-inline bool VirtuallyEqual( T a, T b )
-{
-	//return std::abs( a - b ) < std::numeric_limits< T >::epsilon();
-	return true;
-}
 
 
 

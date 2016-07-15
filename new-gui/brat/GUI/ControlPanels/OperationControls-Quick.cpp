@@ -577,8 +577,7 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 		operation->Clear();
 	}
 
-	operation->InitOutput( mWOperation );
-	operation->InitExportAsciiOutput( mWOperation );
+	operation->InitOutputs( mWOperation );	//operation->InitExportAsciiOutput( mWOperation );
 	operation->SetType( type );
 
 	operation->SetDataset( QuickDatasetSelected() );

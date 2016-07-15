@@ -738,6 +738,7 @@ bool CWorkspaceSettings::SaveConfig( const CDisplay &d, CWorkspaceDisplay *wksd 
 	{
 		CSection section( mSettings, d.m_name );
 
+#if defined (BRAT_V3)
 		if ( !isDefaultValue( d.m_minXValue ) )
 		{
 			WriteValue( section, ENTRY_MINXVALUE, d.m_minXValue );
@@ -755,6 +756,7 @@ bool CWorkspaceSettings::SaveConfig( const CDisplay &d, CWorkspaceDisplay *wksd 
 		{
 			WriteValue( section, ENTRY_MAXYVALUE, d.m_maxYValue );
 		}
+#endif
 
 		WriteValue( section, ENTRY_ZOOM, d.m_zoom.GetAsText( CDisplay::m_zoomDelimiter ) );
 
@@ -763,7 +765,7 @@ bool CWorkspaceSettings::SaveConfig( const CDisplay &d, CWorkspaceDisplay *wksd 
 	}
 
 	// Warning after formulas Load config conig path has changed
-	if ( !d.m_data.SaveConfig( this, wksd, d.GetName() ) )
+	if ( !SaveConfig( d.m_data, wksd, d.GetName() ) )
 		return false;
 
 	return Status() == QSettings::NoError;
@@ -778,13 +780,18 @@ bool CWorkspaceSettings::LoadConfig( CDisplay &d, std::string &error_msg, CWorks
 		k_v( ENTRY_TITLE,		&d.m_title			),
 		k_v( ENTRY_ANIMATION,	&d.m_withAnimation,	false ),
 		k_v( ENTRY_PROJECTION,	&d.m_projection,	PROJECTION_3D_VALUE ),
+
+#if defined (BRAT_V3)
 		k_v( ENTRY_MINXVALUE,	&d.m_minXValue,		defaultValue< double >() ),
 		k_v( ENTRY_MAXXVALUE,	&d.m_maxXValue,		defaultValue< double >() ),
 		k_v( ENTRY_MINYVALUE,	&d.m_minYValue,		defaultValue< double >() ),
 		k_v( ENTRY_MAXYVALUE,	&d.m_maxYValue,		defaultValue< double >() ),
+#endif
+
 		k_v( ENTRY_ZOOM,		&zoom				)
 	);
 
+	d.SetName( d.GetName() );		//force title if empty
 	d.m_type = type.empty() ? CMapTypeDisp::Invalid() : CMapTypeDisp::GetInstance().NameToId( type );
 	d.m_zoom.Set( zoom, CDisplay::m_zoomDelimiter );
 
@@ -797,14 +804,12 @@ bool CWorkspaceSettings::LoadConfig( CDisplay &d, std::string &error_msg, CWorks
 
 	d.InitOutput( wksd );
 
-	return d.m_data.LoadConfig( this, error_msg, wksd, wkso, d.GetName() );
+	return LoadConfig( d.m_data, &d, error_msg, wksd, wkso, d.GetName() );
 }
 
 bool CWorkspaceSettings::SaveConfig( const CMapDisplayData &data, CWorkspaceDisplay *wks, const std::string& pathSuff )
 {
-	std::string path = GROUP_DISPLAY;
-	if ( !pathSuff.empty() )
-		path += "_" + pathSuff;
+	std::string path = GROUP_DISPLAY + "_" + pathSuff;			assert__( !pathSuff.empty() );
 
 	{
 		int index = 0;
@@ -814,9 +819,7 @@ bool CWorkspaceSettings::SaveConfig( const CMapDisplayData &data, CWorkspaceDisp
 			if ( displayData != nullptr )
 			{
 				index++;
-				std::string key = displayData->GetDataKey();
-				if ( !pathSuff.empty() )
-					key += "_" + pathSuff;
+				std::string key = displayData->GetDataKey() + "_" + pathSuff;
 
 				WriteSection( path,
 
@@ -830,52 +833,56 @@ bool CWorkspaceSettings::SaveConfig( const CMapDisplayData &data, CWorkspaceDisp
 	}
 	return Status() == QSettings::NoError;
 }
-bool CWorkspaceSettings::LoadConfig( CMapDisplayData &data, std::string &error_msg, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso, const std::string& pathSuff )
+bool CWorkspaceSettings::LoadConfig( CMapDisplayData &data, const CDisplay *parent, std::string &error_msg, CWorkspaceDisplay *wks, 
+	CWorkspaceOperation *wkso, const std::string& pathSuff )
 {
-	std::string path = GROUP_DISPLAY;
-	if ( !pathSuff.empty() )
-		path += "_" + pathSuff;
+    std::string path = GROUP_DISPLAY + "_" + pathSuff;			assert__( !pathSuff.empty() );      Q_UNUSED( error_msg );
+
+	std::vector< std::string> data_display_keys;
 
 	ApplyToWholeSection< std::string >( path,
 
-		[ &data, &pathSuff ]( const std::string &key, const std::string &value ) -> bool
+		[ &data, &pathSuff, &data_display_keys ]( const std::string &key, const std::string &value ) -> bool
 		{
-			std::string displayDataName = 
-				!pathSuff.empty() ? 
-				value.substr( 0, value.length() - pathSuff.length() - 1 ) :
-				value;
+			std::string displayDataName = value.substr( 0, value.length() - pathSuff.length() - 1 );
 
 			if ( dynamic_cast< CDisplayData* >( data.Exists( displayDataName ) ) != nullptr )
 				data.Erase( displayDataName );
-
-            data.Insert( displayDataName, new CDisplayData() );         Q_UNUSED( key )
+                                                                                              Q_UNUSED( key )
+            data_display_keys.push_back( displayDataName );
+            //data.Insert( displayDataName, new CDisplayData() );
 
 			return true;	//continue iteration
 		}
 	);
 
 	CStringMap renameKeyMap;
-	for ( CMapDisplayData::iterator it = data.begin(); it != data.end(); it++ )
+	//for ( CMapDisplayData::iterator it = data.begin(); it != data.end(); it++ )
+	for ( auto const &key : data_display_keys )
 	{
-		CDisplayData* displayData = dynamic_cast< CDisplayData* >( it->second );
-		if ( displayData == nullptr )
-		{
-			error_msg +=
-				"ERROR in  CMapDisplayData::LoadConfig\ndynamic_cast<CDisplayData*>(it->second) returns nullptr pointer"
-				"\nList seems to contain objects other than those of the class CDisplayData";
+		CDisplayData *displayData = nullptr;
+		//CDisplayData *displayData = dynamic_cast< CDisplayData* >( it->second );
+		//if ( displayData == nullptr )
+		//{
+		//	error_msg +=
+		//		"ERROR in  CMapDisplayData::LoadConfig\ndynamic_cast<CDisplayData*>(it->second) returns nullptr pointer"
+		//		"\nList seems to contain objects other than those of the class CDisplayData";
 
-			return false;		// v3: GUI error message displayed here
-		}
+		//	return false;		// v3: GUI error message displayed here
+		//}
 
-		if ( !LoadConfig( *displayData, it->first + "_" + pathSuff, wks, wkso ) )
+		//if ( !LoadConfig( *displayData, it->first + "_" + pathSuff, wks, wkso ) )
+		if ( !LoadConfig( displayData, parent, key + "_" + pathSuff, wks, wkso ) )
 			return false;
+
+        data.Insert( key, displayData );
 
 		// To maintain compatibility with Brat v1.x (display name doesn't contain 'display type' in v1.x)
 		const std::string displayDataKey = displayData->GetDataKey();
-
-		if ( it->first != displayDataKey )
+		//if ( it->first != displayDataKey )
+		if ( key != displayDataKey )
 		{
-			renameKeyMap.Insert( it->first, displayDataKey );
+			renameKeyMap.Insert( key, displayDataKey );
 		}
 	}
 
@@ -894,94 +901,174 @@ bool CWorkspaceSettings::SaveConfig( CDisplayData &data, const std::string& path
 	if ( !pathSuff.empty() )
 		path += "_" + pathSuff;
 
-	WriteSection( path,
 
-		k_v( ENTRY_TYPE, CMapTypeDisp::GetInstance().IdToName( data.m_type ) ),
-		k_v( ENTRY_FIELD, data.m_field.GetName() ),
-		k_v( ENTRY_FIELDNAME, data.m_field.GetDescription()	),
-		k_v( ENTRY_UNIT, data.m_field.GetUnit() ),
-
-		k_v( ENTRY_X, data.m_x.GetName() ),
-		k_v( ENTRY_XDESCR, data.m_x.GetDescription() ),
-		k_v( ENTRY_XUNIT, data.m_x.GetUnit() ),
-
-		k_v( ENTRY_Y, data.m_y.GetName() ),
-		k_v( ENTRY_YDESCR, data.m_y.GetDescription() ),
-		k_v( ENTRY_YUNIT, data.m_y.GetUnit() ),
-
-		k_v( ENTRY_Z, data.m_z.GetName() ),
-		k_v( ENTRY_ZDESCR, data.m_z.GetDescription() ),
-		k_v( ENTRY_ZUNIT, data.m_z.GetUnit() )
-	);
-
-	if ( data.m_operation != nullptr )
-	{
-		WriteSection( path,
-
-			k_v( ENTRY_OPNAME, data.m_operation->GetName() )
-		);
-	}
+	//inherited CFieldData
 
 	WriteSection( path,
 
-		k_v( ENTRY_GROUP, data.m_group ),
-		k_v( ENTRY_CONTOUR, data.m_withContour ),
-		k_v( ENTRY_SOLID_COLOR, data.m_withSolidColor ),
+		k_v( ENTRY_FIELD_DATA_NAME, data.mFieldName ),
+		k_v( ENTRY_FIELD_DESC_NAME, data.mUserName ),
+
+		k_v( ENTRY_FIELD_DATA_OPACITY, data.mOpacity ),
+
+		k_v( ENTRY_FIELD_DATA_X_NUM_TICKS,	data.m_xTicks ),
+		k_v( ENTRY_FIELD_DATA_Y_NUM_TICKS,	data.m_yTicks ),
+		k_v( ENTRY_FIELD_DATA_Z_NUM_TICKS,	data.m_zTicks ),
+
+		k_v( ENTRY_FIELD_DATA_X_NUM_DIGITS,	data.m_xDigits ),
+		k_v( ENTRY_FIELD_DATA_Y_NUM_DIGITS,	data.m_yDigits ),
+
+		k_v( ENTRY_FIELD_DATA_X_LABEL,	data.mXlabel ),
+		k_v( ENTRY_FIELD_DATA_Y_LABEL,	data.mYlabel ),
+
+		k_v( ENTRY_FIELD_DATA_X_LOG,	data.mXlogarithmic ),
+		k_v( ENTRY_FIELD_DATA_Y_LOG,	data.mYlogarithmic ),
+
+		k_v( ENTRY_FIELD_DATA_WITHCONTOUR,		data.mWithContour ),
+		k_v( ENTRY_FIELD_DATA_NUMCONTOUR,		data.mNumContours ),
+		k_v( ENTRY_FIELD_DATA_CONTOURLINEWIDTH,	data.mContourLineWidth ),
+		k_v( ENTRY_FIELD_DATA_CONTOURLINECOLOR,	data.mContourLineColor.GetQColor() ),
+
+		k_v( ENTRY_FIELD_DATA_WITHSOLIDCOLOR,	data.mWithSolidColor ),
+
 		k_v( ENTRY_EAST_COMPONENT, data.IsEastComponent() ),
 		k_v( ENTRY_NORTH_COMPONENT, data.IsNorthComponent() ),
-		k_v( ENTRY_INVERT_XYAXES, data.m_invertXYAxes ),
+
+		k_v( ENTRY_FIELD_DATA_SHOW_LINES,	data.mLines ),
+		k_v( ENTRY_FIELD_DATA_SHOW_POINTS,	data.mPoints ),
+
+		k_v( ENTRY_FIELD_DATA_POINTSIZE,	data.mPointSize ),
+		k_v( ENTRY_FIELD_DATA_GLYPHTYPE,	data.mPointGlyph ),
+		k_v( ENTRY_FIELD_DATA_FILLEDPOINT,	data.mFilledPoint ),
+
+		k_v( ENTRY_FIELD_DATA_LINE_COLOR,		data.mLineColor.GetQColor() ),
+		k_v( ENTRY_FIELD_DATA_LINE_WIDTH,		data.mLineWidth ),
+		k_v( ENTRY_FIELD_DATA_STIPPLE_PATTERN,	data.mStipplePattern ),
+		k_v( ENTRY_FIELD_DATA_POINT_COLOR,		data.mPointColor.GetQColor() ),
+
 		k_v( ENTRY_NUMBER_OF_BINS, data.mNumberOfBins )
 	);
 
-	if ( !isDefaultValue( data.mAbsoluteMinValue ) )
-	{
-		WriteSection( path,
-
-			k_v( ENTRY_MINVALUE, CTools::Format( "%.15g", data.mAbsoluteMinValue ) )
-		);
-	}
-	if ( !isDefaultValue( data.mAbsoluteMaxValue ) )
-	{
-		WriteSection( path,
-
-			k_v( ENTRY_MAXVALUE, CTools::Format( "%.15g", data.mAbsoluteMaxValue ) )
-		);
-	}
-	if ( !isDefaultValue( data.mCurrentMinValue ) )
-	{
-		WriteSection( path,
-
-			k_v( ENTRY_CURRENT_MINVALUE, CTools::Format( "%.15g", data.mCurrentMinValue ) )
-		);
-	}
-	if ( !isDefaultValue( data.mCurrentMaxValue ) )
-	{
-		WriteSection( path,
-
-			k_v( ENTRY_CURRENT_MAXVALUE, CTools::Format( "%.15g", data.mCurrentMaxValue ) )
-		);
-	}
-
-	if ( !data.m_colorPalette.empty() )
+	if ( !data.ColorPalette().empty() )
 	{
 		// v3 note
 		// if color palette is a file (it has an extension)
 		// save path in relative form, based on workspace Display path
-		std::string paletteToWrite = data.m_colorPalette;
-		// TODO !!! test !!! this
-		if ( !GetLastExtensionFromPath( data.m_colorPalette ).empty() )
+		std::string paletteToWrite = data.ColorPalette();
+		// TODO this is v3: !!! test !!! this if ever reused
+		if ( !GetLastExtensionFromPath( paletteToWrite ).empty() )
 		{
 			if ( wksd != nullptr )
 			{
-				paletteToWrite = GetRelativePath( wksd->GetPath(), data.m_colorPalette );
+				paletteToWrite = GetRelativePath( wksd->GetPath(), data.ColorPalette() );
 			}
 		}
 
 		WriteSection( path,
 
-			k_v( ENTRY_COLOR_PALETTE, paletteToWrite )
+			k_v( ENTRY_COLOR_PALETTE,		paletteToWrite )
 		);
 	}
+
+	if ( !data.ColorCurve().empty() )
+	{
+		WriteSection( path,
+
+			k_v( ENTRY_COLOR_TABLE_CURVE,	data.ColorCurve() )
+		);
+	}
+
+
+	if ( !isDefaultValue( data.mMinHeightValue ) && !isDefaultValue( data.mMaxHeightValue ) && 
+		!isDefaultValue( data.mCurrentMinValue ) && !isDefaultValue( data.mCurrentMaxValue ) )
+	{
+		WriteSection( path,
+
+			k_v( ENTRY_FIELD_DATA_MIN_HEIGHT_VALUE,				CTools::Format( "%.15g", data.mMinHeightValue ) ),
+			k_v( ENTRY_FIELD_DATA_MAX_HEIGHT_VALUE,				CTools::Format( "%.15g", data.mMaxHeightValue ) ),
+			k_v( ENTRY_FIELD_DATA_MIN_CURRENT_HEIGHT_VALUE,		CTools::Format( "%.15g", data.mCurrentMinValue ) ),
+			k_v( ENTRY_FIELD_DATA_MAX_CURRENT_HEIGHT_VALUE,		CTools::Format( "%.15g", data.mCurrentMaxValue ) )
+		);
+	}
+	else
+	{
+		ClearKeys( path,
+
+		{ ENTRY_FIELD_DATA_MIN_HEIGHT_VALUE, ENTRY_FIELD_DATA_MAX_HEIGHT_VALUE, 
+		ENTRY_FIELD_DATA_MIN_CURRENT_HEIGHT_VALUE, ENTRY_FIELD_DATA_MAX_CURRENT_HEIGHT_VALUE }
+
+		);
+	}
+
+
+	if ( !isDefaultValue( data.mMinContourValue ) && !isDefaultValue( data.mMaxContourValue ) )
+	{
+		WriteSection( path,
+
+			k_v( ENTRY_FIELD_DATA_MIN_CONTOURVALUE, CTools::Format( "%.15g", data.mMinContourValue ) ),
+			k_v( ENTRY_FIELD_DATA_MAX_CONTOURVALUE, CTools::Format( "%.15g", data.mMaxContourValue ) )
+		);
+	}
+	else
+	{
+		ClearKeys( path,
+
+		{ ENTRY_FIELD_DATA_MIN_CONTOURVALUE, ENTRY_FIELD_DATA_MAX_CONTOURVALUE }
+
+		);
+	}
+
+
+
+	//CDisplayData
+
+	//type & fields
+
+	WriteSection( path,
+
+		k_v( ENTRY_TYPE, CMapTypeDisp::GetInstance().IdToName( data.m_type ) ),
+
+		k_v( ENTRY_FIELD, data.m_field.GetName() ),
+		k_v( ENTRY_FIELDNAME, data.m_field.GetDescription()	),
+		k_v( ENTRY_UNIT, data.m_field.GetUnit() ),
+
+		k_v( ENTRY_X, data.GetX()->GetName() ),
+		k_v( ENTRY_XDESCR, data.GetX()->GetDescription() ),
+		k_v( ENTRY_XUNIT, data.GetX()->GetUnit() ),
+
+		k_v( ENTRY_Y, data.GetY()->GetName() ),
+		k_v( ENTRY_YDESCR, data.GetY()->GetDescription() ),
+		k_v( ENTRY_YUNIT, data.GetY()->GetUnit() )
+
+		//k_v( ENTRY_Z, data.GetZ()->GetName() ),
+		//k_v( ENTRY_ZDESCR, data.GetZ()->GetDescription() ),
+		//k_v( ENTRY_ZUNIT, data.GetZ()->GetUnit() )
+	);
+
+	//1. operation...
+	if ( data.mOperation != nullptr )
+	{
+		WriteSection( path,
+
+			k_v( ENTRY_OPNAME, data.mOperation->GetName() )
+		);
+	}
+
+	WriteSection( path,
+
+		//0. group ( TBC )
+		k_v( ENTRY_GROUP, data.m_group )
+
+#if defined(BRAT_V3)
+		,
+		//3. axis
+		k_v( ENTRY_INVERT_XYAXES, data.m_invertXYAxes )
+#endif
+
+	);
+
+
+#if defined(BRAT_V3)
 
 	if ( !data.m_xAxis.empty() )
 	{
@@ -990,90 +1077,114 @@ bool CWorkspaceSettings::SaveConfig( CDisplayData &data, const std::string& path
 			k_v( ENTRY_X_AXIS, data.m_xAxis )
 		);
 	}
+#endif
+
 
 	return Status() == QSettings::NoError;
 }
-bool CWorkspaceSettings::LoadConfig( CDisplayData &data, const std::string& path, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso )
+bool CWorkspaceSettings::LoadConfig( CDisplayData *&pdata, const CDisplay *parent, const std::string& path, CWorkspaceDisplay *wks, CWorkspaceOperation *wkso )
 {
-	std::string 
-		type, field_name, field_description, unit, 
-		entry_x, entry_x_desc, entry_x_unit,
-		entry_y, entry_y_desc, entry_y_unit,
-		entry_z, entry_z_desc, entry_z_unit,
-		op_name;
+	//type & operation
+
+	std::string stype, op_name;
 
 	ReadSection( path,
 
-		k_v( ENTRY_TYPE,				&type,						CMapTypeDisp::GetInstance().IdToName( data.m_type ) ),
-		k_v( ENTRY_FIELD,				&field_name					),
-		k_v( ENTRY_FIELDNAME,			&field_description			),		// v4: yes, not a mistake, the key retrieves a value for setDescription
-		k_v( ENTRY_UNIT,				&unit						),
+		k_v( ENTRY_TYPE,	&stype,		CMapTypeDisp::GetInstance().IdToName( CMapTypeDisp::Invalid() ) ),
+		k_v( ENTRY_OPNAME,	&op_name	)
+	);
 
-		k_v( ENTRY_X,					&entry_x					),
-		k_v( ENTRY_XDESCR,				&entry_x_desc				),
-		k_v( ENTRY_XUNIT,				&entry_x_unit				),
+	CMapTypeDisp::ETypeDisp type = CMapTypeDisp::Invalid();
+	if ( !stype.empty() )	
+	{
+		// Because Z=F(Lat,Lon) have been changed to Z=F(Lon,Lat)	(v3.3.0 note)
+		//
+		if ( str_icmp( stype, OLD_VALUE_DISPLAY_eTypeZFLatLon ) )
+			type = CMapTypeDisp::eTypeDispZFLatLon;
+		else
+			type = CMapTypeDisp::GetInstance().NameToId( stype );
+	}
 
-		k_v( ENTRY_Y,					&entry_y					),
-		k_v( ENTRY_YDESCR,				&entry_y_desc				),
-		k_v( ENTRY_YUNIT,				&entry_y_unit				),
+	const COperation *operation = wkso->GetOperation( op_name );
 
-		k_v( ENTRY_Z,					&entry_z					),
-		k_v( ENTRY_ZDESCR,				&entry_z_desc				),
-		k_v( ENTRY_ZUNIT,				&entry_z_unit				),
 
-		k_v( ENTRY_OPNAME,				&op_name					),
+	//create data item
 
-		k_v( ENTRY_GROUP,				&data.m_group,				1 ),
-		k_v( ENTRY_CONTOUR,				&data.m_withContour,		false  ),
-		k_v( ENTRY_SOLID_COLOR,			&data.m_withSolidColor,		true  ),
+	pdata = new CDisplayData( operation, parent, type );
+	CDisplayData &data = *pdata;
+
+
+	//fill display data item
+
+	std::string 
+		field_name, field_description, unit, 
+		entry_x, entry_x_desc, entry_x_unit,
+		entry_y, entry_y_desc, entry_y_unit,		//entry_z, entry_z_desc, entry_z_unit,
+		palette, curve;
+
+
+	//inherited CFieldData
+
+	QColor line_color, point_color, contour_line_color;
+
+	ReadSection( path,
+
+		k_v( ENTRY_FIELD_DATA_NAME,		&data.mFieldName ),
+		k_v( ENTRY_FIELD_DESC_NAME,		&data.mUserName ),
+
+		k_v( ENTRY_FIELD_DATA_OPACITY,	&data.mOpacity ),
+
+		k_v( ENTRY_FIELD_DATA_X_NUM_TICKS,	&data.m_xTicks, defaultValue< unsigned >() ),
+		k_v( ENTRY_FIELD_DATA_Y_NUM_TICKS,	&data.m_yTicks, defaultValue< unsigned >() ),
+		k_v( ENTRY_FIELD_DATA_Z_NUM_TICKS,	&data.m_zTicks, defaultValue< unsigned >() ),
+
+		k_v( ENTRY_FIELD_DATA_X_NUM_DIGITS,	&data.m_xDigits, CFieldData::smDefaultNumberOfDigits ),
+		k_v( ENTRY_FIELD_DATA_Y_NUM_DIGITS,	&data.m_yDigits, CFieldData::smDefaultNumberOfDigits ),
+
+		k_v( ENTRY_FIELD_DATA_X_LABEL,	&data.mXlabel ),
+		k_v( ENTRY_FIELD_DATA_Y_LABEL,	&data.mYlabel ),
+
+		k_v( ENTRY_FIELD_DATA_X_LOG,	&data.mXlogarithmic, false ),
+		k_v( ENTRY_FIELD_DATA_Y_LOG,	&data.mYlogarithmic, false ),
+
+		k_v( ENTRY_COLOR_PALETTE,			&palette,				data.ColorPalette()	),
+		k_v( ENTRY_COLOR_TABLE_CURVE,		&curve,					data.ColorCurve() ),
+
+		k_v( ENTRY_FIELD_DATA_WITHCONTOUR,		&data.mWithContour,			false ),
+		k_v( ENTRY_FIELD_DATA_NUMCONTOUR,		&data.mNumContours,			CFieldData::smDefaultNumContour ),
+		k_v( ENTRY_FIELD_DATA_CONTOURLINEWIDTH,	&data.mContourLineWidth,	CFieldData::smDefaultContourLineWidth ),
+		k_v( ENTRY_FIELD_DATA_CONTOURLINECOLOR,	&contour_line_color,		CFieldData::smDefaultContourLineColor.GetQColor() ),
+		k_v( ENTRY_FIELD_DATA_MIN_CONTOURVALUE,	&data.mMinContourValue,		defaultValue< double >() ),
+		k_v( ENTRY_FIELD_DATA_MAX_CONTOURVALUE,	&data.mMaxContourValue,		defaultValue< double >() ),
+
+		k_v( ENTRY_FIELD_DATA_WITHSOLIDCOLOR,	&data.mWithSolidColor,		true ),
 
 		k_v( ENTRY_EAST_COMPONENT,		&data.mEastComponent,		false  ),
 		k_v( ENTRY_NORTH_COMPONENT,		&data.mNorthComponent,		false  ),
 
-		k_v( ENTRY_INVERT_XYAXES,		&data.m_invertXYAxes,		false  ),
+		k_v( ENTRY_FIELD_DATA_SHOW_LINES,	&data.mLines,	CFieldData::smDefaultShowLines ),
+		k_v( ENTRY_FIELD_DATA_SHOW_POINTS,	&data.mPoints,	CFieldData::smDefaultShowPoints ),
 
-		k_v( ENTRY_NUMBER_OF_BINS,		&data.mNumberOfBins,		CDisplayData::smDefaultNumberOfBins ),
+		k_v( ENTRY_FIELD_DATA_POINTSIZE,	&data.mPointSize,			CFieldData::smDefaultPointSize ),
+		k_v( ENTRY_FIELD_DATA_GLYPHTYPE,	(int*)&data.mPointGlyph,	(int)CFieldData::smDefaultGlyphType ),
+		k_v( ENTRY_FIELD_DATA_FILLEDPOINT,	&data.mFilledPoint,			CFieldData::smDefaultFilledPoint ),
 
-		k_v( ENTRY_MINVALUE,			&data.mAbsoluteMinValue,	defaultValue<double>()  ),
-		k_v( ENTRY_MAXVALUE,			&data.mAbsoluteMaxValue,	defaultValue<double>()  ),
+		k_v( ENTRY_FIELD_DATA_LINE_COLOR,		&line_color,					CMapColor::GetInstance().NextPrimaryColors().GetQColor() ),
+		k_v( ENTRY_FIELD_DATA_LINE_WIDTH,		&data.mLineWidth,				CFieldData::smDefaultLineWidth ),
+		k_v( ENTRY_FIELD_DATA_STIPPLE_PATTERN,	(int*)&data.mStipplePattern,	(int)CFieldData::smDefaultStipplePattern ),
+		k_v( ENTRY_FIELD_DATA_POINT_COLOR,		&point_color,					CFieldData::smDefaultPointColor.GetQColor() ),
 
-		k_v( ENTRY_CURRENT_MINVALUE,	&data.mCurrentMinValue,		defaultValue<double>()  ),
-		k_v( ENTRY_CURRENT_MAXVALUE,	&data.mCurrentMaxValue,		defaultValue<double>()  ),
+		k_v( ENTRY_FIELD_DATA_MIN_HEIGHT_VALUE,				&data.mMinHeightValue, defaultValue< double >() ),
+		k_v( ENTRY_FIELD_DATA_MAX_HEIGHT_VALUE,				&data.mMaxHeightValue, defaultValue< double >() ),
+		k_v( ENTRY_FIELD_DATA_MIN_CURRENT_HEIGHT_VALUE,		&data.mCurrentMinValue, defaultValue< double >() ),
+		k_v( ENTRY_FIELD_DATA_MAX_CURRENT_HEIGHT_VALUE,		&data.mCurrentMaxValue, defaultValue< double >() ),
 
-		k_v( ENTRY_COLOR_PALETTE,		&data.m_colorPalette		),
-
-		k_v( ENTRY_X_AXIS,				&data.m_xAxis				)
+		k_v( ENTRY_NUMBER_OF_BINS,		&data.mNumberOfBins,		CFieldData::smDefaultNumberOfBins )
 	);
 
-	if ( type.empty() )	{
-		data.m_type = CMapTypeDisp::Invalid();
-	}
-	else {
-		// Because Z=F(Lat,Lon) have been changed to Z=F(Lon,Lat)	(v3.3.0 note)
-		//
-		if ( str_icmp( type, OLD_VALUE_DISPLAY_eTypeZFLatLon ) )
-			data.m_type = CMapTypeDisp::eTypeDispZFLatLon;
-		else
-			data.m_type = CMapTypeDisp::GetInstance().NameToId( type );
-	}
-
-	data.m_field.SetName( field_name );
-	data.m_field.SetDescription( field_description );
-	data.m_field.SetUnit( unit );
-
-	data.m_x.SetName( entry_x );
-	data.m_x.SetDescription( entry_x_desc );
-	data.m_x.SetUnit( entry_x_unit );
-
-	data.m_y.SetName( entry_y );
-	data.m_y.SetDescription( entry_y_desc );
-	data.m_y.SetUnit( entry_y_unit );
-
-	data.m_z.SetName( entry_z );
-	data.m_z.SetDescription( entry_z_desc );
-	data.m_z.SetUnit( entry_z_unit );
-	
-	data.m_operation = wkso->GetOperation( op_name );
+	data.SetLineColor( line_color );
+	data.SetPointColor( point_color );
+	data.SetContourLineColor( contour_line_color );
 
 	// if color palette is a file (it has an extension)
 	// save path in absolute form, based on workspace Display path
@@ -1091,12 +1202,63 @@ bool CWorkspaceSettings::LoadConfig( CDisplayData &data, const std::string& path
 	//	}
 	//}
 
-	// TODO !!! test !!! this
-	if ( !GetLastExtensionFromPath( data.m_colorPalette ).empty() )
+	// TODO this is v3 !!! test !!! this if ever reused
+	if ( !GetLastExtensionFromPath( palette ).empty() )
 	{
 		if ( wks != nullptr )
-			data.m_colorPalette = NormalizedAbsolutePath( data.m_colorPalette, wks->GetPath() );		// TODO !!! test !!! this
+			palette = NormalizedAbsolutePath( palette, wks->GetPath() );		// TODO !!! test !!! this
 	}
+	data.SetColorPalette( palette );
+	data.SetColorCurve( curve );
+
+
+	//CDisplayData
+
+	ReadSection( path,
+
+		//fields...
+
+		k_v( ENTRY_FIELD,				&field_name					),
+		k_v( ENTRY_FIELDNAME,			&field_description			),		// v4: yes, not a mistake, the key retrieves a value for setDescription
+		k_v( ENTRY_UNIT,				&unit						),
+
+		k_v( ENTRY_X,					&entry_x					),
+		k_v( ENTRY_XDESCR,				&entry_x_desc				),
+		k_v( ENTRY_XUNIT,				&entry_x_unit				),
+
+		k_v( ENTRY_Y,					&entry_y					),
+		k_v( ENTRY_YDESCR,				&entry_y_desc				),
+		k_v( ENTRY_YUNIT,				&entry_y_unit				),
+
+		//k_v( ENTRY_Z,					&entry_z					),
+		//k_v( ENTRY_ZDESCR,				&entry_z_desc				),
+		//k_v( ENTRY_ZUNIT,				&entry_z_unit				),
+
+		//1. operation...
+		k_v( ENTRY_OPNAME,				&op_name					),
+
+		//0. group ( TBC )
+		k_v( ENTRY_GROUP,				&data.m_group,				1 )
+
+#if defined(BRAT_V3)
+		//3. axis
+
+		,
+		k_v( ENTRY_X_AXIS,				&data.m_xAxis				),
+		k_v( ENTRY_INVERT_XYAXES,		&data.m_invertXYAxes,		false  )
+#endif
+	);
+
+
+	// key & fields
+
+	data.SetFieldName( field_name );
+	data.SetFieldDescription( field_description );
+	data.SetFieldUnit( unit );
+
+	data.SetDimension( CDisplayData::eX, entry_x, entry_x_desc, entry_x_unit );
+	data.SetDimension( CDisplayData::eY, entry_y, entry_y_desc, entry_y_unit );
+	//data.SetDimension( 2, entry_z, entry_z_desc, entry_z_unit );
 
 	return true;
 }

@@ -102,19 +102,18 @@ class CColorMapWidget : public QWidget
 	QPushButton *mCalculateMinMax = nullptr;
 	static const int smNumberOfColorLabels = 5;
 	std::vector<QLabel*> mColorLabels;
-	double mAbsoluteMin = -50.;
-	double mAbsoluteMax = 50.;
-	double mColorRangeMin = -50.;
-	double mColorRangeMax = 50.;
-
+	double mAbsoluteMin = std::numeric_limits<double>::max();
+	double mAbsoluteMax = std::numeric_limits<double>::lowest();
+	double mColorRangeMin = std::numeric_limits<double>::max();
+	double mColorRangeMax = std::numeric_limits<double>::lowest();
 
 	bool mOnlyLUT = false;
 
 	//construction / destruction
 
-	void CreateWidgets( bool show_labels );
+	void CreateWidgets( bool show_range );
 public:
-    explicit CColorMapWidget( bool only_lut, bool show_labels, QWidget *parent );
+    explicit CColorMapWidget( bool only_lut, bool show_range, QWidget *parent );
 
     virtual ~CColorMapWidget()
     {}

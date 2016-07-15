@@ -73,16 +73,16 @@ const CPlotColor& CPlotColor::operator =(wxColourData& color)
 }
 femmTODO */
 //----------------------------------------
-bool CPlotColor::operator ==(const CPlotColor& color)
+bool CPlotColor::operator ==( const CPlotColor& color ) const
 {
-  bool bEqual = true;
-  bEqual &= (this->Red() == color.Red());
-  bEqual &= (this->Green() == color.Green());
-  bEqual &= (this->Blue() == color.Blue());
-  bEqual &= (this->Alpha() == color.Alpha());
-  bEqual &= (this->Ok() == color.Ok());
+	bool bEqual = true;
+	bEqual &= ( this->Red() == color.Red() );
+	bEqual &= ( this->Green() == color.Green() );
+	bEqual &= ( this->Blue() == color.Blue() );
+	bEqual &= ( this->Alpha() == color.Alpha() );
+	bEqual &= ( this->Ok() == color.Ok() );
 
-  return bEqual;
+	return bEqual;
 }
 
 //----------------------------------------

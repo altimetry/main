@@ -69,6 +69,7 @@ void CActiveViewsDialog::Wire()
 	connect( mCloseDialogButton, SIGNAL( clicked() ), this, SLOT( accept() ) );
 	connect( mCloseWindowButton, SIGNAL( clicked() ), this, SLOT( HandleCloseWindow() ) );
 	connect( mSelectWindowButton, SIGNAL( clicked() ), this, SLOT( HandleSelectWindow() ) );
+	connect( mSelectWindowButton, SIGNAL( clicked() ), this, SLOT( accept() ) );
 
 	RefreshWindowsList();
 }
@@ -128,10 +129,7 @@ void CActiveViewsDialog::HandleSelectWindow()
 	{
 		auto *sub_window = mSubWindows[ index ];
 		sub_window->setVisible( true );
-		sub_window->activateWindow();
-		sub_window->show();
 		sub_window->showNormal();
-		sub_window->setFocus();
 	}
 }
 

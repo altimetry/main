@@ -52,6 +52,13 @@ const std::string& GenericName( const VALUE &v )
 {
 	return v.GetName();
 }
+template< typename VALUE >
+const std::string& GenericTip( const VALUE &v )
+{
+    Q_UNUSED( v );
+
+    return empty_string<std::string>();
+}
 template<>
 const std::string& GenericName( const int &v )
 {
@@ -76,6 +83,11 @@ const std::string& GenericName( const CTreeWorkspace &v )
     static const std::string s = "Workspace Tree";
 	return s;
 }
+template<>
+const std::string& GenericTip( const CTreeWorkspace &v )
+{
+	return v.GetRootData()->GetPath();
+}
 
 
 template< typename VALUE, typename ITERATOR, typename CHILD_NODE >
@@ -99,6 +111,7 @@ struct WkspcTreeNodeBase
 	virtual bool operator()( QTreeWidgetItem *item, const value_t &v ) const
 	{
 		item->setText( 0, t2q( GenericName( v ) ) );
+		item->setToolTip( 0, t2q( GenericTip( v ) ) );
 		return true;
 	}
 

@@ -34,9 +34,7 @@
 #include "DataModels/Workspaces/Workspace.h"
 #include "DataModels/Workspaces/WorkspaceSettings.h"
 #include "DataModels/Filters/BratFilters.h"
-#include "DataModels/PlotData/ZFXYPlot.h"
-#include "DataModels/PlotData/XYPlot.h"
-#include "DataModels/PlotData/WorldPlot.h"
+#include "DataModels/PlotData/Plots.h"
 
 #include "GUI/DisplayWidgets/GlobeWidget.h"
 #include "GUI/DisplayEditors/MapEditor.h"
@@ -349,10 +347,15 @@ void CBratMainWindow::ProcessMenu()
 	mDesktopManager->Map()->ConnectParentMapTipsAction( mActionMapTips );
 	mActionMapTips->setChecked( true );
 
-	mSelectionButton = CMapWidget::CreateMapSelectionActions( mMainToolsToolBar, mActionSelectFeatures, mActionSelectPolygon, mActionDeselectAll );
+	mSelectionButton = CMapWidget::CreateMapSelectionActions( mMainToolsToolBar, mActionSelectFeatures, mActionDeselectAll );
 	mMainToolsToolBar->insertAction( after, mActionDeselectAll );
 	mMainToolsToolBar->insertWidget( mActionDeselectAll, mSelectionButton );
+#if defined(ENABLE_POLYGON_SELECTION)
+	CMapWidget::AddMapSelectionPolygon( mSelectionButton, mMainToolsToolBar, mActionSelectPolygon );
 	mDesktopManager->Map()->ConnectParentSelectionActions( mSelectionButton, mActionSelectFeatures, mActionSelectPolygon, mActionDeselectAll );
+#else
+	mDesktopManager->Map()->ConnectParentSelectionActions( mSelectionButton, mActionSelectFeatures, nullptr, mActionDeselectAll );
+#endif
 
 
     // Menu View / ToolBars
@@ -810,12 +813,12 @@ bool CBratMainWindow::StartDisplayMode()
 
 		connect( mDesktopManager, SIGNAL( AllSubWindowsClosed() ), this, SLOT( StopDisplayMode() ) );
 
-		auto &plots = p.plots();
+		auto &plots = p.BuildPlots();
 		if ( p.isZFLatLon() )		// =================================== WorldPlot()
 		{
 			for ( auto &plot : plots )
 			{
-				CWPlot* wplot = dynamic_cast<CWPlot*>( plot );
+				CGeoPlot* wplot = dynamic_cast<CGeoPlot*>( plot );
 				if ( wplot == nullptr )
 					continue;
 
@@ -826,7 +829,7 @@ bool CBratMainWindow::StartDisplayMode()
 		{
 			for ( auto &plot : plots )
 			{
-				CPlot* yfxplot = dynamic_cast<CPlot*>( plot );
+				CYFXPlot* yfxplot = dynamic_cast<CYFXPlot*>( plot );
 				if ( yfxplot == nullptr )
 					continue;
 
@@ -870,7 +873,7 @@ bool CBratMainWindow::OkToContinue()
 
 	int r = 
 		QMessageBox::warning( this, base_t::windowTitle(),
-		base_t::tr( "Do you want to save the workspace changes?" ),
+		base_t::tr( "Do you want to save any workspace changes?" ),
 		QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel );
 
 	if ( r == QMessageBox::Yes ) 

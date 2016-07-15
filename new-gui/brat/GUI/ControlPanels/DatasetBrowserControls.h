@@ -35,9 +35,11 @@ class CDatasetBrowserControls : public CDesktopControlsPanel
 
 	//instance data
 
-    CStackedWidget *mBrowserStakWidget = nullptr;
+#if defined(TEST_RADS)
+	CStackedWidget *mBrowserStakWidget = nullptr;
     QAbstractButton *m_BrowseFilesButton = nullptr;
     QAbstractButton *m_BrowseRadsButton = nullptr;
+#endif
 
     QTreeWidget *mDatasetTree = nullptr;
 

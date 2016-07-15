@@ -30,6 +30,7 @@
 #include "DataModels/PlotData/ZFXYPlotData.h"
 #include "DataModels/PlotData/XYPlotData.h"
 #include "DataModels/PlotData/WorldPlotData.h"
+#include "DataModels/PlotData/Plots.h"
 
 #include "GUI/ActionsTable.h"
 #include "GUI/TabbedDock.h"
@@ -54,136 +55,56 @@ brathl_refDate CAbstractDisplayEditor::RefDateFromUnit( const CUnit &u )
 }
 
 
-CZFXYPlotData* CAbstractDisplayEditor::GetFieldData( size_t field_index, std::vector< CZFXYPlotData* > &zfxy_data_array )
-{
-	assert__( field_index < zfxy_data_array.size() );
-
-	CZFXYPlotData *pdata = zfxy_data_array[ field_index ];			assert__( pdata != nullptr );
-	return pdata;
-}
-//static
-CXYPlotData* CAbstractDisplayEditor::GetFieldData( size_t field_index, CXYPlotDataCollection &yfx_data_collection )
-{
-	assert__( field_index < yfx_data_collection.size() );
-
-	CXYPlotData *pdata = yfx_data_collection.Get( field_index );	assert__( pdata != nullptr );
-	return pdata;
-}
-//static
-CWorldPlotData* CAbstractDisplayEditor::GetFieldData( size_t field_index, std::vector< CWorldPlotData* > &lon_lat_data_array )
-{
-	assert__( field_index < lon_lat_data_array.size() );
-
-	CWorldPlotData *pdata = lon_lat_data_array[ field_index ];		assert__( pdata != nullptr );
-	return pdata;
-}
-
-
-//static
-CZFXYPlotProperties* CAbstractDisplayEditor::GetProperties( size_t field_index, std::vector< CZFXYPlotData* > &zfxy_data_array )
-{
-	CZFXYPlotData *pdata = GetFieldData( field_index, zfxy_data_array );
-	CZFXYPlotProperties* props = pdata->GetPlotProperties();					assert__( props );
-	return props;
-}
-//static
-CXYPlotProperties* CAbstractDisplayEditor::GetProperties( size_t field_index, CXYPlotDataCollection &yfx_data_collection )
-{
-	CXYPlotData *pdata = GetFieldData( field_index, yfx_data_collection );
-	CXYPlotProperties *props = pdata->GetPlotProperties();						assert__( props );
-	return props;
-}
-//static
-CWorldPlotProperties* CAbstractDisplayEditor::GetProperties( size_t field_index, std::vector< CWorldPlotData* > &lon_lat_data_array )
-{
-	CWorldPlotData *pdata = GetFieldData( field_index, lon_lat_data_array );
-	CWorldPlotProperties *props = &pdata->m_plotProperty;						assert__( props );
-	return props;
-}
-
-
-
 void ThrowDisplayDataNotAvaiable()
 {
 	throw CException( "DisplayData not available. This can sometimes happen when opening Brat V3 views.\nIf that is the case, the operation should be run again" );
 }
 
 //static
-CAbstractDisplayEditor::CPlotUnitData
-CAbstractDisplayEditor::GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, std::vector< CZFXYPlotData* > &zfxy_data_array )
+CWorldPlotData*
+CAbstractDisplayEditor::GetDisplayData( size_t field_index, CGeoPlot *lon_lat )
 {
-	CZFXYPlotData *pdata = GetFieldData( field_index, zfxy_data_array );
-	CPlotUnitData unit;
-	unit = display->GetFieldDisplayData( pdata->FieldName( 0 ) );
-	if ( !unit )
+	CWorldPlotData *unit = lon_lat->PlotData( field_index );	assert( unit );
+	if ( !*unit )
+		ThrowDisplayDataNotAvaiable();
+
+	CWorldPlotProperties &props = *unit->GetPlotProperties();
+	if ( unit->FieldNameEast() != props.FieldName() && unit->FieldNameNorth() != props.FieldName() )
 	{
-		CZFXYPlotProperties *props = GetProperties( field_index, zfxy_data_array );
-		unit = display->GetFieldDisplayDataV3( operation, props->Name() );
-		if ( unit.Name() != props->Name() )
-			LOG_WARN( unit.Name() + " [<= DisplayData] != [ZFXY Properties=>] " + props->Name() );
+		LOG_WARN( unit->FieldNameEast() + " [<= East DisplayData] != [LonLat Properties=>] " + props.FieldName() );
+		LOG_WARN( unit->FieldNameNorth() + " [<= North DisplayData] != [LonLat Properties=>] " + props.FieldName() );
 	}
 
-	if ( !unit )
-		ThrowDisplayDataNotAvaiable();
-	else
+	assert__( unit->first == unit->GetPlotProperties() || unit->second == unit->GetPlotProperties() );
+
+	// TODO brat v3 does not update range: this should be done in plots Create
+	if ( isDefaultValue( unit->AbsoluteMinValue() ) || isDefaultValue( unit->AbsoluteMaxValue() ) )
 	{
-		// TODO brat v3 does not update range: this should be done in plots Create
-		if ( isDefaultValue( unit.GetAbsoluteMinValue() ) || isDefaultValue( unit.GetAbsoluteMaxValue() ) )
-		{
-			unit.SetAbsoluteRangeValues( pdata->GetLookupTable()->GetTableRange()[0], pdata->GetLookupTable()->GetTableRange()[1] );
-		}
+		unit->SetAbsoluteRangeValues( 
+			unit->ColorTable().GetLookupTable()->GetTableRange()[0], 
+			unit->ColorTable().GetLookupTable()->GetTableRange()[1] );
 	}
 
 	return unit;
 }
 //static
-CAbstractDisplayEditor::CPlotUnitData 
-CAbstractDisplayEditor::GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, CXYPlotDataCollection &yfx_data_collection )
+CZFXYPlotData*
+CAbstractDisplayEditor::GetDisplayData( size_t field_index, CZFXYPlot *zfxy )
 {
-	CXYPlotData *pdata = GetFieldData( field_index, yfx_data_collection );
-	CPlotUnitData unit;
-	unit = display->GetFieldDisplayData( pdata->FieldName( 0 ) );	
-	if ( !unit )
-	{
-		CXYPlotProperties *props = GetProperties( field_index, yfx_data_collection );
-		unit = display->GetFieldDisplayDataV3( operation, props->Name() );
-		if ( unit.Name() != props->Name() )
-			LOG_WARN( unit.Name() + " [<= DisplayData] != [YFX Properties=>] " + props->Name() );
-	}
-	
-	if ( !unit )
+	CZFXYPlotData *unit = zfxy->PlotData( field_index );		assert( unit );
+	if ( !*unit )
 		ThrowDisplayDataNotAvaiable();
 
-	return unit;
-}
-//static
-CAbstractDisplayEditor::CPlotUnitData 
-CAbstractDisplayEditor::GetDisplayData( size_t field_index, const COperation *operation, CDisplay *display, std::vector< CWorldPlotData* > &lon_lat_data_array )
-{
-	CWorldPlotData *pdata = GetFieldData( field_index, lon_lat_data_array );
-	CWorldPlotVelocityData *pvelocity_data = dynamic_cast<CWorldPlotVelocityData*>( pdata );
-	CPlotUnitData unit;
-	if ( pvelocity_data )
-		unit = { display->GetFieldDisplayData( pvelocity_data->EastFieldName() ), display->GetFieldDisplayData( pvelocity_data->NorthFieldName() ) };
-	else
-		unit = display->GetFieldDisplayData( pdata->FieldName( 0 ) );	
-	if ( !unit )
-	{
-		CWorldPlotProperties *props = GetProperties( field_index, lon_lat_data_array );
-		unit = display->GetFieldDisplayDataV3( operation, props->Name() );				//VELOCITY MAPS FAIL HERE:	 we don't have the original field names
-		if ( unit.Name() != props->Name() )
-			LOG_WARN( unit.Name() + " [<= DisplayData] != [LonLat Properties=>] " + props->Name() );
-	}
+	CZFXYPlotProperties *props = unit->GetPlotProperties();
+	if ( unit->FieldName() != props->FieldName() )
+		LOG_WARN( unit->FieldName() + " [<= DisplayData] != [ZFXY Properties=>] " + props->FieldName() );
 
-	if ( !unit )
-		ThrowDisplayDataNotAvaiable();
-	else
+	// TODO brat v3 does not update range: this should be done in plots Create
+	if ( isDefaultValue( unit->AbsoluteMinValue() ) || isDefaultValue( unit->AbsoluteMaxValue() ) )
 	{
-		// TODO brat v3 does not update range: this should be done in plots Create
-		if ( isDefaultValue( unit.GetAbsoluteMinValue() ) || isDefaultValue( unit.GetAbsoluteMaxValue() ) )
-		{
-			unit.SetAbsoluteRangeValues( pdata->GetLookupTable()->GetTableRange()[0], pdata->GetLookupTable()->GetTableRange()[1] );
-		}
+		unit->SetAbsoluteRangeValues( 
+			unit->ColorTable().GetLookupTable()->GetTableRange()[0], 
+			unit->ColorTable().GetLookupTable()->GetTableRange()[1] );
 	}
 
 	return unit;
@@ -417,10 +338,10 @@ CAbstractDisplayEditor::CAbstractDisplayEditor( bool map_editor, CModel *model, 
 
 // Constructor for brat display one mode
 //
-CAbstractDisplayEditor::CAbstractDisplayEditor( bool map_editor, const CDisplayFilesProcessor *proc )
+CAbstractDisplayEditor::CAbstractDisplayEditor( bool map_editor, const CDisplayDataProcessor *proc )
 
 	: base_t( nullptr )						//will be re-parented by desktop sub-window parent
-	, mCurrentDisplayFilesProcessor( proc )
+	, mCurrentDisplayDataProcessor( (display_data_processor_t*)proc )
 	, mDisplayOnlyMode( true )
 	, mIsMapEditor( map_editor )
 {
@@ -428,13 +349,29 @@ CAbstractDisplayEditor::CAbstractDisplayEditor( bool map_editor, const CDisplayF
 	assert__( map_editor || proc->isYFX() || proc->isZFXY() );
 
 	//IMPORTANT CreateWidgets() must be called by derived classes
+
+	BRAT_MSG_NOT_IMPLEMENTED( "Critical Error: using CDisplayFilesProcessor" )
+}
+CAbstractDisplayEditor::CAbstractDisplayEditor( bool map_editor, const CDisplayFilesProcessor *proc )
+
+	: base_t( nullptr )						//will be re-parented by desktop sub-window parent
+	, mCurrentDisplayDataProcessor( (display_data_processor_t*)proc )
+	, mDisplayOnlyMode( true )
+	, mIsMapEditor( map_editor )
+{
+    assert__( !map_editor || !proc || proc->isZFLatLon() );                  Q_UNUSED(map_editor);   //for release builds
+	assert__( map_editor || proc->isYFX() || proc->isZFXY() );
+
+	//IMPORTANT CreateWidgets() must be called by derived classes
+
+	BRAT_MSG_NOT_IMPLEMENTED( "Critical Error: using CDisplayFilesProcessor" )
 }
 
 
 //virtual 
 CAbstractDisplayEditor::~CAbstractDisplayEditor()
 {
-	delete mCurrentDisplayFilesProcessor;
+	delete mCurrentDisplayDataProcessor;
 }
 
 
@@ -643,7 +580,7 @@ bool CAbstractDisplayEditor::Start( const std::string &display_name )
 	{
 		mTabGeneral->setEnabled( false );
 		mTabGeneral->mDisplaysCombo->blockSignals( true );
-		mTabGeneral->mDisplaysCombo->addItem( t2q( mCurrentDisplayFilesProcessor->ParamFile() ) );
+		mTabGeneral->mDisplaysCombo->addItem( t2q( mCurrentDisplayDataProcessor->ParamFile() ) );
 		mTabGeneral->mDisplaysCombo->blockSignals( false );
 		return true;
 	}
@@ -680,7 +617,7 @@ void CAbstractDisplayEditor::HandlePlotTitleEntered()
 		return;
 
 	mDisplay->SetTitle( q2a( mTabGeneral->mPlotTitle->text() ) );
-	SetWindowTitle();
+	SetPlotTitle();
 }
 
 
@@ -692,18 +629,15 @@ void CAbstractDisplayEditor::SetWindowTitle()
 	if ( !parent )						//editor is being created
 		parent = this;					//when re-parented by the desktop sub-window, this one uses the child title
 
-	if ( !mDisplay->GetTitle().empty() )
-		parent->setWindowTitle( ( mDisplay->GetTitle() + " [" + mOperation->GetName() + "]" ).c_str() );
-	else
-		parent->setWindowTitle( ( mDisplay->GetName() + " [" + mOperation->GetName() + "]"  ).c_str() );
+	parent->setWindowTitle( ( mDisplay->GetName() + " [" + mOperation->GetName() + "]"  ).c_str() );
 }
 
 
 void CAbstractDisplayEditor::HandleViewChanged( int index )
 {
 	CDisplay *display = index < 0 ? nullptr : mFilteredDisplays[ index ];
-	delete mCurrentDisplayFilesProcessor;
-	mCurrentDisplayFilesProcessor = nullptr;
+	delete mCurrentDisplayDataProcessor;
+	mCurrentDisplayDataProcessor = nullptr;
 	
 	//if ( display == mDisplay )
 	//	return;					the display is the same but the properties could have changed
@@ -738,6 +672,7 @@ void CAbstractDisplayEditor::HandleViewChanged( int index )
 			return;
 		}
 
+#if defined( USE_DISPLAY_FILES_PROCESSOR )
 		if ( !mDisplay->BuildCmdFile( msg, !IsMapEditor() ) )
 		{
 			assert__( !msg.empty() );
@@ -748,6 +683,8 @@ void CAbstractDisplayEditor::HandleViewChanged( int index )
 
 			return;
 		}
+#endif
+
 	}
 
 	if ( !ChangeView() )
@@ -915,6 +852,7 @@ void CAbstractDisplayEditor::HandleRenameButtonClicked()
 
         //TODO a big one: emit DisplayModified( mDisplay );
 
+		SetWindowTitle();
 		RenameButtonClicked();	//for derived classes notification
     }
 }
@@ -1210,7 +1148,7 @@ void CAbstractDisplayEditor::FilterOperations()
 				auto v = mModel->OperationDisplays( operation->GetName() );
 				if ( v.size() == 0 )
 				{
-					LOG_WARN( "Operation " + operation->GetName() + " is not referenced by any view. Try to run the operation again." );
+					LOG_TRACEstd( "Operation " + operation->GetName() + " is not referenced by any view." );
 					if ( mOperation == operation )
 						mOperation = nullptr;
 				}
@@ -1246,8 +1184,8 @@ bool CAbstractDisplayEditor::ControlSolidColor()
 	{
 		CDisplayData* dataSel = dynamic_cast<CDisplayData*>( itSel->second );		assert__( dataSel );
 
-		if ( !dataSel->IsSolidColor() && !dataSel->IsContour() )
-			dataSel->SetSolidColor( true );
+		if ( !dataSel->WithSolidColor() && !dataSel->WithContour() )
+			dataSel->SetWithSolidColor( true );
 	}
 	return true;
 }

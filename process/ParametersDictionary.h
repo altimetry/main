@@ -78,12 +78,10 @@ const std::string kwALIAS_NAME			= "ALIAS_NAME";
 const std::string kwALIAS_VALUE			= "ALIAS_VALUE";
 const std::string kwDATA_MODE			= "DATA_MODE";
 const std::string kwDATE_AS_PERIOD			= "DATE_AS_PERIOD";
-const std::string kwDISPLAY_ANIMATIONBAR		= "DISPLAY_ANIMATIONBAR";
 const std::string kwDISPLAY_CENTERLAT		= "DISPLAY_CENTERLAT";
 const std::string kwDISPLAY_CENTERLON		= "DISPLAY_CENTERLON";
 const std::string kwDISPLAY_COASTRESOLUTION		= "DISPLAY_COASTRESOLUTION";
 const std::string kwDISPLAY_COLOR			= "DISPLAY_COLOR";
-const std::string kwDISPLAY_COLORBAR			= "DISPLAY_COLORBAR";
 const std::string kwDISPLAY_COLORCURVE		= "DISPLAY_COLORCURVE";
 const std::string kwDISPLAY_COLORTABLE		= "DISPLAY_COLORTABLE";
 const std::string kwDISPLAY_CONTOUR			= "DISPLAY_CONTOUR";
@@ -100,6 +98,10 @@ const std::string kwFILETYPE					= "FILETYPE";
 const std::string kwPRODUCT_LIST				= "PRODUCT_LIST";
 const std::string kwDISPLAY_MAXVALUE			= "DISPLAY_MAXVALUE";
 const std::string kwDISPLAY_MINVALUE			= "DISPLAY_MINVALUE";
+
+const std::string kwEXPORT_KML_TRACKS			= "EXPORT_KML_TRACKS";
+const std::string kwEXPORT_KML_FIELDS			= "EXPORT_KML_FIELDS";
+
 const std::string kwDISPLAY_PLOT_TYPE = "DISPLAY_PLOT_TYPE";
 const std::string kwDISPLAY_NAME			= "DISPLAY_NAME";
 const std::string kwDISPLAY_NUMCOLORLABELS		= "DISPLAY_NUMCOLORLABELS";
@@ -109,7 +111,11 @@ const std::string kwDISPLAY_POINTGLYPH		= "DISPLAY_POINTGLYPH";
 const std::string kwDISPLAY_POINTS			= "DISPLAY_POINTS";
 const std::string kwDISPLAY_POINTSIZE		= "DISPLAY_POINTSIZE";
 const std::string kwDISPLAY_PROJECTION		= "DISPLAY_PROJECTION";
+#if defined (BRAT_V3)
 const std::string kwDISPLAY_PROPERTIES		= "DISPLAY_PROPERTIES";
+const std::string kwDISPLAY_ANIMATIONBAR		= "DISPLAY_ANIMATIONBAR";
+const std::string kwDISPLAY_COLORBAR			= "DISPLAY_COLORBAR";
+#endif
 const std::string kwDISPLAY_SOLID_COLOR		= "DISPLAY_SOLID_COLOR";
 const std::string kwDISPLAY_EAST_COMPONENT		= "DISPLAY_EAST_COMPONENT";
 const std::string kwDISPLAY_NORTH_COMPONENT		= "DISPLAY_NORTH_COMPONENT";
@@ -210,8 +216,6 @@ KD(kwDATA_MODE,			"KW2",
 		"Apply only on field that haven't a *FIELD_DATA_MODE*.\n"),
 KD(kwDATE_AS_PERIOD,		"Bool",
 		"Indicates if date must be delivered as period (Yes) or as date format (No).\n"),
-KD(kwDISPLAY_ANIMATIONBAR,	"Bool",
-		"Keyword to indicate if property panel is shown."),
 KD(kwDISPLAY_CENTERLAT,		"Flt",
 		"Latitude of the projection's center point."),
 KD(kwDISPLAY_CENTERLON,		"Flt",
@@ -221,8 +225,6 @@ KD(kwDISPLAY_COASTRESOLUTION,	"KW6",
 		"Recommended value: low."),
 KD(kwDISPLAY_COLOR,		"KW7",
 		"Color name of the XY plot field."),
-KD(kwDISPLAY_COLORBAR,		"Bool",
-		"Keyword to indicate if color bar (legend) is shown."),
 KD(kwDISPLAY_COLORCURVE,	"KW5",
 		"Set the color table on a specific curve."),
 KD(kwDISPLAY_COLORTABLE,		"Str",
@@ -289,8 +291,14 @@ KD(kwDISPLAY_POINTGLYPH,	"KW8",
 		"Glyph of the points (field) (XY plot)."),
 KD(kwDISPLAY_PROJECTION,	"KW9",
 		"Projection to use for mapping the world globe."),
+#if defined (BRAT_V3)
 KD(kwDISPLAY_PROPERTIES,	"Bool",
 		"Indicates if property panel is shown."),
+KD(kwDISPLAY_ANIMATIONBAR,	"Bool",
+		"Keyword to indicate if property panel is shown."),
+KD(kwDISPLAY_COLORBAR,		"Bool",
+		"Keyword to indicate if color bar (legend) is shown."),
+#endif
 KD(kwDISPLAY_SOLID_COLOR,	"Bool",
 		"Indicates if color layer of the field is shown or not."),
 KD(kwDISPLAY_EAST_COMPONENT,	"Bool",
