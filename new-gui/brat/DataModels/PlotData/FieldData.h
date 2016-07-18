@@ -60,6 +60,7 @@ public:
 	// statics
 
 	static const unsigned_t smDefaultOpacity;
+	static const unsigned smDefaultNumberOfTicks;
 	static const unsigned smDefaultNumberOfDigits;
 	static const bool smDefaultShowLines;
 	static const bool smDefaultShowPoints;
@@ -109,12 +110,13 @@ private:
 	double m_yMin = defaultValue< double >();
 #endif
 
-	unsigned m_xTicks = defaultValue< unsigned >();
-	unsigned m_yTicks = defaultValue< unsigned >();
-    unsigned m_zTicks = defaultValue< unsigned >();
+	unsigned m_xTicks = smDefaultNumberOfTicks;
+	unsigned m_yTicks = smDefaultNumberOfTicks;
+    unsigned m_zTicks = smDefaultNumberOfTicks;
 
     unsigned m_xDigits = smDefaultNumberOfDigits;	//v4 (...)
     unsigned m_yDigits = smDefaultNumberOfDigits;	//v4 (...)
+    unsigned m_zDigits = smDefaultNumberOfDigits;	//v4 (...)
 
 	std::string mXlabel;
 	std::string mYlabel;
@@ -220,6 +222,7 @@ public:
 
 			m_xDigits = o.m_xDigits;
 			m_yDigits = o.m_yDigits;
+			m_zDigits = o.m_zDigits;
 
 			mXlabel = o.mXlabel;
 			mYlabel = o.mYlabel;
@@ -296,6 +299,7 @@ public:
 
 			m_xDigits == o.m_xDigits &&
 			m_yDigits == o.m_yDigits &&
+			m_zDigits == o.m_zDigits &&
 
 			mXlabel == o.mXlabel &&
 			mYlabel == o.mYlabel &&
@@ -422,28 +426,16 @@ public:
 
     unsigned Xdigits() const { return m_xDigits; }
     unsigned Ydigits() const { return m_yDigits; }
+    unsigned Zdigits() const { return m_zDigits; }
     void SetXdigits( unsigned value ) { m_xDigits = value; }
     void SetYdigits( unsigned value ) { m_yDigits = value; }
+    void SetZdigits( unsigned value ) { m_zDigits = value; }
 
+	const std::string& Xlabel() const { return mXlabel; }
+	virtual void SetXlabel( const std::string& value ) { mXlabel = value; }
 
-	const std::string& Xlabel() const 
-	{ 
-		return mXlabel; 
-	}
-	virtual void SetXlabel( const std::string& value ) 
-	{ 
-		mXlabel = value; 
-	}
-
-	const std::string& Ylabel() const 
-	{ 
-		return mYlabel; 
-	}
-	virtual void SetYlabel( const std::string& value ) 
-	{ 
-		mYlabel = value; 
-	}
-
+	const std::string& Ylabel() const { return mYlabel; }
+	virtual void SetYlabel( const std::string& value ) { mYlabel = value; }
 
 	bool XLog() const { return mXlogarithmic; }
 	void SetXLog( bool value );
@@ -475,7 +467,6 @@ public:
 	{ 
 		return mLUT.LoadFromFile( error_msg, path );
 	}
-
 
 	double AbsoluteMinValue() const { return mMinHeightValue; }
 	double AbsoluteMaxValue() const { return mMaxHeightValue; }
@@ -512,6 +503,8 @@ public:
 	}
 
 
+	//
+
 	std::string ContourAsText() const { return mWithContour ? "Y" : "N"; }
 	bool WithContour() const { return mWithContour; }
 	void SetWithContour( bool value ) { mWithContour = value; }
@@ -541,11 +534,11 @@ public:
 
 	// LON-LAT
 
-	bool IsEastComponent() const { return mNorthComponent; }
-	void SetEastComponent( bool value ) { mNorthComponent = value; }
+	bool IsEastComponent() const { return mEastComponent; }
+	void SetEastComponent( bool value ) { mEastComponent = value; }
 
-	bool IsNorthComponent() const { return mEastComponent; }
-	void SetNorthComponent( bool value ) { mEastComponent = value; }
+	bool IsNorthComponent() const { return mNorthComponent; }
+	void SetNorthComponent( bool value ) { mNorthComponent = value; }
 
 
 

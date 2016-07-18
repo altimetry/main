@@ -28,6 +28,10 @@ class CHistogram: public QwtPlotItem
 	double mMinYValue = 0.;
 	double mMaxYValue = 0.;
 
+	double mXScaleFactor = 1.;
+	double mYScaleFactor = 1.;
+	double mZScaleFactor = 1.;
+
 	std::string mXtitle;
 	std::string mYtitle;
 	std::string mZtitle;
@@ -41,12 +45,19 @@ public:
     const QwtIntervalData &data() const;
 
 	//This is only a trick, taken from curves, to preserve original plot zoom
-	void Ranges( double &xMin, double &xMax, double &yMin, double &yMax );
+	void Ranges( double &xMin, double &xMax, double &yMin, double &yMax ) const;
 	void SetRanges( double xMin, double xMax, double yMin, double yMax );
 
 	//idem for titles
-	void AxisTitles( std::string &xtitle, std::string &ytitle, std::string &ztitle );
+	void AxisTitles( std::string &xtitle, std::string &ytitle, std::string &ztitle ) const;
 	void SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle );
+
+	//idem for legends
+    virtual void updateLegend( QwtLegend *) const override;
+
+	//Added to preserve scale
+	void ScaleFactors( double &x, double &y, double &y2 ) const;
+	void SetScaleFactors( double x, double y, double y2 );
 
     void setColor(const QColor &);
     QColor color() const;

@@ -148,9 +148,7 @@ protected:
 	QAction *mRecenterAction = nullptr;
 	QAction *mExport2ImageAction = nullptr;
 
-#if defined (SHOW_TEST)
 	QAction *mActionTest = nullptr;
-#endif
 
 	//... status-bar
     QStatusBar *mStatusBar = nullptr;
@@ -287,13 +285,13 @@ protected:
 
 	//debug helpers
 	template< typename T >
-	inline std::string TF( const std::string &s, T n )
+	inline std::string TF( const std::string &s, T n, const std::string &separator = "\n" )
 	{
 		std::string dv;
 		if ( isDefaultValue( n ) )
 			dv = "!!! DV !!!";
 
-		return s + " == " + n2s<std::string>( n ) + dv + "\n";
+		return s + " == " + n2s<std::string>( n ) + dv + separator;
 	};
 
 	virtual bool Test() = 0;

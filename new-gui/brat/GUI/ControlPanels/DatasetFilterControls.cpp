@@ -301,8 +301,6 @@ void CDatasetFilterControls::Wire()
 
     connect( mUseCurrentDateTime, SIGNAL( toggled( bool ) ), this, SLOT( HandleCurrentDateTimeBoxChecked( bool ) ) );
 
-
-	//connect( mMap, SIGNAL( CurrentLayerSelectionChanged() ), this, SLOT( HandleCurrentLayerSelectionChanged() ) );
 	connect( mMap, SIGNAL( NewRubberBandSelection( QRectF ) ), this, SLOT( HandleCurrentLayerSelectionChanged( QRectF ) ) );
 }
 
@@ -427,30 +425,16 @@ void CDatasetFilterControls::ShowOnlyAreasInRegion(int region_index)
 }
 
 
-void CDatasetFilterControls::HandleCurrentLayerSelectionChanged( QRectF box )
+void CDatasetFilterControls::HandleCurrentLayerSelectionChanged( QRectF box /*= QRectF()*/ )
 {
-	mMaxLatEdit->setText( n2q( box.bottom() ) );
-    mMaxLonEdit->setText( n2q( box.right() ) );
-    mMinLatEdit->setText( n2q( box.top() ) );
-    mMinLonEdit->setText( n2q( box.left() ) );
+    mMaxLatEdit->setText( n2q(  box.bottom() >  90  ?   90 : box.bottom() ) );
+    mMaxLonEdit->setText( n2q(  box.right()  > 180  ?  180 : box.right()  ) );
+    mMinLatEdit->setText( n2q(  box.top()    < -90  ?  -90 : box.top()    ) );
+    mMinLonEdit->setText( n2q(  box.left()   < -180 ? -180 : box.left()   ) );
 
     // Disable button new area if there is no selection
     mNewArea->setDisabled( box.bottom() == 0 && box.right() == 0 &&
-                           box.top() == 0 && box.left() == 0		);
-}
-
-void CDatasetFilterControls::HandleCurrentLayerSelectionChanged()
-{
-	QgsRectangle box = mMap->CurrentLayerSelectedFeaturesBox();
-
-	mMaxLatEdit->setText( n2q( box.yMaximum() ) );
-    mMaxLonEdit->setText( n2q( box.xMaximum() ) );
-    mMinLatEdit->setText( n2q( box.yMinimum() ) );
-    mMinLonEdit->setText( n2q( box.xMinimum() ) );
-
-    // Disable button new area if there is no selection
-    mNewArea->setDisabled( box.yMaximum() == 0 && box.xMaximum() == 0 &&
-                           box.yMinimum() == 0 && box.xMinimum() == 0    );
+                           box.top() == 0    && box.left()  == 0     );
 }
 
 
@@ -617,9 +601,7 @@ void CDatasetFilterControls::HandleAreasSelectionChanged()
 
     mRenameArea->setEnabled( item != nullptr );
     mDeleteArea->setEnabled( item != nullptr );
-
-    // RCCC Check if you can remove this. Area is removed in the mMap->SelectedArea()
-    mMap->RemoveAreaSelection();
+    mMap->RemoveAreaSelection(); // clean the map selection
 
     if ( item == nullptr )
     {

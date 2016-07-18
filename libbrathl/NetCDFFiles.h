@@ -1428,7 +1428,7 @@ public:
 
   bool IsGeographic();
 
-  static void HandleNetcdfError(int	status, const std::string& message = "PROGRAM ERROR: error should not happen");
+  static void HandleNetcdfError(int	status, const std::string& message = "NetCDF error");
   
 public:
 
@@ -1485,7 +1485,7 @@ protected:
   void SetDataMode
 		();
 
-  void CheckNetcdfError(int	Error, const std::string	&Message = "PROGRAM ERROR: error should not happen");
+  void CheckNetcdfError(int	Error, const std::string	&Message = "NetCDF error");
 
 private:
   int				m_file;

@@ -428,7 +428,7 @@ bool CMapEditor::Test()
 		CWorldPlotData *pdata = mCurrentGeoPlot->PlotData( index );
 		const CMapValues &arrays = *pdata;
 		const CMapPlotParameters &array = arrays( 0 );
-		field = pdata->UserName();
+		field = pdata->FieldName();
 
 		all_mx = mx = array.mMinX;
 		all_Mx = Mx = array.mMaxX; 
@@ -689,11 +689,11 @@ void CMapEditor::ResetMap()
 
         if( mCurrentPlotVelocityData )
         {
-             mMapView->AddArrowDataLayer( mCurrentPlotData->UserName(), flist );
+             mMapView->AddArrowDataLayer( mCurrentPlotData->FieldName(), flist );
         }
         else
         {			
-            mMapView->AddDataLayer( mCurrentPlotData->UserName(), 0.1, array.mMinHeightValue, array.mMaxHeightValue, mCurrentBratLookupTable->GetLookupTable(), flist,
+            mMapView->AddDataLayer( mCurrentPlotData->FieldName(), 0.1, array.mMinHeightValue, array.mMaxHeightValue, mCurrentBratLookupTable->GetLookupTable(), flist,
 				mCurrentPlotData->DataUnit()->IsDate(), RefDateFromUnit( *mCurrentPlotData->DataUnit() ) );
         }
 
@@ -737,7 +737,7 @@ void CMapEditor::ResetMap()
 		//m_animationToolbar->SetMaxFrame( nFrames );
 
 
-		QListWidgetItem *item = new QListWidgetItem( t2q( mCurrentPlotData->UserName() ) );		//cannot assert__( field_data->FieldName(0) == mCurrentPlotUnit.Name() );
+		QListWidgetItem *item = new QListWidgetItem( t2q( mCurrentPlotData->FieldName() ) );		//cannot assert__( field_data->FieldName(0) == mCurrentPlotUnit.Name() );
 		item->setToolTip( item->text() );
 		mTabDataLayers->mFieldsList->addItem( item );
 
@@ -745,7 +745,7 @@ void CMapEditor::ResetMap()
 
 		if ( mCurrentPlotData->WithContour() )
 		{
-			mMapView->AddContourLayer( ifield, mCurrentPlotData->UserName(), mCurrentPlotData->ContourLineWidth(), mCurrentPlotData->ContourLineColor().GetQColor(),
+			mMapView->AddContourLayer( ifield, mCurrentPlotData->FieldName(), mCurrentPlotData->ContourLineWidth(), mCurrentPlotData->ContourLineColor().GetQColor(),
 				mCurrentPlotData->NumContours(), array );
 		}
 	}
@@ -831,7 +831,7 @@ void CMapEditor::HandleShowContourChecked( bool checked )
 
 	//CBratLookupTable t;
 	//t.ExecMethod( "Rainbow" );
-	mMapView->AddContourLayer( field_index, mCurrentPlotData->UserName(), mCurrentPlotData->ContourLineWidth(), mCurrentPlotData->ContourLineColor().GetQColor(), 
+	mMapView->AddContourLayer( field_index, mCurrentPlotData->FieldName(), mCurrentPlotData->ContourLineWidth(), mCurrentPlotData->ContourLineColor().GetQColor(), 
 		mCurrentPlotData->NumContours(), array );	//t.GetLookupTable(), 
 }
 

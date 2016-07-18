@@ -239,6 +239,22 @@ inline const STRING& empty_string()
 #define DEFINE_ARRAY_SIZE(a) DECLARE_ARRAY_SIZE_(a) = ARRAY_SIZE(a)
 
 
+
+
+//////////////////////////////////////////////////////////////////
+//					Find In Container
+//////////////////////////////////////////////////////////////////
+
+
+template< typename CONTAINER >
+inline bool In( const typename CONTAINER::value_type &value, const CONTAINER &c )
+{
+	return std::find( c.begin(), c.end(), value ) != c.end();
+}
+
+
+
+
 //////////////////////////////////////////////////////////////////
 //				Create vectors from arrays
 //////////////////////////////////////////////////////////////////
@@ -552,6 +568,14 @@ STRING n2s( T n )
     return hn2s< STRING >( n, false );
 }
 
+template< typename T >
+std::string n2s( T n )
+{
+    return hn2s< std::string >( n, false );
+}
+
+
+
 // hexadecimal
 
 template< class STRING, typename T >
@@ -559,6 +583,8 @@ STRING hn2s( T n )
 {
     return hn2s< STRING >( n, true );
 }
+
+
 
 
 //////////////////////////////////////////////////////////////////

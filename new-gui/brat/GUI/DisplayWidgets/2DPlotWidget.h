@@ -401,30 +401,43 @@ public:
 	void SpectrogramAxisTitles( int index, std::string &xtitle, std::string &ytitle, std::string &y2title );
 
 	void SetAxisTitles( int index, const std::string &xtitle, const std::string &ytitle, const std::string &y2title = "" );
+protected:
+	void SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &y2title );
 
+public:
 
 	//...ticks
 
-    int XAxisNbTicks() const
+    int XAxisTicks() const
     {
-        return axisMaxMajor(QwtPlot::xBottom);
+        return axisMaxMajor( QwtPlot::xBottom );
     }
-    void SetXAxisNbTicks(int new_value)
+    void SetXAxisTicks(int new_value)
     {
         setAxisMaxMajor( QwtPlot::xBottom, new_value );
         replot();
     }
 
-
-	int YAxisNbTicks() const
+	int YAxisTicks() const
     {
-        return axisMaxMajor(QwtPlot::yLeft);
+        return axisMaxMajor( QwtPlot::yLeft );
     }
-    void SetYAxisNbTicks( int new_value )
+    void SetYAxisTicks( int new_value )
     {
         setAxisMaxMajor( QwtPlot::yLeft, new_value );
         replot();
     }
+
+	int Y2AxisTicks() const
+    {
+        return axisMaxMajor( QwtPlot::yRight );
+    }
+    void SetY2AxisTicks( int new_value )
+    {
+        setAxisMaxMajor( QwtPlot::yRight, new_value );
+        replot();
+    }
+
 
 
     //...digits / date
@@ -448,20 +461,18 @@ public:
 
     //...scaling
 
+protected:
     void SetLogScale(int axisId, bool _isLog);
 
-	void SetPlotAxisScales( int index, double xMin, double xMax, double yMin, double yMax, double y2Min = defaultValue<double>(), double y2Max = defaultValue<double>() );
-
-protected:
 	void CurrentHistogramRanges( double &xMin, double &xMax, double &yMin, double &yMax );
 	void CurrentSpectrogramRanges( double &xMin, double &xMax, double &yMin, double &yMax, double &y2Min, double &y2Max );
+	void AxisRanges( double &xMin, double &xMax, double &yMin, double &yMax, double &y2Min, double &y2Max );
 
 	void AxisScales( double &xMin, double &xMax, double &yMin, double &yMax, double &y2Min, double &y2Max );
-	void SetAxisScales( double xMin, double xMax, double yMin, double yMax, double y2Min = defaultValue<double>(), double y2Max = defaultValue<double>() );
+	void SetAxisScales( double xMin, double xMax, double yMin, double yMax, double y2Min = defaultValue<double>(), double y2Max = defaultValue<double>(), bool plot = true );
 
 public:
-
-	void CurrentRanges( double &xMin, double &xMax, double &yMin, double &yMax, double &y2Min, double &y2Max );
+	void SetPlotAxisRanges( int index, double xMin, double xMax, double yMin, double yMax, double y2Min = defaultValue<double>(), double y2Max = defaultValue<double>() );
 	void RescaleX( double x );
 	void RescaleY( double y );
 
@@ -506,12 +517,12 @@ public:
 
 protected:
 	template< typename DATA >
-	static CHistogram* CreateHistogram( const std::string &title, QColor color, const DATA &data, double &max_freq, int bins );
+	CHistogram* CreateHistogram( const std::string &title, QColor color, const DATA &data, double &max_freq, int bins );
 
 public:
 	CHistogram* AddHistogram( const std::string &title, QColor color, const CYFXValues &data, double &max_freq, int bins );
 
-	CHistogram* PushHistogram( const std::string &title, QColor color, const CZFXYValues &data, double &max_freq, int bins );
+	CHistogram* SetSingleHistogram( const std::string &title, QColor color, const CZFXYValues &data, double &max_freq, int bins );
 
 	void SetCurrentHistogram( int index );
 

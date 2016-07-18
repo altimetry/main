@@ -43,19 +43,20 @@ QObject* CControlPanel::AddTopWidget( QObject *ob )
 }
 
 
-//	spacing = smSpacing, left = smLeft, top = smTop, right = smRight, bottom = smBottom
+//	spacing = smSpacing, left = smLeft, top = smTop, right = smRight, bottom = smBottom, int row_span = 1, int col_span = 1
 //
-QLayout* CControlPanel::AddTopLayout( ELayoutType o, const std::vector< QObject* > &v, int spacing, int left, int top, int right, int bottom )		 
+QLayout* CControlPanel::AddTopLayout( ELayoutType o, const std::vector< QObject* > &v, int spacing, int left, int top, int right, int bottom, 
+	int row_span, int col_span )
 {
 	QLayout *l = nullptr;
 	switch ( o )
 	{
 		case ELayoutType::Horizontal:
 		case ELayoutType::Vertical:
-			l = LayoutWidgets( static_cast< Qt::Orientation >( o ), v, nullptr, spacing, left, top, right, bottom  );
+			l = LayoutWidgets( static_cast< Qt::Orientation >( o ), v, nullptr, spacing, left, top, right, bottom );
 			break;
 		case ELayoutType::Grid:
-			l = LayoutWidgets( v, nullptr, spacing, left, top, right, bottom  );
+			l = LayoutWidgets( v, nullptr, spacing, left, top, right, bottom, row_span, col_span );
 			break;
 		default:
 			assert__( false );

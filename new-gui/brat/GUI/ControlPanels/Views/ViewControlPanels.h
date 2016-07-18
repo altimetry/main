@@ -180,6 +180,8 @@ struct CPlotControlsPanelAxisOptions : public CControlPanel
 
     // static members
 
+	static const double smMaxScale;
+
 public:
 
     // instance data members
@@ -187,10 +189,6 @@ public:
 	//CAxisTab *mX_axis = nullptr;
 	//CAxisTab *mY_axis = nullptr;
 	//CAxisTab *mZ_axis = nullptr;
-
-	//QDoubleSpinBox *mXScaleSpin = nullptr; 
-	//QDoubleSpinBox *mYScaleSpin = nullptr; 
-	//QDoubleSpinBox *mZScaleSpin = nullptr; 
 
     QLineEdit *mXAxisLabel = nullptr;
     QLineEdit *mXNbTicks  = nullptr;
@@ -212,6 +210,10 @@ public:
 	QDoubleSpinBox *mZ2DScaleSpin = nullptr;
     QLineEdit *mZAxisMinMax = nullptr;
 	QDoubleSpinBox *mZ3DScaleSpin = nullptr;
+
+    QCheckBox *mXLogScaleCheck = nullptr;
+    QCheckBox *mYLogScaleCheck = nullptr;
+    QCheckBox *mZLogScaleCheck = nullptr;
 
 protected:
 #if defined USE_AXIS_TABS

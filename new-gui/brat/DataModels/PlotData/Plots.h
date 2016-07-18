@@ -262,6 +262,9 @@ class CMathPlot : public CPlotBase< DATA_FIELD, PLOT_FIELD >
 
 	using base_t = CPlotBase< DATA_FIELD, PLOT_FIELD >;
 
+protected:
+    using base_t::mPlotFields;
+
 
 	//////////////////////
 	// instance data
@@ -313,6 +316,44 @@ public:
 	///////////////////////////////
 	//		remaining
 	///////////////////////////////
+
+
+	//testers
+
+	virtual bool XLogarithmsEnabled() const
+	{
+		for ( auto const *pdata : mPlotFields )
+		{
+			double m, M;
+			pdata->GetXRange( m, M );
+			if ( m <= 0 )
+				return false;
+		}
+		return true;
+	}
+	virtual bool YLogarithmsEnabled() const
+	{
+		for ( auto const *pdata : mPlotFields )
+		{
+			double m, M;
+			pdata->GetYRange( m, M );
+			if ( m <= 0 )
+				return false;
+		}
+		return true;
+	}
+	virtual bool ZLogarithmsEnabled() const
+	{
+		for ( auto const *pdata : mPlotFields )
+		{
+			double m, M;
+			pdata->GetDataRange( m, M );
+			if ( m <= 0 )
+				return false;
+		}
+		return true;
+	}
+
 
 	//getters - non const for plot data builders (Create functions) to modify...
 

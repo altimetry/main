@@ -35,7 +35,11 @@ const CFieldData::unsigned_t CFieldData::smDefaultOpacity =
 
 
 //static 
-const unsigned CFieldData::smDefaultNumberOfDigits = 3;
+const unsigned CFieldData::smDefaultNumberOfDigits = 5;
+
+//static 
+const unsigned CFieldData::smDefaultNumberOfTicks = 5;
+
 
 //static 
 const bool CFieldData::smDefaultShowLines = true;

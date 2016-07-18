@@ -374,6 +374,10 @@ public:
 	{
 		return GetYRange( min, max, iframe );
     }
+	void GetDataRange( double& min, double& max ) const
+	{
+		return GetYRange( min, max );
+    }
 
 
 	size_t GetDataSize( size_t iframe ) const

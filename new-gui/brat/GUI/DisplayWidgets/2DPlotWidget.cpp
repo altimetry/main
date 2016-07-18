@@ -333,6 +333,10 @@ class CBratSpectrogram : public QwtPlotSpectrogram
 	double mMinYValue = 0.;
 	double mMaxYValue = 0.;
 
+	double mXScaleFactor = 1.;
+	double mYScaleFactor = 1.;
+	double mZScaleFactor = 1.;
+
 	std::string mXtitle;
 	std::string mYtitle;
 	std::string mZtitle;
@@ -377,6 +381,20 @@ public:
 
 		mMinYValue = yMin;
 		mMaxYValue = yMax;
+	}
+
+	void ScaleFactors( double &x, double &y, double &y2 ) const
+	{
+		x = mXScaleFactor;
+		y = mYScaleFactor;
+		y2 = mZScaleFactor;
+	}
+
+	void SetScaleFactors( double x, double y, double y2 )
+	{
+		mXScaleFactor = x;
+		mYScaleFactor = y;
+		mZScaleFactor = y2;
 	}
 };
 
@@ -499,77 +517,6 @@ C2DPlotWidget::C2DPlotWidget( QWidget *parent )
     setAxisScaleDraw( yRight, pDrawer);
 
     setMinimumSize( min_plot_widget_width, min_plot_widget_height );
-}
-
-
-
-void C2DPlotWidget::RescaleX( double x )
-{
-	double xMin, xMax, yMin, yMax, y2Min, y2Max;
-	CurrentRanges( xMin, xMax, yMin, yMax, y2Min, y2Max );
-
-	const double range = xMax - xMin;
-	const double center = xMin + range / 2;
-	const double width = range / 2 * ( 1 / x );
-
-	setAxisScale( xBottom, center - width, center + width );
-	replot();
-}
-void C2DPlotWidget::RescaleY( double y )
-{
-	double xMin, xMax, yMin, yMax, y2Min, y2Max;
-	CurrentRanges( xMin, xMax, yMin, yMax, y2Min, y2Max );
-
-	const double range = yMax - yMin;
-	const double center = yMin + range / 2;
-	const double width = range / 2 * ( 1 / y );
-
-	setAxisScale( yLeft, center - width, center + width );
-	replot();
-}
-
-void C2DPlotWidget::HandleScaleDivChanged()
-{
-	QwtScaleWidget *axis = qobject_cast<QwtScaleWidget*>( sender() );
-	if ( !axis )
-		return;
-
-	double xMin, xMax, yMin, yMax, y2Min, y2Max;
-	CurrentRanges( xMin, xMax, yMin, yMax, y2Min, y2Max );
-
-	int iaxis = 0;
-	QwtScaleDiv *div = nullptr;
-	double *pscale_factor = nullptr;
-	double R = 0.;
-	if ( axis == axisWidget( yLeft ) )
-	{
-		iaxis = 1;
-		div = axisScaleDiv( yLeft );
-		R = yMax - yMin;
-		pscale_factor = &mYScaleFactor;
-	}
-	else
-	if ( axis == axisWidget( yRight ) )
-	{
-		iaxis = 2;
-		div = axisScaleDiv( yRight );
-		R = y2Max - y2Min;
-		pscale_factor = &mY2ScaleFactor;
-	}
-	else
-	{
-		assert__( axis == axisWidget( xBottom ) );
-		div = axisScaleDiv( xBottom );
-
-		R = xMax - xMin;
-		pscale_factor = &mXScaleFactor;
-	}
-
-	std::string msg = n2s<std::string>( div->lowerBound() ) + " <=> " + n2s<std::string>( div->upperBound() );
-
-	*pscale_factor = R / ( div->upperBound() - div->lowerBound() );
-
-	emit ScaleDivChanged( iaxis, *pscale_factor, msg.c_str() );
 }
 
 
@@ -881,6 +828,7 @@ void C2DPlotWidget::SetLoop( bool loop )
 /////////////////////////////////////////////////////////////////////////////////////////
 
 
+//...titles
 
 void C2DPlotWidget::AxisTitles( std::string *xtitle, std::string *ytitle, std::string *y2title )
 {
@@ -893,6 +841,13 @@ void C2DPlotWidget::AxisTitles( std::string *xtitle, std::string *ytitle, std::s
 }
 
 
+void C2DPlotWidget::SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &y2title )
+{
+	SetAxisTitle( xBottom, xtitle );
+	SetAxisTitle( yLeft, ytitle );
+	if ( !y2title.empty() )
+		SetAxisTitle( yRight, y2title );
+}
 void C2DPlotWidget::SetAxisTitles( int index, const std::string &xtitle, const std::string &ytitle, const std::string &y2title )		//y2title = "" 
 {
 	if ( mCurves.size() > 0 )
@@ -904,10 +859,7 @@ void C2DPlotWidget::SetAxisTitles( int index, const std::string &xtitle, const s
 	if ( mSpectrograms.size() > 0 )
 		mSpectrograms[index]->SetAxisTitles( xtitle, ytitle, y2title );
 
-	SetAxisTitle( xBottom, xtitle );
-	SetAxisTitle( yLeft, ytitle );
-	if ( !y2title.empty() )
-		SetAxisTitle( yRight, y2title );
+	SetAxisTitles( xtitle, ytitle, y2title );
 }
 
 
@@ -1010,8 +962,38 @@ void C2DPlotWidget::SetY2Digits( bool isdate, int digits, brathl_refDate date_re
 
 
 
-
+//////////
 //...scale
+//////////
+
+// widget axis only (only manipulate widget, not data)
+
+void C2DPlotWidget::AxisScales( double &xMin, double &xMax, double &yMin, double &yMax, double &y2Min, double &y2Max )
+{
+	QwtScaleDiv *xdiv = axisScaleDiv( xBottom );
+	QwtScaleDiv *ydiv = axisScaleDiv( yLeft );
+	QwtScaleDiv *y2div = axisScaleDiv( yRight );
+	
+	xMin = xdiv->lowerBound();
+	xMax = xdiv->upperBound();
+
+	yMin = ydiv->lowerBound();
+	yMax = ydiv->upperBound();
+
+	y2Min = y2div->lowerBound();
+	y2Max = y2div->upperBound();
+}
+void C2DPlotWidget::SetAxisScales( double xMin, double xMax, double yMin, double yMax, double y2Min, double y2Max, bool plot )   //y2Min = defaultValue<double>(), double y2Max = defaultValue<double>(), bool plot = true
+{
+	setAxisScale( xBottom, xMin, xMax );
+	setAxisScale( yLeft, yMin, yMax  );
+	if ( !isDefaultValue( y2Min ) && !isDefaultValue( y2Max ) )
+		setAxisScale( yRight, y2Min, y2Max  );
+	if (plot) replot();
+}
+
+
+// scale data ranges
 
 void C2DPlotWidget::CurrentHistogramRanges( double &xMin, double &xMax, double &yMin, double &yMax )
 {
@@ -1029,8 +1011,7 @@ void C2DPlotWidget::CurrentSpectrogramRanges( double &xMin, double &xMax, double
 
 	mCurrentSpectrogram->Ranges( xMin, xMax, yMin, yMax );
 }
-
-void C2DPlotWidget::CurrentRanges( double &xMin, double &xMax, double &yMin, double &yMax, double &y2Min, double &y2Max  )
+void C2DPlotWidget::AxisRanges( double &xMin, double &xMax, double &yMin, double &yMax, double &y2Min, double &y2Max  )
 {
 	if ( mSpectrograms.size() > 0 )
 	{	
@@ -1040,7 +1021,7 @@ void C2DPlotWidget::CurrentRanges( double &xMin, double &xMax, double &yMin, dou
 	}
 	else
 	{
-		AxisScales( xMin, xMax, yMin, yMax, y2Min, y2Max );
+		AxisScales( xMin, xMax, yMin, yMax, y2Min, y2Max );		//for y2
 
 		if ( mCurves.size() > 0 )
 		{
@@ -1052,13 +1033,13 @@ void C2DPlotWidget::CurrentRanges( double &xMin, double &xMax, double &yMin, dou
 		{
 			assert__( mCurrentHistogram );
 
-			mCurrentHistogram->Ranges( xMin, xMax, yMin, yMax );
+			CurrentHistogramRanges( xMin, xMax, yMin, yMax );
 		}
 	}
 }
 
 
-void C2DPlotWidget::SetPlotAxisScales( int index, double xMin, double xMax, double yMin, double yMax, double y2Min, double y2Max )   //y2Min = defaultValue<double>(), double y2Max = defaultValue<double>()
+void C2DPlotWidget::SetPlotAxisRanges( int index, double xMin, double xMax, double yMin, double yMax, double y2Min, double y2Max )   //y2Min = defaultValue<double>(), double y2Max = defaultValue<double>()
 {
 	for ( auto *curve : mCurves )
 		curve->SetRanges( xMin, xMax, yMin, yMax );
@@ -1072,30 +1053,83 @@ void C2DPlotWidget::SetPlotAxisScales( int index, double xMin, double xMax, doub
 	SetAxisScales( xMin, xMax, yMin, yMax, y2Min, y2Max );
 }
 
-
-void C2DPlotWidget::AxisScales( double &xMin, double &xMax, double &yMin, double &yMax, double &y2Min, double &y2Max )
+void C2DPlotWidget::RescaleX( double x )
 {
-	QwtScaleDiv *xdiv = axisScaleDiv( xBottom );
-	QwtScaleDiv *ydiv = axisScaleDiv( yLeft );
-	QwtScaleDiv *y2div = axisScaleDiv( yRight );
-	
-	xMin = xdiv->lowerBound();
-	xMax = xdiv->upperBound();
+	double xMin, xMax, yMin, yMax, y2Min, y2Max;
+	AxisRanges( xMin, xMax, yMin, yMax, y2Min, y2Max );
 
-	yMin = ydiv->lowerBound();
-	yMax = ydiv->upperBound();
+	const double range = xMax - xMin;
+	const double center = xMin + range / 2;
+	const double width = range / 2 * ( 1 / x );
 
-	y2Min = y2div->lowerBound();
-	y2Max = y2div->upperBound();
-}
-void C2DPlotWidget::SetAxisScales( double xMin, double xMax, double yMin, double yMax, double y2Min, double y2Max )   //y2Min = defaultValue<double>(), double y2Max = defaultValue<double>()
-{
-	setAxisScale( xBottom, xMin, xMax );
-	setAxisScale( yLeft, yMin, yMax  );
-	if ( !isDefaultValue( y2Min ) && !isDefaultValue( y2Max ) )
-		setAxisScale( yRight, y2Min, y2Max  );
+	setAxisScale( xBottom, center - width, center + width );
 	replot();
 }
+void C2DPlotWidget::RescaleY( double y )
+{
+	double xMin, xMax, yMin, yMax, y2Min, y2Max;
+	AxisRanges( xMin, xMax, yMin, yMax, y2Min, y2Max );
+
+	const double range = yMax - yMin;
+	const double center = yMin + range / 2;
+	const double width = range / 2 * ( 1 / y );
+
+	setAxisScale( yLeft, center - width, center + width );
+	replot();
+}
+
+
+// scale auto notification handler
+
+void C2DPlotWidget::HandleScaleDivChanged()
+{
+	QwtScaleWidget *axis = qobject_cast<QwtScaleWidget*>( sender() );
+	if ( !axis )
+		return;
+
+	double xMin, xMax, yMin, yMax, y2Min, y2Max;
+	AxisRanges( xMin, xMax, yMin, yMax, y2Min, y2Max );
+
+	int iaxis = 0;
+	QwtScaleDiv *div = nullptr;
+	double *pscale_factor = nullptr;
+	double R = 0.;
+	if ( axis == axisWidget( yLeft ) )
+	{
+		iaxis = 1;
+		div = axisScaleDiv( yLeft );
+		R = yMax - yMin;
+		pscale_factor = &mYScaleFactor;
+	}
+	else
+	if ( axis == axisWidget( yRight ) )
+	{
+		iaxis = 2;
+		div = axisScaleDiv( yRight );
+		R = y2Max - y2Min;
+		pscale_factor = &mY2ScaleFactor;
+	}
+	else
+	{
+		assert__( axis == axisWidget( xBottom ) );
+		div = axisScaleDiv( xBottom );
+
+		R = xMax - xMin;
+		pscale_factor = &mXScaleFactor;
+	}
+
+	std::string msg = n2s<std::string>( div->lowerBound() ) + " <=> " + n2s<std::string>( div->upperBound() );
+
+	*pscale_factor = R / ( div->upperBound() - div->lowerBound() );
+
+	if ( mCurrentHistogram )
+		mCurrentHistogram->SetScaleFactors( mXScaleFactor, mYScaleFactor, mY2ScaleFactor );
+	if ( mCurrentSpectrogram )
+		mCurrentSpectrogram->SetScaleFactors( mXScaleFactor, mYScaleFactor, mY2ScaleFactor );
+
+	emit ScaleDivChanged( iaxis, *pscale_factor, msg.c_str() );
+}
+
 
 
 
@@ -1150,10 +1184,10 @@ QwtPlotSpectrogram* C2DPlotWidget::PushRaster( const std::string &title, const C
 	////////////////color_map.addColorStop( 0.90, Qt::yellow );
 	mCurrentSpectrogram->setColorMap( color_map );
 
-    // Axis, scales (do this after color map or prevent re-plotting
+    // Axis, scales (do this after color map or prevent re-plotting)
 
 	EnableAxisY2();
-	SetPlotAxisScales( (int)mSpectrograms.size() - 1, map.mMinX, map.mMaxX, map.mMinY, map.mMaxY, 
+	SetPlotAxisRanges( (int)mSpectrograms.size() - 1, map.mMinX, map.mMaxX, map.mMinY, map.mMaxY, 
 		mCurrentSpectrogram->data().range().minValue(), mCurrentSpectrogram->data().range().maxValue() );
 
 	//...color bar on the right axis
@@ -1189,7 +1223,13 @@ void C2DPlotWidget::SetCurrentRaster( int index )
 	double xMin, xMax, yMin, yMax, y2Min, y2Max;
 	CurrentSpectrogramRanges( xMin, xMax, yMin, yMax, y2Min, y2Max );
 	EnableAxisY2();
-	SetAxisScales( xMin, xMax, yMin, yMax, y2Min, y2Max );
+
+	double x, y, z;
+	mCurrentSpectrogram->ScaleFactors( x, y, z );
+
+	SetAxisScales( xMin, xMax, yMin, yMax, y2Min, y2Max, false );	//changes both this and plot scale factors (to 1.)
+	RescaleX( x );
+	RescaleY( y );
 
 	std::string xtitle, ytitle, ztitle;
 	SpectrogramAxisTitles( index, xtitle, ytitle, ztitle );
@@ -1340,6 +1380,16 @@ int C2DPlotWidget::NumberOfBins( int index ) const
 template< typename DATA >
 CHistogram* C2DPlotWidget::CreateHistogram( const std::string &title, QColor color, const DATA &data, double &max_freq, int bins )
 {
+	if ( mHistograms.size() == 0 )
+	{
+		QwtPlotGrid *grid = new QwtPlotGrid;
+		grid->enableXMin( true );
+		grid->enableYMin( true );
+		grid->setMajPen( QPen( Qt::black, 0, Qt::DotLine ) );
+		grid->setMinPen( QPen( Qt::gray, 0, Qt::DotLine ) );
+		grid->attach( this );
+	}
+
 	CHistogram *h = new CHistogram;
 
 	h->setColor( color );
@@ -1375,6 +1425,11 @@ CHistogram* C2DPlotWidget::CreateHistogram( const std::string &title, QColor col
 
 	h->setData( QwtIntervalData( intervals, values ) );
 
+	h->SetAxisTitles( "Values", "Frequency", "" );		//histograms do not allow custom titles.
+	std::string xtitle, ytitle, y2title;
+	h->AxisTitles( xtitle, ytitle, y2title );
+	SetAxisTitles( xtitle, ytitle, y2title );
+
 	return h;
 }
 
@@ -1384,41 +1439,20 @@ CHistogram* C2DPlotWidget::AddHistogram( const std::string &title, QColor color,
 {
 	assert__( mSpectrograms.size() == 0 && mCurves.size() == 0 );
 
-	if ( mHistograms.size() == 0 )
-	{
-		QwtPlotGrid *grid = new QwtPlotGrid;
-		grid->enableXMin( true );
-		grid->enableYMin( true );
-		grid->setMajPen( QPen( Qt::black, 0, Qt::DotLine ) );
-		grid->setMinPen( QPen( Qt::gray, 0, Qt::DotLine ) );
-		grid->attach( this );
-	}
-
 	color.setAlpha( 127 );
-	CHistogram *h = CreateHistogram( title, color, data, max_freq, bins );
-	mHistograms.push_back( h );
-	h->attach( this );
-	mCurrentHistogram = h;
-	return h;
+	mCurrentHistogram = CreateHistogram( title, color, data, max_freq, bins );
+	mHistograms.push_back( mCurrentHistogram );
+	mCurrentHistogram->attach( this );
+
+	return mCurrentHistogram;
 }
 
-CHistogram* C2DPlotWidget::PushHistogram( const std::string &title, QColor color, const CZFXYValues &data, double &max_freq, int bins )
+CHistogram* C2DPlotWidget::SetSingleHistogram( const std::string &title, QColor color, const CZFXYValues &data, double &max_freq, int bins )
 {
 	assert__( mSpectrograms.size() == 0 && mCurves.size() == 0 );
 
-	if ( mHistograms.size() == 0 )
-	{
-		QwtPlotGrid *grid = new QwtPlotGrid;
-		grid->enableXMin( true );
-		grid->enableYMin( true );
-		grid->setMajPen( QPen( Qt::black, 0, Qt::DotLine ) );
-		grid->setMinPen( QPen( Qt::gray, 0, Qt::DotLine ) );
-		grid->attach( this );
-	}
-
 	mCurrentHistogram = CreateHistogram( title, color, data, max_freq, bins );
 	mHistograms.push_back( mCurrentHistogram );
-
 	return mCurrentHistogram;
 }
 
@@ -1427,16 +1461,18 @@ void C2DPlotWidget::SetCurrentHistogram( int index )
 {
 	assert__( size_t( index ) < mHistograms.size() );
 
-	//if ( mHistograms[ index ] == mCurrentHistogram )
-	//	return;
-
 	mCurrentHistogram->detach();
 	mCurrentHistogram = mHistograms[ index ];
 	mCurrentHistogram->attach( this );
 
 	double xMin, xMax, yMin, yMax;
 	CurrentHistogramRanges( xMin, xMax, yMin, yMax );
-	SetAxisScales( xMin, xMax, yMin, yMax );
+	double x, y, z;
+	mCurrentHistogram->ScaleFactors( x, y, z );
+
+	SetAxisScales( xMin, xMax, yMin, yMax );	//changes both this and plot scale factors (to 1.)
+	RescaleX( x );
+	RescaleY( y );
 
 	std::string xtitle, ytitle, ztitle;
 	HistogramAxisTitles( index, xtitle, ytitle, ztitle );

@@ -91,9 +91,6 @@ void CXYPlotData::Create( CYFXPlot *plot )
 
 	std::string varXName;
 
-	CUnit unitXRead;
-	CUnit unitYRead;
-
 	std::string unitXStr;
 	std::string unitYStr;
 
@@ -147,7 +144,7 @@ void CXYPlotData::Create( CYFXPlot *plot )
 
 	// Get and control unit of X axis
 	// X units are compatible but not the same --> convert
-	unitXRead = yfx->GetUnit( varXName );
+	CUnit unitXRead = yfx->GetUnit( varXName );
 	if ( unitX.AsString() != unitXRead.AsString() )
 	{
 		plot->XUnit().SetConversionFrom( unitXRead );
@@ -179,25 +176,19 @@ void CXYPlotData::Create( CYFXPlot *plot )
 	}
 
 	// Read Y data
-	unitYRead = yfx->GetUnit( fieldName );
+	CUnit unitYRead = yfx->GetUnit( fieldName );
 	yfx->ReadVar( fieldName, varY, unitYRead.GetText() );
 	varKind	= yfx->GetVarKind( fieldName );
-	/************************DEDEDE
-	if (varKind != Data)
-	{
-	std::string msg = CTools::Format("CXYPlotData::Create - variable '%s' is not a kind of Data (%d) : %s",
-	fieldName.c_str(), Data, CNetCDFFiles::VarKindToString(varKind).c_str());
-	CException e(msg, BRATHL_INCONSISTENCY_ERROR);
-	CTrace::Tracer("%s", e.what());
-	throw (e);
-	}
-	*/
 	// Y units are compatible but not the same --> convert
 	if ( unitY.AsString() != unitYRead.AsString() )
 	{
 		plot->YUnit().SetConversionFrom( unitYRead );
 		plot->YUnit().ConvertVector( varY.GetValues(), (int32_t)varY.GetNbValues() );
 	}
+
+	//v4 for uniformity with ZFXY
+	CUnit* unit = new CUnit( unitYRead );
+	m_dataUnits.push_back( unit );
 
 	CStringArray commonDims;
 	bool intersect = yfx->GetCommonVarDims( varXName, fieldName, commonDims );

@@ -101,7 +101,6 @@ private:
 
 	CXYPlotData *mCurrentPlotDataXY = nullptr;
 	bool mMultiFrame = false;					//	bool mPanelMultiFrame;	2 variables in v3: one in the window, the other in the panel
-	bool mHasClut = false;
 
 	CZFXYPlotData *mCurrentPlotDataZFXY = nullptr;
 
@@ -133,6 +132,8 @@ protected:
 
 	void Recreate2DPlots();
 	void Recreate3DPlots( bool build2d, bool build3d );
+
+	double CreateHistogram();
 
 	void SetAnimationDescr( int frame );		//from v3 CXYPlotPanel::SetAnimationDescr
 
@@ -204,8 +205,8 @@ protected slots:
 
 
 	//...log
-	void HandleLogarithmicScaleX( bool log );
-	void HandleLogarithmicScaleY( bool log );
+	//void HandleLogarithmicScaleX( bool log );
+	//void HandleLogarithmicScaleY( bool log );
 	void HandleLogarithmicScaleZ( bool log );
 
 

@@ -128,12 +128,11 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
     // 3. Line Options
     //
     mLineColorButton = new CColorButton;
-    mLineOpacityValue = new QLineEdit;
+    mLineOpacityValue = new QLineEdit;								mLineOpacityValue->setValidator( new QRegExpValidator( QRegExp( "[0-9]+" ) ) );
 	mLineOpacityValue->setToolTip( "Press <enter> to assign value" );
     mStipplePattern = new QComboBox;
     mStipplePattern->setToolTip("Stipple pattern");
-    mLineWidthValue = new QLineEdit;
-	mLineWidthValue->setToolTip( "Press <enter> to assign value" );
+    mLineWidthValue = new QLineEdit;								mLineWidthValue->setValidator( new QRegExpValidator( QRegExp( "[0-9]+" ) ) );
 
     mLineOptions = CreateGroupBox( ELayoutType::Horizontal, 
 	{
@@ -151,8 +150,7 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
     mFillPointCheck = new QCheckBox;
     mPointGlyph = new QComboBox;
     mPointGlyph->setToolTip("Point Glyph");
-    mPointSizeValue = new QLineEdit;
-	mPointSizeValue->setToolTip( "Press <enter> to assign value" );
+    mPointSizeValue = new QLineEdit;								mPointSizeValue->setValidator( new QRegExpValidator( QRegExp( "[0-9]+" ) ) );
 
     mPointOptions = CreateGroupBox( ELayoutType::Horizontal, 
 	{ 
@@ -243,6 +241,10 @@ void CPlotControlsPanelCurveOptions::SwitchToHistogram( bool hide3d )
 //		Axis Options Tab					
 ////////////////////////////////////////
 
+//static 
+const double CPlotControlsPanelAxisOptions::smMaxScale = 1000000.;
+
+
 CPlotControlsPanelAxisOptions::CPlotControlsPanelAxisOptions( QWidget *parent, Qt::WindowFlags f )	//parent = nullptr, Qt::WindowFlags f = 0
     : base_t( parent, f )
 {
@@ -250,7 +252,7 @@ CPlotControlsPanelAxisOptions::CPlotControlsPanelAxisOptions( QWidget *parent, Q
 	axis_font.setPointSize( axis_font.pointSize() - 1 );
 	setFont( axis_font );
 	const int height = fontMetrics().lineSpacing() + 6;
-	const int width = 10 * fontMetrics().width( '0' );
+	const int width = 12 * fontMetrics().width( '0' );
 
 	auto shrinkh = [&height]( QWidget *w )
 	{
@@ -287,39 +289,40 @@ CPlotControlsPanelAxisOptions::CPlotControlsPanelAxisOptions( QWidget *parent, Q
 		return e;
 	};
 
-	//mX_axis = new CAxisTab;
-	//mY_axis = new CAxisTab;
-	//mZ_axis = new CAxisTab;
+	auto wcenter = [this]( QWidget *w )
+	{
+		QWidget *parent = new QWidget;
+		LayoutWidgets( Qt::Horizontal, { w }, parent )->setAlignment( Qt::AlignHCenter );
+		return parent;
+	};
 
-	//mXScaleSpin = new QDoubleSpinBox;
-	//mYScaleSpin = new QDoubleSpinBox;
-	//mZScaleSpin = new QDoubleSpinBox;
+	//
 
     mXAxisLabel = new QLineEdit;
     mYAxisLabel = new QLineEdit;
     mZAxisLabel = new QLineEdit;
 
-    mXNbTicks = new QLineEdit;
-    mYNbTicks = new QLineEdit;
-    mZNbTicks = new QLineEdit;
+    mXNbTicks = new QLineEdit;	mXNbTicks->setValidator( new QRegExpValidator( QRegExp( "[0-9]+" ) ) );
+    mYNbTicks = new QLineEdit;	mYNbTicks->setValidator( new QRegExpValidator( QRegExp( "[0-9]+" ) ) );
+    mZNbTicks = new QLineEdit;	mZNbTicks->setValidator( new QRegExpValidator( QRegExp( "[0-9]+" ) ) );
 
-    mXNbDigits = new QLineEdit;
-    mYNbDigits = new QLineEdit;
-    mZNbDigits = new QLineEdit;
+    mXNbDigits = new QLineEdit;	mXNbDigits->setValidator( new QRegExpValidator( QRegExp( "[0-9]+" ) ) );
+    mYNbDigits = new QLineEdit;	mYNbDigits->setValidator( new QRegExpValidator( QRegExp( "[0-9]+" ) ) );
+    mZNbDigits = new QLineEdit;	mZNbDigits->setValidator( new QRegExpValidator( QRegExp( "[0-9]+" ) ) );
 
 	mX2DScaleSpin = new QDoubleSpinBox;
 	mY2DScaleSpin = new QDoubleSpinBox;
 	mZ2DScaleSpin = new QDoubleSpinBox;
 
-    mX2DScaleSpin->setRange( 0.1, 10000. );
+    mX2DScaleSpin->setRange( 0.1, smMaxScale );
     mX2DScaleSpin->setSingleStep( 0.1 );
     mX2DScaleSpin->setValue( 1. );
 
-    mY2DScaleSpin->setRange( 0.1, 10000. );
+    mY2DScaleSpin->setRange( 0.1, smMaxScale );
     mY2DScaleSpin->setSingleStep( 0.1 );
     mY2DScaleSpin->setValue( 1. );
 
-    mZ2DScaleSpin->setRange( 0.1, 10000. );
+    mZ2DScaleSpin->setRange( 0.1, smMaxScale );
     mZ2DScaleSpin->setSingleStep( 0.1 );
     mZ2DScaleSpin->setValue( 1. );
 
@@ -328,7 +331,7 @@ CPlotControlsPanelAxisOptions::CPlotControlsPanelAxisOptions( QWidget *parent, Q
     mYAxisMinMax = new QLineEdit;
     mZAxisMinMax = new QLineEdit;
 
-    SetReadOnlyEditor( mXAxisMinMax, true );
+    SetReadOnlyEditor( mXAxisMinMax, true );	
     SetReadOnlyEditor( mYAxisMinMax, true );
     SetReadOnlyEditor( mZAxisMinMax, true );
 	mXAxisMinMax->setFont( axis_font );			//SetReadOnlyEditor indirectly assigns font
@@ -340,25 +343,30 @@ CPlotControlsPanelAxisOptions::CPlotControlsPanelAxisOptions( QWidget *parent, Q
 	mZ3DScaleSpin = new QDoubleSpinBox;
 
 
-    mX3DScaleSpin->setRange( 0.1, 10000. );
+    mX3DScaleSpin->setRange( 0.1, smMaxScale );
     mX3DScaleSpin->setSingleStep( 0.1 );
     mX3DScaleSpin->setValue( 1. );
 
-    mY3DScaleSpin->setRange( 0.1, 10000. );
+    mY3DScaleSpin->setRange( 0.1, smMaxScale );
     mY3DScaleSpin->setSingleStep( 0.1 );
     mY3DScaleSpin->setValue( 1. );
 
-    mZ3DScaleSpin->setRange( 0.1, 10000. );
+    mZ3DScaleSpin->setRange( 0.1, smMaxScale );
     mZ3DScaleSpin->setSingleStep( 0.1 );
     mZ3DScaleSpin->setValue( 1. );
 
+    mXLogScaleCheck = new QCheckBox;		mXLogScaleCheck->setVisible( false );
+	mYLogScaleCheck = new QCheckBox;		mYLogScaleCheck->setVisible( false );
+    mZLogScaleCheck = new QCheckBox;
+
+
     AddTopLayout( ELayoutType::Grid,  
 	{ 
-		new QLabel("Axis"), lshrink("label"),		lshrink("ticks"),		lshrink("digits"),		lshrink("2D scale"),		lshrink("2D range"),		lshrink("3D scale"),	nullptr,
-		lshrink("X"),		shrinkh( mXAxisLabel) ,	eshrink( mXNbTicks ),	eshrink( mXNbDigits ),	shrink( mX2DScaleSpin ),	eshrinkh( mXAxisMinMax ),	shrink( mX3DScaleSpin ), nullptr,
-		lshrink("Y"),		shrinkh( mYAxisLabel ),	eshrink( mYNbTicks ),	eshrink( mYNbDigits ),	shrink( mY2DScaleSpin ),	eshrinkh( mYAxisMinMax ),	shrink( mY3DScaleSpin ), nullptr,
-		lshrink("Z"),		shrinkh( mZAxisLabel ),	eshrink( mZNbTicks ),	eshrink( mZNbDigits ),	shrink( mZ2DScaleSpin ),	eshrinkh( mZAxisMinMax ),	shrink( mZ3DScaleSpin ), nullptr,
-	}, 2, 2, 0, 2, 0 
+		new QLabel("Axis"), lshrink("label"),		lshrink("ticks"),		lshrink("digits"),		lshrink("2D scale"),		lshrink("2D scale range"),	lshrink("3D scale"),	lshrink("3D log"),	nullptr,
+		lshrink("X"),		shrinkh( mXAxisLabel) ,	eshrink( mXNbTicks ),	eshrink( mXNbDigits ),	shrink( mX2DScaleSpin ),	eshrinkh( mXAxisMinMax ),	shrink( mX3DScaleSpin ), wcenter( mXLogScaleCheck ), nullptr,
+		lshrink("Y"),		shrinkh( mYAxisLabel ),	eshrink( mYNbTicks ),	eshrink( mYNbDigits ),	shrink( mY2DScaleSpin ),	eshrinkh( mYAxisMinMax ),	shrink( mY3DScaleSpin ), wcenter( mYLogScaleCheck ), nullptr,
+		lshrink("Z"),		shrinkh( mZAxisLabel ),	eshrink( mZNbTicks ),	eshrink( mZNbDigits ),	shrink( mZ2DScaleSpin ),	eshrinkh( mZAxisMinMax ),	shrink( mZ3DScaleSpin ), wcenter( mZLogScaleCheck ), nullptr,
+	}, 2, 2, 0, 2, 0
 	);
 
 
@@ -373,12 +381,6 @@ CPlotControlsPanelAxisOptions::CPlotControlsPanelAxisOptions( QWidget *parent, Q
     AddTopLayout( ELayoutType::Horizontal, { mAxisOptionsTabs } );
 #else
 #endif
-
- //   AddTopLayout( ELayoutType::Horizontal, 
-	//{ 
-	//	mX_axis, mY_axis, mZ_axis, LayoutWidgets( Qt::Vertical, { mXScaleSpin, mYScaleSpin, mZScaleSpin }, nullptr )
-	//} 
-	//);
 }
 
 
@@ -407,6 +409,10 @@ void CPlotControlsPanelAxisOptions::SwitchTo2D()
 	mY3DScaleSpin->setEnabled( false );
 	mZ3DScaleSpin->setEnabled( false );
 
+	mXLogScaleCheck->setEnabled( false );
+	mYLogScaleCheck->setEnabled( false );
+	mZLogScaleCheck->setEnabled( false );
+
 #if defined USE_AXIS_TABS
 	if ( mAxisOptionsTabs->currentIndex() == 2 )
 		SelectTab( 0 );
@@ -425,6 +431,10 @@ void CPlotControlsPanelAxisOptions::SwitchTo3D()
 	mX3DScaleSpin->setEnabled( true );
 	mY3DScaleSpin->setEnabled( true );
 	mZ3DScaleSpin->setEnabled( true );
+
+	mXLogScaleCheck->setEnabled( true );
+	mYLogScaleCheck->setEnabled( true );
+	mZLogScaleCheck->setEnabled( true );
 
 	SelectTab( 2 );					//TODO delete when properly implemented
 }

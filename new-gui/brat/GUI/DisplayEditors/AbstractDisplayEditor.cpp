@@ -68,13 +68,6 @@ CAbstractDisplayEditor::GetDisplayData( size_t field_index, CGeoPlot *lon_lat )
 	if ( !*unit )
 		ThrowDisplayDataNotAvaiable();
 
-	CWorldPlotProperties &props = *unit->GetPlotProperties();
-	if ( unit->FieldNameEast() != props.FieldName() && unit->FieldNameNorth() != props.FieldName() )
-	{
-		LOG_WARN( unit->FieldNameEast() + " [<= East DisplayData] != [LonLat Properties=>] " + props.FieldName() );
-		LOG_WARN( unit->FieldNameNorth() + " [<= North DisplayData] != [LonLat Properties=>] " + props.FieldName() );
-	}
-
 	assert__( unit->first == unit->GetPlotProperties() || unit->second == unit->GetPlotProperties() );
 
 	// TODO brat v3 does not update range: this should be done in plots Create
@@ -94,10 +87,6 @@ CAbstractDisplayEditor::GetDisplayData( size_t field_index, CZFXYPlot *zfxy )
 	CZFXYPlotData *unit = zfxy->PlotData( field_index );		assert( unit );
 	if ( !*unit )
 		ThrowDisplayDataNotAvaiable();
-
-	CZFXYPlotProperties *props = unit->GetPlotProperties();
-	if ( unit->FieldName() != props->FieldName() )
-		LOG_WARN( unit->FieldName() + " [<= DisplayData] != [ZFXY Properties=>] " + props->FieldName() );
 
 	// TODO brat v3 does not update range: this should be done in plots Create
 	if ( isDefaultValue( unit->AbsoluteMinValue() ) || isDefaultValue( unit->AbsoluteMaxValue() ) )
@@ -221,9 +210,13 @@ void CAbstractDisplayEditor::CreateGraphicsBar()
 	mGraphicsToolBar->addAction( mRecenterAction );
 	mGraphicsToolBar->addAction( mExport2ImageAction );
 
-#if defined (SHOW_TEST)
 	mActionTest = CActionInfo::CreateAction( this, eAction_Test );
+	mActionTest->setShortcut( QKeySequence( "Ctrl+Shift+F8" ) );
+
+#if defined (SHOW_TEST)
 	mGraphicsToolBar->addAction( mActionTest );
+#else
+	addAction( mActionTest );
 #endif
 
 	// add the bar
@@ -282,9 +275,7 @@ void CAbstractDisplayEditor::Wire()
 	connect( mRecenterAction, SIGNAL( triggered() ), this, SLOT( HandleRecenter() ) );
 	connect( mExport2ImageAction, SIGNAL( triggered() ), this, SLOT( HandleExport2Image() ) );
 
-#if defined (SHOW_TEST)
 	connect( mActionTest, SIGNAL( triggered() ), this, SLOT( HandleTest() ) );
-#endif
 
 	//tab general
 
@@ -329,7 +320,7 @@ CAbstractDisplayEditor::CAbstractDisplayEditor( bool map_editor, CModel *model, 
 	FilterOperations();
 	if ( !mOperation )
 	{
-		throw CException( "The requested operation " + op->GetName() + " has no associated views of types supported by this editor." );
+		throw CException( "The requested operation '" + op->GetName() + "' has no associated views of types supported by this editor." );
 	}
 
 	//IMPORTANT CreateWidgets() must be called by derived classes
@@ -950,8 +941,8 @@ void CAbstractDisplayEditor::HandleDeleteButtonClicked()
 //	Domain Processing Helpers
 /////////////////////////////
 
-// TODO This seems to make sense only in old views tab; the question remains: how to 
-//	keep functionality there
+// TODO see what makes sense only in old views tab and what makes sense also in v4
+// TODO see also v3 handler for grouping, because here grouping is the default, although for only 1 operation
 // 
 bool CAbstractDisplayEditor::RefreshDisplayData()			//CDisplayPanel::RefreshSelectedData()
 {

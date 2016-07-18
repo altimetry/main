@@ -191,8 +191,7 @@ public slots:
 	void HandleWorkspaceChanged();
     void HandleDatasetChanged( CDataset *dataset );
 
-	void HandleCurrentLayerSelectionChanged();
-	void HandleCurrentLayerSelectionChanged( QRectF box );
+    void HandleCurrentLayerSelectionChanged( QRectF box = QRectF() );
 	void HandleRelativeTimesBoxChecked( bool checked );
     void HandleCurrentDateTimeBoxChecked( bool checked );
 

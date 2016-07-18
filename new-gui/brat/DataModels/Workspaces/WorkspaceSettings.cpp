@@ -917,6 +917,7 @@ bool CWorkspaceSettings::SaveConfig( CDisplayData &data, const std::string& path
 
 		k_v( ENTRY_FIELD_DATA_X_NUM_DIGITS,	data.m_xDigits ),
 		k_v( ENTRY_FIELD_DATA_Y_NUM_DIGITS,	data.m_yDigits ),
+		k_v( ENTRY_FIELD_DATA_Z_NUM_DIGITS,	data.m_zDigits ),
 
 		k_v( ENTRY_FIELD_DATA_X_LABEL,	data.mXlabel ),
 		k_v( ENTRY_FIELD_DATA_Y_LABEL,	data.mYlabel ),
@@ -1134,12 +1135,13 @@ bool CWorkspaceSettings::LoadConfig( CDisplayData *&pdata, const CDisplay *paren
 
 		k_v( ENTRY_FIELD_DATA_OPACITY,	&data.mOpacity ),
 
-		k_v( ENTRY_FIELD_DATA_X_NUM_TICKS,	&data.m_xTicks, defaultValue< unsigned >() ),
-		k_v( ENTRY_FIELD_DATA_Y_NUM_TICKS,	&data.m_yTicks, defaultValue< unsigned >() ),
-		k_v( ENTRY_FIELD_DATA_Z_NUM_TICKS,	&data.m_zTicks, defaultValue< unsigned >() ),
+		k_v( ENTRY_FIELD_DATA_X_NUM_TICKS,	&data.m_xTicks, CFieldData::smDefaultNumberOfTicks ),
+		k_v( ENTRY_FIELD_DATA_Y_NUM_TICKS,	&data.m_yTicks, CFieldData::smDefaultNumberOfTicks ),
+		k_v( ENTRY_FIELD_DATA_Z_NUM_TICKS,	&data.m_zTicks, CFieldData::smDefaultNumberOfTicks ),
 
 		k_v( ENTRY_FIELD_DATA_X_NUM_DIGITS,	&data.m_xDigits, CFieldData::smDefaultNumberOfDigits ),
 		k_v( ENTRY_FIELD_DATA_Y_NUM_DIGITS,	&data.m_yDigits, CFieldData::smDefaultNumberOfDigits ),
+		k_v( ENTRY_FIELD_DATA_Z_NUM_DIGITS,	&data.m_zDigits, CFieldData::smDefaultNumberOfDigits ),
 
 		k_v( ENTRY_FIELD_DATA_X_LABEL,	&data.mXlabel ),
 		k_v( ENTRY_FIELD_DATA_Y_LABEL,	&data.mYlabel ),

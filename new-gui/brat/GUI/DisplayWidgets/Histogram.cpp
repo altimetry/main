@@ -6,6 +6,7 @@
 #include <qwt_interval_data.h>
 #include <qwt_painter.h>
 #include <qwt_scale_map.h>
+#include <qwt_legend_item.h>
 #include "Histogram.h"
 
 
@@ -49,12 +50,12 @@ void CHistogram::init()
 }
 
 
-void CHistogram::Ranges( double &xMin, double &xMax, double &yMin, double &yMax )
+void CHistogram::Ranges( double &xMin, double &xMax, double &yMin, double &yMax ) const
 {
-	xMin = mMinXValue;
+	xMin = mMinXValue;	  //assert__( mMinXValue == d_data->data.interval( 0 ).minValue() );
 	xMax = mMaxXValue;
 
-	yMin = mMinYValue;
+	yMin = mMinYValue;	  //assert__( mMinYValue == 0 );
 	yMax = mMaxYValue;
 }
 
@@ -69,7 +70,22 @@ void CHistogram::SetRanges( double xMin, double xMax, double yMin, double yMax )
 }
 
 
-void CHistogram::AxisTitles( std::string &xtitle, std::string &ytitle, std::string &ztitle )
+void CHistogram::ScaleFactors( double &x, double &y, double &y2 ) const
+{
+	x = mXScaleFactor;
+	y = mYScaleFactor;
+	y2 = mZScaleFactor;
+}
+void CHistogram::SetScaleFactors( double x, double y, double y2 )
+{
+	mXScaleFactor = x;
+	mYScaleFactor = y;
+	mZScaleFactor = y2;
+}
+
+
+
+void CHistogram::AxisTitles( std::string &xtitle, std::string &ytitle, std::string &ztitle ) const
 {
 	xtitle = mXtitle;
 	ytitle = mYtitle;
@@ -322,4 +338,62 @@ void CHistogram::drawBar(QPainter *painter,	Qt::Orientation, const QRect& rect) 
 #endif
 
    painter->restore();
+}
+
+
+//!  Update the widget that represents the histogram on the legend
+void CHistogram::updateLegend( QwtLegend *legend ) const
+{
+    if ( !legend )
+        return;
+
+    QwtPlotItem::updateLegend(legend);
+
+    QWidget *widget = legend->find(this);
+    if ( !widget || !widget->inherits("QwtLegendItem") )
+        return;
+
+    QwtLegendItem *legendItem = (QwtLegendItem *)widget;
+
+    const bool doUpdate = legendItem->updatesEnabled();
+
+    legendItem->setUpdatesEnabled(false);
+
+    const int policy = legend->displayPolicy();
+
+    if (policy == QwtLegend::FixedIdentifier)
+    {
+        int mode = legend->identifierMode();
+
+        if (mode & QwtLegendItem::ShowLine)
+            legendItem->setCurvePen( QPen( d_data->color ) );
+
+        if (mode & QwtLegendItem::ShowText)
+            legendItem->setText(title());
+        else
+            legendItem->setText(QwtText());
+
+        legendItem->setIdentifierMode(mode);
+    }
+    else if (policy == QwtLegend::AutoIdentifier)
+    {
+        int mode = 0;
+
+		legendItem->setCurvePen( QPen( d_data->color ) );
+		mode |= QwtLegendItem::ShowLine;
+
+        if ( !title().isEmpty() )
+        {
+            legendItem->setText(title());
+            mode |= QwtLegendItem::ShowText;
+        }
+        else
+        {
+            legendItem->setText(QwtText());
+        }
+        legendItem->setIdentifierMode(mode);
+    }
+
+    legendItem->setUpdatesEnabled(doUpdate);
+    legendItem->update();
 }

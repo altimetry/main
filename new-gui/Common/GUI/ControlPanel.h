@@ -105,11 +105,12 @@ protected:
 	}
 
 	QGridLayout* LayoutWidgets( const std::vector< QObject* > &v, QWidget *parent = nullptr,
-		int spacing = smSpacing, int left = smLeft, int top = smTop, int right = smRight, int bottom = smBottom )
+		int spacing = smSpacing, int left = smLeft, int top = smTop, int right = smRight, int bottom = smBottom, 
+		int row_span = 1, int col_span = 1 )
 	{
 		assert__( parent != this );
 
-		return ::LayoutWidgets( v, parent, spacing, left, top, right, bottom );
+		return ::LayoutWidgets( v, parent, spacing, left, top, right, bottom, row_span, col_span );
 	}
 
 	static 
@@ -128,8 +129,9 @@ protected:
 
 	QObject* AddTopWidget( QObject *ob );
 
-	QLayout* AddTopLayout( ELayoutType o, const std::vector< QObject* > &v, 
-		int spacing = smSpacing, int left = smLeft, int top = smTop, int right = smRight, int bottom = smBottom );
+	QLayout* AddTopLayout( ELayoutType o, const std::vector< QObject* > &v,
+		int spacing = smSpacing, int left = smLeft, int top = smTop, int right = smRight, int bottom = smBottom,
+		int row_span = 1, int col_span = 1 );
 
 	QGroupBox* AddTopGroupBox( ELayoutType o, const std::vector< QObject* > &v, const QString &title = "",
 		int spacing = smSpacing, int left = smLeft, int top = smTop, int right = smRight, int bottom = smBottom );

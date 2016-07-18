@@ -179,7 +179,7 @@ public:
 
 	const CUnit* DataUnit() const { return DataUnit( CurrentFrame() ); }
 
-	const CUnit* DataUnit( size_t index ) const
+	virtual const CUnit* DataUnit( size_t index ) const
 	{ 
 		assert__( index < m_dataUnits.size() );
 
@@ -188,9 +188,7 @@ public:
 
 	virtual size_t CurrentFrame() const = 0;
 
-
-
-
+	
 	////////////////////////////
 	// FieldData Interface
 	////////////////////////////
@@ -233,8 +231,10 @@ public:
 
     unsigned Xdigits() const 										{ return Get( &CFieldData::Xdigits ); }
     unsigned Ydigits() const 										{ return Get( &CFieldData::Ydigits ); }
+    unsigned Zdigits() const 										{ return Get( &CFieldData::Zdigits ); }
     void SetXdigits( unsigned value )								{ Set( value, &CFieldData::SetXdigits ); }
     void SetYdigits( unsigned value )								{ Set( value, &CFieldData::SetYdigits ); }
+    void SetZdigits( unsigned value )								{ Set( value, &CFieldData::SetZdigits ); }
 
 	const std::string& Xlabel() const								{ return Get( &CFieldData::Xlabel ); }
 	void SetXlabel( const std::string& value )						{ Set( value, &CFieldData::SetXlabel ); }

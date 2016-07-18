@@ -149,17 +149,7 @@ inline bool isNaN(double x)
 }
 
 
-static std::vector<KmlTrackPoint> kmlTrackVector;
-
-///// RCCC TODO: Added this for storing kmlTrackVector for diferent variables
-static std::vector<std::vector<KmlTrackPoint>> kmlTrackVectors;
-///////////////////////
-
 static unsigned int numberOfBarLabelValues = 9;
-
-/// RCCC TODO: Move this to CDataInfo
-//static std::vector<double> barLabelValues;
-//static std::string colourBarFilename;
 
 static bool includeTimestamp;
 
@@ -172,6 +162,7 @@ struct CDataInfo
     bool mIsAltData;
     std::string mColourBarFilename;
     std::vector<double> mBarLabelValues;
+    std::vector<KmlTrackPoint>  mKmlTrackVector;
 };
 
 
@@ -506,42 +497,41 @@ int ExtractTimestampVariable(int ncId, int *timestampVarId)
 
 void ExtractMinAndMax(int ncId, int dataVarId, int nRow, int nCol, double &minValue, double &maxValue)
 {
-  std::vector<double> dataBuffer(nCol);
-  size_t startArray[2], countArray[2];
+    std::vector<double> dataBuffer(nCol);
+    size_t startArray[2], countArray[2];
 
-  // setup the values to fetch a single row, starting at the bottom;
-  startArray[0] = 0;
-  startArray[1] = 0;
-  countArray[0] = 1;
-  countArray[1] = nCol;
-  
-  // initialize
-  minValue = DBL_MAX;
-  maxValue = -DBL_MAX;
+    // setup the values to fetch a single row, starting at the bottom;
+    startArray[0] = 0;
+    startArray[1] = 0;
+    countArray[0] = 1;
+    countArray[1] = nCol;
 
-  // blast through the data, row by row
-  for (int row = 0; row < nRow; ++row) {
+    // initialize
+    minValue = DBL_MAX;
+    maxValue = -DBL_MAX;
 
-    if (nc_get_vara_double(ncId, dataVarId, startArray, countArray, &(dataBuffer.front())) == NC_NOERR)
+    // blast through the data, row by row
+    for (int row = 0; row < nRow; ++row)
     {
-        // scan the data
-        for ( auto const &value : dataBuffer )
+        if (nc_get_vara_double(ncId, dataVarId, startArray, countArray, &(dataBuffer.front())) == NC_NOERR)
         {
-            if ( isDefaultValue( value ) )
-                continue;
-            if ( value < minValue )
-                minValue = value;
-            if ( value > maxValue )
-                maxValue = value;
+            // scan the data
+            for ( auto const &value : dataBuffer )
+            {
+                if ( isDefaultValue( value ) )
+                    continue;
+                if ( value < minValue )
+                    minValue = value;
+                if ( value > maxValue )
+                    maxValue = value;
+            }
         }
+        ++startArray[0];
     }
-    
-    ++startArray[0];
-  }
 }
 
 
-bool WriteGeoTiff(const std::string &filename,
+bool WriteGeoTiff_FillKmlTrack(const std::string &filename,
 				  int ncId, int dataVarId, bool swap_axis,
 				  int nLat, int nLon, 
 				  double minValue, double maxValue,
@@ -554,7 +544,7 @@ bool WriteGeoTiff(const std::string &filename,
 				  std::vector<double>& lonAxis,
                   int timestampVarId,
                   std::string &colourBarFilename,
-                  std::vector<double> &barLabelValues )
+                  std::vector<KmlTrackPoint> &kmlTrackVector )
 {
   const int samplePerPixel = 4;
   size_t startArray[2], countArray[2];
@@ -712,8 +702,8 @@ bool WriteGeoTiff(const std::string &filename,
 			kmlTrackPoint.data = *it;
 			std::copy(pCursor, pCursor + 4, kmlTrackPoint.rgba);
 
-			if (includeTimestamp) {
-
+            if (includeTimestamp)
+            {
 				kmlTrackPoint.timestamp = timestampBuffer.at(column);
 			}
 
@@ -820,15 +810,6 @@ bool WriteGeoTiff(const std::string &filename,
 	  }
   }
 
-  // colour bar label values
-  barLabelValues.resize(numberOfBarLabelValues);
-
-  double barLabelValuesScale = (maxValue - minValue) / (numberOfBarLabelValues - 1);
-
-  for (unsigned int valueIndex = 0; valueIndex < numberOfBarLabelValues; ++valueIndex) {
-
-	  barLabelValues[valueIndex] = minValue + valueIndex * barLabelValuesScale;
-  }
 
   TIFFClose(tiffBar);
 
@@ -839,14 +820,114 @@ bool WriteGeoTiff(const std::string &filename,
 }
 
 
+bool FillKmlTrack ( int ncId, int dataVarId, bool swap_axis,
+                           int nLat, int nLon,
+                           double minValue, double maxValue,
+                           const ColourTable *colourTable,
+                           std::vector<double>& latAxis,
+                           std::vector<double>& lonAxis,
+                           int timestampVarId,
+                           std::vector<KmlTrackPoint> &kmlTrackVector )
+{
+    size_t startArray[2], countArray[2];
+    std::vector<double> dataBuffer(nLon);
+    std::vector<double> timestampBuffer(nLon);
+    unsigned char pCursor[4];
+    uint32 row = 0;
+    uint32 column = 0;
+    uint32 height = nLat;
+    double fillValue;
+    double scale = 1.0 / (maxValue - minValue);
+
+    if (nc_get_att_double(ncId, dataVarId, "_FillValue", &fillValue) != NC_NOERR)
+        fillValue = NC_FILL_DOUBLE;
+
+    // Setup the values to fetch a single row, starting at the bottom;
+    if (swap_axis)
+    {
+        startArray[0] = 0;
+        startArray[1] = nLat;
+        countArray[0] = nLon;
+        countArray[1] = 1;
+    }
+    else
+    {
+        startArray[0] = nLat;
+        startArray[1] = 0;
+        countArray[0] = 1;
+        countArray[1] = nLon;
+    }
+
+    // North to south reading of source data
+    for (row = 0; row < height; row++)
+    {
+        // work north to south in source data
+        if (swap_axis)
+            --startArray[1];
+        else
+            --startArray[0];
+
+        if (nc_get_vara_double(ncId, dataVarId, startArray, countArray, &(dataBuffer.front())) != NC_NOERR)
+        {
+            // Continue on data reading failure ...
+            continue;
+        }
+        else
+        {
+            // map the data value to a colour value
+            std::vector<double>::const_iterator it = dataBuffer.begin();
+            std::vector<double>::const_iterator endIt = dataBuffer.end();
+
+            // reads the timestamp variable if it exists in the NC file
+            if (includeTimestamp)
+            {
+                if ( nc_get_vara_double(ncId, timestampVarId, startArray, countArray,
+                                                        &(timestampBuffer.front())) != NC_NOERR )
+                {
+                    // set timestamp to -1 if any error reading this row
+                    std::fill(timestampBuffer.begin(), timestampBuffer.end(), -1);
+                }
+            }
+
+            // populate the kmlTrackVector from the row data
+            column = 0;
+            while ( it != endIt )
+            {
+                if ( *it != fillValue && !isNaN(*it) )
+                {
+                    colourTable->getRGBA((*it - minValue) * scale, pCursor);
+
+                    //===================================================//
+                    // Adds the point information to the kmlTrackVector  //
+                    //===================================================//
+                    KmlTrackPoint kmlTrackPoint;
+
+                    kmlTrackPoint.lat  = latAxis.at( nLat - 1 - row );
+                    kmlTrackPoint.lon  = lonAxis.at( column );
+                    kmlTrackPoint.alt  = 0;
+                    kmlTrackPoint.data = *it;
+                    std::copy(pCursor, pCursor + 4, kmlTrackPoint.rgba);
+                    if ( includeTimestamp ){  kmlTrackPoint.timestamp = timestampBuffer.at(column); }
+
+                    kmlTrackVector.push_back(kmlTrackPoint);
+                }
+                ++it;
+                column++;
+            }
+        }
+    }
+    return true;
+}
+
+
+
 //------------------------------------------------------------
 // Read the input NetCDF file and export as GeoTIFF. This expects
 // a lat x lon grid of data (with uniform spacing), and expects the
 // CF-1.0 convention to be applicable to the netCDF file.
  
 bool ExportNetCdfAsGeoTiff( const std::string &inputFileName, std::vector< CDataInfo > &data_info, std::vector< std::string > &outputFileNames, const std::string &colourTableName,
-    bool closeInLongitudeIfGlobal,
-struct CoordBoundaries *coordBoundaries )
+                            bool closeInLongitudeIfGlobal, struct CoordBoundaries *coordBoundaries, bool write_geotiff_file )
 {
 	const int cMaxDimReasonable = 16; // we DO NOT expect to have more than this number of dimensions
 
@@ -947,8 +1028,7 @@ struct CoordBoundaries *coordBoundaries )
                         swap_axis = true;
 					}
 				}
-			}
-
+            }
 			++varId;
 		}
 
@@ -1059,17 +1139,17 @@ struct CoordBoundaries *coordBoundaries )
             }
             info.mUnit = dataUnits;
 
-            if ((strcmp(dataUnits, "mm") == 0)
-                    || (strcmp(dataUnits, "cm") == 0)
-                    || (strcmp(dataUnits, "m") == 0)
-                    || (strcmp(dataUnits, "meters") == 0)
-                    || (strcmp(dataUnits, "meter") == 0)
-                    || (strcmp(dataUnits, "km") == 0)) {
-
+            if ( (strcmp(dataUnits, "mm") == 0)     ||
+                 (strcmp(dataUnits, "cm") == 0)     ||
+                 (strcmp(dataUnits, "m") == 0)      ||
+                 (strcmp(dataUnits, "meters") == 0) ||
+                 (strcmp(dataUnits, "meter") == 0)  ||
+                 (strcmp(dataUnits, "km") == 0)       )
+            {
                 info.mIsAltData = true;
-
-            } else {
-
+            }
+            else
+            {
                 info.mIsAltData = false;
             }
 
@@ -1099,32 +1179,54 @@ struct CoordBoundaries *coordBoundaries )
 				ColourTable colourTable( colourTableName );
                 std::string colourBarFilename;
                 std::vector<double> barLabelValues;
+                std::vector<KmlTrackPoint> kmlTrackVector;
 
 				outputFileNames.push_back( base_name + n2s< std::string >( dataVarId ) + extension );
-				if ( ! WriteGeoTiff( outputFileNames.back(), ncId, dataVarId, swap_axis, nLat, nLon,
-                                     rangeMin, rangeMax, &colourTable,
-                                     areaGrid, latNorth, lonWest, dLat, dLon,
-                                     ( globalLongitude && closeInLongitudeIfGlobal ),
-                                     latAxis, lonAxis, timestampVarId,
-                                     colourBarFilename, barLabelValues ) )
-                {
-                    status = 1;
-				}
 
-                /// TODO RCCC: Storing KmlTrackVector of current data variable
+
+                if ( write_geotiff_file )
+                {
+                    if ( !WriteGeoTiff_FillKmlTrack( outputFileNames.back(), ncId, dataVarId, swap_axis, nLat, nLon,
+                                                    rangeMin, rangeMax, &colourTable,
+                                                    areaGrid, latNorth, lonWest, dLat, dLon,
+                                                    ( globalLongitude && closeInLongitudeIfGlobal ),
+                                                    latAxis, lonAxis, timestampVarId,
+                                                    colourBarFilename, kmlTrackVector ) )
+                    {
+                        status = 1;
+                    }
+                }
+                else
+                {
+                    if ( !FillKmlTrack( ncId, dataVarId, swap_axis,
+                                               nLat, nLon,
+                                               rangeMin, rangeMax, &colourTable,
+                                               latAxis, lonAxis, timestampVarId,
+                                               kmlTrackVector ) )
+                    {
+                        status = 1;
+                    }
+                }
+
+                // Filling Colour bar label values //
+                barLabelValues.resize(numberOfBarLabelValues);
+                double barLabelValuesScale = (rangeMax - rangeMin) / (numberOfBarLabelValues - 1);
+
+                for (unsigned int valueIndex = 0; valueIndex < numberOfBarLabelValues; ++valueIndex)
+                {
+                    barLabelValues[valueIndex] = rangeMin + valueIndex * barLabelValuesScale;
+                }
+
+                // Storing KmlTrackVector of current data variable //
                 if ( status == NC_NOERR )
                 {
-                    kmlTrackVectors.push_back( kmlTrackVector );
-                    kmlTrackVector.clear();
-
+                    info.mKmlTrackVector = kmlTrackVector;
                     info.mColourBarFilename = colourBarFilename;
-
                     info.mBarLabelValues = barLabelValues;
                 }
 
-                // Storing info (CDataInfo) into vector with all data info
+                // Storing info (CDataInfo) into vector with all data info //
                 data_info.push_back(info);
-                /////////////////////////////////////////////////////////////
 			}
 		}
 	}
@@ -1153,10 +1255,10 @@ void KmlWriteGeotiffImage( std::ofstream &stream, const std::string &data_name, 
 }
 
 
-bool ExportKml(const std::string &kmlFileName, const std::vector< CDataInfo > &data_info, const std::vector< std::string > &tiffFileNames,
-		const std::string &screenLogoUrl,
-		struct CoordBoundaries *coordBoundaries,
-		const std::string &filetypeName, const std::string &productList)
+bool ExportKml( const std::string &kmlFileName, const std::vector< CDataInfo > &data_info, const std::vector< std::string > &tiffFileNames,
+                const std::string &screenLogoUrl, struct CoordBoundaries *coordBoundaries, const std::string &filetypeName,
+                const std::string &productList, bool export_kml_tracks, bool export_kml_fields
+               )
 {
 
     std::ofstream stream(kmlFileName.c_str());
@@ -1176,278 +1278,269 @@ bool ExportKml(const std::string &kmlFileName, const std::vector< CDataInfo > &d
     stream << "		<open>0</open>" << std::endl;
     stream << " 		<visibility>1</visibility>" << std::endl;
 
-    /*/////////////////////////////////////////////
-    // 1. Ground Overlays folder: Geotiff images //
-    /////////////////////////////////////////////*/
-
-    stream << "		<Folder id=\"Geotiff\">" << std::endl;
-    stream << "			<name>Geotiff</name>" << std::endl;
 
     const size_t size = tiffFileNames.size();                        assert__( size == data_info.size() );
-    for (size_t i = 0; i < size; ++i  )
-        KmlWriteGeotiffImage( stream, data_info[i].mName, coordBoundaries, tiffFileNames[i] );
-
-            //  stream << "			<GroundOverlay>" << std::endl;
-            //  stream << "				<name>"<< dataName << "</name>" << std::endl;
-            //  stream << "				<Icon>" << std::endl;
-            //  stream << "					<href>" << tiffFileName << "</href>" << std::endl;
-            //  stream << "				</Icon>" << std::endl;
-            //  stream << "				<LatLonBox>" << std::endl;
-            //  stream << "					<north>" << std::setw(18) << coordBoundaries->latNorth << "</north>" << std::endl;
-            //  stream << "					<south>" << std::setw(18) << coordBoundaries->latSouth << "</south>" << std::endl;
-            //  stream << "					<east>" << std::setw(18) << coordBoundaries->lonEast << "</east>" << std::endl;
-            //  stream << "					<west>" << std::setw(18) << coordBoundaries->lonWest << "</west>" << std::endl;
-            //  stream << "					<rotation>0.0</rotation>" << std::endl;
-            //  stream << "				</LatLonBox>" << std::endl;
-            //  stream << "			</GroundOverlay>" << std::endl;
-
-    stream << "		</Folder>" << std::endl;
 
 
-    /*///////////////////////////////////////
-    //  2. LEGEND (Screen Overlays folder) //
-    ///////////////////////////////////////*/
-
-    // 2.1 Logo //
-
-    stream << "		<Folder id=\"Legend\">" << std::endl;
-    stream << "			<name>Legend</name>" << std::endl;
-
-    if (!screenLogoUrl.empty())
+    //===========================================//
+    // 1. Ground Overlays folder: Geotiff images //
+    //===========================================//
+    if ( export_kml_fields )
     {
-        stream << "			<ScreenOverlay>" << std::endl;
-        stream << "				<name>Logo</name>" << std::endl;
-        stream << "				<Icon>" << std::endl;
-        stream << "					<href>" << screenLogoUrl << "</href>" << std::endl;
-        stream << "				</Icon>" << std::endl;
-        stream << "				<overlayXY x=\"0\" y=\"54\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
-        stream << "				<screenXY x=\"0.01\" y=\"0.99\" xunits=\"fraction\" yunits=\"fraction\"/>" << std::endl;
-        stream << "				<rotation>0</rotation>" << std::endl;
-        stream << "				<size x=\"0\" y=\"0\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
-        stream << "			</ScreenOverlay>" << std::endl;
+        stream << "		<Folder id=\"Geotiff\">" << std::endl;
+        stream << "			<name>Geotiff</name>" << std::endl;
+
+        for (size_t i = 0; i < size; ++i  )
+            KmlWriteGeotiffImage( stream, data_info[i].mName, coordBoundaries, tiffFileNames[i] );
+
+                //  stream << "			<GroundOverlay>" << std::endl;
+                //  stream << "				<name>"<< dataName << "</name>" << std::endl;
+                //  stream << "				<Icon>" << std::endl;
+                //  stream << "					<href>" << tiffFileName << "</href>" << std::endl;
+                //  stream << "				</Icon>" << std::endl;
+                //  stream << "				<LatLonBox>" << std::endl;
+                //  stream << "					<north>" << std::setw(18) << coordBoundaries->latNorth << "</north>" << std::endl;
+                //  stream << "					<south>" << std::setw(18) << coordBoundaries->latSouth << "</south>" << std::endl;
+                //  stream << "					<east>" << std::setw(18) << coordBoundaries->lonEast << "</east>" << std::endl;
+                //  stream << "					<west>" << std::setw(18) << coordBoundaries->lonWest << "</west>" << std::endl;
+                //  stream << "					<rotation>0.0</rotation>" << std::endl;
+                //  stream << "				</LatLonBox>" << std::endl;
+                //  stream << "			</GroundOverlay>" << std::endl;
+
+        stream << "		</Folder>" << std::endl;
     }
 
 
-    // 2.2 Colour bar (image and texts) //
-
-    for (size_t i = 0; i < size; ++i  )
+    //=====================================//
+    //  2. LEGEND (Screen Overlays folder) //
+    //=====================================//
+    if ( export_kml_fields )
     {
-        auto dataName = data_info[i].mName;
-        const char *dataUnits = data_info[i].mUnit.c_str();
-        auto colourBarFilename = data_info[i].mColourBarFilename;
-        auto barLabelValues = data_info[i].mBarLabelValues;
+        // 2.1 Logo //
+        stream << "		<Folder id=\"Legend\">" << std::endl;
+        stream << "			<name>Legend</name>" << std::endl;
 
-        stream << "			<Folder id=\"Colour_Bar\">" << std::endl;
-        stream << "				<name>" << dataName << "</name>" << std::endl;
-
-        stream << "				<ScreenOverlay>" << std::endl;
-        stream << "					<name>Label</name>" << std::endl;
-        stream << "					<Icon>" << std::endl;
-        stream << "						<href><![CDATA[http://chart.apis.google.com/chart?chst=d_text_outline&chld=FFFFFF|16|h|000000|b|"
-               << dataName << " [" << dataUnits << "]]]></href>" << std::endl;
-        stream << "					</Icon>" << std::endl;
-        stream << "					<overlayXY x=\"0\" y=\"90\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
-        stream << "					<screenXY x=\"0.01\" y=\"0.99\" xunits=\"fraction\" yunits=\"fraction\"/>" << std::endl;
-        stream << "					<rotation>0</rotation>" << std::endl;
-        stream << "					<size x=\"0\" y=\"0\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
-        stream << "				</ScreenOverlay>" << std::endl;
-
-        stream << "				<ScreenOverlay>" << std::endl;
-        stream << "					<name>Colour Bar</name>" << std::endl;
-        stream << "					<Icon>" << std::endl;
-        stream << "						<href>" << colourBarFilename << "</href>" << std::endl;
-        stream << "					</Icon>" << std::endl;
-        stream << "					<overlayXY x=\"0\" y=\"600\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
-        stream << "					<screenXY x=\"0.01\" y=\"0.99\" xunits=\"fraction\" yunits=\"fraction\"/>" << std::endl;
-        stream << "					<rotation>0</rotation>" << std::endl;
-        stream << "					<size x=\"0\" y=\"0\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
-        stream << "				</ScreenOverlay>" << std::endl;
-
-        for (unsigned int valueIndex = 0; valueIndex < numberOfBarLabelValues; ++valueIndex)
+        if (!screenLogoUrl.empty())
         {
-            double yValue = 115.0 + (double)valueIndex * 60.625;
+            stream << "			<ScreenOverlay>" << std::endl;
+            stream << "				<name>Logo</name>" << std::endl;
+            stream << "				<Icon>" << std::endl;
+            stream << "					<href>" << screenLogoUrl << "</href>" << std::endl;
+            stream << "				</Icon>" << std::endl;
+            stream << "				<overlayXY x=\"0\" y=\"54\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
+            stream << "				<screenXY x=\"0.01\" y=\"0.99\" xunits=\"fraction\" yunits=\"fraction\"/>" << std::endl;
+            stream << "				<rotation>0</rotation>" << std::endl;
+            stream << "				<size x=\"0\" y=\"0\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
+            stream << "			</ScreenOverlay>" << std::endl;
+        }
+
+        // 2.2 Colour bar (image and texts) //
+        for (size_t i = 0; i < size; ++i  )
+        {
+            auto dataName = data_info[i].mName;
+            const char *dataUnits = data_info[i].mUnit.c_str();
+            auto colourBarFilename = data_info[i].mColourBarFilename;
+            auto barLabelValues = data_info[i].mBarLabelValues;
+
+            stream << "			<Folder id=\"Colour_Bar\">" << std::endl;
+            stream << "				<name>" << dataName << "</name>" << std::endl;
 
             stream << "				<ScreenOverlay>" << std::endl;
-            stream << "					<name>Tick Value #" << valueIndex
-                   << "</name>" << std::endl;
+            stream << "					<name>Label</name>" << std::endl;
             stream << "					<Icon>" << std::endl;
             stream << "						<href><![CDATA[http://chart.apis.google.com/chart?chst=d_text_outline&chld=FFFFFF|16|h|000000|b|"
-                   << barLabelValues[valueIndex] << "]]></href>" << std::endl;
+                   << dataName << " [" << dataUnits << "]]]></href>" << std::endl;
             stream << "					</Icon>" << std::endl;
-            stream << "					<overlayXY x=\"-60\" y=\"" << yValue << "\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
+            stream << "					<overlayXY x=\"0\" y=\"90\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
             stream << "					<screenXY x=\"0.01\" y=\"0.99\" xunits=\"fraction\" yunits=\"fraction\"/>" << std::endl;
             stream << "					<rotation>0</rotation>" << std::endl;
             stream << "					<size x=\"0\" y=\"0\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
             stream << "				</ScreenOverlay>" << std::endl;
+
+            stream << "				<ScreenOverlay>" << std::endl;
+            stream << "					<name>Colour Bar</name>" << std::endl;
+            stream << "					<Icon>" << std::endl;
+            stream << "						<href>" << colourBarFilename << "</href>" << std::endl;
+            stream << "					</Icon>" << std::endl;
+            stream << "					<overlayXY x=\"0\" y=\"600\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
+            stream << "					<screenXY x=\"0.01\" y=\"0.99\" xunits=\"fraction\" yunits=\"fraction\"/>" << std::endl;
+            stream << "					<rotation>0</rotation>" << std::endl;
+            stream << "					<size x=\"0\" y=\"0\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
+            stream << "				</ScreenOverlay>" << std::endl;
+
+            for (unsigned int valueIndex = 0; valueIndex < numberOfBarLabelValues; ++valueIndex)
+            {
+                double yValue = 115.0 + (double)valueIndex * 60.625;
+
+                stream << "				<ScreenOverlay>" << std::endl;
+                stream << "					<name>Tick Value #" << valueIndex
+                       << "</name>" << std::endl;
+                stream << "					<Icon>" << std::endl;
+                stream << "						<href><![CDATA[http://chart.apis.google.com/chart?chst=d_text_outline&chld=FFFFFF|16|h|000000|b|"
+                       << barLabelValues[valueIndex] << "]]></href>" << std::endl;
+                stream << "					</Icon>" << std::endl;
+                stream << "					<overlayXY x=\"-60\" y=\"" << yValue << "\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
+                stream << "					<screenXY x=\"0.01\" y=\"0.99\" xunits=\"fraction\" yunits=\"fraction\"/>" << std::endl;
+                stream << "					<rotation>0</rotation>" << std::endl;
+                stream << "					<size x=\"0\" y=\"0\" xunits=\"pixels\" yunits=\"pixels\"/>" << std::endl;
+                stream << "				</ScreenOverlay>" << std::endl;
+            }
+
+            stream << "			</Folder>" << std::endl;
         }
 
-        stream << "			</Folder>" << std::endl;
+        stream << "		</Folder>" << std::endl;
     }
 
-    stream << "		</Folder>" << std::endl;
 
-
-    /*//////////////////////////////////////////////////////////////
+    //============================================================//
     //  3. Placemarks folder: Track map points (Along Track Data) //
-    //////////////////////////////////////////////////////////////*/
-
-    stream << "		<Folder id=\"Track\">" << std::endl;
-    stream << "			<name>Along Track Data </name>" << std::endl;
-
-    // 3.1 Track Points //
-
-    for (size_t i = 0; i < size; ++i  )
+    //============================================================//
+    if ( export_kml_tracks )
     {
-        //std::vector<KmlTrackPoint> kmlTrackVector;
-        //FillkmlTrackVector(kmlTrackVector);
-        auto dataName = data_info[i].mName;
-        const char *dataUnits = data_info[i].mUnit.c_str();
-        auto isAltData = data_info[i].mIsAltData;
-        kmlTrackVector = kmlTrackVectors[i];
+        stream << "		<Folder id=\"Track\">" << std::endl;
+        stream << "			<name>Along Track Data </name>" << std::endl;
 
-        stream << "			<Folder id=\"Track\">" << std::endl;
-        stream << "				<name>" << dataName << "</name>" << std::endl;
-
-        for (unsigned int pointIndex = 0; pointIndex < kmlTrackVector.size(); ++pointIndex)
+        // 3.1 Track Points //
+        for (size_t i = 0; i < size; ++i  )
         {
-            double altCoordinate;
-            std::stringstream altDescription;
-            std::string altitudeMode;
-            std::stringstream timestampDescription;
+            auto dataName = data_info[i].mName;
+            const char *dataUnits = data_info[i].mUnit.c_str();
+            auto isAltData = data_info[i].mIsAltData;
+            std::vector<KmlTrackPoint> kmlTrackVector = data_info[i].mKmlTrackVector;
 
-            if (isAltData) {
+            stream << "			<Folder id=\"Track\">" << std::endl;
+            stream << "				<name>" << dataName << "</name>" << std::endl;
 
-              if (strcmp(dataUnits, "mm") == 0) {
+            for (unsigned int pointIndex = 0; pointIndex < kmlTrackVector.size(); ++pointIndex)
+            {
+                double altCoordinate;
+                std::stringstream altDescription;
+                std::string altitudeMode;
+                std::stringstream timestampDescription;
 
-                  altCoordinate = kmlTrackVector.at(pointIndex).data / 1000.0;
+                if (isAltData)
+                {
+                    if (strcmp(dataUnits, "mm") == 0) {
+                        altCoordinate = kmlTrackVector.at(pointIndex).data / 1000.0; }
+                    else if (strcmp(dataUnits, "cm") == 0) {
+                        altCoordinate = kmlTrackVector.at(pointIndex).data / 100.0;  }
+                    else if (strcmp(dataUnits, "km") == 0) {
+                        altCoordinate = kmlTrackVector.at(pointIndex).data * 1000.0; }
+                    else {
+                        altCoordinate = kmlTrackVector.at(pointIndex).data;          }
 
-              } else if (strcmp(dataUnits, "cm") == 0) {
+                  altDescription << dataName << " = "
+                                 << kmlTrackVector.at(pointIndex).data << " " << dataUnits;
+                  altitudeMode = "relativeToGround";
+                }
+                else
+                {
+                    altCoordinate = kmlTrackVector.at(pointIndex).alt;
 
-                    altCoordinate = kmlTrackVector.at(pointIndex).data / 100.0;
+                    altDescription << "Alt = "
+                                   << kmlTrackVector.at(pointIndex).alt << " m, "
+                                   << dataName << " = " << kmlTrackVector.at(pointIndex).data
+                                   << " " << dataUnits;
+                    altitudeMode = "clampedToGround";
+                }
 
-              } else if (strcmp(dataUnits, "km") == 0) {
+                if (includeTimestamp)
+                {
+                    timestampDescription << ", Timestamp = "
+                                         << kmlTrackVector.at(pointIndex).timestamp << " "
+                                         << timestampUnits;
+                }
+                else
+                {
+                    timestampDescription << "";
+                }
 
-                    altCoordinate = kmlTrackVector.at(pointIndex).data * 1000.0;
+                std::stringstream ssColour;
+                ssColour << std::setw(2) << std::hex << std::setfill('0')
+                         << (int)kmlTrackVector.at(pointIndex).rgba[2]
+                         << std::setw(2) << std::hex << std::setfill('0')
+                         << (int)kmlTrackVector.at(pointIndex).rgba[1]
+                         << std::setw(2) << std::hex << std::setfill('0')
+                         << (int)kmlTrackVector.at(pointIndex).rgba[0];
 
-              } else {
-
-                altCoordinate = kmlTrackVector.at(pointIndex).data;
-              }
-
-              altDescription << dataName << " = "
-                      << kmlTrackVector.at(pointIndex).data << " " << dataUnits;
-
-              altitudeMode = "relativeToGround";
-
-            } else {
-
-              altCoordinate = kmlTrackVector.at(pointIndex).alt;
-
-              altDescription << "Alt = "
-                      << kmlTrackVector.at(pointIndex).alt << " m, "
-                      << dataName << " = " << kmlTrackVector.at(pointIndex).data
-                      << " " << dataUnits;
-
-              altitudeMode = "clampedToGround";
+                stream << "				<Placemark>" << std::endl;
+                stream << "					<Point>" << std::endl;
+                stream << "   					<altitudeMode>" << altitudeMode << "</altitudeMode>" << std::endl;
+                stream << "						<coordinates>"
+                      << kmlTrackVector.at(pointIndex).lon << ","
+                      << kmlTrackVector.at(pointIndex).lat << ","
+                      << altCoordinate
+                      << "</coordinates>" << std::endl;
+                stream << "					</Point>" << std::endl;
+                stream << "					<Style>" << std::endl;
+                stream << "						<IconStyle>" << std::endl;
+                stream << "							<color>FF" << ssColour.str() << "</color>" << std::endl;
+                stream << "						</IconStyle>" << std::endl;
+                stream << "						<LabelStyle>" << std::endl;
+                stream << "							<color>FF" << ssColour.str() << "</color>" << std::endl;
+                stream << "						</LabelStyle>" << std::endl;
+                stream << "					</Style>" << std::endl;
+                stream << "					<description>"
+                      << "Lon = " << kmlTrackVector.at(pointIndex).lon << " deg, "
+                      << "Lat = " << kmlTrackVector.at(pointIndex).lat << " deg, "
+                      << altDescription.str()
+                      << timestampDescription.str()
+                      << "</description>" << std::endl;
+                stream << "					<name>Track point #" << pointIndex << "</name>" << std::endl;
+                stream << "					<styleUrl>#gv_waypoint</styleUrl>" << std::endl;
+                stream << "				</Placemark>" << std::endl;
             }
-
-            if (includeTimestamp) {
-
-              timestampDescription << ", Timestamp = "
-                      << kmlTrackVector.at(pointIndex).timestamp << " "
-                      << timestampUnits;
-
-            } else {
-
-              timestampDescription << "";
-            }
-
-            std::stringstream ssColour;
-            ssColour << std::setw(2) << std::hex << std::setfill('0')
-                  << (int)kmlTrackVector.at(pointIndex).rgba[2]
-                  << std::setw(2) << std::hex << std::setfill('0')
-                  << (int)kmlTrackVector.at(pointIndex).rgba[1]
-                  << std::setw(2) << std::hex << std::setfill('0')
-                  << (int)kmlTrackVector.at(pointIndex).rgba[0];
-
-            stream << "				<Placemark>" << std::endl;
-            stream << "					<Point>" << std::endl;
-            stream << "   					<altitudeMode>" << altitudeMode << "</altitudeMode>" << std::endl;
-            stream << "						<coordinates>"
-                  << kmlTrackVector.at(pointIndex).lon << ","
-                  << kmlTrackVector.at(pointIndex).lat << ","
-                  << altCoordinate
-                  << "</coordinates>" << std::endl;
-            stream << "					</Point>" << std::endl;
-            stream << "					<Style>" << std::endl;
-            stream << "						<IconStyle>" << std::endl;
-            stream << "							<color>FF" << ssColour.str() << "</color>" << std::endl;
-            stream << "						</IconStyle>" << std::endl;
-            stream << "						<LabelStyle>" << std::endl;
-            stream << "							<color>FF" << ssColour.str() << "</color>" << std::endl;
-            stream << "						</LabelStyle>" << std::endl;
-            stream << "					</Style>" << std::endl;
-            stream << "					<description>"
-                  << "Lon = " << kmlTrackVector.at(pointIndex).lon << " deg, "
-                  << "Lat = " << kmlTrackVector.at(pointIndex).lat << " deg, "
-                  << altDescription.str()
-                  << timestampDescription.str()
-                  << "</description>" << std::endl;
-            stream << "					<name>Track point #" << pointIndex << "</name>" << std::endl;
-            stream << "					<styleUrl>#gv_waypoint</styleUrl>" << std::endl;
-            stream << "				</Placemark>" << std::endl;
+            stream << "			</Folder>" << std::endl;
         }
-        stream << "			</Folder>" << std::endl;
+
+        stream << "		</Folder>" << std::endl;
+
+        // 3.2 Points Style //
+        stream << "		<Style id=\"gv_waypoint_normal\">" << std::endl;
+        stream << "			<BalloonStyle>" << std::endl;
+        stream << "				<text><![CDATA[<p align=\"left\" style=\"white-space:nowrap;\"><font size=\"+1\"><b>$[name]</b></font></p> <p align=\"left\">$[description]</p>]]></text>" << std::endl;
+        stream << "			</BalloonStyle>" << std::endl;
+        stream << "			<IconStyle>" << std::endl;
+        stream << "        		<Icon>" << std::endl;
+        stream << "					<href>http://maps.google.ca/mapfiles/kml/pal4/icon57.png</href>" << std::endl;
+        stream << "				</Icon>" << std::endl;
+        stream << "				<color>FFFFFFFF</color>" << std::endl;
+        stream << "				<hotSpot x=\"0.5\" xunits=\"fraction\" y=\"0.5\" yunits=\"fraction\" />" << std::endl;
+        stream << "			</IconStyle>" << std::endl;
+        stream << "			<LabelStyle>" << std::endl;
+        stream << "        		<color>FFFFFFFF</color>" << std::endl;
+        stream << "        		<scale>0</scale>" << std::endl;
+        stream << "     		</LabelStyle>" << std::endl;
+        stream << " 		</Style>" << std::endl;
+        stream << "		<Style id=\"gv_waypoint_highlight\">" << std::endl;
+        stream << "     		<BalloonStyle>" << std::endl;
+        stream << "        		<text><![CDATA[<p align=\"left\" style=\"white-space:nowrap;\"><font size=\"+1\"><b>$[name]</b></font></p> <p align=\"left\">$[description]</p>]]></text>" << std::endl;
+        stream << "    		</BalloonStyle>" << std::endl;
+        stream << "    		<IconStyle>" << std::endl;
+        stream << "        		<Icon>" << std::endl;
+        stream << "           		<href>http://maps.google.ca/mapfiles/kml/pal4/icon57.png</href>" << std::endl;
+        stream << "         		</Icon>" << std::endl;
+        stream << "       		<color>FFFFFFFF</color>" << std::endl;
+        stream << "       		<hotSpot x=\"0.5\" xunits=\"fraction\" y=\"0.5\" yunits=\"fraction\" />" << std::endl;
+        stream << "        		<scale>1.2</scale>" << std::endl;
+        stream << "    		</IconStyle>" << std::endl;
+        stream << "    		<LabelStyle>" << std::endl;
+        stream << "    			<color>FFFFFFFF</color>" << std::endl;
+        stream << "     			<scale>1</scale>" << std::endl;
+        stream << "   		</LabelStyle>" << std::endl;
+        stream << "		</Style>" << std::endl;
+        stream << " 		<StyleMap id=\"gv_waypoint\">" << std::endl;
+        stream << "   		<Pair>" << std::endl;
+        stream << "      			<key>normal</key>" << std::endl;
+        stream << "      			<styleUrl>#gv_waypoint_normal</styleUrl>" << std::endl;
+        stream << "  			</Pair>" << std::endl;
+        stream << "   		<Pair>" << std::endl;
+        stream << "       		<key>highlight</key>" << std::endl;
+        stream << "       		<styleUrl>#gv_waypoint_highlight</styleUrl>" << std::endl;
+        stream << "   		</Pair>" << std::endl;
+        stream << "		</StyleMap>" << std::endl;
     }
-
-    stream << "		</Folder>" << std::endl;
-
-
-    // 3.2 Points Style //
-
-    stream << "		<Style id=\"gv_waypoint_normal\">" << std::endl;
-    stream << "			<BalloonStyle>" << std::endl;
-    stream << "				<text><![CDATA[<p align=\"left\" style=\"white-space:nowrap;\"><font size=\"+1\"><b>$[name]</b></font></p> <p align=\"left\">$[description]</p>]]></text>" << std::endl;
-    stream << "			</BalloonStyle>" << std::endl;
-    stream << "			<IconStyle>" << std::endl;
-    stream << "        		<Icon>" << std::endl;
-    stream << "					<href>http://maps.google.ca/mapfiles/kml/pal4/icon57.png</href>" << std::endl;
-    stream << "				</Icon>" << std::endl;
-    stream << "				<color>FFFFFFFF</color>" << std::endl;
-    stream << "				<hotSpot x=\"0.5\" xunits=\"fraction\" y=\"0.5\" yunits=\"fraction\" />" << std::endl;
-    stream << "			</IconStyle>" << std::endl;
-    stream << "			<LabelStyle>" << std::endl;
-    stream << "        		<color>FFFFFFFF</color>" << std::endl;
-    stream << "        		<scale>0</scale>" << std::endl;
-    stream << "     		</LabelStyle>" << std::endl;
-    stream << " 		</Style>" << std::endl;
-    stream << "		<Style id=\"gv_waypoint_highlight\">" << std::endl;
-    stream << "     		<BalloonStyle>" << std::endl;
-    stream << "        		<text><![CDATA[<p align=\"left\" style=\"white-space:nowrap;\"><font size=\"+1\"><b>$[name]</b></font></p> <p align=\"left\">$[description]</p>]]></text>" << std::endl;
-    stream << "    		</BalloonStyle>" << std::endl;
-    stream << "    		<IconStyle>" << std::endl;
-    stream << "        		<Icon>" << std::endl;
-    stream << "           		<href>http://maps.google.ca/mapfiles/kml/pal4/icon57.png</href>" << std::endl;
-    stream << "         		</Icon>" << std::endl;
-    stream << "       		<color>FFFFFFFF</color>" << std::endl;
-    stream << "       		<hotSpot x=\"0.5\" xunits=\"fraction\" y=\"0.5\" yunits=\"fraction\" />" << std::endl;
-    stream << "        		<scale>1.2</scale>" << std::endl;
-    stream << "    		</IconStyle>" << std::endl;
-    stream << "    		<LabelStyle>" << std::endl;
-    stream << "    			<color>FFFFFFFF</color>" << std::endl;
-    stream << "     			<scale>1</scale>" << std::endl;
-    stream << "   		</LabelStyle>" << std::endl;
-    stream << "		</Style>" << std::endl;
-    stream << " 		<StyleMap id=\"gv_waypoint\">" << std::endl;
-    stream << "   		<Pair>" << std::endl;
-    stream << "      			<key>normal</key>" << std::endl;
-    stream << "      			<styleUrl>#gv_waypoint_normal</styleUrl>" << std::endl;
-    stream << "  			</Pair>" << std::endl;
-    stream << "   		<Pair>" << std::endl;
-    stream << "       		<key>highlight</key>" << std::endl;
-    stream << "       		<styleUrl>#gv_waypoint_highlight</styleUrl>" << std::endl;
-    stream << "   		</Pair>" << std::endl;
-    stream << "		</StyleMap>" << std::endl;
 
     stream << "	</Document>" << std::endl;
     stream << "</kml>" << std::endl;
@@ -1679,26 +1772,34 @@ int main( int argc, char *argv[] )
 		std::vector< std::string > outputFileNames { outputFileName };
         std::vector< CDataInfo > data_info;
 
-		if ( kmlFileName.empty() ) {
-			// straight TIFF export
-            if ( !ExportNetCdfAsGeoTiff( inputFileName, data_info, outputFileNames, colourTableName, false, NULL ) ) {
+        if ( export_geo_tiff && !export_kml_tracks && !export_kml_fields)
+        {
+            //======================//
+            // Straight TIFF export //
+            //======================//
+            if ( !ExportNetCdfAsGeoTiff( inputFileName, data_info, outputFileNames, colourTableName, false, NULL, true ) ) {
 				std::cerr << "Failed to export GeoTIFF file." << std::endl;
 				return 2;
 			}
 		}
-		else {
-			// tiff and KML export
+        else
+        {
+            //=====================//
+            // TIFF and KML export //
+            //=====================//
 			struct CoordBoundaries cBounds;
 
-            //kmlTrackVector.clear();
+            bool write_geotiff_file = ( export_geo_tiff || export_kml_fields );
 
-            if ( !ExportNetCdfAsGeoTiff( inputFileName, data_info, outputFileNames, colourTableName, true, &cBounds ) ) {
-				std::cerr << "Failed to export GeoTIFF file." << std::endl;
-				return 2;
-			}
+            if ( !ExportNetCdfAsGeoTiff( inputFileName, data_info, outputFileNames, colourTableName, true, &cBounds, write_geotiff_file ) )
+            {
+                std::cerr << "Failed to export GeoTIFF file." << std::endl;
+                return 2;
+            }
 
             if ( !ExportKml( kmlFileName, data_info, outputFileNames, screenLogoUrl, &cBounds,
-				filetypeName, productList ) ) {
+                             filetypeName, productList, export_kml_tracks, export_kml_fields ) )
+            {
 				std::cerr << "Failed to export KML file." << std::endl;
 				return 2;
 			}

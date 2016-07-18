@@ -116,7 +116,7 @@ class CBrat3DPlot : public BratSurfacePlot
 
 	//instance data
 
-	std::vector<CBrat3DFunction*> mFunctions;		//TODO is this (multiple functions) really supported?
+	std::vector<CBrat3DFunction*> mFunctions;		//multiple functions are really not supported so far
 
 	QActionGroup *mStyleGroup = nullptr;
     QActionGroup *mCoordinateStyleGroup = nullptr;
@@ -127,6 +127,10 @@ class CBrat3DPlot : public BratSurfacePlot
 	int mXDigits = 0;		//-1 means date
 	int mYDigits = 0;		//-1 means date
 	int mZDigits = 0;		//-1 means date
+
+	std::string mXlabel;
+	std::string mYlabel;
+	std::string mZlabel;
 
 	QTimer mTimer;
 
@@ -147,11 +151,18 @@ public:
 
 	//...labels
 
-	void SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle )
+	void AxisTitles( std::string &xtitle, std::string &ytitle, std::string &ztitle ) const
 	{
-		SetAxisTitle( Qwt3D::X1, xtitle );
-		SetAxisTitle( Qwt3D::Y1, ytitle );
-		SetAxisTitle( Qwt3D::Z1, ztitle );		
+		xtitle = AxisTitle( Qwt3D::X1 );
+		ytitle = AxisTitle( Qwt3D::Y1 );
+		ztitle = AxisTitle( Qwt3D::Z1 );		
+	}
+	bool SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle )
+	{
+		return 
+			SetAxisTitle( Qwt3D::X1, xtitle, mXlabel ) &&
+			SetAxisTitle( Qwt3D::Y1, ytitle, mYlabel ) &&
+			SetAxisTitle( Qwt3D::Z1, ztitle, mZlabel );
 	}
 
 	//...ticks
@@ -167,6 +178,7 @@ public:
 
 
 	//...digits / date
+	//
 	//		- once assigned as date, number of ticks cannot be re-assigned
 	//		- if isdate, "digits" is ignored and -1 is assigned internally
 	//		- if not isdate and digits <= 0, the default value is used
@@ -175,16 +187,16 @@ public:
 	int YDigits() const { return mYDigits; }
 	int ZDigits() const { return mZDigits; }
 
-	bool XisDateTinme() const { return mXDigits == -1; }
-	bool YisDateTinme() const { return mYDigits == -1; }
-	bool ZisDateTinme() const { return mZDigits == -1; }
+	bool XisDateTime() const { return mXDigits == -1; }
+	bool YisDateTime() const { return mYDigits == -1; }
+	bool ZisDateTime() const { return mZDigits == -1; }
 
     void SetXDigits( bool isdate, int digits, brathl_refDate date_ref = REF19500101 );
     void SetYDigits( bool isdate, int digits, brathl_refDate date_ref = REF19500101 );
     void SetZDigits( bool isdate, int digits, brathl_refDate date_ref = REF19500101 );
 
 protected:
-    void SetDigits( int &this_digits, const std::vector< Qwt3D::AXIS > &axis_ids, bool isdate, int digits, brathl_refDate date_ref = REF19500101 );
+    void SetDigits( int &this_digits, const std::vector< Qwt3D::AXIS > &axis_ids, bool islog, bool isdate, int digits, brathl_refDate date_ref = REF19500101 );
 	
 public:
 
@@ -193,12 +205,16 @@ public:
 	void Scale( double &xVal, double &yVal, double &zVal );
 	void SetScale( double xVal, double yVal, double zVal );
 
+	bool LogarithmicScaleZ() const;
+	void SetLogarithmicScaleZ( bool log );
 
-	void SetLogarithmicScale( bool onlyz, bool log );
+
+	void FunctionRanges( double &xMin, double &xMax, double &yMin, double &yMax, double &zMin, double &zMax ) const;
+
 
 	// data
 
-	void AddSurface( const CZFXYPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax );
+	void AddSurface( const CZFXYPlotParameters &values );
 
 
 	// style
@@ -216,7 +232,8 @@ public:
 	// protected
 
 protected:
-	void SetAxisTitle( Qwt3D::AXIS axis, const std::string &title );
+	const std::string& AxisTitle( Qwt3D::AXIS axis ) const;
+	bool SetAxisTitle( Qwt3D::AXIS axis, const std::string &title, std::string &data_memeber );
 
 public slots:
 
@@ -318,7 +335,7 @@ public:
 	//...create plot
 
 	//takes ownership of pcolor_map
-	void PushPlot( const CZFXYPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, Qwt3D::Color *pcolor_map );
+	void PushPlot( const CZFXYPlotParameters &values, Qwt3D::Color *pcolor_map );
 
 	//takes ownership of pcolor_map
 	void SetColorMap( Qwt3D::Color *pcolor_map );
@@ -355,23 +372,29 @@ public:
 	//axis
 
 	//...labels
-	void SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle );
+	void AxisTitles( std::string &xtitle, std::string &ytitle, std::string &ztitle ) const;
+	bool SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle );
 
 
 	//...log
+	bool LogarithmicScaleZ() const;
 	void SetLogarithmicScaleZ( bool log );
-	void SetLogarithmicScale( bool log );
+
+protected:
+	//void SetLogarithmicScale( bool log );	//not really supported
+
+public:
 
 	//...ticks
 
-    unsigned int XAxisNbTicks() const;
-    void SetXAxisNbTicks( unsigned int nbticks );
+    unsigned int XAxisTicks() const;
+    void SetXAxisTicks( unsigned int nbticks );
 
-    unsigned int YAxisNbTicks() const;
-    void SetYAxisNbTicks( unsigned int nbticks );
+    unsigned int YAxisTicks() const;
+    void SetYAxisTicks( unsigned int nbticks );
 
-    unsigned int ZAxisNbTicks() const;
-    void SetZAxisNbTicks( unsigned int nbticks );
+    unsigned int ZAxisTicks() const;
+    void SetZAxisTicks( unsigned int nbticks );
 
 
 	//...digits / date
@@ -394,6 +417,10 @@ public:
 	void Scale( double &xVal, double &yVal, double &zVal );
 	void SetScale( double xVal, double yVal, double zVal );
 
+protected:
+	void CorrectScale();
+
+public:
 
 	//interaction
 

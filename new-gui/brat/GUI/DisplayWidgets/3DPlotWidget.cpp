@@ -155,7 +155,7 @@ struct CBrat3DFunction : public Qwt3D::Function
 	{}
 
 
-	inline double CorrectedValue( double value )
+	inline double CorrectedValue( double value ) const
 	{
 		if ( !mLogarithmic )
 			return value;
@@ -164,21 +164,21 @@ struct CBrat3DFunction : public Qwt3D::Function
 	}
 
 
-	void AddSurface( const CZFXYPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax )
+	void AddSurface( const CZFXYPlotParameters &values )
 	{
 		assert__( values.mValues.size() == values.mBits.size() );
 		assert__( values.mValues.size() == values.mXaxis.size() * values.mYaxis.size() );
 
 		mPlotParameters = &values;
-		mxmin = xmin;
-		mxmax = xmax;
-		mymin = ymin;
-		mymax = ymax;
+		mxmin = values.mMinX;
+		mxmax = values.mMaxX;
+		mymin = values.mMinY;
+		mymax = values.mMaxY;
 
 		setMesh( (int)mPlotParameters->mXaxis.size(), (int)mPlotParameters->mYaxis.size() );		//setMesh( xmax, ymax );
-		setDomain( xmin, xmax, ymin, ymax );
+		setDomain( mxmin, mxmax, mymin, mymax );
 
-		SetZRange( zmin, zmax );
+		SetZRange( values.mMinHeightValue, values.mMaxHeightValue );
 	}
 
 
@@ -208,6 +208,8 @@ struct CBrat3DFunction : public Qwt3D::Function
 	}
 
 
+	bool Logarithmic() const { return mLogarithmic; }
+
 	void SetLogarithmic( bool log )
 	{
 		if ( mLogarithmic == log )
@@ -217,6 +219,20 @@ struct CBrat3DFunction : public Qwt3D::Function
 
 		SetZRange();
 	}
+
+
+	void Ranges( double &xMin, double &xMax, double &yMin, double &yMax, double &zMin, double &zMax ) const
+	{
+		xMin = mxmin;
+		xMax = mxmax;
+
+		yMin = mymin;
+		yMax = mymax;
+
+		zMin = CorrectedValue( mzmin );
+		zMax = CorrectedValue( mzmax );
+	}
+
 
 
     double operator()( double x, double y )
@@ -234,7 +250,7 @@ struct CBrat3DFunction : public Qwt3D::Function
 
 
 
-class CBrat3DScale : public Qwt3D::LinearScale
+class CBrat3DLinearScale : public Qwt3D::LinearScale
 {
 	//types
 
@@ -251,16 +267,15 @@ protected:
 
 	bool mIsDate = false;
     brathl_refDate mDateRef = REF19500101;
-    bool mIsLog = false;
 	int mDigits = smDigits;
 
 	//construction / destruction
 
 public:
-	CBrat3DScale()
+	CBrat3DLinearScale()
 		: base_t()
 	{}
-	virtual ~CBrat3DScale()
+	virtual ~CBrat3DLinearScale()
 	{}
 
     // getters / setters / testers
@@ -273,20 +288,9 @@ public:
 		mIsDate = date; 
         if (mIsDate)
         {
-            mIsLog = false;
             mDateRef = date_ref;
         }
 	}
-
-    //log scale
-
-    bool IsLog() const { return mIsLog; }
-    void SetLog( bool log ) 
-	{ 
-		mIsLog = log; 
-		if (mIsLog) mIsDate = false;
-	}
-
 
     //Number of digits on the scientific representation of the scale
 
@@ -302,24 +306,16 @@ protected:
 
 	virtual Scale* clone() const override
 	{
-		CBrat3DScale * new_nb = new CBrat3DScale;
+		CBrat3DLinearScale * new_nb = new CBrat3DLinearScale;
 		new_nb->SetDate( mIsDate, mDateRef );
-		new_nb->SetLog( mIsLog );
 		new_nb->SetNDigits( mDigits );
 		return new_nb;
 	}
 
 	virtual QString ticLabel( unsigned int idx ) const override
 	{
-		double scale_log = 0;
 		if ( idx < majors_p.size() )
 		{
-			if ( mIsLog )
-			{
-				scale_log = pow( 10., majors_p[ idx ] );
-				return QString::number( scale_log, 'g', mDigits );
-			}
-			else
 			if ( mIsDate )
 			{
 				auto value = majors_p[ idx ];
@@ -337,11 +333,488 @@ protected:
 
 
 
+class CBrat3DLogScale : public Qwt3D::LogScale
+{
+	//types
+
+	using base_t = Qwt3D::LogScale;
+
+	//statics
+
+public:
+	static const int smDigits = 10;
+
+
+protected:
+	//instance data
+
+	int mDigits = smDigits;
+
+	//construction / destruction
+
+public:
+	CBrat3DLogScale()
+		: base_t()
+	{
+		setMinors( 9 );
+		setMajors( 9 );
+	}
+	CBrat3DLogScale( const CBrat3DLogScale &o )
+		: base_t( o )								//useless
+	{
+		*this = o;
+	}
+	virtual ~CBrat3DLogScale()
+	{}
+
+
+	CBrat3DLogScale& operator = ( const CBrat3DLogScale &o )
+	{
+		if ( this != &o )
+		{
+			base_t::operator=( o );
+			setMinors( 9 );
+			setMajors( 9 );
+			SetNDigits( o.mDigits );
+		}
+		return *this;
+	}
+
+    // getters / setters / testers
+
+    unsigned int GetNDigits() const { return mDigits; }
+
+    void SetNDigits( int digits = -1 )
+	{ 
+		mDigits = digits <= 0 ? smDigits : digits; 
+	}
+
+
+	void SetLimits( double start, double stop )
+	{
+		double runningval = floor( start );
+		if ( runningval >= stop )
+			stop += 1.;
+
+		if ( runningval <= start )
+			start -= 1.;
+
+		base_t::setLimits( start, stop );
+		calculate();
+	}
+
+protected:
+
+	//qwt3d interface
+
+	virtual Scale* clone() const override
+	{
+		return new CBrat3DLogScale( *this );
+	}
+
+	virtual QString ticLabel( unsigned int idx ) const override
+	{
+		if ( idx < majors_p.size() )
+		{
+			double scale_log = pow( 10., majors_p[ idx ] );
+			return QString::number( scale_log, 'g', mDigits );
+		}
+
+		return QString( "" );
+	}
+};
+
+
+
 
 
 //////////////////////////////////////////
 //			Qwt3D plot class
 //////////////////////////////////////////
+
+
+//static 
+const std::vector< Qwt3D::AXIS > CBrat3DPlot::smXaxis = { Qwt3D::AXIS::X1, Qwt3D::AXIS::X2, Qwt3D::AXIS::X3, Qwt3D::AXIS::X4 };
+//static 
+const std::vector< Qwt3D::AXIS > CBrat3DPlot::smYaxis = { Qwt3D::AXIS::Y1, Qwt3D::AXIS::Y2, Qwt3D::AXIS::Y3, Qwt3D::AXIS::Y4 };
+//static 
+const std::vector< Qwt3D::AXIS > CBrat3DPlot::smZaxis = { Qwt3D::AXIS::Z1, Qwt3D::AXIS::Z2, Qwt3D::AXIS::Z3, Qwt3D::AXIS::Z4 };
+
+
+
+
+
+CBrat3DPlot::CBrat3DPlot( QWidget *pw ) 
+	: base_t( pw )
+	, mTimer( this )
+	, mXDigits( CBrat3DLinearScale::smDigits )
+	, mYDigits( CBrat3DLinearScale::smDigits )
+	, mZDigits( CBrat3DLinearScale::smDigits )
+{
+	connect( &mTimer, SIGNAL( timeout() ), this, SLOT( rotate() ) );
+
+	CreateContextMenu();
+	Reset();
+
+	setSmoothMesh( true );
+	enableLighting( false );
+
+	coordinates()->setNumberFont( t2q( C3DPlotWidget::smFontName ), C3DPlotWidget::smAxisFontSize );
+	coordinates()->setLabelFont( t2q( C3DPlotWidget::smFontName ), C3DPlotWidget::smAxisFontSize );
+
+	const size_t size = coordinates()->axes.size();
+	for ( unsigned i = 0; i != size; ++i )
+	{
+		coordinates()->axes[ i ].setMajors( 7 );
+		coordinates()->axes[ i ].setMinors( 4 );
+	}
+}
+
+//virtual 
+CBrat3DPlot::~CBrat3DPlot()
+{
+	DestroyPointersAndContainer( mFunctions );
+}
+
+
+
+void CBrat3DPlot::AddSurface( const CZFXYPlotParameters &values )
+{
+	mFunctions.push_back( new CBrat3DFunction( *this ) );
+	mFunctions.back()->AddSurface( values );
+}
+
+
+
+
+//title
+
+void CBrat3DPlot::SetTitle( const QString &title )
+{
+	setTitleFont( t2q( C3DPlotWidget::smFontName ), C3DPlotWidget::smTitleFontSize, QFont::Bold );
+
+	setTitle( title );
+
+    updateGL();
+}
+
+
+
+//axis titles
+
+const std::string& CBrat3DPlot::AxisTitle( Qwt3D::AXIS axis ) const
+{
+	if ( In( axis, smXaxis ) )
+		return mXlabel;
+	else
+	if ( In( axis, smYaxis ) )
+		return mYlabel;
+	else
+	if ( In( axis, smZaxis ) )
+		return mZlabel;
+	else
+		assert__( false );
+
+	return empty_string< std::string >();
+}
+bool CBrat3DPlot::SetAxisTitle( Qwt3D::AXIS axis, const std::string &title, std::string &data_member )
+{
+	//std::string clean_title = replace( title, "\n", " - " );
+	//clean_title = replace( clean_title, "\t", "" );
+
+	if ( title.empty() )
+		return false;
+
+	data_member = title;
+	coordinates()->axes[ axis ].setLabelString( data_member.c_str() );
+
+	return true;
+}
+
+
+//axis ticks
+
+unsigned int CBrat3DPlot::XAxisNbTicks() const
+{
+	return const_cast<CBrat3DPlot*>( this )->coordinates()->axes[ Qwt3D::AXIS::X1 ].majors();
+}
+void CBrat3DPlot::SetXAxisTicks( unsigned int nticks )
+{
+    for ( auto axis : smXaxis )
+    {
+        coordinates()->axes[ axis ].setMajors( nticks );
+    }
+    updateGL();
+}
+
+
+unsigned int CBrat3DPlot::YAxisNbTicks() const
+{
+	return const_cast<CBrat3DPlot*>( this )->coordinates()->axes[ Qwt3D::AXIS::Y1 ].majors();
+}
+void CBrat3DPlot::SetYAxisTicks( unsigned int nticks )
+{
+    for ( auto axis : smYaxis )
+    {
+        coordinates()->axes[ axis ].setMajors( nticks );
+    }
+    updateGL();
+}
+
+
+unsigned int CBrat3DPlot::ZAxisNbTicks() const
+{
+	return const_cast<CBrat3DPlot*>( this )->coordinates()->axes[ Qwt3D::AXIS::Z1 ].majors();
+}
+void CBrat3DPlot::SetZAxisTicks( unsigned int nticks )
+{
+    for ( auto axis : smZaxis )
+    {
+        coordinates()->axes[ axis ].setMajors( nticks );
+    }
+    updateGL();
+}
+
+
+//animation
+
+void CBrat3DPlot::Animate( int updateinterval )		//updateinterval = 200 
+{
+	if ( !mAnimateAction->isChecked() || updateinterval == 0 )
+	{
+		mTimer.stop();
+	}
+	else
+	{
+		mTimer.start( updateinterval );
+	}
+}
+
+void CBrat3DPlot::rotate()
+{
+	int prec = 3;
+
+	setRotation(
+			(int(prec*xRotation() + 2) % (360*prec))/double(prec),
+			(int(prec*yRotation() + 2) % (360*prec))/double(prec),
+			(int(prec*zRotation() + 2) % (360*prec))/double(prec)
+			);
+}
+
+
+// digits / scale / date
+
+void CBrat3DPlot::SetDigits( int &this_digits, const std::vector< Qwt3D::AXIS > &axis_ids, bool islog, bool isdate, int digits, brathl_refDate date_ref )
+{
+	assert__( !islog || !isdate );			//old code: "assert__( this_digits != -1 ); //can only be assigned once"; why?
+
+	this_digits = isdate ? -1 : digits;
+	for ( auto axis : axis_ids )
+    {
+		Qwt3D::Scale *s = nullptr;
+		if ( islog )
+		{
+			CBrat3DLogScale *slog = new CBrat3DLogScale;
+			slog->SetNDigits( this_digits );
+			double start, stop;
+			coordinates()->axes[ Qwt3D::AXIS::Z1 ].limits( start, stop );
+			slog->SetLimits( start, stop );
+			s = slog;
+		}
+		else
+		{
+			CBrat3DLinearScale *slinear = new CBrat3DLinearScale;        //s->SetLog(is_log);
+			slinear->SetDate( isdate, date_ref );
+			slinear->SetNDigits( this_digits );
+			s = slinear;
+		}
+
+        coordinates()->axes[ axis ].setScale( s );
+		if ( islog )
+		{
+			coordinates()->axes[ axis ].setScaling( true );
+			coordinates()->axes[ axis ].draw();
+		}
+    }
+
+    updateGL();
+}
+
+void CBrat3DPlot::SetXDigits( bool isdate, int digits, brathl_refDate date_ref )      //date_ref = REF19500101
+{
+    SetDigits( mXDigits, smXaxis, false, isdate, digits, date_ref );
+}
+
+void CBrat3DPlot::SetYDigits( bool isdate, int digits, brathl_refDate date_ref )      //date_ref = REF19500101
+{
+    SetDigits( mYDigits, smYaxis, false, isdate, digits, date_ref );
+}
+
+void CBrat3DPlot::SetZDigits( bool isdate, int digits, brathl_refDate date_ref )      //date_ref = REF19500101
+{
+    SetDigits( mZDigits, smZaxis, LogarithmicScaleZ(), isdate, digits, date_ref );
+}
+
+
+
+//scale
+
+bool CBrat3DPlot::LogarithmicScaleZ() const
+{
+	assert__( mFunctions.size() == 1 );
+
+	auto const *function = mFunctions.back();		assert__( function );
+
+	return function->Logarithmic();
+}
+
+void CBrat3DPlot::SetLogarithmicScaleZ( bool log )
+{
+	for ( auto *f : mFunctions )
+	{
+		assert__( f );
+
+		f->SetLogarithmic( log );
+	}
+
+	SetZDigits( !log && ZisDateTime(), mZDigits );		//the only that is partially supported
+}
+
+
+void CBrat3DPlot::FunctionRanges( double &xMin, double &xMax, double &yMin, double &yMax, double &zMin, double &zMax ) const
+{
+	assert__( mFunctions.size() == 1 );
+
+	auto const *function = mFunctions.back();		assert__( function );
+
+	function->Ranges( xMin, xMax, yMin, yMax, zMin, zMax );
+}
+
+
+
+void CBrat3DPlot::Scale( double &xVal, double &yVal, double &zVal )
+{
+	xVal = xScale();
+	yVal = yScale();
+	zVal = zScale();
+}
+
+
+
+template< typename T >
+inline int MTicLength( T &t )
+{
+	double m, M;
+	t.ticLength( M, m );
+	return M;
+}
+template< typename T >
+inline int mTicLength( T &t )
+{
+	double m, M;
+	t.ticLength( M, m );
+	return m;
+}
+
+
+void CBrat3DPlot::SetScale( double xVal, double yVal, double zVal )
+{
+	setScale( xVal, yVal, zVal );
+
+	for ( auto axis : smXaxis )
+		coordinates()->axes[ axis ].setTicLength( 2, 1 );
+	for ( auto axis : smYaxis )
+		coordinates()->axes[ axis ].setTicLength( 2, 1 );
+	for ( auto axis : smZaxis )
+		coordinates()->axes[ axis ].setTicLength( 2, 1 );
+}
+
+
+void CBrat3DPlot::Reset()
+{
+	setRotation( 30, 0, 15 );
+	setScale( 1, 1, 1 );
+	setShift( 0.1, 0, 0 );
+	setZoom( 0.8 );
+}
+
+
+//color / style
+
+void CBrat3DPlot::StandardColor( bool standard )
+{
+	if ( standard )
+		setDataColor( new Qwt3D::StandardColor( this ) );
+	else
+#if (QWT3D_MINOR_VERSION > 2)
+		setDataColor( new CBratColor( curve() ) );
+#else
+		setDataColor( new CBratColor( this ) );
+#endif
+	updateData();
+}
+
+
+void CBrat3DPlot::SetPlotStyle( Qwt3D::PLOTSTYLE style )		//style = Qwt3D::FILLEDMESH
+{
+	setPlotStyle( style );
+	updateData();
+	updateGL();
+}
+
+void CBrat3DPlot::PlotStyle()
+{
+	auto a = qobject_cast<QAction*>( sender() );		assert__( a );
+	auto index = mStyleGroup->actions().indexOf( a );	assert__( index >= 0 && a->data().toInt() == index );
+
+    Q_UNUSED( index );
+
+	SetPlotStyle( static_cast<Qwt3D::PLOTSTYLE>( a->data().toInt() ) );
+}
+
+
+void CBrat3DPlot::SetCoordinateStyle( Qwt3D::COORDSTYLE style )		//style = Qwt3D::FRAME
+{
+	setCoordinateStyle( style );
+}
+
+void CBrat3DPlot::CoordinateStyle()
+{
+	auto a = qobject_cast<QAction*>( sender() );					assert__( a );
+	auto index = mCoordinateStyleGroup->actions().indexOf( a );		assert__( index >= 0 && a->data().toInt() == index );
+
+    Q_UNUSED( index );
+
+    SetCoordinateStyle( static_cast<Qwt3D::COORDSTYLE>( a->data().toInt() ) );
+}
+
+
+
+
+void CBrat3DPlot::SetColorMap( Qwt3D::Color *pcolor_map )
+{
+	setDataColor( pcolor_map );
+	updateData();
+	updateGL();
+
+	//legend()->setMajors( majors );
+	//legend()->setMinors( minors );
+	double start, stop;
+	coordinates()->axes[ Qwt3D::AXIS::Z1 ].limits(start,stop);
+#if (QWT3D_MINOR_VERSION > 2)
+	curve()->legend()->setLimits(start, stop);
+#else
+	legend()->setLimits(start, stop);
+#endif
+
+	if ( !isDefaultValue( start ) && !isDefaultValue( stop ) && start != defaultValueDOUBLE && stop != defaultValueDOUBLE )
+		showColorLegend( true );
+}
+
+
+
+
+//test menu
 
 void CBrat3DPlot::CreateContextMenu()
 {
@@ -432,333 +905,6 @@ void CBrat3DPlot::CreateContextMenu()
 }
 
 
-
-//static 
-const std::vector< Qwt3D::AXIS > CBrat3DPlot::smXaxis = { Qwt3D::AXIS::X1, Qwt3D::AXIS::X2, Qwt3D::AXIS::X3, Qwt3D::AXIS::X4 };
-//static 
-const std::vector< Qwt3D::AXIS > CBrat3DPlot::smYaxis = { Qwt3D::AXIS::Y1, Qwt3D::AXIS::Y2, Qwt3D::AXIS::Y3, Qwt3D::AXIS::Y4 };
-//static 
-const std::vector< Qwt3D::AXIS > CBrat3DPlot::smZaxis = { Qwt3D::AXIS::Z1, Qwt3D::AXIS::Z2, Qwt3D::AXIS::Z3, Qwt3D::AXIS::Z4 };
-
-
-
-
-
-CBrat3DPlot::CBrat3DPlot( QWidget *pw ) 
-	: base_t( pw )
-	, mTimer( this )
-	, mXDigits( CBrat3DScale::smDigits )
-	, mYDigits( CBrat3DScale::smDigits )
-	, mZDigits( CBrat3DScale::smDigits )
-{
-	connect( &mTimer, SIGNAL( timeout() ), this, SLOT( rotate() ) );
-
-	CreateContextMenu();
-	Reset();
-
-	setSmoothMesh( true );
-	enableLighting( false );
-
-	coordinates()->setNumberFont( t2q( C3DPlotWidget::smFontName ), C3DPlotWidget::smAxisFontSize );
-	coordinates()->setLabelFont( t2q( C3DPlotWidget::smFontName ), C3DPlotWidget::smAxisFontSize );
-
-	const size_t size = coordinates()->axes.size();
-	for ( unsigned i = 0; i != size; ++i )
-	{
-		coordinates()->axes[ i ].setMajors( 7 );
-		coordinates()->axes[ i ].setMinors( 4 );
-	}
-}
-
-//virtual 
-CBrat3DPlot::~CBrat3DPlot()
-{
-	DestroyPointersAndContainer( mFunctions );
-}
-
-
-void CBrat3DPlot::SetTitle( const QString &title )
-{
-	setTitleFont( t2q( C3DPlotWidget::smFontName ), C3DPlotWidget::smTitleFontSize, QFont::Bold );
-
-	setTitle( title );
-
-    updateGL();
-}
-
-
-
-void CBrat3DPlot::SetAxisTitle( Qwt3D::AXIS axis, const std::string &title )
-{
-	std::string clean_title = replace( title, "\n", " - " );
-	clean_title = replace( clean_title, "\t", "" );
-
-	coordinates()->axes[ axis ].setLabelString( clean_title.c_str() );
-}
-
-
-unsigned int CBrat3DPlot::XAxisNbTicks() const
-{
-	return const_cast<CBrat3DPlot*>( this )->coordinates()->axes[ Qwt3D::AXIS::X1 ].majors();
-}
-void CBrat3DPlot::SetXAxisTicks( unsigned int nticks )
-{
-    for ( auto axis : smXaxis )
-    {
-        coordinates()->axes[ axis ].setMajors( nticks );
-    }
-    updateGL();
-}
-
-
-unsigned int CBrat3DPlot::YAxisNbTicks() const
-{
-	return const_cast<CBrat3DPlot*>( this )->coordinates()->axes[ Qwt3D::AXIS::Y1 ].majors();
-}
-void CBrat3DPlot::SetYAxisTicks( unsigned int nticks )
-{
-    for ( auto axis : smYaxis )
-    {
-        coordinates()->axes[ axis ].setMajors( nticks );
-    }
-    updateGL();
-}
-
-
-unsigned int CBrat3DPlot::ZAxisNbTicks() const
-{
-	return const_cast<CBrat3DPlot*>( this )->coordinates()->axes[ Qwt3D::AXIS::Z1 ].majors();
-}
-void CBrat3DPlot::SetZAxisTicks( unsigned int nticks )
-{
-    for ( auto axis : smZaxis )
-    {
-        coordinates()->axes[ axis ].setMajors( nticks );
-    }
-    updateGL();
-}
-
-
-
-
-
-
-void CBrat3DPlot::AddSurface( const CZFXYPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax )
-{
-	mFunctions.push_back( new CBrat3DFunction( *this ) );
-	mFunctions.back()->AddSurface( values, xmin, xmax, ymin, ymax, zmin, zmax );
-}
-
-void CBrat3DPlot::SetLogarithmicScale( bool onlyz, bool log )
-{
-	for ( auto *f : mFunctions )
-	{
-		assert__( f );	// TODO: do we support x,y logarithmic axis ?
-
-		f->SetLogarithmic( log );
-	}
-
-	auto scale = log ? Qwt3D::LOG10SCALE : Qwt3D::LINEARSCALE;
-
-	for ( auto axis : smZaxis )
-		coordinates()->axes[ axis ].setScale( scale );
-
-	if ( !onlyz )
-	{
-		for ( auto axis : smXaxis )
-			coordinates()->axes[ axis ].setScale( scale );
-		for ( auto axis : smYaxis )
-			coordinates()->axes[ axis ].setScale( scale );
-	}
-
-	//updateData();
-	updateGL();
-}
-
-
-
-void CBrat3DPlot::Animate( int updateinterval )		//updateinterval = 200 
-{
-	if ( !mAnimateAction->isChecked() || updateinterval == 0 )
-	{
-		mTimer.stop();
-	}
-	else
-	{
-		mTimer.start( updateinterval );
-	}
-}
-
-void CBrat3DPlot::rotate()
-{
-	int prec = 3;
-
-	setRotation(
-			(int(prec*xRotation() + 2) % (360*prec))/double(prec),
-			(int(prec*yRotation() + 2) % (360*prec))/double(prec),
-			(int(prec*zRotation() + 2) % (360*prec))/double(prec)
-			);
-}
-
-
-void CBrat3DPlot::Scale( double &xVal, double &yVal, double &zVal )
-{
-	xVal = xScale();
-	yVal = yScale();
-	zVal = zScale();
-}
-
-template< typename T >
-inline int MTicLength( T &t )
-{
-	double m, M;
-	t.ticLength( M, m );
-	return M;
-}
-template< typename T >
-inline int mTicLength( T &t )
-{
-	double m, M;
-	t.ticLength( M, m );
-	return m;
-}
-
-
-void CBrat3DPlot::SetScale( double xVal, double yVal, double zVal )
-{
-	setScale( xVal, yVal, zVal );
-
-	for ( auto axis : smXaxis )
-		coordinates()->axes[ axis ].setTicLength( 2, 1 );
-	for ( auto axis : smYaxis )
-		coordinates()->axes[ axis ].setTicLength( 2, 1 );
-	for ( auto axis : smZaxis )
-		coordinates()->axes[ axis ].setTicLength( 2, 1 );
-}
-
-
-void CBrat3DPlot::Reset()
-{
-	setRotation( 30, 0, 15 );
-	setScale( 1, 1, 1 );
-	setShift( 0.1, 0, 0 );
-	setZoom( 0.8 );
-}
-
-
-void CBrat3DPlot::StandardColor( bool standard )
-{
-	if ( standard )
-		setDataColor( new Qwt3D::StandardColor( this ) );
-	else
-#if (QWT3D_MINOR_VERSION > 2)
-		setDataColor( new CBratColor( curve() ) );
-#else
-		setDataColor( new CBratColor( this ) );
-#endif
-	updateData();
-}
-
-
-void CBrat3DPlot::SetPlotStyle( Qwt3D::PLOTSTYLE style )		//style = Qwt3D::FILLEDMESH
-{
-	setPlotStyle( style );
-	updateData();
-	updateGL();
-}
-
-void CBrat3DPlot::PlotStyle()
-{
-	auto a = qobject_cast<QAction*>( sender() );		assert__( a );
-	auto index = mStyleGroup->actions().indexOf( a );	assert__( index >= 0 && a->data().toInt() == index );
-
-    Q_UNUSED( index );
-
-	SetPlotStyle( static_cast<Qwt3D::PLOTSTYLE>( a->data().toInt() ) );
-}
-
-
-void CBrat3DPlot::SetCoordinateStyle( Qwt3D::COORDSTYLE style )		//style = Qwt3D::FRAME
-{
-	setCoordinateStyle( style );
-}
-
-void CBrat3DPlot::CoordinateStyle()
-{
-	auto a = qobject_cast<QAction*>( sender() );					assert__( a );
-	auto index = mCoordinateStyleGroup->actions().indexOf( a );		assert__( index >= 0 && a->data().toInt() == index );
-
-    Q_UNUSED( index );
-
-    SetCoordinateStyle( static_cast<Qwt3D::COORDSTYLE>( a->data().toInt() ) );
-}
-
-
-
-
-void CBrat3DPlot::SetColorMap( Qwt3D::Color *pcolor_map )
-{
-	setDataColor( pcolor_map );
-	updateData();
-	updateGL();
-
-	//legend()->setMajors( majors );
-	//legend()->setMinors( minors );
-	double start, stop;
-	coordinates()->axes[ Qwt3D::AXIS::Z1 ].limits(start,stop);
-#if (QWT3D_MINOR_VERSION > 2)
-	curve()->legend()->setLimits(start, stop);
-#else
-	legend()->setLimits(start, stop);
-#endif
-
-	if ( !isDefaultValue( start ) && !isDefaultValue( stop ) && start != defaultValueDOUBLE && stop != defaultValueDOUBLE )
-		showColorLegend( true );
-}
-
-
-// digits / date
-
-void CBrat3DPlot::SetDigits(int &this_digits, const std::vector< Qwt3D::AXIS > &axis_ids, bool isdate, int digits, brathl_refDate date_ref )
-{
-	assert__( this_digits != -1 );		//can only be assigned once
-
-	this_digits = isdate ? -1 : digits;
-	for ( auto axis : axis_ids )
-    {
-        CBrat3DScale *s = new CBrat3DScale;        //s->SetLog(is_log);
-        s->SetDate( isdate, date_ref );
-		s->SetNDigits( this_digits );
-        coordinates()->axes[ axis ].setScale( s );
-    }
-
-    updateGL();
-}
-
-void CBrat3DPlot::SetXDigits( bool isdate, int digits, brathl_refDate date_ref )      //date_ref = REF19500101
-{
-    SetDigits( mXDigits, smXaxis, isdate, digits, date_ref );
-}
-
-void CBrat3DPlot::SetYDigits( bool isdate, int digits, brathl_refDate date_ref )      //date_ref = REF19500101
-{
-    SetDigits( mYDigits, smYaxis, isdate, digits, date_ref );
-}
-
-void CBrat3DPlot::SetZDigits( bool isdate, int digits, brathl_refDate date_ref )      //date_ref = REF19500101
-{
-    //for ( auto *f : mFunctions )
-    //{
-    //    assert__( f );	// TODO: do we support x,y logarithmic axis ?
-
-    //    f->SetLogarithmic( is_log );
-    //}
-    SetDigits( mZDigits, smZaxis, isdate, digits, date_ref );
-}
-
-
-
-
 //////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////
 //						Main Class
@@ -825,25 +971,11 @@ C3DPlotWidget::~C3DPlotWidget()
 
 
 
-void C3DPlotWidget::PushPlot( const CZFXYPlotParameters &values, double xmin, double xmax, double ymin, double ymax, double zmin, double zmax, Qwt3D::Color *pcolor_map )
+void C3DPlotWidget::PushPlot( const CZFXYPlotParameters &values, Qwt3D::Color *pcolor_map )
 {
 #if defined (TEST_EXAMPLES)
 	return;
 #endif
-
-	//double xmin = values.mMinX;
-	//double xmax = values.mMaxX;
-	//double ymin = values.mMinY;
-	//double ymax = values.mMaxY;
-	//double zmin = values.mMinHeightValue;
-	//double zmax = values.mMaxHeightValue;
-
-	assert__( xmin == values.mMinX );
-	assert__( xmax == values.mMaxX );
-	assert__( ymin == values.mMinY );
-	assert__( ymax == values.mMaxY );
-	assert__( zmin == values.mMinHeightValue );
-	assert__( zmax == values.mMaxHeightValue );
 
 	mCurrentPlot = new CBrat3DPlot( this );
 	mSurfacePlots.push_back( mCurrentPlot );
@@ -851,25 +983,11 @@ void C3DPlotWidget::PushPlot( const CZFXYPlotParameters &values, double xmin, do
 	
 	connect( mCurrentPlot, SIGNAL( scaleChanged( double, double, double ) ), this, SLOT( HandleScaleChanged( double, double, double ) ) );
 
-	mCurrentPlot->AddSurface( values, xmin, xmax, ymin, ymax, zmin, zmax );
+	mCurrentPlot->AddSurface( values );
 
 	mCurrentPlot->setDataColor( pcolor_map );
 
-	if ( !isDefaultValue( zmin ) && !isDefaultValue( zmax ) )
-	{
-		double xrange = xmax - xmin;			assert__( xrange > 0 );
-		double yrange = ymax - ymin;			assert__( yrange > 0 );
-		double zrange = zmax - zmin;			assert__( zrange > 0 );
-
-		double range_max = std::max( xrange, std::max( yrange, zrange ) );
-
-		double xscale = range_max / xrange ;
-		double yscale = range_max / yrange ;
-		double zscale = range_max / zrange ;
-
-		SetScale( xscale, yscale, zscale );
-		mCurrentPlot->setZoom( 0.5 );
-	}
+	CorrectScale();
 }
 
 
@@ -897,16 +1015,19 @@ void C3DPlotWidget::SetCurrentPlot( int index )
 
 //title
 
-
 void C3DPlotWidget::SetPlotTitle( const std::string &title )
 {
 	assert__( mSurfacePlots.size() );
 
 	setWindowTitle( title.c_str() );
 
-	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mCurrentPlot );		assert__( p );
-
-	p->SetTitle( windowTitle() );
+	const size_t size = mStackedLayout->count();
+	for ( size_t i = 0; i < size; ++i )
+	{
+		auto *plot = mStackedLayout->widget( i );
+		CBrat3DPlot *p = dynamic_cast<CBrat3DPlot*>( plot );		assert__( p );
+		p->SetTitle( windowTitle() );
+	}
 }
 
 
@@ -1101,32 +1222,18 @@ void C3DPlotWidget::ShowSolidColor( int index, bool show )
 
 //axis
 
-void C3DPlotWidget::HandleScaleChanged( double xVal, double yVal, double zVal )
-{
-	emit ScaleChanged( xVal, yVal, zVal );
-}
 
+//titles
 
-void C3DPlotWidget::SetLogarithmicScaleZ( bool log )
+void C3DPlotWidget::AxisTitles( std::string &xtitle, std::string &ytitle, std::string &ztitle ) const
 {
 	assert__( mSurfacePlots.size() );
 
 	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mCurrentPlot );		assert__( p );
 
-	p->SetLogarithmicScale( true, log );
+	p->AxisTitles( xtitle, ytitle, ztitle );
 }
-
-void C3DPlotWidget::SetLogarithmicScale( bool log )
-{
-	assert__( mSurfacePlots.size() );
-
-	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mCurrentPlot );		assert__( p );
-
-	p->SetLogarithmicScale( false, log );
-}
-
-
-void C3DPlotWidget::SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle )
+bool C3DPlotWidget::SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle )
 {
 	assert__( mSurfacePlots.size() );
 
@@ -1136,20 +1243,20 @@ void C3DPlotWidget::SetAxisTitles( const std::string &xtitle, const std::string 
 
 	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mCurrentPlot );		assert__( p );
 
-	p->SetAxisTitles( xtitle, ytitle, ztitle );
+	return p->SetAxisTitles( xtitle, ytitle, ztitle );
 }
 
 
 
 // ticks
 
-unsigned int C3DPlotWidget::XAxisNbTicks() const
+unsigned int C3DPlotWidget::XAxisTicks() const
 {
     assert__( mSurfacePlots.size() );
     const CBrat3DPlot *p = dynamic_cast< const CBrat3DPlot* >( mCurrentPlot );		assert__( p );
     return p->XAxisNbTicks();
 }
-void C3DPlotWidget::SetXAxisNbTicks( unsigned int nbticks )
+void C3DPlotWidget::SetXAxisTicks( unsigned int nbticks )
 {
     assert__( mSurfacePlots.size() );
     CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mCurrentPlot );		assert__( p );
@@ -1157,26 +1264,26 @@ void C3DPlotWidget::SetXAxisNbTicks( unsigned int nbticks )
 }
 
 
-unsigned int C3DPlotWidget::YAxisNbTicks() const
+unsigned int C3DPlotWidget::YAxisTicks() const
 {
     assert__( mSurfacePlots.size() );
     const CBrat3DPlot *p = dynamic_cast< const CBrat3DPlot* >( mCurrentPlot );		assert__( p );
     return p->YAxisNbTicks();
 }
-void C3DPlotWidget::SetYAxisNbTicks( unsigned int nbticks )
+void C3DPlotWidget::SetYAxisTicks( unsigned int nbticks )
 {
     assert__( mSurfacePlots.size() );
     CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mCurrentPlot );		assert__( p );
     p->SetYAxisTicks( nbticks );
 }
 
-unsigned int C3DPlotWidget::ZAxisNbTicks() const
+unsigned int C3DPlotWidget::ZAxisTicks() const
 {
     assert__( mSurfacePlots.size() );
     const CBrat3DPlot *p = dynamic_cast< const CBrat3DPlot* >( mCurrentPlot );		assert__( p );
     return p->ZAxisNbTicks();
 }
-void C3DPlotWidget::SetZAxisNbTicks( unsigned int nbticks )
+void C3DPlotWidget::SetZAxisTicks( unsigned int nbticks )
 {
     assert__( mSurfacePlots.size() );
     CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mCurrentPlot );		assert__( p );
@@ -1211,19 +1318,19 @@ bool C3DPlotWidget::XisDateTime() const
 {
     assert__( mSurfacePlots.size() );
     CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mCurrentPlot );		assert__( p );
-	return p->XisDateTinme();
+	return p->XisDateTime();
 }
 bool C3DPlotWidget::YisDateTime() const
 {
     assert__( mSurfacePlots.size() );
     CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mCurrentPlot );		assert__( p );
-	return p->YisDateTinme();
+	return p->YisDateTime();
 }
 bool C3DPlotWidget::ZisDateTime() const
 {
     assert__( mSurfacePlots.size() );
     CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mCurrentPlot );		assert__( p );
-	return p->ZisDateTinme();
+	return p->ZisDateTime();
 }
 
 
@@ -1253,6 +1360,34 @@ void C3DPlotWidget::SetZDigits( bool isdate, unsigned int digits, brathl_refDate
 
 // scale
 
+void C3DPlotWidget::HandleScaleChanged( double xVal, double yVal, double zVal )
+{
+	emit ScaleChanged( xVal, yVal, zVal );
+}
+
+
+bool C3DPlotWidget::LogarithmicScaleZ() const
+{
+	assert__( mSurfacePlots.size() );
+
+	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mCurrentPlot );		assert__( p );
+
+	return p->LogarithmicScaleZ();
+}
+
+void C3DPlotWidget::SetLogarithmicScaleZ( bool log )
+{
+	assert__( mSurfacePlots.size() );
+
+	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mCurrentPlot );		assert__( p );
+
+	p->SetLogarithmicScaleZ( log );
+
+	CorrectScale();
+}
+
+
+
 void C3DPlotWidget::Scale( double &xVal, double &yVal, double &zVal )
 {
     assert__( mSurfacePlots.size() );
@@ -1267,6 +1402,36 @@ void C3DPlotWidget::SetScale( double xVal, double yVal, double zVal )
 }
 
 
+void C3DPlotWidget::CorrectScale()
+{
+	double xMin;
+	double xMax;
+	double yMin;
+	double yMax;
+	double zMin;
+	double zMax;
+
+	mCurrentPlot->FunctionRanges( xMin, xMax, yMin, yMax, zMin, zMax );
+
+	if ( !isDefaultValue( zMin ) && !isDefaultValue( zMax ) )
+	{
+		double xrange = xMax - xMin;			assert__( xrange > 0 );
+		double yrange = yMax - yMin;			assert__( yrange > 0 );
+		double zrange = zMax - zMin;			assert__( zrange > 0 );
+
+		double range_max = std::max( xrange, std::max( yrange, zrange ) );
+
+		double xscale = range_max / xrange ;
+		double yscale = range_max / yrange ;
+		double zscale = range_max / zrange ;
+
+		SetScale( xscale, yscale, zscale );
+		mCurrentPlot->setZoom( 0.5 );
+	}
+}
+
+
+
 
 //interaction
 
@@ -1277,6 +1442,8 @@ void C3DPlotWidget::Home()
 	CBrat3DPlot *p = dynamic_cast< CBrat3DPlot* >( mCurrentPlot );		assert__( p );
 
 	p->Reset();
+
+	CorrectScale();
 }
 
 
