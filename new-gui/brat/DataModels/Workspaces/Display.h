@@ -29,6 +29,7 @@
 #include "DataModels/MapTypeDisp.h"
 #include "DataModels/PlotData/ColorPalleteNames.h"
 #include "DataModels/PlotData/FieldData.h"
+#include "DataModels/PlotData/Plots.h"
 
 
 class COperation;
@@ -367,11 +368,11 @@ public:
 //-------------------------------------------------------------
 
 
-class CDisplay : public CBratObject
+class CDisplay : public CDisplayInterface
 {
 	//types
 
-	using base_t = CBratObject;
+	using base_t = CDisplayInterface;
 
 	friend class CDisplayCmdFile;
 	friend class CWorkspaceSettings;
@@ -395,7 +396,6 @@ protected:
 	std::string m_cmdFile;
 
 	std::string m_name;
-	std::string m_title;
 
 	CMapDisplayData m_data;
 	bool m_withAnimation = false;
@@ -421,7 +421,7 @@ protected:
 public:
 
 	CDisplay( const std::string &name )
-		: base_t()
+		: base_t( name )				//name as title by default
 		, m_name( name )
 	{}
 
@@ -440,13 +440,11 @@ public:
 		m_name = o.m_name;
 		m_withAnimation = o.m_withAnimation;
 		m_projection = o.m_projection;
-		m_title = o.m_title;
 		m_type = o.m_type;
 
 		m_zoom = const_cast<CLatLonRect&>( o.m_zoom );
 
 		InitOutput( wksd );
-
 	}
 
 	//v4 new
@@ -476,12 +474,9 @@ public:
 	void SetName( const std::string& value )
 	{ 
 		m_name = value; 
-		if ( m_title.empty() )
-			m_title = m_name;
+		if ( Title().empty() )
+			SetTitle( m_name );
 	}
-
-	const std::string& GetTitle() const { return m_title; }
-	void SetTitle( const std::string& value ) { m_title = value; }
 
 
 	bool UsesOperation( const std::string& name ) const;

@@ -617,7 +617,7 @@ void CBrat3DPlot::SetDigits( int &this_digits, const std::vector< Qwt3D::AXIS > 
 			CBrat3DLogScale *slog = new CBrat3DLogScale;
 			slog->SetNDigits( this_digits );
 			double start, stop;
-			coordinates()->axes[ Qwt3D::AXIS::Z1 ].limits( start, stop );
+            coordinates()->axes[ axis ].limits( start, stop );
 			slog->SetLimits( start, stop );
 			s = slog;
 		}
@@ -677,7 +677,9 @@ void CBrat3DPlot::SetLogarithmicScaleZ( bool log )
 		f->SetLogarithmic( log );
 	}
 
-	SetZDigits( !log && ZisDateTime(), mZDigits );		//the only that is partially supported
+    SetXDigits( XisDateTime(), mXDigits );          //functions setZRange rebuild whole coordinate system...
+    SetYDigits( YisDateTime(), mYDigits );          //functions setZRange rebuild whole coordinate system...
+    SetZDigits( !log && ZisDateTime(), mZDigits );	//the only that is partially supported
 }
 
 

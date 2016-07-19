@@ -729,10 +729,21 @@ bool CWorkspaceSettings::SaveConfig( const CDisplay &d, CWorkspaceDisplay *wksd 
 {
 	WriteSection( d.m_name,
 
-		k_v( ENTRY_TYPE,		CMapTypeDisp::GetInstance().IdToName( d.m_type ) ),
-		k_v( ENTRY_TITLE,		d.GetTitle() ),
-		k_v( ENTRY_ANIMATION,	d.GetWithAnimation() ),
-		k_v( ENTRY_PROJECTION,	d.GetProjection() )
+		k_v( ENTRY_TYPE,					CMapTypeDisp::GetInstance().IdToName( d.m_type ) ),
+		k_v( ENTRY_TITLE,					d.Title() ),
+		k_v( ENTRY_DISPLAY_DATA_X_LABEL,	d.TitleX() ),
+		k_v( ENTRY_DISPLAY_DATA_Y_LABEL,	d.TitleY() ),
+
+		k_v( ENTRY_DISPLAY_DATA_X_NUM_TICKS,	d.m_xTicks ),
+		k_v( ENTRY_DISPLAY_DATA_Y_NUM_TICKS,	d.m_yTicks ),
+		k_v( ENTRY_DISPLAY_DATA_Z_NUM_TICKS,	d.m_zTicks ),
+
+		k_v( ENTRY_DISPLAY_DATA_X_NUM_DIGITS,	d.m_xDigits ),
+		k_v( ENTRY_DISPLAY_DATA_Y_NUM_DIGITS,	d.m_yDigits ),
+		k_v( ENTRY_DISPLAY_DATA_Z_NUM_DIGITS,	d.m_zDigits ),
+
+		k_v( ENTRY_ANIMATION,				d.GetWithAnimation() ),
+		k_v( ENTRY_PROJECTION,				d.GetProjection() )
 		);
 
 	{
@@ -776,10 +787,21 @@ bool CWorkspaceSettings::LoadConfig( CDisplay &d, std::string &error_msg, CWorks
 
 	ReadSection( d.m_name,
 
-		k_v( ENTRY_TYPE,		&type,				CMapTypeDisp::GetInstance().IdToName( d.m_type ) ),
-		k_v( ENTRY_TITLE,		&d.m_title			),
-		k_v( ENTRY_ANIMATION,	&d.m_withAnimation,	false ),
-		k_v( ENTRY_PROJECTION,	&d.m_projection,	PROJECTION_3D_VALUE ),
+		k_v( ENTRY_TYPE,					&type,				CMapTypeDisp::GetInstance().IdToName( d.m_type ) ),
+		k_v( ENTRY_TITLE,					&d.mTitle			),
+		k_v( ENTRY_DISPLAY_DATA_X_LABEL,	&d.mTitleX ),
+		k_v( ENTRY_DISPLAY_DATA_Y_LABEL,	&d.mTitleY ),
+
+		k_v( ENTRY_DISPLAY_DATA_X_NUM_TICKS,	&d.m_xTicks, CDisplay::smDefaultNumberOfTicks ),
+		k_v( ENTRY_DISPLAY_DATA_Y_NUM_TICKS,	&d.m_yTicks, CDisplay::smDefaultNumberOfTicks ),
+		k_v( ENTRY_DISPLAY_DATA_Z_NUM_TICKS,	&d.m_zTicks, CDisplay::smDefaultNumberOfTicks ),
+
+		k_v( ENTRY_DISPLAY_DATA_X_NUM_DIGITS,	&d.m_xDigits, CDisplay::smDefaultNumberOfDigits ),
+		k_v( ENTRY_DISPLAY_DATA_Y_NUM_DIGITS,	&d.m_yDigits, CDisplay::smDefaultNumberOfDigits ),
+		k_v( ENTRY_DISPLAY_DATA_Z_NUM_DIGITS,	&d.m_zDigits, CDisplay::smDefaultNumberOfDigits ),
+
+		k_v( ENTRY_ANIMATION,				&d.m_withAnimation,	false ),
+		k_v( ENTRY_PROJECTION,				&d.m_projection,	PROJECTION_3D_VALUE ),
 
 #if defined (BRAT_V3)
 		k_v( ENTRY_MINXVALUE,	&d.m_minXValue,		defaultValue< double >() ),
@@ -910,17 +932,6 @@ bool CWorkspaceSettings::SaveConfig( CDisplayData &data, const std::string& path
 		k_v( ENTRY_FIELD_DESC_NAME, data.mUserName ),
 
 		k_v( ENTRY_FIELD_DATA_OPACITY, data.mOpacity ),
-
-		k_v( ENTRY_FIELD_DATA_X_NUM_TICKS,	data.m_xTicks ),
-		k_v( ENTRY_FIELD_DATA_Y_NUM_TICKS,	data.m_yTicks ),
-		k_v( ENTRY_FIELD_DATA_Z_NUM_TICKS,	data.m_zTicks ),
-
-		k_v( ENTRY_FIELD_DATA_X_NUM_DIGITS,	data.m_xDigits ),
-		k_v( ENTRY_FIELD_DATA_Y_NUM_DIGITS,	data.m_yDigits ),
-		k_v( ENTRY_FIELD_DATA_Z_NUM_DIGITS,	data.m_zDigits ),
-
-		k_v( ENTRY_FIELD_DATA_X_LABEL,	data.mXlabel ),
-		k_v( ENTRY_FIELD_DATA_Y_LABEL,	data.mYlabel ),
 
 		k_v( ENTRY_FIELD_DATA_X_LOG,	data.mXlogarithmic ),
 		k_v( ENTRY_FIELD_DATA_Y_LOG,	data.mYlogarithmic ),
@@ -1134,17 +1145,6 @@ bool CWorkspaceSettings::LoadConfig( CDisplayData *&pdata, const CDisplay *paren
 		k_v( ENTRY_FIELD_DESC_NAME,		&data.mUserName ),
 
 		k_v( ENTRY_FIELD_DATA_OPACITY,	&data.mOpacity ),
-
-		k_v( ENTRY_FIELD_DATA_X_NUM_TICKS,	&data.m_xTicks, CFieldData::smDefaultNumberOfTicks ),
-		k_v( ENTRY_FIELD_DATA_Y_NUM_TICKS,	&data.m_yTicks, CFieldData::smDefaultNumberOfTicks ),
-		k_v( ENTRY_FIELD_DATA_Z_NUM_TICKS,	&data.m_zTicks, CFieldData::smDefaultNumberOfTicks ),
-
-		k_v( ENTRY_FIELD_DATA_X_NUM_DIGITS,	&data.m_xDigits, CFieldData::smDefaultNumberOfDigits ),
-		k_v( ENTRY_FIELD_DATA_Y_NUM_DIGITS,	&data.m_yDigits, CFieldData::smDefaultNumberOfDigits ),
-		k_v( ENTRY_FIELD_DATA_Z_NUM_DIGITS,	&data.m_zDigits, CFieldData::smDefaultNumberOfDigits ),
-
-		k_v( ENTRY_FIELD_DATA_X_LABEL,	&data.mXlabel ),
-		k_v( ENTRY_FIELD_DATA_Y_LABEL,	&data.mYlabel ),
 
 		k_v( ENTRY_FIELD_DATA_X_LOG,	&data.mXlogarithmic, false ),
 		k_v( ENTRY_FIELD_DATA_Y_LOG,	&data.mYlogarithmic, false ),

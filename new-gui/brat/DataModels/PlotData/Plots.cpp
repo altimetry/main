@@ -34,6 +34,24 @@ using namespace brathl;
 #include "Plots.h"
 
 
+
+////////////////////////////////////////////////////////////
+//					CDisplayInterface class 
+////////////////////////////////////////////////////////////
+
+
+
+//static 
+const unsigned CDisplayInterface::smDefaultNumberOfDigits = 5;
+
+//static 
+const unsigned CDisplayInterface::smDefaultNumberOfTicks = 5;
+
+
+
+
+
+
 ////////////////////////////////////////////////////////////
 //						CPlotBase class 
 ////////////////////////////////////////////////////////////
@@ -174,6 +192,15 @@ void CGeoPlot::GetInfo()
 //						CMathPlot class 
 ////////////////////////////////////////////////////////////
 
+inline std::string MakeUnitLabel( const CUnit &unit )
+{
+#if defined (BRAT_V3)
+	return "\nUnit:\t" + unit.GetText();
+#else
+	return "[" + unit.GetText() + "]";
+#endif
+}
+
 
 template< typename DATA_FIELD, typename PLOT_FIELD >
 void CMathPlot< DATA_FIELD, PLOT_FIELD >::GetTitleAndUnitInfo( CInternalFiles *file, const std::string &varXName, std::string varYName, const std::string &fieldName, 
@@ -188,10 +215,8 @@ void CMathPlot< DATA_FIELD, PLOT_FIELD >::GetTitleAndUnitInfo( CInternalFiles *f
 	//-----------------------------------
 	if ( mTitle.empty() )
 	{
-		mTitle = file->GetTitle( "" ).c_str();
+		mTitle = file->GetTitle( "" );
 	}
-#else
-    UNUSED( useYnameInLabel );
 #endif
 
 	//-----------------------------------
@@ -203,7 +228,7 @@ void CMathPlot< DATA_FIELD, PLOT_FIELD >::GetTitleAndUnitInfo( CInternalFiles *f
 	if ( m_unitXLabel.empty() )	//unitX read for the 1st time
 	{
 		m_unitX = unitXRead;
-		m_unitXLabel = "\nUnit:\t" + m_unitX.GetText();
+		m_unitXLabel = MakeUnitLabel( m_unitX );
 	}
 	else
 	{
@@ -226,20 +251,19 @@ void CMathPlot< DATA_FIELD, PLOT_FIELD >::GetTitleAndUnitInfo( CInternalFiles *f
 	}
 
 
-#if defined (BRAT_V3)
 	//-----------------------------------
 	// Get title of X axis
 	//-----------------------------------
-	if ( m_titleX.empty() )
+	if ( mTitleX.empty() )
 	{
 		std::string titleX = file->GetTitle( varXName );
 		if ( titleX.empty() )
 		{
 			titleX = varXName;
 		}
-		m_titleX += ( titleX + m_unitXLabel );
+		mTitleX = titleX + " " + m_unitXLabel;
 	}
-#endif
+
 
 	//--------------------------------------------------------
 	// Get and control unit of Y axis (for YFX: --> unit of each field)
@@ -249,7 +273,7 @@ void CMathPlot< DATA_FIELD, PLOT_FIELD >::GetTitleAndUnitInfo( CInternalFiles *f
 	if ( m_unitYLabel.empty() )
 	{
 		m_unitY = unitYRead;
-		m_unitYLabel = "\nUnit:\t" + m_unitY.GetText();
+		m_unitYLabel = MakeUnitLabel( m_unitY );
 	}
 	else
 	{
@@ -273,12 +297,12 @@ void CMathPlot< DATA_FIELD, PLOT_FIELD >::GetTitleAndUnitInfo( CInternalFiles *f
 		//}
 	}
 
-#if defined (BRAT_V3)
+
 	//-----------------------------------
 	// Get title of Y axis (as possible)
 	//-----------------------------------
 
-	if ( m_titleY.empty() )
+	if ( mTitleY.empty() )
 	{
 		std::string titleY;
 		if ( useYnameInLabel )
@@ -289,9 +313,8 @@ void CMathPlot< DATA_FIELD, PLOT_FIELD >::GetTitleAndUnitInfo( CInternalFiles *f
 				titleY = varYName;
 			}
 		}
-		m_titleY += ( titleY + m_unitYLabel );
+		mTitleY = titleY + " " + m_unitYLabel;
 	}
-#endif
 }
 
 

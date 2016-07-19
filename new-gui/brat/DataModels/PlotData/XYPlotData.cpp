@@ -102,7 +102,7 @@ void CXYPlotData::Create( CYFXPlot *plot )
 
 	if ( GetPlotProperties()->Xlabel().empty() )
 	{
-		GetPlotProperties()->SetXlabel( plot->m_titleX );
+        GetPlotProperties()->SetXlabel( plot->TitleX() );
 	}
 	else
 	{
@@ -113,7 +113,7 @@ void CXYPlotData::Create( CYFXPlot *plot )
 
 	if ( GetPlotProperties()->Ylabel().empty() )
 	{
-		GetPlotProperties()->SetYlabel( plot->m_titleY );
+        GetPlotProperties()->SetYlabel( plot->TitleY() );
 	}
 	else
 	{
@@ -124,8 +124,8 @@ void CXYPlotData::Create( CYFXPlot *plot )
 
 #else
 
-	assert__( !GetPlotProperties()->Xlabel().empty() );
-	assert__( !GetPlotProperties()->Ylabel().empty() );
+	assert__( !plot->TitleX().empty() );
+	assert__( !plot->TitleY().empty() );
 
 #endif
 
@@ -186,7 +186,8 @@ void CXYPlotData::Create( CYFXPlot *plot )
 		plot->YUnit().ConvertVector( varY.GetValues(), (int32_t)varY.GetNbValues() );
 	}
 
-	//v4 for uniformity with ZFXY
+	//v4 for (relative) uniformity with ZFXY; ZFXY stores one unit per frame... TODO why?
+	//NOTE this impacts DataUnit function
 	CUnit* unit = new CUnit( unitYRead );
 	m_dataUnits.push_back( unit );
 

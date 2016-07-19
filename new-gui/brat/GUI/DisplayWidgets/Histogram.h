@@ -62,12 +62,11 @@ public:
     void setColor(const QColor &);
     QColor color() const;
 
-    virtual QwtDoubleRect boundingRect() const;
+    virtual QwtDoubleRect boundingRect() const override;
 
-    virtual int rtti() const;
+    virtual int rtti() const override;
 
-    virtual void draw(QPainter *, const QwtScaleMap &xMap, 
-        const QwtScaleMap &yMap, const QRect &) const;
+    virtual void draw(QPainter *, const QwtScaleMap &xMap, const QwtScaleMap &yMap, const QRect &) const override;
 
     void setBaseline(double reference);
     double baseline() const;

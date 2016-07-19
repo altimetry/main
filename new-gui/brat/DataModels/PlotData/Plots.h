@@ -46,50 +46,233 @@ namespace brathl {
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-//					(Non-generic) Plot Interface - for plot editors
+//				Display Interface - for workspace displays & plot editors
+//						- interface to global plot properties
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-class CPlotInterface : public CBratObject
+
+class CDisplayInterface : public CBratObject
 {
-	//types
+	///////////////////////////
+	//			types
+	///////////////////////////
 
 	using base_t = CBratObject;
 
 
-	//instance data
+	///////////////////////////
+	//		static data
+	///////////////////////////
+
+public:
+	static const unsigned smDefaultNumberOfTicks;
+	static const unsigned smDefaultNumberOfDigits;
+
+
+	///////////////////////////
+	//		instance data
+	///////////////////////////
+
+#if defined (BRAT_V3)
+public:
+#else
+protected:
+#endif
+
+
+	std::string mTitle;
+	std::string mTitleX;
+	std::string mTitleY;
+
+	unsigned m_xTicks = smDefaultNumberOfTicks;
+	unsigned m_yTicks = smDefaultNumberOfTicks;
+    unsigned m_zTicks = smDefaultNumberOfTicks;
+
+    unsigned m_xDigits = smDefaultNumberOfDigits;
+    unsigned m_yDigits = smDefaultNumberOfDigits;
+    unsigned m_zDigits = smDefaultNumberOfDigits;
+
+
+	/////////////////////////////////
+	//	construction / destruction
+	/////////////////////////////////
+
+protected:
+	CDisplayInterface( const std::string &title )
+		: base_t()
+		, mTitle( title )
+	{}
+
+public:
+	CDisplayInterface( const CDisplayInterface *po )
+		: base_t()
+	{
+		if ( po )
+			*this = *po;
+	}
+
+	CDisplayInterface( const CDisplayInterface &o )
+		: base_t( o )
+	{
+		*this = o;
+	}
+
+	virtual ~CDisplayInterface()
+	{}
+
+
+	CDisplayInterface& operator = ( const CDisplayInterface &o )
+	{
+		if ( this != &o )
+		{
+			mTitle = o.mTitle;
+			mTitleX = o.mTitleX;
+			mTitleY = o.mTitleY;
+
+			m_xTicks = o.m_xTicks;
+			m_yTicks = o.m_yTicks;
+			m_zTicks = o.m_zTicks;
+
+			m_xDigits = o.m_xDigits;
+			m_yDigits = o.m_yDigits;
+			m_zDigits = o.m_zDigits;
+
+		}
+		return *this;
+	}
+
+
+	/////////////////////////////////
+	//			test
+	/////////////////////////////////
+
+	bool operator == ( const CDisplayInterface &o ) const
+	{
+		return
+			mTitle == o.mTitle &&
+			mTitleX == o.mTitleX &&
+			mTitleY == o.mTitleY &&
+
+			m_xTicks == o.m_xTicks &&
+			m_yTicks == o.m_yTicks &&
+			m_zTicks == o.m_zTicks &&
+
+			m_xDigits == o.m_xDigits &&
+			m_yDigits == o.m_yDigits &&
+			m_zDigits == o.m_zDigits &&
+
+			true;
+	}
+
+
+	/////////////////////////////////
+	//			access
+	/////////////////////////////////
 
 public:
 
-#if !defined (BRAT_V3)
-	const 
-#endif
-	std::string mTitle;
+	//titles: do not accept empty ones
 
-#if !defined(BRAT_V3)
+	const std::string& Title() const { return mTitle; }
+	void SetTitle( const std::string &title ) 
+	{ 
+		if ( !title.empty() )
+			mTitle = title; 
+	}
+
+	const std::string& TitleX() const { return mTitleX; }
+	void SetTitleX( const std::string &title ) 
+	{ 
+		if ( !title.empty() )
+			mTitleX = title; 
+	}
+
+	const std::string& TitleY() const { return mTitleY; }
+	void SetTitleY( const std::string &title ) 
+	{ 
+		if ( !title.empty() )
+			mTitleY = title; 
+	}
+
+	unsigned int Xticks() const { return m_xTicks; }
+	unsigned int Yticks() const { return m_yTicks; }
+	unsigned int Zticks() const { return m_zTicks; }
+	void SetXticks( unsigned int value ) { m_xTicks = value; }
+	void SetYticks( unsigned int value ) { m_yTicks = value; }
+	void SetZticks( unsigned int value ) { m_zTicks = value; }
+
+    unsigned Xdigits() const { return m_xDigits; }
+    unsigned Ydigits() const { return m_yDigits; }
+    unsigned Zdigits() const { return m_zDigits; }
+    void SetXdigits( unsigned value ) { m_xDigits = value; }
+    void SetYdigits( unsigned value ) { m_yDigits = value; }
+    void SetZdigits( unsigned value ) { m_zDigits = value; }
+
+};
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////
+//				(Non-generic) Plot Interface - for plot builders & plot editors
+//							- interface for access to plot fields
+///////////////////////////////////////////////////////////////////////////////////////////
+
+class CPlotInterface : public CDisplayInterface
+{
+	///////////////////////////
+	//			types
+	///////////////////////////
+
+	using base_t = CDisplayInterface;
+
+
+	///////////////////////////
+	//		instance data
+	///////////////////////////
+
+#if defined (BRAT_V3)
+public:
+#else
 protected:
 #endif
+
 	uint32_t m_groupNumber;
 
 
-	//construction / destruction
+	/////////////////////////////////
+	//	construction / destruction
+	/////////////////////////////////
 
 public:
-	CPlotInterface( const std::string &title, uint32_t groupNumber = 0 )
-
-		: mTitle( title )
+	CPlotInterface( const CDisplayInterface *po, uint32_t groupNumber = 0 )
+		: base_t( po )
 		, m_groupNumber( groupNumber )
 	{}
 
+	
+	CPlotInterface( const CPlotInterface &o )
+		: base_t( o )
+		, m_groupNumber( o.m_groupNumber )
+	{}
+
+	
 	virtual ~CPlotInterface()
 	{}
 
 
+
+	/////////////////////////////////
 	//	interface for plot builders
+	/////////////////////////////////
 
 	virtual void GetInfo() = 0;
 
 
+	/////////////////////////////////
 	//	interface for plot editors
+	/////////////////////////////////
 
 public:
 
@@ -173,8 +356,8 @@ public:
 	////////////////////////////////
 
 public:
-	CPlotBase( const std::string &title, uint32_t groupNumber = 0 )
-		: base_t( title, groupNumber )
+	CPlotBase( const CDisplayInterface *po, uint32_t groupNumber = 0 )
+		: base_t( po, groupNumber )
 	{}
 
 	virtual ~CPlotBase()
@@ -264,6 +447,8 @@ class CMathPlot : public CPlotBase< DATA_FIELD, PLOT_FIELD >
 
 protected:
     using base_t::mPlotFields;
+    using base_t::mTitleX;
+    using base_t::mTitleY;
 
 
 	//////////////////////
@@ -283,15 +468,8 @@ public:
 //for linux - end
 
 
-#if defined (BRAT_V3)
-
-	std::string m_titleX;
-	std::string m_titleY;
-
-#endif
-
-	std::string m_unitXLabel;	//we cannot get rid of these without replacement: they are "side-effect used" as flags for other purpose...
-	std::string m_unitYLabel;	//..but at least are private in v4
+	std::string m_unitXLabel;
+	std::string m_unitYLabel;	//private in v4
 
 
 protected:
@@ -306,8 +484,8 @@ protected:
 	///////////////////////////////
 
 public:
-	CMathPlot( const std::string &title, uint32_t groupNumber = 0 )
-		: base_t( title, groupNumber )
+	CMathPlot( const CDisplayInterface *po, uint32_t groupNumber = 0 )
+		: base_t( po, groupNumber )
 	{}
 	virtual ~CMathPlot()
 	{}
@@ -404,8 +582,8 @@ class CGeoPlot : public CPlotBase< CWorldPlotProperties, CWorldPlotData >
 	////////////////////////////////////////////
 
 public:
-	CGeoPlot( const std::string &title, uint32_t groupNumber = 0 )
-		: CPlotBase( title, groupNumber )
+	CGeoPlot( const CDisplayInterface *po, uint32_t groupNumber = 0 )
+		: base_t( po, groupNumber )
 	{}
 
 	virtual ~CGeoPlot()
@@ -466,8 +644,8 @@ public:
 	//		construction / destruction
 	////////////////////////////////////////////
 public:
-	CYFXPlot( const std::string &title, uint32_t groupNumber = 0 )
-		: base_t( title, groupNumber )
+	CYFXPlot( const CDisplayInterface *po, uint32_t groupNumber = 0 )
+		: base_t( po, groupNumber )
 	{}
 	virtual ~CYFXPlot()
 	{}
@@ -553,8 +731,8 @@ class CZFXYPlot : public CMathPlot< CZFXYPlotProperties, CZFXYPlotData >
 	////////////////////////////////////////////
 
 public:
-	CZFXYPlot( const std::string &title, uint32_t groupNumber = 0 )
-		: base_t( title, groupNumber )
+	CZFXYPlot( const CDisplayInterface *po, uint32_t groupNumber = 0 )
+		: base_t( po, groupNumber )
 	{}
 	virtual ~CZFXYPlot()
 	{}

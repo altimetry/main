@@ -88,8 +88,8 @@ public:
 		Comment( "----- GENERAL PROPERTIES -----" );
 		WriteLn();
 
-		if ( !mDisplay.GetTitle().empty() )
-			WriteLn( FmtCmdParam( kwDISPLAY_TITLE ) + mDisplay.GetTitle() );
+		if ( !mDisplay.Title().empty() )
+			WriteLn( FmtCmdParam( kwDISPLAY_TITLE ) + mDisplay.Title() );
 
 		WriteLn();
 		Comment( "Display Type:" + CMapTypeDisp::GetInstance().Enum() );
@@ -615,6 +615,7 @@ void CDisplayData::SetDimension( size_t index, const std::string &name, const st
 	dim.SetDescription( description );
 	dim.SetUnit( unit );
 
+#if defined(BRAT_V3)
 	const std::string &base_label = description.empty() ? name : description;
 	std::string label = base_label + " [" + unit + "]";
 	switch ( index )
@@ -636,6 +637,7 @@ void CDisplayData::SetDimension( size_t index, const std::string &name, const st
 		default:
 			assert__( false );
 	}
+#endif
 }
 
 

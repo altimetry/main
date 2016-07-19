@@ -400,7 +400,7 @@ void CMapEditor::OneClick()
 //virtual 
 void CMapEditor::SetPlotTitle()
 {
-	mMapView->setWindowTitle( t2q( mDisplay->GetTitle() ) );
+	mMapView->setWindowTitle( t2q( mDisplay->Title() ) );
 }
 
 
@@ -408,7 +408,7 @@ void CMapEditor::SetPlotTitle()
 //virtual 
 bool CMapEditor::Test()
 {
-	assert__( mCurrentGeoPlot );
+	assert__( mCurrentPlotGeo );
 
 	int index = mTabDataLayers->mFieldsList->currentRow();
 	if ( index < 0 )
@@ -423,9 +423,9 @@ bool CMapEditor::Test()
 	nframes = nvalues = nvalues0 = ndefault_values = nan_values = 0;
 	std::string error_msg, field;
 
-	if ( !mCurrentGeoPlot->Empty() )
+	if ( !mCurrentPlotGeo->Empty() )
 	{
-		CWorldPlotData *pdata = mCurrentGeoPlot->PlotData( index );
+		CWorldPlotData *pdata = mCurrentPlotGeo->PlotData( index );
 		const CMapValues &arrays = *pdata;
 		const CMapPlotParameters &array = arrays( 0 );
 		field = pdata->FieldName();
@@ -539,15 +539,15 @@ bool CMapEditor::ChangeView()
 
 		//	II . Reset "current" pointers: TODO check if can be done after I. or if plots II can be done just before V
 
-		delete mCurrentGeoPlot;
-		mCurrentGeoPlot = nullptr;
+		delete mCurrentPlotGeo;
+		mCurrentPlotGeo = nullptr;
 		mCurrentPlotData = nullptr;
 
 		//	V . Process the plot definitions: create plot data and plots
 
 		for ( auto *plot : wplots )
 		{			
-			mCurrentGeoPlot = plot;				assert__( mCurrentGeoPlot != nullptr );
+			mCurrentPlotGeo = plot;				assert__( mCurrentPlotGeo != nullptr );
 
 			ResetMap();
 		}
@@ -589,11 +589,11 @@ bool CMapEditor::UpdateCurrentPointers( int field_index )
 
 	if ( field_index >= 0 )
 	{
-		assert__( mOperation && mDisplay && mCurrentGeoPlot );
+		assert__( mOperation && mDisplay && mCurrentPlotGeo );
 
-		mCurrentPlotData = mCurrentGeoPlot->PlotData( field_index );								assert__( mCurrentPlotData && *mCurrentPlotData && mCurrentPlotData->size() == 1 );	//simply to check if ever...
+		mCurrentPlotData = mCurrentPlotGeo->PlotData( field_index );								assert__( mCurrentPlotData && *mCurrentPlotData && mCurrentPlotData->size() == 1 );	//simply to check if ever...
         mCurrentPlotVelocityData = dynamic_cast< CWorldPlotVelocityData* >( mCurrentPlotData );
-		mCurrentPlotData = GetDisplayData( field_index, mCurrentGeoPlot );
+		mCurrentPlotData = GetDisplayData( field_index, mCurrentPlotGeo );
 		mCurrentBratLookupTable = mCurrentPlotData->ColorTablePtr();								assert__( mCurrentBratLookupTable );
 		mCurrentBratLookupTable->ExecMethod( mCurrentPlotData->ColorPalette() );
 	}
@@ -636,7 +636,7 @@ void CMapEditor::ResetMap()
 
 
 	mTabDataLayers->mFieldsList->clear();
-    const size_t nfields = mCurrentGeoPlot->Size();
+    const size_t nfields = mCurrentPlotGeo->Size();
 	for ( size_t ifield = 0; ifield < nfields; ++ifield )
 	{
 		bool result = UpdateCurrentPointers( ifield );			assert__( result );		Q_UNUSED( result );
@@ -812,7 +812,7 @@ void CMapEditor::HandleShowSolidColorChecked( bool checked )
 
 void CMapEditor::HandleShowContourChecked( bool checked )
 {
-	int field_index = mTabDataLayers->mFieldsList->currentRow();	assert__( field_index >= 0 && field_index < mCurrentGeoPlot->Size() && mCurrentPlotData );
+	int field_index = mTabDataLayers->mFieldsList->currentRow();	assert__( field_index >= 0 && field_index < mCurrentPlotGeo->Size() && mCurrentPlotData );
 
 	mCurrentPlotData->SetWithContour( checked );
 
@@ -878,7 +878,7 @@ void CMapEditor::HandleColorTablesIndexChanged( int index )
 {
 	WaitCursor wait;												assert__( mMapView && mCurrentPlotData );
 
-	int field_index = mTabDataLayers->mFieldsList->currentRow();	assert__( field_index >= 0 && field_index < mCurrentGeoPlot->Size() );
+	int field_index = mTabDataLayers->mFieldsList->currentRow();	assert__( field_index >= 0 && field_index < mCurrentPlotGeo->Size() );
 
 	const CMapPlotParameters &array = mCurrentPlotData->at( 0 );
 

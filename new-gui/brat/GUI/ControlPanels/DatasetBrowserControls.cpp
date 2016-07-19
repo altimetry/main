@@ -176,6 +176,9 @@ void CDatasetBrowserControls::HandleTreeItemChanged( )
 
     QTreeWidgetItem *tree_item = mDatasetTree->currentItem();
 
+    // Clear field list and descriptions
+    ClearFieldList();
+
     // No selected Item ------------------------------------------------------------
     if ( tree_item == nullptr )
     {

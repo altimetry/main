@@ -341,14 +341,14 @@ void CPlotEditor::SetPlotTitle()
 {
 	if ( mPlot2DView )
 	{
-		mPlot2DView->setWindowTitle( t2q( mDisplay->GetTitle() ) );
+		mPlot2DView->setWindowTitle( t2q( mDisplay->Title() ) );
 		mPlot2DView->SetPlotTitle( q2a( mPlot2DView->windowTitle() ) );		//in v3 was inside the loop
 	}
 
 	if ( mPlot3DView )
 	{
-		mPlot3DView->setWindowTitle( t2q( mDisplay->GetTitle() ) );
-		mPlot3DView->SetPlotTitle( mDisplay->GetTitle() );
+		mPlot3DView->setWindowTitle( t2q( mDisplay->Title() ) );
+		mPlot3DView->SetPlotTitle( mDisplay->Title() );
 	}
 }
 
@@ -368,15 +368,15 @@ bool CPlotEditor::Test()
 	size_t nframes, nvalues, nvalues0, ndefault_values, nan_values;
 	nframes = nvalues = nvalues0 = ndefault_values = nan_values = 0;
 	std::string error_msg, field;
-	CPlotData *pgeneric_data = nullptr;
+	CPlotInterface *pgeneric = nullptr;
 
-	if ( mCurrentYFXPlot )
+	if ( mCurrentPlotYFX )
 	{
-		assert__( !mCurrentZFXYPlot );
+		assert__( !mCurrentPlotZFXY );
 
-		CXYPlotData *pdata = mCurrentYFXPlot->PlotData( index );
-		pgeneric_data = pdata;
-		const CYFXValues &data = *pdata;		//unit = GetDisplayData( index, mOperation, mDisplay, mCurrentYFXPlot );		Q_UNUSED( unit );
+		pgeneric = mCurrentPlotYFX;
+		CXYPlotData *pdata = mCurrentPlotYFX->PlotData( index );
+		const CYFXValues &data = *pdata;		//unit = GetDisplayData( index, mOperation, mDisplay, mCurrentPlotYFX );		Q_UNUSED( unit );
 		field = pdata->FieldName();
 
 		data.GetXRange( mx, Mx, data.CurrentFrame() );
@@ -395,13 +395,13 @@ bool CPlotEditor::Test()
 		ndefault_values = data.GetDataCountIf( 0, []( const double &v ) { return isDefaultValue( v ); } );
 		nan_values = data.GetDataCountIf( 0, []( const double &v ) { return std::isnan( v ); } );
 	}
-	if ( mCurrentZFXYPlot )
+	if ( mCurrentPlotZFXY )
 	{
-		assert__( !mCurrentYFXPlot );
+		assert__( !mCurrentPlotYFX );
 
-		CZFXYPlotData *pdata = mCurrentZFXYPlot->PlotData( index );
-		pgeneric_data = pdata;
-		const CZFXYValues &data = *pdata;		//unit = GetDisplayData( index, mOperation, mDisplay, mCurrentZFXYPlot );		Q_UNUSED( unit );
+		pgeneric = mCurrentPlotZFXY;
+		CZFXYPlotData *pdata = mCurrentPlotZFXY->PlotData( index );
+		const CZFXYValues &data = *pdata;		//unit = GetDisplayData( index, mOperation, mDisplay, mCurrentPlotZFXY );		Q_UNUSED( unit );
 		field = pdata->GetPlotProperties()->FieldName();
 		assert__( pdata->FieldName() == field );
 
@@ -429,14 +429,14 @@ bool CPlotEditor::Test()
 		nan_values = data.GetDataCountIf( 0, []( const double &v ) { return std::isnan( v ); } );
 	}
 
-	assert__( pgeneric_data );
-	int xticks = pgeneric_data->Xticks();
-	int yticks = pgeneric_data->Yticks();
-	int zticks = pgeneric_data->Zticks();
+	assert__( pgeneric );
+	int xticks = pgeneric->Xticks();
+	int yticks = pgeneric->Yticks();
+	int zticks = pgeneric->Zticks();
 
-	int xdigits = pgeneric_data->Xdigits();
-	int ydigits = pgeneric_data->Ydigits();
-	int zdigits = pgeneric_data->Zdigits();
+	int xdigits = pgeneric->Xdigits();
+	int ydigits = pgeneric->Ydigits();
+	int zdigits = pgeneric->Zdigits();
 
 	const std::string msg =
 		+ "\nData dump for '"
@@ -492,12 +492,12 @@ void CPlotEditor::HandlePlotTypeChanged( int index )
 
 	SelectTab( TabGeneral()->parentWidget() );
 
-	if ( mCurrentYFXPlot )
+	if ( mCurrentPlotYFX )
 	{
 		Recreate2DPlots();
 	}
 	else
-	if ( mCurrentZFXYPlot )
+	if ( mCurrentPlotZFXY )
 	{
 		Recreate3DPlots( true, false );
 	}
@@ -630,12 +630,12 @@ bool CPlotEditor::ChangeView()
 		
 		//	II . Reset "current" pointers
 
-		delete mCurrentYFXPlot;
-		mCurrentYFXPlot = nullptr;
-		mCurrentPlotDataXY = nullptr;
+		delete mCurrentPlotYFX;
+		mCurrentPlotYFX = nullptr;
+		mCurrentPlotDataYFX = nullptr;
 
-		delete mCurrentZFXYPlot;
-		mCurrentZFXYPlot = nullptr;
+		delete mCurrentPlotZFXY;
+		mCurrentPlotZFXY = nullptr;
 		mCurrentPlotDataZFXY = nullptr;
 
 		//	III . Get plots (v3 plot definitions) from display file
@@ -669,7 +669,7 @@ bool CPlotEditor::ChangeView()
 
 		for ( auto *yfxplot : yfx_plots )
 		{
-			mCurrentYFXPlot = yfxplot;				assert__( mCurrentYFXPlot != nullptr && ( mPlotType == eXY || mPlotType == eHistogram ) );
+			mCurrentPlotYFX = yfxplot;				assert__( mCurrentPlotYFX != nullptr && ( mPlotType == eXY || mPlotType == eHistogram ) );
 
             Recreate2DPlots();
 		}
@@ -677,7 +677,7 @@ bool CPlotEditor::ChangeView()
 		
 		for ( auto *zfxyplot : zfxy_plots )
 		{
-			mCurrentZFXYPlot = zfxyplot;			assert__( mCurrentZFXYPlot != nullptr && ( mPlotType == eXYZ || mPlotType == eHistogram ) );
+			mCurrentPlotZFXY = zfxyplot;			assert__( mCurrentPlotZFXY != nullptr && ( mPlotType == eXYZ || mPlotType == eHistogram ) );
 
 			Recreate3DPlots( true, true );
 		}
@@ -723,7 +723,7 @@ bool CPlotEditor::ChangeView()
 
 bool CPlotEditor::UpdateCurrentPointers( int field_index )
 {
-	mCurrentPlotDataXY = nullptr;
+	mCurrentPlotDataYFX = nullptr;
 	mCurrentPlotDataZFXY = nullptr;
 	mCurrentBratLookupTable = nullptr;
 
@@ -732,23 +732,23 @@ bool CPlotEditor::UpdateCurrentPointers( int field_index )
 
 	assert__( mOperation && mDisplay );
 
-	if ( mCurrentZFXYPlot )
+	if ( mCurrentPlotZFXY )
 	{
-		assert__( field_index < (int)mCurrentZFXYPlot->Size() );
+		assert__( field_index < (int)mCurrentPlotZFXY->Size() );
 
-		mCurrentPlotDataZFXY = mCurrentZFXYPlot->PlotData( field_index );	assert__( mCurrentPlotDataZFXY && *mCurrentPlotDataZFXY && mCurrentPlotDataZFXY->size() == 1 );	//simply to check if ever...
-		mCurrentPlotDataZFXY = GetDisplayData( field_index, mCurrentZFXYPlot );
+		mCurrentPlotDataZFXY = mCurrentPlotZFXY->PlotData( field_index );	assert__( mCurrentPlotDataZFXY && *mCurrentPlotDataZFXY && mCurrentPlotDataZFXY->size() == 1 );	//simply to check if ever...
+		mCurrentPlotDataZFXY = GetDisplayData( field_index, mCurrentPlotZFXY );
 		mCurrentBratLookupTable = mCurrentPlotDataZFXY->ColorTablePtr();
 		mCurrentBratLookupTable->ExecMethod( mCurrentPlotDataZFXY->ColorPalette() );
 	}
 	else
 	{
-		assert__( field_index < (int)mCurrentYFXPlot->Size() );
+		assert__( field_index < (int)mCurrentPlotYFX->Size() );
 
-		mCurrentPlotDataXY = mCurrentYFXPlot->PlotData( field_index );		assert__( mCurrentPlotDataXY && *mCurrentPlotDataXY );			//size >= 1 for animated
+		mCurrentPlotDataYFX = mCurrentPlotYFX->PlotData( field_index );		assert__( mCurrentPlotDataYFX && *mCurrentPlotDataYFX );			//size >= 1 for animated
 	}
 
-	return mCurrentPlotDataXY != nullptr || ( mCurrentPlotDataZFXY != nullptr && mCurrentBratLookupTable != nullptr );
+	return mCurrentPlotDataYFX != nullptr || ( mCurrentPlotDataZFXY != nullptr && mCurrentBratLookupTable != nullptr );
 }
 
 
@@ -757,7 +757,7 @@ bool CPlotEditor::UpdateCurrentPointers( int field_index )
 
 double CPlotEditor::CreateHistogram()
 {
-	CPlotData *pdata = mCurrentPlotDataXY ? static_cast<CPlotData*>( mCurrentPlotDataXY ) : static_cast<CPlotData*>( mCurrentPlotDataZFXY );		assert__( pdata );
+	CPlotData *pdata = mCurrentPlotDataYFX ? static_cast<CPlotData*>( mCurrentPlotDataYFX ) : static_cast<CPlotData*>( mCurrentPlotDataZFXY );		assert__( pdata );
 
 	const CYFXValues *yfx_arrays = dynamic_cast< CYFXValues* >( pdata );
 	const CZFXYValues *zfxy_arrays = dynamic_cast< CZFXYValues* >( pdata );
@@ -786,13 +786,13 @@ double CPlotEditor::CreateHistogram()
 
 void CPlotEditor::Recreate3DPlots( bool build2d, bool build3d )
 {
-	assert__( mPlot2DView && CurrentDisplayDataProcessor() && mCurrentZFXYPlot );
+	assert__( mPlot2DView && CurrentDisplayDataProcessor() && mCurrentPlotZFXY );
 
 	mMultiFrame = false;
 	int n_frames = 1;
 	mTabCurveOptions->mFieldsList->clear();
 
-	const size_t size = mCurrentZFXYPlot->Size();			assert__( size == CurrentDisplayDataProcessor()->GetZFXYPlotPropertiesSize() );
+	const size_t size = mCurrentPlotZFXY->Size();			assert__( size == CurrentDisplayDataProcessor()->GetZFXYPlotPropertiesSize() );
 	for ( size_t i = 0; i < size; ++i )
 	{
 		/////////////////////////////////////////////////
@@ -844,7 +844,7 @@ void CPlotEditor::Recreate3DPlots( bool build2d, bool build3d )
 
 				//axis titles
 
-				mPlot2DView->SetAxisTitles( i, mCurrentPlotDataZFXY->Xlabel(), mCurrentPlotDataZFXY->Ylabel(), mCurrentPlotDataZFXY->UserName() );
+				mPlot2DView->SetAxisTitles( i, mCurrentPlotZFXY->TitleX(), mCurrentPlotZFXY->TitleY(), mCurrentPlotDataZFXY->UserName() );
 			}
 		}
 
@@ -856,7 +856,7 @@ void CPlotEditor::Recreate3DPlots( bool build2d, bool build3d )
 
 			//axis titles
 
-			mPlot3DView->SetAxisTitles( mCurrentPlotDataZFXY->Xlabel(), mCurrentPlotDataZFXY->Ylabel(), mCurrentPlotDataZFXY->UserName() );
+			mPlot3DView->SetAxisTitles( mCurrentPlotZFXY->TitleX(), mCurrentPlotZFXY->TitleY(), mCurrentPlotDataZFXY->UserName() );
 		}
 
 		/////////////////////////////////////////////////
@@ -878,7 +878,7 @@ void CPlotEditor::Recreate3DPlots( bool build2d, bool build3d )
 			// In 3D works per current plot (field) so are really assigned here, but with 2D... is global; we also assign 
 			//...in this loop to keep consistency (if 2d widget is improved in this respect) but real 2d assignment must be made in field change handler
 
-			unsigned int x_nticks = mCurrentPlotDataZFXY->Xticks(), y_nticks = mCurrentPlotDataZFXY->Yticks(), z_nticks = mCurrentPlotDataZFXY->Zticks();
+			unsigned int x_nticks = mCurrentPlotZFXY->Xticks(), y_nticks = mCurrentPlotZFXY->Yticks(), z_nticks = mCurrentPlotZFXY->Zticks();
 
 			assert__( x_nticks > 0 && !isDefaultValue( x_nticks ) && y_nticks > 0 && !isDefaultValue( y_nticks ) && z_nticks > 0 && !isDefaultValue( z_nticks ) );
 
@@ -899,18 +899,18 @@ void CPlotEditor::Recreate3DPlots( bool build2d, bool build3d )
 			//
 			// similar to ticks
 			//
-			const auto x_digits = mCurrentPlotDataZFXY->Xdigits(), y_digits = mCurrentPlotDataZFXY->Ydigits(), z_digits = mCurrentPlotDataZFXY->Zdigits();
+			const auto x_digits = mCurrentPlotZFXY->Xdigits(), y_digits = mCurrentPlotZFXY->Ydigits(), z_digits = mCurrentPlotZFXY->Zdigits();
 
 			if ( build3d )
 			{
-                mPlot3DView->SetXDigits( mCurrentZFXYPlot->XUnit().IsDate(), x_digits, RefDateFromUnit(mCurrentZFXYPlot->XUnit()) );
-                mPlot3DView->SetYDigits( mCurrentZFXYPlot->YUnit().IsDate(), y_digits, RefDateFromUnit(mCurrentZFXYPlot->YUnit()) );
+                mPlot3DView->SetXDigits( mCurrentPlotZFXY->XUnit().IsDate(), x_digits, RefDateFromUnit(mCurrentPlotZFXY->XUnit()) );
+                mPlot3DView->SetYDigits( mCurrentPlotZFXY->YUnit().IsDate(), y_digits, RefDateFromUnit(mCurrentPlotZFXY->YUnit()) );
                 mPlot3DView->SetZDigits( mCurrentPlotDataZFXY->DataUnit()->IsDate(), z_digits, RefDateFromUnit(*mCurrentPlotDataZFXY->DataUnit()) );
 			}
 			if ( build2d )
 			{
-                mPlot2DView->SetXDigits( mCurrentZFXYPlot->XUnit().IsDate(), x_digits, RefDateFromUnit(mCurrentZFXYPlot->XUnit()) );
-                mPlot2DView->SetYDigits( mCurrentZFXYPlot->YUnit().IsDate(), y_digits, RefDateFromUnit(mCurrentZFXYPlot->YUnit()) );
+                mPlot2DView->SetXDigits( mCurrentPlotZFXY->XUnit().IsDate(), x_digits, RefDateFromUnit(mCurrentPlotZFXY->XUnit()) );
+                mPlot2DView->SetYDigits( mCurrentPlotZFXY->YUnit().IsDate(), y_digits, RefDateFromUnit(mCurrentPlotZFXY->YUnit()) );
                 mPlot2DView->SetY2Digits( mCurrentPlotDataZFXY->DataUnit()->IsDate(), z_digits, RefDateFromUnit(*mCurrentPlotDataZFXY->DataUnit()) );
 			}
 
@@ -981,7 +981,7 @@ void CPlotEditor::Recreate3DPlots( bool build2d, bool build3d )
 //
 void CPlotEditor::Recreate2DPlots()
 {
-	assert__( mPlot2DView && CurrentDisplayDataProcessor() && mCurrentYFXPlot );
+	assert__( mPlot2DView && CurrentDisplayDataProcessor() && mCurrentPlotYFX );
 
 	mTabCurveOptions->mFieldsList->clear();
 	mTabCurveOptions->mFieldsList->setSelectionMode( mTabCurveOptions->mFieldsList->SingleSelection );
@@ -994,7 +994,7 @@ void CPlotEditor::Recreate2DPlots()
 	xaxisMax = yaxisMax = std::numeric_limits<double>::lowest();
 	xaxisMin = yaxisMin = std::numeric_limits<double>::max();
 
-	int nrFields = (int)mCurrentYFXPlot->Size();					assert__( nrFields == CurrentDisplayDataProcessor()->GetXYPlotPropertiesSize() );
+	int nrFields = (int)mCurrentPlotYFX->Size();					assert__( nrFields == CurrentDisplayDataProcessor()->GetXYPlotPropertiesSize() );
 	for ( int i = 0; i < nrFields; i++ )
 	{
 		/////////////////////////////////////////////////
@@ -1006,10 +1006,10 @@ void CPlotEditor::Recreate2DPlots()
 		//==>CXYPlotFrame::AddData(CXYPlotData* data) ==>CXYPlotPanel::AddData( CXYPlotData* pdata )
 
 		if ( n_frames == 1 )
-			n_frames = mCurrentPlotDataXY->GetNumberOfFrames();
+			n_frames = mCurrentPlotDataYFX->GetNumberOfFrames();
 #if defined (DEBUG) || defined(_DEBUG)				//make sure the number of frames is the same for all data
 		else
-			assert__( n_frames == mCurrentPlotDataXY->GetNumberOfFrames() );
+			assert__( n_frames == mCurrentPlotDataYFX->GetNumberOfFrames() );
 #endif
 
 		/////////////////////////////////////////////////
@@ -1018,7 +1018,7 @@ void CPlotEditor::Recreate2DPlots()
 
 		double yrMin = 0;
 		double yrMax = 0;
-		mCurrentPlotDataXY->GetYRange( yrMin, yrMax );
+		mCurrentPlotDataYFX->GetYRange( yrMin, yrMax );
 
 		QwtPlotCurve *curve = nullptr;
 		if ( mPlotType == eHistogram )
@@ -1034,11 +1034,11 @@ void CPlotEditor::Recreate2DPlots()
 		{
 			//2d curves
 
-			curve = mPlot2DView->AddCurve( mCurrentPlotDataXY->FieldName(), color_cast<QColor>( mCurrentPlotDataXY->LineColor() ), *mCurrentPlotDataXY );
+			curve = mPlot2DView->AddCurve( mCurrentPlotDataYFX->FieldName(), color_cast<QColor>( mCurrentPlotDataYFX->LineColor() ), *mCurrentPlotDataYFX );
 
 			double xrMin = 0;
 			double xrMax = 0;
-			mCurrentPlotDataXY->GetXRange( xrMin, xrMax );
+			mCurrentPlotDataYFX->GetXRange( xrMin, xrMax );
 			xaxisMin = std::min( xaxisMin, xrMin );
 			xaxisMax = std::max( xaxisMax, xrMax );
 			yaxisMin = std::min( yaxisMin, yrMin );
@@ -1046,14 +1046,14 @@ void CPlotEditor::Recreate2DPlots()
 
 			// axis titles
 
-			mPlot2DView->SetAxisTitles( i, mCurrentPlotDataXY->Xlabel(), mCurrentPlotDataXY->Ylabel() );
+			mPlot2DView->SetAxisTitles( i, mCurrentPlotYFX->TitleX(), mCurrentPlotYFX->TitleY() );
 		}
 
 		/////////////////////////////////////////////////
 		//				add field to list
 		/////////////////////////////////////////////////
 
-		QListWidgetItem *item = new QListWidgetItem( t2q( mCurrentPlotDataXY->FieldName() ) );
+		QListWidgetItem *item = new QListWidgetItem( t2q( mCurrentPlotDataYFX->FieldName() ) );
 		item->setToolTip( item->text() );
 		mTabCurveOptions->mFieldsList->addItem( item );
 
@@ -1064,16 +1064,16 @@ void CPlotEditor::Recreate2DPlots()
 		if ( mPlotType != eHistogram )
 		{
 			//curve line
-			mPlot2DView->SetCurveLineColor( i, mCurrentPlotDataXY->LineColor() );
-			mPlot2DView->SetCurveLineOpacity( i, mCurrentPlotDataXY->Opacity() );
-			mPlot2DView->SetCurveLinePattern( i, mCurrentPlotDataXY->StipplePattern() );
-			mPlot2DView->SetCurveLineWidth( i, mCurrentPlotDataXY->LineWidth() );
+			mPlot2DView->SetCurveLineColor( i, mCurrentPlotDataYFX->LineColor() );
+			mPlot2DView->SetCurveLineOpacity( i, mCurrentPlotDataYFX->Opacity() );
+			mPlot2DView->SetCurveLinePattern( i, mCurrentPlotDataYFX->StipplePattern() );
+			mPlot2DView->SetCurveLineWidth( i, mCurrentPlotDataYFX->LineWidth() );
 
 			//curve point
-			mPlot2DView->SetCurvePointColor( i, mCurrentPlotDataXY->PointColor() );
-			mPlot2DView->SetCurvePointFilled( i, mCurrentPlotDataXY->FilledPoint() );
-			mPlot2DView->SetCurvePointGlyph( i, mCurrentPlotDataXY->PointGlyph() );
-			mPlot2DView->SetCurvePointSize( i, mCurrentPlotDataXY->PointSize() );
+			mPlot2DView->SetCurvePointColor( i, mCurrentPlotDataYFX->PointColor() );
+			mPlot2DView->SetCurvePointFilled( i, mCurrentPlotDataYFX->FilledPoint() );
+			mPlot2DView->SetCurvePointGlyph( i, mCurrentPlotDataYFX->PointGlyph() );
+			mPlot2DView->SetCurvePointSize( i, mCurrentPlotDataYFX->PointSize() );
 		}
 
 		//plot title; must be done per plot (although in 2d all fields are the in same plot); also updates window title
@@ -1099,9 +1099,9 @@ void CPlotEditor::Recreate2DPlots()
 
 	// axis ticks
 	//
-	// using last assignment in loop to mCurrentPlotDataXY: use field data for axis properties, which are common to all...
+	// using last assignment in loop to mCurrentPlotDataYFX: use field data for axis properties, which are common to all...
 	//
-	unsigned int x_nticks = mCurrentPlotDataXY->Xticks(), y_nticks = mCurrentPlotDataXY->Yticks();		assert__( x_nticks > 0 && !isDefaultValue( x_nticks ) && y_nticks > 0 && !isDefaultValue( y_nticks ) );
+	unsigned int x_nticks = mCurrentPlotYFX->Xticks(), y_nticks = mCurrentPlotYFX->Yticks();		assert__( x_nticks > 0 && !isDefaultValue( x_nticks ) && y_nticks > 0 && !isDefaultValue( y_nticks ) );
 
 	mPlot2DView->SetXAxisTicks( x_nticks );
 	mPlot2DView->SetYAxisTicks( y_nticks );
@@ -1110,10 +1110,10 @@ void CPlotEditor::Recreate2DPlots()
 	//
     // similar comment as for ticks
 	//
-	unsigned x_digits = mCurrentPlotDataXY->Xdigits(), y_digits = mCurrentPlotDataXY->Ydigits();		assert__( x_digits > 0 && !isDefaultValue( x_digits ) && y_digits > 0 && !isDefaultValue( y_digits ) );
+	unsigned x_digits = mCurrentPlotYFX->Xdigits(), y_digits = mCurrentPlotYFX->Ydigits();		assert__( x_digits > 0 && !isDefaultValue( x_digits ) && y_digits > 0 && !isDefaultValue( y_digits ) );
 
-    mPlot2DView->SetXDigits( nrFields == 1 && mCurrentYFXPlot->XUnit().IsDate(), x_digits, RefDateFromUnit( mCurrentYFXPlot->XUnit() ) );
-    mPlot2DView->SetYDigits( nrFields == 1 && mCurrentYFXPlot->YUnit().IsDate(), y_digits, RefDateFromUnit( mCurrentYFXPlot->YUnit() ) );
+    mPlot2DView->SetXDigits( nrFields == 1 && mCurrentPlotYFX->XUnit().IsDate(), x_digits, RefDateFromUnit( mCurrentPlotYFX->XUnit() ) );
+    mPlot2DView->SetYDigits( nrFields == 1 && mCurrentPlotYFX->YUnit().IsDate(), y_digits, RefDateFromUnit( mCurrentPlotYFX->YUnit() ) );
 
 
 	//animation
@@ -1176,14 +1176,14 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
 	//			update widgets state
 	/////////////////////////////////////////////////
 
-	bool enable_yfx = index >= 0 && !mCurrentZFXYPlot && mPlotType != eHistogram;
+	bool enable_yfx = index >= 0 && !mCurrentPlotZFXY && mPlotType != eHistogram;
 	mTabCurveOptions->mLineOptions->setEnabled( enable_yfx );
 	mTabCurveOptions->mPointOptions->setEnabled( enable_yfx );
-	mTabCurveOptions->mSpectrogramOptions->setEnabled( index >= 0 && mCurrentZFXYPlot && mPlotType != eHistogram );
+	mTabCurveOptions->mSpectrogramOptions->setEnabled( index >= 0 && mCurrentPlotZFXY && mPlotType != eHistogram );
 
     mTabAxisOptions->mXAxisLabel->setEnabled( mPlotType != eHistogram );
     mTabAxisOptions->mYAxisLabel->setEnabled( mPlotType != eHistogram );
-    mTabAxisOptions->mZAxisLabel->setEnabled( mCurrentZFXYPlot && mPlotType != eHistogram );
+    mTabAxisOptions->mZAxisLabel->setEnabled( mCurrentPlotZFXY && mPlotType != eHistogram );
 	mTabAxisOptions->mZLogScaleCheck->setEnabled( false );
 
 
@@ -1197,13 +1197,14 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
 
 	bool result = UpdateCurrentPointers( index );			assert__( result );		Q_UNUSED( result );
 	
-	CPlotData *pdata = mCurrentPlotDataXY ? static_cast<CPlotData*>( mCurrentPlotDataXY ) : static_cast<CPlotData*>( mCurrentPlotDataZFXY );		assert__( pdata );
+	CPlotData *pdata = mCurrentPlotDataYFX ? static_cast<CPlotData*>( mCurrentPlotDataYFX ) : static_cast<CPlotData*>( mCurrentPlotDataZFXY );			assert__( pdata );
+	CPlotInterface *pplot = mCurrentPlotDataYFX ? static_cast<CPlotInterface*>( mCurrentPlotYFX ) : static_cast<CPlotInterface*>( mCurrentPlotZFXY );	assert__( pplot );
 
 	/////////////////////////////////////////////////
 	//for ZFXY, changing field changes displayed plot
 	/////////////////////////////////////////////////
 
-	if ( mCurrentZFXYPlot )
+	if ( mCurrentPlotZFXY )
 	{
 		//update 2d current plot
 
@@ -1250,9 +1251,9 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
 	// 2d does not keep axis ticks per plot, and as a consequence:
 	//		1. we try to read values from 3d widget to keep the flow policy (values go from views to widgets on field change); if not possible, read it from data
 	//
-	int xticks = mPlot3DView ? mPlot3DView->XAxisTicks() : pdata->Xticks() ;
-	int yticks = mPlot3DView ? mPlot3DView->YAxisTicks() : pdata->Yticks() ;
-	int zticks = mPlot3DView ? mPlot3DView->ZAxisTicks() : pdata->Zticks() ;
+	int xticks = mPlot3DView ? mPlot3DView->XAxisTicks() : pplot->Xticks() ;
+	int yticks = mPlot3DView ? mPlot3DView->YAxisTicks() : pplot->Yticks() ;
+	int zticks = mPlot3DView ? mPlot3DView->ZAxisTicks() : pplot->Zticks() ;
 	//
 	//		2. we must assign to 2d widget here, breaking editor policy, instead of reading from widget
 	//
@@ -1274,19 +1275,19 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
 		mTabAxisOptions->mY3DScaleSpin->setValue( yVal );
 		mTabAxisOptions->mZ3DScaleSpin->setValue( zVal );
 
-		mTabAxisOptions->mZLogScaleCheck->setEnabled( mCurrentZFXYPlot->ZLogarithmsEnabled() );
+		mTabAxisOptions->mZLogScaleCheck->setEnabled( mCurrentPlotZFXY->ZLogarithmsEnabled() );
 		mTabAxisOptions->mZLogScaleCheck->setChecked( mPlot3DView->LogarithmicScaleZ() );
 	}
 
 	//...digits
 	// similar problem and solution as for ticks, with the additional need to also specify units besides digits
 	//
-	int xdigits = mPlot3DView ? mPlot3DView->XDigits() : pdata->Xdigits() ;
-	int ydigits = mPlot3DView ? mPlot3DView->YDigits() : pdata->Ydigits() ;
-	int zdigits = mPlot3DView ? mPlot3DView->ZDigits() : pdata->Zdigits() ;
+	int xdigits = mPlot3DView ? mPlot3DView->XDigits() : pplot->Xdigits() ;
+	int ydigits = mPlot3DView ? mPlot3DView->YDigits() : pplot->Ydigits() ;
+	int zdigits = mPlot3DView ? mPlot3DView->ZDigits() : pplot->Zdigits() ;
 	//
-	const CUnit &xunit = mCurrentZFXYPlot ? mCurrentZFXYPlot->XUnit() : mCurrentYFXPlot->XUnit();
-	const CUnit &yunit = mCurrentZFXYPlot ? mCurrentZFXYPlot->YUnit() : mCurrentYFXPlot->YUnit();
+	const CUnit &xunit = mCurrentPlotZFXY ? mCurrentPlotZFXY->XUnit() : mCurrentPlotYFX->XUnit();
+	const CUnit &yunit = mCurrentPlotZFXY ? mCurrentPlotZFXY->YUnit() : mCurrentPlotYFX->YUnit();
 	//
     mPlot2DView->SetXDigits( xunit.IsDate(), xdigits, RefDateFromUnit( xunit ) );
     mPlot2DView->SetYDigits( yunit.IsDate(), ydigits, RefDateFromUnit( yunit ) );
@@ -1313,7 +1314,7 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
 	//solid color, contours, color table: only ZFXY
 	///////////////////////////////////////////////
 
-	if ( mCurrentZFXYPlot )
+	if ( mCurrentPlotZFXY )
 	{
 		auto const &array = mCurrentPlotDataZFXY->at( 0 );
 
@@ -1355,12 +1356,12 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
 	//curve point
 	mTabCurveOptions->mPointColorButton->SetColor( mPlot2DView->CurvePointColor( index ) );
 	mTabCurveOptions->mFillPointCheck->setChecked( mPlot2DView->IsCurvePointFilled( index ) );
-	mTabCurveOptions->mPointGlyph->setCurrentIndex( mPlot2DView->CurvePointGlyph( index, mCurrentPlotDataXY->PointGlyph() ) );
+	mTabCurveOptions->mPointGlyph->setCurrentIndex( mPlot2DView->CurvePointGlyph( index, mCurrentPlotDataYFX->PointGlyph() ) );
 	mTabCurveOptions->mPointSizeValue->setText( n2s<std::string>( mPlot2DView->CurvePointSize( index ) ).c_str() );
 
 	//enable/disable according to data
-	mTabCurveOptions->mLineOptions->setChecked( mPlotType != eHistogram && mCurrentPlotDataXY->Lines() );
-	mTabCurveOptions->mPointOptions->setChecked( mCurrentPlotDataXY->Points() );
+	mTabCurveOptions->mLineOptions->setChecked( mPlotType != eHistogram && mCurrentPlotDataYFX->Lines() );
+	mTabCurveOptions->mPointOptions->setChecked( mCurrentPlotDataYFX->Points() );
 }
 
 
@@ -1420,7 +1421,7 @@ void CPlotEditor::Handle2DScaleChanged( int iaxis, double factor, QString range 
 
 void CPlotEditor::HandleShowContourChecked( bool checked )
 {
-	assert__( mPlot2DView && mPlot3DView && mCurrentZFXYPlot && mCurrentPlotDataZFXY );
+	assert__( mPlot2DView && mPlot3DView && mCurrentPlotZFXY && mCurrentPlotDataZFXY );
 
 	WaitCursor wait;
 
@@ -1433,7 +1434,7 @@ void CPlotEditor::HandleShowContourChecked( bool checked )
 
 void CPlotEditor::HandleShowSolidColorChecked( bool checked )
 {
-	assert__( mPlot2DView && mPlot3DView && mCurrentPlotDataZFXY && mCurrentZFXYPlot );
+	assert__( mPlot2DView && mPlot3DView && mCurrentPlotDataZFXY && mCurrentPlotZFXY );
 
 	WaitCursor wait;
 
@@ -1447,7 +1448,7 @@ void CPlotEditor::HandleShowSolidColorChecked( bool checked )
 
 void CPlotEditor::HandleColorTablesIndexChanged( int index )
 {
-    assert__( mPlot2DView && mPlot3DView && mCurrentPlotDataZFXY && mCurrentZFXYPlot );        Q_UNUSED( index );
+    assert__( mPlot2DView && mPlot3DView && mCurrentPlotDataZFXY && mCurrentPlotZFXY );        Q_UNUSED( index );
 
 	WaitCursor wait;
 
@@ -1471,7 +1472,7 @@ void CPlotEditor::HandleColorTablesIndexChanged( int index )
 
 void CPlotEditor::HandleNumberOfContoursChanged()
 {
-	assert__( mPlot2DView && mPlot3DView && mCurrentPlotDataZFXY && mCurrentZFXYPlot );
+	assert__( mPlot2DView && mPlot3DView && mCurrentPlotDataZFXY && mCurrentPlotZFXY );
 
 	mCurrentPlotDataZFXY->SetNumContours( mTabCurveOptions->mColorMapWidget->NumberOfContours() );
 
@@ -1487,42 +1488,42 @@ void CPlotEditor::HandleNumberOfContoursChanged()
 
 void CPlotEditor::HandleCurveLineColorSelected()
 {
-	assert__( mPlot2DView && mCurrentPlotDataXY );
+	assert__( mPlot2DView && mCurrentPlotDataYFX );
 
     QColor selected_color = mTabCurveOptions->mLineColorButton->GetColor();
 
-    mCurrentPlotDataXY->SetLineColor( selected_color );
+    mCurrentPlotDataYFX->SetLineColor( selected_color );
 
-	mPlot2DView->SetCurveLineColor( mTabCurveOptions->mFieldsList->currentRow(), color_cast< QColor >( mCurrentPlotDataXY->LineColor() ) );
+	mPlot2DView->SetCurveLineColor( mTabCurveOptions->mFieldsList->currentRow(), color_cast< QColor >( mCurrentPlotDataYFX->LineColor() ) );
 }
 
 void CPlotEditor::HandleCurveLineOpacityEntered()
 {
-	assert__( mPlot2DView && mCurrentPlotDataXY );
+	assert__( mPlot2DView && mCurrentPlotDataYFX );
 
     bool is_converted=false;
     const QString opacity = mTabCurveOptions->mLineOpacityValue->text();
-    mCurrentPlotDataXY->SetOpacity( opacity.toInt(&is_converted, 10) );			//TODO VALIDATE
+    mCurrentPlotDataYFX->SetOpacity( opacity.toInt(&is_converted, 10) );			//TODO VALIDATE
 
-	mPlot2DView->SetCurveLineOpacity( mTabCurveOptions->mFieldsList->currentRow(), mCurrentPlotDataXY->Opacity() );
+	mPlot2DView->SetCurveLineOpacity( mTabCurveOptions->mFieldsList->currentRow(), mCurrentPlotDataYFX->Opacity() );
 }
 
 void CPlotEditor::HandleStipplePatternChanged( int pattern )
 {
 	assert__( pattern >= eFirstStipplePattern && pattern < EStipplePattern_size );
 
-    mCurrentPlotDataXY->SetStipplePattern( (EStipplePattern)pattern );
-	mPlot2DView->SetCurveLinePattern( mTabCurveOptions->mFieldsList->currentRow(), mCurrentPlotDataXY->StipplePattern() );
+    mCurrentPlotDataYFX->SetStipplePattern( (EStipplePattern)pattern );
+	mPlot2DView->SetCurveLinePattern( mTabCurveOptions->mFieldsList->currentRow(), mCurrentPlotDataYFX->StipplePattern() );
 }
 
 void CPlotEditor::HandleCurveLineWidthEntered()
 {
-	assert__( mPlot2DView && mCurrentPlotDataXY );
+	assert__( mPlot2DView && mCurrentPlotDataYFX );
 
     bool is_converted=false;
     const QString width = mTabCurveOptions->mLineWidthValue->text();
-	mCurrentPlotDataXY->SetLineWidth( width.toInt( &is_converted, 10 ) );			//TODO VALIDATE
-	mPlot2DView->SetCurveLineWidth( mTabCurveOptions->mFieldsList->currentRow(), mCurrentPlotDataXY->LineWidth() );
+	mCurrentPlotDataYFX->SetLineWidth( width.toInt( &is_converted, 10 ) );			//TODO VALIDATE
+	mPlot2DView->SetCurveLineWidth( mTabCurveOptions->mFieldsList->currentRow(), mCurrentPlotDataYFX->LineWidth() );
 }
 
 
@@ -1532,41 +1533,41 @@ void CPlotEditor::HandleCurveLineWidthEntered()
 
 void CPlotEditor::HandleCurvePointColorSelected()
 {
-	assert__( mPlot2DView && mCurrentPlotDataXY );
+	assert__( mPlot2DView && mCurrentPlotDataYFX );
 
     QColor selected_color = mTabCurveOptions->mPointColorButton->GetColor();
-    mCurrentPlotDataXY->SetPointColor( selected_color );
-	mPlot2DView->SetCurvePointColor( mTabCurveOptions->mFieldsList->currentRow(), mCurrentPlotDataXY->PointColor() );
+    mCurrentPlotDataYFX->SetPointColor( selected_color );
+	mPlot2DView->SetCurvePointColor( mTabCurveOptions->mFieldsList->currentRow(), mCurrentPlotDataYFX->PointColor() );
 }
 
 void CPlotEditor::HandleFillGlyphInterior( bool checked )
 {
-	assert__( mPlot2DView && mCurrentPlotDataXY );
+	assert__( mPlot2DView && mCurrentPlotDataYFX );
 
-    mCurrentPlotDataXY->SetFilledPoint( checked );
+    mCurrentPlotDataYFX->SetFilledPoint( checked );
 
-	mPlot2DView->SetCurvePointFilled( mTabCurveOptions->mFieldsList->currentRow(), mCurrentPlotDataXY->FilledPoint() );
+	mPlot2DView->SetCurvePointFilled( mTabCurveOptions->mFieldsList->currentRow(), mCurrentPlotDataYFX->FilledPoint() );
 }
 
 void CPlotEditor::HandleGlyphPatternChanged( int pattern )
 {
-	assert__( mPlot2DView && mCurrentPlotDataXY && pattern >= eFirstPointGlyph && pattern < EPointGlyph_size );
+	assert__( mPlot2DView && mCurrentPlotDataYFX && pattern >= eFirstPointGlyph && pattern < EPointGlyph_size );
 
-    mCurrentPlotDataXY->SetPointGlyph( (EPointGlyph)pattern );
+    mCurrentPlotDataYFX->SetPointGlyph( (EPointGlyph)pattern );
 
-	mPlot2DView->SetCurvePointGlyph( mTabCurveOptions->mFieldsList->currentRow(), mCurrentPlotDataXY->PointGlyph() );
+	mPlot2DView->SetCurvePointGlyph( mTabCurveOptions->mFieldsList->currentRow(), mCurrentPlotDataYFX->PointGlyph() );
 }
 
 void CPlotEditor::HandleCurveGlyphWidthEntered()
 {
-	assert__( mPlot2DView && mCurrentPlotDataXY );
+	assert__( mPlot2DView && mCurrentPlotDataYFX );
 
     bool is_converted=false;
     const QString pointw = mTabCurveOptions->mPointSizeValue->text();		//TODO validate
     int w_value = pointw.toInt(&is_converted, 10);
 
-    mCurrentPlotDataXY->SetPointSize( w_value );
-	mPlot2DView->SetCurvePointSize( mTabCurveOptions->mFieldsList->currentRow(), mCurrentPlotDataXY->PointSize() );
+    mCurrentPlotDataYFX->SetPointSize( w_value );
+	mPlot2DView->SetCurvePointSize( mTabCurveOptions->mFieldsList->currentRow(), mCurrentPlotDataYFX->PointSize() );
 }
 
 
@@ -1579,19 +1580,19 @@ void CPlotEditor::HandleCurveGlyphWidthEntered()
 
 void CPlotEditor::HandleLineOptionsChecked( bool checked )
 {
-	assert__( mPlot2DView  && mCurrentPlotDataXY );
+	assert__( mPlot2DView  && mCurrentPlotDataYFX );
 
-    mCurrentPlotDataXY->SetLines( checked );
-	mPlot2DView->EnableCurveLine( mTabCurveOptions->mFieldsList->currentRow(), mCurrentPlotDataXY->Lines() );
+    mCurrentPlotDataYFX->SetLines( checked );
+	mPlot2DView->EnableCurveLine( mTabCurveOptions->mFieldsList->currentRow(), mCurrentPlotDataYFX->Lines() );
 }
 
 void CPlotEditor::HandlePointOptionsChecked( bool checked )
 {
-	assert__( mPlot2DView && mCurrentPlotDataXY );
+	assert__( mPlot2DView && mCurrentPlotDataYFX );
 
-    mCurrentPlotDataXY->SetPoints( checked );
+    mCurrentPlotDataYFX->SetPoints( checked );
 
-	mPlot2DView->EnableCurvePoints( mTabCurveOptions->mFieldsList->currentRow(), mCurrentPlotDataXY->Points(), mCurrentPlotDataXY->PointGlyph() );
+	mPlot2DView->EnableCurvePoints( mTabCurveOptions->mFieldsList->currentRow(), mCurrentPlotDataYFX->Points(), mCurrentPlotDataYFX->PointGlyph() );
 }
 
 
@@ -1604,7 +1605,7 @@ void CPlotEditor::HandlePointOptionsChecked( bool checked )
 
 void CPlotEditor::HandleAnimateButtonToggled( bool toggled )
 {
-	assert__( mPlot2DView  && mCurrentPlotDataXY );
+	assert__( mPlot2DView  && mCurrentPlotDataYFX );
 
     mDisplay->SetWithAnimation( toggled );
 
@@ -1620,7 +1621,7 @@ void CPlotEditor::HandleAnimateButtonToggled( bool toggled )
 
 void CPlotEditor::HandleStopAnimationButton()
 {
-	assert__( mPlot2DView  && mCurrentPlotDataXY );
+	assert__( mPlot2DView  && mCurrentPlotDataYFX );
 
 	mPlot2DView->StopAnimation();
 	mTabAnimateOptions->mAnimateButton->setChecked( false );
@@ -1629,7 +1630,7 @@ void CPlotEditor::HandleStopAnimationButton()
 
 void CPlotEditor::HandleAnimateLoop( bool toggled )
 {
-	assert__( mPlot2DView  && mCurrentPlotDataXY );
+	assert__( mPlot2DView  && mCurrentPlotDataYFX );
 
 	mTabAnimateOptions->mFrameIndexSpin->setWrapping( toggled );
 
@@ -1639,7 +1640,7 @@ void CPlotEditor::HandleAnimateLoop( bool toggled )
 
 void CPlotEditor::HandleAnimateBackwardToggled( bool toggled )
 {
-	assert__( mPlot2DView  && mCurrentPlotDataXY );
+	assert__( mPlot2DView  && mCurrentPlotDataYFX );
 
 	mPlot2DView->SetMovingForward( !toggled );
 }
@@ -1647,7 +1648,7 @@ void CPlotEditor::HandleAnimateBackwardToggled( bool toggled )
 
 void CPlotEditor::HandleAnimateForwardToggled( bool toggled )
 {
-	assert__( mPlot2DView  && mCurrentPlotDataXY );
+	assert__( mPlot2DView  && mCurrentPlotDataYFX );
 
 	mPlot2DView->SetMovingForward( toggled );
 }
@@ -1655,7 +1656,7 @@ void CPlotEditor::HandleAnimateForwardToggled( bool toggled )
 
 void CPlotEditor::AnimationStopped()
 {
-	assert__( mPlot2DView  && mCurrentPlotDataXY );
+	assert__( mPlot2DView  && mCurrentPlotDataYFX );
 
 	mTabAnimateOptions->mAnimateButton->setChecked( false );
 }
@@ -1663,7 +1664,7 @@ void CPlotEditor::AnimationStopped()
 
 void CPlotEditor::HandleFrameIndexSpinChanged( int i )
 {
-	assert__( mPlot2DView  && mCurrentPlotDataXY );
+	assert__( mPlot2DView  && mCurrentPlotDataYFX );
 
 	// If signal was initially sent by spin, call mPlot2DView ->SetFrame; if not, 
 	//	the spin itself is being updated by the mPlot2DView signal (connected above)
@@ -1677,17 +1678,17 @@ void CPlotEditor::HandleFrameIndexSpinChanged( int i )
 
 void CPlotEditor::SetAnimationDescr( int frame )
 {
-	assert__( mPlot2DView  && mCurrentPlotDataXY );
+	assert__( mPlot2DView  && mCurrentPlotDataYFX );
 
 	mTabAnimateOptions->mInformation->setText( "" );
 
 	std::string descr;
 
-	const size_t ndata = mCurrentYFXPlot->Size();
+	const size_t ndata = mCurrentPlotYFX->Size();
 
 	for ( size_t i = 0; i < ndata; i++ )
 	{
-		CXYPlotData* data = mCurrentYFXPlot->PlotData( i );
+		CXYPlotData* data = mCurrentPlotYFX->PlotData( i );
 
 		if ( data->GetVarComplement().GetNbValues() <= 0 )
 		{
@@ -1811,7 +1812,7 @@ void CPlotEditor::SetAnimationDescr( int frame )
 
 void CPlotEditor::HandleNumberOfBinsChanged()
 {
-	CPlotData *pdata = mCurrentPlotDataXY ? static_cast< CPlotData* >( mCurrentPlotDataXY ) : static_cast< CPlotData* >( mCurrentPlotDataZFXY );
+	CPlotData *pdata = mCurrentPlotDataYFX ? static_cast< CPlotData* >( mCurrentPlotDataYFX ) : static_cast< CPlotData* >( mCurrentPlotDataZFXY );
 
 	assert__( mPlot2DView && pdata );
 
@@ -1853,7 +1854,7 @@ void CPlotEditor::HandleNumberOfBinsChanged()
 //    if (mPlot2DView)
 //    {
 //        mPlot2DView->SetLogScale(QwtPlot::xBottom, log);
-//        mCurrentPlotDataXY->SetXLog(log);
+//        mCurrentPlotDataYFX->SetXLog(log);
 //    }
 //}
 //
@@ -1868,7 +1869,7 @@ void CPlotEditor::HandleNumberOfBinsChanged()
 //    if (mPlot2DView)
 //    {
 //        mPlot2DView->SetLogScale(QwtPlot::yLeft, log);
-//        mCurrentPlotDataXY->SetYLog(log);
+//        mCurrentPlotDataYFX->SetYLog(log);
 //    }
 //}
 
@@ -1919,17 +1920,17 @@ void CPlotEditor::HandleXNbTicksChanged()
 	if ( new_nb < 0 )
 		return;
 
-	CPlotData *pdata = mCurrentPlotDataXY ? static_cast< CPlotData* >( mCurrentPlotDataXY ) : static_cast< CPlotData* >( mCurrentPlotDataZFXY );	assert__( pdata );
+	CPlotInterface *pplot = mCurrentPlotDataYFX ? static_cast<CPlotInterface*>( mCurrentPlotYFX ) : static_cast<CPlotInterface*>( mCurrentPlotZFXY );	assert__( pplot );
 	
-	pdata->SetXticks( new_nb );
+	pplot->SetXticks( new_nb );
 
 	if ( mPlot2DView )
 	{
-		mPlot2DView->SetXAxisTicks( pdata->Xticks() );
+		mPlot2DView->SetXAxisTicks( pplot->Xticks() );
 	}
 	if ( mPlot3DView )
 	{
-		mPlot3DView->SetXAxisTicks( pdata->Xticks() );
+		mPlot3DView->SetXAxisTicks( pplot->Xticks() );
 	}
 }
 
@@ -1942,17 +1943,17 @@ void CPlotEditor::HandleYNbTicksChanged()
 	if ( new_nb < 0 )
 		return;
 
-	CPlotData *pdata = mCurrentPlotDataXY ? static_cast< CPlotData* >( mCurrentPlotDataXY ) : static_cast< CPlotData* >( mCurrentPlotDataZFXY );	assert__( pdata );
+	CPlotInterface *pplot = mCurrentPlotDataYFX ? static_cast<CPlotInterface*>( mCurrentPlotYFX ) : static_cast<CPlotInterface*>( mCurrentPlotZFXY );	assert__( pplot );
 
-	pdata->SetYticks( new_nb );
+	pplot->SetYticks( new_nb );
 
 	if ( mPlot2DView )
 	{
-		mPlot2DView->SetYAxisTicks( pdata->Yticks() );
+		mPlot2DView->SetYAxisTicks( pplot->Yticks() );
 	}
 	if ( mPlot3DView )
 	{
-		mPlot3DView->SetYAxisTicks( pdata->Yticks() );
+		mPlot3DView->SetYAxisTicks( pplot->Yticks() );
 	}
 }
 
@@ -1965,12 +1966,12 @@ void CPlotEditor::HandleZNbTicksChanged()
 	if ( new_nb < 0 )
 		return;
 
-	CPlotData *pdata = mCurrentPlotDataXY ? static_cast< CPlotData* >( mCurrentPlotDataXY ) : static_cast< CPlotData* >( mCurrentPlotDataZFXY );	assert__( pdata );
+	CPlotInterface *pplot = mCurrentPlotDataYFX ? static_cast<CPlotInterface*>( mCurrentPlotYFX ) : static_cast<CPlotInterface*>( mCurrentPlotZFXY );	assert__( pplot );
 
-	pdata->SetZticks( new_nb );
+	pplot->SetZticks( new_nb );
 
-	mPlot2DView->SetY2AxisTicks( pdata->Zticks() );
-	mPlot3DView->SetZAxisTicks( pdata->Zticks() );
+	mPlot2DView->SetY2AxisTicks( pplot->Zticks() );
+	mPlot3DView->SetZAxisTicks( pplot->Zticks() );
 }
 
 
@@ -1986,17 +1987,17 @@ void CPlotEditor::HandleXAxisNbDigitsChanged()
 	if ( new_nb < 0 )
 		return;
 
-	CPlotData *pdata = mCurrentPlotDataXY ? static_cast< CPlotData* >( mCurrentPlotDataXY ) : static_cast< CPlotData* >( mCurrentPlotDataZFXY );	assert__( pdata );
+	CPlotInterface *pplot = mCurrentPlotDataYFX ? static_cast<CPlotInterface*>( mCurrentPlotYFX ) : static_cast<CPlotInterface*>( mCurrentPlotZFXY );	assert__( pplot );
 
-	pdata->SetXdigits( new_nb );
+	pplot->SetXdigits( new_nb );
 
 	if ( mPlot2DView )
 	{
-        mPlot2DView->SetXDigits( mPlot2DView->XisDateTime(), pdata->Xdigits() );
+        mPlot2DView->SetXDigits( mPlot2DView->XisDateTime(), pplot->Xdigits() );
     }
 	if ( mPlot3DView )
     {
-        mPlot3DView->SetXDigits( mPlot3DView->XisDateTime(), pdata->Xdigits() );
+        mPlot3DView->SetXDigits( mPlot3DView->XisDateTime(), pplot->Xdigits() );
     }
 }
 
@@ -2008,17 +2009,17 @@ void CPlotEditor::HandleYAxisNbDigitsChanged()
 	if ( new_nb < 0 )
 		return;
 
-	CPlotData *pdata = mCurrentPlotDataXY ? static_cast< CPlotData* >( mCurrentPlotDataXY ) : static_cast< CPlotData* >( mCurrentPlotDataZFXY );	assert__( pdata );
+	CPlotInterface *pplot = mCurrentPlotDataYFX ? static_cast<CPlotInterface*>( mCurrentPlotYFX ) : static_cast<CPlotInterface*>( mCurrentPlotZFXY );	assert__( pplot );
 
-	pdata->SetYdigits( new_nb );
+	pplot->SetYdigits( new_nb );
 
 	if ( mPlot2DView )
 	{
-        mPlot2DView->SetYDigits( mPlot2DView->YisDateTime(), pdata->Ydigits() );
+        mPlot2DView->SetYDigits( mPlot2DView->YisDateTime(), pplot->Ydigits() );
     }
 	if ( mPlot3DView )
     {
-        mPlot3DView->SetYDigits( mPlot3DView->YisDateTime(), pdata->Ydigits() );
+        mPlot3DView->SetYDigits( mPlot3DView->YisDateTime(), pplot->Ydigits() );
     }
 }
 
@@ -2031,12 +2032,12 @@ void CPlotEditor::HandleZAxisNbDigitsChanged()
 	if ( new_nb < 0 )
 		return;
 
-	CPlotData *pdata = mCurrentPlotDataXY ? static_cast< CPlotData* >( mCurrentPlotDataXY ) : static_cast< CPlotData* >( mCurrentPlotDataZFXY );	assert__( pdata );
+	CPlotInterface *pplot = mCurrentPlotDataYFX ? static_cast<CPlotInterface*>( mCurrentPlotYFX ) : static_cast<CPlotInterface*>( mCurrentPlotZFXY );	assert__( pplot );
 
-	pdata->SetZdigits( new_nb );
+	pplot->SetZdigits( new_nb );
 
-	mPlot2DView->SetY2Digits( mPlot2DView->Y2isDateTime(), pdata->Zdigits() );
-	mPlot3DView->SetZDigits( mPlot3DView->ZisDateTime(), pdata->Zdigits() );
+	mPlot2DView->SetY2Digits( mPlot2DView->Y2isDateTime(), pplot->Zdigits() );
+	mPlot3DView->SetZDigits( mPlot3DView->ZisDateTime(), pplot->Zdigits() );
 }
 
 
@@ -2049,7 +2050,7 @@ void CPlotEditor::HandleZAxisNbDigitsChanged()
 
 bool CPlotEditor::HandleAxisLabelChanged( QLineEdit *label_edit, std::string &xtitle, std::string &ytitle, std::string &ztitle, std::string &new_title )
 {
-	CPlotData *pdata = mCurrentPlotDataXY ? static_cast< CPlotData* >( mCurrentPlotDataXY ) : static_cast< CPlotData* >( mCurrentPlotDataZFXY );
+	CPlotData *pdata = mCurrentPlotDataYFX ? static_cast< CPlotData* >( mCurrentPlotDataYFX ) : static_cast< CPlotData* >( mCurrentPlotDataZFXY );
 
 	assert__( mPlotType != eHistogram );		assert__( mPlot2DView || mPlot3DView );		assert__( pdata );      Q_UNUSED( pdata );
 
@@ -2087,22 +2088,22 @@ bool CPlotEditor::HandleAxisLabelChanged( QLineEdit *label_edit, std::string &xt
 
 void CPlotEditor::HandleXAxisLabelChanged()
 {
-	CPlotData *pdata = mCurrentPlotDataXY ? static_cast< CPlotData* >( mCurrentPlotDataXY ) : static_cast< CPlotData* >( mCurrentPlotDataZFXY );
+	CPlotInterface *pplot = mCurrentPlotYFX ? static_cast< CPlotInterface* >( mCurrentPlotYFX ) : static_cast< CPlotInterface* >( mCurrentPlotZFXY );
 
 	std::string xtitle, ytitle, ztitle;
 	if ( HandleAxisLabelChanged( mTabAxisOptions->mXAxisLabel, xtitle, ytitle, ztitle, xtitle ) )
-		pdata->SetXlabel( xtitle );
+		pplot->SetTitleX( xtitle );
 	else
 		mTabAxisOptions->mXAxisLabel->setText( xtitle.c_str() );
 }
 
 void CPlotEditor::HandleYAxisLabelChanged()
 {
-	CPlotData *pdata = mCurrentPlotDataXY ? static_cast< CPlotData* >( mCurrentPlotDataXY ) : static_cast< CPlotData* >( mCurrentPlotDataZFXY );
+	CPlotInterface *pplot = mCurrentPlotYFX ? static_cast< CPlotInterface* >( mCurrentPlotYFX ) : static_cast< CPlotInterface* >( mCurrentPlotZFXY );
 
 	std::string xtitle, ytitle, ztitle;
 	if ( HandleAxisLabelChanged( mTabAxisOptions->mYAxisLabel, xtitle, ytitle, ztitle, ytitle ) )
-		pdata->SetYlabel( ytitle );
+		pplot->SetTitleY( ytitle );
 	else
 		mTabAxisOptions->mYAxisLabel->setText( ytitle.c_str() );
 }

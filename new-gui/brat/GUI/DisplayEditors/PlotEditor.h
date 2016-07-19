@@ -99,7 +99,7 @@ private:
 
 	//...domain data
 
-	CXYPlotData *mCurrentPlotDataXY = nullptr;
+	CXYPlotData *mCurrentPlotDataYFX = nullptr;
 	bool mMultiFrame = false;					//	bool mPanelMultiFrame;	2 variables in v3: one in the window, the other in the panel
 
 	CZFXYPlotData *mCurrentPlotDataZFXY = nullptr;

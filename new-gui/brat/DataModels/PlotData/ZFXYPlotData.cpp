@@ -78,7 +78,7 @@ void CZFXYPlotData::Create( CZFXYPlot *plot )
 
 	if ( GetPlotProperties()->Xlabel().empty() )
 	{
-		GetPlotProperties()->SetXlabel( plot->m_titleX );
+        GetPlotProperties()->SetXlabel( plot->TitleX() );
 	}
 	else
 	{
@@ -89,7 +89,7 @@ void CZFXYPlotData::Create( CZFXYPlot *plot )
 
 	if ( GetPlotProperties()->Ylabel().empty() )
 	{
-		GetPlotProperties()->SetYlabel( plot->m_titleY );
+        GetPlotProperties()->SetYlabel( plot->TitleY() );
 	}
 	else
 	{
@@ -99,8 +99,8 @@ void CZFXYPlotData::Create( CZFXYPlot *plot )
 	}
 #else
 
-	assert__( !GetPlotProperties()->Xlabel().empty() );
-	assert__( !GetPlotProperties()->Ylabel().empty() );
+	assert__( !plot->TitleX().empty() );
+	assert__( !plot->TitleY().empty() );
 
 #endif
 
@@ -205,6 +205,7 @@ void CZFXYPlotData::Create( CZFXYPlot *plot )
 
 
 		// Get data unit
+		//NOTE this impacts DataUnit function
 		CUnit* unit = new CUnit( zfxy->GetUnit( fieldName ) );
 		m_dataUnits.push_back( unit );
 

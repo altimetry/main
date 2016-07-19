@@ -217,8 +217,8 @@ public:
 		Comment( "----- GENERAL PROPERTIES -----" );
 		WriteLn();
 
-		if ( !mDisplay.GetTitle().empty() )
-			WriteLn( FmtCmdParam( kwDISPLAY_TITLE ) + mDisplay.GetTitle() );
+		if ( !mDisplay.Title().empty() )
+			WriteLn( FmtCmdParam( kwDISPLAY_TITLE ) + mDisplay.Title() );
 
 		WriteLn();
 		Comment( "Display Type:" + CMapTypeDisp::GetInstance().Enum() );
@@ -723,7 +723,7 @@ void CDisplayDataProcessor::BuildPlotsPrivate()
 		// ------------------------------
 		if ( m_isYFX )
 		{
-			assert__( dynamic_cast<CInternalFilesYFX*>( internal_file ) );
+			assert__( dynamic_cast<CInternalFiles*>( internal_file ) );
 
 			auto *props = GetXYPlotProperties( index );
 
@@ -731,7 +731,7 @@ void CDisplayDataProcessor::BuildPlotsPrivate()
 			CYFXPlot* plot = dynamic_cast<CYFXPlot*>( m_plots[ groupNumber ] );
 			if ( plot == nullptr )
 			{
-				plot = new CYFXPlot( mDisplay->GetTitle(), groupNumber );
+				plot = new CYFXPlot( mDisplay, groupNumber );
 				m_plots[ groupNumber ] = plot;
 			}
 			plot->PushFieldData( props );
@@ -740,15 +740,17 @@ void CDisplayDataProcessor::BuildPlotsPrivate()
 			//kwDISPLAY_XLABEL
 
 			std::string xAxisName;
-			std::string xAxisLabel;
 
 #if defined(BRAT_V3)
+			std::string xAxisLabel;
+
 			if ( display_data->GetXAxis().empty() )
 			{
 #endif
 				xAxisName = display_data->GetX()->GetName();
-				xAxisLabel = display_data->GetX()->GetDescription();
+
 #if defined(BRAT_V3)
+				xAxisLabel = display_data->GetX()->GetDescription();
 			}
 			else
 			{
@@ -782,7 +784,7 @@ void CDisplayDataProcessor::BuildPlotsPrivate()
 			CGeoPlot* wplot = dynamic_cast<CGeoPlot*>( m_plots[ groupNumber ] );
 			if ( wplot == nullptr )
 			{
-				wplot = new CGeoPlot( mDisplay->GetTitle(), groupNumber );
+				wplot = new CGeoPlot( mDisplay, groupNumber );
 				m_plots[ groupNumber ] = wplot;
 			}
 
@@ -818,7 +820,7 @@ void CDisplayDataProcessor::BuildPlotsPrivate()
 
 		if ( m_isZFXY )
 		{
-			assert__( dynamic_cast<CInternalFilesZFXY*>( internal_file ) || dynamic_cast<CInternalFilesYFX*>( internal_file ) );
+			assert__( dynamic_cast<CInternalFiles*>( internal_file ) || dynamic_cast<CInternalFilesYFX*>( internal_file ) );
 
 			auto *props = GetZFXYPlotProperties( index );
 
@@ -826,7 +828,7 @@ void CDisplayDataProcessor::BuildPlotsPrivate()
 			CZFXYPlot* zfxyplot = dynamic_cast<CZFXYPlot*>( m_plots[ groupNumber ] );
 			if ( zfxyplot == nullptr )
 			{
-				zfxyplot = new CZFXYPlot( mDisplay->GetTitle(), groupNumber );
+				zfxyplot = new CZFXYPlot( mDisplay, groupNumber );
 				m_plots[ groupNumber ] = zfxyplot;
 			}
 

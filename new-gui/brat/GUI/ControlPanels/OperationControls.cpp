@@ -1724,11 +1724,12 @@ void COperationControls::UpdateSamplingGroup()
 
     ///////////////////
     /// IMPROVEMENT ///
-    // Case X or Y are TimeDateType, automatically sets the min/max data coverage of the dataset
-    // Otherwise the user may create, by default, a operation with a huge time range from 2000 to current date...
-    if ( mXformula->IsTimeDataType() )
+    // Case X or Y are TimeDateType or any other type besides Lon and Lat, automatically sets the min/max data coverage of the dataset
+    // Otherwise the user may create, by default, an operation with a huge time range from 2000 to current date (if it's time) or has
+    // to specifically define the desired range (for the other data types).
+    if ( mXformula->IsTimeDataType() ||  (!mXformula->IsLonDataType() && !mXformula->IsLatDataType())  )
         GetDataMinMax( mXformula );
-    if ( mYformula->IsTimeDataType() )
+    if ( mYformula->IsTimeDataType() ||  (!mYformula->IsLonDataType() && !mYformula->IsLatDataType())  )
         GetDataMinMax( mYformula );
 
 }

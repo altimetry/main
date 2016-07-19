@@ -370,7 +370,7 @@ void CDisplayFilesProcessor::BuildPlotsPrivate()
 			CYFXPlot* plot = dynamic_cast<CYFXPlot*>( m_plots[ groupNumber ] );
 			if ( plot == nullptr )
 			{
-				plot = new CYFXPlot( "", groupNumber );
+				plot = new CYFXPlot( nullptr, groupNumber );
 				m_plots[ groupNumber ] = plot;
 			}
 			plot->PushFieldData( props );
@@ -415,7 +415,7 @@ void CDisplayFilesProcessor::BuildPlotsPrivate()
 			CGeoPlot* wplot = dynamic_cast<CGeoPlot*>( m_plots[ groupNumber ] );
 			if ( wplot == nullptr )
 			{
-				wplot = new CGeoPlot( "", groupNumber );
+				wplot = new CGeoPlot( nullptr, groupNumber );
 				m_plots[ groupNumber ] = wplot;
 			}
 
@@ -459,7 +459,7 @@ void CDisplayFilesProcessor::BuildPlotsPrivate()
 			CZFXYPlot* zfxyplot = dynamic_cast<CZFXYPlot*>( m_plots[ groupNumber ] );
 			if ( zfxyplot == nullptr )
 			{
-				zfxyplot = new CZFXYPlot( "", groupNumber );
+				zfxyplot = new CZFXYPlot( nullptr, groupNumber );
 				m_plots[ groupNumber ] = zfxyplot;
 			}
 
@@ -794,7 +794,6 @@ void CDisplayFilesProcessor::GetPlotPropertyCommonParams( size_t nFields, CField
 	}
 
 	std::string string_value;
-	unsigned uint_value;
 
 #if defined (BRAT_V3)
 	if ( ReadParamValue( m_params, kwDISPLAY_PROPERTIES, boolValue ) )
@@ -802,9 +801,12 @@ void CDisplayFilesProcessor::GetPlotPropertyCommonParams( size_t nFields, CField
 
 	if ( ReadParamValue( m_params, kwDISPLAY_TITLE, string_value ) )
 		data.SetTitle( string_value );
+#else
+    UNUSED( data );
 #endif
 
 #if defined(BRAT_V3)
+	unsigned uint_value;
 	double double_value;
 
 	if ( ReadParamValue( m_params, kwDISPLAY_XMINVALUE, double_value ) )
@@ -818,20 +820,19 @@ void CDisplayFilesProcessor::GetPlotPropertyCommonParams( size_t nFields, CField
 
 	if ( ReadParamValue( m_params, kwDISPLAY_YMAXVALUE, double_value ) )
 		data.SetYmax( double_value );
-#endif
-
-
-	if ( ReadParamValue( m_params, kwDISPLAY_XTICKS, uint_value ) )
-		data.SetXticks( uint_value );
-
-	if ( ReadParamValue( m_params, kwDISPLAY_YTICKS, uint_value ) )
-		data.SetYticks( uint_value );
 
 	//if ( ReadParamValue( m_params, kwDISPLAY_XLABEL, string_value ) )	processed elsewhere
 	//	data.SetXLabel( string_value );
 
 	if ( ReadParamValue( m_params, kwDISPLAY_YLABEL, string_value ) )
 		data.SetYlabel( string_value );
+
+	if ( ReadParamValue( m_params, kwDISPLAY_XTICKS, uint_value ) )
+		data.SetXticks( uint_value );
+
+	if ( ReadParamValue( m_params, kwDISPLAY_YTICKS, uint_value ) )
+		data.SetYticks( uint_value );
+#endif
 }
 
 

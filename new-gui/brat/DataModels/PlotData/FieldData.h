@@ -59,9 +59,11 @@ public:
 
 	// statics
 
-	static const unsigned_t smDefaultOpacity;
+#if defined(BRAT_V3)
 	static const unsigned smDefaultNumberOfTicks;
 	static const unsigned smDefaultNumberOfDigits;
+#endif
+	static const unsigned_t smDefaultOpacity;
 	static const bool smDefaultShowLines;
 	static const bool smDefaultShowPoints;
 	static const double smDefaultPointSize;
@@ -108,7 +110,9 @@ private:
 	double m_yMax = defaultValue< double >();
 	double m_xMin = defaultValue< double >();
 	double m_yMin = defaultValue< double >();
-#endif
+
+	std::string mXlabel;
+	std::string mYlabel;
 
 	unsigned m_xTicks = smDefaultNumberOfTicks;
 	unsigned m_yTicks = smDefaultNumberOfTicks;
@@ -117,9 +121,7 @@ private:
     unsigned m_xDigits = smDefaultNumberOfDigits;	//v4 (...)
     unsigned m_yDigits = smDefaultNumberOfDigits;	//v4 (...)
     unsigned m_zDigits = smDefaultNumberOfDigits;	//v4 (...)
-
-	std::string mXlabel;
-	std::string mYlabel;
+#endif
 
 	bool mXlogarithmic = false;
 	bool mYlogarithmic = false;
@@ -206,15 +208,9 @@ public:
 			m_yMax = o.m_yMax;
 			m_xMin = o.m_xMin;
 			m_yMin = o.m_yMin;
-#endif
-			// YFX / ZFXY / LON-LAT
 
-			mFieldName = o.mFieldName;
-			mUserName = o.mUserName;
-
-			mOpacity = o.mOpacity;
-
-			// YFX / ZFXY
+			mXlabel = o.mXlabel;
+			mYlabel = o.mYlabel;
 
 			m_xTicks = o.m_xTicks;
 			m_yTicks = o.m_yTicks;
@@ -223,9 +219,16 @@ public:
 			m_xDigits = o.m_xDigits;
 			m_yDigits = o.m_yDigits;
 			m_zDigits = o.m_zDigits;
+#endif
 
-			mXlabel = o.mXlabel;
-			mYlabel = o.mYlabel;
+			// YFX / ZFXY / LON-LAT
+
+			mFieldName = o.mFieldName;
+			mUserName = o.mUserName;
+
+			mOpacity = o.mOpacity;
+
+			// YFX / ZFXY
 
 			mXlogarithmic = o.mXlogarithmic;
 			mYlogarithmic = o.mYlogarithmic;
@@ -283,6 +286,17 @@ public:
 			m_yMax == o.m_yMax &&
 			m_xMin == o.m_xMin &&
 			m_yMin == o.m_yMin &&
+
+			mXlabel == o.mXlabel &&
+			mYlabel == o.mYlabel &&
+
+			m_xTicks == o.m_xTicks &&
+			m_yTicks == o.m_yTicks &&
+			m_zTicks == o.m_zTicks &&
+
+			m_xDigits == o.m_xDigits &&
+			m_yDigits == o.m_yDigits &&
+			m_zDigits == o.m_zDigits &&
 #endif
 			// YFX / ZFXY / LON-LAT
 
@@ -292,17 +306,6 @@ public:
 			mOpacity == o.mOpacity &&
 
 			// YFX / ZFXY
-
-			m_xTicks == o.m_xTicks &&
-			m_yTicks == o.m_yTicks &&
-			m_zTicks == o.m_zTicks &&
-
-			m_xDigits == o.m_xDigits &&
-			m_yDigits == o.m_yDigits &&
-			m_zDigits == o.m_zDigits &&
-
-			mXlabel == o.mXlabel &&
-			mYlabel == o.mYlabel &&
 
 			mXlogarithmic == o.mXlogarithmic &&
 			mYlogarithmic == o.mYlogarithmic &&
@@ -383,6 +386,13 @@ public:
 #if defined (BRAT_V3)
 	const std::string& Title() const { return mTitle; }
 	void SetTitle( const std::string& value ) { mTitle = value; }
+
+	const std::string& Xlabel() const { return mXlabel; }
+	virtual void SetXlabel( const std::string& value ) { mXlabel = value; }
+
+	const std::string& Ylabel() const { return mYlabel; }
+	virtual void SetYlabel( const std::string& value ) { mYlabel = value; }
+
 	void XRange( double& min, double& max ) const { min = m_xMin; max = m_xMax; }
 	void SetXRange( double min, double max ) { m_xMin = min; m_xMax = max; }
 
@@ -398,6 +408,20 @@ public:
 	double Ymax() const { return m_yMax; }
 	void SetYmin( double value ) { m_yMin = value; }
 	void SetYmax( double value ) { m_yMax = value; }
+
+	unsigned int Xticks() const { return m_xTicks; }
+	unsigned int Yticks() const { return m_yTicks; }
+	unsigned int Zticks() const { return m_zTicks; }
+	void SetXticks( unsigned int value ) { m_xTicks = value; }
+	void SetYticks( unsigned int value ) { m_yTicks = value; }
+	void SetZticks( unsigned int value ) { m_zTicks = value; }
+
+    unsigned Xdigits() const { return m_xDigits; }
+    unsigned Ydigits() const { return m_yDigits; }
+    unsigned Zdigits() const { return m_zDigits; }
+    void SetXdigits( unsigned value ) { m_xDigits = value; }
+    void SetYdigits( unsigned value ) { m_yDigits = value; }
+    void SetZdigits( unsigned value ) { m_zDigits = value; }
 #endif
 
 	const std::string& FieldName() const { return mFieldName; }
@@ -416,26 +440,6 @@ public:
 
 
 	// YFX / ZFXY
-
-	unsigned int Xticks() const { return m_xTicks; }
-	unsigned int Yticks() const { return m_yTicks; }
-	unsigned int Zticks() const { return m_zTicks; }
-	void SetXticks( unsigned int value ) { m_xTicks = value; }
-	void SetYticks( unsigned int value ) { m_yTicks = value; }
-	void SetZticks( unsigned int value ) { m_zTicks = value; }
-
-    unsigned Xdigits() const { return m_xDigits; }
-    unsigned Ydigits() const { return m_yDigits; }
-    unsigned Zdigits() const { return m_zDigits; }
-    void SetXdigits( unsigned value ) { m_xDigits = value; }
-    void SetYdigits( unsigned value ) { m_yDigits = value; }
-    void SetZdigits( unsigned value ) { m_zDigits = value; }
-
-	const std::string& Xlabel() const { return mXlabel; }
-	virtual void SetXlabel( const std::string& value ) { mXlabel = value; }
-
-	const std::string& Ylabel() const { return mYlabel; }
-	virtual void SetYlabel( const std::string& value ) { mYlabel = value; }
 
 	bool XLog() const { return mXlogarithmic; }
 	void SetXLog( bool value );

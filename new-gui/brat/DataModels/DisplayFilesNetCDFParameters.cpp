@@ -140,7 +140,7 @@ bool CDisplayFilesProcessor::GetParametersNetcdfYFX( CExternalFilesNetCDF* exter
 		CYFXPlot* plot = dynamic_cast<CYFXPlot*>( m_plots[ groupNumber ] );
 		if ( plot == nullptr )
 		{
-			plot = new CYFXPlot( "", groupNumber );
+			plot = new CYFXPlot( nullptr, groupNumber );
 			m_plots[ groupNumber ] = plot;
 		}
 		plot->PushFieldData( props );
@@ -329,7 +329,7 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFXY( CExternalFilesNetCDF* exte
 		CZFXYPlot* zfxyplot = dynamic_cast<CZFXYPlot*>( m_plots[ groupNumber ] );
 		if ( zfxyplot == nullptr )
 		{
-			zfxyplot = new CZFXYPlot( "", groupNumber );
+			zfxyplot = new CZFXYPlot( nullptr, groupNumber );
 			m_plots[ groupNumber ] = zfxyplot;
 		}
 
@@ -493,7 +493,7 @@ bool CDisplayFilesProcessor::GetParametersNetcdfZFLatLon( CExternalFilesNetCDF* 
 		CGeoPlot* wplot = dynamic_cast<CGeoPlot*>( m_plots[ groupNumber ] );
 		if ( wplot == nullptr )
 		{
-			wplot = new CGeoPlot( "", groupNumber );
+			wplot = new CGeoPlot( nullptr, groupNumber );
 			m_plots[ groupNumber ] = wplot;
 		}
 

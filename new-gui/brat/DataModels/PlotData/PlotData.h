@@ -177,7 +177,7 @@ public:
 	// Class Specific Interface
 	////////////////////////////
 
-	const CUnit* DataUnit() const { return DataUnit( CurrentFrame() ); }
+	virtual const CUnit* DataUnit() const { return DataUnit( 0 ); }		//TODO cannot use CurrentFrame() because YFX did not have m_dataUnits and unlike ZFXY does not have 1 unit per frame
 
 	virtual const CUnit* DataUnit( size_t index ) const
 	{ 
@@ -220,28 +220,6 @@ public:
 
 
 	// YFX / ZFXY
-
-	unsigned int Xticks() const 									{ return Get( &CFieldData::Xticks ); }
-	unsigned int Yticks() const 									{ return Get( &CFieldData::Yticks ); }
-	unsigned int Zticks() const 									{ return Get( &CFieldData::Zticks ); }
-	void SetXticks( unsigned int value )							{ Set( value, &CFieldData::SetXticks ); }
-	void SetYticks( unsigned int value )							{ Set( value, &CFieldData::SetYticks ); }
-	void SetZticks( unsigned int value )							{ Set( value, &CFieldData::SetZticks ); }
-
-
-    unsigned Xdigits() const 										{ return Get( &CFieldData::Xdigits ); }
-    unsigned Ydigits() const 										{ return Get( &CFieldData::Ydigits ); }
-    unsigned Zdigits() const 										{ return Get( &CFieldData::Zdigits ); }
-    void SetXdigits( unsigned value )								{ Set( value, &CFieldData::SetXdigits ); }
-    void SetYdigits( unsigned value )								{ Set( value, &CFieldData::SetYdigits ); }
-    void SetZdigits( unsigned value )								{ Set( value, &CFieldData::SetZdigits ); }
-
-	const std::string& Xlabel() const								{ return Get( &CFieldData::Xlabel ); }
-	void SetXlabel( const std::string& value )						{ Set( value, &CFieldData::SetXlabel ); }
-	const std::string& Ylabel() const								{ return Get( &CFieldData::Ylabel ); }
-	void SetYlabel( const std::string& value )						{ Set( value, &CFieldData::SetYlabel ); }
-
-
 
 	bool XLog() const												{ return Get( &CFieldData::XLog ); }
 	void SetXLog( bool value )										{ Set( value, &CFieldData::SetXLog ); }

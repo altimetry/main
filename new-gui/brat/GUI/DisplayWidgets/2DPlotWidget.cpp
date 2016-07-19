@@ -955,7 +955,7 @@ void C2DPlotWidget::SetYDigits( bool isdate, int digits, brathl_refDate date_ref
 
 void C2DPlotWidget::SetY2Digits( bool isdate, int digits, brathl_refDate date_ref )		//date_ref = REF19500101 
 {
-	static const auto axisId = yLeft;
+	static const auto axisId = yRight;
 
 	SetDigits( axisId, isdate, digits, date_ref );
 }

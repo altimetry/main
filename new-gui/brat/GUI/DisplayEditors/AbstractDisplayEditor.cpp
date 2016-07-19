@@ -641,7 +641,7 @@ void CAbstractDisplayEditor::HandleViewChanged( int index )
 	assert__( mDisplay );
 
 	SetWindowTitle();
-	mTabGeneral->mPlotTitle->setText( mDisplay->GetTitle().c_str() );
+	mTabGeneral->mPlotTitle->setText( mDisplay->Title().c_str() );
 	CMapTypeDisp::ETypeDisp type = mDisplay->GetType();
 	mTabGeneral->mPlotType->setText( CMapTypeDisp::GetInstance().IdToName( type ).c_str() );
 

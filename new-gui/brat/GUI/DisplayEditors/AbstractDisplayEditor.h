@@ -178,9 +178,9 @@ protected:
 	int mRequestedDisplayIndex = 0;				//trick for first requested display
 
 
-	CGeoPlot *mCurrentGeoPlot = nullptr;
-	CYFXPlot *mCurrentYFXPlot = nullptr;
-	CZFXYPlot *mCurrentZFXYPlot = nullptr;
+	CGeoPlot *mCurrentPlotGeo = nullptr;
+	CYFXPlot *mCurrentPlotYFX = nullptr;
+	CZFXYPlot *mCurrentPlotZFXY = nullptr;
 	CBratLookupTable *mCurrentBratLookupTable = nullptr;
 
 	const bool mDisplayOnlyMode;
