@@ -116,9 +116,6 @@ protected:
 
 	static brathl_refDate RefDateFromUnit( const CUnit &u );
 
-	static CZFXYPlotData* GetDisplayData( size_t field_index, CZFXYPlot *zfxy );
-	static CWorldPlotData* GetDisplayData( size_t field_index, CGeoPlot *lon_lat );
-
 	
 private:
 	///////////////////////////////////////////////////////////
@@ -181,7 +178,6 @@ protected:
 	CGeoPlot *mCurrentPlotGeo = nullptr;
 	CYFXPlot *mCurrentPlotYFX = nullptr;
 	CZFXYPlot *mCurrentPlotZFXY = nullptr;
-	CBratLookupTable *mCurrentBratLookupTable = nullptr;
 
 	const bool mDisplayOnlyMode;
 	const bool mIsMapEditor;
@@ -336,7 +332,7 @@ protected:
 public:
 
 	///. inherited from v3, must be reviewed
-	bool ControlSolidColor();
+	//bool ControlSolidColor();	- bug mask
 	bool ControlVectorComponents( std::string& msg );
 
 

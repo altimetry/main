@@ -43,7 +43,7 @@ struct CZFXYPlotParameters;
 
 struct CBrat3DFunction;
 class CBrat3DPlot;
-
+class QLookupTable;
 
 
 
@@ -226,7 +226,7 @@ public:
 
 	// color
 
-	void SetColorMap( Qwt3D::Color *pcolor_map );
+	void SetColorMap( QLookupTable *pcolor_map );
 
 
 	// protected
@@ -338,7 +338,7 @@ public:
 	void PushPlot( const CZFXYPlotParameters &values, Qwt3D::Color *pcolor_map );
 
 	//takes ownership of pcolor_map
-	void SetColorMap( Qwt3D::Color *pcolor_map );
+	void SetColorMap( QLookupTable *pcolor_map );
 
 
 	//switch plot

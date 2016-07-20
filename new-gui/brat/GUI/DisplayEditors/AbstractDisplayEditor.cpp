@@ -55,56 +55,6 @@ brathl_refDate CAbstractDisplayEditor::RefDateFromUnit( const CUnit &u )
 }
 
 
-void ThrowDisplayDataNotAvaiable()
-{
-	throw CException( "DisplayData not available. This can sometimes happen when opening Brat V3 views.\nIf that is the case, the operation should be run again" );
-}
-
-//static
-CWorldPlotData*
-CAbstractDisplayEditor::GetDisplayData( size_t field_index, CGeoPlot *lon_lat )
-{
-	CWorldPlotData *unit = lon_lat->PlotData( field_index );	assert( unit );
-	if ( !*unit )
-		ThrowDisplayDataNotAvaiable();
-
-	assert__( unit->first == unit->GetPlotProperties() || unit->second == unit->GetPlotProperties() );
-
-	// TODO brat v3 does not update range: this should be done in plots Create
-	if ( isDefaultValue( unit->AbsoluteMinValue() ) || isDefaultValue( unit->AbsoluteMaxValue() ) )
-	{
-		unit->SetAbsoluteRangeValues( 
-			unit->ColorTable().GetLookupTable()->GetTableRange()[0], 
-			unit->ColorTable().GetLookupTable()->GetTableRange()[1] );
-	}
-
-	return unit;
-}
-//static
-CZFXYPlotData*
-CAbstractDisplayEditor::GetDisplayData( size_t field_index, CZFXYPlot *zfxy )
-{
-	CZFXYPlotData *unit = zfxy->PlotData( field_index );		assert( unit );
-	if ( !*unit )
-		ThrowDisplayDataNotAvaiable();
-
-	// TODO brat v3 does not update range: this should be done in plots Create
-	if ( isDefaultValue( unit->AbsoluteMinValue() ) || isDefaultValue( unit->AbsoluteMaxValue() ) )
-	{
-		unit->SetAbsoluteRangeValues( 
-			unit->ColorTable().GetLookupTable()->GetTableRange()[0], 
-			unit->ColorTable().GetLookupTable()->GetTableRange()[1] );
-	}
-
-	return unit;
-}
-
-
-
-
-
-
-
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -646,7 +596,7 @@ void CAbstractDisplayEditor::HandleViewChanged( int index )
 	mTabGeneral->mPlotType->setText( CMapTypeDisp::GetInstance().IdToName( type ).c_str() );
 
 	std::string msg;
-	if ( !ControlSolidColor() || !ControlVectorComponents( msg ) )	//== CDisplayPanel::Control(std::string& msg)
+	if ( !ControlVectorComponents( msg ) )	//== CDisplayPanel::Control(std::string& msg)	//in v3, also condition !ControlSolidColor() || 
 	{
 		SimpleErrorBox( msg );
 
@@ -1164,22 +1114,22 @@ void CAbstractDisplayEditor::FilterOperations()
 }
 
 
-
-bool CAbstractDisplayEditor::ControlSolidColor()
-{
-	assert__( mDisplay != nullptr );
-
-	CMapDisplayData *selectedData =  mDisplay->GetData();
-
-	for ( CMapDisplayData::const_iterator itSel = selectedData->begin(); itSel != selectedData->end(); itSel ++ )
-	{
-		CDisplayData* dataSel = dynamic_cast<CDisplayData*>( itSel->second );		assert__( dataSel );
-
-		if ( !dataSel->WithSolidColor() && !dataSel->WithContour() )
-			dataSel->SetWithSolidColor( true );
-	}
-	return true;
-}
+// bug mask
+//bool CAbstractDisplayEditor::ControlSolidColor()
+//{
+//	assert__( mDisplay != nullptr );
+//
+//	CMapDisplayData *selectedData =  mDisplay->GetData();
+//
+//	for ( CMapDisplayData::const_iterator itSel = selectedData->begin(); itSel != selectedData->end(); itSel ++ )
+//	{
+//		CDisplayData* dataSel = dynamic_cast<CDisplayData*>( itSel->second );		assert__( dataSel );
+//
+//		if ( !dataSel->WithSolidColor() && !dataSel->WithContour() )
+//			dataSel->SetWithSolidColor( true );
+//	}
+//	return true;
+//}
 
 
 bool CAbstractDisplayEditor::ControlVectorComponents( std::string& msg )

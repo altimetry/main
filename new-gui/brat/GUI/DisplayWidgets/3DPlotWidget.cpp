@@ -30,6 +30,7 @@ using namespace brathl;
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/+UtilsIO.h"
 #include "DataModels/PlotData/PlotValues.h"
+#include "DataModels/PlotData/BratLookupTable.h"
 
 #include "GUI/ActionsTable.h"
 
@@ -793,20 +794,19 @@ void CBrat3DPlot::CoordinateStyle()
 
 
 
-void CBrat3DPlot::SetColorMap( Qwt3D::Color *pcolor_map )
+void CBrat3DPlot::SetColorMap( QLookupTable *pcolor_map )
 {
 	setDataColor( pcolor_map );
 	updateData();
 	updateGL();
 
-	//legend()->setMajors( majors );
-	//legend()->setMinors( minors );
-	double start, stop;
-	coordinates()->axes[ Qwt3D::AXIS::Z1 ].limits(start,stop);
+	double start = pcolor_map->CurrentMinValue(), stop = pcolor_map->CurrentMaxValue();
+	//coordinates()->axes[ Qwt3D::AXIS::Z1 ].limits( start,stop );
+
 #if (QWT3D_MINOR_VERSION > 2)
-	curve()->legend()->setLimits(start, stop);
+	curve()->legend()->setLimits( start, stop );
 #else
-	legend()->setLimits(start, stop);
+	legend()->setLimits( start, stop );
 #endif
 
 	if ( !isDefaultValue( start ) && !isDefaultValue( stop ) && start != defaultValueDOUBLE && stop != defaultValueDOUBLE )
@@ -993,7 +993,7 @@ void C3DPlotWidget::PushPlot( const CZFXYPlotParameters &values, Qwt3D::Color *p
 }
 
 
-void C3DPlotWidget::SetColorMap( Qwt3D::Color *pcolor_map )
+void C3DPlotWidget::SetColorMap( QLookupTable *pcolor_map )
 {
 	assert__( mSurfacePlots.size() );
 

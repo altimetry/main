@@ -270,7 +270,7 @@ void CWorldPlotData::Create()
 	//////////////}
 
 
-	GetPlotProperties()->ColorTable().GetLookupTable()->SetTableRange( back().mMinHeightValue, back().mMaxHeightValue );
+	GetPlotProperties()->SetAbsoluteRangeValues( back().mMinHeightValue, back().mMaxHeightValue );	//GetPlotProperties()->SetTableRange( back().mMinHeightValue, back().mMaxHeightValue );
 
 	//////////////m_colorBarRenderer->SetLUT( m_LUT );
 
@@ -661,7 +661,7 @@ void CWorldPlotVelocityData::Create( const std::vector< CInternalFiles* > &north
 	//////////////}
 
 
-	GetPlotProperties()->ColorTable().GetLookupTable()->SetTableRange( 0, back().mMaxHeightValue );
+	GetPlotProperties()->SetAbsoluteRangeValues( 0, back().mMaxHeightValue );
 	GetPlotProperties()->SetColorPalette( PALETTE_BLACKTOWHITE );							//mLUT->Black();
 
 	// v3 original comment no LUT displayed for this

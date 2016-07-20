@@ -135,8 +135,6 @@ private:
 	
 	double mMinHeightValue = defaultValue< double >();
 	double mMaxHeightValue = defaultValue< double >();
-	double mCurrentMinValue = defaultValue< double >();
-	double mCurrentMaxValue = defaultValue< double >();
 
 	bool mWithContour = false;
 	unsigned mNumContours = smDefaultNumContour;
@@ -238,8 +236,8 @@ public:
 			mLUT = o.mLUT;
 			mMinHeightValue = o.mMinHeightValue;
 			mMaxHeightValue = o.mMaxHeightValue;
-			mCurrentMinValue = o.mCurrentMinValue;
-			mCurrentMaxValue = o.mCurrentMaxValue;
+			//mCurrentMinValue = o.mCurrentMinValue;
+			//mCurrentMaxValue = o.mCurrentMaxValue;
 
 			mWithContour = o.mWithContour;
 			mNumContours = o.mNumContours;
@@ -315,8 +313,8 @@ public:
 			mLUT == o.mLUT &&
 			mMinHeightValue == o.mMinHeightValue &&
 			mMaxHeightValue == o.mMaxHeightValue &&
-			mCurrentMinValue == o.mCurrentMinValue &&
-			mCurrentMaxValue == o.mCurrentMaxValue &&
+			//mCurrentMinValue == o.mCurrentMinValue &&
+			//mCurrentMaxValue == o.mCurrentMaxValue &&
 
 			mWithContour == o.mWithContour &&
 			mNumContours == o.mNumContours &&
@@ -472,6 +470,20 @@ public:
 		return mLUT.LoadFromFile( error_msg, path );
 	}
 
+	void SetTableRange( double m, double M )
+	{
+		SetCurrentMinValue( m );
+		SetCurrentMaxValue( M );
+	}
+
+protected:
+	void SetColorTableRange( double m, double M )
+	{
+		mLUT.SetTableRange( m, M );
+	}
+
+public:
+
 	double AbsoluteMinValue() const { return mMinHeightValue; }
 	double AbsoluteMaxValue() const { return mMaxHeightValue; }
 	void SetAbsoluteRangeValues( double m, double M ) 
@@ -482,28 +494,31 @@ public:
 		mMinHeightValue = m; 
 		mMaxHeightValue = M; 
 
-		if ( isDefaultValue( mCurrentMinValue ) )
-			mCurrentMinValue = m;
-		else
-			SetCurrentMinValue( mCurrentMinValue );
+		double current_min = CurrentMinValue();
+		double current_max = CurrentMaxValue();
 
-		if ( isDefaultValue( mCurrentMaxValue ) )
-			mCurrentMaxValue = M;
-		else
-			SetCurrentMaxValue( mCurrentMaxValue );
+		if ( current_min == CBratLookupTable::smDefaultRangeValues )
+			current_min = m;
+
+		if ( current_max == CBratLookupTable::smDefaultRangeValues )
+			current_max = M;
+
+		SetTableRange( current_min, current_max );
 	}
 
 
-	double CurrentMinValue() const { return mCurrentMinValue; }
+	double CurrentMinValue() const { return mLUT.CurrentMinValue(); }
 	void SetCurrentMinValue( double value ) 
 	{ 
-		mCurrentMinValue = std::min( std::max( value, mMinHeightValue ), mMaxHeightValue ); 
+		double current_min = std::min( std::max( value, mMinHeightValue ), mMaxHeightValue ); 
+		SetColorTableRange( current_min, CurrentMaxValue() );
 	}
 
-	double CurrentMaxValue() const { return mCurrentMaxValue; }
+	double CurrentMaxValue() const { return mLUT.CurrentMaxValue(); }
 	void SetCurrentMaxValue( double value ) 
 	{ 
-		mCurrentMaxValue = std::max( std::min( value, mMaxHeightValue ), mMinHeightValue ); 
+		double current_max = std::max( std::min( value, mMaxHeightValue ), mMinHeightValue ); 
+		SetColorTableRange( CurrentMinValue(), current_max );
 	}
 
 

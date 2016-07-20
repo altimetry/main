@@ -164,7 +164,7 @@ public:
 
 	//...color table
 
-	void SetLUT( CBratLookupTable *lut, double min, double max );
+	void SetLUT( CBratLookupTable *lut, double absolute_min, double absolute_max );
 
 	QString itemText( int index )
 	{

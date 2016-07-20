@@ -585,7 +585,6 @@ bool CMapEditor::ChangeView()
 bool CMapEditor::UpdateCurrentPointers( int field_index )
 {
 	mCurrentPlotData = nullptr;
-	mCurrentBratLookupTable = nullptr;
 
 	if ( field_index >= 0 )
 	{
@@ -593,19 +592,18 @@ bool CMapEditor::UpdateCurrentPointers( int field_index )
 
 		mCurrentPlotData = mCurrentPlotGeo->PlotData( field_index );								assert__( mCurrentPlotData && *mCurrentPlotData && mCurrentPlotData->size() == 1 );	//simply to check if ever...
         mCurrentPlotVelocityData = dynamic_cast< CWorldPlotVelocityData* >( mCurrentPlotData );
-		mCurrentPlotData = GetDisplayData( field_index, mCurrentPlotGeo );
-		mCurrentBratLookupTable = mCurrentPlotData->ColorTablePtr();								assert__( mCurrentBratLookupTable );
-		mCurrentBratLookupTable->ExecMethod( mCurrentPlotData->ColorPalette() );
 	}
 
-	return mCurrentPlotData != nullptr && mCurrentBratLookupTable != nullptr;
+	return mCurrentPlotData != nullptr;
 }
 
 
 
-///////////////////////////
-//	From properties to plot
-///////////////////////////
+//////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
+//		From properties to plot (plot creation)
+//////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 #define USE_POINTS		//(**)
 #define USE_FEATURES	//(***)
@@ -639,15 +637,21 @@ void CMapEditor::ResetMap()
     const size_t nfields = mCurrentPlotGeo->Size();
 	for ( size_t ifield = 0; ifield < nfields; ++ifield )
 	{
-		bool result = UpdateCurrentPointers( ifield );			assert__( result );		Q_UNUSED( result );
+		/////////////////////////////////////////////////
+		//				update pointers
+		/////////////////////////////////////////////////
 
-		mCurrentBratLookupTable->GetLookupTable()->SetTableRange( mCurrentPlotData->CurrentMinValue(), mCurrentPlotData->CurrentMaxValue() );		//field_data->GetLookupTable()->GetTableRange()
+		bool result = UpdateCurrentPointers( ifield );			assert__( result );		Q_UNUSED( result );
 
 		const CMapPlotParameters &array = mCurrentPlotData->at( 0 );
 		auto const size = array.mValues.size();
 		QgsFeatureList flist;
 
-#if defined (USE_POINTS)	//(**)
+		/////////////////////////////////////////////////
+		//		create layers, all in same map
+		/////////////////////////////////////////////////
+
+		//(**)
 
 		for ( auto i = 0u; i < size; ++ i )
 		{
@@ -657,7 +661,7 @@ void CMapEditor::ResetMap()
 			auto x = i % array.mXaxis.size(); // ( x * field_data->lats.size() ) + i;
 			auto y = i / array.mXaxis.size(); // ( x * field_data->lats.size() ) + i;
 
-#if defined (USE_FEATURES) //(***)
+			//(***)
 
             ////////// TODO RCCC  //////////////////////////////////////////////////
             if ( mCurrentPlotVelocityData )
@@ -678,14 +682,12 @@ void CMapEditor::ResetMap()
 
             }
             ///////////////////////////////////////////////////////////////////////
-#else
-			addRBPoint( field_data->lons.at( x ), field_data->lats.at( y ), QColor( (long)(field_data->vals[ i ]) ), mMainLayer );
-#endif  //USE_FEATURES
+
 		}
 
-#if defined (USE_FEATURES)
+		//(***)
 
-		//AddDataLayer( props->m_name, 0.333, map.mMinHeightValue, map.mMaxHeightValue, props->m_numContour, flist );  // TODO - RCCC Uncomment this to use Points
+		//AddDataLayer( props->m_name, 0.333, map.mMinHeightValue, map.mMaxHeightValue, props->m_numContour, flist );  // Uncomment this to use Points
 
         if( mCurrentPlotVelocityData )
         {
@@ -693,53 +695,25 @@ void CMapEditor::ResetMap()
         }
         else
         {			
-            mMapView->AddDataLayer( mCurrentPlotData->FieldName(), 0.1, array.mMinHeightValue, array.mMaxHeightValue, mCurrentBratLookupTable->GetLookupTable(), flist,
-				mCurrentPlotData->DataUnit()->IsDate(), RefDateFromUnit( *mCurrentPlotData->DataUnit() ) );
+            mMapView->AddDataLayer( mCurrentPlotData->FieldName(), 0.1, array.mMinHeightValue, array.mMaxHeightValue, mCurrentPlotData->ColorTablePtr()->GetLookupTable(), 
+				flist, mCurrentPlotData->DataUnit()->IsDate(), RefDateFromUnit( *mCurrentPlotData->DataUnit() ) );
         }
 
-#endif 
+		//CWorldPlotPanel::AddData
+
+		/////////////////////////////////////////////////
+		//			add field layers to list
+		/////////////////////////////////////////////////
 
 
-#else		//(**)
-
-		QgsPolyline points;
-		for ( auto i = 0; i < size; ++ i ) 
-		{
-			if ( !IsValidPoint(i) )
-				continue;
-
-			auto x = i % field_data->lons.size();
-			auto y = i / field_data->lons.size();
-
-			points.append( QgsPoint( field_data->lons.at( x ), field_data->lats.at( y ) ) );
-		}
-#if !defined (USE_FEATURES) //(***)
-		auto memL = addMemoryLayer( createLineSymbol( 0.5, Qt::red ) );	//(*)	//note that you can use strings like "red" instead!!!
-		createLineFeature( flist, points );						
-		memL->dataProvider()->addFeatures( flist );				
-		//memL->updateExtents();
-		//refresh();
-#else
-		addRBLine( points, QColor( 0, 255, 0 ), mMainLayer );	
-#endif
-
-		return;
-
-#endif
-
-		//femm: This is CWorldPlotPanel::AddData
-
-		// ( ... )
-
-		//int32_t nFrames = 1;
-		//if ( field_data != nullptr )
-		//	nFrames = field_data->GetNrMaps();
-		//m_animationToolbar->SetMaxFrame( nFrames );
-
-
-		QListWidgetItem *item = new QListWidgetItem( t2q( mCurrentPlotData->FieldName() ) );		//cannot assert__( field_data->FieldName(0) == mCurrentPlotUnit.Name() );
+		QListWidgetItem *item = new QListWidgetItem( t2q( mCurrentPlotData->FieldName() ) );
 		item->setToolTip( item->text() );
 		mTabDataLayers->mFieldsList->addItem( item );
+
+
+		/////////////////////////////////////////////////
+		//		assign field properties to widget
+		/////////////////////////////////////////////////
 
 		mMapView->SetDataLayerVisible( ifield, mCurrentPlotData->WithSolidColor(), mDisplaying2D );
 
@@ -756,9 +730,12 @@ void CMapEditor::ResetMap()
 }
 
 
-///////////////////////////
-//	From plot to widgets
-///////////////////////////
+
+//////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
+//			From plot to widgets
+//////////////////////////////////////////////////////
+//////////////////////////////////////////////////////
 
 
 void CMapEditor::HandleCurrentFieldChanged( int field_index )
@@ -767,6 +744,10 @@ void CMapEditor::HandleCurrentFieldChanged( int field_index )
 
 	mTabDataLayers->mColorMapWidget->setEnabled( field_index >= 0 );
 
+	/////////////////////////////////////////////////
+	//				update pointers
+	/////////////////////////////////////////////////
+
 	UpdateCurrentPointers( -1 );
 
 	if ( field_index < 0 )
@@ -774,10 +755,13 @@ void CMapEditor::HandleCurrentFieldChanged( int field_index )
 
 	bool result = UpdateCurrentPointers( field_index );			assert__( result );		Q_UNUSED( result );
 
+	///////////////////////////////////////////////
+	//	solid color, contours, color table
+	///////////////////////////////////////////////
+
 	mTabDataLayers->mColorMapWidget->blockSignals( true );
 	// color table and range should be retrieved here from plot, but maps (still) know nothing about LUTs or data ranges
-	const CMapPlotParameters &map = mCurrentPlotData->at( 0 );
-	mTabDataLayers->mColorMapWidget->SetLUT( mCurrentBratLookupTable, map.mMinHeightValue, map.mMaxHeightValue );	
+	mTabDataLayers->mColorMapWidget->SetLUT( mCurrentPlotData->ColorTablePtr(), mCurrentPlotData->AbsoluteMinValue(), mCurrentPlotData->AbsoluteMaxValue() );	
 
 	mTabDataLayers->mColorMapWidget->SetContourColor( mCurrentPlotData->ContourLineColor().GetQColor() );
 	mTabDataLayers->mColorMapWidget->blockSignals( false );
@@ -794,7 +778,9 @@ void CMapEditor::HandleCurrentFieldChanged( int field_index )
 
 
 ///////////////////////////////////////////////////////
+///////////////////////////////////////////////////////
 //	From widgets to properties, from properties to plot
+///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
 
 
@@ -882,13 +868,12 @@ void CMapEditor::HandleColorTablesIndexChanged( int index )
 
 	const CMapPlotParameters &array = mCurrentPlotData->at( 0 );
 
-	mCurrentPlotData->SetColorPalette( mCurrentBratLookupTable->GetCurrentFunction() );
-	mCurrentPlotData->SetCurrentMinValue( mCurrentBratLookupTable->GetLookupTable()->GetTableRange()[0] );
-	mCurrentPlotData->SetCurrentMaxValue( mCurrentBratLookupTable->GetLookupTable()->GetTableRange()[1] );
+	//no need to assign... check only
 
-	//NOTE: no need to assign anything to mCurrentBratLookupTable
+	assert__( mTabDataLayers->mColorMapWidget->ColorRangeMin() == mCurrentPlotData->CurrentMinValue() && 
+		mTabDataLayers->mColorMapWidget->ColorRangeMax() == mCurrentPlotData->CurrentMaxValue() );
 
-	mMapView->ChangeDataRenderer( field_index, 0., array.mMinHeightValue, array.mMaxHeightValue, mCurrentBratLookupTable->GetLookupTable() );	
+	mMapView->ChangeDataRenderer( field_index, 0., array.mMinHeightValue, array.mMaxHeightValue, mCurrentPlotData->ColorTablePtr()->GetLookupTable() );	
 }
 
 

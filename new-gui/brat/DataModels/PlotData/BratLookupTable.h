@@ -55,8 +55,11 @@ class QLookupTable : public QwtColorMap, public Qwt3D::Color
 
 	typedef long long vtkIdType;
 
+	// static data
 
-	// data
+private:
+
+	// instance data
 
 	std::vector<QColor> mTable;
 	double mTableRange[2];
@@ -74,13 +77,7 @@ class QLookupTable : public QwtColorMap, public Qwt3D::Color
 
 	// construction / destruction
 
-	QLookupTable() 
-		: qwt_base_t()
-		, qwt3d_base_t()
-	{
-		mTableRange[0] = 0;
-		mTableRange[1] = 0;
-	}
+	QLookupTable();
 
 public:
 	QLookupTable( const QLookupTable&o );
@@ -108,9 +105,12 @@ public:
 		SetTableRange( r[0], r[1] );
 	}
 
-	virtual void SetTableRange(double m, double M);
+	virtual void SetTableRange( double m, double M );
 
 	void SetTableValue( size_t indx, double r, double g, double b, double a=1.0);
+
+	double CurrentMinValue() const { return mTableRange[ 0 ]; }
+	double CurrentMaxValue() const { return mTableRange[ 1 ]; }
 
 
 	const QColor& GetTableValue( size_t indx) const;
@@ -217,7 +217,11 @@ typedef CallBack3< CBratLookupTable, double, double, double, double > CallbackFl
 
 class CBratLookupTable : public CBratObject
 {
+	// types
+
 	friend class CBratLookupTableSettings;
+
+	// static data
 
 	static const std::string ENTRY_NUMCOLORS()	{ return "ColorTable/NumberOfColors"; }
 	static const std::string ENTRY_CURRENTFCT() { return "ColorTable/CurrentFunction"; }
@@ -229,6 +233,12 @@ class CBratLookupTable : public CBratObject
 	static const std::string CURVE_SQRT()		{ return "SQRT"; }
 	static const std::string CURVE_COSINUS()	{ return "Cosinus"; }
 
+
+public:
+	static double const smDefaultRangeValues;	//here and not in QLookupTable to be accessible to legacy
+
+
+	// instance data
 
 protected:
 
@@ -282,7 +292,25 @@ public:
 	bool operator == ( const CBratLookupTable &o ) const;
 
 
+#if !defined (BRAT_V3)
+	const 
+#endif
 	QLookupTable* GetLookupTable() const { return m_vtkLookupTable; }
+
+#if !defined (BRAT_V3)
+
+	double CurrentMinValue() const { return m_vtkLookupTable->CurrentMinValue(); }
+	double CurrentMaxValue() const { return m_vtkLookupTable->CurrentMaxValue(); }
+#else
+	double CurrentMinValue() const { return m_vtkLookupTable->GetTableRange()[ 0 ]; }
+	double CurrentMaxValue() const { return m_vtkLookupTable->GetTableRange()[ 1 ]; }
+#endif	
+
+
+	void SetTableRange( double m, double M )
+	{
+		m_vtkLookupTable->SetTableRange( m, M );
+	}
 
 	const std::string& GetCurve() const { return m_curve; }
 	const std::string& GetCurrentFunction() const { return m_currentFunction; }

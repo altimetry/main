@@ -788,14 +788,14 @@ void CDisplayDataProcessor::BuildPlotsPrivate()
 				m_plots[ groupNumber ] = wplot;
 			}
 
+			CFieldData* field = nullptr;
+
+#if defined (BRAT_V3)
 			if ( !props->WithContour() && !props->WithSolidColor() )
 			{
 				props->SetWithSolidColor( true );
 			}
 
-			CFieldData* field = nullptr;
-
-#if defined (BRAT_V3)
 			if ( props->m_withAnimation )
 			{
 				//group files by field
@@ -832,14 +832,14 @@ void CDisplayDataProcessor::BuildPlotsPrivate()
 				m_plots[ groupNumber ] = zfxyplot;
 			}
 
+			CFieldData* field = nullptr;
+
+#if defined (BRAT_V3)
 			if ( !props->WithContour() && !props->WithSolidColor() )
 			{
 				props->SetWithSolidColor( true );
 			}
 
-			CFieldData* field = nullptr;
-
-#if defined (BRAT_V3)
 			if ( props->m_withAnimation )
 			{
 				//group files by field

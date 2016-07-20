@@ -380,4 +380,7 @@ void CZFXYPlotData::Create( CZFXYPlot *plot )
 		return;
 	}
 #endif
+
+	GetPlotProperties()->SetAbsoluteRangeValues( back().mMinHeightValue, back().mMaxHeightValue );
+
 }

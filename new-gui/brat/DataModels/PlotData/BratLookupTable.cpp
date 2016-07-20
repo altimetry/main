@@ -28,57 +28,30 @@ using namespace brathl;
 
 
 
-#if !defined(BRAT_V3)
+#if defined(BRAT_V3)
 
+//static 
+double const CBratLookupTable::smDefaultRangeValues = 0;
+
+#else
 
 static const QColor invalid_color = QColor( 255, 255, 255, 0 );
 
 
-//class QWT_EXPORT QwtLinearColorMap: public QwtColorMap
-//{
-//public:
-//    /*!
-//       Mode of color map
-//       \sa setMode(), mode()
-//    */
-//    enum Mode
-//    {
-//        FixedColors,
-//        ScaledColors
-//    };
-//
-//    QwtLinearColorMap(QwtColorMap::Format = QwtColorMap::RGB);
-//    QwtLinearColorMap( const QColor &from, const QColor &to,
-//        QwtColorMap::Format = QwtColorMap::RGB);
-//
-//    QwtLinearColorMap(const QwtLinearColorMap &);
-//
-//    virtual ~QwtLinearColorMap();
-//
-//    QwtLinearColorMap &operator=(const QwtLinearColorMap &);
-//
-//    virtual QwtColorMap *copy() const;
-//
-//    void setMode(Mode);
-//    Mode mode() const;
-//
-//    void setColorInterval(const QColor &color1, const QColor &color2);
-//    void addColorStop(double value, const QColor&);
-//    QwtArray<double> colorStops() const;
-//
-//    QColor color1() const;
-//    QColor color2() const;
-//
-//    virtual QRgb rgb(const QwtDoubleInterval &, double value) const;
-//    virtual unsigned char colorIndex(
-//        const QwtDoubleInterval &, double value) const;
-//
-//    class ColorStops;
-//
-//private:
-//    class PrivateData;
-//    PrivateData *d_data;
-//};
+//static 
+double const CBratLookupTable::smDefaultRangeValues = defaultValue< double >();
+
+
+
+
+
+QLookupTable::QLookupTable() 
+	: qwt_base_t()
+	, qwt3d_base_t()
+{
+	mTableRange[0] = CBratLookupTable::smDefaultRangeValues;
+	mTableRange[1] = CBratLookupTable::smDefaultRangeValues;
+}
 
 
 
@@ -260,7 +233,7 @@ Qwt3D::ColorVector& QLookupTable::createVector( Qwt3D::ColorVector& vec )
 }
 
 
-#endif
+#endif		// BRAT_V3
 
 
 

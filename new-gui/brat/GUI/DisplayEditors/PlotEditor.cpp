@@ -114,7 +114,7 @@ void CPlotEditor::Wire()
 	connect( mTabAxisOptions->mZLogScaleCheck, SIGNAL( toggled( bool ) ), this, SLOT( HandleLogarithmicScaleZ( bool ) ) );
 
 
-    // spectrogram
+    // spectrogram / 3d
 
 	connect( mTabCurveOptions->mColorMapWidget, SIGNAL( ShowContourToggled( bool ) ), this, SLOT( HandleShowContourChecked( bool ) ) );
 	connect( mTabCurveOptions->mColorMapWidget, SIGNAL( ContoursEditReturnPressed() ), this, SLOT( HandleNumberOfContoursChanged() ) );
@@ -725,7 +725,6 @@ bool CPlotEditor::UpdateCurrentPointers( int field_index )
 {
 	mCurrentPlotDataYFX = nullptr;
 	mCurrentPlotDataZFXY = nullptr;
-	mCurrentBratLookupTable = nullptr;
 
 	if ( field_index < 0 )
         return false;
@@ -737,9 +736,6 @@ bool CPlotEditor::UpdateCurrentPointers( int field_index )
 		assert__( field_index < (int)mCurrentPlotZFXY->Size() );
 
 		mCurrentPlotDataZFXY = mCurrentPlotZFXY->PlotData( field_index );	assert__( mCurrentPlotDataZFXY && *mCurrentPlotDataZFXY && mCurrentPlotDataZFXY->size() == 1 );	//simply to check if ever...
-		mCurrentPlotDataZFXY = GetDisplayData( field_index, mCurrentPlotZFXY );
-		mCurrentBratLookupTable = mCurrentPlotDataZFXY->ColorTablePtr();
-		mCurrentBratLookupTable->ExecMethod( mCurrentPlotDataZFXY->ColorPalette() );
 	}
 	else
 	{
@@ -748,7 +744,7 @@ bool CPlotEditor::UpdateCurrentPointers( int field_index )
 		mCurrentPlotDataYFX = mCurrentPlotYFX->PlotData( field_index );		assert__( mCurrentPlotDataYFX && *mCurrentPlotDataYFX );			//size >= 1 for animated
 	}
 
-	return mCurrentPlotDataYFX != nullptr || ( mCurrentPlotDataZFXY != nullptr && mCurrentBratLookupTable != nullptr );
+	return mCurrentPlotDataYFX != nullptr || mCurrentPlotDataZFXY != nullptr;
 }
 
 
@@ -814,9 +810,6 @@ void CPlotEditor::Recreate3DPlots( bool build2d, bool build3d )
 
 		// void CZFXYPlotPanel::AddData( CZFXYPlotData* pdata, wxProgressDialog* dlg )
 
-		// TODO brat v3 does not update range
-		mCurrentBratLookupTable->GetLookupTable()->SetTableRange( mCurrentPlotDataZFXY->CurrentMinValue(), mCurrentPlotDataZFXY->CurrentMaxValue() );		//pdata->GetLookupTable()->GetTableRange()
-		
 		double m, M;
 		mCurrentPlotDataZFXY->GetDataRange( m, M );
 
@@ -839,7 +832,7 @@ void CPlotEditor::Recreate3DPlots( bool build2d, bool build3d )
 				mPlot2DView->PushRaster( 
 					mCurrentPlotDataZFXY->FieldName(), *mCurrentPlotDataZFXY, mCurrentPlotDataZFXY->MinContourValue(),
 					mCurrentPlotDataZFXY->MaxContourValue(), mCurrentPlotDataZFXY->NumContours(), 
-					*mCurrentBratLookupTable->GetLookupTable() 					//*pdata->GetLookupTable()
+					*mCurrentPlotDataZFXY->ColorTablePtr()->GetLookupTable()
 					);
 
 				//axis titles
@@ -852,7 +845,7 @@ void CPlotEditor::Recreate3DPlots( bool build2d, bool build3d )
 		{
 			//3d Rasters: assign color table
 
-			mPlot3DView->PushPlot( mCurrentPlotDataZFXY->at( 0 ), new QLookupTable( *mCurrentBratLookupTable->GetLookupTable() ) );
+			mPlot3DView->PushPlot( mCurrentPlotDataZFXY->at( 0 ), new QLookupTable( *mCurrentPlotDataZFXY->ColorTablePtr()->GetLookupTable() ) );
 
 			//axis titles
 
@@ -1333,7 +1326,7 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
 
 		// TODO color table properties must be assigned to plot and retrieved here from plot
 		mCurrentPlotDataZFXY->SetAbsoluteRangeValues( array.mMinHeightValue, array.mMaxHeightValue );
-		mTabCurveOptions->mColorMapWidget->SetLUT( mCurrentBratLookupTable, mCurrentPlotDataZFXY->AbsoluteMinValue(), mCurrentPlotDataZFXY->AbsoluteMaxValue() );
+		mTabCurveOptions->mColorMapWidget->SetLUT( mCurrentPlotDataZFXY->ColorTablePtr(), mCurrentPlotDataZFXY->AbsoluteMinValue(), mCurrentPlotDataZFXY->AbsoluteMaxValue() );
 	
 		return;
 	}
@@ -1452,21 +1445,15 @@ void CPlotEditor::HandleColorTablesIndexChanged( int index )
 
 	WaitCursor wait;
 
-	mCurrentPlotDataZFXY->SetColorPalette( mCurrentBratLookupTable->GetCurrentFunction() );
-	mCurrentPlotDataZFXY->SetCurrentMinValue( mCurrentBratLookupTable->GetLookupTable()->GetTableRange()[0] );
-	mCurrentPlotDataZFXY->SetCurrentMaxValue( mCurrentBratLookupTable->GetLookupTable()->GetTableRange()[1] );
+	CPlotData *pdata = mCurrentPlotDataYFX ? static_cast< CPlotData* >( mCurrentPlotDataYFX ) : static_cast< CPlotData* >( mCurrentPlotDataZFXY );
 
-	//if ( index >= 0 )
-	//{
-		assert__( mCurrentBratLookupTable );
-	//	auto name = q2a( mTabCurveOptions->mColorMapWidget->itemText( index ) );
-	//	mCurrentBratLookupTable->ExecMethod( name );
-	//}
-	//mTabCurveOptions->mColorMapWidget->SetLUT( ct );
+	//no need to assign... check only
+
+	assert__( mTabCurveOptions->mColorMapWidget->ColorRangeMin() == pdata->CurrentMinValue() && mTabCurveOptions->mColorMapWidget->ColorRangeMax() == pdata->CurrentMaxValue() );
 
 	if ( mPlotType != eHistogram )
-		mPlot2DView->SetRasterColorMap( *mCurrentBratLookupTable->GetLookupTable() );
-	mPlot3DView->SetColorMap( new QLookupTable( *mCurrentBratLookupTable->GetLookupTable() ) );
+		mPlot2DView->SetRasterColorMap( *pdata->ColorTablePtr()->GetLookupTable() );
+	mPlot3DView->SetColorMap( new QLookupTable( *pdata->ColorTablePtr()->GetLookupTable() ) );
 }
 
 

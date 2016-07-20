@@ -991,15 +991,17 @@ bool CWorkspaceSettings::SaveConfig( CDisplayData &data, const std::string& path
 	}
 
 
+	double current_min = data.CurrentMinValue();
+	double current_max = data.CurrentMaxValue();
 	if ( !isDefaultValue( data.mMinHeightValue ) && !isDefaultValue( data.mMaxHeightValue ) && 
-		!isDefaultValue( data.mCurrentMinValue ) && !isDefaultValue( data.mCurrentMaxValue ) )
+		( current_min != CBratLookupTable::smDefaultRangeValues ) && (current_max != CBratLookupTable::smDefaultRangeValues ) )
 	{
 		WriteSection( path,
 
 			k_v( ENTRY_FIELD_DATA_MIN_HEIGHT_VALUE,				CTools::Format( "%.15g", data.mMinHeightValue ) ),
 			k_v( ENTRY_FIELD_DATA_MAX_HEIGHT_VALUE,				CTools::Format( "%.15g", data.mMaxHeightValue ) ),
-			k_v( ENTRY_FIELD_DATA_MIN_CURRENT_HEIGHT_VALUE,		CTools::Format( "%.15g", data.mCurrentMinValue ) ),
-			k_v( ENTRY_FIELD_DATA_MAX_CURRENT_HEIGHT_VALUE,		CTools::Format( "%.15g", data.mCurrentMaxValue ) )
+			k_v( ENTRY_FIELD_DATA_MIN_CURRENT_HEIGHT_VALUE,		CTools::Format( "%.15g", current_min ) ),
+			k_v( ENTRY_FIELD_DATA_MAX_CURRENT_HEIGHT_VALUE,		CTools::Format( "%.15g", current_max ) )
 		);
 	}
 	else
@@ -1138,7 +1140,8 @@ bool CWorkspaceSettings::LoadConfig( CDisplayData *&pdata, const CDisplay *paren
 	//inherited CFieldData
 
 	QColor line_color, point_color, contour_line_color;
-
+	double current_min = CBratLookupTable::smDefaultRangeValues;
+	double current_max = CBratLookupTable::smDefaultRangeValues;
 	ReadSection( path,
 
 		k_v( ENTRY_FIELD_DATA_NAME,		&data.mFieldName ),
@@ -1176,10 +1179,10 @@ bool CWorkspaceSettings::LoadConfig( CDisplayData *&pdata, const CDisplay *paren
 		k_v( ENTRY_FIELD_DATA_STIPPLE_PATTERN,	(int*)&data.mStipplePattern,	(int)CFieldData::smDefaultStipplePattern ),
 		k_v( ENTRY_FIELD_DATA_POINT_COLOR,		&point_color,					CFieldData::smDefaultPointColor.GetQColor() ),
 
-		k_v( ENTRY_FIELD_DATA_MIN_HEIGHT_VALUE,				&data.mMinHeightValue, defaultValue< double >() ),
-		k_v( ENTRY_FIELD_DATA_MAX_HEIGHT_VALUE,				&data.mMaxHeightValue, defaultValue< double >() ),
-		k_v( ENTRY_FIELD_DATA_MIN_CURRENT_HEIGHT_VALUE,		&data.mCurrentMinValue, defaultValue< double >() ),
-		k_v( ENTRY_FIELD_DATA_MAX_CURRENT_HEIGHT_VALUE,		&data.mCurrentMaxValue, defaultValue< double >() ),
+		k_v( ENTRY_FIELD_DATA_MIN_HEIGHT_VALUE,				&data.mMinHeightValue,	defaultValue< double >() ),
+		k_v( ENTRY_FIELD_DATA_MAX_HEIGHT_VALUE,				&data.mMaxHeightValue,	defaultValue< double >() ),
+		k_v( ENTRY_FIELD_DATA_MIN_CURRENT_HEIGHT_VALUE,		&current_min,			CBratLookupTable::smDefaultRangeValues ),
+		k_v( ENTRY_FIELD_DATA_MAX_CURRENT_HEIGHT_VALUE,		&current_max,			CBratLookupTable::smDefaultRangeValues ),
 
 		k_v( ENTRY_NUMBER_OF_BINS,		&data.mNumberOfBins,		CFieldData::smDefaultNumberOfBins )
 	);
@@ -1187,6 +1190,8 @@ bool CWorkspaceSettings::LoadConfig( CDisplayData *&pdata, const CDisplay *paren
 	data.SetLineColor( line_color );
 	data.SetPointColor( point_color );
 	data.SetContourLineColor( contour_line_color );
+	data.SetCurrentMinValue( current_min );
+	data.SetCurrentMaxValue( current_max );
 
 	// if color palette is a file (it has an extension)
 	// save path in absolute form, based on workspace Display path

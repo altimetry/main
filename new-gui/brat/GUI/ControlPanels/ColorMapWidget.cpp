@@ -360,7 +360,7 @@ void CColorMapWidget::SetShowSolidColor( bool checked )
 
 
 
-void CColorMapWidget::SetLUT( CBratLookupTable *lut, double min, double max )
+void CColorMapWidget::SetLUT( CBratLookupTable *lut, double absolute_min, double absolute_max )
 {
 	mLut = lut;
 	mColorTables->blockSignals( true );		//we don't want client code to think that the user changed the color map
@@ -369,9 +369,16 @@ void CColorMapWidget::SetLUT( CBratLookupTable *lut, double min, double max )
 		mColorTables->addItem( ii->c_str() );	
 	mColorTables->blockSignals( false );
 
-	mAbsoluteMin = min;
-	mAbsoluteMax = max;
-	SetRange( mAbsoluteMin, mAbsoluteMax );
+	mAbsoluteMin = absolute_min;
+	mAbsoluteMax = absolute_max;
+	if ( mLut->CurrentMinValue() == CBratLookupTable::smDefaultRangeValues || mLut->CurrentMaxValue() == CBratLookupTable::smDefaultRangeValues )
+	{
+		SetRange( mAbsoluteMin, mAbsoluteMax );		//assume internal range not initialized and initialize with given defaults (absolute values);
+	}
+	else
+	{
+		SetRange( mLut->CurrentMinValue(), mLut->CurrentMaxValue() );	//assume internal range initialized and use it
+	}
 }
 
 
@@ -404,7 +411,7 @@ void CColorMapWidget::HandleColorRangeMinChanged()
 	QString smin = mColorRangeMinEdit->text();
 	bool ok_conv = false;
 	double rangeMin = smin.toDouble( &ok_conv );
-	if ( !ok_conv || rangeMin < mAbsoluteMin || rangeMin > mAbsoluteMax )
+	if ( !ok_conv || rangeMin < mAbsoluteMin || rangeMin > mAbsoluteMax || rangeMin > mColorRangeMax )
 	{
 		SimpleErrorBox( "Invalid minimum range value." );
 		mColorRangeMinEdit->setFocus();
@@ -417,7 +424,7 @@ void CColorMapWidget::HandleColorRangeMaxChanged()
 	QString smax = mColorRangeMaxEdit->text();
 	bool ok_conv = false;
 	double rangeMax = smax.toDouble( &ok_conv );
-	if ( !ok_conv || rangeMax < mAbsoluteMin || rangeMax > mAbsoluteMax )
+	if ( !ok_conv || rangeMax < mAbsoluteMin || rangeMax > mAbsoluteMax || rangeMax < mColorRangeMin )
 	{
 		SimpleErrorBox( "Invalid maximum range value." );
 		mColorRangeMaxEdit->setFocus();
@@ -448,7 +455,7 @@ void CColorMapWidget::SetRange( double min, double max )
 	mColorRangeMin = std::min( mAbsoluteMax, std::max( mAbsoluteMin, min ) );
 	mColorRangeMax = std::max( mAbsoluteMin, std::min( mAbsoluteMax, max ) );
 
-	mLut->GetLookupTable()->SetTableRange( mColorRangeMin, mColorRangeMax );
+	mLut->SetTableRange( mColorRangeMin, mColorRangeMax );
 
 	mColorRangeMinEdit->setText( n2s<std::string>( mColorRangeMin ).c_str() );
 	mColorRangeMaxEdit->setText( n2s<std::string>( mColorRangeMax ).c_str() );
