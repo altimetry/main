@@ -21,13 +21,22 @@
 #include "BratContour.h"
 
 //static 
-const int CBratContour::invalid = std::numeric_limits<int>::max();
+const long_t CBratContour::invalid = std::numeric_limits<long_t>::max();
 
 
 double TestFunction(double x,double y)
 {  
 	return 0.5*(cos(x+3.14/4)+sin(y+3.14/4)); 
 };
+
+
+inline bool DefaultSetCurrentValue( int current )
+{
+    UNUSED( current );
+
+	return true;
+}
+
 
 //////////////////////////////////////////////////////////////////////
 // Construction/Destruction
@@ -45,12 +54,33 @@ CBratContour::CBratContour()
 
 	// temporary stuff
 	m_pFieldFcn=TestFunction;
+	SetProgressInterface();
 	m_vPlanes.resize(20);
-	for (unsigned long i=0;i<m_vPlanes.size();i++)
+	for ( size_t i=0; i < m_vPlanes.size(); i++ )
 	{
-		m_vPlanes[i]=(i-m_vPlanes.size()/2.0)*0.1;
+		m_vPlanes[ i ]=( i - m_vPlanes.size() / 2.0 )*0.1;
 	}
 }
+
+
+void CBratContour::SetProgressInterface( CProgressInterface *pI, int m, int M )		//pI = nullptr, int m = 0, int M = 0 
+{
+	mProgressInterface = pI;
+
+	if ( mProgressInterface )
+	{
+		mProgressInterface->SetRange( m, M );
+		mProgress = [this]( int current ) -> bool
+		{
+			if ( !mProgressInterface->SetCurrentValue( current ) )
+				throw false;
+			return true;
+		};
+	}
+	else
+		mProgress = DefaultSetCurrentValue;
+}
+
 
 CBratContour::~CBratContour()
 {
@@ -62,7 +92,7 @@ void CBratContour::InitMemory()
 	if (!m_ppFnData)
 	{
 		m_ppFnData=new CFnStr*[m_iColSec+1];
-		for (int i=0;i<m_iColSec+1;i++)
+		for (long_t i=0;i<m_iColSec+1;i++)
 		{
 			m_ppFnData[i]=nullptr;
 		}
@@ -73,28 +103,28 @@ void CBratContour::CleanMemory()
 {
 	if (m_ppFnData)
 	{
-		int i;
+		long_t i;
 		for (i=0;i<m_iColSec+1;i++)
 		{
-			if (m_ppFnData[i])
-				delete[] (m_ppFnData[i]);
+			if ( m_ppFnData[ i ] )
+				delete[] m_ppFnData[ i ];
 		}
 		delete[] m_ppFnData;
 		m_ppFnData=nullptr;
 	}
 }
 
-void CBratContour::Generate( bool compact )	//compact = true 
+void CBratContour::Generate( bool compact )	//bool compact = true 
 {
 	UNUSED( compact );
 
-	int i, j;
-	int x3, x4, y3, y4, x, y, oldx3, xlow;
-	const int cols=m_iColSec+1;
-	const int rows=m_iRowSec+1;
+	long_t i, j;
+	long_t x3, x4, y3, y4, x, y, oldx3, xlow;
+	const long_t cols=m_iColSec+1;
+	const long_t rows=m_iRowSec+1;
 	double xoff,yoff;
 	
-	// Initialize memroy if needed
+	// Initialize memory if needed
 	InitMemory();
 
 	m_dDx = (m_pLimits[1]-m_pLimits[0])/(double)(m_iColSec);
@@ -107,8 +137,8 @@ void CBratContour::Generate( bool compact )	//compact = true
 	x3 = (cols-1)/m_iRowFir;
 	x4 = ( 2*(cols-1) )/m_iRowFir;
 	for (x = oldx3; x <= x4; x++) 
-	{	  /* allocate new columns needed
-		*/
+	{	  
+		// allocate new columns needed
 		if (x >= cols)
 			break;
 		if (m_ppFnData[x]==nullptr)
@@ -118,16 +148,21 @@ void CBratContour::Generate( bool compact )	//compact = true
 			FnctData(x,y)->m_sTopLen = -1;
 	}
 
+
 	y4 = 0;
 	for (j = 0; j < m_iColFir; j++) 
 	{
 		y3 = y4;
 		y4 = ((j+1)*(rows-1))/m_iColFir;
-		Cntr1(oldx3, x3, y3, y4);
+		Cntr1( oldx3, x3, y3, y4 );
 	}
+
+	mProgress( ProgressSoFar() + 1 );
 
 	for (i = 1; i < m_iRowFir; i++) 
 	{
+		mProgress( ProgressSoFar() + 1 );
+
 		y4 = 0;
 		for (j = 0; j < m_iColFir; j++) 
 		{
@@ -156,7 +191,8 @@ void CBratContour::Generate( bool compact )	//compact = true
 					if (m_ppFnData[x])
 						delete[] m_ppFnData[x];
 					m_ppFnData[x] = m_ppFnData[xlow];
-					m_ppFnData[ xlow++ ] = nullptr;
+					m_ppFnData[ xlow ] = nullptr;
+					xlow++;
 				} 
 				else
 					if (m_ppFnData[x]==nullptr)
@@ -168,6 +204,8 @@ void CBratContour::Generate( bool compact )	//compact = true
 		}
 	}
 
+	mProgress( ProgressSoFar() + 1 );
+
 	y4 = 0;
 	for (j = 0; j < m_iColFir; j++) 
 	{
@@ -175,12 +213,32 @@ void CBratContour::Generate( bool compact )	//compact = true
 		y4 = ((j+1)*(rows-1))/m_iColFir;
 		Pass2(x3,x4,y3,y4);
 	}
+
+	mProgress( ProgressSoFar() + 1 );
 }
 
-void CBratContour::Cntr1(int x1, int x2, int y1, int y2)
+bool CBratContour::GenerateContours( CProgressInterface *pI, bool compact )	//i = nullptr, bool compact = true 
+{
+	bool result = false;
+	try
+	{
+		SetProgressInterface( pI, 0, m_iRowFir + 3 );
+		SetProgressLabel( "Computing contours..." );
+		Generate( compact );
+		result = true;
+	}
+	catch ( ... )
+	{
+	}
+	SetProgressInterface();
+	return result;
+}
+
+
+void CBratContour::Cntr1(long_t x1, long_t x2, long_t y1, long_t y2)
 {
 	double f11, f12, f21, f22, f33;
-	int x3, y3, i, j;
+	long_t x3, y3, i, j;
 	
 	if ((x1 == x2) || (y1 == y2))	/* if not a real cell, punt */
 		return;
@@ -216,9 +274,9 @@ void CBratContour::Cntr1(int x1, int x2, int y1, int y2)
 	FnctData(x2,y1)->m_sLeftLen = FnctData(x1,y1)->m_sRightLen = y2-y1;
 }
 
-void CBratContour::Pass2(int x1, int x2, int y1, int y2)
+void CBratContour::Pass2(long_t x1, long_t x2, long_t y1, long_t y2)
 {
-	int left, right, top, bot,old, iNew, i, j, x3, y3;
+	long_t left, right, top, bot,old, iNew, i, j, x3, y3;
 	double yy0, yy1, xx0, xx1, xx3, yy3;
 	double v, f11, f12, f21, f22, f33, fold, fnew;
 	double xoff=m_pLimits[0];
@@ -251,7 +309,7 @@ void CBratContour::Pass2(int x1, int x2, int y1, int y2)
 		}
 	}
 
-	for (i = 0; i < (int)m_vPlanes.size(); i++) 
+	for (i = 0; i < (long_t)m_vPlanes.size(); i++) 
 	{
 		v = m_vPlanes[i];
 		j = 0;
@@ -280,7 +338,7 @@ void CBratContour::Pass2(int x1, int x2, int y1, int y2)
 			else
 				yy0 = (v-f11)/(f12-f11);
 
-			left = (int)(y1+(y2-y1)*yy0+0.5);
+			left = (long_t)(y1+(y2-y1)*yy0+0.5);
 		}
 		if ((f21 > v) ^ (f22 > v)) 
 		{
@@ -303,7 +361,7 @@ void CBratContour::Pass2(int x1, int x2, int y1, int y2)
 			else
 				yy1 = (v-f21)/(f22-f21);
 
-			right = (int)(y1+(y2-y1)*yy1+0.5);
+			right = (long_t)(y1+(y2-y1)*yy1+0.5);
 		}
 		if ((f21 > v) ^ (f11 > v)) 
 		{
@@ -324,7 +382,7 @@ void CBratContour::Pass2(int x1, int x2, int y1, int y2)
 			else
 				xx0 = (v-f11)/(f21-f11);
 
-			bot = (int)(x1+(x2-x1)*xx0+0.5);
+			bot = (long_t)(x1+(x2-x1)*xx0+0.5);
 		}
 		if ((f22 > v) ^ (f12 > v)) 
 		{
@@ -345,7 +403,7 @@ void CBratContour::Pass2(int x1, int x2, int y1, int y2)
 			else
 				xx1 = (v-f12)/(f22-f12);
 
-			top = (int)(x1+(x2-x1)*xx1+0.5);
+			top = (long_t)(x1+(x2-x1)*xx1+0.5);
 		}
 
 		switch (j) 
@@ -414,7 +472,7 @@ void CBratContour::Pass2(int x1, int x2, int y1, int y2)
 	}
 }
 
-double CBratContour::Field(int x, int y)	 /* evaluate funct if we must,	*/
+double CBratContour::Field(long_t x, long_t y)	 /* evaluate funct if we must,	*/
 {
 	double x1, y1;
 	
@@ -446,26 +504,26 @@ void CBratContour::SetFieldFcn( const std::function<double (double x, double y)>
 	m_pFieldFcn = pFieldFcn ;
 };
 
-void CBratContour::SetFirstGrid(int iCol, int iRow)
+void CBratContour::SetFirstGrid(long_t iCol, long_t iRow)
 {
-	m_iColFir=std::max(iCol,2);
-	m_iRowFir=std::max(iRow,2);
+	m_iColFir=std::max(iCol,2ll);
+	m_iRowFir=std::max(iRow,2ll);
 }
 
-void CBratContour::SetSecondaryGrid(int iCol, int iRow)
+void CBratContour::SetSecondaryGrid(long_t iCol, long_t iRow)
 {
 	// cleaning work matrices if allocated
 	CleanMemory();
 
-	m_iColSec=std::max(iCol,2);
-	m_iRowSec=std::max(iRow,2);
+	m_iColSec=std::max(iCol,2ll);
+	m_iRowSec=std::max(iRow,2ll);
 }
 
 void CBratContour::SetLimits(double pLimits[])
 {
 	assert__(pLimits[0]<pLimits[1]);
 	assert__(pLimits[2]<pLimits[3]);
-	for (int i=0;i<4;i++)
+	for (long_t i=0;i<4;i++)
 	{
 		m_pLimits[i]=pLimits[i];
 	}	
@@ -473,7 +531,7 @@ void CBratContour::SetLimits(double pLimits[])
 
 void CBratContour::GetLimits(double pLimits[])
 {
-	for (int i=0;i<4;i++)
+	for (long_t i=0;i<4;i++)
 	{
 		pLimits[i]=m_pLimits[i];
 	}

@@ -55,6 +55,20 @@ brathl_refDate CAbstractDisplayEditor::RefDateFromUnit( const CUnit &u )
 }
 
 
+//static
+QListWidgetItem* CAbstractDisplayEditor::MakeFieldItem( const CPlotData *pdata )
+{
+	std::string unit_label;
+	if ( pdata->HasDataUnitInfo() )
+		unit_label = " " + CDisplayInterface::MakeUnitLabel( *pdata->DataUnit() );
+
+	QListWidgetItem *item = new QListWidgetItem( t2q( pdata->UserName() + unit_label ) );
+	item->setToolTip( item->text() );
+	return item;
+}
+
+
+
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////////

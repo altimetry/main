@@ -51,6 +51,7 @@ enum EActionTag : int
 	eAction_Rename_Workspace,
 	eAction_Delete_Workspace,
 	eAction_About,
+	eAction_User_s_Manual,
 	eAction_Close_All,
 	eAction_Views_List,
 	eAction_Open_View,

@@ -113,6 +113,8 @@ public:
 
 	static const char* ReferenceDateFieldKey();
 
+	static const char* MagnitudeFactorKey();
+
 	static QString ExtractLayerBaseName( const QString &qname );
 
     static QgsVectorLayer* AskUserForOGRSublayers( QWidget *parent, QgsVectorLayer *layer );
@@ -124,11 +126,19 @@ public:
 	
     static QgsFeatureList& CreatePointDataFeature( QgsFeatureList &list, double lon, double lat, double value);
 
+	static QgsFeatureList& CreatePolygonDataFeature( QgsFeatureList &list, const CMapPlotParameters &array, size_t index, double step_x, double step_y );
+
+	static QgsFeatureList& CreateVectorFeature( QgsFeatureList &list, const CMapPlotParameters &array, size_t index, double value_factor );
+
+    static QgsVectorLayer* CreateArrowDataLayer(const std::string &name, QgsFeatureList &flist, double value_factor );
+
+	static QgsVectorLayer* CreateDataLayer( const std::string &name, double symbol_width, double m, double M, const QLookupTable *lut, QgsFeatureList &flist,
+		bool isdate, brathl_refDate date_ref );
+    
+protected:
     static QgsFeatureList& CreatePolygonDataFeature(QgsFeatureList &list, double lon, double lat, double value, double step_x, double step_y);
 
     static QgsFeatureList& CreateVectorFeature( QgsFeatureList &list, double lon, double lat, double angle, double magnitude );
-
-protected:
 
 	static void RemoveFeatures( QgsVectorLayer *layer );
 
@@ -145,9 +155,7 @@ protected:
 
 	static QgsSymbolV2* CreateLineSymbol( double width, const QColor &color );
 
-    ///////////////// TODO _ RCCC //////////////////////////////////////////
     static QgsSymbolV2* CreateArrowSymbol(const QColor &color );
-    /////////////////////////////////////////////////////////////////////////
 
 protected:
     //////////////////////////////////////
@@ -157,7 +165,10 @@ protected:
 	QgsMapLayer *mMainLayer = nullptr;
     ELayerBaseType mLayerBaseType = eVectorLayer;
 	QgsVectorLayer *mTracksLayer = nullptr;
-	QgsVectorLayer *mCurrentDataLayer = nullptr;		//last added that is visible
+	//- last added or selected in GUI that is visible
+	//- used by map tips
+	//
+	QgsVectorLayer *mSelectedDataLayer = nullptr;
 	std::vector< QgsVectorLayer* > mDataLayers;
 	std::vector< QgsVectorLayer* > mContourLayers;
 	QgsRasterLayer *mMainRasterLayer = nullptr;
@@ -171,7 +182,6 @@ protected:
 	QAction *mActionDecorationGrid = nullptr;	//we need this reference to parent action for enabling/disabling
 	CDecorationGrid *mDecorationGrid = nullptr;
 
-    // TODO: RCCC - Create Map Tips. ///////////////////////////
     // Maptip object
     CMapTip *mpMaptip = nullptr;
     // Point of last mouse position in map coordinates (used with MapTips)
@@ -205,7 +215,7 @@ protected:
 	//...domain
 
 	QgsCoordinateReferenceSystem mDefaultProjection;
-
+	const bool mVectorSimplifyMethod;
 
 
     //////////////////////////////////////
@@ -230,7 +240,7 @@ protected:
 	void CreateGridWidgets( QToolBar *tb );
 	void Init();		
 public:
-    explicit CMapWidget( ELayerBaseType layer_base_type, QWidget *parent, bool with_tracks_layer = false );
+    explicit CMapWidget( bool vector_simplify, ELayerBaseType layer_base_type, QWidget *parent, bool with_tracks_layer = false );
 
 	virtual ~CMapWidget();
 
@@ -268,10 +278,13 @@ public:
     //	public operations
     //////////////////////////////////////
 
+	//- fails if layer not visible
+	//- call with negative to deselect
+	bool SetCurrentDataLayer( int index );
 
 	bool IsDataLayerVisible( size_t index ) const;
 	bool IsContourLayerVisible( size_t index ) const;
-	bool SetDataLayerVisible( size_t index, bool show, bool render );
+	bool SetDataLayerVisible( size_t index, bool show, bool select, bool render );
 	bool SetContourLayerVisible( size_t index, bool show, bool render );
 	bool HasContourLayer( size_t index ) const;
 
@@ -285,6 +298,8 @@ public:
 	void RemoveLayers( bool render = false );
 	
 	void RemoveLayer( QgsMapLayer *layer, bool render = false );
+
+	void ReplaceDataLayer( size_t index, QgsVectorLayer* new_layer, bool render = false );
 
 protected:
 	void RemoveTracksLayer();
@@ -302,9 +317,9 @@ public:
 	bool Save2Image( const QString &path, const QString &format, const QString &extension );
 
 
-    void SetNumberOfContours( size_t index, size_t ncontours, const CMapPlotParameters &map );
+    bool SetNumberOfContours( size_t index, size_t ncontours, const CMapPlotParameters &map, unsigned factor1, unsigned factor2 );
 
-    void SetContoursProperties( size_t index, QColor color, unsigned width );
+    void SetContoursProperties( size_t index, QColor color, double width );
 
 
 	QgsCoordinateReferenceSystem DefaultProjection() const { return mDefaultProjection; }
@@ -323,9 +338,10 @@ public:
 	QgsVectorLayer* AddDataLayer( const std::string &name, double symbol_width, double m, double M, const QLookupTable *lut, QgsFeatureList &flist,
 		bool isdate, brathl_refDate date_ref );
     
-	QgsVectorLayer* AddContourLayer( size_t index, const std::string &name, unsigned width, QColor color, size_t ncontours, const CMapPlotParameters &map, const QLookupTable *lut = nullptr );
+	QgsVectorLayer* AddContourLayer( size_t index, const std::string &name, double width, QColor color, size_t ncontours, unsigned factor1, unsigned factor2, 
+		const CMapPlotParameters &map, const QLookupTable *lut = nullptr );
 
-    QgsVectorLayer* AddArrowDataLayer(const std::string &name, QgsFeatureList &flist );
+    QgsVectorLayer* AddArrowDataLayer(const std::string &name, QgsFeatureList &flist, double value_factor );
 
     void PlotTrack( const double *x, const double *y, const double *z, size_t size, brathl_refDate ref_date, QColor color = Qt::red );
 
@@ -399,7 +415,7 @@ signals:
 
 public slots:
 
-	void ShowMouseCoordinate( const QgsPoint & p, bool erase = false );
+	void ShowMouseCoordinate( const QgsPoint & p );
 	void ShowMouseCoordinate( const QString s, bool erase = false );
 	void ShowMouseDegreeCoordinates( const QgsPoint & p, bool erase = false );
 

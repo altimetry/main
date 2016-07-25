@@ -124,6 +124,8 @@ protected:
 
 	CViewControlsPanelGeneralMaps* TabGeneral();
 
+	QgsVectorLayer* CreateCurrentDataLayer( bool add = true );
+
 	void ResetMap();
 
 	void KillGlobe();
@@ -160,6 +162,10 @@ protected:
 	// Handlers
 	///////////////////////////////////////////////////////////
 
+	//helper, not slot
+
+	bool SetNumberOfContours( int field_index, std::pair< unsigned, unsigned > grid , unsigned contours );
+
 protected slots:
 
 	void HandleCurrentFieldChanged( int field_index );
@@ -167,10 +173,12 @@ protected slots:
 	void HandleShowContourChecked( bool checked );
 	void HandleContourColorSelected();
 	void HandleNumberOfContoursChanged();
+	void HandleContourPrecisionGridEditPressed();
 	void HandleContourWidthChanged();
 	void HandleShowSolidColorChecked( bool checked );
 	void HandleColorTablesIndexChanged( int index );
 
+	void HandleMagnitudeFactorEditEntered();
 
 	void HandleProjection();
 };

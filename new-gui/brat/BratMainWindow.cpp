@@ -1392,6 +1392,12 @@ void CBratMainWindow::on_action_About_triggered()
 }
 
 
+void CBratMainWindow::on_action_User_s_Manual_triggered()
+{
+	QDesktopServices::openUrl( QUrl( ( "file:///" + mSettings.BratPaths().mUserManualPath ).c_str(), QUrl::TolerantMode ) );
+}
+
+
 static bool thread_finished = true;
 
 class DebugThread : public QThread

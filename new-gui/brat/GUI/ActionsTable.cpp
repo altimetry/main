@@ -66,9 +66,11 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_About, "&About...", CActionInfo::FormatTip("About"), ":/images/BratIcon.png" },
 
-    { eAction_Views_List, "&List...", CActionInfo::FormatTip("List\nList all open windows and select or close views"), ":/images/themes/default/propertyicons/diagram.png" },
+	{ eAction_User_s_Manual, "User's &Manual...", CActionInfo::FormatTip("User's Manual"), "" },
 
     { eAction_Close_All, "Close &All", CActionInfo::FormatTip("Close All"), "" },
+
+    { eAction_Views_List, "&List...", CActionInfo::FormatTip("List\nList all open windows and select or close views"), ":/images/themes/default/propertyicons/diagram.png" },
 
     { eAction_Open_View, "&Open...", CActionInfo::FormatTip("Open view\nSelect a view from the list of all workspace views"), ":/images/OSGeo/open.png" },
 
@@ -177,7 +179,7 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
 	{ eAction_ExportView, "", "Save view as image file under selected format", "://images/OSGeo/map-export.png" },
 
-    { eAction_DataDisplayProperties, "", CActionInfo::FormatTip("View Properties\nEdit display properties of selected field"), ":images/OSGeo/map-settings.png" },
+    { eAction_DataDisplayProperties, "", CActionInfo::FormatTip("Vector Plot Properties\nSet selected field as East or North component."), ":images/OSGeo/map-settings.png" },
 
 
     // TODO images __n, __o and __p are used by settings dialog
@@ -203,7 +205,7 @@ bool CActionInfo::CheckActionsTableIntegrity()
 		{
 			EActionTag tag_i = static_cast< EActionTag >( i );
 			const CActionInfo& ai_i = ActionInfo( tag_i );
-			if ( ai_i == ai )
+			if ( !ai.mName.empty() && ai_i == ai )
 				return true;
 		}
 		return false;

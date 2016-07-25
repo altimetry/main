@@ -69,6 +69,32 @@ private:
 
 #if !defined( BRAT_V3)
 
+
+QgsCoordinateReferenceSystem CreateNearSightedProjection()
+{
+	// This projection should be Azimuthal Orthographic Projection
+	// See:  http://polemic.nz/2014/11/21/nz-azimuth-orthographic/
+	//
+	// example (New Zealand):
+	//
+	// +proj=ortho +lat_0=-36 +lon_0=175 +x_0=0 +y_0=0 +a=6371000 +b=6371000 +units=m +no_defs
+
+	static const std::string name = "Near-Sided Perspective";
+
+	QgsCoordinateReferenceSystem crs;
+	if ( !crs.createFromProj4( "+proj=ortho +lat_0=0 +lon_0=0 +x_0=0 +y_0=0 +a=6371000 +b=6371000 +units=m +no_defs" ) )
+		LOG_WARN( "Failed to create " + name + " projection" );
+
+	if ( crs.findMatchingProj() == 0 )
+		if ( !crs.saveAsUserCRS( name.c_str() ) )
+			LOG_WARN( "Failed to save " + name + " projection" );
+
+	return crs;
+}
+
+
+
+
 using crs_entry_t = std::pair< unsigned, QgsCoordinateReferenceSystem >;
 using crs_map_t = const std::vector< crs_entry_t >;
 
@@ -81,7 +107,7 @@ crs_entry_t MakeCRSEntryFromId( unsigned id )
 	switch ( id )
 	{
 		case PROJ2D_LAMBERT_CYLINDRICAL:
-            return { id, { 54003, QgsCoordinateReferenceSystem::EpsgCrsId } };	//World_Miller_Cylindrical
+            return { id, { 54003, QgsCoordinateReferenceSystem::EpsgCrsId } };      //World_Miller_Cylindrical
 			break;
 
 		case PROJ2D_PLATE_CAREE:
@@ -115,11 +141,11 @@ crs_entry_t MakeCRSEntryFromId( unsigned id )
 			return { id, { 102020, QgsCoordinateReferenceSystem::EpsgCrsId } };		//???? South_Pole_Lambert_Azimuthal_Equal_Area
 			break;
 
-        // TODO RCCC - This projection should be Azimuthal Orthographic Projection
-        // See:  http://polemic.nz/2014/11/21/nz-azimuth-orthographic/
-        // +proj=ortho +lat_0=-36 +lon_0=175 +x_0=0 +y_0=0 +a=6371000 +b=6371000 +units=m +no_defs
 		case PROJ2D_NEAR_SIGHTED:
-			return { id, { 53031, QgsCoordinateReferenceSystem::EpsgCrsId } };		//??? Sphere_Two_point_Equidistant 
+            {
+				static const QgsCoordinateReferenceSystem crs = CreateNearSightedProjection();
+                return { id, crs };
+            }
 			break;
 
 		case PROJ2D_STEREOGRAPHIC:

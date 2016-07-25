@@ -183,8 +183,9 @@ bool CBratSettings::SaveConfig()
 		k_v( ENTRY_ADVANCED_OPERATIONS,		mAdvancedOperations ),
 
 		k_v( ENTRY_LOAD_WKSPC_AT_STARTUP,	mLoadLastWorkspaceAtStartUp ),
-        k_v( ENTRY_MAIN_LAYER_BASE_TYPE,         (int)mMainLayerBaseType ),
-        k_v( ENTRY_VIEWS_LAYER_BASE_TYPE,         (int)mViewsLayerBaseType ),
+        k_v( ENTRY_MAIN_LAYER_BASE_TYPE,    (int)mMainLayerBaseType ),
+        k_v( ENTRY_VIEWS_LAYER_BASE_TYPE,   (int)mViewsLayerBaseType ),
+		k_v( ENTRY_VECTOR_SIMPLIFY_METHOD,	mVectorSimplifyMethod ),
 		k_v( ENTRY_DESKTOP_MANAGER_SDI,		mDesktopManagerSdi ),
 		k_v( ENTRY_CHECK_OPENGL,			mCheckOpenGL )
 	)
@@ -221,6 +222,7 @@ bool CBratSettings::LoadConfig()
 		k_v( ENTRY_LOAD_WKSPC_AT_STARTUP,	&mLoadLastWorkspaceAtStartUp ),
         k_v( ENTRY_MAIN_LAYER_BASE_TYPE,	(int*)&mMainLayerBaseType, (int)smDefaultLayerBaseType ),
         k_v( ENTRY_VIEWS_LAYER_BASE_TYPE,	(int*)&mViewsLayerBaseType, (int)smDefaultLayerBaseType ),
+		k_v( ENTRY_VECTOR_SIMPLIFY_METHOD,	&mVectorSimplifyMethod, true ),
 		k_v( ENTRY_DESKTOP_MANAGER_SDI,		&mDesktopManagerSdi, true ),
 		k_v( ENTRY_CHECK_OPENGL,			&mCheckOpenGL, true )
 	)

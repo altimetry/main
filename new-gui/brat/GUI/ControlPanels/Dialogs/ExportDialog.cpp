@@ -128,6 +128,7 @@ void  CExportDialog::CreateWidgets()
     // Output file
 
     mOutputPathLineEdit = new QLineEdit();
+    SetReadOnlyEditor( mOutputPathLineEdit, true );
     mBrowseButton = new QPushButton( "Browse..." );
 	mBrowseButton->setToolTip( CActionInfo::FormatTip( "Select a output file." ).c_str() );
 
@@ -182,6 +183,7 @@ void  CExportDialog::CreateWidgets()
 
     adjustSize();
     setMinimumWidth( width() );
+    setMaximumHeight( height() );
 
     Wire();
 }
@@ -466,7 +468,7 @@ void CExportDialog::HandleColorTablesIndexChanged( int )
 }
 
 
-bool CExportDialog::Execute()
+bool CExportDialog::Validate()
 {
 	mDelayExecution = mDelayExecutionCheckBox->isChecked();
 
@@ -537,7 +539,7 @@ bool CExportDialog::Execute()
 //virtual
 void  CExportDialog::accept()
 {
-	if ( Execute() )
+	if ( Validate() )
 		base_t::accept();
 }
 

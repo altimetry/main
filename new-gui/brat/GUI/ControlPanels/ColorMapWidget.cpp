@@ -132,7 +132,7 @@ void CColorMapWidget::CreateWidgets( bool show_range )
 	view_control_font.setPointSize( view_control_font.pointSize() - 1 );
 	setFont( view_control_font );
 	const int height = fontMetrics().lineSpacing() + 6;
-	const int lwidth = 50;
+	const int lwidth = fontMetrics().width('0') * 13;		//see line (*) in UpdateLabels(): 10 + '.' + 2 decimals
 
 	auto shrinkh = [&height, &view_control_font]( QWidget *w )
 	{
@@ -141,9 +141,11 @@ void CColorMapWidget::CreateWidgets( bool show_range )
 		return w;
 	};
 
-	auto wshrinkh = [&shrinkh, &lwidth]( QWidget *w )
+	auto wshrinkh = [&shrinkh, &lwidth]() -> QLabel*
 	{
+		QLabel *w = new QLabel;
 		shrinkh( w )->setMaximumWidth( lwidth );
+		w->setStyleSheet("border: 1px solid  #000000 ;");
 		return w;
 	};
 
@@ -154,10 +156,13 @@ void CColorMapWidget::CreateWidgets( bool show_range )
 	if ( !mOnlyLUT )
 	{
 		mShowSolidColor = new QCheckBox( "Solid Color" );
-		mNumberOfContoursEdit = new QLineEdit;
-		mNumberOfContoursEdit->setValidator( new QRegExpValidator( QRegExp( "[0-9]+" ) ) );
-		mContourWidthEdit = new QLineEdit;
-		mContourWidthEdit->setValidator( new QRegExpValidator( QRegExp( "[0-9.]+" ) ) );
+		mNumberOfContoursEdit = new QLineEdit;		mNumberOfContoursEdit->setValidator( new QRegExpValidator( QRegExp( "[0-9]+" ) ) );
+		mContourWidthEdit = new QLineEdit;	  		mContourWidthEdit->setValidator( new QRegExpValidator( QRegExp( "[0-9.]+" ) ) );
+
+		mContourPrecisionLabel = new QLabel( "Precision" );
+		mContourPrecisionGrid1Edit = new QLineEdit;	  	mContourPrecisionGrid1Edit->setValidator( new QRegExpValidator( QRegExp( "[0-9]+" ) ) );
+		mContourPrecisionGrid2Edit = new QLineEdit;	  	mContourPrecisionGrid2Edit->setValidator( new QRegExpValidator( QRegExp( "[0-9]+" ) ) );
+
 		mContourColorButton = new CColorButton;
 		mContourWidthLabel = new QLabel( "Width" );
 		mShowContourBox = CreateGroupBox( ELayoutType::Horizontal, 
@@ -166,16 +171,17 @@ void CColorMapWidget::CreateWidgets( bool show_range )
 			{ 
 				LayoutWidgets( Qt::Horizontal, { new QLabel( "Number" ), shrinkh( mNumberOfContoursEdit ) }, nullptr, 2,2,0,2,2 ),
 				LayoutWidgets( Qt::Horizontal, { mContourWidthLabel, shrinkh( mContourWidthEdit ) }, nullptr, 2,2,0,2,2 ),
-			}, nullptr, 2,0,0,0,0 ),
-
-			nullptr,
+				LayoutWidgets( Qt::Horizontal, { mContourPrecisionLabel, shrinkh( mContourPrecisionGrid1Edit ), shrinkh( mContourPrecisionGrid2Edit ) }, nullptr, 2,2,0,2,2 ),
+			}, nullptr, 0,0,0,0,0 ),
 
 			mContourColorButton, 
 
 		}, "Contours", nullptr );
+		ShowPrecisionParameters( false );
 		mShowContourBox->setCheckable( true );
 		mShowContourBox->setChecked( false );
 		solid_and_contour_l = LayoutWidgets( Qt::Vertical, { mShowSolidColor, mShowContourBox }, nullptr, 6, 2, 2, 2, 2 );
+		mShowContourBox->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
 	}
 
 	// color table
@@ -196,12 +202,11 @@ void CColorMapWidget::CreateWidgets( bool show_range )
 	// color range
 
 	QLayout *labels_l = nullptr;
-	QGroupBox *color_range_group = nullptr;
 	if ( show_range )
 	{
-		color_range_group = CreateGroupBox( ELayoutType::Vertical, 
+		mColorRangeGroup = CreateGroupBox( ELayoutType::Vertical, 
 		{
-			LayoutWidgets( Qt::Horizontal, { new QLabel("min"), mColorRangeMinEdit, nullptr, new QLabel("max"), mColorRangeMaxEdit } , nullptr ,4,4,4,4,4 ),
+			LayoutWidgets( Qt::Horizontal, { new QLabel("min"), mColorRangeMinEdit, nullptr, new QLabel("max"), mColorRangeMaxEdit }, nullptr ,4,4,4,4,4 ),
 			mCalculateMinMax,
 		}
 		,"Color Range", nullptr, 4,4,4,4,4 );
@@ -209,13 +214,8 @@ void CColorMapWidget::CreateWidgets( bool show_range )
 
 		for ( int i = 0; i < smNumberOfColorLabels; ++i )
 		{
-			mColorLabels[ i ] = (QLabel*)wshrinkh( new QLabel );
+			mColorLabels[ i ] = wshrinkh();
 		}
-		mColorLabels[ 0 ]->setAlignment( Qt::AlignLeft );
-		mColorLabels[ 1 ]->setAlignment( Qt::AlignCenter );
-		mColorLabels[ 2 ]->setAlignment( Qt::AlignCenter );
-		mColorLabels[ 3 ]->setAlignment( Qt::AlignCenter );
-		mColorLabels[ 4 ]->setAlignment( Qt::AlignRight );
 
 		labels_l = LayoutWidgets( Qt::Horizontal,
 		{
@@ -224,28 +224,29 @@ void CColorMapWidget::CreateWidgets( bool show_range )
 
 		mColorMapLabel->setMinimumWidth( ( lwidth + 3 ) * 5 );
 		//mColorMapLabel->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::Maximum );
-		//setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::Maximum );
+		//color_range_group->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::Maximum );
 	}
 
 	std::vector<QObject*> v{ mColorTables, mColorMapLabel };
 	if ( labels_l )
 		v.push_back( labels_l );
 	v.push_back( nullptr );
-	auto *color_map_l = CreateGroupBox( ELayoutType::Vertical, v, "Color Table", nullptr, 1,2,0,2,2 );
+	mColorMapGroup = CreateGroupBox( ELayoutType::Vertical, v, "Color Table", nullptr, 1,2,0,2,2 );
+	//color_map_l->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Maximum );
 
 
 	// assemble all
 
 	if ( solid_and_contour_l )
-		if ( color_range_group )
-			LayoutWidgets( Qt::Horizontal, { solid_and_contour_l, color_map_l, color_range_group }, this, 2,2,2,2,2 );
+		if ( mColorRangeGroup )
+			LayoutWidgets( Qt::Horizontal, { solid_and_contour_l, mColorMapGroup, mColorRangeGroup }, this, 2,2,2,2,2 );
 		else
-			LayoutWidgets( Qt::Horizontal, { solid_and_contour_l, color_map_l }, this, 2,2,2,2,2 );
+			LayoutWidgets( Qt::Horizontal, { solid_and_contour_l, mColorMapGroup }, this, 2,2,2,2,2 );
 	else
-		if ( color_range_group )
-			LayoutWidgets( Qt::Horizontal, { color_map_l, color_range_group }, this, 2,2,2,2,2 );
+		if ( mColorRangeGroup )
+			LayoutWidgets( Qt::Horizontal, { mColorMapGroup, mColorRangeGroup }, this, 2,2,2,2,2 );
 		else
-			LayoutWidgets( Qt::Horizontal, { color_map_l }, this, 2,2,2,2,2 );
+			LayoutWidgets( Qt::Horizontal, { mColorMapGroup }, this, 2,2,2,2,2 );
 }
 
 
@@ -264,6 +265,10 @@ CColorMapWidget::CColorMapWidget( bool only_lut, bool show_range, QWidget *paren
 		connect( mShowSolidColor, SIGNAL( toggled( bool ) ), this, SIGNAL( ShowSolidColorToggled( bool ) ), Qt::QueuedConnection );
 		connect( mNumberOfContoursEdit, SIGNAL( returnPressed() ), this, SIGNAL( ContoursEditReturnPressed() ), Qt::QueuedConnection );
 		connect( mContourWidthEdit, SIGNAL( returnPressed() ), this, SIGNAL( ContourWidthReturnPressed() ), Qt::QueuedConnection );
+
+		connect( mContourPrecisionGrid1Edit, SIGNAL( returnPressed() ), this, SIGNAL( ContourPrecisionGrid1EditPressed() ), Qt::QueuedConnection );
+		connect( mContourPrecisionGrid2Edit, SIGNAL( returnPressed() ), this, SIGNAL( ContourPrecisionGrid2EditPressed() ), Qt::QueuedConnection );
+
 		connect( mContourColorButton, SIGNAL( ColorChanged() ), this, SLOT( HandleContourColorSelected() ) );
 	}
 
@@ -274,6 +279,32 @@ CColorMapWidget::CColorMapWidget( bool only_lut, bool show_range, QWidget *paren
 	connect( mColorRangeMaxEdit, SIGNAL( editingFinished() ), this, SLOT( HandleColorRangeMaxFinished( ) ) );
 	connect( mColorTables, SIGNAL( currentIndexChanged( int ) ), this, SLOT( HandleColorTablesIndexChanged( int ) ) );
 }
+
+
+void CColorMapWidget::ShowPrecisionParameters( bool show )
+{
+	mContourPrecisionLabel->setVisible( show );
+	mContourPrecisionGrid1Edit->setVisible( show );
+	mContourPrecisionGrid2Edit->setVisible( show );
+}
+
+
+void CColorMapWidget::EnableOnlySolidColor( bool enable_only )
+{
+	assert__( mShowSolidColor );
+
+	if ( mColorRangeGroup )
+		mColorRangeGroup->setEnabled( !enable_only );
+
+	if ( mColorMapGroup )
+		mColorMapGroup->setEnabled( !enable_only );
+
+	if ( mShowContourBox )
+		mShowContourBox->setEnabled( !enable_only );
+
+	mShowSolidColor->setEnabled( true );
+}
+
 
 
 void CColorMapWidget::SetShowContour( bool checked )
@@ -314,6 +345,26 @@ double CColorMapWidget::ContoursWidth() const
 void CColorMapWidget::SetContoursWidth( double width )
 {
 	mContourWidthEdit->setText( n2s<std::string>( width ).c_str() );
+}
+
+
+void CColorMapWidget::PrecisionParameters( unsigned int &grid1, unsigned int &grid2 )
+{
+    bool ok = false;
+    grid1 = mContourPrecisionGrid1Edit->text().toUInt( &ok );
+	if ( !ok )
+		grid1 = 0.;
+
+    grid2 = mContourPrecisionGrid2Edit->text().toUInt( &ok );
+	if ( !ok )
+		grid2 = 0.;
+}
+
+
+void CColorMapWidget::SetPrecisionParameters( unsigned int grid1, unsigned int grid2 )
+{
+	mContourPrecisionGrid1Edit->setText( n2q( grid1 ) );
+	mContourPrecisionGrid2Edit->setText( n2q( grid2 ) );
 }
 
 
@@ -443,7 +494,7 @@ void CColorMapWidget::UpdateLabels()
 		for ( int i = 0; i < smNumberOfColorLabels; ++i )
 		{
 			double value = mColorRangeMin + i * step;
-			mColorLabels[ i ]->setText( QString::number( value, 'f', 2 ) );
+			mColorLabels[ i ]->setText( QString::number( value, 'f', 2 ) );		//(*)
 			mColorLabels[ i ]->setToolTip( n2s<std::string>( value ).c_str() );
 		}
 	}

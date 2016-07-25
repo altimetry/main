@@ -192,7 +192,8 @@ void CGeoPlot::GetInfo()
 //						CMathPlot class 
 ////////////////////////////////////////////////////////////
 
-inline std::string MakeUnitLabel( const CUnit &unit )
+//static
+std::string CDisplayInterface::MakeUnitLabel( const CUnit &unit )
 {
 #if defined (BRAT_V3)
 	return "\nUnit:\t" + unit.GetText();
@@ -254,14 +255,14 @@ void CMathPlot< DATA_FIELD, PLOT_FIELD >::GetTitleAndUnitInfo( CInternalFiles *f
 	//-----------------------------------
 	// Get title of X axis
 	//-----------------------------------
-	if ( mTitleX.empty() )
+	if ( TitleX().empty() )
 	{
 		std::string titleX = file->GetTitle( varXName );
 		if ( titleX.empty() )
 		{
 			titleX = varXName;
 		}
-		mTitleX = titleX + " " + m_unitXLabel;
+		SetTitleX( titleX + " " + m_unitXLabel );
 	}
 
 
@@ -302,7 +303,7 @@ void CMathPlot< DATA_FIELD, PLOT_FIELD >::GetTitleAndUnitInfo( CInternalFiles *f
 	// Get title of Y axis (as possible)
 	//-----------------------------------
 
-	if ( mTitleY.empty() )
+	if ( TitleY().empty() )
 	{
 		std::string titleY;
 		if ( useYnameInLabel )
@@ -313,7 +314,7 @@ void CMathPlot< DATA_FIELD, PLOT_FIELD >::GetTitleAndUnitInfo( CInternalFiles *f
 				titleY = varYName;
 			}
 		}
-		mTitleY = titleY + " " + m_unitYLabel;
+		SetTitleY( titleY + " " + m_unitYLabel );
 	}
 }
 
@@ -456,7 +457,7 @@ void CYFXPlot::GetInfo()
 	// v4 ex-GUI Code
 	//////////////////////////////////////////////////
 
-	for ( int i = 0; i < nrFields; i++ )
+	for ( size_t i = 0; i < nrFields; i++ )
 	{
 		mPlotFields.push_back( new CXYPlotData( this, i ) );	//v4 note: CXYPlotData ctor only invoked here
 	}
@@ -543,7 +544,6 @@ void CZFXYPlot::GetInfo()
 		}
 	}
 
-
 #if !defined(BRAT_V3)
 
 	//////////////////////////////////////////////////
@@ -556,6 +556,16 @@ void CZFXYPlot::GetInfo()
 			continue;
 
 		mPlotFields.push_back( new CZFXYPlotData( this, field ) );		// v4 note: CZFXYPlotData ctor only invoked here
+	}
+
+	//v4: complement GetTitleAndUnitInfo with Z title for ZFXY (for YFX is Y title)
+
+	if ( TitleValue().empty() && mPlotFields.size() > 0 )
+	{
+		if ( mPlotFields.size() == 1 )
+			SetTitleValue( mPlotFields[ 0 ]->UserName()  + " " + MakeUnitLabel( *mPlotFields[ 0 ]->DataUnit() ) );
+		//else 
+		//		???
 	}
 
 #endif

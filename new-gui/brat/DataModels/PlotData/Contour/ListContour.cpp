@@ -24,7 +24,7 @@
 //////////////////////////////////////////////////////////////////////
 
 CListContour::CListContour()
-	: CBratContour()
+	: base_t()
 {}
 
 CListContour::~CListContour()
@@ -32,56 +32,66 @@ CListContour::~CListContour()
 	CleanMemory();
 }
 
-void CListContour::Generate( bool compact )	//compact = true 
+void CListContour::Generate( bool compact )	//i = nullptr, bool compact = true 
 {
 	// generate line strips
-	CBratContour::Generate();
+	base_t::Generate( compact );
 	// compact strips
 	if ( compact )
+	{
+		SetProgressLabel( "Compacting contour strips..." );
 		CompactStrips();
+	}
+	mProgress( ProgressSoFar() + 1 );
+}
+
+
+void CListContour::SetProgressInterface( CProgressInterface *pI, int m, int M )		//pI = nullptr, int m = 0, int M = 0 
+{
+	base_t::SetProgressInterface( pI, m, M + 2 );
 }
 
 void CListContour::InitMemory()
 {
-	CBratContour::InitMemory();
+	base_t::InitMemory();
 	
 	CLineStripList::iterator pos;
-	CLineStrip* pStrip;
+	//CLineStrip* pStrip;
 	
-	if (!m_vStripLists.empty())
+	if ( !m_vStripLists.empty() )
 	{
-		unsigned long i;
+		size_t i;
 		// reseting lists
-		assert__(m_vStripLists.size() == GetNPlanes());
-		for (i=0;i<GetNPlanes();i++)
+		const size_t size = m_vStripLists.size();			assert__( size == GetNPlanes() );
+		for ( i=0; i < size; i++ )
 		{
-			for (pos = m_vStripLists[i].begin(); pos!=m_vStripLists[i].end() ; pos++)
+			for ( auto *pStrip : m_vStripLists[ i ] )
 			{
-				pStrip=(*pos);
-				assert__(pStrip);
+				//pStrip=( *pos );
+				assert__( pStrip );
 
 				pStrip->clear();
 				delete pStrip;
 			}
-			m_vStripLists[i].clear();
+			m_vStripLists[ i ].clear();
 		}
 	}
 	else
-		m_vStripLists.resize(GetNPlanes());
+		m_vStripLists.resize( GetNPlanes() );
 }
 
 void CListContour::CleanMemory()
 {
-	CBratContour::CleanMemory();
+	base_t::CleanMemory();
 	
 	// reseting lists
-	//assert__(m_vStripLists.size() == GetNPlanes());
-	assert__( GetNPlanes() == 0 || m_vStripLists.size() == 0 || m_vStripLists.size() == GetNPlanes() );	//femm: replaced line commented out above: base calls CleanMemory() before SetPlanes assigns m_vPlanes
-	for (unsigned long i= 0; i< m_vStripLists.size(); i++ )
+	const size_t size = m_vStripLists.size();	//assert__(m_vStripLists.size() == GetNPlanes());
+	assert__( GetNPlanes() == 0 || size == 0 || size == GetNPlanes() );	//femm: replaced line commented out above: base calls CleanMemory() before SetPlanes assigns m_vPlanes
+	for ( size_t i= 0; i< size; i++ )
 	{
-		for (CLineStripList::iterator pos=m_vStripLists[i].begin(); pos!=m_vStripLists[i].end();pos++)
+		for ( auto *pStrip : m_vStripLists[i] )
 		{
-			CLineStrip* pStrip=(*pos);			assert__(pStrip);
+			//CLineStrip* pStrip=(*pos);			assert__(pStrip);
 			pStrip->clear();
 			delete pStrip;
 		}
@@ -89,10 +99,10 @@ void CListContour::CleanMemory()
 	}
 }
 
-void CListContour::ExportLine(int iPlane,int x1, int y1, int x2, int y2)
+void CListContour::ExportLine(long_t iPlane,long_t x1, long_t y1, long_t x2, long_t y2)
 {
 	assert__( iPlane >= 0 );
-	assert__( iPlane < (int)GetNPlanes() );
+	assert__( iPlane < (long_t)GetNPlanes() );
 	
 	if ( invalid == x1 )
 	{
@@ -101,8 +111,8 @@ void CListContour::ExportLine(int iPlane,int x1, int y1, int x2, int y2)
 	}
 
 	// check that the two points are not at the beginning or end of the  some line strip
-	unsigned long i1 = y1*( m_iColSec + 1 ) + x1;
-	unsigned long i2 = y2*( m_iColSec + 1 ) + x2;
+	size_t i1 = y1*( m_iColSec + 1 ) + x1;
+	size_t i2 = y2*( m_iColSec + 1 ) + x2;
 
 	CLineStrip* pStrip;
 	bool added=false;
@@ -149,7 +159,7 @@ bool CListContour::ForceMerge(CLineStrip* pStrip1, CLineStrip* pStrip2)
 		return false;
 	
 	double x[4], y[4], weldDist;
-	int index;
+	long_t index;
 	index = pStrip1->front();
 	x[0] = GetXi(index);
 	y[0] = GetYi(index);
@@ -223,7 +233,7 @@ bool CListContour::MergeStrips(CLineStrip* pStrip1, CLineStrip* pStrip2)
 	if (pStrip2->empty())
 		return false;
 	
-	int index;
+	long_t index;
 
 	// debugging stuff
 	if (pStrip2->front()==pStrip1->front())
@@ -290,16 +300,19 @@ bool CListContour::CompactStrips()
 {
 	CLineStrip* pStrip;
 	CLineStrip* pStripBase;
-	unsigned long i;
+	size_t i;
 	CLineStripList::iterator pos,pos2;
 	CLineStripList newList;
 	bool again, changed;	
 	
 	const double weldDist = 10*(m_dDx*m_dDx+m_dDy*m_dDy);
 
-	assert__(m_vStripLists.size() == GetNPlanes());
-	for (i=0;i<GetNPlanes();i++)
+	const size_t size = m_vStripLists.size();	assert__( size == GetNPlanes() );
+	for ( i = 0; i < size; i++ )
 	{
+		if ( i == size / 2 )
+			mProgress( ProgressSoFar() + 1 );
+
 		again=true;
 		while(again)
 		{
@@ -338,7 +351,7 @@ bool CListContour::CompactStrips()
 				{
 					pos3 = pos1; 
 					pos3++;
-					if ( pos3 != pStrip->end() && (*pos1) == (*pos3))
+					if ( pos3 != pStrip->end() && (*pos1) == (*pos3))	//femm, from if ( (*pos1) == (*pos3))
 						pStrip->erase(pos3);
 					else 
 						pos1++;
@@ -360,7 +373,7 @@ bool CListContour::CompactStrips()
 			continue;
 		///////////////////////////////////////////////////////////////////////
 		// compact more
-		int Nstrip,j,index,count;
+		long_t Nstrip,j,index,count;
 
 		Nstrip = m_vStripLists[i].size(); 
 		std::vector<bool> closed(Nstrip);
@@ -457,7 +470,7 @@ bool CListContour::CompactStrips()
 					} 
 					else 
 					{
-						LOG_TRACE("unpaird open strip at 1!");
+						LOG_TRACE("unpaired open strip at 1!");
 						//newList.pop_front();//femmfemmfemmefemm
 						//continue;			//femmfemmfemmefemm
 						return false;
@@ -477,7 +490,7 @@ bool CListContour::CompactStrips()
 				} 
 				else 
 				{
-					LOG_TRACE("unpaird open strip at 2!");
+					LOG_TRACE("unpaired open strip at 2!");
 					DumpPlane(i);
 					return false;
 				}
@@ -504,7 +517,7 @@ bool CListContour::CompactStrips()
 			} 
 			else 
 			{
-				LOG_TRACE("unpaird open strip at 3!");
+				LOG_TRACE("unpaired open strip at 3!");
 				DumpPlane(i);
 				return false;
 			}
@@ -521,7 +534,7 @@ bool CListContour::OnBoundary(CLineStrip* pStrip)
 {
 	bool e1,e2;
 
-	int index = pStrip->front();
+	long_t index = pStrip->front();
 	double x = GetXi(index), y = GetYi(index);
 	if (x==m_pLimits[0] || x == m_pLimits[1] || 
 		y == m_pLimits[2] || y == m_pLimits[3])
@@ -540,32 +553,32 @@ bool CListContour::OnBoundary(CLineStrip* pStrip)
 	return (e1 && e2);
 }
 
-void CListContour::DumpPlane(unsigned long iPlane) const
+void CListContour::DumpPlane( size_t iPlane ) const
 {
 	CLineStripList::const_iterator pos;
-	unsigned long i;
+	size_t i;
 	CLineStrip* pStrip;
 	
-	assert__(iPlane>=0);
-	assert__(iPlane<GetNPlanes());
-	LOG_TRACE("Level : %d"),GetPlane(iPlane);
+	//assert__( iPlane >= 0 );
+	assert__( iPlane < GetNPlanes() );
+	LOG_TRACEstd( "Level : " + n2s( GetPlane( iPlane ) ) );
 	
-	LOG_TRACE("Number of strips : %d\r\n"),m_vStripLists[iPlane].size();
+	LOG_TRACEstd( "Number of strips : " + n2s( m_vStripLists[iPlane].size() ) + "\r\n" );
 	LOG_TRACE("i np start end xstart ystart xend yend\r\n");
-	for (pos = m_vStripLists[iPlane].begin(), i=0; pos != m_vStripLists[iPlane].end(); pos++, i++)
+	for ( pos = m_vStripLists[iPlane].begin(), i=0; pos != m_vStripLists[iPlane].end(); pos++, i++ )
 	{
 		pStrip=*pos;
-		assert__(pStrip);
-        LOG_TRACEstd(
-                    n2s<std::string>(i) + " " +
-                    n2s<std::string>(pStrip->size()) + " " +
-                    n2s<std::string>(pStrip->front()) + " " +
-                    n2s<std::string>(pStrip->back()) + " " +
-                    n2s<std::string>(GetXi(pStrip->front())) + " " +
-                    n2s<std::string>(GetYi(pStrip->front())) + " " +
-                    n2s<std::string>(GetXi(pStrip->back())) + " " +
-                    n2s<std::string>(GetYi(pStrip->back())) + "\r\n"
-                    );
+		assert__( pStrip );
+		LOG_TRACEstd(
+			n2s( i ) + " " +
+			n2s( pStrip->size() ) + " " +
+			n2s( pStrip->front() ) + " " +
+			n2s( pStrip->back() ) + " " +
+			n2s( GetXi( pStrip->front() ) ) + " " +
+			n2s( GetYi( pStrip->front() ) ) + " " +
+			n2s( GetXi( pStrip->back() ) ) + " " +
+			n2s( GetYi( pStrip->back() ) ) + "\r\n"
+			);
 	}
 }
 
@@ -574,7 +587,7 @@ double CListContour::Area(CLineStrip* Line)
 	// if Line is not closed, return 0;
 	
 	double Ar = 0, x, y, x0,y0,x1, y1;
-	int index;
+	long_t index;
 	
 	CLineStrip::iterator pos;
 	pos = Line->begin();
@@ -607,14 +620,14 @@ double CListContour::Area(CLineStrip* Line)
 	}
 	//else   Ar /= -2;
 	else Ar/=4;
-	// result is \int ydex/2 alone the implicit direction.
+	// result is \long_t ydex/2 alone the implicit direction.
 	return Ar;
 }
 
 double CListContour:: EdgeWeight(CLineStrip* pLine, double R) 
 {
 	CLineStrip::iterator pos;
-	int count = 0,index;
+	long_t count = 0,index;
 	double x,y;
 	for(pos = pLine->begin(); pos!=pLine->end(); pos++) 
 	{
@@ -638,14 +651,14 @@ bool::CListContour::PrintContour( char *fname )
 
 	file << std::setprecision( 10 );
 
-	for ( unsigned long i=0; i < GetNPlanes(); i++ )
+	for ( size_t i=0; i < GetNPlanes(); i++ )
 	{
 		for ( CLineStripList::iterator pos = m_vStripLists[ i ].begin(); pos != m_vStripLists[ i ].end(); pos++ )
 		{
 			CLineStrip* pStrip = ( *pos );
 			for ( CLineStrip::iterator pos2 = pStrip->begin(); pos2 != pStrip->end(); pos2++ )
 			{
-				unsigned long index = ( *pos2 );
+				size_t index = ( *pos2 );
 				file << GetXi( index ) << "\t" << GetYi( index ) << "\n";
 			}
 			file << "\n";

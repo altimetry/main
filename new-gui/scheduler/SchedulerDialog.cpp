@@ -388,7 +388,7 @@ void CSchedulerDialog::AsyncTaskFinished( int exit_code, QProcess::ExitStatus ex
     {
         const size_t size = task->GetSubordinateTasks()->size();
         int isubtask = phandler->isubtask + 1;
-        if ( isubtask < size )
+        if ( isubtask < (int)size )
         {
             ExecuteAsync( task, isubtask );
             return;

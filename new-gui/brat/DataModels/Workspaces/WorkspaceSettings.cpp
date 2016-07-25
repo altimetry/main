@@ -733,14 +733,15 @@ bool CWorkspaceSettings::SaveConfig( const CDisplay &d, CWorkspaceDisplay *wksd 
 		k_v( ENTRY_TITLE,					d.Title() ),
 		k_v( ENTRY_DISPLAY_DATA_X_LABEL,	d.TitleX() ),
 		k_v( ENTRY_DISPLAY_DATA_Y_LABEL,	d.TitleY() ),
+		k_v( ENTRY_DISPLAY_DATA_Z_LABEL,	d.TitleValue() ),
 
-		k_v( ENTRY_DISPLAY_DATA_X_NUM_TICKS,	d.m_xTicks ),
-		k_v( ENTRY_DISPLAY_DATA_Y_NUM_TICKS,	d.m_yTicks ),
-		k_v( ENTRY_DISPLAY_DATA_Z_NUM_TICKS,	d.m_zTicks ),
+		k_v( ENTRY_DISPLAY_DATA_X_NUM_TICKS,	d.Xticks() ),
+		k_v( ENTRY_DISPLAY_DATA_Y_NUM_TICKS,	d.Yticks() ),
+		k_v( ENTRY_DISPLAY_DATA_Z_NUM_TICKS,	d.Zticks() ),
 
-		k_v( ENTRY_DISPLAY_DATA_X_NUM_DIGITS,	d.m_xDigits ),
-		k_v( ENTRY_DISPLAY_DATA_Y_NUM_DIGITS,	d.m_yDigits ),
-		k_v( ENTRY_DISPLAY_DATA_Z_NUM_DIGITS,	d.m_zDigits ),
+		k_v( ENTRY_DISPLAY_DATA_X_NUM_DIGITS,	d.Xdigits() ),
+		k_v( ENTRY_DISPLAY_DATA_Y_NUM_DIGITS,	d.Ydigits() ),
+		k_v( ENTRY_DISPLAY_DATA_Z_NUM_DIGITS,	d.Zdigits() ),
 
 		k_v( ENTRY_ANIMATION,				d.GetWithAnimation() ),
 		k_v( ENTRY_PROJECTION,				d.GetProjection() )
@@ -791,6 +792,7 @@ bool CWorkspaceSettings::LoadConfig( CDisplay &d, std::string &error_msg, CWorks
 		k_v( ENTRY_TITLE,					&d.mTitle			),
 		k_v( ENTRY_DISPLAY_DATA_X_LABEL,	&d.mTitleX ),
 		k_v( ENTRY_DISPLAY_DATA_Y_LABEL,	&d.mTitleY ),
+		k_v( ENTRY_DISPLAY_DATA_Z_LABEL,	&d.mTitleValue ),
 
 		k_v( ENTRY_DISPLAY_DATA_X_NUM_TICKS,	&d.m_xTicks, CDisplay::smDefaultNumberOfTicks ),
 		k_v( ENTRY_DISPLAY_DATA_Y_NUM_TICKS,	&d.m_yTicks, CDisplay::smDefaultNumberOfTicks ),
@@ -936,15 +938,18 @@ bool CWorkspaceSettings::SaveConfig( CDisplayData &data, const std::string& path
 		k_v( ENTRY_FIELD_DATA_X_LOG,	data.mXlogarithmic ),
 		k_v( ENTRY_FIELD_DATA_Y_LOG,	data.mYlogarithmic ),
 
-		k_v( ENTRY_FIELD_DATA_WITHCONTOUR,		data.mWithContour ),
-		k_v( ENTRY_FIELD_DATA_NUMCONTOUR,		data.mNumContours ),
+		k_v( ENTRY_FIELD_DATA_WITHCONTOUR,				data.mWithContour ),
+		k_v( ENTRY_FIELD_DATA_NUMCONTOUR,				data.mNumContours ),
+		k_v( ENTRY_FIELD_DATA_CONTOURPRECISIONGRID1,	data.mContourPrecisionGrid1 ),
+		k_v( ENTRY_FIELD_DATA_CONTOURPRECISIONGRID2,	data.mContourPrecisionGrid2 ),
+
 		k_v( ENTRY_FIELD_DATA_CONTOURLINEWIDTH,	data.mContourLineWidth ),
 		k_v( ENTRY_FIELD_DATA_CONTOURLINECOLOR,	data.mContourLineColor.GetQColor() ),
 
 		k_v( ENTRY_FIELD_DATA_WITHSOLIDCOLOR,	data.mWithSolidColor ),
 
-		k_v( ENTRY_EAST_COMPONENT, data.IsEastComponent() ),
-		k_v( ENTRY_NORTH_COMPONENT, data.IsNorthComponent() ),
+		k_v( ENTRY_EAST_COMPONENT,				data.IsEastComponent() ),
+		k_v( ENTRY_NORTH_COMPONENT,				data.IsNorthComponent() ),
 
 		k_v( ENTRY_FIELD_DATA_SHOW_LINES,	data.mLines ),
 		k_v( ENTRY_FIELD_DATA_SHOW_POINTS,	data.mPoints ),
@@ -1032,6 +1037,21 @@ bool CWorkspaceSettings::SaveConfig( CDisplayData &data, const std::string& path
 		);
 	}
 
+	if ( !isDefaultValue( data.MagnitudeFactor() ) )
+	{
+		WriteSection( path,
+
+			k_v( ENTRY_FIELD_DATA_MAGNITUDE_FACTOR, CTools::Format( "%.15g", data.MagnitudeFactor() ) )
+		);
+	}
+	else
+	{
+		ClearKeys( path,
+
+		{ ENTRY_FIELD_DATA_MAGNITUDE_FACTOR, ENTRY_FIELD_DATA_MAX_CONTOURVALUE }
+
+		);
+	}
 
 
 	//CDisplayData
@@ -1157,6 +1177,10 @@ bool CWorkspaceSettings::LoadConfig( CDisplayData *&pdata, const CDisplay *paren
 
 		k_v( ENTRY_FIELD_DATA_WITHCONTOUR,		&data.mWithContour,			false ),
 		k_v( ENTRY_FIELD_DATA_NUMCONTOUR,		&data.mNumContours,			CFieldData::smDefaultNumContour ),
+
+		k_v( ENTRY_FIELD_DATA_CONTOURPRECISIONGRID1,	&data.mContourPrecisionGrid1, CFieldData::smContourPrecisionGrid1 ),
+		k_v( ENTRY_FIELD_DATA_CONTOURPRECISIONGRID2,	&data.mContourPrecisionGrid2, CFieldData::smContourPrecisionGrid2 ),
+
 		k_v( ENTRY_FIELD_DATA_CONTOURLINEWIDTH,	&data.mContourLineWidth,	CFieldData::smDefaultContourLineWidth ),
 		k_v( ENTRY_FIELD_DATA_CONTOURLINECOLOR,	&contour_line_color,		CFieldData::smDefaultContourLineColor.GetQColor() ),
 		k_v( ENTRY_FIELD_DATA_MIN_CONTOURVALUE,	&data.mMinContourValue,		defaultValue< double >() ),
@@ -1164,8 +1188,9 @@ bool CWorkspaceSettings::LoadConfig( CDisplayData *&pdata, const CDisplay *paren
 
 		k_v( ENTRY_FIELD_DATA_WITHSOLIDCOLOR,	&data.mWithSolidColor,		true ),
 
-		k_v( ENTRY_EAST_COMPONENT,		&data.mEastComponent,		false  ),
-		k_v( ENTRY_NORTH_COMPONENT,		&data.mNorthComponent,		false  ),
+		k_v( ENTRY_EAST_COMPONENT,				&data.mEastComponent,		false  ),
+		k_v( ENTRY_NORTH_COMPONENT,				&data.mNorthComponent,		false  ),
+		k_v( ENTRY_FIELD_DATA_MAGNITUDE_FACTOR,	&data.mMagnitudeFactor,		defaultValue< double >() ),
 
 		k_v( ENTRY_FIELD_DATA_SHOW_LINES,	&data.mLines,	CFieldData::smDefaultShowLines ),
 		k_v( ENTRY_FIELD_DATA_SHOW_POINTS,	&data.mPoints,	CFieldData::smDefaultShowPoints ),

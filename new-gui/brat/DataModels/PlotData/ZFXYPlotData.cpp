@@ -366,9 +366,9 @@ void CZFXYPlotData::Create( CZFXYPlot *plot )
 	}
 
 
-	if ( isDefaultValue( GetPlotProperties()->MinContourValue() ) || isDefaultValue( GetPlotProperties()->MaxContourValue() ) )
+	if ( isDefaultValue( MinContourValue() ) || isDefaultValue( MaxContourValue() ) )
 	{
-		GetPlotProperties()->SetContourValueRange( back().mMinHeightValue, back().mMaxHeightValue );
+		SetContourValueRange( back().mMinHeightValue, back().mMaxHeightValue );
 	}
 
 
@@ -381,6 +381,6 @@ void CZFXYPlotData::Create( CZFXYPlot *plot )
 	}
 #endif
 
-	GetPlotProperties()->SetAbsoluteRangeValues( back().mMinHeightValue, back().mMaxHeightValue );
+	SetAbsoluteRangeValues( back().mMinHeightValue, back().mMaxHeightValue );
 
 }

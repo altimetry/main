@@ -75,6 +75,8 @@ public:
 	static const int smDefaultNumColorLabels;
 	static const bool smDefaultWithContour;
 	static const unsigned smDefaultNumContour;
+	static const unsigned smContourPrecisionGrid1;
+	static const unsigned smContourPrecisionGrid2;
 	static const double smDefaultContourLineWidth;
 	static const CPlotColor smDefaultContourLineColor;
     static const unsigned smDefaultNumberOfBins;
@@ -138,6 +140,8 @@ private:
 
 	bool mWithContour = false;
 	unsigned mNumContours = smDefaultNumContour;
+	unsigned mContourPrecisionGrid1 = smContourPrecisionGrid1;
+	unsigned mContourPrecisionGrid2 = smContourPrecisionGrid2;
 	double mContourLineWidth = smDefaultContourLineWidth;
 	CPlotColor mContourLineColor = smDefaultContourLineColor;
 	double mMinContourValue = defaultValue<double>();
@@ -153,7 +157,7 @@ private:
 	//std::string mProjection;
 	bool mEastComponent = false;
 	bool mNorthComponent = false;
-
+	double mMagnitudeFactor = defaultValue< double >();
 
 
 	/////////////////////////
@@ -241,6 +245,8 @@ public:
 
 			mWithContour = o.mWithContour;
 			mNumContours = o.mNumContours;
+			mContourPrecisionGrid1 = o.mContourPrecisionGrid1;
+            mContourPrecisionGrid2 = o.mContourPrecisionGrid2;
 			mContourLineWidth = o.mContourLineWidth;
 			mContourLineColor = o.mContourLineColor;
 			mMinContourValue = o.mMinContourValue;
@@ -252,6 +258,7 @@ public:
 
 			mEastComponent = o.mEastComponent;
 			mNorthComponent = o.mNorthComponent;
+			mMagnitudeFactor = o.mMagnitudeFactor;
 
 			// YFX
 
@@ -318,6 +325,8 @@ public:
 
 			mWithContour == o.mWithContour &&
 			mNumContours == o.mNumContours &&
+			mContourPrecisionGrid1 == o.mContourPrecisionGrid1 &&
+            mContourPrecisionGrid2 == o.mContourPrecisionGrid2 &&
 			mContourLineWidth == o.mContourLineWidth &&
 			mContourLineColor == o.mContourLineColor &&
 			mMinContourValue == o.mMinContourValue &&
@@ -329,6 +338,7 @@ public:
 
 			mEastComponent == o.mEastComponent &&
 			mNorthComponent == o.mNorthComponent &&
+			mMagnitudeFactor == o.mMagnitudeFactor &&
 
 			// YFX
 
@@ -531,6 +541,16 @@ public:
 	unsigned NumContours() const { return mNumContours; }
 	void SetNumContours( unsigned contours ) { mNumContours = contours; }
 
+	std::pair< unsigned, unsigned > ContourPrecision() const
+	{
+		return std::pair< unsigned, unsigned > { mContourPrecisionGrid1, mContourPrecisionGrid2 };
+	}
+	void SetContourPrecision( unsigned int grid1, unsigned int grid2 )
+	{
+		mContourPrecisionGrid1 = grid1;
+		mContourPrecisionGrid2 = grid2;
+	}
+
 	double ContourLineWidth() const { return mContourLineWidth; }
 	void SetContourLineWidth( double width ) { mContourLineWidth = width; }
 
@@ -559,6 +579,8 @@ public:
 	bool IsNorthComponent() const { return mNorthComponent; }
 	void SetNorthComponent( bool value ) { mNorthComponent = value; }
 
+	double MagnitudeFactor() const { return mMagnitudeFactor; }
+	void SetMagnitudeFactor( double value ) { mMagnitudeFactor = value; }
 
 
 	// YFX

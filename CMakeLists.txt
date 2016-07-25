@@ -2193,6 +2193,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/ControlPanels/Dialogs/SaveAsFormulaDialog.cpp
 		new-gui/brat/DataModels/PlotData/FieldData.cpp
 		new-gui/brat/DataModels/DisplayDataProcessor.cpp
+		new-gui/brat/GUI/ProgressDialog.cpp
 	)
 
 		
@@ -2305,6 +2306,8 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/DataModels/DisplayDataProcessor.h
 		new-gui/brat/DataModels/PlotData/Plots.h
 		new-gui/brat/DataModels/PlotData/PlotData.h
+		new-gui/brat/GUI/ProgressDialog.h
+		new-gui/brat/DataModels/ProgressInterface.h
 	)
 
 

@@ -54,10 +54,12 @@ class CApplicationSettingsDlg : public QDialog
     QCheckBox *mLoadLastProjectAtAtartupCheckBox = nullptr;
 	QRadioButton *mUseVectorLayer = nullptr;
 	QRadioButton *mUseRasterLayer = nullptr;
-    QRadioButton *mUseURLRasterLayer = nullptr;
+    QRadioButton *mUseRasterLayerURI = nullptr;
     QLineEdit *mLayerURLLineEdit = nullptr;
 	QRadioButton *mViewsUseVectorLayer = nullptr;
 	QRadioButton *mViewsUseRasterLayer = nullptr;
+    QRadioButton *mViewsUseRasterLayerURI = nullptr;
+	QCheckBox *mVectorSimplifyMethodCheck = nullptr;
 	QWidget *mStartupOptionsPage = nullptr;
 
     QListWidget *mStylesListWidget = nullptr;

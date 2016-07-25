@@ -30,7 +30,7 @@ size_t CBasicLogShell::smMaxMsgsPerSec = smDefaultMaxMsgsPerSec;
 
 QGroupBox* CBasicLogShell::CreateDebugWidgets( const std::vector<std::string> &level_names )
 {
-	assert__( level_names.size() <= mSeverityToColorTable.size() && level_names.size() <= mSeverityToPromptTable.size() );
+	assert__( (int)level_names.size() <= mSeverityToColorTable.size() && (int)level_names.size() <= mSeverityToPromptTable.size() );
 
 	// create widgets
 

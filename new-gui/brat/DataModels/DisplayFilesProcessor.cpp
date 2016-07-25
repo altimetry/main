@@ -888,7 +888,7 @@ void CDisplayFilesProcessor::GetZFXYPlotPropertyParams( size_t nFields )
 	CZFXYPlotProperties zfxyPlotProperty;
 	GetPlotPropertyCommonParams( nFields, zfxyPlotProperty );
 
-	int32_t i = 0;
+	//int32_t i = 0;
 	std::string stringValue;
 
 #if defined (BRAT_V3)
@@ -928,7 +928,7 @@ void CDisplayFilesProcessor::GetZFXYPlotPropertyParams( size_t nFields )
 
 #endif
 
-	for ( i = 0; i < nFields; i++ )
+	for ( size_t i = 0; i < nFields; i++ )
 	{
 		m_zfxyPlotProperties.push_back( new CZFXYPlotProperties( zfxyPlotProperty ) );
 	}

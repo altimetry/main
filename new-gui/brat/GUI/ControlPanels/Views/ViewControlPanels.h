@@ -342,6 +342,8 @@ public:
 
     QListWidget *mFieldsList = nullptr;
 
+	QGroupBox *mMagnitudeFactorGroupBox = nullptr;
+	QLineEdit *mMagnitudeFactorEdit = nullptr;
 	CColorMapWidget *mColorMapWidget = nullptr;
 
 public:

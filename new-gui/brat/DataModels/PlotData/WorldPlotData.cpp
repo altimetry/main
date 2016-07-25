@@ -248,9 +248,9 @@ void CWorldPlotData::Create()
 	}
 	
 
-	if ( isDefaultValue( GetPlotProperties()->MinContourValue() ) || isDefaultValue( GetPlotProperties()->MaxContourValue() ) )
+	if ( isDefaultValue( MinContourValue() ) || isDefaultValue( MaxContourValue() ) )
 	{
-		GetPlotProperties()->SetContourValueRange( back().mMinHeightValue, back().mMaxHeightValue );
+		SetContourValueRange( back().mMinHeightValue, back().mMaxHeightValue );
 	}
 
 	//v4 TODO - begin
@@ -270,7 +270,7 @@ void CWorldPlotData::Create()
 	//////////////}
 
 
-	GetPlotProperties()->SetAbsoluteRangeValues( back().mMinHeightValue, back().mMaxHeightValue );	//GetPlotProperties()->SetTableRange( back().mMinHeightValue, back().mMaxHeightValue );
+	SetAbsoluteRangeValues( back().mMinHeightValue, back().mMaxHeightValue );	//GetPlotProperties()->SetTableRange( back().mMinHeightValue, back().mMaxHeightValue );
 
 	//////////////m_colorBarRenderer->SetLUT( m_LUT );
 
@@ -635,9 +635,9 @@ void CWorldPlotVelocityData::Create( const std::vector< CInternalFiles* > &north
 	}
 
 
-	if ( isDefaultValue( GetPlotProperties()->MinContourValue() ) || isDefaultValue( GetPlotProperties()->MaxContourValue() ) )
+	if ( isDefaultValue( MinContourValue() ) || isDefaultValue( MaxContourValue() ) )
 	{
-		GetPlotProperties()->SetContourValueRange( back().mMinHeightValue, back().mMaxHeightValue );
+		SetContourValueRange( back().mMinHeightValue, back().mMaxHeightValue );
 	}
 
 
@@ -660,9 +660,20 @@ void CWorldPlotVelocityData::Create( const std::vector< CInternalFiles* > &north
 	//////////////	gMapFilter->SetMaxMappedValue( maxHeightValue );
 	//////////////}
 
+	if ( isDefaultValue( MagnitudeFactor() ) )
+	{
+		double range = back().mMaxHeightValue;
+		SetMagnitudeFactor( 1. / ( range != 0. ? range : 1. ) );
+	}
 
-	GetPlotProperties()->SetAbsoluteRangeValues( 0, back().mMaxHeightValue );
-	GetPlotProperties()->SetColorPalette( PALETTE_BLACKTOWHITE );							//mLUT->Black();
+#if !defined( BRAT_V3 )
+
+	SetAbsoluteRangeValues( back().mMinHeightValue, back().mMaxHeightValue );	//GetPlotProperties()->SetTableRange( back().mMinHeightValue, back().mMaxHeightValue );
+
+#else
+	SetAbsoluteRangeValues( 0, back().mMaxHeightValue );
+	SetColorPalette( PALETTE_BLACKTOWHITE );							//mLUT->Black();
+#endif
 
 	// v3 original comment no LUT displayed for this
 	//v3 original comment m_colorBarRenderer->SetLUT(m_LUT);

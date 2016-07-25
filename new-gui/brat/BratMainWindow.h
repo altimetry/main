@@ -339,6 +339,7 @@ private slots:
 	//Menu Help
 
     void on_action_About_triggered();
+    void on_action_User_s_Manual_triggered();
     void on_action_Test_triggered();
 
     void on_action_Import_Workspace_triggered();

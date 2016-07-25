@@ -54,7 +54,7 @@ private:
 public:
 	explicit CActiveViewsDialog( QWidget *parent, CDesktopManagerBase *manager );
 
-    ~CActiveViewsDialog();
+    virtual ~CActiveViewsDialog();
 
 
 	QList< QWidget* > SubWindows() { return mSubWindows; }

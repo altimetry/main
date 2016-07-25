@@ -51,6 +51,7 @@ public:
 
     CMapWidget::ELayerBaseType mMainLayerBaseType = CMapWidget::ELayerBaseType::eRasterLayer;
     CMapWidget::ELayerBaseType mViewsLayerBaseType = CMapWidget::ELayerBaseType::eVectorLayer;
+	bool mVectorSimplifyMethod = true;
 
 	bool mDesktopManagerSdi = true;
 	bool mCheckOpenGL = true;
@@ -109,6 +110,8 @@ public:
     CMapWidget::ELayerBaseType MainLayerBaseType() const { return mMainLayerBaseType; }
 
     CMapWidget::ELayerBaseType ViewsLayerBaseType() const { return mViewsLayerBaseType; }
+
+	bool VectorSimplifyMethod() const { return mVectorSimplifyMethod; }
 
 
     void SetURLRasterLayerPath( const std::string &path )

@@ -59,14 +59,20 @@ class CDisplayInterface : public CBratObject
 
 	using base_t = CBratObject;
 
+	friend class CWorkspaceSettings;
+
 
 	///////////////////////////
-	//		static data
+	//		statics
 	///////////////////////////
+
 
 public:
 	static const unsigned smDefaultNumberOfTicks;
 	static const unsigned smDefaultNumberOfDigits;
+
+
+	static std::string MakeUnitLabel( const CUnit &unit );
 
 
 	///////////////////////////
@@ -76,13 +82,13 @@ public:
 #if defined (BRAT_V3)
 public:
 #else
-protected:
+private:
 #endif
-
 
 	std::string mTitle;
 	std::string mTitleX;
 	std::string mTitleY;
+	std::string mTitleValue;
 
 	unsigned m_xTicks = smDefaultNumberOfTicks;
 	unsigned m_yTicks = smDefaultNumberOfTicks;
@@ -128,6 +134,7 @@ public:
 			mTitle = o.mTitle;
 			mTitleX = o.mTitleX;
 			mTitleY = o.mTitleY;
+			mTitleValue = o.mTitleValue;
 
 			m_xTicks = o.m_xTicks;
 			m_yTicks = o.m_yTicks;
@@ -152,6 +159,7 @@ public:
 			mTitle == o.mTitle &&
 			mTitleX == o.mTitleX &&
 			mTitleY == o.mTitleY &&
+			mTitleValue == o.mTitleValue &&
 
 			m_xTicks == o.m_xTicks &&
 			m_yTicks == o.m_yTicks &&
@@ -194,6 +202,37 @@ public:
 			mTitleY = title; 
 	}
 
+	virtual const std::string& TitleValue() const
+	{ 
+		return mTitleValue; 
+	}
+	virtual void SetTitleValue( const std::string &title ) 
+	{ 
+		if ( !title.empty() )
+			mTitleValue = title; 
+	}
+
+	// The need of an index for title z reflects that the data structures... 
+	//	could be improved, to be kind. This is necessary because a single
+	//	ZFXY plot structure really supports as much real plots as its data
+	//	fields, so when an indexed accessor is used, this means that the
+	//	assignment is being made to a data field, not the whole "plot" class,
+	//	which in the ZFXY case has no correspondence to a single view (plot).
+	//
+	virtual std::string TitleValue( size_t index ) const
+	{ 
+		UNUSED( index );
+
+		return TitleValue();
+	}
+	virtual void SetTitleValue( size_t index, const std::string &title ) 
+	{ 
+		UNUSED( index );
+
+		SetTitleValue( title );
+	}
+	
+
 	unsigned int Xticks() const { return m_xTicks; }
 	unsigned int Yticks() const { return m_yTicks; }
 	unsigned int Zticks() const { return m_zTicks; }
@@ -207,7 +246,6 @@ public:
     void SetXdigits( unsigned value ) { m_xDigits = value; }
     void SetYdigits( unsigned value ) { m_yDigits = value; }
     void SetZdigits( unsigned value ) { m_zDigits = value; }
-
 };
 
 
@@ -447,9 +485,15 @@ class CMathPlot : public CPlotBase< DATA_FIELD, PLOT_FIELD >
 
 protected:
     using base_t::mPlotFields;
-    using base_t::mTitleX;
-    using base_t::mTitleY;
 
+public:
+    using base_t::TitleX;
+    using base_t::TitleY;
+    using base_t::SetTitleX;
+    using base_t::SetTitleY;
+    using base_t::MakeUnitLabel;
+
+private:
 
 	//////////////////////
 	// instance data
@@ -460,9 +504,9 @@ protected:
 //
 #if defined (BRAT_V3)
 public:
+    using base_t::mTitle;
 #endif
 
-    using base_t::mTitle;
     using base_t::m_groupNumber;
 //
 //for linux - end
@@ -655,6 +699,15 @@ public:
 	//	Plot Interface 
 	//////////////////////
 
+	virtual const std::string& TitleValue() const override 
+	{ 
+		return TitleY(); 
+	}
+	virtual void SetTitleValue( const std::string &title ) override
+	{ 
+		SetTitleY( title );
+	}
+
 	virtual void GetInfo() override;
 
 public:
@@ -720,7 +773,11 @@ class CZFXYPlot : public CMathPlot< CZFXYPlotProperties, CZFXYPlotData >
 
 	using base_t = CMathPlot< CZFXYPlotProperties, CZFXYPlotData >;
 
+public:
+    using base_t::TitleValue;
+    using base_t::SetTitleValue;
 
+private:
 	//////////////////////
 	//	instance data
 	//////////////////////
@@ -742,7 +799,23 @@ public:
 	//	Plot Interface 
 	//////////////////////
 
+	virtual std::string TitleValue( size_t index ) const override
+	{ 
+		assert__( index < mPlotFields.size() );
+
+		return mPlotFields[ index ]->UserName(); 
+	}
+
+	virtual void SetTitleValue( size_t index, const std::string &title ) override 
+	{ 
+		assert__( index < mPlotFields.size() );
+
+		mPlotFields[ index ]->SetFirstUserName( title ); 
+	}
+	
+
 	virtual void GetInfo() override;
+
 
 	//////////////////////
 	//		Specific

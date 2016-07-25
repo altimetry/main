@@ -837,7 +837,7 @@ void CPlotEditor::Recreate3DPlots( bool build2d, bool build3d )
 
 				//axis titles
 
-				mPlot2DView->SetAxisTitles( i, mCurrentPlotZFXY->TitleX(), mCurrentPlotZFXY->TitleY(), mCurrentPlotDataZFXY->UserName() );
+				mPlot2DView->SetAxisTitles( i, mCurrentPlotZFXY->TitleX(), mCurrentPlotZFXY->TitleY(), mCurrentPlotZFXY->TitleValue() );
 			}
 		}
 
@@ -849,16 +849,15 @@ void CPlotEditor::Recreate3DPlots( bool build2d, bool build3d )
 
 			//axis titles
 
-			mPlot3DView->SetAxisTitles( mCurrentPlotZFXY->TitleX(), mCurrentPlotZFXY->TitleY(), mCurrentPlotDataZFXY->UserName() );
+			mPlot3DView->SetAxisTitles( mCurrentPlotZFXY->TitleX(), mCurrentPlotZFXY->TitleY(), mCurrentPlotZFXY->TitleValue() );
 		}
 
 		/////////////////////////////////////////////////
 		//				add field to list
 		/////////////////////////////////////////////////
 
-		QListWidgetItem *item = new QListWidgetItem( t2q( mCurrentPlotDataZFXY->FieldName() ) );
-		item->setToolTip( item->text() );
-		mTabCurveOptions->mFieldsList->addItem( item );
+		mTabCurveOptions->mFieldsList->addItem( MakeFieldItem( mCurrentPlotDataZFXY ) );
+
 
 		/////////////////////////////////////////////////
 		//		assign properties to widget
@@ -1016,7 +1015,7 @@ void CPlotEditor::Recreate2DPlots()
 		QwtPlotCurve *curve = nullptr;
 		if ( mPlotType == eHistogram )
 		{
-			//2d Histograms: assign axis titles
+			//2d Histograms: assign (fixed, predefined) axis titles
 
 			yaxisMin = std::min( yaxisMin, 0. );				//y axis is a frequency
 			yaxisMax = std::max( yaxisMax, CreateHistogram() );	//y axis is a frequency
@@ -1039,16 +1038,15 @@ void CPlotEditor::Recreate2DPlots()
 
 			// axis titles
 
-			mPlot2DView->SetAxisTitles( i, mCurrentPlotYFX->TitleX(), mCurrentPlotYFX->TitleY() );
+			mPlot2DView->SetAxisTitles( i, mCurrentPlotYFX->TitleX(), mCurrentPlotYFX->TitleValue() );
 		}
 
 		/////////////////////////////////////////////////
 		//				add field to list
 		/////////////////////////////////////////////////
 
-		QListWidgetItem *item = new QListWidgetItem( t2q( mCurrentPlotDataYFX->FieldName() ) );
-		item->setToolTip( item->text() );
-		mTabCurveOptions->mFieldsList->addItem( item );
+		mTabCurveOptions->mFieldsList->addItem( MakeFieldItem( mCurrentPlotDataYFX ) );
+
 
 		/////////////////////////////////////////////////
 		//		assign field properties to widget
@@ -1240,44 +1238,35 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
     mTabAxisOptions->mYAxisLabel->setText( ytitle.c_str() );
     mTabAxisOptions->mZAxisLabel->setText( ztitle.c_str() );
 
+	// ticks and digits NOTE: 2d and 3d widgets adjust these parameter values, and that can result not only in values different 
+	//	from the assignment made but also different in the 2d and 3d case. So, unlike the general policy followed of always showing 
+	//	the "real" values used by the plot, and because here there can be 2 different "real" values, in these cases we use the value 
+	//	in the plot field structures (and used in assignment), not the values reported by the widgets.
+
 	//...ticks
 	// 2d does not keep axis ticks per plot, and as a consequence:
-	//		1. we try to read values from 3d widget to keep the flow policy (values go from views to widgets on field change); if not possible, read it from data
+	//		1. read values from plot data
 	//
-	int xticks = mPlot3DView ? mPlot3DView->XAxisTicks() : pplot->Xticks() ;
-	int yticks = mPlot3DView ? mPlot3DView->YAxisTicks() : pplot->Yticks() ;
-	int zticks = mPlot3DView ? mPlot3DView->ZAxisTicks() : pplot->Zticks() ;
+	int xticks = pplot->Xticks();	//mPlot3DView ? mPlot3DView->XAxisTicks() : pplot->Xticks();
+	int yticks = pplot->Yticks();	//mPlot3DView ? mPlot3DView->YAxisTicks() : pplot->Yticks();
+	int zticks = pplot->Zticks();	//mPlot3DView ? mPlot3DView->ZAxisTicks() : pplot->Zticks();
 	//
-	//		2. we must assign to 2d widget here, breaking editor policy, instead of reading from widget
+	//		2. we must assign to 2d widget here, breaking parameter editors update policy
 	//
 	mPlot2DView->SetXAxisTicks( xticks );
 	mPlot2DView->SetYAxisTicks( yticks );
 	mPlot2DView->SetY2AxisTicks( zticks );
 	//
-	mTabAxisOptions->mXNbTicks->setText( n2s<std::string>( xticks ).c_str() );
-	mTabAxisOptions->mYNbTicks->setText( n2s<std::string>( yticks ).c_str() );
-	mTabAxisOptions->mZNbTicks->setText( n2s<std::string>( zticks ).c_str() );
-
-	//...scales (with logarithmic)
-	//scales are sensitive to user interaction so widget assignment is automatically done by remaining handlers in this file's section
-	double xVal, yVal, zVal;
-	if ( mPlot3DView )
-	{
-		mPlot3DView->Scale( xVal, yVal, zVal );
-		mTabAxisOptions->mX3DScaleSpin->setValue( xVal );
-		mTabAxisOptions->mY3DScaleSpin->setValue( yVal );
-		mTabAxisOptions->mZ3DScaleSpin->setValue( zVal );
-
-		mTabAxisOptions->mZLogScaleCheck->setEnabled( mCurrentPlotZFXY->ZLogarithmsEnabled() );
-		mTabAxisOptions->mZLogScaleCheck->setChecked( mPlot3DView->LogarithmicScaleZ() );
-	}
+	mTabAxisOptions->mXNbTicks->setText( n2s( xticks ).c_str() );
+	mTabAxisOptions->mYNbTicks->setText( n2s( yticks ).c_str() );
+	mTabAxisOptions->mZNbTicks->setText( n2s( zticks ).c_str() );
 
 	//...digits
 	// similar problem and solution as for ticks, with the additional need to also specify units besides digits
 	//
-	int xdigits = mPlot3DView ? mPlot3DView->XDigits() : pplot->Xdigits() ;
-	int ydigits = mPlot3DView ? mPlot3DView->YDigits() : pplot->Ydigits() ;
-	int zdigits = mPlot3DView ? mPlot3DView->ZDigits() : pplot->Zdigits() ;
+	int xdigits = pplot->Xdigits();		//mPlot3DView ? mPlot3DView->XDigits() : pplot->Xdigits();
+	int ydigits = pplot->Ydigits();		//mPlot3DView ? mPlot3DView->YDigits() : pplot->Ydigits();
+	int zdigits = pplot->Zdigits();		//mPlot3DView ? mPlot3DView->ZDigits() : pplot->Zdigits();
 	//
 	const CUnit &xunit = mCurrentPlotZFXY ? mCurrentPlotZFXY->XUnit() : mCurrentPlotYFX->XUnit();
 	const CUnit &yunit = mCurrentPlotZFXY ? mCurrentPlotZFXY->YUnit() : mCurrentPlotYFX->YUnit();
@@ -1296,11 +1285,25 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
     mTabAxisOptions->mYNbDigits->setEnabled( !mPlot2DView->YisDateTime() );
     mTabAxisOptions->mZNbDigits->setEnabled( mPlot3DView && !mPlot3DView->ZisDateTime() );
 	
+	//...scales (with logarithmic)
+	//scales are sensitive to user interaction so widget assignment is automatically done by remaining handlers in this file's section
+	double xVal, yVal, zVal;
+	if ( mPlot3DView )
+	{
+		mPlot3DView->Scale( xVal, yVal, zVal );
+		mTabAxisOptions->mX3DScaleSpin->setValue( xVal );
+		mTabAxisOptions->mY3DScaleSpin->setValue( yVal );
+		mTabAxisOptions->mZ3DScaleSpin->setValue( zVal );
+
+		mTabAxisOptions->mZLogScaleCheck->setEnabled( mCurrentPlotZFXY->ZLogarithmsEnabled() );
+		mTabAxisOptions->mZLogScaleCheck->setChecked( mPlot3DView->LogarithmicScaleZ() );
+	}
+
 	//bins
 
 	if ( mPlotType == eHistogram )
 	{		
-		mTabCurveOptions->mNumberOfBins->setText( n2s<std::string>( mPlot2DView->NumberOfBins( index ) ).c_str() );
+		mTabCurveOptions->mNumberOfBins->setText( n2s( mPlot2DView->NumberOfBins( index ) ).c_str() );
 	}
 	
 	///////////////////////////////////////////////
@@ -1342,15 +1345,15 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
 
 	//curve line
 	mTabCurveOptions->mLineColorButton->SetColor( mPlot2DView->CurveLineColor( index ) );
-	mTabCurveOptions->mLineOpacityValue->setText( n2s<std::string>( mPlot2DView->CurveLineOpacity( index ) ).c_str() );
+	mTabCurveOptions->mLineOpacityValue->setText( n2s( mPlot2DView->CurveLineOpacity( index ) ).c_str() );
 	mTabCurveOptions->mStipplePattern->setCurrentIndex( mPlot2DView->CurveLinePattern( index ) );
-	mTabCurveOptions->mLineWidthValue->setText( n2s<std::string>( mPlot2DView->CurveLineWidth( index ) ).c_str() );
+	mTabCurveOptions->mLineWidthValue->setText( n2s( mPlot2DView->CurveLineWidth( index ) ).c_str() );
 
 	//curve point
 	mTabCurveOptions->mPointColorButton->SetColor( mPlot2DView->CurvePointColor( index ) );
 	mTabCurveOptions->mFillPointCheck->setChecked( mPlot2DView->IsCurvePointFilled( index ) );
 	mTabCurveOptions->mPointGlyph->setCurrentIndex( mPlot2DView->CurvePointGlyph( index, mCurrentPlotDataYFX->PointGlyph() ) );
-	mTabCurveOptions->mPointSizeValue->setText( n2s<std::string>( mPlot2DView->CurvePointSize( index ) ).c_str() );
+	mTabCurveOptions->mPointSizeValue->setText( n2s( mPlot2DView->CurvePointSize( index ) ).c_str() );
 
 	//enable/disable according to data
 	mTabCurveOptions->mLineOptions->setChecked( mPlotType != eHistogram && mCurrentPlotDataYFX->Lines() );
@@ -1712,7 +1715,7 @@ void CPlotEditor::SetAnimationDescr( int frame )
 				"'"
 				+ field_descr
 				+ "' value for above plot: "
-				+ n2s<std::string>( data->GetVarComplement().GetValues()[ index ] )
+				+ n2s( data->GetVarComplement().GetValues()[ index ] )
 				+ " "
 				+ str_unit
 				+ " (field '"
@@ -1771,7 +1774,7 @@ void CPlotEditor::SetAnimationDescr( int frame )
 				}
 				else
 				{
-					value_str = n2s<std::string>(value) + " " + str_unit;
+					value_str = n2s(value) + " " + str_unit;
 				}
 
 				descr += ( 
@@ -1810,7 +1813,7 @@ void CPlotEditor::HandleNumberOfBinsChanged()
 	{
 		bins = mPlot2DView->NumberOfBins( mTabCurveOptions->mFieldsList->currentRow() );
 		mTabCurveOptions->mNumberOfBins->blockSignals( true );
-		mTabCurveOptions->mNumberOfBins->setText( n2s<std::string>( bins ).c_str() );
+		mTabCurveOptions->mNumberOfBins->setText( n2s( bins ).c_str() );
 		mTabCurveOptions->mNumberOfBins->blockSignals( false );
 		LOG_WARN( "Invalid number of bins" );
 		return;
@@ -1888,7 +1891,7 @@ static inline int ProcessNumber( QLineEdit *edit, unsigned int def_value, const 
 	{
 		new_nb = def_value;
 		edit->blockSignals( true );
-		edit->setText( n2s<std::string>( new_nb ).c_str() );
+		edit->setText( n2s( new_nb ).c_str() );
 		edit->blockSignals( false );
 		LOG_WARN( "Invalid number for " + property_name );
 		return -1;
@@ -2097,11 +2100,11 @@ void CPlotEditor::HandleYAxisLabelChanged()
 
 void CPlotEditor::HandleZAxisLabelChanged()
 {
-	assert__( mCurrentPlotDataZFXY );
+	assert__( mCurrentPlotZFXY );
 
 	std::string xtitle, ytitle, ztitle;
 	if ( HandleAxisLabelChanged( mTabAxisOptions->mZAxisLabel, xtitle, ytitle, ztitle, ztitle ) )
-		mCurrentPlotDataZFXY->SetUserName( ztitle );
+		mCurrentPlotZFXY->SetTitleValue( ztitle );
 	else
 		mTabAxisOptions->mZAxisLabel->setText( ztitle.c_str() );
 }

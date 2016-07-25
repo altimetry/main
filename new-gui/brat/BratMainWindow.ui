@@ -56,6 +56,7 @@
      <string>&amp;Help</string>
     </property>
     <addaction name="action_About"/>
+    <addaction name="action_User_s_Manual"/>
     <addaction name="separator"/>
     <addaction name="action_Test"/>
    </widget>
@@ -444,6 +445,14 @@ The workspace directory will not change</string>
    </property>
    <property name="toolTip">
     <string>List the views of the selected operation</string>
+   </property>
+  </action>
+  <action name="action_User_s_Manual">
+   <property name="text">
+    <string>User's &amp;Manual...</string>
+   </property>
+   <property name="toolTip">
+    <string>Open BRAT User's Manual</string>
    </property>
   </action>
  </widget>

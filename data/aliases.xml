@@ -39,7 +39,7 @@
 	  <alias name="sea_state_bias_corr_ku" ref="sea_state_bias_corr"/>
 	  <alias name="sea_state_bias_corr_band2">sea_bias_s</alias>
 	  <alias name="mean_sea_surface">m_sea_surf_ht</alias> 
-	  <alias name="ssh">%{altitude} - %{range} - %{ion_corr} - %{dry_tropo_corr} - %{wet_tropo_corr} - %{solid_tides_corr} - %{ocean_tides_corr} - %{load_tides_corr} - %{pole_tides_corr} - %{inv_baro_corr} - %{sea_state_bias_corr}</alias>
+      <alias name="ssh">%{altitude} - %{range} - %{iono_corr} - %{dry_tropo_corr} - %{wet_tropo_corr} - %{solid_tides_corr} - %{ocean_tides_corr} - %{load_tides_corr} - %{pole_tides_corr} - %{inv_baro_corr} - %{sea_state_bias_corr}</alias>
 	  <alias name="sla">%{ssh} - %{mean_sea_surface}</alias>
 	  <alias name="ocean_editing">%{Ocean_data_editing_Envisat_GdrA}</alias>
     </aliases>
@@ -98,7 +98,7 @@
 	  <alias name="sea_state_bias_corr_ku" ref="sea_state_bias_corr"/>
 	  <alias name="sea_state_bias_corr_band2">sea_state_bias_c</alias>
 	  <alias name="mean_sea_surface">mss</alias> 
-	  <alias name="ssh">%{altitude} - %{range} - %{ion_corr} - %{dry_tropo_corr} - %{wet_tropo_corr} - %{solid_tides_corr} - %{ocean_tides_corr} - %{load_tides_corr} - %{pole_tides_corr} - %{inv_baro_corr} - %{sea_state_bias_corr}</alias>
+      <alias name="ssh">%{altitude} - %{range} - %{iono_corr} - %{dry_tropo_corr} - %{wet_tropo_corr} - %{solid_tides_corr} - %{ocean_tides_corr} - %{load_tides_corr} - %{pole_tides_corr} - %{inv_baro_corr} - %{sea_state_bias_corr}</alias>
 	  <alias name="sla">%{ssh} - %{mean_sea_surface}</alias>
 	  <alias name="ocean_editing">%{Ocean_data_editing_Jason1_GdrA}</alias>
     </aliases>
@@ -141,7 +141,7 @@
 	  <alias name="sea_state_bias_corr">SSB_Cor</alias>
 	  <alias name="sea_state_bias_corr_ku" ref="sea_state_bias_corr"/>
 	  <alias name="mean_sea_surface">H_MSS_OSU</alias> 
-	  <alias name="ssh">%{altitude} - %{range} - %{ion_corr} - %{dry_tropo_corr} - %{wet_tropo_corr} - %{solid_tides_corr} - %{ocean_tides_corr} - %{load_tides_corr} - %{sea_state_bias_corr}</alias>
+      <alias name="ssh">%{altitude} - %{range} - %{iono_corr} - %{dry_tropo_corr} - %{wet_tropo_corr} - %{solid_tides_corr} - %{ocean_tides_corr} - %{load_tides_corr} - %{sea_state_bias_corr}</alias>
 	  <alias name="sla">%{ssh} - %{mean_sea_surface}</alias>
 	  <alias name="ocean_editing">%{Ocean_data_editing_ERS}</alias>
     </aliases>
@@ -190,7 +190,7 @@
 	  <alias name="sea_state_bias_corr">Sea_State_Bias</alias>
 	  <alias name="sea_state_bias_corr_ku" ref="sea_state_bias_corr"/>
 	  <alias name="mean_sea_surface">Mean_Sea_Surface_I</alias> 
-	  <alias name="ssh">%{altitude} - %{range} - %{ion_corr} - %{dry_tropo_corr} - %{wet_tropo_corr} - %{solid_tides_corr} - %{ocean_tides_corr} - %{load_tides_corr} - %{pole_tides_corr} - %{inv_baro_corr} - %{sea_state_bias_corr}</alias>
+      <alias name="ssh">%{altitude} - %{range} - %{iono_corr} - %{dry_tropo_corr} - %{wet_tropo_corr} - %{solid_tides_corr} - %{ocean_tides_corr} - %{load_tides_corr} - %{pole_tides_corr} - %{inv_baro_corr} - %{sea_state_bias_corr}</alias>
 	  <alias name="sla">%{ssh} - %{mean_sea_surface}</alias>
 	  <alias name="ocean_editing">%{Ocean_data_editing_GFO_until_cycle_82}</alias>
     </aliases>
@@ -265,7 +265,7 @@
 	  <alias name="sea_state_bias_corr">SSB_Corr_K1</alias>
 	  <alias name="sea_state_bias_corr_ku" ref="sea_state_bias_corr"/>
 	  <alias name="mean_sea_surface">H_MSS</alias> 
-	  <alias name="ssh">%{altitude} - %{range} - %{ion_corr} - %{dry_tropo_corr} - %{wet_tropo_corr} - %{solid_tides_corr} - %{ocean_tides_corr} - %{load_tides_corr} - %{pole_tides_corr} - %{inv_baro_corr} - %{sea_state_bias_corr}</alias>
+      <alias name="ssh">%{altitude} - %{range} - %{iono_corr} - %{dry_tropo_corr} - %{wet_tropo_corr} - %{solid_tides_corr} - %{ocean_tides_corr} - %{load_tides_corr} - %{pole_tides_corr} - %{inv_baro_corr} - %{sea_state_bias_corr}</alias>
 	  <alias name="sla">%{ssh} - %{mean_sea_surface}</alias>
 	  <alias name="ocean_editing">%{Ocean_data_editing_Topex_Poseidon}</alias>
     </aliases>
@@ -368,7 +368,7 @@
       <alias name="time">mdsr_time</alias>
 	  <alias name="surface_type_ocean">surf_type_flags</alias> 
       <alias name="altitude">alt_cog_ref_ellip</alias> 
-      <alias name="alt" ref="altitude"/> 
+      <alias name="alt" ref="altitude"/> s
     </aliases>
 
     <aliases productType="SIR_LRM_2_">
@@ -410,7 +410,7 @@
 	  <alias name="sea_state_bias_corr">sea_state_bias_corr</alias>
 	  <alias name="sea_state_bias_corr_ku" ref="sea_state_bias_corr"/>
       <alias name="mean_sea_surface">mss_1</alias>
-	  <alias name="ssh">%{altitude} - %{range} - %{ion_corr} - %{dry_tropo_corr} - %{wet_tropo_corr} - %{solid_tides_corr} - %{ocean_tides_corr} - %{load_tides_corr} - %{pole_tides_corr} - %{inv_baro_corr} - %{sea_state_bias_corr}</alias>
+      <alias name="ssh">%{altitude} - %{range} - %{iono_corr} - %{dry_tropo_corr} - %{wet_tropo_corr} - %{solid_tides_corr} - %{ocean_tides_corr} - %{load_tides_corr} - %{pole_tides_corr} - %{inv_baro_corr} - %{sea_state_bias_corr}</alias>
 	  <alias name="sla">%{ssh} - %{mean_sea_surface}</alias>
 	  <alias name="ocean_editing">%{Ocean_data_editing_CryoSat_OceanProducts_GOP_IOP}</alias>
     </aliases>
@@ -519,7 +519,7 @@
 	  <alias name="sea_state_bias_corr_ku" ref="sea_state_bias_corr"/>
 	  <alias name="dynamic_atmos_corr">(hf_fluctuations_corr + inv_bar_corr)</alias>
 	  <alias name="mean_sea_surface">mean_sea_surface</alias> 
-	  <alias name="ssh">%{altitude} - %{range} - %{ion_corr} - %{dry_tropo_corr} - %{wet_tropo_corr} - %{solid_tides_corr} - %{ocean_tides_corr} - %{load_tides_corr} - %{pole_tides_corr} - %{dynamic_atmos_corr} - %{sea_state_bias_corr}</alias>
+      <alias name="ssh">%{altitude} - %{range} - %{iono_corr} - %{dry_tropo_corr} - %{wet_tropo_corr} - %{solid_tides_corr} - %{ocean_tides_corr} - %{load_tides_corr} - %{pole_tides_corr} - %{dynamic_atmos_corr} - %{sea_state_bias_corr}</alias>
 	  <alias name="sla">%{ssh} - %{mean_sea_surface}</alias>
 	  <alias name="ocean_editing">%{Ocean_data_editing_Jason2}</alias>
     </aliases>
@@ -558,7 +558,7 @@
 	  <alias name="sea_state_bias_corr_ku" ref="sea_state_bias_corr"/>
 	  <alias name="dynamic_atmos_corr">(hf_fluctuations_corr + inv_bar_corr)</alias>
 	  <alias name="mean_sea_surface">mean_sea_surface</alias> 
-	  <alias name="ssh">%{altitude} - %{range} - %{ion_corr} - %{dry_tropo_corr} - %{wet_tropo_corr} - %{solid_tides_corr} - %{ocean_tides_corr} - %{load_tides_corr} - %{pole_tides_corr} - %{dynamic_atmos_corr} - %{sea_state_bias_corr}</alias>
+      <alias name="ssh">%{altitude} - %{range} - %{iono_corr} - %{dry_tropo_corr} - %{wet_tropo_corr} - %{solid_tides_corr} - %{ocean_tides_corr} - %{load_tides_corr} - %{pole_tides_corr} - %{dynamic_atmos_corr} - %{sea_state_bias_corr}</alias>
 	  <alias name="sla">%{ssh} - %{mean_sea_surface}</alias>
 	  <alias name="ocean_editing">%{Ocean_data_editing_Jason2}</alias>
     </aliases>
@@ -705,7 +705,7 @@
 	  <alias name="sea_state_bias_corr">sea_state_bias</alias>
 	  <alias name="sea_state_bias_corr_ku" ref="sea_state_bias_corr"/>
 	  <alias name="mean_sea_surface">mean_sea_surface_1</alias> 
-	  <alias name="ssh">%{altitude} - %{range} - %{ion_corr} - %{dry_tropo_corr} - %{wet_tropo_corr} - %{solid_tides_corr} - %{ocean_tides_corr} - %{load_tides_corr} - %{pole_tides_corr} - %{inv_baro_corr} - %{sea_state_bias_corr}</alias>
+      <alias name="ssh">%{altitude} - %{range} - %{iono_corr} - %{dry_tropo_corr} - %{wet_tropo_corr} - %{solid_tides_corr} - %{ocean_tides_corr} - %{load_tides_corr} - %{pole_tides_corr} - %{inv_baro_corr} - %{sea_state_bias_corr}</alias>
 	  <alias name="sla">%{ssh} - %{mean_sea_surface}</alias>
 	  <alias name="ocean_editing">%{Ocean_data_editing_REAPER_ERS}</alias>
 	</aliases>

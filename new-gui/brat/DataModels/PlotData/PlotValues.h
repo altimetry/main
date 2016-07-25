@@ -755,6 +755,54 @@ struct CMapPlotParameters : public CZFXYPlotParameters
 	double mLatitudeOffset = 0.;
 
 
+	bool IsValidPoint( size_t index ) const
+	{
+		bool bOk = mBits[ index ];
+
+		//	  if (Projection == VTK_PROJ2D_MERCATOR)
+		//	  {
+		//bOk &= maps(0).mValidMercatorLatitudes[ i ];
+		//	  }
+		//
+		return bOk;
+	};
+
+
+	double LonAt( size_t index ) const
+	{
+		assert__( index < mValues.size() );
+
+		auto x = index % mXaxis.size();				assert__( x < mXaxis.size() );
+		return mXaxis.at( x );
+	}
+
+
+	double LatAt( size_t index ) const
+	{
+		assert__( index < mValues.size() );
+
+		auto y = index / mXaxis.size();				assert__( y < mYaxis.size() );
+		return mYaxis.at( y );
+	}
+
+
+	double ValueAt( size_t index ) const
+	{
+		assert__( index < mValues.size() );
+
+		return mValues[ index ] ;
+	}
+
+
+	double EastValueAt( size_t index ) const
+	{
+		assert__( index < mValuesEast.size() );
+
+		return mValuesEast[ index ] ;
+	}
+
+
+
 	inline virtual bool OrderAxis()
 	{
 		if ( base_t::OrderAxis() )

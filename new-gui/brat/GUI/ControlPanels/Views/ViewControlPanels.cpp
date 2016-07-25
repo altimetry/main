@@ -575,11 +575,17 @@ CMapControlsPanelDataLayers::CMapControlsPanelDataLayers( QWidget *parent, Qt::W
     // 1. Fields List
     //
     mFieldsList = new QListWidget;
-	auto *fields_group = CreateGroupBox( ELayoutType::Horizontal, { mFieldsList }, "Fields", nullptr );
+	auto *fields_group = CreateGroupBox( ELayoutType::Horizontal, { mFieldsList }, "Layers", nullptr );
 	fields_group->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Maximum );
 	mFieldsList->setMaximumHeight( MaxSmallListsHeight( 5 ) );
 
+	mMagnitudeFactorEdit = new QLineEdit;			mMagnitudeFactorEdit->setValidator( new QRegExpValidator( QRegExp( "[.0-9]+" ) ) );
+    mMagnitudeFactorEdit->setToolTip("Scaling Factor for Vectors");
+    mMagnitudeFactorGroupBox = CreateGroupBox( ELayoutType::Vertical, { mMagnitudeFactorEdit }, "Vector Scale", nullptr );
+	mMagnitudeFactorGroupBox->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
+
     mColorMapWidget = new CColorMapWidget( false, true, this );
+	mColorMapWidget->ShowPrecisionParameters( true );
 
 	auto *color_l = CreateGroupBox( ELayoutType::Horizontal,
 	{
@@ -589,18 +595,10 @@ CMapControlsPanelDataLayers::CMapControlsPanelDataLayers( QWidget *parent, Qt::W
 	//color_l->setSizePolicy( QSizePolicy::Expanding, QSizePolicy::Maximum );
 
 
-
-	auto *layers_l = CreateGroupBox( ELayoutType::Horizontal,
-	{
-		mFieldsList,
-	},
-	"", nullptr, 2, m, m, m, m );
-	//layers_l->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Maximum );
-
-
     AddTopLayout( ELayoutType::Horizontal, 
 	{
-		layers_l, 
+		fields_group,
+		mMagnitudeFactorGroupBox,
 		color_l,
 	}, 
 	s, m, m, m, m );

@@ -82,6 +82,12 @@ const bool CFieldData::smDefaultWithContour = false;
 const unsigned CFieldData::smDefaultNumContour = 5;
 
 //static 
+const unsigned CFieldData::smContourPrecisionGrid1 = 10;
+
+//static 
+const unsigned CFieldData::smContourPrecisionGrid2 = 10;
+
+//static 
 const double CFieldData::smDefaultContourLineWidth = 0.1;
 
 //static 

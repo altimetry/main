@@ -432,14 +432,16 @@ void CMapWidget::Init()
         QgsVectorLayer *l = AddOGRVectorLayer( t2q( smVectorLayerPath ) );
         l->rendererV2()->symbols()[ 0 ]->setColor( "black" );
         mMainLayer = l;
-//        QgsVectorSimplifyMethod simp;
-//        simp.setSimplifyHints( QgsVectorSimplifyMethod::NoSimplification);
-//        l->setSimplifyMethod( simp );
+		if ( !mVectorSimplifyMethod )
+		{
+			QgsVectorSimplifyMethod simp;
+			simp.setSimplifyHints( QgsVectorSimplifyMethod::NoSimplification );
+			l->setSimplifyMethod( simp );
+		}
     }
     else
     {
-        std::string raster_url = mLayerBaseType == eRasterLayer ? smRasterLayerPath : smURLRasterLayerPath;
-        //"/home/brat/s3-altb/project/dev/support/data/WebMapServices_xml_files/map_GoogleMaps_jpg.xml";
+        std::string raster_url = mLayerBaseType == eRasterLayer ? smRasterLayerPath : smURLRasterLayerPath;        //"/home/brat/s3-altb/project/dev/support/data/WebMapServices_xml_files/map_GoogleMaps_jpg.xml";
         std::string provider = mLayerBaseType == eRasterLayer ? "" : "wms";
         mMainRasterLayer = AddRasterLayer( t2q( raster_url ), "raster", t2q( provider ) );
 		if ( mMainRasterLayer )
@@ -466,50 +468,11 @@ void CMapWidget::Init()
 	//addRasterLayer( "http://server.arcgisonline.com/arcgis/rest/services/ESRI_Imagery_World_2D/MapServer?f=json&pretty=true", "raster", "" );
 	//crs=EPSG:900913&dpiMode=7&featureCount=10&format=image/png&layers=precipitation&styles=&url=http://wms.openweathermap.org/service
 
-
-
-
-    /////////////////// TODO RCCC //////////////////////////////////
-//    auto l = new QgsRasterLayer( QString("contextualWMSLegend=0&crs=EPSG:4326&dpiMode=all&featureCount=10&format=image/png&layers=bluemarble&styles=&url=http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_airsnrt?layer%3DAIRS_SO2_A%26" /*"http://localhost:8080/geoserver/wfs?srsname=EPSG:23030&typename=union&version=1.0.0&request=GetFeature&service=WFS"*/  /*"url=http://kaart.maaamet.ee/wms/alus&format=image/png&layers=MA-ALUS&styles=&crs=EPSG:AUTO"*/),
-//                                 QString("basemap"),
-//                                 QString("wms"),
-//                                 false
-//                                 );
-
-
-//    if ( l->isValid() )
-//    {
-//                            qDebug( "Layer is valid" );
-
-//        // Add the Raster Layer to the Layer Registry
-//        QgsMapLayerRegistry::instance()->addMapLayer(l, true);
-
-//        // Add the Layer to the Layer Set
-//        mLayerSet.append(QgsMapCanvasLayer(l, TRUE));
-
-//        // Set the Map Canvas Layer Set			//TODO: check if we need to SetLayerSet every time
-//        SetLayerSet(mLayerSet);
-//    }
-//    else
-//    {
-//        qDebug( "Layer is NOT valid, basemap not loaded" );
-//        delete l;
-//    }
-    //////////////////////////////////////////////////////////////////
-
-
     //mMainLayer =  new QgsVectorLayer(mVectorLayerPath, myLayerBaseName, myProviderName);
     //QgsSingleSymbolRendererV2 *mypRenderer = new QgsSingleSymbolRendererV2(QgsSymbolV2::defaultSymbol(mMainLayer->geometryType()));
 
 	//setupDatabase();
 	//setupMapLayers();
-
-	//4. We need the index for the population value:
-	//i = tractLyr.fieldNameIndex('POPULAT11')
-	//5. Now, we get our census layer's features as an iterator:
-	//features = tractLyr.getFeatures()
-	//6. We need a data provider for the memory layer so that we can edit it:
-	//auto vpr = popLyr->dataProvider();
 
     setWheelAction( WheelZoomToMouseCursor, 1.1 );
 
@@ -563,9 +526,10 @@ void CMapWidget::Init()
 #endif
 
 
-CMapWidget::CMapWidget( ELayerBaseType layer_base_type, QWidget *parent, bool with_tracks_layer )		//with_tracks_layer = false 
+CMapWidget::CMapWidget( bool vector_simplify, ELayerBaseType layer_base_type, QWidget *parent, bool with_tracks_layer )		//with_tracks_layer = false 
 	: base_t( parent )
     , mLayerBaseType( layer_base_type )
+	, mVectorSimplifyMethod( vector_simplify )
 {
 	Init();
 	if ( with_tracks_layer )
@@ -861,7 +825,15 @@ static const CFieldDefinition angle_def{ "angle", QVariant( 0. ).type() };
 //static 
 const char* CMapWidget::ReferenceDateFieldKey()
 {
-	static std::string key = q2a( ref_date_def.key );
+	static const std::string key = q2a( ref_date_def.key );
+	return key.c_str();
+}
+
+
+//static 
+const char* CMapWidget::MagnitudeFactorKey()
+{
+	static const std::string key = "value_factor";
 	return key.c_str();
 }
 
@@ -1030,9 +1002,6 @@ QgsFeatureList& CreatePointTrackFeature( QgsFeatureList &list, double lon, doubl
 }
 
 
-
-
-
 //static
 QgsFeatureList& CMapWidget::CreatePolygonDataFeature( QgsFeatureList &list, double lon, double lat, double value, double step_x, double step_y )
 {
@@ -1068,6 +1037,16 @@ QgsFeatureList& CMapWidget::CreatePolygonDataFeature( QgsFeatureList &list, doub
     list.append( *f );
     return list;
 }
+//static
+QgsFeatureList& CMapWidget::CreatePolygonDataFeature( QgsFeatureList &list, const CMapPlotParameters &array, size_t index, double step_x, double step_y )
+{
+	const double lon = array.LonAt( index );
+	const double lat = array.LatAt( index );
+	const double value = array.ValueAt( index );
+
+	return CreatePolygonDataFeature( list, lon, lat, value, step_x, step_y );
+}
+
 
 
 //static
@@ -1084,6 +1063,22 @@ QgsFeatureList& CMapWidget::CreateVectorFeature( QgsFeatureList &list, double lo
 
     list.append( *f );
     return list;
+}
+
+
+//static
+QgsFeatureList& CMapWidget::CreateVectorFeature( QgsFeatureList &list, const CMapPlotParameters &array, size_t index, double value_factor )
+{
+	const double lon = array.LonAt( index );
+	const double lat = array.LatAt( index );
+	const double north_value = array.ValueAt( index );
+	const double east_value = array.EastValueAt( index );
+
+    double magnitude = sqrt( north_value*north_value + east_value*east_value ) * value_factor;
+    double angle = atan2( east_value, north_value ) * 180 / M_PI;
+    if ( angle < 0 ) {  angle += 360;  }
+
+	return CreateVectorFeature( list, lon, lat, angle, magnitude );
 }
 
 
@@ -1183,7 +1178,7 @@ QgsSymbolV2* CMapWidget::CreateLineSymbol( double width, const QColor &color )
 	auto symbolLayer = new QgsSimpleLineSymbolLayerV2;
     symbolLayer->setColor( color );
 	symbolLayer->setWidth( width );
-	//symbolLayer->setWidthUnit( QgsSymbolV2::MapUnit );
+	symbolLayer->setWidthUnit( QgsSymbolV2::MM );
 
 	s->appendSymbolLayer( symbolLayer );
 
@@ -1223,8 +1218,9 @@ QgsSymbolV2* CMapWidget::CreateArrowSymbol( const QColor &color )
     auto symbolLayer = new QgsSimpleMarkerSymbolLayerV2;
     symbolLayer->setColor( color );
     symbolLayer->setName("arrow");					//
-    //symbolLayer->setSizeUnit( QgsSymbolV2::MM );	//	RCCC
-    symbolLayer->setSizeUnit( QgsSymbolV2::Pixel );	//
+    symbolLayer->setSizeUnit( QgsSymbolV2::MM );	//	RCCC
+    //symbolLayer->setSizeUnit( QgsSymbolV2::Pixel );	// == MapUnit
+    //symbolLayer->setSizeUnit( QgsSymbolV2::MapUnit );	//
     //symbolLayer->setSize( width );
     //symbolLayer->removeDataDefinedProperties();
     symbolLayer->setDataDefinedProperty( "size", magnitude_def.key );	//  m->setDataDefinedProperty( "size", props["size_expression"] );
@@ -1259,7 +1255,7 @@ inline std::string CreateUniqueLayerName( const std::string &name )
 	if ( layer_name.empty() )
 		layer_name = base_name;
 
-	layer_name += ( index_symbol + n2s<std::string>(index++) );
+	layer_name += ( index_symbol + n2s(index++) );
 
 	return layer_name;
 }
@@ -1320,119 +1316,6 @@ inline QgsVectorLayer* CreateVectorLayer( const std::string &name, const QString
 }
 
 
-
-
-//auto l = new QgsRasterLayer( //"url=http://localhost:8080/geoserver/wfs?srsname=EPSG:23030&typename=union&version=1.0.0&request=GetFeature&service=WFS",
-						//	//QString("url=http://kaart.maaamet.ee/wms/alus&format=image/png&layers=MA-ALUS&styles=&crs=EPSG:AUTO"),
-						//	 "contextualWMSLegend=0&crs=EPSG:4326&dpiMode=all&featureCount=10&format=image/png&layers=bluemarble&styles=&url=http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_airsnrt?layer%3DAIRS_SO2_A%26",
-						//	 /*"http://localhost:8080/geoserver/wfs?srsname=EPSG:23030&typename=union&version=1.0.0&request=GetFeature&service=WFS"*/  
-						//	 /*"url=http://kaart.maaamet.ee/wms/alus&format=image/png&layers=MA-ALUS&styles=&crs=EPSG:AUTO",*/
-//                             "basemap",
-//                             "wms",
-//                             false
-//                             );
-//
-QgsRasterLayer* CMapWidget::AddRasterLayer( const QString &layer_path, const QString &base_name, const QString &provider, QgsSymbolV2* symbol )	//symbol = nullptr
-{
-    Q_UNUSED( symbol );
-
-	std::string name = CreateUniqueLayerName( q2a( base_name ) );
-    auto l = provider.isEmpty() ? 
-		new QgsRasterLayer( layer_path, name.c_str() ) : 
-		new QgsRasterLayer( layer_path, name.c_str(), provider );
-
-	if ( l->isValid() ) 
-	{
-		// Add the Vector Layer to the Layer Registry
-		QgsMapLayerRegistry::instance()->addMapLayer(l, TRUE);
-
-		// Add the Layer to the Layer Set
-		mLayerSet.append(QgsMapCanvasLayer(l, TRUE));
-
-		// Set the Map Canvas Layer Set			//TODO: check if we need to SetLayerSet every time
-		SetLayerSet();
-
-		SetCurrentLayer( l );
-
-		return l;
-	}
-
-	LOG_WARN( "Raster layer is NOT valid" );
-	delete l;
-	return nullptr;
-}
-
-
-QgsVectorLayer* CMapWidget::AddVectorLayer( QgsVectorLayer *l )
-{
-    if ( l && l->isValid() )
-    {
-		LOG_TRACE( "Layer is valid" );
-
-		// Add the Vector Layer to the Layer Registry
-		QgsMapLayerRegistry::instance()->addMapLayer( l, true );
-
-		// Add the Layer to the Layer Set
-		mLayerSet.append( QgsMapCanvasLayer( l, true ) );
-
-		// Set the Map Canvas Layer Set
-		SetLayerSet();
-
-		SetCurrentLayer( l );
-	}
-
-	return l;
-}
-
-
-//QgsVectorLayer* CMapWidget::AddVectorLayer( const std::string &name, const QString &layer_path, const QString &provider, QgsFeatureRendererV2 *renderer )	//renderer = nullptr 
-//{
-//	static const std::string base_name = "vlayer";
-//	static const std::string index_symbol = "#";
-//	static size_t index = 0;
-//
-//	std::string layer_name = name;
-//	if ( layer_name.empty() )
-//		layer_name = base_name;
-//
-//	layer_name += ( index_symbol + n2s<std::string>(index++) );
-//
-//	auto l = new QgsVectorLayer( layer_path, layer_name.c_str(), provider );
-//
-//    if ( !renderer )
-//        renderer = CreateRenderer( l );
-//    l->setRendererV2( renderer );
-//
-//    if ( l->isValid() )
-//    {
-//							qDebug( "Layer is valid" );
-//
-//		// Add the Vector Layer to the Layer Registry
-//		QgsMapLayerRegistry::instance()->addMapLayer( l, true );
-//
-//		// Add the Layer to the Layer Set
-//		mLayerSet.append( QgsMapCanvasLayer( l, true ) );
-//
-//		// Set the Map Canvas Layer Set
-//		SetLayerSet();
-//
-//		SetCurrentLayer( l );
-//
-//		return l;
-//	}
-//							LOG_WARN( "Layer is NOT valid" );
-//	delete l;
-//	return nullptr;
-//}
-//
-//
-QgsVectorLayer* CMapWidget::AddOGRVectorLayer( const QString &layer_path, QgsSymbolV2* symbol )		//symbol = nullptr 
-{
-	static const QString provider_name = "ogr";
-
-	return AddVectorLayer( CreateVectorLayer( CreateUniqueLayerName( q2a( provider_name ) ), layer_path, provider_name, 
-		symbol ? CreateRenderer( symbol ) : nullptr ) );
-}
 
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1614,7 +1497,7 @@ QgsGraduatedSymbolRendererV2* CMapWidget::CreateRenderer( const QString &target_
 		//if ( color_index >= color_map_size )
 		//	color_index = 0;
 
-		auto label = "Group " + n2s<std::string>( index + 1 );
+		auto label = "Group " + n2s( index + 1 );
 		//auto symbol = CreatePointSymbol( width, color_map[ color_index ] );
 
         QColor c = lut->GetTableValue( lut->GetIndex( Mx ) );
@@ -1758,8 +1641,10 @@ QgsVectorLayer* CMapWidget::AddContourDataLayer( const std::string &name, double
 }
 */
 
-QgsVectorLayer* CMapWidget::AddDataLayer( const std::string &name, double symbol_width, double m, double M, const QLookupTable *lut, QgsFeatureList &flist,
-	bool isdate, brathl_refDate date_ref )
+	
+//static 
+QgsVectorLayer* CMapWidget::CreateDataLayer( const std::string &name, double symbol_width, double m, double M, const QLookupTable *lut, QgsFeatureList &flist,
+		bool isdate, brathl_refDate date_ref )
 {
 	Q_UNUSED( m );	Q_UNUSED( M );	Q_UNUSED( lut );	Q_UNUSED( isdate );		Q_UNUSED( date_ref );
 
@@ -1774,8 +1659,19 @@ QgsVectorLayer* CMapWidget::AddDataLayer( const std::string &name, double symbol
 	if ( l )
 	{
 		l->setLayerTransparency( data_layer_tranparency );
+	}
+
+	return l;
+}
+
+QgsVectorLayer* CMapWidget::AddDataLayer( const std::string &name, double symbol_width, double m, double M, const QLookupTable *lut, QgsFeatureList &flist,
+	bool isdate, brathl_refDate date_ref )
+{
+	QgsVectorLayer *l = CreateDataLayer( name, symbol_width, m, M, lut, flist, isdate, date_ref );
+	if ( l )
+	{
 		mDataLayers.push_back( l );
-		mCurrentDataLayer = l;
+		mSelectedDataLayer = l;
 		mContourLayers.push_back( nullptr );
 	}
 
@@ -1787,10 +1683,13 @@ QgsVectorLayer* CMapWidget::AddDataLayer( const std::string &name, double symbol
 }
 
 
+#include "GUI/ProgressDialog.h"
 
-QgsFeatureList& CreateCountourFeatures( QgsFeatureList &flist, const CMapPlotParameters &map, size_t ncontours )
+bool CreateCountourFeatures( QWidget *parent, QgsFeatureList &flist, const CMapPlotParameters &map, size_t ncontours, unsigned factor1, unsigned factor2 )
 {
 	CListContour contours;
+
+	LOG_TRACEstd( "Using precision " + n2s( factor1 ) + ", " + n2s( factor2 ) );
 
 	//1. function
 
@@ -1803,7 +1702,7 @@ QgsFeatureList& CreateCountourFeatures( QgsFeatureList &flist, const CMapPlotPar
 
 	//2. limits
 
-	double pLimits[ 4 ] = { map.mMinX, map.mMaxX, map.mMinY, map.mMaxX };	//double pLimits[ 4 ] = { -180, 180, -90, 90 };
+	double pLimits[ 4 ] = { map.mMinX, map.mMaxX, map.mMinY, map.mMaxX };		//double pLimits[ 4 ] = { -180, 180, -90, 90 };
 	contours.SetLimits( pLimits );
 
 	//3. planes (contours)
@@ -1812,96 +1711,83 @@ QgsFeatureList& CreateCountourFeatures( QgsFeatureList &flist, const CMapPlotPar
 	const auto vstep = ( map.mMaxHeightValue - map.mMinHeightValue ) / ncontours;
 	for ( unsigned long i = 0; i < ncontours; i++ )
 	{
-		vPlanes[ i ] = map.mMaxHeightValue - i * vstep;		//vPlanes[ i ] = map.mMinHeightValue + i * vstep;
+		//vPlanes[ i ] = map.mMaxHeightValue - i * vstep;		
+		vPlanes[ i ] = map.mMinHeightValue + i * vstep;
 	}
 	contours.SetPlanes( vPlanes );
 
 	//4. grids
 
-	const int factor = 5;
-	contours.SetFirstGrid( factor * map.mXaxis.size(), factor * map.mYaxis.size() );
-	contours.SetSecondaryGrid( factor * map.mXaxis.size(), factor * map.mYaxis.size() );
-	contours.Generate();
-	
-	//5. results
+	contours.SetFirstGrid( factor1 * map.mXaxis.size(), factor1 * map.mYaxis.size() );
+	contours.SetSecondaryGrid( factor2 * map.mXaxis.size(), factor2 * map.mYaxis.size() );
 
-	auto const nplanes = contours.GetNPlanes();									assert__( nplanes == ncontours );
-	//const double r = 0.3;
+	CProgressDialog progress( "Computing contours...", "Cancel", 0, 100, parent->isVisible() ? parent : parent = qApp->activeWindow() );
+	CProgressInterface *pi = nullptr;
+	if ( parent && parent->isVisible() )
+	{
+		progress.setWindowModality( Qt::WindowModal );
+		progress.show();
+		pi = &progress;
+	}
+
+	//5. generate
+
+	if ( !contours.GenerateContours( pi ) )
+		return false;
+
+	//6. results
+
+	auto const nplanes = contours.GetNPlanes();				assert__( nplanes == ncontours );
+
 	for ( size_t i = 0; i < nplanes; i++ )
 	{
-		auto pStripList = contours.GetLines( i );								assert__( pStripList );
-		for ( auto pos=pStripList->begin(); pos != pStripList->end(); pos++ )
+		auto pstrip_list = contours.GetLines( i );			assert__( pstrip_list );
+		for ( auto pstrip : *pstrip_list )
 		{
-			auto pStrip=( *pos );												assert__( pStrip );
-			if ( pStrip->empty() )
+			assert__( pstrip );
+			if ( pstrip->empty() )
 				continue;
 
 			QgsPolyline points;
-			for ( auto pos2 = pStrip->begin(); pos2 != pStrip->end(); ++pos2 )
+			for ( auto index : *pstrip )
 			{
-				auto index = ( *pos2 );
-
 				double x = contours.GetXi( index );
 				double y = contours.GetYi( index );
 
-				//double lon_max = x + default_data_step / 2;
-				//double lon_min = x - default_data_step / 2;
-				//double lat_min = y - default_data_step / 2;
-				//double lat_max = y + default_data_step / 2;
-
-				//x = lon_max < 180 ? x : 179.99;
-				//x = lon_min > -180 ? x : -179.99;
-				//y = lat_max < 90 ? lat_max : 89.99;
-				//y = lat_min > -90 ? lat_min : -89.99;
-
-				if ( x > -179.99 && y > -89.99 && x < 179.99 && y < 89.99 )
+				//if ( x > -179.99 && y > -89.99 && x < 179.99 && y < 89.99 )
 				//if ( x > map.mMinX && y > map.mMinY && x < map.mMaxX && y < map.mMaxY )
-				//if ( true )
-				//if ( x != std::numeric_limits<int>::max() && y != std::numeric_limits<int>::max() )
-				//if ( true)
+				if ( x >= map.mMinX && y >= map.mMinY && x <= map.mMaxX && y <= map.mMaxY )
 				{
-					//if ( x < 0 )
-					//	x -= ( default_data_step + fmod( x, default_data_step ) );
-					//else
-					//	x += fmod( x, default_data_step );
-
-					//if ( y < 0 )
-					//	y -= ( default_data_step + fmod( y, default_data_step ) );
-					//else
-					//	y += fmod( y, default_data_step );
-
 					//glVertex2f((GLfloat)(pLimits[0]+x),(GLfloat)(pLimits[2]+y));
 					points.append( QgsPoint( x, y ) );
-					//points.append( QgsPoint(  std::round( x / r ) * r, std::round( y / r ) * r ) );
-					//points.append( QgsPoint(  x / default_data_step * default_data_step, y / default_data_step * default_data_step ) );
 				}
 				else
-					LOG_TRACEstd( "Point discarded " + n2s<std::string>(x) + ", " + n2s<std::string>(y) );
-			}
-			if ( points.size() == 1 )
-			{
-				//points.append( QgsPoint( std::max( points[ 0 ].x() - 1, xmin ), std::min( points[ 0 ].y() + 1, ymax ) ) );
-				//points.append( QgsPoint( std::min( points[ 0 ].x() + 1, xmax ), std::max( points[ 0 ].y() - 1, ymin ) ) );
+					LOG_TRACEstd( "Point discarded " + n2s( x ) + ", " + n2s( y ) );
 			}
 			if ( points.size() > 1 )
 				CreateLineDataFeature( flist, map.mMaxHeightValue - i * vstep, points );
 		}
 	}
-	return flist;
+
+	return true;
 }
+
 
 //	Assumes that a corresponding data layer was already inserted
 //
-QgsVectorLayer* CMapWidget::AddContourLayer( size_t index, const std::string &name, unsigned width, QColor color, size_t ncontours, const CMapPlotParameters &map, const QLookupTable *lut )	//lut = nullptr  
+QgsVectorLayer* CMapWidget::AddContourLayer( size_t index, const std::string &name, double width, QColor color, size_t ncontours, unsigned factor1, unsigned factor2, 
+	const CMapPlotParameters &map, const QLookupTable *lut )	//lut= nullptr 
 {
-	Q_UNUSED( lut );	Q_UNUSED( color );		// TODO while using lut is not decided
+	Q_UNUSED( lut );	Q_UNUSED( color );		// TODO using a Color Table implies dropping the color property for contours
 
 	QgsFeatureList flist;
+	if ( !CreateCountourFeatures( parentWidget(), flist, map, ncontours, factor1, factor2 ) )
+		return nullptr;
 
 	QgsVectorLayer *l = CreateMemoryLayer( eLineString, name, LayerDataFields(), 
-		//CreateRenderer( data_def.key, 0.1, map.mMinHeightValue, map.mMaxHeightValue, lut, &CMapWidget::CreateLineSymbol ),
+		//CreateRenderer( data_def.key, width, map.mMinHeightValue, map.mMaxHeightValue, lut, &CMapWidget::CreateLineSymbol ),
 		CreateRenderer( CreateLineSymbol( width, color ) ), 
-		CreateCountourFeatures( flist, map, ncontours ) );
+		flist );
 
 	if ( l )
 	{
@@ -1921,7 +1807,8 @@ bool CMapWidget::IsArrowLayer( size_t index ) const
 }
 
 
-QgsVectorLayer* CMapWidget::AddArrowDataLayer( const std::string &name, QgsFeatureList &flist )
+//static 
+QgsVectorLayer* CMapWidget::CreateArrowDataLayer( const std::string &name, QgsFeatureList &flist, double value_factor )
 {
 	QgsVectorLayer *l = CreateMemoryLayer( ePoint, name, LayerVectorFields(), 
 		CreateRenderer( CreateArrowSymbol( "black" ) ), flist );
@@ -1930,6 +1817,17 @@ QgsVectorLayer* CMapWidget::AddArrowDataLayer( const std::string &name, QgsFeatu
 	{
 		l->dataProvider()->addFeatures( flist );
 		l->setProperty( q2a( magnitude_def.key ).c_str(), magnitude_def.key );
+		l->setProperty( MagnitudeFactorKey(), value_factor );
+    }
+
+	return l;
+}
+
+QgsVectorLayer* CMapWidget::AddArrowDataLayer( const std::string &name, QgsFeatureList &flist, double value_factor )
+{
+	QgsVectorLayer *l = CreateArrowDataLayer( name, flist, value_factor );
+	if ( l )
+	{
 		mDataLayers.push_back( l );
         mContourLayers.push_back( nullptr );
     }
@@ -1988,16 +1886,6 @@ void CMapWidget::RemoveTracksLayerFeatures()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //		Layers
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-void CMapWidget::SetCurrentLayer( QgsMapLayer *l )
-{
-	LOG_TRACEstd( "Layer CRS = " + n2s<std::string>( l->crs().srsid() ) );
-    setCurrentLayer( l );
-	QgsVectorLayer *vl = qobject_cast< QgsVectorLayer* >( l );
-	if ( vl )
-		connect( vl, SIGNAL( selectionChanged() ), this, SIGNAL( CurrentLayerSelectionChanged() ), Qt::QueuedConnection );
-}
 
 
 
@@ -2079,18 +1967,58 @@ bool CMapWidget::IsContourLayerVisible( size_t index ) const
     return mContourLayers[ index ] && IsLayerVisible( mContourLayers[ index ] );
 }
 
-bool CMapWidget::SetDataLayerVisible( size_t index, bool show, bool render )
+void CMapWidget::SetCurrentLayer( QgsMapLayer *l )
+{
+	LOG_TRACEstd( "Selected Layer CRS = " + ( l ? n2s( l->crs().srsid() ) : " selecting no layer" ) );
+    setCurrentLayer( l );
+	QgsVectorLayer *vl = qobject_cast< QgsVectorLayer* >( l );
+	if ( vl )
+		connect( vl, SIGNAL( selectionChanged() ), this, SIGNAL( CurrentLayerSelectionChanged() ), Qt::QueuedConnection );
+}
+
+//- changes mSelectedDataLayer: last added or selected in GUI that is visible
+//- fails if layer not visible
+//- call with negative to deselect
+bool CMapWidget::SetCurrentDataLayer( int index )
+{
+	assert__( index < (int)mDataLayers.size() );		//if negative, still true
+
+	if ( index < 0 )
+	{
+		mSelectedDataLayer = nullptr;
+	}
+	else
+	if ( IsDataLayerVisible( index ) )
+	{
+		mSelectedDataLayer = mDataLayers[ index ];
+		SetCurrentLayer( mSelectedDataLayer );
+	}
+	else
+		return false;
+
+	return true;
+}
+
+bool CMapWidget::SetDataLayerVisible( size_t index, bool show, bool select, bool render )
 {
 	assert__( index < mDataLayers.size() );
 
 	if ( !SetLayerVisible( mDataLayers[ index ], show, render ) )
 		return false;
 
-	mCurrentDataLayer = nullptr;
-	const size_t size = mDataLayers.size();
-	for ( size_t i = 0; i < size; ++i )
-		if ( IsDataLayerVisible( i ) )
-			mCurrentDataLayer = mDataLayers[ i ];		//last added that is visible
+	if ( select && show )
+	{
+		SetCurrentDataLayer( index );
+	}
+	else
+	if ( mSelectedDataLayer == mDataLayers[ index ] && !show )
+	{
+		mSelectedDataLayer = nullptr;
+		const int size = (int)mDataLayers.size();
+		for ( int i = size - 1; i >= 0; --i )		//last added or selected in GUI that is visible
+			if ( SetCurrentDataLayer( i ) )
+				break;
+	}
 
 	return true;
 }
@@ -2131,7 +2059,7 @@ void CMapWidget::ChangeDataRenderer( size_t index, double width, double m, doubl
 
 
 
-void CMapWidget::SetNumberOfContours( size_t index, size_t ncontours, const CMapPlotParameters &map )
+bool CMapWidget::SetNumberOfContours( size_t index, size_t ncontours, const CMapPlotParameters &map, unsigned factor1, unsigned factor2 )
 {
 	assert__( index < mContourLayers.size() );
 
@@ -2140,15 +2068,18 @@ void CMapWidget::SetNumberOfContours( size_t index, size_t ncontours, const CMap
 	RemoveFeatures( l );
 
 	QgsFeatureList flist;
-	CreateCountourFeatures( flist, map, ncontours );
+	bool result = CreateCountourFeatures( parentWidget(), flist, map, ncontours, factor1, factor2 );
 	if ( l && !flist.empty() )
 	{
 		l->dataProvider()->addFeatures( flist );
 		l->updateExtents();
 	}
+	refresh();
+
+	return result;
 }
 
-void CMapWidget::SetContoursProperties( size_t index, QColor color, unsigned width )
+void CMapWidget::SetContoursProperties( size_t index, QColor color, double width )
 {
 	assert__( index < mContourLayers.size() );
 
@@ -2187,16 +2118,22 @@ void CMapWidget::RemoveLayer( QgsMapLayer *layer, bool render )		//render = fals
 	if ( !layer )
 		return;
 
-	if ( layer == mCurrentDataLayer )
-		mCurrentDataLayer = nullptr;
+	if ( layer == mSelectedDataLayer )
+		SetCurrentDataLayer( -1 );
 
 	for ( auto &l : mDataLayers )
 		if ( l == layer )
+		{
 			mDataLayers.erase( std::find( mDataLayers.begin(), mDataLayers.end(), layer ) );
+			break;
+		}
 
 	for ( auto &l : mContourLayers )
 		if ( l == layer )
+		{
 			mContourLayers.erase( std::find( mContourLayers.begin(), mContourLayers.end(), layer ) );
+			break;
+		}
 
 	QList <QgsMapCanvasLayer> set = mLayerSet;
 	RemoveLayers( false );
@@ -2207,7 +2144,7 @@ void CMapWidget::RemoveLayer( QgsMapLayer *layer, bool render )		//render = fals
 	QgsMapLayerRegistry::instance()->removeMapLayer( layer->id() );
 
 	SetLayerSet();
-	SetCurrentLayer( mLayerSet.begin()->layer() );		//deletes layer;
+	SetCurrentLayer( mLayerSet.begin()->layer() );
 
 	if ( render )
 		refresh();
@@ -2219,6 +2156,149 @@ void CMapWidget::RemoveTracksLayer()
 
 	refresh();
 }
+
+
+void CMapWidget::ReplaceDataLayer( size_t index, QgsVectorLayer* new_layer, bool render )		//render = false 
+{
+	assert__( index < mDataLayers.size() );
+
+	auto *layer = mDataLayers[ index ];				assert__( layer );
+	auto *clayer = mContourLayers[ index ];
+
+	std::replace( mDataLayers.begin(), mDataLayers.end(), layer, new_layer ); 
+	if ( clayer )
+		std::replace( mContourLayers.begin(), mContourLayers.end(), clayer, (QgsVectorLayer*)nullptr );
+
+	QgsMapLayerRegistry::instance()->removeMapLayer( layer->id() );			//deletes it
+	QgsMapLayerRegistry::instance()->addMapLayer( new_layer, true );		//true: delete on removal
+
+	for ( auto &cl : mLayerSet )
+		if ( cl.layer() == layer )
+			cl = QgsMapCanvasLayer( new_layer, true );
+
+	SetLayerSet();
+	if ( layer == mSelectedDataLayer )
+		SetCurrentDataLayer( index );
+	else
+		SetCurrentLayer( mLayerSet.begin()->layer() );
+
+	if ( render )
+		refresh();
+}
+
+
+QgsVectorLayer* CMapWidget::AddVectorLayer( QgsVectorLayer *l )
+{
+    if ( l && l->isValid() )
+    {
+		LOG_TRACE( "Layer is valid" );
+
+		// Add the Vector Layer to the Layer Registry
+		QgsMapLayerRegistry::instance()->addMapLayer( l, true );
+
+		// Add the Layer to the Layer Set
+		mLayerSet.append( QgsMapCanvasLayer( l, true ) );
+
+		// Set the Map Canvas Layer Set, reversing order...
+		SetLayerSet();
+
+		SetCurrentLayer( l );
+	}
+
+	return l;
+}
+
+
+//QgsVectorLayer* CMapWidget::AddVectorLayer( const std::string &name, const QString &layer_path, const QString &provider, QgsFeatureRendererV2 *renderer )	//renderer = nullptr 
+//{
+//	static const std::string base_name = "vlayer";
+//	static const std::string index_symbol = "#";
+//	static size_t index = 0;
+//
+//	std::string layer_name = name;
+//	if ( layer_name.empty() )
+//		layer_name = base_name;
+//
+//	layer_name += ( index_symbol + n2s(index++) );
+//
+//	auto l = new QgsVectorLayer( layer_path, layer_name.c_str(), provider );
+//
+//    if ( !renderer )
+//        renderer = CreateRenderer( l );
+//    l->setRendererV2( renderer );
+//
+//    if ( l->isValid() )
+//    {
+//							qDebug( "Layer is valid" );
+//
+//		// Add the Vector Layer to the Layer Registry
+//		QgsMapLayerRegistry::instance()->addMapLayer( l, true );
+//
+//		// Add the Layer to the Layer Set
+//		mLayerSet.append( QgsMapCanvasLayer( l, true ) );
+//
+//		// Set the Map Canvas Layer Set
+//		SetLayerSet();
+//
+//		SetCurrentLayer( l );
+//
+//		return l;
+//	}
+//							LOG_WARN( "Layer is NOT valid" );
+//	delete l;
+//	return nullptr;
+//}
+//
+//
+QgsVectorLayer* CMapWidget::AddOGRVectorLayer( const QString &layer_path, QgsSymbolV2* symbol )		//symbol = nullptr 
+{
+	static const QString provider_name = "ogr";
+
+	return AddVectorLayer( CreateVectorLayer( CreateUniqueLayerName( q2a( provider_name ) ), layer_path, provider_name, 
+		symbol ? CreateRenderer( symbol ) : nullptr ) );
+}
+
+
+//auto l = new QgsRasterLayer( //"url=http://localhost:8080/geoserver/wfs?srsname=EPSG:23030&typename=union&version=1.0.0&request=GetFeature&service=WFS",
+						//	//QString("url=http://kaart.maaamet.ee/wms/alus&format=image/png&layers=MA-ALUS&styles=&crs=EPSG:AUTO"),
+						//	 "contextualWMSLegend=0&crs=EPSG:4326&dpiMode=all&featureCount=10&format=image/png&layers=bluemarble&styles=&url=http://disc1.sci.gsfc.nasa.gov/daac-bin/wms_airsnrt?layer%3DAIRS_SO2_A%26",
+						//	 /*"http://localhost:8080/geoserver/wfs?srsname=EPSG:23030&typename=union&version=1.0.0&request=GetFeature&service=WFS"*/  
+						//	 /*"url=http://kaart.maaamet.ee/wms/alus&format=image/png&layers=MA-ALUS&styles=&crs=EPSG:AUTO",*/
+//                             "basemap",
+//                             "wms",
+//                             false
+//                             );
+//
+QgsRasterLayer* CMapWidget::AddRasterLayer( const QString &layer_path, const QString &base_name, const QString &provider, QgsSymbolV2* symbol )	//symbol = nullptr
+{
+    Q_UNUSED( symbol );
+
+	std::string name = CreateUniqueLayerName( q2a( base_name ) );
+    auto l = provider.isEmpty() ? 
+		new QgsRasterLayer( layer_path, name.c_str() ) : 
+		new QgsRasterLayer( layer_path, name.c_str(), provider );
+
+	if ( l->isValid() ) 
+	{
+		// Add the Vector Layer to the Layer Registry
+		QgsMapLayerRegistry::instance()->addMapLayer(l, TRUE);
+
+		// Add the Layer to the Layer Set
+		mLayerSet.append(QgsMapCanvasLayer(l, TRUE));
+
+		// Set the Map Canvas Layer Set			//TODO: check if we need to SetLayerSet every time
+		SetLayerSet();
+
+		SetCurrentLayer( l );
+
+		return l;
+	}
+
+	LOG_WARN( "Raster layer is NOT valid" );
+	delete l;
+	return nullptr;
+}
+
 
 
 
@@ -2622,18 +2702,20 @@ void CMapWidget::ShowMapTip()
 	// Only show tool-tip if the mouse is over the canvas
 	if ( this->underMouse() )
 	{
-		QPoint myPointerPos = mouseLastXY();
-
-		QgsMapLayer* layer = mTracksLayer ? mTracksLayer : ( mCurrentDataLayer ? mCurrentDataLayer : currentLayer() );
+		QgsMapLayer* layer = mTracksLayer ? mTracksLayer : ( mSelectedDataLayer ? mSelectedDataLayer : currentLayer() );
 		if ( layer && IsLayerVisible( layer) )
 		{
 			// only process vector layers
 			if ( layer->type() == QgsMapLayer::VectorLayer )
 			{
+				QPoint myPointerPos = mouseLastXY();
+
 				// Show the map tip if the map tips button is depressed
 				if ( mMapTipsVisible )
 				{
-					mpMaptip->ShowMapTip( layer, mLastMapPosition, myPointerPos, this );
+					QgsPoint coord = getCoordinateTransform()->toMapCoordinates( myPointerPos );
+
+					mpMaptip->ShowMapTip( layer, coord/*mLastMapPosition*/, myPointerPos, this );	 //TODO decide between using mLastMapPosition and here
 				}
 			}
 		}
@@ -2697,14 +2779,8 @@ void CMapWidget::ShowMouseCoordinate( const QString s, bool erase )			//erase = 
 }
 
 
-void CMapWidget::ShowMouseCoordinate( const QgsPoint &p, bool erase )		//erase = false 
+void CMapWidget::ShowMouseCoordinate( const QgsPoint &p )		//erase = false 
 {
-	if ( erase )
-	{
-		mCoordsEdit->clear();
-		return;
-	}
-
     // Map Tips /////////////////////////////////////////////////////////
     if ( mMapTipsVisible && ( mTracksLayer || !mDataLayers.empty() ) )
     {

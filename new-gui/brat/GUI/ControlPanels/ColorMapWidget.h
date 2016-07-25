@@ -82,11 +82,17 @@ class CColorMapWidget : public QWidget
 	friend struct CPlotControlsPanelCurveOptions;
 	friend struct CMapControlsPanelDataLayers;
 
+	//static data
+
+	static const int smNumberOfColorLabels = 5;
 
 	//data
 
 	QGroupBox *mShowContourBox = nullptr;
 	QLineEdit *mNumberOfContoursEdit = nullptr;
+    QLabel *mContourPrecisionLabel = nullptr;
+	QLineEdit *mContourPrecisionGrid1Edit = nullptr;
+	QLineEdit *mContourPrecisionGrid2Edit = nullptr;
 	CColorButton *mContourColorButton = nullptr;
 	QColor mContourColor;
     QLineEdit *mContourWidthEdit = nullptr;
@@ -100,12 +106,14 @@ class CColorMapWidget : public QWidget
 	QLineEdit *mColorRangeMinEdit = nullptr;
 	QLineEdit *mColorRangeMaxEdit = nullptr;
 	QPushButton *mCalculateMinMax = nullptr;
-	static const int smNumberOfColorLabels = 5;
+	QGroupBox *mColorRangeGroup = nullptr;
+	QGroupBox *mColorMapGroup = nullptr;
 	std::vector<QLabel*> mColorLabels;
 	double mAbsoluteMin = std::numeric_limits<double>::max();
 	double mAbsoluteMax = std::numeric_limits<double>::lowest();
 	double mColorRangeMin = std::numeric_limits<double>::max();
 	double mColorRangeMax = std::numeric_limits<double>::lowest();
+	
 
 	bool mOnlyLUT = false;
 
@@ -157,9 +165,16 @@ public:
 	}
 
 
+	void ShowPrecisionParameters( bool show );
+	void PrecisionParameters( unsigned int &grid1, unsigned int &grid2 );
+	void SetPrecisionParameters( unsigned int grid1, unsigned int grid2 );
+
+
 	//...show solid color
 
 	void SetShowSolidColor( bool checked );
+
+	void EnableOnlySolidColor( bool enable_only );
 
 
 	//...color table
@@ -197,6 +212,8 @@ signals:
 	void ShowSolidColorToggled( bool );
 	void ContoursEditReturnPressed();
 	void ContourWidthReturnPressed();
+	void ContourPrecisionGrid1EditPressed();
+	void ContourPrecisionGrid2EditPressed();
 
 protected slots:
 

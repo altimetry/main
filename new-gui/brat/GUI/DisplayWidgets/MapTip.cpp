@@ -22,7 +22,7 @@
 #include "MapWidget.h"
 #include "MapTip.h"
 
-void CMapTip::ShowMapTip( QgsMapLayer *layer, QgsPoint & map_position, QPoint & pixel_position, CMapWidget *map_canvas )
+void CMapTip::ShowMapTip( QgsMapLayer *layer, QgsPoint &map_position, QPoint &pixel_position, CMapWidget *map_canvas )
 {
 	// Do the search using the active layer and the preferred label
 	// field for the layer. The label field must be defined in the layer configuration
@@ -60,11 +60,11 @@ void CMapTip::Clear( CMapWidget *map_canvas )
 
 QString CMapTip::FetchFeature( QgsMapLayer *layer, QgsPoint &map_position, CMapWidget *map_canvas )
 {
-	QgsVectorLayer *vlayer = qobject_cast<QgsVectorLayer *>( layer );
+	QgsVectorLayer *vlayer = qobject_cast<QgsVectorLayer*>( layer );
 	if ( !vlayer )
 		return "";
 
-	double searchRadius = QgsMapTool::searchRadiusMU( map_canvas );
+	double searchRadius = QgsMapTool::searchRadiusMU( map_canvas ) / 6.;		//6. empirically found
 
 	QgsRectangle r;
 	r.setXMinimum( map_position.x() - searchRadius );
@@ -84,20 +84,36 @@ QString CMapTip::FetchFeature( QgsMapLayer *layer, QgsPoint &map_position, CMapW
 		return "<empty>";	// QgsExpression::replaceExpressionText( vlayer->displayField(), &feature, vlayer );
 
 	QVariant ref_date_v = vlayer->property( CMapWidget::ReferenceDateFieldKey() );
+	QVariant value_factor_v = vlayer->property( CMapWidget::MagnitudeFactorKey() );
 	bool isdate = ref_date_v.isValid();
 	auto attr = feature.attribute( idx );
-	QString tip = attr.toString();
-	if ( isdate )
+	bool ok;
+	double value = attr.toDouble( &ok );
+    QString tip;
+	if ( ok )
 	{
-		bool ok;
-		brathl_refDate ref_date = (brathl_refDate)ref_date_v.toInt( &ok );
-		if ( ok )
+		if ( isdate )
 		{
-			CDate d( attr.toDouble( &ok ), ref_date );
-			if ( ok && !d.IsDefaultValue() )
+			brathl_refDate ref_date = (brathl_refDate)ref_date_v.toInt( &ok );
+			if ( ok )
 			{
-				tip = QString( d.AsString().c_str() ) + " (" + tip + ")";
+				CDate d( value, ref_date );
+				if ( ok && !d.IsDefaultValue() )
+				{
+					tip = QString( d.AsString().c_str() ) + " (" + attr.toString() + ")";
+				}
 			}
+		}
+		else
+		{
+			if ( value_factor_v.isValid() )
+			{
+				double value_factor = value_factor_v.toDouble( &ok );
+				if ( ok )
+					value /= value_factor;
+			}
+			attr.setValue( value );
+			tip = attr.toString();
 		}
 	}
 

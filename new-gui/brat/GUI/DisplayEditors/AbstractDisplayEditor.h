@@ -116,6 +116,8 @@ protected:
 
 	static brathl_refDate RefDateFromUnit( const CUnit &u );
 
+	static QListWidgetItem* MakeFieldItem( const CPlotData *pdata );
+
 	
 private:
 	///////////////////////////////////////////////////////////

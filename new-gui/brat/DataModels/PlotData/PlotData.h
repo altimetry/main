@@ -162,20 +162,35 @@ protected:
 	//////////////////////////////
 
 public:
-
+	// This class exists almost only because of this: allowing a single plot field 
+	//	composed of 2 data fields to be treated like one unit. So, the identification
+	//	is always composed by the 2 field identifiers. 
+	//
+	// But setting a plot field name only makes sense for each data field, so SetUserName
+	//	does not exist here, only Set First UserName (setter for 2nd not justified so far
+	//	and even the need for this one reflects that the data structures... 
+	//	could be improved, to be kind.
+	//
 	std::string UserName() const
 	{
-		std::string name = Get( &CFieldData::UserName );			//fieldNameEast + "/" + fieldNameNorth;
+		std::string name = Get( &CFieldData::UserName );				//fieldNameEast + "/" + fieldNameNorth;
 		if ( second )
 			name += ( "/" + second->UserName() );
 
 		return name;
 	}
 
+	void SetFirstUserName( const std::string &value )
+	{ 
+		first->SetUserName( value ); 
+	}
+
 
 	////////////////////////////
 	// Class Specific Interface
 	////////////////////////////
+
+	bool HasDataUnitInfo() const { return m_dataUnits.size() > 0; }
 
 	virtual const CUnit* DataUnit() const { return DataUnit( 0 ); }		//TODO cannot use CurrentFrame() because YFX did not have m_dataUnits and unlike ZFXY does not have 1 unit per frame
 
@@ -213,8 +228,6 @@ public:
 	}
 
 
-	void SetUserName( const std::string &value )					{ Set( value, &CFieldData::SetUserName ); }
-
 	CFieldData::unsigned_t Opacity() const 							{ return Get( &CFieldData::Opacity ); }
 	void SetOpacity( CFieldData::unsigned_t op )					{ Set( op, &CFieldData::SetOpacity ); }
 
@@ -226,7 +239,6 @@ public:
 
 	bool YLog() const												{ return Get( &CFieldData::YLog ); }
 	void SetYLog( bool value )										{ Set( value, &CFieldData::SetYLog ); }
-
 
 	//	ZFXY / LON-LAT
 
@@ -253,9 +265,13 @@ public:
 
 	double MinContourValue() const									{ return Get( &CFieldData::MinContourValue ); }
 	double MaxContourValue() const									{ return Get( &CFieldData::MaxContourValue ); }
+	void SetContourValueRange( double m, double M )					{ Set( m, M, &CFieldData::SetContourValueRange ); }
 
 	unsigned NumContours() const									{ return Get( &CFieldData::NumContours ); }
 	void SetNumContours( unsigned value )							{ Set( value, &CFieldData::SetNumContours ); }
+
+	std::pair< unsigned, unsigned > ContourPrecision() const		{ return Get( &CFieldData::ContourPrecision ); }
+	void SetContourPrecision( unsigned grid1, unsigned grid2 )		{ Set( grid1, grid2, &CFieldData::SetContourPrecision ); }
 
 	double ContourLineWidth() const									{ return Get( &CFieldData::ContourLineWidth ); }
 	void SetContourLineWidth( double value )						{ Set( value, &CFieldData::SetContourLineWidth ); }
@@ -263,6 +279,10 @@ public:
 	bool WithSolidColor() const										{ return Get( &CFieldData::WithSolidColor ); }
 	void SetWithSolidColor( bool value )							{ Set( value, &CFieldData::SetWithSolidColor ); }
 
+	//	LON-LAT
+
+	double MagnitudeFactor() const									{ return Get( &CFieldData::MagnitudeFactor ); }
+	void SetMagnitudeFactor( double value )							{ Set( value, &CFieldData::SetMagnitudeFactor ); }
 
 	// YFX
 

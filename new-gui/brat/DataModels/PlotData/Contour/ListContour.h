@@ -24,34 +24,38 @@
 
 // a list of point index referring to the secondary grid
 // Let i the index of a point,
-typedef std::list<unsigned long> CLineStrip;
+typedef std::list<size_t> CLineStrip;
 typedef std::list<CLineStrip*> CLineStripList;
 typedef std::vector<CLineStripList> CLineStripListVector;
 
-class CListContour : public CBratContour  
+class CListContour : public CBratContour
 {
+	using base_t = CBratContour;
 public:
 	CListContour();
 	virtual ~CListContour();
 
 	// retreiving list of line strip for the i-th contour
-    CLineStripList* GetLines(unsigned long iPlane)	{	assert__(iPlane>=0); assert__(iPlane<GetNPlanes());	return &m_vStripLists[iPlane]; }
+    CLineStripList* GetLines( size_t iPlane)	{	assert__(iPlane>=0); assert__(iPlane<GetNPlanes());	return &m_vStripLists[iPlane]; }
 
 	// Initializing memory
     virtual void InitMemory() override;
 	// Cleaning memory and line strips
     virtual void CleanMemory() override;
 	// Generate contour strips
+protected:
 	virtual void Generate( bool compact = true ) override;
+	virtual void SetProgressInterface( CProgressInterface *pI = nullptr, int m = 0, int M = 0 ) override;
+public:
 
 	// Adding segment to line strips
 	// See CBratContour::ExportLine for further details
-    void ExportLine(int iPlane,int x1, int y1, int x2, int y2) override;
+    void ExportLine(long_t iPlane,long_t x1, long_t y1, long_t x2, long_t y2) override;
 
 	// Basic algorithm to concatanate line strip. Not optimized at all !
 	bool CompactStrips();
 	/// debuggin
-	void DumpPlane(unsigned long iPlane) const;
+	void DumpPlane( size_t iPlane ) const;
 
 	// Area given by this function can be positive or negative depending on the winding direction of the contour.
 	double Area(CLineStrip* Line);
