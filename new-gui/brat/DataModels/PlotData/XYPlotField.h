@@ -34,7 +34,7 @@
 #include "libbrathl/InternalFilesYFX.h"
 using namespace brathl;
 
-#include "PlotData.h"
+#include "WidgetField.h"
 #include "PlotValues.h"
 
 
@@ -43,12 +43,12 @@ class CYFXPlot;
 
 
 //-------------------------------------------------------------
-//------------------- CXYPlotData class --------------------
+//------------------- CXYPlotField class --------------------
 //-------------------------------------------------------------
 
-class CXYPlotData : public CYFXValues, public CPlotData
+class CXYPlotField : public CYFXValues, public CWidgetField
 {
-	using base_t = CPlotData;
+	using base_t = CWidgetField;
 	using values_base_t = CYFXValues;
 
 protected:
@@ -65,9 +65,9 @@ protected:
 #endif
 
 public:
-	CXYPlotData( CYFXPlot *plot, size_t iField );
+	CXYPlotField( CYFXPlot *plot, size_t iField );
 
-	virtual ~CXYPlotData();
+	virtual ~CXYPlotField();
 
 protected:
 	void Create( CYFXPlot *plot );

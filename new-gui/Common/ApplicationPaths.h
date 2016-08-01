@@ -125,7 +125,13 @@ public:
     void SetURLRasterLayerPath( const std::string &path ) { mURLRasterLayerPath = path; }
 
 
-	//
+    const std::string& FullPythonExecutablePath() const
+    {
+        static const std::string s = mPythonDir + "/" + smPythonExecutableName;
+        return s;
+    }
+
+    //
 
 	std::string Absolute2PortableDataPath( const std::string &path ) const
 	{

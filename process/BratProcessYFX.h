@@ -36,7 +36,7 @@ class CBratProcessYFX : public CBratEmbeddedPythonProcess
 	using base_t = CBratEmbeddedPythonProcess;
 
 public:
-  CBratProcessYFX( const std::string &executable_dir );
+  CBratProcessYFX( const std::string &python_dir  );
     
   virtual ~CBratProcessYFX();
 

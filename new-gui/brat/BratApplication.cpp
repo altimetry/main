@@ -201,6 +201,8 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 {
 	LOG_TRACE( "Starting application instance construction..." );
 
+	//QCoreApplication::setApplicationName("your title") 
+
 // v4
 //#ifdef WIN32
 //#ifdef _DEBUG
@@ -397,7 +399,7 @@ bool CBratApplication::RegisterAlgorithms()
 	std::string msg;
     try
     {
-		bool result = CBratEmbeddedPythonProcess::LoadPythonEngine( mSettings.BratPaths().mExecutableDir );
+		bool result = CBratEmbeddedPythonProcess::LoadPythonEngine( mSettings.BratPaths().mPythonDir );
 		LOG_TRACEstd( CBratEmbeddedPythonProcess::PythonMessages() );
 		LOG_TRACE( "Finished registering python algorithms." );
         return result;

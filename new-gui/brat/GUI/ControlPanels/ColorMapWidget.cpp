@@ -165,10 +165,12 @@ void CColorMapWidget::CreateWidgets( bool show_range )
 
 		mContourColorButton = new CColorButton;
 		mContourWidthLabel = new QLabel( "Width" );
-		mShowContourBox = CreateGroupBox( ELayoutType::Horizontal, 
+		mShowContourCheck = new QCheckBox( "Show" );
+		mShowContourGroupBox = CreateGroupBox( ELayoutType::Horizontal, 
 		{ 
 			LayoutWidgets( Qt::Vertical, 
 			{ 
+				mShowContourCheck,
 				LayoutWidgets( Qt::Horizontal, { new QLabel( "Number" ), shrinkh( mNumberOfContoursEdit ) }, nullptr, 2,2,0,2,2 ),
 				LayoutWidgets( Qt::Horizontal, { mContourWidthLabel, shrinkh( mContourWidthEdit ) }, nullptr, 2,2,0,2,2 ),
 				LayoutWidgets( Qt::Horizontal, { mContourPrecisionLabel, shrinkh( mContourPrecisionGrid1Edit ), shrinkh( mContourPrecisionGrid2Edit ) }, nullptr, 2,2,0,2,2 ),
@@ -178,10 +180,8 @@ void CColorMapWidget::CreateWidgets( bool show_range )
 
 		}, "Contours", nullptr );
 		ShowPrecisionParameters( false );
-		mShowContourBox->setCheckable( true );
-		mShowContourBox->setChecked( false );
-		solid_and_contour_l = LayoutWidgets( Qt::Vertical, { mShowSolidColor, mShowContourBox }, nullptr, 6, 2, 2, 2, 2 );
-		mShowContourBox->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
+		solid_and_contour_l = LayoutWidgets( Qt::Vertical, { mShowSolidColor, mShowContourGroupBox }, nullptr, 6, 2, 2, 2, 2 );
+		mShowContourGroupBox->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
 	}
 
 	// color table
@@ -192,7 +192,7 @@ void CColorMapWidget::CreateWidgets( bool show_range )
 	mColorRangeMinEdit->setMaximumWidth( 80 );
 	mColorRangeMaxEdit = new QLineEdit;
 	mColorRangeMaxEdit->setMaximumWidth( 80 );
-	mCalculateMinMax = new QPushButton( "Recalculate" );
+	mCalculateMinMax = new QPushButton( "Reset" );
 	mCalculateMinMax->setAutoDefault( false );
 	mCalculateMinMax->setDefault( false );
 
@@ -261,7 +261,8 @@ CColorMapWidget::CColorMapWidget( bool only_lut, bool show_range, QWidget *paren
 
 	if ( !mOnlyLUT )
 	{
-		connect( mShowContourBox, SIGNAL( toggled( bool ) ), this, SIGNAL( ShowContourToggled( bool ) ), Qt::QueuedConnection );
+		connect( mShowContourCheck, SIGNAL( toggled( bool ) ), this, SIGNAL( ShowContourToggled( bool ) ), Qt::QueuedConnection );
+
 		connect( mShowSolidColor, SIGNAL( toggled( bool ) ), this, SIGNAL( ShowSolidColorToggled( bool ) ), Qt::QueuedConnection );
 		connect( mNumberOfContoursEdit, SIGNAL( returnPressed() ), this, SIGNAL( ContoursEditReturnPressed() ), Qt::QueuedConnection );
 		connect( mContourWidthEdit, SIGNAL( returnPressed() ), this, SIGNAL( ContourWidthReturnPressed() ), Qt::QueuedConnection );
@@ -272,7 +273,7 @@ CColorMapWidget::CColorMapWidget( bool only_lut, bool show_range, QWidget *paren
 		connect( mContourColorButton, SIGNAL( ColorChanged() ), this, SLOT( HandleContourColorSelected() ) );
 	}
 
-	connect( mCalculateMinMax, SIGNAL( clicked() ), this, SLOT( HandleCalculateMinMax() ) );
+	connect( mCalculateMinMax, SIGNAL( clicked() ), this, SLOT( HandleCalculateMinMaxFromData() ) );
 	connect( mColorRangeMinEdit, SIGNAL( returnPressed() ), this, SLOT( HandleColorRangeMinChanged( ) ) );
 	connect( mColorRangeMaxEdit, SIGNAL( returnPressed() ), this, SLOT( HandleColorRangeMaxChanged( ) ) );
 	connect( mColorRangeMinEdit, SIGNAL( editingFinished() ), this, SLOT( HandleColorRangeMinFinished( ) ) );
@@ -299,8 +300,8 @@ void CColorMapWidget::EnableOnlySolidColor( bool enable_only )
 	if ( mColorMapGroup )
 		mColorMapGroup->setEnabled( !enable_only );
 
-	if ( mShowContourBox )
-		mShowContourBox->setEnabled( !enable_only );
+	if ( mShowContourGroupBox )
+		mShowContourGroupBox->setEnabled( !enable_only );
 
 	mShowSolidColor->setEnabled( true );
 }
@@ -311,7 +312,7 @@ void CColorMapWidget::SetShowContour( bool checked )
 {
 	assert__( !mOnlyLUT );
 
-	mShowContourBox->setChecked( checked );		
+	mShowContourCheck->setChecked( checked );		
 }
 
 
@@ -328,7 +329,7 @@ unsigned CColorMapWidget::NumberOfContours() const
 
 void CColorMapWidget::SetNumberOfContours( unsigned contours )
 {
-	mNumberOfContoursEdit->setText( n2s<std::string>( contours ).c_str() );
+	mNumberOfContoursEdit->setText( n2s( contours ).c_str() );
 }
 
 
@@ -344,7 +345,7 @@ double CColorMapWidget::ContoursWidth() const
 
 void CColorMapWidget::SetContoursWidth( double width )
 {
-	mContourWidthEdit->setText( n2s<std::string>( width ).c_str() );
+	mContourWidthEdit->setText( n2s( width ).c_str() );
 }
 
 
@@ -365,16 +366,6 @@ void CColorMapWidget::SetPrecisionParameters( unsigned int grid1, unsigned int g
 {
 	mContourPrecisionGrid1Edit->setText( n2q( grid1 ) );
 	mContourPrecisionGrid2Edit->setText( n2q( grid2 ) );
-}
-
-
-void CColorMapWidget::HandleShowContourToggled( bool toggled )
-{
-	mNumberOfContoursEdit->setEnabled( true );
-	mContourColorButton->setEnabled( true );
-	mContourWidthEdit->setEnabled( true );
-
-	emit ShowContourToggled( toggled );
 }
 
 
@@ -411,8 +402,10 @@ void CColorMapWidget::SetShowSolidColor( bool checked )
 
 
 
-void CColorMapWidget::SetLUT( CBratLookupTable *lut, double absolute_min, double absolute_max )
+void CColorMapWidget::SetLUT( CBratLookupTable *lut, double data_min, double data_max )
 {
+	assert__( data_min < data_max );
+
 	mLut = lut;
 	mColorTables->blockSignals( true );		//we don't want client code to think that the user changed the color map
 	mColorTables->clear();
@@ -420,11 +413,11 @@ void CColorMapWidget::SetLUT( CBratLookupTable *lut, double absolute_min, double
 		mColorTables->addItem( ii->c_str() );	
 	mColorTables->blockSignals( false );
 
-	mAbsoluteMin = absolute_min;
-	mAbsoluteMax = absolute_max;
+	mDataMin = data_min;
+	mDataMax = data_max;
 	if ( mLut->CurrentMinValue() == CBratLookupTable::smDefaultRangeValues || mLut->CurrentMaxValue() == CBratLookupTable::smDefaultRangeValues )
 	{
-		SetRange( mAbsoluteMin, mAbsoluteMax );		//assume internal range not initialized and initialize with given defaults (absolute values);
+		SetRange( mDataMin, mDataMax );		//assume internal range not initialized and initialize with given defaults (absolute values);
 	}
 	else
 	{
@@ -433,9 +426,9 @@ void CColorMapWidget::SetLUT( CBratLookupTable *lut, double absolute_min, double
 }
 
 
-void CColorMapWidget::HandleCalculateMinMax()
+void CColorMapWidget::HandleCalculateMinMaxFromData()
 {
-	SetRange( mAbsoluteMin, mAbsoluteMax );
+	SetRange( mDataMin, mDataMax );
 }
 
 
@@ -462,7 +455,7 @@ void CColorMapWidget::HandleColorRangeMinChanged()
 	QString smin = mColorRangeMinEdit->text();
 	bool ok_conv = false;
 	double rangeMin = smin.toDouble( &ok_conv );
-	if ( !ok_conv || rangeMin < mAbsoluteMin || rangeMin > mAbsoluteMax || rangeMin > mColorRangeMax )
+	if ( !ok_conv || rangeMin > mColorRangeMax )
 	{
 		SimpleErrorBox( "Invalid minimum range value." );
 		mColorRangeMinEdit->setFocus();
@@ -475,7 +468,7 @@ void CColorMapWidget::HandleColorRangeMaxChanged()
 	QString smax = mColorRangeMaxEdit->text();
 	bool ok_conv = false;
 	double rangeMax = smax.toDouble( &ok_conv );
-	if ( !ok_conv || rangeMax < mAbsoluteMin || rangeMax > mAbsoluteMax || rangeMax < mColorRangeMin )
+	if ( !ok_conv || rangeMax < mColorRangeMin )
 	{
 		SimpleErrorBox( "Invalid maximum range value." );
 		mColorRangeMaxEdit->setFocus();
@@ -494,22 +487,28 @@ void CColorMapWidget::UpdateLabels()
 		for ( int i = 0; i < smNumberOfColorLabels; ++i )
 		{
 			double value = mColorRangeMin + i * step;
+			//for very large steps, "mColorRangeMin + i * step" can loose precision and be only very
+			//near but not equal to mColorRangeMax; but we want to show the exact upper limit used
+			if ( i == smNumberOfColorLabels - 1 )
+				value = mColorRangeMax;
 			mColorLabels[ i ]->setText( QString::number( value, 'f', 2 ) );		//(*)
-			mColorLabels[ i ]->setToolTip( n2s<std::string>( value ).c_str() );
+			mColorLabels[ i ]->setToolTip( n2s( value ).c_str() );
 		}
 	}
 }
 
 
-void CColorMapWidget::SetRange( double min, double max )
+void CColorMapWidget::SetRange( double m, double M )
 {
-	mColorRangeMin = std::min( mAbsoluteMax, std::max( mAbsoluteMin, min ) );
-	mColorRangeMax = std::max( mAbsoluteMin, std::min( mAbsoluteMax, max ) );
+	assert__( m < M );
+
+	mColorRangeMin = std::min( M, m );
+	mColorRangeMax = M;
 
 	mLut->SetTableRange( mColorRangeMin, mColorRangeMax );
 
-	mColorRangeMinEdit->setText( n2s<std::string>( mColorRangeMin ).c_str() );
-	mColorRangeMaxEdit->setText( n2s<std::string>( mColorRangeMax ).c_str() );
+	mColorRangeMinEdit->setText( n2s( mColorRangeMin ).c_str() );
+	mColorRangeMaxEdit->setText( n2s( mColorRangeMax ).c_str() );
 
 	UpdateLabels();
 

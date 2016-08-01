@@ -74,7 +74,7 @@ public:
 
 	virtual int CurrentValue() const override
 	{
-		assert__( value() == progress_base_t::CurrentValue() );
+        assert__( Cancelled() || value() == progress_base_t::CurrentValue() );
 
 		return value();
 	}

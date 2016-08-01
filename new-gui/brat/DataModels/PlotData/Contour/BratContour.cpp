@@ -70,9 +70,9 @@ void CBratContour::SetProgressInterface( CProgressInterface *pI, int m, int M )	
 	if ( mProgressInterface )
 	{
 		mProgressInterface->SetRange( m, M );
-		mProgress = [this]( int current ) -> bool
-		{
-			if ( !mProgressInterface->SetCurrentValue( current ) )
+        mProgress = [this]( int inc ) -> bool
+		{          
+            if ( !mProgressInterface->SetCurrentValue( mProgressInterface->CurrentValue() + inc ) )
 				throw false;
 			return true;
 		};
@@ -157,11 +157,11 @@ void CBratContour::Generate( bool compact )	//bool compact = true
 		Cntr1( oldx3, x3, y3, y4 );
 	}
 
-	mProgress( ProgressSoFar() + 1 );
+    mProgress( 1 );
 
 	for (i = 1; i < m_iRowFir; i++) 
 	{
-		mProgress( ProgressSoFar() + 1 );
+        mProgress( 1 );
 
 		y4 = 0;
 		for (j = 0; j < m_iColFir; j++) 
@@ -204,7 +204,7 @@ void CBratContour::Generate( bool compact )	//bool compact = true
 		}
 	}
 
-	mProgress( ProgressSoFar() + 1 );
+    mProgress( 1 );
 
 	y4 = 0;
 	for (j = 0; j < m_iColFir; j++) 
@@ -214,7 +214,7 @@ void CBratContour::Generate( bool compact )	//bool compact = true
 		Pass2(x3,x4,y3,y4);
 	}
 
-	mProgress( ProgressSoFar() + 1 );
+    mProgress( 1 );
 }
 
 bool CBratContour::GenerateContours( CProgressInterface *pI, bool compact )	//i = nullptr, bool compact = true 

@@ -42,7 +42,7 @@ void CListContour::Generate( bool compact )	//i = nullptr, bool compact = true
 		SetProgressLabel( "Compacting contour strips..." );
 		CompactStrips();
 	}
-	mProgress( ProgressSoFar() + 1 );
+    mProgress( 1 );
 }
 
 
@@ -311,7 +311,7 @@ bool CListContour::CompactStrips()
 	for ( i = 0; i < size; i++ )
 	{
 		if ( i == size / 2 )
-			mProgress( ProgressSoFar() + 1 );
+            mProgress( 1 );
 
 		again=true;
 		while(again)

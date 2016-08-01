@@ -27,9 +27,9 @@
 #include "DataModels/Workspaces/Workspace.h"
 #include "DataModels/Workspaces/Display.h"
 #include "DataModels/PlotData/BratLookupTable.h"
-#include "DataModels/PlotData/ZFXYPlotData.h"
-#include "DataModels/PlotData/XYPlotData.h"
-#include "DataModels/PlotData/WorldPlotData.h"
+#include "DataModels/PlotData/ZFXYPlotField.h"
+#include "DataModels/PlotData/XYPlotField.h"
+#include "DataModels/PlotData/GeoPlotField.h"
 #include "DataModels/PlotData/Plots.h"
 
 #include "GUI/ActionsTable.h"
@@ -56,13 +56,13 @@ brathl_refDate CAbstractDisplayEditor::RefDateFromUnit( const CUnit &u )
 
 
 //static
-QListWidgetItem* CAbstractDisplayEditor::MakeFieldItem( const CPlotData *pdata )
+QListWidgetItem* CAbstractDisplayEditor::MakeFieldItem( const CWidgetField *pdata )
 {
 	std::string unit_label;
 	if ( pdata->HasDataUnitInfo() )
 		unit_label = " " + CDisplayInterface::MakeUnitLabel( *pdata->DataUnit() );
 
-	QListWidgetItem *item = new QListWidgetItem( t2q( pdata->UserName() + unit_label ) );
+	QListWidgetItem *item = new QListWidgetItem( t2q( pdata->WidgetFieldName() + unit_label ) );
 	item->setToolTip( item->text() );
 	return item;
 }

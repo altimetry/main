@@ -102,8 +102,10 @@
         <file>images/OSGeo/new.png</file>
         <file>images/OSGeo/save.png</file>
         <file>images/OSGeo/save-as.png</file>
-        <file>images/OSGeo/import.png</file>
+        <file>images/OSGeo/workspace_import.png</file>
         <file>images/OSGeo/workspace-delete.png</file>
+        <file>images/OSGeo/workspace_rename.png</file>
+        <file>images/OSGeo/workspace_views.png</file>
         <file>images/OSGeo/quit.png</file>
         <file>images/OSGeo/page-info.png</file>
         <file>images/OSGeo/edit-cut.png</file>
@@ -136,7 +138,6 @@
         <file>images/OSGeo/check.png</file>
         <file>images/OSGeo/edit.png</file>
         <file>images/OSGeo/execute.png</file>
-        <file>images/OSGeo/export.png</file>
         <file>images/OSGeo/expression.png</file>
         <file>images/OSGeo/expression_save.png</file>
         <file>images/OSGeo/expression-builder.png</file>
@@ -210,15 +211,19 @@
         <file>images/OSGeo/operation_edit.png</file>
         <file>images/OSGeo/operation_delete.png</file>
         <file>images/OSGeo/operation_duplicate.png</file>
+        <file>images/OSGeo/operation_export.png</file>
+        <file>images/OSGeo/operation_views.png</file>
         <file>images/OSGeo/filter_clearvalues.png</file>
         <file>images/OSGeo/split_plots.png</file>
         <file>images/OSGeo/export_netcdf.png</file>
         <file>images/OSGeo/export_ascii.png</file>
         <file>images/OSGeo/export_geotiff.png</file>
         <file>images/OSGeo/coordinate_capture.png</file>
+        <file>images/OSGeo/python_console.png</file>
         <file>images/brat_scheduler.png</file>
         <file>images/brat_paths.png</file>
         <file>images/brat_style.png</file>
         <file>images/rads.gif</file>
+        <file>images/OSGeo/vector_plot.png</file>
     </qresource>
 </RCC>

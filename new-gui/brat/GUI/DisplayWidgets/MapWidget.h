@@ -284,9 +284,13 @@ public:
 
 	bool IsDataLayerVisible( size_t index ) const;
 	bool IsContourLayerVisible( size_t index ) const;
+
 	bool SetDataLayerVisible( size_t index, bool show, bool select, bool render );
 	bool SetContourLayerVisible( size_t index, bool show, bool render );
+
+	void DeleteContourLayer( size_t index, bool render );
 	bool HasContourLayer( size_t index ) const;
+
 
 	bool IsArrowLayer( size_t index ) const;
 
@@ -297,8 +301,6 @@ public:
 
 	void RemoveLayers( bool render = false );
 	
-	void RemoveLayer( QgsMapLayer *layer, bool render = false );
-
 	void ReplaceDataLayer( size_t index, QgsVectorLayer* new_layer, bool render = false );
 
 protected:
@@ -306,7 +308,7 @@ protected:
 
 public:
 
-	void RemoveTracksLayerFeatures();
+	void RemoveTracksLayerFeatures( bool render = false );
 
 	void SelectArea( double lonm, double lonM, double latm, double latM );
 	void RemoveAreaSelection();												//TODO really needed?
@@ -316,7 +318,8 @@ public:
 
 	bool Save2Image( const QString &path, const QString &format, const QString &extension );
 
-
+	// - assumes already created contour layer
+	//
     bool SetNumberOfContours( size_t index, size_t ncontours, const CMapPlotParameters &map, unsigned factor1, unsigned factor2 );
 
     void SetContoursProperties( size_t index, QColor color, double width );

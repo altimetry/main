@@ -35,14 +35,14 @@ using namespace brathl;
 
 #include "BratLogger.h"
 #include "Plots.h"
-#include "XYPlotData.h"
+#include "XYPlotField.h"
 
 
 //-------------------------------------------------------------
-//------------------- CXYPlotData class --------------------
+//------------------- CXYPlotField class --------------------
 //-------------------------------------------------------------
 
-CXYPlotData::CXYPlotData( CYFXPlot *plot, size_t iField )
+CXYPlotField::CXYPlotField( CYFXPlot *plot, size_t iField )
 	: base_t( plot->FieldData( iField ) )
 {
 	//m_aborted = false;
@@ -51,18 +51,18 @@ CXYPlotData::CXYPlotData( CYFXPlot *plot, size_t iField )
 }
 
 //virtual 
-CXYPlotData::~CXYPlotData()
+CXYPlotField::~CXYPlotField()
 {
 	m_otherVars.RemoveAll();
 }
 
 
 
-void CXYPlotData::SetXLog( bool value )
+void CXYPlotField::SetXLog( bool value )
 {
 	if ( values_base_t::mMinXValue <= 0 && value )
 	{
-		std::string msg = CTools::Format( "ERROR in CXYPlotData::SetXLog : X range [%g, %g] contains value <= 0 - no logarithmic axis possible", 
+		std::string msg = CTools::Format( "ERROR in CXYPlotField::SetXLog : X range [%g, %g] contains value <= 0 - no logarithmic axis possible", 
 			values_base_t::mMinXValue, values_base_t::mMaxXValue );
 		CException e( msg, BRATHL_LOGIC_ERROR );
 		throw ( e );
@@ -72,11 +72,11 @@ void CXYPlotData::SetXLog( bool value )
 }
 
 
-void CXYPlotData::SetYLog( bool value )
+void CXYPlotField::SetYLog( bool value )
 {
 	if ( values_base_t::mMinYValue <= 0 && value )
 	{
-		std::string msg = CTools::Format( "ERROR in CXYPlotData::SetYLog : Y range [%g, %g] contains value <= 0 - no logarithmic axis possible", 
+		std::string msg = CTools::Format( "ERROR in CXYPlotField::SetYLog : Y range [%g, %g] contains value <= 0 - no logarithmic axis possible", 
 			values_base_t::mMinYValue, values_base_t::mMaxYValue );
 		CException e( msg, BRATHL_LOGIC_ERROR );
 		throw ( e );
@@ -85,7 +85,7 @@ void CXYPlotData::SetYLog( bool value )
 	GetPlotProperties()->SetYLog( value );	//v3 assigned before throw
 }
 //----------------------------------------
-void CXYPlotData::Create( CYFXPlot *plot )
+void CXYPlotField::Create( CYFXPlot *plot )
 {
 	CInternalFiles *yfx = GetPlotProperties()->InternalFile( 0 );		//GetPlotProperties() == plot->FieldData( iField )
 
@@ -102,7 +102,7 @@ void CXYPlotData::Create( CYFXPlot *plot )
 
 	if ( GetPlotProperties()->Xlabel().empty() )
 	{
-        GetPlotProperties()->SetXlabel( plot->TitleX() );
+        GetPlotProperties()->SetXlabel( plot->Xtitle() );
 	}
 	else
 	{
@@ -113,7 +113,7 @@ void CXYPlotData::Create( CYFXPlot *plot )
 
 	if ( GetPlotProperties()->Ylabel().empty() )
 	{
-        GetPlotProperties()->SetYlabel( plot->TitleY() );
+        GetPlotProperties()->SetYlabel( plot->Ytitle() );
 	}
 	else
 	{
@@ -124,8 +124,8 @@ void CXYPlotData::Create( CYFXPlot *plot )
 
 #else
 
-	assert__( !plot->TitleX().empty() );
-	assert__( !plot->TitleY().empty() );
+	assert__( !plot->Xtitle().empty() );
+	assert__( !plot->Ytitle().empty() );
 
 #endif
 
@@ -168,7 +168,7 @@ void CXYPlotData::Create( CYFXPlot *plot )
 	yfx->GetVarDims( fieldName, dimValY );
 	if ( ( dimValY.size() <= 0 ) || ( dimValY.size() > 2 ) )
 	{
-		std::string msg = CTools::Format( "CXYPlotData::Create - '%s' axis -> number of dimensions  must be 1 or 2 - Found : %ld",
+		std::string msg = CTools::Format( "CXYPlotField::Create - '%s' axis -> number of dimensions  must be 1 or 2 - Found : %ld",
 			fieldName.c_str(), (long)dimValY.size() );
 		CException e( msg, BRATHL_INCONSISTENCY_ERROR );
 		LOG_TRACE( e.what() );
@@ -196,7 +196,7 @@ void CXYPlotData::Create( CYFXPlot *plot )
 
 	if ( !intersect )
 	{
-		std::string msg = CTools::Format( "CXYPlotData::Create - variables '%s' and '%s' have no common dimension",	fieldName.c_str(), varXName.c_str() );
+		std::string msg = CTools::Format( "CXYPlotField::Create - variables '%s' and '%s' have no common dimension",	fieldName.c_str(), varXName.c_str() );
 		CException e( msg, BRATHL_INCONSISTENCY_ERROR );
 		LOG_TRACE( e.what() );
 		throw ( e );
@@ -210,7 +210,7 @@ void CXYPlotData::Create( CYFXPlot *plot )
 
 	if ( ( commonDims.size() == dimXNames.size() ) && ( commonDims.size() == dimYNames.size() ) && ( dimXNames != dimYNames ) )
 	{
-		std::string msg = CTools::Format( "CXYPlotData::Create - variables '%s' (dim %s) and '%s' (dim %s) must have the same dimension fields",
+		std::string msg = CTools::Format( "CXYPlotField::Create - variables '%s' (dim %s) and '%s' (dim %s) must have the same dimension fields",
 			fieldName.c_str(), dimYNames.ToString().c_str(), varXName.c_str(), dimXNames.ToString().c_str() );
 		CException e( msg, BRATHL_INCONSISTENCY_ERROR );
 		LOG_TRACE( e.what() );
@@ -229,7 +229,7 @@ void CXYPlotData::Create( CYFXPlot *plot )
 		dimIndex = yfx->GetVarDimIndex( varXName, commonDims.at( iIntersect ) );
 		if ( dimIndex < 0 )
 		{
-			std::string msg = CTools::Format( "CXYPlotData::Create - variables '%s' - dim '%s' not found ",
+			std::string msg = CTools::Format( "CXYPlotField::Create - variables '%s' - dim '%s' not found ",
 				varXName.c_str(), commonDims.at( iIntersect ).c_str() );
 			CException e( msg, BRATHL_INCONSISTENCY_ERROR );
 			LOG_TRACE( e.what() );
@@ -241,7 +241,7 @@ void CXYPlotData::Create( CYFXPlot *plot )
 		dimIndex = yfx->GetVarDimIndex( fieldName, commonDims.at( iIntersect ) );
 		if ( dimIndex < 0 )
 		{
-			std::string msg = CTools::Format( "CXYPlotData::Create - variables '%s' - dim '%s' not found ",
+			std::string msg = CTools::Format( "CXYPlotField::Create - variables '%s' - dim '%s' not found ",
 				fieldName.c_str(), commonDims.at( iIntersect ).c_str() );
 			CException e( msg, BRATHL_INCONSISTENCY_ERROR );
 			LOG_TRACE( e.what() );
@@ -331,7 +331,7 @@ void CXYPlotData::Create( CYFXPlot *plot )
 //------------------- ex-CXYPlotDataMulti class --------------------
 //-------------------------------------------------------------
 
-void CXYPlotData::SetData( 
+void CXYPlotField::SetData( 
 	double* xArray, const CUIntArray& xDims, 
 	double* yArray, const CUIntArray& yDims,
 	const CUIntArray& xCommonDimIndex,

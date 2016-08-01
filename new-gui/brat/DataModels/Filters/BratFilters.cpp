@@ -200,15 +200,41 @@ std::string CBratFilter::GetSelectionCriteriaExpression( const std::string produ
     // LAT/LON filtering expression //
     if ( !mAreaNames.empty() )
     {
-        double lon1, lat1, lon2, lat2;
-        BoundingArea( lon1, lat1, lon2, lat2 );
+        double LonMin, LonMax, LatMin, LatMax;
+        auto const &areas = Areas();
 
-        lon1 = CLatLonPoint::LonNormal360( lon1 );  // NOTE: We assume that all products have longitude fields in degrees east units,
-        lon2 = CLatLonPoint::LonNormal360( lon2 );  // i.e, in the [0, 360] range. (Examples: Cryosat, Jason1, Jason2, GRID_DOTS_MERCATOR... )
+        // Iterate over filter areas names
+        for ( auto const &name : mAreaNames )
+        {
+            auto const &area  = areas.Find( name );
 
-        expression += func_is_bounded( lat1, lat_alias(), lat2 );
-        expression += " && ";
-        expression += func_is_bounded( lon1, lon_alias(), lon2 );
+            LatMin = area->GetLatMin();
+            LatMax = area->GetLatMax();
+            LonMin = CLatLonPoint::LonNormal360( area->GetLonMin() ); // NOTE: We assume that all products have longitude fields in degrees east units,
+            LonMax = CLatLonPoint::LonNormal360( area->GetLonMax() ); // i.e, in the [0,360] range. Examples: Cryosat, Jason1&2, GRID_DOTS_MERCATOR...
+
+            if ( !expression.empty() ) {  expression += " || ";  }
+
+            // Brat expression:  (is_bounded(LatMin,Lat,LatMax) && is_bounded(LonMin,Lon,LonMax)) || ...
+            //        which is:                              (AREA1)                              OR   (AREA2)....
+            expression += "(";
+            expression += func_is_bounded( LatMin, lat_alias(), LatMax );
+            expression += " && ";
+            if ( LonMin > LonMax )
+            {
+                // Area crosses the line of longitude = 0
+                expression += "(";
+                expression += func_is_bounded( LonMin, lon_alias(), 360 );
+                expression += " || ";
+                expression += func_is_bounded(      0, lon_alias(), LonMax );
+                expression += ")";
+            }
+            else
+            {
+                expression += func_is_bounded( LonMin, lon_alias(), LonMax );
+            }
+            expression += ")";
+        }
     }
     // TIME filtering expression //
     CDate Start, Stop;
@@ -218,7 +244,10 @@ std::string CBratFilter::GetSelectionCriteriaExpression( const std::string produ
         Start.Convert2Second( start_seconds ); // NOTE: Although some products have time fields in seconds since 2000-01-01,
         Stop.Convert2Second( stop_seconds );   // in selection criteria expression the user shall insert time values in seconds since 1950-01-01.
 
-        expression.empty()  ?  expression += ""  :  expression += " && ";
+        if ( !expression.empty() )
+        {
+            expression = "(" + expression + ")" + " && ";   //  ((AREA1) || (AREA2)) && ... (TIME_PERIOD)
+        }
         expression += func_is_bounded( start_seconds, time_alias(), stop_seconds );
     }
 

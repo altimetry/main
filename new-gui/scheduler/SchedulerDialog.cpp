@@ -246,6 +246,8 @@ CSchedulerDialog::CSchedulerDialog( CSchedulerApplication &a, QWidget *parent )
 {
     assert__( mAppPaths );
 
+    SetApplicationWindow( this );
+
 	a.setActivationWindow( this );
 	connect( &a, SIGNAL( messageReceived( const QString& ) ), this, SLOT( HandlePeerMessage( const QString& ) ) );
 
@@ -801,7 +803,7 @@ void CSchedulerDialog::action_UserManual_slot()
 
 void CSchedulerDialog::action_About_slot()
 {
-	QMessageBox::about(this, tr("About Scheduler"), QString( "Welcome to BRAT Scheduler " ) + BRAT_VERSION + " - " + PROCESSOR_ARCH + "\n(C)opyright CNES/ESA" );
+	SimpleAbout( BRAT_VERSION, PROCESSOR_ARCH, "CNES/ESA" );
 }
 
 

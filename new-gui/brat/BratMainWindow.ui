@@ -81,6 +81,7 @@
     <addaction name="action_Workspace_Tree"/>
     <addaction name="action_Operation_Views"/>
     <addaction name="action_Launch_Scheduler"/>
+    <addaction name="action_Python_Console"/>
     <addaction name="separator"/>
     <addaction name="action_Save_Map_Image"/>
     <addaction name="separator"/>
@@ -324,7 +325,7 @@
      <normaloff>:/images/alpha-numeric/e.png</normaloff>:/images/alpha-numeric/e.png</iconset>
    </property>
    <property name="text">
-    <string>Re-center</string>
+    <string>Zoom Full</string>
    </property>
    <property name="toolTip">
     <string>Bring view to original position and size</string>
@@ -433,7 +434,7 @@ The workspace directory will not change</string>
      <normaloff>:/images/OSGeo/open.png</normaloff>:/images/OSGeo/open.png</iconset>
    </property>
    <property name="text">
-    <string>&amp;Open...</string>
+    <string>&amp;Workspace Views...</string>
    </property>
    <property name="toolTip">
     <string>Select a view from the list of all workspace views</string>
@@ -453,6 +454,11 @@ The workspace directory will not change</string>
    </property>
    <property name="toolTip">
     <string>Open BRAT User's Manual</string>
+   </property>
+  </action>
+  <action name="action_Python_Console">
+   <property name="text">
+    <string>Python Console</string>
    </property>
   </action>
  </widget>

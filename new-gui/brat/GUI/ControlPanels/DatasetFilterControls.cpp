@@ -1312,7 +1312,7 @@ void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
 
     //function body
 
-	mMap->RemoveTracksLayerFeatures();
+	mMap->RemoveTracksLayerFeatures( true );
 	mTotalRecordsSelectedEdit->setText( "" );
 
     if ( !mAutoSatelliteTrack || !dataset || mDataset != dataset )

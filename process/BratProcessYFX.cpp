@@ -64,8 +64,8 @@ const KeywordHelp CBratProcessYFX::YFXKeywordList[]	= {
 //------------------- CBratProcessYFX class --------------------
 //-------------------------------------------------------------
 
-CBratProcessYFX::CBratProcessYFX( const std::string &executable_dir )
-	: base_t( executable_dir )
+CBratProcessYFX::CBratProcessYFX( const std::string &python_dir )
+	: base_t( python_dir )
 {
   Init();
 }

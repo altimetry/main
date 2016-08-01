@@ -16,18 +16,18 @@ distribution or installation.
 The short version is as follows:
 
 + For Windows: double-click the installer file appropriate
-for your platform (brat-4.0.0-beta-Win32-installer.exe for 32-bit
-operating systems, brat-4.0.0-beta-x64-installer.exe for 64-bit
+for your platform (brat-4.0.0-Win32-installer.exe for 32-bit
+operating systems, brat-4.0.0-x64-installer.exe for 64-bit
 operating systems), and follow the instructions.
 
 
 + For Linux: double-click in your desktop manager (or execute
 from the command-line) the installer file appropriate for your
 platform. For 32 bit operating system execute the file 
-brat-4.0.0-beta-i386-installer.run. For 64-bit operating system execute
-the script brat-4.0.0-beta-x86_64-installer.sh (it checks if your system
+brat-4.0.0-i386-installer.run. For 64-bit operating system execute
+the script brat-4.0.0-x86_64-installer.sh (it checks if your system
 is prepared for running the installer and automatically runs the file
-brat-4.0.0-beta-x86_64-installer.run). In both cases, follow the instructions.
+brat-4.0.0-x86_64-installer.run). In both cases, follow the instructions.
 (If necessary, use 'chmod +x <installer-filename>' to ensure the 
 installer is executable.)
 
@@ -45,8 +45,8 @@ usually installed by default.
 
 
 + For Mac OS X: double-click the image file appropriate for the
-type of application you want to install: brat-4.0.0-beta-macosx-i386.dmg
-for 32 bit BRAT applications, or brat-4.0.0-beta-macosx-x86_64.dmg for 
+type of application you want to install: brat-4.0.0-macosx-i386.dmg
+for 32 bit BRAT applications, or brat-4.0.0-macosx-x86_64.dmg for 
 64 bit BRAT applications (Intel only). 
 Drag the 'lib' folder to the directory '/usr/local', supplying your 
 administration credentials if required. Then, drag the 'brat' and

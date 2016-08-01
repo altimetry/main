@@ -26,7 +26,7 @@
 #include "DataModels/DisplayFilesProcessor.h"
 #include "DataModels/DisplayDataProcessor.h"
 #include "DataModels/Workspaces/Display.h"
-#include "DataModels/PlotData/PlotData.h"
+#include "DataModels/PlotData/WidgetField.h"
 
 
 class CTabbedDock;
@@ -43,10 +43,10 @@ class COperation;
 class CDisplay;
 class CBratLookupTable;
 
-class CZFXYPlotData;
-class CXYPlotData;
+class CZFXYPlotField;
+class CXYPlotField;
 class CXYPlotDataCollection;
-class CWorldPlotData;
+class CGeoPlotField;
 class CGeoPlot;
 class CYFXPlot;
 class CZFXYPlot;
@@ -116,7 +116,7 @@ protected:
 
 	static brathl_refDate RefDateFromUnit( const CUnit &u );
 
-	static QListWidgetItem* MakeFieldItem( const CPlotData *pdata );
+	static QListWidgetItem* MakeFieldItem( const CWidgetField *pdata );
 
 	
 private:

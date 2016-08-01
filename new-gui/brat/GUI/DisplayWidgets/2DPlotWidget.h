@@ -298,6 +298,11 @@ class C2DPlotWidget : public QwtPlot
 	static const int smAxisFontSize = 8;
 	static const int smTitleFontSize = 10;
 
+public:
+	static const std::string smHistogramXtitle;
+	static const std::string smHistogramYtitle;
+
+private:
 	//static CHistogram* CreateHistogram near respective instance methods
 
 	static void Save2All( C2DPlotWidget *p, const QString &path );
@@ -396,15 +401,18 @@ public:
 
 	//...titles
 
-	void AxisTitles( std::string *xtitle, std::string *ytitle, std::string *y2title );
-	void HistogramAxisTitles( int index, std::string &xtitle, std::string &ytitle, std::string &y2title );
-	void SpectrogramAxisTitles( int index, std::string &xtitle, std::string &ytitle, std::string &y2title );
-
-	void SetAxisTitles( int index, const std::string &xtitle, const std::string &ytitle, const std::string &y2title = "" );
+	void CurrentAxisTitles( std::string *xtitle, std::string *ytitle, std::string *y2title ) const;
 protected:
-	void SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &y2title );
+	void SetCurrentAxisTitle( Axis axis, const std::string &title );
+	void SetCurrentAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &y2title );
 
 public:
+	//void AllCurvesAxisTitles( std::string &xtitle, std::string &ytitle, std::string &y2title ) const { CurrentAxisTitles( &xtitle, &ytitle, nullptr ); }
+	void SetAllCurvesAxisTitles( const std::string &xtitle, const std::string &ytitle );
+
+	void SpectrogramAxisTitles( int index, std::string &xtitle, std::string &ytitle, std::string &y2title ) const;
+	void SetSpectrogramAxisTitles( int index, const std::string &xtitle, const std::string &ytitle, const std::string &y2title );
+
 
 	//...ticks
 
@@ -442,21 +450,21 @@ public:
 
     //...digits / date
 
-    int XDigits() const;
-    int YDigits() const;
-    int Y2Digits() const;
+    int XAxisDigits() const;
+    int YAxisDigits() const;
+    int Y2AxisDigits() const;
 
-    bool XisDateTime() const;
-    bool YisDateTime() const;
-    bool Y2isDateTime() const;
+    bool XAxisIsDateTime() const;
+    bool YAxisIsDateTime() const;
+    bool Y2AxisIsDateTime() const;
 
 protected:
 	void SetDigits( Axis axisId, bool isdate, int digits, brathl_refDate date_ref );
 
 public:
-	void SetXDigits( bool isdate, int digits, brathl_refDate date_ref = REF19500101 );
-    void SetYDigits( bool isdate, int digits, brathl_refDate date_ref = REF19500101 );
-    void SetY2Digits( bool isdate, int digits, brathl_refDate date_ref = REF19500101 );
+	void SetXAxisDigits( bool isdate, int digits, brathl_refDate date_ref = REF19500101 );
+    void SetYAxisDigits( bool isdate, int digits, brathl_refDate date_ref = REF19500101 );
+    void SetY2AxisDigits( bool isdate, int digits, brathl_refDate date_ref = REF19500101 );
 
 
     //...scaling
@@ -520,8 +528,7 @@ protected:
 	CHistogram* CreateHistogram( const std::string &title, QColor color, const DATA &data, double &max_freq, int bins );
 
 public:
-	CHistogram* AddHistogram( const std::string &title, QColor color, const CYFXValues &data, double &max_freq, int bins );
-
+	CHistogram* PushHistogram( const std::string &title, QColor color, const CYFXValues &data, double &max_freq, int bins );
 	CHistogram* SetSingleHistogram( const std::string &title, QColor color, const CZFXYValues &data, double &max_freq, int bins );
 
 	void SetCurrentHistogram( int index );
@@ -531,12 +538,12 @@ public:
 	// curves
 	//////////
 
-	QwtPlotCurve* AddCurve( const std::string &title, QColor color, const CYFXValues *data = nullptr );
-	QwtPlotCurve* AddCurve( const std::string &title, QColor color, const CYFXValues &data )
+	QwtPlotCurve* PushCurve( const std::string &title, QColor color, const CYFXValues *data = nullptr );
+	QwtPlotCurve* PushCurve( const std::string &title, QColor color, const CYFXValues &data )
 	{
-		return AddCurve( title, color, &data );
+		return PushCurve( title, color, &data );
 	}
-	QwtPlotCurve* AddCurve( const QwtData &data, const std::string &title, QColor color );	//for experimental samples
+	//QwtPlotCurve* PushCurve( const QwtData &data, const std::string &title, QColor color );	//for experimental samples
 
 
 	// curve line
@@ -604,8 +611,6 @@ public:
 
 
 protected:
-	void SetAxisTitle( Axis axis, const std::string &title );
-
 	void SetCurvesStyle( QwtPlotCurve::CurveStyle style );
 
 	void Spectogram( QWidget *parent = nullptr );

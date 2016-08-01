@@ -37,7 +37,7 @@ class CBratProcessZFXY : public CBratEmbeddedPythonProcess
 	using base_t = CBratEmbeddedPythonProcess;
 
 public:
-  CBratProcessZFXY( const std::string &executable_dir );
+  CBratProcessZFXY( const std::string &python_dir );
     
   virtual ~CBratProcessZFXY();
 

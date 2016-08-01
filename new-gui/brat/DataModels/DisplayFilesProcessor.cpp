@@ -31,11 +31,11 @@
 #include "process/ParametersDictionary.h"
 #include "process/BratProcess.h"
 
-#include "PlotData/XYPlotData.h"
+#include "PlotData/XYPlotField.h"
 #include "MapTypeDisp.h"
 #include "PlotData/Plots.h"
-#include "PlotData/ZFXYPlotData.h"
-#include "PlotData/WorldPlotData.h"
+#include "PlotData/ZFXYPlotField.h"
+#include "PlotData/GeoPlotField.h"
 
 #include "DataModels/PlotData/ColorPalleteNames.h"
 #include "DataModels/PlotData/MapProjection.h"
@@ -716,7 +716,7 @@ void CDisplayFilesProcessor::GetPlotPropertyParams4all( size_t nFields, PROPS_CO
 		typename PROPS_CONTAINER::value_type props = data[ i ];						assert__( props );
 		m_params.m_mapParam[ kwDISPLAY_MINVALUE ]->GetValue( m, i );
 		m_params.m_mapParam[ kwDISPLAY_MAXVALUE ]->GetValue( M, i );
-		props->SetAbsoluteRangeValues( m, M );
+		props->SetDataRangeValues( m, M );
 	}
 
 	int int_value;

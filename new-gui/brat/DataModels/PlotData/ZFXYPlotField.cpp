@@ -25,17 +25,17 @@
 using namespace brathl;
 
 #include "Plots.h"
-#include "ZFXYPlotData.h"
+#include "ZFXYPlotField.h"
 
 #if defined(BRAT_V3)
 #include "wx/progdlg.h"
 #endif
 
 //-------------------------------------------------------------
-//------------------- CZFXYPlotData class --------------------
+//------------------- CZFXYPlotField class --------------------
 //-------------------------------------------------------------
 
-CZFXYPlotData::CZFXYPlotData( CZFXYPlot* plot, CZFXYPlotProperties* field )
+CZFXYPlotField::CZFXYPlotField( CZFXYPlot* plot, CZFXYPlotProperties* field )
 	: base_t( field )
 	, values_base_t()
 {
@@ -59,7 +59,7 @@ CZFXYPlotData::CZFXYPlotData( CZFXYPlot* plot, CZFXYPlotProperties* field )
 
 
 //----------------------------------------
-void CZFXYPlotData::Create( CZFXYPlot *plot )
+void CZFXYPlotField::Create( CZFXYPlot *plot )
 {
 	const std::vector< CInternalFiles* > &internal_files = GetPlotProperties()->InternalFiles();
 	const std::string& fieldName = GetPlotProperties()->FieldName();
@@ -78,7 +78,7 @@ void CZFXYPlotData::Create( CZFXYPlot *plot )
 
 	if ( GetPlotProperties()->Xlabel().empty() )
 	{
-        GetPlotProperties()->SetXlabel( plot->TitleX() );
+        GetPlotProperties()->SetXlabel( plot->Xtitle() );
 	}
 	else
 	{
@@ -89,7 +89,7 @@ void CZFXYPlotData::Create( CZFXYPlot *plot )
 
 	if ( GetPlotProperties()->Ylabel().empty() )
 	{
-        GetPlotProperties()->SetYlabel( plot->TitleY() );
+        GetPlotProperties()->SetYlabel( plot->Ytitle() );
 	}
 	else
 	{
@@ -99,8 +99,8 @@ void CZFXYPlotData::Create( CZFXYPlot *plot )
 	}
 #else
 
-	assert__( !plot->TitleX().empty() );
-	assert__( !plot->TitleY().empty() );
+	assert__( !plot->Xtitle().empty() );
+	assert__( !plot->Ytitle().empty() );
 
 #endif
 
@@ -141,8 +141,8 @@ void CZFXYPlotData::Create( CZFXYPlot *plot )
 		//	values wouldn't be set to GetPlotProperties()->m_xxxHeightValue (which never changes 
 		//	in the loop) in each iteration. Or, this is a bug.
 		//
-		back().mMinHeightValue = GetPlotProperties()->AbsoluteMinValue();
-		back().mMaxHeightValue = GetPlotProperties()->AbsoluteMaxValue();
+		back().mMinHeightValue = GetPlotProperties()->DataMinValue();
+		back().mMaxHeightValue = GetPlotProperties()->DataMaxValue();
 
 		CExpressionValue varX;
 		CExpressionValue varY;
@@ -153,14 +153,14 @@ void CZFXYPlotData::Create( CZFXYPlot *plot )
 		CInternalFiles* zfxy = dynamic_cast<CInternalFiles*>( internal_files.at( iMap ) );
 		if ( zfxy == nullptr )
 		{
-			CException e( "CZFXYPlotData ctor - dynamic_cast<CInternalFiles*>internal_files.at(iMap) returns nullptr",	BRATHL_LOGIC_ERROR );
+			CException e( "CZFXYPlotField ctor - dynamic_cast<CInternalFiles*>internal_files.at(iMap) returns nullptr",	BRATHL_LOGIC_ERROR );
 			CTrace::Tracer( "%s", e.what() );
 			throw ( e );
 
 		}
 		//if ( zfxy->IsGeographic() )
 		//{
-		//	CException e( "CZFXYPlotData ctor - Geographical data found - zfxy->IsGeographic() is true", BRATHL_LOGIC_ERROR );
+		//	CException e( "CZFXYPlotField ctor - Geographical data found - zfxy->IsGeographic() is true", BRATHL_LOGIC_ERROR );
 		//	CTrace::Tracer( "%s", e.what() );
 		//	throw ( e );
 
@@ -228,7 +228,7 @@ void CZFXYPlotData::Create( CZFXYPlot *plot )
 
 		if ( varKind != Data )
 		{
-			std::string msg = CTools::Format( "CZFXYPlotData ctor - variable '%s' is not a kind of Data (%d) : %s",
+			std::string msg = CTools::Format( "CZFXYPlotField ctor - variable '%s' is not a kind of Data (%d) : %s",
 				fieldName.c_str(), Data, CNetCDFFiles::VarKindToString( varKind ).c_str() );
 			CException e( msg, BRATHL_INCONSISTENCY_ERROR );
 			CTrace::Tracer( "%s", e.what() );
@@ -381,6 +381,6 @@ void CZFXYPlotData::Create( CZFXYPlot *plot )
 	}
 #endif
 
-	SetAbsoluteRangeValues( back().mMinHeightValue, back().mMaxHeightValue );
+	SetDataRangeValues( back().mMinHeightValue, back().mMaxHeightValue );
 
 }

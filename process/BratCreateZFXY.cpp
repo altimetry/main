@@ -76,7 +76,7 @@ int main( int argc, char *argv[] )
 		return BRATHL_ERROR;
 	}
 
-	CBratProcessZFXY*  bratProcess = new CBratProcessZFXY( brat_paths.mExecutableDir );
+	CBratProcessZFXY*  bratProcess = new CBratProcessZFXY( brat_paths.mPythonDir );
 
 	if ( bratProcess->CheckCommandLineOptions( argc, argv ) )
 	{

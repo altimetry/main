@@ -88,7 +88,8 @@ class CColorMapWidget : public QWidget
 
 	//data
 
-	QGroupBox *mShowContourBox = nullptr;
+	QGroupBox *mShowContourGroupBox = nullptr;
+	QCheckBox *mShowContourCheck = nullptr;
 	QLineEdit *mNumberOfContoursEdit = nullptr;
     QLabel *mContourPrecisionLabel = nullptr;
 	QLineEdit *mContourPrecisionGrid1Edit = nullptr;
@@ -109,8 +110,8 @@ class CColorMapWidget : public QWidget
 	QGroupBox *mColorRangeGroup = nullptr;
 	QGroupBox *mColorMapGroup = nullptr;
 	std::vector<QLabel*> mColorLabels;
-	double mAbsoluteMin = std::numeric_limits<double>::max();
-	double mAbsoluteMax = std::numeric_limits<double>::lowest();
+	double mDataMin = std::numeric_limits<double>::max();
+	double mDataMax = std::numeric_limits<double>::lowest();
 	double mColorRangeMin = std::numeric_limits<double>::max();
 	double mColorRangeMax = std::numeric_limits<double>::lowest();
 	
@@ -132,8 +133,8 @@ public:
 
 	void SetContoursTitle( const QString &title )
 	{
-		if ( mShowContourBox )
-			mShowContourBox->setTitle( title );
+		if ( mShowContourGroupBox )
+			mShowContourGroupBox->setTitle( title );
 	}
 
 
@@ -179,7 +180,7 @@ public:
 
 	//...color table
 
-	void SetLUT( CBratLookupTable *lut, double absolute_min, double absolute_max );
+	void SetLUT( CBratLookupTable *lut, double data_min, double data_max );
 
 	QString itemText( int index )
 	{
@@ -202,7 +203,7 @@ public:
 	}
 
 protected:
-	void SetRange( double min, double max );
+	void SetRange( double m, double M );
 	void UpdateLabels();
 
 signals:
@@ -222,9 +223,8 @@ protected slots:
 	void HandleColorRangeMaxChanged();
 	void HandleColorRangeMinFinished();
 	void HandleColorRangeMaxFinished();
-	void HandleCalculateMinMax();
+	void HandleCalculateMinMaxFromData();
 	void HandleColorTablesIndexChanged( int index );
-	void HandleShowContourToggled( bool );
 };
 
 

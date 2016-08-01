@@ -23,7 +23,7 @@
 #include "DataModels/DisplayFilesProcessor.h"
 #include "DataModels/PlotData/MapProjection.h"
 #include "DataModels/PlotData/Plots.h"
-#include "DataModels/PlotData/WorldPlotData.h"
+#include "DataModels/PlotData/GeoPlotField.h"
 
 #include "GUI/ActionsTable.h"
 #include "GUI/ControlPanels/Views/ViewControlPanels.h"
@@ -407,10 +407,10 @@ bool CMapEditor::Test()
 
 	if ( !mCurrentPlotGeo->Empty() )
 	{
-		CWorldPlotData *pdata = mCurrentPlotGeo->PlotData( index );
+		CGeoPlotField *pdata = mCurrentPlotGeo->PlotData( index );
 		const CMapValues &arrays = *pdata;
 		const CMapPlotParameters &array = arrays( 0 );
-		field = pdata->FieldName();
+		field = pdata->WidgetFieldName();
 
 		all_mx = mx = array.mMinX;
 		all_Mx = Mx = array.mMaxX; 
@@ -523,7 +523,7 @@ bool CMapEditor::ChangeView()
 
 		delete mCurrentPlotGeo;
 		mCurrentPlotGeo = nullptr;
-		mCurrentPlotData = nullptr;
+		mCurrentPlotField = nullptr;
 
 		//	V . Process the plot definitions: create plot data and plots
 
@@ -566,17 +566,17 @@ bool CMapEditor::ChangeView()
 
 bool CMapEditor::UpdateCurrentPointers( int field_index )
 {
-	mCurrentPlotData = nullptr;
+	mCurrentPlotField = nullptr;
 
 	if ( field_index >= 0 )
 	{
 		assert__( mOperation && mDisplay && mCurrentPlotGeo );
 
-		mCurrentPlotData = mCurrentPlotGeo->PlotData( field_index );								assert__( mCurrentPlotData && *mCurrentPlotData && mCurrentPlotData->size() == 1 );	//simply to check if ever...
-        mCurrentPlotVelocityData = dynamic_cast< CWorldPlotVelocityData* >( mCurrentPlotData );
+		mCurrentPlotField = mCurrentPlotGeo->PlotData( field_index );								assert__( mCurrentPlotField && *mCurrentPlotField && mCurrentPlotField->size() == 1 );	//simply to check if ever...
+        mCurrentPlotVelocityField = dynamic_cast< CGeoPlotVelocityField* >( mCurrentPlotField );
 	}
 
-	return mCurrentPlotData != nullptr;
+	return mCurrentPlotField != nullptr;
 }
 
 
@@ -597,13 +597,13 @@ bool CMapEditor::UpdateCurrentPointers( int field_index )
 //			3) cannot color the values over a line (unless with another layer, a point layer, but then, why the line layer?)
 //(***) Using features and not rubberbands because these are not projected in the globe
 //
-//	IMPORTANT: assumes UpdateCurrentPointers (i.e., valid mCurrentPlotData)
+//	IMPORTANT: assumes UpdateCurrentPointers (i.e., valid mCurrentPlotField)
 //
 QgsVectorLayer* CMapEditor::CreateCurrentDataLayer( bool add )		//add = true 
 {
-	const CMapPlotParameters &array = mCurrentPlotData->at( 0 );
+	const CMapPlotParameters &array = mCurrentPlotField->at( 0 );
 	auto const size = array.mValues.size();
-	auto const value_factor = mCurrentPlotData->MagnitudeFactor();
+	auto const value_factor = mCurrentPlotField->MagnitudeFactor();
 	QgsFeatureList flist;
 
 	/////////////////////////////////////////////////
@@ -619,7 +619,7 @@ QgsVectorLayer* CMapEditor::CreateCurrentDataLayer( bool add )		//add = true
 
 		//(***)
 
-		if ( mCurrentPlotVelocityData )
+		if ( mCurrentPlotVelocityField )
 		{
 			mMapView->CreateVectorFeature( flist, array, i, value_factor );
 		}
@@ -639,20 +639,20 @@ QgsVectorLayer* CMapEditor::CreateCurrentDataLayer( bool add )		//add = true
 
     //AddDataLayer( props->m_name, 0.333, map.mMinHeightValue, map.mMaxHeightValue, props->m_numContour, flist );  // Uncomment this to use Points
 
-	if ( mCurrentPlotVelocityData )
+	if ( mCurrentPlotVelocityField )
 	{
 		if ( add )
-			return mMapView->AddArrowDataLayer( mCurrentPlotData->FieldName(), flist, value_factor );
+			return mMapView->AddArrowDataLayer( mCurrentPlotField->WidgetFieldName(), flist, value_factor );
 		else
-			return CMapWidget::CreateArrowDataLayer( mCurrentPlotData->FieldName(), flist, value_factor );
+			return CMapWidget::CreateArrowDataLayer( mCurrentPlotField->WidgetFieldName(), flist, value_factor );
 	}
 
 	if ( add )
-		return mMapView->AddDataLayer( mCurrentPlotData->FieldName(), 0.1, array.mMinHeightValue, array.mMaxHeightValue, 
-		mCurrentPlotData->ColorTablePtr()->GetLookupTable(), flist, mCurrentPlotData->DataUnit()->IsDate(), RefDateFromUnit( *mCurrentPlotData->DataUnit() ) );
+		return mMapView->AddDataLayer( mCurrentPlotField->WidgetFieldName(), 0.1, array.mMinHeightValue, array.mMaxHeightValue, 
+		mCurrentPlotField->ColorTablePtr()->GetLookupTable(), flist, mCurrentPlotField->DataUnit()->IsDate(), RefDateFromUnit( *mCurrentPlotField->DataUnit() ) );
 	else
-		return CMapWidget::CreateDataLayer( mCurrentPlotData->FieldName(), 0.1, array.mMinHeightValue, array.mMaxHeightValue, 
-		mCurrentPlotData->ColorTablePtr()->GetLookupTable(), flist, mCurrentPlotData->DataUnit()->IsDate(), RefDateFromUnit( *mCurrentPlotData->DataUnit() ) );
+		return CMapWidget::CreateDataLayer( mCurrentPlotField->WidgetFieldName(), 0.1, array.mMinHeightValue, array.mMaxHeightValue, 
+		mCurrentPlotField->ColorTablePtr()->GetLookupTable(), flist, mCurrentPlotField->DataUnit()->IsDate(), RefDateFromUnit( *mCurrentPlotField->DataUnit() ) );
 }
 
 
@@ -679,24 +679,24 @@ void CMapEditor::ResetMap()
 		//			add field layers to list
 		/////////////////////////////////////////////////
 
-		mTabDataLayers->mFieldsList->addItem( MakeFieldItem( mCurrentPlotData ) );
+		mTabDataLayers->mFieldsList->addItem( MakeFieldItem( mCurrentPlotField ) );
 
 
 		/////////////////////////////////////////////////
 		//		assign field properties to widget
 		/////////////////////////////////////////////////
 
-		mMapView->SetDataLayerVisible( ifield, mCurrentPlotData->WithSolidColor(), mCurrentPlotData->WithSolidColor(), mDisplaying2D );
+		mMapView->SetDataLayerVisible( ifield, mCurrentPlotField->WithSolidColor(), mCurrentPlotField->WithSolidColor(), mDisplaying2D );
 
-		if ( mCurrentPlotData->WithContour() )
+		if ( mCurrentPlotField->WithContour() )
 		{
-			const CMapPlotParameters &array = mCurrentPlotData->at( 0 );
-			std::pair< unsigned, unsigned > grid = mCurrentPlotData->ContourPrecision();
-			if ( !mMapView->AddContourLayer( ifield, mCurrentPlotData->FieldName(), mCurrentPlotData->ContourLineWidth(), mCurrentPlotData->ContourLineColor().GetQColor(),
-				mCurrentPlotData->NumContours(), grid.first, grid.second, array ) )
-				//mCurrentPlotData->NumContours(), grid.first, grid.second, array, mCurrentPlotData->ColorTablePtr()->GetLookupTable() );
+			const CMapPlotParameters &array = mCurrentPlotField->at( 0 );
+			std::pair< unsigned, unsigned > grid = mCurrentPlotField->ContourPrecision();
+			if ( !mMapView->AddContourLayer( ifield, mCurrentPlotField->WidgetFieldName(), mCurrentPlotField->ContourLineWidth(), mCurrentPlotField->ContourLineColor().GetQColor(),
+				mCurrentPlotField->NumContours(), grid.first, grid.second, array ) )
+				//mCurrentPlotField->NumContours(), grid.first, grid.second, array, mCurrentPlotField->ColorTablePtr()->GetLookupTable() );
 			{
-				mCurrentPlotData->SetWithContour( false );
+				mCurrentPlotField->SetWithContour( false );
 			}
 		}
 	}
@@ -741,23 +741,23 @@ void CMapEditor::HandleCurrentFieldChanged( int field_index )
 
 	mTabDataLayers->mColorMapWidget->blockSignals( true );
 	// color table and range should be retrieved here from plot, but maps (still) know nothing about LUTs or data ranges
-	mTabDataLayers->mColorMapWidget->SetLUT( mCurrentPlotData->ColorTablePtr(), mCurrentPlotData->AbsoluteMinValue(), mCurrentPlotData->AbsoluteMaxValue() );	
+	mTabDataLayers->mColorMapWidget->SetLUT( mCurrentPlotField->ColorTablePtr(), mCurrentPlotField->DataMinValue(), mCurrentPlotField->DataMaxValue() );	
 
-	mTabDataLayers->mColorMapWidget->SetContourColor( mCurrentPlotData->ContourLineColor().GetQColor() );
+	mTabDataLayers->mColorMapWidget->SetContourColor( mCurrentPlotField->ContourLineColor().GetQColor() );
 	mTabDataLayers->mColorMapWidget->blockSignals( false );
 
 	mTabDataLayers->mColorMapWidget->SetShowSolidColor( mMapView->IsDataLayerVisible( field_index ) );
 	mTabDataLayers->mColorMapWidget->SetShowContour( mMapView->IsContourLayerVisible( field_index ) );
 	// more values that should be retrieved here from plot, but these values are (still) hard/impossible to retrieve from map canvas
-	mTabDataLayers->mColorMapWidget->SetNumberOfContours( mCurrentPlotData->NumContours() );
+	mTabDataLayers->mColorMapWidget->SetNumberOfContours( mCurrentPlotField->NumContours() );
 
-	std::pair< unsigned, unsigned > grid = mCurrentPlotData->ContourPrecision();
+	std::pair< unsigned, unsigned > grid = mCurrentPlotField->ContourPrecision();
 	mTabDataLayers->mColorMapWidget->SetPrecisionParameters( grid.first, grid.second );
 
-	mTabDataLayers->mColorMapWidget->SetContoursWidth( mCurrentPlotData->ContourLineWidth() );
+	mTabDataLayers->mColorMapWidget->SetContoursWidth( mCurrentPlotField->ContourLineWidth() );
 
 	// TODO no way to retrieve this from map widget
-	mTabDataLayers->mMagnitudeFactorEdit->setText( n2q( mCurrentPlotData->MagnitudeFactor() ) );
+	mTabDataLayers->mMagnitudeFactorEdit->setText( n2q( mCurrentPlotField->MagnitudeFactor() ) );
 
 	//show / hide && enable / disable
 
@@ -778,21 +778,21 @@ void CMapEditor::HandleCurrentFieldChanged( int field_index )
 
 void CMapEditor::HandleShowSolidColorChecked( bool checked )
 {
-	assert__( mMapView && mCurrentPlotData );
+	assert__( mMapView && mCurrentPlotField );
 
 	WaitCursor wait;
 
-	mCurrentPlotData->SetWithSolidColor( checked );
+	mCurrentPlotField->SetWithSolidColor( checked );
 
-	mMapView->SetDataLayerVisible( mTabDataLayers->mFieldsList->currentRow(), mCurrentPlotData->WithSolidColor(), true, mDisplaying2D );
+	mMapView->SetDataLayerVisible( mTabDataLayers->mFieldsList->currentRow(), mCurrentPlotField->WithSolidColor(), true, mDisplaying2D );
 }
 
 
 void CMapEditor::HandleShowContourChecked( bool checked )
 {
-	int field_index = mTabDataLayers->mFieldsList->currentRow();	assert__( field_index >= 0 && field_index < (int)mCurrentPlotGeo->Size() && mCurrentPlotData );
+	int field_index = mTabDataLayers->mFieldsList->currentRow();	assert__( field_index >= 0 && field_index < (int)mCurrentPlotGeo->Size() && mCurrentPlotField );
 
-	mCurrentPlotData->SetWithContour( checked );
+	mCurrentPlotField->SetWithContour( checked );
 
 	if ( mMapView->HasContourLayer( field_index ) )
 	{
@@ -805,26 +805,30 @@ void CMapEditor::HandleShowContourChecked( bool checked )
 
     WaitCursor wait;
 
-	const CMapPlotParameters &array = mCurrentPlotData->at( 0 );
+	const CMapPlotParameters &array = mCurrentPlotField->at( 0 );
 
-	std::pair< unsigned, unsigned > grid = mCurrentPlotData->ContourPrecision();
-	if ( !mMapView->AddContourLayer( field_index, mCurrentPlotData->FieldName(), mCurrentPlotData->ContourLineWidth(), mCurrentPlotData->ContourLineColor().GetQColor(),
-		mCurrentPlotData->NumContours(), grid.first, grid.second, array ) )	//t.GetLookupTable(), 
+	std::pair< unsigned, unsigned > grid = mCurrentPlotField->ContourPrecision();
+	if ( !mMapView->AddContourLayer( field_index, mCurrentPlotField->WidgetFieldName(), mCurrentPlotField->ContourLineWidth(), mCurrentPlotField->ContourLineColor().GetQColor(),
+		mCurrentPlotField->NumContours(), grid.first, grid.second, array ) )	//t.GetLookupTable(), 
 	{
-		mCurrentPlotData->SetWithContour( false );
+		mCurrentPlotField->SetWithContour( false );
 		mTabDataLayers->mColorMapWidget->SetShowContour( false );
-	}
+    }
 }
 
 
-bool CMapEditor::SetNumberOfContours( int field_index, std::pair< unsigned, unsigned > grid, unsigned contours )
+bool CMapEditor::SetParamsAndNumberOfContours( int field_index, std::pair< unsigned, unsigned > grid, unsigned contours )
 {
-	const CMapPlotParameters &array = mCurrentPlotData->at( 0 );
+	const CMapPlotParameters &array = mCurrentPlotField->at( 0 );
 
-	if ( mMapView->SetNumberOfContours( field_index, contours, array, grid.first, grid.second ) )
+	//if ( mMapView->HasContourLayer( field_index ) && !mMapView->IsContourLayerVisible( field_index ) )
+	//	mMapView->DeleteContourLayer( field_index, false );
+
+	const bool has_layer = mMapView->HasContourLayer( field_index );
+	if ( !has_layer || mMapView->SetNumberOfContours( field_index, contours, array, grid.first, grid.second ) )
 	{
-		mCurrentPlotData->SetContourPrecision( grid.first, grid.second );
-		mCurrentPlotData->SetNumContours( contours );
+		mCurrentPlotField->SetContourPrecision( grid.first, grid.second );
+		mCurrentPlotField->SetNumContours( contours );
 		return true;
 	}
 	return false;
@@ -833,17 +837,20 @@ bool CMapEditor::SetNumberOfContours( int field_index, std::pair< unsigned, unsi
 
 void CMapEditor::HandleNumberOfContoursChanged()
 {
-	WaitCursor wait;												assert__( mMapView && mCurrentPlotData );
+	WaitCursor wait;												assert__( mMapView && mCurrentPlotField );
 
 	int field_index = mTabDataLayers->mFieldsList->currentRow();
 
-	SetNumberOfContours( field_index, mCurrentPlotData->ContourPrecision(), mTabDataLayers->mColorMapWidget->NumberOfContours() );
+    if ( !SetParamsAndNumberOfContours( field_index, mCurrentPlotField->ContourPrecision(), mTabDataLayers->mColorMapWidget->NumberOfContours() ) )
+    {
+        mTabDataLayers->mColorMapWidget->SetNumberOfContours( mCurrentPlotField->NumContours() );
+    }
 }
 
 
 void CMapEditor::HandleContourPrecisionGridEditPressed()
 {
-	WaitCursor wait;												assert__( mMapView && mCurrentPlotData );
+	WaitCursor wait;												assert__( mMapView && mCurrentPlotField );
 
 	int field_index = mTabDataLayers->mFieldsList->currentRow();
 
@@ -851,7 +858,7 @@ void CMapEditor::HandleContourPrecisionGridEditPressed()
 	mTabDataLayers->mColorMapWidget->PrecisionParameters( grid.first, grid.second );
     if ( grid.first == 0 || grid.second == 0 )
 	{
-		grid = mCurrentPlotData->ContourPrecision();
+		grid = mCurrentPlotField->ContourPrecision();
 		mTabDataLayers->mColorMapWidget->blockSignals( true );
 		mTabDataLayers->mColorMapWidget->SetPrecisionParameters( grid.first, grid.second );
 		mTabDataLayers->mColorMapWidget->blockSignals( false );
@@ -859,54 +866,60 @@ void CMapEditor::HandleContourPrecisionGridEditPressed()
 		return;
 	}
 
-	SetNumberOfContours( field_index, grid, mCurrentPlotData->NumContours() );
+    if ( !SetParamsAndNumberOfContours( field_index, grid, mCurrentPlotField->NumContours() ) )
+    {
+        grid = mCurrentPlotField->ContourPrecision();
+        mTabDataLayers->mColorMapWidget->SetPrecisionParameters( grid.first, grid.second );
+    }
 }
 
 
 void CMapEditor::HandleContourColorSelected()
 {
-	WaitCursor wait;												assert__( mMapView && mCurrentPlotData );
+	WaitCursor wait;												assert__( mMapView && mCurrentPlotField );
 
 	int field_index = mTabDataLayers->mFieldsList->currentRow();
 
-	mCurrentPlotData->SetContourLineColor( mTabDataLayers->mColorMapWidget->ContourColor() );
+	mCurrentPlotField->SetContourLineColor( mTabDataLayers->mColorMapWidget->ContourColor() );
 
-	mMapView->SetContoursProperties( field_index, mCurrentPlotData->ContourLineColor().GetQColor(), mCurrentPlotData->ContourLineWidth() );
+	if ( mMapView->HasContourLayer( field_index ) )
+		mMapView->SetContoursProperties( field_index, mCurrentPlotField->ContourLineColor().GetQColor(), mCurrentPlotField->ContourLineWidth() );
 }
 
 
 void CMapEditor::HandleContourWidthChanged()
 {
-	WaitCursor wait;												assert__( mMapView && mCurrentPlotData );
+	WaitCursor wait;												assert__( mMapView && mCurrentPlotField );
 
 	int field_index = mTabDataLayers->mFieldsList->currentRow();
 
-	mCurrentPlotData->SetContourLineWidth( mTabDataLayers->mColorMapWidget->ContoursWidth() );
+	mCurrentPlotField->SetContourLineWidth( mTabDataLayers->mColorMapWidget->ContoursWidth() );
 
-	mMapView->SetContoursProperties( field_index, mCurrentPlotData->ContourLineColor().GetQColor(), mCurrentPlotData->ContourLineWidth() );
+	if ( mMapView->HasContourLayer( field_index ) )
+		mMapView->SetContoursProperties( field_index, mCurrentPlotField->ContourLineColor().GetQColor(), mCurrentPlotField->ContourLineWidth() );
 }
 
 
 void CMapEditor::HandleColorTablesIndexChanged( int index )
 {
-	WaitCursor wait;												assert__( mMapView && mCurrentPlotData );
+	WaitCursor wait;												assert__( mMapView && mCurrentPlotField );
 
 	int field_index = mTabDataLayers->mFieldsList->currentRow();	assert__( field_index >= 0 && field_index < (int)mCurrentPlotGeo->Size() );
 
-	const CMapPlotParameters &array = mCurrentPlotData->at( 0 );
+	const CMapPlotParameters &array = mCurrentPlotField->at( 0 );
 
 	//no need to assign... check only
 
-	assert__( mTabDataLayers->mColorMapWidget->ColorRangeMin() == mCurrentPlotData->CurrentMinValue() && 
-		mTabDataLayers->mColorMapWidget->ColorRangeMax() == mCurrentPlotData->CurrentMaxValue() );
+	assert__( mTabDataLayers->mColorMapWidget->ColorRangeMin() == mCurrentPlotField->CurrentMinValue() && 
+		mTabDataLayers->mColorMapWidget->ColorRangeMax() == mCurrentPlotField->CurrentMaxValue() );
 
-	mMapView->ChangeDataRenderer( field_index, 0., array.mMinHeightValue, array.mMaxHeightValue, mCurrentPlotData->ColorTablePtr()->GetLookupTable() );	
+	mMapView->ChangeDataRenderer( field_index, 0., array.mMinHeightValue, array.mMaxHeightValue, mCurrentPlotField->ColorTablePtr()->GetLookupTable() );	
 }
 
 
 void CMapEditor::HandleMagnitudeFactorEditEntered()
 {
-	WaitCursor wait;												assert__( mMapView && mCurrentPlotData );
+	WaitCursor wait;												assert__( mMapView && mCurrentPlotField );
 
 	int field_index = mTabDataLayers->mFieldsList->currentRow();	assert__( field_index >= 0 && field_index < (int)mCurrentPlotGeo->Size() );
 
@@ -915,7 +928,7 @@ void CMapEditor::HandleMagnitudeFactorEditEntered()
 	double new_nb = new_nb_str.toDouble( &ok_conv );
     if ( !ok_conv || new_nb <= 0. )
 	{
-		new_nb = mCurrentPlotData->MagnitudeFactor();
+		new_nb = mCurrentPlotField->MagnitudeFactor();
 		mTabDataLayers->mMagnitudeFactorEdit->blockSignals( true );
 		mTabDataLayers->mMagnitudeFactorEdit->setText( n2s( new_nb ).c_str() );
 		mTabDataLayers->mMagnitudeFactorEdit->blockSignals( false );
@@ -923,7 +936,7 @@ void CMapEditor::HandleMagnitudeFactorEditEntered()
 		return;
 	}
 
-	mCurrentPlotData->SetMagnitudeFactor( new_nb );
+	mCurrentPlotField->SetMagnitudeFactor( new_nb );
 
 	auto *layer = CreateCurrentDataLayer( false );		//true -> do not add to map
 

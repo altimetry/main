@@ -15,8 +15,8 @@
 * along with this program; if not, write to the Free Software
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
-#ifndef DATA_MODELS_PLOT_DATA_PLOT_DATA_H
-#define DATA_MODELS_PLOT_DATA_PLOT_DATA_H
+#ifndef DATA_MODELS_PLOT_DATA_WIDGET_FIELD_H
+#define DATA_MODELS_PLOT_DATA_WIDGET_FIELD_H
 
 
 
@@ -36,7 +36,7 @@ using namespace brathl;
 //	- Several plot data objects (instances of the class) can be displayed at the same time
 //	- Properties are displayed and assigned only for the selected plot data unit (in GUI fields/layers list)
 //
-class CPlotData : private std::pair< CFieldData*, CFieldData* >
+class CWidgetField : private std::pair< CFieldData*, CFieldData* >
 {	
 	friend class CAbstractDisplayEditor;	//for diagnostic only
 
@@ -69,15 +69,15 @@ public:
 	//	NOTE: Inverse of CWorldPlotData 
 	//	CWorldPlotData used north first; here (*) we follow the order in which field names form the v3 CWorldPlotProperty name
 	//
-	CPlotData( CFieldData *north_data, CFieldData *east_data )
+	CWidgetField( CFieldData *north_data, CFieldData *east_data )
 		: base_t( east_data, north_data )						//(*)
 	{}
 
-	CPlotData( CFieldData *data )
+	CWidgetField( CFieldData *data )
 		: base_t( data, nullptr )
 	{}
 
-	virtual ~CPlotData()
+	virtual ~CWidgetField()
 	{}
 
 
@@ -89,7 +89,7 @@ protected:
 
 
 public:
-	CPlotData& operator = ( const CPlotData &o )
+	CWidgetField& operator = ( const CWidgetField &o )
 	{
 		if ( this != &o )
 		{
@@ -164,23 +164,44 @@ protected:
 public:
 	// This class exists almost only because of this: allowing a single plot field 
 	//	composed of 2 data fields to be treated like one unit. So, the identification
-	//	is always composed by the 2 field identifiers. 
-	//
-	// But setting a plot field name only makes sense for each data field, so SetUserName
-	//	does not exist here, only Set First UserName (setter for 2nd not justified so far
-	//	and even the need for this one reflects that the data structures... 
-	//	could be improved, to be kind.
-	//
-	std::string UserName() const
-	{
-		std::string name = Get( &CFieldData::UserName );				//fieldNameEast + "/" + fieldNameNorth;
-		if ( second )
-			name += ( "/" + second->UserName() );
+	//	is always composed by the 2 field identifiers.  Field names, even in GUI 
+	//	structures, are not changeable (there are "user names" for that).
 
-		return name;
+	const std::string& FieldNameEast() const				
+	{ 
+		assert__( first );
+
+		return first->FieldName(); 
 	}
 
-	void SetFirstUserName( const std::string &value )
+	const std::string& FieldNameNorth() const				
+	{ 
+		assert__( second );
+
+		return second->FieldName(); 
+	}
+
+	//	Only for vector maps is the returned value different from calling FieldName 
+	//	of the data fields that this instance represents. (Only in vector maps this
+	//	instance represents 2 data fields.) For plots, in particular, it is always 
+	//	as calling FieldName of the (single) data field.
+	//
+	//	From v3, composed like: fieldNameEast + "/" + fieldNameNorth;
+	//
+	std::string WidgetFieldName() const
+	{
+		if ( !second )
+			return FieldNameEast();
+
+		return FieldNameEast() + "/" + FieldNameNorth();
+	}
+
+
+	const std::string& AxisUserName() const				//used only by plots, which don't have a 2nd field
+	{ 
+		return first->UserName(); 
+	}
+	void SetAxisUserName( const std::string &value )	//idem
 	{ 
 		first->SetUserName( value ); 
 	}
@@ -208,31 +229,18 @@ public:
 	// FieldData Interface
 	////////////////////////////
 
-	const std::string& FieldName() const				
-	{ 
-		return FieldNameEast(); 
-	}
-
-	const std::string& FieldNameEast() const				
-	{ 
-		assert__( first );
-
-		return first->FieldName(); 
-	}
-
-	const std::string& FieldNameNorth() const				
-	{ 
-		assert__( second );
-
-		return second->FieldName(); 
-	}
-
 
 	CFieldData::unsigned_t Opacity() const 							{ return Get( &CFieldData::Opacity ); }
 	void SetOpacity( CFieldData::unsigned_t op )					{ Set( op, &CFieldData::SetOpacity ); }
 
 
 	// YFX / ZFXY
+
+	unsigned int Zticks() const										{ return Get( &CFieldData::Zticks ); }
+	void SetZticks( unsigned int value )							{ Set( value, &CFieldData::SetZticks ); }
+
+    unsigned Zdigits() const										{ return Get( &CFieldData::Zdigits ); }
+    void SetZdigits( unsigned value )								{ Set( value, &CFieldData::SetZdigits ); }
 
 	bool XLog() const												{ return Get( &CFieldData::XLog ); }
 	void SetXLog( bool value )										{ Set( value, &CFieldData::SetXLog ); }
@@ -253,9 +261,9 @@ public:
 	double CurrentMaxValue() const									{ return Get( &CFieldData::CurrentMaxValue ); }
 	void SetCurrentMaxValue( const double &value )					{ Set( value, &CFieldData::SetCurrentMaxValue ); }
 
-	double AbsoluteMinValue() const									{ return Get( &CFieldData::AbsoluteMinValue ); }
-	double AbsoluteMaxValue() const									{ return Get( &CFieldData::AbsoluteMaxValue ); }
-	void SetAbsoluteRangeValues( const double &m, const double &M )	{ Set( m, M, &CFieldData::SetAbsoluteRangeValues ); }
+	double DataMinValue() const										{ return Get( &CFieldData::DataMinValue ); }
+	double DataMaxValue() const										{ return Get( &CFieldData::DataMaxValue ); }
+	void SetDataRangeValues( const double &m, const double &M )		{ Set( m, M, &CFieldData::SetDataRangeValues ); }
 
 	bool WithContour() const										{ return Get( &CFieldData::WithContour ); }
 	void SetWithContour( bool value )								{ Set( value, &CFieldData::SetWithContour ); }
@@ -280,6 +288,9 @@ public:
 	void SetWithSolidColor( bool value )							{ Set( value, &CFieldData::SetWithSolidColor ); }
 
 	//	LON-LAT
+
+	//for plot editor to identify vector components; in a map editor the vector components are first and second of this instance
+	bool IsVectorComponent() const									{ return Get( &CFieldData::IsEastComponent ) || Get( &CFieldData::IsNorthComponent ); }
 
 	double MagnitudeFactor() const									{ return Get( &CFieldData::MagnitudeFactor ); }
 	void SetMagnitudeFactor( double value )							{ Set( value, &CFieldData::SetMagnitudeFactor ); }
@@ -327,4 +338,4 @@ public:
 
 
 
-#endif			// DATA_MODELS_PLOT_DATA_PLOT_DATA_H
+#endif			// DATA_MODELS_PLOT_DATA_WIDGET_FIELD_H

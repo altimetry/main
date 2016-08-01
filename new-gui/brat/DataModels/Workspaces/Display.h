@@ -193,7 +193,7 @@ public:
 	{}
 #endif
 
-	CDisplayData( const COperation* operation, const CDisplay *display, CMapTypeDisp::ETypeDisp type )
+	CDisplayData( const COperation* operation, const CDisplay *display, CMapTypeDisp::ETypeDisp type, const std::string &field_name, const std::string &unit )
 		: base_t()
 		, mDimFields( EAxisIndex_size )
 		, mOperation( operation )
@@ -203,6 +203,8 @@ public:
 #if !defined(BRAT_V3)
 		assert__( operation && display && type != CMapTypeDisp::Invalid() );
 #endif
+		SetFieldName( field_name );
+		SetFieldUnit( unit );
 	}
 
 
@@ -236,12 +238,20 @@ public:
 	const CFieldBasic* GetField() const { return &m_field; }
 
 
+#if !defined(BRAT_V3)
+protected:
+#endif
+
 	virtual void SetFieldName( const std::string &name ) override
 	{ 
 		m_field.SetName( name ); 
 		base_t::SetFieldName( name );
 	}
 
+	void SetFieldUnit( const std::string &unit ) { m_field.SetUnit( unit ); }
+
+
+public:
 	void SetFieldDescription( const std::string &desc ) 
 	{ 
 		m_field.SetDescription( desc );
@@ -251,7 +261,6 @@ public:
 
 	virtual void SetUserName( const std::string &name ) override { SetFieldDescription( name );	}
 
-	void SetFieldUnit( const std::string &unit ) { m_field.SetUnit( unit ); }
 
 
 	//...type
@@ -308,8 +317,8 @@ public:
 
 	//...color table && color table range
 
-	std::string AbsoluteMinValueAsText() const { return GetValueAsText( AbsoluteMinValue() ); }
-	std::string AbsoluteMaxValueAsText() const { return GetValueAsText( AbsoluteMaxValue() ); }
+	std::string DataMinValueAsText() const { return GetValueAsText( DataMinValue() ); }
+	std::string DataMaxValueAsText() const { return GetValueAsText( DataMaxValue() ); }
 	std::string CurrentMinValueAsText() const { return GetValueAsText( CurrentMinValue() ); }
 	std::string CurrentMaxValueAsText() const { return GetValueAsText( CurrentMaxValue() ); }
 
@@ -368,11 +377,11 @@ public:
 //-------------------------------------------------------------
 
 
-class CDisplay : public CDisplayInterface
+class CDisplay : public CDisplayBase
 {
 	//types
 
-	using base_t = CDisplayInterface;
+	using base_t = CDisplayBase;
 
 	friend class CDisplayCmdFile;
 	friend class CWorkspaceSettings;

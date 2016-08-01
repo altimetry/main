@@ -27,18 +27,18 @@ using namespace brathl;
 
 #include "PlotValues.h"
 #include "MapProjection.h"
-#include "PlotData.h"
+#include "WidgetField.h"
 
 
 
 
-class CWorldPlotData : public CMapValues, public CPlotData
+class CGeoPlotField : public CMapValues, public CWidgetField
 {
 	////////////////////////////
 	//			types
 	////////////////////////////
 
-	using base_t = CPlotData;
+	using base_t = CWidgetField;
 	using values_base_t = CMapValues;
 
 protected:
@@ -68,14 +68,14 @@ protected:
 	///////////////////////////////
 
 
-	CWorldPlotData( CWorldPlotProperties *north_field, CWorldPlotProperties *east_field )
+	CGeoPlotField( CWorldPlotProperties *north_field, CWorldPlotProperties *east_field )
 		: base_t( north_field, east_field )
 		, values_base_t()
 		, m_projection( PROJ2D_3D )
 	{}
 
 public:
-	CWorldPlotData( CWorldPlotProperties *field )
+	CGeoPlotField( CWorldPlotProperties *field )
 		: base_t( { field } )
 		, values_base_t()
 		, m_projection( PROJ2D_3D )
@@ -83,7 +83,7 @@ public:
 		Create();
 	}
 
-	virtual ~CWorldPlotData()
+	virtual ~CGeoPlotField()
 	{}
 
 protected:
@@ -112,7 +112,7 @@ public:
 protected:
 	// v3 note: for base classes
 	//
-    CWorldPlotData( CWorldPlotProperties &plotProperty )
+    CGeoPlotField( CWorldPlotProperties &plotProperty )
 		: base_t( {} )
 		, values_base_t()
 		, m_projection( PROJ2D_3D )
@@ -125,12 +125,12 @@ protected:
 
 
 //-------------------------------------------------------------
-//------------------- CWorldPlotVelocityData class --------------------
+//------------------- CGeoPlotVelocityField class --------------------
 //-------------------------------------------------------------
 
-class CWorldPlotVelocityData : public CWorldPlotData
+class CGeoPlotVelocityField : public CGeoPlotField
 {
-	using base_t = CWorldPlotData;
+	using base_t = CGeoPlotField;
 
 protected:
 
@@ -143,11 +143,11 @@ protected:
    //only for vtk derived classes (globe, etc)
    //
 #if defined(BRAT_V3)
-   CWorldPlotVelocityData( CWorldPlotProperties &plotProperty )
+   CGeoPlotVelocityField( CWorldPlotProperties &plotProperty )
 	   :base_t( plotProperty )
    {}
 
-	CWorldPlotVelocityData( CWorldPlotProperties* field )
+	CGeoPlotVelocityField( CWorldPlotProperties* field )
 		:base_t( field )
 	{}
 #endif
@@ -157,13 +157,13 @@ public:
 
 	// The order of fields matters
 	//
-	CWorldPlotVelocityData( CWorldPlotProperties* northField, CWorldPlotProperties* eastField )
+	CGeoPlotVelocityField( CWorldPlotProperties* northField, CWorldPlotProperties* eastField )
 		: base_t( northField, eastField )										 //v3 note: this is just to compile
 	{
 		Create( northField->InternalFiles(), eastField->InternalFiles() );
 	}
 
-	virtual ~CWorldPlotVelocityData()
+	virtual ~CGeoPlotVelocityField()
 	{}
 };
 

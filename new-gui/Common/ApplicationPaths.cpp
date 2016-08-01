@@ -133,6 +133,7 @@ bool CApplicationPaths::operator == ( const CApplicationPaths &o ) const
     assert__( mDeploymentRootDir == o.mDeploymentRootDir );
 
     assert__( mQtPluginsDir == o.mQtPluginsDir );
+    assert__( mPythonDir == o.mPythonDir );
 	assert__( mUserManualPath == o.mUserManualPath );
     assert__( mInternalDataDir == o.mInternalDataDir );
 

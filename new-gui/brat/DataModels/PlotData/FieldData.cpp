@@ -34,13 +34,11 @@ const CFieldData::unsigned_t CFieldData::smDefaultOpacity =
 #endif
 
 
-#if defined(BRAT_V3)
 //static 
 const unsigned CFieldData::smDefaultNumberOfDigits = 5;
 
 //static 
 const unsigned CFieldData::smDefaultNumberOfTicks = 5;
-#endif
 
 
 //static 

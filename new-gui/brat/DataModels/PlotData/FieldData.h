@@ -59,10 +59,9 @@ public:
 
 	// statics
 
-#if defined(BRAT_V3)
 	static const unsigned smDefaultNumberOfTicks;
 	static const unsigned smDefaultNumberOfDigits;
-#endif
+
 	static const unsigned_t smDefaultOpacity;
 	static const bool smDefaultShowLines;
 	static const bool smDefaultShowPoints;
@@ -118,12 +117,13 @@ private:
 
 	unsigned m_xTicks = smDefaultNumberOfTicks;
 	unsigned m_yTicks = smDefaultNumberOfTicks;
-    unsigned m_zTicks = smDefaultNumberOfTicks;
-
     unsigned m_xDigits = smDefaultNumberOfDigits;	//v4 (...)
     unsigned m_yDigits = smDefaultNumberOfDigits;	//v4 (...)
-    unsigned m_zDigits = smDefaultNumberOfDigits;	//v4 (...)
 #endif
+
+    unsigned m_zTicks = smDefaultNumberOfTicks;
+    unsigned m_zDigits = smDefaultNumberOfDigits;	//v4 (...)
+
 
 	bool mXlogarithmic = false;
 	bool mYlogarithmic = false;
@@ -216,13 +216,9 @@ public:
 
 			m_xTicks = o.m_xTicks;
 			m_yTicks = o.m_yTicks;
-			m_zTicks = o.m_zTicks;
-
 			m_xDigits = o.m_xDigits;
 			m_yDigits = o.m_yDigits;
-			m_zDigits = o.m_zDigits;
 #endif
-
 			// YFX / ZFXY / LON-LAT
 
 			mFieldName = o.mFieldName;
@@ -231,6 +227,9 @@ public:
 			mOpacity = o.mOpacity;
 
 			// YFX / ZFXY
+
+			m_zTicks = o.m_zTicks;
+			m_zDigits = o.m_zDigits;
 
 			mXlogarithmic = o.mXlogarithmic;
 			mYlogarithmic = o.mYlogarithmic;
@@ -297,11 +296,8 @@ public:
 
 			m_xTicks == o.m_xTicks &&
 			m_yTicks == o.m_yTicks &&
-			m_zTicks == o.m_zTicks &&
-
 			m_xDigits == o.m_xDigits &&
 			m_yDigits == o.m_yDigits &&
-			m_zDigits == o.m_zDigits &&
 #endif
 			// YFX / ZFXY / LON-LAT
 
@@ -311,6 +307,9 @@ public:
 			mOpacity == o.mOpacity &&
 
 			// YFX / ZFXY
+
+			m_zTicks == o.m_zTicks &&
+			m_zDigits == o.m_zDigits &&
 
 			mXlogarithmic == o.mXlogarithmic &&
 			mYlogarithmic == o.mYlogarithmic &&
@@ -419,17 +418,12 @@ public:
 
 	unsigned int Xticks() const { return m_xTicks; }
 	unsigned int Yticks() const { return m_yTicks; }
-	unsigned int Zticks() const { return m_zTicks; }
 	void SetXticks( unsigned int value ) { m_xTicks = value; }
 	void SetYticks( unsigned int value ) { m_yTicks = value; }
-	void SetZticks( unsigned int value ) { m_zTicks = value; }
-
     unsigned Xdigits() const { return m_xDigits; }
     unsigned Ydigits() const { return m_yDigits; }
-    unsigned Zdigits() const { return m_zDigits; }
     void SetXdigits( unsigned value ) { m_xDigits = value; }
     void SetYdigits( unsigned value ) { m_yDigits = value; }
-    void SetZdigits( unsigned value ) { m_zDigits = value; }
 #endif
 
 	const std::string& FieldName() const { return mFieldName; }
@@ -454,6 +448,12 @@ public:
 
 	bool YLog() const { return mYlogarithmic; }
 	void SetYLog( bool value );
+
+	unsigned int Zticks() const { return m_zTicks; }
+	void SetZticks( unsigned int value ) { m_zTicks = value; }
+
+    unsigned Zdigits() const { return m_zDigits; }
+    void SetZdigits( unsigned value ) { m_zDigits = value; }
 
 
 	//	ZFXY / LON-LAT
@@ -480,6 +480,9 @@ public:
 		return mLUT.LoadFromFile( error_msg, path );
 	}
 
+	// corrects "current" values if invalid
+	// m and M cannot be == smDefaultRangeValues
+	//
 	void SetTableRange( double m, double M )
 	{
 		SetCurrentMinValue( m );
@@ -487,48 +490,65 @@ public:
 	}
 
 protected:
+	// sets "current" values
+	// silently corrects m if m > M
+	//
 	void SetColorTableRange( double m, double M )
 	{
+		if ( m == CBratLookupTable::smDefaultRangeValues )
+			m = M;
+
+		if ( M == CBratLookupTable::smDefaultRangeValues )
+			M = m;
+
+		//either both are default values, or neither is 
+
+		m = std::min( m, M );
+
 		mLUT.SetTableRange( m, M );
 	}
 
 public:
 
-	double AbsoluteMinValue() const { return mMinHeightValue; }
-	double AbsoluteMaxValue() const { return mMaxHeightValue; }
-	void SetAbsoluteRangeValues( double m, double M ) 
+	double DataMinValue() const { return mMinHeightValue; }
+	double DataMaxValue() const { return mMaxHeightValue; }
+	//
+	// also sets "current" values if invalid
+	// won't work if m > M
+	//
+	void SetDataRangeValues( double m, double M )			
 	{ 
+		assert__( m <= M );
+
 		if ( m > M )
 			return;
 
 		mMinHeightValue = m; 
 		mMaxHeightValue = M; 
 
-		double current_min = CurrentMinValue();
-		double current_max = CurrentMaxValue();
-
-		if ( current_min == CBratLookupTable::smDefaultRangeValues )
-			current_min = m;
-
-		if ( current_max == CBratLookupTable::smDefaultRangeValues )
-			current_max = M;
-
-		SetTableRange( current_min, current_max );
+		if ( CurrentMinValue() == CBratLookupTable::smDefaultRangeValues || CurrentMaxValue() == CBratLookupTable::smDefaultRangeValues )
+			SetTableRange( m, M );
 	}
 
 
 	double CurrentMinValue() const { return mLUT.CurrentMinValue(); }
 	void SetCurrentMinValue( double value ) 
 	{ 
-		double current_min = std::min( std::max( value, mMinHeightValue ), mMaxHeightValue ); 
-		SetColorTableRange( current_min, CurrentMaxValue() );
+		double current_max = CurrentMaxValue();
+		if ( current_max == CBratLookupTable::smDefaultRangeValues )
+			current_max = value;
+
+		SetColorTableRange( value, current_max );
 	}
 
 	double CurrentMaxValue() const { return mLUT.CurrentMaxValue(); }
 	void SetCurrentMaxValue( double value ) 
 	{ 
-		double current_max = std::max( std::min( value, mMaxHeightValue ), mMinHeightValue ); 
-		SetColorTableRange( CurrentMinValue(), current_max );
+		double current_min = CurrentMinValue();
+		if ( current_min == CBratLookupTable::smDefaultRangeValues )
+			current_min = value;
+
+		SetColorTableRange( current_min, value );
 	}
 
 

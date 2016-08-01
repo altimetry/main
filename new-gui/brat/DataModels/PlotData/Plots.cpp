@@ -28,27 +28,10 @@
 using namespace brathl;
 
 #include "FieldData.h"
-#include "WorldPlotData.h"
-#include "ZFXYPlotData.h"
+#include "GeoPlotField.h"
+#include "ZFXYPlotField.h"
 
 #include "Plots.h"
-
-
-
-////////////////////////////////////////////////////////////
-//					CDisplayInterface class 
-////////////////////////////////////////////////////////////
-
-
-
-//static 
-const unsigned CDisplayInterface::smDefaultNumberOfDigits = 5;
-
-//static 
-const unsigned CDisplayInterface::smDefaultNumberOfTicks = 5;
-
-
-
 
 
 
@@ -166,13 +149,13 @@ void CGeoPlot::GetInfo()
 			}
 
 		// otherwise just add it as regular data
-		mPlotFields.push_back( new CWorldPlotData( field ) );		//v4 note: CWorldPlotData ctor is only invoked here
+		mPlotFields.push_back( new CGeoPlotField( field ) );		//v4 note: CGeoPlotField ctor is only invoked here
 	}
 
 	// we have a Vector Plot!
 	if ( northField != nullptr && eastField != nullptr )
 	{
-		mPlotFields.push_back( new CWorldPlotVelocityData( northField, eastField ) );	//v4 note: CWorldPlotVelocityData ctor is only invoked here
+		mPlotFields.push_back( new CGeoPlotVelocityField( northField, eastField ) );	//v4 note: CGeoPlotVelocityField ctor is only invoked here
 	}
 	else if ( northField != eastField )
 	{
@@ -255,14 +238,14 @@ void CMathPlot< DATA_FIELD, PLOT_FIELD >::GetTitleAndUnitInfo( CInternalFiles *f
 	//-----------------------------------
 	// Get title of X axis
 	//-----------------------------------
-	if ( TitleX().empty() )
+	if ( Xtitle().empty() )
 	{
 		std::string titleX = file->GetTitle( varXName );
 		if ( titleX.empty() )
 		{
 			titleX = varXName;
 		}
-		SetTitleX( titleX + " " + m_unitXLabel );
+		SetXtitle( titleX + " " + m_unitXLabel );
 	}
 
 
@@ -303,7 +286,7 @@ void CMathPlot< DATA_FIELD, PLOT_FIELD >::GetTitleAndUnitInfo( CInternalFiles *f
 	// Get title of Y axis (as possible)
 	//-----------------------------------
 
-	if ( TitleY().empty() )
+	if ( Ytitle().empty() )
 	{
 		std::string titleY;
 		if ( useYnameInLabel )
@@ -314,7 +297,7 @@ void CMathPlot< DATA_FIELD, PLOT_FIELD >::GetTitleAndUnitInfo( CInternalFiles *f
 				titleY = varYName;
 			}
 		}
-		SetTitleY( titleY + " " + m_unitYLabel );
+		SetYtitle( titleY + " " + m_unitYLabel );
 	}
 }
 
@@ -459,7 +442,7 @@ void CYFXPlot::GetInfo()
 
 	for ( size_t i = 0; i < nrFields; i++ )
 	{
-		mPlotFields.push_back( new CXYPlotData( this, i ) );	//v4 note: CXYPlotData ctor only invoked here
+		mPlotFields.push_back( new CXYPlotField( this, i ) );	//v4 note: CXYPlotField ctor only invoked here
 	}
 
 #endif
@@ -555,15 +538,15 @@ void CZFXYPlot::GetInfo()
 		if ( field->InternalFiles().empty() )
 			continue;
 
-		mPlotFields.push_back( new CZFXYPlotData( this, field ) );		// v4 note: CZFXYPlotData ctor only invoked here
+		mPlotFields.push_back( new CZFXYPlotField( this, field ) );		// v4 note: CZFXYPlotField ctor only invoked here
 	}
 
 	//v4: complement GetTitleAndUnitInfo with Z title for ZFXY (for YFX is Y title)
 
-	if ( TitleValue().empty() && mPlotFields.size() > 0 )
+	if ( ValueTitle().empty() && mPlotFields.size() > 0 )
 	{
 		if ( mPlotFields.size() == 1 )
-			SetTitleValue( mPlotFields[ 0 ]->UserName()  + " " + MakeUnitLabel( *mPlotFields[ 0 ]->DataUnit() ) );
+			SetValueTitle( mPlotFields[ 0 ]->AxisUserName()  + " " + MakeUnitLabel( *mPlotFields[ 0 ]->DataUnit() ) );
 		//else 
 		//		???
 	}
@@ -751,13 +734,13 @@ void CZFXYPlot::GetPlotWidthHeight(CInternalFiles* zfxy,
 
 using xy_plot_data_t = VTK_CXYPlotData;
 
-xy_plot_data_t* CYFXPlot::Get(std::vector< CXYPlotData* >::iterator it )
+xy_plot_data_t* CYFXPlot::Get(std::vector< CXYPlotField* >::iterator it )
 {
   xy_plot_data_t* data = dynamic_cast<xy_plot_data_t*>(*it);
   if (data == nullptr)
   {
-    throw CException("ERROR in  CYFXPlot::Get : dynamic_cast<CXYPlotData*>(*it); returns nullptr pointer - "
-                 "XYPlotData Collection seems to contain objects other than those of the class CXYPlotData or derived class", BRATHL_LOGIC_ERROR);
+    throw CException("ERROR in  CYFXPlot::Get : dynamic_cast<CXYPlotField*>(*it); returns nullptr pointer - "
+                 "XYPlotData Collection seems to contain objects other than those of the class CXYPlotField or derived class", BRATHL_LOGIC_ERROR);
   }
   return data;
 }
@@ -778,15 +761,15 @@ xy_plot_data_t* CYFXPlot::Get(int32_t index)
   xy_plot_data_t* data = dynamic_cast<xy_plot_data_t*>(mPlotFields.at(index));
   if (data == nullptr)
   {
-    throw CException("ERROR in  CYFXPlot::Get : dynamic_cast<CXYPlotData*>(this->at(index)); returns nullptr pointer - "
-                 "XYPlotData Collection seems to contain objects other than those of the class CXYPlotData or derived class", BRATHL_LOGIC_ERROR);
+    throw CException("ERROR in  CYFXPlot::Get : dynamic_cast<CXYPlotField*>(this->at(index)); returns nullptr pointer - "
+                 "XYPlotData Collection seems to contain objects other than those of the class CXYPlotField or derived class", BRATHL_LOGIC_ERROR);
   }
   return data;
 }
 //----------------------------------------
 CXYPlotProperties* CYFXPlot::GetPlotProperties(int32_t index)
 {
-  CXYPlotData* data = Get(index);
+  CXYPlotField* data = Get(index);
 
   return data->GetPlotProperties();
 }
@@ -807,7 +790,7 @@ bool CYFXPlot::ShowPropertyMenu()
 {
   for (auto it = mPlotFields.begin(); it != mPlotFields.end() ; it++)
   {
-    CXYPlotData* data = Get(it);
+    CXYPlotField* data = Get(it);
 
     CXYPlotProperties* props = data->GetPlotProperties();
 
@@ -995,7 +978,7 @@ void CYFXPlot::GetYRange( double& min, double& max, uint32_t frame )
 }
 
 
-void CYFXPlot::AddData( CXYPlotData *pdata )
+void CYFXPlot::AddData( CXYPlotField *pdata )
 {
 	mPlotFields.push_back( pdata );
 

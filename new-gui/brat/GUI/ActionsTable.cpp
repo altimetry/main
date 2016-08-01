@@ -58,9 +58,9 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_Save, "&Save", CActionInfo::FormatTip("Save\nSave the workspace to disk"), ":/images/OSGeo/save.png", "", "Ctrl+S" },
 
-    { eAction_Import_Workspace, "&Import...", CActionInfo::FormatTip("Import\nImport existing workspace objects"), ":/images/OSGeo/import.png" },
+    { eAction_Import_Workspace, "&Import...", CActionInfo::FormatTip("Import\nImport existing workspace objects"), ":/images/OSGeo/workspace_import.png" },
 
-    { eAction_Rename_Workspace, "&Rename...", CActionInfo::FormatTip("Rename\nRename the loaded workspace\n""The workspace directory will not change"), "" },
+    { eAction_Rename_Workspace, "&Rename...", CActionInfo::FormatTip("Rename\nRename the loaded workspace\n""The workspace directory will not change"), ":/images/OSGeo/workspace_rename.png" },
 
     { eAction_Delete_Workspace, "&Delete...", CActionInfo::FormatTip("Delete\nDelete the loaded workspace"), ":/images/OSGeo/workspace-delete.png" },
 
@@ -72,7 +72,7 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_Views_List, "&List...", CActionInfo::FormatTip("List\nList all open windows and select or close views"), ":/images/themes/default/propertyicons/diagram.png" },
 
-    { eAction_Open_View, "&Open...", CActionInfo::FormatTip("Open view\nSelect a view from the list of all workspace views"), ":/images/OSGeo/open.png" },
+    { eAction_Open_View, "&Workspace Views...", CActionInfo::FormatTip("Workspace Views...\nSelect a view from the list of all workspace views"), ":/images/OSGeo/workspace_views.png" },
 
     { eAction_Options, "&Options...", CActionInfo::FormatTip("Options\nEdit application settings"), ":/images/OSGeo/settings.png" },		//icon 5.png is below TODO: delete this comment
 
@@ -80,11 +80,13 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_One_Click, "One-&Click...", CActionInfo::FormatTip("One-Click\nGroup actions as a single operation under a single name"), ":/images/OSGeo/pointer_oneclick.png" },
 
-    { eAction_Launch_Scheduler, "Launch Scheduler", CActionInfo::FormatTip("Brat Scheduler\nLaunch Scheduler application"), ":/images/brat_scheduler.png" },
+    { eAction_Launch_Scheduler, "Launch Scheduler", CActionInfo::FormatTip("Brat Scheduler\nLaunch scheduler application"), ":/images/brat_scheduler.png" },
+
+    { eAction_Python_Console, "Python Console", CActionInfo::FormatTip("Python Console\nLaunch Python terminal"), ":/images/OSGeo/python_console.png" },
 
     { eAction_Workspace_Tree, "Workspace Tree...", CActionInfo::FormatTip("Workspace Tree\nSee the objects tree of the loaded workspace"), ":/images/OSGeo/page-info.png" },
 
-    { eAction_Operation_Views, "Operation Views...", CActionInfo::FormatTip("List the views of the selected operation"), "" },
+    { eAction_Operation_Views, "Operation Views...", CActionInfo::FormatTip("List the views of the selected operation"), ":/images/OSGeo/operation_views.png" },
 
     { eAction_Save_Map_Image, "Save Map Image...", CActionInfo::FormatTip("Save Map Image\nSave map to file"), ":/images/OSGeo/map-export.png" },
 
@@ -94,7 +96,7 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_Full_Screen, "Full Screen", CActionInfo::FormatTip("Full Screen\nToggle full screen mode.\nUse the <span style=\" font-weight:600;\">F11</span> key to switch modes."), ":images/OSGeo/fullscreen.png", "", "F11" },
 
-    { eAction_Re_center, "Re-center", CActionInfo::FormatTip("Zoom Full\nZoom to full extent"), ":/images/OSGeo/zoom-extent.png", "", "Home" },
+    { eAction_Re_center, "Zoom Full", CActionInfo::FormatTip("Zoom Full\nZoom to full extent"), ":/images/OSGeo/zoom-extent.png", "", "Home" },
 
     { eAction_Zoom_In, "Zoom In", CActionInfo::FormatTip("Zoom In\nZoom map in"), ":/images/OSGeo/zoom-in.png", "", "Ctrl++" },
 
@@ -179,7 +181,7 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
 	{ eAction_ExportView, "", "Save view as image file under selected format", "://images/OSGeo/map-export.png" },
 
-    { eAction_DataDisplayProperties, "", CActionInfo::FormatTip("Vector Plot Properties\nSet selected field as East or North component."), ":images/OSGeo/map-settings.png" },
+    { eAction_DataDisplayProperties, "", CActionInfo::FormatTip("Vector Plot Properties\nSet selected field as East or North component."), ":images/OSGeo/vector_plot.png" },
 
 
     // TODO images __n, __o and __p are used by settings dialog

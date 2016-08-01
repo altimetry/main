@@ -34,7 +34,7 @@
 using namespace brathl;
 
 #include "PlotValues.h"
-#include "PlotData.h"
+#include "WidgetField.h"
 #include "PlotColor.h"
 
 #include "new-gui/brat/DataModels/PlotData/BratLookupTable.h"
@@ -44,13 +44,13 @@ class CZFXYPlot;
 
 
 
-class CZFXYPlotData : public CZFXYValues, public CPlotData
+class CZFXYPlotField : public CZFXYValues, public CWidgetField
 {
 	////////////////////////////
 	//			types
 	////////////////////////////
 
-	using base_t = CPlotData;
+	using base_t = CWidgetField;
 	using values_base_t = CZFXYValues;
 
 public:
@@ -79,9 +79,9 @@ public:
 
 	void Create( CZFXYPlot* plot );
 public:
-	CZFXYPlotData( CZFXYPlot* plot, CZFXYPlotProperties* field );
+	CZFXYPlotField( CZFXYPlot* plot, CZFXYPlotProperties* field );
 
-	virtual ~CZFXYPlotData()
+	virtual ~CZFXYPlotField()
 	{}
 
 	

@@ -92,7 +92,7 @@ public:
 
 	virtual void Kill();
 
-	virtual void Execute();
+	virtual void Execute( bool detached = false );
 
 
 	void Log( const std::string &msg )

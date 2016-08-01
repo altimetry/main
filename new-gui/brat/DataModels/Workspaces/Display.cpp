@@ -333,10 +333,10 @@ public:
 			return false;
 
 		std::string
-		valueString = ( isDefaultValue( value->CurrentMinValue() ) ) ? "DV" : value->AbsoluteMinValueAsText();
+		valueString = ( isDefaultValue( value->CurrentMinValue() ) ) ? "DV" : value->DataMinValueAsText();
 		WriteLn( FmtCmdParam( kwDISPLAY_MINVALUE ) + valueString );
 
-		valueString = ( isDefaultValue( value->CurrentMaxValue() ) ) ? "DV" : value->AbsoluteMaxValueAsText();
+		valueString = ( isDefaultValue( value->CurrentMaxValue() ) ) ? "DV" : value->DataMaxValueAsText();
 		WriteLn( FmtCmdParam( kwDISPLAY_MAXVALUE ) + valueString );
 
 		WriteLn( FmtCmdParam( kwDISPLAY_CONTOUR ) + value->ContourAsText() );
@@ -459,7 +459,7 @@ void CDisplayData::CopyFieldUserProperties( CDisplayData &o  )
 
 	SetCurrentMinValue( o.CurrentMinValue() );
 	SetCurrentMaxValue( o.CurrentMaxValue() );
-	SetAbsoluteRangeValues( o.AbsoluteMinValue(), o.AbsoluteMaxValue() );
+    SetDataRangeValues( o.DataMinValue(), o.DataMaxValue() );
 
 	//5...axis
 

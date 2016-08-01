@@ -87,8 +87,8 @@ const KeywordHelp CBratProcessZFXY::ZFXYKeywordList[]	= {
 //------------------- CBratProcessZFXY class --------------------
 //-------------------------------------------------------------
 
-CBratProcessZFXY::CBratProcessZFXY( const std::string &executable_dir )
-	: base_t( executable_dir )
+CBratProcessZFXY::CBratProcessZFXY( const std::string &python_dir )
+	: base_t( python_dir )
 {
   Init();
 }

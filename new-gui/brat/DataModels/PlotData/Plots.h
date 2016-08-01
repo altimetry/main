@@ -24,9 +24,9 @@
 using namespace brathl;
 
 #include "FieldData.h"
-#include "XYPlotData.h"
-#include "WorldPlotData.h"
-#include "ZFXYPlotData.h"
+#include "XYPlotField.h"
+#include "GeoPlotField.h"
+#include "ZFXYPlotField.h"
 
 
 namespace brathl {
@@ -40,14 +40,25 @@ namespace brathl {
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
-//							 Abstract Plot Classes
+//							 Abstract Display<=>Plot Classes
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 
+//	Display Interface	<= CDisplayBase <= CDisplay
+//	Display Interface	<= CPlotInterface(CDisplay) <= CPlotBase< DATA_FIELD, PLOT_FIELD > <= CMathPlot< DATA_FIELD, PLOT_FIELD > <= CYFXPlot
+//	Display Interface	<= CPlotInterface(CDisplay) <= CPlotBase< DATA_FIELD, PLOT_FIELD > <= CMathPlot< DATA_FIELD, PLOT_FIELD > <= CZFXYPlot
+//	Display Interface	<= CPlotInterface(CDisplay) <= CPlotBase< DATA_FIELD, PLOT_FIELD > <= CGeoPlot
+
+//	- CDisplay (a workspace module) is the instantiable workspace class of CDisplayInterface
+//
+//	- CYFXPlot && CZFXYPlot && CGeoPlot are the instantiable plot classes of CDisplayInterface (see
+//		"Concrete Plot Classes" section at the last part of this file)
+
+
 ///////////////////////////////////////////////////////////////////////////////////////////
-//				Display Interface - for workspace displays & plot editors
-//						- interface to global plot properties
+//								Display Interface 
+//				- display interface to link workspace and plot classes
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -59,8 +70,6 @@ class CDisplayInterface : public CBratObject
 
 	using base_t = CBratObject;
 
-	friend class CWorkspaceSettings;
-
 
 	///////////////////////////
 	//		statics
@@ -68,11 +77,111 @@ class CDisplayInterface : public CBratObject
 
 
 public:
-	static const unsigned smDefaultNumberOfTicks;
-	static const unsigned smDefaultNumberOfDigits;
-
-
 	static std::string MakeUnitLabel( const CUnit &unit );
+
+
+	///////////////////////////
+	//		instance data
+	///////////////////////////
+
+	/////////////////////////////////
+	//	construction / destruction
+	/////////////////////////////////
+
+protected:
+	CDisplayInterface()
+		: base_t()
+	{}
+
+public:
+	virtual ~CDisplayInterface()
+	{}
+
+
+	/////////////////////////////////
+	//			test
+	/////////////////////////////////
+
+	/////////////////////////////////
+	//			access
+	/////////////////////////////////
+
+public:
+
+	//titles: do not accept empty ones
+
+	virtual const std::string& Title() const = 0;
+	virtual void SetTitle( const std::string &title ) = 0;
+
+	virtual const std::string& Xtitle() const = 0;
+	virtual const std::string& Ytitle() const = 0;
+	virtual const std::string& ValueTitle() const = 0;
+
+	virtual void SetXtitle( const std::string &title ) = 0;
+	virtual void SetYtitle( const std::string &title ) = 0;
+	virtual void SetValueTitle( const std::string &title ) = 0;
+
+
+	virtual unsigned int Xticks() const = 0;
+	virtual unsigned int Yticks() const = 0;
+	virtual unsigned int ValueTicks() const = 0;
+
+	virtual void SetXticks( unsigned int value ) = 0;
+	virtual void SetYticks( unsigned int value ) = 0;
+	virtual void SetValueTicks( unsigned int value ) = 0;
+
+
+    virtual unsigned Xdigits() const = 0;
+    virtual unsigned Ydigits() const = 0;
+    virtual unsigned ValueDigits() const = 0;
+
+    virtual void SetXdigits( unsigned value ) = 0;
+    virtual void SetYdigits( unsigned value ) = 0;
+    virtual void SetValueDigits( unsigned value ) = 0;
+
+	// Index for z accessors necessary because a single
+	//	ZFXY plot structure really supports as much real plots as its data
+	//	fields, so when an indexed accessor is used, this means that the
+	//	assignment is being made to a data field, not the whole "plot" class,
+	//	which in the ZFXY case has no correspondence to a single view (plot).
+	//
+	virtual std::string ValueTitle( size_t index ) const = 0;
+	virtual void SetValueTitle( size_t index, const std::string &title ) = 0;	
+
+	virtual unsigned int ValueTicks( size_t index ) const = 0;
+	virtual void SetValueTicks( size_t index, unsigned int value ) = 0;
+
+    virtual unsigned ValueDigits( size_t index ) const = 0;
+    virtual void SetValueDigits( size_t index, unsigned value ) = 0;
+};
+
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////////////////
+//
+//									Display Base Class
+//
+//			- implementation of CDisplayInterface for workspace display class
+//
+///////////////////////////////////////////////////////////////////////////////////////////
+
+
+class CDisplayBase : public CDisplayInterface
+{
+	///////////////////////////
+	//			types
+	///////////////////////////
+
+	using base_t = CDisplayInterface;
+
+	friend class CWorkspaceSettings;
+
+
+	///////////////////////////
+	//		statics
+	///////////////////////////
 
 
 	///////////////////////////
@@ -90,13 +199,13 @@ private:
 	std::string mTitleY;
 	std::string mTitleValue;
 
-	unsigned m_xTicks = smDefaultNumberOfTicks;
-	unsigned m_yTicks = smDefaultNumberOfTicks;
-    unsigned m_zTicks = smDefaultNumberOfTicks;
+	unsigned m_xTicks = CFieldData::smDefaultNumberOfTicks;
+	unsigned m_yTicks = CFieldData::smDefaultNumberOfTicks;
+    unsigned m_zTicks = CFieldData::smDefaultNumberOfTicks;
 
-    unsigned m_xDigits = smDefaultNumberOfDigits;
-    unsigned m_yDigits = smDefaultNumberOfDigits;
-    unsigned m_zDigits = smDefaultNumberOfDigits;
+    unsigned m_xDigits = CFieldData::smDefaultNumberOfDigits;
+    unsigned m_yDigits = CFieldData::smDefaultNumberOfDigits;
+    unsigned m_zDigits = CFieldData::smDefaultNumberOfDigits;
 
 
 	/////////////////////////////////
@@ -104,30 +213,30 @@ private:
 	/////////////////////////////////
 
 protected:
-	CDisplayInterface( const std::string &title )
+	CDisplayBase( const std::string &title )
 		: base_t()
 		, mTitle( title )
 	{}
 
 public:
-	CDisplayInterface( const CDisplayInterface *po )
+	CDisplayBase( const CDisplayBase *po )
 		: base_t()
 	{
 		if ( po )
 			*this = *po;
 	}
 
-	CDisplayInterface( const CDisplayInterface &o )
+	CDisplayBase( const CDisplayBase &o )
 		: base_t( o )
 	{
 		*this = o;
 	}
 
-	virtual ~CDisplayInterface()
+	virtual ~CDisplayBase()
 	{}
 
 
-	CDisplayInterface& operator = ( const CDisplayInterface &o )
+	CDisplayBase& operator = ( const CDisplayBase &o )
 	{
 		if ( this != &o )
 		{
@@ -153,7 +262,7 @@ public:
 	//			test
 	/////////////////////////////////
 
-	bool operator == ( const CDisplayInterface &o ) const
+	bool operator == ( const CDisplayBase &o ) const
 	{
 		return
 			mTitle == o.mTitle &&
@@ -181,71 +290,89 @@ public:
 
 	//titles: do not accept empty ones
 
-	const std::string& Title() const { return mTitle; }
-	void SetTitle( const std::string &title ) 
+	virtual const std::string& Title() const override { return mTitle; }
+	virtual void SetTitle( const std::string &title ) override 
 	{ 
 		if ( !title.empty() )
 			mTitle = title; 
 	}
 
-	const std::string& TitleX() const { return mTitleX; }
-	void SetTitleX( const std::string &title ) 
+	virtual const std::string& Xtitle() const override { return mTitleX; }
+	virtual void SetXtitle( const std::string &title ) override 
 	{ 
 		if ( !title.empty() )
 			mTitleX = title; 
 	}
 
-	const std::string& TitleY() const { return mTitleY; }
-	void SetTitleY( const std::string &title ) 
+	virtual const std::string& Ytitle() const override { return mTitleY; }
+	virtual void SetYtitle( const std::string &title ) override 
 	{ 
 		if ( !title.empty() )
 			mTitleY = title; 
 	}
 
-	virtual const std::string& TitleValue() const
-	{ 
-		return mTitleValue; 
-	}
-	virtual void SetTitleValue( const std::string &title ) 
+	virtual const std::string& ValueTitle() const override 	{ return mTitleValue; }
+	virtual void SetValueTitle( const std::string &title ) override 
 	{ 
 		if ( !title.empty() )
 			mTitleValue = title; 
 	}
 
-	// The need of an index for title z reflects that the data structures... 
-	//	could be improved, to be kind. This is necessary because a single
-	//	ZFXY plot structure really supports as much real plots as its data
-	//	fields, so when an indexed accessor is used, this means that the
-	//	assignment is being made to a data field, not the whole "plot" class,
-	//	which in the ZFXY case has no correspondence to a single view (plot).
-	//
-	virtual std::string TitleValue( size_t index ) const
+	virtual unsigned int Xticks() const override { return m_xTicks; }
+	virtual unsigned int Yticks() const override { return m_yTicks; }
+	virtual unsigned int ValueTicks() const override { return m_zTicks; }
+	virtual void SetXticks( unsigned int value ) override { m_xTicks = value; }
+	virtual void SetYticks( unsigned int value ) override { m_yTicks = value; }
+	virtual void SetValueTicks( unsigned int value ) override { m_zTicks = value; }
+
+    virtual unsigned Xdigits() const override { return m_xDigits; }
+    virtual unsigned Ydigits() const override { return m_yDigits; }
+    virtual unsigned ValueDigits() const override { return m_zDigits; }
+    virtual void SetXdigits( unsigned value ) override { m_xDigits = value; }
+    virtual void SetYdigits( unsigned value ) override { m_yDigits = value; }
+    virtual void SetValueDigits( unsigned value ) override { m_zDigits = value; }
+
+
+	virtual std::string ValueTitle( size_t index ) const override 
 	{ 
 		UNUSED( index );
 
-		return TitleValue();
+		return ValueTitle();
 	}
-	virtual void SetTitleValue( size_t index, const std::string &title ) 
+	virtual void SetValueTitle( size_t index, const std::string &title ) override 
 	{ 
 		UNUSED( index );
 
-		SetTitleValue( title );
+		SetValueTitle( title );
 	}
 	
 
-	unsigned int Xticks() const { return m_xTicks; }
-	unsigned int Yticks() const { return m_yTicks; }
-	unsigned int Zticks() const { return m_zTicks; }
-	void SetXticks( unsigned int value ) { m_xTicks = value; }
-	void SetYticks( unsigned int value ) { m_yTicks = value; }
-	void SetZticks( unsigned int value ) { m_zTicks = value; }
+	virtual unsigned int ValueTicks( size_t index ) const override 
+	{ 
+		UNUSED( index );
 
-    unsigned Xdigits() const { return m_xDigits; }
-    unsigned Ydigits() const { return m_yDigits; }
-    unsigned Zdigits() const { return m_zDigits; }
-    void SetXdigits( unsigned value ) { m_xDigits = value; }
-    void SetYdigits( unsigned value ) { m_yDigits = value; }
-    void SetZdigits( unsigned value ) { m_zDigits = value; }
+		return ValueTicks();
+	}
+	virtual void SetValueTicks( size_t index, unsigned int value ) override 
+	{ 
+		UNUSED( index );
+
+		SetValueTicks( value );
+	}
+
+
+    virtual unsigned ValueDigits( size_t index ) const override 
+	{ 
+		UNUSED( index );
+
+		return ValueDigits();
+	}
+    virtual void SetValueDigits( size_t index, unsigned value ) override 
+	{ 
+		UNUSED( index );
+
+		SetValueDigits( value );
+	}
 };
 
 
@@ -253,17 +380,30 @@ public:
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-//				(Non-generic) Plot Interface - for plot builders & plot editors
-//							- interface for access to plot fields
+//									Plot Multi-Interface
+//
+//							- interface for plot structure builders
+//							- interface for plot structure editors
+//			- implementation of CDisplayInterface for plot structure classes, delegating
+//							to an embedded workspace display class 
+//
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-class CPlotInterface : public CDisplayInterface
+#if defined(BRAT_V3)
+using display_interface_t = CDisplayBase;
+#else
+using display_interface_t = CDisplayInterface;
+#endif
+
+
+
+class CPlotInterfaces : public display_interface_t
 {
 	///////////////////////////
 	//			types
 	///////////////////////////
 
-	using base_t = CDisplayInterface;
+	using base_t = display_interface_t;
 
 
 	///////////////////////////
@@ -274,6 +414,8 @@ class CPlotInterface : public CDisplayInterface
 public:
 #else
 protected:
+
+	CDisplayInterface &mDI;
 #endif
 
 	uint32_t m_groupNumber;
@@ -284,21 +426,69 @@ protected:
 	/////////////////////////////////
 
 public:
-	CPlotInterface( const CDisplayInterface *po, uint32_t groupNumber = 0 )
-		: base_t( po )
+	CPlotInterfaces( CDisplayInterface *i, uint32_t groupNumber = 0 )
+
+#if defined(BRAT_V3)
+		: base_t( nullptr )
+#else
+		: base_t()
+		, mDI( *i )
+#endif
 		, m_groupNumber( groupNumber )
 	{}
 
 	
-	CPlotInterface( const CPlotInterface &o )
-		: base_t( o )
-		, m_groupNumber( o.m_groupNumber )
-	{}
+	CPlotInterfaces( const CPlotInterfaces &o ) = delete;
+	CPlotInterfaces& operator = ( const CPlotInterfaces &o ) = delete;
 
 	
-	virtual ~CPlotInterface()
+	virtual ~CPlotInterfaces()
 	{}
 
+
+
+	///////////////////////////////////////////
+	//	implementation of CDisplayInterface
+	///////////////////////////////////////////
+
+#if !defined(BRAT_V3)
+
+	virtual const std::string& Title() const override { return mDI.Title(); }
+	virtual void SetTitle( const std::string &title ) override { mDI.SetTitle( title ); }
+
+	virtual const std::string& Xtitle() const override { return mDI.Xtitle(); }
+	virtual void SetXtitle( const std::string &title ) override { mDI.SetXtitle( title ); }
+
+	virtual const std::string& Ytitle() const override { return mDI.Ytitle(); }
+	virtual void SetYtitle( const std::string &title ) override { mDI.SetYtitle( title ); }
+
+	virtual const std::string& ValueTitle() const override { return mDI.ValueTitle(); }
+	virtual void SetValueTitle( const std::string &title ) override { mDI.SetValueTitle( title ); }
+
+	virtual unsigned int Xticks() const override { return mDI.Xticks(); }
+	virtual unsigned int Yticks() const override { return mDI.Yticks(); }
+	virtual unsigned int ValueTicks() const override { return mDI.ValueTicks(); }
+	virtual void SetXticks( unsigned int value ) override { mDI.SetXticks( value ); }
+	virtual void SetYticks( unsigned int value ) override { mDI.SetYticks( value ); }
+	virtual void SetValueTicks( unsigned int value ) override { mDI.SetValueTicks( value ); }
+
+    virtual unsigned Xdigits() const override { return mDI.Xdigits(); }
+    virtual unsigned Ydigits() const override { return mDI.Ydigits(); }
+    virtual unsigned ValueDigits() const override { return mDI.ValueDigits(); }
+    virtual void SetXdigits( unsigned value ) override { mDI.SetXdigits( value ); }
+    virtual void SetYdigits( unsigned value ) override { mDI.SetYdigits( value ); }
+    virtual void SetValueDigits( unsigned value ) override { mDI.SetValueDigits( value ); }
+
+	virtual std::string ValueTitle( size_t index ) const override  { return mDI.ValueTitle( index ); }
+	virtual void SetValueTitle( size_t index, const std::string &title ) override { mDI.SetValueTitle( index, title ); }
+
+    virtual unsigned int ValueTicks( size_t index ) const override { return mDI.ValueTicks( index ); }
+    virtual void SetValueTicks( size_t index, unsigned int value ) override { mDI.SetValueTicks( index, value ); }
+
+    virtual unsigned ValueDigits( size_t index ) const override { return mDI.ValueDigits( index ); }
+    virtual void SetValueDigits( size_t index, unsigned value ) override { mDI.SetValueDigits( index, value );	}
+
+#endif
 
 
 	/////////////////////////////////
@@ -318,7 +508,7 @@ public:
 
 	virtual size_t Size() const = 0;
 
-	virtual CPlotData* PlotData( size_t index ) = 0;
+	virtual CWidgetField* PlotData( size_t index ) = 0;
 
 
 #if defined(BRAT_V3)
@@ -346,18 +536,21 @@ protected:
 
 
 ///////////////////////////////////////////////////////////////////////////////////////////
-//							Generic for All Plot Types
+//								Generic for All Plot Classes
+//
+//						- implements CPlotInterface interface for all plot classes
+//
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 
 template< typename DATA_FIELD, typename PLOT_FIELD >
-class CPlotBase : public CPlotInterface
+class CPlotBase : public CPlotInterfaces
 {
 	////////////////////////////////
 	//			types
 	////////////////////////////////
 
-	using base_t = CPlotInterface;
+	using base_t = CPlotInterfaces;
 
 
 	////////////////////////////////
@@ -394,17 +587,17 @@ public:
 	////////////////////////////////
 
 public:
-	CPlotBase( const CDisplayInterface *po, uint32_t groupNumber = 0 )
-		: base_t( po, groupNumber )
+	CPlotBase( CDisplayInterface *i, uint32_t groupNumber = 0 )
+		: base_t( i, groupNumber )
 	{}
 
 	virtual ~CPlotBase()
 	{}
 
 
-	////////////////////////////////
-	//	Common Plot Interface
-	////////////////////////////////
+	/////////////////////////////////
+	//	interface for plot editors
+	/////////////////////////////////
 
 	virtual bool Empty() const override 
 	{ 
@@ -487,10 +680,10 @@ protected:
     using base_t::mPlotFields;
 
 public:
-    using base_t::TitleX;
-    using base_t::TitleY;
-    using base_t::SetTitleX;
-    using base_t::SetTitleY;
+    using base_t::Xtitle;
+    using base_t::Ytitle;
+    using base_t::SetXtitle;
+    using base_t::SetYtitle;
     using base_t::MakeUnitLabel;
 
 private:
@@ -528,8 +721,8 @@ protected:
 	///////////////////////////////
 
 public:
-	CMathPlot( const CDisplayInterface *po, uint32_t groupNumber = 0 )
-		: base_t( po, groupNumber )
+	CMathPlot( CDisplayInterface *i, uint32_t groupNumber = 0 )
+		: base_t( i, groupNumber )
 	{}
 	virtual ~CMathPlot()
 	{}
@@ -601,7 +794,11 @@ protected:
 
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
+//
 //								Concrete Plot Classes
+//
+//			- all implement the interface for plot builders of CPlotInterfaces 
+//
 ///////////////////////////////////////////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////////////////////////////////////////
 
@@ -612,13 +809,13 @@ protected:
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 
-class CGeoPlot : public CPlotBase< CWorldPlotProperties, CWorldPlotData >
+class CGeoPlot : public CPlotBase< CWorldPlotProperties, CGeoPlotField >
 {
 	//////////////////////
 	//		types
 	//////////////////////
 
-	using base_t = CPlotBase< CWorldPlotProperties, CWorldPlotData >;
+	using base_t = CPlotBase< CWorldPlotProperties, CGeoPlotField >;
 
 
 	////////////////////////////////////////////
@@ -626,18 +823,17 @@ class CGeoPlot : public CPlotBase< CWorldPlotProperties, CWorldPlotData >
 	////////////////////////////////////////////
 
 public:
-	CGeoPlot( const CDisplayInterface *po, uint32_t groupNumber = 0 )
-		: base_t( po, groupNumber )
+	CGeoPlot( CDisplayInterface *i, uint32_t groupNumber = 0 )
+		: base_t( i, groupNumber )
 	{}
 
 	virtual ~CGeoPlot()
 	{}
 
 
-	//////////////////////
-	//	Plot Interface 
-	//////////////////////
-
+	/////////////////////////////////
+	//	interface for plot builders
+	/////////////////////////////////
 
 	virtual void GetInfo() override;
 
@@ -660,13 +856,13 @@ protected:
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 
-class CYFXPlot : public CMathPlot< CXYPlotProperties, CXYPlotData >
+class CYFXPlot : public CMathPlot< CXYPlotProperties, CXYPlotField >
 {
 	//////////////////////
 	//		types
 	//////////////////////
 
-	using base_t = CMathPlot< CXYPlotProperties, CXYPlotData >;
+	using base_t = CMathPlot< CXYPlotProperties, CXYPlotField >;
 
 
     //////////////////////
@@ -688,25 +884,69 @@ public:
 	//		construction / destruction
 	////////////////////////////////////////////
 public:
-	CYFXPlot( const CDisplayInterface *po, uint32_t groupNumber = 0 )
-		: base_t( po, groupNumber )
+	CYFXPlot( CDisplayInterface *i, uint32_t groupNumber = 0 )
+		: base_t( i, groupNumber )
 	{}
 	virtual ~CYFXPlot()
 	{}
 
 
 	//////////////////////
-	//	Plot Interface 
+	//	Display Interface 
 	//////////////////////
 
-	virtual const std::string& TitleValue() const override 
+private:
+	// prevent use of axis field counterparts: for YFX, all fields are in the same plot widget
+
+	virtual std::string ValueTitle( size_t index ) const override 
 	{ 
-		return TitleY(); 
+		UNUSED( index );
+		throw; 
 	}
-	virtual void SetTitleValue( const std::string &title ) override
+	virtual void SetValueTitle(  size_t index, const std::string &title ) override
 	{ 
-		SetTitleY( title );
+		UNUSED( index );		UNUSED( title );
+		throw; 
 	}
+
+	virtual unsigned int ValueTicks( size_t index ) const override 
+	{ 
+		UNUSED( index );
+		throw; 
+	}
+	virtual void SetValueTicks( size_t index, unsigned int value ) override 
+	{ 
+		UNUSED( index );		UNUSED( value );
+		throw; 
+	}
+
+    virtual unsigned ValueDigits( size_t index ) const override 
+	{ 
+		UNUSED( index );
+		throw; 
+	}
+    virtual void SetValueDigits( size_t index, unsigned value ) override
+	{ 
+		UNUSED( index );		UNUSED( value );
+		throw; 
+	}
+
+public:
+	// force use of plot field counterparts: for YFX, all fields are in the same plot widget
+
+	virtual const std::string& ValueTitle() const override { return Ytitle(); }
+	virtual void SetValueTitle( const std::string &title ) override { SetYtitle( title ); }
+
+	virtual unsigned int ValueTicks() const override { return Yticks(); }
+	virtual void SetValueTicks( unsigned int value ) override { SetYticks( value ); }
+
+    virtual unsigned ValueDigits() const override { return Ydigits(); }
+    virtual void SetValueDigits( unsigned value ) override { SetYdigits( value ); }
+
+
+	/////////////////////////////////
+	//	interface for plot builders
+	/////////////////////////////////
 
 	virtual void GetInfo() override;
 
@@ -721,7 +961,7 @@ public:
 
 
 #if defined(BRAT_V3)
-	void AddData( CXYPlotData *pdata );
+	void AddData( CXYPlotField *pdata );
 
     int32_t GetCurrentFrame() { return m_currentFrame; }
     void SetCurrentFrame( int32_t value ) { m_currentFrame = value; }
@@ -731,7 +971,7 @@ public:
 
 	void OnFrameChange( int32_t f );
 
-	VTK_CXYPlotData* Get( std::vector< CXYPlotData* >::iterator it );
+	VTK_CXYPlotData* Get( std::vector< CXYPlotField* >::iterator it );
 	VTK_CXYPlotData* Get( int32_t index );
 
 	bool ShowPropertyMenu();
@@ -765,17 +1005,17 @@ protected:
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 
-class CZFXYPlot : public CMathPlot< CZFXYPlotProperties, CZFXYPlotData >
+class CZFXYPlot : public CMathPlot< CZFXYPlotProperties, CZFXYPlotField >
 {
 	//////////////////////
 	//		types
 	//////////////////////
 
-	using base_t = CMathPlot< CZFXYPlotProperties, CZFXYPlotData >;
+	using base_t = CMathPlot< CZFXYPlotProperties, CZFXYPlotField >;
 
 public:
-    using base_t::TitleValue;
-    using base_t::SetTitleValue;
+    using base_t::ValueTitle;
+    using base_t::SetValueTitle;
 
 private:
 	//////////////////////
@@ -788,31 +1028,96 @@ private:
 	////////////////////////////////////////////
 
 public:
-	CZFXYPlot( const CDisplayInterface *po, uint32_t groupNumber = 0 )
-		: base_t( po, groupNumber )
+	CZFXYPlot( CDisplayInterface *i, uint32_t groupNumber = 0 )
+		: base_t( i, groupNumber )
 	{}
 	virtual ~CZFXYPlot()
 	{}
 
 
 	//////////////////////
-	//	Plot Interface 
+	//	Display Interface 
 	//////////////////////
 
-	virtual std::string TitleValue( size_t index ) const override
-	{ 
-		assert__( index < mPlotFields.size() );
+private:
+	// prevent use of plot counterparts of axis functions: for ZFXY, each field has its own plot widget
 
-		return mPlotFields[ index ]->UserName(); 
+	virtual const std::string& ValueTitle() const override 
+	{ 
+		return base_t::ValueTitle(); 
+	}
+	virtual void SetValueTitle( const std::string &title ) override
+	{ 
+		base_t::SetValueTitle( title ); 
+	}
+	virtual unsigned int ValueTicks() const override 
+	{ 
+		return base_t::ValueTicks(); 
+	}
+	virtual void SetValueTicks( unsigned int value ) override 
+	{ 
+		base_t::SetValueTicks( value ); 
+	}
+    virtual unsigned ValueDigits() const override 
+	{ 
+		return base_t::ValueDigits(); 
+	}
+    virtual void SetValueDigits( unsigned value ) override
+	{ 
+		base_t::SetValueDigits( value ); 
 	}
 
-	virtual void SetTitleValue( size_t index, const std::string &title ) override 
+public:
+	// force use of axis field function counterparts: for ZFXY, each field has its own plot widget
+
+	virtual std::string ValueTitle( size_t index ) const override
 	{ 
 		assert__( index < mPlotFields.size() );
 
-		mPlotFields[ index ]->SetFirstUserName( title ); 
+		return mPlotFields[ index ]->AxisUserName(); 
+	}
+
+	virtual void SetValueTitle( size_t index, const std::string &title ) override 
+	{ 
+		assert__( index < mPlotFields.size() );
+
+		mPlotFields[ index ]->SetAxisUserName( title ); 
 	}
 	
+
+	virtual unsigned int ValueTicks( size_t index ) const override 
+	{ 
+		assert__( index < mPlotFields.size() );
+
+		return mPlotFields[ index ]->Zticks(); 
+	}
+	
+	virtual void SetValueTicks( size_t index, unsigned int value ) override 
+	{ 
+		assert__( index < mPlotFields.size() );
+
+		mPlotFields[ index ]->SetZticks( value ); 
+	}
+
+
+    virtual unsigned ValueDigits( size_t index ) const override 
+	{ 
+		assert__( index < mPlotFields.size() );
+
+		return mPlotFields[ index ]->Zdigits(); 
+	}
+    
+	virtual void SetValueDigits( size_t index, unsigned value ) override
+	{ 
+		assert__( index < mPlotFields.size() );
+
+		mPlotFields[ index ]->SetZdigits( value ); 
+	}
+
+
+	/////////////////////////////////
+	//	interface for plot builders
+	/////////////////////////////////
 
 	virtual void GetInfo() override;
 

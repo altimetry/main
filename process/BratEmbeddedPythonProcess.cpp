@@ -48,7 +48,7 @@ namespace processes
 
 
 	//static 
-	bool CBratEmbeddedPythonProcess::LoadPythonEngine( const std::string &executable_dir )
+	bool CBratEmbeddedPythonProcess::LoadPythonEngine( const std::string &python_dir )
 	{
 		static const std::string file_prefix = "BratAlgorithm-";
 		static const std::string file_suffix = ".py";
@@ -100,7 +100,7 @@ namespace processes
 
 		try
 		{
-			const std::wstring wpython_dir = q2w( executable_dir.c_str() ) + L"/Python";
+			const std::wstring wpython_dir = q2w( python_dir.c_str() );
 			wchar_t *argv_buffer = new wchar_t[ wpython_dir.length() + 1 ];
 			memcpy( argv_buffer, wpython_dir.c_str(), ( wpython_dir.length() + 1 ) * sizeof( wchar_t ) );
 			smPE = PythonEngine::CreateInstance( argv_buffer );
@@ -119,7 +119,7 @@ namespace processes
 				smPythonStatus = false;
 			}
 
-			const std::string python_algorithms_path = executable_dir + "/Python";
+			const std::string python_algorithms_path = python_dir;
 			if ( !IsDir( python_algorithms_path ) )
 			{
 				smPythonMessages += "Python directory " + python_algorithms_path + " not found.\n";
@@ -147,7 +147,16 @@ namespace processes
 				{
 					std::string class_name = file_name.substr( file_prefix.length() );
 					class_name = class_name.substr( 0, class_name.length() - file_suffix.length() );
-					registry.Add( new python_base_creator( path, class_name ) );
+					try {
+						registry.Add( new python_base_creator( path, class_name ) );
+					}
+					catch ( EMessageCode &code )
+					{
+						const std::string msg( "Exception caught loading python algorithm in " + path + " with class " + class_name + ": " +
+							std::string( py_error_message( code ) ) + ".\n" );
+						smPythonMessages += msg;
+						std::cout << msg  << std::endl;
+					}
 				}
 			}
 
@@ -165,7 +174,7 @@ namespace processes
 		catch ( ... )
 		{
 			const std::string msg(
-				"Unknown exception caught loading python algorithm.\nPlease make sure that the python file name matches the pattern "
+				"Unknown exception caught loading python algorithms.\nPlease make sure that the python file name matches the pattern "
 				+ file_prefix + "<python-class-name>" + file_suffix );
 			smPythonMessages += msg;
 			std::cout << msg  << std::endl;
@@ -181,7 +190,7 @@ namespace processes
 	//virtual 
 	bool CBratEmbeddedPythonProcess::Initialize( std::string& msg )
 	{
-		return LoadPythonEngine( mExecutableDir ) && base_t::Initialize( msg );
+		return LoadPythonEngine( mPythonDir ) && base_t::Initialize( msg );
 	}
 
 

@@ -40,6 +40,7 @@ class CConsoleApplicationPaths : public non_copyable
     ////////////////////////////////////////////
 
 public:
+    static const std::string smPythonExecutableName;
 
     static std::string DefaultInternalDataSubDir()
     {
@@ -73,6 +74,7 @@ public:
     const std::string mDeploymentRootDir;		//origin: runtime binary; executable's parent directory
 
     const std::string mQtPluginsDir;			//origin: Qt deployable (libraries)
+    const std::string mPythonDir;				//origin: runtime binary
 
     const std::string mUserManualPath;			//origin: runtime binary
 

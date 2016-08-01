@@ -61,6 +61,7 @@
 #include <QElapsedTimer>
 #include <QDesktopWidget>
 #include <QThread>
+#include <QUrl>
 
 
 #include "QtUtilsIO.h"	// QtUtilsIO.h => QtStringUtils.h => +Utils.h
@@ -175,6 +176,37 @@ inline void SimpleMsgBox2( const STRING &msg )
     SimpleMsgBox2( t2q( msg ) );
 }
 
+
+
+inline QWidget* SetApplicationWindow( QWidget *w = nullptr )
+{
+    static QWidget *m = w;
+    return m;
+}
+
+inline QWidget* ApplicationWindow()
+{
+    static QWidget *m = SetApplicationWindow();
+    return m ? m : qApp->activeWindow();
+}
+
+inline void SimpleAbout( const std::string &version, const std::string &proc_arch, const std::string &copy_right, std::string app_name = std::string() )
+{
+	if ( app_name.empty() )
+		app_name = q2a( QCoreApplication::applicationName() );
+
+	std::string title = "About " + app_name;
+
+	QString msg = QString( "Welcome to " ) + app_name.c_str() + " " + version.c_str() + " - " + proc_arch.c_str() + "\n(C)opyright " + copy_right.c_str();
+
+	QMessageBox::about( ApplicationWindow(), QObject::tr( title.c_str() ), msg );
+}
+
+inline bool SimpleSystemOpenFile( const std::string &path )
+{
+	return QDesktopServices::openUrl( QUrl( ( "file:///" + path ).c_str(), QUrl::TolerantMode ) );
+}
+
 //	The implementations style of these functions is preferable to the one above (SimpleMsgBox2),
 //	not only because they are simpler but also because the appropriate icon is automatically set 
 //	not only in the dialog body but also the application icon is set in the frame: the one above
@@ -184,7 +216,7 @@ inline void SimpleMsgBox2( const STRING &msg )
 //
 inline QMessageBox::StandardButton SimpleMsgBox( const QString &msg )
 {
-	return QMessageBox::information( qApp->activeWindow(), "Information", msg );
+    return QMessageBox::information( ApplicationWindow(), "Information", msg );
 }
 template< class STRING >
 inline QMessageBox::StandardButton SimpleMsgBox( const STRING &msg )
@@ -199,7 +231,7 @@ inline void SimpleMsgBox( const char *msg )
 
 inline QMessageBox::StandardButton SimpleErrorBox( const QString &msg )
 {
-	return QMessageBox::critical( qApp->activeWindow(), "Error", msg );
+    return QMessageBox::critical( ApplicationWindow(), "Error", msg );
 }
 template< class STRING >
 inline QMessageBox::StandardButton SimpleErrorBox( const STRING &msg )
@@ -214,7 +246,7 @@ inline bool SimpleErrorBox( const char *msg )
 
 inline QMessageBox::StandardButton SimpleWarnBox( const QString &msg )
 {
-	return QMessageBox::warning( qApp->activeWindow(), "Warning", msg );
+    return QMessageBox::warning( ApplicationWindow(), "Warning", msg );
 }
 template< class STRING >
 inline QMessageBox::StandardButton SimpleWarnBox( const STRING &msg )
@@ -229,7 +261,7 @@ inline bool SimpleWarnBox( const char *msg )
 
 inline bool SimpleQuestion( const QString &msg )
 {
-	return QMessageBox::warning( qApp->activeWindow(), "Question", msg, QMessageBox::Yes | QMessageBox::No ) == QMessageBox::Yes;
+    return QMessageBox::warning( ApplicationWindow(), "Question", msg, QMessageBox::Yes | QMessageBox::No ) == QMessageBox::Yes;
 }
 template< class STRING >
 inline bool SimpleQuestion( const STRING &msg )
@@ -253,7 +285,7 @@ inline std::pair< bool, QString > SimpleInputString( const QString &input_name, 
 {
 	std::pair< bool, QString > result( { false, init_value } );
 
-	QString text = QInputDialog::getText( qApp->activeWindow(), 
+    QString text = QInputDialog::getText( ApplicationWindow(),
 		dialog_title, 
 		input_name, 
 		QLineEdit::Normal, 
@@ -324,7 +356,7 @@ inline std::pair< bool, VALUE > SimpleInputNumber( const QString &input_name, co
 {
 	std::pair< bool, VALUE > result( { false, init_value } );
 
-	VALUE value = (*input_number_traits<VALUE>::function())( qApp->activeWindow(), 
+    VALUE value = (*input_number_traits<VALUE>::function())( ApplicationWindow(),
 		dialog_title, 
 		input_name, 
 		result.second,

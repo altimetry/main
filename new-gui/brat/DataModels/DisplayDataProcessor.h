@@ -40,7 +40,7 @@ QT_END_NAMESPACE
 
 class CFieldData;
 class CDisplay;
-class CPlotInterface;
+class CPlotInterfaces;
 
 
 using namespace brathl;
@@ -71,7 +71,7 @@ protected:
 	CStringArray mOperationOutputFiles;
 	std::string m_inputFileType;
 
-	std::vector< CPlotInterface* > m_plots;
+	std::vector< CPlotInterfaces* > m_plots;
 	std::vector< CExpression > m_fields;
 
 	std::vector< CZFXYPlotProperties* > m_zfxyPlotProperties;	
@@ -97,7 +97,7 @@ public:
 
 	//Process
 
-	const std::vector< CPlotInterface* >& BuildPlots();
+	const std::vector< CPlotInterfaces* >& BuildPlots();
 
 
 	//Access
@@ -151,13 +151,13 @@ class CDisplayDataProcessor : public CDisplayDataProcessorBase
 
 	//data
 
-	const CDisplay *mDisplay = nullptr;
+	CDisplay *mDisplay = nullptr;
 	std::vector< int > mGroups;
 	std::vector< CDisplayData* > mDisplayDataArray;
 
 public:
 
-	CDisplayDataProcessor( bool maps_as_plots, const CDisplay *display )
+	CDisplayDataProcessor( bool maps_as_plots, CDisplay *display )
 		: base_t( maps_as_plots )
 		, mDisplay( display )
 	{}

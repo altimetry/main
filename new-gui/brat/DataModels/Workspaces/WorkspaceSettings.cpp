@@ -731,17 +731,17 @@ bool CWorkspaceSettings::SaveConfig( const CDisplay &d, CWorkspaceDisplay *wksd 
 
 		k_v( ENTRY_TYPE,					CMapTypeDisp::GetInstance().IdToName( d.m_type ) ),
 		k_v( ENTRY_TITLE,					d.Title() ),
-		k_v( ENTRY_DISPLAY_DATA_X_LABEL,	d.TitleX() ),
-		k_v( ENTRY_DISPLAY_DATA_Y_LABEL,	d.TitleY() ),
-		k_v( ENTRY_DISPLAY_DATA_Z_LABEL,	d.TitleValue() ),
+		k_v( ENTRY_DISPLAY_X_LABEL,			d.Xtitle() ),
+		k_v( ENTRY_DISPLAY_Y_LABEL,			d.Ytitle() ),
+		k_v( ENTRY_DISPLAY_Z_LABEL,			d.ValueTitle() ),
 
-		k_v( ENTRY_DISPLAY_DATA_X_NUM_TICKS,	d.Xticks() ),
-		k_v( ENTRY_DISPLAY_DATA_Y_NUM_TICKS,	d.Yticks() ),
-		k_v( ENTRY_DISPLAY_DATA_Z_NUM_TICKS,	d.Zticks() ),
+		k_v( ENTRY_DISPLAY_X_NUM_TICKS,		d.Xticks() ),
+		k_v( ENTRY_DISPLAY_Y_NUM_TICKS,		d.Yticks() ),
+		k_v( ENTRY_DISPLAY_Z_NUM_TICKS,		d.ValueTicks() ),
 
-		k_v( ENTRY_DISPLAY_DATA_X_NUM_DIGITS,	d.Xdigits() ),
-		k_v( ENTRY_DISPLAY_DATA_Y_NUM_DIGITS,	d.Ydigits() ),
-		k_v( ENTRY_DISPLAY_DATA_Z_NUM_DIGITS,	d.Zdigits() ),
+		k_v( ENTRY_DISPLAY_X_NUM_DIGITS,	d.Xdigits() ),
+		k_v( ENTRY_DISPLAY_Y_NUM_DIGITS,	d.Ydigits() ),
+		k_v( ENTRY_DISPLAY_Z_NUM_DIGITS,	d.ValueDigits() ),
 
 		k_v( ENTRY_ANIMATION,				d.GetWithAnimation() ),
 		k_v( ENTRY_PROJECTION,				d.GetProjection() )
@@ -788,19 +788,19 @@ bool CWorkspaceSettings::LoadConfig( CDisplay &d, std::string &error_msg, CWorks
 
 	ReadSection( d.m_name,
 
-		k_v( ENTRY_TYPE,					&type,				CMapTypeDisp::GetInstance().IdToName( d.m_type ) ),
-		k_v( ENTRY_TITLE,					&d.mTitle			),
-		k_v( ENTRY_DISPLAY_DATA_X_LABEL,	&d.mTitleX ),
-		k_v( ENTRY_DISPLAY_DATA_Y_LABEL,	&d.mTitleY ),
-		k_v( ENTRY_DISPLAY_DATA_Z_LABEL,	&d.mTitleValue ),
+		k_v( ENTRY_TYPE,					&type,			CMapTypeDisp::GetInstance().IdToName( d.m_type ) ),
+		k_v( ENTRY_TITLE,					&d.mTitle ),
+		k_v( ENTRY_DISPLAY_X_LABEL,			&d.mTitleX ),
+		k_v( ENTRY_DISPLAY_Y_LABEL,			&d.mTitleY ),
+		k_v( ENTRY_DISPLAY_Z_LABEL,			&d.mTitleValue ),
 
-		k_v( ENTRY_DISPLAY_DATA_X_NUM_TICKS,	&d.m_xTicks, CDisplay::smDefaultNumberOfTicks ),
-		k_v( ENTRY_DISPLAY_DATA_Y_NUM_TICKS,	&d.m_yTicks, CDisplay::smDefaultNumberOfTicks ),
-		k_v( ENTRY_DISPLAY_DATA_Z_NUM_TICKS,	&d.m_zTicks, CDisplay::smDefaultNumberOfTicks ),
+		k_v( ENTRY_DISPLAY_X_NUM_TICKS,		&d.m_xTicks,	CFieldData::smDefaultNumberOfTicks ),
+		k_v( ENTRY_DISPLAY_Y_NUM_TICKS,		&d.m_yTicks,	CFieldData::smDefaultNumberOfTicks ),
+		k_v( ENTRY_DISPLAY_Z_NUM_TICKS,		&d.m_zTicks,	CFieldData::smDefaultNumberOfTicks ),
 
-		k_v( ENTRY_DISPLAY_DATA_X_NUM_DIGITS,	&d.m_xDigits, CDisplay::smDefaultNumberOfDigits ),
-		k_v( ENTRY_DISPLAY_DATA_Y_NUM_DIGITS,	&d.m_yDigits, CDisplay::smDefaultNumberOfDigits ),
-		k_v( ENTRY_DISPLAY_DATA_Z_NUM_DIGITS,	&d.m_zDigits, CDisplay::smDefaultNumberOfDigits ),
+		k_v( ENTRY_DISPLAY_X_NUM_DIGITS,	&d.m_xDigits,	CFieldData::smDefaultNumberOfDigits ),
+		k_v( ENTRY_DISPLAY_Y_NUM_DIGITS,	&d.m_yDigits,	CFieldData::smDefaultNumberOfDigits ),
+		k_v( ENTRY_DISPLAY_Z_NUM_DIGITS,	&d.m_zDigits,	CFieldData::smDefaultNumberOfDigits ),
 
 		k_v( ENTRY_ANIMATION,				&d.m_withAnimation,	false ),
 		k_v( ENTRY_PROJECTION,				&d.m_projection,	PROJECTION_3D_VALUE ),
@@ -934,6 +934,9 @@ bool CWorkspaceSettings::SaveConfig( CDisplayData &data, const std::string& path
 		k_v( ENTRY_FIELD_DESC_NAME, data.mUserName ),
 
 		k_v( ENTRY_FIELD_DATA_OPACITY, data.mOpacity ),
+
+		k_v( ENTRY_DISPLAY_DATA_Z_NUM_TICKS,	data.m_zTicks ),
+		k_v( ENTRY_DISPLAY_DATA_Z_NUM_DIGITS,	data.m_zDigits ),
 
 		k_v( ENTRY_FIELD_DATA_X_LOG,	data.mXlogarithmic ),
 		k_v( ENTRY_FIELD_DATA_Y_LOG,	data.mYlogarithmic ),
@@ -1144,7 +1147,7 @@ bool CWorkspaceSettings::LoadConfig( CDisplayData *&pdata, const CDisplay *paren
 
 	//create data item
 
-	pdata = new CDisplayData( operation, parent, type );
+	pdata = new CDisplayData( operation, parent, type, "", "" );	//the empty strings (field name and unit) will be changed below
 	CDisplayData &data = *pdata;
 
 
@@ -1168,6 +1171,9 @@ bool CWorkspaceSettings::LoadConfig( CDisplayData *&pdata, const CDisplay *paren
 		k_v( ENTRY_FIELD_DESC_NAME,		&data.mUserName ),
 
 		k_v( ENTRY_FIELD_DATA_OPACITY,	&data.mOpacity ),
+
+		k_v( ENTRY_DISPLAY_DATA_Z_NUM_TICKS,	&data.m_zTicks,		CFieldData::smDefaultNumberOfTicks ),
+		k_v( ENTRY_DISPLAY_DATA_Z_NUM_DIGITS,	&data.m_zDigits,	CFieldData::smDefaultNumberOfDigits ),
 
 		k_v( ENTRY_FIELD_DATA_X_LOG,	&data.mXlogarithmic, false ),
 		k_v( ENTRY_FIELD_DATA_Y_LOG,	&data.mYlogarithmic, false ),
@@ -1284,7 +1290,7 @@ bool CWorkspaceSettings::LoadConfig( CDisplayData *&pdata, const CDisplay *paren
 
 	// key & fields
 
-	data.SetFieldName( field_name );
+	data.SetFieldName( field_name );			//equal to but not the same as mFieldName; this is the name of the m_field member
 	data.SetFieldDescription( field_description );
 	data.SetFieldUnit( unit );
 

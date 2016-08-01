@@ -157,11 +157,15 @@ public:
 		ytitle = AxisTitle( Qwt3D::Y1 );
 		ztitle = AxisTitle( Qwt3D::Z1 );		
 	}
-	bool SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle )
+	bool SetXYAxisTitles( const std::string &xtitle, const std::string &ytitle )
+	{
+		return
+			SetAxisTitle( Qwt3D::X1, xtitle, mXlabel ) &&
+			SetAxisTitle( Qwt3D::Y1, ytitle, mYlabel );
+	}
+	bool SetZAxisTitle( const std::string &ztitle )
 	{
 		return 
-			SetAxisTitle( Qwt3D::X1, xtitle, mXlabel ) &&
-			SetAxisTitle( Qwt3D::Y1, ytitle, mYlabel ) &&
 			SetAxisTitle( Qwt3D::Z1, ztitle, mZlabel );
 	}
 
@@ -329,16 +333,22 @@ public:
 	virtual ~C3DPlotWidget();
 
 
-	// access/assignment
-
-
 	//...create plot
 
 	//takes ownership of pcolor_map
 	void PushPlot( const CZFXYPlotParameters &values, Qwt3D::Color *pcolor_map );
 
-	//takes ownership of pcolor_map
-	void SetColorMap( QLookupTable *pcolor_map );
+
+	// access/assignment
+
+	//////////////////////////////////////////////////////////////////////////////////////////////////
+	//NOTE: 
+	//	- Axis accessors with "All" token in name apply to all plots in internal plots stack
+	//
+	//	- Otherwise, accessors that receive no index parameter apply to current plot of internal 
+	//		plots stack
+	//
+	//////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 	//switch plot
@@ -346,18 +356,23 @@ public:
 	void SetCurrentPlot( int index );
 
 
-	//...persistence
-	//		- see also unsupported format tests in static section
-
-	bool Save2Image( const QString &path, const QString &format, const QString &extension );
-
-
+	////////////////////
 	//...title
+	////////////////////
 
 	void SetPlotTitle( const std::string &title );
 
 
+	////////////////////
+	//color map: takes ownership of pcolor_map
+	////////////////////
+
+	void SetColorMap( QLookupTable *pcolor_map );
+
+
+	////////////////////
 	//style
+	////////////////////
 
     bool HasMesh() const;
     void ShowMesh( bool show );
@@ -369,23 +384,27 @@ public:
     void ShowSolidColor( int index, bool show );
 
 
+	////////////////////
 	//axis
+	////////////////////
 
-	//...labels
-	void AxisTitles( std::string &xtitle, std::string &ytitle, std::string &ztitle ) const;
-	bool SetAxisTitles( const std::string &xtitle, const std::string &ytitle, const std::string &ztitle );
+	//... axis titles
+	void CurrentAxisTitles( std::string &xtitle, std::string &ytitle, std::string &ztitle ) const;
+
+	bool SetAllXYAxisTitles( const std::string &xtitle, const std::string &ytitle );
+	bool SetZAxisTitle( size_t index, const std::string &ztitle );
 
 
-	//...log
-	bool LogarithmicScaleZ() const;
-	void SetLogarithmicScaleZ( bool log );
+	//... axis logarithmic
+	bool AxisZLogarithmicScale() const;
+	void SetAxisZLogarithmicScale( bool log );
 
 protected:
 	//void SetLogarithmicScale( bool log );	//not really supported
 
 public:
 
-	//...ticks
+	//...axis  ticks
 
     unsigned int XAxisTicks() const;
     void SetXAxisTicks( unsigned int nbticks );
@@ -397,22 +416,24 @@ public:
     void SetZAxisTicks( unsigned int nbticks );
 
 
-	//...digits / date
+	//...axis digits / date
 
-	int XDigits() const;
-	int YDigits() const;
-	int ZDigits() const;
+	int XAxisDigits() const;
+	int YAxisDigits() const;
+	int ZAxisDigits() const;
 
-    bool XisDateTime() const;
-    bool YisDateTime() const;
-    bool ZisDateTime() const;
+    bool XAxisIsDateTime() const;
+    bool YAxisIsDateTime() const;
+    bool ZAxisIsDateTime() const;
 
-    void SetXDigits( bool isdate, unsigned int  digits, brathl_refDate date_ref = REF19500101 );
-    void SetYDigits( bool isdate, unsigned int  digits, brathl_refDate date_ref = REF19500101 );
-    void SetZDigits( bool isdate, unsigned int  digits, brathl_refDate date_ref = REF19500101 );
+    void SetXAxisDigits( bool isdate, unsigned int  digits, brathl_refDate date_ref = REF19500101 );
+    void SetYAxisDigits( bool isdate, unsigned int  digits, brathl_refDate date_ref = REF19500101 );
+    void SetZAxisDigits( bool isdate, unsigned int  digits, brathl_refDate date_ref = REF19500101 );
 
 
+	////////////////////
 	//...scale
+	////////////////////
 
 	void Scale( double &xVal, double &yVal, double &zVal );
 	void SetScale( double xVal, double yVal, double zVal );
@@ -422,14 +443,26 @@ protected:
 
 public:
 
+	////////////////////
+	//...persistence
+	//		- see also unsupported format tests in static section
+	////////////////////
+
+	bool Save2Image( const QString &path, const QString &format, const QString &extension );
+
+
+	////////////////////
 	//interaction
+	////////////////////
 
 	void Home();
 
 
 	QSize sizeHint() const override;
 
+	///////////////////////
 	// protected operations
+	///////////////////////
 
 protected:
 

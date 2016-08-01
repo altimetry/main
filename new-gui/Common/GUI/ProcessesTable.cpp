@@ -48,9 +48,12 @@ void COsProcess::Kill()
 }
 
 //virtual 
-void COsProcess::Execute()
+void COsProcess::Execute( bool detached )	//detached = false 
 {
-	start( mCmdLine.c_str() );
+    if ( detached )
+        startDetached( mCmdLine.c_str() );
+    else
+        start( mCmdLine.c_str() );
 }
 
 

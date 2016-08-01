@@ -252,7 +252,7 @@
                     <runInTerminal>0</runInTerminal>
                     <windowsExec>${installdir}/uninstall-${product_shortname}-${product_version}-@BRAT_TARGET_PROCESSOR@.exe</windowsExec>
                     <windowsExecArgs></windowsExecArgs>
-                    <windowsIcon>${installdir}/data/BratIcon.ico</windowsIcon>
+                    <windowsIcon>${installdir}/bin/data/BratIcon.ico</windowsIcon>
                     <windowsPath>${installdir}/</windowsPath>
                 </startMenuShortcut>
                 <startMenuShortcut>
@@ -262,7 +262,7 @@
                     <runInTerminal>0</runInTerminal>
                     <windowsExec>${installdir}/bin/brat.exe</windowsExec>
                     <windowsExecArgs></windowsExecArgs>
-                    <windowsIcon>${installdir}/data/BratIcon.ico</windowsIcon>
+                    <windowsIcon>${installdir}/bin/data/BratIcon.ico</windowsIcon>
                     <windowsPath></windowsPath>
                 </startMenuShortcut>
                 <startMenuShortcut>
@@ -272,7 +272,7 @@
                     <runInTerminal>0</runInTerminal>
                     <windowsExec>${installdir}/bin/scheduler.exe</windowsExec>
                     <windowsExecArgs></windowsExecArgs>
-                    <windowsIcon>${installdir}/data/BratIcon.ico</windowsIcon>
+                    <windowsIcon>${installdir}/bin/data/BratIcon.ico</windowsIcon>
                     <windowsPath></windowsPath>
                 </startMenuShortcut>
             </startMenuShortcutList>
@@ -297,7 +297,10 @@
                         <distributionFile>
                             <origin>@CMAKE_BINARY_DIR@/doc/brat_user_manual_${product_version}.pdf</origin>
                         </distributionFile>
-                        <distributionDirectory>
+                      <distributionFile>
+                        <origin>@CMAKE_SOURCE_DIR@/INSTALL</origin>
+                      </distributionFile>
+                      <distributionDirectory>
                             <origin>@CMAKE_BINARY_DIR@/doc/coda</origin>
                         </distributionDirectory>
                         <distributionDirectory>

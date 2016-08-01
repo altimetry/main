@@ -316,6 +316,11 @@ IF (BRAT_BUILD_GUI)
 		ENDIF()
 	ENDIF (NOT APPLE)
 
+	IF (NOT WIN32 AND NOT APPLE)
+		IF (NOT EXISTS ${PYTHON_EXECUTABLE})
+			MESSAGE(FATAL_ERROR "PYTHON_EXECUTABLE not defined or not found." )
+		ENDIF()
+	ENDIF()
 
 
 	IF (NOT EXISTS ${QT_QMAKE_EXECUTABLE})
@@ -736,16 +741,26 @@ ADD_CUSTOM_TARGET( scheduler_runtime )
 
 IF (NOT APPLE)
 
-	file( GLOB PYTHON_EXECS ${PYTHON_BIN_DIR}/python*${EXEC_SUFFIX} )
+	IF (WIN32)
+		file( GLOB PYTHON_EXECS ${PYTHON_BIN_DIR}/python*${EXEC_SUFFIX} )
+		INSTALL(
+			FILES
+			${PYTHON_EXECS}
+			DESTINATION ${RUNTIME_DESTINATION}/Python
+			COMPONENT brat_runtime
+			)
+	ELSE(WIN32)
+		INSTALL(
+			PROGRAMS
+			${PYTHON_EXECUTABLE}
+			DESTINATION ${RUNTIME_DESTINATION}/Python
+			# RENAME python
+			COMPONENT brat_runtime
+			)
+	ENDIF(WIN32)
 
-	INSTALL(
-		FILES
-		${PYTHON_EXECS}
-		DESTINATION ${RUNTIME_DESTINATION}/Python
-		COMPONENT brat_runtime
-		)
+ENDIF(NOT APPLE)
 
-ENDIF (NOT APPLE)
 
 
 file( GLOB BRAT_EMBEDDED_PYTHON_FILES process/python/*.* )
@@ -773,6 +788,7 @@ ELSE(WIN32)
 			DIRECTORY
 			${PYTHON_BIN_DIR}/
 			DESTINATION ${RUNTIME_DESTINATION}/Python
+			USE_SOURCE_PERMISSIONS
 			COMPONENT brat_runtime
 			PATTERN __pycache__ EXCLUDE
 			)
@@ -2134,11 +2150,11 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/DataModels/PlotData/MapProjection.cpp
 		new-gui/brat/DataModels/PlotData/Plots.cpp
 		new-gui/brat/DataModels/PlotData/PlotColor.cpp
-		new-gui/brat/DataModels/PlotData/WorldPlotData.cpp
+		new-gui/brat/DataModels/PlotData/GeoPlotField.cpp
 		new-gui/brat/DataModels/DisplayFilesNetCDFParameters.cpp
 		new-gui/brat/DataModels/DisplayFilesProcessor.cpp
-		new-gui/brat/DataModels/PlotData/XYPlotData.cpp
-		new-gui/brat/DataModels/PlotData/ZFXYPlotData.cpp
+		new-gui/brat/DataModels/PlotData/XYPlotField.cpp
+		new-gui/brat/DataModels/PlotData/ZFXYPlotField.cpp
 		new-gui/brat/GUI/DisplayWidgets/3DPlotWidgetExperimental.cpp
 		new-gui/brat/DataModels/PlotData/MapColor.cpp
 		new-gui/brat/DataModels/PlotData/PlotValues.cpp
@@ -2247,10 +2263,10 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/BratLogger.h
 		new-gui/brat/GUI/LogShell.h
 		new-gui/brat/DataModels/PlotData/PlotColor.h
-		new-gui/brat/DataModels/PlotData/WorldPlotData.h
+		new-gui/brat/DataModels/PlotData/GeoPlotField.h
 		new-gui/brat/DataModels/DisplayFilesProcessor.h
-		new-gui/brat/DataModels/PlotData/XYPlotData.h
-		new-gui/brat/DataModels/PlotData/ZFXYPlotData.h
+		new-gui/brat/DataModels/PlotData/XYPlotField.h
+		new-gui/brat/DataModels/PlotData/ZFXYPlotField.h
 		new-gui/brat/DataModels/PlotData/MapColor.h
 		new-gui/brat/DataModels/PlotData/PlotValues.h
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapDecorationGrid.h
@@ -2305,7 +2321,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/DataModels/PlotData/FieldData.h
 		new-gui/brat/DataModels/DisplayDataProcessor.h
 		new-gui/brat/DataModels/PlotData/Plots.h
-		new-gui/brat/DataModels/PlotData/PlotData.h
+		new-gui/brat/DataModels/PlotData/WidgetField.h
 		new-gui/brat/GUI/ProgressDialog.h
 		new-gui/brat/DataModels/ProgressInterface.h
 	)

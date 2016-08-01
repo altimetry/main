@@ -100,7 +100,7 @@ public:
 
 		buttonBox = new QDialogButtonBox( QgsMeasureBase );
 		buttonBox->setObjectName( QString::fromUtf8( "buttonBox" ) );
-		buttonBox->setStandardButtons( QDialogButtonBox::Close | QDialogButtonBox::Help );
+		buttonBox->setStandardButtons( QDialogButtonBox::Close );
 
 		gridLayout->addWidget( buttonBox, 6, 0, 1, 4 );
 
@@ -153,7 +153,6 @@ QT_END_NAMESPACE
 
 #include "qgspoint.h"
 #include "qgsdistancearea.h"
-#include "qgscontexthelp.h"
 
 class QCloseEvent;
 class CMeasureTool;
@@ -200,9 +199,6 @@ public:
 
 	//! Close event
 	void closeEvent( QCloseEvent *e ) override;
-
-	//! Show the help for the dialog
-	void on_buttonBox_helpRequested() { QgsContextHelp::run( metaObject()->className() ); }
 
 	//! When any external settings change
 	void updateSettings();

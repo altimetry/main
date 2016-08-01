@@ -1130,14 +1130,9 @@ std::vector< CDisplay* > CWorkspaceDisplay::CreateDisplays4Operation( const COpe
 				continue;
 			}
 
-			CDisplayData *display_data = new CDisplayData( operation, display, disp_type );
+			//create with field name and unit
 
-			//name
-			display_data->SetFieldName( *itField );
-
-			//unit
-			std::string unit = file->GetUnit( *itField ).GetText();
-			display_data->SetFieldUnit( unit );
+			CDisplayData *display_data = new CDisplayData( operation, display, disp_type, *itField, file->GetUnit( *itField ).GetText() );
 
 			//description
 			std::string comment = file->GetComment( *itField );

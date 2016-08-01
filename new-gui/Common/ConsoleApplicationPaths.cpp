@@ -89,6 +89,25 @@ const std::string QT_PLUGINS_SUBDIR =
 ;
 
 
+
+//static
+const std::string CConsoleApplicationPaths::smPythonExecutableName =
+
+#if defined(Q_OS_WIN)
+
+        "python.exe";
+
+#elif defined(Q_OS_LINUX )
+
+        "python3.2mu";
+
+#else
+        "python3";
+
+#endif
+
+
+
 //static
 std::string CConsoleApplicationPaths::ComputeInternalDataDirectory( const std::string &ExecutableDir )
 {
@@ -135,6 +154,7 @@ CConsoleApplicationPaths::CConsoleApplicationPaths( const std::string &exec_path
     , mExecutableDir( GetDirectoryFromPath( mExecutablePath ) )			// (*)
     , mDeploymentRootDir( GetDirectoryFromPath( mExecutableDir ) )
     , mQtPluginsDir( mExecutableDir + "/" + QT_PLUGINS_SUBDIR )
+	, mPythonDir( mExecutableDir + "/Python" )
 	, mUserManualPath( mDeploymentRootDir + "/doc/brat_user_manual_" + BRAT_VERSION + ".pdf" )
 
     , mInternalDataDir( ComputeInternalDataDirectory( mExecutableDir ) )
@@ -174,6 +194,7 @@ std::string CConsoleApplicationPaths::ToString() const
     s += ( "\nDeployment Root Dir == " + mDeploymentRootDir );
 
     s += ( "\nQt Plugins Dir == " + mQtPluginsDir );
+    s += ( "\nmPython Dir == " + mPythonDir );
 	s += ( "\nUser Manual Path == " + mUserManualPath );
     s += ( "\nInternalData Dir == " + mInternalDataDir );
 

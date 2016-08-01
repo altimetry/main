@@ -59,6 +59,7 @@ enum EActionTag : int
 	eAction_Test,
 	eAction_One_Click,
 	eAction_Launch_Scheduler,
+	eAction_Python_Console,
 	eAction_Workspace_Tree,
 	eAction_Operation_Views,
 	eAction_Save_Map_Image,

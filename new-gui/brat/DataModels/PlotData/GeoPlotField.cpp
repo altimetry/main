@@ -25,13 +25,13 @@
 using namespace brathl;
 
 #include "BratLookupTable.h"
-#include "WorldPlotData.h"
+#include "GeoPlotField.h"
 
 //-------------------------------------------------------------
-//------------------- CWorldPlotData class --------------------
+//------------------- CGeoPlotField class --------------------
 //-------------------------------------------------------------
 
-void CWorldPlotData::Create()
+void CGeoPlotField::Create()
 {
 	// lambda
 
@@ -69,8 +69,8 @@ void CWorldPlotData::Create()
 	{
 		AddMap();
 
-		back().mMinHeightValue = GetPlotProperties()->AbsoluteMinValue();
-		back().mMaxHeightValue = GetPlotProperties()->AbsoluteMaxValue();
+		back().mMinHeightValue = GetPlotProperties()->DataMinValue();
+		back().mMaxHeightValue = GetPlotProperties()->DataMaxValue();
 
 		CExpressionValue varLat;
 		CExpressionValue varLon;
@@ -82,10 +82,10 @@ void CWorldPlotData::Create()
 
 		CInternalFilesZFXY* zfxy = dynamic_cast< CInternalFilesZFXY* >( internal_files.at( iMap ) );		
 		if ( zfxy == NULL ) 
-			Crash( "CWorldPlotData - Non-geographical data found - dynamic_cast<CInternalFilesZFXY*>data->at(iMap) returns NULL", BRATHL_LOGIC_ERROR );
+			Crash( "CGeoPlotField - Non-geographical data found - dynamic_cast<CInternalFilesZFXY*>data->at(iMap) returns NULL", BRATHL_LOGIC_ERROR );
 
 		if ( zfxy->IsGeographic() == false )			
-			Crash( "CWorldPlotData - Non-geographical data found - zfxy->IsGeographic() is false", BRATHL_LOGIC_ERROR );
+			Crash( "CGeoPlotField - Non-geographical data found - zfxy->IsGeographic() is false", BRATHL_LOGIC_ERROR );
 
 	//v4 TODO - begin
 		//update ProgressDialog
@@ -114,15 +114,15 @@ void CWorldPlotData::Create()
 		zfxy->ReadVar( fieldName, varValue, unit->GetText() );
 		varKind	= zfxy->GetVarKind( fieldName );
 		if ( varKind != Data )
-			Crash( CTools::Format( "CWorldPlotData - variable '%s' is not a kind of Data (%d) : %s", fieldName.c_str(), Data, CNetCDFFiles::VarKindToString( varKind ).c_str() ), BRATHL_INCONSISTENCY_ERROR );
+			Crash( CTools::Format( "CGeoPlotField - variable '%s' is not a kind of Data (%d) : %s", fieldName.c_str(), Data, CNetCDFFiles::VarKindToString( varKind ).c_str() ), BRATHL_INCONSISTENCY_ERROR );
 
 		zfxy->GetVarDims( fieldName, varDimVal );
 		if ( varDimVal.size() != 2 )
-			Crash( CTools::Format( "CWorldPlotData - variable '%s -> number of dimensions value not equal 2 : %ld", fieldName.c_str(), (long)varDimVal.size() ), BRATHL_INCONSISTENCY_ERROR );
+			Crash( CTools::Format( "CGeoPlotField - variable '%s -> number of dimensions value not equal 2 : %ld", fieldName.c_str(), (long)varDimVal.size() ), BRATHL_INCONSISTENCY_ERROR );
 
 		zfxy->GetVarDims( fieldName, varDimNames );
 		if ( varDimNames.size() != 2 )
-			Crash( CTools::Format( "CWorldPlotData - variable '%s -> number of dimensions name not equal 2 : %ld", fieldName.c_str(), (long)varDimNames.size() ), BRATHL_INCONSISTENCY_ERROR );
+			Crash( CTools::Format( "CGeoPlotField - variable '%s -> number of dimensions name not equal 2 : %ld", fieldName.c_str(), (long)varDimNames.size() ), BRATHL_INCONSISTENCY_ERROR );
 
 		bool firstDimIsLat = false;
 		if ( ( zfxy->GetVarKind( varDimNames.at( 0 ) ) == Latitude ) &&
@@ -136,7 +136,7 @@ void CWorldPlotData::Create()
 			firstDimIsLat = false;
 		}
 		else
-			Crash( CTools::Format( "CWorldPlotData - Inconsistency kind of axis : varDimNames|0] = '%s' (%s) and "
+			Crash( CTools::Format( "CGeoPlotField - Inconsistency kind of axis : varDimNames|0] = '%s' (%s) and "
 				"varDimNames|1] = '%s' (%s)",
 				varDimNames.at( 0 ).c_str(), CNetCDFFiles::VarKindToString( zfxy->GetVarKind( varDimNames.at( 0 ) ) ).c_str(),
 				varDimNames.at( 1 ).c_str(), CNetCDFFiles::VarKindToString( zfxy->GetVarKind( varDimNames.at( 0 ) ) ).c_str() ), BRATHL_INCONSISTENCY_ERROR );
@@ -270,14 +270,14 @@ void CWorldPlotData::Create()
 	//////////////}
 
 
-	SetAbsoluteRangeValues( back().mMinHeightValue, back().mMaxHeightValue );	//GetPlotProperties()->SetTableRange( back().mMinHeightValue, back().mMaxHeightValue );
+	SetDataRangeValues( back().mMinHeightValue, back().mMaxHeightValue );	//GetPlotProperties()->SetTableRange( back().mMinHeightValue, back().mMaxHeightValue );
 
 	//////////////m_colorBarRenderer->SetLUT( m_LUT );
 
 
 	//////////////vtkGeoMapFilter *geoMapFilter = dynamic_cast<vtkGeoMapFilter*>( m_geoMapFilterList[ m_currentMap ] );	//geoMapFilter = dynamic_cast<vtkVelocityGlyphFilter*>(m_geoMapFilterList[m_currentMap]);
 	//////////////if ( geoMapFilter == NULL )
-	//////////////	Crash( CTools::Format( "ERROR in CWorldPlotData ctor  : dynamic_cast<vtkGeoMapFilter*>(m_geoMapFilterList[%d]) returns NULL pointer - " "m_geoMapFilterList std::list seems to contain objects other than those of the class vtkGeoMapFilter", m_currentMap ), BRATHL_LOGIC_ERROR );
+	//////////////	Crash( CTools::Format( "ERROR in CGeoPlotField ctor  : dynamic_cast<vtkGeoMapFilter*>(m_geoMapFilterList[%d]) returns NULL pointer - " "m_geoMapFilterList std::list seems to contain objects other than those of the class vtkGeoMapFilter", m_currentMap ), BRATHL_LOGIC_ERROR );
 
 
 	//////////////SetInput( geoMapFilter->GetOutput() );
@@ -285,7 +285,7 @@ void CWorldPlotData::Create()
 
 
 //----------------------------------------
-void CWorldPlotData::GetMapLatLon(CInternalFilesZFXY* zfxy,
+void CGeoPlotField::GetMapLatLon(CInternalFilesZFXY* zfxy,
                            int32_t& width, int32_t& height,
                            CExpressionValue& varLat, CExpressionValue& varLon)
 {
@@ -303,7 +303,7 @@ void CWorldPlotData::GetMapLatLon(CInternalFilesZFXY* zfxy,
     zfxy->GetVarDims(*is, dimVal);
     if (dimVal.size() != 1)
     {
-      std::string msg = CTools::Format("CWorldPlotData::GetMapLatLon - '%s' axis -> number of dimensions not equal 1 : %ld",
+      std::string msg = CTools::Format("CGeoPlotField::GetMapLatLon - '%s' axis -> number of dimensions not equal 1 : %ld",
                                    (*is).c_str(), (long)dimVal.size());
       CException e(msg, BRATHL_INCONSISTENCY_ERROR);
       CTrace::Tracer("%s", e.what());
@@ -324,7 +324,7 @@ void CWorldPlotData::GetMapLatLon(CInternalFilesZFXY* zfxy,
 
   if (width == -1)
     {
-      std::string msg = CTools::Format("CWorldPlotData::GetMapLatLon - Longitude axis not found in input file '%s'",
+      std::string msg = CTools::Format("CGeoPlotField::GetMapLatLon - Longitude axis not found in input file '%s'",
                                    zfxy->GetName().c_str());
       CException e(msg, BRATHL_INCONSISTENCY_ERROR);
       CTrace::Tracer("%s", e.what());
@@ -333,7 +333,7 @@ void CWorldPlotData::GetMapLatLon(CInternalFilesZFXY* zfxy,
 
   if (height == -1)
     {
-      std::string msg = CTools::Format("CWorldPlotData::GetMapLatLon - Latitude axis not found in input file '%s'",
+      std::string msg = CTools::Format("CGeoPlotField::GetMapLatLon - Latitude axis not found in input file '%s'",
                                    zfxy->GetName().c_str());
       CException e(msg, BRATHL_INCONSISTENCY_ERROR);
       CTrace::Tracer("%s", e.what());
@@ -344,11 +344,11 @@ void CWorldPlotData::GetMapLatLon(CInternalFilesZFXY* zfxy,
 
 
 //-------------------------------------------------------------
-//------------------- CWorldPlotVelocityData class --------------------
+//------------------- CGeoPlotVelocityField class --------------------
 //-------------------------------------------------------------
 
 //----------------------------------------
-void CWorldPlotVelocityData::Create( const std::vector< CInternalFiles* > &north_files, const std::vector< CInternalFiles* > &east_files )
+void CGeoPlotVelocityField::Create( const std::vector< CInternalFiles* > &north_files, const std::vector< CInternalFiles* > &east_files )
 {
 	auto Crash = []( const std::string &msg, int error_type )
 	{
@@ -387,8 +387,8 @@ void CWorldPlotVelocityData::Create( const std::vector< CInternalFiles* > &north
 	{
 		AddMap();
 
-		back().mMinHeightValue = GetPlotProperties()->AbsoluteMinValue();
-		back().mMaxHeightValue = GetPlotProperties()->AbsoluteMaxValue();
+		back().mMinHeightValue = GetPlotProperties()->DataMinValue();
+		back().mMaxHeightValue = GetPlotProperties()->DataMaxValue();
 
 		CExpressionValue varLat;
 		CExpressionValue varLon;
@@ -668,10 +668,10 @@ void CWorldPlotVelocityData::Create( const std::vector< CInternalFiles* > &north
 
 #if !defined( BRAT_V3 )
 
-	SetAbsoluteRangeValues( back().mMinHeightValue, back().mMaxHeightValue );	//GetPlotProperties()->SetTableRange( back().mMinHeightValue, back().mMaxHeightValue );
+	SetDataRangeValues( back().mMinHeightValue, back().mMaxHeightValue );	//GetPlotProperties()->SetTableRange( back().mMinHeightValue, back().mMaxHeightValue );
 
 #else
-	SetAbsoluteRangeValues( 0, back().mMaxHeightValue );
+    SetDataRangeValues( 0, back().mMaxHeightValue );
 	SetColorPalette( PALETTE_BLACKTOWHITE );							//mLUT->Black();
 #endif
 

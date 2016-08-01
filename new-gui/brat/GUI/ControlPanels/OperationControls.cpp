@@ -279,7 +279,7 @@ void COperationControls::CreateAdvancedOperationsPage()
 	mExportOperationAction = new QAction( "Export...", this );
 	mEditExportAsciiAction = new QAction( "Edit ASCII Export...", this );
 	mCreateExportedDisplaysAction = new QAction( "(Re)Create Views...", this );
-    mOperationExportButton = CreateMenuButton( "", ":/images/OSGeo/export.png", "<b>Export operation...</b><br>Export output data of selected operation",
+    mOperationExportButton = CreateMenuButton( "", ":/images/OSGeo/operation_export.png", "<b>Export operation...</b><br>Export output data of selected operation",
 	{ 
 		mExportOperationAction, mEditExportAsciiAction, mCreateExportedDisplaysAction 
 	} );

@@ -1721,7 +1721,11 @@ bool CreateCountourFeatures( QWidget *parent, QgsFeatureList &flist, const CMapP
 	contours.SetFirstGrid( factor1 * map.mXaxis.size(), factor1 * map.mYaxis.size() );
 	contours.SetSecondaryGrid( factor2 * map.mXaxis.size(), factor2 * map.mYaxis.size() );
 
-	CProgressDialog progress( "Computing contours...", "Cancel", 0, 100, parent->isVisible() ? parent : parent = qApp->activeWindow() );
+    if ( !parent || !parent->isVisible() )
+        parent = ApplicationWindow();
+    if ( parent && !parent->isVisible() )
+        parent = nullptr;
+    CProgressDialog progress( "Computing contours...", "Cancel", 0, 100, parent );
 	CProgressInterface *pi = nullptr;
 	if ( parent && parent->isVisible() )
 	{
@@ -1863,11 +1867,14 @@ void CMapWidget::PlotTrack( const double *x, const double *y, const double *z, s
 }
 
 
-void CMapWidget::RemoveTracksLayerFeatures()
+void CMapWidget::RemoveTracksLayerFeatures( bool render )		//render = false 
 {
 	assert__( mTracksLayer != nullptr );
 
 	RemoveFeatures( mTracksLayer );
+
+	if ( render )
+		refresh();
 }
 
 
@@ -2063,14 +2070,13 @@ bool CMapWidget::SetNumberOfContours( size_t index, size_t ncontours, const CMap
 {
 	assert__( index < mContourLayers.size() );
 
-	QgsVectorLayer *l = mContourLayers[ index ];
-
-	RemoveFeatures( l );
+	QgsVectorLayer *l = mContourLayers[ index ];		assert__( l );
 
 	QgsFeatureList flist;
 	bool result = CreateCountourFeatures( parentWidget(), flist, map, ncontours, factor1, factor2 );
 	if ( l && !flist.empty() )
 	{
+		RemoveFeatures( l );
 		l->dataProvider()->addFeatures( flist );
 		l->updateExtents();
 	}
@@ -2113,49 +2119,78 @@ void CMapWidget::RemoveLayers( bool render )		//render = false
 	}
 }
 
-void CMapWidget::RemoveLayer( QgsMapLayer *layer, bool render )		//render = false 
+
+void CMapWidget::RemoveTracksLayer()
 {
-	if ( !layer )
+	if ( !mTracksLayer )
 		return;
 
-	if ( layer == mSelectedDataLayer )
+	if ( mTracksLayer == mSelectedDataLayer )
 		SetCurrentDataLayer( -1 );
 
 	for ( auto &l : mDataLayers )
-		if ( l == layer )
+		if ( l == mTracksLayer )
 		{
-			mDataLayers.erase( std::find( mDataLayers.begin(), mDataLayers.end(), layer ) );
+			assert( false );
 			break;
 		}
 
 	for ( auto &l : mContourLayers )
-		if ( l == layer )
+		if ( l == mTracksLayer )
 		{
-			mContourLayers.erase( std::find( mContourLayers.begin(), mContourLayers.end(), layer ) );
+			assert( false );
 			break;
 		}
 
 	QList <QgsMapCanvasLayer> set = mLayerSet;
 	RemoveLayers( false );
 	for ( auto &cl : set )
-		if ( cl.layer() != layer )
+		if ( cl.layer() != mTracksLayer )
 			mLayerSet.append( cl );
 
-	QgsMapLayerRegistry::instance()->removeMapLayer( layer->id() );
+	QgsMapLayerRegistry::instance()->removeMapLayer( mTracksLayer->id() );
 
 	SetLayerSet();
 	SetCurrentLayer( mLayerSet.begin()->layer() );
 
-	if ( render )
-		refresh();
-}
-void CMapWidget::RemoveTracksLayer()
-{
-	RemoveLayer( mTracksLayer, false );
 	mTracksLayer = nullptr;
 
 	refresh();
 }
+
+
+void CMapWidget::DeleteContourLayer( size_t index, bool render )
+{
+	assert__( index < mContourLayers.size() );
+
+	auto *clayer = mContourLayers[ index ];
+
+	if ( clayer == mSelectedDataLayer )
+		SetCurrentDataLayer( -1 );
+
+	const size_t size = mLayerSet.size();
+	for ( size_t i = 0; i < size; ++i )
+	{
+		auto const &cl = mLayerSet[ i ];
+		if ( cl.layer() == clayer )
+		{
+			mLayerSet.removeAt( i );
+			break;
+		}
+	}
+
+	QgsMapLayerRegistry::instance()->removeMapLayer( clayer->id() );
+
+	SetLayerSet();
+	if ( currentLayer() == clayer )
+		SetCurrentLayer( mLayerSet.begin()->layer() );
+
+	mContourLayers[ index ] = nullptr;
+
+	if ( render )
+		refresh();
+}
+
 
 
 void CMapWidget::ReplaceDataLayer( size_t index, QgsVectorLayer* new_layer, bool render )		//render = false 

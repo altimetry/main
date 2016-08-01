@@ -18,8 +18,8 @@
 #ifndef GUI_DISPLAY_EDITORS_PLOT_EDITOR_H
 #define GUI_DISPLAY_EDITORS_PLOT_EDITOR_H
 
-#include "DataModels/PlotData/ZFXYPlotData.h"
-#include "DataModels/PlotData/XYPlotData.h"
+#include "DataModels/PlotData/ZFXYPlotField.h"
+#include "DataModels/PlotData/XYPlotField.h"
 #include "DataModels/PlotData/MapColor.h"
 
 #include "AbstractDisplayEditor.h"
@@ -99,10 +99,10 @@ private:
 
 	//...domain data
 
-	CXYPlotData *mCurrentPlotDataYFX = nullptr;
+	CXYPlotField *mCurrentPlotFieldYFX = nullptr;
 	bool mMultiFrame = false;					//	bool mPanelMultiFrame;	2 variables in v3: one in the window, the other in the panel
 
-	CZFXYPlotData *mCurrentPlotDataZFXY = nullptr;
+	CZFXYPlotField *mCurrentPlotFieldZFXY = nullptr;
 
 
 	// construction /destruction

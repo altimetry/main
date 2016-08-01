@@ -92,10 +92,9 @@ private:	//femm
 	CProgressInterface *mProgressInterface = nullptr;
 
 protected:
-	std::function< bool( int ) > mProgress; // pointer to SetCurrentValue( ) progress interface
+    std::function< bool( int ) > mProgress; // pointer to SetCurrentValue( ) wrapper
 	virtual void SetProgressInterface( CProgressInterface *pI = nullptr, int m = 0, int M = 0 );
-	int ProgressSoFar() const { return mProgressInterface->CurrentValue(); }
-	void SetProgressLabel( const std::string &label ) { return mProgressInterface->SetLabel( label ); }
+    void SetProgressLabel( const std::string &label ) { if (mProgressInterface) mProgressInterface->SetLabel( label ); }
 
 protected:
 	// Accessible variables

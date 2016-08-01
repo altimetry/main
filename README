@@ -29,10 +29,15 @@ authoritative.
 
 Version History
 == == == == == == ==
-4.0.0 beta - May 2016
+4.0.0 - August 2016
 --------------------
+
+
+== == == == == == == ==
+4.0.0 beta - July 2016
+-----------------------
 Changes for this version:
-- Complete redesign of GUI
+- Complete redesign and re-implementation of GUI applications
 - Feature added to allow the usage of Python scripts within the data expressions
 - Feature to allow visualization of tracks when selecting the data
 - Feature to allow definition of geographical filter via interaction with map

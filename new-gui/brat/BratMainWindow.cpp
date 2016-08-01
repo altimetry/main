@@ -252,12 +252,22 @@ void CBratMainWindow::CreateOutputDock()
 	mLogFrame->Deactivate( false );
 
 	LOG_INFO( "OSG version: " + std::string( osgGetVersion() ) + " - " + osgGetSOVersion() + " - " + osgGetLibraryName() );
+	LOG_INFO( "osgEarth version: " + std::string( osgEarthGetVersion() ) + " - " + osgEarthGetSOVersion() + " - " + osgEarthGetLibraryName() );
+	LOG_INFO( "QGIS version: " + std::string( QGis::QGIS_VERSION ) );
 	if ( getenv("OSG_FILE_PATH") )
 		LOG_INFO( "OSG_FILE_PATH = " + std::string( getenv("OSG_FILE_PATH") ) );
 	else
-		LOG_INFO( "OSG_FILE_PATH not defined" );
+		LOG_TRACE( "OSG_FILE_PATH not defined" );
 
-	LOG_INFO( "Initial OSG notification level: " + n2s<std::string>( CBratLogger::Instance().OsgNotifyLevel() ) );
+	LOG_TRACEstd( "Initial OSG notification level: " + n2s( CBratLogger::Instance().OsgNotifyLevel() ) );
+
+	const char *QGIS_LOG_FILE = getenv( "QGIS_LOG_FILE" );
+	if ( QGIS_LOG_FILE )
+		LOG_INFO( "QGIS_LOG_FILE = " + std::string( QGIS_LOG_FILE ) );
+
+	const char *QGIS_DEBUG = getenv( "QGIS_DEBUG" );
+	if ( QGIS_DEBUG )
+		LOG_INFO( "QGIS_DEBUG = " + std::string( QGIS_DEBUG ) );
 
 
 	//Processes Tab
@@ -470,7 +480,13 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
 	assert__( !smInstance );
     assert__( mSettings.BratPaths().IsValid() );
 
-	mApp.ShowSplash( "Creating main window..." );
+    // Assign singleton just before triggering load operations and leave
+    //
+    smInstance = this;
+    SetApplicationWindow( smInstance );
+
+
+    mApp.ShowSplash( "Creating main window..." );
 
 	connect( this, SIGNAL( SettingsUpdated() ), &mApp, SLOT( UpdateSettings() ) );
 
@@ -550,11 +566,6 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
         //CenterOnScreen2( this );
         //CenterOnScreen3( this );
     }
-
-
-    // Assign singleton just before triggering load operations and leave
-    //
-	smInstance = this;
 
 
 	mApp.ShowSplash( "Loading display or workspace..." );
@@ -948,6 +959,7 @@ CBratMainWindow::~CBratMainWindow()
 	assert__( smInstance );
 
 	smInstance = nullptr;
+    SetApplicationWindow( nullptr );
 }
 
 
@@ -1341,6 +1353,76 @@ void CBratMainWindow::UpdateToolsMenu()
 }
 
 
+void CBratMainWindow::PythonConsoleError( QProcess::ProcessError error )
+{
+    auto message = "An error occurred launching " + mModel.BratPaths().FullPythonExecutablePath() + "\n" + q2a( CProcessesTable::ProcessErrorMessage( error ) );
+	SimpleErrorBox( message );
+	LOG_WARN( message );
+}
+void CBratMainWindow::on_action_Python_Console_triggered()
+{
+    if (!IsFile( mModel.BratPaths().FullPythonExecutablePath() ) )
+    {
+        SimpleErrorBox( "Could not find\n" + mModel.BratPaths().FullPythonExecutablePath() );
+        return;
+    }
+
+    COsProcess *process = new COsProcess( false, "", this, "\"" + mModel.BratPaths().FullPythonExecutablePath() + "\"" );
+    connect( process, SIGNAL( error( QProcess::ProcessError ) ), this, SLOT( PythonConsoleError( QProcess::ProcessError ) ) );
+
+#if defined(Q_OS_LINUX)
+
+    //process->Execute( true );
+    //process->Execute();
+    QStringList args;
+    //args << "-hold" << "-C" << "-e" << mModel.BratPaths().FullPythonExecutablePath().c_str();
+    args << "-hold" << "-e" << mModel.BratPaths().FullPythonExecutablePath().c_str();
+    //args << "-e" << mModel.BratPaths().FullPythonExecutablePath().c_str();
+
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert( "PYTHONPATH", ( mModel.BratPaths().mPythonDir + "/lib/python3.2" ).c_str() );
+    env.insert( "PYTHONHOME", ( mModel.BratPaths().mPythonDir + "/lib/python3.2" ).c_str() );
+    //env.insert("TERM", "xterm");    
+    process->setProcessEnvironment( env );
+
+    //process->setWorkingDirectory( ( mModel.BratPaths().mPythonDir + "" ).c_str() );
+
+    process->start( "xterm", args );    
+    //process->startDetached( "xterm", args );  //does not use env(ironemnt)
+
+#elif defined(Q_OS_MAC)
+
+    QStringList args;
+    //args << "-hold" << "-C" << "-e" << mModel.BratPaths().FullPythonExecutablePath().c_str();
+    //args << "-c" << mModel.BratPaths().FullPythonExecutablePath().c_str();
+    //args << "-e" << mModel.BratPaths().FullPythonExecutablePath().c_str();
+
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    env.insert( "DYLD_LIBRARY_PATH", ( mModel.BratPaths().mPythonDir + ":" + mModel.BratPaths().mPythonDir + "/lib"  + ":/Users/brat/dev/bin/Qt-4.8.6/brat/x86_64/Debug/brat.app/Contents/MacOS/Python/lib/python3.2/lib-dynload" ).c_str() );
+    env.insert( "DYLD_FRAMEWORK_PATH", ( mModel.BratPaths().mPythonDir + ":/Users/brat/dev/bin/Qt-4.8.6/brat/x86_64/Debug/brat.app/Contents/MacOS/Python/lib/python3.2/lib-dynload" ).c_str() );
+    env.insert( "PYTHONPATH", ( mModel.BratPaths().mPythonDir + "/lib/python3.2" ).c_str() );
+    env.insert( "PYTHONHOME", ( mModel.BratPaths().mPythonDir ).c_str() );
+    //env.insert("TERM", "xterm");
+    process->setProcessEnvironment( env );
+
+    //process->setWorkingDirectory( ( mModel.BratPaths().mPythonDir + "" ).c_str() );
+
+    //args << mModel.BratPaths().FullPythonExecutablePath().c_str();
+    args << "/Users/brat/dev/bin/Qt-4.8.6/brat/x86_64/Debug/brat.app/Contents/MacOS/Python/Resources/Python.app/Contents/MacOS/Python";
+
+    process->start( "/Applications/Utilities/Terminal.app/Contents/MacOS/Terminal", args );
+    //process->start( "/Users/brat/dev/bin/Qt-4.8.6/brat/x86_64/Debug/brat.app/Contents/MacOS/Python/Resources/Python.app/Contents/MacOS/Python" );
+
+    //process->startDetached( "xterm", args );  //does not use env(ironemnt)
+#else
+
+    process->Execute( true );           //true -> detached
+
+#endif
+}
+
+
+
 /////////////////////////////////////////////////////////////////////////
 //                      WINDOW ACTIONS
 /////////////////////////////////////////////////////////////////////////
@@ -1376,7 +1458,10 @@ void CBratMainWindow::UpdateWindowMenu()
 	bool has_sub_windows = !mDesktopManager->SubWindowList().empty();
 	action_Close_All->setEnabled( has_sub_windows );
 	action_Views_List->setEnabled( has_sub_windows );
-	action_Open_View->setEnabled( mModel.Workspace< CWorkspaceDisplay >()->GetDisplays() && mModel.Workspace< CWorkspaceDisplay >()->GetDisplays()->size() > 0 );
+	action_Open_View->setEnabled( 
+		mModel.Workspace< CWorkspaceDisplay >() &&
+		mModel.Workspace< CWorkspaceDisplay >()->GetDisplays() && 
+		mModel.Workspace< CWorkspaceDisplay >()->GetDisplays()->size() > 0 );
 }
 
 
@@ -1388,13 +1473,14 @@ void CBratMainWindow::UpdateWindowMenu()
 
 void CBratMainWindow::on_action_About_triggered()
 {
-	QMessageBox::about(this, tr("About BRAT"), QString( "Welcome to BRAT " ) + BRAT_VERSION + " - " + PROCESSOR_ARCH + "\n(C)opyright CNES/ESA" );
+	SimpleAbout( BRAT_VERSION, PROCESSOR_ARCH, "CNES/ESA" );
 }
 
 
 void CBratMainWindow::on_action_User_s_Manual_triggered()
 {
-	QDesktopServices::openUrl( QUrl( ( "file:///" + mSettings.BratPaths().mUserManualPath ).c_str(), QUrl::TolerantMode ) );
+	if ( !SimpleSystemOpenFile( mSettings.BratPaths().mUserManualPath ) )
+		SimpleErrorBox( "Could not open " + mSettings.BratPaths().mUserManualPath );
 }
 
 
@@ -1408,7 +1494,7 @@ private:
 	{
 		for ( ;; )
 		{
-			LOG_TRACEstd( "DEBUG hello from worker thread " + n2s<std::string>( thread()->currentThreadId() ) );
+			LOG_TRACEstd( "DEBUG hello from worker thread " + n2s( thread()->currentThreadId() ) );
 			msleep( 1000 );
 			if ( thread_finished )
 				return;
@@ -1427,13 +1513,13 @@ private:
 			switch ( ++i % 3 )
 			{
 				case 0:
-					LOG_INFO( "LOG hello from worker thread " + n2s<std::string>( thread()->currentThreadId() ) );
+					LOG_INFO( "LOG hello from worker thread " + n2s( thread()->currentThreadId() ) );
 					break;
 				case 1:
-					LOG_WARN( "LOG hello from worker thread " + n2s<std::string>( thread()->currentThreadId() ) );
+					LOG_WARN( "LOG hello from worker thread " + n2s( thread()->currentThreadId() ) );
 					break;
 				case 2:
-					LOG_FATAL( "LOG hello from worker thread " + n2s<std::string>( thread()->currentThreadId() ) );
+					LOG_FATAL( "LOG hello from worker thread " + n2s( thread()->currentThreadId() ) );
 					break;
 			}
 			msleep( 10 );
@@ -1478,11 +1564,11 @@ void CBratMainWindow::on_action_Test_triggered()
         LOG_INFO( "------------------------------------------------" );
 
         int size = algo.GetNumInputParam();
-        LOG_INFO( "Nb. Input Parameters:  " + n2s<std::string>( size )                  );
+        LOG_INFO( "Nb. Input Parameters:  " + n2s( size )                  );
 
         for ( int i = 0; i < size; ++i )
         {
-            LOG_INFO( "  " +  n2s<std::string>( i+1 ) + ":" );;
+            LOG_INFO( "  " +  n2s( i+1 ) + ":" );;
             LOG_INFO( "    Description: " +            algo.GetInputParamDesc(i)     );
 			LOG_INFO( "    Format:      " + std::string( typeName( algo.GetInputParamFormat( i ) ) ) );
             LOG_INFO( "    Unit:        " +            algo.GetInputParamUnit(i)     );
@@ -1499,7 +1585,7 @@ void CBratMainWindow::on_action_Test_triggered()
 
         LOG_INFO( "Running Algorithm... "                        );
         double result = algo.Run( args );
-        LOG_INFO( "The result is: " + n2s<std::string>( result ) );
+        LOG_INFO( "The result is: " + n2s( result ) );
         LOG_INFO( "------------------------------------------------" );
     }
     catch( EMessageCode msg )

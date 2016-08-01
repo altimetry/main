@@ -70,7 +70,7 @@ private:
 #if !defined( BRAT_V3)
 
 
-QgsCoordinateReferenceSystem CreateNearSightedProjection()
+QgsCoordinateReferenceSystem CreateNearSidedProjection()
 {
 	// This projection should be Azimuthal Orthographic Projection
 	// See:  http://polemic.nz/2014/11/21/nz-azimuth-orthographic/
@@ -79,7 +79,7 @@ QgsCoordinateReferenceSystem CreateNearSightedProjection()
 	//
 	// +proj=ortho +lat_0=-36 +lon_0=175 +x_0=0 +y_0=0 +a=6371000 +b=6371000 +units=m +no_defs
 
-	static const std::string name = "Near-Sided Perspective";
+    static const std::string name = "Azimuthal Orthographic";
 
 	QgsCoordinateReferenceSystem crs;
 	if ( !crs.createFromProj4( "+proj=ortho +lat_0=0 +lon_0=0 +x_0=0 +y_0=0 +a=6371000 +b=6371000 +units=m +no_defs" ) )
@@ -143,7 +143,7 @@ crs_entry_t MakeCRSEntryFromId( unsigned id )
 
 		case PROJ2D_NEAR_SIGHTED:
             {
-				static const QgsCoordinateReferenceSystem crs = CreateNearSightedProjection();
+                static const QgsCoordinateReferenceSystem crs = CreateNearSidedProjection();
                 return { id, crs };
             }
 			break;

@@ -23,8 +23,8 @@
 
 
 class CGeoPlot;
-class CWorldPlotData;
-class CWorldPlotVelocityData;
+class CGeoPlotField;
+class CGeoPlotVelocityField;
 
 class CBratMapView;
 class CGlobeWidget;
@@ -96,8 +96,8 @@ class CMapEditor : public CAbstractDisplayEditor
 
 	//...domain data: "current" pointers
 
-	CWorldPlotData *mCurrentPlotData = nullptr;
-	CWorldPlotVelocityData *mCurrentPlotVelocityData = nullptr;
+	CGeoPlotField *mCurrentPlotField = nullptr;
+	CGeoPlotVelocityField *mCurrentPlotVelocityField = nullptr;
 
 
 	// construction /destruction
@@ -164,7 +164,7 @@ protected:
 
 	//helper, not slot
 
-	bool SetNumberOfContours( int field_index, std::pair< unsigned, unsigned > grid , unsigned contours );
+	bool SetParamsAndNumberOfContours( int field_index, std::pair< unsigned, unsigned > grid , unsigned contours );
 
 protected slots:
 

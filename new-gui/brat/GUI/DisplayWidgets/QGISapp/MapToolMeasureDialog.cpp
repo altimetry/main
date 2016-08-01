@@ -20,7 +20,6 @@
 #include <QPushButton>
 
 #include <qgslogger.h>
-#include <qgscontexthelp.h>
 #include <qgsdistancearea.h>
 #include <qgsmapcanvas.h>
 #include <qgsmaprenderer.h>

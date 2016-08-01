@@ -41,7 +41,7 @@ namespace processes
 	public:
 		// Also loads C++ algorithms
 		//
-		static bool LoadPythonEngine( const std::string &executable_dir );
+		static bool LoadPythonEngine( const std::string &python_dir );
 
 		static const std::string& PythonMessages()
 		{
@@ -51,14 +51,14 @@ namespace processes
 
 		//instance data
 
-		const std::string mExecutableDir;
+		const std::string mPythonDir;
 
 		//construction / destruction
 
 	public:
-		CBratEmbeddedPythonProcess( const std::string &executable_dir )
+		CBratEmbeddedPythonProcess( const std::string &python_dir )
 			: base_t()
-			, mExecutableDir( executable_dir )
+			, mPythonDir( python_dir )
 		{}
 
 		virtual ~CBratEmbeddedPythonProcess()
