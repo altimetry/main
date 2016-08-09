@@ -468,7 +468,7 @@ const std::vector< Qwt3D::AXIS > CBrat3DPlot::smZaxis = { Qwt3D::AXIS::Z1, Qwt3D
 
 
 
-CBrat3DPlot::CBrat3DPlot( QWidget *pw ) 
+CBrat3DPlot::CBrat3DPlot( QWidget *pw )
 	: base_t( pw )
 	, mTimer( this )
 	, mXDigits( CBrat3DLinearScale::smDefaultDigits )
@@ -492,6 +492,22 @@ CBrat3DPlot::CBrat3DPlot( QWidget *pw )
 		coordinates()->axes[ i ].setMajors( CBrat3DLinearScale::smDefaultMajors );
 		coordinates()->axes[ i ].setMinors( CBrat3DLinearScale::smDefaultMinors );
 	}
+
+	//set all to defaults except last 2
+	//
+	assignMouse( 
+		Qwt3D::MouseState( Qt::LeftButton ), 
+		Qwt3D::MouseState( Qt::LeftButton, Qt::ShiftModifier ), 
+		Qwt3D::MouseState( Qt::LeftButton ),
+
+		Qwt3D::MouseState( Qt::LeftButton, Qt::AltModifier ),
+		Qwt3D::MouseState( Qt::LeftButton, Qt::AltModifier ),
+		Qwt3D::MouseState( Qt::LeftButton, Qt::AltModifier | Qt::ShiftModifier ),
+
+		Qwt3D::MouseState( Qt::LeftButton, Qt::AltModifier | Qt::ControlModifier ),
+		Qwt3D::MouseState( Qt::MiddleButton ),		//replaces default Qwt3D::MouseState( Qt::LeftButton, Qt::ControlModifier ),
+		Qwt3D::MouseState( Qt::MiddleButton )		//replaces default Qwt3D::MouseState( Qt::LeftButton, Qt::ControlModifier )
+		);
 }
 
 //virtual 
@@ -1477,6 +1493,7 @@ void C3DPlotWidget::CorrectScale()
 		double zscale = range_max / zrange ;
 
 		SetScale( xscale, yscale, zscale );
+		mCurrentPlot->setViewportShift( 0., 0. );
 		mCurrentPlot->setZoom( 0.5 );
 	}
 }

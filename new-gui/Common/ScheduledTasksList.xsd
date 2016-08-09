@@ -15,7 +15,7 @@
 			<xs:attribute name="function">
 				<xs:simpleType>
 					<xs:restriction base="xs:string">
-						<xs:enumeration value="CopyFile"/>
+						<xs:enumeration value="BratTaskFunctionCopyFile"/>
 					</xs:restriction>
 				</xs:simpleType>
 			</xs:attribute>

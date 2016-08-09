@@ -11,6 +11,10 @@
 //#else
 //#include "new-gui/brat/DataModels/Workspaces/WorkspaceSettings.h"
 //#define CONFIG CWorkspaceSettings
+#if !defined (LOG_INFO)
+#define LOG_INFO( msg ) std::cout << msg << std::endl
+#define LOG_WARN( msg ) std::cerr << msg << std::endl
+#endif
 #endif
 
 

@@ -9,7 +9,7 @@ print ("\n", os.environ.get( 'QGIS_LOG_FILE' ) )
 
 os.environ["QGIS_DEBUG"] = "1"
 os.environ["QGIS_LOG_FILE"] = "brat_log.txt"
-os.system( "brat.exe" )
+os.system( "brat" )
 
 # clean os environment variables
 # os.environ.clear()

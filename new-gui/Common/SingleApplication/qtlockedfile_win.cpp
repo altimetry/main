@@ -42,13 +42,13 @@
 #include <qt_windows.h>
 #include <QFileInfo>
 
-#define MUTEX_PREFIX "QtLockedFile mutex "
-// Maximum number of concurrent read locks. Must not be greater than MAXIMUM_WAIT_OBJECTS
-#define MAX_READERS MAXIMUM_WAIT_OBJECTS
-
 #if QT_VERSION >= 0x050000
 #define QT_WA(unicode, ansi) unicode
 #endif
+
+#define MUTEX_PREFIX "QtLockedFile mutex "
+// Maximum number of concurrent read locks. Must not be greater than MAXIMUM_WAIT_OBJECTS
+#define MAX_READERS MAXIMUM_WAIT_OBJECTS
 
 Qt::HANDLE QtLockedFile::getMutexHandle(int idx, bool doCreate)
 {

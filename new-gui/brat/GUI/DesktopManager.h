@@ -7,7 +7,7 @@
 #include <QGridLayout>
 
 #include "new-gui/Common/QtUtils.h"
-#include "new-gui/Common/ApplicationPaths.h"
+#include "ApplicationPaths.h"
 
 
 

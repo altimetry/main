@@ -1,14 +1,26 @@
-#ifndef EDITOR_H
-#define EDITOR_H
+/*
+* This file is part of BRAT
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
+#ifndef COMMON_TEXTWIDGET_H
+#define COMMON_TEXTWIDGET_H
 
 #include <cassert>
 
 #include <QTextEdit>
-#include <qfilesystemwatcher.h>
-#include <qapplication.h>
-#if QT_VERSION >= 0x050000
-#include <QtPrintSupport/QPrinter>
-#endif
 
 #include "new-gui/Common/QtUtils.h"
 
@@ -21,53 +33,6 @@
 ///////////////////////////////////////////////////////////////////
 //              Generic QTextEdit Utilities
 ///////////////////////////////////////////////////////////////////
-
-template< typename TEXT_EDIT >
-inline void replaceSelection( TEXT_EDIT *pe, const QString &newData )
-{
-    assert( pe );
-
-    pe->textCursor().insertText( newData );
-    pe->ensureCursorVisible();
-}
-
-template< typename TEXT_EDIT >
-inline void updateText( TEXT_EDIT *pe, const QString &newData )
-{
-    assert( pe );
-
-    pe->append( newData );
-    pe->moveCursor( QTextCursor::End, QTextCursor::MoveAnchor );
-    pe->ensureCursorVisible();
-}
-
-template< typename TEXT_EDIT >
-inline void WriteWithColor( TEXT_EDIT *pe, const QString &text, QColor color = Qt::red, bool replace = false )
-{
-    assert( pe );
-
-    QColor c = pe->textColor();
-    pe->setTextColor( color );
-    if ( replace )
-		pe->setText( text );
-	else
-		updateText( pe, text );       //setPlainText replaces all text
-    pe->setTextColor( c );
-}
-
-template< typename TEXT_EDIT >
-inline void ReplaceWithColor( TEXT_EDIT *pe, const QString &text, QColor color = Qt::red )
-{
-    WriteWithColor( pe, text, color, true );
-}
-
-template< typename TEXT_EDIT >
-inline QString getSelectedText( TEXT_EDIT *pe )
-{
-    assert( pe );
-
-    return pe->textCursor().selectedText().replace( QChar( L'\x2029' ), "\n" );
-}
 
 template< typename TEXT_EDIT >
 inline bool isEmpty( const TEXT_EDIT *pe )
@@ -87,67 +52,14 @@ inline bool isEmpty( const TEXT_EDIT *pe )
 /// X2q conversions - in QtUtils.h
 ///////////////////////////////////////////////
 
-///////////////////////////////////////////////
-/// get a/w/q text from editors
-///////////////////////////////////////////////
-
-inline std::string& getUTF8EditorText( QTextEdit *pe, std::string &s )
-{
-    if ( pe->textCursor().hasSelection() )
-		s += q2a( getSelectedText( pe ).toUtf8() );
-    else
-        s += q2a( pe->toPlainText().toUtf8() );
-    return s;
-}
-
-inline std::wstring& getUTF8EditorText( QTextEdit *pe, std::wstring &ws )
-{
-    if ( pe->textCursor().hasSelection() )
-        ws += q2w( getSelectedText( pe ).toUtf8() );
-    else
-        ws += q2w( pe->toPlainText().toUtf8() );
-    return ws;
-}
-
-inline std::string getEditorText( QTextEdit *pe, std::string &s )
-{
-    if ( pe->textCursor().hasSelection() )
-        s = q2a( getSelectedText( pe ) );       //.toStdString();
-    else
-        s = q2a( pe->toPlainText() );           //.toStdString();
-    return s;
-}
-
-inline std::wstring getEditorText( QTextEdit *pe, std::wstring &ws )
-{
-    if ( pe->textCursor().hasSelection() )
-        ws = q2w( getSelectedText( pe ) );    //.toStdWString();
-    else
-        ws = q2w( pe->toPlainText() );        //.toStdWString();
-    return ws;
-}
-
-inline QString getEditorText( QTextEdit *pe, QString &qs )
-{
-    if ( pe->textCursor().hasSelection() )
-        qs = getSelectedText( pe );
-    else
-        qs = pe->toPlainText();
-    return qs;
-}
-
-
 
 ///////////////////////////////////////////////////////////////////
 //					 QTextEdit child
 ///////////////////////////////////////////////////////////////////
 
-enum EFileType {
+enum EFileType 
+{
     e_txt,
-    e_utxt,			 //experimental... (2014/10)
-    e_html,
-    e_odt,
-    e_rtf,
     e_unknown
 };
 
@@ -166,39 +78,39 @@ class CTextWidget : public QTextEdit
 #pragma clang diagnostic pop
 #endif
 
-public:
+	// types
+
 	typedef QTextEdit base_t;
 
-	friend class TextEditor;
+
+	// statics
+
+    static bool loadFileToDocument( const QString &fileName, QTextDocument &doc, EFileType ft, QWidget *pw = NULL );
+
+
+	// instance data
 
 protected:
 	QSize mSizeHint;
 
-public:
-    CTextWidget( QWidget *parent = nullptr );
 
-    //Match AbstractEditor overrides (see also in signals and slots)
-    //
-	virtual void setModified( bool modified ) { document()->setModified( modified ); }
-protected:
-	virtual void MoveToTop(){ MoveTo( LineCol(), false ); }
-    virtual bool writeToFile( const QString &fileName );
-public:
-    virtual bool readFromFile( const QString &fileName );							//turned public in widget, protected in editor
-	virtual bool isModified() const { return document()->isModified(); }
-    virtual bool isUndoAvailable() const { return document()->isUndoAvailable(); }
-    virtual bool isRedoAvailable() const { return document()->isRedoAvailable(); }
+	// construction / destruction
 
 public:
-    //file
-    //
-    static bool loadFileToDocument( const QString &fileName, QTextDocument &doc, EFileType ft, QWidget *pw = NULL );
-    static bool storeDocumentToFile( const QString &fileName, const QTextDocument &doc, QWidget *pw = NULL );
-protected:
+    explicit CTextWidget( QWidget *parent = nullptr );
+
+	virtual ~CTextWidget()
+	{}
+
+	// 
 
 public:
+	// I/O
+    
+    virtual bool readFromFile( const QString &fileName );
+
 	//properties
-    //
+    
     bool isEmpty() const;
 	virtual void setToolEditor( bool tool );
 	virtual void SetReadOnlyEditor( bool ro );
@@ -207,91 +119,43 @@ public:
     void SetSizeHint( int w, int h ){ mSizeHint = QSize( w, h ); }
 
     //selection / position
-    //
-
+    
+public:
 	//this structure was created to disambiguate calls to MoveTo: it is not enough that 
 	//the 1st (long long versus int) and the third (QColor versus bool) parameters differ  
 	//
 	struct LineCol{ 
 		int line, col; 
-		LineCol( int l = 1, int c = 1 ):line(l), col(c){}
+		explicit LineCol( int l = 1, int c = 1 ): line(l), col(c) {}
 		bool operator == ( const LineCol &o ) const { return line == o.line && col == o.col; }
 	};
 
-	bool hasSelection() const { return textCursor().hasSelection(); }
-	QString GetSelectedText();
-    int SelectionLength() const { return textCursor().selectionEnd() - textCursor().selectionStart(); }
-    void Select( QTextCursor::SelectionType selection );
+	
     void SelectPosition( long long pos, QColor c = Qt::gray );
-    void ClearSelection();
+	void ClearSelection();
+	
 	void MoveTo( const LineCol &lc, bool select, QColor c = Qt::black );	//black: match the style sheet in ctor
 	void MoveTo( long long position, bool select, QColor c = Qt::black );	//black: match the style sheet in ctor
 	void MoveToEnd( bool select );
+
+protected:
+	virtual void MoveToTop(){ MoveTo( LineCol(), false ); }
+
     int  getPosition() const { return textCursor().position(); }
     void getPosition( int &line, int &col ) const;							//line & col are 1-based
     void getPosition( LineCol &lc ) const {	getPosition( lc.line, lc.col ); }
-	int position() const { return textCursor().position(); }
 
     //complementary basic commands
-    //
+    
 	void deleteAll();
-	void removeSelectedText() { textCursor().removeSelectedText(); }        //from Qt source code
-
-    //format
-    //
-    bool selectFont();
-    bool selectColor();
-    void toBold( bool bold );
-    void toItalic( bool italic );
-    void toUnderline( bool underline );
-    void toFontFamily( const QString &f );
-    void toFontSize( const QString &p );
-    void toListStyle( QTextListFormat::Style style = QTextListFormat::ListDisc );
-
-private:
-    void mergeFormatOnWordOrSelection( const QTextCharFormat &format );
-
-public:
 
     //text wrap
-    //
+    
     void setWrapText( bool wrap );
 
-    //find/replace
-    //
-    bool replace( const QString &to_find, const QString &to_replace, QTextDocument::FindFlags ff );
-    uint replaceAll( const QString &to_find, const QString &to_replace, QTextDocument::FindFlags ff, bool rec = false );
-
-	void PrintToPdf();
-    void PrintToPrinter();
-    void PrintPreview();
-
-    //update actions
-    //
-    void connectSaveAvailableAction( QAction *pa );
-    void connectCutAvailableAction( QAction *pa );
-    void connectCopyAvailableAction( QAction *pa );
-    void connectUndoAvailableAction( QAction *pa );
-    void connectRedoAvailableAction( QAction *pa );
-    void connectDeleteSelAvailableAction( QAction *pa );
-
-protected:
+    // menu
+    
     virtual void contextMenuEvent( QContextMenuEvent *event ) override;
-
-protected slots:
-	void slotModificationChanged ( bool changed ){ emit modificationChanged ( changed ); }			  //to relay document() signal as common editors signal
-
-private slots:
-    void printPreviewSlot(QPrinter *printer);
-
-signals:
-	//	these signals are virtual, but the moc tool says: "warning : Signals cannot be declared virtual", so... 
-	//
-	void modificationChanged ( bool changed );
-    //void toolWindowActivated( EditorBase *peditor );	
-    //void currentFileWasSet( EditorBase *peditor );
-
-    void openURLsRequest( const QStringList &pathList );
 };
 
 
@@ -302,7 +166,8 @@ template< class STRING >
 inline STRING getAllEditorText( CTextWidget *pe, STRING &s )
 {
     pe->ClearSelection();
-    return getEditorText( pe, s );
+	s = q2a( pe->toPlainText() );           //.toStdString();
+    return s;
 }
 
 #endif

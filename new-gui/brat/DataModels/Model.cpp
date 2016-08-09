@@ -1,12 +1,12 @@
 #include "new-gui/brat/stdafx.h"
 
+#include "new-gui/Common/QtUtilsIO.h"
 #include "BratLogger.h"
 #include "BratSettings.h"
-#include "new-gui/Common/QtUtilsIO.h"
-#include "new-gui/Common/ApplicationPaths.h"
+#include "Model.h"
+#include "ApplicationPaths.h"
 #include "Workspaces/Workspace.h"
 #include "Workspaces/Display.h"
-#include "Model.h"
 
 
 //static 

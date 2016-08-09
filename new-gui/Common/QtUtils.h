@@ -38,28 +38,29 @@
 	#include <QtWidgets/QActionGroup>
 	#include <QMenu/QActionGroup>
 	#include <QInputDialog>
+    #include <QDesktopServices>
 #else
 	#include <QtGui/QApplication>
 	#include <QtGui/QFileDialog>
-	#include <QTextEdit>
-	#include <QMessageBox>
-	#include <QLayout>
-	#include <QSplitter>
-	#include <QToolBar>
-	#include <QMainWindow>
-	#include <QListWidget>
-    #include <QGroupBox>
-	#include <QToolButton>
-	#include <QPushButton>
-	#include <QActionGroup>
-	#include <QMenu>
-	#include <QInputDialog>
+    #include <QtGui/QTextEdit>
+    #include <QtGui/QMessageBox>
+    #include <QtGui/QLayout>
+    #include <QtGui/QSplitter>
+    #include <QtGui/QToolBar>
+    #include <QtGui/QMainWindow>
+    #include <QtGui/QListWidget>
+    #include <QtGui/QGroupBox>
+    #include <QtGui/QToolButton>
+    #include <QtGui/QPushButton>
+    #include <QtGui/QActionGroup>
+    #include <QtGui/QMenu>
+    #include <QtGui/QInputDialog>
+    #include <QtGui/QDesktopServices>
+    #include <QtGui/QDesktopWidget>
 #endif
-#include <QDesktopServices>
 #include <QSettings>
 #include <QResource>
 #include <QElapsedTimer>
-#include <QDesktopWidget>
 #include <QThread>
 #include <QUrl>
 
@@ -1262,6 +1263,44 @@ inline void NotImplemented( const char *msg = nullptr )
 
 
 
+
+
+//////////////////////////////////////////////////////////////////
+//						OS Standard Paths
+//////////////////////////////////////////////////////////////////
+//
+//in this file and not IO because include GUI
+
+
+inline const std::string& SystemUserDocumentsPath()
+{
+	static const std::string docs = q2a( QDesktopServices::storageLocation( QDesktopServices::DocumentsLocation ) );    assert__( IsDir( docs ) );
+	return docs;
+}
+
+// If applicationName and/or organizationName are set, are used by the framework as sub-directories.
+// If parameter root is false (the default), this function always removes the application 
+//  sub-directory, if it exists; so, for different applications of the same "organization" 
+//	(or of "no organization") the returned path is the same in the same machine.
+//
+inline std::string ComputeSystemUserDataPath( bool root = false )
+{
+	std::string data = q2a( QDesktopServices::storageLocation( QDesktopServices::DataLocation ) );
+    if ( !QCoreApplication::applicationName().isEmpty() )
+		data = GetDirectoryFromPath( data );
+	if ( root && !QCoreApplication::organizationName().isEmpty() && !QCoreApplication::applicationName().isEmpty() )
+		data = GetDirectoryFromPath( data );
+
+	return data;
+}
+
+inline const std::string& SystemUserDataPath()
+{
+	static const std::string data = ComputeSystemUserDataPath();		assert__( IsDir( GetDirectoryFromPath( data ) ) );
+	return data;
+}
+
+
 //////////////////////////////////////////////////////////////////
 //	Candidates
 //////////////////////////////////////////////////////////////////
@@ -1280,16 +1319,6 @@ inline void NotImplemented( const char *msg = nullptr )
 //	auto *item = list->item( index );
 //	return item->text();
 //}
-
-
-inline const std::string& DefaultUserDocumentsPath()
-{
-	static const std::string docs = q2a( QDesktopServices::storageLocation( QDesktopServices::DocumentsLocation ) );    assert__( IsDir( docs ) );
-	static const std::string s = docs + "/brat";
-
-	return s;
-}
-
 
 
 
@@ -1313,6 +1342,32 @@ public:
 };
 
 
+
+
+inline bool IsLinuxDesktop( const std::string &desktop )
+{
+    //Tested only in debian 7
+    //DESKTOP_SESSION=kde-plasma
+    //DESKTOP_SESSION=gnome
+
+#if defined (Q_OS_LINUX)
+    const char *DESKTOP_SESSION = getenv( "DESKTOP_SESSION" );
+    return DESKTOP_SESSION && ( std::string( DESKTOP_SESSION ).find( desktop ) != std::string::npos );
+#else
+
+    Q_UNUSED( desktop )
+
+    return false;
+#endif
+}
+inline bool IsGnomeDesktop()
+{
+    return IsLinuxDesktop( "gnome" );
+}
+inline bool IsKDEDesktop()
+{
+    return IsLinuxDesktop( "kde" );
+}
 
 
 

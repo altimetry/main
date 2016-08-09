@@ -250,7 +250,7 @@ void CExportDialog::Wire()
 
 	mCurrentAsciiOutputFileName = mOperation->GetExportAsciiOutputPath();
 	mCurrentGeoTIFFOutputFileName = mOperation->GetExportGeoTIFFOutputPath();
-	mCurrentNetcdfOutputFileName = GetDirectoryFromPath( mOperation->GetOutputPath() ) + "/Export" + mOperation->GetName();
+	mCurrentNetcdfOutputFileName = mOperation->GetExportNetcdfOutputPath();;
 
 
 	//set ASCII page
@@ -449,7 +449,7 @@ void CExportDialog::HandleDelayExecution()
 				mOperation->SetScheduledExportAsciiTaskName( mTaskLabel );
 				break;
 			case eNETCDF:
-				mOperation->SetScheduledTaskName( mTaskLabel );
+				mOperation->SetScheduledExportNetcdfTaskName( mTaskLabel );
 				break;
 			case eGEOTIFF:
 				mOperation->SetScheduledExportGeoTIFFTaskName( mTaskLabel );
@@ -471,6 +471,9 @@ void CExportDialog::HandleColorTablesIndexChanged( int )
 bool CExportDialog::Validate()
 {
 	mDelayExecution = mDelayExecutionCheckBox->isChecked();
+
+	SetFileExtension( mCurrentNetcdfOutputFileName, smDefaultExtensionNetCdf );
+	mOperation->SetExportNetcdfOutput( mCurrentNetcdfOutputFileName, mWOperation );
 
 	SetFileExtension( mCurrentAsciiOutputFileName, smDefaultExtensionAscii );
 	mOperation->SetExportAsciiOutput( mCurrentAsciiOutputFileName, mWOperation );

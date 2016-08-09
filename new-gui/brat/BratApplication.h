@@ -81,7 +81,7 @@ public:
 
 	// Calling this in main is mandatory
 	//	
-	static void Prologue( int argc, char *argv[] );
+	static void Prologue( int argc, char *argv[], const char *app_name );
 
 
     static int OffGuiErrorDialog( int error_type, char const *error_msg );

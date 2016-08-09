@@ -41,16 +41,6 @@ protected:
 	using stack_button_type = CStackedWidget::stack_button_type;
 
 
-	// statics ( domain )
-
-	static const std::string& FindAliasValue( CProduct *product, const std::string &alias_name );
-
-	static CField* FindField( CProduct *product, const std::string &name, bool &alias_used, std::string &field_error_msg );
-
-	static std::pair<CField*, CField*> FindLonLatFields( CProduct *product, bool &alias_used, std::string &field_error_msg );
-	static CField* FindTimeField( CProduct *product, bool &alias_used, std::string &field_error_msg );
-
-
 	//instance data
 
 protected:

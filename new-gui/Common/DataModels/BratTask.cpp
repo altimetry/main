@@ -41,7 +41,10 @@
 using namespace brathl;
 
 
-const std::string CBratTaskFunction::m_TASK_FUNC_COPYFILE = "CopyFile";
+//	IMPORTANT: this identifier is referenced in xsd, which takes it as an enumerator value
+//
+//static
+const std::string CBratTaskFunction::sm_TASK_FUNC_COPYFILE = "BratTaskFunctionCopyFile";
 
 //const QString CBratTask::FormatISODateTime = "%Y-%m-%d %H:%M:%S";
 
@@ -78,7 +81,7 @@ void CBratTaskFunction::Execute()
 	}
 }
 //----------------------------------------
-void CBratTaskFunction::CopyFile( CVectorBratAlgorithmParam& arg )
+void CBratTaskFunction::BratTaskFunctionCopyFile( CVectorBratAlgorithmParam& arg )
 {
 	if ( arg.size() != 2 )
 	{
@@ -138,7 +141,7 @@ CMapBratTaskFunction::~CMapBratTaskFunction()
 //----------------------------------------
 void CMapBratTaskFunction::Init()
 {
-  this->Insert(CBratTaskFunction::m_TASK_FUNC_COPYFILE, new CBratTaskFunction(CBratTaskFunction::m_TASK_FUNC_COPYFILE, CBratTaskFunction::CopyFile)); 
+  this->Insert(CBratTaskFunction::sm_TASK_FUNC_COPYFILE, new CBratTaskFunction(CBratTaskFunction::sm_TASK_FUNC_COPYFILE, CBratTaskFunction::BratTaskFunctionCopyFile)); 
 }
 
 //----------------------------------------

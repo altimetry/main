@@ -24,13 +24,17 @@
 #include "FileParams.h"
 #include "Product.h"
 #include "new-gui/Common/tools/Trace.h"
-#include "new-gui/Common/ConsoleApplicationPaths.h"
+#include "new-gui/Common/ApplicationStaticPaths.h"
 #include "InternalFiles.h"
 #include "InternalFilesFactory.h"
 #include "InternalFilesYFX.h"
 #include "InternalFilesZFXY.h"
 
 using namespace brathl;
+
+
+static const char *app_name = "BratShowInternalFile";
+
 
 int main( int argc, char *argv[] )
 {
@@ -40,7 +44,7 @@ int main( int argc, char *argv[] )
 		return 2;
 	}
 
-	const CConsoleApplicationPaths brat_paths( argv[ 0 ], "" );
+	const CApplicationStaticPaths brat_paths( argv[ 0 ], app_name );
 
 	CTools::SetInternalDataDir( brat_paths.mInternalDataDir );
 

@@ -393,7 +393,7 @@ public:
 			throw e_error_loading_module;
 		}
 
-		std::cout << "=> Loaded python Module object " + moduleName + " at " << m_module << std::endl;
+		std::cout << "- Loaded python Module object " + moduleName + " at " << m_module << std::endl;
 
 	    // Build the name of a callable class
 
@@ -406,7 +406,7 @@ public:
 		{
 			m_instance = PyObject_CallObject(m_class, NULL);
 
-            std::cout << "=> Loaded a python Class object " + mClassName + " at " << m_class << std::endl;
+            std::cout << "-- Loaded a python Class object " + mClassName + " at " << m_class << std::endl;
 		}
 		else {
 			if (PyErr_Occurred())

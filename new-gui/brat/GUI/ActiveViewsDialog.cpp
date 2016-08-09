@@ -130,7 +130,8 @@ void CActiveViewsDialog::HandleSelectWindow()
 		auto *sub_window = mSubWindows[ index ];
 		sub_window->setVisible( true );
 		sub_window->showNormal();
-	}
+        sub_window->activateWindow();   //linux
+    }
 }
 
 

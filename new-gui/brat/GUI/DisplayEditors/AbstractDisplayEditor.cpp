@@ -470,6 +470,46 @@ QToolButton* CAbstractDisplayEditor::AddMenuButton( EActionTag button_tag, const
 /////////////////////////////
 
 
+void CAbstractDisplayEditor::HandleTest()
+{
+    std::string parent_title = "<no parent>";
+    std::string grand_parent_title = "<no grand_parent>";
+    std::string grand_grand_parent_title = "<no grand_grand_parent>";
+    std::string parent_type = "<>";
+    QWidget *parent = parentWidget();
+    if ( parent )
+    {
+        if ( parent == this )
+            parent_title = " == <THIS> == " + q2a( parent->windowTitle() );
+        else
+            parent_title = q2a( parent->windowTitle() );
+
+        QWidget *grand_parent = parent->parentWidget();
+        if ( grand_parent )
+        {
+            grand_parent_title = q2a( grand_parent->windowTitle() );
+            if ( grand_parent->parentWidget() )
+            {
+                grand_grand_parent_title = q2a( grand_parent->parentWidget()->windowTitle() );
+            }
+        }
+
+        parent_type = q2a( parent->metaObject()->className() );
+    }
+
+    const std::string msg =
+            + "\nParent type: "             + parent_type
+            + "\nParent tile: "             + parent_title
+            + "\nGrand parent tile: "       + grand_parent_title
+            + "\nGrand grand parent tile: " + grand_grand_parent_title
+        ;
+
+    LOG_FATAL( msg );
+
+    Test();
+}
+
+
 // Assuming Start is called after this
 //
 void CAbstractDisplayEditor::UpdateOperationsCombo()

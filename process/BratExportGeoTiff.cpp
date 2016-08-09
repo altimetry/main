@@ -34,7 +34,7 @@
 #include "List.h"
 #include "new-gui/Common/tools/Exception.h"
 #include "new-gui/Common/+UtilsIO.h"
-#include "new-gui/Common/ConsoleApplicationPaths.h"
+#include "new-gui/Common/ApplicationStaticPaths.h"
 #include "FileParams.h"
 
 #include "ProcessCommonTools.h"
@@ -1717,11 +1717,15 @@ void ColourTable::prepareColdToHot(void)
 
 
 
+static const char *app_name = "BratExportGeoTiff";
+
+
+
 int main( int argc, char *argv[] )
 {
 	std::string commandFile;
 
-	const CConsoleApplicationPaths brat_paths( argv[ 0 ], "" );
+	const CApplicationStaticPaths brat_paths( argv[ 0 ], app_name );
 
 	CTools::SetInternalDataDir( brat_paths.mInternalDataDir );
 

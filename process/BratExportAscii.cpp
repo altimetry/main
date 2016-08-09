@@ -24,7 +24,7 @@
 #include "FileParams.h"
 #include "Product.h"
 #include "new-gui/Common/tools/Trace.h"
-#include "new-gui/Common/ConsoleApplicationPaths.h"
+#include "new-gui/Common/ApplicationStaticPaths.h"
 #include "BratProcess.h"
 #include "BratProcessExportAscii.h"
 
@@ -36,6 +36,8 @@
 using namespace brathl;
 using namespace processes;
 
+
+static const char *app_name = "BratExportAscii";
 
 
 int main( int argc, char *argv[] )
@@ -52,7 +54,7 @@ int main( int argc, char *argv[] )
 
 	bool bOk = true;
 
-	const CConsoleApplicationPaths brat_paths( argv[ 0 ], "" );
+	const CApplicationStaticPaths brat_paths( argv[ 0 ], app_name );
 
 	CTools::SetInternalDataDir( brat_paths.mInternalDataDir );
 

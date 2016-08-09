@@ -76,7 +76,7 @@ public:
 	//         in pixel coordinates.
 	//  - map_canvas a map canvas on which the tip is drawn
 	// 
-	void ShowMapTip( QgsMapLayer *layer, QgsPoint & map_position, QPoint & pixel_position, CMapWidget *map_canvas );
+	void ShowMapTip( QgsMapLayer *layer, QgsPoint & map_position, const QPoint &pixel_position, CMapWidget *map_canvas, QWidget *dest );
 
 	// Clear the current map tip if it exists 
 	//	- map_canvas the canvas from which the tip should be cleared.

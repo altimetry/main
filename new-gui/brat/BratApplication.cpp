@@ -60,7 +60,7 @@ int CBratApplication::OffGuiErrorDialog( int error_type, char const *error_msg )
 //	like assigning/checking application paths or statically setting 
 //	application style sheet.
 //
-void CBratApplication::Prologue( int argc, char *argv[] )
+void CBratApplication::Prologue( int argc, char *argv[], const char *app_name )
 {
 	// lambda
 
@@ -93,9 +93,15 @@ void CBratApplication::Prologue( int argc, char *argv[] )
 	safe_debug_envar_msg( "QGIS_DEBUG" );
 
 
+	// Application/Organization Names ////////////////////////////////////
+
+	QCoreApplication::setApplicationName( app_name );
+	QCoreApplication::setOrganizationName( ORGANIZATION_NAME );
+
+
 	// Application Paths ////////////////////////////////////
 
-    static CApplicationPaths brat_paths( argv[0] );		// (*)
+    static CApplicationPaths brat_paths( argv[0], app_name );		// (*)
     if ( !brat_paths.IsValid() )
 		throw CException( "One or more path directories are invalid:\n" + brat_paths.GetErrorMsg() );
 
@@ -187,7 +193,7 @@ void CBratApplication::CheckRunMode()
         return;
 
     QString wkspc_dir = args[ 0 ];
-    mOperatingInDisplayMode = !IsDir( wkspc_dir );	//no workspace, but there are command line arguments: let the old BratDisplay ghost take the command
+    mOperatingInDisplayMode = !IsDir( wkspc_dir );	//no workspace, but there are command line arguments: let old BratDisplay ghost take the command
     mOperatingInInstantPlotSaveMode = IsDir( args[ 0 ] ) && args.size() >= 3 && args.size() <= 4;
 }
 
@@ -196,27 +202,16 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 
 	: base_t( argc, argv, GUIenabled, customConfigPath.isEmpty() ? smApplicationPaths->mInternalDataDir.c_str() : customConfigPath )
 
-	, mSettings( *smApplicationPaths, "ESA", q2t< std::string >( QgsApplication::applicationName() ) )
+	, mSettings( *smApplicationPaths, q2a( QCoreApplication::organizationName() ), q2a( QgsApplication::applicationName() ) )
 
 {
 	LOG_TRACE( "Starting application instance construction..." );
 
-	//QCoreApplication::setApplicationName("your title") 
-
-// v4
-//#ifdef WIN32
-//#ifdef _DEBUG
-//	_CrtSetDbgFlag( _CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF );
-//#endif
-//#endif
-
     assert__( smPrologueCalled );
 	if ( !smPrologueCalled )
 		throw CException( "CBratApplication Prologue must be called before application construction." );
-
 	
 	CheckRunMode();
-
 	
 	CreateSplash();
 
@@ -321,21 +316,35 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
     mSettings.setApplicationStyle( *this, mDefaultAppStyle );
 
 	// Load XML processor and TasksProcessor
+	//	- catch all: do not prevent brat from starting if scheduling is unavailable
 	//
 	ShowSplash( "Loading scheduled tasks processor." );
 
-    ::xercesc::XMLPlatformUtils::Initialize();
+	const std::string xml_error = "ERROR: scheduled tasks processor could not be loaded. ";
+	try
+	{
+		::xercesc::XMLPlatformUtils::Initialize();
 
-    if ( !CTasksProcessor::GetInstance() )
-        CTasksProcessor::CreateInstance( mSettings.BratPaths() );
+		if ( !CTasksProcessor::GetInstance() )
+			CTasksProcessor::CreateInstance( SCHEDULER_APPLICATION_NAME, mSettings.BratPaths() );
 
-	LOG_TRACE( "Scheduled tasks processor loaded." );
+		LOG_TRACE( "Scheduled tasks processor loaded." );
+	}
+	catch ( const CException &e )
+	{
+		LOG_WARN( xml_error + e.Message() );
+	}
+	catch ( ... )
+	{
+		LOG_WARN( xml_error );
+	}
 
 
     //v4: remaining initialization in charge of the main window
 
 	LOG_TRACE( "Finished application instance construction." );
 }
+
 
 
 //virtual 
@@ -347,10 +356,11 @@ CBratApplication::~CBratApplication()
 	CTasksProcessor::DestroyInstance();
 
     if ( !mSettings.SaveConfig() )
-		LOG_TRACE( "Unable to save BRAT the application settings." );
+		LOG_TRACE( "Unable to save the BRAT application settings." );
 
     mSettings.Sync();
 }
+
 
 
 
@@ -388,10 +398,12 @@ void CBratApplication::CreateSplash()
 
 
 
+
 void CBratApplication::UpdateSettings()
 {
 	mSettings.setApplicationStyle( *this, mDefaultAppStyle );
 }
+
 
 
 bool CBratApplication::RegisterAlgorithms()

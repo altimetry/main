@@ -89,7 +89,9 @@ typedef void (*BratTaskFunctionCallableN)(CVectorBratAlgorithmParam& arg);
 class CBratTaskFunction
 {
 public:
-	static const std::string m_TASK_FUNC_COPYFILE;
+	static const std::string sm_TASK_FUNC_COPYFILE;
+
+	static void BratTaskFunctionCopyFile( CVectorBratAlgorithmParam& arg );		//v3 called CopyFile; name clash with window API
 
 protected:
 	std::string m_name;
@@ -112,7 +114,7 @@ public:
 		{
 			m_name = o.m_name;
 			m_call = o.m_call;
-			//	m_params = o.m_params;		//femm: the original ignored m_params
+			//m_params = o.m_params;	//v4: v3 ignored m_params; maybe because CBratTaskFunction instances are also used in the global functions map, where they are sort of "abstract"; nice
 		}
 		return *this;
 	}
@@ -123,9 +125,9 @@ public:
 	bool operator == ( const CBratTaskFunction& o ) const
 	{
 		return 
-			m_name == o.m_name &&
-			m_call == o.m_call
-			//m_params == o.m_params		//femm: follow assignment operator and ignore m_params in equality test
+			m_name == o.m_name
+			&& m_call == o.m_call
+			//&& m_params == o.m_params	//v4: follow assignment operator and ignore m_params in equality test
 			;
 	}
 
@@ -145,8 +147,6 @@ public:
 	void Execute();
 
 	virtual void Dump( std::ostream& fOut = std::cerr );
-
-	static void CopyFile( CVectorBratAlgorithmParam& arg );
 };
 
 
@@ -307,7 +307,7 @@ public:
 		, m_logFile( log_file )
 	{}
 
-	CBratTask( uid_t uid, const std::string &name, CBratTaskFunction function, const QDateTime &at, EStatus status, const std::string &log_file )
+	CBratTask( uid_t uid, const std::string &name, const CBratTaskFunction &function, const QDateTime &at, EStatus status, const std::string &log_file )
 		: m_uid( uid )
 		, m_name( name )
         , m_function( function )
@@ -371,11 +371,11 @@ public:
 
 	// getters / setters
 
-	const uid_t GetUid() const { return m_uid; }									//uid_t GetUidValue() const { return m_uid; }
-	std::string GetUidAsString() const { return n2s<std::string>( m_uid ); }
+	const uid_t GetUid() const { return m_uid; }					//uid_t GetUidValue() const { return m_uid; }
+	std::string GetUidAsString() const { return n2s( m_uid ); }
 	void SetUid( const std::string& value )
 	{
-		m_uid = s2n<uid_t>( value );	//femm m_uid = wxBratTools::wxStringTowxLongLong_t(value);
+		m_uid = s2n<uid_t>( value );	//v4 m_uid = wxBratTools::wxStringTowxLongLong_t(value);
 	}
 	void SetUid( uid_t value ) { m_uid = value; }
 

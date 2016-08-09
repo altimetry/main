@@ -569,6 +569,9 @@ void COperationControls::ResetFilterActions()
 	connect( mOperationFilterButton_Quick, SIGNAL( triggered( QAction * ) ), this, SLOT( HandleOperationFilterButton_Quick( QAction * ) ) );
 	connect( mOperationFilterButton_Quick, SIGNAL( toggled( bool ) ), this, SLOT( HandleOperationFilterButtonToggled_Quick( bool ) ) );
 
+	mOperationFilterButton_Advanced->setEnabled( mBratFilters.FiltersMap().size() > 0 );
+	mOperationFilterButton_Quick->setEnabled( mBratFilters.FiltersMap().size() > 0 );
+
 	ResetFilterSelection();
 }
 
@@ -589,7 +592,7 @@ void COperationControls::HandleFilterCompositionChanged( std::string filter_name
 
 void COperationControls::HandleFiltersChanged()		//always triggered by new, triggered by rename and delete if filter not being used
 {
-	ResetFilterActions();
+	ResetFilterActions();			qDebug() << "COperationControls::HandleFiltersChanged";
 }
 
 
@@ -677,21 +680,27 @@ void COperationControls::HandleOperationFilterButtonToggled_Advanced( bool toggl
 	assert__( mCurrentOperation );
 
 	const std::string filter_name = q2a( mOperationFilterButton_Advanced->text() );
-
-	if ( toggled )
+	if ( filter_name.empty() )
 	{
-		AssignAdvancedFilter( filter_name );
+		LOG_WARN( "No filter selected" );
 	}
 	else
 	{
-		RemoveAdvancedFilter( filter_name );
+		if ( toggled )
+		{
+			AssignAdvancedFilter( filter_name );
+		}
+		else
+		{
+			RemoveAdvancedFilter( filter_name );
+		}
+
+		mDataExpressionsTree->InsertOperation( mCurrentOperation );
 	}
 
 	UpdateFilterButton( mOperationFilterButton_Advanced, mCurrentOperation );
 	if ( mCurrentOperation == mQuickOperation )
 		UpdateFilterButton( mOperationFilterButton_Quick, mQuickOperation );
-
-	mDataExpressionsTree->InsertOperation( mCurrentOperation );
 }
 
 
@@ -700,14 +709,20 @@ void COperationControls::HandleOperationFilterButtonToggled_Quick( bool toggled 
 	assert__( mQuickOperation );
 
 	const std::string filter_name = q2a( mOperationFilterButton_Quick->text() );
-
-	if ( toggled )
+	if ( filter_name.empty() )
 	{
-		AssignQuickFilter( filter_name );
+		LOG_WARN( "No filter selected" );
 	}
 	else
 	{
-		RemoveQuickFilter( filter_name );
+		if ( toggled )
+		{
+			AssignQuickFilter( filter_name );
+		}
+		else
+		{
+			RemoveQuickFilter( filter_name );
+		}
 	}
 
 	UpdateFilterButton( mOperationFilterButton_Quick, mQuickOperation );
@@ -723,8 +738,7 @@ void COperationControls::HandleOperationFilterButton_Advanced( QAction *a )
 		return;
 
 	mOperationFilterButton_Advanced->setText( a->text() );
-	HandleOperationFilterButtonToggled_Advanced( true );
-	//qDebug() << "HandleOperationFilterButton==" << a->text();
+	HandleOperationFilterButtonToggled_Advanced( true );	//qDebug() << "HandleOperationFilterButton==" << a->text();
 }
 void COperationControls::HandleOperationFilterButton_Quick( QAction *a )
 {
@@ -2851,7 +2865,7 @@ void COperationControls::HandleExportOperation()
 		{
 			return;
 		}
-		Schedule( EExecutionType::eOperation, at, parent );
+		Schedule( EExecutionType::eExportNetCDF, at, parent );
 	};
 
 	auto ExportOperationAsNetCdf = [this]( const std::string &export_path )
@@ -3501,7 +3515,7 @@ CBratTask* COperationControls::Schedule( EExecutionType type, const QDateTime &a
 	assert__( mCurrentOperation );
 
 	const bool subordinated_task = parent != nullptr;
-	const bool exporting_netcdf = subordinated_task && type == EExecutionType::eOperation;
+	const bool exporting_netcdf = subordinated_task && type == EExecutionType::eExportNetCDF;
 
 	std::string msg;
 	if ( !subordinated_task && !CheckOperation( mCurrentOperation, msg, &mMapFormulaString ) )
@@ -3533,10 +3547,11 @@ CBratTask* COperationControls::Schedule( EExecutionType type, const QDateTime &a
 		uid_saved = parent->GetUid();
 	}
 
-	if ( !task_scheduler->LoadAllTasks() )
+	std::string xml_error_msg;
+	if ( !task_scheduler || !task_scheduler->LoadAllTasks( xml_error_msg ) )
 	{
 		wait.Restore();
-		SimpleErrorBox( "An error accessing the scheduled tasks file prevents delaying tasks execution." );
+		SimpleErrorBox( "An error accessing the scheduled tasks file prevents delaying tasks execution. " + xml_error_msg );
 		return nullptr;
 	}
 
@@ -3554,7 +3569,7 @@ CBratTask* COperationControls::Schedule( EExecutionType type, const QDateTime &a
 			params.Insert( mCurrentOperation->GetOutputPath() );
 			params.Insert( mCurrentOperation->GetOutputPath( type ) );
 
-			task = task_scheduler->CreateFunctionTaskAsPending( parent, CBratTaskFunction::m_TASK_FUNC_COPYFILE, params, at, task_label, log_dir );
+			task = task_scheduler->CreateFunctionTaskAsPending( parent, CBratTaskFunction::sm_TASK_FUNC_COPYFILE, params, at, task_label, log_dir );
 		}
 		else
 		{

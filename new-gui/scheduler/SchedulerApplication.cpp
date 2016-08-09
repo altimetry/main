@@ -6,7 +6,7 @@
 #include "new-gui/Common/ScheduledTasksList.hxx"
 #include "new-gui/Common/XmlSerializer.h"
 #include "new-gui/Common/DataModels/TaskProcessor.h"
-#include "new-gui/Common/ConsoleApplicationPaths.h"
+#include "new-gui/Common/GUI/ApplicationUserPaths.h"
 
 #if defined(MEM_LEAKS)
 	#include "new-gui/Common/WinMemChecker.h"
@@ -17,7 +17,9 @@
 	_CrtMemState CSchedulerApplication::AfterRunState;		//after running engine, before de-allocating
 #endif
 
-const CConsoleApplicationPaths *CSchedulerApplication::smApplicationPaths = nullptr;
+
+bool CSchedulerApplication::smPrologueCalled = false;
+const CApplicationUserPaths *CSchedulerApplication::smApplicationPaths = nullptr;
 
 
  
@@ -25,6 +27,65 @@ const CConsoleApplicationPaths *CSchedulerApplication::smApplicationPaths = null
 // give you the file name and line number where it occurred.
 // Needs to be included after all #include commands
 #include "libbrathl/Win32MemLeaksAccurate.h"
+
+
+// Static "pre-constructor"
+//
+//	Ensure that Qt only begins after anything we want to do first,
+//	like assigning/checking application paths or statically setting 
+//	application style sheet.
+//
+void CSchedulerApplication::Prologue( int argc, char *argv[], const char *app_name )
+{
+	// lambda
+
+	auto safe_debug_envar_msg = []( const char *var )
+	{
+		const char *value = getenv( var );
+		QString msg( var );
+		msg += "=";
+		LOG_TRACE( value ? msg + value : msg );
+	};
+
+	// function body
+
+    assert__( !smPrologueCalled );    UNUSED(argc);
+
+	if ( smPrologueCalled )
+		throw CException( "CBratApplication Prologue must be called only once." );
+
+	LOG_TRACE( "prologue tasks.." );
+	
+#if defined(_MSC_VER)
+	if ( !CheckSETranslator() )
+		LOG_TRACE( "WARNING: structured exceptions translator not assigned." );
+
+	SetAbortSignal();
+#endif
+
+	safe_debug_envar_msg( "QGIS_LOG_FILE" );
+	safe_debug_envar_msg( "QGIS_DEBUG_FILE" );
+	safe_debug_envar_msg( "QGIS_DEBUG" );
+
+
+	// Application/Organization Names ////////////////////////////////////
+
+	QCoreApplication::setApplicationName( app_name );
+	QCoreApplication::setOrganizationName( ORGANIZATION_NAME );
+
+
+	// Application Paths - a critical first thing to do ////////////////////////////////////
+
+    static const CApplicationUserPaths brat_paths( argv[ 0 ], app_name );
+    if ( !brat_paths.IsValid() )
+        throw CException( "One or more path directories are invalid:\n" + brat_paths.GetErrorMsg() );
+
+    smApplicationPaths = &brat_paths;	LOG_TRACEstd( smApplicationPaths->ToString() );
+
+    smPrologueCalled = true;
+
+	LOG_TRACE( "prologue tasks finished." );
+}
 
 
 // Tries to create a QApplication on-the-fly to able to use the
@@ -49,13 +110,11 @@ int CSchedulerApplication::OffGuiErrorDialog( int error_code, char const *error_
 CSchedulerApplication::CSchedulerApplication( int &argc, char **argv, int flags )
     : base_t( argc, argv, flags )
 {
-	// Application Paths - a critical first thing to do ////////////////////////////////////
+	//TODO QCoreApplication::setApplicationName("your title") 
 
-    static const CConsoleApplicationPaths brat_paths( argv[ 0 ], DefaultUserDocumentsPath() );
-    if ( !brat_paths.IsValid() )
-        throw CException( "One or more path directories are invalid:\n" + brat_paths.GetErrorMsg() );
-
-    smApplicationPaths = &brat_paths;	LOG_TRACEstd( smApplicationPaths->ToString() );
+    assert__( smPrologueCalled );
+	if ( !smPrologueCalled )
+		throw CException( "CBratApplication Prologue must be called before application construction." );
 
 
     //	0. SingleInstanceChecker
@@ -88,7 +147,7 @@ CSchedulerApplication::CSchedulerApplication( int &argc, char **argv, int flags 
 
     //	III. Locate data directory
 
-    CTools::SetInternalDataDir( brat_paths.mInternalDataDir );
+    CTools::SetInternalDataDir( smApplicationPaths->mInternalDataDir );
 
     /*
     //	IV. Units System

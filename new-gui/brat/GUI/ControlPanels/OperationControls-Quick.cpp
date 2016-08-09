@@ -97,33 +97,40 @@ inline std::string QuickCriteriaAlias( COperationControls::EPredefinedSelectionC
 //static 
 const std::string& COperationControls::QuickFindAliasValue( CProduct *product, EPredefinedVariables index )
 {
-	return FindAliasValue( product, QuickVariableAlias( index ) );
+    return CBratFilters::FindAliasValue( product, QuickVariableAlias( index ) );
 }
 
 //static 
 const std::string& COperationControls::QuickFindAliasValue( CProduct *product, EPredefinedSelectionCriteria index )
 {
-	return FindAliasValue( product, QuickCriteriaAlias( index ) );
+    return CBratFilters::FindAliasValue( product, QuickCriteriaAlias( index ) );
 }
 
 
 //static
 CField* COperationControls::QuickFindField( CProduct *product, EPredefinedVariables index, bool &alias_used, std::string &field_error_msg )
 {
-	return FindField( product, QuickVariableAlias( index ), alias_used, field_error_msg );
+    return CBratFilters::FindField( product, QuickVariableAlias( index ), alias_used, field_error_msg );
 }
 //static
 CField* COperationControls::QuickFindField( CProduct *product, EPredefinedSelectionCriteria index, bool &alias_used, std::string &field_error_msg )
 {
-	return FindField( product, QuickCriteriaAlias( index ), alias_used, field_error_msg );
+    return CBratFilters::FindField( product, QuickCriteriaAlias( index ), alias_used, field_error_msg );
 }
 
 
-
+// Only works if a formula used the alias (name, not value) as description; which they don't, unless alias value 
+//	and name are equal; this is for simplicity, to avoid having to use the product to retrieve the alias value
+//
 //static 
-bool COperationControls::FormulaMatchesQuickAlias( const std::string &description, EPredefinedVariables index )
+bool COperationControls::FormulaDescriptionMatchesQuickAlias( const std::string &description, EPredefinedVariables index )
 {
 	return description == QuickVariableAlias( index );
+}
+//static 
+bool COperationControls::FormulaNameMatchesQuickAlias( const std::string &name, EPredefinedVariables index )
+{
+	return name == QuickVariableAlias( index );
 }
 
 
@@ -144,12 +151,13 @@ void COperationControls::UpdateFieldsCheckState()
 {
 	//lambda
 
-	auto set_field = [this]( const std::string &name )
+	auto set_gui_field = [this]( const std::string &name )
 	{
 		for ( int i = 0; i < EPredefinedVariables_size; ++i )
 		{
 			auto *item = mQuickVariablesList->item( i );
-			if ( FormulaMatchesQuickAlias( name, (EPredefinedVariables)i ) )	//aliases: assuming formulas use the alias as description
+			//if ( FormulaMatchesQuickAlias( name, (EPredefinedVariables)i ) )	//see not in FormulaMatchesQuickAlias
+			if ( FormulaNameMatchesQuickAlias( name, (EPredefinedVariables)i ) )	//see not in FormulaMatchesQuickAlias
 			{
 				item->setFlags( item->flags() | Qt::ItemIsEnabled );
 				item->setCheckState( Qt::Checked );
@@ -175,17 +183,19 @@ void COperationControls::UpdateFieldsCheckState()
 
 		switch ( formula->GetFieldType() )
 		{
-		case CMapTypeField::eTypeOpAsX:
-			assert__( formula->IsXType() || formula->IsLatLonDataType() );
+		case CMapTypeField::eTypeOpAsX:			assert__( formula->IsXType() || formula->IsLatLonDataType() );
 			break;
-		case CMapTypeField::eTypeOpAsY:
-			assert__( formula->IsYType() || formula->IsLatLonDataType() );
+
+		case CMapTypeField::eTypeOpAsY:			assert__( formula->IsYType() || formula->IsLatLonDataType() );
 			break;
+
 		case CMapTypeField::eTypeOpAsField:
 			{
-				set_field( formula->GetDescription() );
+				//set_gui_field( formula->GetDescription() );
+				set_gui_field( formula->GetName() );
 			}
 			break;
+
         default:
             break;
         }
@@ -193,7 +203,7 @@ void COperationControls::UpdateFieldsCheckState()
 }
 
 
-COperation* COperationControls::CreateEmptyQuickOperation()
+COperation* COperationControls::GetOrCreateEmptyQuickOperation()
 {
 	static const std::string opname = CWorkspaceOperation::QuickOperationName();
 
@@ -230,10 +240,11 @@ void COperationControls::HandleWorkspaceChanged_Quick()
 {
 	// 1. Retrieve /create, if any; only return null if mWOperation is null
 	//
-	mQuickOperation = CreateEmptyQuickOperation();	//always assign mQuickOperation if possible, and always do it first 
+	mQuickOperation = GetOrCreateEmptyQuickOperation();	//always assign mQuickOperation if possible, and always do it first 
 
 	// 2. Fill quick datasets
 	//		- also: assigns dataset, enables all dataset dependent elements (fields and execution buttons, etc.)
+	//		- clears the operation formulas
 	//
 	HandleDatasetsChanged_Quick( nullptr );
 
@@ -334,7 +345,9 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 
 	mQuickFieldDesc->clear();
 
-	if ( mQuickOperation )
+	CDataset *dataset = QuickDatasetSelected();
+	//TODO the 2nd branch of the conjunction prevents deleting formulas on initialization, but check if this branch is not undesirable when dataset composition changes
+	if ( mQuickOperation && ( !dataset || ( dataset != mQuickOperation->OriginalDataset() ) ) )
 		RemoveOperationFormulas( mQuickOperation );
 
     if ( dataset_index < 0 )
@@ -354,7 +367,7 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 
 	// 2. assign dataset
 	//
-	CDataset *dataset = QuickDatasetSelected();			assert__( dataset );		assert__( mQuickOperation );
+														assert__( dataset );		assert__( mQuickOperation );
 	mQuickOperation->SetDataset( dataset );
 
 	// 3. check if dataset files are usable (have lon/lat fields); return if not
@@ -370,7 +383,7 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 
 		std::string field_error_msg;
 		bool alias_used;
-		std::pair<CField*, CField*> fields = FindLonLatFields( product, alias_used, field_error_msg );
+        std::pair<CField*, CField*> fields = CBratFilters::FindLonLatFields( product, alias_used, field_error_msg );
 		delete product;
 		if ( fields.first && fields.second )
 		{
@@ -425,7 +438,10 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 }
 
 
-// Update execution buttons state
+//	Update execution buttons state
+//	NOTE: For simplicity reasons (not have to create and open product, etc.) mQuickOperation formulas are 
+//		not updated here, only when the operation is executed; as a consequence, saving without executing 
+//		will nor preserve the selected fields for the next application session.
 //
 void COperationControls::HandleVariableStateChanged_Quick( QListWidgetItem * )
 {
@@ -567,28 +583,40 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 
 	// 1. create and insert operation
 
-	COperation *operation = CreateEmptyQuickOperation();		assert__( operation );
-	if ( operation )
-	{
-		int current_index = mOperationsCombo->currentIndex();
-		int quick_op_index = mOperationsCombo->findText( opname.c_str() );
-		if ( quick_op_index == current_index )
-			mOperationsCombo->setCurrentIndex( -1 );
-		operation->Clear();
-	}
+	COperation *operation = GetOrCreateEmptyQuickOperation();	assert__( operation );
+	int current_index = mOperationsCombo->currentIndex();
+	int quick_op_index = mOperationsCombo->findText( opname.c_str() );
+	if ( quick_op_index == current_index )
+		mOperationsCombo->setCurrentIndex( -1 );
+	operation->Clear();							//TODO always recreates; simplify
 
-	operation->InitOutputs( mWOperation );	//operation->InitExportAsciiOutput( mWOperation );
+	operation->InitOutputs( mWOperation );
 	operation->SetType( type );
 
+	const std::string filter_name = q2a( mOperationFilterButton_Quick->text() );
+	if ( !filter_name.empty() )
+	{
+		auto *filter = mBratFilters.Find( filter_name );								assert__( filter );
+		operation->SetFilter( filter );
+	}
 	operation->SetDataset( QuickDatasetSelected() );
 	CProduct *product = const_cast<const COperation*>( operation )->Dataset()->OpenProduct();
+	if ( !product )
+	{
+		std::string suggestion;
+		if ( operation->Filter() )
+			suggestion = "\nMaybe the operation's filter excluded all data files.";
+		SimpleWarnBox( "There is no product for the operation to use." + suggestion );
+		return nullptr;
+	}
 	operation->SetProduct( product );
+
 
 	std::string operation_record = operation->GetRecord();
 
 	bool alias_used;
 	std::string field_error_msg;
-	std::pair<CField*, CField*> lon_lat_fields = FindLonLatFields( product, alias_used, field_error_msg );		assert__( lon_lat_fields.first && lon_lat_fields.second );
+    std::pair<CField*, CField*> lon_lat_fields = CBratFilters::FindLonLatFields( product, alias_used, field_error_msg );		assert__( lon_lat_fields.first && lon_lat_fields.second );
 
 	std::string error_msg;
 	if ( !operation->HasFormula() )
@@ -608,7 +636,7 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
   //Insert("asX", eTypeOpAsX);
   //Insert("asY", eTypeOpAsY);
 
-	std::vector< std::string > fields;
+	std::vector< std::pair< std::string, std::string > > fields;
 
 #if defined ONLY_USE_WITH_SLA_SSH
 	bool add_selection_criteria = false;
@@ -626,18 +654,20 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 			add_selection_criteria |= vi == eSSH || vi == eSLA;
 			std::string expression = QuickFindAliasValue( product, vi );
 			if ( !expression.empty() )
-				fields.push_back( expression );
+				fields.push_back( { expression, QuickVariableAlias( vi ) } );
 		}
 	}									 assert__( fields.size() > 0 );
 
 	add_selection_criteria &= mQuickSelectionCriteriaCheck->isChecked();
 
 	for ( auto const &expression : fields )
-	{
-		std::string error_msg;
-		CFormula *formula = operation->NewUserFormula( error_msg, operation->GetFormulaNewName(), CMapTypeField::eTypeOpAsField, "", true );
+    {
+        std::string error_msg;
+        CField *field = product->FindFieldByName( expression.first, false, &error_msg );		//true: throw on failure
+        error_msg.clear();
+        CFormula *formula = operation->NewUserFormula( error_msg, expression.second, CMapTypeField::eTypeOpAsField, field ? field->GetUnit() : "", true );
 		if ( error_msg.empty() )
-			formula->SetDescription( expression );
+			formula->SetDescription( expression.first );
 		else
 			SimpleWarnBox( error_msg );
 	}
@@ -651,101 +681,6 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 
 	return operation;
 }
-
-
-//COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
-//{
-//	static const std::string opname = CWorkspaceOperation::QuickOperationName();
-//
-//	WaitCursor wait;											assert__( mWRoot && QuickDatasetSelected() );
-//
-//	// 1. create and insert operation
-//
-//	COperation *operation = CreateEmptyQuickOperation();		assert__( operation );
-//	if ( operation )
-//	{
-//		int current_index = mOperationsCombo->currentIndex();
-//		int quick_op_index = mOperationsCombo->findText( opname.c_str() );
-//		if ( quick_op_index == current_index )
-//			mOperationsCombo->setCurrentIndex( -1 );
-//		operation->Clear();
-//	}
-//
-//	operation->InitOutput( mWOperation );
-//	operation->InitExportAsciiOutput( mWOperation );
-//	operation->SetType( type );
-//
-//	operation->SetDataset( QuickDatasetSelected() );
-//	CProduct *product = const_cast<const COperation*>( operation )->Dataset()->OpenProduct();
-//	operation->SetProduct( product );
-//
-//	std::string operation_record = operation->GetRecord();
-//
-//	std::vector< CField*> fields;
-//	bool alias_used;
-//	std::string field_error_msg;
-//	std::pair<CField*, CField*> lon_lat_fields = FindLonLatFields( product, alias_used, field_error_msg );		assert__( lon_lat_fields.first && lon_lat_fields.second );
-//
-//	std::string error_msg;
-//	if ( !operation->HasFormula() )
-//	{
-//		std::string field_record = lon_lat_fields.first->GetRecordName();
-//		operation->SetRecord( field_record );
-//		if ( operation->GetRecord().empty() && product->IsNetCdf() )
-//			operation->SetRecord( CProductNetCdf::m_virtualRecordName );
-//	}
-//	CFormula* formula = operation->NewUserFormula( error_msg, lon_lat_fields.first, CMapTypeField::eTypeOpAsX, true, product );
-//	operation->ComputeInterval( formula, error_msg );
-//
-//	formula = operation->NewUserFormula( error_msg, lon_lat_fields.second, CMapTypeField::eTypeOpAsY, true, product );
-//	operation->ComputeInterval( formula, error_msg );
-//
-//  //Insert("asField", eTypeOpAsField);
-//  //Insert("asX", eTypeOpAsX);
-//  //Insert("asY", eTypeOpAsY);
-//
-//	CField *field = nullptr;
-//	const int size = mQuickVariablesList->count();
-//	bool add_selection_criteria = false;
-//	for ( int i = 0; i < size; ++i )
-//	{
-//		auto *item = mQuickVariablesList->item( i );
-//		if ( item->checkState() ==  Qt::Checked  )
-//		{
-//			EPredefinedVariables vi = (EPredefinedVariables)i;
-//			add_selection_criteria |= vi == eSSH || vi == eSLA;
-//			field = QuickFindField( product, vi, alias_used, field_error_msg );
-//			if ( field )
-//				fields.push_back( field );
-//		}
-//	}									 assert__( fields.size() > 0 );
-//
-//	for ( auto *field : fields )
-//	{
-//		std::string field_record = field->GetRecordName();
-//		if ( !operation->HasFormula() )
-//		{
-//		//	operation->SetRecord( field_record );
-//		//	if ( operation->GetRecord().empty() && product->IsNetCdf() )
-//		//		operation->SetRecord( CProductNetCdf::m_virtualRecordName );
-//		}
-//		CFormula* formula = operation->NewUserFormula( error_msg, field, CMapTypeField::eTypeOpAsField, true, product );
-//		if ( !error_msg.empty() )
-//			SimpleErrorBox( error_msg );
-//		//Add( theParentId, formula );
-//
-//        Q_UNUSED( formula)
-//	}
-//
-//	std::string selection_criteria;
-//	if ( add_selection_criteria )
-//	{
-//		selection_criteria = QuickFindAliasValue( product, eOceanEditing );
-//	}
-//	operation->GetSelect()->SetDescription( selection_criteria );
-//
-//	return operation;
-//}
 
 
 void COperationControls::SelectOperation( const std::string &name, bool select_map )

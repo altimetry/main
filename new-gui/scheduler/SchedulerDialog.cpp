@@ -11,16 +11,15 @@
 
 #include "new-gui/Common/BratVersion.h"
 #include "new-gui/Common/QtUtils.h"
-#include "new-gui/Common/ConsoleApplicationPaths.h"
+#include "new-gui/Common/GUI/ApplicationUserPaths.h"
 #include "new-gui/Common/GUI/BasicLogShell.h"
-#include "new-gui/Common/GUI/ProcessesTable.h"
 
 #include "new-gui/Common/DataModels/TaskProcessor.h"
 
 #include "SchedulerApplication.h"
 #include "SchedulerLogger.h"
-#include "SchedulerDialog.h"
 #include "EditTasksFileDialog.h"
+#include "SchedulerDialog.h"
 
 
 // When debugging changes all calls to new to be calls to DEBUG_NEW allowing for memory leaks to
@@ -28,19 +27,11 @@
 // Needs to be included after all #include commands
 #include <libbrathl/Win32MemLeaksAccurate.h>
 
-#ifdef WIN32
-const std::string BRATHL_ICON_FILENAME = "BratIcon.ico";
-#else
-const std::string BRATHL_ICON_FILENAME = "BratIcon.bmp";
-#endif
-
-//const std::string BRATGUI_APPNAME = "scheduler";
-//const std::string GROUP_COMMON = "Common";
-//const std::string ENTRY_USER_MANUAL = "UserManual";
-//const std::string ENTRY_USER_MANUAL_VIEWER = "UserManualViewer";
-
-//QString mUserManualViewer;
-//std::string m_userManual;
+//#ifdef WIN32
+//const std::string BRATHL_ICON_FILENAME = "BratIcon.ico";
+//#else
+//const std::string BRATHL_ICON_FILENAME = "BratIcon.bmp";
+//#endif
 
 
 
@@ -73,8 +64,8 @@ void CSchedulerDialog::SetTablesProperties( Args... args )
 	QTableWidget *tables[] { args... }; 
     for ( QTableWidget *t : tables )
 	{
-		// Enabling sorting in all tables: pending, processing and end tasks.
-		t->setSortingEnabled( true );
+		// Disable sort
+		t->setSortingEnabled( false );
 
 		// Changing selection behavior to whole row selection
 		t->setSelectionBehavior( QAbstractItemView::SelectRows );
@@ -228,7 +219,6 @@ void CSchedulerDialog::CreateProcessesTable()
 void CSchedulerDialog::UpdateTasksTables()
 {
 	UpdateTasksTable( *CTasksProcessor::GetInstance()->GetMapPendingBratTask(), mTablePendingTask );
-	//UpdateTasksTable(*CTasksProcessor::GetInstance()->GetMapProcessingBratTask(), tableProcTask);
 	UpdateTasksTable( *CTasksProcessor::GetInstance()->GetMapEndedBratTask(), mTableEndedTask );
 }
 
@@ -262,8 +252,12 @@ CSchedulerDialog::CSchedulerDialog( CSchedulerApplication &a, QWidget *parent )
 	CreateLogTable();
 	CreateProcessesTable();
 
+	// CreateInstance calls ctor, which loads xml; and throws on error
+	//	- let it throw: scheduler cannot work without a valid TasksProcessor,
+	//		which in turn cannot work without a valid XML
+	//
     if ( !CTasksProcessor::GetInstance() )
-        CTasksProcessor::CreateInstance( *mAppPaths );
+        CTasksProcessor::CreateInstance( mAppPaths->mApplicationName, *mAppPaths );
 	mSchedulerFilePath = CTasksProcessor::GetInstance()->SchedulerFilePath();
 
     // v3 note: After loading, tasks whose status is 'in progress' are considered as 'pending'
@@ -337,6 +331,73 @@ void CSchedulerDialog::HandleProcessFinished( int exit_code, QProcess::ExitStatu
 //
 /////////////////////////////////////////////////////////////////////////////////////////////
 
+std::string CBratTaskFunctionProcess::FormatPseudoCmd( const CBratTask *task ) const
+{
+	const CBratTaskFunction *function = task->GetBratTaskFunction();
+	std::string params;
+	function->GetParamsAsString( params );
+
+	return function->GetName() + params;
+}
+
+CBratTaskFunctionProcess::CBratTaskFunctionProcess( CBratTask *task, bool sync, QWidget *parent, void *user_data )
+	: base_t( sync, task->GetName(), parent, FormatPseudoCmd( task ), user_data, task->GetUidAsString(), task->GetAtAsString(), task->GetStatusAsString(), task->GetLogFile() )
+	, mTask( task )
+{}
+
+
+//virtual 
+void CBratTaskFunctionProcess::Kill()
+{
+	base_t::base_t::kill();
+}
+
+
+//virtual 
+void CBratTaskFunctionProcess::Execute( bool detached )		//detached = false 
+{
+	assert__( mTask );		Q_UNUSED( detached );
+
+	std::string error_msg;
+	setProcessState( QProcess::ProcessState::Starting );		//emits
+
+	try
+	{
+		if ( mTask->GetBratTaskFunction() == nullptr )
+		{
+			throw CException( "Function is null (CBratTaskFunctionProcess::Execute)", BRATHL_ERROR );
+		}
+
+		setProcessState( QProcess::ProcessState::Running );		//emit stateChanged( QProcess::ProcessState::Running );
+		emit started();
+
+		qApp->processEvents();		//give task a chance to appear in table
+
+		/////////////////////////
+		mTask->ExecuteFunction();
+		/////////////////////////
+
+		setProcessState( QProcess::ProcessState::NotRunning );	//emit stateChanged( QProcess::ProcessState::NotRunning );
+		emit finished( 0 );
+		emit finished( 0, QProcess::ExitStatus::NormalExit );
+
+		return;
+	}
+    catch ( CException &e )
+	{
+		error_msg = e.Message();
+	    emit error( QProcess::ProcessError::Crashed );		//to make sense with CrashExit below
+	}
+
+	Log( "\n" + error_msg + "\n" );
+	LOG_WARN( error_msg );
+
+	setProcessState( QProcess::ProcessState::NotRunning );
+	emit finished( -1, QProcess::ExitStatus::CrashExit );
+}
+
+
+
 bool CSchedulerDialog::ExecuteAsync( CBratTask *task, int isubtask )	//, int isubtask = - 1
 {
     CBratTask *child_task = isubtask < 0 ? task : task->GetSubordinateTasks()->at( isubtask );
@@ -352,7 +413,14 @@ bool CSchedulerDialog::ExecuteAsync( CBratTask *task, int isubtask )	//, int isu
 	}
 
     const bool sync = false;
-    bool result = mProcessesTable->SilentAdd( handler, sync, false, child_task->GetName(), child_task->GetCmd(),
+    const bool function_sync = true;	//irrelevant in what concerns execution, relevant to display message before (pseudo)execution call
+    const bool allow_multiple = false;
+    bool result = 
+		child_task->HasFunction() 
+		?
+		mProcessesTable->Add( new CBratTaskFunctionProcess( child_task, function_sync, mProcessesTable, handler ), false, function_sync, allow_multiple )
+		:
+		mProcessesTable->SilentAdd( handler, sync, allow_multiple, child_task->GetName(), child_task->GetCmd(),
         child_task->GetUidAsString(),
         child_task->GetAtAsString(),
         child_task->GetStatusAsString(),
@@ -386,16 +454,24 @@ void CSchedulerDialog::AsyncTaskFinished( int exit_code, QProcess::ExitStatus ex
 	CBratTask *task = phandler->task;
 	CBratTask::EStatus status = success ? CBratTask::eBRAT_STATUS_ENDED : CBratTask::eBRAT_STATUS_WARNING;
 
-    if ( success && task->HasSubordinateTasks() )
-    {
-        const size_t size = task->GetSubordinateTasks()->size();
-        int isubtask = phandler->isubtask + 1;
-        if ( isubtask < (int)size )
-        {
-            ExecuteAsync( task, isubtask );
-            return;
-        }
-    }
+	if ( task->HasSubordinateTasks() )
+	{
+		int isubtask = phandler->isubtask;
+		CBratTask *child_task = isubtask < 0 ? nullptr : task->GetSubordinateTasks()->at( isubtask );
+		if ( child_task )
+			child_task->SetStatus( status );
+
+		if ( success )
+		{
+			const size_t size = task->GetSubordinateTasks()->size();
+			isubtask++;
+			if ( isubtask < (int)size )
+			{
+				ExecuteAsync( task, isubtask );
+				return;
+			}
+		}
+	}
 
 
 	try
@@ -415,28 +491,29 @@ void CSchedulerDialog::AsyncTaskFinished( int exit_code, QProcess::ExitStatus ex
 
 		//    ResetConfigFileChange();
 
-		InsertTaskInTable( mTableEndedTask, task );
-		//
-		//  }
-		//  catch(CException& e)
-		//  {
-		//    UnLockConfigFile();
-		//    bOk = false;
-		//    wxLogError("%s",e.what());
-		//
-		//  }
-		//
-		mProcessesTable->setEnabled( true );
-		mTab_EndedTasks->setEnabled( true );
-
-		mCheckConfigFileTimer.start( smCHECK_CONFIGFILE_TIMER_INTERVAL );
-
-		LOG_INFO( "Asynchronous process for task '" + task->GetName() + "' finished execution." );
 	}
 	catch ( const CException &e )
 	{
-		LOG_WARN( e.Message() );
+		LOG_WARN( "Exception after execution, updating tasks list: " + e.Message() );
 	}
+
+	AddTaskToTable( mTableEndedTask, task );
+	//
+	//  }
+	//  catch(CException& e)
+	//  {
+	//    UnLockConfigFile();
+	//    bOk = false;
+	//    wxLogError("%s",e.what());
+	//
+	//  }
+	//
+	mProcessesTable->setEnabled( true );
+	mTab_EndedTasks->setEnabled( true );
+
+	mCheckConfigFileTimer.start( smCHECK_CONFIGFILE_TIMER_INTERVAL );
+
+	LOG_INFO( "All '" + task->GetName() + "' sub-tasks finished execution." );
 }
 
 
@@ -446,7 +523,7 @@ void CSchedulerDialog::AsyncTaskFinished( int exit_code, QProcess::ExitStatus ex
 //
 //	if ( task == nullptr )
 //	{
-//		wxString msg = wxString::Format( "Unable to process task: task uid '%s' is not found.",
+//		std::string msg = std::string::Format( "Unable to process task: task uid '%s' is not found.",
 //			task->GetUidValueAsString().c_str() );
 //		//wxMessageBox(msg,
 //		//            "Error",
@@ -462,11 +539,6 @@ void CSchedulerDialog::AsyncTaskFinished( int exit_code, QProcess::ExitStatus ex
 //
 //	this->AddProcess( process );
 //}
-//void CSchedulerDialog::AsyncSubtaskFinished( int exit_code, QProcess::ExitStatus exitStatus, post_execution_handler_wrapper_t *phandler )
-void CSchedulerDialog::AsyncSubtaskFinished( int , QProcess::ExitStatus , post_execution_handler_wrapper_t * )
-{
-
-}
 
 void CSchedulerDialog::SchedulerTimerTimeout()
 {
@@ -497,7 +569,7 @@ void CSchedulerDialog::SchedulerTimerTimeout()
 
 			CTasksProcessor::GetInstance()->ChangeTaskStatus( task->GetUid(), CBratTask::eBRAT_STATUS_PROCESSING );
 			RemoveTaskFromTable( mTablePendingTask, task );
-			HandleSelectedPendingProcessChanged();
+			HandleSelectedPendingProcessChanged();				//enable/disable buttons
 
 			//bool saved = 
 			CTasksProcessor::GetInstance()->SaveAllTasks();		//TODO error handling
@@ -507,53 +579,33 @@ void CSchedulerDialog::SchedulerTimerTimeout()
 			//call CProcessingPanel::OnBratTaskProcess(CBratTaskProcessEvent& event)
 			if ( task == nullptr )
 			{
-				std::string msg = "Unable to process task: task uid '" + task->GetUidAsString() + "' is not found.";
+				std::string msg = "Unable to process task: task uid '" + task->GetUidAsString() + "' is not found.";	//TODO nice: using task just found as nullptr!
 				LOG_WARN( msg );
 			}
             else
 
 			////	CBratTaskProcess* process = new CBratTaskProcess( task, this );
 			////	this->AddProcess( process );
-			//post_execution_handler_wrapper_t *handler = new post_execution_handler_wrapper_t{ task, &CSchedulerDialog::AsyncTaskFinished, -1 };
-			//const bool sync = false;
-			//bool result = mProcessesTable->SilentAdd( handler, sync, false, task->GetName(), task->GetCmd(),
-			//	task->GetUidAsString(),
-			//	task->GetAtAsString(),
-			//	task->GetStatusAsString(),
-			//	task->GetLogFile() );
-
-			//mSyncProcessExecuting = result && sync;
-			//if ( !mSyncProcessExecuting )
-			//	emit sync ? SyncProcessExecution( false ) : AsyncProcessExecution( false );
-			//else
-			//{
-			//	if ( sync )
-			//	{
-			//		while ( mSyncProcessExecuting )
-			//		{
-			//			QBratThread::sleep( 1 );
-			//			qApp->processEvents();
-			//		}
-			//	}
-			//}
 
 			if ( !ExecuteAsync( task ) )
 			{
 				CTasksProcessor::GetInstance()->ChangeTaskStatus( task->GetUid(), CBratTask::eBRAT_STATUS_PENDING );
-				InsertTaskInTable( mTablePendingTask, task );
+				AddTaskToTable( mTablePendingTask, task );
 				LOG_WARN( "Task " + task->GetName() + " changed to pending." );
 			}
-
-			mTab_PendingTasks->setEnabled( true );
-			mProcessesTable->setEnabled( true );
-			mCheckConfigFileTimer.start( smCHECK_CONFIGFILE_TIMER_INTERVAL );
 		}
 	}
 	catch ( const CException &e )
 	{
-		LOG_WARN( e.Message() );
+		LOG_WARN( "Exception while handling tasks timer: " + e.Message() );
 	}
+
+	mTab_PendingTasks->setEnabled( true );
+	mProcessesTable->setEnabled( true );
+	mCheckConfigFileTimer.start( smCHECK_CONFIGFILE_TIMER_INTERVAL );
 }
+
+
 void CSchedulerDialog::CheckConfigFileTimerTimeout()
 {
 	QMutexLocker locker( &mTasksMutex );
@@ -566,7 +618,7 @@ void CSchedulerDialog::CheckConfigFileTimerTimeout()
 			mCheckConfigFileTimer.stop();
 			mLastCheck = most_recent;
 
-			if ( CTasksProcessor::GetInstance()->ReloadOnlyNew() )
+			if ( CTasksProcessor::GetInstance()->ReloadOnlyNew() )												//creates a temporary CTasksProcessor to use in AddNewTasksFromSibling
 				UpdateTasksTable( *CTasksProcessor::GetInstance()->GetMapPendingBratTask(), mTablePendingTask );
 
 			mCheckConfigFileTimer.start( smCHECK_CONFIGFILE_TIMER_INTERVAL );
@@ -624,7 +676,7 @@ bool CSchedulerDialog::RemoveTaskFromTable( QTableWidget *table, const CBratTask
 }
 
 
-void CSchedulerDialog::InsertTaskInTable( QTableWidget *table, CBratTask *task )
+void CSchedulerDialog::AddTaskToTable( QTableWidget *table, CBratTask *task )
 {
 	int index = table->rowCount();
 	table->setRowCount( index + 1 );
@@ -636,6 +688,13 @@ void CSchedulerDialog::InsertTaskInTable( QTableWidget *table, CBratTask *task )
 	table->setItem( index, CProcessesTable::eTaskCMD, new QTableWidgetItem( task->GetCmd().c_str() ) );
 	table->setItem( index, CProcessesTable::eTaskLogFile, new QTableWidgetItem( task->GetLogFile().c_str() ) );
 
+	if ( task->HasSubordinateTasks() )
+	{
+		QTableWidgetItem *item = table->item( index, CProcessesTable::eTaskName );					assert__( item );
+		item->setData( Qt::ToolTipRole, task->GetSubordinateTasks()->at( 0 )->GetName().c_str() );	//not working
+		item->setToolTip( task->GetSubordinateTasks()->at( 0 )->GetName().c_str() );				//not working
+	}
+
 	SetItemProcessData( table, index, task );
 }
 
@@ -646,13 +705,13 @@ void CSchedulerDialog::UpdateTasksTable( const CMapBratTask &data, QTableWidget 
 	for ( CMapBratTask::const_iterator it = data.begin(); it != data.end(); it++ )
 	{
 		CBratTask *task = it->second;		assert__( task != nullptr );
-		InsertTaskInTable( table, task );
+		AddTaskToTable( table, task );
 	}
 
 	HandleSelectedPendingProcessChanged();
 	HandleSelectedEndedProcessChanged();
 
-	LOG_INFO( "Tasks loaded." );
+	LOG_INFO( "The tasks table has been updated." );
 }
 
 
@@ -796,7 +855,8 @@ void CSchedulerDialog::action_ViewConfig_slot()
 
 void CSchedulerDialog::action_UserManual_slot()
 {
-	if ( !QDesktopServices::openUrl( QUrl( mAppPaths->mUserManualPath.c_str() ) ) )
+    if ( !SimpleSystemOpenFile( mAppPaths->mUserManualPath ) )
+//	if ( !QDesktopServices::openUrl( QUrl::fromLocalFile( mAppPaths->mUserManualPath.c_str() ) ) )
 		SimpleErrorBox( "Could not open " + mAppPaths->mUserManualPath );
 }
 

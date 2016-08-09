@@ -20,7 +20,7 @@
 #define COMMON_BRAT_VERSION_H
 
 
-#define BRAT_VERSION             "4.0.0-beta"
+#define BRAT_VERSION             "4.0.0"
 
 
 

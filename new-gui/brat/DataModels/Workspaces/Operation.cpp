@@ -17,6 +17,7 @@
 */
 #include "new-gui/brat/stdafx.h"
 
+#include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/tools/Trace.h"
 #include "new-gui/Common/tools/Exception.h"
 
@@ -245,7 +246,7 @@ public:
         if ( mOp.Filter() )
         {
             CritExpression.empty() ? CritExpression += "" : CritExpression += " && ";
-            CritExpression += mOp.Filter()->GetSelectionCriteriaExpression( mOp.GetProduct()->GetLabel() );
+            CritExpression += mOp.Filter()->GetSelectionCriteriaExpression( mOp.GetProduct() );
         }
         /////////////////////////////////////////////////////////////////
 
@@ -678,10 +679,13 @@ void COperation::Clear()
 
 	m_output.clear();
 	m_exportAsciiOutput.clear();
+	m_exportNetcdfOutput.clear();
+	m_exportGeoTIFFOutput.clear();
 	m_showStatsOutput.clear();
 
 	m_cmdFile.clear();;
 	m_exportAsciiCmdFile.clear();
+	m_exportGeoTIFFCmdFile.clear();
 	m_showStatsCmdFile.clear();
 
 	m_logFile.clear();
@@ -972,12 +976,19 @@ void COperation::SetDataset()
 	if ( mFilter )
 	{
 		CStringList files_out;
+        std::string error_msg;
 
-		if ( mFilter->Apply( file_list, files_out ) )
+        if ( mFilter->Apply( file_list, files_out, error_msg ) )
 		{
 			file_list.clear();
 			file_list.Insert( files_out );
 		}
+        else
+        {
+           SimpleWarnBox( "Filter '" + mFilter->Name() + "' was not applied!\n\nReason:\n" +  error_msg );
+           // Removing filter;
+           mFilter = nullptr;
+        }
 	}
 
 	mDataset->GetProductList()->InsertUnique( file_list );
@@ -1281,6 +1292,10 @@ std::string COperation::GetExportAsciiTaskName() const
 {
 	return m_exportAsciiCmdFile.empty() ? NoName : GetFileName( m_exportAsciiCmdFile );
 }
+std::string COperation::GetExportNetcdfTaskName() const
+{
+	return "NetcdfExport" + GetTaskName();
+}
 std::string COperation::GetExportGeoTIFFTaskName() const
 {
 	return m_exportGeoTIFFCmdFile.empty() ? NoName : GetFileName( m_exportGeoTIFFCmdFile );
@@ -1387,6 +1402,20 @@ void COperation::SetExportAsciiOutput( const std::string& value, CWorkspaceOpera
 	SetExportAsciiCmdFile( wks );
 }
 
+void COperation::SetExportNetcdfOutput( const std::string& value, CWorkspaceOperation* wks )
+{
+	m_exportNetcdfOutput = value;
+
+	if ( wks == nullptr )
+	{
+		clean_path( m_exportNetcdfOutput );
+	}
+	else
+	{
+		normalize( m_exportNetcdfOutput, wks->GetPath() );
+	}
+}
+
 void COperation::SetExportGeoTIFFOutput( const std::string& value, CWorkspaceOperation* wks )
 {
 	m_exportGeoTIFFOutput = value;
@@ -1438,6 +1467,13 @@ std::string COperation::GetExportAsciiOutputPathRelativeToWks( const CWorkspaceO
 		return GetExportAsciiOutputPath();
 
 	return GetRelativePath( wks->GetPath(), m_exportAsciiOutput );
+}
+std::string COperation::GetExportNetcdfOutputPathRelativeToWks( const CWorkspaceOperation *wks ) const
+{
+	if ( wks == nullptr )
+		return GetExportNetcdfOutputPath();
+
+	return GetRelativePath( wks->GetPath(), m_exportNetcdfOutput );
 }
 std::string COperation::GetExportGeoTIFFOutputPathRelativeToWks( const CWorkspaceOperation *wks ) const
 {
@@ -1535,6 +1571,7 @@ void COperation::InitOutputs( CWorkspaceOperation *wks )
 	InitOperationOutput( wks );
 	InitShowStatsOutput( wks );
 	InitExportAsciiOutput( wks );
+	InitExportNetcdfOutput( wks );
 	InitExportGeoTIFFOutput( wks );
 }
 void COperation::InitOperationOutput( CWorkspaceOperation *wks )
@@ -1542,39 +1579,36 @@ void COperation::InitOperationOutput( CWorkspaceOperation *wks )
 	if ( wks == nullptr )
 		return;
 
-	//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR				!!! TODO attention here !!!
-
-	SetOutput( wks->GetPath() + "/Create" + GetName() + ".nc", wks );
+	SetOutput( wks->GetPath() + "/Create_" + GetName() + ".nc", wks );
 }
 void COperation::InitShowStatsOutput( CWorkspaceOperation *wks )
 {
 	if ( wks == nullptr )
 		return;
 
-	//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR		!!! femm attention here !!!
-
-	SetShowStatsOutput( wks->GetPath() + "/Stats" + GetName() + ".txt", wks );
+	SetShowStatsOutput( wks->GetPath() + "/Stats_" + GetName() + ".txt", wks );
 }
 //----------------------------------------
 void COperation::InitExportAsciiOutput( CWorkspaceOperation *wks )
 {
-	//CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
 	if ( wks == nullptr )
 		return;
 
-	//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR !!! femm attention here !!!
+	SetExportAsciiOutput( wks->GetPath() + "/ExportAscii_" + GetName() + ".txt", wks );
+}
+void COperation::InitExportNetcdfOutput( CWorkspaceOperation *wks )
+{
+	if ( wks == nullptr )
+		return;
 
-	SetExportAsciiOutput( wks->GetPath() + "/ExportAscii" + GetName() + ".txt", wks );
+	SetExportNetcdfOutput( wks->GetPath() + "/ExportNetcdf_" + GetName() + ".txt", wks );
 }
 void COperation::InitExportGeoTIFFOutput( CWorkspaceOperation *wks )
 {
-	//CWorkspaceOperation* wks = wxGetApp().GetCurrentWorkspaceOperation();
 	if ( wks == nullptr )
 		return;
 
-	//wxPATH_GET_VOLUME | wxPATH_GET_SEPARATOR !!! femm attention here !!!
-
-	SetExportGeoTIFFOutput( wks->GetPath() + "/ExportGeoTIFF" + GetName() + ".tif", wks );
+	SetExportGeoTIFFOutput( wks->GetPath() + "/ExportGeoTIFF_" + GetName() + ".tif", wks );
 }
 
 //----------------------------------------

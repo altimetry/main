@@ -23,7 +23,7 @@
 #include "List.h"
 #include "new-gui/Common/tools/Exception.h"
 #include "new-gui/Common/tools/Trace.h"
-#include "new-gui/Common/ConsoleApplicationPaths.h"
+#include "new-gui/Common/ApplicationStaticPaths.h"
 #include "BratProcess.h"
 #include "BratProcessStats.h"
 
@@ -34,6 +34,9 @@
 
 using namespace brathl;
 using namespace processes;
+
+
+static const char *app_name = "BratStats";
 
 
 /*
@@ -49,7 +52,7 @@ int main( int argc, char *argv[] )
 
 	bool bOk = true;
 
-	const CConsoleApplicationPaths brat_paths( argv[ 0 ], "" );
+	const CApplicationStaticPaths brat_paths( argv[ 0 ], app_name );
 
 	CTools::SetInternalDataDir( brat_paths.mInternalDataDir );
 

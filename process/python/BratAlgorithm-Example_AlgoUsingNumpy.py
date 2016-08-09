@@ -22,9 +22,23 @@
   (Python v.3.3)
 '''
 
+### Importing Brat Algorithm base ###
 from BratAlgorithmBase import PyBratAlgoBase
 
-### Other imports ####
+### Extending list of search path for Python modules ###
+# In this way, all Python modules installed in the user system can be imported 
+# into this algorithm.
+import sys
+sys.path.extend( [
+                  #'/usr/lib/python3.2', 
+                  #'/usr/lib/python3.2/plat-linux2', 
+                  #'/usr/lib/python3.2/lib-dynload', 
+                  #'/usr/lib/python3/dist-packages',
+                  '/usr/local/lib/python3.2/dist-packages' 
+                  ]
+                )
+
+### Algorithm imports ####
 import numpy as np
 
 class Example_AlgoUsingNumpy(PyBratAlgoBase):

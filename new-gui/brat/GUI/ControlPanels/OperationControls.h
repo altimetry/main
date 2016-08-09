@@ -95,7 +95,9 @@ public:
 
     static const std::vector<std::string> smQuickPredefinedVariableNames;
 
-	static bool FormulaMatchesQuickAlias( const std::string &description, EPredefinedVariables index );
+	static bool FormulaDescriptionMatchesQuickAlias( const std::string &description, EPredefinedVariables index );
+
+	static bool FormulaNameMatchesQuickAlias( const std::string &description, EPredefinedVariables index );
 
 	static const std::string& QuickFindAliasValue( CProduct *product, EPredefinedVariables index );
 
@@ -304,7 +306,7 @@ protected:
 	//quick
 
 	CDataset* QuickDatasetSelected() const;
-	COperation* CreateEmptyQuickOperation();
+	COperation* GetOrCreateEmptyQuickOperation();
 	COperation* CreateQuickOperation( CMapTypeOp::ETypeOp type );
     bool IsQuickOperationSelected() const;
     void UpdateFieldsCheckState();

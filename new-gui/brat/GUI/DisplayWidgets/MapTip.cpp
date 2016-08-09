@@ -22,23 +22,16 @@
 #include "MapWidget.h"
 #include "MapTip.h"
 
-void CMapTip::ShowMapTip( QgsMapLayer *layer, QgsPoint &map_position, QPoint &pixel_position, CMapWidget *map_canvas )
-{
-	// Do the search using the active layer and the preferred label
-	// field for the layer. The label field must be defined in the layer configuration
-	// file/database. The code required to do this is similar to identify, except
-	// we only want the first qualifying feature and we will only display the
-	// field defined as the label field in the layer configuration file/database.
-	//
-	// TODO: Define the label (display) field for each map layer in the map configuration file/database
 
+void CMapTip::ShowMapTip( QgsMapLayer *layer, QgsPoint &map_position, const QPoint &pixel_position, CMapWidget *map_canvas, QWidget *dest )
+{
 	// Show the map tip on the canvas
 	QString tip_text = FetchFeature( layer, map_position, map_canvas );
 	mMapTipVisible = !tip_text.isEmpty();
 
 	if ( mMapTipVisible )
 	{
-		QToolTip::showText( map_canvas->mapToGlobal( pixel_position ), tip_text, map_canvas );
+		QToolTip::showText( map_canvas->mapToGlobal( pixel_position ), tip_text, dest );
 
 		// store the point so we can use it to clear the map tip later
 		mLastPosition = pixel_position;
@@ -64,6 +57,8 @@ QString CMapTip::FetchFeature( QgsMapLayer *layer, QgsPoint &map_position, CMapW
 	if ( !vlayer )
 		return "";
 
+	//decreases with zoom
+	//
 	double searchRadius = QgsMapTool::searchRadiusMU( map_canvas ) / 6.;		//6. empirically found
 
 	QgsRectangle r;

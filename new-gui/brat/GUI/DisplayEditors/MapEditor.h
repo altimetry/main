@@ -128,6 +128,8 @@ protected:
 
 	void ResetMap();
 
+	void UpdateGlobe();
+
 	void KillGlobe();
 
 

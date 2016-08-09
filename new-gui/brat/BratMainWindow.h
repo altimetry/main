@@ -175,7 +175,6 @@ private:
 	//
 	void ProcessMenu();
 	void FillStatusBar();
-	void FillStatusBarExperimental();
 
 	// Operate in display only mode
 	//
@@ -213,11 +212,6 @@ public:
 
 	template< ETabName INDEX >
 	TabType< INDEX >* WorkingPanel();
-
-	template< class EDITOR >
-	EDITOR* ActiveEditor();
-
-    CAbstractDisplayEditor *ActiveMDIEditor();
 
     //
     //			Access

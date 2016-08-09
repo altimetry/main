@@ -559,7 +559,8 @@ bool CWorkspaceSettings::SaveConfig( const COperation &op, const CWorkspaceOpera
 		//v4 k_v( ENTRY_EXPORT_GEOTIFF_OUTPUT,	Absolute2PortableDataPath( op.m_exportGeoTIFFOutput ) )		//op.GetExportGeoTIFFOutputPathRelativeToWks( wks )	)
 		k_v( ENTRY_OUTPUT,					op.GetOutputPathRelativeToWks( wks ) ),
 		k_v( ENTRY_EXPORT_ASCII_OUTPUT,		op.GetExportAsciiOutputPathRelativeToWks( wks )	),
-		k_v( ENTRY_EXPORT_GEOTIFF_OUTPUT,	op.GetExportGeoTIFFOutputPathRelativeToWks( wks )	),
+		k_v( ENTRY_EXPORT_NETCDF_OUTPUT,	op.GetExportNetcdfOutputPathRelativeToWks( wks ) ),
+		k_v( ENTRY_EXPORT_GEOTIFF_OUTPUT,	op.GetExportGeoTIFFOutputPathRelativeToWks( wks ) ),
         k_v( ENTRY_OPERATION_FILTER,		op.FilterName() )
 	);
 
@@ -568,7 +569,7 @@ bool CWorkspaceSettings::SaveConfig( const COperation &op, const CWorkspaceOpera
 bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &error_msg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
 {
 	std::string group = op.m_name;
-	std::string dsname, type, data_mode, output, ascii_export_output, geo_tiff_export_output, v4filter;
+	std::string dsname, type, data_mode, output, ascii_export_output, netcdf_export_output, geo_tiff_export_output, v4filter;
 
 	ReadSection( group,
 
@@ -578,6 +579,7 @@ bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &error_msg, CWo
 		k_v( ENTRY_RECORDNAME,				&op.m_record			),
 		k_v( ENTRY_OUTPUT,					&output					),
 		k_v( ENTRY_EXPORT_ASCII_OUTPUT,		&ascii_export_output	),
+		k_v( ENTRY_EXPORT_NETCDF_OUTPUT,	&netcdf_export_output	),
 		k_v( ENTRY_EXPORT_GEOTIFF_OUTPUT,	&geo_tiff_export_output	),
 		k_v( ENTRY_OPERATION_FILTER,		&v4filter				)
 
@@ -612,6 +614,15 @@ bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &error_msg, CWo
 	else
 	{
 		op.InitExportAsciiOutput( wkso );
+	}
+
+	if ( !netcdf_export_output.empty() )
+	{
+		op.SetExportNetcdfOutput( netcdf_export_output, wkso );	//v4 op.SetExportAsciiOutput( PortableData2AbsolutePath( ascii_export_output ), wkso );
+	}
+	else
+	{
+		op.InitExportNetcdfOutput( wkso );
 	}
 
 	if ( !geo_tiff_export_output.empty() )

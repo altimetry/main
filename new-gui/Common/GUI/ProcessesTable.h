@@ -1,5 +1,22 @@
-#if !defined GUI_CONTROL_PANELS_PROCESSES_TABLE_H
-#define GUI_CONTROL_PANELS_PROCESSES_TABLE_H
+/*
+* This file is part of BRAT
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
+#if !defined COMMON_GUI_PROCESSES_TABLE_H
+#define COMMON_GUI_PROCESSES_TABLE_H
 
 
 #include "ControlPanel.h"
@@ -26,6 +43,7 @@ class COsProcess : public QProcess
 
 	// types & friends
 
+protected:
 	using base_t = QProcess;
 
 	typedef long long uid_t;
@@ -48,6 +66,9 @@ protected:
 
 	CLogFile mLog;
 	log_file_t mLogPtr = nullptr;
+
+
+	// construction / destruction 
 
 public:
 	COsProcess( bool sync, const std::string &name, QWidget *parent, const std::string &cmd, void *user_data = nullptr,
@@ -79,13 +100,13 @@ public:
 	{
 		return
 #if defined (WIN32) || defined(_WIN32)
-			pid()->dwProcessId;
+			pid() ? pid()->dwProcessId : 0;
 #else
             pid();
 #endif
 	}
 
-	std::string PidString() const {	return n2s<std::string>( Pid() ); }
+	std::string PidString() const {	return n2s( Pid() ); }
 
 
 	// operate
@@ -160,6 +181,8 @@ protected:
 	// static data
 
 	static const QString smSeparator;
+	static const QString smTitleBegin;
+	static const QString smTitleEnd;
 
 public:
 
@@ -189,6 +212,8 @@ public:
 
 
 	// Add is called by the client...
+
+	bool Add( COsProcess *process, bool with_gui, bool sync, bool allow_multiple );
 
 	bool Add( bool with_gui, void *user_data, bool sync, bool allow_multiple, const std::string &original_name, const std::string &cmd,
 		const std::string &id = "",
@@ -252,13 +277,13 @@ protected:
 	{
 		return b.isEmpty() ? QString() : ( name.isEmpty() ? QString::fromLocal8Bit( b ) : name + smSeparator + QString::fromLocal8Bit( b ) );
 	}
-	QString FormatErrorMessage( COsProcess *process, const QString &msg ) const
+	QString FormatErrorMessage( const QString &msg ) const
 	{
-		return msg.isEmpty() ? QString() : ( process->Name().c_str() + smSeparator + "Process error occurred: " + msg );
+		return msg.isEmpty() ? QString() : ( "Process error occurred: " + msg );
 	}
-	QString FormatFinishedMessage( COsProcess *process, const QString &msg ) const
+	QString FormatFinishedMessage( const QString &msg ) const
 	{
-		return msg.isEmpty() ? QString() : ( process->Name().c_str() + smSeparator + "Process execution finished reporting " + msg );
+		return msg.isEmpty() ? QString() : ( "\n" + smTitleBegin + "Process execution finished reporting " + msg + smTitleEnd + "\n" );
 	}
 
 	//... log helpers
@@ -294,4 +319,4 @@ private slots :
 
 
 
-#endif	//GUI_CONTROL_PANELS_PROCESSES_TABLE_H
+#endif	//COMMON_GUI_PROCESSES_TABLE_H

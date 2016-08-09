@@ -22,7 +22,7 @@
 #include <string>
 #include "Product.h"
 
-#include "new-gui/Common/ConsoleApplicationPaths.h"
+#include "new-gui/Common/ApplicationStaticPaths.h"
 
 // When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
@@ -32,6 +32,8 @@
 using namespace brathl;
 //using namespace processes;
 
+
+static const char *app_name = "BratCheckAliases";
 
 /*
 **
@@ -58,7 +60,7 @@ int main( int argc, char *argv[] )
 
 	bool bOk = true;
 
-	const CConsoleApplicationPaths brat_paths( argv[ 0 ], "" );
+	const CApplicationStaticPaths brat_paths( argv[ 0 ], app_name );
 
 	CTools::SetInternalDataDir( brat_paths.mInternalDataDir );
 

@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #include "stdafx.h"
 
 
@@ -71,6 +88,10 @@ void COsProcess::Execute( bool detached )	//detached = false
 
 //static 
 const QString CProcessesTable::smSeparator = " : \n";
+//static 
+const QString CProcessesTable::smTitleBegin = "===> ";
+//static 
+const QString CProcessesTable::smTitleEnd = " <===";
 
 
 ////////////////////////////
@@ -301,37 +322,32 @@ std::string CProcessesTable::MakeProcessNewName( const std::string &original_nam
 }
 
 
-bool CProcessesTable::Add( bool with_gui, void *user_data, bool sync, bool allow_multiple, const std::string &original_name, const std::string &cmd,
-		const std::string &id,
-		const std::string &at,
-		const std::string &status,
-		const std::string &log_file	)	//id = "", etc.
+bool CProcessesTable::Add( COsProcess *process, bool with_gui, bool sync, bool allow_multiple )
 {
-	std::string name = original_name;
+	const std::string &original_name = process->Name();
 
 	const int index = FindProcess( original_name );
 	if ( index >= 0 )
 	{
 		if ( allow_multiple )
 		{
-			name = MakeProcessNewName( original_name );
+			process->SetName( MakeProcessNewName( original_name ) );
 		}
 		else
 		{
-			std::string msg =
-				"Unable to process task '"
-				+ original_name
-				+ "'. A similar task is already running.";
-
+			std::string msg = "Unable to process task '" + original_name + "'. A similar task is already running.";
 			LOG_WARN( "\n==> " + msg + "<===\n" );		//v3 also logged besides displaying message box
 			if ( with_gui )
 				SimpleWarnBox( msg );
+
+			delete process;
 			return false;
 		}
 	}
 
-
-	COsProcess *process = new COsProcess( sync, name, this, cmd, user_data, id, at, status, log_file );
+	//COsProcess *process = new COsProcess( sync, name, this, cmd, user_data, id, at, status, log_file );
+	if ( !process->parent() )
+		process->setParent( this );
 	mProcesses.push_back( process );
 	FillList();
 
@@ -348,11 +364,11 @@ bool CProcessesTable::Add( bool with_gui, void *user_data, bool sync, bool allow
 	if ( sync )
 	{
 		std::string msg = 
-			"\n\n===> Synchronous Task '"
+			"\n" + q2a( smTitleBegin ) + "Synchronous Task '"
 			+ process->Name()
-			+ "' started with command line below:<===\n'"
+			+ "' started with command line below:\n\n'"
 			+ process->CmdLine()
-			+ "'\n\n\n ==========> Please wait.... A report will display at the end of the task <==========\n\n";
+			+ "'\n\nPlease wait.... A report will display at the end of the task" + q2a( smTitleEnd ) + "\n";
 
 		LogInfo( process, msg );
 	}
@@ -364,13 +380,13 @@ bool CProcessesTable::Add( bool with_gui, void *user_data, bool sync, bool allow
 	if ( !sync )
 	{
 		std::string msg = 
-			"\n\n===> Asynchronous Task '"
+			"\n" + q2a( smTitleBegin ) + "Asynchronous Task '"
 			+ process->Name()
 			+ "' (pid "
 			+ process->PidString()
-			+ ") started with command line below:<===\n'"
+			+ ") started with command line below:\n'"
 			+ process->CmdLine()
-			+ "'\n\n";
+			+ "'\n" + q2a( smTitleEnd ) + "\n";
 
 		LogInfo( process, msg );
 	}
@@ -384,6 +400,16 @@ bool CProcessesTable::Add( bool with_gui, void *user_data, bool sync, bool allow
 	//}
 
 	return process->waitForStarted( 5000 ) ;	//calling this from thread or GUI risks to block if called process never returns
+}
+
+
+bool CProcessesTable::Add( bool with_gui, void *user_data, bool sync, bool allow_multiple, const std::string &original_name, const std::string &cmd,
+		const std::string &id,
+		const std::string &at,
+		const std::string &status,
+		const std::string &log_file	)	//id = "", etc.
+{
+	return Add( new COsProcess( sync, original_name, this, cmd, user_data, id, at, status, log_file ), with_gui, sync, allow_multiple );
 }
 
 
@@ -436,15 +462,15 @@ COsProcess* CProcessesTable::ProcessFinished( int exit_code, QProcess::ExitStatu
 
     if (exitStatus == QProcess::CrashExit) 
 	{
-        LogWarn( process, q2a( FormatFinishedMessage( process, "program crash") ) );
+        LogWarn( process, q2a( FormatFinishedMessage( "program crash") ) );
     } 
 	else if ( exit_code != 0 )	//this is ExitStatus::NormalExit, although error code != 0
 	{
-        LogWarn( process, q2a( FormatFinishedMessage( process, ( "exit code " + n2s<std::string>( exit_code ) ).c_str() ) ) );
+        LogWarn( process, q2a( FormatFinishedMessage( ( "exit code " + n2s<std::string>( exit_code ) ).c_str() ) ) );
     } 
 	else 
 	{
-        LogInfo( process, q2a( FormatFinishedMessage( process, "success" ) ) );
+        LogInfo( process, q2a( FormatFinishedMessage( "success" ) ) );
     }
 
 	return process;
@@ -453,17 +479,21 @@ void CProcessesTable::AsyncProcessFinished( int exit_code, QProcess::ExitStatus 
 {
 	COsProcess *process = ProcessFinished( exit_code, exitStatus );
 
-	emit ProcessFinished( exit_code, exitStatus, false, process->UserData() );
+	auto *data = process->UserData();
 
 	Remove( process );
+
+	emit ProcessFinished( exit_code, exitStatus, false, data );
 }
 void CProcessesTable::SyncProcessFinished( int exit_code, QProcess::ExitStatus exitStatus )
 {
 	COsProcess *process = ProcessFinished( exit_code, exitStatus );
 
-	emit ProcessFinished( exit_code, exitStatus, true, process->UserData() );
+	auto *data = process->UserData();
 
 	Remove( process );
+
+	emit ProcessFinished( exit_code, exitStatus, true, data );
 }
 
 
@@ -494,7 +524,7 @@ void CProcessesTable::ProcessError( QProcess::ProcessError error )
 {
 	COsProcess *process = qobject_cast<COsProcess*>( sender() );			assert__( process );
 
-	LogWarn( process, q2a( FormatErrorMessage( process, ProcessErrorMessage( error ) ) ) );
+	LogWarn( process, q2a( FormatErrorMessage( ProcessErrorMessage( error ) ) ) );
 }
 
 

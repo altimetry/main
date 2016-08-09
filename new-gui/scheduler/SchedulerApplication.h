@@ -4,7 +4,7 @@
 #include "stdafx.h"
 
 
-class CConsoleApplicationPaths;
+class CApplicationUserPaths;
 
 
 
@@ -23,14 +23,24 @@ class CSchedulerApplication : public QtSingleApplication
 #pragma clang diagnostic pop
 #endif
 
-
     // types
 
     using base_t = QtSingleApplication;
 
-    // static data members
 
-    static const CConsoleApplicationPaths *smApplicationPaths;
+    // static members
+
+    static const CApplicationUserPaths *smApplicationPaths;	//initialized in Prologue
+
+	static bool smPrologueCalled;								//initialized in Prologue
+
+
+public:
+
+	// Calling this in main is mandatory
+	//	
+	static void Prologue( int argc, char *argv[], const char *app_name );
+
 
 protected:
 
@@ -47,7 +57,7 @@ public:
 
     static int OffGuiErrorDialog( int error_code, char const *error_msg );
 
-    static const CConsoleApplicationPaths* ApplicationPaths()
+    static const CApplicationUserPaths* ApplicationPaths()
     {
         return smApplicationPaths;
     }
@@ -56,8 +66,8 @@ private:
 
     // instance data members
 
-    QString mUserManualViewer;
-    QString mUserManual;
+    //QString mUserManualViewer;
+    //QString mUserManual;
 
     // Ctors / Dtor
 

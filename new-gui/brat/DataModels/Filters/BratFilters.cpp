@@ -162,7 +162,7 @@ void CBratFilter::BoundingArea( double &lon1, double &lat1, double &lon2, double
 }
 
 
-bool CBratFilter::GetTimeBounds( CDate &Start, CDate &Stop, const std::string &product_label ) const
+bool CBratFilter::GetTimeBounds( CDate &Start, CDate &Stop, const std::string &product_label, std::string &error_msg ) const
 {
     if ( !isDefaultValue( StartCycle() ) && !isDefaultValue( StopCycle() ) &&
          !isDefaultValue( StartPass() )  && !isDefaultValue( StopPass() )     )
@@ -178,8 +178,8 @@ bool CBratFilter::GetTimeBounds( CDate &Start, CDate &Stop, const std::string &p
         }
         else // Mission not found       TODO add string parameter for error messages
         {
-            LOG_WARN( "Filter '" + Name() + "' was not applied!\nUnable to convert Cycle and Pass to date: no mission found for product '"
-                            + product_label + "'." );
+            error_msg.append( "Unable to convert Cycle and Pass to date: no mission found for product type '"
+                              + product_label + "'." );
             return false;
         }
     }
@@ -193,7 +193,7 @@ bool CBratFilter::GetTimeBounds( CDate &Start, CDate &Stop, const std::string &p
 
 
 //////// RCCC TODO /////////////////////////////////////
-std::string CBratFilter::GetSelectionCriteriaExpression( const std::string product_label ) const
+std::string CBratFilter::GetSelectionCriteriaExpression( CProduct* product ) const
 {
     std::string expression;
 
@@ -238,7 +238,8 @@ std::string CBratFilter::GetSelectionCriteriaExpression( const std::string produ
     }
     // TIME filtering expression //
     CDate Start, Stop;
-    if ( GetTimeBounds( Start, Stop, product_label ) )
+    std::string error_msg;
+    if ( GetTimeBounds( Start, Stop, product->GetLabel(), error_msg ) )
     {
         double start_seconds, stop_seconds;
         Start.Convert2Second( start_seconds ); // NOTE: Although some products have time fields in seconds since 2000-01-01,
@@ -259,9 +260,9 @@ std::string CBratFilter::GetSelectionCriteriaExpression( const std::string produ
 //////////////////////////////////////////////////
 
 
-bool CBratFilter::Apply( const CStringList& files_in, CStringList& files_out ) const
+bool CBratFilter::Apply( const CStringList& files_in, CStringList& files_out, std::string& error_msg ) const
 {
-	return CBratFilters::GetInstance().Apply( mName, files_in, files_out );
+    return CBratFilters::GetInstance().Apply( mName, files_in, files_out, error_msg );
 }
 
 
@@ -491,14 +492,17 @@ bool CBratFilters::Load()
 }
 
 
-bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std::string &name ) const
+bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std::string &name, std::string &error_msg ) const
 {
 	auto const *filter = Find( name );
 
 	assert__( filter && product_ref );
 
 	if ( !product_ref->HasCriteriaInfo() )
-		return false;
+    {
+        error_msg.append( "No criteria information found in product type '" + product_ref->GetLabel() + "'." );
+        return false;
+    }
 
     ///////////////////////
     ///  LatLon Criteria //
@@ -513,44 +517,52 @@ bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std
                                                                      "] and Lon=[" + std::to_string(lon1) + "; " + std::to_string(lon2) + "].");
 	}
 
-    ////////////////////////
-    /// DateTime Criteria //
-    ////////////////////////
+    /////////////////////////////////////////
+    /// DateTime (and Cycle/Pass) Criteria //
+    /////////////////////////////////////////
     if ( product_ref->HasDatetimeCriteria() )
 	{
         CDate Start, Stop;
 
-        if ( filter->GetTimeBounds( Start, Stop, product_ref->GetLabel() ) )
+        if ( filter->GetTimeBounds( Start, Stop, product_ref->GetLabel(), error_msg ) )
         {
             // Start and Stop.Value() contains the date in a number of seconds since internal reference date, ie 1950.
             product_ref->GetDatetimeCriteria()->Set( Start.Value(), Stop.Value() );
             LOG_INFO("Filter '" + filter->Name() + "' applied a DateTimeCriteria from: " + Start.AsString() + " to: " + Stop.AsString()
                      + ".\n(product type/label: '" + product_ref->GetLabel() + "')");
         }
+        else
+        {
+            // Unable to convert Cycle and Pass to date: no mission found for product type
+            return false;
+        }
 	}
 
     /// NOT USED ON BRAT V.4 /// Cycle/Pass criteria are applied as datetime criteria, therefore the old criteria are not used.
+    /*
     //	Next 2 criteria assignments (cycle and pass) assume that cycle and pass can be used like simple integers as they come from the GUI
-//    if ( product_ref->HasCycleCriteria() )
-//    {
-//        product_ref->GetCycleCriteria()->Set( filter->StartCycle(), filter->StopCycle() );
-//    }
-//    if ( product_ref->HasPassIntCriteria() )
-//    {
-//        product_ref->GetPassIntCriteria()->Set( filter->StartPass(), filter->StopPass() );
-//    }
+    if ( product_ref->HasCycleCriteria() )
+    {
+        product_ref->GetCycleCriteria()->Set( filter->StartCycle(), filter->StopCycle() );
+    }
+    if ( product_ref->HasPassIntCriteria() )
+    {
+        product_ref->GetPassIntCriteria()->Set( filter->StartPass(), filter->StopPass() );
+    }
 	//	Apparently Cryosat uses this criterion; is it simply composed by integer passes converted to string??? I wonder...
 	//	If not, we still don't have GUI support for this
-//	if ( product_ref->HasPassStringCriteria() )
-//	{
-//		//product_ref->GetPassStringCriteria()->Set( comma separated strings );
-//	}
+    if ( product_ref->HasPassStringCriteria() )
+    {
+        //product_ref->GetPassStringCriteria()->Set( comma separated strings );
+    }
+    */
+    ///////////
 
 	return true;
 }
 
 
-bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, CStringList& files_out ) const
+bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, CStringList& files_out, std::string& error_msg ) const
 {
 #if defined(BRAT_V3)
 	return true;
@@ -560,34 +572,93 @@ bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, 
     if ( !filter )
         return false;
 
-    CProduct* p = nullptr;
+    CProduct* product = nullptr;
     bool result = true;
 
     try
     {
-        p = CProduct::Construct( *files_in.begin() );
-        if ( !p )
+		//TODO RCCC: the test "files_in.size() > 0" must be done, begin cannot be called on an empty container.
+		//			However, check if returning false when product is nullptr is appropriate. I'm not saying it isn't, but
+		//			I see "files_out.Insert( files_in );" after the exception handlers (the "catches" below) when result 
+		//			is false, so I asked myself if I should do it here also... Note that before I added this "files_in.size() > 0" 
+		//			test, an exception was thrown and caught below, executing "files_out.Insert( files_in );"
+		//
+        if ( files_in.size() > 0 )									//femm added
+			product = CProduct::Construct( *files_in.begin() );
+        if ( !product )
             return false;
 
-        p->GetProductList().clear();
-        p->GetProductList().Insert( files_in );
+        product->GetProductList().clear();
+        product->GetProductList().Insert( files_in );
 
-		CMapProduct mapProduct;
-		mapProduct.AddCriteriaToProducts();
 
-        CProduct *product_ref = dynamic_cast< CProduct* >( mapProduct.Exists( p->GetLabel() ) );	//CMapProduct::GetInstance()
-        if ( /*product_ref == nullptr ||*/ !Translate2SelectionCriteria( product_ref, name ) )
+        // 1. Check if product_ref is valid //
+        CMapProduct mapProduct;
+        mapProduct.AddCriteriaToProducts();
+        CProduct *product_ref = dynamic_cast< CProduct* >( mapProduct.Exists( product->GetLabel() ) );	//CMapProduct::GetInstance()
+
+        if ( product_ref == nullptr )
         {
-            result = false;
+            error_msg.append( "Unable to get criteria information for product type '" + product->GetLabel() + " - "
+                              + product->GetProductType() + "'." );
+            return false;
         }
-        else
+
+
+        // 2. Check if product has all required aliases //
+        // NOTE: This step can be delete if we ensure that GetSelectionCriteriaExpression()
+        // finds the field names case the aliases are not available (RCCC TODO: to be discussed)
+        std::string lon_alias = FindAliasValue( product, lon_name() );
+        std::string lat_alias = FindAliasValue( product, lat_name() );
+        std::string time_alias = FindAliasValue( product, time_name() );
+
+        if ( lon_alias.empty() || lat_alias.empty() || time_alias.empty() )
         {
-			p->AddCriteria( product_ref );
-
-			std::string log_path = mWorkspacesPath + "/" + DATASET_SELECTION_LOG_FILENAME;
-
-			p->ApplyCriteria( files_out, log_path );
+            error_msg.append( "All required aliases (latitude, longitude and time) were not found for product type '"
+                              + product->GetLabel() + " - "  + product->GetProductType()
+                              + "'.\nPlease add missing information to aliases file." );
+            return false;
         }
+
+
+        // 3. Check if product has Lon, Lat and Time fields (required to filter data by location and time) //
+        std::string field_error_msg;
+
+        CField *lon = product->FindFieldByName( lon_alias, false, &field_error_msg );
+        if ( !lon )
+        {
+            error_msg.append( "No longitude data found in product." );
+            return false;
+        }
+
+        CField *lat = product->FindFieldByName( lat_alias, false, &field_error_msg );
+        if ( !lat )
+        {
+            error_msg.append( "No latitude data found in product." );
+            return false;
+        }
+
+        CField *time = product->FindFieldByName( time_alias, false, &field_error_msg );
+        if ( !time )
+        {
+            error_msg.append( "No time data found in product." );
+            return false;
+        }
+
+
+        // 4. Translate Filter to selection criteria //
+        if ( !Translate2SelectionCriteria( product_ref, name, error_msg ) )
+        {
+            // Unable to translate to selection criteria (no criteria info, unknown mission...)
+            return false;
+        }
+
+
+        // 5. Add and apply Criteria (old Datased Selection Criteria in Brat v.3) //
+        product->AddCriteria( product_ref );
+        std::string log_path = mWorkspacesPath + "/" + DATASET_SELECTION_LOG_FILENAME;
+        product->ApplyCriteria( files_out, log_path );
+
     }
     catch ( CException e )
     {
@@ -603,9 +674,88 @@ bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, 
         files_out.Insert( files_in );
     }
 
-    delete p;
+    delete product;
 
     return result;
 }
 
+
+
+
+
+
+//static
+const std::string& CBratFilters::FindAliasValue( CProduct *product, const std::string &alias_name )
+{
+    auto *alias = product->GetAlias( alias_name );
+    if ( !alias )
+        alias = product->GetAlias( ToLowerCopy( alias_name ) );	//TODO confirm aliases case sensitiveness
+
+    if ( alias )
+    {
+        return alias->GetValue();
+    }
+
+    return empty_string< std::string >();
+}
+
+//static
+CField* CBratFilters::FindField( CProduct *product, const std::string &name, bool &alias_used, std::string &field_error_msg )
+{
+    std::string record;
+    if ( product->IsNetCdfOrNetCdfCFProduct() )
+        //record = CProductNetCdf::m_virtualRecordName;		//this is done for COperation; should we do it HERE????
+        record = "";
+    else
+    {
+        auto *aliases = product->GetAliases();
+        if ( aliases )
+            record = aliases->GetRecord();
+    }
+
+    CField *field = nullptr;
+    alias_used = true;
+
+    std::string value = FindAliasValue( product, name );
+    if ( !value.empty() )
+    {
+        field = product->FindFieldByName( value, false, &field_error_msg );		//true: throw on failure
+        //guessing
+        if ( !field && !record.empty() )
+            field = product->FindFieldByName( value, record, false );	//true: throw on failure
+        if ( !field )
+            field = product->FindFieldByInternalName( value, false );	//true: throw on failure
+    }
+
+    if ( !field )
+    {
+        alias_used = false;
+        field = product->FindFieldByName( name, false, &field_error_msg );		//true: throw on failure
+        //still guessing
+        if ( !field && !record.empty() )
+            field = product->FindFieldByName( name, record, false );	//true: throw on failure
+        if ( !field )
+            field = product->FindFieldByInternalName( name, false );	//true: throw on failure
+        if (!field)
+            field = product->FindFieldByName( ToLowerCopy( name ), false, &field_error_msg );
+    }
+    return field;
+}
+
+
+//static
+std::pair<CField*, CField*> CBratFilters::FindLonLatFields( CProduct *product, bool &alias_used, std::string &field_error_msg )
+{
+    std::pair<CField*, CField*> fields;
+    fields.first = FindField( product, lon_name(), alias_used, field_error_msg );
+    fields.second = FindField( product, lat_name(), alias_used, field_error_msg );
+    return fields;
+}
+
+
+//static
+CField* CBratFilters::FindTimeField( CProduct *product, bool &alias_used, std::string &field_error_msg )
+{
+    return FindField( product, time_name(), alias_used, field_error_msg );
+}
 

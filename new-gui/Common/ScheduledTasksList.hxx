@@ -852,7 +852,7 @@ class function: public ::xml_schema::string
   public:
   enum value
   {
-    CopyFile
+    BratTaskFunctionCopyFile
   };
 
   function ();

@@ -17,7 +17,7 @@ project(BRAT)
 
 set(BRAT_MAJOR_VERSION "4")
 set(BRAT_MINOR_VERSION "0")
-set(BRAT_REVISION_VERSION "0-beta")
+set(BRAT_REVISION_VERSION "0")
 set(BRAT_VERSION "${BRAT_MAJOR_VERSION}.${BRAT_MINOR_VERSION}.${BRAT_REVISION_VERSION}")
 
 message(STATUS "System type: ${CMAKE_SYSTEM_NAME}")
@@ -315,12 +315,6 @@ IF (BRAT_BUILD_GUI)
 			ENDIF()
 		ENDIF()
 	ENDIF (NOT APPLE)
-
-	IF (NOT WIN32 AND NOT APPLE)
-		IF (NOT EXISTS ${PYTHON_EXECUTABLE})
-			MESSAGE(FATAL_ERROR "PYTHON_EXECUTABLE not defined or not found." )
-		ENDIF()
-	ENDIF()
 
 
 	IF (NOT EXISTS ${QT_QMAKE_EXECUTABLE})
@@ -632,6 +626,9 @@ SET( OTHER_FILES
 	new-gui/brat/brat_trace.bat
 	new-gui/brat/brat_trace.py
 	new-gui/brat/brat_trace.sh
+	new-gui/scheduler/scheduler_trace.bat
+	new-gui/scheduler/scheduler_trace.py
+	new-gui/scheduler/scheduler_trace.sh
 	)
 
 
@@ -739,27 +736,19 @@ ADD_CUSTOM_TARGET( scheduler_runtime )
 #######################################################
 
 
-IF (NOT APPLE)
-
-	IF (WIN32)
-		file( GLOB PYTHON_EXECS ${PYTHON_BIN_DIR}/python*${EXEC_SUFFIX} )
-		INSTALL(
-			FILES
-			${PYTHON_EXECS}
-			DESTINATION ${RUNTIME_DESTINATION}/Python
-			COMPONENT brat_runtime
-			)
-	ELSE(WIN32)
-		INSTALL(
-			PROGRAMS
-			${PYTHON_EXECUTABLE}
-			DESTINATION ${RUNTIME_DESTINATION}/Python
-			# RENAME python
-			COMPONENT brat_runtime
-			)
-	ENDIF(WIN32)
-
-ENDIF(NOT APPLE)
+#IF (NOT APPLE)
+#
+#	IF (WIN32)
+#		file( GLOB PYTHON_EXECS ${PYTHON_BIN_DIR}/python*${EXEC_SUFFIX} )
+#		INSTALL(
+#			FILES
+#			${PYTHON_EXECS}
+#			DESTINATION ${RUNTIME_DESTINATION}/Python
+#			COMPONENT brat_runtime
+#			)
+#	ENDIF(WIN32)
+#
+#ENDIF(NOT APPLE)
 
 
 
@@ -997,12 +986,12 @@ IF (APPLE)
 		)
 ENDIF(APPLE)
 
-INSTALL(
-	DIRECTORY 
-	${EXTERNAL_DATA_DIR}/maps/NE1_HR_LC_SR_W_DR
-	DESTINATION ${RUNTIME_DESTINATION}/data/maps
-	COMPONENT brat_runtime
-	)
+#INSTALL(
+#	DIRECTORY 
+#	${EXTERNAL_DATA_DIR}/maps/NE1_HR_LC_SR_W_DR
+#	DESTINATION ${RUNTIME_DESTINATION}/data/maps
+#	COMPONENT brat_runtime
+#	)
 
 
 
@@ -1025,6 +1014,30 @@ ELSE(APPLE)
 		COMPONENT brat_runtime
 		)
 ENDIF(APPLE)
+
+
+
+#######################################################
+# doc
+#######################################################
+
+# doc in mac bundles
+#
+IF (APPLE)
+	INSTALL(
+		DIRECTORY
+		${BRAT_BINARY_DIR}/doc
+		DESTINATION ${RUNTIME_DESTINATION}/../
+		COMPONENT brat_runtime
+		)
+	INSTALL(
+		DIRECTORY
+		${BRAT_BINARY_DIR}/doc
+		DESTINATION ${SCHEDULER_RUNTIME_DESTINATION}/../
+		COMPONENT scheduler_runtime
+		)
+ENDIF(APPLE)
+
 
 
 
@@ -1777,7 +1790,7 @@ set(PROCESS_LIB_SOURCES
   process/BratProcessExportAscii.cpp
   process/BratProcessStats.cpp
   process/ProcessCommonTools.cpp
-  new-gui/Common/ConsoleApplicationPaths.cpp
+  new-gui/Common/ApplicationStaticPaths.cpp
   )
 
 
@@ -1786,7 +1799,7 @@ set(PROCESS_LIB_SOURCES_H
     process/BratProcessExportAscii.h
     process/BratProcessStats.h
     process/ProcessCommonTools.h
-    new-gui/Common/ConsoleApplicationPaths.h
+    new-gui/Common/ApplicationStaticPaths.h
 	)
 
 set(PROCESS_SOURCES "")
@@ -1986,7 +1999,8 @@ if(BRAT_BUILD_GUI)
 		new-gui/scheduler/EditTasksFileDialog.cpp
 		new-gui/Common/DataModels/TaskProcessor.cpp
 		new-gui/Common/DataModels/BratTask.cpp
-		new-gui/Common/ConsoleApplicationPaths.cpp
+		new-gui/Common/ApplicationStaticPaths.cpp
+		new-gui/Common/GUI/ApplicationUserPaths.cpp
 		new-gui/Common/ApplicationLogger.cpp
 		new-gui/scheduler/SchedulerLogger.cpp
 		new-gui/Common/GUI/TextWidget.cpp
@@ -1995,6 +2009,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/GUI/ControlPanel.cpp
 		new-gui/Common/SingleApplication/qtsingleapplication.cpp
 		new-gui/Common/SingleApplication/qtlocalpeer.cpp
+		new-gui/Common/SingleApplication/qtlockedfile.cpp
 	)
 
 
@@ -2015,7 +2030,8 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/ScheduledTasksList.hxx
 		new-gui/Common/DataModels/TaskProcessor.h
 		new-gui/Common/DataModels/BratTask.h
-		new-gui/Common/ConsoleApplicationPaths.h
+		new-gui/Common/ApplicationStaticPaths.h
+		new-gui/Common/GUI/ApplicationUserPaths.h
 		new-gui/Common/ApplicationLogger.h
 		new-gui/scheduler/SchedulerLogger.h
 		new-gui/Common/XmlSerializer.h
@@ -2025,6 +2041,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/GUI/ControlPanel.h
 		new-gui/Common/SingleApplication/qtsingleapplication.h
 		new-gui/Common/SingleApplication/qtlocalpeer.h
+		new-gui/Common/SingleApplication/qtlockedfile.h
 	)
 
 	QT4_WRAP_UI(schedulerUISrcs new-gui/scheduler/SchedulerDialog.ui)
@@ -2110,7 +2127,6 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/main.cpp
 		new-gui/brat/BratApplication.cpp
 		new-gui/brat/BratMainWindow.cpp
-		new-gui/brat/BratMainWindowExperimental.cpp
 		new-gui/brat/stdafx.cpp
 		new-gui/brat/DataModels/MapTypeDisp.cpp
 		new-gui/brat/GUI/DisplayEditors/AbstractDisplayEditor.cpp
@@ -2143,7 +2159,8 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/WorkspaceElementsDialog.cpp
 		new-gui/brat/ApplicationSettingsDlg.cpp
 		new-gui/brat/GUI/norwegianwoodstyle.cpp
-		new-gui/Common/ApplicationPaths.cpp
+		new-gui/Common/GUI/ApplicationUserPaths.cpp
+		new-gui/brat/ApplicationPaths.cpp
 		new-gui/Common/ApplicationLogger.cpp
 		new-gui/brat/BratLogger.cpp
 		new-gui/brat/GUI/LogShell.cpp
@@ -2210,6 +2227,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/DataModels/PlotData/FieldData.cpp
 		new-gui/brat/DataModels/DisplayDataProcessor.cpp
 		new-gui/brat/GUI/ProgressDialog.cpp
+		new-gui/Common/SingleApplication/qtlockedfile.cpp
 	)
 
 		
@@ -2258,7 +2276,8 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/WorkspaceElementsDialog.h
 		new-gui/brat/ApplicationSettingsDlg.h
 		new-gui/brat/GUI/norwegianwoodstyle.h
-		new-gui/Common/ApplicationPaths.h
+		new-gui/Common/GUI/ApplicationUserPaths.h
+		new-gui/brat/ApplicationPaths.h
 		new-gui/Common/ApplicationLogger.h
 		new-gui/brat/BratLogger.h
 		new-gui/brat/GUI/LogShell.h
@@ -2324,6 +2343,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/DataModels/PlotData/WidgetField.h
 		new-gui/brat/GUI/ProgressDialog.h
 		new-gui/brat/DataModels/ProgressInterface.h
+		new-gui/Common/SingleApplication/qtlockedfile.h
 	)
 
 
@@ -2826,7 +2846,7 @@ if(INSTALL_BUILDER_FOUND)
   # InstallBuilder configuration
 
   set(WINDOWS_64_BIT_MODE 0)
-  set(START_MENU_GROUP_NAME BRAT-${BRAT_VERSION}-${BRAT_TARGET_PROCESSOR})
+  set(START_MENU_GROUP_NAME "Broadview Radar Altimetry Toolbox ${BRAT_VERSION}-${BRAT_TARGET_PROCESSOR}")
 
   if(WIN32)
     set(INSTALLER_PLATFORM windows)

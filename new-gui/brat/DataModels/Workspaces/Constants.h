@@ -80,6 +80,7 @@ const std::string ENTRY_X_AXIS = "XAxis";
 
 const std::string ENTRY_OUTPUT = "Output";
 const std::string ENTRY_EXPORT_ASCII_OUTPUT = "ExportAsciiOutput";
+const std::string ENTRY_EXPORT_NETCDF_OUTPUT = "ExportNetcdfOutput";
 const std::string ENTRY_EXPORT_GEOTIFF_OUTPUT = "ExportGeoTIFFOutput";
 
 const std::string ENTRY_ZOOM = "Zoom";

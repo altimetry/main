@@ -959,7 +959,7 @@ void CPlotEditor::Recreate3DPlots( bool build2d, bool build3d )
 		// RightButton: zoom out by 1
 		// Ctrl+RighButton: zoom out to full size
 		//
-		mPlot2DView->AddZoomer();
+		mPlot2DView->AddMagnifier();		//mPlot2DView->AddZoomer(); was the default
 		mPlot2DView->AddPanner();
 
 		mTabCurveOptions->SwitchTo3D();
@@ -1380,7 +1380,7 @@ void CPlotEditor::Handle3DScaleChanged( double xVal, double yVal, double zVal )
 	mTabAxisOptions->mY3DScaleSpin->setValue( yVal );
 	mTabAxisOptions->mZ3DScaleSpin->setValue( zVal );
 
-	LOG_TRACEstd( "3d scale changed " + n2s( xVal ) + " - " + n2s( yVal ) + " - " + n2s( zVal ) );
+	//LOG_TRACEstd( "3d scale changed " + n2s( xVal ) + " - " + n2s( yVal ) + " - " + n2s( zVal ) );
 }
 
 
@@ -1411,7 +1411,7 @@ void CPlotEditor::Handle2DScaleChanged( int iaxis, double factor, QString range 
 
 	edit->setText( range );	
 
-	LOG_TRACEstd( "2d scale changed: axis" + n2s( iaxis ) + " - factor: " + n2s( factor ) );
+	// LOG_TRACEstd( "2d scale changed: axis" + n2s( iaxis ) + " - factor: " + n2s( factor ) );
 }
 
 

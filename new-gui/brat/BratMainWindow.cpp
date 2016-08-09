@@ -428,9 +428,6 @@ void CBratMainWindow::FillStatusBar()
 	statusBar()->addPermanentWidget( mCoordsEdit, 0 );
 	mDesktopManager->Map()->ConnectCoordinatesWidget( mCoordsEdit, mCoordinatesFormat, "DMS" );
 
-
-	FillStatusBarExperimental();
-
 	mMessageButton = new QToolButton( statusBar() );
 	mMessageButton->setAutoRaise( true );
 	mMessageButton->setIcon( CBratApplication::getThemeIcon( "bubble.svg" ) );

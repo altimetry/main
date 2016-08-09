@@ -25,7 +25,7 @@
 
 #include "Dataset.h"
 #include "Formula.h"
-#include "new-gui/Common/ApplicationPaths.h"
+#include "new-gui/brat/ApplicationPaths.h"
 
 #include "../MapTypeDisp.h"
 
@@ -128,6 +128,7 @@ public:
 	enum EExecutionType
 	{
 		eOperation,
+		eExportNetCDF,
 		eExportASCII,
 		eExportGeoTIFF,
 		eStatistics,
@@ -161,6 +162,7 @@ protected:
 
 	std::string m_output;
 	std::string m_exportAsciiOutput;
+	std::string m_exportNetcdfOutput;
 	std::string m_exportGeoTIFFOutput;
 	std::string m_showStatsOutput;
 
@@ -170,6 +172,7 @@ protected:
 	std::string m_showStatsCmdFile;
 
 	std::string mScheduledTaskName;
+	std::string mScheduledExportNetcdfTaskName;
 	std::string mScheduledExportAsciiTaskName;
 	std::string mScheduledExportGeoTIFFTaskName;
 
@@ -347,6 +350,7 @@ public:
 	void InitOutputs( CWorkspaceOperation *wks );
 	void InitOperationOutput( CWorkspaceOperation *wks );
 	void InitExportAsciiOutput( CWorkspaceOperation *wks );
+	void InitExportNetcdfOutput( CWorkspaceOperation *wks );
 	void InitExportGeoTIFFOutput( CWorkspaceOperation *wks );
 	void InitShowStatsOutput( CWorkspaceOperation *wks );
 
@@ -356,6 +360,8 @@ public:
 		{
 			case eOperation:
 				return GetOutputPath();
+			case eExportNetCDF:
+				return GetExportNetcdfOutputPath();
 			case eExportASCII:
 				return GetExportAsciiOutputPath();
 			case eExportGeoTIFF:
@@ -372,6 +378,10 @@ public:
 	const std::string& GetOutputPath() const { return m_output; }				//femm: GetOutputName -> GetOutputPath; old body: {return m_output.GetFullPath();};
 	void SetOutput( const std::string& value, CWorkspaceOperation* wks );
 	std::string GetOutputPathRelativeToWks( const CWorkspaceOperation *wks ) const;
+
+    const std::string& GetExportNetcdfOutputPath() const { return m_exportNetcdfOutput; }
+	void SetExportNetcdfOutput( const std::string& value, CWorkspaceOperation* wks );
+	std::string GetExportNetcdfOutputPathRelativeToWks( const CWorkspaceOperation *wks ) const;
 
     const std::string& GetExportAsciiOutputPath() const { return m_exportAsciiOutput; }
 	void SetExportAsciiOutput( const std::string& value, CWorkspaceOperation* wks );
@@ -397,6 +407,9 @@ public:
 		{
 			case eOperation:
 				return BuildCmdFile( wks, wkso, error_msg );
+			case eExportNetCDF:
+				assert__( false );
+				break;
 			case eExportASCII:
 				return BuildExportAsciiCmdFile( wks, wkso, error_msg );
 			case eExportGeoTIFF:
@@ -425,16 +438,25 @@ public:
 		{
 			case eOperation:
 			{
-				if ( delayed || mScheduledTaskName.empty() )
+				if ( !delayed || mScheduledTaskName.empty() )
 					return GetTaskName();
 				else
 					return mScheduledTaskName;
 			}
 			break;
 
+			case eExportNetCDF:
+			{
+				if ( !delayed || mScheduledExportNetcdfTaskName.empty() )
+					return GetExportNetcdfTaskName();
+				else
+					return mScheduledExportNetcdfTaskName;
+			}
+			break;
+												   
 			case eExportASCII:
 			{
-				if ( delayed || mScheduledExportAsciiTaskName.empty() )
+				if ( !delayed || mScheduledExportAsciiTaskName.empty() )
 					return GetExportAsciiTaskName();
 				else
 					return mScheduledExportAsciiTaskName;
@@ -443,7 +465,7 @@ public:
 
 			case eExportGeoTIFF:
 			{
-				if ( delayed || mScheduledExportGeoTIFFTaskName.empty() )
+				if ( !delayed || mScheduledExportGeoTIFFTaskName.empty() )
 					return GetExportGeoTIFFTaskName();
 				else
 					return mScheduledExportGeoTIFFTaskName;
@@ -463,12 +485,14 @@ public:
 	}
 
 	void SetScheduledTaskName( const std::string &name ){ mScheduledTaskName = name; }
+	void SetScheduledExportNetcdfTaskName( const std::string &name ){ mScheduledExportNetcdfTaskName = name; }
 	void SetScheduledExportAsciiTaskName( const std::string &name ){ mScheduledExportAsciiTaskName = name; }
 	void SetScheduledExportGeoTIFFTaskName( const std::string &name ){ mScheduledExportGeoTIFFTaskName = name; }
 
 protected:
 	std::string GetTaskName() const;
 	std::string GetExportAsciiTaskName() const;
+	std::string GetExportNetcdfTaskName() const;
 	std::string GetExportGeoTIFFTaskName() const;
 	std::string GetShowStatsTaskName() const;
 
@@ -481,6 +505,9 @@ public:
 		{
 			case eOperation:
 				return GetCmdFile();
+			case eExportNetCDF:
+				assert__( false );
+				break;
 			case eExportASCII:
 				return GetExportAsciiCmdFile();
 			case eExportGeoTIFF:
@@ -516,6 +543,9 @@ public:
 		{
 			case eOperation:
 				return GetFullCmd();
+			case eExportNetCDF:
+				assert__( false );
+				break;
 			case eExportASCII:
 				return GetExportAsciiFullCmd();
 			case eExportGeoTIFF:

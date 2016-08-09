@@ -3,6 +3,7 @@
 
 #include <QDate>
 
+#include "libbrathl/Product.h"
 #include "libbrathl/Date.h"
 
 #include "new-gui/Common/ApplicationSettings.h"
@@ -240,12 +241,12 @@ public:
 
 	void BoundingArea( double &lon1, double &lat1, double &lon2, double &lat2 ) const;
     ///// TODO RCCC //////////////////////////////////
-    bool GetTimeBounds( CDate &Start, CDate &Stop, const std::string &product_label ) const;
+    bool GetTimeBounds(CDate &Start, CDate &Stop, const std::string &product_label , std::string &error_msg) const;
     ////////////////////////////////////////////////////
 
-    bool Apply( const CStringList& files_in, CStringList& files_out ) const;
+    bool Apply(const CStringList& files_in, CStringList& files_out, std::string &error_msg) const;
     //////// RCCC TODO /////////////////////////////////////
-    std::string GetSelectionCriteriaExpression( const std::string product_label ) const;
+    std::string GetSelectionCriteriaExpression( CProduct *product ) const;
     /////////////////////////////////////////////////////////
 
     void Relative2AbsoluteTimes();
@@ -290,9 +291,19 @@ public:
 		return *smInstance;
 	}
 
+    // statics ( Fields, Aliases... )
+
+    static const std::string& FindAliasValue( CProduct *product, const std::string &alias_name );
+
+    static CField* FindField( CProduct *product, const std::string &name, bool &alias_used, std::string &field_error_msg );
+
+    static std::pair<CField*, CField*> FindLonLatFields( CProduct *product, bool &alias_used, std::string &field_error_msg );
+    static CField* FindTimeField( CProduct *product, bool &alias_used, std::string &field_error_msg );
+
 
 
 protected:
+
     // instance data
 
     std::string mWorkspacesPath;
@@ -353,8 +364,8 @@ public:
 
     bool DeleteFilter( const std::string &name );
 
-    bool Apply( const std::string &name, const CStringList& files_in, CStringList& files_out ) const;
-    bool Translate2SelectionCriteria( CProduct *product_ref, const std::string &name ) const;
+    bool Apply(const std::string &name, const CStringList& files_in, CStringList& files_out, std::string& error_msg) const;
+    bool Translate2SelectionCriteria(CProduct *product_ref, const std::string &name , std::string &error_msg) const;
 
     // persistence
 

@@ -46,6 +46,27 @@ struct serializer_traits;
 
 
 template< class GP >
+inline bool store( const GP &ge, std::ostream &os )
+{
+	//other possible format: ft = auto_ptr<XMLFormatTarget> (new StdOutFormatTarget ());
+	//
+	typename serializer_traits< GP >::converter_t gp;
+    xml_schema::namespace_infomap map;              //but not used so far
+	serializer_traits< GP >::serialize( os, ge.IOcopy( gp ) );	//, map 
+	return true;
+}
+
+template< class GP >
+inline bool load( GP &ge, std::istream &is )
+{
+    std::unique_ptr< typename serializer_traits< GP >::converter_t > pgp =
+            serializer_traits< GP >::deserialize( is, xml_schema::flags::dont_validate );
+	ge = *pgp;
+	return true;
+}
+
+
+template< class GP >
 inline bool store( const GP &ge, const std::string &path )
 {
 	//other possible format: ft = auto_ptr<XMLFormatTarget> (new StdOutFormatTarget ());

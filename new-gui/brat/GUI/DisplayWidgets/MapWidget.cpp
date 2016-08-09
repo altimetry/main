@@ -474,7 +474,9 @@ void CMapWidget::Init()
 	//setupDatabase();
 	//setupMapLayers();
 
-    setWheelAction( WheelZoomToMouseCursor, 1.1 );
+	//http://gis.stackexchange.com/questions/37154/can-i-disable-mouse-wheel-zoom-in-qgis
+
+	setWheelAction( WheelZoomToMouseCursor, 1.1 );
 
     setExtent( mMainLayer->extent() );
     enableAntiAliasing( true );
@@ -2692,7 +2694,8 @@ void CMapWidget::ToggleMapTips( bool checked )
 
 	if ( !mMapTipsVisible )
 	{
-		mpMapTipsTimer.stop();
+		mMapTipsTimer.stop();
+		mGlobeTipsTimer.stop();
 	}
 }
 
@@ -2709,10 +2712,12 @@ void CMapWidget::ConnectParentMapTipsAction( QAction *action_map_tips )
 
 
 	// connect the timer to the map tips slot
-	connect( &mpMapTipsTimer, SIGNAL( timeout() ), this, SLOT( ShowMapTip() ) );
+	connect( &mMapTipsTimer, SIGNAL( timeout() ), this, SLOT( ShowMapTip() ) );
+	connect( &mGlobeTipsTimer, SIGNAL( timeout() ), this, SLOT( ShowGlobeTip() ) );
 
 	// set the interval to 0.850 seconds - timer will be started next time the mouse moves
-	mpMapTipsTimer.setInterval( 850 );
+	mMapTipsTimer.setInterval( 850 );
+	mGlobeTipsTimer.setInterval( 850 );
 
 	// Create the map tips object
 	mpMaptip = new CMapTip;
@@ -2729,35 +2734,54 @@ QAction* CMapWidget::CreateMapTipsAction( QToolBar *tb )
 
 
 // Show the map tip using tool-tip (SLOT)
+//
+// See also ShowMouseCoordinate
+//
+void CMapWidget::ShowTip( QgsPoint &map_position, bool signal_tip )
+{
+	QgsMapLayer* layer = mTracksLayer ? mTracksLayer : ( mSelectedDataLayer ? mSelectedDataLayer : currentLayer() );
+	if ( layer && IsLayerVisible( layer) )
+	{
+		// only process vector layers
+		if ( layer->type() == QgsMapLayer::VectorLayer )
+		{
+			// Show the map tip if the map tips button is depressed
+			if ( mMapTipsVisible )
+			{
+				if ( signal_tip )
+				{
+					emit MapTipTriggerd( mpMaptip, layer, map_position );
+				}
+				else
+				{
+					mpMaptip->ShowMapTip( layer, map_position, mouseLastXY(), this, this );
+				}
+			}
+		}
+	}
+	else
+	{
+		LOG_WARN( "Map tips require an active layer" );
+	}
+}
+void CMapWidget::ShowGlobeTip()
+{
+	// Stop the timer while we look for a map tip
+	mGlobeTipsTimer.stop();
+
+	ShowTip( mLastMapPosition, true );
+}
 void CMapWidget::ShowMapTip()
 {
 	// Stop the timer while we look for a map tip
-	mpMapTipsTimer.stop();
+	mMapTipsTimer.stop();
 
 	// Only show tool-tip if the mouse is over the canvas
 	if ( this->underMouse() )
 	{
-		QgsMapLayer* layer = mTracksLayer ? mTracksLayer : ( mSelectedDataLayer ? mSelectedDataLayer : currentLayer() );
-		if ( layer && IsLayerVisible( layer) )
-		{
-			// only process vector layers
-			if ( layer->type() == QgsMapLayer::VectorLayer )
-			{
-				QPoint myPointerPos = mouseLastXY();
-
-				// Show the map tip if the map tips button is depressed
-				if ( mMapTipsVisible )
-				{
-					QgsPoint coord = getCoordinateTransform()->toMapCoordinates( myPointerPos );
-
-					mpMaptip->ShowMapTip( layer, coord/*mLastMapPosition*/, myPointerPos, this );	 //TODO decide between using mLastMapPosition and here
-				}
-			}
-		}
-		else
-		{
-			LOG_WARN( "Map tips require an active layer" );
-		}
+		QPoint myPointerPos = mouseLastXY();
+		QgsPoint coord = getCoordinateTransform()->toMapCoordinates( myPointerPos );
+		ShowTip( /*coord/*/mLastMapPosition/**/, false );	 //TODO decide between using mLastMapPosition and here
 	}
 }
 
@@ -2777,8 +2801,34 @@ void CMapWidget::CoordinatesFormatChanged()
 }
 
 
-void CMapWidget::ShowMouseDegreeCoordinates( const QgsPoint &geo, bool erase )			//erase = false 
+void CMapWidget::SetNextTip( const QgsPoint &geo_point, bool globe )
 {
+	if ( mMapTipsVisible && ( mTracksLayer || !mDataLayers.empty() ) )
+	{
+		// store the point, we need it for when the map tips timer fires
+		mLastMapPosition = geo_point;
+
+		// Clear the map tip (this is done conditionally)
+		mpMaptip->Clear( this );
+
+		// TODO Activate globe tips AFTER computing searchRadiusMU for globe layer; see note in CGlobeWidget::HandleMapTipTriggerd
+		if ( globe )
+			mGlobeTipsTimer.start();
+		else
+			mMapTipsTimer.start();
+
+		//QgsDebugMsg("Started map tips timer");
+	}
+}
+
+
+// "geo" are map (not mouse) coordinates
+//
+void CMapWidget::ShowMouseDegreeCoordinates( const QgsPoint &geo, bool erase, bool globe )
+{
+	if ( globe )
+		SetNextTip( geo, globe );
+
     if ( erase )
 	{
 		mCoordsEdit->clear();
@@ -2814,27 +2864,15 @@ void CMapWidget::ShowMouseCoordinate( const QString s, bool erase )			//erase = 
 }
 
 
+
 void CMapWidget::ShowMouseCoordinate( const QgsPoint &p )		//erase = false 
 {
-    // Map Tips /////////////////////////////////////////////////////////
-    if ( mMapTipsVisible && ( mTracksLayer || !mDataLayers.empty() ) )
-    {
-      // store the point, we need it for when the map tips timer fires
-      mLastMapPosition = p;
-
-      // we use this slot to control the timer for map tips since it is fired each time
-      // the mouse moves.
-      if ( this->underMouse() )
-      {
-        // Clear the map tip (this is done conditionally)
-        mpMaptip->Clear( this );
-        // don't start the timer if the mouse is not over the map canvas
-        mpMapTipsTimer.start();
-        //QgsDebugMsg("Started map tips timer");
-      }
-    }
-    /////////////////////////////////////////////////////////////////////
-
+	// we use this slot to control the timer for map tips since it is fired each time
+	// the mouse moves.
+	// don't start the timer if the mouse is not over the map canvas
+	//
+	if ( underMouse() )
+		SetNextTip( p, false );
 
     QGis::UnitType unit = mapUnits();
 
@@ -2850,7 +2888,7 @@ void CMapWidget::ShowMouseCoordinate( const QgsPoint &p )		//erase = false
 	if ( !mActionDecimal->isEnabled() )
 		mActionDecimal->setChecked( false );
 	else
-		mActionDecimal->setChecked( unit != QGis::Degrees );
+        mActionDecimal->setChecked( mActionDecimal->isChecked() || unit != QGis::Degrees );
 
 	if ( unit == QGis::UnknownUnit )
 		return;
@@ -2868,7 +2906,7 @@ void CMapWidget::ShowMouseCoordinate( const QgsPoint &p )		//erase = false
 				geo = ct.transform( p );
 			}
 
-			ShowMouseDegreeCoordinates( geo );
+			ShowMouseDegreeCoordinates( geo, false, false );
 		}
 		else
 		{

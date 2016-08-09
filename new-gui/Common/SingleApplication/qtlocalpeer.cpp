@@ -61,16 +61,15 @@ static PProcessIdToSessionId pProcessIdToSessionId = 0;
 #include <unistd.h>
 #endif
 
-namespace QtLP_Private {
-#include "qtlockedfile.cpp"
-#if defined(Q_OS_WIN)
-#include "qtlockedfile_win.cpp"
-#else
-#include "qtlockedfile_unix.cpp"
-#endif
-}
-
-
+//#include "qtlockedfile.cpp"
+//#if defined(Q_OS_WIN)
+//#include "qtlockedfile_win.cpp"
+//#else
+//#include "qtlockedfile_unix.cpp"
+//#endif
+//
+//
+//
 #if defined (__APPLE__)
 #pragma clang diagnostic pop
 #endif
@@ -126,7 +125,7 @@ bool QtLocalPeer::isClient()
     if (lockFile.isLocked())
         return false;
 
-    if (!lockFile.lock(QtLP_Private::QtLockedFile::WriteLock, false))
+    if (!lockFile.lock(QtLockedFile::WriteLock, false))
         return true;
 
     bool res = server->listen(socketName);

@@ -20,8 +20,10 @@ void CExportImageDialog::CreateWidgets( bool enable2D, bool enable3D )
     // Output file
 
     mOutputPathLineEdit2D = new QLineEdit();
+    mOutputPathLineEdit2D->setReadOnly( true );
     mBrowseButton2D = new QPushButton( "Browse..." );
     mOutputPathLineEdit3D = new QLineEdit();
+    mOutputPathLineEdit3D->setReadOnly( true );
     mBrowseButton3D = new QPushButton( "Browse..." );
 	mBrowseButton2D->setToolTip( CActionInfo::FormatTip( "Select output file name and location." ).c_str() );
 	mBrowseButton3D->setToolTip( CActionInfo::FormatTip( "Select output file name and location." ).c_str() );
@@ -183,6 +185,18 @@ void CExportImageDialog::Handle3DChecked( bool checked )
 
 bool CExportImageDialog::Check()
 {
+    if ( Save2D() && IsFile( mOutputFileName2D ) )
+    {
+        if ( !SimpleQuestion( "Do you want to overwrite existing file " + mOutputFileName2D + " ?" ) )
+            return false;
+    }
+
+    if ( Save3D() && IsFile( mOutputFileName3D ) )
+    {
+        if ( !SimpleQuestion( "Do you want to overwrite existing file " + mOutputFileName3D + " ?" ) )
+            return false;
+    }
+
     if ( ( Save2D() && mOutputFileName2D.empty() ) || ( Save3D() && mOutputFileName3D.empty() ) )
 	{
 		SimpleErrorBox( "The output path of the file(s) to save must be specified." );

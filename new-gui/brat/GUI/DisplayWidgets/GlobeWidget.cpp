@@ -348,6 +348,7 @@ void CGlobeWidget::elevationLayersChanged()
 //	Globe construction - II. structures created by the constructor
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
+
 struct PrintCoordsToStatusBar : public osgEarth::Util::MouseCoordsTool::Callback
 {
 	using base_t = osgEarth::Util::MouseCoordsTool::Callback;
@@ -360,7 +361,10 @@ public:
 		, mCanvas( the_canvas ) 
 	{}
 
-	void set( const GeoPoint& p, osg::View* view, MapNode* mapNode )
+	virtual ~PrintCoordsToStatusBar()
+	{}
+
+	virtual void set( const GeoPoint &p, osg::View *view, MapNode *mapNode ) override
 	{
 		if ( !mCanvas->mapSettings().destinationCrs().isValid() )
 			return;
@@ -369,16 +373,51 @@ public:
 		//mCoordsEdit->setText( QString( str.c_str() ) );
 		//qDebug() << str.c_str();
 		//mCanvas->ShowMouseCoordinate( QgsPoint( p.x(), p.y() ) );
-		mCanvas->ShowMouseDegreeCoordinates( QgsPoint( p.x(), p.y() ) );
+		mCanvas->ShowMouseDegreeCoordinates( QgsPoint( p.x(), p.y() ), false, true );
 		//mCanvas->ShowMouseCoordinate( QString( str.c_str() ) );
 	}
 
-	void reset( osg::View* view, MapNode* mapNode )
+	virtual void reset( osg::View* view, MapNode* mapNode ) override
 	{
 		//mCoordsEdit->setText( QString( "out of range" ) );
 		mCanvas->ShowMouseCoordinate( "", true );
 	}
 };
+
+
+class CBratMouseCoordsTool : public MouseCoordsTool
+{
+	using base_t = MouseCoordsTool;
+
+	QPoint mLastMousePoint;
+
+public:
+	explicit CBratMouseCoordsTool( CMapWidget *the_canvas, MapNode *mapNode, LabelControl *label = nullptr, Formatter *formatter = nullptr )
+		:base_t( mapNode, label, formatter )
+	{
+		addCallback( new PrintCoordsToStatusBar( the_canvas ) );
+	}
+
+    virtual ~CBratMouseCoordsTool()
+	{}
+
+
+	const QPoint& LastMousePoint() const { return mLastMousePoint; }
+
+
+	virtual bool handle( const osgGA::GUIEventAdapter& ea, osgGA::GUIActionAdapter& aa ) override
+	{
+		if ( ea.getEventType() == ea.MOVE || ea.getEventType() == ea.DRAG )
+		{
+			mLastMousePoint = QCursor::pos();
+			//mLastMousePoint.setX( std::round( ea.getX() ) );
+			//mLastMousePoint.setY( std::round( ea.getY() ) );
+		}
+		return base_t::handle( ea, aa );
+	}
+};
+
+
 
 
 
@@ -718,9 +757,8 @@ CGlobeWidget::CGlobeWidget( QWidget *parent, CMapWidget *the_canvas )
 	mOsgViewer->addEventHandler( new FlyToExtentHandler( this ) );
 	mOsgViewer->addEventHandler( new KeyboardControlHandler( manip ) );
 
-	MouseCoordsTool* tool = new MouseCoordsTool( mMapNode );
-	tool->addCallback( new PrintCoordsToStatusBar( mCanvas ) );
-	mOsgViewer->addEventHandler( tool );
+	mMouseCoordsTool = new CBratMouseCoordsTool( mCanvas, mMapNode );
+	mOsgViewer->addEventHandler( mMouseCoordsTool );
 
 
 	mControls = new CGlobeControls( this );
@@ -788,14 +826,35 @@ CGlobeWidget::CGlobeWidget( QWidget *parent, CMapWidget *the_canvas )
 }
 
 
+//////////////// Globe Tips /////////////////////////////////////////////////////////////////////////////
+//	TODO: for this to work, searchRadiusMU for globe layer would have to be found and passed to CMapTip
+//	- activate in CMapWidget::SetNextTip
+//
+#include "MapTip.h"
+void CGlobeWidget::HandleMapTipTriggerd( CMapTip *maptip, QgsMapLayer *layer, QgsPoint &map_position )
+{
+	if ( underMouse() )
+	{
+		//osgEarth::Util::EarthManipulator *manip = dynamic_cast<osgEarth::Util::EarthManipulator*>( mOsgViewer->getCameraManipulator() );
+		//qDebug() << "distance == " << manip->getDistance();	manip->home();
+		maptip->ShowMapTip( layer, map_position, mapFromGlobal( mMouseCoordsTool->LastMousePoint() ), mCanvas, this );
+	}
+}
+//
+//////////////// Globe Tips /////////////////////////////////////////////////////////////////////////////
+
+
+
 void CGlobeWidget::Unwire()
 {
 	disconnect( this, SIGNAL( xyCoordinates( const QgsPoint & ) ),	mCanvas, SIGNAL( xyCoordinates( const QgsPoint & ) ) );
 	disconnect( mCanvas, SIGNAL( GridEnabled( bool ) ),			this, SLOT( ToggleGridEnabled( bool ) ) ); 
 
-	disconnect( mCanvas, SIGNAL( extentsChanged() ),				this, SLOT( extentsChanged() ) );
+	disconnect( mCanvas, SIGNAL( extentsChanged() ),			this, SLOT( extentsChanged() ) );
 
 	disconnect( mCanvas, SIGNAL( layersChanged() ),				this, SLOT( imageLayersChanged() ) );
+
+	disconnect( mCanvas, SIGNAL( MapTipTriggerd( CMapTip *, QgsMapLayer *, QgsPoint &) ),	this, SLOT( HandleMapTipTriggerd( CMapTip *, QgsMapLayer *, QgsPoint &) ) );
 
 	//connect( mCanvas, SIGNAL( renderStarting() ), this, SLOT( CanvasStarted() ) );
 	//connect( mCanvas, SIGNAL( mapCanvasRefreshed() ), this, SLOT( CanvasFinished() ) );
@@ -808,6 +867,8 @@ void CGlobeWidget::Wire()
 
 	connect( mCanvas, SIGNAL( extentsChanged() ),				this, SLOT( extentsChanged() ) );
 	connect( mCanvas, SIGNAL( layersChanged() ),				this, SLOT( imageLayersChanged() ) );
+
+	connect( mCanvas, SIGNAL( MapTipTriggerd( CMapTip *, QgsMapLayer *, QgsPoint &) ),	this, SLOT( HandleMapTipTriggerd( CMapTip *, QgsMapLayer *, QgsPoint &) ) );
 
 	//connect( mCanvas, SIGNAL( renderStarting() ), this, SLOT( CanvasStarted() ) );
 	//connect( mCanvas, SIGNAL( mapCanvasRefreshed() ), this, SLOT( CanvasFinished() ) );

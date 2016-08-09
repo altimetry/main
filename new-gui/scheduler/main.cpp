@@ -17,26 +17,91 @@
 */
 #include "stdafx.h"
 
-
-
 #include "SchedulerApplication.h"
 #include "SchedulerDialog.h"
 #include "SchedulerLogger.h"
+#include "new-gui/Common/GUI/ApplicationUserPaths.h"
 
 
-class CConsoleApplicationPaths;
+static const char *app_name = SCHEDULER_APPLICATION_NAME;		//IMPORTANT: this name must match BRATSCHEDULER_EXE in brat ApplicationPaths.cpp
 
 
 
+int test_locked()
+{
+	QTextStream qout( stdout );
+	QTextStream qin( stdin );
+
+	qout << "---===>>>> File locking example <<<<===---\n";
+
+	QtLockedFile lf( "L:\\project\\dev\\source\\new-gui\\Common\\SingleApplication\\foo" );
+	lf.open( QFile::ReadWrite );
+
+	QString line;
+	bool blocking = true;
+	while ( line != "q" ) {
+		int m = lf.lockMode();
+
+		if ( m == 0 )
+			qout << "\n[*] You have no locks.";
+		else if ( m == QFile::ReadOnly )
+			qout << "\n[*] You have a read lock.";
+		else
+			qout << "\n[*] You have a read/write lock.";
+		qout << " Blocking wait is ";
+		if ( blocking )
+			qout << "ON.\n";
+		else
+			qout << "OFF.\n";
+
+		qout << "Acquire [r]ead lock, read/[w]rite lock, re[l]ease lock, [t]oggle or [q]uit? ";
+		qout.flush();
+
+		line = qin.readLine();
+		if ( line.isNull() )
+			break;
+
+		if ( line == "r" ) {
+			qout << "Acquiring a read lock... ";
+			qout.flush();
+			if ( lf.lock( QtLockedFile::ReadLock, blocking ) )
+				qout << "done!\n";
+			else
+				qout << "not currently possible!\n";
+		}
+		else if ( line == "w" ) {
+			qout << "Acquiring a read/write lock... ";
+			qout.flush();
+			if ( lf.lock( QtLockedFile::WriteLock, blocking ) )
+				qout << "done!\n";
+			else
+				qout << "not currently possible!\n";
+		}
+		else if ( line == "l" ) {
+			qout << "Releasing lock... ";
+			qout.flush();
+			lf.unlock();
+			qout << "done!\n";
+		}
+		else if ( line == "t" ) {
+			blocking = !blocking;
+		}
+
+		qout.flush();
+	}
+	return 0;
+}
 
 int main( int argc, char *argv[] )
 try {
 
-#if defined(_MSC_VER)
-	RestoreSystemSETranslator();
-#endif
+	//if ( argc)
+	//	return test_locked();
+
 
 	LOG_TRACE( "\n*** Entering main." );
+
+	CSchedulerApplication::Prologue( argc, argv, app_name );
 
 	LOG_INFO( "scheduler is starting..." );
 
@@ -45,8 +110,7 @@ try {
 	w.show();
 	auto result = a.exec();
 
-
-	LOG_INFO( "scheduler is exiting with result " + n2s<std::string>( result ) + ".");
+	LOG_INFO( "scheduler is exiting with result " + n2s( result ) + "." );
 
 	LOG_TRACE( "\nLeaving main. ***" );
 	return result;

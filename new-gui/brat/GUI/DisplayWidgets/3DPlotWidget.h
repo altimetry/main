@@ -102,19 +102,25 @@ class CBrat3DPlot : public BratSurfacePlot
 {
 	Q_OBJECT
 
+	/////////////////////////////
 	// types
+	/////////////////////////////
 
 	using base_t = BratSurfacePlot;
 
 
+	/////////////////////////////
 	//static data
+	/////////////////////////////
 
     static const std::vector< Qwt3D::AXIS > smXaxis;
 	static const std::vector< Qwt3D::AXIS > smYaxis;
 	static const std::vector< Qwt3D::AXIS > smZaxis;
 
 
+	/////////////////////////////
 	//instance data
+	/////////////////////////////
 
 	std::vector<CBrat3DFunction*> mFunctions;		//multiple functions are really not supported so far
 
@@ -134,7 +140,10 @@ class CBrat3DPlot : public BratSurfacePlot
 
 	QTimer mTimer;
 
+
+	/////////////////////////////
 	//construction / destruction
+	/////////////////////////////
 
 	void CreateContextMenu();
 
@@ -142,6 +151,11 @@ public:
 	CBrat3DPlot( QWidget *pw );
 
 	virtual ~CBrat3DPlot();
+
+
+	/////////////////////////////
+	//		access / assign
+	/////////////////////////////
 
 
 	void SetTitle( const QString &title );

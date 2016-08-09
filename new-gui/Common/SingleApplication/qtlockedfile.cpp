@@ -191,3 +191,9 @@ QtLockedFile::LockMode QtLockedFile::lockMode() const
     Destroys the \e QtLockedFile object. If any locks were held, they
     are released.
 */
+
+#if defined(Q_OS_WIN)
+#include "qtlockedfile_win.cpp"
+#else
+#include "qtlockedfile_unix.cpp"
+#endif

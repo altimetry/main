@@ -164,6 +164,9 @@
 #endif
 
 
+#include <new-gui/Common/SingleApplication/QtLockedFile>
+
+
 #include <qgsapplication.h>
 #include <qgsmapcanvas.h>
 #include <qgsvectorlayer.h>

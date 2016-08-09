@@ -25,7 +25,7 @@
 #include "new-gui/Common/XmlSerializer.h"
 
 
-class CConsoleApplicationPaths;
+class CApplicationUserPaths;
 
 
 // for serialization
@@ -47,40 +47,42 @@ protected:
 	typedef CBratTask::EStatus	EStatus;
 
 	///////////////////////////////////////
-	//static members
+	//			static data
 	///////////////////////////////////////
 
+	static const std::string smFileName;	//name only, without extension, not path 
 
-	static const std::string smFileName;
-
-	static bool mFactoryCalled;
-    static CTasksProcessor* smInstance;
-	static std::function<CTasksProcessor*( const std::string &filename, bool lockFile, bool unlockFile )> mFactory;
+	static bool smFactoryCalled;
+    static CTasksProcessor *smInstance;
+	static std::function< CTasksProcessor*( const std::string &path, bool lockFile, bool unlockFile ) > smFactory;
 
 
-	//....construction
+	///////////////////////////////////////
+	//		static functions
+	///////////////////////////////////////
+
+	//....static construction
 
 protected:
 	template< class DERIVED = CTasksProcessor >
 	static void CreateFactory()
 	{
-		mFactory = []( const std::string &filename, bool lockFile, bool unlockFile )
+		smFactory = []( const std::string &path, bool lockFile, bool unlockFile )
 		{
-			mFactoryCalled = true;
-			return new DERIVED( filename, lockFile, unlockFile );
+			smFactoryCalled = true;
+			return new DERIVED( path, lockFile, unlockFile );
 		};
 	}
-
-    static CTasksProcessor* GetInstance( const std::string* fileName, bool reload = false, bool lockFile = true, bool unlockFile = true );
 
 public:
 	static CTasksProcessor* GetInstance( bool reload = false, bool lockFile = true, bool unlockFile = true );
 
-	static CTasksProcessor* CreateInstance( const CConsoleApplicationPaths &app_paths, bool reload = false, bool lockFile = true, bool unlockFile = true );
+	static CTasksProcessor* CreateInstance( const std::string&scheduler_name, const CApplicationUserPaths &app_paths, 
+		bool reload = false, bool lockFile = true, bool unlockFile = true );
 
 	static void DestroyInstance()
 	{
-		assert__( mFactoryCalled );
+		assert__( smFactoryCalled );
         delete smInstance;
         smInstance = nullptr;
 	}
@@ -97,6 +99,7 @@ private:
 
 protected:
 	std::string m_fullFileName;
+	QtLockedFile mLockedFile;	//not static for debugging reasons
 
 	bool m_reloadAll = false;
 
@@ -137,19 +140,33 @@ protected:
 		, mEndedTasksMap( false )
 		, m_mapNewBratTask( false )
 	{}
+
+	CTasksProcessor( const std::string &path ) :
+		  m_fullFileName( path )
+		, mLockedFile( path.c_str() )
+		, mPendingTasksMap( false )
+		, mProcessingTasksMap( false )
+		, mEndedTasksMap( false )
+		, m_mapNewBratTask( false )
+    {}
+
 #endif
 
 
-//called by factory, also used by CSchedulerTaskConfig
+	// Called by factory, also used by CSchedulerTaskConfig
+	// Assumes construction through CreateInstance
 
-	CTasksProcessor( const std::string &filename, bool lockFile = true, bool unlockFile = true ) : 
-		  m_fullFileName( filename )
+	CTasksProcessor( const std::string &path, bool lockFile, bool unlockFile ) : 
+		  m_fullFileName( path )
+		, mLockedFile( path.c_str() )
 		, mPendingTasksMap( false )
 		, mProcessingTasksMap( false )
 		, mEndedTasksMap( false )
 		, m_mapNewBratTask( false )
 	{
-		LoadAndCreateTasks( filename, lockFile, unlockFile );		//if not ... throw ???
+		std::pair< bool, std::string > result = LoadAndCreateTasks( lockFile, unlockFile );
+		if ( !result.first )
+			throw CException( result.second, BRATHL_ERROR );
 	}
 
 public:
@@ -165,7 +182,7 @@ public:
 	CBratTask* CreateCmdTaskAsPending( CBratTask *parent, const std::string& cmd, const QDateTime& at, const std::string& name, const std::string& log_dir );
 	CBratTask* CreateFunctionTaskAsPending( CBratTask *parent, const std::string& function, CVectorBratAlgorithmParam& params, const QDateTime& at, const std::string& name, const std::string& log_dir );
 
-	virtual bool LoadAllTasks();
+	virtual bool LoadAllTasks( std::string &xml_error_msg );
 
 	////////////////
 	// Find
@@ -226,13 +243,7 @@ protected:
 	///////////////////////////////////////
 
 protected:
-	virtual bool LoadAndCreateTasks( const std::string& fileName, bool lockFile = true, bool unlockFile = true );
-
-	bool LoadAndCreateTasks( bool lockFile = true, bool unlockFile = true )
-	{
-		return LoadAndCreateTasks( m_fullFileName, lockFile, unlockFile );
-	}
-
+	virtual std::pair< bool, std::string > LoadAndCreateTasks( bool lockFile = true, bool unlockFile = true );
 
 	virtual bool AddNewTasksFromSibling( CTasksProcessor* sched );
 
@@ -268,20 +279,27 @@ protected:
 	//			Locks
 	///////////////////////////////////////
 
+	// The QtLockedFile class extends QFile with advisory locking functions.
+	// A file may be locked in read or write mode. Multiple instances of QtLockedFile, 
+	// created in multiple processes running on the same machine, may have a file locked 
+	// in read mode. Exactly one instance may have it locked in write mode. A read and 
+	// a write lock cannot exist simultaneously on the same file.
+	//
+	// The file locks are advisory. This means that nothing prevents another process 
+	// from manipulating a locked file using QFile or file system functions offered by 
+	// the OS. Serialization is only guaranteed if all processes that access the file 
+	// use QLockedFile. Also, while holding a lock on a file, a process must not open 
+	// the same file again (through any API), or locks can be unexpectedly lost.
+	//
+	// The lock provided by an instance of QtLockedFile is released whenever the program 
+	// terminates. This is true even when the program crashes and no destructors are called.
+
 protected:
 	virtual bool LockConfigFile( bool lockFile = true )
 	{
         UNUSED( lockFile );
 
 		// TODO
-
-		return true;
-	}
-	virtual bool LockConfigFile( const std::string& fileName, bool lockFile = true )
-	{
-        UNUSED( fileName );         UNUSED( lockFile );
-
-        // TODO
 
 		return true;
 	}

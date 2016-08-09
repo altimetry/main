@@ -145,6 +145,7 @@
 #endif
 
 
+#include <new-gui/Common/SingleApplication/QtLockedFile>
 #include <new-gui/Common/SingleApplication/QtSingleApplication>
 
 

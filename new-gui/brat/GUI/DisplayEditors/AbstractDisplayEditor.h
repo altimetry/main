@@ -358,10 +358,7 @@ private slots:
 
     void HandleRecenter();
 	void HandleExport2Image();
-	void HandleTest()
-	{
-		Test();
-	}
+    void HandleTest();
 
 	void HandleOperationsIndexChanged( int index );
 	void HandleOneClickClicked()

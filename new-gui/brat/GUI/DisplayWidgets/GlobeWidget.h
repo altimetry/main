@@ -32,6 +32,7 @@ static_assert( OSGEARTH_VERSION_GREATER_OR_EQUAL( 2, 5, 0 ), "osgEarth version n
 
 
 class CMapWidget;
+class CMapTip;
 class CGlobeViewerWidget;
 
 class QgsPoint;
@@ -41,6 +42,7 @@ class QgisInterface;
 class QgsGlobePluginDialog;
 class CRootUpdateCallback;
 class CGlobeControls;
+class CBratMouseCoordsTool;
 
 
 namespace osgViewer { class Viewer; }
@@ -165,6 +167,7 @@ protected:
 	//! coordinates of the right-clicked point on the globe
 	double mSelectedLat = 0., mSelectedLon = 0., mSelectedElevation = 0.;
 
+	CBratMouseCoordsTool *mMouseCoordsTool = nullptr;
 
 	//...context menu
 	//
@@ -280,6 +283,8 @@ protected slots:
     void HandleSky( bool toggled );
 
 	void ChangeImageLayers();
+
+	void HandleMapTipTriggerd( CMapTip *maptip, QgsMapLayer *layer, QgsPoint &map_position );
 
 protected:
 

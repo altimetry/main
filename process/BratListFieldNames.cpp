@@ -26,11 +26,15 @@
 #include "FileParams.h"
 #include "Product.h"
 #include "new-gui/Common/tools/Trace.h"
-#include "new-gui/Common/ConsoleApplicationPaths.h"
+#include "new-gui/Common/ApplicationStaticPaths.h"
 #include "ProcessCommonTools.h"
 
 using namespace brathl;
 using namespace processes;
+
+
+
+static const char *app_name = "BratListFieldNames";
 
 
 //----------------------------------------
@@ -71,7 +75,7 @@ int main( int argc, char *argv[] )
 	if ( Error || Help )
 		return 2;
 
-	const CConsoleApplicationPaths brat_paths( argv[ 0 ], "" );
+	const CApplicationStaticPaths brat_paths( argv[ 0 ], app_name );
 
 	CTools::SetInternalDataDir( brat_paths.mInternalDataDir );
 

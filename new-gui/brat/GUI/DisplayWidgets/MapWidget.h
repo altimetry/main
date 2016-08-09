@@ -189,7 +189,8 @@ protected:
 
     QAction *mActionMapTips = nullptr;			//we need this reference to parent action for enabling/disabling
     bool mMapTipsVisible = false;
-    QTimer mpMapTipsTimer;
+    QTimer mMapTipsTimer;
+    QTimer mGlobeTipsTimer;
 
 
 	//reference to parent widgets
@@ -404,6 +405,8 @@ protected:
 	QgsRubberBand* AddRBPoint( double lon, double lat, QColor color, QgsVectorLayer *layer = nullptr );
 	QgsRubberBand* AddRBLine( QgsPolyline points, QColor color, QgsVectorLayer *layer = nullptr );
 
+	void SetNextTip( const QgsPoint &geo_point, bool globe );
+
 	void DebugWriteTrackValue( QgsRectangle rect );
 	void DebugWriteDataValue( QgsRectangle rect );
 
@@ -416,11 +419,13 @@ signals:
 	void GridEnabled( bool enabled );
 	void NewRubberBandSelection( QRectF bounding );
 
+	void MapTipTriggerd( CMapTip *mpMaptip, QgsMapLayer *layer, QgsPoint &map_position );
+
 public slots:
 
 	void ShowMouseCoordinate( const QgsPoint & p );
 	void ShowMouseCoordinate( const QString s, bool erase = false );
-	void ShowMouseDegreeCoordinates( const QgsPoint & p, bool erase = false );
+	void ShowMouseDegreeCoordinates( const QgsPoint & p, bool erase, bool globe );
 
 protected slots:
 
@@ -436,7 +441,9 @@ protected slots:
 	void ToggleGridEnabled( bool toggle );
 
     void ToggleMapTips( bool checked );
+    void ShowTip( QgsPoint &map_position, bool signal_tip );
     void ShowMapTip();
+    void ShowGlobeTip();
 
 	//parent's status-bar
 

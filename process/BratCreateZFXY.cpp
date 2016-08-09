@@ -27,7 +27,7 @@
 #include "Product.h"
 #include "ProductNetCdf.h"
 #include "new-gui/Common/tools/Trace.h"
-#include "new-gui/Common/ConsoleApplicationPaths.h"
+#include "new-gui/Common/ApplicationStaticPaths.h"
 #include "BratProcess.h"
 #include "BratProcessZFXY.h"
 #include "InternalFilesZFXY.h"
@@ -39,6 +39,11 @@
 
 using namespace brathl;
 using namespace processes;
+
+
+
+static const char *app_name = "BratCreateZFXY";
+
 
 //----------------------------------------
 //----------------------------------------
@@ -57,7 +62,7 @@ int main( int argc, char *argv[] )
 
 	bool bOk = true;
 
-	const CConsoleApplicationPaths brat_paths( argv[ 0 ], "" );
+	const CApplicationStaticPaths brat_paths( argv[ 0 ], app_name );
     if (brat_paths.IsValid())
     {
         std::cout << "Using data directory: " << brat_paths.mInternalDataDir << std::endl;

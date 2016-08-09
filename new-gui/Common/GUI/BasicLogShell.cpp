@@ -68,49 +68,14 @@ QGroupBox* CBasicLogShell::CreateDebugWidgets( const std::vector<std::string> &l
 }
 
 
-CBasicLogShell::CBasicLogShell( CApplicationLoggerBase &logger, const std::vector<std::string> &level_names, const QHash< int, QColor > &severity2color_table, const QHash< int, QString >	&severity2prompt_table, QWidget *parent ) 
+CBasicLogShell::CBasicLogShell( CApplicationLoggerBase &logger, const std::vector<std::string> &level_names, 
+	const QHash< int, QColor > &severity2color_table, const QHash< int, QString > &severity2prompt_table, QWidget *parent ) 
 	: base_t( parent )
 	, mSeverityToColorTable( severity2color_table )
 	, mSeverityToPromptTable( severity2prompt_table )
 	, mLogger( logger )
 {
     assert__( mSeverityToColorTable.size() == mSeverityToPromptTable.size() );          Q_UNUSED( level_names );    //for release builds
-
-	//// log level colors and labels
-
-	//static std::string names[ ENotifySeverity_size ] =
-	//{
-	//	"ALWAYS",
-	//	"FATAL",
-	//	"WARN",
-	//	"NOTICE",
-	//	"INFO",
-	//	"DEBUG_INFO",
-	//	"DEBUG_FP"
-	//};
- //   static const DEFINE_ARRAY_SIZE( names ); Q_UNUSED(names_size);
-
-	//mSeverityToColorTable.reserve( 10 );
-
-	//mSeverityToColorTable.insert( osg::ALWAYS,		QColor( 0,255,0, 127 ) );
-	//mSeverityToColorTable.insert( osg::FATAL,		QColor( 255, 0, 0, 127 ) );
-	//mSeverityToColorTable.insert( osg::WARN,		QColor( 255, 255, 0, 127 ) );
-	//// debug levels not used by brat logger
-	//mSeverityToColorTable.insert( osg::NOTICE,		QColor( 255, 255, 255, 127 ) );
-	//mSeverityToColorTable.insert( osg::INFO,		QColor( 255, 255, 255, 127 ) );
-	//mSeverityToColorTable.insert( osg::DEBUG_INFO,	QColor( 255, 255, 255, 127 ) );
-	//mSeverityToColorTable.insert( osg::DEBUG_FP,	QColor( 255, 255, 255, 127 ) );
-	//	
-	//mSeverityToPromptTable.reserve( 10 );
-
-	//mSeverityToPromptTable.insert( osg::ALWAYS,		"[INFO] " );
-	//mSeverityToPromptTable.insert( osg::FATAL,		"[FATAL] " );
-	//mSeverityToPromptTable.insert( osg::WARN,		"[WARN] " );
-	//mSeverityToPromptTable.insert( osg::NOTICE,		"[OSG_NOTICE] " );
-	//mSeverityToPromptTable.insert( osg::INFO,		"[OSG_INFO] " );
-	//mSeverityToPromptTable.insert( osg::DEBUG_INFO,	"[OSG_DEBUG_INFO] " );
-	//mSeverityToPromptTable.insert( osg::DEBUG_FP,	"[OSG_DEBUG_FP] " );
-
 
 	// log editor
 
@@ -144,6 +109,10 @@ CBasicLogShell::CBasicLogShell( CApplicationLoggerBase &logger, const std::vecto
 
 	setFocusPolicy( Qt::StrongFocus );
 	setFrameStyle( QFrame::StyledPanel );
+
+	const char *QGIS_LOG_FILE = getenv( "QGIS_LOG_FILE" );
+	if ( QGIS_LOG_FILE )
+		mEditor->readFromFile( QGIS_LOG_FILE );
 
     connect( &mTimer, SIGNAL( timeout() ), this, SLOT( UpdateMsgsPerSecCounter() ) );
     mTimer.start( 1000 );      //1 sec

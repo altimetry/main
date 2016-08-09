@@ -482,6 +482,13 @@ void CDatasetFilterControls::HandleRenameFilter()
 {
 	assert__( mFilter );
 
+	CStringArray operation_names;
+	if ( mWOperation->UseFilter( mFilter->Name(), &operation_names ) )
+	{
+		SimpleErrorBox( "Filter '" + mFilter->Name() + "' cannot be renamed. It is used by the following operations:\n\n" + operation_names.ToString("\n") );
+		return;
+	}
+
     auto result = ValidatedInputString( "Filter Name", mFilter->Name(), "Rename Filter..." );
 	if ( !result.first )
 		return;
@@ -489,13 +496,6 @@ void CDatasetFilterControls::HandleRenameFilter()
 	if ( !mBratFilters.RenameFilter( mFilter->Name(), result.second ) )
 	{
 		SimpleMsgBox( "A filter with same name already exists." );
-		return;
-	}
-
-	CStringArray operation_names;
-	if ( mWOperation->UseFilter( mFilter->Name(), &operation_names ) )
-	{
-		SimpleErrorBox( "Filter '" + mFilter->Name() + "' cannot be renamed. It is used by the following operations:\n\n" + operation_names.ToString("\n") );
 		return;
 	}
 
@@ -1220,82 +1220,6 @@ int ReadTrack( bool can_use_alias, const std::string &path, const std::string &r
 }
 
 
-//static 
-const std::string& CDesktopControlsPanel::FindAliasValue( CProduct *product, const std::string &alias_name )
-{
-	auto *alias = product->GetAlias( alias_name );
-	if ( !alias )
-		alias = product->GetAlias( ToLowerCopy( alias_name ) );	//TODO confirm aliases case sensitiveness
-
-	if ( alias )
-	{
-		return alias->GetValue();
-	}
-
-	return empty_string< std::string >();
-}
-
-//static
-CField* CDesktopControlsPanel::FindField( CProduct *product, const std::string &name, bool &alias_used, std::string &field_error_msg )
-{
-	std::string record;
-	if ( product->IsNetCdfOrNetCdfCFProduct() )
-		//record = CProductNetCdf::m_virtualRecordName;		//this is done for COperation; should we do it HERE????
-		record = "";
-	else
-	{
-		auto *aliases = product->GetAliases();
-		if ( aliases )
-			record = aliases->GetRecord();
-	}
-
-	CField *field = nullptr;
-	alias_used = true;
-
-	std::string value = FindAliasValue( product, name );
-	if ( !value.empty() )
-	{
-		field = product->FindFieldByName( value, false, &field_error_msg );		//true: throw on failure
-		//guessing
-		if ( !field && !record.empty() )
-			field = product->FindFieldByName( value, record, false );	//true: throw on failure
-		if ( !field )
-			field = product->FindFieldByInternalName( value, false );	//true: throw on failure
-	}
-
-	if ( !field )
-	{
-		alias_used = false;
-		field = product->FindFieldByName( name, false, &field_error_msg );		//true: throw on failure
-		//still guessing
-		if ( !field && !record.empty() )
-			field = product->FindFieldByName( name, record, false );	//true: throw on failure
-		if ( !field )
-			field = product->FindFieldByInternalName( name, false );	//true: throw on failure
-		if (!field)
-			field = product->FindFieldByName( ToLowerCopy( name ), false, &field_error_msg );
-	}
-	return field;
-}
-
-
-//static
-std::pair<CField*, CField*> CDesktopControlsPanel::FindLonLatFields( CProduct *product, bool &alias_used, std::string &field_error_msg )
-{
-	std::pair<CField*, CField*> fields;
-	fields.first = FindField( product, lon_name(), alias_used, field_error_msg );
-	fields.second = FindField( product, lat_name(), alias_used, field_error_msg );
-	return fields;
-}
-
-
-//static
-CField* CDesktopControlsPanel::FindTimeField( CProduct *product, bool &alias_used, std::string &field_error_msg )
-{
-	return FindField( product, time_name(), alias_used, field_error_msg );
-}
-
-
 
 void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
 {    
@@ -1356,7 +1280,7 @@ void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
 
 			std::string field_error_msg;
 			bool alias_used;
-			std::pair<CField*, CField*> fields = FindLonLatFields( product, alias_used, field_error_msg );
+            std::pair<CField*, CField*> fields = CBratFilters::FindLonLatFields( product, alias_used, field_error_msg );
 			CField *lon = fields.first;
 			CField *lat = fields.second;
 			if ( !lon || !lat )
@@ -1364,7 +1288,7 @@ void CDatasetFilterControls::HandleDatasetChanged( CDataset *dataset )
 				skip_iteration = true;
 				LOG_WARN( field_error_msg + " - File " + path );
 			}
-			CField *time = FindTimeField( product, alias_used, field_error_msg );
+            CField *time = CBratFilters::FindTimeField( product, alias_used, field_error_msg );
 
             auto expected_lon_dim = lon ? lon->GetDim()[ 0 ] : 0;
 			auto expected_lat_dim = lat ? lat->GetDim()[ 0 ] : 0;

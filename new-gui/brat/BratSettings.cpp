@@ -31,9 +31,9 @@ const std::string ENTRY_CHECK_OPENGL =			"check_opengl_capabilities";
 //static 
 const CMapWidget::ELayerBaseType CBratSettings::smDefaultLayerBaseType =
 #if defined(BRAT_ARCHITECTURE_64)
-    CMapWidget::ELayerBaseType::eRasterLayer;
+    CMapWidget::ELayerBaseType::eVectorLayer;
 #else
-    CMapWidget::ELayerBaseType::eRasterLayer;
+    CMapWidget::ELayerBaseType::eVectorLayer;
 #endif
 
 

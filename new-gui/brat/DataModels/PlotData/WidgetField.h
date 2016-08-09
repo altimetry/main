@@ -18,17 +18,13 @@
 #ifndef DATA_MODELS_PLOT_DATA_WIDGET_FIELD_H
 #define DATA_MODELS_PLOT_DATA_WIDGET_FIELD_H
 
-
-
-
-
 #include "libbrathl/brathl.h"
 #include "libbrathl/Unit.h"
 using namespace brathl;
 
 #include "DataModels/PlotData/FieldData.h"
 
-// Base class for all v3 CXXXPlotData hierarchy
+// Base class for all v3 CXXXPlotField hierarchy
 //
 // This class's interface simulates a single CFieldData
 //

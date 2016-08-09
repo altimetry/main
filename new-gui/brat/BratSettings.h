@@ -1,10 +1,10 @@
 #if !defined BRAT_SETTINGS_H
 #define BRAT_SETTINGS_H
 
-#include "new-gui/Common/ApplicationPaths.h"
 #include "new-gui/Common/ApplicationSettings.h"
 #include "new-gui/Common/QtUtilsIO.h"
-#include "new-gui/brat/GUI/DisplayWidgets/MapWidget.h"
+#include "ApplicationPaths.h"
+#include "GUI/DisplayWidgets/MapWidget.h"
 
 
 class CWorkspace;

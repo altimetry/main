@@ -155,7 +155,7 @@ void CColorMapWidget::CreateWidgets( bool show_range )
 	QLayout *solid_and_contour_l = nullptr;
 	if ( !mOnlyLUT )
 	{
-		mShowSolidColor = new QCheckBox( "Solid Color" );
+        mShowSolidColor = new QCheckBox( "Show" );
 		mNumberOfContoursEdit = new QLineEdit;		mNumberOfContoursEdit->setValidator( new QRegExpValidator( QRegExp( "[0-9]+" ) ) );
 		mContourWidthEdit = new QLineEdit;	  		mContourWidthEdit->setValidator( new QRegExpValidator( QRegExp( "[0-9.]+" ) ) );
 
@@ -180,7 +180,7 @@ void CColorMapWidget::CreateWidgets( bool show_range )
 
 		}, "Contours", nullptr );
 		ShowPrecisionParameters( false );
-		solid_and_contour_l = LayoutWidgets( Qt::Vertical, { mShowSolidColor, mShowContourGroupBox }, nullptr, 6, 2, 2, 2, 2 );
+        solid_and_contour_l = LayoutWidgets( Qt::Vertical, { /*mShowSolidColor, */mShowContourGroupBox }, nullptr, 6, 2, 2, 2, 2 );
 		mShowContourGroupBox->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
 	}
 
@@ -227,7 +227,9 @@ void CColorMapWidget::CreateWidgets( bool show_range )
 		//color_range_group->setSizePolicy( QSizePolicy::MinimumExpanding, QSizePolicy::Maximum );
 	}
 
-	std::vector<QObject*> v{ mColorTables, mColorMapLabel };
+    std::vector<QObject*> v{ mColorTables, mColorMapLabel };
+    if ( mShowSolidColor )
+        v.insert( v.begin(), mShowSolidColor );
 	if ( labels_l )
 		v.push_back( labels_l );
 	v.push_back( nullptr );

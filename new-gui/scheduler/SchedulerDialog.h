@@ -9,12 +9,56 @@
 
 #include "ui_SchedulerDialog.h"
 #include "new-gui/Common/DataModels/TaskProcessor.h"
+#include "new-gui/Common/GUI/ProcessesTable.h"
 
 
-class CConsoleApplicationPaths;
+class CApplicationUserPaths;
 class CSchedulerApplication;
 class CBasicLogShell;
 class CProcessesTable;
+
+
+
+class CBratTaskFunctionProcess : public COsProcess
+{
+#if defined (__APPLE__)
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Winconsistent-missing-override"
+#endif
+
+	Q_OBJECT;
+
+#if defined (__APPLE__)
+#pragma clang diagnostic pop
+#endif
+
+	// types & friends
+
+	using base_t = COsProcess;
+
+
+	// instance data
+
+	CBratTask *mTask = nullptr;
+
+
+	// construction / destruction 
+
+	std::string FormatPseudoCmd( const CBratTask *task ) const;
+public:
+	CBratTaskFunctionProcess( CBratTask *task, bool sync, QWidget *parent, void *user_data );
+
+	virtual ~CBratTaskFunctionProcess()
+	{}
+
+
+	// operations override
+
+	virtual void Kill() override;
+
+	virtual void Execute( bool detached = false ) override;
+};
+
 
 
 
@@ -67,7 +111,7 @@ class CSchedulerDialog : public QDialog, private Ui::CSchedulerDialog
 	QHash< int, QColor >	mSeverityToColorTable;
 	QHash< int, QString >	mSeverityToPromptTable;
 
-    const CConsoleApplicationPaths *mAppPaths;
+    const CApplicationUserPaths *mAppPaths;
 	std::string mSchedulerFilePath;
 
 	QTimer mSchedulerTimer;
@@ -108,11 +152,10 @@ protected:
 	bool RemoveTaskFromTable( QTableWidget *table, const CBratTask *task );
 	bool RemoveTaskFromTableAndMap( QTableWidget *table, CBratTask *task );
 	bool RemoveTasksFromTableAndMap( QTableWidget *table );
-	void InsertTaskInTable( QTableWidget *table, CBratTask *task );
+	void AddTaskToTable( QTableWidget *table, CBratTask *task );
 
 	bool ExecuteAsync( CBratTask *task, int isubtask = - 1 );
 	void AsyncTaskFinished( int exit_code, QProcess::ExitStatus exitStatus, post_execution_handler_wrapper_t *phandler );
-	void AsyncSubtaskFinished( int exit_code, QProcess::ExitStatus exitStatus, post_execution_handler_wrapper_t *phandler );
 
 
 	// signals / slots

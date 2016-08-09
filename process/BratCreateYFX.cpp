@@ -1,6 +1,4 @@
 /*
-* 
-*
 * This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
@@ -21,7 +19,7 @@
 #include <cstdlib>
 #include <string>
 #include "List.h"
-#include "new-gui/Common/ConsoleApplicationPaths.h"
+#include "new-gui/Common/ApplicationStaticPaths.h"
 #include "new-gui/Common/tools/Exception.h"
 #include "FileParams.h"
 #include "Product.h"
@@ -38,6 +36,8 @@
 using namespace brathl;
 using namespace processes;
 
+
+static const char *app_name = "BratCreateYFX";
 
 
 /*
@@ -59,7 +59,7 @@ int main( int argc, char *argv[] )
 
 	bool bOk = true;
 
-	const CConsoleApplicationPaths brat_paths( argv[ 0 ], "" );
+	const CApplicationStaticPaths brat_paths( argv[ 0 ], app_name );
 
 	CTools::SetInternalDataDir( brat_paths.mInternalDataDir );
 

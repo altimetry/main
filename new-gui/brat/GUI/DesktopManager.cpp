@@ -23,6 +23,8 @@ CDesktopManagerBase::CDesktopManagerBase( const CBratSettings &settings, QMainWi
 
 	setObjectName( QString::fromUtf8( "centralWidget" ) );
 
+    setWindowTitle( "Desktop Manager" );        //for diagnostic reasons
+
     mMap = new CMapWidget( settings.VectorSimplifyMethod(), settings.MainLayerBaseType(), this, true );
 
 	parent->setCentralWidget( this );
@@ -105,14 +107,20 @@ CSubWindow::CSubWindow( QWidget *widget, QWidget *parent, Qt::WindowFlags f )		/
 	: base_t( parent, f )
 	, mWidget( widget )
 {
+    static const bool is_gnome = IsGnomeDesktop();
+
 	setAttribute( Qt::WA_DeleteOnClose );
 
 #if defined (_WIN32) || defined (WIN32)
 	// Show maximize button in windows
 	// If this is set in linux, it will not center the dialog over parent
-	setWindowFlags( ( windowFlags() & ~Qt::Dialog ) | Qt::Window | Qt::WindowMaximizeButtonHint | Qt::WindowMinimizeButtonHint );
+    setWindowFlags( ( windowFlags() & ~Qt::Dialog ) | Qt::Window | Qt::WindowMaximizeButtonHint | Qt::WindowMinimizeButtonHint );
+#elif defined (Q_OS_LINUX)
+    // Show buttons in gnome
+    if ( is_gnome )
+        setWindowFlags( ( windowFlags() & ~Qt::Dialog ) | Qt::Window | Qt::WindowCloseButtonHint | Qt::WindowMaximizeButtonHint | Qt::WindowMinimizeButtonHint );
 #elif defined (Q_OS_MAC)
-	// Qt::WindowStaysOnTopHint also works (too weel: stays on top of other apps also). Without this, we have the mac MDI mess...
+    // Qt::WindowStaysOnTopHint also works (too well: stays on top of other apps also). Without this, we have the mac MDI mess...
 	setWindowFlags( ( windowFlags() & ~Qt::Dialog ) | Qt::Tool );
 #endif
 

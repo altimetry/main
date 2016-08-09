@@ -575,7 +575,7 @@ CMapControlsPanelDataLayers::CMapControlsPanelDataLayers( QWidget *parent, Qt::W
     // 1. Fields List
     //
     mFieldsList = new QListWidget;
-	auto *fields_group = CreateGroupBox( ELayoutType::Horizontal, { mFieldsList }, "Layers", nullptr );
+	auto *fields_group = CreateGroupBox( ELayoutType::Horizontal, { mFieldsList }, "Fields", nullptr );
 	fields_group->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Maximum );
 	mFieldsList->setMaximumHeight( MaxSmallListsHeight( 5 ) );
 

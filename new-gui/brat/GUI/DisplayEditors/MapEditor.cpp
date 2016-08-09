@@ -437,7 +437,7 @@ bool CMapEditor::Test()
 	}
 
 	const std::string msg =
-		+ "\nData dump for '"
+        + "\nData dump for '"
 		+ field
 		+ "'\n"
 		+ TF( "mx", mx )
@@ -626,8 +626,10 @@ QgsVectorLayer* CMapEditor::CreateCurrentDataLayer( bool add )		//add = true
 		else
 		{
 			std::string error_msg;
-			double step_x = const_cast<CFormula*>( mOperation->GetFormula( CMapTypeField::eTypeOpAsX ) )->GetStepAsDouble( error_msg );
-			double step_y = const_cast<CFormula*>( mOperation->GetFormula( CMapTypeField::eTypeOpAsY ) )->GetStepAsDouble( error_msg );
+            auto *xformula = const_cast<CFormula*>( mOperation->GetFormula( CMapTypeField::eTypeOpAsX ) );
+            auto *yformula = const_cast<CFormula*>( mOperation->GetFormula( CMapTypeField::eTypeOpAsY ) );
+            double step_x = xformula ? xformula->GetStepAsDouble( error_msg ) : 1.;
+            double step_y = yformula ? yformula->GetStepAsDouble( error_msg ) : 1.;
 
 			//TODO use error_msg
 
@@ -674,6 +676,7 @@ void CMapEditor::ResetMap()
 		//CWorldPlotPanel::AddData
 
 		CreateCurrentDataLayer( true );		//true -> add it also
+
 
 		/////////////////////////////////////////////////
 		//			add field layers to list
@@ -774,6 +777,17 @@ void CMapEditor::HandleCurrentFieldChanged( int field_index )
 //	From widgets to properties, from properties to plot
 ///////////////////////////////////////////////////////
 ///////////////////////////////////////////////////////
+
+//helper
+void CMapEditor::UpdateGlobe()
+{
+	if ( mDisplaying3D )
+	{
+		assert__( mGlobeView );
+		if ( mGlobeView->isVisible() )
+			mGlobeView->imageLayersChanged();
+	}
+}
 
 
 void CMapEditor::HandleShowSolidColorChecked( bool checked )
@@ -883,7 +897,10 @@ void CMapEditor::HandleContourColorSelected()
 	mCurrentPlotField->SetContourLineColor( mTabDataLayers->mColorMapWidget->ContourColor() );
 
 	if ( mMapView->HasContourLayer( field_index ) )
+	{
 		mMapView->SetContoursProperties( field_index, mCurrentPlotField->ContourLineColor().GetQColor(), mCurrentPlotField->ContourLineWidth() );
+		UpdateGlobe();
+	}
 }
 
 
@@ -896,7 +913,10 @@ void CMapEditor::HandleContourWidthChanged()
 	mCurrentPlotField->SetContourLineWidth( mTabDataLayers->mColorMapWidget->ContoursWidth() );
 
 	if ( mMapView->HasContourLayer( field_index ) )
+	{
 		mMapView->SetContoursProperties( field_index, mCurrentPlotField->ContourLineColor().GetQColor(), mCurrentPlotField->ContourLineWidth() );
+		UpdateGlobe();
+	}
 }
 
 
@@ -913,7 +933,8 @@ void CMapEditor::HandleColorTablesIndexChanged( int index )
 	assert__( mTabDataLayers->mColorMapWidget->ColorRangeMin() == mCurrentPlotField->CurrentMinValue() && 
 		mTabDataLayers->mColorMapWidget->ColorRangeMax() == mCurrentPlotField->CurrentMaxValue() );
 
-	mMapView->ChangeDataRenderer( field_index, 0., array.mMinHeightValue, array.mMaxHeightValue, mCurrentPlotField->ColorTablePtr()->GetLookupTable() );	
+	mMapView->ChangeDataRenderer( field_index, 0., array.mMinHeightValue, array.mMaxHeightValue, mCurrentPlotField->ColorTablePtr()->GetLookupTable() );
+	UpdateGlobe();
 }
 
 

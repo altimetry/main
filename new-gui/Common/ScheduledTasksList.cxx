@@ -1494,13 +1494,13 @@ _xsd_function_convert () const
 const char* const function::
 _xsd_function_literals_[1] =
 {
-  "CopyFile"
+  "BratTaskFunctionCopyFile"
 };
 
 const function::value function::
 _xsd_function_indexes_[1] =
 {
-  ::function::CopyFile
+  ::function::BratTaskFunctionCopyFile
 };
 
 // name
