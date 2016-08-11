@@ -19,10 +19,8 @@
 
 #include "PlotValues.h"
 
-//#include <algorithm>
-//#include <iostream>
 #include <numeric>
-//#include <vector>
+
 
 double slope( const std::vector<double>& x, const std::vector<double>& y )
 {
@@ -171,30 +169,6 @@ struct Fitab
 		sigb *= sigdat;
 	}
 };
-
-
- //   //std::vector<double> x{6, 5, 11, 7, 5, 4, 4};
- //   //std::vector<double> y{2, 3, 9, 1, 8, 7, 5};
- //   //qDebug() << slope(x, y) << '\n';  // outputs 0.305556
-
-	//std::vector<double> x { 1.5, 2.4, 3.2, 4.8,  5.0, 7.0,  8.43 };
-	//std::vector<double> y { 3.5, 5.3, 7.7, 6.2, 11.0, 9.5, 10.27 };
-
-	////std::vector<double> x { 1., 1., 1, 1., 1., 1., 1. };
- ////   std::vector<double> y { 1., 2., 3., 4., 4., 5., 6. };
-
- //   qDebug() << slope(x, y) << '\n';
-
-
-	//Fitab fit( x, y );				// y = a + bx
- //   qDebug() << fit.intercept_a;	//Intercept				- 3.46212
- //   qDebug() << fit.slope_b;		//Slope					- 0.904273
- //   qDebug() << fit.chi2;
- //   qDebug() << fit.sigdat;
- //   qDebug() << fit.siga;
- //   qDebug() << fit.sigb;
-	////qDebug() << fit.coefficient 	//Regression coefficient- 0.808257
-
 
 
 bool CYFXValues::CCurve::Fit() const

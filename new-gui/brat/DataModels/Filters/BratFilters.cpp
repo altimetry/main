@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT 
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #include "new-gui/brat/stdafx.h"
 
 #include "new-gui/Common/QtUtils.h"
@@ -45,23 +62,23 @@ static const std::string DATASET_SELECTION_LOG_FILENAME = "DatasetSelection.log"
 
 // Setting Brathl internal reference date year (1950)
 //
-//static 
+//static
 const QDateTime CBratFilter::smStartTime = QDateTime( QDate(1950, 1, 1), QTime(0, 0, 0) );
 
-//static 
+//static
 const int CBratFilter::smStartCycle = defaultValue< int >();
-//static 
+//static
 const int CBratFilter::smStopCycle = defaultValue< int >();
-//static 
+//static
 const int CBratFilter::smStartPass = defaultValue< int >();
-//static 
+//static
 const int CBratFilter::smStopPass = defaultValue< int >();
 
-//static 
+//static
 const bool CBratFilter::smUseCurrentTime = true;
-//static 
+//static
 const int CBratFilter::smRelativeStartDays = defaultValue< int >();
-//static 
+//static
 const int CBratFilter::smRelativeStopDays = defaultValue< int >();
 
 
@@ -82,8 +99,8 @@ CBratFilter& CBratFilter::operator = ( const CBratFilter &o )
         mStartPass = o.mStartPass;
         mStopPass = o.mStopPass;
 
-		mRelativeStartDays = o.mRelativeStartDays;
-		mRelativeStopDays = o.mRelativeStopDays;
+        mRelativeStartDays = o.mRelativeStartDays;
+        mRelativeStopDays = o.mRelativeStopDays;
     }
     return *this;
 }
@@ -122,7 +139,7 @@ bool CBratFilter::RemoveArea( const std::string &name )
 
 const CBratAreas& CBratFilter::Areas() const
 {
-	return CBratFilters::GetInstance().Areas();
+    return CBratFilters::GetInstance().Areas();
 }
 
 
@@ -138,9 +155,9 @@ void CBratFilter::BoundingArea( double &lon1, double &lat1, double &lon2, double
     lat1 = std::numeric_limits<double>::max();
     lat2 = std::numeric_limits<double>::lowest();
 
-	for ( auto const &name : mAreaNames )		//iterate over filter area names
-	{
-		auto const &area = areas.Find( name );	//find area object in the set of all areas; an area 'is a' vector
+    for ( auto const &name : mAreaNames )		//iterate over filter area names
+    {
+        auto const &area = areas.Find( name );	//find area object in the set of all areas; an area 'is a' vector
 
         if (area->GetLonMin() < lon1)
         {
@@ -158,7 +175,7 @@ void CBratFilter::BoundingArea( double &lon1, double &lat1, double &lon2, double
         {
             lat2= area->GetLatMax();
         }
-	}
+    }
 }
 
 
@@ -286,11 +303,11 @@ void CBratFilter::Relative2AbsoluteTimes()
 
 void CBratFilter::SetDefaultValues()
 {
-	SetDefaultDateValues();
+    SetDefaultDateValues();
 
-	SetDefaultCyclePassValues();
+    SetDefaultCyclePassValues();
 
-	SetDefaultRelativeDays();
+    SetDefaultRelativeDays();
 }
 
 
@@ -313,8 +330,8 @@ void CBratFilter::SetDefaultRelativeDays()
 {
     mRelativeStartDays = smRelativeStartDays;
     mRelativeStopDays = smRelativeStopDays;
-	mUseCurrentTime = smUseCurrentTime;
-	mRelativeReferenceTime = QDateTime::currentDateTime();
+    mUseCurrentTime = smUseCurrentTime;
+    mRelativeReferenceTime = QDateTime::currentDateTime();
 }
 
 
@@ -396,7 +413,7 @@ bool CBratFilters::DeleteFilter( const std::string &name )
 
 bool CBratFilters::Save()
 {
-	Clear();
+    Clear();
 
     for ( auto it = mFiltersMap.cbegin(); it != mFiltersMap.cend(); it++ )
     {
@@ -418,10 +435,10 @@ bool CBratFilters::Save()
             k_v( STARTPASS_KEY,				filter.StartPass() ),
             k_v( STOPPASS_KEY,				filter.StopPass() ),
 
-			k_v( RELATIVE_START_DAYS_KEY,	filter.RelativeStartDays() ),
-			k_v( RELATIVE_STOP_DAYS_KEY,	filter.RelativeStopDays() ),
-			k_v( USE_CURRENT_TIME_KEY,		filter.UseCurrentTime() ),
-			k_v( RELATIVE_REFERENCE_TIME,	filter.RelativeReferenceTime().toString( t2q( date_time_format ) ) )
+            k_v( RELATIVE_START_DAYS_KEY,	filter.RelativeStartDays() ),
+            k_v( RELATIVE_STOP_DAYS_KEY,	filter.RelativeStopDays() ),
+            k_v( USE_CURRENT_TIME_KEY,		filter.UseCurrentTime() ),
+            k_v( RELATIVE_REFERENCE_TIME,	filter.RelativeReferenceTime().toString( t2q( date_time_format ) ) )
         );
     }
 
@@ -460,11 +477,11 @@ bool CBratFilters::Load()
             k_v( STARTPASS_KEY,				&filter.StartPass(),	CBratFilter::smStartPass ),
             k_v( STOPPASS_KEY,				&filter.StopPass(),		CBratFilter::smStopPass ),
 
-			k_v( RELATIVE_START_DAYS_KEY,	&filter.RelativeStartDays(),	CBratFilter::smRelativeStartDays ),
-			k_v( RELATIVE_STOP_DAYS_KEY,	&filter.RelativeStopDays(),		CBratFilter::smRelativeStopDays ),
-			k_v( USE_CURRENT_TIME_KEY,		&filter.UseCurrentTime(),		CBratFilter::smUseCurrentTime ),
-			k_v( RELATIVE_REFERENCE_TIME,	&relative_ref_time )
-		);
+            k_v( RELATIVE_START_DAYS_KEY,	&filter.RelativeStartDays(),	CBratFilter::smRelativeStartDays ),
+            k_v( RELATIVE_STOP_DAYS_KEY,	&filter.RelativeStopDays(),		CBratFilter::smRelativeStopDays ),
+            k_v( USE_CURRENT_TIME_KEY,		&filter.UseCurrentTime(),		CBratFilter::smUseCurrentTime ),
+            k_v( RELATIVE_REFERENCE_TIME,	&relative_ref_time )
+        );
 
         auto &areas = filter.mAreaNames;
         areas.clear();
@@ -475,7 +492,7 @@ bool CBratFilters::Load()
 
         filter.StartTime() = stime.empty() ? CBratFilter::smStartTime : QDateTime::fromString( stime.c_str(), t2q( date_time_format ) );
         filter.StopTime() = etime.empty() ?  QDateTime::currentDateTime() : QDateTime::fromString( etime.c_str(), t2q( date_time_format ) );
-        filter.RelativeReferenceTime() = relative_ref_time.empty() ?  
+        filter.RelativeReferenceTime() = relative_ref_time.empty() ?
                                                 QDateTime::currentDateTime() :
                                                 QDateTime::fromString( relative_ref_time.c_str(), t2q( date_time_format ) );
 
@@ -494,11 +511,11 @@ bool CBratFilters::Load()
 
 bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std::string &name, std::string &error_msg ) const
 {
-	auto const *filter = Find( name );
+    auto const *filter = Find( name );
 
-	assert__( filter && product_ref );
+    assert__( filter && product_ref );
 
-	if ( !product_ref->HasCriteriaInfo() )
+    if ( !product_ref->HasCriteriaInfo() )
     {
         error_msg.append( "No criteria information found in product type '" + product_ref->GetLabel() + "'." );
         return false;
@@ -508,20 +525,20 @@ bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std
     ///  LatLon Criteria //
     ///////////////////////
     if ( product_ref->HasLatLonCriteria() && !filter->AreaNames().empty() )
-	{
-		double lon1, lat1, lon2, lat2;
-		filter->BoundingArea( lon1, lat1, lon2, lat2 );
+    {
+        double lon1, lat1, lon2, lat2;
+        filter->BoundingArea( lon1, lat1, lon2, lat2 );
         product_ref->GetLatLonCriteria()->Set( lat1, lon1, lat2, lon2 );  // double latLow, double lonLow, double latHigh, double lonHigh
 
         LOG_INFO("Filter '" + filter->Name() + "' applied a LatLonCriteria, Lat=[" + std::to_string(lat1) + "; " + std::to_string(lat2) +
                                                                      "] and Lon=[" + std::to_string(lon1) + "; " + std::to_string(lon2) + "].");
-	}
+    }
 
     /////////////////////////////////////////
     /// DateTime (and Cycle/Pass) Criteria //
     /////////////////////////////////////////
     if ( product_ref->HasDatetimeCriteria() )
-	{
+    {
         CDate Start, Stop;
 
         if ( filter->GetTimeBounds( Start, Stop, product_ref->GetLabel(), error_msg ) )
@@ -536,7 +553,7 @@ bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std
             // Unable to convert Cycle and Pass to date: no mission found for product type
             return false;
         }
-	}
+    }
 
     /// NOT USED ON BRAT V.4 /// Cycle/Pass criteria are applied as datetime criteria, therefore the old criteria are not used.
     /*
@@ -549,8 +566,8 @@ bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std
     {
         product_ref->GetPassIntCriteria()->Set( filter->StartPass(), filter->StopPass() );
     }
-	//	Apparently Cryosat uses this criterion; is it simply composed by integer passes converted to string??? I wonder...
-	//	If not, we still don't have GUI support for this
+    //	Apparently Cryosat uses this criterion; is it simply composed by integer passes converted to string??? I wonder...
+    //	If not, we still don't have GUI support for this
     if ( product_ref->HasPassStringCriteria() )
     {
         //product_ref->GetPassStringCriteria()->Set( comma separated strings );
@@ -558,14 +575,14 @@ bool CBratFilters::Translate2SelectionCriteria( CProduct *product_ref, const std
     */
     ///////////
 
-	return true;
+    return true;
 }
 
 
 bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, CStringList& files_out, std::string& error_msg ) const
 {
 #if defined(BRAT_V3)
-	return true;
+    return true;
 #endif
 
     auto *filter = Find( name );
@@ -577,16 +594,13 @@ bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, 
 
     try
     {
-		//TODO RCCC: the test "files_in.size() > 0" must be done, begin cannot be called on an empty container.
-		//			However, check if returning false when product is nullptr is appropriate. I'm not saying it isn't, but
-		//			I see "files_out.Insert( files_in );" after the exception handlers (the "catches" below) when result 
-		//			is false, so I asked myself if I should do it here also... Note that before I added this "files_in.size() > 0" 
-		//			test, an exception was thrown and caught below, executing "files_out.Insert( files_in );"
-		//
-        if ( files_in.size() > 0 )									//femm added
-			product = CProduct::Construct( *files_in.begin() );
+        if ( files_in.size() > 0 )
+            product = CProduct::Construct( *files_in.begin() );
         if ( !product )
+        {
+            error_msg.append( "Perhaps the dataset is empty." );
             return false;
+        }
 
         product->GetProductList().clear();
         product->GetProductList().Insert( files_in );
@@ -658,6 +672,12 @@ bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, 
         product->AddCriteria( product_ref );
         std::string log_path = mWorkspacesPath + "/" + DATASET_SELECTION_LOG_FILENAME;
         product->ApplyCriteria( files_out, log_path );
+
+        if ( files_out.size() < 1 )
+        {
+            error_msg.append( "No data available for filter criteria." );
+            return false;
+        }
 
     }
     catch ( CException e )

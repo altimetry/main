@@ -986,12 +986,6 @@ IF (APPLE)
 		)
 ENDIF(APPLE)
 
-#INSTALL(
-#	DIRECTORY 
-#	${EXTERNAL_DATA_DIR}/maps/NE1_HR_LC_SR_W_DR
-#	DESTINATION ${RUNTIME_DESTINATION}/data/maps
-#	COMPONENT brat_runtime
-#	)
 
 
 
@@ -1192,10 +1186,6 @@ add_custom_target(externals-install
 
 # The data/ subdirectory
 
-#set(BRATHL_DEFDATADIR  "${CMAKE_INSTALL_PREFIX}/${INSTALL_DIR}/data" CACHE INTERNAL "Default data directory")
-#set(BRATHL_UNITFILE "brathl_units.dat" CACHE INTERNAL "Units file")
-
-
 set(CODADEF_FILES
 	#data/CRYOSAT-20120130.codadef
 	data/CRYOSAT-20150601.codadef
@@ -1226,21 +1216,6 @@ set(GUI_DATA_FILES
   data/BratIcon.bmp
   )
 
-#set(BRAT_GUI_DATA_FILES
-#  data/function_descr.txt
-#  new-gui/Common/Resources/images/BratIcon.png
-#  data/BratLogo.png
-#  data/Formulas.ini
-#  )
-  
-#set(DATA_FILES
-#  ${CODADEF_FILES}
-#  ${LIBBRATHL_DATA_FILES}
-#  ${GUI_DATA_FILES}
-#  ${BRAT_GUI_DATA_FILES}
-#  )
-
-#install(FILES ${DATA_FILES} DESTINATION data/)
 
 
 # The BRAT core tools library  ############################################################################################################
@@ -1511,9 +1486,6 @@ if(CMAKE_COMPILER_IS_GNUCXX)
     PROPERTIES COMPILE_FLAGS "-Wall")
 endif(CMAKE_COMPILER_IS_GNUCXX)
 
-#configure_file(
-#  ${BRAT_SOURCE_DIR}/libbrathl/brathl_config.h.in
-#  ${BRAT_BINARY_DIR}/libbrathl/brathl_config.h)
 
 include_directories(
   ${BRAT_BINARY_DIR})
@@ -2142,7 +2114,6 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/DisplayWidgets/3DPlotWidget.cpp
 		new-gui/brat/GUI/DisplayWidgets/GlobeWidget.cpp
 		new-gui/brat/GUI/DisplayWidgets/MapWidget.cpp
-		new-gui/brat/GUI/DisplayWidgets/MapWidgetExperimental.cpp
 		new-gui/brat/GUI/DesktopManager.cpp
 		new-gui/Common/GUI/TextWidget.cpp
 		new-gui/brat/GUI/TabbedDock.cpp
@@ -2158,7 +2129,6 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/WorkspaceDialog.cpp
 		new-gui/brat/GUI/WorkspaceElementsDialog.cpp
 		new-gui/brat/ApplicationSettingsDlg.cpp
-		new-gui/brat/GUI/norwegianwoodstyle.cpp
 		new-gui/Common/GUI/ApplicationUserPaths.cpp
 		new-gui/brat/ApplicationPaths.cpp
 		new-gui/Common/ApplicationLogger.cpp
@@ -2172,7 +2142,6 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/DataModels/DisplayFilesProcessor.cpp
 		new-gui/brat/DataModels/PlotData/XYPlotField.cpp
 		new-gui/brat/DataModels/PlotData/ZFXYPlotField.cpp
-		new-gui/brat/GUI/DisplayWidgets/3DPlotWidgetExperimental.cpp
 		new-gui/brat/DataModels/PlotData/MapColor.cpp
 		new-gui/brat/DataModels/PlotData/PlotValues.cpp
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapDecorationGrid.cpp
@@ -2275,7 +2244,6 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/WorkspaceDialog.h
 		new-gui/brat/GUI/WorkspaceElementsDialog.h
 		new-gui/brat/ApplicationSettingsDlg.h
-		new-gui/brat/GUI/norwegianwoodstyle.h
 		new-gui/Common/GUI/ApplicationUserPaths.h
 		new-gui/brat/ApplicationPaths.h
 		new-gui/Common/ApplicationLogger.h

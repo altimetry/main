@@ -282,7 +282,7 @@ bool CTasksProcessor::store( const std::string &path )
 		result = ::store( *this, ofs );
 	}
 	if ( !mLockedFile.unlock() )
-		qDebug() << "Could not unlock file. Bad things are to be expected.";
+		qDebug() << "Could not unlock file.";
 	//smLockedFile.flush();
 	mLockedFile.close();
 
@@ -309,7 +309,7 @@ bool CTasksProcessor::load( const std::string &path )
 	bool result = ::load( *this, ifs );
 
 	if ( !mLockedFile.unlock() )
-		qDebug() << "Could not unlock file. Bad things are to be expected.";
+		qDebug() << "Could not unlock file.";
 	mLockedFile.close();
 
 	return result;

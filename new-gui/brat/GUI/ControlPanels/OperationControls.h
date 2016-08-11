@@ -95,8 +95,6 @@ public:
 
     static const std::vector<std::string> smQuickPredefinedVariableNames;
 
-	static bool FormulaDescriptionMatchesQuickAlias( const std::string &description, EPredefinedVariables index );
-
 	static bool FormulaNameMatchesQuickAlias( const std::string &description, EPredefinedVariables index );
 
 	static const std::string& QuickFindAliasValue( CProduct *product, EPredefinedVariables index );
@@ -108,13 +106,11 @@ public:
 	static CField* QuickFindField( CProduct *product, EPredefinedSelectionCriteria index, bool &alias_used, std::string &field_error_msg );
 
 
-	static void SelectOperationDataset( COperation *operation, QComboBox *combo, bool block_signals );
+	static void SelectOperationDatasetIndex( COperation *operation, QComboBox *combo );
 
 	static bool AssignFilter( const CBratFilters &brat_filters, COperation *operation, const std::string &name );
 
 	static bool RemoveFilter( COperation *operation, const std::string &name );
-
-	static void RemoveOperationFormulas( COperation *operation );
 
 
 	//...fill helpers
@@ -236,6 +232,7 @@ protected:
 
 	COperation *mCurrentOperation = nullptr;
 	COperation *mQuickOperation = nullptr;
+	bool mQuickInitializing = false;					//ugly
 	const CDataset *mCurrentOriginalDataset = nullptr;
 	CProduct *mProduct = nullptr;
     CFormula *mUserFormula = nullptr;
@@ -305,6 +302,7 @@ protected:
 
 	//quick
 
+	std::string QuickDatasetSelectedName() const;
 	CDataset* QuickDatasetSelected() const;
 	COperation* GetOrCreateEmptyQuickOperation();
 	COperation* CreateQuickOperation( CMapTypeOp::ETypeOp type );
@@ -339,10 +337,10 @@ protected:
 
 	//remaining
 
-	bool AssignDataset( const CDataset *dataset, bool changing_used_dataset );
-	bool SelectDataset( const std::string &dataset_name );
+	bool AssignDataset( const std::string &new_dataset_name, bool changing_used_dataset );
 	//bool SelectDataset( int dataset_index );
-	bool SelectDataset( const CDataset *dataset );
+	bool UpdateDatasetSelection( const CDataset *dataset );
+	bool UpdateSelectedDatasetAdvancedSelection();
 
     void FillDatasets_Advanced( int index );
 
@@ -364,7 +362,7 @@ protected slots:
 	void HandleSelectedDatasetChanged_Quick( int dataset_index );
 	void HandleSelectedFieldChanged_Quick( int variable_index );
 	void HandleVariableStateChanged_Quick( QListWidgetItem *item );
-    void HandleDatasetsChanged_Quick(CDataset*);
+    void HandleDatasetsChanged_Quick( const CDataset *dataset );
 
 	void HandleOperationFilterButton_Quick( QAction *a );
 	void HandleOperationFilterButtonToggled_Quick( bool );
@@ -382,7 +380,7 @@ protected slots:
 	void HandleSelectedOperationChanged( int operation_index );
 	void HandleSelectedFieldChanged_Advanced();
 	void HandleSelectedDatasetChanged_Advanced( int dataset_index );
-    void HandleDatasetsChanged_Advanced( CDataset *dataset );
+    void HandleDatasetsChanged_Advanced( const CDataset *dataset );
 
     void HandleFiltersChanged();
 	void HandleFilterCompositionChanged( std::string filter_name );

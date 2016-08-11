@@ -29,13 +29,19 @@ authoritative.
 
 Version History
 == == == == == == ==
+
+
 4.0.0 - August 2016
 --------------------
 
+Changes for this version:
+- Implementation of all incomplete features in 4.0.0 beta version
+- Solution of all known problems reported with 4.0.0 beta version
 
-== == == == == == == ==
+
 4.0.0 beta - July 2016
 -----------------------
+
 Changes for this version:
 - Complete redesign and re-implementation of GUI applications
 - Feature added to allow the usage of Python scripts within the data expressions
@@ -77,6 +83,7 @@ Known problems with the V4.0.0-beta release:
 	during computation or selection. This feature is not available yet and will be implemented for full release.
 - Faulty Map Projection: Nearest sided perspective:
 	This projection is currently not working properly.
+
 
 3.3.0 - September 2015
 --------------------

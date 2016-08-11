@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT 
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #ifndef BRAT_CROSS_PLATFORM_UTILS_IO_H
 #define BRAT_CROSS_PLATFORM_UTILS_IO_H
 
@@ -120,15 +137,6 @@ inline std::string setExecExtension( const std::string &execPath )
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-//inline bool ReadFromUnicodeFile( std::wstring &s, const std::wstring &path )
-//{
-//	std::wifstream f( path, std::ios::binary );
-//	f.imbue( std::locale( f.getloc(), new std::codecvt_utf16< wchar_t, 0x10ffff, std::little_endian>) );
-//	if ( !f )
-//		return false;
-//	std::copy( std::istreambuf_iterator< wchar_t >( f ), std::istreambuf_iterator< wchar_t >(), std::back_inserter( s ) );
-//	return true;
-//}
 inline void PrepareRead2String( string_traits<std::string>::ifstream_type  &inf )
 {
 	UNUSED( inf );

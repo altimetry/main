@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT 
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #ifndef BRAT_CROSS_PLATFORM_UTILS_H
 #define BRAT_CROSS_PLATFORM_UTILS_H
 
@@ -256,63 +273,6 @@ inline bool In( const typename CONTAINER::value_type &value, const CONTAINER &c 
 
 
 //////////////////////////////////////////////////////////////////
-//				Create vectors from arrays
-//////////////////////////////////////////////////////////////////
-
-
-template< class T >
-std::vector< T > Array2VectorT ( std::vector< T > &v, const T *array, size_t size )
-{
-	v.clear();
-	for ( size_t i = 0; i < size; ++i )
-		v.push_back( array[i] );
-	return v;
-}
-
-template< class T >
-std::vector< T > Array2VectorT ( const T *array, size_t size )
-{
-	std::vector< T > v;
-	return Array2VectorT ( v, array, size );
-}
-
-
-template< class STRING >
-std::vector< STRING > & vArray2Vector ( std::vector< STRING > &v, const typename STRING::value_type *head, va_list args )
-{
-	v.clear();
-	while ( head ) {
-		v.push_back( head );
-        head = va_arg( args, const typename STRING::value_type* );
-	}
-	return v;
-}
-
-template< class STRING >
-std::vector< STRING > Array2Vector (std::vector< STRING > &v, const typename STRING::value_type *head, ...)
-{
-	va_list args;
-	va_start ( args, head );
-	vArray2Vector (v, head, args );
-	va_end ( args );
-	return v;
-}
-
-template< class STRING >
-std::vector< STRING > Array2Vector (const typename STRING::value_type *head, ...)
-{
-	std::vector< STRING > v;
-
-	va_list args;
-	va_start( args, head );
-	vArray2Vector (v, head, args );
-	va_end( args );
-	return v;
-}
-
-
-
-//////////////////////////////////////////////////////////////////
 //			Create vectors of strings from strings
 //////////////////////////////////////////////////////////////////
 
@@ -364,35 +324,6 @@ inline STRING Vector2String( const std::vector< STRING >&v, const typename STRIN
 {
 	return Vector2String( v, STRING( separator ) );
 }
-
-
-
-//////////////////////////////////////////////////////////////////
-//				+= operator for std::vector < T >
-//////////////////////////////////////////////////////////////////
-//
-//  Concatenates two vectors. The first argument is the result
-//  of the operation.
-//
-//  @param vDest
-//  		Vector where the copies of the vSource items are
-//  		appended.
-//  @param vSource
-//  		Vector whose items are be copied to vDest.
-//
-//  @return
-//  		vDest with the copies of the vSource items appended at
-//  		the end and in the same order.
-//
-template< typename T >
-inline std::vector< T >& operator += (std::vector< T > &vDest, const std::vector< T > &vSource )
-{
-	vDest.reserve(vDest.size() + vSource.size());
-	std::copy ( vSource.begin(), vSource.end(), std::back_inserter( vDest ));
-	return vDest;
-}
-
-
 
 
 //////////////////////////////////////////////////////////////////
@@ -765,37 +696,6 @@ protected:
 
 
 
-							//////////////////////////////////////////
-							//	  									//
-							//   			Date / Time
-							//              	         	  		//
-							//////////////////////////////////////////
-
-
-
-inline const wchar_t* defaultDateTimeFormat()
-{
-	static const wchar_t *format = L"%Y-%m-%d %X";
-	return format;
-}
-inline std::wstring currentDateTime( const std::wstring &format = defaultDateTimeFormat() ) 
-{
-    time_t now = time( 0 );
-    wchar_t buf[ 80 ];
-
-#if defined (_MSC_VER)				//_CRT_SECURE_NO_WARNINGS cannot disable this, don't know why
-	tm tstruct;
-	localtime_s( &tstruct, &now );
-#else
-    tm tstruct = *localtime( &now );
-#endif
-
-	wcsftime( buf, sizeof( buf ) / sizeof(wchar_t), format.c_str(), &tstruct );
-    return buf;
-}
-
-
-
 ////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////
 //					REFORMULATED BRAT UTILITIES
@@ -836,6 +736,7 @@ inline std::string stdFormat( const char *format, va_list args )
 #if defined (WIN32) || defined (_WIN32)
 #pragma warning ( default : 4996 )
 #endif
+
 
 
 

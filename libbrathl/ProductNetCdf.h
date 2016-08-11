@@ -1,7 +1,7 @@
 /*
-* 
 *
-* This file is part of BRAT 
+*
+* This file is part of BRAT
 *
 * BRAT is free software; you can redistribute it and/or
 * modify it under the terms of the GNU General Public License
@@ -36,7 +36,7 @@ namespace brathl
 /** \addtogroup product Products
   @{ */
 
-/** 
+/**
   Netcdf product management class.
 
 
@@ -47,19 +47,19 @@ class CProductNetCdf : public CProduct
 {
 
 public:
-    
+
   /// Empty CProductNetCdf ctor
   CProductNetCdf();
 
-  
+
   /** Creates new CProductNetCdf object
     \param fileName [in] : file name to be connected */
   CProductNetCdf(const std::string& fileName);
-  
+
   /** Creates new CProductNetCdf object
     \param fileNameList [in] : list of file to be connected */
   CProductNetCdf(const CStringList& fileNameList);
-    
+
   /// Destructor
   virtual ~CProductNetCdf();
 
@@ -68,7 +68,7 @@ public:
   virtual bool GetDateMinMax(CDatePeriod& datePeriodMinMax);
   virtual bool GetLatLonMinMax(CLatLonRect& latlonRectMinMax);
 
-  virtual bool HasCriteriaInfo() { return true; };
+  virtual bool HasCriteriaInfo() { return true; }
 
   virtual void ApplyCriteria(CStringList& filteredFileList, const std::string& logFileName = "");
 
@@ -119,11 +119,11 @@ public:
 
   CStringArray* GetComplementDims() { return &m_complementDims; };
   void SetComplementDims(const CStringArray& value) { m_complementDims = value; };
-  
+
   CStringArray* GetDimsToReadOneByOne() { return &m_dimsToReadOneByOne; };
   void SetDimsToReadOneByOne(const CStringArray& value) { m_dimsToReadOneByOne = value; };
   void AddDimsToReadOneByOne(const CStringArray& value) { m_dimsToReadOneByOne.InsertUnique(value); };
-  
+
   void GetNetCdfDimensions(const std::vector<CExpression>& expressions, CStringArray& commonDimNames);
   void GetNetCdfDimensions(const CExpression& expr, CStringArray& commonDimNames);
   void GetNetCdfDimensions(const CStringArray& fields, CStringArray& commonDimNames);
@@ -155,7 +155,7 @@ public:
   virtual void Dump(std::ostream& fOut = std::cerr);
 
   static bool IsProductNetCdf(CBratObject* ob);
-  
+
   static CProductNetCdf* GetProductNetCdf(CBratObject* ob, bool withExcept = true);
 
   CExternalFilesNetCDF* GetExternalFile() { return m_externalFile; };
@@ -200,13 +200,23 @@ protected:
 
   virtual void ReadBratFieldRecord(const std::string& key);
   virtual void ReadBratFieldRecord(CField::CListField::iterator it);
-  
-  virtual CFieldNetCdf* Read(CFieldInfo& fieldInfo, double& value, bool wantMin = true);
+
+
+  struct CAdjustValidMinMax
+  {
+      virtual void operator()( CFieldNetCdf *field ) const
+      {
+          field->AdjustValidMinMaxFromValues();
+      }
+  };
+
+
+  virtual CFieldNetCdf* Read(CFieldInfo& fieldInfo, double& value, bool wantMin = true, const CAdjustValidMinMax &adjust_algo = CAdjustValidMinMax() );
   virtual void Read(CFieldInfo& fieldInfo, std::string& value);
   virtual void Read(CFieldNetCdf* field, double& value);
   virtual void Read(CFieldNetCdf* field, CDoubleArray& vect);
-  virtual void Read(CFieldNetCdf* field, CExpressionValue& value);
-  virtual void ReadAll(CFieldNetCdf* field);
+  virtual void Read(CFieldNetCdf* field, CExpressionValue& value );
+  virtual void ReadAll(CFieldNetCdf* field, const CAdjustValidMinMax &adjust_algo = CAdjustValidMinMax() );
   virtual void ReadAll(CFieldNetCdf* field, CExpressionValue& value);
 
   virtual void FillDescription();
@@ -227,7 +237,7 @@ protected:
   * NB : CFieldNetCdf objects stored in this map have not to be delete (they are not a copy !!!)
     */
   CObMap* m_fieldsToRead;
-  
+
   CStringArray m_axisDims;
   CStringArray m_complementDims;
   CStringArray m_dimsToReadOneByOne;

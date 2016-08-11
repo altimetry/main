@@ -591,8 +591,12 @@ bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &error_msg, CWo
 		const std::string msg = "Operation '" + op.GetName() + "' referenced non-existing filter '" + v4filter + "'. The reference was removed.";
 		LOG_WARN( msg );
 	}
-	op.SetFilter( filter );
-	op.SetDataset( op.FindDataset( dsname, wks ) );
+	//assuming original operation is well formed, no reason to inspect SetFilter and SetDataset return values
+	std::string dataset_error_msg;
+	op.SetOriginalDataset( wks, dsname, dataset_error_msg );	//NOTE: this clears formulas and can clear filter, don't load them before
+	op.SetFilter( filter, dataset_error_msg );
+	if ( !dataset_error_msg.empty() )
+		error_msg += ( "\n" + dataset_error_msg );
 	op.m_type = type.empty() ? CMapTypeOp::eTypeOpYFX : CMapTypeOp::GetInstance().NameToId( type );
 	op.m_dataMode = data_mode.empty() ? CMapDataMode::GetInstance().GetDefault() : CMapDataMode::GetInstance().NameToId( data_mode );
 	if ( op.m_record.empty() )

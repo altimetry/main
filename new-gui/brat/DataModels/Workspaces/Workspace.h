@@ -239,6 +239,8 @@ public:
 
 	CDataset* GetDataset( const std::string& name );
 
+	const CDataset* GetDataset(const std::string& name) const { return const_cast<CWorkspaceDataset*>( this )->GetDataset( name ); }
+
 	const CObMap* GetDatasets() const { return &m_datasets; }
 
 	void GetDatasetNames( std::vector< std::string >& array ) const;

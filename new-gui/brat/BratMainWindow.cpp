@@ -203,8 +203,8 @@ void CBratMainWindow::CreateWorkingDock()
 	connect( WorkingPanel< eDataset >(), SIGNAL( CurrentDatasetChanged(CDataset*) ), WorkingPanel< eFilter >(), SLOT( HandleDatasetChanged(CDataset*) ) );
 
 	//notifications from datasets to operations
-    connect( WorkingPanel< eDataset >(), SIGNAL( DatasetsChanged(CDataset*) ), WorkingPanel< eOperations >(), SLOT( HandleDatasetsChanged_Quick(CDataset*) ) );
-    connect( WorkingPanel< eDataset >(), SIGNAL( DatasetsChanged(CDataset*) ), WorkingPanel< eOperations >(), SLOT( HandleDatasetsChanged_Advanced(CDataset*) ) );
+    connect( WorkingPanel< eDataset >(), SIGNAL( DatasetsChanged(const CDataset*) ), WorkingPanel< eOperations >(), SLOT( HandleDatasetsChanged_Quick(const CDataset*) ) );
+    connect( WorkingPanel< eDataset >(), SIGNAL( DatasetsChanged(const CDataset*) ), WorkingPanel< eOperations >(), SLOT( HandleDatasetsChanged_Advanced(const CDataset*) ) );
 
 	//notifications from filters to operations
     connect( WorkingPanel< eFilter >(), SIGNAL( FiltersChanged() ),							WorkingPanel< eOperations >(), SLOT( HandleFiltersChanged() ) );
@@ -1043,9 +1043,11 @@ bool CBratMainWindow::OpenWorkspace( const std::string &path )
 		CWorkspace* wks = mModel.LoadWorkspace( path, error_msg );
 		if ( !error_msg.empty() )
 		{
-			SimpleWarnBox( error_msg );		//can be only warnings about (missing) filters
-			if ( !wks )
+			if ( wks )
+				LOG_WARN( error_msg );		//can be only warnings about (missing) filters
+			else
 			{
+				SimpleErrorBox( error_msg );
 				DoNoWorkspace();
 				return false;
 			}
@@ -1155,7 +1157,9 @@ void CBratMainWindow::on_action_Rename_Workspace_triggered()
 	{
 		last_path = t2q( dlg.mPath );
 
-		BRAT_NOT_IMPLEMENTED
+		wks->SetName( dlg.mName );
+		QString shownName = t2q( wks->GetName() );
+		setWindowTitle( makeWindowTitle( shownName ) );
 	}
 }
 

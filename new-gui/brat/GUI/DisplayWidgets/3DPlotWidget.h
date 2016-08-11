@@ -80,18 +80,6 @@ inline Plot3dExample& operator ++( Plot3dExample &ex )
 }
 
 
-class Plot : public BratSurfacePlot
-{
-	Q_OBJECT
-
-public:
-    Plot( QWidget* pw, int updateinterval = 0 );
-
-public slots:
-	void rotate();
-};
-
-
 
 ////////////////////////////////////////////////////////////
 //	
@@ -326,20 +314,20 @@ protected:
 
 	QSize m_SizeHint;
 
-	double level_, width_;			//enrichment example
-	Bar *bar = nullptr;				//enrichment example
-	Hat2* hat = nullptr;			//enrichment example
-	QFrame *frame = nullptr;		//enrichment example
-	QSlider *levelSlider = nullptr;	//enrichment example
-	QSlider *widthSlider = nullptr;	//enrichment example
-	void setupUi();					//enrichment example
+	//double level_, width_;			//enrichment example
+	//Bar *bar = nullptr;				//enrichment example
+	//Hat2* hat = nullptr;			//enrichment example
+	//QFrame *frame = nullptr;		//enrichment example
+	//QSlider *levelSlider = nullptr;	//enrichment example
+	//QSlider *widthSlider = nullptr;	//enrichment example
+	//void setupUi();					//enrichment example
 
 	//construction /destruction
 
-	void Autoswitching_axes();	//auto-switching example
-	void Simple_SurfacePlot();	//surface example
-	void setColor();			//enrichment example
-	void Vertex_Enrichment();	//enrichment example
+	//void Autoswitching_axes();	//auto-switching example
+	//void Simple_SurfacePlot();	//surface example
+	//void setColor();			//enrichment example
+	//void Vertex_Enrichment();	//enrichment example
 
 public:
 	C3DPlotWidget( QWidget *parent = nullptr );
@@ -491,10 +479,10 @@ protected slots:
 
 	void HandleScaleChanged( double xVal, double yVal, double zVal );
 
-public slots:
-	void setLevel( int );		//enrichment example
-	void setWidth( int );		//enrichment example
-	void barSlot();				//enrichment example
+//public slots:
+//	void setLevel( int );		//enrichment example
+//	void setWidth( int );		//enrichment example
+//	void barSlot();				//enrichment example
 };
 
 

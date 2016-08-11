@@ -18,14 +18,6 @@
 #ifndef DATAMODELS_PLOTDATA_PLOT_VALUES_H
 #define DATAMODELS_PLOTDATA_PLOT_VALUES_H
 
-//#undef _ITERATOR_DEBUG_LEVEL
-//#define _ITERATOR_DEBUG_LEVEL 0
-//#undef HAS_ITERATOR_DEBUGGING
-//#define HAS_ITERATOR_DEBUGGING 0
-//#define NDEBUG
-//#undef DEBUG
-//#undef _DEBUG
-
 #include <set>
 #include <functional>
 

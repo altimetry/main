@@ -1,3 +1,20 @@
+/*
+* This file is part of BRAT
+*
+* BRAT is free software; you can redistribute it and/or
+* modify it under the terms of the GNU General Public License
+* as published by the Free Software Foundation; either version 2
+* of the License, or (at your option) any later version.
+*
+* BRAT is distributed in the hope that it will be useful,
+* but WITHOUT ANY WARRANTY; without even the implied warranty of
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+* GNU General Public License for more details.
+*
+* You should have received a copy of the GNU General Public License
+* along with this program; if not, write to the Free Software
+* Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+*/
 #if !defined BRAT_LOGGER_H
 #define BRAT_LOGGER_H
 
@@ -266,46 +283,6 @@ inline osg::NotifySeverity level_cast< osg::NotifySeverity >( int level )
 	return ( osg::NotifySeverity )level;
 }
 
-
-
-
-// Using CBratLogger::Instance() for calling the static CApplicationLoggerBase::LogMsg
-//	to ensure singleton instantiation and that it's type is of the correct class
-
-//template< typename STRING >
-//inline void LOG_INFO( const STRING &msg )
-//{
-//    CBratLogger::Instance().LogMsg( msg, QtMsgType::QtDebugMsg );
-//}
-//template<>
-//inline void LOG_INFO( const std::string &msg )
-//{
-//    LOG_INFO( msg.c_str() );
-//}
-
-//
-//template< typename STRING >
-//inline void LOG_WARN( const STRING &msg )
-//{
-//    CBratLogger::Instance().LogMsg( msg, QtMsgType::QtWarningMsg );
-//}
-//template<>
-//inline void LOG_WARN( const std::string &msg )
-//{
-//    LOG_WARN( msg.c_str() );
-//}
-//
-//
-//template< typename STRING >
-//inline void LOG_FATAL( const STRING &msg )
-//{
-//    CBratLogger::Instance().LogMsg( msg, QtMsgType::QtCriticalMsg );
-//}
-//template<>
-//inline void LOG_FATAL( const std::string &msg )
-//{
-//    LOG_FATAL( msg.c_str() );
-//}
 
 
 #define LOG_INFO( msg ) log_info< CBratLogger >( msg )

@@ -123,11 +123,6 @@ CField* COperationControls::QuickFindField( CProduct *product, EPredefinedSelect
 //	and name are equal; this is for simplicity, to avoid having to use the product to retrieve the alias value
 //
 //static 
-bool COperationControls::FormulaDescriptionMatchesQuickAlias( const std::string &description, EPredefinedVariables index )
-{
-	return description == QuickVariableAlias( index );
-}
-//static 
 bool COperationControls::FormulaNameMatchesQuickAlias( const std::string &name, EPredefinedVariables index )
 {
 	return name == QuickVariableAlias( index );
@@ -135,13 +130,17 @@ bool COperationControls::FormulaNameMatchesQuickAlias( const std::string &name, 
 
 
 
-CDataset* COperationControls::QuickDatasetSelected() const
+std::string COperationControls::QuickDatasetSelectedName() const
 {
 	const int dataset_index = mQuickDatasetsCombo->currentIndex();
 	if ( dataset_index < 0 )
-		return nullptr;
+		return "";
 
-	return mWDataset->GetDataset( q2a( mQuickDatasetsCombo->itemText( dataset_index ) ) );
+	return q2a( mQuickDatasetsCombo->itemText( dataset_index ) );
+}
+CDataset* COperationControls::QuickDatasetSelected() const
+{
+	return mWDataset ? mWDataset->GetDataset( QuickDatasetSelectedName() ) : nullptr;
 }
 
 
@@ -156,7 +155,6 @@ void COperationControls::UpdateFieldsCheckState()
 		for ( int i = 0; i < EPredefinedVariables_size; ++i )
 		{
 			auto *item = mQuickVariablesList->item( i );
-			//if ( FormulaMatchesQuickAlias( name, (EPredefinedVariables)i ) )	//see not in FormulaMatchesQuickAlias
 			if ( FormulaNameMatchesQuickAlias( name, (EPredefinedVariables)i ) )	//see not in FormulaMatchesQuickAlias
 			{
 				item->setFlags( item->flags() | Qt::ItemIsEnabled );
@@ -244,9 +242,11 @@ void COperationControls::HandleWorkspaceChanged_Quick()
 
 	// 2. Fill quick datasets
 	//		- also: assigns dataset, enables all dataset dependent elements (fields and execution buttons, etc.)
-	//		- clears the operation formulas
+	//		- can clear the operation formulas
 	//
-	HandleDatasetsChanged_Quick( nullptr );
+	mQuickInitializing = true;					//prevent clearing formulas. Ugly trick, but the simplest and quickest now
+	HandleDatasetsChanged_Quick( nullptr );		//argument not used
+	mQuickInitializing = false;
 
 	if ( !mWOperation )
 		return;
@@ -256,11 +256,11 @@ void COperationControls::HandleWorkspaceChanged_Quick()
 	assert__( mQuickOperation );
 
 	// 4. Select operation dataset in combo 
-	//		- no signals (*): 
+	//		- select dataset without signals (that is, no dataset assignment)
 	//			- if recently created, and there are datasets, one was assigned
 	//			- if existed, and there are datasets, one was assigned and/or selected
 	//
-	SelectOperationDataset( mQuickOperation, mQuickDatasetsCombo, true );	//true == no signals (*)
+	SelectOperationDatasetIndex( mQuickOperation, mQuickDatasetsCombo );
 
 	// 5. Check fields according to quick operation formulas
 	//		- assuming that this synchronization only needs to be done when setting 
@@ -278,12 +278,14 @@ void COperationControls::HandleWorkspaceChanged_Quick()
 // - Trigger or call HandleSelectedDatasetChanged_Quick: 
 //		- update dataset dependent GUI / data members, including dataset assignment if needed
 // 
-// - connected by main window to datasets panel
+// - NOTE: connected by main window to datasets panel
 // - triggered when whole datasets or a dataset composition changes; so when 
 //		externally triggered, a workspace exists
 //
-void COperationControls::HandleDatasetsChanged_Quick( CDataset * )
+void COperationControls::HandleDatasetsChanged_Quick( const CDataset *dataset )
 {	
+	Q_UNUSED( dataset );
+
 	// 1. Refill datasets combo (no signals)
 
 	mQuickDatasetsCombo->clear();
@@ -348,7 +350,7 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 	CDataset *dataset = QuickDatasetSelected();
 	//TODO the 2nd branch of the conjunction prevents deleting formulas on initialization, but check if this branch is not undesirable when dataset composition changes
 	if ( mQuickOperation && ( !dataset || ( dataset != mQuickOperation->OriginalDataset() ) ) )
-		RemoveOperationFormulas( mQuickOperation );
+		mQuickOperation->RemoveFormulas();
 
     if ( dataset_index < 0 )
         return;
@@ -365,10 +367,13 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 		item->setFlags( item->flags() & ~Qt::ItemIsEnabled );
 	}
 
-	// 2. assign dataset
+	// 2. re-assign dataset or filtered dataset 
+	//		Here is the usage of mQuickInitializing ugly trick
 	//
-														assert__( dataset );		assert__( mQuickOperation );
-	mQuickOperation->SetDataset( dataset );
+	std::string error_msg;									assert__( dataset );		assert__( mQuickOperation );
+	if ( !mQuickInitializing && !mQuickOperation->SetOriginalDataset( mWDataset, dataset->GetName(), error_msg ) )
+		SimpleWarnBox( CWorkspaceOperation::QuickOperationName() + ": " + error_msg );
+
 
 	// 3. check if dataset files are usable (have lon/lat fields); return if not
 	//
@@ -594,12 +599,18 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 	operation->SetType( type );
 
 	const std::string filter_name = q2a( mOperationFilterButton_Quick->text() );
+	std::string error_msg;
 	if ( !filter_name.empty() )
 	{
-		auto *filter = mBratFilters.Find( filter_name );								assert__( filter );
-		operation->SetFilter( filter );
+		auto *filter = mBratFilters.Find( filter_name );				assert__( filter );
+		operation->SetFilter( filter, error_msg );
 	}
-	operation->SetDataset( QuickDatasetSelected() );
+	if ( !operation->SetOriginalDataset( mWDataset, QuickDatasetSelectedName(), error_msg ) )	//error consequence is filter not applied; continue
+	{
+		SimpleWarnBox( error_msg );
+		error_msg.clear();
+	}
+
 	CProduct *product = const_cast<const COperation*>( operation )->Dataset()->OpenProduct();
 	if ( !product )
 	{
@@ -618,7 +629,6 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 	std::string field_error_msg;
     std::pair<CField*, CField*> lon_lat_fields = CBratFilters::FindLonLatFields( product, alias_used, field_error_msg );		assert__( lon_lat_fields.first && lon_lat_fields.second );
 
-	std::string error_msg;
 	if ( !operation->HasFormula() )
 	{
 		std::string field_record = lon_lat_fields.first->GetRecordName();

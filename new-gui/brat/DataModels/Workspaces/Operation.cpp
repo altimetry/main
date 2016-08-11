@@ -17,7 +17,6 @@
 */
 #include "new-gui/brat/stdafx.h"
 
-#include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/tools/Trace.h"
 #include "new-gui/Common/tools/Exception.h"
 
@@ -615,14 +614,15 @@ COperation* COperation::Copy( const COperation &o, CWorkspaceOperation *wkso, CW
 	
 	assert__( new_op->Dataset() == nullptr && new_op->OriginalDataset() == nullptr );
 
-	new_op->SetFilter( o.Filter() );
-
+	//assuming original operation is well formed, no reason to check filter and dataset assignment
+	std::string error_msg;
 	if ( o.mDataset != nullptr )
 	{
 		assert__( o.OriginalDataset() != nullptr );
 
-        new_op->SetDataset( new_op->FindDataset( o.OriginalDatasetName(), wksd ) );
+        new_op->SetOriginalDataset( wksd, o.OriginalDatasetName(), error_msg );	//NOTE: this clears formulas and can clear filter, don't assign them before
 	}
+	new_op->SetFilter( o.Filter(), error_msg );
 
 	new_op->SetRecord( o.m_record );
 	new_op->SetProduct( o.m_product );
@@ -668,7 +668,6 @@ void COperation::Clear()
 	m_product = nullptr;
 	mOriginalDataset = nullptr;
 	RemoveFilter();					//makes SetDataset
-	SetDataset();
 	m_record.clear();
 
 	CreateSelectionCriteria();
@@ -937,68 +936,89 @@ bool COperation::RenameFormula(CFormula* formula, const std::string &newName)
 }
 
 
-//v4
-void COperation::ReapplyFilter()
+bool COperation::ReapplyFilter( std::string &error_msg )
 { 
-	SetDataset();
-}
-//v4
-void COperation::SetFilter( const CBratFilter *filter )
-{ 
-	mFilter = filter; 
-	SetDataset();
+	return SetFilteredDataset( error_msg );
 }
 
-//v4
+
+bool COperation::SetFilter( const CBratFilter *filter, std::string &error_msg )
+{ 
+	mFilter = filter; 
+	return SetFilteredDataset( error_msg );
+}
+
+// Always succeeds
+//
 void COperation::RemoveFilter()
 {
 	mFilter = nullptr; 
-	SetDataset();
+	std::string error_msg;
+	SetFilteredDataset( error_msg );
 }
 
-//v4
-void COperation::SetDataset()
+
+bool COperation::SetFilteredDataset( std::string &error_msg )
 {
 	delete mDataset;
 	if ( !mOriginalDataset )
 	{
 		mDataset = nullptr;
-		return;
+		return true;
 	}
 	mDataset = new CDataset( OriginalDatasetName() + "_filtered_" + m_name );
 	const CProductList &products = *mOriginalDataset->GetProductList();		//this is a CStringList
-	CStringList file_list;
+	CStringList filtered_file_list;
 	for ( auto const &product : products )
 	{
-		file_list.InsertUnique( product );
+		filtered_file_list.InsertUnique( product );
 	}
+
+	bool result = true;
 
 	if ( mFilter )
 	{
 		CStringList files_out;
-        std::string error_msg;
-
-        if ( mFilter->Apply( file_list, files_out, error_msg ) )
+		result = mFilter->Apply( filtered_file_list, files_out, error_msg );
+		if ( result )
 		{
-			file_list.clear();
-			file_list.Insert( files_out );
+			filtered_file_list.clear();
+			filtered_file_list.Insert( files_out );
 		}
-        else
-        {
-           SimpleWarnBox( "Filter '" + mFilter->Name() + "' was not applied!\n\nReason:\n" +  error_msg );
-           // Removing filter;
-           mFilter = nullptr;
-        }
+		else
+		{
+			error_msg = "Filter '" + mFilter->Name() + "' could not be applied and was removed.\nReason: " + error_msg;
+			mFilter = nullptr;
+		}
 	}
 
-	mDataset->GetProductList()->InsertUnique( file_list );
+	mDataset->GetProductList()->InsertUnique( filtered_file_list );
+	return result;
 }
-void COperation::SetDataset( const CDataset *dataset ) 
+
+
+bool COperation::SetOriginalDataset( const CWorkspaceDataset *wks, const std::string dataset_name, std::string &error_msg ) 
 { 
-	//m_dataset = value;
+	const CDataset *dataset = wks ? wks->GetDataset( dataset_name ) : nullptr;			assert__( !wks || dataset );
+	RemoveFormulas();
 	mOriginalDataset = dataset;
-	SetDataset();
+	return SetFilteredDataset( error_msg );
 }
+
+
+void COperation::RemoveDataset()
+{
+	std::string error_msg;
+	SetOriginalDataset( nullptr, "", error_msg );
+}
+
+
+void COperation::RemoveFormulas()
+{
+	while ( GetFormulaCount() > 0 )
+		DeleteFormula( GetFormulas()->begin()->first );
+}
+
 
 //----------------------------------------
 std::string COperation::FilterName() const

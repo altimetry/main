@@ -276,18 +276,19 @@ protected:
 #endif
 
 	CDataset* Dataset() { return mDataset; }
-	void SetDataset();
+	bool SetFilteredDataset( std::string &error_msg );
 
 public:
 	const CDataset* OriginalDataset() const { return mOriginalDataset; }
 	std::string OriginalDatasetName() const;
 	const CDataset* Dataset() const { return mDataset; }
-	void SetDataset( const CDataset *dataset );
+	bool SetOriginalDataset( const CWorkspaceDataset *wks, const std::string dataset_name, std::string &error_msg );
+	void RemoveDataset();
 	const CBratFilter* Filter() const { return mFilter; }
 	std::string FilterName() const;
-	void SetFilter( const CBratFilter *filter );
-	void RemoveFilter();
-	void ReapplyFilter();
+	bool SetFilter( const CBratFilter *filter, std::string &error_msg );
+	void RemoveFilter();							//always succeeds
+	bool ReapplyFilter( std::string &error_msg );
 
     CProduct* GetProduct() { return m_product; }
     CProduct* GetProduct() const { return m_product; }
@@ -304,6 +305,7 @@ public:
 	}
 	CFormula* GetFormula( CMapFormula::iterator it );
 	const CFormula* GetFormula( CMapFormula::const_iterator it ) const;
+	void RemoveFormulas();
 
 	CFormula* NewUserFormula( std::string &error_msg, CField* field, CMapTypeField::ETypeField typeField, bool addToMap = true, const CProduct *product = nullptr );
 	CFormula* NewUserFormula( std::string &error_msg, const std::string& name = "", CMapTypeField::ETypeField typeField = CMapTypeField::eTypeOpAsField, 

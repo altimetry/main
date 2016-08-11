@@ -366,7 +366,6 @@ bool CMapEditor::ResetViews( bool reset_2d, bool reset_3d, bool enable_2d, bool 
 //virtual 
 void CMapEditor::NewButtonClicked()
 {
-	BRAT_NOT_IMPLEMENTED
 }
 //virtual 
 void CMapEditor::RenameButtonClicked()

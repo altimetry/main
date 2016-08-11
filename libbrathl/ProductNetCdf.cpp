@@ -1,6 +1,6 @@
 
 /*
-* 
+*
 *
 * This file is part of BRAT
 *
@@ -658,9 +658,56 @@ bool CProductNetCdf::ApplyCriteriaLatLon(CCriteriaInfo* criteriaInfo)
   }
 
 
+  struct LongitudeAdjustValidMinMax : public CAdjustValidMinMax
+  {
+      void operator()( CFieldNetCdf *field ) const
+      {
+          double left, right, value180, prevValue;
+          bool leftFound, rightFound;
+
+          setDefaultValue(left);      setDefaultValue(right);
+          leftFound  = false;         rightFound = false;
+          prevValue = 0;
+
+          for ( auto const &value : field->GetValues() )
+          {
+              if (isDefaultValue(value))
+                  continue;
+
+              value180 = CLatLonPoint::Range180(value);
+
+              // Check if values in array cross 180 meridian //
+              if ( value180 - prevValue < -180 )
+              {                                      // -180          0          180
+                  leftFound = true;                  //   |___________|___________|
+                  setDefaultValue(right);            //   ----->|         |------->
+              }                                      //       rigth      left       //cross from 180 to -180
+              else if ( value180 - prevValue > 180 )
+              {                                      // -180          0          180
+                  rightFound = true;                 //   |___________|___________|
+                  setDefaultValue(left);             //   <-----|         |<-------
+              }                                      //       rigth      left       //cross from -180 to 180
+
+              // Find Left and Right points in [-180, 180] range //
+              if ( isDefaultValue(left) )           {  left  = value180; }
+              if ( isDefaultValue(right))           {  right = value180; }
+              if ( !leftFound && left > value180 )  {  left  = value180; }
+              if ( !rightFound && right < value180 ){  right = value180; }
+
+              // Save previous value
+              prevValue = value180;
+          }
+          // Assign left and right values to field min and max, respectively.
+          field->SetValidMin(left);
+          field->SetValidMax(right);
+      }
+  };
+
+
   // Gets start and end  longitude
   fieldInfo = criteriaLatLonInfo->GetStartLonField();
-  field = Read(*fieldInfo, lonMin, true);
+  LongitudeAdjustValidMinMax adjust_lon;
+  field = Read(*fieldInfo, lonMin, true, adjust_lon );
 
   // Optimization, to avoid to read same data again
   if (field != NULL)
@@ -1353,7 +1400,7 @@ void CProductNetCdf::InitDataset()
 }
 
 //----------------------------------------
-void CProductNetCdf::SetOffset(double value) 
+void CProductNetCdf::SetOffset(double value)
 {
   CProduct::SetOffset(value);
 
@@ -1822,7 +1869,8 @@ void CProductNetCdf::FillDescription()
 }
 
 //----------------------------------------
-CFieldNetCdf* CProductNetCdf::Read(CFieldInfo& fieldInfo, double& value, bool wantMin /*= true*/)
+CFieldNetCdf* CProductNetCdf::Read(CFieldInfo& fieldInfo, double& value, bool wantMin,
+                                   const CAdjustValidMinMax &adjust_algo )    //wantMin = true, const CAdjustValidMinMax &adjust_algo = CAdjustValidMinMax() )
 {
   CFieldNetCdf *field = NULL;
 
@@ -1845,7 +1893,7 @@ CFieldNetCdf* CProductNetCdf::Read(CFieldInfo& fieldInfo, double& value, bool wa
 
     //CDoubleArray vect;
 
-    ReadAll(field);
+    ReadAll(field, adjust_algo);
 
     if (wantMin)
     {
@@ -1936,7 +1984,7 @@ void CProductNetCdf::Read(CFieldNetCdf* field, CDoubleArray& vect)
 
 }
 //----------------------------------------
-void CProductNetCdf::Read(CFieldNetCdf* field, CExpressionValue& value)
+void CProductNetCdf::Read(CFieldNetCdf* field, CExpressionValue& value )
 {
   MustBeOpened();
 
@@ -1950,14 +1998,16 @@ void CProductNetCdf::Read(CFieldNetCdf* field, CExpressionValue& value)
 
 
 }
+
+
+
 //----------------------------------------
-void CProductNetCdf::ReadAll(CFieldNetCdf* field)
+void CProductNetCdf::ReadAll(CFieldNetCdf* field, const CAdjustValidMinMax &adjust_algo )    //adjust_algo = CAdjustValidMinMax()
 {
   MustBeOpened();
   m_externalFile->GetAllValues(field, CUnit::m_UNIT_SI);
 
-  field->AdjustValidMinMaxFromValues();
-
+  adjust_algo( field );
 }
 
 //----------------------------------------
@@ -2064,15 +2114,15 @@ void CProductNetCdf::MustBeOpened()
   if (m_externalFile == NULL)
   {
     throw CProductException("Try to do an operation on an unallocated file",
-			 m_currFileName, GetProductClass(), GetProductType(),
-			 BRATHL_LOGIC_ERROR);
+             m_currFileName, GetProductClass(), GetProductType(),
+             BRATHL_LOGIC_ERROR);
   }
 
   if (!m_externalFile->IsOpened())
   {
     throw CFileException("Try to do an operation on a closed file",
-			 m_externalFile->GetName(),
-			 BRATHL_LOGIC_ERROR);
+             m_externalFile->GetName(),
+             BRATHL_LOGIC_ERROR);
   }
 }
 //----------------------------------------

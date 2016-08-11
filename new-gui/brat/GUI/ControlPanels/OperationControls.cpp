@@ -91,25 +91,17 @@ QIcon ButtonDisplayIconIsPlot()
 
 
 
+// Blocks signals 
+//
 //static 
-void COperationControls::RemoveOperationFormulas( COperation *operation )
+void COperationControls::SelectOperationDatasetIndex( COperation *operation, QComboBox *combo )
 {
-	while ( operation->GetFormulaCount() > 0 )
-		operation->DeleteFormula( operation->GetFormulas()->begin()->first );
-}
-
-
-//static 
-void COperationControls::SelectOperationDataset( COperation *operation, QComboBox *combo, bool block_signals )
-{
-	if ( block_signals )
-		combo->blockSignals( true );
+	combo->blockSignals( true );
 
 	int index = operation ? combo->findText( operation->OriginalDatasetName().c_str() ) : 0;
 	combo->setCurrentIndex( index );
 
-	if ( block_signals )
-		combo->blockSignals( false );
+	combo->blockSignals( false );
 }
 
 
@@ -346,7 +338,6 @@ void COperationControls::CreateAdvancedOperationsPage()
 		mSwitchToMapButton, mSwitchToPlotButton
 	} );
 
-    //auto *data_expressions_group = CreateGroupBox( ELayoutType::Horizontal, { data_expressions_buttons, mDataExpressionsTree }, "", nullptr, s, m, m, m, m );
 	QWidget *data_expressions_group = new QWidget;
     LayoutWidgets( Qt::Horizontal, { mDataExpressionsTree, data_expressions_buttons }, data_expressions_group, 12, 10, 10, 10, 10 );
 
@@ -427,9 +418,6 @@ void COperationControls::CreateAdvancedOperationsPage()
 
 	QGridLayout *sampling_gridl = LayoutWidgets(
 	{ 
-//        mXLonLabel,       mXLonMinValue, mXLonMaxValue, mXLonStep,  mXLonCutOff, mXLonIntervalsLabel, XiconWarning,     nullptr,
-//        new QLabel,		min_label,     max_label,     step_label, cut_label,   intervals_label,     new QLabel, nullptr,
-//        mYLatLabel,       mYLatMinValue, mYLatMaxValue, mYLatStep,  mYLatCutOff, mYLatIntervalsLabel, YiconWarning,     nullptr
             new QLabel,			mXLonLabel,      new QLabel,		mYLatLabel,      new QLabel,		nullptr,
             mGetDataMaxMinX,	mXLonMinValue,   min_label,         mYLatMinValue,   mGetDataMaxMinY,   nullptr,
             new QLabel,			mXLonMaxValue,   max_label,         mYLatMaxValue,   new QLabel,		nullptr,
@@ -443,9 +431,6 @@ void COperationControls::CreateAdvancedOperationsPage()
     mSamplingGroup = CreateCollapsibleGroupBox( ELayoutType::Vertical, { sampling_gridl, CutOff_Layout },
         "Sampling", mAdvancedOperationsPage, s, 4, 4, 4, 2 );
 	mSamplingGroup->setCollapsed( true );
-    //static const QString SyncGroup("SyncGroup");
-	//mSamplingGroup->setCheckable( true );
-	//mSamplingGroup->setSyncGroup( SyncGroup );    
 
 	mExpressionGroup = CreateGroupBox( ELayoutType::Vertical, 
 	{ 
@@ -506,256 +491,6 @@ QWidget* COperationControls::CreateCommonWidgets( QAbstractButton *b1, QAbstract
 
 	return buttons;
 }
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////
-//			Filters
-///////////////////////////////////////////////////////////////////////////////////////////////
-
-void COperationControls::ResetFilterSelection()
-{
-	auto reset_filter_selection = []( QToolButton *button, const COperation *operation )
-	{
-		std::string selected_filter_name;
-		if ( operation && operation->Filter() )
-			selected_filter_name = operation->FilterName();
-
-		button->setText( "" );
-
-		auto actions = button->actions();
-		for ( auto a : actions )
-		{
-			std::string filter_name = q2a( a->text() );
-			if ( filter_name == selected_filter_name )
-			{
-				button->setText( a->text() );
-			}
-		};
-
-		button->blockSignals( true );						//avoid "internal" assignments
-		button->setChecked( !button->text().isEmpty() );
-		button->blockSignals( false );
-	};
-
-	reset_filter_selection( mOperationFilterButton_Advanced, mCurrentOperation );
-	reset_filter_selection( mOperationFilterButton_Quick, mQuickOperation );
-}
-
-
-void COperationControls::ResetFilterActions()
-{
-	auto reset_filter_actions = [this]( QToolButton *button, const CBratFilters &brat_filters )
-	{
-		auto actions = button->actions();
-		for ( auto a : actions )
-			button->removeAction( a );
-
-		auto const &filters = brat_filters.FiltersMap();
-		for ( auto const &filter : filters )
-		{
-			std::string filter_name = filter.first;
-			QAction *a = CActionInfo::CreateAction( this, eAction_Item_Filters );
-			a->setText( filter_name.c_str() );
-			a->setToolTip( filter_name.c_str() );
-			button->addAction( a );
-		}
-	};
-
-	reset_filter_actions( mOperationFilterButton_Advanced, mBratFilters );
-	connect( mOperationFilterButton_Advanced, SIGNAL( triggered( QAction * ) ), this, SLOT( HandleOperationFilterButton_Advanced( QAction * ) ) );
-	connect( mOperationFilterButton_Advanced, SIGNAL( toggled( bool ) ), this, SLOT( HandleOperationFilterButtonToggled_Advanced( bool ) ) );
-
-	reset_filter_actions( mOperationFilterButton_Quick, mBratFilters );
-	connect( mOperationFilterButton_Quick, SIGNAL( triggered( QAction * ) ), this, SLOT( HandleOperationFilterButton_Quick( QAction * ) ) );
-	connect( mOperationFilterButton_Quick, SIGNAL( toggled( bool ) ), this, SLOT( HandleOperationFilterButtonToggled_Quick( bool ) ) );
-
-	mOperationFilterButton_Advanced->setEnabled( mBratFilters.FiltersMap().size() > 0 );
-	mOperationFilterButton_Quick->setEnabled( mBratFilters.FiltersMap().size() > 0 );
-
-	ResetFilterSelection();
-}
-
-
-void COperationControls::HandleFilterCompositionChanged( std::string filter_name )	//triggered if filter areas change
-{
-	auto &operations = *mWOperation->GetOperations();
-	for ( auto &operation_entry : operations )
-	{
-		COperation *operation = dynamic_cast<COperation*>( operation_entry.second );
-		if ( operation->FilterName() == filter_name )
-		{
-			operation->ReapplyFilter();			//TODO this impacts dataset
-		}
-	}
-}
-
-
-void COperationControls::HandleFiltersChanged()		//always triggered by new, triggered by rename and delete if filter not being used
-{
-	ResetFilterActions();			qDebug() << "COperationControls::HandleFiltersChanged";
-}
-
-
-bool COperationControls::AssignFilter( const CBratFilters &brat_filters, COperation *operation, const std::string &name )
-{
-	assert__( operation );
-
-	const std::string &op_filter_name = operation->FilterName();
-
-	if ( op_filter_name.empty() )
-	{
-		if ( !SimpleQuestion( "Are you sure you want to apply the filter '" + name + "' to the operation '" + operation->GetName() + "'?" ) )
-		{
-			return false;
-		}
-	}
-	else
-	{
-		if ( op_filter_name != name &&
-			!SimpleQuestion( "Operation '" + operation->GetName() + "' has associated filter '" + op_filter_name + "'. Are you sure you want to change it to '" + name + "'?" )
-			)
-		{
-			return false;
-		}
-	}
-
-	WaitCursor wait;
-
-	auto *filter = brat_filters.Find( name );			assert__( filter );
-	operation->SetFilter( filter );
-	return true;
-}
-
-
-bool COperationControls::AssignAdvancedFilter( const std::string &name )
-{
-	return AssignFilter( mBratFilters, mCurrentOperation, name );
-}
-bool COperationControls::AssignQuickFilter( const std::string &name )
-{
-	return AssignFilter( mBratFilters, mQuickOperation, name );
-}
-
-
-bool COperationControls::RemoveFilter( COperation *operation, const std::string &name )
-{
-	assert__( operation );		Q_UNUSED( name );		//release builds
-
-	const std::string &op_filter_name = operation->FilterName();	assert__( name == op_filter_name && !op_filter_name.empty() );	
-
-	if ( !SimpleQuestion( "Are you sure you want to remove the filter '" + op_filter_name + "' from the operation '" + operation->GetName() + "'?" ) )
-	{
-		return false;
-	}
-
-	WaitCursor wait;
-
-	operation->RemoveFilter();
-	return true;
-}
-
-
-bool COperationControls::RemoveAdvancedFilter( const std::string &name )
-{
-    return RemoveFilter( mCurrentOperation, name );
-}
-bool COperationControls::RemoveQuickFilter( const std::string &name )
-{
-    return RemoveFilter( mQuickOperation, name );
-}
-
-
-void UpdateFilterButton( QToolButton *button, const COperation *operation )
-{
-	//ugly...
-	button->blockSignals( true );
-	button->setChecked( operation->Filter() );
-	button->setText( operation->FilterName().c_str() );
-	button->blockSignals( false );
-}
-
-
-void COperationControls::HandleOperationFilterButtonToggled_Advanced( bool toggled )
-{
-	assert__( mCurrentOperation );
-
-	const std::string filter_name = q2a( mOperationFilterButton_Advanced->text() );
-	if ( filter_name.empty() )
-	{
-		LOG_WARN( "No filter selected" );
-	}
-	else
-	{
-		if ( toggled )
-		{
-			AssignAdvancedFilter( filter_name );
-		}
-		else
-		{
-			RemoveAdvancedFilter( filter_name );
-		}
-
-		mDataExpressionsTree->InsertOperation( mCurrentOperation );
-	}
-
-	UpdateFilterButton( mOperationFilterButton_Advanced, mCurrentOperation );
-	if ( mCurrentOperation == mQuickOperation )
-		UpdateFilterButton( mOperationFilterButton_Quick, mQuickOperation );
-}
-
-
-void COperationControls::HandleOperationFilterButtonToggled_Quick( bool toggled )
-{
-	assert__( mQuickOperation );
-
-	const std::string filter_name = q2a( mOperationFilterButton_Quick->text() );
-	if ( filter_name.empty() )
-	{
-		LOG_WARN( "No filter selected" );
-	}
-	else
-	{
-		if ( toggled )
-		{
-			AssignQuickFilter( filter_name );
-		}
-		else
-		{
-			RemoveQuickFilter( filter_name );
-		}
-	}
-
-	UpdateFilterButton( mOperationFilterButton_Quick, mQuickOperation );
-	if ( mCurrentOperation == mQuickOperation )
-		UpdateFilterButton( mOperationFilterButton_Advanced, mCurrentOperation );
-}
-
-
-void COperationControls::HandleOperationFilterButton_Advanced( QAction *a )
-{
-	QToolButton *bt = qobject_cast<QToolButton *>( sender() );
-	if ( !bt )
-		return;
-
-	mOperationFilterButton_Advanced->setText( a->text() );
-	HandleOperationFilterButtonToggled_Advanced( true );	//qDebug() << "HandleOperationFilterButton==" << a->text();
-}
-void COperationControls::HandleOperationFilterButton_Quick( QAction *a )
-{
-	QToolButton *bt = qobject_cast<QToolButton *>( sender() );
-	if ( !bt )
-		return;
-
-	mOperationFilterButton_Quick->setText( a->text() );
-	HandleOperationFilterButtonToggled_Quick( true );
-}
-
-
-
-
-///////////////////////////////////////////////////////////////////////////////////////////////
-//
-///////////////////////////////////////////////////////////////////////////////////////////////
 
 
 void COperationControls::Wire()
@@ -968,11 +703,12 @@ void COperationControls::FillDatasets_Advanced( int suggested_index )
 			mAdvancedDatasetsCombo->addItem( dataset_entry.first.c_str() );
 		}
 	}
+
 	mAdvancedDatasetsCombo->setCurrentIndex( suggested_index );
 	const bool has_datasets = mAdvancedDatasetsCombo->count() > 0;
 	if ( has_datasets )
 	{
-		SelectOperationDataset( mCurrentOperation, mAdvancedDatasetsCombo, false );	//false: signals are already blocked
+		SelectOperationDatasetIndex( mCurrentOperation, mAdvancedDatasetsCombo );	//select dataset without assignment
 	}
 
 	mAdvancedDatasetsCombo->blockSignals( false );
@@ -1085,19 +821,94 @@ void COperationControls::HandleWorkspaceChanged()
 //
 // NOTE connected by main window to datasets panel
 //
-void COperationControls::HandleDatasetsChanged_Advanced( CDataset *dataset )
+void COperationControls::HandleDatasetsChanged_Advanced( const CDataset *dataset )
 {
-    Q_UNUSED( dataset );
+	//dataset null: deleted; no operation using it
+	//dataset not null: renamed, added, file content changed
 
-	FillDatasets_Advanced( mAdvancedDatasetsCombo->currentIndex() );
-
-	if ( mCurrentOperation )
+	int index = mAdvancedDatasetsCombo->currentIndex();
+	FillDatasets_Advanced( index < 0 ? 0 : index );
+	if ( !dataset )
 	{
-		HandleSelectedOperationChanged( mOperationsCombo->currentIndex() );
+		if ( mCurrentOperation )
+		{
+			SelectOperationDatasetIndex( mCurrentOperation, mAdvancedDatasetsCombo );
+		}
+	}
+	else
+	{
+		const std::string dataset_name = dataset->GetName();
+		auto &operations = *mWOperation->GetOperations();
+		std::string error_msg, global_error_msg = "Problems re-assigning dataset " + dataset_name + ":\n\n";
+		bool result = true, applied = false;
+		for ( auto &operation_entry : operations )
+		{
+			COperation *operation = dynamic_cast<COperation*>( operation_entry.second );
+			if ( operation->OriginalDatasetName() == dataset_name )
+			{
+				applied = true;
+				if ( !operation->SetOriginalDataset( mWDataset, dataset_name, error_msg ) )
+				{
+					global_error_msg += ( "Operation '" + operation->GetName() + "': " + error_msg );
+					result = false;
+				}
+			}
+		}
+
+		if ( !result )
+			SimpleWarnBox( global_error_msg );
+
+		if ( applied )
+		{
+			if ( mCurrentOperation )
+			{
+				HandleSelectedOperationChanged( mOperationsCombo->currentIndex() );
+			}
+		}
 	}
 }
 
 
+void COperationControls::HandleFilterCompositionChanged( std::string filter_name )	//triggered if filter areas change
+{
+	auto &operations = *mWOperation->GetOperations();
+	std::string error_msg, global_error_msg = "Problems re-applying filter " + filter_name + ":\n\n";
+	bool result = true, applied = false;
+	for ( auto &operation_entry : operations )
+	{
+		COperation *operation = dynamic_cast<COperation*>( operation_entry.second );
+		if ( operation->FilterName() == filter_name )
+		{
+			applied = true;
+			if ( !operation->ReapplyFilter( error_msg ) )
+			{
+				global_error_msg += ( "Operation '" + operation->GetName() + "': " + error_msg );
+				result = false;
+			}
+		}
+	}
+
+	if ( !result )
+		SimpleWarnBox( global_error_msg );
+
+	if ( applied )
+	{
+		if ( mCurrentOperation )
+		{
+			HandleSelectedOperationChanged( mOperationsCombo->currentIndex() );
+		}
+	}
+}
+
+
+void COperationControls::HandleFiltersChanged()		//always triggered by new, triggered by rename and delete if filter not being used
+{
+	ResetFilterActions();			qDebug() << "COperationControls::HandleFiltersChanged";
+}
+
+
+//	So far, only affects exportation related actions and buttons
+//
 // for enabling / disabling widgets dependent of multiple state changes:
 //
 //	- operation existence
@@ -1155,7 +966,7 @@ void COperationControls::HandleSelectedOperationChanged( int operation_index )	/
 	if ( operation_index < 0 )
 	{
 		mCurrentOperation = nullptr;
-		SelectDataset( nullptr );
+		UpdateDatasetSelection( nullptr );
 	}
 	else
 	{
@@ -1163,13 +974,14 @@ void COperationControls::HandleSelectedOperationChanged( int operation_index )	/
 		mCurrentOperation = mWOperation->GetOperation( q2a( mOperationsCombo->itemText( operation_index ) ) );		assert__( mCurrentOperation );
 		const CDataset *dataset = mCurrentOperation->OriginalDataset();
 		if ( dataset )
-			SelectDataset( mCurrentOperation->OriginalDatasetName() );
+		{
+			UpdateDatasetSelection( dataset );			assert__( dataset == mWDataset->GetDataset( mCurrentOperation->OriginalDatasetName() ) );
+		}
 		else
 		if ( !quick_operation_selected )
 		{
 			auto new_dataset_name = q2a( mAdvancedDatasetsCombo->itemText( 0 ) );
-			dataset = mWDataset->GetDataset( new_dataset_name );
-			AssignDataset( dataset, false );
+			AssignDataset( new_dataset_name, false );
 		}
 	}
 
@@ -1190,10 +1002,6 @@ void COperationControls::HandleSelectedOperationChanged( int operation_index )	/
 }
 
 
-bool COperationControls::SelectDataset( const std::string &dataset_name )
-{
-	return SelectDataset( mWDataset->GetDataset( dataset_name ) );
-}
 // Supports null dataset and mCurrentOperation; takes care dataset selection, without 
 //	(persistent) domain assignments (assigns operation product)
 //
@@ -1210,7 +1018,7 @@ bool COperationControls::SelectDataset( const std::string &dataset_name )
 //	- Selects record (from operation) in fields tree and assigns selected record from fields tree to 
 //		operation (apparently this corresponds to assigning the 1st one to operation if it has none assigned
 //	
-bool COperationControls::SelectDataset( const CDataset *dataset )
+bool COperationControls::UpdateDatasetSelection( const CDataset *dataset )
 {
 	// Assign mCurrentOriginalDataset
 	//
@@ -1280,6 +1088,10 @@ bool COperationControls::SelectDataset( const CDataset *dataset )
 
 	return result;
 }
+bool COperationControls::UpdateSelectedDatasetAdvancedSelection()
+{
+	return UpdateDatasetSelection( mWDataset->GetDataset( q2a( mAdvancedDatasetsCombo->itemText( mAdvancedDatasetsCombo->currentIndex() ) ) ) );
+}
 
 
 // - Tries to assign dataset to operation if mCurrentOperation assigned
@@ -1288,31 +1100,34 @@ bool COperationControls::SelectDataset( const CDataset *dataset )
 // - Keeps operation and (filtered) dataset association intact if anything above fails
 // - Makes SelectDataset( dataset ) if succeeds
 //
-bool COperationControls::AssignDataset( const CDataset *dataset, bool changing_used_dataset )
+bool COperationControls::AssignDataset( const std::string &new_dataset_name, bool changing_used_dataset )
 {
 	CProduct *new_product = nullptr;
 
 	// Try to assign new dataset
 	//
-	if ( !dataset )
+	if ( new_dataset_name.empty() )
 	{
 		if ( mCurrentOperation )
 		{
-			mCurrentOperation->SetDataset( nullptr );
+			mCurrentOperation->RemoveDataset();
 			mCurrentOperation->SetProduct( nullptr );
 		}
 	}
 	else
 	{
-		const CDataset *filtered_dataset = dataset;
-		const CDataset *saved_filtered_dataset = nullptr;
+		const CDataset *filtered_dataset = nullptr;
+		std::string saved_dataset_name;
 		if ( mCurrentOperation )
 		{
-			const CDataset *op_filtered_dataset = const_cast<const COperation*>( mCurrentOperation )->Dataset();
-			saved_filtered_dataset = op_filtered_dataset ? new CDataset( *op_filtered_dataset ) : nullptr;
-			mCurrentOperation->SetDataset( dataset );
+			saved_dataset_name = mCurrentOperation->OriginalDatasetName();
+			std::string error_msg;
+			if ( !mCurrentOperation->SetOriginalDataset( mWDataset, new_dataset_name, error_msg ) )
+				LOG_WARN( error_msg );															   	//failure means filter failure, not dataset assignment failure
             filtered_dataset = const_cast<const COperation*>( mCurrentOperation )->Dataset();
 		}
+		else
+			filtered_dataset = mWDataset->GetDataset( new_dataset_name );
 
 		std::string error_msg;
 		try
@@ -1327,23 +1142,27 @@ bool COperationControls::AssignDataset( const CDataset *dataset, bool changing_u
 
 		if ( new_product == nullptr )
 		{
-			if ( !error_msg.empty() )
-				SimpleErrorBox( error_msg );
-			else
-				SimpleErrorBox( "Unable to set Product\nPerhaps dataset file list is empty or product file doesn't exist." );
-
-			if ( mCurrentOperation )
+			if ( error_msg.empty() )	//no exception, assume empty original or filtered dataset
 			{
-				mCurrentOperation->SetDataset( saved_filtered_dataset );
+				LOG_WARN( "Unable to set Product\nPerhaps dataset file list is empty or product file doesn't exist." );
 			}
-
-			return false;
+			else
+			{
+				SimpleErrorBox( error_msg );
+				if ( mCurrentOperation )
+				{
+					if ( !mCurrentOperation->SetOriginalDataset( mWDataset, saved_dataset_name, error_msg ) )
+						LOG_WARN( error_msg );
+				}
+				return false;
+			}
 		}
 
 		if ( changing_used_dataset && !CDataExpressionsTreeWidget::SelectRecord( this, mCurrentOperation, new_product ) )
 		{
 			SimpleErrorBox( "You have not selected a record name.\nDataset has not been changed.\nChanging operation dataset is canceled." );
-			mCurrentOperation->SetDataset( saved_filtered_dataset );
+			if ( !mCurrentOperation->SetOriginalDataset( mWDataset, saved_dataset_name, error_msg ) )
+				LOG_WARN( error_msg );
 			delete new_product;
 			return false;
 		}
@@ -1353,22 +1172,8 @@ bool COperationControls::AssignDataset( const CDataset *dataset, bool changing_u
 
 	// At this point, assume dataset assignment was OK. Update GUI and internal state
 
-	SelectDataset( dataset );	//	mCurrentOriginalDataset = dataset;
+	UpdateDatasetSelection( mWDataset->GetDataset( new_dataset_name ) );	//	mCurrentOriginalDataset = dataset;
 
-	//TODO what is the meaning of the following lines ???
-	//
-	//wxTreeItemId rootIdFields = GetFieldstreectrl()->GetRootItem();
-	//int nRecords = ( rootIdFields.IsOk() ) ? GetFieldstreectrl()->GetChildrenCount( rootIdFields, false ) : 0;
-	//if ( ( nRecords > 0 ) && ( nRecords <= 2 ) )
-	//{
-	//	wxTreeItemIdValue cookie;
-	//	wxTreeItemId idChild = GetFieldstreectrl()->GetFirstChild( rootIdFields, cookie );
-	//	if ( nRecords == 2 )
-	//	{
-	//		idChild = GetFieldstreectrl()->GetNextChild( rootIdFields, cookie );
-	//	}
-	//	GetFieldstreectrl()->Expand( idChild );
-	//}
 	//////////////////////////////////////////////////////////////////DatasetSelChanged(id); end
 	//m_currentDataset = id;
 	//SetCurrentDataset();
@@ -1409,20 +1214,20 @@ void COperationControls::HandleSelectedDatasetChanged_Advanced( int dataset_inde
 	auto cancel_dataset_change = [this]()
 	{
 		if ( mCurrentOperation )
-			SelectOperationDataset( mCurrentOperation, mAdvancedDatasetsCombo, true );
+			SelectOperationDatasetIndex( mCurrentOperation, mAdvancedDatasetsCombo );	//rollback; select datset without assignment
 	};
 
 
 	//function body 
 
-	CDataset *new_dataset = nullptr;
+	std::string new_dataset_name;
 	bool changing_used_dataset = false;
 	if ( dataset_index >= 0 )
 	{
-		auto new_dataset_name = q2a( mAdvancedDatasetsCombo->itemText( dataset_index ) );
+		new_dataset_name = q2a( mAdvancedDatasetsCombo->itemText( dataset_index ) );
 		if ( mCurrentOperation )
 		{
-            std::string current_dataset_name = mCurrentOperation->OriginalDatasetName();						//TODO why cannot assert__( !mCurrentOperation->HasFormula() || !current_dataset_name.empty() );
+            std::string current_dataset_name = mCurrentOperation->OriginalDatasetName();				//TODO why cannot assert__( !mCurrentOperation->HasFormula() || !current_dataset_name.empty() );
 			changing_used_dataset = mCurrentOperation->HasFormula() && new_dataset_name != current_dataset_name;
 		}
 		if ( changing_used_dataset )
@@ -1443,21 +1248,272 @@ void COperationControls::HandleSelectedDatasetChanged_Advanced( int dataset_inde
 			mCurrentOperation->SetRecord( "" );
 		}
 
-		new_dataset = mWDataset->GetDataset( new_dataset_name );	//do not return if dataset is the same: content may have changed
+		//do not return if dataset is the same: content may have changed
 	}
 
-	if ( !AssignDataset( new_dataset, changing_used_dataset ) )
+	if ( !AssignDataset( new_dataset_name, changing_used_dataset ) )
 	{
 		cancel_dataset_change();
 	}
 	else
 	if ( mCurrentOperation )
 	{
-		RemoveOperationFormulas( mCurrentOperation );
+		mCurrentOperation->RemoveFormulas();
 	}
 
 	mDataExpressionsTree->InsertOperation( mCurrentOperation );
 }
+
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+//                    FILTERING METHODS
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+void COperationControls::ResetFilterSelection()
+{
+	auto reset_filter_selection = []( QToolButton *button, const COperation *operation )
+	{
+		std::string selected_filter_name;
+		if ( operation && operation->Filter() )
+			selected_filter_name = operation->FilterName();
+
+		button->setText( "" );
+
+		auto actions = button->actions();
+		for ( auto a : actions )
+		{
+			std::string filter_name = q2a( a->text() );
+			if ( filter_name == selected_filter_name )
+			{
+				button->setText( a->text() );
+			}
+		};
+
+		button->blockSignals( true );						//avoid "internal" assignments
+		button->setChecked( !button->text().isEmpty() );
+		button->blockSignals( false );
+	};
+
+	reset_filter_selection( mOperationFilterButton_Advanced, mCurrentOperation );
+	reset_filter_selection( mOperationFilterButton_Quick, mQuickOperation );
+}
+
+
+void COperationControls::ResetFilterActions()
+{
+	auto reset_filter_actions = [this]( QToolButton *button, const CBratFilters &brat_filters )
+	{
+		auto actions = button->actions();
+		for ( auto a : actions )
+			button->removeAction( a );
+
+		auto const &filters = brat_filters.FiltersMap();
+		for ( auto const &filter : filters )
+		{
+			std::string filter_name = filter.first;
+			QAction *a = CActionInfo::CreateAction( this, eAction_Item_Filters );
+			a->setText( filter_name.c_str() );
+			a->setToolTip( filter_name.c_str() );
+			button->addAction( a );
+		}
+	};
+
+	reset_filter_actions( mOperationFilterButton_Advanced, mBratFilters );
+	connect( mOperationFilterButton_Advanced, SIGNAL( triggered( QAction * ) ), this, SLOT( HandleOperationFilterButton_Advanced( QAction * ) ) );
+	connect( mOperationFilterButton_Advanced, SIGNAL( toggled( bool ) ), this, SLOT( HandleOperationFilterButtonToggled_Advanced( bool ) ) );
+
+	reset_filter_actions( mOperationFilterButton_Quick, mBratFilters );
+	connect( mOperationFilterButton_Quick, SIGNAL( triggered( QAction * ) ), this, SLOT( HandleOperationFilterButton_Quick( QAction * ) ) );
+	connect( mOperationFilterButton_Quick, SIGNAL( toggled( bool ) ), this, SLOT( HandleOperationFilterButtonToggled_Quick( bool ) ) );
+
+	mOperationFilterButton_Advanced->setEnabled( mBratFilters.FiltersMap().size() > 0 );
+	mOperationFilterButton_Quick->setEnabled( mBratFilters.FiltersMap().size() > 0 );
+
+	ResetFilterSelection();
+}
+
+
+bool COperationControls::AssignFilter( const CBratFilters &brat_filters, COperation *operation, const std::string &name )
+{
+	assert__( operation );
+
+	const std::string &op_filter_name = operation->FilterName();
+
+	if ( op_filter_name.empty() )
+	{
+		if ( !SimpleQuestion( "Are you sure you want to apply the filter '" + name + "' to the operation '" + operation->GetName() + "'?" ) )
+		{
+			return false;
+		}
+	}
+	else
+	{
+		if ( op_filter_name != name &&
+			!SimpleQuestion( "Operation '" + operation->GetName() + "' has associated filter '" + op_filter_name + "'. Are you sure you want to change it to '" + name + "'?" )
+			)
+		{
+			return false;
+		}
+	}
+
+	WaitCursor wait;
+
+	auto *filter = brat_filters.Find( name );			assert__( filter );
+	std::string error_msg;
+	if ( !operation->SetFilter( filter, error_msg ) )
+	{
+		SimpleWarnBox( error_msg );
+		return false;
+	}
+
+	return true;
+}
+
+
+bool COperationControls::AssignAdvancedFilter( const std::string &name )
+{
+	if ( AssignFilter( mBratFilters, mCurrentOperation, name ) )
+	{
+		UpdateSelectedDatasetAdvancedSelection();
+		return true;
+	}
+	return false;
+}
+bool COperationControls::AssignQuickFilter( const std::string &name )
+{
+	return AssignFilter( mBratFilters, mQuickOperation, name );
+}
+
+
+bool COperationControls::RemoveFilter( COperation *operation, const std::string &name )
+{
+	assert__( operation );		Q_UNUSED( name );		//release builds
+
+	const std::string &op_filter_name = operation->FilterName();	assert__( name == op_filter_name && !op_filter_name.empty() );	
+
+	if ( !SimpleQuestion( "Are you sure you want to remove the filter '" + op_filter_name + "' from the operation '" + operation->GetName() + "'?" ) )
+	{
+		return false;
+	}
+
+	WaitCursor wait;
+
+	operation->RemoveFilter();
+	return true;
+}
+
+
+bool COperationControls::RemoveAdvancedFilter( const std::string &name )
+{
+	if ( RemoveFilter( mCurrentOperation, name ) )
+	{
+		UpdateSelectedDatasetAdvancedSelection();
+		return true;
+	}
+	return false;
+}
+bool COperationControls::RemoveQuickFilter( const std::string &name )
+{
+    return RemoveFilter( mQuickOperation, name );
+}
+
+
+void UpdateFilterButton( QToolButton *button, const COperation *operation )
+{
+	//ugly...
+	button->blockSignals( true );
+	button->setChecked( operation->Filter() );
+	button->setText( operation->FilterName().c_str() );
+	button->blockSignals( false );
+}
+
+
+void COperationControls::HandleOperationFilterButtonToggled_Advanced( bool toggled )
+{
+	assert__( mCurrentOperation );
+
+	const std::string filter_name = q2a( mOperationFilterButton_Advanced->text() );
+	if ( filter_name.empty() )
+	{
+		LOG_WARN( "No filter selected" );
+	}
+	else
+	{
+		if ( toggled )
+		{
+			AssignAdvancedFilter( filter_name );
+		}
+		else
+		{
+			RemoveAdvancedFilter( filter_name );
+		}
+
+		mDataExpressionsTree->InsertOperation( mCurrentOperation );
+	}
+
+	UpdateFilterButton( mOperationFilterButton_Advanced, mCurrentOperation );
+	if ( mCurrentOperation == mQuickOperation )
+		UpdateFilterButton( mOperationFilterButton_Quick, mQuickOperation );
+}
+
+
+void COperationControls::HandleOperationFilterButtonToggled_Quick( bool toggled )
+{
+	assert__( mQuickOperation );
+
+	const std::string filter_name = q2a( mOperationFilterButton_Quick->text() );
+	if ( filter_name.empty() )
+	{
+		LOG_WARN( "No filter selected" );
+	}
+	else
+	{
+		if ( toggled )
+		{
+			AssignQuickFilter( filter_name );
+		}
+		else
+		{
+			RemoveQuickFilter( filter_name );
+		}
+	}
+
+	UpdateFilterButton( mOperationFilterButton_Quick, mQuickOperation );
+	if ( mCurrentOperation == mQuickOperation )
+		UpdateFilterButton( mOperationFilterButton_Advanced, mCurrentOperation );
+}
+
+
+void COperationControls::HandleOperationFilterButton_Advanced( QAction *a )
+{
+	QToolButton *bt = qobject_cast<QToolButton *>( sender() );
+	if ( !bt )
+		return;
+
+	mOperationFilterButton_Advanced->setText( a->text() );
+	HandleOperationFilterButtonToggled_Advanced( true );	//qDebug() << "HandleOperationFilterButton==" << a->text();
+}
+void COperationControls::HandleOperationFilterButton_Quick( QAction *a )
+{
+	QToolButton *bt = qobject_cast<QToolButton *>( sender() );
+	if ( !bt )
+		return;
+
+	mOperationFilterButton_Quick->setText( a->text() );
+	HandleOperationFilterButtonToggled_Quick( true );
+}
+
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+//
+///////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
 
 
 // Selects data computation mode in GUI
@@ -2219,11 +2275,9 @@ bool COperationControls::ComputeInterval( CFormula *formula, QLabel *IntervalsLa
     // Compute interval of the formula
     std::string errorMsg;
     bool Ok = formula->ComputeInterval( errorMsg );
-    //if ( !errorMsg.empty() && !Ok )
-    //    SimpleWarnBox( errorMsg );
 
     // Update warning icon
-    if ( Ok == false )
+    if ( !Ok )
     {
         IconWarning->setPixmap( WarningResolutionIconPath );
         IconWarning->setToolTip( "Interval was round up or down\nto the nearest integer value." );
@@ -2435,11 +2489,6 @@ void COperationControls::HandleFormulaInserted( CFormula *formula )
     Q_UNUSED( formula );
 
 	qDebug() << ( "Inserted formula " + ( formula ? formula->GetName() : "null" ) ).c_str();
-	//std::string	error_msg;
-	//mCurrentOperation->ComputeInterval( error_msg );
-
-	//if ( !error_msg.empty() )
-	//	SimpleErrorBox( error_msg );
 }
 
 
@@ -2520,9 +2569,11 @@ void COperationControls::HandleNewOperation()
 
 	int dataset_index = mAdvancedDatasetsCombo->currentIndex();
 	CDataset *dataset = nullptr;
+	std::string dataset_name;
 	if ( dataset_index >= 0 )
 	{
-		dataset = mWDataset->GetDataset( q2a( mAdvancedDatasetsCombo->itemText( dataset_index ) ) );		assert__( dataset );
+		dataset_name = q2a( mAdvancedDatasetsCombo->itemText( dataset_index ) );
+		dataset = mWDataset->GetDataset( dataset_name );						assert__( dataset );
 	}
 	if ( dataset_index < 0 || dataset->IsEmpty() )
 	{
@@ -2591,7 +2642,9 @@ void COperationControls::HandleNewOperation()
 	// 5. Assigns selected dataset and mProduct
 
 	//SetCurrentDataset();		//sets the (real) operation dataset and formula
-	mCurrentOperation->SetDataset( dataset );
+	std::string error_msg;
+	if ( !mCurrentOperation->SetOriginalDataset( mWDataset, dataset_name, error_msg ) )
+		SimpleWarnBox( error_msg );
 	mCurrentOperation->SetProduct( mProduct );
 
 	// 6. Add new operation to GUI lits and select it (possibly triggers all handling operation change sequence)
@@ -2614,25 +2667,6 @@ void COperationControls::HandleNewOperation()
 	wxGetApp().GetDisplayPanel()->EnableCtrl();		//update display tab
 	*/
 }
-
-
-
-//bool CBratGuiApp::CanDeleteOperation( const std::string& name, CStringArray* displayNames /*= nullptr*/ )
-//{
-//    bool canDelete = true;
-//    CWorkspaceDisplay* wks = GetCurrentWorkspaceDisplay();
-//    if ( wks == nullptr )
-//    {
-//        return true;
-//    }
-
-//    std::string errorMsg;
-//    canDelete &= ( wks->UseOperation( name.ToStdString(), errorMsg, displayNames ) == false );
-//    if ( !errorMsg.empty() )
-//        wxMessageBox( errorMsg, "Error", wxOK | wxCENTRE | wxICON_ERROR );
-
-//    return canDelete;
-//}
 
 
 
@@ -3006,64 +3040,6 @@ void COperationControls::HandleExportOperation()
 			assert__( false );
 		break;
 	}
-//    //------------------
-//    // Remember last export filename and path -> OLD BRAT
-//    //------------------
-////    std::string filenameToSave = dlg.m_currentName;
-////    filenameToSave.SetExt(CExportDlg::m_defaultExtensionAscii);
-////    mCurrentOperation->SetExportAsciiOutput( filenameToSave.GetFullPath().ToStdString(), wxGetApp().GetCurrentWorkspaceOperation() );
-
-////    mCurrentOperation->SetExecuteAgain(dlg.m_executeAgain);
-////  //  mCurrentOperation->SetDelayExecution(dlg.m_delayExecution);
-
-
-//    //------------------
-//    // Export as Ascii
-//    //------------------
-//    if ( dlg.AsAscii() )
-//    {
-//        operation->SetExportAsciiDateAsPeriod( dlg.m_dateAsPeriod );
-//        operation->SetExportAsciiExpandArray( dlg.m_expandArray );
-//        operation->SetExportAsciiNoDataComputation( dlg.m_noDataComputation );
-//        operation->SetExportAsciiNumberPrecision( dlg.m_asciiNumberPrecision );
-
-//        if ( dlg.m_delayExecution )
-//        {
-//            //DelayExportOperationAsAscii( dlg.m_delayDlg );
-//            BRAT_NOT_IMPLEMENTED;
-//        }
-//        else
-//        {
-//            ExportOperationAsAscii( operation );
-//        }
-//        return;
-//    }
-
-
-//    ///////////////// TO INTEGRATE /////////////////
-////	operation->ClearLogFile();		//!sync
-////	operation->InitShowStatsOutput( mWOperation );
-//    if ( !operation->BuildShowStatsCmdFile( mWFormula, mWOperation ) )	//v3 didn't seem to care if this fails
-//    {
-//        SimpleErrorBox( "There was an error composing the command file.\nStatistics cannot be computed." );
-//        return;
-//    }
-
-//    emit AsyncProcessExecution( true );
-//    // ProcessesTable will display user messages for us, no need to report on false return
-//    //
-//    //bool result =
-//    mProcessesTable->Add4Statistics( false, operation );
-//    emit AsyncProcessExecution( false );
-//    ///////////////// TO INTEGRATE /////////////////
-
-//    //------------------
-//    // Export as NetCdf
-//    //------------------
-
-//    //------------------
-//    // Export as GeoTiff
-//    //------------------
 
 	UpdateGUIState();
 }
@@ -3071,22 +3047,6 @@ void COperationControls::HandleExportOperation()
 
 void COperationControls::HandleEditExportAscii()
 {
-  //std::string title = std::string::Format("%s", mCurrentOperation->GetExportAsciiOutputName().c_str());
-  //CRichTextFrame* frame = new CRichTextFrame(this, title);
-
-  //wxFFile wxffile(mCurrentOperation->GetExportAsciiOutputName());
-
-  //std::string content;
-  //wxffile.ReadAll(&content);
-  //frame->GetTextCtrl()->SetValue(content);
-  ////frame->GetTextCtrl()->LoadFile(mCurrentOperation->GetExportAsciiOutputName());
-
-  //frame->Show(true);
-  //frame->GetTextCtrl()->SetInsertionPoint(0);
-
-  //EnableCtrl();
-
-
 	assert__( mCurrentOperation && !IsQuickOperationSelected() );
 
     CEditExportAsciiDialog dlg( mCurrentOperation, this );
@@ -3187,24 +3147,6 @@ void COperationControls::LaunchDisplay( const std::string &display_name )
 /////////////////////////////////////////////////////////////////////////////////
 //							Operation Execution
 /////////////////////////////////////////////////////////////////////////////////
-
-///////////////////////////////////////////////////////////////////
-//
-//	TODO BIG one
-//
-//	CRITICAL: check if operation is selected in any editor and 
-//		close it. Emit signal, at least after operation execution, 
-//		so that all display editors refresh their internal data.
-//
-//	This happens for all destructive operations, so a method must
-//	be created that collects all currently selected operations and 
-//	prevents operating on it if it is selected.
-//
-//	Furthermore, in the display editors a device must be implemented, 
-//	and made compatible with existing execution flow, and tested, 
-//	and what not, to refresh all internal data... gosh...
-//
-///////////////////////////////////////////////////////////////////
 
 
 bool COperationControls::MapPlotSelected() const
@@ -3410,38 +3352,6 @@ bool COperationControls::Execute( EExecutionType type, COperation *operation, bo
 		return false;
 	}
 
-	/*
-	CPipedProcess* process = new CPipedProcess( 
-
-		operation->GetTaskName(),
-		wxGetApp().GetLogPanel(),
-		operation->GetFullCmd(),
-		wxGetApp().GetLogPanel()->GetLogMess(),
-		&operation->GetOutputPath(),				//used in remove file, must be complete path
-		operation->GetType() 
-
-		);
-
-
-	if ( wait )
-	{
-		process->SetExecuteFlags( wxEXEC_SYNC | wxEXEC_NODISABLE );
-	}
-
-	bool bOk = wxGetApp().GetLogPanel()->AddProcess( process );
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-		bool isSync = ( ( process->GetExecuteFlags() & wxEXEC_SYNC ) == wxEXEC_SYNC );
-		if ( isSync )
-		{
-			msg = std::string::Format( "\n\n===> Synchronous Task '%s' started with command line below:<===\n'%s'\n\n"
-				"\n ==========> Please wait.... A report will display at the end of the task <==========\n\n",
-				process->GetName().c_str(),
-				process->GetCmd().c_str() );
-			GetLogMess()->AppendText( msg );
-			GetTasklist()->InsertProcess( process );
-		}
-
-		*/
 
 	if ( !SimpleQuestion(
 		"A process for the operation '"
@@ -3472,37 +3382,6 @@ bool COperationControls::Execute( EExecutionType type, COperation *operation, bo
 			}
 		}
 	}
-
-	/*
-		//----------------
-		process->Execute();
-		//----------------
-
-		if ( !isSync )
-		{
-
-			msg = std::string::Format( "\n\n===> Asynchronous Task '%s' (pid %d) started with command line below:<===\n'%s'\n\n",
-				process->GetName().c_str(),
-				process->GetPid(),
-				process->GetCmd().c_str() );
-			GetLogMess()->AppendText( msg );
-			GetTasklist()->InsertProcess( process );
-		}
-	////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-	if ( bOk == false )
-	{
-		delete process;
-		process = nullptr;
-	}
-
-	if ( wait )
-	{
-		wxGetApp().GetLogPanel()->LogFile( std::string( operation->GetLogFile() ) );
-	}
-
-
-	BRAT_NOT_IMPLEMENTED
-	*/
 
 	return result;
 }
