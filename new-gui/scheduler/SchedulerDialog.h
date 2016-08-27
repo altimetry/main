@@ -74,6 +74,12 @@ public:
 	virtual void Kill() override;
 
 	virtual void Execute( bool detached = false ) override;
+
+signals:
+
+#if QT_VERSION >= 0x050000
+	void started();				//has 1 parameter in qt5
+#endif
 };
 
 

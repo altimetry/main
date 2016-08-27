@@ -107,6 +107,8 @@ static const char *msgs[ EExceptIndex_size ] =
 void
 trans_func( unsigned int u, _EXCEPTION_POINTERS* pExp )
 {
+    UNUSED( pExp );
+
 	EExceptIndex e;
 	switch(u){
 	case EXCEPTION_ACCESS_VIOLATION :			e = e_EXCEPTION_ACCESS_VIOLATION;
@@ -194,6 +196,8 @@ SignalHandlerPointer SetAbortSignal()
 
 _se_translator_function SetSETranslator( _se_translator_function NewPtFunc )
 {
+    UNUSED( NewPtFunc );
+
 	return _set_se_translator( trans_func );
 }
 

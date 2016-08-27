@@ -1923,16 +1923,15 @@ CBratAlgorithmBaseRegistry& CBratAlgorithmBaseRegistry::GetInstance()
 }
 //----------------------------------------
 
-void CBratAlgorithmBaseRegistry::Add(base_creator *creator)
+void CBratAlgorithmBaseRegistry::Add( base_creator *creator )
 {
-    m_bases.push_back(creator);
-  
     CBratAlgorithmBase* algorithm = (*creator)();
 
     std::string algorithmName = algorithm->GetName();
 
     m_mapBratAlgo.Insert(algorithmName, algorithm);
 
+    m_bases.push_back( creator );		//add to m_bases only after trying to create the algorithm (which can throw)
 }
 //----------------------------------------
 

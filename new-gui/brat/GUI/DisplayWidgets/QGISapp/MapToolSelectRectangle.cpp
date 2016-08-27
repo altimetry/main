@@ -73,13 +73,14 @@ void CMapToolSelectFeatures::DeleteRubberBand()
 		return;
 	}
 	QgsFeatureIds newSelectedFeatures;
-	vlayer->setSelectedFeatures( newSelectedFeatures );
+
+	SelectFeatures( vlayer, newSelectedFeatures );
 
 #endif
 }
 
 
-void CMapToolSelectFeatures::canvasPressEvent( QMouseEvent *e )
+void CMapToolSelectFeatures::canvasPressEvent( map_tool_mouse_event_t *e )
 {
 	Q_UNUSED( e );
 
@@ -94,7 +95,7 @@ void CMapToolSelectFeatures::canvasPressEvent( QMouseEvent *e )
 }
 
 
-void CMapToolSelectFeatures::canvasMoveEvent( QMouseEvent *e )
+void CMapToolSelectFeatures::canvasMoveEvent( map_tool_mouse_event_t *e )
 {
 	if ( e->buttons() != Qt::LeftButton )
 		return;
@@ -133,7 +134,7 @@ void CMapToolSelectFeatures::RemoveRubberBandSelection()
 
 
 
-void CMapToolSelectFeatures::canvasReleaseEvent( QMouseEvent *e )
+void CMapToolSelectFeatures::canvasReleaseEvent( map_tool_mouse_event_t *e )
 {
 	QgsVectorLayer* vlayer = QgsMapToolSelectUtils::getCurrentVectorLayer( mCanvas );
 

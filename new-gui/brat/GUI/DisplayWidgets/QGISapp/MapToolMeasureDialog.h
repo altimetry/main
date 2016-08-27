@@ -17,20 +17,22 @@
 #ifndef VIEWS_QGISAPP_QGSMEASUREDIALOG_H
 #define VIEWS_QGISAPP_QGSMEASUREDIALOG_H
 
-#include <QtCore/QVariant>
-#include <QtGui/QAction>
-#include <QtGui/QApplication>
-#include <QtGui/QButtonGroup>
-#include <QtGui/QComboBox>
-#include <QtGui/QDialog>
-#include <QtGui/QDialogButtonBox>
-#include <QtGui/QGridLayout>
-#include <QtGui/QHeaderView>
-#include <QtGui/QLabel>
-#include <QtGui/QLineEdit>
-#include <QtGui/QSpacerItem>
-#include <QtGui/QTreeWidget>
-#include <QtGui/QVBoxLayout>
+#include <new-gui/Common/QtUtils.h>
+
+//#include <QtCore/QVariant>
+//#include <QtGui/QAction>
+//#include <QtGui/QApplication>
+//#include <QtGui/QButtonGroup>
+//#include <QtGui/QComboBox>
+//#include <QtGui/QDialog>
+//#include <QtGui/QDialogButtonBox>
+//#include <QtGui/QGridLayout>
+//#include <QtGui/QHeaderView>
+//#include <QtGui/QLabel>
+//#include <QtGui/QLineEdit>
+//#include <QtGui/QSpacerItem>
+//#include <QtGui/QTreeWidget>
+//#include <QtGui/QVBoxLayout>
 
 #include <qgscollapsiblegroupbox.h>
 
@@ -132,11 +134,11 @@ public:
 
 	void retranslateUi( QDialog *QgsMeasureBase )
 	{
-		QgsMeasureBase->setWindowTitle( QApplication::translate( "QgsMeasureBase", "Measure", 0, QApplication::UnicodeUTF8 ) );
-		textLabel2->setText( QApplication::translate( "QgsMeasureBase", "Total", 0, QApplication::UnicodeUTF8 ) );
+		QgsMeasureBase->setWindowTitle( QApplication::translate( "QgsMeasureBase", "Measure", 0 ) );
+		textLabel2->setText( QApplication::translate( "QgsMeasureBase", "Total", 0 ) );
 		QTreeWidgetItem *___qtreewidgetitem = mTable->headerItem();
-		___qtreewidgetitem->setText( 0, QApplication::translate( "QgsMeasureBase", "Segments", 0, QApplication::UnicodeUTF8 ) );
-		groupBox->setTitle( QApplication::translate( "QgsMeasureBase", "Info", 0, QApplication::UnicodeUTF8 ) );
+		___qtreewidgetitem->setText( 0, QApplication::translate( "QgsMeasureBase", "Segments", 0 ) );
+		groupBox->setTitle( QApplication::translate( "QgsMeasureBase", "Info", 0 ) );
 		mNotesLabel->setText( QString() );
 	} // retranslateUi
 

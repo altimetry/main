@@ -18,6 +18,8 @@
 
 #include <qgsmaptool.h>
 
+#include "MapTools.h"
+
 class QgsDistanceArea;
 class QgsMapCanvas;
 class CMeasureDialog;
@@ -62,13 +64,13 @@ public:
 	// Inherited from QgsMapTool
 
 	//! Mouse move event for overriding
-	virtual void canvasMoveEvent( QMouseEvent * e ) override;
+	virtual void canvasMoveEvent( map_tool_mouse_event_t *e ) override;
 
 	//! Mouse press event for overriding
-	virtual void canvasPressEvent( QMouseEvent * e ) override;
+	virtual void canvasPressEvent( map_tool_mouse_event_t *e ) override;
 
 	//! Mouse release event for overriding
-	virtual void canvasReleaseEvent( QMouseEvent * e ) override;
+	virtual void canvasReleaseEvent( map_tool_mouse_event_t *e ) override;
 
 	//! called when set as currently active map tool
 	virtual void activate() override;

@@ -984,36 +984,11 @@ C3DPlotWidget::C3DPlotWidget( QWidget *parent )
 	setPalette( pal );
 
 	setMinimumSize( min_plot_widget_width, min_plot_widget_height );
-
-#if defined (TEST_EXAMPLES)
-
-	static Plot3dExample ex = e_Plot3dExample_size;
-
-	switch ( ++ex )
-	{
-		case e_Autoswitching_axes:
-				Autoswitching_axes();
-			break;
-
-		case e_Simple_SurfacePlot:
-				Simple_SurfacePlot();
-			break;
-
-		case e_Vertex_Enrichment:
-				Vertex_Enrichment();
-			break;
-
-		default:
-			throw "C3DPlotWidget development error";
-	}
-#endif
 }
 
 
 C3DPlotWidget::~C3DPlotWidget()
-{
-	//delete hat;		//enrichment example
-}
+{}
 
 
 
@@ -1247,20 +1222,18 @@ void C3DPlotWidget::ShowMesh( int index, bool show )
 {
 	assert__( size_t( index ) <mSurfacePlots.size() );
 
-	auto save = mCurrentPlot;
 	mCurrentPlot = dynamic_cast<CBrat3DPlot*>( mSurfacePlots[ index ] );
+
 	ShowMesh( show );
-	mCurrentPlot = save;
 }
 
 void C3DPlotWidget::ShowSolidColor( int index, bool show )
 {
 	assert__( size_t( index ) <mSurfacePlots.size() );
 
-	auto save = mCurrentPlot;
 	mCurrentPlot = dynamic_cast<CBrat3DPlot*>( mSurfacePlots[ index ] );
+
 	ShowSolidColor( show );
-	mCurrentPlot = save;
 }
 
 

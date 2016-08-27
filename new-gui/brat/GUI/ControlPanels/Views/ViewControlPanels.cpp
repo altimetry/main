@@ -486,8 +486,9 @@ CPlotControlsPanelAnimateOptions::CPlotControlsPanelAnimateOptions( QWidget *par
 		//LayoutWidgets( Qt::Horizontal, { new QLabel( "Speed" ), mSpeedEdit, nullptr, options_row, }, nullptr )
 	}, "" );
 
-	mInformation = new QTextEdit;
+	mInformation = new CTextWidget;
 	SetReadOnlyEditor( mInformation, true );
+	mInformation->SetSizeHint( mInformation->sizeHint().width(), 4 * fontMetrics().lineSpacing() );
 
 	AddTopLayout( ELayoutType::Horizontal, { autoanimationgroup, CreateGroupBox( ELayoutType::Horizontal, { mInformation }, "" ) } );
 

@@ -81,7 +81,6 @@
     <addaction name="action_Workspace_Tree"/>
     <addaction name="action_Operation_Views"/>
     <addaction name="action_Launch_Scheduler"/>
-    <addaction name="action_Python_Console"/>
     <addaction name="separator"/>
     <addaction name="action_Save_Map_Image"/>
     <addaction name="separator"/>
@@ -456,16 +455,11 @@ The workspace directory will not change</string>
     <string>Open BRAT User's Manual</string>
    </property>
   </action>
-  <action name="action_Python_Console">
-   <property name="text">
-    <string>Python Console</string>
-   </property>
-  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="../Common/Resources/brat.qrc"/>
   <include location="Resources/images/qgis-themes-2.qrc"/>
+  <include location="../Common/Resources/brat.qrc"/>
   <include location="../Common/Resources/brat.qrc"/>
  </resources>
  <connections>

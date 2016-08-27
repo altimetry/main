@@ -28,6 +28,7 @@
 #include "GUI/ControlPanels/Views/ViewControlPanels.h"
 #include "GUI/DisplayWidgets/3DPlotWidget.h"
 #include "GUI/DisplayWidgets/2DPlotWidget.h"
+#include "new-gui/Common/GUI/TextWidget.h"
 
 #include "PlotEditor.h"
 
@@ -765,11 +766,14 @@ double CPlotEditor::CreateHistogram()
 	const CYFXValues *yfx_arrays = dynamic_cast< CYFXValues* >( pdata );
 	const CZFXYValues *zfxy_arrays = dynamic_cast< CZFXYValues* >( pdata );
 
+	
 	double max_freq;
 	if ( zfxy_arrays )
-		mPlot2DView->SetSingleHistogram( pdata->WidgetFieldName(), color_cast<QColor>( pdata->LineColor() ), *zfxy_arrays, max_freq, pdata->NumberOfBins() );
+		mPlot2DView->SetSingleHistogram( pdata->WidgetFieldName(), color_cast<QColor>( pdata->LineColor() ), *zfxy_arrays, max_freq, pdata->NumberOfBins(),
+			pdata->DataUnit()->IsDate(), RefDateFromUnit(*pdata->DataUnit()));
 	else
-		mPlot2DView->PushHistogram( pdata->WidgetFieldName(), color_cast<QColor>( pdata->LineColor() ), *yfx_arrays, max_freq, pdata->NumberOfBins() );
+		mPlot2DView->PushHistogram( pdata->WidgetFieldName(), color_cast<QColor>( pdata->LineColor() ), *yfx_arrays, max_freq, pdata->NumberOfBins(),
+			pdata->DataUnit()->IsDate(), RefDateFromUnit(*pdata->DataUnit()));
 
 	return max_freq;
 }
@@ -1195,7 +1199,7 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
 
 	bool result = UpdateCurrentPointers( index );			assert__( result );		Q_UNUSED( result );
 	
-	CWidgetField *pdata = mCurrentPlotFieldYFX ? static_cast<CWidgetField*>( mCurrentPlotFieldYFX ) : static_cast<CWidgetField*>( mCurrentPlotFieldZFXY );			assert__( pdata );
+	CWidgetField *pdata = mCurrentPlotFieldYFX ? static_cast<CWidgetField*>( mCurrentPlotFieldYFX ) : static_cast<CWidgetField*>( mCurrentPlotFieldZFXY );	assert__( pdata );
 	CPlotInterfaces *pplot = mCurrentPlotFieldYFX ? static_cast<CPlotInterfaces*>( mCurrentPlotYFX ) : static_cast<CPlotInterfaces*>( mCurrentPlotZFXY );	assert__( pplot );
 
 	/////////////////////////////////////////////////

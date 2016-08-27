@@ -178,7 +178,7 @@ protected:
 	//
 	//	enum QtMsgType { QtDebugMsg, QtWarningMsg, QtCriticalMsg, QtFatalMsg, QtSystemMsg = QtCriticalMsg };
 	//
-	virtual void QtMessageOutput( QtMsgType type, const char *msg ) override;
+    virtual void QtMessageOutput( QtMsgType type, qt_raw_logtext_t msg, const QMessageLogContext *pcontext = nullptr ) override;
 
 
 	// OSG callback: Capture OSG notify, emits OsgLogMessage for GUI display

@@ -715,6 +715,9 @@ bool CMapWidget::Save2Image( const QString &path, const QString &format, const Q
 	SetFileExtension( qpath, extension );
 	if ( f == "ps" )
 	{
+#if QT_VERSION >= 0x050000
+		return false;
+#else
 		QPrinter printer( QPrinter::HighResolution );
 		printer.setOutputFormat( QPrinter::PostScriptFormat );
 		printer.setOutputFileName( qpath );
@@ -727,6 +730,7 @@ bool CMapWidget::Save2Image( const QString &path, const QString &format, const Q
 		render( &painter/*, QPointF( 0, 0 ), contentRect */ );
 		painter.end();
 		return true;
+#endif
 	}
 
 
@@ -1198,10 +1202,17 @@ QgsSymbolV2* CMapWidget::CreatePointSymbol( double width, const QColor &color )
 
     auto symbolLayer = new QgsSimpleMarkerSymbolLayerV2;
     symbolLayer->setColor( color );
-    symbolLayer->setName("circle");
+
+#if (VERSION_INT < 21601)
+	symbolLayer->setName("circle");
+#else
+	symbolLayer->setShape( QgsSimpleMarkerSymbolLayerV2::Circle );
+#endif
+
     symbolLayer->setSizeUnit( QgsSymbolV2::MapUnit );
     symbolLayer->setSize( width );
-    symbolLayer->setOutlineStyle( Qt::NoPen );
+    symbolLayer->setOutlineStyle( Qt::NoPen );		//if not set, ignores color
+	//symbolLayer->setOutlineColor( color );		//unless setOutlineColor
 
     s->appendSymbolLayer( symbolLayer );
 
@@ -1219,14 +1230,29 @@ QgsSymbolV2* CMapWidget::CreateArrowSymbol( const QColor &color )
 
     auto symbolLayer = new QgsSimpleMarkerSymbolLayerV2;
     symbolLayer->setColor( color );
-    symbolLayer->setName("arrow");					//
+
+#if (VERSION_INT < 21601)
+	symbolLayer->setName("arrow");					//
+#else
+	symbolLayer->setShape( QgsSimpleMarkerSymbolLayerV2::Arrow );
+#endif
+
     symbolLayer->setSizeUnit( QgsSymbolV2::MM );	//	RCCC
     //symbolLayer->setSizeUnit( QgsSymbolV2::Pixel );	// == MapUnit
     //symbolLayer->setSizeUnit( QgsSymbolV2::MapUnit );	//
     //symbolLayer->setSize( width );
     //symbolLayer->removeDataDefinedProperties();
-    symbolLayer->setDataDefinedProperty( "size", magnitude_def.key );	//  m->setDataDefinedProperty( "size", props["size_expression"] );
+
+#if (VERSION_INT < 21601)
+	symbolLayer->setDataDefinedProperty( "size", magnitude_def.key );	//  m->setDataDefinedProperty( "size", props["size_expression"] );
     symbolLayer->setDataDefinedProperty( "angle", angle_def.key );		//	m->setDataDefinedProperty( "angle", props["angle_expression"] );
+#else
+	QgsDataDefined *size_data = new QgsDataDefined( magnitude_def.key );
+	QgsDataDefined *angle_data = new QgsDataDefined( angle_def.key );
+
+	symbolLayer->setDataDefinedProperty( "size", size_data );		//  m->setDataDefinedProperty( "size", props["size_expression"] );
+	symbolLayer->setDataDefinedProperty( "angle", angle_data );		//	m->setDataDefinedProperty( "angle", props["angle_expression"] );
+#endif
     symbolLayer->setOutlineStyle( Qt::NoPen );
 
     s->appendSymbolLayer( symbolLayer );

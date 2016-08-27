@@ -3118,7 +3118,6 @@ void COperationControls::HandleLaunchScheduler()
 //						Launch Display Actions
 /////////////////////////////////////////////////////////////////////////////////
 
-
 void COperationControls::LaunchDisplay( const std::string &display_name )
 {
 	assert__( mCurrentOperation );
@@ -3135,7 +3134,7 @@ void COperationControls::LaunchDisplay( const std::string &display_name )
 			}
 			else	//if ( mCurrentOperation->IsZFXY() || mCurrentOperation->IsYFX() )
 			{
-				return new CPlotEditor( &mModel, mCurrentOperation, display_name );
+				return new plot_editor_t( &mModel, mCurrentOperation, display_name );
 			}
 			//else
 			//    assert__( false );

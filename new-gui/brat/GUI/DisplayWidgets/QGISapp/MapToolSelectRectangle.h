@@ -21,6 +21,8 @@
 
 #include <qgsmaptool.h>
 
+#include "MapTools.h"
+
 
 class QPoint;
 class QMouseEvent;
@@ -32,6 +34,8 @@ class QgsRubberBand;
 
 class CMapToolSelectFeatures : public QgsMapTool
 {
+	// types
+
 #if defined (__APPLE__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
@@ -43,6 +47,7 @@ class CMapToolSelectFeatures : public QgsMapTool
 #pragma clang diagnostic pop
 #endif
 
+	// instance data
 
 	//! Flag to indicate a map canvas drag operation is taking place
 	bool mDragging;
@@ -56,17 +61,19 @@ class CMapToolSelectFeatures : public QgsMapTool
 
 	QColor mBorderColour;
 
+	// construction / destruction
+
 public:
 	CMapToolSelectFeatures( QgsMapCanvas* canvas );
 
 	//! Overridden mouse move event
-	virtual void canvasMoveEvent( QMouseEvent * e ) override;
+	virtual void canvasMoveEvent( map_tool_mouse_event_t *e ) override;
 
 	//! Overridden mouse press event
-	virtual void canvasPressEvent( QMouseEvent * e ) override;
+	virtual void canvasPressEvent( map_tool_mouse_event_t *e ) override;
 
 	//! Overridden mouse release event
-	virtual void canvasReleaseEvent( QMouseEvent * e ) override;
+	virtual void canvasReleaseEvent( map_tool_mouse_event_t *e ) override;
 
 	void SetRubberBandSelection( double lonm, double lonM, double latm, double latM );
 	void RemoveRubberBandSelection();														//TODO confirm it is really needed

@@ -59,7 +59,6 @@ enum EActionTag : int
 	eAction_Test,
 	eAction_One_Click,
 	eAction_Launch_Scheduler,
-	eAction_Python_Console,
 	eAction_Workspace_Tree,
 	eAction_Operation_Views,
 	eAction_Save_Map_Image,
@@ -154,13 +153,15 @@ protected:
 	// For internal processing only
 	//
 	CActionInfo( const QAction *a ) :
-        mTag( EActionTags_size ), mName( q2a( a->text() ) ), mTip( q2a( a->toolTip() ) ), mShortcut( q2a( a->shortcut() ) ), mQShortcut( a->shortcut() ), mWShortcut( q2w( a->toolTip() ) )
+        mTag( EActionTags_size ), mName( q2a( a->text() ) ), mTip( q2a( a->toolTip() ) ), mShortcut( q2a( a->shortcut().toString(QKeySequence::NativeText) ) ), 
+		mQShortcut( a->shortcut().toString(QKeySequence::NativeText) ), mWShortcut( q2w( a->toolTip() ) )
 	{}
 
 public:
 	CActionInfo( EActionTag ActionTag, const std::string &Name, const std::string &Tip, const std::string &IconPath, 
 		const std::string &OnIconPath = "", const std::string &Shortcut = "" ) :
-        mTag( ActionTag ), mName( Name ), mTip( Tip ), mIconPath( IconPath ), mOnIconPath( OnIconPath ), mShortcut( Shortcut ), mQShortcut( Shortcut.c_str() ), mWShortcut( q2w( Shortcut.c_str() ) )
+        mTag( ActionTag ), mName( Name ), mTip( Tip ), mIconPath( IconPath ), mOnIconPath( OnIconPath ), mShortcut( Shortcut ), 
+		mQShortcut( Shortcut.c_str() ), mWShortcut( q2w( Shortcut.c_str() ) )
 	{}
 
 	virtual ~CActionInfo()

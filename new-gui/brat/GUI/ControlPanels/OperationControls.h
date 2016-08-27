@@ -34,6 +34,19 @@ class CBratFilters;
 class CBratTask;
 
 
+#if defined (_MSC_VER) && (_MSC_VER >= 1900 )
+
+#include "../support/code/future/NewPlotEditor.h"
+
+using plot_editor_t = CNewPlotEditor;
+#else
+
+using plot_editor_t = CPlotEditor;
+#endif
+
+
+
+
 class COperationControls : public CDesktopControlsPanel
 {
 #if defined (__APPLE__)

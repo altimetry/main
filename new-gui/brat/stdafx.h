@@ -152,33 +152,54 @@
 #include <QtOpenGL>     //This was added here to include, in debian 32 bit, glext.h, that defines 64 bit types like Gluint64 and so on
 #endif
 
+
+
 #if QT_VERSION >= 0x050000
-	#include <QtWidgets/QApplication>
-	#include <QtWidgets/QFileDialog>
-	#include <QtWidgets/QMessageBox>
-	#include <QtWidgets/QLayout>
-	#include <QtWidgets/QSplitter>
-	#include <QtWidgets/QToolBar>
-	#include <QtWidgets/QMainWindow>
-	#include <QtWidgets/QListWidget>
-    #include <QtWidgets/QGroupBox>
-	#include <QtWidgets/QToolButton>
-	#include <QtWidgets/QActionGroup>
-	#include <QMenu/QActionGroup>
+#include <QtPrintSupport/qprinter.h>
+#include <QtPrintSupport/qprintdialog.h>
+#include <QtWidgets/QApplication>
+#include <QtWidgets/QFileDialog>
+#include <QtWidgets/QMessageBox>
+#include <QtWidgets/QTextEdit>
+#include <QtWidgets/QLayout>
+#include <QtWidgets/QSplitter>
+#include <QtWidgets/QToolBar>
+#include <QtWidgets/QMainWindow>
+#include <QtWidgets/QListWidget>
+#include <QtWidgets/QGroupBox>
+#include <QtWidgets/QToolButton>
+#include <QtWidgets/QPushButton>
+#include <QtWidgets/QActionGroup>
+#include <QtWidgets/QMenu>
+#include <QtWidgets/QInputDialog>
+#include <QDesktopServices>
+#include <QtWidgets/QDesktopWidget>
 #else
-	#include <QtGui/QApplication>
-	#include <QtGui/QFileDialog>
-	#include <QMessageBox>
-	#include <QLayout>
-	#include <QSplitter>
-	#include <QToolBar>
-	#include <QMainWindow>
-	#include <QListWidget>
-    #include <QGroupBox>
-	#include <QToolButton>
-	#include <QActionGroup>
-	#include <QMenu>
+#include <qprinter.h>
+#include <qprintdialog.h>
+#include <QtGui/QApplication>
+#include <QtGui/QFileDialog>
+#include <QtGui/QTextEdit>
+#include <QtGui/QMessageBox>
+#include <QtGui/QLayout>
+#include <QtGui/QSplitter>
+#include <QtGui/QToolBar>
+#include <QtGui/QMainWindow>
+#include <QtGui/QListWidget>
+#include <QtGui/QGroupBox>
+#include <QtGui/QToolButton>
+#include <QtGui/QPushButton>
+#include <QtGui/QActionGroup>
+#include <QtGui/QMenu>
+#include <QtGui/QInputDialog>
+#include <QtGui/QDesktopServices>
+#include <QtGui/QDesktopWidget>
 #endif
+#include <QSettings>
+#include <QResource>
+#include <QElapsedTimer>
+#include <QThread>
+#include <QUrl>
 
 
 #include <new-gui/Common/SingleApplication/QtLockedFile>

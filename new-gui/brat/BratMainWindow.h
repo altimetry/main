@@ -321,8 +321,10 @@ private slots:
     void on_action_Launch_Scheduler_triggered();
     void on_action_Options_triggered();
     void on_action_Operation_Views_triggered();
+#if defined (_DEBUG) || defined (DEBUG)
 	void PythonConsoleError( QProcess::ProcessError error );
 	void on_action_Python_Console_triggered();
+#endif
 
 	////////////////
 	//Menu Window

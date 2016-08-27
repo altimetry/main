@@ -1,5 +1,11 @@
 /* libtiff/tif_config.h.in.  Generated from configure.ac by autoheader.  */
 
+
+#if defined (_MSC_VER) && (_MSC_VER>=1900)
+#define HAVE_SEARCH_H
+#endif
+
+
 /* Support C++ stream API (requires C++ compiler) */
 #cmakedefine CXX_SUPPORT
 

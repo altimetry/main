@@ -513,7 +513,7 @@ const QString& CProcessesTable::ProcessErrorMessage( QProcess::ProcessError erro
 
 	static_assert( ( QProcess::ProcessError::UnknownError + 1 ) == msgs_size, "ProcessError enumerated values differ in size from their respective messages array." );
 
-	assert__( error < msgs_size );
+	assert__( error < (int)msgs_size );
 
 	return msgs[ error ];
 }

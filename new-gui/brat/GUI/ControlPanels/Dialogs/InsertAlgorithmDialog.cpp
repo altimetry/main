@@ -227,7 +227,11 @@ void CInsertAlgorithmDialog::HandleAlgorithmsListSelection( int index )
 	mParametersTable->resizeColumnToContents( eParameterUnit );
 
 	//mParametersTable->horizontalHeader()->setStretchLastSection( true );
+#if QT_VERSION >= 0x050000
+	mParametersTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+#else
 	mParametersTable->horizontalHeader()->setResizeMode(QHeaderView::Stretch);
+#endif
 	mParametersTable->horizontalHeader()->setHighlightSections( true );
 
 	mParametersTable->resizeColumnToContents( eParameterName );

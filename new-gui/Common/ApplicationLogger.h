@@ -23,6 +23,23 @@
 #include "new-gui/Common/QtStringUtils.h"
 
 
+#if QT_VERSION >= 0x050000
+
+using qt_msg_handler_t = QtMessageHandler;
+using qt_raw_logtext_t = const QString&;
+
+#else
+
+using qt_msg_handler_t = QtMsgHandler;
+using qt_raw_logtext_t = const char*;
+
+struct QMessageLogContext
+{};
+
+#endif
+
+
+
 //////////////////////////////////////////////////////////////////////////////////////////////////////
 //
 // The log API is composed by
@@ -198,13 +215,22 @@ protected:
 
 	static CApplicationLoggerBase *smInstance;
 
+#if QT_VERSION >= 0x050000
+	static void MessageOutputProxy( QtMsgType type, const QMessageLogContext &context, qt_raw_logtext_t msg )
+	{
+		const QMessageLogContext *pcontext = &context;
+#else
 	static void MessageOutputProxy( QtMsgType type, const char *msg )
 	{
-		smInstance->QtMessageOutput( type, msg );
+		const QMessageLogContext *pcontext = nullptr;
+
+#endif
+		smInstance->QtMessageOutput( type, msg, pcontext );
 	}
 
 
-	static QtMsgHandler InstallQtMsgHandler( QtMsgHandler handler );
+	static qt_msg_handler_t InstallQtMsgHandler( qt_msg_handler_t handler );
+
 
 public:
 
@@ -230,7 +256,7 @@ protected:
 
 	log_msg_t				mLogMsg = nullptr;
 	bool					mEnabled = true;
-	QtMsgHandler			mQtHandler = nullptr;
+	qt_msg_handler_t		mQtHandler = nullptr;
     QMutex					mSignalsMutex;
 	QMutex					mQtHandlerMutex;
 
@@ -288,7 +314,7 @@ protected:
 	//
 	//	enum QtMsgType { QtDebugMsg, QtWarningMsg, QtCriticalMsg, QtFatalMsg, QtSystemMsg = QtCriticalMsg };
 	//
-	virtual void QtMessageOutput( QtMsgType type, const char *msg );
+	virtual void QtMessageOutput( QtMsgType type, qt_raw_logtext_t msg, const QMessageLogContext *pcontext = nullptr );
 
 
 public slots:

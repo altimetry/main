@@ -22,6 +22,9 @@
 #error Wrong QtUtils.h included
 #endif
 
+#include <qglobal.h>
+
+
 #if QT_VERSION >= 0x050000
 	#include <QtWidgets/QApplication>
 	#include <QtWidgets/QFileDialog>
@@ -36,9 +39,10 @@
 	#include <QtWidgets/QToolButton>
 	#include <QtWidgets/QPushButton>
 	#include <QtWidgets/QActionGroup>
-	#include <QMenu/QActionGroup>
-	#include <QInputDialog>
-    #include <QDesktopServices>
+	#include <QtWidgets/QMenu>
+	#include <QtWidgets/QInputDialog>
+	#include <QtWidgets/QDesktopWidget>
+    #include <QtGui/QDesktopServices>
 #else
 	#include <QtGui/QApplication>
 	#include <QtGui/QFileDialog>
@@ -1274,7 +1278,14 @@ inline void NotImplemented( const char *msg = nullptr )
 
 inline const std::string& SystemUserDocumentsPath()
 {
-	static const std::string docs = q2a( QDesktopServices::storageLocation( QDesktopServices::DocumentsLocation ) );    assert__( IsDir( docs ) );
+#if QT_VERSION >= 0x050000
+	static const std::string docs = q2a( QStandardPaths::writableLocation( QStandardPaths::DocumentsLocation ) );
+#else
+	static const std::string docs = q2a( QDesktopServices::storageLocation( QDesktopServices::DocumentsLocation ) );
+#endif
+
+    assert__( IsDir( docs ) );
+
 	return docs;
 }
 
@@ -1285,11 +1296,21 @@ inline const std::string& SystemUserDocumentsPath()
 //
 inline std::string ComputeSystemUserDataPath( bool root = false )
 {
+#if QT_VERSION >= 0x050000
+
+	std::string data = q2a( QStandardPaths::writableLocation( QStandardPaths::GenericDataLocation ) );
+	if ( !root && !QCoreApplication::organizationName().isEmpty() )
+		data += ( "/" + q2a( QCoreApplication::organizationName() ) );
+
+#else
 	std::string data = q2a( QDesktopServices::storageLocation( QDesktopServices::DataLocation ) );
-    if ( !QCoreApplication::applicationName().isEmpty() )
+
+	if ( !QCoreApplication::applicationName().isEmpty() )
 		data = GetDirectoryFromPath( data );
 	if ( root && !QCoreApplication::organizationName().isEmpty() && !QCoreApplication::applicationName().isEmpty() )
 		data = GetDirectoryFromPath( data );
+
+#endif
 
 	return data;
 }

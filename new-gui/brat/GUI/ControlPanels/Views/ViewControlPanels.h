@@ -275,7 +275,7 @@ public:
 	QLineEdit *mSpeedEdit = nullptr; 
 	QSpinBox *mFrameIndexSpin = nullptr; 
 
-	QTextEdit *mInformation = nullptr;
+	CTextWidget *mInformation = nullptr;
 
 public:
 

@@ -586,6 +586,12 @@ bool C2DPlotWidget::Save2unsupported( C2DPlotWidget *p, const QString &path, con
 //static 
 bool C2DPlotWidget::Save2ps( C2DPlotWidget *p, const QString &path )
 {
+#if QT_VERSION >= 0x050000
+
+    Q_UNUSED( p );      Q_UNUSED( path );
+
+	return false;
+#else
 	QPrinter printer;
 	//QPrinter printer(QPrinter::HighResolution);
 
@@ -634,6 +640,7 @@ bool C2DPlotWidget::Save2ps( C2DPlotWidget *p, const QString &path )
 	return true;
 
 	//return Save2unsupported( p, path, "ps" );
+#endif
 }
 //static 
 bool C2DPlotWidget::Save2gif( C2DPlotWidget *p, const QString &path )
@@ -1391,7 +1398,8 @@ const std::string C2DPlotWidget::smHistogramYtitle = "Frequency";
 
 
 template< typename DATA >
-CHistogram* C2DPlotWidget::CreateHistogram( const std::string &title, QColor color, const DATA &data, double &max_freq, int bins )
+CHistogram* C2DPlotWidget::CreateHistogram( const std::string &title, QColor color, const DATA &data, double &max_freq, int bins, 
+	bool isdate, brathl_refDate date_ref )		//brathl_refDate date_ref = REF19500101 
 {
 	if ( mHistograms.size() == 0 )
 	{
@@ -1441,28 +1449,33 @@ CHistogram* C2DPlotWidget::CreateHistogram( const std::string &title, QColor col
 	h->SetAxisTitles( smHistogramXtitle, smHistogramYtitle, "" );		//histograms do not allow custom titles.
 	SetCurrentAxisTitles( smHistogramXtitle, smHistogramYtitle, "" );
 
+	SetXAxisDigits( isdate, XAxisDigits(), date_ref );
+	SetYAxisDigits( false, YAxisDigits() );
+
 	return h;
 }
 
 
 
-CHistogram* C2DPlotWidget::PushHistogram( const std::string &title, QColor color, const CYFXValues &data, double &max_freq, int bins )
+CHistogram* C2DPlotWidget::PushHistogram( const std::string &title, QColor color, const CYFXValues &data, double &max_freq, int bins, 
+	bool isdate, brathl_refDate date_ref )		//brathl_refDate date_ref = REF19500101 
 {
 	assert__( mSpectrograms.size() == 0 && mCurves.size() == 0 );
 
 	color.setAlpha( 127 );
-	mCurrentHistogram = CreateHistogram( title, color, data, max_freq, bins );
+	mCurrentHistogram = CreateHistogram( title, color, data, max_freq, bins, isdate, date_ref );
 	mHistograms.push_back( mCurrentHistogram );
 	mCurrentHistogram->attach( this );
 
 	return mCurrentHistogram;
 }
 
-CHistogram* C2DPlotWidget::SetSingleHistogram( const std::string &title, QColor color, const CZFXYValues &data, double &max_freq, int bins )
+CHistogram* C2DPlotWidget::SetSingleHistogram( const std::string &title, QColor color, const CZFXYValues &data, double &max_freq, int bins, 
+	bool isdate, brathl_refDate date_ref )		//brathl_refDate date_ref = REF19500101 
 {
 	assert__( mSpectrograms.size() == 0 && mCurves.size() == 0 );
 
-	mCurrentHistogram = CreateHistogram( title, color, data, max_freq, bins );
+	mCurrentHistogram = CreateHistogram( title, color, data, max_freq, bins, isdate, date_ref );
 	mHistograms.push_back( mCurrentHistogram );
 	return mCurrentHistogram;
 }

@@ -176,17 +176,17 @@ void CBratMainWindow::CreateWorkingDock()
 	LOG_TRACE( "Added mMainWorkingDock..." );
 
 	auto 
-	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eDataset ), "Datasets" );			assert( mMainWorkingDock->TabIndex( tab ) == eDataset );
+	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eDataset ), "Datasets" );			assert__( mMainWorkingDock->TabIndex( tab ) == eDataset );
 	mMainWorkingDock->SetTabToolTip( tab, "Dataset browser" );
 
 	LOG_TRACE( "Added MakeWorkingPanel( eDataset )..." );
 
-	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eFilter ), "Filters" );	 		assert( mMainWorkingDock->TabIndex( tab ) == eFilter );
+	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eFilter ), "Filters" );	 		assert__( mMainWorkingDock->TabIndex( tab ) == eFilter );
 	mMainWorkingDock->SetTabToolTip( tab, "Dataset filter" );
 
 	LOG_TRACE( "Added MakeWorkingPanel( eFilter )..." );
 
-	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eOperations ), "Operations" );	assert( mMainWorkingDock->TabIndex( tab ) == eOperations );
+	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eOperations ), "Operations" );	assert__( mMainWorkingDock->TabIndex( tab ) == eOperations );
 	mMainWorkingDock->SetTabToolTip( tab, "Quick or advanced operations"  );
 
 	LOG_TRACE( "Added MakeWorkingPanel( eOperations )..." );
@@ -253,7 +253,7 @@ void CBratMainWindow::CreateOutputDock()
 
 	LOG_INFO( "OSG version: " + std::string( osgGetVersion() ) + " - " + osgGetSOVersion() + " - " + osgGetLibraryName() );
 	LOG_INFO( "osgEarth version: " + std::string( osgEarthGetVersion() ) + " - " + osgEarthGetSOVersion() + " - " + osgEarthGetLibraryName() );
-	LOG_INFO( "QGIS version: " + std::string( QGis::QGIS_VERSION ) );
+	LOG_INFO( "QGIS version: " + std::string( q2a( QGis::QGIS_VERSION ) ) );	//q2a used for compatibility with QGIS 2.16.1
 	if ( getenv("OSG_FILE_PATH") )
 		LOG_INFO( "OSG_FILE_PATH = " + std::string( getenv("OSG_FILE_PATH") ) );
 	else
@@ -1300,7 +1300,7 @@ QWidget* CBratMainWindow::OpenDisplay( CDisplay *display, bool maps_as_plots )
 
 				if ( maps_as_plots || !display->IsZLatLonType() )
 				{
-					return new CPlotEditor( &mModel, v[ 0 ], display->GetName() );
+					return new plot_editor_t( &mModel, v[ 0 ], display->GetName() );
 				}
 				else
 				{
@@ -1354,6 +1354,7 @@ void CBratMainWindow::UpdateToolsMenu()
 }
 
 
+#if defined (_DEBUG) || defined (DEBUG)
 void CBratMainWindow::PythonConsoleError( QProcess::ProcessError error )
 {
     auto message = "An error occurred launching " + mModel.BratPaths().FullPythonExecutablePath() + "\n" + q2a( CProcessesTable::ProcessErrorMessage( error ) );
@@ -1421,6 +1422,7 @@ void CBratMainWindow::on_action_Python_Console_triggered()
 
 #endif
 }
+#endif
 
 
 

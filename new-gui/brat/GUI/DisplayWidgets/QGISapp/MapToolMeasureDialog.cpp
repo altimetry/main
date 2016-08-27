@@ -42,14 +42,14 @@ CMeasureDialog::CMeasureDialog( CMeasureTool* tool, Qt::WindowFlags f )
 	mMeasureArea = tool->measureArea();
 	mTotal = 0.;
 
-	mUnitsCombo->addItem( QGis::tr( QGis::Meters ) );
-	mUnitsCombo->addItem( QGis::tr( QGis::Feet ) );
-	mUnitsCombo->addItem( QGis::tr( QGis::Degrees ) );
-	mUnitsCombo->addItem( QGis::tr( QGis::NauticalMiles ) );
+	mUnitsCombo->addItem( MapUnit2String( QGis::Meters ) );
+	mUnitsCombo->addItem( MapUnit2String( QGis::Feet ) );
+	mUnitsCombo->addItem( MapUnit2String( QGis::Degrees ) );
+	mUnitsCombo->addItem( MapUnit2String( QGis::NauticalMiles ) );
 
 	QSettings settings;
-	QString units = settings.value( "/qgis/measure/displayunits", QGis::toLiteral( QGis::Meters ) ).toString();
-	mUnitsCombo->setCurrentIndex( mUnitsCombo->findText( QGis::tr( QGis::fromLiteral( units ) ), Qt::MatchFixedString ) );
+	QString units = settings.value( "/qgis/measure/displayunits", EncodeUnit( QGis::Meters ) ).toString();
+	mUnitsCombo->setCurrentIndex( mUnitsCombo->findText( MapUnit2String( DecodeDistanceUnit( units ) ), Qt::MatchFixedString ) );
 
 	updateSettings();
 
@@ -65,7 +65,7 @@ void CMeasureDialog::updateSettings()
 	mDecimalPlaces = settings.value( "/qgis/measure/decimalplaces", "3" ).toInt();
 	mCanvasUnits = mTool->canvas()->mapUnits();
 	// Configure QgsDistanceArea
-	mDisplayUnits = QGis::fromTr( mUnitsCombo->currentText() );
+	mDisplayUnits = StringToDistanceUnit( mUnitsCombo->currentText() );
 	mDa.setSourceCrs( mTool->canvas()->mapSettings().destinationCrs().srsid() );
 	mDa.setEllipsoid( QgsProject::instance()->readEntry( "Measure", "/Ellipsoid", GEO_NONE ) );
 	// Only use ellipsoidal calculation when project wide transformation is enabled.
@@ -82,8 +82,8 @@ void CMeasureDialog::updateSettings()
 	QgsDebugMsg( QString( "Ellipsoid ID : %1" ).arg( mDa.ellipsoid() ) );
 	QgsDebugMsg( QString( "Ellipsoidal  : %1" ).arg( mDa.ellipsoidalEnabled() ? "true" : "false" ) );
 	QgsDebugMsg( QString( "Decimalplaces: %1" ).arg( mDecimalPlaces ) );
-	QgsDebugMsg( QString( "Display units: %1" ).arg( QGis::toLiteral( mDisplayUnits ) ) );
-	QgsDebugMsg( QString( "Canvas units : %1" ).arg( QGis::toLiteral( mCanvasUnits ) ) );
+	QgsDebugMsg( QString( "Display units: %1" ).arg( EncodeUnit( mDisplayUnits ) ) );
+	QgsDebugMsg( QString( "Canvas units : %1" ).arg( EncodeUnit( mCanvasUnits ) ) );
 
 	mTotal = 0;
 	updateUi();
@@ -91,7 +91,7 @@ void CMeasureDialog::updateSettings()
 
 void CMeasureDialog::unitsChanged( const QString &units )
 {
-	mDisplayUnits = QGis::fromTr( units );
+	mDisplayUnits = StringToDistanceUnit( units );
 	mTable->clear();
 	mTotal = 0.;
 	updateUi();
@@ -243,18 +243,31 @@ QString CMeasureDialog::formatDistance( double distance )
 
 	QGis::UnitType newDisplayUnits;
 	convertMeasurement( distance, newDisplayUnits, false );
-	return QgsDistanceArea::textUnit( distance, mDecimalPlaces, newDisplayUnits, false, baseUnit );
+	return FormatDistance( distance, mDecimalPlaces, newDisplayUnits, baseUnit );
 }
+
 
 QString CMeasureDialog::formatArea( double area )
 {
 	QSettings settings;
 	bool baseUnit = settings.value( "/qgis/measure/keepbaseunit", false ).toBool();
 
+#if (VERSION_INT < 21601)
+
 	QGis::UnitType newDisplayUnits;
 	convertMeasurement( area, newDisplayUnits, true );
-	return QgsDistanceArea::textUnit( area, mDecimalPlaces, newDisplayUnits, true, baseUnit );
+
+#else
+	//TODO: review
+
+	QgsUnitTypes::AreaUnit newDisplayUnits = QgsProject::instance()->areaUnits();
+	area = mDa.convertAreaMeasurement( area, newDisplayUnits );		//QGIS 2.16.1 double QgsMeasureDialog::convertArea( double area, QgsUnitTypes::AreaUnit toUnit ) const
+
+#endif
+
+	return FormatArea( area, mDecimalPlaces, newDisplayUnits, baseUnit );
 }
+
 
 void CMeasureDialog::updateUi()
 {
@@ -263,7 +276,7 @@ void CMeasureDialog::updateUi()
 	if ( ! mTool->canvas()->hasCrsTransformEnabled() )
 	{
 		toolTip += "<br> * " + tr( "Project CRS transformation is turned off." ) + " ";
-		toolTip += tr( "Canvas units setting is taken from project properties setting (%1)." ).arg( QGis::tr( mCanvasUnits ) );
+		toolTip += tr( "Canvas units setting is taken from project properties setting (%1)." ).arg( MapUnit2String( mCanvasUnits ) );
 		toolTip += "<br> * " + tr( "Ellipsoidal calculation is not possible, as project CRS is undefined." );
 		setWindowTitle( tr( "Measure (OTF off)" ) );
 	}
@@ -277,14 +290,14 @@ void CMeasureDialog::updateUi()
 		else
 		{
 			toolTip += "<br> * " + tr( "Project CRS transformation is turned on but ellipsoidal calculation is not selected." );
-			toolTip += "<br> * " + tr( "The canvas units setting is taken from the project CRS (%1)." ).arg( QGis::tr( mCanvasUnits ) );
+			toolTip += "<br> * " + tr( "The canvas units setting is taken from the project CRS (%1)." ).arg( MapUnit2String( mCanvasUnits ) );
 		}
 		setWindowTitle( tr( "Measure (OTF on)" ) );
 	}
 
 	if ( ( mCanvasUnits == QGis::Meters && mDisplayUnits == QGis::Feet ) || ( mCanvasUnits == QGis::Feet && mDisplayUnits == QGis::Meters ) )
 	{
-		toolTip += "<br> * " + tr( "Finally, the value is converted from %1 to %2." ).arg( QGis::tr( mCanvasUnits ) ).arg( QGis::tr( mDisplayUnits ) );
+		toolTip += "<br> * " + tr( "Finally, the value is converted from %1 to %2." ).arg( MapUnit2String( mCanvasUnits ) ).arg( MapUnit2String( mDisplayUnits ) );
 	}
 
 	editTotal->setToolTip( toolTip );
@@ -294,7 +307,7 @@ void CMeasureDialog::updateUi()
 	QGis::UnitType newDisplayUnits;
 	double dummy = 1.0;
 	convertMeasurement( dummy, newDisplayUnits, true );
-	mTable->setHeaderLabels( QStringList( tr( "Segments [%1]" ).arg( QGis::tr( newDisplayUnits ) ) ) );
+	mTable->setHeaderLabels( QStringList( tr( "Segments [%1]" ).arg( MapUnit2String( newDisplayUnits ) ) ) );
 
 	if ( mMeasureArea )
 	{
@@ -344,7 +357,7 @@ void CMeasureDialog::convertMeasurement( double &measure, QGis::UnitType &u, boo
 	// Get the canvas units
 	QGis::UnitType myUnits = mCanvasUnits;
 
-	QgsDebugMsg( QString( "Preferred display units are %1" ).arg( QGis::toLiteral( mDisplayUnits ) ) );
+	QgsDebugMsg( QString( "Preferred display units are %1" ).arg( EncodeUnit( mDisplayUnits ) ) );
 
 	mDa.convertMeasurement( measure, myUnits, mDisplayUnits, isArea );
 	u = myUnits;

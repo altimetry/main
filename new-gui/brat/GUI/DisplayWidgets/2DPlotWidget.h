@@ -26,8 +26,6 @@
 #include <qwt_plot_curve.h>
 #include <qwt_symbol.h>
 
-#include <qprinter.h>					//spectogram
-#include <qprintdialog.h>				//spectogram
 #include <qwt_color_map.h>				//spectogram
 #include <qwt_plot_spectrogram.h>		//spectogram
 #include <qwt_scale_widget.h>			//spectogram
@@ -525,11 +523,11 @@ public:
 
 protected:
 	template< typename DATA >
-	CHistogram* CreateHistogram( const std::string &title, QColor color, const DATA &data, double &max_freq, int bins );
+	CHistogram* CreateHistogram( const std::string &title, QColor color, const DATA &data, double &max_freq, int bins, bool isdate, brathl_refDate date_ref = REF19500101 );
 
 public:
-	CHistogram* PushHistogram( const std::string &title, QColor color, const CYFXValues &data, double &max_freq, int bins );
-	CHistogram* SetSingleHistogram( const std::string &title, QColor color, const CZFXYValues &data, double &max_freq, int bins );
+	CHistogram* PushHistogram( const std::string &title, QColor color, const CYFXValues &data, double &max_freq, int bins, bool isdate, brathl_refDate date_ref = REF19500101 );
+	CHistogram* SetSingleHistogram( const std::string &title, QColor color, const CZFXYValues &data, double &max_freq, int bins, bool isdate, brathl_refDate date_ref = REF19500101 );
 
 	void SetCurrentHistogram( int index );
 

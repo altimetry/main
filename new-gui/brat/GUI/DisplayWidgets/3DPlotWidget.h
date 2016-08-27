@@ -48,40 +48,6 @@ class QLookupTable;
 
 
 ////////////////////////////////////////////////////////////
-// TODO delete;		Examples related declarations
-////////////////////////////////////////////////////////////
-
-
-
-class Bar;	//enrichment example
-class Hat2;	//enrichment example
-
-
-
-enum Plot3dExample
-{
-	e_Autoswitching_axes, e_Plot3dExample_first = e_Autoswitching_axes,
-	e_Simple_SurfacePlot,
-	e_Vertex_Enrichment,
-
-	e_Plot3dExample_size
-};
-
-inline Plot3dExample& operator ++( Plot3dExample &ex )
-{
-	int exi = static_cast<int>( ex ) + 1;
-
-	if ( exi >= e_Plot3dExample_size )
-		ex = e_Plot3dExample_first;
-	else
-		ex = static_cast<Plot3dExample>( exi );
-
-	return ex;// static_cast<Plot3dExample>( static_cast<int>(ex)+ 1 );
-}
-
-
-
-////////////////////////////////////////////////////////////
 //	
 ////////////////////////////////////////////////////////////
 
@@ -314,21 +280,6 @@ protected:
 
 	QSize m_SizeHint;
 
-	//double level_, width_;			//enrichment example
-	//Bar *bar = nullptr;				//enrichment example
-	//Hat2* hat = nullptr;			//enrichment example
-	//QFrame *frame = nullptr;		//enrichment example
-	//QSlider *levelSlider = nullptr;	//enrichment example
-	//QSlider *widthSlider = nullptr;	//enrichment example
-	//void setupUi();					//enrichment example
-
-	//construction /destruction
-
-	//void Autoswitching_axes();	//auto-switching example
-	//void Simple_SurfacePlot();	//surface example
-	//void setColor();			//enrichment example
-	//void Vertex_Enrichment();	//enrichment example
-
 public:
 	C3DPlotWidget( QWidget *parent = nullptr );
 
@@ -479,10 +430,6 @@ protected slots:
 
 	void HandleScaleChanged( double xVal, double yVal, double zVal );
 
-//public slots:
-//	void setLevel( int );		//enrichment example
-//	void setWidth( int );		//enrichment example
-//	void barSlot();				//enrichment example
 };
 
 

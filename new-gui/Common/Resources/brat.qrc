@@ -1,5 +1,8 @@
 <RCC>
-    <qresource prefix="/">
+  <qresource prefix="/maps">
+    <file alias="mountain">mountain.png</file>
+  </qresource>
+  <qresource prefix="/">
         <file>images/copy.png</file>
         <file>images/cut.png</file>
         <file>images/new.png</file>

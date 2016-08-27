@@ -107,12 +107,12 @@ void CBratLogger::SetNotifyLevel( int level )
 
 //	Captures qDebug, qCritical, qWarning, qFatal
 //
-void CBratLogger::QtMessageOutput( QtMsgType type, const char *msg )
+void CBratLogger::QtMessageOutput( QtMsgType type, qt_raw_logtext_t msg, const QMessageLogContext *pcontext )	//pcontext = nullptr
 {
 	if ( !mEnabled )
 		return;
 
-	base_t::QtMessageOutput( type, msg );
+    base_t::QtMessageOutput( type, msg, pcontext );
 
 	QMutexLocker locker( &mQtHandlerMutex );
 

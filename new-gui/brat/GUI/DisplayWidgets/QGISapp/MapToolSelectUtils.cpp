@@ -19,17 +19,18 @@ email                : jpalmer at linz dot govt dot nz
 #include <QMouseEvent>
 #include <QApplication>
 
-#include "qgsmessagebar.h"
-#include "qgsmapcanvas.h"
-#include "qgsvectorlayer.h"
-#include "qgsfeature.h"
-#include "qgsgeometry.h"
-#include "qgsrendererv2.h"
-#include "qgsrubberband.h"
-#include "qgscsexception.h"
-#include "qgslogger.h"
-#include "qgis.h"
+#include <qgsmessagebar.h>
+#include <qgsmapcanvas.h>
+#include <qgsvectorlayer.h>
+#include <qgsfeature.h>
+#include <qgsgeometry.h>
+#include <qgsrendererv2.h>
+#include <qgsrubberband.h>
+#include <qgscsexception.h>
+#include <qgslogger.h>
+#include <qgis.h>
 
+#include "MapTools.h"
 #include "BratLogger.h"
 #include "MapToolSelectUtils.h"
 
@@ -193,8 +194,13 @@ void QgsMapToolSelectUtils::setSelectFeatures( QgsMapCanvas* canvas,
 	double closestFeatureDist = std::numeric_limits<double>::max();
 	while ( fit.nextFeature( f ) )
 	{
+#if (VERSION_INT >= 21601)
+		context.expressionContext().setFeature( f );		//taken from QGIS 2.16.1
 		// make sure to only use features that are visible
+		if ( r && !r->willRenderFeature( f, context ) )
+#else
 		if ( r && !r->willRenderFeature( f ) )
+#endif
 			continue;
 
 		QgsGeometry* g = f.geometry();
@@ -258,7 +264,7 @@ void QgsMapToolSelectUtils::setSelectFeatures( QgsMapCanvas* canvas,
 	}
 	else
 	{
-		vlayer->setSelectedFeatures( newSelectedFeatures );
+		SelectFeatures( vlayer, newSelectedFeatures );		//		vlayer->setSelectedFeatures( newSelectedFeatures );
 	}
 
 	QApplication::restoreOverrideCursor();

@@ -41,7 +41,7 @@ CMapToolSelectPolygon::~CMapToolSelectPolygon()
 	delete mRubberBand;
 }
 
-void CMapToolSelectPolygon::canvasPressEvent( QMouseEvent * e )
+void CMapToolSelectPolygon::canvasPressEvent( map_tool_mouse_event_t *e )
 {
 	if ( mRubberBand == NULL )
 	{
@@ -67,7 +67,7 @@ void CMapToolSelectPolygon::canvasPressEvent( QMouseEvent * e )
 	}
 }
 
-void CMapToolSelectPolygon::canvasMoveEvent( QMouseEvent * e )
+void CMapToolSelectPolygon::canvasMoveEvent( map_tool_mouse_event_t *e )
 {
 	if ( mRubberBand == NULL )
 	{

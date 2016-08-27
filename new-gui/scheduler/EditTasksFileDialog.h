@@ -3,6 +3,7 @@
 
 
 #include <QDialog>
+#include <QDialogButtonBox>
 
 
 class CEditTasksFileDialog : public QDialog

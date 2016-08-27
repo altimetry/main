@@ -16,7 +16,9 @@ email                : jpalmer at linz dot govt dot nz
 #ifndef VIEWS_QGISAPP_QGSMAPTOOLSELECTPOLYGON_H
 #define VIEWS_QGISAPP_QGSMAPTOOLSELECTPOLYGON_H
 
-#include "qgsmaptool.h"
+#include <qgsmaptool.h>
+
+#include "MapTools.h"
 
 class QgsMapCanvas;
 class QgsRubberBand;
@@ -24,6 +26,8 @@ class QgsRubberBand;
 
 class CMapToolSelectPolygon : public QgsMapTool
 {
+	// types
+
 #if defined (__APPLE__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Winconsistent-missing-override"
@@ -35,16 +39,18 @@ class CMapToolSelectPolygon : public QgsMapTool
 #pragma clang diagnostic pop
 #endif
 
+	// construction / destruction
+
 public:
 	CMapToolSelectPolygon( QgsMapCanvas* canvas );
 
 	virtual ~CMapToolSelectPolygon();
 
 	//! Overridden mouse move event
-	virtual void canvasMoveEvent( QMouseEvent * e ) override;
+	virtual void canvasMoveEvent( map_tool_mouse_event_t *e ) override;
 
 	//! Overridden mouse press event
-	virtual void canvasPressEvent( QMouseEvent * e ) override;
+	virtual void canvasPressEvent( map_tool_mouse_event_t *e ) override;
 
 private:
 

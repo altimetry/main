@@ -43,10 +43,18 @@ Changes for this version:
 -----------------------
 
 Changes for this version:
-- Complete redesign and re-implementation of GUI applications
+- Complete redesign and re-implementation of GUI applications and the concept of simpler data handling
 - Feature added to allow the usage of Python scripts within the data expressions
 - Feature to allow visualization of tracks when selecting the data
 - Feature to allow definition of geographical filter via interaction with map
+- Add plots export into image files in different formats (GIF, PNG, and PS)
+- Improve background in vectorial base and support raster base background
+- Improvement of display of vector plots in both visual display and performance of the plotting
+- Improve the memory usage for displaying images allowing at least to display 70MB images with 1GB of RAM
+- Improve date display to allow human readable format (e.g. yyyy/mm/dd)
+- Inclusion of plot legends in saved images
+- Addition of histogram plots
+- Addition of linear fit to data in 2D plots with show of regression equation
 
 Known problems with the V4.0.0-beta release:
 - Contours:

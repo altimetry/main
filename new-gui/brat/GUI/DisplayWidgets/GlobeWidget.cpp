@@ -48,6 +48,8 @@ using namespace osgEarth::Util;
 #include <osgEarthUtil/Controls>
 using namespace osgEarth::Util::Controls;
 
+#include <qgsdistancearea.h>
+
 #include "Globe/qgsosgearthtilesource.h"
 
 
@@ -620,6 +622,9 @@ bool CGlobeWidget::Save2Image( const QString &path, const QString &format, const
 	QImage img = mGlobeViewerWidget->grabFrameBuffer( with_alpha );
 	if ( f == "ps" )
 	{
+#if QT_VERSION >= 0x050000
+		return false;
+#else
 		//QPrinter printer( QPrinter::HighResolution );
 		QPrinter printer;
 		printer.setOutputFileName( qpath );
@@ -664,6 +669,7 @@ bool CGlobeWidget::Save2Image( const QString &path, const QString &format, const
 		//mGlobeViewerWidget->render( &painter/*, QPointF( 0, 0 ), contentRect */ );
 		return true;
 		//return painter.end();
+#endif
 	}
 
 	return img.save( qpath, q2a( format ).c_str(), 100 );	//int quality = -1

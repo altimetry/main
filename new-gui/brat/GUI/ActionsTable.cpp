@@ -82,8 +82,6 @@ CActionInfo ActionsTable[ EActionTags_size ] =
 
     { eAction_Launch_Scheduler, "Launch Scheduler", CActionInfo::FormatTip("Brat Scheduler\nLaunch scheduler application"), ":/images/brat_scheduler.png" },
 
-    { eAction_Python_Console, "Python Console", CActionInfo::FormatTip("Python Console\nLaunch Python terminal"), ":/images/OSGeo/python_console.png" },
-
     { eAction_Workspace_Tree, "Workspace Tree...", CActionInfo::FormatTip("Workspace Tree\nSee the objects tree of the loaded workspace"), ":/images/OSGeo/page-info.png" },
 
     { eAction_Operation_Views, "Operation Views...", CActionInfo::FormatTip("List the views of the selected operation"), ":/images/OSGeo/operation_views.png" },

@@ -183,10 +183,20 @@ void CApplicationLoggerBase::TraceWrite( const QString& msg, int debuglevel, con
 
 
 
-// This is what Qt does in systems where it does not assign a specific handler
+// This is what Qt4 does in systems where it does not assign a specific handler
 //
+#if QT_VERSION >= 0x050000
+void DefaultQtMessageHandler( QtMsgType type, const QMessageLogContext &context, const QString &qmsg )
+{
+	Q_UNUSED( context );
+
+	const std::string s = q2a( qmsg );
+	const char *msg = s.c_str();
+#else
 void DefaultQtMessageHandler( QtMsgType type, const char *msg )
 {
+#endif
+
     Q_UNUSED( type );
 
     fprintf( stderr, "%s\n", msg );
@@ -195,9 +205,16 @@ void DefaultQtMessageHandler( QtMsgType type, const char *msg )
 
 
 //static 
-QtMsgHandler CApplicationLoggerBase::InstallQtMsgHandler( QtMsgHandler handler )
+qt_msg_handler_t CApplicationLoggerBase::InstallQtMsgHandler( qt_msg_handler_t handler )
 {
-	QtMsgHandler original_handler = qInstallMsgHandler( handler );
+	qt_msg_handler_t original_handler = 
+
+#if QT_VERSION >= 0x050000
+		qInstallMessageHandler( handler );
+#else
+		qInstallMsgHandler( handler );
+#endif
+
     if (!original_handler)
         original_handler = &DefaultQtMessageHandler;
 
@@ -247,7 +264,7 @@ void CApplicationLoggerBase::SetEnabled( bool enable )
 
 //	Captures qDebug, qCritical, qWarning, qFatal
 //
-void CApplicationLoggerBase::QtMessageOutput( QtMsgType type, const char *msg )
+void CApplicationLoggerBase::QtMessageOutput( QtMsgType type, qt_raw_logtext_t msg, const QMessageLogContext *pcontext )	//pcontext = nullptr 
 {
 	if ( !mEnabled )
 		return;
@@ -255,7 +272,18 @@ void CApplicationLoggerBase::QtMessageOutput( QtMsgType type, const char *msg )
 	//std::unique_lock< std::recursive_mutex > lck{ mQtHandlerMutex };
 	QMutexLocker locker( &mQtHandlerMutex );
 
+#if QT_VERSION >= 0x050000
+
+	assert__( pcontext );
+
+	mQtHandler( type, *pcontext, msg );
+#else
+
+	Q_UNUSED( pcontext );
+
 	mQtHandler( type, msg );
+#endif
+
 }
 
 
