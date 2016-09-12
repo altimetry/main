@@ -64,21 +64,15 @@ void CViewControlsPanelGeneral::CreateWidgets()
 	{
 		CreateGroupBox( ELayoutType::Horizontal,
 		{
-			mDisplaysCombo,
-		}, "Operation Views", nullptr ),
-
-			nullptr,
-			//CreateGroupBox( ELayoutType::Horizontal,
-			LayoutWidgets( Qt::Horizontal,
-			{
-				title_label, mPlotTitle, nullptr, new QLabel( "Type" ), mPlotType
-			} )
+            mDisplaysCombo, title_label, mPlotTitle, new QLabel( "Type" ), mPlotType
+        }, "Operation Views", nullptr ),
 	},
 	nullptr, s, m, m, m, m );
+    mPlotType->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
 
     auto *plots_l = LayoutWidgets( Qt::Vertical, 
 	{ 
-		top_buttons_row, 
+        top_buttons_row,
 		plots_group
 	}, 
 	nullptr, 4, 4, top_margin, 4, top_margin );
@@ -115,7 +109,7 @@ void CViewControlsPanelGeneralPlots::CreateWidgets()
     auto *types_group = CreateGroupBox( ELayoutType::Vertical, { mPlotTypesList }, "Plot Type", nullptr, s, m, m, m, m );
 	mPlotTypesList->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
 
-    auto *views_group = LayoutWidgets( Qt::Horizontal, { mViewsLayout }, nullptr, s, m, m, m, m );
+    auto *views_layout = LayoutWidgets( Qt::Horizontal, { mViewsLayout }, nullptr, s, m, m, m, m );
 
     mLinkToPlot = new QComboBox;
     auto *link_group = CreateGroupBox( ELayoutType::Vertical, { mLinkToPlot }, "Link to Plot", nullptr, s, m, m, m, m );
@@ -123,7 +117,7 @@ void CViewControlsPanelGeneralPlots::CreateWidgets()
 
 	AddTopLayout( ELayoutType::Horizontal, 
 	{ 
-		views_group, nullptr, types_group, LayoutWidgets( Qt::Vertical, { link_group }, nullptr )
+        views_layout, types_group, LayoutWidgets( Qt::Vertical, { link_group }, nullptr )
 	}, 
 	s, m, m, m, m );
 
@@ -148,7 +142,13 @@ void CViewControlsPanelGeneralMaps::CreateWidgets()
 {
 	layout()->removeItem( mViewsLayout );
 
-	AddTopLayout( ELayoutType::Horizontal, { mViewsLayout, nullptr }, s, m, m, m, m );
+    auto *views_layout = LayoutWidgets( Qt::Horizontal, { mViewsLayout }, nullptr, s, m, m, m, m );
+
+    AddTopLayout( ELayoutType::Horizontal,
+    {
+        views_layout
+    },
+    s, m, m, m, m );
 }
 
 

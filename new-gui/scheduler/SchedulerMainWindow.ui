@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>CSchedulerDialog</class>
- <widget class="QDialog" name="CSchedulerDialog">
+ <class>CSchedulerMainWindow</class>
+ <widget class="QMainWindow" name="CSchedulerMainWindow">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,16 +11,17 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>CSchedulerDialog</string>
+   <string>CSchedulerMainWindow</string>
   </property>
-  <property name="windowIcon">
+   <property name="windowIcon">
    <iconset>
     <normaloff>:/BratIcon.png</normaloff>:/BratIcon.png</iconset>
   </property>
   <property name="autoFillBackground">
    <bool>false</bool>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout">
+  <widget class="QWidget" name="centralWidget">
+    <layout class="QHBoxLayout" name="horizontalLayout">
    <item>
     <widget class="QTabWidget" name="mTabWidget">
      <property name="currentIndex">
@@ -252,7 +253,8 @@
     </widget>
    </item>
   </layout>
- </widget>
+  </widget>
+</widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources/>
  <connections/>

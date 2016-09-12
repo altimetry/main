@@ -18,7 +18,7 @@
 #include "stdafx.h"
 
 #include "SchedulerApplication.h"
-#include "SchedulerDialog.h"
+#include "SchedulerMainWindow.h"
 #include "SchedulerLogger.h"
 #include "new-gui/Common/GUI/ApplicationUserPaths.h"
 
@@ -36,10 +36,12 @@ try {
 
 	LOG_INFO( "scheduler is starting..." );
 
+
 	CSchedulerApplication a( argc, argv );
-	CSchedulerDialog w( a, nullptr );
+	CSchedulerMainWindow w( a, nullptr );
 	w.show();
 	auto result = a.exec();
+
 
 	LOG_INFO( "scheduler is exiting with result " + n2s( result ) + "." );
 

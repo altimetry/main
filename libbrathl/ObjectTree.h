@@ -58,7 +58,11 @@ class CObjectTreeNode
 {
 public:
 
-	using const_iterator = std::vector<CObjectTreeNode*>::const_iterator;
+#if defined(PRE_CPP11)
+    typedef std::vector<CObjectTreeNode*>::const_iterator const_iterator;
+#else
+    using const_iterator = std::vector<CObjectTreeNode*>::const_iterator;
+#endif
 
 	///holds iterator to current child processing
 	std::vector<CObjectTreeNode*>::iterator m_current;

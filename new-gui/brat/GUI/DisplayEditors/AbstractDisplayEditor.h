@@ -136,6 +136,7 @@ private:
 
 	//... graphics tool-bar
 protected:
+	QToolBar *mTopToolbar = nullptr;
 	QToolBar *mGraphicsToolBar = nullptr;
 
 	//tab general

@@ -31,6 +31,44 @@
     #endif
 #endif
 
+
+
+#if !defined(WIN32) && !defined(_WIN32)
+
+    #if __cplusplus <= 199711L
+
+        #if !defined(PRE_CPP11)
+        #define PRE_CPP11
+        #endif
+
+    #endif
+#endif
+
+
+
+#if defined(PRE_CPP11)
+
+#if !defined(override)
+#define override
+#endif
+
+#if !defined(nullptr)
+#define nullptr NULL
+#endif
+
+
+#endif
+
+#if defined(PRE_CPP11)
+    #define DECLARE_BASE_TYPE(base) typedef base base_t;
+#else
+    #define DECLARE_BASE_TYPE(base) using base_t = base;
+#endif
+
+
+
+
+
 /*
 ** Used to verify format functions via compiler but only available
 ** under gnu C compiler

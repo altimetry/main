@@ -96,11 +96,11 @@ inline QToolBar* AddWidgets( QToolBar *toolbar, const std::vector< QObject* > &v
 
 void CAbstractDisplayEditor::CreateMainToolbar()
 {
-	QToolBar *toptoolbar = new QToolBar( "Operation ToolBar", this );
-	//toptoolbar->setIconSize( { tool_icon_size, tool_icon_size } );
-	toptoolbar->setAllowedAreas( Qt::TopToolBarArea );
-	toptoolbar->setMovable( false );
-	toptoolbar->layout()->setSpacing( 2 );
+	mTopToolbar = new QToolBar( "Operation ToolBar", this );
+	//mTopToolbar->setIconSize( { tool_icon_size, tool_icon_size } );
+	mTopToolbar->setAllowedAreas( Qt::TopToolBarArea );
+	mTopToolbar->setMovable( false );
+	mTopToolbar->layout()->setSpacing( 2 );
 
 	auto loperations = new QLabel( "Operation" );
 	QFont font = loperations->font();
@@ -110,10 +110,10 @@ void CAbstractDisplayEditor::CreateMainToolbar()
 	auto ldataset = new QLabel( "Dataset" );
 	mOperationsCombo = new QComboBox;
 	mFilterLineEdit = new QLineEdit;		mFilterLineEdit->setReadOnly( true );		mFilterLineEdit->setAlignment( Qt::AlignHCenter );
-	mFilterLineEdit->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
+    //mFilterLineEdit->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
 
 	mDatasetName = new QLineEdit;
-	mDatasetName->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
+    //mDatasetName->setSizePolicy( QSizePolicy::Maximum, QSizePolicy::Maximum );
 
 	mOperationsCombo->setToolTip( "Operation" );
 	mFilterLineEdit->setToolTip( "Filter" );
@@ -127,7 +127,7 @@ void CAbstractDisplayEditor::CreateMainToolbar()
 	mSaveOneClickButton->setAutoDefault( false );
 	mSaveOneClickButton->setVisible( false );			//TODO delete after implemented
 
-	addToolBar( AddWidgets( toptoolbar,
+	addToolBar( AddWidgets( mTopToolbar,
 	{
 		loperations, mOperationsCombo, nullptr, ldataset, mDatasetName, nullptr, lfilters, mFilterLineEdit, nullptr, mSaveOneClickButton
 	}
@@ -1049,8 +1049,8 @@ bool CAbstractDisplayEditor::RefreshDisplayData()			//CDisplayPanel::RefreshSele
 	//	mDisplay->SetType( newDisplayType );
 	//}
 
-	//bOk &= AddField( dispSelToRefresh, true );
-	//bOk &= AddField( dispSelNotFound, true );
+    //bOk = bOk && AddField( dispSelToRefresh, true );
+    //bOk = bOk && AddField( dispSelNotFound, true );
 
 	////GetDispDataSel()->InsertDisplay(mDisplay);
 

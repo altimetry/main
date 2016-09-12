@@ -31,7 +31,7 @@ namespace processes
 
 	class CBratEmbeddedPythonProcess : public CBratProcess
 	{
-		using base_t = CBratProcess;
+        DECLARE_BASE_TYPE( CBratProcess )
 
 		static const PythonEngine *smPE;
 

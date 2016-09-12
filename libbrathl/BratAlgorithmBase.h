@@ -360,7 +360,12 @@ struct base_creator
 {
 	typedef CBratAlgorithmBase* (*base_creator_t)(void);
 
-	base_creator_t mF = nullptr;
+    base_creator_t mF
+#if defined(PRE_CPP11)
+    ;
+#else
+     = nullptr;
+#endif
 
 	base_creator( base_creator_t f )
 		: mF( f )

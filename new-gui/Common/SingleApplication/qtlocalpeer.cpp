@@ -172,9 +172,9 @@ bool QtLocalPeer::sendMessage(const QString &message, int timeout)
     ds.writeBytes(uMsg.constData(), uMsg.size());
     bool res = socket.waitForBytesWritten(timeout);
     if (res) {
-        res &= socket.waitForReadyRead(timeout);   // wait for ack
+        res = res && socket.waitForReadyRead(timeout);   // wait for ack
         if (res)
-            res &= (socket.read(qstrlen(ack)) == ack);
+            res = res && (socket.read(qstrlen(ack)) == ack);
     }
     return res;
 }

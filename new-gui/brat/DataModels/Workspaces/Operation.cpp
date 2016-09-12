@@ -1749,14 +1749,14 @@ bool COperation::ControlXYDataFields(std::string &error_msg, const CStringMap* a
 
   if (xFormula != nullptr)
   {
-    bOk &= CFormula::SetExpression(xFormula->GetDescription(true, aliases), xExpr, error_msg);
+    bOk = bOk && CFormula::SetExpression(xFormula->GetDescription(true, aliases), xExpr, error_msg);
   }
 
   CFormula* yFormula = GetFormula(CMapTypeField::typeOpAsY);
 
   if (yFormula != nullptr)
   {
-    bOk &= CFormula::SetExpression(yFormula->GetDescription(true, aliases), yExpr, error_msg);
+    bOk = bOk && CFormula::SetExpression(yFormula->GetDescription(true, aliases), yExpr, error_msg);
   }
   */
   const CStringMap* fieldAliases = nullptr;
@@ -1765,8 +1765,8 @@ bool COperation::ControlXYDataFields(std::string &error_msg, const CStringMap* a
     fieldAliases = m_product->GetAliasesAsString();
   }
 
-  bOk &= GetXExpression(xExpr, error_msg, aliases);
-  bOk &= GetYExpression(yExpr, error_msg, aliases);
+  bOk = bOk && GetXExpression(xExpr, error_msg, aliases);
+  bOk = bOk && GetYExpression(yExpr, error_msg, aliases);
 
   CMapFormula::iterator it;
 
@@ -1791,7 +1791,7 @@ bool COperation::ControlXYDataFields(std::string &error_msg, const CStringMap* a
     case CMapTypeField::eTypeOpAsField:
     {
     //-----------------------------
-      bOk &= CFormula::SetExpression(value->GetDescription(true, aliases, fieldAliases), dataExpr, error_msg);
+      bOk = bOk && CFormula::SetExpression(value->GetDescription(true, aliases, fieldAliases), dataExpr, error_msg);
 
       CStringArray intersect;
 
@@ -1840,14 +1840,14 @@ bool COperation::ControlResolution( std::string& error_msg )
 
 	if ( xFormula != nullptr )
 	{
-		bOk &= xFormula->ControlResolution( error_msg );
+		bOk = bOk && xFormula->ControlResolution( error_msg );
 	}
 
 	const CFormula* yFormula = GetFormula( CMapTypeField::eTypeOpAsY );
 
 	if ( yFormula != nullptr )
 	{
-		bOk &= yFormula->ControlResolution( error_msg );
+		bOk = bOk && yFormula->ControlResolution( error_msg );
 	}
 
 	return bOk;
@@ -1898,7 +1898,7 @@ bool COperation::ControlDimensions( CFormula* formula, std::string &error_msg, c
 	{
 		fields.RemoveAll();
 
-		bOk &= xFormula->GetFields( fields, error_msg, aliases, m_product->GetAliasesAsString() );
+		bOk = bOk && xFormula->GetFields( fields, error_msg, aliases, m_product->GetAliasesAsString() );
 
 		axesFields.Insert( fields );
 	}
@@ -1909,7 +1909,7 @@ bool COperation::ControlDimensions( CFormula* formula, std::string &error_msg, c
 	{
 		fields.RemoveAll();
 
-		bOk &= yFormula->GetFields( fields, error_msg, aliases, m_product->GetAliasesAsString() );
+		bOk = bOk && yFormula->GetFields( fields, error_msg, aliases, m_product->GetAliasesAsString() );
 
 		axesFields.Insert( fields );
 	}
@@ -1917,7 +1917,7 @@ bool COperation::ControlDimensions( CFormula* formula, std::string &error_msg, c
 
 	fields.RemoveAll();
 
-	bOk &= formula->GetFields( fields, error_msg, aliases, m_product->GetAliasesAsString() );
+	bOk = bOk && formula->GetFields( fields, error_msg, aliases, m_product->GetAliasesAsString() );
 
 	CStringArray complement;
 	axesFields.Complement( fields, complement );

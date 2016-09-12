@@ -58,7 +58,7 @@ public:
 		RemoveAll();
 	}
 
-	bool operator == ( const CVectorBratTask &o ) const;		//femm: new
+	bool operator == ( const CVectorBratTask &o ) const;		//v4: new
 
     bool GetDelete() { return m_bDelete; }
     void SetDelete( bool value ) { m_bDelete = value; }
@@ -259,11 +259,6 @@ public:
 
 
 public:
-	//static const std::string m_BRAT_STATUS_ENDED_LABEL;
-	//static const std::string m_BRAT_STATUS_ERROR_LABEL;
-	//static const std::string m_BRAT_STATUS_PENDING_LABEL;
-	//static const std::string m_BRAT_STATUS_PROCESSING_LABEL;
-	//static const std::string m_BRAT_STATUS_WARNING_LABEL;
 
 	// datetime in ISO 8601 format
 	static const std::string& formatISODateTime()
@@ -444,7 +439,7 @@ public:
 		m_function.Execute();
 	}
 
-	//femm
+	//v4
 	//static std::string TaskStatusToString( EStatus status );
 	//static EStatus StringToTaskStatus( const std::string& status );
 

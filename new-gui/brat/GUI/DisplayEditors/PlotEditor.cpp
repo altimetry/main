@@ -510,11 +510,11 @@ void CPlotEditor::HandlePlotTypeChanged( int index )
 		Recreate3DPlots( true, false );
 	}
 	else
-		assert( false );
+        assert( false );
 }
 
 
-void CPlotEditor::UpdatePlotType( EPlotType plot_type, bool select )
+void CPlotEditor::UpdatePlotTypeList( EPlotType plot_type, bool select )
 {
 	assert__( mDisplay );
 
@@ -625,7 +625,7 @@ void CPlotEditor::OperationChanged( int index )
 bool CPlotEditor::ChangeView()
 {
 	EPlotType type = mDisplay->IsYFXType() ? eXY : eXYZ;
-	UpdatePlotType( type, false );
+    UpdatePlotTypeList( type, false );
 
 
 	WaitCursor wait;
@@ -972,7 +972,10 @@ void CPlotEditor::Recreate3DPlots( bool build2d, bool build3d )
 
 
 	//GO: select field
-	mTabCurveOptions->mFieldsList->setCurrentRow( 0 );
+	if ( mTabCurveOptions->mFieldsList->currentRow() != 0 )
+		mTabCurveOptions->mFieldsList->setCurrentRow( 0 );
+	else
+		HandleCurrentFieldChanged( 0 );
 }
 
 
@@ -1098,24 +1101,26 @@ void CPlotEditor::Recreate2DPlots()
 	for ( int i = 0; i < nrFields; i++ )
 		mPlot2DView->SetPlotAxisRanges( i, xaxisMin, xaxisMax, yaxisMin, yaxisMax );
 
-	// axis ticks
-	//
-	// using last assignment in loop to mCurrentPlotFieldYFX: use field data for axis properties, which are common to all...
-	//
-	unsigned int x_nticks = mCurrentPlotYFX->Xticks(), y_nticks = mCurrentPlotYFX->Yticks();		assert__( x_nticks > 0 && !isDefaultValue( x_nticks ) && y_nticks > 0 && !isDefaultValue( y_nticks ) );
+    if ( mPlotType != eHistogram )
+    {
+        // axis ticks
+        //
+        // using last assignment in loop to mCurrentPlotFieldYFX: use field data for axis properties, which are common to all...
+        //
+        unsigned int x_nticks = mCurrentPlotYFX->Xticks(), y_nticks = mCurrentPlotYFX->Yticks();		assert__( x_nticks > 0 && !isDefaultValue( x_nticks ) && y_nticks > 0 && !isDefaultValue( y_nticks ) );
 
-	mPlot2DView->SetXAxisTicks( x_nticks );
-	mPlot2DView->SetYAxisTicks( y_nticks );
+        mPlot2DView->SetXAxisTicks( x_nticks );
+        mPlot2DView->SetYAxisTicks( y_nticks );
 
-	//axis digits
-	//
-    // similar comment as for ticks
-	//
-	unsigned x_digits = mCurrentPlotYFX->Xdigits(), y_digits = mCurrentPlotYFX->Ydigits();		assert__( x_digits > 0 && !isDefaultValue( x_digits ) && y_digits > 0 && !isDefaultValue( y_digits ) );
+        //axis digits
+        //
+        // similar comment as for ticks
+        //
+        unsigned x_digits = mCurrentPlotYFX->Xdigits(), y_digits = mCurrentPlotYFX->Ydigits();		assert__( x_digits > 0 && !isDefaultValue( x_digits ) && y_digits > 0 && !isDefaultValue( y_digits ) );
 
-    mPlot2DView->SetXAxisDigits( nrFields == 1 && mCurrentPlotYFX->XUnit().IsDate(), x_digits, RefDateFromUnit( mCurrentPlotYFX->XUnit() ) );
-    mPlot2DView->SetYAxisDigits( nrFields == 1 && mCurrentPlotYFX->YUnit().IsDate(), y_digits, RefDateFromUnit( mCurrentPlotYFX->YUnit() ) );
-
+        mPlot2DView->SetXAxisDigits( nrFields == 1 && mCurrentPlotYFX->XUnit().IsDate(), x_digits, RefDateFromUnit( mCurrentPlotYFX->XUnit() ) );
+        mPlot2DView->SetYAxisDigits( nrFields == 1 && mCurrentPlotYFX->YUnit().IsDate(), y_digits, RefDateFromUnit( mCurrentPlotYFX->YUnit() ) );
+    }
 
 	//animation
 
@@ -1153,7 +1158,10 @@ void CPlotEditor::Recreate2DPlots()
 
 
 	//GO: select field
-	mTabCurveOptions->mFieldsList->setCurrentRow( 0 );
+	if ( mTabCurveOptions->mFieldsList->currentRow() != 0 )
+		mTabCurveOptions->mFieldsList->setCurrentRow( 0 );
+	else
+		HandleCurrentFieldChanged( 0 );
 }
 
 
@@ -1182,6 +1190,8 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
 	mTabCurveOptions->mPointOptions->setEnabled( enable_yfx );
 	mTabCurveOptions->mColorMapWidget->EnableOnlySolidColor( false );		//restore
 	mTabCurveOptions->mSpectrogramOptions->setEnabled( index >= 0 && mCurrentPlotZFXY && mPlotType != eHistogram );
+
+	//always prevent label editing when viewing an histogram
 
     mTabAxisOptions->mXAxisLabel->setEnabled( mPlotType != eHistogram );
     mTabAxisOptions->mYAxisLabel->setEnabled( mPlotType != eHistogram );
@@ -1252,53 +1262,66 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
     mTabAxisOptions->mYAxisLabel->setText( ytitle.c_str() );
     mTabAxisOptions->mZAxisLabel->setText( ztitle.c_str() );
 
-	// ticks and digits NOTE: 2d and 3d widgets adjust these parameter values, and that can result not only in values different 
-	//	from the assignment made but also different in the 2d and 3d case. So, unlike the general policy followed of always showing 
-	//	the "real" values used by the plot, and because here there can be 2 different "real" values, in these cases we use the value 
-	//	in the plot field structures (and used in assignment), not the values reported by the widgets.
+    //bins
 
-	//...ticks
-	// 2d does not keep axis ticks per plot, and as a consequence:
-	//		1. read values from plot data
-	//
-	int xticks = pplot->Xticks();	//mPlot3DView ? mPlot3DView->XAxisTicks() : pplot->Xticks();
-	int yticks = pplot->Yticks();	//mPlot3DView ? mPlot3DView->YAxisTicks() : pplot->Yticks();
-	int zticks = mCurrentPlotYFX ? mCurrentPlotYFX->ValueTicks() : mCurrentPlotZFXY->ValueTicks( index );		//mPlot3DView ? mPlot3DView->ZAxisTicks() : pplot->Zticks();
-	//
-	//		2. we must assign to 2d widget here, breaking parameter editors update policy
-	//
-	mPlot2DView->SetXAxisTicks( xticks );
-	mPlot2DView->SetYAxisTicks( yticks );
-	mPlot2DView->SetY2AxisTicks( zticks );
-	//
-	mTabAxisOptions->mXNbTicks->setText( n2s( xticks ).c_str() );
-	mTabAxisOptions->mYNbTicks->setText( n2s( yticks ).c_str() );
-	mTabAxisOptions->mZNbTicks->setText( n2s( zticks ).c_str() );
+    if ( mPlotType == eHistogram )
+    {
+        mTabCurveOptions->mNumberOfBins->setText( n2s( mPlot2DView->NumberOfBins( index ) ).c_str() );
+        mTabAxisOptions->mXNbDigits->setEnabled( !mPlot2DView->XAxisIsDateTime() );
+        mTabAxisOptions->mYNbDigits->setEnabled( !mPlot2DView->YAxisIsDateTime() );
+        mTabAxisOptions->mZNbDigits->setEnabled( false );
+    }
+    else
+    {
+        // ticks and digits NOTE: 2d and 3d widgets adjust these parameter values, and that can result not only in values different
+        //	from the assignment made but also different in the 2d and 3d case. So, unlike the general policy followed of always showing
+        //	the "real" values used by the plot, and because here there can be 2 different "real" values, in these cases we use the value
+        //	in the plot field structures (and used in assignment), not the values reported by the widgets.
 
-	//...digits
-	// similar problem and solution as for ticks, with the additional need to also specify units besides digits
-	//
-	int xdigits = pplot->Xdigits();		//mPlot3DView ? mPlot3DView->XDigits() : pplot->Xdigits();
-	int ydigits = pplot->Ydigits();		//mPlot3DView ? mPlot3DView->YDigits() : pplot->Ydigits();
-	int zdigits = mCurrentPlotYFX ? mCurrentPlotYFX->ValueDigits() : mCurrentPlotZFXY->ValueDigits( index );	//mPlot3DView ? mPlot3DView->ZDigits() : pplot->Zdigits();
-	//
-	const CUnit &xunit = mCurrentPlotZFXY ? mCurrentPlotZFXY->XUnit() : mCurrentPlotYFX->XUnit();
-	const CUnit &yunit = mCurrentPlotZFXY ? mCurrentPlotZFXY->YUnit() : mCurrentPlotYFX->YUnit();
-	//
-    mPlot2DView->SetXAxisDigits( xunit.IsDate(), xdigits, RefDateFromUnit( xunit ) );
-    mPlot2DView->SetYAxisDigits( yunit.IsDate(), ydigits, RefDateFromUnit( yunit ) );
-    mPlot2DView->SetY2AxisDigits( pdata->DataUnit()->IsDate(), zdigits, RefDateFromUnit( *pdata->DataUnit() ) );
-	//
-    mTabAxisOptions->mXNbDigits->setText( n2s( xdigits ).c_str() );
-    mTabAxisOptions->mYNbDigits->setText( n2s( ydigits ).c_str() );
-	mTabAxisOptions->mZNbDigits->setText( n2s( zdigits ).c_str() );
-	//
-	// disable digits assignment for dates case; now we can return to read from widgets instead of data
-	//
-    mTabAxisOptions->mXNbDigits->setEnabled( !mPlot2DView->XAxisIsDateTime() );
-    mTabAxisOptions->mYNbDigits->setEnabled( !mPlot2DView->YAxisIsDateTime() );
-    mTabAxisOptions->mZNbDigits->setEnabled( mPlot3DView && !mPlot3DView->ZAxisIsDateTime() );
-	
+        //...ticks
+        // 2d does not keep axis ticks per plot, and as a consequence:
+        //		1. read values from plot data
+        //
+        int xticks = pplot->Xticks();	//mPlot3DView ? mPlot3DView->XAxisTicks() : pplot->Xticks();
+        int yticks = pplot->Yticks();	//mPlot3DView ? mPlot3DView->YAxisTicks() : pplot->Yticks();
+        int zticks = mCurrentPlotYFX ? mCurrentPlotYFX->ValueTicks() : mCurrentPlotZFXY->ValueTicks( index );		//mPlot3DView ? mPlot3DView->ZAxisTicks() : pplot->Zticks();
+        //
+        //		2. we must assign to 2d widget here, breaking parameter editors update policy
+        //
+        mPlot2DView->SetXAxisTicks( xticks );
+        mPlot2DView->SetYAxisTicks( yticks );
+        mPlot2DView->SetY2AxisTicks( zticks );
+        //
+        mTabAxisOptions->mXNbTicks->setText( n2s( xticks ).c_str() );
+        mTabAxisOptions->mYNbTicks->setText( n2s( yticks ).c_str() );
+        mTabAxisOptions->mZNbTicks->setText( n2s( zticks ).c_str() );
+
+        //...digits
+        // similar problem and solution as for ticks, with the additional need to also specify units besides digits
+        //
+        int xdigits = pplot->Xdigits();		//mPlot3DView ? mPlot3DView->XDigits() : pplot->Xdigits();
+        int ydigits = pplot->Ydigits();		//mPlot3DView ? mPlot3DView->YDigits() : pplot->Ydigits();
+        int zdigits = mCurrentPlotYFX ? mCurrentPlotYFX->ValueDigits() : mCurrentPlotZFXY->ValueDigits( index );	//mPlot3DView ? mPlot3DView->ZDigits() : pplot->Zdigits();
+        //
+        const CUnit &xunit = mCurrentPlotZFXY ? mCurrentPlotZFXY->XUnit() : mCurrentPlotYFX->XUnit();
+        const CUnit &yunit = mCurrentPlotZFXY ? mCurrentPlotZFXY->YUnit() : mCurrentPlotYFX->YUnit();
+        //
+        mPlot2DView->SetXAxisDigits( xunit.IsDate(), xdigits, RefDateFromUnit( xunit ) );
+        mPlot2DView->SetYAxisDigits( yunit.IsDate(), ydigits, RefDateFromUnit( yunit ) );
+        mPlot2DView->SetY2AxisDigits( pdata->DataUnit()->IsDate(), zdigits, RefDateFromUnit( *pdata->DataUnit() ) );
+        //
+        mTabAxisOptions->mXNbDigits->setText( n2s( xdigits ).c_str() );
+        mTabAxisOptions->mYNbDigits->setText( n2s( ydigits ).c_str() );
+        mTabAxisOptions->mZNbDigits->setText( n2s( zdigits ).c_str() );
+        //
+        // disable digits assignment for dates case; now we can return to read from widgets instead of data
+        //
+        mTabAxisOptions->mXNbDigits->setEnabled( !mPlot2DView->XAxisIsDateTime() );
+        mTabAxisOptions->mYNbDigits->setEnabled( !mPlot2DView->YAxisIsDateTime() );
+        mTabAxisOptions->mZNbDigits->setEnabled( mPlot3DView && !mPlot3DView->ZAxisIsDateTime() );
+    }
+
+
 	//...scales (with logarithmic)
 	//scales are sensitive to user interaction so widget assignment is automatically done by remaining handlers in this file's section
 	double xVal, yVal, zVal;
@@ -1313,13 +1336,6 @@ void CPlotEditor::HandleCurrentFieldChanged( int index )
 		mTabAxisOptions->mZLogScaleCheck->setChecked( mPlot3DView->AxisZLogarithmicScale() );
 	}
 
-	//bins
-
-	if ( mPlotType == eHistogram )
-	{		
-		mTabCurveOptions->mNumberOfBins->setText( n2s( mPlot2DView->NumberOfBins( index ) ).c_str() );
-	}
-	
 	///////////////////////////////////////////////
 	//solid color, contours, color table: only ZFXY
 	///////////////////////////////////////////////
@@ -1410,8 +1426,14 @@ void CPlotEditor::Handle2DScaleChanged( int iaxis, double factor, QString range 
 			assert__( false );
 	}
 
-	if ( factor != spin->value() )	//prevent infinite loop, because spin signal can also call this handler
+	// This would be enough to prevent infinite loop (infinite because spin signal can also call this handler):
+	//		if ( factor != spin->value() ) spin->setValue( factor );
+	// But we prefer to block spin signals preventing unnecessary "echo" from the spin while re-plotting (which 
+	// also updates axis scales and calls this several times)
+	//
+		spin->blockSignals( true );
 		spin->setValue( factor );
+		spin->blockSignals( false );
 
 	edit->setText( range );	
 
@@ -1929,7 +1951,8 @@ void CPlotEditor::HandleXNbTicksChanged()
 
 	CPlotInterfaces *pplot = mCurrentPlotFieldYFX ? static_cast<CPlotInterfaces*>( mCurrentPlotYFX ) : static_cast<CPlotInterfaces*>( mCurrentPlotZFXY );	assert__( pplot );
 	
-	pplot->SetXticks( new_nb );
+	if ( mPlotType != eHistogram || mCurrentPlotZFXY )	//assign to data only if another plot besides histogram is being shown
+		pplot->SetXticks( new_nb );
 
 	if ( mPlot2DView )
 	{
@@ -1952,7 +1975,8 @@ void CPlotEditor::HandleYNbTicksChanged()
 
 	CPlotInterfaces *pplot = mCurrentPlotFieldYFX ? static_cast<CPlotInterfaces*>( mCurrentPlotYFX ) : static_cast<CPlotInterfaces*>( mCurrentPlotZFXY );	assert__( pplot );
 
-	pplot->SetYticks( new_nb );
+	if ( mPlotType != eHistogram || mCurrentPlotZFXY )	//assign to data only if another plot besides histogram is being shown
+		pplot->SetYticks( new_nb );
 
 	if ( mPlot2DView )
 	{
@@ -1975,10 +1999,15 @@ void CPlotEditor::HandleZNbTicksChanged()
 
 	const int index = mTabCurveOptions->mFieldsList->currentRow();
 
-	if ( mCurrentPlotYFX  )
-		mCurrentPlotYFX->SetValueTicks( new_nb );
+	if ( mCurrentPlotYFX )
+	{
+		if ( mPlotType != eHistogram )					//assign to data only if another plot besides histogram is being shown
+			mCurrentPlotYFX->SetValueTicks( new_nb );
+	}
 	else
+	{
 		mCurrentPlotZFXY->SetValueTicks( index, new_nb );
+	}
 
 	mPlot2DView->SetY2AxisTicks( new_nb );
 	mPlot3DView->SetZAxisTicks( new_nb );
@@ -1999,7 +2028,8 @@ void CPlotEditor::HandleXAxisNbDigitsChanged()
 
 	CPlotInterfaces *pplot = mCurrentPlotFieldYFX ? static_cast<CPlotInterfaces*>( mCurrentPlotYFX ) : static_cast<CPlotInterfaces*>( mCurrentPlotZFXY );	assert__( pplot );
 
-	pplot->SetXdigits( new_nb );
+	if ( mPlotType != eHistogram || mCurrentPlotZFXY )	//assign to data only if another plot besides histogram is being shown
+		pplot->SetXdigits( new_nb );
 
 	if ( mPlot2DView )
 	{
@@ -2021,7 +2051,8 @@ void CPlotEditor::HandleYAxisNbDigitsChanged()
 
 	CPlotInterfaces *pplot = mCurrentPlotFieldYFX ? static_cast<CPlotInterfaces*>( mCurrentPlotYFX ) : static_cast<CPlotInterfaces*>( mCurrentPlotZFXY );	assert__( pplot );
 
-	pplot->SetYdigits( new_nb );
+	if ( mPlotType != eHistogram || mCurrentPlotZFXY )	//assign to data only if another plot besides histogram is being shown
+		pplot->SetYdigits( new_nb );
 
 	if ( mPlot2DView )
 	{
@@ -2044,10 +2075,15 @@ void CPlotEditor::HandleZAxisNbDigitsChanged()
 
 	const int index = mTabCurveOptions->mFieldsList->currentRow();
 
-	if ( mCurrentPlotYFX  )
-		mCurrentPlotYFX->SetValueDigits( new_nb );
+	if ( mCurrentPlotYFX )
+	{
+		if ( mPlotType != eHistogram )					//assign to data only if another plot besides histogram is being shown
+			mCurrentPlotYFX->SetValueDigits( new_nb );
+	}
 	else
+	{
 		mCurrentPlotZFXY->SetValueDigits( index, new_nb );
+	}
 
 	mPlot2DView->SetY2AxisDigits( mPlot2DView->Y2AxisIsDateTime(), new_nb );
 	mPlot3DView->SetZAxisDigits( mPlot3DView->ZAxisIsDateTime(), new_nb );
@@ -2069,7 +2105,7 @@ bool CPlotEditor::HandleAxisLabelChanged( QLineEdit *label_edit, std::string &xt
 
 	const int index = mTabCurveOptions->mFieldsList->currentRow();
 
-	if ( mPlotType == eHistogram && !mPlot3DView )	//viewing only histogram; HandleAxisLabelChanged should never be called in this case
+	if ( mPlotType == eHistogram )	//viewing an histogram; HandleAxisLabelChanged should never be called in this case, even if another type of plot is being displayed
 	{
 		assert__( false );
 		return false;

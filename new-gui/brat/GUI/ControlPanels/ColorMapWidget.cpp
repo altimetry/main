@@ -171,8 +171,8 @@ void CColorMapWidget::CreateWidgets( bool show_range )
 			LayoutWidgets( Qt::Vertical, 
 			{ 
 				mShowContourCheck,
-				LayoutWidgets( Qt::Horizontal, { new QLabel( "Number" ), shrinkh( mNumberOfContoursEdit ) }, nullptr, 2,2,0,2,2 ),
-				LayoutWidgets( Qt::Horizontal, { mContourWidthLabel, shrinkh( mContourWidthEdit ) }, nullptr, 2,2,0,2,2 ),
+				LayoutWidgets( Qt::Horizontal, { new QLabel( "Number" ), shrinkh( mNumberOfContoursEdit ), mContourWidthLabel, shrinkh( mContourWidthEdit ) }, nullptr, 2,2,0,2,2 ),
+				//LayoutWidgets( Qt::Horizontal, { mContourWidthLabel, shrinkh( mContourWidthEdit ) }, nullptr, 2,2,0,2,2 ),
 				LayoutWidgets( Qt::Horizontal, { mContourPrecisionLabel, shrinkh( mContourPrecisionGrid1Edit ), shrinkh( mContourPrecisionGrid2Edit ) }, nullptr, 2,2,0,2,2 ),
 			}, nullptr, 0,0,0,0,0 ),
 
@@ -188,18 +188,16 @@ void CColorMapWidget::CreateWidgets( bool show_range )
 
 	mColorTables = new QComboBox;
 	mColorMapLabel = new CColorMapLabel;
-	mColorRangeMinEdit = new QLineEdit;
+
+	// color range
+
+	mColorRangeMinEdit = new QLineEdit;				mColorRangeMinEdit->setValidator( new QRegExpValidator( QRegExp( "[-0-9.]+" ) ) );
 	mColorRangeMinEdit->setMaximumWidth( 80 );
-	mColorRangeMaxEdit = new QLineEdit;
+	mColorRangeMaxEdit = new QLineEdit;		  		mColorRangeMaxEdit->setValidator( new QRegExpValidator( QRegExp( "[-0-9.]+" ) ) );
 	mColorRangeMaxEdit->setMaximumWidth( 80 );
 	mCalculateMinMax = new QPushButton( "Reset" );
 	mCalculateMinMax->setAutoDefault( false );
 	mCalculateMinMax->setDefault( false );
-
-	mColorRangeMinEdit->setValidator( new QRegExpValidator( QRegExp( "[-0-9.]+" ) ) );
-	mColorRangeMaxEdit->setValidator( new QRegExpValidator( QRegExp( "[-0-9.]+" ) ) );
-
-	// color range
 
 	QLayout *labels_l = nullptr;
 	if ( show_range )
@@ -299,11 +297,18 @@ void CColorMapWidget::EnableOnlySolidColor( bool enable_only )
 	if ( mColorRangeGroup )
 		mColorRangeGroup->setEnabled( !enable_only );
 
-	if ( mColorMapGroup )
-		mColorMapGroup->setEnabled( !enable_only );
-
 	if ( mShowContourGroupBox )
 		mShowContourGroupBox->setEnabled( !enable_only );
+
+	if ( mColorMapGroup )
+	{
+		//enable / disable selectively
+
+		for ( auto *label : mColorLabels )
+			label->setEnabled( !enable_only );
+		mColorMapLabel->setEnabled( !enable_only );
+		mColorTables->setEnabled( !enable_only );
+	}
 
 	mShowSolidColor->setEnabled( true );
 }

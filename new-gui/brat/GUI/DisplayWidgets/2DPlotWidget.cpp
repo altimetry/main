@@ -950,7 +950,7 @@ void C2DPlotWidget::SetDigits( Axis axisId, bool isdate, int digits, brathl_refD
     drawer->SetMantissaDigits( digits );
     drawer->SetAsDate( isdate, date_ref );
 	axisWidget( axisId )->update();
-	//replot();
+    adjustSize();
 }
 
 void C2DPlotWidget::SetXAxisDigits( bool isdate, int digits, brathl_refDate date_ref )		//date_ref = REF19500101
@@ -1072,8 +1072,10 @@ void C2DPlotWidget::RescaleX( double x )
 	double xMin, xMax, yMin, yMax, y2Min, y2Max;
 	AxisRanges( xMin, xMax, yMin, yMax, y2Min, y2Max );
 
+	const QwtScaleDiv *scaleDiv = axisScaleDiv( QwtPlot::xBottom );
+
 	const double range = xMax - xMin;
-	const double center = xMin + range / 2;
+	const double center = scaleDiv->lowerBound() + scaleDiv->range() / 2;	//this will 0-recenter axis: xMin + range / 2;
 	const double width = range / 2 * ( 1 / x );
 
 	setAxisScale( xBottom, center - width, center + width );
@@ -1084,8 +1086,10 @@ void C2DPlotWidget::RescaleY( double y )
 	double xMin, xMax, yMin, yMax, y2Min, y2Max;
 	AxisRanges( xMin, xMax, yMin, yMax, y2Min, y2Max );
 
+	const QwtScaleDiv *scaleDiv = axisScaleDiv( QwtPlot::yLeft );
+
 	const double range = yMax - yMin;
-	const double center = yMin + range / 2;
+	const double center = scaleDiv->lowerBound() + scaleDiv->range() / 2;	//this will 0-recenter axis: yMin + range / 2;
 	const double width = range / 2 * ( 1 / y );
 
 	setAxisScale( yLeft, center - width, center + width );
@@ -1179,6 +1183,8 @@ QwtPlotSpectrogram* C2DPlotWidget::PushRaster( const std::string &title, const C
     assert__( mCurves.size() == 0 );
 
     mSpectrograms.push_back( new CBratSpectrogram );
+	if ( mCurrentSpectrogram )
+		mCurrentSpectrogram->detach();
 	mCurrentSpectrogram = mSpectrograms.back();
 
 	const CZFXYValues::value_type &map = maps[ 0 ];	//the index parameter is the index of recently created spectrogram, not the maps index

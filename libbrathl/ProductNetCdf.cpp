@@ -669,8 +669,11 @@ bool CProductNetCdf::ApplyCriteriaLatLon(CCriteriaInfo* criteriaInfo)
           leftFound  = false;         rightFound = false;
           prevValue = 0;
 
-          for ( auto const &value : field->GetValues() )
+          auto const &values = field->GetValues();
+          for ( auto it = values.begin(); it != values.end(); ++it )
           {
+              auto value = *it;
+
               if (isDefaultValue(value))
                   continue;
 

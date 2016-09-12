@@ -1232,9 +1232,9 @@ void CBratLookupTable::SaveToFile( const std::string& file_name )
 
 	file.SaveToFile( *this );
 
-	//bOk &= file.Write( ENTRY_NUMCOLORS(), static_cast<int>( m_vtkLookupTable->GetNumberOfTableValues() ) );
-	//bOk &= file.Write( ENTRY_CURRENTFCT(), m_currentFunction.c_str() );
-	//bOk &= file.Write( ENTRY_CURVE(), m_curve.c_str() );
+    //bOk = bOk && file.Write( ENTRY_NUMCOLORS(), static_cast<int>( m_vtkLookupTable->GetNumberOfTableValues() ) );
+    //bOk = bOk && file.Write( ENTRY_CURRENTFCT(), m_currentFunction.c_str() );
+    //bOk = bOk && file.Write( ENTRY_CURVE(), m_curve.c_str() );
 	//if ( bOk == false )
 	//{
 	//	CException e( CTools::Format( "ERROR in CBratLookupTable::SaveToFile - Can't write file %s", m_fileName.c_str() ),

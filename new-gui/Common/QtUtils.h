@@ -22,6 +22,8 @@
 #error Wrong QtUtils.h included
 #endif
 
+#include <limits>
+
 #include <qglobal.h>
 
 
@@ -43,6 +45,7 @@
 	#include <QtWidgets/QInputDialog>
 	#include <QtWidgets/QDesktopWidget>
     #include <QtGui/QDesktopServices>
+    #include <QElapsedTimer>
 #else
 	#include <QtGui/QApplication>
 	#include <QtGui/QFileDialog>
@@ -61,10 +64,12 @@
     #include <QtGui/QInputDialog>
     #include <QtGui/QDesktopServices>
     #include <QtGui/QDesktopWidget>
+#if QT_VERSION >= 0x040700
+    #include <QElapsedTimer>
+#endif
 #endif
 #include <QSettings>
 #include <QResource>
-#include <QElapsedTimer>
 #include <QThread>
 #include <QUrl>
 
@@ -449,6 +454,13 @@ inline QGridLayout* CreateGridLayout( QWidget *parent, int spacing = 0, int left
 {
 	return FinishLayout< QGridLayout >( new QGridLayout( parent ), spacing, left, top, right, bottom );
 }
+
+
+
+////////////////////////////////////////////////////////////
+// C++11 only //////////////////////////////////////////////
+
+#if !defined(PRE_CPP11)
 
 
 inline QBoxLayout* LayoutWidgets( Qt::Orientation o, const std::vector< QObject* > &v, 
@@ -1237,9 +1249,10 @@ const int min_main_window_width = 1024;
 const int min_main_window_height = 512;
 
 const auto child_ratio = 1. / 2.;
+const auto aspect_ratio = 1. / 2.;	// 3. / 4.;
 
 const int min_globe_widget_width =  min_main_window_width * child_ratio;
-const int min_globe_widget_height = min_globe_widget_width / 4 * 3;
+const int min_globe_widget_height = min_globe_widget_width * aspect_ratio;
 
 const int min_plot_widget_width = min_globe_widget_width;
 const int min_plot_widget_height = min_globe_widget_height;
@@ -1249,6 +1262,19 @@ const int min_editor_dock_width = 200;
 const int min_editor_dock_height = 10;
 
 const int min_readable_combo_width = 90;
+
+
+
+
+
+
+#endif		//if !defined(PRE_CPP11)
+// C++11 only - block end //////////////////////////////////
+////////////////////////////////////////////////////////////
+
+
+
+
 
 
 

@@ -1453,22 +1453,27 @@ void CTools::SetInternalDataDir(const std::string &DataDir)
 //----------------------------------------
 std::string CTools::GetInternalDataDir()
 {
-  //// Warning : under Windows, memory leaks when using getenv : see Microsoft Article ID : 815315 
-  //// So it's why we do the call only once
-  //if (m_DataDir.length() == 0)
-  //{
-  //  char *Path	= getenv(BRATHL_ENVVAR);
-  //  if (Path == NULL || Path[0] == 0)
-  //  {
-  //    m_DataDir	= BRATHL_DEFDATADIR;
-  //  }
-  //  else
-  //  {
-  //    m_DataDir	= Path;
-  //  }
-  //}
+	//v3 note
+	//// Warning : under Windows, memory leaks when using getenv : see Microsoft Article ID : 815315 
+	//// So it's why we do the call only once
+	//if (m_DataDir.length() == 0)
+	//{
+	//  char *Path	= getenv(BRATHL_ENVVAR);
+	//  if (Path == NULL || Path[0] == 0)
+	//  {
+	//    m_DataDir	= BRATHL_DEFDATADIR;
+	//  }
+	//  else
+	//  {
+	//    m_DataDir	= Path;
+	//  }
+	//}
 
-  return m_DataDir;
+	static const char *BRAT_DATA_DIR = getenv( BRATHL_ENVVAR );
+	if ( m_DataDir.empty() && BRAT_DATA_DIR )
+		m_DataDir = BRAT_DATA_DIR;
+
+	return m_DataDir;
 }
 
 

@@ -3426,7 +3426,7 @@ CBratTask* COperationControls::Schedule( EExecutionType type, const QDateTime &a
 	}
 
 	std::string xml_error_msg;
-	if ( !task_scheduler || !task_scheduler->LoadAllTasks( xml_error_msg ) )
+	if ( !task_scheduler || !task_scheduler->LoadAllTasks( false, xml_error_msg ) )		//false: do not block; the user can try later
 	{
 		wait.Restore();
 		SimpleErrorBox( "An error accessing the scheduled tasks file prevents delaying tasks execution. " + xml_error_msg );

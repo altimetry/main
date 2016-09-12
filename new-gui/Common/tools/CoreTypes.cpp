@@ -2947,8 +2947,11 @@ void CDoubleArray::Insert( const std::string& vect, const std::string& delim /*=
 
 	std::vector< std::string > v;
 	String2Vector( v, value, delim );
-	for ( auto s : v )
+    for ( std::vector< std::string >::const_iterator it = v.begin(); it != v.end(); ++it )
+    {
+        const std::string &s = *it;
 		push_back( s2n<double>( s ) );
+    }
 }
 
 //----------------------------------------

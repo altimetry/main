@@ -139,9 +139,35 @@ typedef std::strstream stream_t;
 
 
 
+////////////////////////////////// c++11 compatibility ////////////////////////////
+//
+
+
+#if !defined(WIN32) && !defined(_WIN32)
+
+    #if __cplusplus <= 199711L
+
+        #if !defined(PRE_CPP11)
+        #define PRE_CPP11
+        #endif
+
+    #endif
+#endif
 
 
 
+
+#if defined(PRE_CPP11)
+
+#if !defined(override)
+#define override
+#endif
+
+#if !defined(nullptr)
+#define nullptr NULL
+#endif
+
+#endif
 
 
 ////////////////////////////////// string_traits //////////////////////////////////
@@ -153,13 +179,24 @@ struct string_traits;
 template<>
 struct string_traits< std::string >
 {
-	using str_stream_type	= std::stringstream;
+#if defined(PRE_CPP11)
+
+    typedef std::stringstream           str_stream_type;
+    typedef std::ostringstream          ostr_stream_type;
+    typedef std::basic_ostream< char >  ostream_type;
+    typedef std::basic_istream< char >  istream_type;
+    typedef std::streambuf              streambuf_type;
+    typedef std::ifstream               ifstream_type;
+    typedef std::ofstream               ofstream_type;
+#else
+    using str_stream_type	= std::stringstream;
 	using ostr_stream_type	= std::ostringstream;
 	using ostream_type		= std::basic_ostream< char >;
 	using istream_type		= std::basic_istream< char >;
 	using streambuf_type	= std::streambuf;
 	using ifstream_type		= std::ifstream;
 	using ofstream_type		= std::ofstream;
+#endif
 
     static inline ostream_type& tcout()
     {
@@ -178,13 +215,24 @@ struct string_traits< std::string >
 template<>
 struct string_traits< std::wstring >
 {
-	using str_stream_type	= std::wstringstream;
+#if defined(PRE_CPP11)
+
+    typedef std::wstringstream              str_stream_type;
+    typedef std::wostringstream             ostr_stream_type;
+    typedef std::basic_ostream< wchar_t >   ostream_type;
+    typedef std::basic_istream< wchar_t >   istream_type;
+    typedef std::wstreambuf                 streambuf_type;
+    typedef std::wifstream                  ifstream_type;
+    typedef std::wofstream                  ofstream_type;
+#else
+    using str_stream_type	= std::wstringstream;
 	using ostr_stream_type	= std::wostringstream;
 	using ostream_type		= std::basic_ostream< wchar_t >;
 	using istream_type		= std::basic_istream< wchar_t >;
 	using streambuf_type	= std::wstreambuf;
 	using ifstream_type		= std::wifstream;
 	using ofstream_type		= std::wofstream;
+#endif
 
     static inline ostream_type& tcout()
     {
@@ -369,24 +417,56 @@ bool compare_( STRING const& a, STRING const& b, const PRED &pred )
 }
 
 
+
+
+
+#if defined(PRE_CPP11)
+
+static inline bool str_icmp_pred( char a, char b )
+{
+    return std::tolower(a) == std::tolower(b);
+}
+
+static inline bool str_cmp_pred( char a, char b )
+{
+    return a == b;
+}
+
+#endif
+
+
+
 template< class STRING >
 bool str_icmp( STRING const& a, STRING const& b )
 {
-	static const auto pred = [](typename STRING::value_type a, typename STRING::value_type b)
+#if defined(PRE_CPP11)
+
+    typedef bool (*predicate_t)(typename STRING::value_type, typename STRING::value_type);
+    predicate_t pred = str_icmp_pred;
+#else
+    static const auto pred = [](typename STRING::value_type a, typename STRING::value_type b)
 	{
 		return std::tolower(a) == std::tolower(b);
 	};
+#endif
 
 	return compare_( a, b, pred );
 }
 
+
 template< class STRING >
 bool str_cmp( STRING const& a, STRING const& b )
 {
-	static const auto pred = [](typename STRING::value_type a, typename STRING::value_type b)
+#if defined(PRE_CPP11)
+
+    typedef bool (*predicate_t)(typename STRING::value_type, typename STRING::value_type);
+    predicate_t pred = str_cmp_pred;
+#else
+    static const auto pred = [](typename STRING::value_type a, typename STRING::value_type b)
 	{
 		return a == b;
 	};
+#endif
 
 	return compare_( a, b, pred );
 }
@@ -576,20 +656,37 @@ inline bool EndsWith( const STRING &s, const STRING &substr )
 	return ( found != STRING::npos ) && found == ( s.length() - substr.length() );	//condition found != STRING::npos is critical (if its value is -1, it can issue a false positive)
 }
 
+
+
+#if defined(PRE_CPP11)
+static inline bool i_find_predicate( char ch1, char ch2 )
+{
+    return std::toupper( ch1 ) == std::toupper( ch2 );
+}
+#endif
+
+
 template< typename STRING >
 inline 
 typename STRING::size_type i_find( const STRING &source, const STRING &find, size_t pos = 0 )
 {
-	auto it = std::search(
-		source.begin() + pos, source.end(), find.begin(), find.end(),
-		[]( typename STRING::value_type ch1, typename STRING::value_type ch2 )
-		{ 
-			return std::toupper( ch1 ) == std::toupper( ch2 ); 
-		}
-	);
+#if defined(PRE_CPP11)
 
-        return ( it == source.end() ?  STRING::npos  :  it - source.begin() );
+    auto it = std::search( source.begin() + pos, source.end(), find.begin(), find.end(), i_find_predicate );
+#else
+    auto it = std::search(
+        source.begin() + pos, source.end(), find.begin(), find.end(),
+        []( typename STRING::value_type ch1, typename STRING::value_type ch2 )
+        {
+            return std::toupper( ch1 ) == std::toupper( ch2 );
+        }
+    );
+#endif
+
+
+    return ( it == source.end() ?  STRING::npos  :  it - source.begin() );
 }
+
 
 
 template< typename STRING, typename TOKEN_STRING >

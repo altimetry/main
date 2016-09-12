@@ -29,8 +29,9 @@
 
 
 // TODO all code until the dialog box member functions definition is 
-//	an analysis of the workspace tree types. It works, but given the 
-//	intractability of the types design in what concerns abstraction,
+//	an (analysis) exercise over the original workspace tree types, 
+//	exploring non-intrusive forms of abstraction. It works, but given
+//	the intractability of the types design in what concerns abstraction,
 //	as shown, even for a simple tree traversal, it will be replaced.
 
 

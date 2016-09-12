@@ -24,7 +24,7 @@ if os.path.isdir(currentWorkingDirectory):
     # Set BRAT_DATA_DIR environment variable, relative to the bin directory, 
     # for brathl_module to find auxiliary data
     #
-    os.environ["BRAT_DATA_DIR"] = "/../../bin/data"
+    os.environ["BRAT_DATA_DIR"] = currentWorkingDirectory + "/data"
 
 
 from brathl import *

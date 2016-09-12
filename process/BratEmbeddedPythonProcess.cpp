@@ -59,7 +59,7 @@ namespace processes
 		{
 			//types
 
-			using base_t = base_creator;
+            DECLARE_BASE_TYPE( base_creator )
 
 			//statics
 

@@ -309,7 +309,7 @@ IF (BRAT_BUILD_GUI)
 		IF (NOT EXISTS ${PYTHON_BIN_DIR})
 			MESSAGE(FATAL_ERROR "PYTHON_BIN_DIR not defined or not found." )
 		ENDIF()
-		IF (WIN32)
+		IF (WIN32 OR IS_CENTOS_SYSTEM)
 			IF (NOT EXISTS ${PYTHON_LIBRARY})
 				MESSAGE(FATAL_ERROR "PYTHON_LIBRARY not defined or not found." )
 			ENDIF()
@@ -709,6 +709,15 @@ IF( WIN32)
 		${PYTHON_LIBRARY}
 		)
 
+ELSE(WIN32)
+
+    IF (IS_CENTOS_SYSTEM)
+        SET( OTHER_FILES
+            ${OTHER_FILES}
+            ${PYTHON_LIBRARY}
+            )
+    ENDIF (IS_CENTOS_SYSTEM)
+
 ENDIF(WIN32)
 
 
@@ -759,7 +768,7 @@ INSTALL(
 	${BRAT_EMBEDDED_PYTHON_FILES}
 	DESTINATION ${RUNTIME_DESTINATION}/Python
 	COMPONENT brat_runtime
-	)
+	OPTIONAL)
 
 
 IF(WIN32)
@@ -782,11 +791,19 @@ ELSE(WIN32)
 			PATTERN __pycache__ EXCLUDE
 			)
 	ELSE (APPLE)
+
+	    IF (IS_CENTOS_SYSTEM)
+		    set(PYTHON_SUBDIRNAME lib64)
+		ELSE(IS_CENTOS_SYSTEM)
+		    set(PYTHON_SUBDIRNAME lib)
+		ENDIF (IS_CENTOS_SYSTEM)
+
 		INSTALL(
 			DIRECTORY
 			${PYTHON_BIN_DIR}
-			DESTINATION ${RUNTIME_DESTINATION}/Python/lib
+			DESTINATION ${RUNTIME_DESTINATION}/Python/${PYTHON_SUBDIRNAME}
 			COMPONENT brat_runtime
+			OPTIONAL
 			PATTERN __pycache__ EXCLUDE
 			)
 	ENDIF(APPLE)
@@ -802,6 +819,7 @@ INSTALL(
 	${OTHER_FILES}
 	DESTINATION ${RUNTIME_DESTINATION}
 	COMPONENT brat_runtime
+	OPTIONAL
 	)
 
 
@@ -879,6 +897,7 @@ ELSE(APPLE)
 		${QTDIR}/plugins
 		DESTINATION ${RUNTIME_DESTINATION_QT_PLUGINS}
 		COMPONENT brat_runtime
+		OPTIONAL
 		)
 	
 ENDIF(APPLE)
@@ -890,6 +909,7 @@ INSTALL(
 	${QGIS_PLUGINS_DIR}
 	DESTINATION ${RUNTIME_DESTINATION_QT_PLUGINS}
 	COMPONENT brat_runtime
+	OPTIONAL
 	)
 
 
@@ -924,6 +944,7 @@ INSTALL(
 	${OSG_EARTH_PLUGIN_FILES}
 	DESTINATION ${RUNTIME_DESTINATION}/osgPlugins-3.4.0
 	COMPONENT brat_runtime
+	OPTIONAL
 	)
 
 
@@ -957,6 +978,7 @@ ELSE(WIN32)
 			${QGIS_DIR}/share/qgis/globe
 			DESTINATION ${RUNTIME_DESTINATION}
 			COMPONENT brat_runtime
+			OPTIONAL
 			)
 	ENDIF(APPLE)
 
@@ -972,6 +994,7 @@ INSTALL(
 	data
 	DESTINATION ${RUNTIME_DESTINATION}
 	COMPONENT brat_runtime
+	OPTIONAL
 	)
 	
 
@@ -1006,6 +1029,7 @@ ELSE(APPLE)
 		Demo
 		DESTINATION Demo
 		COMPONENT brat_runtime
+		OPTIONAL
 		)
 ENDIF(APPLE)
 
@@ -1029,6 +1053,7 @@ IF (APPLE)
 		${BRAT_BINARY_DIR}/doc
 		DESTINATION ${SCHEDULER_RUNTIME_DESTINATION}/../
 		COMPONENT scheduler_runtime
+		OPTIONAL
 		)
 ENDIF(APPLE)
 
@@ -1698,7 +1723,12 @@ endif(BRATHL_BUILD_MATLAB) #####################################################
 
 # Check for Qt ###########################################################################################
 
-SET(QT_MIN_VERSION 4.8.0)
+IF (IS_CENTOS_SYSTEM)
+    SET (QT_MIN_VERSION 4.6.2)
+ELSE (IS_CENTOS_SYSTEM)
+    SET (QT_MIN_VERSION 4.8.0)
+ENDIF (IS_CENTOS_SYSTEM)
+
 SET (ENABLE_QT5 FALSE CACHE BOOL "If enabled will try to find Qt5 before looking for Qt4")
 IF (ENABLE_QT5)
 	FIND_PACKAGE(Qt5Core QUIET)
@@ -1966,7 +1996,7 @@ if(BRAT_BUILD_GUI)
 	set(SCHEDULER_SOURCES
 	    new-gui/scheduler/stdafx.cpp
 		new-gui/scheduler/main.cpp
-		new-gui/scheduler/SchedulerDialog.cpp
+		new-gui/scheduler/SchedulerMainWindow.cpp
 		new-gui/scheduler/SchedulerApplication.cpp
 		new-gui/scheduler/EditTasksFileDialog.cpp
 		new-gui/Common/DataModels/TaskProcessor.cpp
@@ -1996,7 +2026,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/QtUtilsIO.h
 		new-gui/Common/QtStringUtils.h
 		new-gui/Common/QtUtils.h
-		new-gui/scheduler/SchedulerDialog.h
+		new-gui/scheduler/SchedulerMainWindow.h
 		new-gui/scheduler/SchedulerApplication.h
 		new-gui/scheduler/EditTasksFileDialog.h
 		new-gui/Common/ScheduledTasksList.hxx
@@ -2016,7 +2046,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/SingleApplication/qtlockedfile.h
 	)
 
-	QT4_WRAP_UI(schedulerUISrcs new-gui/scheduler/SchedulerDialog.ui)
+	QT4_WRAP_UI(schedulerUISrcs new-gui/scheduler/SchedulerMainWindow.ui)
 	QT4_ADD_RESOURCES( SCHEDULER_RCC_SOURCES new-gui/Common/Resources/brat.qrc OPTIONS -o ${BRAT_SOURCE_DIR}/new-gui/scheduler/tmp/qrc_brat.cpp )
 
 	  
@@ -2394,12 +2424,19 @@ if(BRAT_BUILD_GUI)
 		${PYTHON_IMPORT_LIBRARY}
 		${XercesC_LIBRARIES} 
 		brathlProcessUtilities 
-		brathl 
-		proj 
+		brathl
 		brat-tools
 	)
 	
-	target_compile_definitions( brat 
+
+    IF (NOT IS_CENTOS_SYSTEM)
+
+	    target_link_libraries( brat proj )
+
+	ENDIF (NOT IS_CENTOS_SYSTEM)
+
+
+	target_compile_definitions( brat
 		PRIVATE
 		-DHAVE_OSGEARTH_ELEVATION_QUERY 
 		-DHAVE_OSGEARTHQT 
@@ -2440,6 +2477,13 @@ if(BRAT_BUILD_GUI)
 				${OSGMANIPULATOR_LIBRARY}
 				util
 			)
+
+		    IF (IS_CENTOS_SYSTEM)
+
+			    target_link_libraries( brat GL )
+
+			ENDIF (IS_CENTOS_SYSTEM)
+
 		ENDIF (APPLE)
 	ENDIF (WIN32)
 	
@@ -2517,103 +2561,107 @@ install(
 
 # The reference manual - custom target for creating new version
 
-find_package(Doxygen)
+if(NOT IS_CENTOS_SYSTEM)
 
-if(DOXYGEN_FOUND)
+	find_package(Doxygen)
 
-  # Configure Doxygen
+	if(DOXYGEN_FOUND)
 
-  find_package(HTMLHelp)
+	  # Configure Doxygen
 
-  if(HTML_HELP_COMPILER)
-    set(DOXYGEN_HTMLHELP YES)
-  else(HTML_HELP_COMPILER)
-    set(DOXYGEN_HTMLHELP NO)
-  endif(HTML_HELP_COMPILER)
+	  find_package(HTMLHelp)
 
-  find_package(LATEX)
+	  if(HTML_HELP_COMPILER)
+		set(DOXYGEN_HTMLHELP YES)
+	  else(HTML_HELP_COMPILER)
+		set(DOXYGEN_HTMLHELP NO)
+	  endif(HTML_HELP_COMPILER)
 
-  if(LATEX_COMPILER OR PDFLATEX_COMPILER)
-    set(DOXYGEN_LATEX YES)
-  else(LATEX_COMPILER OR PDFLATEX_COMPILER)
-    set(DOXYGEN_LATEX NO)
-  endif(LATEX_COMPILER OR PDFLATEX_COMPILER)
+	  find_package(LATEX)
 
-  if(PDFLATEX_COMPILER)
-    set(DOXYGEN_PDFLATEX YES)
-  else(PDFLATEX_COMPILER)
-    set(DOXYGEN_PDFLATEX NO)
-  endif(PDFLATEX_COMPILER)
+	  if(LATEX_COMPILER OR PDFLATEX_COMPILER)
+		set(DOXYGEN_LATEX YES)
+	  else(LATEX_COMPILER OR PDFLATEX_COMPILER)
+		set(DOXYGEN_LATEX NO)
+	  endif(LATEX_COMPILER OR PDFLATEX_COMPILER)
 
-  if(DOXYGEN_DOT_EXECUTABLE)
-    set(HAVE_DOT YES)
-  else(DOXYGEN_DOT_EXECUTABLE)
-    set(HAVE_DOT NO)
-  endif(DOXYGEN_DOT_EXECUTABLE)
+	  if(PDFLATEX_COMPILER)
+		set(DOXYGEN_PDFLATEX YES)
+	  else(PDFLATEX_COMPILER)
+		set(DOXYGEN_PDFLATEX NO)
+	  endif(PDFLATEX_COMPILER)
 
-  set(DOXYGEN_SOURCE_DIRS
-    ${CMAKE_SOURCE_DIR}/libbrathl
-    ${CMAKE_SOURCE_DIR}/libbrathl/brathl_c
-    ${CMAKE_SOURCE_DIR}/process
-    )
+	  if(DOXYGEN_DOT_EXECUTABLE)
+		set(HAVE_DOT YES)
+	  else(DOXYGEN_DOT_EXECUTABLE)
+		set(HAVE_DOT NO)
+	  endif(DOXYGEN_DOT_EXECUTABLE)
 
-  if(BRATHL_BUILD_FORTRAN)
-    set(DOXYGEN_SOURCE_DIRS ${DOXYGEN_SOURCE_DIRS} ${CMAKE_SOURCE_DIR}/libbrathl/brathl_fortran)
-  endif(BRATHL_BUILD_FORTRAN)
-  if(BRATHL_BUILD_MATLAB)
-    set(DOXYGEN_SOURCE_DIRS ${DOXYGEN_SOURCE_DIRS} ${CMAKE_SOURCE_DIR}/libbrathl/brathl_matlab)
-  endif(BRATHL_BUILD_MATLAB)
-  if(BRATHL_BUILD_IDL)
-    set(DOXYGEN_SOURCE_DIRS ${DOXYGEN_SOURCE_DIRS} ${CMAKE_SOURCE_DIR}/libbrathl/brathl_idl)
-  endif(BRATHL_BUILD_IDL)
+	  set(DOXYGEN_SOURCE_DIRS
+		${CMAKE_SOURCE_DIR}/libbrathl
+		${CMAKE_SOURCE_DIR}/libbrathl/brathl_c
+		${CMAKE_SOURCE_DIR}/process
+		)
 
-  string(REGEX REPLACE ";" " " DOXYGEN_INPUT_LIST "${DOXYGEN_SOURCE_DIRS}")
+	  if(BRATHL_BUILD_FORTRAN)
+		set(DOXYGEN_SOURCE_DIRS ${DOXYGEN_SOURCE_DIRS} ${CMAKE_SOURCE_DIR}/libbrathl/brathl_fortran)
+	  endif(BRATHL_BUILD_FORTRAN)
+	  if(BRATHL_BUILD_MATLAB)
+		set(DOXYGEN_SOURCE_DIRS ${DOXYGEN_SOURCE_DIRS} ${CMAKE_SOURCE_DIR}/libbrathl/brathl_matlab)
+	  endif(BRATHL_BUILD_MATLAB)
+	  if(BRATHL_BUILD_IDL)
+		set(DOXYGEN_SOURCE_DIRS ${DOXYGEN_SOURCE_DIRS} ${CMAKE_SOURCE_DIR}/libbrathl/brathl_idl)
+	  endif(BRATHL_BUILD_IDL)
 
-  configure_file(
-    ${BRAT_SOURCE_DIR}/doc/doxygen.conf.in
-    ${BRAT_BINARY_DIR}/doxygen.conf)
+	  string(REGEX REPLACE ";" " " DOXYGEN_INPUT_LIST "${DOXYGEN_SOURCE_DIRS}")
+
+	  configure_file(
+		${BRAT_SOURCE_DIR}/doc/doxygen.conf.in
+		${BRAT_BINARY_DIR}/doxygen.conf)
 
 
-  # HTML format
+	  # HTML format
 
-  set(HTML_TARGET ${DOC_OUTPUT_DIRECTORY}/refman-html/index.html)
+	  set(HTML_TARGET ${DOC_OUTPUT_DIRECTORY}/refman-html/index.html)
 
-  add_custom_target(html_reference_manual
-    DEPENDS ${HTML_TARGET})
+	  add_custom_target(html_reference_manual
+		DEPENDS ${HTML_TARGET})
 
-  file(TO_NATIVE_PATH ${BRAT_BINARY_DIR}/doxygen.conf DOXYGEN_CONF)
-  add_custom_command(OUTPUT ${HTML_TARGET}
-    COMMAND ${CMAKE_COMMAND} -E remove_directory "${DOC_OUTPUT_DIRECTORY}/refman-html"
-    COMMAND ${CMAKE_COMMAND} -E remove_directory "${DOC_OUTPUT_DIRECTORY}/refman-latex"
-    COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_CONF}
-    DEPENDS ${BRAT_BINARY_DIR}/doxygen.conf
-    COMMENT "Building HTML documentation")
+	  file(TO_NATIVE_PATH ${BRAT_BINARY_DIR}/doxygen.conf DOXYGEN_CONF)
+	  add_custom_command(OUTPUT ${HTML_TARGET}
+		COMMAND ${CMAKE_COMMAND} -E remove_directory "${DOC_OUTPUT_DIRECTORY}/refman-html"
+		COMMAND ${CMAKE_COMMAND} -E remove_directory "${DOC_OUTPUT_DIRECTORY}/refman-latex"
+		COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_CONF}
+		DEPENDS ${BRAT_BINARY_DIR}/doxygen.conf
+		COMMENT "Building HTML documentation")
 
-  # LaTeX/PDF format
+	  # LaTeX/PDF format
 
-  set(REFERENCE_MANUAL_PDF_OUT ${DOC_OUTPUT_DIRECTORY}/brat_reference_manual_${BRAT_VERSION}.pdf)
+	  set(REFERENCE_MANUAL_PDF_OUT ${DOC_OUTPUT_DIRECTORY}/brat_reference_manual_${BRAT_VERSION}.pdf)
 
-  add_custom_target(refman
-    DEPENDS ${REFERENCE_MANUAL_PDF_OUT})
+	  add_custom_target(refman
+		DEPENDS ${REFERENCE_MANUAL_PDF_OUT})
 
-  # Deprecated legacy target
-  add_custom_target(reference_manual)
-  add_dependencies(reference_manual refman)
+	  # Deprecated legacy target
+	  add_custom_target(reference_manual)
+	  add_dependencies(reference_manual refman)
 
-  add_custom_command(OUTPUT "${REFERENCE_MANUAL_PDF_OUT}"
-    COMMAND ${PERL_EXECUTABLE}
-    "${BRAT_SOURCE_DIR}/doc/CompileLatex.pl"
-    "${PDFLATEX_COMPILER}"
-    "${DOC_OUTPUT_DIRECTORY}/refman-latex"
-    refman.tex
-    refman.pdf
-    "${REFERENCE_MANUAL_PDF_OUT}"
-    DEPENDS ${HTML_TARGET}
-    COMMENT "Building the reference manual")
+	  add_custom_command(OUTPUT "${REFERENCE_MANUAL_PDF_OUT}"
+		COMMAND ${PERL_EXECUTABLE}
+		"${BRAT_SOURCE_DIR}/doc/CompileLatex.pl"
+		"${PDFLATEX_COMPILER}"
+		"${DOC_OUTPUT_DIRECTORY}/refman-latex"
+		refman.tex
+		refman.pdf
+		"${REFERENCE_MANUAL_PDF_OUT}"
+		DEPENDS ${HTML_TARGET}
+		COMMENT "Building the reference manual")
 
-else(DOXYGEN_FOUND)
-  message(STATUS "WARNING: Doxygen not found - 'reference-manual' target will not be available")
-endif(DOXYGEN_FOUND)
+    else(DOXYGEN_FOUND)
+	  message(STATUS "WARNING: Doxygen not found - 'reference-manual' target will not be available")
+    endif(DOXYGEN_FOUND)
+
+endif(NOT IS_CENTOS_SYSTEM)
 
 
 

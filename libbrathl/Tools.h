@@ -32,6 +32,8 @@
 
 
 
+#define BRATHL_ENVVAR "BRAT_DATA_DIR"		//v3.1.0 legacy, deprecated
+
 
 namespace brathl
 {

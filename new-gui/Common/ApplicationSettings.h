@@ -196,6 +196,14 @@ inline void AppSettingsClearGroup( CAppSection &section )
 }
 
 
+inline std::string AppSettingsFilePath()
+{ 
+	QSettings settings;
+	return q2a( settings.fileName() ); 
+}
+
+
+
 
 // Generic Read / Write functions
 

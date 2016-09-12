@@ -35,7 +35,7 @@ namespace brathl
 
 	class CProductReaper : public CProductNetCdfCF
 	{
-		using base_t = CProductNetCdfCF;
+        DECLARE_BASE_TYPE( CProductNetCdfCF )
 
 	public:
 

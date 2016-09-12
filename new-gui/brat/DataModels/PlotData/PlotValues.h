@@ -39,6 +39,15 @@ static_assert( std::numeric_limits<double>::has_quiet_NaN, "Value nan of type do
 static_assert( std::numeric_limits<float>::has_quiet_NaN, "Value nan of type float is undefined in the system." );
 
 
+template< typename FLOATING_POINT >
+inline const FLOATING_POINT& Invalid()
+{
+	static const FLOATING_POINT invalid = std::numeric_limits< FLOATING_POINT >::quiet_NaN();
+	return invalid;
+}
+
+
+
 class CYFXValues : public QwtData
 {
 	//types
@@ -279,7 +288,7 @@ public:
         {
 			if ( isDefaultValue( c.mX[ i ] ) )
 			{
-				c.mX[ i ] = std::numeric_limits< double >::quiet_NaN();		//needed for our QWT partial functions plotting algorithm
+				c.mX[ i ] = Invalid< double >();		//needed for our QWT partial functions plotting algorithm
 				continue;
 			}
 
@@ -297,7 +306,7 @@ public:
 		{
 			if ( isDefaultValue( c.mY[ i ] ) )
 			{
-				c.mY[ i ] = std::numeric_limits< double >::quiet_NaN();		//needed for our QWT partial functions plotting algorithm
+				c.mY[ i ] = Invalid< double >();		//needed for our QWT partial functions plotting algorithm
 				continue;
 			}
 
@@ -470,7 +479,7 @@ public:
 		auto &curve = mData.mFrames[ mData.mCurrentFrame ];
 
 		if ( !curve.Fit() )
-			return std::numeric_limits< double >::quiet_NaN();		//needed for our QWT partial functions plotting algorithm
+			return Invalid< double >();		//needed for our QWT partial functions plotting algorithm
 
 		return curve.mSlope_b;
 	}
@@ -480,7 +489,7 @@ public:
 		auto &curve = mData.mFrames[ mData.mCurrentFrame ];
 
 		if ( !curve.Fit() )
-			return std::numeric_limits< double >::quiet_NaN();		//needed for our QWT partial functions plotting algorithm
+			return Invalid< double >();		//needed for our QWT partial functions plotting algorithm
 
 		return curve.mIntercept_a;
 	}
@@ -526,7 +535,7 @@ public:
 		auto &curve = mData.mFrames[ mData.mCurrentFrame ];
 
 		if ( !curve.Fit() )
-			return std::numeric_limits< double >::quiet_NaN();		//needed for our QWT partial functions plotting algorithm
+			return Invalid< double >();		//needed for our QWT partial functions plotting algorithm
 
 
 		return curve.mX[ i ] * curve.mSlope_b + curve.mIntercept_a;
@@ -657,7 +666,7 @@ public:
 		auto index = y * mXaxis.size() + x;								assert__( index >= 0 && index < mBits.size() );
 		if ( index < 0 || index >= mBits.size() || !mBits.at( index ) )
 			//return 0.;		//rasters do not seem to support NANs std::numeric_limits<double>::quiet_NaN();
-			return std::numeric_limits<double>::quiet_NaN();
+			return Invalid< double >();
 
 		return mValues.at( index );
 	}
@@ -671,7 +680,7 @@ public:
 	inline double nan_vvalue( double x, double y ) const
 	{
 		assert__( mOrdered );
-		return compute_value( x, y, std::numeric_limits<double>::quiet_NaN(), &CZFXYPlotParameters::vnearest_x, &CZFXYPlotParameters::vnearest_y );
+		return compute_value( x, y, Invalid< double >(), &CZFXYPlotParameters::vnearest_x, &CZFXYPlotParameters::vnearest_y );
 	}
 
 
@@ -753,7 +762,7 @@ struct CMapPlotParameters : public CZFXYPlotParameters
 
 		//	  if (Projection == VTK_PROJ2D_MERCATOR)
 		//	  {
-		//bOk &= maps(0).mValidMercatorLatitudes[ i ];
+        //bOk = bOk && maps(0).mValidMercatorLatitudes[ i ];
 		//	  }
 		//
 		return bOk;

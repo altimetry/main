@@ -32,12 +32,6 @@
 ///////////////////////////////////////////////////////////////////////////////////////////
 
 
-// When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
-// give you the file name and line number where it occurred.
-// Needs to be included after all #include commands
-//#include "libbrathl/Win32MemLeaksAccurate.h"
-
-
 using namespace brathl;
 
 
@@ -46,13 +40,7 @@ using namespace brathl;
 //static
 const std::string CBratTaskFunction::sm_TASK_FUNC_COPYFILE = "BratTaskFunctionCopyFile";
 
-//const QString CBratTask::FormatISODateTime = "%Y-%m-%d %H:%M:%S";
 
-//const std::string CBratTask::m_BRAT_STATUS_ENDED_LABEL = "ended";
-//const std::string CBratTask::m_BRAT_STATUS_ERROR_LABEL = "error";
-//const std::string CBratTask::m_BRAT_STATUS_PENDING_LABEL = "pending";
-//const std::string CBratTask::m_BRAT_STATUS_PROCESSING_LABEL = "in progress";
-//const std::string CBratTask::m_BRAT_STATUS_WARNING_LABEL = "warning";
 
 //-------------------------------------------------------------
 //------------------- CBratTaskFunction class --------------------
@@ -105,12 +93,10 @@ void CBratTaskFunction::BratTaskFunctionCopyFile( CVectorBratAlgorithmParam& arg
 //----------------------------------------
 void CBratTaskFunction::Dump( std::ostream& fOut /*= std::cerr*/ )
 {
-	// femm: comment in, when trace and log modules decoupled from all externals stuff
-	//
-	//if (! CTrace::IsTrace())
-	//{
-	//  return;
-	//}
+	if ( !CTrace::IsTrace() )
+	{
+	  return;
+	}
 
 	fOut << "==> Dump a CBratTaskFunction Object at " << this << std::endl;
 	fOut << "m_name: " << m_name << std::endl;
@@ -247,13 +233,10 @@ void CMapBratTaskFunction::RemoveAll()
 //----------------------------------------
 void CMapBratTaskFunction::Dump(std::ostream& fOut /* = std::cerr */)
 {
-
-	// femm: comment in, when trace and log modules decoupled from all externals stuff
-	//
-   //if (CTrace::IsTrace() == false)
-   //{ 
-   //   return;
-   //}
+   if (CTrace::IsTrace() == false)
+   { 
+      return;
+   }
 
    fOut << "==> Dump a CMapBratTaskFunction Object at "<< this << " with " <<  size() << " elements" << std::endl;
 
@@ -319,7 +302,7 @@ CBratTask::CBratTask( const task &oxml )				//USED ON LOAD
 	//}
 
 	//8
-	if ( oxml.task1().present() )										//TODO: NOT CLEAR so far: there can only be one child at the same level????????
+	if ( oxml.task1().present() )									//TODO: NOT CLEAR so far: there can only be one child at the same level?...
 		GetSubordinateTasks()->Insert( new CBratTask( *oxml.task1() ) );
 }
 
@@ -364,12 +347,8 @@ task& CBratTask::IOcopy( task &oxml ) const			//USED ON STORE
 
 void CBratTask::Dump( std::ostream& fOut )	//fOut = std::cerr
 {
-	// femm !!! : comment in, when trace and log modules decoupled from all externals stuff
-	//
-	//if (! CTrace::IsTrace())
-	//{
-	//  return;
-	//}
+	if ( !CTrace::IsTrace() )
+	  return;
 
 	fOut << "==> Dump a CBratTask Object at " << this << std::endl;
 
@@ -415,7 +394,7 @@ void CMapBratTask::Dump(std::ostream& fOut /* = std::cerr */)
 //------------------- CVectorBratTask class --------------------
 //-------------------------------------------------------------
 
-//---------------------------------------- femm: new
+//---------------------------------------- v4: new
 bool CVectorBratTask::operator == ( const CVectorBratTask &o ) const
 {
 	const size_t size = base_t::size();

@@ -312,7 +312,7 @@ bool CTreeWorkspace::SaveConfig( std::string &error_msg, CWorkspaceOperation *wk
 
 	do
 	{
-		bOk &= GetCurrentData()->SaveConfig( error_msg, wkso, wksd, flush );
+        bOk = bOk && GetCurrentData()->SaveConfig( error_msg, wkso, wksd, flush );
 	} while ( this->SubTreeWalkDown() );
 
 	return bOk;

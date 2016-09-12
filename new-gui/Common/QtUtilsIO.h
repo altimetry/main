@@ -342,6 +342,10 @@ inline bool CopyFileProc( const QString &src_path, const QString &dest_path )
 
 }
 
+
+
+#if !defined(PRE_CPP11)
+
 // How to set filters:
 //
 inline bool TraverseDirectory( const QString &sourceFolder, const QString &destFolder, const QStringList &filters, 
@@ -413,6 +417,7 @@ inline bool SafeDuplicateFile( const std::string &SourcePath, const std::string 
     return DuplicateFile(SourcePath, DestinationPath);
 }
 
+#endif
 
 
 #endif		//BRAT_QT_UTILS_IO_H

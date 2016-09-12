@@ -25,25 +25,10 @@
 #include "new-gui/Common/DataModels/TaskProcessor.h"
 #include "new-gui/Common/GUI/ApplicationUserPaths.h"
 
-#if defined(MEM_LEAKS)
-	#include "new-gui/Common/WinMemChecker.h"
-	MemChecker MemChecker::instance;
-
-	_CrtMemState CSchedulerApplication::FirstState;			//before all run-time allocations
-	_CrtMemState CSchedulerApplication::BeforeRunState;		//after app creation, before running engine
-	_CrtMemState CSchedulerApplication::AfterRunState;		//after running engine, before de-allocating
-#endif
 
 
 bool CSchedulerApplication::smPrologueCalled = false;
 const CApplicationUserPaths *CSchedulerApplication::smApplicationPaths = nullptr;
-
-
- 
-// When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
-// give you the file name and line number where it occurred.
-// Needs to be included after all #include commands
-#include "libbrathl/Win32MemLeaksAccurate.h"
 
 
 // Static "pre-constructor"
@@ -105,6 +90,7 @@ void CSchedulerApplication::Prologue( int argc, char *argv[], const char *app_na
 }
 
 
+
 // Tries to create a QApplication on-the-fly to able to use the
 //	 GUI, since the only place we will call this is in main, where
 //	everything else has failed.
@@ -124,11 +110,13 @@ int CSchedulerApplication::OffGuiErrorDialog( int error_code, char const *error_
 }
 
 
-CSchedulerApplication::CSchedulerApplication( int &argc, char **argv, int flags )
-    : base_t( argc, argv, flags )
-{
-	//TODO QCoreApplication::setApplicationName("your title") 
 
+// (*) only for debugging, do not pass an id as 1st argument to be less 
+// restrictive (allowing different executable file instances to run)
+//
+CSchedulerApplication::CSchedulerApplication( int &argc, char **argv )
+    : base_t( "brat-scheduler", argc, argv )							//(*)
+{
     assert__( smPrologueCalled );
 	if ( !smPrologueCalled )
 		throw CException( "CBratApplication Prologue must be called before application construction." );
@@ -151,148 +139,29 @@ CSchedulerApplication::CSchedulerApplication( int &argc, char **argv, int flags 
 
     ::xercesc::XMLPlatformUtils::Initialize();
 
-#if defined(MEM_LEAKS)
-	_CrtMemCheckpoint( &FirstState );			//set first flag
-#endif
 
+    //	II. Locale
 
-    //	II. Logging
-
-    // To be sure that number have always a decimal point (and not a comma or something else)
+    // v3 note: To be sure that number have always a decimal point (and not a comma or something else)
     //
     setlocale( LC_NUMERIC, "C" );
+
 
     //	III. Locate data directory
 
     CTools::SetInternalDataDir( smApplicationPaths->mInternalDataDir );
-
-    /*
-    //	IV. Units System
-
-    std::string errorMsg;
-    if ( !CTools::LoadAndCheckUdUnitsSystem( errorMsg ) )
-    {
-        std::cerr << errorMsg << std::endl;
-        ::wxMessageBox( errorMsg.c_str(), "BRAT ERROR" );
-
-        DeleteChecker(); // OnExit() won't be called if we return false
-
-        return false;
-    }
-
-    //	V. Application Configuration
-
-    try
-    {
-        LoadConfigBratGui();
-    }
-    catch ( CException &e )
-    {
-        std::cerr << errorMsg << std::endl;
-        wxMessageBox( std::string::Format( "An error occured while loading BratGui configuration (CBratSchedulerApp::LoadConfigBratGui)\nNavive exception: %s", e.what() ),
-            "Warning",
-            wxOK | wxCENTRE | wxICON_EXCLAMATION );
-
-    }
-
-    //	V a wxWidgtes paraphernalia NOTTODO
-
-    //----------------
-    // Install listeners
-    //----------------
-    InstallEventListeners();
-
-    //	VI. Load Tasks & Create Timers
-
-    m_schedulerTimerId = ::wxNewId();
-    m_checkConfigFileTimerId = ::wxNewId();
-
-    try
-    {
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-        m_frame = new CSchedulerFrame( NULL, -1, BRATSCHEDULER_TITLE );			//tasks are loaded here by a certain CPendingPanel
-
-		CTasksProcessor* schedulerTaskConfig = CTasksProcessor::GetInstance();
-
-        // After loading, tasks whose status is 'in progress' are considered as 'pending'
-        // They have to be re-executed.
-        ChangeProcessingToPending();
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-        m_checkConfigFileTimer.SetFileName( schedulerTaskConfig->GetFullFileName() );
-        m_checkConfigFileTimer.SetOwner( this, m_checkConfigFileTimerId );
-
-        m_schedulerTimer.SetOwner( this, m_schedulerTimerId );
-    }
-    catch ( CException &e ) {
-        SimpleMsgBox( std::string::Format( "An error occured while loading Brat Scheduler configuration\nNavive exception: %s", e.what() ),
-            "Warning",
-            wxOK | wxCENTRE | wxICON_EXCLAMATION );
-    }
-
-    //	VIa. wxWidgtes paraphernalia NOTTODO
-
-    if ( m_frame == NULL )
-    {
-        DeleteChecker();
-        return false;
-    }
-
-    m_frame->Show( TRUE );
-
-    //	VII. Start timers
-
-    try
-    {
-        StartSchedulerTimer();
-        StartCheckConfigFileTimer();
-    }
-    catch ( CException &e )
-    {
-        SimpleMsgBox( std::string( e.what() ), "Warning", wxOK | wxCENTRE | wxICON_EXCLAMATION );
-    }
-
-    //m_frame->SetTitle();
-    */
 }
+
+
 
 //virtual
 CSchedulerApplication::~CSchedulerApplication()
 {
-	//_CrtMemState state, CurrentState, AfterState, ComparisonState;
-	//_CrtMemCheckpoint( &CurrentState );
-	//
-	//int _CrtMemDifference(
-	//	_CrtMemState *stateDiff,
-	//	const _CrtMemState *oldState,
-	//	const _CrtMemState *newState
-	//	);
-	//
     ::xercesc::XMLPlatformUtils::Terminate();
-	//_CrtMemCheckpoint( &AfterState );
-	//_CrtMemDifference( &ComparisonState, &CurrentState, &AfterState );
-	//_CrtMemDifference( &state, &ComparisonState, &FirstState );
-	//_CrtMemDifference( &FirstState, &FirstState, &state );
 
 	CTasksProcessor::DestroyInstance();
 }
 
-
-
-
-
-
-
-void CSchedulerApplication::dumpMemoryStatistics()
-{
-#if defined(MEM_LEAKS)
-
-	if ( MemChecker::dumpStatistics( FirstState ) /*||		//all wasted memory 
-		MemChecker::dumpStatistics( BeforeRunState )*/ )	//all memory wasted while running engine
-        OutputDebugString( _T( "Possible Memory Leaks" ) );
-
-#endif
-}
 
 
 

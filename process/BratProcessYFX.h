@@ -33,7 +33,7 @@ namespace processes
 
 class CBratProcessYFX : public CBratEmbeddedPythonProcess
 {
-	using base_t = CBratEmbeddedPythonProcess;
+    DECLARE_BASE_TYPE( CBratEmbeddedPythonProcess )
 
 public:
   CBratProcessYFX( const std::string &python_dir  );

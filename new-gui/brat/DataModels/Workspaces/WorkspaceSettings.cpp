@@ -541,7 +541,7 @@ bool CWorkspaceSettings::SaveConfig( const COperation &op, const CWorkspaceOpera
 
 	//v3 note
 	// Data mode is no more for a operation, but for each formula (data expression)
-	//bOk &= Write(ENTRY_DATA_MODE, CMapDataMode::GetInstance().IdToName(m_dataMode));
+    //bOk = bOk && Write(ENTRY_DATA_MODE, CMapDataMode::GetInstance().IdToName(m_dataMode));
 
 	// See note close to LoadConfigDesc call in LoadConfig( COperation &op, ...)
 	//
@@ -788,7 +788,7 @@ bool CWorkspaceSettings::SaveConfig( const CDisplay &d, CWorkspaceDisplay *wksd 
 		WriteValue( section, ENTRY_ZOOM, d.m_zoom.GetAsText( CDisplay::m_zoomDelimiter ) );
 
 		// the entry ENTRY_OUTPUT  is not used any more
-		//bOk &= Write(ENTRY_OUTPUT, GetOutputName());
+        //bOk = bOk && Write(ENTRY_OUTPUT, GetOutputName());
 	}
 
 	// Warning after formulas Load config conig path has changed

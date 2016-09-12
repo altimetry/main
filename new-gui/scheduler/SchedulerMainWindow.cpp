@@ -36,19 +36,8 @@
 #include "SchedulerApplication.h"
 #include "SchedulerLogger.h"
 #include "EditTasksFileDialog.h"
-#include "SchedulerDialog.h"
+#include "SchedulerMainWindow.h"
 
-
-// When debugging changes all calls to new to be calls to DEBUG_NEW allowing for memory leaks to
-// give you the file name and line number where it occurred.
-// Needs to be included after all #include commands
-#include <libbrathl/Win32MemLeaksAccurate.h>
-
-//#ifdef WIN32
-//const std::string BRATHL_ICON_FILENAME = "BratIcon.ico";
-//#else
-//const std::string BRATHL_ICON_FILENAME = "BratIcon.bmp";
-//#endif
 
 
 
@@ -58,7 +47,7 @@
 
 
 template< typename... Args >
-void CSchedulerDialog::SetTablesProperties( Args... args )
+void CSchedulerMainWindow::SetTablesProperties( Args... args )
 {
 	// lambdas
 
@@ -105,7 +94,7 @@ void CSchedulerDialog::SetTablesProperties( Args... args )
 
 
 //static 
-QString CSchedulerDialog::MakeWindowTitle( const QString &title )// = QString() //returns the application name if title is empty
+QString CSchedulerMainWindow::MakeWindowTitle( const QString &title )// = QString() //returns the application name if title is empty
 {
 	static const QString &app_title = qApp->applicationName() + build_configuration.c_str();
 
@@ -118,7 +107,7 @@ QString CSchedulerDialog::MakeWindowTitle( const QString &title )// = QString() 
 }
 
 
-void CSchedulerDialog::CreateMenuBar()
+void CSchedulerMainWindow::CreateMenuBar()
 {
     // 1. MenuBar
     QMenuBar *menuBar = new QMenuBar(this);
@@ -184,7 +173,7 @@ void CSchedulerDialog::CreateMenuBar()
 }
 
 
-void CSchedulerDialog::CreateLogTable()
+void CSchedulerMainWindow::CreateLogTable()
 {
 	static std::string names[] =
 	{
@@ -221,7 +210,7 @@ void CSchedulerDialog::CreateLogTable()
 }
 
 
-void CSchedulerDialog::CreateProcessesTable()
+void CSchedulerMainWindow::CreateProcessesTable()
 {
 
 	mProcessesTable = new CProcessesTable( this );
@@ -233,7 +222,7 @@ void CSchedulerDialog::CreateProcessesTable()
 }
 
 
-void CSchedulerDialog::UpdateTasksTables()
+void CSchedulerMainWindow::UpdateTasksTables()
 {
 	UpdateTasksTable( *CTasksProcessor::GetInstance()->GetMapPendingBratTask(), mTablePendingTask );
 	UpdateTasksTable( *CTasksProcessor::GetInstance()->GetMapEndedBratTask(), mTableEndedTask );
@@ -242,11 +231,11 @@ void CSchedulerDialog::UpdateTasksTables()
 
 
 /////////////////////////////////////////////////////////////////////////////////
-//							Constructor
+//				Constructor / Destructor / Peer Message
 /////////////////////////////////////////////////////////////////////////////////
 
 
-CSchedulerDialog::CSchedulerDialog( CSchedulerApplication &a, QWidget *parent )
+CSchedulerMainWindow::CSchedulerMainWindow( CSchedulerApplication &a, QWidget *parent )
     : base_t( parent )
     , mAppPaths( a.ApplicationPaths() )
 	, mTasksMutex( QMutex::Recursive )
@@ -260,11 +249,9 @@ CSchedulerDialog::CSchedulerDialog( CSchedulerApplication &a, QWidget *parent )
 
 	setupUi( this );
 
-    setAttribute( Qt::WA_QuitOnClose, true );
     setWindowIcon( QIcon("://images/BratIcon.png") );
 	setWindowTitle( MakeWindowTitle() );
 	CreateMenuBar();
-	SetMaximizableDialog( this );
 
 	CreateLogTable();
 	CreateProcessesTable();
@@ -295,40 +282,56 @@ CSchedulerDialog::CSchedulerDialog( CSchedulerApplication &a, QWidget *parent )
 
 	// start carousel
 
-	connect( &mSchedulerTimer, SIGNAL( timeout() ), this, SLOT( SchedulerTimerTimeout() ) );
-	connect( &mCheckConfigFileTimer, SIGNAL( timeout() ), this, SLOT( CheckConfigFileTimerTimeout() ) );
-
+	ConnectTimers();
 	StartTimers();
 }
 
 
 //virtual
-CSchedulerDialog::~CSchedulerDialog()
+CSchedulerMainWindow::~CSchedulerMainWindow()
 {
 }
 
 
-void CSchedulerDialog::HandlePeerMessage( const QString &msg )
+void CSchedulerMainWindow::HandlePeerMessage( const QString &msg )
 {
 	LOG_INFO( msg );
 }
 
 
-void CSchedulerDialog::StartTimers()
+
+
+/////////////////////////////////////////////////////////////////////////////////
+//								Handlers
+/////////////////////////////////////////////////////////////////////////////////
+
+void CSchedulerMainWindow::ConnectTimers()
+{
+	connect( &mSchedulerTimer, SIGNAL( timeout() ), this, SLOT( SchedulerTimerTimeout() ) );
+	connect( &mCheckConfigFileTimer, SIGNAL( timeout() ), this, SLOT( CheckConfigFileTimerTimeout() ) );
+}
+void CSchedulerMainWindow::DisconnectTimers()
+{
+	disconnect( &mSchedulerTimer, SIGNAL( timeout() ), this, SLOT( SchedulerTimerTimeout() ) );
+	disconnect( &mCheckConfigFileTimer, SIGNAL( timeout() ), this, SLOT( CheckConfigFileTimerTimeout() ) );
+}
+
+
+void CSchedulerMainWindow::StartTimers()
 {
 	mSchedulerTimer.start( smSCHEDULER_TIMER_INTERVAL );
 	mCheckConfigFileTimer.start( smCHECK_CONFIGFILE_TIMER_INTERVAL );
 }
 
 
-void CSchedulerDialog::StopTimers()
+void CSchedulerMainWindow::StopTimers()
 {
 	mSchedulerTimer.stop();
 	mCheckConfigFileTimer.stop();
 }
 
 
-void CSchedulerDialog::HandleProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, bool sync, void *user_data )
+void CSchedulerMainWindow::HandleProcessFinished( int exit_code, QProcess::ExitStatus exitStatus, bool sync, void *user_data )
 {
 	if ( sync )
 		mSyncProcessExecuting = false;
@@ -415,12 +418,12 @@ void CBratTaskFunctionProcess::Execute( bool detached )		//detached = false
 
 
 
-bool CSchedulerDialog::ExecuteAsync( CBratTask *task, int isubtask )	//, int isubtask = - 1
+bool CSchedulerMainWindow::ExecuteAsync( CBratTask *task, int isubtask )	//, int isubtask = - 1
 {
     CBratTask *child_task = isubtask < 0 ? task : task->GetSubordinateTasks()->at( isubtask );
     post_execution_handler_wrapper_t *handler = new post_execution_handler_wrapper_t
     {
-        task, &CSchedulerDialog::AsyncTaskFinished, isubtask
+        task, &CSchedulerMainWindow::AsyncTaskFinished, isubtask
     };
 
 	if ( task != child_task )
@@ -460,7 +463,7 @@ bool CSchedulerDialog::ExecuteAsync( CBratTask *task, int isubtask )	//, int isu
 
     return result;
 }
-void CSchedulerDialog::AsyncTaskFinished( int exit_code, QProcess::ExitStatus exitStatus, post_execution_handler_wrapper_t *phandler )
+void CSchedulerMainWindow::AsyncTaskFinished( int exit_code, QProcess::ExitStatus exitStatus, post_execution_handler_wrapper_t *phandler )
 {
 	QMutexLocker locker( &mTasksMutex );
 
@@ -493,13 +496,13 @@ void CSchedulerDialog::AsyncTaskFinished( int exit_code, QProcess::ExitStatus ex
 
 	try
 	{
-		mCheckConfigFileTimer.stop();
+		DisconnectTimers();		// mCheckConfigFileTimer.stop();
 
 		mProcessesTable->setEnabled( false );
 		mTab_EndedTasks->setEnabled( false );
 
 		//LoadSchedulerTaskConfig(true);
-		CTasksProcessor::GetInstance()->ReloadOnlyNew();
+		CTasksProcessor::GetInstance()->ReloadOnlyNew( true );		//true: block: cannot skip saving
 
 		CTasksProcessor::GetInstance()->ChangeTaskStatus( task->GetUid(), status );
 
@@ -528,7 +531,7 @@ void CSchedulerDialog::AsyncTaskFinished( int exit_code, QProcess::ExitStatus ex
 	mProcessesTable->setEnabled( true );
 	mTab_EndedTasks->setEnabled( true );
 
-	mCheckConfigFileTimer.start( smCHECK_CONFIGFILE_TIMER_INTERVAL );
+	ConnectTimers();		// mCheckConfigFileTimer.start( smCHECK_CONFIGFILE_TIMER_INTERVAL );
 
 	LOG_INFO( "All '" + task->GetName() + "' sub-tasks finished execution." );
 }
@@ -557,7 +560,7 @@ void CSchedulerDialog::AsyncTaskFinished( int exit_code, QProcess::ExitStatus ex
 //	this->AddProcess( process );
 //}
 
-void CSchedulerDialog::SchedulerTimerTimeout()
+void CSchedulerMainWindow::SchedulerTimerTimeout()
 {
 	QMutexLocker locker( &mTasksMutex );
 
@@ -572,13 +575,15 @@ void CSchedulerDialog::SchedulerTimerTimeout()
 
 			//CBratSchedulerApp::OnBratTaskProcess
 
-			mCheckConfigFileTimer.stop();
+			DisconnectTimers();		// mCheckConfigFileTimer.stop();
 
 			mTab_PendingTasks->setEnabled( false );
 			mProcessesTable->setEnabled( false );
 			//tab_EndedTasks;
 
-			if ( CTasksProcessor::GetInstance()->ReloadOnlyNew() && CTasksProcessor::GetInstance()->HasMapNewBratTask() )		//LoadSchedulerTaskConfig(true);
+			// (*) false: skip reading file if necessary: not a definitive problem to skip new tasks, they'll be read later
+			//
+			if ( CTasksProcessor::GetInstance()->ReloadOnlyNew( false ) && CTasksProcessor::GetInstance()->HasMapNewBratTask() )	//(*)	//LoadSchedulerTaskConfig(true);
 			{
 				//call to CPendingPanel::OnCheckFileChange(CCheckFileChangeEvent& event)
 				UpdateTasksTable( *CTasksProcessor::GetInstance()->GetMapPendingBratTask(), mTablePendingTask );
@@ -619,11 +624,11 @@ void CSchedulerDialog::SchedulerTimerTimeout()
 
 	mTab_PendingTasks->setEnabled( true );
 	mProcessesTable->setEnabled( true );
-	mCheckConfigFileTimer.start( smCHECK_CONFIGFILE_TIMER_INTERVAL );
+	ConnectTimers();						// mCheckConfigFileTimer.start( smCHECK_CONFIGFILE_TIMER_INTERVAL );
 }
 
 
-void CSchedulerDialog::CheckConfigFileTimerTimeout()
+void CSchedulerMainWindow::CheckConfigFileTimerTimeout()
 {
 	QMutexLocker locker( &mTasksMutex );
 
@@ -632,13 +637,15 @@ void CSchedulerDialog::CheckConfigFileTimerTimeout()
 		QDateTime most_recent = QFileInfo( mSchedulerFilePath.c_str() ).lastModified();
 		if ( most_recent > mLastCheck )									  //CBratSchedulerApp::OnCheckFileChange
 		{
-			mCheckConfigFileTimer.stop();
+			DisconnectTimers();		// mCheckConfigFileTimer.stop();
 			mLastCheck = most_recent;
 
-			if ( CTasksProcessor::GetInstance()->ReloadOnlyNew() )												//creates a temporary CTasksProcessor to use in AddNewTasksFromSibling
+			// (*) false: skip reading file if necessary: not a definitive problem to skip new tasks, they'll be read later
+			//
+			if ( CTasksProcessor::GetInstance()->ReloadOnlyNew( false ) )						//creates a temporary CTasksProcessor to use in AddNewTasksFromSibling
 				UpdateTasksTable( *CTasksProcessor::GetInstance()->GetMapPendingBratTask(), mTablePendingTask );
 
-			mCheckConfigFileTimer.start( smCHECK_CONFIGFILE_TIMER_INTERVAL );
+			ConnectTimers();		// mCheckConfigFileTimer.start( smCHECK_CONFIGFILE_TIMER_INTERVAL );
 		}
 	}
 	catch ( const CException &e )
@@ -649,7 +656,7 @@ void CSchedulerDialog::CheckConfigFileTimerTimeout()
 
 
 //virtual
-void CSchedulerDialog::closeEvent( QCloseEvent *event )
+void CSchedulerMainWindow::closeEvent( QCloseEvent *event )
 {
 	QTimer::singleShot( 0, qApp, SLOT( quit() ) );
 
@@ -664,20 +671,20 @@ void CSchedulerDialog::closeEvent( QCloseEvent *event )
 
 Q_DECLARE_METATYPE( CBratTask* )
 
-void CSchedulerDialog::SetItemProcessData( QTableWidget *table, int index, CBratTask *task )
+void CSchedulerMainWindow::SetItemProcessData( QTableWidget *table, int index, CBratTask *task )
 {
 	QTableWidgetItem *widgetItem = table->item( index, CProcessesTable::eProcessCmdLine ); 
 	widgetItem->setData( Qt::UserRole, QVariant::fromValue( task ) );
 }
 
-CBratTask* CSchedulerDialog::GetItemProcessData( QTableWidget *table, int index ) const
+CBratTask* CSchedulerMainWindow::GetItemProcessData( QTableWidget *table, int index ) const
 {
 	QTableWidgetItem *widgetItem = table->item( index, CProcessesTable::eProcessCmdLine );
 	return widgetItem->data( Qt::UserRole ).value< CBratTask* >();
 }
 
 
-bool CSchedulerDialog::RemoveTaskFromTable( QTableWidget *table, const CBratTask *task )
+bool CSchedulerMainWindow::RemoveTaskFromTable( QTableWidget *table, const CBratTask *task )
 {
 	const int size = table->rowCount();
 	for ( int index = 0; index < size; ++index )
@@ -693,7 +700,7 @@ bool CSchedulerDialog::RemoveTaskFromTable( QTableWidget *table, const CBratTask
 }
 
 
-void CSchedulerDialog::AddTaskToTable( QTableWidget *table, CBratTask *task )
+void CSchedulerMainWindow::AddTaskToTable( QTableWidget *table, CBratTask *task )
 {
 	int index = table->rowCount();
 	table->setRowCount( index + 1 );
@@ -716,7 +723,7 @@ void CSchedulerDialog::AddTaskToTable( QTableWidget *table, CBratTask *task )
 }
 
 
-void CSchedulerDialog::UpdateTasksTable( const CMapBratTask &data, QTableWidget *table )
+void CSchedulerMainWindow::UpdateTasksTable( const CMapBratTask &data, QTableWidget *table )
 {
 	table->setRowCount( 0 );
 	for ( CMapBratTask::const_iterator it = data.begin(); it != data.end(); it++ )
@@ -732,12 +739,12 @@ void CSchedulerDialog::UpdateTasksTable( const CMapBratTask &data, QTableWidget 
 }
 
 
-void CSchedulerDialog::HandleSelectedPendingProcessChanged()
+void CSchedulerMainWindow::HandleSelectedPendingProcessChanged()
 {
 	mRemovePendTaskButton->setEnabled( mTablePendingTask->currentRow() >= 0 );
 	mClearPendTaskButton->setEnabled( mTablePendingTask->rowCount() > 0 );
 }
-void CSchedulerDialog::HandleSelectedEndedProcessChanged()
+void CSchedulerMainWindow::HandleSelectedEndedProcessChanged()
 {
 	mShowEndedLogButton->setEnabled( mTableEndedTask->currentRow() >= 0 );
 	mRemoveEndedTaskButton->setEnabled( mTableEndedTask->currentRow() >= 0 );
@@ -749,7 +756,7 @@ void CSchedulerDialog::HandleSelectedEndedProcessChanged()
 //
 ////////////////////////////////////////////////////////////////////////////////////////
 
-bool CSchedulerDialog::RemoveTasksFromTableAndMap( QTableWidget *table )
+bool CSchedulerMainWindow::RemoveTasksFromTableAndMap( QTableWidget *table )
 {
 	QMutexLocker locker( &mTasksMutex );
 
@@ -772,7 +779,7 @@ bool CSchedulerDialog::RemoveTasksFromTableAndMap( QTableWidget *table )
 }
 
 
-bool CSchedulerDialog::RemoveTaskFromTableAndMap( QTableWidget *table, CBratTask *task )
+bool CSchedulerMainWindow::RemoveTaskFromTableAndMap( QTableWidget *table, CBratTask *task )
 {
 	QMutexLocker locker( &mTasksMutex );
 
@@ -796,7 +803,7 @@ bool AskConfirmation()
 }
 
 
-void CSchedulerDialog::on_mRemovePendTaskButton_clicked()
+void CSchedulerMainWindow::on_mRemovePendTaskButton_clicked()
 {
 	int index = mTablePendingTask->currentRow();
 	if ( index < 0 || !AskConfirmation() )
@@ -807,7 +814,7 @@ void CSchedulerDialog::on_mRemovePendTaskButton_clicked()
 	HandleSelectedPendingProcessChanged();			
 }
 
-void CSchedulerDialog::on_mClearPendTaskButton_clicked()
+void CSchedulerMainWindow::on_mClearPendTaskButton_clicked()
 {
 	if ( !AskConfirmation() )
 		return;
@@ -816,7 +823,7 @@ void CSchedulerDialog::on_mClearPendTaskButton_clicked()
 	HandleSelectedPendingProcessChanged();			
 }
 
-void CSchedulerDialog::on_mRemoveEndedTaskButton_clicked()
+void CSchedulerMainWindow::on_mRemoveEndedTaskButton_clicked()
 {
 	int index = mTableEndedTask->currentRow();
 	if ( index < 0 || !AskConfirmation() )
@@ -827,7 +834,7 @@ void CSchedulerDialog::on_mRemoveEndedTaskButton_clicked()
 	HandleSelectedEndedProcessChanged();			
 }
 
-void CSchedulerDialog::on_mClearEndedTaskButton_clicked()
+void CSchedulerMainWindow::on_mClearEndedTaskButton_clicked()
 {
 	if ( !AskConfirmation() )
 		return;
@@ -844,7 +851,7 @@ void CSchedulerDialog::on_mClearEndedTaskButton_clicked()
 
 // Ended Tasks Tab
 //
-void CSchedulerDialog::on_mShowEndedLogButton_clicked()
+void CSchedulerMainWindow::on_mShowEndedLogButton_clicked()
 {
 	int index = mTableEndedTask->currentRow();
 	if ( index < 0 )
@@ -863,14 +870,14 @@ void CSchedulerDialog::on_mShowEndedLogButton_clicked()
 }
 
 
-void CSchedulerDialog::action_ViewConfig_slot()
+void CSchedulerMainWindow::action_ViewConfig_slot()
 {
     CEditTasksFileDialog dlg( "", CTasksProcessor::GetInstance()->SchedulerFilePath(), this );
     dlg.exec();
 }
 
 
-void CSchedulerDialog::action_UserManual_slot()
+void CSchedulerMainWindow::action_UserManual_slot()
 {
     if ( !SimpleSystemOpenFile( mAppPaths->mUserManualPath ) )
 //	if ( !QDesktopServices::openUrl( QUrl::fromLocalFile( mAppPaths->mUserManualPath.c_str() ) ) )
@@ -878,13 +885,13 @@ void CSchedulerDialog::action_UserManual_slot()
 }
 
 
-void CSchedulerDialog::action_About_slot()
+void CSchedulerMainWindow::action_About_slot()
 {
 	SimpleAbout( BRAT_VERSION, PROCESSOR_ARCH, "CNES/ESA" );
 }
 
 
-void CSchedulerDialog::action_ToggleTimers_slot( bool checked )
+void CSchedulerMainWindow::action_ToggleTimers_slot( bool checked )
 {
 	checked ? StartTimers() : StopTimers();
 }
@@ -895,4 +902,4 @@ void CSchedulerDialog::action_ToggleTimers_slot( bool checked )
 //
 ///////////////////////////////////////////////////////////////////////////////////////////
 
-#include "moc_SchedulerDialog.cpp"
+#include "moc_SchedulerMainWindow.cpp"

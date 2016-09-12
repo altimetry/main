@@ -50,13 +50,15 @@ void createAlgorithmParamVector( PyAlgo &algo, CVectorBratAlgorithmParam &args, 
 
 
 
+void usage()
+{
+    std::cout << "Usage: RunPythonAlgorithm <python-algorithm-file> <algorithm-class-name> [list-of-algorithm-arguments]" << std::endl;
+}
+
+
+
 int main(int argc, char *argv[])
 {
-    static auto usage =[]()
-    {
-        std::cout << "Usage: RunPythonAlgorithm <python-algorithm-file> <algorithm-class-name> [list-of-algorithm-arguments]" << std::endl;
-    };
-
     if ( argc < 3 ) {
         std::cout << "Error calling RunPythonAlgorithm: wrong number of parameters." << std::endl;
         usage();

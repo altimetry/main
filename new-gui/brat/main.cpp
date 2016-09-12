@@ -31,6 +31,29 @@ static const char *app_name = "brat";
 
 //_NO_DEBUG_HEAP=1
 
+#if defined (Q_OS_LINUX)
+
+#include <stdio.h>
+#include <stdint.h>
+#include <dlfcn.h>
+
+void exit( int status )
+{
+    UNUSED( status );
+
+    using exit_t = void (*)(int);
+    static exit_t my_exit = NULL;
+    printf("inside shared object...\n");
+    if (!my_exit)
+        my_exit = (exit_t)dlsym(RTLD_NEXT, "exit");  // returns lib function pointer
+
+    throw CException("exit called");
+}
+
+#endif
+
+
+
 
 int main( int argc, char *argv[] )
 try {

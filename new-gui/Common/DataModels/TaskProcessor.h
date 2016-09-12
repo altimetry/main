@@ -23,6 +23,7 @@
 #include "BratTask.h"
 #include "new-gui/Common/ScheduledTasksList.hxx"
 #include "new-gui/Common/XmlSerializer.h"
+#include "new-gui/Common/QtUtilsIO.h"
 
 
 class CApplicationUserPaths;
@@ -75,10 +76,13 @@ protected:
 	}
 
 public:
-	static CTasksProcessor* GetInstance( bool reload = false, bool lockFile = true, bool unlockFile = true );
 
-	static CTasksProcessor* CreateInstance( const std::string&scheduler_name, const CApplicationUserPaths &app_paths, 
-		bool reload = false, bool lockFile = true, bool unlockFile = true );
+	static CTasksProcessor* GetInstance()
+	{
+	    return smInstance;
+	}
+
+	static CTasksProcessor* CreateInstance( const std::string&scheduler_name, const CApplicationUserPaths &app_paths );
 
 	static void DestroyInstance()
 	{
@@ -142,7 +146,7 @@ protected:
 	{}
 
 	CTasksProcessor( const std::string &path ) :
-		  m_fullFileName( path )
+		  m_fullFileName( NormalizedPath( path ) )
 		, mLockedFile( path.c_str() )
 		, mPendingTasksMap( false )
 		, mProcessingTasksMap( false )
@@ -156,15 +160,16 @@ protected:
 	// Called by factory, also used by CSchedulerTaskConfig
 	// Assumes construction through CreateInstance
 
-	CTasksProcessor( const std::string &path, bool lockFile, bool unlockFile ) : 
-		  m_fullFileName( path )
+	CTasksProcessor( const std::string &path, bool, bool ) : 
+		  m_fullFileName( NormalizedPath( path ) )
 		, mLockedFile( path.c_str() )
 		, mPendingTasksMap( false )
 		, mProcessingTasksMap( false )
 		, mEndedTasksMap( false )
 		, m_mapNewBratTask( false )
 	{
-		std::pair< bool, std::string > result = LoadAndCreateTasks( lockFile, unlockFile );
+		std::pair< bool, std::string > result;
+		result.first = LoadAllTasks( true, result.second );
 		if ( !result.first )
 			throw CException( result.second, BRATHL_ERROR );
 	}
@@ -182,7 +187,7 @@ public:
 	CBratTask* CreateCmdTaskAsPending( CBratTask *parent, const std::string& cmd, const QDateTime& at, const std::string& name, const std::string& log_dir );
 	CBratTask* CreateFunctionTaskAsPending( CBratTask *parent, const std::string& function, CVectorBratAlgorithmParam& params, const QDateTime& at, const std::string& name, const std::string& log_dir );
 
-	virtual bool LoadAllTasks( std::string &xml_error_msg );
+	virtual bool LoadAllTasks( bool block, std::string &xml_error_msg );
 
 	////////////////
 	// Find
@@ -243,7 +248,6 @@ protected:
 	///////////////////////////////////////
 
 protected:
-	virtual std::pair< bool, std::string > LoadAndCreateTasks( bool lockFile = true, bool unlockFile = true );
 
 	virtual bool AddNewTasksFromSibling( CTasksProcessor* sched );
 
@@ -252,8 +256,11 @@ public:
 
 	// scheduler interface
 
-	bool ReloadOnlyNew( //std::function<CTasksProcessor*(const std::string &filename, bool lockFile, bool unlockFile)> factory,
-		bool lockFile = true, bool unlockFile = true );
+#if defined(BRAT_V3)
+	bool ReloadOnlyNew( bool block, bool lockFile, bool unlockFile );
+#else
+	bool ReloadOnlyNew( bool block, bool lockFile = true, bool unlockFile = true );
+#endif
 
 	void GetMapPendingBratTaskToProcess( std::vector<uid_t> *tasks2process );	//const wxDateTime& dateref,  femm
 
@@ -269,10 +276,11 @@ public:
 
 protected:
 
+	bool TryLock( const std::string &lock_path, QtLockedFile::OpenMode open_mode, QtLockedFile::LockMode lock_mode, bool block );
 
-	bool store( const std::string &path );
+	bool store( const std::string &path, bool block );
 
-	bool load( const std::string &path );
+	bool load( const std::string &path, bool block );
 
 
 	///////////////////////////////////////
@@ -295,20 +303,8 @@ protected:
 	// terminates. This is true even when the program crashes and no destructors are called.
 
 protected:
-	virtual bool LockConfigFile( bool lockFile = true )
-	{
-        UNUSED( lockFile );
-
-		// TODO
-
-		return true;
-	}
-	virtual void UnLockConfigFile( bool unlockFile )
-	{
-        UNUSED( unlockFile );
-
-        // TODO
-	}
+	virtual bool LockConfigFile( bool block, bool lockFile );
+	virtual void UnLockConfigFile( bool unlockFile );
 
 
 
@@ -334,8 +330,6 @@ protected:
 
 	virtual void RemoveMapBratTasks()
 	{
-		//wxCriticalSectionLocker locker( m_critSectMapBratTask );		//TODO
-
 		mPendingTasksMap.RemoveAll();
 		mProcessingTasksMap.RemoveAll();
 		mEndedTasksMap.RemoveAll();

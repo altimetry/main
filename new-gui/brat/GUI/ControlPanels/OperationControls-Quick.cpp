@@ -668,7 +668,7 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 		}
 	}									 assert__( fields.size() > 0 );
 
-	add_selection_criteria &= mQuickSelectionCriteriaCheck->isChecked();
+    add_selection_criteria = add_selection_criteria && mQuickSelectionCriteriaCheck->isChecked();
 
 	for ( auto const &expression : fields )
     {

@@ -101,7 +101,7 @@ public:
 
 protected:
 
-    mutable bool mValid = false;
+    mutable bool mValid;    // = false; do not initialize here: code used by pre-c++11 compilers
     mutable std::string mErrorMsg;
 
     ////////////////////////////////////////////

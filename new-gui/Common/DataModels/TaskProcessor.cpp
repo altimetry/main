@@ -45,39 +45,13 @@ CTasksProcessor* CTasksProcessor::smInstance = nullptr;
 std::function< CTasksProcessor*( const std::string &path, bool lockFile, bool unlockFile ) > CTasksProcessor::smFactory = nullptr;
 
 
-
 //static 
-CTasksProcessor* CTasksProcessor::GetInstance( bool reload /* = false */, bool lockFile /* = true */, bool unlockFile )
-{
-    //wxCriticalSectionLocker locker( m_critSectSchedulerTaskConfigInstance );			// TODO
-	
-    if ( smInstance )
-	{
-		if ( reload )
-		{
-            if ( smInstance->IsReloadAll() )
-			{
-                smInstance->LoadAndCreateTasks( lockFile, unlockFile );		//TODO: ERROR HANDLING
-			}
-			else
-			{
-				// "Reload" function just load (add in memory) new defined tasks from the configuration file
-                smInstance->ReloadOnlyNew( lockFile, unlockFile );
-			}
-		}
-	}
-
-    return smInstance;
-}
-
-//static 
-CTasksProcessor* CTasksProcessor::CreateInstance( const std::string&scheduler_name, const CApplicationUserPaths &app_paths, bool reload, bool lockFile, bool unlockFile )		//reload = false, bool lockFile = true, bool unlockFile = true
+CTasksProcessor* CTasksProcessor::CreateInstance( const std::string&scheduler_name, const CApplicationUserPaths &app_paths )
 {
 #if defined(BRAT_V3)
 	static const std::string path = scheduler_name;	//HACK scheduler_name used as tasks file path
 #else
-	static const std::string path = 
-		app_paths.DefaultUserDataPath4Application( scheduler_name, true ) + "/" + smFileName + ".xml";
+	static const std::string path = app_paths.DefaultUserDataPath4Application( scheduler_name, true ) + "/" + smFileName + ".xml";
 #endif
 	static bool called = false;			assert__( !called );
 	called = true;
@@ -92,7 +66,7 @@ CTasksProcessor* CTasksProcessor::CreateInstance( const std::string&scheduler_na
 		std::string error_msg;
 		try
 		{
-            smInstance = smFactory( path, lockFile, unlockFile );		//factory calls constructor (of course), which loads XML
+            smInstance = smFactory( path, true, true );		//factory calls constructor (of course), which loads XML
 		}
 		catch ( CException& e )
 		{
@@ -111,8 +85,8 @@ CTasksProcessor* CTasksProcessor::CreateInstance( const std::string&scheduler_na
 			throw CException( msg, BRATHL_ERROR );
 		}
 	}
-
-	return GetInstance( reload, lockFile, unlockFile );
+	
+	return GetInstance();		//return GetInstance( reload, lockFile, unlockFile );
 }
 
 
@@ -122,73 +96,6 @@ CTasksProcessor* CTasksProcessor::CreateInstance( const std::string&scheduler_na
 //			Serialization
 ///////////////////////////////////////
 ///////////////////////////////////////
-
-
-std::pair< bool, std::string > CTasksProcessor::LoadAndCreateTasks( bool lockFile, bool unlockFile )		//lockFile = true, bool unlockFile = true, const std::string& encoding = wxT("UTF-8"), int flags = wxXMLDOC_NONE
-{
-	if ( !LockConfigFile( lockFile ) )
-	{
-		UnLockConfigFile( unlockFile );
-		std::string msg = "Unable to load Brat Scheduler configuration file. Perhaps, it's used by another application - Try again later.";
-		throw CException( msg, BRATHL_WARNING );
-	}
-
-	//wxLog::SetActiveTarget( m_initialLog );				//TODO
-	//wxLogInfo( "Loading '%s' ...", fileName.c_str() );
-	//wxLog::SetActiveTarget( m_logBuffer );
-
-	//bool bOk = false;
-
-	//try
-	//{
-	//	delete DetachRoot_xml();
-
-	//	bOk = mdoc.Load( fileName, encoding(), wxXMLDOC_NONE );
-	//	if ( !bOk )
-	//	{
-	//		std::string parserError = m_logBuffer->GetBuffer();
-	//		std::string msg =
-	//			"Unable to load Brat Scheduler configuration file '"
-	//			+ fileName
-	//			+ "' -  Native error: '"
-	//			+ parserError
-	//			+ "'";
-	//		wxLog::SetActiveTarget( m_initialLog );
-
-	//		delete DetachRoot_xml();
-
-	//		throw CException( msg, BRATHL_WARNING );
-	//	}
-	//}
-	//catch ( const CException& )
-	//{
-	//	UnLockConfigFile( unlockFile );
-	//	throw;
-	//}
-	//catch ( const std::exception& )
-	//{
-	//	UnLockConfigFile( unlockFile );
-	//	throw;
-	//}
-	//catch ( ... )
-	//{
-	//	UnLockConfigFile( unlockFile );
-	//	throw CException( "Unexpected error while loading Brat Scheduler configuration file - No Context and no message have been set for this error", BRATHL_ERROR );
-	//}
-
-	//wxLog::SetActiveTarget( m_initialLog );	 				//TODO
-
-	//if ( bOk )
-	std::pair< bool, std::string > result;
-
-	result.first = LoadAllTasks( result.second );
-
-	UnLockConfigFile( unlockFile );
-
-	//wxLogInfo( "'%s' loaded.", fileName.c_str() );			//TODO
-
-	return result;
-}
 
 
 
@@ -251,71 +158,110 @@ bratSchedulerConfig& CTasksProcessor::IOcopy( bratSchedulerConfig &oxml ) const	
 
 void TestLock( const QtLockedFile &lf )
 {
+#if defined(DEBUG) || defined(_DEBUG)
 	int m = lf.lockMode();
 	if ( m == 0 )
 		qDebug() << "\n[*] You have no locks.";
 	else if ( m == QFile::ReadOnly )
 		qDebug() << "\n[*] You have a read lock.";
 	else
-		qDebug() << "\n[*] You have a read/write lock.";
+	{
+		assert__( m == QFile::ReadWrite || m == QFile::WriteOnly );
+		qDebug() << "\n[*] You have a write or read/write lock.";
+	}
+#else
+	Q_UNUSED( lf );
+#endif
 }
 
-const bool blocking = true;
 
-bool CTasksProcessor::store( const std::string &path )
+
+bool CTasksProcessor::TryLock( const std::string &lock_path, QtLockedFile::OpenMode open_mode, QtLockedFile::LockMode lock_mode, bool block )
 {
 	bool result = false;
-	{
-		std::ofstream ofs( path, std::ofstream::out/* | std::ofstream::trunc */);
-		if ( !mLockedFile.open( QFile::ReadWrite ) )					//QFile::WriteOnly 
-			qDebug() << "wtf...";
-
-		TestLock( mLockedFile );
-		//
-		if ( mLockedFile.lock( QtLockedFile::WriteLock, blocking ) )
-			qDebug() << "done!\n";
-		else
-			qDebug() << "not currently possible!\n";
-		//
-		TestLock( mLockedFile );
-
-		result = ::store( *this, ofs );
-	}
-	if ( !mLockedFile.unlock() )
-		qDebug() << "Could not unlock file.";
-	//smLockedFile.flush();
-	mLockedFile.close();
-
-	return result;
-
-	//return ::store( *this, path );
-}
-
-bool CTasksProcessor::load( const std::string &path )
-{
-	std::ifstream ifs( path, std::ifstream::in );
-	if ( !mLockedFile.open( QFile::ReadOnly ) )					//QFile::ReadWrite 
-		qDebug() << "wtf...";
-
-	TestLock( mLockedFile );
-	//
-	if ( mLockedFile.lock( QtLockedFile::ReadLock, blocking ) )
-		qDebug() << "done!\n";
+	if ( !mLockedFile.open( open_mode ) )
+		LOG_WARN( "Locked file " + lock_path + " failed to open" );
 	else
-		qDebug() << "not currently possible!\n";
-	//
-	TestLock( mLockedFile );
-
-	bool result = ::load( *this, ifs );
-
-	if ( !mLockedFile.unlock() )
-		qDebug() << "Could not unlock file.";
-	mLockedFile.close();
-
+	{
+		TestLock( mLockedFile );
+		//
+		if ( mLockedFile.lock( lock_mode, block ) )
+		{
+			result = true;
+			qDebug() << "done!\n";
+		}
+		else
+		{
+			qDebug() << "not currently possible.";
+		}
+		qDebug() << "Blocking: " << ( block ? "yes" : "no" );
+		//
+		TestLock( mLockedFile );
+	}
 	return result;
-
-	//return ::load( *this, path );
 }
+
+bool CTasksProcessor::store( const std::string &path, bool block )
+{
+	std::string lock_path = q2a( mLockedFile.fileName() );		assert__( lock_path == m_fullFileName );
+	bool lock = NormalizedPath( path ) == lock_path;
+	bool result = !lock;
+	{
+		std::ofstream ofs( path, std::ofstream::out );			//do not use " | std::ofstream::trunc "
+		if ( lock )
+			result = TryLock( lock_path, QFile::ReadWrite, QtLockedFile::WriteLock, block );
+
+		result = result && ::store( *this, ofs );
+	}
+
+	if ( lock )
+	{
+		if ( !mLockedFile.unlock() )
+			LOG_WARN( "Could not unlock file " + lock_path );	//smLockedFile.flush();
+		mLockedFile.close();
+	}
+
+	return result;	//return ::store( *this, path );
+}
+
+bool CTasksProcessor::load( const std::string &path, bool block )
+{
+	std::string lock_path = q2a( mLockedFile.fileName() );		assert__( lock_path == m_fullFileName );
+	bool lock = NormalizedPath( path ) == lock_path;
+	bool result = !lock;
+	{
+		std::ifstream ifs( path, std::ifstream::in );
+		if ( lock )
+			result = TryLock( lock_path, QFile::ReadOnly, QtLockedFile::ReadLock, block );
+
+		result = result && ::load( *this, ifs );
+	}
+
+	if ( lock )
+	{
+		if ( !mLockedFile.unlock() )
+			LOG_WARN( "Could not unlock file " + lock_path );
+		mLockedFile.close();
+	}
+
+	return result;	//return ::load( *this, path );
+}
+
+
+//virtual 
+bool CTasksProcessor::LockConfigFile( bool block, bool lockFile )	//lockFile = true 
+{
+    UNUSED( block );		UNUSED( lockFile );
+
+	return true;
+}
+//virtual 
+void CTasksProcessor::UnLockConfigFile( bool unlockFile )
+{
+    UNUSED( unlockFile );
+}
+
+
 
 
 
@@ -366,7 +312,7 @@ bool CTasksProcessor::SaveAllTasks()
     std::string ex;
     bool result = true;
 	try {
-		result = store( m_fullFileName );
+		result = store( m_fullFileName, true );		//true: block until save can be done
 	}
 	catch ( const xml_schema::exception& e )
 	{
@@ -379,7 +325,7 @@ bool CTasksProcessor::SaveAllTasks()
 }
 
 //virtual 
-bool CTasksProcessor::LoadAllTasks( std::string &xml_error_msg )
+bool CTasksProcessor::LoadAllTasks( bool block, std::string &xml_error_msg )
 {
 	// lambdas
 
@@ -405,23 +351,26 @@ bool CTasksProcessor::LoadAllTasks( std::string &xml_error_msg )
 	try {
 		if ( !IsFile( m_fullFileName ) )
 		{
-			result = store( m_fullFileName );
+			result = store( m_fullFileName, true );
 		}
 
-		result = result && load( m_fullFileName );
+		result = result && load( m_fullFileName, block );
 
 #if defined(DEBUG) || defined(_DEBUG)
 
-        std::string debug_path = std::string( getenv( "S3ALTB_ROOT" ) ) + "/project/dev/support/data/scheduler/" + smFileName + "_backup.xml";
-        CTasksProcessor debug_tasks( debug_path );
 		if ( result )
 		{
-			result = store( debug_path );
+			std::string debug_path = std::string( getenv( "S3ALTB_ROOT" ) ) + "/project/dev/support/data/scheduler/" + smFileName + "_backup.xml";
+			CTasksProcessor debug_tasks( debug_path );
 			if ( result )
-				result = debug_tasks.load( debug_path );
-		}
+			{
+				result = store( debug_path, false );				//false won't be used
+				if ( result )
+					result = debug_tasks.load( debug_path, true );
+			}
 
-		assert__( result && debug_tasks == *this );
+			assert__( result && debug_tasks == *this );
+		}
 
 #endif
 
@@ -484,23 +433,6 @@ bool CTasksProcessor::AddNewTasksFromSibling( CTasksProcessor* sched )
 		CBratTask* bratTask = m_mapBratTask.Find( id );
 		if ( bratTask == nullptr )
 		{
-			//wxLogInfo( "Add task '%s' to pending std::list", bratTaskNew->GetUidAsString().c_str() );			// TODO
-
-			//wxXmlNode* nodeNew = sched->FindTaskNode_xml( bratTaskNew->GetUid(), sched->GetPendingTasksNode_xml(), true );
-
-			//if ( nodeNew == nullptr )
-			//{
-			//	std::string msg = 
-			//		"Unable to find task id '"
-			//		+ bratTaskNew->GetUidAsString()
-			//		+ "' in Xml file while adding new tasks (CTasksProcessor::AddNewTask) ";
-			//	throw CException( msg, BRATHL_ERROR );
-			//}
-
-			//wxXmlNode* taskNodeToAdd = new wxXmlNode( *nodeNew );
-			//wxXmlNode* pending = GetOrAddPendingTasksElement_xml();
-			//pending->AddChild( taskNodeToAdd );
-
 			CBratTask* bratTaskToAdd = new CBratTask( *bratTaskNew );
 
 			AddTaskToMap( bratTaskToAdd );
@@ -513,12 +445,11 @@ bool CTasksProcessor::AddNewTasksFromSibling( CTasksProcessor* sched )
 }
 
 
-bool CTasksProcessor::ReloadOnlyNew( /*std::function<CTasksProcessor*(const std::string &filename, bool lockFile, bool unlockFile)> factory, */
-	bool lockFile, bool unlockFile )	// lockFile = true, bool unlockFile = true
+bool CTasksProcessor::ReloadOnlyNew( bool block, bool lockFile, bool unlockFile )	//bool lockFile = true, bool unlockFile = true 
 {
 	m_mapNewBratTask.RemoveAll();
 
-	bool bOk = LockConfigFile( lockFile );
+	bool bOk = LockConfigFile( block, lockFile );
 
 	if ( !bOk )
 	{
@@ -527,18 +458,13 @@ bool CTasksProcessor::ReloadOnlyNew( /*std::function<CTasksProcessor*(const std:
 		throw CException( msg, BRATHL_WARNING );
 	}
 
-	//wxLog::SetActiveTarget( CTasksProcessor::m_initialLog );
-	//wxLogInfo( "Re-loading '%s' ...", m_fullFileName.c_str() );
-	//wxLog::SetActiveTarget( m_logBuffer );					   				// TODO
-
 	CTasksProcessor* schedulerTaskConfig = nullptr;
 	bOk = true;
 
 	std::string error_msg;
 	try
 	{
-		//schedulerTaskConfig = new CTasksProcessor( m_fullFileName, false, false );		//assert__(this->GetFileEncoding() == encoding() );
-		schedulerTaskConfig = smFactory( m_fullFileName, false, false );		//assert__(this->GetFileEncoding() == encoding() );
+		schedulerTaskConfig = smFactory( m_fullFileName, false, false );		//false, false ignored
 	}
 	catch ( CException& e )
 	{
@@ -551,7 +477,7 @@ bool CTasksProcessor::ReloadOnlyNew( /*std::function<CTasksProcessor*(const std:
 		std::string msg;
 		if ( error_msg.empty() )
 		{
-			std::string parserError; //= m_logBuffer->GetBuffer();				// TODO
+			std::string parserError;
 			msg =
 				"Unable to load Brat Scheduler configuration file '"
 				+ m_fullFileName
@@ -564,8 +490,6 @@ bool CTasksProcessor::ReloadOnlyNew( /*std::function<CTasksProcessor*(const std:
 			msg = error_msg;
 		}
 
-		//wxLog::SetActiveTarget( CTasksProcessor::m_initialLog );			// TODO
-
 		delete schedulerTaskConfig;
 		schedulerTaskConfig = nullptr;
 
@@ -574,16 +498,12 @@ bool CTasksProcessor::ReloadOnlyNew( /*std::function<CTasksProcessor*(const std:
 		throw CException( msg, BRATHL_ERROR );
 	}
 
-	//wxLog::SetActiveTarget( CTasksProcessor::m_initialLog );	   			// TODO
-
 	AddNewTasksFromSibling( schedulerTaskConfig );
 
 	delete schedulerTaskConfig;
 	schedulerTaskConfig = nullptr;
 
 	this->UnLockConfigFile( unlockFile );
-
-	//wxLogInfo( "'%s' re-loaded.", m_fullFileName.c_str() );				// TODO
 
 	return bOk;
 }
@@ -600,19 +520,12 @@ bool CTasksProcessor::ReloadOnlyNew( /*std::function<CTasksProcessor*(const std:
 
 CBratTask* CTasksProcessor::FindTaskFromMap( uid_t id )
 {
-	// ensure that no other thread accesses the id
-	//wxCriticalSectionLocker locker(m_critSectMapBratTask);			//TODO
-
 	return m_mapBratTask.Find( id );
 }
 
 
 CBratTask::uid_t CTasksProcessor::GenerateId()
 {
-	// ensure that no other thread accesses the id
-	//wxCriticalSectionLocker locker(m_criSectionMapBratTask);	femm: commented out in the original
-
-	//m_lastId = wxDateTime::UNow().GetValue();
 	m_lastId = QDateTime::currentDateTime().toMSecsSinceEpoch();	//cout << "Enter generate id " << m_lastId.GetValue() << std::endl;
 
 	CBratTask* bratTask = m_mapBratTask.Find( m_lastId );
@@ -628,8 +541,6 @@ void CTasksProcessor::GetMapPendingBratTaskToProcess( std::vector<uid_t> *tasks2
 {
 	if ( !tasks2process )
 		return;
-
-	//wxCriticalSectionLocker locker( m_critSectMapBratTask );			//TODO
 
 	for ( CMapBratTask::const_iterator it = mPendingTasksMap.begin(); it != mPendingTasksMap.end(); it++ )
 	{
@@ -731,8 +642,6 @@ void CTasksProcessor::AddTaskToMap( CBratTask* bratTask )
 	if ( !bratTask )
 		return;
 
-	//wxCriticalSectionLocker locker( m_critSectMapBratTask );		// TODO
-
 	uid_t uid = bratTask->GetUid();
 	m_mapBratTask.Insert( uid, bratTask );
 
@@ -776,8 +685,6 @@ void CTasksProcessor::AddTask2Parent( uid_t parentId, CBratTask* bratTask )
 	if ( !bratTask )
 		return;
 
-	//wxCriticalSectionLocker locker( m_critSectMapBratTask );			//TODO
-
 	CBratTask* parentBratTask = m_mapBratTask.Find( parentId );
 	if ( !parentBratTask )
 		return;
@@ -811,9 +718,6 @@ void CTasksProcessor::AddTask( const CMapBratTask* mapBratTask )
 
 bool CTasksProcessor::RemoveTaskFromMap( uid_t id )
 {
-	// ensure that no other thread accesses the id
-	//wxCriticalSectionLocker locker( m_critSectMapBratTask );			//TODO
-
 	std::string idAsString = n2s( id );
 
 	CBratTask* bratTask = m_mapBratTask.Find( id );
@@ -861,7 +765,7 @@ bool CTasksProcessor::ChangeProcessingToPending( CVectorBratTask& vectorTasks )
 {
 	vectorTasks.SetDelete( false );
 
-	// tasks will be deleted from mProcessingTasksMap by ChangeTaskStatus function
+	// v3 note: tasks will be deleted from mProcessingTasksMap by ChangeTaskStatus function
 	// Don't change status within the loop, store tasks into a vecor and then change status from std::vector tasks
 	for ( CMapBratTask::const_iterator it = mProcessingTasksMap.begin(); it != mProcessingTasksMap.end(); it++ )
 	{
@@ -887,11 +791,6 @@ bool CTasksProcessor::ChangeProcessingToPending( CVectorBratTask& vectorTasks )
 
 CTasksProcessor::EStatus CTasksProcessor::ChangeTaskStatus( uid_t id, EStatus new_status )
 {
-	//ChangeTaskStatusFromXml( id, new_status );
-	//CBratTask::EStatus current_status = ChangeTaskStatusFromMap( id, new_status );
-
-	//wxCriticalSectionLocker locker(m_critSectMapBratTask);		// TODO
-
 	CBratTask* bratTask = m_mapBratTask.Find( id );
 
 	if ( bratTask == nullptr )

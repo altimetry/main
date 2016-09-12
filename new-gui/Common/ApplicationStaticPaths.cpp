@@ -43,7 +43,6 @@
 
 
 
-const std::string BRATHL_ENVVAR = "BRAT_DATA_DIR";		//v3.1.0 legacy
 
 
 
@@ -113,7 +112,7 @@ const std::string CApplicationStaticPaths::smPythonExecutableName =
 std::string CApplicationStaticPaths::ComputeInternalDataDirectory( const std::string &ExecutableDir )
 {
     std::string InternalDataDir;
-    auto s3data = getenv( BRATHL_ENVVAR.c_str() );
+    auto s3data = getenv( BRATHL_ENVVAR );
     if ( s3data )
         InternalDataDir = s3data;
     else
@@ -144,11 +143,13 @@ bool CApplicationStaticPaths::ValidPath( std::string &error_msg, const std::stri
 
 
 
-CApplicationStaticPaths::CApplicationStaticPaths( const std::string &exec_path, const std::string &app_name ) :
+CApplicationStaticPaths::CApplicationStaticPaths( const std::string &exec_path, const std::string &app_name )
+    : mValid( false )
+
 
     // I. NOT user (re)definable paths
 
-      mPlatform( PLATFORM_SUBDIR )
+    , mPlatform( PLATFORM_SUBDIR )
     , mConfiguration( CONFIG_SUBDIR )
 
     , mExecutablePath( exec_path )

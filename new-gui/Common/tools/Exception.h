@@ -53,7 +53,12 @@
 class CException : public std::exception
 {
 	//types
-	using base_t = std::exception;
+#if defined(PRE_CPP11)
+    typedef std::exception base_t;
+#else
+    using base_t = std::exception;
+#endif
+
 
 	//data
 protected:

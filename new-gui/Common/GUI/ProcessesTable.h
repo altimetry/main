@@ -159,7 +159,7 @@ class CProcessesTable : public CControlPanel
 
 	using base_t = CControlPanel;
 
-	friend class CSchedulerDialog;
+	friend class CSchedulerMainWindow;
 
 
 public:

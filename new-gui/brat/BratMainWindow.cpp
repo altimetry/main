@@ -122,8 +122,6 @@ bool CBratMainWindow::WriteSettings()
     mSettings.m_lastWksPath = wks != nullptr ? wks->GetPath() : "";
 
 	if (
-		//! mSettings.SaveConfig(  )		TODO this is in charge of the application class but something is wrong here: the window assigns the parameters that the application saves???
-		//||
 		! mRecentFilesProcessor->WriteSettings() 
 		||
 		! AppSettingsWriteSection( GROUP_MAIN_WINDOW,
@@ -133,7 +131,7 @@ bool CBratMainWindow::WriteSettings()
 			k_v( KEY_MAIN_WINDOW_MAXIMIZED, isMaximized() )
 		) 
 		)
-		LOG_INFO( "Unable to save BRAT the main window settings." );	// TODO log this
+		LOG_INFO( "Unable to save BRAT the main window settings." );
 
 		mSettings.Sync();
 
@@ -339,7 +337,7 @@ void CBratMainWindow::ProcessMenu()
 
 	if ( !mRecentFilesProcessor->ReadSettings() )
 	{
-		CException e( "Error reading the configuration file", BRATHL_ERROR );		// TODO which file
+		CException e( "Error reading the configuration file " + AppSettingsFilePath(), BRATHL_ERROR );
 		throw e;
 	}
 
@@ -560,8 +558,6 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
         show();
         QApplication::processEvents();
         CenterOnScreen( this );
-        //CenterOnScreen2( this );
-        //CenterOnScreen3( this );
     }
 
 
@@ -581,8 +577,6 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
 		LoadCmdLineFiles();
 
 	mApp.EndSplash( this );
-
-	//mDesktopManager->Map()->SetProjection( 1);
 
 
 	LOG_TRACE( "Finished main window construction." );
@@ -921,19 +915,6 @@ void CBratMainWindow::closeEvent( QCloseEvent *event )
 		return;
 	}
 
-	//auto list = mdiArea->subWindowList();
-	//auto const size = list.size();
-	//for ( int j = 0; j < size; j++ )
-	//{
-	//	CEditorBase *pe = dynamic_cast<CEditorBase*>( list[ j ]->widget() );
-		//if ( !pe->okToContinue() )
-		if ( !OkToContinue() )
-		{
-			event->ignore();
-			return;
-		}
-	//}
-
 	////mStopped = true;
 	////if ( QThreadPool::globalInstance()->activeThreadCount() )
 	////	QThreadPool::globalInstance()->waitForDone();
@@ -1037,7 +1018,12 @@ bool CBratMainWindow::OpenWorkspace( const std::string &path )
 	{
 		DoNoWorkspace();
 	}
-	else
+    else
+    if ( !OkToContinue() )
+    {
+        return true;
+    }
+    else
 	{
 		std::string error_msg;
 		CWorkspace* wks = mModel.LoadWorkspace( path, error_msg );
@@ -1063,7 +1049,12 @@ void CBratMainWindow::on_action_New_triggered()
 {
     static QString last_path = t2q( mSettings.BratPaths().WorkspacesDirectory() );
 
-	CWorkspaceDialog dlg( this, CTreeWorkspace::eNew, nullptr, last_path, mModel );
+    if ( !OkToContinue() )
+    {
+        return;
+    }
+
+    CWorkspaceDialog dlg( this, CTreeWorkspace::eNew, nullptr, last_path, mModel );
 	if ( dlg.exec() == QDialog::Accepted )
 	{
 		last_path = t2q( dlg.mPath );
@@ -1354,6 +1345,9 @@ void CBratMainWindow::UpdateToolsMenu()
 }
 
 
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// TEST CODE SECTION for a future python console ///////////////////////////////////////////////////////////////////////////////////////////////////////////////
 #if defined (_DEBUG) || defined (DEBUG)
 void CBratMainWindow::PythonConsoleError( QProcess::ProcessError error )
 {
@@ -1423,6 +1417,8 @@ void CBratMainWindow::on_action_Python_Console_triggered()
 #endif
 }
 #endif
+// TEST CODE SECTION for a python console //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -1487,6 +1483,8 @@ void CBratMainWindow::on_action_User_s_Manual_triggered()
 }
 
 
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// TEST CODE SECTION for worker threads ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 static bool thread_finished = true;
 
 class DebugThread : public QThread
@@ -1649,6 +1647,8 @@ void CBratMainWindow::on_action_Test_triggered()
 #endif
     //*/
 }
+// TEST CODE SECTION for worker threads ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
 

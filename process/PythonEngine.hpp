@@ -266,9 +266,10 @@ public:
     }
 
 protected:
-    PyObject *m_global_dict = nullptr;
+	PyObject *m_global_dict;	// = nullptr; used by pre-c++11 coimpilers
 
     PythonEngine( wchar_t *pypath )
+	    : m_global_dict( nullptr )
     {
 		assert__( pypath );
 
@@ -349,13 +350,12 @@ class PyAlgo : public CBratAlgorithmBase
     //instance members
 
     const std::string mFilePath;    /**< The path of the algorithm python script/module. */
-    const std::string mClassName;    /**< Name of the algorithm class.                    */
+	const std::string mClassName;   /**< Name of the algorithm class.                    */
 
-    PyObject *m_module = nullptr;     /**< Python object to hold the module.               */
-    PyObject *m_class = nullptr;      /**< Python object to hold the algorithm class.      */
-    PyObject *m_instance = nullptr;   /**< Python object to hold an instance of the class. */
+	PyObject *m_module;				/**< Python object to hold the module.               */
+	PyObject *m_class;				/**< Python object to hold the algorithm class.      */
+	PyObject *m_instance;			/**< Python object to hold an instance of the class. */
 
-    //static const PythonEngine *sm_pe; /**< PythonEngine object (Python interpreter).       */
 
     //construction / destruction
 public:
@@ -369,7 +369,10 @@ public:
         : base_t()
         , mFilePath( file_path )
         , mClassName( class_name )
-    {
+	    , m_module( nullptr )
+	    , m_class( nullptr )
+	    , m_instance( nullptr )
+	{
         if ( !IsFile(mFilePath.c_str()) )
             throw e_file_not_found;
 

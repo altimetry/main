@@ -24,7 +24,7 @@
 #include <QtWidgets/QToolBar>
 #endif
 
-#include "ui_SchedulerDialog.h"
+#include "ui_SchedulerMainWindow.h"
 #include "new-gui/Common/DataModels/TaskProcessor.h"
 #include "new-gui/Common/GUI/ProcessesTable.h"
 
@@ -85,7 +85,11 @@ signals:
 
 
 
-class CSchedulerDialog : public QDialog, private Ui::CSchedulerDialog
+
+
+
+
+class CSchedulerMainWindow : public QMainWindow, private Ui::CSchedulerMainWindow
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
@@ -100,13 +104,13 @@ class CSchedulerDialog : public QDialog, private Ui::CSchedulerDialog
 
 	// types
 
-	using base_t = QDialog;
+	using base_t = QMainWindow;
 
 	using uid_t = CBratTask::uid_t;
 
 	struct post_execution_handler_wrapper_t;
 
-	using post_execution_handler_t = void(CSchedulerDialog::*)( int exit_code, QProcess::ExitStatus exitStatus, post_execution_handler_wrapper_t *phandler );
+	using post_execution_handler_t = void(CSchedulerMainWindow::*)( int exit_code, QProcess::ExitStatus exitStatus, post_execution_handler_wrapper_t *phandler );
 
 	struct post_execution_handler_wrapper_t
 	{
@@ -117,8 +121,8 @@ class CSchedulerDialog : public QDialog, private Ui::CSchedulerDialog
 
     // static members
 
-    static const auto smSCHEDULER_TIMER_INTERVAL = 30000;
-    static const auto smCHECK_CONFIGFILE_TIMER_INTERVAL = 5000;
+    static const auto smSCHEDULER_TIMER_INTERVAL = 30000;			//respecting v3 period
+    static const auto smCHECK_CONFIGFILE_TIMER_INTERVAL = 5000;		//idem
 
 	static QString MakeWindowTitle( const QString &title = QString() );	//returns the application name if title is empty
 
@@ -156,9 +160,9 @@ class CSchedulerDialog : public QDialog, private Ui::CSchedulerDialog
 	void UpdateTasksTables();
 
 public:
-    CSchedulerDialog( CSchedulerApplication &a, QWidget *parent = 0);
+    CSchedulerMainWindow( CSchedulerApplication &a, QWidget *parent = 0);
 
-    virtual ~CSchedulerDialog();
+    virtual ~CSchedulerMainWindow();
 
 
 	// operations
@@ -166,6 +170,8 @@ public:
 protected:
 	void StartTimers();
 	void StopTimers();
+	void ConnectTimers();
+	void DisconnectTimers();
 
 	void SetItemProcessData( QTableWidget *table, int index, CBratTask *task );
 	CBratTask* GetItemProcessData( QTableWidget *table, int index ) const;

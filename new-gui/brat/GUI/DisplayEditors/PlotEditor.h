@@ -128,7 +128,7 @@ protected:
 protected:
 	
 	CViewControlsPanelGeneralPlots* TabGeneral();
-	void UpdatePlotType( EPlotType type, bool select );
+    void UpdatePlotTypeList( EPlotType type, bool select );
 
 	void Recreate2DPlots();
 	void Recreate3DPlots( bool build2d, bool build3d );

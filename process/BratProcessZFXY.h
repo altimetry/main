@@ -34,7 +34,7 @@ namespace processes
 
 class CBratProcessZFXY : public CBratEmbeddedPythonProcess
 {
-	using base_t = CBratEmbeddedPythonProcess;
+    DECLARE_BASE_TYPE( CBratEmbeddedPythonProcess )
 
 public:
   CBratProcessZFXY( const std::string &python_dir );

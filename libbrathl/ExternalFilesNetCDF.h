@@ -306,7 +306,7 @@ public:
 
 class CExternalFilesSentinel3A : public CExternalFilesNetCDFCF
 {
-	using base_t = CExternalFilesNetCDFCF;
+    DECLARE_BASE_TYPE( CExternalFilesNetCDFCF )
 
 public:
 	CExternalFilesSentinel3A( const std::string	&name = "" )
@@ -324,7 +324,7 @@ public:
 
 class CExternalFilesReaper : public CExternalFilesNetCDFCF
 {
-	using base_t = CExternalFilesNetCDFCF;
+    DECLARE_BASE_TYPE( CExternalFilesNetCDFCF )
 
 public:
 	CExternalFilesReaper( const std::string	&name = "" )
@@ -342,7 +342,7 @@ public:
 
 class CExternalFilesSentinel3A_enhanced : public CExternalFilesSentinel3A
 {
-    using base_t = CExternalFilesSentinel3A;
+    DECLARE_BASE_TYPE( CExternalFilesSentinel3A )
 
 public:
     CExternalFilesSentinel3A_enhanced( const std::string	&name = "" )
@@ -360,7 +360,7 @@ public:
 
 class CExternalFilesSentinel3A_standard : public CExternalFilesSentinel3A
 {
-    using base_t = CExternalFilesSentinel3A;
+    DECLARE_BASE_TYPE( CExternalFilesSentinel3A )
 
 public:
     CExternalFilesSentinel3A_standard( const std::string	&name = "" )
@@ -378,7 +378,7 @@ public:
 
 class CExternalFilesSentinel3A_reduced : public CExternalFilesSentinel3A
 {
-    using base_t = CExternalFilesSentinel3A;
+    DECLARE_BASE_TYPE( CExternalFilesSentinel3A )
 
 public:
     CExternalFilesSentinel3A_reduced( const std::string	&name = "" )
@@ -395,7 +395,7 @@ public:
 
 class CExternalFilesSentinel3A_l1b : public CExternalFilesSentinel3A
 {
-    using base_t = CExternalFilesSentinel3A;
+    DECLARE_BASE_TYPE( CExternalFilesSentinel3A )
 
 public:
     CExternalFilesSentinel3A_l1b( const std::string	&name = "" )
@@ -412,7 +412,7 @@ public:
 
 class CExternalFilesSentinel3A_l1a : public CExternalFilesSentinel3A
 {
-    using base_t = CExternalFilesSentinel3A;
+    DECLARE_BASE_TYPE( CExternalFilesSentinel3A )
 
 public:
     CExternalFilesSentinel3A_l1a( const std::string	&name = "" )
@@ -429,7 +429,7 @@ public:
 
 class CExternalFilesSentinel3A_l1bs : public CExternalFilesSentinel3A
 {
-    using base_t = CExternalFilesSentinel3A;
+    DECLARE_BASE_TYPE( CExternalFilesSentinel3A )
 
 public:
     CExternalFilesSentinel3A_l1bs( const std::string	&name = "" )
@@ -457,8 +457,8 @@ public:
 
   virtual ~CExternalFilesYFX();
 
-  static std::string TypeOf() { return YFX_NETCDF_TYPE; };
-  virtual std::string GetType() { return TypeOf(); };
+  static std::string TypeOf() { return YFX_NETCDF_TYPE; }
+  virtual std::string GetType() { return TypeOf(); }
 
 
 protected:
@@ -475,8 +475,8 @@ public:
 
   virtual ~CExternalFilesZFXY();
 
-  static std::string TypeOf() { return ZFXY_NETCDF_TYPE; };
-  virtual std::string GetType() { return TypeOf(); };
+  static std::string TypeOf() { return ZFXY_NETCDF_TYPE; }
+  virtual std::string GetType() { return TypeOf(); }
 
 
 protected:

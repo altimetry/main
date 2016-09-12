@@ -473,7 +473,7 @@ bool CFormula::CheckExpressionUnits(const std::string& exprStr, const std::strin
 
 
   CExpression expr;
-  bOk &= CFormula::SetExpression(exprStr, expr, errorMsg);
+  bOk = bOk && CFormula::SetExpression(exprStr, expr, errorMsg);
 
   if (!bOk)
   {
@@ -562,7 +562,7 @@ bool CFormula::CheckFieldNames(const std::string& exprStr, const std::string& re
   bool bOk = true;
 
   CExpression expr;
-  bOk &= CFormula::SetExpression(exprStr, expr, errorMsg);
+  bOk = bOk && CFormula::SetExpression(exprStr, expr, errorMsg);
 
   if (!bOk)
   {
@@ -570,7 +570,7 @@ bool CFormula::CheckFieldNames(const std::string& exprStr, const std::string& re
   }
 
   CExpression exprOut;
-  bOk &= CFormula::CheckFieldNames(expr, record, product, exprOut, errorMsg);
+  bOk = bOk && CFormula::CheckFieldNames(expr, record, product, exprOut, errorMsg);
 
   try
   {
@@ -732,11 +732,11 @@ bool CFormula::CheckExpression( CWorkspaceFormula *wks, const std::string& value
   }
 
   //CExpression expr;
-  //bOk &= CFormula::SetExpression(str.c_str(), expr, errorMsg);
+  //bOk = bOk && CFormula::SetExpression(str.c_str(), expr, errorMsg);
 
   //CExpression exprOut;
   std::string expStrOut;
-  bOk &= CFormula::CheckFieldNames(str, record, product, expStrOut, errorMsg);
+  bOk = bOk && CFormula::CheckFieldNames(str, record, product, expStrOut, errorMsg);
 
   if (bOk)
   {
@@ -765,7 +765,7 @@ bool CFormula::CheckExpression( CWorkspaceFormula *wks, const std::string& value
   }
   if ((bOk) && (strUnitExpr != nullptr))
   {
-    bOk &= CFormula::CheckExpressionUnits(expStrOut, record, *strUnitExpr, product, errorMsg);
+    bOk = bOk && CFormula::CheckExpressionUnits(expStrOut, record, *strUnitExpr, product, errorMsg);
   }
 
 
@@ -878,24 +878,24 @@ bool CFormula::ControlResolution( std::string& errorMsg ) const
 	if ( isDefaultValue( m_minValue ) )
 	{
 		str += "\n\tMin. value is not defined.";
-		bOk &= false;
+        bOk = false;
 	}
 
 	if ( isDefaultValue( m_maxValue ) )
 	{
 		str += "\n\tMax. value is not defined.";
-		bOk &= false;
+        bOk = false;
 	}
 
 	if ( isDefaultValue( m_interval ) )
 	{
 		str += "\n\tNumber of intervals is not defined.";
-		bOk &= false;
+        bOk = false;
 	}
 
 	if ( !isDefaultValue( m_minValue ) || !isDefaultValue( m_maxValue ) )
 	{
-		bOk &= CtrlMinMaxValue( errorMsg );
+        bOk = bOk && CtrlMinMaxValue( errorMsg );
 	}
 
 	if ( !bOk )

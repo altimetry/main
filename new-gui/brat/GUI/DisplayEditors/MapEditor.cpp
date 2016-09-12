@@ -534,6 +534,7 @@ bool CMapEditor::ChangeView()
 		}
 
 		mMapView->setVisible( true );
+		mMapView->Home();
 
 		return true;
 	}

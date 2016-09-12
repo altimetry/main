@@ -516,8 +516,10 @@ void ExtractMinAndMax(int ncId, int dataVarId, int nRow, int nCol, double &minVa
         if (nc_get_vara_double(ncId, dataVarId, startArray, countArray, &(dataBuffer.front())) == NC_NOERR)
         {
             // scan the data
-            for ( auto const &value : dataBuffer )
+            for ( std::vector<double>::const_iterator it = dataBuffer.begin(); it != dataBuffer.begin(); ++it )
             {
+                auto const &value = *it;
+
                 if ( isDefaultValue( value ) )
                     continue;
                 if ( value < minValue )
@@ -1121,9 +1123,11 @@ bool ExportNetCdfAsGeoTiff( const std::string &inputFileName, std::vector< CData
 		std::string extension = extension_from_path( outputFileName );
 
         // Iterating over data variables
-        for ( auto dataVarId : dataVarIds )
+         dataVarIds;
+        for ( std::vector<int>::const_iterator it = dataVarIds.begin(); it != dataVarIds.end(); ++it )
 		{
-			double rangeMin, rangeMax;
+            auto const &dataVarId = *it;
+            double rangeMin, rangeMax;
 
             CDataInfo info;
             // Stores the units and name of the data variable

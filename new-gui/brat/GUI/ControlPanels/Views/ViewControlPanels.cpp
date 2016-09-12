@@ -100,6 +100,8 @@ CAxisTab::CAxisTab( QWidget *parent, Qt::WindowFlags f )
 /////////////////////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////
 
+static const QSizePolicy fields_size_policy( QSizePolicy::Preferred, QSizePolicy::Maximum );
+
 
 ////////////////////////////////////////
 //		Curve Options Tab					
@@ -112,7 +114,7 @@ CPlotControlsPanelCurveOptions::CPlotControlsPanelCurveOptions( QWidget *parent,
     //
     mFieldsList = new QListWidget;
 	auto *fields_group = CreateGroupBox( ELayoutType::Horizontal, { mFieldsList }, "Fields", nullptr );
-	fields_group->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Maximum );
+	fields_group->setSizePolicy( fields_size_policy );
 	mFieldsList->setMaximumHeight( MaxSmallListsHeight( 5 ) );
 
 
@@ -577,7 +579,7 @@ CMapControlsPanelDataLayers::CMapControlsPanelDataLayers( QWidget *parent, Qt::W
     //
     mFieldsList = new QListWidget;
 	auto *fields_group = CreateGroupBox( ELayoutType::Horizontal, { mFieldsList }, "Fields", nullptr );
-	fields_group->setSizePolicy( QSizePolicy::Minimum, QSizePolicy::Maximum );
+	fields_group->setSizePolicy( fields_size_policy );
 	mFieldsList->setMaximumHeight( MaxSmallListsHeight( 5 ) );
 
 	mMagnitudeFactorEdit = new QLineEdit;			mMagnitudeFactorEdit->setValidator( new QRegExpValidator( QRegExp( "[.0-9]+" ) ) );
