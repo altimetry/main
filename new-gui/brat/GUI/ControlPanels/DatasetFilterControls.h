@@ -67,7 +67,7 @@ class CDatasetFilterControls : public CDesktopControlsPanel
 	QListWidget *mAreasListWidget = nullptr;
     QComboBox *mRegionsCombo = nullptr;
 
-    QToolButton *mShowAllAreas = nullptr;
+    QPushButton *mShowAllAreas = nullptr;
     QToolButton *mRegionSettings = nullptr;
 
     QToolButton *mNewArea = nullptr;

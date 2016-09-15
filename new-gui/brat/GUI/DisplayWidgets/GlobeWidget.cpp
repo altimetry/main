@@ -181,55 +181,6 @@ GraticuleNode* CGlobeWidget::CreateGraticule()
     }
 
 	return gn;
-
-    //VBox* vbox = new VBox();
-    //ControlCanvas::get( mOsgViewer )->addControl( vbox );
-    //LabelControl* readout = new LabelControl();
-    //vbox->addControl( readout );
-
-    //if (graticuleNode)
-    //{
-    //    HBox* toggleBox = vbox->addControl( new HBox() );
-    //    toggleBox->setChildSpacing( 5 );
-    //    CheckBoxControl* toggleCheckBox = new CheckBoxControl( true );
-    //    toggleCheckBox->addEventHandler( new ToggleGraticuleHandler( graticuleNode ) );
-    //    toggleBox->addControl( toggleCheckBox );
-    //    LabelControl* labelControl = new LabelControl( "Show Graticule" );
-    //    labelControl->setFontSize( 24.0f );
-    //    toggleBox->addControl( labelControl  );
-
-    //    HBox* offsetBox = vbox->addControl( new HBox() );
-    //    offsetBox->setChildSpacing( 5 );
-    //    osg::Vec4 activeColor(1,.3,.3,1);
-
-    //    offsetBox->addControl(new LabelControl("Adjust Labels"));
-
-    //    double adj = 10.0;
-    //    LabelControl* left = new LabelControl("Left");
-    //    left->addEventHandler(new OffsetGraticuleHandler(graticuleNode, osg::Vec2f(-adj, 0.0)) );
-    //    offsetBox->addControl(left);
-    //    left->setActiveColor(activeColor);
-
-    //    LabelControl* right = new LabelControl("Right");
-    //    right->addEventHandler(new OffsetGraticuleHandler(graticuleNode, osg::Vec2f(adj, 0.0)) );
-    //    offsetBox->addControl(right);
-    //    right->setActiveColor(activeColor);
-
-    //    LabelControl* down = new LabelControl("Down");
-    //    down->addEventHandler(new OffsetGraticuleHandler(graticuleNode, osg::Vec2f(0.0, -adj)) );
-    //    offsetBox->addControl(down);
-    //    down->setActiveColor(activeColor);
-
-    //    LabelControl* up = new LabelControl("Up");
-    //    up->addEventHandler(new OffsetGraticuleHandler(graticuleNode, osg::Vec2f(0.0, adj)) );
-    //    offsetBox->addControl(up);
-    //    up->setActiveColor(activeColor);
-
-
-    //}
-    //MouseCoordsTool* tool = new MouseCoordsTool( mMapNode );
-    //tool->addCallback( new MouseCoordsLabelCallback(readout, formatter) );
-    //mOsgViewer->addEventHandler( tool );
 }
 
 void CGlobeWidget::setBaseMap( QString url )
@@ -631,10 +582,6 @@ bool CGlobeWidget::Save2Image( const QString &path, const QString &format, const
 		printer.setOutputFormat( QPrinter::PostScriptFormat );
 		printer.setColorMode( QPrinter::Color );
 		printer.setPaperSize( QSizeF( 80, 80 ), QPrinter::Millimeter );
-		//qreal xmargin = contentRect.width()*0.01;
-		//qreal ymargin = contentRect.height()*0.01;
-		//printer.setPaperSize( 10 * contentRect.size()*1.02, QPrinter::DevicePixel );
-		//printer.setPageMargins( xmargin, ymargin, xmargin, ymargin, QPrinter::DevicePixel );
 
 		QString docName = windowTitle();
 		if ( !docName.isEmpty() )
@@ -647,28 +594,9 @@ bool CGlobeWidget::Save2Image( const QString &path, const QString &format, const
 		printer.setOrientation( QPrinter::Landscape );
 
 		QPainter painter( &printer );
-
-		//double scale = printer.width() / 80;
-		//painter.setTransform( QTransform( scale, 0, 0, 0, scale, 0, 0, 0, 1.0 ) );
-
-		//// Draw the image
-		//QRectF src( 0, 0, img.width(), img.height() );
-		//QRectF dst( 0, 0, img.width(), img.height() );
-		//painter.drawImage( dst, img, src );
-
-		//painter.begin( &printer );
-		//painter.drawPixmap( 0, 0, -1, -1, img );	//pixmap.save( qpath, "SVG" );		//fails
-		//painter.drawImage( 0, 0, img );	//pixmap.save( qpath, "SVG" );		//fails
-
-		//QPrintDialog dialog( &printer );
-		//dialog.exec();
-
-
 		painter.drawPixmap( 0, 0, -1, -1, QPixmap::fromImage( img ) );	//pixmap.save( qpath, "SVG" );		//fails
 
-		//mGlobeViewerWidget->render( &painter/*, QPointF( 0, 0 ), contentRect */ );
 		return true;
-		//return painter.end();
 #endif
 	}
 
@@ -681,16 +609,6 @@ bool CGlobeWidget::Save2Image( const QString &path, const QString &format, const
 //virtual 
 CGlobeWidget::~CGlobeWidget()
 {
-//	Unwire();
-
-	//RemoveLayers();
-
-	//mGlobeViewerWidget->Pause();
-	//delete mGlobeViewerWidget;
-	//mGlobeViewerWidget = nullptr;
-
-										//delete mControls;
-	//delete mTileSource;
 }
 
 
@@ -786,28 +704,6 @@ CGlobeWidget::CGlobeWidget( QWidget *parent, CMapWidget *the_canvas )
 
 	mControls = new CGlobeControls( this );
 
-	//// Connect actions
-
-	//see below
-	//connect( mCanvas, SIGNAL( extentsChanged() ),			this, SLOT( extentsChanged() ) );
-	//connect( mCanvas, SIGNAL( layersChanged() ),			this, SLOT( imageLayersChanged() ) );
-
-	//connect( this, SIGNAL( xyCoordinates( const QgsPoint & ) ),			mCanvas, SIGNAL( xyCoordinates( const QgsPoint & ) ) );
-	//connect( mCanvas, SIGNAL( GridEnabled( bool ) ),	this, SLOT( ToggleGridEnabled( bool ) ) ); 
-
-
-	//mOsgViewer->getCamera()->setClearColor( osg::Vec4( 1.0, 1.0, 0xD8/255.0, 0.5 ) );
-
-
-    //mOsgViewer->getCamera()->setClearMask( mOsgViewer->getCamera()->getClearMask() | GL_COLOR_BUFFER_BIT );
-	//mOsgViewer->getCamera()->setClearColor(osg::Vec4(0.,0.,0.,0.));
-	
-
-	///////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////////////////////////////////////////////
-
 	mGlobeViewerWidget = new CGlobeViewerWidget( mCanvas, mOsgViewer );	
 
 	osg::Camera* camera = mOsgViewer->getCamera();
@@ -821,29 +717,6 @@ CGlobeWidget::CGlobeWidget( QWidget *parent, CMapWidget *the_canvas )
 		mGlobeViewerWidget->setFormat( glf );
 	}
 	AddWidget( this, mGlobeViewerWidget );
-
-	setMinimumSize( min_globe_widget_width, min_globe_widget_height );
-
-
-	//context menu
-
-	//setContextMenuPolicy( Qt::ActionsContextMenu );
-
-	//mActionSettingsDialog = new QAction( "Settings Dialog...", this );
-	//connect( mActionSettingsDialog, SIGNAL( triggered() ), this, SLOT( settings() ) );
-	//addAction( mActionSettingsDialog );
-
-	//mActionSky = new QAction( "Sky", this );
-	//connect( mActionSky, SIGNAL( toggled( bool ) ), this, SLOT( SetSkyParameters( bool ) ) );
-	//mActionSky->setCheckable( true );
-	//mActionSky->setChecked( false );
-	//addAction( mActionSky );	
-
-	//mActionSetupControls = new QAction( "Globe Controls", this );
-	//connect( mActionSetupControls, SIGNAL( toggled( bool ) ), this, SLOT( SetupControls( bool ) ) );
-	//mActionSetupControls->setCheckable( true );
-	//mActionSetupControls->setChecked( false );
-	//addAction( mActionSetupControls );
 
 	Wire();
 }

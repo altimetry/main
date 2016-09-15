@@ -982,8 +982,6 @@ C3DPlotWidget::C3DPlotWidget( QWidget *parent )
 	pal.setColor( QPalette::Background, Qt::white );
 	setAutoFillBackground( true );
 	setPalette( pal );
-
-	setMinimumSize( min_plot_widget_width, min_plot_widget_height );
 }
 
 

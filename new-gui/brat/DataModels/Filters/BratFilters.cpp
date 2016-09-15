@@ -237,6 +237,13 @@ std::string CBratFilter::GetSelectionCriteriaExpression( CProduct* product ) con
             expression += "(";
             expression += func_is_bounded( LatMin, lat_alias(), LatMax );
             expression += " && ";
+
+            if ( LonMin == LonMax )
+            {
+                LonMin = 0.;
+                LonMax = 360.;
+            }
+
             if ( LonMin > LonMax )
             {
                 // Area crosses the line of longitude = 0

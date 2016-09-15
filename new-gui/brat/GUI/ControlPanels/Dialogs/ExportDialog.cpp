@@ -267,7 +267,7 @@ void CExportDialog::Wire()
 
 	mCurrentAsciiOutputFileName = mOperation->GetExportAsciiOutputPath();
 	mCurrentGeoTIFFOutputFileName = mOperation->GetExportGeoTIFFOutputPath();
-	mCurrentNetcdfOutputFileName = mOperation->GetExportNetcdfOutputPath();;
+	mCurrentNetcdfOutputFileName = mOperation->GetExportNetcdfOutputPath();
 
 
 	//set ASCII page
@@ -368,27 +368,30 @@ void CExportDialog::HandleExportType( int index )
 	mExportType = (EExportFormat)index;
 
 	std::string extension;
-	std::string currentoutputfilename;
+	std::string *currentoutputfilename = nullptr;
 	switch ( mExportType )
 	{
 		case eASCII:
-			currentoutputfilename = mCurrentAsciiOutputFileName;
 			extension = smDefaultExtensionAscii;
+			currentoutputfilename = &mCurrentAsciiOutputFileName;
 			break;
 		case eNETCDF:
-			currentoutputfilename = mCurrentNetcdfOutputFileName;
 			extension = smDefaultExtensionNetCdf;
+			currentoutputfilename = &mCurrentNetcdfOutputFileName;
 			break;
 		case eGEOTIFF:
-			currentoutputfilename = mCurrentGeoTIFFOutputFileName;
 			extension = mCreateGeoTiffFilesCheck->isChecked() ? smDefaultExtensionGeoTiff : smDefaultExtensionKML;
+			currentoutputfilename = &mCurrentGeoTIFFOutputFileName;
 			break;
 		default:
+		{
 			assert__( false );
+			return;
+		}
 	}
 
-	SetFileExtension( currentoutputfilename, extension );
-	mOutputPathLineEdit->setText( currentoutputfilename.c_str() );
+	SetFileExtension( *currentoutputfilename, extension );
+	mOutputPathLineEdit->setText( currentoutputfilename->c_str() );
 }
 
 

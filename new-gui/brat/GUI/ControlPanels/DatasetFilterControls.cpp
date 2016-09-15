@@ -51,7 +51,12 @@ void CDatasetFilterControls::CreateWidgets()
     mFiltersCombo = new QComboBox;
     mFiltersCombo->setToolTip( "Select Filter" );
 
-    QWidget *buttons_row = CreateButtonRow( false, Qt::Horizontal, { mNewFilter, mRenameFilter, mDeleteFilter, mSaveFilters, nullptr, new QLabel( "Selected Filter"), mFiltersCombo } );
+	auto *filters_label = new QLabel( "Selected Filter");
+	filters_label->setStyleSheet( "font-weight: bold; color: black" );
+    QWidget *buttons_row = CreateButtonRow( false, Qt::Horizontal, 
+	{ 
+		mNewFilter, mRenameFilter, mDeleteFilter, mSaveFilters, nullptr, filters_label, mFiltersCombo 
+	} );
 
     AddTopWidget( buttons_row );
     AddTopSpace( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
@@ -68,15 +73,16 @@ void CDatasetFilterControls::CreateWidgets()
 
 
     //    II.1 Buttons for region selection
-    mShowAllAreas = CreateToolButton( "Show all", "", "<b>All</b><br>Show all areas." );
+    mShowAllAreas = new QPushButton( "Show all" );
+	mShowAllAreas->setToolTip( "<b>All</b><br>Show all areas." );
     mShowAllAreas->setCheckable( true );
 
     mRegionsCombo = new QComboBox;
     mRegionsCombo->setToolTip( "List of saved regions" );
 
-    mRegionSettings = CreateToolButton( "", ":/images/OSGeo/region_settings.png", "<b>Region settings...</b><br>Configure region properties." );
+    mRegionSettings = CreateToolButton( "", ":/images/OSGeo/region_settings.png", "<b>Regions settings...</b><br>Configure regions properties." );
 
-    QBoxLayout *regions_layout = LayoutWidgets( Qt::Horizontal, { nullptr, mShowAllAreas, nullptr, mRegionsCombo, mRegionSettings  });
+    QBoxLayout *regions_layout = LayoutWidgets( Qt::Horizontal, { mShowAllAreas, nullptr, new QLabel("Show region"), mRegionsCombo });
 
 
     //    II.2 Box of Areas with region buttons
@@ -91,11 +97,9 @@ void CDatasetFilterControls::CreateWidgets()
     //mSaveArea = CreateToolButton( "", ":/images/OSGeo/area_save.png", "<b>Save area</b><br>Save values in selected area" );
     mAddMask->setVisible( false );		//TODO	MODIFY WHEN IMPLEMENTED
 
+    QWidget *buttons_col = CreateButtonRow( false, Qt::Horizontal, { mNewArea, mAddKML, mAddMask, mRenameArea, mDeleteArea, nullptr, mRegionSettings } );
 
-    QWidget *buttons_col = CreateButtonRow( false, Qt::Vertical, { mNewArea, mAddKML, mAddMask, mRenameArea, mDeleteArea, nullptr } );
-    QBoxLayout *areas_layout = LayoutWidgets( Qt::Horizontal, { buttons_col, mAreasListWidget } );
-
-    QGroupBox *areas_box = CreateGroupBox( ELayoutType::Vertical, { regions_layout, areas_layout }, "Areas", this );
+    QGroupBox *areas_box = CreateGroupBox( ELayoutType::Vertical, { buttons_col, mAreasListWidget, regions_layout }, "Areas && Regions", this, 2, 4, 4, 4, 4 );
 
 
     //    II.3 Coordinates (max and min values)
@@ -268,7 +272,7 @@ void CDatasetFilterControls::CreateWidgets()
     Records_topBox->setDisabled( true );
 
 
-    AddTopSpace( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
+    //AddTopSpace( 0, 0, QSizePolicy::Expanding, QSizePolicy::Expanding );
 
     Wire();
 }

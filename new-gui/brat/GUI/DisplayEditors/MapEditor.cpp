@@ -50,6 +50,7 @@ void CMapEditor::ResetAndWireNewMap()
 		RemoveView( p, false, false );
 	}
 	mMapView = new CMapWidget( mModel->Settings().VectorSimplifyMethod(), mModel->Settings().mViewsLayerBaseType, this );
+	mMapView->setMinimumSize( min_globe_widget_width, min_globe_widget_height );
 	mMapView->ConnectParentRenderWidgets( mProgressBar, mRenderSuppressionCBox );
 	mMapView->ConnectParentMeasureActions( mMeasureButton, mActionMeasure, mActionMeasureArea );
 	mMapView->ConnectParentGridAction( mActionDecorationGrid );
@@ -291,6 +292,7 @@ void CMapEditor::Show3D( bool checked )
 			WaitCursor wait;
 
             mGlobeView = new CGlobeWidget( this, mMapView );
+			mGlobeView->setMinimumSize( min_globe_widget_width, min_globe_widget_height );
 			AddView( mGlobeView, true );
 		}
 	}

@@ -80,10 +80,20 @@ const bool CFieldData::smDefaultWithContour = false;
 const unsigned CFieldData::smDefaultNumContour = 5;
 
 //static 
-const unsigned CFieldData::smContourPrecisionGrid1 = 10;
+const unsigned CFieldData::smContourPrecisionGrid1 = 
+#if defined (DEBUG) || defined(_DEBUG)
+	10;
+#else
+	20;
+#endif
 
 //static 
-const unsigned CFieldData::smContourPrecisionGrid2 = 10;
+const unsigned CFieldData::smContourPrecisionGrid2 = 
+#if defined (DEBUG) || defined(_DEBUG)
+	20;
+#else
+	40;
+#endif
 
 //static 
 const double CFieldData::smDefaultContourLineWidth = 0.1;

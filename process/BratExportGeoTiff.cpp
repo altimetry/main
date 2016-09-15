@@ -516,7 +516,7 @@ void ExtractMinAndMax(int ncId, int dataVarId, int nRow, int nCol, double &minVa
         if (nc_get_vara_double(ncId, dataVarId, startArray, countArray, &(dataBuffer.front())) == NC_NOERR)
         {
             // scan the data
-            for ( std::vector<double>::const_iterator it = dataBuffer.begin(); it != dataBuffer.begin(); ++it )
+            for ( std::vector<double>::const_iterator it = dataBuffer.begin(); it != dataBuffer.end(); ++it )
             {
                 auto const &value = *it;
 

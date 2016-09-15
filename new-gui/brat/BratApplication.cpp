@@ -31,6 +31,10 @@
 #include "BratApplication.h"
 
 
+//////////////////////////////////////////////////////////////////////////////////
+//								CBratApplication
+//////////////////////////////////////////////////////////////////////////////////
+
 bool CBratApplication::smPrologueCalled = false;
 CApplicationPaths *CBratApplication::smApplicationPaths = nullptr;
 
@@ -431,6 +435,34 @@ bool CBratApplication::RegisterAlgorithms()
 
     return false;
 }
+
+
+
+//////////////////////////////////////////////////////////////////////////////////
+//					Override system calls from 3rd parties
+//////////////////////////////////////////////////////////////////////////////////
+
+
+#if defined (Q_OS_LINUX)
+
+#include <stdio.h>
+#include <stdint.h>
+#include <dlfcn.h>
+
+void exit( int status )
+{
+    UNUSED( status );
+
+    using exit_t = void (*)(int);
+    static exit_t my_exit = NULL;
+    printf("inside shared object...\n");
+    if (!my_exit)
+        my_exit = (exit_t)dlsym(RTLD_NEXT, "exit");  // returns lib function pointer
+
+    throw CException("exit called");
+}
+
+#endif
 
 
 

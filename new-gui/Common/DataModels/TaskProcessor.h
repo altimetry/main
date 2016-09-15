@@ -276,13 +276,6 @@ public:
 
 protected:
 
-	bool TryLock( const std::string &lock_path, QtLockedFile::OpenMode open_mode, QtLockedFile::LockMode lock_mode, bool block );
-
-	bool store( const std::string &path, bool block );
-
-	bool load( const std::string &path, bool block );
-
-
 	///////////////////////////////////////
 	//			Locks
 	///////////////////////////////////////
@@ -302,9 +295,18 @@ protected:
 	// The lock provided by an instance of QtLockedFile is released whenever the program 
 	// terminates. This is true even when the program crashes and no destructors are called.
 
+	bool TryLock( const std::string &lock_path, QtLockedFile::OpenMode open_mode, QtLockedFile::LockMode lock_mode, bool block );
+	bool Unlock( const std::string &lock_path );
+
+	bool store( const std::string &path, bool block );
+
+	bool load( const std::string &path, bool block );
+
+
+
 protected:
-	virtual bool LockConfigFile( bool block, bool lockFile );
-	virtual void UnLockConfigFile( bool unlockFile );
+	virtual bool LockConfigFile( bool block, bool lockFile );		//legacy
+	virtual void UnLockConfigFile( bool unlockFile );		 		//legacy
 
 
 

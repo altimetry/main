@@ -289,130 +289,6 @@ const std::string& CMapWidget::URLRasterLayerPath()
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
-  //mProjectSrsId = mMapCanvas->mapSettings().destinationCrs().srsid();
-
-  //QgsProjectionSelector *projectionSelector;
-  //QgsDebugMsg( "Read project CRSID: " + QString::number( mProjectSrsId ) );
-  //projectionSelector->setSelectedCrsId( mProjectSrsId );
-
-
-  //  long myCRSID = projectionSelector->selectedCrsId();
-  //if ( myCRSID )
-  //{
-  //  QgsCoordinateReferenceSystem srs( myCRSID, QgsCoordinateReferenceSystem::InternalCrsId );
-  //  mMapCanvas->setDestinationCrs( srs );
-  //  QgsDebugMsg( QString( "Selected CRS " ) + srs.description() );
-  //  // write the currently selected projections _proj string_ to project settings
-  //  QgsDebugMsg( QString( "SpatialRefSys/ProjectCRSProj4String: %1" ).arg( projectionSelector->selectedProj4String() ) );
-  //  QgsProject::instance()->writeEntry( "SpatialRefSys", "/ProjectCRSProj4String", projectionSelector->selectedProj4String() );
-  //  QgsProject::instance()->writeEntry( "SpatialRefSys", "/ProjectCRSID", ( int ) projectionSelector->selectedCrsId() );
-  //  QgsProject::instance()->writeEntry( "SpatialRefSys", "/ProjectCrs", projectionSelector->selectedAuthId() );
-
-  //  // Set the map units to the projected coordinates if we are projecting
-  //  if ( isProjected() )
-  //  {
-  //    // If we couldn't get the map units, default to the value in the
-  //    // projectproperties dialog box (set above)
-  //    if ( srs.mapUnits() != QGis::UnknownUnit )
-  //      mMapCanvas->setMapUnits( srs.mapUnits() );
-  //  }
-
-  //  if ( cbxProjectionEnabled->isChecked() )
-  //  {
-  //    // mark selected projection for push to front
-  //    projectionSelector->pushProjectionToFront();
-  //  }
-  //}
-
-//
-//void QgsProjectProperties::on_cbxProjectionEnabled_toggled( bool onFlyEnabled )
-//{
-//  QString measureOnFlyState = tr( "Measure tool (CRS transformation: %1)" );
-//  QString unitsOnFlyState = tr( "Canvas units (CRS transformation: %1)" );
-//  if ( !onFlyEnabled )
-//  {
-//    // reset projection to default
-//    const QMap<QString, QgsMapLayer*> &mapLayers = QgsMapLayerRegistry::instance()->mapLayers();
-//
-//    if ( mMapCanvas->currentLayer() )
-//    {
-//      mLayerSrsId = mMapCanvas->currentLayer()->crs().srsid();
-//    }
-//    else if ( mapLayers.size() > 0 )
-//    {
-//      mLayerSrsId = mapLayers.begin().value()->crs().srsid();
-//    }
-//    else
-//    {
-//      mLayerSrsId = mProjectSrsId;
-//    }
-//    mProjectSrsId = mLayerSrsId;
-//    projectionSelector->setSelectedCrsId( mLayerSrsId );
-//
-//    QgsCoordinateReferenceSystem srs( mLayerSrsId, QgsCoordinateReferenceSystem::InternalCrsId );
-//    //set radio button to crs map unit type
-//    QGis::UnitType units = srs.mapUnits();
-//
-//    radMeters->setChecked( units == QGis::Meters );
-//    radFeet->setChecked( units == QGis::Feet );
-//    radNMiles->setChecked( units == QGis::NauticalMiles );
-//    radDegrees->setChecked( units == QGis::Degrees );
-//
-//    // unset ellipsoid
-//    mEllipsoidIndex = 0;
-//
-//    btnGrpMeasureEllipsoid->setTitle( measureOnFlyState.arg( tr( "OFF" ) ) );
-//    btnGrpMapUnits->setTitle( unitsOnFlyState.arg( tr( "OFF" ) ) );
-//  }
-//  else
-//  {
-//    if ( !mLayerSrsId )
-//    {
-//      mLayerSrsId = projectionSelector->selectedCrsId();
-//    }
-//    projectionSelector->setSelectedCrsId( mProjectSrsId );
-//
-//    btnGrpMeasureEllipsoid->setTitle( measureOnFlyState.arg( tr( "ON" ) ) );
-//    btnGrpMapUnits->setTitle( unitsOnFlyState.arg( tr( "ON" ) ) );
-//  }
-//
-//  setMapUnitsToCurrentProjection();
-//
-//  // Enable/Disable selector and update tool-tip
-//  updateEllipsoidUI( mEllipsoidIndex ); // maybe already done by setMapUnitsToCurrentProjection
-//
-//}
-
-//
-//void QgsProjectProperties::setMapUnitsToCurrentProjection()
-//{
-//  long myCRSID = projectionSelector->selectedCrsId();
-//  if ( !isProjected() || !myCRSID )
-//    return;
-//
-//  QgsCoordinateReferenceSystem srs( myCRSID, QgsCoordinateReferenceSystem::InternalCrsId );
-//  //set radio button to crs map unit type
-//  QGis::UnitType units = srs.mapUnits();
-//
-//  radMeters->setChecked( units == QGis::Meters );
-//  radFeet->setChecked( units == QGis::Feet );
-//  radNMiles->setChecked( units == QGis::NauticalMiles );
-//  radDegrees->setChecked( units == QGis::Degrees );
-//
-//  // attempt to reset the projection ellipsoid according to the srs
-//  int myIndex = 0;
-//  for ( int i = 0; i < mEllipsoidList.length(); i++ )
-//  {
-//    if ( mEllipsoidList[ i ].acronym == srs.ellipsoidAcronym() )
-//    {
-//      myIndex = i;
-//      break;
-//    }
-//  }
-//  updateEllipsoidUI( myIndex );
-//}
-
-
 #if defined (WIN32) || defined(_WIN32)
 #pragma warning ( disable : 4996 )
 #endif
@@ -502,7 +378,6 @@ void CMapWidget::Init()
     //// Set the Map Canvas Layer Set
     //SetLayerSet(mLayerSet);
 
-    setMinimumSize( min_globe_widget_width, min_globe_widget_height );    //setVisible(true);
 	setParallelRenderingEnabled( false );
     refresh();
 
@@ -632,39 +507,7 @@ bool CMapWidget::SetProjection( const QgsCoordinateReferenceSystem &crs )
 				mActionDecorationGrid->setChecked( false );
 	}
 
-//    mMainLayer = (QgsVectorLayer*)mLayerSet.last().layer();
-//    while( mLayerSet.size() > 0 )
-//        mLayerSet.removeLast();
-//    mLayerSet.append( QgsMapCanvasLayer( mMainLayer, true ) );
-
-
-	//for ( auto &layer : mLayerSet )
-	//{
-	//	//layer.setVisible( true );
-	//	auto *vlayer = qobject_cast<QgsVectorLayer*>( layer.layer() );
-	//	if ( vlayer && vlayer != mMainLayer )
-	//	{
-	//		vlayer->setCrs( QgsCoordinateReferenceSystem().createFromProj4( crs.toProj4() ) );
-	//		//vlayer->setCrs( crs );			//vlayer->setCoordinateSystem();
-	//		//vlayer->updateExtents();
-	//		vlayer->triggerRepaint();
-	//	}
-	//}
-    //SetLayerSet( mLayerSet );
-
-	//QgsCoordinateReferenceSystem crs = currentLayer()->crs();
-	//freeze();
-	//setDestinationCrs( crs );
-	//if ( crs.mapUnits() != QGis::UnknownUnit )
-	//{
-	//	setMapUnits( crs.mapUnits() );
-	//}
-
-	//SetCurrentLayer( mLayerSet.last().layer() );
-
 	freeze( false );
-
-	//refresh();
 
 	Home();
 
@@ -683,25 +526,6 @@ void CMapWidget::Home()
 {
 	zoomToFullExtent();		//makes refresh()
 }
-
-
-
-//inline bool Save2PS( QWidget *w )
-//{
-//	QPrinter printer( QPrinter::HighResolution );
-//	printer.setOutputFormat( QPrinter::PostScriptFormat );
-//	printer.setOutputFileName( m_currentTopic + ".ps" );
-//	qreal xmargin = contentRect.width()*0.01;
-//	qreal ymargin = contentRect.height()*0.01;
-//	printer.setPaperSize( 10 * contentRect.size()*1.02, QPrinter::DevicePixel );
-//	printer.setPageMargins( xmargin, ymargin, xmargin, ymargin, QPrinter::DevicePixel );
-//	QPainter painter;
-//	painter.begin( &printer );
-//	w->render( &painter/*, QPointF( 0, 0 ), contentRect */);
-//	painter.end();
-//
-//	return true;
-//}
 
 
 
@@ -1197,8 +1021,6 @@ QgsSymbolV2* CMapWidget::CreatePointSymbol( double width, const QColor &color )
 {
     QgsSymbolV2 *s = QgsMarkerSymbolV2::createSimple( qsm( "","" ) );
     s->deleteSymbolLayer( 0 );		// Remove default symbol layer.
-	//s->setColor( lineColor );
-	//s->setMapUnitScale()
 
     auto symbolLayer = new QgsSimpleMarkerSymbolLayerV2;
     symbolLayer->setColor( color );
@@ -1225,8 +1047,6 @@ QgsSymbolV2* CMapWidget::CreateArrowSymbol( const QColor &color )
 {
     QgsSymbolV2 *s = QgsMarkerSymbolV2::createSimple( qsm( "","" ) );
     s->deleteSymbolLayer( 0 );		// Remove default symbol layer.
-    //s->setColor( lineColor );
-    //s->setMapUnitScale()
 
     auto symbolLayer = new QgsSimpleMarkerSymbolLayerV2;
     symbolLayer->setColor( color );
@@ -1568,106 +1388,6 @@ void CMapWidget::ChangeRenderer( QgsVectorLayer *layer, const QString &target_fi
 //		Specialized Layers
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-
-/*
-QgsVectorLayer* CMapWidget::AddDataLayer( const std::string &name, double width, double m, double M, const QLookupTable *lut, QgsFeatureList &flist )
-{
-	static const QString target_field = height_key;
-
-	auto *l = AddMemoryLayer( polygon, name, CreateRenderer( target_field, width, m, M, lut,
-		polygon ?
-		&CMapWidget::CreatePolygonSymbol :
-		&CMapWidget::CreatePointSymbol
-		) );
-
-	if ( l )
-	{
-		l->setLayerTransparency( 10 );				//TODO Magic Number
-		l->dataProvider()->addFeatures( flist );
-		//l->updateExtents();
-		mDataLayers.push_back( l );
-	}
-
-	return l;
-
-
-	////QgsVectorFileWriter::writeAsVectorFormat( l, "L:\\my.shp", "", &l->crs(), "ESRI Shapefile", false, 0, QStringList(), QStringList(), false, 0, QgsVectorFileWriter::SymbolLayerSymbology );
-
-	//QgsFields fields;
-	//fields.append( QgsField( height_key, QVariant::Type::Double ), field_origin );
-	//fields.append( QgsField( ref_date_key, QVariant::Type::Int ), field_origin );
-    //QgsVectorFileWriter r( "L:\\layer", "", fields, QGis::WkbType::WKBPoint, &l->crs(), "ESRI Shapefile", QStringList(), QStringList(), 0, QgsVectorFileWriter::SymbolLayerSymbology );
-	//QgsFeatureRequest req;
-	//QgsFeatureIterator it = l->dataProvider()->getFeatures( req );
-	//QgsFeature f;
-	//while ( it.nextFeature( f ) )
-	//	r.addFeature( f );
-
-	//if ( r.hasError() )
-	//	qDebug() << r.errorMessage();
-
-	//////////////////////////////////////////////////////////////////////////
-//    QgsVectorColorRampV2 *myColorRamp = nullptr;
-//    myColorRamp = QgsVectorGradientColorRampV2::create();
-
-//    renderer = QgsGraduatedSymbolRendererV2::createRenderer(
-//      qobject_cast<QgsVectorLayer *>(l), // QgsVectorLayer* vlayer,
-//      target_field,                     // QString attrName,
-//      10,                                // int classes,
-//      QgsGraduatedSymbolRendererV2::EqualInterval, //Mode mode,
-//      mySymbol4,        // QgsSymbolV2* symbol,
-//      myColorRamp       // QgsVectorColorRampV2* ramp,)
-//      //bool inverted = false,
-//      //QgsRendererRangeV2LabelFormat legendFormat = QgsRendererRangeV2LabelFormat()
-//      );
-}
-QgsVectorLayer* CMapWidget::AddContourDataLayer( const std::string &name, double m, double M, const QLookupTable *lut, size_t contours, QgsFeatureList &flist )
-{
-	static const QString target_field = height_key;
-
-	static const QString base_name = "mem";
-    static const QString provider = "memory";
- 
-
-	//return AddVectorLayer( name, R"-(L:\project\dev\source\data\empty\empty.shp)-", "ogr", renderer );
-
-
-	//auto &crs = mapSettings().destinationCrs();
-
-	//const QString s = mMainLayer->crs().toProj4();		//EPSG:4326
-	const QString s = mapSettings().destinationCrs().toProj4();		//
-
-	//"Point", "LineString", "Polygon", "MultiPoint", "MultiLineString", or "MultiPolygon".
-
-	const QString prefix = "LineString";
-
-	const QString layer_path =
-        prefix + "?crs=EPSG:4326"
-
-		+ QString( "&field=" ) + height_key + height_type
-//		+ QString( "&field=" ) + ref_date_key + ref_date_type 
-
-		+ "&index=yes";
-
-	auto *l = AddVectorLayer( name, layer_path, provider, nullptr );
-
-	Q_UNUSED( m ); Q_UNUSED( M ); Q_UNUSED( lut ); Q_UNUSED( contours );
-
-	//auto *l = AddMemoryLayer( polygon, name, CreateRenderer( target_field, width, m, M, lut, contours, 
-	//	polygon ?
-	//	&CMapWidget::CreatePolygonSymbol :
-	//	&CMapWidget::CreateLineSymbol
-	//	) );
-
-	if ( l )
-	{
-		l->dataProvider()->addFeatures( flist );
-		mDataLayers.push_back( l );
-	}
-
-	return l;
-}
-*/
 
 	
 //static 
@@ -2272,47 +1992,6 @@ QgsVectorLayer* CMapWidget::AddVectorLayer( QgsVectorLayer *l )
 }
 
 
-//QgsVectorLayer* CMapWidget::AddVectorLayer( const std::string &name, const QString &layer_path, const QString &provider, QgsFeatureRendererV2 *renderer )	//renderer = nullptr 
-//{
-//	static const std::string base_name = "vlayer";
-//	static const std::string index_symbol = "#";
-//	static size_t index = 0;
-//
-//	std::string layer_name = name;
-//	if ( layer_name.empty() )
-//		layer_name = base_name;
-//
-//	layer_name += ( index_symbol + n2s(index++) );
-//
-//	auto l = new QgsVectorLayer( layer_path, layer_name.c_str(), provider );
-//
-//    if ( !renderer )
-//        renderer = CreateRenderer( l );
-//    l->setRendererV2( renderer );
-//
-//    if ( l->isValid() )
-//    {
-//							qDebug( "Layer is valid" );
-//
-//		// Add the Vector Layer to the Layer Registry
-//		QgsMapLayerRegistry::instance()->addMapLayer( l, true );
-//
-//		// Add the Layer to the Layer Set
-//		mLayerSet.append( QgsMapCanvasLayer( l, true ) );
-//
-//		// Set the Map Canvas Layer Set
-//		SetLayerSet();
-//
-//		SetCurrentLayer( l );
-//
-//		return l;
-//	}
-//							LOG_WARN( "Layer is NOT valid" );
-//	delete l;
-//	return nullptr;
-//}
-//
-//
 QgsVectorLayer* CMapWidget::AddOGRVectorLayer( const QString &layer_path, QgsSymbolV2* symbol )		//symbol = nullptr 
 {
 	static const QString provider_name = "ogr";

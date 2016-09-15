@@ -515,8 +515,6 @@ C2DPlotWidget::C2DPlotWidget( QWidget *parent )
     pDrawer = new CBratScaleDraw();
     pDrawer->SetMantissaDigits(2);
     setAxisScaleDraw( yRight, pDrawer);
-
-    setMinimumSize( min_plot_widget_width, min_plot_widget_height );
 }
 
 
@@ -950,7 +948,6 @@ void C2DPlotWidget::SetDigits( Axis axisId, bool isdate, int digits, brathl_refD
     drawer->SetMantissaDigits( digits );
     drawer->SetAsDate( isdate, date_ref );
 	axisWidget( axisId )->update();
-    adjustSize();
 }
 
 void C2DPlotWidget::SetXAxisDigits( bool isdate, int digits, brathl_refDate date_ref )		//date_ref = REF19500101

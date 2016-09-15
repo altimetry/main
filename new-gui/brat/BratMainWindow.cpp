@@ -908,8 +908,13 @@ void CBratMainWindow::closeEvent( QCloseEvent *event )
         return;
     }
 
-
 	if ( !mProcessesTable->Empty() && !SimpleQuestion( processes_question ) )
+	{
+		event->ignore();
+		return;
+	}
+
+	if ( !OkToContinue() )
 	{
 		event->ignore();
 		return;

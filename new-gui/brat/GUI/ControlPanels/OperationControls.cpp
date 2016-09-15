@@ -287,6 +287,8 @@ void COperationControls::CreateAdvancedOperationsPage()
 	mOperationsCombo = new QComboBox;
 	mOperationsCombo->setMinimumWidth( min_readable_combo_width );
 	mOperationsCombo->setToolTip( "Selected operation" );
+	auto *operation_label = new QLabel("Operation");
+	operation_label->setStyleSheet( "font-weight: bold; color: black" );
 	mOperationFilterButton_Advanced = CActionInfo::CreatePopupButton( eActionGroup_Filters_Advanced, QList<QAction*>() );
 	mOperationFilterButton_Advanced->setCheckable( true );
 	mOperationFilterButton_Advanced->setToolButtonStyle( Qt::ToolButtonTextBesideIcon );
@@ -300,7 +302,7 @@ void COperationControls::CreateAdvancedOperationsPage()
 	//auto *ops_group = CreateGroupBox( ELayoutType::Horizontal, 
 	auto *ops_group = LayoutWidgets( Qt::Horizontal, 
 	{ 
-		LayoutWidgets( Qt::Horizontal, { new QLabel("Operation"), mOperationsCombo }, nullptr, s, m, m, m, m ), 
+		LayoutWidgets( Qt::Horizontal, { operation_label, mOperationsCombo }, nullptr, s, m, m, m, m ), 
 		nullptr,
 		LayoutWidgets( Qt::Horizontal, { new QLabel("Dataset"), mAdvancedDatasetsCombo }, nullptr, s, m, m, m, m ),
 		nullptr,

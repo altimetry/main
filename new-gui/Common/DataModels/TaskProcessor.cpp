@@ -175,6 +175,15 @@ void TestLock( const QtLockedFile &lf )
 }
 
 
+bool CTasksProcessor::Unlock( const std::string &lock_path )
+{
+	bool result = mLockedFile.unlock();
+	if ( !result )
+		LOG_WARN( "Could not unlock file " + lock_path );	//smLockedFile.flush();
+
+	mLockedFile.close();
+	return result;
+}
 
 bool CTasksProcessor::TryLock( const std::string &lock_path, QtLockedFile::OpenMode open_mode, QtLockedFile::LockMode lock_mode, bool block )
 {
@@ -215,11 +224,7 @@ bool CTasksProcessor::store( const std::string &path, bool block )
 	}
 
 	if ( lock )
-	{
-		if ( !mLockedFile.unlock() )
-			LOG_WARN( "Could not unlock file " + lock_path );	//smLockedFile.flush();
-		mLockedFile.close();
-	}
+		Unlock( lock_path );
 
 	return result;	//return ::store( *this, path );
 }
@@ -238,11 +243,7 @@ bool CTasksProcessor::load( const std::string &path, bool block )
 	}
 
 	if ( lock )
-	{
-		if ( !mLockedFile.unlock() )
-			LOG_WARN( "Could not unlock file " + lock_path );
-		mLockedFile.close();
-	}
+		Unlock( lock_path );
 
 	return result;	//return ::load( *this, path );
 }

@@ -1246,12 +1246,12 @@ inline QSize DefaultSizeHint( const QWidget *w )
 
 
 const int min_main_window_width = 1024;
-const int min_main_window_height = 512;
+const int min_main_window_height = 728;
 
-const auto child_ratio = 1. / 2.;
+const auto hchild_ratio = 2. / 3.;
 const auto aspect_ratio = 1. / 2.;	// 3. / 4.;
 
-const int min_globe_widget_width =  min_main_window_width * child_ratio;
+const int min_globe_widget_width =  min_main_window_width * hchild_ratio;
 const int min_globe_widget_height = min_globe_widget_width * aspect_ratio;
 
 const int min_plot_widget_width = min_globe_widget_width;

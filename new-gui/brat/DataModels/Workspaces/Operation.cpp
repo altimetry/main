@@ -1621,7 +1621,7 @@ void COperation::InitExportNetcdfOutput( CWorkspaceOperation *wks )
 	if ( wks == nullptr )
 		return;
 
-	SetExportNetcdfOutput( wks->GetPath() + "/ExportNetcdf_" + GetName() + ".txt", wks );
+	SetExportNetcdfOutput( wks->GetPath() + "/ExportNetcdf_" + GetName() + ".nc", wks );
 }
 void COperation::InitExportGeoTIFFOutput( CWorkspaceOperation *wks )
 {

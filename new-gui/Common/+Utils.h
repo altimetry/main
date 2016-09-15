@@ -41,6 +41,7 @@
 #include <iomanip>
 #include <string>
 #include <iostream>
+#include <limits>
 
 #include <time.h>
 
@@ -631,6 +632,40 @@ inline T s2n( CHAR *s )
 
 	return s2n< T >( string_type( s ) );
 }
+
+
+
+
+#if !defined(PRE_CPP11)
+
+//////////////////////////////////////////////////////////////////
+//				Find minimum/maximum in numeric arrays
+//////////////////////////////////////////////////////////////////
+
+
+template< typename T >
+inline T array_min( std::vector< T > const &values )
+{
+    T m = std::numeric_limits< T >::max();
+
+    std::for_each( values.begin(), values.end(), [&m]( const T &v ) { if ( v < m ) m = v; } );
+
+    return m;
+}
+
+
+template< typename T >
+inline T array_max( std::vector< T > const &values )
+{
+    T M = std::numeric_limits< T >::lowest();
+
+    std::for_each( values.begin(), values.end(), [&M]( const T &v ) { if ( v > M ) M = v; } );
+
+    return M;
+}
+
+
+#endif
 
 
 

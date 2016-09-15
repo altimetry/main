@@ -292,6 +292,8 @@ bool CPlotEditor::ResetViews( bool reset_2d, bool reset_3d, bool enable_2d, bool
 {
 	assert__( enable_2d );		//2d displays all types
 
+	const int min_width = enable_3d ? min_plot_widget_width / 2 : min_plot_widget_width;
+
 	if ( reset_2d && mPlot2DView )
 	{
 		auto *p = mPlot2DView;
@@ -302,6 +304,7 @@ bool CPlotEditor::ResetViews( bool reset_2d, bool reset_3d, bool enable_2d, bool
 	if ( enable_2d && !mPlot2DView )
 	{
 		mPlot2DView = new C2DPlotWidget( this );
+		mPlot2DView->setMinimumSize( min_width, min_plot_widget_height );
 		AddView( mPlot2DView, false );
 		connect( mPlot2DView, SIGNAL( ScaleDivChanged( int, double, QString ) ), this, SLOT( Handle2DScaleChanged( int, double, QString ) ) );
 	}
@@ -316,6 +319,7 @@ bool CPlotEditor::ResetViews( bool reset_2d, bool reset_3d, bool enable_2d, bool
 	if ( enable_3d && !mPlot3DView )
 	{
 		mPlot3DView = new C3DPlotWidget( this );
+		mPlot3DView->setMinimumSize( min_width, min_plot_widget_height );
 		AddView( mPlot3DView, true );
 		connect( mPlot3DView, SIGNAL( ScaleChanged( double, double, double ) ), this, SLOT( Handle3DScaleChanged( double, double, double ) ) );
 	}

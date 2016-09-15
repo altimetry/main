@@ -609,6 +609,60 @@ void CProductNetCdf::ApplyCriteria(CStringList& filteredFileList, const std::str
 }
 
 //----------------------------------------
+
+
+#if defined (DEBUG) || defined(_DEBUG)
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+// !!! IMPORTANT NOTE !!!: if this code is used in release mode, it will break CentOS 6 compilation
+//////// Alternative algorithm for finding left and right longitudes /////////////////////////////////////
+
+bool FindBreak( std::vector< double > const &values, double center )
+{
+    bool xbreak = false;
+    double prev_lon = CLatLonPoint::LonNormal( values.front(), center );
+
+    for ( auto it = values.begin() + 1; it != values.end(); ++it )
+    {
+        auto lon = CLatLonPoint::LonNormal( *it, center );
+
+        auto dif = std::fabs( lon - prev_lon );
+        if ( dif > 180 )
+        {
+            xbreak = true;
+            break;
+        }
+    }
+
+    return xbreak;
+}
+
+void ComputeLongitudeRange360( std::vector< double > const &values, double &left, double &right )
+{
+    bool x180 = FindBreak( values, 0.0 ), x360 = FindBreak( values, 180.0 );
+
+    if ( x180 && x360 )
+    {
+        left = 0;
+        right = 360;
+    }
+    else
+    if ( x360 )
+    {
+        left = CLatLonPoint::LonNormal( array_min( values ), 180.0 );
+        right = CLatLonPoint::LonNormal( array_max( values ), 180.0 );
+    }
+    else
+    {
+        left = CLatLonPoint::LonNormal( array_min( values ), 0.0 );
+        right = CLatLonPoint::LonNormal( array_max( values ), 0.0 );
+    }
+}
+
+//////// Alternative algorithm for finding left and right longitudes /////////////////////////////////////
+//////////////////////////////////////////////////////////////////////////////////////////////////////////
+#endif
+
+
 bool CProductNetCdf::ApplyCriteriaLatLon(CCriteriaInfo* criteriaInfo)
 {
 
@@ -700,6 +754,21 @@ bool CProductNetCdf::ApplyCriteriaLatLon(CCriteriaInfo* criteriaInfo)
               // Save previous value
               prevValue = value180;
           }
+
+#if defined (DEBUG) || defined(_DEBUG)
+
+			double left_test, right_test;
+			ComputeLongitudeRange360( values, left_test, right_test );
+			assert__( left_test == left && right_test == right );
+			if ( left_test != left || right_test != right )
+			{
+				std::cout << "left_test  == " << left_test << std::endl;
+				std::cout << "left       == " << left << std::endl;
+				std::cout << "right_test == " << right_test << std::endl;
+				std::cout << "right      == " << right << std::endl;
+			}
+#endif
+
           // Assign left and right values to field min and max, respectively.
           field->SetValidMin(left);
           field->SetValidMax(right);
