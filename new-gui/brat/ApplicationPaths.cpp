@@ -63,6 +63,8 @@ const std::string BRATEXPORTASCII_EXE	= setExecExtension( "BratExportAscii" );
 const std::string BRATCREATEZFXY_EXE	= setExecExtension( "BratCreateZFXY" );
 const std::string BRATCREATEYFX_EXE		= setExecExtension( "BratCreateYFX" );
 
+const std::string RADS_SERVICE_NAME_EXE	= setExecExtension( RADS_SERVICE_NAME );
+
 
 //static 
 const std::string CApplicationPaths::smDefaultURLRasterLayerPath =
@@ -102,7 +104,11 @@ CApplicationPaths::CApplicationPaths( const QString &exec_path, const QString &a
     , mExecBratSchedulerName(	EscapePath( mExecutableDir + "/" + BRATSCHEDULER_EXE ) )
 #endif
 
-	, mUserDocumentsDirectory( DefaultUserDocumentsPath() )
+	, mUserDocumentsDirectory(	DefaultUserDocumentsPath() )
+
+#if (BRAT_MINOR_VERSION_INT==1)
+	, mRadsServicePath(			EscapePath( mExecutableDir + "/" + RADS_SERVICE_NAME_EXE ) )
+#endif
 {
     // user (RE)DEFINABLE paths
 	//
@@ -142,6 +148,10 @@ bool CApplicationPaths::operator == ( const CApplicationPaths &o ) const
 	assert__( mUserManualPath == o.mUserManualPath );
     assert__( mInternalDataDir == o.mInternalDataDir );
 
+#if (BRAT_MINOR_VERSION_INT==1)
+	assert__( mRsyncExecutablePath == o.mRsyncExecutablePath );
+#endif
+
 	// from this
 
 	assert__( mUserDocumentsDirectory == o.mUserDocumentsDirectory );
@@ -161,12 +171,16 @@ bool CApplicationPaths::operator == ( const CApplicationPaths &o ) const
     assert__( mExecShowStatsName == o.mExecShowStatsName );
     assert__( mExecBratSchedulerName == o.mExecBratSchedulerName );
 
+#if (BRAT_MINOR_VERSION_INT==1)
+	assert__( mRadsServicePath == o.mRadsServicePath );
+#endif
+
     return
         // user re-definable
 
         mRasterLayerPath == o.mRasterLayerPath &&
 		mURLRasterLayerPath == o.mRasterLayerPath;
-        ;
+	;
 }
 
 //virtual
@@ -196,19 +210,26 @@ std::string CApplicationPaths::ToString() const
     s += ( "\nRasterLayer Path == " + mRasterLayerPath );
     s += ( "\nmURLRasterLayer Path == " + mURLRasterLayerPath );
 
-    return s;
+#if (BRAT_MINOR_VERSION_INT==1)
+	s += ( "\nRads Service Executable == " + mRadsServicePath );
+#endif
+	return s;
 }
 
 
 bool CApplicationPaths::ValidatePaths() const
 {
 	mValid =
-		base_t::ValidatePaths() &&											// tests mInternalDataDir
-        ValidPath( mErrorMsg, mVectorLayerPath, true, "Vector Layer path" ) &&
-        ValidPath( mErrorMsg, mRasterLayerPath, true, "Raster Layer path" ) &&
-        ValidPath( mErrorMsg, mOsgPluginsDir, false, "OSG Plugins diretory" ) &&
-        ValidPath( mErrorMsg, mQgisPluginsDir, false, "Qgis Plugins directory" ) &&
-        ValidPath( mErrorMsg, mGlobeDir, false, "Globe files directory" );
+		base_t::ValidatePaths() 											// tests mInternalDataDir
+		&& ValidPath( mErrorMsg, mVectorLayerPath, true, "Vector Layer path" ) 
+		&& ValidPath( mErrorMsg, mRasterLayerPath, true, "Raster Layer path" ) 
+		&& ValidPath( mErrorMsg, mOsgPluginsDir, false, "OSG Plugins diretory" ) 
+		&& ValidPath( mErrorMsg, mQgisPluginsDir, false, "Qgis Plugins directory" ) 
+		&& ValidPath( mErrorMsg, mGlobeDir, false, "Globe files directory" ) 
+#if (BRAT_MINOR_VERSION_INT==1)
+		&& ValidPath( mErrorMsg, mRadsServicePath, true, "rads service path" )
+#endif
+		;
 
     return mValid;
 }

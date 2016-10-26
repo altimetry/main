@@ -87,6 +87,8 @@ private:
 public:
 	CProduct* OpenProduct( const std::string& fileName ) const;
 	CProduct* OpenProduct() const;
+	CProduct* SafeOpenProduct( const std::string& fileName ) const;
+	CProduct* SafeOpenProduct() const;
 
 	const CProductList* GetProductList() const { return &m_files; }		
 	CProductList* GetProductList() { return &m_files; }

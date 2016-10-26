@@ -111,6 +111,25 @@ typedef std::strstream stream_t;
 
 
 //////////////////////////////////////////
+//		portable DebugBreak()
+//////////////////////////////////////////
+
+
+#if defined (_DEBUG) || defined(DEBUG)
+#if defined (_MSC_VER)
+#define DEBUG_BREAK DebugBreak()
+#else
+#include <signal.h>
+#define DEBUG_BREAK raise(SIGTRAP)
+#endif								//_MSC_VER
+#else
+#define DEBUG_BREAK
+#endif								//debug
+
+
+
+
+//////////////////////////////////////////
 //		Must come before STL...	 (?)
 //////////////////////////////////////////
 

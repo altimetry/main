@@ -34,14 +34,16 @@ class CBratFilters;
 class CBratTask;
 
 
-#if defined (_MSC_VER) && (_MSC_VER >= 1900 )
+#if defined (_MSC_VER) && (_MSC_VER >= 1900 ) && defined (USE_DATA_VISUALIZATION)
 
 #include "../support/code/future/NewPlotEditor.h"
 
 using plot_editor_t = CNewPlotEditor;
+
 #else
 
 using plot_editor_t = CPlotEditor;
+
 #endif
 
 
@@ -366,6 +368,9 @@ signals:
 public slots:
 	void HandleLaunchScheduler();
 
+	//entry point
+	void HandleWorkspaceChanged();
+
 protected slots:
 
 	//quick
@@ -386,9 +391,6 @@ protected slots:
 	//remaining
 
 	void HandlePageChanged( int index );
-
-	//entry point
-	void HandleWorkspaceChanged();
 
 	void HandleSelectedOperationChanged( int operation_index );
 	void HandleSelectedFieldChanged_Advanced();

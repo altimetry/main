@@ -64,7 +64,12 @@ protected:
 
 public slots:
 
-    int exec();
+    int exec()
+#if QT_VERSION >= 0x050000
+    override;
+#else
+    ;
+#endif
 
 };
 

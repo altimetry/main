@@ -738,7 +738,9 @@ bool COperationControls::IsQuickOperationSelected() const
 
 void COperationControls::HandleWorkspaceChanged()
 {
-    mWDataset = nullptr;
+	LOG_TRACEstd( "Operations tab started handling signal to change workspace" );
+
+	mWDataset = nullptr;
     mWOperation = nullptr;
     mWDisplay = nullptr;
     mWFormula = nullptr;
@@ -811,6 +813,8 @@ void COperationControls::HandleWorkspaceChanged()
             return i.first.c_str();
         }
     );
+
+	LOG_TRACEstd( "Operations tab finished handling signal to change workspace" );
 }
 
 
@@ -3101,7 +3105,7 @@ void COperationControls::HandleDelayExecution()
 
 void COperationControls::SchedulerProcessError( QProcess::ProcessError error )
 {
-	auto message = "An error occurred launching " + mModel.BratPaths().mExecBratSchedulerName + "\n" + q2a( CProcessesTable::ProcessErrorMessage( error ) );
+	auto message = "An error occurred launching " + mModel.BratPaths().mExecBratSchedulerName + "\n" + q2a( COsProcess::ProcessErrorMessage( error ) );
 	SimpleErrorBox( message );
 	LOG_WARN( message );
 }

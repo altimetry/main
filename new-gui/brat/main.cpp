@@ -19,8 +19,6 @@
 
 #include "ApplicationPaths.h"
 
-//#include "GUI/norwegianwoodstyle.h"
-
 #include "BratApplication.h"
 #include "BratMainWindow.h"
 #include "BratLogger.h"
@@ -30,6 +28,7 @@ static const char *app_name = "brat";
 
 
 //_NO_DEBUG_HEAP=1
+
 
 
 int main( int argc, char *argv[] )
@@ -42,15 +41,13 @@ try {
 
 	LOG_INFO( "brat is starting..." );
 
-    CBratApplication a( argc, argv, true );    //QApplication::setStyle(new NorwegianWoodStyle);
+    CBratApplication a( argc, argv, true );
 	CBratMainWindow w( a );
 
 	int result = 0;
 	if ( a.OperatingInInstantPlotSaveMode() )
 	{
 		LOG_TRACE( "\nOperating in plot-save mode." );
-		//a.processEvents();
-		//result = a.exec();
 	}
 	else
 	{

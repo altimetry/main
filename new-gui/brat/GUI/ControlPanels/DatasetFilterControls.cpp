@@ -488,7 +488,9 @@ void CDatasetFilterControls::HandleCurrentLayerSelectionChanged( QRectF box /*= 
 //public slots:
 void CDatasetFilterControls::HandleWorkspaceChanged()
 {
-    auto *root = mModel.RootWorkspace();
+	LOG_TRACEstd( "Filters tab started handling signal to change workspace" );
+
+	auto *root = mModel.RootWorkspace();
     if ( root )
     {
         mWDataset = mModel.Workspace< CWorkspaceDataset >();
@@ -504,6 +506,8 @@ void CDatasetFilterControls::HandleWorkspaceChanged()
     mFiltersCombo->clear();
     if ( root )
         ReloadFilters();
+
+	LOG_TRACEstd( "Filters tab finished handling signal to change workspace" );
 }
 
 

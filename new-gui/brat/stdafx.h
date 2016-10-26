@@ -147,6 +147,9 @@
 #include <QtGui>
 #if QT_VERSION >= 0x050000
 #include <QtWidgets>
+#if !defined(QGIS_DISABLE_DEPRECATED)
+#define QGIS_DISABLE_DEPRECATED
+#endif
 #endif
 #if !defined (WIN32) && !defined (_WIN32) 
 #include <QtOpenGL>     //This was added here to include, in debian 32 bit, glext.h, that defines 64 bit types like Gluint64 and so on

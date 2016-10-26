@@ -236,6 +236,8 @@ COperation* COperationControls::GetOrCreateEmptyQuickOperation()
 //
 void COperationControls::HandleWorkspaceChanged_Quick()
 {
+	LOG_TRACEstd( "Quick operations page started handling signal to change workspace" );
+
 	// 1. Retrieve /create, if any; only return null if mWOperation is null
 	//
 	mQuickOperation = GetOrCreateEmptyQuickOperation();	//always assign mQuickOperation if possible, and always do it first 
@@ -249,7 +251,10 @@ void COperationControls::HandleWorkspaceChanged_Quick()
 	mQuickInitializing = false;
 
 	if ( !mWOperation )
+	{
+		LOG_TRACEstd( "Quick operations page finished handling signal to change to NULL workspace" );
 		return;
+	}
 
 	// 3. Always ensure quick operation existence
 	//
@@ -270,6 +275,8 @@ void COperationControls::HandleWorkspaceChanged_Quick()
 	//			changes the quick formulas. If  dataset changes, all fields are unchecked.
 	//
 	UpdateFieldsCheckState();
+
+	LOG_TRACEstd( "Quick operations page finished handling signal to change workspace" );
 }
 
 
@@ -334,6 +341,8 @@ void COperationControls::HandleDatasetsChanged_Quick( const CDataset *dataset )
 //
 void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 {
+	LOG_TRACEstd( "Entering HandleSelectedDatasetChanged_Quick" );
+
 	mQuickVariablesList->setEnabled( dataset_index >= 0 );			//items are enabled only if required field exists, regardless of whole list being enabled
 	mQuickSelectionCriteriaCheck->setEnabled( dataset_index >= 0 );
 	mOperationFilterButton_Quick->setEnabled( dataset_index >= 0 );	//assume that, if a dataset exists, it will be assigned and filtering makes sense
@@ -352,8 +361,11 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 	if ( mQuickOperation && ( !dataset || ( dataset != mQuickOperation->OriginalDataset() ) ) )
 		mQuickOperation->RemoveFormulas();
 
-    if ( dataset_index < 0 )
-        return;
+	if ( dataset_index < 0 )
+	{
+		LOG_TRACEstd( "Leaving HandleSelectedDatasetChanged_Quick with index < 0" );
+		return;
+	}
 
     WaitCursor wait;
 
@@ -382,7 +394,7 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 	bool has_lon_lat_fields = false;
 	for ( auto const &path : dataset_files )
 	{
-		CProduct *product = dataset->OpenProduct( path );
+		CProduct *product = dataset->SafeOpenProduct( path );
 		if ( !product )
 			continue;
 
@@ -408,7 +420,7 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 			auto *item = mQuickVariablesList->item( i );			assert__( item );
 			for ( auto const &path : dataset_files )
 			{
-				CProduct *product = dataset->OpenProduct( path );
+				CProduct *product = dataset->SafeOpenProduct( path );
 				if ( !product )
 					continue;
 
@@ -440,6 +452,8 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 	mQuickSelectionCriteriaCheck->setEnabled( has_selection_criteria );
 	if ( !has_selection_criteria )
 		mQuickSelectionCriteriaCheck->setChecked( false );
+
+	LOG_TRACEstd( "Leaving HandleSelectedDatasetChanged_Quick with index >= 0" );
 }
 
 
@@ -611,7 +625,7 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 		error_msg.clear();
 	}
 
-	CProduct *product = const_cast<const COperation*>( operation )->Dataset()->OpenProduct();
+	CProduct *product = const_cast<const COperation*>( operation )->Dataset()->SafeOpenProduct();
 	if ( !product )
 	{
 		std::string suggestion;

@@ -52,6 +52,32 @@ bool CDataset::CtrlFiles( std::vector< std::string > &v )
 }
 
 //----------------------------------------
+CProduct* CDataset::SafeOpenProduct() const
+{
+	try
+	{
+		return OpenProduct();
+	}
+	catch ( const CException & )
+	{
+	}
+
+	return nullptr;
+}
+CProduct* CDataset::SafeOpenProduct( const std::string& fileName ) const
+{
+	try
+	{
+		return OpenProduct( fileName );
+	}
+	catch ( const CException & )
+	{
+	}
+
+	return nullptr;
+}
+
+
 CProduct* CDataset::OpenProduct() const
 {
 	if ( m_files.size() <= 0 )

@@ -25,7 +25,9 @@
 #include "new-gui/Common/+UtilsIO.h"
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/DataModels/TaskProcessor.h"
+#include "new-gui/Common/System/Service/qtservice.h"
 #include "DataModels/Workspaces/Operation.h"
+#include "GUI/LoginDialog.h"
 
 #include "BratLogger.h"
 #include "BratApplication.h"
@@ -37,6 +39,7 @@
 
 bool CBratApplication::smPrologueCalled = false;
 CApplicationPaths *CBratApplication::smApplicationPaths = nullptr;
+
 
 
 // Tries to create a QApplication on-the-fly to be able to use the
@@ -187,6 +190,58 @@ void CBratApplication::CheckOpenGL( bool extended )		//extended = false
 }
 
 
+
+inline QString ServiceUserName()
+{
+#if defined (Q_OS_WIN)
+	return "";
+#else
+	return UserName();
+#endif
+}
+
+
+
+
+#if (BRAT_MINOR_VERSION_INT==1)
+bool CBratApplication::InstallRadsService()
+{
+	static const QString rads_service_name = RADS_SERVICE_NAME;
+
+	QtServiceController controller( rads_service_name );
+	bool installed = controller.isInstalled();
+	bool running = controller.isRunning();
+
+#if defined (_DEBUG) || defined(DEBUG)
+	//installed = installed && !controller.uninstall();
+#endif
+
+	if ( !installed ) 
+	{
+		LoginDialog *dlg = new LoginDialog( QString( "Install " ) + RADS_SERVICE_NAME );
+		dlg->SetUsername( ServiceUserName() );
+		if ( dlg->exec() == QDialog::Accepted )
+		{
+			QString account = dlg->Username();
+			QString password = dlg->Password();
+			QString path = smApplicationPaths->mRadsServicePath.c_str();
+			installed = QtServiceController::install( path, account, password );
+		}
+	}
+
+	LOG_TRACE( rads_service_name + " is " + ( installed ? "installed" : "not installed") + " and " + ( running ? "running" : "not running") );
+	if ( installed ) 
+	{
+		LOG_TRACE( rads_service_name + " path: " + controller.serviceFilePath() );
+		LOG_TRACE( rads_service_name + " description: " + controller.serviceDescription() );
+		LOG_TRACE( rads_service_name + " startup: " + ( controller.startupType() == QtServiceController::AutoStartup ? "Auto" : "Manual") );
+	}
+
+	return installed;
+}
+#endif
+
+
 void CBratApplication::CheckRunMode()
 {
 	LOG_TRACE( "Operating mode check..." );			assert__( !mOperatingInDisplayMode );
@@ -312,7 +367,11 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 	//	queried before ctor call (issues Qt assertion)
     //
 #if defined (Q_OS_LINUX)
+#if QT_VERSION >= 0x050000
+    mDefaultAppStyle = t2q( mSettings.getNameOfStyle( QStyleFactory::create( "fusion" ), true ) );       //(*)
+#else
     mDefaultAppStyle = t2q( mSettings.getNameOfStyle( new QCleanlooksStyle, true ) );	//(*)
+#endif
 #else
 	mDefaultAppStyle = getCurrentStyleName();											//(*)
 #endif
@@ -344,7 +403,13 @@ CBratApplication::CBratApplication( int &argc, char **argv, bool GUIenabled, QSt
 	}
 
 
-    //v4: remaining initialization in charge of the main window
+	// Install / Check rads service status
+	/////////////////////////////////////////////
+	// TODO mRadsServiceAvailable = InstallRadsService();
+	/////////////////////////////////////////////
+
+
+	//v4: remaining initialization in charge of the main window
 
 	LOG_TRACE( "Finished application instance construction." );
 }

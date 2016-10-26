@@ -247,7 +247,9 @@ void CDatasetBrowserControls::HandleTreeItemChanged( )
 
 void CDatasetBrowserControls::HandleWorkspaceChanged( CWorkspaceDataset *wksd )
 {
-    mWDataset = wksd;
+	LOG_TRACEstd( "Datasets tab started handling signal to change workspace" );
+
+	mWDataset = wksd;
 
     // Fill DatasetTree with Datasets items
 	mDatasetTree->blockSignals( true );
@@ -271,6 +273,8 @@ void CDatasetBrowserControls::HandleWorkspaceChanged( CWorkspaceDataset *wksd )
 		//		mDatasetTree->setCurrentItem( *it );
 		//}
     }
+
+	LOG_TRACEstd( "Datasets tab finished handling signal to change workspace" );
 }
 
 

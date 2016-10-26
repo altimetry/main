@@ -126,6 +126,8 @@ bool CWorkspaceSettings::SaveConfigDataset( const CWorkspaceDataset &data, std::
 }
 bool CWorkspaceSettings::LoadConfigDataset( CWorkspaceDataset &data, std::string &error_msg )
 {
+	LOG_TRACEstd( "Loading dataset workspace " + data.GetName() );
+
 	assert__( this == data.m_config );
 
 	{
@@ -169,6 +171,8 @@ bool CWorkspaceSettings::LoadConfigDataset( CWorkspaceDataset &data, std::string
 			}
 		}
 	}
+
+	LOG_TRACEstd( "Finished loading dataset workspace " + data.GetName() );
 
 	return true;
 }
@@ -268,6 +272,8 @@ bool CWorkspaceSettings::SaveConfig( const CMapFormula &mapf, bool predefined, c
 
 bool CWorkspaceSettings::LoadConfig( CMapFormula &mapf, std::string &error_msg, bool predefined, const std::string& pathSuff )
 {
+	LOG_TRACEstd( "Loading formulas map" );
+
 	std::string path = GROUP_FORMULAS;
 	if ( !pathSuff.empty() )
 		path += "_" + pathSuff;
@@ -308,6 +314,8 @@ bool CWorkspaceSettings::LoadConfig( CMapFormula &mapf, std::string &error_msg, 
 		if ( !formula->LoadConfig( this, error_msg, pathSuff ) )
 			return false;
 	}
+
+	LOG_TRACEstd( "Finished loading formulas map" );
 
 	return true;
 }
@@ -490,6 +498,8 @@ bool CWorkspaceSettings::SaveConfigOperation( const CWorkspaceOperation &op, std
 }
 bool CWorkspaceSettings::LoadConfigOperation( CWorkspaceOperation &op, std::string &error_msg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
 {
+	LOG_TRACEstd( "Loading operations workspace " + op.GetName() );
+
 	assert__( this == op.m_config );
 
 	//assuming filters are already loaded
@@ -516,6 +526,8 @@ bool CWorkspaceSettings::LoadConfigOperation( CWorkspaceOperation &op, std::stri
 		if ( !operation->LoadConfig( this, error_msg, wks, wkso ) )
 			return false;
 	}
+
+	LOG_TRACEstd( "Finished loading operations workspace " + op.GetName() );
 
 	return Status() == QSettings::NoError;
 }
@@ -568,6 +580,8 @@ bool CWorkspaceSettings::SaveConfig( const COperation &op, const CWorkspaceOpera
 }
 bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &error_msg, CWorkspaceDataset *wks, CWorkspaceOperation *wkso )
 {
+	LOG_TRACEstd( "Loading operation " + op.GetName() );
+
 	std::string group = op.m_name;
 	std::string dsname, type, data_mode, output, ascii_export_output, netcdf_export_output, geo_tiff_export_output, v4filter;
 
@@ -653,6 +667,8 @@ bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &error_msg, CWo
 
 	op.m_formulas.InitFormulaDataMode( op.m_dataMode );
 
+	LOG_TRACEstd( "Finished loading operation " + op.GetName() );
+
 	return Status() == QSettings::NoError;
 }
 
@@ -710,6 +726,8 @@ bool CWorkspaceSettings::SaveConfigDisplay( const CWorkspaceDisplay &disp, std::
 }
 bool CWorkspaceSettings::LoadConfigDisplay( CWorkspaceDisplay &disp, std::string &error_msg, CWorkspaceDisplay *wksd, CWorkspaceOperation *wkso )
 {
+	LOG_TRACEstd( "Loading displays workspace " + disp.GetName() );
+
 	assert__( this == disp.m_config );
 
 	ApplyToWholeSection< std::string >( GROUP_DISPLAY,
@@ -735,6 +753,8 @@ bool CWorkspaceSettings::LoadConfigDisplay( CWorkspaceDisplay &disp, std::string
 		if ( !display->LoadConfig( this, error_msg, wksd, wkso ) )
 			return false;
 	}
+
+	LOG_TRACEstd( "Finished loading displays workspace " + disp.GetName() );
 
 	return true;
 }

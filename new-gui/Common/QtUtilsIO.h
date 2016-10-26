@@ -128,6 +128,25 @@ inline std::string GetAbsolutePath( const std::string &ref_dir, const std::strin
 }
 
 
+inline bool IsRelative( const std::string &path );
+
+// Assumes that ":" only appears in windows paths as a driver specifier after the drive letter
+// Assumes that only one ":" can exist in a windows path
+// Assumes that the driver letter is always the first character in a windows absolute path
+// All the above apply to paths with wild cards
+//
+inline std::string win2cygwin( const std::string &win_path )
+{
+	//C:\WORK\* --> /cygdrive/c/work/*
+
+	std::string path = NormalizedPath( win_path );
+	if ( !IsRelative( win_path ) )
+	{
+		path = "/cygdrive/" + path;
+		path = replace( path, ":", "" );
+	}
+	return path;
+}
 
 
 

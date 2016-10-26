@@ -108,6 +108,11 @@ const std::string CApplicationStaticPaths::smPythonExecutableName =
 
 
 
+const std::string RSYNC_EXE	= setExecExtension( "rsync" );
+
+
+
+
 //static
 std::string CApplicationStaticPaths::ComputeInternalDataDirectory( const std::string &ExecutableDir )
 {
@@ -161,12 +166,21 @@ CApplicationStaticPaths::CApplicationStaticPaths( const std::string &exec_path, 
 	, mUserManualPath( mDeploymentRootDir + "/doc/brat_user_manual_" + BRAT_VERSION + ".pdf" )
 
     , mInternalDataDir( ComputeInternalDataDirectory( mExecutableDir ) )
+
+#if (BRAT_MINOR_VERSION_INT==1)
+#if defined(Q_OS_WIN)
+    , mRsyncExecutablePath(	EscapePath( mExecutableDir + "/rsync/" + RSYNC_EXE ) )
+#else
+    , mRsyncExecutablePath(	"/usr/bin/rsync" )
+#endif
+#endif
+
 {
-    // Set Qt plug-ins path before anything else
+	// Set Qt plug-ins path before anything else
 	//
 	//	- Use QCoreApplication::libraryPaths(); to inspect Qt library (plug-ins) directories
 
-    QCoreApplication::setLibraryPaths( QStringList() << mQtPluginsDir.c_str() );	
+    QCoreApplication::setLibraryPaths( QStringList() << mQtPluginsDir.c_str() );
 
 
     ValidatePaths();
@@ -195,6 +209,9 @@ std::string CApplicationStaticPaths::ToString() const
     s += ( "\nmPython Dir == " + mPythonDir );
 	s += ( "\nUser Manual Path == " + mUserManualPath );
     s += ( "\nInternalData Dir == " + mInternalDataDir );
+#if (BRAT_MINOR_VERSION_INT==1)
+	s += ( "\nRsync Executable == " + mRsyncExecutablePath );
+#endif
 
     return s;
 }
@@ -205,10 +222,13 @@ std::string CApplicationStaticPaths::ToString() const
 //
 bool CApplicationStaticPaths::ValidatePaths() const
 {
-	mValid = 
-        ValidPath( mErrorMsg, mQtPluginsDir, false, "Qt Plugins directory" ) &&
-		ValidPath( mErrorMsg, mInternalDataDir, false, "BRAT resources directory" );
-
+	mValid =
+			ValidPath( mErrorMsg, mQtPluginsDir, false, "Qt Plugins directory" ) 
+		&&	ValidPath( mErrorMsg, mInternalDataDir, false, "BRAT resources directory" ) 
+#if (BRAT_MINOR_VERSION_INT==1)
+		&&	ValidPath( mErrorMsg, mRsyncExecutablePath, true, "rsync executable path" )
+#endif
+		;
 
     return mValid;
 }

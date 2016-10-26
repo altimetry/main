@@ -279,7 +279,7 @@ CBratTask::CBratTask( const task &oxml )				//USED ON LOAD
 		params->Insert( *ii );
 	}
 
-	assert__( ( m_cmd.empty() && !args.empty() ) || ( !m_cmd.empty() && args.empty() ) );		//Not sure this can be asserted: TODO: delete when there is a full understanding
+    //assert__( ( m_cmd.empty() && !args.empty() ) || ( !m_cmd.empty() && args.empty() ) );		//Not sure this can be asserted: TODO: delete when there is a full understanding
 
 	//5
 	SetAt( oxml.at() );

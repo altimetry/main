@@ -64,6 +64,8 @@ class CBratApplication : public QgsApplication
 
 	typedef QgsApplication base_t;
 
+	friend class CApplicationSettingsDlg;
+
 
 	//////////////////////////////////////
 	//	static members
@@ -77,6 +79,7 @@ class CBratApplication : public QgsApplication
 
 	static void CheckOpenGL( bool extended = false );
 
+
 public:
 
 	// Calling this in main is mandatory
@@ -86,6 +89,10 @@ public:
 
     static int OffGuiErrorDialog( int error_type, char const *error_msg );
 
+
+#if (BRAT_MINOR_VERSION_INT==1)
+	static bool InstallRadsService();
+#endif
 
 protected:
 	//	This is accurate only if(when) no style sheet was also assigned.
@@ -108,6 +115,7 @@ protected:
 
 	bool mOperatingInDisplayMode = false;
     bool mOperatingInInstantPlotSaveMode = false;
+	bool mRadsServiceAvailable = false;
 
 	QSplashScreen *mSplash = nullptr;
 

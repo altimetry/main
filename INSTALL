@@ -34,11 +34,12 @@ installer is executable.)
 Taking debian 7 as the BRAT version of reference for the Linux platform, 
 the following additional dependencies are required for BRAT to run:
 
-libgeos-c1
 libxerces-c3.1
 libproj0
 libgdal1
 libspatialindex1
+libegl1-mesa
+rsync
 
 These dependencies are provided with the operating system but not
 usually installed by default.

@@ -27,6 +27,7 @@
 
 #define ORGANIZATION_NAME "ESA"
 #define SCHEDULER_APPLICATION_NAME "scheduler"
+#define RADS_SERVICE_NAME "RadsService"
 
 
 
@@ -68,11 +69,16 @@ protected:
 	static bool ValidPath( std::string &error_msg, const std::string &path, bool is_file, const std::string path_title );
 
 
-public:
-
     ////////////////////////////////////////////
     //	instance data
     ////////////////////////////////////////////
+
+protected:
+
+    mutable bool mValid;    // = false; do not initialize here: code used by pre-c++11 compilers
+    mutable std::string mErrorMsg;
+
+public:
 
     // RIGID (not user definable), definitions
     //	based on executable properties, runtime
@@ -99,10 +105,10 @@ public:
     //
     const std::string mInternalDataDir;		//origin: version control, deployed to bin as internal resources
 
-protected:
+#if (BRAT_MINOR_VERSION_INT==1)
+	const std::string mRsyncExecutablePath;
+#endif
 
-    mutable bool mValid;    // = false; do not initialize here: code used by pre-c++11 compilers
-    mutable std::string mErrorMsg;
 
     ////////////////////////////////////////////
     //	construction / destruction

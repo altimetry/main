@@ -359,7 +359,7 @@ bool CTasksProcessor::LoadAllTasks( bool block, std::string &xml_error_msg )
 
 #if defined(DEBUG) || defined(_DEBUG)
 
-		if ( result )
+		if ( result && getenv( "S3ALTB_ROOT" ) )
 		{
 			std::string debug_path = std::string( getenv( "S3ALTB_ROOT" ) ) + "/project/dev/support/data/scheduler/" + smFileName + "_backup.xml";
 			CTasksProcessor debug_tasks( debug_path );

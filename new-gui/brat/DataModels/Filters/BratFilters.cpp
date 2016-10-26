@@ -217,7 +217,6 @@ std::string CBratFilter::GetSelectionCriteriaExpression( CProduct* product ) con
     // LAT/LON filtering expression //
     if ( !mAreaNames.empty() )
     {
-        double LonMin, LonMax, LatMin, LatMax;
         auto const &areas = Areas();
 
         // Iterate over filter areas names
@@ -225,10 +224,15 @@ std::string CBratFilter::GetSelectionCriteriaExpression( CProduct* product ) con
         {
             auto const &area  = areas.Find( name );
 
-            LatMin = area->GetLatMin();
-            LatMax = area->GetLatMax();
-            LonMin = CLatLonPoint::LonNormal360( area->GetLonMin() ); // NOTE: We assume that all products have longitude fields in degrees east units,
-            LonMax = CLatLonPoint::LonNormal360( area->GetLonMax() ); // i.e, in the [0,360] range. Examples: Cryosat, Jason1&2, GRID_DOTS_MERCATOR...
+            double LatMin = area->GetLatMin();
+            double LatMax = area->GetLatMax();
+            double LonMin = CLatLonPoint::LonNormal360( area->GetLonMin() ); // NOTE: We assume that all products have longitude fields in degrees east units,
+            double LonMax = CLatLonPoint::LonNormal360( area->GetLonMax() ); // i.e, in the [0,360] range. Examples: Cryosat, Jason1&2, GRID_DOTS_MERCATOR...
+            if ( area->GetLonMin() != area->GetLonMax() && LonMin == LonMax )
+            {
+                LonMin = 0.;
+                LonMax = 360.;
+            }
 
             if ( !expression.empty() ) {  expression += " || ";  }
 
@@ -237,12 +241,6 @@ std::string CBratFilter::GetSelectionCriteriaExpression( CProduct* product ) con
             expression += "(";
             expression += func_is_bounded( LatMin, lat_alias(), LatMax );
             expression += " && ";
-
-            if ( LonMin == LonMax )
-            {
-                LonMin = 0.;
-                LonMax = 360.;
-            }
 
             if ( LonMin > LonMax )
             {

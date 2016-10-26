@@ -24,64 +24,6 @@
 
 
 /////////////////////////////////////////////////////////////////////////////////
-//							Brat Process Class
-/////////////////////////////////////////////////////////////////////////////////
-
-
-
-COsProcess::COsProcess( bool sync, const std::string& name, QWidget *parent, const std::string& cmd, void *user_data,
-		const std::string &id,
-		const std::string &at,
-		const std::string &status,
-		const std::string &log_file	)		//user_data = nullptr, etc.
-
-	: QProcess( parent )
-	, mSync( sync )
-	, mName( name )
-	, mCmdLine( cmd )
-	, mUserData( user_data )
-	, mId( id )
-	, mAt( at )
-	, mStatus( status )
-	, mLogPath( log_file )
-	, mLog( true, log_file )
-{
-	mLogPtr = mLog.IsOk() ? &COsProcess::RealLog : &COsProcess::PseudoLog;
-}
-
-
-//virtual 
-COsProcess::~COsProcess()
-{
-	if ( state() != NotRunning )
-		Kill();
-}
-
-
-//virtual 
-void COsProcess::Kill()
-{ 
-	kill();
-}
-
-//virtual 
-void COsProcess::Execute( bool detached )	//detached = false 
-{
-    if ( detached )
-        startDetached( mCmdLine.c_str() );
-    else
-        start( mCmdLine.c_str() );
-}
-
-
-
-
-
-
-
-
-
-/////////////////////////////////////////////////////////////////////////////////
 //						Processes Table Widget
 /////////////////////////////////////////////////////////////////////////////////
 
@@ -283,12 +225,13 @@ void CProcessesTable::LogWarn( COsProcess *process, const std::string &text )
 // Kill
 ////////////////////////////
 
-
+//slot
 void CProcessesTable::HandleSelectedProcessChanged()
 {
 	mKillButton->setEnabled( mProcessesList->currentRow() >= 0 );
 }
 
+//slot
 void CProcessesTable::HandleKill()
 {
 	int index = mProcessesList->currentRow();					assert__( index >= 0 );	
@@ -351,15 +294,15 @@ bool CProcessesTable::Add( COsProcess *process, bool with_gui, bool sync, bool a
 	mProcesses.push_back( process );
 	FillList();
 
-    connect( process, SIGNAL( readyReadStandardOutput() ),				this, SLOT( UpdateOutput() ) );
-    connect( process, SIGNAL( readyReadStandardError() ),				this, SLOT( UpdateOutput() ) );
+    connect( process, SIGNAL( readyReadStandardOutput() ),				this, SLOT( HandleUpdateOutput() ) );
+    connect( process, SIGNAL( readyReadStandardError() ),				this, SLOT( HandleUpdateOutput() ) );
     connect( process, SIGNAL( finished( int, QProcess::ExitStatus ) ),	this, 
 		sync ?
-		SLOT( SyncProcessFinished( int, QProcess::ExitStatus ) ) 
+		SLOT( HandleSyncProcessFinished( int, QProcess::ExitStatus ) ) 
 		:
-		SLOT( AsyncProcessFinished( int, QProcess::ExitStatus ) ) 
+		SLOT( HandleAsyncProcessFinished( int, QProcess::ExitStatus ) ) 
 		);
-    connect( process, SIGNAL( error( QProcess::ProcessError ) ),		this, SLOT( ProcessError( QProcess::ProcessError ) ) );
+    connect( process, SIGNAL( error( QProcess::ProcessError ) ),		this, SLOT( HandleProcessError( QProcess::ProcessError ) ) );
 
 	if ( sync )
 	{
@@ -442,7 +385,8 @@ void CProcessesTable::Remove( COsProcess *process )
 //////////////////////////////
 
 
-void CProcessesTable::UpdateOutput()
+//slot
+void CProcessesTable::HandleUpdateOutput()
 {
 	COsProcess *process = qobject_cast<COsProcess*>( sender() );			assert__( process );
 
@@ -475,7 +419,8 @@ COsProcess* CProcessesTable::ProcessFinished( int exit_code, QProcess::ExitStatu
 
 	return process;
 }
-void CProcessesTable::AsyncProcessFinished( int exit_code, QProcess::ExitStatus exitStatus )
+//slot
+void CProcessesTable::HandleAsyncProcessFinished( int exit_code, QProcess::ExitStatus exitStatus )
 {
 	COsProcess *process = ProcessFinished( exit_code, exitStatus );
 
@@ -485,7 +430,8 @@ void CProcessesTable::AsyncProcessFinished( int exit_code, QProcess::ExitStatus 
 
 	emit ProcessFinished( exit_code, exitStatus, false, data );
 }
-void CProcessesTable::SyncProcessFinished( int exit_code, QProcess::ExitStatus exitStatus )
+//slot
+void CProcessesTable::HandleSyncProcessFinished( int exit_code, QProcess::ExitStatus exitStatus )
 {
 	COsProcess *process = ProcessFinished( exit_code, exitStatus );
 
@@ -497,34 +443,11 @@ void CProcessesTable::SyncProcessFinished( int exit_code, QProcess::ExitStatus e
 }
 
 
-//static 
-const QString& CProcessesTable::ProcessErrorMessage( QProcess::ProcessError error )
-{
-	static const QString msgs[] =
-	{
-		"Failed To Start",
-		"Crashed",
-		"Timed out",
-		"Read Error",
-		"Write Error",
-		"Unknown Error"
-	};
-	static const DEFINE_ARRAY_SIZE( msgs );
-
-	static_assert( ( QProcess::ProcessError::UnknownError + 1 ) == msgs_size, "ProcessError enumerated values differ in size from their respective messages array." );
-
-	assert__( error < (int)msgs_size );
-
-	return msgs[ error ];
-}
-
-
-
-void CProcessesTable::ProcessError( QProcess::ProcessError error )
+void CProcessesTable::HandleProcessError( QProcess::ProcessError error )
 {
 	COsProcess *process = qobject_cast<COsProcess*>( sender() );			assert__( process );
 
-	LogWarn( process, q2a( FormatErrorMessage( ProcessErrorMessage( error ) ) ) );
+	LogWarn( process, q2a( FormatErrorMessage( COsProcess::ProcessErrorMessage( error ) ) ) );
 }
 
 

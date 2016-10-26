@@ -19,120 +19,9 @@
 #define COMMON_GUI_PROCESSES_TABLE_H
 
 
+#include "new-gui/Common/System/OsProcess.h"
+
 #include "ControlPanel.h"
-
-
-
-/////////////////////////////////////////////////////////////////////////////////
-//							Brat Process Class
-/////////////////////////////////////////////////////////////////////////////////
-
-
-class COsProcess : public QProcess
-{
-#if defined (__APPLE__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winconsistent-missing-override"
-#endif
-
-	Q_OBJECT;
-
-#if defined (__APPLE__)
-#pragma clang diagnostic pop
-#endif
-
-	// types & friends
-
-protected:
-	using base_t = QProcess;
-
-	typedef long long uid_t;
-
-	using log_file_t = void (COsProcess::*)( const std::string &msg );
-
-
-	// instance data
-
-protected:
-	bool mSync = false;
-	std::string mId;		//tasks
-	std::string mAt;		//tasks
-	std::string mName;		//tasks & operations
-	std::string mStatus;	//tasks
-	std::string mCmdLine;	//tasks & operations
-	std::string mLogPath;	//tasks
-
-	void *mUserData = nullptr;
-
-	CLogFile mLog;
-	log_file_t mLogPtr = nullptr;
-
-
-	// construction / destruction 
-
-public:
-	COsProcess( bool sync, const std::string &name, QWidget *parent, const std::string &cmd, void *user_data = nullptr,
-		const std::string &id = "",
-		const std::string &at = "",
-		const std::string &status = "",
-		const std::string &log_file = ""
-		);
-
-	virtual ~COsProcess();
-
-
-	// access
-
-	void* UserData() const { return mUserData; }
-
-	const std::string& CmdLine() const { return mCmdLine; };
-	virtual void SetCmd( const std::string& value ) { mCmdLine = value; };
-
-	virtual const std::string& Name() const { return mName; };
-	virtual void SetName( const std::string& value ) { mName = value; };
-
-	const std::string& Id() const { return mId; }
-	const std::string& At() const { return mAt; }
-	const std::string& Status() const { return mStatus; }
-	const std::string& LogPath() const { return mLogPath; }
-
-	long long Pid() const
-	{
-		return
-#if defined (WIN32) || defined(_WIN32)
-			pid() ? pid()->dwProcessId : 0;
-#else
-            pid();
-#endif
-	}
-
-	std::string PidString() const {	return n2s( Pid() ); }
-
-
-	// operate
-
-	virtual void Kill();
-
-	virtual void Execute( bool detached = false );
-
-
-	void Log( const std::string &msg )
-	{
-		assert__( mLogPtr );
-
-		(this->*mLogPtr)( msg );
-	}
-
-protected:
-	void RealLog( const std::string &msg )
-	{
-		mLog.Log( msg );
-	}
-
-	void PseudoLog( const std::string & )
-	{}
-};
-
 
 
 
@@ -183,10 +72,6 @@ protected:
 	static const QString smSeparator;
 	static const QString smTitleBegin;
 	static const QString smTitleEnd;
-
-public:
-
-	static const QString& ProcessErrorMessage( QProcess::ProcessError error );
 
 
 protected:
@@ -310,10 +195,10 @@ private slots :
 
 	// QProcess report handling
 
-	void UpdateOutput();
-	void AsyncProcessFinished( int exit_code, QProcess::ExitStatus exitStatus );
-	void SyncProcessFinished( int exit_code, QProcess::ExitStatus exitStatus );
-	void ProcessError( QProcess::ProcessError error );
+	void HandleUpdateOutput();
+	void HandleAsyncProcessFinished( int exit_code, QProcess::ExitStatus exitStatus );
+	void HandleSyncProcessFinished( int exit_code, QProcess::ExitStatus exitStatus );
+	void HandleProcessError( QProcess::ProcessError error );
 };
 
 

@@ -8,11 +8,17 @@
 #
 
 import sys, os
+import platform
 
 currentDirectory = os.path.dirname(os.path.realpath(__file__))
 
 # Add the bin folder path to the sys.path list, for python to find brathl.py API
-currentWorkingDirectory = currentDirectory+ '/../../bin/'
+_OS = platform.system()
+if _OS == "Darwin":  # Mac OS X
+	bin_sub_dir = '/../../MacOS/'
+else:
+	bin_sub_dir = '/../../bin/'
+currentWorkingDirectory = currentDirectory + bin_sub_dir
 
 if os.path.isdir(currentWorkingDirectory):
 

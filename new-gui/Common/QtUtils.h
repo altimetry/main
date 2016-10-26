@@ -1368,6 +1368,16 @@ inline const std::string& SystemUserDataPath()
 //}
 
 
+inline QString UserName()
+{
+	QString name = qgetenv( "USER" );
+	if ( name.isEmpty() )
+		name = qgetenv( "USERNAME" );
+
+	return name;
+}
+
+
 
 class QBratThread : public QThread
 {

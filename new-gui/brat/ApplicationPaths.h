@@ -84,7 +84,12 @@ public:
     const std::string mExecShowStatsName;
     const std::string mExecBratSchedulerName;
 
-    // NOT rigid (user definable), so, definitions
+#if (BRAT_MINOR_VERSION_INT==1)
+	const std::string mRadsServicePath;
+#endif
+
+
+	// NOT rigid (user definable), so, definitions
     //	are based on defaults.
 
 private:

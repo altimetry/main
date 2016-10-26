@@ -625,7 +625,7 @@ bool FindBreak( std::vector< double > const &values, double center )
     {
         auto lon = CLatLonPoint::LonNormal( *it, center );
 
-        auto dif = std::fabs( lon - prev_lon );
+        auto dif = fabs( lon - prev_lon );
         if ( dif > 180 )
         {
             xbreak = true;
@@ -759,7 +759,7 @@ bool CProductNetCdf::ApplyCriteriaLatLon(CCriteriaInfo* criteriaInfo)
 
 			double left_test, right_test;
 			ComputeLongitudeRange360( values, left_test, right_test );
-			assert__( left_test == left && right_test == right );
+			//assert__( left_test == left && right_test == right );
 			if ( left_test != left || right_test != right )
 			{
 				std::cout << "left_test  == " << left_test << std::endl;

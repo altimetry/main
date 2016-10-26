@@ -183,43 +183,6 @@
                     </distributionFileList>
                 </folder>
 
-                <!--<folder>
-          <description>IDL interface files</description>
-          <platforms>windows</platforms>
-          <destination>${installdir}/idl</destination>
-          <name>idl_interface</name>
-          <distributionFileList>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/lib/Release/brathl-idl.dll</origin>
-            </distributionFile>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/libbrathl/brathl_idl/brathl-idl.dlm</origin>
-            </distributionFile>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/externals/coda/lib/Release/coda-idl.dll</origin>
-            </distributionFile>
-            <distributionFile>
-              <origin>@CMAKE_BINARY_DIR@/externals/coda/idl/coda-idl.dlm</origin>
-            </distributionFile>
-	    <distributionFile>
-              <origin>C:/WINDOWS/system32/msvcp100.dll</origin>
-            </distributionFile>
-	    <distributionFile>
-              <origin>C:/WINDOWS/system32/msvcr100.dll</origin>
-            </distributionFile>
-          </distributionFileList>
-        </folder>-->
-<!--                <folder>
-                    <description>Shared data files</description>
-                    <destination>${installdir}</destination>
-                    <name>data</name>
-                    <platforms>all</platforms>
-                    <distributionFileList>
-                        <distributionDirectory>
-                            <origin>@CMAKE_SOURCE_DIR@/data</origin>
-                        </distributionDirectory>
-                    </distributionFileList>
-                </folder>-->
                 <folder>
                     <description>Demo Workspace</description>
                     <destination>${installdir}</destination>

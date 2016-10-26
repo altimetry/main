@@ -293,6 +293,12 @@ const std::string& CMapWidget::URLRasterLayerPath()
 #pragma warning ( disable : 4996 )
 #endif
 
+#if defined (__unix__)
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
+
+
+
 void CMapWidget::Init()
 {
     // Instantiate Provider Registry
@@ -398,9 +404,16 @@ void CMapWidget::Init()
 #endif
 }
 
+
+#if defined (__unix__)
+#pragma GCC diagnostic warning "-Wdeprecated-declarations"
+#endif
+
 #if defined (WIN32) || defined(_WIN32)
 #pragma warning ( default : 4996 )
 #endif
+
+
 
 
 CMapWidget::CMapWidget( bool vector_simplify, ELayerBaseType layer_base_type, QWidget *parent, bool with_tracks_layer )		//with_tracks_layer = false 

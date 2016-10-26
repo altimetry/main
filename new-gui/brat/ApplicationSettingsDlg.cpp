@@ -18,6 +18,7 @@
 #include "new-gui/brat/stdafx.h"
 
 #include "new-gui/Common/QtUtils.h"
+#include "new-gui/Common/System/Service/qtservice.h"
 #include "GUI/ActionsTable.h"
 #include "new-gui/Common/GUI/TextWidget.h"
 #include "BratApplication.h"
@@ -45,7 +46,7 @@ void CApplicationSettingsDlg::CreateWidgets()
 
 
     mProjectsDirectoryLineEdit = new QLineEdit( this );
-    mProjectsDirectoryLineEdit->setObjectName(QString::fromUtf8("ExternalDataDirectory_lineEdit"));
+    mProjectsDirectoryLineEdit->setObjectName( QString::fromUtf8("ExternalDataDirectory_lineEdit") );
 	mBrowseWorkspacesDirectoryPushButton = new QPushButton( "Browse..." );
 
 	auto *wkspc_l = 
@@ -117,6 +118,47 @@ void CApplicationSettingsDlg::CreateWidgets()
 #endif
 
 
+#if (BRAT_MINOR_VERSION_INT==1)
+	//RADS Page
+
+	mRadsOutputEdit = new QLineEdit;
+	mRadsPathBrowseButton = new QPushButton( "Browse..." );
+	mRadsViewLogFile = new QPushButton( "Log..." );
+	mRadsSpin = new QSpinBox;
+	mRadsSpin->setMinimum( 1 );
+	mRadsSpin->setMaximum( 31 );
+	mRadsMissionsList = new QListWidget;
+
+	mRadsInstallButton = CreateToolButton( "", "", CActionInfo::FormatTip("Install") ); 
+	mRadsUninstallButton = CreateToolButton( "", "", CActionInfo::FormatTip("Uninstall") ); 
+	mRadsStartButton = CreateToolButton( "", ":/images/themes/default/media/media-seek-forward-16.png", CActionInfo::FormatTip("Start") ); 
+	mRadsStopButton = CreateToolButton( "", ":/images/themes/default/media/media-stop-16.png", CActionInfo::FormatTip("Stop") ); 
+	mRadsPauseButton = CreateToolButton( "", ":/images/themes/default/media/media-pause-16.png", CActionInfo::FormatTip("Pause") ); 
+	mRadsResumeButton = CreateToolButton( "", ":/images/themes/default/media/media-play-16.png", CActionInfo::FormatTip("Resume") ); 
+
+	auto *sync_settings_l = LayoutWidgets( Qt::Vertical,
+	{
+		LayoutWidgets( Qt::Horizontal, { new QLabel( "Destination Path" ), mRadsOutputEdit, mRadsPathBrowseButton }, nullptr, 2,2,2,2,2 ),
+		LayoutWidgets( Qt::Horizontal, { new QLabel( "Sync data every" ), mRadsSpin, new QLabel( "days for mission(s)" ), mRadsMissionsList }, nullptr, 2,2,2,2,2 ),
+	}, 
+	nullptr, 2,2,2,2,2 );
+
+	mRadsCommandsBox = CreateGroupBox( ELayoutType::Vertical, 
+	{
+		CreateButtonRow( true, Qt::Horizontal, { mRadsInstallButton, mRadsUninstallButton, mRadsViewLogFile }, 2, 2 ),
+		CreateButtonRow( true, Qt::Horizontal, { mRadsStartButton, mRadsStopButton }, 2, 2 ),
+		CreateButtonRow( true, Qt::Horizontal, { mRadsPauseButton, mRadsResumeButton }, 2, 2 )
+	}, 
+	"Service Control", nullptr, 2,2,2,2,2 );
+
+	mRadsOptionsPage = CreateGroupBox( ELayoutType::Vertical, 
+	{ 
+		nullptr, sync_settings_l, mRadsCommandsBox, nullptr 
+	}, 
+	"RADS Settings", this, 6, 6, 6, 6, 6 );
+#endif
+
+
 	//ApplicationStyles Page
 
     mStylesListWidget = new QListWidget( this );
@@ -134,12 +176,19 @@ void CApplicationSettingsDlg::CreateWidgets()
 
 	mStackedWidget = new CStackedWidget( this, { 
         { mApplicationPathsPage, "Paths", CActionInfo::FormatTip("Paths\nDefault application paths selection"), "://images/brat_paths.png", true },
-        { mStartupOptionsPage, "Startup", CActionInfo::FormatTip("Startup\nApplication start-up behavior"), "://images/OSGeo/tools.png", true },
-        { mApplicationStylesPage, "Style", CActionInfo::FormatTip("Styles\nApplication visual options"), "://images/brat_style.png", true }
+		{ mStartupOptionsPage, "Startup", CActionInfo::FormatTip("Startup\nApplication start-up behavior"), "://images/OSGeo/tools.png", true },
+#if (BRAT_MINOR_VERSION_INT==1)
+		{ mRadsOptionsPage, "RADS", CActionInfo::FormatTip("RADS\nRADS data synchronization control"), "://images/rads.gif", true },
+#endif
+		{ mApplicationStylesPage, "Style", CActionInfo::FormatTip("Styles\nApplication visual options"), "://images/brat_style.png", true }
 	} );
 
 
+#if (BRAT_MINOR_VERSION_INT==1)
+	auto *row = CreateButtonRow( true, Qt::Vertical, { mStackedWidget->Button( 0 ), mStackedWidget->Button( 1 ), mStackedWidget->Button( 2 ), mStackedWidget->Button( 3 ) } );
+#else
 	auto *row = CreateButtonRow( true, Qt::Vertical, { mStackedWidget->Button( 0 ), mStackedWidget->Button( 1 ), mStackedWidget->Button( 2 ) } );
+#endif
 	auto *row_group = CreateGroupBox( ELayoutType::Vertical, { row } );
 
 	auto *content_l = LayoutWidgets( Qt::Horizontal, { row_group, mStackedWidget }, nullptr, 6, 6, 6, 6, 6 );
@@ -215,6 +264,43 @@ void CApplicationSettingsDlg::Wire()
     HandleViewsLayerTypeChanged( false );		//idem
 
 
+#if (BRAT_MINOR_VERSION_INT==1)
+	//RADS Page
+
+	mRadsOutputEdit->setText( settings_paths->UserDataDirectory().c_str() );				//TODO mSettings.RadsPeriod() 
+	connect( mRadsPathBrowseButton, SIGNAL( clicked() ), this, SLOT(  HandleRadsPathBrowse() ) );
+
+	mRadsSpin->setValue( 7 );																//TODO mSettings.RadsPeriod() 
+
+	std::vector< std::string > missions = { "Sentinel", "Jason 1", "Jason 2", "Cryosat" };	//TODO: mSettings.RadsMissionsList
+	for ( auto &mission : missions )
+	{
+		QListWidgetItem* item = new QListWidgetItem;
+		item->setText( t2q( mission )  );
+		item->setFlags( item->flags() | Qt::ItemIsUserCheckable );
+		item->setCheckState( Qt::Unchecked );		//Qt::Checked
+		mRadsMissionsList->addItem( item );
+	}
+	// Sort items (ascending order)
+	mRadsMissionsList->sortItems();
+	mRadsMissionsList->setMaximumHeight( mRadsMissionsList->sizeHintForRow( 0 ) * 5 );
+
+	bool installed = mRadsController->isInstalled();
+	bool running = mRadsController->isRunning();
+	mRadsStopButton->setChecked( installed && running );		mRadsStartButton->setChecked( installed && !running );
+	mRadsPauseButton->setChecked( installed && running );		mRadsResumeButton->setChecked( installed && running );
+	EnableRadsButtons();
+
+	connect( mRadsInstallButton, SIGNAL( clicked() ), this, SLOT(  HandleRadsInstall() ) );
+	connect( mRadsUninstallButton, SIGNAL( clicked() ), this, SLOT(  HandleRadsUninstall() ) );
+	connect( mRadsStartButton, SIGNAL( clicked() ), this, SLOT(  HandleRadsStart() ) );
+	connect( mRadsStopButton, SIGNAL( clicked() ), this, SLOT(  HandleRadsStop() ) );
+	connect( mRadsPauseButton, SIGNAL( clicked() ), this, SLOT(  HandleRadsPause() ) );
+	connect( mRadsResumeButton, SIGNAL( clicked() ), this, SLOT(  HandleRadsResume() ) );
+	connect( mRadsViewLogFile, SIGNAL( clicked() ), this, SLOT(  HandleViewLogFile() ) );
+#endif
+
+
     //	Application Styles
 
 	mStylesListWidget->setSelectionMode( QAbstractItemView::SingleSelection );
@@ -238,10 +324,20 @@ void CApplicationSettingsDlg::Wire()
 }
 
 
-CApplicationSettingsDlg::CApplicationSettingsDlg( CBratSettings &options, QWidget *parent ) : QDialog( parent ), mSettings( options )
+CApplicationSettingsDlg::CApplicationSettingsDlg( CBratSettings &options, QWidget *parent )
+	: QDialog( parent )
+	, mRadsController( new QtServiceController( RADS_SERVICE_NAME ) )
+	, mSettings( options )
 {
 	CreateWidgets();
 }
+
+//virtual 
+CApplicationSettingsDlg::~CApplicationSettingsDlg()
+{
+	delete mRadsController;
+}
+
 
 
 
@@ -275,6 +371,90 @@ void CApplicationSettingsDlg::HandleViewsLayerTypeChanged( bool )
     mLayerURLLineEdit->setEnabled( mUseRasterLayerURI->isChecked() || mViewsUseRasterLayerURI->isChecked() );
 	mVectorSimplifyMethodCheck->setEnabled( mUseVectorLayer->isChecked() || mViewsUseVectorLayer->isChecked() );
 }
+
+
+#if (BRAT_MINOR_VERSION_INT==1)
+
+//	RADS page
+
+void CApplicationSettingsDlg::HandleRadsPathBrowse()
+{
+	QString dir = BrowseDirectory( this, "Select RADS Output Directory", mRadsOutputEdit->text() );
+	if ( !dir.isEmpty() )
+		mRadsOutputEdit->setText( dir );
+}
+
+void CApplicationSettingsDlg::EnableRadsButtons()
+{
+	const bool installed = mRadsController->isInstalled();
+
+	mRadsInstallButton->setChecked( installed );				
+	mRadsUninstallButton->setChecked( !installed );
+
+	mRadsStopButton->setEnabled( installed );		
+	mRadsStartButton->setEnabled( installed );
+	mRadsPauseButton->setEnabled( installed );		
+	mRadsResumeButton->setEnabled( installed );
+}
+
+void CApplicationSettingsDlg::DisplayRadsError( const std::string & action )
+{
+	SimpleErrorBox( "Could not " + action + " RADS service" );
+}
+
+void CApplicationSettingsDlg::HandleRadsInstall()
+{
+	assert__( !mRadsController->isInstalled() );
+
+	if ( !CBratApplication::InstallRadsService() )
+		DisplayRadsError( "install" );
+
+	EnableRadsButtons();
+}
+void CApplicationSettingsDlg::HandleRadsUninstall()
+{
+	assert__( mRadsController->isInstalled() );
+
+	if ( !mRadsController->uninstall() )
+		DisplayRadsError( "uninstall" );
+
+	EnableRadsButtons();
+}
+void CApplicationSettingsDlg::HandleRadsStart()
+{
+	assert__( !mRadsController->isRunning() );
+
+	if ( !mRadsController->start() )
+		DisplayRadsError( "start" );
+}
+void CApplicationSettingsDlg::HandleRadsStop()
+{
+	assert__( mRadsController->isRunning() );
+
+	if ( !mRadsController->stop() )
+		DisplayRadsError( "stop" );
+}
+void CApplicationSettingsDlg::HandleRadsPause()
+{
+	assert__( mRadsController->isRunning() );
+
+	if ( !mRadsController->pause() )
+		DisplayRadsError( "pause" );
+}
+void CApplicationSettingsDlg::HandleRadsResume()
+{
+	assert__( !mRadsController->isRunning() );
+
+	if ( !mRadsController->resume() )
+		DisplayRadsError( "resume" );
+}
+void CApplicationSettingsDlg::HandleViewLogFile()
+{
+	BRAT_NOT_IMPLEMENTED;
+}
+
+#endif
+
 
 //	ApplicationStyles_page
 
