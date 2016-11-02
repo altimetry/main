@@ -67,7 +67,6 @@ class CApplicationSettingsDlg : public QDialog
 	QCheckBox *mVectorSimplifyMethodCheck = nullptr;
 	QWidget *mStartupOptionsPage = nullptr;
 
-#if (BRAT_MINOR_VERSION_INT==1)
 	QLineEdit *mRadsOutputEdit = nullptr;
 	QPushButton *mRadsPathBrowseButton = nullptr;
 	QSpinBox *mRadsSpin = nullptr;
@@ -81,7 +80,6 @@ class CApplicationSettingsDlg : public QDialog
 	QToolButton *mRadsResumeButton = nullptr;
 	QPushButton *mRadsViewLogFile = nullptr;
 	QWidget *mRadsOptionsPage = nullptr;
-#endif
 
     QListWidget *mStylesListWidget = nullptr;
     QCheckBox *mDefaultStyleCheckBox = nullptr;
@@ -108,10 +106,8 @@ public:
 protected:
     bool ValidateAndAssign();
 
-#if (BRAT_MINOR_VERSION_INT==1)
 	void EnableRadsButtons();
 	void DisplayRadsError( const std::string &action );
-#endif
 
 private slots:
     virtual void accept();
@@ -121,7 +117,6 @@ private slots:
     void HandleMainLayerTypeChanged( bool toggled );
     void HandleViewsLayerTypeChanged( bool toggled );
 
-#if (BRAT_MINOR_VERSION_INT==1)
 	void HandleRadsPathBrowse();
 	void HandleRadsInstall();
 	void HandleRadsUninstall();
@@ -130,7 +125,6 @@ private slots:
 	void HandleRadsPause();
 	void HandleRadsResume();
 	void HandleViewLogFile();
-#endif
 };
 
 #endif // APPLICATION_SETTINGS_DLG_H

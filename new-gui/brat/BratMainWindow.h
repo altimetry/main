@@ -72,9 +72,7 @@ public:
 	enum ETabName
 	{
 		eDataset,
-#if (BRAT_MINOR_VERSION_INT==1)
 		eRADS,
-#endif
 		eFilter,
 		eOperations,
 
@@ -205,11 +203,7 @@ public:
 	template< CBratMainWindow::ETabName INDEX >
 	struct ControlsPanelType
 	{
-#if (BRAT_MINOR_VERSION_INT==1)
 		using panels_factory_t = std::tuple< CDatasetBrowserControls, CRadsBrowserControls, CDatasetFilterControls, COperationControls >;
-#else
-		using panels_factory_t = std::tuple< CDatasetBrowserControls, CDatasetFilterControls, COperationControls >;
-#endif
 
 		using type = typename std::tuple_element< INDEX, panels_factory_t >::type;
 	};

@@ -203,7 +203,6 @@ inline QString ServiceUserName()
 
 
 
-#if (BRAT_MINOR_VERSION_INT==1)
 bool CBratApplication::InstallRadsService()
 {
 	static const QString rads_service_name = RADS_SERVICE_NAME;
@@ -239,7 +238,6 @@ bool CBratApplication::InstallRadsService()
 
 	return installed;
 }
-#endif
 
 
 void CBratApplication::CheckRunMode()

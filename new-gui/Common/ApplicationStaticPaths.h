@@ -105,9 +105,7 @@ public:
     //
     const std::string mInternalDataDir;		//origin: version control, deployed to bin as internal resources
 
-#if (BRAT_MINOR_VERSION_INT==1)
 	const std::string mRsyncExecutablePath;
-#endif
 
 
     ////////////////////////////////////////////

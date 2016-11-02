@@ -106,9 +106,7 @@ CApplicationPaths::CApplicationPaths( const QString &exec_path, const QString &a
 
 	, mUserDocumentsDirectory(	DefaultUserDocumentsPath() )
 
-#if (BRAT_MINOR_VERSION_INT==1)
 	, mRadsServicePath(			EscapePath( mExecutableDir + "/" + RADS_SERVICE_NAME_EXE ) )
-#endif
 {
     // user (RE)DEFINABLE paths
 	//
@@ -148,9 +146,7 @@ bool CApplicationPaths::operator == ( const CApplicationPaths &o ) const
 	assert__( mUserManualPath == o.mUserManualPath );
     assert__( mInternalDataDir == o.mInternalDataDir );
 
-#if (BRAT_MINOR_VERSION_INT==1)
 	assert__( mRsyncExecutablePath == o.mRsyncExecutablePath );
-#endif
 
 	// from this
 
@@ -171,9 +167,7 @@ bool CApplicationPaths::operator == ( const CApplicationPaths &o ) const
     assert__( mExecShowStatsName == o.mExecShowStatsName );
     assert__( mExecBratSchedulerName == o.mExecBratSchedulerName );
 
-#if (BRAT_MINOR_VERSION_INT==1)
 	assert__( mRadsServicePath == o.mRadsServicePath );
-#endif
 
     return
         // user re-definable
@@ -210,9 +204,7 @@ std::string CApplicationPaths::ToString() const
     s += ( "\nRasterLayer Path == " + mRasterLayerPath );
     s += ( "\nmURLRasterLayer Path == " + mURLRasterLayerPath );
 
-#if (BRAT_MINOR_VERSION_INT==1)
 	s += ( "\nRads Service Executable == " + mRadsServicePath );
-#endif
 	return s;
 }
 
@@ -226,9 +218,7 @@ bool CApplicationPaths::ValidatePaths() const
 		&& ValidPath( mErrorMsg, mOsgPluginsDir, false, "OSG Plugins diretory" ) 
 		&& ValidPath( mErrorMsg, mQgisPluginsDir, false, "Qgis Plugins directory" ) 
 		&& ValidPath( mErrorMsg, mGlobeDir, false, "Globe files directory" ) 
-#if (BRAT_MINOR_VERSION_INT==1)
 		&& ValidPath( mErrorMsg, mRadsServicePath, true, "rads service path" )
-#endif
 		;
 
     return mValid;

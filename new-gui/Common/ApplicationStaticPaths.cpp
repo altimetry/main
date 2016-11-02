@@ -167,12 +167,10 @@ CApplicationStaticPaths::CApplicationStaticPaths( const std::string &exec_path, 
 
     , mInternalDataDir( ComputeInternalDataDirectory( mExecutableDir ) )
 
-#if (BRAT_MINOR_VERSION_INT==1)
 #if defined(Q_OS_WIN)
     , mRsyncExecutablePath(	EscapePath( mExecutableDir + "/rsync/" + RSYNC_EXE ) )
 #else
     , mRsyncExecutablePath(	"/usr/bin/rsync" )
-#endif
 #endif
 
 {
@@ -209,9 +207,7 @@ std::string CApplicationStaticPaths::ToString() const
     s += ( "\nmPython Dir == " + mPythonDir );
 	s += ( "\nUser Manual Path == " + mUserManualPath );
     s += ( "\nInternalData Dir == " + mInternalDataDir );
-#if (BRAT_MINOR_VERSION_INT==1)
 	s += ( "\nRsync Executable == " + mRsyncExecutablePath );
-#endif
 
     return s;
 }
@@ -225,9 +221,7 @@ bool CApplicationStaticPaths::ValidatePaths() const
 	mValid =
 			ValidPath( mErrorMsg, mQtPluginsDir, false, "Qt Plugins directory" ) 
 		&&	ValidPath( mErrorMsg, mInternalDataDir, false, "BRAT resources directory" ) 
-#if (BRAT_MINOR_VERSION_INT==1)
 		&&	ValidPath( mErrorMsg, mRsyncExecutablePath, true, "rsync executable path" )
-#endif
 		;
 
     return mValid;

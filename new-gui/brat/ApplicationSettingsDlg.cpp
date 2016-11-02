@@ -118,7 +118,6 @@ void CApplicationSettingsDlg::CreateWidgets()
 #endif
 
 
-#if (BRAT_MINOR_VERSION_INT==1)
 	//RADS Page
 
 	mRadsOutputEdit = new QLineEdit;
@@ -156,7 +155,6 @@ void CApplicationSettingsDlg::CreateWidgets()
 		nullptr, sync_settings_l, mRadsCommandsBox, nullptr 
 	}, 
 	"RADS Settings", this, 6, 6, 6, 6, 6 );
-#endif
 
 
 	//ApplicationStyles Page
@@ -177,18 +175,12 @@ void CApplicationSettingsDlg::CreateWidgets()
 	mStackedWidget = new CStackedWidget( this, { 
         { mApplicationPathsPage, "Paths", CActionInfo::FormatTip("Paths\nDefault application paths selection"), "://images/brat_paths.png", true },
 		{ mStartupOptionsPage, "Startup", CActionInfo::FormatTip("Startup\nApplication start-up behavior"), "://images/OSGeo/tools.png", true },
-#if (BRAT_MINOR_VERSION_INT==1)
 		{ mRadsOptionsPage, "RADS", CActionInfo::FormatTip("RADS\nRADS data synchronization control"), "://images/rads.gif", true },
-#endif
 		{ mApplicationStylesPage, "Style", CActionInfo::FormatTip("Styles\nApplication visual options"), "://images/brat_style.png", true }
 	} );
 
 
-#if (BRAT_MINOR_VERSION_INT==1)
 	auto *row = CreateButtonRow( true, Qt::Vertical, { mStackedWidget->Button( 0 ), mStackedWidget->Button( 1 ), mStackedWidget->Button( 2 ), mStackedWidget->Button( 3 ) } );
-#else
-	auto *row = CreateButtonRow( true, Qt::Vertical, { mStackedWidget->Button( 0 ), mStackedWidget->Button( 1 ), mStackedWidget->Button( 2 ) } );
-#endif
 	auto *row_group = CreateGroupBox( ELayoutType::Vertical, { row } );
 
 	auto *content_l = LayoutWidgets( Qt::Horizontal, { row_group, mStackedWidget }, nullptr, 6, 6, 6, 6, 6 );
@@ -264,7 +256,6 @@ void CApplicationSettingsDlg::Wire()
     HandleViewsLayerTypeChanged( false );		//idem
 
 
-#if (BRAT_MINOR_VERSION_INT==1)
 	//RADS Page
 
 	mRadsOutputEdit->setText( settings_paths->UserDataDirectory().c_str() );				//TODO mSettings.RadsPeriod() 
@@ -298,7 +289,6 @@ void CApplicationSettingsDlg::Wire()
 	connect( mRadsPauseButton, SIGNAL( clicked() ), this, SLOT(  HandleRadsPause() ) );
 	connect( mRadsResumeButton, SIGNAL( clicked() ), this, SLOT(  HandleRadsResume() ) );
 	connect( mRadsViewLogFile, SIGNAL( clicked() ), this, SLOT(  HandleViewLogFile() ) );
-#endif
 
 
     //	Application Styles
@@ -373,7 +363,6 @@ void CApplicationSettingsDlg::HandleViewsLayerTypeChanged( bool )
 }
 
 
-#if (BRAT_MINOR_VERSION_INT==1)
 
 //	RADS page
 
@@ -453,7 +442,6 @@ void CApplicationSettingsDlg::HandleViewLogFile()
 	BRAT_NOT_IMPLEMENTED;
 }
 
-#endif
 
 
 //	ApplicationStyles_page

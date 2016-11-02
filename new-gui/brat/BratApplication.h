@@ -90,9 +90,7 @@ public:
     static int OffGuiErrorDialog( int error_type, char const *error_msg );
 
 
-#if (BRAT_MINOR_VERSION_INT==1)
-	static bool InstallRadsService();
-#endif
+    static bool InstallRadsService();
 
 protected:
 	//	This is accurate only if(when) no style sheet was also assigned.

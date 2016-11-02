@@ -48,9 +48,7 @@
 #include "GUI/ActiveViewsDialog.h"
 #include "GUI/TabbedDock.h"
 #include "GUI/ControlPanels/DatasetBrowserControls.h"
-#if (BRAT_MINOR_VERSION_INT==1)
 #include "GUI/ControlPanels/RadsBrowserControls.h"
-#endif
 #include "GUI/ControlPanels/DatasetFilterControls.h"
 #include "GUI/ControlPanels/OperationControls.h"
 #include "GUI/DisplayEditors/Dialogs/ExportImageDialog.h"
@@ -151,11 +149,9 @@ CControlPanel* CBratMainWindow::MakeWorkingPanel( ETabName tab )
 		case eDataset:
 			return new ControlsPanelType< eDataset >::type( mModel, mDesktopManager );
 			break;
-#if (BRAT_MINOR_VERSION_INT==1)
 		case eRADS:
 			return new ControlsPanelType< eRADS >::type( mModel, mDesktopManager );
 			break;
-#endif
 		case eFilter:
 			return new ControlsPanelType< eFilter >::type( mModel, mDesktopManager );
 			break;
@@ -187,12 +183,10 @@ void CBratMainWindow::CreateWorkingDock()
 
 	LOG_TRACE( "Added MakeWorkingPanel( eDataset )..." );
 
-#if (BRAT_MINOR_VERSION_INT==1)
 	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eRADS ), "RADS" );	 			assert__( mMainWorkingDock->TabIndex( tab ) == eRADS );
 	mMainWorkingDock->SetTabToolTip( tab, "RADS Browser" );
 
 	LOG_TRACE( "Added MakeWorkingPanel( eRADS )..." );
-#endif
 
 	tab = mMainWorkingDock->AddTab( MakeWorkingPanel( eFilter ), "Filters" );	 		assert__( mMainWorkingDock->TabIndex( tab ) == eFilter );
 	mMainWorkingDock->SetTabToolTip( tab, "Dataset filter" );
