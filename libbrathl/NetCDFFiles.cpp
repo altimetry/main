@@ -4436,15 +4436,26 @@ std::string CNetCDFFiles::IdentifyExistingFile
 	{
 		//    - Reference date for REAPER is 1990-01-01 00:00:00
 
-		std::string str_l2_ref_doc;
-
-		//    REAPER/ERS_ALT_2	//    Global attribute "l2_ref_doc" exists and is equal to "REA-IS-PSD-5001"
-
+        // REAPER/ERS_ALT_2	-- Global attribute "l2_ref_doc" exists and is equal to "REA-IS-PSD-5001"
+        std::string str_l2_ref_doc;
         int found_str_l2_ref_doc = GetAtt(NC_GLOBAL, "l2_ref_doc", str_l2_ref_doc, false, attrNotFound);
+
+        // Geosat GDR -- Global attribute "id" exists and is equal to "NODC Accession 0053056"
+        std::string str_id;
+        int found_str_id = GetAtt(NC_GLOBAL, "id", str_id, false, attrNotFound);
+
+        // If REAPER/ERS_ALT_2
 		if ( found_str_l2_ref_doc == NC_NOERR && str_l2_ref_doc == "REA-IS-PSD-5001" )
-		{
-			return CExternalFilesReaper::TypeOf();
-		}
+        {
+            return CExternalFilesReaper::TypeOf();
+        }
+
+        // If Geosat GDR
+        else
+        if ( found_str_id == NC_NOERR && str_id == "NODC Accession 0053056" )
+        {
+            return CExternalFilesGeosatGDR::TypeOf();
+        }
 	}
 
 

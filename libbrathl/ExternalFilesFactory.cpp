@@ -89,6 +89,9 @@ CExternalFiles* BuildExistingExternalFileKind
   // Reaper
   CHECK_TYPE(CExternalFilesReaper);
 
+  // Geosat GDR
+  CHECK_TYPE(CExternalFilesGeosatGDR);
+
   return NULL;
 }
 

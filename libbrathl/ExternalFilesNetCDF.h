@@ -340,6 +340,23 @@ public:
 
 
 
+class CExternalFilesGeosatGDR : public CExternalFilesNetCDFCF
+{
+    DECLARE_BASE_TYPE( CExternalFilesNetCDFCF )
+
+public:
+    CExternalFilesGeosatGDR( const std::string	&name = "" )
+        : base_t( name )
+    {}
+
+    virtual ~CExternalFilesGeosatGDR()
+    {}
+
+    static std::string TypeOf() { return "Geosat_GDR"; }
+    virtual std::string GetType() { return TypeOf(); }
+};
+
+
 class CExternalFilesSentinel3A_enhanced : public CExternalFilesSentinel3A
 {
     DECLARE_BASE_TYPE( CExternalFilesSentinel3A )
