@@ -25,7 +25,7 @@
 #include <qgsmessagelog.h>
 #include <qgslogger.h>
 
-#include "new-gui/Common/+Utils.h"
+#include "common/+Utils.h"
 #include "new-gui/Common/ApplicationLogger.h"
 
 

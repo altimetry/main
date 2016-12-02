@@ -23,10 +23,8 @@
 #include "libbrathl/Product.h"
 #include "libbrathl/Date.h"
 
+#include "common/tools/CoreTypes.h"
 #include "new-gui/Common/ApplicationSettings.h"
-#include "new-gui/Common/tools/CoreTypes.h"
-
-#include "new-gui/brat/BratSettings.h"
 
 #include "BratAreas.h"
 
@@ -293,11 +291,11 @@ public:
 
 	//client in charge of deletion
 	//
-	static CBratFilters* CreateInstance( const CBratSettings &settings )
+	static CBratFilters* CreateInstance( const std::string &workspaces_directory )
 	{
 		assert__( !smInstance );
 
-		smInstance = new CBratFilters( settings.BratPaths().WorkspacesDirectory() );
+		smInstance = new CBratFilters( workspaces_directory );
 		return smInstance;
 	}
 
@@ -312,10 +310,10 @@ public:
 
     static const std::string& FindAliasValue( CProduct *product, const std::string &alias_name );
 
-    static CField* FindField( CProduct *product, const std::string &name, bool &alias_used, std::string &field_error_msg );
+    static CField* FindField( CProduct *product, const std::string &name, bool try_unsupported, bool &alias_used, std::string &field_error_msg );
 
-    static std::pair<CField*, CField*> FindLonLatFields( CProduct *product, bool &alias_used, std::string &field_error_msg );
-    static CField* FindTimeField( CProduct *product, bool &alias_used, std::string &field_error_msg );
+    static std::pair<CField*, CField*> FindLonLatFields( CProduct *product, bool try_unsupported, bool &lon_alias_used, bool &lat_alias_used, std::string &field_error_msg );
+    static CField* FindTimeField( CProduct *product, bool try_unsupported, bool &alias_used, std::string &field_error_msg );
 
 
 
@@ -392,72 +390,5 @@ public:
 };
 
 
-//
-//void CDatasetPanel::ApplySelectionCriteria( CStringList& files_in, CStringList& files_out )
-//{
-//	CProduct* p = NULL;
-//	bool bOk = true;
-//
-//	try
-//	{
-//		p = CProduct::Construct( *( files_in.begin() ) );
-//	}
-//	catch ( CException e )
-//	{
-//		bOk = false;
-//	}
-//	catch ( ... )
-//	{
-//		bOk = false;
-//	}
-//
-//	if ( p == NULL )
-//	{
-//		bOk = false;
-//	}
-//
-//	if ( !bOk )
-//	{
-//		files_out.Insert( files_in );
-//		if ( p != NULL )
-//		{
-//			delete p;
-//		}
-//		return;
-//	}
-//
-//	this->SetCursor( *wxHOURGLASS_CURSOR );
-//
-//	p->GetProductList().clear();
-//	p->GetProductList().Insert( files_in );
-//
-//
-//	string label = p->GetLabel();
-//	CProduct* productRef = dynamic_cast<CProduct*>( CMapProduct::GetInstance().Exists( label ) );
-//
-//	if ( productRef == NULL )
-//	{
-//		files_out.Insert( files_in );
-//		delete p;
-//		return;
-//	}
-//
-//
-//	p->AddCriteria( productRef );
-//
-//	wxFileName logFileName;
-//	logFileName.AssignDir( wxGetApp().GetExecPathName() );
-//	logFileName.SetFullName( DATASET_SELECTION_LOG_FILENAME );
-//	logFileName.Normalize();
-//
-//	p->ApplyCriteria( files_out, (const char *)m_logFileName.GetFullPath().c_str() );
-//
-//	delete p;
-//	p = NULL;
-//
-//	this->SetCursor( wxNullCursor );
-//
-//
-//}
 
 #endif	//DATA_MODELS_FILTERS_BRAT_FILTERS_H

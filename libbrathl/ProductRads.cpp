@@ -22,93 +22,80 @@
 #include <string> 
 
 
-#include "new-gui/Common/tools/brathl_error.h" 
+#include "common/tools/brathl_error.h"
 #include "brathl.h" 
 
-#include "new-gui/Common/tools/TraceLog.h" 
+#include "common/tools/TraceLog.h"
 #include "Tools.h" 
-#include "new-gui/Common/tools/Exception.h" 
+#include "common/tools/Exception.h"
 #include "ProductRads.h" 
 
-using namespace brathl;
+
 
 
 namespace brathl
 {
 
 
+	void CProductRads::Init()
+	{
+		mLabel = "RADS product";
 
-CProductRads::CProductRads()
-{
- Init();
-}
-
-
-//----------------------------------------
-
-CProductRads::CProductRads(const std::string& fileName)
-      : CProduct(fileName)
-{
-  Init();  
-}
+		InitDateRef();
+		InitCriteriaInfo();
+	}
 
 
-//----------------------------------------
-CProductRads::CProductRads(const CStringList& fileNameList)
-      : CProduct(fileNameList)
-
-{
-  Init();
-}
-
-//----------------------------------------
-
-CProductRads::~CProductRads()
-{
-}
-
-//----------------------------------------
-void CProductRads::InitDateRef()
-{
-  m_refDate = REF19500101;
-}
-//----------------------------------------
-void CProductRads::Init()
-{
-  m_label = "RADS product";
-
-  InitDateRef();
-  InitCriteriaInfo();
-
-}
-
-//----------------------------------------
-void CProductRads::InitCriteriaInfo()
-{
-  CProduct::InitCriteriaInfo();
-
-}
-
-//----------------------------------------
-void CProductRads::Dump(std::ostream& fOut /* = std::cerr */)
-{
-  if (CTrace::IsTrace() == false)
-  {
-    return;
-  }
+	CProductRads::CProductRads()
+	{
+		Init();
+	}
 
 
-  fOut << "==> Dump a CProductRads Object at "<< this << std::endl;
 
-  //------------------
-  CProduct::Dump(fOut);
-  //------------------
+	CProductRads::CProductRads( const std::string& fileName )
+		: base_t( fileName )
+	{
+		Init();
+	}
 
-  fOut << "==> END Dump a CProductRads Object at "<< this << std::endl;
 
-  fOut << std::endl;
+	CProductRads::CProductRads( const CStringList& fileNameList, bool check_only_first_file )
+		: base_t( fileNameList, check_only_first_file )
+	{
+		Init();
+	}
 
-}
+
+
+	//virtual 
+	void CProductRads::InitDateRef()
+	{
+		m_refDate = REF19500101;
+	}
+
+
+
+	//----------------------------------------
+	void CProductRads::Dump( std::ostream& fOut /* = std::cerr */ )
+	{
+		if ( CTrace::IsTrace() == false )
+		{
+			return;
+		}
+
+
+		fOut << "==> Dump a CProductRads Object at " << this << std::endl;
+
+		//------------------
+		base_t::Dump( fOut );
+		//------------------
+
+		fOut << "==> END Dump a CProductRads Object at " << this << std::endl;
+
+		fOut << std::endl;
+
+	}
 
 
 } // end namespace

@@ -19,8 +19,8 @@
 
 #include <osg/Version>
 
-#include "new-gui/Common/BratVersion.h"
-#include "new-gui/Common/ccore-types.h"
+#include "common/BratVersion.h"
+#include "common/ccore-types.h"
 #include "new-gui/Common/QtUtils.h"
 #include "new-gui/Common/ConfigurationKeywords.h"
 #include "new-gui/Common/GUI/TextWidget.h"
@@ -49,7 +49,7 @@
 #include "GUI/TabbedDock.h"
 #include "GUI/ControlPanels/DatasetBrowserControls.h"
 #include "GUI/ControlPanels/RadsBrowserControls.h"
-#include "GUI/ControlPanels/DatasetFilterControls.h"
+#include "GUI/ControlPanels/BratFilterControls.h"
 #include "GUI/ControlPanels/OperationControls.h"
 #include "GUI/DisplayEditors/Dialogs/ExportImageDialog.h"
 
@@ -361,15 +361,15 @@ void CBratMainWindow::ProcessMenu()
 	mDesktopManager->Map()->ConnectParentMapTipsAction( mActionMapTips );
 	mActionMapTips->setChecked( true );
 
-	mSelectionButton = CMapWidget::CreateMapSelectionActions( mMainToolsToolBar, mActionSelectFeatures, mActionDeselectAll );
-	mMainToolsToolBar->insertAction( after, mActionDeselectAll );
-	mMainToolsToolBar->insertWidget( mActionDeselectAll, mSelectionButton );
-#if defined(ENABLE_POLYGON_SELECTION)
-	CMapWidget::AddMapSelectionPolygon( mSelectionButton, mMainToolsToolBar, mActionSelectPolygon );
-	mDesktopManager->Map()->ConnectParentSelectionActions( mSelectionButton, mActionSelectFeatures, mActionSelectPolygon, mActionDeselectAll );
-#else
-	mDesktopManager->Map()->ConnectParentSelectionActions( mSelectionButton, mActionSelectFeatures, nullptr, mActionDeselectAll );
-#endif
+//	mSelectionButton = CMapWidget::CreateMapSelectionActions( mMainToolsToolBar, mActionSelectFeatures, mActionDeselectAll );
+//	mMainToolsToolBar->insertAction( after, mActionDeselectAll );
+//	mMainToolsToolBar->insertWidget( mActionDeselectAll, mSelectionButton );
+//#if defined(ENABLE_POLYGON_SELECTION)
+//	CMapWidget::AddMapSelectionPolygon( mSelectionButton, mMainToolsToolBar, mActionSelectPolygon );
+//	mDesktopManager->Map()->ConnectParentSelectionActions( mSelectionButton, mActionSelectFeatures, mActionSelectPolygon, mActionDeselectAll );
+//#else
+//	mDesktopManager->Map()->ConnectParentSelectionActions( mSelectionButton, mActionSelectFeatures, nullptr, mActionDeselectAll );
+//#endif
 
 
     // Menu View / ToolBars
@@ -454,14 +454,194 @@ void CBratMainWindow::OutputDockVisibilityChanged( bool visible )
 { 
 	//We can't use
 	//connect( mOutputDock, SIGNAL( visibilityChanged( bool ) ), mMessageButton, SLOT( setChecked( bool ) ) );
-	//because visibilityChanged is triggered when windows is minimized, not when is restored
+	//because visibilityChanged is triggered when window is minimized, not when is restored
 
 	if ( !isMinimized() )
 		mMessageButton->setChecked( visible );
 }
 
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+//											Remote Counter
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+static const QUrl counter_management_url( "http://www.altimetry.info/wp-admin/" );
+static const QUrl counter_url( "http://www.altimetry.info/test-page/" );
+
+
+//static 
+RemoteCounter *RemoteCounter::smRemoteCounter = nullptr;
+
+
+#if defined(USE_WEB_ENGINE)
+
+//https://user:password@youtu.be/-Lt0Zka0nII														//not working with any url
+//static const QUrl counter_management_url( "https://www.youtube.com/my_videos?o=U" );
+//static const QUrl counter_original_url( "https://youtu.be/-Lt0Zka0nII" );							//original: not working as is
+//static const QUrl counter_url( "https://www.youtube.com/watch?v=-Lt0Zka0nII&feature=youtu.be" );	//works with unlisted
+
+
+
+RemoteCounter::RemoteCounter() 
+	: base_t( nullptr )
+{
+	assert__( smRemoteCounter == nullptr );
+
+	setAttribute( Qt::WA_DeleteOnClose );
+	connect( this, &QWebEngineView::loadFinished, [this]( bool success ) {
+		if ( !success )
+			LOG_WARN( "RemoteCounter failure" );
+		QTimer::singleShot( 10000, this, &QWidget::close );
+	} );
+	setVisible( false );
+	smRemoteCounter = this;
+}
+//virtual 
+RemoteCounter::~RemoteCounter()
+{
+	assert__( smRemoteCounter != nullptr );
+	LOG_INFO( "Deleted remote counter." );
+	smRemoteCounter = nullptr;
+}
+
+
+RemoteCounterPage::RemoteCounterPage( const std::string &user, const std::string &pass, QWebEngineProfile *profile, QObject *parent )
+	: QWebEnginePage(profile, parent)
+	, mUser( user )
+	, mPass( pass )
+{
+	connect(this, &QWebEnginePage::authenticationRequired, this, &RemoteCounterPage::handleAuthenticationRequired);
+	connect(this, &QWebEnginePage::proxyAuthenticationRequired, this, &RemoteCounterPage::handleProxyAuthenticationRequired);
+}
+//virtual 
+RemoteCounterPage::~RemoteCounterPage()
+{
+	LOG_INFO( "Deleted remote counter page." );
+}
+
+void RemoteCounterPage::FillAuth( QAuthenticator *auth )
+{
+	auth->setUser( mUser.c_str() );
+	auth->setPassword( mPass.c_str() );
+}
+
+bool RemoteCounterPage::certificateError( const QWebEngineCertificateError &error )
+{
+	QWidget *mainWindow = view()->window();
+	QMessageBox::critical( mainWindow, tr("Certificate Error"), error.errorDescription() );
+	return false;
+}
+
+void RemoteCounterPage::handleAuthenticationRequired( const QUrl &, QAuthenticator *auth )
+{
+	FillAuth( auth );
+}
+
+void RemoteCounterPage::handleProxyAuthenticationRequired( const QUrl &, QAuthenticator *auth, const QString & )
+{
+	FillAuth( auth );
+}
+
+void RemoteCounter::RemoteCount()
+{
+	RemoteCounterPage *webPage = new RemoteCounterPage( "brat.helpdesk@esa.int", "Deimos2015", QWebEngineProfile::defaultProfile(), this );
+	setPage( webPage );
+	page()->load( counter_url );
+}
+
+void RemoteCount()
+{
+	RemoteCounter *webview = new RemoteCounter;
+	webview->RemoteCount();
+}
+
+
+#else
+
+
+
+RemoteCounter::RemoteCounter()
+{
+    assert__( !smRemoteCounter );
+	connect( &mManager, SIGNAL( finished(QNetworkReply*) ), SLOT( downloadFinished(QNetworkReply*) ) );
+    smRemoteCounter = this;
+}
+
+//virtual 
+RemoteCounter::~RemoteCounter()
+{
+	assert__( smRemoteCounter != nullptr );
+	LOG_TRACE( "Deleted remote counter." );
+	smRemoteCounter = nullptr;
+}
+
+
+void RemoteCounter::Count()
+{
+	QNetworkRequest request( counter_url );
+	//request.setRawHeader( "Authorization", "Basic " + QByteArray( QString("brat:Deimos2015").toLatin1() ).toBase64() );
+	QNetworkReply *reply = mManager.get( request );
+
+	connect( reply, SIGNAL( sslErrors(QList<QSslError>) ), SLOT( sslErrors(QList<QSslError>) ) );
+
+	mCurrentReplies.append(reply);
+}
+
+
+void RemoteCounter::sslErrors(const QList<QSslError> &sslErrors)
+{
+	foreach (const QSslError &error, sslErrors)
+	{
+		LOG_TRACE( "SSL error: " + error.errorString() );
+	}
+}
+
+
+void RemoteCounter::downloadFinished(QNetworkReply *reply)
+{
+	if ( reply->error() ) 
+    {
+		LOG_TRACE( "Remote count failed: " +reply->errorString() );
+	} 
+    else 
+    {
+//        QFile file(filename);
+//        if (!file.open(QIODevice::WriteOnly)) {
+//            fprintf(stderr, "Could not open %s for writing: %s\n",
+//                qPrintable(filename),
+//                qPrintable(file.errorString()));
+//            return false;
+//        }
+//        file.write(
+                    reply->readAll();
+//                    );
+//        file.close();
+	}
+
+	mCurrentReplies.removeAll(reply);
+	reply->deleteLater();
+    deleteLater();
+}
+
+
+void RemoteCount()
+{
+	RemoteCounter *rc = new RemoteCounter;
+	rc->Count();
+}
+
+
+#endif
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 //											Constructor
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 
@@ -583,6 +763,9 @@ CBratMainWindow::CBratMainWindow( CBratApplication &app )
 		LoadCmdLineFiles();
 
 	mApp.EndSplash( this );
+
+
+    RemoteCount();
 
 
 	LOG_TRACE( "Finished main window construction." );
@@ -955,6 +1138,13 @@ CBratMainWindow::~CBratMainWindow()
 
 	smInstance = nullptr;
     SetApplicationWindow( nullptr );
+
+	if ( RemoteCounter::smRemoteCounter )
+	{
+		const QString msg = "RemoteCounter is NOT null";
+		qDebug() << msg;
+		LOG_TRACE( msg );
+	}
 }
 
 
@@ -983,6 +1173,7 @@ void CBratMainWindow::EmitWorkspaceChanged()
 	emit WorkspaceChanged();
 
 	WorkingPanel< eDataset >()->HandleWorkspaceChanged( mModel.Workspace< CWorkspaceDataset >() );
+	WorkingPanel< eRADS >()->HandleWorkspaceChanged( mModel.Workspace< CWorkspaceDataset >() );
 	WorkingPanel< eFilter >()->HandleWorkspaceChanged(/* mModel.Workspace< CWorkspaceOperation >() */);
 	WorkingPanel< eOperations >()->HandleWorkspaceChanged( /*mModel.Workspace< CWorkspaceDisplay >()*/ );
 }

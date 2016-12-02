@@ -1058,17 +1058,11 @@ public:
   bool IsCreating();
 
 
-  static std::string IdentifyExistingFile
-		(const std::string		&name,
-		 bool			checkConvention	= false,
-		 bool			noError		= false);
+  static std::pair< std::string, std::string > IdentifyExistingFile( const std::string &name, bool checkConvention	= false, bool noError = false );
   
-  std::string IdentifyExistingFile
-		(bool			checkConvention	= false,
-                bool			noError		= false);
+  std::pair< std::string, std::string > IdentifyExistingFile( bool checkConvention = false, bool noError = false );
 
-  void WriteFileTitle
-		(const std::string	&Title);
+  void WriteFileTitle( const std::string	&Title );
 
 
 /*

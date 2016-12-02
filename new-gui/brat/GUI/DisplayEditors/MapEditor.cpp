@@ -26,7 +26,7 @@
 #include "DataModels/PlotData/GeoPlotField.h"
 
 #include "GUI/ActionsTable.h"
-#include "GUI/ControlPanels/Views/ViewControlPanels.h"
+#include "GUI/ControlPanels/ViewControlPanels/ViewControlPanels.h"
 
 #include "GUI/DisplayWidgets/GlobeWidget.h"				//these 3 includes must be done in this  order to avoid macro definition collisions
 #include "GUI/DisplayWidgets/MapWidget.h"

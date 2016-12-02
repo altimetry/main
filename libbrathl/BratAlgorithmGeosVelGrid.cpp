@@ -20,8 +20,8 @@
 */
 #include "brathl.h" 
 
-#include "new-gui/Common/tools/TraceLog.h" 
-#include "new-gui/Common/tools/Exception.h" 
+#include "common/tools/TraceLog.h"
+#include "common/tools/Exception.h"
 #include "Product.h" 
 #include "ProductNetCdf.h" 
 
@@ -290,7 +290,7 @@ double CBratAlgorithmGeosVelGrid::ComputeMean()
 
   uint32_t iLon;
   uint32_t iLat;
-  uint32_t iVarValue;
+  size_t iVarValue;
 
   //CDoubleArray* firstArrayTmp = NULL;
   //CDoubleArray* secondArrayTmp = NULL;
@@ -376,103 +376,103 @@ double CBratAlgorithmGeosVelGrid::ComputeMean()
 }
 
 //----------------------------------------
-bool CBratAlgorithmGeosVelGrid::PrepareComputeVelocity() 
+bool CBratAlgorithmGeosVelGrid::PrepareComputeVelocity()
 {
-  size_t lastIndexLon = m_longitudes.size() - 1;
-  size_t lastIndexLat = m_latitudes.size() - 1;
+	size_t lastIndexLon = m_longitudes.size() - 1;
+	size_t lastIndexLat = m_latitudes.size() - 1;
 
 
-  if ((m_indexLat == 0) || (m_indexLat == lastIndexLat))
-  {
-    return false;
-  }
+	if ( ( m_indexLat == 0 ) || ( m_indexLat == lastIndexLat ) )
+	{
+		return false;
+	}
 
-  int32_t im1;
-  int32_t ip1;
-  bool cache = true;
+	int im1;
+	int ip1;
+	bool cache = true;
 
-  if (m_indexLon == 0)
-  {
-    if (m_allLongitudes)
-    {
-      im1 = lastIndexLon;
-	    ip1 = m_indexLon + 1;
-      cache = false;
-    }
-    else
-    {
-	    im1 = -1;
-	    ip1 = -1;
-    }
-  }
-  else if (m_indexLon == lastIndexLon)
-  {
-    if (m_allLongitudes)
-    {
-	    im1 = m_indexLon - 1;
-	    ip1 = 0;
-      cache = false;
-    }
-    else
-    {
-      im1 = -1;
-	    ip1 = -1;
-    }
-  }
-  else
-  {
-    im1 = m_indexLon - 1;
-    ip1 = m_indexLon + 1;
-  }
+	if ( m_indexLon == 0 )
+	{
+		if ( m_allLongitudes )
+		{
+			im1 = (int)lastIndexLon;
+			ip1 = m_indexLon + 1;
+			cache = false;
+		}
+		else
+		{
+			im1 = -1;
+			ip1 = -1;
+		}
+	}
+	else if ( m_indexLon == lastIndexLon )
+	{
+		if ( m_allLongitudes )
+		{
+			im1 = m_indexLon - 1;
+			ip1 = 0;
+			cache = false;
+		}
+		else
+		{
+			im1 = -1;
+			ip1 = -1;
+		}
+	}
+	else
+	{
+		im1 = m_indexLon - 1;
+		ip1 = m_indexLon + 1;
+	}
 
-  if ((im1 < 0) || (ip1 < 0))
-  {
-    return false;
-  }
+	if ( ( im1 < 0 ) || ( ip1 < 0 ) )
+	{
+		return false;
+	}
 
-  if (cache)
-  {
-    int32_t minIndexLon = (im1 <= m_indexLon ? im1 : m_indexLon);
-    int32_t maxIndexLon = (ip1 >= m_indexLon ? ip1 : m_indexLon);
-    int32_t minIndexLat = m_indexLat - 1;
-    int32_t maxIndexLat = m_indexLat + 1;
-    this->GetVarCacheExpressionValue(minIndexLat, maxIndexLat, minIndexLon, maxIndexLon);
-  }
-  else
-  {
-    m_rawDataCache.DeleteValue();
-  }
+	if ( cache )
+	{
+		int32_t minIndexLon = ( im1 <= m_indexLon ? im1 : m_indexLon );
+		int32_t maxIndexLon = ( ip1 >= m_indexLon ? ip1 : m_indexLon );
+		int32_t minIndexLat = m_indexLat - 1;
+		int32_t maxIndexLat = m_indexLat + 1;
+		this->GetVarCacheExpressionValue( minIndexLat, maxIndexLat, minIndexLon, maxIndexLon );
+	}
+	else
+	{
+		m_rawDataCache.DeleteValue();
+	}
 
-  if (cache)
-  {
-    m_varValueW = this->GetVarExpressionValueCache(m_indexLat, ip1);
-    m_varValueE = this->GetVarExpressionValueCache(m_indexLat, im1);
-    m_varValueN = this->GetVarExpressionValueCache(m_indexLat + 1, m_indexLon);
-    m_varValueS = this->GetVarExpressionValueCache(m_indexLat - 1, m_indexLon);
-  }
-  else
-  {
-    m_varValueW = this->GetVarExpressionValue(m_indexLat, ip1);
-    m_varValueE = this->GetVarExpressionValue(m_indexLat, im1);
-    m_varValueN = this->GetVarExpressionValue(m_indexLat + 1, m_indexLon);
-    m_varValueS = this->GetVarExpressionValue(m_indexLat - 1, m_indexLon);
-  }
-  
-  if ( isDefaultValue(m_varValueW) || isDefaultValue(m_varValueE) 
-    || isDefaultValue(m_varValueN) || isDefaultValue(m_varValueS) 
-    || isDefaultValue(m_varValue))
-  {
-    return false;
-  }
+	if ( cache )
+	{
+		m_varValueW = this->GetVarExpressionValueCache( m_indexLat, ip1 );
+		m_varValueE = this->GetVarExpressionValueCache( m_indexLat, im1 );
+		m_varValueN = this->GetVarExpressionValueCache( m_indexLat + 1, m_indexLon );
+		m_varValueS = this->GetVarExpressionValueCache( m_indexLat - 1, m_indexLon );
+	}
+	else
+	{
+		m_varValueW = this->GetVarExpressionValue( m_indexLat, ip1 );
+		m_varValueE = this->GetVarExpressionValue( m_indexLat, im1 );
+		m_varValueN = this->GetVarExpressionValue( m_indexLat + 1, m_indexLon );
+		m_varValueS = this->GetVarExpressionValue( m_indexLat - 1, m_indexLon );
+	}
 
-  m_latPrev = m_latitudes.at(m_indexLat - 1);
-  m_latNext = m_latitudes.at(m_indexLat + 1);
+	if ( isDefaultValue( m_varValueW ) || isDefaultValue( m_varValueE )
+		|| isDefaultValue( m_varValueN ) || isDefaultValue( m_varValueS )
+		|| isDefaultValue( m_varValue ) )
+	{
+		return false;
+	}
 
-  m_lonPrev = m_longitudes.at(im1);
-  m_lonNext = m_longitudes.at(ip1);
+	m_latPrev = m_latitudes.at( m_indexLat - 1 );
+	m_latNext = m_latitudes.at( m_indexLat + 1 );
+
+	m_lonPrev = m_longitudes.at( im1 );
+	m_lonNext = m_longitudes.at( ip1 );
 
 
-  return true;
+	return true;
 
 }
 

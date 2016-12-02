@@ -22,20 +22,41 @@
 #include "../MapTypeDisp.h"
 #include "../Filters/BratFilters.h"
 #include "Workspace.h"
-#include "Dataset.h"
+#include "RadsDataset.h"
 #include "Operation.h"
 #include "Display.h"
 #include "Function.h"
-#include "WorkspaceSettings.h"
 #include "BratLogger.h"
+#include "process/rads/RadsSettings.h"
+#include "WorkspaceSettings.h"
 
 
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+//										statics
+/////////////////////////////////////////////////////////////////////////////////////////////
 
 //static 
 const CApplicationPaths *CWorkspaceSettings::smBratPaths = nullptr;
+//static 
+const CSharedRadsSettings *CWorkspaceSettings::smRadsServiceSettings = nullptr;
+
+
+//static 
+void CWorkspaceSettings::SetApplicationPaths( const CApplicationPaths &paths )
+{
+	smBratPaths = &paths;
+	delete smRadsServiceSettings;
+	smRadsServiceSettings = new CSharedRadsSettings( *smBratPaths );
+}
 
 
 
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+//										path utilities
+/////////////////////////////////////////////////////////////////////////////////////////////
 
 
 std::string CWorkspaceSettings::Absolute2PortableDatasetPath( const std::string &path ) const
@@ -59,6 +80,11 @@ std::string CWorkspaceSettings::Portable2AbsoluteDatasetPath( const std::string 
 	return GetAbsolutePath( mDir, path );		//returns path, if path is absolute
 }
 
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+//									common configuration
+/////////////////////////////////////////////////////////////////////////////////////////////
 
 
 bool CWorkspaceSettings::SaveCommonConfig( const CWorkspace &wks, bool flush )
@@ -94,6 +120,10 @@ bool CWorkspaceSettings::LoadCommonConfig( CWorkspace &wks )
 }
 
 
+/////////////////////////////////////////////////////////////////////////////////////////////
+//										datasets
+/////////////////////////////////////////////////////////////////////////////////////////////
+
 
 bool CWorkspaceSettings::SaveConfigDataset( const CWorkspaceDataset &data, std::string &error_msg )
 {
@@ -112,7 +142,9 @@ bool CWorkspaceSettings::SaveConfigDataset( const CWorkspaceDataset &data, std::
 				return false;
 			}
 
-			WriteSection( GROUP_DATASETS, 
+			CRadsDataset *rads_dataset = dynamic_cast< CRadsDataset* >( dataset );
+			const std::string &group_key = rads_dataset ? GROUP_RADS_DATASETS : GROUP_DATASETS;
+			WriteSection( group_key, 
 				
 				k_v( ENTRY_DSNAME + n2s<std::string>( index ), dataset->GetName() )
 			);
@@ -136,9 +168,21 @@ bool CWorkspaceSettings::LoadConfigDataset( CWorkspaceDataset &data, std::string
 		for ( auto const &key : keys )
 		{
 			auto value = ReadValue( section, q2t< std::string >( key ) );
-			data.InsertDataset( value );
+			data.InsertDataset( value, []( const std::string &name ) { return new CDataset( name ); } );
 		};
 	}
+
+	{
+		CSection section( mSettings, GROUP_RADS_DATASETS );
+		auto const keys = section.Keys();
+		for ( auto const &key : keys )
+		{
+			auto value = ReadValue( section, q2t< std::string >( key ) );
+			data.InsertDataset( value, []( const std::string &name ) { return new CRadsDataset( name ); } );
+		};
+	}
+
+
 	if ( Status() != QSettings::NoError )
 	{
 		error_msg += "Error reading datasets from configuration file " + mFilePath;
@@ -147,13 +191,14 @@ bool CWorkspaceSettings::LoadConfigDataset( CWorkspaceDataset &data, std::string
 
 	for ( CObMap::iterator it = data.m_datasets.begin(); it != data.m_datasets.end(); it++ )
 	{
-		CDataset* dataset = dynamic_cast< CDataset* >( it->second );		assert__( dataset != nullptr );	//v3: an error msg box here
+		CDataset *dataset = dynamic_cast< CDataset* >( it->second );				assert__( dataset != nullptr );	//v3: an error msg box here
+		CRadsDataset *rads_dataset = dynamic_cast< CRadsDataset* >( it->second );
 
 		dataset->LoadConfig( this );
 		if ( data.m_ctrlDatasetFiles )
 		{
 			std::vector< std::string > v;
-			if ( !dataset->CtrlFiles(v) )
+			if ( !dataset->CheckFilesExist(v) )
 			{
 				std::string s = Vector2String( v, "\n" );
 				error_msg += "Dataset '" + data.m_name + "':\n contains file '" + s + "' that doesn't exist\n";
@@ -162,7 +207,7 @@ bool CWorkspaceSettings::LoadConfigDataset( CWorkspaceDataset &data, std::string
 			else {
 				try
 				{
-					dataset->CheckFiles( true );	//Just to initialize 'product class' and 'product type'
+					dataset->CheckFiles( true, true );	//Just to initialize 'product class' and 'product type'
 				}
 				catch ( CException& e )
 				{
@@ -178,6 +223,31 @@ bool CWorkspaceSettings::LoadConfigDataset( CWorkspaceDataset &data, std::string
 }
 
 
+void CWorkspaceSettings::SaveDatasetSpecificUnit( CSection &section, const CDataset *d )
+{
+	for ( CStringMap::const_iterator itMap = d->GetFieldSpecificUnits()->begin(); itMap != d->GetFieldSpecificUnits()->end(); itMap++ )
+	{
+		WriteValue( section, ENTRY_UNIT + "_" + itMap->first, itMap->second );
+	}
+}
+bool CWorkspaceSettings::SaveConfig( const CRadsDataset *d )
+{
+	{
+		// SaveConfig( CConfiguration *config, const std::string& entry )
+
+		CSection section( mSettings, d->GetName() );
+		int index = 0;
+		auto const &missions = d->Missions();
+		for ( auto const &mission : missions )
+		{
+			index++;
+			WriteValue( section, ENTRY_MISSION + n2s<std::string>( index ), mission.mName );
+		}
+
+		SaveDatasetSpecificUnit( section, d );
+	}
+	return Status() == QSettings::NoError;
+}
 bool CWorkspaceSettings::SaveConfig( const CDataset *d )
 {
 	{
@@ -193,11 +263,56 @@ bool CWorkspaceSettings::SaveConfig( const CDataset *d )
 
 		//SaveConfigSpecificUnit( CConfiguration *config, const std::string& entry )
 
-		for ( CStringMap::const_iterator itMap = d->GetFieldSpecificUnits()->begin(); itMap != d->GetFieldSpecificUnits()->end(); itMap++ )
+		SaveDatasetSpecificUnit( section, d );
+	}
+	return Status() == QSettings::NoError;
+}
+void CWorkspaceSettings::LoadDatasetSpecificUnit( CStringArray &findStrings, const std::string &entry, const std::string &value_string, CDataset *d )
+{
+	// Find specific unit entries
+	findStrings.RemoveAll();
+	CTools::Find( entry, ENTRY_UNIT_REGEX, findStrings );
+	if ( findStrings.size() > 0 )
+	{
+		d->GetFieldSpecificUnits()->Insert( findStrings.at( 0 ), value_string );			//m_fieldSpecificUnit.Dump(*CTrace::GetDumpContext());
+	}
+}
+bool CWorkspaceSettings::LoadConfig( CRadsDataset *d )
+{
+	auto const &missions = smRadsServiceSettings->AllAvailableMissions();
+	const std::string rads_server_address = ReadRadsServerAddress( smBratPaths->mRadsConfigurationFilePath );
+	const std::string local_dir = FormatRadsLocalOutputPath( smBratPaths->UserDataDirectory() );
+
+	{
+		CSection section( mSettings, d->GetName() );
+		auto const keys = section.Keys();
+		CStringArray findStrings;
+		for ( auto const &key : keys )
 		{
-			WriteValue( section, ENTRY_UNIT + "_" + itMap->first, itMap->second );
+			std::string entry = q2a( key );
+			std::string value_string = ReadValue( section, entry );			
+
+			findStrings.RemoveAll();
+			CTools::Find( entry, ENTRY_MISSION_REGEX, findStrings );
+			if ( findStrings.size() > 0 )
+			{
+				CRadsMission mission = { value_string, FindRadsMissionAbbr( value_string, missions ) };
+				if ( mission.mAbbr.empty() )
+				{
+					LOG_WARN( "Reading invalid mission name: " + value_string + ".\nDataset " + d->GetName() + " will not be complete." );
+				}
+				else
+				{
+					std::string errors;
+					d->AddMission( rads_server_address, local_dir, mission, errors );
+				}
+				continue;
+			}
+
+			LoadDatasetSpecificUnit( findStrings, entry, value_string, d );
 		}
 	}
+
 	return Status() == QSettings::NoError;
 }
 bool CWorkspaceSettings::LoadConfig( CDataset *d )
@@ -222,18 +337,20 @@ bool CWorkspaceSettings::LoadConfig( CDataset *d )
 			}
 
 			// Find specific unit entries
-			findStrings.RemoveAll();
-			CTools::Find( entry, ENTRY_UNIT_REGEX, findStrings );
-			if ( findStrings.size() > 0 )
-			{
-				d->GetFieldSpecificUnits()->Insert( findStrings.at( 0 ), value_string );			//m_fieldSpecificUnit.Dump(*CTrace::GetDumpContext());
-				continue;
-			}
+			LoadDatasetSpecificUnit( findStrings, entry, value_string, d );
 		}
 	}
 
 	return Status() == QSettings::NoError;
 }
+
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+//										formulas 
+//								(also used by operations)
+/////////////////////////////////////////////////////////////////////////////////////////////
 
 
 bool CWorkspaceSettings::SaveConfig( const CMapFormula &mapf, bool predefined, const std::string& pathSuff )
@@ -467,6 +584,35 @@ bool CWorkspaceSettings::LoadConfig( CFormula &f, std::string &error_msg, const 
 }
 
 
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+//										operations
+/////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+bool CWorkspaceSettings::SaveConfigDesc( const CFormula &f, const std::string& path )
+{
+	WriteSection( path,
+
+		k_v( f.m_name,	f.GetDescription( true ) )
+	);
+
+	return Status() == QSettings::NoError;
+}
+bool CWorkspaceSettings::LoadConfigDesc( CFormula &f, const std::string& path )
+{
+	ReadSection( path,
+
+		k_v( f.m_name,	&f.m_description,	f.m_description )
+	);
+
+	return Status() == QSettings::NoError;
+}
+
+
+
 bool CWorkspaceSettings::SaveConfigOperation( const CWorkspaceOperation &op, std::string &error_msg )
 {
 	assert__( this == op.m_config );
@@ -492,6 +638,16 @@ bool CWorkspaceSettings::SaveConfigOperation( const CWorkspaceOperation &op, std
 
 			if ( !operation->SaveConfig( this, &op ) )
 				return false;
+
+			if ( operation->Filter() )
+			{
+				QStringList files = operation->Dataset()->GetFiles<QStringList>( false );
+
+				WriteSection( GROUP_OPERATION_FILTERED_DATASETS,
+
+					k_v( operation->GetName(), files )
+				);
+			}
 		}
 	}
 	return Status() == QSettings::NoError;
@@ -673,24 +829,12 @@ bool CWorkspaceSettings::LoadConfig( COperation &op, std::string &error_msg, CWo
 }
 
 
-bool CWorkspaceSettings::SaveConfigDesc( const CFormula &f, const std::string& path )
-{
-	WriteSection( path,
 
-		k_v( f.m_name,	f.GetDescription( true ) )
-	);
 
-	return Status() == QSettings::NoError;
-}
-bool CWorkspaceSettings::LoadConfigDesc( CFormula &f, const std::string& path )
-{
-	ReadSection( path,
+/////////////////////////////////////////////////////////////////////////////////////////////
+//										displays
+/////////////////////////////////////////////////////////////////////////////////////////////
 
-		k_v( f.m_name,	&f.m_description,	f.m_description )
-	);
-
-	return Status() == QSettings::NoError;
-}
 
 
 bool CWorkspaceSettings::SaveConfigDisplay( const CWorkspaceDisplay &disp, std::string &error_msg, CWorkspaceDisplay *wksd )
@@ -1337,6 +1481,12 @@ bool CWorkspaceSettings::LoadConfig( CDisplayData *&pdata, const CDisplay *paren
 }
 
 
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////
+//										
+/////////////////////////////////////////////////////////////////////////////////////////////
 
 
 void CWorkspaceSettings::SaveFunctionDescrTemplate( const std::string &internal_data_path, bool flush )

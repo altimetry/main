@@ -26,7 +26,7 @@
 
 #include <osgDB/Registry>
 
-#include "new-gui/Common/+UtilsIO.h"
+#include "common/+UtilsIO.h"
 #include "new-gui/Common/QtUtils.h"
 #include "ApplicationPaths.h"
 
@@ -148,6 +148,9 @@ bool CApplicationPaths::operator == ( const CApplicationPaths &o ) const
 
 	assert__( mRsyncExecutablePath == o.mRsyncExecutablePath );
 
+	assert__( mRadsServiceLogFilePath == o.mRadsServiceLogFilePath );
+	assert__( mRadsConfigurationFilePath == o.mRadsConfigurationFilePath );
+
 	// from this
 
 	assert__( mUserDocumentsDirectory == o.mUserDocumentsDirectory );
@@ -205,6 +208,7 @@ std::string CApplicationPaths::ToString() const
     s += ( "\nmURLRasterLayer Path == " + mURLRasterLayerPath );
 
 	s += ( "\nRads Service Executable == " + mRadsServicePath );
+
 	return s;
 }
 

@@ -27,10 +27,10 @@
 
 #include "brathl.h"
 
-#include "new-gui/Common/tools/Exception.h"
+#include "common/tools/Exception.h"
 #include "Expression.h"
 #include "Tools.h" 
-#include "new-gui/Common/tools/TraceLog.h" 
+#include "common/tools/TraceLog.h"
 
 // When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.

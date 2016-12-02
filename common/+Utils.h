@@ -87,26 +87,24 @@ typedef std::strstream stream_t;
 //////////////////////////////////////////
 
 
-#if defined (__unix__)		//#if defined (__STDC_VERSION__) 
-
-#include <csignal>
-
 #if defined (_DEBUG) || defined(DEBUG)
 
-#	define assert__(TEST) if(!(TEST)) ::raise(SIGTRAP); else ((void)0)
-#else
-#	define assert__(TEST)
+    #if defined (__unix__) || defined(__APPLE__)		//#if defined (__STDC_VERSION__) 
+    
+        #include <csignal>
+        
+        #define assert__(TEST) if(!(TEST)) ::raise(SIGTRAP); else ((void)0)
+    
+    #elif defined (_MSC_VER)
+    
+            #define assert__(TEST) assert( (TEST) )
+    #endif
+    
+    #else
+    
+        #define assert__(TEST)
+
 #endif
-
-#elif defined (_MSC_VER) || defined(__APPLE__)			// (__unix__)
-
-#if defined (_DEBUG) || defined(DEBUG)
-#	define assert__(TEST) assert( (TEST) )
-#else
-#	define assert__(TEST)
-#endif
-
-#endif								//(_MSC_VER)
 
 
 
@@ -302,7 +300,7 @@ struct char_traits< wchar_t >
 //////////////////////////////////////////////////////////////////
 
 
-template< class STRING >
+template< class STRING = std::string >
 inline const STRING& empty_string()
 {
 	static const STRING empty;
@@ -321,6 +319,8 @@ inline const STRING& empty_string()
 
 #define DECLARE_ARRAY_SIZE_(a) size_t a##_size
 
+// Defines a size_t variable with the array name plus the _size suffix 
+//
 #define DEFINE_ARRAY_SIZE(a) DECLARE_ARRAY_SIZE_(a) = ARRAY_SIZE(a)
 
 
@@ -344,22 +344,26 @@ inline bool In( const typename CONTAINER::value_type &value, const CONTAINER &c 
 //			Create vectors of strings from strings
 //////////////////////////////////////////////////////////////////
 
+// An empty substring is a string (that is, an item in vector)
+// An empty string is a string (that is, returned vector is never empty)
+//
 template< class STRING >
-void String2Vector( std::vector< STRING > &v, const STRING &s, const STRING &nl = STRING( "\n" ) )
+void String2Vector( std::vector< STRING > &v, const STRING &source, const STRING &nl = STRING( "\n" ) )
 {
 	const size_t nl_len = nl.length();
-	size_t pos;
-	STRING source(s);
+	size_t pos = 0, ptr = 0;
 	do {
-		pos = source.find( nl );
-		if ( pos != STRING::npos )
+
+		ptr = source.find( nl, pos );
+		if ( ptr != STRING::npos )
 		{
-			v.push_back( source.substr( 0, pos ) );
-			source = source.substr( pos + nl_len );
+			v.push_back( source.substr( pos, ptr - pos ) );
+			pos = ptr + nl_len;
 		}
 		else
-			v.push_back( source );
-	} while ( pos != STRING::npos );
+			v.push_back( source.substr( pos ) );
+
+	} while ( ptr != STRING::npos );
 }
 
 
@@ -369,6 +373,24 @@ std::vector< STRING > String2Vector( const STRING &s, const STRING &nl = STRING(
 	std::vector< STRING > v;
 	String2Vector( v, s, nl );
 	return v;
+}
+
+
+// IMPORTANT (*) an assumption resulting from an interpretation of (cppreference.com):
+//	erase returns "Iterator following the last removed element. 
+//	If the iterator pos refers to the last element, the end() iterator is returned."
+//
+template< class STRING >
+void CleanStringVector( std::vector< STRING > &v )
+{
+	auto it = v.begin();
+	while ( it != v.end() )
+	{
+		if ( it->empty() )
+			it = v.erase( it );	// (*) it remains valid, pointing to next item
+		else
+			it++;
+	}
 }
 
 

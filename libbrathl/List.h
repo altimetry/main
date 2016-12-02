@@ -26,7 +26,7 @@
 
 
 
-#include "new-gui/Common/tools/brathl_error.h" 
+#include "common/tools/brathl_error.h"
 #include "brathl.h" 
 
 #include <string>
@@ -124,7 +124,7 @@ public:
   CStringList(const stringlist& list);
 
   CStringList(const CStringArray& vect);
-  CStringList(const stringarray& vect);
+  CStringList(const std::vector < std::string >& vect);
 
 
   /// Destructor
@@ -138,14 +138,14 @@ public:
   virtual void Insert(const CStringList& list, bool bEnd = true);  
   virtual void Insert(const std::string& str, bool bEnd = true);
   virtual void Insert(const CStringArray& vect, bool bEnd = true);
-  virtual void Insert(const stringarray& vect, bool bEnd = true);
+  virtual void Insert(const std::vector < std::string >& vect, bool bEnd = true);
   virtual void Insert(const stringlist& lst, bool bEnd = true);
 
   virtual void InsertUnique(const std::string& str, bool bEnd = true);
   virtual void InsertUnique(const CStringList& lst, bool bEnd = true);
   virtual void InsertUnique(const CStringArray* vect, bool bEnd = true);
   virtual void InsertUnique(const CStringArray& vect, bool bEnd = true);
-  virtual void InsertUnique(const stringarray& vect, bool bEnd = true);
+  virtual void InsertUnique(const std::vector < std::string >& vect, bool bEnd = true);
   virtual void InsertUnique(const stringlist& lst, bool bEnd = true);
 
   virtual void ExtractStrings(const std::string& str, const char delim, bool bRemoveAll = true);
@@ -164,7 +164,7 @@ public:
   /** Copy a new CStringList to the object */
   virtual const CStringList& operator= (const CStringList& lst);
   virtual const CStringList& operator= (const CStringArray& vect);
-  virtual const CStringList& operator= (const stringarray& vect);
+  virtual const CStringList& operator= (const std::vector < std::string >& vect);
   virtual const CStringList& operator= (const stringlist& lst);
 
   virtual std::string ToString(const std::string& delim = ",", bool useBracket = true) const;

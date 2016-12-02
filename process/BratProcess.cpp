@@ -18,7 +18,7 @@
 * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 */
 
-#include "new-gui/Common/tools/Exception.h"
+#include "common/tools/Exception.h"
 #include "BratAlgorithmBase.h"
 #include "BratProcess.h"
 
@@ -26,6 +26,14 @@
 // give you the file name and line number where it occurred.
 // Needs to be included after all #include commands
 #include "Win32MemLeaksAccurate.h"
+
+#if defined(min)
+#undef min
+#endif
+#if defined(max)
+#undef max
+#endif
+
 
 using namespace brathl;
 using namespace processes;
@@ -60,7 +68,7 @@ const CParameter::KWValueListEntry	CBratProcess::FilterKeywords[] =
 		{ "LOESS_SMOOTH",	1		},
 		{ "LOESS_EXTRAPOLATE",	2		},
 		{ "LOESS",		3		},
-		{ NULL, 0 }
+		{ nullptr, 0 }
 	};
 
 
@@ -76,7 +84,7 @@ const CParameter::KWValueListEntry	CBratProcess::DataModeKeywords[] =
 	{ "SUM",	pctSUM		},
 	{ "SUBTRACTION",pctSUBSTRACT	},
 	{ "PRODUCT",	pctPRODUCT	},
-	{ NULL, 0 }
+	{ nullptr, 0 }
 };
 
 const CParameter::KWValueListEntry	CBratProcess::OutSideModeKeywords[] =
@@ -84,14 +92,14 @@ const CParameter::KWValueListEntry	CBratProcess::OutSideModeKeywords[] =
 	{ "STRICT",	pctSTRICT	},
 	{ "RELAXED",	pctRELAXED	},
 	{ "BLACK_HOLE",	pctBLACK_HOLE	},
-	{ NULL, 0 }
+	{ nullptr, 0 }
 };
 
 const CParameter::KWValueListEntry	CBratProcess::PositionModeKeywords[] =
 {
 	{ "EXACT",	pctEXACT	},
 	{ "NEAREST",	pctNEAREST	},
-	{ NULL, 0 }
+	{ nullptr, 0 }
 };
 
 //-------------------------------------------------------------
@@ -115,9 +123,9 @@ void CBratProcess::Init()
 {
   m_nbDataAllocated = 0;
   
-  m_fileParams = NULL;
-  m_product = NULL;
-  m_internalFiles = NULL;
+  m_fileParams = nullptr;
+  m_product = nullptr;
+  m_internalFiles = nullptr;
 
   m_expandArray = false;
   m_alwaysFalse = false;
@@ -131,28 +139,28 @@ void CBratProcess::Init()
 //----------------------------------------
 void CBratProcess::DeleteProduct()
 {
-  if (m_product != NULL)
+  if (m_product != nullptr)
   {
     delete m_product;
-    m_product = NULL;
+    m_product = nullptr;
   }
 }
 //----------------------------------------
 void CBratProcess::DeleteInternalFile()
 {
-  if (m_internalFiles != NULL)
+  if (m_internalFiles != nullptr)
   {
     delete m_internalFiles;
-    m_internalFiles = NULL;
+    m_internalFiles = nullptr;
   }
 }
 //----------------------------------------
 void CBratProcess::DeleteFileParams()
 {
-  if (m_fileParams != NULL)
+  if (m_fileParams != nullptr)
   {
     delete m_fileParams;
-    m_fileParams = NULL;
+    m_fileParams = nullptr;
   }
 }
 //----------------------------------------
@@ -187,9 +195,9 @@ void CBratProcess::LoadParams(const std::string& name, uint32_t mode /*= CFile::
 //----------------------------------------
 void CBratProcess::CheckFileParams()
 {
-  if (m_fileParams == NULL)
+  if (m_fileParams == nullptr)
   {
-    throw CFileException("CBratProcess::CheckFileParams - m_fileParams is NULL - Parameters file doesn't seem to be loaded.", 
+    throw CFileException("CBratProcess::CheckFileParams - m_fileParams is nullptr - Parameters file doesn't seem to be loaded.", 
                           m_commandFileName.c_str(), BRATHL_IO_ERROR);
   }
 }
@@ -208,7 +216,7 @@ void CBratProcess::SetExpandArray(const CStringArray* fields, bool expandArray)
   for ( it = fields->begin( ); it != fields->end( ); it++ )
   {
     CField* field = m_product->FindFieldByName(*it, m_recordName);
-    if (field != NULL)
+    if (field != nullptr)
     {
       field->SetExpandArray(expandArray);
     }
@@ -270,7 +278,7 @@ void CBratProcess::GetOrderedDimNames(const CStringArray& fieldNames, CStringArr
   
   CExternalFilesNetCDF* externalFile = productNetCdf->GetExternalFile();
   
-  if (externalFile == NULL)
+  if (externalFile == nullptr)
   {
     return;
   }
@@ -285,9 +293,9 @@ void CBratProcess::CheckDimensions(const CExpression& expr, CUIntArray& commonDi
 {
 
   std::string msg;
-  if (m_product == NULL)
+  if (m_product == nullptr)
   {
-    throw CException("ERROR: CBratProcess::CheckDimensions - Unable to continue process because m_product is NULL.\n",
+    throw CException("ERROR: CBratProcess::CheckDimensions - Unable to continue process because m_product is nullptr.\n",
 			               BRATHL_LOGIC_ERROR);
 
   }
@@ -299,9 +307,9 @@ void CBratProcess::CheckDimensions(const CExpression& expr, CUIntArray& commonDi
     throw CException(msg, BRATHL_INCONSISTENCY_ERROR);
   }
 
-  if (m_internalFiles == NULL)
+  if (m_internalFiles == nullptr)
   {
-    throw CException("ERROR: CBratProcess::CheckDimensions - Unable to continue process because m_internalFiles is NULL.\n",
+    throw CException("ERROR: CBratProcess::CheckDimensions - Unable to continue process because m_internalFiles is nullptr.\n",
 			               BRATHL_LOGIC_ERROR);
 
   }
@@ -311,7 +319,7 @@ void CBratProcess::CheckDimensions(const CExpression& expr, CUIntArray& commonDi
 //----------------------------------------
 void CBratProcess::AddFieldIndexes(uint32_t indexExpr, CNetCDFVarDef* varDef, const CUIntArray& commonDimensions)
 {
-  if (varDef == NULL)
+  if (varDef == nullptr)
   {
     return;
   }
@@ -337,7 +345,7 @@ void CBratProcess::AddFieldIndexes(uint32_t indexExpr, CNetCDFVarDef* varDef, co
     addedDim->AddCoordinateVariable(varDef->GetName());
 
     CNetCDFVarDef* addedVarDimIndex = m_internalFiles->GetNetCDFVarDef(name);
-    if (addedVarDimIndex == NULL)
+    if (addedVarDimIndex == nullptr)
     {
       CNetCDFCoordinateAxis varDimIndex(name, "count");
       
@@ -373,12 +381,12 @@ void CBratProcess::AddFieldIndexes(uint32_t indexExpr, CNetCDFVarDef* varDef, co
 //----------------------------------------
 void CBratProcess::AddFieldIndexes(const std::string& fieldName, CNetCDFVarDef* varDef)
 {
-  if (varDef == NULL)
+  if (varDef == nullptr)
   {
     return;
   }
 
-  if (m_product == NULL)
+  if (m_product == nullptr)
   {
     LoadProductDictionary(*(m_inputFiles.begin()));
   }
@@ -392,18 +400,18 @@ void CBratProcess::AddFieldIndexes(const std::string& fieldName, CNetCDFVarDef* 
 //----------------------------------------
 void CBratProcess::AddFieldIndexes(CField* field, CNetCDFVarDef* varDef)
 {
-  if (varDef == NULL)
+  if (varDef == nullptr)
   {
     return;
   }
 
-  if (field == NULL)
+  if (field == nullptr)
   {
     return;
   }
 
   CObArray* fieldIndexes = field->GetFieldIndexes();
-  if (fieldIndexes == NULL)
+  if (fieldIndexes == nullptr)
   {
     return;
   }
@@ -421,12 +429,12 @@ void CBratProcess::AddFieldIndexes(CField* field, CNetCDFVarDef* varDef)
 //----------------------------------------
 void CBratProcess::AddFieldIndexes(CFieldIndex* fieldIndex, CNetCDFVarDef* varDef)
 {
-  if (varDef == NULL)
+  if (varDef == nullptr)
   {
     return;
   }
 
-  if (fieldIndex == NULL)
+  if (fieldIndex == nullptr)
   {
     return;
   }
@@ -467,9 +475,9 @@ void CBratProcess::AddFieldIndexes(CFieldIndex* fieldIndex, CNetCDFVarDef* varDe
   m_mapFieldIndexesToRead.Insert(name, fIndex, false);
 
 /*  
-  if (m_internalFiles == NULL)
+  if (m_internalFiles == nullptr)
   {
-    throw CException("ERROR: CBratProcess::AddFieldIndexes(CFieldIndex* fieldIndex) - Unable to continue process because m_internalFiles is NULL.\n",
+    throw CException("ERROR: CBratProcess::AddFieldIndexes(CFieldIndex* fieldIndex) - Unable to continue process because m_internalFiles is nullptr.\n",
 			               BRATHL_LOGIC_ERROR);
 
   }
@@ -484,7 +492,7 @@ void CBratProcess::AddFieldIndexes(CFieldIndex* fieldIndex, CNetCDFVarDef* varDe
   addedDim->AddCoordinateVariable(varDef->GetName());
 
   CNetCDFVarDef* addedVarDimIndex = m_internalFiles->GetNetCDFVarDef(name);
-  if (addedVarDimIndex == NULL)
+  if (addedVarDimIndex == nullptr)
   {
     CNetCDFCoordinateAxis varDimIndex(name);
     addedVarDimIndex = m_internalFiles->AddNetCDFVarDef(varDimIndex);
@@ -651,35 +659,41 @@ std::string CBratProcess::DataModeStr
 
 //----------------------------------------
 int32_t CBratProcess::GetFileList
-		(CFileParams		&params,
-		 const std::string		&keyword,
-		 CStringArray		&names,
-		 const std::string		&traceDescription,
-		 int32_t		minOccurences	/*= 1*/,
-		 int32_t		maxOccurences	/*= -1*/,
-		 bool			printTrace	/*= true*/)
+( CFileParams		&params,
+	const std::string		&keyword,
+	CStringArray		&names,
+	const std::string		&traceDescription,
+	int32_t		minOccurences	/*= 1*/,
+	int32_t		maxOccurences	/*= -1*/,
+	bool			printTrace	/*= true*/ )
 {
-    UNUSED(printTrace);
+	UNUSED( printTrace );
 
-  CTrace::GetInstance();
-  
-  int32_t	result	= params.CheckCount(keyword, minOccurences, maxOccurences);
-  
-  names.resize(result);
+	CTrace::GetInstance();
 
-  for (int32_t index=0; index<result; index++)
-  {
-    params.m_mapParam[keyword]->GetValue(names[index], index);
-    if (index == 0)
-    {
-      CTrace::Tracer(1, CBratProcess::PCT_StrFmt, traceDescription.c_str(), names[index].c_str());
-    }
-    else
-    {
-      CTrace::Tracer(1, CBratProcess::PCT_StrFmt, "", names[index].c_str());
-    }
-  }
-  return result;
+	int32_t	result	= params.CheckCount( keyword, minOccurences, maxOccurences );
+
+	names.resize( result );
+
+	const size_t nout_files = std::min( result, (int32_t)1000 );	//do not print more than these lines
+
+	for ( int32_t index=0; index < result; index++ )
+	{
+		params.m_mapParam[ keyword ]->GetValue( names[ index ], index );
+		if ( index == 0 )
+		{
+			CTrace::Tracer( 1, CBratProcess::PCT_StrFmt, traceDescription.c_str(), names[ index ].c_str() );
+		}
+		else
+		if ( index < nout_files )
+		{
+			CTrace::Tracer( 1, CBratProcess::PCT_StrFmt, "", names[ index ].c_str() );
+		}
+	}
+	if ( nout_files != result )
+		CTrace::Tracer( 1, CBratProcess::PCT_StrFmt, "", "... (more files)" );
+
+	return result;
 }
 
 //----------------------------------------
@@ -697,7 +711,7 @@ void CBratProcess::AdjustDefinition(CFileParams& params, CExpression& field, boo
     return;
   }
 
-  if (m_product == NULL)
+  if (m_product == nullptr)
   {
     if (m_inputFiles.size() <= 0)
     {
@@ -887,7 +901,7 @@ int32_t CBratProcess::GetVarDef
 */
 //  field.Dump();
 
-  if (name != NULL)
+  if (name != nullptr)
   {
     tmpKey	= prefix + "_NAME";
     params.CheckCount(tmpKey, result);
@@ -905,7 +919,7 @@ int32_t CBratProcess::GetVarDef
     }
   }
 
-  if (kind != NULL)
+  if (kind != nullptr)
   {
     tmpKey	= prefix + "_TYPE";
     params.CheckCount(tmpKey, result);
@@ -927,10 +941,10 @@ int32_t CBratProcess::GetVarDef
     }
   }
 
-  if (unit != NULL)
+  if (unit != nullptr)
   {
     std::string defaultValue	= "count";
-    if (kind != NULL)
+    if (kind != nullptr)
     {
       switch (*kind)
       {
@@ -967,7 +981,7 @@ int32_t CBratProcess::GetVarDef
     {
       CTrace::Tracer(1, CBratProcess::PCT_StrFmt2, "unit",  unit->GetText().c_str());
     }
-    if (kind != NULL)
+    if (kind != nullptr)
     {
       if ((*kind == T) && (! unit->IsDate()))
       {
@@ -978,7 +992,7 @@ int32_t CBratProcess::GetVarDef
     }
   }
 
-  if (title != NULL)
+  if (title != nullptr)
   {
     tmpKey	= prefix + "_TITLE";
     params.CheckCount(tmpKey, result);
@@ -994,14 +1008,14 @@ int32_t CBratProcess::GetVarDef
     }
   }
 
-  if (comment != NULL)
+  if (comment != nullptr)
   {
     tmpKey	= prefix + "_COMMENT";
     params.CheckCount(tmpKey, 0, result);
 
     CParameter* paramComment = params.m_mapParam.Exists(tmpKey);
 
-    if (paramComment != NULL)
+    if (paramComment != nullptr)
     {
       paramComment->GetValue(*comment, index);
     }
@@ -1011,7 +1025,7 @@ int32_t CBratProcess::GetVarDef
     }
   }
   
-  if (dataFormat != NULL)
+  if (dataFormat != nullptr)
   {
     tmpKey	= prefix + "_FORMAT";
     int32_t	NbFormats = params.CheckCount(tmpKey, 0, result);
@@ -1031,7 +1045,7 @@ int32_t CBratProcess::GetVarDef
     }
   }
 
-  if (group != NULL)
+  if (group != nullptr)
   {
     tmpKey	= prefix + "_GROUP";
     if (params.CheckCount(tmpKey, 0, result) == 0)
@@ -1096,14 +1110,14 @@ int32_t CBratProcess::GetVarDef
 				                      minOccurences,
 				                      maxOccurences);
 
-  if (kind != NULL)
+  if (kind != nullptr)
   {
     TheKind	= *kind;
   }
 
   CUnit unitTmp;
 
-  if (unit != NULL)
+  if (unit != nullptr)
   {
     unitTmp = *unit;
     isDate	= unit->IsDate();
@@ -1159,7 +1173,7 @@ int32_t CBratProcess::GetVarDef
     //-------------------------
     case Latitude:
     //-------------------------
-      if (unit == NULL)
+      if (unit == nullptr)
       {
         unitTmp = CLatLonPoint::m_DEFAULT_UNIT_LATITUDE;
       }
@@ -1173,7 +1187,7 @@ int32_t CBratProcess::GetVarDef
     //-------------------------
     case Longitude:
     //-------------------------
-      if (unit == NULL)
+      if (unit == nullptr)
       {
         unitTmp = CLatLonPoint::m_DEFAULT_UNIT_LONGITUDE;
       }
@@ -1325,7 +1339,7 @@ int32_t CBratProcess::GetVarDef
     }
     else
     {
-      if (unit != NULL)
+      if (unit != nullptr)
       {
         CTrace::Tracer(1, CBratProcess::PCT_FltFmt2BaseUnit, "min value",  min, unit->ConvertToBaseUnit(min), unit->BaseUnit().GetText().c_str());
         CTrace::Tracer(1, CBratProcess::PCT_FltFmt2BaseUnit, "max value",  max, unit->ConvertToBaseUnit(max), unit->BaseUnit().GetText().c_str());
@@ -1405,75 +1419,87 @@ int32_t CBratProcess::GetMergedDataSlices(CBratProcess::MergeDataMode	mode)
 /*
 ** Checks the command line parameters (with -h -k or parameter file)
 ** and return true if command line is invalid
-** Last entry of keywordList MUST BE NULL or result is unpredictible
+** Last entry of keywordList MUST BE nullptr or result is unpredictable
 ** (and maybe a core dump)
 */
 bool CBratProcess::CheckCommandLineOptions
-		(int			argc,
-		 char			**argv,
-		 const std::string		&helpString,
-		 const KeywordHelp	*keywordList,
-		 std::string			&commandFileName)
+(	int			argc,
+	char			**argv,
+	const std::string		&helpString,
+	const KeywordHelp	*keywordList,
+	std::string			&commandFileName,
+	bool &checked_dataset
+)
 {
-  bool		error		= false;
-  bool		help		= false;
-  bool		keywords	= false;
-  std::ostream	*out		= &std::cerr;
-  if (argc != 2)
-    error	= true;
-  else if ((strcmp(argv[1], "-h") == 0) || (strcmp(argv[1], "--help") == 0))
-  {
-    help	= true;
-    out		= &std::cout;
-  }
-  else if ((strcmp(argv[1], "-k") == 0) || (strcmp(argv[1], "--keywords") == 0))
-  {
-    if (keywordList != NULL)
-    {
-      keywords		= true;
-      out		= &std::cout;
-    }
-    else
-    {
-      *out << "invalid option: " << argv[1] << std::endl;
-      error		= true;
-    }
-  }
-  else
-  {
-    commandFileName.assign(argv[1]);
+	bool			error		= false;
+	bool			help		= false;
+	bool			keywords	= false;
+	std::ostream	*out		= &std::cerr;
+	checked_dataset				= argv[ 1 ] == std::string( "-rads" );
 
-    if (! CTools::FileExists(commandFileName))
-    {
-      *out << "ERROR: Command file '" << commandFileName << "' not found" << std::endl << std::endl;
-      error	= true;
-    }
-  }
+	int nfilearg = 1;
+	int nargs = 2;
+	if ( checked_dataset )
+	{
+		nfilearg = 2;
+		nargs = 3;
+	}
 
-  if (error || help)
-  {
-    *out << "Usage : " << argv[0] << " [ -h | --help";
-    if (keywordList != NULL)
-      *out << " | -k | --keywords";
-    *out << "] commandFileName" << std::endl;
-    *out << "Where commandFileName is the name of a file containing runtime parameters" << std::endl;
-  }
+	if ( argc != nargs )
+		error	= true;
+	else if ( ( strcmp( argv[ 1 ], "-h" ) == 0 ) || ( strcmp( argv[ 1 ], "--help" ) == 0 ) )
+	{
+		help	= true;
+		out		= &std::cout;
+	}
+	else if ( ( strcmp( argv[ 1 ], "-k" ) == 0 ) || ( strcmp( argv[ 1 ], "--keywords" ) == 0 ) )
+	{
+		if ( keywordList != nullptr )
+		{
+			keywords		= true;
+			out		= &std::cout;
+		}
+		else
+		{
+			*out << "invalid option: " << argv[ 1 ] << std::endl;
+			error		= true;
+		}
+	}
+	else
+	{
+		commandFileName.assign( argv[ nfilearg ] );
 
-  if (keywords)
-  {
-    CBratProcess::PrintParameterHelp(*out, keywordList);
-  }
+		if ( ! CTools::FileExists( commandFileName ) )
+		{
+			*out << "ERROR: Command file '" << commandFileName << "' not found" << std::endl << std::endl;
+			error	= true;
+		}
+	}
 
-  if (help && (helpString != ""))
-    *out << std::endl << helpString << std::endl;
+	if ( error || help )
+	{
+		*out << "Usage : " << argv[ 0 ] << " [ -h | --help";
+		if ( keywordList != nullptr )
+			*out << " | -k | --keywords";
+		*out << "] commandFileName" << std::endl;
+		*out << "Where commandFileName is the name of a file containing runtime parameters" << std::endl;
+	}
 
-  return error || help || keywords;
+	if ( keywords )
+	{
+		CBratProcess::PrintParameterHelp( *out, keywordList );
+	}
+
+	if ( help && ( helpString != "" ) )
+		*out << std::endl << helpString << std::endl;
+
+	return error || help || keywords;
 }
 
 //----------------------------------------
 bool CBratProcess::CheckCommandLineOptions(int argc, char	**argv, const std::string& helpString, const KeywordHelp	*keywordList)
 {
-  return CBratProcess::CheckCommandLineOptions(argc, argv, helpString, keywordList, m_commandFileName);
+  return CBratProcess::CheckCommandLineOptions( argc , argv, helpString, keywordList, m_commandFileName, mCheckedDataset );
 }
 
 //----------------------------------------
@@ -1541,7 +1567,7 @@ void CBratProcess::PrintParameterHelp
 	index	= 0;
 	//for (CurrentType = static_cast<TypeDefinition*>(KnownTypes);
 	for (CurrentType = (TypeDefinition*)(KnownTypes);
-	     CurrentType->Name != NULL;
+	     CurrentType->Name != nullptr;
 	     ++CurrentType)
 	{
 	  if (CTools::StrCaseCmp(CurrentKW->Type, CurrentType->Name) == 0)
@@ -1551,7 +1577,7 @@ void CBratProcess::PrintParameterHelp
 	  }
 	  index++;
 	}
-	if (CurrentType->Name == NULL)
+	if (CurrentType->Name == nullptr)
 	{
 	  where << std::endl << CurrentKW->Type  << " ===== ERROR unknown type cannot print help" << std::endl << std::endl;
 	}
@@ -1572,7 +1598,7 @@ void CBratProcess::PrintParameterHelp
       PrintDescription(where,
 		       KnownTypes[index].Description,
 		       false,
-		       NULL);
+		       nullptr);
     }
   }
   delete []TypesIndex;
@@ -1604,7 +1630,7 @@ void CBratProcess::PrintDescription
     description++;
   }
   where << std::endl;
-  if (defaultValue != NULL)
+  if (defaultValue != nullptr)
   {
     where << leading << "(defaultValue=" << defaultValue << ")" << std::endl;
   }
@@ -1629,7 +1655,7 @@ void CBratProcess::GetFilterDefinitions
   int32_t	Count;
   bitSet32	Choice;
 
-  if ((smooth != NULL) || (extrapolate != NULL))
+  if ((smooth != nullptr) || (extrapolate != nullptr))
   {
     tmpKey	= prefix + "_FILTER";
     Count	= params.CheckCount(tmpKey, 0, occurences);
@@ -1644,21 +1670,21 @@ void CBratProcess::GetFilterDefinitions
                                           CBratProcess::FilterKeywords,
 					                                index);
     }
-    if (smooth != NULL)
+    if (smooth != nullptr)
     {
       *smooth		= Choice[0];
     }
-    if (extrapolate != NULL)
+    if (extrapolate != nullptr)
     {
       *extrapolate	= Choice[1];
     }
     if (printTrace)
     {
-      if (smooth != NULL)
+      if (smooth != nullptr)
       {
           CTrace::Tracer(1, CBratProcess::PCT_StrFmt2, "smoothing", (*smooth ? "YES" : "NO"));
       }
-      if (extrapolate != NULL)
+      if (extrapolate != nullptr)
       {
           CTrace::Tracer(1, CBratProcess::PCT_StrFmt2, "Extrapolating", (*extrapolate ? "YES" : "NO"));
       }
@@ -1678,11 +1704,11 @@ void CBratProcess::GetLoessCutoff
     CTrace::GetInstance();
   std::string	tmpKey;
 
-  if (printTrace && ((xCutoff != NULL) || (yCutoff != NULL)))
+  if (printTrace && ((xCutoff != nullptr) || (yCutoff != nullptr)))
   {
     CTrace::Tracer(1, CBratProcess::PCT_HeaderFmt, "Loess parameters");
   }
-  if (xCutoff != NULL)
+  if (xCutoff != nullptr)
   {
     tmpKey	= "X_LOESS_CUTOFF";
     params.CheckCount(tmpKey, occurences);
@@ -1692,7 +1718,7 @@ void CBratProcess::GetLoessCutoff
       CTrace::Tracer(1, CBratProcess::PCT_IntFmt2, "X cutoff", *xCutoff);
     }
   }
-  if (yCutoff != NULL)
+  if (yCutoff != nullptr)
   {
     tmpKey	= "Y_LOESS_CUTOFF";
     params.CheckCount(tmpKey, occurences);
@@ -1924,7 +1950,7 @@ bool CBratProcess::IsLongitudeCircular
   double minBaseUnit = min;
   double maxBaseUnit = max;
 
-  if (unit != NULL)
+  if (unit != nullptr)
   {
     minBaseUnit = CUnit::ConvertToBaseUnit(unit, min);
     maxBaseUnit = CUnit::ConvertToBaseUnit(unit, max);
@@ -2025,20 +2051,16 @@ void CBratProcess::ConstructProduct(const std::string& fileName, bool createVirt
 
 }
 //----------------------------------------
-void CBratProcess::ConstructProduct(CStringArray& fileName, bool createVirtualField /* = true */)
+void CBratProcess::ConstructProduct( CStringArray& fileName, bool createVirtualField, bool check_only_first_files )	//createVirtualField was "true" by default; check_only_first_files = false
 {
-  DeleteProduct();
+	DeleteProduct();
 
-  m_product = CProduct::Construct(fileName);
+	m_product = CProduct::Construct( fileName, check_only_first_files );
+	if ( !m_product )
+		return;
 
-  if (m_product == NULL)
-  {
-    return;
-  }
-
-  m_product->SetFieldSpecificUnits(m_fieldSpecificUnit);
-
-  m_product->SetCreateVirtualField(createVirtualField);
+	m_product->SetFieldSpecificUnits( m_fieldSpecificUnit );
+	m_product->SetCreateVirtualField( createVirtualField );
 }
 //----------------------------------------
 void CBratProcess::ConstructProduct(CStringList& fileName, bool createVirtualField /* = true */)
@@ -2077,7 +2099,7 @@ bool CBratProcess::Initialize(std::string& msg)
   BuildListFieldsToRead();
   AfterBuildListFieldsToRead();
 
-  ConstructProduct(m_inputFiles, true);
+  ConstructProduct(m_inputFiles, true, mCheckedDataset );
 
   // if no field in Select expression, test if it is always true or always false
   if (!m_select.HasFieldNames())
@@ -2126,7 +2148,7 @@ void CBratProcess::ReplaceFieldDefinition()
     for (itAxis = m_netCdfAxisDims.begin() ; itAxis != m_netCdfAxisDims.end() ; itAxis++)
     {
       CFieldNetCdf* axis = dynamic_cast<CFieldNetCdf*>(productNetCdf->FindFieldByName(*itAxis, m_recordName, false));
-      if (axis == NULL)
+      if (axis == nullptr)
       {
         continue;
       }
@@ -2138,7 +2160,7 @@ void CBratProcess::ReplaceFieldDefinition()
 
     CFieldNetCdf* fieldFromDictionnay = dynamic_cast<CFieldNetCdf*>(productNetCdf->FindFieldByName(*itField, m_recordName, false));
 
-    if (fieldFromDictionnay != NULL)
+    if (fieldFromDictionnay != nullptr)
     {
       fieldFromDictionnay->SetDim(dimValues);
       fieldFromDictionnay->SetDimInfo(dimNames, dimIds, dimValues);
@@ -2146,14 +2168,14 @@ void CBratProcess::ReplaceFieldDefinition()
 
     CExternalFilesNetCDF* externalFile = productNetCdf->GetExternalFile();
     
-    if (externalFile == NULL)
+    if (externalFile == nullptr)
     {
       continue;
     }
 
     CFieldNetCdf* fieldFromFile = externalFile->GetFieldNetCdf(*itField, false);
     
-    if (fieldFromFile != NULL)
+    if (fieldFromFile != nullptr)
     {
       fieldFromFile->SetDim(dimValues);
       fieldFromFile->SetDimInfo(dimNames, dimIds, dimValues);
@@ -2185,7 +2207,7 @@ void CBratProcess::SetDimCoordAxesToFieldWithoutDim(const CExpression& expr)
 //----------------------------------------
 void CBratProcess::SetDimCoordAxesToFieldWithoutDim(const CStringArray& fieldNames)
 {
-  if (m_product == NULL)
+  if (m_product == nullptr)
   {
       LoadProductDictionary(*(m_inputFiles.begin()));
   }
@@ -2207,14 +2229,14 @@ void CBratProcess::SetDimCoordAxesToFieldWithoutDim(const CStringArray& fieldNam
   
   CExternalFilesNetCDF* externalFile = productNetCdf->GetExternalFile();
   
-  if (externalFile == NULL)
+  if (externalFile == nullptr)
   {
     return;
   }
 
   CNetCDFFiles* file = externalFile->GetFile();
 
-  if (file == NULL)
+  if (file == nullptr)
   {
     return;
   }
@@ -2266,7 +2288,7 @@ void CBratProcess::SetDimCoordAxesToFieldWithoutDim(const CStringArray& fieldNam
     {
 
       CFieldNetCdf* axis = dynamic_cast<CFieldNetCdf*>(productNetCdf->FindFieldByName(*itCoordAxis, m_recordName, false));
-      if (axis == NULL)
+      if (axis == nullptr)
       {
         continue;
       }
@@ -2279,7 +2301,7 @@ void CBratProcess::SetDimCoordAxesToFieldWithoutDim(const CStringArray& fieldNam
 
     CFieldNetCdf* fieldFromDictionnay = dynamic_cast<CFieldNetCdf*>(productNetCdf->FindFieldByName(*itField, m_recordName, false));
 
-    if ((fieldFromDictionnay != NULL) && (!fieldFromDictionnay->HasDim()))
+    if ((fieldFromDictionnay != nullptr) && (!fieldFromDictionnay->HasDim()))
     {
         fieldFromDictionnay->SetDim(dimValues);
         fieldFromDictionnay->SetDimInfo(dimNames, dimIds, dimValues);
@@ -2288,7 +2310,7 @@ void CBratProcess::SetDimCoordAxesToFieldWithoutDim(const CStringArray& fieldNam
 
     CFieldNetCdf* fieldFromFile = externalFile->GetFieldNetCdf(*itField, false);
 
-    if ((fieldFromFile != NULL) && (!fieldFromFile->HasDim()))
+    if ((fieldFromFile != nullptr) && (!fieldFromFile->HasDim()))
     {
       fieldFromFile->SetDim(dimValues);
       fieldFromFile->SetDimInfo(dimNames, dimIds, dimValues);
@@ -2341,7 +2363,7 @@ void CBratProcess::BuildListFieldsToRead()
   // get original number of expresion, because AddFielIndexes can add new expression (insert at the end of m_fields) 
   size_t nbExpr = m_fields.size();
 
-  if (m_product == NULL)
+  if (m_product == nullptr)
   {
     LoadProductDictionary(*(m_inputFiles.begin()));
   }
@@ -2409,14 +2431,14 @@ std::string CBratProcess::GetExpressionNewName(const std::string& name)
 //----------------------------------------
 CExternalFilesNetCDF* CBratProcess::OpenExternalFilesNetCDF(const std::string& fileName)
 {
-  CExternalFilesNetCDF* externalFile = NULL;
+  CExternalFilesNetCDF* externalFile = nullptr;
   
   try
   {
     // Test if file is a Netcdf file
     externalFile = dynamic_cast<CExternalFilesNetCDF*>(BuildExistingExternalFileKind(fileName));
 
-    if (externalFile == NULL)
+    if (externalFile == nullptr)
     {
       throw CFileException(CTools::Format("CBratProcess::OpenCExternalFilesNetCDF - Unknown product/unknown netcdf type - File %s", 
                         fileName.c_str()), BRATHL_IO_ERROR);
@@ -2435,199 +2457,201 @@ CExternalFilesNetCDF* CBratProcess::OpenExternalFilesNetCDF(const std::string& f
 
 }
 //----------------------------------------
-void CBratProcess::AddDimensionsFromNetCdf(CStringArray& dimNames)
+void CBratProcess::AddDimensionsFromNetCdf( CStringArray& dimNames )
 {
-  // Applies only to Netcdf products
-  if (! CBratProcess::IsProductNetCdf() )
-  {
-   return;
-  }
+	// Applies only to Netcdf products
+	if ( ! CBratProcess::IsProductNetCdf() )
+	{
+		return;
+	}
 
-  CObMap mapDims(false);
-  
-  CExternalFilesNetCDF* externalFile1 = OpenExternalFilesNetCDF(*(m_inputFiles.begin()));
- 
+	CObMap mapDims( false );
 
- // CNetCDFFiles file1(*(m_inputFiles.begin()));
-  CNetCDFFiles* file1 = externalFile1->GetFile();
-  CObMap* mapDims1 = file1->GetNetCDFDims();
-
-  CStringArray::const_iterator it;
-  for ( it = dimNames.begin( ); it != dimNames.end( ); it++ )
-  {
-    // Search if dim is in the input Netcdf file
-    CNetCDFDimension* netCDFDim = dynamic_cast<CNetCDFDimension*>(mapDims1->Exists(*it));
-    if (netCDFDim == NULL)
-    {
-      throw CException(CTools::Format("ERROR: CBratProcess::AddDimensionsFromNetCdf() - dimension '%s' not found in file '%s'\n",
-                                    it->c_str(),
-                                    file1->GetName().c_str()),
-			               BRATHL_LOGIC_ERROR);
-    }
-
-    CFieldNetCdf* field = dynamic_cast<CFieldNetCdf*>(m_product->FindFieldByName(netCDFDim->GetName(), m_recordName, false));
-    
-    if (field == NULL)
-    {
-      throw CException(CTools::Format("ERROR: CBratProcess::AddDimensionsFromNetCdf() - field '%s' not found\n",
-                                    netCDFDim->GetName().c_str()),
-			               BRATHL_LOGIC_ERROR);
-    }
-
-    CUnit* unit = field->GetNetCdfUnit();    
-    
-    NetCDFVarKind dimKind = field->SearchDimKind();
-
-    std::string title = field->GetAttribute(LONG_NAME_ATTR);
-    
-    std::string comment = field->GetAttribute(COMMENT_ATTR);
+	CExternalFilesNetCDF* externalFile1 = OpenExternalFilesNetCDF( *( m_inputFiles.begin() ) );
 
 
-    // insert dimension in a map (for a later check)
-    mapDims.Insert(*it, netCDFDim);
-    
-    // Insert the dimension to the output Netcdf file
-    CNetCDFDimension* addedDim = m_internalFiles->AddNetCDFDim(*netCDFDim);
-    addedDim->AddCoordinateVariable(netCDFDim->GetName());
+	// CNetCDFFiles file1(*(m_inputFiles.begin()));
+	CNetCDFFiles* file1 = externalFile1->GetFile();
+	CObMap* mapDims1 = file1->GetNetCDFDims();
 
-    // Check if the inserted dimension has its variable in the output Netcdf file
-    // If not, create the variable corresponding to the inserted dimension
-    // and add it to in the output Netcdf file
-    CNetCDFCoordinateAxis* addedVarDimIndex = dynamic_cast<CNetCDFCoordinateAxis*>(m_internalFiles->GetNetCDFVarDef(netCDFDim->GetName()));
-    
-    if (addedVarDimIndex == NULL)
-    {
-      CNetCDFCoordinateAxis varDimIndex(netCDFDim->GetName());
+	CStringArray::const_iterator it;
+	for ( it = dimNames.begin(); it != dimNames.end(); it++ )
+	{
+		// Search if dim is in the input Netcdf file
+		CNetCDFDimension* netCDFDim = dynamic_cast<CNetCDFDimension*>( mapDims1->Exists( *it ) );
+		if ( netCDFDim == nullptr )
+		{
+			throw CException( CTools::Format( "ERROR: CBratProcess::AddDimensionsFromNetCdf() - dimension '%s' not found in file '%s'\n",
+				it->c_str(),
+				file1->GetName().c_str() ),
+				BRATHL_LOGIC_ERROR );
+		}
 
-      addedVarDimIndex = dynamic_cast<CNetCDFCoordinateAxis*>(m_internalFiles->AddNetCDFVarDef(varDimIndex));
-      
-      addedVarDimIndex->AddAttribute(new CNetCDFAttrString(LONG_NAME_ATTR, title));
-      addedVarDimIndex->AddAttribute(new CNetCDFAttrString(COMMENT_ATTR, comment));
+		CFieldNetCdf* field = dynamic_cast<CFieldNetCdf*>( m_product->FindFieldByName( netCDFDim->GetName(), m_recordName, false ) );
 
-      addedVarDimIndex->AddNetCDFDim(*addedDim);
-      addedVarDimIndex->SetUnit(*unit);
-      addedVarDimIndex->SetDimKind(dimKind);
-      
+		if ( field == nullptr )
+		{
+			throw CException( CTools::Format( "ERROR: CBratProcess::AddDimensionsFromNetCdf() - field '%s' not found\n",
+				netCDFDim->GetName().c_str() ),
+				BRATHL_LOGIC_ERROR );
+		}
 
+		CUnit* unit = field->GetNetCdfUnit();
 
-    }
+		NetCDFVarKind dimKind = field->SearchDimKind();
 
-    // The dimension have to be added to the fields which have to be read  (as an expression object) 
+		std::string title = field->GetAttribute( LONG_NAME_ATTR );
 
-    int32_t indexAlreadyExistName = m_names.FindIndex(netCDFDim->GetName());
-
-    if (indexAlreadyExistName >= 0)
-    {
-      m_names[indexAlreadyExistName] = GetExpressionNewName(netCDFDim->GetName());
-      CTrace::Tracer(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-      CTrace::Tracer(CTools::Format("WARNING - Expression '%s' have been renamed to '%s', because a Netcdf dimension has the same name", 
-                     netCDFDim->GetName().c_str(),
-                     m_names.at(indexAlreadyExistName).c_str()));
-      CTrace::Tracer(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
-
-    }
+		std::string comment = field->GetAttribute( COMMENT_ATTR );
 
 
-    CExpression expr(netCDFDim->GetName());
+		// insert dimension in a map (for a later check)
+		mapDims.Insert( *it, netCDFDim );
+
+		// Insert the dimension to the output Netcdf file
+		CNetCDFDimension* addedDim = m_internalFiles->AddNetCDFDim( *netCDFDim );
+		addedDim->AddCoordinateVariable( netCDFDim->GetName() );
+
+		// Check if the inserted dimension has its variable in the output Netcdf file
+		// If not, create the variable corresponding to the inserted dimension
+		// and add it to in the output Netcdf file
+		CNetCDFCoordinateAxis* addedVarDimIndex = dynamic_cast<CNetCDFCoordinateAxis*>( m_internalFiles->GetNetCDFVarDef( netCDFDim->GetName() ) );
+
+		if ( addedVarDimIndex == nullptr )
+		{
+			CNetCDFCoordinateAxis varDimIndex( netCDFDim->GetName() );
+
+			addedVarDimIndex = dynamic_cast<CNetCDFCoordinateAxis*>( m_internalFiles->AddNetCDFVarDef( varDimIndex ) );
+
+			addedVarDimIndex->AddAttribute( new CNetCDFAttrString( LONG_NAME_ATTR, title ) );
+			addedVarDimIndex->AddAttribute( new CNetCDFAttrString( COMMENT_ATTR, comment ) );
+
+			addedVarDimIndex->AddNetCDFDim( *addedDim );
+			addedVarDimIndex->SetUnit( *unit );
+			addedVarDimIndex->SetDimKind( dimKind );
 
 
-    m_fields.push_back(expr);
 
-    m_units.push_back(*unit);
+		}
 
-    m_names.push_back(netCDFDim->GetName());
+		// The dimension have to be added to the fields which have to be read  (as an expression object) 
 
-    m_titles.push_back(title);
+		int32_t indexAlreadyExistName = m_names.FindIndex( netCDFDim->GetName() );
 
-    m_comments.push_back(comment);
+		if ( indexAlreadyExistName >= 0 )
+		{
+			m_names[ indexAlreadyExistName ] = GetExpressionNewName( netCDFDim->GetName() );
+			CTrace::Tracer( ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" );
+			CTrace::Tracer( CTools::Format( "WARNING - Expression '%s' have been renamed to '%s', because a Netcdf dimension has the same name",
+				netCDFDim->GetName().c_str(),
+				m_names.at( indexAlreadyExistName ).c_str() ) );
+			CTrace::Tracer( ">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>" );
 
-    m_types.push_back(Data);
-
-    m_dataMode.push_back(CBratProcess::pctFIRST);
-
-    //----------------------------------
-    m_listFieldsToRead.InsertUnique(netCDFDim->GetName());
-    //----------------------------------
-
-    OnAddDimensionsFromNetCdf();
-
-  }
-
-  //------------------------
-  // Checks Dimensions of the other files of the dataset
-  //------------------------
-
-  for ( it = m_inputFiles.begin() + 1 ; it != m_inputFiles.end( ); it++ )
-  {
-    CExternalFilesNetCDF* externalFileComp = OpenExternalFilesNetCDF(*it);
-
-    CNetCDFFiles* fileComp = externalFileComp->GetFile();
-    
-    CObMap::const_iterator itDims;
-
-    for ( itDims = mapDims.begin() ; itDims != mapDims.end( ); itDims++ )
-    {
-      std::string dimName = itDims->first;
-      CNetCDFDimension* netCDFDim = dynamic_cast<CNetCDFDimension*>(itDims->second);
-      if (netCDFDim == NULL)
-      {
-        throw CException(CTools::Format("ERROR: CBratProcess::AddDimensionsFromNetCdf() - dimension '%s' in map is NULL.\n",
-                                      dimName.c_str()),
-			                 BRATHL_LOGIC_ERROR);
-      }
-
-      CObMap* mapDimsComp = fileComp->GetNetCDFDims();
-
-      CNetCDFDimension* netCDFDimComp = dynamic_cast<CNetCDFDimension*>(mapDimsComp->Exists(dimName));
-      if (netCDFDimComp == NULL)
-      {
-        throw CException(CTools::Format("ERROR: CBratProcess::AddDimensionsFromNetCdf() - dimension '%s' not found in file '%s'\n",
-                                      dimName.c_str(),
-                                      fileComp->GetName().c_str()),
-			                 BRATHL_LOGIC_ERROR);
-      }
-
-      if (netCDFDimComp->IsNotEqual(*netCDFDim))
-      {
-        CStringArray keys;
-        mapDims.GetKeys(keys);
-
-        std::string dimsAsString = keys.ToString(", ", false);
-
-        throw CException(CTools::Format("ERROR: Unable to process. Reason: "
-                                        "'%s' dimension value (%ld) in file '%s' is not equal to "
-                                        "'%s' dimension value (%ld) in file '%s'\n"
-                                        "Go through all the files of the dataset, check that each dimension below have the same value:\n%s",
-                                      dimName.c_str(),
-                                      (long)netCDFDimComp->GetLength(), 
-                                      fileComp->GetName().c_str(),
-                                      dimName.c_str(),
-                                      (long)netCDFDim->GetLength(), 
-                                      file1->GetName().c_str(),
-                                      dimsAsString.c_str()),
-			                 BRATHL_LOGIC_ERROR);
-      }
-
-      
-
-    }
-
-    if (externalFileComp != NULL)
-    {
-      delete externalFileComp;
-      externalFileComp = NULL;
-    }
-  }
-
- 
-  if (externalFile1 != NULL)
-  {
-    delete externalFile1;
-    externalFile1 = NULL;
-  }
+		}
 
 
+		CExpression expr( netCDFDim->GetName() );
+
+
+		m_fields.push_back( expr );
+
+		m_units.push_back( *unit );
+
+		m_names.push_back( netCDFDim->GetName() );
+
+		m_titles.push_back( title );
+
+		m_comments.push_back( comment );
+
+		m_types.push_back( Data );
+
+		m_dataMode.push_back( CBratProcess::pctFIRST );
+
+		//----------------------------------
+		m_listFieldsToRead.InsertUnique( netCDFDim->GetName() );
+		//----------------------------------
+
+		OnAddDimensionsFromNetCdf();
+
+	}
+
+	//------------------------
+	// Checks Dimensions of the other files of the dataset
+	//------------------------
+
+	if ( !mapDims.empty() )
+
+		for ( it = m_inputFiles.begin() + 1; it != m_inputFiles.end(); it++ )
+		{
+			CExternalFilesNetCDF* externalFileComp = OpenExternalFilesNetCDF( *it );
+
+			CNetCDFFiles* fileComp = externalFileComp->GetFile();
+
+			CObMap::const_iterator itDims;
+
+			for ( itDims = mapDims.begin(); itDims != mapDims.end(); itDims++ )
+			{
+				std::string dimName = itDims->first;
+				CNetCDFDimension* netCDFDim = dynamic_cast<CNetCDFDimension*>( itDims->second );
+				if ( netCDFDim == nullptr )
+				{
+					throw CException( CTools::Format( "ERROR: CBratProcess::AddDimensionsFromNetCdf() - dimension '%s' in map is nullptr.\n",
+						dimName.c_str() ),
+						BRATHL_LOGIC_ERROR );
+				}
+
+				CObMap* mapDimsComp = fileComp->GetNetCDFDims();
+
+				CNetCDFDimension* netCDFDimComp = dynamic_cast<CNetCDFDimension*>( mapDimsComp->Exists( dimName ) );
+				if ( netCDFDimComp == nullptr )
+				{
+					throw CException( CTools::Format( "ERROR: CBratProcess::AddDimensionsFromNetCdf() - dimension '%s' not found in file '%s'\n",
+						dimName.c_str(),
+						fileComp->GetName().c_str() ),
+						BRATHL_LOGIC_ERROR );
+				}
+
+				if ( netCDFDimComp->IsNotEqual( *netCDFDim ) )
+				{
+					CStringArray keys;
+					mapDims.GetKeys( keys );
+
+					std::string dimsAsString = keys.ToString( ", ", false );
+
+					throw CException( CTools::Format( "ERROR: Unable to process. Reason: "
+						"'%s' dimension value (%ld) in file '%s' is not equal to "
+						"'%s' dimension value (%ld) in file '%s'\n"
+						"Go through all the files of the dataset, check that each dimension below have the same value:\n%s",
+						dimName.c_str(),
+						(long)netCDFDimComp->GetLength(),
+						fileComp->GetName().c_str(),
+						dimName.c_str(),
+						(long)netCDFDim->GetLength(),
+						file1->GetName().c_str(),
+						dimsAsString.c_str() ),
+						BRATHL_LOGIC_ERROR );
+				}
+
+
+
+			}
+
+			if ( externalFileComp != nullptr )
+			{
+				delete externalFileComp;
+				externalFileComp = nullptr;
+			}
+		}
+
+
+	if ( externalFile1 != nullptr )
+	{
+		delete externalFile1;
+		externalFile1 = nullptr;
+	}
 }
+
+
 //----------------------------------------
 void CBratProcess::OnAddDimensionsFromNetCdf()
 {
@@ -2700,7 +2724,7 @@ void CBratProcess::AddVarsFromNetCdf()
       for (itField = fields.begin() ; itField != fields.end() ; itField++)
       {
         CFieldNetCdf* field = dynamic_cast<CFieldNetCdf*>(m_product->FindFieldByName(*itField, m_recordName, false));
-        if (field == NULL)
+        if (field == nullptr)
         {
           continue;
         }
@@ -2736,7 +2760,7 @@ void CBratProcess::AddVarsFromNetCdf()
     }
 
     // if var already exists, continue
-    if (m_internalFiles->GetNetCDFVarDef(m_names[i]) != NULL)
+    if (m_internalFiles->GetNetCDFVarDef(m_names[i]) != nullptr)
     {
       //-----------
       continue;
@@ -2755,7 +2779,7 @@ void CBratProcess::AddVarsFromNetCdf()
     CNetCDFCoordinateAxis* coordAxis = dynamic_cast<CNetCDFCoordinateAxis*>(coordAxis);
 
     // If var is a dimension : (don't add to its own dimension, it have already done)
-    if (coordAxis != NULL)
+    if (coordAxis != nullptr)
     {
       //-----------
       continue
@@ -2771,14 +2795,14 @@ void CBratProcess::AddVarsFromNetCdf()
       CNetCDFDimension* addedDim = m_internalFiles->GetNetCDFDim(*itFieldDimsOut);
       // If dim is not found, it's an axis field ==> create the dim, set its length to 1 and create its variable.
       // because its length is actually not known (it will be known when all the input file will be processed)
-      if (addedDim == NULL)
+      if (addedDim == nullptr)
       {
         CNetCDFDimension dim(*itFieldDimsOut, 1);
 
         addedDim = m_internalFiles->AddNetCDFDim(dim);
 
         CNetCDFVarDef* addedVarDimIndex = m_internalFiles->GetNetCDFVarDef(addedDim->GetName());
-        if (addedVarDimIndex == NULL)
+        if (addedVarDimIndex == nullptr)
         {
           CNetCDFCoordinateAxis varDimIndex(addedDim->GetName());
 
@@ -2859,12 +2883,12 @@ void CBratProcess::IncrementValue(CIntArray& vect, uint32_t incr /* = 1 */)
 //----------------------------------------
 bool CBratProcess::IsProductNetCdf(CBratObject* ob)
 {
-  return (CBratProcess::GetProductNetCdf(ob, false) != NULL);
+  return (CBratProcess::GetProductNetCdf(ob, false) != nullptr);
 }
 //----------------------------------------
 bool CBratProcess::IsProductNetCdfCF(CBratObject* ob)
 {
-  return (CBratProcess::GetProductNetCdfCF(ob, false) != NULL);
+  return (CBratProcess::GetProductNetCdfCF(ob, false) != nullptr);
 }
 //----------------------------------------
 CProductNetCdf* CBratProcess::GetProductNetCdf(CBratObject* ob, bool withExcept /*= true*/)
@@ -2872,9 +2896,9 @@ CProductNetCdf* CBratProcess::GetProductNetCdf(CBratObject* ob, bool withExcept 
   CProductNetCdf* productNetCdf = dynamic_cast<CProductNetCdf*>(ob);
   if (withExcept)
   {
-    if (productNetCdf == NULL)
+    if (productNetCdf == nullptr)
     {
-      CException e("CBratProcess::GetProductNetCdf - dynamic_cast<CProductNetCdf*>(ob) returns NULL"
+      CException e("CBratProcess::GetProductNetCdf - dynamic_cast<CProductNetCdf*>(ob) returns nullptr"
                    "object seems not to be an instance of CProductNetCdf",
                    BRATHL_LOGIC_ERROR);
       throw (e);
@@ -2891,9 +2915,9 @@ CProductNetCdfCF* CBratProcess::GetProductNetCdfCF(CBratObject* ob, bool withExc
   CProductNetCdfCF* productNetCdfCF = dynamic_cast<CProductNetCdfCF*>(ob);
   if (withExcept)
   {
-    if (productNetCdfCF == NULL)
+    if (productNetCdfCF == nullptr)
     {
-      CException e("CBratProcess::GetProductNetCdfCF - dynamic_cast<productNetCdfCF*>(ob) returns NULL"
+      CException e("CBratProcess::GetProductNetCdfCF - dynamic_cast<productNetCdfCF*>(ob) returns nullptr"
                    "object seems not to be an instance of CProductNetCdfCF",
                    BRATHL_LOGIC_ERROR);
       throw (e);
@@ -2925,7 +2949,7 @@ void CBratProcess::SetFieldSpecificUnits(const CStringMap& fieldSpecificUnit)
 //----------------------------------------
 void CBratProcess::SetFieldSpecificUnits(const CStringMap* fieldSpecificUnit)
 {
-  if (fieldSpecificUnit == NULL)
+  if (fieldSpecificUnit == nullptr)
   {
     return;
   }
@@ -2940,9 +2964,9 @@ CObArrayOb* CBratProcess::GetObArrayOb(CBratObject* ob, bool withExcept /*= true
   CObArrayOb* array = dynamic_cast<CObArrayOb*>(ob);
   if (withExcept)
   {
-    if (array == NULL)
+    if (array == nullptr)
     {
-      CException e("CBratProcess::GetObArrayOb - dynamic_cast<CObArrayOb*>(ob) returns NULL"
+      CException e("CBratProcess::GetObArrayOb - dynamic_cast<CObArrayOb*>(ob) returns nullptr"
                    "object seems not to be an instance of CObArrayOb",
                    BRATHL_LOGIC_ERROR);
       throw (e);
@@ -2958,9 +2982,9 @@ CDoubleArrayOb* CBratProcess::GetDoubleArrayOb(CBratObject* ob, bool withExcept 
   CDoubleArrayOb* array = dynamic_cast<CDoubleArrayOb*>(ob);
   if (withExcept)
   {
-    if (array == NULL)
+    if (array == nullptr)
     {
-      CException e("CBratProcess::GetDoubleArrayOb - dynamic_cast<CDoubleArrayOb*>(ob) returns NULL"
+      CException e("CBratProcess::GetDoubleArrayOb - dynamic_cast<CDoubleArrayOb*>(ob) returns nullptr"
                    "object seems not to be an instance of CDoubleArrayOb",
                    BRATHL_LOGIC_ERROR);
       throw (e);
@@ -2983,8 +3007,8 @@ void CBratProcess::MergeDataValue
 
   if (nbValues == 0)
   {
-    double* countValue = ((countValues != NULL) ? (&countValues[0]) : NULL);
-    double* meanValue = ((meanValues != NULL) ? (&meanValues[0]) : NULL);
+    double* countValue = ((countValues != nullptr) ? (&countValues[0]) : nullptr);
+    double* meanValue = ((meanValues != nullptr) ? (&meanValues[0]) : nullptr);
     
     MergeDataValue(data[0], CTools::m_defaultValueDOUBLE, countValue, meanValue, m_dataMode[indexExpr]);
     return;
@@ -2996,8 +3020,8 @@ void CBratProcess::MergeDataValue
   for (indexValues = 0 ; indexValues < nbValues; indexValues++)
   {
     double value = CBratProcess::CheckLongitudeValue(values[indexValues], -180.0, m_types[indexExpr]);
-    double* countValue = ((countValues != NULL) ? (&countValues[0]) : NULL);
-    double* meanValue = ((meanValues != NULL) ? (&meanValues[0]) : NULL);
+    double* countValue = ((countValues != nullptr) ? (&countValues[0]) : nullptr);
+    double* meanValue = ((meanValues != nullptr) ? (&meanValues[0]) : nullptr);
     
     CBratProcess::MergeDataValue(data[indexValues], value, countValue, meanValue, m_dataMode[indexExpr]);
   }
@@ -3128,9 +3152,9 @@ void CBratProcess::MergeDataValue
     //--------------------------
     case CBratProcess::pctMEAN:
     //--------------------------
-      if (countValue == NULL)
+      if (countValue == nullptr)
       {
-        throw CException(CTools::Format("ERROR: CBratProcessZFXY::MergeDataValue() - count value  is NULL, but mode is '%s'\n",
+        throw CException(CTools::Format("ERROR: CBratProcessZFXY::MergeDataValue() - count value  is nullptr, but mode is '%s'\n",
                                         CBratProcess::DataModeStr(mode).c_str()),
 			                   BRATHL_LOGIC_ERROR);
 
@@ -3151,16 +3175,16 @@ void CBratProcess::MergeDataValue
     //--------------------------
     case CBratProcess::pctSTDDEV:
     //--------------------------
-      if (countValue == NULL)
+      if (countValue == nullptr)
       {
-        throw CException(CTools::Format("ERROR: CBratProcessZFXY::MergeDataValue() - count value  is NULL, but mode is '%s'\n",
+        throw CException(CTools::Format("ERROR: CBratProcessZFXY::MergeDataValue() - count value  is nullptr, but mode is '%s'\n",
                                         CBratProcess::DataModeStr(mode).c_str()),
 			                   BRATHL_LOGIC_ERROR);
 
       }
-      if (meanValue == NULL)
+      if (meanValue == nullptr)
       {
-        throw CException(CTools::Format("ERROR: CBratProcessZFXY::MergeDataValue() - mean value  is NULL, but mode is '%s'\n",
+        throw CException(CTools::Format("ERROR: CBratProcessZFXY::MergeDataValue() - mean value  is nullptr, but mode is '%s'\n",
                                         CBratProcess::DataModeStr(mode).c_str()),
 			                   BRATHL_LOGIC_ERROR);
 
@@ -3206,8 +3230,8 @@ void CBratProcess::FinalizeMergingOfDataValues
 
   for (indexValues = 0 ; indexValues < nbValues; indexValues++)
   {
-    double* countValue = ((countValues != NULL) ? (&countValues[0]) : NULL);
-    double* meanValue = ((meanValues != NULL) ? (&meanValues[0]) : NULL);
+    double* countValue = ((countValues != nullptr) ? (&countValues[0]) : nullptr);
+    double* meanValue = ((meanValues != nullptr) ? (&meanValues[0]) : nullptr);
     
     CBratProcess::FinalizeMergingOfDataValues(data[indexValues], countValue, meanValue, m_dataMode[indexExpr]);
   }
@@ -3255,9 +3279,9 @@ void CBratProcess::FinalizeMergingOfDataValues
 	    else
 	    {
 
-        if (countValue == NULL)
+        if (countValue == nullptr)
         {
-          throw CException(CTools::Format("ERROR: CBratProcessZFXY::FinalizeMergingOfDataValues() - count value  is NULL, but mode is '%s'\n",
+          throw CException(CTools::Format("ERROR: CBratProcessZFXY::FinalizeMergingOfDataValues() - count value  is nullptr, but mode is '%s'\n",
                                           CBratProcess::DataModeStr(mode).c_str()),
 			                     BRATHL_LOGIC_ERROR);
 
@@ -3280,16 +3304,16 @@ void CBratProcess::FinalizeMergingOfDataValues
 	    }
 	    else
 	    {
-        if (countValue == NULL)
+        if (countValue == nullptr)
         {
-          throw CException(CTools::Format("ERROR: CBratProcessZFXY::FinalizeMergingOfDataValues() - count value  is NULL, but mode is '%s'\n",
+          throw CException(CTools::Format("ERROR: CBratProcessZFXY::FinalizeMergingOfDataValues() - count value  is nullptr, but mode is '%s'\n",
                                           CBratProcess::DataModeStr(mode).c_str()),
 			                     BRATHL_LOGIC_ERROR);
 
         }
-        if (meanValue == NULL)
+        if (meanValue == nullptr)
         {
-          throw CException(CTools::Format("ERROR: CBratProcessZFXY::MergeDataValue() - mean value  is NULL, but mode is '%s'\n",
+          throw CException(CTools::Format("ERROR: CBratProcessZFXY::MergeDataValue() - mean value  is nullptr, but mode is '%s'\n",
                                           CBratProcess::DataModeStr(mode).c_str()),
 			                     BRATHL_LOGIC_ERROR);
 

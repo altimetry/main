@@ -34,7 +34,7 @@
 
 #include "GUI/ActionsTable.h"
 #include "GUI/TabbedDock.h"
-#include "GUI/ControlPanels/Views/ViewControlPanels.h"
+#include "GUI/ControlPanels/ViewControlPanels/ViewControlPanels.h"
 #include "Dialogs/ExportImageDialog.h"
 
 #include "AbstractDisplayEditor.h"

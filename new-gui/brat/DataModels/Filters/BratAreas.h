@@ -214,7 +214,7 @@ public:
 
 		erase( begin() + index  );
 
-        //recalc min/max
+        //recalculate min/max
 
         double lon =0;
         double lat =0;

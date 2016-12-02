@@ -92,10 +92,6 @@ enum EActionTag : int
 	eAction_Projection_STEREOGRAPHIC,		eAction_last_Projection = eAction_Projection_STEREOGRAPHIC,
 	eAction_Projection_Default,
 
-	eAction_ApplicationPaths_page,
-	eAction_StartupOptions_page,
-	eAction_ApplicationStyles_page,
-
 	eAction_SelectFeatures,
 	eAction_SelectPolygon,
 	eAction_DeselectAll,
@@ -110,6 +106,11 @@ enum EActionTag : int
 	eAction_AssignExpression,
 	eAction_ExportView,
     eAction_DataDisplayProperties,
+
+	eAction_InstallRadsService,
+	eAction_StartRadsService,
+	eAction_PauseRadsService,
+	eAction_ExecuteRadsService,
 
 	//add new items before this line
 

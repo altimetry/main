@@ -80,7 +80,7 @@ public:
 	/////////////////////////////
 
 	const QString& Username() const { return mUsername; }
-	void SetUsername( const QString& username );
+	void SetUsername( const QString& username, bool disable_user = false );
 
 	const QString& Password() const { return mPassword; };
 	void SetPassword( const QString& password );

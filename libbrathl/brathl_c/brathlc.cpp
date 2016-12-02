@@ -30,12 +30,12 @@
 #endif
 
 #include "brathlc.h"
-#include "new-gui/Common/tools/brathl_error.h"
+#include "common/tools/brathl_error.h"
 
 #include "Date.h"
 #include "Mission.h"
 #include "List.h"
-#include "new-gui/Common/tools/Exception.h"
+#include "common/tools/Exception.h"
 #include "Product.h"
 #include "Tools.h"
 #include "BratAlgorithmBase.h"

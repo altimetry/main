@@ -19,6 +19,7 @@
 #define APPLICATION_SETTINGS_DLG_H
 
 
+#include "process/rads/RadsSettings.h"
 #include "GUI/StackedWidget.h"
 
 
@@ -45,6 +46,11 @@ class CApplicationSettingsDlg : public QDialog
 	using base_t = QDialog;
 
 
+
+	//static members
+
+
+
 	//instance data
 
     CStackedWidget *mStackedWidget = nullptr;
@@ -68,16 +74,13 @@ class CApplicationSettingsDlg : public QDialog
 	QWidget *mStartupOptionsPage = nullptr;
 
 	QLineEdit *mRadsOutputEdit = nullptr;
-	QPushButton *mRadsPathBrowseButton = nullptr;
 	QSpinBox *mRadsSpin = nullptr;
 	QListWidget *mRadsMissionsList = nullptr;
 	QGroupBox *mRadsCommandsBox = nullptr;
 	QToolButton *mRadsInstallButton = nullptr;
-	QToolButton *mRadsUninstallButton = nullptr;
 	QToolButton *mRadsStartButton = nullptr;
-	QToolButton *mRadsStopButton = nullptr;
 	QToolButton *mRadsPauseButton = nullptr;
-	QToolButton *mRadsResumeButton = nullptr;
+	QToolButton *mRadsExecuteNow = nullptr;
 	QPushButton *mRadsViewLogFile = nullptr;
 	QWidget *mRadsOptionsPage = nullptr;
 
@@ -89,8 +92,9 @@ class CApplicationSettingsDlg : public QDialog
 
     QDialogButtonBox *mButtonBox = nullptr;
 
-	QtServiceController *mRadsController = nullptr;
 	CBratSettings &mSettings;
+	QtServiceController *mRadsController = nullptr;
+	CSharedRadsSettings mRadsServiceSettings;
 
 
 	//construction / destruction
@@ -105,6 +109,7 @@ public:
 
 protected:
     bool ValidateAndAssign();
+	bool ValidateAndSaveRadsValues( bool ask_user );
 
 	void EnableRadsButtons();
 	void DisplayRadsError( const std::string &action );
@@ -117,14 +122,11 @@ private slots:
     void HandleMainLayerTypeChanged( bool toggled );
     void HandleViewsLayerTypeChanged( bool toggled );
 
-	void HandleRadsPathBrowse();
-	void HandleRadsInstall();
-	void HandleRadsUninstall();
-	void HandleRadsStart();
-	void HandleRadsStop();
-	void HandleRadsPause();
-	void HandleRadsResume();
+	void HandleRadsInstall( bool toggled );
+	void HandleRadsStart( bool toggled );
+	void HandleRadsPause( bool toggled );
 	void HandleViewLogFile();
+	void HandleRadsExecuteNow();
 };
 
 #endif // APPLICATION_SETTINGS_DLG_H

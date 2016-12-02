@@ -52,7 +52,7 @@ public:
   
   /** Creates new CProductRiverLake object
     \param fileNameList [in] : list of file to be connected */
-  CProductRiverLake(const CStringList& fileNameList);
+  CProductRiverLake( const CStringList &fileNameList, bool check_only_first_file );
 
   /// Destructor
   virtual ~CProductRiverLake();

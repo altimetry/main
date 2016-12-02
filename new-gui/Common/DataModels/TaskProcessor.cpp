@@ -17,8 +17,8 @@
 */
 #include "stdafx.h"
 
-#include "new-gui/Common/+Utils.h"
-#include "new-gui/Common/+UtilsIO.h"
+#include "common/+Utils.h"
+#include "common/+UtilsIO.h"
 #include "new-gui/Common/QtUtilsIO.h"
 
 #include "new-gui/Common/GUI/ApplicationUserPaths.h"

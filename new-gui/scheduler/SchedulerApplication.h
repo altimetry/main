@@ -56,7 +56,7 @@ public:
 
 	// Calling this in main is mandatory
 	//	
-	static void Prologue( int argc, char *argv[], const char *app_name );
+	static void Prologue( int argc, char *argv[] );
 
 
 protected:

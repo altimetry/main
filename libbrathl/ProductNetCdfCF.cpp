@@ -24,12 +24,12 @@
 #include <cstring>
 #include <string>
 
-#include "new-gui/Common/tools/brathl_error.h"
+#include "common/tools/brathl_error.h"
 #include "brathl.h"
 
-#include "new-gui/Common/tools/TraceLog.h"
+#include "common/tools/TraceLog.h"
 #include "Tools.h"
-#include "new-gui/Common/tools/Exception.h"
+#include "common/tools/Exception.h"
 #include "ProductNetCdfCF.h"
 
 using namespace brathl;
@@ -55,11 +55,10 @@ CProductNetCdfCF::CProductNetCdfCF(const std::string& fileName)
 
 
 //----------------------------------------
-CProductNetCdfCF::CProductNetCdfCF(const CStringList& fileNameList)
-      : CProductNetCdf(fileNameList)
-
+CProductNetCdfCF::CProductNetCdfCF( const CStringList& fileNameList, bool check_only_first_file )
+	: CProductNetCdf( fileNameList, check_only_first_file )
 {
-  Init();
+	Init();
 }
 
 //----------------------------------------

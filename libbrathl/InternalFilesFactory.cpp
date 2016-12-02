@@ -20,7 +20,7 @@
 
 #include <algorithm>
 
-#include "new-gui/Common/tools/Exception.h"
+#include "common/tools/Exception.h"
 #include "NetCDFFiles.h"
 #include "InternalFilesYFX.h"
 #include "InternalFilesZFXY.h"
@@ -34,41 +34,43 @@ namespace brathl
 {
 
 #define CHECK_TYPE(Class)			\
-	if (Class::TypeOf() == TypeStr)		\
+	if (Class::TypeOf() == type_str)		\
 	  return new Class(name)
 
-CInternalFiles* BuildExistingInternalFileKind (const std::string& name, const CStringArray* fieldNames /* = NULL */)
-{
+	CInternalFiles* BuildExistingInternalFileKind( const std::string& name, const CStringArray* fieldNames /* = NULL */ )
+	{
 
-  CNetCDFFiles netCdfFile(name);
+		CNetCDFFiles netCdfFile( name );
 
-  std::string TypeStr	= netCdfFile.IdentifyExistingFile();
-  CHECK_TYPE(CInternalFilesYFX);
-  CHECK_TYPE(CInternalFilesZFXY);
+		const std::pair< std::string, std::string > type_info = netCdfFile.IdentifyExistingFile();
+		const std::string type_str = type_info.first;
 
-  if (netCdfFile.IsGeographic())
-  {
-    return new CInternalFilesZFXY(name);
-  }
+		CHECK_TYPE( CInternalFilesYFX );
+		CHECK_TYPE( CInternalFilesZFXY );
 
-  uint32_t nbDims = netCdfFile.GetMaxFieldNumberOfDims(fieldNames);
+		if ( netCdfFile.IsGeographic() )
+		{
+			return new CInternalFilesZFXY( name );
+		}
 
-  if (nbDims >= 2)
-  {
-    return new CInternalFilesZFXY(name);
-  }
+		uint32_t nbDims = netCdfFile.GetMaxFieldNumberOfDims( fieldNames );
 
-  if (nbDims >= 1)
-  {
-    return new CInternalFilesYFX(name);
-  }
+		if ( nbDims >= 2 )
+		{
+			return new CInternalFilesZFXY( name );
+		}
+
+		if ( nbDims >= 1 )
+		{
+			return new CInternalFilesYFX( name );
+		}
 
 
-  throw CFileException(CTools::Format("Unknown internal netcdf file type '%s'",
-				      TypeStr.c_str()),
-		       name,
-		       BRATHL_ERROR);
-}
+		throw CFileException( CTools::Format( "Unknown internal netcdf file type '%s'",
+			type_str.c_str() ),
+			name,
+			BRATHL_ERROR );
+	}
 
 
 }

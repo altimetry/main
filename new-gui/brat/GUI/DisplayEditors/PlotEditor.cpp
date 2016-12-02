@@ -25,7 +25,7 @@
 #include "DataModels/PlotData/Plots.h"
 
 #include "GUI/ControlPanels/ColorButton.h"
-#include "GUI/ControlPanels/Views/ViewControlPanels.h"
+#include "GUI/ControlPanels/ViewControlPanels/ViewControlPanels.h"
 #include "GUI/DisplayWidgets/3DPlotWidget.h"
 #include "GUI/DisplayWidgets/2DPlotWidget.h"
 #include "new-gui/Common/GUI/TextWidget.h"

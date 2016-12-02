@@ -304,6 +304,30 @@ public:
 
 
 
+class CExternalFilesRads : public CExternalFilesNetCDFCF
+{
+	DECLARE_BASE_TYPE( CExternalFilesNetCDFCF )
+
+	const std::string mMission;
+
+public:
+	CExternalFilesRads( const std::string &mission, const std::string &name = "" )
+		: base_t( name )
+		, mMission( mission )
+	{}
+
+	virtual ~CExternalFilesRads()
+	{}
+
+	static std::string TypeOf() { return "RADS"; }
+
+	static bool IsTypeOf( const std::string& type_str ) { return 0 == type_str.find( CExternalFilesRads::TypeOf() );	}
+
+	virtual std::string GetType() { return TypeOf() + "-" + mMission; }
+};
+
+
+
 class CExternalFilesSentinel3A : public CExternalFilesNetCDFCF
 {
     DECLARE_BASE_TYPE( CExternalFilesNetCDFCF )

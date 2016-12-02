@@ -20,7 +20,7 @@
 #if !defined(_ProductRads_h_)
 #define _ProductRads_h_
 
-#include "Product.h"
+#include "ProductNetCdfCF.h"
 using namespace brathl;
 
 namespace brathl
@@ -37,49 +37,41 @@ namespace brathl
  \version 1.0
 */
 
-class CProductRads : public CProduct
-{
+	class CProductRads : public CProductNetCdfCF
+	{
+		DECLARE_BASE_TYPE( CProductNetCdfCF )
 
-public:
-    
-  /// Empty CProductRads ctor
-  CProductRads();
+		//construction / destruction
 
-  
-  /** Creates new CProductRads object
-    \param fileName [in] : file name to be connected */
-  CProductRads(const std::string& fileName);
-  
-  /** Creates new CProductRads object
-    \param fileNameList [in] : list of file to be connected */
-  CProductRads(const CStringList& fileNameList);
+		void Init();
+	public:
 
-  /// Destructor
-  virtual ~CProductRads();
+		/// Empty CProductRads ctor
+		CProductRads();
 
-  virtual void InitCriteriaInfo();
+		/** Creates new CProductRads object
+		  \param fileName [in] : file name to be connected */
+		CProductRads( const std::string &fileName );
 
-  ///Dump fonction
-  virtual void Dump(std::ostream& fOut = std::cerr);
+		/** Creates new CProductRads object
+		  \param fileNameList [in] : list of file to be connected */
+		CProductRads( const CStringList &fileNameList, bool check_only_first_file );
 
-
-protected:
-  virtual void InitDateRef();
+		/// Destructor
+		virtual ~CProductRads()
+		{}
 
 
-private:
-  void Init();
+		//overrides
 
-public:
-    
+	protected:
 
-protected:
-		
+		virtual void InitDateRef() override;
 
-private:
-  
-
-};
+	public:
+		//Dump function
+		virtual void Dump( std::ostream& fOut = std::cerr ) override;
+	};
 
 /** @} */
 

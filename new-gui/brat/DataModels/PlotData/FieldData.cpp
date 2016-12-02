@@ -17,7 +17,7 @@
 */
 #include "new-gui/brat/stdafx.h"
 
-#include "new-gui/Common/tools//Trace.h"
+#include "common/tools//Trace.h"
 #include "libbrathl/InternalFilesYFX.h"
 
 using namespace brathl;

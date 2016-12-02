@@ -20,14 +20,14 @@
 #include <cstdio>
 #include <string>
 #include "List.h"
-#include "new-gui/Common/tools/Exception.h"
+#include "common/tools/Exception.h"
 #include "FileParams.h"
 #include "Tools.h"
 #include "Field.h"
 #include "Product.h"
 #include "ProductNetCdf.h"
-#include "new-gui/Common/tools/Trace.h"
-#include "new-gui/Common/ApplicationStaticPaths.h"
+#include "common/tools/Trace.h"
+#include "common/ApplicationStaticPaths.h"
 #include "BratProcess.h"
 #include "BratProcessZFXY.h"
 #include "InternalFilesZFXY.h"
@@ -83,7 +83,7 @@ int main( int argc, char *argv[] )
 
 	CBratProcessZFXY*  bratProcess = new CBratProcessZFXY( brat_paths.mPythonDir );
 
-	if ( bratProcess->CheckCommandLineOptions( argc, argv ) )
+	if ( bratProcess->CheckCommandLineOptions( argc, argv ) )	//note that this boolean function returns false when everything is OK
 	{
 		return BRATHL_ERROR;
 	}

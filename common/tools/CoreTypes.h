@@ -27,9 +27,9 @@
 #include <limits>
 #include <math.h>
 
-#include "new-gui/Common/+Utils.h" 
-#include "new-gui/Common/ccore-types.h" 
-#include "new-gui/Common/tools/brathl_error.h" 
+#include "common/+Utils.h" 
+#include "common/ccore-types.h" 
+#include "common/tools/brathl_error.h" 
 
 
 

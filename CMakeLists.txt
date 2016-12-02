@@ -478,6 +478,11 @@ IF (ENABLE_QT5)
             ${QT_BINDIR}/Qt${QTVER}Positioning${DBG_SUFFIX}${DLL_SUFFIX}
             ${QT_BINDIR}/Qt${QTVER}DataVisualization${DBG_SUFFIX}${DLL_SUFFIX}
             ${QT_BINDIR}/Qt${QTVER}Widgets${DBG_SUFFIX}${DLL_SUFFIX}
+            ${QT_BINDIR}/Qt${QTVER}WebEngineWidgets${DBG_SUFFIX}${DLL_SUFFIX}
+            ${QT_BINDIR}/Qt${QTVER}WebEngineCore${DBG_SUFFIX}${DLL_SUFFIX}
+            ${QT_BINDIR}/Qt${QTVER}WebChannel${DBG_SUFFIX}${DLL_SUFFIX}
+            ${QT_BINDIR}/Qt${QTVER}Quick${DBG_SUFFIX}${DLL_SUFFIX}
+            ${QT_BINDIR}/Qt${QTVER}Qml${DBG_SUFFIX}${DLL_SUFFIX}
             )
 
         set(QT_SPECIFIC_DEBUG_VERSION_LIBS
@@ -493,25 +498,35 @@ IF (ENABLE_QT5)
             ${QT_LIBDIR}/Qt${QTVER}Positioning${DBG_SUFFIX}.pdb
             ${QT_LIBDIR}/Qt${QTVER}DataVisualization${DBG_SUFFIX}.pdb
             ${QT_LIBDIR}/Qt${QTVER}Widgets${DBG_SUFFIX}.pdb
+            ${QT_LIBDIR}/Qt${QTVER}WebEngineWidgets${DBG_SUFFIX}.pdb
+            ${QT_LIBDIR}/Qt${QTVER}WebEngineCore${DBG_SUFFIX}.pdb
+            ${QT_LIBDIR}/Qt${QTVER}WebChannel${DBG_SUFFIX}.pdb
+            ${QT_LIBDIR}/Qt${QTVER}Quick${DBG_SUFFIX}.pdb
+            ${QT_LIBDIR}/Qt${QTVER}Qml${DBG_SUFFIX}.pdb
             )
 
     ELSEIF (APPLE)
 
 
-	    file( GLOB GLOB_Core				${QT_BINDIR}/libQt${QTVER}Core${DBG_SUFFIX}* )
-		file( GLOB GLOB_Gui					${QT_BINDIR}/libQt${QTVER}Gui${DBG_SUFFIX}* )
-		file( GLOB GLOB_OpenGL				${QT_BINDIR}/libQt${QTVER}OpenGL${DBG_SUFFIX}* )
-		file( GLOB GLOB_Network				${QT_BINDIR}/libQt${QTVER}Network${DBG_SUFFIX}* )
-		file( GLOB GLOB_Svg					${QT_BINDIR}/libQt${QTVER}Svg${DBG_SUFFIX}* )
-		file( GLOB GLOB_Xml					${QT_BINDIR}/libQt${QTVER}Xml${DBG_SUFFIX}* )
-		file( GLOB GLOB_Concurrent			${QT_BINDIR}/libQt${QTVER}Concurrent${DBG_SUFFIX}* )
-		file( GLOB GLOB_PrintSupport		${QT_BINDIR}/libQt${QTVER}PrintSupport${DBG_SUFFIX}* )
-		file( GLOB GLOB_Sql					${QT_BINDIR}/libQt${QTVER}Sql${DBG_SUFFIX}* )
-		file( GLOB GLOB_Positioning			${QT_BINDIR}/libQt${QTVER}Positioning${DBG_SUFFIX}* )
-		file( GLOB GLOB_DataVisualization	${QT_BINDIR}/libQt${QTVER}DataVisualization${DBG_SUFFIX}* )
-		file( GLOB GLOB_Widgets				${QT_BINDIR}/libQt${QTVER}Widgets${DBG_SUFFIX}* )
-		file( GLOB GLOB_DBus				${QT_BINDIR}/libQt${QTVER}DBus${DBG_SUFFIX}* )
-		file( GLOB GLOB_MacExtras			${QT_BINDIR}/libQt${QTVER}MacExtras${DBG_SUFFIX}* )
+	    file( GLOB GLOB_Core				${QT_BINDIR}/libQt${QTVER}Core${DBG_SUFFIX}.5*${DLL_SUFFIX} )
+		file( GLOB GLOB_Gui					${QT_BINDIR}/libQt${QTVER}Gui${DBG_SUFFIX}.5*${DLL_SUFFIX} )
+		file( GLOB GLOB_OpenGL				${QT_BINDIR}/libQt${QTVER}OpenGL${DBG_SUFFIX}.5*${DLL_SUFFIX} )
+		file( GLOB GLOB_Network				${QT_BINDIR}/libQt${QTVER}Network${DBG_SUFFIX}.5*${DLL_SUFFIX} )
+		file( GLOB GLOB_Svg					${QT_BINDIR}/libQt${QTVER}Svg${DBG_SUFFIX}.5*${DLL_SUFFIX} )
+		file( GLOB GLOB_Xml					${QT_BINDIR}/libQt${QTVER}Xml${DBG_SUFFIX}.5*${DLL_SUFFIX} )
+		file( GLOB GLOB_Concurrent			${QT_BINDIR}/libQt${QTVER}Concurrent${DBG_SUFFIX}.5*${DLL_SUFFIX} )
+		file( GLOB GLOB_PrintSupport		${QT_BINDIR}/libQt${QTVER}PrintSupport${DBG_SUFFIX}.5*${DLL_SUFFIX} )
+		file( GLOB GLOB_Sql					${QT_BINDIR}/libQt${QTVER}Sql${DBG_SUFFIX}.5*${DLL_SUFFIX} )
+		file( GLOB GLOB_Positioning			${QT_BINDIR}/libQt${QTVER}Positioning${DBG_SUFFIX}.5*${DLL_SUFFIX} )
+		file( GLOB GLOB_DataVisualization	${QT_BINDIR}/libQt${QTVER}DataVisualization${DBG_SUFFIX}.5*${DLL_SUFFIX} )
+		file( GLOB GLOB_Widgets				${QT_BINDIR}/libQt${QTVER}Widgets${DBG_SUFFIX}.5*${DLL_SUFFIX} )
+		file( GLOB GLOB_WebWidgets			${QT_BINDIR}/libQt${QTVER}WebEngineWidgets${DBG_SUFFIX}.5*${DLL_SUFFIX} )
+		file( GLOB GLOB_WebCore				${QT_BINDIR}/libQt${QTVER}WebEngineCore${DBG_SUFFIX}.5*${DLL_SUFFIX} )
+		file( GLOB GLOB_WebChannel			${QT_BINDIR}/libQt${QTVER}WebChannel${DBG_SUFFIX}.5*${DLL_SUFFIX} )
+		file( GLOB GLOB_Quick				${QT_BINDIR}/libQt${QTVER}Quick${DBG_SUFFIX}.5*${DLL_SUFFIX} )
+		file( GLOB GLOB_Qml					${QT_BINDIR}/libQt${QTVER}Qml${DBG_SUFFIX}.5*${DLL_SUFFIX} )
+		file( GLOB GLOB_DBus				${QT_BINDIR}/libQt${QTVER}DBus${DBG_SUFFIX}.5*${DLL_SUFFIX} )
+		file( GLOB GLOB_MacExtras			${QT_BINDIR}/libQt${QTVER}MacExtras${DBG_SUFFIX}.5*${DLL_SUFFIX} )
 
 
 		set(QT_SPECIFIC_VERSION_LIBS
@@ -527,12 +542,17 @@ IF (ENABLE_QT5)
 			${GLOB_Positioning}
 			${GLOB_DataVisualization}
 			${GLOB_Widgets}
+			${GLOB_WebWidgets}
+			${GLOB_WebCore}
+			${GLOB_WebChannel}
+			${GLOB_Quick}
+			${GLOB_Qml}
 			${GLOB_DBus}
 			${GLOB_MacExtras}
 			)
 
 
-    ELSE (WIN32)
+    ELSE (WIN32)	# Linux
 
 	    file( GLOB GLOB_Core				${QT_BINDIR}/libQt${QTVER}Core${DBG_SUFFIX}${DLL_SUFFIX}.* )
 		file( GLOB GLOB_Gui					${QT_BINDIR}/libQt${QTVER}Gui${DBG_SUFFIX}${DLL_SUFFIX}.* )
@@ -546,6 +566,11 @@ IF (ENABLE_QT5)
 		file( GLOB GLOB_Positioning			${QT_BINDIR}/libQt${QTVER}Positioning${DBG_SUFFIX}${DLL_SUFFIX}.* )
 		file( GLOB GLOB_DataVisualization	${QT_BINDIR}/libQt${QTVER}DataVisualization${DBG_SUFFIX}${DLL_SUFFIX}.* )
 		file( GLOB GLOB_Widgets				${QT_BINDIR}/libQt${QTVER}Widgets${DBG_SUFFIX}${DLL_SUFFIX}.* )
+		file( GLOB GLOB_WebWidgets			${QT_BINDIR}/libQt${QTVER}WebEngineWidgets${DBG_SUFFIX}${DLL_SUFFIX}.* )
+		file( GLOB GLOB_WebCore				${QT_BINDIR}/libQt${QTVER}WebEngineCore${DBG_SUFFIX}${DLL_SUFFIX}.* )
+		file( GLOB GLOB_WebChannel			${QT_BINDIR}/libQt${QTVER}WebChannel${DBG_SUFFIX}${DLL_SUFFIX}.* )
+		file( GLOB GLOB_Quick				${QT_BINDIR}/libQt${QTVER}Quick${DBG_SUFFIX}${DLL_SUFFIX}.* )
+		file( GLOB GLOB_Qml					${QT_BINDIR}/libQt${QTVER}Qml${DBG_SUFFIX}${DLL_SUFFIX}.* )
 		file( GLOB GLOB_DBus				${QT_BINDIR}/libQt${QTVER}DBus${DBG_SUFFIX}${DLL_SUFFIX}.* )
 		file( GLOB GLOB_XcbQpa				${QT_BINDIR}/libQt${QTVER}XcbQpa${DBG_SUFFIX}${DLL_SUFFIX}.* )
 		file( GLOB GLOB_Script				${QT_BINDIR}/libQt${QTVER}Script${DBG_SUFFIX}${DLL_SUFFIX}.* )
@@ -564,6 +589,11 @@ IF (ENABLE_QT5)
 			${GLOB_Positioning}
 			${GLOB_DataVisualization}
 			${GLOB_Widgets}
+			${GLOB_WebWidgets}
+			${GLOB_WebCore}
+			${GLOB_WebChannel}
+			${GLOB_Quick}
+			${GLOB_Qml}
 			${GLOB_DBus}
 			${GLOB_XcbQpa}
 			${GLOB_Script}
@@ -1553,23 +1583,24 @@ set(GUI_DATA_FILES
 # The BRAT core tools library  ############################################################################################################
 
 set(BRAT_TOOLS_SOURCES
-    new-gui/Common/tools/stdafx.cpp
-    new-gui/Common/tools/Exception.cpp
-    new-gui/Common/tools/ExceptionWin.cpp
-    new-gui/Common/tools/Trace.cpp
-    new-gui/Common/tools/TraceLog.cpp
-    new-gui/Common/tools/CoreTypes.cpp
+    common/tools/stdafx.cpp
+    common/tools/Exception.cpp
+    common/tools/ExceptionWin.cpp
+    common/tools/Trace.cpp
+    common/tools/TraceLog.cpp
+    common/tools/CoreTypes.cpp
   )
 
 set(BRAT_TOOLS_SOURCES_H
-    new-gui/Common/tools/stdafx.h
-    new-gui/Common/tools/Exception.h
-    new-gui/Common/tools/ExceptionWin.h
-    new-gui/Common/tools/Trace.h
-    new-gui/Common/tools/TraceLog.h
-    new-gui/Common/tools/brathl_error.h
-    new-gui/Common/tools/CoreTypes.h
-    new-gui/Common/+Utils.h
+    common/tools/stdafx.h
+    common/tools/Exception.h
+    common/tools/ExceptionWin.h
+    common/tools/Trace.h
+    common/tools/TraceLog.h
+    common/tools/brathl_error.h
+    common/tools/CoreTypes.h
+    common/+Utils.h
+    common/ccore-types.h
 
   )
 
@@ -1652,6 +1683,7 @@ set(LIBBRATHL_CXX_SOURCES
   libbrathl/TreeField.cpp
   libbrathl/Unit.cpp
   libbrathl/Xml.cpp
+  libbrathl/ProductGeosatGDR.cpp
   )
 
 
@@ -1798,7 +1830,7 @@ string(REGEX REPLACE "\\.cpp" .h LIBBRATHL_CXX_SOURCES_H
 set(LIBBRATHL_CXX_SOURCES_H
   ${LIBBRATHL_CXX_SOURCES_H}
   libbrathl/brathl.h
-  new-gui/Common/tools/brathl_error.h
+  common/tools/brathl_error.h
   )
 
 set(LIBBRATHL_SOURCES_H
@@ -2137,7 +2169,7 @@ set(PROCESS_LIB_SOURCES
   process/BratProcessExportAscii.cpp
   process/BratProcessStats.cpp
   process/ProcessCommonTools.cpp
-  new-gui/Common/ApplicationStaticPaths.cpp
+  common/ApplicationStaticPaths.cpp
   )
 
 
@@ -2146,7 +2178,7 @@ set(PROCESS_LIB_SOURCES_H
     process/BratProcessExportAscii.h
     process/BratProcessStats.h
     process/ProcessCommonTools.h
-    new-gui/Common/ApplicationStaticPaths.h
+    common/ApplicationStaticPaths.h
 	)
 
 set(PROCESS_SOURCES "")
@@ -2347,6 +2379,8 @@ if(BRAT_BUILD_GUI)
 			process/rads/RadsServiceLogger.cpp
 			new-gui/Common/System/OsProcess.cpp
 			process/rads/simplecrypt.cpp
+		    process/rads/RadsSettings.cpp
+		    new-gui/Common/FileSettings.cpp
 		)
 
 
@@ -2365,6 +2399,9 @@ if(BRAT_BUILD_GUI)
 			process/rads/RadsServiceLogger.h
 			new-gui/Common/System/OsProcess.h
 			process/rads/simplecrypt.h
+		    process/rads/RadsSettings.h
+		    new-gui/Common/FileSettings.h
+			process/rads/RadsSharedParameters.h
 		)
 
 
@@ -2463,7 +2500,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/scheduler/EditTasksFileDialog.cpp
 		new-gui/Common/DataModels/TaskProcessor.cpp
 		new-gui/Common/DataModels/BratTask.cpp
-		new-gui/Common/ApplicationStaticPaths.cpp
+		common/ApplicationStaticPaths.cpp
 		new-gui/Common/GUI/ApplicationUserPaths.cpp
 		new-gui/Common/ApplicationLogger.cpp
 		new-gui/scheduler/SchedulerLogger.cpp
@@ -2484,8 +2521,8 @@ if(BRAT_BUILD_GUI)
 
 	set(SCHEDULER_SOURCES_H
 	    new-gui/scheduler/stdafx.h
-		new-gui/Common/BratVersion.h
-		new-gui/Common/+Utils.h
+		common/BratVersion.h
+		common/+Utils.h
 		new-gui/Common/QtUtilsIO.h
 		new-gui/Common/QtStringUtils.h
 		new-gui/Common/QtUtils.h
@@ -2495,7 +2532,7 @@ if(BRAT_BUILD_GUI)
 		new-gui/Common/ScheduledTasksList.hxx
 		new-gui/Common/DataModels/TaskProcessor.h
 		new-gui/Common/DataModels/BratTask.h
-		new-gui/Common/ApplicationStaticPaths.h
+		common/ApplicationStaticPaths.h
 		new-gui/Common/GUI/ApplicationUserPaths.h
 		new-gui/Common/ApplicationLogger.h
 		new-gui/scheduler/SchedulerLogger.h
@@ -2667,16 +2704,16 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolSelectPolygon.cpp
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolSelectRectangle.cpp
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolSelectUtils.cpp
-		new-gui/brat/GUI/ControlPanels/DatasetFilterControls.cpp
+		new-gui/brat/GUI/ControlPanels/BratFilterControls.cpp
 		new-gui/brat/GUI/DisplayWidgets/Globe/GlobeControls.cpp
 		new-gui/brat/GUI/ControlPanels/OperationControls.cpp
 		new-gui/Common/GUI/ProcessesTable.cpp
 		new-gui/brat/GUI/DisplayEditors/MapEditor.cpp
 		new-gui/brat/GUI/DisplayEditors/PlotEditor.cpp
 		new-gui/brat/GUI/ControlPanels/OperationControls-Quick.cpp
-		new-gui/brat/GUI/ControlPanels/Views/ViewControlPanels.cpp
-		new-gui/brat/GUI/ControlPanels/Views/ViewControlPanelsCommon.cpp
-		new-gui/brat/GUI/ControlPanels/DataExpressionsTree.cpp
+		new-gui/brat/GUI/ControlPanels/ViewControlPanels/ViewControlPanels.cpp
+		new-gui/brat/GUI/ControlPanels/ViewControlPanels/ViewControlPanelsCommon.cpp
+		new-gui/brat/GUI/ControlPanels/DataExpressionsTreeWidgets.cpp
 		new-gui/brat/GUI/WorkspaceViewsDialog.cpp
 		new-gui/brat/DataModels/Filters/BratFilters.cpp
 		new-gui/brat/GUI/ControlPanels/Dialogs/FormulaDialog.cpp
@@ -2717,6 +2754,10 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/LoginDialog.cpp
 		new-gui/Common/System/OsProcess.cpp
 		new-gui/brat/GUI/ControlPanels/RadsBrowserControls.cpp
+		new-gui/brat/GUI/ControlPanels/GenericTreeWidget.cpp
+	    new-gui/brat/GUI/ControlPanels/RadsDatasetsTreeWidget.cpp
+	    new-gui/brat/DataModels/Workspaces/RadsDataset.cpp
+	    process/rads/RadsSettings.cpp
 	)
 
 		
@@ -2725,7 +2766,7 @@ if(BRAT_BUILD_GUI)
 	# -----------------------------------------------------
 	set(GUI_SOURCES_H
 		new-gui/brat/stdafx.h
-		new-gui/Common/BratVersion.h
+		common/BratVersion.h
 		new-gui/brat/BratApplication.h
 		new-gui/brat/BratMainWindow.h
 		new-gui/brat/DataModels/Workspaces/BitSet32.h
@@ -2744,8 +2785,8 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/DataModels/Workspaces/Display.h
 		new-gui/brat/DataModels/Workspaces/Workspace.h
 		new-gui/brat/DataModels/Workspaces/TreeWorkspace.h
-		new-gui/Common/+Utils.h
-		new-gui/Common/+UtilsIO.h
+		common/+Utils.h
+		common/+UtilsIO.h
 		new-gui/Common/QtUtilsIO.h
 		new-gui/Common/QtStringUtils.h
 		new-gui/Common/QtUtils.h
@@ -2783,15 +2824,15 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolSelectPolygon.h
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolSelectRectangle.h
 		new-gui/brat/GUI/DisplayWidgets/QGISapp/MapToolSelectUtils.h
-		new-gui/brat/GUI/ControlPanels/DatasetFilterControls.h
+		new-gui/brat/GUI/ControlPanels/BratFilterControls.h
 		new-gui/brat/GUI/DisplayWidgets/Globe/GlobeControls.h
 		new-gui/brat/GUI/ControlPanels/OperationControls.h
 		new-gui/Common/GUI/ProcessesTable.h
 		new-gui/brat/GUI/DisplayEditors/MapEditor.h
 		new-gui/brat/GUI/DisplayEditors/PlotEditor.h
-		new-gui/brat/GUI/ControlPanels/Views/ViewControlPanels.h
-		new-gui/brat/GUI/ControlPanels/Views/ViewControlPanelsCommon.h
-		new-gui/brat/GUI/ControlPanels/DataExpressionsTree.h
+		new-gui/brat/GUI/ControlPanels/ViewControlPanels/ViewControlPanels.h
+		new-gui/brat/GUI/ControlPanels/ViewControlPanels/ViewControlPanelsCommon.h
+		new-gui/brat/GUI/ControlPanels/DataExpressionsTreeWidgets.h
 		new-gui/brat/GUI/WorkspaceViewsDialog.h
 		new-gui/brat/DataModels/Filters/BratFilters.h
 		new-gui/brat/GUI/ControlPanels/Dialogs/FormulaDialog.h
@@ -2837,6 +2878,11 @@ if(BRAT_BUILD_GUI)
 		new-gui/brat/GUI/LoginDialog.h
 		new-gui/Common/System/OsProcess.h
 		new-gui/brat/GUI/ControlPanels/RadsBrowserControls.h
+		process/rads/RadsSharedParameters.h
+		new-gui/brat/GUI/ControlPanels/GenericTreeWidget.h
+	    new-gui/brat/GUI/ControlPanels/RadsDatasetsTreeWidget.h
+	    new-gui/brat/DataModels/Workspaces/RadsDataset.h
+	    process/rads/RadsSettings.h
 	)
 
 
@@ -3099,17 +3145,17 @@ if(BRAT_BUILD_GUI)
 			)
 
 		foreach(SOURCE ${BRAT_TOOLS_SOURCES_H})
-	      string(REGEX REPLACE "^new-gui/Common/tools" "" TARGET ${SOURCE})
-	      set( ABSOLUTE_BRAT_TOOLS_SOURCES_H ${ABSOLUTE_BRAT_TOOLS_SOURCES_H} ${BRAT_SOURCE_DIR}/${SOURCE})
+			# string(REGEX REPLACE "^common/tools" "" TARGET ${SOURCE})
+			set( ABSOLUTE_BRAT_TOOLS_SOURCES_H ${ABSOLUTE_BRAT_TOOLS_SOURCES_H} ${BRAT_SOURCE_DIR}/${SOURCE})
 	    endforeach(SOURCE)
 	  
 	    foreach(SOURCE ${LIBBRATHL_CXX_SOURCES_H})
-	      string(REGEX REPLACE "^libbrathl" "" TARGET ${SOURCE})
+	      # string(REGEX REPLACE "^libbrathl" "" TARGET ${SOURCE})
 		  set( ABSOLUTE_LIBBRATHL_CXX_SOURCES_H ${ABSOLUTE_LIBBRATHL_CXX_SOURCES_H} ${BRAT_SOURCE_DIR}/${SOURCE})
 	    endforeach(SOURCE)
 		
 		foreach(SOURCE ${LIBBRATHL_C_SOURCES_H})
-	      string(REGEX REPLACE "^libbrathl/brathl_c" "" TARGET ${SOURCE})
+	      # string(REGEX REPLACE "^libbrathl/brathl_c" "" TARGET ${SOURCE})
 		  set( ABSOLUTE_LIBBRATHL_C_SOURCES_H ${ABSOLUTE_LIBBRATHL_C_SOURCES_H} ${BRAT_SOURCE_DIR}/${SOURCE})
 	    endforeach(SOURCE)
 		
@@ -3137,7 +3183,7 @@ if(BRAT_BUILD_GUI)
 		    COMMAND cp ${ABSOLUTE_BRAT_TOOLS_SOURCES_H}							include/
 		    COMMAND cp ${ABSOLUTE_LIBBRATHL_CXX_SOURCES_H}						include/
 		    COMMAND cp ${BRAT_SOURCE_DIR}/libbrathl/brathl.h					include/
-			COMMAND cp ${BRAT_SOURCE_DIR}/new-gui/Common/tools/brathl_error.h	include/
+			COMMAND cp ${BRAT_SOURCE_DIR}/common/*.h							include/
 		    COMMAND cp ${ABSOLUTE_LIBBRATHL_C_SOURCES_H}						include/
 		    COMMAND cp ${BRAT_BINARY_DIR}/externals/coda/coda.h					include/
 		    COMMAND cp ${BRAT_SOURCE_DIR}/externals/netcdf-c/include/netcdf.h	include/
@@ -3508,13 +3554,11 @@ if(INSTALL_BUILDER_FOUND)
   set(INSTALL_BUILDER_CONF ${BRAT_BINARY_DIR}/BratMainPackage.xml)
 
 
-  # Copy the header files that need to be installed. I beg
-  # forgiveness for abusing 'configure_file()' as a glorified
-  # copying mechanism, but it does work.
-
+  # Copy the header files that need to be installed.
 
   foreach(SOURCE ${BRAT_TOOLS_SOURCES_H})
-    string(REGEX REPLACE "^new-gui/Common/tools" "" TARGET ${SOURCE})
+    #string(REGEX REPLACE "^common/tools" "" TARGET ${SOURCE})
+    string(REGEX REPLACE "^common" "" TARGET ${SOURCE})
     configure_file(
       ${BRAT_SOURCE_DIR}/${SOURCE}
       ${BRAT_BINARY_DIR}/include/${TARGET}

@@ -590,12 +590,12 @@ bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, 
     return true;
 #endif
 
-    auto *filter = Find( name );
+	auto *filter = Find( name );		assert__( filter );
     if ( !filter )
         return false;
 
     CProduct* product = nullptr;
-    bool result = true;
+    bool no_exception_thrown = true;
 
     try
     {
@@ -673,7 +673,7 @@ bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, 
         }
 
 
-        // 5. Add and apply Criteria (old Datased Selection Criteria in Brat v.3) //
+        // 5. Add and apply Criteria (old Dataset Selection Criteria in Brat v.3) //
         product->AddCriteria( product_ref );
         std::string log_path = mWorkspacesPath + "/" + DATASET_SELECTION_LOG_FILENAME;
         product->ApplyCriteria( files_out, log_path );
@@ -687,21 +687,17 @@ bool CBratFilters::Apply( const std::string &name, const CStringList& files_in, 
     }
     catch ( CException e )
     {
-        result = false;
+        no_exception_thrown = false;
     }
     catch ( ... )
     {
-        result = false;
+        no_exception_thrown = false;
     }
 
-    if ( !result )
-    {
-        files_out.Insert( files_in );
-    }
 
     delete product;
 
-    return result;
+    return no_exception_thrown;
 }
 
 
@@ -725,7 +721,7 @@ const std::string& CBratFilters::FindAliasValue( CProduct *product, const std::s
 }
 
 //static
-CField* CBratFilters::FindField( CProduct *product, const std::string &name, bool &alias_used, std::string &field_error_msg )
+CField* CBratFilters::FindField( CProduct *product, const std::string &name, bool try_unsupported, bool &alias_used, std::string &field_error_msg )
 {
     std::string record;
     if ( product->IsNetCdfOrNetCdfCFProduct() )
@@ -745,42 +741,55 @@ CField* CBratFilters::FindField( CProduct *product, const std::string &name, boo
     if ( !value.empty() )
     {
         field = product->FindFieldByName( value, false, &field_error_msg );		//true: throw on failure
+
         //guessing
-        if ( !field && !record.empty() )
+
+        if ( try_unsupported && !field && !record.empty() )
             field = product->FindFieldByName( value, record, false );	//true: throw on failure
         if ( !field )
-            field = product->FindFieldByInternalName( value, false );	//true: throw on failure
+            field = product->FindFieldByInternalName( value, false );	//idem
     }
 
-    if ( !field )
+	//guessing
+
+	if ( try_unsupported && !field )
     {
         alias_used = false;
         field = product->FindFieldByName( name, false, &field_error_msg );		//true: throw on failure
-        //still guessing
         if ( !field && !record.empty() )
-            field = product->FindFieldByName( name, record, false );	//true: throw on failure
+            field = product->FindFieldByName( name, record, false );			//idem
         if ( !field )
-            field = product->FindFieldByInternalName( name, false );	//true: throw on failure
+            field = product->FindFieldByInternalName( name, false );			//idem
         if (!field)
             field = product->FindFieldByName( ToLowerCopy( name ), false, &field_error_msg );
     }
+
     return field;
 }
 
 
 //static
-std::pair<CField*, CField*> CBratFilters::FindLonLatFields( CProduct *product, bool &alias_used, std::string &field_error_msg )
+std::pair<CField*, CField*> CBratFilters::FindLonLatFields( CProduct *product, bool try_unsupported, bool &lon_alias_used, bool &lat_alias_used, 
+                                                            std::string &field_error_msg )
 {
     std::pair<CField*, CField*> fields;
-    fields.first = FindField( product, lon_name(), alias_used, field_error_msg );
-    fields.second = FindField( product, lat_name(), alias_used, field_error_msg );
+    
+    fields.first = FindField( product, lon_name(), try_unsupported, lon_alias_used, field_error_msg );
+    
+    std::string msg;
+    fields.second = FindField( product, lat_name(), try_unsupported, lat_alias_used, msg );
+    
+    if ( !field_error_msg.empty() )
+        field_error_msg += "\n";
+    field_error_msg += msg;
+            
     return fields;
 }
 
 
 //static
-CField* CBratFilters::FindTimeField( CProduct *product, bool &alias_used, std::string &field_error_msg )
+CField* CBratFilters::FindTimeField( CProduct *product, bool try_unsupported, bool &alias_used, std::string &field_error_msg )
 {
-    return FindField( product, time_name(), alias_used, field_error_msg );
+    return FindField( product, time_name(), try_unsupported, alias_used, field_error_msg );
 }
 

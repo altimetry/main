@@ -25,9 +25,9 @@
 
 #include <QCoreApplication>
 
-#include "+UtilsIO.h"
-#include "QtUtilsIO.h"
-#include "QtUtils.h"
+#include "common/+UtilsIO.h"
+#include "new-gui/Common/QtUtilsIO.h"
+
 #include "BratVersion.h"
 #include "ApplicationStaticPaths.h"
 
@@ -172,7 +172,8 @@ CApplicationStaticPaths::CApplicationStaticPaths( const std::string &exec_path, 
 #else
     , mRsyncExecutablePath(	"/usr/bin/rsync" )
 #endif
-
+	, mRadsServiceLogFilePath( mExecutableDir + "/RadsServiceLog.txt" )
+	, mRadsConfigurationFilePath( mInternalDataDir + "/rads.ini" )
 {
 	// Set Qt plug-ins path before anything else
 	//
@@ -207,7 +208,11 @@ std::string CApplicationStaticPaths::ToString() const
     s += ( "\nmPython Dir == " + mPythonDir );
 	s += ( "\nUser Manual Path == " + mUserManualPath );
     s += ( "\nInternalData Dir == " + mInternalDataDir );
+
 	s += ( "\nRsync Executable == " + mRsyncExecutablePath );
+
+	s += ( "\nRadsServiceLogFilePath == " + mRadsServiceLogFilePath );
+	s += ( "\nmRadsConfigurationFilePath == " + mRadsConfigurationFilePath );
 
     return s;
 }
@@ -222,6 +227,7 @@ bool CApplicationStaticPaths::ValidatePaths() const
 			ValidPath( mErrorMsg, mQtPluginsDir, false, "Qt Plugins directory" ) 
 		&&	ValidPath( mErrorMsg, mInternalDataDir, false, "BRAT resources directory" ) 
 		&&	ValidPath( mErrorMsg, mRsyncExecutablePath, true, "rsync executable path" )
+		&&	ValidPath( mErrorMsg, mRadsConfigurationFilePath, true, "RADS configuration file" )
 		;
 
     return mValid;

@@ -42,7 +42,7 @@
 #include "Dialogs/ShowInfoDialog.h"
 #include "Dialogs/DataDisplayPropertiesDialog.h"
 
-#include "DataExpressionsTree.h"
+#include "DataExpressionsTreeWidgets.h"
 #include "OperationControls.h"
 
 #include "process/BratProcessExportAscii.h"
@@ -1017,12 +1017,12 @@ void COperationControls::HandleSelectedOperationChanged( int operation_index )	/
 //
 // If dataset is not null
 //	- Selects it in GUI
-//	- Opens product (independently of mCurrentOperation assigned;
+//	- Opens product (independently of mCurrentOperation assigned)
 //		-  uses a filtered dataset if mCurrentOperation assigned
 //
 // If mCurrentOperation is not null
 //	- Selects record (from operation) in fields tree and assigns selected record from fields tree to 
-//		operation (apparently this corresponds to assigning the 1st one to operation if it has none assigned
+//		operation (apparently this corresponds to assigning the 1st one to operation if it has none assigned)
 //	
 bool COperationControls::UpdateDatasetSelection( const CDataset *dataset )
 {
@@ -1056,7 +1056,9 @@ bool COperationControls::UpdateDatasetSelection( const CDataset *dataset )
 			const CDataset *filtered_dataset = mCurrentOperation ? const_cast<const COperation*>( mCurrentOperation )->Dataset() : mCurrentOriginalDataset;
 			mProduct = filtered_dataset->OpenProduct();
 			if ( mCurrentOperation )
-				mCurrentOperation->SetProduct( mProduct );
+			{
+				mCurrentOperation->SetProduct( mProduct );		assert__( filtered_dataset == const_cast<const COperation*>( mCurrentOperation )->Dataset() );
+			}
 		}
 		catch ( CException& e )
 		{
@@ -1076,7 +1078,7 @@ bool COperationControls::UpdateDatasetSelection( const CDataset *dataset )
 
 	if ( mProduct != nullptr )
 	{
-		//TODO
+		//TODO: are these 2 v3 data members really necessary?
 		//m_productClass = m_product->GetProductClass().c_str();
 		//m_productType = m_product->GetProductType().c_str();
 	}
@@ -1835,18 +1837,17 @@ void COperationControls::GetDataMinMax(CFormula* formula)
     bool is_Ok = true;
     try
     {
-        /// RCCC TODO: Try to merge the following 2 lines (dummy)
         const COperation *currentOperation = mCurrentOperation;
-        CProductList *currentProductList   = const_cast<CProductList*>( currentOperation->Dataset()->GetProductList() );
+        const CProductList *currentProductList = currentOperation->Dataset()->GetProductList();
 
         productTmp = CProduct::Construct( *currentProductList );
     }
-    catch ( CException &e )
+    catch ( const CException &e )
     {
         errorMsg = e.what();
         is_Ok    = false;
     }
-    catch ( std::exception &e )
+    catch ( const std::exception &e )
     {
         errorMsg = e.what();
         is_Ok    = false;
@@ -1908,11 +1909,9 @@ void COperationControls::GetDataMinMax(CFormula* formula)
             {
                 if ( !isDefaultValue( productTmp->GetForceLatMinCriteriaValue() ) ) // Has Min Lat (Ex: Jason2 Min Lat=-67)
                 {
-                    CExpression expr = std::string( formula->GetDescription( true,
-                                                                             &mMapFormulaString,
-                                                                             productTmp->GetAliasesAsString() ).c_str() );
+                    CExpression expr = formula->GetDescription( true, &mMapFormulaString, productTmp->GetAliasesAsString() );
                     productTmp->GetValueMinMax( expr,
-                                                (const char *)mCurrentOperation->GetRecord().c_str(),
+                                                mCurrentOperation->GetRecord(),
                                                 valueMin,
                                                 valueMax,
                                                 *(formula->GetUnit() ));
@@ -1939,14 +1938,12 @@ void COperationControls::GetDataMinMax(CFormula* formula)
         {
             double valueMin = 0.0;
             double valueMax = 0.0;
-            CExpression expr = std::string( formula->GetDescription( true,
-                                                                     &mMapFormulaString,
-                                                                     productTmp->GetAliasesAsString()  ).c_str() );
+            CExpression expr = formula->GetDescription( true, &mMapFormulaString, productTmp->GetAliasesAsString() );
             if ( formula->IsTimeDataType() )
             {
                 CUnit unit;
                 productTmp->GetValueMinMax( expr,
-                                            (const char *)mCurrentOperation->GetRecord().c_str(),
+                                            mCurrentOperation->GetRecord(),
                                             valueMin,
                                             valueMax,
                                             unit);
@@ -1967,7 +1964,7 @@ void COperationControls::GetDataMinMax(CFormula* formula)
             else
             {
                 productTmp->GetValueMinMax( expr,
-                                            (const char *)mCurrentOperation->GetRecord().c_str(),
+                                            mCurrentOperation->GetRecord(),
                                             valueMin,
                                             valueMax,
                                             *(formula->GetUnit()) );
@@ -1985,12 +1982,12 @@ void COperationControls::GetDataMinMax(CFormula* formula)
             }
         }
     }
-    catch ( CException &e )
+    catch ( const CException &e )
     {
         errorMsg = e.what();
         is_Ok    = false;
     }
-    catch ( std::exception &e )
+    catch ( const std::exception &e )
     {
         errorMsg = e.what();
         is_Ok    = false;
@@ -3055,8 +3052,17 @@ void COperationControls::HandleEditExportAscii()
 {
 	assert__( mCurrentOperation && !IsQuickOperationSelected() );
 
-    CEditExportAsciiDialog dlg( mCurrentOperation, this );
-    dlg.exec();
+	const bool modal = true;
+	if ( modal )
+	{
+		CEditExportAsciiDialog dlg( true, mCurrentOperation, this );
+		dlg.exec();
+	}
+	else
+	{
+		CEditExportAsciiDialog *pdlg = new CEditExportAsciiDialog( false, mCurrentOperation, this );
+		pdlg->show();
+	}
 }
 
 

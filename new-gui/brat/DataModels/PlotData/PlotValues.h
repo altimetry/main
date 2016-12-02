@@ -24,7 +24,7 @@
 #include <qwt_data.h>
 #include <qwt_raster_data.h>
 
-#include "new-gui/Common/tools/CoreTypes.h"
+#include "common/tools/CoreTypes.h"
 
 #if defined (min)
 #undef min

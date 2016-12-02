@@ -28,6 +28,7 @@
 #include "new-gui/Common/GUI/TextWidget.h"
 #include "GUI/DisplayEditors/MapEditor.h"
 #include "GUI/DisplayEditors/PlotEditor.h"
+#include "BratSettings.h"
 
 #include "OperationControls.h"
 
@@ -107,15 +108,14 @@ const std::string& COperationControls::QuickFindAliasValue( CProduct *product, E
 }
 
 
-//static
 CField* COperationControls::QuickFindField( CProduct *product, EPredefinedVariables index, bool &alias_used, std::string &field_error_msg )
 {
-    return CBratFilters::FindField( product, QuickVariableAlias( index ), alias_used, field_error_msg );
+    return CBratFilters::FindField( product, QuickVariableAlias( index ), mModel.Settings().mUseUnsupportedFields, alias_used, field_error_msg );
 }
-//static
+
 CField* COperationControls::QuickFindField( CProduct *product, EPredefinedSelectionCriteria index, bool &alias_used, std::string &field_error_msg )
 {
-    return CBratFilters::FindField( product, QuickCriteriaAlias( index ), alias_used, field_error_msg );
+    return CBratFilters::FindField( product, QuickCriteriaAlias( index ), mModel.Settings().mUseUnsupportedFields, alias_used, field_error_msg );
 }
 
 
@@ -389,19 +389,17 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 
 	// 3. check if dataset files are usable (have lon/lat fields); return if not
 	//
-	std::vector<std::string> dataset_files;
-	dataset->GetFiles( dataset_files );
+	std::vector< std::string > dataset_files = dataset->GetFiles( true );	//TODO: IMPORTANT, REVIEW THIS true, put here because of rads
 	bool has_lon_lat_fields = false;
 	for ( auto const &path : dataset_files )
 	{
-		CProduct *product = dataset->SafeOpenProduct( path );
-		if ( !product )
+		CProductInfo product( dataset, path );
+		if ( !product.IsValid() )
 			continue;
 
 		std::string field_error_msg;
-		bool alias_used;
-        std::pair<CField*, CField*> fields = CBratFilters::FindLonLatFields( product, alias_used, field_error_msg );
-		delete product;
+		bool lon_alias_used, lat_alias_used;
+        std::pair<CField*, CField*> fields = product.FindLonLatFields( mModel.Settings().mUseUnsupportedFields, lon_alias_used, lat_alias_used, field_error_msg );
 		if ( fields.first && fields.second )
 		{
 			has_lon_lat_fields = true;
@@ -409,7 +407,7 @@ void COperationControls::HandleSelectedDatasetChanged_Quick( int dataset_index )
 		}
 	}
 
-	bool has_selection_criteria = false;					//TODO big hack see below (*)
+	bool has_selection_criteria = false;					//FIXME big hack see below (*)
 	if ( has_lon_lat_fields )
 	{
 		// 4. enable quick data fields found in dataset
@@ -637,11 +635,13 @@ COperation* COperationControls::CreateQuickOperation( CMapTypeOp::ETypeOp type )
 	operation->SetProduct( product );
 
 
+
 	std::string operation_record = operation->GetRecord();
 
-	bool alias_used;
+	bool lon_alias_used, lat_alias_used;
 	std::string field_error_msg;
-    std::pair<CField*, CField*> lon_lat_fields = CBratFilters::FindLonLatFields( product, alias_used, field_error_msg );		assert__( lon_lat_fields.first && lon_lat_fields.second );
+    std::pair<CField*, CField*> lon_lat_fields = 
+		CBratFilters::FindLonLatFields( product, mModel.Settings().mUseUnsupportedFields, lon_alias_used, lat_alias_used, field_error_msg );		assert__( lon_lat_fields.first && lon_lat_fields.second );
 
 	if ( !operation->HasFormula() )
 	{

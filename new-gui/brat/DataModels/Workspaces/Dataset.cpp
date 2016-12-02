@@ -17,31 +17,55 @@
 */
 
 #include "new-gui/brat/stdafx.h"
+
+#include "common/tools/Trace.h"
+#include "common/tools/Exception.h"
 #include "new-gui/Common/QtUtilsIO.h"
-#include "new-gui/Common/tools/Trace.h"
-#include "new-gui/Common/tools/Exception.h"
 
 #include "libbrathl/Tools.h"
+#include "libbrathl/ProductNetCdf.h"
 
+#include "DataModels/Filters/BratFilters.h"
 #include "WorkspaceSettings.h"
 #include "Dataset.h"
 
 
-//----------------------------------------
+
 std::string CDataset::GetFieldSpecificUnit( const std::string& key )
 {
-	return m_fieldSpecificUnit.Exists( key );
+	return m_fieldSpecificUnits.Exists( key );
 }
-//----------------------------------------
+
+
 void CDataset::SetFieldSpecificUnit( const std::string& key, const std::string& value )
 {
-	m_fieldSpecificUnit.Erase( key );
-	m_fieldSpecificUnit.Insert( key, value, false );
+	m_fieldSpecificUnits.Erase( key );
+	m_fieldSpecificUnits.Insert( key, value, false );
 }
+
+// If filtering fails, all files of the original dataset are inserted
+//
+bool CDataset::ApplyFilter( const CBratFilter *filter, const CDataset *original_dataset, std::string &error_msg )
+{
+	bool result = true;
+
+	CStringList all_files_list = *original_dataset->GetProductList();
+
+	if ( filter )
+	{
+		result = filter->Apply( all_files_list, *GetProductList(), error_msg );
+	}
+
+	if ( !filter || !result )
+		GetProductList()->Insert( all_files_list );
+
+	return result;
+}
+
 
 //v4 Returns list of files in error (not found) for client code to display
 //
-bool CDataset::CtrlFiles( std::vector< std::string > &v )
+bool CDataset::CheckFilesExist( std::vector< std::string > &v )
 {
 	for ( CProductList::iterator it = m_files.begin(); it != m_files.end(); it++ )
 	{
@@ -80,7 +104,7 @@ CProduct* CDataset::SafeOpenProduct( const std::string& fileName ) const
 
 CProduct* CDataset::OpenProduct() const
 {
-	if ( m_files.size() <= 0 )
+	if ( m_files.size() == 0 )
 		return nullptr;
 
 	return OpenProduct( *m_files.begin() );
@@ -88,8 +112,141 @@ CProduct* CDataset::OpenProduct() const
 
 CProduct* CDataset::OpenProduct( const std::string& fileName ) const
 {
-	return OpenProduct( fileName, m_fieldSpecificUnit );
+	return OpenProduct( fileName, m_fieldSpecificUnits );
 }
+
+
+void CProductInfo::ExtractInfo()
+{
+	assert__( mProduct );
+
+	CTreeField *tree = mProduct->GetTreeField();
+	for ( auto const *object : *tree )
+	{
+		const CField *field  = static_cast<const CField*>( object );			assert__( dynamic_cast<const CField*>( object ) != nullptr );
+		mFields.push_back( field );
+	}
+
+	if ( mProduct->IsNetCdfOrNetCdfCFProduct() )
+	{
+		mRecord = CProductNetCdf::m_virtualRecordName;		//TODO this is done for COperation; should we do it HERE????
+	}
+	else
+	{
+		auto *aliases = mProduct->GetAliases();
+		if ( aliases )
+			mRecord = aliases->GetRecord();
+	}
+
+	mValid = true;
+}
+
+CProductInfo::CProductInfo( CProduct *product )
+	: mProduct( product )
+	, mExternalProduct( true )
+{
+	ExtractInfo();
+}
+
+CProductInfo::CProductInfo( const CDataset *dataset, const std::string &file_path )
+	: mExternalProduct( false )
+{
+	const std::string& path = file_path.empty() ? dataset->GetFirstFile() : file_path;
+
+	try
+	{
+		mProduct = CProduct::Construct( path );
+		mProduct->SetFieldSpecificUnits( *dataset->GetFieldSpecificUnits() );
+		mProduct->Open( path );
+
+		ExtractInfo();
+	}
+	catch ( const CException &e )
+	{
+		mErrorMessages = e.Message();
+	}
+	catch ( ... )
+	{
+		mErrorMessages = "Unknown error reading file " + path;
+	}
+}
+
+//virtual 
+CProductInfo::~CProductInfo()
+{
+	if ( !mExternalProduct )
+		delete mProduct;
+}
+
+
+const std::string& CProductInfo::FindAliasValue( const std::string &alias_name )
+{
+	assert__( mProduct );
+
+	return CBratFilters::FindAliasValue( mProduct, alias_name );
+}
+
+std::pair<CField*, CField*> CProductInfo::FindLonLatFields( bool try_unsupported, bool &lon_alias_used, bool &lat_alias_used, std::string &field_error_msg )
+{
+    assert__( mProduct );
+
+	return CBratFilters::FindLonLatFields( mProduct, try_unsupported, lon_alias_used, lat_alias_used, field_error_msg );
+}
+
+CField* CProductInfo::FindTimeField( bool try_unsupported, bool &alias_used, std::string &field_error_msg )
+{
+	assert__( mProduct );
+
+	return CBratFilters::FindTimeField( mProduct, try_unsupported, alias_used, field_error_msg );
+}
+
+
+brathl_refDate CProductInfo::GetRefDate() const 
+{ 
+	assert__( mProduct );
+
+	return mProduct->GetRefDate(); 
+}
+
+bool CProductInfo::IsNetCdf() const
+{ 
+	assert__( mProduct );
+
+	return mProduct->IsNetCdf();
+}
+bool CProductInfo::IsNetCdfOrNetCdfCF() const
+{
+	assert__( mProduct );
+
+	return mProduct->IsNetCdfOrNetCdfCFProduct();
+}
+bool CProductInfo::HasAliases() const
+{
+	assert__( mProduct );
+
+	return mProduct->HasAliases();
+}
+
+
+const std::string& CProductInfo::Type() const
+{ 
+	assert__( mProduct );
+
+	return mProduct->GetProductType();
+}
+const std::string& CProductInfo::Class() const
+{ 
+	assert__( mProduct );
+
+	return mProduct->GetProductClass();
+}
+const std::string& CProductInfo::Description() const
+{ 
+	assert__( mProduct );
+
+	return mProduct->GetDescription();
+}
+
 
 //----------------------------------------
 //became static in v4
@@ -117,6 +274,8 @@ CProduct* CDataset::OpenProduct( const std::string& fileName, const CStringMap& 
 
 	return product;
 }
+
+
 //----------------------------------------
 bool CDataset::SaveConfig( CWorkspaceSettings *config ) const
 {

@@ -35,6 +35,11 @@
 //	return static_cast< EApplicationStyleSheets >( v.toInt() );
 //}
 
+template<>
+inline QColor qv2type( const QVariant &v )
+{
+	return v.value< QColor >();
+}
 
 
 // Insert: Type => QVariant

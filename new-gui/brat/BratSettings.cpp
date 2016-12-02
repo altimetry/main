@@ -18,7 +18,7 @@
 #include "stdafx.h"
 
 #include "libbrathl/Product.h"
-#include "new-gui/Common/+UtilsIO.h"
+#include "common/+UtilsIO.h"
 #include "new-gui/Common/QtUtilsIO.h"
 #include "DataModels/Workspaces/Workspace.h"
 
@@ -27,14 +27,15 @@
 
 const std::string GROUP_PATHS =					"ApplicationPaths";
 
-const std::string ENTRY_EXTERNAL_DATA_DIR =		"external_data_dir";
-const std::string ENTRY_RASTER_LAYER_PATH =		"raster_layer_path";
-const std::string ENTRY_URL_RASTER_LAYER_PATH =	"url_raster_layer_path";
-const std::string ENTRY_USER_DATA_PATH =		"user_data_path";
-const std::string ENTRY_WORKSPACES_DIR =		"workspaces_dir";
-const std::string ENTRY_PORTABLE_PATHS =		"portable_paths";
-const std::string ENTRY_DESKTOP_MANAGER_SDI =	"desktop_manager_sdi";
-const std::string ENTRY_CHECK_OPENGL =			"check_opengl_capabilities";
+const std::string ENTRY_EXTERNAL_DATA_DIR =			"external_data_dir";
+const std::string ENTRY_RASTER_LAYER_PATH =			"raster_layer_path";
+const std::string ENTRY_URL_RASTER_LAYER_PATH =		"url_raster_layer_path";
+const std::string ENTRY_USER_DATA_PATH =			"user_data_path";
+const std::string ENTRY_WORKSPACES_DIR =			"workspaces_dir";
+const std::string ENTRY_PORTABLE_PATHS =			"portable_paths";
+const std::string ENTRY_DESKTOP_MANAGER_SDI =		"desktop_manager_sdi";
+const std::string ENTRY_CHECK_OPENGL =				"check_opengl_capabilities";
+const std::string ENTRY_USE_UNSUPPORTED_FIELDS ="use_unsupported_fields";
 
 
 
@@ -52,6 +53,8 @@ const CMapWidget::ELayerBaseType CBratSettings::smDefaultLayerBaseType =
 #else
     CMapWidget::ELayerBaseType::eVectorLayer;
 #endif
+//static 
+const bool CBratSettings::smUseUnsupportedFields = false;
 
 
 
@@ -195,16 +198,17 @@ bool CBratSettings::SaveConfig()
 	base_t::SaveConfig() &&
 	WriteSection( GROUP_COMMON, 
 	 
-		k_v( ENTRY_LAST_DATA_PATH,			m_lastDataPath ),
-		k_v( ENTRY_LAST_PAGE_REACHED,		m_lastPageReached ),
-		k_v( ENTRY_ADVANCED_OPERATIONS,		mAdvancedOperations ),
+		k_v( ENTRY_LAST_DATA_PATH,				m_lastDataPath ),
+		k_v( ENTRY_LAST_PAGE_REACHED,			m_lastPageReached ),
+		k_v( ENTRY_ADVANCED_OPERATIONS,			mAdvancedOperations ),
 
-		k_v( ENTRY_LOAD_WKSPC_AT_STARTUP,	mLoadLastWorkspaceAtStartUp ),
-        k_v( ENTRY_MAIN_LAYER_BASE_TYPE,    (int)mMainLayerBaseType ),
-        k_v( ENTRY_VIEWS_LAYER_BASE_TYPE,   (int)mViewsLayerBaseType ),
-		k_v( ENTRY_VECTOR_SIMPLIFY_METHOD,	mVectorSimplifyMethod ),
-		k_v( ENTRY_DESKTOP_MANAGER_SDI,		mDesktopManagerSdi ),
-		k_v( ENTRY_CHECK_OPENGL,			mCheckOpenGL )
+		k_v( ENTRY_LOAD_WKSPC_AT_STARTUP,		mLoadLastWorkspaceAtStartUp ),
+        k_v( ENTRY_MAIN_LAYER_BASE_TYPE,		(int)mMainLayerBaseType ),
+        k_v( ENTRY_VIEWS_LAYER_BASE_TYPE,		(int)mViewsLayerBaseType ),
+		k_v( ENTRY_VECTOR_SIMPLIFY_METHOD,		mVectorSimplifyMethod ),
+		k_v( ENTRY_DESKTOP_MANAGER_SDI,			mDesktopManagerSdi ),
+		k_v( ENTRY_CHECK_OPENGL,				mCheckOpenGL ),
+		k_v( ENTRY_USE_UNSUPPORTED_FIELDS,		mUseUnsupportedFields )
 	)
 	&&
 	WriteValues( GROUP_WKS, 
@@ -232,16 +236,17 @@ bool CBratSettings::LoadConfig()
 	&&
 	ReadSection( GROUP_COMMON, 
 
-		k_v( ENTRY_LAST_DATA_PATH,			&m_lastDataPath ),
-		k_v( ENTRY_LAST_PAGE_REACHED,		&m_lastPageReached ),
-		k_v( ENTRY_ADVANCED_OPERATIONS,		&mAdvancedOperations, false ),
+		k_v( ENTRY_LAST_DATA_PATH,				&m_lastDataPath ),
+		k_v( ENTRY_LAST_PAGE_REACHED,			&m_lastPageReached ),
+		k_v( ENTRY_ADVANCED_OPERATIONS,			&mAdvancedOperations, false ),
 
-		k_v( ENTRY_LOAD_WKSPC_AT_STARTUP,	&mLoadLastWorkspaceAtStartUp ),
-        k_v( ENTRY_MAIN_LAYER_BASE_TYPE,	(int*)&mMainLayerBaseType, (int)smDefaultLayerBaseType ),
-        k_v( ENTRY_VIEWS_LAYER_BASE_TYPE,	(int*)&mViewsLayerBaseType, (int)smDefaultLayerBaseType ),
-		k_v( ENTRY_VECTOR_SIMPLIFY_METHOD,	&mVectorSimplifyMethod, true ),
-		k_v( ENTRY_DESKTOP_MANAGER_SDI,		&mDesktopManagerSdi, true ),
-		k_v( ENTRY_CHECK_OPENGL,			&mCheckOpenGL, true )
+		k_v( ENTRY_LOAD_WKSPC_AT_STARTUP,		&mLoadLastWorkspaceAtStartUp ),
+        k_v( ENTRY_MAIN_LAYER_BASE_TYPE,		(int*)&mMainLayerBaseType, (int)smDefaultLayerBaseType ),
+        k_v( ENTRY_VIEWS_LAYER_BASE_TYPE,		(int*)&mViewsLayerBaseType, (int)smDefaultLayerBaseType ),
+		k_v( ENTRY_VECTOR_SIMPLIFY_METHOD,		&mVectorSimplifyMethod, true ),
+		k_v( ENTRY_DESKTOP_MANAGER_SDI,			&mDesktopManagerSdi, true ),
+		k_v( ENTRY_CHECK_OPENGL,				&mCheckOpenGL, true ),
+		k_v( ENTRY_USE_UNSUPPORTED_FIELDS,		&mUseUnsupportedFields, smUseUnsupportedFields )
 	)
 	&&
 	ReadValues( GROUP_WKS, 

@@ -58,8 +58,8 @@ namespace brathl
 
         /** Creates new CProductGeosatGDR object
           \param fileNameList [in] : list of file to be connected */
-        CProductGeosatGDR( const CStringList& paths )
-            : base_t( paths )
+        CProductGeosatGDR( const CStringList& paths, bool check_only_first_file )
+            : base_t( paths, check_only_first_file )
         {
             InitDateRef();
         }

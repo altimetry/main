@@ -43,10 +43,9 @@ namespace brathl
 
 
 /*
-** Return NULL if file cannot be identified or an error occured
+** Return NULL if file cannot be identified or an error occurred
 */
-CExternalFiles* BuildExistingExternalFileKind
-		(const std::string		&Name);
+CExternalFiles* BuildExistingExternalFileKind( const std::string &path );
 
 /** @} */
 

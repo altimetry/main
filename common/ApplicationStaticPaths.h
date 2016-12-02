@@ -18,15 +18,16 @@
 #if !defined COMMON_APPLICATION_STATIC_PATHS_H
 #define COMMON_APPLICATION_STATIC_PATHS_H
 
-#include "new-gui/Common/+Utils.h"
+#include "common/+Utils.h"
 
 
 
 
-//	Ensure common name across applications
+//	Ensure common names across applications
 
 #define ORGANIZATION_NAME "ESA"
-#define SCHEDULER_APPLICATION_NAME "scheduler"
+#define BRAT_APPLICATION_NAME "brat"
+#define SCHEDULER_APPLICATION_NAME "scheduler"		//IMPORTANT: this name must match BRATSCHEDULER_EXE in brat ApplicationPaths.cpp
 #define RADS_SERVICE_NAME "RadsService"
 
 
@@ -106,6 +107,8 @@ public:
     const std::string mInternalDataDir;		//origin: version control, deployed to bin as internal resources
 
 	const std::string mRsyncExecutablePath;
+	const std::string mRadsServiceLogFilePath;
+	const std::string mRadsConfigurationFilePath;
 
 
     ////////////////////////////////////////////

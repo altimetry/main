@@ -25,7 +25,6 @@
 
 #include <QStyleFactory>
 
-#include "new-gui/Common/+UtilsIO.h"
 #include "new-gui/Common/QtUtils.h"
 
 #include "ApplicationSettings.h"

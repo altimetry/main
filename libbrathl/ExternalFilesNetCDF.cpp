@@ -24,9 +24,9 @@
 #include "brathl.h"
 
 #include "Tools.h"
-#include "new-gui/Common/tools/Trace.h"
+#include "common/tools/Trace.h"
 #include "Date.h"
-#include "new-gui/Common/tools/Exception.h"
+#include "common/tools/Exception.h"
 #include "Expression.h"
 
 #include "ExternalFilesNetCDF.h"

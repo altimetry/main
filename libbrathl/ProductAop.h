@@ -52,7 +52,7 @@ public:
   
   /** Creates new CProductAop object
     \param fileNameList [in] : list of file to be connected */
-  CProductAop(const CStringList& fileNameList);
+  CProductAop( const CStringList &fileNameList, bool check_only_first_file );
 
   /// Destructor
   virtual ~CProductAop();

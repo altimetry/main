@@ -21,8 +21,8 @@
 #include "brathl.h" 
 
 
-#include "new-gui/Common/tools/TraceLog.h" 
-#include "new-gui/Common/tools/Exception.h" 
+#include "common/tools/TraceLog.h"
+#include "common/tools/Exception.h"
 #include "Expression.h" 
 #include "Product.h" 
 #include "ProductNetCdf.h" 
@@ -606,7 +606,7 @@ void CBratAlgoFilterKernel::PrepareDataWindow2DSymmetrically(CExpressionValue& e
 }
 
 //----------------------------------------
-void CBratAlgoFilterKernel::PrepareDataWindow2DSymmetrically(double* dataValue, uint32_t nbValues, uint32_t shiftSymmetry /* = 0 */)
+void CBratAlgoFilterKernel::PrepareDataWindow2DSymmetrically(double* dataValue, size_t nbValues, uint32_t shiftSymmetry /* = 0 */)
 {
     UNUSED(nbValues);
 

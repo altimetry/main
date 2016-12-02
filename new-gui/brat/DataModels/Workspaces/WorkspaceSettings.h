@@ -25,6 +25,7 @@
 
 class CWorkspace;
 class CDataset;
+class CRadsDataset;
 class CWorkspaceDataset;
 class CMapFormula;
 class CFormula;
@@ -38,6 +39,7 @@ class CDisplayData;
 class CMapFunction;
 
 class CApplicationPaths;
+struct CSharedRadsSettings;
 
 
 
@@ -50,6 +52,7 @@ class CWorkspaceSettings : public CFileSettings
 	//static members
 
 	static const CApplicationPaths *smBratPaths;
+	static const CSharedRadsSettings *smRadsServiceSettings;
 
 
 	//instance members
@@ -61,14 +64,11 @@ class CWorkspaceSettings : public CFileSettings
 
 public:
 
-	static void SetApplicationPaths( const CApplicationPaths &paths )
-	{
-		smBratPaths = &paths;
-	}
+	static void SetApplicationPaths( const CApplicationPaths &paths );
 
 public:
 	CWorkspaceSettings( const std::string &path ) 
-		: base_t(path)
+		: base_t( path )
 		, mDir( GetDirectoryFromPath( path ) )
 	{
 		assert__( smBratPaths );
@@ -84,8 +84,13 @@ public:
 	bool LoadCommonConfig( CWorkspace &wks );
 
 
+	void SaveDatasetSpecificUnit( CSection &section, const CDataset *d );
+	void LoadDatasetSpecificUnit( CStringArray &findStrings, const std::string &entry, const std::string &value_string, CDataset *d );
 	bool SaveConfig( const CDataset *d );
 	bool LoadConfig( CDataset *d );
+	bool SaveConfig( const CRadsDataset *d );
+	bool LoadConfig( CRadsDataset *d );
+
 	bool SaveConfigDataset( const CWorkspaceDataset &data, std::string &errorMsg );
 	bool LoadConfigDataset( CWorkspaceDataset &data, std::string &errorMsg );
 

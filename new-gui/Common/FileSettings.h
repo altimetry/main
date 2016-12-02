@@ -19,6 +19,7 @@
 #define COMMON_FILE_SETTINGS_H
 
 #include <QSettings>
+#include <QDateTime>
 
 #include "new-gui/Common/QtStringUtils.h"
 #include "new-gui/Common/ConfigurationKeywords.h"
@@ -89,11 +90,12 @@ inline double qv2type( const QVariant &v )
 	return v.toDouble();
 }
 template<>
-inline QColor qv2type( const QVariant &v )
+inline QDateTime qv2type( const QVariant &v )
 {
-	return v.value< QColor >();
+	return v.value< QDateTime >();
 }
 
+//GUI types: define in derived classes for GUI applications
 
 
 // Insert: Type => QVariant
@@ -203,7 +205,7 @@ protected:
 //		I. for whole application
 //		II. for parameter files
 //
-//	Settings of type II. use instance variables of the class to
+//	Settings of type II. use instance variables of the class 
 //	to read-write the file they are associated with. Settings 
 //	of type I. can be accessed globally, without the need of
 //	an instance variable, but they also benefit of the same 
@@ -240,10 +242,14 @@ public:
 		QSettings &mRef;
 
 	public:
-		CSection( QSettings &s, const std::string &group ) : mRef( s )
+		CSection( QSettings &s, const std::string &group ) 
+			: mRef( s )
 		{
 			mRef.beginGroup( group.c_str() );
 		}
+		CSection( CFileSettings &s, const std::string &group ) 
+			: CSection( s.mSettings, group )
+		{}
 		virtual ~CSection()
 		{
 			mRef.endGroup();
@@ -501,6 +507,8 @@ protected:
 		return ApplyToWholeSection< T >( mSettings, group, f );
 	}
 
+public:	//allow foreign settings file read/write...
+
 	//... for sections, independently of values types
 	
 	template< typename... Types >
@@ -531,6 +539,9 @@ public:
     };
 
 
+	//	Qt: "This function is called automatically from QSettings's destructor and 
+	//		by the event loop at regular intervals, so you normally don't need to call it yourself."
+	//
 	void Sync()
 	{
 		mSettings.sync();

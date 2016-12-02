@@ -52,7 +52,7 @@ public:
   
   /** Creates new CProductJason object
     \param fileNameList [in] : list of file to be connected */
-  CProductJason(const CStringList& fileNameList);
+  CProductJason( const CStringList &fileNameList, bool check_only_first_file );
     
   /// Destructor
   virtual ~CProductJason();

@@ -26,15 +26,15 @@
 #include <string>
 
 
-#include "new-gui/Common/tools/brathl_error.h"
+#include "common/tools/brathl_error.h"
 #include "brathl.h"
 //#define BRAT_INTERNAL
 
 #include "coda.h"
 
-#include "new-gui/Common/tools/TraceLog.h"
+#include "common/tools/TraceLog.h"
 #include "Tools.h"
-#include "new-gui/Common/tools/Exception.h"
+#include "common/tools/Exception.h"
 
 
 #include "Expression.h"
@@ -60,6 +60,7 @@
 #include "ProductRiverLake.h"
 #include "ProductTopex.h"
 #include "ProductTopexSDR.h"
+#include "ProductGeosatGDR.h"
 
 // When debugging changes all calls to "new" to be calls to "DEBUG_NEW" allowing for memory leaks to
 // give you the file name and line number where it occurred.
@@ -93,13 +94,6 @@ CProductList::CProductList()
 
 //----------------------------------------
 
-CProductList::CProductList(const CProductList& lst)
-{
-  Set(lst);
-}
-
-//----------------------------------------
-
 CProductList::CProductList(const std::string& fileName)
 {
 
@@ -124,47 +118,22 @@ CProductList::CProductList(const CStringArray& fileNameArray)
 
 }
 
-//----------------------------------------
-
-CProductList::~CProductList()
-{
-
-}
-
 
 //----------------------------------------
-bool CProductList::CheckFileList()
+CProductList& CProductList::operator = ( const CProductList &o )
 {
-  if (this->empty() )
-  {
-    CProductException e("CProductList::CheckFiles - file list is empty()", BRATHL_COUNT_ERROR);
-    CTrace::Tracer("%s", e.what());
-    Dump(*CTrace::GetDumpContext());
-    throw (e);
-  }
+	if ( this != &o )
+	{
+		base_t::operator = ( o );
 
-  return true;
-}
+		mCodaProductClass = o.mCodaProductClass;
+		mCodaProductType = o.mCodaProductType;
 
-//----------------------------------------
-const CProductList& CProductList::operator =(const CProductList& lst)
-{
-  Set(lst);
-
-  return *this;
-
-}
-
-//----------------------------------------
-void CProductList::Set(const CProductList& lst)
-{
-
-  CStringList::operator =(lst);
-
-  m_productClass = lst.m_productClass;
-  m_productType = lst.m_productType;
-  m_productFormat = lst.m_productFormat;
-
+		m_productClass = o.m_productClass;
+		m_productType = o.m_productType;
+		m_productFormat = o.m_productFormat;
+	}
+	return *this;
 }
 
 
@@ -208,12 +177,12 @@ bool CProductList::IsATP() const
 }
 
 //----------------------------------------
-bool CProductList::IsZFXY()
+bool CProductList::IsZFXY() const
 {
   return (CTools::StringToLower(m_productType).compare(CTools::StringToLower(ZFXY_NETCDF_TYPE)) == 0);
 }
 //----------------------------------------
-bool CProductList::IsYFX()
+bool CProductList::IsYFX() const
 {
   return (CTools::StringToLower(m_productType).compare(CTools::StringToLower(YFX_NETCDF_TYPE)) == 0);
 }
@@ -229,198 +198,202 @@ bool CProductList::IsSameProduct(const std::string& productClass, const std::str
 }
 //----------------------------------------
 
-bool CProductList::CheckFiles(bool onlyFirstFile /* = false */)
+
+bool CProductList::CheckFile( const stringlist::iterator &it, bool netcdf_check )
 {
-  int32_t result  = 0;
+	const char* productClassRead = NULL;
+	const char* productTypeRead = NULL;
+	coda_format productFormatRead;
+	int productVersionRead = 0;
+	int64_t fileSizeRead = 0;
 
-  m_message = "";
+	if ( empty() )
+	{
+		CProductException e( "CProductList::CheckFiles - file list is empty()", BRATHL_COUNT_ERROR );
+		CTrace::Tracer( "%s", e.what() );
+		Dump( *CTrace::GetDumpContext() );
+		throw ( e );
+	}
 
-  const char* productClassRead = NULL;
-  const char* productTypeRead = NULL;
-  coda_format productFormatRead;
-  int32_t productVersionRead = 0;
-  int64_t fileSizeRead = 0;
+	int result = coda_recognize_file( it->c_str(),
+		&fileSizeRead,
+		&productFormatRead,
+		&productClassRead,
+		&productTypeRead,
+		&productVersionRead
+	);
 
-  stringlist::iterator it;
+	if ( result != 0 )
+	{
+		std::string msg = CTools::Format( "CProductList::CheckFiles - Error while checking file - errno:#%d:%s",
+			coda_errno, coda_errno_to_string( coda_errno ) );
+		CFileException e( msg, *it, BRATHL_IO_ERROR );
+		CTrace::Tracer( "%s", e.what() );
+		Dump( *CTrace::GetDumpContext() );
+		throw ( e );
+	}
 
-  CheckFileList();
+	// v3 NOTE - Quick solution: mimic the old brat_recognize_file's behavior in the face of NetCDF files
+	//
+	switch ( productFormatRead )
+	{
+		case coda_format_hdf4:
+		{
+			productClassRead = "HDF4";
+			break;
+		}
+		case coda_format_hdf5:
+		{
+			productClassRead = "HDF5";
+			break;
+		}
+		case coda_format_netcdf:
+		{
+			productClassRead = "NETCDF";
+			break;
+		}
+		default:
+			break;
+	}
 
-  for ( it = this->begin(); it != this->end(); it++ )
-  {
+	// v3 NOTE - It is now still possible for coda_recognize to return success, yet to not actually have recognized 
+	// the file format, leading to null pointers where we don't want	'em. For now, we just test for those here, and 
+	// abort if that's the case.
+	//
+	if ( productClassRead == NULL )
+	{
+		std::string msg = CTools::Format( "CProductList::CheckFiles - Unknown file format" );
+		CFileException e( msg, *it, BRATHL_IO_ERROR );
+		CTrace::Tracer( "%s", e.what() );
+		Dump( *CTrace::GetDumpContext() );
+		throw ( e );
+	}
 
-    result = coda_recognize_file((*it).c_str(),
-                                 &fileSizeRead,
-                                 &productFormatRead,
-                                 &productClassRead,
-                                 &productTypeRead,
-                                 &productVersionRead
-                                 );
-    if (result != 0)
-    {
-      std::string msg = CTools::Format("CProductList::CheckFiles - Error while checking file - errno:#%d:%s",
-                                   coda_errno, coda_errno_to_string(coda_errno));
-      CFileException e(msg, *it, BRATHL_IO_ERROR);
-      CTrace::Tracer("%s", e.what());
-      Dump(*CTrace::GetDumpContext());
-      throw (e);
-    }
 
-    // Quick solution: mimic the old brat_recognize_file's
-    // behaviour in the face of NetCDF files:
-    switch( productFormatRead )
-    {
-        case coda_format_hdf4:
-        {
-            productClassRead = "HDF4";
-            break;
-        }
-        case coda_format_hdf5:
-        {
-            productClassRead = "HDF5";
-            break;
-        }
-        case coda_format_netcdf:
-        {
-            productClassRead = "NETCDF";
-            break;
-        }
-    default:
-        break;
-    }
+	if ( it != begin() )
+	{
+		bool bFileOk = mCodaProductClass == productClassRead;
+		if ( !CProductList::IsHdfOrNetcdfCodaFormat( productFormatRead ) )
+		{
+			bFileOk = bFileOk && ( mCodaProductType == productTypeRead );
+		}
+		else
+		{
+			bFileOk = bFileOk && mCodaProductType.empty();	//m_productType.empty();
+		}
 
-        // It is now still possible for coda_recognize to return
-        // success, yet to not actually have recognized the file
-        // format, leading to null pointers where we don't want
-        // 'em. For now, we just test for those here, and abort
-        // if that's the case.
-    if (productClassRead == NULL)
-    {
-      std::string msg = CTools::Format("CProductList::CheckFiles - Unknown file format");
-      CFileException e(msg, *it, BRATHL_IO_ERROR);
-      CTrace::Tracer("%s", e.what());
-      Dump(*CTrace::GetDumpContext());
-      throw (e);
-    }
+		if ( !bFileOk )
+		{
+			std::string msg = CTools::Format( "Files are not compatible.\nExpected Coda Class/Product Type: '%s/%s",
+				mCodaProductClass.c_str(), m_productType.c_str() );
+			CProductException e( msg,
+				*it,
+				productClassRead,
+				( ( productTypeRead == NULL ) ? "" : productTypeRead ),
+				BRATHL_INCONSISTENCY_ERROR );
+			CTrace::Tracer( "%s", e.what() );
+			Dump( *CTrace::GetDumpContext() );
+			throw ( e );
 
-    //BRATHL_INCONSISTENCY_ERROR
+		}
+	}
 
-    bool bFileOk = true;
+	m_productFormat = productFormatRead;
+	mCodaProductClass = productClassRead;
+	mCodaProductType = ( productTypeRead != NULL ? productTypeRead : "" );
 
-    if (it != this->begin())
-    {
-      bFileOk &= ((m_productClass.compare(productClassRead) != 0) ? false : true);
-      if (! CProductList::IsHdfOrNetcdfCodaFormat(productFormatRead))
-      {
-        bFileOk &= ((m_productType.compare(productTypeRead) != 0) ? false : true);
-      }
-      else
-      {
-        bFileOk &= ((m_productType.compare("") != 0) ? false : true);
-      }
+	// if product is recognized as hdf4/5 by Brat, we consider it as a NetCdf product.
+	if ( /*netcdf_check && */IsHdfOrNetcdfCodaFormat() )
+	{
+		return NetCdfCheckFile( it );
+	}
+	else
+	{
+		m_productClass = mCodaProductClass;
+		m_productType = mCodaProductType;
+	}
 
-      if (bFileOk == false)
-      {
-        std::string msg = CTools::Format("CProductList::CheckFiles - Files are not in the same way - Expected Product Class/Type: '%s/%s",
-                                     m_productClass.c_str(), m_productType.c_str());
-        CProductException e(msg,
-                            *it,
-                            productClassRead,
-                            ((productTypeRead == NULL) ? "" : productTypeRead),
-                            BRATHL_INCONSISTENCY_ERROR);
-        CTrace::Tracer("%s", e.what());
-        Dump(*CTrace::GetDumpContext());
-        throw (e);
+	return true;
+}
 
-      }
 
-    }
+bool CProductList::CheckFiles( bool onlyFirstFile, bool onlyFirstNetcdf )	//onlyFirstFile = false, onlyFirstNetcdf = false  
+{
+	for ( stringlist::iterator it = begin(); it != end(); it++ )
+	{
+		if ( !CheckFile( it, false ) )
+			return false;
 
-    m_productClass = productClassRead;
-    m_productFormat = productFormatRead;
-    m_productType = (productTypeRead != NULL ? productTypeRead : "");
+		if ( onlyFirstFile )
+		{
+			break;
+		}
+	}
 
-    if (onlyFirstFile)
-    {
-      break;
-    }
+	// if product is recognized as hdf4/5 by Brat, we consider it as a NetCdf product.
+	//if ( IsHdfOrNetcdfCodaFormat() )
+	//{
+	//	return CheckFilesNetCdf( onlyFirstNetcdf );
+	//}
 
-  }
-
-  // if product is recognized as hdf4 by Brat, we consider it as a NetCdf product.
-  if (IsHdfOrNetcdfCodaFormat())
-  {
-    return CheckFilesNetCdf();
-  }
-
-  return true;
-
+	return true;
 }
 
 //----------------------------------------
-bool CProductList::CheckFilesNetCdf()
+bool CProductList::NetCdfCheckFile( const stringlist::iterator &it )
 {
-  m_productClass = NETCDF_PRODUCT_CLASS;
+	m_productClass = NETCDF_PRODUCT_CLASS;
 
-  std::string productTypeRead;
+	std::string productTypeRead;
 
-  stringlist::iterator it;
-  CExternalFiles *f = NULL;
+	CExternalFiles *f = BuildExistingExternalFileKind( *it );
+	if ( f != NULL )
+	{
+		m_productClass = f->GetProductClass();
+		productTypeRead = f->GetType();
+	}
+	//BRATHL_INCONSISTENCY_ERROR
 
-  for ( it = this->begin(); it != this->end(); it++ )
-  {
-    f = BuildExistingExternalFileKind((*it).c_str());
-    if (f != NULL)
-    {
-      m_productClass = f->GetProductClass();
-      productTypeRead = f->GetType();
-    }
-    //BRATHL_INCONSISTENCY_ERROR
+	if ( it != begin() )
+	{
+		if ( m_productType != productTypeRead )
+		{
+			std::string msg = CTools::Format( "CProductList::CheckFilesNetCdf - Netcdf Files are not in the same way - Expected Product Class/Type: '%s/%s",
+				m_productClass.c_str(), m_productType.c_str() );
+			CProductException e( msg,
+				*it, m_productClass, productTypeRead, BRATHL_INCONSISTENCY_ERROR );
+			CTrace::Tracer( "%s", e.what() );
+			Dump( *CTrace::GetDumpContext() );
 
-    bool bFileOk = true;
+			if ( f != NULL )
+				delete f;
 
-    if (it != this->begin())
-    {
-      bFileOk &= ((m_productType.compare(productTypeRead) != 0) ? false : true);
+			throw ( e );
+		}
+	}
 
-      if (bFileOk == false)
-      {
-        std::string msg = CTools::Format("CProductList::CheckFilesNetCdf - Netcdf Files are not in the same way - Expected Product Class/Type: '%s/%s",
-                                     m_productClass.c_str(), m_productType.c_str());
-        CProductException e(msg,
-                            *it, m_productClass, productTypeRead, BRATHL_INCONSISTENCY_ERROR);
-        CTrace::Tracer("%s", e.what());
-        Dump(*CTrace::GetDumpContext());
+	if ( f != NULL )
+		delete f;
 
-        if (f != NULL)
-        {
-          delete f;
-          f = NULL;
-        }
+	m_productType = productTypeRead;
 
-        throw (e);
+	return true;
+}
 
-      }
+bool CProductList::CheckFilesNetCdf( bool onlyFirst )		//onlyFirst = false 
+{
+	for ( stringlist::iterator it = begin(); it != end(); it++ )
+	{
+		if ( !NetCdfCheckFile( it ) )
+			return false;
 
-    }
+		if ( onlyFirst )
+		{
+			break;
+		}
+	}
 
-    if (f != NULL)
-    {
-      delete f;
-      f = NULL;
-    }
-
-    m_productType = productTypeRead;
-  }
-
-  if ( (IsYFX() || IsZFXY() || IsGenericNetCdf()) && this->size() > 1)
-  {
-    m_message = "Warning - You have to check that all the files in the list : "
-                "\n1) are in the same way (same structure, same fields with same dimension...)"
-                "\n2) contain the same kind of data"
-                "\n\n otherwhise results may be ill-defined and confused or Brat may return a reading error.";
-  }
-
-  return true;
+	return true;
 }
 //----------------------------------------
 void CProductList::Dump(std::ostream& fOut /* = std::cerr */)
@@ -473,38 +446,62 @@ CProduct::CProduct()
 
 //----------------------------------------
 
-CProduct::CProduct(const std::string& fileName)
-    : m_listFields(false)
+CProduct::CProduct( const std::string& fileName )
+	: m_listFields( false )
 {
-  Init();
+	Init();
 
-  AddFile(fileName);
-
-  LoadAliases();
-
+	SetProductList( fileName );
 }
 
 
 //----------------------------------------
-CProduct::CProduct(const CStringList& fileNameList)
-    : m_listFields(false)
+CProduct::CProduct( const CStringList& fileNameList, bool check_only_first_file )		//check_only_first_file = false 
+	: m_listFields( false )
 {
-  Init();
+	Init();
 
-  AddFile(fileNameList);
-
-  LoadAliases();
-
+	SetProductList( fileNameList, !check_only_first_file );
 }
 
 
 //----------------------------------------
+void CProduct::SetProductList( const std::string& fileName, bool check_all_files /*= true*/ )
+{
+	SetProductList( std::vector<std::string>( { fileName } ), check_all_files );
+}
 
+//----------------------------------------
+void CProduct::SetProductList( const CStringList& fileList, bool check_all_files /*= true*/ )
+{
+	m_fileList.clear();
+
+	m_fileList.Insert( fileList );
+
+	m_fileList.CheckFiles( !check_all_files, !check_all_files );	//always check at least the first file to find class and type
+
+	LoadAliases();
+}
+
+
+//----------------------------------------
 CProduct::~CProduct()
 {
-  Release();
-  DeleteLogFile();
+	Close();
 
+	m_currFile = NULL;
+	m_currFileName = "";
+
+	delete m_productAliases;
+
+	//if (m_codaReleaseWhenDestroy)
+	//{
+	//  CodaRelease();
+	//}
+
+	CodaRelease();
+
+	DeleteLogFile();
 }
 
 /*
@@ -1621,49 +1618,6 @@ bool CProduct::ApplyCriteriaCycle(CCriteriaInfo* criteriaInfo)
 
 }
 
-//----------------------------------------
-
-void CProduct::AddFile(const std::string& fileName, bool bEnd /*= true*/, bool checkFiles /*= true*/)
-{
-  m_fileList.Insert(fileName, bEnd);
-  if (checkFiles)
-  {
-    m_fileList.CheckFiles();
-  }
-
-}
-//----------------------------------------
-
-void CProduct::AddFile(const CStringList& fileNameList, bool bEnd /*= true*/, bool checkFiles /*= true*/)
-{
-  m_fileList.Insert(fileNameList, bEnd);
-  if (checkFiles)
-  {
-    m_fileList.CheckFiles();
-  }
-
-}
-//----------------------------------------
-void CProduct::SetProductList(const std::string& fileName, bool checkFiles /*= true*/)
-{
-  m_fileList.clear();
-  AddFile(fileName, true, checkFiles);
-
-  LoadAliases();
-
-}
-//----------------------------------------
-void CProduct::SetProductList(const CStringList& fileList, bool checkFiles /*= true*/)
-{
-  m_fileList.clear();
-  AddFile(fileList, true, checkFiles);
-
-  if (!IsSameProduct(m_fileList)) 
-  {
-    LoadAliases();
-  }
-
-}
 
 //----------------------------------------
 bool CProduct::IsSameProduct(const CProductList fileList)
@@ -1680,15 +1634,7 @@ bool CProduct::IsSameProduct(const std::string& productClass, const std::string&
 
 //----------------------------------------
 
-CProduct* CProduct::Construct(const CStringArray& fileNameArray)
-{
-  CProductList productList(fileNameArray);
-
-  return CProduct::Construct(productList);
-
-}
-//----------------------------------------
-
+#if defined(BRAT_V3)
 CProduct* CProduct::Construct(CStringList& fileNameList)
 {
   CProductList productList(fileNameList);
@@ -1696,142 +1642,166 @@ CProduct* CProduct::Construct(CStringList& fileNameList)
   return CProduct::Construct(productList);
 
 }
+#endif
 
 //----------------------------------------
-CProduct* CProduct::Construct(const std::string& fileName)
+
+//static
+CProduct* CProduct::Construct( CProductList& fileNameList, bool check_only_first_file )	//check_only_first_file = false 
 {
-  CProductList productList(fileName);
+	CProduct* product = NULL;
 
-  return CProduct::Construct(productList);
+	CodaInit();
 
+	try
+	{
+		fileNameList.CheckFiles( check_only_first_file, check_only_first_file );
+
+		product = CProduct::Construct( const_cast< const CProductList& >( fileNameList ) );
+	}
+	catch ( CException& e )
+	{
+		CodaRelease();
+		throw ( e );
+	}
+
+	CProduct::CodaRelease();
+
+	return product;
 }
 
-
-//----------------------------------------
-
-CProduct* CProduct::Construct( CProductList& fileNameList )
+//static
+CProduct* CProduct::Construct( const CProductList& fileNameList )
 {
-  CProduct* product = NULL;
+	CProduct* product = NULL;
 
-  CProduct::CodaInit();
+	CProduct::CodaInit();
 
-  try
-  {
-    fileNameList.CheckFiles();
+	try
+	{
+		const std::string& productClass = fileNameList.m_productClass;
+		const std::string& productType = fileNameList.m_productType;
 
-    std::string productClass = fileNameList.m_productClass;
-    std::string productType = fileNameList.m_productType;
+		if ( productClass == "Altimeter_Ocean_Pathfinder" )
+		{
+			//product = new CProductAop(fileNameList);
+			std::string msg = CTools::Format( "ERROR - CProduct::Construct : UNIMPLEMENTED PRODUCT :'%s'", productClass.c_str() );
+			CUnImplementException e( msg, BRATHL_UNIMPLEMENT_ERROR );
+			throw( e );
+		}
+		else if ( productClass == "CRYOSAT" )
+		{
+			product = new CProductCryosat( fileNameList, true );
+		}
+		else if ( productClass == "ERS_RA" )
+		{
+			if ( productType == CProductErs::m_WAP )
+			{
+				product = new CProductErsWAP( fileNameList, true );
+			}
+			else
+			{
+				product = new CProductErs( fileNameList, true );
+			}
+		}
+		else if ( productClass == "ENVISAT_RA2MWR" )
+		{
+			product = new CProductEnvisat( fileNameList, true );
+		}
+		else if ( productClass == "GFO" )
+		{
+			product = new CProductGfo( fileNameList, true );
+		}
+		else if ( productClass == "JASON" )
+		{
+			product = new CProductJason( fileNameList, true );
+		}
+		else if ( productClass == "PODAAC" )
+		{
+			product = new CProductPodaac( fileNameList, true );
+		}
+		else if ( productClass == "RADS" )	// This is v3. TODO: check if a RADS product class makes sense
+		{
+			//product = new CProductRads(fileNameList);
+			std::string msg = CTools::Format( "ERROR - CProduct::Construct : UNIMPLEMENTED PRODUCT :'%s'",
+				productClass.c_str() );
+			CUnImplementException e( msg, BRATHL_UNIMPLEMENT_ERROR );
+			throw( e );
+		}
+		else if ( productClass == "River_Lake" )
+		{
+			product = new CProductRiverLake( fileNameList, true );
+		}
+		else if ( productClass == "Topex_Poseidon" )
+		{
+			if ( productType == CProductTopexSDR::m_SDR_PASS_FILE )
+			{
+				product = new CProductTopexSDR( fileNameList, true );
+			}
+			else
+			{
+				product = new CProductTopex( fileNameList, true );
+			}
+		}
+		else if ( productClass == NETCDF_PRODUCT_CLASS )
+		{
+			product = new CProductNetCdf( fileNameList, true );
+		}
+		else if ( productClass == NETCDF_CF_PRODUCT_CLASS )
+		{
+			if ( fileNameList.IsJason2() )
+			{
+				product = new CProductJason2( fileNameList, true );
+			}
+			else
+			if ( productType == CExternalFilesGeosatGDR::TypeOf() )
+			{
+				product = new CProductGeosatGDR( fileNameList, true );
+			}
+			else
+			if ( CExternalFilesRads::IsTypeOf( productType ) )
+			{
+				product = new CProductRads( fileNameList, true );
+			}
+			else
+			{
+				product = new CProductNetCdfCF( fileNameList, true );
+			}
+		}
+		else
+		{
+			product = new CProductGeneric( fileNameList, true );
+			/*
+			std::string msg = CTools::Format("CProduct::Construct - Unknown product found:%s in file %s",
+										 fileNameList.m_productClass.c_str(),
+										 fileNameList.front().c_str());
+			CProductException e(msg, BRATHL_INCONSISTENCY_ERROR);
+			CTrace::Tracer("%s", e.what());
+			throw (e);
+			*/
+		}
+	}
+	catch ( CException& e )
+	{
+		CodaRelease();
+		throw ( e );
+	}
 
-    if (productClass.compare("Altimeter_Ocean_Pathfinder") == 0)
-    {
-      //product = new CProductAop(fileNameList);
-      std::string msg = CTools::Format("ERROR - CProduct::Construct : UNIMPLEMENTED PRODUCT :'%s'",
-                                  productClass.c_str());
-      CUnImplementException e(msg, BRATHL_UNIMPLEMENT_ERROR);
-      throw(e);
-    }
-    else if (productClass.compare("CRYOSAT") == 0)
-    {
-      product = new CProductCryosat(fileNameList);
-    }
-    else if (productClass.compare("ERS_RA") == 0)
-    {
-      if (productType.compare(CProductErs::m_WAP) == 0)
-      {
-        product = new CProductErsWAP(fileNameList);
-      }
-      else
-      {
-        product = new CProductErs(fileNameList);
-      }
-    }
-    else if (productClass.compare("ENVISAT_RA2MWR") == 0)
-    {
-      product = new CProductEnvisat(fileNameList);
-    }
-    else if (productClass.compare("GFO") == 0)
-    {
-      product = new CProductGfo(fileNameList);
-    }
-    else if (productClass.compare("JASON") == 0)
-    {
-      product = new CProductJason(fileNameList);
-    }
-    else if (productClass.compare("PODAAC") == 0)
-    {
-      product = new CProductPodaac(fileNameList);
-    }
-    else if (productClass.compare("RADS") == 0)
-    {
-      //product = new CProductRads(fileNameList);
-      std::string msg = CTools::Format("ERROR - CProduct::Construct : UNIMPLEMENTED PRODUCT :'%s'",
-                                  productClass.c_str());
-      CUnImplementException e(msg, BRATHL_UNIMPLEMENT_ERROR);
-      throw(e);
-    }
-    else if (productClass.compare("River_Lake") == 0)
-    {
-        product = new CProductRiverLake(fileNameList);
-    }
-    else if (productClass.compare("Topex_Poseidon") == 0)
-    {
-      if (productType.compare(CProductTopexSDR::m_SDR_PASS_FILE) == 0)
-      {
-        product = new CProductTopexSDR(fileNameList);
-      }
-      else
-      {
-        product = new CProductTopex(fileNameList);
-      }
-    }
-    else if (productClass.compare(NETCDF_PRODUCT_CLASS) == 0)
-    {
-      product = new CProductNetCdf(fileNameList);
-    }
-    else if (productClass.compare(NETCDF_CF_PRODUCT_CLASS) == 0)
-    {
-      if (fileNameList.IsJason2())
-      {
-        product = new CProductJason2(fileNameList);
-      }
-      else
-      {
-        product = new CProductNetCdfCF(fileNameList);
-      }
+	CodaRelease();
 
-    }
-    else
-    {
-      product = new CProductGeneric(fileNameList);
-      /*
-      std::string msg = CTools::Format("CProduct::Construct - Unknown product found:%s in file %s",
-                                   fileNameList.m_productClass.c_str(),
-                                   fileNameList.front().c_str());
-      CProductException e(msg, BRATHL_INCONSISTENCY_ERROR);
-      CTrace::Tracer("%s", e.what());
-      throw (e);
-      */
-    }
-  }
-  catch (CException& e)
-  {
-    CProduct::CodaRelease();
-    throw (e);
-  }
-
-  CProduct::CodaRelease();
-  return product;
-
+	return product;
 }
 
 //----------------------------------------
 
+#if defined (BRAT_V3)
 bool CProduct::CheckFiles()
 {
 
   return m_fileList.CheckFiles();
 
 }
+#endif
 
 
 //----------------------------------------
@@ -1905,7 +1875,8 @@ bool CProduct::Open()
 {
   Close();
 
-  InitBratOptions();
+  coda_set_option_perform_boundary_checks(GetPerformBoundaryChecks());
+  coda_set_option_perform_conversions(GetPerformConversions());
 
   if (m_currFileName.empty())
   {
@@ -2622,7 +2593,7 @@ void CProduct::Init()
 
   m_logFile = NULL;
 
-  m_label = "Unknown";
+  mLabel = "Unknown";
 
   coda_errno = 0;
 
@@ -2748,13 +2719,10 @@ void CProduct::LoadAliases()
   // Maps default records by product type
   // ---------------------
 
-  CDefaultRecord* defaultRecord = NULL;
-  CObArray::const_iterator it;
-  
   CObMap recordByProductType(false);
   CObMap::const_iterator itMap;
   
-  for (it = defaultRecordsArray.begin() ; it != defaultRecordsArray.end() ; it++)
+  for (CObArray::const_iterator it = defaultRecordsArray.begin() ; it != defaultRecordsArray.end() ; it++)
   {
     CDefaultRecord* defaultRecord = dynamic_cast<CDefaultRecord*>(*it);
     if (defaultRecord == NULL)
@@ -2786,7 +2754,7 @@ void CProduct::LoadAliases()
 
   CObMap aliasesByProductType(false);
 
-  for (it = aliasesArray.begin() ; it != aliasesArray.end() ; it++)
+  for (CObArray::const_iterator it = aliasesArray.begin() ; it != aliasesArray.end() ; it++)
   {
     CAliases* aliases = dynamic_cast<CAliases*>(*it);
     if (aliases == NULL)
@@ -2822,7 +2790,7 @@ void CProduct::LoadAliases()
   // ---------------------
   std::string record;
   // First, get the default record whatever the product type
-  defaultRecord = dynamic_cast<CDefaultRecord*>(recordByProductType.Exists(CAliases::m_ALL));
+  CDefaultRecord* defaultRecord = dynamic_cast<CDefaultRecord*>(recordByProductType.Exists(CAliases::m_ALL));
   if (defaultRecord != NULL)
   {
     record = defaultRecord->GetName();
@@ -2834,8 +2802,6 @@ void CProduct::LoadAliases()
   {
     record = defaultRecord->GetName();
   }
-
-  DeleteProductAliases();
 
   // If record is empty: perhaps there is a some missing data in definition 
   // But this may not be a mistake, then don't raise an exception, just log a message in the std::cerr.
@@ -2855,6 +2821,7 @@ void CProduct::LoadAliases()
     //                            BRATHL_LOGIC_ERROR);
   }
   
+  delete m_productAliases;
   m_productAliases = new CProductAliases(record);
 
   // First, add aliases that are valid whatever the product type
@@ -3121,35 +3088,6 @@ void CProduct::InitCriteriaInfo()
 {
   m_criteriaInfoMap.RemoveAll();
 }
-//----------------------------------------
-void CProduct::DeleteProductAliases()
-{
-
-  if (m_productAliases != NULL)
-  {
-    delete m_productAliases;
-    m_productAliases = NULL;
-  }
-
-}
-//----------------------------------------
-void CProduct::Release()
-{
-  Close();
-
-  m_currFile = NULL;
-  m_currFileName = "";
-  
-  DeleteProductAliases();
-
-  //if (m_codaReleaseWhenDestroy)
-  //{
-  //  CodaRelease();
-  //}
-
-  CodaRelease();
-
-}
 
 
 //----------------------------------------
@@ -3181,12 +3119,6 @@ void CProduct::GetRootType()
 }
 
 
-//----------------------------------------
-void CProduct::InitBratOptions()
-{
-    coda_set_option_perform_boundary_checks(GetPerformBoundaryChecks());
-    coda_set_option_perform_conversions(GetPerformConversions());
-}
 
 //----------------------------------------
 void CProduct::ReplaceNamesCaseSensitive(const CExpression& exprIn, const CStringArray& fieldsIn, CExpression& exprOut, bool forceReload /*= false*/)
@@ -5994,7 +5926,7 @@ bool CProduct::LoadTransposeFieldsValue(CStringArray& fieldToTranspose)
       	      	      	    alias);
     */
 
-    if (str_icmp(product, GetProductClassType().c_str()))
+    if (str_icmp(product, GetProductClassAndType().c_str()))
     {
       fieldToTranspose.InsertUnique(CTools::StringTrim(field));
     }
@@ -6010,15 +5942,9 @@ bool CProduct::LoadTransposeFieldsValue(CStringArray& fieldToTranspose)
 }
 
 //----------------------------------------
-std::string CProduct::GetProductClassType()
+std::string CProduct::GetProductClassAndType()
 {
-  std::string str;
-
-  str.append(GetProductClass());
-  str.append("_");
-  str.append(GetProductType());
-
-  return str;
+	return GetProductClass() + "_" + GetProductType();
 }
 /*
 //----------------------------------------
@@ -6467,7 +6393,7 @@ void CProduct::ReadDataForOneMeasure(
 //----------------------------------------
 CProduct* CProduct::Clone()
 {
-  CProduct* product = CProduct::Construct(this->GetProductList());
+  CProduct* product = CProduct::Construct( m_fileList, true );	//true: assume cloned product is checked
 
   if (product == NULL)
   {

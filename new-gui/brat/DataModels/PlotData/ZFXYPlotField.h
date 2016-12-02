@@ -18,7 +18,7 @@
 #ifndef DATA_MODELS_PLOT_DATA_ZFXYPLOTDATA_H
 #define DATA_MODELS_PLOT_DATA_ZFXYPLOTDATA_H
 
-#include "new-gui/Common/tools/Exception.h"
+#include "common/tools/Exception.h"
 
 #include "libbrathl/brathl.h"
 

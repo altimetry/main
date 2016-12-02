@@ -25,89 +25,89 @@
 #include <string> 
 
 
-#include "new-gui/Common/tools/brathl_error.h" 
+#include "common/tools/brathl_error.h"
 #include "brathl.h" 
 
-#include "new-gui/Common/tools/TraceLog.h" 
+#include "common/tools/TraceLog.h"
 #include "Tools.h" 
-#include "new-gui/Common/tools/Exception.h" 
+#include "common/tools/Exception.h"
 #include "ProductRiverLake.h" 
 
-using namespace brathl;
+
 
 namespace brathl
 {
 
-CProductRiverLake::CProductRiverLake()
-{
-  Init();
-}
+	void CProductRiverLake::Init()
+	{
+		mLabel = "River & Lake product";
+
+		InitDateRef();
+		InitCriteriaInfo();
+	}
+
+	CProductRiverLake::CProductRiverLake()
+	{
+		Init();
+	}
 
 
-//----------------------------------------
+	//----------------------------------------
 
-CProductRiverLake::CProductRiverLake(const std::string& fileName)
-      : CProduct(fileName)
-{
-  Init();  
-}
-
-
-//----------------------------------------
-CProductRiverLake::CProductRiverLake(const CStringList& fileNameList)
-      : CProduct(fileNameList)
-
-{
-  Init();
-}
-
-//----------------------------------------
-
-CProductRiverLake::~CProductRiverLake()
-{
-}
-
-//----------------------------------------
-void CProductRiverLake::Init()
-{
-  m_label = "River & Lake product";
-
-  InitDateRef();
-  InitCriteriaInfo();
-}
-
-//----------------------------------------
-void CProductRiverLake::InitDateRef()
-{
-  m_refDate = REF20000101;
-}
-
-//----------------------------------------
-void CProductRiverLake::InitCriteriaInfo()
-{
-  CProduct::InitCriteriaInfo();
-}
-
-//----------------------------------------
-void CProductRiverLake::Dump(std::ostream& fOut /* = std::cerr */)
-{
-  if (CTrace::IsTrace() == false)
-  {
-    return;
-  }
+	CProductRiverLake::CProductRiverLake( const std::string& fileName )
+		: CProduct( fileName )
+	{
+		Init();
+	}
 
 
-  fOut << "==> Dump a CProductRiverLake Object at "<< this << std::endl;
+	//----------------------------------------
+	CProductRiverLake::CProductRiverLake( const CStringList& fileNameList, bool check_only_first_file )
+		: CProduct( fileNameList, check_only_first_file )
 
-  //------------------
-  CProduct::Dump(fOut);
-  //------------------
+	{
+		Init();
+	}
 
-  fOut << "==> END Dump a CProductRiverLake Object at "<< this << std::endl;
+	//----------------------------------------
 
-  fOut << std::endl;
+	CProductRiverLake::~CProductRiverLake()
+	{
+	}
 
-}
+	//----------------------------------------
+	//----------------------------------------
+	void CProductRiverLake::InitDateRef()
+	{
+		m_refDate = REF20000101;
+	}
+
+	//----------------------------------------
+	void CProductRiverLake::InitCriteriaInfo()
+	{
+		CProduct::InitCriteriaInfo();
+	}
+
+	//----------------------------------------
+	void CProductRiverLake::Dump( std::ostream& fOut /* = std::cerr */ )
+	{
+		if ( CTrace::IsTrace() == false )
+		{
+			return;
+		}
+
+
+		fOut << "==> Dump a CProductRiverLake Object at " << this << std::endl;
+
+		//------------------
+		CProduct::Dump( fOut );
+		//------------------
+
+		fOut << "==> END Dump a CProductRiverLake Object at " << this << std::endl;
+
+		fOut << std::endl;
+
+	}
 
 
 } // end namespace

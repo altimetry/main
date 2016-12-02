@@ -52,7 +52,7 @@ public:
   
   /** Creates new CProductErs object
     \param fileNameList [in] : list of file to be connected */
-  CProductErs(const CStringList& fileNameList);
+  CProductErs( const CStringList &fileNameList, bool check_only_first_file );
 
   /// Destructor
   virtual ~CProductErs();

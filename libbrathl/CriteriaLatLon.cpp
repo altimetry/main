@@ -24,13 +24,13 @@
 #include <cstring> 
 #include <string> 
 
-#include "new-gui/Common/tools/brathl_error.h" 
+#include "common/tools/brathl_error.h"
 #include "brathl.h" 
 //#define BRAT_INTERNAL
 
-#include "new-gui/Common/tools/TraceLog.h" 
+#include "common/tools/TraceLog.h"
 #include "Tools.h" 
-#include "new-gui/Common/tools/Exception.h" 
+#include "common/tools/Exception.h"
 
 #include "Criteria.h" 
 #include "CriteriaLatLon.h" 

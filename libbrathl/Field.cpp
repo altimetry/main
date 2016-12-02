@@ -24,7 +24,7 @@
 #include <cstring>
 #include <typeinfo>
 
-#include "new-gui/Common/tools/brathl_error.h"
+#include "common/tools/brathl_error.h"
 #include "brathl.h"
 
 //#define BRAT_INTERNAL
@@ -34,8 +34,8 @@
 #include <string>
 
 #include "Tools.h"
-#include "new-gui/Common/tools/TraceLog.h"
-#include "new-gui/Common/tools/Exception.h"
+#include "common/tools/TraceLog.h"
+#include "common/tools/Exception.h"
 #include "Product.h"
 #include "ProductNetCdf.h"
 #include "Unit.h"
@@ -78,11 +78,10 @@ CField::CField(const std::string& name, const std::string& description, const st
 }
 //----------------------------------------
 
-CField::CField(CField& f)
+CField::CField( const CField &f )
 {
-  Init();
-
-  Set(f);
+	Init();
+	Set( f );
 }
 
 //----------------------------------------
@@ -94,7 +93,7 @@ CField::~CField()
 }
 
 //----------------------------------------
-const CField& CField::operator =(CField& f)
+CField& CField::operator =( const CField &f )
 {
   Set(f);
   return *this;
@@ -172,47 +171,45 @@ void CField::DeleteFieldIndexes()
 
 }
 //----------------------------------------
-void CField::Set(CField& f)
+void CField::Set( const CField &f )
 {
-  m_currentPos = f.m_currentPos;
-  m_cursor = f.m_cursor;
-  m_description = f.m_description;
+	m_currentPos = f.m_currentPos;
+	m_cursor = f.m_cursor;
+	m_description = f.m_description;
 
-  SetDim(*f.GetDim());
+	SetDim( *f.m_dim );
 
-  m_fullName = f.m_fullName;
-  m_hidden = f.m_hidden;
-  m_highResolution = f.m_highResolution;
-  m_index = f.m_index;
-  m_isFixedSize = f.m_isFixedSize;
-  m_key = f.m_key;
-  m_metaData = f.m_metaData;
-  m_name = f.m_name;
-  m_nativeType = f.m_nativeType;
-  m_recordName = f.m_recordName;
-  m_specialType = f.m_specialType;
-  m_typeClass = f.m_typeClass;
-  m_unit = f.m_unit;
-  m_validMin = f.m_validMin;
-  m_validMax = f.m_validMax;
+	m_fullName = f.m_fullName;
+	m_hidden = f.m_hidden;
+	m_highResolution = f.m_highResolution;
+	m_index = f.m_index;
+	m_isFixedSize = f.m_isFixedSize;
+	m_key = f.m_key;
+	m_metaData = f.m_metaData;
+	m_name = f.m_name;
+	m_nativeType = f.m_nativeType;
+	m_recordName = f.m_recordName;
+	m_specialType = f.m_specialType;
+	m_typeClass = f.m_typeClass;
+	m_unit = f.m_unit;
+	m_validMin = f.m_validMin;
+	m_validMax = f.m_validMax;
 
-  m_convertDate = f.m_convertDate;
+	m_convertDate = f.m_convertDate;
 
-  AddFieldIndexes(f.m_fieldIndexes);
+	AddFieldIndexes( f.m_fieldIndexes );
 
-  m_virtualField = f.m_virtualField;
+	m_virtualField = f.m_virtualField;
 
-  m_expandArray = f.m_expandArray;
+	m_expandArray = f.m_expandArray;
 
-  m_dateRef = f.m_dateRef;
+	m_dateRef = f.m_dateRef;
 
-  m_numHighResolutionMeasure = f.m_numHighResolutionMeasure;
+	m_numHighResolutionMeasure = f.m_numHighResolutionMeasure;
 
-  m_unitIsDate = f.m_unitIsDate;
+	m_unitIsDate = f.m_unitIsDate;
 
-  m_offset = f.m_offset;
-
-
+	m_offset = f.m_offset;
 }
 
 //----------------------------------------
@@ -736,7 +733,8 @@ std::string CField::GetRecordName()
   return m_recordName;
 }
 //----------------------------------------
-std::string CField::GetFullName()
+//virtual
+std::string CField::GetFullName() const
 {
 
   /*std::string fullName = m_key;
@@ -774,6 +772,7 @@ std::string CField::GetFullName()
 }
 
 //----------------------------------------
+//virtual
 std::string CField::GetFullNameWithRecord()
 {
 
@@ -3436,7 +3435,8 @@ std::string CFieldNetCdf::GetRecordName()
   return m_recordName;
 }
 //----------------------------------------
-std::string CFieldNetCdf::GetFullName()
+//virtual
+std::string CFieldNetCdf::GetFullName() const
 {
 
   if (m_fullName.empty() == false)
@@ -3461,6 +3461,7 @@ std::string CFieldNetCdf::GetFullName()
   return m_fullName;
 }
 //----------------------------------------
+//virtual
 std::string CFieldNetCdf::GetFullNameWithRecord()
 {
   return GetFullName();

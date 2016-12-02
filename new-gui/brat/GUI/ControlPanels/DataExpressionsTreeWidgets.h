@@ -19,12 +19,15 @@
 #define GUI_CONTROL_PANELS_DATA_EXPRESSIONS_TREE_H
 
 
+#include "GenericTreeWidget.h"
 
 class CTextWidget;
 
 
 
-class CAbstractTree : public QTreeWidget
+
+
+class CFieldsTreeWidget : public CGenericTreeWidget
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
@@ -39,135 +42,7 @@ class CAbstractTree : public QTreeWidget
 
 	// types
 
-	using base_t = QTreeWidget;
-
-protected:
-
-	// static members
-
-	static QTreeWidgetItem* SetItemBold( QTreeWidgetItem *item, bool bold );	
-
-
-	// instance variables
-
-    QIcon mGroupIcon;
-    QIcon mKeyIcon;
-
-	QMenu *mContextMenu = nullptr;
-
-	//...domain data
-
-
-	//construction / destruction
-
-
-public:
-	CAbstractTree( QWidget *parent );
-
-	virtual ~CAbstractTree()
-	{}
-
-
-	//remaining methods
-
-	QTreeWidgetItem* SelectedItem()
-	{
-		auto items = selectedItems();		assert__( selectionMode() != SingleSelection || items.size() <= 1 );
-		if ( items.size() > 0 )
-			return items[ 0 ];
-
-		return nullptr;
-	}
-
-	// can return null
-	//
-	const QTreeWidgetItem* SelectedItem() const
-	{
-		return const_cast<CAbstractTree*>( this )->SelectedItem();
-	}
-
-
-	//remaining methods for bases classes
-
-protected:
-
-	template< typename FUNCTION >
-    QTreeWidgetItem* FindItem( FUNCTION f );
-
-
-	template< typename DATA >
-	QTreeWidgetItem* MakeRootItem( const std::string &name, DATA data = nullptr, bool bold = true );
-
-	template< typename PARENT, typename DATA >
-	QTreeWidgetItem* MakeItem( PARENT *parent, const std::string &name, DATA data = nullptr, bool bold = false, bool folder = false );	
-
-	template< typename PARENT, typename DATA >
-	QTreeWidgetItem* MakeEditableLeaf( PARENT *parent, const std::string &name, DATA data = nullptr, bool bold = false );	
-
-
-	template< typename DATA >
-	DATA ItemData( QTreeWidgetItem *item )
-	{
-		return item->data( 0, Qt::UserRole ).value< DATA >();
-	}
-
-	template< typename DATA >
-	void SetItemData( QTreeWidgetItem *item, DATA *data )
-	{
-		if ( !data )
-			return;
-
-		item->setData( 0, Qt::UserRole, QVariant::fromValue( *data ) );
-	}
-
-
-	// context menu
-
-	virtual void CustomContextMenu( QTreeWidgetItem *item ) = 0;
-
-	QAction* AddMenuAction( const std::string &name );
-
-	QAction* AddMenuSeparator();
-
-	void SetMenuTitle( const std::string &title )
-	{
-		mContextMenu->setTitle( title.c_str() );
-	}
-
-protected slots:
-
-	void HandleCustomContextMenu( const QPoint &point )
-	{
-		QModelIndex index = indexAt( point );
-		if ( index.isValid() )				// && index.row() % 2 == 0
-		{
-			CustomContextMenu( itemFromIndex( index ) );
-			mContextMenu->exec( mapToGlobal( point ) );
-		}
-	}
-};
-
-
-
-
-
-
-class CFieldsTreeWidget : public CAbstractTree
-{
-#if defined (__APPLE__)
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Winconsistent-missing-override"
-#endif
-
-	Q_OBJECT;
-
-#if defined (__APPLE__)
-#pragma clang diagnostic pop
-#endif
-
-	// types
-
-	using base_t = CAbstractTree;
+	using base_t = CGenericTreeWidget;
 
 	friend class CDataExpressionsTreeWidget;
 
@@ -247,7 +122,7 @@ protected slots:
 
 
 
-class CDataExpressionsTreeWidget : public CAbstractTree
+class CDataExpressionsTreeWidget : public CGenericTreeWidget
 {
 #if defined (__APPLE__)
 #pragma clang diagnostic push
@@ -262,7 +137,7 @@ class CDataExpressionsTreeWidget : public CAbstractTree
 
 	// types
 
-	using base_t = CAbstractTree;
+	using base_t = CGenericTreeWidget;
 
 
 	// static members

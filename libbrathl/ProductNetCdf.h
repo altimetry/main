@@ -58,7 +58,7 @@ public:
 
   /** Creates new CProductNetCdf object
     \param fileNameList [in] : list of file to be connected */
-  CProductNetCdf(const CStringList& fileNameList);
+  CProductNetCdf( const CStringList& fileNameList, bool check_only_first_files );
 
   /// Destructor
   virtual ~CProductNetCdf();

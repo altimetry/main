@@ -775,10 +775,28 @@ inline void insertToolBar( QMainWindow *w, QToolBar *toolbar, Qt::ToolBarArea ar
 // see also ActionsTable.*
 
 
-inline QToolButton* CreateToolButton( const std::string &name, const std::string &pix_path, const std::string &tip  = "", bool auto_raise = false )
+template< typename ACTION_ITEM >
+ACTION_ITEM* SetIcon( ACTION_ITEM *action_or_button, const std::string &icon_path, const std::string &on_icon_path )
+{
+	if ( !icon_path.empty() )
+	{
+		QIcon icon;
+		icon.addFile( QString::fromUtf8( icon_path.c_str() ), QSize(), QIcon::Normal, QIcon::Off );
+		if ( !on_icon_path.empty() )
+		{
+			icon.addFile( QString::fromUtf8( on_icon_path.c_str() ), QSize(), QIcon::Normal, QIcon::On );
+			action_or_button->setCheckable( true );
+		}
+		action_or_button->setIcon( icon );
+	}
+
+	return action_or_button;
+}
+
+
+inline QToolButton* CreateDefaultToolButton( const std::string &name, const std::string &pix_path, const std::string &on_pix_path, const std::string &tip, bool auto_raise )
 {
 	QToolButton *button = new QToolButton;
-	button->setAutoRaise( auto_raise );
 	if ( !name.empty() )
 	{
 		button->setText( name.c_str() );
@@ -786,12 +804,24 @@ inline QToolButton* CreateToolButton( const std::string &name, const std::string
 	}
 	if (!tip.empty() )
 		button->setToolTip( tip.c_str() );
-	QPixmap pix( pix_path.c_str() );
-	QIcon icon(pix);	
-	button->setIcon(icon);
-	button->setIconSize(QSize(tool_icon_size, tool_icon_size));
+
+	SetIcon( button, pix_path, on_pix_path )->setIconSize( QSize( tool_icon_size, tool_icon_size ) );
+
+	button->setAutoRaise( !button->isCheckable() && auto_raise );	//can a checkable be auto_raise ??? if it makes sense, change this line
 
 	return button;
+}
+
+
+inline QToolButton* CreateToolButton( const std::string &name, const std::string &pix_path, const std::string &tip  = "", bool auto_raise = false )
+{
+	return CreateDefaultToolButton( name, pix_path, "", tip, auto_raise );
+}
+
+
+inline QToolButton* CreateCheckableToolButton( const std::string &name, const std::string &pix_path, const std::string &on_pix_path, const std::string &tip  = "" )
+{
+	return CreateDefaultToolButton( name, pix_path, on_pix_path, tip, false );
 }
 
 
@@ -976,6 +1006,15 @@ inline void FillCombo( COMBO *c, const std::string *names, size_t size, int sele
 //list widget types
 //////////////////////
 
+// 1st created for list widgets, not sure it will work with other list types 
+//
+template< typename LIST_TYPE >
+inline void SetMaximumVisibleItems( LIST_TYPE *list, unsigned nitems )
+{
+	list->setMaximumHeight( list->sizeHintForRow( 0 ) * nitems );
+}
+
+
 template <
     typename LIST_TYPE, typename CONTAINER, typename ENUM_VALUE, typename FUNC = decltype( qidentity )
 >
@@ -1062,7 +1101,7 @@ inline int ComputeTableWidth( TABLE *t )
 //	To be improved also with empiric experience.
 //
 template< class TABLE >
-inline int ComputeTableHeight( TABLE *t )
+inline int ComputeTableHeight( TABLE *t, int rows = - 1 )
 {
 	//t->resizeRowsToContents();
 	t->resize( 1, 1 );
@@ -1074,7 +1113,8 @@ inline int ComputeTableHeight( TABLE *t )
 	int height = t->contentsMargins().top() + t->contentsMargins().bottom() + t->horizontalScrollBar()->height();
 	if ( t->horizontalHeader()->isVisible() )
 		height += t->horizontalHeader()->height();
-    const int rows = t->rowCount();
+	if ( rows < 0 )
+		rows = t->rowCount();
 	for ( auto i = 0; i < rows; ++i )
 		height += t->rowHeight( i );
 
@@ -1249,7 +1289,7 @@ const int min_main_window_width = 1024;
 const int min_main_window_height = 728;
 
 const auto hchild_ratio = 2. / 3.;
-const auto aspect_ratio = 1. / 2.;	// 3. / 4.;
+const auto aspect_ratio = 1. / 2.;	//latitude range == half longitude range
 
 const int min_globe_widget_width =  min_main_window_width * hchild_ratio;
 const int min_globe_widget_height = min_globe_widget_width * aspect_ratio;

@@ -25,13 +25,13 @@
 #include <cstring> 
 #include <sstream> 
 
-#include "new-gui/Common/tools/brathl_error.h" 
+#include "common/tools/brathl_error.h"
 #include "brathl.h" 
 
 #include <string>  
 
-#include "new-gui/Common/tools/TraceLog.h" 
-#include "new-gui/Common/tools/Exception.h"
+#include "common/tools/TraceLog.h"
+#include "common/tools/Exception.h"
  
 #include "List.h" 
 using namespace brathl;
@@ -73,7 +73,7 @@ CStringList::CStringList(const CStringArray& vect)
 
 //----------------------------------------
 
-CStringList::CStringList(const stringarray& vect)
+CStringList::CStringList(const std::vector < std::string >& vect)
 {
   this->Insert(vect);  
 }
@@ -107,7 +107,7 @@ const CStringList& CStringList::operator =(const CStringArray& vect)
    
 }
 //----------------------------------------
-const CStringList& CStringList::operator =(const stringarray& vect)
+const CStringList& CStringList::operator =(const std::vector < std::string >& vect)
 {
   
   this->clear();
@@ -151,7 +151,7 @@ void CStringList::Insert(const CStringArray& vect, bool bEnd /*= true*/)
 }
 //----------------------------------------
 
-void CStringList::Insert(const stringarray& vect, bool bEnd /*= true*/)
+void CStringList::Insert(const std::vector < std::string >& vect, bool bEnd /*= true*/)
 {
   if (vect.empty())
   {
@@ -331,7 +331,7 @@ void CStringList::InsertUnique(const CStringArray* vect, bool bEnd /*= true*/)
 }
 
 //----------------------------------------
-void CStringList::InsertUnique(const stringarray& vect, bool bEnd /*= true*/)
+void CStringList::InsertUnique(const std::vector < std::string >& vect, bool bEnd /*= true*/)
 {
    std::vector<std::string>::const_iterator it;
 

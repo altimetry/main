@@ -52,7 +52,7 @@ public:
   
   /** Creates new CProductCryosat object
     \param fileNameList [in] : list of file to be connected */
-  CProductCryosat(const CStringList& fileNameList);
+  CProductCryosat( const CStringList &fileNameList, bool check_only_first_file );
 
   /// Destructor
   virtual ~CProductCryosat();

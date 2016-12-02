@@ -19,7 +19,7 @@
 */
 
 
-#include "new-gui/Common/tools/Trace.h"
+#include "common/tools/Trace.h"
 #include "Field.h"
 #include "Expression.h"
 #include "Product.h"

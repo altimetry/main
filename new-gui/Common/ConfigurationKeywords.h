@@ -20,7 +20,7 @@
 
 #include <string>
 
-#include "new-gui/Common/+Utils.h"
+#include "common/+Utils.h"
 
 
 const std::string GROUP_SETTINGS_VERSION = "SettingsVersion";

@@ -19,7 +19,7 @@
 #include <string>
 #include <cassert>
 
-#include "new-gui/Common/tools/Exception.h"
+#include "common/tools/Exception.h"
 #include "ObjectTree.h"
 using namespace brathl;
 

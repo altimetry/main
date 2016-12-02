@@ -86,8 +86,7 @@ void CMapToolSelectFeatures::canvasPressEvent( map_tool_mouse_event_t *e )
 
 #if defined(TEST_SELECTION)
 
-	DeleteRubberBand();
-	emit NewRubberBandSelection( QRectF() );
+	RemoveRubberBandSelection( true );	//true -> emit
 
 #endif
 
@@ -127,9 +126,11 @@ void CMapToolSelectFeatures::SetRubberBandSelection( double lonm, double lonM, d
 }
 
 
-void CMapToolSelectFeatures::RemoveRubberBandSelection()
+void CMapToolSelectFeatures::RemoveRubberBandSelection( bool with_signal )
 {
 	DeleteRubberBand();
+	if ( with_signal )
+		emit NewRubberBandSelection( QRectF() );
 }
 
 

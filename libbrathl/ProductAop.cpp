@@ -1,7 +1,4 @@
-
 /*
-* 
-*
 * This file is part of BRAT 
 *
 * BRAT is free software; you can redistribute it and/or
@@ -25,91 +22,90 @@
 #include <string> 
 
 
-#include "new-gui/Common/tools/brathl_error.h" 
+#include "common/tools/brathl_error.h"
 #include "brathl.h" 
 
-#include "new-gui/Common/tools/TraceLog.h" 
+#include "common/tools/TraceLog.h"
 #include "Tools.h" 
-#include "new-gui/Common/tools/Exception.h" 
+#include "common/tools/Exception.h"
 #include "ProductAop.h" 
 
-using namespace brathl;
+
 
 namespace brathl
 {
 
+	void CProductAop::Init()
+	{
+		mLabel = "Altimeter Ocean Pathfinder product";
+
+		InitDateRef();
+		InitCriteriaInfo();
+
+	}
 
 
-CProductAop::CProductAop()
-{
-  Init();
-}
+	CProductAop::CProductAop()
+	{
+		Init();
+	}
 
 
-//----------------------------------------
+	//----------------------------------------
 
-CProductAop::CProductAop(const std::string& fileName)
-      : CProduct(fileName)
-{
-  Init();
-}
-
-
-//----------------------------------------
-CProductAop::CProductAop(const CStringList& fileNameList)
-      : CProduct(fileNameList)
-
-{
-  Init();
-}
-
-//----------------------------------------
-
-CProductAop::~CProductAop()
-{
-
-}
-
-//----------------------------------------
-void CProductAop::InitCriteriaInfo()
-{
-  CProduct::InitCriteriaInfo();
-}
-//----------------------------------------
-void CProductAop::InitDateRef()
-{
-  m_refDate = REF19500101;
-}
-
-//----------------------------------------
-void CProductAop::Init()
-{
-  m_label = "Altimeter Ocean Pathfinder product";
-
-  InitDateRef();
-  InitCriteriaInfo();
-
-}
-//----------------------------------------
-void CProductAop::Dump(std::ostream& fOut /* = std::cerr */)
-{
-  if (CTrace::IsTrace() == false)
-  {
-    return;
-  }
+	CProductAop::CProductAop( const std::string& fileName )
+		: CProduct( fileName )
+	{
+		Init();
+	}
 
 
-  fOut << "==> Dump a CProductAop Object at "<< this << std::endl;
+	//----------------------------------------
+	CProductAop::CProductAop( const CStringList& fileNameList, bool check_only_first_file )
+		: CProduct( fileNameList, check_only_first_file )
 
-  //------------------
-  CProduct::Dump(fOut);
-  //------------------
+	{
+		Init();
+	}
 
-  fOut << "==> END Dump a CProductAop Object at "<< this << std::endl;
+	//----------------------------------------
 
-  fOut << std::endl;
+	CProductAop::~CProductAop()
+	{
 
-}
+	}
+
+	//----------------------------------------
+	void CProductAop::InitCriteriaInfo()
+	{
+		CProduct::InitCriteriaInfo();
+	}
+	//----------------------------------------
+	void CProductAop::InitDateRef()
+	{
+		m_refDate = REF19500101;
+	}
+
+	//----------------------------------------
+	void CProductAop::Dump( std::ostream& fOut /* = std::cerr */ )
+	{
+		if ( CTrace::IsTrace() == false )
+		{
+			return;
+		}
+
+
+		fOut << "==> Dump a CProductAop Object at " << this << std::endl;
+
+		//------------------
+		CProduct::Dump( fOut );
+		//------------------
+
+		fOut << "==> END Dump a CProductAop Object at " << this << std::endl;
+
+		fOut << std::endl;
+
+	}
 
 
 } // end namespace

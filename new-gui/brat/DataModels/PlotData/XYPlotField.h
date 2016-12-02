@@ -20,8 +20,8 @@
 
 #include <cmath>
 
-#include "new-gui/Common/tools/Exception.h"
-#include "new-gui/Common/+Utils.h"
+#include "common/+Utils.h"
+#include "common/tools/Exception.h"
 
 #include "libbrathl/brathl.h"
 #include "libbrathl/BratObject.h"

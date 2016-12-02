@@ -18,7 +18,7 @@
 #if !defined GUI_TABBED_DOCK_H
 #define GUI_TABBED_DOCK_H
 
-#include "new-gui/Common/+Utils.h"
+#include "common/+Utils.h"
 
 
 

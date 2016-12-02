@@ -17,7 +17,7 @@
 */
 #include "stdafx.h"
 
-#include "new-gui/Common/+Utils.h"
+#include "common/+Utils.h"
 #include "SchedulerLogger.h"
 
 

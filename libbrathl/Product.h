@@ -20,7 +20,7 @@
 
 #include <string>
 
-#include "new-gui/Common/tools/brathl_error.h" 
+#include "common/tools/brathl_error.h"
 #include "brathl.h" 
 
 #include "coda.h" 
@@ -61,75 +61,80 @@ namespace brathl
 */
 
 
-class CProductList : public CStringList
-{
-public:
+	class CProductList : public CStringList
+	{
 
-  std::string m_productClass;		
-  std::string m_productType;
-  coda_format m_productFormat;  
-  
-  std::string m_message;
+		DECLARE_BASE_TYPE( CStringList )
 
-public:
-    
-  /// Empty CProductList ctor
-  CProductList();
+	public:
 
-  /** Creates new CProductList object from another one
-    \param p [in] : productList object to be connected */
-  CProductList(const CProductList& p);
+		std::string mCodaProductClass;	//as read by code from file
+		std::string mCodaProductType; 	//as read by code from file
+		std::string m_productClass;
+		std::string m_productType;
+		coda_format m_productFormat;
 
-  /** Creates new CProductList object
-    \param fileName [in] : file name to be connected */
-  CProductList(const std::string& fileName);
-  
-  /** Creates new CProduct object
-    \param fileNameList [in] : list of file to be connected */
-  CProductList(const CStringList& fileNameList);
+	public:
 
-  /** Creates new CProduct object
-    \param fileNameArray [in] : array of file to be connected */
-  CProductList(const CStringArray& fileNameArray);
+		/// Empty CProductList ctor
+		CProductList();
 
-  /** Creates new CProductList object from another one
-    \param p [in] : productList object to be connected */
-  void Set(const CProductList& lst);
+		/** Creates new CProductList object from another one
+		  \param o [in] : productList object to be copied */
+		CProductList( const CProductList &o )
+		{
+			*this = o;
+		}
 
-  const std::string& GetMessage() const {return m_message;}
+		/** Creates new CProductList object from another one
+		\param o [in] : productList object to be copied */
+		CProductList& operator= ( const CProductList& lst );
 
-  /// Destructor
-  virtual ~CProductList();
+		/** Creates new CProductList object
+		  \param fileName [in] : file name to be connected */
+		CProductList( const std::string& fileName );
 
-  bool CheckFiles(bool onlyFirstFile = false);
-  bool CheckFilesNetCdf();
-  
-  bool IsHdfOrNetcdfCodaFormat();
-  static bool IsHdfOrNetcdfCodaFormat(coda_format format);
-  
-  bool IsYFX();
-  bool IsZFXY();
+		/** Creates new CProduct object
+		  \param fileNameList [in] : list of file to be connected */
+		CProductList( const CStringList& fileNameList );
 
-  bool IsGenericNetCdf() const ;
-  
-  bool IsJason2() const;
-  bool IsATP() const;
+		/** Creates new CProduct object
+		  \param fileNameArray [in] : array of file to be connected */
+		CProductList( const CStringArray& fileNameArray );
 
-  bool IsNetCdfProduct() const {return (m_productClass.compare(NETCDF_PRODUCT_CLASS) == 0); }
-  bool IsNetCdfCFProduct() const {return (m_productClass.compare(NETCDF_CF_PRODUCT_CLASS) == 0); }
-  bool IsNetCdfOrNetCdfCFProduct() const {return (IsNetCdfCFProduct() || IsNetCdfProduct()); }
+		/// Destructor
+		virtual ~CProductList()
+		{}
 
-  bool IsSameProduct(const std::string& productClass, const std::string& productType);
+		bool CheckFile( const stringlist::iterator &it, bool netcdf_check );
+		bool CheckFiles( bool onlyFirstFile = false, bool onlyFirstNetcdf = false );
 
-  const CProductList& operator= (const CProductList& lst);
+	private:
+		bool NetCdfCheckFile( const stringlist::iterator &it );
+		bool CheckFilesNetCdf( bool onlyFirst = false );
 
-  ///Dump fonction
-  virtual void Dump(std::ostream& fOut = std::cerr);
+	public:
+		bool IsHdfOrNetcdfCodaFormat();
+		static bool IsHdfOrNetcdfCodaFormat( coda_format format );
 
-protected:
+		bool IsYFX() const;
+		bool IsZFXY() const;
 
-  bool CheckFileList();
-};
+		bool IsGenericNetCdf() const;
+
+		bool IsJason2() const;
+		bool IsATP() const;
+
+		bool IsNetCdfProduct() const { return ( m_productClass.compare( NETCDF_PRODUCT_CLASS ) == 0 ); }
+		bool IsNetCdfCFProduct() const { return ( m_productClass.compare( NETCDF_CF_PRODUCT_CLASS ) == 0 ); }
+		bool IsNetCdfOrNetCdfCFProduct() const { return ( IsNetCdfCFProduct() || IsNetCdfProduct() ); }
+
+		bool IsSameProduct( const std::string& productClass, const std::string& productType );
+
+
+		///Dump fonction
+		virtual void Dump( std::ostream& fOut = std::cerr );
+	};
 
 
 
@@ -153,28 +158,68 @@ protected:
 
 const long DEFAULT_DIM[] = {1};
 
+
+
 class CProduct : public CBratObject
 {
 public:
 
 	static int_t GetRefCount() { return m_codaRefCount; }
 
-public:
 
-	/// Empty CProduct ctor
+	//construction / destruction
+
+private:
+
+	void Init();
+
+
+protected:
 	CProduct();
 
-
 	/** Creates new CProduct object
-	  \param fileName [in] : file name to be connected */
+	\param fileName [in] : file name to be connected */
 	CProduct( const std::string& fileName );
 
 	/** Creates new CProduct object
-	  \param fileNameList [in] : list of file to be connected */
-	CProduct( const CStringList& fileNameList );
+	\param fileNameList [in] : list of file to be connected */
+	CProduct( const CStringList& fileNameList, bool check_only_first_file );
+
+
+public:
+#if defined(BRAT_V3)
+	static CProduct* Construct( CStringList& fileNameList );
+#endif
+
+	static CProduct* Construct( const CProductList &fileNameList );
+
+
+	static CProduct* Construct( CProductList &fileNameList, bool check_only_first_file = false );
+
+
+	static CProduct* Construct( const CStringArray& fileNameArray, bool check_only_first_file = false )
+	{
+        CProductList pl( fileNameArray );                       //g++ 4.7.2 forces variable creation
+		return CProduct::Construct( pl, check_only_first_file );
+	}
+
+
+	static CProduct* Construct( const std::string &fileName )
+	{
+        CProductList pl( fileName );    //g++ 4.7.2 forces variable creation
+		return Construct( pl, true );
+	}
+
+
+	virtual CProduct* Clone();
 
 	/// Destructor
 	virtual ~CProduct();
+
+
+
+	//...
+
 
 	virtual bool GetDateMinMax( CDatePeriod& datePeriodMinMax );
 	virtual bool GetDateMinMax( CDate& dateMin, CDate& dateMax );
@@ -202,10 +247,12 @@ public:
 
 	void RemoveCriteria();
 
-	void AddFile( const std::string& fileName, bool bEnd = true, bool checkFiles = true );
-	void AddFile( const CStringList& fileNameList, bool bEnd = true, bool checkFiles = true );
 
+public:
+
+#if defined (BRAT_V3)
 	bool CheckFiles();
+#endif
 
 	void SetPerformConversions( bool performConversions );
 	int32_t GetPerformConversions() { return m_performConversions; }
@@ -214,13 +261,13 @@ public:
 
 
 	const std::string& GetProductClass() const { return m_fileList.m_productClass; }
-	std::string GetProductType() { return m_fileList.m_productType; }
+	const std::string& GetProductType() const { return m_fileList.m_productType; }
 
 	bool IsNetCdfProduct() { return ( m_fileList.m_productClass.compare( NETCDF_PRODUCT_CLASS ) == 0 ); }
 	bool IsNetCdfCFProduct() { return ( m_fileList.m_productClass.compare( NETCDF_CF_PRODUCT_CLASS ) == 0 ); }
 	bool IsNetCdfOrNetCdfCFProduct() { return ( IsNetCdfCFProduct() || IsNetCdfProduct() ); }
 
-	std::string GetProductClassType();
+	std::string GetProductClassAndType();		//GetProductClassType -> GetProductClassAndType
 
 	virtual void GetRecords( CStringArray& array );
 
@@ -272,7 +319,7 @@ public:
 
 	CDataSet* GetDataSet() { return &m_dataSet; }
 
-	brathl_refDate GetRefDate() { return m_refDate; }
+	brathl_refDate GetRefDate() const { return m_refDate; }
 	CDate GetRefDateAsDate() { return CDate( 0.0, m_refDate ); }
 
 	CTreeField* GetTreeField() { return &m_tree; }
@@ -285,11 +332,7 @@ public:
 	bool GetCreateVirtualField() { return m_createVirtualField; }
 	void SetCreateVirtualField( bool value ) { m_createVirtualField = value; }
 
-
-	static CProduct* Construct( const CStringArray& fileNameArray );
-	static CProduct* Construct( CStringList& fileNameList );
-	static CProduct* Construct( CProductList& fileNameList );
-	static CProduct* Construct( const std::string& fileName );
+	//Construct and Clone methods were declared here in v3
 
 	bool IsNetCdf();
 
@@ -301,7 +344,6 @@ public:
 
 	//static void SetCodaReleaseWhenDestroy(bool value) {m_codaReleaseWhenDestroy = value;};
 
-	virtual CProduct* Clone();
 
 	void DumpDictionary( std::ostream& fOut = std::cout );
 	void DumpDictionary( const std::string& outputFileName );
@@ -346,9 +388,12 @@ public:
 
 
 	CProductList& GetProductList() { return m_fileList; }
-	void SetProductList( const std::string& fileName, bool checkFiles = true );
-	void SetProductList( const CStringList& fileList, bool checkFiles = true );
 
+private:
+	void SetProductList( const std::string& fileName, bool check_all_files = true );
+	void SetProductList( const CStringList& fileList, bool check_all_files= true );
+
+public:
 	bool IsSameProduct( const CProductList fileList );
 	bool IsSameProduct( const std::string& productClass, const std::string& productType );
 
@@ -358,8 +403,8 @@ public:
 	virtual bool IsLongitudeFieldName( const std::string& name ) const { return ( m_longitudeFieldName.compare( name ) == 0 ); }
 	virtual bool IsLatitudeFieldName( const std::string& name ) const { return ( m_latitudeFieldName.compare( name ) == 0 ); }
 
-	virtual std::string GetLabel() { return m_label; }
-	virtual void SetLabel( const std::string& value ) { m_label = value; }
+	virtual const std::string& GetLabel() const { return mLabel; }
+	//virtual void SetLabel( const std::string& value ) { m_label = value; }
 
 	std::string GetDataSetNameToRead() { return m_dataSetNameToRead; }
 	void SetDataSetNameToRead( const std::string& value ) { m_dataSetNameToRead = value; }
@@ -619,7 +664,7 @@ protected:
 	virtual void InitInternalFieldName( const std::string& field, bool convertDate = false );
 
 	void ProcessHighResolution();
-	void ExpandArray();
+	//void ExpandArray();				from v3, not implemented
 	void ExpandFieldsArray();
 	virtual void ProcessHighResolutionWithFieldCalculation();
 	virtual void ProcessHighResolutionWithoutFieldCalculation();
@@ -690,13 +735,9 @@ protected:
 	virtual void InitApplyCriteriaStats();
 	virtual void EndApplyCriteriaStats( const CStringList& filteredFileList );
 
-private:
+//private:
 
-	void Init();
-	void Release();
-	void DeleteProductAliases();
-
-	void InitBratOptions();
+	//Init, Release (deleted), DeleteProductAliases (deleted) and InitBratOptions (deleted) methods were declared here
 
 public:
 
@@ -719,7 +760,7 @@ protected:
 	double m_forceLatMinCriteriaValue;
 	double m_forceLatMaxCriteriaValue;
 
-	std::string m_label;
+	std::string mLabel;
 
 	std::string m_latitudeFieldName;
 	std::string m_longitudeFieldName;
@@ -812,12 +853,12 @@ protected:
 
 	bool m_disableTrace;
 
-	CProductAliases* m_productAliases;
-	CStringMap m_mapStringAliases;
-
 	double m_offset;
 
 private:
+	CProductAliases* m_productAliases;
+	CStringMap m_mapStringAliases;
+
 
 	static int_t m_codaRefCount;
 
@@ -838,11 +879,15 @@ public:
   
   /** Creates new CProdCProductGenericuct object
     \param fileName [in] : file name to be connected */
-  CProductGeneric(const std::string& fileName) : CProduct(fileName) {}
+  CProductGeneric(const std::string& fileName) 
+	  : CProduct( fileName ) 
+  {}
   
   /** Creates new CProductGeneric object
     \param fileNameList [in] : list of file to be connected */
-  CProductGeneric(const CStringList& fileNameList) : CProduct(fileNameList) {}
+  CProductGeneric(const CStringList &fileNameList, bool check_only_first_file ) 
+	  : CProduct( fileNameList, check_only_first_file ) 
+  {}
   
   /// Destructor
   virtual ~CProductGeneric() { }

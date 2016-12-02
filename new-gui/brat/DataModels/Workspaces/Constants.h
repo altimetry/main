@@ -5,7 +5,9 @@
 const std::string WKS_EXPRESSION_NAME = "Expression";
 
 const std::string GROUP_DATASETS = "Datasets";
+const std::string GROUP_RADS_DATASETS = "RadsDatasets";
 const std::string GROUP_OPERATIONS = "Operations";
+const std::string GROUP_OPERATION_FILTERED_DATASETS = "OperationDatasets";
 const std::string GROUP_FORMULAS = "Formulas";
 const std::string GROUP_FUNCTIONS = "Functions";
 const std::string GROUP_DISPLAY = "Displays";
@@ -16,8 +18,12 @@ const std::string ENTRY_WKSLEVEL = "WorkspaceLevel";
 const std::string ENTRY_RECORDNAME = "RecordName";
 const std::string ENTRY_DSNAME = "DatasetName";
 const std::string ENTRY_OPNAME = "OperationName";
+
 const std::string ENTRY_FILE = "File";
 const std::string ENTRY_FILE_REGEX = ENTRY_FILE + "\\d+";
+const std::string ENTRY_MISSION = "Mission";
+const std::string ENTRY_MISSION_REGEX = ENTRY_MISSION + "\\d+";
+
 const std::string ENTRY_UNIT = "Unit";
 const std::string ENTRY_UNIT_REGEX = ENTRY_UNIT + "_(.+)";
 const std::string ENTRY_DISPLAYNAME = "DisplayName";

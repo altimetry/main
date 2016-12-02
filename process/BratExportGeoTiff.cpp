@@ -32,9 +32,9 @@
 
 #include <string>
 #include "List.h"
-#include "new-gui/Common/tools/Exception.h"
-#include "new-gui/Common/+UtilsIO.h"
-#include "new-gui/Common/ApplicationStaticPaths.h"
+#include "common/tools/Exception.h"
+#include "common/+UtilsIO.h"
+#include "common/ApplicationStaticPaths.h"
 #include "FileParams.h"
 
 #include "ProcessCommonTools.h"

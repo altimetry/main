@@ -17,7 +17,7 @@
 */
 #include "stdafx.h"
 
-#include "new-gui/Common/+Utils.h"
+#include "common/+Utils.h"
 #include "ApplicationLogger.h"
 
 // InternalOutputStream is the destination output stream of CApplicationLoggerBase; it abouts to 
